@@ -2,7 +2,7 @@
   "id": "least-privilege-for-the-model",
   "nombre": "Mínimo privilegio para el modelo",
   "area": "trust-safety",
-  "enunciado": "El modelo actúa con las herramientas y los permisos mínimos, y es la base quien decide qué está autorizado.",
+  "enunciado": "Lo que el modelo no puede tocar no lo rompe aunque se equivoque o lo engañen.",
   "porque": "Una alucinación o una inyección convierten cualquier permiso de más en daño real.",
   "ejemplo_bueno": "Lola lee y escribe solo con la identidad de la familia que habla y es la base quien niega lo ajeno",
   "ejemplo_malo": "Lola usa una clave de administrador y confía en que el prompt le diga que no toque otras casas",

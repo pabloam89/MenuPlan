@@ -28,7 +28,7 @@ import { join } from "node:path";
 
 import { AMBITOS } from "./ambitos.mjs";
 import { leerCatalogo } from "./catalogos.mjs";
-import { ACCIONES, leerEstandares } from "./estandaresAgentes.mjs";
+import { ACCIONES, UMBRAL_REESCRITURA, leerEstandares, parecido } from "./estandaresAgentes.mjs";
 import { leerForja } from "./forja.mjs";
 import { leerPrincipios as leerProducto } from "./principiosProducto.mjs";
 import { leerRedaccion } from "./redaccion.mjs";
@@ -46,14 +46,6 @@ export const CAMPOS_ANEXO = ["detalle", "origen", "puente"];
 /** La marca de una fuente: la de regla.mjs, con un solo significado en todos los catálogos (#620). */
 export { MARCAS_FUENTE };
 
-/**
- * Los fondos conocidos (`ops/fondos-conocidos.json`): un fondo no vale como «issue que lleva» una
- * norma sin ejecutor, porque no le da control a ninguna; colgarlas de él es esconderlas. Antes era
- * solo #618 (el caso); desde #620, cualquier fondo (la clase). La lista vive en un fichero porque el
- * test corre sin red.
- */
-export const RUTA_FONDOS = "ops/fondos-conocidos.json";
-export const leerFondosConocidos = (raiz) => JSON.parse(readFileSync(join(raiz, RUTA_FONDOS), "utf8")).fondos;
 
 /** Las listas de las que viene cada principio (`origen`): todas deben quedar migradas. */
 export const ORIGENES = {
@@ -371,10 +363,11 @@ export function problemasDeEnunciadoUnico(lista, textos) {
  *  2. cada principio, propio o delegado, tiene al menos una norma, o está en `sinNorma` con su
  *     motivo, y esa lista no pasa de `techo` (desde #620 los delegados no tienen techo aparte);
  *  3. un principio de `sinNorma` que ya tiene norma sale de la lista (si no, la lista no baja);
- *  4. una norma con ejecutor «nada» lleva su issue, y no vale un fondo (`fondos`, los de RUTA_FONDOS);
+ *  4. una norma con ejecutor «nada» lleva su issue (un número; que sea un encargo o una decisión abiertos lo
+ *     mira el CI con red, scripts/fondos-pr.mjs, #620);
  *  5. las acciones de una norma son de ops/estandares-agentes.json, en el orden de esa lista.
  */
-export function problemasDeUniones(lista, normas, { sinNorma = {} } = {}, { techo = TECHO_SIN_NORMA, acciones = ACCIONES, fondos = [] } = {}) {
+export function problemasDeUniones(lista, normas, { sinNorma = {} } = {}, { techo = TECHO_SIN_NORMA, acciones = ACCIONES } = {}) {
   const malos = [];
   const ids = new Set(lista.map((p) => p.id));
   const citados = new Map();
@@ -383,7 +376,6 @@ export function problemasDeUniones(lista, normas, { sinNorma = {} } = {}, { tech
     else if (!ids.has(n.principio)) malos.push(`norma ${n.id}: cita el principio «${n.principio}», que no está en la lista`);
     else citados.set(n.principio, [...(citados.get(n.principio) ?? []), n.id]);
     if (n.ejecutor === "nada" && !Number.isInteger(n.issue)) malos.push(`norma ${n.id}: nadie la hace cumplir (ejecutor nada) y no tiene issue que lo lleve`);
-    else if (n.ejecutor === "nada" && fondos.includes(n.issue)) malos.push(`norma ${n.id}: nadie la hace cumplir y su issue es #${n.issue}, un problema de fondo, que no le da control; cuélgala de un encargo`);
     for (const a of n.acciones ?? []) if (!acciones.includes(a)) malos.push(`norma ${n.id}: la acción «${a}» no está en ops/estandares-agentes.json (${acciones.join(", ")})`);
     const orden = (n.acciones ?? []).map((a) => acciones.indexOf(a));
     if (orden.some((x, i) => i > 0 && x < orden[i - 1])) malos.push(`norma ${n.id}: «acciones» va en el orden de ops/estandares-agentes.json (${acciones.join(", ")})`);
@@ -411,6 +403,28 @@ export function normasPorPrincipio(normas) {
 
 /** Las áreas que usa la lista, en el orden de AMBITOS. */
 const areasUsadas = (datos) => Object.keys(AMBITOS).filter((a) => datos.principios.some((p) => p.area === a));
+
+/**
+ * Principios que repiten la norma que los cita (#620, ronda 2): el enunciado de un principio dice el porqué y
+ * la norma lo que debe ser verdad; si se parecen desde UMBRAL_REESCRITURA (el de las reglas de estándar, Dice
+ * sobre palabras con contenido), el principio está reescribiendo su norma. [{ principio, norma, parecido }].
+ */
+export function principiosQueRepitenSuNorma(lista, normas, umbral = UMBRAL_REESCRITURA) {
+  const fuera = [];
+  for (const n of normas) {
+    const p = lista.find((x) => x.id === n.principio);
+    if (!p) continue;
+    const v = parecido(p.enunciado, `${n.condicion ?? ""} ${n.exigencia ?? ""}`);
+    if (v >= umbral) fuera.push({ principio: p.id, norma: n.id, parecido: v });
+  }
+  return fuera;
+}
+
+/**
+ * Techo de parejas principio ↔ norma que se repiten. Solo baja: el test lo pide igual a la cifra de hoy, así que
+ * reescribir un enunciado como porqué lo baja y uno nuevo que copie su norma lo rompe.
+ */
+export const TECHO_PRINCIPIOS_QUE_REPITEN = 20;
 
 /** Cuántos principios hay por área, cuántos de un catálogo delegado y cuántos propios sin norma. */
 export function cifras(datos) {

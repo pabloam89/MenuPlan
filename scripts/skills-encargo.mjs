@@ -9,11 +9,11 @@
 //
 // La última línea es la que va al brief: `SKILLS A ABRIR: a, b` (o «ninguna»).
 
-import { execFileSync } from "node:child_process";
 import { resolve } from "node:path";
 
 import { cargarMapa } from "../.claude/hooks/dominios.mjs";
 import { precargadasDe, skillsDelEncargo } from "./lib/usoSkills.mjs";
+import { ficherosDeLaRama } from "./lib/vecinos.mjs";
 
 const RAIZ = resolve(import.meta.dirname, "..");
 const args = process.argv.slice(2);
@@ -24,10 +24,8 @@ for (let i = 0; i < args.length; i++) {
   const a = args[i];
   if (a === "--comando") comandos.push(args[++i] ?? "");
   else if (a === "--agente") agente = args[++i] ?? null;
-  else if (a === "--diff") {
-    const salida = execFileSync("git", ["-C", RAIZ, "diff", "--name-only", "origin/staging...HEAD"], { encoding: "utf8" });
-    ficheros.push(...salida.split(/\r?\n/).filter(Boolean));
-  } else ficheros.push(a);
+  else if (a === "--diff") ficheros.push(...ficherosDeLaRama(RAIZ));
+  else ficheros.push(a);
 }
 
 const mapa = cargarMapa(RAIZ);

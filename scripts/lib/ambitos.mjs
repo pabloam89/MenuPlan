@@ -36,12 +36,12 @@ export const AMBITOS = {
   catalog: {
     legible: "catálogo",
     que: "El catálogo de recetas y alimentos que vive en git",
-    rutas: [/^src\/data\//, /^src\/utils\//, /^src\/assets\/dishes\//, /^scripts\/(validate-catalog|mercadona-[\w-]+|build-derived)\.mjs$/],
+    rutas: [/^src\/data\//, /^src\/utils\//, /^src\/lib\//, /^api\/_bot\//, /^src\/assets\/dishes\//, /^scripts\/[^/]*catalog/, /^scripts\/(bedca|ciqual)/, /^scripts\/(validate-catalog|mercadona-[\w-]+|build-derived)\.mjs$/],
   },
   bot: {
     legible: "bot",
     que: "Lola, el bot de mensajería, sus evals y su coste",
-    rutas: [/^api\/_bot\//, /^api\/bot\//, /^scripts\/(bot|router)-[\w-]+\.(mjs|json)$/, /^\.claude\/rules\/lola\.md$/],
+    rutas: [/^api\/_bot\//, /^api\/bot\//, /^scripts\/(bot|router|telegram)-[\w-]+\.(mjs|json)$/, /^\.claude\/rules\/lola\.md$/],
   },
   api: {
     legible: "api",
@@ -74,6 +74,12 @@ export const AMBITOS = {
     rutas: [/^ops\/entidades(-sujetos)?\.json$/, /^docs\/entidades\//],
   },
 };
+
+/**
+ * Qué ámbito toca cada regla por carpeta de `.claude/rules/` (#620): todo fichero que casa con los `paths:` de
+ * una regla es de su ámbito. Así el mapa de arriba y las reglas no se separan; lo vigila ops/uniones.test.js.
+ */
+export const AMBITO_DE_REGLA = { api: "api", catalogo: "catalog", lola: "bot", migraciones: "data", tests: "code", ui: "ui" };
 
 /** Los ámbitos de un fichero del repo (ruta relativa, con «/»), en el orden de AMBITOS; lista vacía si no cae en ninguno. */
 export function ambitosDeFichero(ruta) {

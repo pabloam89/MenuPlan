@@ -110,8 +110,8 @@ export const ACCIONES_DE_CONSULTA = { construir: ["construir", "juzgar"], juzgar
 export const accionesDeConsulta = (accion) => ACCIONES_DE_CONSULTA[accion] ?? [accion];
 
 /** Las normas de un registro que tocan a unos ámbitos y una acción de tarea, en el orden del registro. */
-export function normasPorConsulta(normas, ambitos, accion) {
-  const acciones = accionesDeConsulta(accion);
+export function normasPorConsulta(normas, ambitos, accion, deConsulta = accionesDeConsulta) {
+  const acciones = deConsulta(accion);
   return (normas ?? []).filter((n) => ambitos.includes(n.ambito) && (n.acciones ?? []).some((a) => acciones.includes(a)));
 }
 
@@ -120,16 +120,34 @@ export function normasPorConsulta(normas, ambitos, accion) {
  * acción), «fichero» (el ámbito de un fichero tocado), «citada» (su lista `normas`) o «común <id>».
  * `normas`: la lista de ops/normas.json. Una norma citada que no existe sale con `norma: null`.
  */
-export function normasDeTarea(t, datos, normas, { ficheros = [] } = {}) {
+export function normasDeTarea(t, datos, normas, { ficheros = [], deConsulta = accionesDeConsulta } = {}) {
   const porId = new Map((normas ?? []).map((n) => [n.id, n]));
   const fuera = new Map();
   const pon = (n, por) => { if (n && !fuera.has(n.id)) fuera.set(n.id, { norma: n, por }); };
-  for (const n of normasPorConsulta(normas, t?.ambitos ?? [], t?.accion)) pon(n, "consulta");
+  for (const n of normasPorConsulta(normas, t?.ambitos ?? [], t?.accion, deConsulta)) pon(n, "consulta");
   const deFicheros = [...new Set(ficheros.flatMap(ambitosDeFichero))].filter((a) => !(t?.ambitos ?? []).includes(a));
-  for (const n of normasPorConsulta(normas, deFicheros, t?.accion)) pon(n, "fichero");
+  for (const n of normasPorConsulta(normas, deFicheros, t?.accion, deConsulta)) pon(n, "fichero");
   for (const id of t?.normas ?? []) porId.has(id) ? pon(porId.get(id), "citada") : fuera.set(id, { norma: null, por: "citada", id });
   for (const c of t?.comunes ?? []) for (const id of datos?.comunes?.[c]?.normas ?? []) porId.has(id) ? pon(porId.get(id), `común ${c}`) : fuera.has(id) || fuera.set(id, { norma: null, por: `común ${c}`, id });
   return [...fuera.values()];
+}
+
+/**
+ * Errores del emparejamiento (#620): para cada ámbito, el constructor y el juez que lo llevan reciben las mismas
+ * normas de construir y juzgar de ese ámbito. `deConsulta` se inyecta para verlo fallar con otra consulta.
+ */
+export function problemasDeEmparejamiento(datos, normas, { deConsulta = accionesDeConsulta } = {}) {
+  const malos = [];
+  const tareas = tareasDe(datos);
+  const deAmbito = (tarea, a) => normasDeTarea(tarea, datos, normas, { deConsulta }).filter((x) => x.norma?.ambito === a && x.norma.acciones.some((y) => ["construir", "juzgar"].includes(y))).map((x) => x.norma.id).sort().join(",");
+  for (const a of Object.keys(AMBITOS)) {
+    const constructores = tareas.filter((x) => x.tarea.accion === "construir" && (x.tarea.ambitos ?? []).includes(a));
+    const jueces = tareas.filter((x) => x.tarea.accion === "juzgar" && (x.tarea.ambitos ?? []).includes(a));
+    for (const c of constructores) for (const j of jueces) {
+      if (deAmbito(c.tarea, a) !== deAmbito(j.tarea, a)) malos.push(`${a}: ${c.agente}/${c.tarea.id} y ${j.agente}/${j.tarea.id} no reciben las mismas normas de ese ámbito`);
+    }
+  }
+  return malos;
 }
 
 /** Las tareas con su agente, en el orden del catálogo: [{ agente, tarea }]. */
@@ -592,8 +610,11 @@ export function bajarJuicioMaximo(raiz, datos) {
 
 /**
  * Cuánto se parecen dos frases, de 0 a 1: las palabras con contenido (sin tildes, sin las vacías, por
- * sus cinco primeras letras para juntar «fallar» y «fallo») que comparten, sobre las de la más corta.
- * Es la capa material de la forja: una regla aproximada con su lista de excepciones, que solo baja.
+ * sus cinco primeras letras para juntar «fallar» y «fallo») que comparten, con el coeficiente de Dice
+ * (dos veces las comunes sobre la suma de las dos). Es simétrico a propósito (#620, ronda 2): dividir solo
+ * por la frase más corta hacía que una norma corta «se tragara» una regla más rica, con términos que la
+ * norma no tiene. Es la capa material de la forja: una regla aproximada con su lista de excepciones, que
+ * solo baja.
  */
 const VACIAS = new Set("de la el los las un una unos unas y o a en con sin su sus que se por para del al lo es son no ni como mas cada antes despues solo ya le les esta este hay muy".split(" "));
 export function palabrasClave(texto) {
@@ -604,11 +625,11 @@ export function parecido(a, b) {
   const x = palabrasClave(a);
   const y = palabrasClave(b);
   if (!x.size || !y.size) return 0;
-  return [...x].filter((w) => y.has(w)).length / Math.min(x.size, y.size);
+  return (2 * [...x].filter((w) => y.has(w)).length) / (x.size + y.size);
 }
 
 /** A partir de cuánto parecido una regla de estándar se toma por una norma reescrita (calibrado con el catálogo de #620). */
-export const UMBRAL_REESCRITURA = 0.6;
+export const UMBRAL_REESCRITURA = 0.5;
 
 /**
  * Techos de las dos listas de excepciones de ops/estandares-agentes.json. Solo bajan: el test los pide
@@ -616,7 +637,7 @@ export const UMBRAL_REESCRITURA = 0.6;
  *  - `reglas_que_no_son_norma`: reglas que se parecen a una norma y no la repiten («<donde> · <nombre>»: «<norma>: motivo»).
  *  - `normas_sin_juez`: normas vigiladas por juicio que ningún estándar de juez cita (id: motivo).
  */
-export const TECHO_REGLAS_QUE_NO_SON_NORMA = 6;
+export const TECHO_REGLAS_QUE_NO_SON_NORMA = 3;
 export const TECHO_NORMAS_SIN_JUEZ = 6;
 
 /** Todas las reglas del catálogo con la clave con la que se nombran en las excepciones: «agente/tarea · Nombre» o «común id · Nombre». */
@@ -628,8 +649,16 @@ export function reglasDelCatalogo(datos) {
 }
 
 const textoDeRegla = (r) => `${r.condicion ?? ""} ${r.exigencia ?? ""}`;
-/** El parecido de dos nombres, solo si los dos tienen dos palabras con contenido o más (uno de una palabra coincide con demasiados). */
-const parecidoDeNombre = (a, b) => (palabrasClave(a).size >= 2 && palabrasClave(b).size >= 2 ? parecido(a, b) : 0);
+/**
+ * El parecido de dos nombres cuenta solo si los dos tienen dos palabras con contenido o más (uno de una palabra
+ * coincide con demasiados) y si casi coinciden (desde 0,8): dos nombres de tres palabras que comparten una son
+ * cosas distintas.
+ */
+const parecidoDeNombre = (a, b) => {
+  if (palabrasClave(a).size < 2 || palabrasClave(b).size < 2) return 0;
+  const p = parecido(a, b);
+  return p >= 0.8 ? p : 0;
+};
 
 /** La norma más parecida a una regla (por su condición y su exigencia, o por su nombre), o null si ninguna llega al umbral. */
 export function normaReescrita(r, normas, umbral = UMBRAL_REESCRITURA) {

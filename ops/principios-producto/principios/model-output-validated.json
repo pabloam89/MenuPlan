@@ -2,7 +2,7 @@
   "id": "model-output-validated",
   "nombre": "Salida del modelo validada",
   "area": "trust-safety",
-  "enunciado": "La salida de un modelo es una entrada sin validar hasta que el código la contrasta con un esquema cerrado.",
+  "enunciado": "Lo que devuelve un modelo tiene la forma que el modelo quiera, no la que espera el código.",
   "porque": "Sin validar llega a la base con la forma que el modelo quiera, y un modelo se equivoca o se deja manipular.",
   "ejemplo_bueno": "Una receta propuesta por el modelo no entra al catálogo sin pasar el esquema de recetas",
   "ejemplo_malo": "El resultado del modelo se guarda tal cual en la ficha de la casa",

@@ -2,7 +2,7 @@
   "id": "fixed-appetite-variable-scope",
   "nombre": "Apetito fijo, alcance variable",
   "area": "scope",
-  "enunciado": "Una mejora con su tiempo fijado de antemano se recorta en alcance en vez de estirarse en plazo.",
+  "enunciado": "El tiempo que merece una mejora se decide antes que su alcance, porque el alcance tiende a crecer.",
   "porque": "Obliga a separar lo central de lo periférico antes de empezar.",
   "ejemplo_bueno": "El filtro de comentarios tiene una semana; si no cabe la IA, se empieza con una lista de palabras",
   "ejemplo_malo": "El filtro de comentarios crece mes a mes sin que nadie haya dicho cuánto merece",

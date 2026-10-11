@@ -304,6 +304,14 @@ describe("npm run estandar", () => {
     expect(out).toMatch(/`cuando-algo-falla` .* Por: citada\./);
   });
 
+  it("--diff toma los ficheros de la rama con la misma función que skills-encargo --diff", () => {
+    const out = execFileSync("node", ["scripts/estandares-agentes.mjs", "revisor", "revisar-diff", "--diff"], { cwd: RAIZ, encoding: "utf8" });
+    expect(out).toContain("ESTÁNDAR A CUMPLIR: revisor/revisar-diff");
+    const fuente = readFileSync(join(RAIZ, "scripts/skills-encargo.mjs"), "utf8") + readFileSync(join(RAIZ, "scripts/estandares-agentes.mjs"), "utf8");
+    expect(fuente.match(/ficherosDeLaRama\(RAIZ\)/g)).toHaveLength(2);
+    expect(fuente).not.toContain('"diff", "--name-only"');
+  });
+
   it("con --ficheros suma las normas del ámbito de cada fichero tocado", () => {
     const sin = execFileSync("node", ["scripts/estandares-agentes.mjs", "revisor", "revisar-diff"], { cwd: RAIZ, encoding: "utf8" });
     const con = execFileSync("node", ["scripts/estandares-agentes.mjs", "revisor", "revisar-diff", "--ficheros", "supabase/migrations/0100_x.sql,api/_guard.js"], { cwd: RAIZ, encoding: "utf8" });

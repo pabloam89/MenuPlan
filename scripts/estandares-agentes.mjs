@@ -9,6 +9,8 @@
  *                                         normas que le tocan (sus ámbitos × su acción, más las del ámbito de
  *                                         cada fichero tocado y las que cita), con su frase, su control y su
  *                                         principio, y sus reglas propias
+ *   npm run estandar -- <agente> <tarea> --diff   lo mismo con los ficheros de la rama frente a origin/staging
+ *                                         (los de `skills-encargo --diff`); es lo que /orquestar pega al juez
  *   npm run estandar -- comunes           las tareas comunes a varios agentes
  *   npm run estandar -- comunes <id>      el estándar de una tarea común
  *   npm run estandar -- --escribir        regenera la sección «Tareas y su estándar» de cada agente y docs/ops/ESTANDARES.md
@@ -16,6 +18,7 @@
  */
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { ficherosDeLaRama } from "./lib/vecinos.mjs";
 import { bajarJuicioMaximo, contar, contarJuicio, escribirMd, escribirSecciones, leerEstandares, leerNormasEn, textoDeComun, textoDeTarea } from "./lib/estandaresAgentes.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -23,7 +26,9 @@ const todos = process.argv.slice(2);
 // --ficheros a,b,… (o --ficheros=a,b): los ficheros tocados, que suman las normas de su ámbito.
 const iFich = todos.findIndex((a) => a === "--ficheros" || a.startsWith("--ficheros="));
 const ficheros = iFich < 0 ? [] : (todos[iFich].includes("=") ? todos[iFich].split("=")[1] : todos[iFich + 1] ?? "").split(",").map((x) => x.trim()).filter(Boolean);
-const args = todos.filter((a, i) => !(iFich >= 0 && (i === iFich || (i === iFich + 1 && !todos[iFich].includes("=")))));
+// --diff: los ficheros de la rama, con la misma función que skills-encargo --diff.
+if (todos.includes("--diff")) ficheros.push(...ficherosDeLaRama(RAIZ));
+const args = todos.filter((a, i) => a !== "--diff" && !(iFich >= 0 && (i === iFich || (i === iFich + 1 && !todos[iFich].includes("=")))));
 const datos = leerEstandares(RAIZ);
 const registro = leerNormasEn(RAIZ);
 

@@ -3,13 +3,17 @@ import { execFileSync } from "node:child_process";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { AMBITOS, ambitosDeFichero } from "../scripts/lib/ambitos.mjs";
+import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
+
+import { AMBITOS, AMBITO_DE_REGLA, ambitosDeFichero } from "../scripts/lib/ambitos.mjs";
+import { globARegex } from "../scripts/lib/vecinos.mjs";
 import { MIN_PALABRAS_COPIA, cargarSkill, nombresDeSkills, parsearSkill, problemasDeNormasDeSkill } from "../scripts/lib/skills.mjs";
 import {
-  TECHO_NORMAS_SIN_JUEZ, TECHO_REGLAS_QUE_NO_SON_NORMA, accionesDeConsulta, juecesPorNorma, leerEstandares, normasDeTarea, problemasDeUnionesEstandar, tareasDe,
+  TECHO_NORMAS_SIN_JUEZ, TECHO_REGLAS_QUE_NO_SON_NORMA, accionesDeConsulta, juecesPorNorma, problemasDeEmparejamiento, leerEstandares, problemasDeUnionesEstandar, tareasDe,
 } from "../scripts/lib/estandaresAgentes.mjs";
 import { leerRegistro } from "../scripts/lib/normas.mjs";
-import { TECHO_SIN_NORMA, leerFondosConocidos, leerPrincipiosCasa, problemasDeUniones } from "../scripts/lib/principios.mjs";
+import { TECHO_PRINCIPIOS_QUE_REPITEN, TECHO_SIN_NORMA, leerPrincipiosCasa, principiosQueRepitenSuNorma, problemasDeUniones } from "../scripts/lib/principios.mjs";
 
 /**
  * Las uniones entre la lista de principios y el registro de normas (#619, fondo #618). Falla si:
@@ -18,7 +22,8 @@ import { TECHO_SIN_NORMA, leerFondosConocidos, leerPrincipiosCasa, problemasDeUn
  *  3. un principio de principios_sin_norma ya tiene norma (la lista tiene que bajar);
  *  4. la lista pasa de TECHO_SIN_NORMA (solo baja: el test la pide igual a la cifra de hoy; desde #620 los
  *     catálogos delegados no tienen techo aparte, todos sus principios tienen norma);
- *  5. una norma con ejecutor «nada» no tiene issue, o su issue es un problema de fondo (ops/fondos-conocidos.json);
+ *  5. una norma con ejecutor «nada» no tiene issue (sin red, solo un número; que sea un encargo o una decisión
+ *     abiertos lo mira el CI, scripts/fondos-pr.mjs);
  *  6. una norma lleva una acción que no es de ops/estandares-agentes.json, o fuera de su orden.
  * Y entre los estándares y las normas (#620):
  *  7. un estándar cita una norma que no existe, o una regla suya reescribe una norma (se le parece desde
@@ -34,11 +39,10 @@ const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const datos = leerPrincipiosCasa(RAIZ);
 const normas = leerRegistro(RAIZ).normas;
 const excepciones = { sinNorma: datos.sin_norma };
-const fondos = leerFondosConocidos(RAIZ);
 
 describe("principios y normas", () => {
   it("cada norma cita un principio que existe, cada principio tiene norma o motivo, y nada sin ejecutor queda sin issue", () => {
-    expect(problemasDeUniones(datos.principios, normas, excepciones, { fondos })).toEqual([]);
+    expect(problemasDeUniones(datos.principios, normas, excepciones)).toEqual([]);
   });
 
   it("el techo de principios sin norma es la cifra de hoy, y ningún delegado queda sin norma (#620)", () => {
@@ -54,12 +58,24 @@ describe("principios y normas", () => {
   });
 });
 
+describe("un principio dice el porqué y no repite su norma (#620, ronda 2)", () => {
+  it("las parejas principio ↔ norma que se parecen no pasan del techo, que es la cifra de hoy", () => {
+    const hoy = principiosQueRepitenSuNorma(datos.principios, normas);
+    expect(hoy.length, hoy.map((x) => `${x.principio} ↔ ${x.norma} ${x.parecido.toFixed(2)}`).join("\n")).toBe(TECHO_PRINCIPIOS_QUE_REPITEN);
+  });
+  it("se ve fallar: un enunciado que copia su norma sube la cifra", () => {
+    const n = normas.find((x) => x.id === "sin-git-stash");
+    const copia = datos.principios.map((p) => (p.id === n.principio ? { ...p, enunciado: `Nadie va a ${n.exigencia}.` } : p));
+    expect(principiosQueRepitenSuNorma(copia, normas).length).toBeGreaterThan(TECHO_PRINCIPIOS_QUE_REPITEN);
+  });
+});
+
 describe("se ven fallar", () => {
   const P = [{ id: "a-principle" }, { id: "b-principle" }, { id: "c-delegated", catalogo: "ops/x/", area: "product" }];
   const conC = (cambios = {}) => ({ id: "otra-c", principio: "c-delegated", ejecutor: "ci", issue: null, acciones: ["construir"], ...cambios });
   const N = (cambios = {}) => ({ id: "una-norma", principio: "a-principle", ejecutor: "ci", issue: null, acciones: ["construir"], ...cambios });
   const sin = { "b-principle": "Motivo de ejemplo con veinte caracteres o más" };
-  const problemas = (normasX, sinX = sin, techo = 1) => problemasDeUniones(P, [...normasX, conC()], { sinNorma: sinX }, { techo, fondos: [185, 618] }).join("\n");
+  const problemas = (normasX, sinX = sin, techo = 1) => problemasDeUniones(P, [...normasX, conC()], { sinNorma: sinX }, { techo }).join("\n");
 
   it("los datos de ejemplo pasan", () => expect(problemas([N()])).toBe(""));
 
@@ -82,26 +98,17 @@ describe("se ven fallar", () => {
     expect(problemasDeUniones(P, [N()], { sinNorma: { ...sin, "c-delegated": "Motivo de ejemplo con veinte caracteres" } }, { techo: 2 }).join("\n")).toBe("");
   });
 
-  it("una norma sin ejecutor y sin issue, o colgada de cualquier fondo (no solo #618); con su encargo, pasa", () => {
+  it("una norma sin ejecutor y sin issue; con un número, pasa (el tipo y el estado los mira el CI)", () => {
     expect(problemas([N({ ejecutor: "nada" })])).toMatch(/ejecutor nada\) y no tiene issue/);
-    expect(problemas([N({ ejecutor: "nada", issue: 618 })])).toMatch(/su issue es #618, un problema de fondo/);
-    expect(problemas([N({ ejecutor: "nada", issue: 185 })])).toMatch(/su issue es #185, un problema de fondo/);
     expect(problemas([N({ ejecutor: "nada", issue: 624 })])).toBe("");
   });
 
-  it("la lista de fondos conocidos trae los de la casa y solo números", () => {
-    expect(fondos).toEqual(expect.arrayContaining([185, 618]));
-    for (const f of fondos) expect(Number.isInteger(f), String(f)).toBe(true);
-  });
-
-  it("sobre el registro de verdad: quitar un principio, vaciar un issue o colgar una norma sin ejecutor del fondo falla", () => {
+  it("sobre el registro de verdad: quitar un principio, vaciar un issue o colgar una norma sin issue falla", () => {
     const sinPrincipio = normas.map((n, i) => (i === 0 ? { ...n, principio: undefined } : n));
-    expect(problemasDeUniones(datos.principios, sinPrincipio, excepciones, { fondos }).join("\n")).toMatch(new RegExp(`norma ${normas[0].id}: no cita`));
+    expect(problemasDeUniones(datos.principios, sinPrincipio, excepciones).join("\n")).toMatch(new RegExp(`norma ${normas[0].id}: no cita`));
     const nada = normas.find((n) => n.ejecutor === "nada");
     const sinIssue = normas.map((n) => (n === nada ? { ...n, issue: null } : n));
-    expect(problemasDeUniones(datos.principios, sinIssue, excepciones, { fondos }).join("\n")).toMatch(new RegExp(`norma ${nada.id}: nadie la hace cumplir`));
-    const alFondo = normas.map((n) => (n === nada ? { ...n, issue: 263 } : n));
-    expect(problemasDeUniones(datos.principios, alFondo, excepciones, { fondos }).join("\n")).toMatch(new RegExp(`norma ${nada.id}: .*#263`));
+    expect(problemasDeUniones(datos.principios, sinIssue, excepciones).join("\n")).toMatch(new RegExp(`norma ${nada.id}: nadie la hace cumplir`));
   });
 });
 
@@ -119,23 +126,13 @@ describe("los estándares citan normas y no las reescriben (#620)", () => {
   });
 
   it("el constructor y el juez de un mismo ámbito reciben las mismas normas de ese ámbito", () => {
+    expect(problemasDeEmparejamiento(estandares, normas)).toEqual([]);
     const tareas = tareasDe(estandares);
-    const deAmbito = (tarea, a) => normasDeTarea(tarea, estandares, normas).filter((x) => x.norma?.ambito === a && x.norma.acciones.some((y) => ["construir", "juzgar"].includes(y))).map((x) => x.norma.id).sort();
-    let pares = 0;
-    for (const a of Object.keys(AMBITOS)) {
-      const constructores = tareas.filter((x) => x.tarea.accion === "construir" && x.tarea.ambitos.includes(a));
-      const jueces = tareas.filter((x) => x.tarea.accion === "juzgar" && x.tarea.ambitos.includes(a));
-      for (const c of constructores) for (const j of jueces) {
-        expect(deAmbito(j.tarea, a), `${a}: ${c.agente}/${c.tarea.id} frente a ${j.agente}/${j.tarea.id}`).toEqual(deAmbito(c.tarea, a));
-        pares += 1;
-      }
-    }
     // Las parejas que pide el encargo: el código (las C) y la infraestructura (las I) tienen constructor y juez.
     for (const a of ["code", "infra"]) {
       expect(tareas.some((x) => x.tarea.accion === "construir" && x.tarea.ambitos.includes(a)), `${a}: constructor`).toBe(true);
       expect(tareas.some((x) => x.tarea.accion === "juzgar" && x.tarea.ambitos.includes(a)), `${a}: juez`).toBe(true);
     }
-    expect(pares).toBeGreaterThan(20);
     expect(accionesDeConsulta("construir")).toEqual(accionesDeConsulta("juzgar"));
   });
 
@@ -147,6 +144,23 @@ describe("los estándares citan normas y no las reescriben (#620)", () => {
     expect(ambitosDeFichero(".claude/hooks/guardia.mjs")).toEqual(["code", "infra"]);
     expect(ambitosDeFichero("supabase/migrations/0100_x.sql")).toEqual(["data"]);
     expect(ambitosDeFichero("ops/redaccion.json")).toEqual(["process", "writing"]);
+  });
+
+  it("todo fichero que casa con los paths: de una regla de .claude/rules/ tiene el ámbito de esa regla", () => {
+    const ficheros = execFileSync("git", ["ls-files", "-z"], { cwd: RAIZ, encoding: "utf8" }).split("\0").filter(Boolean);
+    const reglas = readdirSync(join(RAIZ, ".claude/rules")).filter((f) => f.endsWith(".md")).map((f) => f.slice(0, -3));
+    expect(reglas.sort()).toEqual(Object.keys(AMBITO_DE_REGLA).sort());
+    const faltan = [];
+    for (const r of reglas) {
+      const fm = /^---\n([\s\S]*?)\n---/.exec(readFileSync(join(RAIZ, ".claude/rules", `${r}.md`), "utf8").replace(/\r\n/g, "\n"));
+      const globs = [...(fm?.[1] ?? "").matchAll(/^\s+-\s+["']?([^"'\n]+?)["']?\s*$/gm)].map((m) => m[1]);
+      expect(globs.length, r).toBeGreaterThan(0);
+      for (const f of ficheros) if (globs.some((g) => globARegex(g).test(f)) && !ambitosDeFichero(f).includes(AMBITO_DE_REGLA[r])) faltan.push(`${f}: casa con la regla ${r} y no es de ${AMBITO_DE_REGLA[r]}`);
+    }
+    expect(faltan).toEqual([]);
+    for (const [f, a] of [["src/lib/cocinaTopes.js", "catalog"], ["scripts/bedca-sync.mjs", "catalog"], ["scripts/ciqual-sync.mjs", "catalog"], ["scripts/build-ingredient-catalog.mjs", "catalog"], ["scripts/telegram-webhook.mjs", "bot"]]) {
+      expect(ambitosDeFichero(f), f).toContain(a);
+    }
   });
 
   describe("se ven fallar", () => {
@@ -164,7 +178,7 @@ describe("los estándares citan normas y no las reescriben (#620)", () => {
     });
     it("una excepción con su motivo deja pasar la regla; una que ya no hace falta, o sin motivo, falla", () => {
       const clave = "gobierno/flujo-rama-pr-staging · Prueba antes de fiarse";
-      const techos = { reglas: 7, juicio: TECHO_NORMAS_SIN_JUEZ };
+      const techos = { reglas: TECHO_REGLAS_QUE_NO_SON_NORMA + 1, juicio: TECHO_NORMAS_SIN_JUEZ };
       expect(con((d) => { d.agentes.gobierno.tareas[0].reglas.push(copia); d.reglas_que_no_son_norma[clave] = "test-visto-fallar: motivo de ejemplo con más de quince caracteres"; }, { techos })).toBe("");
       expect(con((d) => { d.reglas_que_no_son_norma[clave] = "test-visto-fallar: motivo de ejemplo con más de quince caracteres"; }, { techos })).toMatch(/no es una regla del catálogo/);
       const vieja = Object.keys(estandares.reglas_que_no_son_norma)[0];
@@ -183,11 +197,9 @@ describe("los estándares citan normas y no las reescriben (#620)", () => {
       expect(con((d) => { d.normas_sin_juez["inventada"] = "Motivo de ejemplo con veinte caracteres"; })).toMatch(/normas_sin_juez: 7 y el techo es 6; la lista solo baja/);
     });
     it("el constructor y el juez de un ámbito dejan de recibir lo mismo si la consulta no los empareja", () => {
-      const d = clon();
-      const c = d.agentes.gobierno.tareas.find((t) => t.id === "workflows-y-crons");
-      const j = d.agentes.revisor.tareas.find((t) => t.id === "revisar-diff");
-      const soloSuya = (t) => normas.filter((n) => t.ambitos.includes(n.ambito) && n.acciones.includes(t.accion)).map((n) => n.id).filter((id) => normas.find((n) => n.id === id).ambito === "infra").sort();
-      expect(soloSuya(c)).not.toEqual(soloSuya(j));
+      const sinPareja = problemasDeEmparejamiento(estandares, normas, { deConsulta: (a) => [a] }).join("\n");
+      expect(sinPareja).toMatch(/infra: gobierno\/workflows-y-crons y revisor\/revisar-diff no reciben las mismas normas/);
+      expect(sinPareja).toMatch(/code: /);
     });
   });
 });

@@ -10,14 +10,14 @@ Cada principio de abajo es el porqué, sin fuerza, con su ejemplo bueno, su ejem
 
 ## Principios
 
-- `castellano-siempre` — **Castellano siempre.** Las reglas de la casa se escriben en castellano, salvo los nombres propios, el código y las citas.
+- `castellano-siempre` — **Castellano siempre.** Una regla que todo el equipo lee en su idioma se entiende a la primera y se discute menos.
   - Porqué: Quien trabaja en el repo lee en castellano, y mezclar idiomas en una regla la hace más difícil de entender.
   - Norma: `rule-in-spanish` — **Castellano siempre.** Cada regla de la casa DEBE escribirse en castellano, salvo los nombres propios, el código y las citas. Control: juicio.
     - Nota: Las palabras de fuerza de RFC 2119 se traducen: debe, no debe y conviene; no se deja MUST ni SHOULD.
   - Bueno: «Cada skill debe llevar su dueño».
   - Malo: «Each skill must have an owner».
   - Fuente: [I] CLAUDE.md.
-- `sin-anglicismos-con-termino` — **Sin anglicismos con término.** Un anglicismo sobra cuando el glosario ya tiene su término en castellano.
+- `sin-anglicismos-con-termino` — **Sin anglicismos con término.** El glosario de la casa ya tiene término castellano para lo que se repite, y el préstamo lo duplica.
   - Porqué: Dos palabras para lo mismo parten la búsqueda y el recuento, y el término castellano lo entiende todo el equipo.
   - Norma: `no-anglicism-with-term` — **Sin anglicismos con término.** Cada regla de la casa NO DEBE usar un anglicismo cuando el glosario ya tiene su término en castellano. Control: `ops/glosario.test.js`.
     - Nota: Lo que no tiene término en el glosario (hook, staging, lint) se deja como está y se añade al glosario si se repite.

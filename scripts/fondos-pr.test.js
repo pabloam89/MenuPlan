@@ -165,3 +165,33 @@ describe("scripts/fondos-pr.mjs: el PR y su problema de fondo (#337)", () => {
     expect(ms).toBeLessThan(topeMs(SUELTO_HOSTIL_MS));
   });
 });
+
+describe("las normas sin ejecutor apuntan a un encargo o una decisión abiertos (#620)", () => {
+  const N = (id, issue) => ({ id, ejecutor: "nada", issue });
+  const tabla = {
+    51: ENCARGO,
+    624: { number: 624, state: "open", labels: etiquetas("tipo:encargo") },
+    387: { number: 387, state: "open", labels: etiquetas("tipo:decision") },
+    297: { number: 297, state: "closed", labels: etiquetas("tipo:encargo") },
+    210: { number: 210, state: "open", labels: etiquetas("tipo:caso") },
+    185: { number: 185, state: "open", labels: etiquetas("tipo:fondo") },
+  };
+  const con = (normas) => comprobar({ cuerpo: CUERPO, rama: "ops/51-algo", normas, ...consultaDe(tabla, { 51: FONDO(ficha(DIAG)) }) });
+
+  it("con su encargo o su decisión abiertos, vale; una norma con ejecutor no se mira", async () => {
+    expect((await con([N("a", 624), N("b", 387), { id: "c", ejecutor: "ci", issue: 297 }])).ok).toBe(true);
+  });
+  it("un issue cerrado, un caso, un fondo o uno que no existe fallan", async () => {
+    expect((await con([N("a", 297)])).motivo).toMatch(/norma a: su issue #297 está cerrado/);
+    expect((await con([N("b", 210)])).motivo).toMatch(/norma b: su issue #210 es de tipo caso/);
+    expect((await con([N("c", 185)])).motivo).toMatch(/norma c: su issue #185 es de tipo fondo/);
+    expect((await con([N("d", 999)])).motivo).toMatch(/norma d: su issue #999 no existe/);
+    expect((await con([N("e", null)])).motivo).toMatch(/norma e: sin ejecutor y sin issue/);
+  });
+  it("si la API no responde, falla cerrado y lo dice", async () => {
+    const r = await comprobar({ cuerpo: CUERPO, rama: "ops/51-algo", normas: [N("a", 624)], consultar: async (n) => { if (n === 624) throw new ErrorDeApi("caída"); return tabla[n] ?? null; }, consultarPadre: async () => FONDO(ficha(DIAG)) });
+    expect(r.ok).toBe(false);
+    expect(r.api).toBe(true);
+    expect(r.motivo).toMatch(/normas sin ejecutor/);
+  });
+});

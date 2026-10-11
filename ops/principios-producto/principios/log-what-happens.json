@@ -2,7 +2,7 @@
   "id": "log-what-happens",
   "nombre": "Dejar rastro contable",
   "area": "cost-reliability",
-  "enunciado": "Cada fallo, bloqueo o gasto relevante deja una línea que un script puede contar, sin datos de la familia.",
+  "enunciado": "Lo que no deja una huella contable no se puede medir ni mejorar, y para contar no hacen falta datos de familias.",
   "porque": "Lo que no se mide no mejora, y el registro sirve también para detectar un uso anómalo.",
   "ejemplo_bueno": "Cada vez que Lola degrada por falta de cupo deja una línea con motivo cupo_agotado",
   "ejemplo_malo": "El fallo se traga con un catch vacío y nadie sabe cuántas veces ocurre",

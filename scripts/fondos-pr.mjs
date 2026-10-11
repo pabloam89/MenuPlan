@@ -16,13 +16,18 @@
  *      - si es un FONDO, su ficha tiene aprendizaje: sin él no se cierra.
  *      Los fondos anteriores a la ficha (FICHA_DESDE) sin ficha no se exigen.
  *
+ *   4. Toda norma de ops/normas.json sin ejecutor (`nada`) apunta a un issue ABIERTO de tipo encargo o
+ *      decisión, el que la lleva (#620): ni un caso, ni un fondo, ni uno cerrado. Es lo que el test local no
+ *      puede ver sin red (ops/uniones.test.js solo mira que sea un número).
+ *
  * El cuerpo del PR se lee con limpiarCuerpo (sin comentarios ni bloques de
  * código: la plantilla explica las líneas en un comentario y no cuenta).
  *
  * Uso (lo lanza el CI): PR_BODY=… PR_AUTOR=… PR_RAMA=… GITHUB_TOKEN=… GITHUB_REPOSITORY=… node scripts/fondos-pr.mjs
  */
-import { resolve } from "node:path";
-import { pathToFileURL } from "node:url";
+import { readFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { MAX_CASOS, MAX_NUMERO, limpiarCuerpo } from "../.claude/hooks/casos.mjs";
 import { ErrorDeApi, pedir } from "./lib/ghApi.mjs";
@@ -47,11 +52,33 @@ export function cierresDelPr(cuerpo) {
   return [...new Set([...limpiarCuerpo(cuerpo).matchAll(re)].map((m) => Number(m[1])))];
 }
 
+/** Los tipos de issue que pueden llevar una norma sin ejecutor: el trabajo que le dará uno o la decisión de dárselo. */
+export const TIPOS_QUE_LLEVAN = ["encargo", "decision"];
+
+/**
+ * Errores de las normas sin ejecutor (#620): cada una apunta a un issue abierto de tipo encargo o decisión.
+ * `consultar(n)` → el issue de la API o null; puede lanzar ErrorDeApi (lo recoge quien llama).
+ */
+export async function problemasDeNormasSinEjecutor(normas, consultar) {
+  const malos = [];
+  const sinEjecutor = (normas ?? []).filter((n) => n.ejecutor === "nada");
+  const vistos = new Map();
+  for (const n of sinEjecutor) {
+    if (!Number.isInteger(n.issue)) { malos.push(`norma ${n.id}: sin ejecutor y sin issue que la lleve`); continue; }
+    if (!vistos.has(n.issue)) vistos.set(n.issue, await consultar(n.issue));
+    const i = vistos.get(n.issue);
+    if (!i || i.pull_request) malos.push(`norma ${n.id}: su issue #${n.issue} no existe o es un PR`);
+    else if (String(i.state).toLowerCase() !== "open") malos.push(`norma ${n.id}: su issue #${n.issue} está cerrado; cuélgala de un encargo abierto que le dé ejecutor (#624 si no hay otro)`);
+    else if (!TIPOS_QUE_LLEVAN.includes(tipoDe(i))) malos.push(`norma ${n.id}: su issue #${n.issue} es de tipo ${tipoDe(i) ?? "sin tipo"}; la lleva un encargo o una decisión, no un caso ni un fondo`);
+  }
+  return malos;
+}
+
 /**
  * Decide si el PR cumple. `consultar(n)` → el issue de la API o null;
  * `consultarPadre(n)` → su padre o null; ambos pueden lanzar ErrorDeApi.
  */
-export async function comprobar({ cuerpo, autor = "", rama = "", consultar, consultarPadre }) {
+export async function comprobar({ cuerpo, autor = "", rama = "", consultar, consultarPadre, normas = [] }) {
   if (BOTS.has(String(autor).toLowerCase())) return { ok: true, motivo: "PR de un bot: exento." };
   const fallos = [];
 
@@ -112,6 +139,13 @@ export async function comprobar({ cuerpo, autor = "", rama = "", consultar, cons
     }
   }
 
+  try {
+    fallos.push(...await problemasDeNormasSinEjecutor(normas, consultar));
+  } catch (e) {
+    if (!(e instanceof ErrorDeApi)) throw e;
+    return { ok: false, api: true, motivo: `No he podido consultar los issues de las normas sin ejecutor en la API de GitHub (${e.message}). No es culpa del PR: relanza el check.` };
+  }
+
   if (fallos.length) return { ok: false, motivo: `El PR no cumple: ${fallos.join("; ")}.` };
   return { ok: true, motivo: `Agente: ${lineas.join(", ")}${cierres.length ? `; Closes ${cierres.map((n) => `#${n}`).join(", ")}` : ""}.` };
 }
@@ -127,6 +161,7 @@ if (esPrincipal) {
     rama: PR_RAMA,
     consultar: (n) => pedir({ ...base, ruta: `/issues/${n}` }),
     consultarPadre: (n) => pedir({ ...base, ruta: `/issues/${n}/parent` }),
+    normas: JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), "..", "ops", "normas.json"), "utf8")).normas,
   });
   if (r.ok) {
     console.log(`Fondos: ok. ${r.motivo}`);

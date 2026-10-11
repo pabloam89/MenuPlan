@@ -107,7 +107,7 @@ Identidades, permisos, secretos, ramas, CI, despliegues, copias y servicios.
   - Porqué: Un ensayo que deja rastro ya no es un ensayo, y uno viejo no dice nada del estado de hoy.
   - Fuentes: [I] `scripts/apply-migration.mjs`
   - Viene de: I6
-- `untamperable-trail` — **Rastro que nadie reescribe.** Cada acción de un agente deja un rastro que ese mismo agente no puede editar ni borrar.
+- `untamperable-trail` — **Rastro que nadie reescribe.** Un rastro que su propio autor puede tocar no sirve como prueba de lo que pasó.
   - Porqué: Un rastro que se puede reescribir no sirve para saber qué pasó justo cuando más falta hace.
   - Fuentes: [I] `.claude/hooks/eventos.mjs`
   - Viene de: N2
@@ -167,7 +167,7 @@ La base: tablas, migraciones, roles y cada dato que guarda.
   - Porqué: El catálogo de la base es la documentación que no se queda vieja, y un select de todo esconde quién lee qué.
   - Fuentes: [I] `docs/datos/PRINCIPIOS.md`
   - Detalle: `docs/datos/PRINCIPIOS.md#16-diccionario-y-lectura`
-- `status-is-state-machine` — **El estado es una máquina.** Cada columna de estado es una máquina con vocabulario cerrado, una fecha por estado importante y sus saltos escritos.
+- `status-is-state-machine` — **El estado es una máquina.** Un estado sin vocabulario ni saltos escritos admite combinaciones que nadie decidió y no deja ver cuándo cambió.
   - Porqué: Un estado que se escribe sin reglas acaba en combinaciones imposibles que nadie sabe interpretar.
   - Fuentes: [I] `docs/datos/PRINCIPIOS.md`
   - Detalle: `docs/datos/PRINCIPIOS.md#21-estados`
@@ -175,11 +175,11 @@ La base: tablas, migraciones, roles y cada dato que guarda.
   - Porqué: Una tabla tocada con textos sueltos desde cualquier sitio se rompe en cuanto cambia, aunque la base esté bien.
   - Fuentes: [I] `docs/datos/PRINCIPIOS.md`
   - Detalle: `docs/datos/PRINCIPIOS.md#15-cableado-del-código-a-la-tabla`
-- `types-and-nulls` — **Tipos justos y nulos decididos.** Cada columna tiene el tipo justo y es not null, salvo que su comentario diga qué significa el nulo.
+- `types-and-nulls` — **Tipos justos y nulos decididos.** Un tipo justo y un nulo con significado hacen que la base rechace por sí sola los datos imposibles.
   - Porqué: Un nulo sin significado se lee de tres formas distintas, y un tipo flojo deja entrar datos imposibles.
   - Fuentes: [I] `docs/datos/PRINCIPIOS.md`
   - Detalle: `docs/datos/PRINCIPIOS.md#14-tipos-y-nulos`
-- `versioned-concurrency` — **Concurrencia con versión.** El estado compartido de la casa se escribe con funciones que comprueban y suben una versión.
+- `versioned-concurrency` — **Concurrencia con versión.** Varios dispositivos de una casa escriben a la vez, y sin una versión el último pisa al primero sin saberlo.
   - Porqué: La app, el bot y otro miembro escriben la misma casa, y sin versión gana el último sin que nadie se entere.
   - Fuentes: [I] `docs/datos/PRINCIPIOS.md`
   - Detalle: `docs/datos/PRINCIPIOS.md#7-concurrencia`
@@ -238,7 +238,7 @@ Lo trae el catálogo delegado `ops/principios-producto/`, con su detalle en `doc
 - `fail-closed-for-safety-filters` — **Filtro que falla cerrado.** Un filtro de seguridad que deja pasar todo cuando falla equivale a no tener filtro.
   - Porqué: Si el filtro falla abierto, basta con agotarlo o tumbarlo para saltárselo.
   - Fuentes: [S] https://www.cisa.gov/securebydesign ; [S] https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/
-- `fixed-appetite-variable-scope` — **Apetito fijo, alcance variable.** Una mejora con su tiempo fijado de antemano se recorta en alcance en vez de estirarse en plazo.
+- `fixed-appetite-variable-scope` — **Apetito fijo, alcance variable.** El tiempo que merece una mejora se decide antes que su alcance, porque el alcance tiende a crecer.
   - Porqué: Obliga a separar lo central de lo periférico antes de empezar.
   - Fuentes: [F] https://basecamp.com/shapeup/1.2-chapter-03
 - `graceful-degradation` — **Degradación elegante.** Lo esencial del producto sigue funcionando sin IA cuando el modelo falla, tarda o se queda sin cupo.
@@ -247,7 +247,7 @@ Lo trae el catálogo delegado `ops/principios-producto/`, con su detalle en `doc
 - `hard-spend-cap` — **Límite de gasto en IA.** Un límite global que corta antes de gastar protege la factura de IA del abuso.
   - Porqué: El abuso puede disparar la factura (denial of wallet) sin que nadie haya entrado en el sistema.
   - Fuentes: [F] https://api-security.owasp.org/editions/2023/en/0xa4-unrestricted-resource-consumption ; [F] https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/
-- `human-approval-high-impact` — **Confirmación humana en lo grave.** Una acción irreversible o que sale de la casa se ejecuta solo con la confirmación explícita de la persona.
+- `human-approval-high-impact` — **Confirmación humana en lo grave.** Lo irreversible o lo que sale de la casa no admite el error de un modelo que se equivoca o se deja manipular.
   - Porqué: El modelo puede equivocarse o ser manipulado, y una acción que no se puede deshacer no admite el error.
   - Fuentes: [F] https://genai.owasp.org/llmrisk/llm062025-excessive-agency/ ; [F] https://www.microsoft.com/en-us/research/articles/guidelines-for-human-ai-interaction-eighteen-best-practices-for-human-centered-ai-design/
 - `idempotent-writes` — **Escrituras repetibles.** Una escritura que puede llegar dos veces produce el mismo efecto que si llegara una.
@@ -257,15 +257,15 @@ Lo trae el catálogo delegado `ops/principios-producto/`, con su detalle en `doc
 - `keep-context-no-reask` — **No repetir preguntas.** Un dato que la persona ya dio se recuerda en vez de pedirse otra vez.
   - Porqué: En los estudios de NN/g, los bots que repetían preguntas cansaban a la gente.
   - Fuentes: [F] https://www.nngroup.com/articles/chatbots/ ; [F] https://www.microsoft.com/en-us/research/articles/guidelines-for-human-ai-interaction-eighteen-best-practices-for-human-centered-ai-design/
-- `least-privilege-for-the-model` — **Mínimo privilegio para el modelo.** El modelo actúa con las herramientas y los permisos mínimos, y es la base quien decide qué está autorizado.
+- `least-privilege-for-the-model` — **Mínimo privilegio para el modelo.** Lo que el modelo no puede tocar no lo rompe aunque se equivoque o lo engañen.
   - Porqué: Una alucinación o una inyección convierten cualquier permiso de más en daño real.
   - Fuentes: [F] https://genai.owasp.org/llmrisk/llm062025-excessive-agency/ ; [F] https://www.anthropic.com/engineering/building-effective-agents
-- `log-what-happens` — **Dejar rastro contable.** Cada fallo, bloqueo o gasto relevante deja una línea que un script puede contar, sin datos de la familia.
+- `log-what-happens` — **Dejar rastro contable.** Lo que no deja una huella contable no se puede medir ni mejorar, y para contar no hacen falta datos de familias.
   - Porqué: Lo que no se mide no mejora, y el registro sirve también para detectar un uso anómalo.
   - Fuentes: [F] https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/
   - Detalle: `docs/entidades/N0-principios.md#10-un-evento-lleva-campos-fijos`
   - Viene de: C11, claude:cada-cosa-deja-una-linea
-- `model-output-validated` — **Salida del modelo validada.** La salida de un modelo es una entrada sin validar hasta que el código la contrasta con un esquema cerrado.
+- `model-output-validated` — **Salida del modelo validada.** Lo que devuelve un modelo tiene la forma que el modelo quiera, no la que espera el código.
   - Porqué: Sin validar llega a la base con la forma que el modelo quiera, y un modelo se equivoca o se deja manipular.
   - Fuentes: [F] https://genai.owasp.org/llm-top-10/ ; [F] https://www.anthropic.com/engineering/writing-tools-for-agents
 - `no-pretend-human` — **No hacerse pasar por humano.** Un bot que se presenta como bot evita que la persona sobrestime lo que puede hacer.
@@ -274,7 +274,7 @@ Lo trae el catálogo delegado `ops/principios-producto/`, con su detalle en `doc
 - `no-secrets-in-prompts-or-client` — **Secretos fuera del prompt.** Una clave o una regla interna puesta en un prompt o en el código del navegador acaba a la vista de cualquiera.
   - Porqué: Un prompt puede filtrarse y el código del cliente lo ve cualquiera.
   - Fuentes: [F] https://genai.owasp.org/llm-top-10/
-- `no-sensitive-data-in-chat-by-default` — **Sin datos sensibles de más.** Un canal de terceros no es sitio para datos sensibles que la tarea no necesita.
+- `no-sensitive-data-in-chat-by-default` — **Sin datos sensibles de más.** Un canal de mensajería de terceros guarda lo que se escribe fuera de nuestro control.
   - Porqué: En los estudios de NN/g los usuarios dudaban de dar datos sensibles a un bot, y el canal no es nuestro.
   - Fuentes: [F] https://www.nngroup.com/articles/chatbots/ ; [F] https://gdpr-info.eu/art-25-gdpr/
 - `onboard-in-stages` — **Presentarse por etapas.** Las funciones se aprenden mejor por etapas cortas, cuando cada una es relevante.
@@ -299,21 +299,21 @@ Lo trae el catálogo delegado `ops/principios-producto/`, con su detalle en `doc
   - Porqué: Lo seguro de serie no depende de la memoria de nadie, y lo inseguro cuesta un paso consciente.
   - Fuentes: [F] https://www.cisa.gov/securebydesign
   - Detalle: `docs/datos/PRINCIPIOS.md#8-seguridad`
-- `simple-first-agents` — **Lo simple primero.** La lógica de un bot empieza por lo más simple y crece solo cuando lo medido mejora.
+- `simple-first-agents` — **Lo simple primero.** Cada paso, herramienta o agente de más añade coste y errores, y rara vez mejora lo que se mide.
   - Porqué: La complejidad cuesta tokens, errores y mantenimiento, y rara vez se nota en la conversación.
   - Fuentes: [F] https://www.anthropic.com/engineering/building-effective-agents ; [F] https://www.anthropic.com/engineering/writing-tools-for-agents
 - `state-capabilities-and-limits` — **Capacidades y límites visibles.** Una persona que sabe qué hace el bot, qué no y con qué fiabilidad ni se frustra ni se fía de más.
   - Porqué: Con expectativas realistas la persona no se frustra ni se fía de lo que el bot no puede hacer.
   - Fuentes: [F] https://www.microsoft.com/en-us/research/articles/guidelines-for-human-ai-interaction-eighteen-best-practices-for-human-centered-ai-design/ ; [F] https://pair.withgoogle.com/chapter/mental-models/
-- `storage-limitation` — **Limitación del plazo.** Un dato personal que ya no sirve a su fin se borra o se anonimiza.
+- `storage-limitation` — **Limitación del plazo.** Un dato personal guardado más allá de su fin es riesgo para la familia sin ningún beneficio.
   - Porqué: Lo que se conserva de más es riesgo sin beneficio.
   - Fuentes: [F] https://gdpr-info.eu/art-5-gdpr/
-- `untrusted-text-is-data` — **El texto ajeno es dato.** El texto que llega de una persona o de un tercero es dato para el modelo y nunca una orden.
+- `untrusted-text-is-data` — **El texto ajeno es dato.** Un modelo trata igual las palabras de sus instrucciones y las de un texto ajeno si nadie las separa.
   - Porqué: Quien escribe el texto controla lo que el modelo lee, y el modelo no distingue por sí solo entre dato e instrucción.
   - Fuentes: [F] https://genai.owasp.org/llmrisk/llm01-prompt-injection/
   - Viene de: N5
   - Puente entre ejes: Vale igual en el producto (lo que Lola lee de una familia o de una web) y en el trabajo (issues, webs y mensajes de otros agentes)
-- `use-existing-channel-first` — **Aportar más que la app.** Un canal o un bot nuevo vale la pena solo si aporta algo que la app no da.
+- `use-existing-channel-first` — **Aportar más que la app.** Un canal nuevo cuesta mantenimiento y atención, y compensa por lo que la app no ofrece.
   - Porqué: Los bots que solo duplican la web o la app tienen una propuesta de valor débil.
   - Fuentes: [S] https://www.nngroup.com/articles/chatbots/
 - `value-before-signup` — **Valor antes del registro.** Probar el valor antes de dar la cuenta o los datos hace que más gente se quede.
@@ -330,7 +330,7 @@ Lo trae el catálogo delegado `ops/principios-producto/`, con su detalle en `doc
 
 Cómo se trabaja: issues, fondos, PR, sesiones, agentes, jueces y cifras.
 
-- `builder-does-not-merge` — **Quien construye no fusiona.** La fusión de un cambio con el CI en verde la decide alguien distinto de quien lo construyó.
+- `builder-does-not-merge` — **Quien construye no fusiona.** Quien construye un cambio tiende a dar por bueno lo suyo, y la fusión es la última puerta antes de staging.
   - Porqué: Quien construye tiene prisa por cerrar, y otra mirada antes de fusionar para el error que el constructor no ve.
   - Fuentes: [I] `CLAUDE.md`
   - Detalle: `CLAUDE.md#ramas-y-flujo`
@@ -385,10 +385,10 @@ Cómo se escribe una regla o un principio de la casa.
 
 Lo trae el catálogo delegado `ops/redaccion.json`, con su detalle en `docs/ops/REDACCION.md`. La guía de redacción de reglas (#493), con su test; sus normas (ámbito writing), en ops/normas.json. Lo que piden con DEBE es una norma de `ops/normas.json` que los cita.
 
-- `castellano-siempre` — **Castellano siempre.** Las reglas de la casa se escriben en castellano, salvo los nombres propios, el código y las citas.
+- `castellano-siempre` — **Castellano siempre.** Una regla que todo el equipo lee en su idioma se entiende a la primera y se discute menos.
   - Porqué: Quien trabaja en el repo lee en castellano, y mezclar idiomas en una regla la hace más difícil de entender.
   - Fuentes: [I] `CLAUDE.md`
-- `sin-anglicismos-con-termino` — **Sin anglicismos con término.** Un anglicismo sobra cuando el glosario ya tiene su término en castellano.
+- `sin-anglicismos-con-termino` — **Sin anglicismos con término.** El glosario de la casa ya tiene término castellano para lo que se repite, y el préstamo lo duplica.
   - Porqué: Dos palabras para lo mismo parten la búsqueda y el recuento, y el término castellano lo entiende todo el equipo.
   - Fuentes: [I] `ops/glosario/`
 - `fuerza-segun-rfc-2119` — **Fuerza según RFC 2119.** La fuerza de una regla se dice con tres palabras de sentido fijo, las de RFC 2119.

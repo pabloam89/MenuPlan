@@ -5,7 +5,7 @@
     {
       "id": "castellano-siempre",
       "nombre": "Castellano siempre",
-      "enunciado": "Las reglas de la casa se escriben en castellano, salvo los nombres propios, el código y las citas.",
+      "enunciado": "Una regla que todo el equipo lee en su idioma se entiende a la primera y se discute menos.",
       "porque": "Quien trabaja en el repo lee en castellano, y mezclar idiomas en una regla la hace más difícil de entender.",
       "fuente": "[I] CLAUDE.md",
       "ejemplo_bueno": "Cada skill debe llevar su dueño",
@@ -14,7 +14,7 @@
     {
       "id": "sin-anglicismos-con-termino",
       "nombre": "Sin anglicismos con término",
-      "enunciado": "Un anglicismo sobra cuando el glosario ya tiene su término en castellano.",
+      "enunciado": "El glosario de la casa ya tiene término castellano para lo que se repite, y el préstamo lo duplica.",
       "porque": "Dos palabras para lo mismo parten la búsqueda y el recuento, y el término castellano lo entiende todo el equipo.",
       "fuente": "[I] ops/glosario/",
       "ejemplo_bueno": "Fusionar el PR con el CI en verde",

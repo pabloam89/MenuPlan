@@ -2,7 +2,7 @@
   "id": "versioned-concurrency",
   "area": "data",
   "nombre": "Concurrencia con versión",
-  "enunciado": "El estado compartido de la casa se escribe con funciones que comprueban y suben una versión.",
+  "enunciado": "Varios dispositivos de una casa escriben a la vez, y sin una versión el último pisa al primero sin saberlo.",
   "porque": "La app, el bot y otro miembro escriben la misma casa, y sin versión gana el último sin que nadie se entere.",
   "fuentes": [
     {

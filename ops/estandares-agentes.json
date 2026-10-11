@@ -4160,9 +4160,6 @@
     }
   },
   "reglas_que_no_son_norma": {
-    "gobierno/paso-a-main · Commit con CI verde": "main-solo-por-pr-con-tests: la norma es el PR con tests en verde; la regla es comprobarlo sobre el commit exacto que sube, antes de preparar el paso",
-    "gobierno/worktrees-y-ramas · Inventario antes de borrar": "uniones-antes-de-borrar: la norma es quitar las uniones; la regla es enseñar antes lo que se perdería (cambios, commits sin subir y uniones)",
-    "datos/ensayar-migracion · NOT VALID primero": "rol-solo-lectura: se parecen solo en el verbo entrar; la regla es cómo entra una restricción sobre datos existentes",
     "revisor/contrastar-estandar-del-constructor · Sin informe, no comprobado": "principios-auto: se parecen solo en comprobar; la regla es cómo marca el juez una regla sin evidencia",
     "lola/papeles-y-permisos-de-herramientas · Revisión de seguridad": "evals-antes-de-fusionar: se parecen solo en fusionar; la regla es que un cambio de papel o permiso pase por el juez seguridad",
     "común buscar-lo-ya-apuntado · Buscar antes de apuntar": "issues-con-buscar-antes: la norma es crear un issue con el script que busca parecidos; la regla es buscar antes de dar un hallazgo por nuevo en un informe"
