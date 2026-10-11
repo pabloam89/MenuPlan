@@ -49,6 +49,13 @@ describe("la línea de un evento", () => {
 
   it("las fuentes son los tres hooks que escriben", () => expect(FUENTES).toEqual(["guardia", "skill-abierta", "pendientes"]));
 
+  it("cada hook que anota un evento pasa su propia fuente (si no, la línea sale con fuente null)", () => {
+    for (const fuente of FUENTES) {
+      const codigo = readFileSync(join(import.meta.dirname, `${fuente === "skill-abierta" ? "skill-abierta" : fuente}.mjs`), "utf8");
+      expect(codigo, fuente).toContain(`fuente: "${fuente}"`);
+    }
+  });
+
   it("el actor es la App solo si el autor de git de la sesión lo es", () => {
     expect(actorDe({ GIT_AUTHOR_NAME: ACTOR_APP })).toBe(ACTOR_APP);
     expect(actorDe({ GIT_AUTHOR_NAME: "Pablo Artiñano" })).toBeNull();
