@@ -130,16 +130,16 @@ No hay criterio de skill que no se le aplique.
 
 - Un camino por defecto y una salida para el caso raro, no un menú de opciones [F: BP, demasiadas opciones].
 - Cada paso del método dice lo que sale, y el método dice cuándo se acaba [F: BP, bucles de comprobación] y la condición de parada [I: por analogía, BEA].
-- Las técnicas se eligen por un dato del problema (su tipo de causa, su alcance), no por gusto [I].
-- Lo que no se ha podido comprobar se escribe como hipótesis, con la observación que la confirmaría [I].
+- Las técnicas se eligen por un dato del problema (su tipo de causa, su alcance), no por gusto [S].
+- Lo que no se ha podido comprobar se escribe como hipótesis, con la observación que la confirmaría [S].
 - Un ejemplo resuelto, abstracto y canónico, que sigue la propia norma de la skill [I por analogía, CE, ejemplos canónicos].
 
 ### Errores típicos
 
 - Un método de principios («analiza bien») sin pasos que se puedan ver [F: BP, instrucciones claras].
-- Un ejemplo copiado de un caso real, con nombres o datos de familias [I].
+- Un ejemplo copiado de un caso real, con nombres o datos de familias [S].
 - Dar libertad total donde un fallo cuesta caro [F: BP, grados de libertad].
-- El catálogo de técnicas copiado dentro de la skill y también en su fuente: dos versiones [I].
+- El catálogo de técnicas copiado dentro de la skill y también en su fuente: dos versiones [S].
 
 ### Ejemplo mínimo
 

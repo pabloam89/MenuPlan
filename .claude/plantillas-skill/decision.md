@@ -128,16 +128,16 @@ No hay criterio de skill que no se le aplique.
 
 ### Qué lo hace bueno
 
-- Las opciones se ordenan con un catálogo escrito (la escalera, los mecanismos) y se empieza por la más alta; bajar exige su motivo [I].
+- Las opciones se ordenan con un catálogo escrito (la escalera, los mecanismos) y se empieza por la más alta; bajar exige su motivo [S].
 - Cada criterio del catálogo se aplica a la opción elegida y se dice cómo, no solo el resultado [I, prueba del tipo en `ops/forja/`].
 - Una recomendación por defecto y, aparte, cuándo conviene otra, no un menú [F: BP, demasiadas opciones].
 - Cada paso del método dice lo que sale, y el método dice cuándo se acaba [F: BP, bucles de comprobación].
 
 ### Errores típicos
 
-- Elegir por gusto o por costumbre sin pasar por el catálogo [I].
+- Elegir por gusto o por costumbre sin pasar por el catálogo [S].
 - Un menú de opciones sin la recomendada [F: BP, demasiadas opciones].
-- Copiar el catálogo de opciones dentro de la skill: dos versiones que se separan [I].
+- Copiar el catálogo de opciones dentro de la skill: dos versiones que se separan [S].
 
 ### Ejemplo mínimo
 

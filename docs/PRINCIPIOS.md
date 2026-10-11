@@ -16,9 +16,9 @@ Las normas de cada principio: `npm run principios-casa -- <id>`. Un principio qu
 | catálogo (`catalog`) | 1 | 0 | 0 |
 | producto (`product`) | 40 | 40 | 0 |
 | proceso (`process`) | 11 | 0 | 0 |
-| redacción (`writing`) | 16 | 16 | 0 |
+| redacción (`writing`) | 15 | 15 | 0 |
 | entidades (`entities`) | 9 | 0 | 3 |
-| **Total** | **112** | **56** | **3** |
+| **Total** | **111** | **55** | **3** |
 
 ## Código (`code`)
 
@@ -388,9 +388,6 @@ Lo trae el catálogo delegado `ops/redaccion.json`, con su detalle en `docs/ops/
 - `castellano-siempre` — **Castellano siempre.** Las reglas de la casa se escriben en castellano, salvo los nombres propios, el código y las citas.
   - Porqué: Quien trabaja en el repo lee en castellano, y mezclar idiomas en una regla la hace más difícil de entender.
   - Fuentes: [I] `CLAUDE.md`
-- `un-termino-por-concepto` — **Un término por concepto.** Cada concepto tiene un solo término, el del glosario de la casa.
-  - Porqué: Mezclar sinónimos hace creer que son cosas distintas, y un término fijo deja contar y buscar.
-  - Fuentes: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
 - `sin-anglicismos-con-termino` — **Sin anglicismos con término.** Un anglicismo sobra cuando el glosario ya tiene su término en castellano.
   - Porqué: Dos palabras para lo mismo parten la búsqueda y el recuento, y el término castellano lo entiende todo el equipo.
   - Fuentes: [I] `ops/glosario/`
@@ -424,7 +421,7 @@ Lo trae el catálogo delegado `ops/redaccion.json`, con su detalle en `docs/ops/
 - `frases-cortas` — **Frases cortas.** Las frases cortas y los párrafos breves se leen y se entienden a la primera.
   - Porqué: Las guías de lenguaje claro observan que una frase larga se entiende peor y se relee más.
   - Fuentes: [F] https://www.plainlanguage.gov/guidelines/
-- `fuente-marcada` — **Fuente marcada.** Cada regla dice de dónde sale, una fuente externa o una ruta de la casa, con su marca.
+- `fuente-marcada` — **Fuente marcada.** Cada regla dice de dónde sale, una fuente externa, una ruta de la casa o una inferencia nuestra, con su marca.
   - Porqué: Sin la fuente marcada no se sabe si una regla es un hecho comprobado o una decisión nuestra.
   - Fuentes: [I] `docs/ops/FORJA.md`
 - `control-declarado` — **Control declarado.** Cada regla nombra lo que la vigila, un fichero que falla o el juicio de alguien.

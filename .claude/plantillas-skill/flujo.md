@@ -125,13 +125,13 @@ No hay criterio de skill que no se le aplique.
 
 - Cada etapa nombra la skill o el agente que la lleva, y existe [I, prueba del tipo en `ops/forja/`].
 - Cada etapa tiene su puerta: lo que la hace cumplir (un hook, el CI, un workflow), no solo el texto [I, CLAUDE.md «Lo que hace cumplir esto»].
-- Dice qué entra y qué sale de cada etapa, para que la siguiente sepa por dónde empezar [I].
+- Dice qué entra y qué sale de cada etapa, para que la siguiente sepa por dónde empezar [S].
 
 ### Errores típicos
 
-- Copiar dentro el método de una etapa que ya tiene su skill: dos versiones [I].
+- Copiar dentro el método de una etapa que ya tiene su skill: dos versiones [S].
 - Una etapa sin dueño o sin puerta, que depende de que alguien se acuerde [I, CLAUDE.md «Cuando algo falla»].
-- Encadenar etapas sin decir qué sale de cada una, y que la siguiente lo adivine [I].
+- Encadenar etapas sin decir qué sale de cada una, y que la siguiente lo adivine [S].
 
 ### Ejemplo mínimo
 

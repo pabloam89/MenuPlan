@@ -245,6 +245,34 @@ export function problemasDeMarcas(fuentes) {
   return malos;
 }
 
+/**
+ * Las marcas en prosa (skills, plantillas y documentos, #620): un `[I]` va seguido de la ruta del repo donde
+ * está escrito (que exista), un `[F]` no apunta a una ruta del repo (eso es [I]) y no queda ninguna `[C]`.
+ * La inferencia se marca [S]. Devuelve una línea por fallo; `existe(ruta)` se inyecta.
+ */
+export function problemasDeMarcasEnTexto(ruta, texto, existe) {
+  const malos = [];
+  const tras = /^(?:\*\*)?\s*`?(\.?[\w.-]+(?:\/[\w.-]*)+|[\w.-]+\.(?:md|json|mjs|js))/;
+  String(texto).split("\n").forEach((l, i) => {
+    const d = `${ruta}:${i + 1}`;
+    for (const m of l.matchAll(/\[([A-Z])\]/g)) {
+      const resto = l.slice(m.index + 3);
+      const r = tras.exec(resto);
+      const rutaCitada = r ? r[1].replace(/[.,;:)]+$/, "") : null;
+      // Una mención que define la marca («[I] es de la casa», «de la casa ([I])») vale; una que la define como inferencia, no.
+      // Lo que dice de esta marca: hasta la siguiente marca, 45 caracteres como mucho.
+      const suyo = resto.slice(0, 45).split(/\[[A-Z][\]:]/)[0];
+      const cerca = `${l.slice(Math.max(0, m.index - 15), m.index)} ${suyo}`;
+      const define = /casa|ruta/i.test(cerca) && !/inferencia/i.test(suyo);
+      if (m[1] === "C") malos.push(`${d}: la marca [C] ya no existe; lo escrito en la casa es [I]`);
+      else if (m[1] === "I" && /inferencia/i.test(suyo)) malos.push(`${d}: [I] no es inferencia: es lo escrito en la casa; la inferencia es [S]`);
+      else if (m[1] === "I" && !define && (!rutaCitada || !existe(rutaCitada))) malos.push(`${d}: [I] es de la casa y va seguida de una ruta del repo que exista; una inferencia es [S]`);
+      else if (m[1] === "F" && rutaCitada && /`/.test(resto.slice(0, 3)) && existe(rutaCitada)) malos.push(`${d}: [F] apunta a ${rutaCitada}, que es del repo: es [I]`);
+    }
+  });
+  return malos;
+}
+
 /** Las fuentes marcadas del repo, leídas con el lector de cada catálogo. */
 export const fuentesMarcadasDelRepo = (raiz) => fuentesMarcadas({ lista: leerPrincipiosCasa(raiz).principios, forja: leerForja(raiz), estandares: leerEstandares(raiz) });
 

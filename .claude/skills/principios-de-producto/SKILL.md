@@ -62,22 +62,22 @@ no queda sin decir y el catálogo ganó un fichero cuando se aprendió algo.
 ## Lo que hay que saber
 
 - El catálogo no es la ley: un principio dice por qué, sin fuerza. Lo que obliga es su
-  norma (`ops/normas.json`), con su control: un test, la guardia o el juicio de un juez. [I]
+  norma (`ops/normas.json`), con su control: un test, la guardia o el juicio de un juez. [S]
 - Solo algunas normas de producto tienen un control de verdad (un test que existe y vigila
   lo que dice). El resto es `juicio`: lo aplica quien decide y lo revisa el juez del
-  ámbito. `npm run principios` cuenta cuántos hay de cada. [I]
+  ámbito. `npm run principios` cuenta cuántos hay de cada. [S]
 - Un control que solo cubre una parte lo dice en la `nota` de la norma; no lo des por
-  cubierto entero. [I]
+  cubierto entero. [S]
 - La marca F quiere decir que la fuente lo dice; la S, que es inferencia nuestra o una
   fuente secundaria (la I es lo escrito en la casa, con su ruta). Una recomendación que
-  se apoya en una S lo avisa. [I]
-- Una cita literal de una fuente no pasa de 15 palabras; el resto se parafrasea. [I]
+  se apoya en una S lo avisa. [S]
+- Una cita literal de una fuente no pasa de 15 palabras; el resto se parafrasea. [S]
 - Los ids y los valores van en inglés, los textos en castellano (decisión de Pablo,
   `ops/DECISIONES.md`).
 - Las preguntas que más se repiten, y dónde buscar: ¿puede ser público este endpoint?
   (`trust-safety`); ¿qué datos pedimos y cuánto los guardamos? (`privacy`); ¿qué hace
   Lola cuando no entiende o se cae el modelo? (`conversational-ai`,
-  `cost-reliability`); ¿cuánto cuesta y quién lo paga? (`cost-reliability`). [I]
+  `cost-reliability`); ¿cuánto cuesta y quién lo paga? (`cost-reliability`). [S]
 
 ## Dónde vive el dato
 

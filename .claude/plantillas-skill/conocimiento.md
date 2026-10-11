@@ -129,13 +129,13 @@ No hay criterio de skill que no se le aplique.
 ### Qué lo hace bueno
 
 - «Lo que hay que saber» son hechos que el modelo no tiene (reglas del negocio, excepciones, vocabulario propio), no definiciones generales [F: BP, lo conciso].
-- «Dónde vive el dato» apunta a la fuente de verdad y dice cómo leerla; no copia el dato [I].
+- «Dónde vive el dato» apunta a la fuente de verdad y dice cómo leerla; no copia el dato [S].
 - Se organiza por tema, con el detalle de cada uno en su capa, para cargar solo lo que se necesita [F: BP, organización por dominio].
 - Una palabra por cosa en toda la skill [F: BP, terminología coherente].
 
 ### Errores típicos
 
-- Copiar el dato (una cifra, una lista, un estado) en la skill: pasa a haber dos fuentes y una se queda vieja [I].
+- Copiar el dato (una cifra, una lista, un estado) en la skill: pasa a haber dos fuentes y una se queda vieja [S].
 - Cifras o estados que caducan escritos en el cuerpo [F: BP, información que caduca].
 - Mezclar dos temas en una skill, que acaba solapando con otra [F: SB, según resúmenes; I el reparto].
 - Explicar el tema como un manual en lugar de lo que el modelo no sabe [F: BP, lo conciso].

@@ -51,6 +51,8 @@ export const CAMPOS_PRINCIPIO_OPCIONALES = [];
 /** El registro de normas, donde viven las normas de redacción (ámbito `writing`). */
 export const RUTA_NORMAS = "ops/normas.json";
 export const AMBITO_REDACCION = "writing";
+/** Los principios de la lista única (ops/principios/) que la guía aplica sin copiarlos (`principios_de_la_lista`). */
+export const RUTA_LISTA = "ops/principios/";
 
 const ID_PRINCIPIO = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const ENCARGO = /^(#\d+|en cola #\d+)$/;
@@ -160,6 +162,13 @@ function problemasDeCatalogo(k, d, { existe, leerJson }) {
 export function problemasDeRedaccion(datos, { existe = () => true, leerJson = () => ({}) } = {}) {
   const malos = [];
   for (const k of ["sujetos", "artefactos"]) if (k in (datos ?? {})) malos.push(`${k}: la guía ya no lleva «${k}»: los sujetos son de sus normas (ops/normas.json, #620)`);
+  const deLista = datos?.principios_de_la_lista ?? [];
+  if (!Array.isArray(deLista)) malos.push("principios_de_la_lista: es una lista de ids de ops/principios/");
+  else {
+    const lista = leerJson(RUTA_LISTA)?.principios;
+    if (Array.isArray(lista)) for (const id of deLista) if (!lista.some((x) => x.id === id)) malos.push(`principios_de_la_lista: «${id}» no es un principio de ops/principios/`);
+    for (const id of deLista) if ((datos?.principios ?? []).some((x) => x.id === id)) malos.push(`principios_de_la_lista: «${id}» también está en principios: un principio vive en un solo sitio`);
+  }
   const ps = datos?.principios;
   if (!Array.isArray(ps)) return [...malos, "principios: no es una lista"];
   if (ps.length < MIN_PRINCIPIOS || ps.length > MAX_PRINCIPIOS) malos.push(`principios: hay ${ps.length}, de ${MIN_PRINCIPIOS} a ${MAX_PRINCIPIOS}`);
@@ -247,6 +256,20 @@ const INTRO = [
 const normasDeRedaccion = (registro) => (registro?.normas ?? []).filter((n) => n.ambito === AMBITO_REDACCION);
 const controlCorto = (n) => (n.control === CONTROL_JUICIO ? "juicio" : `\`${n.control}\``);
 
+function mdDeLaLista(datos, registro, leerJson) {
+  const ids = datos.principios_de_la_lista ?? [];
+  if (!ids.length) return [];
+  const lista = leerJson(RUTA_LISTA)?.principios ?? [];
+  const L = ["## Principios de la lista única que la guía aplica", "", "No se copian aquí: viven en `ops/principios/` (`docs/PRINCIPIOS.md`) y la guía los cita.", ""];
+  for (const id of ids) {
+    const p = lista.find((x) => x.id === id);
+    if (!p) continue;
+    L.push(`- \`${id}\` — **${p.nombre}.** ${p.enunciado}`);
+    for (const n of (registro?.normas ?? []).filter((x) => x.principio === id)) L.push(`  - Norma: \`${n.id}\` — ${celda(fraseDeRegla(n, registro.sujetos, { conControl: false }))} Control: ${controlCorto(n)}.`);
+  }
+  return [...L, ""];
+}
+
 function mdPrincipios(datos, registro) {
   const L = ["## Principios", ""];
   const normas = normasDeRedaccion(registro);
@@ -320,6 +343,7 @@ export function generarMd(datos, leerJson) {
     ...INTRO,
     "",
     ...mdPrincipios(datos, registro),
+    ...mdDeLaLista(datos, registro, leerJson),
     ...mdVocabularios(registro),
     ...mdCatalogos(datos, leerJson),
   ].join("\n").replace(/\n{3,}/g, "\n\n").trimEnd()}\n`;

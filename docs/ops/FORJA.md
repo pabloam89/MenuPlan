@@ -213,7 +213,7 @@ Datos en `forma_practica` de `ops/forja/`; se validan con `problemasDePractica` 
 
 | Artefacto | Bullets | Estructura de cada bullet | Fuente por bullet | Voz | Modo y tiempo | Persona |
 |---|---|---|---|---|---|---|
-| estandar | de 2 a 5 | regla · porque · ejemplo_bueno · ejemplo_malo | [F] o [I] | activa | imperativo | segunda |
+| estandar | de 2 a 5 | regla · porque · ejemplo_bueno · ejemplo_malo | [F] o [I] (ruta de la casa) | activa | imperativo | segunda |
 
 ## Método de construcción
 
@@ -301,7 +301,7 @@ Esquema y forma: determinista, lo vigila un test del CI.
   - Fuente: [I] .claude/PLANTILLA-SKILL.md. Código: `secciones`.
 - `secretos` — **Sin secretos.** Cada skill NO DEBE contener ningún patrón de clave ni cadena de conexión con contraseña, ni en sus capas. Se comprueba con: `.claude/skills.test.js`.
   - Fuente: [I] scripts/lib/skills.mjs. Código: `secretos`.
-- `sin-fuente` — **Marca de fuente.** La plantilla de skills DEBE marcar cada punto del estándar de un tipo con su [F: fuente] o [I]. Se comprueba con: `.claude/skills.test.js`.
+- `sin-fuente` — **Marca de fuente.** La plantilla de skills DEBE marcar cada punto del estándar de un tipo con su [F: fuente], [I] (ruta de la casa) o [S] (inferencia nuestra). Se comprueba con: `.claude/skills.test.js`.
   - Fuente: [I] .claude/PLANTILLA-SKILL.md. Código: `sin-fuente`.
 - `sin-parada` — **Parada del método.** El cuerpo de cada skill DEBE decir en el «Método» cuándo se acaba y qué se ve cuando sale bien. Se comprueba con: `.claude/skills.test.js`.
   - Nota: Es heurístico: el control detecta la frase («Sale bien si», «Hecho cuando»…), no que el método diga de verdad cuándo acaba; candidato a revisar su capa. Se exceptúa el tipo servicio, que no tiene «Método».

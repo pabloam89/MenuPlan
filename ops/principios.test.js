@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
   DOCUMENTOS_MIGRADOS, RUTA_MD, anclaDe, componerLista, existeEn, faltasDeMigracion, fuentesMarcadas, fuentesMarcadasDelRepo, generarMd,
-  leerCatalogoPropio, leerPrincipiosCasa, leerTextoEn, problemasDeEnunciadoUnico, problemasDeMarcas, problemasDePrincipios, seccionDe, seccionesNumeradas,
+  leerCatalogoPropio, leerPrincipiosCasa, leerTextoEn, problemasDeEnunciadoUnico, problemasDeMarcas, problemasDeMarcasEnTexto, problemasDePrincipios, seccionDe, seccionesNumeradas,
 } from "../scripts/lib/principios.mjs";
 import { MARCAS_FUENTE } from "../scripts/lib/regla.mjs";
 import { leerPrincipios as leerProducto } from "../scripts/lib/principiosProducto.mjs";
@@ -63,6 +64,30 @@ describe("un solo significado de cada marca de fuente en todos los catálogos (#
     expect(problemasDeMarcas(fuentesMarcadas({ forja })).join("\n")).toMatch(/ops\/forja\/ · c: \[I\] es de la casa/);
     const lista = [{ id: "p", catalogo: "ops/principios-producto/", fuentes: [{ marca: "I", url: "https://owasp.org/x" }] }];
     expect(problemasDeMarcas(fuentesMarcadas({ lista })).join("\n")).toMatch(/principios-producto\/ · p/);
+  });
+});
+
+describe("un solo significado de cada marca también en la prosa: skills, plantillas y documentos (#620)", () => {
+  const md = execFileSync("git", ["ls-files", "-co", "--exclude-standard", "-z", ".claude", "docs"], { cwd: RAIZ, encoding: "utf8" }).split("\0").filter((f) => f.endsWith(".md"));
+  const existe = (r) => existsSync(join(RAIZ, r));
+
+  it("ningún [I] es inferencia, todo [I] lleva su ruta de la casa y no queda ninguna [C]", () => {
+    expect(md.length).toBeGreaterThan(50);
+    for (const r of [".claude/PLANTILLA-SKILL.md", ".claude/skills/forja-de-skills/referencias/criterios.md", "docs/entidades/N0-principios.md"]) expect(md, r).toContain(r);
+    expect(md.flatMap((r) => problemasDeMarcasEnTexto(r, readFileSync(join(RAIZ, r), "utf8"), existe))).toEqual([]);
+  });
+
+  it("se ve fallar: [I] como inferencia, [I] sin ruta, [C], y [F] a una ruta del repo", () => {
+    const p = (t) => problemasDeMarcasEnTexto("x.md", t, existe).join("\n");
+    expect(p("Marca: **[F]** está en la fuente; **[I]** es inferencia nuestra.")).toMatch(/\[I\] no es inferencia/);
+    expect(p("- Lo irreversible lo hace una persona [I].")).toMatch(/va seguida de una ruta del repo/);
+    expect(p("Fuente: [I] no/existe.md")).toMatch(/va seguida de una ruta del repo que exista/);
+    expect(p("Fuente: [C] `CLAUDE.md`")).toMatch(/la marca \[C\] ya no existe/);
+    expect(p("Fuente: [F] `CLAUDE.md`, que lo dice.")).toMatch(/\[F\] apunta a CLAUDE\.md/);
+    expect(p("Fuente: [I] `CLAUDE.md`; [S] una inferencia; [F] https://owasp.org/x; de la casa ([I]).")).toBe("");
+    // Como estaba la plantilla antes de #620: la marca [I] para la inferencia.
+    const antes = "BEA y sus URL) y **[I]** es inferencia nuestra,\n- Una fila sin «Debe salir»: no se sabe si fue bien [I].\n";
+    expect(problemasDeMarcasEnTexto(".claude/PLANTILLA-SKILL.md", antes, existe)).toHaveLength(2);
   });
 });
 

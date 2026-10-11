@@ -129,16 +129,16 @@ No se le aplican: `sin-parada`.
 ### Qué lo hace bueno
 
 - Cada operación es una fila con el comando exacto y lo que debe salir: donde un error cuesta caro, pasos cerrados y no consejos [F: BP, grados de libertad].
-- «Lo que falló y por qué» recoge fallos reales con su causa y su arreglo; es la memoria del servicio y lo que el modelo no sabe [I].
-- Lo irreversible está nombrado en «Qué requiere el OK de Pablo», y lo no comprobado se dice en la última línea [I].
+- «Lo que falló y por qué» recoge fallos reales con su causa y su arreglo; es la memoria del servicio y lo que el modelo no sabe [S].
+- Lo irreversible está nombrado en «Qué requiere el OK de Pablo», y lo no comprobado se dice en la última línea [S].
 - El estado real y lo pendiente, sin disimular; el procedimiento largo, en una capa que `SKILL.md` cita [F: BP, un solo nivel de profundidad].
 
 ### Errores típicos
 
 - Pegar la documentación del proveedor, que el modelo ya conoce [F: BP, lo conciso].
-- Una fila sin «Debe salir»: no se sabe si fue bien [I].
+- Una fila sin «Debe salir»: no se sabe si fue bien [S].
 - Precios, versiones o «desde tal día» escritos en el cuerpo, que se quedan viejos [F: BP, información que caduca].
-- Un procedimiento de veinte pasos metido en una celda de la tabla [I].
+- Un procedimiento de veinte pasos metido en una celda de la tabla [S].
 
 ### Ejemplo mínimo
 

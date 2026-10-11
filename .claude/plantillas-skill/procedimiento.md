@@ -135,16 +135,16 @@ No hay criterio de skill que no se le aplique.
 
 - Pasos numerados en orden fijo, cada uno con lo que sale al terminarlo [F: BP, flujos con pasos claros y listas de comprobación].
 - «Antes de empezar» comprueba las condiciones y «Cómo se comprueba» confirma el resultado sin enseñar datos sensibles [F: BP, bucles de comprobación].
-- Los pasos que no se pueden deshacer son de una persona: el procedimiento deja los comandos listos y no los lanza [I].
-- Al sustituir algo, primero se comprueba lo nuevo y solo entonces se retira lo viejo [I].
+- Los pasos que no se pueden deshacer son de una persona: el procedimiento deja los comandos listos y no los lanza [S].
+- Al sustituir algo, primero se comprueba lo nuevo y solo entonces se retira lo viejo [S].
 - Una lista de comprobación que se copia y se marca al final [F: BP, listas de comprobación].
 
 ### Errores típicos
 
 - Pasos sin salida observable: «comprueba que esté bien» [F: BP, instrucciones claras].
 - Probar solo en local algo que corre en otro entorno [I, lección de la propia `alta-de-secreto`].
-- Un valor secreto escrito en el comando, que queda en la conversación [I].
-- Mezclar varios procedimientos en uno (dar de alta, rotar y operar el servicio) sin decir qué es de cada uno [I].
+- Un valor secreto escrito en el comando, que queda en la conversación [S].
+- Mezclar varios procedimientos en uno (dar de alta, rotar y operar el servicio) sin decir qué es de cada uno [S].
 
 ### Ejemplo mínimo
 

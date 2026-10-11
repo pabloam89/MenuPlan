@@ -133,6 +133,7 @@ describe("cada regla se ve fallar con datos malos", () => {
   it("una fuente sin marca", () => falla((d) => { p0(d).fuente = "https://www.rfc-editor.org/rfc/rfc2119"; }, "[F] con una dirección web"));
   it("una fuente [I] que no existe", () => falla((d) => { p0(d).fuente = "[I] docs/no-existe.md"; }, "que no existe"));
   it("un principio con los campos de regla de antes", () => falla((d) => { p0(d).control = "ops/regla.test.js"; }, "la obligación es de su norma"));
+  it("un principio de la lista única citado que no existe", () => falla((d) => { d.principios_de_la_lista = ["inventado"]; }, "«inventado» no es un principio de ops/principios/"));
   it("la guía que vuelve a declarar sujetos", () => falla((d) => { d.sujetos = { regla: { legible: "cada regla de la casa", aplica_a: ["regla"] } }; }, "ya no lleva «sujetos»"));
   it("demasiado pocos principios", () => falla((d) => { d.principios = d.principios.slice(0, 5); }, "hay 5"));
   it("un id repetido", () => falla((d) => { d.principios[1].id = d.principios[0].id; }, "id repetido"));

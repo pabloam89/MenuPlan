@@ -844,7 +844,7 @@ function mdForma(datos) {
     "",
     "| Artefacto | Bullets | Estructura de cada bullet | Fuente por bullet | Voz | Modo y tiempo | Persona |",
     "|---|---|---|---|---|---|---|",
-    ...Object.entries(datos.forma_practica).map(([a, f]) => `| ${a} | de ${f.bullets.min} a ${f.bullets.max} | ${f.estructura.join(" · ")} | ${f.fuente_por_bullet ? "[F] o [I]" : "no"} | ${f.voz} | ${f.modo_tiempo} | ${f.persona} |`),
+    ...Object.entries(datos.forma_practica).map(([a, f]) => `| ${a} | de ${f.bullets.min} a ${f.bullets.max} | ${f.estructura.join(" · ")} | ${f.fuente_por_bullet ? "[F] o [I] (ruta de la casa)" : "no"} | ${f.voz} | ${f.modo_tiempo} | ${f.persona} |`),
     "",
     "## Método de construcción",
     "",
