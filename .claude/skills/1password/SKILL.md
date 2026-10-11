@@ -131,6 +131,11 @@ hace la guardia), están en `.claude/skills/1password/referencias/boveda-sesione
   sale el motivo `limite-de-1password`, sin probar otra bóveda, y se usa el token guardado si no caducó; el test ya no
   llama a `op`. Tests en `scripts/tokenSesion.test.js`, vistos fallar. Antes: 1 lectura del `.pem` por sesión; después:
   1 por hora entre todas.
+  Seguimiento (11 oct, #556): `service-account ratelimit` mostró el cupo **de la cuenta** agotado (1000 por hora) con el
+  token de la sesión a 0: lo gastan otras sesiones. Cada llamada a `op inject` deja ya una línea en
+  `~/.menuplan/op-lecturas.jsonl` (`script`, `claves`, `reintento`; sin valores) para sumar por script, y el error de
+  «Too many requests» manda a `npm run op -- service-account ratelimit` para ver cuándo se reinicia. Sin cerrar:
+  quién gasta más (hay que dejar correr el registro) y reutilizar las claves leídas durante la hora.
 - **2026-10-09 · una dirección `op://` daba error con la ficha y el campo bien puestos.**
   Causa: el nombre de la ficha llevaba una tilde; la sintaxis de `op://` solo
   admite letras y cifras sin acento, espacios, `-`, `_` y `.` (lo demás, por id).
