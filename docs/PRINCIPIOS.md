@@ -20,25 +20,18 @@ Las normas de cada principio: `npm run principios-casa -- <id>`. Un principio qu
 | entidades (`entities`) | 9 | 0 | 3 |
 | **Total** | **111** | **55** | **3** |
 
-## Precedencia entre áreas
+## Precedencia
 
-Si dos normas piden cosas incompatibles, gana la del área de arriba (seguridad, datos de familias, coste, velocidad). Cada norma hereda el puesto del ámbito que lleva. El dato vive en `precedencia` de `ops/principios/_catalogo.json` y se imprime en el brief con `npm run estandar`.
+Si dos normas piden cosas incompatibles, gana la que defiende el concepto de más arriba (seguridad > datos de familias > coste > velocidad). Una norma defiende el concepto de su ámbito salvo que declare otro en su campo `concepto` de `ops/normas.json`. El dato vive en `precedencia` de `ops/principios/_catalogo.json` y se imprime en el brief con `npm run estandar`.
 
-| Puesto | Área | Defiende |
-|---|---|---|
-| 1 | infraestructura (`infra`) | `security`: Que nadie ajeno entre ni haga más de lo que le toca: identidades, permisos, secretos y puertas |
-| 2 | api (`api`) | `security`: Que nadie ajeno entre ni haga más de lo que le toca: identidades, permisos, secretos y puertas |
-| 3 | datos (`data`) | `family-data`: Que los datos de las familias no se pierdan, no se mezclen y no se enseñen a quien no toca |
-| 4 | bot (`bot`) | `cost`: Que el gasto en dinero, tokens y tiempo de servicio no se descontrole |
-| 5 | producto (`product`) | `speed`: Que el trabajo avance: forma, proceso y pantallas ceden ante lo anterior si chocan |
-| 6 | pantallas (`ui`) | `speed`: Que el trabajo avance: forma, proceso y pantallas ceden ante lo anterior si chocan |
-| 7 | catálogo (`catalog`) | `speed`: Que el trabajo avance: forma, proceso y pantallas ceden ante lo anterior si chocan |
-| 8 | código (`code`) | `speed`: Que el trabajo avance: forma, proceso y pantallas ceden ante lo anterior si chocan |
-| 9 | entidades (`entities`) | `speed`: Que el trabajo avance: forma, proceso y pantallas ceden ante lo anterior si chocan |
-| 10 | proceso (`process`) | `speed`: Que el trabajo avance: forma, proceso y pantallas ceden ante lo anterior si chocan |
-| 11 | redacción (`writing`) | `speed`: Que el trabajo avance: forma, proceso y pantallas ceden ante lo anterior si chocan |
+| Puesto | Concepto | Defiende | Ámbitos por defecto | Principios que lo defienden |
+|---|---|---|---|---|
+| 1 | `security` (seguridad) | Que nadie ajeno entre ni haga más de lo que le toca: identidades, permisos, secretos y puertas | `infra`, `api` | `least-short-lived-permissions`, `own-identity`, `user-does-not-widen-permission`, `untamperable-trail`, `public-repo-no-sensitive-detail`, `untrusted-text-is-data`, `least-privilege-for-the-model`, `no-secrets-in-prompts-or-client`, `secure-by-default`, `authenticate-machine-callers`, `fail-closed-for-safety-filters`, `public-endpoint-justified` |
+| 2 | `family-data` (datos de familias) | Que los datos de las familias no se pierdan, no se mezclen y no se enseñen a quien no toca | `data` | `household-owns-data`, `health-data-apart`, `data-minimisation`, `privacy-by-default`, `no-sensitive-data-in-chat-by-default`, `purpose-limitation`, `storage-limitation`, `explain-data-use` |
+| 3 | `cost` (coste) | Que el gasto en dinero, tokens y tiempo de servicio no se descontrole | `bot` | `bounded-blast-radius`, `hard-spend-cap`, `caller-pays-quota`, `bounded-loops-and-timeouts` |
+| 4 | `speed` (velocidad) | Que el trabajo avance: forma, proceso y pantallas ceden ante lo anterior si chocan | `product`, `ui`, `catalog`, `code`, `entities`, `process`, `writing` | — |
 
-**Si chocan.** Cuando dos normas piden cosas incompatibles, gana la del área con menor rango (la primera de «orden»). Si son de la misma área, no se resuelve por precedencia: se para y se pone en las decisiones pendientes. Quien cede lo deja dicho en el cuerpo del PR con una excepción de la norma que cede, con su motivo y su caducidad.
+**Si chocan.** Cuando dos normas piden cosas incompatibles, gana la que defiende el concepto de más arriba (el orden de «concepts»). Una norma defiende el concepto de su ámbito (default_concept) salvo que declare otro en su campo «concepto». Si las dos defienden el mismo concepto, la precedencia no decide: se para y se pone en las decisiones pendientes. Quien cede lo deja dicho en el cuerpo del PR con una excepción de la norma que cede, con su motivo y su caducidad.
 
 Constancia, en el cuerpo del PR: `Excepción: <id de la norma que cede> — <qué choca con qué y por qué gana la otra> — hasta AAAA-MM-DD`
 

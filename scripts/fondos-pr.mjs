@@ -23,7 +23,7 @@
  *      Para los demás, lo mismo sale como AVISO (`::warning`, línea `fondos-pr: resultado=warning`): cerrar
  *      el issue de una norma no pone rojo el check obligatorio `tests` de todos los PR (ronda 3).
  *
- * Cada comprobación deja su línea por norma (#621: `norma: <id> resultado: cumple|salta`, medicionNormas.mjs):
+ * Cada comprobación deja su línea por norma (#621: `norma: <id> resultado: ok|fail pr: <n>`, medicionNormas.mjs):
  * `pr-agente-y-closes-en-ci` (la línea Agente), `pr-closes-de-su-rama` (el Closes de la rama con número) y
  * `fondo-no-cierra-sin-aprendizaje` (por cada fondo que cierra). Un bot o una API caída no dejan ninguna.
  *
@@ -96,7 +96,7 @@ export async function comprobar({ cuerpo, autor = "", rama = "", consultar, cons
   const fallos = [];
   // Lo que pasó con cada norma que se mira (medicionNormas.mjs): se imprime al final.
   const medidas = [];
-  const mide = (norma, cumple) => medidas.push({ norma, resultado: cumple ? "cumple" : "salta" });
+  const mide = (norma, cumple) => medidas.push({ norma, resultado: cumple ? "ok" : "fail" });
 
   const { lineas, malas } = agentesDelPr(cuerpo);
   mide("pr-agente-y-closes-en-ci", lineas.length > 0 && !malas.length);
@@ -180,7 +180,7 @@ export async function comprobar({ cuerpo, autor = "", rama = "", consultar, cons
 const esPrincipal = process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
 
 if (esPrincipal) {
-  const { PR_BODY = "", PR_AUTOR = "", PR_RAMA = "", GITHUB_TOKEN = "", GITHUB_REPOSITORY = "" } = process.env;
+  const { PR_BODY = "", PR_AUTOR = "", PR_NUMBER = "", PR_RAMA = "", GITHUB_TOKEN = "", GITHUB_REPOSITORY = "" } = process.env;
   const base = { token: GITHUB_TOKEN, repo: GITHUB_REPOSITORY || "pabloam89/MenuPlan" };
   // ¿Toca este PR ops/normas.json? Lo dice el diff del commit de fusión que revisa el CI (HEAD^1 es la base).
   let tocaNormas = false;
@@ -198,7 +198,7 @@ if (esPrincipal) {
     tocaNormas,
     normas: JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), "..", "ops", "normas.json"), "utf8")).normas,
   });
-  for (const m of r.medidas ?? []) console.log(lineaDeNorma(m.norma, m.resultado));
+  for (const m of r.medidas ?? []) console.log(lineaDeNorma(m.norma, m.resultado, { pr: PR_NUMBER }));
   for (const a of r.avisos ?? []) console.log(`::warning title=Norma sin ejecutor mal colgada::${a}. No es de este PR: lo arregla quien la toque o quien cierre ese issue.\nfondos-pr: regla=normas-sin-ejecutor resultado=warning detalle=${a.split(":")[0].replace("norma ", "")}`);
   if (r.ok) {
     console.log(`Fondos: ok. ${r.motivo}`);

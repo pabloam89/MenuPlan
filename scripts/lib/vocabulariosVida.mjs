@@ -48,7 +48,8 @@ import { CLASES, ESTADOS_TERMINO, plano } from "./glosario.mjs";
 import { GRUPOS, TIPOS_ACCION } from "./issues.mjs";
 import { CAUSAS_EXCEPCION, ROLES_CAMPO, TIPOS_LECTOR, UNIDADES } from "./metricas.mjs";
 import { AMBITOS } from "./ambitos.mjs";
-import { FORMAS as FORMAS_EXCEPCION } from "./excepciones.mjs";
+import { FORMAS as FORMAS_EXCEPCION, RAZONES as RAZONES_EXCEPCION } from "./excepciones.mjs";
+import { RESULTADOS_NORMA } from "./medicionNormas.mjs";
 import { leerPrecedencia } from "./precedencia.mjs";
 import { VEREDICTOS_RUIDO } from "./ruido.mjs";
 import { VOCABULARIOS as PRODUCTO } from "../../src/lib/vocabularios.js";
@@ -88,7 +89,10 @@ export const VOCABULARIOS = {
   // La excepción de un PR a una norma (#621): una sola forma viva; las tres de antes están retiradas (scripts/lib/excepciones.mjs).
   "pr.excepcion_forma": { fichero: "scripts/lib/excepciones.mjs", textos: conTexto(FORMAS_EXCEPCION) },
   // Los conceptos de la precedencia entre áreas (#621): el dato vive en ops/principios/_catalogo.json.
-  "precedencia.concepto": { fichero: "scripts/lib/precedencia.mjs", textos: () => ({ ...leerPrecedencia(RAIZ).conceptos }) },
+  "precedencia.concepto": { fichero: "scripts/lib/precedencia.mjs", textos: () => Object.fromEntries(Object.entries(leerPrecedencia(RAIZ).concepts).map(([k, c]) => [k, c.what])) },
+  // Por qué una excepción de un PR no cuenta, y lo que pasó con una norma en una línea `norma: <id> resultado: …` (#621).
+  "pr.excepcion_razon": { fichero: "scripts/lib/excepciones.mjs", textos: conTexto(RAZONES_EXCEPCION) },
+  "normas.resultado": { fichero: "scripts/lib/medicionNormas.mjs", textos: conTexto(RESULTADOS_NORMA) },
   // El registro de entidades (#566): sus valores van a ops/entidades.json y a ops/entidades-sujetos.json.
   "entidades.axis": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(AXES) },
   "entidades.registry": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(REGISTRIES) },

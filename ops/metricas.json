@@ -383,7 +383,9 @@
       ],
       "campos": {
         "norma": "id",
-        "resultado": "estado"
+        "resultado": "estado",
+        "pr": "id",
+        "detalle": "texto"
       },
       "lectores": [
         {
@@ -400,9 +402,11 @@
       ],
       "campos": {
         "norma_medida": "id",
-        "cumple": "derivado",
-        "salta": "derivado",
-        "exceptuada": "derivado"
+        "ok": "derivado",
+        "warning": "derivado",
+        "fail": "derivado",
+        "exempt": "derivado",
+        "declared": "derivado"
       },
       "lectores": [
         {

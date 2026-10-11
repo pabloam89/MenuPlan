@@ -5,11 +5,11 @@
  * SOLO AVISA: sale con 0, también si algo se rompe aquí dentro (un check obligatorio
  * que falla por una heurística bloquearía los PR de las demás sesiones). La ÚNICA excepción (#621) no es una
  * heurística: un PR con una excepción caducada de una norma DURA que ese mismo PR toca sale con 1 (ver
- * excepcionesDelPr en scripts/lib/avisosPr.mjs). Una línea
- * `avisos-pr: regla=… resultado=… detalle=…` por regla, que se puede contar; la lógica y el
+ * excepcionesDelPr en scripts/lib/avisosPr.mjs). Una línea por regla, la de su norma
+ * (`norma: <id> resultado: … pr: <n> detalle: …`, scripts/lib/medicionNormas.mjs), que se puede contar; la lógica y el
  * vocabulario, en scripts/lib/avisosPr.mjs.
  *
- * Uso (lo lanza el CI): PR_BODY=… PR_AUTOR=… GITHUB_TOKEN=… GITHUB_REPOSITORY=… node scripts/avisos-pr.mjs <fichero-con-el-diff>
+ * Uso (lo lanza el CI): PR_BODY=… PR_AUTOR=… PR_NUMBER=… GITHUB_TOKEN=… GITHUB_REPOSITORY=… node scripts/avisos-pr.mjs <fichero-con-el-diff>
  * El diff es `git diff -U0` de la base del PR a su cabeza. El cuerpo va por entorno, nunca
  * interpolado en el YAML (inyección). Los `Closes #n` se leen con el mismo código que
  * «Fondos del PR» (scripts/fondos-pr.mjs).
@@ -19,7 +19,7 @@ import { resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { ErrorDeApi, pedir } from "./lib/ghApi.mjs";
-import { BOTS, REGLAS, avisosDelPr, excepcionesDelPr, hoyUtc, leerDiff, lineaContable, lineasDeNormas, mensajeAviso } from "./lib/avisosPr.mjs";
+import { BOTS, REGLAS, avisosDelPr, excepcionesDelPr, hoyUtc, leerDiff, lineaContable, mensajeAviso } from "./lib/avisosPr.mjs";
 import { cierresDelPr, tipoDe } from "./fondos-pr.mjs";
 
 /** Los `Closes #n` del cuerpo que son tipo:fondo → { fondosCerrados } o { sinComprobar }. */
@@ -50,7 +50,7 @@ const esPrincipal = process.argv[1] && import.meta.url === pathToFileURL(resolve
 if (esPrincipal) {
   let fallo = false;
   try {
-    const { PR_BODY = "", PR_AUTOR = "", GITHUB_TOKEN = "", GITHUB_REPOSITORY = "" } = process.env;
+    const { PR_BODY = "", PR_AUTOR = "", PR_NUMBER = "", GITHUB_TOKEN = "", GITHUB_REPOSITORY = "" } = process.env;
     const ruta = process.argv[2];
     const hayDiff = Boolean(ruta) && existsSync(ruta);
     const f = await fondosCerrados({ cuerpo: PR_BODY, token: GITHUB_TOKEN, repo: GITHUB_REPOSITORY || "pabloam89/MenuPlan" });
@@ -65,14 +65,14 @@ if (esPrincipal) {
       sinComprobar: hayDiff ? (f.sinComprobar ?? null) : "no_diff",
       hoy,
     });
+    const pr = /^\d{1,8}$/.test(PR_NUMBER) ? PR_NUMBER : null;
     for (const a of avisos) {
-      console.log(lineaContable(a));
+      console.log(lineaContable(a, pr));
       if (a.resultado === "warning") console.log(mensajeAviso(a));
     }
-    for (const l of lineasDeNormas(avisos)) console.log(l);
     // Las excepciones del cuerpo (#621): una forma, con caducidad. Los bots, exentos.
     if (!BOTS.has(PR_AUTOR.toLowerCase())) {
-      const e = excepcionesDelPr({ cuerpo: PR_BODY, normas: leerNormas(), ficheros: leerDiff(diff), hoy });
+      const e = excepcionesDelPr({ cuerpo: PR_BODY, normas: leerNormas(), ficheros: leerDiff(diff), hoy, pr });
       for (const l of e.lineas) console.log(l);
       for (const a of e.avisos) console.log(`::warning title=Excepción del PR::${a.replace(/[\r\n]+/g, " ")}`);
       for (const x of e.fallos) console.log(`::error title=Excepción caducada de una norma dura::${x.replace(/[\r\n]+/g, " ")}`);
@@ -81,7 +81,7 @@ if (esPrincipal) {
   } catch (e) {
     // Nunca falla: un fallo aquí tiene su línea, que alguien puede contar.
     console.log(`::warning title=Avisos del PR::No he podido calcular los avisos (${String(e?.message ?? e).replace(/[\r\n]+/g, " ").slice(0, 200)}).`);
-    for (const regla of REGLAS) console.log(lineaContable({ regla, resultado: "unchecked", detalle: "reason=script_error" }));
+    for (const regla of REGLAS) console.log(lineaContable({ regla, resultado: "unchecked", detalle: "reason=script_error" }, null));
   }
   process.exit(fallo ? 1 : 0);
 }

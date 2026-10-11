@@ -38,8 +38,8 @@ describe("el diff", () => {
 describe("la línea contable", () => {
   it("el vocabulario es cerrado y la línea sale con campos en inglés", () => {
     expect(REGLAS).toEqual(["c1", "c8", "c12"]);
-    expect(RESULTADOS).toEqual(["ok", "warning", "exempt", "unchecked"]);
-    expect(lineaContable({ regla: "c8", resultado: "warning", detalle: "a=1" })).toBe("avisos-pr: regla=c8 resultado=warning detalle=a=1");
+    expect(RESULTADOS).toEqual(["ok", "warning", "fail", "exempt", "declared", "unchecked"]);
+    expect(lineaContable({ regla: "c8", resultado: "warning", detalle: "a=1" }, 5)).toBe("norma: tests-no-se-relajan resultado: warning pr: 5 detalle: a=1");
   });
   it("una regla o un resultado fuera del vocabulario no se imprime", () => {
     expect(() => lineaContable({ regla: "c9", resultado: "ok", detalle: "" })).toThrow(/regla/);
@@ -197,9 +197,9 @@ describe("C12: fondo cerrado sin aprendizaje", () => {
 });
 
 describe("los bots y el cuerpo hostil", () => {
-  it("un PR de bot sale exento en las tres reglas", () => {
+  it("un PR de bot no se mide: sale unchecked por bot en las tres reglas", () => {
     const a = avisosDelPr({ diff: fichero("a.test.js", ["expect(1)"], []), autor: "Dependabot[bot]" });
-    expect(a.map((x) => x.resultado)).toEqual(["exempt", "exempt", "exempt"]);
+    expect(a.map((x) => `${x.resultado}:${x.detalle}`)).toEqual(Array(3).fill("unchecked:reason=bot"));
   });
   it("un cuerpo de un megabyte no se queda colgado", () => {
     // Suelto tarda unos milisegundos; el tope es topeMs, con el margen de la casa (#499).
@@ -236,21 +236,19 @@ describe("scripts/avisos-pr.mjs de punta a punta", () => {
     writeFileSync(f, diff);
     return spawnSync(process.execPath, ["scripts/avisos-pr.mjs", f], { encoding: "utf8", env: { PATH: process.env.PATH, ...env } });
   };
-  it("imprime una línea por regla, el ::warning:: de la que salta y sale 0", () => {
-    const r = correr(fichero("a.test.js", ["expect(1)"], []), { PR_BODY: "Closes #", PR_AUTOR: "pablo" });
+  it("imprime la línea de la norma de cada regla, el ::warning:: de la que salta y sale 0, sin una segunda línea para lo mismo", () => {
+    const r = correr(fichero("a.test.js", ["expect(1)"], []), { PR_BODY: "Closes #", PR_AUTOR: "pablo", PR_NUMBER: "12", HOY });
     expect(r.status).toBe(0);
-    const lineas = r.stdout.split("\n").filter((l) => l.startsWith("avisos-pr:"));
-    expect(lineas.map((l) => /regla=(\w+) resultado=(\w+)/.exec(l).slice(1).join(":"))).toEqual(["c8:warning", "c1:ok", "c12:ok"]);
+    const lineas = r.stdout.split("\n").filter((l) => l.startsWith("norma:"));
+    expect(lineas.map((l) => /norma: ([\w-]+) resultado: (\w+) pr: 12 /.exec(l).slice(1).join(":"))).toEqual(["tests-no-se-relajan:warning", "pr-acotado:ok", "lecciones-a-un-test:ok"]);
+    expect(r.stdout).not.toContain("avisos-pr:");
     expect(r.stdout).toMatch(/^::warning title=Aviso C8::/m);
   });
-  it("deja la línea por norma de cada aviso (#621) y una excepción vigente sale exceptuada", () => {
-    const sin = correr(fichero("a.test.js", ["expect(1)"], []), { PR_BODY: "Closes #", PR_AUTOR: "pablo", HOY });
-    expect(sin.stdout).toContain("norma: tests-no-se-relajan resultado: salta\n");
-    expect(sin.stdout).toContain("norma: pr-acotado resultado: cumple\n");
-    const con = correr(fichero("a.test.js", ["expect(1)"], []), { PR_BODY: "Excepción: tests-no-se-relajan — el test duplicaba otro de la misma zona — hasta 2026-10-20\nExcepción: zona-con-dueno — coordinado con la otra rama a mano — hasta 2026-10-20", PR_AUTOR: "pablo", HOY });
+  it("una excepción vigente deja `exempt` en su regla y `declared` en una norma sin regla", () => {
+    const con = correr(fichero("a.test.js", ["expect(1)"], []), { PR_BODY: "Excepción: tests-no-se-relajan — el test duplicaba otro de la misma zona — hasta 2026-10-20\nExcepción: zona-con-dueno — coordinado con la otra rama a mano — hasta 2026-10-20", PR_AUTOR: "pablo", PR_NUMBER: "12", HOY });
     expect(con.status).toBe(0);
-    expect(con.stdout).toContain("norma: tests-no-se-relajan resultado: exceptuada\n");
-    expect(con.stdout).toContain("norma: zona-con-dueno resultado: exceptuada\n");
+    expect(con.stdout).toContain("norma: tests-no-se-relajan resultado: exempt pr: 12 detalle: removed_assertions=1");
+    expect(con.stdout).toContain("norma: zona-con-dueno resultado: declared pr: 12 detalle: until=2026-10-20\n");
     expect(con.stdout).not.toMatch(/^::warning title=Aviso C8/m);
   });
   it("una excepción caducada avisa y no cuenta; si es de una norma dura que el PR toca, sale 1", () => {
@@ -259,7 +257,7 @@ describe("scripts/avisos-pr.mjs de punta a punta", () => {
     const avisa = correr(fichero("a.test.js", ["expect(1)"], []), { PR_BODY: caducada, PR_AUTOR: "pablo", HOY });
     expect(avisa.status).toBe(0);
     expect(avisa.stdout).toMatch(/^::warning title=Excepción del PR::.*la caducidad ya ha pasado/m);
-    expect(avisa.stdout).not.toContain(`norma: ${dura.id} resultado: exceptuada`);
+    expect(avisa.stdout).not.toMatch(new RegExp(`norma: ${dura.id} resultado: (exempt|declared)`));
     const falla = correr(fichero(dura.donde[0], ["x"], []), { PR_BODY: caducada, PR_AUTOR: "pablo", HOY });
     expect(falla.status).toBe(1);
     expect(falla.stdout).toMatch(/^::error title=Excepción caducada de una norma dura::/m);
@@ -269,13 +267,14 @@ describe("scripts/avisos-pr.mjs de punta a punta", () => {
   it("sin fichero de diff sale 0 y deja las tres líneas como unchecked", () => {
     const r = spawnSync(process.execPath, ["scripts/avisos-pr.mjs", join(dir, "no-existe.txt")], { encoding: "utf8", env: { PATH: process.env.PATH } });
     expect(r.status).toBe(0);
-    expect(r.stdout.match(/resultado=unchecked detalle=reason=no_diff/g)).toHaveLength(3);
+    expect(r.stdout.match(/resultado: unchecked pr: - detalle: reason=no_diff/g)).toHaveLength(3);
   });
   it("el workflow lo lanza sin interpolar el cuerpo y sin dependencias", () => {
     const y = readFileSync(".github/workflows/tests.yml", "utf8");
     const paso = y.slice(y.indexOf("- name: Avisos del PR"), y.indexOf("- run: npm ci"));
     expect(paso).toContain("node scripts/avisos-pr.mjs");
     expect(paso).toContain("PR_BODY: ${{ github.event.pull_request.body }}");
+    expect(paso).toContain("PR_NUMBER: ${{ github.event.pull_request.number }}");
     const run = paso.slice(paso.indexOf("run: |"), paso.indexOf("env:"));
     expect(run).not.toContain("${{");
   });

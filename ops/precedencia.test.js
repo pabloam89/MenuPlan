@@ -4,12 +4,12 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import { AMBITOS } from "../scripts/lib/ambitos.mjs";
-import { FORMAS, FORMAS_ANTIGUAS, MAX_DIAS, RAZONES, RETIRADA_FORMAS_ANTIGUAS, excepcionDe, leerExcepciones } from "../scripts/lib/excepciones.mjs";
-import { NORMA_DE_REGLA, excepcionesDelPr, lineasDeNormas, normaTocada } from "../scripts/lib/avisosPr.mjs";
+import { FORMA, FORMAS, FORMAS_ANTIGUAS, MAX_DIAS, NORMA_DE_REGLA, RAZONES, RETIRADA_FORMAS_ANTIGUAS, excepcionDe, leerExcepciones } from "../scripts/lib/excepciones.mjs";
+import { excepcionesDelPr, lineaContable, normaTocada } from "../scripts/lib/avisosPr.mjs";
 import { MIN_EXCEPTUADAS, RESULTADOS_NORMA, contarPorNorma, leerLineasDeNorma, lineaDeNorma, medir, saltosDeLaGuardia } from "../scripts/lib/medicionNormas.mjs";
 import { leerRegistro } from "../scripts/lib/normas.mjs";
-import { CONCEPTOS, RUTA_CATALOGO, conceptoDe, leerPrecedencia, problemasDePrecedencia, rangoDe, resolverChoque, textoDePrecedencia } from "../scripts/lib/precedencia.mjs";
-import { RUTA_PRINCIPIOS } from "../scripts/lib/principios.mjs";
+import { RUTA_CATALOGO, conceptoDeNorma, conceptosDe, leerPrecedencia, ordenLegible, problemasDePrecedencia, rangoDe, resolverChoque, textoDePrecedencia } from "../scripts/lib/precedencia.mjs";
+import { RUTA_PRINCIPIOS, leerPrincipiosCasa } from "../scripts/lib/principios.mjs";
 import { leerRegistro as leerVida } from "../scripts/lib/vocabulariosVida.mjs";
 
 /**
@@ -27,55 +27,74 @@ const tabla = leerPrecedencia(RAIZ);
 const normas = leerRegistro(RAIZ).normas;
 const ids = normas.map((n) => n.id);
 const copia = (o) => JSON.parse(JSON.stringify(o));
-const con = (cambio) => { const t = copia(tabla); cambio(t); return problemasDePrecedencia(t, { normas }).join("\n"); };
 
-describe("1. la precedencia entre áreas", () => {
-  it("la del repo no tiene problemas: total, sin empates y con rango para toda norma", () => {
-    expect(problemasDePrecedencia(tabla, { normas }), "Arregla la «precedencia» de ops/principios/_catalogo.json").toEqual([]);
+describe("1. la precedencia por concepto", () => {
+  const principios = leerPrincipiosCasa(RAIZ).principios.map((p) => p.id);
+  const con = (cambio, n = normas) => { const t = copia(tabla); cambio(t); return problemasDePrecedencia(t, { normas: n, principios }).join("\n"); };
+  const norma = (id) => normas.find((n) => n.id === id);
+
+  it("la del repo no tiene problemas: todo ámbito con su concepto y toda norma defendiendo uno", () => {
+    expect(problemasDePrecedencia(tabla, { normas, principios }), "Arregla la «precedencia» de ops/principios/_catalogo.json o el campo «concepto» de la norma").toEqual([]);
   });
-  it("cada ámbito tiene un puesto distinto y cada norma hereda el de su ámbito", () => {
-    const rangos = Object.keys(AMBITOS).map((a) => rangoDe(tabla, a));
-    expect(new Set(rangos).size).toBe(Object.keys(AMBITOS).length);
-    expect(rangos.every((r) => Number.isInteger(r) && r >= 1)).toBe(true);
-    for (const n of normas) expect(rangoDe(tabla, n.ambito), `${n.id} (${n.ambito})`).not.toBeNull();
+  it("seguridad > datos de familias > coste > velocidad, y el orden vive solo en el catálogo", () => {
+    expect(conceptosDe(tabla)).toEqual(["security", "family-data", "cost", "speed"]);
+    expect(ordenLegible(tabla)).toBe("seguridad > datos de familias > coste > velocidad");
+    expect(rangoDe(tabla, "security")).toBe(1);
+    expect(rangoDe(tabla, "speed")).toBe(4);
+    // La prosa generada sale de ahí, no de un texto escrito a mano.
+    expect(leer("docs/ops/NORMAS.md")).toContain(ordenLegible(tabla));
+    expect(leer("docs/PRINCIPIOS.md")).toContain(ordenLegible(tabla));
   });
-  it("seguridad > datos de familias > coste > velocidad, en ese orden", () => {
-    expect(CONCEPTOS).toEqual(["security", "family-data", "cost", "speed"]);
-    const orden = tabla.orden.map((x) => CONCEPTOS.indexOf(x.concepto));
-    expect([...orden].sort((a, b) => a - b)).toEqual(orden);
-    expect(conceptoDe(tabla, "infra")).toBe("security");
-    expect(conceptoDe(tabla, "data")).toBe("family-data");
-    expect(conceptoDe(tabla, "bot")).toBe("cost");
+  it("cada ámbito tiene un concepto por defecto y toda norma defiende uno con puesto", () => {
+    for (const a of Object.keys(AMBITOS)) expect(rangoDe(tabla, tabla.default_concept[a]), a).not.toBeNull();
+    for (const n of normas) expect(rangoDe(tabla, conceptoDeNorma(tabla, n)), n.id).not.toBeNull();
+  });
+  it("toda norma cuyo principio defiende seguridad, datos de familias o coste defiende ese concepto (registro real)", () => {
+    const deseado = new Map(Object.entries(tabla.principles).flatMap(([c, ids]) => ids.map((id) => [id, c])));
+    const fuera = normas.filter((n) => deseado.has(n.principio) && conceptoDeNorma(tabla, n) !== deseado.get(n.principio)).map((n) => n.id);
+    expect(fuera, "Declara su «concepto» en ops/normas.json").toEqual([]);
+    // Y las normas que protegen datos de familias en los registros, aunque su principio sea de otra cosa.
+    for (const [id, c] of [["texto-ajeno-es-dato", "security"], ["model-least-privilege", "security"], ["family-text-is-data", "security"], ["eventos-sin-campos-prohibidos", "family-data"], ["product-logs-countable-line", "family-data"], ["new-table-closed-to-anon", "security"]]) {
+      expect(conceptoDeNorma(tabla, norma(id)), id).toBe(c);
+    }
   });
   it("el catálogo está donde lo lee principios.mjs", () => {
     expect(RUTA_CATALOGO).toBe(RUTA_PRINCIPIOS);
   });
   it("cada regla falla con datos malos", () => {
-    expect(con((t) => { t.orden.pop(); })).toMatch(/«writing» no tiene puesto/);
-    expect(con((t) => { t.orden.push({ area: "infra", concepto: "speed" }); })).toMatch(/sale dos veces/);
-    expect(con((t) => { t.orden.push({ area: "nueva", concepto: "speed" }); })).toMatch(/«nueva» no es un ámbito/);
-    expect(con((t) => { t.orden[0].concepto = "speed"; })).toMatch(/va antes que el concepto del puesto anterior|orden de los conceptos/);
-    expect(con((t) => { t.orden[1].concepto = "beauty"; })).toMatch(/no es un concepto/);
-    expect(con((t) => { t.orden = t.orden.filter((x) => x.concepto !== "cost"); })).toMatch(/«bot» no tiene puesto|ningún ámbito defiende «cost»/);
-    expect(con((t) => { delete t.conceptos.cost; })).toMatch(/los conceptos son/);
-    expect(con((t) => { t.conceptos.speed = "corto"; })).toMatch(/su definición/);
-    expect(con((t) => { delete t.choque.regla; })).toMatch(/choque\.regla/);
-    expect(con((t) => { t.choque.constancia = "Tests relajados: sí — x"; })).toMatch(/choque\.constancia/);
+    expect(con((t) => { delete t.default_concept.writing; })).toMatch(/«writing» no tiene concepto por defecto/);
+    expect(con((t) => { t.default_concept.nueva = "speed"; })).toMatch(/«nueva» no es un ámbito/);
+    expect(con((t) => { t.default_concept.infra = "beauty"; })).toMatch(/no es un concepto/);
+    expect(con((t) => { t.concepts.speed.what = "corto"; })).toMatch(/su porqué/);
+    expect(con((t) => { delete t.concepts.speed.label; })).toMatch(/nombre legible/);
+    expect(con((t) => { t.principles.cost.push("own-identity"); })).toMatch(/un principio defiende un solo concepto/);
+    expect(con((t) => { t.principles.cost.push("no-existe"); })).toMatch(/no es un principio de la lista/);
+    expect(con((t) => { t.principles.beauty = ["own-identity"]; })).toMatch(/habla de «beauty»/);
+    expect(con((t) => { delete t.clash.rule; })).toMatch(/clash\.rule/);
+    expect(con((t) => { t.clash.record = "Tests relajados: sí — x"; })).toMatch(/clash\.record/);
     expect(problemasDePrecedencia(undefined).join()).toMatch(/falta/);
-    expect(problemasDePrecedencia(tabla, { normas: [...normas, { id: "x", ambito: "otro" }] }).join()).toMatch(/norma x: su ámbito «otro» no tiene rango/);
+    const mal = (cambio) => { const copiaN = normas.map(copia); cambio(copiaN); return con(() => {}, copiaN); };
+    expect(mal((ns) => { ns.find((n) => n.id === "texto-ajeno-es-dato").concepto = "beauty"; })).toMatch(/declara el concepto «beauty»/);
+    expect(mal((ns) => { ns.find((n) => n.id === "texto-ajeno-es-dato").concepto = "speed"; })).toMatch(/que ya es el de su ámbito/);
+    expect(mal((ns) => { delete ns.find((n) => n.id === "texto-ajeno-es-dato").concepto; })).toMatch(/cita el principio «untrusted-text-is-data», que defiende security/);
+    expect(mal((ns) => { ns.find((n) => n.id === "sin-git-stash").ambito = "otro"; })).toMatch(/sin-git-stash: no defiende ningún concepto/);
   });
-  it("dos normas que chocan: gana la de mayor precedencia; del mismo ámbito, no se resuelve", () => {
-    const seg = normas.find((n) => n.ambito === "infra");
-    const vel = normas.find((n) => n.ambito === "process");
-    expect(resolverChoque(tabla, seg, vel)).toEqual({ gana: seg.id, cede: vel.id });
-    expect(resolverChoque(tabla, vel.id, seg.id, normas)).toEqual({ gana: seg.id, cede: vel.id });
-    expect(resolverChoque(tabla, seg, normas.find((n) => n.ambito === "infra" && n.id !== seg.id)).sinResolver).toBe(true);
-    expect(resolverChoque(tabla, "no-existe", seg, normas).sinResolver).toBe(true);
+  it("dos normas que chocan: gana el concepto de más arriba, aunque no sea el de su ámbito; el mismo concepto no se resuelve", () => {
+    // Un ámbito de coste frente a uno de velocidad: gana el coste.
+    const coste = normas.find((n) => n.ambito === "bot" && !n.concepto);
+    const vel = normas.find((n) => n.ambito === "process" && !n.concepto);
+    expect(resolverChoque(tabla, coste, vel)).toEqual({ gana: coste.id, cede: vel.id });
+    // Una norma de proceso que declara seguridad gana a una de coste.
+    expect(resolverChoque(tabla, norma("texto-ajeno-es-dato"), coste)).toEqual({ gana: "texto-ajeno-es-dato", cede: coste.id });
+    expect(resolverChoque(tabla, coste.id, "texto-ajeno-es-dato", normas)).toEqual({ gana: "texto-ajeno-es-dato", cede: coste.id });
+    // La posición del ámbito ya no decide: sin-git-stash (infra) y new-table-closed-to-anon (data) defienden seguridad las dos.
+    expect(resolverChoque(tabla, norma("sin-git-stash"), norma("new-table-closed-to-anon")).sinResolver).toBe(true);
+    expect(resolverChoque(tabla, "no-existe", coste, normas).sinResolver).toBe(true);
   });
   it("el brief imprime la tabla y la constancia", () => {
     const t = textoDePrecedencia(tabla);
-    expect(t).toMatch(/1\. infra .* security/);
-    expect(t).toContain(tabla.choque.constancia);
+    expect(t).toMatch(/1\. security \(seguridad\) — ámbitos por defecto: infra, api/);
+    expect(t).toContain(tabla.clash.record);
   });
 });
 
@@ -88,7 +107,7 @@ describe("2. una sola forma de excepción", () => {
     const l = lee(linea("pr-acotado", "mueve una carpeta entera sin cambiar su contenido", "2026-10-20"));
     expect(l.validas).toEqual([{ norma: "pr-acotado", motivo: "mueve una carpeta entera sin cambiar su contenido", hasta: "2026-10-20", forma: "unica" }]);
     expect(l.invalidas).toEqual([]);
-    expect(FORMAS.unica).toContain("hasta AAAA-MM-DD");
+    expect(FORMAS.single).toContain(FORMA);
   });
   it("varias líneas son varias excepciones; el día de hoy y el límite valen", () => {
     const hasta = new Date(Date.parse(`${HOY}T00:00:00Z`) + MAX_DIAS * 86_400_000).toISOString().slice(0, 10);
@@ -97,14 +116,14 @@ describe("2. una sola forma de excepción", () => {
   });
   it("no cuenta: caducada, más allá del tope, norma inexistente, motivo corto, fecha irreal o mal escrita", () => {
     const razon = (c) => lee(c).invalidas.map((i) => i.razon);
-    expect(razon(linea("pr-acotado", "motivo bien largo", "2026-10-11"))).toEqual(["vencida"]);
-    expect(razon(linea("pr-acotado", "motivo bien largo", "2027-12-31"))).toEqual(["demasiado_lejos"]);
-    expect(razon(linea("norma-que-no-existe", "motivo bien largo", "2026-10-20"))).toEqual(["norma_inexistente"]);
-    expect(razon(linea("pr-acotado", "corto", "2026-10-20"))).toEqual(["motivo_corto"]);
-    expect(razon(linea("pr-acotado", "motivo bien largo", "2026-02-30"))).toEqual(["fecha"]);
-    expect(razon("Excepción: pr-acotado — motivo bien largo")).toEqual(["forma"]);
-    expect(razon("Excepción: pr-acotado")).toEqual(["forma"]);
-    for (const r of ["vencida", "demasiado_lejos", "norma_inexistente", "motivo_corto", "fecha", "forma"]) expect(RAZONES[r], r).toBeTruthy();
+    expect(razon(linea("pr-acotado", "motivo bien largo", "2026-10-11"))).toEqual(["expired"]);
+    expect(razon(linea("pr-acotado", "motivo bien largo", "2027-12-31"))).toEqual(["too_far"]);
+    expect(razon(linea("norma-que-no-existe", "motivo bien largo", "2026-10-20"))).toEqual(["unknown_norm"]);
+    expect(razon(linea("pr-acotado", "corto", "2026-10-20"))).toEqual(["short_reason"]);
+    expect(razon(linea("pr-acotado", "motivo bien largo", "2026-02-30"))).toEqual(["bad_date"]);
+    expect(razon("Excepción: pr-acotado — motivo bien largo")).toEqual(["form"]);
+    expect(razon("Excepción: pr-acotado")).toEqual(["form"]);
+    expect(Object.keys(RAZONES).sort()).toEqual(["bad_date", "expired", "form", "short_reason", "too_far", "unknown_norm"]);
     expect(lee(linea("pr-acotado", "motivo bien largo", "2026-10-11")).validas).toEqual([]);
   });
   it("la plantilla del PR, que va en un comentario, no cuenta", () => {
@@ -124,12 +143,22 @@ describe("2. una sola forma de excepción", () => {
     const vida = leerVida(RAIZ);
     const retirados = vida.retirados.filter((r) => r.vocabulario === "pr.excepcion_forma");
     expect(retirados.map((r) => r.valor).sort()).toEqual(FORMAS_ANTIGUAS.map((f) => f.id).sort());
-    for (const r of retirados) expect(r.pasa_a).toBe("unica");
-    expect(Object.keys(vida.anclados["pr.excepcion_forma"])).toEqual(["unica"]);
-    expect(Object.keys(vida.anclados["precedencia.concepto"])).toEqual(CONCEPTOS);
+    for (const r of retirados) {
+      expect(r.pasa_a).toBe("single");
+      // La fecha de retirada es una: la del código.
+      expect(r.desde, r.valor).toBe(RETIRADA_FORMAS_ANTIGUAS);
+    }
+    expect(Object.keys(vida.anclados["pr.excepcion_forma"])).toEqual(Object.keys(FORMAS));
+    expect(Object.keys(vida.anclados["precedencia.concepto"])).toEqual(conceptosDe(tabla));
+    expect(Object.keys(vida.anclados["pr.excepcion_razon"])).toEqual(Object.keys(RAZONES));
+    expect(Object.keys(vida.anclados["normas.resultado"])).toEqual(Object.keys(RESULTADOS_NORMA));
   });
-  it("las normas de las tres reglas y de las formas antiguas existen", () => {
-    for (const n of [...Object.values(NORMA_DE_REGLA), ...FORMAS_ANTIGUAS.map((f) => f.norma)]) expect(ids, n).toContain(n);
+  it("las normas de las tres reglas existen, las leen las formas antiguas de la misma lista y las miden y exceptúan el mismo ejecutor, control y sitio", () => {
+    for (const n of Object.values(NORMA_DE_REGLA)) expect(ids, n).toContain(n);
+    for (const f of FORMAS_ANTIGUAS) expect(f.norma, f.id).toBe(NORMA_DE_REGLA[f.regla]);
+    const tres = Object.values(NORMA_DE_REGLA).map((id) => normas.find((n) => n.id === id));
+    for (const campo of ["ejecutor", "control", "control_tipo"]) expect(new Set(tres.map((n) => n[campo])).size, campo).toBe(1);
+    expect(new Set(tres.map((n) => JSON.stringify(n.donde))).size, "donde").toBe(1);
   });
   it("una excepción caducada de una norma DURA que el PR toca falla; si no la toca, o no es dura, solo avisa", () => {
     const dura = normas.find((n) => n.veredicto === "dura" && n.donde?.length);
@@ -150,53 +179,69 @@ describe("2. una sola forma de excepción", () => {
 });
 
 describe("3. cada control que salta deja su línea por norma, y un lector las cuenta", () => {
-  it("la línea tiene el formato campo: valor y el vocabulario es cerrado", () => {
-    expect(RESULTADOS_NORMA).toEqual(["cumple", "salta", "exceptuada"]);
-    expect(lineaDeNorma("pr-acotado", "salta")).toBe("norma: pr-acotado resultado: salta");
+  it("la línea tiene el formato campo: valor, con el vocabulario cerrado en inglés", () => {
+    expect(Object.keys(RESULTADOS_NORMA)).toEqual(["ok", "warning", "fail", "exempt", "declared", "unchecked"]);
+    expect(lineaDeNorma("pr-acotado", "warning", { pr: 12, detalle: "lines=3000" })).toBe("norma: pr-acotado resultado: warning pr: 12 detalle: lines=3000");
+    expect(lineaDeNorma("pr-acotado", "ok")).toBe("norma: pr-acotado resultado: ok pr: - detalle: -");
     expect(() => lineaDeNorma("pr-acotado", "quizá")).toThrow(/vocabulario/);
-    expect(() => lineaDeNorma("Pr Acotado", "salta")).toThrow(/id de una norma/);
+    expect(() => lineaDeNorma("pr-acotado", "salta")).toThrow(/vocabulario/);
+    expect(() => lineaDeNorma("Pr Acotado", "ok")).toThrow(/id de una norma/);
+  });
+  it("una sola sintaxis: el aviso del CI es la línea de su norma y no deja una segunda `avisos-pr:` para lo mismo", () => {
+    expect(lineaContable({ regla: "c1", resultado: "warning", detalle: "lines=3000" }, 12)).toBe("norma: pr-acotado resultado: warning pr: 12 detalle: lines=3000");
+    expect(() => lineaContable({ regla: "c9", resultado: "ok", detalle: "x" })).toThrow(/regla/);
+    expect(lineaContable({ regla: "c8", resultado: "ok", detalle: "x" })).not.toMatch(/^avisos-pr:/);
   });
   it("lee las líneas de un log de CI, con la marca de tiempo delante, y salta lo que no es", () => {
-    const log = "2026-10-12T10:00:00Z norma: pr-acotado resultado: salta\nnorma: tests-no-se-relajan resultado: cumple\nnorma: x resultado: quizá\navisos-pr: regla=c1 resultado=warning";
-    expect(leerLineasDeNorma(log)).toEqual([{ norma: "pr-acotado", resultado: "salta" }, { norma: "tests-no-se-relajan", resultado: "cumple" }]);
+    const log = "2026-10-12T10:00:00Z norma: pr-acotado resultado: warning pr: 7 detalle: x\nnorma: tests-no-se-relajan resultado: ok pr: - detalle: -\nnorma: x resultado: quizá\nnorma: otra resultado: ok";
+    expect(leerLineasDeNorma(log)).toEqual([
+      { norma: "pr-acotado", resultado: "warning", pr: "7" }, { norma: "tests-no-se-relajan", resultado: "ok", pr: null }, { norma: "otra", resultado: "ok", pr: null },
+    ]);
   });
-  it("los avisos del CI dejan una línea por norma: ok cumple, warning salta, exempt exceptuada; unchecked y los bots, nada", () => {
-    const avisos = [{ regla: "c1", resultado: "warning", detalle: "x" }, { regla: "c8", resultado: "ok", detalle: "x" }, { regla: "c12", resultado: "exempt", detalle: "closed_funds=#1" }];
-    expect(lineasDeNormas(avisos)).toEqual(["norma: pr-acotado resultado: salta", "norma: tests-no-se-relajan resultado: cumple", "norma: lecciones-a-un-test resultado: exceptuada"]);
-    expect(lineasDeNormas([{ regla: "c1", resultado: "unchecked", detalle: "reason=no_diff" }, { regla: "c8", resultado: "exempt", detalle: "reason=bot" }])).toEqual([]);
-  });
-  it("los eventos de la guardia con `codigo` son saltos; lo demás y las líneas rotas no", () => {
+  it("los eventos de la guardia con `norma` (o el `codigo` de antes) son warning; lo demás y las líneas rotas no", () => {
     const jsonl = [
-      JSON.stringify({ evento: "bloqueo_guardia", nombre: "a", codigo: "sin-git-add-todo" }),
+      JSON.stringify({ evento: "bloqueo_guardia", nombre: "a", norma: "sin-git-add-todo" }),
       JSON.stringify({ evento: "permiso_pedido", nombre: "b", codigo: "sin-git-add-todo" }),
-      JSON.stringify({ evento: "skill_cargada", nombre: "github", codigo: "sin-git-add-todo" }),
+      JSON.stringify({ evento: "skill_cargada", nombre: "github", norma: "sin-git-add-todo" }),
       JSON.stringify({ evento: "bloqueo_guardia", nombre: "c" }),
       "{roto",
     ].join("\n");
-    expect(contarPorNorma(saltosDeLaGuardia(jsonl))).toEqual({ "sin-git-add-todo": { cumple: 0, salta: 2, exceptuada: 0 } });
+    expect(contarPorNorma(saltosDeLaGuardia(jsonl))).toEqual({ "sin-git-add-todo": { ok: 0, warning: 2, fail: 0, exempt: 0, declared: 0 } });
   });
-  it("cuenta por norma y dice cuáles nunca saltan, cuáles no tienen dato y cuáles se exceptúan siempre", () => {
-    const reg = [{ id: "a", ejecutor: "ci" }, { id: "b", ejecutor: "ci" }, { id: "c", ejecutor: "ci" }, { id: "d", ejecutor: "ci" }, { id: "e", ejecutor: "nada" }];
-    const lineas = [
-      { norma: "a", resultado: "cumple" }, { norma: "a", resultado: "cumple" },
-      { norma: "b", resultado: "cumple" }, { norma: "b", resultado: "salta" },
-      ...Array.from({ length: MIN_EXCEPTUADAS }, () => ({ norma: "c", resultado: "exceptuada" })),
-      { norma: "zzz", resultado: "salta" },
-    ];
+  it("la unidad es el run de un PR: cinco pushes con el mismo resultado cuentan una vez; si cambia el resultado, cuentan los dos", () => {
+    const push = { norma: "pr-acotado", resultado: "warning", pr: "7" };
+    expect(contarPorNorma(Array.from({ length: 5 }, () => push))["pr-acotado"].warning).toBe(1);
+    const c = contarPorNorma([push, push, { norma: "pr-acotado", resultado: "ok", pr: "7" }, { norma: "pr-acotado", resultado: "warning", pr: "8" }])["pr-acotado"];
+    expect([c.warning, c.ok]).toEqual([2, 1]);
+    // Los eventos de la guardia no llevan pr: cada uno cuenta.
+    expect(contarPorNorma([{ norma: "a", resultado: "warning", pr: null }, { norma: "a", resultado: "warning", pr: null }]).a.warning).toBe(2);
+    expect(contarPorNorma([{ norma: "a", resultado: "unchecked", pr: "1" }])).toEqual({});
+  });
+  it("cuenta por norma y dice cuáles nunca saltan, cuáles no tienen dato y cuáles se exceptúan siempre; declared no cuenta como exceptuada", () => {
+    const reg = [{ id: "a", ejecutor: "ci" }, { id: "b", ejecutor: "ci" }, { id: "c", ejecutor: "ci" }, { id: "d", ejecutor: "ci" }, { id: "e", ejecutor: "nada" }, { id: "f", ejecutor: "ci" }];
+    const l = (norma, resultado, n = 1) => Array.from({ length: n }, () => ({ norma, resultado, pr: null }));
+    const lineas = [...l("a", "ok", 2), ...l("b", "ok"), ...l("b", "warning"), ...l("c", "exempt", MIN_EXCEPTUADAS), ...l("f", "declared", MIN_EXCEPTUADAS + 2), ...l("zzz", "warning")];
     const m = medir(reg, contarPorNorma(lineas));
     expect(m.nuncaSaltan).toEqual(["a"]);
     expect(m.exceptuadasSiempre).toEqual(["c"]);
     expect(m.sinDato).toEqual(["d"]);
     expect(m.desconocidas).toEqual(["zzz"]);
-    // Con un solo salto entre las excepciones, ya no es «siempre».
-    expect(medir(reg, contarPorNorma([...lineas, { norma: "c", resultado: "salta" }])).exceptuadasSiempre).toEqual([]);
+    // Con un solo salto entre las excepciones, ya no es «siempre»; un fail cuenta como salto.
+    expect(medir(reg, contarPorNorma([...lineas, ...l("c", "fail")])).exceptuadasSiempre).toEqual([]);
+  });
+  it("una excepción válida de una norma sin regla en el CI deja `declared`, no `exempt`", () => {
+    const e = excepcionesDelPr({ cuerpo: "Excepción: zona-con-dueno — coordinado a mano con la otra rama — hasta 2026-10-20", normas, hoy: "2026-10-12", pr: 9 });
+    expect(e.lineas).toEqual(["norma: zona-con-dueno resultado: declared pr: 9 detalle: until=2026-10-20"]);
   });
 });
 
 describe("4. la forma única está escrita donde se mira", () => {
-  const FORMA = "Excepción: <id de norma> — <motivo> — hasta AAAA-MM-DD";
-  it("la plantilla del PR la explica", () => {
-    expect(leer(".github/pull_request_template.md")).toContain(FORMA);
+  it("la plantilla del PR la explica, dice que la fecha es UTC y que solo exime lo que un control del CI consulta", () => {
+    const t = leer(".github/pull_request_template.md");
+    expect(t).toContain(FORMA);
+    expect(t).toContain("UTC");
+    expect(t).toMatch(/solo exime de lo que un control del CI consulta/);
+    for (const n of Object.values(NORMA_DE_REGLA)) expect(t, n).toContain(n);
   });
   it("tests.yml y la skill github la dicen y ya no enseñan las formas de antes como la manera de hacerlo", () => {
     for (const f of [".github/workflows/tests.yml", ".claude/skills/github/SKILL.md"]) {
@@ -209,7 +254,7 @@ describe("4. la forma única está escrita donde se mira", () => {
     const n = leer("docs/ops/NORMAS.md");
     expect(n).toContain(FORMA);
     expect(n).toContain("npm run normas -- --medir");
-    expect(leer("docs/PRINCIPIOS.md")).toContain("## Precedencia entre áreas");
+    expect(leer("docs/PRINCIPIOS.md")).toContain("## Precedencia");
   });
   it("la medición está en el registro de métricas con su pregunta y su script lector", () => {
     const m = JSON.parse(leer("ops/metricas.json"));

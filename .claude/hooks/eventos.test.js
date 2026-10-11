@@ -328,17 +328,17 @@ describe("agente lanzado (necesita «Agent» en el matcher de settings.json: pro
 
 describe("el aviso y la norma de cada bloqueo de la guardia (#494)", () => {
   it("la línea de un bloqueo lleva el código de su norma, y una que no lo lleva no inventa el campo", () => {
-    const con = lineaDeEvento({ evento: "bloqueo_guardia", nombre: "push-a-main", codigo: "main-solo-pablo", sesion: SESION, rama: "ops/340-x", fuente: "guardia" }, AHORA, "id-fijo");
-    expect(con).toEqual({ id: "id-fijo", ts: "2026-10-10T08:00:00.000Z", sesion: SESION, fuente: "guardia", actor: null, rama: "ops/340-x", issue: 340, evento: "bloqueo_guardia", nombre: "push-a-main", codigo: "main-solo-pablo" });
-    expect("codigo" in lineaDeEvento({ evento: "skill_cargada", nombre: "github" }, AHORA)).toBe(false);
+    const con = lineaDeEvento({ evento: "bloqueo_guardia", nombre: "push-a-main", norma: "main-solo-pablo", sesion: SESION, rama: "ops/340-x", fuente: "guardia" }, AHORA, "id-fijo");
+    expect(con).toEqual({ id: "id-fijo", ts: "2026-10-10T08:00:00.000Z", sesion: SESION, fuente: "guardia", actor: null, rama: "ops/340-x", issue: 340, evento: "bloqueo_guardia", nombre: "push-a-main", norma: "main-solo-pablo" });
+    expect("norma" in lineaDeEvento({ evento: "skill_cargada", nombre: "github" }, AHORA)).toBe(false);
   });
 
-  it.each(["Main solo Pablo", "git push origin main", "../x", "", "a".repeat(80), 7])("un código raro (%j) se omite, no se anota como texto", (codigo) => {
-    expect("codigo" in lineaDeEvento({ evento: "bloqueo_guardia", nombre: "push-a-main", codigo }, AHORA)).toBe(false);
+  it.each(["Main solo Pablo", "git push origin main", "../x", "", "a".repeat(80), 7])("un código raro (%j) se omite, no se anota como texto", (norma) => {
+    expect("norma" in lineaDeEvento({ evento: "bloqueo_guardia", nombre: "push-a-main", norma }, AHORA)).toBe(false);
   });
 
-  it("la guardia anota el aviso (nombre) y la norma (codigo) de lo que bloquea, y nada del comando", () => {
-    const dir = temporal("eventos-codigo-");
+  it("la guardia anota el aviso (nombre) y la norma (norma) de lo que bloquea, y nada del comando", () => {
+    const dir = temporal("eventos-norma-");
     const entrada = { session_id: SESION, cwd: temporal("eventos-repo-"), tool_name: "Bash", tool_input: { command: "git stash" } };
     execFileSync("git", ["init", "-q", entrada.cwd]);
     const r = spawnSync(process.execPath, [join(AQUI, "guardia.mjs")], {
@@ -346,7 +346,7 @@ describe("el aviso y la norma de cada bloqueo de la guardia (#494)", () => {
     });
     expect(r.status).toBe(0);
     const l = JSON.parse(readFileSync(join(dir, "eventos.jsonl"), "utf8"));
-    expect([l.evento, l.nombre, l.codigo]).toEqual(["bloqueo_guardia", "stash", "sin-git-stash"]);
+    expect([l.evento, l.nombre, l.norma]).toEqual(["bloqueo_guardia", "stash", "sin-git-stash"]);
     expect(JSON.parse(r.stdout).hookSpecificOutput.permissionDecisionReason).toContain("(norma: sin-git-stash)");
   });
 });

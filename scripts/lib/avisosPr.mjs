@@ -4,39 +4,40 @@
  * scripts/avisos-pr.mjs y el paso, «Avisos del PR» de .github/workflows/tests.yml.
  *
  * Los tres son AVISO: nunca fallan el job (un check obligatorio que se pone rojo por una
- * heurística bloquearía los PR de las demás sesiones). Cada regla deja una línea que se puede
- * contar:
+ * heurística bloquearía los PR de las demás sesiones). Cada regla deja la línea de su norma, que se puede
+ * contar (scripts/lib/medicionNormas.mjs; sustituye a la `avisos-pr: regla=… resultado=…` de antes, #621):
  *
- *     avisos-pr: regla=c8 resultado=warning detalle=removed_assertions=3 added_assertions=0
+ *     norma: tests-no-se-relajan resultado: warning pr: 123 detalle: removed_assertions=3 added_assertions=0
  *
  * Excepción declarada (#621): UNA forma para todas, en el cuerpo del PR, con la norma que se exceptúa, el
- * motivo y una caducidad. Si está y vale, el aviso no sale (`resultado=exempt`) y el motivo queda en `detalle`:
+ * motivo y una caducidad. Si está y vale, el aviso no sale (`resultado: exempt`) y el motivo queda en `detalle`:
  *
  *     Excepción: <id de norma> — <motivo> — hasta AAAA-MM-DD
  *
  * Cada regla cuelga de una norma (NORMA_DE_REGLA): C8 de `tests-no-se-relajan`, C1 de `pr-acotado` y C12 de
  * `lecciones-a-un-test`. La forma, sus razones para no valer y la transición de las tres formas de antes
  * («Tests relajados: sí — …», «Tamaño: grande — …», «Aprendizaje: …», aceptadas hasta
- * RETIRADA_FORMAS_ANTIGUAS) están en scripts/lib/excepciones.mjs. Además de la línea de la regla, cada
- * aviso deja su línea por norma (`norma: <id> resultado: cumple|salta|exceptuada`, medicionNormas.mjs).
+ * RETIRADA_FORMAS_ANTIGUAS) están en scripts/lib/excepciones.mjs. Una excepción válida de una norma sin regla
+ * aquí deja `norma: <id> resultado: declared` (no se midió ningún incumplimiento).
  *
- * Pasar de aviso a fallo (cuando haya cifras): contar con `grep -h "avisos-pr:" ` en los logs de
- * `tests` (o con `gh run view --log`) cuántos PR salen con `resultado=warning` por regla y
+ * Pasar de aviso a fallo (cuando haya cifras): contar con `grep -h "resultado: warning" ` en los logs de
+ * `tests` (o con `gh run view --log`) cuántos PR salen con `resultado: warning` por regla y
  * cuántos de esos avisos eran falsos (el PR acabó con la línea de excepción por un motivo
  * trivial). Una regla pasa a fallo cuando, en 30 PR seguidos, menos del 10 % de sus avisos
- * son falsos: en `scripts/avisos-pr.mjs`, `resultado=warning` pasa a salir con código 1 solo
+ * son falsos: en `scripts/avisos-pr.mjs`, `resultado: warning` pasa a salir con código 1 solo
  * para esa regla. Mientras tanto, todo sigue en salida 0.
  */
 import { GENERADOS, casaRuta } from "./generados.mjs";
 import { TABLAS } from "../../src/data/model.js";
-import { RAZONES, RETIRADA_FORMAS_ANTIGUAS, excepcionDe, leerExcepciones } from "./excepciones.mjs";
-import { lineaDeNorma } from "./medicionNormas.mjs";
+import { NORMA_DE_REGLA, RAZONES, RETIRADA_FORMAS_ANTIGUAS, excepcionDe, leerExcepciones } from "./excepciones.mjs";
+import { RESULTADOS_NORMA, lineaDeNorma } from "./medicionNormas.mjs";
 
 /** Vocabulario cerrado de la línea contable (campos y valores en inglés). Lo vigila su test. */
 export const REGLAS = ["c1", "c8", "c12"];
-export const RESULTADOS = ["ok", "warning", "exempt", "unchecked"];
+/** Los resultados de la línea: los de scripts/lib/medicionNormas.mjs (un solo vocabulario); estas reglas usan ok, warning, exempt y unchecked. */
+export const RESULTADOS = Object.keys(RESULTADOS_NORMA);
 /** Por qué un resultado es `unchecked`: no se pudo mirar (no es un fallo del PR). */
-export const MOTIVOS_SIN_COMPROBAR = ["api_error", "no_token", "no_diff", "script_error"];
+export const MOTIVOS_SIN_COMPROBAR = ["api_error", "no_token", "no_diff", "script_error", "bot"];
 
 /**
  * Umbrales de C1, medidos el 11 oct 2026 sobre los últimos 150 PR fusionados en staging, sin
@@ -49,8 +50,7 @@ export const UMBRALES_TAMANO = { lines: 2000, files: 30, areas: 5 };
 /** C8: cuántas aserciones netas quitadas bastan para avisar. 1 = cualquier pérdida neta. */
 export const MIN_ASERCIONES_PERDIDAS = 1;
 
-/** La norma de la que cuelga cada regla: es la que una excepción del PR exceptúa y la que mide `norma: <id> …`. */
-export const NORMA_DE_REGLA = { c1: "pr-acotado", c8: "tests-no-se-relajan", c12: "lecciones-a-un-test" };
+export { NORMA_DE_REGLA };
 
 /** Bots exentos de los tres avisos (los demás pasos del CI los exentan igual). */
 export const BOTS = new Set(["dependabot[bot]", "github-actions[bot]"]);
@@ -215,11 +215,14 @@ export function evaluarC12({ ficheros, cuerpo = "", fondosCerrados, sinComprobar
 
 // ── La salida ──────────────────────────────────────────────────────────────
 
-/** La línea contable. Falla si la regla o el resultado no son del vocabulario. */
-export function lineaContable({ regla, resultado, detalle }) {
+/**
+ * La línea contable (#621): la de la norma de la regla, `norma: <id> resultado: … pr: <n> detalle: …`, la misma sintaxis
+ * que «Fondos del PR» (scripts/lib/medicionNormas.mjs). Falla si la regla o el resultado no son del vocabulario.
+ */
+export function lineaContable({ regla, resultado, detalle }, pr = null) {
   if (!REGLAS.includes(regla)) throw new Error(`avisos-pr: regla fuera del vocabulario: ${regla}`);
   if (!RESULTADOS.includes(resultado)) throw new Error(`avisos-pr: resultado fuera del vocabulario: ${resultado}`);
-  return `avisos-pr: regla=${regla} resultado=${resultado} detalle=${String(detalle ?? "-").replace(/[\r\n]+/g, " ")}`;
+  return lineaDeNorma(NORMA_DE_REGLA[regla], resultado, { pr, detalle });
 }
 
 /** El mensaje de GitHub (`::warning::`) de un aviso, en castellano. */
@@ -237,7 +240,7 @@ export function mensajeAviso({ regla, detalle }) {
  * → [{ regla, resultado, detalle }]
  */
 export function avisosDelPr({ diff, cuerpo = "", autor = "", fondosCerrados = null, sinComprobar = null, hoy = hoyUtc() }) {
-  if (BOTS.has(String(autor).toLowerCase())) return REGLAS.map((regla) => r(regla, "exempt", "reason=bot"));
+  if (BOTS.has(String(autor).toLowerCase())) return REGLAS.map((regla) => r(regla, "unchecked", "reason=bot"));
   if (sinComprobar === "no_diff") return REGLAS.map((regla) => r(regla, "unchecked", "reason=no_diff"));
   const ficheros = leerDiff(diff);
   return [
@@ -249,16 +252,6 @@ export function avisosDelPr({ diff, cuerpo = "", autor = "", fondosCerrados = nu
 
 // ── La medición por norma y las excepciones del PR (#621) ──────────────────
 
-/** Lo que pasó con la norma de una regla: ok → cumple, warning → salta, exempt → exceptuada; unchecked y los bots, nada. */
-const RESULTADO_DE_NORMA = { ok: "cumple", warning: "salta", exempt: "exceptuada" };
-
-/** Las líneas `norma: <id> resultado: …` de los tres avisos de un PR. */
-export function lineasDeNormas(avisos) {
-  return avisos
-    .filter((a) => a.resultado in RESULTADO_DE_NORMA && a.detalle !== "reason=bot")
-    .map((a) => lineaDeNorma(NORMA_DE_REGLA[a.regla], RESULTADO_DE_NORMA[a.resultado]));
-}
-
 /** ¿Toca el diff algún fichero de la norma (`donde`, o su `control` si es un fichero)? Una ruta con «/» al final es una carpeta. */
 export function normaTocada(norma, rutas) {
   const suyas = [...(norma.donde ?? []), ...(norma.control && norma.control !== "juicio" && norma.control !== "planos" ? [norma.control] : [])];
@@ -266,28 +259,28 @@ export function normaTocada(norma, rutas) {
 }
 
 /** Por qué una excepción no vale, de las que arreglar sin que el PR se rompa por ello: se avisa. De las demás, se falla si la norma es dura y el PR la toca. */
-const RAZONES_QUE_FALLAN = ["vencida", "demasiado_lejos", "fecha", "motivo_corto"];
+const RAZONES_QUE_FALLAN = ["expired", "too_far", "bad_date", "short_reason"];
 
 /**
  * Lo que dice el cuerpo del PR sobre sus excepciones. `normas`: la lista de ops/normas.json; `ficheros`: los del
- * diff (leerDiff). → { lineas: [`norma: … resultado: exceptuada` de las que no tienen regla], avisos: [texto],
+ * diff (leerDiff). → { lineas: [`norma: … resultado: declared` de las que no tienen regla], avisos: [texto],
  * fallos: [texto] }. Una excepción que no vale NO cuenta: avisa, y FALLA solo si su norma es dura (veredicto) y el
  * PR toca un fichero de esa norma (un control que se caducó no se esquiva con un PR que lo cambia). Una norma que
  * no existe, o una línea mal escrita, solo avisa. La forma antigua en transición avisa de que se cambie.
  */
-export function excepcionesDelPr({ cuerpo = "", normas, ficheros = [], hoy = hoyUtc() }) {
+export function excepcionesDelPr({ cuerpo = "", normas, ficheros = [], hoy = hoyUtc(), pr = null }) {
   const lectura = leerExcepciones(cuerpo, { normas, hoy });
   const porId = new Map(normas.map((n) => [n.id, n]));
   const rutas = ficheros.map((f) => f.ruta);
   const fuera = { lineas: [], avisos: [], fallos: [], lectura };
   for (const i of lectura.invalidas) {
     const n = i.norma ? porId.get(i.norma) : null;
-    const texto = `Excepción${i.norma ? ` de «${i.norma}»` : ""} que no cuenta: ${RAZONES[i.razon]}${i.razon === "forma" ? ` (${i.linea})` : ""}`;
+    const texto = `Excepción${i.norma ? ` de «${i.norma}»` : ""} que no cuenta: ${RAZONES[i.razon]}${i.razon === "form" ? ` (${i.linea})` : ""}`;
     if (n?.veredicto === "dura" && RAZONES_QUE_FALLAN.includes(i.razon) && normaTocada(n, rutas)) fuera.fallos.push(`${texto}; «${n.id}» es una norma dura y este PR la toca`);
     else fuera.avisos.push(texto);
   }
   for (const a of lectura.antiguas) fuera.avisos.push(`La forma antigua de excepción (${a.id}) deja de valer el ${RETIRADA_FORMAS_ANTIGUAS}: escribe «Excepción: ${a.norma} — <motivo> — hasta AAAA-MM-DD»`);
   const conRegla = new Set(Object.values(NORMA_DE_REGLA));
-  for (const e of lectura.validas) if (!conRegla.has(e.norma)) fuera.lineas.push(lineaDeNorma(e.norma, "exceptuada"));
+  for (const e of lectura.validas) if (!conRegla.has(e.norma)) fuera.lineas.push(lineaDeNorma(e.norma, "declared", { pr, detalle: `until=${e.hasta ?? "-"}` }));
   return fuera;
 }

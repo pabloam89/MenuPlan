@@ -6,9 +6,9 @@
  *                                  citar norma, por fichero (solo informa)
  *   npm run normas -- --fondo      las cifras del fondo (#185), con red
  *   npm run normas -- --medir [--log <fichero>]…
- *                                  cuenta por norma las líneas `norma: <id> resultado: cumple|salta|exceptuada`
+ *                                  cuenta por norma las líneas `norma: <id> resultado: ok|warning|fail|exempt|declared`
  *                                  (#621): los bloqueos de la guardia del registro local de eventos y, si se
- *                                  da, el log de CI (`gh run view <run> --log > f.txt`); dice cuáles nunca
+ *                                  da, el log de CI (una vez por PR, norma y resultado) (`gh run view <run> --log > f.txt`); dice cuáles nunca
  *                                  saltan, cuáles no han dejado dato y cuáles se exceptúan siempre
  *   npm run normas -- --escribir   regenera docs/ops/NORMAS.md desde ops/normas.json y los avisos de la guardia (#494)
  *
@@ -42,9 +42,10 @@ if (args.includes("--medir")) {
   const dir = dirFabrica();
   const guardia = saltosDeLaGuardia(`${leer(join(dir, "eventos.anterior.jsonl"))}\n${leer(join(dir, "eventos.jsonl"))}`);
   const logs = args.flatMap((a, i) => (a === "--log" && args[i + 1] ? [args[i + 1]] : []));
+  // La unidad es el run de un PR: contarPorNorma cuenta una vez por pr + norma + resultado (medicionNormas.mjs).
   const ci = logs.flatMap((f) => leerLineasDeNorma(leer(f)));
   const m = medir(registro.normas, contarPorNorma([...guardia, ...ci]));
-  for (const f of m.filas.filter((x) => x.cumple + x.salta + x.exceptuada > 0)) console.log(`norma_medida: ${f.norma} cumple: ${f.cumple} salta: ${f.salta} exceptuada: ${f.exceptuada}`);
+  for (const f of m.filas.filter((x) => x.ok + x.warning + x.fail + x.exempt + x.declared > 0)) console.log(`norma_medida: ${f.norma} ok: ${f.ok} warning: ${f.warning} fail: ${f.fail} exempt: ${f.exempt} declared: ${f.declared}`);
   console.log(`normas_medidas total: ${m.filas.length} nunca_saltan: ${m.nuncaSaltan.length} sin_dato: ${m.sinDato.length} exceptuadas_siempre: ${m.exceptuadasSiempre.length} fuente: ${logs.length ? "guardia-local+ci" : "guardia-local"}`);
   if (m.nuncaSaltan.length) console.log(`  nunca saltan (se comprobaron y no saltó ni una vez): ${m.nuncaSaltan.join(", ")}`);
   if (m.exceptuadasSiempre.length) console.log(`  se exceptúan siempre (mal puestas, o la excepción es un atajo): ${m.exceptuadasSiempre.join(", ")}`);

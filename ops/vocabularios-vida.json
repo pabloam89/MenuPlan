@@ -239,8 +239,24 @@
       "tokens": "tokens de modelo",
       "nivel": "el nivel de un plano, de 0 a 4"
     },
+    "normas.resultado": {
+      "ok": "el control miró y la norma se cumplía",
+      "warning": "el control miró y la norma no se cumplía; avisó sin bloquear (un aviso del CI, un aviso o un bloqueo de la guardia)",
+      "fail": "el control miró y la norma no se cumplía; bloqueó (un check del CI en rojo)",
+      "exempt": "se incumplía y una excepción válida del PR lo dejó pasar",
+      "declared": "el PR declara una excepción válida de una norma que ningún control del CI consulta: no se midió ningún incumplimiento",
+      "unchecked": "no se pudo mirar (sin diff, sin API, un fallo del script): no cuenta"
+    },
     "pr.excepcion_forma": {
-      "unica": "Excepción: <id de norma> — <motivo> — hasta AAAA-MM-DD, una línea por excepción, con caducidad"
+      "single": "Excepción: <id de norma> — <motivo> — hasta AAAA-MM-DD, una línea por excepción, con caducidad"
+    },
+    "pr.excepcion_razon": {
+      "form": "no sigue la forma «Excepción: <id de norma> — <motivo> — hasta AAAA-MM-DD»",
+      "unknown_norm": "la norma no existe en ops/normas.json",
+      "short_reason": "el motivo tiene menos de 10 caracteres",
+      "bad_date": "la fecha no es un día real AAAA-MM-DD",
+      "expired": "la caducidad ya ha pasado",
+      "too_far": "la caducidad pasa de 90 días"
     },
     "precedencia.concepto": {
       "security": "Que nadie ajeno entre ni haga más de lo que le toca: identidades, permisos, secretos y puertas",
@@ -533,23 +549,23 @@
   "retirados": [
     {
       "vocabulario": "pr.excepcion_forma",
-      "valor": "tests_relajados",
-      "pasa_a": "unica",
-      "desde": "2026-10-11",
+      "valor": "relaxed_tests",
+      "pasa_a": "single",
+      "desde": "2026-11-15",
       "motivo": "La línea «Tests relajados: sí — <motivo>» pasa a la excepción única de tests-no-se-relajan; sigue valiendo, con aviso, hasta el 2026-11-15 (scripts/lib/excepciones.mjs) (#621)"
     },
     {
       "vocabulario": "pr.excepcion_forma",
-      "valor": "tamano_grande",
-      "pasa_a": "unica",
-      "desde": "2026-10-11",
+      "valor": "big_pr",
+      "pasa_a": "single",
+      "desde": "2026-11-15",
       "motivo": "La línea «Tamaño: grande — <motivo>» pasa a la excepción única de pr-acotado; sigue valiendo, con aviso, hasta el 2026-11-15 (scripts/lib/excepciones.mjs) (#621)"
     },
     {
       "vocabulario": "pr.excepcion_forma",
-      "valor": "aprendizaje",
-      "pasa_a": "unica",
-      "desde": "2026-10-11",
+      "valor": "learning",
+      "pasa_a": "single",
+      "desde": "2026-11-15",
       "motivo": "La línea «Aprendizaje: <dónde>» pasa a la excepción única de lecciones-a-un-test; sigue valiendo, con aviso, hasta el 2026-11-15 (scripts/lib/excepciones.mjs) (#621)"
     },
     {

@@ -34,8 +34,11 @@ Excepción (solo si incumples una norma a propósito; una línea por norma, #621
   Excepción: <id de norma> — <motivo> — hasta AAAA-MM-DD
 El id es el de ops/normas.json (npm run normas); el motivo, de verdad (10
 caracteres o más); la fecha, dentro de los próximos 90 días. Una excepción
-vencida, con una norma que no existe o mal escrita no cuenta: avisa, y falla si
-la norma es dura y el PR la toca. Los avisos del CI aceptan en su lugar, hasta
+vencida (la fecha de hoy es la UTC del CI), con una norma que no existe o mal
+escrita no cuenta: avisa, y falla si la norma es dura y el PR la toca. Una
+excepción solo exime de lo que un control del CI consulta (hoy: tests-no-se-relajan,
+pr-acotado y lecciones-a-un-test); para cualquier otra norma queda anotada y
+medida, nada más. Los avisos del CI aceptan en su lugar, hasta
 el 2026-11-15, las formas de antes («Tests relajados: sí — …», «Tamaño: grande —
 …», «Aprendizaje: …»): usa la nueva. Si dos normas chocan, gana la de más arriba
 en la precedencia (docs/PRINCIPIOS.md) y la otra se deja como excepción.
