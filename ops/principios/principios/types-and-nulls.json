@@ -1,0 +1,16 @@
+{
+  "id": "types-and-nulls",
+  "area": "data",
+  "nombre": "Tipos justos y nulos decididos",
+  "enunciado": "Cada columna tiene el tipo justo y es not null, salvo que su comentario diga qué significa el nulo.",
+  "porque": "Un nulo sin significado se lee de tres formas distintas, y un tipo flojo deja entrar datos imposibles.",
+  "fuentes": [
+    {
+      "marca": "C",
+      "ruta": "docs/datos/PRINCIPIOS.md"
+    }
+  ],
+  "detalle": [
+    "docs/datos/PRINCIPIOS.md#14-tipos-y-nulos"
+  ]
+}

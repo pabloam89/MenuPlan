@@ -17,7 +17,7 @@ import { join } from "node:path";
 
 import { FUENTE_F, FUENTE_I } from "./forja.mjs";
 import { leerJsonOCatalogo, renombrarRuta } from "./catalogos.mjs";
-import { CONTROL_JUICIO, FUERZAS, LIMITES_REGLA, fraseDeRegla, problemasDeRegla, problemasDeSujetos } from "./regla.mjs";
+import { CONTROL_JUICIO, FUERZAS, LIMITES_PRINCIPIO, LIMITES_REGLA, fraseDeRegla, problemasDePrincipio as problemasDeFormaPrincipio, problemasDeRegla, problemasDeSujetos } from "./regla.mjs";
 
 export const RUTA_REDACCION = "ops/redaccion.json";
 export const RUTA_PENDIENTES = "ops/redaccion-pendientes.json";
@@ -30,6 +30,16 @@ export const MAX_PRINCIPIOS = 16;
 export const ESTADOS_CATALOGO = {
   cumple: "Cada entrada pasa las comprobaciones de regla.mjs",
   pendiente: "Aún no sigue la guía; lleva el encargo que lo pone al día y la lista solo baja",
+};
+
+/**
+ * La forma de las entradas de un catálogo (#619): una regla (sujeto, fuerza, exigencia; problemasDeRegla) o
+ * un principio de la lista única (nombre, enunciado y porqué; problemasDePrincipio de regla.mjs). Sin
+ * `forma`, un catálogo es de reglas.
+ */
+export const FORMAS_CATALOGO = {
+  regla: "Cada entrada es una regla: nombre, sujeto, fuerza, condición y exigencia",
+  principio: "Cada entrada es un principio: nombre, un enunciado de una frase sin fuerza y su porqué",
 };
 
 /** Los campos de un principio: los de regla.mjs más los propios de la guía. */
@@ -116,6 +126,15 @@ function problemasDeCatalogo(k, d, { existe, leerJson }) {
   if (!(k?.estado in ESTADOS_CATALOGO)) return [...malos, `${d}: estado «${k?.estado}» fuera del vocabulario (${Object.keys(ESTADOS_CATALOGO).join(", ")})`];
   if (k.estado === "pendiente") {
     if (!ENCARGO.test(k.encargo ?? "")) malos.push(`${d}: un catálogo pendiente lleva su encargo («#494» o «en cola #488»)`);
+    return malos;
+  }
+  if ("forma" in k && !(k.forma in FORMAS_CATALOGO)) return [...malos, `${d}: forma «${k.forma}» fuera del vocabulario (${Object.keys(FORMAS_CATALOGO).join(", ")})`];
+  if (k.forma === "principio") {
+    if (!esRuta(k.clave_reglas)) return [...malos, `${d}: un catálogo de principios dice «clave_reglas»`];
+    if (malos.length) return malos;
+    const de = reglasDe(leerJson(k.fichero), k.clave_reglas);
+    if (!de || !de.reglas.length) return [...malos, `${d}: «${k.clave_reglas}» no es una lista de principios`];
+    de.reglas.forEach((r, i) => malos.push(...problemasDeFormaPrincipio(r, `${d} · ${r?.id ?? `entrada ${i + 1}`}`)));
     return malos;
   }
   if (!esRuta(k.clave_reglas) || !esTexto(k.clave_sujetos)) return [...malos, `${d}: un catálogo que cumple dice «clave_reglas» y «clave_sujetos»`];
@@ -257,17 +276,19 @@ function mdVocabularios(datos) {
     `| nota | de ${L.nota.min} a ${L.nota.max} caracteres |`,
     `| rúbrica (cumple, no_cumple) | ${L.rubrica.min} caracteres o más |`,
     "",
+    `Un **principio** (catálogos con forma \`principio\`, #619) no es una regla: no lleva sujeto, fuerza ni control, porque la obligación es de la norma que lo cita. Su frase es: **Nombre.** Enunciado Por qué: porqué. El nombre, de ${LIMITES_PRINCIPIO.nombre.palabras_min} a ${LIMITES_PRINCIPIO.nombre.palabras_max} palabras; el enunciado, una sola frase en presente con sujeto y verbo, de ${LIMITES_PRINCIPIO.enunciado.palabras_max} palabras como mucho, que acaba en punto, sin punto y coma ni dos puntos y sin palabras de fuerza (debe, conviene, hay que); el porqué, una frase así de ${LIMITES_PRINCIPIO.porque.palabras_max} palabras como mucho. Que el verbo vaya en presente lo juzga el revisor; lo demás lo comprueba \`problemasDePrincipio\` de \`scripts/lib/regla.mjs\`.`,
+    "",
     "Marca de la fuente: **[F]** está en una fuente externa (con su URL); **[I]** es de la casa (con la ruta del repo donde está escrito).",
     "",
   ];
 }
 
 function mdCatalogos(datos, leerJson) {
-  const L = ["## Catálogos que siguen la guía", "", "| Catálogo | Estado | Reglas | Encargo |", "|---|---|---|---|"];
+  const L = ["## Catálogos que siguen la guía", "", "| Catálogo | Forma | Estado | Entradas | Encargo |", "|---|---|---|---|---|"];
   for (const k of datos.catalogos) {
     const de = k.estado === "cumple" ? reglasDe(leerJson(k.fichero), k.clave_reglas) : null;
     const n = de ? String(de.reglas.length + de.remisiones.length) : "-";
-    L.push(`| \`${k.fichero}\` | ${k.estado} | ${n} | ${k.encargo ?? "-"} |`);
+    L.push(`| \`${k.fichero}\` | ${k.forma ?? "regla"} | ${k.estado} | ${n} | ${k.encargo ?? "-"} |`);
   }
   const pend = pendientesDe(datos).length;
   L.push("", ...Object.entries(ESTADOS_CATALOGO).map(([e, t]) => `- ${e}: ${t}.`), "", `Pendientes hoy: ${pend}. La lista solo baja (\`${RUTA_PENDIENTES}\`).`, "");

@@ -1,0 +1,19 @@
+{
+  "id": "one-change-one-intent",
+  "area": "code",
+  "nombre": "Un cambio, una intención",
+  "enunciado": "Cada sesión lleva una sola tarea en su carpeta y su rama, y cada PR cierra un solo propósito.",
+  "porque": "Dos intenciones en un cambio no se revisan, se revierten ni se atribuyen por separado, y las sesiones en paralelo se pisan.",
+  "fuentes": [
+    {
+      "marca": "C",
+      "ruta": "CLAUDE.md"
+    }
+  ],
+  "detalle": [
+    "CLAUDE.md#una-sesión-una-tarea"
+  ],
+  "origen": [
+    "C1"
+  ]
+}

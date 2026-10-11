@@ -1,6 +1,19 @@
 {
   "$comentario": "Ciclo de vida de los vocabularios cerrados de proceso (#481, fondo #479; scripts/lib/vocabulariosVida.mjs). «anclados»: los valores de hoy de cada vocabulario con su definición; lo escribe npm run glosario -- --vocabularios --escribir, no se edita a mano. «retirados»: un valor que deja de usarse no se borra ni se reutiliza: {vocabulario, valor, pasa_a (un valor vivo, o null con motivo), desde (AAAA-MM-DD)}. «redefiniciones»: una definición que cambia sin cambiar de significado, de un valor {vocabulario, valor, desde, motivo} o de un término del glosario {termino, desde, motivo}. «vocabularios_retirados»: {vocabulario, desde, motivo}. Los tres registros solo crecen. Lo vigilan ops/vocabularios-vida.test.js y ops/glosario.test.js, también contra origin/staging.",
   "anclados": {
+    "ambitos": {
+      "code": "El código del repo y su forma: tests, lint y ficheros",
+      "infra": "Identidades, permisos, secretos, ramas, CI, despliegues, copias y servicios",
+      "data": "La base: tablas, migraciones, roles y cada dato que guarda",
+      "catalog": "El catálogo de recetas y alimentos que vive en git",
+      "bot": "Lola, el bot de mensajería, sus evals y su coste",
+      "api": "Las funciones de api/ y lo que protegen",
+      "ui": "Las pantallas de la app",
+      "product": "Qué hace bien HoMenu y Lola para las familias",
+      "process": "Cómo se trabaja: issues, fondos, PR, sesiones, agentes, jueces y cifras",
+      "writing": "Cómo se escribe una regla o un principio de la casa",
+      "entities": "Cómo se nombra, se identifica y se registra cada cosa del proyecto"
+    },
     "entidades.axis": {
       "horizontal": "Cómo trabajamos: sesiones, normas, agentes, issues y PR",
       "vertical": "El producto HoMenu: casas, recetas, menús y Lola",

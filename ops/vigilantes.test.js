@@ -136,6 +136,8 @@ const TABLA = [
   ["una-escala-y-una-escalera", "ops/flujo.json", "ops/escalas.test.js"],
   ["tipos-de-encargo", "ops/tipos-de-encargo.json", "ops/tipos-de-encargo.test.js"],
   ["tipos-de-encargo", ".claude/agents/x.md", "ops/tipos-de-encargo.test.js"],
+  ["principios-y-uniones", "ops/principios/principios/x.json", "ops/principios.test.js"],
+  ["principios-y-uniones", "ops/normas.json", "ops/uniones.test.js"],
 ];
 
 describe("tabla: ruta de ejemplo → vigilante que debe salir", () => {

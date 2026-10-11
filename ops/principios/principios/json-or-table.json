@@ -1,0 +1,16 @@
+{
+  "id": "json-or-table",
+  "area": "data",
+  "nombre": "JSON o tabla",
+  "enunciado": "Lo que se filtra, se referencia o editan varios va a una tabla, y lo que un solo escritor lee entero va a JSON.",
+  "porque": "Un JSON que se filtra en el servidor o que editan varios a la vez pierde datos y no se puede consultar.",
+  "fuentes": [
+    {
+      "marca": "C",
+      "ruta": "docs/datos/PRINCIPIOS.md"
+    }
+  ],
+  "detalle": [
+    "docs/datos/PRINCIPIOS.md#5-json-o-tabla"
+  ]
+}

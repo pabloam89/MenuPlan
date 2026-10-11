@@ -1,0 +1,19 @@
+{
+  "id": "person-over-the-loop",
+  "area": "process",
+  "nombre": "Persona sobre el bucle",
+  "enunciado": "Pablo no aprueba cada paso, sino que lee una muestra periódica y ajusta las reglas.",
+  "porque": "Pedir el sí en cada paso interrumpe y acaba en un sí a todo, y mirar una muestra mantiene el control sin frenar.",
+  "fuentes": [
+    {
+      "marca": "C",
+      "ruta": "CLAUDE.md"
+    }
+  ],
+  "detalle": [
+    "CLAUDE.md#qué-se-le-pregunta-a-pablo-y-qué-no"
+  ],
+  "origen": [
+    "N7"
+  ]
+}

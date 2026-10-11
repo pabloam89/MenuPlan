@@ -1,0 +1,17 @@
+{
+  "id": "no-number-without-question",
+  "area": "process",
+  "nombre": "Ninguna cifra sin pregunta",
+  "enunciado": "Cada cifra responde a una pregunta, tiene un script que la lee y va con otra cifra que la vigila.",
+  "porque": "Una cifra que nadie lee es coste sin uso, y una que se persigue sola deja de medir lo que medía.",
+  "fuentes": [
+    {
+      "marca": "C",
+      "ruta": "ops/metricas.json"
+    }
+  ],
+  "origen": [
+    "claude:ninguna-cifra-sin-pregunta",
+    "claude:ninguna-cifra-es-objetivo-sola"
+  ]
+}

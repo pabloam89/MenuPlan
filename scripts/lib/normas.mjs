@@ -13,8 +13,9 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { AMBITOS } from "./ambitos.mjs";
 import { VEREDICTOS } from "./escalas.mjs";
-import { CONTROL_JUICIO, FUERZAS, fraseDeRegla, problemasDeRegla, problemasDeSujetos } from "./regla.mjs";
+import { CONTROL_JUICIO, FUERZAS, ID_KEBAB, fraseDeRegla, problemasDeRegla, problemasDeSujetos } from "./regla.mjs";
 
 /** Quién hace cumplir la norma. Los cinco primeros son «del sistema»: no dependen de que alguien se acuerde. */
 export const EJECUTORES = {
@@ -55,6 +56,9 @@ export const RIESGOS = {
   bajo: "Molesta, se ve enseguida y se arregla",
 };
 
+/** El ámbito de una norma (#619): el vocabulario único de scripts/lib/ambitos.mjs, el mismo que el área de un principio. */
+export { AMBITOS };
+
 /**
  * Cómo se comprueba una norma (#494). `prueba` dice si es una comprobación que falla sola: solo
  * una norma con control de esos tipos puede ser dura. El vocabulario sale de lo que había en el
@@ -78,7 +82,7 @@ export const RUTA_PLANOS = "ops/planos.json";
  */
 export const CAMPOS = [
   "id", "nombre", "sujeto", "fuerza", "exigencia", "donde", "ejecutor", "alcance", "ante_fallo",
-  "control", "control_tipo", "veredicto", "riesgo", "issue",
+  "control", "control_tipo", "veredicto", "riesgo", "issue", "principio", "ambito", "acciones",
 ];
 export const CAMPOS_OPCIONALES = ["condicion", "nota", "criterio_planos", "test_fallo", "desde"];
 
@@ -132,13 +136,20 @@ export function problemasDeForma(n, sujetos) {
   const id = n?.id ?? "(sin id)";
   for (const c of CAMPOS) if (!(c in n)) malos.push(`${id}: falta «${c}»`);
   for (const c of Object.keys(n)) if (!CAMPOS.includes(c) && !CAMPOS_OPCIONALES.includes(c)) malos.push(`${id}: campo desconocido «${c}»`);
-  if (typeof n.id !== "string" || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(n.id)) malos.push(`${id}: el id va en minúsculas con guiones`);
+  if (typeof n.id !== "string" || !ID_KEBAB.test(n.id)) malos.push(`${id}: el id va en minúsculas con guiones`);
   malos.push(...problemasDeRegla(n, id, sujetos));
   if (!Array.isArray(n.donde) || !n.donde.length) malos.push(`${id}: «donde» es una lista de rutas`);
   const vocab = [["ejecutor", EJECUTORES], ["alcance", ALCANCES], ["ante_fallo", ANTE_FALLO], ["veredicto", VEREDICTOS], ["riesgo", RIESGOS], ["control_tipo", CONTROL_TIPOS]];
   for (const [campo, v] of vocab) if (!(n[campo] in v)) malos.push(`${id}: ${campo} «${n[campo]}» no está en el vocabulario (${Object.keys(v).join(", ")})`);
   malos.push(...problemasDeControl(n, id));
   if (n.issue !== null && !Number.isInteger(n.issue)) malos.push(`${id}: «issue» es un número o null`);
+  // La unión con su principio (#619): que el principio exista lo mira ops/uniones.test.js, que lee la lista.
+  if (typeof n.principio !== "string" || !ID_KEBAB.test(n.principio)) malos.push(`${id}: «principio» es el id de un principio de docs/PRINCIPIOS.md`);
+  if (!(n.ambito in AMBITOS)) malos.push(`${id}: ambito «${n.ambito}» no está en el vocabulario (${Object.keys(AMBITOS).join(", ")})`);
+  // Que cada acción sea de ops/estandares-agentes.json lo mira ops/uniones.test.js: su lector arrastra
+  // child_process y este módulo está en el grafo de un hook que no puede traerlo (buscar-antes).
+  if (!Array.isArray(n.acciones) || !n.acciones.length || n.acciones.some((a) => typeof a !== "string" || !/^[a-z]+$/.test(a))) malos.push(`${id}: «acciones» es una lista con una acción como mínimo, en minúsculas`);
+  else if (new Set(n.acciones).size !== n.acciones.length) malos.push(`${id}: «acciones» repite una acción`);
   if ("desde" in n && !Number.isInteger(n.desde)) malos.push(`${id}: «desde» es el número del issue o PR que la dejó así`);
   if (n.test_fallo !== undefined && (typeof n.test_fallo?.ruta !== "string" || typeof n.test_fallo?.caso !== "string")) {
     malos.push(`${id}: «test_fallo» lleva ruta y caso`);
@@ -295,23 +306,25 @@ export function generarMd(registro, avisos) {
     "",
     `<!-- Generado desde ${RUTA_REGISTRO} y .claude/hooks/avisos-guardia.mjs con «npm run normas -- --escribir». No se edita a mano: ops/normas.test.js lo compara. -->`,
     "",
-    "Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe por campos (nombre, sujeto, fuerza, condición, exigencia, control; plantilla de `scripts/lib/regla.mjs`, guía en `docs/ops/REDACCION.md`) y su frase sale de ellos. La tabla dice también quién la hace cumplir, con qué se comprueba y qué avisos de la guardia la citan. Un aviso que salta dice, en este orden, qué se niega, por qué, qué hacer en su lugar y a quién pedirlo, y deja en el registro de eventos su id y el de su norma.",
+    "Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe por campos (nombre, sujeto, fuerza, condición, exigencia, control; plantilla de `scripts/lib/regla.mjs`, guía en `docs/ops/REDACCION.md`) y su frase sale de ellos. Cada una cita el principio del que sale (`docs/PRINCIPIOS.md`) y dice su ámbito y a qué acciones de un agente se aplica. La tabla dice también quién la hace cumplir, con qué se comprueba y qué avisos de la guardia la citan. Un aviso que salta dice, en este orden, qué se niega, por qué, qué hacer en su lugar y a quién pedirlo, y deja en el registro de eventos su id y el de su norma.",
     "",
     "## Normas",
     "",
-    "| Norma | Sujeto | Fuerza | Frase | Quién la hace cumplir | Control | Avisos de la guardia |",
-    "|---|---|---|---|---|---|---|",
+    "| Norma | Sujeto | Fuerza | Frase | Quién la hace cumplir | Control | Avisos de la guardia | Principio | Ámbito | Acciones |",
+    "|---|---|---|---|---|---|---|---|---|---|",
   ];
   for (const n of normas) {
     const frase = fraseDeRegla(n, sujetos).replace(/ Se comprueba con: .*$/, "");
     const control = n.control_tipo === "juicio" ? "juicio" : n.control_tipo === "planos" ? `planos: ${n.criterio_planos}` : `${n.control_tipo}: \`${n.control}\``;
     const quien = `${n.ejecutor} · ${n.veredicto}`;
     const av = (porNorma[n.id] ?? []).map((a) => `\`${a}\``).join(", ") || "—";
-    L.push(`| \`${n.id}\` | ${n.sujeto} | ${FUERZAS[n.fuerza].palabra} | ${celda(frase)} | ${quien} | ${celda(control)} | ${av} |`);
+    L.push(`| \`${n.id}\` | ${n.sujeto} | ${FUERZAS[n.fuerza].palabra} | ${celda(frase)} | ${quien} | ${celda(control)} | ${av} | \`${n.principio}\` | ${n.ambito} | ${(n.acciones ?? []).join(", ")} |`);
   }
   const contar = (campo) => Object.entries(normas.reduce((a, n) => ({ ...a, [n[campo]]: (a[n[campo]] ?? 0) + 1 }), {}));
   L.push("", "## Sujetos", "", "| Sujeto | En la frase | Normas |", "|---|---|---|");
   for (const [id, s] of Object.entries(sujetos)) L.push(`| ${id} | ${s.legible} | ${normas.filter((n) => n.sujeto === id).length} |`);
+  L.push("", "## Ámbitos", "", "| Ámbito | Qué es | Normas |", "|---|---|---|");
+  for (const [id, a] of Object.entries(AMBITOS)) L.push(`| ${id} | ${celda(a.que)} | ${normas.filter((n) => n.ambito === id).length} |`);
   L.push("", "## Cómo se comprueban", "", "| Tipo de control | Qué es | Normas |", "|---|---|---|");
   for (const [id, t] of Object.entries(CONTROL_TIPOS)) L.push(`| ${id} | ${celda(t.que)} | ${normas.filter((n) => n.control_tipo === id).length} |`);
   L.push("", "## Avisos de la guardia", "", "| Aviso | Norma | Qué se niega |", "|---|---|---|");

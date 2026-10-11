@@ -92,6 +92,10 @@
       "kind": "outside",
       "reason": "enrutador del producto o de la factoría de Lola: fuera de este ataque"
     },
+    "entidad": {
+      "kind": "outside",
+      "reason": "la entidad es la unidad del propio registro de entidades, no una entidad registrada en él"
+    },
     "estado.diseno": {
       "kind": "outside",
       "reason": "estado del diseño del producto o de la factoría de Lola: fuera de este ataque"
@@ -109,6 +113,10 @@
       "kind": "part_of",
       "entity": "eval",
       "reason": "un caso es una parte de un eval"
+    },
+    "evento": {
+      "kind": "entity",
+      "entity": "event"
     },
     "fallo": {
       "kind": "type_of",
@@ -202,6 +210,10 @@
       "entity": "metric",
       "reason": "la medida la produce una métrica"
     },
+    "metrica": {
+      "kind": "entity",
+      "entity": "metric"
+    },
     "migracion": {
       "kind": "entity",
       "entity": "migration"
@@ -249,9 +261,8 @@
       "reason": "primitivo del producto o de la factoría de Lola: fuera de este ataque"
     },
     "principio": {
-      "kind": "type_of",
-      "entity": "rule",
-      "reason": "un principio de PRINCIPIOS.md es una regla de la base"
+      "kind": "entity",
+      "entity": "principle"
     },
     "produccion": {
       "kind": "instance_of",
@@ -278,6 +289,10 @@
     "receta": {
       "kind": "entity",
       "entity": "recipe"
+    },
+    "recurso": {
+      "kind": "outside",
+      "reason": "un recurso con caducidad es una clave, una skill o un servicio: cada uno es su propia entidad"
     },
     "registro": {
       "kind": "outside",
@@ -317,6 +332,10 @@
       "kind": "type_of",
       "entity": "mechanism",
       "reason": "un test es un mecanismo de la escalera"
+    },
+    "texto": {
+      "kind": "outside",
+      "reason": "palabra genérica: cada texto de proceso es de una skill, un agente, una regla o un documento"
     },
     "texto.interfaz": {
       "kind": "outside",

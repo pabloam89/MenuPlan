@@ -1,0 +1,19 @@
+{
+  "termino": "principio",
+  "estado": "activo",
+  "clase": "artefacto",
+  "definicion": "Una razón de fondo que dice por qué se pide algo, con su fuente; vive en la lista única de ops/principios/ y de ella salen las normas.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "norma"
+  ],
+  "ref": {
+    "fichero": "scripts/lib/principios.mjs",
+    "clave": "CAMPOS"
+  },
+  "nota": "Un principio es el porqué; una norma, lo que debe ser verdad, con su control, y cita su principio; una regla, la condición concreta escrita donde se aplica; un criterio, una condición de calidad con su control; un estándar, los criterios de una tarea, que citan normas.",
+  "en": "principle"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "status-is-state-machine",
+  "area": "data",
+  "nombre": "El estado es una máquina",
+  "enunciado": "Cada columna de estado es una máquina con vocabulario cerrado, una fecha por estado importante y sus saltos escritos.",
+  "porque": "Un estado que se escribe sin reglas acaba en combinaciones imposibles que nadie sabe interpretar.",
+  "fuentes": [
+    {
+      "marca": "C",
+      "ruta": "docs/datos/PRINCIPIOS.md"
+    }
+  ],
+  "detalle": [
+    "docs/datos/PRINCIPIOS.md#21-estados"
+  ]
+}
