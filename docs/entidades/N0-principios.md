@@ -191,6 +191,21 @@ entidad, un tipo suyo (futuro N2) o queda fuera con motivo
 - Una norma sin test tiene veredicto blando en `ops/normas.json`, con la barrera que le falta.
 - Se toma el principio y el test, no el proceso. Somos un equipo de dos o tres personas [I].
 
+## Cómo se cambia el registro de entidades
+
+Todo cambio va por PR con el CI en verde. Como convención, sin control que la haga cumplir, lo juzga `auditor-datos` y quien lo construye no lo juzga. La barrera real es `ops/entidades.test.js`: el procedimiento solo dice qué hacer para pasarlo.
+
+- **Añadir una entidad.** Por analogía con la regla de parada de `ops/flujo.json` (que hoy solo aplica a catálogo, skill y agente): se usa dos veces o más, no repite otra y tiene dueño, que es su `source_of_truth`. Sin control. Pasos que sí exige el test:
+  - Fila en `ops/entidades.json` con `id`, `name`, `axis`, `term`, `source_of_truth`, `id_format`, `registry` y `status`, y al menos una relación.
+  - `term` apunta a una ficha del glosario con `en` igual al id (solo una vertical puede no llevar `term`).
+  - Fila y flecha en `docs/entidades/MAPA.md`, y la cifra «Hoy hay N entidades» al día.
+  - Si su nombre se usa en los dos ejes, es un puente: lleva `role_in_axis`, flecha en el diagrama de puentes, clase `puente` y su sitio en la lista `PUENTES` del test. Una relación entre ejes distintos va también al diagrama de puentes.
+- **Añadir un tipo o un tipo específico (N2, N3).** No es una entidad: es un valor de un vocabulario cerrado de su entidad (principio 12). Anclarlo en `ops/vocabularios-vida.json` es lo correcto, pero hoy nada lo exige y el vocabulario de `recorded_in` aún no lo está. Si necesita campos propios, se estudia como entidad.
+- **Cambiar una definición.** Se cambia en el glosario, nunca en el JSON. Si cambia el significado, no se edita: se retira el término y nace otro (principio 11).
+- **Quitar o sustituir una entidad.** No se borra: `status: retired` con `replaced_by`. Un id ya fusionado en staging queda fijado. La retirada conserva su fila en el mapa y al menos una relación. **Límite de hoy:** el test exige a cada entidad horizontal o puente un `term` activo con `en` igual a su id, y no deja repetirlo; retirar y crear otra para el mismo concepto obliga a tener dos términos o falla. Hasta ajustar el test (encargo a `datos`), un id horizontal o puente no se cambia.
+- **Añadir o cambiar una relación.** Se edita en el JSON y en el diagrama a la vez. El test exige que `stored_as` sea de su vocabulario (`field`, `file`, `none`, `unaudited`) y que `field` y `file` lleven `stored_in`. Que sea cierto lo mira el juez.
+- **Nombres.** Id de entidad en inglés y kebab; campos en inglés y snake (principio 5). Si choca con un sinónimo prohibido, manda el glosario.
+
 ## Idioma de los nombres (decisión de Pablo, 11 oct 2026)
 
 Pablo decidió: **todo en inglés**, en los tres ejes. Se aplica así:
@@ -218,9 +233,9 @@ las contó el 11 oct). Las de castellano no empiezan todas en la 0060:
 
 ## Decisiones ya tomadas sobre estas entidades
 
-- **Aprendizaje.** El término es «aprendizaje», no «lección» (glosario). El id es `learning`. Su campo declarado `mechanism` vale `test`, `guard`, `rule` o `skill`, y con `skill` lleva `reason_not_automated`. Sigue siendo `without_registry`.
+- **Aprendizaje.** El término es «aprendizaje», no «lección» (glosario). El id es `learning`. Su campo declarado `recorded_in` («dónde quedó») vale `test`, `guard`, `rule` o `skill`, y con `skill` lleva `reason_not_automated`. Sigue siendo `without_registry`.
 - **Persona.** `person` es la persona de la casa, como en la base. El equipo es `team-member`. El término del glosario «persona» sigue siendo el del equipo. Renombrarlo a «miembro del equipo» irá en un PR aparte. Mientras, las fichas «persona» y «persona de la casa» se relacionan en los dos sentidos y la nota de «persona» avisa.
-- **Tres «mecanismo».** Existen tres cosas con ese nombre: los ids de `ops/mecanismos.json`, `ficha.mecanismo` del fondo (texto libre con la causa) y el campo `mechanism` del aprendizaje (`test`, `guard`, `rule` o `skill`). El campo se queda como pidió Pablo. Si se renombra, lo decide él.
+- **Tres «mecanismo».** Existen tres cosas con ese nombre: los ids de `ops/mecanismos.json`, `ficha.mecanismo` del fondo (texto libre con la causa) y el campo del aprendizaje (`test`, `guard`, `rule` o `skill`). Este último se renombró a `recorded_in` para que cada «mecanismo» signifique una sola cosa (principio 1).
 - **Identidad.** `identity` es horizontal. La cuenta de un canal de la casa es `channel-identity`, vertical.
 - **Tabla.** `table` es un puente: la crea una migración y la custodia un módulo. La fuente de datos no se cuelga de ellos, porque no comparten id.
 
