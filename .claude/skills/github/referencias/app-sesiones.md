@@ -277,12 +277,14 @@ Hasta entonces, sus credenciales siguen ahí.
 ## Lo que la sesión no debe poder hacer (#333)
 
 `npm run detector-identidades` prueba con el token de la App lo que tiene que fallar: crear un
-ruleset, proteger `main`, escribir un secreto de Actions, invitar a un colaborador (todas con
-cuerpo vacío: si pasaran, GitHub contestaría 422 y no cambiaría nada) y leer la bóveda de
-administración de 1Password. Cada sonda sale `bien`, `mal` o `sin-comprobar` (sin red, sin
-token o límite de 1Password: no cuenta como bien). Con un `mal` sale 1: es un caso y se cuelga del
-fondo #326. Es la primera mitad de E7; falta la parte de las reglas de E4 y el entorno de E5, y
-correrlo cada semana (el workflow semanal no lleva credenciales de sesión).
+ruleset, proteger `main` y escribir un secreto de Actions (cuerpo vacío: con el permiso, GitHub
+contestaría 422 y no cambiaría nada), ver las invitaciones del repo (solo lectura, mismo permiso de
+administración que invitar) y leer la bóveda de administración de 1Password. Cada sonda sale `bien`
+(403 o 404), `mal` (2xx o 422) o `sin-comprobar` (sin red, token caducado, límite de uso o error de
+GitHub: no cuenta como bien). Salida 0 solo si todas dan `bien`; 1 si alguna da `mal` (es un caso
+y se cuelga del fondo #326); 2 si alguna quedó sin comprobar. Es la primera mitad de E7; falta la
+parte de las reglas de E4 y el entorno de E5, y correrlo cada semana (el workflow semanal no lleva
+credenciales de sesión; hasta entonces las líneas del detector las lee quien lo corra).
 
 Fuentes: https://docs.github.com/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-json-web-token-jwt-for-a-github-app
 y https://docs.github.com/rest/apps/apps#create-an-installation-access-token-for-an-app
