@@ -264,9 +264,9 @@ function afirmaIssuesPr(texto) {
 // cuesta una vuelta a la sesión, así que solo frases de estado presente («está desplegado»,
 // «la migración está aplicada», «el CI está verde»), no el nombre suelto de la cosa.
 const DESPLEGADO = [
-  /\b(?:esta|estan|queda|quedan|quedo)\s+(?:ya\s+)?desplegad[oa]s?\b/,
+  /\b(?:esta|estan|queda|quedan)\s+(?:ya\s+)?desplegad[oa]s?\b/,
   /\bya\s+(?:esta|estan)\s+en\s+(?:produccion|prod|staging)\b/,
-  /\bdespliegue\b.{0,40}\b(?:esta|sigue|quedo)\b.{0,20}\b(?:ready|listo|bloqueado|blocked|fallando|fallido|en error|en curso|verde|rojo)\b/,
+  /\bdespliegue\b.{0,40}\b(?:esta|sigue)\b.{0,20}\b(?:ready|listo|bloqueado|blocked|fallando|fallido|en error|en curso|verde|rojo)\b/,
 ];
 const APLICADA = "(?:esta|estan|queda|quedan)\\s+(?:ya\\s+)?(?:aplicad[oa]s?|sin aplicar|pendientes? de aplicar)";
 const MIGRACION = "(?:migracion(?:es)?|\\b0\\d{3}\\b)";
@@ -277,17 +277,17 @@ const BASE = [
   /\ben\s+produccion\s+hay\s+\d/,
 ];
 const CI = [
-  /\bci\b.{0,40}\b(?:verde|rojo|pasa|pasan|paso|falla|fallan|fallo|en curso)\b/,
+  /\bci\b.{0,40}\b(?:verde|rojo|pasa|pasan|falla|fallan|en curso)\b/,
   /\b(?:verde|rojo)\b.{0,20}\bel\s+ci\b/,
   /\bchecks?\b.{0,40}\b(?:verde|rojo|pasan|pasa|fallan|falla|en curso|pendientes)\b/,
 ];
-/** Líneas que hablan del futuro o de esperar («cuando el CI esté verde», «espera al CI»): no cuentan un estado. */
-const CONDICIONAL = /\b(?:cuando|hasta que|esper\w+|en cuanto|una vez que|si el|para que)\b[^.]{0,50}\b(?:ci|checks?)\b/;
+/** Líneas que hablan del futuro, de esperar, de lo que hay que hacer o de otro día («cuando el CI esté verde», «hay que comprobar que…», «ayer»): no cuentan un estado de ahora. */
+const CONDICIONAL = /\b(?:cuando|hasta que|esper\w+|en cuanto|una vez que|si el|para que|hay que|habria que|comprobar que|ayer)\b/;
 
-/** Para los temas nuevos: sin bloques ni trozos de código, y sin citas (líneas que empiezan por «>»). */
+/** Para los temas nuevos: sin bloques ni trozos de código, y sin citas (líneas que empiezan por «>») y sin preguntas (con «?» o «¿»). */
 function lineasSinCodigo(texto) {
   return sinAcentos(String(texto ?? "").replace(/```[\s\S]*?```/g, "").replace(/`[^`\n]*`/g, " "))
-    .split("\n").filter((l) => !/^\s*>/.test(l));
+    .split("\n").filter((l) => !/^\s*>/.test(l) && !/[?¿]/.test(l));
 }
 
 /** Los temas de estado que cuenta el mensaje, en el orden de TEMAS_ESTADO. */
@@ -296,8 +296,8 @@ export function temasAfirmados(texto) {
   const alguna = (res, descarta) => lineas.some((l) => !(descarta && descarta.test(l)) && res.some((r) => r.test(l)));
   return TEMAS_ESTADO.filter((t) => ({
     "issues-pr": () => afirmaIssuesPr(texto),
-    despliegue: () => alguna(DESPLEGADO),
-    base: () => alguna(BASE),
+    despliegue: () => alguna(DESPLEGADO, CONDICIONAL),
+    base: () => alguna(BASE, CONDICIONAL),
     ci: () => alguna(CI, CONDICIONAL),
   })[t]());
 }
@@ -307,16 +307,21 @@ export function afirmaEstado(texto) {
   return temasAfirmados(texto).length > 0;
 }
 
-const orden = (cuerpo) => new RegExp(`^(?:\\w+=\\S+\\s+)*(?:${cuerpo})`);
+// Las sesiones llaman a GitHub con la identidad de la App: `node …/token-sesion.mjs -- gh …`; el prefijo no cambia lo que lee `gh`.
+const TOKEN_SESION = `(?:node\\s+["']?(?:[A-Za-z]:)?(?:\\.?[\\\\/])?(?:[\\w.-]+[\\\\/])*scripts[\\\\/]token-sesion\\.mjs["']?\\s+--\\s+)?`;
+const orden = (cuerpo) => new RegExp(`^(?:\\w+=\\S+\\s+)*${TOKEN_SESION}(?:${cuerpo})`);
 const script = (nombre) => `node\\s+["']?(?:[A-Za-z]:)?(?:\\.?[\\\\/])?(?:[\\w.-]+[\\\\/])*scripts[\\\\/]${nombre}\\.mjs(?![\\w.-])`;
 const ES_SITUACION = orden(`npm\\s+run\\s+(?:--silent\\s+)?situacion(?![\\w.-])|${script("situacion")}`);
-const ES_LECTURA_GH = /^(?:\w+=\S+\s+)*gh\s+(?:issue\s+(?:view|list|status)|pr\s+(?:view|list|checks|status|diff))\b/;
-const ES_GH_API = /^(?:\w+=\S+\s+)*gh\s+api\b/;
-const ES_GH_RUN = /^(?:\w+=\S+\s+)*gh\s+(?:run\s+(?:list|view|watch)|workflow\s+(?:list|view))\b/;
+const ES_LECTURA_GH = orden("gh\\s+(?:issue\\s+(?:view|list|status)|pr\\s+(?:view|list|checks|status|diff))\\b");
+const ES_GH_API = orden("gh\\s+api\\b");
+const ES_GH_RUN = orden("gh\\s+(?:run\\s+(?:list|view|watch)|workflow\\s+(?:list|view))\\b");
+const ES_GH_PR_CI = orden("gh\\s+pr\\s+(?:view|checks|status)\\b");
 const ES_ESPERA_CI = orden(`npm\\s+run\\s+(?:--silent\\s+)?espera-ci(?![\\w.-])|${script("espera-ci")}`);
 const ES_VERIFICAR = orden(`npm\\s+run\\s+(?:--silent\\s+)?verificar-estado(?![\\w.-])|${script("verificar-estado")}`);
 const ES_CONSULTA = orden(`npm\\s+run\\s+(?:--silent\\s+)?consulta(?![\\w.-])|${script("consulta")}`);
+/** Solo el ENSAYO (sin `--si` ni `--pablo`) lee la base; con cualquiera de los dos la escribe. */
 const ES_APPLY = orden(script("apply-migration"));
+const ESCRIBE_MIGRACION = /(?:^|\s)--(?:si|pablo)\b/;
 const ES_VERCEL = /^(?:\w+=\S+\s+)*(?:npx\s+)?vercel\s+(?:ls|list|inspect|logs)\b/;
 const ES_GIT_ORIGIN = /^(?:\w+=\S+\s+)*git\s+(?:-C\s+\S+\s+)?(?:(?:log|show|rev-list|merge-base|cherry|diff|ls-remote|rev-parse)\b.*\borigin\b|branch\b.*\s(?:-r|-a|--remotes|--all)\b)/;
 /** Las herramientas de lectura del conector de Vercel (MCP): despliegues y logs; nada que escriba. */
@@ -328,7 +333,7 @@ const gh_api_lee = (o) => !/(?:-X|--method)\s*=?\s*(?!GET\b)\S+|\s-[fF]\b|--(?:r
  * Los temas para los que esta orden es una LECTURA de la fuente. Lo que escribe (`--nuevo`,
  * `-X POST`, `-f`) o solo nombra (`grep`, `echo`) no cuenta. `situacion` lee PR y checks;
  * `gh pr checks` y `gh run` leen el CI y los despliegues; `verificar-estado`, `consulta` y
- * `apply-migration` (ensayo o real: su salida dice si está aplicada) leen la base.
+ * `apply-migration` solo en ensayo (sin `--si` ni `--pablo`) leen la base.
  */
 function temasQueLee(o) {
   const t = new Set();
@@ -336,13 +341,13 @@ function temasQueLee(o) {
   if (ES_ISSUES.test(o) && !/--(?:nuevo|colgar|ordenar|etiquetas)\b/.test(o)) t.add("issues-pr");
   if (ES_LECTURA_GH.test(o)) {
     t.add("issues-pr");
-    if (/^(?:\w+=\S+\s+)*gh\s+pr\s+(?:view|checks|status)\b/.test(o)) ["ci", "despliegue"].forEach((x) => t.add(x));
+    if (ES_GH_PR_CI.test(o)) ["ci", "despliegue"].forEach((x) => t.add(x));
   }
   if (ES_GH_API.test(o) && gh_api_lee(o)) TEMAS_ESTADO.filter((x) => x !== "base").forEach((x) => t.add(x));
   if (ES_GH_RUN.test(o)) ["ci", "despliegue"].forEach((x) => t.add(x));
   if (ES_ESPERA_CI.test(o)) t.add("ci");
   if (ES_VERCEL.test(o) || ES_GIT_ORIGIN.test(o)) t.add("despliegue");
-  if (ES_VERIFICAR.test(o) || ES_APPLY.test(o)) t.add("base");
+  if (ES_VERIFICAR.test(o) || (ES_APPLY.test(o) && !ESCRIBE_MIGRACION.test(o))) t.add("base");
   if (ES_CONSULTA.test(o) && !/--admin\b[\s\S]*\b(?:insert|update|delete|drop|alter|truncate)\b/i.test(o)) t.add("base");
   return t;
 }

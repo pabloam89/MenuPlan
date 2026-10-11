@@ -219,6 +219,60 @@ describe("estadoSinLeer con los temas nuevos: cada afirmación pide SU lectura",
   });
 });
 
+describe("revisión del juez de #579", () => {
+  const ci = "El CI está verde.";
+  const dep = "Ya está en producción.";
+  const bd = "La migración 0105 está aplicada.";
+  const leyo = (cmd, texto) => frena(sesion(usuario(hace(8)), bash(hace(5), cmd)), texto).frena === false;
+
+  it.each([
+    [ci, "node scripts/token-sesion.mjs -- gh pr checks 12"],
+    [ci, 'node "C:\\dev\\MenuPlan-x\\scripts\\token-sesion.mjs" -- gh run list --limit 3'],
+    [ci, "node ./scripts/token-sesion.mjs -- gh api repos/pabloam89/MenuPlan/actions/runs"],
+    [dep, "node scripts/token-sesion.mjs -- gh pr view 12 --json state"],
+    ["El #299 está abierto.", "node scripts/token-sesion.mjs -- gh issue view 299"],
+  ])("con el prefijo de token de sesión también es lectura: %s con %s", (texto, cmd) => {
+    expect(leyo(cmd, texto)).toBe(true);
+  });
+  it.each([
+    "node scripts/token-sesion.mjs -- gh pr merge 12 --merge",
+    "node scripts/token-sesion.mjs -- gh pr create --title x",
+    "node scripts/token-sesion.mjs -- gh run rerun 1",
+    "node scripts/token-sesion.mjs -- gh api -X POST repos/x/y/issues",
+    "node scripts/token-sesion.mjs -- echo gh pr checks 12",
+  ])("con ese prefijo, lo que escribe no cuenta: %s", (cmd) => {
+    expect(leyo(cmd, "El CI está verde y ya está en producción.")).toBe(false);
+  });
+
+  it.each([
+    "node scripts/apply-migration.mjs 0105_x --si",
+    "node scripts/apply-migration.mjs 0105_x --pablo",
+    "node scripts/apply-migration.mjs 0105_x --si --pablo",
+  ])("aplicar de verdad no es leer la base: %s", (cmd) => {
+    expect(leyo(cmd, bd)).toBe(false);
+  });
+  it("el ensayo sí es lectura de la base", () => {
+    expect(leyo("node scripts/apply-migration.mjs 0105_x", bd)).toBe(true);
+  });
+
+  it.each([
+    "¿Está desplegado ya?",
+    "¿El CI está verde?",
+    "Está desplegado ya?",
+    "Hay que comprobar que el CI esté verde antes.",
+    "Hay que comprobar que el ci este verde antes.",
+    "Quedó desplegado ayer a las 10.",
+    "El ci pasó antes del merge.",
+    "Ayer la migración 0105 estaba aplicada.",
+    "Hay que ver si la migración 0105 está aplicada.",
+  ])("no frena (pregunta, pretérito o condicional): %s", (t) => {
+    expect(frena(sesion(usuario(hace(3))), t).frena).toBe(false);
+  });
+  it("«El CI está verde» sin lectura sí frena", () => {
+    expect(frena(sesion(usuario(hace(3))), "El CI está verde")).toMatchObject({ frena: true, tema: "ci" });
+  });
+});
+
 describe("el vocabulario de temas", () => {
   it("son cuatro, y el de pendientes.mjs es el mismo que valida eventos.mjs", () => {
     expect(TEMAS_ESTADO).toEqual(["issues-pr", "despliegue", "base", "ci"]);
