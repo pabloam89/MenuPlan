@@ -6,7 +6,8 @@
  * `leerCatalogo`). Cada principio es una regla con la plantilla de `regla.mjs` (nombre, sujeto,
  * fuerza, condicion, exigencia, control, nota) más lo propio del producto: `area` (vocabulario
  * cerrado del catálogo), `porque`, `ejemplo_bueno`, `ejemplo_malo` y `fuentes`, una lista de
- * { url, marca }: F si la fuente lo dice, I si es inferencia nuestra. La frase de cada principio se
+ * { url, marca }: F si la fuente lo dice, S si es inferencia nuestra o fuente secundaria (la marca I es
+ * la de la casa, con ruta, y aquí no se usa: MARCAS_FUENTE de regla.mjs, #620). La frase de cada principio se
  * genera con `fraseDeRegla`; no hay un campo de prosa libre con la regla.
  *
  * El control es un fichero que exista y de verdad vigile lo que dice el principio (un test, un
@@ -20,7 +21,7 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 
 import { leerCatalogo } from "./catalogos.mjs";
-import { CONTROL_JUICIO, fraseDeRegla, problemasDeRegla, problemasDeSujetos } from "./regla.mjs";
+import { CONTROL_JUICIO, MARCAS_FUENTE, fraseDeRegla, problemasDeRegla, problemasDeSujetos } from "./regla.mjs";
 
 export const RUTA_PRINCIPIOS = "ops/principios-producto/";
 export const RUTA_MD = "docs/producto/PRINCIPIOS.md";
@@ -29,10 +30,10 @@ export const RUTA_MD = "docs/producto/PRINCIPIOS.md";
 export const CAMPOS_PRINCIPIO = ["id", "nombre", "area", "sujeto", "fuerza", "exigencia", "control", "porque", "ejemplo_bueno", "ejemplo_malo", "fuentes"];
 export const CAMPOS_OPCIONALES = ["condicion", "nota"];
 
-/** Las marcas de una fuente: F la fuente lo dice, I es inferencia nuestra. */
-export const MARCAS = { F: "la fuente lo dice", I: "inferencia nuestra, o fuente secundaria" };
+/** Las marcas de una fuente con url (las de MARCAS_FUENTE de regla.mjs sin I, que lleva ruta): F la fuente lo dice, S es inferencia nuestra. */
+export const MARCAS = { F: MARCAS_FUENTE.F, S: MARCAS_FUENTE.S };
 
-/** Dominios admitidos para una fuente: documentación y estudios de referencia, no blogs al azar (taplytics es la excepción declarada, marcada I). */
+/** Dominios admitidos para una fuente: documentación y estudios de referencia, no blogs al azar (taplytics es la excepción declarada, marcada S). */
 export const DOMINIOS_FUENTE = [
   "api-security.owasp.org", "genai.owasp.org", "www.cisa.gov", "www.anthropic.com", "www.microsoft.com", "pair.withgoogle.com",
   "gdpr-info.eu", "www.nngroup.com", "www.intercom.com", "docs.stripe.com", "basecamp.com", "www.w3.org", "taplytics.com",
@@ -161,7 +162,7 @@ export const lineaDe = (p, datos) => `${p.id} (${p.area}): ${fraseDeRegla(p, dat
 const INTRO = [
   "Lo que hacen bien los mejores productos y chatbots, escrito como reglas con su fuente, para decidir, recomendar y diseñar HoMenu y Lola con una base y no con una impresión. Cada principio se cita por su id en la recomendación que manda; si dos chocan, se dice.",
   "",
-  "Cada uno es una regla con la plantilla de `scripts/lib/regla.mjs`, más su porqué, un ejemplo bueno y uno malo aplicados al producto, y sus fuentes: **[F]** la fuente lo dice, **[I]** es inferencia nuestra o la fuente es secundaria. El control es el fichero que lo vigila de verdad, o el juicio de una persona. Para añadir uno nuevo, un fichero en `ops/principios-producto/principios/` y la skill `principios-de-producto`.",
+  "Cada uno es una regla con la plantilla de `scripts/lib/regla.mjs`, más su porqué, un ejemplo bueno y uno malo aplicados al producto, y sus fuentes: **[F]** la fuente lo dice, **[S]** es inferencia nuestra o la fuente es secundaria. El control es el fichero que lo vigila de verdad, o el juicio de una persona. Para añadir uno nuevo, un fichero en `ops/principios-producto/principios/` y la skill `principios-de-producto`.",
 ];
 
 function mdCifras(datos) {

@@ -36,10 +36,10 @@ describe("ops/principios-producto/", () => {
     ]);
   });
 
-  it("cada principio lleva al menos una fuente, con marca F o I", () => {
+  it("cada principio lleva al menos una fuente, con marca F o S (la I es de la casa, #620)", () => {
     for (const p of datos.principios) {
       expect(p.fuentes.length, p.id).toBeGreaterThanOrEqual(1);
-      for (const f of p.fuentes) expect(["F", "I"], `${p.id}: ${f.url}`).toContain(f.marca);
+      for (const f of p.fuentes) expect(["F", "S"], `${p.id}: ${f.url}`).toContain(f.marca);
     }
   });
 

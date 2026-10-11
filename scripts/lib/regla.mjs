@@ -37,6 +37,19 @@ export const LIMITES_REGLA = {
 /** Un id en minúsculas con guiones (kebab): el de una norma, un principio o una regla. Un solo sitio (#619). */
 export const ID_KEBAB = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
+/**
+ * La marca de una fuente, con UN significado en todos los catálogos (#620): F, una fuente externa
+ * lo dice (url); I, está escrito en la casa (una ruta del repo); S, inferencia nuestra o fuente
+ * secundaria (url). [F] e [I] son las de la forja, las normas, los estándares y la redacción; la
+ * lista de principios y producto usaban I para la inferencia y C para la casa, y se migraron a esto.
+ * Lo vigila ops/principios.test.js en cada catálogo.
+ */
+export const MARCAS_FUENTE = {
+  F: "Una fuente externa lo dice (url)",
+  I: "Está escrito en la casa (ruta del repo)",
+  S: "Inferencia nuestra o fuente secundaria (url)",
+};
+
 /** El valor de `control` cuando no lo vigila un fichero sino un juicio. */
 export const CONTROL_JUICIO = "juicio";
 

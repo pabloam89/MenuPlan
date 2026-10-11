@@ -6,7 +6,7 @@
   "porque": "Un rastro que se puede reescribir no sirve para saber qué pasó justo cuando más falta hace.",
   "fuentes": [
     {
-      "marca": "C",
+      "marca": "I",
       "ruta": ".claude/hooks/eventos.mjs"
     }
   ],

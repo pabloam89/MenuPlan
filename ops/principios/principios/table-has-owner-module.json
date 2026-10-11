@@ -6,7 +6,7 @@
   "porque": "Una tabla tocada con textos sueltos desde cualquier sitio se rompe en cuanto cambia, aunque la base esté bien.",
   "fuentes": [
     {
-      "marca": "C",
+      "marca": "I",
       "ruta": "docs/datos/PRINCIPIOS.md"
     }
   ],

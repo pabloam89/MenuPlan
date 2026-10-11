@@ -6,7 +6,7 @@
   "porque": "Si quien actúa puede darse más permisos, cualquier límite que tenga es solo una sugerencia.",
   "fuentes": [
     {
-      "marca": "C",
+      "marca": "I",
       "ruta": "CLAUDE.md"
     }
   ],

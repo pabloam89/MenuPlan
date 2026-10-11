@@ -3,7 +3,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { leerRegistro } from "../scripts/lib/normas.mjs";
-import { ISSUES_QUE_NO_LLEVAN, TECHO_SIN_NORMA, delegadosSinNorma, leerPrincipiosCasa, problemasDeUniones } from "../scripts/lib/principios.mjs";
+import { TECHO_SIN_NORMA, delegadosSinNorma, leerFondosConocidos, leerPrincipiosCasa, problemasDeUniones } from "../scripts/lib/principios.mjs";
 
 /**
  * Las uniones entre la lista de principios y el registro de normas (#619, fondo #618). Falla si:
@@ -12,7 +12,7 @@ import { ISSUES_QUE_NO_LLEVAN, TECHO_SIN_NORMA, delegadosSinNorma, leerPrincipio
  *  3. un principio de principios_sin_norma ya tiene norma (la lista tiene que bajar);
  *  4. la lista propia pasa de TECHO_SIN_NORMA, o la de un catálogo delegado pasa de su techo
  *     (los dos solo bajan: el test los pide iguales a la cifra de hoy);
- *  5. una norma con ejecutor «nada» no tiene issue, o su issue es el fondo de este catálogo;
+ *  5. una norma con ejecutor «nada» no tiene issue, o su issue es un problema de fondo (ops/fondos-conocidos.json);
  *  6. una norma lleva una acción que no es de ops/estandares-agentes.json, o fuera de su orden.
  * Al final, cada regla se ve fallar con datos malos: cada caso cambia UNA cosa.
  */
@@ -20,10 +20,11 @@ const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const datos = leerPrincipiosCasa(RAIZ);
 const normas = leerRegistro(RAIZ).normas;
 const excepciones = { sinNorma: datos.sin_norma, delegados: datos.delegados };
+const fondos = leerFondosConocidos(RAIZ);
 
 describe("principios y normas", () => {
   it("cada norma cita un principio que existe, cada principio tiene norma o motivo, y nada sin ejecutor queda sin issue", () => {
-    expect(problemasDeUniones(datos.principios, normas, excepciones)).toEqual([]);
+    expect(problemasDeUniones(datos.principios, normas, excepciones, { fondos })).toEqual([]);
   });
 
   it("los techos de principios sin norma son la cifra de hoy: si baja la lista, baja el techo", () => {
@@ -43,7 +44,7 @@ describe("se ven fallar", () => {
   const N = (cambios = {}) => ({ id: "una-norma", principio: "a-principle", ejecutor: "ci", issue: null, acciones: ["construir"], ...cambios });
   const sin = { "b-principle": "Motivo de ejemplo con veinte caracteres o más" };
   const del = (techo = 1) => ({ product: { sin_norma: { motivo: "Motivo del catálogo de ejemplo", techo } } });
-  const problemas = (normasX, sinX = sin, techo = 1, delX = del()) => problemasDeUniones(P, normasX, { sinNorma: sinX, delegados: delX }, { techo }).join("\n");
+  const problemas = (normasX, sinX = sin, techo = 1, delX = del()) => problemasDeUniones(P, normasX, { sinNorma: sinX, delegados: delX }, { techo, fondos: [185, 618] }).join("\n");
 
   it("los datos de ejemplo pasan", () => expect(problemas([N()])).toBe(""));
 
@@ -67,20 +68,25 @@ describe("se ven fallar", () => {
   it("un delegado puesto en la lista propia", () => {
     expect(problemas([N()], { ...sin, "c-delegated": "Motivo de ejemplo con veinte caracteres" }, 2)).toMatch(/es de ops\/x\/; sin norma cuenta en el techo de su catálogo/);
   });
-  it("una norma sin ejecutor y sin issue, o colgada del fondo de este catálogo; con su encargo, pasa", () => {
+  it("una norma sin ejecutor y sin issue, o colgada de cualquier fondo (no solo #618); con su encargo, pasa", () => {
     expect(problemas([N({ ejecutor: "nada" })])).toMatch(/ejecutor nada\) y no tiene issue/);
-    expect(ISSUES_QUE_NO_LLEVAN).toContain(618);
-    expect(problemas([N({ ejecutor: "nada", issue: 618 })])).toMatch(/su issue es #618, el fondo de este catálogo/);
+    expect(problemas([N({ ejecutor: "nada", issue: 618 })])).toMatch(/su issue es #618, un problema de fondo/);
+    expect(problemas([N({ ejecutor: "nada", issue: 185 })])).toMatch(/su issue es #185, un problema de fondo/);
     expect(problemas([N({ ejecutor: "nada", issue: 624 })])).toBe("");
+  });
+
+  it("la lista de fondos conocidos trae los de la casa y solo números", () => {
+    expect(fondos).toEqual(expect.arrayContaining([185, 618]));
+    for (const f of fondos) expect(Number.isInteger(f), String(f)).toBe(true);
   });
 
   it("sobre el registro de verdad: quitar un principio, vaciar un issue o colgar una norma sin ejecutor del fondo falla", () => {
     const sinPrincipio = normas.map((n, i) => (i === 0 ? { ...n, principio: undefined } : n));
-    expect(problemasDeUniones(datos.principios, sinPrincipio, excepciones).join("\n")).toMatch(new RegExp(`norma ${normas[0].id}: no cita`));
+    expect(problemasDeUniones(datos.principios, sinPrincipio, excepciones, { fondos }).join("\n")).toMatch(new RegExp(`norma ${normas[0].id}: no cita`));
     const nada = normas.find((n) => n.ejecutor === "nada");
     const sinIssue = normas.map((n) => (n === nada ? { ...n, issue: null } : n));
-    expect(problemasDeUniones(datos.principios, sinIssue, excepciones).join("\n")).toMatch(new RegExp(`norma ${nada.id}: nadie la hace cumplir`));
-    const alFondo = normas.map((n) => (n === nada ? { ...n, issue: 618 } : n));
-    expect(problemasDeUniones(datos.principios, alFondo, excepciones).join("\n")).toMatch(new RegExp(`norma ${nada.id}: .*#618`));
+    expect(problemasDeUniones(datos.principios, sinIssue, excepciones, { fondos }).join("\n")).toMatch(new RegExp(`norma ${nada.id}: nadie la hace cumplir`));
+    const alFondo = normas.map((n) => (n === nada ? { ...n, issue: 263 } : n));
+    expect(problemasDeUniones(datos.principios, alFondo, excepciones, { fondos }).join("\n")).toMatch(new RegExp(`norma ${nada.id}: .*#263`));
   });
 });

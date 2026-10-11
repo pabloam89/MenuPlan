@@ -14,11 +14,11 @@
   "fuentes": [
     {
       "url": "https://www.cisa.gov/securebydesign",
-      "marca": "I"
+      "marca": "S"
     },
     {
       "url": "https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/",
-      "marca": "I"
+      "marca": "S"
     }
   ]
 }

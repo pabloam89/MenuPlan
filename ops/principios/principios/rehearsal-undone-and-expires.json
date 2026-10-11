@@ -6,7 +6,7 @@
   "porque": "Un ensayo que deja rastro ya no es un ensayo, y uno viejo no dice nada del estado de hoy.",
   "fuentes": [
     {
-      "marca": "C",
+      "marca": "I",
       "ruta": "scripts/apply-migration.mjs"
     }
   ],

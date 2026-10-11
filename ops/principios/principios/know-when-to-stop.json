@@ -6,7 +6,7 @@
   "porque": "Un bucle que no para gasta dinero y tiempo y agranda el daño de un error.",
   "fuentes": [
     {
-      "marca": "C",
+      "marca": "I",
       "ruta": "ops/presupuestos.json"
     }
   ],

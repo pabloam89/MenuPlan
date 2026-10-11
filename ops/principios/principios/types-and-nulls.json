@@ -6,7 +6,7 @@
   "porque": "Un nulo sin significado se lee de tres formas distintas, y un tipo flojo deja entrar datos imposibles.",
   "fuentes": [
     {
-      "marca": "C",
+      "marca": "I",
       "ruta": "docs/datos/PRINCIPIOS.md"
     }
   ],

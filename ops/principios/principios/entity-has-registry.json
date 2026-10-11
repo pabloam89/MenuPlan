@@ -6,7 +6,7 @@
   "porque": "Un nombre sin definición no basta, porque cada uno lo entiende a su manera y nadie comprueba su uso.",
   "fuentes": [
     {
-      "marca": "C",
+      "marca": "I",
       "ruta": "ops/entidades.json"
     }
   ],

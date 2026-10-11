@@ -6,7 +6,7 @@
   "porque": "Un juez que no puede dudar inventa un veredicto, y uno sin calibrar con ejemplos marcados por Pablo aprueba todo o nada sin que se note.",
   "fuentes": [
     {
-      "marca": "C",
+      "marca": "I",
       "ruta": ".claude/agents/revisor.md"
     }
   ],

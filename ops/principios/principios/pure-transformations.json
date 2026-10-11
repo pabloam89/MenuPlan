@@ -6,7 +6,7 @@
   "porque": "Dos implementaciones de la misma cuenta acaban dando resultados distintos.",
   "fuentes": [
     {
-      "marca": "C",
+      "marca": "I",
       "ruta": "docs/datos/PRINCIPIOS.md"
     }
   ],

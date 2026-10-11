@@ -6,7 +6,7 @@
   "porque": "Una cifra que nadie lee es coste sin uso, y una que se persigue sola deja de medir lo que medía.",
   "fuentes": [
     {
-      "marca": "C",
+      "marca": "I",
       "ruta": "ops/metricas.json"
     }
   ],

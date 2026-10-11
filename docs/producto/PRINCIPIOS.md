@@ -4,7 +4,7 @@
 
 Lo que hacen bien los mejores productos y chatbots, escrito como reglas con su fuente, para decidir, recomendar y diseñar HoMenu y Lola con una base y no con una impresión. Cada principio se cita por su id en la recomendación que manda; si dos chocan, se dice.
 
-Cada uno es una regla con la plantilla de `scripts/lib/regla.mjs`, más su porqué, un ejemplo bueno y uno malo aplicados al producto, y sus fuentes: **[F]** la fuente lo dice, **[I]** es inferencia nuestra o la fuente es secundaria. El control es el fichero que lo vigila de verdad, o el juicio de una persona. Para añadir uno nuevo, un fichero en `ops/principios-producto/principios/` y la skill `principios-de-producto`.
+Cada uno es una regla con la plantilla de `scripts/lib/regla.mjs`, más su porqué, un ejemplo bueno y uno malo aplicados al producto, y sus fuentes: **[F]** la fuente lo dice, **[S]** es inferencia nuestra o la fuente es secundaria. El control es el fichero que lo vigila de verdad, o el juicio de una persona. Para añadir uno nuevo, un fichero en `ops/principios-producto/principios/` y la skill `principios-de-producto`.
 
 ## Cifras
 
@@ -41,7 +41,7 @@ Que el producto no se pueda usar contra la familia ni contra el negocio.
   - Bueno: «Objetivo para el filtro de comentarios: si no contesta, el comentario queda pendiente de revisión y no se publica».
   - Malo: «Hoy api/moderate.js falla abierto en varios caminos y ante la duda acepta (#597)».
   - Nota: Inferencia nuestra a partir de seguro de serie y de la degradación ante consumo sin límite; no es una cita literal de ninguna fuente.
-  - Fuentes: [I] https://www.cisa.gov/securebydesign; [I] https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/.
+  - Fuentes: [S] https://www.cisa.gov/securebydesign; [S] https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/.
 - `human-approval-high-impact` — **Confirmación humana en lo grave.** Cuando una acción es irreversible o sale fuera de la casa (borrar, escribir a terceros, comprar), el bot DEBE pedir confirmación explícita a la persona antes de ejecutarla y decirle las consecuencias. Se comprueba con: el juicio de una persona o de un LLM sobre sus casos.
   - Porqué: El modelo puede equivocarse o ser manipulado, y una acción que no se puede deshacer no admite el error.
   - Bueno: «Lola pregunta antes de borrar un menú ya cerrado o de enviar la lista a otra persona».
@@ -76,7 +76,7 @@ Que el producto no se pueda usar contra la familia ni contra el negocio.
   - Bueno: «api/share-menu.js es público a propósito: uuid más token en la dirección, límite por IP, solo GET y HEAD, y consta con su motivo en el registro».
   - Malo: «Un endpoint que gasta IA contesta a cualquiera y su motivo para ser público es que lo llama alguien, sin comprobar quién».
   - Nota: El registro es ops/api-sin-credencial.json. El test exige que el resto rechace sin credencial y deja pasar como mucho 2 casos pendientes (pending_cases) mientras se deciden. No sabe si el motivo es cierto: eso es juicio. OWASP respalda el inventario (API9); exigir motivo y protección es inferencia nuestra.
-  - Fuentes: [F] https://api-security.owasp.org/editions/2023/en/0xa9-improper-inventory-management/; [I] https://api-security.owasp.org/editions/2023/en/0xa6-unrestricted-access-to-sensitive-business-flows.
+  - Fuentes: [F] https://api-security.owasp.org/editions/2023/en/0xa9-improper-inventory-management/; [S] https://api-security.owasp.org/editions/2023/en/0xa6-unrestricted-access-to-sensitive-business-flows.
 - `secure-by-default` — **Seguro de serie.** Cuando se crea una tabla nueva, la base de datos DEBE negar su acceso a anon desde el primer momento, sin que nadie tenga que configurarlo. Se comprueba con: `supabase/anonPorDefecto.test.js`.
   - Porqué: Lo seguro de serie no depende de que alguien se acuerde de activarlo; lo inseguro debe costar un paso consciente.
   - Bueno: «Una tabla nueva de menús nace sin permisos para anon».
@@ -205,7 +205,7 @@ Cómo entra alguien nuevo y cuándo ve el valor.
   - Bueno: «Lola propone un menú de ejemplo antes de pedir alergias y tamaño de la familia».
   - Malo: «Lo primero que ve alguien nuevo es un formulario largo de la casa».
   - Nota: La fuente es secundaria: un blog que recoge lo dicho por un directivo de Duolingo, y su dirección da una cadena de redirecciones que no se pudo abrir. Va como inferencia; conviene medir la conversión propia.
-  - Fuentes: [I] https://taplytics.com/blog/duolingo-ab-test-onboarding.
+  - Fuentes: [S] https://taplytics.com/blog/duolingo-ab-test-onboarding.
 
 ## Coste y fiabilidad (`cost-reliability`)
 
@@ -222,7 +222,7 @@ Cuánto cuesta cada uso, qué pasa cuando algo falla y cómo se sabe.
   - Bueno: «Objetivo para un filtro sin sesión: un cupo global bajo y propio, que se corte antes que el de Lola».
   - Malo: «Hoy api/moderate.js contesta sin sesión y gasta el límite diario global compartido con el resto de la IA (#597)».
   - Nota: Limitar por fuente es de OWASP; separar el cupo de los anónimos del de Lola es inferencia nuestra.
-  - Fuentes: [F] https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/; [I] https://api-security.owasp.org/editions/2023/en/0xa4-unrestricted-resource-consumption.
+  - Fuentes: [F] https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/; [S] https://api-security.owasp.org/editions/2023/en/0xa4-unrestricted-resource-consumption.
 - `graceful-degradation` — **Degradación elegante.** Cuando el modelo falla, tarda o se agota el cupo, el producto DEBE seguir ofreciendo lo esencial sin IA y decirlo en llano. Se comprueba con: el juicio de una persona o de un LLM sobre sus casos.
   - Porqué: El fallo debería ser seguro y aburrido, no un callejón sin salida.
   - Bueno: «Sin modelo, Lola enseña el menú ya guardado y los botones, y dice que hoy no puede pensar».
@@ -283,4 +283,4 @@ Qué merece hacerse, cuánto y por qué canal.
   - Bueno: «Lola avisa por la mañana y habla con la familia, algo que la app no hace».
   - Malo: «Lola reproduce pantallas de la app dentro del chat sin añadir nada».
   - Nota: NN/g observa que muchos bots duplican la web; comprobar antes que el canal nuevo aporta algo es inferencia nuestra.
-  - Fuentes: [I] https://www.nngroup.com/articles/chatbots/.
+  - Fuentes: [S] https://www.nngroup.com/articles/chatbots/.

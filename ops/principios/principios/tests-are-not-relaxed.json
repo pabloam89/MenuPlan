@@ -6,7 +6,7 @@
   "porque": "Un test relajado sigue en verde y deja de vigilar justo lo que acababa de fallar.",
   "fuentes": [
     {
-      "marca": "C",
+      "marca": "I",
       "ruta": "scripts/lib/avisosPr.mjs"
     }
   ],

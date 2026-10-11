@@ -6,7 +6,7 @@
   "porque": "La casa es la unidad de acceso, de borrado y de consulta de cada dato de una familia.",
   "fuentes": [
     {
-      "marca": "C",
+      "marca": "I",
       "ruta": "docs/datos/PRINCIPIOS.md"
     }
   ],

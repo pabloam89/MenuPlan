@@ -146,7 +146,7 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | P10.1 | **Cierre completo del fondo.** Cada problema de fondo NO DEBE cerrarse con encargos abiertos, sin el PR de su arreglo ni sin su etiqueta de arreglo. | NO DEBE | script_propio · semidura · `scripts/lib/issues.mjs` | test: `scripts/issues.test.js` | — | #341 |
 | P10.2 | **Cierre con aprendizaje.** Cada problema de fondo NO DEBE cerrarse sin aprendizaje registrado. | NO DEBE | script_propio · semidura · `scripts/lib/fondos.mjs` | test: `scripts/fondos.test.js` | `fondo-no-cierra-sin-aprendizaje` | #341 |
 | **Aprender** · blanda | | | | | | |
-| P11.1 | **Aprendizajes a un test.** Cada fallo DEBE dejar su aprendizaje en un test y nunca en la memoria. | DEBE | nada · blanda · `CLAUDE.md` | juicio | `lecciones-a-un-test` | #337 |
+| P11.1 | **Aprendizajes a un test.** Cada fallo DEBE dejar su aprendizaje en un test y nunca en la memoria. | DEBE | persona · blanda · `CLAUDE.md` | juicio | `lecciones-a-un-test` | #337 |
 | P11.2 | **Skill con su plantilla.** Cada skill DEBE seguir la plantilla de su tipo: tipo, dueño, fecha de comprobación, secciones, tamaño, rutas y nada copiado. | DEBE | ci · dura · `.claude/PLANTILLA-SKILL.md` | test: `.claude/skills.test.js` | — | — |
 | P11.3 | **Skill probada con casos.** Cada skill DEBE probarse con casos y seguir funcionando tras cambiarla. | DEBE | ci · semidura · `.claude/PLANTILLA-SKILL.md` | test: `.claude/skills.test.js` | — | #341 |
 | P11.4 | **Regla de parada.** Cuando es nueva, cada pieza (catálogo, skill o agente) DEBE cumplir la regla de parada antes de crearse. | DEBE | nada · blanda · `docs/ops/FLUJO.md` | juicio | — | #341 |

@@ -242,6 +242,7 @@ Pablo decidió: **todo en inglés**, en los tres ejes. Se aplica así:
 - **Una sola traducción**: el campo `en` de cada ficha del glosario. El id de la entidad es ese `en`.
 
 - **Metaclaves comunes**: `actualizado`, `sujetos`, `$comentario` y `version` de los `ops/*.json` siguen en castellano en todos los ficheros, también en los nuevos. Se renombrarán juntas en un encargo propio, no fichero a fichero.
+- **Campos de las plantillas de regla y de principio** (excepción, #620): `nombre`, `sujeto`, `fuerza`, `condicion`, `exigencia`, `nota`, `control`, `principio`, `ambito`, `acciones`, `normas`, `enunciado`, `porque`, `fuentes`, `detalle` y `origen` siguen en castellano. Son los campos comunes de `scripts/lib/regla.mjs`, que comparten todos los catálogos de reglas (normas, forja, estándares, redacción, principios); renombrarlos en uno solo los separaría de los demás. Se renombrarían todos a la vez, con las metaclaves. Los valores de vocabulario nuevos sí van en inglés (los de `ambito`: `code`, `infra`…); los de `acciones` (`construir`, `juzgar`…) son de antes y siguen la regla del ritmo.
 
 Cómo encaja con PRINCIPIOS §12, que ya fija las columnas estructurales en
 inglés (`id`, `*_id`, `created_at`, `updated_at`, `status`) y deja las de

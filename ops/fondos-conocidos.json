@@ -1,0 +1,33 @@
+{
+  "$comentario": "Los problemas de fondo (issues con la etiqueta tipo:fondo) conocidos, para comprobar sin red (#620, fondo #618). Un fondo no da control a ninguna norma: no vale como «issue» de una norma sin ejecutor (ops/uniones.test.js, problemasDeUniones de scripts/lib/principios.mjs). Los tests corren sin red, así que la lista se escribe aquí; no hay forma mejor sin llamar a GitHub desde el test. Sin novedad de forma: puede quedarse corta (un fondo nuevo no está hasta que alguien lo añade), nunca larga. Se pone al día con: gh api --paginate 'repos/pabloam89/MenuPlan/issues?state=all&labels=tipo:fondo&per_page=100' -q '.[].number'.",
+  "actualizado": "2026-10-11",
+  "fondos": [
+    143,
+    174,
+    175,
+    176,
+    177,
+    185,
+    231,
+    263,
+    313,
+    314,
+    315,
+    326,
+    334,
+    374,
+    408,
+    416,
+    455,
+    479,
+    488,
+    504,
+    509,
+    525,
+    560,
+    561,
+    595,
+    618,
+    622
+  ]
+}

@@ -132,7 +132,7 @@ Marca de la fuente: **[F]** está en una fuente externa (con su URL); **[I]** es
 |---|---|---|---|---|
 | `ops/forja/` | regla | cumple | 74 | - |
 | `ops/redaccion.json` | regla | cumple | 16 | - |
-| `ops/normas.json` | regla | cumple | 126 | - |
+| `ops/normas.json` | regla | cumple | 127 | - |
 | `ops/flujo.json` | regla | cumple | 53 | - |
 | `ops/estandares-agentes.json` | regla | cumple | 219 | - |
 | `ops/principios-producto/` | regla | cumple | 40 | - |

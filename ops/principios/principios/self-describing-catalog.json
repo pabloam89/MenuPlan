@@ -6,7 +6,7 @@
   "porque": "El catálogo de la base es la documentación que no se queda vieja, y un select de todo esconde quién lee qué.",
   "fuentes": [
     {
-      "marca": "C",
+      "marca": "I",
       "ruta": "docs/datos/PRINCIPIOS.md"
     }
   ],

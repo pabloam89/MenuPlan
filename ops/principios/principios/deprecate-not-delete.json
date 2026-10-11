@@ -6,7 +6,7 @@
   "porque": "Borrar o reutilizar un nombre deja sin sentido los recuentos y las referencias viejas sin que nadie se entere.",
   "fuentes": [
     {
-      "marca": "C",
+      "marca": "I",
       "ruta": "ops/vocabularios-vida.json"
     }
   ],

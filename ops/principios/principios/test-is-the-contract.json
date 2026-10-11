@@ -6,7 +6,7 @@
   "porque": "Un test que nunca se vio en rojo puede no medir nada, y lo que no fija un test se rompe sin que nadie lo vea.",
   "fuentes": [
     {
-      "marca": "C",
+      "marca": "I",
       "ruta": ".claude/rules/tests.md"
     }
   ],

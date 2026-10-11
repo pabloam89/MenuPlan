@@ -6,7 +6,7 @@
   "porque": "Con un solo patrón, leer una tabla o un registro es leerlos todos, y con varios cada lectura es una adivinanza.",
   "fuentes": [
     {
-      "marca": "C",
+      "marca": "I",
       "ruta": "docs/entidades/N0-principios.md"
     }
   ],

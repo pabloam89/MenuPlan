@@ -6,7 +6,7 @@
   "porque": "La rama se despliega antes de que alguien aplique su migración, y staging y producción comparten base.",
   "fuentes": [
     {
-      "marca": "C",
+      "marca": "I",
       "ruta": "docs/datos/PRINCIPIOS.md"
     }
   ],

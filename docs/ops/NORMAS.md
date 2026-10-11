@@ -68,7 +68,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `hora-de-madrid` | sesion | DEBE | **Hora de Madrid.** Cuando da una hora, cada sesión de Claude DEBE sacarla de npm run hora y nunca de date. | nada · blanda | test: `scripts/hora.test.js` | — | `days-hours-zones` | process | operar, documentar |
 | `fuera-de-onedrive` | sesion | NO DEBE | **Fuera de OneDrive.** Cada sesión de Claude NO DEBE trabajar dentro de OneDrive. | guardia · blanda | juicio | — | `one-fact-one-place` | infra | operar |
 | `tests-del-fichero` | sesion | DEBE | **Tests del fichero.** Cada sesión de Claude DEBE lanzar los tests de los ficheros que toca y no la suite entera. | nada · blanda | juicio | — | `test-is-the-contract` | code | construir |
-| `lecciones-a-un-test` | fallo | DEBE | **Aprendizajes a un test.** Cada fallo DEBE dejar su aprendizaje en un test y nunca en la memoria. | nada · blanda | juicio | — | `highest-mechanism` | process | construir, diagnosticar |
+| `lecciones-a-un-test` | fallo | DEBE | **Aprendizajes a un test.** Cada fallo DEBE dejar su aprendizaje en un test y nunca en la memoria. | persona · blanda | juicio | — | `highest-mechanism` | process | construir, diagnosticar |
 | `cuando-algo-falla` | fallo | DEBE | **Hasta el problema de fondo.** Cada fallo DEBE analizarse hasta su problema de fondo y registrarse como caso en un issue. | ci · semidura | test: `scripts/casos-pr.test.js` | `pr-sin-casos` | `class-not-case` | process | diagnosticar |
 | `repo-publico-sin-detalle` | repo | NO DEBE | **Repo público sin detalle.** El repositorio NO DEBE contener nada sensible en un issue, un commit o un PR. | nada · blanda | juicio | — | `public-repo-no-sensitive-detail` | process | diagnosticar, documentar |
 | `fondo-con-ficha-y-controles` | fondo | DEBE | **Ficha y controles del fondo.** Cada problema de fondo DEBE llevar una ficha válida y pasar sus controles en cada evento del issue. | script_propio · semidura | test: `scripts/fondos-evento.test.js` | — | `class-not-case` | process | diagnosticar, documentar |
@@ -127,7 +127,8 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `valor-retirado-no-borrado` | vocabulario | NO DEBE | **Valor retirado, no borrado.** Cuando un valor deja de usarse, cada vocabulario cerrado NO DEBE borrarse ni reutilizarse: se retira en ops/vocabularios-vida.json y dice a cuál pasa. | ci · dura | test: `ops/vocabularios-vida.test.js` | — | `deprecate-not-delete` | data | construir, decidir |
 | `entidad-con-registro` | entidad | DEBE | **Entidad con ficha de glosario.** Cada entidad del proyecto DEBE estar en ops/entidades.json con su id y su ficha de glosario. | ci · semidura | test: `ops/entidades.test.js` | — | `entity-has-registry` | process | construir, decidir |
 | `fk-con-on-delete` | dato | DEBE | **FK con on delete.** Cuando una migración desde la 0087 crea una clave ajena, cada tabla y cada campo de la base DEBE declarar on delete y tener un índice que empiece por sus columnas. | ci · dura | test: `supabase/principios.test.js` | — | `fk-declares-on-delete` | data | construir |
-| `fechas-con-zona` | dato | DEBE | **Fechas con zona.** Cuando una migración desde la 0087 crea una columna de instante, cada tabla y cada campo de la base DEBE usar timestamptz y no timestamp a secas. | ci · dura | test: `supabase/principios.test.js` | — | `types-and-nulls` | data | construir |
+| `fechas-con-zona` | dato | DEBE | **Fechas con zona.** Cuando una migración desde la 0087 crea una columna de instante, cada tabla y cada campo de la base DEBE usar timestamptz y no timestamp a secas. | ci · dura | test: `supabase/principios.test.js` | — | `days-hours-zones` | data | construir |
+| `columna-not-null-por-defecto` | dato | DEBE | **Not null por defecto.** Cuando una migración crea una columna, cada tabla y cada campo de la base DEBE declararse not null, salvo que su comentario diga qué significa el nulo. | persona · blanda | juicio | — | `types-and-nulls` | data | construir, juzgar |
 | `tabla-con-comentario` | dato | DEBE | **Tabla con su comentario.** Cuando una migración desde la 0087 crea una tabla, cada tabla y cada campo de la base DEBE llevar comment on table con qué guarda y quién la escribe. | ci · dura | test: `supabase/principios.test.js` | — | `self-describing-catalog` | data | construir |
 | `salud-marcada` | dato | DEBE | **Columna de salud marcada.** Cuando una migración desde la 0087 crea una columna de salud, cada tabla y cada campo de la base DEBE llevar comment on column que empiece por SALUD. | ci · semidura | test: `supabase/principios.test.js` | — | `health-data-apart` | data | construir |
 | `tabla-cuelga-de-la-casa` | dato | DEBE | **Tabla colgada de la casa.** Cuando es una tabla de dominio nueva, cada tabla y cada campo de la base DEBE llevar household_id con su clave ajena y un índice principal que empiece por él. | persona · blanda | juicio | — | `household-owns-data` | data | construir, juzgar |
@@ -157,7 +158,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | codigo | el código del producto | 5 |
 | principio | cada principio de datos | 2 |
 | gasto | cada gasto de dinero | 1 |
-| dato | cada tabla y cada campo de la base | 12 |
+| dato | cada tabla y cada campo de la base | 13 |
 | fallo | cada fallo | 2 |
 | issue | cada issue | 2 |
 | guardia | la guardia de Claude | 2 |
@@ -182,7 +183,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 |---|---|---|
 | code | El código del repo y su forma: tests, lint y ficheros | 10 |
 | infra | Identidades, permisos, secretos, ramas, CI, despliegues, copias y servicios | 29 |
-| data | La base: tablas, migraciones, roles y cada dato que guarda | 28 |
+| data | La base: tablas, migraciones, roles y cada dato que guarda | 29 |
 | catalog | El catálogo de recetas y alimentos que vive en git | 14 |
 | bot | Lola, el bot de mensajería, sus evals y su coste | 5 |
 | api | Las funciones de api/ y lo que protegen | 4 |
@@ -200,7 +201,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | planos | Un criterio de la medición semanal de ops/planos.json (con red, cada lunes) | 7 |
 | workflow | Un paso de un workflow de GitHub Actions que falla el check | 1 |
 | script | Un script del repo que comprueba y se lanza a mano o en el build | 5 |
-| juicio | El juicio de una persona o de un LLM sobre sus casos: no hay nada que falle solo | 36 |
+| juicio | El juicio de una persona o de un LLM sobre sus casos: no hay nada que falle solo | 37 |
 
 ## Avisos de la guardia
 
@@ -249,4 +250,4 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `aprobar-pr` | `rutas-protegidas-aprobacion-de-dueno` | Aprobar un PR desde una sesión |
 | `token-impreso` | `token-de-sesion-no-se-imprime` | Imprimir el token de la sesión |
 
-Total: 126 normas (rota 2, semidura 53, dura 24, blanda 47) y 42 avisos de la guardia.
+Total: 127 normas (rota 2, semidura 53, dura 24, blanda 48) y 42 avisos de la guardia.
