@@ -41,9 +41,9 @@ ve en un panel y no se ha comprobado desde el repo va marcado «sin comprobar».
 | **GitHub** (`pabloam89/MenuPlan`) | github.com con su cuenta personal (Pablo: `pabloam89`; Álvaro: `algbarc`). Escribir en el repo lo pueden hacer los dos; los ajustes (ramas, rulesets, Apps, secretos) solo el dueño | Sesión de la web o `gh auth login`. Las sesiones de Claude no usan la cuenta de Pablo, usan la App |
 | **Vercel** (equipo «menuplan», proyecto `homenu`) | vercel.com con la cuenta de Pablo o de Álvaro (los dos son Owners) | Inicio de sesión de Vercel. La CLI no tiene sesión abierta: `npx vercel login` y `logout` al acabar. Skill `vercel` |
 | **Supabase** (`mdzwbrworucnummibxrq`) | No hay cuenta propia: cuelga del equipo de Vercel. Vercel → Storage → «MenuPlan» → Open in Supabase | Poder entrar a Vercel como Owner. Skill `supabase` |
-| **Hetzner Cloud** (proyecto `HoMenu`, servidor `HoMenu-Panel`) | console.hetzner.cloud con la cuenta de Pablo; si no hay red, la consola web del propio servidor entra sin red | Ficha `Hetzner` en la bóveda `Private` de Pablo (con 2FA y códigos de recuperación). Solo Pablo. Skill `hetzner` |
-| **Tailscale** | login.tailscale.com con Google (cuenta de Pablo) | Solo Pablo; Álvaro no está invitado. Skill `tailscale` |
-| **1Password** | my.1password.eu, cuenta de Pablo (plan Familias). Álvaro tiene acceso a la bóveda `HoMenu` (sin comprobar hoy) | La contraseña maestra y la Secret Key de Pablo, fuera del repo. Bóvedas y qué lee cada cuenta de servicio: `ops/INVENTARIO.md` y skill `1password` |
+| **Hetzner Cloud** (proyecto `HoMenu`, servidor `HoMenu-Panel`) | console.hetzner.cloud con la cuenta de Pablo; la consola web de Hetzner entra sin red | Ficha `Hetzner` en la bóveda `Private` de Pablo (con 2FA y códigos de recuperación). Solo Pablo. Skill `hetzner` |
+| **Tailscale** | login.tailscale.com con Google (cuenta de Pablo) | Solo Pablo; si Álvaro está invitado: sin comprobar. Skill `tailscale` |
+| **1Password** | my.1password.eu, cuenta de Pablo (plan Familias). Álvaro: invitado a la cuenta; acceso a `HoMenu` por confirmar, hoy solo Pablo | La contraseña maestra y la Secret Key de Pablo, fuera del repo. Bóvedas y qué lee cada cuenta de servicio: `ops/INVENTARIO.md` y skill `1password` |
 
 ## Qué no hay que hacer sin Claude
 
