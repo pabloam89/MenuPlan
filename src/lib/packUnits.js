@@ -103,26 +103,6 @@ export function stockFromPack(pack) {
   };
 }
 
-/** @param {{ packCount?: number|null, packKind?: string|null, packSize?: number|null, packSizeUnit?: string|null }} item */
-export function formatPackLabel(item) {
-  const count = Number(item?.packCount) > 0 ? Number(item.packCount) : null;
-  const kind = item?.packKind;
-  const size = Number(item?.packSize);
-  const sizeUnit = item?.packSizeUnit;
-  if (!kind || !(size > 0) || !sizeUnit) return null;
-
-  const n = count ?? 1;
-  const kindLabel = etiquetaEnvase(kind, n);
-  let sizeText = `${Math.round(size)} ${sizeUnit}`;
-  if (sizeUnit === "g" && size >= 1000) {
-    sizeText = `${size % 1000 === 0 ? size / 1000 : (size / 1000).toFixed(1).replace(".", ",")} kg`;
-  }
-  if (sizeUnit === "ml" && size >= 1000) {
-    sizeText = `${size % 1000 === 0 ? size / 1000 : (size / 1000).toFixed(1).replace(".", ",")} L`;
-  }
-  return `${n} ${kindLabel} · ${sizeText}`;
-}
-
 export function packFieldsFromRow(row) {
   if (!row?.packKind || !(Number(row.packSize) > 0)) return null;
   return {

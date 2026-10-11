@@ -60,6 +60,7 @@ import { enviarAcceso, verificarCodigoEmail, cuentaNacidaAqui } from "../_bot/cu
 import { cuentaYChat as cuentaYChatDe } from "../_bot/altaTelegram.js";
 import { primeraVez } from "../_bot/entradas.js";
 import { preguntoConAviso } from "../_bot/silencio.js";
+import { CANAL } from "../../src/lib/vocabularios.js";
 
 const EMAIL_RE = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]{2,}$/;
 
@@ -103,7 +104,7 @@ export default async function handler(req, res) {
     try {
       // Y aun así a veces llega dos veces (una cola, un corte de red): el mismo
       // update_id solo se atiende una (0088, entradas.js).
-      if (!(await primeraVez("telegram", upd.update_id))) return;
+      if (!(await primeraVez(CANAL.TELEGRAM, upd.update_id))) return;
       if (upd.callback_query) await pulsado(upd.callback_query, base, host);
       else if (upd.message) await atender(upd.message, base, host);
     } catch (err) {
@@ -279,7 +280,7 @@ async function atender(msg, base, host = "") {
   if (/^\/nueva(?:@\w+)?$/.test(texto)) {
     // Sin pasar por el modelo: es un corte en la memoria, nada más. Y dicho de
     // forma que nadie tema haber borrado su menú.
-    await cortarCharla("telegram", chatId, chat.household_id);
+    await cortarCharla(CANAL.TELEGRAM, chatId, chat.household_id);
     return enviar(chatId, "✨ Listo, empezamos de cero.\n\nTu casa, tu menú y tu compra siguen igual: solo he olvidado lo que estábamos hablando. ¿En qué te ayudo?", esGrupo ? {} : { teclado: TECLADO });
   }
 

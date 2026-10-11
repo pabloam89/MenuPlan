@@ -1,5 +1,6 @@
 import { supabase } from "./supabase.js";
 import { NOMBRE_PAPEL, papelDe, puede } from "./papeles.js";
+import { paraEscribir } from "./vocabularios.js";
 
 /**
  * Cloud access for shared households (see HOUSEHOLDS.md + 0017_households.sql).
@@ -410,7 +411,7 @@ export async function createHouseholdInvite(householdId, role, lang = null) {
   const { data, error } = await supabase.rpc("create_household_invite", {
     p_household_id: householdId,
     p_role: role,
-    p_lang: lang,
+    p_lang: paraEscribir("idiomas", lang),
   });
   if (error) {
     console.warn("[householdsSync] create invite failed", error.message);

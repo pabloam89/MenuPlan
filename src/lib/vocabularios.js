@@ -50,6 +50,16 @@ export const CANALES = ["telegram", "whatsapp"];
 /** Idiomas que la app y Lola saben hablar (user_profiles.ui_lang, household_invites.lang). */
 export const IDIOMAS = ["es", "en"];
 
+/**
+ * Un canal o un idioma concreto por su nombre (CANAL.TELEGRAM, IDIOMA.EN), sacado de su
+ * lista y no copiado: así un escritor fija el suyo sin un literal suelto (#549). Si el valor
+ * se retira de la lista, su nombre desaparece de aquí, y vocabularios.test.js falla en cada
+ * `CANAL.X` o `IDIOMA.X` del código que ya no existe.
+ */
+const porNombre = (lista) => Object.freeze(Object.fromEntries(lista.map((v) => [v.toUpperCase(), v])));
+export const CANAL = porNombre(CANALES);
+export const IDIOMA = porNombre(IDIOMAS);
+
 // ── Los de la ficha de la casa (auditoría de tipos de menuplan-1e, 7 oct 2026).
 // Tal como se guardan hoy en producción: pasar a una forma canónica (minúscula,
 // sin tildes) es un paso aparte, con alias, nunca reescribiendo lo guardado.

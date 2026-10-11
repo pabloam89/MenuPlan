@@ -10,6 +10,7 @@
 
 import { fallaCon } from "./avisar.js";
 import { select, insert, update, eq } from "./db.js";
+import { paraEscribir } from "../../src/lib/vocabularios.js";
 
 const ZONA = "Europe/Madrid";
 const MAX_PENDIENTES = 10;
@@ -66,7 +67,7 @@ export async function crearRecordatorio({ channel, chatId, householdId }, { text
   const pendientes = await select("bot_reminders", `chat_id=${eq(chatId)}&status=eq.pending`, "id");
   if (pendientes.length >= MAX_PENDIENTES) return `Ya hay ${MAX_PENDIENTES} recordatorios pendientes en este chat; cancela alguno antes.`;
   await insert("bot_reminders", [{
-    channel, chat_id: String(chatId), household_id: householdId, text: limpio,
+    channel: paraEscribir("canales", channel), chat_id: String(chatId), household_id: householdId, text: limpio,
     due_at: fecha.toISOString(), repite: repite === "diario" || repite === "semanal" ? repite : null,
     // Sin tipo, el default de la base («libre»): un recordatorio normal no
     // depende de que la 0085 esté aplicada. Y sin created_by: guardaba el nombre

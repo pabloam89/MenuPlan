@@ -16,6 +16,7 @@ import { crearCuentaTelegram } from "./cuentas.js";
 import { enlazarChat, idDePersona } from "./enlace.js";
 import { avisarFallo, contesto } from "./avisar.js";
 import { noPude } from "./noPude.js";
+import { IDIOMA, IDIOMAS } from "../../src/lib/vocabularios.js";
 
 export const ES_INVITACION = /^inv_([0-9a-f]{32})$/;
 
@@ -38,7 +39,7 @@ const TEXTOS = {
   },
 };
 
-const lenguaDe = (codigo) => (String(codigo ?? "").toLowerCase().startsWith("en") ? "en" : "es");
+const lenguaDe = (codigo) => (String(codigo ?? "").toLowerCase().startsWith(IDIOMA.EN) ? IDIOMA.EN : IDIOMA.ES);
 
 /**
  * @param {{ from: object, chatId: string|number, token: string, nombre?: string|null }} args
@@ -70,9 +71,9 @@ export async function unirsePorInvitacion({ from, chatId, token, nombre = null }
     return { texto: TEXTOS[lang][lleno ? "lleno" : "caducada"], householdId: null, lang };
   }
   if (!r?.householdId) return { texto: TEXTOS[lang].caducada, householdId: null, lang };
-  if (r.lang === "en" || r.lang === "es") lang = r.lang;
+  if (IDIOMAS.includes(r.lang)) lang = r.lang;
   const [perfil] = await select("user_profiles", `user_id=${eq(userId)}`, "ui_lang");
-  if (perfil?.ui_lang === "en" || perfil?.ui_lang === "es") lang = perfil.ui_lang;
+  if (IDIOMAS.includes(perfil?.ui_lang)) lang = perfil.ui_lang;
 
   const enlace = await enlazarChat({
     chatId,

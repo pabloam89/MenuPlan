@@ -1,5 +1,6 @@
 import { supabase } from "./supabase.js";
 import { guardarConVersion } from "./versionCasa.js";
+import { listaParaEscribir } from "./vocabularios.js";
 
 /**
  * Cloud persistence for multi-week menús (see 0005_multiweek_menus.sql:
@@ -61,7 +62,7 @@ export function weekToRow(userId, menuId, startISO, week, householdId = null) {
     // "desde el miércoles", no "lunes, miércoles y viernes". Sin esta columna
     // una semana no contigua releída desde la tabla volvía como semana entera.
     // NULL cuando no se marcó nada, que es el comportamiento de siempre.
-    active_days: Array.isArray(week.days) && week.days.length > 0 ? week.days : null,
+    active_days: listaParaEscribir("dias", Array.isArray(week.days) && week.days.length > 0 ? week.days : null),
     plan: week.plan ?? {},
     shopping: week.shopping ?? { items: [] },
     schedule: week.schedule ?? {},

@@ -75,7 +75,8 @@ regex que exporta `ids.js`.
 - La paridad es **por columna**, no por nombre de constraint: el CHECK de lista
   vigente de cada columna (el último de las migraciones, también los que nacieron
   en línea como `channel text check (…)`) tiene su lista en
-  `COLUMNA_A_VOCABULARIO` de `src/lib/vocabularios.test.js`, o está en
+  `COLUMNA_A_VOCABULARIO` de `src/lib/vocabularios.test.js` (las del producto, en
+  `COLUMNAS_VOCABULARIO` de `scripts/lib/columnasVocabulario.mjs`), o está en
   `SIN_LISTA` con su porqué (deuda que solo baja). Un CHECK con literales e
   `in`/`any`/`<@` que el lector no entiende va a `NO_ES_LISTA` con su motivo.
   «Vigente» sale de las migraciones menos las de «Sin aplicar» de
@@ -100,8 +101,10 @@ regex que exporta `ids.js`.
   `ops/vocabularios-vida.json` que el test compara con ella. El escáner de
   `scripts/lib/escritoresVocabulario.mjs` falla si una asignación de esas
   columnas no pasa por la función (o por la de otro vocabulario) o si un
-  escritor de sus tablas escribe un valor a mano; hoy vigila `user_pantry`,
-  `user_recipes` y `recipe_collections`.
+  escritor de sus tablas escribe un valor a mano (un canal o idioma fijo, con
+  `CANAL.TELEGRAM` o `IDIOMAS`). Vigila todas las columnas de
+  `COLUMNAS_VOCABULARIO`, la misma lista de la paridad (#549); lo que se escribe
+  desde SQL lo dice `ESCRITORES_SQL`, y el test exige que esté.
   **[auto]** Un trigger que rechazara los retirados en filas nuevas sería la
   opción en la base, si esto no bastara.
 - Nada de `create type … as enum` ni `alter type … add value`. **[auto]**

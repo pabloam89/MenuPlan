@@ -27,6 +27,7 @@ import {
   noEsComida, preguntaProhibida,
 } from "../../src/lib/registroTareas.js";
 import { unaVez, tareasV2 } from "./idempotencia.js";
+import { CANAL, paraEscribir } from "../../src/lib/vocabularios.js";
 
 export const LIMITE_ABIERTAS = 8;
 // Lo que se trae de la base es una cota, no el recorte: el recorte lo hace
@@ -320,7 +321,7 @@ export async function cerrarPorEstado(householdId, data, { userId = null } = {})
 /** La fila de una pregunta de estado que abre el código (no Lola). */
 function filaDePregunta(ctx, { campo, personaId, texto, falta }, ahora) {
   return {
-    household_id: ctx.householdId, channel: ctx.channel, chat_id: String(ctx.chatId), kind: "pregunta", scope: "casa",
+    household_id: ctx.householdId, channel: paraEscribir("canales", ctx.channel), chat_id: String(ctx.chatId), kind: "pregunta", scope: "casa",
     texto, ...(falta === undefined ? {} : { falta }), clave: claveDeTarea({ tipo: "falta_saber", campo, personaId }), created_by: ctx.userId ?? null,
     caduca_at: caducidadDe({ tipo: "falta_saber", campo }, ahora).toISOString(),
     ...columnasV2({ tipo: "falta_saber", campo, persona_id: personaId }),
@@ -331,7 +332,7 @@ function filaDePregunta(ctx, { campo, personaId, texto, falta }, ahora) {
 export async function abrirPreguntaDeEstado(ctx, { campo, personaId, texto }, ahora = new Date()) {
   if (!ctx?.householdId || !ctx?.chatId || !claveDeTarea({ tipo: "falta_saber", campo, personaId })) return false;
   try {
-    await insertarTarea(filaDePregunta({ ...ctx, channel: ctx.channel ?? "telegram" }, { campo, personaId, texto: String(texto ?? "").slice(0, TEXTO_MAX) }, ahora));
+    await insertarTarea(filaDePregunta({ ...ctx, channel: ctx.channel ?? CANAL.TELEGRAM }, { campo, personaId, texto: String(texto ?? "").slice(0, TEXTO_MAX) }, ahora));
     await registrar(EVENTO.CREADA, { userId: ctx.userId ?? null, extra: { householdId: ctx.householdId, kind: "pregunta", ...temaDelEvento(campo), origen: "codigo" } });
     return true;
   } catch (e) {
@@ -397,7 +398,7 @@ async function anotar(ctx, datos, data = {}) {
   }
   try {
     await insertarTarea({
-      household_id: householdId, channel, chat_id: String(chatId), kind: t.kind, scope: t.scope,
+      household_id: householdId, channel: paraEscribir("canales", channel), chat_id: String(chatId), kind: t.kind, scope: t.scope,
       owner_user_id: t.scope === "personal" ? userId : null, texto: t.texto, clave: t.clave,
       para_member: t.para_member, asignado_member: t.asignado_member, vence: t.vence, caduca_at: t.caduca_at,
       created_by: userId,
