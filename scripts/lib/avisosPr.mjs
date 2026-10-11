@@ -1,6 +1,6 @@
 /**
  * avisosPr.mjs — tres avisos del CI sobre un PR (#576): tests relajados (C8), PR demasiado
- * grande (C1) y fondo cerrado sin lección (C12). Lógica pura; el script fino es
+ * grande (C1) y fondo cerrado sin aprendizaje (C12). Lógica pura; el script fino es
  * scripts/avisos-pr.mjs y el paso, «Avisos del PR» de .github/workflows/tests.yml.
  *
  * Los tres son AVISO: nunca fallan el job (un check obligatorio que se pone rojo por una
@@ -14,7 +14,7 @@
  *
  *     Tests relajados: sí — <motivo>     (C8)
  *     Tamaño: grande — <motivo>          (C1)
- *     Lección: <dónde queda>             (C12)
+ *     Aprendizaje: <dónde queda>             (C12)
  *
  * Pasar de aviso a fallo (cuando haya cifras): contar con `grep -h "avisos-pr:" ` en los logs de
  * `tests` (o con `gh run view --log`) cuántos PR salen con `resultado=warning` por regla y
@@ -111,7 +111,9 @@ export function esGenerado(ruta) {
   );
 }
 
-const cuenta = (lineas, re) => lineas.reduce((n, l) => (/^\s*(?:\/\/|\*|\/\*)/.test(l) ? n : n + (l.match(re)?.length ?? 0)), 0);
+// Lo que va entre comillas es texto, no código: un test del propio detector escribe «it.skip(» en un string.
+const sinCadenas = (l) => l.replace(/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`/g, '""');
+const cuenta = (lineas, re) => lineas.reduce((n, l) => (/^\s*(?:\/\/|\*|\/\*)/.test(l) ? n : n + (sinCadenas(l).match(re)?.length ?? 0)), 0);
 
 // ── La excepción declarada ─────────────────────────────────────────────────
 
@@ -130,9 +132,9 @@ export function excepcionTamano(cuerpo) {
   const m = lineaDe(cuerpo, "Tama[ñn]o", "grande[ \\t]*[—–-][ \\t]*(.{" + MIN_MOTIVO + ",})");
   return m ? motivoLimpio(m[1]) : null;
 }
-/** `Lección: <dónde>` → el dónde, o null. */
-export function excepcionLeccion(cuerpo) {
-  const m = lineaDe(cuerpo, "Lecci[óo]n", "(.{" + MIN_MOTIVO + ",})");
+/** `Aprendizaje: <dónde>` → el dónde, o null. */
+export function excepcionAprendizaje(cuerpo) {
+  const m = lineaDe(cuerpo, "Aprendizaje", "(.{" + MIN_MOTIVO + ",})");
   return m ? motivoLimpio(m[1]) : null;
 }
 
@@ -152,7 +154,7 @@ export function evaluarC8({ ficheros, cuerpo = "" }) {
   if (saltados > 0) motivos.push(`new_skip_only_todo=${saltados}`);
 
   // Un umbral que sube: testTimeout en cualquier fichero…
-  const numeros = (lineas, re) => lineas.flatMap((l) => [...l.matchAll(re)].map((m) => Number(m[1].replace(/_/g, ""))));
+  const numeros = (lineas, re) => lineas.flatMap((l) => [...sinCadenas(l).matchAll(re)].map((m) => Number(m[1].replace(/_/g, ""))));
   const reTimeout = /\btestTimeout\s*:\s*([\d_]+)/g;
   for (const f of ficheros) {
     const nuevos = numeros(f.anadidas, reTimeout);
@@ -191,12 +193,12 @@ export function evaluarC1({ ficheros, cuerpo = "", umbrales = UMBRALES_TAMANO })
   return r("c1", "warning", `${medida} over=${pasa.join(",")}`);
 }
 
-// Donde CLAUDE.md admite la lección: un test, la guardia, y si no se puede, una regla o una skill.
+// Donde CLAUDE.md admite el aprendizaje: un test, la guardia, y si no se puede, una regla o una skill.
 const RE_LECCION_RUTA = [RE_TEST, /^\.claude\/hooks\//, /^\.claude\/skills\//, /^\.claude\/rules\//];
 export const dejaLeccion = (ruta) => RE_LECCION_RUTA.some((re) => re.test(ruta));
 
 /**
- * C12: un fondo cerrado sin lección. `fondosCerrados`: los `Closes #n` que son tipo:fondo
+ * C12: un fondo cerrado sin aprendizaje. `fondosCerrados`: los `Closes #n` que son tipo:fondo
  * (lo calcula el script con la API); `null` si no se pudo mirar.
  */
 export function evaluarC12({ ficheros, cuerpo = "", fondosCerrados, sinComprobar = null }) {
@@ -205,7 +207,7 @@ export function evaluarC12({ ficheros, cuerpo = "", fondosCerrados, sinComprobar
   const lista = fondosCerrados.map((n) => `#${n}`).join(",");
   const tocados = ficheros.filter((f) => dejaLeccion(f.ruta)).length;
   if (tocados > 0) return r("c12", "ok", `closed_funds=${lista} lesson_files=${tocados}`);
-  const donde = excepcionLeccion(cuerpo);
+  const donde = excepcionAprendizaje(cuerpo);
   if (donde) return r("c12", "exempt", `closed_funds=${lista} lesson_files=0 reason=${donde}`);
   return r("c12", "warning", `closed_funds=${lista} lesson_files=0`);
 }
@@ -224,7 +226,7 @@ export function mensajeAviso({ regla, detalle }) {
   const como = {
     c8: "Tests relajados: el PR quita aserciones, añade skip/only/todo o sube un umbral. Si es a propósito, pon en el cuerpo «Tests relajados: sí — <motivo>»",
     c1: "PR grande: pasa de los umbrales de tamaño. Si no se puede partir, pon en el cuerpo «Tamaño: grande — <motivo>»",
-    c12: "El PR cierra un fondo y no toca ningún test, la guardia ni una skill: ¿dónde queda la lección? Pon en el cuerpo «Lección: <dónde>»",
+    c12: "El PR cierra un fondo y no toca ningún test, la guardia ni una skill: ¿dónde queda el aprendizaje? Pon en el cuerpo «Aprendizaje: <dónde>»",
   }[regla];
   return `::warning title=Aviso ${regla.toUpperCase()}::${como} (${detalle})`;
 }

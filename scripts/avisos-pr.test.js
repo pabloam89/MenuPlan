@@ -8,7 +8,7 @@ import { ErrorDeApi } from "./lib/ghApi.mjs";
 import { medianaMs, topeMs } from "./lib/medirTiempo.mjs";
 import {
   MOTIVOS_SIN_COMPROBAR, REGLAS, RESULTADOS, UMBRALES_TAMANO,
-  avisosDelPr, esGenerado, evaluarC1, evaluarC12, evaluarC8, excepcionLeccion, excepcionTamano, excepcionTests,
+  avisosDelPr, esGenerado, evaluarC1, evaluarC12, evaluarC8, excepcionAprendizaje, excepcionTamano, excepcionTests,
   leerDiff, lineaContable,
 } from "./lib/avisosPr.mjs";
 import { fondosCerrados } from "./avisos-pr.mjs";
@@ -77,6 +77,11 @@ describe("C8: tests relajados", () => {
     expect(evaluarC8({ ficheros: ficheros(fichero("a.test.js", ["it.skip('x', f)"], ["it.skip('x', g)"])) }).resultado).toBe("ok");
     expect(evaluarC8({ ficheros: ficheros(fichero("a.test.js", [], ["it('x', f) // sin skip"])) }).resultado).toBe("ok");
   });
+  it("lo que va entre comillas es texto: no cuenta (el CI de #576 avisó de su propio test)", () => {
+    const l = 'expect(leer("it.skip(\'x\')")).toContain("testTimeout: 90000");';
+    expect(evaluarC8({ ficheros: ficheros(fichero("a.test.js", [], [l])) }).detalle).not.toContain("new_skip_only_todo");
+    expect(evaluarC8({ ficheros: ficheros(fichero("a.test.js", [], [l])) }).detalle).not.toContain("raised_threshold");
+  });
   it("avisa si sube testTimeout, no si baja", () => {
     const sube = ficheros(fichero("vite.config.js", ["testTimeout: 30_000,"], ["testTimeout: 60_000,"]));
     expect(evaluarC8({ ficheros: sube }).detalle).toContain("raised_threshold=testTimeout:vite.config.js");
@@ -141,7 +146,7 @@ describe("C1: PR demasiado grande", () => {
   });
 });
 
-describe("C12: fondo cerrado sin lección", () => {
+describe("C12: fondo cerrado sin aprendizaje", () => {
   const sinLeccion = ficheros(fichero("src/a.js", [], ["x"]), fichero("docs/a.md", [], ["x"]));
   it("avisa si cierra un fondo y no toca test, guardia ni skill", () => {
     const r = evaluarC12({ ficheros: sinLeccion, fondosCerrados: [503] });
@@ -157,11 +162,11 @@ describe("C12: fondo cerrado sin lección", () => {
   it("no avisa si no cierra ningún fondo", () => {
     expect(evaluarC12({ ficheros: sinLeccion, fondosCerrados: [] }).resultado).toBe("ok");
   });
-  it("la línea «Lección: <dónde>» lo silencia y queda dónde", () => {
-    const r = evaluarC12({ ficheros: sinLeccion, fondosCerrados: [503], cuerpo: "Lección: skill issues, sección Lo que falló (PR #580)" });
+  it("la línea «Aprendizaje: <dónde>» lo silencia y queda dónde", () => {
+    const r = evaluarC12({ ficheros: sinLeccion, fondosCerrados: [503], cuerpo: "Aprendizaje: skill issues, sección Lo que falló (PR #580)" });
     expect(r.resultado).toBe("exempt");
     expect(r.detalle).toContain("reason=skill issues");
-    expect(excepcionLeccion("Lección: x")).toBeNull();
+    expect(excepcionAprendizaje("Aprendizaje: x")).toBeNull();
   });
   it("si no se pudo mirar la API, sale unchecked y no un aviso", () => {
     expect(evaluarC12({ ficheros: sinLeccion, sinComprobar: "api_error" })).toEqual({ regla: "c12", resultado: "unchecked", detalle: "reason=api_error" });
@@ -175,7 +180,7 @@ describe("los bots y el cuerpo hostil", () => {
   });
   it("un cuerpo de un megabyte no se queda colgado", () => {
     // Suelto tarda unos milisegundos; el tope es topeMs, con el margen de la casa (#499).
-    const ms = medianaMs(() => avisosDelPr({ diff: fichero("a.test.js", ["expect(1)"], []), cuerpo: "Lección: ".repeat(100_000) + "\n".repeat(50_000) }));
+    const ms = medianaMs(() => avisosDelPr({ diff: fichero("a.test.js", ["expect(1)"], []), cuerpo: "Aprendizaje: ".repeat(100_000) + "\n".repeat(50_000) }));
     expect(ms).toBeLessThan(topeMs(10));
   });
 });

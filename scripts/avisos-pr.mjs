@@ -1,6 +1,6 @@
 /**
  * avisos-pr.mjs — tres avisos del CI sobre un PR (paso «Avisos del PR» de tests.yml, #576):
- * tests relajados (C8), PR demasiado grande (C1) y fondo cerrado sin lección (C12).
+ * tests relajados (C8), PR demasiado grande (C1) y fondo cerrado sin aprendizaje (C12).
  *
  * SOLO AVISA: sale siempre con 0, también si algo se rompe aquí dentro (un check obligatorio
  * que falla por una heurística bloquearía los PR de las demás sesiones). Una línea

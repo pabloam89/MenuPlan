@@ -134,7 +134,7 @@ jobs:
       # cierra un fondo sin tocar un test, la guardia ni una skill. Cada uno deja una línea
       # `avisos-pr: regla=… resultado=ok|warning|exempt|unchecked detalle=…` que se cuenta con
       # `gh run view <run> --log | grep "avisos-pr:"`. La excepción se declara en el cuerpo del PR:
-      # «Tests relajados: sí — <motivo>», «Tamaño: grande — <motivo>» y «Lección: <dónde>».
+      # «Tests relajados: sí — <motivo>», «Tamaño: grande — <motivo>» y «Aprendizaje: <dónde>».
       # De aviso a fallo: cuando una regla lleve 30 PR seguidos con menos del 10 % de avisos
       # falsos (los que acaban en la línea de excepción por un motivo trivial), su
       # `resultado=warning` pasa a salir con código 1 en scripts/avisos-pr.mjs (detalle en la
