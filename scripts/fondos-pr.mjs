@@ -23,6 +23,10 @@
  *      Para los demás, lo mismo sale como AVISO (`::warning`, línea `fondos-pr: resultado=warning`): cerrar
  *      el issue de una norma no pone rojo el check obligatorio `tests` de todos los PR (ronda 3).
  *
+ * Cada comprobación deja su línea por norma (#621: `norma: <id> resultado: ok|fail pr: <n>`, medicionNormas.mjs):
+ * `pr-agente-y-closes-en-ci` (la línea Agente), `pr-closes-de-su-rama` (el Closes de la rama con número) y
+ * `fondo-no-cierra-sin-aprendizaje` (por cada fondo que cierra). Un bot o una API caída no dejan ninguna.
+ *
  * El cuerpo del PR se lee con limpiarCuerpo (sin comentarios ni bloques de
  * código: la plantilla explica las líneas en un comentario y no cuenta).
  *
@@ -37,6 +41,7 @@ import { MAX_CASOS, MAX_NUMERO, limpiarCuerpo } from "../.claude/hooks/casos.mjs
 import { ErrorDeApi, pedir } from "./lib/ghApi.mjs";
 import { CAPAS_AGENTE, aprendizajeValido, fichaObligatoria, fondoDeRest, leerFicha } from "./lib/fondos.mjs";
 import { porGrupo } from "./lib/issues.mjs";
+import { lineaDeNorma } from "./lib/medicionNormas.mjs";
 
 const BOTS = new Set(["dependabot[bot]", "github-actions[bot]"]);
 
@@ -89,8 +94,12 @@ export const deEstePr = (problemas, { tocaNormas, cierres }) => problemas.filter
 export async function comprobar({ cuerpo, autor = "", rama = "", consultar, consultarPadre, normas = [], tocaNormas = false }) {
   if (BOTS.has(String(autor).toLowerCase())) return { ok: true, motivo: "PR de un bot: exento." };
   const fallos = [];
+  // Lo que pasó con cada norma que se mira (medicionNormas.mjs): se imprime al final.
+  const medidas = [];
+  const mide = (norma, cumple) => medidas.push({ norma, resultado: cumple ? "ok" : "fail" });
 
   const { lineas, malas } = agentesDelPr(cuerpo);
+  mide("pr-agente-y-closes-en-ci", lineas.length > 0 && !malas.length);
   if (!lineas.length) fallos.push(`falta la línea «Agente: <nombre>» (${CAPAS_AGENTE.join(", ")}); la plantilla del PR la trae`);
   else if (malas.length) fallos.push(`«Agente: ${malas[0].slice(0, 30).replace(/[^\p{L}\p{N}_-]/gu, "?")}» no es un agente (${CAPAS_AGENTE.join(", ")})`);
 
@@ -100,6 +109,7 @@ export async function comprobar({ cuerpo, autor = "", rama = "", consultar, cons
   }
   // `area/193-nombre`: el número va seguido de una letra y es corto; `fix/2026-10-recetas` es una fecha, no un issue.
   const deRama = /^[a-z]+\/(\d{1,5})-[a-z]/.exec(String(rama))?.[1];
+  if (deRama) mide("pr-closes-de-su-rama", cierres.includes(Number(deRama)));
   if (deRama && !cierres.includes(Number(deRama))) {
     fallos.push(`la rama es del issue #${deRama}: pon «Closes #${deRama}» en el cuerpo del PR (una línea por issue) para que se cierre al fusionar y quede la traza`);
   }
@@ -139,6 +149,7 @@ export async function comprobar({ cuerpo, autor = "", rama = "", consultar, cons
     } else if (tipo === "fondo") {
       const f = fondoDeRest(issue);
       const l = leerFicha(f.body);
+      if (l.presente || fichaObligatoria(f)) mide("fondo-no-cierra-sin-aprendizaje", l.presente && aprendizajeValido(l.ficha.aprendizaje));
       if (!l.presente) {
         if (fichaObligatoria(f)) fallos.push(`«Closes #${n}»: el fondo no tiene ficha, y sin «aprendizaje» no se cierra. Si este PR solo arregla una parte, cierra el encargo, no el fondo`);
       } else if (!aprendizajeValido(l.ficha.aprendizaje)) {
@@ -162,14 +173,14 @@ export async function comprobar({ cuerpo, autor = "", rama = "", consultar, cons
     return { ok: false, api: true, motivo: como };
   }
 
-  if (fallos.length) return { ok: false, motivo: `El PR no cumple: ${fallos.join("; ")}.`, avisos };
-  return { ok: true, avisos, motivo: `Agente: ${lineas.join(", ")}${cierres.length ? `; Closes ${cierres.map((n) => `#${n}`).join(", ")}` : ""}.` };
+  if (fallos.length) return { ok: false, motivo: `El PR no cumple: ${fallos.join("; ")}.`, avisos, medidas };
+  return { ok: true, avisos, medidas, motivo: `Agente: ${lineas.join(", ")}${cierres.length ? `; Closes ${cierres.map((n) => `#${n}`).join(", ")}` : ""}.` };
 }
 
 const esPrincipal = process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
 
 if (esPrincipal) {
-  const { PR_BODY = "", PR_AUTOR = "", PR_RAMA = "", GITHUB_TOKEN = "", GITHUB_REPOSITORY = "" } = process.env;
+  const { PR_BODY = "", PR_AUTOR = "", PR_NUMBER = "", PR_RAMA = "", GITHUB_TOKEN = "", GITHUB_REPOSITORY = "" } = process.env;
   const base = { token: GITHUB_TOKEN, repo: GITHUB_REPOSITORY || "pabloam89/MenuPlan" };
   // ¿Toca este PR ops/normas.json? Lo dice el diff del commit de fusión que revisa el CI (HEAD^1 es la base).
   let tocaNormas = false;
@@ -187,6 +198,7 @@ if (esPrincipal) {
     tocaNormas,
     normas: JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), "..", "ops", "normas.json"), "utf8")).normas,
   });
+  for (const m of r.medidas ?? []) console.log(lineaDeNorma(m.norma, m.resultado, { pr: PR_NUMBER }));
   for (const a of r.avisos ?? []) console.log(`::warning title=Norma sin ejecutor mal colgada::${a}. No es de este PR: lo arregla quien la toque o quien cierre ese issue.\nfondos-pr: regla=normas-sin-ejecutor resultado=warning detalle=${a.split(":")[0].replace("norma ", "")}`);
   if (r.ok) {
     console.log(`Fondos: ok. ${r.motivo}`);

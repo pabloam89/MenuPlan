@@ -145,7 +145,7 @@ export function componerLista(propio, { producto = null, redaccion = null } = {}
     p.origen = [...p.origen, ...(a.origen ?? [])];
     p.puente = a.puente ?? null;
   }
-  return { delegados, anexos: propio.anexos ?? {}, sin_norma: propio.principios_sin_norma ?? {}, principios: fuera };
+  return { delegados, anexos: propio.anexos ?? {}, sin_norma: propio.principios_sin_norma ?? {}, precedencia: propio.precedencia ?? null, principios: fuera };
 }
 
 /** La lista entera del repo: el catálogo propio más los delegados, cada uno leído con su lector de siempre. */
@@ -460,6 +460,20 @@ export function generarMd(datos) {
   for (const f of filas) L.push(`| ${AMBITOS[f.area].legible} (\`${f.area}\`) | ${f.total} | ${f.delegados} | ${f.sinNorma} |`);
   const suma = (k) => filas.reduce((s, f) => s + f[k], 0);
   L.push(`| **Total** | **${suma("total")}** | **${suma("delegados")}** | **${suma("sinNorma")}** |`);
+  if (datos.precedencia) {
+    // La precedencia (#621): el dato vive en `precedencia` de ops/principios/_catalogo.json; su lector, scripts/lib/precedencia.mjs
+    // (no se importa: ese lector importa estandaresAgentes.mjs, y este módulo también).
+    const pr = datos.precedencia;
+    const conceptos = Object.entries(pr.concepts);
+    const c = (x) => `\`${x}\``;
+    L.push("", "## Precedencia", "", `Si dos normas piden cosas incompatibles, gana la que defiende el concepto de más arriba (${conceptos.map(([, x]) => x.label).join(" > ")}). Una norma defiende el concepto de su ámbito salvo que declare otro en su campo ${c("concepto")} de ${c("ops/normas.json")}. El dato vive en ${c("precedencia")} de ${c("ops/principios/_catalogo.json")} y se imprime en el brief con ${c("npm run estandar")}.`, "", "| Puesto | Concepto | Defiende | Ámbitos por defecto | Principios que lo defienden |", "|---|---|---|---|---|");
+    conceptos.forEach(([id, x], i) => {
+      const areas = Object.entries(pr.default_concept).filter(([, v]) => v === id).map(([a]) => c(a));
+      const ps = (pr.principles[id] ?? []).map(c);
+      L.push(`| ${i + 1} | ${c(id)} (${x.label}) | ${x.what} | ${areas.join(", ") || "—"} | ${ps.join(", ") || "—"} |`);
+    });
+    L.push("", `**Si chocan.** ${pr.clash.rule}`, "", `Constancia, en el cuerpo del PR: ${c(pr.clash.record)}`);
+  }
   for (const area of areasUsadas(datos)) {
     const a = AMBITOS[area];
     L.push("", `## ${a.legible.charAt(0).toUpperCase()}${a.legible.slice(1)} (\`${area}\`)`, "", `${a.que}.`);

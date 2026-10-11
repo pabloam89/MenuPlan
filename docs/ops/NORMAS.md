@@ -68,7 +68,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `hora-de-madrid` | sesion | DEBE | **Hora de Madrid.** Cuando da una hora, cada sesión de Claude DEBE sacarla de npm run hora y nunca de date. | nada · blanda | test: `scripts/hora.test.js` | — | `days-hours-zones` | process | operar, documentar |
 | `fuera-de-onedrive` | sesion | NO DEBE | **Fuera de OneDrive.** Cada sesión de Claude NO DEBE trabajar dentro de OneDrive. | guardia · blanda | juicio | — | `one-fact-one-place` | infra | operar |
 | `tests-del-fichero` | sesion | DEBE | **Tests del fichero.** Cada sesión de Claude DEBE lanzar los tests de los ficheros que toca y no la suite entera. | nada · blanda | juicio | — | `test-is-the-contract` | code | construir |
-| `lecciones-a-un-test` | fallo | DEBE | **Aprendizajes a un test.** Cada fallo DEBE dejar su aprendizaje en un test o en la guardia; si no se puede, en una regla o una skill; nunca en la memoria. | persona · blanda | juicio | — | `highest-mechanism` | process | construir, diagnosticar |
+| `lecciones-a-un-test` | fallo | DEBE | **Aprendizajes a un test.** Cada fallo DEBE dejar su aprendizaje en un test o en la guardia; si no se puede, en una regla o una skill; nunca en la memoria. | ci · blanda | script: `scripts/lib/avisosPr.mjs` | — | `highest-mechanism` | process | construir, diagnosticar |
 | `cuando-algo-falla` | fallo | DEBE | **Hasta el problema de fondo.** Cada fallo DEBE analizarse hasta su problema de fondo y registrarse como caso en un issue. | ci · semidura | test: `scripts/casos-pr.test.js` | `pr-sin-casos` | `class-not-case` | process | diagnosticar |
 | `repo-publico-sin-detalle` | repo | NO DEBE | **Repo público sin detalle.** El repositorio NO DEBE contener nada sensible en un issue, un commit o un PR. | nada · blanda | juicio | — | `public-repo-no-sensitive-detail` | process | diagnosticar, documentar |
 | `fondo-con-ficha-y-controles` | fondo | DEBE | **Ficha y controles del fondo.** Cada problema de fondo DEBE llevar una ficha válida y pasar sus controles en cada evento del issue. | script_propio · semidura | test: `scripts/fondos-evento.test.js` | — | `class-not-case` | process | diagnosticar, documentar |
@@ -109,7 +109,8 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `sin-codigo-dinamico` | codigo | NO DEBE | **Sin código montado al vuelo.** El código del producto NO DEBE montar nombres en tiempo de ejecución ni usar eval, new Function o un import() con variable. | nada · blanda | juicio | — | `explicit-over-clever` | code | construir, juzgar |
 | `derivado-registrado-y-comparado` | repo | DEBE | **Derivado con su comparación.** Cuando un fichero se genera desde otro, el repositorio DEBE estar en el inventario de derivados con el script que lo regenera y el test que lo compara. | ci · dura | test: `ops/derivados.test.js` | — | `one-fact-one-place` | code | construir |
 | `columnas-de-texto-clasificadas` | dato | DEBE | **Columnas de texto clasificadas.** Cuando es una columna de texto de una migración, cada tabla y cada campo de la base DEBE ser un vocabulario con CHECK o estar clasificada con su motivo en ops/columnas-texto.json. | ci · dura | test: `supabase/columnasTexto.test.js` | — | `discrete-first` | data | construir, decidir |
-| `tests-no-se-relajan` | codigo | NO DEBE | **Tests sin relajar.** Cuando un test falla, el código del producto NO DEBE aflojarse, saltarse ni borrarse para ponerlo en verde. | persona · blanda | script: `scripts/lib/avisosPr.mjs` | — | `tests-are-not-relaxed` | code | construir, juzgar |
+| `pr-acotado` | pr | NO DEBE | **PR acotado.** Cuando pasa de los umbrales de líneas, ficheros o áreas (sin contar lo generado), cada PR NO DEBE abrirse sin partir ni explicar por qué no se parte. | ci · blanda | script: `scripts/lib/avisosPr.mjs` | — | `one-change-one-intent` | process | construir, juzgar |
+| `tests-no-se-relajan` | codigo | NO DEBE | **Tests sin relajar.** Cuando un test falla, el código del producto NO DEBE aflojarse, saltarse ni borrarse para ponerlo en verde. | ci · blanda | script: `scripts/lib/avisosPr.mjs` | — | `tests-are-not-relaxed` | code | construir, juzgar |
 | `estado-leido-antes-de-afirmar` | sesion | DEBE | **Estado leído antes de afirmarlo.** Cuando afirma el estado de un issue o un PR, cada sesión de Claude DEBE haberlo leído de su fuente poco antes. | guardia · semidura | test: `.claude/hooks/estado-fresco.test.js` | — | `state-read-at-source` | process | operar, documentar |
 | `endpoint-rechaza-sin-credencial` | endpoint | DEBE | **Endpoint cerrado sin credencial.** Cuando una petición llega sin credencial, cada endpoint de la app DEBE rechazarla, salvo que el endpoint esté declarado público con su protección en ops/api-sin-credencial.json. | ci · dura | test: `api/sinCredencial.test.js` | — | `public-endpoint-justified` | api | construir, juzgar |
 | `eventos-sin-campos-prohibidos` | evento | NO DEBE | **Eventos sin campos prohibidos.** Cada línea de evento de los hooks y los scripts NO DEBE llevar rutas de usuario, comandos, textos libres, correos ni claves. | ci · dura | test: `.claude/hooks/eventos-campos.test.js` | — | `log-what-happens` | code | construir |
@@ -204,7 +205,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | permiso | cada cambio de permisos o de hooks de Claude | 1 |
 | main | la rama main | 2 |
 | staging | la rama staging | 1 |
-| pr | cada PR | 6 |
+| pr | cada PR | 7 |
 | migracion | cada migración | 6 |
 | sesion | cada sesión de Claude | 18 |
 | repo | el repositorio | 5 |
@@ -256,7 +257,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | api | Las funciones de api/ y lo que protegen | 9 |
 | ui | Las pantallas de la app | 2 |
 | product | Qué hace bien HoMenu y Lola para las familias | 9 |
-| process | Cómo se trabaja: issues, fondos, PR, sesiones, agentes, jueces y cifras | 35 |
+| process | Cómo se trabaja: issues, fondos, PR, sesiones, agentes, jueces y cifras | 36 |
 | writing | Cómo se escribe una regla o un principio de la casa | 16 |
 | entities | Cómo se nombra, se identifica y se registra cada cosa del proyecto | 0 |
 
@@ -267,8 +268,8 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | test | Un test del repo que falla en el CI | 90 |
 | planos | Un criterio de la medición semanal de ops/planos.json (con red, cada lunes) | 7 |
 | workflow | Un paso de un workflow de GitHub Actions que falla el check | 1 |
-| script | Un script del repo que comprueba y se lanza a mano o en el build | 5 |
-| juicio | El juicio de una persona o de un LLM sobre sus casos: no hay nada que falle solo | 78 |
+| script | Un script del repo que comprueba y se lanza a mano o en el build | 7 |
+| juicio | El juicio de una persona o de un LLM sobre sus casos: no hay nada que falle solo | 77 |
 
 ## Avisos de la guardia
 
@@ -317,4 +318,12 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `aprobar-pr` | `rutas-protegidas-aprobacion-de-dueno` | Aprobar un PR desde una sesión |
 | `token-impreso` | `token-de-sesion-no-se-imprime` | Imprimir el token de la sesión |
 
-Total: 181 normas (rota 2, semidura 66, dura 24, blanda 89) y 42 avisos de la guardia.
+## Excepciones, choques y medición (#621)
+
+**Una sola forma de excepción.** En el cuerpo del PR, una línea por excepción: `Excepción: <id de norma> — <motivo> — hasta AAAA-MM-DD`. Cuenta si la norma existe, el motivo es de verdad y la caducidad no ha pasado ni cae a más de 90 días; si no, avisa y no cuenta, y **falla** si la norma es `dura` y el PR toca uno de sus ficheros (`donde` o `control`). Una excepción solo exime de lo que un control del CI consulta (hoy, las tres normas de los avisos C1, C8 y C12); para cualquier otra queda anotada (`declared`) y medida, nada más, y la fecha de hoy es la UTC del run. Las formas de antes («Tests relajados: sí — …», «Tamaño: grande — …», «Aprendizaje: …») valen hasta el 2026-11-15, avisan y están registradas como retiradas en `ops/vocabularios-vida.json`. El lector es `scripts/lib/excepciones.mjs`.
+
+**Cuando dos normas chocan** gana la que defiende el concepto de más arriba en la precedencia (seguridad > datos de familias > coste > velocidad; tabla en `docs/PRINCIPIOS.md`, dato en `ops/principios/_catalogo.json`). Una norma defiende el concepto de su ámbito salvo que declare otro en su campo `concepto`; si las dos defienden el mismo, no se resuelve por precedencia y va a las decisiones pendientes. Quien cede lo deja dicho con una excepción de su norma. `npm run estandar -- <agente> <tarea>` imprime la tabla en el brief.
+
+**Cada control que salta deja su línea** `norma: <id> resultado: ok|warning|fail|exempt|declared|unchecked pr: <n> detalle: …` (una sola sintaxis: los avisos del CI y «Fondos del PR» en el log del run; la guardia, en el registro local de eventos, con la `norma` que hace cumplir lo que bloquea). `declared` es una excepción válida de una norma que ningún control del CI consulta: queda anotada, pero no cuenta como incumplimiento medido. La unidad es el run de un PR; el lector cuenta una vez por PR, norma y resultado. `npm run normas -- --medir` las cuenta por norma y dice cuáles nunca saltan, cuáles no han dejado dato y cuáles se exceptúan siempre (desde 3 veces, sin un solo salto). Registrada en `ops/metricas.json`.
+
+Total: 182 normas (rota 2, semidura 66, dura 24, blanda 90) y 42 avisos de la guardia.

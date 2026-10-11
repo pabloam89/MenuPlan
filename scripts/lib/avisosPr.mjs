@@ -4,34 +4,40 @@
  * scripts/avisos-pr.mjs y el paso, «Avisos del PR» de .github/workflows/tests.yml.
  *
  * Los tres son AVISO: nunca fallan el job (un check obligatorio que se pone rojo por una
- * heurística bloquearía los PR de las demás sesiones). Cada regla deja una línea que se puede
- * contar:
+ * heurística bloquearía los PR de las demás sesiones). Cada regla deja la línea de su norma, que se puede
+ * contar (scripts/lib/medicionNormas.mjs; sustituye a la `avisos-pr: regla=… resultado=…` de antes, #621):
  *
- *     avisos-pr: regla=c8 resultado=warning detalle=removed_assertions=3 added_assertions=0
+ *     norma: tests-no-se-relajan resultado: warning pr: 123 detalle: removed_assertions=3 added_assertions=0
  *
- * Excepción declarada: el cuerpo del PR lleva una línea por aviso, con motivo. Si está, el aviso
- * no sale (`resultado=exempt`) y el motivo queda en `detalle`:
+ * Excepción declarada (#621): UNA forma para todas, en el cuerpo del PR, con la norma que se exceptúa, el
+ * motivo y una caducidad. Si está y vale, el aviso no sale (`resultado: exempt`) y el motivo queda en `detalle`:
  *
- *     Tests relajados: sí — <motivo>     (C8)
- *     Tamaño: grande — <motivo>          (C1)
- *     Aprendizaje: <dónde queda>             (C12)
+ *     Excepción: <id de norma> — <motivo> — hasta AAAA-MM-DD
  *
- * Pasar de aviso a fallo (cuando haya cifras): contar con `grep -h "avisos-pr:" ` en los logs de
- * `tests` (o con `gh run view --log`) cuántos PR salen con `resultado=warning` por regla y
+ * Cada regla cuelga de una norma (NORMA_DE_REGLA): C8 de `tests-no-se-relajan`, C1 de `pr-acotado` y C12 de
+ * `lecciones-a-un-test`. La forma, sus razones para no valer y la transición de las tres formas de antes
+ * («Tests relajados: sí — …», «Tamaño: grande — …», «Aprendizaje: …», aceptadas hasta
+ * RETIRADA_FORMAS_ANTIGUAS) están en scripts/lib/excepciones.mjs. Una excepción válida de una norma sin regla
+ * aquí deja `norma: <id> resultado: declared` (no se midió ningún incumplimiento).
+ *
+ * Pasar de aviso a fallo (cuando haya cifras): contar con `grep -h "resultado: warning" ` en los logs de
+ * `tests` (o con `gh run view --log`) cuántos PR salen con `resultado: warning` por regla y
  * cuántos de esos avisos eran falsos (el PR acabó con la línea de excepción por un motivo
  * trivial). Una regla pasa a fallo cuando, en 30 PR seguidos, menos del 10 % de sus avisos
- * son falsos: en `scripts/avisos-pr.mjs`, `resultado=warning` pasa a salir con código 1 solo
+ * son falsos: en `scripts/avisos-pr.mjs`, `resultado: warning` pasa a salir con código 1 solo
  * para esa regla. Mientras tanto, todo sigue en salida 0.
  */
 import { GENERADOS, casaRuta } from "./generados.mjs";
 import { TABLAS } from "../../src/data/model.js";
-import { limpiarCuerpo } from "../../.claude/hooks/casos.mjs";
+import { NORMA_DE_REGLA, RAZONES, RETIRADA_FORMAS_ANTIGUAS, excepcionDe, leerExcepciones } from "./excepciones.mjs";
+import { RESULTADOS_NORMA, lineaDeNorma } from "./medicionNormas.mjs";
 
 /** Vocabulario cerrado de la línea contable (campos y valores en inglés). Lo vigila su test. */
 export const REGLAS = ["c1", "c8", "c12"];
-export const RESULTADOS = ["ok", "warning", "exempt", "unchecked"];
+/** Los resultados de la línea: los de scripts/lib/medicionNormas.mjs (un solo vocabulario); estas reglas usan ok, warning, exempt y unchecked. */
+export const RESULTADOS = Object.keys(RESULTADOS_NORMA);
 /** Por qué un resultado es `unchecked`: no se pudo mirar (no es un fallo del PR). */
-export const MOTIVOS_SIN_COMPROBAR = ["api_error", "no_token", "no_diff", "script_error"];
+export const MOTIVOS_SIN_COMPROBAR = ["api_error", "no_token", "no_diff", "script_error", "bot"];
 
 /**
  * Umbrales de C1, medidos el 11 oct 2026 sobre los últimos 150 PR fusionados en staging, sin
@@ -44,8 +50,7 @@ export const UMBRALES_TAMANO = { lines: 2000, files: 30, areas: 5 };
 /** C8: cuántas aserciones netas quitadas bastan para avisar. 1 = cualquier pérdida neta. */
 export const MIN_ASERCIONES_PERDIDAS = 1;
 
-/** Largo mínimo del motivo de una excepción (como el «Casos: ninguno»: una palabra suelta no vale). */
-export const MIN_MOTIVO = 10;
+export { NORMA_DE_REGLA };
 
 /** Bots exentos de los tres avisos (los demás pasos del CI los exentan igual). */
 export const BOTS = new Set(["dependabot[bot]", "github-actions[bot]"]);
@@ -117,33 +122,29 @@ const cuenta = (lineas, re) => lineas.reduce((n, l) => (/^\s*(?:\/\/|\*|\/\*)/.t
 
 // ── La excepción declarada ─────────────────────────────────────────────────
 
-const lineaDe = (cuerpo, etiqueta, valor) =>
-  new RegExp(`^[ \\t>*-]*(?:\\*\\*)?${etiqueta}(?:\\*\\*)?[ \\t]*:(?:\\*\\*)?[ \\t]*${valor}[ \\t]*$`, "gim").exec(limpiarCuerpo(cuerpo));
+/** El día de hoy en UTC (AAAA-MM-DD): el CI compara fechas enteras, sin hora. */
+export const hoyUtc = () => new Date().toISOString().slice(0, 10);
 
-const motivoLimpio = (m) => String(m).trim().replace(/\s+/g, " ").slice(0, 120);
+/** La excepción válida de una regla (forma única o antigua en transición) → su motivo, o null. */
+function motivoDe(regla, cuerpo, hoy) {
+  const lectura = leerExcepciones(cuerpo, { normas: Object.values(NORMA_DE_REGLA), hoy });
+  const e = excepcionDe(lectura, NORMA_DE_REGLA[regla]);
+  return e ? `${e.motivo}${e.hasta ? ` until=${e.hasta}` : " form=legacy"}` : null;
+}
 
-/** `Tests relajados: sí — motivo` → motivo, o null. */
-export function excepcionTests(cuerpo) {
-  const m = lineaDe(cuerpo, "Tests relajados", "s[ií][ \\t]*[—–-][ \\t]*(.{" + MIN_MOTIVO + ",})");
-  return m ? motivoLimpio(m[1]) : null;
-}
-/** `Tamaño: grande — motivo` → motivo, o null. */
-export function excepcionTamano(cuerpo) {
-  const m = lineaDe(cuerpo, "Tama[ñn]o", "grande[ \\t]*[—–-][ \\t]*(.{" + MIN_MOTIVO + ",})");
-  return m ? motivoLimpio(m[1]) : null;
-}
-/** `Aprendizaje: <dónde>` → el dónde, o null. */
-export function excepcionAprendizaje(cuerpo) {
-  const m = lineaDe(cuerpo, "Aprendizaje", "(.{" + MIN_MOTIVO + ",})");
-  return m ? motivoLimpio(m[1]) : null;
-}
+/** `Excepción: tests-no-se-relajan — motivo — hasta AAAA-MM-DD` (o la forma antigua, en transición) → motivo, o null. */
+export const excepcionTests = (cuerpo, hoy = hoyUtc()) => motivoDe("c8", cuerpo, hoy);
+/** Lo mismo para C1 (`pr-acotado`). */
+export const excepcionTamano = (cuerpo, hoy = hoyUtc()) => motivoDe("c1", cuerpo, hoy);
+/** Lo mismo para C12 (`lecciones-a-un-test`). */
+export const excepcionAprendizaje = (cuerpo, hoy = hoyUtc()) => motivoDe("c12", cuerpo, hoy);
 
 // ── Las tres reglas. Cada una → { regla, resultado, detalle } ───────────────
 
 const r = (regla, resultado, detalle) => ({ regla, resultado, detalle });
 
 /** C8: tests relajados. */
-export function evaluarC8({ ficheros, cuerpo = "" }) {
+export function evaluarC8({ ficheros, cuerpo = "", hoy = hoyUtc() }) {
   const tests = ficheros.filter((f) => RE_TEST.test(f.ruta));
   const quitadas = tests.reduce((n, f) => n + cuenta(f.quitadas, RE_ASERCION), 0);
   const nuevas = tests.reduce((n, f) => n + cuenta(f.anadidas, RE_ASERCION), 0);
@@ -170,13 +171,13 @@ export function evaluarC8({ ficheros, cuerpo = "" }) {
   }
 
   if (!motivos.length) return r("c8", "ok", `test_files=${tests.length} removed_assertions=${quitadas} added_assertions=${nuevas}`);
-  const motivo = excepcionTests(cuerpo);
+  const motivo = excepcionTests(cuerpo, hoy);
   if (motivo) return r("c8", "exempt", `${motivos.join(" ")} reason=${motivo}`);
   return r("c8", "warning", motivos.join(" "));
 }
 
 /** C1: PR demasiado grande, sin contar lo generado. */
-export function evaluarC1({ ficheros, cuerpo = "", umbrales = UMBRALES_TAMANO }) {
+export function evaluarC1({ ficheros, cuerpo = "", umbrales = UMBRALES_TAMANO, hoy = hoyUtc() }) {
   const propios = ficheros.filter((f) => !esGenerado(f.ruta));
   const lines = propios.reduce((n, f) => n + f.anadidas.length + f.quitadas.length, 0);
   const areas = new Set(propios.map((f) => (f.ruta.includes("/") ? f.ruta.split("/")[0] : "(root)")));
@@ -188,7 +189,7 @@ export function evaluarC1({ ficheros, cuerpo = "", umbrales = UMBRALES_TAMANO })
   if (areas.size > umbrales.areas) pasa.push(`areas>${umbrales.areas}`);
 
   if (!pasa.length) return r("c1", "ok", medida);
-  const motivo = excepcionTamano(cuerpo);
+  const motivo = excepcionTamano(cuerpo, hoy);
   if (motivo) return r("c1", "exempt", `${medida} over=${pasa.join(",")} reason=${motivo}`);
   return r("c1", "warning", `${medida} over=${pasa.join(",")}`);
 }
@@ -201,32 +202,35 @@ export const dejaLeccion = (ruta) => RE_LECCION_RUTA.some((re) => re.test(ruta))
  * C12: un fondo cerrado sin aprendizaje. `fondosCerrados`: los `Closes #n` que son tipo:fondo
  * (lo calcula el script con la API); `null` si no se pudo mirar.
  */
-export function evaluarC12({ ficheros, cuerpo = "", fondosCerrados, sinComprobar = null }) {
+export function evaluarC12({ ficheros, cuerpo = "", fondosCerrados, sinComprobar = null, hoy = hoyUtc() }) {
   if (sinComprobar) return r("c12", "unchecked", `reason=${sinComprobar}`);
   if (!fondosCerrados?.length) return r("c12", "ok", "closed_funds=0");
   const lista = fondosCerrados.map((n) => `#${n}`).join(",");
   const tocados = ficheros.filter((f) => dejaLeccion(f.ruta)).length;
   if (tocados > 0) return r("c12", "ok", `closed_funds=${lista} lesson_files=${tocados}`);
-  const donde = excepcionAprendizaje(cuerpo);
+  const donde = excepcionAprendizaje(cuerpo, hoy);
   if (donde) return r("c12", "exempt", `closed_funds=${lista} lesson_files=0 reason=${donde}`);
   return r("c12", "warning", `closed_funds=${lista} lesson_files=0`);
 }
 
 // ── La salida ──────────────────────────────────────────────────────────────
 
-/** La línea contable. Falla si la regla o el resultado no son del vocabulario. */
-export function lineaContable({ regla, resultado, detalle }) {
+/**
+ * La línea contable (#621): la de la norma de la regla, `norma: <id> resultado: … pr: <n> detalle: …`, la misma sintaxis
+ * que «Fondos del PR» (scripts/lib/medicionNormas.mjs). Falla si la regla o el resultado no son del vocabulario.
+ */
+export function lineaContable({ regla, resultado, detalle }, pr = null) {
   if (!REGLAS.includes(regla)) throw new Error(`avisos-pr: regla fuera del vocabulario: ${regla}`);
   if (!RESULTADOS.includes(resultado)) throw new Error(`avisos-pr: resultado fuera del vocabulario: ${resultado}`);
-  return `avisos-pr: regla=${regla} resultado=${resultado} detalle=${String(detalle ?? "-").replace(/[\r\n]+/g, " ")}`;
+  return lineaDeNorma(NORMA_DE_REGLA[regla], resultado, { pr, detalle });
 }
 
 /** El mensaje de GitHub (`::warning::`) de un aviso, en castellano. */
 export function mensajeAviso({ regla, detalle }) {
   const como = {
-    c8: "Tests relajados: el PR quita aserciones, añade skip/only/todo o sube un umbral. Si es a propósito, pon en el cuerpo «Tests relajados: sí — <motivo>»",
-    c1: "PR grande: pasa de los umbrales de tamaño. Si no se puede partir, pon en el cuerpo «Tamaño: grande — <motivo>»",
-    c12: "El PR cierra un fondo y no toca ningún test, la guardia ni una skill: ¿dónde queda el aprendizaje? Pon en el cuerpo «Aprendizaje: <dónde>»",
+    c8: "Tests relajados: el PR quita aserciones, añade skip/only/todo o sube un umbral. Si es a propósito, pon en el cuerpo «Excepción: tests-no-se-relajan — <motivo> — hasta AAAA-MM-DD»",
+    c1: "PR grande: pasa de los umbrales de tamaño. Si no se puede partir, pon en el cuerpo «Excepción: pr-acotado — <motivo> — hasta AAAA-MM-DD»",
+    c12: "El PR cierra un fondo y no toca ningún test, la guardia ni una skill: ¿dónde queda el aprendizaje? Pon en el cuerpo «Excepción: lecciones-a-un-test — <dónde queda> — hasta AAAA-MM-DD»",
   }[regla];
   return `::warning title=Aviso ${regla.toUpperCase()}::${como} (${detalle})`;
 }
@@ -235,13 +239,48 @@ export function mensajeAviso({ regla, detalle }) {
  * Todo junto: las tres evaluaciones de un PR. Los bots salen exentos de las tres.
  * → [{ regla, resultado, detalle }]
  */
-export function avisosDelPr({ diff, cuerpo = "", autor = "", fondosCerrados = null, sinComprobar = null }) {
-  if (BOTS.has(String(autor).toLowerCase())) return REGLAS.map((regla) => r(regla, "exempt", "reason=bot"));
+export function avisosDelPr({ diff, cuerpo = "", autor = "", fondosCerrados = null, sinComprobar = null, hoy = hoyUtc() }) {
+  if (BOTS.has(String(autor).toLowerCase())) return REGLAS.map((regla) => r(regla, "unchecked", "reason=bot"));
   if (sinComprobar === "no_diff") return REGLAS.map((regla) => r(regla, "unchecked", "reason=no_diff"));
   const ficheros = leerDiff(diff);
   return [
-    evaluarC8({ ficheros, cuerpo }),
-    evaluarC1({ ficheros, cuerpo }),
-    evaluarC12({ ficheros, cuerpo, fondosCerrados, sinComprobar }),
+    evaluarC8({ ficheros, cuerpo, hoy }),
+    evaluarC1({ ficheros, cuerpo, hoy }),
+    evaluarC12({ ficheros, cuerpo, fondosCerrados, sinComprobar, hoy }),
   ];
+}
+
+// ── La medición por norma y las excepciones del PR (#621) ──────────────────
+
+/** ¿Toca el diff algún fichero de la norma (`donde`, o su `control` si es un fichero)? Una ruta con «/» al final es una carpeta. */
+export function normaTocada(norma, rutas) {
+  const suyas = [...(norma.donde ?? []), ...(norma.control && norma.control !== "juicio" && norma.control !== "planos" ? [norma.control] : [])];
+  return suyas.some((d) => rutas.some((r) => r === d || (d.endsWith("/") && r.startsWith(d))));
+}
+
+/** Por qué una excepción no vale, de las que arreglar sin que el PR se rompa por ello: se avisa. De las demás, se falla si la norma es dura y el PR la toca. */
+const RAZONES_QUE_FALLAN = ["expired", "too_far", "bad_date", "short_reason"];
+
+/**
+ * Lo que dice el cuerpo del PR sobre sus excepciones. `normas`: la lista de ops/normas.json; `ficheros`: los del
+ * diff (leerDiff). → { lineas: [`norma: … resultado: declared` de las que no tienen regla], avisos: [texto],
+ * fallos: [texto] }. Una excepción que no vale NO cuenta: avisa, y FALLA solo si su norma es dura (veredicto) y el
+ * PR toca un fichero de esa norma (un control que se caducó no se esquiva con un PR que lo cambia). Una norma que
+ * no existe, o una línea mal escrita, solo avisa. La forma antigua en transición avisa de que se cambie.
+ */
+export function excepcionesDelPr({ cuerpo = "", normas, ficheros = [], hoy = hoyUtc(), pr = null }) {
+  const lectura = leerExcepciones(cuerpo, { normas, hoy });
+  const porId = new Map(normas.map((n) => [n.id, n]));
+  const rutas = ficheros.map((f) => f.ruta);
+  const fuera = { lineas: [], avisos: [], fallos: [], lectura };
+  for (const i of lectura.invalidas) {
+    const n = i.norma ? porId.get(i.norma) : null;
+    const texto = `Excepción${i.norma ? ` de «${i.norma}»` : ""} que no cuenta: ${RAZONES[i.razon]}${i.razon === "form" ? ` (${i.linea})` : ""}`;
+    if (n?.veredicto === "dura" && RAZONES_QUE_FALLAN.includes(i.razon) && normaTocada(n, rutas)) fuera.fallos.push(`${texto}; «${n.id}» es una norma dura y este PR la toca`);
+    else fuera.avisos.push(texto);
+  }
+  for (const a of lectura.antiguas) fuera.avisos.push(`La forma antigua de excepción (${a.id}) deja de valer el ${RETIRADA_FORMAS_ANTIGUAS}: escribe «Excepción: ${a.norma} — <motivo> — hasta AAAA-MM-DD»`);
+  const conRegla = new Set(Object.values(NORMA_DE_REGLA));
+  for (const e of lectura.validas) if (!conRegla.has(e.norma)) fuera.lineas.push(lineaDeNorma(e.norma, "declared", { pr, detalle: `until=${e.hasta ?? "-"}` }));
+  return fuera;
 }

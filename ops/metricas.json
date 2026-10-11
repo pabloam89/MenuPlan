@@ -11,7 +11,8 @@
     "vocabulario-estable": "Que las palabras y los vocabularios de proceso signifiquen lo mismo hoy que en los recuentos viejos",
     "planos-medidos": "Que el nivel de cada plano sea el que se mide, no el que se declara",
     "fabrica-a-presupuesto": "Que el trabajo de cada fondo cueste lo presupuestado en tiempo, tokens y dinero",
-    "guardia-proporcionada": "Que los hooks frenen lo que deben y no interrumpan de más"
+    "guardia-proporcionada": "Que los hooks frenen lo que deben y no interrumpan de más",
+    "normas-vivas": "Que cada norma diga si salta, se cumple o se exceptúa, para saber cuáles sobran y cuáles se esquivan"
   },
   "lineas": [
     {
@@ -374,6 +375,59 @@
           "menciona": "contarCupos"
         }
       ]
+    },
+    {
+      "firma": "norma",
+      "emisores": [
+        "scripts/lib/medicionNormas.mjs"
+      ],
+      "campos": {
+        "norma": "id",
+        "resultado": "estado",
+        "pr": "id",
+        "detalle": "texto"
+      },
+      "lectores": [
+        {
+          "tipo": "script",
+          "ref": "scripts/normas.mjs",
+          "menciona": "leerLineasDeNorma"
+        }
+      ]
+    },
+    {
+      "firma": "norma_medida",
+      "emisores": [
+        "scripts/normas.mjs"
+      ],
+      "campos": {
+        "norma_medida": "id",
+        "ok": "derivado",
+        "warning": "derivado",
+        "fail": "derivado",
+        "exempt": "derivado",
+        "declared": "derivado"
+      },
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": "docs/ops/NORMAS.md",
+          "menciona": "--medir"
+        }
+      ]
+    },
+    {
+      "firma": "normas_medidas total",
+      "emisores": [
+        "scripts/normas.mjs"
+      ],
+      "campos": {
+        "total": "derivado",
+        "nunca_saltan": "metrica",
+        "sin_dato": "derivado",
+        "exceptuadas_siempre": "metrica",
+        "fuente": "texto"
+      }
     }
   ],
   "informes": {
@@ -1392,6 +1446,56 @@
       "unidad": "cuenta",
       "umbral": null,
       "vigilante": "bloqueo_guardia"
+    },
+    {
+      "id": "normas_nunca_saltan",
+      "objetivo": "normas-vivas",
+      "pregunta": "¿Cuántas normas se han comprobado alguna vez y jamás han saltado, para ver si su control sobra o si nadie las incumple?",
+      "emisor": "scripts/normas.mjs",
+      "sale_en": [
+        {
+          "linea": "normas_medidas total",
+          "campos": [
+            "nunca_saltan"
+          ]
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": "docs/ops/NORMAS.md",
+          "menciona": "--medir"
+        }
+      ],
+      "unidad": "cuenta",
+      "umbral": null,
+      "vigilante": "normas_exceptuadas_siempre",
+      "muestra": "Antes de quitar el control de una norma de la lista, mirar si es de las que nadie incumple o si el control no llega a mirar nada"
+    },
+    {
+      "id": "normas_exceptuadas_siempre",
+      "objetivo": "normas-vivas",
+      "pregunta": "¿Cuántas normas se exceptúan cada vez que saltan, para ver si están mal puestas o si la excepción se usa de atajo?",
+      "emisor": "scripts/normas.mjs",
+      "sale_en": [
+        {
+          "linea": "normas_medidas total",
+          "campos": [
+            "exceptuadas_siempre"
+          ]
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": "docs/ops/NORMAS.md",
+          "menciona": "--medir"
+        }
+      ],
+      "unidad": "cuenta",
+      "umbral": null,
+      "vigilante": "normas_nunca_saltan",
+      "muestra": "Leer las excepciones de una norma de la lista y ver si el motivo cambia o se copia"
     }
   ],
   "excepciones": [

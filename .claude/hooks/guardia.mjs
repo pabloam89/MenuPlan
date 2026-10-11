@@ -835,7 +835,7 @@ if (esPrincipal) {
           evento: { deny: "bloqueo_guardia", ask: "permiso_pedido", aviso: "aviso_guardia" }[r.decision],
           nombre: r.aviso,
           fuente: "guardia",
-          codigo: r.codigo,
+          norma: r.codigo,
           sesion: entrada.session_id,
           cwd: entrada.cwd || raiz,
         });

@@ -107,7 +107,7 @@ describe("el escáner: cada categoría prohibida se detecta, y lo normal pasa", 
   });
 
   it.each([
-    '{"id":"2b7c5e1a-1f0e-4d0a-9c36-0a1b2c3d4e5f","ts":"2026-10-11T08:00:00.000Z","sesion":"2b7c5e1a-1f0e-4d0a-9c36-0a1b2c3d4e5f","fuente":"guardia","actor":"homenu-sesiones[bot]","rama":"ops/579-hooks-estado-eventos","issue":579,"evento":"bloqueo_guardia","nombre":"push-a-main","codigo":"main-solo-pablo"}',
+    '{"id":"2b7c5e1a-1f0e-4d0a-9c36-0a1b2c3d4e5f","ts":"2026-10-11T08:00:00.000Z","sesion":"2b7c5e1a-1f0e-4d0a-9c36-0a1b2c3d4e5f","fuente":"guardia","actor":"homenu-sesiones[bot]","rama":"ops/579-hooks-estado-eventos","issue":579,"evento":"bloqueo_guardia","nombre":"push-a-main","norma":"main-solo-pablo"}',
     '{"cuando":"2026-10-11T08:00:00.000Z","script":"tarea.mjs","claves":3,"reintento":false}',
     "gh: caller=issues api=graphql",
     "env-boveda clave: SUPABASE_DB_URL de: HoMenu-sesiones a: HoMenu motivo: respaldo",
@@ -132,10 +132,10 @@ describe("el registro de eventos: con entradas hostiles no escribe nada prohibid
     "AbCdEfGhIjKlMnOpQrStUvWxYz0123456789abcd",
   ];
 
-  it("lineaDeEvento nunca deja pasar un valor hostil en nombre, codigo, tema, sesion, rama, fuente ni actor", () => {
+  it("lineaDeEvento nunca deja pasar un valor hostil en nombre, norma, tema, sesion, rama, fuente ni actor", () => {
     for (const evento of EVENTOS) {
       for (const h of HOSTILES) {
-        const l = lineaDeEvento({ evento, nombre: h, codigo: h, tema: h, sesion: h, rama: h, fuente: h, actor: h }, new Date("2026-10-11T08:00:00Z"), "00000000-0000-4000-8000-000000000000");
+        const l = lineaDeEvento({ evento, nombre: h, norma: h, tema: h, sesion: h, rama: h, fuente: h, actor: h }, new Date("2026-10-11T08:00:00Z"), "00000000-0000-4000-8000-000000000000");
         if (l) expect(camposProhibidos(JSON.stringify(l)), `${evento} con ${h}`).toEqual([]);
       }
     }
@@ -144,7 +144,7 @@ describe("el registro de eventos: con entradas hostiles no escribe nada prohibid
   it("cada evento y cada fuente del vocabulario, con valores buenos, sale limpio", () => {
     for (const evento of EVENTOS) {
       for (const fuente of FUENTES) {
-        const l = lineaDeEvento({ evento, nombre: "sin-lectura", codigo: "main-solo-pablo", tema: TEMAS_ESTADO[1], sesion: "2b7c5e1a-1f0e-4d0a-9c36-0a1b2c3d4e5f", rama: "ops/579-hooks-estado-eventos", fuente, actor: "homenu-sesiones[bot]" });
+        const l = lineaDeEvento({ evento, nombre: "sin-lectura", norma: "main-solo-pablo", tema: TEMAS_ESTADO[1], sesion: "2b7c5e1a-1f0e-4d0a-9c36-0a1b2c3d4e5f", rama: "ops/579-hooks-estado-eventos", fuente, actor: "homenu-sesiones[bot]" });
         expect(camposProhibidos(JSON.stringify(l)), `${evento}/${fuente}`).toEqual([]);
       }
     }

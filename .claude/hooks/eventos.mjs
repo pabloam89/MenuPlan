@@ -2,7 +2,7 @@
  * eventos.mjs — el registro local de eventos de los hooks (#340, lo que propone
  * #185): una línea JSON por cosa que pasa, para poder contarla.
  *
- *   { id, ts, sesion, fuente, actor, rama, issue, evento, nombre[, codigo] }
+ *   { id, ts, sesion, fuente, actor, rama, issue, evento, nombre[, norma] }
  *
  * `id`, `fuente` y `actor` son los campos fijos del principio 10 de docs/entidades/N0-principios.md
  * (#568): `id` es único por evento, `fuente` dice qué hook lo escribe (FUENTES) y `actor` la
@@ -15,7 +15,7 @@
  * hook en settings.json incluye «Agent»: hoy no, es una propuesta de #340).
  * `nombre` es una palabra de vocabulario (la skill, el tipo de agente o la
  * aviso de la guardia, de `avisos-guardia.mjs`), nunca un texto libre ni el comando. En un
- * bloqueo o un permiso pedido, `codigo` es el id de la norma de `ops/normas.json` que hace
+ * bloqueo o un permiso pedido, `norma` (hasta #621, `codigo`) es el id de la norma de `ops/normas.json` que hace
  * cumplir ese aviso (#494): con él se cuenta qué norma salta más.
  *
  * Vive en ~/.claude/menuplan-fabrica/eventos.jsonl, FUERA del repo (es público)
@@ -83,7 +83,7 @@ function ramaDe(cwd) {
  * La línea de un evento, o null si no vale (evento fuera del vocabulario, nombre
  * raro). Pura: `ahora` y `rama` entran por argumento.
  */
-export function lineaDeEvento({ evento, nombre, codigo, tema, sesion, rama, fuente, actor }, ahora = new Date(), id = randomUUID()) {
+export function lineaDeEvento({ evento, nombre, norma, tema, sesion, rama, fuente, actor }, ahora = new Date(), id = randomUUID()) {
   if (!EVENTOS.includes(evento) || typeof nombre !== "string" || !NOMBRE_OK.test(nombre) || OPACO.test(nombre)) return null;
   const r = typeof rama === "string" && RAMA_OK.test(rama) && !OPACO.test(rama) ? rama : null;
   return {
@@ -96,7 +96,7 @@ export function lineaDeEvento({ evento, nombre, codigo, tema, sesion, rama, fuen
     issue: numeroDeRama(r),
     evento,
     nombre,
-    ...(typeof codigo === "string" && codigo.length <= 60 && CODIGO_OK.test(codigo) ? { codigo } : {}),
+    ...(typeof norma === "string" && norma.length <= 60 && CODIGO_OK.test(norma) ? { norma } : {}),
     // Solo en `estado_sin_leer`: de qué iba la afirmación (vocabulario cerrado).
     ...(evento === "estado_sin_leer" && TEMAS_ESTADO.includes(tema) ? { tema } : {}),
   };
@@ -104,7 +104,7 @@ export function lineaDeEvento({ evento, nombre, codigo, tema, sesion, rama, fuen
 
 /**
  * Anota un evento. NUNCA lanza: true si lo escribió, false si no.
- *   datos  { evento, nombre, fuente, codigo?, sesion?, rama?, cwd? }  (sin rama, la saca de `cwd`)
+ *   datos  { evento, nombre, fuente, norma?, sesion?, rama?, cwd? }  (sin rama, la saca de `cwd`)
  *   opc    { dir, ahora } para probar
  */
 export function registrarEvento(datos, opc = {}) {
