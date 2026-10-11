@@ -302,6 +302,42 @@
           "menciona": "export function contarAvisos"
         }
       ]
+    },
+    {
+      "firma": "detector-identidades: sonda",
+      "emisores": [
+        "scripts/detector-identidades.mjs"
+      ],
+      "campos": {
+        "sonda": "id",
+        "resultado": "estado",
+        "estado": "derivado"
+      },
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": ".claude/skills/github/referencias/app-sesiones.md",
+          "menciona": "npm run detector-identidades"
+        }
+      ]
+    },
+    {
+      "firma": "detector-identidades: resumen: sondas",
+      "emisores": [
+        "scripts/detector-identidades.mjs"
+      ],
+      "campos": {
+        "sondas": "derivado",
+        "mal": "derivado",
+        "sin_comprobar": "derivado"
+      },
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": ".claude/skills/github/referencias/app-sesiones.md",
+          "menciona": "npm run detector-identidades"
+        }
+      ]
     }
   ],
   "informes": {
