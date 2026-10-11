@@ -13,9 +13,11 @@
  *   1. asignaciones: cada `col: <expr>`, `x.col = <expr>` o `{ col }` abreviado de una columna
  *      vigilada tiene que ser `paraEscribir("<su vocabulario>", …)`,
  *      `listaParaEscribir("<su vocabulario>", …)`, `carpetaParaEscribir(…)` (solo
- *      collection_id) o `null`, y la llamada cierra la expresión (`paraEscribir(…) || otro`
- *      no vale: lo de detrás se escribiría sin filtro). Un `_x` solo dentro de un patrón de
- *      destructurar (descartar). Dónde mira:
+ *      collection_id), `null` o una variable cuyas asignaciones, todas, son
+ *      `paraEscribir("<su vocabulario>", …)` (`const canal = paraEscribir("canales", channel)`
+ *      al entrar, y `channel: canal` en la fila); y la llamada cierra la expresión
+ *      (`paraEscribir(…) || otro` no vale: lo de detrás se escribiría sin filtro). Un `_x`
+ *      solo dentro de un patrón de destructurar (descartar). Dónde mira:
  *      - columna de nombre propio (`pack_kind`, `active_days`, `ui_lang`): en todo src/ y api/;
  *      - columna `comun` (`channel`, `lang`, `origen`…, nombres que usan también objetos que
  *        no son filas): solo en los escritores de su tabla (supabase/cableado.json) y solo en
@@ -35,7 +37,7 @@
  * líneas (`col:` y el valor debajo) sale como «no pasa»: se escribe en una. En una columna
  * `comun` no se mira `x.col = …` (el `rec.lang` del reconocimiento de voz no es una fila).
  * Lo que se escribe desde SQL no se ve: lo dice ESCRITORES_SQL de columnasVocabulario.mjs.
- * Puro: quien llama le pasa los textos.
+ * Puro: quien llama le pasa los textos (la cifra, con ficheros: scripts/escritores-vocabulario.mjs).
  */
 import { COLUMNAS_VOCABULARIO } from "./columnasVocabulario.mjs";
 
@@ -116,9 +118,9 @@ function cierre(t, i) {
  * `,`, `;`, `}`, `)`, `]` o el final de la línea. `paraEscribir(…) || x` no la cierra.
  */
 function cierraLaExpresion(t, i) {
-  const abre = t.slice(i).match(/^null\b|^[\w$]+\s*\(/);
+  const abre = t.slice(i).match(/^[\w$]+\s*\(|^[\w$]+\b/);
   if (!abre) return false;
-  const fin = abre[0] === "null" ? i + 4 : cierre(t, i + abre[0].length - 1) + 1;
+  const fin = abre[0].endsWith("(") ? cierre(t, i + abre[0].length - 1) + 1 : i + abre[0].length;
   if (fin <= 0) return false;
   return /^[ \t]*(?:[,;})\]]|\n|$)/.test(t.slice(fin));
 }
@@ -129,8 +131,10 @@ function cierraLaExpresion(t, i) {
  * texto sin cadenas y dónde empieza el valor, para ver si la llamada cierra la expresión.
  * `paraEscribir("usos_receta", x)` en pack_kind no vale: escribiría con la lista equivocada.
  */
-function problemaDelValor(rhs, t, i, vocab, col) {
+function problemaDelValor(rhs, t, i, vocab, col, validadas = new Map()) {
   const motivo = (() => {
+    const variable = rhs.match(/^([\w$]+)\b(?!\s*\()/);
+    if (variable && validadas.get(variable[1]) === vocab) return null;
     const llamada = rhs.match(/^(?:paraEscribir|listaParaEscribir)\(\s*(["'])([^"']*)\1/);
     if (llamada) return llamada[2] === vocab ? null : `usa el vocabulario «${llamada[2]}» y la columna es de «${vocab}»`;
     if (/^(?:paraEscribir|listaParaEscribir)\(/.test(rhs)) return "el vocabulario de paraEscribir va escrito, no en una variable";
@@ -140,6 +144,25 @@ function problemaDelValor(rhs, t, i, vocab, col) {
   })();
   if (motivo) return motivo;
   return cierraLaExpresion(t, i) ? null : "la llamada no cierra la expresión: lo de detrás se escribiría sin pasar por la lista viva";
+}
+
+/**
+ * Las variables que ya pasaron por la lista viva: nombre → vocabulario, si TODA asignación a
+ * ese nombre en el texto es `paraEscribir("<vocab>", …)` o `listaParaEscribir("<vocab>", …)`
+ * y cierra la expresión (`const canal = paraEscribir("canales", channel)`). Así un escritor
+ * valida una vez, al entrar, y usa `channel: canal` en sus filas. Una sola asignación sin
+ * filtro (o con otro vocabulario) y la variable no cuenta. `todo`: el texto sin cadenas ni
+ * comentarios; `orig`: el mismo con sus cadenas (las posiciones coinciden).
+ */
+function variablesValidadas(todo, orig) {
+  const por = new Map();
+  for (const m of todo.matchAll(/(?<![\w.$])([A-Za-z_$][\w$]*)\s*=(?![=>])\s*/g)) {
+    const desde = m.index + m[0].length;
+    const llamada = orig.slice(desde).match(/^(?:paraEscribir|listaParaEscribir)\(\s*(["'])([^"']*)\1/);
+    const vocab = llamada && cierraLaExpresion(todo, desde) ? llamada[2] : null;
+    por.set(m[1], por.has(m[1]) && por.get(m[1]) !== vocab ? null : vocab);
+  }
+  return new Map([...por].filter(([, v]) => v));
 }
 
 /**
@@ -177,10 +200,11 @@ function enFila(t, i, clave) {
  * `fichero` y `cableado` acotan las columnas `comun` a los escritores de su tabla; sin ellos
  * (los ejemplos del test) se miran en cualquier texto, pero solo en objetos con forma de fila.
  */
-export function asignacionesSinFiltro(texto, { columnas = COLUMNAS_VOCABULARIO, fichero = null, cableado = null } = {}) {
+export function asignacionesSinFiltro(texto, { columnas = COLUMNAS_VOCABULARIO, fichero = null, cableado = null, todas = false } = {}) {
   const originales = sinComentarios(texto).split("\n");
   const lineas = originales.map(sinCadenas);
   const todo = lineas.join("\n");
+  const validadas = variablesValidadas(todo, originales.join("\n"));
   const inicio = [];
   lineas.reduce((n, l, i) => ((inicio[i] = n), n + l.length + 1), 0);
   const out = [];
@@ -211,15 +235,17 @@ export function asignacionesSinFiltro(texto, { columnas = COLUMNAS_VOCABULARIO, 
         const rhs = originales[i].slice(desde).trim();
         // `_x` solo descarta dentro de un patrón de destructurar; en un objeto que se escribe es un valor.
         if (enDestructura && /^_\w*\b/.test(rhs)) continue;
-        const p = problemaDelValor(rhs, todo, inicio[i] + desde, v.vocab, col);
+        const p = problemaDelValor(rhs, todo, inicio[i] + desde, v.vocab, col, validadas);
         if (p) apunta(p);
+        else if (todas) out.push({ columna, linea: i + 1, texto, motivo: null });
       }
       // Asignación a una propiedad: `fila.col = x` (no en una columna `comun`: ver los límites).
       if (!v.comun) {
         for (const m of l.matchAll(new RegExp(`\\.${col}\\s*=(?![=>])\\s*(.*)$`, "g"))) {
           const desde = m.index + m[0].length - m[1].length;
-          const p = problemaDelValor(originales[i].slice(desde).trim(), todo, inicio[i] + desde, v.vocab, col);
+          const p = problemaDelValor(originales[i].slice(desde).trim(), todo, inicio[i] + desde, v.vocab, col, validadas);
           if (p) apunta(p);
+        else if (todas) out.push({ columna, linea: i + 1, texto, motivo: null });
         }
       }
       // Abreviada: `{ …, col }`, `{ col, … }` o `col,` en su línea dentro de un literal de objeto.
@@ -243,4 +269,17 @@ export function literalesSueltos(texto, valores) {
 export function valoresVigilados(vocabularios, retirados, columnas = COLUMNAS_VOCABULARIO) {
   const nombres = [...new Set(Object.values(columnas).map((d) => descriptor(d).lista))];
   return new Set(nombres.flatMap((n) => [...(vocabularios[n] ?? []), ...Object.keys(retirados[n] ?? {})]));
+}
+
+/**
+ * La cifra del escáner sobre un árbol de código (#549): cuántas columnas vigila, cuántas
+ * asignaciones pasan por la lista viva, cuáles no y qué literales sueltos quedan.
+ * `ficheros`: [{ fichero, texto }] de src/ y api/ sin tests. La usa scripts/escritores-vocabulario.mjs.
+ */
+export function cifra(ficheros, cableado, vocabularios, retirados, columnas = COLUMNAS_VOCABULARIO) {
+  const todas = ficheros.flatMap(({ fichero, texto }) => asignacionesSinFiltro(texto, { columnas, fichero, cableado, todas: true }).map((a) => ({ fichero, ...a })));
+  const texto = new Map(ficheros.map((f) => [f.fichero, f.texto]));
+  const literales = escritores(cableado, columnas).filter((f) => texto.has(f)).flatMap((f) =>
+    literalesSueltos(texto.get(f), valoresVigilados(vocabularios, retirados, columnasDe(f, cableado, columnas))).map((l) => ({ fichero: f, ...l })));
+  return { columnas: Object.keys(columnas).length, filtradas: todas.filter((a) => !a.motivo).length, sinFiltro: todas.filter((a) => a.motivo), literales };
 }

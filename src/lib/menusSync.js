@@ -108,6 +108,12 @@ export function rowToWeek(row) {
 export async function saveMenu(userId, menu, recipes = [], householdId = null) {
   if (!supabase || !userId || !menu?.id) return { ok: false, error: "no-op" };
 
+  // Las semanas se montan antes de guardar el menú: si una lanza (un día fuera de DIAS), no
+  // queda un menú sin semanas.
+  const weekRows = Object.entries(menu.weeks ?? {}).map(([startISO, week]) =>
+    weekToRow(userId, menu.id, startISO, week, householdId),
+  );
+
   const { error: menuError } = await supabase
     .from("user_menus")
     .upsert(menuToRow(menu, userId, householdId), { onConflict: "user_id,id" });
@@ -116,9 +122,6 @@ export async function saveMenu(userId, menu, recipes = [], householdId = null) {
     return { ok: false, error: menuError.message };
   }
 
-  const weekRows = Object.entries(menu.weeks ?? {}).map(([startISO, week]) =>
-    weekToRow(userId, menu.id, startISO, week, householdId),
-  );
   if (weekRows.length > 0) {
     const { error: weeksError } = await supabase
       .from("user_menu_weeks")

@@ -7,7 +7,7 @@ const ENUM_SIN_LISTA = [];
 import { CAMPOS, ENUMS } from "./registroTareas.js";
 import { DAYS } from "./planner.js";
 import { PACK_KINDS, ETIQUETAS_ENVASE } from "./packUnits.js";
-import { COLUMNAS, escritores, columnasDe, sinComentarios, asignacionesSinFiltro, literalesSueltos, valoresVigilados } from "../../scripts/lib/escritoresVocabulario.mjs";
+import { COLUMNAS, escritores, columnasDe, sinComentarios, cifra, asignacionesSinFiltro, literalesSueltos, valoresVigilados } from "../../scripts/lib/escritoresVocabulario.mjs";
 import { COLUMNAS_VOCABULARIO, ESCRITORES_SQL } from "../../scripts/lib/columnasVocabulario.mjs";
 import { USAGE_TAGS, USAGE_TAG_IDS } from "./userRecipes.js";
 import { BUILT_IN_COLLECTIONS, BUILT_IN_IDS } from "./recipeCollections.js";
@@ -341,6 +341,16 @@ describe("un valor retirado no vuelve a escribirse (#539)", () => {
     const otra = { fichero: "api/_bot/otro.js", cableado: { bot_chats: ["api/_bot/enlace.js"] } };
     expect(asignacionesSinFiltro("insert(\"x\", [{ channel, chat_id: 1 }]);", otra)).toEqual([]);
     expect(asignacionesSinFiltro("insert(\"x\", [{ channel, chat_id: 1 }]);", { ...otra, fichero: "api/_bot/enlace.js" })).toHaveLength(1);
+    // Validar una vez al entrar: la variable vale si TODAS sus asignaciones pasan por su lista.
+    const fila = "insert(\"x\", [{ channel: canal, chat_id: 1 }]);";
+    expect(asignacionesSinFiltro(`const canal = paraEscribir("canales", channel);\n${fila}`)).toEqual([]);
+    expect(asignacionesSinFiltro(`let canal;\ntry { canal = paraEscribir("canales", c); } catch { return; }\n${fila}`)).toEqual([]);
+    expect(asignacionesSinFiltro(`let canal = paraEscribir("canales", c);\ncanal = otro;\n${fila}`)).toHaveLength(1);
+    expect(asignacionesSinFiltro(`const canal = paraEscribir("idiomas", c);\n${fila}`)).toHaveLength(1);
+    expect(asignacionesSinFiltro(`const canal = paraEscribir("canales", c) || x;\n${fila}`)).toHaveLength(1);
+    // La cifra (scripts/escritores-vocabulario.mjs): filtradas, sin filtro y literales.
+    const c = cifra([{ fichero: "api/_bot/enlace.js", texto: `const f = (canal) => [{ channel: paraEscribir("canales", canal), chat_id: 1 }, { channel, chat_id: 2 }, "telegram"];` }], { bot_chats: ["api/_bot/enlace.js"] }, VOCABULARIOS, RETIRADOS);
+    expect([c.columnas, c.filtradas, c.sinFiltro.length, c.literales.map((l) => l.valor)]).toEqual([Object.keys(COLUMNAS).length, 1, 1, ["telegram"]]);
     expect(literalesSueltos("if (kind === \"carton\") return 1; // \"lata\"", new Set(["carton", "lata"])).map((l) => l.valor)).toEqual(["carton"]);
     expect(Object.values(COLUMNAS).every((n) => VOCABULARIOS[n])).toBe(true);
   });
@@ -348,6 +358,11 @@ describe("un valor retirado no vuelve a escribirse (#539)", () => {
   it("el escáner vigila todas las columnas con lista del producto: las mismas que la paridad con el CHECK (#549)", () => {
     const conLista = Object.entries(COLUMNA_A_VOCABULARIO).filter(([, d]) => d.lista).map(([c, d]) => [c, d.lista]);
     expect(Object.entries(COLUMNAS).sort()).toEqual(conLista.sort());
+    // Una columna con `valores` que son una lista del producto se escaparía del escáner: va con `lista`.
+    const listas = new Map(Object.entries(VOCABULARIOS).map(([n, l]) => [JSON.stringify([...l].sort()), n]));
+    const disfrazadas = Object.entries(COLUMNA_A_VOCABULARIO).filter(([, d]) => d.valores && listas.has(JSON.stringify([...d.valores].sort())))
+      .map(([c, d]) => `${c} = ${listas.get(JSON.stringify([...d.valores].sort()))}`);
+    expect(disfrazadas, "Ponla en COLUMNAS_VOCABULARIO con `lista`, para que el escáner vigile quién la escribe").toEqual([]);
   });
 
   it("toda escritura desde SQL de una columna vigilada está en ESCRITORES_SQL con su porqué, y sus RPC existen", () => {
@@ -358,6 +373,15 @@ describe("un valor retirado no vuelve a escribirse (#539)", () => {
     }
     for (const m of sql.matchAll(/\bupdate\s+(?:public\.)?(\w+)\s+set\s+([\s\S]*?)(?:\bwhere\b|;)/gi)) {
       for (const a of m[2].matchAll(/(\w+)\s*=/g)) if (COLUMNAS[`${m[1]}.${a[1]}`]) vistas.add(`${m[1]}.${a[1]}`);
+    }
+    // Un `default '<valor>'` también escribe: la base pone el valor si la fila llega sin la columna
+    // (`default '{}'`, la lista vacía, no escribe ningún valor).
+    for (const m of sql.matchAll(/\bcreate\s+table\s+(?:if\s+not\s+exists\s+)?(?:public\.)?(\w+)\s*\(([\s\S]*?)\n\s*\)\s*;/gi)) {
+      for (const a of m[2].matchAll(/^\s*(\w+)\s+[^,\n]*\bdefault\s+'(?!\{\}')/gim)) if (COLUMNAS[`${m[1]}.${a[1]}`]) vistas.add(`${m[1]}.${a[1]}`);
+    }
+    for (const m of sql.matchAll(/\balter\s+table\s+(?:only\s+)?(?:if\s+exists\s+)?(?:public\.)?(\w+)\s+(?:alter\s+column\s+(\w+)\s+set\s+default\s+'(?!\{\}')|add\s+column\s+(?:if\s+not\s+exists\s+)?(\w+)\s+[^;,]*\bdefault\s+'(?!\{\}'))/gi)) {
+      const c = m[2] ?? m[3];
+      if (COLUMNAS[`${m[1]}.${c}`]) vistas.add(`${m[1]}.${c}`);
     }
     expect([...vistas].sort(), "Una escritura nueva desde SQL: apúntala en ESCRITORES_SQL de scripts/lib/columnasVocabulario.mjs, con de dónde le llega el valor").toEqual(Object.keys(ESCRITORES_SQL).sort());
     for (const [columna, { rpc = {} }] of Object.entries(COLUMNAS_VOCABULARIO)) {

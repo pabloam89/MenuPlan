@@ -50,10 +50,11 @@ export const COLUMNAS_VOCABULARIO = Object.freeze({
 /**
  * Las columnas que se escriben desde SQL además de (o en vez de) desde JS, con quién y por qué
  * la lista viva las cubre igual. El escáner solo lee JS: esto deja a la vista lo que no ve, y
- * vocabularios.test.js exige que cada `update … set <col>` o `insert into <tabla> (… <col> …)`
- * de las migraciones sobre una columna de arriba esté aquí.
+ * vocabularios.test.js falla si un `update … set <col>`, un `insert into <tabla> (… <col> …)` o
+ * un `default '<valor>'` de las migraciones sobre una columna de arriba no está aquí.
  */
 export const ESCRITORES_SQL = Object.freeze({
+  "bot_cola.channel": "el default 'telegram' de la 0063 lo pondría la base si una fila llegara sin channel; encolar (api/_bot/turnos.js) lo pasa explícito por paraEscribir, así que hoy no actúa",
   "user_menu_weeks.active_days": "la RPC de guardar semana (0057, 0068) inserta el active_days de la fila que monta weekToRow (src/lib/menusSync.js), que ya pasa por listaParaEscribir",
   "household_invites.lang": "create_household_invite (0071) inserta su p_lang, que householdsSync.js pasa por paraEscribir",
   "user_profiles.ui_lang": "bot_unirse_por_invitacion y accept_household_invite (0073, 0087) copian household_invites.lang, que ya entró por la lista viva",

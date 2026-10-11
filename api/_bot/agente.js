@@ -984,6 +984,9 @@ export function conQuienEscribe(ficha, papel, idioma = null) {
  *   (papel.js). Sin ellos, como alguien sin cuenta: solo consulta.
  */
 export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId, texto, autor, esGrupo, desde = [], adjunto = null, alEscribir = null, puerta = null, signal = null, pista = null }) {
+  // El canal se valida al entrar, antes de pagar el modelo: uno que no es de CANALES falla aquí
+  // y no al guardar la memoria, con la respuesta ya pagada.
+  const canal = paraEscribir("canales", channel);
   const entrada = esGrupo && autor ? `[${autor}]: ${texto}` : texto;
   // `adjunto` va también a las herramientas: la foto del plato de una receta
   // solo existe en el turno en que llega (apartar_foto_plato, preparar_receta).
@@ -1155,8 +1158,8 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   // que lee memoria(); author_id solo duplicaba el nombre de Telegram sin lector.
   const guardado = Promise.all([
     insert("bot_messages", [
-      { channel: paraEscribir("canales", channel), chat_id: String(chatId), household_id: householdId, role: "user", author_id: null, content: { texto: adjunto ? `[${adjunto.tipo === "document" ? "PDF" : "foto"}] ${entrada}` : entrada } },
-      { channel: paraEscribir("canales", channel), chat_id: String(chatId), household_id: householdId, role: "assistant", author_id: null, content: { texto: respuesta, pendientes: pendientesNuevas } },
+      { channel: canal, chat_id: String(chatId), household_id: householdId, role: "user", author_id: null, content: { texto: adjunto ? `[${adjunto.tipo === "document" ? "PDF" : "foto"}] ${entrada}` : entrada } },
+      { channel: canal, chat_id: String(chatId), household_id: householdId, role: "assistant", author_id: null, content: { texto: respuesta, pendientes: pendientesNuevas } },
     ]).catch((e) => console.error("[agente] memoria", e?.message)),
     // a propósito: es una señal del embudo; no toca la charla
     segundaSemana(householdId).catch(seguirCon("agente_segunda_semana")),

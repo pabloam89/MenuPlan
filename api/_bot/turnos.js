@@ -10,6 +10,7 @@
 
 import { fallaCon } from "./avisar.js";
 import { select, insert, update, rpc, eq } from "./db.js";
+import { CANAL, paraEscribir } from "../../src/lib/vocabularios.js";
 
 // Lo que se espera por si llega otro mensaje detrás. 1 s basta para las
 // ráfagas de texto («quiero cambiar la cena» · «la del jueves»); un botón
@@ -23,7 +24,9 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
 export const tomarCandado = (chatId) => rpc("bot_tomar_candado", { p_chat: String(chatId), p_segundos: DURACION_CANDADO_S });
 export const soltarCandado = (chatId) => rpc("bot_soltar_candado", { p_chat: String(chatId) }).catch(fallaCon("turnos_soltar_candado"));
 
-export const encolar = (chatId, item) => insert("bot_cola", [{ chat_id: String(chatId), item }]);
+// El canal va explícito: el default 'telegram' de la columna (0063) lo escribiría la base sin pasar por la lista viva.
+export const encolar = (chatId, item, channel = CANAL.TELEGRAM) =>
+  insert("bot_cola", [{ channel: paraEscribir("canales", channel), chat_id: String(chatId), item }]);
 
 /** Toma (y marca) todo lo pendiente del chat, en orden. */
 async function sacarCola(chatId) {
