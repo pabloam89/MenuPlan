@@ -295,9 +295,9 @@ export const AVISOS = {
   "aprobar-pr": {
     codigo: "rutas-protegidas-aprobacion-de-dueno",
     que: "Aprobar un PR desde una sesión",
-    porque: "la aprobación de dueño de código es de una persona (#447)",
+    porque: "aprobar un PR no es cometido de una sesión (#447, #608)",
     enSuLugar: "deja el PR listo con el CI en verde",
-    quien: "Pablo o Álvaro, para que lo revisen",
+    quien: "el juez revisor y el CI; Pablo solo fusiona a main",
   },
   "token-impreso": {
     codigo: "token-de-sesion-no-se-imprime",

@@ -48,8 +48,8 @@ RLS); catálogo de recetas y alimentos en JSON en git (`src/data/`).
   11 oct 2026, #608; sin revisión de dueño de código ni `CODEOWNERS`). El control que
   queda: el check `tests` en verde (lo hace cumplir GitHub) y el juez `revisor`
   (quien construye no juzga; de proceso, GitHub no lo hace cumplir). Un PR que toca
-  `.claude/`, `.github/`, `CLAUDE.md`, los hooks o lo que corre con secretos pasa por
-  su juez antes de fusionarse. A `main` solo fusiona Pablo, desde el botón del PR.
+  `.claude/`, `.github/`, `CLAUDE.md`, los hooks o lo que corre con secretos debe pasar por
+  su juez antes de fusionarse; nada lo impide si no pasa. A `main` solo fusiona Pablo, desde el botón del PR.
   Los rulesets se aplican con `scripts/rulesets.mjs` (Pablo); detalle en la skill `github`.
 - Una rama por tarea, prefijo de área y nombre en castellano: `bot/`, `datos/`,
   `ux/`, `fix/`, `feat/`, `ops/`, `motor/`. Las de la nube empujan solo a la

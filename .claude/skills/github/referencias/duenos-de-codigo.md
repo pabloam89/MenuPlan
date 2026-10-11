@@ -33,7 +33,8 @@ esperando a Pablo, que no quiere ser el cuello de botella.
   `Runbook:`, `Casos:` y `Agente:` del PR, que comprueba el CI. Nada impide fusionar a
   `staging` un cambio de `.claude/`, `.github/`, los hooks o un script con secretos sin
   que lo haya mirado el juez. Un check «Juez:» en el cuerpo del PR (#612) queda como
-  encargo, no construido.
+  encargo, no construido; sería contra el olvido, no contra el abuso (quien quiera
+  saltárselo escribe la línea sin haber pasado por el juez).
 - Una sesión con la App `homenu-sesiones` sigue sin poder aprobar un PR (la guardia lo
   niega, #447) ni cambiar reglas del repo.
 
@@ -57,5 +58,16 @@ Desde una terminal suya, con `gh auth status` como `pabloam89` (administrador):
 
 Sin comprobar a 11 oct 2026: el nombre exacto del parámetro de la regla `update`
 (`update_allows_fetch_and_merge`) y que el ruleset 24770007 de hoy en GitHub ya
-cuadre con lo deseado (hasta aplicar, `staging` sigue como estaba, sin revisión de
-dueño porque esa versión no llegó a aplicarse).
+cuadre con lo deseado.
+
+## Estado a 11 oct 2026 y orden de aplicación
+
+La revisión de dueño de código **está viva** en `staging` (ruleset 24770007, desde
+las 13:00 del 11 oct) y los dos rulesets de `main` también. Hasta que Pablo aplique
+esto, un PR que toca rutas con dueño sigue pidiendo su aprobación (y `CODEOWNERS`
+solo desaparece al fusionar este PR). Orden, una de dos:
+
+- A (recomendada): Pablo ejecuta `node scripts/rulesets.mjs --escribir` desde esta
+  rama, que quita la regla de revisión de `staging`; después el PR se fusiona con
+  `tests` en verde, sin aprobación.
+- B: Pablo aprueba este PR, se fusiona, y después aplica los rulesets.
