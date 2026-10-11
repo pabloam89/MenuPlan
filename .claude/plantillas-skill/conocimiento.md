@@ -6,7 +6,7 @@ El molde de una skill de tipo `conocimiento`: se copia el esqueleto y se rellena
 
 | Qué hace | Entra | Sale | Cómo se prueba | Skills de hoy |
 |---|---|---|---|---|
-| Lo que hay que saber del negocio | pregunta | dato y dónde vive | cada afirmación apunta a su fuente | ninguna |
+| Lo que hay que saber del negocio | pregunta | dato y dónde vive | cada afirmación apunta a su fuente | `principios-de-producto` |
 
 ## Cómo se llega a este tipo
 

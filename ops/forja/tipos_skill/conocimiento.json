@@ -4,7 +4,9 @@
   "entra": "pregunta",
   "sale": "dato y dónde vive",
   "prueba": "cada afirmación apunta a su fuente",
-  "skills_hoy": [],
+  "skills_hoy": [
+    "principios-de-producto"
+  ],
   "secciones": [
     "Cuándo y para qué",
     "Método",

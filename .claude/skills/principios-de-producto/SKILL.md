@@ -56,7 +56,7 @@ no queda sin decir y el catálogo ganó un fichero cuando se aprendió algo.
 ## Lo que hay que saber
 
 - El catálogo no es la ley: un principio dice qué hacen bien otros productos, no qué
-  es obligatorio aquí. Lo que obliga es un test o la guardia; por eso cada principio
+  manda aquí. Lo que obliga es un test o la guardia; por eso cada principio
   trae su control. [I]
 - Solo algunos principios tienen un control de verdad (un test que existe y vigila lo
   que dice). El resto es `juicio`: lo aplica quien decide y lo revisa el `revisor`.

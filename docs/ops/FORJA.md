@@ -56,7 +56,7 @@ Taxonomía decidida por Pablo el 10 oct 2026. Un tipo existe solo si cambia qué
 
 | Tipo | Qué hace | Entra → sale | Prueba | Skills de hoy |
 |---|---|---|---|---|
-| conocimiento | Lo que hay que saber del negocio | pregunta → dato y dónde vive | cada afirmación apunta a su fuente | ninguna |
+| conocimiento | Lo que hay que saber del negocio | pregunta → dato y dónde vive | cada afirmación apunta a su fuente | principios-de-producto |
 | decision | Elegir entre opciones con criterios | dilema → opción y porqué | cada criterio aplicado y la escalera seguida | plan-de-arreglo |
 | diagnostico | De un síntoma a su causa | fallo → causa en campos cerrados | la salida rellena la ficha y hay un criterio de parada | causa-raiz |
 | flujo | Encadenar skills y agentes | caso → cerrado por etapas | cada etapa apunta a una skill o agente que existe y tiene puerta | issues |
