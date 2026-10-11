@@ -6,7 +6,7 @@
   "porque": "Tapar solo el caso deja vivos a sus hermanos, y el mismo fallo vuelve con otra cara.",
   "fuentes": [
     {
-      "marca": "C",
+      "marca": "I",
       "ruta": "docs/ops/FLUJO.md"
     }
   ],

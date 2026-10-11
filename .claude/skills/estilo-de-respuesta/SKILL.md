@@ -11,6 +11,7 @@ metadata:
   elige_opciones: false
   dueno: gobierno
   comprobado: 2026-10-10
+  normas: [estado-leido-antes-de-afirmar]
 ---
 
 # Estilo de respuesta
@@ -20,8 +21,7 @@ metadata:
 Pablo no es informático, se pierde con respuestas largas y técnicas, y quiere
 decidir rápido. Esta skill fija cómo le habla una sesión principal: lo que
 decide va arriba y el detalle va a un sitio donde pueda leerlo si quiere. Es
-decisión suya (#415); antes solo vivía en su memoria
-personal, que no ve ninguna otra sesión.
+decisión suya (#415); antes solo vivía en su memoria personal, que no ve ninguna otra sesión.
 
 Vale para toda respuesta de una sesión principal a Pablo. Del informe común de
 un agente (`.claude/PLANTILLA-AGENTE.md`), solo el `RESUMEN` y las
@@ -208,11 +208,11 @@ Bien (plantilla de decisión):
 - Barbara Minto, *The Pyramid Principle* (1987): la respuesta primero, el apoyo agrupado debajo. [F]
 - https://www.plainlanguage.gov/guidelines/ (Federal Plain Language Guidelines): escribir para quien lee, ir al punto principal primero, frases y secciones cortas, explicar los términos técnicos. [F]
 - https://www.iso.org/standard/78907.html (ISO 24495-1, lenguaje claro). [F]
-- La forma concreta (negrita en la primera línea, cuatro ideas, petición final) es decisión de Pablo, no de las fuentes. [I]
-- https://code.claude.com/docs/en/skills , https://code.claude.com/docs/en/memory y https://code.claude.com/docs/en/output-styles : el cuerpo de una skill carga cuando se usa y `CLAUDE.md` en cada sesión; el estilo de salida es una pieza de Claude Code. [F] La regla corta va en `CLAUDE.md`, el detalle aquí, y no usamos el estilo de salida porque cambia toda la sesión y no llega a los subagentes. [I]
-- https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices y https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency: instrucciones claras, ejemplos y formato fijo dan salidas consistentes. [F] Un ejemplo canónico por plantilla. [I]
-- https://www.nngroup.com/articles/inverted-pyramid/ , https://www.nngroup.com/articles/how-users-read-on-the-web/ , https://www.nngroup.com/articles/minimize-cognitive-load/ , https://www.nngroup.com/articles/progressive-disclosure/ , https://www.nngroup.com/articles/tone-of-voice-dimensions/ y https://styleguide.mailchimp.com/voice-and-tone/: lo importante primero, se lee en diagonal, menos carga, el detalle a petición, tono que cambia según el momento. [F] Negrita solo donde hay que actuar, «si quieres te lo cuento», voz constante y tono que se adapta. [I]
-- https://pubmed.ncbi.nlm.nih.gov/11515286/ (Cowan): la memoria de trabajo ronda cuatro elementos [F]; de ahí, cuatro ideas [I]. https://guidance.publishing.service.gov.uk/writing-to-gov-uk-standards/writing-guidelines/clear-language/: frases y párrafos cortos, en inglés [F]; los umbrales de 25 palabras y 5 frases son nuestros [I].
+- La forma concreta (negrita en la primera línea, cuatro ideas, petición final) es decisión de Pablo, no de las fuentes. [S]
+- https://code.claude.com/docs/en/skills , https://code.claude.com/docs/en/memory y https://code.claude.com/docs/en/output-styles : el cuerpo de una skill carga cuando se usa y `CLAUDE.md` en cada sesión; el estilo de salida es una pieza de Claude Code. [F] La regla corta va en `CLAUDE.md`, el detalle aquí, y no usamos el estilo de salida porque cambia toda la sesión y no llega a los subagentes. [S]
+- https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices y https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency: instrucciones claras, ejemplos y formato fijo dan salidas consistentes. [F] Un ejemplo canónico por plantilla. [S]
+- https://www.nngroup.com/articles/inverted-pyramid/ , https://www.nngroup.com/articles/how-users-read-on-the-web/ , https://www.nngroup.com/articles/minimize-cognitive-load/ , https://www.nngroup.com/articles/progressive-disclosure/ , https://www.nngroup.com/articles/tone-of-voice-dimensions/ y https://styleguide.mailchimp.com/voice-and-tone/: lo importante primero, se lee en diagonal, menos carga, el detalle a petición, tono que cambia según el momento. [F] Negrita solo donde hay que actuar, «si quieres te lo cuento», voz constante y tono que se adapta. [S]
+- https://pubmed.ncbi.nlm.nih.gov/11515286/ (Cowan): la memoria de trabajo ronda cuatro elementos [F]; de ahí, cuatro ideas [S]. https://guidance.publishing.service.gov.uk/writing-to-gov-uk-standards/writing-guidelines/clear-language/: frases y párrafos cortos, en inglés [F]; los umbrales de 25 palabras y 5 frases son nuestros [S].
 
 Sin comprobar: las fuentes se citan de memoria y no se han releído al escribir; las cifras de 5 frases y 25 palabras son de la guía GOV.UK, en inglés, y la de cuatro ideas es de Cowan y habla de memoria de trabajo, no de lectura; que la voz viva en `CLAUDE.md` y el detalle en la skill es inferencia (la documentación solo dice que el cuerpo de una skill carga cuando se usa); no hay fuente primaria sobre plantillas fijas para agentes de IA; cuántas respuestas reales cumplen la forma; y que mejore sobre el modelo solo, porque `skills-prueba` mide la skill con ella y no sin ella.
 

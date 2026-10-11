@@ -8,10 +8,10 @@ La única fuente de lo que se le pide a una skill, a un estándar de agente y a 
 
 | Capa | skill | estandar | agente | Criterios |
 |---|---|---|---|---|
-| formal | 26 | 16 | 0 | 42 |
+| formal | 26 | 17 | 0 | 43 |
 | material | 13 | 4 | 0 | 16 |
 | subjetiva | 13 | 3 | 0 | 16 |
-| total | 52 | 23 | 0 | 74 |
+| total | 52 | 24 | 0 | 75 |
 
 Un criterio que se aplica a dos artefactos cuenta en las dos columnas y una vez en el total.
 
@@ -44,7 +44,7 @@ Cada criterio se escribe por campos y su frase se genera; no hay prosa libre. La
 | skill.cuerpo | el cuerpo de cada skill | skill | 22 |
 | skill.casos | el conjunto de casos de prueba de cada skill | skill | 6 |
 | plantilla.tipo | la plantilla de skills | skill | 7 |
-| estandar | cada tarea del catálogo de estándares | estandar | 9 |
+| estandar | cada tarea del catálogo de estándares | estandar | 10 |
 | estandar.practica | la práctica de un estándar | estandar | 5 |
 | estandar.fuente | cada fuente del catálogo de estándares | estandar | 3 |
 | agente | cada agente | estandar | 5 |
@@ -124,7 +124,7 @@ Se sistematiza lo máximo posible con atributos discretos, aunque lo continuo nu
 |---|---|
 | bool | Verdadero o falso |
 | enum | Un valor de un vocabulario cerrado |
-| ref | Apunta a algo que existe: skill, agente, criterio, ruta, comando, issue, fuente, evidencia o versión |
+| ref | Apunta a algo que existe: skill, agente, criterio, ruta, comando, issue, fuente, evidencia, versión, común de estándar o norma |
 | numero | Un número |
 | fecha | Una fecha AAAA-MM-DD |
 | texto | Prosa: solo como hueco, con su motivo |
@@ -134,9 +134,9 @@ Se sistematiza lo máximo posible con atributos discretos, aunque lo continuo nu
 |---|---|---|---|
 | agente | 3 | 1 | 4 |
 | criterio | 2 | 6 | 8 |
-| estandar | 4 | 3 | 7 |
+| estandar | 6 | 3 | 9 |
 | juicio | 6 | 1 | 7 |
-| skill | 13 | 2 | 15 |
+| skill | 14 | 2 | 16 |
 
 ### Campos de agente
 
@@ -162,13 +162,15 @@ Un criterio de este catálogo, redactado por campos (scripts/lib/regla.mjs): nom
 
 ### Campos de estandar
 
-Una tarea de un agente en ops/estandares-agentes.json (la clave es su id). Su estándar son sus reglas por campos (#516); las compartidas por varios agentes están en comunes y la tarea las nombra.
+Una tarea de un agente en ops/estandares-agentes.json (la clave es su id). Su estándar son las normas de ops/normas.json que le tocan por sus ámbitos y su acción, las que cita aparte (#620) y sus reglas por campos (#516), solo para los pasos que no son norma; las compartidas por varios agentes están en comunes y la tarea las nombra.
 
 - `tarea` — texto. Hueco: La frase que dice qué se hace en esa tarea: el verbo y su objeto no caben en un vocabulario cerrado
 - `accion` — enum (accion_tarea)
 - `origen` — enum (origen_tarea)
+- `ambitos` — enum (ambito), lista
 - `comunes` — ref a estandar_comun, lista, opcional
-- `reglas` — regla, lista
+- `normas` — ref a norma, lista, opcional
+- `reglas` — regla, lista, opcional
 - `no_hace` — texto, lista, opcional. Hueco: La frontera con lo que es de otro agente o de una persona, que hay que nombrar caso a caso
 - `rondas` — texto, lista, opcional. Hueco: Lo que cambió en cada ronda de investigación, una frase por ronda: el número y las fuentes son discretos, el cambio no cabe en un vocabulario
 
@@ -186,7 +188,7 @@ Un juicio de skill: el estado de un criterio de juicio (control «juicio») sobr
 
 ### Campos de skill
 
-El frontmatter de .claude/skills/<skill>/SKILL.md (name y description arriba; tipo, dueno y comprobado en metadata). Los juicios de sus criterios de juicio van aparte, en ops/juicios-skills/<skill>.json (campos_ficha.juicio, #457).
+El frontmatter de .claude/skills/<skill>/SKILL.md (name y description arriba; tipo, dueno, comprobado y normas en metadata). Los juicios de sus criterios de juicio van aparte, en ops/juicios-skills/<skill>.json (campos_ficha.juicio, #457).
 
 - `name` — ref a skill
 - `description` — texto. Hueco: El cuándo se abre la skill dicho con las palabras de quien pide: lo discreto no lo alcanza, es prosa para que el modelo reconozca una petición
@@ -201,6 +203,7 @@ El frontmatter de .claude/skills/<skill>/SKILL.md (name y description arriba; ti
 - `nivel` — enum (niveles), opcional
 - `dueno` — ref a agente
 - `comprobado` — fecha
+- `normas` — ref a norma, lista
 - `libertad` — enum (libertad), opcional
 - `invocacion` — enum (invocacion), opcional
 
@@ -210,7 +213,7 @@ Datos en `forma_practica` de `ops/forja/`; se validan con `problemasDePractica` 
 
 | Artefacto | Bullets | Estructura de cada bullet | Fuente por bullet | Voz | Modo y tiempo | Persona |
 |---|---|---|---|---|---|---|
-| estandar | de 2 a 5 | regla · porque · ejemplo_bueno · ejemplo_malo | [F] o [I] | activa | imperativo | segunda |
+| estandar | de 2 a 5 | regla · porque · ejemplo_bueno · ejemplo_malo | [F] o [I] (ruta de la casa) | activa | imperativo | segunda |
 
 ## Método de construcción
 
@@ -298,7 +301,7 @@ Esquema y forma: determinista, lo vigila un test del CI.
   - Fuente: [I] .claude/PLANTILLA-SKILL.md. Código: `secciones`.
 - `secretos` — **Sin secretos.** Cada skill NO DEBE contener ningún patrón de clave ni cadena de conexión con contraseña, ni en sus capas. Se comprueba con: `.claude/skills.test.js`.
   - Fuente: [I] scripts/lib/skills.mjs. Código: `secretos`.
-- `sin-fuente` — **Marca de fuente.** La plantilla de skills DEBE marcar cada punto del estándar de un tipo con su [F: fuente] o [I]. Se comprueba con: `.claude/skills.test.js`.
+- `sin-fuente` — **Marca de fuente.** La plantilla de skills DEBE marcar cada punto del estándar de un tipo con su [F: fuente], [I] (ruta de la casa) o [S] (inferencia nuestra). Se comprueba con: `.claude/skills.test.js`.
   - Fuente: [I] .claude/PLANTILLA-SKILL.md. Código: `sin-fuente`.
 - `sin-parada` — **Parada del método.** El cuerpo de cada skill DEBE decir en el «Método» cuándo se acaba y qué se ve cuando sale bien. Se comprueba con: `.claude/skills.test.js`.
   - Nota: Es heurístico: el control detecta la frase («Sale bien si», «Hecho cuando»…), no que el método diga de verdad cuándo acaba; candidato a revisar su capa. Se exceptúa el tipo servicio, que no tiene «Método».
@@ -313,9 +316,12 @@ Esquema y forma: determinista, lo vigila un test del CI.
 - `tipo` — **Tipo de skill.** El frontmatter de cada skill DEBE llevar en metadata.tipo uno de los tipos de tipos_skill de ops/forja/, el que dan sus respuestas. Se comprueba con: `.claude/skills.test.js`.
   - Fuente: [I] scripts/lib/skills.mjs. Código: `tipo`.
 
-### formal · estandar (16)
+### formal · estandar (17)
 
 - `estandar-agente-con-lista` — **Lista por agente.** Cada agente DEBE tener su lista de tareas en el catálogo de estándares y existir en .claude/agents/. Se comprueba con: `ops/estandares-agentes.test.js`.
+  - Fuente: [I] scripts/lib/estandaresAgentes.mjs.
+- `estandar-cita-normas` — **Normas citadas, no reescritas.** Cada tarea del catálogo de estándares DEBE citar por id las normas que aplica, por sus ámbitos y su acción, y no reescribir ninguna como regla propia. Se comprueba con: `ops/uniones.test.js`.
+  - Nota: La consulta ámbito × acción y el parecido de cada regla con cada norma los mide ops/uniones.test.js; lo que se parece y no es la norma va a reglas_que_no_son_norma con su motivo.
   - Fuente: [I] scripts/lib/estandaresAgentes.mjs.
 - `estandar-completo-con-forma` — **Forma de la tarea completa.** Cuando es de un agente completo, cada tarea del catálogo de estándares DEBE llevar estándar de 60 caracteres o más, una lista de comprobaciones y una de lo que no hace. Se comprueba con: `ops/estandares-agentes.test.js`.
   - Nota: Una tarea de un agente pendiente no lleva estándar a medias.

@@ -5,6 +5,7 @@ metadata:
   nivel: 0
   dueno: gobierno
   comprobado: 2026-10-10
+  normas: [criterios-de-forja-en-un-catalogo, recurso-con-dueno-y-caducidad]
 ---
 
 # Forja de skills
@@ -145,6 +146,7 @@ prepara el PR con el inventario (qué decía, quién la citaba, a dónde pasa lo
 
 ## Registro de cambios
 
+- **2026-10-11** · La cabecera de cada skill dice a qué normas sirve (`metadata.normas`, ids de `ops/normas.json`); la skill las cita y no copia su frase, y `ops/uniones.test.js` lo comprueba (#620).
 - **2026-10-10** · Esta skill pasa a ser la pieza meta (nivel 0, sin tipo); una skill nueva copia el molde de su tipo, generado desde la forja en `.claude/plantillas-skill/` (#495).
 - **2026-10-10** · Las 7 excepciones de fechas que quedaban se arreglan y la lista queda vacía; la revisión de una skill concreta pasa a `higiene-de-skills` (#411).
 - **2026-10-10** · Presentación (`.claude/skills/forja-de-skills/referencias/presentacion.md`) con tres controles mecánicos, el estándar de cada tipo en la plantilla con su test, y 12 de las 19 excepciones quitadas (#410).
@@ -160,6 +162,6 @@ prepara el PR con el inventario (qué decía, quién la citaba, a dónde pasa lo
 - https://www.anthropic.com/engineering/building-effective-agents
 - https://arxiv.org/html/2602.12670v1
 
-Cada afirmación de los criterios y los defectos va marcada: [F] está en la fuente citada, [I] es inferencia nuestra y no se toma por hecho.
+Cada afirmación de los criterios y los defectos va marcada: [F] está en la fuente citada, [S] es inferencia nuestra y no se toma por hecho.
 
 Comprobado el 2026-10-10: el nivel 1 con `.claude/skills.test.js` (cada control de la forja visto fallar con una skill de mentira) y las cifras de las excepciones sobre las 11 skills del repo. Comprobado el 2026-10-10 (#410): los tres controles de presentación y el estándar de cada tipo de la plantilla, cada uno visto fallar en `.claude/skills.test.js`. Sin comprobar: las fuentes se recogieron de la investigación del encargo y no se han releído al escribir; las cifras de SkillsBench vienen de resúmenes, no del artículo; el solape entre descripciones y el valor de `MAX_SOLAPE` son inferencia (no hay fuente oficial); el A/B con y sin skill no existe aún; `npm run skills-prueba -- forja-de-skills` no se ha lanzado (cuesta tokens).

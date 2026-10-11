@@ -11,6 +11,7 @@ metadata:
   elige_opciones: false
   dueno: gobierno
   comprobado: "2026-10-09"
+  normas: [copia-nocturna-base, copias-solo-con-su-rol, copia-restaurada-ensayada]
 ---
 
 # Hetzner (servidor propio)

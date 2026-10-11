@@ -15,7 +15,7 @@ propia. Un **eje** es el bloque al que pertenece: horizontal, vertical o puente.
 Cada principio lleva su fuente con una marca:
 
 - **[F]**: lo dice la fuente citada, que se leyó o se resumió en la búsqueda del 11 oct 2026.
-- **[I]**: es inferencia nuestra. Nadie externo lo afirma así.
+- **[S]**: es inferencia nuestra. Nadie externo lo afirma así.
 
 Una cifra «antes» sale de las auditorías del 11 oct 2026 sobre `staging`.
 Dice con qué comando se mide o de quién es. Después de cada arreglo se mide
@@ -76,7 +76,7 @@ Principio: `one-word-one-meaning` (su enunciado, en `docs/PRINCIPIOS.md`; aquí,
 
 **Cómo se comprueba.** `ops/glosario.test.js` para el proceso. `ops/entidades.test.js` deriva los sinónimos de la ficha (`prohibidosDe`). Exige que ninguno sea el id de otra entidad ni el nombre de una entidad. Cada N1 usa los de su ficha.
 
-**Fuente.** [F] ANSI/NISO Z39.19: con sinónimos se elige un término preferido y se aplica de forma uniforme y explicada (resumen de estudio, no el texto de la norma). [I] Ampliarlo a campos y valores, y derivarlo del glosario.
+**Fuente.** [F] ANSI/NISO Z39.19: con sinónimos se elige un término preferido y se aplica de forma uniforme y explicada (resumen de estudio, no el texto de la norma). [S] Ampliarlo a campos y valores, y derivarlo del glosario.
 
 ### 3. Valores discretos en los atributos; texto libre solo de respaldo
 
@@ -88,7 +88,7 @@ Principio: `discrete-first` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el de
 
 **Cómo se comprueba.** Constante en JS con su test y, si el valor va a SQL, un `CHECK`. Ya es la norma de `CLAUDE.md` («Pensar en datos») y de PRINCIPIOS §4. `ops/vocabularios-vida.test.js` vigila los valores anclados, incluidos los siete vocabularios del registro de entidades (`scripts/lib/entidades.mjs`). Cada N1 enumera sus atributos discretos y su vocabulario.
 
-**Fuente.** [F] Google AIP-126: enumeración para conjuntos que cambian poco («no más de una vez al año» como regla práctica); texto cuando el conjunto cambia a menudo; primer valor «sin especificar». [F] Protobuf y Stripe: hay enums abiertos y cerrados. [I] Cerrado para lo que fija el producto, abierto con `otro` donde el conjunto crece.
+**Fuente.** [F] Google AIP-126: enumeración para conjuntos que cambian poco («no más de una vez al año» como regla práctica); texto cuando el conjunto cambia a menudo; primer valor «sin especificar». [F] Protobuf y Stripe: hay enums abiertos y cerrados. [S] Cerrado para lo que fija el producto, abierto con `otro` donde el conjunto crece.
 
 ### 4. Cada entidad tiene un id estable, único y con forma
 
@@ -100,7 +100,7 @@ Principio: `stable-unique-id` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el 
 
 **Cómo se comprueba.** El test de cada registro rechaza el id repetido o con mala forma (`ops/entidades.test.js`, `ops/normas.test.js`, `ops/mecanismos.test.js`). `supabase/migrations.test.js` vigila los números de migración. Cada N1 fija la forma de su id.
 
-**Fuente.** [F] ISO/IEC 11179-5: la identificación garantiza la unicidad dentro de un registro (se usó un resumen, no el texto). [F] OpenTelemetry: dos atributos, métricas o eventos no deben compartir nombre. [I] La forma kebab en inglés es nuestra.
+**Fuente.** [F] ISO/IEC 11179-5: la identificación garantiza la unicidad dentro de un registro (se usó un resumen, no el texto). [F] OpenTelemetry: dos atributos, métricas o eventos no deben compartir nombre. [S] La forma kebab en inglés es nuestra.
 
 ### 5. Los nombres tienen forma: caracteres, separador y espacio de nombres
 
@@ -112,7 +112,7 @@ Principio: `names-have-form` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el d
 
 **Cómo se comprueba.** Cada N1 trae la regex de la forma de su id y de sus campos, y su test la aplica. Para la base, el paso pendiente es convertir la revisión de §12 en una comprobación de `supabase/principios.test.js`.
 
-**Fuente.** [F] OpenTelemetry (naming): los nombres deben limitarse a Basic Latin imprimible y deberían ir en un espacio de nombres; las herramientas lo estrechan a minúsculas, dígitos, `_` y `.`. [F] PRINCIPIOS §12: `snake_case` ASCII, `_at`, `_on`, `es_` e `is_` por tipo y prefijos de índices. [I] El separador `-` en ids de entidad es la costumbre de la casa.
+**Fuente.** [F] OpenTelemetry (naming): los nombres deben limitarse a Basic Latin imprimible y deberían ir en un espacio de nombres; las herramientas lo estrechan a minúsculas, dígitos, `_` y `.`. [I] `docs/datos/PRINCIPIOS.md` §12: `snake_case` ASCII, `_at`, `_on`, `es_` e `is_` por tipo y prefijos de índices. [S] El separador `-` en ids de entidad es la costumbre de la casa.
 
 ### 6. Toda entidad tiene un registro con definición
 
@@ -124,7 +124,7 @@ Principio: `entity-has-registry` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, 
 
 **Cómo se comprueba.** `ops/entidades.test.js`: el estado del registro es de un vocabulario cerrado, una entidad `with_registry` nombra su fuente y `definition` no puede volver al JSON. La cifra se vuelve a medir cuando cambie el JSON.
 
-**Fuente.** [F] ISO/IEC 11179-5: los nombres se completan con un registro de metadatos y con vocabularios controlados; los nombres no establecen por sí mismos equivalencia de significado. [I] Un registro por entidad y la definición solo en el glosario.
+**Fuente.** [F] ISO/IEC 11179-5: los nombres se completan con un registro de metadatos y con vocabularios controlados; los nombres no establecen por sí mismos equivalencia de significado. [S] Un registro por entidad y la definición solo en el glosario.
 
 ### 7. Una fuente de verdad por dato y por vocabulario
 
@@ -136,7 +136,7 @@ Principio: `one-fact-one-place` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, e
 
 **Cómo se comprueba.** Un test por cada vocabulario o dato compartido compara las copias con el origen. Cada N1 nombra la fuente de verdad de su entidad (campo `source_of_truth` de `ops/entidades.json`) y lista sus derivados. `ops/entidades.test.js` comprueba que la fuente existe en git, con las mayúsculas exactas.
 
-**Fuente.** [F] `CLAUDE.md`: «cada dato en un solo sitio» y «ningún campo ni tabla sin lector». [F] PRINCIPIOS §6, «Un dato, un sitio». [I] Aplicarlo también a los vocabularios de proceso.
+**Fuente.** [I] `CLAUDE.md`: «cada dato en un solo sitio» y «ningún campo ni tabla sin lector». [I] `docs/datos/PRINCIPIOS.md` §6, «Un dato, un sitio». [S] Aplicarlo también a los vocabularios de proceso.
 
 ### 8. Todo lo que cambia lleva quién, qué y cuándo
 
@@ -148,7 +148,7 @@ Principio: `who-what-when` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el des
 
 **Cómo se comprueba.** Para tablas nuevas, PRINCIPIOS §9 exige `created_at` y lo comprueba `supabase/principios.test.js` **[auto]**; las 14 de arriba son anteriores. §18 fija `created_by`, `actor` y `canal` con revisión, no con test. Para lo que no es base (logs, registros de `ops/`), cada N1 incluye los tres campos y un test que falle sin ellos.
 
-**Fuente.** [F] W3C PROV-O (30 abr 2013): Entidad, Actividad (con inicio y fin) y Agente (quien responde). [F] PRINCIPIOS §9 y §18. [I] La forma «quién, qué, cuándo» en tres campos fuera de la base.
+**Fuente.** [F] W3C PROV-O (30 abr 2013): Entidad, Actividad (con inicio y fin) y Agente (quien responde). [I] `docs/datos/PRINCIPIOS.md` §9 y §18. [S] La forma «quién, qué, cuándo» en tres campos fuera de la base.
 
 ### 9. La persona y la identidad son entidades distintas
 
@@ -160,7 +160,7 @@ Principio: `person-vs-identity` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, e
 
 **Cómo se comprueba.** Por construir. El N1 de Identidad define el registro y su test cruza cada login conocido con un miembro del equipo. Mientras, `ops/entidades.test.js` vigila que las cuatro entidades existan con sus ejes.
 
-**Fuente.** [F] W3C PROV-O: el agente es quien responde y puede ser una persona, una organización o un agente de software. [I] El nombre «identidad» para el agente de software y el enlace obligatorio a la persona. El reparto entre `team-member` y `person` es decisión de Pablo del 11 oct (opción A del auditor de datos, reversible).
+**Fuente.** [F] W3C PROV-O: el agente es quien responde y puede ser una persona, una organización o un agente de software. [S] El nombre «identidad» para el agente de software y el enlace obligatorio a la persona. El reparto entre `team-member` y `person` es decisión de Pablo del 11 oct (opción A del auditor de datos, reversible).
 
 ### 10. Un evento lleva campos fijos
 
@@ -172,7 +172,7 @@ Principio: `log-what-happens` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el 
 
 **Cómo se comprueba.** `ops/metricas.test.js` ya vigila las formas de línea de `ops/metricas.json`. Falta un test del esquema común del evento. Lo define el N1 de Evento. Los dos eventos nuevos que pidió Pablo (operación de riesgo sin aprendizaje y aprendizaje registrado) se definen en #568; aquí solo se deja la relación `event triggers skill` y `event produces learning`.
 
-**Fuente.** [F] CloudEvents 1.0: atributos obligatorios `id`, `source`, `specversion` y `type`; opcionales `time` (RFC 3339) y `subject`; `id` y `source` únicos por evento. [I] La lista de campos fijos de la casa (`session`, `identity`, UTC en lugar de RFC 3339). El campo se llama `identity` y no `actor`. `actor` ya es una columna de la base con otro vocabulario: usuario, bot, cron o script (PRINCIPIOS §18).
+**Fuente.** [F] CloudEvents 1.0: atributos obligatorios `id`, `source`, `specversion` y `type`; opcionales `time` (RFC 3339) y `subject`; `id` y `source` únicos por evento. [S] La lista de campos fijos de la casa (`session`, `identity`, UTC en lugar de RFC 3339). El campo se llama `identity` y no `actor`. `actor` ya es una columna de la base con otro vocabulario: usuario, bot, cron o script (PRINCIPIOS §18).
 
 ### 11. Se depreca; no se borra
 
@@ -184,7 +184,7 @@ Principio: `deprecate-not-delete` (su enunciado, en `docs/PRINCIPIOS.md`; aquí,
 
 **Cómo se comprueba.** `ops/glosario.test.js` y `ops/vocabularios-vida.test.js` (ciclo de vida contra `origin/staging`). `ops/entidades.test.js` hace lo mismo con los ids de las entidades. Cada N1 dice cómo se retira su entidad.
 
-**Fuente.** [F] OpenTelemetry: lo renombrado o desaconsejado se deprecia en vez de borrarse. [I] Extender la regla a ids de entidad y a filas de la base.
+**Fuente.** [F] OpenTelemetry: lo renombrado o desaconsejado se deprecia en vez de borrarse. [S] Extender la regla a ids de entidad y a filas de la base.
 
 ### 12. Un vocabulario tiene ciclo de vida
 
@@ -196,7 +196,7 @@ Principio: `closed-vocabulary` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el
 
 **Cómo se comprueba.** `ops/vocabularios-vida.test.js` y `ops/glosario.test.js`. Cada N1 enumera los vocabularios de su entidad y los ancla.
 
-**Fuente.** [I] Mecanismo propio de la casa (`ops/vocabularios-vida.json`). Se apoya en [F] ANSI/NISO Z39.19 (término preferido, criterio aplicado de forma uniforme) y en [F] OpenTelemetry (deprecar).
+**Fuente.** [S] Mecanismo propio de la casa (`ops/vocabularios-vida.json`). Se apoya en [F] ANSI/NISO Z39.19 (término preferido, criterio aplicado de forma uniforme) y en [F] OpenTelemetry (deprecar).
 
 ### 13. Cada eje tiene su lenguaje y se traduce en la frontera
 
@@ -208,14 +208,14 @@ Principio: `axis-language-bridge` (su enunciado, en `docs/PRINCIPIOS.md`; aquí,
 
 **Cómo se comprueba.** `ops/entidades.test.js` exige que los puentes acordados existan con ese eje y que cada uno diga su `role_in_axis`. Exige también que `MAPA.md` y el JSON coincidan en los dos sentidos, diagrama de puentes incluido. Cada N1 de un puente trae su traducción a los dos ejes.
 
-**Fuente.** [F] Domain-Driven Design (lenguaje ubicuo y contexto delimitado): la misma palabra puede significar cosas distintas en contextos distintos; el lenguaje se divide donde cambia y se conecta con correspondencias explícitas (a través de fuentes secundarias; el artículo original no se encontró). [I] Los tres ejes como contextos.
+**Fuente.** [F] Domain-Driven Design (lenguaje ubicuo y contexto delimitado): la misma palabra puede significar cosas distintas en contextos distintos; el lenguaje se divide donde cambia y se conecta con correspondencias explícitas (a través de fuentes secundarias; el artículo original no se encontró). [S] Los tres ejes como contextos.
 
 ## Cómo se hacen cumplir
 
 - Lo que obliga es el test, no el texto. Cada principio dice cuál es su test. Donde dice «por construir», lo trae el N1.
 - Un test nuevo se ve fallar una vez antes de creérselo.
 - Una norma sin test tiene veredicto blando en `ops/normas.json`, con la barrera que le falta.
-- Se toma el principio y el test, no el proceso. Somos un equipo de dos o tres personas [I].
+- Se toma el principio y el test, no el proceso. Somos un equipo de dos o tres personas [S].
 
 ## Cómo se cambia el registro de entidades
 
@@ -242,6 +242,7 @@ Pablo decidió: **todo en inglés**, en los tres ejes. Se aplica así:
 - **Una sola traducción**: el campo `en` de cada ficha del glosario. El id de la entidad es ese `en`.
 
 - **Metaclaves comunes**: `actualizado`, `sujetos`, `$comentario` y `version` de los `ops/*.json` siguen en castellano en todos los ficheros, también en los nuevos. Se renombrarán juntas en un encargo propio, no fichero a fichero.
+- **Campos de las plantillas de regla y de principio** (excepción, #620): `nombre`, `sujeto`, `fuerza`, `condicion`, `exigencia`, `nota`, `control`, `principio`, `ambito`, `acciones`, `normas`, `enunciado`, `porque`, `fuentes`, `detalle` y `origen` siguen en castellano. Son los campos comunes de `scripts/lib/regla.mjs`, que comparten todos los catálogos de reglas (normas, forja, estándares, redacción, principios); renombrarlos en uno solo los separaría de los demás. Se renombrarían todos a la vez, con las metaclaves. Los valores de vocabulario nuevos sí van en inglés (los de `ambito`: `code`, `infra`…); los de `acciones` (`construir`, `juzgar`…) son de antes y siguen la regla del ritmo.
 
 Cómo encaja con PRINCIPIOS §12, que ya fija las columnas estructurales en
 inglés (`id`, `*_id`, `created_at`, `updated_at`, `status`) y deja las de

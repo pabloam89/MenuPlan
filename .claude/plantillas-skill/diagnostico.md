@@ -51,6 +51,7 @@ metadata:
   elige_opciones: false
   dueno: <agente de .claude/agents/ que la carga en su skills:>
   comprobado: AAAA-MM-DD
+  normas: [<id de ops/normas.json a la que sirve>, <otra>]
 ---
 
 # <Nombre>
@@ -105,6 +106,7 @@ Los de `campos_ficha.skill` de `ops/forja/`; lo que no está declarado no va en 
 | `nivel` | enum | no | `2`, o sin él (el 1 son los moldes; el 0, la pieza meta) |
 | `dueno` | ref | sí | un agente que existe |
 | `comprobado` | fecha | sí | AAAA-MM-DD |
+| `normas` | ref | sí | una norma que existe |
 | `libertad` | enum | no | `alta`, `media`, `baja` |
 | `invocacion` | enum | no | `descripcion`, `guardia`, `precarga` |
 
@@ -128,16 +130,16 @@ No hay criterio de skill que no se le aplique.
 
 - Un camino por defecto y una salida para el caso raro, no un menú de opciones [F: BP, demasiadas opciones].
 - Cada paso del método dice lo que sale, y el método dice cuándo se acaba [F: BP, bucles de comprobación] y la condición de parada [I: por analogía, BEA].
-- Las técnicas se eligen por un dato del problema (su tipo de causa, su alcance), no por gusto [I].
-- Lo que no se ha podido comprobar se escribe como hipótesis, con la observación que la confirmaría [I].
+- Las técnicas se eligen por un dato del problema (su tipo de causa, su alcance), no por gusto [S].
+- Lo que no se ha podido comprobar se escribe como hipótesis, con la observación que la confirmaría [S].
 - Un ejemplo resuelto, abstracto y canónico, que sigue la propia norma de la skill [I por analogía, CE, ejemplos canónicos].
 
 ### Errores típicos
 
 - Un método de principios («analiza bien») sin pasos que se puedan ver [F: BP, instrucciones claras].
-- Un ejemplo copiado de un caso real, con nombres o datos de familias [I].
+- Un ejemplo copiado de un caso real, con nombres o datos de familias [S].
 - Dar libertad total donde un fallo cuesta caro [F: BP, grados de libertad].
-- El catálogo de técnicas copiado dentro de la skill y también en su fuente: dos versiones [I].
+- El catálogo de técnicas copiado dentro de la skill y también en su fuente: dos versiones [S].
 
 ### Ejemplo mínimo
 

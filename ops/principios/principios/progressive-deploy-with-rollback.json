@@ -6,7 +6,7 @@
   "porque": "Un despliegue sin paso previo ni vuelta atrás convierte cualquier error en una caída para las familias.",
   "fuentes": [
     {
-      "marca": "C",
+      "marca": "I",
       "ruta": ".claude/skills/vercel/SKILL.md"
     }
   ],

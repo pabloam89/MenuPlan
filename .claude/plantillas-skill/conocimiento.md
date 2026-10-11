@@ -51,6 +51,7 @@ metadata:
   elige_opciones: false
   dueno: <agente de .claude/agents/ que la carga en su skills:>
   comprobado: AAAA-MM-DD
+  normas: [<id de ops/normas.json a la que sirve>, <otra>]
 ---
 
 # <Nombre>
@@ -105,6 +106,7 @@ Los de `campos_ficha.skill` de `ops/forja/`; lo que no está declarado no va en 
 | `nivel` | enum | no | `2`, o sin él (el 1 son los moldes; el 0, la pieza meta) |
 | `dueno` | ref | sí | un agente que existe |
 | `comprobado` | fecha | sí | AAAA-MM-DD |
+| `normas` | ref | sí | una norma que existe |
 | `libertad` | enum | no | `alta`, `media`, `baja` |
 | `invocacion` | enum | no | `descripcion`, `guardia`, `precarga` |
 
@@ -127,13 +129,13 @@ No hay criterio de skill que no se le aplique.
 ### Qué lo hace bueno
 
 - «Lo que hay que saber» son hechos que el modelo no tiene (reglas del negocio, excepciones, vocabulario propio), no definiciones generales [F: BP, lo conciso].
-- «Dónde vive el dato» apunta a la fuente de verdad y dice cómo leerla; no copia el dato [I].
+- «Dónde vive el dato» apunta a la fuente de verdad y dice cómo leerla; no copia el dato [S].
 - Se organiza por tema, con el detalle de cada uno en su capa, para cargar solo lo que se necesita [F: BP, organización por dominio].
 - Una palabra por cosa en toda la skill [F: BP, terminología coherente].
 
 ### Errores típicos
 
-- Copiar el dato (una cifra, una lista, un estado) en la skill: pasa a haber dos fuentes y una se queda vieja [I].
+- Copiar el dato (una cifra, una lista, un estado) en la skill: pasa a haber dos fuentes y una se queda vieja [S].
 - Cifras o estados que caducan escritos en el cuerpo [F: BP, información que caduca].
 - Mezclar dos temas en una skill, que acaba solapando con otra [F: SB, según resúmenes; I el reparto].
 - Explicar el tema como un manual en lugar de lo que el modelo no sabe [F: BP, lo conciso].

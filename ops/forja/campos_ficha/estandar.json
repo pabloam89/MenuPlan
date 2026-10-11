@@ -1,7 +1,7 @@
 {
   "clave": "estandar",
   "valor": {
-    "fuente": "Una tarea de un agente en ops/estandares-agentes.json (la clave es su id). Su estándar son sus reglas por campos (#516); las compartidas por varios agentes están en comunes y la tarea las nombra.",
+    "fuente": "Una tarea de un agente en ops/estandares-agentes.json (la clave es su id). Su estándar son las normas de ops/normas.json que le tocan por sus ámbitos y su acción, las que cita aparte (#620) y sus reglas por campos (#516), solo para los pasos que no son norma; las compartidas por varios agentes están en comunes y la tarea las nombra.",
     "clave": "id",
     "campos": {
       "tarea": {
@@ -20,16 +20,28 @@
         "vocab": "origen_tarea",
         "obligatorio": true
       },
+      "ambitos": {
+        "clase": "enum",
+        "vocab": "ambito",
+        "lista": true,
+        "obligatorio": true
+      },
       "comunes": {
         "clase": "ref",
         "ref": "estandar_comun",
         "lista": true,
         "obligatorio": false
       },
+      "normas": {
+        "clase": "ref",
+        "ref": "norma",
+        "lista": true,
+        "obligatorio": false
+      },
       "reglas": {
         "clase": "regla",
         "lista": true,
-        "obligatorio": true
+        "obligatorio": false
       },
       "no_hace": {
         "clase": "texto",

@@ -51,6 +51,7 @@ metadata:
   elige_opciones: false
   dueno: <agente de .claude/agents/ que la carga en su skills:>
   comprobado: AAAA-MM-DD
+  normas: [<id de ops/normas.json a la que sirve>, <otra>]
 ---
 
 # <Nombre>
@@ -105,6 +106,7 @@ Los de `campos_ficha.skill` de `ops/forja/`; lo que no está declarado no va en 
 | `nivel` | enum | no | `2`, o sin él (el 1 son los moldes; el 0, la pieza meta) |
 | `dueno` | ref | sí | un agente que existe |
 | `comprobado` | fecha | sí | AAAA-MM-DD |
+| `normas` | ref | sí | una norma que existe |
 | `libertad` | enum | no | `alta`, `media`, `baja` |
 | `invocacion` | enum | no | `descripcion`, `guardia`, `precarga` |
 
@@ -126,17 +128,17 @@ No hay criterio de skill que no se le aplique.
 
 ### Qué lo hace bueno
 
-- Cada criterio es observable y va separado de los demás, con la evidencia que lo cumple (fichero y línea, una salida) [I].
-- Los criterios viven en su catálogo y la skill los cita; no los copia [I].
-- Cada hallazgo sale con un código de un vocabulario cerrado y su arreglo, para poder contarlo [I].
-- Quien construye no juzga, y el juez no escribe lo que revisa [I].
+- Cada criterio es observable y va separado de los demás, con la evidencia que lo cumple (fichero y línea, una salida) [S].
+- Los criterios viven en su catálogo y la skill los cita; no los copia [S].
+- Cada hallazgo sale con un código de un vocabulario cerrado y su arreglo, para poder contarlo [S].
+- Quien construye no juzga, y el juez no escribe lo que revisa [S].
 - Un criterio discrimina: si pasa igual con la pieza buena que con la mala, se retira [F: EVAL, aserciones que no miden nada].
 
 ### Errores típicos
 
-- Criterios con adjetivos («claro», «bueno») sin nada que mirar [I].
-- Ejemplos calibrados solo de lo obvio, que cualquier rúbrica separa [I].
-- Un juez que arregla lo que juzga: deja de ser independiente [I].
+- Criterios con adjetivos («claro», «bueno») sin nada que mirar [S].
+- Ejemplos calibrados solo de lo obvio, que cualquier rúbrica separa [S].
+- Un juez que arregla lo que juzga: deja de ser independiente [S].
 - Juzgar sin mirar antes lo ya apuntado, y dar por nuevo lo conocido [I, caso #320].
 
 ### Ejemplo mínimo

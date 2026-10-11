@@ -92,6 +92,14 @@ export function ficherosDelRepo(raiz = RAIZ) {
 }
 
 /**
+ * Los ficheros de la rama frente a origin/staging (`git diff --name-only origin/staging...HEAD`): lo que usan
+ * `npm run skills-encargo -- --diff` y `npm run estandar -- <agente> <tarea> --diff` (#620), una sola vez.
+ */
+export function ficherosDeLaRama(raiz = RAIZ) {
+  return execFileSync("git", ["-C", raiz, "diff", "--name-only", "origin/staging...HEAD"], { encoding: "utf8", windowsHide: true }).split(/\r?\n/).filter(Boolean);
+}
+
+/**
  * Lo tocado: la rama frente a su base con origin/staging más lo sin commitear
  * y lo nuevo. Cada elemento, { ruta, estado: "M" | "A" | "D" }; un renombrado
  * cuenta como borrado más alta.

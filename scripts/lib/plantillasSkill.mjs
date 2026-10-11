@@ -218,6 +218,7 @@ function esqueleto(datos, tipo, secciones) {
     ...respuestas,
     "  dueno: <agente de .claude/agents/ que la carga en su skills:>",
     "  comprobado: AAAA-MM-DD",
+    "  normas: [<id de ops/normas.json a la que sirve>, <otra>]",
     "---",
     "",
     "# <Nombre>",

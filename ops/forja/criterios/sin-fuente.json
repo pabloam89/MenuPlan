@@ -8,7 +8,7 @@
   "nombre": "Marca de fuente",
   "sujeto": "plantilla.tipo",
   "fuerza": "debe",
-  "exigencia": "marcar cada punto del estándar de un tipo con su [F: fuente] o [I]",
+  "exigencia": "marcar cada punto del estándar de un tipo con su [F: fuente], [I] (ruta de la casa) o [S] (inferencia nuestra)",
   "fuente": "[I] .claude/PLANTILLA-SKILL.md",
   "control": ".claude/skills.test.js",
   "codigo": "sin-fuente"

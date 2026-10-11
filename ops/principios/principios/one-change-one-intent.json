@@ -6,7 +6,7 @@
   "porque": "Dos intenciones en un cambio no se revisan, se revierten ni se atribuyen por separado, y las sesiones en paralelo se pisan.",
   "fuentes": [
     {
-      "marca": "C",
+      "marca": "I",
       "ruta": "CLAUDE.md"
     }
   ],

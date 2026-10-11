@@ -19,7 +19,7 @@
       "debe_salir": [
         "Cita principios de privacidad por id (por ejemplo no-sensitive-data-in-chat-by-default o data-minimisation)",
         "Recomienda pedir solo lo necesario, por ejemplo qué alimentos no toleran, y explica por qué en llano",
-        "Avisa de la marca F o I de la fuente si se apoya en una inferencia"
+        "Avisa de la marca F o S de la fuente si se apoya en una inferencia"
       ]
     },
     {
@@ -49,7 +49,7 @@
       "debe_salir": [
         "Busca los principios del área onboarding o privacy con npm run principios antes de recomendar",
         "Cita por id, en la línea de la opción recomendada, el que manda (por ejemplo value-before-signup u onboard-in-stages)",
-        "Avisa de que value-before-signup se apoya en una fuente secundaria (marca I)"
+        "Avisa de que value-before-signup se apoya en una fuente secundaria (marca S)"
       ]
     },
     {

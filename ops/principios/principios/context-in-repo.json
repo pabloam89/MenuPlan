@@ -6,7 +6,7 @@
   "porque": "Cada sesión empieza sin memoria, así que lo que no está en el repo se pierde o se reinventa.",
   "fuentes": [
     {
-      "marca": "C",
+      "marca": "I",
       "ruta": "CLAUDE.md"
     }
   ],

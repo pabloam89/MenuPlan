@@ -6,7 +6,7 @@
   "porque": "Un id que cambia o se reutiliza rompe cada referencia que lo apuntaba, también las de los recuentos viejos.",
   "fuentes": [
     {
-      "marca": "C",
+      "marca": "I",
       "ruta": "docs/entidades/N0-principios.md"
     }
   ],

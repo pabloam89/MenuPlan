@@ -11,6 +11,7 @@ metadata:
   elige_opciones: false
   dueno: gobierno
   comprobado: "2026-10-11"
+  normas: [claves-de-pablo-solo-pablo, secretos-ok-pablo]
 ---
 
 # 1Password

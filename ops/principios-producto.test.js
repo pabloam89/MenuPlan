@@ -4,17 +4,18 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { DERIVADOS } from "../scripts/lib/generados.mjs";
+import { leerRegistro } from "../scripts/lib/normas.mjs";
 import {
-  MAX_PALABRAS_CITA, RUTA_MD, RUTA_PRINCIPIOS, cifras, citasDe, generarMd, leerPrincipios, principiosDe, problemasDePrincipios, tieneControl,
+  MAX_PALABRAS_CITA, RUTA_MD, RUTA_PRINCIPIOS, cifras, citasDe, generarMd, leerPrincipios, normasDe, principiosDe, problemasDePrincipios, tieneControl,
 } from "../scripts/lib/principiosProducto.mjs";
-import { CONTROL_JUICIO, fraseDeRegla } from "../scripts/lib/regla.mjs";
+import { CONTROL_JUICIO, PALABRAS_DE_FUERZA } from "../scripts/lib/regla.mjs";
 import { leerRedaccion } from "../scripts/lib/redaccion.mjs";
 
 /**
- * Los principios de producto con fuente (#606). Falla cuando:
- *  1. un principio no pasa la plantilla de regla, el área, los ejemplos, las fuentes o el control;
+ * Los principios de producto con fuente (#606), separados en principio sin fuerza y norma (#620). Falla cuando:
+ *  1. un principio no pasa la plantilla de principio, el área, los ejemplos o las fuentes, o lleva fuerza o control (son de su norma);
  *  2. un id o un nombre se repite, o un principio no lleva ninguna fuente;
- *  3. un control apunta a un fichero que no existe o que no se ejecuta;
+ *  3. un principio no tiene ninguna norma en ops/normas.json, o el control de una norma no existe o no se ejecuta;
  *  4. una cita literal pasa de 15 palabras;
  *  5. docs/producto/PRINCIPIOS.md no sale del catálogo;
  *  6. el catálogo no figura en la guía de redacción ni en el inventario de derivados.
@@ -23,8 +24,9 @@ import { leerRedaccion } from "../scripts/lib/redaccion.mjs";
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const existe = (r) => existsSync(join(RAIZ, r));
 const datos = leerPrincipios(RAIZ);
+const registro = leerRegistro(RAIZ);
 const clon = () => structuredClone(datos);
-const problemas = (d) => problemasDePrincipios(d, { existe });
+const problemas = (d) => problemasDePrincipios(d);
 
 describe("ops/principios-producto/", () => {
   it("no tiene ningún problema", () => expect(problemas(datos)).toEqual([]));
@@ -36,10 +38,10 @@ describe("ops/principios-producto/", () => {
     ]);
   });
 
-  it("cada principio lleva al menos una fuente, con marca F o I", () => {
+  it("cada principio lleva al menos una fuente, con marca F o S (la I es de la casa, #620)", () => {
     for (const p of datos.principios) {
       expect(p.fuentes.length, p.id).toBeGreaterThanOrEqual(1);
-      for (const f of p.fuentes) expect(["F", "I"], `${p.id}: ${f.url}`).toContain(f.marca);
+      for (const f of p.fuentes) expect(["F", "S"], `${p.id}: ${f.url}`).toContain(f.marca);
     }
   });
 
@@ -53,41 +55,44 @@ describe("ops/principios-producto/", () => {
     }
   });
 
-  it("cada control que no es juicio existe y se ejecuta", () => {
-    const conControl = datos.principios.filter(tieneControl);
+  it("cada principio tiene al menos una norma, y el control de cada una que no es juicio existe y se ejecuta", () => {
+    for (const p of datos.principios) expect(normasDe(registro.normas, p.id).length, `${p.id}: sin norma en ops/normas.json`).toBeGreaterThan(0);
+    const conControl = datos.principios.filter((p) => tieneControl(p, registro.normas));
     expect(conControl.length).toBeGreaterThan(0);
     for (const p of conControl) {
-      expect(p.control, p.id).toMatch(/\.(m?js|jsx|cjs|ya?ml)$/);
-      expect(existe(p.control), `${p.id}: ${p.control}`).toBe(true);
+      for (const n of normasDe(registro.normas, p.id).filter((x) => x.control !== CONTROL_JUICIO)) {
+        expect(n.control, `${p.id} · ${n.id}`).toMatch(/\.(m?js|jsx|cjs|ya?ml)$/);
+        expect(existe(n.control), `${p.id} · ${n.id}: ${n.control}`).toBe(true);
+      }
     }
   });
 
-  it("el control de public-endpoint-justified es el test de contrato de api/ y su registro existe", () => {
-    const p = datos.principios.find((x) => x.id === "public-endpoint-justified");
-    expect(p.control).toBe("api/sinCredencial.test.js");
+  it("la norma de public-endpoint-justified es el test de contrato de api/ y su registro existe", () => {
+    const n = normasDe(registro.normas, "public-endpoint-justified");
+    expect(n.map((x) => x.control)).toContain("api/sinCredencial.test.js");
     expect(existe("ops/api-sin-credencial.json")).toBe(true);
   });
 
-  it("la frase de cada principio sale de sus campos", () => {
+  it("el principio no lleva fuerza: la lleva su norma (#620)", () => {
     for (const p of datos.principios) {
-      const f = fraseDeRegla(p, datos.sujetos);
-      expect(f, p.id).toContain(p.nombre);
-      expect(f, p.id).toMatch(/DEBE|CONVIENE/);
+      for (const c of ["sujeto", "fuerza", "condicion", "exigencia", "control", "nota"]) expect(c in p, `${p.id}: ${c}`).toBe(false);
+      expect(PALABRAS_DE_FUERZA.test(p.enunciado.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase()), p.id).toBe(false);
     }
   });
 
   it("ninguna cita literal pasa de 15 palabras", () => {
     for (const p of datos.principios) {
-      for (const t of [p.nombre, p.condicion, p.exigencia, p.nota, p.porque, p.ejemplo_bueno, p.ejemplo_malo].filter(Boolean)) {
+      for (const t of [p.nombre, p.enunciado, p.porque, p.ejemplo_bueno, p.ejemplo_malo].filter(Boolean)) {
         for (const q of citasDe(t)) expect(q.trim().split(/\s+/).length, `${p.id}: «${q}»`).toBeLessThanOrEqual(MAX_PALABRAS_CITA);
       }
     }
   });
 
-  it("las cifras por área suman los principios y los de control cuadran", () => {
-    const c = cifras(datos);
+  it("las cifras por área suman los principios y los de norma y control cuadran", () => {
+    const c = cifras(datos, registro.normas);
     expect(c.reduce((s, x) => s + x.total, 0)).toBe(datos.principios.length);
-    expect(c.reduce((s, x) => s + x.conControl, 0)).toBe(datos.principios.filter((p) => p.control !== CONTROL_JUICIO).length);
+    expect(c.reduce((s, x) => s + x.conNorma, 0)).toBe(datos.principios.length);
+    expect(c.reduce((s, x) => s + x.conControl, 0)).toBe(datos.principios.filter((p) => tieneControl(p, registro.normas)).length);
     for (const a of Object.keys(datos.areas)) expect(principiosDe(datos, a).length, a).toBeGreaterThan(0);
   });
 });
@@ -95,19 +100,21 @@ describe("ops/principios-producto/", () => {
 describe("docs/producto/PRINCIPIOS.md sale del catálogo", () => {
   it("está al día", () => {
     const md = readFileSync(join(RAIZ, RUTA_MD), "utf8");
-    expect(md, "PRINCIPIOS.md se genera: edita ops/principios-producto/ y lanza `npm run principios -- --escribir`").toBe(generarMd(datos));
+    expect(md, "PRINCIPIOS.md se genera: edita ops/principios-producto/ o ops/normas.json y lanza `npm run principios -- --escribir`").toBe(generarMd(datos, registro));
   });
-  it("lleva la cabecera de documento generado y todos los ids", () => {
-    const md = generarMd(datos);
+  it("lleva la cabecera de documento generado, todos los ids y la norma de cada principio", () => {
+    const md = generarMd(datos, registro);
     expect(md).toMatch(/^<!-- Generado desde .*No se edita a mano/m);
     for (const p of datos.principios) expect(md).toContain(`\`${p.id}\``);
+    for (const p of datos.principios) for (const n of normasDe(registro.normas, p.id)) expect(md, n.id).toContain(`  - Norma: \`${n.id}\``);
   });
 });
 
 describe("el catálogo está registrado", () => {
-  it("figura en la guía de redacción como catálogo que cumple", () => {
+  it("figura en la guía de redacción como catálogo de principios que cumple", () => {
     const k = leerRedaccion(RAIZ).catalogos.find((x) => x.fichero === RUTA_PRINCIPIOS);
     expect(k?.estado).toBe("cumple");
+    expect(k.forma).toBe("principio");
     expect(k.clave_reglas).toBe("principios");
   });
   it("su documento figura en el inventario de derivados, con su script y su test", () => {
@@ -128,7 +135,6 @@ describe("cada comprobación se ve fallar con datos malos", () => {
     expect(problemas(d).join("\n")).toContain(trozo);
   };
   const p0 = (d) => d.principios[0];
-  const juicio = (d) => d.principios.find((p) => p.control === CONTROL_JUICIO);
 
   it("un id repetido", () => falla((d) => { d.principios[1].id = d.principios[0].id; }, "id repetido"));
   it("un nombre repetido", () => falla((d) => { d.principios[1].nombre = d.principios[0].nombre; }, "nombre repetido"));
@@ -139,31 +145,32 @@ describe("cada comprobación se ve fallar con datos malos", () => {
   it("una fuente repetida en el mismo principio", () => falla((d) => { p0(d).fuentes.push({ ...p0(d).fuentes[0] }); }, "fuente repetida"));
   it("un área fuera del vocabulario", () => falla((d) => { p0(d).area = "marketing"; }, "área «marketing»"));
   it("un área sin ningún principio", () => falla((d) => { d.areas.vacia = { legible: "vacía", que: "Un área que nadie usa todavía" }; }, "ningún principio la usa"));
-  it("un sujeto fuera del vocabulario", () => falla((d) => { p0(d).sujeto = "nadie"; }, "sujeto «nadie»"));
-  it("una fuerza fuera del vocabulario", () => falla((d) => { p0(d).fuerza = "quizas"; }, "fuerza «quizas»"));
-  it("una exigencia de más de 160 caracteres", () => falla((d) => { p0(d).exigencia = `${"decir algo largo ".repeat(12)}`.trim(); }, "pasa de 160"));
-  it("un control que no existe", () => falla((d) => { juicio(d).control = "ops/no-existe.test.js"; }, "no existe en el repo"));
-  it("un control que es un documento", () => falla((d) => { juicio(d).control = "CLAUDE.md"; }, "si lo vigila una persona, es «juicio»"));
-  it("un principio sin control", () => falla((d) => { delete p0(d).control; }, "falta «control»"));
+  it("un principio con fuerza en su enunciado", () => falla((d) => { p0(d).enunciado = "Cada endpoint debe tener su límite diario."; }, "palabra de fuerza"));
+  it("un principio con los campos de regla de antes", () => falla((d) => { p0(d).fuerza = "debe"; }, "la obligación es de su norma"));
+  it("un enunciado de dos frases", () => falla((d) => { p0(d).enunciado = "Un principio dice algo. Y otra cosa."; }, "una sola frase"));
+  it("un catálogo que vuelve a declarar sujetos", () => falla((d) => { d.sujetos = { product: { legible: "el producto", aplica_a: ["principio"] } }; }, "no lleva «sujetos»"));
   it("un principio sin porqué", () => falla((d) => { delete p0(d).porque; }, "falta «porque»"));
   it("un ejemplo con comillas angulares", () => falla((d) => { p0(d).ejemplo_bueno = "Un ejemplo con «comillas» dentro"; }, "sin comillas angulares"));
   it("el mismo ejemplo bueno y malo", () => falla((d) => { p0(d).ejemplo_malo = p0(d).ejemplo_bueno; }, "son el mismo"));
   it("un campo que no existe", () => falla((d) => { p0(d).texto_libre = "x"; }, "campo desconocido «texto_libre»"));
   it("una cita literal de más de 15 palabras", () => {
     const larga = Array.from({ length: 16 }, (_, i) => `palabra${i}`).join(" ");
-    falla((d) => { p0(d).nota = `Dice «${larga}» y poco más`; }, "cita literal de 16 palabras");
+    falla((d) => { p0(d).porque = `Dice «${larga}» y poco más.`; }, "cita literal de 16 palabras");
   });
   it("una cita de 15 palabras pasa", () => {
     const d = clon();
-    p0(d).nota = `Dice «${Array.from({ length: 15 }, (_, i) => `palabra${i}`).join(" ")}» y poco más`;
+    p0(d).porque = `Dice «${Array.from({ length: 15 }, (_, i) => `palabra${i}`).join(" ")}» y poco más.`;
     expect(problemas(d).join("\n")).not.toContain("cita literal");
   });
   it("citasDe ve las tres clases de comillas", () => {
     expect(citasDe("a «uno» b \"dos\" c “tres”")).toEqual(["uno", "tres", "dos"]);
   });
-  it("el documento generado cambia si cambia un principio", () => {
+  it("el documento generado cambia si cambia un principio o su norma", () => {
     const d = clon();
     p0(d).porque = "Otro porqué distinto, escrito para que el documento cambie";
-    expect(generarMd(d)).not.toBe(generarMd(datos));
+    expect(generarMd(d, registro)).not.toBe(generarMd(datos, registro));
+    const r = structuredClone(registro);
+    r.normas.find((n) => n.principio === datos.principios[0].id).exigencia = "hacer otra cosa distinta";
+    expect(generarMd(datos, r)).not.toBe(generarMd(datos, registro));
   });
 });

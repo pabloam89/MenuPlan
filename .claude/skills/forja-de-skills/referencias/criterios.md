@@ -1,6 +1,6 @@
 # Los doce criterios de una skill ganadora
 
-Marca: **[F]** está en la fuente citada; **[I]** es inferencia nuestra, incluida
+Marca: **[F]** está en la fuente citada; **[S]** es inferencia nuestra, incluida
 la aplicada **por analogía** (CE y BEA hablan de prompts y agentes, no de skills:
 lo que dicen se traslada aquí, y no se toma por hecho). Fuentes
 (las URL, en `SKILL.md`, «Fuentes y comprobación»): **BP** = guía de buenas
@@ -28,9 +28,9 @@ Anthropic; **BEA** = «building effective agents»; **SB** = SkillsBench (arXiv
      trunca y manda lo del principio) [F];
   2. la razón de BP para la tercera persona es no mezclar puntos de vista en el
      texto que se inyecta en el sistema [F]; el riesgo es la mezcla, y las
-     descripciones de hoy usan todas la misma forma, que el test garantiza [I];
+     descripciones de hoy usan todas la misma forma, que el test garantiza [S];
   3. cambiarlo obliga a reescribir todas las descripciones y a repetir el disparo
-     de cada una sin ninguna cifra que diga que mejora [I];
+     de cada una sin ninguna cifra que diga que mejora [S];
   4. el disparo medido con la forma actual es bueno (el de `causa-raiz` salió
      completo).
   Se revisa si `skills-prueba` muestra un disparo que cae por la forma; entonces
@@ -65,7 +65,7 @@ Anthropic; **BEA** = «building effective agents»; **SB** = SkillsBench (arXiv
 
 ## 5. Solo lo que el modelo no sabe
 
-- **Fuente:** [F] BP («concise is key»); [I] por analogía, CE (en un prompt, el contexto de más degrada).
+- **Fuente:** [F] BP («concise is key»); [S] por analogía, CE (en un prompt, el contexto de más degrada).
 - **Lo vigila:** el `revisor` y el A/B (paso 2 del método). No hay test: un
   párrafo útil y uno de relleno se parecen igual.
 - **Error contrario:** explicar lo que el modelo ya hace bien. Cada párrafo
@@ -90,7 +90,7 @@ Anthropic; **BEA** = «building effective agents»; **SB** = SkillsBench (arXiv
 
 ## 8. Cada paso con su comprobación y un criterio de parada
 
-- **Fuente:** [F] BP («feedback loops»); [I] por analogía, BEA («stopping conditions» de un agente).
+- **Fuente:** [F] BP («feedback loops»); [S] por analogía, BEA («stopping conditions» de un agente).
 - **Lo vigila:** `sin-parada` (el «Método» de los tipos que no son herramienta
   dice «Sale bien si», «Sale:», «Debe salir», «Hecho cuando» o «Parar si»);
   `formato` (la tabla de una herramienta no tiene «Debe salir» vacío).
@@ -108,7 +108,7 @@ Anthropic; **BEA** = «building effective agents»; **SB** = SkillsBench (arXiv
 
 ## 10. Pocos ejemplos, canónicos y que no se contradigan
 
-- **Fuente:** [F] BP; [I] por analogía, CE («diverse, canonical examples» en un prompt).
+- **Fuente:** [F] BP; [S] por analogía, CE («diverse, canonical examples» en un prompt).
 - **Lo vigila:** `ejemplos` (como mucho tres por sección de ejemplos); que sean
   canónicos y no choquen con la norma de la propia skill, el `revisor`.
 - **Error contrario:** una lista de casos límite; un ejemplo que viola la norma
@@ -128,7 +128,7 @@ Anthropic; **BEA** = «building effective agents»; **SB** = SkillsBench (arXiv
 
 - **Fuente:** [F] SB (pocos módulos enfocados rinden más que documentación
   exhaustiva, según resúmenes); CE («si una persona no sabe qué herramienta
-  usar, el agente tampoco»). Que se mida con vocabulario común es [I].
+  usar, el agente tampoco»). Que se mida con vocabulario común es [S].
 - **Lo vigila:** párrafos copiados entre skills, `copiado`; descripciones que
   comparten demasiadas palabras, `solape` (heurística, límite `MAX_SOLAPE`);
   dudas reales entre dos skills, `skills-prueba`.

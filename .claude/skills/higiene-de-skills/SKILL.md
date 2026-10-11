@@ -11,6 +11,7 @@ metadata:
   elige_opciones: false
   dueno: gobierno
   comprobado: 2026-10-10
+  normas: [criterios-de-forja-en-un-catalogo, glosario-sin-sinonimos-nuevos]
 ---
 
 # Higiene de skills

@@ -6,7 +6,7 @@
   "porque": "Un JSON que se filtra en el servidor o que editan varios a la vez pierde datos y no se puede consultar.",
   "fuentes": [
     {
-      "marca": "C",
+      "marca": "I",
       "ruta": "docs/datos/PRINCIPIOS.md"
     }
   ],

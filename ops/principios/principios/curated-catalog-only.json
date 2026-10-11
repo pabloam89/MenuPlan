@@ -6,7 +6,7 @@
   "porque": "Un plato que nadie revisó en el menú de una familia cuesta su confianza, y eso se nota más que un menú corto.",
   "fuentes": [
     {
-      "marca": "C",
+      "marca": "I",
       "ruta": ".claude/rules/catalogo.md"
     }
   ],

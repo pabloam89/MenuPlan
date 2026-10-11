@@ -6,7 +6,7 @@
   "porque": "Varias sesiones cambian el mismo repo a la vez, y lo que era cierto hace una hora puede no serlo ya.",
   "fuentes": [
     {
-      "marca": "C",
+      "marca": "I",
       "ruta": ".claude/hooks/pendientes.mjs"
     }
   ],

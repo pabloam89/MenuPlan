@@ -6,7 +6,7 @@
   "porque": "Con texto libre cada uno escribe lo mismo de otra forma, y un valor reutilizado descuadra los recuentos viejos.",
   "fuentes": [
     {
-      "marca": "C",
+      "marca": "I",
       "ruta": "src/lib/vocabularios.js"
     }
   ],

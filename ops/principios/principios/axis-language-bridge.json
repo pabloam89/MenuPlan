@@ -6,7 +6,7 @@
   "porque": "La misma palabra con dos sentidos en dos ejes confunde justo donde los ejes se juntan.",
   "fuentes": [
     {
-      "marca": "C",
+      "marca": "I",
       "ruta": "ops/entidades.json"
     }
   ],

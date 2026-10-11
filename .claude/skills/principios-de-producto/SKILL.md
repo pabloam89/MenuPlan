@@ -11,6 +11,7 @@ metadata:
   elige_opciones: false
   dueno: lola
   comprobado: 2026-10-11
+  normas: [endpoint-rechaza-sin-credencial, business-flow-rate-limited, family-text-is-data, essentials-work-without-ai]
 ---
 
 # Principios de producto
@@ -35,51 +36,57 @@ No es para:
 1. **Busca los principios del área.** `npm run principios -- <área>` (las áreas:
    `trust-safety`, `privacy`, `conversational-ai`, `onboarding`, `cost-reliability`,
    `ux-clarity`, `accessibility`, `scope`); `npm run principios -- <id>` enseña uno
-   entero. Si dudas del área, mira dos. Sale: la lista de ids con su frase.
-2. **Elige el que manda y cítalo.** En la línea de la opción recomendada, el id entre
-   paréntesis: «A (recomendada, `public-endpoint-justified`): …». Cita solo los que
-   cambian la recomendación. Sale: cada id citado existe en el catálogo.
+   entero, con la norma que lo vuelve exigible. Si dudas del área, mira dos. Sale: la
+   lista de ids con su enunciado y sus normas.
+2. **Elige el que manda y cítalo por su id.** En la línea de la opción recomendada, el id
+   del principio entre paréntesis: «A (recomendada, `public-endpoint-justified`): …». Si
+   lo que decide es una obligación, cita también la norma por su id
+   (`endpoint-rechaza-sin-credencial`); su frase no se copia en la recomendación. Cita
+   solo los que cambian la recomendación. Sale: cada id citado existe en el catálogo o
+   en `ops/normas.json`.
 3. **Si dos chocan, dilo.** Nombra los dos ids, di qué cede cada opción y cuál
    recomiendas y por qué. Un choque que afecta a lo irreversible o a lo que sale
    fuera se le presenta a Pablo con las tres opciones; no se resuelve en silencio.
 4. **Si no hay principio, o aprendes uno.** Añade un fichero nuevo en
    `ops/principios-producto/principios/<id>.json` copiando uno parecido: id en inglés,
-   campos de regla, `porque`, ejemplos aplicados a HoMenu o Lola y al menos una fuente
-   que hayas leído (marca F) o tu inferencia (marca I). Luego
-   `npm run principios -- --escribir` y
-   `npx vitest run ops/principios-producto.test.js ops/redaccion.test.js`.
-   Sale: un fichero nuevo y el documento regenerado.
+   `enunciado` y `porque` de una frase sin fuerza, ejemplos aplicados a HoMenu o Lola y
+   al menos una fuente que hayas leído (marca F) o tu inferencia (marca S). Lo que pide
+   con DEBE va a una norma nueva de `ops/normas.json` que lo cita (`principio`), con su
+   control. Luego `npm run principios -- --escribir`, `npm run normas -- --escribir` y
+   `npx vitest run ops/principios-producto.test.js ops/uniones.test.js ops/normas.test.js`.
+   Sale: un fichero nuevo, su norma y el documento regenerado.
 
 Sale bien si: la recomendación nombra al menos un id real, el choque entre principios
 no queda sin decir y el catálogo ganó un fichero cuando se aprendió algo.
 
 ## Lo que hay que saber
 
-- El catálogo no es la ley: un principio dice qué hacen bien otros productos, no qué
-  manda aquí. Lo que obliga es un test o la guardia; por eso cada principio
-  trae su control. [I]
-- Solo algunos principios tienen un control de verdad (un test que existe y vigila lo
-  que dice). El resto es `juicio`: lo aplica quien decide y lo revisa el `revisor`.
-  `npm run principios` cuenta cuántos hay de cada. [I]
-- Un control que solo cubre una parte lo dice en su `nota`; no lo des por cubierto
-  entero. [I]
-- La marca F quiere decir que la fuente lo dice; la I, que es inferencia nuestra o una
-  fuente secundaria. Una recomendación que se apoya en una I lo avisa. [I]
-- Una cita literal de una fuente no pasa de 15 palabras; el resto se parafrasea. [I]
+- El catálogo no es la ley: un principio dice por qué, sin fuerza. Lo que obliga es su
+  norma (`ops/normas.json`), con su control: un test, la guardia o el juicio de un juez. [S]
+- Solo algunas normas de producto tienen un control de verdad (un test que existe y vigila
+  lo que dice). El resto es `juicio`: lo aplica quien decide y lo revisa el juez del
+  ámbito. `npm run principios` cuenta cuántos hay de cada. [S]
+- Un control que solo cubre una parte lo dice en la `nota` de la norma; no lo des por
+  cubierto entero. [S]
+- La marca F quiere decir que la fuente lo dice; la S, que es inferencia nuestra o una
+  fuente secundaria (la I es lo escrito en la casa, con su ruta). Una recomendación que
+  se apoya en una S lo avisa. [S]
+- Una cita literal de una fuente no pasa de 15 palabras; el resto se parafrasea. [S]
 - Los ids y los valores van en inglés, los textos en castellano (decisión de Pablo,
   `ops/DECISIONES.md`).
 - Las preguntas que más se repiten, y dónde buscar: ¿puede ser público este endpoint?
   (`trust-safety`); ¿qué datos pedimos y cuánto los guardamos? (`privacy`); ¿qué hace
   Lola cuando no entiende o se cae el modelo? (`conversational-ai`,
-  `cost-reliability`); ¿cuánto cuesta y quién lo paga? (`cost-reliability`). [I]
+  `cost-reliability`); ¿cuánto cuesta y quién lo paga? (`cost-reliability`). [S]
 
 ## Dónde vive el dato
 
-La fuente es `ops/principios-producto/` (un fichero por principio, leído con
-`scripts/lib/principiosProducto.mjs`). `docs/producto/PRINCIPIOS.md` se genera de ahí
-con `npm run principios -- --escribir`, ordenado por área; no se edita a mano. Las
-áreas y los sujetos están en `ops/principios-producto/_catalogo.json`. Esta skill no
-copia ningún principio.
+El porqué es `ops/principios-producto/` (un fichero por principio, leído con
+`scripts/lib/principiosProducto.mjs`); la obligación, su norma en `ops/normas.json`.
+`docs/producto/PRINCIPIOS.md` se genera de los dos con `npm run principios -- --escribir`,
+ordenado por área; no se edita a mano. Las áreas están en
+`ops/principios-producto/_catalogo.json`. Esta skill no copia ningún principio ni
+ninguna norma: los cita por su id.
 
 ## Lo que falló y por qué
 
@@ -90,6 +97,7 @@ copia ningún principio.
 
 ## Registro de cambios
 
+- **2026-10-11** · Los principios pasan a ser el porqué, sin fuerza; lo que pedían con DEBE es una norma de `ops/normas.json` que los cita (38 nuevas; dos ya existían). La marca de inferencia pasa de I a S (#620).
 - **2026-10-11** · Primera versión: catálogo de 40 principios con fuente, documento generado y esta skill (#606).
 
 ## Fuentes y comprobación
@@ -99,4 +107,4 @@ copia ningún principio.
 
 Sin comprobar: las fuentes se leyeron en la investigación del encargo (Apple, Duolingo e Intercom no se pudieron leer enteras y van como inferencia); que las recomendaciones citen el principio no se ha medido; `npm run skills-prueba -- principios-de-producto` no se ha lanzado (cuesta tokens).
 
-Comprobado el 2026-10-11: el catálogo con `ops/principios-producto.test.js` (cada comprobación vista fallar con datos malos en una copia), la forma con `.claude/skills.test.js` y el comando `npm run principios`.
+Comprobado el 2026-10-11: la separación en principio y norma (#620) con `ops/principios-producto.test.js` y `ops/uniones.test.js`, y `npm run principios -- explain-why` con su norma; antes, el catálogo con `ops/principios-producto.test.js` (cada comprobación vista fallar con datos malos en una copia), la forma con `.claude/skills.test.js` y el comando `npm run principios`.

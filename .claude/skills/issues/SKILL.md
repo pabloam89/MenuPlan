@@ -12,6 +12,7 @@ metadata:
   porque_tipo: "encadena es true por anticipado: hoy issues opera los issues de GitHub (un proveedor) y solo encadenará etapas con #414, como dice la tabla de Pablo"
   dueno: gobierno
   comprobado: "2026-10-09"
+  normas: [issues-con-buscar-antes, fondo-con-ficha-y-controles, issues-no-se-borran, pendientes-a-issue, cuando-algo-falla]
 ---
 
 # Issues

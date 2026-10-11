@@ -6,7 +6,7 @@
   "porque": "Si el día que algo falla solo sabe arreglarlo una herramienta que no está, no hay arreglo.",
   "fuentes": [
     {
-      "marca": "C",
+      "marca": "I",
       "ruta": "docs/ops/SIN-CLAUDE.md"
     }
   ],

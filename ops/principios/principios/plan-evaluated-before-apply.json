@@ -6,7 +6,7 @@
   "porque": "Solo hay una base y es producción, así que lo que se aplica sin ensayo se prueba sobre datos de familias.",
   "fuentes": [
     {
-      "marca": "C",
+      "marca": "I",
       "ruta": "scripts/apply-migration.mjs"
     }
   ],

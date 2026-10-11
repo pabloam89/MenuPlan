@@ -137,10 +137,13 @@ Un subagente no ve esta conversación. Cada encargo que le pases lleva:
    como nuevos: cada hallazgo suyo lleva `YA APUNTADO: #n` o `NUEVO (buscado: …)`.
    Un hallazgo sin esa marca se devuelve.
 8. **Estándar de la tarea** (#413): la línea `ESTÁNDAR A CUMPLIR: <agente>/<tarea>`
-   que da `npm run estandar -- <agente> <tarea>` (las tareas de cada agente están
-   en `ops/estandares-agentes.json`; `npm run estandar -- <agente>` las lista),
-   con su acción, sus reglas (cada una con su control y su fuente), las comunes
-   que nombra y lo que no hace pegados en el brief. Si el encargo no encaja en
+   que da `npm run estandar -- <agente> <tarea> --ficheros <a,b,…>` (las tareas de
+   cada agente están en `ops/estandares-agentes.json`; `npm run estandar -- <agente>`
+   las lista), con su acción, las normas que le tocan por id (sus ámbitos × su
+   acción, más las del ámbito de cada fichero que va a tocar; #620), sus reglas
+   propias, las comunes que nombra y lo que no hace pegados en el brief. En el
+   brief del juez, `npm run estandar -- <juez> <tarea> --diff` (los ficheros de la
+   rama, como `skills-encargo --diff`): recibe las mismas normas que el constructor. Si el encargo no encaja en
    ninguna tarea, «ninguna tarea del catálogo» y por qué: es la señal de una
    tarea que falta. Todas las tareas, en una tabla: `docs/ops/ESTANDARES.md`.
 9. Recordatorio: termina con el informe común de

@@ -2,12 +2,7 @@
   "id": "public-endpoint-justified",
   "nombre": "Endpoint público justificado",
   "area": "trust-safety",
-  "sujeto": "product",
-  "fuerza": "debe",
-  "condicion": "cuando un endpoint responde sin sesión",
-  "exigencia": "tener escrito por qué es público y qué lo protege en lugar de la credencial, en un registro de endpoints con motivo",
-  "control": "api/sinCredencial.test.js",
-  "nota": "El registro es ops/api-sin-credencial.json. El test exige que el resto rechace sin credencial y deja pasar como mucho 2 casos pendientes (pending_cases) mientras se deciden. No sabe si el motivo es cierto: eso es juicio. OWASP respalda el inventario (API9); exigir motivo y protección es inferencia nuestra.",
+  "enunciado": "Un endpoint que responde sin sesión lleva escrito por qué es público y qué lo protege.",
   "porque": "Un endpoint sin identidad es un flujo de negocio abierto a cualquiera, y lo que no está inventariado no se protege ni se retira.",
   "ejemplo_bueno": "api/share-menu.js es público a propósito: uuid más token en la dirección, límite por IP, solo GET y HEAD, y consta con su motivo en el registro",
   "ejemplo_malo": "Un endpoint que gasta IA contesta a cualquiera y su motivo para ser público es que lo llama alguien, sin comprobar quién",
@@ -18,7 +13,7 @@
     },
     {
       "url": "https://api-security.owasp.org/editions/2023/en/0xa6-unrestricted-access-to-sensitive-business-flows",
-      "marca": "I"
+      "marca": "S"
     }
   ]
 }

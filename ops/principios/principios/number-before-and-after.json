@@ -6,7 +6,7 @@
   "porque": "Sin la cifra de partida nadie sabe si un arreglo sirvió, y una diferencia pequeña puede ser solo ruido.",
   "fuentes": [
     {
-      "marca": "C",
+      "marca": "I",
       "ruta": "ops/metricas.json"
     }
   ],

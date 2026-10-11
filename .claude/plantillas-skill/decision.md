@@ -51,6 +51,7 @@ metadata:
   elige_opciones: true
   dueno: <agente de .claude/agents/ que la carga en su skills:>
   comprobado: AAAA-MM-DD
+  normas: [<id de ops/normas.json a la que sirve>, <otra>]
 ---
 
 # <Nombre>
@@ -105,6 +106,7 @@ Los de `campos_ficha.skill` de `ops/forja/`; lo que no está declarado no va en 
 | `nivel` | enum | no | `2`, o sin él (el 1 son los moldes; el 0, la pieza meta) |
 | `dueno` | ref | sí | un agente que existe |
 | `comprobado` | fecha | sí | AAAA-MM-DD |
+| `normas` | ref | sí | una norma que existe |
 | `libertad` | enum | no | `alta`, `media`, `baja` |
 | `invocacion` | enum | no | `descripcion`, `guardia`, `precarga` |
 
@@ -126,16 +128,16 @@ No hay criterio de skill que no se le aplique.
 
 ### Qué lo hace bueno
 
-- Las opciones se ordenan con un catálogo escrito (la escalera, los mecanismos) y se empieza por la más alta; bajar exige su motivo [I].
+- Las opciones se ordenan con un catálogo escrito (la escalera, los mecanismos) y se empieza por la más alta; bajar exige su motivo [S].
 - Cada criterio del catálogo se aplica a la opción elegida y se dice cómo, no solo el resultado [I, prueba del tipo en `ops/forja/`].
 - Una recomendación por defecto y, aparte, cuándo conviene otra, no un menú [F: BP, demasiadas opciones].
 - Cada paso del método dice lo que sale, y el método dice cuándo se acaba [F: BP, bucles de comprobación].
 
 ### Errores típicos
 
-- Elegir por gusto o por costumbre sin pasar por el catálogo [I].
+- Elegir por gusto o por costumbre sin pasar por el catálogo [S].
 - Un menú de opciones sin la recomendada [F: BP, demasiadas opciones].
-- Copiar el catálogo de opciones dentro de la skill: dos versiones que se separan [I].
+- Copiar el catálogo de opciones dentro de la skill: dos versiones que se separan [S].
 
 ### Ejemplo mínimo
 

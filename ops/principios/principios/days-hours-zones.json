@@ -6,7 +6,7 @@
   "porque": "La casa, el bot y los servidores viven en zonas distintas, y una hora sin zona sale con horas de error.",
   "fuentes": [
     {
-      "marca": "C",
+      "marca": "I",
       "ruta": "docs/datos/PRINCIPIOS.md"
     }
   ],

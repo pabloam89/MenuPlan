@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
-  DOCUMENTOS_MIGRADOS, RUTA_MD, anclaDe, componerLista, existeEn, faltasDeMigracion, generarMd, leerCatalogoPropio,
-  leerPrincipiosCasa, leerTextoEn, problemasDeEnunciadoUnico, problemasDePrincipios, seccionDe, seccionesNumeradas,
+  DOCUMENTOS_MIGRADOS, RUTA_MD, anclaDe, componerLista, existeEn, faltasDeMigracion, fuentesMarcadas, fuentesMarcadasDelRepo, generarMd,
+  leerCatalogoPropio, leerPrincipiosCasa, leerTextoEn, problemasDeEnunciadoUnico, problemasDeMarcas, problemasDeMarcasEnTexto, problemasDePrincipios, seccionDe, seccionesNumeradas,
 } from "../scripts/lib/principios.mjs";
+import { MARCAS_FUENTE } from "../scripts/lib/regla.mjs";
 import { leerPrincipios as leerProducto } from "../scripts/lib/principiosProducto.mjs";
 import { leerJsonEn, leerRedaccion, problemasDeRedaccion } from "../scripts/lib/redaccion.mjs";
 
@@ -37,6 +39,55 @@ describe("ops/principios/", () => {
     expect(datos.principios.filter((p) => p.catalogo === "ops/redaccion.json")).toHaveLength(delegados.redaccion.principios.length);
     const enunciados = new Set(propio.principios.map((p) => p.enunciado));
     expect(datos.principios.filter((p) => p.catalogo && enunciados.has(p.enunciado)).map((p) => p.id)).toEqual([]);
+  });
+});
+
+describe("un solo significado de cada marca de fuente en todos los catálogos (#620)", () => {
+  const fuentes = fuentesMarcadasDelRepo(RAIZ);
+
+  it("[I] es siempre una ruta de la casa; [F] y [S], una url", () => {
+    expect(Object.keys(MARCAS_FUENTE)).toEqual(["F", "I", "S"]);
+    expect(problemasDeMarcas(fuentes)).toEqual([]);
+    // Todos los catálogos que marcan fuentes entran, y la I sale en los que citan la casa.
+    const conI = new Set(fuentes.filter((f) => f.marca === "I").map((f) => f.catalogo));
+    for (const c of ["ops/principios/", "ops/redaccion.json", "ops/forja/", "ops/estandares-agentes.json"]) expect(conI.has(c), c).toBe(true);
+    expect(new Set(fuentes.map((f) => f.catalogo)).has("ops/principios-producto/")).toBe(true);
+  });
+
+  it("se ve fallar: una I con url, una S con ruta, una C o una marca inventada, en cualquier catálogo", () => {
+    const una = (f) => problemasDeMarcas([{ catalogo: "x", donde: "y", ...f }]).join("\n");
+    expect(una({ marca: "I", url: "https://owasp.org/x" })).toMatch(/una inferencia con url es \[S\]/);
+    expect(una({ marca: "S", ruta: "CLAUDE.md" })).toMatch(/lo escrito en la casa es \[I\]/);
+    expect(una({ marca: "C", ruta: "CLAUDE.md" })).toMatch(/marca «C» fuera de MARCAS_FUENTE/);
+    expect(una({ marca: "F", url: "https://owasp.org/x" })).toBe("");
+    const forja = { criterios: [{ id: "c", fuente: "[I] https://owasp.org/x" }] };
+    expect(problemasDeMarcas(fuentesMarcadas({ forja })).join("\n")).toMatch(/ops\/forja\/ · c: \[I\] es de la casa/);
+    const lista = [{ id: "p", catalogo: "ops/principios-producto/", fuentes: [{ marca: "I", url: "https://owasp.org/x" }] }];
+    expect(problemasDeMarcas(fuentesMarcadas({ lista })).join("\n")).toMatch(/principios-producto\/ · p/);
+  });
+});
+
+describe("un solo significado de cada marca también en la prosa: skills, plantillas y documentos (#620)", () => {
+  const md = execFileSync("git", ["ls-files", "-co", "--exclude-standard", "-z", ".claude", "docs"], { cwd: RAIZ, encoding: "utf8" }).split("\0").filter((f) => f.endsWith(".md"));
+  const existe = (r) => existsSync(join(RAIZ, r));
+
+  it("ningún [I] es inferencia, todo [I] lleva su ruta de la casa y no queda ninguna [C]", () => {
+    expect(md.length).toBeGreaterThan(50);
+    for (const r of [".claude/PLANTILLA-SKILL.md", ".claude/skills/forja-de-skills/referencias/criterios.md", "docs/entidades/N0-principios.md"]) expect(md, r).toContain(r);
+    expect(md.flatMap((r) => problemasDeMarcasEnTexto(r, readFileSync(join(RAIZ, r), "utf8"), existe))).toEqual([]);
+  });
+
+  it("se ve fallar: [I] como inferencia, [I] sin ruta, [C], y [F] a una ruta del repo", () => {
+    const p = (t) => problemasDeMarcasEnTexto("x.md", t, existe).join("\n");
+    expect(p("Marca: **[F]** está en la fuente; **[I]** es inferencia nuestra.")).toMatch(/\[I\] no es inferencia/);
+    expect(p("- Lo irreversible lo hace una persona [I].")).toMatch(/va seguida de una ruta del repo/);
+    expect(p("Fuente: [I] no/existe.md")).toMatch(/va seguida de una ruta del repo que exista/);
+    expect(p("Fuente: [C] `CLAUDE.md`")).toMatch(/la marca \[C\] ya no existe/);
+    expect(p("Fuente: [F] `CLAUDE.md`, que lo dice.")).toMatch(/\[F\] apunta a CLAUDE\.md/);
+    expect(p("Fuente: [I] `CLAUDE.md`; [S] una inferencia; [F] https://owasp.org/x; de la casa ([I]).")).toBe("");
+    // Como estaba la plantilla antes de #620: la marca [I] para la inferencia.
+    const antes = "BEA y sus URL) y **[I]** es inferencia nuestra,\n- Una fila sin «Debe salir»: no se sabe si fue bien [I].\n";
+    expect(problemasDeMarcasEnTexto(".claude/PLANTILLA-SKILL.md", antes, existe)).toHaveLength(2);
   });
 });
 
@@ -107,7 +158,7 @@ describe("docs/PRINCIPIOS.md sale de la lista", () => {
 describe("se ven fallar", () => {
   const BUENO = {
     id: "ejemplo-bueno", area: "code", nombre: "Principio de ejemplo", enunciado: "Un principio de ejemplo dice lo que se busca en una línea.",
-    porque: "Sin un porqué escrito cada uno decide a su manera.", fuentes: [{ marca: "C", ruta: "CLAUDE.md" }], detalle: ["CLAUDE.md#agentes"], origen: ["C1"],
+    porque: "Sin un porqué escrito cada uno decide a su manera.", fuentes: [{ marca: "I", ruta: "CLAUDE.md" }], detalle: ["CLAUDE.md#agentes"], origen: ["C1"],
   };
   const con = (cambios) => {
     const c = structuredClone(propio);
@@ -140,10 +191,12 @@ describe("se ven fallar", () => {
     ["un enunciado en dos líneas", { enunciado: "Una línea larga de un principio.\nY otra más." }, /«enunciado» va en una sola línea/],
     ["sin fuentes", { fuentes: [] }, /«fuentes» es una lista/],
     ["una fuente sin marca", { fuentes: [{ ruta: "CLAUDE.md" }] }, /marca «undefined» fuera del vocabulario/],
-    ["una fuente de la casa que no existe", { fuentes: [{ marca: "C", ruta: "no/existe.md" }] }, /la ruta no\/existe\.md no existe/],
-    ["una ruta del repo marcada como inferencia", { fuentes: [{ marca: "I", ruta: "CLAUDE.md" }] }, /su marca es C/],
+    ["una fuente de la casa que no existe", { fuentes: [{ marca: "I", ruta: "no/existe.md" }] }, /la ruta no\/existe\.md no existe/],
+    ["una url marcada como de la casa (la I de antes)", { fuentes: [{ marca: "I", url: "https://ejemplo.org/x" }] }, /una inferencia con url es S/],
+    ["una ruta del repo marcada como inferencia", { fuentes: [{ marca: "S", ruta: "CLAUDE.md" }] }, /su marca es I/],
+    ["la marca C de antes", { fuentes: [{ marca: "C", ruta: "CLAUDE.md" }] }, /marca «C» fuera del vocabulario/],
     ["una url que no es https", { fuentes: [{ marca: "F", url: "http://ejemplo.org/x" }] }, /dirección https completa/],
-    ["una fuente repetida", { fuentes: [{ marca: "C", ruta: "CLAUDE.md" }, { marca: "C", ruta: "CLAUDE.md" }] }, /fuente repetida/],
+    ["una fuente repetida", { fuentes: [{ marca: "I", ruta: "CLAUDE.md" }, { marca: "I", ruta: "CLAUDE.md" }] }, /fuente repetida/],
     ["un detalle que vuelve a «Pensar en datos»", { detalle: ["CLAUDE.md#pensar-en-datos"] }, /sería circular/],
     ["un detalle a un fichero que no existe", { detalle: ["no/existe.md"] }, /el detalle no\/existe\.md no existe/],
     ["un detalle a una sección que no existe", { detalle: ["CLAUDE.md#seccion-inventada"] }, /no tiene la sección #seccion-inventada/],
@@ -160,13 +213,13 @@ describe("se ven fallar", () => {
     expect(problemasDePrincipios(c, componerLista(c, delegados).principios, ctx).join("\n")).toMatch(/repetido con/);
   });
 
-  it("un anexo con un puente vacío o un delegado sin su techo", () => {
+  it("un anexo con un puente vacío o un delegado que vuelve a traer su techo sin norma", () => {
     const c = structuredClone(propio);
     c.anexos["untrusted-text-is-data"].puente = "corto";
     expect(problemasDePrincipios(c, componerLista(c, delegados).principios, ctx).join("\n")).toMatch(/«puente» dice en una línea/);
     const d = structuredClone(propio);
-    delete d.delegados.product.sin_norma;
-    expect(problemasDePrincipios(d, componerLista(d, delegados).principios, ctx).join("\n")).toMatch(/delegado «product»: «sin_norma» lleva su motivo y su techo/);
+    d.delegados.product.sin_norma = { motivo: "Principio de producto con su fuerza en su catálogo", techo: 3 };
+    expect(problemasDePrincipios(d, componerLista(d, delegados).principios, ctx).join("\n")).toMatch(/delegado «product»: ya no lleva «sin_norma»/);
   });
 
   it("un anexo a un principio que no existe o a uno propio", () => {

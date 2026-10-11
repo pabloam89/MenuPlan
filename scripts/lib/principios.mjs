@@ -15,7 +15,8 @@
  *    la sección cita el id (un solo enunciado por principio).
  *  - los catálogos DELEGADOS, que ya tenían su test y su skill: los principios de producto
  *    (`ops/principios-producto/`) y la guía de redacción (`ops/redaccion.json`). Se leen de su
- *    sitio con su propio lector y su enunciado sale de su regla (`fraseDeRegla`): una sola
+ *    sitio con su propio lector; desde #620 son principios sin fuerza con su propio enunciado
+ *    (lo que pedían con DEBE es una norma de ops/normas.json que los cita): una sola
  *    fuente del texto. `anexos` les añade detalle, origen o su condición de puente entre ejes.
  *
  * Sale de aquí, y el test lo compara: docs/PRINCIPIOS.md (`npm run principios-casa -- --escribir`).
@@ -27,10 +28,11 @@ import { join } from "node:path";
 
 import { AMBITOS } from "./ambitos.mjs";
 import { leerCatalogo } from "./catalogos.mjs";
-import { ACCIONES } from "./estandaresAgentes.mjs";
+import { ACCIONES, UMBRAL_REESCRITURA, leerEstandares, parecido } from "./estandaresAgentes.mjs";
+import { leerForja } from "./forja.mjs";
 import { leerPrincipios as leerProducto } from "./principiosProducto.mjs";
 import { leerRedaccion } from "./redaccion.mjs";
-import { ID_KEBAB, fraseDeRegla, problemasDePrincipio } from "./regla.mjs";
+import { ID_KEBAB, MARCAS_FUENTE, problemasDePrincipio } from "./regla.mjs";
 
 export const RUTA_PRINCIPIOS = "ops/principios/";
 export const RUTA_MD = "docs/PRINCIPIOS.md";
@@ -41,22 +43,9 @@ export const CAMPOS_OPCIONALES = ["detalle", "origen"];
 /** Lo que puede llevar un anexo a un principio delegado. */
 export const CAMPOS_ANEXO = ["detalle", "origen", "puente"];
 
-/**
- * La marca de una fuente: F, la fuente externa lo dice (con su url); I, inferencia nuestra o
- * fuente secundaria (con su url); C, está escrito en la casa (con la ruta del repo). Producto usa
- * F e I con la misma forma ({ marca, url }).
- */
-export const MARCAS_FUENTE = {
-  F: "Una fuente externa lo dice (url)",
-  I: "Inferencia nuestra o fuente secundaria (url)",
-  C: "Está escrito en la casa (ruta del repo)",
-};
+/** La marca de una fuente: la de regla.mjs, con un solo significado en todos los catálogos (#620). */
+export { MARCAS_FUENTE };
 
-/**
- * Issues que no valen como «issue que lleva» una norma sin ejecutor: el fondo de este mismo
- * catálogo (#618) no le da control a ninguna norma; colgarlas de él es esconderlas.
- */
-export const ISSUES_QUE_NO_LLEVAN = [618];
 
 /** Las listas de las que viene cada principio (`origen`): todas deben quedar migradas. */
 export const ORIGENES = {
@@ -78,10 +67,10 @@ const TODOS_ORIGENES = [...ORIGENES.agentes, ...ORIGENES.claude];
 export const DOCUMENTOS_MIGRADOS = ["docs/datos/PRINCIPIOS.md", "docs/entidades/N0-principios.md"];
 
 /**
- * Techo de principios propios sin ninguna norma (`principios_sin_norma`). Solo baja: si un
- * principio gana su norma, sale de la lista y este número baja con ella (el test lo pide igual a
- * la cifra, así que subirlo es un cambio de código que ve el revisor). Los delegados llevan su
- * techo en `delegados.<area>.sin_norma.techo`, con la misma regla.
+ * Techo de principios sin ninguna norma (`principios_sin_norma`), propios o de un catálogo
+ * delegado: desde #620 los delegados ya no tienen techo aparte (todos tienen su norma). Solo baja:
+ * si un principio gana su norma, sale de la lista y este número baja con ella (el test lo pide
+ * igual a la cifra, así que subirlo es un cambio de código que ve el revisor).
  */
 export const TECHO_SIN_NORMA = 3;
 
@@ -115,29 +104,27 @@ export function seccionDe(md, ancla) {
 /** El catálogo propio, tal cual (sin los delegados). */
 export const leerCatalogoPropio = (raiz) => leerCatalogo(raiz, RUTA_PRINCIPIOS);
 
-const sinCabeza = (frase) => frase.replace(/^\*\*[^*]+\*\*\s+/, "");
-
 /** Una fuente «[F] url» o «[I] ruta» de la guía de redacción, con la forma de la lista. */
 function deTextoDeFuente(t) {
   const m = /^\[(F|I)\] (\S+)$/.exec(String(t));
   if (!m) return { marca: "?", ruta: String(t) };
   if (/^https:\/\//.test(m[2])) return { marca: m[1], url: m[2] };
-  return { marca: "C", ruta: m[2] };
+  return { marca: "I", ruta: m[2] };
 }
 
 /** Un principio de producto, con la forma de la lista: todas sus fuentes. */
 function deProducto(p, datos, delegado) {
   return {
-    id: p.id, area: "product", nombre: p.nombre, enunciado: sinCabeza(fraseDeRegla(p, datos.sujetos, { conControl: false })),
+    id: p.id, area: "product", nombre: p.nombre, enunciado: p.enunciado,
     porque: p.porque, fuentes: p.fuentes.map((f) => ({ marca: f.marca, url: f.url })), detalle: [delegado.detalle], origen: [], catalogo: delegado.catalogo,
   };
 }
 
-/** Un principio de redacción, con la forma de la lista (no lleva «porque»: es una regla de escritura; su nota, si hay). */
+/** Un principio de redacción, con la forma de la lista. */
 function deRedaccion(p, datos, delegado) {
   return {
-    id: p.id, area: "writing", nombre: p.nombre, enunciado: sinCabeza(fraseDeRegla(p, datos.sujetos, { conControl: false })),
-    porque: p.nota ?? null, fuentes: [deTextoDeFuente(p.fuente)], detalle: [delegado.detalle], origen: [], catalogo: delegado.catalogo,
+    id: p.id, area: "writing", nombre: p.nombre, enunciado: p.enunciado,
+    porque: p.porque, fuentes: [deTextoDeFuente(p.fuente)], detalle: [delegado.detalle], origen: [], catalogo: delegado.catalogo,
   };
 }
 
@@ -192,7 +179,7 @@ function problemasDeOrigen(lista, d) {
   return malos;
 }
 
-/** Errores de la lista de fuentes de un principio: { marca, url } con F o I; { marca: C, ruta } de la casa. */
+/** Errores de la lista de fuentes de un principio: { marca, url } con F o S; { marca: I, ruta } de la casa. */
 export function problemasDeFuentes(fuentes, d, existe) {
   if (!Array.isArray(fuentes) || !fuentes.length) return [`${d}: «fuentes» es una lista con una fuente como mínimo`];
   const malos = [];
@@ -200,15 +187,86 @@ export function problemasDeFuentes(fuentes, d, existe) {
     const q = `${d} · fuente ${i + 1}`;
     if (!(f?.marca in MARCAS_FUENTE)) { malos.push(`${q}: marca «${f?.marca}» fuera del vocabulario (${Object.keys(MARCAS_FUENTE).join(", ")})`); return; }
     const claves = Object.keys(f).sort().join();
-    if (f.marca === "C") {
-      if (claves !== "marca,ruta") malos.push(`${q}: una fuente de la casa (C) lleva solo «marca» y «ruta»`);
+    if (f.marca === "I") {
+      if (claves !== "marca,ruta") malos.push(`${q}: una fuente de la casa (I) lleva solo «marca» y «ruta»; una inferencia con url es S`);
       else if (!existe(String(f.ruta).split("#")[0])) malos.push(`${q}: la ruta ${f.ruta} no existe en el repo`);
-    } else if (claves !== "marca,url") malos.push(`${q}: una fuente ${f.marca} lleva solo «marca» y «url»; si es una ruta del repo, su marca es C`);
+    } else if (claves !== "marca,url") malos.push(`${q}: una fuente ${f.marca} lleva solo «marca» y «url»; si es una ruta del repo, su marca es I`);
     else if (!/^https:\/\/[^\s/]+\/\S*$/.test(f.url)) malos.push(`${q}: «url» es una dirección https completa`);
   });
   if (new Set(fuentes.map((f) => f?.url ?? f?.ruta)).size !== fuentes.length) malos.push(`${d}: una fuente repetida`);
   return malos;
 }
+
+// ── Un solo significado de cada marca de fuente (#620) ─────────────────────
+
+/** Una fuente escrita como texto («[F] https://…», «[I] ruta»), con la forma { marca, url | ruta }. */
+function deTextoMarcado(t) {
+  const m = /^\[([A-Z])\] (\S+)$/.exec(String(t ?? ""));
+  if (!m) return { marca: "?", texto: String(t) };
+  return /^https?:\/\//.test(m[2]) ? { marca: m[1], url: m[2] } : { marca: m[1], ruta: m[2] };
+}
+
+/**
+ * Las fuentes de todos los catálogos que marcan sus fuentes, con la forma { catalogo, donde, marca,
+ * url | ruta }: la lista de principios (con producto y redacción, que entran por ella), la forja y los
+ * estándares de agente. Los catálogos se inyectan para poder probar.
+ */
+export function fuentesMarcadas({ lista = [], forja = null, estandares = null } = {}) {
+  const fuera = [];
+  for (const p of lista) for (const f of p.fuentes ?? []) fuera.push({ catalogo: p.catalogo ?? RUTA_PRINCIPIOS, donde: p.id, ...f });
+  for (const c of forja?.criterios ?? []) if (c?.fuente) fuera.push({ catalogo: "ops/forja/", donde: c.id, ...deTextoMarcado(c.fuente) });
+  for (const [id, f] of Object.entries(estandares?.fuentes ?? {})) {
+    fuera.push({ catalogo: "ops/estandares-agentes.json", donde: id, ...(f?.tipo === "casa" ? { marca: "I", ruta: f.ruta } : { marca: "F", url: f?.url }) });
+  }
+  return fuera;
+}
+
+/**
+ * Errores de las marcas (lista vacía si está bien): cada marca es de MARCAS_FUENTE y significa lo
+ * mismo en todos los catálogos; I lleva una ruta del repo y F y S, una url. Una I con url (el viejo
+ * «inferencia») o una C (la vieja «casa») falla.
+ */
+export function problemasDeMarcas(fuentes) {
+  const malos = [];
+  for (const f of fuentes) {
+    const d = `${f.catalogo} · ${f.donde}`;
+    if (!(f.marca in MARCAS_FUENTE)) { malos.push(`${d}: marca «${f.marca}» fuera de MARCAS_FUENTE (${Object.keys(MARCAS_FUENTE).join(", ")})`); continue; }
+    if (f.marca === "I" && (f.url || !f.ruta)) malos.push(`${d}: [I] es de la casa y lleva una ruta del repo; una inferencia con url es [S]`);
+    if (f.marca !== "I" && (f.ruta || !f.url)) malos.push(`${d}: [${f.marca}] lleva una url; lo escrito en la casa es [I]`);
+  }
+  return malos;
+}
+
+/**
+ * Las marcas en prosa (skills, plantillas y documentos, #620): un `[I]` va seguido de la ruta del repo donde
+ * está escrito (que exista), un `[F]` no apunta a una ruta del repo (eso es [I]) y no queda ninguna `[C]`.
+ * La inferencia se marca [S]. Devuelve una línea por fallo; `existe(ruta)` se inyecta.
+ */
+export function problemasDeMarcasEnTexto(ruta, texto, existe) {
+  const malos = [];
+  const tras = /^(?:\*\*)?\s*`?(\.?[\w.-]+(?:\/[\w.-]*)+|[\w.-]+\.(?:md|json|mjs|js))/;
+  String(texto).split("\n").forEach((l, i) => {
+    const d = `${ruta}:${i + 1}`;
+    for (const m of l.matchAll(/\[([A-Z])\]/g)) {
+      const resto = l.slice(m.index + 3);
+      const r = tras.exec(resto);
+      const rutaCitada = r ? r[1].replace(/[.,;:)]+$/, "") : null;
+      // Una mención que define la marca («[I] es de la casa», «de la casa ([I])») vale; una que la define como inferencia, no.
+      // Lo que dice de esta marca: hasta la siguiente marca, 45 caracteres como mucho.
+      const suyo = resto.slice(0, 45).split(/\[[A-Z][\]:]/)[0];
+      const cerca = `${l.slice(Math.max(0, m.index - 15), m.index)} ${suyo}`;
+      const define = /casa|ruta/i.test(cerca) && !/inferencia/i.test(suyo);
+      if (m[1] === "C") malos.push(`${d}: la marca [C] ya no existe; lo escrito en la casa es [I]`);
+      else if (m[1] === "I" && /inferencia/i.test(suyo)) malos.push(`${d}: [I] no es inferencia: es lo escrito en la casa; la inferencia es [S]`);
+      else if (m[1] === "I" && !define && (!rutaCitada || !existe(rutaCitada))) malos.push(`${d}: [I] es de la casa y va seguida de una ruta del repo que exista; una inferencia es [S]`);
+      else if (m[1] === "F" && rutaCitada && /`/.test(resto.slice(0, 3)) && existe(rutaCitada)) malos.push(`${d}: [F] apunta a ${rutaCitada}, que es del repo: es [I]`);
+    }
+  });
+  return malos;
+}
+
+/** Las fuentes marcadas del repo, leídas con el lector de cada catálogo. */
+export const fuentesMarcadasDelRepo = (raiz) => fuentesMarcadas({ lista: leerPrincipiosCasa(raiz).principios, forja: leerForja(raiz), estandares: leerEstandares(raiz) });
 
 /** Errores de un principio propio (lista vacía si está bien). */
 function problemasDePropio(p, d, ctx) {
@@ -236,9 +294,7 @@ export function problemasDePrincipios(propio, lista, { existe = () => true, leer
     if (!(area in AMBITOS)) malos.push(`delegado «${area}»: no es un valor de AMBITOS`);
     if (!existe(dl?.catalogo ?? "")) malos.push(`delegado «${area}»: su catálogo ${dl?.catalogo} no existe`);
     if (!existe(dl?.detalle ?? "")) malos.push(`delegado «${area}»: su detalle ${dl?.detalle} no existe`);
-    if (!esTexto(dl?.sin_norma?.motivo, 20) || !Number.isInteger(dl?.sin_norma?.techo) || dl.sin_norma.techo < 0) {
-      malos.push(`delegado «${area}»: «sin_norma» lleva su motivo y su techo (un entero)`);
-    }
+    if ("sin_norma" in (dl ?? {})) malos.push(`delegado «${area}»: ya no lleva «sin_norma» (#620): cada principio delegado tiene su norma o va a principios_sin_norma con su motivo`);
   }
   const ps = propio?.principios;
   if (!Array.isArray(ps) || !ps.length) return [...malos, "principios: no es una lista con principios"];
@@ -304,14 +360,14 @@ export function problemasDeEnunciadoUnico(lista, textos) {
 /**
  * Las uniones entre normas y principios (lo que vigila ops/uniones.test.js):
  *  1. cada norma cita un principio que existe;
- *  2. cada principio propio tiene al menos una norma, o está en `sinNorma` con su motivo, y esa
- *     lista no pasa de `techo`; uno delegado sin norma cuenta para el techo de su catálogo
- *     (`delegados.<area>.sin_norma.techo`);
+ *  2. cada principio, propio o delegado, tiene al menos una norma, o está en `sinNorma` con su
+ *     motivo, y esa lista no pasa de `techo` (desde #620 los delegados no tienen techo aparte);
  *  3. un principio de `sinNorma` que ya tiene norma sale de la lista (si no, la lista no baja);
- *  4. una norma con ejecutor «nada» lleva su issue, y no vale uno de ISSUES_QUE_NO_LLEVAN;
+ *  4. una norma con ejecutor «nada» lleva su issue (un número; que sea un encargo o una decisión abiertos lo
+ *     mira el CI con red, scripts/fondos-pr.mjs, #620);
  *  5. las acciones de una norma son de ops/estandares-agentes.json, en el orden de esa lista.
  */
-export function problemasDeUniones(lista, normas, { sinNorma = {}, delegados = {} } = {}, { techo = TECHO_SIN_NORMA, acciones = ACCIONES } = {}) {
+export function problemasDeUniones(lista, normas, { sinNorma = {} } = {}, { techo = TECHO_SIN_NORMA, acciones = ACCIONES } = {}) {
   const malos = [];
   const ids = new Set(lista.map((p) => p.id));
   const citados = new Map();
@@ -320,24 +376,14 @@ export function problemasDeUniones(lista, normas, { sinNorma = {}, delegados = {
     else if (!ids.has(n.principio)) malos.push(`norma ${n.id}: cita el principio «${n.principio}», que no está en la lista`);
     else citados.set(n.principio, [...(citados.get(n.principio) ?? []), n.id]);
     if (n.ejecutor === "nada" && !Number.isInteger(n.issue)) malos.push(`norma ${n.id}: nadie la hace cumplir (ejecutor nada) y no tiene issue que lo lleve`);
-    else if (n.ejecutor === "nada" && ISSUES_QUE_NO_LLEVAN.includes(n.issue)) malos.push(`norma ${n.id}: nadie la hace cumplir y su issue es #${n.issue}, el fondo de este catálogo, que no le da control; cuélgala de un encargo`);
     for (const a of n.acciones ?? []) if (!acciones.includes(a)) malos.push(`norma ${n.id}: la acción «${a}» no está en ops/estandares-agentes.json (${acciones.join(", ")})`);
     const orden = (n.acciones ?? []).map((a) => acciones.indexOf(a));
     if (orden.some((x, i) => i > 0 && x < orden[i - 1])) malos.push(`norma ${n.id}: «acciones» va en el orden de ops/estandares-agentes.json (${acciones.join(", ")})`);
   }
-  const porCatalogo = {};
   for (const p of lista) {
     if (citados.has(p.id)) {
       if (p.id in sinNorma) malos.push(`principio ${p.id}: ya lo cita ${citados.get(p.id).join(", ")}; quítalo de principios_sin_norma y baja TECHO_SIN_NORMA`);
-    } else if (p.catalogo) {
-      if (p.id in sinNorma) malos.push(`principio ${p.id}: es de ${p.catalogo}; sin norma cuenta en el techo de su catálogo, no en principios_sin_norma`);
-      porCatalogo[p.area] = (porCatalogo[p.area] ?? 0) + 1;
-    } else if (!(p.id in sinNorma)) malos.push(`principio ${p.id}: ninguna norma lo cita; dale una norma o, con su motivo, ponlo en principios_sin_norma`);
-  }
-  for (const [area, n] of Object.entries(porCatalogo)) {
-    const t = delegados[area]?.sin_norma?.techo;
-    if (!Number.isInteger(t)) malos.push(`delegado ${area}: ${n} principios sin norma y su catálogo no declara sin_norma con techo`);
-    else if (n > t) malos.push(`delegado ${area}: ${n} principios sin norma y su techo es ${t}; la lista solo baja`);
+    } else if (!(p.id in sinNorma)) malos.push(`principio ${p.id}: ninguna norma lo cita; dale una norma o, con su motivo, ponlo en principios_sin_norma${p.catalogo ? ` (es de ${p.catalogo})` : ""}`);
   }
   for (const [id, motivo] of Object.entries(sinNorma)) {
     if (!ids.has(id)) malos.push(`principios_sin_norma: «${id}» no es un principio de la lista`);
@@ -346,14 +392,6 @@ export function problemasDeUniones(lista, normas, { sinNorma = {}, delegados = {
   const n = Object.keys(sinNorma).length;
   if (n > techo) malos.push(`principios_sin_norma: ${n} principios sin norma y el techo es ${techo}; la lista solo baja`);
   return malos;
-}
-
-/** Cuántos principios delegados sin norma tiene cada catálogo: { area: n }. */
-export function delegadosSinNorma(lista, normas) {
-  const citados = new Set(normas.map((n) => n.principio));
-  const fuera = {};
-  for (const p of lista) if (p.catalogo && !citados.has(p.id)) fuera[p.area] = (fuera[p.area] ?? 0) + 1;
-  return fuera;
 }
 
 /** Las normas que citan cada principio: { id: [norma, …] }. */
@@ -366,6 +404,28 @@ export function normasPorPrincipio(normas) {
 /** Las áreas que usa la lista, en el orden de AMBITOS. */
 const areasUsadas = (datos) => Object.keys(AMBITOS).filter((a) => datos.principios.some((p) => p.area === a));
 
+/**
+ * Principios que repiten la norma que los cita (#620, ronda 2): el enunciado de un principio dice el porqué y
+ * la norma lo que debe ser verdad; si se parecen desde UMBRAL_REESCRITURA (el de las reglas de estándar, Dice
+ * sobre palabras con contenido), el principio está reescribiendo su norma. [{ principio, norma, parecido }].
+ */
+export function principiosQueRepitenSuNorma(lista, normas, umbral = UMBRAL_REESCRITURA) {
+  const fuera = [];
+  for (const n of normas) {
+    const p = lista.find((x) => x.id === n.principio);
+    if (!p) continue;
+    const v = parecido(p.enunciado, `${n.condicion ?? ""} ${n.exigencia ?? ""}`);
+    if (v >= umbral) fuera.push({ principio: p.id, norma: n.id, parecido: v });
+  }
+  return fuera;
+}
+
+/**
+ * Techo de parejas principio ↔ norma que se repiten. Solo baja: el test lo pide igual a la cifra de hoy, así que
+ * reescribir un enunciado como porqué lo baja y uno nuevo que copie su norma lo rompe.
+ */
+export const TECHO_PRINCIPIOS_QUE_REPITEN = 20;
+
 /** Cuántos principios hay por área, cuántos de un catálogo delegado y cuántos propios sin norma. */
 export function cifras(datos) {
   return areasUsadas(datos).map((area) => {
@@ -375,7 +435,7 @@ export function cifras(datos) {
 }
 
 const enlace = (r) => `\`${r}\``;
-const textoDeFuente = (f) => (f.marca === "C" ? `[C] \`${f.ruta}\`` : `[${f.marca}] ${f.url}`);
+const textoDeFuente = (f) => (f.marca === "I" ? `[I] \`${f.ruta}\`` : `[${f.marca}] ${f.url}`);
 
 /** Una línea de un principio, para la terminal y el documento. */
 export const lineaDe = (p) => `\`${p.id}\` — **${p.nombre}.** ${p.enunciado}`;
@@ -387,9 +447,9 @@ export function generarMd(datos) {
     "",
     `<!-- Generado desde ${[RUTA_PRINCIPIOS, ...Object.values(datos.delegados).map((d) => d.catalogo)].join(", ")} con «npm run principios-casa -- --escribir». No se edita a mano: ops/principios.test.js lo compara. -->`,
     "",
-    "La lista única de principios: el porqué de lo que se pide. Tres capas que no se repiten: un **principio** dice por qué; una **norma** (`ops/normas.json`, `docs/ops/NORMAS.md`) dice lo que debe ser verdad, con su control, y cita su principio; un **estándar** de tarea (`ops/estandares-agentes.json`) cita normas. Cada principio lleva sus fuentes (**[F]** una fuente externa lo dice, **[I]** inferencia nuestra o fuente secundaria, **[C]** está escrito en la casa) y, si hay, el detalle donde se desarrolla. Los de producto y redacción viven en su propio catálogo, con su fuerza y su control, y aquí se listan sin copiarse.",
+    "La lista única de principios: el porqué de lo que se pide. Tres capas que no se repiten: un **principio** dice por qué; una **norma** (`ops/normas.json`, `docs/ops/NORMAS.md`) dice lo que debe ser verdad, con su control, y cita su principio; un **estándar** de tarea (`ops/estandares-agentes.json`) cita normas. Cada principio lleva sus fuentes (**[F]** una fuente externa lo dice, **[I]** está escrito en la casa, **[S]** inferencia nuestra o fuente secundaria) y, si hay, el detalle donde se desarrolla. Los de producto y redacción viven en su propio catálogo, sin fuerza como todos, y aquí se listan sin copiarse; sus normas están en el mismo registro que las demás.",
     "",
-    "Las normas de cada principio: `npm run principios-casa -- <id>`. Un principio propio que aún no cita ninguna norma está en `principios_sin_norma` de `ops/principios/_catalogo.json`, con su motivo; esa lista solo baja, y la de cada catálogo delegado tiene su propio techo.",
+    "Las normas de cada principio: `npm run principios-casa -- <id>`. Un principio que aún no cita ninguna norma está en `principios_sin_norma` de `ops/principios/_catalogo.json`, con su motivo; esa lista solo baja.",
     "",
     "## Cifras",
     "",
@@ -404,7 +464,7 @@ export function generarMd(datos) {
     const a = AMBITOS[area];
     L.push("", `## ${a.legible.charAt(0).toUpperCase()}${a.legible.slice(1)} (\`${area}\`)`, "", `${a.que}.`);
     const dl = datos.delegados[area];
-    if (dl) L.push("", `Lo trae el catálogo delegado ${enlace(dl.catalogo)}, con su detalle en ${enlace(dl.detalle)}. ${dl.que}. Los que no cita ninguna norma: ${dl.sin_norma.motivo} (techo ${dl.sin_norma.techo}).`);
+    if (dl) L.push("", `Lo trae el catálogo delegado ${enlace(dl.catalogo)}, con su detalle en ${enlace(dl.detalle)}. ${dl.que}. Lo que piden con DEBE es una norma de \`ops/normas.json\` que los cita.`);
     L.push("");
     for (const p of datos.principios.filter((x) => x.area === area)) {
       L.push(`- ${lineaDe(p)}`);

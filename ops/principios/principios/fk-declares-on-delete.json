@@ -6,7 +6,7 @@
   "porque": "El valor por defecto es una decisión que nadie tomó, y una cascada mal puesta borra en silencio.",
   "fuentes": [
     {
-      "marca": "C",
+      "marca": "I",
       "ruta": "docs/datos/PRINCIPIOS.md"
     }
   ],
