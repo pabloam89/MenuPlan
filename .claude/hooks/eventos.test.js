@@ -287,6 +287,21 @@ describe("la guardia no suma espera al registro cuando ya tardó (revisión de s
   });
 });
 
+describe("el tema de un estado_sin_leer (#579)", () => {
+  it("lleva `tema` solo en estado_sin_leer y solo si es del vocabulario", () => {
+    const base = { nombre: "sin-lectura", sesion: SESION };
+    expect(lineaDeEvento({ ...base, evento: "estado_sin_leer", tema: "ci" }, AHORA, "i")).toMatchObject({ evento: "estado_sin_leer", tema: "ci" });
+    expect("tema" in lineaDeEvento({ ...base, evento: "estado_sin_leer", tema: "git push origin main" }, AHORA)).toBe(false);
+    expect("tema" in lineaDeEvento({ ...base, evento: "estado_sin_leer" }, AHORA)).toBe(false);
+    expect("tema" in lineaDeEvento({ ...base, evento: "skill_cargada", tema: "ci" }, AHORA)).toBe(false);
+  });
+  it("un nombre, una sesión o una rama con forma de clave se anotan como nulos o no se anotan", () => {
+    const clave = "ghp_abcdefghijklmnopqrstuvwxyz0123456789";
+    expect(lineaDeEvento({ evento: "skill_cargada", nombre: clave }, AHORA)).toBeNull();
+    expect(lineaDeEvento({ evento: "skill_cargada", nombre: "github", sesion: clave, rama: clave }, AHORA)).toMatchObject({ sesion: null, rama: null });
+  });
+});
+
 describe("agente lanzado (necesita «Agent» en el matcher de settings.json: propuesta, no cableado)", () => {
   it("saca el tipo del agente, y solo si es un nombre", () => {
     expect(agenteLanzado({ tool_name: "Agent", tool_input: { subagent_type: "revisor", prompt: "texto privado" } })).toBe("revisor");
