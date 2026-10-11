@@ -103,6 +103,9 @@ jobs:
       # encargo cuyo fondo tiene diagnóstico (mecanismo y causa de escape), o un
       # fondo con aprendizaje. Mismo patrón que «Casos del PR»: si la API no
       # responde, falla con la causa (relanza el check); los bots, exentos.
+      # Además mira que cada norma sin ejecutor cuelgue de un encargo o una decisión abiertos
+      # (#620): falla solo el PR que toca ops/normas.json o cierra ese issue; para los demás
+      # sale un aviso (`fondos-pr: regla=normas-sin-ejecutor resultado=warning`).
       - name: Fondos del PR
         if: github.event_name == 'pull_request'
         run: node scripts/fondos-pr.mjs

@@ -18,13 +18,17 @@
  *
  *   4. Toda norma de ops/normas.json sin ejecutor (`nada`) apunta a un issue ABIERTO de tipo encargo o
  *      decisión, el que la lleva (#620): ni un caso, ni un fondo, ni uno cerrado. Es lo que el test local no
- *      puede ver sin red (ops/uniones.test.js solo mira que sea un número).
+ *      puede ver sin red (ops/uniones.test.js solo mira que sea un número). FALLA solo el PR responsable:
+ *      el que toca ops/normas.json (`tocaNormas`) o el que lleva `Closes #n` con una norma colgando de #n.
+ *      Para los demás, lo mismo sale como AVISO (`::warning`, línea `fondos-pr: resultado=warning`): cerrar
+ *      el issue de una norma no pone rojo el check obligatorio `tests` de todos los PR (ronda 3).
  *
  * El cuerpo del PR se lee con limpiarCuerpo (sin comentarios ni bloques de
  * código: la plantilla explica las líneas en un comentario y no cuenta).
  *
  * Uso (lo lanza el CI): PR_BODY=… PR_AUTOR=… PR_RAMA=… GITHUB_TOKEN=… GITHUB_REPOSITORY=… node scripts/fondos-pr.mjs
  */
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -56,29 +60,33 @@ export function cierresDelPr(cuerpo) {
 export const TIPOS_QUE_LLEVAN = ["encargo", "decision"];
 
 /**
- * Errores de las normas sin ejecutor (#620): cada una apunta a un issue abierto de tipo encargo o decisión.
- * `consultar(n)` → el issue de la API o null; puede lanzar ErrorDeApi (lo recoge quien llama).
+ * Problemas de las normas sin ejecutor (#620): cada una apunta a un issue abierto de tipo encargo o decisión.
+ * Devuelve [{ norma, issue, texto }]; `issue` es null si no tiene. `consultar(n)` → el issue de la API o null;
+ * puede lanzar ErrorDeApi (lo recoge quien llama).
  */
 export async function problemasDeNormasSinEjecutor(normas, consultar) {
   const malos = [];
-  const sinEjecutor = (normas ?? []).filter((n) => n.ejecutor === "nada");
   const vistos = new Map();
-  for (const n of sinEjecutor) {
-    if (!Number.isInteger(n.issue)) { malos.push(`norma ${n.id}: sin ejecutor y sin issue que la lleve`); continue; }
+  for (const n of (normas ?? []).filter((x) => x.ejecutor === "nada")) {
+    const mal = (texto) => malos.push({ norma: n.id, issue: Number.isInteger(n.issue) ? n.issue : null, texto: `norma ${n.id}: ${texto}` });
+    if (!Number.isInteger(n.issue)) { mal("sin ejecutor y sin issue que la lleve"); continue; }
     if (!vistos.has(n.issue)) vistos.set(n.issue, await consultar(n.issue));
     const i = vistos.get(n.issue);
-    if (!i || i.pull_request) malos.push(`norma ${n.id}: su issue #${n.issue} no existe o es un PR`);
-    else if (String(i.state).toLowerCase() !== "open") malos.push(`norma ${n.id}: su issue #${n.issue} está cerrado; cuélgala de un encargo abierto que le dé ejecutor (#624 si no hay otro)`);
-    else if (!TIPOS_QUE_LLEVAN.includes(tipoDe(i))) malos.push(`norma ${n.id}: su issue #${n.issue} es de tipo ${tipoDe(i) ?? "sin tipo"}; la lleva un encargo o una decisión, no un caso ni un fondo`);
+    if (!i || i.pull_request) mal(`su issue #${n.issue} no existe o es un PR`);
+    else if (String(i.state).toLowerCase() !== "open") mal(`su issue #${n.issue} está cerrado; cuélgala de un encargo abierto que le dé ejecutor (#624 si no hay otro)`);
+    else if (!TIPOS_QUE_LLEVAN.includes(tipoDe(i))) mal(`su issue #${n.issue} es de tipo ${tipoDe(i) ?? "sin tipo"}; la lleva un encargo o una decisión, no un caso ni un fondo`);
   }
   return malos;
 }
+
+/** De esos problemas, los que son de ESTE PR: todos si toca ops/normas.json; si no, los de una norma colgada de un issue que cierra. */
+export const deEstePr = (problemas, { tocaNormas, cierres }) => problemas.filter((p) => tocaNormas || (p.issue !== null && cierres.includes(p.issue)));
 
 /**
  * Decide si el PR cumple. `consultar(n)` → el issue de la API o null;
  * `consultarPadre(n)` → su padre o null; ambos pueden lanzar ErrorDeApi.
  */
-export async function comprobar({ cuerpo, autor = "", rama = "", consultar, consultarPadre, normas = [] }) {
+export async function comprobar({ cuerpo, autor = "", rama = "", consultar, consultarPadre, normas = [], tocaNormas = false }) {
   if (BOTS.has(String(autor).toLowerCase())) return { ok: true, motivo: "PR de un bot: exento." };
   const fallos = [];
 
@@ -139,15 +147,23 @@ export async function comprobar({ cuerpo, autor = "", rama = "", consultar, cons
     }
   }
 
+  let avisos = [];
   try {
-    fallos.push(...await problemasDeNormasSinEjecutor(normas, consultar));
+    const todos = await problemasDeNormasSinEjecutor(normas, consultar);
+    const suyos = deEstePr(todos, { tocaNormas, cierres });
+    fallos.push(...suyos.map((p) => p.texto));
+    avisos = todos.filter((p) => !suyos.includes(p)).map((p) => p.texto);
   } catch (e) {
     if (!(e instanceof ErrorDeApi)) throw e;
-    return { ok: false, api: true, motivo: `No he podido consultar los issues de las normas sin ejecutor en la API de GitHub (${e.message}). No es culpa del PR: relanza el check.` };
+    // Un token sin permiso no se arregla relanzando (como al leer un Closes): se dice distinto.
+    const como = e.permisos
+      ? `La API de GitHub rechaza el token del workflow (${e.message}) al leer los issues de las normas sin ejecutor: no es culpa del PR ni sirve relanzar. Revisa que tests.yml tenga «permissions: issues: read» y que el token no haya caducado.`
+      : `No he podido consultar los issues de las normas sin ejecutor en la API de GitHub (${e.message}). No es culpa del PR: relanza el check.`;
+    return { ok: false, api: true, motivo: como };
   }
 
-  if (fallos.length) return { ok: false, motivo: `El PR no cumple: ${fallos.join("; ")}.` };
-  return { ok: true, motivo: `Agente: ${lineas.join(", ")}${cierres.length ? `; Closes ${cierres.map((n) => `#${n}`).join(", ")}` : ""}.` };
+  if (fallos.length) return { ok: false, motivo: `El PR no cumple: ${fallos.join("; ")}.`, avisos };
+  return { ok: true, avisos, motivo: `Agente: ${lineas.join(", ")}${cierres.length ? `; Closes ${cierres.map((n) => `#${n}`).join(", ")}` : ""}.` };
 }
 
 const esPrincipal = process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
@@ -155,14 +171,23 @@ const esPrincipal = process.argv[1] && import.meta.url === pathToFileURL(resolve
 if (esPrincipal) {
   const { PR_BODY = "", PR_AUTOR = "", PR_RAMA = "", GITHUB_TOKEN = "", GITHUB_REPOSITORY = "" } = process.env;
   const base = { token: GITHUB_TOKEN, repo: GITHUB_REPOSITORY || "pabloam89/MenuPlan" };
+  // ¿Toca este PR ops/normas.json? Lo dice el diff del commit de fusión que revisa el CI (HEAD^1 es la base).
+  let tocaNormas = false;
+  try {
+    tocaNormas = execFileSync("git", ["diff", "--name-only", "HEAD^1", "HEAD"], { encoding: "utf8" }).split(/\r?\n/).includes("ops/normas.json");
+  } catch {
+    tocaNormas = true; // a propósito: sin diff no se sabe, y es mejor un fallo que se explica que un hueco
+  }
   const r = await comprobar({
     cuerpo: PR_BODY,
     autor: PR_AUTOR,
     rama: PR_RAMA,
     consultar: (n) => pedir({ ...base, ruta: `/issues/${n}` }),
     consultarPadre: (n) => pedir({ ...base, ruta: `/issues/${n}/parent` }),
+    tocaNormas,
     normas: JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), "..", "ops", "normas.json"), "utf8")).normas,
   });
+  for (const a of r.avisos ?? []) console.log(`::warning title=Norma sin ejecutor mal colgada::${a}. No es de este PR: lo arregla quien la toque o quien cierre ese issue.\nfondos-pr: regla=normas-sin-ejecutor resultado=warning detalle=${a.split(":")[0].replace("norma ", "")}`);
   if (r.ok) {
     console.log(`Fondos: ok. ${r.motivo}`);
   } else {

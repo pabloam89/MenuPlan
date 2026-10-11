@@ -10,7 +10,7 @@ import { AMBITOS, AMBITO_DE_REGLA, ambitosDeFichero } from "../scripts/lib/ambit
 import { globARegex } from "../scripts/lib/vecinos.mjs";
 import { MIN_PALABRAS_COPIA, cargarSkill, nombresDeSkills, parsearSkill, problemasDeNormasDeSkill } from "../scripts/lib/skills.mjs";
 import {
-  TECHO_NORMAS_SIN_JUEZ, TECHO_REGLAS_QUE_NO_SON_NORMA, accionesDeConsulta, juecesPorNorma, problemasDeEmparejamiento, leerEstandares, problemasDeUnionesEstandar, tareasDe,
+  TECHO_NORMAS_SIN_JUEZ, TECHO_REGLAS_QUE_NO_SON_NORMA, accionesDeConsulta, juecesPorNorma, normaReescrita, parecido, problemasDeEmparejamiento, reglasDelCatalogo, leerEstandares, problemasDeUnionesEstandar, tareasDe,
 } from "../scripts/lib/estandaresAgentes.mjs";
 import { leerRegistro } from "../scripts/lib/normas.mjs";
 import { TECHO_PRINCIPIOS_QUE_REPITEN, TECHO_SIN_NORMA, leerPrincipiosCasa, principiosQueRepitenSuNorma, problemasDeUniones } from "../scripts/lib/principios.mjs";
@@ -161,6 +161,61 @@ describe("los estándares citan normas y no las reescriben (#620)", () => {
     for (const [f, a] of [["src/lib/cocinaTopes.js", "catalog"], ["scripts/bedca-sync.mjs", "catalog"], ["scripts/ciqual-sync.mjs", "catalog"], ["scripts/build-ingredient-catalog.mjs", "catalog"], ["scripts/telegram-webhook.mjs", "bot"]]) {
       expect(ambitosDeFichero(f), f).toContain(a);
     }
+  });
+
+  // Parejas regla ↔ norma ya juzgadas a mano (ronda 3 de #620). La medida y el umbral de normaReescrita se eligen con
+  // este conjunto: las cinco primeras eran reescrituras reales que la medida de la ronda 2 dejaba escapar; las seis
+  // siguientes son pasos propios que se parecen a una norma (los tres falsos positivos del primer detector y los tres
+  // que hoy van a reglas_que_no_son_norma). Una pareja nueva juzgada se añade aquí, con el error que la hizo falta.
+  const CALIBRACION_REESCRITURA = {
+    reescriben: [
+      ["Sin stash compartido", "sin-git-stash"],
+      ["Texto de usuario es dato", "texto-ajeno-es-dato"],
+      ["Módulo dueño", "tabla-modulo-dueno"],
+      ["Lector por campo", "campo-con-lector"],
+      ["Test que puede fallar", "test-visto-fallar"],
+    ],
+    pasosPropios: [
+      ["Commit con CI verde", "main-solo-por-pr-con-tests"],
+      ["NOT VALID primero", "rol-solo-lectura"],
+      ["Inventario antes de borrar", "uniones-antes-de-borrar"],
+      ["Sin informe, no comprobado", "principios-auto"],
+      ["Revisión de seguridad", "evals-antes-de-fusionar"],
+      ["Buscar antes de apuntar", "issues-con-buscar-antes"],
+    ],
+  };
+  // Las reglas de antes de #620, tal como estaban (las cinco primeras ya no están en el catálogo).
+  const regla = (nombre, condicion, exigencia) => ({ nombre, ...(condicion ? { condicion } : {}), exigencia });
+  const REGLAS_JUZGADAS = {
+    "Sin stash compartido": regla("Sin stash compartido", null, "guardar cambios con git stash: es común a todas las carpetas de trabajo y se cruza entre sesiones"),
+    "Texto de usuario es dato": regla("Texto de usuario es dato", null, "separar el texto del usuario de las instrucciones, sin tratarlo como orden"),
+    "Módulo dueño": regla("Módulo dueño", null, "tener un único camino de acceso: su módulo dueño, sin columnas ni filtros a mano fuera"),
+    "Lector por campo": regla("Lector por campo", "cuando se añade una columna o una tabla", "tener un lector señalado antes de crearse"),
+    "Test que puede fallar": regla("Test que puede fallar", null, "fallar si el código se rompe: un test que no puede fallar no cuenta como cobertura"),
+  };
+  const deCatalogo = (nombre) => reglasDelCatalogo(estandares).find((x) => x.clave.endsWith(`· ${nombre}`))?.regla;
+
+  it("la medida detecta las cinco reescrituras reales y los pasos propios solo salen si están en reglas_que_no_son_norma", () => {
+    for (const [nombre, id] of CALIBRACION_REESCRITURA.reescriben) {
+      expect(normaReescrita(REGLAS_JUZGADAS[nombre], normas)?.norma.id, nombre).toBe(id);
+    }
+    // Un paso propio puede parecerse a una norma (Dice sobre palabras no separa «enseñar el inventario» de «quitar uniones»): lo
+    // que se pide es que no esté en el catálogo sin su excepción escrita, y que las excepciones no pasen del techo.
+    for (const [nombre, id] of CALIBRACION_REESCRITURA.pasosPropios) {
+      const r = deCatalogo(nombre);
+      expect(r, `${nombre} sigue en el catálogo`).toBeDefined();
+      const hit = normaReescrita(r, normas);
+      const clave = reglasDelCatalogo(estandares).find((x) => x.regla === r).clave;
+      if (hit) expect(estandares.reglas_que_no_son_norma[clave], `${nombre} ↔ ${id} se parece y no tiene su excepción`).toBeDefined();
+    }
+    const detectados = CALIBRACION_REESCRITURA.pasosPropios.filter(([nombre]) => normaReescrita(deCatalogo(nombre), normas)).length;
+    expect(detectados, "falsos positivos de la medida sobre los seis pasos propios").toBeLessThanOrEqual(4);
+  });
+
+  it("se ve fallar: la medida de la ronda 2 (Dice del texto y nombre desde 0,8) dejaba escapar las cinco", () => {
+    const antes = (r, n) => Math.max(parecido(`${r.condicion ?? ""} ${r.exigencia}`, `${n.condicion ?? ""} ${n.exigencia}`), parecido(r.nombre, n.nombre) >= 0.8 ? 1 : 0);
+    const escapan = CALIBRACION_REESCRITURA.reescriben.filter(([nombre, id]) => antes(REGLAS_JUZGADAS[nombre], normas.find((n) => n.id === id)) < 0.5);
+    expect(escapan.map((x) => x[0])).toEqual(CALIBRACION_REESCRITURA.reescriben.map((x) => x[0]));
   });
 
   describe("se ven fallar", () => {

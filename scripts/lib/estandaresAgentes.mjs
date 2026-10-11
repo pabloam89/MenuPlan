@@ -637,7 +637,7 @@ export const UMBRAL_REESCRITURA = 0.5;
  *  - `reglas_que_no_son_norma`: reglas que se parecen a una norma y no la repiten («<donde> · <nombre>»: «<norma>: motivo»).
  *  - `normas_sin_juez`: normas vigiladas por juicio que ningún estándar de juez cita (id: motivo).
  */
-export const TECHO_REGLAS_QUE_NO_SON_NORMA = 3;
+export const TECHO_REGLAS_QUE_NO_SON_NORMA = 4;
 export const TECHO_NORMAS_SIN_JUEZ = 6;
 
 /** Todas las reglas del catálogo con la clave con la que se nombran en las excepciones: «agente/tarea · Nombre» o «común id · Nombre». */
@@ -649,22 +649,37 @@ export function reglasDelCatalogo(datos) {
 }
 
 const textoDeRegla = (r) => `${r.condicion ?? ""} ${r.exigencia ?? ""}`;
-/**
- * El parecido de dos nombres cuenta solo si los dos tienen dos palabras con contenido o más (uno de una palabra
- * coincide con demasiados) y si casi coinciden (desde 0,8): dos nombres de tres palabras que comparten una son
- * cosas distintas.
- */
-const parecidoDeNombre = (a, b) => {
-  if (palabrasClave(a).size < 2 || palabrasClave(b).size < 2) return 0;
-  const p = parecido(a, b);
-  return p >= 0.8 ? p : 0;
-};
+/** Palabras con contenido que comparten dos frases: { comunes, a, b } (los tamaños de cada una). */
+function solapa(x, y) {
+  const a = palabrasClave(x);
+  const b = palabrasClave(y);
+  return { comunes: [...a].filter((w) => b.has(w)).length, a: a.size, b: b.size };
+}
 
-/** La norma más parecida a una regla (por su condición y su exigencia, o por su nombre), o null si ninguna llega al umbral. */
+/**
+ * Cómo de parecida es una regla a una norma, de 0 a 1, con tres señales (calibradas con CALIBRACION_REESCRITURA
+ * de ops/uniones.test.js, parejas ya juzgadas a mano). Gana la mayor:
+ *  1. el texto (condición y exigencia) por Dice, simétrico: una norma corta no se traga una regla más rica;
+ *  2. los NOMBRES, si los dos tienen 2 palabras con contenido o más y comparten dos tercios de la más corta
+ *     («Texto de usuario es dato» ↔ «Texto ajeno como dato»);
+ *  3. una palabra del nombre en común y la regla cubre el 60 % o más de una norma de 3 palabras con contenido
+ *     o más («Sin stash compartido» ↔ «Sin git stash»): la norma entera está dentro de la regla.
+ * Es la capa material de la forja: una regla aproximada con su lista de excepciones, que solo baja.
+ */
+export function parecidoDeRegla(r, n) {
+  const dice = parecido(textoDeRegla(r), textoDeRegla(n));
+  const nom = solapa(r.nombre, n.nombre);
+  const txt = solapa(textoDeRegla(r), textoDeRegla(n));
+  const porNombre = Math.min(nom.a, nom.b) >= 2 && nom.comunes / Math.min(nom.a, nom.b) >= 2 / 3 ? 0.67 : 0;
+  const normaDentro = nom.comunes >= 1 && Math.min(nom.a, nom.b) >= 2 && txt.b >= 3 && txt.comunes / txt.b >= 0.6 ? txt.comunes / txt.b : 0;
+  return Math.max(dice, porNombre, normaDentro);
+}
+
+/** La norma más parecida a una regla, o null si ninguna llega al umbral. */
 export function normaReescrita(r, normas, umbral = UMBRAL_REESCRITURA) {
   let mejor = null;
   for (const n of normas) {
-    const p = Math.max(parecido(textoDeRegla(r), textoDeRegla(n)), parecidoDeNombre(r.nombre, n.nombre));
+    const p = parecidoDeRegla(r, n);
     if (p >= umbral && (!mejor || p > mejor.parecido)) mejor = { norma: n, parecido: p };
   }
   return mejor;

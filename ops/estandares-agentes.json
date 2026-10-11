@@ -4162,7 +4162,8 @@
   "reglas_que_no_son_norma": {
     "revisor/contrastar-estandar-del-constructor · Sin informe, no comprobado": "principios-auto: se parecen solo en comprobar; la regla es cómo marca el juez una regla sin evidencia",
     "lola/papeles-y-permisos-de-herramientas · Revisión de seguridad": "evals-antes-de-fusionar: se parecen solo en fusionar; la regla es que un cambio de papel o permiso pase por el juez seguridad",
-    "común buscar-lo-ya-apuntado · Buscar antes de apuntar": "issues-con-buscar-antes: la norma es crear un issue con el script que busca parecidos; la regla es buscar antes de dar un hallazgo por nuevo en un informe"
+    "común buscar-lo-ya-apuntado · Buscar antes de apuntar": "issues-con-buscar-antes: la norma es crear un issue con el script que busca parecidos; la regla es buscar antes de dar un hallazgo por nuevo en un informe",
+    "gobierno/worktrees-y-ramas · Inventario antes de borrar": "uniones-antes-de-borrar: la norma es quitar las uniones; la regla es enseñar antes lo que se perdería (cambios, commits sin subir y uniones)"
   },
   "normas_sin_juez": {
     "produccion-solo-desde-main": "Gateway de Pablo: lo juzga él al pulsar fusionar a main, no un agente juez",
