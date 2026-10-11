@@ -16,6 +16,18 @@
   },
   "lineas": [
     {
+      "firma": "salud-despliegue chequeo",
+      "emisores": ["scripts/salud-despliegue.mjs"],
+      "campos": {"chequeo": "id", "ok": "estado", "motivo": "estado", "ms": "derivado", "intentos": "derivado"},
+      "lectores": [{"tipo": "informe", "ref": ".github/workflows/salud-despliegue.yml", "menciona": "salud-despliegue.mjs"}]
+    },
+    {
+      "firma": "salud-despliegue resultado",
+      "emisores": ["scripts/salud-despliegue.mjs"],
+      "campos": {"resultado": "estado", "ref": "id", "estado": "estado"},
+      "lectores": [{"tipo": "informe", "ref": ".github/workflows/salud-despliegue.yml", "menciona": "salud-despliegue.mjs"}]
+    },
+    {
       "firma": "generado ruta",
       "emisores": [
         "scripts/merge-driver.mjs"

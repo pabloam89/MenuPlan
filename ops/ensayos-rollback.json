@@ -1,0 +1,5 @@
+{
+  "$comentario": "Registro fechado de los ensayos de la vuelta atrás de un despliegue (#589, norma rollback-ensayado). Lo rellena Pablo (o Álvaro) DESPUÉS de ensayar el «Instant Rollback» del panel de Vercel, siguiendo la sección «Vuelta atrás» de .claude/skills/vercel/SKILL.md; ninguna sesión ejecuta un rollback. Una entrada por ensayo, solo campos cerrados (los valida scripts/lib/ensayosRollback.mjs y ops/ensayos-rollback.test.js): fecha AAAA-MM-DD, quien (pablo|alvaro), metodo (panel|conector), entorno (produccion|staging), resultado (ok|fallo), minutos (de pulsar a ver el despliegue anterior sirviendo), comprobado (lista de lo que se miró después: pagina, funcion, canario) e issue (el que lo lleva). Nunca valores ni enlaces de despliegues. Vacío al principio: sin ningún ensayo la norma sigue en blanda y el aviso es el issue 589. Los ensayos que cuentan para la norma son los de resultado ok.",
+  "version": 1,
+  "ensayos": []
+}
