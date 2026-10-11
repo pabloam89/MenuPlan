@@ -285,6 +285,7 @@ describe("el script", () => {
     expect(r.stdout).toMatch(/^glosario excepciones: \d+ por_bajar: \d+ candidatos_palabras: \d+ candidatos_pares: \d+ juzgados: \d+/m);
     const md = readFileSync(join(dir, "inf.md"), "utf8");
     expect(md).toMatch(/### Glosario/);
+    expect(md, "el informe real lleva la sección de caducidades (#581)").toMatch(/### Caducidades/);
     // Los criterios de las skills (#457): una línea contable por skill y la cifra del conjunto.
     expect(r.stdout.match(/^criterios skill: \S+ criterios: \d+ vigilados: \d+ de_juicio: \d+ /gm)?.length).toBeGreaterThanOrEqual(14);
     expect(md).toMatch(/### Criterios de las skills/);
