@@ -128,6 +128,29 @@ jobs:
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
           PR_AUTOR: ${{ github.event.pull_request.user.login }}
+      # Tres avisos, SOLO AVISOS (#576; nunca fallan el job: romperían los PR de las demás
+      # sesiones): C8 tests relajados (aserciones quitadas, .skip/.only/.todo, un umbral que sube),
+      # C1 PR demasiado grande (líneas, ficheros o áreas, sin contar lo generado) y C12 un PR que
+      # cierra un fondo sin tocar un test, la guardia ni una skill. Cada uno deja una línea
+      # `avisos-pr: regla=… resultado=ok|warning|exempt|unchecked detalle=…` que se cuenta con
+      # `gh run view <run> --log | grep "avisos-pr:"`. La excepción se declara en el cuerpo del PR:
+      # «Tests relajados: sí — <motivo>», «Tamaño: grande — <motivo>» y «Lección: <dónde>».
+      # De aviso a fallo: cuando una regla lleve 30 PR seguidos con menos del 10 % de avisos
+      # falsos (los que acaban en la línea de excepción por un motivo trivial), su
+      # `resultado=warning` pasa a salir con código 1 en scripts/avisos-pr.mjs (detalle en la
+      # cabecera de scripts/lib/avisosPr.mjs). Usa el diff del paso anterior; sin npm ci. El
+      # cuerpo va por entorno, nunca en el script. La API solo se lee para saber si un `Closes`
+      # es un fondo: si no responde, C12 sale `unchecked` y no avisa.
+      - name: Avisos del PR
+        if: github.event_name == 'pull_request'
+        run: |
+          [ -s "$RUNNER_TEMP/diff-del-pr.txt" ] || git -c core.quotePath=false diff -U0 HEAD^1 HEAD > "$RUNNER_TEMP/diff-del-pr.txt" || rm -f "$RUNNER_TEMP/diff-del-pr.txt"
+          node scripts/avisos-pr.mjs "$RUNNER_TEMP/diff-del-pr.txt"
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_AUTOR: ${{ github.event.pull_request.user.login }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
       - run: npm ci
       # Falla solo con errores de lint NUEVOS respecto a lint-base.json (ver
       # scripts/lint-base.mjs); los viejos se arreglan cuando se toca el fichero.
