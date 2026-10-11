@@ -79,7 +79,7 @@ Con `ssh` se entiende `C:\Windows\System32\OpenSSH\ssh.exe root@100.73.252.32`
 
 | Qué | Comando | Debe salir |
 |---|---|---|
-| Entrar | `ssh` | el prompt del servidor; la primera vez, ventana de 1Password a aprobar |
+| Entrar | `ssh` | el prompt del servidor; **cada vez** ventana de 1Password a aprobar: avisa a Pablo antes y espera su sí (sin él, «communication with agent failed»; skill `1password`) |
 | Lanzar algo largo | subir el script (`ssh 'cat > /root/x.sh' < x.sh`) y **en otra llamada** `ssh 'nohup bash /root/x.sh >/dev/null 2>&1 < /dev/null &'`; leer el log | el script sigue aunque se corte la conexión |
 | Actualizar | `apt-get update && apt-get -y upgrade`, lanzado como lo anterior | el log acaba sin errores |
 | ¿Pide reinicio? | `ls /var/run/reboot-required` | el fichero existe, o `No such file` |
@@ -134,8 +134,9 @@ Instalar las copias de la base (OK; lo lanza Pablo con `!`), su ensayo de restau
   90 s; y al empezar, `limpiarRestos` para y borra lo de un ensayo cortado.
 - **2026-10-08 · una orden larga por SSH no vuelve y se corta a los 300 s
   (`apt upgrade`, `ufw` con varios pasos).** Causa: la orden depende de que la
-  conexión siga viva y esperando; no se llegó a determinar si fue la aprobación
-  de 1Password o la propia sesión. Con el mismo trabajo lanzado dentro del
+  conexión siga viva y esperando; probablemente fue la ventana de aprobación de
+  1Password sin contestar (el 11 oct se midió que sin ella la `ssh` falla con
+  «communication with agent failed»; skill `1password`). Con el mismo trabajo lanzado dentro del
   servidor tardó un minuto. Arreglo: subir el script y lanzarlo con `nohup`;
   esperar leyendo el log. El cortafuegos, en pasos cortos y con el temporizador
   de rescate.
