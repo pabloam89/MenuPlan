@@ -3,7 +3,7 @@
   "area": "proceso",
   "nombre": "Quien construye no fusiona",
   "enunciado": "La fusión de un cambio con el CI en verde la decide alguien distinto de quien lo construyó.",
-  "porque": "Quien construye tiene prisa por cerrar; que otro decida la fusión es la última mirada antes de que el cambio llegue a staging.",
+  "porque": "Quien construye tiene prisa por cerrar, y otra mirada antes de fusionar para el error que el constructor no ve.",
   "fuente": "[I] CLAUDE.md",
   "detalle": [
     "CLAUDE.md#ramas-y-flujo"

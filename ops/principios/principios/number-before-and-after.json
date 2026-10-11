@@ -2,8 +2,8 @@
   "id": "number-before-and-after",
   "area": "proceso",
   "nombre": "La cifra antes y después",
-  "enunciado": "Antes de proponer un arreglo se cuentan los casos, desde cuándo y dónde; después se mide la misma cifra, y solo mejoró si la diferencia supera lo que varía sola.",
-  "porque": "Sin la cifra de partida no se sabe si un arreglo sirvió, y una diferencia pequeña puede ser solo ruido.",
+  "enunciado": "Cada arreglo se mide con la misma cifra antes y después, y mejora solo si la diferencia supera lo que varía sola.",
+  "porque": "Sin la cifra de partida nadie sabe si un arreglo sirvió, y una diferencia pequeña puede ser solo ruido.",
   "fuente": "[I] ops/metricas.json",
   "detalle": [
     "CLAUDE.md#pensar-en-datos"

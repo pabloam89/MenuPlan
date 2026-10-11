@@ -2,7 +2,7 @@
   "id": "user-does-not-widen-permission",
   "area": "infra",
   "nombre": "Nadie amplía su propio permiso",
-  "enunciado": "Quien usa un permiso no puede ampliarlo: los permisos, los secretos y los ajustes de los servicios los cambia una persona.",
+  "enunciado": "Una persona cambia los permisos, los secretos y los ajustes de los servicios, nunca quien los usa.",
   "porque": "Si quien actúa puede darse más permisos, cualquier límite que tenga es solo una sugerencia.",
   "fuente": "[I] CLAUDE.md",
   "detalle": [

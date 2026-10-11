@@ -2,7 +2,7 @@
   "id": "pure-transformations",
   "area": "datos",
   "nombre": "Transformaciones en módulos puros",
-  "enunciado": "Cada transformación del dominio vive en un módulo puro con tests, y la base no la duplica: si la necesita, la deriva.",
+  "enunciado": "Cada transformación del dominio vive en un módulo puro con tests, y la base la deriva en vez de duplicarla.",
   "porque": "Dos implementaciones de la misma cuenta acaban dando resultados distintos.",
   "fuente": "[I] docs/datos/PRINCIPIOS.md",
   "detalle": [

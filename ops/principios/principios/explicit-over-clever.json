@@ -2,7 +2,7 @@
   "id": "explicit-over-clever",
   "area": "codigo",
   "nombre": "Explícito antes que ingenioso",
-  "enunciado": "El código dice lo que hace a la vista: nombres escritos enteros, importaciones fijas y nada que se monte en tiempo de ejecución.",
+  "enunciado": "El código dice a la vista lo que hace, con nombres enteros e importaciones fijas, sin nada montado en tiempo de ejecución.",
   "porque": "Un agente o un revisor solo razona sobre lo que puede buscar, y un nombre montado al vuelo no sale en ninguna búsqueda.",
   "fuente": "[I] eslint.config.js",
   "origen": [

@@ -1,8 +1,8 @@
 {
   "id": "stable-unique-id",
   "area": "entidades",
-  "nombre": "Id estable, único y con forma",
-  "enunciado": "Cada entidad y cada fila lleva un id propio, único en su registro, que no cambia ni se reutiliza al retirarse.",
+  "nombre": "Id estable y único",
+  "enunciado": "Cada entidad y cada fila lleva un id propio, único en su registro, que no cambia ni se reutiliza.",
   "porque": "Un id que cambia o se reutiliza rompe cada referencia que lo apuntaba, también las de los recuentos viejos.",
   "fuente": "[I] docs/entidades/N0-principios.md",
   "detalle": [

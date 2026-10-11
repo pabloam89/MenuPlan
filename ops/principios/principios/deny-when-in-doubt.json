@@ -2,8 +2,8 @@
   "id": "deny-when-in-doubt",
   "area": "codigo",
   "nombre": "Ante la duda, se niega",
-  "enunciado": "Cuando falta un dato para decidir (una credencial, un tope que no se lee, un catálogo incompleto), el sistema cierra el paso en vez de dejar pasar.",
-  "porque": "Un fallo que cierra se ve enseguida y se arregla; uno que deja pasar se descubre tarde y con daño.",
+  "enunciado": "Cuando falta un dato para decidir, como una credencial o un catálogo completo, el sistema cierra el paso.",
+  "porque": "Un fallo que cierra se ve enseguida y se arregla, mientras que uno que deja pasar se descubre tarde y con daño.",
   "fuente": "[I] api/sinCredencial.test.js",
   "origen": [
     "C10"

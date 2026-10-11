@@ -2,7 +2,7 @@
   "id": "days-hours-zones",
   "area": "datos",
   "nombre": "Días, horas y zonas",
-  "enunciado": "Un instante es un timestamptz, un día del calendario es una date y la hora se calcula con la zona IANA de la casa, nunca con la del sistema.",
+  "enunciado": "Un instante es un timestamptz, un día es una date y la hora se calcula con la zona de la casa.",
   "porque": "La casa, el bot y los servidores viven en zonas distintas, y una hora sin zona sale con horas de error.",
   "fuente": "[I] docs/datos/PRINCIPIOS.md",
   "detalle": [

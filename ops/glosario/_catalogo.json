@@ -34,6 +34,9 @@
     "redaccion": [
       "ops/redaccion.json"
     ],
+    "principios": [
+      "ops/principios/"
+    ],
     "comandos": [
       ".claude/commands/*.md"
     ]

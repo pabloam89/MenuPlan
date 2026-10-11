@@ -23,44 +23,44 @@ Las normas de cada principio: `npm run principios-casa -- <id>`. Un principio qu
 
 Cómo se escribe y se prueba el código del repo, lo haga una persona o un agente.
 
-- `builder-does-not-judge` — **Quien construye no juzga.** Quien construye un cambio no lo juzga: el veredicto lo da otro agente, sin herramientas de escritura.
-  - Porqué: Quien ha escrito algo ve lo que quiso hacer y no lo que hizo; un juez que puede escribir acaba arreglando en vez de juzgar.
+- `builder-does-not-judge` — **Quien construye no juzga.** El veredicto sobre un cambio lo da otro agente distinto del constructor y sin herramientas de escritura.
+  - Porqué: Quien ha escrito algo ve lo que quiso hacer y no lo que hizo, y un juez que escribe acaba arreglando en vez de juzgar.
   - Fuente: [I] CLAUDE.md
   - Detalle: `CLAUDE.md#agentes`
   - Viene de: C7
-- `context-in-repo` — **Contexto en el repositorio.** Lo que una sesión necesita saber vive en el repositorio (reglas, skills, tests y datos con su caducidad), no en la memoria de una persona ni de una sesión.
-  - Porqué: Cada sesión empieza sin memoria: lo que no está en el repo se pierde o se reinventa, y otra sesión no lo ve.
+- `context-in-repo` — **Contexto en el repositorio.** Lo que una sesión necesita saber vive en el repositorio, no en la memoria de una persona ni de una sesión.
+  - Porqué: Cada sesión empieza sin memoria, así que lo que no está en el repo se pierde o se reinventa.
   - Fuente: [I] CLAUDE.md
   - Detalle: `CLAUDE.md#lo-que-hace-cumplir-esto`
   - Viene de: C5
-- `deny-when-in-doubt` — **Ante la duda, se niega.** Cuando falta un dato para decidir (una credencial, un tope que no se lee, un catálogo incompleto), el sistema cierra el paso en vez de dejar pasar.
-  - Porqué: Un fallo que cierra se ve enseguida y se arregla; uno que deja pasar se descubre tarde y con daño.
+- `deny-when-in-doubt` — **Ante la duda, se niega.** Cuando falta un dato para decidir, como una credencial o un catálogo completo, el sistema cierra el paso.
+  - Porqué: Un fallo que cierra se ve enseguida y se arregla, mientras que uno que deja pasar se descubre tarde y con daño.
   - Fuente: [I] api/sinCredencial.test.js
   - Viene de: C10
-- `explicit-over-clever` — **Explícito antes que ingenioso.** El código dice lo que hace a la vista: nombres escritos enteros, importaciones fijas y nada que se monte en tiempo de ejecución.
+- `explicit-over-clever` — **Explícito antes que ingenioso.** El código dice a la vista lo que hace, con nombres enteros e importaciones fijas, sin nada montado en tiempo de ejecución.
   - Porqué: Un agente o un revisor solo razona sobre lo que puede buscar, y un nombre montado al vuelo no sale en ninguna búsqueda.
   - Fuente: [I] eslint.config.js
   - Viene de: C2
-- `one-change-one-intent` — **Un cambio, una intención.** Cada sesión lleva una sola tarea en su carpeta y su rama, y cada PR tiene un solo propósito, el del issue que cierra.
-  - Porqué: Dos intenciones en un mismo cambio no se pueden revisar, revertir ni atribuir por separado, y las sesiones en paralelo se pisan.
+- `one-change-one-intent` — **Un cambio, una intención.** Cada sesión lleva una sola tarea en su carpeta y su rama, y cada PR cierra un solo propósito.
+  - Porqué: Dos intenciones en un cambio no se revisan, se revierten ni se atribuyen por separado, y las sesiones en paralelo se pisan.
   - Fuente: [I] CLAUDE.md
   - Detalle: `CLAUDE.md#una-sesión-una-tarea`
   - Viene de: C1
-- `one-structured-line` — **Una línea estructurada.** Cada cosa que pasa deja una línea campo: valor o JSON, con un nombre de evento que no se repite y sin datos de familias, que un script pueda contar.
-  - Porqué: Lo que no deja rastro no se mide, y lo que no se mide no mejora; una línea libre no la cuenta ningún script.
+- `one-structured-line` — **Una línea estructurada.** Cada cosa que pasa deja una línea que un script puede contar, con un evento único y sin datos de familias.
+  - Porqué: Lo que no deja rastro no se mide, y una línea en texto libre no la cuenta ningún script.
   - Fuente: [I] .claude/hooks/eventos.mjs
   - Detalle: `CLAUDE.md#pensar-en-datos`, `docs/entidades/N0-principios.md#10-un-evento-lleva-campos-fijos`
   - Viene de: C11, claude:cada-cosa-deja-una-linea
-- `state-read-at-source` — **Estado leído en su fuente.** Un estado (fusionado, aplicado, desplegado, en verde) solo se da por cierto tras leerlo en su fuente en ese momento, no de memoria.
-  - Porqué: Varias sesiones cambian el mismo repo a la vez: lo que era cierto hace una hora puede no serlo ya.
+- `state-read-at-source` — **Estado leído en su fuente.** Una sesión da un estado por cierto solo tras leerlo en su fuente en ese momento, no de memoria.
+  - Porqué: Varias sesiones cambian el mismo repo a la vez, y lo que era cierto hace una hora puede no serlo ya.
   - Fuente: [I] .claude/hooks/pendientes.mjs
   - Viene de: C9
-- `test-is-the-contract` — **El test es el contrato.** Lo que el código promete lo fija un test que corre en el CI, y un test nuevo se ve fallar antes de creérselo.
+- `test-is-the-contract` — **El test es el contrato.** Un test que corre en el CI fija lo que el código promete, y cada test nuevo se ve fallar antes de creérselo.
   - Porqué: Un test que nunca se vio en rojo puede no medir nada, y lo que no fija un test se rompe sin que nadie lo vea.
   - Fuente: [I] .claude/rules/tests.md
   - Detalle: `.claude/rules/tests.md#tests`
   - Viene de: C6
-- `tests-are-not-relaxed` — **Los tests no se relajan.** Un test en rojo se arregla en el código o se discute con su motivo; no se afloja, no se salta y no se borra para ponerlo en verde.
+- `tests-are-not-relaxed` — **Los tests no se relajan.** Un test en rojo se arregla en el código o se discute con su motivo, sin aflojarlo, saltarlo ni borrarlo.
   - Porqué: Un test relajado sigue en verde y deja de vigilar justo lo que acababa de fallar.
   - Fuente: [I] scripts/lib/avisosPr.mjs
   - Viene de: C8
@@ -69,32 +69,32 @@ Cómo se escribe y se prueba el código del repo, lo haga una persona o un agent
 
 Identidades, permisos, secretos, despliegues, copias y servicios.
 
-- `bounded-blast-radius` — **Radio de daño acotado.** Todo lo que gasta o escribe tiene un límite de daño: gasto diario y mensual, mensajes por casa y peticiones por origen.
+- `bounded-blast-radius` — **Radio de daño acotado.** Todo lo que gasta o escribe tiene un límite de daño por día, por mes, por casa y por origen.
   - Porqué: Sin límite, un bucle, un abuso o un error de código convierte un fallo pequeño en una factura o en datos rotos.
   - Fuente: [I] api/_guard.test.js
   - Viene de: I4
-- `declared-is-real` — **Lo declarado es lo real.** Lo que el repo declara de la infraestructura (reglas de ramas, migraciones aplicadas, secretos) se compara con lo real de forma periódica.
+- `declared-is-real` — **Lo declarado es lo real.** Lo que el repo declara de la infraestructura se compara cada cierto tiempo con lo que hay de verdad.
   - Porqué: Un registro que nadie compara con la realidad acaba mintiendo, y se decide con datos falsos.
   - Fuente: [I] scripts/verificar-estado.mjs
   - Viene de: I8
-- `emergency-access` — **Acceso de emergencia.** Hay una forma escrita y probada de operar sin Claude y de restaurar la base desde una copia.
-  - Porqué: Si el día que falla algo solo sabe arreglarlo una herramienta que no está, no hay arreglo.
+- `emergency-access` — **Acceso de emergencia.** Una guía escrita y probada permite operar sin Claude y restaurar la base desde una copia.
+  - Porqué: Si el día que algo falla solo sabe arreglarlo una herramienta que no está, no hay arreglo.
   - Fuente: [I] docs/ops/SIN-CLAUDE.md
   - Viene de: I10
-- `least-short-lived-permissions` — **Permisos mínimos y de vida corta.** Cada identidad y cada clave tiene los permisos mínimos para su uso, vive poco y llega solo a donde se usa.
+- `least-short-lived-permissions` — **Permisos mínimos y cortos.** Cada identidad y cada clave tiene los permisos mínimos para su uso, vive poco y llega solo a donde se usa.
   - Porqué: Una clave con más alcance o más vida de la necesaria convierte una fuga pequeña en una grande.
   - Fuente: [I] .claude/skills/alta-de-secreto/SKILL.md
   - Viene de: I2
-- `own-identity` — **Cada agente, su identidad.** Cada agente actúa con su propia identidad, distinta de la de la persona, y no puede volver a las credenciales de otro.
-  - Porqué: Con la identidad de la persona, lo que hace un agente no se distingue de lo que hace ella y hereda todos sus permisos.
+- `own-identity` — **Cada agente, su identidad.** Cada agente actúa con su propia identidad, distinta de la de cualquier persona, sin acceso a credenciales ajenas.
+  - Porqué: Con la identidad de una persona, lo que hace un agente no se distingue de lo que hace ella y hereda todos sus permisos.
   - Fuente: [I] .claude/skills/github/referencias/app-sesiones.md
   - Viene de: I1
-- `owned-expiring-resources` — **Recursos con dueño y caducidad.** Cada recurso (una clave, una skill, un servicio) tiene un dueño y una caducidad, y avisa antes de caducar.
+- `owned-expiring-resources` — **Recursos con dueño y caducidad.** Cada recurso, sea una clave, una skill o un servicio, tiene dueño y caducidad, y avisa antes de caducar.
   - Porqué: Lo que no tiene dueño nadie lo renueva, y lo que caduca sin aviso se rompe un día cualquiera.
   - Fuente: [I] ops/recursos.json
   - Viene de: I9
-- `plan-evaluated-before-apply` — **El plan se evalúa antes.** Un cambio en la base o en la infraestructura se ensaya y se evalúa antes de aplicarlo, y lo aplica quien tiene permiso.
-  - Porqué: Solo hay una base y es producción: lo que se aplica sin ensayo se prueba sobre datos de familias.
+- `plan-evaluated-before-apply` — **El plan se evalúa antes.** Cada cambio en la base o en la infraestructura se ensaya antes de aplicarlo, y lo aplica quien tiene permiso.
+  - Porqué: Solo hay una base y es producción, así que lo que se aplica sin ensayo se prueba sobre datos de familias.
   - Fuente: [I] scripts/apply-migration.mjs
   - Detalle: `CLAUDE.md#base-de-datos`
   - Viene de: I5
@@ -103,19 +103,19 @@ Identidades, permisos, secretos, despliegues, copias y servicios.
   - Fuente: [I] .claude/skills/vercel/SKILL.md
   - Detalle: `CLAUDE.md#ramas-y-flujo`
   - Viene de: I7
-- `public-repo-no-sensitive-detail` — **Repo público sin detalle sensible.** El repo es público: lo que se escribe en él dice qué se pide y quién lo vigila, nunca cómo se salta un control ni dato alguno de familias.
-  - Porqué: Cualquiera lee los issues, los PR y el historial, y lo que se publica no se puede retirar del todo.
+- `public-repo-no-sensitive-detail` — **Repo público sin detalle.** El repo público dice qué se pide y quién lo vigila, sin explicar cómo se salta un control ni dar datos de familias.
+  - Porqué: Cualquiera lee los issues, los PR y el historial, y lo que se publica no se retira del todo.
   - Fuente: [I] CLAUDE.md
   - Detalle: `CLAUDE.md#cuando-algo-falla-hasta-el-problema-de-fondo`
-- `rehearsal-undone-and-expires` — **El ensayo se deshace y caduca.** Un ensayo no deja ningún cambio y vale poco tiempo: pasado su plazo, hay que ensayar otra vez.
+- `rehearsal-undone-and-expires` — **El ensayo se deshace.** Un ensayo no deja ningún cambio y caduca pronto, así que uno viejo ya no vale.
   - Porqué: Un ensayo que deja rastro ya no es un ensayo, y uno viejo no dice nada del estado de hoy.
   - Fuente: [I] scripts/apply-migration.mjs
   - Viene de: I6
-- `untamperable-trail` — **Rastro que el agente no borra.** Toda acción de un agente deja un rastro que ese mismo agente no puede editar ni borrar.
+- `untamperable-trail` — **Rastro que nadie reescribe.** Cada acción de un agente deja un rastro que ese mismo agente no puede editar ni borrar.
   - Porqué: Un rastro que se puede reescribir no sirve para saber qué pasó justo cuando más falta hace.
   - Fuente: [I] .claude/hooks/eventos.mjs
   - Viene de: N2
-- `user-does-not-widen-permission` — **Nadie amplía su propio permiso.** Quien usa un permiso no puede ampliarlo: los permisos, los secretos y los ajustes de los servicios los cambia una persona.
+- `user-does-not-widen-permission` — **Nadie amplía su propio permiso.** Una persona cambia los permisos, los secretos y los ajustes de los servicios, nunca quien los usa.
   - Porqué: Si quien actúa puede darse más permisos, cualquier límite que tenga es solo una sugerencia.
   - Fuente: [I] CLAUDE.md
   - Detalle: `CLAUDE.md#qué-se-le-pregunta-a-pablo-y-qué-no`
@@ -125,16 +125,16 @@ Identidades, permisos, secretos, despliegues, copias y servicios.
 
 Cómo son las tablas, las migraciones y cada dato de la base.
 
-- `closed-vocabulary` — **Vocabulario cerrado.** Todo lo que se agrupa (motivos, estados, causas, tipos, sitios) toma sus valores de un vocabulario cerrado con su test, y un valor se retira diciendo a cuál pasa, no se borra ni se reutiliza.
-  - Porqué: Con texto libre cada uno escribe lo mismo de otra forma y nada se puede contar; un valor reutilizado descuadra los recuentos viejos.
+- `closed-vocabulary` — **Vocabulario cerrado.** Todo lo que se agrupa toma sus valores de un vocabulario cerrado con su test, y un valor retirado dice a cuál pasa.
+  - Porqué: Con texto libre cada uno escribe lo mismo de otra forma, y un valor reutilizado descuadra los recuentos viejos.
   - Fuente: [I] src/lib/vocabularios.js
   - Detalle: `CLAUDE.md#pensar-en-datos`, `docs/datos/PRINCIPIOS.md#4-vocabularios-cerrados`, `docs/entidades/N0-principios.md#12-un-vocabulario-tiene-ciclo-de-vida`
   - Viene de: C4, claude:vocabulario-cerrado
-- `days-hours-zones` — **Días, horas y zonas.** Un instante es un timestamptz, un día del calendario es una date y la hora se calcula con la zona IANA de la casa, nunca con la del sistema.
+- `days-hours-zones` — **Días, horas y zonas.** Un instante es un timestamptz, un día es una date y la hora se calcula con la zona de la casa.
   - Porqué: La casa, el bot y los servidores viven en zonas distintas, y una hora sin zona sale con horas de error.
   - Fuente: [I] docs/datos/PRINCIPIOS.md
   - Detalle: `docs/datos/PRINCIPIOS.md#20-días-horas-y-zonas`
-- `expand-and-contract` — **Expandir y contraer.** Cada migración convive con el código de antes y de después: primero se añade, lo que se quita va después, y el código no depende de que ya esté aplicada.
+- `expand-and-contract` — **Expandir y contraer.** Cada migración convive con el código de antes y de después, y el código funciona aunque la migración aún no esté aplicada.
   - Porqué: La rama se despliega antes de que alguien aplique su migración, y staging y producción comparten base.
   - Fuente: [I] docs/datos/PRINCIPIOS.md
   - Detalle: `docs/datos/PRINCIPIOS.md#10-migraciones`, `CLAUDE.md#base-de-datos`
@@ -143,59 +143,59 @@ Cómo son las tablas, las migraciones y cada dato de la base.
   - Fuente: [I] docs/datos/PRINCIPIOS.md
   - Detalle: `docs/datos/PRINCIPIOS.md#2-toda-fk-dice-qué-pasa-al-borrar`
   - Sin norma: Lo cubren las normas de conjunto principios-auto y principios-revision, que miran todo docs/datos/PRINCIPIOS.md; falta una norma propia
-- `health-data-apart` — **Datos de salud aparte.** Las alergias, intolerancias, dietas médicas y medidas del cuerpo se marcan como datos de salud y se tratan aparte.
-  - Porqué: Son categoría especial del RGPD (art. 9): exponerlos o copiarlos de más es el daño más grave que puede hacer el producto.
+- `health-data-apart` — **Datos de salud aparte.** Las alergias, las intolerancias, las dietas médicas y las medidas del cuerpo se marcan como datos de salud y se tratan aparte.
+  - Porqué: Son categoría especial del RGPD, y exponerlos o copiarlos de más es el daño más grave que puede hacer el producto.
   - Fuente: [F] https://gdpr-info.eu/art-9-gdpr/
   - Detalle: `docs/datos/PRINCIPIOS.md#17-datos-de-salud`
   - Sin norma: Lo cubren las normas de conjunto principios-auto y principios-revision, que miran todo docs/datos/PRINCIPIOS.md; falta una norma propia
-- `household-owns-data` — **Todo cuelga de la casa.** Las tablas de dominio cuelgan de la casa: llevan su household_id y su índice principal empieza por él.
-  - Porqué: La casa es la unidad de acceso (RLS), de borrado (RGPD) y de consulta.
+- `household-owns-data` — **Todo cuelga de la casa.** Cada tabla de dominio cuelga de la casa con su household_id, que encabeza su índice principal.
+  - Porqué: La casa es la unidad de acceso, de borrado y de consulta de cada dato de una familia.
   - Fuente: [I] docs/datos/PRINCIPIOS.md
   - Detalle: `docs/datos/PRINCIPIOS.md#1-todo-cuelga-de-la-casa`
   - Sin norma: Lo cubren las normas de conjunto principios-auto y principios-revision, que miran todo docs/datos/PRINCIPIOS.md; falta una norma propia
-- `json-or-table` — **JSON o tabla.** Va a una tabla lo que se filtra, se referencia o editan varios a la vez; va a JSON lo que un solo escritor lee y escribe entero.
+- `json-or-table` — **JSON o tabla.** Lo que se filtra, se referencia o editan varios va a una tabla, y lo que un solo escritor lee entero va a JSON.
   - Porqué: Un JSON que se filtra en el servidor o que editan varios a la vez pierde datos y no se puede consultar.
   - Fuente: [I] docs/datos/PRINCIPIOS.md
   - Detalle: `docs/datos/PRINCIPIOS.md#5-json-o-tabla`
   - Sin norma: Lo cubren las normas de conjunto principios-auto y principios-revision, que miran todo docs/datos/PRINCIPIOS.md; falta una norma propia
-- `normalised-tables` — **Tablas normalizadas.** Las tablas nuevas nacen en tercera forma normal: una celda, un valor; cada columna depende de la clave entera, y lo que se repite se referencia.
+- `normalised-tables` — **Tablas normalizadas.** Cada tabla nueva nace en tercera forma normal, con un valor por celda y referencias en vez de copias.
   - Porqué: Una copia de un nombre o un precio en otra tabla se queda vieja sin que nada lo avise.
   - Fuente: [I] docs/datos/PRINCIPIOS.md
   - Detalle: `docs/datos/PRINCIPIOS.md#13-normalización`
-- `one-fact-one-place` — **Un dato, un sitio.** Cada dato y cada regla vive en un solo sitio con al menos un lector; cualquier otra copia es una proyección generada que un test compara con su origen.
+- `one-fact-one-place` — **Un dato, un sitio.** Cada dato y cada regla vive en un solo sitio con su lector, y cada copia es una proyección generada que un test compara.
   - Porqué: Dos copias escritas a mano acaban diciendo cosas distintas, y nadie sabe cuál vale.
   - Fuente: [I] CLAUDE.md
   - Detalle: `docs/datos/PRINCIPIOS.md#6-un-dato-un-sitio`, `docs/entidades/N0-principios.md#7-una-fuente-de-verdad-por-dato-y-por-vocabulario`, `CLAUDE.md#base-de-datos`
   - Viene de: C3
-- `pure-transformations` — **Transformaciones en módulos puros.** Cada transformación del dominio vive en un módulo puro con tests, y la base no la duplica: si la necesita, la deriva.
+- `pure-transformations` — **Transformaciones en módulos puros.** Cada transformación del dominio vive en un módulo puro con tests, y la base la deriva en vez de duplicarla.
   - Porqué: Dos implementaciones de la misma cuenta acaban dando resultados distintos.
   - Fuente: [I] docs/datos/PRINCIPIOS.md
   - Detalle: `docs/datos/PRINCIPIOS.md#11-transformaciones`
-- `secure-tables` — **Tablas cerradas de serie.** Cada tabla nace con RLS, cada función revoca los permisos por defecto y concede solo a quien la usa.
-  - Porqué: Entre una migración y la siguiente una tabla sin RLS queda abierta a cualquiera por la API.
+- `secure-tables` — **Tablas cerradas de serie.** Cada tabla nace con RLS y cada función concede permiso solo a quien la usa.
+  - Porqué: Entre una migración y la siguiente, una tabla sin RLS queda abierta a cualquiera por la API.
   - Fuente: [I] docs/datos/PRINCIPIOS.md
   - Detalle: `docs/datos/PRINCIPIOS.md#8-seguridad`
 - `self-describing-catalog` — **Diccionario en la base.** Cada tabla nueva dice en su comentario qué guarda y quién la escribe, y el código pide las columnas que usa.
-  - Porqué: El catálogo de la base es la documentación que no se queda vieja; un select de todo esconde quién lee qué.
+  - Porqué: El catálogo de la base es la documentación que no se queda vieja, y un select de todo esconde quién lee qué.
   - Fuente: [I] docs/datos/PRINCIPIOS.md
   - Detalle: `docs/datos/PRINCIPIOS.md#16-diccionario-y-lectura`
   - Sin norma: Lo cubren las normas de conjunto principios-auto y principios-revision, que miran todo docs/datos/PRINCIPIOS.md; falta una norma propia
-- `status-is-state-machine` — **El estado es una máquina.** Una columna de estado es una máquina de estados: su vocabulario va con CHECK, cada estado que importa tiene su fecha y los saltos permitidos se escriben.
+- `status-is-state-machine` — **El estado es una máquina.** Cada columna de estado es una máquina con vocabulario cerrado, una fecha por estado importante y sus saltos escritos.
   - Porqué: Un estado que se escribe sin reglas acaba en combinaciones imposibles que nadie sabe interpretar.
   - Fuente: [I] docs/datos/PRINCIPIOS.md
   - Detalle: `docs/datos/PRINCIPIOS.md#21-estados`
   - Sin norma: Lo cubren las normas de conjunto principios-auto y principios-revision, que miran todo docs/datos/PRINCIPIOS.md; falta una norma propia
 - `table-has-owner-module` — **Una tabla, un módulo dueño.** Cada tabla se lee y se escribe desde un solo módulo, y el resto del código llama a sus funciones.
-  - Porqué: Una tabla tocada con textos sueltos desde cualquier sitio se rompe en cuanto cambia, aunque la base esté perfecta.
+  - Porqué: Una tabla tocada con textos sueltos desde cualquier sitio se rompe en cuanto cambia, aunque la base esté bien.
   - Fuente: [I] docs/datos/PRINCIPIOS.md
   - Detalle: `docs/datos/PRINCIPIOS.md#15-cableado-del-código-a-la-tabla`
-- `types-and-nulls` — **Tipos justos y nulos decididos.** Cada columna tiene el tipo justo (fechas con zona, importes exactos) y es not null salvo que su comentario diga qué significa el nulo.
+- `types-and-nulls` — **Tipos justos y nulos decididos.** Cada columna tiene el tipo justo y es not null, salvo que su comentario diga qué significa el nulo.
   - Porqué: Un nulo sin significado se lee de tres formas distintas, y un tipo flojo deja entrar datos imposibles.
   - Fuente: [I] docs/datos/PRINCIPIOS.md
   - Detalle: `docs/datos/PRINCIPIOS.md#14-tipos-y-nulos`
   - Sin norma: Lo cubren las normas de conjunto principios-auto y principios-revision, que miran todo docs/datos/PRINCIPIOS.md; falta una norma propia
-- `versioned-concurrency` — **Concurrencia con versión.** El estado compartido de la casa se escribe con funciones que comprueban y suben una versión, no leyendo y reescribiendo el documento entero.
-  - Porqué: La app, el bot y otro miembro escriben la misma casa; sin versión gana el último y nadie se entera.
+- `versioned-concurrency` — **Concurrencia con versión.** El estado compartido de la casa se escribe con funciones que comprueban y suben una versión.
+  - Porqué: La app, el bot y otro miembro escriben la misma casa, y sin versión gana el último sin que nadie se entere.
   - Fuente: [I] docs/datos/PRINCIPIOS.md
   - Detalle: `docs/datos/PRINCIPIOS.md#7-concurrencia`
   - Sin norma: Lo cubren las normas de conjunto principios-auto y principios-revision, que miran todo docs/datos/PRINCIPIOS.md; falta una norma propia
@@ -206,8 +206,8 @@ Qué hace bien HoMenu y Lola para las familias, con su fuente.
 
 Catálogo delegado: `ops/principios-producto/` (detalle en `docs/producto/PRINCIPIOS.md`). Los principios de producto con fuente (#606), con su test y la skill principios-de-producto.
 
-- `curated-catalog-only` — **Solo catálogo revisado.** Solo se propone lo que una persona ha revisado y marcado: recetas con estrella y su foto, sin rellenos ni combinaciones automáticas.
-  - Porqué: Un plato que nadie revisó en el menú de una familia cuesta su confianza, y se nota más que un menú corto.
+- `curated-catalog-only` — **Solo catálogo revisado.** El menú propone solo recetas que una persona revisó y marcó con estrella y foto, sin rellenos ni combinaciones automáticas.
+  - Porqué: Un plato que nadie revisó en el menú de una familia cuesta su confianza, y eso se nota más que un menú corto.
   - Fuente: [I] .claude/rules/catalogo.md
   - Detalle: `.claude/rules/catalogo.md#catálogo-alimentos-y-nutrición`
 - `abuse-of-business-flows-limited` — **Flujos de negocio limitados.** Cuando una función puede dañar al negocio si se usa en masa (crear cuentas, comentar, pedir menús), el producto DEBE limitarla por persona o por origen.
@@ -372,56 +372,56 @@ Catálogo delegado: `ops/principios-producto/` (detalle en `docs/producto/PRINCI
 Cómo se trabaja: fallos, fondos, cifras, jueces y quién decide.
 
 - `builder-does-not-merge` — **Quien construye no fusiona.** La fusión de un cambio con el CI en verde la decide alguien distinto de quien lo construyó.
-  - Porqué: Quien construye tiene prisa por cerrar; que otro decida la fusión es la última mirada antes de que el cambio llegue a staging.
+  - Porqué: Quien construye tiene prisa por cerrar, y otra mirada antes de fusionar para el error que el constructor no ve.
   - Fuente: [I] CLAUDE.md
   - Detalle: `CLAUDE.md#ramas-y-flujo`
   - Viene de: N3
-- `calibrated-distinct-judge` — **Juez distinto y calibrado.** El juez trabaja en otro contexto que el constructor, dice pasa o no pasa con su motivo, puede decir «no sé» y se calibra contra ejemplos marcados por Pablo.
-  - Porqué: Un juez sin calibrar puede aprobarlo todo o nada sin que se note, y uno con el mismo contexto repite los errores del constructor.
+- `calibrated-distinct-judge` — **Juez distinto y calibrado.** El juez trabaja en otro contexto que el constructor, da su veredicto con motivo y se calibra con ejemplos marcados por Pablo.
+  - Porqué: Un juez sin calibrar aprueba todo o nada sin que se note, y uno con el mismo contexto repite los errores del constructor.
   - Fuente: [I] .claude/agents/revisor.md
   - Detalle: `CLAUDE.md#pensar-en-datos`
   - Viene de: N4, claude:el-juez-llm
-- `class-not-case` — **La clase, no el caso.** Un fallo se arregla en su caso y se ataca su problema de fondo, que se cierra con una barrera y una verificación que cubre la clase entera.
-  - Porqué: Tapar el caso deja vivos a sus hermanos, y el mismo fallo vuelve con otra cara.
+- `class-not-case` — **La clase, no el caso.** Cada fallo se arregla en su caso y en su problema de fondo, con una barrera que cubre la clase entera.
+  - Porqué: Tapar solo el caso deja vivos a sus hermanos, y el mismo fallo vuelve con otra cara.
   - Fuente: [I] docs/ops/FLUJO.md
   - Detalle: `CLAUDE.md#cuando-algo-falla-hasta-el-problema-de-fondo`, `CLAUDE.md#pensar-en-datos`
   - Viene de: C12, claude:la-clase-no-el-caso
-- `highest-mechanism` — **El mecanismo más alto.** Lo que importa se hace cumplir con el escalón más alto de la escalera de durabilidad (ops/mecanismos.json), y se baja de escalón solo con su motivo.
-  - Porqué: Lo que obliga es el hook, no el texto: una regla que solo está escrita depende de que alguien se acuerde.
+- `highest-mechanism` — **El mecanismo más alto.** Cada norma usa el escalón más alto posible de la escalera de durabilidad y baja de escalón solo con su motivo.
+  - Porqué: Lo que obliga es el hook y no el texto, porque una norma solo escrita depende de que alguien se acuerde.
   - Fuente: [I] ops/mecanismos.json
   - Detalle: `CLAUDE.md#pensar-en-datos`
   - Viene de: claude:el-mecanismo-mas-alto
-- `know-when-to-stop` — **Saber parar.** Tras varios fallos seguidos, un gasto anómalo o el presupuesto agotado, el agente se detiene solo, lo registra y devuelve el control.
-  - Porqué: Un bucle que no para gasta dinero y tiempo y amplía el daño de un error.
+- `know-when-to-stop` — **Saber parar.** Tras varios fallos seguidos, un gasto anómalo o el presupuesto agotado, el agente se detiene, lo registra y devuelve el control.
+  - Porqué: Un bucle que no para gasta dinero y tiempo y agranda el daño de un error.
   - Fuente: [I] ops/presupuestos.json
   - Viene de: N6
-- `no-number-without-question` — **Ninguna cifra sin pregunta.** Cada cifra dice qué pregunta responde y qué script la lee, y ninguna se persigue sola: va con otra que la vigila y con una muestra leída a mano.
-  - Porqué: Una cifra que nadie lee es coste sin uso, y una cifra que se persigue sola deja de medir lo que medía.
+- `no-number-without-question` — **Ninguna cifra sin pregunta.** Cada cifra responde a una pregunta, tiene un script que la lee y va con otra cifra que la vigila.
+  - Porqué: Una cifra que nadie lee es coste sin uso, y una que se persigue sola deja de medir lo que medía.
   - Fuente: [I] ops/metricas.json
   - Detalle: `CLAUDE.md#pensar-en-datos`
   - Viene de: claude:ninguna-cifra-sin-pregunta, claude:ninguna-cifra-es-objetivo-sola
-- `number-before-and-after` — **La cifra antes y después.** Antes de proponer un arreglo se cuentan los casos, desde cuándo y dónde; después se mide la misma cifra, y solo mejoró si la diferencia supera lo que varía sola.
-  - Porqué: Sin la cifra de partida no se sabe si un arreglo sirvió, y una diferencia pequeña puede ser solo ruido.
+- `number-before-and-after` — **La cifra antes y después.** Cada arreglo se mide con la misma cifra antes y después, y mejora solo si la diferencia supera lo que varía sola.
+  - Porqué: Sin la cifra de partida nadie sabe si un arreglo sirvió, y una diferencia pequeña puede ser solo ruido.
   - Fuente: [I] ops/metricas.json
   - Detalle: `CLAUDE.md#pensar-en-datos`
   - Viene de: claude:la-cifra-antes-y-despues
-- `person-over-the-loop` — **Persona sobre el bucle.** Que nadie apruebe cada paso no quiere decir que no haya persona: Pablo lee una muestra periódica y ajusta las reglas.
-  - Porqué: Pedir el sí en cada paso interrumpe y se acaba diciendo que sí a todo; mirar una muestra mantiene el control sin frenar.
+- `person-over-the-loop` — **Persona sobre el bucle.** Pablo no aprueba cada paso, sino que lee una muestra periódica y ajusta las reglas.
+  - Porqué: Pedir el sí en cada paso interrumpe y acaba en un sí a todo, y mirar una muestra mantiene el control sin frenar.
   - Fuente: [I] CLAUDE.md
   - Detalle: `CLAUDE.md#qué-se-le-pregunta-a-pablo-y-qué-no`
   - Viene de: N7
-- `reversibility-decides-autonomy` — **La reversibilidad decide la autonomía.** Lo reversible lo hace el agente solo; lo irreversible se vuelve reversible (copia, borrado suave, vuelta atrás) o lo hace una persona.
-  - Porqué: Un error reversible cuesta un rato; uno irreversible puede costar datos de familias o producción.
+- `reversibility-decides-autonomy` — **La reversibilidad decide la autonomía.** El agente hace solo lo reversible, y lo irreversible se vuelve reversible o lo hace una persona.
+  - Porqué: Un error reversible cuesta un rato, y uno irreversible puede costar datos de familias o producción.
   - Fuente: [I] CLAUDE.md
   - Detalle: `CLAUDE.md#qué-se-le-pregunta-a-pablo-y-qué-no`
   - Viene de: N1
-- `three-check-layers` — **Tres capas de comprobación.** Se comprueba en tres capas, formal, material y subjetiva, y lo subjetivo que se juzga igual una y otra vez pasa a material o formal.
-  - Porqué: Un juicio repetido cuesta cada vez y varía; un test da lo mismo cada vez y no cuesta nada.
+- `three-check-layers` — **Tres capas de comprobación.** Cada comprobación es formal, material o subjetiva, y lo subjetivo que se juzga siempre igual pasa a una capa mecánica.
+  - Porqué: Un juicio repetido cuesta cada vez y varía, mientras que un test da lo mismo cada vez y no cuesta nada.
   - Fuente: [I] ops/forja/
   - Detalle: `CLAUDE.md#pensar-en-datos`
   - Viene de: claude:tres-capas
-- `top-down` — **De arriba abajo.** Primero la forja dice qué hace buena a una pieza, luego la plantilla de su tipo y después cada pieza; no se rellena una pieza antes que su plantilla.
-  - Porqué: Una pieza escrita sin su plantilla fija una forma que luego hay que deshacer en todas las demás.
+- `top-down` — **De arriba abajo.** La forja define qué hace buena a una pieza, la plantilla de su tipo la concreta y cada pieza sigue a su plantilla.
+  - Porqué: Una pieza escrita antes que su plantilla fija una forma que luego se deshace en todas las demás.
   - Fuente: [I] ops/forja/
   - Detalle: `CLAUDE.md#pensar-en-datos`
   - Viene de: claude:de-arriba-abajo
@@ -501,44 +501,44 @@ Catálogo delegado: `ops/redaccion.json` (detalle en `docs/ops/REDACCION.md`). L
 
 Cómo se nombra, se identifica y se registra cada cosa del proyecto.
 
-- `axis-language-bridge` — **Cada eje, su lenguaje.** Cada eje usa su lenguaje dentro de su contexto, y una palabra que cruza de eje se declara puente una vez, sin cambiar de significado.
-  - Porqué: La misma palabra con dos sentidos en dos ejes confunde justo donde se juntan.
+- `axis-language-bridge` — **Cada eje, su lenguaje.** Cada eje usa su lenguaje en su contexto, y una palabra que cruza de eje se declara puente una sola vez.
+  - Porqué: La misma palabra con dos sentidos en dos ejes confunde justo donde los ejes se juntan.
   - Fuente: [I] ops/entidades.json
   - Detalle: `docs/entidades/N0-principios.md#13-cada-eje-tiene-su-lenguaje-y-se-traduce-en-la-frontera`
   - Sin norma: Principio del N0 de entidades: su norma la pone el N1 de cada entidad, que aún no está escrito
-- `deprecate-not-delete` — **Se retira, no se borra.** Un id, un campo, un valor o un término que deja de usarse se marca retirado y dice qué lo sustituye; no se borra ni se reutiliza su nombre.
+- `deprecate-not-delete` — **Se retira, no se borra.** Un id, un campo, un valor o un término sin uso se marca retirado y dice qué lo sustituye.
   - Porqué: Borrar o reutilizar un nombre deja sin sentido los recuentos y las referencias viejas sin que nadie se entere.
   - Fuente: [I] ops/vocabularios-vida.json
   - Detalle: `docs/entidades/N0-principios.md#11-se-depreca-no-se-borra`
-- `discrete-first` — **Discreto primero.** Lo que se va a contar, filtrar o agrupar toma valores discretos (sí o no, un vocabulario, una referencia, un número o una fecha); el texto libre, solo en un hueco declarado.
-  - Porqué: Lo discreto se cuenta y se compara solo; el texto libre hay que leerlo entero cada vez.
+- `discrete-first` — **Discreto primero.** Lo que se cuenta, se filtra o se agrupa toma valores discretos, y el texto libre ocupa solo un hueco declarado.
+  - Porqué: Lo discreto se cuenta y se compara solo, y el texto libre se lee entero cada vez.
   - Fuente: [F] https://google.aip.dev/126
   - Detalle: `CLAUDE.md#pensar-en-datos`, `docs/entidades/N0-principios.md#3-valores-discretos-en-los-atributos-texto-libre-solo-de-respaldo`
   - Viene de: claude:discreto-primero
-- `entity-has-registry` — **Registro con definición.** Cada entidad tiene un registro con su id, su fuente de verdad y una ficha de glosario con su definición en una frase.
-  - Porqué: Un nombre sin definición no basta: cada uno lo entiende a su manera y nadie puede comprobar que se usa bien.
+- `entity-has-registry` — **Registro con definición.** Cada entidad tiene un registro con su id, su fuente de verdad y su ficha de glosario.
+  - Porqué: Un nombre sin definición no basta, porque cada uno lo entiende a su manera y nadie comprueba su uso.
   - Fuente: [I] ops/entidades.json
   - Detalle: `docs/entidades/N0-principios.md#6-toda-entidad-tiene-un-registro-con-definición`
-- `names-have-form` — **Los nombres tienen forma.** Un nombre de tabla, campo, id, valor o evento sigue un mismo patrón: ASCII en minúsculas, su separador, sin abreviaturas inventadas y con el sufijo de su tipo.
-  - Porqué: Con un solo patrón, leer una tabla o un registro es leerlos todos; con varios, cada lectura es una adivinanza.
+- `names-have-form` — **Los nombres tienen forma.** Cada nombre de tabla, campo, id, valor o evento sigue un mismo patrón ASCII, con su separador y el sufijo de su tipo.
+  - Porqué: Con un solo patrón, leer una tabla o un registro es leerlos todos, y con varios cada lectura es una adivinanza.
   - Fuente: [I] docs/entidades/N0-principios.md
   - Detalle: `docs/entidades/N0-principios.md#5-los-nombres-tienen-forma-caracteres-separador-y-espacio-de-nombres`, `docs/datos/PRINCIPIOS.md#12-nombres`
   - Sin norma: Principio del N0 de entidades: su norma la pone el N1 de cada entidad, que aún no está escrito
-- `one-word-one-meaning` — **Una palabra, un significado.** Cada concepto tiene un solo nombre y cada nombre un solo concepto; los sinónimos prohibidos se anotan una vez, en el glosario.
-  - Porqué: Con siete nombres para lo mismo nada se puede contar ni buscar, y una palabra con dos sentidos confunde a quien la lee.
+- `one-word-one-meaning` — **Una palabra, un significado.** Cada concepto tiene un solo nombre y cada nombre un solo concepto, y el glosario anota los sinónimos prohibidos.
+  - Porqué: Con siete nombres para lo mismo nada se cuenta ni se busca, y una palabra con dos sentidos confunde a quien la lee.
   - Fuente: [F] https://google.aip.dev/190
   - Detalle: `CLAUDE.md#pensar-en-datos`, `docs/entidades/N0-principios.md#1-un-nombre-por-concepto-y-un-concepto-por-nombre`, `docs/entidades/N0-principios.md#2-los-sinónimos-prohibidos-se-escriben-una-vez`
   - Viene de: claude:una-palabra-un-significado
-- `person-vs-identity` — **Persona e identidad distintas.** Quien responde (un miembro del equipo) y la cuenta con la que actúa (una identidad) son entidades distintas, y todo registro de acción guarda la identidad.
-  - Porqué: Si se confunden, una App o una sesión parecen una persona, y no se sabe quién responde de qué.
+- `person-vs-identity` — **Persona e identidad distintas.** Quien responde y la cuenta con la que actúa son entidades distintas, y cada registro de acción guarda la identidad.
+  - Porqué: Si se confunden, una App o una sesión parecen una persona, y nadie sabe quién responde de qué.
   - Fuente: [F] https://www.w3.org/TR/prov-o/
   - Detalle: `docs/entidades/N0-principios.md#9-la-persona-y-la-identidad-son-entidades-distintas`
   - Sin norma: Principio del N0 de entidades: su norma la pone el N1 de cada entidad, que aún no está escrito
-- `stable-unique-id` — **Id estable, único y con forma.** Cada entidad y cada fila lleva un id propio, único en su registro, que no cambia ni se reutiliza al retirarse.
+- `stable-unique-id` — **Id estable y único.** Cada entidad y cada fila lleva un id propio, único en su registro, que no cambia ni se reutiliza.
   - Porqué: Un id que cambia o se reutiliza rompe cada referencia que lo apuntaba, también las de los recuentos viejos.
   - Fuente: [I] docs/entidades/N0-principios.md
   - Detalle: `docs/entidades/N0-principios.md#4-cada-entidad-tiene-un-id-estable-único-y-con-forma`, `docs/datos/PRINCIPIOS.md#3-claves-primarias`
-- `who-what-when` — **Quién, qué y cuándo.** Todo lo que cambia deja quién lo cambió (una identidad), qué cambió (un valor de vocabulario) y cuándo (un instante con zona).
-  - Porqué: Sin autor ni fecha no se puede saber desde cuándo consta un dato ni quién lo puso, y no se puede deshacer un error.
+- `who-what-when` — **Quién, qué y cuándo.** Todo lo que cambia guarda quién lo cambió, qué cambió y cuándo, con una identidad, un valor de vocabulario y un instante.
+  - Porqué: Sin autor ni fecha nadie sabe desde cuándo consta un dato ni quién lo puso, y un error no se puede deshacer.
   - Fuente: [F] https://www.w3.org/TR/prov-o/
   - Detalle: `docs/entidades/N0-principios.md#8-todo-lo-que-cambia-lleva-quién-qué-y-cuándo`, `docs/datos/PRINCIPIOS.md#9-fechas-de-cada-fila`, `docs/datos/PRINCIPIOS.md#18-quién-y-por-dónde`

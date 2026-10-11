@@ -2,8 +2,8 @@
   "id": "plan-evaluated-before-apply",
   "area": "infra",
   "nombre": "El plan se evalúa antes",
-  "enunciado": "Un cambio en la base o en la infraestructura se ensaya y se evalúa antes de aplicarlo, y lo aplica quien tiene permiso.",
-  "porque": "Solo hay una base y es producción: lo que se aplica sin ensayo se prueba sobre datos de familias.",
+  "enunciado": "Cada cambio en la base o en la infraestructura se ensaya antes de aplicarlo, y lo aplica quien tiene permiso.",
+  "porque": "Solo hay una base y es producción, así que lo que se aplica sin ensayo se prueba sobre datos de familias.",
   "fuente": "[I] scripts/apply-migration.mjs",
   "detalle": [
     "CLAUDE.md#base-de-datos"

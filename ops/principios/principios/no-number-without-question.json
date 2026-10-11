@@ -2,8 +2,8 @@
   "id": "no-number-without-question",
   "area": "proceso",
   "nombre": "Ninguna cifra sin pregunta",
-  "enunciado": "Cada cifra dice qué pregunta responde y qué script la lee, y ninguna se persigue sola: va con otra que la vigila y con una muestra leída a mano.",
-  "porque": "Una cifra que nadie lee es coste sin uso, y una cifra que se persigue sola deja de medir lo que medía.",
+  "enunciado": "Cada cifra responde a una pregunta, tiene un script que la lee y va con otra cifra que la vigila.",
+  "porque": "Una cifra que nadie lee es coste sin uso, y una que se persigue sola deja de medir lo que medía.",
   "fuente": "[I] ops/metricas.json",
   "detalle": [
     "CLAUDE.md#pensar-en-datos"

@@ -1,7 +1,7 @@
 {
   "id": "least-short-lived-permissions",
   "area": "infra",
-  "nombre": "Permisos mínimos y de vida corta",
+  "nombre": "Permisos mínimos y cortos",
   "enunciado": "Cada identidad y cada clave tiene los permisos mínimos para su uso, vive poco y llega solo a donde se usa.",
   "porque": "Una clave con más alcance o más vida de la necesaria convierte una fuga pequeña en una grande.",
   "fuente": "[I] .claude/skills/alta-de-secreto/SKILL.md",

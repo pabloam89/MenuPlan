@@ -2,7 +2,7 @@
   "id": "one-fact-one-place",
   "area": "datos",
   "nombre": "Un dato, un sitio",
-  "enunciado": "Cada dato y cada regla vive en un solo sitio con al menos un lector; cualquier otra copia es una proyección generada que un test compara con su origen.",
+  "enunciado": "Cada dato y cada regla vive en un solo sitio con su lector, y cada copia es una proyección generada que un test compara.",
   "porque": "Dos copias escritas a mano acaban diciendo cosas distintas, y nadie sabe cuál vale.",
   "fuente": "[I] CLAUDE.md",
   "detalle": [

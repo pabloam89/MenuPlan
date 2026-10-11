@@ -2,8 +2,8 @@
   "id": "discrete-first",
   "area": "entidades",
   "nombre": "Discreto primero",
-  "enunciado": "Lo que se va a contar, filtrar o agrupar toma valores discretos (sí o no, un vocabulario, una referencia, un número o una fecha); el texto libre, solo en un hueco declarado.",
-  "porque": "Lo discreto se cuenta y se compara solo; el texto libre hay que leerlo entero cada vez.",
+  "enunciado": "Lo que se cuenta, se filtra o se agrupa toma valores discretos, y el texto libre ocupa solo un hueco declarado.",
+  "porque": "Lo discreto se cuenta y se compara solo, y el texto libre se lee entero cada vez.",
   "fuente": "[F] https://google.aip.dev/126",
   "detalle": [
     "CLAUDE.md#pensar-en-datos",

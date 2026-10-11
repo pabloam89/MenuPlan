@@ -28,7 +28,7 @@ import { ACCIONES } from "./estandaresAgentes.mjs";
 import { FUENTE_F, FUENTE_I } from "./forja.mjs";
 import { leerPrincipios as leerProducto } from "./principiosProducto.mjs";
 import { leerRedaccion } from "./redaccion.mjs";
-import { fraseDeRegla } from "./regla.mjs";
+import { fraseDeRegla, problemasDePrincipio } from "./regla.mjs";
 
 export const RUTA_PRINCIPIOS = "ops/principios/";
 export const RUTA_MD = "docs/PRINCIPIOS.md";
@@ -66,10 +66,8 @@ export const DOCUMENTOS_MIGRADOS = ["docs/datos/PRINCIPIOS.md", "docs/entidades/
 export const TECHO_SIN_NORMA = 61;
 
 const ID = /^[a-z0-9]+(-[a-z0-9]+)*$/;
-const NOMBRE = /^[A-ZÁÉÍÓÚÑÜ¿][^.\n]*[^.\s]$/;
 const ORIGEN = /^(C([1-9]|1[0-2])|I([1-9]|10)|N[1-7]|claude:[a-z0-9-]+)$/;
 const esTexto = (v, min = 1) => typeof v === "string" && v.trim().length >= min;
-const palabras = (t) => t.trim().split(/\s+/).length;
 
 /** El ancla de un título de Markdown, como la pone GitHub: minúsculas, sin signos, espacios a guion. */
 export function anclaDe(titulo) {
@@ -159,10 +157,8 @@ function problemasDePropio(p, d, areas, ctx) {
   for (const c of CAMPOS) if (!(c in (p ?? {}))) malos.push(`${d}: falta «${c}»`);
   if (!ID.test(p?.id ?? "")) malos.push(`${d}: «id» va en minúsculas y con guiones, en inglés`);
   if (!(p?.area in (areas ?? {}))) malos.push(`${d}: área «${p?.area}» fuera del vocabulario (${Object.keys(areas ?? {}).join(", ")})`);
-  if (!esTexto(p?.nombre) || !NOMBRE.test(p.nombre) || palabras(p.nombre) < 2 || palabras(p.nombre) > 6) malos.push(`${d}: «nombre» es un sustantivo de 2 a 6 palabras, con mayúscula inicial y sin punto final`);
-  const e = p?.enunciado;
-  if (!esTexto(e, 30) || /\n/.test(e) || e.length > 300 || !/\.$/.test(e)) malos.push(`${d}: «enunciado» es una línea de 30 a 300 caracteres que acaba en punto`);
-  if (!esTexto(p?.porque, 20) || /\n/.test(p.porque) || !/\.$/.test(p.porque)) malos.push(`${d}: «porque» es una línea de 20 caracteres o más que acaba en punto`);
+  // La plantilla de principio (nombre, enunciado y porqué), la misma que pasa la guía de redacción.
+  malos.push(...problemasDePrincipio(p, d));
   const f = typeof p?.fuente === "string" ? p.fuente : "";
   if (FUENTE_F.test(f)) { /* externa, con su dirección */ } else if (FUENTE_I.test(f)) {
     if (!ctx.existe(f.match(FUENTE_I)[1])) malos.push(`${d}: la fuente de la casa apunta a ${f.match(FUENTE_I)[1]}, que no existe en el repo`);

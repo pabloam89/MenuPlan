@@ -2,7 +2,7 @@
   "id": "expand-and-contract",
   "area": "datos",
   "nombre": "Expandir y contraer",
-  "enunciado": "Cada migración convive con el código de antes y de después: primero se añade, lo que se quita va después, y el código no depende de que ya esté aplicada.",
+  "enunciado": "Cada migración convive con el código de antes y de después, y el código funciona aunque la migración aún no esté aplicada.",
   "porque": "La rama se despliega antes de que alguien aplique su migración, y staging y producción comparten base.",
   "fuente": "[I] docs/datos/PRINCIPIOS.md",
   "detalle": [

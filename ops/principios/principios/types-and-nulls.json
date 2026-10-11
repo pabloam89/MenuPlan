@@ -2,7 +2,7 @@
   "id": "types-and-nulls",
   "area": "datos",
   "nombre": "Tipos justos y nulos decididos",
-  "enunciado": "Cada columna tiene el tipo justo (fechas con zona, importes exactos) y es not null salvo que su comentario diga qué significa el nulo.",
+  "enunciado": "Cada columna tiene el tipo justo y es not null, salvo que su comentario diga qué significa el nulo.",
   "porque": "Un nulo sin significado se lee de tres formas distintas, y un tipo flojo deja entrar datos imposibles.",
   "fuente": "[I] docs/datos/PRINCIPIOS.md",
   "detalle": [

@@ -303,6 +303,12 @@
       "estado": "cumple",
       "clave_reglas": "principios",
       "clave_sujetos": "sujetos"
+    },
+    {
+      "fichero": "ops/principios/",
+      "forma": "principio",
+      "estado": "cumple",
+      "clave_reglas": "principios"
     }
   ]
 }

@@ -3,7 +3,7 @@
   "area": "datos",
   "nombre": "Una tabla, un módulo dueño",
   "enunciado": "Cada tabla se lee y se escribe desde un solo módulo, y el resto del código llama a sus funciones.",
-  "porque": "Una tabla tocada con textos sueltos desde cualquier sitio se rompe en cuanto cambia, aunque la base esté perfecta.",
+  "porque": "Una tabla tocada con textos sueltos desde cualquier sitio se rompe en cuanto cambia, aunque la base esté bien.",
   "fuente": "[I] docs/datos/PRINCIPIOS.md",
   "detalle": [
     "docs/datos/PRINCIPIOS.md#15-cableado-del-código-a-la-tabla"

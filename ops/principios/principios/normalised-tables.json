@@ -2,7 +2,7 @@
   "id": "normalised-tables",
   "area": "datos",
   "nombre": "Tablas normalizadas",
-  "enunciado": "Las tablas nuevas nacen en tercera forma normal: una celda, un valor; cada columna depende de la clave entera, y lo que se repite se referencia.",
+  "enunciado": "Cada tabla nueva nace en tercera forma normal, con un valor por celda y referencias en vez de copias.",
   "porque": "Una copia de un nombre o un precio en otra tabla se queda vieja sin que nada lo avise.",
   "fuente": "[I] docs/datos/PRINCIPIOS.md",
   "detalle": [

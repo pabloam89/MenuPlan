@@ -8,7 +8,7 @@ import {
   leerPrincipiosCasa, leerTextoEn, problemasDePrincipios, seccionesNumeradas,
 } from "../scripts/lib/principios.mjs";
 import { leerPrincipios as leerProducto } from "../scripts/lib/principiosProducto.mjs";
-import { leerRedaccion } from "../scripts/lib/redaccion.mjs";
+import { leerJsonEn, leerRedaccion, problemasDeRedaccion } from "../scripts/lib/redaccion.mjs";
 
 /**
  * La lista única de principios (#619, fondo #618). Falla cuando:
@@ -92,13 +92,24 @@ describe("se ven fallar", () => {
 
   it.each([
     ["un campo desconocido", { texto: "x" }, /campo desconocido «texto»/],
-    ["sin porqué", { porque: undefined }, /falta «porque»|«porque» es una línea/],
+    ["sin porqué", { porque: undefined }, /«porque» es una frase/],
     ["un id con mayúsculas", { id: "Ejemplo" }, /«id» va en minúsculas/],
     ["un área fuera del vocabulario", { area: "marketing" }, /área «marketing» fuera del vocabulario/],
-    ["un nombre de una palabra", { nombre: "Ejemplo" }, /«nombre» es un sustantivo de 2 a 6 palabras/],
+    ["un nombre de una palabra", { nombre: "Ejemplo" }, /«nombre» tiene de 2 a 5 palabras/],
+    ["un nombre de seis palabras", { nombre: "Un principio de ejemplo muy largo" }, /«nombre» tiene de 2 a 5 palabras/],
+    ["un enunciado de más de 25 palabras", { enunciado: `Un principio ${"muy ".repeat(24)}largo.` }, /«enunciado» pasa de 25 palabras/],
+    ["un enunciado con dos frases", { enunciado: "Un principio dice algo. Y luego dice otra cosa." }, /«enunciado» es una sola frase/],
+    ["un enunciado con punto y coma", { enunciado: "Un principio dice algo; y otra cosa más." }, /«enunciado» es una sola frase/],
+    ["un enunciado con dos puntos", { enunciado: "Un principio dice algo: otra cosa más." }, /«enunciado» es una sola frase/],
+    ["un enunciado con fuerza", { enunciado: "Cada tabla debe llevar su comentario." }, /palabra de fuerza \(«debe»\)/],
+    ["un enunciado con DEBE en mayúsculas", { enunciado: "Cada tabla DEBE llevar su comentario." }, /palabra de fuerza/],
+    ["un enunciado con «hay que»", { enunciado: "Hay que comentar cada tabla nueva." }, /palabra de fuerza \(«hay que»\)/],
+    ["un enunciado en minúscula", { enunciado: "un principio de ejemplo en minúscula." }, /empieza por mayúscula/],
+    ["un porqué de más de 30 palabras", { porque: `Porque ${"sí ".repeat(30)}pasa.` }, /«porque» pasa de 30 palabras/],
+    ["un porqué con fuerza", { porque: "Porque conviene tenerlo así siempre." }, /palabra de fuerza \(«conviene»\)/],
     ["un nombre con punto final", { nombre: "Principio de ejemplo." }, /«nombre»/],
-    ["un enunciado sin punto final", { enunciado: "Un principio de ejemplo sin punto final al acabar" }, /«enunciado»/],
-    ["un enunciado en dos líneas", { enunciado: "Una línea larga de un principio.\nY otra más." }, /«enunciado»/],
+    ["un enunciado sin punto final", { enunciado: "Un principio de ejemplo sin punto final al acabar" }, /«enunciado» acaba en punto/],
+    ["un enunciado en dos líneas", { enunciado: "Una línea larga de un principio.\nY otra más." }, /«enunciado» va en una sola línea/],
     ["una fuente sin marca", { fuente: "CLAUDE.md" }, /«fuente» es «\[F\]/],
     ["una fuente de la casa que no existe", { fuente: "[I] no/existe.md" }, /no existe en el repo/],
     ["un detalle a un fichero que no existe", { detalle: ["no/existe.md"] }, /el detalle no\/existe\.md no existe/],
@@ -134,6 +145,19 @@ describe("se ven fallar", () => {
   it("un origen en dos principios", () => {
     const dos = datos.principios.map((p) => (p.id === "explicit-over-clever" ? { ...p, origen: ["C1"] } : p));
     expect(faltasDeMigracion(dos, textos).join("\n")).toMatch(/origen C1: lo recogen .*; un origen va a un solo principio/);
+  });
+
+  it("la guía de redacción pasa la plantilla a ops/principios/ y cae con un principio mal escrito", () => {
+    const red = leerRedaccion(RAIZ);
+    const k = red.catalogos.find((x) => x.fichero === "ops/principios/");
+    expect(k?.forma).toBe("principio");
+    const malo = structuredClone(propio);
+    malo.principios[0] = { ...malo.principios[0], enunciado: "Cada sesión debe leer su estado; luego decide." };
+    const leerJson = (r) => (r === "ops/principios/" ? malo : leerJsonEn(RAIZ)(r));
+    const f = problemasDeRedaccion(red, { existe: existeEn(RAIZ), leerJson }).join("\n");
+    expect(f).toMatch(/catálogo ops\/principios\/ · .*palabra de fuerza/);
+    expect(f).toMatch(/catálogo ops\/principios\/ · .*una sola frase/);
+    expect(problemasDeRedaccion(red, { existe: existeEn(RAIZ), leerJson: leerJsonEn(RAIZ) })).toEqual([]);
   });
 
   it("el ancla de un título es la de GitHub", () => {

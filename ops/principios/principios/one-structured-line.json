@@ -2,8 +2,8 @@
   "id": "one-structured-line",
   "area": "codigo",
   "nombre": "Una línea estructurada",
-  "enunciado": "Cada cosa que pasa deja una línea campo: valor o JSON, con un nombre de evento que no se repite y sin datos de familias, que un script pueda contar.",
-  "porque": "Lo que no deja rastro no se mide, y lo que no se mide no mejora; una línea libre no la cuenta ningún script.",
+  "enunciado": "Cada cosa que pasa deja una línea que un script puede contar, con un evento único y sin datos de familias.",
+  "porque": "Lo que no deja rastro no se mide, y una línea en texto libre no la cuenta ningún script.",
   "fuente": "[I] .claude/hooks/eventos.mjs",
   "detalle": [
     "CLAUDE.md#pensar-en-datos",

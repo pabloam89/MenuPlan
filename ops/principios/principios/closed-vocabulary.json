@@ -2,8 +2,8 @@
   "id": "closed-vocabulary",
   "area": "datos",
   "nombre": "Vocabulario cerrado",
-  "enunciado": "Todo lo que se agrupa (motivos, estados, causas, tipos, sitios) toma sus valores de un vocabulario cerrado con su test, y un valor se retira diciendo a cuál pasa, no se borra ni se reutiliza.",
-  "porque": "Con texto libre cada uno escribe lo mismo de otra forma y nada se puede contar; un valor reutilizado descuadra los recuentos viejos.",
+  "enunciado": "Todo lo que se agrupa toma sus valores de un vocabulario cerrado con su test, y un valor retirado dice a cuál pasa.",
+  "porque": "Con texto libre cada uno escribe lo mismo de otra forma, y un valor reutilizado descuadra los recuentos viejos.",
   "fuente": "[I] src/lib/vocabularios.js",
   "detalle": [
     "CLAUDE.md#pensar-en-datos",

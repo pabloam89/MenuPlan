@@ -2,7 +2,7 @@
   "id": "bounded-blast-radius",
   "area": "infra",
   "nombre": "Radio de daño acotado",
-  "enunciado": "Todo lo que gasta o escribe tiene un límite de daño: gasto diario y mensual, mensajes por casa y peticiones por origen.",
+  "enunciado": "Todo lo que gasta o escribe tiene un límite de daño por día, por mes, por casa y por origen.",
   "porque": "Sin límite, un bucle, un abuso o un error de código convierte un fallo pequeño en una factura o en datos rotos.",
   "fuente": "[I] api/_guard.test.js",
   "origen": [

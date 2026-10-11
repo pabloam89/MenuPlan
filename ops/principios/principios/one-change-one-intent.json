@@ -2,8 +2,8 @@
   "id": "one-change-one-intent",
   "area": "codigo",
   "nombre": "Un cambio, una intención",
-  "enunciado": "Cada sesión lleva una sola tarea en su carpeta y su rama, y cada PR tiene un solo propósito, el del issue que cierra.",
-  "porque": "Dos intenciones en un mismo cambio no se pueden revisar, revertir ni atribuir por separado, y las sesiones en paralelo se pisan.",
+  "enunciado": "Cada sesión lleva una sola tarea en su carpeta y su rama, y cada PR cierra un solo propósito.",
+  "porque": "Dos intenciones en un cambio no se revisan, se revierten ni se atribuyen por separado, y las sesiones en paralelo se pisan.",
   "fuente": "[I] CLAUDE.md",
   "detalle": [
     "CLAUDE.md#una-sesión-una-tarea"

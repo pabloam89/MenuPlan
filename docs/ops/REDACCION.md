@@ -122,18 +122,21 @@ La frase de una regla es: **Nombre.** [Condición,] sujeto DEBE | NO DEBE exigen
 | nota | de 15 a 400 caracteres |
 | rúbrica (cumple, no_cumple) | 20 caracteres o más |
 
+Un **principio** (catálogos con forma `principio`, #619) no es una regla: no lleva sujeto, fuerza ni control, porque la obligación es de la norma que lo cita. Su frase es: **Nombre.** Enunciado Por qué: porqué. El nombre, de 2 a 5 palabras; el enunciado, una sola frase en presente con sujeto y verbo, de 25 palabras como mucho, que acaba en punto, sin punto y coma ni dos puntos y sin palabras de fuerza (debe, conviene, hay que); el porqué, una frase así de 30 palabras como mucho. Que el verbo vaya en presente lo juzga el revisor; lo demás lo comprueba `problemasDePrincipio` de `scripts/lib/regla.mjs`.
+
 Marca de la fuente: **[F]** está en una fuente externa (con su URL); **[I]** es de la casa (con la ruta del repo donde está escrito).
 
 ## Catálogos que siguen la guía
 
-| Catálogo | Estado | Reglas | Encargo |
-|---|---|---|---|
-| `ops/forja/` | cumple | 74 | - |
-| `ops/redaccion.json` | cumple | 16 | - |
-| `ops/normas.json` | cumple | 118 | - |
-| `ops/flujo.json` | cumple | 53 | - |
-| `ops/estandares-agentes.json` | cumple | 219 | - |
-| `ops/principios-producto/` | cumple | 40 | - |
+| Catálogo | Forma | Estado | Entradas | Encargo |
+|---|---|---|---|---|
+| `ops/forja/` | regla | cumple | 74 | - |
+| `ops/redaccion.json` | regla | cumple | 16 | - |
+| `ops/normas.json` | regla | cumple | 118 | - |
+| `ops/flujo.json` | regla | cumple | 53 | - |
+| `ops/estandares-agentes.json` | regla | cumple | 219 | - |
+| `ops/principios-producto/` | regla | cumple | 40 | - |
+| `ops/principios/` | principio | cumple | 58 | - |
 
 - cumple: Cada entrada pasa las comprobaciones de regla.mjs.
 - pendiente: Aún no sigue la guía; lleva el encargo que lo pone al día y la lista solo baja.
