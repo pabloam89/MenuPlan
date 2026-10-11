@@ -262,5 +262,17 @@ cambian la autoría visible del commit. La barrera de fondo es de Pablo:
 `gh auth logout` y quitar el manager de credenciales de github.com de su PC.
 Hasta entonces, sus credenciales siguen ahí.
 
+## Lo que falló
+
+- **2026-10-11 · las sesiones iban con el login personal de Pablo y compartían su
+  límite de GraphQL (#424).** Causa: la clave se movió a `HoMenu-sesiones` con el
+  título viejo («GitHub App Sesiones»); `token-sesion` busca «GitHub App
+  homenu-sesiones» y, al no hallarla, probaba en `HoMenu` (que la cuenta de
+  sesiones no ve), así que el error hablaba de la bóveda equivocada. Arreglo: Pablo
+  renombró la ficha al título exacto, y `node scripts/boveda-sesiones.mjs
+  --comprobar` ahora verifica que existe con ese título en la bóveda de sesiones.
+  Una sesión abierta antes del arreglo no tiene `GH_TOKEN`: usa
+  `node scripts/token-sesion.mjs -- gh …`.
+
 Fuentes: https://docs.github.com/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-json-web-token-jwt-for-a-github-app
 y https://docs.github.com/rest/apps/apps#create-an-installation-access-token-for-an-app

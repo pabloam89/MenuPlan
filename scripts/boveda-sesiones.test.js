@@ -82,3 +82,8 @@ describe("fichaCopia", () => {
     expect(() => fichaCopia(vacio, ["VACIO"])).toThrow(/VACIO/);
   });
 });
+
+import { FICHAS_CLAVE } from "./lib/tokenSesion.mjs";
+it("la primera ficha de la clave de la GitHub App es la de la bóveda de sesiones, que es la que --comprobar verifica", () => {
+  expect(FICHAS_CLAVE[0]).toEqual({ vault: BOVEDA_SESIONES, titulo: "GitHub App homenu-sesiones" });
+});
