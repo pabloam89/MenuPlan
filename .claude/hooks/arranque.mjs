@@ -50,7 +50,7 @@ const RED_MS = 5000;
 const git = (...args) => {
   const red = args[0] === "fetch";
   try {
-    return execFileSync("git", ["-C", raiz, ...args], { encoding: "utf8", timeout: red ? RED_MS : LOCAL_MS, stdio: ["ignore", "pipe", "ignore"] }).trim();
+    return execFileSync("git", ["-C", raiz, ...args], { windowsHide: true, encoding: "utf8", timeout: red ? RED_MS : LOCAL_MS, stdio: ["ignore", "pipe", "ignore"] }).trim();
   } catch {
     // a propósito: null es «no se sabe» (sin red, sin repo, fuera de tiempo) y
     // cada uso lo trata: rama «?», sin aviso de atraso. El arranque no se rompe.
@@ -135,7 +135,7 @@ const prs = pedirPrs(raiz, 10_000); // a la vez que el fetch: los dos son red, y
 // Lo que se enseña de los issues lo decide scripts/lib/issues.mjs (una sola
 // fuente con `npm run issues`); aquí solo se lanza y se espera al final.
 const issues = new Promise((ok) => {
-  execFile("node", ["scripts/issues.mjs", "--arranque"], { cwd: raiz, encoding: "utf8", timeout: 10_000 }, (error, salida) => ok(error ? null : salida));
+  execFile("node", ["scripts/issues.mjs", "--arranque"], { windowsHide: true, cwd: raiz, encoding: "utf8", timeout: 10_000 }, (error, salida) => ok(error ? null : salida));
 });
 git("fetch", "-q", "origin", "staging");
 let detras = git("rev-list", "--count", "HEAD..origin/staging");

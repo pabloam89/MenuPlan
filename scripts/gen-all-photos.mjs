@@ -69,7 +69,7 @@ function loadRecipes(root) {
   return byId;
 }
 
-/** "<plato> con <guarnición>", igual que menuName en build-catalog.mjs. */
+/** "<plato> con <guarnición>", igual que lo hacía menuName en build-catalog.mjs (retirado, #301). */
 function resolveName(comboId, recipeById, fallback) {
   const [dishId, garnishId] = comboId.split("+");
   const dish = recipeById[dishId];

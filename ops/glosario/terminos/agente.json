@@ -1,0 +1,23 @@
+{
+  "termino": "agente",
+  "estado": "activo",
+  "clase": "rol",
+  "definicion": "Un ayudante con su fichero en .claude/agents/, lanzado por una sesión, que es constructor o juez.",
+  "sinonimos_prohibidos": [
+    "subagente",
+    "subagentes"
+  ],
+  "aplica_a": [
+    "todas"
+  ],
+  "estrecho": [
+    "juez"
+  ],
+  "relacionado": [
+    "informe"
+  ],
+  "ref": {
+    "fichero": "scripts/lib/fondos.mjs",
+    "clave": "CAPAS_AGENTE"
+  }
+}

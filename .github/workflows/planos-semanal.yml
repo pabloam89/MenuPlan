@@ -60,8 +60,11 @@ jobs:
           fi
           printf '\n%s\n' "Run: $RUN_URL" >> "$RUNNER_TEMP/planos.md"
           titulo="Planos: la medición semanal no cuadra"
-          issue=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
-            --search "\"$titulo\" in:title" --json number --jq '.[0].number // empty')
+          # Autor (el bot) y título EXACTO (#450): la búsqueda de GitHub es difusa y, en un repo
+          # público, cualquiera puede abrir un issue con el mismo título. Si falla, el paso falla.
+          issue=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --author "app/github-actions" \
+            --search "\"$titulo\" in:title" --json number,title \
+            --jq "map(select(.title==\"$titulo\"))[0].number // empty")
           if [ -n "$issue" ]; then
             gh issue comment "$issue" --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/planos.md"
             echo "Comentado en el issue #$issue"

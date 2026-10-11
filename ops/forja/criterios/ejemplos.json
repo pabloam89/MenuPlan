@@ -1,0 +1,15 @@
+{
+  "id": "ejemplos",
+  "capa": "formal",
+  "aplica_a": [
+    "skill"
+  ],
+  "tipos": "todos",
+  "nombre": "Máximo de ejemplos",
+  "sujeto": "skill.cuerpo",
+  "fuerza": "debe",
+  "exigencia": "llevar como mucho tres ejemplos por sección de ejemplos: pocos y canónicos",
+  "fuente": "[I] .claude/skills/forja-de-skills/referencias/criterios.md",
+  "control": ".claude/skills.test.js",
+  "codigo": "ejemplos"
+}

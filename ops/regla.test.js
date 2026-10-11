@@ -37,6 +37,10 @@ describe("fraseDeRegla: la frase sale de los campos", () => {
   it("DEBE, con un fichero como control", () => {
     expect(fraseDeRegla(buena(), sujetos)).toBe("**Frase de apertura.** La descripción de cada skill DEBE empezar por «Úsala ». Se comprueba con: `.claude/skills.test.js`.");
   });
+  it("sin el control, para una tabla que ya tiene su columna de control", () => {
+    expect(fraseDeRegla(buena(), sujetos, { conControl: false })).toBe("**Frase de apertura.** La descripción de cada skill DEBE empezar por «Úsala ».");
+    expect(fraseDeRegla(buena(), sujetos, { conControl: true })).toContain("Se comprueba con:");
+  });
   it("NO DEBE con condición: la condición abre la frase y el sujeto baja a minúscula", () => {
     const r = { nombre: "Fuente sin url", sujeto: "estandar.fuente", fuerza: "no_debe", condicion: "si es de la casa", exigencia: "llevar una url", control: "ops/estandares-agentes.test.js" };
     expect(fraseDeRegla(r, sujetos)).toBe("**Fuente sin url.** Si es de la casa, cada fuente del catálogo de estándares NO DEBE llevar una url. Se comprueba con: `ops/estandares-agentes.test.js`.");
@@ -82,6 +86,16 @@ describe("problemasDeRegla: cada regla falla con datos malos (cada caso cambia U
     falla((r) => { r.exigencia = "empezar por «Úsala »."; }, "sin punto final");
     falla((r) => { r.exigencia = "Empezar por «Úsala »"; }, "minúscula");
     falla((r) => { r.exigencia = "empezar\npor «Úsala »"; }, "una sola línea");
+  });
+  it("la exigencia empieza por un infinitivo, con o sin pronombre, o por «no» y un infinitivo", () => {
+    for (const ok of ["llevar un dueño", "no llevar fechas", "ser, si es externa, pública", "ir en un campo", "abrirse antes", "escribirlo en castellano", "no dejarse nada", "devolvérselo a Pablo"]) {
+      const r = buena();
+      r.exigencia = ok;
+      expect(problemasDeRegla(r, "r", sujetos), ok).toEqual([]);
+    }
+    for (const mal of ["lleva un dueño", "llevando un dueño", "no lleva fechas", "cada skill lleva dueño", "no aplica nada"]) {
+      falla((r) => { r.exigencia = mal; }, "infinitivo");
+    }
   });
   it("una exigencia de más de 160 caracteres falla y una de 160 pasa", () => {
     const de = (n) => `llevar ${"a".repeat(n - 7)}`;

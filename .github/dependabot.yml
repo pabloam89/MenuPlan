@@ -17,8 +17,7 @@
 # cooldown: una versión no se propone hasta 5 días después de publicarse, por
 # si sale un parche malicioso y lo retiran. Según la documentación de GitHub
 # solo vale para las actualizaciones de versión: los PR de seguridad no
-# esperan (llegan en cuanto sale el aviso, uno por librería; también los de
-# /dish-gallery, que no está aquí a propósito y que el auto no fusiona).
+# esperan (llegan en cuanto sale el aviso, uno por librería).
 
 version: 2
 updates:

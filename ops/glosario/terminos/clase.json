@@ -1,0 +1,18 @@
+{
+  "termino": "clase",
+  "estado": "activo",
+  "clase": "campo",
+  "definicion": "La frase «todo X que Y» que incluye un caso y sus hermanos y excluye lo que funciona; se arregla la clase, no el caso.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "fondo",
+    "causa"
+  ],
+  "ref": {
+    "fichero": "scripts/lib/fondos.mjs",
+    "clave": "CAMPOS_FICHA.clase"
+  }
+}

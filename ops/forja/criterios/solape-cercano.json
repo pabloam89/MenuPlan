@@ -1,0 +1,15 @@
+{
+  "id": "solape-cercano",
+  "capa": "material",
+  "aplica_a": [
+    "skill"
+  ],
+  "tipos": "todos",
+  "nombre": "Cercanía al solape",
+  "sujeto": "skill.descripcion",
+  "fuerza": "conviene",
+  "exigencia": "no acercarse al límite de solape con otra descripción: a partir del 80 % del límite se avisa con la cifra",
+  "fuente": "[I] scripts/lib/higieneSkills.mjs",
+  "control": "scripts/higiene-skills.test.js",
+  "codigo": "solape-cercano"
+}

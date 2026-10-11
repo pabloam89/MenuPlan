@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { elegir, leerWorktrees, motivosParaNo, sinMarcaInicial } from "./retirar.mjs";
-import { commitInicial, leerRama } from "./tarea.mjs";
+import { commitInicial, leerRama, leerZonasArg } from "./tarea.mjs";
 
 describe("tarea: el nombre de la rama", () => {
   it.each(["datos/descartes", "ops/oficio", "fix/iconos-alergenos"])("acepta %s", (r) => expect(leerRama(r).rama).toBe(r));
@@ -108,4 +108,18 @@ describe("retirar", () => {
   it("con cambios sin commitear, no", () => expect(motivosParaNo({ ...base, sucios: [" M src/App.jsx"] })[0]).toMatch(/sin commitear/));
   it("con commits sin subir, no", () => expect(motivosParaNo({ ...base, sinSubir: ["abc fix"] })[0]).toMatch(/no están en GitHub/));
   it("con una sesión activa dentro, no", () => expect(motivosParaNo({ ...base, sesiones: [{ id: "x" }] })[0]).toMatch(/sesión/));
+});
+
+describe("tarea: las zonas que reserva al abrirse (#506)", () => {
+  it("saca --zona y --zona= del resto de argumentos, sin repetir", () => {
+    expect(leerZonasArg(["ops/x", "506", "--zona", "ops/forja.json", "--sin-deps", "--zona=CLAUDE.md,docs/ops/", "--zona", "ops/forja.json"]))
+      .toEqual({ zonas: ["ops/forja.json", "CLAUDE.md", "docs/ops/"], resto: ["ops/x", "506", "--sin-deps"] });
+    expect(leerZonasArg(["ops/x"])).toEqual({ zonas: [], resto: ["ops/x"] });
+    // Las barras de Windows pasan a barras normales, como las rutas del repo.
+    expect(leerZonasArg(["ops/x", "--zona", "ops\\forja.json"]).zonas).toEqual(["ops/forja.json"]);
+  });
+
+  it.each([["--zona"], ["--zona", "--sin-deps"], ["--zona", "../fuera"], ["--zona=/etc/x"], ["--zona", "a b"]])("rechaza %j", (...a) => {
+    expect(leerZonasArg(["ops/x", ...a]).error).toBeTruthy();
+  });
 });

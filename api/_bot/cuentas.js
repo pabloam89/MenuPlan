@@ -21,6 +21,7 @@
 
 import { seguirCon, fallaCon } from "./avisar.js";
 import { config, select, eq } from "./db.js";
+import { CANAL } from "../../src/lib/vocabularios.js";
 
 const DOMINIO_SINTETICO = "usuarios.menuplanai.com";
 
@@ -122,7 +123,7 @@ export async function crearCuentaTelegram({ telegramId, nombre }) {
     body: {
       email,
       email_confirm: true,
-      user_metadata: { full_name: nombre ?? undefined, telegram_id: String(telegramId), origen: "telegram" },
+      user_metadata: { full_name: nombre ?? undefined, telegram_id: String(telegramId), origen: CANAL.TELEGRAM },
     },
   });
   const yaExistia = !creada.ok && /already|exists|registered/i.test(JSON.stringify(creada.json));

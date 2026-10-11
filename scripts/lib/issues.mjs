@@ -30,6 +30,7 @@
  * con su descripción, y en el formulario que la use.
  */
 
+import { ESCALONES_AUTOMATICOS } from "./escalas.mjs";
 import { limpiarTexto } from "./textoExterno.mjs";
 
 export const GRUPOS = {
@@ -91,6 +92,9 @@ export const GRUPOS = {
     // Se pone al cerrar un problema de fondo: dónde QUEDÓ, no dónde se pensaba
     // ponerlo. Por eso no tiene `titulo` (no sale de un desplegable): si se
     // pusiera al abrir, la tabla contaría intenciones y no resultados.
+    // Cada valor menos `ninguno` es la columna `etiqueta` de un escalón de la
+    // escalera (scripts/lib/escalas.mjs); ops/escalas.test.js lo cruza. Las
+    // etiquetas de GitHub no se renombran sin Pablo.
     obligatorioAlCerrar: (tipos) => tipos.has("fondo"),
     valores: {
       test: "Quedó en un test",
@@ -573,8 +577,8 @@ export const TIPOS_ACCION = {
   correctivo: "Arregla las instancias que ya hay (el barrido)",
 };
 
-/** Escalones de la escalera (ops/flujo.json) que se cumplen sin que nadie se acuerde. */
-export const ESCALONES_AUTOMATICOS = ["bloqueo", "test_ci"];
+/** Escalones de la escalera (scripts/lib/escalas.mjs) que se cumplen sin que nadie se acuerde: se re-exportan de allí. */
+export { ESCALONES_AUTOMATICOS };
 
 /** Como mucho tantos encargos por fondo, y al menos uno preventivo y automático (FLUJO.md, P06.4). */
 export const MAX_ENCARGOS_POR_FONDO = 3;

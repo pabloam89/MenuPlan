@@ -1,0 +1,32 @@
+{
+  "id": "estandar-concreto-y-verificable",
+  "capa": "subjetiva",
+  "aplica_a": [
+    "estandar"
+  ],
+  "nombre": "Estándar verificable",
+  "sujeto": "estandar",
+  "fuerza": "debe",
+  "exigencia": "decir qué es hacer bien la tarea de forma que otra persona pueda comprobarlo mirando el resultado",
+  "cumple": "cada punto de «comprueba» se puede contrastar con una salida, un diff o un fichero",
+  "no_cumple": "es una declaración de intenciones («con cuidado», «de forma robusta»)",
+  "fuente": "[I] scripts/lib/estandaresAgentes.mjs",
+  "control": "juicio",
+  "codigo": null,
+  "casos_calibracion": [
+    {
+      "texto": "Comprueba: «cada hallazgo cita fichero y línea del diff y se puede reproducir».",
+      "esperado": "cumple"
+    },
+    {
+      "texto": "Comprueba: «revisa con cuidado y de forma robusta».",
+      "esperado": "no_cumple"
+    },
+    {
+      "texto": "Comprueba: «los mensajes de error dicen qué ha pasado y qué hacer a continuación».",
+      "esperado": "cumple",
+      "frontera": true,
+      "nota": "Se contrasta leyendo los mensajes, aunque «qué hacer» exige algo de juicio."
+    }
+  ]
+}

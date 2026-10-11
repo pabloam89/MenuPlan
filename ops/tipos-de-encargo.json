@@ -1,0 +1,67 @@
+{
+  "$comentario": "Tipos de encargo y su pipeline: qué agentes intervienen y en qué orden. Es el dato; la tabla «Qué pipeline según la acción» de .claude/commands/orquestar.md es su lectura para personas y ops/tipos-de-encargo.test.js comprueba que dicen lo mismo. Lo lee el panel de la factoría (repo homenu-panel). Cada paso se hace tras el anterior; los agentes de un mismo paso van en paralelo. `opcional` es un agente que solo entra si se cumple `si`. Quien construye no juzga: cada paso de constructor va seguido de un juez distinto.",
+  "version": 1,
+  "actualizado": "2026-10-11",
+  "especiales": {
+    "sesion": "la sesión principal, sin subagente",
+    "constructor": "el constructor del dominio que toque (datos, diseno, lola o gobierno)",
+    "constructores": "un constructor por cada dominio que toca el encargo"
+  },
+  "tipos": [
+    { "id": "pantalla-nueva", "accion": "Pantalla o componente nuevo", "pasos": [{ "agentes": ["diseno"] }, { "agentes": ["qa", "revisor"] }] },
+    { "id": "migrar-a-tokens", "accion": "Migrar una pantalla a tokens", "pasos": [{ "agentes": ["diseno"] }, { "agentes": ["qa"] }] },
+    { "id": "assets", "accion": "Assets (icono, ilustración, limpieza)", "pasos": [{ "agentes": ["diseno"] }, { "agentes": ["qa"] }] },
+    {
+      "id": "lola-herramienta",
+      "accion": "Herramienta nueva o cambio en Lola",
+      "pasos": [{ "agentes": ["lola"] }, { "agentes": ["evaluador", "revisor"] }, { "opcional": [{ "agente": "seguridad", "si": "escribe datos" }] }]
+    },
+    { "id": "lola-conocimiento", "accion": "Cambiar conocimiento, prompt o enrutador del bot", "pasos": [{ "agentes": ["lola"] }, { "agentes": ["evaluador"] }] },
+    {
+      "id": "esquema-o-dato",
+      "accion": "Cambio de esquema o dato nuevo",
+      "pasos": [{ "agentes": ["datos"] }, { "agentes": ["auditor-datos"], "opcional": [{ "agente": "seguridad", "si": "toca RLS" }] }],
+      "cierra_con": "OK para aplicar"
+    },
+    {
+      "id": "dato-en-varias-capas",
+      "accion": "Dato que vive en varias capas (base, catálogo, constantes)",
+      "pasos": [{ "agentes": ["auditor-datos"], "nota": "mapa" }, { "agentes": ["datos"] }, { "agentes": ["auditor-datos"] }]
+    },
+    {
+      "id": "reducir-cableado",
+      "accion": "Reducir el cableado de una tabla",
+      "pasos": [{ "agentes": ["auditor-datos"], "nota": "qué ficheros" }, { "agentes": ["constructor"] }, { "agentes": ["revisor"] }]
+    },
+    {
+      "id": "recetas-o-catalogo",
+      "accion": "Recetas o catálogo (contenido)",
+      "pasos": [{ "agentes": ["sesion"] }, { "agentes": ["revisor"], "nota": "validación del catálogo en los tests" }]
+    },
+    {
+      "id": "funcion-entre-dominios",
+      "accion": "Función que cruza dominios",
+      "pasos": [{ "agentes": ["sesion"], "nota": "plan corto" }, { "agentes": ["constructores"], "nota": "por dominio" }, { "agentes": ["revisor", "qa"] }]
+    },
+    { "id": "bug", "accion": "Bug", "pasos": [{ "agentes": ["revisor"], "nota": "diagnóstico y test que lo reproduce" }, { "agentes": ["constructor"] }, { "agentes": ["revisor"] }] },
+    {
+      "id": "lento-o-caro",
+      "accion": "Algo va lento o cuesta de más",
+      "pasos": [{ "agentes": ["constructor"], "nota": "mide antes; lola si es el bot" }, { "agentes": ["revisor"], "nota": "exige la medida de después" }]
+    },
+    {
+      "id": "refactor-monolito",
+      "accion": "Refactor de un monolito",
+      "pasos": [{ "agentes": ["sesion"], "nota": "plan por pasos" }, { "agentes": ["constructor"], "nota": "por pasos" }, { "agentes": ["revisor"], "nota": "en cada paso" }]
+    },
+    { "id": "endpoint-nuevo", "accion": "Endpoint nuevo en `api/`", "pasos": [{ "agentes": ["constructor"] }, { "agentes": ["seguridad", "revisor"] }] },
+    { "id": "ci-permisos-hooks", "accion": "CI, permisos, hooks, ramas, secretos", "pasos": [{ "agentes": ["gobierno"] }] },
+    {
+      "id": "desplegar-produccion",
+      "accion": "Desplegar a producción",
+      "pasos": [{ "agentes": ["gobierno"] }, { "opcional": [{ "agente": "evaluador", "si": "cambia el bot" }] }],
+      "cierra_con": "OK de una persona"
+    },
+    { "id": "revision-periodica", "accion": "Revisión periódica", "pasos": [{ "agentes": ["seguridad", "auditor-datos", "evaluador", "gobierno"], "nota": "planos" }] }
+  ]
+}

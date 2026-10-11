@@ -1,0 +1,21 @@
+{
+  "termino": "aprendizaje",
+  "estado": "activo",
+  "clase": "campo",
+  "definicion": "Un registro de lo que queda de un fondo para que no se repita y dónde quedó: un test, la guardia, una skill o un catálogo.",
+  "sinonimos_prohibidos": [
+    "lección",
+    "lecciones"
+  ],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "fondo"
+  ],
+  "ref": {
+    "fichero": "scripts/lib/fondos.mjs",
+    "clave": "CAMPOS_FICHA.aprendizaje"
+  },
+  "nota": "Es el campo aprendizaje de la ficha y el paso «aprender» del flujo."
+}

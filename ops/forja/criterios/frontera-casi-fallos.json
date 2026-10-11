@@ -1,0 +1,33 @@
+{
+  "id": "frontera-casi-fallos",
+  "capa": "subjetiva",
+  "aplica_a": [
+    "skill"
+  ],
+  "tipos": "todos",
+  "nombre": "Casos casi-fallos",
+  "sujeto": "skill.casos",
+  "fuerza": "debe",
+  "exigencia": "tener casos de frontera que sean casi-fallos: peticiones que se parecen mucho a las de la skill y son de otra",
+  "cumple": "una descripción vaga los confundiría con la skill",
+  "no_cumple": "son obvios («¿qué tiempo hace?») y cualquier descripción los separa",
+  "fuente": "[F] https://agentskills.io/skill-creation/optimizing-descriptions",
+  "control": "juicio",
+  "codigo": null,
+  "casos_calibracion": [
+    {
+      "texto": "Caso de frontera de una skill de claves: «Leer una clave desde un script nuevo», que es de la skill de 1Password y se parece mucho.",
+      "esperado": "cumple"
+    },
+    {
+      "texto": "Caso de frontera de una skill de claves: «¿Qué tiempo hace en Madrid?».",
+      "esperado": "no_cumple"
+    },
+    {
+      "texto": "Caso de frontera de una skill de rotar claves: «Quiero ver qué claves tenemos guardadas en la bóveda», que es de la skill de 1Password.",
+      "esperado": "cumple",
+      "frontera": true,
+      "nota": "Parece de rotar claves pero es de leer y listar, de otra skill: es un casi-fallo de verdad."
+    }
+  ]
+}

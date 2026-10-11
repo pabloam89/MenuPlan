@@ -1,0 +1,15 @@
+{
+  "id": "caduca-pronto",
+  "capa": "material",
+  "aplica_a": [
+    "skill"
+  ],
+  "tipos": "todos",
+  "nombre": "Aviso de caducidad",
+  "sujeto": "skill",
+  "fuerza": "conviene",
+  "exigencia": "no llegar a caducar sin aviso: a menos de 30 días del plazo de 90 se avisa",
+  "fuente": "[I] scripts/lib/higieneSkills.mjs",
+  "control": "scripts/higiene-skills.test.js",
+  "codigo": "caduca-pronto"
+}

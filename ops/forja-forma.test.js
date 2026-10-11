@@ -12,7 +12,7 @@ import {
 
 /**
  * La forma de cada práctica, la fuente por bullet y las rondas de investigación (#458).
- * Todo es dato en ops/forja.json; aquí se valida. Aplicarlo a los estándares reales es de #454.
+ * Todo es dato en ops/forja/; aquí se valida. Aplicarlo a los estándares reales es de #454.
  * Falla cuando: la forma declarada no es válida, una práctica no cumple su forma (nº de bullets,
  * estructura y fuente: formal; voz, modo, tiempo y persona: material), un estándar no deja 3 rondas con
  * fuentes y no está en la lista de excepciones, o esa lista sube.
@@ -96,8 +96,8 @@ describe("una práctica contra su forma", () => {
   });
   it("la fuente de cada bullet es formal: [F] con https o [I] con una ruta que existe", () => {
     const con = (fuente) => practica(3, { fuente });
-    expect(problemas(con("[I] ops/forja.json"))).toEqual([]);
-    for (const mala of ["https://x.com/a", "[F] http://x.com/a", "[F] https://x.com", "[X] ops/forja.json", "", undefined]) expect(criterios(con(mala)), String(mala)).toContain("practica-fuente-por-bullet");
+    expect(problemas(con("[I] ops/forja/"))).toEqual([]);
+    for (const mala of ["https://x.com/a", "[F] http://x.com/a", "[F] https://x.com", "[X] ops/forja/", "", undefined]) expect(criterios(con(mala)), String(mala)).toContain("practica-fuente-por-bullet");
     expect(problemas(con("[I] ops/no-existe.md"))[0].mensaje).toContain("que no existe");
     const una = practica(3);
     delete una.bullets[2].fuente;
@@ -223,16 +223,17 @@ describe("las rondas de investigación", () => {
   });
   it("un estándar con sus rondas deja de ser falta; uno nuevo sin ellas, sí", () => {
     const e = structuredClone(estandares);
-    const [agente, ag] = Object.entries(e.agentes).find(([, a]) => a.estado === "completo");
+    const [agente, ag] = Object.entries(e.agentes).find(([, a]) => a.tareas[0].reglas);
     ag.tareas[0].rondas = ok;
     expect(faltasDeRondas(e, datos)[`estandar:${agente}/${ag.tareas[0].id}`]).toBeUndefined();
     expect(problemasDeExcepciones(faltasDeRondas(e, datos), excepciones.rondas, "x").join()).toContain("Baja la excepción");
-    ag.tareas.push({ id: "tarea-nueva", tarea: "Una tarea nueva sin rastro de rondas", estandar: "Un estándar nuevo con texto" });
+    ag.tareas.push({ id: "tarea-nueva", tarea: "Una tarea nueva sin rastro de rondas", reglas: [{}] });
     expect(problemasDeExcepciones(faltasDeRondas(e, datos), excepciones.rondas, "x").join()).toContain(`${agente}/tarea-nueva`);
   });
-  it("un agente pendiente (sin texto de estándar) no cuenta", () => {
-    const e = { agentes: { pendiente: { estado: "pendiente", tareas: [{ id: "una", tarea: "Una tarea sin estándar todavía" }] } } };
+  it("una tarea sin reglas (sin estándar escrito) no cuenta; una común sin rondas, sí (#516)", () => {
+    const e = { agentes: { uno: { tareas: [{ id: "una", tarea: "Una tarea sin estándar todavía" }] } } };
     expect(faltasDeRondas(e, datos)).toEqual({});
+    expect(faltasDeRondas({ agentes: {}, comunes: { una: { reglas: [{}] }, otra: { reglas: [{}], rondas: ok } } }, datos)).toEqual({ "estandar:comun/una": 1 });
   });
 });
 
@@ -296,11 +297,28 @@ describe("los criterios de esta parte en la base", () => {
     f((c) => { delete c.control_pendiente; }, "van juntos");
     f((c) => { c.pendiente_de = "999"; }, "pendiente_de es el issue");
     f((c) => { c.control_pendiente = ""; }, "control_pendiente es la ruta");
-    f((c) => { c.control = "ops/forja.json"; }, "lleva control «juicio»");
-    f((c) => { c.capa = "subjetiva"; }, "pendiente_de es de un criterio formal o material");
+    f((c) => { c.control = "ops/forja/"; }, "lleva control «juicio»");
+    f((c) => { c.motivo_pendiente = "falta_decision"; }, "solo está pendiente de su control (falta_herramienta)");
+    f((c) => { c.motivo_pendiente = "sin_mirar"; }, "motivo_pendiente «sin_mirar» no está en el vocabulario");
     f(() => {}, `ya existe ${futuro}`, (r) => existe(r) || r === futuro);
     f((c) => { delete c.pendiente_de; delete c.control_pendiente; }, "lo vigila un fichero, no «juicio»");
     expect(generarMd(bien)).toContain("provisional: lo da #999");
+  });
+  it("un criterio subjetivo pendiente (#457) lleva su issue y un motivo cerrado, y sigue con control «juicio»", () => {
+    const sub = datos.criterios.find((x) => x.id === "solo-lo-que-el-modelo-no-sabe");
+    expect(sub).toMatchObject({ capa: "subjetiva", control: "juicio", motivo_pendiente: "falta_herramienta" });
+    expect(problemasDeForja(datos, existe)).toEqual([]);
+    const f = (mut, trozo) => {
+      const d = clon();
+      mut(d.criterios.find((x) => x.id === sub.id));
+      expect(problemasDeForja(d, existe).join("\n"), trozo).toContain(trozo);
+    };
+    f((c) => { delete c.motivo_pendiente; }, "pendiente_de y motivo_pendiente van juntos");
+    f((c) => { delete c.pendiente_de; }, "pendiente_de y motivo_pendiente van juntos");
+    f((c) => { c.motivo_pendiente = "otra_version"; }, "no está en el vocabulario");
+    f((c) => { c.pendiente_de = "517"; }, "pendiente_de es el issue");
+    f((c) => { c.control_pendiente = "ops/forja/"; }, "ya existe ops/forja/");
+    expect(generarMd(datos)).toContain(`Pendiente (falta_herramienta): lo da ${sub.pendiente_de}.`);
   });
   it("FORJA.md recoge la forma, el método y el control del glosario", () => {
     const md = leer("docs/ops/FORJA.md");

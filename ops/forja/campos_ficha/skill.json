@@ -1,0 +1,88 @@
+{
+  "clave": "skill",
+  "valor": {
+    "fuente": "El frontmatter de .claude/skills/<skill>/SKILL.md (name y description arriba; tipo, dueno y comprobado en metadata). Los juicios de sus criterios de juicio van aparte, en ops/juicios-skills/<skill>.json (campos_ficha.juicio, #457).",
+    "campos": {
+      "name": {
+        "clase": "ref",
+        "ref": "skill",
+        "obligatorio": true
+      },
+      "description": {
+        "clase": "texto",
+        "hueco": true,
+        "cubre": "El cuándo se abre la skill dicho con las palabras de quien pide: lo discreto no lo alcanza, es prosa para que el modelo reconozca una petición",
+        "obligatorio": true
+      },
+      "tipo": {
+        "clase": "enum",
+        "vocab": "tipos_skill",
+        "obligatorio": false,
+        "nota": "Lo llevan todas las de nivel 2; la de nivel 0 no tiene tipo, y el nivel 1 lo comprueba"
+      },
+      "opera_proveedor": {
+        "clase": "bool",
+        "obligatorio": false,
+        "nota": "Respuesta a «¿Opera un sistema o proveedor externo concreto?» (preguntas_tipo); la piden todas las skills de nivel 2"
+      },
+      "juzga_artefacto": {
+        "clase": "bool",
+        "obligatorio": false,
+        "nota": "Respuesta a «¿Juzga un artefacto que ya existe?» (preguntas_tipo); la piden todas las skills de nivel 2"
+      },
+      "encadena": {
+        "clase": "bool",
+        "obligatorio": false,
+        "nota": "Respuesta a «¿Encadena skills o agentes?» (preguntas_tipo); la piden todas las skills de nivel 2"
+      },
+      "pasos_fijos": {
+        "clase": "bool",
+        "obligatorio": false,
+        "nota": "Respuesta a «¿Son pasos fijos con comprobación?» (preguntas_tipo); la piden todas las skills de nivel 2"
+      },
+      "sintoma_a_causa": {
+        "clase": "bool",
+        "obligatorio": false,
+        "nota": "Respuesta a «¿Va de un síntoma a su causa?» (preguntas_tipo); la piden todas las skills de nivel 2"
+      },
+      "elige_opciones": {
+        "clase": "bool",
+        "obligatorio": false,
+        "nota": "Respuesta a «¿Elige entre opciones con criterios?» (preguntas_tipo); la piden todas las skills de nivel 2"
+      },
+      "porque_tipo": {
+        "clase": "texto",
+        "hueco": true,
+        "cubre": "Por qué responde así cuando la respuesta no es evidente (una skill que podría parecer de otro tipo): el motivo cambia con cada skill",
+        "obligatorio": false
+      },
+      "nivel": {
+        "clase": "enum",
+        "vocab": "niveles",
+        "obligatorio": false,
+        "nota": "Sin él, 2 (skill concreta); solo la pieza meta lo lleva, con 0"
+      },
+      "dueno": {
+        "clase": "ref",
+        "ref": "agente",
+        "obligatorio": true
+      },
+      "comprobado": {
+        "clase": "fecha",
+        "obligatorio": true
+      },
+      "libertad": {
+        "clase": "enum",
+        "vocab": "libertad",
+        "obligatorio": false,
+        "nota": "Aún no está en el frontmatter"
+      },
+      "invocacion": {
+        "clase": "enum",
+        "vocab": "invocacion",
+        "obligatorio": false,
+        "nota": "Aún no está en el frontmatter"
+      }
+    }
+  }
+}

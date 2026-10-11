@@ -136,11 +136,11 @@ export function escrituraSegura(ruta, dir = null) {
 }
 
 /** El registro de señales no crece sin fin: pasado el tope, quedan las últimas `LINEAS_LOG` líneas. */
-export function recortarLog(ruta) {
+export function recortarLog(ruta, { maxBytes = MAX_BYTES_LOG, lineas: quedan = LINEAS_LOG } = {}) {
   try {
-    if (statSync(ruta).size <= MAX_BYTES_LOG) return;
+    if (statSync(ruta).size <= maxBytes) return;
     const lineas = readFileSync(ruta, "utf8").split("\n").filter(Boolean);
-    escribirAtomico(ruta, `${lineas.slice(-LINEAS_LOG).join("\n")}\n`);
+    escribirAtomico(ruta, `${lineas.slice(-quedan).join("\n")}\n`);
   } catch {
     // a propósito: es contabilidad; si no se puede recortar, se recorta la próxima vez
   }

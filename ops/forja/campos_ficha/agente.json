@@ -1,0 +1,30 @@
+{
+  "clave": "agente",
+  "valor": {
+    "fuente": "El frontmatter de .claude/agents/<agente>.md.",
+    "campos": {
+      "name": {
+        "clase": "ref",
+        "ref": "agente",
+        "obligatorio": true
+      },
+      "description": {
+        "clase": "texto",
+        "hueco": true,
+        "cubre": "El cuándo se usa el agente y su frontera con los demás, dicho con las palabras de quien pide",
+        "obligatorio": true
+      },
+      "model": {
+        "clase": "enum",
+        "vocab": "modelo_agente",
+        "obligatorio": true
+      },
+      "skills": {
+        "clase": "ref",
+        "ref": "skill",
+        "lista": true,
+        "obligatorio": false
+      }
+    }
+  }
+}

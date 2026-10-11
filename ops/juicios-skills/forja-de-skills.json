@@ -1,0 +1,83 @@
+{
+  "skill": "forja-de-skills",
+  "juicios": {
+    "descripcion-palabras-de-quien-pide": {
+      "estado": "cumple",
+      "evidencia": [
+        ".claude/skills/forja-de-skills/SKILL.md"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "f178d0f2a159"
+    },
+    "frontera-casi-fallos": {
+      "estado": "cumple",
+      "evidencia": [
+        "caso:forja-de-skills/frontera-rotar-token-de-otra-skill",
+        "caso:forja-de-skills/frontera-medir-disparo"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "f178d0f2a159"
+    },
+    "disparador-al-principio": {
+      "estado": "cumple",
+      "evidencia": [
+        ".claude/skills/forja-de-skills/SKILL.md",
+        ".claude/skills.test.js"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "f178d0f2a159"
+    },
+    "solo-lo-que-el-modelo-no-sabe": {
+      "estado": "juicio",
+      "motivo_pendiente": "falta_herramienta"
+    },
+    "libertad-ajustada": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar"
+    },
+    "camino-por-defecto": {
+      "estado": "cumple",
+      "evidencia": [
+        ".claude/skills/forja-de-skills/SKILL.md#Método"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "f178d0f2a159"
+    },
+    "pasos-con-salida-observable": {
+      "estado": "cumple",
+      "evidencia": [
+        ".claude/skills/forja-de-skills/SKILL.md#Método"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "f178d0f2a159"
+    },
+    "vocabulario-unico": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar"
+    },
+    "ejemplos-canonicos": {
+      "estado": "cumple",
+      "evidencia": [
+        ".claude/skills/forja-de-skills/SKILL.md#Método"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "f178d0f2a159"
+    },
+    "skill-contrastada-con-fallo-real": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar",
+      "nota": "su «Lo que falló» cuenta fallos del sistema, no de una sesión sin la skill; falta mirar el commit que la creó"
+    },
+    "forma-adecuada-al-contenido": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar",
+      "nota": "la tabla de «Cómo se prueba» lleva una celda de 325 caracteres con la lista de controles: falta decidir si es dato o razonamiento"
+    }
+  }
+}

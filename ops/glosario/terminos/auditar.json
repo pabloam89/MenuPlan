@@ -1,0 +1,11 @@
+{
+  "termino": "auditar",
+  "estado": "activo",
+  "clase": "accion",
+  "definicion": "Revisar de forma sistemática una superficie entera (un dominio, unos permisos, el modelo de datos) en vez de un diff, con una pasada que puede ser periódica.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "revisar"
+}

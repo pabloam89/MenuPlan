@@ -111,12 +111,11 @@ pendientes»:
 
 Fuente única: `ops/estandares-agentes.json`. Esta lista la genera `npm run estandar -- --escribir` y
 `ops/estandares-agentes.test.js` la compara; no se edita a mano. El detalle de cada
-tarea (estándar, qué comprueba, qué no hace y su fuente): `npm run estandar -- evaluador <tarea>`.
+tarea (acción, reglas con su control y su fuente, y lo que no hace): `npm run estandar -- evaluador <tarea>`.
+Todas las tareas de todos los agentes, en una tabla: `docs/ops/ESTANDARES.md`.
 
-Estado: pendiente. Lista de tareas hecha; el estándar de cada una está por escribir (#413).
-
-- `correr-evals` — Correr los evals del bot, del enrutador y de modelos que afectan al cambio
-- `comparar-con-staging` — Comparar la rama contra origin/staging con las mismas opciones y tabular el resultado
-- `leer-transcripciones` — Leer las transcripciones de los casos que empeoran o fallan y explicar la causa
-- `proponer-casos-faltantes` — Proponer los casos de eval que faltan, con su forma exacta en JSON
-- `cambio-de-modelo-de-turno` — Evaluar el cambio de modelo de un tipo de turno antes de desplegarlo
+- `correr-evals` — Correr los evals del bot, del enrutador y de modelos que afectan al cambio (acción: medir)
+- `comparar-con-staging` — Comparar la rama contra origin/staging con las mismas opciones y tabular el resultado (acción: medir)
+- `leer-transcripciones` — Leer las transcripciones de los casos que empeoran o fallan y explicar la causa (acción: diagnosticar)
+- `proponer-casos-faltantes` — Proponer los casos de eval que faltan, con su forma exacta en JSON (acción: juzgar)
+- `cambio-de-modelo-de-turno` — Evaluar el cambio de modelo de un tipo de turno antes de desplegarlo (acción: medir)

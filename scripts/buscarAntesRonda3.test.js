@@ -8,6 +8,7 @@ import { LINEAS_LOG, procesar, recortarLog } from "../.claude/hooks/buscar-antes
 import { avisoRamaPrincipal } from "../.claude/hooks/principal.mjs";
 import { cabezaDe, construirIndice, detectarSenales, senalDeDenegacion, senalDeRamaPrincipal } from "./lib/buscarAntes.mjs";
 import { ficherosNombrados } from "./lib/issues.mjs";
+import { maquinaSaturada, medianaMs, testigoMs, topeConTestigo, topeMs } from "./lib/medirTiempo.mjs";
 import { limpiarTexto } from "./lib/textoExterno.mjs";
 
 /**
@@ -130,33 +131,38 @@ describe("cero texto del exterior en lo que se pinta: ni nombres de fichero, de 
 });
 
 describe("ReDoS en ficherosNombrados, detectarSenales y el hook entero", () => {
-  const tiempo = (f) => {
-    const t0 = performance.now();
-    f();
-    return performance.now() - t0;
-  };
+  // Lo que tarda suelto el caso más lento de cada grupo (la mayor mediana de tres pasadas el
+  // 2026-10-10: 0,6 ms, 1 ms y 126 ms). Un ReDoS tarda segundos: el tope de 20× lo sigue
+  // cazando sin dar rojos bajo carga (#499).
+  const SUELTO = { ficheros: 1, senales: 1, hook: 130 };
+  const tiempo = (f, etiqueta) => medianaMs(f, { etiqueta });
   it.each([[64 * 1024], [200_000]])("ficherosNombrados con %i caracteres de palabra", (n) => {
-    expect(tiempo(() => ficherosNombrados("a".repeat(n)))).toBeLessThan(200);
-    expect(tiempo(() => ficherosNombrados(`${"a.".repeat(n / 2)}x`))).toBeLessThan(200);
+    expect(tiempo(() => ficherosNombrados("a".repeat(n)), `ficheros-a-${n}`)).toBeLessThan(topeMs(SUELTO.ficheros));
+    expect(tiempo(() => ficherosNombrados(`${"a.".repeat(n / 2)}x`), `ficheros-punto-${n}`)).toBeLessThan(topeMs(SUELTO.ficheros));
     expect(ficherosNombrados("mira guardia.mjs y src/App.jsx")).toEqual(new Set(["guardia.mjs", "app.jsx"]));
   });
   it.each([
     ["60 KB de a y una línea Error:", `${"a".repeat(60_000)}\nError: x`],
     ["FAIL y 60 KB de a", `FAIL ${"a".repeat(60_000)}`],
     ["200 000 de a y un Error:", `${"a".repeat(200_000)}\nTypeError: x`],
-  ])("detectarSenales con %s", (_, texto) => {
+  ])("detectarSenales con %s", (nombre, texto) => {
     const e = { tool_name: "Bash", tool_input: { command: "npm test" }, error: `Exit code 1\n${texto}`, hook_event_name: "PostToolUseFailure" };
-    expect(tiempo(() => detectarSenales(e))).toBeLessThan(200);
+    expect(tiempo(() => detectarSenales(e), `senales ${nombre}`)).toBeLessThan(topeMs(SUELTO.senales));
     const leer = () => ({ indice: construirIndice([issue(1, "[caso] x", "y")]), horas: 1 });
-    expect(tiempo(() => procesar(e, { leer, rama: () => ({ principal: false }) }))).toBeLessThan(200);
+    expect(tiempo(() => procesar(e, { leer, rama: () => ({ principal: false }) }), `procesar ${nombre}`)).toBeLessThan(topeMs(SUELTO.senales));
   });
   it("el hook entero (proceso) tarda poco con una salida enorme", () => {
     const entrada = { session_id: "redos", cwd: tmp(), tool_name: "Bash", tool_input: { command: "npm test" }, error: `Exit code 1\n${"a".repeat(60_000)}\nError: x\nFAIL ${"a".repeat(60_000)}`, hook_event_name: "PostToolUseFailure" };
-    const t0 = performance.now();
-    const r = spawnSync(process.execPath, [join(import.meta.dirname, "..", ".claude", "hooks", "buscar-antes.mjs")], { input: JSON.stringify(entrada), encoding: "utf8", env: { ...process.env, MENUPLAN_BUSCAR_DIR: tmp() }, timeout: 20000 });
+    let r;
+    // Lanza procesos: la carga dura toda la tanda, y el testigo de la misma tanda sube el tope con
+    // ella (#499); con la máquina saturada no se compara el tiempo.
+    const testigo = testigoMs();
+    const ms = medianaMs(() => {
+      r = spawnSync(process.execPath, [join(import.meta.dirname, "..", ".claude", "hooks", "buscar-antes.mjs")], { input: JSON.stringify(entrada), encoding: "utf8", env: { ...process.env, MENUPLAN_BUSCAR_DIR: tmp() }, timeout: 20000, windowsHide: true });
+    }, { n: 3, etiqueta: "hook-salida-enorme" });
     expect(r.status).toBe(0);
-    expect(performance.now() - t0).toBeLessThan(1500);
-  });
+    if (!maquinaSaturada(testigo, { etiqueta: "hook-salida-enorme" })) expect(ms).toBeLessThan(topeConTestigo(SUELTO.hook, { testigoAhoraMs: testigo }));
+  }, 60_000);
 });
 
 describe("limpiarTexto normaliza antes de quitar", () => {

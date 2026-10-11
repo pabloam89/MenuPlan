@@ -1,18 +1,18 @@
 import { describe, it, expect } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 
-import { DAYS } from "./planner.js";
-import { PACK_KINDS } from "./packUnits.js";
 import { KITCHEN_TOOL_IDS } from "./electrodomesticos.js";
 import { KITCHEN_TOOLS } from "./applianceMethods.js";
-import { USAGE_TAG_IDS, COOKING_METHODS } from "./userRecipes.js";
-import { BUILT_IN_IDS, DISCARDED_ID, newFolderId } from "./recipeCollections.js";
+import { COOKING_METHODS } from "./userRecipes.js";
+import { DISCARDED_ID, newFolderId } from "./recipeCollections.js";
 
 /**
- * La 0086 cierra cinco vocabularios de la app con un CHECK. Cada lista vive
- * en JS (la que pinta la app y la que escribe) y se repite en el SQL: este
- * test es lo que impide que se separen. Si añades un valor en JS sin migración,
- * la base rechazaría las escrituras nuevas con ese valor.
+ * La 0086 cierra cinco vocabularios de la app con un CHECK. Que el CHECK y la
+ * constante digan lo mismo lo vigila UNA vez src/lib/vocabularios.test.js, por
+ * columna y con los valores retirados (#497): aquí no se repite, porque una
+ * igualdad exacta pondría en rojo un retiro bien hecho (el CHECK sigue
+ * admitiendo el retirado). Aquí, lo propio de la 0086: NOT VALID, NFC y que
+ * «Descartados» no se guarda nunca.
  */
 const sql = readFileSync(new URL("../../supabase/migrations/0086_vocabulario_de_la_app.sql", import.meta.url), "utf8");
 const codigo = sql.split("\n").filter((l) => !/^\s*--/.test(l)).join("\n");
@@ -24,34 +24,15 @@ function literales(constraint) {
   return [...m[1].matchAll(/'([^']*)'/g)].map((x) => x[1]);
 }
 
-const ordenado = (xs) => [...xs].sort();
-
-describe("0086: el SQL dice lo mismo que la app", () => {
-  it("user_menu_weeks.active_days ⊆ DAYS (con las tildes en NFC)", () => {
-    const sqlDias = literales("user_menu_weeks_active_days_vocabulario");
-    expect(sqlDias).toEqual(DAYS);
-    for (const d of sqlDias) expect(d).toBe(d.normalize("NFC"));
+describe("0086: lo propio de la migración (la paridad, en vocabularios.test.js)", () => {
+  it("días y aparatos llevan tildes: en NFC, que el CHECK compara bytes", () => {
+    for (const c of ["user_menu_weeks_active_days_vocabulario", "user_recipes_required_appliances_vocabulario"]) {
+      for (const v of literales(c)) expect(v, c).toBe(v.normalize("NFC"));
+    }
   });
 
-  it("user_pantry.pack_kind ∈ PACK_KINDS", () => {
-    expect(ordenado(literales("user_pantry_pack_kind_vocabulario"))).toEqual(ordenado(PACK_KINDS.map((k) => k.value)));
-  });
-
-  it("user_recipes.required_appliances ⊆ los aparatos declarables", () => {
-    const sqlAparatos = literales("user_recipes_required_appliances_vocabulario");
-    expect(ordenado(sqlAparatos)).toEqual(ordenado(KITCHEN_TOOL_IDS));
-    for (const a of sqlAparatos) expect(a).toBe(a.normalize("NFC"));
-  });
-
-  it("user_recipes.usage_tags ⊆ USAGE_TAGS", () => {
-    expect(ordenado(literales("user_recipes_usage_tags_vocabulario"))).toEqual(ordenado(USAGE_TAG_IDS));
-  });
-
-  it("recipe_collections.collection_id: las 4 fijas o una carpeta fld_", () => {
-    const lits = literales("recipe_collections_collection_id_vocabulario");
-    expect(ordenado(lits)).toEqual(ordenado([...BUILT_IN_IDS, "fld\\_%"]));
-    // "Descartados" no se guarda nunca en recipe_collections.
-    expect(lits).not.toContain(DISCARDED_ID);
+  it("recipe_collections.collection_id: «Descartados» no se guarda nunca, y las carpetas propias son fld_", () => {
+    expect(literales("recipe_collections_collection_id_vocabulario")).not.toContain(DISCARDED_ID);
     expect(newFolderId()).toMatch(/^fld_/);
   });
 

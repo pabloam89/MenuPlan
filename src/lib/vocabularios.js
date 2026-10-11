@@ -4,7 +4,14 @@
  * Cada lista vive AQUÍ y los módulos que la usan la importan de aquí (no al
  * revés): así la app, el bot (vía botCore), los CHECK de las migraciones y el
  * `dominio` de registro_campo (la ficha) hablan de la misma lista. Un test
- * compara cada CHECK `_vocabulario` de las migraciones con su lista de aquí.
+ * compara el CHECK de lista vigente de cada columna de las migraciones con su
+ * lista de aquí (src/lib/vocabularios.test.js).
+ *
+ * Un valor no se borra ni se reutiliza (#497): si deja de ofrecerse, se quita
+ * de la lista y se retira en ops/vocabularios-vida.json con su `pasa_a`
+ * (`producto.<nombre>`); el CHECK lo sigue admitiendo, porque hay filas de
+ * familias guardadas con él. Un valor nuevo o retirado se ancla con
+ * `npm run glosario -- --vocabularios --escribir`.
  *
  * Sin dependencias: el bot lo importa sin arrastrar el motor ni el JSX.
  * Solo ids, tal como se guardan; las etiquetas para pintar viven en su
@@ -42,6 +49,16 @@ export const CANALES = ["telegram", "whatsapp"];
 
 /** Idiomas que la app y Lola saben hablar (user_profiles.ui_lang, household_invites.lang). */
 export const IDIOMAS = ["es", "en"];
+
+/**
+ * Un canal o un idioma concreto por su nombre (CANAL.TELEGRAM, IDIOMA.EN), sacado de su
+ * lista y no copiado: así un escritor fija el suyo sin un literal suelto (#549). Si el valor
+ * se retira de la lista, su nombre desaparece de aquí, y vocabularios.test.js falla en cada
+ * `CANAL.X` o `IDIOMA.X` del código que ya no existe.
+ */
+const porNombre = (lista) => Object.freeze(Object.fromEntries(lista.map((v) => [v.toUpperCase(), v])));
+export const CANAL = porNombre(CANALES);
+export const IDIOMA = porNombre(IDIOMAS);
 
 // ── Los de la ficha de la casa (auditoría de tipos de menuplan-1e, 7 oct 2026).
 // Tal como se guardan hoy en producción: pasar a una forma canónica (minúscula,
@@ -198,6 +215,12 @@ export const ACCIONES_ALERGIAS = ["apuntada", "recordada"];
 export const MOTIVOS_TOPE_DIARIO = ["tope_alcanzado", "sin_redis", "error_redis"];
 
 /**
+ * Qué hizo la escritura con un valor en la línea de log `vocabulario_escritura` (paraEscribir,
+ * más abajo, #539): `quitado`, un retirado sin sucesor que no se escribe.
+ */
+export const ACCIONES_ESCRITURA = ["quitado"];
+
+/**
  * El mapa nombre → lista. Es lo que referencia `registro_campo.vocabulario`
  * (la ficha): guarda el nombre, nunca una copia de los valores.
  */
@@ -233,7 +256,76 @@ export const VOCABULARIOS = Object.freeze({
   ambitos_modulo: AMBITOS_MODULO,
   estados_metrica: ESTADOS_METRICA,
   motivos_sin_puerta: MOTIVOS_SIN_PUERTA,
+  motivos_tope_diario: MOTIVOS_TOPE_DIARIO,
+  acciones_escritura: ACCIONES_ESCRITURA,
 });
 
 /** La lista de un vocabulario por su nombre, o null si no existe. */
 export const vocabulario = (nombre) => VOCABULARIOS[nombre] ?? null;
+
+/**
+ * Los valores retirados de cada vocabulario, con su sucesor: { nombre: { valor: pasa_a } }
+ * (pasa_a null: retirado sin sucesor). La fuente es `retirados` de
+ * ops/vocabularios-vida.json (los `producto.<nombre>`); esto es su proyección para la app y
+ * el bot, que no cargan ops/. src/lib/vocabularios.test.js exige que cuadren exactamente:
+ * al retirar un valor se apunta en los dos sitios (#539).
+ */
+export const RETIRADOS = Object.freeze({});
+
+/** Un valor que no se puede escribir porque no es de su vocabulario (ni vivo ni retirado): el CHECK lo rechazaría. */
+export class FueraDeVocabulario extends Error {
+  constructor(nombre, valor) {
+    super(`«${valor}» no es un valor de ${nombre}, ni vivo ni retirado`);
+    this.name = "FueraDeVocabulario";
+    this.vocabulario = nombre;
+    this.valor = valor;
+  }
+}
+
+/**
+ * La línea de log de un retirado sin sucesor que no se escribe, con la forma de las líneas de
+ * evento del bot (JSON en una línea, como `bot_alergias`), para poder contarla:
+ * {"evento":"vocabulario_escritura","vocabulario":"envases","valor":"tetra","accion":"quitado"}.
+ */
+export const avisarQuitado = (nombre, valor) =>
+  console.warn(JSON.stringify({ evento: "vocabulario_escritura", vocabulario: nombre, valor: String(valor), accion: ACCIONES_ESCRITURA[0] }));
+
+/**
+ * Las dos funciones con las que todo módulo dueño escribe una columna de vocabulario
+ * (PRINCIPIOS §4 y §15, #539). El CHECK admite los retirados (filas viejas de familias), así
+ * que la base no impide volver a escribirlos: lo impide pasar por aquí.
+ *   - paraEscribir(nombre, valor): el valor si está vivo; su `pasa_a` si está retirado. Un
+ *     retirado sin sucesor no se escribe: da null (columna opcional) y deja la línea
+ *     `vocabulario_escritura` con accion `quitado`. Un valor desconocido lanza
+ *     FueraDeVocabulario: el CHECK también lo rechazaría, y tiene que fallar claro.
+ *     null/undefined pasan tal cual.
+ *   - listaParaEscribir(nombre, valores): lo mismo para una columna array; el retirado sin
+ *     sucesor se quita de la lista (con su línea), un desconocido lanza, y sin repetidos (dos
+ *     retirados pueden ir al mismo sucesor, o uno al que ya estaba).
+ * `crearEscritor` existe para probarlo con un registro de prueba (vocabularios.test.js).
+ */
+export function crearEscritor(vocabularios = VOCABULARIOS, retirados = RETIRADOS, avisar = avisarQuitado) {
+  const paraEscribir = (nombre, valor) => {
+    const lista = vocabularios[nombre];
+    if (!lista) throw new Error(`no existe el vocabulario «${nombre}»`);
+    if (valor == null || lista.includes(valor)) return valor;
+    const deEse = retirados[nombre] ?? {};
+    if (!Object.prototype.hasOwnProperty.call(deEse, valor)) throw new FueraDeVocabulario(nombre, valor);
+    if (deEse[valor] != null) return deEse[valor];
+    avisar(nombre, valor);
+    return null;
+  };
+  const listaParaEscribir = (nombre, valores) => {
+    if (valores == null) return valores;
+    const out = [];
+    for (const v of valores) {
+      if (v == null) continue;
+      const w = paraEscribir(nombre, v);
+      if (w != null && !out.includes(w)) out.push(w);
+    }
+    return out;
+  };
+  return { paraEscribir, listaParaEscribir };
+}
+
+export const { paraEscribir, listaParaEscribir } = crearEscritor();

@@ -2,7 +2,7 @@
  * La base común de la forja (#458, fondo #455): una sola fuente de criterios de
  * calidad para skills, estándares de agente y lo que venga.
  *
- * `ops/forja.json` apunta cada criterio con su capa, a qué se aplica, de dónde
+ * `ops/forja/` apunta cada criterio con su capa, a qué se aplica, de dónde
  * sale, quién lo vigila y qué código emite el script que lo detecta. Tres capas,
  * porque convertir algo continuo en atributos discretos nunca cubre todo:
  *   - formal: esquema y forma, determinista, test del CI;
@@ -20,9 +20,11 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { CATALOGOS, leerCatalogo } from "./catalogos.mjs";
 import { CONTROL_JUICIO, FUERZAS, LIMITES_REGLA, fraseDeRegla, problemasDeRegla, problemasDeSujetos } from "./regla.mjs";
 
-export const RUTA_FORJA = "ops/forja.json";
+/** La forja vive partida, un fichero por entrada (#505): la carpeta es la fuente, sin agregado. */
+export const RUTA_FORJA = CATALOGOS.forja.carpeta;
 export const RUTA_CAPAS = "ops/forja-capas.json";
 export const RUTA_MD = "docs/ops/FORJA.md";
 export const RUTA_CAMPOS = "ops/forja-campos.json";
@@ -77,10 +79,31 @@ export const vocabulariosDeCriterio = (datos) => ({ sujeto: Object.keys(datos?.s
  */
 export const CAMPOS_OPCIONALES = ["casos_calibracion", "medidas", "listo_para_subir"];
 /**
- * Un criterio cuyo control lo da otro encargo y aún no existe: `control: "juicio"` provisional, `pendiente_de` (el issue)
- * y `control_pendiente` (el fichero que será su control). En cuanto ese fichero existe, el criterio tiene que pasar a usarlo.
+ * Un criterio al que le falta algo que da otro encargo: `pendiente_de` (el issue) y su `motivo_pendiente`
+ * (de `MOTIVOS_PENDIENTE`). En la capa formal o material es el control que aún no existe: `control: "juicio"`
+ * provisional y `control_pendiente` (el fichero que será su control); en cuanto existe, el criterio pasa a usarlo.
+ * En la subjetiva (#457) el control sigue siendo «juicio» y lo pendiente es lo que hace falta para juzgarlo
+ * (una medida, una decisión); `control_pendiente` es opcional y dice el fichero que lo dará.
  */
-export const CAMPOS_PENDIENTE = ["pendiente_de", "control_pendiente"];
+export const CAMPOS_PENDIENTE = ["pendiente_de", "control_pendiente", "motivo_pendiente"];
+/**
+ * Por qué algo está pendiente (vocabulario cerrado, #457). `en`: dónde se puede escribir: en un criterio
+ * de ops/forja/, en un juicio guardado de una skill, o solo lo calcula el script.
+ */
+export const MOTIVOS_PENDIENTE = {
+  falta_herramienta: { que: "Falta el control o la medida que lo comprobaría (un test, el A/B con y sin skill)", en: ["criterio", "juicio"] },
+  falta_decision: { que: "Falta decidir en la base cómo se aplica (a un tipo, o si no existe la pieza que juzga)", en: ["criterio", "juicio"] },
+  sin_mirar: { que: "Nadie lo ha juzgado todavía", en: ["juicio"] },
+  sin_pasada: { que: "Se juzga con una pasada del nivel 2 vigente, y no la hay", en: ["juicio", "calculado"] },
+  otra_version: { que: "Se juzgó sobre otra versión del SKILL.md: hay que volver a juzgarlo", en: ["calculado"] },
+};
+/** Lo pendiente de un criterio, en una frase para FORJA.md (vacía si no hay nada pendiente). */
+function textoPendiente(c) {
+  if (!c.pendiente_de) return "";
+  if (c.capa !== "subjetiva") return ` Control provisional: lo da ${c.pendiente_de} con \`${c.control_pendiente}\`.`;
+  return ` Pendiente (${c.motivo_pendiente}): lo da ${c.pendiente_de}${c.control_pendiente ? ` con \`${c.control_pendiente}\`` : ""}.`;
+}
+export const motivosPendienteEn =(donde) => Object.keys(MOTIVOS_PENDIENTE).filter((m) => MOTIVOS_PENDIENTE[m].en.includes(donde));
 /** Lo que un caso de calibración puede esperar: una respuesta conocida, no un hueco. */
 export const ESPERADOS_CALIBRACION = ["cumple", "no_cumple"];
 
@@ -90,7 +113,7 @@ export const FUENTE_I = /^\[I\] (\S+)$/;
 export const esTexto = (v, min) => typeof v === "string" && v.trim().length >= min;
 
 export function leerForja(raiz) {
-  return JSON.parse(readFileSync(join(raiz, RUTA_FORJA), "utf8"));
+  return leerCatalogo(raiz, RUTA_FORJA);
 }
 
 export function leerCapas(raiz) {
@@ -174,14 +197,25 @@ function problemasDeRubrica(c, d, malos) {
   }
 }
 
-/** `pendiente_de` y `control_pendiente`: van juntos, solo con control «juicio», y caducan cuando el fichero existe. */
+/**
+ * Lo pendiente de un criterio. Formal o material: `pendiente_de` y `control_pendiente` van juntos, solo con control
+ * «juicio», y caducan cuando el fichero existe; su motivo, si lo dice, es falta_herramienta. Subjetivo (#457):
+ * `pendiente_de` y `motivo_pendiente` van juntos; `control_pendiente`, opcional.
+ */
 function problemasDePendiente(c, d, existe, malos) {
   const tiene = CAMPOS_PENDIENTE.filter((k) => k in (c ?? {}));
   if (!tiene.length) return;
-  if (tiene.length !== 2) malos.push(`${d}: pendiente_de y control_pendiente van juntos`);
   if (c.control !== JUICIO) malos.push(`${d}: un criterio pendiente lleva control «${JUICIO}» hasta que exista su fichero`);
-  if (c.capa === "subjetiva") malos.push(`${d}: pendiente_de es de un criterio formal o material cuyo control aún no existe`);
-  if (typeof c.pendiente_de !== "string" || !/^#[1-9]\d{0,6}$/.test(c.pendiente_de)) malos.push(`${d}: pendiente_de es el issue que lo da (#n)`);
+  const motivos = motivosPendienteEn("criterio");
+  if ("motivo_pendiente" in c && !motivos.includes(c.motivo_pendiente)) malos.push(`${d}: motivo_pendiente «${c.motivo_pendiente}» no está en el vocabulario (${motivos.join(", ")})`);
+  if (c.capa === "subjetiva") {
+    if (!("pendiente_de" in c) || !("motivo_pendiente" in c)) malos.push(`${d}: en un criterio subjetivo, pendiente_de y motivo_pendiente van juntos`);
+  } else {
+    if (!("pendiente_de" in c) || !("control_pendiente" in c)) malos.push(`${d}: pendiente_de y control_pendiente van juntos`);
+    if ("motivo_pendiente" in c && c.motivo_pendiente !== "falta_herramienta") malos.push(`${d}: un criterio formal o material solo está pendiente de su control (falta_herramienta)`);
+  }
+  if ("pendiente_de" in c && (typeof c.pendiente_de !== "string" || !/^#[1-9]\d{0,6}$/.test(c.pendiente_de))) malos.push(`${d}: pendiente_de es el issue que lo da (#n)`);
+  if (!("control_pendiente" in c)) return;
   if (typeof c.control_pendiente !== "string" || !c.control_pendiente.trim()) malos.push(`${d}: control_pendiente es la ruta del fichero que será su control`);
   else if (existe(c.control_pendiente)) malos.push(`${d}: ya existe ${c.control_pendiente}: pon ese fichero como «control» y quita pendiente_de y control_pendiente`);
 }
@@ -358,12 +392,24 @@ export function problemasDeFicha(ficha, datos) {
 
 // ── Los tipos de skill (decisión de Pablo, 10 oct 2026) ───────────────────
 
+/** Cuántos tipos decidió Pablo (eran 8; el 10 oct 2026 quitó `forja`, que pasa a la pieza meta de nivel 0). */
+export const NUM_TIPOS_SKILL = 7;
+
+/**
+ * Los criterios que aún nombran en `tipos` un tipo retirado: ["criterio: tipo"]. No rompen el
+ * catálogo, pero sobran; su trinquete (ops/forja-tipos.test.js) solo deja que la lista baje.
+ */
+export function tiposRetiradosEnCriterios(datos) {
+  const retirados = Object.keys(datos?.destino_tipos_actuales ?? {});
+  return (datos?.criterios ?? []).flatMap((c) => (Array.isArray(c.tipos) ? c.tipos.filter((t) => retirados.includes(t)).map((t) => `${c.id}: ${t}`) : []));
+}
+
 /** El tipo cuando ninguna pregunta responde que sí. */
 export const TIPO_POR_DEFECTO = "conocimiento";
 export const TODOS = "todos";
 
 let preguntasPorDefecto = null;
-/** Las preguntas de ops/forja.json (la única fuente de su orden), leídas una vez. */
+/** Las preguntas de ops/forja/ (la única fuente de su orden), leídas una vez. */
 function leerPreguntas() {
   preguntasPorDefecto ??= leerForja(join(dirname(fileURLToPath(import.meta.url)), "..", "..")).preguntas_tipo;
   return preguntasPorDefecto;
@@ -398,25 +444,34 @@ function problemasDeTipos(c, d, datos, malos) {
   if (!("tipos" in c)) { malos.push(`${d}: falta «tipos» (${TODOS} o la lista de tipos de skill a los que se aplica)`); return; }
   if (c.tipos === TODOS) return;
   if (!Array.isArray(c.tipos) || !c.tipos.length) { malos.push(`${d}: «tipos» es «${TODOS}» o una lista con al menos un tipo`); return; }
-  for (const t of c.tipos) if (!ids.includes(t)) malos.push(`${d}: tipos «${t}» no está en tipos_skill (${ids.join(", ")})`);
+  // Un tipo retirado que un criterio aún nombra no es un error aquí: lo cuenta tiposRetiradosEnCriterios, con su trinquete.
+  const retirados = Object.keys(datos?.destino_tipos_actuales ?? {});
+  for (const t of c.tipos) if (!ids.includes(t) && !retirados.includes(t)) malos.push(`${d}: tipos «${t}» no está en tipos_skill (${ids.join(", ")})`);
   if (new Set(c.tipos).size !== c.tipos.length) malos.push(`${d}: tipos repite un tipo`);
-  if (c.tipos.length === ids.length) malos.push(`${d}: tipos lista todos los tipos: pon «${TODOS}»`);
+  if (c.tipos.filter((t) => ids.includes(t)).length === ids.length) malos.push(`${d}: tipos lista todos los tipos: pon «${TODOS}»`);
 }
 
 /**
- * La taxonomía y la migración. `skills`: los nombres de las skills del repo;
- * `tiposActuales`: ids de ops/flujo.json (tipos_skill); `tipoActualDe`: skill → su metadata.tipo hoy.
+ * La taxonomía. `skills`: los nombres de las skills del repo; `fichaDe`: skill → su
+ * `metadata` (con las respuestas ya como true o false). Cada skill de nivel 2 declara
+ * en su ficha sus respuestas a `preguntas_tipo` y su `tipo`, que tiene que ser el que
+ * ellas dan; la base no guarda datos de cada pieza (#495). `destino_tipos_actuales`
+ * guarda los tipos retirados y a cuáles pasan: ninguno vuelve a ser un tipo ni a estar en una skill.
  */
-export function problemasDeTaxonomia(datos, { skills, tiposActuales, tipoActualDe = {} }) {
+export function problemasDeTaxonomia(datos, { skills: todas, fichaDe = {} }) {
+  const nivel = (s) => String(fichaDe[s]?.nivel ?? "2");
+  // La pieza meta (nivel 0) no tiene tipo ni respuestas.
+  const metas = todas.filter((s) => nivel(s) === "0");
+  const skills = todas.filter((s) => !metas.includes(s));
   const malos = [];
   const tipos = datos.tipos_skill ?? [];
   const ids = tipos.map((t) => t.id);
   const preguntas = datos.preguntas_tipo ?? [];
   const claves = preguntas.map((p) => p.clave);
-  if (ids.length !== 8) malos.push(`tipos_skill tiene ${ids.length} tipos; la decisión de Pablo son 8`);
+  if (ids.length !== NUM_TIPOS_SKILL) malos.push(`tipos_skill tiene ${ids.length} tipos; la decisión de Pablo son ${NUM_TIPOS_SKILL}`);
   if (new Set(ids).size !== ids.length) malos.push("tipos_skill repite un tipo");
   for (const t of tipos) {
-    for (const k of ["id", "que", "entra", "sale", "prueba", "skills_hoy"]) if (!(k in t)) malos.push(`tipo ${t.id}: falta «${k}»`);
+    for (const k of ["id", "que", "entra", "sale", "prueba", "skills_hoy", "secciones"]) if (!(k in t)) malos.push(`tipo ${t.id}: falta «${k}»`);
     if (!ID.test(t.id ?? "")) malos.push(`tipo ${t.id}: el id va en minúsculas con guiones`);
     if (!Array.isArray(t.skills_hoy)) malos.push(`tipo ${t.id}: skills_hoy es una lista`);
   }
@@ -432,39 +487,48 @@ export function problemasDeTaxonomia(datos, { skills, tiposActuales, tipoActualD
     const v = datos[eje];
     if (!v || typeof v !== "object" || !Object.keys(v).length) malos.push(`${eje} es un vocabulario con valores y su explicación`);
   }
-  const respuestas = datos.respuestas_tipo ?? {};
-  const migracion = datos.migracion_tipos ?? {};
+  for (const viejo of ["respuestas_tipo", "migracion_tipos"]) if (viejo in datos) malos.push(`${viejo}: las respuestas y el tipo de cada skill van en su ficha (frontmatter), no en la base (#495)`);
   const provisionales = datos.skills_provisionales ?? {};
+  const derivado = {};
   for (const s of skills) {
-    const r = respuestas[s];
-    if (!r) { malos.push(`${s}: faltan sus respuestas en respuestas_tipo (${claves.join(", ")})`); continue; }
-    for (const k of claves) if (typeof r[k] !== "boolean") malos.push(`${s}: la respuesta «${k}» es verdadero o falso`);
-    if ("nota" in r && !esTexto(r.nota, 30)) malos.push(`${s}: la nota de sus respuestas dice por qué (30 caracteres o más)`);
-    for (const k of Object.keys(r)) if (k !== "nota" && !claves.includes(k)) malos.push(`${s}: respuesta «${k}» no es una pregunta de preguntas_tipo`);
-    const derivado = tipoDeSkill(r, preguntas);
-    if (migracion[s] !== derivado) malos.push(`${s}: migracion_tipos dice «${migracion[s]}» y sus respuestas dan «${derivado}»`);
-    const actual = tipoActualDe[s];
-    const destino = datos.destino_tipos_actuales?.[actual]?.destinos;
-    if (actual && destino && !destino.includes(derivado)) malos.push(`${s}: era «${actual}» y pasa a «${derivado}», que no es un destino de «${actual}» (${destino.join(", ")})`);
+    const r = fichaDe[s] ?? {};
+    const faltan = claves.filter((k) => typeof r[k] !== "boolean");
+    for (const k of faltan) malos.push(`${s}: su ficha no responde «${k}» con true o false`);
+    if (faltan.length) continue;
+    derivado[s] = tipoDeSkill(r, preguntas);
+    if (r.tipo !== derivado[s]) malos.push(`${s}: su metadata.tipo es «${r.tipo}» y sus respuestas dan «${derivado[s]}»`);
   }
-  for (const s of [...Object.keys(respuestas), ...Object.keys(migracion)]) if (!skills.includes(s)) malos.push(`${s}: está en respuestas_tipo o migracion_tipos y no es una skill del repo`);
+  for (const s of metas) {
+    const r = fichaDe[s] ?? {};
+    if ("tipo" in r) malos.push(`${s}: es la pieza meta (nivel 0) y no lleva tipo`);
+    for (const k of claves) if (k in r) malos.push(`${s}: es la pieza meta (nivel 0) y no responde «${k}»`);
+  }
+  if (metas.length !== 1) malos.push(`hay ${metas.length} piezas meta (nivel 0) entre las skills; tiene que haber exactamente una`);
+  const n0 = datos.nivel_0?.skills?.secciones;
+  if (!Array.isArray(n0) || !n0.length || n0.at(-1) !== "Fuentes y comprobación") malos.push("nivel_0.skills.secciones: la forma de la pieza meta es una lista de secciones que acaba en «Fuentes y comprobación»");
+  for (const k of ["0", "1", "2"]) if (!esTexto(datos.niveles?.[k], 20)) malos.push(`niveles: falta el ${k} con su explicación`);
   for (const [s, p] of Object.entries(provisionales)) {
     if (!skills.includes(s)) malos.push(`${s}: skill provisional que no existe`);
     if (!esTexto(p?.motivo, 30)) malos.push(`${s}: skills_provisionales lleva su motivo (30 caracteres o más)`);
     if (typeof p?.en_tabla !== "boolean") malos.push(`${s}: skills_provisionales dice en_tabla (true si la tabla de Pablo ya la pone en su tipo)`);
   }
   for (const t of tipos) {
-    const hoy = skills.filter((s) => migracion[s] === t.id && (!(s in provisionales) || provisionales[s].en_tabla)).sort();
-    if (JSON.stringify([...(t.skills_hoy ?? [])].sort()) !== JSON.stringify(hoy)) malos.push(`tipo ${t.id}: skills_hoy es [${(t.skills_hoy ?? []).join(", ")}] y la migración da [${hoy.join(", ")}]`);
+    const hoy = skills.filter((s) => derivado[s] === t.id && (!(s in provisionales) || provisionales[s].en_tabla)).sort();
+    if (JSON.stringify([...(t.skills_hoy ?? [])].sort()) !== JSON.stringify(hoy)) malos.push(`tipo ${t.id}: skills_hoy es [${(t.skills_hoy ?? []).join(", ")}] y las respuestas de las skills dan [${hoy.join(", ")}]`);
   }
-  for (const t of tiposActuales) {
-    const d = datos.destino_tipos_actuales?.[t];
-    if (!d) { malos.push(`el tipo actual «${t}» de ops/flujo.json no tiene destino en destino_tipos_actuales`); continue; }
-    if (!Array.isArray(d.destinos) || !d.destinos.length) malos.push(`«${t}»: destinos es una lista con al menos un tipo`);
-    for (const x of d.destinos ?? []) if (!ids.includes(x)) malos.push(`«${t}»: el destino «${x}» no está en tipos_skill`);
-    if (!esTexto(d.nota, 15)) malos.push(`«${t}»: el destino lleva su nota (15 caracteres o más)`);
+  // Los tipos retirados: dicen a cuál pasan y no vuelven (un valor no se reutiliza).
+  const retirados = datos.destino_tipos_actuales ?? {};
+  for (const [t, d] of Object.entries(retirados)) {
+    if (ids.includes(t)) malos.push(`«${t}»: es un tipo retirado (destino_tipos_actuales) y vuelve a estar en tipos_skill`);
+    // Sin destino solo si no tiene sucesor, y la nota lo dice (p. ej. forja, que pasa a la pieza meta).
+    if (!Array.isArray(d?.destinos)) malos.push(`«${t}»: destinos es una lista (vacía si no tiene sucesor, y la nota dice por qué)`);
+    for (const x of d?.destinos ?? []) if (!ids.includes(x)) malos.push(`«${t}»: el destino «${x}» no está en tipos_skill`);
+    if (!esTexto(d?.nota, 15)) malos.push(`«${t}»: el destino lleva su nota (15 caracteres o más)`);
   }
-  for (const t of Object.keys(datos.destino_tipos_actuales ?? {})) if (!tiposActuales.includes(t)) malos.push(`«${t}»: tiene destino y ya no es un tipo de ops/flujo.json`);
+  for (const s of todas) {
+    const actual = fichaDe[s]?.tipo;
+    if (actual in retirados) malos.push(`${s}: su metadata.tipo «${actual}» es un tipo retirado; pasa a uno de: ${(retirados[actual]?.destinos ?? []).join(", ")}`);
+  }
   return malos;
 }
 
@@ -473,13 +537,18 @@ export function problemasDeTaxonomia(datos, { skills, tiposActuales, tipoActualD
 export const CLASES_CAMPO = {
   bool: "Verdadero o falso",
   enum: "Un valor de un vocabulario cerrado",
-  ref: "Apunta a algo que existe: skill, agente, criterio, ruta, comando, issue o fuente",
+  ref: "Apunta a algo que existe: skill, agente, criterio, ruta, comando, issue, fuente, evidencia o versión",
   numero: "Un número",
   fecha: "Una fecha AAAA-MM-DD",
   texto: "Prosa: solo como hueco, con su motivo",
+  regla: "Una regla por campos (nombre, sujeto, fuerza, exigencia…); la valida problemasDeRegla con el vocabulario de sujetos de su catálogo",
 };
-/** Lo que apunta una `ref`. `fuente` es el id del catálogo de fuentes de los estándares. */
-export const REFS_CAMPO = ["skill", "agente", "criterio", "ruta", "comando", "issue", "fuente"];
+/**
+ * Lo que apunta una `ref`. `fuente` es el id del catálogo de fuentes de los estándares; `evidencia`, lo que
+ * respalda un juicio (una ruta con su cabecera, un caso, un comando, un PR o un issue: la valida quien da
+ * `ctx.existe`); `version`, el hash de 12 de una versión de un fichero (hashLF de scripts/lib/evals.mjs).
+ */
+export const REFS_CAMPO = ["skill", "agente", "criterio", "ruta", "comando", "issue", "fuente", "evidencia", "version", "estandar_comun"];
 /** Nivel de una clase para el trinquete: el texto es el hueco; todo lo demás es discreto. */
 export const NIVELES_CAMPO = ["texto", "discreto"];
 export const nivelDeClase = (clase) => (clase === "texto" ? "texto" : "discreto");
@@ -544,6 +613,10 @@ function problemaDeValor(c, x, datos, ctx) {
     case "bool": return typeof x === "boolean" ? null : "no es verdadero o falso";
     case "numero": return typeof x === "number" && Number.isFinite(x) ? null : "no es un número";
     case "fecha": return fechaValida(x) ? null : `«${x}» no es una fecha AAAA-MM-DD válida`;
+    case "regla": {
+      const malos = problemasDeRegla(x, "regla", ctx.sujetos ?? {});
+      return malos.length ? malos.join("; ") : null;
+    }
     case "texto": return c.hueco === true && typeof x === "string" && x.trim() ? null : "un texto sin hueco declarado";
     case "enum": {
       const voc = ctx.vocabularios?.[c.vocab];
@@ -555,6 +628,7 @@ function problemaDeValor(c, x, datos, ctx) {
       if (c.ref === "criterio") return datos.criterios.some((k) => k.id === x) ? null : `el criterio «${x}» no existe`;
       if (c.ref === "comando") return /^(npm run [\w:-]+|node \S+\.mjs)( .*)?$/.test(x) ? null : `«${x}» no es un comando (npm run … o node …mjs)`;
       if (c.ref === "issue") return /^#?[1-9]\d{0,6}$/.test(String(x)) ? null : `«${x}» no es un issue (#n)`;
+      if (c.ref === "version") return /^[0-9a-f]{12}$/.test(x) ? null : `«${x}» no es una versión (hash de 12 en hexadecimal)`;
       if (!ctx.existe) return `no se puede comprobar que exista ${c.ref} «${x}»: falta ctx.existe`;
       return ctx.existe(c.ref, x) ? null : `${c.ref} «${x}» no existe`;
     }
@@ -662,7 +736,7 @@ function mdTipos(datos) {
   return [
     "## Tipos de skill",
     "",
-    `Taxonomía decidida por Pablo el 10 oct 2026. Un tipo existe solo si cambia qué entra y sale, cómo se prueba y cómo se corrige. **La fuente de los tipos pasa a ser \`${RUTA_FORJA}\`**; el cambio de la plantilla (\`.claude/PLANTILLA-SKILL.md\`), de \`ops/flujo.json\` y de las skills es del encargo de plantillas por tipo, y hasta entonces siguen los ocho tipos de hoy.`,
+    `Taxonomía decidida por Pablo el 10 oct 2026. Un tipo existe solo si cambia qué entra y sale, cómo se prueba y cómo se corrige. **La única lista de tipos es la de \`${RUTA_FORJA}\`** (\`tipos_skill\`). El molde de cada tipo (sus secciones, los campos de la ficha, cómo se prueba y su ejemplo) se genera en \`.claude/plantillas-skill/<tipo>.md\` con \`npm run plantillas -- --escribir\` (#495), y el \`tipo\` del frontmatter de cada skill es el que dan sus respuestas.`,
     "",
     "| Tipo | Qué hace | Entra → sale | Prueba | Skills de hoy |",
     "|---|---|---|---|---|",
@@ -680,17 +754,17 @@ function mdTipos(datos) {
     "|---|---|",
     ...["libertad", "invocacion"].map((e) => `| ${e} | ${Object.keys(datos[e]).join(", ")} |`),
     "",
-    "Los tipos de hoy (`ops/flujo.json`) y adónde van:",
+    "Los tipos retirados al migrar (#495) y a cuáles pasan; no vuelven a usarse:",
     "",
-    "| Tipo de hoy | Destino |",
+    "| Tipo retirado | Destino |",
     "|---|---|",
-    ...Object.entries(datos.destino_tipos_actuales).map(([t, d]) => `| ${t} | ${d.destinos.join(", ")} |`),
+    ...Object.entries(datos.destino_tipos_actuales).map(([t, d]) => `| ${t} | ${d.destinos.join(", ") || "sin sucesor"} |`),
     "",
-    "Por skill (`migracion_tipos`, sacada de `tipoDeSkill` y comprobada por `ops/forja.test.js`):",
+    "Cada skill declara en su ficha (frontmatter) sus respuestas a las preguntas y su `tipo`, que tiene que ser el que ellas dan: la base es norma y no guarda datos de cada pieza (`ops/forja-tipos.test.js` y `.claude/skills.test.js`). Niveles:",
     "",
-    "| Skill | Tipo |",
+    "| Nivel | Qué es |",
     "|---|---|",
-    ...Object.entries(datos.migracion_tipos).map(([s, t]) => `| ${s} | ${t} |`),
+    ...Object.entries(datos.niveles ?? {}).map(([n, q]) => `| ${n} | ${celda(q)} |`),
     "",
     "Herencia: esqueleto común (la base) → plantilla por tipo (los criterios que le tocan, `tipos` de cada criterio) → cada skill. Criterios de skill por tipo y capa:",
     "",
@@ -766,7 +840,7 @@ function mdForma(datos) {
   return [
     "## La forma de una práctica",
     "",
-    "Datos en `forma_practica` de `ops/forja.json`; se validan con `problemasDePractica` (`scripts/lib/forjaForma.mjs`). El número de bullets, su estructura y la fuente de cada uno son capa formal; la voz, el modo, el tiempo y la persona son capa material, una heurística sobre el texto que **es orientativa hasta que #454 la calibre con estándares reales** (la voz solo mira el verbo que abre la regla; el condicional y el -ó suelto no cuentan como otro tiempo). Aplicarlo a los estándares reales es de #454.",
+    "Datos en `forma_practica` de `ops/forja/`; se validan con `problemasDePractica` (`scripts/lib/forjaForma.mjs`). El número de bullets, su estructura y la fuente de cada uno son capa formal; la voz, el modo, el tiempo y la persona son capa material, una heurística sobre el texto que **es orientativa hasta que #454 la calibre con estándares reales** (la voz solo mira el verbo que abre la regla; el condicional y el -ó suelto no cuentan como otro tiempo). Aplicarlo a los estándares reales es de #454.",
     "",
     "| Artefacto | Bullets | Estructura de cada bullet | Fuente por bullet | Voz | Modo y tiempo | Persona |",
     "|---|---|---|---|---|---|---|",
@@ -787,7 +861,7 @@ export function generarMd(datos) {
     "",
     `<!-- Generado desde ${RUTA_FORJA} con «npm run forja -- --escribir». No se edita a mano: ops/forja.test.js lo compara. -->`,
     "",
-    `La única fuente de lo que se le pide a una skill, a un estándar de agente y a lo que venga es \`${RUTA_FORJA}\`. Tres capas, porque convertir algo continuo en atributos discretos nunca cubre todo; para los huecos están los textos que juzga un LLM. La capa de cada criterio solo sube (\`${RUTA_CAPAS}\`).`,
+    `La única fuente de lo que se le pide a una skill, a un estándar de agente y a lo que venga es \`${RUTA_FORJA}\`, partida en un fichero por criterio, por tipo de skill y por ficha para que dos ramas no choquen (#505; formato en \`scripts/lib/catalogos.mjs\`). Tres capas, porque convertir algo continuo en atributos discretos nunca cubre todo; para los huecos están los textos que juzga un LLM. La capa de cada criterio solo sube (\`${RUTA_CAPAS}\`). Cómo se redacta cada criterio, y cualquier otra regla de la casa: [REDACCION.md](REDACCION.md).`,
     "",
     "## Cifras",
     "",
@@ -808,17 +882,21 @@ export function generarMd(datos) {
     "|---|---|",
     ...ORDEN_CAPAS.slice().reverse().map((capa) => `| ${capa} | ${celda(CAPAS_CRITERIO[capa])} |`),
     "",
-    "| Estado de una ficha | Qué quiere decir |",
+    "| Estado de un criterio | Qué quiere decir |",
     "|---|---|",
     ...Object.entries(ESTADOS_CRITERIO).map(([e, t]) => `| ${e} | ${celda(t)} |`),
     "",
-    `Una ficha es una línea \`<artefacto>: <nombre> criterio: <id> estado: <estado>\`; solo ${ESTADOS_CON_NOTA.join(" y ")} llevan \`nota:\` (el hueco).`,
+    `El estado de un criterio sobre un artefacto es una línea \`<artefacto>: <nombre> criterio: <id> estado: <estado>\`; solo ${ESTADOS_CON_NOTA.join(" y ")} llevan \`nota:\` (el hueco). Los juicios de skill (los criterios de juicio de cada skill, con su evidencia) viven en \`ops/juicios-skills/<skill>.json\` y sus campos son los de \`campos_ficha.juicio\`.`,
+    "",
+    "| Motivo de un pendiente | Qué quiere decir | Dónde se escribe |",
+    "|---|---|---|",
+    ...Object.entries(MOTIVOS_PENDIENTE).map(([m, x]) => `| ${m} | ${celda(x.que)} | ${x.en.join(", ")} |`),
     "",
     "## Promoción de una rúbrica",
     "",
     `Un criterio subjetivo lleva casos de calibración (un texto de ejemplo y el estado que se espera, cumple o no_cumple) y solo puede marcarse \`listo_para_subir\` si sus medidas cumplen la promoción: coincidencia del juez con la respuesta conocida de al menos **${datos.promocion.coincidencia_minima}** en **${datos.promocion.repeticiones}** repeticiones.`,
     "",
-    "**Estos valores son un primer tiro, pendientes de ajustar con datos.** Están en el bloque `promocion` de `ops/forja.json` y se cambian ahí; aún no hay juez montado ni medidas. Subir de capa sigue siendo editar el criterio; el trinquete (`ops/forja-capas.json`) impide bajar.",
+    "**Estos valores son un primer tiro, pendientes de ajustar con datos.** Están en el bloque `promocion` de `ops/forja/` y se cambian ahí; aún no hay juez montado ni medidas. Subir de capa sigue siendo editar el criterio; el trinquete (`ops/forja-capas.json`) impide bajar.",
     "",
     "Marca de la fuente: **[F]** está en una fuente externa (con su URL); **[I]** es de la casa (con la ruta del repo donde está escrito).",
   ];
@@ -833,7 +911,7 @@ export function generarMd(datos) {
         if (c.cumple) L.push(`  - Cumple si ${c.cumple}. No cumple si ${c.no_cumple}.`);
         if (c.nota) L.push(`  - Nota: ${c.nota}.`);
         if (c.casos_calibracion) L.push(`  - Calibración: ${c.casos_calibracion.length} casos con respuesta conocida (${c.casos_calibracion.map((k) => k.esperado).join(", ")})${c.listo_para_subir ? ". Listo para subir." : "."}`);
-        L.push(`  - Fuente: ${c.fuente}.${c.pendiente_de ? ` Control provisional: lo da ${c.pendiente_de} con \`${c.control_pendiente}\`.` : ""}${c.codigo ? ` Código: \`${c.codigo}\`.` : ""}`);
+        L.push(`  - Fuente: ${c.fuente}.${textoPendiente(c)}${c.codigo ? ` Código: \`${c.codigo}\`.` : ""}`);
       }
     }
   }

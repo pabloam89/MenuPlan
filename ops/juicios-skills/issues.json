@@ -1,0 +1,78 @@
+{
+  "skill": "issues",
+  "juicios": {
+    "descripcion-palabras-de-quien-pide": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar",
+      "nota": "dudoso: la descripción habla de caso, fondo y encargo, el vocabulario de la casa"
+    },
+    "frontera-casi-fallos": {
+      "estado": "cumple",
+      "evidencia": [
+        "caso:issues/frontera-linea-casos-pr",
+        "caso:issues/frontera-causa-de-fondo"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "46c05e84e1ae"
+    },
+    "disparador-al-principio": {
+      "estado": "cumple",
+      "evidencia": [
+        ".claude/skills/issues/SKILL.md",
+        ".claude/skills.test.js"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "46c05e84e1ae"
+    },
+    "solo-lo-que-el-modelo-no-sabe": {
+      "estado": "juicio",
+      "motivo_pendiente": "falta_herramienta"
+    },
+    "libertad-ajustada": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar"
+    },
+    "camino-por-defecto": {
+      "estado": "juicio",
+      "motivo_pendiente": "falta_decision"
+    },
+    "pasos-con-salida-observable": {
+      "estado": "cumple",
+      "evidencia": [
+        ".claude/skills/issues/SKILL.md#Operaciones habituales"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "46c05e84e1ae"
+    },
+    "vocabulario-unico": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar"
+    },
+    "ejemplos-canonicos": {
+      "estado": "juicio",
+      "motivo_pendiente": "falta_decision"
+    },
+    "skill-contrastada-con-fallo-real": {
+      "estado": "cumple",
+      "evidencia": [
+        ".claude/skills/issues/SKILL.md#Lo que falló y por qué"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "46c05e84e1ae"
+    },
+    "forma-adecuada-al-contenido": {
+      "estado": "no_cumple",
+      "nota": "la celda «Debe salir» de «Registrar un caso» lleva el porqué y la historia (la guardia, el 8 oct): razonamiento en una celda",
+      "evidencia": [
+        ".claude/skills/issues/SKILL.md#Operaciones habituales"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "46c05e84e1ae"
+    }
+  }
+}

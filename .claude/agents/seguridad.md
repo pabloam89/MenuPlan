@@ -117,13 +117,14 @@ No cambia nada. Devuelve en «Decisiones pendientes»:
 
 Fuente única: `ops/estandares-agentes.json`. Esta lista la genera `npm run estandar -- --escribir` y
 `ops/estandares-agentes.test.js` la compara; no se edita a mano. El detalle de cada
-tarea (estándar, qué comprueba, qué no hace y su fuente): `npm run estandar -- seguridad <tarea>`.
+tarea (acción, reglas con su control y su fuente, y lo que no hace): `npm run estandar -- seguridad <tarea>`.
+Todas las tareas de todos los agentes, en una tabla: `docs/ops/ESTANDARES.md`.
 
-- `delimitar-superficie` — Delimitar la superficie a auditar: datos, actores y caminos
-- `auditar-rls-y-grants` — Auditar RLS, grants y funciones security definer de las migraciones y del catálogo vivo
-- `auditar-endpoints` — Auditar la autorización, la validación y los límites de los endpoints de api/
-- `auditar-secretos` — Auditar que ningún secreto esté en el código ni en el historial y quién lo lee
-- `auditar-datos-personales` — Auditar qué datos personales se exponen en respuestas públicas y en registros
-- `auditar-lola-inyeccion` — Auditar que un mensaje no haga escribir a Lola para otra casa ni saltarse la confirmación
-- `verificar-en-vivo-leyendo` — Confirmar un hallazgo en vivo solo con lecturas, o marcarlo sin verificar
-- `informe-de-seguridad` — Redactar la tabla de hallazgos por severidad, con escenario y arreglo, sin ningún valor secreto
+- `delimitar-superficie` — Delimitar la superficie a auditar: datos, actores y caminos (acción: juzgar)
+- `auditar-rls-y-grants` — Auditar RLS, grants y funciones security definer de las migraciones y del catálogo vivo (acción: juzgar)
+- `auditar-endpoints` — Auditar la autorización, la validación y los límites de los endpoints de api/ (acción: juzgar)
+- `auditar-secretos` — Auditar que ningún secreto esté en el código ni en el historial y quién lo lee (acción: juzgar)
+- `auditar-datos-personales` — Auditar qué datos personales se exponen en respuestas públicas y en registros (acción: juzgar)
+- `auditar-lola-inyeccion` — Auditar que un mensaje no haga escribir a Lola para otra casa ni saltarse la confirmación (acción: juzgar)
+- `verificar-en-vivo-leyendo` — Confirmar un hallazgo en vivo solo con lecturas, o marcarlo sin verificar (acción: juzgar)
+- `informe-de-seguridad` — Redactar la tabla de hallazgos por severidad, con escenario y arreglo, sin ningún valor secreto (acción: documentar)

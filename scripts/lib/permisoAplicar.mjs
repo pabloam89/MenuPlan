@@ -207,7 +207,7 @@ export function motivosParaNoAplicar({ nombre, local, enStaging, ensayo, pablo =
 // ── Lo que toca disco y git ────────────────────────────────────────────────
 
 function dirEnsayos(raiz) {
-  const comun = execFileSync("git", ["-C", raiz, "rev-parse", "--path-format=absolute", "--git-common-dir"], { encoding: "utf8" }).trim();
+  const comun = execFileSync("git", ["-C", raiz, "rev-parse", "--path-format=absolute", "--git-common-dir"], { windowsHide: true, encoding: "utf8" }).trim();
   return join(comun, "claude-ensayos");
 }
 
@@ -234,12 +234,12 @@ export function olvidarEnsayo(raiz, nombre) {
 /** El fichero tal como está en origin/staging (tras un fetch), o null. */
 export function deStaging(raiz, nombre) {
   try {
-    execFileSync("git", ["-C", raiz, "fetch", "-q", "origin", "staging"], { stdio: "ignore", timeout: 30000 });
+    execFileSync("git", ["-C", raiz, "fetch", "-q", "origin", "staging"], { windowsHide: true, stdio: "ignore", timeout: 30000 });
   } catch {
     // sin red: se compara con lo último que se trajo
   }
   try {
-    return execFileSync("git", ["-C", raiz, "show", `origin/staging:supabase/migrations/${nombre}.sql`], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+    return execFileSync("git", ["-C", raiz, "show", `origin/staging:supabase/migrations/${nombre}.sql`], { windowsHide: true, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
   } catch {
     return null;
   }

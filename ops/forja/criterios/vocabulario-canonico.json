@@ -1,0 +1,17 @@
+{
+  "id": "vocabulario-canonico",
+  "capa": "material",
+  "aplica_a": [
+    "skill",
+    "estandar"
+  ],
+  "tipos": "todos",
+  "nombre": "Término canónico",
+  "sujeto": "artefacto",
+  "fuerza": "no_debe",
+  "exigencia": "usar un sinónimo prohibido en vez del término canónico del glosario único (ops/glosario/, #469)",
+  "nota": "Una cosa se llama siempre igual",
+  "fuente": "[I] ops/glosario/",
+  "control": "ops/glosario.test.js",
+  "codigo": null
+}

@@ -14,7 +14,7 @@
  */
 import pg from "pg";
 import { leerEnv } from "./lib/env.mjs";
-import { motivoParaNoLeer } from "./lib/consulta.mjs";
+import { motivoParaNoLeer, avisosDeRetiradas } from "./lib/consulta.mjs";
 import { argumentosDeConsulta, conexionDeConsulta, motivoUsuarioIncorrecto } from "./lib/rolLectura.mjs";
 
 const { admin, sql } = argumentosDeConsulta(process.argv.slice(2));
@@ -23,6 +23,9 @@ if (no) {
   console.error(`No la lanzo: ${no}`);
   process.exit(1);
 }
+
+// Una copia retirada se puede auditar: se avisa por stderr y se sigue (#292).
+for (const av of avisosDeRetiradas(sql)) console.error(av);
 
 // Con el usuario de solo lectura (0092). Sin él, no entra: el administrador,
 // solo con --admin (a todo o nada, #238).

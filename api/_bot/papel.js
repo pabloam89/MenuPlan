@@ -16,6 +16,7 @@
  */
 
 import { select, eq } from "./db.js";
+import { CANAL, IDIOMAS } from "../../src/lib/vocabularios.js";
 
 export const RANGO = { owner: 3, editor: 2, viewer: 1, ajeno: 0 };
 
@@ -44,7 +45,7 @@ async function papelDeUsuario(householdId, userId) {
  *   filtrados con idDePersona: sin bots ni anónimos).
  * @returns {Promise<{ papel: 'owner'|'editor'|'viewer'|'ajeno', userId: string|null }>}
  */
-export async function papelDeQuien({ householdId, chatId, esGrupo, desde, channel = "telegram" }) {
+export async function papelDeQuien({ householdId, chatId, esGrupo, desde, channel = CANAL.TELEGRAM }) {
   const ids = [...new Set((desde ?? []).filter(Boolean).map(String))];
   const uno = async (externalId) => {
     const [ident] = await select("bot_identities", `channel=${eq(channel)}&external_id=${eq(externalId)}`, "user_id");
@@ -76,5 +77,5 @@ export async function papelDeQuien({ householdId, chatId, esGrupo, desde, channe
 export async function idiomaDe(userId) {
   if (!userId) return null;
   const [p] = await select("user_profiles", `user_id=${eq(userId)}`, "ui_lang");
-  return p?.ui_lang === "en" || p?.ui_lang === "es" ? p.ui_lang : null;
+  return IDIOMAS.includes(p?.ui_lang) ? p.ui_lang : null;
 }

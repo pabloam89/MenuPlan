@@ -1,0 +1,15 @@
+{
+  "id": "estructura",
+  "capa": "formal",
+  "aplica_a": [
+    "skill"
+  ],
+  "tipos": "todos",
+  "nombre": "Estructura de la carpeta",
+  "sujeto": "skill",
+  "fuerza": "debe",
+  "exigencia": "tener en su carpeta solo SKILL.md, casos.json y las capas conocidas, a un nivel, cada capa citada desde SKILL.md con su ruta entera",
+  "fuente": "[F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices",
+  "control": ".claude/skills.test.js",
+  "codigo": "estructura"
+}

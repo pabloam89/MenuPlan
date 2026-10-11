@@ -23,6 +23,9 @@
  *                                           guardia niega `gh issue create`
  *   npm run issues -- --ordenar             etiquetas y padre que se deducen
  *                                           de lo rellenado en un formulario
+ *   npm run issues -- --zonas               qué ficheros llevan varias ramas vivas a la vez
+ *                                           (cambiados o reservados; sin red) y los avisos
+ *                                           de zona de la guardia en 7 días (#506)
  *   npm run issues -- --marcas-huerfanas    lista (sin borrar) las marcas «lo lleva»
  *                                           de ramas que ya no existen
  *   npm run issues -- --indexar             escribe el índice local para `npm run buscar` y el aviso
@@ -58,6 +61,9 @@ import { analizarCasos } from "../.claude/hooks/casos.mjs";
 import { informeFichas } from "./lib/fondos.mjs";
 import { diaMadrid } from "./lib/hora.mjs";
 import { TTL_MIN, borrarCacheGh, conCache, registrarGh } from "./lib/cuotaGh.mjs";
+import { construirZonas, informeZonas, leerRegistroAvisos } from "./lib/zonas.mjs";
+import { escribirZonas } from "../.claude/hooks/zonas.mjs";
+import { dirFabrica } from "../.claude/hooks/eventos.mjs";
 import { cruce, leerInventario, marcasHuerfanas, leerMarcas, lineaParecida, lineasDeLleva, parecidosEnGit, sinNumero, textoDeRama } from "./lib/lleva.mjs";
 
 // Cada llamada deja su línea `gh: caller=issues api=…` (scripts/lib/cuotaGh.mjs, #424).
@@ -302,6 +308,22 @@ if (args.includes("--etiquetas")) {
   }
   if (n) borrarCacheGh("issues-nodos");
   console.log(n ? `${n} cambios.` : "Nada que ordenar.");
+} else if (args.includes("--zonas")) {
+  // Zonas con dueño (#506, fondo #504): qué ficheros llevan varias ramas vivas a la vez, en vivo y sin red.
+  // De paso deja la foto al día para la guardia.
+  try {
+    const comun = execFileSync("git", ["rev-parse", "--path-format=absolute", "--git-common-dir"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 8000 }).trim();
+    const foto = construirZonas(dirname(comun));
+    try {
+      escribirZonas(join(comun, "claude-sesiones"), foto);
+    } catch (e) {
+      console.warn(`Aviso: no pude guardar la foto para la guardia (${motivo(e)}).`);
+    }
+    for (const l of informeZonas(foto, { registro: leerRegistroAvisos(dirFabrica()) })) console.log(l);
+  } catch (e) {
+    console.error(`No he podido leer las ramas vivas: ${motivo(e)}`);
+    process.exit(1);
+  }
 } else if (args.includes("--marcas-huerfanas")) {
   // Solo lista: borrar comentarios de un issue es de quien lo pida (`gh api -X DELETE …/issues/comments/<id>`).
   const huerfanas = marcasHuerfanas(todos(), ramasVivas());

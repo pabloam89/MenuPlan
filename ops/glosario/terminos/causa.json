@@ -1,0 +1,25 @@
+{
+  "termino": "causa",
+  "estado": "activo",
+  "clase": "campo",
+  "definicion": "Una explicación que dice por qué pasó un fallo, en tres piezas: mecanismo, condición y control ausente. Su tipo es la etiqueta causa:.",
+  "sinonimos_prohibidos": [
+    "causa raíz",
+    "causas raíz"
+  ],
+  "aplica_a": [
+    "todas"
+  ],
+  "estrecho": [
+    "causa de escape"
+  ],
+  "relacionado": [
+    "diagnosticar",
+    "clase"
+  ],
+  "ref": {
+    "fichero": "scripts/lib/issues.mjs",
+    "clave": "GRUPOS.causa"
+  },
+  "nota": "La skill causa-raiz conserva su nombre: es un identificador, y como sin tildes «causa-raíz» es igual, esa forma no se prohíbe."
+}

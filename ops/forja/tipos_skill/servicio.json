@@ -1,0 +1,25 @@
+{
+  "id": "servicio",
+  "que": "Operar un sistema externo concreto",
+  "entra": "petición",
+  "sale": "comando y resultado esperado",
+  "prueba": "los comandos existen, la salida es comprobable y la caducidad es corta",
+  "skills_hoy": [
+    "github",
+    "vercel",
+    "supabase",
+    "telegram",
+    "hetzner",
+    "tailscale",
+    "1password"
+  ],
+  "secciones": [
+    "Qué es y dónde",
+    "Claves y accesos",
+    "Operaciones habituales",
+    "Lo que falló y por qué",
+    "Qué requiere el OK de Pablo",
+    "Coste y límites",
+    "Fuentes y comprobación"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "termino": "vocabulario",
+  "estado": "activo",
+  "clase": "artefacto",
+  "definicion": "Una lista cerrada de valores, cada uno con su definición, que vive en una constante de JS con su test (y un CHECK si va a SQL).",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "ref": {
+    "fichero": "scripts/lib/issues.mjs",
+    "clave": "GRUPOS"
+  }
+}

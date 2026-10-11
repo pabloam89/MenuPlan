@@ -1,7 +1,7 @@
 /**
  * El esquema de una regla por campos (#487, fondo #455). Una regla se escribe con
  * campos cerrados y la frase se genera: no hay prosa libre que cada autor redacte a
- * su manera. Pensado para los criterios de la forja (`ops/forja.json`) y, luego, para
+ * su manera. Pensado para los criterios de la forja (`ops/forja/`) y, luego, para
  * `ops/normas.json` y las obligaciones de `ops/flujo.json` (#488): son el mismo tipo de
  * entidad (una regla con fuerza, sujeto y control).
  *
@@ -40,6 +40,13 @@ export const CONTROL_JUICIO = "juicio";
 const ID_SUJETO = /^[a-z]+(\.[a-z]+)*$/;
 const NOMBRE = /^[A-ZÁÉÍÓÚÑÜ][^.\n]*[^.\s]$/;
 const CONDICION = /^(cuando|si) \S/;
+// Infinitivo: acaba en ar, er, ir (con tilde si lleva pronombre: devolvérselo), con pronombres enclíticos si los hay (arse, erlo, irles…).
+const INFINITIVO = /^[a-zñáéíóúü]*(ar|er|ir|ár|ér|ír)(se|me|te|nos|os|l[oae]s?)*$/;
+/** La primera palabra de la exigencia que debe ser un infinitivo: salta un «no» inicial. */
+const primeraPalabra = (e) => {
+  const w = e.trim().split(/\s+/).map((x) => x.replace(/[,;:]+$/, ""));
+  return w[0] === "no" ? (w[1] ?? "") : w[0];
+};
 const esTexto = (v, min) => typeof v === "string" && v.trim().length >= min;
 const palabras = (t) => t.trim().split(/\s+/).length;
 const mayuscula = (t) => t.charAt(0).toUpperCase() + t.slice(1);
@@ -90,6 +97,7 @@ export function problemasDeRegla(r, d, sujetos) {
     if (/\n/.test(e)) malos.push(`${d}: «exigencia» va en una sola línea`);
     if (/[.;:]\s*$/.test(e)) malos.push(`${d}: «exigencia» va sin punto final`);
     if (e !== e.trim() || e.charAt(0) !== e.charAt(0).toLowerCase()) malos.push(`${d}: «exigencia» empieza en minúscula, con el verbo: la frase se une al sujeto`);
+    else if (!INFINITIVO.test(primeraPalabra(e))) malos.push(`${d}: «exigencia» empieza por un verbo en infinitivo (ar, er, ir, con o sin pronombre), o por «no» y un infinitivo`);
   }
   if ("nota" in (r ?? {})) {
     if (!esTexto(r.nota, LIMITES_REGLA.nota.min) || /\n/.test(r.nota)) malos.push(`${d}: «nota» es una línea de ${LIMITES_REGLA.nota.min} caracteres o más`);
@@ -108,9 +116,10 @@ export function controlLegible(control) {
  * «**Nombre.** [Condición,] <sujeto> DEBE|NO DEBE <exigencia>. Se comprueba con: <control>.»
  * Con `conviene` la frase cambia a «Para <sujeto>, CONVIENE <exigencia>», porque
  * «CONVIENE QUE» pediría subjuntivo y la exigencia va siempre en infinitivo.
- * `sujetos`: el vocabulario del catálogo (id -> { legible }).
+ * `sujetos`: el vocabulario del catálogo (id -> { legible }). Con `{ conControl: false }` la
+ * frase acaba en la exigencia, sin el «Se comprueba con»: para una tabla que ya tiene su columna de control.
  */
-export function fraseDeRegla(r, sujetos) {
+export function fraseDeRegla(r, sujetos, { conControl = true } = {}) {
   const legible = sujetos?.[r.sujeto]?.legible;
   if (!legible) throw new Error(`sujeto «${r.sujeto}» sin texto legible`);
   const fuerza = FUERZAS[r.fuerza];
@@ -120,5 +129,5 @@ export function fraseDeRegla(r, sujetos) {
   let cuerpo;
   if (r.fuerza === "conviene") cuerpo = `${condicion ? `${condicion}para ${legible}` : `Para ${legible}`}, ${fuerza.palabra} ${r.exigencia}`;
   else cuerpo = `${condicion || ""}${condicion ? legible : mayuscula(legible)} ${fuerza.palabra} ${r.exigencia}`;
-  return `${cabeza} ${cuerpo}. Se comprueba con: ${controlLegible(r.control)}.`;
+  return conControl ? `${cabeza} ${cuerpo}. Se comprueba con: ${controlLegible(r.control)}.` : `${cabeza} ${cuerpo}.`;
 }

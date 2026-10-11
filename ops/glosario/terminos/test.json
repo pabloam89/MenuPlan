@@ -1,0 +1,13 @@
+{
+  "termino": "test",
+  "estado": "activo",
+  "clase": "artefacto",
+  "definicion": "Un fichero .test que vitest ejecuta en el CI; se ve fallar una vez antes de creérselo.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "probar"
+  ]
+}

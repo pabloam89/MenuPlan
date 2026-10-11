@@ -1,0 +1,15 @@
+{
+  "termino": "producción",
+  "estado": "activo",
+  "clase": "lugar",
+  "definicion": "El entorno que usan las familias: la rama main, su despliegue y la única base de datos.",
+  "sinonimos_prohibidos": [
+    "prod"
+  ],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "staging"
+  ]
+}

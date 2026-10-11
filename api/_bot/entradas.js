@@ -12,6 +12,7 @@
  */
 
 import { insert } from "./db.js";
+import { paraEscribir } from "../../src/lib/vocabularios.js";
 
 const esDuplicado = (e) => /\b409\b|23505|duplicate key/i.test(String(e?.message ?? e));
 
@@ -24,7 +25,7 @@ const esDuplicado = (e) => /\b409\b|23505|duplicate key/i.test(String(e?.message
 export async function primeraVez(proveedor, xid) {
   if (xid == null || String(xid).trim() === "") return true;
   try {
-    await insert("bot_entradas", [{ proveedor, entrada_xid: String(xid).trim() }]);
+    await insert("bot_entradas", [{ proveedor: paraEscribir("canales", proveedor), entrada_xid: String(xid).trim() }]);
     return true;
   } catch (e) {
     if (esDuplicado(e)) return false;

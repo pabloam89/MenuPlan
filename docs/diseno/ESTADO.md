@@ -35,7 +35,7 @@ siendo la medida de la auditoría, con otro alcance).
 | D7 | Escala de tokens | Decidida por la sesión (9 oct 2026) | Medir primero (hecho) y ajustar a la escala en un PR aparte, con capturas |
 | D8 | Capturas de referencia | Decidida por la sesión (9 oct 2026) | Solo en local por ahora; CI de capturas más adelante y no obligatorio |
 | D9 | Playwright como devDependency | **Abierta**, cuando se llegue a capturas | Sin ella no hay capturas definitivas ni la herramienta del paso 1 (hoy no está instalado). Es añadir una dependencia: gateway de `diseno` |
-| D10 | Borrar duplicados y carpetas | **Decidida por Pablo (10 oct 2026): borrar duplicados**. Hecho en ux/limpieza-duplicados: 69 png de `Avatares/` (idénticos a `public/avatares/`), 4 de `public/categories/` (carne, pescado, pasta_arroz, verduras) y `menus_cole/` (3 PDF sin referencias). Se dejan: `Avatares/cards` (originales de los scripts `make_*.py`), los png de tienda (distintos bytes que el svg, nunca se cargan porque gana el svg; decidir) y `dish-gallery/` (app viva) | Ver «Assets» |
+| D10 | Borrar duplicados y carpetas | **Decidida por Pablo (10 oct 2026): borrar duplicados**. Hecho en ux/limpieza-duplicados: 69 png de `Avatares/` (idénticos a `public/avatares/`), 4 de `public/categories/` (carne, pescado, pasta_arroz, verduras) y `menus_cole/` (3 PDF sin referencias). Se dejan: `Avatares/cards` (originales de los scripts `make_*.py`), los png de tienda (distintos bytes que el svg, nunca se cargan porque gana el svg; decidir) y `dish-gallery/` (retirada después, #301) | Ver «Assets» |
 | D11 | Usos de teal que no son selección | **Decidida por Pablo (9 oct 2026)** | Opción A (ver «Teal»): CTA a verde de marca; el teal queda para lo elegido y, en la zona social, como `acento` |
 | D12 | Logo: `brand/homenu-teal.*` es teal y `public/logo-homenu.svg` terracota | **Abierta**, cambiar el logo es gateway | Con D1 ninguno es el verde de marca. Recomendación: un único logo maestro en verde |
 | D13 | Rutas de avatares guardadas en base | **Abierta (`datos` y `auditor-datos`)** | Ver «Assets». Sin su decisión no se renombra ninguna ruta de avatar |
@@ -427,7 +427,7 @@ nuevos son propuesta. `public/` solo recibe derivados; los originales van a
 | `src/assets/dashboard/` (10) | `src/assets/ilustracion/panel/` | |
 | `src/assets/dishes/` (json y js) | se queda | manifiesto de `foto-plato`; lo referencia el manifiesto único |
 | `Avatares/` (raíz, 83 png, 50,6 MB) | `diseno/fuentes/…` o Blob (D4) | 69 de 83 tienen copia idéntica en `public/`; el resto, a revisar. Aquí no hay rutas de base: solo originales |
-| `dish-gallery/`, `menus_cole/` | fuera de la raíz | `dish-gallery` es una app aparte; `menus_cole` son 3 PDF. Requiere OK |
+| `dish-gallery/`, `menus_cole/` | fuera de la raíz | `dish-gallery` se retiró (#301, 10 oct 2026); `menus_cole` ya no está |
 
 ### Pipeline
 
@@ -518,6 +518,7 @@ scripts/diseno/             recorte, tarjetas, optimizado, iconos, logo
 8. Limpieza (con OK de Pablo, porque es borrar): `Avatares/` fuera del índice,
    pares de `categories/`, logos duplicados, `public/postres/`,
    `feature-graphic.png`, `dish-gallery/` y `menus_cole/` fuera de la raíz.
+   (`dish-gallery/` ya está retirada, #301; solo queda `dish-gallery/public/catalog.json`, decisión #519.)
 9. Aparte: nombre accesible a los ~20 botones sin nombre de «Tu menú»; la
    pegatina de Lola tapa la última fila de «Compra».
 

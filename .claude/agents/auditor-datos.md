@@ -122,12 +122,11 @@ No cambia nada. Devuelve en «Decisiones pendientes»:
 
 Fuente única: `ops/estandares-agentes.json`. Esta lista la genera `npm run estandar -- --escribir` y
 `ops/estandares-agentes.test.js` la compara; no se edita a mano. El detalle de cada
-tarea (estándar, qué comprueba, qué no hace y su fuente): `npm run estandar -- auditor-datos <tarea>`.
+tarea (acción, reglas con su control y su fuente, y lo que no hace): `npm run estandar -- auditor-datos <tarea>`.
+Todas las tareas de todos los agentes, en una tabla: `docs/ops/ESTANDARES.md`.
 
-Estado: pendiente. Lista de tareas hecha; el estándar de cada una está por escribir (#413).
-
-- `juzgar-migracion` — Juzgar una migración o un cambio de modelo contra PRINCIPIOS.md y dejar su veredicto en una línea
-- `buscar-datos-repetidos` — Encontrar datos repetidos entre tabla, catálogo JSON, constantes JS y prompts del bot
-- `vigilar-cableado` — Vigilar el cableado: qué ficheros tocan cada tabla y qué filtros se escriben a mano
-- `mapa-de-verdades` — Proponer el mapa de dónde vive cada hecho y quién recalcula sus proyecciones
-- `auditoria-periodica-del-modelo` — Hacer la auditoría periódica del modelo y proponer convenciones o excepciones
+- `juzgar-migracion` — Juzgar una migración o un cambio de modelo contra PRINCIPIOS.md y dejar su veredicto en una línea (acción: juzgar)
+- `buscar-datos-repetidos` — Encontrar datos repetidos entre tabla, catálogo JSON, constantes JS y prompts del bot (acción: juzgar)
+- `vigilar-cableado` — Vigilar el cableado: qué ficheros tocan cada tabla y qué filtros se escriben a mano (acción: medir)
+- `mapa-de-verdades` — Proponer el mapa de dónde vive cada hecho y quién recalcula sus proyecciones (acción: documentar)
+- `auditoria-periodica-del-modelo` — Hacer la auditoría periódica del modelo y proponer convenciones o excepciones (acción: juzgar)

@@ -1,0 +1,74 @@
+{
+  "skill": "hetzner",
+  "juicios": {
+    "descripcion-palabras-de-quien-pide": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar",
+      "nota": "dudoso: describe piezas del servidor (Docker, el Postgres del panel, copias cifradas) más que lo que diría quien pide"
+    },
+    "frontera-casi-fallos": {
+      "estado": "cumple",
+      "evidencia": [
+        "caso:hetzner/frontera-instalar-tailscale",
+        "caso:hetzner/frontera-copias-de-supabase"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "194fc8d3762f"
+    },
+    "disparador-al-principio": {
+      "estado": "cumple",
+      "evidencia": [
+        ".claude/skills/hetzner/SKILL.md",
+        ".claude/skills.test.js"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "194fc8d3762f"
+    },
+    "solo-lo-que-el-modelo-no-sabe": {
+      "estado": "juicio",
+      "motivo_pendiente": "falta_herramienta"
+    },
+    "libertad-ajustada": {
+      "estado": "cumple",
+      "evidencia": [
+        ".claude/skills/hetzner/SKILL.md#Operaciones habituales"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "194fc8d3762f"
+    },
+    "camino-por-defecto": {
+      "estado": "juicio",
+      "motivo_pendiente": "falta_decision"
+    },
+    "pasos-con-salida-observable": {
+      "estado": "cumple",
+      "evidencia": [
+        ".claude/skills/hetzner/SKILL.md#Operaciones habituales"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "194fc8d3762f"
+    },
+    "vocabulario-unico": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar"
+    },
+    "ejemplos-canonicos": {
+      "estado": "juicio",
+      "motivo_pendiente": "falta_decision"
+    },
+    "skill-contrastada-con-fallo-real": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar",
+      "nota": "nació como guía de montaje antes de existir el servidor (commit 0ca1a5e4); sus fallos se añadieron al montarlo: falta decidir si cuenta"
+    },
+    "forma-adecuada-al-contenido": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar",
+      "nota": "una celda de «Operaciones habituales» llega a 223 caracteres: falta ver si es razonamiento"
+    }
+  }
+}

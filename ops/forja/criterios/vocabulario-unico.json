@@ -1,0 +1,33 @@
+{
+  "id": "vocabulario-unico",
+  "capa": "subjetiva",
+  "aplica_a": [
+    "skill"
+  ],
+  "tipos": "todos",
+  "nombre": "Vocabulario único",
+  "sujeto": "skill.cuerpo",
+  "fuerza": "debe",
+  "exigencia": "usar una palabra por cosa en toda la skill",
+  "cumple": "el mismo concepto siempre se llama igual",
+  "no_cumple": "alterna «caso», «incidente» y «fallo» para lo mismo",
+  "fuente": "[F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices",
+  "control": "juicio",
+  "codigo": null,
+  "casos_calibracion": [
+    {
+      "texto": "Un fallo se llama siempre «caso» y su causa común «problema de fondo».",
+      "esperado": "cumple"
+    },
+    {
+      "texto": "Un fallo se llama «caso», luego «incidente», luego «problema» y a veces «bug».",
+      "esperado": "no_cumple"
+    },
+    {
+      "texto": "Un fallo se llama «caso» y su causa común «problema de fondo»; una vez aparece «incidente» dentro de una cita literal de un issue.",
+      "esperado": "cumple",
+      "frontera": true,
+      "nota": "La palabra distinta es una cita textual, no el vocabulario propio de la skill."
+    }
+  ]
+}

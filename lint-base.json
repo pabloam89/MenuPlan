@@ -1,7 +1,6 @@
 {
   "api/_bot/invitacion.test.js | no-useless-escape | Unnecessary escape character: \\..": 1,
   "api/_bot/papel.test.js | no-useless-escape | Unnecessary escape character: \\..": 1,
-  "dish-gallery/api/approvals.js | no-undef | 'process' is not defined.": 4,
   "src/App.jsx | no-unused-vars | 'canShareInvite' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u.": 1,
   "src/App.jsx | no-unused-vars | 'localRecipes' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u.": 1,
   "src/App.jsx | no-unused-vars | 'mergeUserRecipesById' is defined but never used. Allowed unused vars must match /^[A-Z_]/u.": 1,

@@ -1,0 +1,15 @@
+{
+  "termino": "evidencia",
+  "estado": "activo",
+  "clase": "artefacto",
+  "definicion": "Un dato que respalda una afirmación y que otro puede repetir: comando y salida, fichero:línea, un run o un PR.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "comprobar",
+    "hallazgo",
+    "juicio de skill"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "termino": "juez",
+  "estado": "activo",
+  "clase": "rol",
+  "definicion": "Un agente sin Edit ni Write que juzga el trabajo de otro: revisor, qa, evaluador, seguridad o auditor-datos.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "agente",
+  "estrecho": [
+    "revisor"
+  ],
+  "relacionado": [
+    "juzgar",
+    "constructor",
+    "hallazgo"
+  ],
+  "ref": {
+    "fichero": "scripts/lib/flujo.mjs",
+    "clave": "ACTORES.juez"
+  }
+}

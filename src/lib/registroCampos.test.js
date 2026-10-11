@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 
 import { REGISTRO_CAMPOS, TIPOS_CAMPO, POLITICAS, POR, APLICA } from "./registroCampos.js";
-import { ORIGEN_DATO, REF_TIPO, CANALES_DATO } from "./vocabularios.js";
 
 /**
  * La 0097 copia REGISTRO_CAMPOS en registro_campo y cierra los vocabularios de
@@ -64,11 +63,8 @@ describe("0097: registro_campo dice lo mismo que registroCampos.js", () => {
     expect(literales("registro_campo_aplica_vocabulario")).toEqual(APLICA);
   });
 
-  it("sobre: origen, canal y referencia con los vocabularios de siempre", () => {
-    expect(literales("sobre_origen_vocabulario")).toEqual(ORIGEN_DATO);
-    expect(literales("sobre_canal_vocabulario")).toEqual(CANALES_DATO);
-    expect(literales("sobre_ref_tipo_vocabulario")).toEqual(REF_TIPO);
-  });
+  // sobre.origen, sobre.canal y sobre.ref_tipo: su paridad con ORIGEN_DATO, CANALES_DATO y REF_TIPO la lleva
+  // src/lib/vocabularios.test.js, por columna y con los retirados (#497); aquí no se repite.
 
   it("cada valor de los CHECK está en NFC (comparan bytes)", () => {
     for (const f of filasDelInsert()) for (const v of Object.values(f)) if (typeof v === "string") expect(v).toBe(v.normalize("NFC"));

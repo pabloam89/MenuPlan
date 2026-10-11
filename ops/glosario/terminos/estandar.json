@@ -1,0 +1,19 @@
+{
+  "termino": "estándar",
+  "estado": "activo",
+  "clase": "artefacto",
+  "definicion": "El conjunto de criterios que dice qué es hacer bien una tarea de agente o un tipo de skill, con qué comprueba, qué no hace y su fuente.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "criterio",
+    "tarea de agente"
+  ],
+  "ref": {
+    "fichero": "scripts/lib/estandaresAgentes.mjs",
+    "clave": "CAMPOS_ESTANDAR"
+  },
+  "nota": "Un estándar se compone de criterios."
+}

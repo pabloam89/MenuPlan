@@ -2,7 +2,11 @@
  * user_recipes ↔ receta con la forma del catálogo, sin nada más: ni cliente de
  * Supabase ni fotos. Vive aparte de userRecipesSync.js para que el bot (Node,
  * sin `import.meta.env`) lo pueda importar sin cargar el motor.
+ *
+ * Las columnas de vocabulario (usage_tags, required_appliances) pasan por la lista viva de
+ * vocabularios.js (#539): un retirado se escribe como su sucesor, uno desconocido lanza.
  */
+import { listaParaEscribir } from "./vocabularios.js";
 
 const num = (v) => (v == null ? null : Number(v));
 
@@ -15,12 +19,12 @@ export function recipeToRow(recipe, userId) {
     category: recipe.category,
     main_protein: recipe.mainProtein ?? "none",
     meal_roles: recipe.mealRole ?? [],
-    usage_tags: recipe.usageTags ?? [],
+    usage_tags: listaParaEscribir("usos_receta", recipe.usageTags ?? []),
     type: recipe.type,
     base_dish_id: recipe.baseDishId ?? null,
     linked_catalog_id: recipe.linkedCatalogId ?? null,
     pinned_garnish_id: recipe.pinnedGarnishId ?? null,
-    required_appliances: recipe.requiredAppliances ?? null,
+    required_appliances: listaParaEscribir("aparatos", recipe.requiredAppliances ?? null),
     time_minutes: num(recipe.time),
     difficulty: recipe.difficulty ?? null,
     season: recipe.season ?? "all",
@@ -67,6 +71,31 @@ export function recipeToRow(recipe, userId) {
       ? new Date(recipe.createdAt).toISOString()
       : new Date().toISOString(),
   };
+}
+
+/**
+ * La copia de una fila de user_recipes de otra persona («guardar en mi recetario», el bot):
+ * fila nueva a nombre de `dueno`, privada y firmada «de …» (copied_from_*, 0027). Es una
+ * escritura nueva, así que sus vocabularios pasan por la lista viva: un valor que la fila del
+ * otro guardó y hoy está retirado se escribe como su sucesor (#539). Sin created_at ni
+ * updated_at (los pone la base) y sin claves undefined.
+ */
+export function filaCopiada(fila, { id, dueno }) {
+  const copia = {
+    ...fila,
+    id,
+    owner_id: dueno,
+    visibility: "private",
+    copied_from_recipe_id: fila.id,
+    copied_from_owner_id: fila.owner_id,
+    owner_snapshot: null,
+    usage_tags: listaParaEscribir("usos_receta", fila.usage_tags),
+    required_appliances: listaParaEscribir("aparatos", fila.required_appliances),
+    created_at: undefined,
+    updated_at: undefined,
+  };
+  for (const k of Object.keys(copia)) if (copia[k] === undefined) delete copia[k];
+  return copia;
 }
 
 /** user_recipes row → frontend recipe object (catalog-compatible shape). */

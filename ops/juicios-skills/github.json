@@ -1,0 +1,78 @@
+{
+  "skill": "github",
+  "juicios": {
+    "descripcion-palabras-de-quien-pide": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar",
+      "nota": "dudoso: mezcla palabras de quien pide («el CI en rojo») con nombres de la casa (protección de ramas, secret scanning, líneas del PR)"
+    },
+    "frontera-casi-fallos": {
+      "estado": "cumple",
+      "evidencia": [
+        "caso:github/frontera-registrar-caso",
+        "caso:github/frontera-token-workflow"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "0eb63fc06276"
+    },
+    "disparador-al-principio": {
+      "estado": "cumple",
+      "evidencia": [
+        ".claude/skills/github/SKILL.md",
+        ".claude/skills.test.js"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "0eb63fc06276"
+    },
+    "solo-lo-que-el-modelo-no-sabe": {
+      "estado": "juicio",
+      "motivo_pendiente": "falta_herramienta"
+    },
+    "libertad-ajustada": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar"
+    },
+    "camino-por-defecto": {
+      "estado": "juicio",
+      "motivo_pendiente": "falta_decision"
+    },
+    "pasos-con-salida-observable": {
+      "estado": "cumple",
+      "evidencia": [
+        ".claude/skills/github/SKILL.md#Operaciones habituales"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "0eb63fc06276"
+    },
+    "vocabulario-unico": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar"
+    },
+    "ejemplos-canonicos": {
+      "estado": "juicio",
+      "motivo_pendiente": "falta_decision"
+    },
+    "skill-contrastada-con-fallo-real": {
+      "estado": "cumple",
+      "evidencia": [
+        ".claude/skills/github/SKILL.md#Lo que falló y por qué"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "0eb63fc06276"
+    },
+    "forma-adecuada-al-contenido": {
+      "estado": "no_cumple",
+      "nota": "la fila de dependabot-auto.yml de la tabla de workflows mete en una celda de casi mil caracteres las reglas del script: razonamiento en una celda",
+      "evidencia": [
+        ".claude/skills/github/SKILL.md#Qué es y dónde"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "0eb63fc06276"
+    }
+  }
+}

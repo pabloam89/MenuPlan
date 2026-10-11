@@ -1,0 +1,15 @@
+{
+  "termino": "decisión",
+  "estado": "activo",
+  "clase": "artefacto",
+  "definicion": "Un issue tipo:decision que se asigna a Pablo: la pregunta en llano, las opciones con la recomendada primero y qué pasa si no se decide.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "issue",
+  "ref": {
+    "fichero": "scripts/lib/issues.mjs",
+    "clave": "GRUPOS.tipo.valores.decision"
+  }
+}

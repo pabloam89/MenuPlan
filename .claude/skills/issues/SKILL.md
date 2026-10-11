@@ -2,7 +2,14 @@
 name: issues
 description: Úsala cuando haya que registrar un fallo como caso, abrir o colgar un problema de fondo, un encargo o una decisión, clasificar o etiquetar issues, leer `npm run issues`, o decidir de qué problema de fondo es síntoma algo que falló. No para: el PR, su CI y las líneas `Closes`, `Runbook:` o `Casos:` (github) ni los workflows (github).
 metadata:
-  tipo: herramienta
+  tipo: flujo
+  opera_proveedor: false
+  juzga_artefacto: false
+  encadena: true
+  pasos_fijos: false
+  sintoma_a_causa: false
+  elige_opciones: false
+  porque_tipo: "encadena es true por anticipado: hoy issues opera los issues de GitHub (un proveedor) y solo encadenará etapas con #414, como dice la tabla de Pablo"
   dueno: gobierno
   comprobado: "2026-10-09"
 ---
@@ -116,6 +123,8 @@ fondo de un encargo tenga diagnóstico y que un fondo cerrado tenga aprendizaje.
   en el issue `<!-- menuplan:lleva rama=… -->` (uno por rama) y `retirar` lo borra;
   `npm run issues` y el arranque cruzan encargo → rama → último commit
   («parada» a las 4 h), las ramas sin número y `--marcas-huerfanas` (lista, no borra).
+  Por fichero (#506): `npm run issues -- --zonas` dice qué ficheros llevan varias
+  ramas vivas a la vez (`zonas-compartidas: n`, sin red; solo carpetas de este PC).
 - **Pablo ve sus decisiones** porque se le asignan (correo y app de GitHub):
   `github.com/pabloam89/MenuPlan/issues?q=is:open+label:tipo:decision`.
 - **Avisos que llegan solos:** al editar un fichero, el hook `avisos.mjs`

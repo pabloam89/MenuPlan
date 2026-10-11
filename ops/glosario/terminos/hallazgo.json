@@ -1,0 +1,14 @@
+{
+  "termino": "hallazgo",
+  "estado": "activo",
+  "clase": "artefacto",
+  "definicion": "Un problema que un juez encuentra y devuelve en su informe, con su gravedad, su evidencia y si ya estaba apuntado.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "evidencia",
+    "juez"
+  ]
+}

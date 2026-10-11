@@ -1,0 +1,13 @@
+{
+  "termino": "defecto",
+  "estado": "activo",
+  "clase": "artefacto",
+  "definicion": "Un incumplimiento de un criterio de calidad que se ve en una skill, con su código de la forja o de la higiene y su arreglo.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "control"
+  ]
+}

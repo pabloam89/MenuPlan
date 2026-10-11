@@ -1,5 +1,6 @@
 import { supabase } from "./supabase.js";
 import { NOMBRE_PAPEL, papelDe, puede } from "./papeles.js";
+import { paraEscribir } from "./vocabularios.js";
 
 /**
  * Cloud access for shared households (see HOUSEHOLDS.md + 0017_households.sql).
@@ -407,10 +408,18 @@ export function canShareHouseholdInvite(household) {
  */
 export async function createHouseholdInvite(householdId, role, lang = null) {
   if (!supabase || !householdId) return { error: "sin conexión" };
+  // Un idioma que no es de IDIOMAS devuelve el error, como antes lo hacía la RPC, en vez de lanzar.
+  let idioma;
+  try {
+    idioma = paraEscribir("idiomas", lang);
+  } catch (e) {
+    console.warn("[householdsSync] create invite failed", e.message);
+    return { error: e.message };
+  }
   const { data, error } = await supabase.rpc("create_household_invite", {
     p_household_id: householdId,
     p_role: role,
-    p_lang: lang,
+    p_lang: idioma,
   });
   if (error) {
     console.warn("[householdsSync] create invite failed", error.message);
