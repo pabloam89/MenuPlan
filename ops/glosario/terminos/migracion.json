@@ -1,0 +1,14 @@
+{
+  "termino": "migración",
+  "estado": "activo",
+  "clase": "artefacto",
+  "definicion": "Un fichero SQL numerado de supabase/migrations/ que cambia la base y se aplica con apply-migration.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "tabla"
+  ],
+  "en": "migration"
+}

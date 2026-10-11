@@ -18,5 +18,6 @@
     "fichero": "scripts/lib/issues.mjs",
     "clave": "GRUPOS.tipo.valores.fondo"
   },
-  "nota": "«Problema de fondo» es su nombre largo y es el mismo término. No es la causa: el fondo la contiene."
+  "nota": "«Problema de fondo» es su nombre largo y es el mismo término. No es la causa: el fondo la contiene.",
+  "en": "root-problem"
 }

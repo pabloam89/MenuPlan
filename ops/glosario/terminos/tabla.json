@@ -1,0 +1,16 @@
+{
+  "termino": "tabla",
+  "estado": "activo",
+  "clase": "artefacto",
+  "definicion": "Un conjunto de filas de la base de producción que crea una migración y que ops/MODULOS.json asigna a un módulo.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "migración",
+    "módulo",
+    "fuente de datos"
+  ],
+  "en": "table"
+}

@@ -1,0 +1,14 @@
+{
+  "termino": "pr",
+  "estado": "activo",
+  "clase": "artefacto",
+  "definicion": "Una petición de GitHub que lleva una rama a staging, con el CI y sus líneas de cierre, de agente y de casos.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "rama"
+  ],
+  "en": "pull-request"
+}

@@ -1,0 +1,887 @@
+{
+  "$comentario": "Registro de entidades del proyecto (paso 1 de la normalización del lenguaje y los datos, #566; principios en docs/entidades/N0-principios.md, mapa en docs/entidades/MAPA.md). Una entidad es una cosa con id estable y definición propia. Los nombres que lee una máquina van en inglés (decisión de Pablo del 11 oct 2026); lo que lee una persona, en castellano. La definición de cada entidad NO está aquí: vive en la ficha del glosario que nombra `term` (ops/glosario/terminos/), y el glosario guarda también la traducción (el `en` de la ficha es el id de la entidad). `role_in_axis` es una frase propia del eje en un puente, no una definición. Tres ejes: horizontal (cómo trabajamos), vertical (el producto HoMenu) y bridge (lo que cruza los dos). `registry` dice cómo vive hoy la entidad: with_registry (fichero propio con id y test), partial o without_registry (solo prosa o logs). Los sinónimos prohibidos no se copian: salen del glosario (canonicoDe). Las relaciones se anotan una vez, desde quien guarda el campo; `stored_as` es field, file, none (existe y ningún campo la guarda) o unaudited; `stored_in` es obligatorio con field y file y opcional con none y unaudited (nunca «ninguno» ni «sin auditar»). Un id retirado no se borra: status retired y replaced_by. Lo vigila ops/entidades.test.js.",
+  "version": 2,
+  "actualizado": "2026-10-11",
+  "entities": [
+    {
+      "id": "session",
+      "name": "Sesión",
+      "axis": "horizontal",
+      "term": "sesión",
+      "source_of_truth": "none",
+      "id_format": "none",
+      "registry": "without_registry",
+      "status": "active",
+      "note": "Hay cuatro huellas sin id común: ficha local, carpeta y rama, eventos.jsonl y la transcripción. Ninguna lleva el resultado."
+    },
+    {
+      "id": "team-member",
+      "name": "Miembro del equipo",
+      "axis": "horizontal",
+      "term": "persona",
+      "source_of_truth": "CLAUDE.md",
+      "id_format": "none",
+      "registry": "without_registry",
+      "status": "active",
+      "note": "Decisión de Pablo del 11 oct (opción A del auditor de datos, reversible): person es la persona de la casa, como en la base, y el equipo pasa a team-member. El término del glosario sigue llamándose «persona»; renombrarlo a «miembro del equipo» está pendiente (toca ACTORES.persona y CLAUDE.md). Pablo, Álvaro y Manu solo constan en prosa."
+    },
+    {
+      "id": "identity",
+      "name": "Identidad",
+      "axis": "horizontal",
+      "term": "identidad",
+      "source_of_truth": "scripts/lib/tokenSesion.mjs",
+      "id_format": "mixed",
+      "registry": "partial",
+      "status": "active",
+      "note": "Horizontal: es la cuenta con la que actúa el equipo (login, App de GitHub, cuenta de servicio, bot). La cuenta de un canal de la casa (bot_identities) es otra cosa y tiene su entidad vertical channel-identity. Hoy solo existe el vocabulario de cuatro valores (pablo, app, otra, desconocida)."
+    },
+    {
+      "id": "service",
+      "name": "Servicio",
+      "axis": "horizontal",
+      "term": "servicio",
+      "source_of_truth": "ops/INVENTARIO.md",
+      "id_format": "none",
+      "registry": "without_registry",
+      "status": "active",
+      "note": "Una tabla en prosa de unas 22 filas, sin id. Un mismo servicio recibe varios nombres (equipo Vercel, proyecto homenu)."
+    },
+    {
+      "id": "environment",
+      "name": "Entorno",
+      "axis": "bridge",
+      "term": "entorno",
+      "source_of_truth": "ops/INVENTARIO.md",
+      "id_format": "none",
+      "registry": "without_registry",
+      "status": "active",
+      "role_in_axis": "Proceso: dónde corre y se prueba el código. Producto: dónde viven los datos de las casas, que son una sola base para todos.",
+      "note": "Hoy la palabra tiene tres sentidos (entornos de Vercel, VIGIA_ENTORNO, environments de GitHub)."
+    },
+    {
+      "id": "deployment",
+      "name": "Despliegue",
+      "axis": "bridge",
+      "term": "despliegue",
+      "source_of_truth": "none",
+      "id_format": "mixed",
+      "registry": "without_registry",
+      "status": "active",
+      "role_in_axis": "Proceso: lo que sale de una rama. Producto: la versión que ven las casas.",
+      "note": "No es entidad todavía: se identifica por el id de Vercel, la rama o el PR."
+    },
+    {
+      "id": "event",
+      "name": "Evento",
+      "axis": "bridge",
+      "term": "evento",
+      "source_of_truth": ".claude/hooks/eventos.mjs",
+      "id_format": "none",
+      "registry": "partial",
+      "status": "active",
+      "role_in_axis": "Proceso: lo que registran los hooks y los scripts. Producto: lo que registra user_events.",
+      "note": "Seis formatos de registro hoy, y más de seis logs en total (ensayos.log, gasto.jsonl, pasadas.jsonl y 19 firmas de línea en metricas.json). Solo eventos.jsonl lleva sesión y ninguno lleva actor. La fuente de las formas de línea es ops/metricas.json (lineas). Los dos eventos nuevos de #566 (operación de riesgo sin aprendizaje y aprendizaje registrado) se definen en #568, no aquí."
+    },
+    {
+      "id": "norm",
+      "name": "Norma",
+      "axis": "horizontal",
+      "term": "norma",
+      "source_of_truth": "ops/normas.json",
+      "id_format": "kebab",
+      "registry": "with_registry",
+      "status": "active",
+      "note": "Hay tres colecciones de reglas con sujetos separados (normas, estándares de agente, obligaciones del flujo) que comparten 9 ids. Los sujetos de normas y estándares se cruzan con las entidades en ops/entidades-sujetos.json. Futuro encargo: unificar EJECUTORES (scripts/lib/normas.mjs) con los ids de ops/mecanismos.json, que hoy se escriben distinto (github_regla frente a regla_github)."
+    },
+    {
+      "id": "learning",
+      "name": "Aprendizaje",
+      "axis": "horizontal",
+      "term": "aprendizaje",
+      "source_of_truth": "none",
+      "id_format": "none",
+      "registry": "without_registry",
+      "status": "active",
+      "note": "Término del glosario (no «lección»). Hoy vive en la ficha del fondo, en el PR y en cada agente, sin registro. Declara un campo mechanism con vocabulario cerrado, que todavía no se escribe en ningún sitio. Ojo: hay tres cosas llamadas «mecanismo»: los ids de ops/mecanismos.json, ficha.mecanismo del fondo (texto libre con la causa) y este campo (test, guard, rule o skill). Si se renombra este campo lo decide Pablo.",
+      "fields": [
+        {
+          "name": "mechanism",
+          "values": [
+            "test",
+            "guard",
+            "rule",
+            "skill"
+          ],
+          "required_when": {
+            "value": "skill",
+            "field": "reason_not_automated"
+          }
+        }
+      ]
+    },
+    {
+      "id": "mechanism",
+      "name": "Mecanismo",
+      "axis": "horizontal",
+      "term": "mecanismo",
+      "source_of_truth": "ops/mecanismos.json",
+      "id_format": "snake",
+      "registry": "with_registry",
+      "status": "active",
+      "note": "El escalón se llama también barrera en la ficha del fondo y arreglo en la etiqueta: tres nombres para un concepto. El campo mechanism del aprendizaje (test, guard, rule, skill) es un vocabulario más grueso que la escalera de este registro."
+    },
+    {
+      "id": "metric",
+      "name": "Métrica",
+      "axis": "bridge",
+      "term": "métrica",
+      "source_of_truth": "ops/metricas.json",
+      "id_format": "snake",
+      "registry": "with_registry",
+      "status": "active",
+      "role_in_axis": "Proceso: cifra de cumplimiento del flujo. Producto: cifra de uso o de coste de una pieza.",
+      "note": "Hay dos registros con el mismo nombre: ops/metricas.json y metricas[] dentro de cada módulo de MODULOS.json. No se parte en dos entidades: la fusión o el reparto es decisión del N1 de Métrica."
+    },
+    {
+      "id": "eval",
+      "name": "Eval",
+      "axis": "bridge",
+      "term": "eval",
+      "source_of_truth": "scripts/bot-evals.json",
+      "id_format": "unchecked",
+      "registry": "partial",
+      "status": "active",
+      "role_in_axis": "Proceso: la medida del antes y el después. Producto: lo que se mide es Lola.",
+      "note": "Dos familias: evals de Lola (scripts/) y evals de skills (casos.json, ops/skills-prueba). «Caso» significa cinco cosas distintas entre ellas."
+    },
+    {
+      "id": "judge",
+      "name": "Juez",
+      "axis": "bridge",
+      "term": "juez",
+      "source_of_truth": ".claude/agents",
+      "id_format": "kebab",
+      "registry": "partial",
+      "status": "active",
+      "role_in_axis": "Proceso: quien juzga un cambio. Producto: evaluador y seguridad también juzgan lo que sale a las casas.",
+      "note": "La lista de jueces está copiada en presupuestos.mjs:38, flujo.mjs:50, vocabularios-vida.json:22, el glosario y CLAUDE.md."
+    },
+    {
+      "id": "secret",
+      "name": "Clave",
+      "axis": "horizontal",
+      "term": "clave",
+      "source_of_truth": "ops/INVENTARIO.md",
+      "id_format": "mixed",
+      "registry": "without_registry",
+      "status": "active",
+      "note": "Hoy se dice clave, secreto y token. El nombre único queda por decidir; en inglés se usa secret."
+    },
+    {
+      "id": "vault",
+      "name": "Bóveda",
+      "axis": "horizontal",
+      "term": "bóveda",
+      "source_of_truth": "ops/INVENTARIO.md",
+      "id_format": "none",
+      "registry": "without_registry",
+      "status": "active",
+      "note": "Se cita como op://<bóveda>/<ficha>/<campo>."
+    },
+    {
+      "id": "agent",
+      "name": "Agente",
+      "axis": "horizontal",
+      "term": "agente",
+      "source_of_truth": ".claude/agents",
+      "id_format": "kebab",
+      "registry": "with_registry",
+      "status": "active",
+      "note": "«revisor» es a la vez un agente y un término del glosario."
+    },
+    {
+      "id": "skill",
+      "name": "Skill",
+      "axis": "horizontal",
+      "term": "skill",
+      "source_of_truth": ".claude/skills",
+      "id_format": "kebab",
+      "registry": "with_registry",
+      "status": "active"
+    },
+    {
+      "id": "rule",
+      "name": "Regla",
+      "axis": "horizontal",
+      "term": "regla",
+      "source_of_truth": ".claude/rules",
+      "id_format": "none",
+      "registry": "partial",
+      "status": "active",
+      "note": "CLAUDE.md y las reglas por carpeta contienen reglas sin id. Las que tienen id son normas."
+    },
+    {
+      "id": "hook",
+      "name": "Hook",
+      "axis": "horizontal",
+      "term": "hook",
+      "source_of_truth": ".claude/settings.json",
+      "id_format": "kebab",
+      "registry": "partial",
+      "status": "active",
+      "note": "settings.json dice qué hooks corren; no hay registro con definición por hook."
+    },
+    {
+      "id": "issue",
+      "name": "Issue",
+      "axis": "horizontal",
+      "term": "issue",
+      "source_of_truth": "scripts/lib/issues.mjs",
+      "id_format": "number",
+      "registry": "with_registry",
+      "status": "active",
+      "note": "Las etiquetas grupo:valor salen de scripts/lib/issues.mjs. La rama, el título y el área de la etiqueta no siempre coinciden."
+    },
+    {
+      "id": "root-problem",
+      "name": "Fondo",
+      "axis": "horizontal",
+      "term": "fondo",
+      "source_of_truth": "scripts/lib/fondos.mjs",
+      "id_format": "number",
+      "registry": "with_registry",
+      "status": "active",
+      "note": "Un fondo guarda a sus casos y encargos en tres sitios a la vez: el sub-issue de GitHub, ficha.casos y ficha.encargos, y encargo.fondo. En su ficha, barrera es un escalón de la escalera (no un id de mecanismo) y mecanismo es texto libre con la causa."
+    },
+    {
+      "id": "case",
+      "name": "Caso",
+      "axis": "horizontal",
+      "term": "caso",
+      "source_of_truth": "scripts/lib/issues.mjs",
+      "id_format": "number",
+      "registry": "with_registry",
+      "status": "active",
+      "note": "La palabra «caso» significa cinco cosas: este issue, el casos.json de una skill, el caso de un eval, la línea Casos: del PR y CASOS: del informe de agente."
+    },
+    {
+      "id": "assignment",
+      "name": "Encargo",
+      "axis": "horizontal",
+      "term": "encargo",
+      "source_of_truth": "scripts/lib/issues.mjs",
+      "id_format": "number",
+      "registry": "with_registry",
+      "status": "active"
+    },
+    {
+      "id": "decision",
+      "name": "Decisión",
+      "axis": "horizontal",
+      "term": "decisión",
+      "source_of_truth": "ops/DECISIONES.md",
+      "id_format": "none",
+      "registry": "partial",
+      "status": "active",
+      "note": "Duplicada sin id común: el issue y la fila del registro no se enlazan por ningún campo."
+    },
+    {
+      "id": "pull-request",
+      "name": "PR",
+      "axis": "horizontal",
+      "term": "pr",
+      "source_of_truth": "none",
+      "id_format": "number",
+      "registry": "without_registry",
+      "status": "active",
+      "note": "La fuente de verdad es GitHub. Sin registro propio en el repo."
+    },
+    {
+      "id": "branch",
+      "name": "Rama",
+      "axis": "horizontal",
+      "term": "rama",
+      "source_of_truth": "none",
+      "id_format": "compound",
+      "registry": "without_registry",
+      "status": "active",
+      "note": "Los prefijos de rama y las etiquetas de área no coinciden (lola y bot, ui y ux) y el número de issue solo va a veces."
+    },
+    {
+      "id": "migration",
+      "name": "Migración",
+      "axis": "bridge",
+      "term": "migración",
+      "source_of_truth": "supabase/ESTADO.md",
+      "id_format": "number_with_name",
+      "registry": "partial",
+      "status": "active",
+      "role_in_axis": "Proceso: pasa por un gateway y un juez. Producto: cambia la base de las casas.",
+      "note": "101 ficheros hasta la 0098; los números 0003, 0006 y 0051 están repetidos (la 0080b es un índice en supabase/manual/, previsto en PRINCIPIOS §10)."
+    },
+    {
+      "id": "table",
+      "name": "Tabla",
+      "axis": "bridge",
+      "term": "tabla",
+      "source_of_truth": "ops/MODULOS.json",
+      "id_format": "snake",
+      "registry": "partial",
+      "status": "active",
+      "role_in_axis": "Proceso: la crea una migración y la custodia un módulo. Producto: guarda los datos de las casas.",
+      "note": "MODULOS.json dice de qué módulo es cada tabla (tablas.<t>.dueno). Nombres y estructura: docs/datos/PRINCIPIOS.md."
+    },
+    {
+      "id": "data-source",
+      "name": "Fuente de datos",
+      "axis": "bridge",
+      "term": "fuente de datos",
+      "source_of_truth": "src/data/model.js",
+      "id_format": "camel",
+      "registry": "with_registry",
+      "status": "active",
+      "role_in_axis": "Proceso: se declara con rol y estado. Producto: los datos que lee la app.",
+      "note": "TABLAS tiene 40 ids. Su id no coincide con el de ninguna tabla ni módulo; solo 4 de las 40 listan sus tablas (campo tablas)."
+    },
+    {
+      "id": "module",
+      "name": "Módulo",
+      "axis": "bridge",
+      "term": "módulo",
+      "source_of_truth": "ops/MODULOS.json",
+      "id_format": "kebab",
+      "registry": "with_registry",
+      "status": "active",
+      "role_in_axis": "Proceso: tiene dueño y métricas. Producto: agrupa las tablas y los ficheros de la app.",
+      "note": "16 módulos; cada tabla de MODULOS.json tiene un dueño."
+    },
+    {
+      "id": "vocabulary",
+      "name": "Vocabulario",
+      "axis": "horizontal",
+      "term": "vocabulario",
+      "source_of_truth": "ops/vocabularios-vida.json",
+      "id_format": "compound",
+      "registry": "partial",
+      "status": "active",
+      "note": "56 vocabularios y 327 valores anclados. Hay constantes duplicadas (MESES en 4 sitios, dos ESTADOS_CRITERIO con valores distintos)."
+    },
+    {
+      "id": "household",
+      "name": "Casa",
+      "axis": "vertical",
+      "term": null,
+      "source_of_truth": "specs/modelo-datos.md",
+      "id_format": "uuid",
+      "registry": "partial",
+      "status": "active",
+      "note": "Vertical: fuera de este ataque. En la base se llama households."
+    },
+    {
+      "id": "person",
+      "name": "Persona de la casa",
+      "axis": "vertical",
+      "term": "persona de la casa",
+      "source_of_truth": "specs/modelo-datos.md",
+      "id_format": "unchecked",
+      "registry": "partial",
+      "status": "active",
+      "note": "Vertical: fuera de este ataque. Es la persona de la base (tabla persona), no el miembro del equipo."
+    },
+    {
+      "id": "channel-identity",
+      "name": "Identidad de canal",
+      "axis": "vertical",
+      "term": null,
+      "source_of_truth": "ops/MODULOS.json",
+      "id_format": "compound",
+      "registry": "partial",
+      "status": "active",
+      "note": "Una cuenta de Telegram o WhatsApp unida a un usuario de la app (bot_identities, clave channel + external_id). Vertical: fuera de este ataque."
+    },
+    {
+      "id": "recipe",
+      "name": "Receta",
+      "axis": "vertical",
+      "term": null,
+      "source_of_truth": "src/data/recipes",
+      "id_format": "unchecked",
+      "registry": "partial",
+      "status": "active",
+      "note": "Vertical: fuera de este ataque. recipe_id es polimórfico por prefijo en la base."
+    },
+    {
+      "id": "ingredient",
+      "name": "Ingrediente",
+      "axis": "vertical",
+      "term": null,
+      "source_of_truth": "src/data/ingredients.json",
+      "id_format": "unchecked",
+      "registry": "partial",
+      "status": "active",
+      "note": "Vertical: fuera de este ataque."
+    },
+    {
+      "id": "menu",
+      "name": "Menú",
+      "axis": "vertical",
+      "term": null,
+      "source_of_truth": "specs/menu-generation.md",
+      "id_format": "prefixed_text",
+      "registry": "partial",
+      "status": "active",
+      "note": "Vertical: fuera de este ataque."
+    },
+    {
+      "id": "pantry",
+      "name": "Despensa",
+      "axis": "vertical",
+      "term": null,
+      "source_of_truth": "specs/modelo-datos.md",
+      "id_format": "unchecked",
+      "registry": "partial",
+      "status": "active",
+      "note": "Vertical: fuera de este ataque."
+    },
+    {
+      "id": "shopping-list",
+      "name": "Lista de la compra",
+      "axis": "vertical",
+      "term": null,
+      "source_of_truth": "specs/shopping-list.md",
+      "id_format": "none",
+      "registry": "partial",
+      "status": "active",
+      "note": "Vertical: fuera de este ataque. Hoy la compra se cruza por nombre y unidad, sin id."
+    },
+    {
+      "id": "lola-conversation",
+      "name": "Conversación con Lola",
+      "axis": "vertical",
+      "term": null,
+      "source_of_truth": "specs/plan-bot-mensajeria.md",
+      "id_format": "unchecked",
+      "registry": "partial",
+      "status": "active",
+      "note": "Vertical: fuera de este ataque. La clave de bot_candados es solo chat_id, sin canal."
+    }
+  ],
+  "relations": [
+    {
+      "from": "session",
+      "relation": "works_in",
+      "to": "branch",
+      "stored_as": "field",
+      "stored_in": "rama (ficha local de la sesión)"
+    },
+    {
+      "from": "session",
+      "relation": "uses",
+      "to": "identity",
+      "stored_as": "none"
+    },
+    {
+      "from": "identity",
+      "relation": "belongs_to",
+      "to": "team-member",
+      "stored_as": "none"
+    },
+    {
+      "from": "identity",
+      "relation": "uses",
+      "to": "vault",
+      "stored_as": "none"
+    },
+    {
+      "from": "secret",
+      "relation": "lives_in",
+      "to": "vault",
+      "stored_as": "field",
+      "stored_in": "op://<bóveda>/<ficha>/<campo>"
+    },
+    {
+      "from": "secret",
+      "relation": "belongs_to",
+      "to": "service",
+      "stored_as": "field",
+      "stored_in": "cuenta dueña (INVENTARIO)"
+    },
+    {
+      "from": "environment",
+      "relation": "belongs_to",
+      "to": "service",
+      "stored_as": "none"
+    },
+    {
+      "from": "deployment",
+      "relation": "belongs_to",
+      "to": "environment",
+      "stored_as": "none"
+    },
+    {
+      "from": "deployment",
+      "relation": "comes_from",
+      "to": "branch",
+      "stored_as": "field",
+      "stored_in": "rama o PR en Vercel"
+    },
+    {
+      "from": "migration",
+      "relation": "applied_in",
+      "to": "environment",
+      "stored_as": "file",
+      "stored_in": "supabase/ESTADO.md"
+    },
+    {
+      "from": "migration",
+      "relation": "creates",
+      "to": "table",
+      "stored_as": "none"
+    },
+    {
+      "from": "table",
+      "relation": "belongs_to",
+      "to": "module",
+      "stored_as": "field",
+      "stored_in": "tablas.<t>.dueno (MODULOS.json)"
+    },
+    {
+      "from": "data-source",
+      "relation": "has",
+      "to": "table",
+      "stored_as": "field",
+      "stored_in": "tablas (solo 4 de 40 fuentes)"
+    },
+    {
+      "from": "event",
+      "relation": "happens_in",
+      "to": "session",
+      "stored_as": "field",
+      "stored_in": "sesion (eventos.jsonl)"
+    },
+    {
+      "from": "event",
+      "relation": "refers_to",
+      "to": "branch",
+      "stored_as": "field",
+      "stored_in": "rama (eventos.jsonl)"
+    },
+    {
+      "from": "event",
+      "relation": "refers_to",
+      "to": "issue",
+      "stored_as": "field",
+      "stored_in": "issue (eventos.jsonl)"
+    },
+    {
+      "from": "event",
+      "relation": "refers_to",
+      "to": "skill",
+      "stored_as": "field",
+      "stored_in": "nombre cuando evento es skill_cargada (campo polimórfico, eventos.mjs:11)"
+    },
+    {
+      "from": "event",
+      "relation": "refers_to",
+      "to": "agent",
+      "stored_as": "field",
+      "stored_in": "nombre cuando evento es agente_lanzado (campo polimórfico, eventos.mjs:11)"
+    },
+    {
+      "from": "event",
+      "relation": "cites",
+      "to": "norm",
+      "stored_as": "field",
+      "stored_in": "codigo"
+    },
+    {
+      "from": "event",
+      "relation": "uses",
+      "to": "vocabulary",
+      "stored_as": "file",
+      "stored_in": "EVENTOS (constante de eventos.mjs)"
+    },
+    {
+      "from": "event",
+      "relation": "triggers",
+      "to": "skill",
+      "stored_as": "none",
+      "stored_in": "propuesta de Pablo, se define en #568"
+    },
+    {
+      "from": "event",
+      "relation": "produces",
+      "to": "learning",
+      "stored_as": "none",
+      "stored_in": "propuesta de Pablo, se define en #568"
+    },
+    {
+      "from": "norm",
+      "relation": "enforced_by",
+      "to": "mechanism",
+      "stored_as": "none",
+      "stored_in": "ejecutor guarda un valor de EJECUTORES, no un id de mecanismo (github_regla no es regla_github)"
+    },
+    {
+      "from": "norm",
+      "relation": "refers_to",
+      "to": "issue",
+      "stored_as": "field",
+      "stored_in": "issue"
+    },
+    {
+      "from": "rule",
+      "relation": "enforced_by",
+      "to": "hook",
+      "stored_as": "none"
+    },
+    {
+      "from": "mechanism",
+      "relation": "uses",
+      "to": "vocabulary",
+      "stored_as": "file",
+      "stored_in": "escalera (escalas.mjs)"
+    },
+    {
+      "from": "pull-request",
+      "relation": "closes",
+      "to": "issue",
+      "stored_as": "field",
+      "stored_in": "Closes"
+    },
+    {
+      "from": "pull-request",
+      "relation": "cites",
+      "to": "case",
+      "stored_as": "field",
+      "stored_in": "Casos:"
+    },
+    {
+      "from": "pull-request",
+      "relation": "made_by",
+      "to": "agent",
+      "stored_as": "field",
+      "stored_in": "Agente:"
+    },
+    {
+      "from": "pull-request",
+      "relation": "uses",
+      "to": "skill",
+      "stored_as": "field",
+      "stored_in": "Runbook:"
+    },
+    {
+      "from": "branch",
+      "relation": "belongs_to",
+      "to": "issue",
+      "stored_as": "field",
+      "stored_in": "<área>/<n>-<nombre>"
+    },
+    {
+      "from": "root-problem",
+      "relation": "is_a",
+      "to": "issue",
+      "stored_as": "field",
+      "stored_in": "etiqueta tipo:fondo"
+    },
+    {
+      "from": "case",
+      "relation": "is_a",
+      "to": "issue",
+      "stored_as": "field",
+      "stored_in": "etiqueta tipo:caso"
+    },
+    {
+      "from": "assignment",
+      "relation": "is_a",
+      "to": "issue",
+      "stored_as": "field",
+      "stored_in": "etiqueta tipo:encargo"
+    },
+    {
+      "from": "decision",
+      "relation": "is_a",
+      "to": "issue",
+      "stored_as": "field",
+      "stored_in": "etiqueta tipo:decision"
+    },
+    {
+      "from": "case",
+      "relation": "hangs_from",
+      "to": "root-problem",
+      "stored_as": "field",
+      "stored_in": "sub-issue de GitHub; copia en ficha.casos"
+    },
+    {
+      "from": "assignment",
+      "relation": "hangs_from",
+      "to": "root-problem",
+      "stored_as": "field",
+      "stored_in": "sub-issue de GitHub; copias en ficha.encargos y encargo.fondo"
+    },
+    {
+      "from": "assignment",
+      "relation": "depends_on",
+      "to": "assignment",
+      "stored_as": "field",
+      "stored_in": "depende_de (bloque encargo)"
+    },
+    {
+      "from": "root-problem",
+      "relation": "uses",
+      "to": "mechanism",
+      "stored_as": "none",
+      "stored_in": "barrera guarda un escalón, no un id de mecanismo; ficha.mecanismo es texto libre"
+    },
+    {
+      "from": "root-problem",
+      "relation": "made_by",
+      "to": "agent",
+      "stored_as": "field",
+      "stored_in": "capa_agente (ficha del fondo)"
+    },
+    {
+      "from": "root-problem",
+      "relation": "produces",
+      "to": "learning",
+      "stored_as": "field",
+      "stored_in": "aprendizaje (ficha del fondo)"
+    },
+    {
+      "from": "assignment",
+      "relation": "uses",
+      "to": "mechanism",
+      "stored_as": "field",
+      "stored_in": "mecanismo (bloque encargo)"
+    },
+    {
+      "from": "assignment",
+      "relation": "made_by",
+      "to": "agent",
+      "stored_as": "field",
+      "stored_in": "constructor (bloque encargo)"
+    },
+    {
+      "from": "judge",
+      "relation": "judges",
+      "to": "assignment",
+      "stored_as": "field",
+      "stored_in": "juez (bloque encargo)"
+    },
+    {
+      "from": "decision",
+      "relation": "assigned_to",
+      "to": "team-member",
+      "stored_as": "field",
+      "stored_in": "asignado (GitHub)"
+    },
+    {
+      "from": "judge",
+      "relation": "is_a",
+      "to": "agent",
+      "stored_as": "field",
+      "stored_in": "Tipo: juez"
+    },
+    {
+      "from": "judge",
+      "relation": "judges",
+      "to": "eval",
+      "stored_as": "none"
+    },
+    {
+      "from": "skill",
+      "relation": "belongs_to",
+      "to": "agent",
+      "stored_as": "field",
+      "stored_in": "dueno"
+    },
+    {
+      "from": "metric",
+      "relation": "reads",
+      "to": "event",
+      "stored_as": "file",
+      "stored_in": "lineas (metricas.json)"
+    },
+    {
+      "from": "module",
+      "relation": "has",
+      "to": "metric",
+      "stored_as": "field",
+      "stored_in": "metricas[] (MODULOS.json)"
+    },
+    {
+      "from": "eval",
+      "relation": "measures",
+      "to": "lola-conversation",
+      "stored_as": "file",
+      "stored_in": "scripts/bot-evals.json"
+    },
+    {
+      "from": "team-member",
+      "relation": "coincides_with",
+      "to": "person",
+      "stored_as": "none"
+    },
+    {
+      "from": "person",
+      "relation": "belongs_to",
+      "to": "household",
+      "stored_as": "unaudited"
+    },
+    {
+      "from": "pantry",
+      "relation": "belongs_to",
+      "to": "household",
+      "stored_as": "unaudited"
+    },
+    {
+      "from": "menu",
+      "relation": "belongs_to",
+      "to": "household",
+      "stored_as": "unaudited"
+    },
+    {
+      "from": "lola-conversation",
+      "relation": "belongs_to",
+      "to": "household",
+      "stored_as": "unaudited"
+    },
+    {
+      "from": "channel-identity",
+      "relation": "belongs_to",
+      "to": "person",
+      "stored_as": "unaudited"
+    },
+    {
+      "from": "menu",
+      "relation": "uses",
+      "to": "recipe",
+      "stored_as": "unaudited"
+    },
+    {
+      "from": "recipe",
+      "relation": "uses",
+      "to": "ingredient",
+      "stored_as": "unaudited"
+    },
+    {
+      "from": "shopping-list",
+      "relation": "comes_from",
+      "to": "menu",
+      "stored_as": "unaudited"
+    },
+    {
+      "from": "shopping-list",
+      "relation": "uses",
+      "to": "pantry",
+      "stored_as": "unaudited"
+    },
+    {
+      "from": "pantry",
+      "relation": "uses",
+      "to": "ingredient",
+      "stored_as": "unaudited"
+    }
+  ]
+}

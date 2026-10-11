@@ -1,0 +1,15 @@
+{
+  "termino": "rama",
+  "estado": "activo",
+  "clase": "artefacto",
+  "definicion": "Una línea de trabajo de git que lleva una sola tarea y se llama con el formato área/nombre, con el número del issue delante del nombre si la tarea sale de uno.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "despliegue",
+    "pr"
+  ],
+  "en": "branch"
+}

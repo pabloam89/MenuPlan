@@ -1,0 +1,14 @@
+{
+  "termino": "eje",
+  "estado": "activo",
+  "clase": "campo",
+  "definicion": "Un campo de cada entidad que dice a qué bloque pertenece: horizontal (cómo trabajamos), vertical (el producto HoMenu) o puente (lo que cruza los dos).",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "entidad"
+  ],
+  "en": "axis"
+}
