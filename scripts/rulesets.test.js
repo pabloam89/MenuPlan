@@ -83,6 +83,12 @@ describe("diferencias", () => {
     actual.rules[1].parameters.allowed_merge_methods = ["merge"];
     expect(diferencias(actual, staging)).toEqual([]);
   });
+  it("la regla update que GitHub devuelve sin parámetros cuenta como igual (10 oct 2026)", () => {
+    const [, solo] = deseados();
+    const leido = { ...structuredClone(solo), id: 1, rules: [{ type: "update", parameters: {} }] };
+    expect(diferencias(leido, solo)).toEqual([]);
+    expect(diferencias({ ...leido, rules: [] }, solo)).toEqual(["regla update: falta"]);
+  });
   it("avisa de un bypass que sobra y de un token que no ve los actores", () => {
     const [, , staging] = deseados();
     const demas = structuredClone(staging);

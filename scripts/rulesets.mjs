@@ -87,14 +87,21 @@ export function normalizar(rs, claves = null) {
   });
 }
 
-/** Qué claves de cada regla se comparan: las del deseado. */
-const clavesDe = (d) => new Map(d.rules.map((r) => [r.type, Object.keys(r.parameters)]));
+/**
+ * Parámetros que se mandan pero GitHub no devuelve al leer (10 oct 2026: la regla `update` vuelve con
+ * `parameters: {}` aunque se creó con `update_allows_fetch_and_merge: false`). No se comparan: si no, la
+ * comprobación daría «difiere» siempre.
+ */
+const NO_DEVUELVE = new Map([["update", ["update_allows_fetch_and_merge"]]]);
+
+/** Qué claves de cada regla se comparan: las del deseado, menos las que GitHub no devuelve. */
+const clavesDe = (d) => new Map(d.rules.map((r) => [r.type, Object.keys(r.parameters ?? {}).filter((k) => !NO_DEVUELVE.get(r.type)?.includes(k))]));
 
 /** Lista de diferencias legibles entre el ruleset actual y el deseado ([] si cuadra). */
 export function diferencias(actual, deseado) {
   if (!actual) return ["no existe"];
   const a = normalizar(actual, clavesDe(deseado));
-  const d = normalizar(deseado);
+  const d = normalizar(deseado, clavesDe(deseado));
   const fuera = [];
   for (const campo of ["name", "target", "enforcement"]) if (a[campo] !== d[campo]) fuera.push(`${campo}: ${a[campo]} -> ${d[campo]}`);
   if (JSON.stringify(a.ref_name) !== JSON.stringify(d.ref_name)) fuera.push(`ramas: ${JSON.stringify(a.ref_name.include)} -> ${JSON.stringify(d.ref_name.include)}`);
