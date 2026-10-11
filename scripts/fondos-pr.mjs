@@ -32,7 +32,7 @@ import { porGrupo } from "./lib/issues.mjs";
 const BOTS = new Set(["dependabot[bot]", "github-actions[bot]"]);
 
 const nombres = (i) => (i.labels ?? []).map((l) => (typeof l === "string" ? l : l.name));
-const tipoDe = (i) => [...porGrupo(nombres(i)).tipo][0] ?? null;
+export const tipoDe = (i) => [...porGrupo(nombres(i)).tipo][0] ?? null;
 
 /** Las líneas `Agente:` del cuerpo. → { lineas:[nombre…], malas:[…] }. */
 export function agentesDelPr(cuerpo) {
