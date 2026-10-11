@@ -126,7 +126,12 @@ export function generadosSinRegistrar(registro, ficheros, leer) {
     if (!TEXTO.test(f)) continue;
     if (registro.some((g) => casaRuta(g.ruta, f))) continue;
     let texto;
-    try { texto = leer(f); } catch { continue; } // un fichero borrado en el árbol pero aún en el índice
+    try {
+      texto = leer(f);
+    } catch {
+      // a propósito: un fichero borrado en el árbol pero aún en el índice no tiene cabecera que mirar
+      continue;
+    }
     const cabecera = texto.split("\n", LINEAS_DE_CABECERA).join("\n");
     if (CABECERA.test(cabecera) || (f.endsWith(".md") && MARCAS_PARCIALES.some((m) => m.test(texto)))) sueltos.push(f);
   }
