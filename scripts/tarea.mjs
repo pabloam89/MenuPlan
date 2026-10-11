@@ -187,11 +187,14 @@ async function main() {
     }
   }
 
-  // Los drivers de fusión de lo generado (#551): en la configuración común a todos los worktrees.
+  // Los drivers de fusión de lo generado (#551): en la configuración común a todas las carpetas de
+  // trabajo, con el node de este proceso y el script de la carpeta principal (rutas absolutas).
   // Sin ellos, FORJA.md, los moldes y las anclas de la forja chocan al traer staging.
   try {
-    const puestos = instalarDrivers(principal);
-    if (puestos.length) console.log(`Drivers de fusión de lo generado instalados (${puestos.length} claves de git).`);
+    const r = instalarDrivers(principal);
+    if (r.motivo) console.warn(`Aviso: drivers de fusión sin instalar: ${r.motivo}.`);
+    else if (r.puestos.length) console.log(`Drivers de fusión de lo generado instalados (${r.puestos.length} claves de git).`);
+    if (r.ajenos.length) console.warn(`Aviso: ya había otro driver en ${r.ajenos.join(", ")}; no lo piso.`);
   } catch (e) {
     console.warn(`Aviso: no pude instalar los drivers de fusión (${String(e.stderr || e.message).trim().split("\n")[0]}). A mano: node scripts/generados.mjs --instalar`);
   }

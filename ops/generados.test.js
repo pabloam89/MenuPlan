@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
-  CLASES, DRIVERS, GENERADOS, casaRuta, comandosDeEscribir, configDrivers, driversQueFaltan, instalarDrivers, lineasGitattributes, mezclarJson,
+  CLASES, DRIVERS, GENERADOS, casaRuta, comandosDeEscribir, configDrivers, desinstalarDrivers, driversQueFaltan, instalarDrivers, lineasGitattributes, mezclarJson,
 } from "../scripts/lib/generados.mjs";
 import { anclarCapas, generarMd, leerCapas, leerForja } from "../scripts/lib/forja.mjs";
 import { RUTA_PLANTILLA_COMUN, generarPlantillas, rutaPlantilla } from "../scripts/lib/plantillasSkill.mjs";
@@ -132,7 +132,16 @@ describe("con git de verdad: dos ramas que añaden un criterio cada una", () => 
   };
   const commit = (dir, msg) => { git(dir, "add", "-A"); git(dir, "commit", "-q", "-m", msg); };
 
-  /** Monta base, rama a (criterio idA) y rama b (idB); fusiona b en a. Devuelve líneas en conflicto por fichero. */
+  /** Pone en `dir` el comando de los drivers con este node y `script` (como instalarDrivers, sin mirar la carpeta principal). */
+  const configurar = (dir, script) => {
+    for (const [k, v] of Object.entries(configDrivers({ node: process.execPath, script }))) git(dir, "config", k, v);
+  };
+
+  /**
+   * Monta base, rama a (criterio idA) y rama b (idB); fusiona b en a. `drivers`: false, "bien"
+   * (el script de este repo) o "roto" (un script que no existe). Devuelve líneas en conflicto por
+   * fichero, los ficheros sin fusionar (UU) y los desfasados.
+   */
   const fusionar = ({ idA, idB, drivers }) => {
     const dir = mkdtempSync(join(tmpdir(), "generados-"));
     try {
@@ -140,7 +149,8 @@ describe("con git de verdad: dos ramas que añaden un criterio cada una", () => 
       git(dir, "config", "user.email", "t@t");
       git(dir, "config", "user.name", "t");
       git(dir, "config", "core.autocrlf", "false");
-      if (drivers) instalarDrivers(dir, `"${SCRIPT}"`);
+      if (drivers === "bien") configurar(dir, SCRIPT);
+      if (drivers === "roto") configurar(dir, join(dir, "no-existe", "merge-driver.mjs"));
       writeFileSync(join(dir, ".gitattributes"), readFileSync(join(RAIZ, ".gitattributes"), "utf8"));
       escribir(dir, generados(datos, capas));
       commit(dir, "base");
@@ -156,6 +166,7 @@ describe("con git de verdad: dos ramas que añaden un criterio cada una", () => 
       git(dir, "checkout", "-q", "a");
       let limpia = true;
       try { git(dir, "merge", "--no-edit", "-q", "b"); } catch { limpia = false; }
+      const sinFusionar = git(dir, "diff", "--name-only", "--diff-filter=U").split("\n").filter(Boolean);
       const conflicto = {};
       const juntos = conCriterio(conCriterio(datos, idA), idB);
       const esperado = generados(juntos, capas);
@@ -172,7 +183,7 @@ describe("con git de verdad: dos ramas que añaden un criterio cada una", () => 
         if (n) conflicto[ruta] = n;
         if (texto !== esperado.get(ruta)) desfasados.push(ruta);
       }
-      return { limpia, conflicto, desfasados, capas: conflicto["ops/forja-capas.json"] ? null : JSON.parse(readFileSync(join(dir, "ops/forja-capas.json"), "utf8")) };
+      return { limpia, conflicto, sinFusionar, desfasados, capas: conflicto["ops/forja-capas.json"] ? null : JSON.parse(readFileSync(join(dir, "ops/forja-capas.json"), "utf8")) };
     } finally { rmSync(dir, { recursive: true, force: true }); }
   };
   const total = (c) => Object.values(c).reduce((a, b) => a + b, 0);
@@ -183,7 +194,7 @@ describe("con git de verdad: dos ramas que añaden un criterio cada una", () => 
   for (const [nombre, [idA, idB]] of Object.entries(ESCENARIOS)) {
     it(`${nombre}: sin los drivers chocan en los generados; con ellos, no`, () => {
       const sin = fusionar({ idA, idB, drivers: false });
-      const con = fusionar({ idA, idB, drivers: true });
+      const con = fusionar({ idA, idB, drivers: "bien" });
       // La cifra de #551 (antes y después), en el mensaje si falla.
       expect(total(sin.conflicto), `sin drivers: ${JSON.stringify(sin.conflicto)}`).toBeGreaterThan(0);
       expect(sin.limpia).toBe(false);
@@ -192,21 +203,69 @@ describe("con git de verdad: dos ramas que añaden un criterio cada una", () => 
       // El ancla queda bien fusionada: los dos criterios, sin regenerar nada.
       expect(Object.keys(con.capas.capas)).toEqual(expect.arrayContaining([idA, idB]));
       expect(con.desfasados, "el ancla no queda desfasada").not.toContain("ops/forja-capas.json");
-      // FORJA.md se queda con tu versión y queda desfasada: es justo lo que dice su test «está al día»
-      // (ops/forja.test.js), que corre en local y en el CI.
+      // FORJA.md se queda con la versión de HEAD y queda desfasada: es justo lo que dice su test
+      // «está al día» (ops/forja.test.js), que corre en local y en el CI.
       expect(con.desfasados).toContain("docs/ops/FORJA.md");
     });
   }
 
-  it("la configuración de los drivers: se instala, es idempotente y usa la ruta relativa por defecto", () => {
-    const dir = mkdtempSync(join(tmpdir(), "generados-cfg-"));
-    try {
-      git(dir, "init", "-q");
-      expect(driversQueFaltan(dir)).toHaveLength(Object.keys(configDrivers()).length);
-      expect(instalarDrivers(dir)).toHaveLength(Object.keys(configDrivers()).length);
-      expect(instalarDrivers(dir)).toEqual([]);
-      expect(driversQueFaltan(dir)).toEqual([]);
-      expect(git(dir, "config", "--get", "merge.generado.driver").trim()).toBe("node scripts/merge-driver.mjs generado %O %A %B %P");
-    } finally { rmSync(dir, { recursive: true, force: true }); }
+  it("si el driver no se puede lanzar (script o node que no están), cae a la fusión de git con marcas: nada sin fusionar queda sin ellas", () => {
+    const roto = fusionar({ idA: "zz-prueba-a", idB: "zz-prueba-b", drivers: "roto" });
+    expect(roto.limpia).toBe(false);
+    expect(roto.sinFusionar.length).toBeGreaterThan(0);
+    const silenciosos = roto.sinFusionar.filter((r) => !(r in roto.conflicto));
+    expect(silenciosos, "un fichero sin fusionar (UU) sin marcas parece resuelto").toEqual([]);
+    expect(Object.keys(roto.conflicto)).toEqual(expect.arrayContaining(["docs/ops/FORJA.md", "ops/forja-capas.json"]));
+  });
+
+  describe("instalar", () => {
+    const conRepo = (fn) => {
+      const dir = mkdtempSync(join(tmpdir(), "generados-cfg-"));
+      try {
+        git(dir, "init", "-q", "-b", "staging");
+        git(dir, "config", "user.email", "t@t");
+        git(dir, "config", "user.name", "t");
+        return fn(dir);
+      } finally { rmSync(dir, { recursive: true, force: true }); }
+    };
+    const N = Object.keys(configDrivers({ node: "n", script: "s" })).length;
+
+    it("sin el script en la carpeta principal (una rama vieja, main) no instala nada", () => conRepo((dir) => {
+      const r = instalarDrivers(dir);
+      expect(r.puestos).toEqual([]);
+      expect(r.motivo).toMatch(/no existe .*scripts\/merge-driver\.mjs/);
+      expect(() => git(dir, "config", "--get", "merge.generado.driver")).toThrow();
+    }));
+
+    it("con él: rutas absolutas de node y del script de la carpeta principal, también desde otra carpeta de trabajo; idempotente", () => conRepo((dir) => {
+      mkdirSync(join(dir, "scripts"));
+      writeFileSync(join(dir, "scripts", "merge-driver.mjs"), "");
+      writeFileSync(join(dir, "x.txt"), "x\n");
+      git(dir, "add", "x.txt", "scripts/merge-driver.mjs");
+      git(dir, "commit", "-q", "-m", "base");
+      const otra = `${dir}-otra`;
+      try {
+        git(dir, "worktree", "add", "-q", "-b", "otra", otra);
+        expect(instalarDrivers(otra).puestos).toHaveLength(N);
+        expect(instalarDrivers(dir).puestos).toEqual([]);
+        expect(driversQueFaltan(dir)).toEqual([]);
+        const cmd = git(dir, "config", "--get", "merge.generado.driver").trim();
+        const principal = realpathSync(dir).replace(/\\/g, "/");
+        expect(cmd).toContain(`"${process.execPath.replace(/\\/g, "/")}"`);
+        expect(cmd.toLowerCase()).toContain(`"${principal}/scripts/merge-driver.mjs" generado`.toLowerCase());
+        expect(cmd).toContain("|| git merge-file");
+      } finally { rmSync(otra, { recursive: true, force: true }); }
+    }));
+
+    it("no pisa un driver ajeno con el mismo nombre, y --desinstalar solo quita los nuestros", () => conRepo((dir) => {
+      mkdirSync(join(dir, "scripts"));
+      writeFileSync(join(dir, "scripts", "merge-driver.mjs"), "");
+      git(dir, "config", "merge.generado.driver", "otro-programa %A");
+      const r = instalarDrivers(dir);
+      expect(r.ajenos).toEqual(["merge.generado.driver"]);
+      expect(git(dir, "config", "--get", "merge.generado.driver").trim()).toBe("otro-programa %A");
+      expect(desinstalarDrivers(dir)).toHaveLength(N - 1);
+      expect(git(dir, "config", "--get", "merge.generado.driver").trim()).toBe("otro-programa %A");
+    }));
   });
 });

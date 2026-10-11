@@ -9,31 +9,42 @@
  *
  * Dos clases, cada una con su forma de fusionar (`.gitattributes`, atributo `merge=`):
  *   - `documento`: el fichero entero sale de una función de lo que hay en el repo (lo dice su
- *     cabecera «No se edita a mano»). Al fusionar, el driver `generado` se queda con tu versión
- *     y no para la fusión; el documento puede quedar desfasado, y lo dice su test «está al día»
- *     (en local y en el CI). Se arregla con `node scripts/generados.mjs --escribir`.
+ *     cabecera «No se edita a mano»). Al fusionar, el driver `generado` se queda con la versión
+ *     de HEAD (en un merge, la tuya; en un rebase o un cherry-pick, la de la otra rama) y no para
+ *     la fusión; el documento puede quedar desfasado, y lo dice su test «está al día» (en local y
+ *     en el CI). Se arregla con `node scripts/generados.mjs --escribir`.
  *   - `ancla`: un JSON por claves que un script mantiene (trinquetes, mapas). El driver
  *     `json-claves` fusiona clave a clave contra la base común: lo que cambia un solo lado entra,
- *     y si los dos cambian la misma clave de forma distinta, choca como siempre (con marcas).
+ *     y si los dos cambian la misma clave de forma distinta, choca con las marcas de git.
  *
  * Los drivers son configuración local de git (`merge.<driver>.driver`): `npm run tarea` los
- * instala en la carpeta principal, cuya configuración comparten todos los worktrees. Sin ella
- * (otro clon, una sesión en la nube, GitHub al fusionar o con `gh pr update-branch`), git usa su
- * fusión de siempre: o choca y se fusiona en local, o sale limpia y el test «está al día» del CI
- * dice si el documento quedó desfasado. Ese test es la red; el driver solo ahorra el choque.
+ * instala en la carpeta principal, cuya configuración comparten todas sus carpetas de trabajo.
+ * El comando lleva rutas absolutas y fijas, calculadas al instalar: el `node` que instala
+ * (`process.execPath`) y el `scripts/merge-driver.mjs` de la carpeta principal del clon (la que
+ * contiene el directorio común de git), que solo avanza con `pull --ff-only` desde staging; así
+ * una rama no puede cambiar el código que corre al fusionar. Si ese script no existe, no se
+ * instala. Y si al fusionar no se puede lanzar (node o el script ya no están), el comando cae a
+ * `git merge-file`: marcas de conflicto, nunca una versión sin marcas que parezca resuelta.
+ *
+ * Sin la configuración (otro clon, una sesión en la nube, GitHub al fusionar o con
+ * `gh pr update-branch`), git fusiona como antes: o choca y se fusiona en local, o sale limpia y
+ * el test «está al día» del CI dice si el documento quedó desfasado. Ese test es la red; el
+ * driver solo ahorra el choque.
  *
  * Lo que solo es en parte generado (las tablas de FLUJO.md y PLANOS.md, la sección de estándares
- * de cada agente) no entra: quedarse con tu versión perdería lo escrito a mano en la otra rama.
+ * de cada agente) no entra: quedarse con una versión perdería lo escrito a mano en la otra rama.
  * Tampoco `supabase/cableado.json`: su `--escribir` acepta cualquier cableado nuevo, y su test
  * está para que eso se decida a mano (es de `datos`).
  */
 import { execFileSync } from "node:child_process";
+import { existsSync } from "node:fs";
+import { dirname, isAbsolute, join, resolve } from "node:path";
 
-/** El script de los drivers, relativo a la raíz: git los lanza desde la raíz de cada worktree. */
+/** El script de los drivers, relativo a la raíz del clon. */
 export const SCRIPT_DRIVER = "scripts/merge-driver.mjs";
 
 export const DRIVERS = {
-  generado: "documento generado: se queda con tu versión; su test «está al día» dice si hay que regenerar",
+  generado: "documento generado: se queda con la versión de HEAD; su test «está al día» dice si hay que regenerar",
   "json-claves": "ancla JSON: fusiona clave a clave contra la base común; choca si los dos cambian la misma clave",
 };
 
@@ -42,6 +53,12 @@ export const CLASES = { documento: "generado", ancla: "json-claves" };
 /**
  * El registro. `ruta` es una ruta o un patrón de `.gitattributes` (solo `*` dentro de una
  * carpeta). `regenera`, el script que lo escribe (con `--escribir`); `test`, el que lo vigila.
+ *
+ * Orden en las anclas: `mezclarJson` ordena las claves de un objeto y una lista de valores
+ * sueltos si tu versión ya iba ordenada (por `localeCompare` o por código), y si no, deja tu
+ * orden y añade detrás lo de la otra rama. Ninguna ancla de aquí depende de otro orden: las de
+ * la forja se escriben ordenadas por `localeCompare` y `pendientes` de la redacción es un
+ * conjunto. Un ancla nueva cuyo orden signifique algo (una lista de pasos) no va aquí.
  */
 export const GENERADOS = [
   { ruta: "docs/ops/FORJA.md", clase: "documento", regenera: "scripts/forja.mjs", test: "ops/forja.test.js" },
@@ -68,44 +85,86 @@ export function casaRuta(patron, ruta) {
   return re.test(ruta);
 }
 
-/** La configuración de git de cada driver (clave → valor), con el script relativo a la raíz. */
-export function configDrivers(script = SCRIPT_DRIVER) {
+const git = (dir, args) => execFileSync("git", ["-C", dir, ...args], { encoding: "utf8", windowsHide: true, stdio: ["ignore", "pipe", "pipe"] }).trim();
+const conBarras = (r) => r.replace(/\\/g, "/");
+
+/** La carpeta principal del clon de `dir`: la que contiene el directorio común de git. */
+export function carpetaPrincipal(dir) {
+  const comun = git(dir, ["rev-parse", "--git-common-dir"]);
+  return dirname(isAbsolute(comun) ? comun : resolve(dir, comun));
+}
+
+/**
+ * La configuración de git de cada driver (clave → valor). `node` y `script`, rutas absolutas.
+ * Si no se puede lanzar (`||`), `git merge-file` deja las marcas de conflicto de siempre.
+ */
+export function configDrivers({ node, script }) {
   const c = {};
   for (const [id, nombre] of Object.entries(DRIVERS)) {
     c[`merge.${id}.name`] = nombre;
-    c[`merge.${id}.driver`] = `node ${script} ${id} %O %A %B %P`;
+    c[`merge.${id}.driver`] = `"${conBarras(node)}" "${conBarras(script)}" ${id} %O %A %B "%P" || git merge-file -L HEAD -L base -L otra %A %O %B`;
   }
   return c;
 }
 
-const git = (dir, args) => execFileSync("git", ["-C", dir, ...args], { encoding: "utf8", windowsHide: true, stdio: ["ignore", "pipe", "pipe"] }).trim();
-
-/** Qué drivers faltan o están distintos en la configuración de git de `dir`. */
-export function driversQueFaltan(dir, script = SCRIPT_DRIVER) {
-  const malos = [];
-  for (const [clave, valor] of Object.entries(configDrivers(script))) {
-    let actual = null;
-    try { actual = git(dir, ["config", "--get", clave]); } catch {
-      // a propósito: `git config --get` sale con 1 si la clave no existe; se cuenta como falta
-    }
-    if (actual !== valor) malos.push(clave);
-  }
-  return malos;
+/** Lo que se instalaría desde `dir`: { node, script, principal } o { motivo } si no se puede. */
+export function destinoDrivers(dir, { node = process.execPath } = {}) {
+  const principal = carpetaPrincipal(dir);
+  const script = join(principal, SCRIPT_DRIVER);
+  if (!existsSync(script)) return { motivo: `no existe ${conBarras(script)} (la carpeta principal no tiene aún los drivers: pull --ff-only desde staging)` };
+  if (!existsSync(node)) return { motivo: `no existe ${conBarras(node)}` };
+  return { node, script, principal };
 }
 
-/** Escribe los drivers en la configuración de git de `dir` (la común a sus worktrees). Idempotente. */
-export function instalarDrivers(dir, script = SCRIPT_DRIVER) {
+const leerClave = (dir, clave) => {
+  try { return git(dir, ["config", "--get", clave]); } catch {
+    // a propósito: `git config --get` sale con 1 si la clave no existe
+    return null;
+  }
+};
+/** ¿Lo puso este script? (un driver ajeno con el mismo nombre no se pisa). */
+const esNuestro = (valor) => valor === null || valor.includes(SCRIPT_DRIVER) || Object.values(DRIVERS).includes(valor);
+
+/** Qué claves faltan o están distintas en la configuración de git de `dir`. */
+export function driversQueFaltan(dir, opciones = {}) {
+  const d = destinoDrivers(dir, opciones);
+  if (d.motivo) return Object.keys(configDrivers({ node: "-", script: "-" }));
+  return Object.entries(configDrivers(d)).filter(([clave, valor]) => leerClave(dir, clave) !== valor).map(([clave]) => clave);
+}
+
+/**
+ * Escribe los drivers en la configuración de git de `dir` (la común a sus carpetas de trabajo).
+ * Idempotente. Devuelve { puestos, ajenos, motivo }: `ajenos`, las claves con un driver que no
+ * es nuestro (no se pisan); `motivo`, por qué no se instala nada.
+ */
+export function instalarDrivers(dir, opciones = {}) {
+  const d = destinoDrivers(dir, opciones);
+  if (d.motivo) return { puestos: [], ajenos: [], motivo: d.motivo };
   const puestos = [];
-  for (const [clave, valor] of Object.entries(configDrivers(script))) {
-    let actual = null;
-    try { actual = git(dir, ["config", "--get", clave]); } catch {
-      // a propósito: si no existe, se escribe abajo
-    }
+  const ajenos = [];
+  for (const [clave, valor] of Object.entries(configDrivers(d))) {
+    const actual = leerClave(dir, clave);
     if (actual === valor) continue;
+    if (!esNuestro(actual)) { ajenos.push(clave); continue; }
     git(dir, ["config", clave, valor]);
     puestos.push(clave);
   }
-  return puestos;
+  return { puestos, ajenos, motivo: null };
+}
+
+/** Quita los drivers nuestros de la configuración de git de `dir`. Devuelve las claves quitadas. */
+export function desinstalarDrivers(dir) {
+  const quitadas = [];
+  for (const id of Object.keys(DRIVERS)) {
+    for (const campo of ["name", "driver"]) {
+      const clave = `merge.${id}.${campo}`;
+      const actual = leerClave(dir, clave);
+      if (actual === null || !esNuestro(actual)) continue;
+      git(dir, ["config", "--unset", clave]);
+      quitadas.push(clave);
+    }
+  }
+  return quitadas;
 }
 
 // ---------- fusión de un JSON por claves ----------
@@ -158,7 +217,7 @@ function mezclar(base, nuestro, suyo, ruta, choques) {
  * Fusiona tres textos JSON (base común, tu versión y la suya) clave a clave.
  * Devuelve `{ texto }` con el JSON fusionado (2 espacios y salto final, como lo escriben los
  * scripts), o `{ choques }` con las rutas de las claves que los dos lados cambian de forma
- * distinta (o `{ error }` si alguno no es JSON): entonces el driver deja que choque como siempre.
+ * distinta (o `{ error }` si alguno no es JSON): entonces el driver sale con 1 y su comando cae a `git merge-file`, con marcas.
  */
 export function mezclarJson(textoBase, textoNuestro, textoSuyo) {
   let base;
