@@ -84,6 +84,13 @@ describe("la sonda de la bóveda de administración", () => {
     expect((await sonda((_c, _a, _o, cb) => cb(null, "no soy json", ""))).resultado).toBe("sin-comprobar");
   });
 
+  it("pide la lista de bóvedas con la cuenta de servicio, no con la app de Pablo", async () => {
+    let visto;
+    await leerBovedaDePablo({ correr: (cmd, args, opc, cb) => { visto = { cmd, args, env: opc.env }; cb(null, "[]", ""); }, token: "ops_token_de_prueba" });
+    expect(visto.args).toEqual(["vault", "list", "--format", "json"]);
+    expect(visto.env.OP_SERVICE_ACCOUNT_TOKEN).toBe("ops_token_de_prueba");
+  });
+
   it("sin cuenta de servicio no llama a `op` (iría por la app de Pablo)", async () => {
     let llamado = false;
     const r = await leerBovedaDePablo({ correr: () => { llamado = true; }, token: "" });
@@ -118,6 +125,13 @@ describe("main", () => {
     const s = salida();
     expect(await main({ generar, fetch: respuesta(401), leerBoveda: bien, salida: s })).toBe(2);
     expect(s.l.some((x) => x.includes("resultado: bien"))).toBe(false);
+  });
+
+  it("sin el control en 200 las sondas no cuentan: un 403 en todo (token sin permiso de lectura) sale 2, no 0", async () => {
+    const s = salida();
+    expect(await main({ generar, fetch: respuesta(403), leerBoveda: bien, salida: s })).toBe(2);
+    expect(s.l.some((x) => x.includes("resultado: bien"))).toBe(false);
+    expect(s.l.join("\n")).toContain("el control (leer el repo) no dio 200 sino 403");
   });
 
   it("todo sin comprobar (sin red) sale 2, no 0", async () => {
