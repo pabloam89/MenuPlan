@@ -197,6 +197,7 @@ export function leccionesDe(cuerpo) {
  * (un .md no cuenta: una doc es texto), un fichero de código suelto entre comillas
  * invertidas que existe en el repo (`ctx.existeNombre`), un `npm run` del package.json,
  * la guardia, el casos.json de la skill o un `#n` (de este solo se mira la forma).
+ * Límites: `existeNombre` compara por nombre de fichero en cualquier carpeta, y basta mencionar «guardia» (no distingue negaciones).
  */
 function barreraCitada(arreglo, skill, ctx) {
   const rutas = [...arreglo.matchAll(RUTA_LIBRE)].map((m) => m[1]).filter((r) => !/\.md$/.test(r) && !r.includes("<") && !r.includes("*") && ctx.existe(r));

@@ -67,7 +67,7 @@ function ctxDe({ catalogo, otras = [], otrosCasos = [], existe, scriptsNpm = ["h
     agentes: { gobierno: ["mala", "otra"], lola: [] },
     skills: ["mala", "otra", "forja-de-skills"],
     existe: existe ?? ((r) => r === "scripts/lib/skills.mjs" || r === "docs/ops/FLUJO.md"),
-    existeNombre: (n) => n === "guardia.test.js",
+    existeNombre: (n) => n === "skills.test.js",
     scriptsNpm,
     catalogo: catalogo ?? CATALOGO_LIMPIO,
     otras,
@@ -258,7 +258,7 @@ describe("los aprendizajes de «Lo que falló y por qué» (#603)", () => {
   it("aprendizaje-solo-texto: no avisa si cita una ruta que existe, un fichero suelto, un #n o el casos.json de la skill", () => {
     const buenas = [
       "- **2026-10-01 · a.** Causa: x. Arreglo: el test de scripts/lib/skills.mjs.",
-      "- **2026-10-01 · b.** Causa: y. Arreglo: la regla de `guardia.test.js`.",
+      "- **2026-10-01 · b.** Causa: y. Arreglo: la regla de `skills.test.js`.",
       "- **2026-10-01 · c.** Causa: z. Arreglo: PR #603.",
       "- **2026-10-01 · d.** Causa: w. Arreglo: un caso nuevo en casos.json.",
     ];
@@ -277,6 +277,11 @@ describe("los aprendizajes de «Lo que falló y por qué» (#603)", () => {
   it("aprendizaje-solo-texto: una ruta .md no cuenta, y un fichero suelto debe existir en el repo", () => {
     expect(de(con(["- **2026-10-01 · d.** Causa: x. Arreglo: lo explica docs/ops/FLUJO.md."]), "aprendizaje-solo-texto")).toHaveLength(1);
     expect(de(con(["- **2026-10-01 · e.** Causa: x. Arreglo: la regla de `inventado.test.js`."]), "aprendizaje-solo-texto")).toHaveLength(1);
+  });
+
+  it("aprendizaje-solo-texto: casos.json citado pero la skill no lo tiene no cuenta", () => {
+    const sinCasos = oficio({ ficheros: ["SKILL.md"], secciones: { "Lo que falló y por qué": "- **2026-10-01 · g.** Causa: x. Arreglo: un caso nuevo en casos.json." } });
+    expect(de(higieneDeSkill(sinCasos, ctxDe()), "aprendizaje-solo-texto")).toHaveLength(1);
   });
 
   it("aprendizaje-solo-texto: el aviso no promete comprobar el #n", () => {
@@ -311,7 +316,7 @@ describe("los aprendizajes de «Lo que falló y por qué» (#603)", () => {
 
   it("sin entradas («Sin entradas todavía») no hay nada que decir", () => {
     const d = higieneDeSkill(oficio({ secciones: { "Lo que falló y por qué": "Sin entradas todavía." } }), ctxDe());
-    expect(codigos(d).filter((c) => c.startsWith("leccion"))).toEqual([]);
+    expect(codigos(d).filter((c) => /^(aprendizaje|causa-repetida)/.test(c))).toEqual([]);
   });
 });
 

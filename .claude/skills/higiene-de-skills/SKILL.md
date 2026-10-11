@@ -64,7 +64,7 @@ mano, en `.claude/skills/forja-de-skills/referencias/criterios.md`):
 
 Límite de los dos controles de «Lo que falló»: leen texto, no entienden el fallo. `aprendizaje-solo-texto`
 no sabe si lo citado cubre la clase; `causa-repetida` no ve la misma causa dicha con
-otras palabras ni distingue dos fallos distintos en un mismo fichero. Pendientes, porque
+otras palabras ni distingue dos fallos distintos en un mismo fichero. Además, un fichero suelto se compara por nombre en cualquier carpeta y basta mencionar la guardia, aunque sea para negarla. Pendientes, porque
 necesitan red o el registro de sesiones: `fallo-sin-leccion` (casos abiertos que nombran
 la skill y no aparecen en «Lo que falló») y `skill-cargada-y-fallo` (la skill se leyó y
 hubo un bloqueo o un caso en la misma sesión); siguen en el encargo #603.
