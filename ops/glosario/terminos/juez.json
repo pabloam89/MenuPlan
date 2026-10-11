@@ -19,5 +19,6 @@
   "ref": {
     "fichero": "scripts/lib/flujo.mjs",
     "clave": "ACTORES.juez"
-  }
+  },
+  "en": "judge"
 }

@@ -18,5 +18,6 @@
     "fichero": "ops/forja/",
     "clave": "tipos_skill"
   },
-  "nota": "La línea «Runbook:» del PR conserva su nombre: es un identificador del CI (decisión pendiente)."
+  "nota": "La línea «Runbook:» del PR conserva su nombre: es un identificador del CI (decisión pendiente).",
+  "en": "skill"
 }
