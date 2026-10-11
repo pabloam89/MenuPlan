@@ -1,0 +1,20 @@
+{
+  "id": "scope-when-in-doubt",
+  "nombre": "Acotar ante la duda",
+  "area": "conversational-ai",
+  "sujeto": "bot",
+  "fuerza": "debe",
+  "condicion": "cuando no está seguro de lo que se le pide",
+  "exigencia": "preguntar o proponer lo más acotado antes de actuar a lo grande",
+  "control": "juicio",
+  "nota": "api/_bot/politica.test.js fija que el enrutador solo usa la vía rápida a partir de un umbral de confianza por modo; eso cubre el enrutado, no que Lola pregunte.",
+  "porque": "Un malentendido pequeño cuesta poco; uno grande, un menú entero estropeado.",
+  "ejemplo_bueno": "Ante cambia el jueves sin más, Lola pregunta qué comida del jueves",
+  "ejemplo_malo": "Ante cambia el jueves, Lola rehace el menú de la semana entera",
+  "fuentes": [
+    {
+      "url": "https://www.microsoft.com/en-us/research/articles/guidelines-for-human-ai-interaction-eighteen-best-practices-for-human-centered-ai-design/",
+      "marca": "F"
+    }
+  ]
+}

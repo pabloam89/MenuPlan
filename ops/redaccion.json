@@ -297,6 +297,12 @@
         "comunes.*.reglas"
       ],
       "clave_sujetos": "sujetos"
+    },
+    {
+      "fichero": "ops/principios-producto/",
+      "estado": "cumple",
+      "clave_reglas": "principios",
+      "clave_sujetos": "sujetos"
     }
   ]
 }

@@ -1,0 +1,19 @@
+{
+  "id": "privacy-by-default",
+  "nombre": "Privado por defecto",
+  "area": "privacy",
+  "sujeto": "product",
+  "fuerza": "debe",
+  "condicion": "cuando una opción puede exponer datos de una familia",
+  "exigencia": "venir con la opción más privada por defecto",
+  "control": "juicio",
+  "porque": "Los datos no deben quedar accesibles a otros sin que la persona intervenga.",
+  "ejemplo_bueno": "Un menú o una receta de una familia nace privado y se comparte con un gesto explícito",
+  "ejemplo_malo": "Un menú nace con enlace público y la familia tiene que acordarse de cerrarlo",
+  "fuentes": [
+    {
+      "url": "https://gdpr-info.eu/art-25-gdpr/",
+      "marca": "F"
+    }
+  ]
+}

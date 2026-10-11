@@ -46,6 +46,7 @@
     "plantillas": "node scripts/plantillas.mjs",
     "redaccion": "node scripts/redaccion.mjs",
     "glosario": "node scripts/glosario.mjs",
+    "principios": "node scripts/principios.mjs",
     "higiene-skills": "node scripts/higiene-skills.mjs",
     "skills-prueba": "node scripts/skills-prueba.mjs",
     "cumplimiento": "node scripts/cumplimiento.mjs",

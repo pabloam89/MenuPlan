@@ -1,0 +1,24 @@
+{
+  "id": "caller-pays-quota",
+  "nombre": "El cupo, a quien llama",
+  "area": "cost-reliability",
+  "sujeto": "product",
+  "fuerza": "debe",
+  "condicion": "cuando un endpoint gasta IA",
+  "exigencia": "atribuir el gasto a quien llama y, si no se sabe quién es, darle un cupo pequeño y propio",
+  "control": "juicio",
+  "nota": "Limitar por fuente es de OWASP; separar el cupo de los anónimos del de Lola es inferencia nuestra.",
+  "porque": "Sin identidad no se puede limitar por persona, y un cupo compartido deja que un anónimo agote el de todos.",
+  "ejemplo_bueno": "Objetivo para un filtro sin sesión: un cupo global bajo y propio, que se corte antes que el de Lola",
+  "ejemplo_malo": "Hoy api/moderate.js contesta sin sesión y gasta el límite diario global compartido con el resto de la IA (#597)",
+  "fuentes": [
+    {
+      "url": "https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/",
+      "marca": "F"
+    },
+    {
+      "url": "https://api-security.owasp.org/editions/2023/en/0xa4-unrestricted-resource-consumption",
+      "marca": "I"
+    }
+  ]
+}

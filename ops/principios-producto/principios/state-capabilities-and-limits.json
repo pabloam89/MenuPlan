@@ -1,0 +1,24 @@
+{
+  "id": "state-capabilities-and-limits",
+  "nombre": "Capacidades y límites visibles",
+  "area": "conversational-ai",
+  "sujeto": "bot",
+  "fuerza": "debe",
+  "condicion": "cuando una persona empieza a usarlo",
+  "exigencia": "decirle qué sabe hacer, qué no sabe y con qué fiabilidad",
+  "control": "juicio",
+  "nota": "api/bot/bienvenida.test.js comprueba el saludo de alta en /start, no que cite los límites.",
+  "porque": "Con expectativas realistas la persona no se frustra ni se fía de lo que el bot no puede hacer.",
+  "ejemplo_bueno": "El primer mensaje de Lola dice que arma el menú y la lista, y que no sustituye a un dietista",
+  "ejemplo_malo": "Lola se presenta como capaz de todo y la familia le pide consejo médico",
+  "fuentes": [
+    {
+      "url": "https://www.microsoft.com/en-us/research/articles/guidelines-for-human-ai-interaction-eighteen-best-practices-for-human-centered-ai-design/",
+      "marca": "F"
+    },
+    {
+      "url": "https://pair.withgoogle.com/chapter/mental-models/",
+      "marca": "F"
+    }
+  ]
+}

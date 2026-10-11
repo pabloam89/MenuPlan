@@ -109,7 +109,7 @@ y dos fallos típicos reescritos, en `.claude/skills/estilo-de-respuesta/plantil
 | Plantilla | Estructura (las etiquetas se escriben tal cual) |
 |---|---|
 | resultado | Idea raíz en negrita · «Qué cambia para ti:» · «Ojo:» (solo si hay, una cosa) · «Certeza:» (solo si afirma algo que él no puede comprobar) · «Siguiente paso:» |
-| decisión | «Necesito que decidas: …» en negrita · opciones A, B y C (la recomendada primero) con lo que pasa, su «Coste:» y «reversible» o «no se puede deshacer» · «Respóndeme con la letra.» |
+| decisión | «Necesito que decidas: …» en negrita · opciones A, B y C (la recomendada primero) con lo que pasa, su «Coste:» y «reversible» o «no se puede deshacer»; si es del producto, la recomendada cita su principio por id (skill `principios-de-producto`) · «Respóndeme con la letra.» |
 | error | Idea raíz en negrita (qué no he podido) · «Qué pasa:» · «Qué he probado:» · «Qué hace falta y de quién:» |
 | concepto | Qué es, en una frase con una comparación cotidiana, en negrita · «Para qué te sirve:» · «Ejemplo:» |
 | resumen | Estado general en una frase en negrita · cuatro temas como mucho · «Certeza:» si afirma estados · «Lo único que te toca a ti:» |

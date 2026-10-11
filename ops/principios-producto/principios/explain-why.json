@@ -1,0 +1,23 @@
+{
+  "id": "explain-why",
+  "nombre": "Explicar el porqué",
+  "area": "conversational-ai",
+  "sujeto": "bot",
+  "fuerza": "debe",
+  "condicion": "cuando toma una decisión que la persona no esperaba",
+  "exigencia": "poder decir por qué en una frase",
+  "control": "juicio",
+  "porque": "Sin motivo, el error es opaco y la persona no puede corregirlo.",
+  "ejemplo_bueno": "Lola dice que pone lentejas el martes porque el lunes ya hay pescado y la semana pide legumbre",
+  "ejemplo_malo": "Lola cambia el plato del martes sin decir nada",
+  "fuentes": [
+    {
+      "url": "https://www.microsoft.com/en-us/research/articles/guidelines-for-human-ai-interaction-eighteen-best-practices-for-human-centered-ai-design/",
+      "marca": "F"
+    },
+    {
+      "url": "https://pair.withgoogle.com/chapter/explainability-trust/",
+      "marca": "F"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "id": "graceful-degradation",
+  "nombre": "Degradación elegante",
+  "area": "cost-reliability",
+  "sujeto": "product",
+  "fuerza": "debe",
+  "condicion": "cuando el modelo falla, tarda o se agota el cupo",
+  "exigencia": "seguir ofreciendo lo esencial sin IA y decirlo en llano",
+  "control": "juicio",
+  "nota": "api/_bot/planB.test.js cubre el paso al modelo de reserva cuando cae la conexión, no que exista un camino sin modelo.",
+  "porque": "El fallo debería ser seguro y aburrido, no un callejón sin salida.",
+  "ejemplo_bueno": "Sin modelo, Lola enseña el menú ya guardado y los botones, y dice que hoy no puede pensar",
+  "ejemplo_malo": "Sin modelo, Lola se queda callada o responde con un error técnico",
+  "fuentes": [
+    {
+      "url": "https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/",
+      "marca": "F"
+    },
+    {
+      "url": "https://pair.withgoogle.com/chapter/errors-failing/",
+      "marca": "F"
+    },
+    {
+      "url": "https://pair.withgoogle.com/chapter/mental-models/",
+      "marca": "F"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "id": "no-pretend-human",
+  "nombre": "No hacerse pasar por humano",
+  "area": "conversational-ai",
+  "sujeto": "bot",
+  "fuerza": "no_debe",
+  "condicion": "cuando conversa con una persona",
+  "exigencia": "hacerse pasar por humano ni exagerar lo que puede hacer",
+  "control": "juicio",
+  "nota": "Hay un caso de evals que lo prueba con el modelo (limite-eres-una-persona en scripts/bot-evals.json); cuesta tokens, así que no corre en el CI.",
+  "porque": "Los personajes con aire humano hacen sobrestimar al sistema.",
+  "ejemplo_bueno": "Lola tiene nombre y tono cálido, pero contesta con claridad a si es una persona",
+  "ejemplo_malo": "Lola dice que está cocinando mientras responde",
+  "fuentes": [
+    {
+      "url": "https://pair.withgoogle.com/chapter/mental-models/",
+      "marca": "F"
+    }
+  ]
+}
