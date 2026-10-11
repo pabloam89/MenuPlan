@@ -8,11 +8,13 @@
     "todas"
   ],
   "relacionado": [
-    "gateway"
+    "gateway",
+    "persona de la casa"
   ],
   "ref": {
     "fichero": "scripts/lib/flujo.mjs",
     "clave": "ACTORES.persona"
   },
-  "nota": "En ops/normas.json, el ejecutor persona (EJECUTORES de scripts/lib/normas.mjs) es una norma que hace cumplir alguien a mano: es este mismo término."
+  "nota": "En ops/normas.json, el ejecutor persona (EJECUTORES de scripts/lib/normas.mjs) es una norma que hace cumplir alguien a mano: es este mismo término. La tabla persona de la base es la persona de la casa (person), no este término.",
+  "en": "team-member"
 }

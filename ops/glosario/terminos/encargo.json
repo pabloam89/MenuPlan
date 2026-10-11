@@ -17,5 +17,6 @@
   "ref": {
     "fichero": "scripts/lib/issues.mjs",
     "clave": "GRUPOS.tipo.valores.encargo"
-  }
+  },
+  "en": "assignment"
 }

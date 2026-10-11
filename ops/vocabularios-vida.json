@@ -1,6 +1,73 @@
 {
   "$comentario": "Ciclo de vida de los vocabularios cerrados de proceso (#481, fondo #479; scripts/lib/vocabulariosVida.mjs). «anclados»: los valores de hoy de cada vocabulario con su definición; lo escribe npm run glosario -- --vocabularios --escribir, no se edita a mano. «retirados»: un valor que deja de usarse no se borra ni se reutiliza: {vocabulario, valor, pasa_a (un valor vivo, o null con motivo), desde (AAAA-MM-DD)}. «redefiniciones»: una definición que cambia sin cambiar de significado, de un valor {vocabulario, valor, desde, motivo} o de un término del glosario {termino, desde, motivo}. «vocabularios_retirados»: {vocabulario, desde, motivo}. Los tres registros solo crecen. Lo vigilan ops/vocabularios-vida.test.js y ops/glosario.test.js, también contra origin/staging.",
   "anclados": {
+    "entidades.axis": {
+      "horizontal": "Cómo trabajamos: sesiones, normas, agentes, issues y PR",
+      "vertical": "El producto HoMenu: casas, recetas, menús y Lola",
+      "bridge": "Lo que cruza los dos ejes y se define una sola vez"
+    },
+    "entidades.id_format": {
+      "kebab": "Palabras unidas por guion",
+      "snake": "Palabras unidas por guion bajo",
+      "camel": "camelCase",
+      "number": "Número que da GitHub",
+      "number_with_name": "Número de cuatro cifras y nombre",
+      "uuid": "uuid de Postgres",
+      "prefixed_text": "Texto con un prefijo fijo",
+      "compound": "Varias partes con separadores",
+      "mixed": "Varias formas a la vez",
+      "none": "La entidad no tiene id hoy",
+      "unchecked": "No se ha auditado"
+    },
+    "entidades.registry": {
+      "with_registry": "Tiene un fichero propio con id y test",
+      "partial": "Hay algo, pero incompleto o repartido",
+      "without_registry": "Solo existe en prosa o en logs"
+    },
+    "entidades.relation": {
+      "works_in": "a trabaja en b",
+      "is_a": "a es un tipo de b",
+      "has": "a contiene a b",
+      "belongs_to": "a pertenece a b",
+      "hangs_from": "a cuelga de b",
+      "uses": "a usa b",
+      "produces": "a produce b",
+      "enforced_by": "a se hace cumplir con b",
+      "judges": "a juzga b",
+      "cites": "a cita b",
+      "closes": "a cierra b",
+      "made_by": "a lo hace b",
+      "lives_in": "a vive en b",
+      "happens_in": "a ocurre en b",
+      "comes_from": "a sale de b",
+      "reads": "a lee b",
+      "creates": "a crea b",
+      "applied_in": "a se aplica en b",
+      "assigned_to": "a se asigna a b",
+      "coincides_with": "a puede ser la misma persona que b",
+      "measures": "a mide b",
+      "triggers": "a dispara la revisión de b",
+      "refers_to": "a nombra b",
+      "depends_on": "a depende de b"
+    },
+    "entidades.status": {
+      "active": "Se usa",
+      "retired": "Ya no se usa: replaced_by dice qué lo sustituye y el id no se reutiliza"
+    },
+    "entidades.stored_as": {
+      "field": "Un campo de un registro o de una tabla",
+      "file": "Un fichero o una constante, no un campo",
+      "none": "La relación existe y ningún campo la guarda",
+      "unaudited": "No se ha auditado (solo con una entidad vertical)"
+    },
+    "entidades.subject_kind": {
+      "entity": "El sujeto es una entidad",
+      "type_of": "El sujeto es un tipo de una entidad; lo fijará su N2",
+      "part_of": "El sujeto es una parte de una entidad, no un tipo",
+      "instance_of": "El sujeto es una instancia concreta de una entidad",
+      "produced_by": "El sujeto es lo que produce una entidad",
+      "outside": "El sujeto queda fuera del registro, con su motivo"
+    },
     "estandares.accion": {
       "construir": "Crear o cambiar un artefacto del repo: una migración, una pantalla, una herramienta, un workflow o un catálogo",
       "juzgar": "Revisar o auditar el trabajo de otro y dar un veredicto, sin arreglarlo",
@@ -60,13 +127,13 @@
       "reabierto": "Un caso nuevo o un «no aguantó» lo reabrió"
     },
     "forja.tipo_skill": {
-      "servicio": "Operar un sistema externo concreto",
-      "procedimiento": "Pasos fijos que cambian algo",
-      "diagnostico": "De un síntoma a su causa",
+      "conocimiento": "Lo que hay que saber del negocio",
       "decision": "Elegir entre opciones con criterios",
+      "diagnostico": "De un síntoma a su causa",
       "flujo": "Encadenar skills y agentes",
+      "procedimiento": "Pasos fijos que cambian algo",
       "revision": "Juzgar un artefacto contra un catálogo y aplicar lo mecánico",
-      "conocimiento": "Lo que hay que saber del negocio"
+      "servicio": "Operar un sistema externo concreto"
     },
     "glosario.clase": {
       "accion": "Un verbo del proceso: lo que alguien o algo hace",

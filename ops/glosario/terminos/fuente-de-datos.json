@@ -1,0 +1,15 @@
+{
+  "termino": "fuente de datos",
+  "estado": "activo",
+  "clase": "artefacto",
+  "definicion": "Un conjunto de datos que se declara en TABLAS de src/data/model.js con su rol (ingesta, fuente de verdad, derivado o copia retirada).",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "tabla",
+    "módulo"
+  ],
+  "en": "data-source"
+}

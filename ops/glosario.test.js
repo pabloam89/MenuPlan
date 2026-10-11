@@ -207,6 +207,13 @@ describe("autotest de la forma", () => {
     expect(conTermino((t) => { t.definicion = "x".repeat(300); }).join()).toMatch(/definición de 300/);
   });
 
+  it("el nombre inglés (en): forma de minúsculas y guiones, y no se repite entre términos (#566)", () => {
+    expect(conTermino((t) => { t.en = "Mala Forma"; }).join()).toMatch(/no tiene la forma de un nombre inglés/);
+    expect(conTermino((t) => { t.en = "casa_x"; }).join()).toMatch(/no tiene la forma/);
+    expect(conTermino((t) => { t.en = "judge"; }).join()).toMatch(/en «judge» ya es el de /);
+    expect(G.terminos.find((t) => t.termino === "juez")?.en).toBe("judge");
+  });
+
   it("una definición que usa un sinónimo prohibido", () => {
     expect(conTermino((t) => { t.definicion = "Mirar si hay un bug con evidencia repetible."; }).join()).toMatch(/usa «bug» \(di «fallo»\)/);
   });

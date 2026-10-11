@@ -10,5 +10,6 @@
   "ref": {
     "fichero": "scripts/lib/issues.mjs",
     "clave": "GRUPOS"
-  }
+  },
+  "en": "vocabulary"
 }

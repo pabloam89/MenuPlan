@@ -1,0 +1,15 @@
+{
+  "termino": "módulo",
+  "estado": "activo",
+  "clase": "artefacto",
+  "definicion": "Una pieza del código que se declara en ops/MODULOS.json con su dueño, sus ficheros, sus tablas y sus métricas.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "tabla",
+    "fuente de datos"
+  ],
+  "en": "module"
+}

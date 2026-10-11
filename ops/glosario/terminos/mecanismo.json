@@ -15,5 +15,6 @@
     "fichero": "scripts/lib/mecanismos.mjs",
     "clave": "MECANISMOS_PEDIDOS"
   },
-  "nota": "En la ficha del fondo, el campo mecanismo guarda la causa: dos significados fijados en código, decisión pendiente."
+  "nota": "Hay tres cosas llamadas «mecanismo»: los ids de ops/mecanismos.json (la escalera), ficha.mecanismo del fondo (texto libre con la causa) y el campo mechanism del aprendizaje (test, guard, rule o skill). Si se renombra alguno, lo decide Pablo.",
+  "en": "mechanism"
 }

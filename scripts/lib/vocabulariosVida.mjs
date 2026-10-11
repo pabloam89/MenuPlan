@@ -39,6 +39,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { AXES, ID_FORMATS, REGISTRIES, RELATIONS, STATUSES, STORED_AS, SUBJECT_KINDS } from "./entidades.mjs";
 import { leerEstandares } from "./estandaresAgentes.mjs";
 import { ESTADOS } from "./fondos.mjs";
 import { ACTORES, ALCANCES_FALLO, DIAGNOSTICAN, ESTADOS_MEDIDA, PASOS } from "./flujo.mjs";
@@ -79,6 +80,14 @@ export const VOCABULARIOS = {
   "metricas.rol_campo": { fichero: "scripts/lib/metricas.mjs", textos: conTexto(ROLES_CAMPO) },
   "metricas.causa_excepcion": { fichero: "scripts/lib/metricas.mjs", textos: conTexto(CAUSAS_EXCEPCION) },
   "ruido.veredicto": { fichero: "scripts/lib/ruido.mjs", textos: conTexto(VEREDICTOS_RUIDO) },
+  // El registro de entidades (#566): sus valores van a ops/entidades.json y a ops/entidades-sujetos.json.
+  "entidades.axis": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(AXES) },
+  "entidades.registry": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(REGISTRIES) },
+  "entidades.status": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(STATUSES) },
+  "entidades.id_format": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(ID_FORMATS) },
+  "entidades.stored_as": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(STORED_AS) },
+  "entidades.relation": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(RELATIONS) },
+  "entidades.subject_kind": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(SUBJECT_KINDS) },
   // Los del producto (#497): src/lib/vocabularios.js, con el nombre de su mapa VOCABULARIOS. No llevan
   // definición en el código (texto vacío, como flujo.pasos): se ancla el valor. Un cambio de significado
   // se declara en «redefiniciones»; la primera definición que se escriba no cuenta como cambio (igual()).

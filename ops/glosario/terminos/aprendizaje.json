@@ -17,5 +17,6 @@
     "fichero": "scripts/lib/fondos.mjs",
     "clave": "CAMPOS_FICHA.aprendizaje"
   },
-  "nota": "Es el campo aprendizaje de la ficha y el paso «aprender» del flujo."
+  "nota": "Es el campo aprendizaje de la ficha y el paso «aprender» del flujo.",
+  "en": "learning"
 }

@@ -137,6 +137,12 @@
       "porque": "Las zonas del glosario no usan un término prohibido ni lo definen dos veces."
     },
     {
+      "id": "entidades",
+      "tests": ["ops/entidades.test.js"],
+      "mira": ["ops/entidades.json","ops/entidades-sujetos.json","docs/entidades/*.md","ops/glosario/**","ops/normas.json","ops/estandares-agentes.json","scripts/lib/glosario.mjs","scripts/lib/forjaReferencia.mjs","scripts/lib/entidades.mjs","scripts/lib/vocabulariosVida.mjs","ops/vocabularios-vida.json","CLAUDE.md","scripts/lib/tokenSesion.mjs","ops/INVENTARIO.md",".claude/hooks/eventos.mjs","ops/mecanismos.json","ops/metricas.json","scripts/bot-evals.json",".claude/agents/**",".claude/skills/**",".claude/rules/**",".claude/settings.json","scripts/lib/issues.mjs","scripts/lib/fondos.mjs","ops/DECISIONES.md","supabase/ESTADO.md","ops/MODULOS.json","src/data/model.js","specs/modelo-datos.md","src/data/recipes/**","src/data/ingredients.json","specs/menu-generation.md","specs/shopping-list.md","specs/plan-bot-mensajeria.md"],
+      "porque": "El registro de entidades nombra fuentes de verdad por su ruta, cruza el glosario (term y su traducción en inglés) y clasifica los sujetos de normas y estándares: borrar o renombrar una fuente, cambiar la traducción de un término o añadir un sujeto nuevo lo rompe lejos de lo tocado."
+    },
+    {
       "id": "redaccion-de-reglas",
       "tests": ["ops/redaccion.test.js"],
       "mira": ["ops/*.json", "ops/forja/**", "ops/glosario/**", "ops/glosario-excepciones/**", "docs/ops/REDACCION.md", "scripts/lib/redaccion.mjs", "scripts/lib/regla.mjs", "scripts/lib/forjaReferencia.mjs"],

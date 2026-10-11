@@ -17,5 +17,6 @@
     "fichero": "scripts/lib/issues.mjs",
     "clave": "GRUPOS.tipo.valores.caso"
   },
-  "nota": "En casos.json de una skill, «caso» es un caso de prueba: dos significados, decisión pendiente."
+  "nota": "En casos.json de una skill, «caso» es un caso de prueba: dos significados, decisión pendiente.",
+  "en": "case"
 }
