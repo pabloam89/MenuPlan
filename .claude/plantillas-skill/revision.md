@@ -116,7 +116,7 @@ Lo que pide este tipo: una pieza mala a propósito da todos sus fallos. Lo compr
 
 - **formal** (26): `apartado-ausente`, `cabeceras`, `caducada`, `casos-negativos`, `casos`, `comprobado`, `copiado`, `dueno`, `ejemplo-largo`, `ejemplo-no-cuadra`, `ejemplo-sin-origen`, `ejemplos`, `estructura`, `fechas`, `formato`, `frontmatter`, `pocos-puntos`, `rutas`, `secciones`, `secretos`, `sin-fuente`, `sin-parada`, `tabla`, `tamano`, `tipo-sin-estandar`, `tipo`.
 
-- **material** (15): `caduca-pronto`, `caso-duplicado`, `caso-en-frontera`, `comando-muerto`, `comando-suelto`, `descripcion-sin-palabras`, `frontera-vaga`, `leccion-repetida`, `leccion-sin-barrera`, `ruta-muerta`, `skill-muerta`, `solape-cercano`, `solape`, `tamano-cerca`, `vocabulario-canonico`.
+- **material** (15): `aprendizaje-solo-texto`, `caduca-pronto`, `caso-duplicado`, `caso-en-frontera`, `causa-repetida`, `comando-muerto`, `comando-suelto`, `descripcion-sin-palabras`, `frontera-vaga`, `ruta-muerta`, `skill-muerta`, `solape-cercano`, `solape`, `tamano-cerca`, `vocabulario-canonico`.
 
 - **subjetiva** (13): `camino-por-defecto`, `casos-medidos-con-y-sin-skill`, `descripcion-palabras-de-quien-pide`, `disparador-al-principio`, `ejemplos-canonicos`, `forma-adecuada-al-contenido`, `frontera-casi-fallos`, `libertad-ajustada`, `pasos-con-salida-observable`, `sin-duda-con-vecina`, `skill-contrastada-con-fallo-real`, `solo-lo-que-el-modelo-no-sabe`, `vocabulario-unico`.
 

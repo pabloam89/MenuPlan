@@ -359,12 +359,16 @@ Heurística automática; lo que hoy incumple va a una lista de excepciones que s
 
 ### material · skill (15)
 
+- `aprendizaje-solo-texto` — **Arreglo con algo comprobable.** Para el cuerpo de cada skill, CONVIENE citar en el «Arreglo:» un fichero de código que exista (no un documento), un npm run que exista, la guardia, el casos.json o un #n (solo su forma). Se comprueba con: `scripts/higiene-skills.test.js`.
+  - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `aprendizaje-solo-texto`.
 - `caduca-pronto` — **Aviso de caducidad.** Para cada skill, CONVIENE no llegar a caducar sin aviso: a menos de 30 días del plazo de 90 se avisa. Se comprueba con: `scripts/higiene-skills.test.js`.
   - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `caduca-pronto`.
 - `caso-duplicado` — **Casos sin duplicar.** Para el conjunto de casos de prueba de cada skill, CONVIENE no pedir casi lo mismo en dos casos, de la misma skill o de otra (parecido de raíces de cinco letras por debajo de 0,6). Se comprueba con: `scripts/higiene-skills.test.js`.
   - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `caso-duplicado`.
 - `caso-en-frontera` — **Petición fuera de frontera.** Para el conjunto de casos de prueba de cada skill, CONVIENE no usar en una petición propia las palabras de lo que su «No para:» deja a otra skill. Se comprueba con: `scripts/higiene-skills.test.js`.
   - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `caso-en-frontera`.
+- `causa-repetida` — **Causa sin repetir.** Para el cuerpo de cada skill, CONVIENE no repetir la misma causa en dos entradas de «Lo que falló y por qué» (misma ruta citada o parecido de raíces de cinco letras de 0,6 o más). Se comprueba con: `scripts/higiene-skills.test.js`.
+  - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `causa-repetida`.
 - `comando-muerto` — **Comandos que existen.** El cuerpo de cada skill DEBE citar en su parte viva solo npm run que existen en package.json. Se comprueba con: `scripts/higiene-skills.test.js`.
   - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `comando-muerto`.
 - `comando-suelto` — **Comandos entre comillas.** El cuerpo de cada skill DEBE poner todo comando de la casa (npm run, gh, git…) entre comillas invertidas o en un bloque, no suelto en la prosa. Se comprueba con: `.claude/skills.test.js`.
@@ -374,10 +378,6 @@ Heurística automática; lo que hoy incumple va a una lista de excepciones que s
   - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `descripcion-sin-palabras`.
 - `frontera-vaga` — **Frontera con destino.** Para la descripción de cada skill, CONVIENE nombrar en el «No para:» la skill, el agente, el comando o el fichero a donde va lo que no es suyo. Se comprueba con: `scripts/higiene-skills.test.js`.
   - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `frontera-vaga`.
-- `leccion-repetida` — **Causa no repetida.** Para el cuerpo de cada skill, CONVIENE no repetir la misma causa en dos entradas de «Lo que falló y por qué»: si se repite, la skill no la cerró. Se comprueba con: `scripts/higiene-skills.test.js`.
-  - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `leccion-repetida`.
-- `leccion-sin-barrera` — **Aprendizaje con barrera.** Para el cuerpo de cada skill, CONVIENE citar en el «Arreglo:» de cada entrada de «Lo que falló y por qué» un test, una guardia, un script, un caso o un #n comprobables, no solo texto. Se comprueba con: `scripts/higiene-skills.test.js`.
-  - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `leccion-sin-barrera`.
 - `ruta-muerta` — **Rutas vivas.** El cuerpo de cada skill DEBE citar en su parte viva solo rutas del repo que existen, también fuera de comillas invertidas. Se comprueba con: `scripts/higiene-skills.test.js`.
   - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `ruta-muerta`.
 - `skill-muerta` — **Skills que existen.** El cuerpo de cada skill DEBE nombrar tras la palabra «skill» solo skills que existen. Se comprueba con: `scripts/higiene-skills.test.js`.

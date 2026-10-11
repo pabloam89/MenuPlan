@@ -15,6 +15,7 @@
  * nivel 1 ya negaría (o negaría sin la lista de excepciones); `aviso` es una
  * heurística nuestra, sin fuente, que pide mirar y no bloquea.
  */
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
@@ -27,7 +28,7 @@ import { MAX_SOLAPE, faltasDeSolape, solape } from "./skillsForja.mjs";
 export const CODIGOS_HIGIENE = [
   "caduca-pronto", "comando-muerto", "ruta-muerta", "skill-muerta", "descripcion-sin-palabras",
   "frontera-vaga", "solape-cercano", "tamano-cerca", "caso-duplicado", "caso-en-frontera",
-  "leccion-sin-barrera", "leccion-repetida",
+  "aprendizaje-solo-texto", "causa-repetida",
 ];
 
 /** Días de margen: una skill que caduca en menos de esto se avisa (el CI solo avisa a los 14 de `AVISO_ANTES_DIAS`). */
@@ -75,9 +76,9 @@ export const ARREGLOS = {
   "solape-cercano": "afila las dos descripciones antes de que pasen del límite: lo común se queda en una",
   "tamano-cerca": "parte ya: mueve un bloque largo a referencias/",
   "caso-duplicado": "cambia o quita el caso: dos peticiones iguales miden lo mismo dos veces",
-  "leccion-sin-barrera": "el «Arreglo:» solo es texto: cita el test, la guardia, el script, el caso o el PR/issue que la hace cumplir (CLAUDE.md: la lección va a un test o a la guardia; la skill es el último escalón), o crea esa barrera",
-  "leccion-repetida": "dos entradas con la misma causa: la skill no la cerró; funde las entradas y lleva la barrera a un test o a la guardia en vez de repetir el texto",
   "caso-en-frontera": "el caso pide lo que su «No para:» deja a otra skill: cámbialo o mueve la petición a la otra",
+  "aprendizaje-solo-texto": "el «Arreglo:» solo es texto: cita el test, la guardia, el script, el caso o el PR/issue que la hace cumplir (CLAUDE.md: la lección va a un test o a la guardia; la skill es el último escalón), o crea esa barrera",
+  "causa-repetida": "dos entradas con la misma causa: la skill no la cerró; funde las entradas y lleva la barrera a un test o a la guardia en vez de repetir el texto",
 };
 
 const defecto = (codigo, gravedad, detalle) => ({ codigo, gravedad, detalle, arreglo: ARREGLOS[codigo] ?? "revisa el detalle" });
@@ -191,12 +192,19 @@ export function leccionesDe(cuerpo) {
   });
 }
 
-/** Lo comprobable que cita un «Arreglo:»: rutas que existen (o el casos.json de la propia skill), un fichero de código suelto entre comillas invertidas (`guardia.test.js`) y `#n`. */
+/**
+ * Lo que cita un «Arreglo:» y vale como algo más que texto: una ruta que existe
+ * (un .md no cuenta: una doc es texto), un fichero de código suelto entre comillas
+ * invertidas que existe en el repo (`ctx.existeNombre`), un `npm run` del package.json,
+ * la guardia, el casos.json de la skill o un `#n` (de este solo se mira la forma).
+ */
 function barreraCitada(arreglo, skill, ctx) {
-  const rutas = [...arreglo.matchAll(RUTA_LIBRE)].map((m) => m[1]).filter((r) => !r.includes("<") && !r.includes("*") && ctx.existe(r));
+  const rutas = [...arreglo.matchAll(RUTA_LIBRE)].map((m) => m[1]).filter((r) => !/\.md$/.test(r) && !r.includes("<") && !r.includes("*") && ctx.existe(r));
   const casos = /\bcasos\.json\b/.test(arreglo) && skill.ficheros?.includes("casos.json");
-  const sueltos = /`[\w-]+\.(?:test\.)?(?:js|mjs|jsx)`/.test(arreglo);
-  return rutas.length > 0 || sueltos || casos || /#\d{1,6}\b/.test(arreglo);
+  const sueltos = [...arreglo.matchAll(/`([\w-]+\.(?:test\.)?(?:js|mjs|jsx))`/g)].some((m) => ctx.existeNombre?.(m[1]));
+  const npm = [...arreglo.matchAll(NPM_RUN)].some((m) => (ctx.scriptsNpm ?? []).includes(m[1]));
+  const guardia = /\bguardia(?:\.mjs)?\b/i.test(arreglo);
+  return rutas.length > 0 || sueltos || casos || npm || guardia || /#\d{1,6}\b/.test(arreglo);
 }
 
 /** Lo que identifica una causa: las rutas y los nombres con punto, barra o guion bajo entre comillas invertidas. */
@@ -216,7 +224,7 @@ function defectosDeLecciones(skill, cuerpo, ctx) {
   const f = [];
   const l = leccionesDe(cuerpo);
   for (const e of l) {
-    if (!barreraCitada(e.arreglo, skill, ctx)) f.push(defecto("leccion-sin-barrera", "aviso", `«${e.titulo}»: su «Arreglo:» no cita ningún test, guardia, script, caso ni #n que exista`));
+    if (!barreraCitada(e.arreglo, skill, ctx)) f.push(defecto("aprendizaje-solo-texto", "aviso", `«${e.titulo}»: su «Arreglo:» no cita ningún test, guardia, script, caso ni un #n`));
   }
   for (let i = 0; i < l.length; i++) for (let j = i + 1; j < l.length; j++) {
     const a = l[i], b = l[j];
@@ -224,7 +232,7 @@ function defectosDeLecciones(skill, cuerpo, ctx) {
     const pa = pistasDeCausa(a.causa);
     const comun = [...pistasDeCausa(b.causa)].filter((x) => pa.has(x));
     const p = parecido(raices(a.causa), raices(b.causa));
-    if (comun.length || p >= MAX_PARECIDO_CAUSAS) f.push(defecto("leccion-repetida", "aviso", `«${a.titulo}» y «${b.titulo}» tienen la misma causa (${comun.length ? `ambas citan ${comun.join(", ")}` : `parecido ${p.toFixed(2)}`})`));
+    if (comun.length || p >= MAX_PARECIDO_CAUSAS) f.push(defecto("causa-repetida", "aviso", `«${a.titulo}» y «${b.titulo}» tienen la misma causa (${comun.length ? `ambas citan ${comun.join(", ")}` : `parecido ${p.toFixed(2)}`})`));
   }
   return f;
 }
@@ -278,13 +286,26 @@ export function scriptsDeNpm(raiz = RAIZ) {
   return Object.keys(JSON.parse(readFileSync(join(raiz, "package.json"), "utf8")).scripts ?? {});
 }
 
+/** Una función que dice si un fichero con ese nombre (sin carpeta) está en el repo, según `git ls-files`. */
+function nombresDeFicheros(raiz) {
+  let nombres;
+  try {
+    nombres = new Set(execFileSync("git", ["ls-files"], { cwd: raiz, windowsHide: true, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 }).split("\n").map((r) => r.split("/").pop()));
+  } catch (e) {
+    // Sin git (o sin repo) no se puede comprobar ningún fichero suelto: ninguno cuenta como barrera y el aviso lo dice.
+    nombres = new Set();
+    process.stderr.write(`higiene-skills: sin git ls-files (${e.code ?? "error"}), los ficheros sueltos no cuentan\n`);
+  }
+  return (n) => nombres.has(n);
+}
+
 /** El contexto de higiene de un repo: lo de `cargarContexto` y lo de las demás skills. */
 export function ctxHigiene(nombre, raiz = RAIZ, hoy = new Date()) {
   const base = cargarContexto(raiz, hoy);
   const otras = base.skills.filter((n) => n !== nombre).map((n) => cargarSkill(n, raiz));
   const catalogo = base.skills.map((n) => ({ nombre: n, descripcion: parsearSkill(readFileSync(join(raiz, DIR_SKILLS, n, "SKILL.md"), "utf8")).meta?.description ?? "" }));
   const otrosCasos = otras.flatMap((s) => (s.casos?.casos ?? []).map((c) => ({ skill: s.nombre, id: c.id, peticion: c.peticion })));
-  return { ...base, scriptsNpm: scriptsDeNpm(raiz), catalogo, otras, otrosCasos };
+  return { ...base, scriptsNpm: scriptsDeNpm(raiz), catalogo, otras, otrosCasos, existeNombre: nombresDeFicheros(raiz) };
 }
 
 /** Higiene de una skill del repo por su nombre. */

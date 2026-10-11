@@ -1,0 +1,15 @@
+{
+  "id": "aprendizaje-solo-texto",
+  "capa": "material",
+  "aplica_a": [
+    "skill"
+  ],
+  "tipos": "todos",
+  "nombre": "Arreglo con algo comprobable",
+  "sujeto": "skill.cuerpo",
+  "fuerza": "conviene",
+  "exigencia": "citar en el «Arreglo:» un fichero de código que exista (no un documento), un npm run que exista, la guardia, el casos.json o un #n (solo su forma)",
+  "fuente": "[I] scripts/lib/higieneSkills.mjs",
+  "control": "scripts/higiene-skills.test.js",
+  "codigo": "aprendizaje-solo-texto"
+}

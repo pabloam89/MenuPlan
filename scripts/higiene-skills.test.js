@@ -66,7 +66,8 @@ function ctxDe({ catalogo, otras = [], otrosCasos = [], existe, scriptsNpm = ["h
     preguntas: FORJA.preguntas_tipo,
     agentes: { gobierno: ["mala", "otra"], lola: [] },
     skills: ["mala", "otra", "forja-de-skills"],
-    existe: existe ?? ((r) => r === "scripts/lib/skills.mjs"),
+    existe: existe ?? ((r) => r === "scripts/lib/skills.mjs" || r === "docs/ops/FLUJO.md"),
+    existeNombre: (n) => n === "guardia.test.js",
     scriptsNpm,
     catalogo: catalogo ?? CATALOGO_LIMPIO,
     otras,
@@ -145,7 +146,7 @@ describe("la skill mala hecha a propósito: señala TODOS sus defectos", () => {
     const quiero = [
       "caduca-pronto", "casos", "casos-negativos", "sin-parada", "comando-muerto", "comando-suelto", "copiado", "descripcion-sin-palabras",
       "ejemplos", "estructura", "fechas", "formato", "frontera-vaga", "frontmatter", "caso-duplicado", "ruta-muerta", "rutas",
-      "secretos", "skill-muerta", "solape", "tabla", "cabeceras", "tamano-cerca", "leccion-sin-barrera",
+      "secretos", "skill-muerta", "solape", "tabla", "cabeceras", "tamano-cerca", "aprendizaje-solo-texto",
     ];
     expect(codigos(defectos)).toEqual(expect.arrayContaining(quiero));
   });
@@ -170,7 +171,7 @@ describe("la skill mala hecha a propósito: señala TODOS sus defectos", () => {
   it("entre las pruebas de este fichero se ve cada código del vocabulario de higiene", () => {
     const vistos = new Set(codigos(defectos));
     // Los que no caben en la skill mala (excluyentes con otro de arriba) se ven en los casos de abajo.
-    const aparte = ["solape-cercano", "caso-en-frontera", "leccion-repetida"];
+    const aparte = ["solape-cercano", "caso-en-frontera", "causa-repetida"];
     expect(CODIGOS_HIGIENE.filter((c) => !vistos.has(c) && !aparte.includes(c))).toEqual([]);
   });
 });
@@ -237,55 +238,75 @@ describe("los avisos que no caben en la skill mala", () => {
   });
 });
 
-describe("las lecciones de «Lo que falló y por qué» (#603)", () => {
+describe("los aprendizajes de «Lo que falló y por qué» (#603)", () => {
   const con = (entradas) => higieneDeSkill(oficio({ secciones: { "Lo que falló y por qué": entradas.join("\n") } }), ctxDe());
   const de = (d, c) => d.filter((x) => x.codigo === c);
 
-  it("leccion-sin-barrera: un «Arreglo:» solo de texto avisa, con su arreglo", () => {
-    const d = de(con(["- **2026-10-01 · se olvidó el paso.** Causa: nadie lo miraba. Arreglo: acordarse de hacerlo siempre."]), "leccion-sin-barrera");
+  it("aprendizaje-solo-texto: un «Arreglo:» solo de texto avisa, con su arreglo", () => {
+    const d = de(con(["- **2026-10-01 · se olvidó el paso.** Causa: nadie lo miraba. Arreglo: acordarse de hacerlo siempre."]), "aprendizaje-solo-texto");
     expect(d).toHaveLength(1);
     expect(d[0].gravedad).toBe("aviso");
     expect(d[0].detalle).toContain("se olvidó el paso");
     expect(d[0].arreglo).toContain("test");
   });
 
-  it("leccion-sin-barrera: sin «Arreglo:» también avisa, y una ruta que no existe no cuenta", () => {
-    expect(de(con(["- **2026-10-01 · sin arreglo.** Causa: la que sea."]), "leccion-sin-barrera")).toHaveLength(1);
-    expect(de(con(["- **2026-10-01 · ruta falsa.** Causa: x. Arreglo: el test de scripts/lib/fantasma.mjs."]), "leccion-sin-barrera")).toHaveLength(1);
+  it("aprendizaje-solo-texto: sin «Arreglo:» también avisa, y una ruta que no existe no cuenta", () => {
+    expect(de(con(["- **2026-10-01 · sin arreglo.** Causa: la que sea."]), "aprendizaje-solo-texto")).toHaveLength(1);
+    expect(de(con(["- **2026-10-01 · ruta falsa.** Causa: x. Arreglo: el test de scripts/lib/fantasma.mjs."]), "aprendizaje-solo-texto")).toHaveLength(1);
   });
 
-  it("leccion-sin-barrera: no avisa si cita una ruta que existe, un fichero suelto, un #n o el casos.json de la skill", () => {
+  it("aprendizaje-solo-texto: no avisa si cita una ruta que existe, un fichero suelto, un #n o el casos.json de la skill", () => {
     const buenas = [
       "- **2026-10-01 · a.** Causa: x. Arreglo: el test de scripts/lib/skills.mjs.",
       "- **2026-10-01 · b.** Causa: y. Arreglo: la regla de `guardia.test.js`.",
       "- **2026-10-01 · c.** Causa: z. Arreglo: PR #603.",
       "- **2026-10-01 · d.** Causa: w. Arreglo: un caso nuevo en casos.json.",
     ];
-    expect(de(con(buenas), "leccion-sin-barrera")).toEqual([]);
+    expect(de(con(buenas), "aprendizaje-solo-texto")).toEqual([]);
   });
 
-  it("leccion-repetida: dos entradas que citan la misma ruta en su «Causa:» avisan", () => {
+  it("aprendizaje-solo-texto: acepta un npm run que existe y la guardia; un npm run inventado no", () => {
+    const buenas = [
+      "- **2026-10-01 · a.** Causa: x. Arreglo: `npm run higiene-skills` lo avisa.",
+      "- **2026-10-01 · b.** Causa: y. Arreglo: la guardia niega `vite build` a secas.",
+    ];
+    expect(de(con(buenas), "aprendizaje-solo-texto")).toEqual([]);
+    expect(de(con(["- **2026-10-01 · c.** Causa: z. Arreglo: `npm run no-existe` lo avisa."]), "aprendizaje-solo-texto")).toHaveLength(1);
+  });
+
+  it("aprendizaje-solo-texto: una ruta .md no cuenta, y un fichero suelto debe existir en el repo", () => {
+    expect(de(con(["- **2026-10-01 · d.** Causa: x. Arreglo: lo explica docs/ops/FLUJO.md."]), "aprendizaje-solo-texto")).toHaveLength(1);
+    expect(de(con(["- **2026-10-01 · e.** Causa: x. Arreglo: la regla de `inventado.test.js`."]), "aprendizaje-solo-texto")).toHaveLength(1);
+  });
+
+  it("aprendizaje-solo-texto: el aviso no promete comprobar el #n", () => {
+    const d = de(con(["- **2026-10-01 · f.** Causa: x. Arreglo: acordarse."]), "aprendizaje-solo-texto");
+    expect(d[0].detalle).toContain("ni un #n");
+    expect(d[0].detalle).not.toContain("que exista");
+  });
+
+  it("causa-repetida: dos entradas que citan la misma ruta en su «Causa:» avisan", () => {
     const d = de(con([
       "- **2026-10-01 · primera.** Causa: el hook `.claude/hooks/guardia.mjs` no miraba el caso. Arreglo: #1.",
       "- **2026-10-05 · segunda.** Causa: otra vez `.claude/hooks/guardia.mjs`, con otra orden. Arreglo: #2.",
-    ]), "leccion-repetida");
+    ]), "causa-repetida");
     expect(d).toHaveLength(1);
     expect(d[0].gravedad).toBe("aviso");
     expect(d[0].detalle).toContain(".claude/hooks/guardia.mjs");
     expect(d[0].arreglo).toBeTruthy();
   });
 
-  it("leccion-repetida: causas casi iguales sin ruta avisan por el parecido del texto", () => {
+  it("causa-repetida: causas casi iguales sin ruta avisan por el parecido del texto", () => {
     const causa = "el despliegue retiene el commit mientras el autor no es miembro del equipo";
-    const d = de(con([`- **2026-10-01 · a.** Causa: ${causa}. Arreglo: #1.`, `- **2026-10-05 · b.** Causa: ${causa} otra vez. Arreglo: #2.`]), "leccion-repetida");
+    const d = de(con([`- **2026-10-01 · a.** Causa: ${causa}. Arreglo: #1.`, `- **2026-10-05 · b.** Causa: ${causa} otra vez. Arreglo: #2.`]), "causa-repetida");
     expect(d[0]?.detalle).toMatch(/parecido \d\.\d\d/);
   });
 
-  it("leccion-repetida: dos causas distintas no avisan", () => {
+  it("causa-repetida: dos causas distintas no avisan", () => {
     expect(de(con([
       "- **2026-10-01 · a.** Causa: la clave caducó en el servicio. Arreglo: #1.",
       "- **2026-10-05 · b.** Causa: el cortafuegos cerraba el puerto equivocado. Arreglo: #2.",
-    ]), "leccion-repetida")).toEqual([]);
+    ]), "causa-repetida")).toEqual([]);
   });
 
   it("sin entradas («Sin entradas todavía») no hay nada que decir", () => {
