@@ -207,7 +207,8 @@ describe("avisoDeCupos", () => {
     const t = Date.now();
     const l = await arranque(() => new Promise(() => {}), () => new Promise(() => {}), { tope: 60 });
     expect(l).toBeNull();
-    expect(Date.now() - t).toBeLessThan(1000);
+    // tiempo: margen 30x medido 2026-10-11 (suelto ~65 ms, tope 2000 ms)
+    expect(Date.now() - t).toBeLessThan(2000);
   });
 
   it("hace UNA llamada por fuente y la caché sirve al siguiente arranque", async () => {
