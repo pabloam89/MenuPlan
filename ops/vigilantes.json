@@ -236,6 +236,13 @@
       "evidencia": "#480"
     },
     {
+      "id": "recursos-con-caducidad",
+      "tests": ["ops/recursos.test.js"],
+      "mira": ["ops/recursos.json", "ops/normas.json", "ops/INVENTARIO.md", "scripts/lib/recursos.mjs", ".claude/skills/*/SKILL.md"],
+      "porque": "Lee el registro de recursos con su caducidad y el reloj: la forma del registro, las normas caducidad-* que tienen que apuntar a él y las skills que cuenta para el informe salen de sus SKILL.md.",
+      "evidencia": "#581"
+    },
+    {
       "id": "workflows-yaml",
       "tests": ["ops/workflows.test.js"],
       "mira": [".github/workflows/*.yml", "package.json"],

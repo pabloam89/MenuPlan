@@ -11,7 +11,8 @@ import {
   CONSULTA_FLUJO, CONTRAPESOS, DIAS_PARA_PODAR, ESTADOS_INDICADOR, IDS_INDICADOR, INDICADORES, VENTANA_CORTO_DIAS, desdeGraphql, hallazgos, lineaDeContrapeso, lineaDeIndicador, lineasDeUso,
   medirContrapesos, medirIndicadores, seriesDeHistorial, usoDeSkills,
 } from "./lib/cumplimiento.mjs";
-import { informe } from "./cumplimiento.mjs";
+import { informe, seccionCaducidades } from "./cumplimiento.mjs";
+import { caducidadesDelRepo } from "./lib/recursos.mjs";
 import { hash, hashLF } from "./lib/evals.mjs";
 import { saludDeSkills } from "./lib/saludSkills.mjs";
 
@@ -243,6 +244,33 @@ describe("salud de las skills del repo (sin coste)", () => {
   }, TIEMPO);
 });
 
+describe("la sección Caducidades (#581), en aviso", () => {
+  const rec = (id, estado, extra = {}) => ({ id, dueno: "pablo", creado: "2026-10-09", caducidad: "2026-10-20", dias: 9, estado, confirma: "pablo", ...extra });
+  const sk = (nombre, estado, dias) => ({ nombre, comprobado: "2026-07-20", dias, estado });
+
+  it("lista lo vencido y lo próximo sin rotación, lo que rota, lo por confirmar y las skills", () => {
+    const md = seccionCaducidades({
+      recursos: [rec("a-token", "vencida", { dias: -3 }), rec("b-token", "proxima"), rec("c-clave", "en_rotacion", { rotacion_en_curso: 581 }), rec("d-clave", "por_confirmar", { caducidad: "por-confirmar", dias: null }), rec("e-clave", "vigente", { dias: 80 })],
+      skills: [sk("vercel", "proxima", 80), sk("github", "caducada", 95)],
+    }).join("\n");
+    expect(md).toMatch(/### Caducidades/);
+    expect(md).toMatch(/2 recursos vencidos o a 14 días o menos/);
+    expect(md).toMatch(/\| `a-token` \| pablo \| 2026-10-20 \| -3 \|/);
+    expect(md).toMatch(/En rotación \(1\): `c-clave` \(#581\)/);
+    expect(md).toMatch(/Caducidad por confirmar: `d-clave` \(pablo\)/);
+    expect(md).toMatch(/`vercel` \(80 d de 90\), `github` \(95 d de 90\)/);
+  });
+
+  it("sin nada que avisar lo dice, y el informe lo lleva solo si se le da", () => {
+    const md = seccionCaducidades({ recursos: [rec("a-token", "vigente", { dias: 80 })], skills: [] }).join("\n");
+    expect(md).toMatch(/Ningún recurso vencido/);
+    expect(md).toMatch(/Ninguna skill caducada/);
+    const base = { indicadores: [], salud: { indicadores: [], filas: [] }, hoy: "2026-10-20" };
+    expect(informe(base)).not.toMatch(/### Caducidades/);
+    expect(informe({ ...base, caducidades: caducidadesDelRepo(RAIZ, new Date("2027-01-01T00:00:00Z")) })).toMatch(/`vercel-token-vigia` \| pablo \| 2027-01-07 \| 6 \|/);
+  });
+});
+
 describe("el script", () => {
   const correr = (...args) => spawnSync(process.execPath, [join(RAIZ, "scripts/cumplimiento.mjs"), ...args], { cwd: RAIZ, encoding: "utf8", timeout: TIEMPO });
 
@@ -257,6 +285,7 @@ describe("el script", () => {
     expect(r.stdout).toMatch(/^glosario excepciones: \d+ por_bajar: \d+ candidatos_palabras: \d+ candidatos_pares: \d+ juzgados: \d+/m);
     const md = readFileSync(join(dir, "inf.md"), "utf8");
     expect(md).toMatch(/### Glosario/);
+    expect(md, "el informe real lleva la sección de caducidades (#581)").toMatch(/### Caducidades/);
     // Los criterios de las skills (#457): una línea contable por skill y la cifra del conjunto.
     expect(r.stdout.match(/^criterios skill: \S+ criterios: \d+ vigilados: \d+ de_juicio: \d+ /gm)?.length).toBeGreaterThanOrEqual(14);
     expect(md).toMatch(/### Criterios de las skills/);

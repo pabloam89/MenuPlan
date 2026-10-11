@@ -131,6 +131,7 @@ const TABLA = [
   ["vigilantes", "scripts/x.test.js", "ops/vigilantes.test.js"],
   ["una-lista-de-tipos", "docs/x.md", ".claude/plantillas-skill.test.js"],
   ["metricas", "scripts/lib/x.mjs", "ops/metricas.test.js"],
+  ["recursos-con-caducidad", "ops/recursos.json", "ops/recursos.test.js"],
   ["workflows-yaml", ".github/workflows/x.yml", "ops/workflows.test.js"],
   ["una-escala-y-una-escalera", "ops/flujo.json", "ops/escalas.test.js"],
   ["tipos-de-encargo", "ops/tipos-de-encargo.json", "ops/tipos-de-encargo.test.js"],
