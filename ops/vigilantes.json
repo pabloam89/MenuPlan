@@ -60,6 +60,13 @@
       "evidencia": "#177"
     },
     {
+      "id": "api-sin-credencial",
+      "tests": ["api/sinCredencial.test.js"],
+      "mira": ["api/**/*.{js,mjs,cjs,ts}", "ops/api-sin-credencial.json"],
+      "porque": "Todo endpoint de api/ rechaza con 401 o 403 una petición sin credencial, salvo la lista de públicos con su motivo; un endpoint nuevo que no rechaza falla aquí.",
+      "evidencia": "#582"
+    },
+    {
       "id": "dueno-de-lo-que-ejecuta-un-hook",
       "tests": ["scripts/rulesets.test.js"],
       "mira": ["scripts/**/*.{js,mjs}", ".claude/hooks/*.mjs", ".github/workflows/*.yml", ".github/CODEOWNERS", ".claude/settings.json", "package.json"],

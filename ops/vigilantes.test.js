@@ -97,6 +97,8 @@ const TABLA = [
   ["errores-tragados-scripts", "scripts/lib/x.mjs", "scripts/sinErroresTragados.test.js"],
   ["errores-tragados-scripts", ".claude/hooks/x.mjs", "scripts/sinErroresTragados.test.js"],
   ["errores-tragados-bot", "api/bot/x.js", "api/_bot/sinErroresTragados.test.js"],
+  ["api-sin-credencial", "api/x.js", "api/sinCredencial.test.js"],
+  ["api-sin-credencial", "ops/api-sin-credencial.json", "api/sinCredencial.test.js"],
   ["dueno-de-lo-que-ejecuta-un-hook", ".claude/hooks/x.mjs", "scripts/rulesets.test.js"],
   ["dueno-de-lo-que-ejecuta-un-hook", ".github/CODEOWNERS", "scripts/rulesets.test.js"],
   ["scripts-sin-caminos-sueltos", "scripts/lib/x.mjs", "scripts/lib/env.test.js"],
