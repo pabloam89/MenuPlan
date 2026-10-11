@@ -36,7 +36,8 @@ import { diaMadrid } from "./lib/hora.mjs";
 import { leerMetricas } from "./lib/metricas.mjs";
 import { lineaDeRuido, salDelMargen, textoDeRuido } from "./lib/ruido.mjs";
 import { INDICADORES_SKILLS, lineaDeIndicadorSkill, saludDeSkills } from "./lib/saludSkills.mjs";
-import { RAIZ, nombresDeSkills, skillsTocadas } from "./lib/skills.mjs";
+import { caducidadesDelRepo } from "./lib/recursos.mjs";
+import { AVISO_ANTES_DIAS, PLAZO_COMPROBADO_DIAS, RAIZ, nombresDeSkills, skillsTocadas } from "./lib/skills.mjs";
 import { medirUso } from "./lib/usoSkills.mjs";
 
 /** Todos los issues, por páginas de 100. Lanza si la API no responde (quien llama lo trata como «sin datos»). */
@@ -83,8 +84,38 @@ function tablaAntesYDespues(filas) {
   return L;
 }
 
+/**
+ * La sección «Caducidades» (#581), en AVISO: no falla nada. Recursos de `ops/recursos.json` vencidos
+ * o a 14 días o menos, los que tienen una rotación en curso y los que esperan una fecha; y las
+ * skills próximas o caducadas (el plazo de 90 días lo calcula skills.mjs). Solo ids y fechas.
+ * `datos`: lo que da `caducidadesDelRepo()`.
+ */
+export function seccionCaducidades({ recursos, skills }) {
+  const por = (e) => recursos.filter((r) => r.estado === e);
+  const L = ["", "### Caducidades", ""];
+  const alertas = [...por("vencida"), ...por("proxima")];
+  L.push(alertas.length
+    ? `**${alertas.length} recurso${alertas.length > 1 ? "s" : ""} vencido${alertas.length > 1 ? "s" : ""} o a ${AVISO_ANTES_DIAS} días o menos de caducar, sin rotación en curso.** Rótalo o marca su \`rotacion_en_curso\` en \`ops/recursos.json\` (solo avisa: no bloquea ningún PR).`
+    : `Ningún recurso vencido ni a ${AVISO_ANTES_DIAS} días o menos de caducar sin rotación en curso.`);
+  if (alertas.length) {
+    L.push("", "| recurso | dueño | caduca | días |", "|---|---|---|---|");
+    for (const r of alertas) L.push(`| \`${r.id}\` | ${r.dueno} | ${r.caducidad} | ${r.dias} |`);
+  }
+  const rotando = por("en_rotacion");
+  if (rotando.length) L.push("", `En rotación (${rotando.length}): ${rotando.map((r) => `\`${r.id}\` (#${r.rotacion_en_curso})`).join(", ")}.`);
+  const sin = por("por_confirmar");
+  const sinOtro = recursos.filter((r) => [r.creado, r.dueno].includes("por-confirmar") && r.estado !== "por_confirmar");
+  L.push("", `Recursos en total ${recursos.length}: ${por("vigente").length} con fecha vigente, ${por("sin_caducidad").length} sin caducidad, ${sin.length} con la caducidad por confirmar y ${sinOtro.length} más con el alta o el dueño por confirmar.`);
+  if (sin.length) L.push("", `Caducidad por confirmar: ${sin.map((r) => `\`${r.id}\` (${r.confirma})`).join(", ")}.`);
+  const malas = skills.filter((s) => s.estado !== "vigente");
+  L.push("", malas.length
+    ? `Skills caducadas o a ${AVISO_ANTES_DIAS} días o menos de su «comprobado»: ${malas.map((s) => `\`${s.nombre}\` (${s.estado === "sin_fecha" ? "sin fecha" : `${s.dias} d de ${PLAZO_COMPROBADO_DIAS}`})`).join(", ")}.`
+    : `Ninguna skill caducada ni a ${AVISO_ANTES_DIAS} días o menos de su «comprobado».`);
+  return L;
+}
+
 /** El informe en Markdown. Solo números, vocabulario y números de issue: el repo es público. */
-export function informe({ indicadores, salud, uso = null, glosario = null, criterios = null, contrapesos = [], margen = null, hoy }) {
+export function informe({ indicadores, salud, uso = null, glosario = null, criterios = null, contrapesos = [], margen = null, caducidades = null, hoy }) {
   const dispara = [...indicadores, ...salud.indicadores].filter((m) => m.estado === "dispara");
   const sinDatos = indicadores.some((m) => m.estado === "sin_datos");
   const L = [];
@@ -125,6 +156,7 @@ export function informe({ indicadores, salud, uso = null, glosario = null, crite
     }
     L.push("```");
   }
+  if (caducidades) L.push(...seccionCaducidades(caducidades));
   if (glosario) {
     L.push("", "### Glosario", "", "```", lineaDelGlosario(glosario), "```", "");
     L.push("Excepciones que ya se pueden bajar y candidatos a término sin juzgar: los repasa un agente con `npm run glosario -- --medir` y `npm run glosario -- --candidatos` (método: `.claude/skills/higiene-de-skills/referencias/glosario.md`).");
@@ -232,7 +264,9 @@ async function main(argv) {
   ]);
   const margen = antesYDespues({ cifras, series, registro: leerMetricas(RAIZ) });
   for (const f of margen) console.log(lineaDeRuido(f.id, f.valor, f.ruido));
-  if (opcion("--informe")) writeFileSync(opcion("--informe"), `${informe({ indicadores, salud, uso, glosario, criterios, contrapesos, margen, hoy: diaMadrid(hoy) })}\n`);
+  // Caducidades (#581): solo en el informe, sin líneas contables nuevas; un registro roto lo para su test.
+  const caducidades = opcion("--informe") ? caducidadesDelRepo(RAIZ, hoy) : null;
+  if (opcion("--informe")) writeFileSync(opcion("--informe"), `${informe({ indicadores, salud, uso, glosario, criterios, contrapesos, margen, caducidades, hoy: diaMadrid(hoy) })}\n`);
   return 0;
 }
 

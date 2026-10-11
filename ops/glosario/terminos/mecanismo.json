@@ -15,6 +15,6 @@
     "fichero": "scripts/lib/mecanismos.mjs",
     "clave": "MECANISMOS_PEDIDOS"
   },
-  "nota": "Hay tres cosas llamadas «mecanismo»: los ids de ops/mecanismos.json (la escalera), ficha.mecanismo del fondo (texto libre con la causa) y el campo mechanism del aprendizaje (test, guard, rule o skill). Si se renombra alguno, lo decide Pablo.",
+  "nota": "Hay tres cosas llamadas «mecanismo»: los ids de ops/mecanismos.json (la escalera), ficha.mecanismo del fondo (texto libre con la causa) y el campo recorded_in del aprendizaje (test, guard, rule o skill), renombrado para no chocar (principio 1).",
   "en": "mechanism"
 }

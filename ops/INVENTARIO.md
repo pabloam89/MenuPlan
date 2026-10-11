@@ -13,6 +13,10 @@ Bytask, migrar · ❓ sin confirmar.
 > Si no hay ningún agente de Claude disponible (o hay que pararlos), cómo entrar a cada
 > servicio y qué hacer primero: `docs/ops/SIN-CLAUDE.md`.
 >
+> Dueños y caducidades de claves, Apps, deploy keys, bóvedas, proyectos y
+> cuentas, como datos con test y aviso semanal: `ops/recursos.json` (#581).
+> Cuando una fecha de aquí cambie, cambia allí.
+>
 > Cómo se da de alta, se rota o se retira una clave, y qué tiene que quedar
 > apuntado aquí de cada una (ficha y bóveda, destinos, ámbito, alta y
 > caducidad): skill `alta-de-secreto`.
