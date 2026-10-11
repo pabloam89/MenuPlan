@@ -19,5 +19,6 @@
   "ref": {
     "fichero": "scripts/lib/fondos.mjs",
     "clave": "CAPAS_AGENTE"
-  }
+  },
+  "en": "agent"
 }

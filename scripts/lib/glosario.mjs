@@ -53,6 +53,9 @@ export const SECCIONES_DE_HISTORIA = ["Lo que falló y por qué", "Registro de c
 /** En un JSON de una zona, campos que son identificadores o rutas, no prosa. */
 export const CAMPOS_NO_PROSA = ["id", "fuentes", "origen", "ref", "test", "donde"];
 
+/** El nombre en inglés de un término (#566): la única traducción castellano-inglés del proyecto. Minúsculas ASCII unidas por guion; no se repite entre términos. */
+export const FORMA_EN = /^[a-z]+(-[a-z]+)*$/;
+
 /**
  * Ciclo de vida de un término (#481, fondo #479): un término no se borra ni se
  * reutiliza con otro significado. Se retira y dice a cuál pasa (`pasa_a`, un
@@ -65,7 +68,7 @@ export const ESTADOS_TERMINO = {
 };
 
 export const CAMPOS_TERMINO = ["termino", "estado", "clase", "definicion", "sinonimos_prohibidos", "aplica_a"];
-export const CAMPOS_TERMINO_OPCIONALES = ["pasa_a", "amplio", "estrecho", "relacionado", "ref", "nota"];
+export const CAMPOS_TERMINO_OPCIONALES = ["pasa_a", "amplio", "estrecho", "relacionado", "ref", "nota", "en"];
 
 /**
  * Relaciones entre términos (#481), las de un tesauro (ISO 25964, SKOS): `amplio` es el
@@ -159,6 +162,7 @@ export function problemasDeGlosario(g, { existe = () => true, leer = () => null 
   const nombresActivos = new Set(terminos.filter(activo).map((t) => t.termino));
   const vistos = new Map();
   const sinonimoDe = new Map();
+  const enDe = new Map();
   for (const t of terminos) {
     const id = t.termino ?? "(sin término)";
     for (const c of CAMPOS_TERMINO) if (!(c in t)) p.push(`${id}: falta ${c}`);
@@ -170,6 +174,11 @@ export function problemasDeGlosario(g, { existe = () => true, leer = () => null 
       if (!t.pasa_a) p.push(`${id}: retirado sin pasa_a (di a qué término activo pasa)`);
       else if (!nombresActivos.has(t.pasa_a)) p.push(`${id}: pasa_a «${t.pasa_a}», que no es un término activo`);
     } else if ("pasa_a" in t) p.push(`${id}: pasa_a solo va en un término retirado`);
+    if ("en" in t) {
+      if (typeof t.en !== "string" || !FORMA_EN.test(t.en)) p.push(`${id}: en «${t.en}» no tiene la forma de un nombre inglés (minúsculas y guiones)`);
+      else if (enDe.has(t.en)) p.push(`${id}: en «${t.en}» ya es el de ${enDe.get(t.en)}`);
+      else enDe.set(t.en, id);
+    }
     if (!(t.clase in CLASES)) p.push(`${id}: clase «${t.clase}» fuera del vocabulario (${Object.keys(CLASES).join(", ")})`);
     if (typeof t.definicion !== "string" || t.definicion.trim().length < 10) p.push(`${id}: definición vacía`);
     else if (t.definicion.length > MAX_DEFINICION) p.push(`${id}: definición de ${t.definicion.length} caracteres (máximo ${MAX_DEFINICION})`);

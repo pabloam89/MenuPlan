@@ -11,5 +11,6 @@
   "ref": {
     "fichero": "scripts/lib/issues.mjs",
     "clave": "GRUPOS.tipo.valores.decision"
-  }
+  },
+  "en": "decision"
 }

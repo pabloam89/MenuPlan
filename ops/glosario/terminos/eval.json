@@ -1,0 +1,14 @@
+{
+  "termino": "eval",
+  "estado": "activo",
+  "clase": "artefacto",
+  "definicion": "Una prueba repetible que mide cómo responde Lola o una skill y compara el antes con el después.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "métrica"
+  ],
+  "en": "eval"
+}

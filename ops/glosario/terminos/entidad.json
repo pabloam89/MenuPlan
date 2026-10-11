@@ -1,0 +1,14 @@
+{
+  "termino": "entidad",
+  "estado": "activo",
+  "clase": "artefacto",
+  "definicion": "Una cosa del proyecto con id estable y definición propia (una sesión, una norma, una receta) que se registra en ops/entidades.json con su eje y su fuente de verdad.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "eje"
+  ],
+  "en": "entity"
+}

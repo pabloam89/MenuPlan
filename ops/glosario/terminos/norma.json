@@ -13,5 +13,6 @@
   "ref": {
     "fichero": "scripts/lib/normas.mjs",
     "clave": "EJECUTORES"
-  }
+  },
+  "en": "norm"
 }
