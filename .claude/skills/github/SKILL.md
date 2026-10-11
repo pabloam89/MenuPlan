@@ -53,6 +53,9 @@ metadata:
   abrir cualquier sesión. `--zona <fichero>` reserva lo que la tarea aún no ha
   tocado (`branch.<rama>.zona` de git, se va con la rama) y la guardia avisa a
   otra rama que lo edite (#506).
+- **Lo generado al traer staging** (#551): `tarea` instala dos drivers de fusión
+  (`generado` y `json-claves`); qué hacen, qué línea dejan y qué toca tras fusionar,
+  en `.claude/skills/github/referencias/generados.md`.
 - **Las skills, por obligación** (#164; mapa `.claude/dominios-skills.json`): la puerta de lectura de la guardia, lo que avisa de más y las líneas «Runbook:», «Casos:», «Closes #n» y «Agente:» del PR, en `.claude/skills/github/referencias/skills-por-obligacion.md`.
 
 ## Claves y accesos
@@ -190,6 +193,8 @@ la visibilidad. Dependabot, secret scanning y push protection no tienen coste.
 - https://github.com/actions/checkout (`ssh-key`)
 
 Fechas que estaban repartidas por el cuerpo (#411): rama por defecto `staging` desde el 7 oct 2026; el ruleset «staging: tests obligatorios» se decidió el 9 oct 2026; `delete_branch_on_merge` rige desde el 8 oct 2026 (las ramas anteriores se quedaron).
+
+Comprobado el 2026-10-11 (#551): los drivers `generado` y `json-claves` con git 2.52 en repos de prueba (`ops/generados.test.js`, visto fallar sin las líneas de `.gitattributes`); sin comprobar: una fusión real entre dos PR ni `gh pr update-branch` con un generado desfasado.
 
 Comprobado el 2026-10-10 (#341): `cumplimiento.mjs` contra la API real de issues y con tests (cada indicador visto fallar); sin comprobar: `flujo-semanal.yml` y el paso «Higiene de las skills del PR» en GitHub de verdad.
 

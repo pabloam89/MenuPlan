@@ -24,6 +24,13 @@
       "evidencia": "#505 (fondo #504)"
     },
     {
+      "id": "generados-sin-choque",
+      "tests": ["ops/generados.test.js"],
+      "mira": ["**/*.md", ".gitattributes", "scripts/lib/generados.mjs", "scripts/merge-driver.mjs", "ops/forja/**", "ops/forja-capas.json", "scripts/lib/forja.mjs", "scripts/lib/plantillasSkill.mjs"],
+      "porque": "Todo documento generado entero (cabecera «Generado desde … No se edita a mano») y toda ancla que regenera un script están en GENERADOS de scripts/lib/generados.mjs y en .gitattributes con su driver de fusión: uno nuevo sin registrar vuelve a chocar entre ramas que añaden una entrada cada una; y la simulación con git de dos criterios nuevos tiene que seguir sin choques.",
+      "evidencia": "#551 (fondo #504): 18 líneas en conflicto en 9 ficheros a 0"
+    },
+    {
       "id": "tests-de-tiempo",
       "tests": ["ops/testsDeTiempo.test.js"],
       "mira": ["**/*.test.{js,mjs,jsx}", "scripts/lib/medirTiempo.mjs"],
