@@ -18,6 +18,7 @@ vi.mock("node:child_process", () => ({
       return `salida de op ${args.join(" ")}`;
     }
     if (globalThis.__sinOp) throw Object.assign(new Error("spawn op ENOENT"), { code: "ENOENT" });
+    if (globalThis.__limite) throw Object.assign(new Error("Command failed: op inject"), { status: 1, stderr: "[ERROR] 2026/10/11 08:36:59 Too many requests. Your client has been rate-limited. Try again in  seconds\n" });
     // Como `op inject`: basta una dirección que no existe para que falle entera.
     const mala = [...globalThis.__noExisten].find((ref) => opts.input.includes(`{{ ${ref} }}`));
     if (mala) throw Object.assign(new Error("Command failed: op inject"), { status: 1, stderr: `[ERROR] could not resolve item UUID for ${mala}\n` });
@@ -244,5 +245,73 @@ describe("opPorLaApp: el único camino a la app de escritorio (#328)", () => {
       }
     }
     expect(sueltas).toEqual([]);
+  });
+});
+
+describe("registro de lecturas (#556)", () => {
+  const leerLog = (ruta) => readFileSync(ruta, "utf8").trim().split("\n").map((l) => JSON.parse(l));
+
+  it("cada llamada a op inject deja una línea con cuántas claves pidió y si fue un reintento, sin valores ni direcciones", () => {
+    const ruta = join(mkdtempSync(join(tmpdir(), "oplog-")), "lecturas.jsonl");
+    process.env.MENUPLAN_OP_LOG = ruta;
+    const aviso = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      process.env.PRUEBA_H = "op://HoMenu-sesiones/Log/PRUEBA_H";
+      process.env.PRUEBA_I = "op://HoMenu-sesiones/Log/PRUEBA_I";
+      cargarEnv(["PRUEBA_H", "PRUEBA_I"]);
+      const lineas = leerLog(ruta);
+      expect(lineas).toHaveLength(1);
+      expect(lineas[0]).toMatchObject({ claves: 2, reintento: false });
+      expect(typeof lineas[0].script).toBe("string");
+      expect(JSON.stringify(lineas)).not.toMatch(/VALOR|op:\/\//);
+    } finally {
+      delete process.env.MENUPLAN_OP_LOG;
+      delete process.env.PRUEBA_H;
+      delete process.env.PRUEBA_I;
+      aviso.mockRestore();
+    }
+  });
+
+  it("si una dirección falla, las lecturas de una en una quedan apuntadas como reintentos", () => {
+    const ruta = join(mkdtempSync(join(tmpdir(), "oplog-")), "lecturas.jsonl");
+    process.env.MENUPLAN_OP_LOG = ruta;
+    const aviso = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      globalThis.__noExisten.add("op://HoMenu-sesiones/Log/PRUEBA_J");
+      process.env.PRUEBA_J = "op://HoMenu-sesiones/Log/PRUEBA_J";
+      process.env.PRUEBA_K = "op://HoMenu-sesiones/Log/PRUEBA_K";
+      cargarEnv(["PRUEBA_J", "PRUEBA_K"]);
+      const lineas = leerLog(ruta);
+      expect(lineas[0]).toMatchObject({ claves: 2, reintento: false });
+      expect(lineas.slice(1).every((l) => l.reintento === true && l.claves === 1)).toBe(true);
+      expect(lineas.length).toBeGreaterThan(2);
+    } finally {
+      delete process.env.MENUPLAN_OP_LOG;
+      delete process.env.PRUEBA_J;
+      delete process.env.PRUEBA_K;
+      aviso.mockRestore();
+    }
+  });
+
+  it("sin MENUPLAN_OP_LOG y bajo vitest no escribe nada en el disco del usuario", () => {
+    expect(process.env.VITEST).toBeTruthy();
+    expect(process.env.MENUPLAN_OP_LOG).toBeUndefined();
+    process.env.PRUEBA_L = "op://HoMenu-sesiones/Log/PRUEBA_L";
+    try {
+      expect(leerEnv("PRUEBA_L")).toBe("VALOR-de-op://HoMenu-sesiones/Log/PRUEBA_L");
+    } finally {
+      delete process.env.PRUEBA_L;
+    }
+  });
+
+  it("el límite de lecturas de 1Password se explica con dónde mirar cuándo se reinicia", () => {
+    globalThis.__limite = true;
+    process.env.PRUEBA_M = "op://HoMenu-sesiones/Limite/PRUEBA_M";
+    try {
+      expect(() => leerEnv("PRUEBA_M")).toThrow(/Too many requests.*service-account ratelimit/);
+    } finally {
+      globalThis.__limite = false;
+      delete process.env.PRUEBA_M;
+    }
   });
 });
