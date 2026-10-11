@@ -1,0 +1,15 @@
+{
+  "id": "causa-repetida",
+  "capa": "material",
+  "aplica_a": [
+    "skill"
+  ],
+  "tipos": "todos",
+  "nombre": "Causa sin repetir",
+  "sujeto": "skill.cuerpo",
+  "fuerza": "conviene",
+  "exigencia": "no repetir la misma causa en dos entradas de «Lo que falló y por qué» (misma ruta citada o parecido de raíces de cinco letras de 0,6 o más)",
+  "fuente": "[I] scripts/lib/higieneSkills.mjs",
+  "control": "scripts/higiene-skills.test.js",
+  "codigo": "causa-repetida"
+}

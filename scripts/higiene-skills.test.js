@@ -32,7 +32,7 @@ function oficio({ descripcion, comprobado = "2026-10-01", secciones = {}, ficher
     if (t === "Método") return `## ${t}\n\n${relleno}\n\nSale bien si la prueba pasa.`;
     if (t === "Registro de cambios") return `## ${t}\n\n- **2026-10-01** · Primera versión (#411).`;
     if (t === "Fuentes y comprobación") return `## ${t}\n\n- https://ejemplo.invalid\n\nComprobado el ${comprobado}: la prueba.`;
-    if (t === "Lo que falló y por qué") return `## ${t}\n\n- **2026-10-01 · síntoma de prueba.** Causa: la que sea. Arreglo: el que sea.`;
+    if (t === "Lo que falló y por qué") return `## ${t}\n\n- **2026-10-01 · síntoma de prueba.** Causa: la que sea. Arreglo: el test de scripts/lib/skills.mjs.`;
     return `## ${t}\n\n${relleno}`;
   }).join("\n\n");
   const d = descripcion ?? "Úsala al probar la higiene de las skills con una de mentira («revisa esta skill», «¿está al día?»). No para: medir si dispara (skills-prueba) ni crearla (forja-de-skills).";
@@ -66,7 +66,8 @@ function ctxDe({ catalogo, otras = [], otrosCasos = [], existe, scriptsNpm = ["h
     preguntas: FORJA.preguntas_tipo,
     agentes: { gobierno: ["mala", "otra"], lola: [] },
     skills: ["mala", "otra", "forja-de-skills"],
-    existe: existe ?? ((r) => r === "scripts/lib/skills.mjs"),
+    existe: existe ?? ((r) => r === "scripts/lib/skills.mjs" || r === "docs/ops/FLUJO.md"),
+    existeNombre: (n) => n === "skills.test.js",
     scriptsNpm,
     catalogo: catalogo ?? CATALOGO_LIMPIO,
     otras,
@@ -145,7 +146,7 @@ describe("la skill mala hecha a propósito: señala TODOS sus defectos", () => {
     const quiero = [
       "caduca-pronto", "casos", "casos-negativos", "sin-parada", "comando-muerto", "comando-suelto", "copiado", "descripcion-sin-palabras",
       "ejemplos", "estructura", "fechas", "formato", "frontera-vaga", "frontmatter", "caso-duplicado", "ruta-muerta", "rutas",
-      "secretos", "skill-muerta", "solape", "tabla", "cabeceras", "tamano-cerca",
+      "secretos", "skill-muerta", "solape", "tabla", "cabeceras", "tamano-cerca", "aprendizaje-solo-texto",
     ];
     expect(codigos(defectos)).toEqual(expect.arrayContaining(quiero));
   });
@@ -170,7 +171,7 @@ describe("la skill mala hecha a propósito: señala TODOS sus defectos", () => {
   it("entre las pruebas de este fichero se ve cada código del vocabulario de higiene", () => {
     const vistos = new Set(codigos(defectos));
     // Los que no caben en la skill mala (excluyentes con otro de arriba) se ven en los casos de abajo.
-    const aparte = ["solape-cercano", "caso-en-frontera"];
+    const aparte = ["solape-cercano", "caso-en-frontera", "causa-repetida"];
     expect(CODIGOS_HIGIENE.filter((c) => !vistos.has(c) && !aparte.includes(c))).toEqual([]);
   });
 });
@@ -234,6 +235,88 @@ describe("los avisos que no caben en la skill mala", () => {
   it("el historial puede citar lo que ya no existe: «Lo que falló» y el registro no cuentan como referencias muertas", () => {
     const secciones = { "Lo que falló y por qué": "- **2026-10-01 · se quitó `npm run viejo`.** Causa: sobraba, en `ops/viejo.json`. Arreglo: skill `muerta` retirada." };
     expect(codigos(higieneDeSkill(oficio({ secciones }), ctxDe())).filter((c) => /muert/.test(c))).toEqual([]);
+  });
+});
+
+describe("los aprendizajes de «Lo que falló y por qué» (#603)", () => {
+  const con = (entradas) => higieneDeSkill(oficio({ secciones: { "Lo que falló y por qué": entradas.join("\n") } }), ctxDe());
+  const de = (d, c) => d.filter((x) => x.codigo === c);
+
+  it("aprendizaje-solo-texto: un «Arreglo:» solo de texto avisa, con su arreglo", () => {
+    const d = de(con(["- **2026-10-01 · se olvidó el paso.** Causa: nadie lo miraba. Arreglo: acordarse de hacerlo siempre."]), "aprendizaje-solo-texto");
+    expect(d).toHaveLength(1);
+    expect(d[0].gravedad).toBe("aviso");
+    expect(d[0].detalle).toContain("se olvidó el paso");
+    expect(d[0].arreglo).toContain("test");
+  });
+
+  it("aprendizaje-solo-texto: sin «Arreglo:» también avisa, y una ruta que no existe no cuenta", () => {
+    expect(de(con(["- **2026-10-01 · sin arreglo.** Causa: la que sea."]), "aprendizaje-solo-texto")).toHaveLength(1);
+    expect(de(con(["- **2026-10-01 · ruta falsa.** Causa: x. Arreglo: el test de scripts/lib/fantasma.mjs."]), "aprendizaje-solo-texto")).toHaveLength(1);
+  });
+
+  it("aprendizaje-solo-texto: no avisa si cita una ruta que existe, un fichero suelto, un #n o el casos.json de la skill", () => {
+    const buenas = [
+      "- **2026-10-01 · a.** Causa: x. Arreglo: el test de scripts/lib/skills.mjs.",
+      "- **2026-10-01 · b.** Causa: y. Arreglo: la regla de `skills.test.js`.",
+      "- **2026-10-01 · c.** Causa: z. Arreglo: PR #603.",
+      "- **2026-10-01 · d.** Causa: w. Arreglo: un caso nuevo en casos.json.",
+    ];
+    expect(de(con(buenas), "aprendizaje-solo-texto")).toEqual([]);
+  });
+
+  it("aprendizaje-solo-texto: acepta un npm run que existe y la guardia; un npm run inventado no", () => {
+    const buenas = [
+      "- **2026-10-01 · a.** Causa: x. Arreglo: `npm run higiene-skills` lo avisa.",
+      "- **2026-10-01 · b.** Causa: y. Arreglo: la guardia niega `vite build` a secas.",
+    ];
+    expect(de(con(buenas), "aprendizaje-solo-texto")).toEqual([]);
+    expect(de(con(["- **2026-10-01 · c.** Causa: z. Arreglo: `npm run no-existe` lo avisa."]), "aprendizaje-solo-texto")).toHaveLength(1);
+  });
+
+  it("aprendizaje-solo-texto: una ruta .md no cuenta, y un fichero suelto debe existir en el repo", () => {
+    expect(de(con(["- **2026-10-01 · d.** Causa: x. Arreglo: lo explica docs/ops/FLUJO.md."]), "aprendizaje-solo-texto")).toHaveLength(1);
+    expect(de(con(["- **2026-10-01 · e.** Causa: x. Arreglo: la regla de `inventado.test.js`."]), "aprendizaje-solo-texto")).toHaveLength(1);
+  });
+
+  it("aprendizaje-solo-texto: casos.json citado pero la skill no lo tiene no cuenta", () => {
+    const sinCasos = oficio({ ficheros: ["SKILL.md"], secciones: { "Lo que falló y por qué": "- **2026-10-01 · g.** Causa: x. Arreglo: un caso nuevo en casos.json." } });
+    expect(de(higieneDeSkill(sinCasos, ctxDe()), "aprendizaje-solo-texto")).toHaveLength(1);
+  });
+
+  it("aprendizaje-solo-texto: el aviso no promete comprobar el #n", () => {
+    const d = de(con(["- **2026-10-01 · f.** Causa: x. Arreglo: acordarse."]), "aprendizaje-solo-texto");
+    expect(d[0].detalle).toContain("ni un #n");
+    expect(d[0].detalle).not.toContain("que exista");
+  });
+
+  it("causa-repetida: dos entradas que citan la misma ruta en su «Causa:» avisan", () => {
+    const d = de(con([
+      "- **2026-10-01 · primera.** Causa: el hook `.claude/hooks/guardia.mjs` no miraba el caso. Arreglo: #1.",
+      "- **2026-10-05 · segunda.** Causa: otra vez `.claude/hooks/guardia.mjs`, con otra orden. Arreglo: #2.",
+    ]), "causa-repetida");
+    expect(d).toHaveLength(1);
+    expect(d[0].gravedad).toBe("aviso");
+    expect(d[0].detalle).toContain(".claude/hooks/guardia.mjs");
+    expect(d[0].arreglo).toBeTruthy();
+  });
+
+  it("causa-repetida: causas casi iguales sin ruta avisan por el parecido del texto", () => {
+    const causa = "el despliegue retiene el commit mientras el autor no es miembro del equipo";
+    const d = de(con([`- **2026-10-01 · a.** Causa: ${causa}. Arreglo: #1.`, `- **2026-10-05 · b.** Causa: ${causa} otra vez. Arreglo: #2.`]), "causa-repetida");
+    expect(d[0]?.detalle).toMatch(/parecido \d\.\d\d/);
+  });
+
+  it("causa-repetida: dos causas distintas no avisan", () => {
+    expect(de(con([
+      "- **2026-10-01 · a.** Causa: la clave caducó en el servicio. Arreglo: #1.",
+      "- **2026-10-05 · b.** Causa: el cortafuegos cerraba el puerto equivocado. Arreglo: #2.",
+    ]), "causa-repetida")).toEqual([]);
+  });
+
+  it("sin entradas («Sin entradas todavía») no hay nada que decir", () => {
+    const d = higieneDeSkill(oficio({ secciones: { "Lo que falló y por qué": "Sin entradas todavía." } }), ctxDe());
+    expect(codigos(d).filter((c) => /^(aprendizaje|causa-repetida)/.test(c))).toEqual([]);
   });
 });
 

@@ -2,6 +2,7 @@
   "$comentario": "Ancla de la capa de cada criterio de ops/forja/ (#458). Solo sube: subjetiva, material, formal. La mantiene «npm run forja -- --escribir» (añade y sube, nunca baja ni borra). Un criterio que sale del catálogo deja su motivo en retirados. Lo vigila ops/forja.test.js.",
   "capas": {
     "apartado-ausente": "formal",
+    "aprendizaje-solo-texto": "material",
     "cabeceras": "formal",
     "caduca-pronto": "material",
     "caducada": "formal",
@@ -11,6 +12,7 @@
     "casos": "formal",
     "casos-medidos-con-y-sin-skill": "subjetiva",
     "casos-negativos": "formal",
+    "causa-repetida": "material",
     "comando-muerto": "material",
     "comando-suelto": "material",
     "comprobado": "formal",

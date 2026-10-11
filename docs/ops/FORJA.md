@@ -9,9 +9,9 @@ La única fuente de lo que se le pide a una skill, a un estándar de agente y a 
 | Capa | skill | estandar | agente | Criterios |
 |---|---|---|---|---|
 | formal | 26 | 16 | 0 | 42 |
-| material | 13 | 4 | 0 | 16 |
+| material | 15 | 4 | 0 | 18 |
 | subjetiva | 13 | 3 | 0 | 16 |
-| total | 52 | 23 | 0 | 74 |
+| total | 54 | 23 | 0 | 76 |
 
 Un criterio que se aplica a dos artefactos cuenta en las dos columnas y una vez en el total.
 
@@ -41,7 +41,7 @@ Cada criterio se escribe por campos y su frase se genera; no hay prosa libre. La
 | skill | cada skill | skill | 4 |
 | skill.metadatos | el frontmatter de cada skill | skill | 5 |
 | skill.descripcion | la descripción de cada skill | skill | 7 |
-| skill.cuerpo | el cuerpo de cada skill | skill | 22 |
+| skill.cuerpo | el cuerpo de cada skill | skill | 24 |
 | skill.casos | el conjunto de casos de prueba de cada skill | skill | 6 |
 | plantilla.tipo | la plantilla de skills | skill | 7 |
 | estandar | cada tarea del catálogo de estándares | estandar | 9 |
@@ -108,13 +108,13 @@ Herencia: esqueleto común (la base) → plantilla por tipo (los criterios que l
 
 | Tipo | formal | material | subjetiva | Criterios |
 |---|---|---|---|---|
-| conocimiento | 26 | 13 | 13 | 52 |
-| decision | 26 | 13 | 13 | 52 |
-| diagnostico | 26 | 13 | 13 | 52 |
-| flujo | 26 | 13 | 13 | 52 |
-| procedimiento | 26 | 13 | 13 | 52 |
-| revision | 26 | 13 | 13 | 52 |
-| servicio | 25 | 13 | 13 | 51 |
+| conocimiento | 26 | 15 | 13 | 54 |
+| decision | 26 | 15 | 13 | 54 |
+| diagnostico | 26 | 15 | 13 | 54 |
+| flujo | 26 | 15 | 13 | 54 |
+| procedimiento | 26 | 15 | 13 | 54 |
+| revision | 26 | 15 | 13 | 54 |
+| servicio | 25 | 15 | 13 | 53 |
 
 ## Discreto y texto: los campos de cada ficha
 
@@ -357,14 +357,18 @@ Ninguno todavía.
 
 Heurística automática; lo que hoy incumple va a una lista de excepciones que solo baja.
 
-### material · skill (13)
+### material · skill (15)
 
+- `aprendizaje-solo-texto` — **Arreglo con algo comprobable.** Para el cuerpo de cada skill, CONVIENE citar en el «Arreglo:» un fichero de código que exista (no un documento), un npm run que exista, la guardia, el casos.json o un #n (solo su forma). Se comprueba con: `scripts/higiene-skills.test.js`.
+  - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `aprendizaje-solo-texto`.
 - `caduca-pronto` — **Aviso de caducidad.** Para cada skill, CONVIENE no llegar a caducar sin aviso: a menos de 30 días del plazo de 90 se avisa. Se comprueba con: `scripts/higiene-skills.test.js`.
   - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `caduca-pronto`.
 - `caso-duplicado` — **Casos sin duplicar.** Para el conjunto de casos de prueba de cada skill, CONVIENE no pedir casi lo mismo en dos casos, de la misma skill o de otra (parecido de raíces de cinco letras por debajo de 0,6). Se comprueba con: `scripts/higiene-skills.test.js`.
   - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `caso-duplicado`.
 - `caso-en-frontera` — **Petición fuera de frontera.** Para el conjunto de casos de prueba de cada skill, CONVIENE no usar en una petición propia las palabras de lo que su «No para:» deja a otra skill. Se comprueba con: `scripts/higiene-skills.test.js`.
   - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `caso-en-frontera`.
+- `causa-repetida` — **Causa sin repetir.** Para el cuerpo de cada skill, CONVIENE no repetir la misma causa en dos entradas de «Lo que falló y por qué» (misma ruta citada o parecido de raíces de cinco letras de 0,6 o más). Se comprueba con: `scripts/higiene-skills.test.js`.
+  - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `causa-repetida`.
 - `comando-muerto` — **Comandos que existen.** El cuerpo de cada skill DEBE citar en su parte viva solo npm run que existen en package.json. Se comprueba con: `scripts/higiene-skills.test.js`.
   - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `comando-muerto`.
 - `comando-suelto` — **Comandos entre comillas.** El cuerpo de cada skill DEBE poner todo comando de la casa (npm run, gh, git…) entre comillas invertidas o en un bloque, no suelto en la prosa. Se comprueba con: `.claude/skills.test.js`.
