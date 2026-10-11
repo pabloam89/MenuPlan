@@ -189,6 +189,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `redaccion-fuente-marcada` | regla.fuente | DEBE | **Fuente marcada.** La fuente de cada regla DEBE empezar por [F] con una dirección https, o por [I] con una ruta del repo que exista. | ci · semidura | test: `ops/forja.test.js` | — | `fuente-marcada` | writing | construir, juzgar, documentar |
 | `redaccion-control-declarado` | regla.control | DEBE | **Control declarado.** El control de cada regla DEBE ser el fichero que vigila la regla o el valor juicio, y no quedar vacío. | ci · semidura | test: `ops/forja.test.js` | — | `control-declarado` | writing | construir, juzgar, documentar |
 | `redaccion-catalogo-declara-su-estado` | catalogo.reglas | DEBE | **Catálogo declara su estado.** Cada catálogo de reglas DEBE figurar en la lista de catálogos como cumple, o como pendiente con el encargo que lo pone al día. | ci · semidura | test: `ops/redaccion.test.js` | — | `catalogo-declara-su-estado` | writing | construir, juzgar, documentar |
+| `migrated-screen-pixel-identical` | pantalla | DEBE | **Pantalla migrada sin cambio visual.** Cuando se migra a tokens o a primitivos, cada pantalla de la app DEBE verse igual que antes, con las capturas de antes y de después iguales. | persona · blanda | juicio | — | `number-before-and-after` | ui | construir, juzgar |
 
 ## Sujetos
 
@@ -231,6 +232,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | vocabulario | cada vocabulario cerrado | 1 |
 | entidad | cada entidad del proyecto | 1 |
 | producto | el producto | 18 |
+| pantalla | cada pantalla de la app | 1 |
 | decision | cada decisión de producto | 2 |
 | regla | cada regla de la casa | 3 |
 | regla.nombre | el nombre de cada regla | 1 |
@@ -253,7 +255,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | catalog | El catálogo de recetas y alimentos que vive en git | 14 |
 | bot | Lola, el bot de mensajería, sus evals y su coste | 24 |
 | api | Las funciones de api/ y lo que protegen | 9 |
-| ui | Las pantallas de la app | 1 |
+| ui | Las pantallas de la app | 2 |
 | product | Qué hace bien HoMenu y Lola para las familias | 9 |
 | process | Cómo se trabaja: issues, fondos, PR, sesiones, agentes, jueces y cifras | 36 |
 | writing | Cómo se escribe una regla o un principio de la casa | 16 |
@@ -267,7 +269,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | planos | Un criterio de la medición semanal de ops/planos.json (con red, cada lunes) | 7 |
 | workflow | Un paso de un workflow de GitHub Actions que falla el check | 1 |
 | script | Un script del repo que comprueba y se lanza a mano o en el build | 5 |
-| juicio | El juicio de una persona o de un LLM sobre sus casos: no hay nada que falle solo | 77 |
+| juicio | El juicio de una persona o de un LLM sobre sus casos: no hay nada que falle solo | 78 |
 
 ## Avisos de la guardia
 
@@ -316,4 +318,4 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `aprobar-pr` | `rutas-protegidas-aprobacion-de-dueno` | Aprobar un PR desde una sesión |
 | `token-impreso` | `token-de-sesion-no-se-imprime` | Imprimir el token de la sesión |
 
-Total: 181 normas (rota 2, semidura 67, dura 24, blanda 88) y 42 avisos de la guardia.
+Total: 182 normas (rota 2, semidura 67, dura 24, blanda 89) y 42 avisos de la guardia.

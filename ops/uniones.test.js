@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
+import { execFileSync } from "node:child_process";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { AMBITOS, ambitosDeFichero } from "../scripts/lib/ambitos.mjs";
+import {
+  TECHO_NORMAS_SIN_JUEZ, TECHO_REGLAS_QUE_NO_SON_NORMA, accionesDeConsulta, juecesPorNorma, leerEstandares, normasDeTarea, problemasDeUnionesEstandar, tareasDe,
+} from "../scripts/lib/estandaresAgentes.mjs";
 import { leerRegistro } from "../scripts/lib/normas.mjs";
 import { TECHO_SIN_NORMA, leerFondosConocidos, leerPrincipiosCasa, problemasDeUniones } from "../scripts/lib/principios.mjs";
 
@@ -14,6 +19,12 @@ import { TECHO_SIN_NORMA, leerFondosConocidos, leerPrincipiosCasa, problemasDeUn
  *     catálogos delegados no tienen techo aparte, todos sus principios tienen norma);
  *  5. una norma con ejecutor «nada» no tiene issue, o su issue es un problema de fondo (ops/fondos-conocidos.json);
  *  6. una norma lleva una acción que no es de ops/estandares-agentes.json, o fuera de su orden.
+ * Y entre los estándares y las normas (#620):
+ *  7. un estándar cita una norma que no existe, o una regla suya reescribe una norma (se le parece desde
+ *     UMBRAL_REESCRITURA, o se llama igual) sin estar en reglas_que_no_son_norma con su motivo;
+ *  8. una norma vigilada por juicio no la cita ningún estándar de juez, ni está en normas_sin_juez;
+ *  9. el constructor y el juez de un mismo ámbito no reciben las mismas normas de ese ámbito;
+ * 10. un fichero del repo no cae en ningún ámbito (el mapa fichero → ámbito de ambitos.mjs).
  * Al final, cada regla se ve fallar con datos malos: cada caso cambia UNA cosa.
  */
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -88,5 +99,92 @@ describe("se ven fallar", () => {
     expect(problemasDeUniones(datos.principios, sinIssue, excepciones, { fondos }).join("\n")).toMatch(new RegExp(`norma ${nada.id}: nadie la hace cumplir`));
     const alFondo = normas.map((n) => (n === nada ? { ...n, issue: 263 } : n));
     expect(problemasDeUniones(datos.principios, alFondo, excepciones, { fondos }).join("\n")).toMatch(new RegExp(`norma ${nada.id}: .*#263`));
+  });
+});
+
+describe("los estándares citan normas y no las reescriben (#620)", () => {
+  const estandares = leerEstandares(RAIZ);
+  const clon = () => structuredClone(estandares);
+
+  it("ninguna norma citada falta, ninguna regla reescribe una norma y toda norma a juicio tiene juez o motivo", () => {
+    expect(problemasDeUnionesEstandar(estandares, normas)).toEqual([]);
+  });
+
+  it("los techos de las dos listas de excepciones son la cifra de hoy: si baja la lista, baja el techo", () => {
+    expect(Object.keys(estandares.reglas_que_no_son_norma ?? {})).toHaveLength(TECHO_REGLAS_QUE_NO_SON_NORMA);
+    expect(Object.keys(estandares.normas_sin_juez ?? {})).toHaveLength(TECHO_NORMAS_SIN_JUEZ);
+  });
+
+  it("el constructor y el juez de un mismo ámbito reciben las mismas normas de ese ámbito", () => {
+    const tareas = tareasDe(estandares);
+    const deAmbito = (tarea, a) => normasDeTarea(tarea, estandares, normas).filter((x) => x.norma?.ambito === a && x.norma.acciones.some((y) => ["construir", "juzgar"].includes(y))).map((x) => x.norma.id).sort();
+    let pares = 0;
+    for (const a of Object.keys(AMBITOS)) {
+      const constructores = tareas.filter((x) => x.tarea.accion === "construir" && x.tarea.ambitos.includes(a));
+      const jueces = tareas.filter((x) => x.tarea.accion === "juzgar" && x.tarea.ambitos.includes(a));
+      for (const c of constructores) for (const j of jueces) {
+        expect(deAmbito(j.tarea, a), `${a}: ${c.agente}/${c.tarea.id} frente a ${j.agente}/${j.tarea.id}`).toEqual(deAmbito(c.tarea, a));
+        pares += 1;
+      }
+    }
+    // Las parejas que pide el encargo: el código (las C) y la infraestructura (las I) tienen constructor y juez.
+    for (const a of ["code", "infra"]) {
+      expect(tareas.some((x) => x.tarea.accion === "construir" && x.tarea.ambitos.includes(a)), `${a}: constructor`).toBe(true);
+      expect(tareas.some((x) => x.tarea.accion === "juzgar" && x.tarea.ambitos.includes(a)), `${a}: juez`).toBe(true);
+    }
+    expect(pares).toBeGreaterThan(20);
+    expect(accionesDeConsulta("construir")).toEqual(accionesDeConsulta("juzgar"));
+  });
+
+  it("cada fichero del repo cae en algún ámbito", () => {
+    const ficheros = execFileSync("git", ["ls-files", "-z"], { cwd: RAIZ, encoding: "utf8" }).split("\0").filter(Boolean);
+    expect(ficheros.length).toBeGreaterThan(1000);
+    expect(ficheros.filter((f) => !ambitosDeFichero(f).length)).toEqual([]);
+    expect(ambitosDeFichero("api/_guard.js")).toEqual(["code", "api"]);
+    expect(ambitosDeFichero(".claude/hooks/guardia.mjs")).toEqual(["code", "infra"]);
+    expect(ambitosDeFichero("supabase/migrations/0100_x.sql")).toEqual(["data"]);
+    expect(ambitosDeFichero("ops/redaccion.json")).toEqual(["process", "writing"]);
+  });
+
+  describe("se ven fallar", () => {
+    const con = (cambia, opciones) => { const d = clon(); cambia(d); return problemasDeUnionesEstandar(d, normas, opciones).join("\n"); };
+    const visto = normas.find((n) => n.id === "test-visto-fallar");
+    const copia = { ...estandares.agentes.gobierno.tareas[0].reglas[0], nombre: "Prueba antes de fiarse", condicion: visto.condicion, exigencia: visto.exigencia };
+
+    it("una tarea o una común que cita una norma que no existe", () => {
+      expect(con((d) => { d.agentes.datos.tareas[0].normas = ["norma-inventada"]; })).toMatch(/datos\/modelar-antes-de-sql: cita la norma «norma-inventada», que no existe/);
+      expect(con((d) => { d.comunes["tests-de-lo-tocado"].normas.push("otra-inventada"); })).toMatch(/común tests-de-lo-tocado: cita la norma «otra-inventada»/);
+    });
+    it("una regla que copia una norma, o que se llama igual que una", () => {
+      expect(con((d) => { d.agentes.gobierno.tareas[0].reglas.push(copia); })).toMatch(/gobierno\/flujo-rama-pr-staging · Prueba antes de fiarse: reescribe la norma «test-visto-fallar» \(parecido 1\.00\)/);
+      expect(con((d) => { d.comunes["informe-comun"].reglas[0].nombre = "Test visto fallar"; })).toMatch(/común informe-comun · Test visto fallar: reescribe la norma «test-visto-fallar»/);
+    });
+    it("una excepción con su motivo deja pasar la regla; una que ya no hace falta, o sin motivo, falla", () => {
+      const clave = "gobierno/flujo-rama-pr-staging · Prueba antes de fiarse";
+      const techos = { reglas: 7, juicio: TECHO_NORMAS_SIN_JUEZ };
+      expect(con((d) => { d.agentes.gobierno.tareas[0].reglas.push(copia); d.reglas_que_no_son_norma[clave] = "test-visto-fallar: motivo de ejemplo con más de quince caracteres"; }, { techos })).toBe("");
+      expect(con((d) => { d.reglas_que_no_son_norma[clave] = "test-visto-fallar: motivo de ejemplo con más de quince caracteres"; }, { techos })).toMatch(/no es una regla del catálogo/);
+      const vieja = Object.keys(estandares.reglas_que_no_son_norma)[0];
+      expect(con((d) => { d.reglas_que_no_son_norma[vieja] = "corto"; })).toMatch(/el valor es «<norma>: motivo»/);
+      expect(con(() => {}, { umbral: 0.99 })).toMatch(/ya no se parece a ninguna norma; quítala/);
+    });
+    it("una norma vigilada por juicio que ningún juez cita", () => {
+      expect(juecesPorNorma(estandares, normas)["migrated-screen-pixel-identical"]).toContain("qa/comprobar-design-system");
+      expect(con((d) => { for (const t of d.agentes.qa.tareas) t.ambitos = t.ambitos.filter((a) => a !== "ui"); })).toMatch(/norma migrated-screen-pixel-identical: la vigila un juicio y ningún estándar de juez la cita/);
+      expect(con((d) => { d.agentes.seguridad.tareas.find((t) => t.id === "auditar-secretos").normas = []; })).toMatch(/norma secretos-ok-pablo: la vigila un juicio y ningún estándar de juez la cita/);
+    });
+    it("una norma en normas_sin_juez que ya tiene juez, que no existe o que no es de juicio; y el techo", () => {
+      expect(con((d) => { d.normas_sin_juez["test-visto-fallar"] = "Motivo de ejemplo con veinte caracteres"; }, { techos: { reglas: TECHO_REGLAS_QUE_NO_SON_NORMA, juicio: 7 } })).toMatch(/normas_sin_juez «test-visto-fallar»: ya la cita/);
+      expect(con((d) => { d.normas_sin_juez["inventada"] = "Motivo de ejemplo con veinte caracteres"; }, { techos: { reglas: TECHO_REGLAS_QUE_NO_SON_NORMA, juicio: 7 } })).toMatch(/«inventada»: no es una norma/);
+      expect(con((d) => { d.normas_sin_juez["tope-diario-ia"] = "Motivo de ejemplo con veinte caracteres"; }, { techos: { reglas: TECHO_REGLAS_QUE_NO_SON_NORMA, juicio: 7 } })).toMatch(/«tope-diario-ia»: no la vigila un juicio/);
+      expect(con((d) => { d.normas_sin_juez["inventada"] = "Motivo de ejemplo con veinte caracteres"; })).toMatch(/normas_sin_juez: 7 y el techo es 6; la lista solo baja/);
+    });
+    it("el constructor y el juez de un ámbito dejan de recibir lo mismo si la consulta no los empareja", () => {
+      const d = clon();
+      const c = d.agentes.gobierno.tareas.find((t) => t.id === "workflows-y-crons");
+      const j = d.agentes.revisor.tareas.find((t) => t.id === "revisar-diff");
+      const soloSuya = (t) => normas.filter((n) => t.ambitos.includes(n.ambito) && n.acciones.includes(t.accion)).map((n) => n.id).filter((id) => normas.find((n) => n.id === id).ambito === "infra").sort();
+      expect(soloSuya(c)).not.toEqual(soloSuya(j));
+    });
   });
 });

@@ -194,7 +194,8 @@ describe("catálogos con las reglas dentro de otras entradas (#516)", () => {
   });
   it("cuenta las reglas de los estándares: las de cada tarea y las comunes", () => {
     const json = leerJson("ops/estandares-agentes.json");
-    expect(reglasEn(json, entrada.clave_reglas).length).toBeGreaterThan(200);
+    // Desde #620 las normas no se reescriben como reglas: bajaron de unas 230 a unas 175.
+    expect(reglasEn(json, entrada.clave_reglas).length).toBeGreaterThan(150);
   });
   it("una regla mal escrita dentro de una tarea hace fallar al catálogo", () => {
     const json = structuredClone(leerJson("ops/estandares-agentes.json"));

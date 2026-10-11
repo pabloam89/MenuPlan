@@ -164,11 +164,11 @@ Marca de la fuente, con un solo significado en todos los catálogos (`MARCAS_FUE
 
 | Catálogo | Forma | Estado | Entradas | Encargo |
 |---|---|---|---|---|
-| `ops/forja/` | regla | cumple | 74 | - |
+| `ops/forja/` | regla | cumple | 75 | - |
 | `ops/redaccion.json` | principio | cumple | 16 | - |
-| `ops/normas.json` | regla | cumple | 181 | - |
+| `ops/normas.json` | regla | cumple | 182 | - |
 | `ops/flujo.json` | regla | cumple | 53 | - |
-| `ops/estandares-agentes.json` | regla | cumple | 219 | - |
+| `ops/estandares-agentes.json` | regla | cumple | 175 | - |
 | `ops/principios-producto/` | principio | cumple | 40 | - |
 | `ops/principios/` | principio | cumple | 56 | - |
 

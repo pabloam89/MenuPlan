@@ -6,7 +6,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   ACCIONES, ORIGENES, PENDIENTES_ADMITIDOS, RUTA_MD, agentesEnDisco, conSeccion, contar, extraerSeccion, fraseDeEstandar,
-  RUTA_JUICIO, bajarJuicioMaximo, contarJuicio, generarMd, juicioMaximoEnStaging, leerEstandares, leerJuicioMaximo, problemasDeEstandares,
+  RUTA_JUICIO, bajarJuicioMaximo, contarJuicio, generarMd, juicioMaximoEnStaging, leerEstandares, leerJuicioMaximo, leerNormasEn, normasDeTarea, problemasDeEstandares,
   problemasDeJuicio, renderSeccion, reglasDeTarea, textoDeComun, textoDeTarea,
 } from "../scripts/lib/estandaresAgentes.mjs";
 import { problemasDeRegla } from "../scripts/lib/regla.mjs";
@@ -21,13 +21,14 @@ import { problemasDeRegla } from "../scripts/lib/regla.mjs";
  */
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const datos = leerEstandares(RAIZ);
+const normas = leerNormasEn(RAIZ).normas;
 const agentes = agentesEnDisco(RAIZ);
 const clon = () => JSON.parse(JSON.stringify(datos));
 const textoAgente = (n) => readFileSync(join(RAIZ, ".claude", "agents", `${n}.md`), "utf8").replace(/\r\n/g, "\n");
 const todasLasTareas = Object.entries(datos.agentes).flatMap(([a, ag]) => ag.tareas.map((t) => ({ agente: a, ...t, reglas: t.reglas ?? [] })));
 const todasLasReglas = [
   ...todasLasTareas.flatMap((t) => t.reglas.map((r) => ({ donde: `${t.agente}/${t.id}`, r }))),
-  ...Object.entries(datos.comunes).flatMap(([id, c]) => c.reglas.map((r) => ({ donde: `común ${id}`, r }))),
+  ...Object.entries(datos.comunes).flatMap(([id, c]) => (c.reglas ?? []).map((r) => ({ donde: `común ${id}`, r }))),
 ];
 
 describe("ops/estandares-agentes.json", () => {
@@ -72,7 +73,7 @@ describe("ops/estandares-agentes.json", () => {
   it("el trinquete falla si hay una regla a juicio de más o de menos, si el ancla sube o si falta", () => {
     const hoy = contarJuicio(datos);
     const sinControl = clon();
-    sinControl.agentes.gobierno.tareas[0].reglas.find((r) => r.control !== "juicio").control = "juicio";
+    Object.values(sinControl.agentes).flatMap((ag) => ag.tareas.flatMap((t) => t.reglas ?? [])).find((r) => r.control !== "juicio").control = "juicio";
     expect(contarJuicio(sinControl)).toBe(hoy + 1);
     expect(problemasDeJuicio(sinControl, hoy).join("\n")).toContain("el ancla es");
     expect(problemasDeJuicio(datos, hoy + 1, hoy + 1).join("\n")).toContain("bájala con");
@@ -100,11 +101,11 @@ describe("ops/estandares-agentes.json", () => {
     } finally { rmSync(tmp, { recursive: true, force: true }); }
   });
 
-  it("ningún agente tiene tareas sin estándar y la lista de pendientes está en cero", () => {
+  it("ningún agente tiene tareas sin estándar (reglas propias o normas) y la lista de pendientes está en cero", () => {
     expect(PENDIENTES_ADMITIDOS).toEqual([]);
     expect(Object.keys(datos.agentes).sort()).toEqual(agentes);
-    for (const t of todasLasTareas) expect(t.reglas?.length, `${t.agente}/${t.id}: sin estándar`).toBeGreaterThan(0);
-    expect(contar(datos).pendientes).toBe(0);
+    for (const t of todasLasTareas) expect(t.reglas.length + normasDeTarea(t, datos, normas).length, `${t.agente}/${t.id}: sin estándar`).toBeGreaterThan(0);
+    expect(contar(datos, normas).pendientes).toBe(0);
   });
 
   it("las 66 tareas de los 9 agentes, con los cinco agentes que estaban pendientes completos", () => {
@@ -121,7 +122,7 @@ describe("ops/estandares-agentes.json", () => {
     const citadas = new Set(todasLasTareas.flatMap((t) => t.comunes ?? []));
     for (const id of Object.keys(datos.comunes)) expect(citadas.has(id), id).toBe(true);
     // Una común no se copia en cada agente: ninguna regla de una tarea repite el nombre de una regla común.
-    const nombresComunes = new Set(Object.values(datos.comunes).flatMap((c) => c.reglas.map((r) => r.nombre)));
+    const nombresComunes = new Set(Object.values(datos.comunes).flatMap((c) => (c.reglas ?? []).map((r) => r.nombre)));
     for (const t of todasLasTareas) for (const r of t.reglas) expect(nombresComunes.has(r.nombre), `${t.agente}/${t.id}: ${r.nombre} ya es una común`).toBe(false);
   });
 
@@ -131,7 +132,7 @@ describe("ops/estandares-agentes.json", () => {
     expect(c.conEstandar).toBe(66);
     expect(c.reglas).toBe(todasLasTareas.reduce((s, t) => s + t.reglas.length, 0));
     expect(c.comunes).toBe(11);
-    expect(c.reglasComunes).toBe(Object.values(datos.comunes).reduce((s, x) => s + x.reglas.length, 0));
+    expect(c.reglasComunes).toBe(Object.values(datos.comunes).reduce((s, x) => s + (x.reglas ?? []).length, 0));
     expect(c.fuentes.externas + c.fuentes.casa).toBe(Object.keys(datos.fuentes).length);
     expect(Object.values(c.porAccion).reduce((a, b) => a + b, 0)).toBe(66);
   });
@@ -161,7 +162,7 @@ describe("las reglas se ven fallar (cada una con un catálogo estropeado a prop�
   it("una regla sin porque", () => falla((d) => { delete regla(d).porque; }, "falta «porque»"));
   it("una regla con el ejemplo bueno igual que el malo", () => falla((d) => { regla(d).ejemplo_malo = regla(d).ejemplo_bueno; }, "el ejemplo bueno y el malo son el mismo"));
   it("una regla sin ejemplo malo suficiente", () => falla((d) => { regla(d).ejemplo_malo = "no"; }, "falta «ejemplo_malo»"));
-  it("dos reglas con el mismo nombre en una tarea", () => falla((d) => { d.agentes.datos.tareas[0].reglas[1].nombre = d.agentes.datos.tareas[0].reglas[0].nombre; }, "nombre repetido en la tarea"));
+  it("dos reglas con el mismo nombre en una tarea", () => falla((d) => { d.agentes.datos.tareas[1].reglas[1].nombre = d.agentes.datos.tareas[1].reglas[0].nombre; }, "nombre repetido en la tarea"));
 
   // La acción y el origen (vocabularios cerrados)
   it("una acción fuera de su vocabulario", () => falla((d) => { d.agentes.datos.tareas[0].accion = "inventar"; }, "acción «inventar» no está en el vocabulario"));
@@ -177,10 +178,18 @@ describe("las reglas se ven fallar (cada una con un catálogo estropeado a prop�
   it("una regla sin control", () => falla((d) => { delete regla(d).control; }, "falta «control»"));
 
   // Tareas sin estándar y cuántas reglas
-  it("una tarea sin reglas", () => falla((d) => { d.agentes.lola.tareas[0].reglas = []; }, "lola/herramienta-de-lola: sin estándar"));
-  it("un agente con todas sus tareas sin estándar", () => falla((d) => { for (const t of d.agentes.qa.tareas) delete t.reglas; }, "qa/recorrer-flujo-en-navegador: sin estándar"));
+  it("una tarea sin reglas ni normas", () => falla((d) => { const t = d.agentes.lola.tareas[0]; t.reglas = []; t.ambitos = ["entities"]; t.comunes = []; }, "lola/herramienta-de-lola: sin estándar"));
+  it("un agente con todas sus tareas sin estándar", () => falla((d) => { for (const t of d.agentes.qa.tareas) { delete t.reglas; t.ambitos = ["entities"]; delete t.comunes; } }, "qa/recorrer-flujo-en-navegador: sin estándar"));
+  it("una tarea sin ámbitos, o con uno inventado", () => {
+    falla((d) => { delete d.agentes.datos.tareas[0].ambitos; }, "«ambitos» es una lista de ámbitos");
+    falla((d) => { d.agentes.datos.tareas[0].ambitos = ["marketing"]; }, "ámbito «marketing» fuera del vocabulario");
+  });
+  it("una tarea que cita aparte una norma que no existe, o una que ya le llega por la consulta", () => {
+    falla((d) => { d.agentes.datos.tareas[0].normas = ["norma-inventada"]; }, "cita la norma «norma-inventada», que no está en ops/normas.json");
+    falla((d) => { d.agentes.datos.tareas[1].normas = ["fk-con-on-delete"]; }, "cita aparte «fk-con-on-delete», que ya le llega por la consulta");
+  });
   it("una tarea con más reglas que el máximo de la forma de práctica", () => falla((d) => { const t = d.agentes.datos.tareas[0]; t.reglas = Array.from({ length: 6 }, (_, i) => ({ ...t.reglas[0], nombre: `Regla número ${i + 1}` })); }, "6 reglas propias; la forma de práctica de la forja pide 5 como mucho"));
-  it("una tarea con menos reglas que el mínimo, contando las comunes", () => falla((d) => { const t = d.agentes.qa.tareas.find((x) => x.id === "comprobar-design-system"); t.comunes = []; }, "1 reglas con las comunes; la forma de práctica de la forja pide 2 o más"));
+  it("una tarea con menos reglas y normas que el mínimo, contando las comunes", () => falla((d) => { const t = d.agentes.qa.tareas.find((x) => x.id === "comprobar-design-system"); t.comunes = []; t.ambitos = ["entities"]; t.reglas = [d.agentes.qa.tareas[0].reglas[0]]; }, "1 reglas y normas con las comunes; la forma de práctica de la forja pide 2 o más"));
   it("una tarea que conserva el estándar en prosa", () => falla((d) => { d.agentes.datos.tareas[0].estandar = "x".repeat(80); }, "campo «estandar» no admitido"));
   it("una tarea que conserva la lista comprueba", () => falla((d) => { d.agentes.datos.tareas[0].comprueba = ["una comprobación suelta"]; }, "campo «comprueba» no admitido"));
   it("un agente con estado: ya no hay pendientes", () => falla((d) => { d.agentes.qa.estado = "pendiente"; }, "qa: campo «estado» no admitido"));
@@ -188,7 +197,8 @@ describe("las reglas se ven fallar (cada una con un catálogo estropeado a prop�
   // Las comunes
   it("una común que no existe", () => falla((d) => { d.agentes.datos.tareas[0].comunes = ["no-existe"]; }, "la común «no-existe» no existe en comunes"));
   it("una común que ninguna tarea cita", () => falla((d) => { d.comunes.sobra = { ...d.comunes["informe-comun"] }; }, "común sobra: ninguna tarea la cita"));
-  it("una común con una sola regla", () => falla((d) => { d.comunes["informe-comun"].reglas = [d.comunes["informe-comun"].reglas[0]]; }, "común informe-comun: 1 reglas; la forma de práctica de la forja pide 2 o más"));
+  it("una común con una sola regla y sin normas", () => falla((d) => { d.comunes["informe-comun"].reglas = [d.comunes["informe-comun"].reglas[0]]; }, "común informe-comun: 1 reglas y normas; la forma de práctica de la forja pide 2 o más"));
+  it("una común que cita una norma que no existe", () => falla((d) => { d.comunes["tests-de-lo-tocado"].normas = ["norma-inventada"]; }, "común tests-de-lo-tocado: cita la norma «norma-inventada»"));
 
   // Agentes y tareas
   it("un agente nuevo sin su lista de tareas", () => falla(() => {}, "agente-nuevo: el agente existe y no tiene su lista", [...agentes, "agente-nuevo"]));
@@ -240,15 +250,18 @@ describe("docs/ops/ESTANDARES.md sale del catálogo", () => {
   const md = readFileSync(join(RAIZ, RUTA_MD), "utf8").replace(/\r\n/g, "\n");
 
   it("coincide con lo generado (npm run estandar -- --escribir)", () => {
-    expect(md).toBe(generarMd(datos));
+    expect(md).toBe(generarMd(datos, normas));
   });
 
   it("falla si se estropea el catálogo, la tabla o una celda", () => {
     const d = clon();
     d.agentes.datos.tareas[0].reglas[0].exigencia = "describir otra cosa distinta antes del SQL";
-    expect(generarMd(d)).not.toBe(md);
-    expect(md.replace("| datos |", "| datoz |")).not.toBe(generarMd(datos));
-    expect(`${md}\nuna línea escrita a mano\n`).not.toBe(generarMd(datos));
+    expect(generarMd(d, normas)).not.toBe(md);
+    expect(md.replace("| datos |", "| datoz |")).not.toBe(generarMd(datos, normas));
+    expect(`${md}\nuna línea escrita a mano\n`).not.toBe(generarMd(datos, normas));
+    const otraNorma = clon();
+    otraNorma.agentes.datos.tareas[0].ambitos = ["data", "code"];
+    expect(generarMd(otraNorma, normas)).not.toBe(md);
   });
 
   it("lleva una fila por regla, con agente, tarea, acción, frase, control y fuente", () => {
@@ -261,8 +274,10 @@ describe("docs/ops/ESTANDARES.md sale del catálogo", () => {
     expect(frase).toContain("**Rama y estado desde origin.** Cada rama de trabajo DEBE salir de origin/staging");
     expect(control).toBe("juicio");
     expect(fuente).toMatch(/^\[F\] \[/);
-    const comunes = md.split("\n").filter((l) => /^\| `[a-z0-9-]+` \| (construir|juzgar|diagnosticar|operar|medir|documentar|decidir) \|/.test(l));
+    const comunes = md.split("\n").filter((l) => /^\| `[a-z0-9-]+` \| (construir|juzgar|diagnosticar|operar|medir|documentar|decidir) \|/.test(l) && !l.includes("cita las normas"));
     expect(comunes).toHaveLength(contar(datos).reglasComunes);
+    const porTarea = md.split("\n").filter((l) => /^\| `[a-z-]+\/[a-z0-9-]+` \|/.test(l));
+    expect(porTarea).toHaveLength(66);
   });
 
   it("la frase de cada regla sale de sus campos y no lleva el control", () => {
@@ -278,11 +293,24 @@ describe("npm run estandar", () => {
     const out = execFileSync("node", ["scripts/estandares-agentes.mjs", "gobierno", "flujo-rama-pr-staging"], { cwd: RAIZ, encoding: "utf8" });
     expect(out).toContain("ESTÁNDAR A CUMPLIR: gobierno/flujo-rama-pr-staging");
     expect(out).toMatch(/Acción: operar/);
-    expect(out).toMatch(/Reglas \(cada una con su control y su fuente\):/);
+    expect(out).toMatch(/Reglas propias de la tarea \(cada una con su control y su fuente\):/);
     expect(out).toMatch(/Control: juicio/);
-    expect(out).toMatch(/Control: script scripts\/fondos-pr\.mjs/);
     expect(out).toMatch(/No hace:/);
     expect(out).toMatch(/Fuente: \[F\] https:\/\//);
+    // Las normas le llegan por id, con su frase, su control y su principio; ninguna se reescribe como regla (#620).
+    expect(out).toMatch(/Normas que tocan \(\d+; por consulta infra, process × operar/);
+    expect(out).toContain("- `pr-agente-y-closes-en-ci` — **Agente y Closes del PR.**");
+    expect(out).toMatch(/Control: test scripts\/fondos-pr\.test\.js\. Principio: who-what-when\. Por: consulta\./);
+    expect(out).toMatch(/`cuando-algo-falla` .* Por: citada\./);
+  });
+
+  it("con --ficheros suma las normas del ámbito de cada fichero tocado", () => {
+    const sin = execFileSync("node", ["scripts/estandares-agentes.mjs", "revisor", "revisar-diff"], { cwd: RAIZ, encoding: "utf8" });
+    const con = execFileSync("node", ["scripts/estandares-agentes.mjs", "revisor", "revisar-diff", "--ficheros", "supabase/migrations/0100_x.sql,api/_guard.js"], { cwd: RAIZ, encoding: "utf8" });
+    expect(sin).not.toContain("`fk-con-on-delete`");
+    expect(con).toMatch(/y data, api por los ficheros|y api, data por los ficheros/);
+    expect(con).toMatch(/`fk-con-on-delete` .* Por: fichero\./);
+    expect(con).toMatch(/`tope-diario-ia` .* Por: fichero\./);
   });
 
   it("de una tarea con comunes pega también las reglas comunes", () => {
@@ -304,5 +332,6 @@ describe("npm run estandar", () => {
   it("la cifra sale por --contar", () => {
     const out = execFileSync("node", ["scripts/estandares-agentes.mjs", "--contar"], { cwd: RAIZ, encoding: "utf8" });
     expect(out).toContain("TOTAL 66/66 tareas con estándar; 0 pendientes");
+    expect(out).toMatch(/normas: \d+ citadas aparte; \d+ distintas llegan a alguna tarea/);
   });
 });

@@ -35,7 +35,7 @@ No es para:
 1. **Busca los principios del área.** `npm run principios -- <área>` (las áreas:
    `trust-safety`, `privacy`, `conversational-ai`, `onboarding`, `cost-reliability`,
    `ux-clarity`, `accessibility`, `scope`); `npm run principios -- <id>` enseña uno
-   entero, con la norma que lo hace obligatorio. Si dudas del área, mira dos. Sale: la
+   entero, con la norma que lo vuelve exigible. Si dudas del área, mira dos. Sale: la
    lista de ids con su enunciado y sus normas.
 2. **Elige el que manda y cítalo por su id.** En la línea de la opción recomendada, el id
    del principio entre paréntesis: «A (recomendada, `public-endpoint-justified`): …». Si

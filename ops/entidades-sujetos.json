@@ -237,7 +237,7 @@
     },
     "pantalla": {
       "kind": "outside",
-      "reason": "pantalla del producto o de la factoría de Lola: fuera de este ataque"
+      "reason": "pantalla del producto: fuera de este ataque, como primitivo y asset"
     },
     "papel": {
       "kind": "outside",

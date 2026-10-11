@@ -537,7 +537,7 @@ export function problemasDeTaxonomia(datos, { skills: todas, fichaDe = {} }) {
 export const CLASES_CAMPO = {
   bool: "Verdadero o falso",
   enum: "Un valor de un vocabulario cerrado",
-  ref: "Apunta a algo que existe: skill, agente, criterio, ruta, comando, issue, fuente, evidencia o versión",
+  ref: "Apunta a algo que existe: skill, agente, criterio, ruta, comando, issue, fuente, evidencia, versión, común de estándar o norma",
   numero: "Un número",
   fecha: "Una fecha AAAA-MM-DD",
   texto: "Prosa: solo como hueco, con su motivo",
@@ -548,7 +548,7 @@ export const CLASES_CAMPO = {
  * respalda un juicio (una ruta con su cabecera, un caso, un comando, un PR o un issue: la valida quien da
  * `ctx.existe`); `version`, el hash de 12 de una versión de un fichero (hashLF de scripts/lib/evals.mjs).
  */
-export const REFS_CAMPO = ["skill", "agente", "criterio", "ruta", "comando", "issue", "fuente", "evidencia", "version", "estandar_comun"];
+export const REFS_CAMPO = ["skill", "agente", "criterio", "ruta", "comando", "issue", "fuente", "evidencia", "version", "estandar_comun", "norma"];
 /** Nivel de una clase para el trinquete: el texto es el hueco; todo lo demás es discreto. */
 export const NIVELES_CAMPO = ["texto", "discreto"];
 export const nivelDeClase = (clase) => (clase === "texto" ? "texto" : "discreto");
