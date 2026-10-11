@@ -88,6 +88,9 @@ no se lanzan hasta que vuelvan a `.claude/agents/`.
 ## 3. Qué pipeline según la acción
 
 `→` es secuencial; `+` es en paralelo. Entre corchetes, solo si aplica.
+El mismo dato, para máquinas, está en `ops/tipos-de-encargo.json` (lo lee el
+panel de la factoría); `ops/tipos-de-encargo.test.js` vigila que dicen lo
+mismo: si cambias una fila, cambia la otra.
 
 | Acción | Pipeline |
 |---|---|
