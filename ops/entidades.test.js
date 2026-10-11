@@ -49,7 +49,7 @@ const AUTORREFERENCIAS = ["depends_on"];
 export const PEDIDAS = ["session", "service", "environment", "deployment", "event", "norm", "learning", "mechanism", "metric", "eval", "judge", "team-member"];
 export const PUENTES = ["event", "metric", "module", "eval", "judge", "data-source", "environment", "deployment", "migration", "table"];
 // Pasará a scripts/lib/entidades.mjs, anclado en vocabularios-vida.json, cuando el N1 de Aprendizaje lo escriba en algún sitio.
-export const MECHANISMS_OF_LEARNING = ["test", "guard", "rule", "skill"];
+export const RECORDED_IN_OF_LEARNING = ["test", "guard", "rule", "skill"];
 // Los ids del nacimiento del registro (11 oct 2026). Plan B del ciclo de vida: no se edita; un id no se borra, se retira.
 export const IDS_FIJADOS = [
   "session", "team-member", "identity", "service", "environment", "deployment", "event", "norm", "learning", "mechanism", "metric", "eval", "judge",
@@ -296,9 +296,9 @@ describe("el registro de entidades", () => {
     expect(r("event", "produces", "learning")).toBe(true);
   });
 
-  it("el aprendizaje declara su campo mechanism: test, guard, rule o skill, y con skill dice por qué no se automatizó", () => {
-    const campo = DATOS.entities.find((e) => e.id === "learning").fields.find((c) => c.name === "mechanism");
-    expect(campo.values).toEqual(MECHANISMS_OF_LEARNING);
+  it("el aprendizaje declara su campo recorded_in: test, guard, rule o skill, y con skill dice por qué no se automatizó", () => {
+    const campo = DATOS.entities.find((e) => e.id === "learning").fields.find((c) => c.name === "recorded_in");
+    expect(campo.values).toEqual(RECORDED_IN_OF_LEARNING);
     expect(campo.required_when).toEqual({ value: "skill", field: "reason_not_automated" });
     expect(DATOS.entities.find((e) => e.id === "learning").registry).toBe("without_registry");
   });
@@ -439,8 +439,8 @@ describe("autotest: cada regla falla con datos malos", () => {
     expect(con((d, e) => { e.color = "rojo"; })).toMatch(/campo desconocido color/);
     expect(con((d, e) => { delete e.id_format; })).toMatch(/falta el campo id_format/);
     expect(con((d) => { d.entities.find((x) => x.id === "learning").fields[0].values = ["test"]; })).toMatch(/vocabulario cerrado de dos valores o más/);
-    expect(con((d) => { d.entities.find((x) => x.id === "learning").fields[0].required_when.value = "otro"; })).toMatch(/required_when nombra un valor que mechanism no tiene/);
-    expect(con((d) => { d.entities.find((x) => x.id === "learning").fields[0].name = "Mechanism"; })).toMatch(/sin la forma snake en inglés/);
+    expect(con((d) => { d.entities.find((x) => x.id === "learning").fields[0].required_when.value = "otro"; })).toMatch(/required_when nombra un valor que recorded_in no tiene/);
+    expect(con((d) => { d.entities.find((x) => x.id === "learning").fields[0].name = "Recorded_In"; })).toMatch(/sin la forma snake en inglés/);
   });
 
   it("ciclo de vida: retirar sin sustituto, volver a activo, borrar", () => {

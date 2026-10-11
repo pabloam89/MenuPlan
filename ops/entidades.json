@@ -103,10 +103,10 @@
       "id_format": "none",
       "registry": "without_registry",
       "status": "active",
-      "note": "Término del glosario (no «lección»). Hoy vive en la ficha del fondo, en el PR y en cada agente, sin registro. Declara un campo mechanism con vocabulario cerrado, que todavía no se escribe en ningún sitio. Ojo: hay tres cosas llamadas «mecanismo»: los ids de ops/mecanismos.json, ficha.mecanismo del fondo (texto libre con la causa) y este campo (test, guard, rule o skill). Si se renombra este campo lo decide Pablo.",
+      "note": "Término del glosario (no «lección»). Hoy vive en la ficha del fondo, en el PR y en cada agente, sin registro. Declara un campo recorded_in (dónde quedó) con vocabulario cerrado, que todavía no se escribe en ningún sitio. Ojo: hay tres cosas llamadas «mecanismo»: los ids de ops/mecanismos.json, ficha.mecanismo del fondo (texto libre con la causa) y este campo, que por eso se llama recorded_in (test, guard, rule o skill).",
       "fields": [
         {
-          "name": "mechanism",
+          "name": "recorded_in",
           "values": [
             "test",
             "guard",
@@ -129,7 +129,7 @@
       "id_format": "snake",
       "registry": "with_registry",
       "status": "active",
-      "note": "El escalón se llama también barrera en la ficha del fondo y arreglo en la etiqueta: tres nombres para un concepto. El campo mechanism del aprendizaje (test, guard, rule, skill) es un vocabulario más grueso que la escalera de este registro."
+      "note": "El escalón se llama también barrera en la ficha del fondo y arreglo en la etiqueta: tres nombres para un concepto. El campo recorded_in del aprendizaje (test, guard, rule, skill) es un vocabulario más grueso que la escalera de este registro."
     },
     {
       "id": "metric",
