@@ -364,7 +364,7 @@ if (esPrincipal) {
       if (frena && !yaFrenado) {
         writeFileSync(marcaEstado, String(turno));
         // Solo se registra un motivo del vocabulario cerrado (si no, el freno sale igual pero sin evento).
-        if (MOTIVOS_ESTADO.includes(motivo)) registrarEvento({ evento: "estado_sin_leer", nombre: motivo, sesion: entrada.session_id, cwd: entrada.cwd });
+        if (MOTIVOS_ESTADO.includes(motivo)) registrarEvento({ evento: "estado_sin_leer", nombre: motivo, fuente: "pendientes", sesion: entrada.session_id, cwd: entrada.cwd });
         process.stdout.write(JSON.stringify({ decision: "block", reason: recordatorioDeEstado(motivo) }));
       }
     }

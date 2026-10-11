@@ -2,7 +2,12 @@
  * eventos.mjs — el registro local de eventos de los hooks (#340, lo que propone
  * #185): una línea JSON por cosa que pasa, para poder contarla.
  *
- *   { ts, sesion, rama, issue, evento, nombre[, codigo] }
+ *   { id, ts, sesion, fuente, actor, rama, issue, evento, nombre[, codigo] }
+ *
+ * `id`, `fuente` y `actor` son los campos fijos del principio 10 de docs/entidades/N0-principios.md
+ * (#568): `id` es único por evento, `fuente` dice qué hook lo escribe (FUENTES) y `actor` la
+ * identidad con la que actúa la sesión (`homenu-sesiones[bot]`) o null si no se sabe. `evento` y
+ * `nombre` siguen como están: leen de ellos fabrica, cumplimiento e issues, y se retiran cuando se muden.
  *
  * Eventos (vocabulario cerrado, EVENTOS): `skill_cargada` (skill-abierta.mjs),
  * `bloqueo_guardia` y `permiso_pedido` (guardia.mjs: un deny y un ask),
@@ -24,6 +29,7 @@
  * rara). El fallo silencioso es a propósito y está probado en eventos.test.js.
  */
 import { execFileSync } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import { appendFileSync, mkdirSync, renameSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
@@ -31,6 +37,14 @@ import { join } from "node:path";
 import { numeroDeRama } from "../../scripts/lib/lleva.mjs";
 
 export const EVENTOS = ["skill_cargada", "agente_lanzado", "bloqueo_guardia", "permiso_pedido", "estado_sin_leer", "aviso_guardia"];
+/** Quién escribe el evento: el hook que llama a `registrarEvento`. */
+export const FUENTES = ["guardia", "skill-abierta", "pendientes"];
+/** La identidad de la App de sesiones; cualquier otra (la de Pablo) no se nombra: el actor queda null. */
+export const ACTOR_APP = "homenu-sesiones[bot]";
+
+/** El actor sale del autor de git que fija el arranque (E3): solo se reconoce la App. */
+export const actorDe = (env = process.env) => (env.GIT_AUTHOR_NAME === ACTOR_APP ? ACTOR_APP : null);
+
 // `aviso_guardia` (guardia.mjs, #506): un aviso que no bloquea (hoy, el de zona con otra rama); el
 // fichero y la rama van a su propio registro (`zonas.log`, .claude/hooks/zonas.mjs), no aquí.
 // `estado_sin_leer` (pendientes.mjs, #462): el freno de afirmar el estado de un issue o PR sin leer la
@@ -65,12 +79,15 @@ function ramaDe(cwd) {
  * La línea de un evento, o null si no vale (evento fuera del vocabulario, nombre
  * raro). Pura: `ahora` y `rama` entran por argumento.
  */
-export function lineaDeEvento({ evento, nombre, codigo, sesion, rama }, ahora = new Date()) {
+export function lineaDeEvento({ evento, nombre, codigo, sesion, rama, fuente, actor }, ahora = new Date(), id = randomUUID()) {
   if (!EVENTOS.includes(evento) || typeof nombre !== "string" || !NOMBRE_OK.test(nombre)) return null;
   const r = typeof rama === "string" && RAMA_OK.test(rama) ? rama : null;
   return {
+    id,
     ts: ahora.toISOString(),
     sesion: typeof sesion === "string" && SESION_OK.test(sesion) ? sesion : null,
+    fuente: FUENTES.includes(fuente) ? fuente : null,
+    actor: actor === ACTOR_APP ? ACTOR_APP : null,
     rama: r,
     issue: numeroDeRama(r),
     evento,
@@ -81,14 +98,14 @@ export function lineaDeEvento({ evento, nombre, codigo, sesion, rama }, ahora = 
 
 /**
  * Anota un evento. NUNCA lanza: true si lo escribió, false si no.
- *   datos  { evento, nombre, codigo?, sesion?, rama?, cwd? }  (sin rama, la saca de `cwd`)
+ *   datos  { evento, nombre, fuente, codigo?, sesion?, rama?, cwd? }  (sin rama, la saca de `cwd`)
  *   opc    { dir, ahora } para probar
  */
 export function registrarEvento(datos, opc = {}) {
   try {
     const dir = opc.dir ?? dirFabrica();
     const rama = datos?.rama ?? (datos?.cwd ? ramaDe(String(datos.cwd)) : null);
-    const linea = lineaDeEvento({ ...datos, rama }, opc.ahora ?? new Date());
+    const linea = lineaDeEvento({ actor: actorDe(), ...datos, rama }, opc.ahora ?? new Date());
     if (!linea) return false;
     mkdirSync(dir, { recursive: true });
     const fichero = join(dir, "eventos.jsonl");
