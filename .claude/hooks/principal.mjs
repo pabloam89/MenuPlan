@@ -57,10 +57,11 @@ export function resumenReflog(texto, max = 4) {
 /**
  * Aviso si la carpeta principal no está en staging (#348, #384): el 9 oct 2026
  * una sesión de la nube dejó `ccr-…` puesta y los agentes dejaron de cargarse.
- * null si es un worktree, si está en staging o si no se sabe la rama.
+ * null si es un worktree, si está en staging, si no se sabe la rama o si es una
+ * sesión de la nube (`nube`, de esSesionDeNube, #635).
  */
-export function avisoRamaPrincipal({ esWorktree, rama, reflog }) {
-  if (esWorktree || !rama || rama === "HEAD" || rama === "staging") return null;
+export function avisoRamaPrincipal({ esWorktree, rama, reflog, nube = false }) {
+  if (nube || esWorktree || !rama || rama === "HEAD" || rama === "staging") return null;
   const cambios = resumenReflog(reflog);
   const pintable = RAMA_SIMPLE.test(rama) ? limpiarTexto(rama, 60) : "(nombre no válido)";
   return `AVISO: la carpeta principal está en la rama ${pintable}, no en staging (caso #348: otra sesión la cambió y los agentes pueden no cargar). `
