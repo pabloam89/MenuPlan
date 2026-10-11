@@ -167,11 +167,28 @@ edición en el sitio; arrastrar y soltar con alternativa; notificaciones; carga
 de ficheros; ayuda y soporte. Cada patrón lleva: problema, cuándo usarlo,
 componentes que usa, flujo, errores, accesibilidad, ejemplo.
 
+**Patrones de movimiento** (misma ficha, más `duración`, `curva`, `qué anima`,
+`qué no`, `alternativa con movimiento reducido` y `presupuesto`): entrada y salida
+de hoja y modal, transición entre pantallas, aparición de lista, carga y
+esqueleto, respuesta a la pulsación, expandir y plegar, microinteracción de éxito
+o error. Reglas: solo se anima `transform` y `opacity`; nada esencial solo con
+animación; ninguna pasa de 400 ms sin motivo escrito; cada una tiene alternativa
+con movimiento reducido. Si hay una biblioteca de animación, tiene su ficha en Q.
+
 ### F. Plantillas y estructura de pantalla
 
 Cáscara de la aplicación (cabecera, navegación, contenido, zonas fijas); tipos
 de pantalla (lista, detalle, formulario, panel, vacío, error); anatomía de una
 pantalla con sus márgenes y zonas seguras; orden de lectura y de foco.
+
+**Navegación** (una ficha por pieza: barra inferior, barra lateral, menú
+hamburguesa o cajón, pestañas, migas, cabecera fija): cuándo se usa y a qué ancho
+sustituye a cuál; qué se pliega y qué queda visible; cómo se abre y se cierra con
+puntero, táctil y teclado; dónde va el foco al abrir y al cerrar; cómo se marca la
+página actual (no solo con color); qué pasa con el desplazamiento del fondo;
+profundidad máxima; tamaño de objetivo; qué hace sin JavaScript. Un menú
+hamburguesa en pantalla ancha, o una barra lateral en móvil, se declaran como
+excepción con motivo.
 
 ### G. Contenido y voz
 
@@ -246,6 +263,30 @@ entiende, tono. Para el correo: ancho, tipografías seguras, modo oscuro,
 alternativa de texto. Para lo impreso o el PDF: márgenes, tipografía, color en
 blanco y negro. Misma estructura que una superficie visual: valor, rol, uso,
 no-uso, comprobación.
+
+### Q. Bibliotecas y dependencias
+
+Todo lo de terceros que entra en el sistema de diseño. Una **ficha por biblioteca**:
+
+| Campo | Qué dice |
+|---|---|
+| `id` y `nombre` | Estables (por ejemplo, `nucleo`). |
+| `rol` | Iconos, gráficos, componentes sin estilo (headless), animación, fuentes, utilidades. |
+| `licencia` | Tipo, qué permite (uso comercial, redistribuir los ficheros) y dónde está la prueba. |
+| `peso` | Coste en el paquete y cómo se carga (solo lo que se usa, no el conjunto entero). |
+| `importación` | Cómo entra: paquete, ficheros copiados o generados; versión fijada. |
+| `envoltorio` | Si el proyecto la usa directa o detrás de un componente propio, y por qué. |
+| `reglas de uso` | Qué conjuntos o piezas se admiten y cuáles no. |
+| `alternativa` | Qué se haría si desaparece o cambia de licencia. |
+| `dueño` y `comprobada` | Quién la vigila y la fecha de la última revisión. |
+
+Reglas: una sola familia de iconos por proyecto; ninguna biblioteca entra sin su
+ficha; una dependencia de diseño no se actualiza sin mirar su registro de cambios.
+**Iconos (Nucleo, el caso actual):** conjuntos permitidos, trazo y tamaños fijos
+por rol, convención de nombres, y de dónde salen los ficheros (el servidor MCP de
+Nucleo para buscar y obtener; el icono se copia al repo, no se enlaza).
+Comprobación: test de que todo icono usado existe en el conjunto declarado y de
+que no hay una segunda familia.
 
 ### Vocabularios cerrados de N1
 
@@ -332,6 +373,7 @@ El perfil decide **qué parámetros se eligen y cuáles obligan**. El valor conc
 | N. Documentación | ● | ● | ● | ● | ● | ● |
 | O. Marca y activos | ● | ○ | ● | ● | ○ | ● |
 | P. Superficies sin píxeles | – | – | – | ● | ○ | ● |
+| Q. Bibliotecas y dependencias | ● | ● | ● | – | – | ○ |
 
 ## 5. Dónde estamos hoy
 
@@ -361,7 +403,8 @@ Leído el 11 oct 2026 a partir de las cabeceras de `DESIGN_SYSTEM.md` y de
 3. **Primera instancia nueva: el panel (P2).** Tokens mínimos, componentes que usa (tabla, barra lateral, tarjeta de resumen, aviso), tema claro y oscuro, contraste medido. Lo construye `diseno` y lo juzga `qa`.
 4. **Contraste por test** para las dos instancias (L05), el cambio más barato con más efecto.
 5. **Ficha por componente** en HoMenu (L14, L17) conforme se migren pantallas.
-6. **Entidades** `sistema-de-diseno`, `token`, `componente` y `patron` en el mapa (#566).
+6. **Skill de revisión de diseño** (hermana de `higiene-de-skills`): lee N0 y N1 como criterios y revisa una instancia; el agente `diseno` la carga. Las leyes de N0 se comprueban con tests (paso 4), no con una skill por nivel.
+7. **Entidades** `sistema-de-diseno`, `token`, `componente` y `patron` en el mapa (#566).
 
 ## 7. Riesgos y qué no hacer
 
