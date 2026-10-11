@@ -48,6 +48,8 @@
     "frontera-casi-fallos": "subjetiva",
     "frontera-vaga": "material",
     "frontmatter": "formal",
+    "leccion-repetida": "material",
+    "leccion-sin-barrera": "material",
     "libertad-ajustada": "subjetiva",
     "pasos-con-salida-observable": "subjetiva",
     "pocos-puntos": "formal",

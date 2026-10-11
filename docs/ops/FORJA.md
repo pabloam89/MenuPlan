@@ -9,9 +9,9 @@ La única fuente de lo que se le pide a una skill, a un estándar de agente y a 
 | Capa | skill | estandar | agente | Criterios |
 |---|---|---|---|---|
 | formal | 26 | 16 | 0 | 42 |
-| material | 13 | 4 | 0 | 16 |
+| material | 15 | 4 | 0 | 18 |
 | subjetiva | 13 | 3 | 0 | 16 |
-| total | 52 | 23 | 0 | 74 |
+| total | 54 | 23 | 0 | 76 |
 
 Un criterio que se aplica a dos artefactos cuenta en las dos columnas y una vez en el total.
 
@@ -41,7 +41,7 @@ Cada criterio se escribe por campos y su frase se genera; no hay prosa libre. La
 | skill | cada skill | skill | 4 |
 | skill.metadatos | el frontmatter de cada skill | skill | 5 |
 | skill.descripcion | la descripción de cada skill | skill | 7 |
-| skill.cuerpo | el cuerpo de cada skill | skill | 22 |
+| skill.cuerpo | el cuerpo de cada skill | skill | 24 |
 | skill.casos | el conjunto de casos de prueba de cada skill | skill | 6 |
 | plantilla.tipo | la plantilla de skills | skill | 7 |
 | estandar | cada tarea del catálogo de estándares | estandar | 9 |
@@ -108,13 +108,13 @@ Herencia: esqueleto común (la base) → plantilla por tipo (los criterios que l
 
 | Tipo | formal | material | subjetiva | Criterios |
 |---|---|---|---|---|
-| conocimiento | 26 | 13 | 13 | 52 |
-| decision | 26 | 13 | 13 | 52 |
-| diagnostico | 26 | 13 | 13 | 52 |
-| flujo | 26 | 13 | 13 | 52 |
-| procedimiento | 26 | 13 | 13 | 52 |
-| revision | 26 | 13 | 13 | 52 |
-| servicio | 25 | 13 | 13 | 51 |
+| conocimiento | 26 | 15 | 13 | 54 |
+| decision | 26 | 15 | 13 | 54 |
+| diagnostico | 26 | 15 | 13 | 54 |
+| flujo | 26 | 15 | 13 | 54 |
+| procedimiento | 26 | 15 | 13 | 54 |
+| revision | 26 | 15 | 13 | 54 |
+| servicio | 25 | 15 | 13 | 53 |
 
 ## Discreto y texto: los campos de cada ficha
 
@@ -357,7 +357,7 @@ Ninguno todavía.
 
 Heurística automática; lo que hoy incumple va a una lista de excepciones que solo baja.
 
-### material · skill (13)
+### material · skill (15)
 
 - `caduca-pronto` — **Aviso de caducidad.** Para cada skill, CONVIENE no llegar a caducar sin aviso: a menos de 30 días del plazo de 90 se avisa. Se comprueba con: `scripts/higiene-skills.test.js`.
   - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `caduca-pronto`.
@@ -374,6 +374,10 @@ Heurística automática; lo que hoy incumple va a una lista de excepciones que s
   - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `descripcion-sin-palabras`.
 - `frontera-vaga` — **Frontera con destino.** Para la descripción de cada skill, CONVIENE nombrar en el «No para:» la skill, el agente, el comando o el fichero a donde va lo que no es suyo. Se comprueba con: `scripts/higiene-skills.test.js`.
   - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `frontera-vaga`.
+- `leccion-repetida` — **Causa no repetida.** Para el cuerpo de cada skill, CONVIENE no repetir la misma causa en dos entradas de «Lo que falló y por qué»: si se repite, la skill no la cerró. Se comprueba con: `scripts/higiene-skills.test.js`.
+  - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `leccion-repetida`.
+- `leccion-sin-barrera` — **Aprendizaje con barrera.** Para el cuerpo de cada skill, CONVIENE citar en el «Arreglo:» de cada entrada de «Lo que falló y por qué» un test, una guardia, un script, un caso o un #n comprobables, no solo texto. Se comprueba con: `scripts/higiene-skills.test.js`.
+  - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `leccion-sin-barrera`.
 - `ruta-muerta` — **Rutas vivas.** El cuerpo de cada skill DEBE citar en su parte viva solo rutas del repo que existen, también fuera de comillas invertidas. Se comprueba con: `scripts/higiene-skills.test.js`.
   - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `ruta-muerta`.
 - `skill-muerta` — **Skills que existen.** El cuerpo de cada skill DEBE nombrar tras la palabra «skill» solo skills que existen. Se comprueba con: `scripts/higiene-skills.test.js`.

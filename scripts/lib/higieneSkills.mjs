@@ -27,6 +27,7 @@ import { MAX_SOLAPE, faltasDeSolape, solape } from "./skillsForja.mjs";
 export const CODIGOS_HIGIENE = [
   "caduca-pronto", "comando-muerto", "ruta-muerta", "skill-muerta", "descripcion-sin-palabras",
   "frontera-vaga", "solape-cercano", "tamano-cerca", "caso-duplicado", "caso-en-frontera",
+  "leccion-sin-barrera", "leccion-repetida",
 ];
 
 /** Días de margen: una skill que caduca en menos de esto se avisa (el CI solo avisa a los 14 de `AVISO_ANTES_DIAS`). */
@@ -39,6 +40,8 @@ export const FRACCION_TAMANO_CERCA = 0.85;
 export const MAX_PARECIDO_CASOS = 0.6;
 /** Raíces de una cláusula de «No para:» (que no son de la propia skill) a partir de las cuales una petición propia es de la otra. */
 export const MAX_RAICES_EN_FRONTERA = 1;
+/** Parecido (Jaccard de raíces) de dos «Causa:» a partir del cual son la misma causa (#603). */
+export const MAX_PARECIDO_CAUSAS = 0.6;
 
 /** Cómo se arregla cada defecto del nivel 1 y de la forja (por regla o código). */
 export const ARREGLOS = {
@@ -72,6 +75,8 @@ export const ARREGLOS = {
   "solape-cercano": "afila las dos descripciones antes de que pasen del límite: lo común se queda en una",
   "tamano-cerca": "parte ya: mueve un bloque largo a referencias/",
   "caso-duplicado": "cambia o quita el caso: dos peticiones iguales miden lo mismo dos veces",
+  "leccion-sin-barrera": "el «Arreglo:» solo es texto: cita el test, la guardia, el script, el caso o el PR/issue que la hace cumplir (CLAUDE.md: la lección va a un test o a la guardia; la skill es el último escalón), o crea esa barrera",
+  "leccion-repetida": "dos entradas con la misma causa: la skill no la cerró; funde las entradas y lleva la barrera a un test o a la guardia en vez de repetir el texto",
   "caso-en-frontera": "el caso pide lo que su «No para:» deja a otra skill: cámbialo o mueve la petición a la otra",
 };
 
@@ -168,6 +173,63 @@ function defectosDeCasos(skill, ctx) {
 }
 
 /**
+ * Las entradas de «Lo que falló y por qué»: cada `- **` abre una y llega hasta la
+ * siguiente. { titulo, causa, arreglo } (los dos últimos, el texto tras «Causa:» y
+ * tras «Arreglo:»; vacíos si la entrada no los trae).
+ */
+export function leccionesDe(cuerpo) {
+  const sec = cuerpo.split(/^(?=## )/m).find((x) => /^## Lo que falló y por qué/.test(x)) ?? "";
+  const entradas = sec.split(/^(?=- \*\*)/m).filter((x) => x.startsWith("- **"));
+  return entradas.map((e) => {
+    const i = e.search(/Arreglo:/);
+    const c = e.search(/Causa:/);
+    return {
+      titulo: e.split("\n")[0].replace(/^- \*\*/, "").replace(/\*\*.*$/, "").slice(0, 70),
+      causa: c === -1 ? "" : e.slice(c + 6, i === -1 || i < c ? undefined : i),
+      arreglo: i === -1 ? "" : e.slice(i + 8),
+    };
+  });
+}
+
+/** Lo comprobable que cita un «Arreglo:»: rutas que existen (o el casos.json de la propia skill), un fichero de código suelto entre comillas invertidas (`guardia.test.js`) y `#n`. */
+function barreraCitada(arreglo, skill, ctx) {
+  const rutas = [...arreglo.matchAll(RUTA_LIBRE)].map((m) => m[1]).filter((r) => !r.includes("<") && !r.includes("*") && ctx.existe(r));
+  const casos = /\bcasos\.json\b/.test(arreglo) && skill.ficheros?.includes("casos.json");
+  const sueltos = /`[\w-]+\.(?:test\.)?(?:js|mjs|jsx)`/.test(arreglo);
+  return rutas.length > 0 || sueltos || casos || /#\d{1,6}\b/.test(arreglo);
+}
+
+/** Lo que identifica una causa: las rutas y los nombres con punto, barra o guion bajo entre comillas invertidas. */
+function pistasDeCausa(causa) {
+  const rutas = [...causa.matchAll(RUTA_LIBRE)].map((m) => m[1]);
+  const codigo = [...causa.matchAll(/`([\w./-]*[._/][\w./-]*)`/g)].map((m) => m[1]);
+  return new Set([...rutas, ...codigo]);
+}
+
+/**
+ * Lecciones sin barrera y causas repetidas (#603). Límite de la repetida: es una
+ * heurística de texto; ve la misma causa si dos «Causa:» citan la misma ruta o
+ * nombre en código, o se parecen en un 60 % de sus raíces; no ve la misma causa
+ * dicha con otras palabras, ni distingue dos fallos distintos en el mismo fichero.
+ */
+function defectosDeLecciones(skill, cuerpo, ctx) {
+  const f = [];
+  const l = leccionesDe(cuerpo);
+  for (const e of l) {
+    if (!barreraCitada(e.arreglo, skill, ctx)) f.push(defecto("leccion-sin-barrera", "aviso", `«${e.titulo}»: su «Arreglo:» no cita ningún test, guardia, script, caso ni #n que exista`));
+  }
+  for (let i = 0; i < l.length; i++) for (let j = i + 1; j < l.length; j++) {
+    const a = l[i], b = l[j];
+    if (!a.causa || !b.causa) continue;
+    const pa = pistasDeCausa(a.causa);
+    const comun = [...pistasDeCausa(b.causa)].filter((x) => pa.has(x));
+    const p = parecido(raices(a.causa), raices(b.causa));
+    if (comun.length || p >= MAX_PARECIDO_CAUSAS) f.push(defecto("leccion-repetida", "aviso", `«${a.titulo}» y «${b.titulo}» tienen la misma causa (${comun.length ? `ambas citan ${comun.join(", ")}` : `parecido ${p.toFixed(2)}`})`));
+  }
+  return f;
+}
+
+/**
  * Todos los defectos de una skill, de más grave a menos.
  * `skill`: { nombre, texto, ficheros, extra, casos } (de `cargarSkill`).
  * `ctx`: { hoy, tipos, agentes, skills, existe, scriptsNpm, catalogo, otrosCasos, otras }.
@@ -199,6 +261,7 @@ export function higieneDeSkill(skill, ctx) {
   if (otros[0] && otros[0].s >= MAX_SOLAPE * FRACCION_SOLAPE_CERCANO && otros[0].s <= MAX_SOLAPE) f.push(defecto("solape-cercano", "aviso", `solapa ${otros[0].s.toFixed(2)} con ${otros[0].nombre} (límite ${MAX_SOLAPE})`));
 
   f.push(...defectosDeCasos(skill, c));
+  f.push(...defectosDeLecciones(skill, cuerpo, c));
   const orden = { falta: 0, aviso: 1 };
   return f.sort((a, b) => orden[a.gravedad] - orden[b.gravedad]);
 }

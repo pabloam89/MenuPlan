@@ -112,11 +112,11 @@ Los de `campos_ficha.skill` de `ops/forja/`; lo que no está declarado no va en 
 
 Lo que pide este tipo: la salida rellena la ficha y hay un criterio de parada. Lo comprueban el nivel 1 (`npx vitest run .claude/skills.test.js`, gratis, en el CI) y el nivel 2 (`npm run skills-prueba -- <skill>`, cuesta tokens).
 
-52 criterios de la forja se aplican a este tipo (los que dicen `tipos: "todos"` o lo nombran). La frase entera de cada uno, en `docs/ops/FORJA.md`.
+54 criterios de la forja se aplican a este tipo (los que dicen `tipos: "todos"` o lo nombran). La frase entera de cada uno, en `docs/ops/FORJA.md`.
 
 - **formal** (26): `apartado-ausente`, `cabeceras`, `caducada`, `casos-negativos`, `casos`, `comprobado`, `copiado`, `dueno`, `ejemplo-largo`, `ejemplo-no-cuadra`, `ejemplo-sin-origen`, `ejemplos`, `estructura`, `fechas`, `formato`, `frontmatter`, `pocos-puntos`, `rutas`, `secciones`, `secretos`, `sin-fuente`, `sin-parada`, `tabla`, `tamano`, `tipo-sin-estandar`, `tipo`.
 
-- **material** (13): `caduca-pronto`, `caso-duplicado`, `caso-en-frontera`, `comando-muerto`, `comando-suelto`, `descripcion-sin-palabras`, `frontera-vaga`, `ruta-muerta`, `skill-muerta`, `solape-cercano`, `solape`, `tamano-cerca`, `vocabulario-canonico`.
+- **material** (15): `caduca-pronto`, `caso-duplicado`, `caso-en-frontera`, `comando-muerto`, `comando-suelto`, `descripcion-sin-palabras`, `frontera-vaga`, `leccion-repetida`, `leccion-sin-barrera`, `ruta-muerta`, `skill-muerta`, `solape-cercano`, `solape`, `tamano-cerca`, `vocabulario-canonico`.
 
 - **subjetiva** (13): `camino-por-defecto`, `casos-medidos-con-y-sin-skill`, `descripcion-palabras-de-quien-pide`, `disparador-al-principio`, `ejemplos-canonicos`, `forma-adecuada-al-contenido`, `frontera-casi-fallos`, `libertad-ajustada`, `pasos-con-salida-observable`, `sin-duda-con-vecina`, `skill-contrastada-con-fallo-real`, `solo-lo-que-el-modelo-no-sabe`, `vocabulario-unico`.
 

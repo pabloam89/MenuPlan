@@ -128,7 +128,7 @@ Marca de la fuente: **[F]** está en una fuente externa (con su URL); **[I]** es
 
 | Catálogo | Estado | Reglas | Encargo |
 |---|---|---|---|
-| `ops/forja/` | cumple | 74 | - |
+| `ops/forja/` | cumple | 76 | - |
 | `ops/redaccion.json` | cumple | 16 | - |
 | `ops/normas.json` | cumple | 98 | - |
 | `ops/flujo.json` | cumple | 53 | - |

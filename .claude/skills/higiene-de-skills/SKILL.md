@@ -59,6 +59,15 @@ mano, en `.claude/skills/forja-de-skills/referencias/criterios.md`):
 | `tamano-cerca` | más del 85 % de las líneas permitidas | aviso |
 | `caso-duplicado` | dos peticiones casi iguales, de la misma skill o de otra | aviso |
 | `caso-en-frontera` | una petición propia usa palabras de lo que el «No para:» deja a otra | aviso |
+| `leccion-sin-barrera` | una entrada de «Lo que falló» cuyo «Arreglo:» no cita ninguna ruta que exista, fichero de código entre comillas invertidas, `casos.json` de la skill ni `#n`: solo texto, sin test ni guardia (#603) | aviso |
+| `leccion-repetida` | dos entradas con la misma causa: citan la misma ruta o nombre en código en su «Causa:», o sus textos se parecen un 60 % (#603) | aviso |
+
+Límite de los dos controles de «Lo que falló»: leen texto, no entienden el fallo. `leccion-sin-barrera`
+no sabe si lo citado cubre la clase; `leccion-repetida` no ve la misma causa dicha con
+otras palabras ni distingue dos fallos distintos en un mismo fichero. Pendientes, porque
+necesitan red o el registro de sesiones: `fallo-sin-leccion` (casos abiertos que nombran
+la skill y no aparecen en «Lo que falló») y `skill-cargada-y-fallo` (la skill se leyó y
+hubo un bloqueo o un caso en la misma sesión); siguen en el encargo #603.
 
 Los comandos y rutas de «Lo que falló», del registro y de las fuentes son
 historia: no se miran. Lo que el script no juzga (coste de cada párrafo,
@@ -135,6 +144,8 @@ arreglado o explicado, y la cifra del conjunto no sube.
   en la capa el cambio ajeno.
 
 ## Registro de cambios
+
+- **2026-10-11** · La higiene también mira los fallos: `leccion-sin-barrera` y `leccion-repetida`, con su test sobre una skill mala (cada uno visto fallar). Conjunto antes: 14 skills, 5 sin defectos, 14 avisos; después: 2 sin defectos, 50 avisos, 36 de ellos lecciones sin barrera en 12 skills. `fallo-sin-leccion` y `skill-cargada-y-fallo` quedan para cuando haya red y sesión (#603).
 
 - **2026-10-10** · Los criterios de cada skill: el script da una línea `skill: x criterio: y estado: z` por criterio de la forja (lo que vigila un control o sale de una pasada vigente se calcula; los juicios de skill, en `ops/juicios-skills/<skill>.json`, caducan si cambia el SKILL.md) y la cifra de vigilados y de juicio; el paso 4 rellena los juicios (#457).
 
