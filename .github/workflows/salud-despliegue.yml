@@ -1,0 +1,120 @@
+# La puerta de salud tras desplegar (#589, norma `vuelta-atras-probada`).
+#
+# Cada vez que Vercel termina un despliegue de `staging` o de `main` (evento
+# `deployment_status`), llama a la página y a la guardia de la función del bot del
+# despliegue nuevo (scripts/salud-despliegue.mjs). Si algo no responde bien, o Vercel
+# lo marcó como fallido, el job sale en ROJO y se abre (o se comenta, sin duplicar) el
+# issue «Despliegue sin salud: <rama>». Cuando vuelve a ir bien, se comenta en ese issue.
+# El 9 oct 2026 staging desplegó en rojo y nada lo frenó: este es el aviso.
+#
+# - No revierte nada: avisa. La vuelta atrás es el «Instant Rollback» del panel de Vercel
+#   (skill `vercel`, «Vuelta atrás»), y las migraciones no se revierten.
+# - Sin secretos ni environment: solo el token del propio workflow, con `issues: write`.
+#   La dirección del despliegue es pública. No llama al canario de Lola porque necesita
+#   CANARIO_SECRET (environment `vigia`); de eso se encarga el vigía (vigia-lola.yml).
+# - Solo las ramas staging y main: la preview de un PR no pasa por aquí.
+# - Nada del evento entra en un `run:`: va por `env:` (la rama, además, solo vale si es
+#   staging o main antes de usarse).
+# - El script que corre sale de `staging`, no del commit desplegado.
+# - Probarlo a mano: `workflow_dispatch` con la dirección de un despliegue (el estado
+#   «success» y la rama que se elija); un fallo se provoca con una dirección que no sea
+#   *.vercel.app (sale `url_ilegible`).
+
+name: Salud del despliegue
+
+on:
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Dirección del despliegue (https://….vercel.app)"
+        required: true
+      rama:
+        description: "Rama que se comprueba"
+        type: choice
+        options: [staging, main]
+        default: staging
+
+permissions:
+  contents: read
+
+concurrency:
+  group: salud-despliegue-${{ github.event.deployment.ref || inputs.rama }}
+  cancel-in-progress: false
+
+jobs:
+  salud:
+    # Solo despliegues terminados (bien o mal) de staging o main.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (contains(fromJSON('["success","failure","error"]'), github.event.deployment_status.state) &&
+       contains(fromJSON('["staging","main"]'), github.event.deployment.ref))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write # abrir o comentar el issue del aviso
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: staging
+          persist-credentials: false
+          sparse-checkout: scripts
+
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 22
+
+      - name: Comprobar la salud
+        id: salud
+        env:
+          DESPLIEGUE_URL: ${{ github.event.deployment_status.environment_url || inputs.url }}
+          DESPLIEGUE_ESTADO: ${{ github.event.deployment_status.state || 'success' }}
+          DESPLIEGUE_REF: ${{ github.event.deployment.ref || inputs.rama }}
+          SALUD_HOSTS: ${{ vars.SALUD_HOSTS }}
+        # Sale con 1 si algo falla: el job queda en rojo y el paso siguiente avisa.
+        run: node scripts/salud-despliegue.mjs --issue "$RUNNER_TEMP/aviso.md"
+
+      - name: Avisar en el issue (sin duplicados)
+        if: failure() && steps.salud.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RAMA: ${{ github.event.deployment.ref || inputs.rama }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          case "$RAMA" in staging|main) ;; *) echo "rama no vigilada"; exit 1 ;; esac
+          # Si el script ni llegó a escribir el aviso, se deja uno mínimo.
+          [ -s "$RUNNER_TEMP/aviso.md" ] || echo "La puerta de salud falló antes de poder informar (#589)." > "$RUNNER_TEMP/aviso.md"
+          printf '\n%s\n' "Run: $RUN_URL" >> "$RUNNER_TEMP/aviso.md"
+          titulo="Despliegue sin salud: $RAMA"
+          # Autor (el bot) y título EXACTO (#450): la búsqueda de GitHub es difusa y el repo público.
+          issue=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --author "app/github-actions" \
+            --search "\"$titulo\" in:title" --json number,title \
+            --jq "map(select(.title==\"$titulo\"))[0].number // empty")
+          if [ -n "$issue" ]; then
+            gh issue comment "$issue" --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/aviso.md"
+            echo "Comentado en el issue #$issue"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$titulo" \
+              --label "tipo:encargo" --label "area:ops" --assignee pabloam89 \
+              --body-file "$RUNNER_TEMP/aviso.md" \
+            || gh issue create --repo "$GITHUB_REPOSITORY" --title "$titulo" \
+              --body-file "$RUNNER_TEMP/aviso.md"
+          fi
+
+      - name: Avisar de que vuelve a ir bien
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RAMA: ${{ github.event.deployment.ref || inputs.rama }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          case "$RAMA" in staging|main) ;; *) exit 0 ;; esac
+          titulo="Despliegue sin salud: $RAMA"
+          issue=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --author "app/github-actions" \
+            --search "\"$titulo\" in:title" --json number,title \
+            --jq "map(select(.title==\"$titulo\"))[0].number // empty")
+          [ -n "$issue" ] || exit 0
+          gh issue comment "$issue" --repo "$GITHUB_REPOSITORY" \
+            --body "El último despliegue de \`$RAMA\` pasa la puerta de salud. Se cierra a mano cuando se revise. Run: $RUN_URL"

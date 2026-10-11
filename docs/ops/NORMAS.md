@@ -116,7 +116,8 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `eventos-sin-campos-prohibidos` | evento | NO DEBE | **Eventos sin campos prohibidos.** Cada línea de evento de los hooks y los scripts NO DEBE llevar rutas de usuario, comandos, textos libres, correos ni claves. | ci · dura | test: `.claude/hooks/eventos-campos.test.js` | — | `log-what-happens` | code | construir |
 | `recurso-con-dueno-y-caducidad` | recurso | DEBE | **Recurso con dueño y caducidad.** Cada recurso con caducidad (clave, skill o servicio) DEBE estar en ops/recursos.json con su dueño y su fecha de caducidad. | ci · semidura | test: `ops/recursos.test.js` | — | `owned-expiring-resources` | infra | operar |
 | `ensayo-fuera-de-produccion` | migracion | DEBE | **Ensayo fuera de producción.** Cada migración DEBE ensayarse contra una base que no sea la de producción y dejar su registro fuera del PC. | nada · blanda | juicio | — | `rehearsal-undone-and-expires` | data | operar |
-| `vuelta-atras-probada` | despliegue | DEBE | **Vuelta atrás probada.** Cada despliegue a producción DEBE pasar una comprobación de salud y tener ensayada su vuelta atrás. | nada · blanda | juicio | — | `progressive-deploy-with-rollback` | infra | operar |
+| `vuelta-atras-probada` | despliegue | DEBE | **Salud tras desplegar.** Cuando Vercel termina un despliegue de staging o main, cada despliegue a producción DEBE pasar una comprobación de salud que falle el job y avise en un issue sin duplicados. | ci · semidura | test: `ops/salud-despliegue.test.js` | — | `progressive-deploy-with-rollback` | infra | operar |
+| `rollback-ensayado` | despliegue | DEBE | **Vuelta atrás ensayada.** Cada despliegue a producción DEBE tener ensayada su vuelta atrás, con el ensayo fechado en ops/ensayos-rollback.json. | persona · blanda | test: `ops/ensayos-rollback.test.js` | — | `progressive-deploy-with-rollback` | infra | operar |
 | `estado-de-la-base-verificado` | base | DEBE | **Base comparada con su registro.** La base de datos de producción DEBE compararse de forma periódica con supabase/ESTADO.md y abrir un issue si no cuadra. | nada · blanda | juicio | — | `declared-is-real` | data | operar, medir |
 | `copia-restaurada-ensayada` | base | DEBE | **Restauración de copia ensayada.** La base de datos de producción DEBE tener ensayada cada mes la restauración de una copia en una base aparte. | nada · blanda | juicio | — | `emergency-access` | data | operar |
 | `rastro-que-el-agente-no-borra` | agente | DEBE | **Rastro fuera del agente.** Cada agente DEBE dejar el rastro de cada acción donde ese mismo agente no pueda editarlo ni borrarlo. | nada · blanda | juicio | — | `untamperable-trail` | infra | construir, operar |
@@ -199,7 +200,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | lola | el bot Lola | 22 |
 | endpoint | cada endpoint de la app | 4 |
 | agente | cada agente | 7 |
-| despliegue | cada despliegue a producción | 2 |
+| despliegue | cada despliegue a producción | 3 |
 | ajuste | cada cambio de ajustes de GitHub, Vercel o Supabase | 1 |
 | secreto | cada secreto o variable de entorno | 7 |
 | permiso | cada cambio de permisos o de hooks de Claude | 1 |
@@ -250,7 +251,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | Ámbito | Qué es | Normas |
 |---|---|---|
 | code | El código del repo y su forma: tests, lint y ficheros | 10 |
-| infra | Identidades, permisos, secretos, ramas, CI, despliegues, copias y servicios | 29 |
+| infra | Identidades, permisos, secretos, ramas, CI, despliegues, copias y servicios | 30 |
 | data | La base: tablas, migraciones, roles y cada dato que guarda | 33 |
 | catalog | El catálogo de recetas y alimentos que vive en git | 14 |
 | bot | Lola, el bot de mensajería, sus evals y su coste | 24 |
@@ -265,11 +266,11 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 
 | Tipo de control | Qué es | Normas |
 |---|---|---|
-| test | Un test del repo que falla en el CI | 90 |
+| test | Un test del repo que falla en el CI | 92 |
 | planos | Un criterio de la medición semanal de ops/planos.json (con red, cada lunes) | 7 |
 | workflow | Un paso de un workflow de GitHub Actions que falla el check | 1 |
 | script | Un script del repo que comprueba y se lanza a mano o en el build | 7 |
-| juicio | El juicio de una persona o de un LLM sobre sus casos: no hay nada que falle solo | 77 |
+| juicio | El juicio de una persona o de un LLM sobre sus casos: no hay nada que falle solo | 76 |
 
 ## Avisos de la guardia
 
@@ -326,4 +327,4 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 
 **Cada control que salta deja su línea** `norma: <id> resultado: ok|warning|fail|exempt|declared|unchecked pr: <n> detalle: …` (una sola sintaxis: los avisos del CI y «Fondos del PR» en el log del run; la guardia, en el registro local de eventos, con la `norma` que hace cumplir lo que bloquea). `declared` es una excepción válida de una norma que ningún control del CI consulta: queda anotada, pero no cuenta como incumplimiento medido. La unidad es el run de un PR; el lector cuenta una vez por PR, norma y resultado. `npm run normas -- --medir` las cuenta por norma y dice cuáles nunca saltan, cuáles no han dejado dato y cuáles se exceptúan siempre (desde 3 veces, sin un solo salto). Registrada en `ops/metricas.json`.
 
-Total: 182 normas (rota 2, semidura 66, dura 24, blanda 90) y 42 avisos de la guardia.
+Total: 183 normas (rota 2, semidura 67, dura 24, blanda 90) y 42 avisos de la guardia.

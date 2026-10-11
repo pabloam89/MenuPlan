@@ -72,6 +72,15 @@ llevan la clave de administrador de la base y el token del bot (#332).
 | Subir fotos a Blob | `node scripts/upload-to-blob.mjs` | manifest y derivados escritos; lee `BLOB_READ_WRITE_TOKEN` por 1Password |
 | Rehacer los vectores del buscador | `node scripts/build-vectores.mjs` | `api/_bot/recetasVectores.json` actualizado solo para lo que cambió; necesita `AI_GATEWAY_API_KEY` |
 | Volver atrás en producción (OK) | «Instant Rollback» del panel o `request_rollback` del conector | el despliegue anterior vuelve a ser el de producción |
+| ¿Pasó el despliegue la puerta de salud? | `gh run list --workflow salud-despliegue.yml --limit 3` | el último run en verde; en rojo, el issue «Despliegue sin salud: <rama>» con el motivo |
+
+**Vuelta atrás.** Nada revierte solo: la puerta de salud
+(`.github/workflows/salud-despliegue.yml`, #589) avisa en rojo y con un issue cuando un
+despliegue de `staging` o `main` no responde, y volver al anterior lo hace una persona.
+Los clics del panel, qué mirar después, qué NO se revierte (las migraciones) y cómo
+anotar el ensayo en `ops/ensayos-rollback.json`: abre
+`.claude/skills/vercel/referencias/vuelta-atras.md`. Ensayada: todavía no (el registro
+está vacío; lo hace Pablo, issue 589).
 
 ## Lo que falló y por qué
 
@@ -83,6 +92,15 @@ llevan la clave de administrador de la base y el token del bot (#332).
   sea miembro (`git config user.email 99191376+pabloam89@users.noreply.github.com`);
   pasó de retenido a Ready en 9 s. MenuPlan es público y no lo sufre; si pasa a
   privado, esto vuelve.
+- **2026-10-09 · staging desplegó en rojo y nada lo frenó ni lo avisó (#589).**
+  Causa: Vercel despliega al fusionar y nada miraba si lo desplegado respondía; el
+  único vigilante (el vigía de Lola) solo avisa de fallos del bot, no de un despliegue
+  roto, y la vuelta atrás no se había ensayado. Arreglo: la puerta de salud tras
+  desplegar, con test (`ops/salud-despliegue.test.js`, `scripts/salud-despliegue.test.js`), y
+  el procedimiento de vuelta atrás con su registro de ensayos. Antes: 0 despliegues con
+  comprobación y 0 ensayos; después: todos los de staging y main, y 0 ensayos hasta que
+  Pablo lo haga. Sin comprobar: la puerta en un despliegue real (puede tapar la respuesta
+  una protección de Vercel: saldría `protegido`).
 - **2026-09-22 · staging roto por un build que en local pasaba.** Causa: se
   verificó con `vite build`, y el `prebuild` de Vercel cazó un `no-undef`.
   Arreglo: la guardia niega `vite build` a secas.
