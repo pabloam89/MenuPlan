@@ -23,6 +23,7 @@ import { ahoraEnMadrid } from "../../scripts/lib/hora.mjs";
 import { numeroDeRama } from "../../scripts/lib/lleva.mjs";
 import { avisosDeLimpieza, leerPendientes, worktreesVivos } from "../../scripts/limpiar-worktrees.mjs";
 import { sinAplicar } from "./guardia.mjs";
+import { esSesionDeNube } from "./nube.mjs";
 import { avisoRamaPrincipal, avisoTrasAdelantar, planAdelantar } from "./principal.mjs";
 import { avisoDeIndice, leerIndice } from "../../scripts/lib/buscarAntes.mjs";
 import { aplicarIdentidad } from "../../scripts/lib/tokenSesion.mjs";
@@ -82,8 +83,10 @@ if ((rama === "staging" || rama === "main") && !esWorktree) {
 if (rama === "main") avisos.push("main es producción: aquí no se commitea.");
 // La carpeta principal fuera de staging (#348, #384): con el reflog, para ver quién la cambió.
 {
-  const fuera = !esWorktree && rama && rama !== "staging";
-  const aviso = avisoRamaPrincipal({ esWorktree, rama, reflog: fuera ? git("reflog", "HEAD", "-n", "30", "--format=%gs|%cr") : null });
+  // En la nube (#635) el único clon va en la rama ccr-… de la plataforma: no es la principal de Pablo.
+  const nube = esSesionDeNube(process.env, rama, raiz);
+  const fuera = !esWorktree && rama && rama !== "staging" && !nube;
+  const aviso = avisoRamaPrincipal({ esWorktree, rama, nube, reflog: fuera ? git("reflog", "HEAD", "-n", "30", "--format=%gs|%cr") : null });
   if (aviso) avisos.push(aviso);
 }
 if (!existsSync(join(raiz, ".env.local"))) {

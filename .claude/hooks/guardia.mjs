@@ -25,6 +25,7 @@ import { AVISO_POR_CREDENCIAL, avisoDe } from "./avisos-guardia.mjs";
 import { credencialDeComando } from "./credenciales.mjs";
 import { cargarMapa, skillsDeComando, skillsDeFicheros, unirContinuaciones } from "./dominios.mjs";
 import { enStaging as enStagingTodas } from "./migraciones.mjs";
+import { esSesionDeNube } from "./nube.mjs";
 import { anotarSkill, dirSesiones, skillAnotada, tocar } from "./sesiones.mjs";
 import { anotarVista, consultarZona, listaDeRamas } from "./zonas.mjs";
 
@@ -314,7 +315,10 @@ export function contextoReal(raiz, entrada = {}, { dirReg: dirRegDado } = {}) {
     try {
       comunPropio ??= resolve(git(["-C", raiz, "rev-parse", "--path-format=absolute", "--git-common-dir"])).toLowerCase();
       const [gitDir, comun] = git(["-C", dir, "rev-parse", "--path-format=absolute", "--git-dir", "--git-common-dir"]).split(/\r?\n/);
-      return resolve(gitDir).toLowerCase() === resolve(comun).toLowerCase() && resolve(comun).toLowerCase() === comunPropio;
+      const esLaPrincipal = resolve(gitDir).toLowerCase() === resolve(comun).toLowerCase() && resolve(comun).toLowerCase() === comunPropio;
+      if (!esLaPrincipal) return false;
+      // Sesión de la nube (#635): su único clon, en la rama ccr-… de la plataforma, es su carpeta de tarea.
+      return !esSesionDeNube(process.env, git(["-C", dir, "rev-parse", "--abbrev-ref", "HEAD"]), dir);
     } catch {
       // a propósito: fuera de un repo (o si git no contesta) no es la carpeta principal
       return false;
