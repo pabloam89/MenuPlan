@@ -12,7 +12,8 @@ import {
 
 /**
  * La guía única de redacción de reglas (#493, fondo #488). Falla cuando:
- *  1. un principio no pasa `problemasDeRegla`, o le falta un ejemplo, su fuente o su control;
+ *  1. un principio no pasa `problemasDePrincipio` (sin fuerza: su norma está en ops/normas.json, #620), o le
+ *     falta un ejemplo o su fuente;
  *  2. docs/ops/REDACCION.md no sale del JSON;
  *  3. un catálogo que `cumple` tiene una entrada que no pasa `problemasDeRegla`;
  *  4. un catálogo `pendiente` no lleva su encargo;
@@ -32,8 +33,9 @@ describe("ops/redaccion.json", () => {
     expect(datos.principios.length).toBeGreaterThanOrEqual(MIN_PRINCIPIOS);
     expect(datos.principios.length).toBeLessThanOrEqual(MAX_PRINCIPIOS);
   });
-  it("los topes que cita un principio son los de regla.mjs", () => {
-    const de = (id) => datos.principios.find((p) => p.id === id).exigencia;
+  it("los topes que cita la norma de un principio son los de regla.mjs", () => {
+    const normas = leerJson("ops/normas.json").normas;
+    const de = (id) => normas.find((n) => n.principio === id && n.ambito === "writing").exigencia;
     expect(de("exigencia-corta-y-unica")).toContain(String(LIMITES_REGLA.exigencia.max));
     expect(de("nota-solo-para-el-matiz")).toContain(String(LIMITES_REGLA.nota.max));
     expect(de("nombre-corto-y-nominal")).toContain(`de ${LIMITES_REGLA.nombre.palabras_min} a ${LIMITES_REGLA.nombre.palabras_max} palabras`);
@@ -121,16 +123,17 @@ describe("cada regla se ve fallar con datos malos", () => {
     expect(problemas(d).join("\n"), trozo).toContain(trozo);
   };
   const p0 = (d) => d.principios[0];
-  it("un principio que no pasa problemasDeRegla", () => falla((d) => { p0(d).exigencia = "Escribirse en castellano."; }, "«exigencia»"));
-  it("un principio con texto libre", () => falla((d) => { p0(d).texto = "algo"; }, "«texto» ya no existe"));
+  it("un principio con fuerza en su enunciado", () => falla((d) => { p0(d).enunciado = "Cada regla debe escribirse en castellano."; }, "palabra de fuerza"));
+  it("un principio de dos frases", () => falla((d) => { p0(d).enunciado = "Una regla se escribe en castellano. Y corta."; }, "una sola frase"));
+  it("un principio con texto libre", () => falla((d) => { p0(d).texto = "algo"; }, "campo desconocido «texto»"));
   it("un principio sin ejemplo bueno", () => falla((d) => { delete p0(d).ejemplo_bueno; }, "falta «ejemplo_bueno»"));
   it("un principio sin ejemplo malo", () => falla((d) => { p0(d).ejemplo_malo = ""; }, "«ejemplo_malo»"));
   it("un ejemplo con comillas angulares", () => falla((d) => { p0(d).ejemplo_malo = "Úsala «así» siempre"; }, "sin comillas angulares"));
   it("un principio sin fuente", () => falla((d) => { delete p0(d).fuente; }, "falta «fuente»"));
   it("una fuente sin marca", () => falla((d) => { p0(d).fuente = "https://www.rfc-editor.org/rfc/rfc2119"; }, "[F] con una dirección web"));
   it("una fuente [I] que no existe", () => falla((d) => { p0(d).fuente = "[I] docs/no-existe.md"; }, "que no existe"));
-  it("un control que no existe", () => falla((d) => { p0(d).control = "ops/no-existe.test.js"; }, "no existe"));
-  it("un sujeto fuera del vocabulario", () => falla((d) => { p0(d).sujeto = "coche"; }, "sujeto «coche»"));
+  it("un principio con los campos de regla de antes", () => falla((d) => { p0(d).control = "ops/regla.test.js"; }, "la obligación es de su norma"));
+  it("la guía que vuelve a declarar sujetos", () => falla((d) => { d.sujetos = { regla: { legible: "cada regla de la casa", aplica_a: ["regla"] } }; }, "ya no lleva «sujetos»"));
   it("demasiado pocos principios", () => falla((d) => { d.principios = d.principios.slice(0, 5); }, "hay 5"));
   it("un id repetido", () => falla((d) => { d.principios[1].id = d.principios[0].id; }, "id repetido"));
   it("un catálogo que cumple sin su clave de reglas", () => falla((d) => { d.catalogos[0] = { ...d.catalogos[0], clave_reglas: "reglas_mal" }; }, "no es una lista de reglas"));

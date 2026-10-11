@@ -50,7 +50,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `uniones-antes-de-borrar` | sesion | DEBE | **Uniones antes de borrar.** Cuando borra una carpeta, cada sesión de Claude DEBE quitar antes sus uniones. | script_propio · semidura | test: `scripts/limpiar-worktrees.test.js` | — | `reversibility-decides-autonomy` | code | construir |
 | `linea-runbook` | pr | DEBE | **Línea «Runbook:» del PR.** Cuando toca un dominio, cada PR DEBE llevar la línea «Runbook:». | ci · semidura | test: `scripts/runbook-pr.test.js` | — | `context-in-repo` | process | operar, documentar |
 | `lint-con-linea-base` | codigo | NO DEBE | **Lint con línea base.** El código del producto NO DEBE añadir errores de lint nuevos respecto a la línea base. | ci · semidura | workflow: `.github/workflows/tests.yml` | — | `explicit-over-clever` | code | construir |
-| `principios-auto` | principio | DEBE | **Principios automáticos.** Cuando está marcado [auto], cada principio de datos DEBE comprobarse en el CI. | ci · dura | test: `supabase/principios.test.js` | — | `secure-by-default` | data | construir |
+| `principios-auto` | principio | DEBE | **Principios automáticos.** Cuando está marcado [auto], cada principio de datos DEBE comprobarse en el CI. | ci · dura | test: `supabase/principios.test.js` | — | `highest-mechanism` | data | construir |
 | `tabla-modulo-dueno` | dato | DEBE | **Una tabla, un dueño.** Cuando es una tabla, cada tabla y cada campo de la base DEBE tener un solo módulo dueño. | ci · semidura | test: `supabase/cableado.test.js` | — | `table-has-owner-module` | data | construir, juzgar |
 | `tope-canario` | lola | DEBE | **Tope del canario.** El bot Lola DEBE limitar el canario a 2 por hora y 30 al día. | codigo_en_ejecucion · dura | test: `api/bot/canario.test.js` | — | `bounded-loops-and-timeouts` | bot | construir |
 | `sin-push-forzado` | repo | NO DEBE | **Sin push forzado.** El repositorio NO DEBE admitir push forzado ni borrado de main y staging. | github_regla · dura | planos: sin_push_forzado:main | — | `untamperable-trail` | infra | operar |
@@ -135,13 +135,67 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `json-solo-de-un-escritor` | dato | DEBE | **JSON de un solo escritor.** Cuando un dato se guarda en JSON, cada tabla y cada campo de la base DEBE tener un solo escritor que lo lea y lo escriba entero. | persona · blanda | juicio | — | `json-or-table` | data | construir, juzgar |
 | `escritura-con-version` | dato | DEBE | **Escritura con versión.** Cuando una función nueva escribe el estado compartido de la casa, cada tabla y cada campo de la base DEBE comprobar y subir su versión en vez de reescribir el documento entero. | persona · blanda | juicio | — | `versioned-concurrency` | data | construir, juzgar |
 | `estado-con-saltos-escritos` | dato | DEBE | **Estado con saltos escritos.** Cuando una tabla nueva lleva una columna de estado, cada tabla y cada campo de la base DEBE tener su vocabulario con CHECK, una fecha por estado importante y los saltos permitidos escritos. | persona · blanda | juicio | — | `status-is-state-machine` | data | construir, juzgar |
+| `business-flow-rate-limited` | producto | DEBE | **Flujos de negocio limitados.** Cuando una función puede dañar al negocio si se usa en masa (crear cuentas, comentar, pedir menús), el producto DEBE limitarla por persona o por origen. | persona · blanda | juicio | — | `abuse-of-business-flows-limited` | api | construir, juzgar |
+| `machine-caller-authenticated` | producto | DEBE | **Autenticar a las máquinas.** Cuando quien llama a un endpoint es una máquina (webhook, disparador de la base, cron), el producto DEBE autenticarla con una firma o un secreto compartido comparado en tiempo constante, y responder 401 sin detalle si falta. | persona · blanda | juicio | — | `authenticate-machine-callers` | api | construir, juzgar |
+| `bot-turn-bounded` | lola | DEBE | **Bucles y tiempos acotados.** Cuando encadena pasos o herramientas en un turno, el bot Lola DEBE limitar las vueltas, el tiempo y el tamaño de la entrada. | persona · blanda | juicio | — | `bounded-loops-and-timeouts` | bot | construir, juzgar |
+| `bot-offers-buttons` | lola | DEBE | **Botones y texto libre.** Cuando las opciones son pocas y conocidas, el bot Lola DEBE ofrecer botones además del texto libre. | persona · blanda | juicio | — | `buttons-and-free-text` | bot | construir, juzgar |
+| `bot-marks-estimates` | lola | DEBE | **Calibrar la confianza.** Cuando muestra una respuesta cuya fiabilidad no es pareja, el bot Lola DEBE dejar claro qué es estimado y qué está confirmado, sin inducir confianza ciega. | persona · blanda | juicio | — | `calibrate-not-maximise-trust` | bot | construir, juzgar |
+| `ai-spend-charged-to-caller` | producto | DEBE | **El cupo, a quien llama.** Cuando un endpoint gasta IA, el producto DEBE atribuir el gasto a quien llama y, si no se sabe quién es, darle un cupo pequeño y propio. | persona · blanda | juicio | — | `caller-pays-quota` | api | construir, juzgar |
+| `personal-data-minimised` | producto | DEBE | **Minimización de datos.** Cuando se pide o se guarda un dato personal, el producto DEBE limitarlo a lo necesario para un fin concreto. | persona · blanda | juicio | — | `data-minimisation` | data | construir, juzgar, decidir |
+| `bot-action-undoable` | lola | DEBE | **Corregir y deshacer fácil.** Cuando se equivoca o la persona cambia de idea, el bot Lola DEBE dejar corregir o deshacer lo hecho con un solo gesto. | persona · blanda | juicio | — | `easy-correction-and-undo` | bot | construir, juzgar |
+| `bot-escalates-by-trigger` | lola | DEBE | **Escalado por disparadores escritos.** Cuando la conversación toca un riesgo alto (alergia grave, pagos, datos personales), el bot Lola DEBE seguir un disparador escrito de escalado y pasar el contexto completo. | persona · blanda | juicio | — | `escalate-by-explicit-triggers` | bot | construir, juzgar |
+| `bot-offers-way-out` | lola | DEBE | **Salida cuando se pierde.** Cuando no entiende o falla varias veces seguidas, el bot Lola DEBE admitirlo y ofrecer otra vía: botones, la app o una persona. | persona · blanda | juicio | — | `escape-hatch-when-lost` | bot | construir, juzgar |
+| `bot-explains-data-used` | lola | DEBE | **Explicar el uso de datos.** Cuando personaliza una respuesta con datos de la familia, el bot Lola DEBE decir qué datos usa, para que la persona pueda corregirlos o borrarlos. | persona · blanda | juicio | — | `explain-data-use` | bot | construir, juzgar |
+| `bot-explains-why` | lola | DEBE | **Explicar el porqué.** Cuando toma una decisión que la persona no esperaba, el bot Lola DEBE poder decir por qué en una frase. | persona · blanda | juicio | — | `explain-why` | bot | construir, juzgar |
+| `safety-filter-fails-closed` | producto | DEBE | **Filtro que falla cerrado.** Cuando un filtro de seguridad o de moderación no puede ejecutarse, el producto DEBE retener el contenido para revisión en vez de aprobarlo por defecto. | persona · blanda | juicio | — | `fail-closed-for-safety-filters` | api | construir, juzgar |
+| `improvement-has-fixed-appetite` | decision | DEBE | **Apetito fijo, alcance variable.** Cuando se decide hacer una mejora, cada decisión de producto DEBE fijar antes cuánto tiempo merece y recortar el alcance si no cabe, en vez de estirar el plazo. | persona · blanda | juicio | — | `fixed-appetite-variable-scope` | product | juzgar, decidir |
+| `essentials-work-without-ai` | producto | DEBE | **Degradación elegante.** Cuando el modelo falla, tarda o se agota el cupo, el producto DEBE seguir ofreciendo lo esencial sin IA y decirlo en llano. | persona · blanda | juicio | — | `graceful-degradation` | product | construir, juzgar |
+| `irreversible-action-confirmed` | lola | DEBE | **Confirmación humana en lo grave.** Cuando una acción es irreversible o sale fuera de la casa (borrar, escribir a terceros, comprar), el bot Lola DEBE pedir confirmación explícita a la persona antes de ejecutarla y decirle las consecuencias. | persona · blanda | juicio | — | `human-approval-high-impact` | bot | construir, juzgar |
+| `bot-write-idempotent` | lola | DEBE | **Escrituras repetibles.** Cuando una llamada del bot o de un webhook puede llegar dos veces, el bot Lola DEBE poder repetirse sin escribir ni avisar dos veces. | ci · semidura | test: `api/_bot/idempotencia.test.js` | — | `idempotent-writes` | bot | construir, juzgar |
+| `bot-does-not-reask` | lola | NO DEBE | **No repetir preguntas.** Cuando la persona ya dio un dato en la conversación o en su ficha, el bot Lola NO DEBE volver a pedírselo. | persona · blanda | juicio | — | `keep-context-no-reask` | bot | construir, juzgar |
+| `model-least-privilege` | lola | DEBE | **Mínimo privilegio para el modelo.** Cuando el modelo puede ejecutar herramientas, el bot Lola DEBE darle solo las herramientas y los permisos mínimos, y dejar que la base, no el prompt, decida qué está autorizado. | persona · blanda | juicio | — | `least-privilege-for-the-model` | bot | construir, juzgar |
+| `product-logs-countable-line` | producto | DEBE | **Dejar rastro contable.** Cuando ocurre un fallo, un bloqueo o un gasto relevante, el producto DEBE dejar una línea estructurada que un script pueda contar, sin datos de la familia. | persona · blanda | juicio | — | `log-what-happens` | product | construir, juzgar |
+| `model-output-schema-checked` | producto | DEBE | **Salida del modelo validada.** Cuando la salida de un modelo alimenta código o la base de datos, el producto DEBE validarla con código contra un esquema cerrado antes de usarla. | persona · blanda | juicio | — | `model-output-validated` | bot | construir, juzgar |
+| `bot-not-pretending-human` | lola | NO DEBE | **No hacerse pasar por humano.** Cuando conversa con una persona, el bot Lola NO DEBE hacerse pasar por humano ni exagerar lo que puede hacer. | persona · blanda | juicio | — | `no-pretend-human` | bot | construir, juzgar |
+| `no-secrets-in-prompt-or-client` | producto | NO DEBE | **Secretos fuera del prompt.** Cuando el producto tiene claves o reglas internas, el producto NO DEBE ponerlas en el prompt de un modelo ni en el código que llega al navegador. | persona · blanda | juicio | — | `no-secrets-in-prompts-or-client` | api | construir, juzgar |
+| `no-sensitive-data-asked-in-chat` | lola | NO DEBE | **Sin datos sensibles de más.** Cuando la conversación pasa por un canal de terceros (Telegram, WhatsApp), el bot Lola NO DEBE pedir datos sensibles que no necesita para su tarea. | persona · blanda | juicio | — | `no-sensitive-data-in-chat-by-default` | bot | construir, juzgar |
+| `onboarding-in-stages` | producto | DEBE | **Presentarse por etapas.** Cuando se presentan las funciones a una persona nueva, el producto DEBE hacerlo por etapas cortas, cuando cada función es relevante y con acciones reversibles de poco riesgo. | persona · blanda | juicio | — | `onboard-in-stages` | product | construir, juzgar |
+| `most-private-option-by-default` | producto | DEBE | **Privado por defecto.** Cuando una opción puede exponer datos de una familia, el producto DEBE venir con la opción más privada por defecto. | persona · blanda | juicio | — | `privacy-by-default` | product | construir, juzgar |
+| `data-used-for-its-purpose` | producto | NO DEBE | **Limitación de la finalidad.** Cuando un dato se recogió para un fin, el producto NO DEBE usarlo para otro fin incompatible. | persona · blanda | juicio | — | `purpose-limitation` | data | construir, juzgar, decidir |
+| `error-says-how-to-continue` | producto | DEBE | **Errores recuperables.** Cuando algo falla, el producto DEBE decir en llano qué pasó y cómo seguir, sin códigos crudos. | persona · blanda | juicio | — | `recoverable-errors` | product | construir, juzgar |
+| `bot-narrows-when-unsure` | lola | DEBE | **Acotar ante la duda.** Cuando no está seguro de lo que se le pide, el bot Lola DEBE preguntar o proponer lo más acotado antes de actuar a lo grande. | persona · blanda | juicio | — | `scope-when-in-doubt` | bot | construir, juzgar |
+| `new-table-closed-to-anon` | base | DEBE | **Seguro de serie.** Cuando se crea una tabla nueva, la base de datos de producción DEBE negar su acceso a anon desde el primer momento, sin que nadie tenga que configurarlo. | ci · semidura | test: `supabase/anonPorDefecto.test.js` | — | `secure-by-default` | data | construir, juzgar |
+| `bot-logic-simple-first` | lola | DEBE | **Lo simple primero.** Cuando se diseña la lógica del bot, el bot Lola DEBE empezar por lo más simple y añadir un paso, una herramienta o un agente solo si mejora lo medido. | persona · blanda | juicio | — | `simple-first-agents` | bot | construir, juzgar, decidir |
+| `bot-states-its-limits` | lola | DEBE | **Capacidades y límites visibles.** Cuando una persona empieza a usarlo, el bot Lola DEBE decirle qué sabe hacer, qué no sabe y con qué fiabilidad. | persona · blanda | juicio | — | `state-capabilities-and-limits` | bot | construir, juzgar |
+| `personal-data-expires` | producto | DEBE | **Limitación del plazo.** Cuando un dato personal deja de servir a su fin, el producto DEBE borrarlo o anonimizarlo. | persona · blanda | juicio | — | `storage-limitation` | data | construir, juzgar, decidir |
+| `family-text-is-data` | producto | DEBE | **El texto ajeno es dato.** Cuando un texto de una persona o de un tercero llega a un modelo, el producto DEBE tratarlo como dato delimitado y aparte de las instrucciones, y no como una orden. | persona · blanda | juicio | — | `untrusted-text-is-data` | bot | construir, juzgar |
+| `new-channel-adds-value` | decision | DEBE | **Aportar más que la app.** Cuando se propone un canal o un bot nuevo, cada decisión de producto DEBE comprobar que aporta algo que la app ya no da. | persona · blanda | juicio | — | `use-existing-channel-first` | product | juzgar, decidir |
+| `value-before-signup-shown` | producto | DEBE | **Valor antes del registro.** Cuando alguien llega por primera vez, el producto DEBE dejarle probar el valor antes de pedirle cuenta o datos. | persona · blanda | juicio | — | `value-before-signup` | product | construir, juzgar |
+| `slow-action-shows-status` | producto | DEBE | **Estado visible.** Cuando una acción tarda o sigue en curso, el producto DEBE indicar su estado. | persona · blanda | juicio | — | `visibility-of-status` | product | construir, juzgar |
+| `screen-accessible` | producto | DEBE | **Accesible para todos.** Cuando se diseña una pantalla, el producto DEBE poner texto alternativo a las imágenes, poder usar todo con teclado y cuidar el contraste del texto. | persona · blanda | juicio | — | `wcag-pour` | ui | construir, juzgar |
+| `redaccion-castellano-siempre` | regla | DEBE | **Castellano siempre.** Cada regla de la casa DEBE escribirse en castellano, salvo los nombres propios, el código y las citas. | persona · blanda | juicio | — | `castellano-siempre` | writing | construir, juzgar, documentar |
+| `redaccion-un-termino-por-concepto` | regla | DEBE | **Un término por concepto.** Cada regla de la casa DEBE llamar a cada concepto con su término de ops/glosario/, sin sinónimos. | ci · semidura | test: `ops/glosario.test.js` | — | `un-termino-por-concepto` | writing | construir, juzgar, documentar |
+| `redaccion-sin-anglicismos-con-termino` | regla | NO DEBE | **Sin anglicismos con término.** Cada regla de la casa NO DEBE usar un anglicismo cuando el glosario ya tiene su término en castellano. | ci · semidura | test: `ops/glosario.test.js` | — | `sin-anglicismos-con-termino` | writing | construir, juzgar, documentar |
+| `redaccion-fuerza-segun-rfc-2119` | regla.fuerza | DEBE | **Fuerza según RFC 2119.** La fuerza de cada regla DEBE ser debe, no_debe o conviene, con el sentido de MUST, MUST NOT y SHOULD de RFC 2119. | ci · semidura | test: `ops/regla.test.js` | — | `fuerza-segun-rfc-2119` | writing | construir, juzgar, documentar |
+| `redaccion-mayusculas-solo-normativas` | regla.exigencia | NO DEBE | **Mayúsculas solo normativas.** La exigencia de cada regla NO DEBE llevar DEBE, NO DEBE ni CONVIENE en mayúsculas: la fuerza solo la pone el campo fuerza. | persona · blanda | juicio | — | `mayusculas-solo-normativas` | writing | construir, juzgar, documentar |
+| `redaccion-condicion-estilo-ears` | regla.condicion | DEBE | **Condición estilo EARS.** La condición de cada regla DEBE empezar por «cuando» o «si» y nombrar el disparador, en una línea y sin punto final. | ci · semidura | test: `ops/regla.test.js` | — | `condicion-estilo-ears` | writing | construir, juzgar, documentar |
+| `redaccion-exigencia-en-infinitivo` | regla.exigencia | DEBE | **Exigencia en infinitivo.** La exigencia de cada regla DEBE empezar por un verbo en infinitivo y en minúscula, sin sujeto: el sujeto ya lo pone el campo sujeto. | ci · semidura | test: `ops/regla.test.js` | — | `exigencia-en-infinitivo` | writing | construir, juzgar, documentar |
+| `redaccion-exigencia-sin-punto-final` | regla.exigencia | NO DEBE | **Exigencia sin punto final.** La exigencia de cada regla NO DEBE acabar en punto, dos puntos ni punto y coma, ni ocupar más de una línea. | ci · semidura | test: `ops/regla.test.js` | — | `exigencia-sin-punto-final` | writing | construir, juzgar, documentar |
+| `redaccion-exigencia-corta-y-unica` | regla.exigencia | DEBE | **Exigencia corta y única.** La exigencia de cada regla DEBE caber en 160 caracteres y pedir una sola cosa que se pueda comprobar. | ci · semidura | test: `ops/regla.test.js` | — | `exigencia-corta-y-unica` | writing | construir, juzgar, documentar |
+| `redaccion-nombre-corto-y-nominal` | regla.nombre | DEBE | **Nombre corto y nominal.** El nombre de cada regla DEBE ser un sustantivo de 2 a 5 palabras, con mayúscula inicial y sin punto final. | ci · semidura | test: `ops/regla.test.js` | — | `nombre-corto-y-nominal` | writing | construir, juzgar, documentar |
+| `redaccion-dato-contable-en-campo` | regla.dato | DEBE | **Dato contable en campo.** Cada dato de una regla que se vaya a contar, filtrar o agrupar DEBE ir en un campo de vocabulario cerrado y no en texto libre. | persona · blanda | juicio | — | `dato-contable-en-campo` | writing | construir, juzgar, documentar |
+| `redaccion-nota-solo-para-el-matiz` | regla.nota | DEBE | **Nota solo para el matiz.** La nota de cada regla DEBE recoger solo el matiz, la cifra o la heurística que la exigencia no admite, en una línea de 400 caracteres como mucho. | ci · semidura | test: `ops/regla.test.js` | — | `nota-solo-para-el-matiz` | writing | construir, juzgar, documentar |
+| `redaccion-frases-cortas` | regla.nota | CONVIENE | **Frases cortas.** Para la nota de cada regla, CONVIENE usar frases de menos de 25 palabras y párrafos de cinco frases como mucho. | persona · blanda | juicio | — | `frases-cortas` | writing | construir, juzgar, documentar |
+| `redaccion-fuente-marcada` | regla.fuente | DEBE | **Fuente marcada.** La fuente de cada regla DEBE empezar por [F] con una dirección https, o por [I] con una ruta del repo que exista. | ci · semidura | test: `ops/forja.test.js` | — | `fuente-marcada` | writing | construir, juzgar, documentar |
+| `redaccion-control-declarado` | regla.control | DEBE | **Control declarado.** El control de cada regla DEBE ser el fichero que vigila la regla o el valor juicio, y no quedar vacío. | ci · semidura | test: `ops/forja.test.js` | — | `control-declarado` | writing | construir, juzgar, documentar |
+| `redaccion-catalogo-declara-su-estado` | catalogo.reglas | DEBE | **Catálogo declara su estado.** Cada catálogo de reglas DEBE figurar en la lista de catálogos como cumple, o como pendiente con el encargo que lo pone al día. | ci · semidura | test: `ops/redaccion.test.js` | — | `catalogo-declara-su-estado` | writing | construir, juzgar, documentar |
 
 ## Sujetos
 
 | Sujeto | En la frase | Normas |
 |---|---|---|
-| base | la base de datos de producción | 5 |
-| lola | el bot Lola | 5 |
+| base | la base de datos de producción | 6 |
+| lola | el bot Lola | 22 |
 | endpoint | cada endpoint de la app | 4 |
 | agente | cada agente | 7 |
 | despliegue | cada despliegue a producción | 2 |
@@ -176,6 +230,18 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | metrica | cada métrica que se recoge | 1 |
 | vocabulario | cada vocabulario cerrado | 1 |
 | entidad | cada entidad del proyecto | 1 |
+| producto | el producto | 18 |
+| decision | cada decisión de producto | 2 |
+| regla | cada regla de la casa | 3 |
+| regla.nombre | el nombre de cada regla | 1 |
+| regla.fuerza | la fuerza de cada regla | 1 |
+| regla.condicion | la condición de cada regla | 1 |
+| regla.exigencia | la exigencia de cada regla | 4 |
+| regla.nota | la nota de cada regla | 2 |
+| regla.fuente | la fuente de cada regla | 1 |
+| regla.control | el control de cada regla | 1 |
+| regla.dato | cada dato de una regla que se vaya a contar, filtrar o agrupar | 1 |
+| catalogo.reglas | cada catálogo de reglas | 1 |
 
 ## Ámbitos
 
@@ -183,25 +249,25 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 |---|---|---|
 | code | El código del repo y su forma: tests, lint y ficheros | 10 |
 | infra | Identidades, permisos, secretos, ramas, CI, despliegues, copias y servicios | 29 |
-| data | La base: tablas, migraciones, roles y cada dato que guarda | 29 |
+| data | La base: tablas, migraciones, roles y cada dato que guarda | 33 |
 | catalog | El catálogo de recetas y alimentos que vive en git | 14 |
-| bot | Lola, el bot de mensajería, sus evals y su coste | 5 |
-| api | Las funciones de api/ y lo que protegen | 4 |
-| ui | Las pantallas de la app | 0 |
-| product | Qué hace bien HoMenu y Lola para las familias | 0 |
+| bot | Lola, el bot de mensajería, sus evals y su coste | 24 |
+| api | Las funciones de api/ y lo que protegen | 9 |
+| ui | Las pantallas de la app | 1 |
+| product | Qué hace bien HoMenu y Lola para las familias | 9 |
 | process | Cómo se trabaja: issues, fondos, PR, sesiones, agentes, jueces y cifras | 36 |
-| writing | Cómo se escribe una regla o un principio de la casa | 0 |
+| writing | Cómo se escribe una regla o un principio de la casa | 16 |
 | entities | Cómo se nombra, se identifica y se registra cada cosa del proyecto | 0 |
 
 ## Cómo se comprueban
 
 | Tipo de control | Qué es | Normas |
 |---|---|---|
-| test | Un test del repo que falla en el CI | 77 |
+| test | Un test del repo que falla en el CI | 91 |
 | planos | Un criterio de la medición semanal de ops/planos.json (con red, cada lunes) | 7 |
 | workflow | Un paso de un workflow de GitHub Actions que falla el check | 1 |
 | script | Un script del repo que comprueba y se lanza a mano o en el build | 5 |
-| juicio | El juicio de una persona o de un LLM sobre sus casos: no hay nada que falle solo | 37 |
+| juicio | El juicio de una persona o de un LLM sobre sus casos: no hay nada que falle solo | 77 |
 
 ## Avisos de la guardia
 
@@ -250,4 +316,4 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `aprobar-pr` | `rutas-protegidas-aprobacion-de-dueno` | Aprobar un PR desde una sesión |
 | `token-impreso` | `token-de-sesion-no-se-imprime` | Imprimir el token de la sesión |
 
-Total: 127 normas (rota 2, semidura 53, dura 24, blanda 48) y 42 avisos de la guardia.
+Total: 181 normas (rota 2, semidura 67, dura 24, blanda 88) y 42 avisos de la guardia.

@@ -45,7 +45,7 @@ if (pedido) {
       if (p.origen.length) console.log(`  origen: ${p.origen.join(", ")}`);
     }
     const ns = porPrincipio[p.id] ?? [];
-    const motivo = datos.sin_norma[p.id] ?? datos.delegados[p.area]?.sin_norma?.motivo ?? "sin motivo";
+    const motivo = datos.sin_norma[p.id] ?? "sin motivo";
     console.log(`  normas: ${ns.length ? ns.join(", ") : `ninguna (${motivo})`}`);
   }
 } else {

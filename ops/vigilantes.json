@@ -258,8 +258,8 @@
     },
     {
       "id": "principios-y-uniones",
-      "tests": ["ops/principios.test.js", "ops/uniones.test.js"],
-      "mira": ["ops/principios/**", "ops/normas.json", "ops/principios-producto/**", "ops/redaccion.json", "ops/estandares-agentes.json", "docs/datos/PRINCIPIOS.md", "docs/entidades/N0-principios.md", "CLAUDE.md", "docs/PRINCIPIOS.md", "scripts/lib/principios.mjs"],
+      "tests": ["ops/principios.test.js", "ops/uniones.test.js", "ops/principios-producto.test.js"],
+      "mira": ["ops/principios/**", "ops/normas.json", "ops/principios-producto/**", "ops/redaccion.json", "ops/estandares-agentes.json", "ops/fondos-conocidos.json", "ops/forja/**", "docs/datos/PRINCIPIOS.md", "docs/entidades/N0-principios.md", "CLAUDE.md", "docs/PRINCIPIOS.md", "docs/producto/PRINCIPIOS.md", "scripts/lib/principios.mjs", "scripts/lib/principiosProducto.mjs", "scripts/lib/regla.mjs"],
       "porque": "La lista única de principios compone su catálogo con los de producto y redacción, pide que cada sección numerada de los documentos de datos y del N0 la cite un principio y que «Pensar en datos» de CLAUDE.md nombre ids que existen; y cada norma de ops/normas.json cita un principio de ella y acciones de los estándares. Tocar cualquiera de esas fuentes puede romper la lista o sus uniones.",
       "evidencia": "#619"
     }

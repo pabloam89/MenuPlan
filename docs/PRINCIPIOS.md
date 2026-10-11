@@ -2,9 +2,9 @@
 
 <!-- Generado desde ops/principios/, ops/principios-producto/, ops/redaccion.json con «npm run principios-casa -- --escribir». No se edita a mano: ops/principios.test.js lo compara. -->
 
-La lista única de principios: el porqué de lo que se pide. Tres capas que no se repiten: un **principio** dice por qué; una **norma** (`ops/normas.json`, `docs/ops/NORMAS.md`) dice lo que debe ser verdad, con su control, y cita su principio; un **estándar** de tarea (`ops/estandares-agentes.json`) cita normas. Cada principio lleva sus fuentes (**[F]** una fuente externa lo dice, **[I]** está escrito en la casa, **[S]** inferencia nuestra o fuente secundaria) y, si hay, el detalle donde se desarrolla. Los de producto y redacción viven en su propio catálogo, con su fuerza y su control, y aquí se listan sin copiarse.
+La lista única de principios: el porqué de lo que se pide. Tres capas que no se repiten: un **principio** dice por qué; una **norma** (`ops/normas.json`, `docs/ops/NORMAS.md`) dice lo que debe ser verdad, con su control, y cita su principio; un **estándar** de tarea (`ops/estandares-agentes.json`) cita normas. Cada principio lleva sus fuentes (**[F]** una fuente externa lo dice, **[I]** está escrito en la casa, **[S]** inferencia nuestra o fuente secundaria) y, si hay, el detalle donde se desarrolla. Los de producto y redacción viven en su propio catálogo, sin fuerza como todos, y aquí se listan sin copiarse; sus normas están en el mismo registro que las demás.
 
-Las normas de cada principio: `npm run principios-casa -- <id>`. Un principio propio que aún no cita ninguna norma está en `principios_sin_norma` de `ops/principios/_catalogo.json`, con su motivo; esa lista solo baja, y la de cada catálogo delegado tiene su propio techo.
+Las normas de cada principio: `npm run principios-casa -- <id>`. Un principio que aún no cita ninguna norma está en `principios_sin_norma` de `ops/principios/_catalogo.json`, con su motivo; esa lista solo baja.
 
 ## Cifras
 
@@ -197,132 +197,132 @@ El catálogo de recetas y alimentos que vive en git.
 
 Qué hace bien HoMenu y Lola para las familias.
 
-Lo trae el catálogo delegado `ops/principios-producto/`, con su detalle en `docs/producto/PRINCIPIOS.md`. Los principios de producto con fuente (#606), con su test y la skill principios-de-producto. Los que no cita ninguna norma: Principio de producto con su fuerza y su control en su propio catálogo; su paso a norma va a #620 (techo 32).
+Lo trae el catálogo delegado `ops/principios-producto/`, con su detalle en `docs/producto/PRINCIPIOS.md`. Los principios de producto con fuente (#606), con su test y la skill principios-de-producto; sus normas, en ops/normas.json. Lo que piden con DEBE es una norma de `ops/normas.json` que los cita.
 
-- `abuse-of-business-flows-limited` — **Flujos de negocio limitados.** Cuando una función puede dañar al negocio si se usa en masa (crear cuentas, comentar, pedir menús), el producto DEBE limitarla por persona o por origen.
+- `abuse-of-business-flows-limited` — **Flujos de negocio limitados.** Un flujo de negocio abierto sin límite acaba usado en masa por quien busca hacer spam o abusar de él.
   - Porqué: El spam y el abuso automatizado son el riesgo típico de un flujo abierto, y cuestan dinero o reputación.
   - Fuentes: [F] https://api-security.owasp.org/editions/2023/en/0xa6-unrestricted-access-to-sensitive-business-flows
-- `authenticate-machine-callers` — **Autenticar a las máquinas.** Cuando quien llama a un endpoint es una máquina (webhook, disparador de la base, cron), el producto DEBE autenticarla con una firma o un secreto compartido comparado en tiempo constante, y responder 401 sin detalle si falta.
-  - Porqué: Que no haya una persona detrás no quita la necesidad de credencial: sin ella, cualquiera puede hacerse pasar por el disparador.
+- `authenticate-machine-callers` — **Autenticar a las máquinas.** Una llamada de una máquina sin credencial la puede imitar cualquiera que conozca la dirección.
+  - Porqué: Que no haya una persona detrás no quita la necesidad de credencial, y sin ella cualquiera se hace pasar por el disparador.
   - Fuentes: [F] https://api-security.owasp.org/editions/2023/en/0xa2-broken-authentication/ ; [F] https://docs.stripe.com/webhooks
-- `bounded-loops-and-timeouts` — **Bucles y tiempos acotados.** Cuando encadena pasos o herramientas en un turno, el bot DEBE limitar las vueltas, el tiempo y el tamaño de la entrada.
+- `bounded-loops-and-timeouts` — **Bucles y tiempos acotados.** Un agente que encadena pasos sin tope acumula errores en cada vuelta y gasta sin techo.
   - Porqué: Los errores se acumulan en cada vuelta y el coste no tiene techo.
   - Fuentes: [F] https://www.anthropic.com/engineering/building-effective-agents ; [F] https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/
-- `buttons-and-free-text` — **Botones y texto libre.** Cuando las opciones son pocas y conocidas, el bot DEBE ofrecer botones además del texto libre.
+- `buttons-and-free-text` — **Botones y texto libre.** Cuando las opciones son pocas y conocidas, elegir con un botón cuesta menos que escribir.
   - Porqué: Los usuarios piden opciones ya preparadas y escriben menos.
   - Fuentes: [F] https://www.nngroup.com/articles/chatbots/
-- `calibrate-not-maximise-trust` — **Calibrar la confianza.** Cuando muestra una respuesta cuya fiabilidad no es pareja, el bot DEBE dejar claro qué es estimado y qué está confirmado, sin inducir confianza ciega.
+- `calibrate-not-maximise-trust` — **Calibrar la confianza.** La confianza útil es la calibrada, la que distingue lo estimado de lo confirmado.
   - Porqué: Señalar el posible error baja la confianza en ese dato, pero evita la sobreconfianza después.
   - Fuentes: [F] https://pair.withgoogle.com/chapter/explainability-trust/
-- `caller-pays-quota` — **El cupo, a quien llama.** Cuando un endpoint gasta IA, el producto DEBE atribuir el gasto a quien llama y, si no se sabe quién es, darle un cupo pequeño y propio.
+- `caller-pays-quota` — **El cupo, a quien llama.** El gasto de IA se controla cuando cada llamada se atribuye a quien la hace.
   - Porqué: Sin identidad no se puede limitar por persona, y un cupo compartido deja que un anónimo agote el de todos.
   - Fuentes: [F] https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/ ; [S] https://api-security.owasp.org/editions/2023/en/0xa4-unrestricted-resource-consumption
-- `data-minimisation` — **Minimización de datos.** Cuando se pide o se guarda un dato personal, el producto DEBE limitarlo a lo necesario para un fin concreto.
+- `data-minimisation` — **Minimización de datos.** El dato personal que no se pide ni se guarda no se puede filtrar ni usar mal.
   - Porqué: Lo que no se guarda no se filtra ni se puede usar mal.
   - Fuentes: [F] https://gdpr-info.eu/art-5-gdpr/ ; [F] https://gdpr-info.eu/art-25-gdpr/
-- `easy-correction-and-undo` — **Corregir y deshacer fácil.** Cuando se equivoca o la persona cambia de idea, el bot DEBE dejar corregir o deshacer lo hecho con un solo gesto.
+- `easy-correction-and-undo` — **Corregir y deshacer fácil.** Poder corregir o deshacer con un gesto da a la persona el control de lo que el bot hace.
   - Porqué: El control y la libertad del usuario son una de las heurísticas básicas de usabilidad.
   - Fuentes: [F] https://www.microsoft.com/en-us/research/articles/guidelines-for-human-ai-interaction-eighteen-best-practices-for-human-centered-ai-design/ ; [F] https://www.nngroup.com/articles/ten-usability-heuristics/
-- `escalate-by-explicit-triggers` — **Escalado por disparadores escritos.** Cuando la conversación toca un riesgo alto (alergia grave, pagos, datos personales), el bot DEBE seguir un disparador escrito de escalado y pasar el contexto completo.
+- `escalate-by-explicit-triggers` — **Escalado por disparadores escritos.** Un traspaso con disparadores escritos y el contexto completo protege a la persona en los momentos de riesgo alto.
   - Porqué: Un traspaso vago obliga a la persona a empezar de cero justo cuando más lo necesita.
   - Fuentes: [F] https://www.intercom.com/learning-center/ai-human-collaboration-procedures-handoffs
-- `escape-hatch-when-lost` — **Salida cuando se pierde.** Cuando no entiende o falla varias veces seguidas, el bot DEBE admitirlo y ofrecer otra vía: botones, la app o una persona.
+- `escape-hatch-when-lost` — **Salida cuando se pierde.** Un bot que admite que no entiende y ofrece otra vía conserva la confianza que la repetición destruye.
   - Porqué: Los usuarios valoran que el bot admita que no entiende y penalizan la respuesta repetida, segura pero errónea.
   - Fuentes: [F] https://www.nngroup.com/articles/chatbots/ ; [F] https://www.intercom.com/learning-center/ai-human-collaboration-procedures-handoffs ; [F] https://pair.withgoogle.com/chapter/errors-failing/
-- `explain-data-use` — **Explicar el uso de datos.** Cuando personaliza una respuesta con datos de la familia, el bot DEBE decir qué datos usa, para que la persona pueda corregirlos o borrarlos.
+- `explain-data-use` — **Explicar el uso de datos.** Saber qué datos usa el sistema permite a la persona corregirlos y calibrar su confianza.
   - Porqué: Saber qué sabe el sistema de uno calibra la confianza y permite corregirlo.
   - Fuentes: [F] https://pair.withgoogle.com/chapter/explainability-trust/
-- `explain-why` — **Explicar el porqué.** Cuando toma una decisión que la persona no esperaba, el bot DEBE poder decir por qué en una frase.
+- `explain-why` — **Explicar el porqué.** Una decisión inesperada con su motivo se entiende y se corrige, y sin motivo es opaca.
   - Porqué: Sin motivo, el error es opaco y la persona no puede corregirlo.
   - Fuentes: [F] https://www.microsoft.com/en-us/research/articles/guidelines-for-human-ai-interaction-eighteen-best-practices-for-human-centered-ai-design/ ; [F] https://pair.withgoogle.com/chapter/explainability-trust/
-- `fail-closed-for-safety-filters` — **Filtro que falla cerrado.** Cuando un filtro de seguridad o de moderación no puede ejecutarse, el producto DEBE retener el contenido para revisión en vez de aprobarlo por defecto.
-  - Porqué: Si el filtro falla abierto, en la práctica no hay filtro: basta con agotarlo.
+- `fail-closed-for-safety-filters` — **Filtro que falla cerrado.** Un filtro de seguridad que deja pasar todo cuando falla equivale a no tener filtro.
+  - Porqué: Si el filtro falla abierto, basta con agotarlo o tumbarlo para saltárselo.
   - Fuentes: [S] https://www.cisa.gov/securebydesign ; [S] https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/
-- `fixed-appetite-variable-scope` — **Apetito fijo, alcance variable.** Cuando se decide hacer una mejora, toda decisión de producto DEBE fijar antes cuánto tiempo merece y recortar el alcance si no cabe, en vez de estirar el plazo.
+- `fixed-appetite-variable-scope` — **Apetito fijo, alcance variable.** Una mejora con su tiempo fijado de antemano se recorta en alcance en vez de estirarse en plazo.
   - Porqué: Obliga a separar lo central de lo periférico antes de empezar.
   - Fuentes: [F] https://basecamp.com/shapeup/1.2-chapter-03
-- `graceful-degradation` — **Degradación elegante.** Cuando el modelo falla, tarda o se agota el cupo, el producto DEBE seguir ofreciendo lo esencial sin IA y decirlo en llano.
-  - Porqué: El fallo debería ser seguro y aburrido, no un callejón sin salida.
+- `graceful-degradation` — **Degradación elegante.** Lo esencial del producto sigue funcionando sin IA cuando el modelo falla, tarda o se queda sin cupo.
+  - Porqué: Un fallo seguro y aburrido deja seguir a la persona, y un callejón sin salida la hace abandonar.
   - Fuentes: [F] https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/ ; [F] https://pair.withgoogle.com/chapter/errors-failing/ ; [F] https://pair.withgoogle.com/chapter/mental-models/
-- `hard-spend-cap` — **Límite de gasto en IA.** Cuando un endpoint de api/ llama a un modelo de pago, el producto DEBE pasar por un límite diario global que corte antes de gastar y falle cerrado si no puede contar.
+- `hard-spend-cap` — **Límite de gasto en IA.** Un límite global que corta antes de gastar protege la factura de IA del abuso.
   - Porqué: El abuso puede disparar la factura (denial of wallet) sin que nadie haya entrado en el sistema.
   - Fuentes: [F] https://api-security.owasp.org/editions/2023/en/0xa4-unrestricted-resource-consumption ; [F] https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/
-- `human-approval-high-impact` — **Confirmación humana en lo grave.** Cuando una acción es irreversible o sale fuera de la casa (borrar, escribir a terceros, comprar), el bot DEBE pedir confirmación explícita a la persona antes de ejecutarla y decirle las consecuencias.
+- `human-approval-high-impact` — **Confirmación humana en lo grave.** Una acción irreversible o que sale de la casa se ejecuta solo con la confirmación explícita de la persona.
   - Porqué: El modelo puede equivocarse o ser manipulado, y una acción que no se puede deshacer no admite el error.
   - Fuentes: [F] https://genai.owasp.org/llmrisk/llm062025-excessive-agency/ ; [F] https://www.microsoft.com/en-us/research/articles/guidelines-for-human-ai-interaction-eighteen-best-practices-for-human-centered-ai-design/
-- `idempotent-writes` — **Escrituras repetibles.** Cuando una llamada del bot o de un webhook puede llegar dos veces, el bot DEBE poder repetirse sin escribir ni avisar dos veces.
-  - Porqué: Las redes fallan y los avisos llegan dos veces; sin esto, un reintento duplica efectos.
+- `idempotent-writes` — **Escrituras repetibles.** Una escritura que puede llegar dos veces produce el mismo efecto que si llegara una.
+  - Porqué: Las redes fallan y los avisos llegan dos veces, y sin esto un reintento duplica los efectos.
   - Fuentes: [F] https://docs.stripe.com/api/idempotent_requests
   - Detalle: `docs/datos/PRINCIPIOS.md#19-cada-orden-una-vez`
-- `keep-context-no-reask` — **No repetir preguntas.** Cuando la persona ya dio un dato en la conversación o en su ficha, el bot NO DEBE volver a pedírselo.
+- `keep-context-no-reask` — **No repetir preguntas.** Un dato que la persona ya dio se recuerda en vez de pedirse otra vez.
   - Porqué: En los estudios de NN/g, los bots que repetían preguntas cansaban a la gente.
   - Fuentes: [F] https://www.nngroup.com/articles/chatbots/ ; [F] https://www.microsoft.com/en-us/research/articles/guidelines-for-human-ai-interaction-eighteen-best-practices-for-human-centered-ai-design/
-- `least-privilege-for-the-model` — **Mínimo privilegio para el modelo.** Cuando el modelo puede ejecutar herramientas, el bot DEBE darle solo las herramientas y los permisos mínimos, y dejar que la base, no el prompt, decida qué está autorizado.
+- `least-privilege-for-the-model` — **Mínimo privilegio para el modelo.** El modelo actúa con las herramientas y los permisos mínimos, y es la base quien decide qué está autorizado.
   - Porqué: Una alucinación o una inyección convierten cualquier permiso de más en daño real.
   - Fuentes: [F] https://genai.owasp.org/llmrisk/llm062025-excessive-agency/ ; [F] https://www.anthropic.com/engineering/building-effective-agents
-- `log-what-happens` — **Dejar rastro contable.** Cuando ocurre un fallo, un bloqueo o un gasto relevante, el producto DEBE dejar una línea estructurada que un script pueda contar, sin datos de la familia.
+- `log-what-happens` — **Dejar rastro contable.** Cada fallo, bloqueo o gasto relevante deja una línea que un script puede contar, sin datos de la familia.
   - Porqué: Lo que no se mide no mejora, y el registro sirve también para detectar un uso anómalo.
   - Fuentes: [F] https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/
   - Detalle: `docs/entidades/N0-principios.md#10-un-evento-lleva-campos-fijos`
   - Viene de: C11, claude:cada-cosa-deja-una-linea
-- `model-output-validated` — **Salida del modelo validada.** Cuando la salida de un modelo alimenta código o la base de datos, el producto DEBE validarla con código contra un esquema cerrado antes de usarla.
-  - Porqué: Una salida sin validar es una entrada sin validar: llega a la base con la forma que el modelo quiera.
+- `model-output-validated` — **Salida del modelo validada.** La salida de un modelo es una entrada sin validar hasta que el código la contrasta con un esquema cerrado.
+  - Porqué: Sin validar llega a la base con la forma que el modelo quiera, y un modelo se equivoca o se deja manipular.
   - Fuentes: [F] https://genai.owasp.org/llm-top-10/ ; [F] https://www.anthropic.com/engineering/writing-tools-for-agents
-- `no-pretend-human` — **No hacerse pasar por humano.** Cuando conversa con una persona, el bot NO DEBE hacerse pasar por humano ni exagerar lo que puede hacer.
+- `no-pretend-human` — **No hacerse pasar por humano.** Un bot que se presenta como bot evita que la persona sobrestime lo que puede hacer.
   - Porqué: Los personajes con aire humano hacen sobrestimar al sistema.
   - Fuentes: [F] https://pair.withgoogle.com/chapter/mental-models/
-- `no-secrets-in-prompts-or-client` — **Secretos fuera del prompt.** Cuando el producto tiene claves o reglas internas, el producto NO DEBE ponerlas en el prompt de un modelo ni en el código que llega al navegador.
+- `no-secrets-in-prompts-or-client` — **Secretos fuera del prompt.** Una clave o una regla interna puesta en un prompt o en el código del navegador acaba a la vista de cualquiera.
   - Porqué: Un prompt puede filtrarse y el código del cliente lo ve cualquiera.
   - Fuentes: [F] https://genai.owasp.org/llm-top-10/
-- `no-sensitive-data-in-chat-by-default` — **Sin datos sensibles de más.** Cuando la conversación pasa por un canal de terceros (Telegram, WhatsApp), el bot NO DEBE pedir datos sensibles que no necesita para su tarea.
+- `no-sensitive-data-in-chat-by-default` — **Sin datos sensibles de más.** Un canal de terceros no es sitio para datos sensibles que la tarea no necesita.
   - Porqué: En los estudios de NN/g los usuarios dudaban de dar datos sensibles a un bot, y el canal no es nuestro.
   - Fuentes: [F] https://www.nngroup.com/articles/chatbots/ ; [F] https://gdpr-info.eu/art-25-gdpr/
-- `onboard-in-stages` — **Presentarse por etapas.** Cuando se presentan las funciones a una persona nueva, el producto DEBE hacerlo por etapas cortas, cuando cada función es relevante y con acciones reversibles de poco riesgo.
+- `onboard-in-stages` — **Presentarse por etapas.** Las funciones se aprenden mejor por etapas cortas, cuando cada una es relevante.
   - Porqué: Una lista larga al principio no se retiene.
   - Fuentes: [F] https://pair.withgoogle.com/chapter/mental-models/
-- `privacy-by-default` — **Privado por defecto.** Cuando una opción puede exponer datos de una familia, el producto DEBE venir con la opción más privada por defecto.
-  - Porqué: Los datos no deben quedar accesibles a otros sin que la persona intervenga.
+- `privacy-by-default` — **Privado por defecto.** La opción más privada viene de serie, y exponer datos de una familia pide un paso suyo.
+  - Porqué: Los datos de una familia no quedan a la vista de otros sin que ella intervenga.
   - Fuentes: [F] https://gdpr-info.eu/art-25-gdpr/
-- `public-endpoint-justified` — **Endpoint público justificado.** Cuando un endpoint responde sin sesión, el producto DEBE tener escrito por qué es público y qué lo protege en lugar de la credencial, en un registro de endpoints con motivo.
+- `public-endpoint-justified` — **Endpoint público justificado.** Un endpoint que responde sin sesión lleva escrito por qué es público y qué lo protege.
   - Porqué: Un endpoint sin identidad es un flujo de negocio abierto a cualquiera, y lo que no está inventariado no se protege ni se retira.
   - Fuentes: [F] https://api-security.owasp.org/editions/2023/en/0xa9-improper-inventory-management/ ; [S] https://api-security.owasp.org/editions/2023/en/0xa6-unrestricted-access-to-sensitive-business-flows
-- `purpose-limitation` — **Limitación de la finalidad.** Cuando un dato se recogió para un fin, el producto NO DEBE usarlo para otro fin incompatible.
-  - Porqué: Es la base de la confianza: la familia dio el dato para algo y espera que sea solo para eso.
+- `purpose-limitation` — **Limitación de la finalidad.** Un dato recogido para un fin se usa solo para ese fin.
+  - Porqué: La familia dio el dato para algo y espera que sea solo para eso, y en eso se basa su confianza.
   - Fuentes: [F] https://gdpr-info.eu/art-5-gdpr/
-- `recoverable-errors` — **Errores recuperables.** Cuando algo falla, el producto DEBE decir en llano qué pasó y cómo seguir, sin códigos crudos.
+- `recoverable-errors` — **Errores recuperables.** Un error dicho en llano y con el paso siguiente convierte un fallo en continuidad.
   - Porqué: Un error claro convierte un fallo en continuidad.
   - Fuentes: [F] https://www.nngroup.com/articles/ten-usability-heuristics/ ; [F] https://pair.withgoogle.com/chapter/errors-failing/
-- `scope-when-in-doubt` — **Acotar ante la duda.** Cuando no está seguro de lo que se le pide, el bot DEBE preguntar o proponer lo más acotado antes de actuar a lo grande.
-  - Porqué: Un malentendido pequeño cuesta poco; uno grande, un menú entero estropeado.
+- `scope-when-in-doubt` — **Acotar ante la duda.** Ante la duda, preguntar o proponer lo más acotado cuesta menos que actuar a lo grande.
+  - Porqué: Un malentendido pequeño cuesta poco, y uno grande estropea un menú entero.
   - Fuentes: [F] https://www.microsoft.com/en-us/research/articles/guidelines-for-human-ai-interaction-eighteen-best-practices-for-human-centered-ai-design/
-- `secure-by-default` — **Seguro de serie.** Cuando se crea una tabla nueva, la base de datos DEBE negar su acceso a anon desde el primer momento, sin que nadie tenga que configurarlo.
-  - Porqué: Lo seguro de serie no depende de que alguien se acuerde de activarlo; lo inseguro debe costar un paso consciente.
+- `secure-by-default` — **Seguro de serie.** Lo nuevo nace cerrado, y abrirlo es un paso consciente que no depende de que alguien se acuerde.
+  - Porqué: Lo seguro de serie no depende de la memoria de nadie, y lo inseguro cuesta un paso consciente.
   - Fuentes: [F] https://www.cisa.gov/securebydesign
   - Detalle: `docs/datos/PRINCIPIOS.md#8-seguridad`
-- `simple-first-agents` — **Lo simple primero.** Cuando se diseña la lógica del bot, el bot DEBE empezar por lo más simple y añadir un paso, una herramienta o un agente solo si mejora lo medido.
+- `simple-first-agents` — **Lo simple primero.** La lógica de un bot empieza por lo más simple y crece solo cuando lo medido mejora.
   - Porqué: La complejidad cuesta tokens, errores y mantenimiento, y rara vez se nota en la conversación.
   - Fuentes: [F] https://www.anthropic.com/engineering/building-effective-agents ; [F] https://www.anthropic.com/engineering/writing-tools-for-agents
-- `state-capabilities-and-limits` — **Capacidades y límites visibles.** Cuando una persona empieza a usarlo, el bot DEBE decirle qué sabe hacer, qué no sabe y con qué fiabilidad.
+- `state-capabilities-and-limits` — **Capacidades y límites visibles.** Una persona que sabe qué hace el bot, qué no y con qué fiabilidad ni se frustra ni se fía de más.
   - Porqué: Con expectativas realistas la persona no se frustra ni se fía de lo que el bot no puede hacer.
   - Fuentes: [F] https://www.microsoft.com/en-us/research/articles/guidelines-for-human-ai-interaction-eighteen-best-practices-for-human-centered-ai-design/ ; [F] https://pair.withgoogle.com/chapter/mental-models/
-- `storage-limitation` — **Limitación del plazo.** Cuando un dato personal deja de servir a su fin, el producto DEBE borrarlo o anonimizarlo.
+- `storage-limitation` — **Limitación del plazo.** Un dato personal que ya no sirve a su fin se borra o se anonimiza.
   - Porqué: Lo que se conserva de más es riesgo sin beneficio.
   - Fuentes: [F] https://gdpr-info.eu/art-5-gdpr/
-- `untrusted-text-is-data` — **El texto ajeno es dato.** Cuando un texto de una persona o de un tercero llega a un modelo, el producto DEBE tratarlo como dato delimitado y aparte de las instrucciones, y no como una orden.
+- `untrusted-text-is-data` — **El texto ajeno es dato.** El texto que llega de una persona o de un tercero es dato para el modelo y nunca una orden.
   - Porqué: Quien escribe el texto controla lo que el modelo lee, y el modelo no distingue por sí solo entre dato e instrucción.
   - Fuentes: [F] https://genai.owasp.org/llmrisk/llm01-prompt-injection/
   - Viene de: N5
   - Puente entre ejes: Vale igual en el producto (lo que Lola lee de una familia o de una web) y en el trabajo (issues, webs y mensajes de otros agentes)
-- `use-existing-channel-first` — **Aportar más que la app.** Cuando se propone un canal o un bot nuevo, toda decisión de producto DEBE comprobar que aporta algo que la app ya no da.
+- `use-existing-channel-first` — **Aportar más que la app.** Un canal o un bot nuevo vale la pena solo si aporta algo que la app no da.
   - Porqué: Los bots que solo duplican la web o la app tienen una propuesta de valor débil.
   - Fuentes: [S] https://www.nngroup.com/articles/chatbots/
-- `value-before-signup` — **Valor antes del registro.** Cuando alguien llega por primera vez, el producto DEBE dejarle probar el valor antes de pedirle cuenta o datos.
+- `value-before-signup` — **Valor antes del registro.** Probar el valor antes de dar la cuenta o los datos hace que más gente se quede.
   - Porqué: Retrasar el registro subió la actividad en un caso conocido, según esa fuente.
   - Fuentes: [S] https://taplytics.com/blog/duolingo-ab-test-onboarding
-- `visibility-of-status` — **Estado visible.** Cuando una acción tarda o sigue en curso, el producto DEBE indicar su estado.
+- `visibility-of-status` — **Estado visible.** Una acción lenta que enseña su estado evita que la persona la repita o la abandone.
   - Porqué: Sin estado, la persona repite la acción o abandona.
   - Fuentes: [F] https://www.nngroup.com/articles/ten-usability-heuristics/
-- `wcag-pour` — **Accesible para todos.** Cuando se diseña una pantalla, el producto DEBE poner texto alternativo a las imágenes, poder usar todo con teclado y cuidar el contraste del texto.
+- `wcag-pour` — **Accesible para todos.** Un producto accesible se puede percibir, manejar y entender con cualquier ayuda, también con un lector de pantalla.
   - Porqué: WCAG es el estándar de accesibilidad y llega a más gente, incluida la que usa lector de pantalla.
   - Fuentes: [F] https://www.w3.org/WAI/standards-guidelines/wcag/glance/
 
@@ -383,55 +383,55 @@ Cómo se trabaja: issues, fondos, PR, sesiones, agentes, jueces y cifras.
 
 Cómo se escribe una regla o un principio de la casa.
 
-Lo trae el catálogo delegado `ops/redaccion.json`, con su detalle en `docs/ops/REDACCION.md`. La guía de redacción de reglas (#493), con su test. Los que no cita ninguna norma: Regla de escritura con su fuerza y su control en ops/redaccion.json: se aplica al redactar cada norma (techo 16).
+Lo trae el catálogo delegado `ops/redaccion.json`, con su detalle en `docs/ops/REDACCION.md`. La guía de redacción de reglas (#493), con su test; sus normas (ámbito writing), en ops/normas.json. Lo que piden con DEBE es una norma de `ops/normas.json` que los cita.
 
-- `castellano-siempre` — **Castellano siempre.** Cada regla de la casa DEBE escribirse en castellano, salvo los nombres propios, el código y las citas.
-  - Porqué: Las palabras de fuerza de RFC 2119 se traducen: debe, no debe y conviene; no se deja MUST ni SHOULD
+- `castellano-siempre` — **Castellano siempre.** Las reglas de la casa se escriben en castellano, salvo los nombres propios, el código y las citas.
+  - Porqué: Quien trabaja en el repo lee en castellano, y mezclar idiomas en una regla la hace más difícil de entender.
   - Fuentes: [I] `CLAUDE.md`
-- `un-termino-por-concepto` — **Un término por concepto.** Cada regla de la casa DEBE llamar a cada concepto con su término de ops/glosario/, sin sinónimos.
-  - Porqué: Mezclar sinónimos hace creer que son cosas distintas; el glosario fija una palabra y la lista de las prohibidas
+- `un-termino-por-concepto` — **Un término por concepto.** Cada concepto tiene un solo término, el del glosario de la casa.
+  - Porqué: Mezclar sinónimos hace creer que son cosas distintas, y un término fijo deja contar y buscar.
   - Fuentes: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
-- `sin-anglicismos-con-termino` — **Sin anglicismos con término.** Cada regla de la casa NO DEBE usar un anglicismo cuando el glosario ya tiene su término en castellano.
-  - Porqué: Lo que no tiene término en el glosario (hook, staging, lint) se deja como está y se añade al glosario si se repite
+- `sin-anglicismos-con-termino` — **Sin anglicismos con término.** Un anglicismo sobra cuando el glosario ya tiene su término en castellano.
+  - Porqué: Dos palabras para lo mismo parten la búsqueda y el recuento, y el término castellano lo entiende todo el equipo.
   - Fuentes: [I] `ops/glosario/`
-- `fuerza-segun-rfc-2119` — **Fuerza según RFC 2119.** La fuerza de cada regla DEBE ser debe, no_debe o conviene, con el sentido de MUST, MUST NOT y SHOULD de RFC 2119.
-  - Porqué: Debe y no_debe son absolutas; conviene admite una razón válida para no cumplirla, que se dice en la nota
+- `fuerza-segun-rfc-2119` — **Fuerza según RFC 2119.** La fuerza de una regla se dice con tres palabras de sentido fijo, las de RFC 2119.
+  - Porqué: Sin palabras de fuerza fijas cada autor gradúa la exigencia a su manera, y nadie sabe qué es opcional.
   - Fuentes: [F] https://www.rfc-editor.org/rfc/rfc2119
-- `mayusculas-solo-normativas` — **Mayúsculas solo normativas.** La exigencia de cada regla NO DEBE llevar DEBE, NO DEBE ni CONVIENE en mayúsculas: la fuerza solo la pone el campo fuerza.
-  - Porqué: RFC 8174: las palabras en mayúsculas tienen sentido normativo y las mismas en minúsculas son lenguaje corriente
+- `mayusculas-solo-normativas` — **Mayúsculas solo normativas.** Las palabras de fuerza en mayúsculas tienen sentido normativo y solo las pone el campo de fuerza.
+  - Porqué: RFC 8174 separa el sentido normativo del corriente por las mayúsculas, y escribirlas a mano duplica la fuerza.
   - Fuentes: [F] https://www.rfc-editor.org/rfc/rfc8174
-- `condicion-estilo-ears` — **Condición estilo EARS.** La condición de cada regla DEBE empezar por «cuando» o «si» y nombrar el disparador, en una línea y sin punto final.
-  - Porqué: El test vigila solo que empiece por cuando o si y que vaya en una línea sin punto final; que nombre un disparador es de juicio. EARS (Mavin et al., 2009) pone el disparador delante: «Cuando <disparador>, <sujeto> debe <respuesta>». Una regla que vale siempre no lleva condición
+- `condicion-estilo-ears` — **Condición estilo EARS.** La condición de una regla nombra su disparador con «cuando» o «si», al estilo EARS.
+  - Porqué: EARS fija la forma del disparador para que una regla diga sin ambigüedad cuándo se aplica.
   - Fuentes: [F] https://alistairmavin.com/ears/
-- `exigencia-en-infinitivo` — **Exigencia en infinitivo.** La exigencia de cada regla DEBE empezar por un verbo en infinitivo y en minúscula, sin sujeto: el sujeto ya lo pone el campo sujeto.
-  - Porqué: La frase generada une sujeto, fuerza y exigencia; repetir el sujeto la rompe. Con conviene la frase empieza por «Para <sujeto>,», así que la exigencia tampoco es reflexiva ni pasiva: «usar frases», no «escribirse en frases». El test comprueba la terminación del verbo; que no lleve sujeto es de juicio
+- `exigencia-en-infinitivo` — **Exigencia en infinitivo.** La exigencia de una regla es un verbo en infinitivo que se une al sujeto ya escrito.
+  - Porqué: Con el sujeto en su campo y el verbo en infinitivo, la frase se genera igual en todas las reglas.
   - Fuentes: [I] `scripts/lib/regla.mjs`
-- `exigencia-sin-punto-final` — **Exigencia sin punto final.** La exigencia de cada regla NO DEBE acabar en punto, dos puntos ni punto y coma, ni ocupar más de una línea.
-  - Porqué: La frase generada añade su propio punto; uno más deja dos
+- `exigencia-sin-punto-final` — **Exigencia sin punto final.** La exigencia ocupa una línea sin puntuación final, y la frase la cierra quien la genera.
+  - Porqué: Un punto o un salto de línea dentro de la exigencia rompe la frase generada y la tabla que la recoge.
   - Fuentes: [I] `scripts/lib/regla.mjs`
-- `exigencia-corta-y-unica` — **Exigencia corta y única.** La exigencia de cada regla DEBE caber en 160 caracteres y pedir una sola cosa que se pueda comprobar.
-  - Porqué: El test vigila solo el tope de 160 caracteres; que pida una sola cosa comprobable es de juicio. Si hay dos cosas, son dos reglas, y lo que sobra del tope va a la nota. La guía de requisitos de INCOSE pide lo mismo: un requisito, una necesidad
+- `exigencia-corta-y-unica` — **Exigencia corta y única.** Una exigencia corta pide una sola cosa que se puede comprobar.
+  - Porqué: Una exigencia que pide dos cosas no se puede dar por cumplida ni por rota de una vez.
   - Fuentes: [I] `scripts/lib/regla.mjs`
-- `nombre-corto-y-nominal` — **Nombre corto y nominal.** El nombre de cada regla DEBE ser un sustantivo de 2 a 5 palabras, con mayúscula inicial y sin punto final.
-  - Porqué: El test vigila el número de palabras, la mayúscula inicial y el punto final; que sea un sustantivo es de juicio. Es una sola idea, la forma de la etiqueta con la que se cita la regla, y no se repite en el catálogo
+- `nombre-corto-y-nominal` — **Nombre corto y nominal.** El nombre de una regla es un sustantivo corto que la identifica en una tabla.
+  - Porqué: Un nombre corto y nominal se lee de un vistazo y no repite la exigencia.
   - Fuentes: [I] `scripts/lib/regla.mjs`
-- `dato-contable-en-campo` — **Dato contable en campo.** Cada dato de una regla que se vaya a contar, filtrar o agrupar DEBE ir en un campo de vocabulario cerrado y no en texto libre.
-  - Porqué: El texto libre solo se admite en un hueco declarado, y el hueco se cuenta aparte; lo que no es un campo discreto no se puede contar
+- `dato-contable-en-campo` — **Dato contable en campo.** Lo que se va a contar, filtrar o agrupar vive en un campo de vocabulario cerrado.
+  - Porqué: Un dato metido en texto libre no se puede contar ni filtrar sin releerlo a mano.
   - Fuentes: [I] `CLAUDE.md`
-- `nota-solo-para-el-matiz` — **Nota solo para el matiz.** La nota de cada regla DEBE recoger solo el matiz, la cifra o la heurística que la exigencia no admite, en una línea de 400 caracteres como mucho.
-  - Porqué: El test vigila solo la forma (una línea, 15 a 400 caracteres); que la nota sea un matiz y no la exigencia es de juicio: si quitarla cambia lo que se exige, esa parte va en la exigencia o en otra regla
+- `nota-solo-para-el-matiz` — **Nota solo para el matiz.** La nota de una regla guarda el matiz, la cifra o la heurística que la exigencia no admite.
+  - Porqué: Una nota que repite la exigencia o la amplía en prosa vuelve a meter la ambigüedad que los campos quitaron.
   - Fuentes: [I] `scripts/lib/regla.mjs`
-- `frases-cortas` — **Frases cortas.** Para la nota de cada regla, CONVIENE usar frases de menos de 25 palabras y párrafos de cinco frases como mucho.
-  - Porqué: Vale también para la prosa de las guías y las skills; los topes de palabras son de la casa, no de la fuente
+- `frases-cortas` — **Frases cortas.** Las frases cortas y los párrafos breves se leen y se entienden a la primera.
+  - Porqué: Las guías de lenguaje claro observan que una frase larga se entiende peor y se relee más.
   - Fuentes: [F] https://www.plainlanguage.gov/guidelines/
-- `fuente-marcada` — **Fuente marcada.** La fuente de cada regla DEBE empezar por [F] con una dirección https, o por [I] con una ruta del repo que exista.
-  - Porqué: [F] está en una fuente externa; [I] es inferencia o decisión de la casa. Que la dirección [F] responda lo mide npm run forja -- --urls. Lo vigila forja.test.js en los criterios y redaccion.test.js en estos principios
+- `fuente-marcada` — **Fuente marcada.** Cada regla dice de dónde sale, una fuente externa o una ruta de la casa, con su marca.
+  - Porqué: Sin la fuente marcada no se sabe si una regla es un hecho comprobado o una decisión nuestra.
   - Fuentes: [I] `docs/ops/FORJA.md`
-- `control-declarado` — **Control declarado.** El control de cada regla DEBE ser el fichero que vigila la regla o el valor juicio, y no quedar vacío.
-  - Porqué: Una regla sin control es un deseo: si no hay fichero todavía, se declara juicio y se apunta el encargo que lo construye. Lo vigila forja.test.js en los criterios y redaccion.test.js en estos principios
+- `control-declarado` — **Control declarado.** Cada regla nombra lo que la vigila, un fichero que falla o el juicio de alguien.
+  - Porqué: Una regla sin control declarado parece vigilada aunque nadie la mire.
   - Fuentes: [I] `CLAUDE.md`
-- `catalogo-declara-su-estado` — **Catálogo declara su estado.** Cada catálogo de reglas DEBE figurar en la lista de catálogos como cumple, o como pendiente con el encargo que lo pone al día.
-  - Porqué: La lista de pendientes solo baja: un catálogo nuevo nace cumpliendo la guía
+- `catalogo-declara-su-estado` — **Catálogo declara su estado.** Cada catálogo de reglas declara si ya sigue la guía o qué encargo lo pone al día.
+  - Porqué: Sin estado declarado, un catálogo a medias pasa por uno que cumple y la deuda no se ve.
   - Fuentes: [I] `ops/redaccion.json`
 
 ## Entidades (`entities`)

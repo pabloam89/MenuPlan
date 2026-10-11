@@ -1,9 +1,6 @@
 {
-  "$comentario": "Principios de producto con fuente (#606): lo que hacen bien los mejores productos y chatbots, para decidir, recomendar y diseñar con una base escrita. Un fichero por principio en principios/ (#505), cada uno con la plantilla de regla de scripts/lib/regla.mjs y la guía de ops/redaccion.json, más area, porque, ejemplo bueno y malo, y fuentes ({ url, marca }: F la fuente lo dice, S es inferencia nuestra o fuente secundaria; la I es de la casa y aquí no se usa, #620). El control es un fichero que existe y de verdad vigila lo que dice, o juicio. Los ids y los valores, en inglés (decisión de Pablo del 11 oct 2026, ops/DECISIONES.md); los textos, en castellano. Lo lee scripts/lib/principiosProducto.mjs, lo vigila ops/principios-producto.test.js y de él sale docs/producto/PRINCIPIOS.md (npm run principios -- --escribir). Un principio nuevo es un fichero nuevo en principios/ con su fuente; la skill principios-de-producto dice cómo. Repo público: nada de cómo se salta un control.",
+  "$comentario": "Principios de producto con fuente (#606): lo que hacen bien los mejores productos y chatbots, para decidir, recomendar y diseñar con una base escrita. Un fichero por principio en principios/ (#505). Desde #620 cada principio es el porqué, sin fuerza: la plantilla de principio de scripts/lib/regla.mjs (nombre, enunciado y porque de una frase) más area, ejemplo bueno y malo, y fuentes ({ url, marca }: F la fuente lo dice, S es inferencia nuestra o fuente secundaria; la I es de la casa y aquí no se usa). Lo que el principio pide con DEBE es una norma de ops/normas.json que lo cita, con su control: el texto no se copia en dos sitios. Los ids y los valores, en inglés (decisión de Pablo del 11 oct 2026, ops/DECISIONES.md); los textos, en castellano. Lo lee scripts/lib/principiosProducto.mjs, lo vigila ops/principios-producto.test.js (y ops/uniones.test.js, que cada principio tenga su norma) y de él sale docs/producto/PRINCIPIOS.md con las normas de cada principio (npm run principios -- --escribir). Un principio nuevo es un fichero nuevo en principios/ con su fuente y su norma; la skill principios-de-producto dice cómo. Repo público: nada de cómo se salta un control.",
   "version": 1,
-  "artefactos": [
-    "principio"
-  ],
   "areas": {
     "trust-safety": {
       "legible": "confianza y seguridad",
@@ -36,32 +33,6 @@
     "scope": {
       "legible": "alcance",
       "que": "Qué merece hacerse, cuánto y por qué canal"
-    }
-  },
-  "sujetos": {
-    "product": {
-      "legible": "el producto",
-      "aplica_a": [
-        "principio"
-      ]
-    },
-    "bot": {
-      "legible": "el bot",
-      "aplica_a": [
-        "principio"
-      ]
-    },
-    "database": {
-      "legible": "la base de datos",
-      "aplica_a": [
-        "principio"
-      ]
-    },
-    "decision": {
-      "legible": "toda decisión de producto",
-      "aplica_a": [
-        "principio"
-      ]
     }
   },
   "principios": {

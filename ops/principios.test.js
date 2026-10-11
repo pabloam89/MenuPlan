@@ -188,13 +188,13 @@ describe("se ven fallar", () => {
     expect(problemasDePrincipios(c, componerLista(c, delegados).principios, ctx).join("\n")).toMatch(/repetido con/);
   });
 
-  it("un anexo con un puente vacío o un delegado sin su techo", () => {
+  it("un anexo con un puente vacío o un delegado que vuelve a traer su techo sin norma", () => {
     const c = structuredClone(propio);
     c.anexos["untrusted-text-is-data"].puente = "corto";
     expect(problemasDePrincipios(c, componerLista(c, delegados).principios, ctx).join("\n")).toMatch(/«puente» dice en una línea/);
     const d = structuredClone(propio);
-    delete d.delegados.product.sin_norma;
-    expect(problemasDePrincipios(d, componerLista(d, delegados).principios, ctx).join("\n")).toMatch(/delegado «product»: «sin_norma» lleva su motivo y su techo/);
+    d.delegados.product.sin_norma = { motivo: "Principio de producto con su fuerza en su catálogo", techo: 3 };
+    expect(problemasDePrincipios(d, componerLista(d, delegados).principios, ctx).join("\n")).toMatch(/delegado «product»: ya no lleva «sin_norma»/);
   });
 
   it("un anexo a un principio que no existe o a uno propio", () => {

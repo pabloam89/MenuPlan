@@ -89,10 +89,10 @@ export const CLASES_DERIVADOS = {
 export const DERIVADOS = [
   { ruta: "docs/ops/FORJA.md", clase: "documento", source: "ops/forja/ (criterios, tipos de skill y campos)", regenera: "scripts/forja.mjs", test: "ops/forja.test.js" },
   { ruta: ".claude/plantillas-skill/*.md", clase: "documento", source: "ops/forja/ y .claude/PLANTILLA-SKILL.md", regenera: "scripts/plantillas.mjs", test: ".claude/plantillas-skill.test.js" },
-  { ruta: "docs/ops/REDACCION.md", clase: "documento", source: "ops/redaccion.json", regenera: "scripts/redaccion.mjs", test: "ops/redaccion.test.js" },
+  { ruta: "docs/ops/REDACCION.md", clase: "documento", source: "ops/redaccion.json y ops/normas.json", regenera: "scripts/redaccion.mjs", test: "ops/redaccion.test.js" },
   { ruta: "docs/ops/NORMAS.md", clase: "documento", source: "ops/normas.json y .claude/hooks/avisos-guardia.mjs", regenera: "scripts/normas.mjs", test: "ops/normas.test.js" },
   { ruta: "docs/ops/ESTANDARES.md", clase: "documento", source: "ops/estandares-agentes.json", regenera: "scripts/estandares-agentes.mjs", test: "ops/estandares-agentes.test.js" },
-  { ruta: "docs/producto/PRINCIPIOS.md", clase: "documento", source: "ops/principios-producto/", regenera: "scripts/principios.mjs", test: "ops/principios-producto.test.js" },
+  { ruta: "docs/producto/PRINCIPIOS.md", clase: "documento", source: "ops/principios-producto/ y ops/normas.json", regenera: "scripts/principios.mjs", test: "ops/principios-producto.test.js" },
   { ruta: "docs/PRINCIPIOS.md", clase: "documento", source: "ops/principios/, ops/principios-producto/ y ops/redaccion.json", regenera: "scripts/principios-casa.mjs", test: "ops/principios.test.js" },
   { ruta: "docs/ops/ENCARGO.md", clase: "documento", source: "scripts/lib/issues.mjs", regenera: "scripts/flujo.mjs", test: "scripts/encargo.test.js" },
   { ruta: "ops/forja-capas.json", clase: "ancla", source: "ops/forja/ (el ancla guarda las capas ya vistas)", regenera: "scripts/forja.mjs", test: "ops/forja.test.js" },

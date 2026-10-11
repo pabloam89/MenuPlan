@@ -57,6 +57,10 @@
       "entity": "data-source",
       "reason": "el catálogo de Mercadona es una fuente concreta"
     },
+    "catalogo.reglas": {
+      "kind": "outside",
+      "reason": "un catálogo de reglas es un fichero de ops/ con su lector y su test; sin entidad propia"
+    },
     "ci.rojo": {
       "kind": "type_of",
       "entity": "event",
@@ -69,6 +73,11 @@
     "dato": {
       "kind": "outside",
       "reason": "palabra genérica: cada dato es de una entidad concreta"
+    },
+    "decision": {
+      "kind": "type_of",
+      "entity": "decision",
+      "reason": "una decisión de producto es un tipo de decisión"
     },
     "despliegue": {
       "kind": "entity",
@@ -269,6 +278,10 @@
       "entity": "environment",
       "reason": "producción es un entorno concreto"
     },
+    "producto": {
+      "kind": "outside",
+      "reason": "el producto entero (la app y Lola): no es una entidad del registro, sino el conjunto"
+    },
     "prompt": {
       "kind": "outside",
       "reason": "prompt del producto o de la factoría de Lola: fuera de este ataque"
@@ -297,6 +310,42 @@
     "registro": {
       "kind": "outside",
       "reason": "palabra genérica: es la noción misma de registro de este N0"
+    },
+    "regla": {
+      "kind": "outside",
+      "reason": "palabra genérica: una regla de la casa es una norma, un criterio de la forja, una obligación del flujo o una regla de estándar, y cada una tiene su entidad"
+    },
+    "regla.condicion": {
+      "kind": "outside",
+      "reason": "parte de una regla de la casa: palabra genérica: una regla de la casa es una norma, un criterio de la forja, una obligación del flujo o una regla de estándar, y cada una tiene su entidad"
+    },
+    "regla.control": {
+      "kind": "outside",
+      "reason": "parte de una regla de la casa: palabra genérica: una regla de la casa es una norma, un criterio de la forja, una obligación del flujo o una regla de estándar, y cada una tiene su entidad"
+    },
+    "regla.dato": {
+      "kind": "outside",
+      "reason": "parte de una regla de la casa: palabra genérica: una regla de la casa es una norma, un criterio de la forja, una obligación del flujo o una regla de estándar, y cada una tiene su entidad"
+    },
+    "regla.exigencia": {
+      "kind": "outside",
+      "reason": "parte de una regla de la casa: palabra genérica: una regla de la casa es una norma, un criterio de la forja, una obligación del flujo o una regla de estándar, y cada una tiene su entidad"
+    },
+    "regla.fuente": {
+      "kind": "outside",
+      "reason": "parte de una regla de la casa: palabra genérica: una regla de la casa es una norma, un criterio de la forja, una obligación del flujo o una regla de estándar, y cada una tiene su entidad"
+    },
+    "regla.fuerza": {
+      "kind": "outside",
+      "reason": "parte de una regla de la casa: palabra genérica: una regla de la casa es una norma, un criterio de la forja, una obligación del flujo o una regla de estándar, y cada una tiene su entidad"
+    },
+    "regla.nombre": {
+      "kind": "outside",
+      "reason": "parte de una regla de la casa: palabra genérica: una regla de la casa es una norma, un criterio de la forja, una obligación del flujo o una regla de estándar, y cada una tiene su entidad"
+    },
+    "regla.nota": {
+      "kind": "outside",
+      "reason": "parte de una regla de la casa: palabra genérica: una regla de la casa es una norma, un criterio de la forja, una obligación del flujo o una regla de estándar, y cada una tiene su entidad"
     },
     "repo": {
       "kind": "part_of",
