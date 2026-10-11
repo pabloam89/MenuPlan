@@ -214,8 +214,11 @@ export const RECORDATORIO = "[pendientes] Tu último mensaje deja decisiones o p
 //
 // Clase: toda afirmación de estado dada de memoria o de un resumen y no de la
 // fuente en ese momento (un issue «abierto» que ya estaba cerrado). Este freno
-// mira, al terminar, si el mensaje final cuenta el estado de un issue o PR y si
-// la sesión leyó la fuente en los últimos 15 minutos; si no, frena una vez.
+// mira, al terminar, si el mensaje final cuenta el estado de un issue o PR (y, desde
+// #579, de un despliegue, de la base de datos o del CI: TEMAS_ESTADO) y si la sesión
+// leyó la fuente de ESE tema en los últimos 15 minutos; si no, frena una vez por turno.
+// Los subagentes siguen fuera (nota de #579: su informe llega a la sesión como resultado
+// de una herramienta y el Stop de un subagente es otro evento; ver el informe del encargo).
 //
 // ES SEMIDURO: lee TEXTO (como el fondo #174). Un mensaje que cuenta el estado
 // sin `#n` junto a la palabra, o con otra palabra de estado, se escapa (falso
@@ -241,23 +244,107 @@ const NUM = "(?<![\\w.:/])#\\d+(?!\\w)";
 const ESTADO_ANTES = new RegExp(`\\b(?:${PALABRA_ESTADO}).{0,60}${NUM}`);
 const ESTADO_DESPUES = new RegExp(`${NUM}.{0,60}\\b(?:${PALABRA_ESTADO})\\b`);
 
+/**
+ * Los temas de estado que se vigilan (vocabulario cerrado, #579 / C9 de la auditoría de agentes):
+ * issues y PR (el original de #462), despliegue, base de datos y CI. Cada uno tiene sus
+ * frases (AFIRMA) y sus lecturas válidas (`temasQueLee`). Un tema nuevo se añade en los dos
+ * sitios, aquí y en `TEMAS_ESTADO` de eventos.mjs (lo cruza el test).
+ */
+export const TEMAS_ESTADO = ["issues-pr", "despliegue", "base", "ci"];
+
+const sinAcentos = (t) => String(t ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+
 /** ¿Cuenta el mensaje el estado de algún issue o PR? (`#n` y palabra de estado en la misma línea, fuera de bloques de código) */
-export function afirmaEstado(texto) {
-  const limpio = String(texto ?? "").replace(/```[\s\S]*?```/g, "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+function afirmaIssuesPr(texto) {
+  const limpio = sinAcentos(String(texto ?? "").replace(/```[\s\S]*?```/g, ""));
   return limpio.split("\n").some((l) => ESTADO_ANTES.test(l) || ESTADO_DESPUES.test(l));
 }
 
-const ES_SITUACION = /^(?:\w+=\S+\s+)*(?:npm\s+run\s+(?:--silent\s+)?situacion|node\s+["']?(?:[A-Za-z]:)?(?:\.?[\\/])?(?:[\w.-]+[\\/])*scripts[\\/]situacion\.mjs)(?![\w.-])/;
+// Frases de los temas nuevos (sin acentos, en minúsculas). A propósito estrechas: el freno
+// cuesta una vuelta a la sesión, así que solo frases de estado presente («está desplegado»,
+// «la migración está aplicada», «el CI está verde»), no el nombre suelto de la cosa.
+const DESPLEGADO = [
+  /\b(?:esta|estan|queda|quedan|quedo)\s+(?:ya\s+)?desplegad[oa]s?\b/,
+  /\bya\s+(?:esta|estan)\s+en\s+(?:produccion|prod|staging)\b/,
+  /\bdespliegue\b.{0,40}\b(?:esta|sigue|quedo)\b.{0,20}\b(?:ready|listo|bloqueado|blocked|fallando|fallido|en error|en curso|verde|rojo)\b/,
+];
+const APLICADA = "(?:esta|estan|queda|quedan)\\s+(?:ya\\s+)?(?:aplicad[oa]s?|sin aplicar|pendientes? de aplicar)";
+const MIGRACION = "(?:migracion(?:es)?|\\b0\\d{3}\\b)";
+const BASE = [
+  new RegExp(`${MIGRACION}.{0,40}\\b${APLICADA}\\b`),
+  new RegExp(`\\b${APLICADA}\\b.{0,40}${MIGRACION}`),
+  /\bla\s+base(?:\s+de\s+datos)?\s+(?:ya\s+)?(?:tiene|no\s+tiene|contiene|guarda|esta\s+(?:vacia|llena))\b/,
+  /\ben\s+produccion\s+hay\s+\d/,
+];
+const CI = [
+  /\bci\b.{0,40}\b(?:verde|rojo|pasa|pasan|paso|falla|fallan|fallo|en curso)\b/,
+  /\b(?:verde|rojo)\b.{0,20}\bel\s+ci\b/,
+  /\bchecks?\b.{0,40}\b(?:verde|rojo|pasan|pasa|fallan|falla|en curso|pendientes)\b/,
+];
+/** Líneas que hablan del futuro o de esperar («cuando el CI esté verde», «espera al CI»): no cuentan un estado. */
+const CONDICIONAL = /\b(?:cuando|hasta que|esper\w+|en cuanto|una vez que|si el|para que)\b[^.]{0,50}\b(?:ci|checks?)\b/;
+
+/** Para los temas nuevos: sin bloques ni trozos de código, y sin citas (líneas que empiezan por «>»). */
+function lineasSinCodigo(texto) {
+  return sinAcentos(String(texto ?? "").replace(/```[\s\S]*?```/g, "").replace(/`[^`\n]*`/g, " "))
+    .split("\n").filter((l) => !/^\s*>/.test(l));
+}
+
+/** Los temas de estado que cuenta el mensaje, en el orden de TEMAS_ESTADO. */
+export function temasAfirmados(texto) {
+  const lineas = lineasSinCodigo(texto);
+  const alguna = (res, descarta) => lineas.some((l) => !(descarta && descarta.test(l)) && res.some((r) => r.test(l)));
+  return TEMAS_ESTADO.filter((t) => ({
+    "issues-pr": () => afirmaIssuesPr(texto),
+    despliegue: () => alguna(DESPLEGADO),
+    base: () => alguna(BASE),
+    ci: () => alguna(CI, CONDICIONAL),
+  })[t]());
+}
+
+/** ¿Cuenta el mensaje el estado de algo vigilado (issue o PR, despliegue, base o CI)? */
+export function afirmaEstado(texto) {
+  return temasAfirmados(texto).length > 0;
+}
+
+const orden = (cuerpo) => new RegExp(`^(?:\\w+=\\S+\\s+)*(?:${cuerpo})`);
+const script = (nombre) => `node\\s+["']?(?:[A-Za-z]:)?(?:\\.?[\\\\/])?(?:[\\w.-]+[\\\\/])*scripts[\\\\/]${nombre}\\.mjs(?![\\w.-])`;
+const ES_SITUACION = orden(`npm\\s+run\\s+(?:--silent\\s+)?situacion(?![\\w.-])|${script("situacion")}`);
 const ES_LECTURA_GH = /^(?:\w+=\S+\s+)*gh\s+(?:issue\s+(?:view|list|status)|pr\s+(?:view|list|checks|status|diff))\b/;
 const ES_GH_API = /^(?:\w+=\S+\s+)*gh\s+api\b/;
+const ES_GH_RUN = /^(?:\w+=\S+\s+)*gh\s+(?:run\s+(?:list|view|watch)|workflow\s+(?:list|view))\b/;
+const ES_ESPERA_CI = orden(`npm\\s+run\\s+(?:--silent\\s+)?espera-ci(?![\\w.-])|${script("espera-ci")}`);
+const ES_VERIFICAR = orden(`npm\\s+run\\s+(?:--silent\\s+)?verificar-estado(?![\\w.-])|${script("verificar-estado")}`);
+const ES_CONSULTA = orden(`npm\\s+run\\s+(?:--silent\\s+)?consulta(?![\\w.-])|${script("consulta")}`);
+const ES_APPLY = orden(script("apply-migration"));
+const ES_VERCEL = /^(?:\w+=\S+\s+)*(?:npx\s+)?vercel\s+(?:ls|list|inspect|logs)\b/;
+const ES_GIT_ORIGIN = /^(?:\w+=\S+\s+)*git\s+(?:-C\s+\S+\s+)?(?:(?:log|show|rev-list|merge-base|cherry|diff|ls-remote|rev-parse)\b.*\borigin\b|branch\b.*\s(?:-r|-a|--remotes|--all)\b)/;
+/** Las herramientas de lectura del conector de Vercel (MCP): despliegues y logs; nada que escriba. */
+const ES_MCP_VERCEL = /^mcp__.*vercel.*__(?:list_deployments|get_deployment|get_deployment_build_logs|get_runtime_logs|get_runtime_errors)$/i;
 
-/** ¿Es esta orden una LECTURA de la fuente? Lo que escribe (`--nuevo`, `-X POST`, `-f`) o solo nombra (`grep`, `echo`) no cuenta. */
-function leeLaFuente(orden) {
-  if (ES_SITUACION.test(orden)) return true;
-  if (ES_ISSUES.test(orden)) return !/--(?:nuevo|colgar|ordenar|etiquetas)\b/.test(orden);
-  if (ES_LECTURA_GH.test(orden)) return true;
-  if (ES_GH_API.test(orden)) return !/(?:-X|--method)\s*=?\s*(?!GET\b)\S+|\s-[fF]\b|--(?:raw-)?field\b|--input\b/i.test(orden);
-  return false;
+const gh_api_lee = (o) => !/(?:-X|--method)\s*=?\s*(?!GET\b)\S+|\s-[fF]\b|--(?:raw-)?field\b|--input\b/i.test(o);
+
+/**
+ * Los temas para los que esta orden es una LECTURA de la fuente. Lo que escribe (`--nuevo`,
+ * `-X POST`, `-f`) o solo nombra (`grep`, `echo`) no cuenta. `situacion` lee PR y checks;
+ * `gh pr checks` y `gh run` leen el CI y los despliegues; `verificar-estado`, `consulta` y
+ * `apply-migration` (ensayo o real: su salida dice si está aplicada) leen la base.
+ */
+function temasQueLee(o) {
+  const t = new Set();
+  if (ES_SITUACION.test(o)) ["issues-pr", "ci"].forEach((x) => t.add(x));
+  if (ES_ISSUES.test(o) && !/--(?:nuevo|colgar|ordenar|etiquetas)\b/.test(o)) t.add("issues-pr");
+  if (ES_LECTURA_GH.test(o)) {
+    t.add("issues-pr");
+    if (/^(?:\w+=\S+\s+)*gh\s+pr\s+(?:view|checks|status)\b/.test(o)) ["ci", "despliegue"].forEach((x) => t.add(x));
+  }
+  if (ES_GH_API.test(o) && gh_api_lee(o)) TEMAS_ESTADO.filter((x) => x !== "base").forEach((x) => t.add(x));
+  if (ES_GH_RUN.test(o)) ["ci", "despliegue"].forEach((x) => t.add(x));
+  if (ES_ESPERA_CI.test(o)) t.add("ci");
+  if (ES_VERCEL.test(o) || ES_GIT_ORIGIN.test(o)) t.add("despliegue");
+  if (ES_VERIFICAR.test(o) || ES_APPLY.test(o)) t.add("base");
+  if (ES_CONSULTA.test(o) && !/--admin\b[\s\S]*\b(?:insert|update|delete|drop|alter|truncate)\b/i.test(o)) t.add("base");
+  return t;
 }
 
 /** Lo que el sistema mete como mensaje de usuario sin que Pablo escriba nada (avisos de tareas, salidas de comandos, recordatorios). */
@@ -283,29 +370,46 @@ function esMensajeDePablo(e) {
  */
 export function estadoSinLeer(jsonl, ultimo, ahora = new Date()) {
   let turno = null;
-  let hayLectura = false;
-  let fresca = false;
+  const hay = new Set();
+  const frescas = new Set();
+  const lee = (e, temas) => {
+    const t = Date.parse(e.timestamp);
+    const fresca = Number.isNaN(t) || ahora.getTime() - t <= MINUTOS_FRESCA * 60_000;
+    for (const x of temas) {
+      hay.add(x);
+      if (fresca) frescas.add(x);
+    }
+  };
   filasDe(jsonl).forEach((e, i) => {
     if (!e) return;
     const partes = Array.isArray(e.message?.content) ? e.message.content : null;
     if (e.type === "user" && esMensajeDePablo(e)) turno = String(e.uuid ?? `l${i}`);
     if (e.type !== "assistant" || !partes) return;
     for (const p of partes) {
-      if (p.type !== "tool_use" || !/^(?:Bash|PowerShell)$/.test(p.name) || !p.input?.command) continue;
-      if (!ordenesDe(p.input.command).some(leeLaFuente)) continue;
-      hayLectura = true;
-      const t = Date.parse(e.timestamp);
-      if (Number.isNaN(t) || ahora.getTime() - t <= MINUTOS_FRESCA * 60_000) fresca = true;
+      if (p.type !== "tool_use") continue;
+      if (ES_MCP_VERCEL.test(String(p.name))) lee(e, ["despliegue"]);
+      if (!/^(?:Bash|PowerShell)$/.test(p.name) || !p.input?.command) continue;
+      for (const o of ordenesDe(p.input.command)) lee(e, temasQueLee(o));
     }
   });
-  if (!afirmaEstado(ultimo) || fresca) return { frena: false, motivo: null, turno };
-  return { frena: true, motivo: hayLectura ? "lectura-vieja" : "sin-lectura", turno };
+  const tema = temasAfirmados(ultimo).find((t) => !frescas.has(t));
+  if (!tema) return { frena: false, motivo: null, tema: null, turno };
+  return { frena: true, motivo: hay.has(tema) ? "lectura-vieja" : "sin-lectura", tema, turno };
 }
 
+/** Qué se cuenta, y con qué se lee, en el aviso de cada tema. */
+const AVISO_TEMA = {
+  "issues-pr": { de: "un issue o PR", cmd: "npm run situacion" },
+  despliegue: { de: "un despliegue", cmd: "vercel ls (o gh run list, o git log origin/staging)" },
+  base: { de: "la base de datos", cmd: "node scripts/verificar-estado.mjs (o npm run consulta)" },
+  ci: { de: "el CI", cmd: "gh pr checks <n> (o gh run list)" },
+};
+
 /** El mensaje del freno, con una línea `campo: valor` que un script puede contar. */
-export function recordatorioDeEstado(motivo) {
-  return "[estado] Tu mensaje cuenta el estado de un issue o PR y en esta sesión no hay una lectura de la fuente de los últimos "
-    + `${MINUTOS_FRESCA} minutos: antes de contar el estado, ejecuta \`npm run situacion\` y cita su hora. `
+export function recordatorioDeEstado(motivo, tema = "issues-pr") {
+  const a = AVISO_TEMA[tema] ?? AVISO_TEMA["issues-pr"];
+  return `[estado] Tu mensaje cuenta el estado de ${a.de} y en esta sesión no hay una lectura de la fuente de los últimos `
+    + `${MINUTOS_FRESCA} minutos: antes de contar el estado, ejecuta \`${a.cmd}\` y cita su hora. `
     + "Si lo que dijiste no era una afirmación de estado, di en una línea por qué y termina: este aviso no vuelve a salir en este turno.\n"
     + `estado-fresco freno motivo: ${motivo}`;
 }
@@ -354,7 +458,7 @@ if (esPrincipal) {
     }
     // El estado fresco (#462): solo la sesión principal, un freno por turno y nunca si ya frenó otro.
     if (!frenado && !entrada.agent_id && !entrada.agent_type) {
-      const { frena, motivo, turno } = estadoSinLeer(transcript, mirar.ultimo);
+      const { frena, motivo, tema, turno } = estadoSinLeer(transcript, mirar.ultimo);
       const { dirFabrica, registrarEvento } = await import("./eventos.mjs");
       // La marca del estado vive en la carpeta de la fábrica (fuera de tmp, que es de todos); las otras dos no se mueven.
       const dirMarcas = join(dirFabrica(), "marcas");
@@ -363,9 +467,9 @@ if (esPrincipal) {
       const yaFrenado = existsSync(marcaEstado) && readFileSync(marcaEstado, "utf8") === String(turno);
       if (frena && !yaFrenado) {
         writeFileSync(marcaEstado, String(turno));
-        // Solo se registra un motivo del vocabulario cerrado (si no, el freno sale igual pero sin evento).
-        if (MOTIVOS_ESTADO.includes(motivo)) registrarEvento({ evento: "estado_sin_leer", nombre: motivo, fuente: "pendientes", sesion: entrada.session_id, cwd: entrada.cwd });
-        process.stdout.write(JSON.stringify({ decision: "block", reason: recordatorioDeEstado(motivo) }));
+        // Solo se registra un motivo del vocabulario cerrado (y su tema, que eventos.mjs valida) (si no, el freno sale igual pero sin evento).
+        if (MOTIVOS_ESTADO.includes(motivo)) registrarEvento({ evento: "estado_sin_leer", nombre: motivo, tema, fuente: "pendientes", sesion: entrada.session_id, cwd: entrada.cwd });
+        process.stdout.write(JSON.stringify({ decision: "block", reason: recordatorioDeEstado(motivo, tema) }));
       }
     }
   } catch {

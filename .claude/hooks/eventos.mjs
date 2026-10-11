@@ -37,6 +37,8 @@ import { join } from "node:path";
 import { numeroDeRama } from "../../scripts/lib/lleva.mjs";
 
 export const EVENTOS = ["skill_cargada", "agente_lanzado", "bloqueo_guardia", "permiso_pedido", "estado_sin_leer", "aviso_guardia"];
+/** De qué iba la afirmación de un `estado_sin_leer` (#579); lo cruza el test con los temas de pendientes.mjs. */
+export const TEMAS_ESTADO = ["issues-pr", "despliegue", "base", "ci"];
 /** Quién escribe el evento: el hook que llama a `registrarEvento`. */
 export const FUENTES = ["guardia", "skill-abierta", "pendientes"];
 /** La identidad de la App de sesiones; cualquier otra (la de Pablo) no se nombra: el actor queda null. */
@@ -48,7 +50,7 @@ export const actorDe = (env = process.env) => (env.GIT_AUTHOR_NAME === ACTOR_APP
 // `aviso_guardia` (guardia.mjs, #506): un aviso que no bloquea (hoy, el de zona con otra rama); el
 // fichero y la rama van a su propio registro (`zonas.log`, .claude/hooks/zonas.mjs), no aquí.
 // `estado_sin_leer` (pendientes.mjs, #462): el freno de afirmar el estado de un issue o PR sin leer la
-// fuente; `nombre` es el motivo (`sin-lectura` o `lectura-vieja`).
+// fuente; `nombre` es el motivo (`sin-lectura` o `lectura-vieja`) y `tema` de qué iba (TEMAS_ESTADO).
 
 /**
  * Tamaño a partir del cual el fichero se rota (la copia anterior se pisa), así
@@ -65,6 +67,8 @@ const SESION_OK = /^[\w-]{6,80}$/;
 const RAMA_OK = /^[\w./-]{1,120}$/;
 const NOMBRE_OK = /^[\w:.-]{1,60}$/;
 const CODIGO_OK = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+/** Lo que parece una clave y no un nombre (#579, C11): un prefijo de token o 32 letras y cifras seguidas. */
+const OPACO = /[A-Za-z0-9]{32,}|(?:^|[^A-Za-z0-9])(?:ops_|sk-|ghp_|gho_|ghs_|github_pat_|xox[bp]-|eyJ)/;
 
 /** La rama de una carpeta, o null. Solo se llama cuando hay un evento que anotar. */
 function ramaDe(cwd) {
@@ -79,13 +83,13 @@ function ramaDe(cwd) {
  * La línea de un evento, o null si no vale (evento fuera del vocabulario, nombre
  * raro). Pura: `ahora` y `rama` entran por argumento.
  */
-export function lineaDeEvento({ evento, nombre, codigo, sesion, rama, fuente, actor }, ahora = new Date(), id = randomUUID()) {
-  if (!EVENTOS.includes(evento) || typeof nombre !== "string" || !NOMBRE_OK.test(nombre)) return null;
-  const r = typeof rama === "string" && RAMA_OK.test(rama) ? rama : null;
+export function lineaDeEvento({ evento, nombre, codigo, tema, sesion, rama, fuente, actor }, ahora = new Date(), id = randomUUID()) {
+  if (!EVENTOS.includes(evento) || typeof nombre !== "string" || !NOMBRE_OK.test(nombre) || OPACO.test(nombre)) return null;
+  const r = typeof rama === "string" && RAMA_OK.test(rama) && !OPACO.test(rama) ? rama : null;
   return {
     id,
     ts: ahora.toISOString(),
-    sesion: typeof sesion === "string" && SESION_OK.test(sesion) ? sesion : null,
+    sesion: typeof sesion === "string" && SESION_OK.test(sesion) && !OPACO.test(sesion) ? sesion : null,
     fuente: FUENTES.includes(fuente) ? fuente : null,
     actor: actor === ACTOR_APP ? ACTOR_APP : null,
     rama: r,
@@ -93,6 +97,8 @@ export function lineaDeEvento({ evento, nombre, codigo, sesion, rama, fuente, ac
     evento,
     nombre,
     ...(typeof codigo === "string" && codigo.length <= 60 && CODIGO_OK.test(codigo) ? { codigo } : {}),
+    // Solo en `estado_sin_leer`: de qué iba la afirmación (vocabulario cerrado).
+    ...(evento === "estado_sin_leer" && TEMAS_ESTADO.includes(tema) ? { tema } : {}),
   };
 }
 
