@@ -13,7 +13,7 @@ Una **entidad** es una cosa con id estable y definición propia. Tiene un **eje*
 - **vertical**: el producto HoMenu (casas, recetas, menús, Lola).
 - **bridge** (puente): lo que cruza los dos. Se define una vez y los dos ejes la usan igual.
 
-Hoy hay 40 entidades: 21 horizontales, 9 verticales y 10 puentes.
+Hoy hay 41 entidades: 22 horizontales, 9 verticales y 10 puentes.
 Las verticales llevan solo id y nombre fiables: su detalle queda fuera de esta fase.
 Los ids van en inglés (decisión de Pablo del 11 oct 2026); los nombres y las notas, en castellano.
 
@@ -73,6 +73,7 @@ Qué es cada uno en cada lado:
 | `pull-request` | PR | horizontal | pr | ninguna | without_registry |
 | `branch` | Rama | horizontal | rama | ninguna | without_registry |
 | `vocabulary` | Vocabulario | horizontal | vocabulario | `ops/vocabularios-vida.json` | partial |
+| `principle` | Principio | horizontal | principio | `ops/principios/_catalogo.json` | with_registry |
 
 ```mermaid
 flowchart LR
@@ -97,6 +98,7 @@ flowchart LR
     pull_request["PR"]
     branch["Rama"]
     vocabulary["Vocabulario"]
+    principle["Principio"]
     session -->|works_in| branch
     session -->|uses| identity
     identity -->|belongs_to| team_member
@@ -105,6 +107,7 @@ flowchart LR
     secret -->|belongs_to| service
     norm -->|enforced_by| mechanism
     norm -->|refers_to| issue
+    norm -->|cites| principle
     rule -->|enforced_by| hook
     mechanism -->|uses| vocabulary
     pull_request -->|closes| issue

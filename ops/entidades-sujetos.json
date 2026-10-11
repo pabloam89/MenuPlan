@@ -261,9 +261,8 @@
       "reason": "primitivo del producto o de la factoría de Lola: fuera de este ataque"
     },
     "principio": {
-      "kind": "type_of",
-      "entity": "rule",
-      "reason": "un principio de PRINCIPIOS.md es una regla de la base"
+      "kind": "entity",
+      "entity": "principle"
     },
     "produccion": {
       "kind": "instance_of",

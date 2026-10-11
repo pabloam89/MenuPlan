@@ -13,8 +13,9 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { AMBITOS } from "./ambitos.mjs";
 import { VEREDICTOS } from "./escalas.mjs";
-import { CONTROL_JUICIO, FUERZAS, fraseDeRegla, problemasDeRegla, problemasDeSujetos } from "./regla.mjs";
+import { CONTROL_JUICIO, FUERZAS, ID_KEBAB, fraseDeRegla, problemasDeRegla, problemasDeSujetos } from "./regla.mjs";
 
 /** Quién hace cumplir la norma. Los cinco primeros son «del sistema»: no dependen de que alguien se acuerde. */
 export const EJECUTORES = {
@@ -55,21 +56,8 @@ export const RIESGOS = {
   bajo: "Molesta, se ve enseguida y se arregla",
 };
 
-/**
- * El ámbito de una norma (#619): de qué parte del trabajo es. Con `acciones` (las de
- * ops/estandares-agentes.json: construir, juzgar…), decide qué normas recibe el estándar de una
- * tarea (#620). Vive aquí y se ancla en ops/vocabularios-vida.json (`normas.ambito`).
- */
-export const AMBITOS = {
-  codigo: "El código del repo en general: tests, lint y forma de los ficheros",
-  infra: "Git, ramas, CI, despliegues, secretos, permisos y servicios",
-  datos: "La base: tablas, migraciones, roles, copias y vocabularios",
-  catalogo: "El catálogo de recetas y alimentos que vive en git",
-  bot: "Lola, el bot de mensajería, sus evals y su coste",
-  api: "Las funciones de api/ y lo que protegen",
-  ui: "Las pantallas de la app",
-  proceso: "Cómo se trabaja: issues, fondos, PR, sesiones, agentes y skills",
-};
+/** El ámbito de una norma (#619): el vocabulario único de scripts/lib/ambitos.mjs, el mismo que el área de un principio. */
+export { AMBITOS };
 
 /**
  * Cómo se comprueba una norma (#494). `prueba` dice si es una comprobación que falla sola: solo
@@ -148,7 +136,7 @@ export function problemasDeForma(n, sujetos) {
   const id = n?.id ?? "(sin id)";
   for (const c of CAMPOS) if (!(c in n)) malos.push(`${id}: falta «${c}»`);
   for (const c of Object.keys(n)) if (!CAMPOS.includes(c) && !CAMPOS_OPCIONALES.includes(c)) malos.push(`${id}: campo desconocido «${c}»`);
-  if (typeof n.id !== "string" || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(n.id)) malos.push(`${id}: el id va en minúsculas con guiones`);
+  if (typeof n.id !== "string" || !ID_KEBAB.test(n.id)) malos.push(`${id}: el id va en minúsculas con guiones`);
   malos.push(...problemasDeRegla(n, id, sujetos));
   if (!Array.isArray(n.donde) || !n.donde.length) malos.push(`${id}: «donde» es una lista de rutas`);
   const vocab = [["ejecutor", EJECUTORES], ["alcance", ALCANCES], ["ante_fallo", ANTE_FALLO], ["veredicto", VEREDICTOS], ["riesgo", RIESGOS], ["control_tipo", CONTROL_TIPOS]];
@@ -156,7 +144,7 @@ export function problemasDeForma(n, sujetos) {
   malos.push(...problemasDeControl(n, id));
   if (n.issue !== null && !Number.isInteger(n.issue)) malos.push(`${id}: «issue» es un número o null`);
   // La unión con su principio (#619): que el principio exista lo mira ops/uniones.test.js, que lee la lista.
-  if (typeof n.principio !== "string" || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(n.principio)) malos.push(`${id}: «principio» es el id de un principio de docs/PRINCIPIOS.md`);
+  if (typeof n.principio !== "string" || !ID_KEBAB.test(n.principio)) malos.push(`${id}: «principio» es el id de un principio de docs/PRINCIPIOS.md`);
   if (!(n.ambito in AMBITOS)) malos.push(`${id}: ambito «${n.ambito}» no está en el vocabulario (${Object.keys(AMBITOS).join(", ")})`);
   // Que cada acción sea de ops/estandares-agentes.json lo mira ops/uniones.test.js: su lector arrastra
   // child_process y este módulo está en el grafo de un hook que no puede traerlo (buscar-antes).
@@ -336,7 +324,7 @@ export function generarMd(registro, avisos) {
   L.push("", "## Sujetos", "", "| Sujeto | En la frase | Normas |", "|---|---|---|");
   for (const [id, s] of Object.entries(sujetos)) L.push(`| ${id} | ${s.legible} | ${normas.filter((n) => n.sujeto === id).length} |`);
   L.push("", "## Ámbitos", "", "| Ámbito | Qué es | Normas |", "|---|---|---|");
-  for (const [id, que] of Object.entries(AMBITOS)) L.push(`| ${id} | ${celda(que)} | ${normas.filter((n) => n.ambito === id).length} |`);
+  for (const [id, a] of Object.entries(AMBITOS)) L.push(`| ${id} | ${celda(a.que)} | ${normas.filter((n) => n.ambito === id).length} |`);
   L.push("", "## Cómo se comprueban", "", "| Tipo de control | Qué es | Normas |", "|---|---|---|");
   for (const [id, t] of Object.entries(CONTROL_TIPOS)) L.push(`| ${id} | ${celda(t.que)} | ${normas.filter((n) => n.control_tipo === id).length} |`);
   L.push("", "## Avisos de la guardia", "", "| Aviso | Norma | Qué se niega |", "|---|---|---|");

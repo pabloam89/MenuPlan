@@ -34,6 +34,9 @@ export const LIMITES_REGLA = {
   rubrica: { min: 20 },
 };
 
+/** Un id en minúsculas con guiones (kebab): el de una norma, un principio o una regla. Un solo sitio (#619). */
+export const ID_KEBAB = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+
 /** El valor de `control` cuando no lo vigila un fichero sino un juicio. */
 export const CONTROL_JUICIO = "juicio";
 

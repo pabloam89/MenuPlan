@@ -368,6 +368,17 @@
       "note": "56 vocabularios y 327 valores anclados. Hay constantes duplicadas (MESES en 4 sitios, dos ESTADOS_CRITERIO con valores distintos)."
     },
     {
+      "id": "principle",
+      "name": "Principio",
+      "axis": "horizontal",
+      "term": "principio",
+      "source_of_truth": "ops/principios/_catalogo.json",
+      "id_format": "kebab",
+      "registry": "with_registry",
+      "status": "active",
+      "note": "La lista única (#619): los propios en ops/principios/ y los de producto y redacción leídos de su catálogo (delegados). La norma cita su principio en el campo principio."
+    },
+    {
       "id": "household",
       "name": "Casa",
       "axis": "vertical",
@@ -468,6 +479,13 @@
     }
   ],
   "relations": [
+    {
+      "from": "norm",
+      "relation": "cites",
+      "to": "principle",
+      "stored_as": "field",
+      "stored_in": "principio"
+    },
     {
       "from": "session",
       "relation": "works_in",

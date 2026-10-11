@@ -47,8 +47,7 @@ import { leerForja } from "./forja.mjs";
 import { CLASES, ESTADOS_TERMINO, plano } from "./glosario.mjs";
 import { GRUPOS, TIPOS_ACCION } from "./issues.mjs";
 import { CAUSAS_EXCEPCION, ROLES_CAMPO, TIPOS_LECTOR, UNIDADES } from "./metricas.mjs";
-import { AMBITOS } from "./normas.mjs";
-import { leerCatalogoPropio } from "./principios.mjs";
+import { AMBITOS } from "./ambitos.mjs";
 import { VEREDICTOS_RUIDO } from "./ruido.mjs";
 import { VOCABULARIOS as PRODUCTO } from "../../src/lib/vocabularios.js";
 
@@ -82,9 +81,8 @@ export const VOCABULARIOS = {
   "metricas.rol_campo": { fichero: "scripts/lib/metricas.mjs", textos: conTexto(ROLES_CAMPO) },
   "metricas.causa_excepcion": { fichero: "scripts/lib/metricas.mjs", textos: conTexto(CAUSAS_EXCEPCION) },
   "ruido.veredicto": { fichero: "scripts/lib/ruido.mjs", textos: conTexto(VEREDICTOS_RUIDO) },
-  // La lista única de principios y las normas (#619): el área de un principio y el ámbito de una norma.
-  "principios.area": { fichero: "scripts/lib/principios.mjs", textos: () => Object.fromEntries(Object.entries(leerCatalogoPropio(RAIZ).areas).map(([k, a]) => [k, a.que])) },
-  "normas.ambito": { fichero: "scripts/lib/normas.mjs", textos: conTexto(AMBITOS) },
+  // El área de un principio y el ámbito de una norma (#619): un solo vocabulario, en scripts/lib/ambitos.mjs.
+  ambitos: { fichero: "scripts/lib/ambitos.mjs", textos: () => Object.fromEntries(Object.entries(AMBITOS).map(([k, a]) => [k, a.que])) },
   // El registro de entidades (#566): sus valores van a ops/entidades.json y a ops/entidades-sujetos.json.
   "entidades.axis": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(AXES) },
   "entidades.registry": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(REGISTRIES) },

@@ -363,6 +363,32 @@ describe("el glosario traduce a inglés", () => {
   });
 });
 
+/**
+ * Términos del glosario de clase artefacto con traducción (`en`) que aún no son entidad, con su motivo.
+ * Solo baja (#619): un artefacto con nombre inglés es una cosa con id estable y va al registro.
+ */
+export const ARTEFACTOS_SIN_ENTIDAD = {
+  entity: "la entidad es la unidad del propio registro, no una entidad registrada en él",
+};
+
+/** Los términos de clase artefacto con `en` que no tienen su entidad ni están en `fuera`. */
+export function artefactosSinEntidad(g, datos, fuera = ARTEFACTOS_SIN_ENTIDAD) {
+  const ids = new Set(datos.entities.map((e) => e.id));
+  return g.terminos.filter((t) => t.estado !== "retirado" && t.clase === "artefacto" && t.en && !ids.has(t.en) && !(t.en in fuera)).map((t) => t.en);
+}
+
+describe("cada artefacto del glosario con traducción es una entidad (#619)", () => {
+  it("ninguno se queda sin entidad, salvo los de ARTEFACTOS_SIN_ENTIDAD, y esa lista es verdad", () => {
+    expect(artefactosSinEntidad(G, DATOS)).toEqual([]);
+    const ids = new Set(DATOS.entities.map((e) => e.id));
+    expect(Object.keys(ARTEFACTOS_SIN_ENTIDAD).filter((en) => ids.has(en))).toEqual([]);
+  });
+  it("se ve fallar: quitar la entidad principle la deja sin entidad", () => {
+    const sin = { ...DATOS, entities: DATOS.entities.filter((e) => e.id !== "principle") };
+    expect(artefactosSinEntidad(G, sin)).toEqual(["principle"]);
+  });
+});
+
 describe("autotest: cada regla falla con datos malos", () => {
   const con = (cambio) => { const d = copia(); cambio(d, d.entities[0]); return problemas(d, { existe, glosario: G }).join("\n"); };
 
