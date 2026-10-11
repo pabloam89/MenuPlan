@@ -48,7 +48,7 @@ import { pintarMenuEntero, filtrosTrasGenerar, filtrosTrasCambiar, sinEtiquetas 
 import { fechasDe, CUANDOS } from "./cuando.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, IDS_PLATOS } from "../../src/lib/comidas.js";
 import { KITCHEN_TOOL_IDS } from "../../src/lib/electrodomesticos.js";
-import { NIVEL_COCINA, RITMO_COCINA, ETAPA_BEBE, DONDE_COME } from "../../src/lib/vocabularios.js";
+import { NIVEL_COCINA, RITMO_COCINA, ETAPA_BEBE, DONDE_COME, CANAL, paraEscribir } from "../../src/lib/vocabularios.js";
 import { ESQUEMA_DE_FUERA } from "./deFuera.js";
 import { verDespensa, anadirDespensa } from "./despensa.js";
 import { guardarMenuCole, verMenuCole } from "./cole.js";
@@ -393,7 +393,7 @@ function herramientasDeFotos(householdId) {
 function herramientasDeTareas(chat) {
   const obj = (properties, required = []) => ({ type: "object", properties, required, additionalProperties: false });
   // Se lee al ejecutar, no al montar: userId, las abiertas y la casa llegan con el turno.
-  const contexto = (llamada) => ({ householdId: chat.householdId, channel: chat.channel ?? "telegram", chatId: chat.chatId, userId: chat.userId ?? null, privado: !chat.esGrupo, autor: chat.autor ?? null, papel: chat.papel ?? null, idem: llamada?.toolUse?.id ?? null });
+  const contexto = (llamada) => ({ householdId: chat.householdId, channel: chat.channel ?? CANAL.TELEGRAM, chatId: chat.chatId, userId: chat.userId ?? null, privado: !chat.esGrupo, autor: chat.autor ?? null, papel: chat.papel ?? null, idem: llamada?.toolUse?.id ?? null });
   const referencia = { type: "string", description: "La referencia de 8 caracteres que sale entre corchetes en «Tareas abiertas de la casa»." };
   const persona = (que) => ({ type: "string", description: `${que}: el nombre de alguien de la casa, tal cual.` });
   return [
@@ -440,7 +440,7 @@ function herramientasDeRecordatorios(chat) {
       description: "Olvida lo hablado hasta ahora en este chat y empieza una charla nueva, cuando lo pidan («olvida lo que hemos hablado», «empecemos de nuevo»). NO borra la casa, el menú ni la compra: díselo así.",
       inputSchema: obj({}),
       run: async () => {
-        await cortarCharla(chat.channel ?? "telegram", chat.chatId, chat.householdId);
+        await cortarCharla(chat.channel ?? CANAL.TELEGRAM, chat.chatId, chat.householdId);
         return "Hecho: a partir de ahora no recuerdas lo hablado antes. La casa, el menú y la compra siguen igual.";
       },
     }),
@@ -571,7 +571,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
       name: "anadir_comensal",
       description: "Añade a alguien que vive y come en casa (no un invitado puntual).",
       inputSchema: obj({ nombre: { type: "string" }, edad: { type: "integer", minimum: 0, maximum: 120 } }, ["nombre"]),
-      run: (args) => anadirComensal(householdId, args, { channel: chat.channel ?? "telegram", chatId: chat.chatId, userId: chat.userId ?? null }),
+      run: (args) => anadirComensal(householdId, args, { channel: chat.channel ?? CANAL.TELEGRAM, chatId: chat.chatId, userId: chat.userId ?? null }),
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "ajustar_persona",
@@ -845,7 +845,7 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
  */
 export async function cortarCharla(channel, chatId, householdId) {
   await insert("bot_messages", [{
-    channel, chat_id: String(chatId), household_id: householdId, role: "user", author_id: null,
+    channel: paraEscribir("canales", channel), chat_id: String(chatId), household_id: householdId, role: "user", author_id: null,
     content: { texto: "", corte: true },
   }]);
 }
@@ -983,7 +983,10 @@ export function conQuienEscribe(ficha, papel, idioma = null) {
  *   este turno (sin bots ni anónimos): de ahí sale su papel en la casa
  *   (papel.js). Sin ellos, como alguien sin cuenta: solo consulta.
  */
-export async function responder({ channel = "telegram", chatId, householdId, texto, autor, esGrupo, desde = [], adjunto = null, alEscribir = null, puerta = null, signal = null, pista = null }) {
+export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId, texto, autor, esGrupo, desde = [], adjunto = null, alEscribir = null, puerta = null, signal = null, pista = null }) {
+  // El canal se valida al entrar, antes de pagar el modelo: uno que no es de CANALES falla aquí
+  // y no al guardar la memoria, con la respuesta ya pagada.
+  const canal = paraEscribir("canales", channel);
   const entrada = esGrupo && autor ? `[${autor}]: ${texto}` : texto;
   // `adjunto` va también a las herramientas: la foto del plato de una receta
   // solo existe en el turno en que llega (apartar_foto_plato, preparar_receta).
@@ -1155,8 +1158,8 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   // que lee memoria(); author_id solo duplicaba el nombre de Telegram sin lector.
   const guardado = Promise.all([
     insert("bot_messages", [
-      { channel, chat_id: String(chatId), household_id: householdId, role: "user", author_id: null, content: { texto: adjunto ? `[${adjunto.tipo === "document" ? "PDF" : "foto"}] ${entrada}` : entrada } },
-      { channel, chat_id: String(chatId), household_id: householdId, role: "assistant", author_id: null, content: { texto: respuesta, pendientes: pendientesNuevas } },
+      { channel: canal, chat_id: String(chatId), household_id: householdId, role: "user", author_id: null, content: { texto: adjunto ? `[${adjunto.tipo === "document" ? "PDF" : "foto"}] ${entrada}` : entrada } },
+      { channel: canal, chat_id: String(chatId), household_id: householdId, role: "assistant", author_id: null, content: { texto: respuesta, pendientes: pendientesNuevas } },
     ]).catch((e) => console.error("[agente] memoria", e?.message)),
     // a propósito: es una señal del embudo; no toca la charla
     segundaSemana(householdId).catch(seguirCon("agente_segunda_semana")),

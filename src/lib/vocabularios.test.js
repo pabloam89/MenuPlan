@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { VOCABULARIOS, vocabulario, TIPOS_GRUPO, RETIRADOS, ENVASES, crearEscritor, FueraDeVocabulario } from "./vocabularios.js";
+import { VOCABULARIOS, vocabulario, TIPOS_GRUPO, RETIRADOS, ENVASES, CANAL, IDIOMA, CANALES, IDIOMAS, crearEscritor, FueraDeVocabulario } from "./vocabularios.js";
 import { REGISTRO_CAMPOS, TIPOS_CAMPO, POLITICAS, POR, APLICA, CAMPOS_PREGUNTABLES, VOCABULARIOS_PENDIENTES } from "./registroCampos.js";
 
 // Enums cuya lista aún no existe: deuda a la vista, que solo puede bajar.
@@ -7,7 +7,8 @@ const ENUM_SIN_LISTA = [];
 import { CAMPOS, ENUMS } from "./registroTareas.js";
 import { DAYS } from "./planner.js";
 import { PACK_KINDS, ETIQUETAS_ENVASE } from "./packUnits.js";
-import { COLUMNAS, escritores, asignacionesSinFiltro, literalesSueltos, valoresVigilados } from "../../scripts/lib/escritoresVocabulario.mjs";
+import { COLUMNAS, escritores, columnasDe, sinComentarios, cifra, asignacionesSinFiltro, literalesSueltos, valoresVigilados } from "../../scripts/lib/escritoresVocabulario.mjs";
+import { COLUMNAS_VOCABULARIO, ESCRITORES_SQL } from "../../scripts/lib/columnasVocabulario.mjs";
 import { USAGE_TAGS, USAGE_TAG_IDS } from "./userRecipes.js";
 import { BUILT_IN_COLLECTIONS, BUILT_IN_IDS } from "./recipeCollections.js";
 import { KITCHEN_TOOL_IDS } from "./electrodomesticos.js";
@@ -28,26 +29,11 @@ const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
  * (`<tabla>_<col>_check`). `lista`: nombre en VOCABULARIOS (entra en el ciclo de vida: sus
  * retirados los tiene que seguir admitiendo el CHECK); `valores`: una lista de otro módulo
  * (la ficha y las tareas del bot), sin ciclo de vida todavía; `patrones`: los `like` del CHECK.
+ * Las de `lista` salen de COLUMNAS_VOCABULARIO (scripts/lib/columnasVocabulario.mjs), la misma
+ * lista que vigila el escáner de escritores (#549): no hay una segunda copia que olvidar.
  */
 const COLUMNA_A_VOCABULARIO = {
-  "user_menu_weeks.active_days": { lista: "dias" },
-  "user_pantry.pack_kind": { lista: "envases" },
-  "user_recipes.required_appliances": { lista: "aparatos" },
-  "user_recipes.usage_tags": { lista: "usos_receta" },
-  "recipe_collections.collection_id": { lista: "carpetas_fijas", patrones: ["fld\\_%"] },
-  "bot_entradas.proveedor": { lista: "canales" },
-  "bot_identities.channel": { lista: "canales" },
-  "bot_chats.channel": { lista: "canales" },
-  "bot_codigos.channel": { lista: "canales" },
-  "bot_messages.channel": { lista: "canales" },
-  "bot_reminders.channel": { lista: "canales" },
-  "bot_tareas.channel": { lista: "canales" },
-  "bot_cola.channel": { lista: "canales" },
-  "user_profiles.ui_lang": { lista: "idiomas" },
-  "household_invites.lang": { lista: "idiomas" },
-  "sobre.origen": { lista: "origen_dato" },
-  "sobre.canal": { lista: "canales_dato" },
-  "sobre.ref_tipo": { lista: "ref_tipo" },
+  ...COLUMNAS_VOCABULARIO,
   // La ficha (0097): las listas de registro_campo viven en registroCampos.js (su fuente).
   "registro_campo.tipo": { valores: TIPOS_CAMPO },
   "registro_campo.politica": { valores: POLITICAS },
@@ -283,15 +269,16 @@ describe("un valor retirado no vuelve a escribirse (#539)", () => {
   });
 
   it("todo escritor de una columna de vocabulario pasa por la lista viva (paraEscribir y compañía)", () => {
-    const fuera = codigo().flatMap(({ fichero, texto }) => asignacionesSinFiltro(texto).map((a) => `${fichero}:${a.linea} ${a.columna}: ${a.texto}`));
+    const cableado = JSON.parse(readFileSync(join(RAIZ, "supabase/cableado.json"), "utf8"));
+    const fuera = codigo().flatMap(({ fichero, texto }) => asignacionesSinFiltro(texto, { fichero, cableado }).map((a) => `${fichero}:${a.linea} ${a.columna}: ${a.texto} (${a.motivo})`));
     expect(fuera, "Escribe la columna con paraEscribir/listaParaEscribir de src/lib/vocabularios.js (o carpetaParaEscribir)").toEqual([]);
   });
 
   it("ningún literal de esos vocabularios en los escritores de sus tablas: sale de la constante", () => {
     const cableado = JSON.parse(readFileSync(join(RAIZ, "supabase/cableado.json"), "utf8"));
-    const valores = valoresVigilados(VOCABULARIOS, RETIRADOS);
-    const sueltos = escritores(cableado).flatMap((f) => literalesSueltos(readFileSync(join(RAIZ, f), "utf8"), valores).map((l) => `${f}:${l.linea} «${l.valor}»`));
-    expect(sueltos, "Usa la constante de src/lib/vocabularios.js en vez del literal").toEqual([]);
+    // Cada fichero, con los vocabularios de las tablas que escribe: el «es» de un escritor de bot_* no es de su incumbencia.
+    const sueltos = escritores(cableado).flatMap((f) => literalesSueltos(readFileSync(join(RAIZ, f), "utf8"), valoresVigilados(VOCABULARIOS, RETIRADOS, columnasDe(f, cableado))).map((l) => `${f}:${l.linea} «${l.valor}»`));
+    expect(sueltos, "Usa la constante de src/lib/vocabularios.js (CANAL.TELEGRAM, IDIOMAS…) en vez del literal").toEqual([]);
   });
 
   it("el escáner ve lo que tiene que ver (ejemplos buenos y malos)", () => {
@@ -307,6 +294,16 @@ describe("un valor retirado no vuelve a escribirse (#539)", () => {
       "fila.pack_kind = pack.kind;": "no pasa por la lista viva",
       "copia.usage_tags = [\"guarnicion\"];": "no pasa por la lista viva",
       "const fila = { pack_kind: _k };": "no pasa por la lista viva",
+      // #549: lo que cierra la expresión, las bot_*, las RPC y el resto de columnas.
+      "const fila = { pack_kind: paraEscribir(\"envases\", k) || \"bote\" };": "no cierra la expresión",
+      "const fila = { usage_tags: listaParaEscribir(\"usos_receta\", u) ?? [] };": "no cierra la expresión",
+      "await insert(\"bot_messages\", [{ channel, chat_id: String(chatId) }]);": "abreviada",
+      "const fila = { household_id: h, channel: ctx.channel };": "no pasa por la lista viva",
+      "await insert(\"bot_entradas\", [{ proveedor, entrada_xid: x }]);": "abreviada",
+      "await supabase.rpc(\"create_household_invite\", { p_household_id: h, p_lang: lang });": "no pasa por la lista viva",
+      "const fila = { active_days: week.days };": "no pasa por la lista viva",
+      "const p = { user_id: u, ui_lang: \"en\" };": "no pasa por la lista viva",
+      "const s = { campo_id: c, canal: CANAL.TELEGRAM };": "no pasa por la lista viva",
     };
     for (const [linea, motivo] of Object.entries(malos)) {
       const r = asignacionesSinFiltro(linea);
@@ -323,10 +320,83 @@ describe("un valor retirado no vuelve a escribirse (#539)", () => {
       "fila.pack_kind = paraEscribir(\"envases\", k);",
       "if (fila.pack_kind === \"x\") return;",
       "const { usage_tags: _u, ...resto } = fila;",
+      // Un contexto de chat no es una fila (ninguna otra clave en snake_case): no se mira.
+      "const contexto = { channel: chat.channel ?? CANAL.TELEGRAM, chatId: chat.chatId };",
+      "export async function crearRecordatorio({ channel, chatId, householdId }, x) {",
+      "const { householdId, channel, chatId } = ctx;",
+      "await insert(\"bot_chats\", [{ channel: paraEscribir(\"canales\", channel), chat_id: \"1\" }]);",
+      "const fila = { pack_kind: paraEscribir(\"envases\", k), pack_count: 1 };",
+      "const fila = { active_days: listaParaEscribir(\"dias\", hay ? dias : null) };",
+      // Sin la llamada a su RPC, p_lang es de otra función: no se mira.
+      "const r = { p_household_id: h, p_lang: lang };",
+      "rec.lang = \"es-ES\";",
+      "trackEvent(user, X, \"menu\", { canal: \"app\", recipeId: r });",
     ].join("\n");
     expect(asignacionesSinFiltro(bueno)).toEqual([]);
+    // Una fila en varias líneas: la abreviada de su línea sale; el valor con su lista, no.
+    const varias = "await insert(\"bot_chats\", [{\n  channel,\n  chat_id: String(chatId),\n}]);";
+    expect(asignacionesSinFiltro(varias).map((a) => [a.linea, a.motivo])).toEqual([[2, "abreviada: no pasa por la lista viva"]]);
+    expect(asignacionesSinFiltro(varias.replace("  channel,", "  channel: paraEscribir(\"canales\", channel),"))).toEqual([]);
+    // Una columna común solo se mira en los escritores de su tabla (cableado.json).
+    const otra = { fichero: "api/_bot/otro.js", cableado: { bot_chats: ["api/_bot/enlace.js"] } };
+    expect(asignacionesSinFiltro("insert(\"x\", [{ channel, chat_id: 1 }]);", otra)).toEqual([]);
+    expect(asignacionesSinFiltro("insert(\"x\", [{ channel, chat_id: 1 }]);", { ...otra, fichero: "api/_bot/enlace.js" })).toHaveLength(1);
+    // Validar una vez al entrar: la variable vale si TODAS sus asignaciones pasan por su lista.
+    const fila = "insert(\"x\", [{ channel: canal, chat_id: 1 }]);";
+    expect(asignacionesSinFiltro(`const canal = paraEscribir("canales", channel);\n${fila}`)).toEqual([]);
+    expect(asignacionesSinFiltro(`let canal;\ntry { canal = paraEscribir("canales", c); } catch { return; }\n${fila}`)).toEqual([]);
+    expect(asignacionesSinFiltro(`let canal = paraEscribir("canales", c);\ncanal = otro;\n${fila}`)).toHaveLength(1);
+    expect(asignacionesSinFiltro(`const canal = paraEscribir("idiomas", c);\n${fila}`)).toHaveLength(1);
+    expect(asignacionesSinFiltro(`const canal = paraEscribir("canales", c) || x;\n${fila}`)).toHaveLength(1);
+    // La cifra (scripts/escritores-vocabulario.mjs): filtradas, sin filtro y literales.
+    const c = cifra([{ fichero: "api/_bot/enlace.js", texto: `const f = (canal) => [{ channel: paraEscribir("canales", canal), chat_id: 1 }, { channel, chat_id: 2 }, "telegram"];` }], { bot_chats: ["api/_bot/enlace.js"] }, VOCABULARIOS, RETIRADOS);
+    expect([c.columnas, c.filtradas, c.sinFiltro.length, c.literales.map((l) => l.valor)]).toEqual([Object.keys(COLUMNAS).length, 1, 1, ["telegram"]]);
     expect(literalesSueltos("if (kind === \"carton\") return 1; // \"lata\"", new Set(["carton", "lata"])).map((l) => l.valor)).toEqual(["carton"]);
     expect(Object.values(COLUMNAS).every((n) => VOCABULARIOS[n])).toBe(true);
+  });
+
+  it("el escáner vigila todas las columnas con lista del producto: las mismas que la paridad con el CHECK (#549)", () => {
+    const conLista = Object.entries(COLUMNA_A_VOCABULARIO).filter(([, d]) => d.lista).map(([c, d]) => [c, d.lista]);
+    expect(Object.entries(COLUMNAS).sort()).toEqual(conLista.sort());
+    // Una columna con `valores` que son una lista del producto se escaparía del escáner: va con `lista`.
+    const listas = new Map(Object.entries(VOCABULARIOS).map(([n, l]) => [JSON.stringify([...l].sort()), n]));
+    const disfrazadas = Object.entries(COLUMNA_A_VOCABULARIO).filter(([, d]) => d.valores && listas.has(JSON.stringify([...d.valores].sort())))
+      .map(([c, d]) => `${c} = ${listas.get(JSON.stringify([...d.valores].sort()))}`);
+    expect(disfrazadas, "Ponla en COLUMNAS_VOCABULARIO con `lista`, para que el escáner vigile quién la escribe").toEqual([]);
+  });
+
+  it("toda escritura desde SQL de una columna vigilada está en ESCRITORES_SQL con su porqué, y sus RPC existen", () => {
+    const sql = migraciones().map(({ sql }) => sql.replace(/--.*$/gm, "")).join("\n");
+    const vistas = new Set();
+    for (const m of sql.matchAll(/\binsert\s+into\s+(?:public\.)?(\w+)\s*\(([^)]*)\)/gi)) {
+      for (const c of m[2].split(",").map((x) => x.trim())) if (COLUMNAS[`${m[1]}.${c}`]) vistas.add(`${m[1]}.${c}`);
+    }
+    for (const m of sql.matchAll(/\bupdate\s+(?:public\.)?(\w+)\s+set\s+([\s\S]*?)(?:\bwhere\b|;)/gi)) {
+      for (const a of m[2].matchAll(/(\w+)\s*=/g)) if (COLUMNAS[`${m[1]}.${a[1]}`]) vistas.add(`${m[1]}.${a[1]}`);
+    }
+    // Un `default '<valor>'` también escribe: la base pone el valor si la fila llega sin la columna
+    // (`default '{}'`, la lista vacía, no escribe ningún valor).
+    for (const m of sql.matchAll(/\bcreate\s+table\s+(?:if\s+not\s+exists\s+)?(?:public\.)?(\w+)\s*\(([\s\S]*?)\n\s*\)\s*;/gi)) {
+      for (const a of m[2].matchAll(/^\s*(\w+)\s+[^,\n]*\bdefault\s+'(?!\{\}')/gim)) if (COLUMNAS[`${m[1]}.${a[1]}`]) vistas.add(`${m[1]}.${a[1]}`);
+    }
+    for (const m of sql.matchAll(/\balter\s+table\s+(?:only\s+)?(?:if\s+exists\s+)?(?:public\.)?(\w+)\s+(?:alter\s+column\s+(\w+)\s+set\s+default\s+'(?!\{\}')|add\s+column\s+(?:if\s+not\s+exists\s+)?(\w+)\s+[^;,]*\bdefault\s+'(?!\{\}'))/gi)) {
+      const c = m[2] ?? m[3];
+      if (COLUMNAS[`${m[1]}.${c}`]) vistas.add(`${m[1]}.${c}`);
+    }
+    expect([...vistas].sort(), "Una escritura nueva desde SQL: apúntala en ESCRITORES_SQL de scripts/lib/columnasVocabulario.mjs, con de dónde le llega el valor").toEqual(Object.keys(ESCRITORES_SQL).sort());
+    for (const [columna, { rpc = {} }] of Object.entries(COLUMNAS_VOCABULARIO)) {
+      for (const [funcion, parametro] of Object.entries(rpc)) {
+        expect(sql, `${columna}: la RPC ${funcion}(${parametro})`).toMatch(new RegExp(`function\\s+public\\.${funcion}\\s*\\([^)]*\\b${parametro}\\b`));
+      }
+    }
+  });
+
+  it("todo CANAL.X e IDIOMA.X del código existe (sale de su lista: un retirado desaparece)", () => {
+    expect(CANAL).toEqual(Object.fromEntries(CANALES.map((c) => [c.toUpperCase(), c])));
+    expect(IDIOMA).toEqual(Object.fromEntries(IDIOMAS.map((c) => [c.toUpperCase(), c])));
+    const usados = codigo().flatMap(({ fichero, texto }) => [...sinComentarios(texto).matchAll(/\b(CANAL|IDIOMA)\.([A-Z_]+)\b/g)].map((m) => [fichero, m[1], m[2]]));
+    expect(usados.length).toBeGreaterThan(0);
+    expect(usados.filter(([, mapa, nombre]) => !({ CANAL, IDIOMA })[mapa][nombre]).map((u) => u.join(" "))).toEqual([]);
   });
 
   it("cada envase vivo o retirado tiene su etiqueta, y ninguna sobra", () => {

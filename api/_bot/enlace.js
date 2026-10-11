@@ -10,6 +10,7 @@ import * as ids from "../../src/lib/ids.js";
 import { select, insert, update, eq } from "./db.js";
 import { enviar, escaparHtml, TECLADO } from "./telegram.js";
 import { registrar, EMBUDO } from "./embudo.js";
+import { CANAL, paraEscribir } from "../../src/lib/vocabularios.js";
 
 // Ids de Telegram que no son una persona: el admin anónimo de un grupo
 // (GroupAnonymousBot), lo que se publica como canal (Channel_Bot) y los avisos
@@ -43,7 +44,7 @@ export function idDePersona(from) {
 // `lang` (el idioma de la app de Telegram) se sigue aceptando pero ya no se
 // guarda en bot_chats.lang: nadie lo leía. El idioma de Lola sale de
 // user_profiles.ui_lang (papel.js, idiomaDe).
-export async function enlazarChat({ channel = "telegram", chatId, kind, householdId, userId, externalId, nombre, identidad = null }) {
+export async function enlazarChat({ channel = CANAL.TELEGRAM, chatId, kind, householdId, userId, externalId, nombre, identidad = null }) {
   // Un chat ya enlazado a OTRA casa solo lo puede mover quien lo enlazó: si
   // no, cualquiera del grupo familiar se lo llevaría a su casa con su código.
   const [actual] = await select("bot_chats", `channel=${eq(channel)}&chat_id=${eq(chatId)}`, "household_id,linked_by");
@@ -53,7 +54,7 @@ export async function enlazarChat({ channel = "telegram", chatId, kind, househol
 
   const estado = await apuntarIdentidad({ channel, kind, userId, externalId, nombre, identidad });
   await insert("bot_chats", [{
-    channel,
+    channel: paraEscribir("canales", channel),
     chat_id: String(chatId),
     household_id: householdId,
     kind,
@@ -71,7 +72,7 @@ async function apuntarIdentidad({ channel, kind, userId, externalId, nombre, ide
     return "de-otra";
   }
   await insert("bot_identities", [{
-    channel,
+    channel: paraEscribir("canales", channel),
     external_id: String(externalId),
     user_id: userId,
     display_name: nombre ?? null,
@@ -91,12 +92,12 @@ export const codigoNuevo = () => ids.codigoBot.nuevo();
 export const codigoDeGrupo = () => ids.codigoGrupo.nuevo();
 export const esCodigoDeGrupo = (token) => ids.codigoGrupo.es(token);
 
-export async function crearCodigo({ tipo, channel = "telegram", chatId, externalId, nombre, userId = null, email = null, minutos }) {
+export async function crearCodigo({ tipo, channel = CANAL.TELEGRAM, chatId, externalId, nombre, userId = null, email = null, minutos }) {
   const codigo = codigoNuevo();
   await insert("bot_codigos", [{
     codigo,
     tipo,
-    channel,
+    channel: paraEscribir("canales", channel),
     chat_id: String(chatId),
     external_id: externalId ? String(externalId) : null,
     nombre: nombre ?? null,

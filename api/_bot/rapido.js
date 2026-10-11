@@ -17,6 +17,7 @@ import { cargarCasa, hoyISO } from "./casa.js";
 import { describirCompra } from "./menu.js";
 import { pintarMenuEntero } from "./pintar.js";
 import { fechasDe, diaDeFecha } from "./cuando.js";
+import { CANAL, paraEscribir } from "../../src/lib/vocabularios.js";
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
@@ -105,10 +106,19 @@ export async function respuestaCompra(householdId) {
  * `autor` se sigue aceptando pero no se guarda: author_id llevaba el nombre de
  * Telegram de quien escribió y nadie lo leía (memoria() no lo pide).
  */
-export async function recordar({ channel = "telegram", chatId, householdId, pregunta, respuesta, extra = null }) {
+export async function recordar({ channel = CANAL.TELEGRAM, chatId, householdId, pregunta, respuesta, extra = null }) {
+  // El canal se valida una vez, al entrar. Si no vale, la memoria no se guarda, como cuando
+  // falla el insert: la respuesta ya está dada y no se tumba el turno por esto.
+  let canal;
+  try {
+    canal = paraEscribir("canales", channel);
+  } catch (e) {
+    console.error("[rapido] memoria", e?.message);
+    return;
+  }
   await insert("bot_messages", [
-    { channel, chat_id: String(chatId), household_id: householdId, role: "user", author_id: null, content: { texto: pregunta } },
+    { channel: canal, chat_id: String(chatId), household_id: householdId, role: "user", author_id: null, content: { texto: pregunta } },
     // `extra`: p. ej. la propuesta de opciones, para el paso 0 del turno siguiente.
-    { channel, chat_id: String(chatId), household_id: householdId, role: "assistant", author_id: null, content: { texto: respuesta, ...(extra ?? {}) } },
+    { channel: canal, chat_id: String(chatId), household_id: householdId, role: "assistant", author_id: null, content: { texto: respuesta, ...(extra ?? {}) } },
   ]).catch((e) => console.error("[rapido] memoria", e?.message));
 }

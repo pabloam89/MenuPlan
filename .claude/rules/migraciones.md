@@ -40,8 +40,9 @@ Además:
 - `drop constraint` **sin** `if exists`, con el nombre leído de
   `pg_constraint`.
 - Vocabulario cerrado: CHECK + la lista en una constante JS. La paridad SQL↔JS
-  la lleva una vez `src/lib/vocabularios.test.js`, por columna (una línea en su
-  `COLUMNA_A_VOCABULARIO`); un valor retirado sigue en el CHECK. Enum de
+  la lleva una vez `src/lib/vocabularios.test.js`, por columna (una línea en
+  `COLUMNAS_VOCABULARIO` de `scripts/lib/columnasVocabulario.mjs`, que vigila
+  también quién la escribe); un valor retirado sigue en el CHECK. Enum de
   Postgres, solo con su porqué (PRINCIPIOS §4).
 - Ids generados en cliente: `src/lib/ids.js`.
 - **Ningún campo ni tabla sin lector**; antes de exponer un dato, mide su
