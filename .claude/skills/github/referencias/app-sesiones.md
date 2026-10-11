@@ -274,5 +274,15 @@ Hasta entonces, sus credenciales siguen ahí.
   Una sesión abierta antes del arreglo no tiene `GH_TOKEN`: usa
   `node scripts/token-sesion.mjs -- gh …`.
 
+## Lo que la sesión no debe poder hacer (#333)
+
+`npm run detector-identidades` prueba con el token de la App lo que tiene que fallar: crear un
+ruleset, proteger `main`, escribir un secreto de Actions, invitar a un colaborador (todas con
+cuerpo vacío: si pasaran, GitHub contestaría 422 y no cambiaría nada) y leer la bóveda de
+administración de 1Password. Cada sonda sale `bien`, `mal` o `sin-comprobar` (sin red, sin
+token o límite de 1Password: no cuenta como bien). Con un `mal` sale 1: es un caso y se cuelga del
+fondo #326. Es la primera mitad de E7; falta la parte de las reglas de E4 y el entorno de E5, y
+correrlo cada semana (el workflow semanal no lleva credenciales de sesión).
+
 Fuentes: https://docs.github.com/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-json-web-token-jwt-for-a-github-app
 y https://docs.github.com/rest/apps/apps#create-an-installation-access-token-for-an-app
