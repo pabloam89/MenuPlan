@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -218,6 +218,34 @@ describe("con git de verdad: dos ramas que añaden un criterio cada una", () => 
     expect(Object.keys(roto.conflicto)).toEqual(expect.arrayContaining(["docs/ops/FORJA.md", "ops/forja-capas.json"]));
   });
 
+  it("la ruta del fichero llega literal al driver, aunque lleve caracteres del shell, y no ejecuta nada", () => {
+    const dir = mkdtempSync(join(tmpdir(), "generados-ruta-"));
+    try {
+      git(dir, "init", "-q", "-b", "staging");
+      git(dir, "config", "user.email", "t@t");
+      git(dir, "config", "user.name", "t");
+      git(dir, "config", "core.autocrlf", "false");
+      configurar(dir, SCRIPT);
+      const raro = "x`touch testigo1`$(touch testigo2).gen";
+      writeFileSync(join(dir, ".gitattributes"), "*.gen merge=generado\n");
+      const texto = (n) => `${Array.from({ length: 12 }, (_, i) => `línea ${i}`).join("\n")}\n${n}\n`;
+      writeFileSync(join(dir, "a.gen"), texto("base"));
+      commit(dir, "base");
+      git(dir, "checkout", "-q", "-b", "a");
+      git(dir, "mv", "a.gen", raro);
+      writeFileSync(join(dir, raro), texto("rama a"));
+      commit(dir, "a");
+      git(dir, "checkout", "-q", "staging");
+      writeFileSync(join(dir, "a.gen"), texto("rama b"));
+      commit(dir, "b");
+      git(dir, "checkout", "-q", "a");
+      const r = spawnSync("git", ["merge", "--no-edit", "staging"], { cwd: dir, encoding: "utf8", windowsHide: true });
+      expect(existsSync(join(dir, "testigo1")), "no se crea ningún fichero testigo").toBe(false);
+      expect(existsSync(join(dir, "testigo2")), "no se crea ningún fichero testigo").toBe(false);
+      expect(r.stderr, "el driver recibe la ruta tal cual").toContain(`generado ruta: ${raro} driver: generado`);
+    } finally { rmSync(dir, { recursive: true, force: true }); }
+  });
+
   describe("instalar", () => {
     const conRepo = (fn) => {
       const dir = mkdtempSync(join(tmpdir(), "generados-cfg-"));
@@ -251,9 +279,9 @@ describe("con git de verdad: dos ramas que añaden un criterio cada una", () => 
         expect(driversQueFaltan(dir)).toEqual([]);
         const cmd = git(dir, "config", "--get", "merge.generado.driver").trim();
         const principal = realpathSync(dir).replace(/\\/g, "/");
-        expect(cmd).toContain(`"${process.execPath.replace(/\\/g, "/")}"`);
-        expect(cmd.toLowerCase()).toContain(`"${principal}/scripts/merge-driver.mjs" generado`.toLowerCase());
-        expect(cmd).toContain("|| git merge-file");
+        expect(cmd).toContain(`'${process.execPath.replace(/\\/g, "/")}'`);
+        expect(cmd.toLowerCase()).toContain(`'${principal}/scripts/merge-driver.mjs' generado`.toLowerCase());
+        expect(cmd).toContain(" %P || git merge-file");
       } finally { rmSync(otra, { recursive: true, force: true }); }
     }));
 

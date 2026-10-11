@@ -87,6 +87,8 @@ export function casaRuta(patron, ruta) {
 
 const git = (dir, args) => execFileSync("git", ["-C", dir, ...args], { encoding: "utf8", windowsHide: true, stdio: ["ignore", "pipe", "pipe"] }).trim();
 const conBarras = (r) => r.replace(/\\/g, "/");
+/** Una ruta entre comillas simples para el shell de git; una `'` dentro se cierra, se escapa y se reabre. */
+const entreSimples = (r) => `'${conBarras(r).replace(/'/g, "'\\''")}'`;
 
 /** La carpeta principal del clon de `dir`: la que contiene el directorio común de git. */
 export function carpetaPrincipal(dir) {
@@ -96,13 +98,14 @@ export function carpetaPrincipal(dir) {
 
 /**
  * La configuración de git de cada driver (clave → valor). `node` y `script`, rutas absolutas.
- * Si no se puede lanzar (`||`), `git merge-file` deja las marcas de conflicto de siempre.
+ * Si no se puede lanzar (`||`), `git merge-file` deja las marcas de conflicto de git.
+ * `%P` va sin comillas: git ya lo entrecomilla para el shell.
  */
 export function configDrivers({ node, script }) {
   const c = {};
   for (const [id, nombre] of Object.entries(DRIVERS)) {
     c[`merge.${id}.name`] = nombre;
-    c[`merge.${id}.driver`] = `"${conBarras(node)}" "${conBarras(script)}" ${id} %O %A %B "%P" || git merge-file -L HEAD -L base -L otra %A %O %B`;
+    c[`merge.${id}.driver`] = `${entreSimples(node)} ${entreSimples(script)} ${id} %O %A %B %P || git merge-file -L HEAD -L base -L otra %A %O %B`;
   }
   return c;
 }
