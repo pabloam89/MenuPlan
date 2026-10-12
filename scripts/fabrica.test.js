@@ -11,9 +11,10 @@ import { resolver } from "./lib/flujo.mjs";
 import {
   ADVERTENCIA_BAJAR, HUECO_ACTIVO_MIN, MIN_ENCARGOS_CELDA, MIN_ENCARGOS_INFORME, MIN_FONDOS_CELDA, PRECIOS, RATIO_PROPUESTA,
   agregarPorIssue, aguantoDe, cobertura, contarEventos, costeDeMensaje, extraer, leerLineas, listarTranscripciones, mediana, precioDe,
-  recalibrar, resumirPartes, resumirSesion, textoInforme, tipoDeAgente, unirConGithub,
+  recalibrar, resumirPartes, resumirSesion, textoInforme, tipoDeAgente, unirConGithub, usosDeSubtipos,
 } from "./lib/fabrica.mjs";
 import { CATALOGO, RANGOS, problemas } from "./lib/presupuestos.mjs";
+import { avisosDeUso } from "./lib/tiposDeEncargo.mjs";
 
 /**
  * La observabilidad de la fábrica (#340, fase F). Todo con transcripciones
@@ -486,6 +487,26 @@ describe("el informe: solo agregados y números de issue", () => {
   it("sin --recalibrar no saca la sección de propuestas", () => {
     const { union, recal, cob } = informeCompleto();
     expect(textoInforme({ cobertura: cob, union, recal })).not.toMatch(/Recalibración/);
+  });
+});
+
+describe("los subtipos de encargo: la regla «repite» de la puerta de entrada, como aviso (#646)", () => {
+  const conSubtipo = (n, subtype) => ({ ...encargo(n, 10), body: "El encargo\n\n```encargo\nfondo: #10\nsubtype: " + subtype + "\n```\n" });
+  it("cuenta los encargos por subtipo, ignora lo que no es un encargo y los que no dicen subtipo", () => {
+    const issues = [conSubtipo(1, "fix-bug"), conSubtipo(2, "fix-bug"), conSubtipo(3, "create-plain"), encargo(4, 10), fondo(10, {})];
+    expect(usosDeSubtipos(issues)).toEqual({ "fix-bug": 2, "create-plain": 1 });
+    expect(usosDeSubtipos([])).toEqual({});
+  });
+  it("el informe lo saca como aviso con los subtipos que no llegan a 3, y no lo saca sin issues", () => {
+    const union = unirConGithub(new Map(), []);
+    const recal = recalibrar(union.fondos);
+    const cob = cobertura({ sesiones: 0, union, recal });
+    const usos = usosDeSubtipos([1, 2, 3].map((n) => conSubtipo(n, "fix-bug")));
+    const texto = textoInforme({ cobertura: cob, union, recal, subtipos: avisosDeUso(usos) });
+    expect(texto).toMatch(/Subtipos de encargo \(aviso, no falla/);
+    expect(texto).toMatch(/subtype: create-plain usos: 0 minimo: 3 aviso: pocos-usos/);
+    expect(texto).not.toMatch(/subtype: fix-bug/);
+    expect(textoInforme({ cobertura: cob, union, recal })).not.toMatch(/Subtipos de encargo/);
   });
 });
 
