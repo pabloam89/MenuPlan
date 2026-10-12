@@ -124,7 +124,7 @@ Lo que pide este tipo: los comandos existen, la salida es comprobable y la caduc
 
 No se le aplican: `sin-parada`.
 
-## El estándar de este tipo
+## La plantilla de este tipo
 
 ### Qué lo hace bueno
 

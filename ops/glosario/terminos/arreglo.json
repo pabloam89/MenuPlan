@@ -2,6 +2,7 @@
   "termino": "arreglo",
   "estado": "activo",
   "clase": "artefacto",
+  "dominio": "ops",
   "definicion": "El cambio que corrige una clase de fallo; el general va en el fondo y sus partes en encargos.",
   "sinonimos_prohibidos": [
     "parche",
@@ -21,5 +22,6 @@
     "fichero": "scripts/lib/issues.mjs",
     "clave": "GRUPOS.arreglo"
   },
-  "nota": "La etiqueta arreglo: dice dónde quedó al cerrar el fondo."
+  "nota": "La etiqueta arreglo: dice dónde quedó al cerrar el fondo.",
+  "sin_entidad": "componente"
 }

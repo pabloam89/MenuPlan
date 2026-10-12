@@ -2,6 +2,7 @@
   "termino": "persona de la casa",
   "estado": "activo",
   "clase": "rol",
+  "dominio": "producto",
   "definicion": "Un miembro de una casa para quien se planifica el menú y que tiene sus alergias, intolerancias y gustos.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
@@ -10,5 +11,11 @@
   "en": "person",
   "relacionado": [
     "persona"
+  ],
+  "entidades": [
+    {
+      "entidad": "person",
+      "relacion": "rol_de"
+    }
   ]
 }

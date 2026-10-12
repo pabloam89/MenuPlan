@@ -6,7 +6,7 @@ El molde de una skill de tipo `revision`: se copia el esqueleto y se rellena. Lo
 
 | Qué hace | Entra | Sale | Cómo se prueba | Skills de hoy |
 |---|---|---|---|---|
-| Juzgar un artefacto contra un catálogo y aplicar lo mecánico | artefacto | criterio, estado y arreglo | una pieza mala a propósito da todos sus fallos | `higiene-de-skills`, `revision-de-diseno` |
+| Juzgar un artefacto contra un catálogo y aplicar lo mecánico | artefacto | `criterio`, estado y arreglo | una pieza mala a propósito da todos sus fallos | `higiene-de-skills`, `revision-de-diseno` |
 
 ## Cómo se llega a este tipo
 
@@ -124,15 +124,15 @@ Lo que pide este tipo: una pieza mala a propósito da todos sus fallos. Lo compr
 
 No hay criterio de skill que no se le aplique.
 
-## El estándar de este tipo
+## La plantilla de este tipo
 
 ### Qué lo hace bueno
 
-- Cada criterio es observable y va separado de los demás, con la evidencia que lo cumple (fichero y línea, una salida) [S].
+- Cada norma es observable y va separada de las demás, con la evidencia que la cumple (fichero y línea, una salida) [S].
 - Los criterios viven en su catálogo y la skill los cita; no los copia [S].
 - Cada hallazgo sale con un código de un vocabulario cerrado y su arreglo, para poder contarlo [S].
 - Quien construye no juzga, y el juez no escribe lo que revisa [S].
-- Un criterio discrimina: si pasa igual con la pieza buena que con la mala, se retira [F: EVAL, aserciones que no miden nada].
+- Una norma discrimina: si pasa igual con la pieza buena que con la mala, se retira [F: EVAL, aserciones que no miden nada].
 
 ### Errores típicos
 

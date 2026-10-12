@@ -7,7 +7,7 @@
   "nombre": "Normas citadas, no reescritas",
   "sujeto": "estandar",
   "fuerza": "debe",
-  "exigencia": "citar por id las normas que aplica, por sus ámbitos y su acción, y no reescribir ninguna como regla propia",
+  "exigencia": "citar por id las normas que aplica, por sus ámbitos y su acción, y no reescribir ninguna como condición propia",
   "nota": "La consulta ámbito × acción y el parecido de cada regla con cada norma los mide ops/uniones.test.js; lo que se parece y no es la norma va a reglas_que_no_son_norma con su motivo",
   "fuente": "[I] scripts/lib/estandaresAgentes.mjs",
   "control": "ops/uniones.test.js",

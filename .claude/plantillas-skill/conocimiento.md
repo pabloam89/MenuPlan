@@ -124,7 +124,7 @@ Lo que pide este tipo: cada afirmación apunta a su fuente. Lo comprueban el niv
 
 No hay criterio de skill que no se le aplique.
 
-## El estándar de este tipo
+## La plantilla de este tipo
 
 ### Qué lo hace bueno
 

@@ -79,6 +79,15 @@
         "gobierno"
       ]
     },
+    "higiene-de-vocabulario": {
+      "comandos": [],
+      "rutas": [
+        "^scripts/lib/glosario(?:Dominios|Mapeo|Higiene).mjs$"
+      ],
+      "agentes": [
+        "gobierno"
+      ]
+    },
     "forja-de-skills": {
       "comandos": [],
       "rutas": [

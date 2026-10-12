@@ -2,6 +2,7 @@
   "termino": "vigilante",
   "estado": "activo",
   "clase": "rol",
+  "dominio": "base",
   "definicion": "La pieza que ejecuta controles sin nadie delante: la guardia, el CI, un script o un workflow.",
   "sinonimos_prohibidos": [
     "guardián",
@@ -16,5 +17,15 @@
   "ref": {
     "fichero": "scripts/lib/issues.mjs",
     "clave": "GRUPOS.causa.valores.vigilante-hueco"
-  }
+  },
+  "entidades": [
+    {
+      "entidad": "hook",
+      "relacion": "rol_de"
+    },
+    {
+      "entidad": "workflow",
+      "relacion": "rol_de"
+    }
+  ]
 }

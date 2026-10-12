@@ -2,6 +2,7 @@
   "termino": "aplicar",
   "estado": "activo",
   "clase": "accion",
+  "dominio": "datos",
   "definicion": "Ejecutar de verdad una migración que ya se ensayó, en la base de producción (apply-migration --si).",
   "sinonimos_prohibidos": [],
   "aplica_a": [
@@ -9,5 +10,11 @@
   ],
   "relacionado": [
     "ensayar"
+  ],
+  "entidades": [
+    {
+      "entidad": "migration",
+      "relacion": "accion_sobre"
+    }
   ]
 }

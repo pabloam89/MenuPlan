@@ -1,0 +1,19 @@
+{
+  "termino": "forja",
+  "estado": "activo",
+  "clase": "artefacto",
+  "dominio": "base",
+  "definicion": "El catálogo de una familia de piezas que dice qué las hace buenas, hereda de la base y da su plantilla por tipo.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "base",
+    "plantilla",
+    "pieza",
+    "paso",
+    "tipo de tarea"
+  ],
+  "sin_entidad": "paso"
+}

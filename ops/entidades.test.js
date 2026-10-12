@@ -171,7 +171,7 @@ export function problemas(datos, { existe: hay, glosario = null, sinLector = SIN
           if (idsSet.has(aId(s))) p.push(`${q}: el sinónimo prohibido «${s}» (del glosario) es el id de otra entidad`);
         }
       }
-    } else if (e.scope !== "vertical") p.push(`${q}: solo una entidad vertical puede quedar sin term (su glosario es de proceso)`);
+    } else if (e.scope !== "vertical" && e.status !== "retired") p.push(`${q}: solo una entidad vertical o retirada puede quedar sin term (su glosario es de proceso)`);
     const f = e.source_of_truth;
     if (typeof f !== "string" || !f.trim()) p.push(`${q}: source_of_truth vacía (di «none»)`);
     else if (f !== "none" && hay && !hay(f)) p.push(`${q}: la fuente «${f}» no existe en git`);
@@ -326,7 +326,7 @@ describe("el registro de entidades", () => {
   it("tiene las entidades que pidió Pablo, las del auditor de datos y las nuevas de #652", () => {
     const activas = DATOS.entities.filter((e) => e.status === "active").map((e) => e.id);
     for (const id of [...PEDIDAS, "identity", "agent", "skill", "hook", "issue", "root-problem", "case", "assignment", "decision", "pull-request", "branch", "migration", "data-source", "module", "table", "vocabulary"]) expect(activas, id).toContain(id);
-    for (const id of ["project", "repo", "resource", "agent-task", "standard", "workflow", "plane", "assignment-type", "criterion", "verification"]) expect(activas, id).toContain(id);
+    for (const id of ["project", "repo", "resource", "agent-task", "standard", "workflow", "plane", "assignment-type", "verification"]) expect(activas, id).toContain(id);
     for (const id of ["design-system", "design-profile", "token", "component", "pattern"]) expect(activas, id).toContain(id);
     for (const id of ["household", "person", "recipe", "ingredient", "menu", "pantry", "shopping-list", "lola-conversation", "account", "menu-week", "group", "chat"]) expect(E(id)?.scope, id).toBe("vertical");
   });
@@ -354,7 +354,7 @@ describe("el registro de entidades", () => {
   it("la escala de nivel es una sola: meta, template y piece; los meta y las plantillas nunca son verticales", () => {
     expect(Object.keys(LEVELS)).toEqual(["meta", "template", "piece"]);
     for (const e of DATOS.entities) expect(e.level in LEVELS, e.id).toBe(true);
-    for (const id of ["principle", "norm", "criterion", "plane"]) expect(E(id).level, id).toBe("meta");
+    for (const id of ["principle", "norm", "plane"]) expect(E(id).level, id).toBe("meta");
     for (const id of ["mechanism", "assignment-type", "resource", "design-profile"]) expect(E(id).level, id).toBe("template");
     expect(DATOS.entities.filter((e) => e.level !== "piece" && e.scope === "vertical")).toEqual([]);
   });
@@ -396,7 +396,14 @@ describe("el registro de entidades", () => {
     expect(E("learning")).toMatchObject({ status: "retired", replaced_by: "root-problem", becomes: "field" });
     expect(E("secret")).toMatchObject({ status: "retired", replaced_by: "resource", becomes: "type", becomes_types: ["clave", "token", "deploy-key"] });
     expect(E("vault")).toMatchObject({ status: "retired", replaced_by: "resource", becomes: "type", becomes_types: ["boveda"] });
-    expect(DATOS.relations.filter((r) => ["judge", "rule", "learning", "deployment", "secret", "vault"].some((id) => r.from === id || r.to === id))).toEqual([]);
+    expect(DATOS.relations.filter((r) => ["judge", "rule", "learning", "deployment", "secret", "vault", "criterion"].some((id) => r.from === id || r.to === id))).toEqual([]);
+  });
+
+  it("el criterio de la forja es una norma (decisión de Pablo, #652): su entidad se retira a norm, con tipo forge-norm, sin término ni relaciones", () => {
+    expect(E("criterion")).toMatchObject({ status: "retired", replaced_by: "norm", becomes: "type", becomes_types: ["forge-norm"], term: null, readers: [] });
+    expect(E("norm").types).toEqual(["forge-norm"]);
+    expect(DATOS.relations.filter((r) => r.from === "criterion" || r.to === "criterion")).toEqual([]);
+    expect(G.terminos.find((t) => t.termino === "criterio")).toMatchObject({ estado: "retirado", pasa_a: "norma", en: "criterion" });
   });
 
   it("los tipos de recurso son los de scripts/lib/recursos.mjs", () => {
@@ -594,7 +601,7 @@ describe("autotest: cada regla falla con datos malos", () => {
     expect(con((d, e) => { e.term = "inventado"; })).toMatch(/no es un término activo del glosario/);
     expect(con((d, e) => { e.id = "sesion-x"; })).toMatch(/el glosario traduce «sesión» como «session», no como «sesion-x»/);
     expect(con((d) => { d.entities[1].term = d.entities[0].term; })).toMatch(/ya es el de session/);
-    expect(con((d, e) => { e.term = null; })).toMatch(/solo una entidad vertical puede quedar sin term/);
+    expect(con((d, e) => { e.term = null; })).toMatch(/solo una entidad vertical o retirada puede quedar sin term/);
   });
 
   it("role_by_scope solo en las que son de los dos lados", () => {

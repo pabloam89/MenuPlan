@@ -2,6 +2,7 @@
   "termino": "migración",
   "estado": "activo",
   "clase": "artefacto",
+  "dominio": "datos",
   "definicion": "Un fichero SQL numerado de supabase/migrations/ que cambia la base y se aplica con apply-migration.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
@@ -10,5 +11,11 @@
   "relacionado": [
     "tabla"
   ],
-  "en": "migration"
+  "en": "migration",
+  "entidades": [
+    {
+      "entidad": "migration",
+      "relacion": "denota"
+    }
+  ]
 }

@@ -2,7 +2,8 @@
   "termino": "ficha",
   "estado": "activo",
   "clase": "artefacto",
-  "definicion": "El bloque fondo o encargo de líneas clave: valor en el cuerpo de un issue, que leen el workflow fondos y el CI.",
+  "dominio": "ops",
+  "definicion": "El bloque de líneas clave: valor que describe una cosa: el del fondo o el del encargo va en el cuerpo de un issue y lo leen el workflow fondos y el CI; el de una tarea de agente es su estándar.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
     "todas"
@@ -14,5 +15,6 @@
   "ref": {
     "fichero": "scripts/lib/fondos.mjs",
     "clave": "CAMPOS_FICHA"
-  }
+  },
+  "sin_entidad": "componente"
 }

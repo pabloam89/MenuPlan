@@ -6,7 +6,7 @@ El molde de una skill de tipo `diagnostico`: se copia el esqueleto y se rellena.
 
 | Qué hace | Entra | Sale | Cómo se prueba | Skills de hoy |
 |---|---|---|---|---|
-| De un síntoma a su causa | fallo | causa en campos cerrados | la salida rellena la ficha y hay un criterio de parada | `causa-raiz` |
+| De un síntoma a su causa | fallo | causa en campos cerrados | la salida rellena la ficha y hay una condición de parada | `causa-raiz` |
 
 ## Cómo se llega a este tipo
 
@@ -112,7 +112,7 @@ Los de `campos_ficha.skill` de `ops/forja/`; lo que no está declarado no va en 
 
 ## Cómo se prueba
 
-Lo que pide este tipo: la salida rellena la ficha y hay un criterio de parada. Lo comprueban el nivel 1 (`npx vitest run .claude/skills.test.js`, gratis, en el CI) y el nivel 2 (`npm run skills-prueba -- <skill>`, cuesta tokens).
+Lo que pide este tipo: la salida rellena la ficha y hay una condición de parada. Lo comprueban el nivel 1 (`npx vitest run .claude/skills.test.js`, gratis, en el CI) y el nivel 2 (`npm run skills-prueba -- <skill>`, cuesta tokens).
 
 52 criterios de la forja se aplican a este tipo (los que dicen `tipos: "todos"` o lo nombran). La frase entera de cada uno, en `docs/ops/FORJA.md`.
 
@@ -124,7 +124,7 @@ Lo que pide este tipo: la salida rellena la ficha y hay un criterio de parada. L
 
 No hay criterio de skill que no se le aplique.
 
-## El estándar de este tipo
+## La plantilla de este tipo
 
 ### Qué lo hace bueno
 

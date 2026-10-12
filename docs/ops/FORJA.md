@@ -1,8 +1,8 @@
-# Forja: criterios de calidad
+# Forja: normas de calidad
 
 <!-- Generado desde ops/forja/ con «npm run forja -- --escribir». No se edita a mano: ops/forja.test.js lo compara. -->
 
-La única fuente de lo que se le pide a una skill, a un estándar de agente y a lo que venga es `ops/forja/`, partida en un fichero por criterio, por tipo de skill y por ficha para que dos ramas no choquen (#505; formato en `scripts/lib/catalogos.mjs`). Tres capas, porque convertir algo continuo en atributos discretos nunca cubre todo; para los huecos están los textos que juzga un LLM. La capa de cada criterio solo sube (`ops/forja-capas.json`). Cómo se redacta cada criterio, y cualquier otra regla de la casa: [REDACCION.md](REDACCION.md).
+La única fuente de lo que se le pide a una skill, a un estándar de agente y a lo que venga es `ops/forja/`, partida en un fichero por norma, por tipo de skill y por ficha para que dos ramas no choquen (#505; formato en `scripts/lib/catalogos.mjs`). Tres capas, porque convertir algo continuo en atributos discretos nunca cubre todo; para los huecos están los textos que juzga un LLM. La capa de cada norma solo sube (`ops/forja-capas.json`). Cómo se redacta cada norma, y cualquier otra norma de la casa: [REDACCION.md](REDACCION.md).
 
 ## Cifras
 
@@ -13,11 +13,11 @@ La única fuente de lo que se le pide a una skill, a un estándar de agente y a 
 | subjetiva | 13 | 3 | 0 | 16 |
 | total | 52 | 24 | 0 | 75 |
 
-Un criterio que se aplica a dos artefactos cuenta en las dos columnas y una vez en el total.
+Una norma que se aplica a dos artefactos cuenta en las dos columnas y una vez en el total.
 
-## Cómo se escribe un criterio
+## Cómo se escribe una norma de la forja
 
-Cada criterio se escribe por campos y su frase se genera; no hay prosa libre. La forma sigue EARS (Mavin et al., Rolls-Royce, 2009) y las palabras de RFC 2119. El esquema vive en `scripts/lib/regla.mjs`, para que lo reutilicen las normas y las obligaciones del flujo (#488). La frase es: **Nombre.** [Condición,] sujeto DEBE | NO DEBE exigencia. Se comprueba con: control. Con `conviene`: [Condición, para] sujeto, CONVIENE exigencia.
+Cada norma de la forja se escribe por campos y su frase se genera; no hay prosa libre. La forma sigue EARS (Mavin et al., Rolls-Royce, 2009) y las palabras de RFC 2119. El esquema vive en `scripts/lib/regla.mjs`, para que lo reutilicen las normas y las obligaciones del flujo (#488). La frase es: **Nombre.** [Condición,] sujeto DEBE | NO DEBE exigencia. Se comprueba con: control. Con `conviene`: [Condición, para] sujeto, CONVIENE exigencia.
 
 | Campo | Qué es |
 |---|---|
@@ -57,11 +57,11 @@ Taxonomía decidida por Pablo el 10 oct 2026. Un tipo existe solo si cambia qué
 | Tipo | Qué hace | Entra → sale | Prueba | Skills de hoy |
 |---|---|---|---|---|
 | conocimiento | Lo que hay que saber del negocio | pregunta → dato y dónde vive | cada afirmación apunta a su fuente | principios-de-producto |
-| decision | Elegir entre opciones con criterios | dilema → opción y porqué | cada criterio aplicado y la escalera seguida | plan-de-arreglo |
-| diagnostico | De un síntoma a su causa | fallo → causa en campos cerrados | la salida rellena la ficha y hay un criterio de parada | causa-raiz |
+| decision | Elegir entre opciones con criterios | dilema → opción y porqué | cada norma aplicada y la escalera seguida | plan-de-arreglo |
+| diagnostico | De un síntoma a su causa | fallo → causa en campos cerrados | la salida rellena la ficha y hay una condición de parada | causa-raiz |
 | flujo | Encadenar skills y agentes | caso → cerrado por etapas | cada etapa apunta a una skill o agente que existe y tiene puerta | issues |
 | procedimiento | Pasos fijos que cambian algo | situación → cambio hecho y comprobado | cada paso con su verificación y su marcha atrás | alta-de-secreto |
-| revision | Juzgar un artefacto contra un catálogo y aplicar lo mecánico | artefacto → criterio, estado y arreglo | una pieza mala a propósito da todos sus fallos | higiene-de-skills, revision-de-diseno |
+| revision | Juzgar un artefacto contra un catálogo y aplicar lo mecánico | artefacto → `criterio`, estado y arreglo | una pieza mala a propósito da todos sus fallos | higiene-de-skills, revision-de-diseno |
 | servicio | Operar un sistema externo concreto | petición → comando y resultado esperado | los comandos existen, la salida es comprobable y la caducidad es corta | github, vercel, supabase, telegram, hetzner, tailscale, 1password |
 
 El tipo de una skill sale de `tipoDeSkill(respuestas)`: el de la primera pregunta con sí, en este orden; si ninguna, `conocimiento`.
@@ -104,7 +104,7 @@ Cada skill declara en su ficha (frontmatter) sus respuestas a las preguntas y su
 | 1 | Plantilla por tipo, generada en .claude/plantillas-skill/<tipo>.md: no es una skill |
 | 2 | Skill concreta, con su tipo (el que dan sus respuestas); es el nivel si la ficha no dice otro |
 
-Herencia: esqueleto común (la base) → plantilla por tipo (los criterios que le tocan, `tipos` de cada criterio) → cada skill. Criterios de skill por tipo y capa:
+Herencia: esqueleto común (la base) → plantilla por tipo (las normas que le tocan, `tipos` de cada norma) → cada skill. Normas de skill por tipo y capa:
 
 | Tipo | formal | material | subjetiva | Criterios |
 |---|---|---|---|---|
@@ -124,7 +124,7 @@ Se sistematiza lo máximo posible con atributos discretos, aunque lo continuo nu
 |---|---|
 | bool | Verdadero o falso |
 | enum | Un valor de un vocabulario cerrado |
-| ref | Apunta a algo que existe: skill, agente, criterio, ruta, comando, issue, fuente, evidencia, versión, común de estándar o norma |
+| ref | Apunta a algo que existe: skill, agente, `criterio`, ruta, comando, issue, fuente, evidencia, versión, común de estándar o norma |
 | numero | Un número |
 | fecha | Una fecha AAAA-MM-DD |
 | texto | Prosa: solo como hueco, con su motivo |
@@ -132,13 +132,13 @@ Se sistematiza lo máximo posible con atributos discretos, aunque lo continuo nu
 
 | Artefacto | Campos discretos | Huecos de texto | Campos |
 |---|---|---|---|
-| agente | 3 | 1 | 4 |
-| criterio | 2 | 6 | 8 |
-| estandar | 6 | 3 | 9 |
-| juicio | 6 | 1 | 7 |
-| skill | 14 | 2 | 16 |
+| `agente` | 3 | 1 | 4 |
+| `criterio` | 2 | 6 | 8 |
+| `estandar` | 6 | 3 | 9 |
+| `juicio` | 6 | 1 | 7 |
+| `skill` | 14 | 2 | 16 |
 
-### Campos de agente
+### Campos de `agente`
 
 El frontmatter de .claude/agents/<agente>.md.
 
@@ -147,9 +147,9 @@ El frontmatter de .claude/agents/<agente>.md.
 - `model` — enum (modelo_agente)
 - `skills` — ref a skill, lista, opcional
 
-### Campos de criterio
+### Campos de `criterio`
 
-Un criterio de este catálogo, redactado por campos (scripts/lib/regla.mjs): nombre, sujeto, fuerza, condicion, exigencia y, en los subjetivos, cumple y no_cumple. El resto de sus campos (id, capa, aplica_a, fuente, control, codigo) los vigila problemasDeForja.
+Una norma de este catálogo, redactada por campos (scripts/lib/regla.mjs): nombre, sujeto, fuerza, condicion, exigencia y, en los subjetivos, cumple y no_cumple. El resto de sus campos (id, capa, aplica_a, fuente, control, codigo) los vigila problemasDeForja.
 
 - `nombre` — texto. Hueco: La etiqueta corta con que se nombra la regla (2 a 5 palabras): un nombre no cabe en un vocabulario cerrado
 - `sujeto` — enum (sujeto)
@@ -160,7 +160,7 @@ Un criterio de este catálogo, redactado por campos (scripts/lib/regla.mjs): nom
 - `no_cumple` — texto, opcional. Hueco: Cuándo da por mala la regla el juicio de un LLM (solo los subjetivos): es la rúbrica y se escribe caso a caso
 - `nota` — texto, opcional. Hueco: Un matiz que la exigencia no admite (una heurística, una cifra medida, un caso que la prueba): es contexto y no cabe en un campo discreto
 
-### Campos de estandar
+### Campos de `estandar`
 
 Una tarea de un agente en ops/estandares-agentes.json (la clave es su id). Su estándar son las normas de ops/normas.json que le tocan por sus ámbitos y su acción, las que cita aparte (#620) y sus reglas por campos (#516), solo para los pasos que no son norma; las compartidas por varios agentes están en comunes y la tarea las nombra.
 
@@ -174,21 +174,21 @@ Una tarea de un agente en ops/estandares-agentes.json (la clave es su id). Su es
 - `no_hace` — texto, lista, opcional. Hueco: La frontera con lo que es de otro agente o de una persona, que hay que nombrar caso a caso
 - `rondas` — texto, lista, opcional. Hueco: Lo que cambió en cada ronda de investigación, una frase por ronda: el número y las fuentes son discretos, el cambio no cabe en un vocabulario
 
-### Campos de juicio
+### Campos de `juicio`
 
-Un juicio de skill: el estado de un criterio de juicio (control «juicio») sobre una skill, en ops/juicios-skills/<skill>.json bajo el id del criterio (#457). Los criterios con control no se escriben: los calcula su control. Lo valida scripts/lib/juiciosSkills.mjs.
+Un juicio de skill: el estado de una norma de juicio (control «juicio») sobre una skill, en ops/juicios-skills/<skill>.json bajo el id de la norma (#457). Las normas con control no se escriben: los calcula su control. Lo valida scripts/lib/juiciosSkills.mjs.
 
 - `estado` — enum (estados_criterio)
 - `evidencia` — ref a evidencia, lista, opcional
 - `motivo_pendiente` — enum (motivos_pendiente), opcional
-- `nota` — texto, opcional. Hueco: Lo propio de esta skill que el estado no dice: qué falla en el hueco o qué falta mirar; lo que es del criterio va al criterio
+- `nota` — texto, opcional. Hueco: Lo propio de esta skill que el estado no dice: qué falla en el hueco o qué falta mirar; lo que es de la norma va a la norma
 - `fecha` — fecha, opcional
 - `firmante` — enum (firmantes), opcional
 - `version_skill_md` — ref a version, opcional
 
-### Campos de skill
+### Campos de `skill`
 
-El frontmatter de .claude/skills/<skill>/SKILL.md (name y description arriba; tipo, dueno, comprobado y normas en metadata). Los juicios de sus criterios de juicio van aparte, en ops/juicios-skills/<skill>.json (campos_ficha.juicio, #457).
+El frontmatter de .claude/skills/<skill>/SKILL.md (name y description arriba; tipo, dueno, comprobado y normas en metadata). Los juicios de sus normas de juicio van aparte, en ops/juicios-skills/<skill>.json (campos_ficha.juicio, #457).
 
 - `name` — ref a skill
 - `description` — texto. Hueco: El cuándo se abre la skill dicho con las palabras de quien pide: lo discreto no lo alcanza, es prosa para que el modelo reconozca una petición
@@ -227,28 +227,28 @@ Un estándar se escribe tras 3 rondas de investigación o más (buscar, contrast
 | material | Heurística automática; lo que hoy incumple va a una lista de excepciones que solo baja |
 | subjetiva | Una rúbrica escrita que un LLM puntúa sobre casos; para lo que no se puede discretizar |
 
-| Estado de un criterio | Qué quiere decir |
+| Estado de una norma | Qué quiere decir |
 |---|---|
 | cumple | Lo comprobó un control o un juicio y se cumple |
 | no_cumple | Lo comprobó un control o un juicio y no se cumple |
-| no_aplica | El criterio no se aplica a este artefacto |
+| no_aplica | La norma no se aplica a este artefacto |
 | juicio | Pendiente de juicio: lo puntúa un LLM o una persona y aún no se ha hecho |
 
-El estado de un criterio sobre un artefacto es una línea `<artefacto>: <nombre> criterio: <id> estado: <estado>`; solo no_cumple y juicio llevan `nota:` (el hueco). Los juicios de skill (los criterios de juicio de cada skill, con su evidencia) viven en `ops/juicios-skills/<skill>.json` y sus campos son los de `campos_ficha.juicio`.
+El estado de una norma sobre un artefacto es una línea `<artefacto>: <nombre> criterio: <id> estado: <estado>`; solo no_cumple y juicio llevan `nota:` (el hueco). Los juicios de skill (las normas de juicio de cada skill, con su evidencia) viven en `ops/juicios-skills/<skill>.json` y sus campos son los de `campos_ficha.juicio`.
 
 | Motivo de un pendiente | Qué quiere decir | Dónde se escribe |
 |---|---|---|
-| falta_herramienta | Falta el control o la medida que lo comprobaría (un test, el A/B con y sin skill) | criterio, juicio |
-| falta_decision | Falta decidir en la base cómo se aplica (a un tipo, o si no existe la pieza que juzga) | criterio, juicio |
-| sin_mirar | Nadie lo ha juzgado todavía | juicio |
-| sin_pasada | Se juzga con una pasada del nivel 2 vigente, y no la hay | juicio, calculado |
-| otra_version | Se juzgó sobre otra versión del SKILL.md: hay que volver a juzgarlo | calculado |
+| falta_herramienta | Falta el control o la medida que lo comprobaría (un test, el A/B con y sin skill) | `criterio`, `juicio` |
+| falta_decision | Falta decidir en la base cómo se aplica (a un tipo, o si no existe la pieza que juzga) | `criterio`, `juicio` |
+| sin_mirar | Nadie lo ha juzgado todavía | `juicio` |
+| sin_pasada | Se juzga con una pasada del nivel 2 vigente, y no la hay | `juicio`, `calculado` |
+| otra_version | Se juzgó sobre otra versión del SKILL.md: hay que volver a juzgarlo | `calculado` |
 
 ## Promoción de una rúbrica
 
-Un criterio subjetivo lleva casos de calibración (un texto de ejemplo y el estado que se espera, cumple o no_cumple) y solo puede marcarse `listo_para_subir` si sus medidas cumplen la promoción: coincidencia del juez con la respuesta conocida de al menos **0.9** en **10** repeticiones.
+Una norma subjetiva lleva casos de calibración (un texto de ejemplo y el estado que se espera, cumple o no_cumple) y solo puede marcarse `listo_para_subir` si sus medidas cumplen la promoción: coincidencia del juez con la respuesta conocida de al menos **0.9** en **10** repeticiones.
 
-**Estos valores son un primer tiro, pendientes de ajustar con datos.** Están en el bloque `promocion` de `ops/forja/` y se cambian ahí; aún no hay juez montado ni medidas. Subir de capa sigue siendo editar el criterio; el trinquete (`ops/forja-capas.json`) impide bajar.
+**Estos valores son un primer tiro, pendientes de ajustar con datos.** Están en el bloque `promocion` de `ops/forja/` y se cambian ahí; aún no hay juez montado ni medidas. Subir de capa sigue siendo editar la norma; el trinquete (`ops/forja-capas.json`) impide bajar.
 
 Marca de la fuente: **[F]** está en una fuente externa (con su URL); **[I]** es de la casa (con la ruta del repo donde está escrito).
 
@@ -258,7 +258,7 @@ Esquema y forma: determinista, lo vigila un test del CI.
 
 ### formal · skill (26)
 
-- `apartado-ausente` — **Apartados del tipo.** La plantilla de skills DEBE llevar en el estándar de cada tipo «Qué lo hace bueno», «Errores típicos» y «Ejemplo mínimo», ninguno vacío. Se comprueba con: `.claude/skills.test.js`.
+- `apartado-ausente` — **Apartados del tipo.** La plantilla de skills DEBE llevar en la plantilla de cada tipo «Qué lo hace bueno», «Errores típicos» y «Ejemplo mínimo», ninguno vacío. Se comprueba con: `.claude/skills.test.js`.
   - Fuente: [I] .claude/PLANTILLA-SKILL.md. Código: `apartado-ausente`.
 - `cabeceras` — **Cabeceras ordenadas.** El cuerpo de cada skill DEBE bajar las cabeceras de nivel de una en una, sin saltar de ## a ####. Se comprueba con: `.claude/skills.test.js`.
   - Fuente: [I] .claude/skills/forja-de-skills/referencias/presentacion.md. Código: `cabeceras`.
@@ -301,7 +301,7 @@ Esquema y forma: determinista, lo vigila un test del CI.
   - Fuente: [I] .claude/PLANTILLA-SKILL.md. Código: `secciones`.
 - `secretos` — **Sin secretos.** Cada skill NO DEBE contener ningún patrón de clave ni cadena de conexión con contraseña, ni en sus capas. Se comprueba con: `.claude/skills.test.js`.
   - Fuente: [I] scripts/lib/skills.mjs. Código: `secretos`.
-- `sin-fuente` — **Marca de fuente.** La plantilla de skills DEBE marcar cada punto del estándar de un tipo con su [F: fuente], [I] (ruta de la casa) o [S] (inferencia nuestra). Se comprueba con: `.claude/skills.test.js`.
+- `sin-fuente` — **Marca de fuente.** La plantilla de skills DEBE marcar cada punto de la plantilla de un tipo con su [F: fuente], [I] (ruta de la casa) o [S] (inferencia nuestra). Se comprueba con: `.claude/skills.test.js`.
   - Fuente: [I] .claude/PLANTILLA-SKILL.md. Código: `sin-fuente`.
 - `sin-parada` — **Parada del método.** El cuerpo de cada skill DEBE decir en el «Método» cuándo se acaba y qué se ve cuando sale bien. Se comprueba con: `.claude/skills.test.js`.
   - Nota: Es heurístico: el control detecta la frase («Sale bien si», «Hecho cuando»…), no que el método diga de verdad cuándo acaba; candidato a revisar su capa. Se exceptúa el tipo servicio, que no tiene «Método».
@@ -311,7 +311,7 @@ Esquema y forma: determinista, lo vigila un test del CI.
 - `tamano` — **Tamaño del cuerpo.** El cuerpo de cada skill DEBE tener SKILL.md de 220 líneas como mucho, con el detalle en ficheros de capa. Se comprueba con: `.claude/skills.test.js`.
   - Nota: La guía oficial pide menos de 500 líneas.
   - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Código: `tamano`.
-- `tipo-sin-estandar` — **Apartado por tipo.** La plantilla de skills DEBE tener para cada tipo de skill su apartado en «El estándar de cada tipo». Se comprueba con: `.claude/skills.test.js`.
+- `tipo-sin-estandar` — **Apartado por tipo.** La plantilla de skills DEBE tener para cada tipo de skill su apartado en «La plantilla de cada tipo». Se comprueba con: `.claude/skills.test.js`.
   - Fuente: [I] .claude/PLANTILLA-SKILL.md. Código: `tipo-sin-estandar`.
 - `tipo` — **Tipo de skill.** El frontmatter de cada skill DEBE llevar en metadata.tipo uno de los tipos de tipos_skill de ops/forja/, el que dan sus respuestas. Se comprueba con: `.claude/skills.test.js`.
   - Fuente: [I] scripts/lib/skills.mjs. Código: `tipo`.
@@ -320,7 +320,7 @@ Esquema y forma: determinista, lo vigila un test del CI.
 
 - `estandar-agente-con-lista` — **Lista por agente.** Cada agente DEBE tener su lista de tareas en el catálogo de estándares y existir en .claude/agents/. Se comprueba con: `ops/estandares-agentes.test.js`.
   - Fuente: [I] scripts/lib/estandaresAgentes.mjs.
-- `estandar-cita-normas` — **Normas citadas, no reescritas.** Cada tarea del catálogo de estándares DEBE citar por id las normas que aplica, por sus ámbitos y su acción, y no reescribir ninguna como regla propia. Se comprueba con: `ops/uniones.test.js`.
+- `estandar-cita-normas` — **Normas citadas, no reescritas.** Cada tarea del catálogo de estándares DEBE citar por id las normas que aplica, por sus ámbitos y su acción, y no reescribir ninguna como condición propia. Se comprueba con: `ops/uniones.test.js`.
   - Nota: La consulta ámbito × acción y el parecido de cada regla con cada norma los mide ops/uniones.test.js; lo que se parece y no es la norma va a reglas_que_no_son_norma con su motivo.
   - Fuente: [I] scripts/lib/estandaresAgentes.mjs.
 - `estandar-completo-con-forma` — **Forma de la tarea completa.** Cuando es de un agente completo, cada tarea del catálogo de estándares DEBE llevar estándar de 60 caracteres o más, una lista de comprobaciones y una de lo que no hace. Se comprueba con: `ops/estandares-agentes.test.js`.

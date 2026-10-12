@@ -1,10 +1,10 @@
 {
-  "$comentario": "Catálogo de criterios de calidad de la forja (#458, fondo #455): la única fuente de lo que se le pide a una skill, a un estándar de agente y a lo que venga. Tres capas: formal (esquema y forma, determinista, test del CI), material (heurística automática con lista de excepciones que solo baja) y subjetiva (rúbrica que puntúa un LLM sobre casos). Cada criterio dice a qué se aplica, qué pide, de dónde sale ([F] fuente externa con url, [I] de la casa con ruta del repo), quién lo vigila (un fichero, o juicio) y qué código emite el script al detectarlo. Lo lee scripts/lib/forja.mjs, lo vigila ops/forja.test.js y de él sale docs/ops/FORJA.md (npm run forja -- --escribir). La capa de cada criterio queda anclada en ops/forja-capas.json y solo sube. Repo público: nada de cómo se salta un control.",
+  "$comentario": "Catálogo de normas de calidad de la forja (#458, fondo #455): la única fuente de lo que se le pide a una skill, a un estándar de agente y a lo que venga. Tres capas: formal (esquema y forma, determinista, test del CI), material (heurística automática con lista de excepciones que solo baja) y subjetiva (rúbrica que puntúa un LLM sobre casos). Cada norma dice a qué se aplica, qué pide, de dónde sale ([F] fuente externa con url, [I] de la casa con ruta del repo), quién lo vigila (un fichero, o juicio) y qué código emite el script al detectarlo. Lo lee scripts/lib/forja.mjs, lo vigila ops/forja.test.js y de él sale docs/ops/FORJA.md (npm run forja -- --escribir). La capa de cada norma queda anclada en ops/forja-capas.json y solo sube. Repo público: nada de cómo se salta un control.",
   "version": 1,
   "promocion": {
     "coincidencia_minima": 0.9,
     "repeticiones": 10,
-    "nota": "Primer tiro, pendiente de ajustar con datos: un criterio subjetivo solo puede marcarse listo_para_subir si sus medidas (coincidencia del juicio del LLM con la respuesta conocida de sus casos de calibración, sobre n repeticiones) cumplen los dos valores."
+    "nota": "Primer tiro, pendiente de ajustar con datos: una norma subjetiva solo puede marcarse listo_para_subir si sus medidas (coincidencia del juicio del LLM con la respuesta conocida de sus casos de calibración, sobre n repeticiones) cumplen los dos valores."
   },
   "tipos_skill": {
     "$partida": "lista",
@@ -43,7 +43,7 @@
     }
   ],
   "libertad": {
-    "alta": "Una heurística o un criterio: hay varios caminos buenos",
+    "alta": "Una heurística o una norma: hay varios caminos buenos",
     "media": "Un camino recomendado con variantes admitidas",
     "baja": "Pasos exactos o un script: un error cuesta caro"
   },

@@ -2,6 +2,7 @@
   "termino": "métrica",
   "estado": "activo",
   "clase": "artefacto",
+  "dominio": "base",
   "definicion": "Una cifra con su emisor, su lector, su unidad y su umbral, registrada en ops/metricas.json o en metricas[] de un módulo de ops/MODULOS.json, que dice si algo mejora.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
@@ -11,5 +12,11 @@
     "evento",
     "eval"
   ],
-  "en": "metric"
+  "en": "metric",
+  "entidades": [
+    {
+      "entidad": "metric",
+      "relacion": "denota"
+    }
+  ]
 }

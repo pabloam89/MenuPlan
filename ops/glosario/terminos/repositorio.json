@@ -2,10 +2,17 @@
   "termino": "repositorio",
   "estado": "activo",
   "clase": "artefacto",
+  "dominio": "ops",
   "definicion": "Un repositorio de código en GitHub, con sus issues, PR y ramas, que contiene uno o varios proyectos.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
     "todas"
   ],
-  "en": "repo"
+  "en": "repo",
+  "entidades": [
+    {
+      "entidad": "repo",
+      "relacion": "denota"
+    }
+  ]
 }

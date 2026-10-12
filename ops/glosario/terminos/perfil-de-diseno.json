@@ -2,10 +2,17 @@
   "termino": "perfil de diseño",
   "estado": "activo",
   "clase": "artefacto",
+  "dominio": "diseno",
   "definicion": "Una plantilla de ops/diseno/bloques.json (P1 a P6) que dice qué bloques de diseño obligan según el tipo de proyecto.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
     "todas"
   ],
-  "en": "design-profile"
+  "en": "design-profile",
+  "entidades": [
+    {
+      "entidad": "design-profile",
+      "relacion": "denota"
+    }
+  ]
 }

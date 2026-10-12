@@ -2,6 +2,7 @@
   "termino": "producción",
   "estado": "activo",
   "clase": "lugar",
+  "dominio": "ops",
   "definicion": "El entorno que usan las familias: la rama main, su despliegue y la única base de datos.",
   "sinonimos_prohibidos": [
     "prod"
@@ -11,5 +12,11 @@
   ],
   "relacionado": [
     "staging"
+  ],
+  "entidades": [
+    {
+      "entidad": "environment",
+      "relacion": "ubicacion_de"
+    }
   ]
 }

@@ -137,7 +137,7 @@ quién tocó un dominio sin abrir la suya.
 Cada agente tiene la lista de las tareas que hace y, por cada una, su acción
 (construir, juzgar, diagnosticar, operar, medir, documentar o decidir), sus
 ámbitos y su estándar: las normas de `ops/normas.json` que le tocan por ámbito ×
-acción y las que cita por id, sin reescribirlas (#620), y unas reglas propias por
+acción y las que cita por id, sin reescribirlas (#620), y unas condiciones propias por
 campos para los pasos que no son norma, cada una con su control (un test, un hook
 o un script que exista, o juicio) y su fuente pública o de la casa, más lo que la
 tarea no hace (#413, fondo #416; por campos en #516). Lo que hacen varios agentes

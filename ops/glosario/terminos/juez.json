@@ -2,6 +2,7 @@
   "termino": "juez",
   "estado": "activo",
   "clase": "rol",
+  "dominio": "base",
   "definicion": "Un agente sin Edit ni Write que juzga el trabajo de otro y lleva «Tipo: juez» en su ficha de .claude/agents/.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
@@ -20,5 +21,11 @@
     "fichero": "scripts/lib/flujo.mjs",
     "clave": "ACTORES.juez"
   },
-  "en": "judge"
+  "en": "judge",
+  "entidades": [
+    {
+      "entidad": "agent",
+      "relacion": "rol_de"
+    }
+  ]
 }

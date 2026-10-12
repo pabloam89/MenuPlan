@@ -2,18 +2,27 @@
   "termino": "tarea de agente",
   "estado": "activo",
   "clase": "artefacto",
-  "definicion": "Un tipo de trabajo que repite un agente, con su estándar, en ops/estandares-agentes.json.",
+  "dominio": "base",
+  "definicion": "Un tipo de trabajo que repite un agente, con su tipo de tarea, sus ámbitos y su estándar, en ops/estandares-agentes.json.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
     "todas"
   ],
   "relacionado": [
     "tarea",
-    "estándar"
+    "estándar",
+    "pieza",
+    "tipo de tarea"
   ],
   "ref": {
     "fichero": "scripts/lib/estandaresAgentes.mjs",
     "clave": "CAMPOS_TAREA"
   },
-  "en": "agent-task"
+  "en": "agent-task",
+  "entidades": [
+    {
+      "entidad": "agent-task",
+      "relacion": "denota"
+    }
+  ]
 }

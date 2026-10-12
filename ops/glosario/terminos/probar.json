@@ -2,6 +2,7 @@
   "termino": "probar",
   "estado": "activo",
   "clase": "accion",
+  "dominio": "base",
   "definicion": "Ejecutar algo para ver lo que hace de verdad: un test, un comando, la app en el navegador. Un test nuevo se prueba viéndolo fallar.",
   "sinonimos_prohibidos": [
     "testear",

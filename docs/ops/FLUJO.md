@@ -127,7 +127,7 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | P07.4 | **Tope de rondas.** Cada problema de fondo NO DEBE pasar de las rondas del presupuesto de constructor y juez. | NO DEBE | script_propio · semidura · `scripts/lib/fondos.mjs` | test: `scripts/fondos-rondas.test.js` | `rondas-tope-duro` | #340 |
 | P07.5 | **Agente con plantilla.** Cada agente DEBE seguir la plantilla: tipo, planos, método e informe común. | DEBE | ci · dura · `.claude/PLANTILLA-AGENTE.md` | test: `.claude/agentes.test.js` | — | — |
 | P07.6 | **Main solo por PR.** La rama main DEBE recibir cambios solo por PR con el check tests en verde. | DEBE | github_regla · semidura · `ops/DECISIONES.md` | planos: `ops/planos.json` | `main-solo-por-pr-con-tests` | #330 |
-| P07.7 | **Reglas propias intocables.** Cada sesión de Claude NO DEBE cambiar las propias reglas (protecciones, permisos, guardia) con credenciales de sesión. | NO DEBE | nada · blanda · no escrita aún | juicio | — | #326 |
+| P07.7 | **Normas propias intocables.** Cada sesión de Claude NO DEBE cambiar las propias normas (protecciones, permisos, guardia) con credenciales de sesión. | NO DEBE | nada · blanda · no escrita aún | juicio | — | #326 |
 | P07.8 | **Staging exige tests.** La rama staging DEBE recibir cambios solo con el check tests en verde, sea por PR o por push. | DEBE | github_regla · semidura · `ops/DECISIONES.md` | planos: `ops/planos.json` | `staging-exige-tests` | #263 |
 | P07.9 | **Agente y Closes del PR.** Cada PR DEBE llevar la línea Agente: y, si la rama es de un issue, su Closes #n. | DEBE | ci · semidura · `scripts/fondos-pr.mjs` | test: `scripts/fondos-pr.test.js` | `pr-agente-y-closes-en-ci` | — |
 | P07.10 | **Jueces sin escritura.** Cuando es un juez, cada agente NO DEBE tener Edit ni Write, contando las herramientas que da la memoria. | NO DEBE | ci · dura · `CLAUDE.md` | test: `.claude/agentes.test.js` | `jueces-sin-escritura` | — |
@@ -284,7 +284,7 @@ nada. De ahí salen quién diagnostica, las hipótesis, los jueces y el tope.
   por alcance y tipo de causa) y propondrá recalibrarlos. Una persona los
   aplicará. Una causa puede sobrescribir al alcance (p. ej. `modelo-datos` pide
   siempre `auditor-datos`); la celda alcance × causa la resuelve el comando.
-- **El diagnóstico se parará por criterio, no por cansancio.** Se dejará de
+- **El diagnóstico se parará por condición, no por cansancio.** Se dejará de
   preguntar «¿por qué?» cuando se llega a algo que se puede cambiar con un
   mecanismo; cuando se llega a algo fuera de nuestro control (se pone una
   barrera de nuestro lado); o cuando se acaba la evidencia (se marca como

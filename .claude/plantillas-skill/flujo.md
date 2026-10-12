@@ -119,7 +119,7 @@ Lo que pide este tipo: cada etapa apunta a una skill o agente que existe y tiene
 
 No hay criterio de skill que no se le aplique.
 
-## El estándar de este tipo
+## La plantilla de este tipo
 
 ### Qué lo hace bueno
 

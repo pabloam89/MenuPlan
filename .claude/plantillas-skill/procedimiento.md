@@ -129,7 +129,7 @@ Lo que pide este tipo: cada paso con su verificación y su marcha atrás. Lo com
 
 No hay criterio de skill que no se le aplique.
 
-## El estándar de este tipo
+## La plantilla de este tipo
 
 ### Qué lo hace bueno
 

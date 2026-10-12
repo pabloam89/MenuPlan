@@ -1,7 +1,7 @@
 {
   "clave": "skill",
   "valor": {
-    "fuente": "El frontmatter de .claude/skills/<skill>/SKILL.md (name y description arriba; tipo, dueno, comprobado y normas en metadata). Los juicios de sus criterios de juicio van aparte, en ops/juicios-skills/<skill>.json (campos_ficha.juicio, #457).",
+    "fuente": "El frontmatter de .claude/skills/<skill>/SKILL.md (name y description arriba; tipo, dueno, comprobado y normas en metadata). Los juicios de sus normas de juicio van aparte, en ops/juicios-skills/<skill>.json (campos_ficha.juicio, #457).",
     "campos": {
       "name": {
         "clase": "ref",

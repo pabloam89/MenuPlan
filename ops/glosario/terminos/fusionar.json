@@ -2,6 +2,7 @@
   "termino": "fusionar",
   "estado": "activo",
   "clase": "accion",
+  "dominio": "ops",
   "definicion": "Juntar un PR con la rama de destino que lo recibe: staging, o main cuando Pablo lo pide.",
   "sinonimos_prohibidos": [
     "mergear",
@@ -16,5 +17,11 @@
   ],
   "relacionado": [
     "staging"
+  ],
+  "entidades": [
+    {
+      "entidad": "pull-request",
+      "relacion": "accion_sobre"
+    }
   ]
 }

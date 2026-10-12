@@ -7,7 +7,7 @@ paths:
 # Pantallas y componentes
 
 - **Lee `DESIGN_SYSTEM.md` antes de tocar un `.jsx`.** No es opcional: el
-  criterio (columna, jerarquía por peso, voz, accesibilidad) está ahí.
+  lo que se pide (columna, jerarquía por peso, voz, accesibilidad) está ahí.
 - **Los valores salen de los tokens** (`src/design/tokens.js`; en CSS,
   `var(--…)` de `src/design/tokens.css`), por **rol**, no por hex ni por
   número. No copies aquí ni en tu pantalla los valores: se leen en el módulo.

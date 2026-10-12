@@ -1,7 +1,7 @@
 {
   "clave": "criterio",
   "valor": {
-    "fuente": "Un criterio de este catálogo, redactado por campos (scripts/lib/regla.mjs): nombre, sujeto, fuerza, condicion, exigencia y, en los subjetivos, cumple y no_cumple. El resto de sus campos (id, capa, aplica_a, fuente, control, codigo) los vigila problemasDeForja.",
+    "fuente": "Una norma de este catálogo, redactada por campos (scripts/lib/regla.mjs): nombre, sujeto, fuerza, condicion, exigencia y, en los subjetivos, cumple y no_cumple. El resto de sus campos (id, capa, aplica_a, fuente, control, codigo) los vigila problemasDeForja.",
     "campos": {
       "nombre": {
         "clase": "texto",

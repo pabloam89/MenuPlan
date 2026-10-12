@@ -46,7 +46,7 @@ const TABLA_PABLO = {
   diagnostico: ["causa-raiz"],
   decision: ["plan-de-arreglo"],
   flujo: ["issues"],
-  revision: ["higiene-de-skills", "revision-de-diseno"], // #591
+  revision: ["higiene-de-skills", "higiene-de-vocabulario", "revision-de-diseno"], // #591 y F1 de #652
   conocimiento: ["principios-de-producto"], // #606
 };
 const PREGUNTAS_PABLO = ["opera_proveedor", "juzga_artefacto", "encadena", "pasos_fijos", "sintoma_a_causa", "elige_opciones"];
@@ -419,10 +419,10 @@ describe("trinquete de los campos (ops/forja-campos.json): de texto a discreto, 
 describe("cifras: campos discretos frente a huecos", () => {
   it("por artefacto, en la vista y en las cifras", () => {
     expect(cifrasDeCampos(datos)).toEqual({ skill: { discretos: 14, huecos: 2, total: 16 }, estandar: { discretos: 6, huecos: 3, total: 9 }, agente: { discretos: 3, huecos: 1, total: 4 }, juicio: { discretos: 6, huecos: 1, total: 7 }, criterio: { discretos: 2, huecos: 6, total: 8 } });
-    expect(md).toContain("| skill | 14 | 2 | 16 |");
-    expect(md).toContain("| criterio | 2 | 6 | 8 |");
-    expect(md).toContain("| estandar | 6 | 3 | 9 |");
-    expect(md).toContain("| juicio | 6 | 1 | 7 |");
+    expect(md).toContain("| `skill` | 14 | 2 | 16 |");
+    expect(md).toContain("| `criterio` | 2 | 6 | 8 |");
+    expect(md).toContain("| `estandar` | 6 | 3 | 9 |");
+    expect(md).toContain("| `juicio` | 6 | 1 | 7 |");
   });
   it("FORJA.md dice que la única lista de tipos es la de ops/forja/ y dónde están los moldes", () => {
     expect(md).toContain("La única lista de tipos es la de `ops/forja/`");
