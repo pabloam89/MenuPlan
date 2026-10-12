@@ -26,7 +26,7 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { CAPAS_AGENTE, leerFicha } from "./fondos.mjs";
+import { CAPAS_AGENTE, leerEncargo, leerFicha } from "./fondos.mjs";
 import { porGrupo } from "./issues.mjs";
 import { numeroDeRama } from "./lleva.mjs";
 import { ALCANCES, CATALOGO, CAUSAS, RANGOS, TOPE_RONDAS, celdas, presupuestoDe, problemas } from "./presupuestos.mjs";
@@ -303,6 +303,20 @@ export function agregarPorIssue(sesiones) {
 // ── Unir con los issues ───────────────────────────────────────────────────────
 
 const nombres = (labels) => (labels ?? []).map((l) => (typeof l === "string" ? l : l?.name)).filter(Boolean);
+/**
+ * Cuántos encargos usan cada subtipo (#646, la regla «repite» de la puerta de entrada de ops/tipos-de-encargo.json):
+ * { id: n } sobre los issues de tipo encargo cuyo bloque dice `subtype`. Los avisos los da `avisosDeUso` del lector de tipos.
+ */
+export function usosDeSubtipos(issues) {
+  const usos = {};
+  for (const i of issues) {
+    if (tipoDe(i) !== "encargo") continue;
+    const id = leerEncargo(i.body).ficha.subtype;
+    if (typeof id === "string") usos[id] = (usos[id] ?? 0) + 1;
+  }
+  return usos;
+}
+
 const tipoDe = (issue) => [...porGrupo(nombres(issue.labels)).tipo][0] ?? null;
 const causaDe = (issue) => [...porGrupo(nombres(issue.labels)).causa].find((c) => CAUSAS.includes(c)) ?? null;
 
@@ -548,7 +562,7 @@ const miles = (x) => Math.round(x).toLocaleString("es-ES");
 const usd = (x) => (x === null ? "sin precio" : `${f1(x)} USD`);
 
 /** El informe en texto. Solo números, números de issue y palabras de vocabularios cerrados. */
-export function textoInforme({ cobertura: cob, union, recal, desde = null, huecoMin = HUECO_ACTIVO_MIN, precios = PRECIOS, recalibracion = false, eventos = null, datosGithub = null }) {
+export function textoInforme({ cobertura: cob, union, recal, desde = null, huecoMin = HUECO_ACTIVO_MIN, precios = PRECIOS, recalibracion = false, eventos = null, datosGithub = null, subtipos = null }) {
   const L = [];
   L.push("Informe de la fábrica (fase F, #340) — solo agregados; los costes son una estimación a precio de API.");
   L.push(`Desde: ${desde ?? "el principio de las transcripciones"}. Minutos activos: huecos de menos de ${huecoMin} min. Precios de ${precios.comprobado_el} (${precios.estimacion ? "estimación" : "oficial"}).`);
@@ -574,6 +588,12 @@ export function textoInforme({ cobertura: cob, union, recal, desde = null, hueco
   for (const e of union.encargos) {
     const ag = Object.entries(e.agentes).map(([t, n]) => `${t}×${n}`).join(" ") || "ninguno";
     L.push(`  #${e.issue} (fondo ${e.fondo ? `#${e.fondo}` : "—"}) | ${f1(e.minutos)} min | ${miles(e.tokens.total)} tokens (salida ${miles(e.tokens.salida)}) | ${usd(e.coste_usd)} | ${e.sesiones} sesiones | agentes ${ag}`);
+  }
+  if (subtipos) {
+    L.push("");
+    L.push("Subtipos de encargo (aviso, no falla: la puerta de entrada pide al menos 3 encargos con el patrón de cada subtipo)");
+    if (!subtipos.length) L.push("  todos cumplen");
+    for (const l of subtipos) L.push(`  ${l}`);
   }
   if (eventos) {
     L.push("");

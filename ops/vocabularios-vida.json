@@ -14,10 +14,29 @@
       "writing": "Cómo se escribe una regla o un principio de la casa",
       "entities": "Cómo se nombra, se identifica y se registra cada cosa del proyecto"
     },
+    "encargo.closing": {
+      "person_ok": "Lo que no se puede deshacer o aplicar lo cierra una persona con su OK"
+    },
     "encargo.complexity": {
       "trivial": "Una línea, un texto o una duda",
       "normal": "Un cambio en un dominio",
       "large": "Varios dominios, o un refactor"
+    },
+    "encargo.counter": {
+      "lint_tokens_base": "Violaciones de lint-tokens-base",
+      "wiring_pairs": "Pares del cableado de una tabla (cableado.json)",
+      "layers_of_datum": "Capas en las que vive un dato",
+      "time_ms": "Milisegundos",
+      "cost_usd": "Dólares estimados a precio de API",
+      "tokens": "Tokens de modelo gastados"
+    },
+    "encargo.differs_in": {
+      "steps": "Sus pasos, en orden de roles, no son los del esqueleto de su tipo",
+      "closing": "Cierra con el OK de una persona, que el esqueleto no pide",
+      "measure": "Mide otra cosa que la medida por defecto de su tipo, o (en audit) mide con un agente que no es juez",
+      "plans_first": "Empieza por un plan de la sesión, antes de construir",
+      "maps_first": "Empieza por un juez que mapea lo que hay, antes de construir",
+      "builds_in_session": "Lo construye la propia sesión, sin subagente constructor"
     },
     "encargo.flag": {
       "writes_data": "El encargo escribe datos de familias o de la base",
@@ -25,33 +44,40 @@
       "changes_bot": "El encargo cambia lo que Lola dice o hace",
       "touches_secrets_or_permissions": "El encargo toca secretos, variables de entorno, permisos de Claude o de GitHub"
     },
+    "encargo.measure": {
+      "counter_before_after": "Un contador del vocabulario «counters», antes y después",
+      "behavior_unchanged": "Los tests dan lo mismo antes y después"
+    },
     "encargo.pipeline": {
       "minimal": "Un constructor y el juez mínimo, con las condiciones de sus pasos",
       "complete": "Todos los pasos del subtipo"
     },
+    "encargo.step_purpose": {
+      "diagnose": "Diagnóstico y test que lo reproduce",
+      "plan": "Plan corto",
+      "map": "Mapa de lo que hay antes de tocar",
+      "measure_before": "Mide antes",
+      "measure_after": "Pide la medida de después",
+      "review_planes": "Revisa los planos",
+      "validate_in_tests": "Validación en los tests del repo"
+    },
     "encargo.subtype": {
-      "pantalla-nueva": "Pantalla o componente nuevo",
-      "assets": "Assets (icono, ilustración, limpieza)",
-      "lola-herramienta": "Herramienta nueva o cambio en Lola",
-      "lola-conocimiento": "Cambiar conocimiento, prompt o enrutador del bot",
-      "esquema-o-dato": "Cambio de esquema o dato nuevo",
-      "recetas-o-catalogo": "Recetas o catálogo (contenido)",
-      "funcion-entre-dominios": "Función que cruza dominios",
-      "endpoint-nuevo": "Endpoint nuevo en `api/`",
-      "create-other": "Otro encargo de crear (lo que no encaja en los demás)",
-      "bug": "Bug",
-      "fix-other": "Otro encargo de arreglar (lo que no encaja en los demás)",
-      "migrar-a-tokens": "Migrar una pantalla a tokens",
-      "dato-en-varias-capas": "Dato que vive en varias capas (base, catálogo, constantes)",
-      "reducir-cableado": "Reducir el cableado de una tabla",
-      "lento-o-caro": "Algo va lento o cuesta de más",
-      "refactor-monolito": "Refactor de un monolito",
-      "improve-other": "Otra mejora sin cambiar lo que hace",
-      "ci-permisos-hooks": "CI, permisos, hooks, ramas, secretos",
-      "desplegar-produccion": "Desplegar a producción",
-      "operate-other": "Otra operación de la casa",
-      "revision-periodica": "Revisión periódica",
+      "create-plain": "Crear algo nuevo sin más condiciones que el esqueleto del tipo",
+      "create-person-approved": "Crear algo que se aplica solo con el OK de una persona",
+      "create-planned": "Crear algo que cruza varios dominios: plan primero y un constructor por dominio",
+      "create-in-session": "Crear contenido que construye la propia sesión",
+      "fix-bug": "Arreglar un fallo: diagnóstico y test que lo reproduce antes de construir",
+      "improve-measured": "Mejorar una cifra: mide antes y después",
+      "improve-structure": "Reordenar por dentro con el comportamiento idéntico",
+      "improve-layers": "Reunir en un solo sitio lo que vive en varias capas: mapa primero",
+      "operate-reversible": "Operar la casa de modo que se pueda deshacer",
+      "operate-irreversible": "Operar algo que no se puede deshacer: cierra con el OK de una persona",
+      "audit-periodic": "Revisión periódica con varios jueces a la vez",
       "audit-other": "Otra auditoría"
+    },
+    "encargo.subtype_status": {
+      "active": "Se ofrece al crear un encargo y lo usa el dimensionador",
+      "retired": "Alias de un id histórico: se conserva para el panel y apunta a su sustituto en replaced_by"
     },
     "encargo.type": {
       "create": "Algo nuevo o un cambio de lo que hace: pantalla, herramienta, tabla, endpoint, contenido",
@@ -670,6 +696,132 @@
       "pasa_a": null,
       "desde": "2026-10-10",
       "motivo": "Retirado el 10 oct 2026 por decisión de Pablo, sin sucesor: crear skills es de la pieza meta (nivel 0, forja-de-skills), que no tiene tipo. (#495)"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "pantalla-nueva",
+      "pasa_a": "create-plain",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "assets",
+      "pasa_a": "create-plain",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "lola-herramienta",
+      "pasa_a": "create-plain",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "lola-conocimiento",
+      "pasa_a": "create-plain",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "esquema-o-dato",
+      "pasa_a": "create-person-approved",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "recetas-o-catalogo",
+      "pasa_a": "create-in-session",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "funcion-entre-dominios",
+      "pasa_a": "create-planned",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "endpoint-nuevo",
+      "pasa_a": "create-plain",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "create-other",
+      "pasa_a": "create-plain",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "bug",
+      "pasa_a": "fix-bug",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "fix-other",
+      "pasa_a": "fix-bug",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "migrar-a-tokens",
+      "pasa_a": "improve-measured",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "dato-en-varias-capas",
+      "pasa_a": "improve-layers",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "reducir-cableado",
+      "pasa_a": "improve-measured",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "lento-o-caro",
+      "pasa_a": "improve-measured",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "refactor-monolito",
+      "pasa_a": "improve-structure",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "improve-other",
+      "pasa_a": "improve-measured",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "ci-permisos-hooks",
+      "pasa_a": "operate-reversible",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "desplegar-produccion",
+      "pasa_a": "operate-irreversible",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "operate-other",
+      "pasa_a": "operate-reversible",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "revision-periodica",
+      "pasa_a": "audit-periodic",
+      "desde": "2026-10-12"
     }
   ],
   "redefiniciones": [

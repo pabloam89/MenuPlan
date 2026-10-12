@@ -18,7 +18,7 @@ import { contextoDeNormas, cuentaPorVeredicto, obligacionesDe, regenerar, resolv
 import { conCamposN1, formatoEncargoMd } from "./lib/issues.mjs";
 import { leerRegistro } from "./lib/normas.mjs";
 import { generarTabla } from "./lib/presupuestos.mjs";
-import { RUTA_ORQUESTAR, conTiposN1, regenerarOrquestar } from "./lib/tiposDeEncargo.mjs";
+import { RUTA_ORQUESTAR, conPuertaN1, conTiposN1, regenerarOrquestar } from "./lib/tiposDeEncargo.mjs";
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const RUTA_JSON = join(RAIZ, "ops/flujo.json");
@@ -35,7 +35,7 @@ if (args.includes("--escribir")) {
   console.log("Tablas de docs/ops/FLUJO.md regeneradas desde ops/flujo.json, ops/normas.json y ops/presupuestos.json.");
   writeFileSync(RUTA_ENCARGO, formatoEncargoMd());
   console.log("docs/ops/ENCARGO.md regenerado desde scripts/lib/issues.mjs.");
-  writeFileSync(RUTA_N1, conTiposN1(conCamposN1(readFileSync(RUTA_N1, "utf8"))));
+  writeFileSync(RUTA_N1, conPuertaN1(conTiposN1(conCamposN1(readFileSync(RUTA_N1, "utf8")))));
   console.log("Tablas de docs/entidades/N1-encargo.md regeneradas desde scripts/lib/issues.mjs.");
   writeFileSync(join(RAIZ, RUTA_ORQUESTAR), regenerarOrquestar(readFileSync(join(RAIZ, RUTA_ORQUESTAR), "utf8")));
   console.log("Tabla de .claude/commands/orquestar.md regenerada desde ops/tipos-de-encargo.json.");

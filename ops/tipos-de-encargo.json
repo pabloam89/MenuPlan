@@ -1,5 +1,5 @@
 {
-  "$comentario": "Los tipos de encargo (#639, #640). Hay CINCO tipos (`assignment_types`: create, fix, improve, operate, audit), cada uno con el esqueleto mínimo de pasos (`skeleton`) que todo su subtipo cumple, y los 17 de siempre, más uno `*-other` por tipo para lo que no encaja (N0 §3, valor desconocido), son sus SUBTIPOS: están en `tipos` (el nombre histórico, que lee el panel de la factoría, repo homenu-panel; no se renombra, y los 17 ids tampoco) y cada uno apunta a su tipo con `type` y anota solo lo suyo (pasos, `cierra_con`, `measure`, `irreversible`, `measured_with`, `builds_in_session`). Cada paso se hace tras el anterior; los agentes de un mismo paso van en paralelo. `opcional` es un agente que solo entra si se cumple su `flag` (vocabulario cerrado `flags`); el texto `si` se queda por compatibilidad con el panel y es el de la bandera. Quien construye no juzga: cada paso de constructor va seguido de un juez distinto y ningún subtipo se queda sin juez, ni siquiera el trivial. La lista de agentes sale de .claude/agents/ (scripts/lib/agentes.mjs), no se copia aquí. Lector único: scripts/lib/tiposDeEncargo.mjs; la tabla «Qué pipeline» de .claude/commands/orquestar.md se GENERA desde este fichero (`npm run flujo -- --escribir`) y ops/tipos-de-encargo.test.js lo compara. La complejidad y el presupuesto viven en ops/presupuestos.json; el lector las junta sin copiarlas. Nombres nuevos en inglés (decisión del 11 oct 2026, ops/DECISIONES.md).",
+  "$comentario": "Los tipos de encargo (#639, #640, #646). Hay CINCO tipos (`assignment_types`: create, fix, improve, operate, audit), cada uno con el esqueleto mínimo de pasos (`skeleton`). Sus SUBTIPOS están en `tipos`, el nombre histórico que lee el panel de la factoría (repo homenu-panel): ningún campo que existía se quita ni se renombra, solo se añaden. LA PUERTA DE ENTRADA (#645, #646): un subtipo describe la NATURALEZA del trabajo y no la zona (la zona sale de los ficheros: scripts/lib/ambitos.mjs); difiere de su tipo en algo medible, declarado en `differs_in` (vocabulario cerrado) y comprobado contra el esqueleto de su tipo (salvo el subtipo liso, `plain`, que ES el esqueleto, y la válvula `<tipo>-other`, que solo cabe si el tipo no tiene liso); se repite (al menos 3 encargos, aviso de `npm run fabrica`); y lo discreto primero: todo atributo es un valor de vocabulario cerrado (`differs_in`, `closings`, `measures`, `step_purposes`, `flags`, `statuses`) o un número, y el único texto libre es `note`, de 160 caracteres como mucho. `status` es active o retired: los 22 de antes son alias retirados (`replaced_by` dice a cuál pasan) que se conservan solo para el panel; el dimensionador (#641) usa solo los active. Cada paso se hace tras el anterior; los agentes de un mismo paso van en paralelo. `opcional` es un agente que solo entra si se cumple su `flag`; el texto `si` se queda por compatibilidad con el panel y es el de la bandera. Quien construye no juzga: ningún subtipo activo se queda sin juez. La lista de agentes sale de .claude/agents/ (scripts/lib/agentes.mjs), no se copia aquí. Lector único: scripts/lib/tiposDeEncargo.mjs; la tabla «Qué pipeline» de .claude/commands/orquestar.md se GENERA desde este fichero (`npm run flujo -- --escribir`) y ops/tipos-de-encargo.test.js lo compara. La complejidad y el presupuesto viven en ops/presupuestos.json. Nombres nuevos en inglés, `<tipo>-<objeto>` (decisión del 11 oct 2026, ops/DECISIONES.md).",
   "version": 1,
   "actualizado": "2026-10-12",
   "especiales": {
@@ -15,19 +15,88 @@
   "flags": {
     "writes_data": {
       "si": "escribe datos",
-      "what": "El encargo escribe datos de familias o de la base"
+      "what": "El encargo escribe datos de familias o de la base",
+      "judge": "seguridad"
     },
     "touches_rls": {
       "si": "toca RLS",
-      "what": "El encargo cambia políticas RLS o permisos de tablas"
+      "what": "El encargo cambia políticas RLS o permisos de tablas",
+      "judge": "seguridad"
     },
     "changes_bot": {
       "si": "cambia el bot",
-      "what": "El encargo cambia lo que Lola dice o hace"
+      "what": "El encargo cambia lo que Lola dice o hace",
+      "judge": "evaluador"
     },
     "touches_secrets_or_permissions": {
       "si": "toca secretos o permisos",
-      "what": "El encargo toca secretos, variables de entorno, permisos de Claude o de GitHub"
+      "what": "El encargo toca secretos, variables de entorno, permisos de Claude o de GitHub",
+      "judge": "seguridad"
+    }
+  },
+  "differs_in": {
+    "steps": {
+      "what": "Sus pasos, en orden de roles, no son los del esqueleto de su tipo"
+    },
+    "closing": {
+      "what": "Cierra con el OK de una persona, que el esqueleto no pide"
+    },
+    "measure": {
+      "what": "Mide otra cosa que la medida por defecto de su tipo, o (en audit) mide con un agente que no es juez"
+    },
+    "plans_first": {
+      "what": "Empieza por un plan de la sesión, antes de construir"
+    },
+    "maps_first": {
+      "what": "Empieza por un juez que mapea lo que hay, antes de construir"
+    },
+    "builds_in_session": {
+      "what": "Lo construye la propia sesión, sin subagente constructor"
+    }
+  },
+  "closings": {
+    "person_ok": {
+      "what": "Lo que no se puede deshacer o aplicar lo cierra una persona con su OK",
+      "label": "OK de una persona"
+    }
+  },
+  "measures": {
+    "counter_before_after": {
+      "what": "Un contador del vocabulario «counters», antes y después"
+    },
+    "behavior_unchanged": {
+      "what": "Los tests dan lo mismo antes y después"
+    }
+  },
+  "step_purposes": {
+    "diagnose": {
+      "what": "Diagnóstico y test que lo reproduce"
+    },
+    "plan": {
+      "what": "Plan corto"
+    },
+    "map": {
+      "what": "Mapa de lo que hay antes de tocar"
+    },
+    "measure_before": {
+      "what": "Mide antes"
+    },
+    "measure_after": {
+      "what": "Pide la medida de después"
+    },
+    "review_planes": {
+      "what": "Revisa los planos"
+    },
+    "validate_in_tests": {
+      "what": "Validación en los tests del repo"
+    }
+  },
+  "statuses": {
+    "active": {
+      "what": "Se ofrece al crear un encargo y lo usa el dimensionador"
+    },
+    "retired": {
+      "what": "Alias de un id histórico: se conserva para el panel y apunta a su sustituto en replaced_by"
     }
   },
   "assignment_types": {
@@ -57,7 +126,8 @@
           "builder",
           "judge"
         ],
-        "measures_before_after": true
+        "measures_before_after": true,
+        "default_measure": "counter_before_after"
       }
     },
     "operate": {
@@ -82,8 +152,317 @@
   },
   "tipos": [
     {
+      "id": "create-plain",
+      "type": "create",
+      "status": "active",
+      "plain": true,
+      "accion": "Crear algo nuevo sin más condiciones que el esqueleto del tipo",
+      "pasos": [
+        {
+          "agentes": [
+            "constructor"
+          ]
+        },
+        {
+          "agentes": [
+            "revisor"
+          ]
+        }
+      ],
+      "differs_in": []
+    },
+    {
+      "id": "create-person-approved",
+      "type": "create",
+      "status": "active",
+      "accion": "Crear algo que se aplica solo con el OK de una persona",
+      "pasos": [
+        {
+          "agentes": [
+            "constructor"
+          ]
+        },
+        {
+          "agentes": [
+            "revisor"
+          ]
+        }
+      ],
+      "closing": "person_ok",
+      "cierra_con": "OK de una persona",
+      "differs_in": [
+        "closing"
+      ]
+    },
+    {
+      "id": "create-planned",
+      "type": "create",
+      "status": "active",
+      "accion": "Crear algo que cruza varios dominios: plan primero y un constructor por dominio",
+      "pasos": [
+        {
+          "agentes": [
+            "sesion"
+          ],
+          "purpose": "plan"
+        },
+        {
+          "agentes": [
+            "constructores"
+          ]
+        },
+        {
+          "agentes": [
+            "revisor"
+          ]
+        }
+      ],
+      "differs_in": [
+        "plans_first",
+        "steps"
+      ]
+    },
+    {
+      "id": "create-in-session",
+      "type": "create",
+      "status": "active",
+      "accion": "Crear contenido que construye la propia sesión",
+      "pasos": [
+        {
+          "agentes": [
+            "sesion"
+          ]
+        },
+        {
+          "agentes": [
+            "revisor"
+          ],
+          "purpose": "validate_in_tests"
+        }
+      ],
+      "builds_in_session": true,
+      "differs_in": [
+        "builds_in_session"
+      ]
+    },
+    {
+      "id": "fix-bug",
+      "type": "fix",
+      "status": "active",
+      "plain": true,
+      "accion": "Arreglar un fallo: diagnóstico y test que lo reproduce antes de construir",
+      "pasos": [
+        {
+          "agentes": [
+            "revisor"
+          ],
+          "purpose": "diagnose"
+        },
+        {
+          "agentes": [
+            "constructor"
+          ]
+        },
+        {
+          "agentes": [
+            "revisor"
+          ]
+        }
+      ],
+      "differs_in": []
+    },
+    {
+      "id": "improve-measured",
+      "type": "improve",
+      "status": "active",
+      "plain": true,
+      "accion": "Mejorar una cifra: mide antes y después",
+      "pasos": [
+        {
+          "agentes": [
+            "constructor"
+          ],
+          "purpose": "measure_before"
+        },
+        {
+          "agentes": [
+            "revisor"
+          ],
+          "purpose": "measure_after"
+        }
+      ],
+      "measure_kind": "counter_before_after",
+      "differs_in": [],
+      "counters": [
+        "lint_tokens_base",
+        "wiring_pairs",
+        "time_ms",
+        "cost_usd",
+        "tokens"
+      ]
+    },
+    {
+      "id": "improve-structure",
+      "type": "improve",
+      "status": "active",
+      "accion": "Reordenar por dentro con el comportamiento idéntico",
+      "pasos": [
+        {
+          "agentes": [
+            "constructor"
+          ]
+        },
+        {
+          "agentes": [
+            "revisor"
+          ]
+        }
+      ],
+      "measure_kind": "behavior_unchanged",
+      "differs_in": [
+        "measure"
+      ]
+    },
+    {
+      "id": "improve-layers",
+      "type": "improve",
+      "status": "active",
+      "accion": "Reunir en un solo sitio lo que vive en varias capas: mapa primero",
+      "pasos": [
+        {
+          "agentes": [
+            "revisor"
+          ],
+          "purpose": "map"
+        },
+        {
+          "agentes": [
+            "constructor"
+          ]
+        },
+        {
+          "agentes": [
+            "revisor"
+          ]
+        }
+      ],
+      "measure_kind": "counter_before_after",
+      "differs_in": [
+        "maps_first",
+        "steps"
+      ],
+      "counters": [
+        "layers_of_datum"
+      ]
+    },
+    {
+      "id": "operate-reversible",
+      "type": "operate",
+      "status": "active",
+      "accion": "Operar la casa de modo que se pueda deshacer",
+      "pasos": [
+        {
+          "agentes": [
+            "gobierno"
+          ]
+        },
+        {
+          "agentes": [
+            "revisor"
+          ],
+          "opcional": [
+            {
+              "agente": "seguridad",
+              "si": "toca secretos o permisos",
+              "flag": "touches_secrets_or_permissions"
+            }
+          ]
+        }
+      ],
+      "irreversible": false,
+      "differs_in": [],
+      "plain": true
+    },
+    {
+      "id": "operate-irreversible",
+      "type": "operate",
+      "status": "active",
+      "accion": "Operar algo que no se puede deshacer: cierra con el OK de una persona",
+      "pasos": [
+        {
+          "agentes": [
+            "gobierno"
+          ]
+        },
+        {
+          "agentes": [
+            "revisor"
+          ],
+          "opcional": [
+            {
+              "agente": "evaluador",
+              "si": "cambia el bot",
+              "flag": "changes_bot"
+            },
+            {
+              "agente": "seguridad",
+              "si": "toca secretos o permisos",
+              "flag": "touches_secrets_or_permissions"
+            }
+          ]
+        }
+      ],
+      "irreversible": true,
+      "closing": "person_ok",
+      "cierra_con": "OK de una persona",
+      "differs_in": [
+        "closing"
+      ]
+    },
+    {
+      "id": "audit-periodic",
+      "type": "audit",
+      "status": "active",
+      "accion": "Revisión periódica con varios jueces a la vez",
+      "pasos": [
+        {
+          "agentes": [
+            "seguridad",
+            "auditor-datos",
+            "evaluador",
+            "gobierno"
+          ],
+          "purpose": "review_planes"
+        }
+      ],
+      "measured_with": [
+        "gobierno"
+      ],
+      "differs_in": [
+        "measure"
+      ]
+    },
+    {
+      "id": "audit-other",
+      "type": "audit",
+      "status": "active",
+      "valve": true,
+      "accion": "Otra auditoría",
+      "pasos": [
+        {
+          "agentes": [
+            "revisor"
+          ]
+        }
+      ],
+      "differs_in": [],
+      "note": "Válvula: cada uso dice en subtype_note por qué ningún otro subtipo encaja"
+    },
+    {
       "id": "pantalla-nueva",
       "type": "create",
+      "status": "retired",
+      "replaced_by": "create-plain",
       "accion": "Pantalla o componente nuevo",
       "pasos": [
         {
@@ -102,6 +481,8 @@
     {
       "id": "assets",
       "type": "create",
+      "status": "retired",
+      "replaced_by": "create-plain",
       "accion": "Assets (icono, ilustración, limpieza)",
       "pasos": [
         {
@@ -119,6 +500,8 @@
     {
       "id": "lola-herramienta",
       "type": "create",
+      "status": "retired",
+      "replaced_by": "create-plain",
       "accion": "Herramienta nueva o cambio en Lola",
       "pasos": [
         {
@@ -146,6 +529,8 @@
     {
       "id": "lola-conocimiento",
       "type": "create",
+      "status": "retired",
+      "replaced_by": "create-plain",
       "accion": "Cambiar conocimiento, prompt o enrutador del bot",
       "pasos": [
         {
@@ -163,6 +548,8 @@
     {
       "id": "esquema-o-dato",
       "type": "create",
+      "status": "retired",
+      "replaced_by": "create-person-approved",
       "accion": "Cambio de esquema o dato nuevo",
       "pasos": [
         {
@@ -188,6 +575,8 @@
     {
       "id": "recetas-o-catalogo",
       "type": "create",
+      "status": "retired",
+      "replaced_by": "create-in-session",
       "accion": "Recetas o catálogo (contenido)",
       "pasos": [
         {
@@ -207,6 +596,8 @@
     {
       "id": "funcion-entre-dominios",
       "type": "create",
+      "status": "retired",
+      "replaced_by": "create-planned",
       "accion": "Función que cruza dominios",
       "pasos": [
         {
@@ -231,6 +622,8 @@
     {
       "id": "endpoint-nuevo",
       "type": "create",
+      "status": "retired",
+      "replaced_by": "create-plain",
       "accion": "Endpoint nuevo en `api/`",
       "pasos": [
         {
@@ -249,6 +642,8 @@
     {
       "id": "create-other",
       "type": "create",
+      "status": "retired",
+      "replaced_by": "create-plain",
       "accion": "Otro encargo de crear (lo que no encaja en los demás)",
       "pasos": [
         {
@@ -266,6 +661,8 @@
     {
       "id": "bug",
       "type": "fix",
+      "status": "retired",
+      "replaced_by": "fix-bug",
       "accion": "Bug",
       "pasos": [
         {
@@ -289,6 +686,8 @@
     {
       "id": "fix-other",
       "type": "fix",
+      "status": "retired",
+      "replaced_by": "fix-bug",
       "accion": "Otro encargo de arreglar (lo que no encaja en los demás)",
       "pasos": [
         {
@@ -312,6 +711,8 @@
     {
       "id": "migrar-a-tokens",
       "type": "improve",
+      "status": "retired",
+      "replaced_by": "improve-measured",
       "accion": "Migrar una pantalla a tokens",
       "pasos": [
         {
@@ -330,6 +731,8 @@
     {
       "id": "dato-en-varias-capas",
       "type": "improve",
+      "status": "retired",
+      "replaced_by": "improve-layers",
       "accion": "Dato que vive en varias capas (base, catálogo, constantes)",
       "pasos": [
         {
@@ -354,6 +757,8 @@
     {
       "id": "reducir-cableado",
       "type": "improve",
+      "status": "retired",
+      "replaced_by": "improve-measured",
       "accion": "Reducir el cableado de una tabla",
       "pasos": [
         {
@@ -378,6 +783,8 @@
     {
       "id": "lento-o-caro",
       "type": "improve",
+      "status": "retired",
+      "replaced_by": "improve-measured",
       "accion": "Algo va lento o cuesta de más",
       "pasos": [
         {
@@ -398,6 +805,8 @@
     {
       "id": "refactor-monolito",
       "type": "improve",
+      "status": "retired",
+      "replaced_by": "improve-structure",
       "accion": "Refactor de un monolito",
       "pasos": [
         {
@@ -424,6 +833,8 @@
     {
       "id": "improve-other",
       "type": "improve",
+      "status": "retired",
+      "replaced_by": "improve-measured",
       "accion": "Otra mejora sin cambiar lo que hace",
       "pasos": [
         {
@@ -444,6 +855,8 @@
     {
       "id": "ci-permisos-hooks",
       "type": "operate",
+      "status": "retired",
+      "replaced_by": "operate-reversible",
       "accion": "CI, permisos, hooks, ramas, secretos",
       "pasos": [
         {
@@ -469,6 +882,8 @@
     {
       "id": "desplegar-produccion",
       "type": "operate",
+      "status": "retired",
+      "replaced_by": "operate-irreversible",
       "accion": "Desplegar a producción",
       "pasos": [
         {
@@ -495,6 +910,8 @@
     {
       "id": "operate-other",
       "type": "operate",
+      "status": "retired",
+      "replaced_by": "operate-reversible",
       "accion": "Otra operación de la casa",
       "pasos": [
         {
@@ -513,6 +930,8 @@
     {
       "id": "revision-periodica",
       "type": "audit",
+      "status": "retired",
+      "replaced_by": "audit-periodic",
       "accion": "Revisión periódica",
       "pasos": [
         {
@@ -528,19 +947,26 @@
       "measured_with": [
         "gobierno"
       ]
-    },
-    {
-      "id": "audit-other",
-      "type": "audit",
-      "accion": "Otra auditoría",
-      "pasos": [
-        {
-          "agentes": [
-            "revisor",
-            "seguridad"
-          ]
-        }
-      ]
     }
-  ]
+  ],
+  "counters": {
+    "lint_tokens_base": {
+      "what": "Violaciones de lint-tokens-base"
+    },
+    "wiring_pairs": {
+      "what": "Pares del cableado de una tabla (cableado.json)"
+    },
+    "layers_of_datum": {
+      "what": "Capas en las que vive un dato"
+    },
+    "time_ms": {
+      "what": "Milisegundos"
+    },
+    "cost_usd": {
+      "what": "Dólares estimados a precio de API"
+    },
+    "tokens": {
+      "what": "Tokens de modelo gastados"
+    }
+  }
 }

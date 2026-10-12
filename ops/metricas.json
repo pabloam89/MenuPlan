@@ -440,6 +440,26 @@
         "exceptuadas_siempre": "metrica",
         "fuente": "texto"
       }
+    },
+    {
+      "firma": "subtipo-uso subtype",
+      "emisores": [
+        "scripts/lib/tiposDeEncargo.mjs"
+      ],
+      "campos": {
+        "subtype": "id",
+        "usos": "metrica",
+        "minimo": "umbral",
+        "aviso": "estado",
+        "usa": "id"
+      },
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": "docs/entidades/N1-encargo.md",
+          "menciona": "subtipo-uso subtype:"
+        }
+      ]
     }
   ],
   "informes": {
@@ -1508,6 +1528,54 @@
       "umbral": null,
       "vigilante": "normas_nunca_saltan",
       "muestra": "Leer las excepciones de una norma de la lista y ver si el motivo cambia o se copia"
+    },
+    {
+      "id": "subtipos_con_pocos_usos",
+      "objetivo": "flujo-cumplido",
+      "pregunta": "¿Cuántos encargos usan cada subtipo activo que no es liso, para ver si merece seguir siendo subtipo (la puerta pide al menos 3)?",
+      "emisor": "scripts/lib/tiposDeEncargo.mjs",
+      "sale_en": [
+        {
+          "linea": "subtipo-uso subtype",
+          "campos": [
+            "usos"
+          ]
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": "docs/entidades/N1-encargo.md",
+          "menciona": "subtipo-uso subtype:"
+        }
+      ],
+      "unidad": "cuenta",
+      "umbral": null,
+      "vigilante": "subtipos_alias_en_uso"
+    },
+    {
+      "id": "subtipos_alias_en_uso",
+      "objetivo": "flujo-cumplido",
+      "pregunta": "¿Cuántos encargos siguen usando un id retirado de subtipo, para ver si el alias ya se puede dejar de aceptar?",
+      "emisor": "scripts/lib/tiposDeEncargo.mjs",
+      "sale_en": [
+        {
+          "linea": "subtipo-uso subtype",
+          "campos": [
+            "usos"
+          ]
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": "docs/entidades/N1-encargo.md",
+          "menciona": "subtipo-uso subtype:"
+        }
+      ],
+      "unidad": "cuenta",
+      "umbral": null,
+      "vigilante": "subtipos_con_pocos_usos"
     }
   ],
   "excepciones": [

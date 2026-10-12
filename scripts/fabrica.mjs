@@ -18,8 +18,9 @@ import { dirname, join, parse, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
-  HUECO_ACTIVO_MIN, agregarPorIssue, cobertura, contarEventos, extraer, inicioDe, leerLineas, listarTranscripciones, recalibrar, resumirPartes, textoInforme, unirConGithub,
+  HUECO_ACTIVO_MIN, agregarPorIssue, cobertura, contarEventos, extraer, inicioDe, leerLineas, listarTranscripciones, recalibrar, resumirPartes, textoInforme, unirConGithub, usosDeSubtipos,
 } from "./lib/fabrica.mjs";
+import { avisosDeUso } from "./lib/tiposDeEncargo.mjs";
 import { dirFabrica } from "../.claude/hooks/eventos.mjs"; // una sola carpeta para el registro de eventos y los informes
 import { diaMadrid } from "./lib/hora.mjs";
 import { conCache, registrarGh } from "./lib/cuotaGh.mjs";
@@ -151,11 +152,13 @@ function main() {
   const recal = recalibrar(union.fondos);
   const eventos = eventosLocales();
   const cob = cobertura({ sesiones: sesiones.length, union, recal, ilegibles });
+  // La regla «repite» de la puerta de entrada de los subtipos de encargo (#646): solo con los issues leídos, y solo avisa.
+  const subtipos = issues.length ? avisosDeUso(usosDeSubtipos(issues)) : null;
 
   const recalibracion = args.includes("--recalibrar");
   const salida = args.includes("--json")
-    ? `${JSON.stringify({ datos_github: datos, cobertura: cob, huecoMin: HUECO_ACTIVO_MIN, desde: desdeTexto ?? null, eventos, ...union, ...(recalibracion ? { recalibracion: recal } : {}) }, null, 2)}\n`
-    : textoInforme({ cobertura: cob, union, recal, desde: desdeTexto ?? null, recalibracion, eventos, datosGithub: datos });
+    ? `${JSON.stringify({ datos_github: datos, cobertura: cob, huecoMin: HUECO_ACTIVO_MIN, desde: desdeTexto ?? null, eventos, ...(subtipos ? { subtipos } : {}), ...union, ...(recalibracion ? { recalibracion: recal } : {}) }, null, 2)}\n`
+    : textoInforme({ cobertura: cob, union, recal, desde: desdeTexto ?? null, recalibracion, eventos, datosGithub: datos, subtipos });
 
   if (args.includes("--escribir")) {
     const destino = resolve(opcion(args, "--salida") ?? join(dirFabrica(), `informe-${diaMadrid()}.${args.includes("--json") ? "json" : "txt"}`));

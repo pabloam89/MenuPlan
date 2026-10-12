@@ -95,32 +95,43 @@ subtipos de abajo cuelgan de ellos. La tabla **se genera** desde
 `npm run flujo -- --escribir`; no se edita a mano, y
 `ops/tipos-de-encargo.test.js` falla si se separan. Cambia el JSON, no la tabla.
 
+El subtipo es la **naturaleza del trabajo**, no la zona: la zona sale de los
+ficheros que toca el encargo (pantallas, bot, api, datos…) y de ella salen su
+constructor y los jueces que se suman a los de la tabla (el dimensionador de
+#641 lo calculará; mientras tanto, lo decide quien orquesta). Los ids de antes
+(`bug`, `esquema-o-dato`…) son alias retirados: valen con aviso, y el JSON dice
+a cuál pasa cada uno.
+
 <!-- tipos:tabla:inicio -->
-| Tipo | Acción | Pipeline |
-|---|---|---|
-| create | Pantalla o componente nuevo | `diseno` → `qa` + `revisor` |
-| create | Assets (icono, ilustración, limpieza) | `diseno` → `qa` |
-| create | Herramienta nueva o cambio en Lola | `lola` → `evaluador` + `revisor` → [`seguridad` si escribe datos] |
-| create | Cambiar conocimiento, prompt o enrutador del bot | `lola` → `evaluador` |
-| create | Cambio de esquema o dato nuevo | `datos` → `auditor-datos` + [`seguridad` si toca RLS] → *OK para aplicar* |
-| create | Recetas o catálogo (contenido) | sesión principal → `revisor` (validación del catálogo en los tests) |
-| create | Función que cruza dominios | sesión principal (plan corto) → constructores por dominio → `revisor` + `qa` |
-| create | Endpoint nuevo en `api/` | constructor del dominio → `seguridad` + `revisor` |
-| create | Otro encargo de crear (lo que no encaja en los demás) | constructor del dominio → `revisor` |
-| fix | Bug | `revisor` (diagnóstico y test que lo reproduce) → constructor del dominio → `revisor` |
-| fix | Otro encargo de arreglar (lo que no encaja en los demás) | `revisor` (diagnóstico y test que lo reproduce) → constructor del dominio → `revisor` |
-| improve | Migrar una pantalla a tokens | `diseno` → `qa` |
-| improve | Dato que vive en varias capas (base, catálogo, constantes) | `auditor-datos` (mapa) → `datos` → `auditor-datos` |
-| improve | Reducir el cableado de una tabla | `auditor-datos` (qué ficheros) → constructor del dominio → `revisor` |
-| improve | Algo va lento o cuesta de más | constructor del dominio (mide antes; `lola` si es el bot) → `revisor` (pide la medida de después) |
-| improve | Refactor de un monolito | sesión principal (plan por pasos) → constructor del dominio (por pasos) → `revisor` (en cada paso) |
-| improve | Otra mejora sin cambiar lo que hace | constructor del dominio (mide antes) → `revisor` (pide la medida de después) |
-| operate | CI, permisos, hooks, ramas, secretos | `gobierno` → `revisor` + [`seguridad` si toca secretos o permisos] |
-| operate | Desplegar a producción | `gobierno` → `revisor` + [`evaluador` si cambia el bot] → *OK de una persona* |
-| operate | Otra operación de la casa | `gobierno` → `revisor` |
-| audit | Revisión periódica | `seguridad` + `auditor-datos` + `evaluador` + `gobierno` (planos), en paralelo |
-| audit | Otra auditoría | `revisor` + `seguridad`, en paralelo |
+| Tipo | Subtipo | Acción | Pipeline |
+|---|---|---|---|
+| create | `create-plain` | Crear algo nuevo sin más condiciones que el esqueleto del tipo | constructor del dominio → `revisor` |
+| create | `create-person-approved` | Crear algo que se aplica solo con el OK de una persona | constructor del dominio → `revisor` → *OK de una persona* |
+| create | `create-planned` | Crear algo que cruza varios dominios: plan primero y un constructor por dominio | sesión principal (plan corto) → constructores por dominio → `revisor` |
+| create | `create-in-session` | Crear contenido que construye la propia sesión | sesión principal → `revisor` (validación en los tests del repo) |
+| fix | `fix-bug` | Arreglar un fallo: diagnóstico y test que lo reproduce antes de construir | `revisor` (diagnóstico y test que lo reproduce) → constructor del dominio → `revisor` |
+| improve | `improve-measured` | Mejorar una cifra: mide antes y después | constructor del dominio (mide antes) → `revisor` (pide la medida de después) |
+| improve | `improve-structure` | Reordenar por dentro con el comportamiento idéntico | constructor del dominio → `revisor` |
+| improve | `improve-layers` | Reunir en un solo sitio lo que vive en varias capas: mapa primero | `revisor` (mapa de lo que hay antes de tocar) → constructor del dominio → `revisor` |
+| operate | `operate-reversible` | Operar la casa de modo que se pueda deshacer | `gobierno` → `revisor` + [`seguridad` si toca secretos o permisos] |
+| operate | `operate-irreversible` | Operar algo que no se puede deshacer: cierra con el OK de una persona | `gobierno` → `revisor` + [`evaluador` si cambia el bot] + [`seguridad` si toca secretos o permisos] → *OK de una persona* |
+| audit | `audit-periodic` | Revisión periódica con varios jueces a la vez | `seguridad` + `auditor-datos` + `evaluador` + `gobierno` (revisa los planos), en paralelo |
+| audit | `audit-other` | Otra auditoría | `revisor` |
 <!-- tipos:tabla:fin -->
+
+Jueces por zona. Un subtipo no nombra la zona, pero la zona de los ficheros pide
+sus jueces; hasta que #641 los calcule, salen de esta tabla (dato en
+`scripts/lib/ambitos.mjs`), además de `revisor`, que va en todas las zonas:
+
+<!-- ambitos:jueces:inicio -->
+| Zona | Jueces, además de `revisor` | De dónde sale |
+|---|---|---|
+| `data` (datos) | `auditor-datos` | `norma:aplicar-migracion-con-permiso` |
+| `catalog` (catálogo) | `auditor-datos` | `agente:auditor-datos` |
+| `bot` (bot) | `evaluador` | `norma:evals-antes-de-fusionar` |
+| `api` (api) | `seguridad` | `norma:endpoint-nuevo-juez-seguridad` |
+| `ui` (pantallas) | `qa` | `agente:qa` |
+<!-- ambitos:jueces:fin -->
 
 Regla fija: **quien construye no juzga**. Cada constructor va seguido de al
 menos un juez distinto.
