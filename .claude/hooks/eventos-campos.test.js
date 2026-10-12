@@ -132,10 +132,10 @@ describe("el registro de eventos: con entradas hostiles no escribe nada prohibid
     "AbCdEfGhIjKlMnOpQrStUvWxYz0123456789abcd",
   ];
 
-  it("lineaDeEvento nunca deja pasar un valor hostil en nombre, norma, tema, sesion, rama, fuente ni actor", () => {
+  it("lineaDeEvento nunca deja pasar un valor hostil en nombre, norma, tema, sesion, rama, fuente, actor, proyecto, quien, entidad_exigida ni evitable", () => {
     for (const evento of EVENTOS) {
       for (const h of HOSTILES) {
-        const l = lineaDeEvento({ evento, nombre: h, norma: h, tema: h, sesion: h, rama: h, fuente: h, actor: h }, new Date("2026-10-11T08:00:00Z"), "00000000-0000-4000-8000-000000000000");
+        const l = lineaDeEvento({ evento, nombre: h, norma: h, tema: h, sesion: h, rama: h, fuente: h, actor: h, proyecto: h, quien: h, motivo: "permiso", entidad_exigida: h, evitable: h }, new Date("2026-10-11T08:00:00Z"), "00000000-0000-4000-8000-000000000000");
         if (l) expect(camposProhibidos(JSON.stringify(l)), `${evento} con ${h}`).toEqual([]);
       }
     }
@@ -144,7 +144,7 @@ describe("el registro de eventos: con entradas hostiles no escribe nada prohibid
   it("cada evento y cada fuente del vocabulario, con valores buenos, sale limpio", () => {
     for (const evento of EVENTOS) {
       for (const fuente of FUENTES) {
-        const l = lineaDeEvento({ evento, nombre: "sin-lectura", norma: "main-solo-pablo", tema: TEMAS_ESTADO[1], sesion: "2b7c5e1a-1f0e-4d0a-9c36-0a1b2c3d4e5f", rama: "ops/579-hooks-estado-eventos", fuente, actor: "homenu-sesiones[bot]" });
+        const l = lineaDeEvento({ evento, nombre: "sin-lectura", norma: "main-solo-pablo", tema: TEMAS_ESTADO[1], sesion: "2b7c5e1a-1f0e-4d0a-9c36-0a1b2c3d4e5f", rama: "ops/579-hooks-estado-eventos", fuente, actor: "app", proyecto: "homenu", quien: "pablo", motivo: "decision", entidad_exigida: "pendientes-a-issue", evitable: "no" });
         expect(camposProhibidos(JSON.stringify(l)), `${evento}/${fuente}`).toEqual([]);
       }
     }

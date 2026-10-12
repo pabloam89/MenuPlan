@@ -30,6 +30,7 @@ import { aplicarIdentidad } from "../../scripts/lib/tokenSesion.mjs";
 import { avisoDeCupos } from "../../scripts/lib/cupos.mjs";
 import { enPrs, enStaging, enWorktrees, pedirPrs, resumen } from "./migraciones.mjs";
 import { activas, apuntar, dirSesiones, listar, normaRuta } from "./sesiones.mjs";
+import { anotarActorDeLinea, dirFabrica } from "./eventos.mjs";
 
 let entrada = {};
 try {
@@ -131,7 +132,14 @@ try {
 // el token de 1 hora va al fichero de entorno de la sesión (CLAUDE_ENV_FILE, que
 // lee el shell Bash de cada comando) y `gh` y `git` actúan como homenu-sesiones[bot].
 // Si no se puede, se dice por qué y se sigue con la identidad actual (plan B).
-const identidad = aplicarIdentidad();
+// La identidad que sale (`identidad-sesion identidad: app|pablo|…`) se anota para esta sesión (#652): los demás
+// hooks no ven el entorno de Bash y, sin la marca, anotaban `actor: null` en 83 de 85 eventos.
+const identidad = aplicarIdentidad({
+  registrar: (linea) => {
+    console.error(linea);
+    anotarActorDeLinea(dirFabrica(), entrada.session_id, linea); // nunca lanza
+  },
+});
 // Los cupos compartidos (GitHub y 1Password, #578): también en paralelo, con su caché de 5 min
 // y su tope de 4 s. Nunca lanza; callada si todo va por debajo del 80 %.
 const cupos = avisoDeCupos({ despuesDe: identidad });

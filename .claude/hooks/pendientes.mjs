@@ -457,6 +457,13 @@ if (esPrincipal) {
       writeFileSync(marca, new Date().toISOString());
       process.stdout.write(JSON.stringify({ decision: "block", reason: RECORDATORIO }));
       frenado = true;
+      // Dejar una decisión o un pendiente es pasarle la pelota a una persona (#652): queda como intervención humana.
+      try {
+        const { registrarEvento } = await import("./eventos.mjs");
+        registrarEvento({ evento: "intervencion_humana", nombre: "decision", motivo: "decision", entidad_exigida: "pendientes-a-issue", evitable: "no", fuente: "pendientes", sesion: entrada.session_id, cwd: entrada.cwd });
+      } catch {
+        // a propósito: el registro es una ayuda; un fallo suyo no puede cambiar el freno que ya salió
+      }
     } else if (!existsSync(marcaCasos)) {
       const { senales, registrado } = senalesDeFallo(transcript);
       if (senales.length && !registrado) {

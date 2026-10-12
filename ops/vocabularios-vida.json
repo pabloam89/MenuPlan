@@ -177,6 +177,29 @@
       "metodo": "Método",
       "entregables": "Entregables"
     },
+    "eventos.actor": {
+      "pablo": "Pablo (usuario de git del PC o identidad de GitHub pabloam89)",
+      "alvaro": "Álvaro (usuario de git del PC)",
+      "app": "la identidad homenu-sesiones[bot] de las sesiones; no dice qué persona hay detrás",
+      "desconocido": "no se pudo saber: sin marca del arranque y sin usuario de git legible"
+    },
+    "eventos.evitable": {
+      "si": "vino de un fallo de la propia comprobación (no pudo leer git o la red), no de una decisión",
+      "no": "hacía falta una persona de verdad"
+    },
+    "eventos.motivo_intervencion": {
+      "permiso": "una norma pide su sí antes de seguir (la guardia pregunta)",
+      "decision": "una decisión que solo puede tomar una persona (la sesión la deja para Pablo)",
+      "rescate": "la sesión no puede seguir sola y hay que sacarla (un bloqueo, una carpeta, una herramienta)",
+      "secreto": "crear, rotar o leer una clave que solo puede tocar una persona",
+      "produccion": "un paso en producción (main, migración con --pablo, datos de familias) que solo hace una persona",
+      "otro": "cualquier otra intervención; si un valor se repite, pasa a vocabulario"
+    },
+    "eventos.proyecto": {
+      "homenu": "HoMenu / MenuPlan: la app, Lola y su base; este repo",
+      "panel": "el panel de la factoría (repo homenu-panel, en el servidor): un visor de lo que mide la factoría",
+      "factoria": "la propia factoría: el trabajo sobre el proceso, no sobre un producto"
+    },
     "flujo.actores": {
       "agente_dominio": "El constructor del dominio: un agente con «Tipo: constructor» en .claude/agents/",
       "orquestador": "La sesión principal con /orquestar",
@@ -625,6 +648,11 @@
       "fuera_por_encima": "la cifra de después pasa del límite superior: subió de verdad",
       "fuera_por_debajo": "la cifra de después baja del límite inferior: bajó de verdad",
       "sin_datos_suficientes": "hay menos puntos de antes que el mínimo, o falta la cifra de después: no se puede decir si cambió"
+    },
+    "zonas.zona": {
+      "factoria": "el proceso de trabajo: hooks, guardia de proceso, skills de oficio, normas, scripts de flujo y su documentación",
+      "producto": "HoMenu: la app, el bot Lola, el catálogo, la base de datos, las imágenes y sus scripts",
+      "mixto": "sirve a los dos o es la puerta entre ambos (CLAUDE.md, package.json, la guardia, el CI de tests); lo que aún no se ha separado"
     }
   },
   "retirados": [

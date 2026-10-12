@@ -837,7 +837,7 @@ if (esPrincipal) {
     try {
       if (!hayTiempoParaRegistrar(INICIO)) throw new Error("la guardia ya tardó demasiado: sin registro");
       const registro = (async () => {
-        const { dirFabrica, registrarEvento } = await import("./eventos.mjs");
+        const { dirFabrica, intervencionDeAviso, registrarEvento } = await import("./eventos.mjs");
         // Un aviso de zona deja además su línea contable por rama (`zona: … rama: … aviso: si`).
         if (r.zona) {
           const { anotarLineas, lineasDeAviso } = await import("./zonas.mjs");
@@ -851,6 +851,9 @@ if (esPrincipal) {
           sesion: entrada.session_id,
           cwd: entrada.cwd || raiz,
         });
+        // Una pregunta de la guardia es además una intervención de una persona (#652): quién, por qué y si se podía evitar.
+        const intervencion = r.decision === "ask" ? intervencionDeAviso(r.aviso, r.codigo) : null;
+        if (intervencion) registrarEvento({ ...intervencion, fuente: "guardia", sesion: entrada.session_id, cwd: entrada.cwd || raiz });
       })();
       let temporizador;
       await Promise.race([registro, new Promise((alTiempo) => { temporizador = setTimeout(alTiempo, 3000); })]);
