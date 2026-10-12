@@ -374,9 +374,12 @@ describe("el hook entero (stdin → stdout)", () => {
   it("con stop_hook_active no frena (nunca en bucle)", () => {
     expect(lanza({ stop_hook_active: true }).stdout).toBe("");
   });
-  it("un subagente no frena", () => {
+  it("un agente lanzado por otro (agent_id) no frena", () => {
     expect(lanza({ agent_id: "sub1" }).stdout).toBe("");
-    expect(lanza({ agent_type: "revisor" }).stdout).toBe("");
+    expect(lanza({ agent_id: "sub1", agent_type: "revisor" }).stdout).toBe("");
+  });
+  it("la sesión principal arrancada con --agent (solo agent_type, sin agent_id) sí frena (#652)", () => {
+    expect(JSON.parse(lanza({ agent_type: "orquestador" }).stdout)).toMatchObject({ decision: "block" });
   });
   it("con una lectura reciente en el transcript no frena", () => {
     const t2 = join(fabrica, "t2.jsonl");

@@ -5,6 +5,7 @@ tools: Read, Grep, Glob, Bash, Edit, Write
 model: inherit
 skills: [github, issues, vercel, supabase, 1password, hetzner, tailscale, causa-raiz, plan-de-arreglo, alta-de-secreto, forja-de-skills, higiene-de-skills, estilo-de-respuesta]
 color: orange
+traspasa_a: [datos, revisor]
 ---
 
 ## 1. Identidad

@@ -4,6 +4,7 @@ description: Úsalo de forma proactiva al terminar un cambio de código, antes d
 tools: Read, Grep, Glob, Bash
 model: inherit
 color: red
+traspasa_a: [evaluador, qa, seguridad]
 ---
 
 ## 1. Identidad

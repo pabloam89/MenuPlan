@@ -195,6 +195,11 @@ describe("el hook: falla abierto y no guarda texto", () => {
     expect(log).toContain("preambulo");
     expect(log).not.toContain("SECRETO-DE-FAMILIA");
   });
+  it("la sesión principal arrancada con --agent (solo agent_type) sí cuenta (#652)", () => {
+    const dir = mkdtempSync(join(tmpdir(), "voz-"));
+    correr({ session_id: "s1", agent_type: "orquestador", last_assistant_message: "Claro, hecho." }, dir);
+    expect(leerLog(dir)).toContain("preambulo");
+  });
   it("un subagente no cuenta", () => {
     const dir = mkdtempSync(join(tmpdir(), "voz-"));
     correr({ session_id: "s1", agent_id: "x", last_assistant_message: "Claro, hecho." }, dir);

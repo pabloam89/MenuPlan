@@ -4,6 +4,7 @@ description: Úsalo después de cualquier cambio en Lola (prompt, conocimiento, 
 tools: Read, Grep, Glob, Bash
 model: sonnet
 color: yellow
+traspasa_a: [lola, revisor]
 ---
 
 ## 1. Identidad

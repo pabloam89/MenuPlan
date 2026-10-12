@@ -466,7 +466,7 @@ if (esPrincipal) {
       }
     }
     // El estado fresco (#462): solo la sesión principal, un freno por turno y nunca si ya frenó otro.
-    if (!frenado && !entrada.agent_id && !entrada.agent_type) {
+    if (!frenado && !entrada.agent_id) {
       const { frena, motivo, tema, turno } = estadoSinLeer(transcript, mirar.ultimo);
       const { dirFabrica, registrarEvento } = await import("./eventos.mjs");
       // La marca del estado vive en la carpeta de la fábrica (fuera de tmp, que es de todos); las otras dos no se mueven.

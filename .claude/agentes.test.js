@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { TIPOS_AGENTE, traspasosDe, traspasosDeclarados, traspasosEnTexto } from "../scripts/lib/agentes.mjs";
 
 /**
  * Todos los agentes con la misma forma (.claude/PLANTILLA-AGENTE.md, v2):
@@ -16,11 +17,11 @@ const DIR = join(AQUI, "agents");
 
 const SECCIONES = ["Identidad", "Misión y alcance", "Principios", "Disparadores", "Fuentes de verdad", "Método", "Gateways", "Entregables", "Escalado", "Hecho"];
 const COLORES = ["red", "blue", "green", "yellow", "purple", "orange", "pink", "cyan"];
-const HERRAMIENTAS = ["Read", "Grep", "Glob", "Bash", "Edit", "Write", "WebFetch", "WebSearch", "NotebookEdit"];
+const HERRAMIENTAS = ["Read", "Grep", "Glob", "Bash", "Edit", "Write", "WebFetch", "WebSearch", "NotebookEdit", "Agent"];
 const ESCRITURA = ["Edit", "Write", "NotebookEdit"];
-// Campos documentados en code.claude.com/docs/en/sub-agents. Una errata en
+// Campos documentados en code.claude.com/docs/en/sub-agents, más `traspasa_a`, nuestro (Claude Code ignora los campos que no conoce). Una errata en
 // el nombre de un campo no da error en Claude Code: se ignora en silencio.
-const CAMPOS = ["name", "description", "tools", "disallowedTools", "model", "permissionMode", "maxTurns", "skills", "mcpServers", "memory", "hooks", "background", "omitClaudeMd", "effort", "isolation", "color"];
+const CAMPOS = ["name", "description", "tools", "disallowedTools", "model", "permissionMode", "maxTurns", "skills", "mcpServers", "memory", "hooks", "background", "omitClaudeMd", "effort", "isolation", "color", "traspasa_a"];
 // Las descripciones de todos los agentes se cargan en cada sesión.
 const MAX_DESCRIPCION = 600;
 
@@ -128,7 +129,8 @@ describe.each(agentes)("%s", (fichero) => {
   });
 
   it("declara su tipo, y un juez no puede escribir (mirando las herramientas efectivas, memoria incluida)", () => {
-    expect(tipo).toBeDefined();
+    // «juez» es un valor del tipo (TIPOS_AGENTE, una sola fuente en scripts/lib/agentes.mjs), no una categoría aparte.
+    expect(TIPOS_AGENTE, "Tipo: de la sección Misión y alcance").toContain(tipo);
     if (tipo === "juez") {
       const aviso = "Un juez no escribe: quita Edit/Write de tools, no le pongas memory (le da Write y Edit) y no dejes tools vacío (hereda todas).";
       expect(herramientasEfectivas(meta).filter((t) => ESCRITURA.includes(t)), aviso).toEqual([]);
@@ -151,6 +153,51 @@ describe.each(agentes)("%s", (fichero) => {
     // Un agente que lee una fuente de verdad que ya no existe opina a ciegas.
     const rutas = [...cuerpo.matchAll(/`((?:\.claude|\.github|ops|supabase|docs|specs|src|scripts|api)\/[\w./-]+\.(?:md|js|mjs|jsx|json|yml|sql))`/g)].map((m) => m[1]);
     expect(rutas.filter((r) => !existsSync(join(RAIZ, r)))).toEqual([]);
+  });
+});
+
+describe("los traspasos entre agentes son un dato de la cabecera (#652)", () => {
+  const ids = agentes.map((f) => f.replace(/\.md$/, ""));
+  const traspasos = traspasosDe(RAIZ);
+
+  it.each(ids)("%s: traspasa_a son ids de agentes que existen, sin repetir ni a sí mismo, ordenados", (id) => {
+    const { declarado } = traspasos[id];
+    expect(declarado, "falta el campo traspasa_a en la cabecera").not.toBeNull();
+    expect(declarado.filter((x) => !ids.includes(x)), "ids que no son agentes").toEqual([]);
+    expect(declarado).not.toContain(id);
+    expect(new Set(declarado).size).toBe(declarado.length);
+    expect([...declarado].sort()).toEqual(declarado);
+  });
+
+  it.each(ids)("%s: lo declarado coincide con su «No para:» y su Escalado, en los dos sentidos", (id) => {
+    const { declarado, enTexto } = traspasos[id];
+    expect(declarado.filter((x) => !enTexto.includes(x)), "declarado en traspasa_a y no dicho en el texto").toEqual([]);
+    expect(enTexto.filter((x) => !declarado.includes(x)), "dicho en el texto y no declarado en traspasa_a").toEqual([]);
+  });
+
+  it("solo el orquestador lleva la herramienta Agent: los demás no lanzan agentes (profundidad uno)", () => {
+    const conAgent = agentes.filter((f) => lista(leer(f).meta.tools).includes("Agent")).map((f) => f.replace(/\.md$/, ""));
+    expect(conAgent).toEqual(["orquestador"]);
+  });
+
+  it("el lector ve fallar un traspaso que sobra, la palabra suelta y la cabecera sin campo", () => {
+    const base = (np, esc) => `---\nname: x\ndescription: Úsalo para algo. No para: ${np}.\ntraspasa_a: [b]\n---\n\n## 9. Escalado\n\n${esc}\n\n## 10. Hecho\n`;
+    const sano = base("cosas (b)", "- Lo demás: a `b`.");
+    expect(traspasosEnTexto(sano, "x", ["x", "b", "c"])).toEqual(["b"]);
+    expect(traspasosDeclarados(sano)).toEqual(["b"]);
+    // Un traspaso nuevo en el texto que la cabecera no declara.
+    expect(traspasosEnTexto(base("cosas (b, c)", "- a `b`."), "x", ["x", "b", "c"])).toEqual(["b", "c"]);
+    // La palabra suelta (sin paréntesis ni comillas) no es una arista: «datos» es una palabra del castellano.
+    expect(traspasosEnTexto(base("lógica o datos", "- cambiar lógica o datos."), "x", ["x", "datos"])).toEqual([]);
+    // Sin el campo, el lector devuelve null y el test de arriba falla.
+    expect(traspasosDeclarados("---\nname: x\n---\n")).toBeNull();
+  });
+
+  it("la plantilla documenta traspasa_a y que «juez» es un valor de Tipo", () => {
+    const plantilla = readFileSync(join(AQUI, "PLANTILLA-AGENTE.md"), "utf8");
+    expect(plantilla).toMatch(/traspasa_a:/);
+    for (const v of TIPOS_AGENTE) expect(plantilla, v).toContain("`" + v + "`");
+    expect(plantilla).toMatch(/«juez» es un valor de `Tipo`/);
   });
 });
 

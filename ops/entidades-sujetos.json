@@ -93,6 +93,11 @@
       "entity": "pull-request",
       "reason": "el diff es una parte de un PR"
     },
+    "encargo": {
+      "kind": "type_of",
+      "entity": "issue",
+      "reason": "un encargo es un tipo de issue (tipo:encargo) que se reparte entre agentes"
+    },
     "endpoint": {
       "kind": "outside",
       "reason": "endpoint del producto o de la factoría de Lola: fuera de este ataque"
@@ -356,6 +361,11 @@
       "kind": "outside",
       "reason": "respuesta de Lola del producto o de la factoría de Lola: fuera de este ataque"
     },
+    "respuesta.pablo": {
+      "kind": "produced_by",
+      "entity": "agent",
+      "reason": "la respuesta a Pablo la produce el agente orquestador"
+    },
     "secreto": {
       "kind": "entity",
       "entity": "secret"
@@ -394,6 +404,11 @@
       "kind": "type_of",
       "entity": "secret",
       "reason": "un token es una clave"
+    },
+    "traspaso": {
+      "kind": "part_of",
+      "entity": "agent",
+      "reason": "el traspaso es una arista declarada en la cabecera de un agente (traspasa_a)"
     },
     "turno": {
       "kind": "outside",

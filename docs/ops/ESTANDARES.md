@@ -4,7 +4,7 @@
 
 Qué es hacer bien cada tarea de cada agente. Las normas no se reescriben aquí: cada tarea lleva sus ámbitos y le tocan las normas de `ops/normas.json` (`docs/ops/NORMAS.md`) de esos ámbitos y su acción (construir y juzgar consultan las dos, así que constructor y juez del mismo ámbito reciben las mismas), más las que cita aparte y las de sus comunes. Las reglas propias son los pasos de la tarea que no son norma, escritas por campos con la plantilla de `scripts/lib/regla.mjs` (guía en `docs/ops/REDACCION.md`) y la forma de práctica de `ops/forja/`: su frase sale de sus campos, su control es el test, el hook, el script o el workflow que la vigila (o `juicio`, si la vigila una persona o un LLM) y su fuente es externa ([F]) o de la casa ([I]). Lo que repiten varios agentes está una sola vez en las tareas comunes. En el brief de una tarea: `npm run estandar -- <agente> <tarea> [--ficheros a,b]`, que suma las normas del ámbito de cada fichero tocado.
 
-Hoy: 66 tareas de 9 agentes, 66 de 66 con estándar; 156 reglas propias; 11 tareas comunes con 19 reglas; 20 normas citadas aparte; 176 normas distintas llegan a alguna tarea y 7 a ninguna; 49 fuentes externas y 17 de la casa.
+Hoy: 69 tareas de 10 agentes, 69 de 69 con estándar; 162 reglas propias; 11 tareas comunes con 19 reglas; 20 normas citadas aparte; 179 normas distintas llegan a alguna tarea y 4 a ninguna; 49 fuentes externas y 17 de la casa.
 
 ## Acciones
 
@@ -17,8 +17,8 @@ Lo que hace el agente en cada tarea (vocabulario cerrado, `acciones` del catálo
 | `diagnosticar` | Ir de un síntoma a su causa, con evidencia | 4 |
 | `operar` | Mover algo por el flujo o gestionar un servicio: ramas, PR, carpetas, secretos, despliegues o migraciones | 6 |
 | `medir` | Sacar cifras comparables antes y después: evals, capturas o coste | 6 |
-| `documentar` | Poner al día un registro o redactar un informe | 6 |
-| `decidir` | Elegir dónde vive un dato o qué forma tiene, antes de construir | 2 |
+| `documentar` | Poner al día un registro o redactar un informe | 8 |
+| `decidir` | Elegir dónde vive un dato o qué forma tiene, antes de construir | 3 |
 
 ## Tareas de cada agente
 
@@ -180,6 +180,12 @@ Lo que hace el agente en cada tarea (vocabulario cerrado, `acciones` del catálo
 | auditor-datos | `mapa-de-verdades` | documentar | **Hecho, sitio y copias.** El mapa de verdades DEBE decir por cada hecho dónde vive, qué copias tiene y quién las recalcula. | juicio | [I] `docs/datos/PRINCIPIOS.md` | `donde-vive-el-dato` |
 | auditor-datos | `auditoria-periodica-del-modelo` | juzgar | **Forma por tabla.** Cada tabla DEBE revisarse en su forma normal, claves, FK con on delete, tipos y nulos, nombres y comentarios. | test: `supabase/principios.test.js` | [I] `docs/datos/PRINCIPIOS.md` | `buscar-lo-ya-apuntado` |
 | auditor-datos | `auditoria-periodica-del-modelo` | juzgar | **Convención propuesta.** Cuando aparece una convención nueva o una excepción aceptada, cada modelo de datos DEBE proponerse en el informe como cambio de PRINCIPIOS o como issue. | juicio | [I] `docs/datos/PRINCIPIOS.md` | `buscar-lo-ya-apuntado` |
+| orquestador | `contestar-a-pablo` | documentar | **Idea raíz primero.** Cada respuesta a Pablo DEBE abrir con la idea raíz en negrita, llevar cuatro ideas como mucho y cerrar con lo que necesita de él. | test: `scripts/voz.test.js` | [I] `.claude/skills/estilo-de-respuesta/SKILL.md` | — |
+| orquestador | `contestar-a-pablo` | documentar | **Decisión con tres opciones.** Cuando hay una decisión que tomar, cada respuesta a Pablo DEBE dar tres opciones A, B y C con la recomendada primero y, en cada una, su coste y si es reversible. | test: `.claude/voz.test.js` | [I] `.claude/skills/estilo-de-respuesta/SKILL.md` | — |
+| orquestador | `repartir-el-encargo` | decidir | **Esfuerzo por el comando.** Cada encargo que se reparte DEBE dimensionarse con npm run dimensionar y repartirse con un constructor y, aparte, un juez. | test: `scripts/dimensionar.test.js` | [I] `CLAUDE.md` | — |
+| orquestador | `repartir-el-encargo` | decidir | **Brief autocontenido.** Cada encargo que se reparte DEBE llevar al agente su estándar (npm run estandar), sus skills (skills-encargo) y lo ya apuntado, porque no ve la conversación. | test: `.claude/agentes.test.js` | [I] `.claude/PLANTILLA-AGENTE.md` | — |
+| orquestador | `juntar-informes-y-traspasos` | documentar | **Hallazgo con marca.** Cada hallazgo NO DEBE darse por bueno sin su marca YA APUNTADO o NUEVO con la consulta que se buscó. | test: `scripts/buscarAntes.test.js` | [I] `.claude/PLANTILLA-AGENTE.md` | — |
+| orquestador | `juntar-informes-y-traspasos` | documentar | **Traspaso declarado.** Cada traspaso entre agentes DEBE salir del campo traspasa_a de la cabecera del agente y coincidir con lo que dicen su «No para:» y su Escalado. | test: `.claude/agentes.test.js` | [I] `.claude/PLANTILLA-AGENTE.md` | — |
 
 ## Tareas comunes
 
@@ -282,3 +288,6 @@ Las normas que le tocan a cada tarea sin ficheros: por consulta (sus ámbitos ×
 | `auditor-datos/vigilar-cableado` | medir | data | `rol-solo-lectura`, `estado-de-la-base-verificado` | `tabla-modulo-dueno` |
 | `auditor-datos/mapa-de-verdades` | documentar | data | — | `jueces-sin-escritura` |
 | `auditor-datos/auditoria-periodica-del-modelo` | juzgar | data | `copias-solo-con-su-rol`, `migracion-aplicada-no-se-edita`, `plan-b-migracion`, `principios-revision`, `principios-auto`, `tabla-modulo-dueno`, `vocabulario-cerrado`, `campo-con-lector`, `migracion-numero-libre`, `columnas-de-texto-clasificadas`, `valor-retirado-no-borrado`, `fk-con-on-delete`, `fechas-con-zona`, `column-not-null-by-default`, `tabla-con-comentario`, `salud-marcada`, `tabla-cuelga-de-la-casa`, `json-solo-de-un-escritor`, `escritura-con-version`, `estado-con-saltos-escritos`, `personal-data-minimised`, `data-used-for-its-purpose`, `new-table-closed-to-anon`, `personal-data-expires` | `estado-de-la-base-verificado` |
+| `orquestador/contestar-a-pablo` | documentar | process | `linea-runbook`, `issues-con-buscar-antes`, `pendientes-a-issue`, `hora-de-madrid`, `repo-publico-sin-detalle`, `fondo-con-ficha-y-controles`, `fondo-observado-con-verificacion`, `fondo-no-cierra-sin-aprendizaje`, `estandar-citado-en-el-informe`, `issues-no-se-borran`, `estado-leido-antes-de-afirmar` | — |
+| `orquestador/repartir-el-encargo` | decidir | process | `presupuesto-por-alcance`, `gasto-ok-pablo`, `plan-tres-encargos-con-preventivo`, `entidad-con-registro` | — |
+| `orquestador/juntar-informes-y-traspasos` | documentar | process | `linea-runbook`, `issues-con-buscar-antes`, `pendientes-a-issue`, `hora-de-madrid`, `repo-publico-sin-detalle`, `fondo-con-ficha-y-controles`, `fondo-observado-con-verificacion`, `fondo-no-cierra-sin-aprendizaje`, `estandar-citado-en-el-informe`, `issues-no-se-borran`, `estado-leido-antes-de-afirmar` | — |

@@ -79,7 +79,7 @@ try {
     anotarError("entrada");
     process.exit(0);
   }
-  if (!entrada || entrada.agent_id || entrada.agent_type) process.exit(0);
+  if (!entrada || entrada.agent_id) process.exit(0);
   let ultimo = entrada.last_assistant_message;
   if (typeof ultimo !== "string") {
     // Respaldo de versiones viejas: el último texto del transcript de esta sesión.
