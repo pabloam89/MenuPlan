@@ -80,8 +80,9 @@
       "reason": "una decisión de producto es un tipo de decisión"
     },
     "despliegue": {
-      "kind": "entity",
-      "entity": "deployment"
+      "kind": "type_of",
+      "entity": "event",
+      "reason": "un despliegue es un tipo de evento (event_types.deployment): Vercel lo guarda y el registro lo cuenta"
     },
     "diagnostico": {
       "kind": "part_of",
@@ -92,6 +93,11 @@
       "kind": "part_of",
       "entity": "pull-request",
       "reason": "el diff es una parte de un PR"
+    },
+    "encargo": {
+      "kind": "type_of",
+      "entity": "issue",
+      "reason": "un encargo es un tipo de issue (tipo:encargo) que se reparte entre agentes"
     },
     "endpoint": {
       "kind": "outside",
@@ -160,8 +166,8 @@
     },
     "hallazgo": {
       "kind": "produced_by",
-      "entity": "judge",
-      "reason": "el hallazgo lo produce un juez"
+      "entity": "agent",
+      "reason": "el hallazgo lo produce un agente juez (el juez es un valor del agente)"
     },
     "herramienta": {
       "kind": "outside",
@@ -249,8 +255,8 @@
       "reason": "un permiso es un mecanismo de la escalera"
     },
     "plano": {
-      "kind": "outside",
-      "reason": "plano: candidata a entidad, con registro propio en ops/planos.json"
+      "kind": "entity",
+      "entity": "plane"
     },
     "politica": {
       "kind": "type_of",
@@ -266,8 +272,9 @@
       "reason": "presupuesto: candidata a entidad, con registro propio en ops/presupuestos.json"
     },
     "primitivo": {
-      "kind": "outside",
-      "reason": "primitivo del producto o de la factoría de Lola: fuera de este ataque"
+      "kind": "type_of",
+      "entity": "token",
+      "reason": "un primitivo es la primera capa de los tokens de diseño (valor crudo)"
     },
     "principio": {
       "kind": "entity",
@@ -304,8 +311,8 @@
       "entity": "recipe"
     },
     "recurso": {
-      "kind": "outside",
-      "reason": "un recurso con caducidad es una clave, una skill o un servicio: cada uno es su propia entidad"
+      "kind": "entity",
+      "entity": "resource"
     },
     "registro": {
       "kind": "outside",
@@ -348,17 +355,22 @@
       "reason": "parte de una regla de la casa: palabra genérica: una regla de la casa es una norma, un criterio de la forja, una obligación del flujo o una regla de estándar, y cada una tiene su entidad"
     },
     "repo": {
-      "kind": "part_of",
-      "entity": "service",
-      "reason": "el repositorio es una parte del servicio GitHub"
+      "kind": "entity",
+      "entity": "repo"
     },
     "respuesta": {
       "kind": "outside",
       "reason": "respuesta de Lola del producto o de la factoría de Lola: fuera de este ataque"
     },
+    "respuesta.pablo": {
+      "kind": "produced_by",
+      "entity": "agent",
+      "reason": "la respuesta a Pablo la produce el agente orquestador"
+    },
     "secreto": {
-      "kind": "entity",
-      "entity": "secret"
+      "kind": "type_of",
+      "entity": "resource",
+      "reason": "un secreto es un recurso de tipo clave, token o deploy-key"
     },
     "sesion": {
       "kind": "entity",
@@ -392,8 +404,13 @@
     },
     "token": {
       "kind": "type_of",
-      "entity": "secret",
-      "reason": "un token es una clave"
+      "entity": "resource",
+      "reason": "un token de acceso es un recurso de tipo token; no es el token de diseño"
+    },
+    "traspaso": {
+      "kind": "part_of",
+      "entity": "agent",
+      "reason": "el traspaso es una arista declarada en la cabecera de un agente (traspasa_a)"
     },
     "turno": {
       "kind": "outside",
@@ -404,9 +421,8 @@
       "entity": "vocabulary"
     },
     "workflow": {
-      "kind": "type_of",
-      "entity": "mechanism",
-      "reason": "un workflow es un mecanismo de la escalera"
+      "kind": "entity",
+      "entity": "workflow"
     }
   }
 }

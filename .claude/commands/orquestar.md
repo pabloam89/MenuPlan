@@ -97,6 +97,7 @@ lleva; si el encargo no tiene issue y no es trivial, ábrelo primero.
 | `evaluador` | juez | 9, 10 | evals de Lola antes y después |
 | `seguridad` | juez | 7 | RLS, endpoints, secretos, inyección en prompts |
 | `auditor-datos` | juez | 4, 8 | modelo de datos: normalización, homogeneidad, duplicados, cableado |
+| `orquestador` | constructor | 2, 11 | la sesión principal (`claude --agent orquestador`): habla con Pablo y reparte; no se lanza como agente de otro |
 
 Fichas completas en `.claude/agents/`; planos en `ops/PLANOS.md`. Hay dos
 agentes aparcados (rendimiento y arquitecto) en `.claude/agentes-aparcados/`:

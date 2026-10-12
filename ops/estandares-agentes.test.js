@@ -108,8 +108,8 @@ describe("ops/estandares-agentes.json", () => {
     expect(contar(datos, normas).pendientes).toBe(0);
   });
 
-  it("las 66 tareas de los 9 agentes, con los cinco agentes que estaban pendientes completos", () => {
-    expect(todasLasTareas).toHaveLength(66);
+  it("las 69 tareas de los 10 agentes, con los cinco agentes que estaban pendientes completos", () => {
+    expect(todasLasTareas).toHaveLength(69);
     for (const n of ["diseno", "lola", "qa", "evaluador", "auditor-datos"]) expect(datos.agentes[n].tareas.length, n).toBeGreaterThanOrEqual(5);
     expect(datos.agentes.gobierno.tareas.map((t) => t.id)).toContain("catalogo-de-ops-con-test");
   });
@@ -128,13 +128,13 @@ describe("ops/estandares-agentes.json", () => {
 
   it("la cifra: tareas, reglas, comunes y fuentes externas y de la casa", () => {
     const c = contar(datos);
-    expect(c.total).toBe(66);
-    expect(c.conEstandar).toBe(66);
+    expect(c.total).toBe(69);
+    expect(c.conEstandar).toBe(69);
     expect(c.reglas).toBe(todasLasTareas.reduce((s, t) => s + t.reglas.length, 0));
     expect(c.comunes).toBe(11);
     expect(c.reglasComunes).toBe(Object.values(datos.comunes).reduce((s, x) => s + (x.reglas ?? []).length, 0));
     expect(c.fuentes.externas + c.fuentes.casa).toBe(Object.keys(datos.fuentes).length);
-    expect(Object.values(c.porAccion).reduce((a, b) => a + b, 0)).toBe(66);
+    expect(Object.values(c.porAccion).reduce((a, b) => a + b, 0)).toBe(69);
   });
 
   it("todas las tareas nuevas de #516 dejan el rastro de tres rondas de investigación", () => {
@@ -265,7 +265,7 @@ describe("docs/ops/ESTANDARES.md sale del catálogo", () => {
   });
 
   it("lleva una fila por regla, con agente, tarea, acción, frase, control y fuente", () => {
-    const filas = md.split("\n").filter((l) => /^\| (gobierno|datos|revisor|seguridad|diseno|lola|qa|evaluador|auditor-datos) \| `/.test(l));
+    const filas = md.split("\n").filter((l) => /^\| (gobierno|datos|revisor|seguridad|diseno|lola|qa|evaluador|auditor-datos|orquestador) \| `/.test(l));
     expect(filas).toHaveLength(contar(datos).reglas);
     const [agente, tarea, accion, frase, control, fuente] = filas[0].split(" | ").map((x) => x.replace(/^\| /, ""));
     expect(agente).toBe("gobierno");
@@ -277,7 +277,7 @@ describe("docs/ops/ESTANDARES.md sale del catálogo", () => {
     const comunes = md.split("\n").filter((l) => /^\| `[a-z0-9-]+` \| (construir|juzgar|diagnosticar|operar|medir|documentar|decidir) \|/.test(l) && !l.includes("cita las normas"));
     expect(comunes).toHaveLength(contar(datos).reglasComunes);
     const porTarea = md.split("\n").filter((l) => /^\| `[a-z-]+\/[a-z0-9-]+` \|/.test(l));
-    expect(porTarea).toHaveLength(66);
+    expect(porTarea).toHaveLength(69);
   });
 
   it("la frase de cada regla sale de sus campos y no lleva el control", () => {
@@ -339,7 +339,7 @@ describe("npm run estandar", () => {
 
   it("la cifra sale por --contar", () => {
     const out = execFileSync("node", ["scripts/estandares-agentes.mjs", "--contar"], { cwd: RAIZ, encoding: "utf8" });
-    expect(out).toContain("TOTAL 66/66 tareas con estándar; 0 pendientes");
+    expect(out).toContain("TOTAL 69/69 tareas con estándar; 0 pendientes");
     expect(out).toMatch(/normas: \d+ citadas aparte; \d+ distintas llegan a alguna tarea/);
   });
 });

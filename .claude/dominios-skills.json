@@ -97,7 +97,8 @@
         "^[.]claude/skills/estilo-de-respuesta/"
       ],
       "agentes": [
-        "gobierno"
+        "gobierno",
+        "orquestador"
       ]
     },
     "revision-de-diseno": {

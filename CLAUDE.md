@@ -116,32 +116,12 @@ El cómo, en la regla `migraciones`; cómo es una tabla, en `PRINCIPIOS.md`.
 
 ## Cómo se le habla a Pablo
 
-Pablo no es informático: toda sesión y todo agente le escribe con la misma
-forma, para que decidir le cueste poco (skill `estilo-de-respuesta`).
-
-1. Primera línea: la idea raíz en **negrita**, una frase con el resultado o la respuesta.
-2. Cuatro ideas cortas, como mucho; es un techo, no un molde: una pregunta corta
-   se contesta con la idea raíz y, si hace falta, una línea. El resto, «si quieres
-   te lo cuento».
-3. Al final, una línea con lo que le toca. Si es una decisión, **tres opciones**
-   en llano (A, B, C), la recomendada primero y qué pasa con cada una, con su
-   «Coste:» (dinero, tiempo o riesgo) y «reversible» o «no se puede deshacer» en la
-   misma línea.
-
-Si afirmas un estado o un resultado que él no puede comprobar, una línea
-«Certeza:» con «Comprobado» (lo he visto yo, y qué), «Creo» (inferencia, y en qué
-me baso) o «No sé» (y cómo lo averiguo); un estado solo se da como hecho si se
-comprobó en ese momento. Un issue se nombra por su nombre; el número, si hace
-falta, va solo entre paréntesis, detrás del nombre. Al volver tras un rato o
-retomar un tema, la idea raíz en negrita lo recuerda
-(«**Seguimos con X: falta Y.**»).
-
-Siempre en castellano, también los avisos cortos. Frases de menos de 25 palabras, sin preámbulo ni recapitulación, sin emojis.
-Un término técnico se explica la primera vez y después se llama igual. Ficheros,
-ramas y comandos van a un issue, no al chat, salvo que él los pida o los tenga
-que ejecutar. Plantillas fijas: resultado, decisión, error, concepto y resumen
-(estructura, glosario y ejemplos, en la skill). De un informe de agente, solo el
-`RESUMEN` y las `DECISIONES PENDIENTES` siguen esta forma
+Pablo no es informático: toda sesión y todo agente le escribe con la misma forma,
+y el único que le habla es el agente `orquestador`. **La regla entera vive en una
+sola fuente: la skill `estilo-de-respuesta`.** Lo esencial, también sin `--agent`:
+la primera línea del mensaje es la idea raíz en **negrita**, una frase. Abre la skill
+`estilo-de-respuesta` antes de escribirle. De un
+informe de agente, solo el `RESUMEN` y las `DECISIONES PENDIENTES` siguen esta forma
 (`.claude/PLANTILLA-AGENTE.md`).
 
 ## Encargos
@@ -163,8 +143,9 @@ trabajo: devuelve «Decisiones para Pablo».
 | `datos`: esquema, migraciones, modelo, ESTADO.md | `qa`: la app en el navegador (Chrome en local) |
 | `diseno`: pantallas, tokens, iconos y assets | `evaluador`: evals de Lola antes y después |
 | `lola`: el bot, herramientas, conocimiento, coste | `seguridad`: RLS, endpoints, secretos, prompts |
-| | `auditor-datos`: normalización, duplicados y cableado |
+| `orquestador`: la sesión principal; habla con Pablo y reparte (`claude --agent orquestador`) | `auditor-datos`: normalización, duplicados y cableado |
 
+Cada cabecera dice a quién pasa trabajo (`traspasa_a`, vigilado por `.claude/agentes.test.js`).
 Cada agente lista sus tareas y el estándar de cada una (qué es hacerla bien,
 qué comprueba, qué no hace y su fuente) en `ops/estandares-agentes.json`; el
 brief de `/orquestar` lo trae con `npm run estandar -- <agente> <tarea>` y el

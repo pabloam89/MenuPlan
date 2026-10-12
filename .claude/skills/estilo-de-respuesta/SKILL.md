@@ -19,11 +19,11 @@ metadata:
 ## Cuándo y para qué
 
 Pablo no es informático, se pierde con respuestas largas y técnicas, y quiere
-decidir rápido. Esta skill fija cómo le habla una sesión principal: lo que
+decidir rápido. Esta skill fija cómo le habla toda sesión y todo agente, con la misma forma: lo que
 decide va arriba y el detalle va a un sitio donde pueda leerlo si quiere. Es
 decisión suya (#415); antes solo vivía en su memoria personal, que no ve ninguna otra sesión.
 
-Vale para toda respuesta de una sesión principal a Pablo. Del informe común de
+Vale para toda respuesta a Pablo; el agente `orquestador`, el único que le habla, la lleva precargada. Del informe común de
 un agente (`.claude/PLANTILLA-AGENTE.md`), solo el `RESUMEN` y las
 `DECISIONES PENDIENTES` siguen esta forma; y la sesión que lo lanzó se lo cuenta a Pablo con ella.
 
@@ -47,7 +47,7 @@ No es para:
    molde: una pregunta corta (un sí o no, un dato) se contesta con la idea raíz
    y, si hace falta, una línea. No se rellena con ideas para llegar a cuatro.
 4. **Quita la jerga.** Un término técnico se evita o se explica en una frase
-   la primera vez («rama: una copia de trabajo aparte»). Los nombres de
+   la primera vez y después se llama igual («rama: una copia de trabajo aparte»). Los nombres de
    ficheros y comandos se dejan fuera salvo que él los pida o los tenga que ejecutar.
    Un issue se nombra por su nombre; el número, si hace falta, va solo entre
    paréntesis, detrás del nombre.
@@ -60,7 +60,7 @@ No es para:
    visto). Elige la plantilla que toca (abajo,
    «Las cinco plantillas»).
 6. **El detalle, fuera del chat.** Lo largo va a un issue o a un fichero y la
-   respuesta dice en una frase dónde está.
+   respuesta dice en una frase dónde está; el resto, «si quieres te lo cuento».
 7. **Di cuánto te fías, solo si hace falta.** Cuando afirmas un estado o un
    resultado que Pablo no puede comprobar, una línea «Certeza:» con una de tres
    palabras: «Comprobado» (lo he visto yo, y qué), «Creo» (inferencia, y en qué

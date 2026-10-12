@@ -15,5 +15,6 @@
     "fichero": "scripts/lib/estandaresAgentes.mjs",
     "clave": "CAMPOS_ESTANDAR"
   },
-  "nota": "Un estándar se compone de criterios."
+  "nota": "Un estándar se compone de criterios.",
+  "en": "standard"
 }
