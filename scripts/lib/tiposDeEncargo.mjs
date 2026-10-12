@@ -1,12 +1,12 @@
 /**
- * tiposDeEncargo.mjs — el lector único de los tipos de encargo (#640, fondo #639).
+ * tiposDeEncargo.mjs — el lector único de los tipos de encargo (#640, fondo #639; la puerta de entrada, #646, fondo #645).
  *
- * `ops/tipos-de-encargo.json` es el dato: CINCO tipos (create, fix, improve, operate, audit), cada uno
- * con el esqueleto mínimo de pasos, y los 17 de siempre (más un `*-other` por tipo) como SUBTIPOS (`tipos` en el JSON, nombre histórico
- * que lee el panel de la factoría y no se renombra). Aquí viven la lectura, las reglas de forma
- * (`problemas`, con el nombre de la regla al principio de cada línea) y la tabla de `/orquestar`, que se
- * GENERA desde el JSON. Los agentes salen de `.claude/agents/` (agentes.mjs) y el presupuesto, de
- * `ops/presupuestos.json` (presupuestos.mjs): `encargoDe` los junta sin copiar nada.
+ * `ops/tipos-de-encargo.json` es el dato: CINCO tipos (create, fix, improve, operate, audit), cada uno con el esqueleto
+ * mínimo de pasos, y sus SUBTIPOS (`tipos` en el JSON, nombre histórico que lee el panel de la factoría y no se renombra).
+ * Un subtipo está `active` (se ofrece y lo usa el dimensionador) o `retired` (un alias de un id de antes, con `replaced_by`).
+ * Aquí viven la lectura, las reglas de forma y de la PUERTA DE ENTRADA (`problemas`, con el nombre de la regla al principio de
+ * cada línea) y la tabla de `/orquestar`, que se GENERA desde el JSON. Los agentes salen de `.claude/agents/` (agentes.mjs) y el
+ * presupuesto, de `ops/presupuestos.json` (presupuestos.mjs): `encargoDe` los junta sin copiar nada.
  *
  * No calcula agentes desde el diff (eso es E2, #641): dado un subtipo, un alcance, una causa y una complejidad,
  * devuelve lo que dicen los dos catálogos.
@@ -16,6 +16,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { AGENTES, CONSTRUCTORES, JUECES } from "./agentes.mjs";
+import { AMBITOS } from "./ambitos.mjs";
 import { CATALOGO as PRESUPUESTOS, COMPLEXITIES, PIPELINES, presupuestoDe } from "./presupuestos.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -25,24 +26,48 @@ export const MARCA_INICIO = "<!-- tipos:tabla:inicio -->";
 export const MARCA_FIN = "<!-- tipos:tabla:fin -->";
 export const MARCA_N1_TIPOS_INICIO = "<!-- n1:encargo:tipos:inicio -->";
 export const MARCA_N1_TIPOS_FIN = "<!-- n1:encargo:tipos:fin -->";
+export const MARCA_N1_PUERTA_INICIO = "<!-- n1:encargo:puerta:inicio -->";
+export const MARCA_N1_PUERTA_FIN = "<!-- n1:encargo:puerta:fin -->";
 
 export const leerTipos = (raiz = RAIZ) => JSON.parse(readFileSync(join(raiz, RUTA_TIPOS), "utf8"));
 export const DATOS = leerTipos();
 
 /** Los cinco tipos: { id: { what, skeleton } }. */
 export const TYPES = DATOS.assignment_types;
-/** Los subtipos (los 17 de siempre y uno `*-other` por tipo), en el orden del JSON, agrupados por tipo. */
-export const SUBTYPES = DATOS.tipos;
+/** TODOS los subtipos del JSON, activos y retirados (los alias del panel), agrupados: primero los activos. */
+export const ALL_SUBTYPES = DATOS.tipos;
+/** Los subtipos ACTIVOS: los que se ofrecen al crear un encargo y los únicos que usará el dimensionador (#641). */
+export const SUBTYPES = ALL_SUBTYPES.filter((s) => s.status === "active");
+/** Los alias retirados: ids de antes que se conservan solo para el panel, cada uno con su `replaced_by`. */
+export const ALIASES = ALL_SUBTYPES.filter((s) => s.status === "retired");
 /** Las banderas de una condición: { id: { si, what } }. */
 export const FLAGS = DATOS.flags;
+/** Los vocabularios cerrados de un subtipo: { valor: { what } }. */
+export const DIFFERS_IN = DATOS.differs_in;
+export const CLOSINGS = DATOS.closings;
+export const MEASURES = DATOS.measures;
+export const STEP_PURPOSES = DATOS.step_purposes;
+export const STATUSES = DATOS.statuses;
 /** Los agentes que no son ficheros: sesion, constructor, constructores. */
 export const ESPECIALES = Object.keys(DATOS.especiales);
 export { COMPLEXITIES };
 
-/** Definición de cada vocabulario, para anclarlo (vocabulariosVida.mjs). */
+/** El único texto libre de un subtipo (`note`) tiene este tope de caracteres; la etiqueta (`accion`), este otro. */
+export const MAX_NOTE = 160;
+export const MAX_ACCION = 100;
+/** Cuántos encargos tiene que haber con el patrón de un subtipo para que merezca serlo (la puerta, regla «repite»). */
+export const MIN_USOS = 3;
+
+/** Definición de cada vocabulario, para anclarlo (vocabulariosVida.mjs). Los subtipos, solo los activos: los retirados pasan a «retirados». */
 export const textosDeTipos = (d = DATOS) => Object.fromEntries(Object.entries(d.assignment_types).map(([k, t]) => [k, t.what]));
-export const textosDeSubtipos = (d = DATOS) => Object.fromEntries(d.tipos.map((t) => [t.id, t.accion]));
+export const textosDeSubtipos = (d = DATOS) => Object.fromEntries(d.tipos.filter((t) => t.status === "active").map((t) => [t.id, t.accion]));
 export const textosDeBanderas = (d = DATOS) => Object.fromEntries(Object.entries(d.flags).map(([k, b]) => [k, b.what]));
+const textosDe = (vocab) => Object.fromEntries(Object.entries(vocab ?? {}).map(([k, v]) => [k, v.what]));
+export const textosDeDiffersIn = (d = DATOS) => textosDe(d.differs_in);
+export const textosDeCierres = (d = DATOS) => textosDe(d.closings);
+export const textosDeMedidas = (d = DATOS) => textosDe(d.measures);
+export const textosDeFinalidades = (d = DATOS) => textosDe(d.step_purposes);
+export const textosDeEstados = (d = DATOS) => textosDe(d.statuses);
 
 const todosLosAgentes = (paso) => [...(paso.agentes ?? []), ...(paso.opcional ?? []).map((o) => o.agente)];
 /** El tipo de un agente en su cabecera (`Tipo:` de .claude/agents/) y su rol en un paso. */
@@ -66,7 +91,7 @@ const rolesDelPaso = (paso, sub, ctx) => {
  * Reglas: tipo, roles (los pasos contienen, en orden, los roles del esqueleto), juez-siempre (algún juez entra
  * siempre, no solo como opcional), juez-despues, paralelo y solo-jueces (audit), cierre (operate), medida (improve).
  */
-export function problemasDeEsqueleto(sub, tipos = TYPES, ctx = CTX) {
+export function problemasDeEsqueleto(sub, tipos = TYPES, ctx = CTX, d = DATOS) {
   const p = [];
   const tipo = tipos?.[sub.type];
   if (!tipo) return [`tipo: ${sub.id} cuelga de «${sub.type}», que no es un tipo (${Object.keys(tipos ?? {}).join(", ")})`];
@@ -91,9 +116,138 @@ export function problemasDeEsqueleto(sub, tipos = TYPES, ctx = CTX) {
     else if (sub.irreversible && !sub.cierra_con) p.push(`cierre: ${sub.id} es irreversible y no cierra con el OK de una persona («cierra_con»)`);
   } else if ("irreversible" in sub) p.push(`cierre: ${sub.id} (${sub.type}) lleva «irreversible», que es solo de operate`);
   if (esq.measures_before_after) {
-    if (typeof sub.measure !== "string" || sub.measure.length < 10) p.push(`medida: ${sub.id} (${sub.type}) dice qué se mide antes y después («measure»)`);
-  } else if ("measure" in sub) p.push(`medida: ${sub.id} (${sub.type}) lleva «measure», que es solo de improve`);
+    if (!(sub.measure_kind in (d?.measures ?? {}))) p.push(`medida: ${sub.id} (${sub.type}) dice qué se mide antes y después con un valor de «measure_kind» (${Object.keys(d?.measures ?? {}).join(", ")})`);
+  } else if ("measure_kind" in sub) p.push(`medida: ${sub.id} (${sub.type}) lleva «measure_kind», que es solo de improve`);
   if (sub.builds_in_session && !sub.pasos.some((paso) => (paso.agentes ?? []).includes("sesion"))) p.push(`roles: ${sub.id} dice «builds_in_session» y no tiene un paso de la sesión`);
+  return p;
+}
+
+// ── La puerta de entrada de un subtipo (#645, #646) ─────────────────────────────────────────────
+
+/** Las reglas de la puerta, con el nombre que lleva cada línea de `problemas`; el N1 del encargo las recoge tal cual. */
+export const REGLAS_PUERTA = [
+  { id: "plano", texto: "Mismo plano: un subtipo describe la naturaleza del trabajo y no la zona. La zona sale de los ficheros (ámbitos de scripts/lib/ambitos.mjs) y de ella salen el constructor y los jueces." },
+  { id: "difiere", texto: "Difiere de su tipo en algo medible: lo declara en `differs_in` (vocabulario cerrado) y un test lo comprueba contra el esqueleto de su tipo. El subtipo liso (`plain`) es el esqueleto y no declara nada; si no difiere, no es subtipo." },
+  { id: "repite", texto: `Se repite: al menos ${MIN_USOS} encargos con el patrón. Lo mide \`npm run fabrica\` y solo avisa. La válvula \`<tipo>-other\` cuenta sus usos, pide un motivo en \`subtype_note\` y, si se repite, propone un subtipo nuevo.` },
+  { id: "texto-libre", texto: `Lo discreto primero: todo atributo es un valor de vocabulario cerrado o un número; el único texto libre es \`note\`, de ${MAX_NOTE} caracteres como mucho.` },
+  { id: "nombre", texto: "Nombre con plantilla <tipo>-<objeto>, en inglés y en kebab-case: el prefijo es su tipo (create, fix, improve, operate, audit) y el objeto, de una a tres palabras." },
+];
+
+const sinAcentos = (t) => String(t).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+/** Palabras de zona que no son ámbitos: lo que se toca, no el tipo de trabajo. Los ámbitos (ids y nombres legibles) se suman solos. */
+const PALABRAS_DE_ZONA = [
+  "pantalla", "pantallas", "screen", "page", "component", "componente", "endpoint", "endpoints", "lola", "esquema", "schema", "tabla", "tablas", "table",
+  "migracion", "migraciones", "migration", "despliegue", "deploy", "catalogo", "receta", "recetas", "recipe", "asset", "assets", "hook", "hooks",
+  "workflow", "ci", "rls", "base", "token", "tokens", "monolito", "monolith", "cableado", "wiring",
+];
+/** Las palabras de zona: lo anterior más los ids y los nombres de AMBITOS. */
+export const ZONAS = [...new Set([...PALABRAS_DE_ZONA, ...Object.entries(AMBITOS).flatMap(([id, a]) => [id, a.legible])].map(sinAcentos))];
+/** Qué palabras de zona nombra un texto. */
+export const zonasQueNombra = (texto) => sinAcentos(texto).split(/[^a-z]+/).filter((w) => w && ZONAS.includes(w));
+
+/**
+ * Los secuencia de roles que SIEMPRE entran, un rol por paso (builder, judge o planner), sin contar a quien solo mide.
+ * La sesión que construye cuenta como builder.
+ */
+function secuenciaDeRoles(sub, ctx = CTX) {
+  const medidores = sub.measured_with ?? [];
+  return sub.pasos.map((paso) => {
+    const r = rolesDelPaso({ ...paso, agentes: (paso.agentes ?? []).filter((a) => !medidores.includes(a)) }, sub, ctx);
+    return r.includes("builder") ? "builder" : r.includes("judge") ? "judge" : r.includes("planner") ? "planner" : null;
+  }).filter(Boolean);
+}
+
+/**
+ * En qué difiere de verdad un subtipo del esqueleto de su tipo: el conjunto de valores de `differs_in` que se cumplen.
+ * steps (sus roles no son los del esqueleto), closing (cierra con una persona), measure (mide otra cosa que la medida por
+ * defecto), flags (un juez entra solo por una bandera), extra_judge (un juez fijo que no es el de por defecto), plans_first
+ * (empieza por el plan de la sesión), maps_first (empieza por un juez que mapea, donde el esqueleto empieza por construir)
+ * y builds_in_session (lo construye la sesión).
+ */
+export function facetasDe(sub, tipos = TYPES, ctx = CTX, juezPorDefecto = DATOS.default_judge) {
+  const esq = tipos?.[sub.type]?.skeleton;
+  if (!esq) return new Set();
+  const seq = secuenciaDeRoles(sub, ctx);
+  const medidores = sub.measured_with ?? [];
+  const f = new Set();
+  if (JSON.stringify(seq) !== JSON.stringify(esq.roles)) f.add("steps");
+  if (sub.cierra_con) f.add("closing");
+  if ("measure_kind" in sub && sub.measure_kind !== esq.default_measure) f.add("measure");
+  if (sub.pasos.some((p) => (p.opcional ?? []).some((o) => o.flag))) f.add("flags");
+  if (sub.pasos.flatMap((p) => p.agentes ?? []).some((a) => !medidores.includes(a) && JUECES.includes(a) && a !== juezPorDefecto)) f.add("extra_judge");
+  if (seq[0] === "planner") f.add("plans_first");
+  if (seq[0] === "judge" && esq.roles[0] === "builder") f.add("maps_first");
+  if (sub.builds_in_session === true) f.add("builds_in_session");
+  return f;
+}
+
+const CLAVES_ACTIVO = ["id", "type", "status", "plain", "valve", "accion", "note", "pasos", "differs_in", "closing", "cierra_con", "measure_kind", "irreversible", "measured_with", "builds_in_session"];
+const CLAVES_PASO = ["agentes", "opcional", "purpose"];
+const CLAVES_OPCIONAL = ["agente", "si", "flag"];
+
+/**
+ * La puerta de entrada de UN subtipo activo (las reglas de REGLAS_PUERTA y la forma del subtipo). Lista de problemas, cada
+ * uno con el nombre de su regla delante: plano, difiere, texto-libre, nombre, estado, liso, valvula.
+ */
+export function problemasDeLaPuerta(sub, d = DATOS, ctx = { agentes: AGENTES, especiales: d?.special_roles ?? {} }) {
+  const p = [];
+  const tipos = d?.assignment_types ?? {};
+  // estado
+  if (!(sub.status in (d?.statuses ?? {}))) return [`estado: ${sub.id} dice «${sub.status}», que no es un estado (${Object.keys(d?.statuses ?? {}).join(", ")})`];
+  if (sub.status !== "active") return p;
+  // nombre: <tipo>-<objeto>, en inglés y en kebab-case
+  const m = /^(create|fix|improve|operate|audit)-([a-z]+(?:-[a-z]+){0,2})$/.exec(sub.id);
+  if (!m) p.push(`nombre: ${sub.id} no sigue la plantilla <tipo>-<objeto> (create, fix, improve, operate o audit, un guion y de una a tres palabras en inglés y minúsculas)`);
+  else if (m[1] !== sub.type) p.push(`nombre: ${sub.id} empieza por «${m[1]}» y es del tipo «${sub.type}»`);
+  // plano: ni el id ni la etiqueta nombran una zona
+  const objeto = m ? m[2] : sub.id;
+  for (const z of zonasQueNombra(objeto)) p.push(`plano: ${sub.id} nombra la zona «${z}» en su id; un subtipo describe la naturaleza del trabajo, la zona sale de los ficheros`);
+  for (const z of zonasQueNombra(sub.accion ?? "")) p.push(`plano: ${sub.id} nombra la zona «${z}» en su etiqueta; un subtipo describe la naturaleza del trabajo, la zona sale de los ficheros`);
+  // texto-libre: solo `note`, con tope; lo demás, vocabularios cerrados
+  for (const k of Object.keys(sub)) if (!CLAVES_ACTIVO.includes(k)) p.push(`texto-libre: ${sub.id} lleva el campo «${k}», que no es de un subtipo activo: el texto libre vive solo en «note» (${MAX_NOTE} caracteres como mucho)`);
+  if ("note" in sub && (typeof sub.note !== "string" || sub.note.length < 10 || sub.note.length > MAX_NOTE)) p.push(`texto-libre: ${sub.id} lleva una «note» de 10 a ${MAX_NOTE} caracteres`);
+  if (typeof sub.accion !== "string" || sub.accion.length < 3 || sub.accion.length > MAX_ACCION) p.push(`texto-libre: ${sub.id} lleva su «accion» (la definición del valor) de 3 a ${MAX_ACCION} caracteres`);
+  for (const k of ["plain", "valve", "builds_in_session"]) if (k in sub && sub[k] !== true) p.push(`texto-libre: ${sub.id} lleva «${k}» solo con el valor verdadero`);
+  if ("closing" in sub && !(sub.closing in (d?.closings ?? {}))) p.push(`texto-libre: ${sub.id} dice el cierre «${sub.closing}» («closing»), que no es del vocabulario (${Object.keys(d?.closings ?? {}).join(", ")})`);
+  else if ("closing" in sub && sub.cierra_con !== d.closings[sub.closing].label) p.push(`cierre: ${sub.id}: «cierra_con» tiene que ser el texto de su cierre («${d.closings[sub.closing].label}»)`);
+  if (Boolean(sub.closing) !== Boolean(sub.cierra_con)) p.push(`cierre: ${sub.id} lleva «closing» y «cierra_con» a la vez, o ninguno de los dos`);
+  if ("measure_kind" in sub && !(sub.measure_kind in (d?.measures ?? {}))) p.push(`texto-libre: ${sub.id} mide con «${sub.measure_kind}», que no es del vocabulario (${Object.keys(d?.measures ?? {}).join(", ")})`);
+  for (const paso of sub.pasos ?? []) {
+    for (const k of Object.keys(paso)) if (!CLAVES_PASO.includes(k)) p.push(`texto-libre: ${sub.id} lleva en un paso el campo «${k}», que no es de un subtipo activo: el texto libre vive solo en «note»`);
+    if ("purpose" in paso && !(paso.purpose in (d?.step_purposes ?? {}))) p.push(`texto-libre: ${sub.id} lleva un paso con «${paso.purpose}», que no es una finalidad del vocabulario (${Object.keys(d?.step_purposes ?? {}).join(", ")})`);
+    for (const o of paso.opcional ?? []) for (const k of Object.keys(o)) if (!CLAVES_OPCIONAL.includes(k)) p.push(`texto-libre: ${sub.id} lleva en una condición el campo «${k}», que no es de un subtipo activo`);
+  }
+  // difiere: lo declarado se cumple contra el esqueleto de su tipo; el liso no declara nada y no difiere
+  const declaradas = sub.differs_in;
+  if (!Array.isArray(declaradas)) {
+    p.push(`difiere: ${sub.id} declara en qué difiere de su tipo en «differs_in» (una lista de valores de ${Object.keys(d?.differs_in ?? {}).join(", ")})`);
+    return p;
+  }
+  for (const v of declaradas) if (!(v in (d?.differs_in ?? {}))) p.push(`difiere: ${sub.id} declara «${v}», que no es un valor de «differs_in» (${Object.keys(d?.differs_in ?? {}).join(", ")})`);
+  if (new Set(declaradas).size !== declaradas.length) p.push(`difiere: ${sub.id} repite un valor en «differs_in»`);
+  const reales = facetasDe(sub, tipos, ctx, d?.default_judge);
+  for (const v of declaradas) if (v in (d?.differs_in ?? {}) && !reales.has(v)) p.push(`difiere: ${sub.id} dice que difiere de ${sub.type} en «${v}» y su esqueleto no lo cumple`);
+  if (sub.plain) {
+    if (declaradas.length) p.push(`liso: ${sub.id} es el subtipo liso de ${sub.type}: es el esqueleto y no declara «differs_in»`);
+    if (reales.size) p.push(`liso: ${sub.id} es el subtipo liso de ${sub.type} y difiere del esqueleto en ${[...reales].join(", ")}: deja de ser liso`);
+  } else if (!sub.valve && !declaradas.length) p.push(`difiere: ${sub.id} no difiere de ${sub.type} en nada medible: si no difiere, no es subtipo`);
+  if (sub.plain && sub.valve) p.push(`valvula: ${sub.id} no puede ser lisa y válvula a la vez`);
+  if (sub.valve) {
+    if (sub.id !== `${sub.type}-other`) p.push(`valvula: la válvula de ${sub.type} se llama «${sub.type}-other» y no ${sub.id}`);
+    if (typeof sub.note !== "string") p.push(`valvula: ${sub.id} es una válvula y explica en su «note» para qué sirve y que cada uso pide un motivo`);
+  }
+  return p;
+}
+
+/** Lo que está mal en un alias retirado: el id de antes que solo se conserva para el panel. */
+export function problemasDeAlias(sub, d = DATOS) {
+  const p = [];
+  const activos = (d?.tipos ?? []).filter((t) => t.status === "active").map((t) => t.id);
+  if (!d?.assignment_types?.[sub.type]) p.push(`tipo: ${sub.id} cuelga de «${sub.type}», que no es un tipo`);
+  if (typeof sub.accion !== "string" || sub.accion.length < 3) p.push(`alias: ${sub.id} conserva su «accion», que lee el panel`);
+  if (!Array.isArray(sub.pasos) || !sub.pasos.length) p.push(`alias: ${sub.id} conserva sus «pasos», que lee el panel`);
+  if (!activos.includes(sub.replaced_by)) p.push(`alias: ${sub.id} está retirado y dice que lo sustituye «${sub.replaced_by}», que no es un subtipo activo`);
+  for (const k of ["differs_in", "plain", "valve", "closing", "measure_kind", "purpose"]) if (k in sub) p.push(`alias: ${sub.id} está retirado y lleva «${k}», que es de un subtipo activo`);
   return p;
 }
 
@@ -102,9 +256,19 @@ export function problemas(d = DATOS, ctx = { agentes: AGENTES, especiales: d?.sp
   const p = [];
   const tipos = d?.assignment_types ?? {};
   const especiales = Object.keys(d?.especiales ?? {});
-  const ids = (d?.tipos ?? []).map((t) => t.id);
+  const todos = d?.tipos ?? [];
+  const ids = todos.map((t) => t.id);
   if (new Set(ids).size !== ids.length) p.push("id: hay subtipos con el mismo id");
   for (const e of especiales) if (!["planner", "builder"].includes(d.special_roles?.[e])) p.push(`especial: «${e}» lleva su rol en «special_roles» (planner o builder)`);
+  if (!JUECES.includes(d?.default_judge)) p.push(`juez-defecto: «default_judge» es un agente juez de .claude/agents (${JUECES.join(", ")})`);
+  for (const nombre of ["differs_in", "closings", "measures", "step_purposes", "statuses"]) {
+    for (const [k, v] of Object.entries(d?.[nombre] ?? {})) {
+      if (!/^[a-z]+(_[a-z]+)*$/.test(k)) p.push(`vocabulario: «${k}» de ${nombre} va en minúsculas y snake_case`);
+      if (typeof v?.what !== "string" || v.what.length < 10) p.push(`vocabulario: ${nombre}.${k} lleva su definición «what»`);
+    }
+    if (!Object.keys(d?.[nombre] ?? {}).length) p.push(`vocabulario: falta el vocabulario ${nombre}`);
+  }
+  for (const [k, c] of Object.entries(d?.closings ?? {})) if (typeof c?.label !== "string" || !c.label) p.push(`vocabulario: closings.${k} lleva su texto «label»`);
   for (const [k, t] of Object.entries(tipos)) {
     if (!/^[a-z]+$/.test(k)) p.push(`id: el tipo «${k}» es una palabra en minúsculas`);
     if (typeof t.what !== "string" || t.what.length < 10) p.push(`definicion: el tipo ${k} lleva su «what»`);
@@ -112,25 +276,42 @@ export function problemas(d = DATOS, ctx = { agentes: AGENTES, especiales: d?.sp
     if (!Array.isArray(roles) || !roles.length || roles.some((r) => !["builder", "judge"].includes(r))) p.push(`esqueleto: el tipo ${k} lleva «roles» con builder y judge`);
     else if (!roles.includes("judge")) p.push(`juez: el tipo ${k} no tiene ningún juez en su esqueleto: ningún tipo se queda sin juez`);
     else if (k !== "audit" && !roles.includes("builder")) p.push(`esqueleto: el tipo ${k} no lleva constructor`);
-    const otros = (d?.tipos ?? []).filter((s) => s.type === k && s.id === `${k}-other`);
-    if (otros.length !== 1) p.push(`otro: el tipo ${k} tiene un subtipo «${k}-other» para lo que no encaja (N0 §3) y tiene ${otros.length}`);
+    if (t.skeleton?.measures_before_after && !(t.skeleton.default_measure in (d?.measures ?? {}))) p.push(`esqueleto: el tipo ${k} mide antes y después y su «default_measure» es un valor de «measures»`);
+    const activos = todos.filter((s) => s.type === k && s.status === "active");
+    const lisos = activos.filter((s) => s.plain);
+    const valvulas = activos.filter((s) => s.valve);
+    if (lisos.length > 1) p.push(`liso: el tipo ${k} tiene ${lisos.length} subtipos lisos y solo puede tener uno`);
+    if (lisos.length && valvulas.length) p.push(`valvula: el tipo ${k} ya tiene su subtipo liso (${lisos[0].id}); la válvula «${k}-other» solo cabe si el tipo no tiene liso`);
+    if (valvulas.length > 1) p.push(`valvula: el tipo ${k} tiene ${valvulas.length} válvulas`);
+    const cubreIrreversible = k === "operate" && activos.some((s) => s.irreversible === true) && activos.some((s) => s.irreversible === false);
+    if (!lisos.length && !valvulas.length && !cubreIrreversible) p.push(`cobertura: el tipo ${k} no tiene dónde dejar lo que no encaja: un subtipo liso, una válvula «${k}-other» o, en operate, uno reversible y otro irreversible`);
+    // gemelos: dos subtipos de un tipo con lo mismo no son dos
+    const huella = (s) => JSON.stringify([s.pasos, s.measure_kind, s.cierra_con, s.irreversible, s.builds_in_session, s.measured_with]);
+    for (const [n, s] of activos.entries()) {
+      const gemelo = activos.slice(0, n).find((o) => huella(o) === huella(s));
+      if (gemelo) p.push(`gemelo: ${s.id} y ${gemelo.id} tienen los mismos pasos, medida y cierre: son un solo subtipo`);
+    }
   }
-  // El orden del JSON: agrupado por tipo, en el orden de los tipos (así sale la tabla de /orquestar y lo ve el panel).
-  const orden = (d?.tipos ?? []).map((s) => Object.keys(tipos).indexOf(s.type));
-  if (orden.some((n, i) => i > 0 && n < orden[i - 1])) p.push(`orden: los subtipos van agrupados por tipo, en el orden ${Object.keys(tipos).join(", ")}`);
+  // El orden del JSON: primero los activos y luego los alias, cada grupo agrupado por tipo en el orden de los tipos (así sale la tabla de /orquestar y lo ve el panel).
+  const posicion = (s) => (s.status === "retired" ? 1000 : 0) + Object.keys(tipos).indexOf(s.type);
+  const orden = todos.map(posicion);
+  if (orden.some((n, i) => i > 0 && n < orden[i - 1])) p.push(`orden: primero los subtipos activos y luego los retirados, cada grupo agrupado por tipo en el orden ${Object.keys(tipos).join(", ")}`);
   const bandera = d?.flags ?? {};
   for (const [k, b] of Object.entries(bandera)) {
     if (!/^[a-z]+(_[a-z]+)*$/.test(k)) p.push(`bandera: «${k}» va en minúsculas y snake_case`);
     if (!b.si || !b.what) p.push(`bandera: ${k} lleva «si» (la condición corta) y «what»`);
   }
-  for (const sub of d?.tipos ?? []) {
+  for (const sub of todos) {
     if (!/^[a-z]+(-[a-z]+)*$/.test(sub.id)) p.push(`id: ${sub.id} va en minúsculas con guiones`);
     if (!sub.accion || sub.accion.length < 3) p.push(`campo: ${sub.id} lleva su «accion»`);
     if (!sub.pasos?.length) {
       p.push(`campo: ${sub.id} lleva pasos`);
       continue;
     }
-    p.push(...problemasDeEsqueleto(sub, tipos, ctx));
+    const alias = sub.status === "retired";
+    if (alias) p.push(...problemasDeAlias(sub, d));
+    else p.push(...problemasDeEsqueleto(sub, tipos, ctx, d), ...problemasDeLaPuerta(sub, d, ctx));
+    if (!(sub.status in (d?.statuses ?? {}))) p.push(`estado: ${sub.id} dice «${sub.status}», que no es un estado (${Object.keys(d?.statuses ?? {}).join(", ")})`);
     for (const paso of sub.pasos) {
       if (todosLosAgentes(paso).length === 0) p.push(`paso: ${sub.id} tiene un paso vacío`);
       for (const a of todosLosAgentes(paso)) if (!especiales.includes(a) && !(a in ctx.agentes)) p.push(`agente: ${sub.id} nombra «${a}», que no existe en .claude/agents ni es especial`);
@@ -143,9 +324,31 @@ export function problemas(d = DATOS, ctx = { agentes: AGENTES, especiales: d?.sp
   return p;
 }
 
+/**
+ * La regla «repite» de la puerta, como AVISO (no falla): dado cuántos encargos usan cada subtipo (`usos`: { id: n }),
+ * una línea `subtipo-uso subtype: … usos: n minimo: 3 aviso: … usa: …` por cada uno que no cumple. Un subtipo activo con menos de
+ * MIN_USOS usos todavía no ha demostrado repetirse; una válvula con MIN_USOS o más pide un subtipo nuevo (`valvula-repetida`); un alias retirado
+ * con usos dice cuál usar (`alias-retirado`, en `usa`); un id que no existe no se cuenta.
+ */
+export function avisosDeUso(usos = {}, d = DATOS) {
+  const l = [];
+  const linea = (id, n, aviso, usa = "-") => l.push(`subtipo-uso subtype: ${id} usos: ${n} minimo: ${MIN_USOS} aviso: ${aviso} usa: ${usa}`);
+  for (const s of d.tipos) {
+    const n = usos[s.id] ?? 0;
+    if (s.status === "retired") {
+      if (n > 0) linea(s.id, n, "alias-retirado", s.replaced_by);
+    } else if (s.valve) {
+      if (n >= MIN_USOS) linea(s.id, n, "valvula-repetida");
+    } else if (n < MIN_USOS) linea(s.id, n, "pocos-usos");
+  }
+  for (const [id, n] of Object.entries(usos)) if (!d.tipos.some((s) => s.id === id)) linea(id, n, "subtipo-desconocido");
+  return l;
+}
+
 // ── El lector común con el presupuesto ───────────────────────────────────────────────────────
 
-const subtipoDe = (id) => SUBTYPES.find((s) => s.id === id) ?? null;
+/** Un subtipo por su id, activo o alias; un alias se resuelve a su sustituto (y `encargoDe` avisa). */
+const subtipoDe = (id) => ALL_SUBTYPES.find((s) => s.id === id) ?? null;
 
 /** Los jueces de un subtipo: { always: [...], optional: [{ agente, flag }] }. */
 export function juecesDe(sub) {
@@ -176,7 +379,8 @@ export function pasosMinimos(sub, ctx = CTX) {
  * Las rondas y los minutos son del FONDO (de su alcance y causa), no del encargo: salen como `fund_*`.
  */
 export function encargoDe({ subtype, scope, cause, complexity }, presupuestos = PRESUPUESTOS) {
-  const s = subtipoDe(subtype);
+  const pedido = subtipoDe(subtype);
+  const s = pedido?.status === "retired" ? subtipoDe(pedido.replaced_by) : pedido;
   const porComplejidad = presupuestos.by_complexity?.[complexity];
   const fondo = presupuestoDe(scope, cause, presupuestos);
   if (!s || !porComplejidad || !fondo) return null;
@@ -186,6 +390,7 @@ export function encargoDe({ subtype, scope, cause, complexity }, presupuestos = 
   const nombrados = new Set(enPipeline.flatMap(todosLosAgentes).filter((a) => JUECES.includes(a)));
   const missing = fondo.jueces_obligatorios.filter((j) => !nombrados.has(j));
   const warnings = [];
+  if (pedido.status === "retired") warnings.push(`el subtipo ${pedido.id} está retirado: usa ${s.id}`);
   if (nombrados.size < judgesMin) warnings.push(`el subtipo ${s.id} lleva ${nombrados.size} juez(ces) distintos y el presupuesto pide ${judgesMin}: añade ${judgesMin - nombrados.size} más del catálogo de /orquestar`);
   if (missing.length) warnings.push(`la causa ${cause} exige ${missing.join(", ")} y el subtipo ${s.id} no lo lleva`);
   return {
@@ -220,19 +425,21 @@ function pasoMd(paso) {
   const fijos = (paso.agentes ?? []).map(agenteMd);
   const opcionales = (paso.opcional ?? []).map((o) => `[\`${o.agente}\` si ${o.si}]`);
   const texto = [...fijos, ...opcionales].join(" + ");
-  return paso.nota ? `${texto} (${paso.nota})` : texto;
+  const finalidad = STEP_PURPOSES[paso.purpose]?.what;
+  const nota = paso.nota ?? (finalidad ? finalidad[0].toLowerCase() + finalidad.slice(1) : null);
+  return nota ? `${texto} (${nota})` : texto;
 }
 
-/** La fila de un subtipo: tipo, acción y pipeline. */
+/** La fila de un subtipo: tipo, id, acción y pipeline. */
 export function filaMd(sub) {
   const cierre = sub.cierra_con ? ` → *${sub.cierra_con}*` : "";
   const paralelo = sub.type === "audit" && sub.pasos.length === 1 && (sub.pasos[0].agentes ?? []).length > 1 ? ", en paralelo" : "";
-  return `| ${sub.type} | ${sub.accion} | ${sub.pasos.map(pasoMd).join(" → ")}${paralelo}${cierre} |`;
+  return `| ${sub.type} | \`${sub.id}\` | ${sub.accion} | ${sub.pasos.map(pasoMd).join(" → ")}${paralelo}${cierre} |`;
 }
 
-/** La tabla entera (cabecera y una fila por subtipo), sin las marcas. */
+/** La tabla entera (cabecera y una fila por subtipo ACTIVO: los alias retirados no se ofrecen), sin las marcas. */
 export function tablaPipelines(d = DATOS) {
-  return ["| Tipo | Acción | Pipeline |", "|---|---|---|", ...d.tipos.map(filaMd)].join("\n");
+  return ["| Tipo | Subtipo | Acción | Pipeline |", "|---|---|---|---|", ...d.tipos.filter((s) => s.status === "active").map(filaMd)].join("\n");
 }
 
 const entre = (md, ini, fin, texto) => {
@@ -251,7 +458,7 @@ export function textoN1Tipos(d = DATOS) {
   return [
     "| Tipo | Qué es | Esqueleto de pasos | Subtipos |",
     "|---|---|---|---|",
-    ...Object.entries(d.assignment_types).map(([k, t]) => `| \`${k}\` | ${t.what} | ${roles(t)} | ${d.tipos.filter((s) => s.type === k).map((s) => `\`${s.id}\``).join(", ")} |`),
+    ...Object.entries(d.assignment_types).map(([k, t]) => `| \`${k}\` | ${t.what} | ${roles(t)} | ${d.tipos.filter((s) => s.type === k && s.status === "active").map((s) => `\`${s.id}\``).join(", ")} |`),
     "",
     "Banderas de una condición (`flags`):",
     "",
@@ -260,5 +467,35 @@ export function textoN1Tipos(d = DATOS) {
 }
 
 export const conTiposN1 = (md, d = DATOS) => entre(md, MARCA_N1_TIPOS_INICIO, MARCA_N1_TIPOS_FIN, textoN1Tipos(d));
+
+/** La puerta de entrada de un subtipo, como texto del N1 (§4): sus cinco reglas, los valores de `differs_in` y los alias retirados. */
+export function textoN1Puerta(d = DATOS) {
+  const activos = d.tipos.filter((s) => s.status === "active");
+  return [
+    "Las reglas de la puerta (`REGLAS_PUERTA` de `scripts/lib/tiposDeEncargo.mjs`; cada una la comprueba `ops/tipos-de-encargo.test.js`):",
+    "",
+    ...REGLAS_PUERTA.map((r) => `- \`${r.id}\`: ${r.texto}`),
+    "",
+    "En qué puede diferir un subtipo de su tipo (`differs_in`, vocabulario cerrado):",
+    "",
+    "| Valor | Se cumple si |",
+    "|---|---|",
+    ...Object.entries(d.differs_in).map(([k, v]) => `| \`${k}\` | ${v.what} |`),
+    "",
+    "Los subtipos activos y en qué difieren:",
+    "",
+    "| Subtipo | Es | Difiere en |",
+    "|---|---|---|",
+    ...activos.map((s) => `| \`${s.id}\` | ${s.plain ? "el liso del tipo" : s.valve ? "la válvula del tipo" : "un subtipo"} | ${s.differs_in.map((v) => `\`${v}\``).join(", ") || "—"} |`),
+    "",
+    "Los ids de antes, retirados (alias para el panel de la factoría; el dimensionador usa solo los activos):",
+    "",
+    "| Id retirado | Pasa a |",
+    "|---|---|",
+    ...d.tipos.filter((s) => s.status === "retired").map((s) => `| \`${s.id}\` | \`${s.replaced_by}\` |`),
+  ].join("\n");
+}
+
+export const conPuertaN1 = (md, d = DATOS) => entre(md, MARCA_N1_PUERTA_INICIO, MARCA_N1_PUERTA_FIN, textoN1Puerta(d));
 
 export { CONSTRUCTORES };

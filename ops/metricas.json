@@ -440,6 +440,26 @@
         "exceptuadas_siempre": "metrica",
         "fuente": "texto"
       }
+    },
+    {
+      "firma": "subtipo-uso subtype",
+      "emisores": [
+        "scripts/lib/tiposDeEncargo.mjs"
+      ],
+      "campos": {
+        "subtype": "id",
+        "usos": "derivado",
+        "minimo": "umbral",
+        "aviso": "estado",
+        "usa": "id"
+      },
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": "docs/entidades/N1-encargo.md",
+          "menciona": "subtipo-uso subtype:"
+        }
+      ]
     }
   ],
   "informes": {

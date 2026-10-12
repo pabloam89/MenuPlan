@@ -53,7 +53,7 @@ import { RESULTADOS_NORMA } from "./medicionNormas.mjs";
 import { leerPrecedencia } from "./precedencia.mjs";
 import { VEREDICTOS_RUIDO } from "./ruido.mjs";
 import { PIPELINES } from "./presupuestos.mjs";
-import { textosDeBanderas, textosDeSubtipos, textosDeTipos } from "./tiposDeEncargo.mjs";
+import { textosDeBanderas, textosDeCierres, textosDeDiffersIn, textosDeEstados, textosDeFinalidades, textosDeMedidas, textosDeSubtipos, textosDeTipos } from "./tiposDeEncargo.mjs";
 import { VOCABULARIOS as PRODUCTO } from "../../src/lib/vocabularios.js";
 
 export const RUTA_VOCABULARIOS = "ops/vocabularios-vida.json";
@@ -100,6 +100,12 @@ export const VOCABULARIOS = {
   "encargo.type": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeTipos() },
   "encargo.subtype": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeSubtipos() },
   "encargo.flag": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeBanderas() },
+  // La puerta de entrada de un subtipo (#646): todo atributo es un valor de estos vocabularios cerrados.
+  "encargo.differs_in": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeDiffersIn() },
+  "encargo.closing": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeCierres() },
+  "encargo.measure": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeMedidas() },
+  "encargo.step_purpose": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeFinalidades() },
+  "encargo.subtype_status": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeEstados() },
   "encargo.complexity": { fichero: "scripts/lib/issues.mjs", textos: conTexto(COMPLEXITIES) },
   "encargo.pipeline": { fichero: "scripts/lib/presupuestos.mjs", textos: conTexto(PIPELINES) },
   // El registro de entidades (#566): sus valores van a ops/entidades.json y a ops/entidades-sujetos.json.
