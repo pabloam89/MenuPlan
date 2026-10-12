@@ -65,7 +65,7 @@ const PROSA_FECHADA = [
 /** Secciones donde una fecha es lo correcto: son un registro. */
 const SECCIONES_CON_FECHA = ["Lo que falló y por qué", "Registro de cambios", "Fuentes y comprobación"];
 // Una frase de cierre al principio de una línea o dentro de una negrita; una palabra suelta («parar», «parada») en mitad de un párrafo no cuenta.
-const FRASES_DE_PARADA = "Sale bien si|Sale:|Para por criterio|Hecho cuando|Debe salir";
+const FRASES_DE_PARADA = "Sale bien si|Sale:|Para por condición|Para por criterio|Hecho cuando|Debe salir";
 const CRITERIO_DE_PARADA = new RegExp(String.raw`^[ \t]*(?:(?:[-*]|\d+\.)[ \t]+)?\**(?:${FRASES_DE_PARADA})|\*\*[^*\n]*(?:${FRASES_DE_PARADA})`, "im");
 const SECCIONES_DE_EJEMPLOS = ["Ejemplo resuelto", "Ejemplos calibrados", "Bien y mal"];
 
@@ -198,12 +198,12 @@ export function faltasForja({ nombre, cuerpo, tipo, casos, extra = {}, parada })
   return f;
 }
 
-// ── El estándar de cada tipo de skill (#410) ─────────────────────────────
+// ── La plantilla de cada tipo de skill (#410) ─────────────────────────────
 
-/** Vocabulario cerrado de las faltas del estándar por tipo (para contarlas). */
+/** Vocabulario cerrado de las faltas de la plantilla por tipo (para contarlas). */
 export const CODIGOS_ESTANDAR = ["tipo-sin-estandar", "apartado-ausente", "pocos-puntos", "sin-fuente", "ejemplo-sin-origen", "ejemplo-largo", "ejemplo-no-cuadra"];
-/** Dónde vive el estándar en `.claude/PLANTILLA-SKILL.md`, y los apartados de cada tipo. */
-export const SECCION_ESTANDARES = "El estándar de cada tipo";
+/** Dónde vive la plantilla de cada tipo en `.claude/PLANTILLA-SKILL.md`, y los apartados de cada tipo. */
+export const SECCION_ESTANDARES = "La plantilla de cada tipo";
 export const APARTADO_BUENO = "Qué lo hace bueno";
 export const APARTADO_ERRORES = "Errores típicos";
 export const APARTADO_EJEMPLO = "Ejemplo mínimo";
@@ -232,7 +232,7 @@ const faltaEstandar = (codigo, tipo, detalle) => ({ regla: "estandar", codigo, t
 const sinEspacios = (s) => s.replace(/\s+/g, " ").trim();
 
 /**
- * El estándar de cada tipo de skill, leído de la plantilla: para cada tipo, «Qué
+ * La plantilla de cada tipo de skill, leído de la plantilla: para cada tipo, «Qué
  * lo hace bueno» y «Errores típicos» (dos puntos como mínimo, cada uno con su
  * marca [F], [I] o [S]) y un «Ejemplo mínimo» de 3 a 6 líneas. El ejemplo es o
  * `Real: \`skill\`` (la skill existe, es de ese tipo y cada línea sale tal cual

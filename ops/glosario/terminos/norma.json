@@ -2,18 +2,54 @@
   "termino": "norma",
   "estado": "activo",
   "clase": "artefacto",
-  "definicion": "Una obligación del proceso que está registrada en ops/normas.json, con quién la hace cumplir, su dureza y su test.",
-  "sinonimos_prohibidos": [],
+  "dominio": "base",
+  "definicion": "Una obligación exigible del proceso que declara su ámbito, su acción, su fuerza y su control, y que se registra una sola vez en ops/normas.json.",
+  "sinonimos_prohibidos": [
+    "criterio de la forja",
+    "criterios de la forja",
+    "criterio de calidad",
+    "criterios de calidad",
+    "criterio de juicio",
+    "criterios de juicio",
+    "criterio de skill",
+    "criterios de skill",
+    "criterios de las skills",
+    "criterio de la skill",
+    "criterios de la skill",
+    "regla propia",
+    "reglas propias",
+    "regla de la casa",
+    "reglas de la casa",
+    "regla del estándar",
+    "reglas del estándar",
+    "regla de un estándar",
+    "reglas de un estándar",
+    "regla de la forja",
+    "reglas de la forja"
+  ],
   "aplica_a": [
     "todas"
   ],
   "relacionado": [
     "regla",
-    "principio"
+    "principio",
+    "estándar",
+    "meta",
+    "ámbito",
+    "acción",
+    "fuerza",
+    "veredicto"
   ],
   "ref": {
     "fichero": "scripts/lib/normas.mjs",
     "clave": "EJECUTORES"
   },
-  "en": "norm"
+  "en": "norm",
+  "nota": "Absorbe al antiguo criterio de la forja y a la regla propia de un estándar (decisión de Pablo, #652).",
+  "entidades": [
+    {
+      "entidad": "norm",
+      "relacion": "denota"
+    }
+  ]
 }

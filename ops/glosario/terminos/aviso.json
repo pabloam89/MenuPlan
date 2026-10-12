@@ -2,6 +2,7 @@
   "termino": "aviso",
   "estado": "activo",
   "clase": "estado",
+  "dominio": "base",
   "definicion": "La gravedad de un control de la forja o de la higiene que señala sin bloquear: se mira, se decide y un falso positivo se explica.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
@@ -11,5 +12,11 @@
     "falta",
     "control"
   ],
-  "nota": "Es gravedad de controles de skills; no es la de un hallazgo del informe común (bloqueante, alto, medio, nit)."
+  "nota": "Es gravedad de controles de skills; no es la de un hallazgo del informe común (bloqueante, alto, medio, nit).",
+  "entidades": [
+    {
+      "entidad": "verification",
+      "relacion": "valor_de"
+    }
+  ]
 }

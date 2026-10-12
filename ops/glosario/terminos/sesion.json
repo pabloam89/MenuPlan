@@ -2,6 +2,7 @@
   "termino": "sesión",
   "estado": "activo",
   "clase": "rol",
+  "dominio": "base",
   "definicion": "Una conversación de Claude Code que trabaja en su carpeta de trabajo; la sesión principal es la que habla con Pablo y lanza agentes.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
@@ -10,5 +11,11 @@
   "estrecho": [
     "orquestador"
   ],
-  "en": "session"
+  "en": "session",
+  "entidades": [
+    {
+      "entidad": "session",
+      "relacion": "rol_de"
+    }
+  ]
 }

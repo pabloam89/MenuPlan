@@ -2,6 +2,7 @@
   "termino": "aprendizaje",
   "estado": "activo",
   "clase": "campo",
+  "dominio": "ops",
   "definicion": "Un registro de lo que queda de un fondo para que no se repita y dónde quedó: un test, la guardia, una skill o un catálogo.",
   "sinonimos_prohibidos": [
     "lección",
@@ -18,5 +19,11 @@
     "clave": "CAMPOS_FICHA.aprendizaje"
   },
   "nota": "Es el campo aprendizaje de la ficha y el paso «aprender» del flujo.",
-  "en": "learning"
+  "en": "learning",
+  "entidades": [
+    {
+      "entidad": "root-problem",
+      "relacion": "campo_de"
+    }
+  ]
 }

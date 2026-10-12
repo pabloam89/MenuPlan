@@ -2,6 +2,7 @@
   "termino": "control",
   "estado": "activo",
   "clase": "artefacto",
+  "dominio": "base",
   "definicion": "Una comprobación automática concreta con su código de vocabulario cerrado, que da falta, aviso o bien.",
   "sinonimos_prohibidos": [
     "chequeo",
@@ -15,5 +16,12 @@
     "aviso",
     "defecto",
     "vigilante"
+  ],
+  "nota": "El campo control de una norma es el fichero que ejecuta esa comprobación.",
+  "entidades": [
+    {
+      "entidad": "verification",
+      "relacion": "denota"
+    }
   ]
 }

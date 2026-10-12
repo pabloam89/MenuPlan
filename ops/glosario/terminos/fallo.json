@@ -2,6 +2,7 @@
   "termino": "fallo",
   "estado": "activo",
   "clase": "estado",
+  "dominio": "base",
   "definicion": "Un resultado que no es el que se esperaba: algo no hizo lo que debía.",
   "sinonimos_prohibidos": [
     "bug",
@@ -17,5 +18,11 @@
   "relacionado": [
     "caso"
   ],
-  "nota": "Un fallo registrado es un caso."
+  "nota": "Un fallo registrado es un caso.",
+  "entidades": [
+    {
+      "entidad": "case",
+      "relacion": "valor_de"
+    }
+  ]
 }

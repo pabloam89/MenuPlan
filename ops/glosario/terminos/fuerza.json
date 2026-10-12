@@ -1,0 +1,22 @@
+{
+  "termino": "fuerza",
+  "estado": "activo",
+  "clase": "campo",
+  "dominio": "base",
+  "definicion": "El grado de exigencia que tiene una norma: debe, no debe o conviene.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "en": "strength",
+  "relacionado": [
+    "norma",
+    "veredicto"
+  ],
+  "entidades": [
+    {
+      "entidad": "norm",
+      "relacion": "campo_de"
+    }
+  ]
+}

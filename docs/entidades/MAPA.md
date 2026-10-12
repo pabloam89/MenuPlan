@@ -16,8 +16,8 @@ Un **puente** ya no es un valor: es una entidad de alcance `both`, y se calcula.
 `parent_of` o `reference`) y cardinalidad. La contención va de la factoría al proyecto y de este al entorno (`part_of`).
 Los ids van en inglés (decisión de Pablo del 11 oct 2026); los nombres y las notas, en castellano.
 
-Hoy hay 54 entidades activas: 22 horizontales, 22 verticales y 10 de los dos lados (puentes), y 6 retiradas.
-Las relaciones son 94: is_a 5, parent_of 4, part_of 22, reference 63.
+Hoy hay 53 entidades activas: 21 horizontales, 22 verticales y 10 de los dos lados (puentes), y 7 retiradas.
+Las relaciones son 90: is_a 5, parent_of 4, part_of 22, reference 59.
 
 ## Horizontales: la factoría
 
@@ -40,7 +40,6 @@ Sus piezas no cuelgan de ningún proyecto.
 | `decision` | Decisión | horizontal | piece | work | decisión | `ops/DECISIONES.md` | partial |
 | `pull-request` | PR | horizontal | piece | work | pr | ninguna | without_registry |
 | `branch` | Rama | horizontal | piece | work | rama | ninguna | without_registry |
-| `criterion` | Criterio | horizontal | meta | rules | criterio | `ops/forja/_catalogo.json` | with_registry |
 | `standard` | Estándar | horizontal | piece | rules | estándar | `ops/estandares-agentes.json` | with_registry |
 | `plane` | Plano | horizontal | meta | measure | plano | `ops/planos.json` | with_registry |
 | `agent-task` | Tarea de agente | horizontal | piece | agents | tarea de agente | `ops/estandares-agentes.json` | with_registry |
@@ -201,7 +200,7 @@ flowchart LR
 | `agent-task` | hangs_from | `agent` | many_to_one | field: agentes.<id>.tareas[] (estandares-agentes.json) |
 | `menu-week` | hangs_from | `menu` | many_to_one | field: user_menu_weeks (user_id, menu_id), clave ajena con on delete cascade |
 
-## Relaciones reference (63)
+## Relaciones reference (59)
 
 | de | verbo | a | cardinalidad | cómo se guarda |
 |---|---|---|---|---|
@@ -210,10 +209,6 @@ flowchart LR
 | `norm` | enforced_by | `mechanism` | many_to_one | ningún campo: el ejecutor guarda un valor de EJECUTORES, no un id de mecanismo (github_regla no es regla_github) |
 | `norm` | enforced_by | `verification` | many_to_one | field: control y control_tipo |
 | `norm` | enforced_by | `hook` | many_to_many | ningún campo: el ejecutor guardia guarda un tipo, no el hook concreto |
-| `criterion` | enforced_by | `verification` | many_to_one | field: control (criterio de la forja) |
-| `criterion` | refers_to | `skill` | many_to_many | field: aplica_a |
-| `criterion` | refers_to | `standard` | many_to_many | field: aplica_a |
-| `criterion` | refers_to | `agent` | many_to_many | field: aplica_a |
 | `standard` | reads | `norm` | many_to_many | ningún campo: consulta por ámbito y acción, calculada; no se copia |
 | `session` | works_in | `branch` | one_to_one | field: rama (ficha local de la sesión) |
 | `session` | uses | `identity` | many_to_one | ningún campo |
@@ -290,3 +285,4 @@ Un id no se borra: se retira y dice a qué pasa.
 | `secret` | `resource` | type | tipos clave, token y deploy-key de resource |
 | `vault` | `resource` | type | tipo boveda de resource |
 | `rule` | `norm` | field | campo donde de la norma (qué fichero la escribe) |
+| `criterion` | `norm` | type | tipo de norma: las 75 de ops/forja/criterios/ son normas de la forja hasta que la fase F4 de #652 las pase a ops/normas.json |

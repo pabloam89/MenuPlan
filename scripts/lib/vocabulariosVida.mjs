@@ -44,7 +44,7 @@ import { leerEstandares } from "./estandaresAgentes.mjs";
 import { ESTADOS } from "./fondos.mjs";
 import { ACTORES, ALCANCES_FALLO, DIAGNOSTICAN, ESTADOS_MEDIDA, PASOS } from "./flujo.mjs";
 import { leerForja } from "./forja.mjs";
-import { CLASES, ESTADOS_TERMINO, plano } from "./glosario.mjs";
+import { CLASES, DOMINIOS, ESTADOS_TERMINO, MOTIVOS_SIN_ENTIDAD, RELACIONES_ENTIDAD, plano } from "./glosario.mjs";
 import { COMPLEXITIES, GRUPOS, TIPOS_ACCION } from "./issues.mjs";
 import { CAUSAS_EXCEPCION, ROLES_CAMPO, TIPOS_LECTOR, UNIDADES } from "./metricas.mjs";
 import { AMBITOS } from "./ambitos.mjs";
@@ -79,6 +79,10 @@ export const VOCABULARIOS = {
   // Los tipos de skill: la única lista es tipos_skill de ops/forja/ (#495), que lee forja.mjs; su definición, «que».
   "forja.tipo_skill": { fichero: "scripts/lib/forja.mjs", textos: () => Object.fromEntries(leerForja(RAIZ).tipos_skill.map((x) => [x.id, x.que])) },
   "glosario.estado": { fichero: "scripts/lib/glosario.mjs", textos: conTexto(ESTADOS_TERMINO) },
+  // El dominio de un término y su mapeo a entidades (F1 de #652): la relación la fija la clase del término.
+  "glosario.dominio": { fichero: "scripts/lib/glosario.mjs", textos: conTexto(DOMINIOS) },
+  "glosario.relacion_entidad": { fichero: "scripts/lib/glosario.mjs", textos: conTexto(RELACIONES_ENTIDAD) },
+  "glosario.motivo_sin_entidad": { fichero: "scripts/lib/glosario.mjs", textos: conTexto(MOTIVOS_SIN_ENTIDAD) },
   // La acción y el origen de una tarea de agente: la única lista está en ops/estandares-agentes.json (#516).
   "estandares.accion": { fichero: "scripts/lib/estandaresAgentes.mjs", textos: () => ({ ...leerEstandares(RAIZ).acciones }) },
   "estandares.origen": { fichero: "scripts/lib/estandaresAgentes.mjs", textos: () => ({ ...leerEstandares(RAIZ).origenes }) },

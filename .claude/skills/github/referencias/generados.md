@@ -53,8 +53,8 @@ cifra a la vez lo dejan así), y el test «está al día» del CI lo para. Tras 
 limpio, si el CI da rojo en uno de esos tests: trae la rama, `node scripts/generados.mjs
 --escribir`, commit y push.
 
-Medido con dos ramas que añaden un criterio cada una (`ops/generados.test.js`): sin drivers,
-18 líneas en conflicto en 9 ficheros (criterios vecinos) y 14 en 7 (lejanos); con drivers, 0.
+Medido con dos ramas que añaden una norma cada una (`ops/generados.test.js`): sin drivers,
+18 líneas en conflicto en 9 ficheros (normas vecinas) y 14 en 7 (lejanos); con drivers, 0.
 
 ## El inventario de todo lo derivado (#584)
 

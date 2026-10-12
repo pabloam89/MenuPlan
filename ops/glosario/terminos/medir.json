@@ -2,6 +2,7 @@
   "termino": "medir",
   "estado": "activo",
   "clase": "accion",
+  "dominio": "base",
   "definicion": "Sacar una cifra que se puede repetir (cuántos, desde cuándo, dónde) para compararla antes y después de un arreglo.",
   "sinonimos_prohibidos": [
     "cuantificar"
@@ -12,5 +13,11 @@
   "ref": {
     "fichero": "scripts/lib/flujo.mjs",
     "clave": "PASOS.medir"
-  }
+  },
+  "entidades": [
+    {
+      "entidad": "metric",
+      "relacion": "accion_sobre"
+    }
+  ]
 }

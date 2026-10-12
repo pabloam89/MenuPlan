@@ -59,7 +59,7 @@ No es para:
    `date`, que en Git Bash da UTC). Lo que no se puede comprobar se escribe `HIPÓTESIS:` con la
    observación que la confirmaría o tumbaría, y no se copia como hecho en la
    ficha.
-5. **Para por criterio, no por cansancio.** Tres paradas (vocabulario
+5. **Para por condición, no por cansancio.** Tres paradas (vocabulario
    `PARADAS` de `scripts/lib/tecnicas.mjs`):
    - `mecanismo_cambiable`: llegas a algo que un mecanismo de
      `ops/mecanismos.json` puede cambiar (`npm run mecanismos`);

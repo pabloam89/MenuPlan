@@ -8,6 +8,9 @@
  *                                  → el ciclo de vida de los vocabularios de proceso (#481):
  *                                    lo anclado en ops/vocabularios-vida.json frente al código;
  *                                    con --escribir, ancla lo de hoy
+ * npm run glosario -- --higiene   → la higiene del vocabulario (F1 de #652, skill higiene-de-vocabulario): los seis
+ *                                    códigos (término sin entidad, entidad sin término, sinónimo nuevo, dominio que redefine
+ *                                    la base, definición que choca y equívoco entre dominios), una línea por hallazgo
  * npm run glosario -- --candidatos → la revisión periódica (#481): las palabras y pares de proceso
  *                                    que se repiten y no están en el glosario, una línea
  *                                    «candidato: x apariciones: n ficheros: k» por cada uno, para
@@ -16,13 +19,14 @@
  *
  * Solo lee, salvo --vocabularios --escribir. El dato es ops/glosario/ (#469); lo vigila ops/glosario.test.js.
  */
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
   cifrasDeForma, comparar, excepcionesPorTermino, plano, excepcionesPorZona, ficherosDe, leerExcepciones, leerGlosario, medir, pares, textoTermino, total,
 } from "./lib/glosario.mjs";
+import { cifraDeHigiene, higieneDeVocabulario, lineaDeHallazgo } from "./lib/glosarioHigiene.mjs";
 import { RUTA_JUICIOS, aJuzgar, candidatos, leerJuicios, lineaCandidato, pendientesDeJuicios, prosaDeZonas } from "./lib/glosarioCandidatos.mjs";
 import { RUTA_VOCABULARIOS, anclar, leerRegistro, problemasDeRetiros, problemasLocales, valoresActuales } from "./lib/vocabulariosVida.mjs";
 
@@ -45,6 +49,14 @@ if (args.includes("--vocabularios")) {
   process.exit(problemas.length ? 1 : 0);
 }
 
+if (args.includes("--higiene")) {
+  const registro = JSON.parse(readFileSync(join(RAIZ, "ops/entidades.json"), "utf8"));
+  const hallazgos = higieneDeVocabulario(g, registro, { raiz: RAIZ, excepciones: exc });
+  console.log(cifraDeHigiene(g, hallazgos));
+  for (const h of hallazgos) console.log(lineaDeHallazgo(h));
+  process.exit(hallazgos.some((h) => h.gravedad === "falta") ? 1 : 0);
+}
+
 if (args.includes("--candidatos")) {
   const juicios = leerJuicios(RAIZ);
   const todos = candidatos(prosaDeZonas(RAIZ, g), g, { juicios });
@@ -61,7 +73,7 @@ if (args.includes("--candidatos")) {
   for (const c of lista) console.log(lineaCandidato(c));
   for (const t of sinTermino) console.log(`termino_nuevo sin término en el glosario: ${t}`);
   for (const r of reglas) console.log(`regla propuesta: ${r.juicio_y_motivo} (${r.candidatos.length} juicios: ${r.candidatos.join(", ")})`);
-  console.log(`Juicio de cada uno (termino_nuevo | sinonimo de X | nada) y su motivo, en ${RUTA_JUICIOS}. Método: .claude/skills/higiene-de-skills/referencias/glosario.md`);
+  console.log(`Juicio de cada uno (termino_nuevo | sinonimo de X | nada) y su motivo, en ${RUTA_JUICIOS}. Método: .claude/skills/higiene-de-vocabulario/referencias/glosario.md`);
   process.exit(0);
 }
 

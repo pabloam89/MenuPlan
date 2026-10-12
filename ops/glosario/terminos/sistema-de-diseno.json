@@ -2,10 +2,17 @@
   "termino": "sistema de diseño",
   "estado": "activo",
   "clase": "artefacto",
+  "dominio": "diseno",
   "definicion": "Un conjunto de tokens, componentes y patrones de un proyecto, con su documento, que dice cómo se ve y se comporta lo que construye.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
     "todas"
   ],
-  "en": "design-system"
+  "en": "design-system",
+  "entidades": [
+    {
+      "entidad": "design-system",
+      "relacion": "denota"
+    }
+  ]
 }

@@ -173,7 +173,7 @@ escribas a mano: añade solo lo que el comando no sabe (el objetivo con
    que da `npm run estandar -- <agente> <tarea> --ficheros <a,b,…>` (las tareas de
    cada agente están en `ops/estandares-agentes.json`; `npm run estandar -- <agente>`
    las lista), con su acción, las normas que le tocan por id (sus ámbitos × su
-   acción, más las del ámbito de cada fichero que va a tocar; #620), sus reglas
+   acción, más las del ámbito de cada fichero que va a tocar; #620), sus condiciones
    propias, las comunes que nombra y lo que no hace pegados en el brief. En el
    brief del juez, `npm run estandar -- <juez> <tarea> --diff` (los ficheros de la
    rama, como `skills-encargo --diff`): recibe las mismas normas que el constructor. Si el encargo no encaja en

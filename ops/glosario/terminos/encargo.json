@@ -2,6 +2,7 @@
   "termino": "encargo",
   "estado": "activo",
   "clase": "artefacto",
+  "dominio": "ops",
   "definicion": "Un issue tipo:encargo con trabajo por hacer que tiene dueño, constructor y juez; si es parte de un arreglo, cuelga de su fondo.",
   "sinonimos_prohibidos": [
     "to-do"
@@ -18,5 +19,11 @@
     "fichero": "scripts/lib/issues.mjs",
     "clave": "GRUPOS.tipo.valores.encargo"
   },
-  "en": "assignment"
+  "en": "assignment",
+  "entidades": [
+    {
+      "entidad": "assignment",
+      "relacion": "denota"
+    }
+  ]
 }

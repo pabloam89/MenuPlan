@@ -2,10 +2,17 @@
   "termino": "comprobación",
   "estado": "activo",
   "clase": "artefacto",
+  "dominio": "base",
   "definicion": "Un fichero (test, script o workflow) que vigila una norma y falla cuando deja de cumplirse; una norma sin fichero se juzga a mano.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
     "todas"
   ],
-  "en": "verification"
+  "en": "verification",
+  "entidades": [
+    {
+      "entidad": "verification",
+      "relacion": "denota"
+    }
+  ]
 }

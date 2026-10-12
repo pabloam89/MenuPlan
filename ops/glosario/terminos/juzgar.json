@@ -2,6 +2,7 @@
   "termino": "juzgar",
   "estado": "activo",
   "clase": "accion",
+  "dominio": "base",
   "definicion": "Dar un veredicto sobre el trabajo que hizo otro, sin cambiarlo; lo hace un juez y quien construye no juzga lo suyo.",
   "sinonimos_prohibidos": [
     "dictaminar",

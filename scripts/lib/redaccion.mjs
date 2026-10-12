@@ -246,7 +246,7 @@ const celda = (t) => String(t).replace(/\|/g, "\\|");
 
 /** Lo escrito a mano: breve, y lo único del fichero que no sale del JSON. */
 const INTRO = [
-  "Esta guía dice cómo se escribe cualquier regla de la casa: un criterio de la forja, una norma, un aviso de la guardia, una obligación del proceso o el estándar de una tarea de agente. Es una sola, para que todas se lean igual y se puedan contar.",
+  "Esta guía dice cómo se escribe cualquier norma de la casa: una norma de la forja, una norma, un aviso de la guardia, una obligación del proceso o el estándar de una tarea de agente. Es una sola, para que todas se lean igual y se puedan contar.",
   "",
   "Se apoya en tres ideas. La forma sale de EARS (Mavin et al., 2009) y la fuerza de RFC 2119: la regla se escribe por campos y su frase se genera, sin prosa libre. El idioma es el castellano y cada concepto tiene un solo término, el del glosario. Y lo que se vaya a contar va en un campo de vocabulario cerrado, con el texto libre solo en un hueco declarado.",
   "",

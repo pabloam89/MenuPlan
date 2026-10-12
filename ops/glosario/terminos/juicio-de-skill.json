@@ -2,7 +2,8 @@
   "termino": "juicio de skill",
   "estado": "activo",
   "clase": "artefacto",
-  "definicion": "El estado de un criterio de juicio sobre una skill que guarda ops/juicios-skills con su evidencia, firmante y versión del SKILL.md.",
+  "dominio": "base",
+  "definicion": "El estado de una norma de juicio sobre una skill que guarda ops/juicios-skills con su evidencia, firmante y versión del SKILL.md.",
   "sinonimos_prohibidos": [
     "ficha de huecos"
   ],
@@ -10,11 +11,11 @@
     "todas"
   ],
   "relacionado": [
-    "criterio",
     "evidencia"
   ],
   "ref": {
     "fichero": "scripts/lib/juiciosSkills.mjs",
     "clave": "problemasDeJuicios"
-  }
+  },
+  "sin_entidad": "candidato"
 }

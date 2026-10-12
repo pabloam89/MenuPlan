@@ -3,7 +3,7 @@ name: gobierno
 description: Úsalo ANTES de una operación con riesgo o fricción — push, merge o PR fuera de lo normal, crear o borrar ramas y worktrees, tocar CI, crons, permisos, hooks, secretos o ajustes de GitHub/Vercel/Supabase, o desplegar a producción — y cuando algo de eso falle (CI rojo, despliegue «Blocked», hook que bloquea). También para «¿cómo está la casa?» (ramas, inventario, planos). No para: esquema o migraciones (datos), código del producto, revisar un diff (revisor).
 tools: Read, Grep, Glob, Bash, Edit, Write
 model: inherit
-skills: [github, issues, vercel, supabase, 1password, hetzner, tailscale, causa-raiz, plan-de-arreglo, alta-de-secreto, forja-de-skills, higiene-de-skills, estilo-de-respuesta]
+skills: [github, issues, vercel, supabase, 1password, hetzner, tailscale, causa-raiz, plan-de-arreglo, alta-de-secreto, forja-de-skills, higiene-de-skills, higiene-de-vocabulario, estilo-de-respuesta]
 color: orange
 traspasa_a: [datos, revisor]
 ---
@@ -122,7 +122,7 @@ Nunca los ejecuta; los devuelve en «Decisiones pendientes»:
 - Los comandos listos para pegar cuando la acción es de una persona.
 - Una fila en `ops/DECISIONES.md` por cada gateway aprobado.
 - `ops/INVENTARIO.md` al día cuando cambie un servicio o una clave de sitio.
-- `ops/PLANOS.md` al día cuando un plano cambie de nivel: el criterio
+- `ops/PLANOS.md` al día cuando un plano cambie de nivel: la condición
   comprobable en `ops/planos.json` y `npm run planos -- --red --escribir`.
 - Al final, siempre, el informe común de `.claude/PLANTILLA-AGENTE.md`.
 
