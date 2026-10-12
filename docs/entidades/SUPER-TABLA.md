@@ -120,7 +120,7 @@ Comprobado en `ops/normas.json`, `ops/estandares-agentes.json`, `docs/ops/ESTAND
 Lo cierto: el estándar no copia las normas, las consulta. Lo que no es cierto: **no es solo agregación**; tiene 156 reglas propias con la misma plantilla (`scripts/lib/regla.mjs`). Tres hallazgos:
 - **`regla` significa dos cosas**: el fichero de `.claude/rules` y la plantilla de `regla.mjs`. Recomiendo que la entidad `rule` sea el vehículo de texto y la unidad con id sea la norma.
 - **La cadena es de derivación**: principio → norma (control + ejecutor) → estándar (consulta). Se modela con relaciones (`norm cites principle` ya existe; `standard reads norm` falta), sin niveles.
-- **`fuerza` y `veredicto` son dos cosas**: `fuerza` (debe 141, no_debe 41, conviene 1) es cuánto obliga; `veredicto` (blanda 90, semidura 67, dura 24, rota 2) es cuánto se hace cumplir. Lo que Pablo llama «fuerza dura/semi/blanda» es el `veredicto`.
+- **`fuerza` y `veredicto` son dos cosas**: `fuerza` (debe 141, no_debe 41, conviene 1) es cuánto obliga; `veredicto` (90 normas blandas; el resto, de más a menos, semiduras, duras y rotas, en `ops/normas.json`) es cuánto se hace cumplir. Lo que Pablo llama «fuerza dura/semi/blanda» es el `veredicto`.
 
 ## 5. Reto 3: Agente, Skill, Herramienta, Tarea de agente, Relación entre agentes
 
