@@ -618,8 +618,9 @@ export const CAMPOS_ENCARGO = [
   { clave: "hecho_cuando", vale: "texto: lo que se ve cuando está hecho", obligatorio: true },
   { clave: "ficheros", vale: "rutas que toca, separadas por coma", obligatorio: false },
   { clave: "assignment_type", vale: "un tipo de `ops/tipos-de-encargo.json` (`assignment_types`)", obligatorio: `sí en los creados desde ${ENCARGO_N1_DESDE}; antes, no`, desde: ENCARGO_N1_DESDE },
-  { clave: "subtype", vale: "un `id` de `tipos` de `ops/tipos-de-encargo.json` que cuelgue de ese tipo", obligatorio: `sí en los creados desde ${ENCARGO_N1_DESDE}; antes, no`, desde: ENCARGO_N1_DESDE },
+  { clave: "subtype", vale: "un `id` activo de `tipos` de `ops/tipos-de-encargo.json` que cuelgue de ese tipo (un id retirado vale, con aviso)", obligatorio: `sí en los creados desde ${ENCARGO_N1_DESDE}; antes, no`, desde: ENCARGO_N1_DESDE },
   { clave: "complexity", vale: Object.keys(COMPLEXITIES).map((v) => `\`${v}\``).join(", "), obligatorio: `sí en los creados desde ${ENCARGO_N1_DESDE}; antes, no`, desde: ENCARGO_N1_DESDE },
+  { clave: "subtype_note", vale: `texto de hasta 160 caracteres: por qué ningún subtipo encaja; hace falta con una válvula (\`<tipo>-other\`) en los creados desde ${ENCARGO_N1_DESDE}`, obligatorio: "solo con una válvula" },
 ];
 
 /**

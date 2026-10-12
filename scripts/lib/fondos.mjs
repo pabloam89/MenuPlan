@@ -22,12 +22,12 @@
 import { MAX_NUMERO, MIN_MOTIVO } from "../../.claude/hooks/casos.mjs";
 import { ESCALONES, etiquetaDeEscalon } from "./escalas.mjs";
 import { ALCANCES_FALLO } from "./flujo.mjs";
-import { CAMPOS_ENCARGO, ESCALONES_AUTOMATICOS, GRUPOS, MAX_ENCARGOS_POR_FONDO, TIPOS_ACCION, debeReabrir, faltas, porGrupo } from "./issues.mjs";
+import { CAMPOS_ENCARGO, ENCARGO_N1_DESDE, ESCALONES_AUTOMATICOS, GRUPOS, MAX_ENCARGOS_POR_FONDO, TIPOS_ACCION, debeReabrir, faltas, porGrupo } from "./issues.mjs";
 import { CATALOGO as MECANISMOS } from "./mecanismos.mjs";
 import { RIESGOS } from "./normas.mjs";
 import { CATALOGO, COMPLEXITIES, TOPE_RONDAS, presupuestoDe } from "./presupuestos.mjs";
 import { AGENTES, JUECES } from "./agentes.mjs";
-import { SUBTYPES, TYPES } from "./tiposDeEncargo.mjs";
+import { ALL_SUBTYPES, MAX_NOTE, TYPES } from "./tiposDeEncargo.mjs";
 
 // ── Vocabularios cerrados ─────────────────────────────────────────────────────
 
@@ -154,7 +154,9 @@ export const TIPOS_CAMPO_ENCARGO = {
   hecho_cuando: { tipo: "texto" },
   ficheros: { tipo: "texto" },
   assignment_type: { tipo: "vocab", valores: Object.keys(TYPES) },
-  subtype: { tipo: "vocab", valores: SUBTYPES.map((t) => t.id) },
+  // Los activos y los alias retirados (con aviso al validar): un id que no existe se rechaza.
+  subtype: { tipo: "vocab", valores: ALL_SUBTYPES.map((t) => t.id) },
+  subtype_note: { tipo: "texto" },
   complexity: { tipo: "vocab", valores: Object.keys(COMPLEXITIES) },
 };
 
@@ -614,8 +616,15 @@ export function validarEncargos(encargos, estado) {
       todosLeidos = false;
       dice("encargo-incompleto", `#${n} no rellena: ${faltan.join(", ")}`);
     }
-    const subtipo = SUBTYPES.find((t) => t.id === e.subtype);
+    const subtipo = ALL_SUBTYPES.find((t) => t.id === e.subtype);
     if (subtipo && Object.hasOwn(e, "assignment_type") && subtipo.type !== e.assignment_type) dice("encargo-subtipo", `#${n}: el subtipo «${subtipo.id}» es de tipo «${subtipo.type}» y el encargo dice «${e.assignment_type}»`);
+    // Durante la transición, un id de antes vale, con un aviso que dice el id nuevo (#646).
+    if (subtipo?.status === "retired") dice("encargo-subtipo-retirado", `#${n}: el subtipo «${subtipo.id}» está retirado; usa «${subtipo.replaced_by}»`, "aviso");
+    // La válvula (`<tipo>-other`) pide su motivo, y todo motivo tiene tope (la puerta de entrada, #646).
+    if (Object.hasOwn(e, "subtype_note") && String(e.subtype_note).length > MAX_NOTE) dice("encargo-subtype-note", `#${n}: «subtype_note» pasa de ${MAX_NOTE} caracteres`);
+    if (subtipo?.valve && Boolean(h.createdAt) && String(h.createdAt).slice(0, 10) >= ENCARGO_N1_DESDE && String(e.subtype_note ?? "").trim().length < 10) {
+      dice("encargo-valvula", `#${n}: «${subtipo.id}» es la válvula de ${subtipo.type}: «subtype_note» dice (de 10 a ${MAX_NOTE} caracteres) por qué ningún otro subtipo encaja`);
+    }
     if (Object.hasOwn(e, "juez") && Object.hasOwn(e, "constructor") && e.juez === e["constructor"]) dice("encargo-juez", `#${n}: quien construye no juzga (constructor y juez son el mismo)`);
     if (e.tipo_accion === "preventivo" && ESCALONES_AUTOMATICOS.includes(escalon)) hayPreventivo = true;
   }

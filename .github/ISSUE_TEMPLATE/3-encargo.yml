@@ -58,6 +58,7 @@ body:
         assignment_type:
         subtype:
         complexity:
+        subtype_note:
         ```
     validations:
       required: false

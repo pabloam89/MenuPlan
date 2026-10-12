@@ -171,7 +171,7 @@ describe("ronda 2 de #396: constructor heredado, autores de fuera y plan vigente
 });
 
 describe("el N1 del encargo: assignment_type, subtype y complexity (#640)", () => {
-  const N1 = { assignment_type: "operate", subtype: "ci-permisos-hooks", complexity: "normal" };
+  const N1 = { assignment_type: "operate", subtype: "operate-reversible", complexity: "normal" };
   const CAMPOS_N1 = Object.keys(N1);
   const antes = (e) => ({ ...e, createdAt: "2026-10-12T23:59:59Z" });
   const despues = (e) => ({ ...e, createdAt: "2026-10-13T00:00:00Z" });
@@ -192,6 +192,28 @@ describe("el N1 del encargo: assignment_type, subtype y complexity (#640)", () =
     expect(reglas(validarEncargos([despues(enc(1, { ...N1, assignment_type: "create" }))], "plan"))).toEqual(["encargo-subtipo"]);
     expect(reglas(leerEncargo(bloque({ ...BUENO, ...N1, complexity: "enorme" })).errores)).toEqual(["encargo-vocabulario"]);
     expect(reglas(leerEncargo(bloque({ ...BUENO, ...N1, subtype: "inventado" })).errores)).toEqual(["encargo-vocabulario"]);
+  });
+  it("un id de antes vale durante la transición, con un aviso que dice el id nuevo; uno que no existe se rechaza (#646)", () => {
+    const r = validarEncargos([despues(enc(1, { ...N1, subtype: "ci-permisos-hooks" }))], "plan");
+    expect(reglas(r)).toEqual(["encargo-subtipo-retirado"]);
+    expect(r[0]).toMatchObject({ gravedad: "aviso" });
+    expect(r[0].mensaje).toContain("operate-reversible");
+    expect(reglas(validarEncargos([despues(enc(1, { ...N1, subtype: "esquema-o-dato", assignment_type: "create" }))], "plan"))).toEqual(["encargo-subtipo-retirado"]);
+    expect(reglas(leerEncargo(bloque({ ...BUENO, ...N1, subtype: "dato-en-varias-capasx" })).errores)).toEqual(["encargo-vocabulario"]);
+    // Un alias retirado cuelga de su tipo de antes: si el encargo dice otro tipo, también falla.
+    expect(reglas(validarEncargos([despues(enc(1, { ...N1, subtype: "ci-permisos-hooks", assignment_type: "fix" }))], "plan"))).toEqual(["encargo-subtipo", "encargo-subtipo-retirado"]);
+  });
+  it("la válvula pide su motivo (de 10 a 160 caracteres) a los creados desde ENCARGO_N1_DESDE; otro subtipo no", () => {
+    const V = { assignment_type: "audit", subtype: "audit-other", complexity: "normal" };
+    expect(reglas(validarEncargos([despues(enc(1, V))], "plan"))).toEqual(["encargo-valvula"]);
+    expect(reglas(validarEncargos([despues(enc(1, { ...V, subtype_note: "corto" }))], "plan"))).toEqual(["encargo-valvula"]);
+    expect(validarEncargos([despues(enc(1, { ...V, subtype_note: "una auditoría única de un solo caso" }))], "plan")).toEqual([]);
+    expect(validarEncargos([antes(enc(1, V))], "plan")).toEqual([]);
+    expect(validarEncargos([despues(enc(1, N1))], "plan")).toEqual([]);
+  });
+  it("la nota del subtipo tiene tope", () => {
+    expect(reglas(validarEncargos([despues(enc(1, { ...N1, subtype_note: "x".repeat(161) }))], "plan"))).toEqual(["encargo-subtype-note"]);
+    expect(validarEncargos([despues(enc(1, { ...N1, subtype_note: "x".repeat(160) }))], "plan")).toEqual([]);
   });
   it("viene del hijo de la REST con su createdAt", () => {
     const h = hijoDeRest({ number: 3, state: "open", body: bloque(BUENO), labels: [], created_at: "2026-10-13T08:00:00Z" });
