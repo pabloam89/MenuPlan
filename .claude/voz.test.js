@@ -75,6 +75,9 @@ describe("las tres piezas de la voz dicen lo mismo", () => {
     expect(sec.split("\n").length, "líneas de la sección").toBeLessThanOrEqual(12);
     for (const copia of [/Coste:/, /Certeza:/, /tres opciones/, /Seguimos con X/, /25 palabras/]) expect(sec, String(copia)).not.toMatch(copia);
     expect(sec).toMatch(/`orquestador`/);
+    // Lo esencial inline, para la sesión sin --agent (que no trae la skill precargada).
+    expect(sec).toMatch(/primera línea del mensaje es la idea raíz en \*\*negrita\*\*/);
+    expect(sec).toMatch(/[Aa]bre la skill\s+`estilo-de-respuesta` antes de escribirle/);
   });
 
   it("el informe de agente: solo RESUMEN y DECISIONES PENDIENTES siguen la voz, y la decisión pide A/B/C con la recomendada", () => {

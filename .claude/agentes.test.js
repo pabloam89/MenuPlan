@@ -28,6 +28,30 @@ const MAX_DESCRIPCION = 600;
 const agentes = readdirSync(DIR).filter((f) => f.endsWith(".md"));
 
 /** Una lista del frontmatter: «a, b», «[a, b]» o las líneas `  - a` (ya en array). */
+/**
+ * Las herramientas de un `tools`: se parte por comas FUERA de paréntesis (`Agent(a, b)` es una sola),
+ * `Task` es el nombre antiguo de `Agent` (sub-agents.md, «Restrict which subagents can be spawned») y
+ * `Agent(a, b)` es una lista de permitidos. Devuelve { nombre, permitidos|null }.
+ */
+export function herramientasDe(v) {
+  if (Array.isArray(v)) v = v.join(",");
+  const partes = [];
+  let hondo = 0, actual = "";
+  for (const c of String(v ?? "").replace(/^\[|\]$/g, "")) {
+    if (c === "(") hondo++;
+    if (c === ")") hondo--;
+    if (c === "," && hondo === 0) { partes.push(actual); actual = ""; } else actual += c;
+  }
+  partes.push(actual);
+  return partes.map((x) => x.trim()).filter(Boolean).map((x) => {
+    const m = /^([\w-]+)(?:\((.*)\))?$/.exec(x);
+    if (!m) return { nombre: x, permitidos: null };
+    const nombre = m[1] === "Task" ? "Agent" : m[1];
+    return { nombre, permitidos: m[2] === undefined ? null : m[2].split(",").map((y) => y.trim()).filter(Boolean) };
+  });
+}
+const nombresTools = (v) => herramientasDe(v).map((h) => h.nombre);
+
 const lista = (v) => (Array.isArray(v) ? v : String(v ?? "").replace(/^\[|\]$/g, "").split(",")).map((t) => String(t).trim()).filter(Boolean);
 
 /**
@@ -38,7 +62,7 @@ const lista = (v) => (Array.isArray(v) ? v : String(v ?? "").replace(/^\[|\]$/g,
  */
 function herramientasEfectivas(meta) {
   // `tools` ausente o vacío (null en YAML) hereda todas: ante la duda, el juez puede escribir.
-  const base = lista(meta.tools).length ? lista(meta.tools) : [...HERRAMIENTAS];
+  const base = nombresTools(meta.tools).length ? nombresTools(meta.tools) : [...HERRAMIENTAS];
   const conMemoria = meta.memory ? [...base, "Read", "Write", "Edit"] : base;
   const quitadas = lista(meta.disallowedTools);
   return [...new Set(conMemoria)].filter((t) => !quitadas.includes(t));
@@ -101,7 +125,7 @@ it("hay agentes", () => expect(agentes.length).toBeGreaterThan(0));
 
 describe.each(agentes)("%s", (fichero) => {
   const { meta, cuerpo } = leer(fichero);
-  const tools = lista(meta?.tools);
+  const tools = nombresTools(meta?.tools);
   const mision = seccion(cuerpo, "Misión y alcance");
   const tipo = mision.match(/^Tipo:\s*(constructor|juez)\s*$/m)?.[1];
 
@@ -175,9 +199,26 @@ describe("los traspasos entre agentes son un dato de la cabecera (#652)", () => 
     expect(enTexto.filter((x) => !declarado.includes(x)), "dicho en el texto y no declarado en traspasa_a").toEqual([]);
   });
 
-  it("solo el orquestador lleva la herramienta Agent: los demás no lanzan agentes (profundidad uno)", () => {
-    const conAgent = agentes.filter((f) => lista(leer(f).meta.tools).includes("Agent")).map((f) => f.replace(/\.md$/, ""));
+  it("solo el orquestador lleva Agent (también como Task o Agent(...)) y lo acota a su traspasa_a", () => {
+    const conAgent = agentes.filter((f) => nombresTools(leer(f).meta.tools).includes("Agent")).map((f) => f.replace(/\.md$/, ""));
     expect(conAgent).toEqual(["orquestador"]);
+    const h = herramientasDe(leer("orquestador.md").meta.tools).find((x) => x.nombre === "Agent");
+    expect(h.permitidos, "Agent sin lista: puede lanzar cualquier agente; usa Agent(a, b, …)").not.toBeNull();
+    expect([...h.permitidos].sort()).toEqual([...traspasos.orquestador.declarado].sort());
+  });
+
+  it.each(agentes)("%s: declara tools (si no, hereda todas) y no usa permissionMode: bypassPermissions", (f) => {
+    const { meta } = leer(f);
+    expect(nombresTools(meta.tools).length, "tools explícito").toBeGreaterThan(0);
+    expect(meta.permissionMode).not.toBe("bypassPermissions");
+  });
+
+  it("el lector de tools ve Task, Agent(...) con comas dentro y la falta de lista", () => {
+    expect(herramientasDe("Task, Read").map((x) => x.nombre)).toEqual(["Agent", "Read"]);
+    expect(herramientasDe("Agent(a, b), Read, Bash")).toEqual([{ nombre: "Agent", permitidos: ["a", "b"] }, { nombre: "Read", permitidos: null }, { nombre: "Bash", permitidos: null }]);
+    expect(herramientasDe("Task(a), Read")[0]).toEqual({ nombre: "Agent", permitidos: ["a"] });
+    expect(herramientasDe("Read, Agent")[1].permitidos).toBeNull();
+    expect(herramientasDe("")).toEqual([]);
   });
 
   it("el lector ve fallar un traspaso que sobra, la palabra suelta y la cabecera sin campo", () => {

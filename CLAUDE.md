@@ -118,7 +118,9 @@ El cómo, en la regla `migraciones`; cómo es una tabla, en `PRINCIPIOS.md`.
 
 Pablo no es informático: toda sesión y todo agente le escribe con la misma forma,
 y el único que le habla es el agente `orquestador`. **La regla entera vive en una
-sola fuente: la skill `estilo-de-respuesta`.** Ábrela antes de escribirle. De un
+sola fuente: la skill `estilo-de-respuesta`.** Lo esencial, también sin `--agent`:
+la primera línea del mensaje es la idea raíz en **negrita**, una frase. Abre la skill
+`estilo-de-respuesta` antes de escribirle. De un
 informe de agente, solo el `RESUMEN` y las `DECISIONES PENDIENTES` siguen esta forma
 (`.claude/PLANTILLA-AGENTE.md`).
 
