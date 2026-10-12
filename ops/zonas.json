@@ -74,6 +74,6 @@
   },
   "medidas": [
     { "fecha": "2026-10-12", "origen": "antes: estimación del informe, por nombre", "factoria": 596, "producto": 2052, "mixto": 74, "sin_zona": 0, "total": 2722, "nota": "informe de gobierno sobre origin/staging 3164ba0b; ±30 ficheros por la clasificación por nombre" },
-    { "fecha": "2026-10-12", "origen": "despues: reglas de ops/zonas.json", "factoria": 596, "producto": 2099, "mixto": 49, "sin_zona": 0, "total": 2744, "nota": "con los 5 ficheros de este PR (591 / 2099 / 49 sobre los 2739 de origin/staging)" }
+    { "fecha": "2026-10-12", "origen": "despues: reglas de ops/zonas.json", "factoria": 597, "producto": 2099, "mixto": 49, "sin_zona": 0, "total": 2745, "nota": "con los 6 ficheros nuevos de este PR (591 / 2099 / 49 sobre los 2739 de origin/staging)" }
   ]
 }

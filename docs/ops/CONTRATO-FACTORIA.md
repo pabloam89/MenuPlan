@@ -65,7 +65,7 @@ Un comando local y sin red, `npm run conformidad`, recorrería el contrato y lan
 
 | Dato | Informe | Comprobado | Cómo |
 |---|---|---|---|
-| Ficheros por zona (factoría / mixto / producto) | 596 / 74 / 2.052 (estimado por nombre, 2.722 ficheros) | 596 / 49 / 2.099 (2.744 ficheros, ninguno sin zona; la cifra viva sale de `npm run zonas-proyecto`). La estimación del informe se pasaba en 25 ficheros de mixto (74 frente a 49) y se quedaba corta en 47 de producto; la factoría coincide | reglas de `ops/zonas.json` sobre `git ls-files` |
+| Ficheros por zona (factoría / mixto / producto) | 596 / 74 / 2.052 (estimado por nombre, 2.722 ficheros) | 597 / 49 / 2.099 (2.745 ficheros, ninguno sin zona; la cifra viva sale de `npm run zonas-proyecto`). La estimación del informe se pasaba en 25 ficheros de mixto (74 frente a 49) y se quedaba corta en 47 de producto; la factoría coincide | reglas de `ops/zonas.json` sobre `git ls-files` |
 | Ficheros con el nombre del repo | 29 | 30 (sin `public`) | `git grep -l "pabloam89/MenuPlan"` |
 | Ficheros con ruta `C:\dev` en `.claude`, `scripts`, `.github`, `ops` | 19 | 29 | `git grep -lE 'C:\\\\dev\|C:/dev'` |
 | Scripts de `package.json` | 61 | 62 | `package.json` |
