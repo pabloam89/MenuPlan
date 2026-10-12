@@ -15,7 +15,7 @@
 export const SCOPES = {
   horizontal: "Factoría: sus piezas no cuelgan de ningún proyecto (cómo trabajamos)",
   vertical: "Sus piezas cuelgan siempre de un proyecto (el producto HoMenu hoy)",
-  both: "Hay piezas de la factoría y de un proyecto; cada pieza declara su project o ninguno",
+  both: "Hay piezas que sirven a la factoría y piezas que sirven a un proyecto, y la entidad dice qué es a cada lado (role_by_scope). El alcance se decide por a quién sirve la pieza, no por dónde está el fichero: vivir hoy en el repo de HoMenu no hace a nadie both",
 };
 
 /** Una entidad es puente si sus piezas están de los dos lados. Calculado, no guardado. */

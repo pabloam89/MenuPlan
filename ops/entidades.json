@@ -82,7 +82,7 @@
     {
       "id": "service",
       "name": "Servicio",
-      "scope": "both",
+      "scope": "horizontal",
       "level": "piece",
       "family": "access",
       "term": "servicio",
@@ -97,7 +97,7 @@
         "ops/INVENTARIO.md",
         "scripts/lib/recursos.mjs"
       ],
-      "note": "Una tabla en prosa de unas 22 filas, sin id; ops/recursos.json ya cierra su campo servicio con un vocabulario. Un mismo servicio recibe varios nombres (equipo Vercel, proyecto homenu). Es el proveedor, no un nivel de contención."
+      "note": "Una tabla en prosa de unas 22 filas, sin id; ops/recursos.json ya cierra su campo servicio con un vocabulario. Un mismo servicio recibe varios nombres (equipo Vercel, proyecto homenu). Es el proveedor, no un nivel de contención. Alcance horizontal (12 oct 2026, revisor de #654): el proveedor es de la factoría; lo que cuelga de un proyecto son sus recursos (el proyecto de Vercel, la base de Supabase), que son piezas de resource. No hace falta partirla."
     },
     {
       "id": "environment",
@@ -180,6 +180,7 @@
         "scripts/lib/estandaresAgentes.mjs",
         "docs/ops/NORMAS.md"
       ],
+      "role_by_scope": "Proceso: obligaciones del flujo, la escritura y la infra. Producto: obligaciones sobre el bot, los datos, el catálogo y la interfaz (82 de 183 normas, según el análisis).",
       "note": "Hay tres colecciones de reglas con sujetos separados (normas, estándares de agente, obligaciones del flujo) que comparten 9 ids. Los sujetos de normas y estándares se cruzan con las entidades en ops/entidades-sujetos.json. Absorbe a la antigua entidad rule: el campo donde de la norma dice dónde está escrita (un fichero de .claude/rules, un hook, CLAUDE.md o una skill). Guarda fuerza (debe, no_debe, conviene) y veredicto (cuánto se hace cumplir) como dos campos distintos. Futuro encargo: unificar EJECUTORES (scripts/lib/normas.mjs) con los ids de ops/mecanismos.json, que hoy se escriben distinto (github_regla frente a regla_github)."
     },
     {
@@ -336,7 +337,7 @@
     {
       "id": "agent",
       "name": "Agente",
-      "scope": "both",
+      "scope": "horizontal",
       "level": "piece",
       "family": "agents",
       "term": "agente",
@@ -356,7 +357,7 @@
     {
       "id": "skill",
       "name": "Skill",
-      "scope": "both",
+      "scope": "horizontal",
       "level": "piece",
       "family": "agents",
       "term": "skill",
@@ -416,7 +417,7 @@
     {
       "id": "issue",
       "name": "Issue",
-      "scope": "both",
+      "scope": "horizontal",
       "level": "piece",
       "family": "work",
       "term": "issue",
@@ -437,7 +438,7 @@
     {
       "id": "root-problem",
       "name": "Fondo",
-      "scope": "both",
+      "scope": "horizontal",
       "level": "piece",
       "family": "work",
       "term": "fondo",
@@ -473,7 +474,7 @@
     {
       "id": "case",
       "name": "Caso",
-      "scope": "both",
+      "scope": "horizontal",
       "level": "piece",
       "family": "work",
       "term": "caso",
@@ -495,7 +496,7 @@
     {
       "id": "assignment",
       "name": "Encargo",
-      "scope": "both",
+      "scope": "horizontal",
       "level": "piece",
       "family": "work",
       "term": "encargo",
@@ -516,7 +517,7 @@
     {
       "id": "decision",
       "name": "Decisión",
-      "scope": "both",
+      "scope": "horizontal",
       "level": "piece",
       "family": "work",
       "term": "decisión",
@@ -538,7 +539,7 @@
     {
       "id": "pull-request",
       "name": "PR",
-      "scope": "both",
+      "scope": "horizontal",
       "level": "piece",
       "family": "work",
       "term": "pr",
@@ -559,7 +560,7 @@
     {
       "id": "branch",
       "name": "Rama",
-      "scope": "both",
+      "scope": "horizontal",
       "level": "piece",
       "family": "work",
       "term": "rama",
@@ -674,6 +675,7 @@
         "ops/vocabularios-vida.test.js",
         "scripts/lib/vocabulariosVida.mjs"
       ],
+      "role_by_scope": "Proceso: listas cerradas de ops y scripts/lib. Producto: las de src/lib/vocabularios.js, que además llevan CHECK en la base.",
       "note": "87 vocabularios y 497 valores anclados (a 12 oct 2026; el test compara estas cifras con ops/vocabularios-vida.json). Hay constantes duplicadas (MESES en 4 sitios, dos ESTADOS_CRITERIO con valores distintos)."
     },
     {
@@ -696,6 +698,7 @@
         "ops/principios.test.js",
         "ops/uniones.test.js"
       ],
+      "role_by_scope": "Proceso: principios propios de la casa (ops/principios). Producto: los 40 principios de producto y los 15 de redacción, leídos de su catálogo.",
       "note": "La lista única (#619): los propios en ops/principios/ y los de producto y redacción leídos de su catálogo (delegados). La norma cita su principio en el campo principio."
     },
     {
@@ -899,6 +902,7 @@
         "ops/recursos.test.js",
         "scripts/cumplimiento.mjs"
       ],
+      "role_by_scope": "Proceso: GitHub y 1Password. Producto: Supabase, Telegram y Vercel. Hetzner sirve a las dos cosas.",
       "note": "Una entrada por clave, token, App, deploy key, bóveda, service account, proyecto de un servicio, servidor o cuenta, con servicio, tipo, dueño, fecha y caducidad. Sustituye a las entidades secret y vault, que son dos de sus tipos. Aún no guarda de qué proyecto es cada recurso (ver la relación resource belongs_to project, sin campo); el tipo proyecto de recursos.json es un proyecto de un servicio (Vercel, Supabase), no la entidad project.",
       "types": [
         "clave",
@@ -949,12 +953,13 @@
       "readers": [
         "ops/normas.test.js"
       ],
+      "role_by_scope": "Proceso: tests y scripts de ops/ y scripts/. Producto: tests de supabase/ y src/ que vigilan normas de datos y de interfaz.",
       "note": "El fichero (test, script o workflow) que vigila una norma, guardado hoy como texto en el campo control de la norma, junto con control_tipo. El nombre «control» queda para el término del glosario (una comprobación concreta con su código). No tiene registro propio: un fichero puede vigilar varias normas y esa relación solo se ve con grep."
     },
     {
       "id": "standard",
       "name": "Estándar",
-      "scope": "both",
+      "scope": "horizontal",
       "level": "piece",
       "family": "rules",
       "term": "estándar",
@@ -996,7 +1001,7 @@
     {
       "id": "agent-task",
       "name": "Tarea de agente",
-      "scope": "both",
+      "scope": "horizontal",
       "level": "piece",
       "family": "agents",
       "term": "tarea de agente",
@@ -1032,6 +1037,7 @@
         "ops/workflows.test.js",
         "ops/salud-despliegue.test.js"
       ],
+      "role_by_scope": "Proceso: fondos, planos, flujo semanal, tests, dependabot y agente de fallos. Producto: vigía de Lola, bot semanal, salud del despliegue, mercadona-sync e iOS (por el nombre de cada fichero).",
       "note": "11 ficheros en .github/workflows (a 12 oct 2026, contados en git). workflows.test.js los vigila como YAML válido; no hay ficha por workflow con su disparador ni sus normas. Es un automatismo como el hook: reacciona sin persona."
     },
     {
@@ -1057,7 +1063,7 @@
     {
       "id": "repo",
       "name": "Repositorio",
-      "scope": "both",
+      "scope": "vertical",
       "level": "piece",
       "family": "structure",
       "term": "repositorio",
@@ -1072,7 +1078,7 @@
         "ops/planos.json",
         "scripts/rulesets.mjs"
       ],
-      "note": "Dos: pabloam89/MenuPlan (público; contiene a la vez la factoría y HoMenu) y pabloam89/homenu-panel (privado). El repo no es el proyecto: el de HoMenu mezcla ambos mundos, así que su vínculo con el proyecto es parcial. Issue, PR, rama y workflow cuelgan de un repo; hoy el nombre está escrito a mano en planos.json, skills e INVENTARIO."
+      "note": "Dos: pabloam89/MenuPlan (público; contiene a la vez la factoría y HoMenu) y pabloam89/homenu-panel (privado). El repo no es el proyecto: el de HoMenu mezcla ambos mundos, así que su vínculo con el proyecto es parcial. Issue, PR, rama y workflow cuelgan de un repo; hoy el nombre está escrito a mano en planos.json, skills e INVENTARIO. Alcance vertical: cada repo sirve a un proyecto; que el de HoMenu contenga también la factoría es dónde está el fichero, no a quién sirve."
     },
     {
       "id": "design-system",

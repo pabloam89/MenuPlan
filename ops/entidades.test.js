@@ -150,6 +150,8 @@ export function problemas(datos, { existe: hay, glosario = null, sinLector = SIN
         if (!Array.isArray(e.becomes_types) || e.becomes_types.length === 0 || !e.becomes_types.every((t) => tipos.includes(t))) p.push(`${q}: becomes type necesita becomes_types, y todos tipos de ${e.replaced_by}`);
       } else if ("becomes_types" in e) p.push(`${q}: becomes_types solo va con becomes type`);
     } else for (const c of ["replaced_by", "becomes", "becomes_in", "becomes_types"]) if (c in e) p.push(`${q}: ${c} solo va en una entidad retired`);
+    // both no es un cajón (hallazgo del revisor de #654): quien sirve a los dos lados dice qué es a cada uno.
+    if (e.scope === "both" && act && !("role_by_scope" in e)) p.push(`${q}: una entidad both dice su role_by_scope (qué es a cada lado); si no sirve a los dos, es horizontal o vertical`);
     if ("role_by_scope" in e) {
       if (e.scope !== "both") p.push(`${q}: role_by_scope solo va en una entidad both`);
       if (typeof e.role_by_scope !== "string" || !e.role_by_scope.trim() || e.role_by_scope.split(/\s+/).length > MAX_ROLE) p.push(`${q}: role_by_scope vacío o de más de ${MAX_ROLE} palabras`);
@@ -339,6 +341,14 @@ describe("el registro de entidades", () => {
     for (const id of ["environment", "event", "metric", "eval"]) expect(esPuente(E(id)), id).toBe(true);
     // los que los datos mandaron al lado vertical (SUPER-TABLA, sección 9)
     for (const id of ["migration", "table", "data-source", "module"]) expect(E(id).scope, id).toBe("vertical");
+  });
+
+  it("both no es un cajón: las 10 que quedan explican su doble lado, y las del proceso son horizontales", () => {
+    const both = DATOS.entities.filter((e) => e.status === "active" && e.scope === "both").map((e) => e.id).sort();
+    expect(both).toEqual(["environment", "eval", "event", "metric", "norm", "principle", "resource", "verification", "vocabulary", "workflow"]);
+    for (const id of both) expect(E(id).role_by_scope, id).toMatch(/Proceso: .*Producto: |Proceso: .*Producto:/);
+    for (const id of ["issue", "case", "root-problem", "assignment", "decision", "pull-request", "branch", "agent", "agent-task", "skill", "standard", "service"]) expect(E(id).scope, id).toBe("horizontal");
+    expect(E("repo").scope).toBe("vertical");
   });
 
   it("la escala de nivel es una sola: meta, template y piece; los meta y las plantillas nunca son verticales", () => {
@@ -589,6 +599,8 @@ describe("autotest: cada regla falla con datos malos", () => {
 
   it("role_by_scope solo en las que son de los dos lados", () => {
     expect(con((d, e) => { e.role_by_scope = "Algo."; })).toMatch(/role_by_scope solo va en una entidad both/);
+    expect(con((d) => { delete d.entities.find((x) => x.id === "norm").role_by_scope; })).toMatch(/norm: una entidad both dice su role_by_scope/);
+    expect(con((d) => { d.entities.find((x) => x.id === "issue").scope = "both"; })).toMatch(/issue: una entidad both dice su role_by_scope/);
     expect(con((d) => { d.entities.find((x) => x.id === "event").role_by_scope = "palabra ".repeat(31); })).toMatch(/role_by_scope vacío o de más de 30 palabras/);
   });
 

@@ -104,11 +104,11 @@ export function mapa(d = cargar()) {
   for (const [titulo, scope, intro] of [
     ["Horizontales: la factoría", "horizontal", "Sus piezas no cuelgan de ningún proyecto."],
     ["Verticales: el producto", "vertical", "Sus piezas cuelgan siempre de un proyecto. Las de la familia `home`, `food` y `lola` están solo en el registro: no tienen más migraciones ni datos de familias que los que ya existen."],
-    ["Puentes: de los dos lados", "both", "Hay piezas de la factoría y de un proyecto; cada pieza dice el suyo. La columna siguiente dice qué es a cada lado donde el registro lo ha escrito."],
+    ["Puentes: de los dos lados", "both", "Sirven a la factoría y a un proyecto, y cada una dice qué es a cada lado. El alcance se decide por a quién sirve la pieza, no por dónde está el fichero: que todo viva hoy en el repo de HoMenu no hace a nadie both."],
   ]) {
     L.push(`## ${titulo}`, "", intro, "", tablaDeEntidades(a.filter((e) => e.scope === scope)), "");
     if (scope === "both") {
-      const conRol = a.filter((e) => e.scope === "both" && e.role_by_scope);
+      const conRol = a.filter((e) => e.scope === "both");
       L.push("Qué es cada puente a cada lado:", "", ...conRol.map((e) => `- **${e.id}**: ${e.role_by_scope}`), "");
     }
   }

@@ -37,10 +37,9 @@ proyecto es una **extensión** que cita su meta horizontal (reglas 1 a 4 de N0).
 ## 2. La tabla
 
 Todo sale de `ops/entidades.json`. Alcance (`scope`): `horizontal` (sus piezas nunca llevan proyecto), `vertical`
-(siempre) o `both` (cada pieza dice su `project` o ninguno); «puente» es el `both`, calculado. Hoy: 10 horizontales,
-21 verticales y 23 `both` entre 54 activas (6 retiradas: judge, rule, learning, deployment, secret y vault, que
-pasan a ser un valor, un campo, un tipo de evento o un tipo de recurso). Casi todo lo de trabajo es `both`, porque un
-mismo registro mezcla factoría y producto (sección 8). Nivel de las piezas: 46 `piece`, 4 `meta` y 4 `template`.
+(siempre) o `both` (cada pieza dice su `project` o ninguno); «puente» es el `both`, calculado. Hoy: 22 horizontales,
+22 verticales y 10 `both` entre 54 activas (6 retiradas: judge, rule, learning, deployment, secret y vault, que
+pasan a ser un valor, un campo, un tipo de evento o un tipo de recurso). Corregido tras el revisor de #654: `both` no es un cajón; solo lo son las 10 que sirven de verdad a los dos lados y lo explican en `role_by_scope`. Lo de trabajo (issue, PR, rama, agente, skill…) es horizontal: que viva hoy en el repo de HoMenu no es razón para `both` (sección 8). Nivel de las piezas: 46 `piece`, 4 `meta` y 4 `template`.
 
 <!-- super-tabla:inicio -->
 | id | familia | nivel | alcance | puente | quién la crea | dónde vive (registro) | quién la lee | parte de, tipo de o hijo de |
@@ -48,23 +47,23 @@ mismo registro mezcla factoría y producto (sección 8). Nivel de las piezas: 46
 | `session` | work | piece | horizontal | no | automatic | ninguno (without_registry) | .claude/hooks/guardia.mjs, .claude/hooks/avisos.mjs, .claude/hooks/eventos.mjs | — |
 | `team-member` | access | piece | horizontal | no | human | `CLAUDE.md` (without_registry) | nadie | — |
 | `identity` | access | piece | horizontal | no | human | `scripts/lib/tokenSesion.mjs` (partial) | scripts/lib/tokenSesion.mjs, .claude/hooks/arranque.mjs | resource |
-| `service` | access | piece | both | sí | human | `ops/INVENTARIO.md` (without_registry) | ops/INVENTARIO.md, scripts/lib/recursos.mjs | — |
+| `service` | access | piece | horizontal | no | human | `ops/INVENTARIO.md` (without_registry) | ops/INVENTARIO.md, scripts/lib/recursos.mjs | — |
 | `environment` | delivery | piece | both | sí | human | `ops/INVENTARIO.md` (without_registry) | ops/planos.json, scripts/apply-migration.mjs | project |
 | `event` | measure | piece | both | sí | automatic | `.claude/hooks/eventos.mjs` (partial) | ops/metricas.json, scripts/lib/cumplimiento.mjs | — |
 | `norm` | rules | meta | both | sí | agent | `ops/normas.json` (with_registry) | ops/normas.test.js, scripts/lib/estandaresAgentes.mjs, docs/ops/NORMAS.md | — |
 | `mechanism` | rules | template | horizontal | no | agent | `ops/mecanismos.json` (with_registry) | scripts/lib/escalas.mjs, ops/mecanismos.test.js, scripts/lib/tiposDeEncargo.mjs | — |
 | `metric` | measure | piece | both | sí | agent | `ops/metricas.json` (with_registry) | scripts/lib/cumplimiento.mjs, ops/metricas.test.js | — |
 | `eval` | measure | piece | both | sí | agent | `scripts/bot-evals.json` (partial) | scripts/bot-evals.mjs, scripts/skills-prueba.mjs | — |
-| `agent` | agents | piece | both | sí | agent | `.claude/agents` (with_registry) | .claude/agentes.test.js, scripts/lib/agentes.mjs | — |
-| `skill` | agents | piece | both | sí | agent | `.claude/skills` (with_registry) | .claude/skills.test.js, scripts/lib/skills.mjs | — |
+| `agent` | agents | piece | horizontal | no | agent | `.claude/agents` (with_registry) | .claude/agentes.test.js, scripts/lib/agentes.mjs | — |
+| `skill` | agents | piece | horizontal | no | agent | `.claude/skills` (with_registry) | .claude/skills.test.js, scripts/lib/skills.mjs | — |
 | `hook` | agents | piece | horizontal | no | agent | `.claude/settings.json` (partial) | Claude Code (.claude/settings.json) | — |
-| `issue` | work | piece | both | sí | agent | `scripts/lib/issues.mjs` (with_registry) | scripts/lib/issues.mjs, .claude/hooks/arranque.mjs, scripts/lib/situacion.mjs | — |
-| `root-problem` | work | piece | both | sí | agent | `scripts/lib/fondos.mjs` (with_registry) | scripts/lib/fondos.mjs, .github/workflows/fondos.yml, scripts/fondos-pr.mjs | issue |
-| `case` | work | piece | both | sí | agent, automatic | `scripts/lib/issues.mjs` (with_registry) | scripts/casos-pr.mjs, scripts/lib/fondos.mjs, .claude/hooks/guardia.mjs | issue, root-problem |
-| `assignment` | work | piece | both | sí | agent | `scripts/lib/issues.mjs` (with_registry) | scripts/lib/tiposDeEncargo.mjs, scripts/lib/fondos.mjs, scripts/fondos-pr.mjs | issue, root-problem |
-| `decision` | work | piece | both | sí | agent, human | `ops/DECISIONES.md` (partial) | .claude/hooks/pendientes.mjs, scripts/lib/situacion.mjs, .claude/hooks/arranque.mjs | issue |
-| `pull-request` | work | piece | both | sí | agent | ninguno (without_registry) | .claude/hooks/guardia.mjs, scripts/casos-pr.mjs, scripts/fondos-pr.mjs | — |
-| `branch` | work | piece | both | sí | automatic | ninguno (without_registry) | scripts/tarea.mjs, .claude/hooks/guardia.mjs | — |
+| `issue` | work | piece | horizontal | no | agent | `scripts/lib/issues.mjs` (with_registry) | scripts/lib/issues.mjs, .claude/hooks/arranque.mjs, scripts/lib/situacion.mjs | — |
+| `root-problem` | work | piece | horizontal | no | agent | `scripts/lib/fondos.mjs` (with_registry) | scripts/lib/fondos.mjs, .github/workflows/fondos.yml, scripts/fondos-pr.mjs | issue |
+| `case` | work | piece | horizontal | no | agent, automatic | `scripts/lib/issues.mjs` (with_registry) | scripts/casos-pr.mjs, scripts/lib/fondos.mjs, .claude/hooks/guardia.mjs | issue, root-problem |
+| `assignment` | work | piece | horizontal | no | agent | `scripts/lib/issues.mjs` (with_registry) | scripts/lib/tiposDeEncargo.mjs, scripts/lib/fondos.mjs, scripts/fondos-pr.mjs | issue, root-problem |
+| `decision` | work | piece | horizontal | no | agent, human | `ops/DECISIONES.md` (partial) | .claude/hooks/pendientes.mjs, scripts/lib/situacion.mjs, .claude/hooks/arranque.mjs | issue |
+| `pull-request` | work | piece | horizontal | no | agent | ninguno (without_registry) | .claude/hooks/guardia.mjs, scripts/casos-pr.mjs, scripts/fondos-pr.mjs | — |
+| `branch` | work | piece | horizontal | no | automatic | ninguno (without_registry) | scripts/tarea.mjs, .claude/hooks/guardia.mjs | — |
 | `migration` | delivery | piece | vertical | no | agent | `supabase/ESTADO.md` (partial) | scripts/apply-migration.mjs, scripts/verificar-estado.mjs, supabase/migrations.test.js | — |
 | `table` | data | piece | vertical | no | agent | `ops/MODULOS.json` (partial) | ops/modulos.test.js, supabase/cableado.test.js | module |
 | `data-source` | data | piece | vertical | no | agent | `src/data/model.js` (with_registry) | src/data/model.test.js, ops/fuentes.test.js | — |
@@ -83,12 +82,12 @@ mismo registro mezcla factoría y producto (sección 8). Nivel de las piezas: 46
 | `resource` | access | template | both | sí | human | `ops/recursos.json` (with_registry) | ops/recursos.test.js, scripts/cumplimiento.mjs | project |
 | `criterion` | rules | meta | horizontal | no | agent | `ops/forja/_catalogo.json` (with_registry) | scripts/lib/forja.mjs, ops/forja.test.js | — |
 | `verification` | rules | piece | both | sí | agent | `ops/normas.json` (partial) | ops/normas.test.js | — |
-| `standard` | rules | piece | both | sí | agent | `ops/estandares-agentes.json` (with_registry) | docs/ops/ESTANDARES.md, scripts/estandares-agentes.mjs, ops/estandares-agentes.test.js | agent-task |
+| `standard` | rules | piece | horizontal | no | agent | `ops/estandares-agentes.json` (with_registry) | docs/ops/ESTANDARES.md, scripts/estandares-agentes.mjs, ops/estandares-agentes.test.js | agent-task |
 | `plane` | measure | meta | horizontal | no | agent, human | `ops/planos.json` (with_registry) | scripts/planos.mjs, ops/planos.test.js | — |
-| `agent-task` | agents | piece | both | sí | agent | `ops/estandares-agentes.json` (with_registry) | scripts/estandares-agentes.mjs, ops/estandares-agentes.test.js, docs/ops/ESTANDARES.md | agent |
+| `agent-task` | agents | piece | horizontal | no | agent | `ops/estandares-agentes.json` (with_registry) | scripts/estandares-agentes.mjs, ops/estandares-agentes.test.js, docs/ops/ESTANDARES.md | agent |
 | `workflow` | delivery | piece | both | sí | agent | `.github/workflows` (partial) | ops/workflows.test.js, ops/salud-despliegue.test.js | repo |
 | `project` | structure | piece | horizontal | no | human | `ops/entidades.json` (with_registry) | ops/entidades.test.js, docs/entidades/MAPA.md | — |
-| `repo` | structure | piece | both | sí | human | `ops/entidades.json` (partial) | ops/planos.json, scripts/rulesets.mjs | project |
+| `repo` | structure | piece | vertical | no | human | `ops/entidades.json` (partial) | ops/planos.json, scripts/rulesets.mjs | project |
 | `design-system` | design | piece | vertical | no | agent | `src/design/tokens.js` (partial) | ops/diseno/bloques.json, ops/diseno/bloques.test.js, .claude/skills/revision-de-diseno/SKILL.md, .claude/agents/diseno.md | project |
 | `design-profile` | design | template | horizontal | no | agent | `ops/diseno/bloques.json` (with_registry) | ops/diseno/bloques.test.js, .claude/skills/revision-de-diseno/SKILL.md, .claude/agents/diseno.md | — |
 | `token` | design | piece | vertical | no | agent | `src/design/tokens.js` (with_registry) | src/design/tokens.test.js, src/design/contraste.js, scripts/diseno/generar-tokens-css.mjs | design-system |
@@ -100,7 +99,7 @@ mismo registro mezcla factoría y producto (sección 8). Nivel de las piezas: 46
 | `chat` | lola | piece | vertical | no | automatic | `supabase/migrations/0057_bot_cimientos.sql` (partial) | api/_bot/enlace.js, api/_bot/turnos.js | household |
 | `assignment-type` | work | template | horizontal | no | agent | `ops/tipos-de-encargo.json` (with_registry) | scripts/lib/tiposDeEncargo.mjs, ops/tipos-de-encargo.test.js | — |
 
-Cifras: 54 entidades activas y 6 retiradas. Alcance: horizontal 10, vertical 21, both 23. Nivel: piece 46, meta 4, template 4. Familias: work 9, access 4, delivery 3, measure 4, rules 7, agents 4, data 3, home 5, food 6, lola 2, structure 2, design 5. Relaciones: 94 (is_a 5, parent_of 4, part_of 22, reference 63).
+Cifras: 54 entidades activas y 6 retiradas. Alcance: horizontal 22, vertical 22, both 10. Nivel: piece 46, meta 4, template 4. Familias: work 9, access 4, delivery 3, measure 4, rules 7, agents 4, data 3, home 5, food 6, lola 2, structure 2, design 5. Relaciones: 94 (is_a 5, parent_of 4, part_of 22, reference 63).
 <!-- super-tabla:fin -->
 
 ## 3. Reto 1: Fondo, Caso, Encargo, Decisión

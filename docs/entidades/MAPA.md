@@ -16,7 +16,7 @@ Un **puente** ya no es un valor: es una entidad de alcance `both`, y se calcula.
 `parent_of` o `reference`) y cardinalidad. La contención va de la factoría al proyecto y de este al entorno (`part_of`).
 Los ids van en inglés (decisión de Pablo del 11 oct 2026); los nombres y las notas, en castellano.
 
-Hoy hay 54 entidades activas: 10 horizontales, 21 verticales y 23 de los dos lados (puentes), y 6 retiradas.
+Hoy hay 54 entidades activas: 22 horizontales, 22 verticales y 10 de los dos lados (puentes), y 6 retiradas.
 Las relaciones son 94: is_a 5, parent_of 4, part_of 22, reference 63.
 
 ## Horizontales: la factoría
@@ -28,10 +28,22 @@ Sus piezas no cuelgan de ningún proyecto.
 | `session` | Sesión | horizontal | piece | work | sesión | ninguna | without_registry |
 | `team-member` | Miembro del equipo | horizontal | piece | access | persona | `CLAUDE.md` | without_registry |
 | `identity` | Identidad | horizontal | piece | access | identidad | `scripts/lib/tokenSesion.mjs` | partial |
+| `service` | Servicio | horizontal | piece | access | servicio | `ops/INVENTARIO.md` | without_registry |
 | `mechanism` | Mecanismo | horizontal | template | rules | mecanismo | `ops/mecanismos.json` | with_registry |
+| `agent` | Agente | horizontal | piece | agents | agente | `.claude/agents` | with_registry |
+| `skill` | Skill | horizontal | piece | agents | skill | `.claude/skills` | with_registry |
 | `hook` | Hook | horizontal | piece | agents | hook | `.claude/settings.json` | partial |
+| `issue` | Issue | horizontal | piece | work | issue | `scripts/lib/issues.mjs` | with_registry |
+| `root-problem` | Fondo | horizontal | piece | work | fondo | `scripts/lib/fondos.mjs` | with_registry |
+| `case` | Caso | horizontal | piece | work | caso | `scripts/lib/issues.mjs` | with_registry |
+| `assignment` | Encargo | horizontal | piece | work | encargo | `scripts/lib/issues.mjs` | with_registry |
+| `decision` | Decisión | horizontal | piece | work | decisión | `ops/DECISIONES.md` | partial |
+| `pull-request` | PR | horizontal | piece | work | pr | ninguna | without_registry |
+| `branch` | Rama | horizontal | piece | work | rama | ninguna | without_registry |
 | `criterion` | Criterio | horizontal | meta | rules | criterio | `ops/forja/_catalogo.json` | with_registry |
+| `standard` | Estándar | horizontal | piece | rules | estándar | `ops/estandares-agentes.json` | with_registry |
 | `plane` | Plano | horizontal | meta | measure | plano | `ops/planos.json` | with_registry |
+| `agent-task` | Tarea de agente | horizontal | piece | agents | tarea de agente | `ops/estandares-agentes.json` | with_registry |
 | `project` | Proyecto | horizontal | piece | structure | proyecto | `ops/entidades.json` | with_registry |
 | `design-profile` | Perfil de diseño | horizontal | template | design | perfil de diseño | `ops/diseno/bloques.json` | with_registry |
 | `assignment-type` | Tipo de encargo | horizontal | template | work | tipo de encargo | `ops/tipos-de-encargo.json` | with_registry |
@@ -55,6 +67,7 @@ Sus piezas cuelgan siempre de un proyecto. Las de la familia `home`, `food` y `l
 | `pantry` | Despensa | vertical | piece | food | — | `specs/modelo-datos.md` | partial |
 | `shopping-list` | Lista de la compra | vertical | piece | food | — | `specs/shopping-list.md` | partial |
 | `lola-conversation` | Conversación con Lola | vertical | piece | lola | — | `specs/plan-bot-mensajeria.md` | partial |
+| `repo` | Repositorio | vertical | piece | structure | repositorio | `ops/entidades.json` | partial |
 | `design-system` | Sistema de diseño | vertical | piece | design | sistema de diseño | `src/design/tokens.js` | partial |
 | `token` | Token de diseño | vertical | piece | design | token de diseño | `src/design/tokens.js` | with_registry |
 | `component` | Componente de diseño | vertical | piece | design | componente de diseño | `DESIGN_SYSTEM.md` | partial |
@@ -66,40 +79,33 @@ Sus piezas cuelgan siempre de un proyecto. Las de la familia `home`, `food` y `l
 
 ## Puentes: de los dos lados
 
-Hay piezas de la factoría y de un proyecto; cada pieza dice el suyo. La columna siguiente dice qué es a cada lado donde el registro lo ha escrito.
+Sirven a la factoría y a un proyecto, y cada una dice qué es a cada lado. El alcance se decide por a quién sirve la pieza, no por dónde está el fichero: que todo viva hoy en el repo de HoMenu no hace a nadie both.
 
 | id | Nombre | Alcance | Nivel | Familia | Término del glosario | Fuente hoy | Registro |
 |---|---|---|---|---|---|---|---|
-| `service` | Servicio | both | piece | access | servicio | `ops/INVENTARIO.md` | without_registry |
 | `environment` | Entorno | both | piece | delivery | entorno | `ops/INVENTARIO.md` | without_registry |
 | `event` | Evento | both | piece | measure | evento | `.claude/hooks/eventos.mjs` | partial |
 | `norm` | Norma | both | meta | rules | norma | `ops/normas.json` | with_registry |
 | `metric` | Métrica | both | piece | measure | métrica | `ops/metricas.json` | with_registry |
 | `eval` | Eval | both | piece | measure | eval | `scripts/bot-evals.json` | partial |
-| `agent` | Agente | both | piece | agents | agente | `.claude/agents` | with_registry |
-| `skill` | Skill | both | piece | agents | skill | `.claude/skills` | with_registry |
-| `issue` | Issue | both | piece | work | issue | `scripts/lib/issues.mjs` | with_registry |
-| `root-problem` | Fondo | both | piece | work | fondo | `scripts/lib/fondos.mjs` | with_registry |
-| `case` | Caso | both | piece | work | caso | `scripts/lib/issues.mjs` | with_registry |
-| `assignment` | Encargo | both | piece | work | encargo | `scripts/lib/issues.mjs` | with_registry |
-| `decision` | Decisión | both | piece | work | decisión | `ops/DECISIONES.md` | partial |
-| `pull-request` | PR | both | piece | work | pr | ninguna | without_registry |
-| `branch` | Rama | both | piece | work | rama | ninguna | without_registry |
 | `vocabulary` | Vocabulario | both | piece | rules | vocabulario | `ops/vocabularios-vida.json` | partial |
 | `principle` | Principio | both | meta | rules | principio | `ops/principios/_catalogo.json` | with_registry |
 | `resource` | Recurso | both | template | access | recurso | `ops/recursos.json` | with_registry |
 | `verification` | Comprobación | both | piece | rules | comprobación | `ops/normas.json` | partial |
-| `standard` | Estándar | both | piece | rules | estándar | `ops/estandares-agentes.json` | with_registry |
-| `agent-task` | Tarea de agente | both | piece | agents | tarea de agente | `ops/estandares-agentes.json` | with_registry |
 | `workflow` | Workflow | both | piece | delivery | workflow | `.github/workflows` | partial |
-| `repo` | Repositorio | both | piece | structure | repositorio | `ops/entidades.json` | partial |
 
 Qué es cada puente a cada lado:
 
 - **environment**: Proceso: dónde corre y se prueba el código. Producto: dónde viven los datos de las casas, que son una sola base para todos.
 - **event**: Proceso: lo que registran los hooks y los scripts. Producto: lo que registra user_events.
+- **norm**: Proceso: obligaciones del flujo, la escritura y la infra. Producto: obligaciones sobre el bot, los datos, el catálogo y la interfaz (82 de 183 normas, según el análisis).
 - **metric**: Proceso: cifra de cumplimiento del flujo. Producto: cifra de uso o de coste de una pieza.
 - **eval**: Proceso: la medida del antes y el después. Producto: lo que se mide es Lola.
+- **vocabulary**: Proceso: listas cerradas de ops y scripts/lib. Producto: las de src/lib/vocabularios.js, que además llevan CHECK en la base.
+- **principle**: Proceso: principios propios de la casa (ops/principios). Producto: los 40 principios de producto y los 15 de redacción, leídos de su catálogo.
+- **resource**: Proceso: GitHub y 1Password. Producto: Supabase, Telegram y Vercel. Hetzner sirve a las dos cosas.
+- **verification**: Proceso: tests y scripts de ops/ y scripts/. Producto: tests de supabase/ y src/ que vigilan normas de datos y de interfaz.
+- **workflow**: Proceso: fondos, planos, flujo semanal, tests, dependabot y agente de fallos. Producto: vigía de Lola, bot semanal, salud del despliegue, mercadona-sync e iOS (por el nombre de cada fichero).
 
 ## Proyectos
 
