@@ -1,67 +1,141 @@
 {
-  "$comentario": "Tipos de encargo y su pipeline: qué agentes intervienen y en qué orden. Es el dato; la tabla «Qué pipeline según la acción» de .claude/commands/orquestar.md es su lectura para personas y ops/tipos-de-encargo.test.js comprueba que dicen lo mismo. Lo lee el panel de la factoría (repo homenu-panel). Cada paso se hace tras el anterior; los agentes de un mismo paso van en paralelo. `opcional` es un agente que solo entra si se cumple `si`. Quien construye no juzga: cada paso de constructor va seguido de un juez distinto.",
+  "$comentario": "Los tipos de encargo (#639, #640). Hay CINCO tipos (`tipos_de_encargo`: crear, arreglar, mejorar, operar, auditar), cada uno con el esqueleto mínimo de pasos que todo su subtipo cumple, y los 17 de siempre son sus SUBTIPOS: están en `tipos` (el nombre histórico, que lee el panel de la factoría, repo homenu-panel; no se renombra) y cada uno apunta a su tipo con `tipo` y anota solo lo suyo (pasos, `cierra_con`, banderas, `medida`, `irreversible`, `mide_con`). Cada paso se hace tras el anterior; los agentes de un mismo paso van en paralelo. `opcional` es un agente que solo entra si se cumple su `bandera` (vocabulario cerrado `banderas`); el texto `si` se queda por compatibilidad con el panel y es el de la bandera. Quien construye no juzga: cada paso de constructor va seguido de un juez distinto, y ningún subtipo se queda sin juez. La lista de agentes sale de .claude/agents/ (scripts/lib/agentes.mjs), no se copia aquí. Lector único: scripts/lib/tiposDeEncargo.mjs; la tabla «Qué pipeline» de .claude/commands/orquestar.md se GENERA desde este fichero (`npm run flujo -- --escribir`) y ops/tipos-de-encargo.test.js lo compara. La complejidad y el presupuesto viven en ops/presupuestos.json; el lector las junta sin copiarlas.",
   "version": 1,
-  "actualizado": "2026-10-11",
+  "modelo": 2,
+  "actualizado": "2026-10-12",
   "especiales": {
     "sesion": "la sesión principal, sin subagente",
     "constructor": "el constructor del dominio que toque (datos, diseno, lola o gobierno)",
     "constructores": "un constructor por cada dominio que toca el encargo"
   },
+  "banderas": {
+    "escribe_datos": { "si": "escribe datos", "que": "El encargo escribe datos de familias o de la base" },
+    "toca_rls": { "si": "toca RLS", "que": "El encargo cambia políticas RLS o permisos de tablas" },
+    "cambia_el_bot": { "si": "cambia el bot", "que": "El encargo cambia lo que Lola dice o hace" },
+    "toca_secretos_o_permisos": { "si": "toca secretos o permisos", "que": "El encargo toca secretos, variables de entorno, permisos de Claude o de GitHub" }
+  },
+  "tipos_de_encargo": {
+    "crear": {
+      "que": "Algo que no existía: pantalla, herramienta, tabla, endpoint, contenido",
+      "esqueleto": { "roles": ["constructor", "juez"], "irreversible_con_cierre": false },
+      "cuando": "Se añade algo que no estaba."
+    },
+    "arreglar": {
+      "que": "Algo que debía funcionar y no funciona",
+      "esqueleto": { "roles": ["juez", "constructor", "juez"], "irreversible_con_cierre": false },
+      "cuando": "Hay un fallo: primero se diagnostica y se reproduce, luego se construye."
+    },
+    "mejorar": {
+      "que": "Mejorar sin cambiar lo que hace: migrar, simplificar, acelerar, abaratar",
+      "esqueleto": { "roles": ["constructor", "juez"], "irreversible_con_cierre": false, "mide_antes_y_despues": true },
+      "cuando": "Lo que hace no cambia; cambia cómo está hecho. Se mide antes y después."
+    },
+    "operar": {
+      "que": "Operar la casa: CI, permisos, hooks, ramas, secretos, despliegues",
+      "esqueleto": { "roles": ["constructor", "juez"], "irreversible_con_cierre": true },
+      "cuando": "Se toca la operación. Si no se puede deshacer, cierra con el OK de una persona."
+    },
+    "auditar": {
+      "que": "Mirar sin tocar: solo jueces, en paralelo",
+      "esqueleto": { "roles": ["juez"], "solo_jueces_en_paralelo": true, "irreversible_con_cierre": false },
+      "cuando": "No se construye nada; se mira y se informa."
+    }
+  },
   "tipos": [
-    { "id": "pantalla-nueva", "accion": "Pantalla o componente nuevo", "pasos": [{ "agentes": ["diseno"] }, { "agentes": ["qa", "revisor"] }] },
-    { "id": "migrar-a-tokens", "accion": "Migrar una pantalla a tokens", "pasos": [{ "agentes": ["diseno"] }, { "agentes": ["qa"] }] },
-    { "id": "assets", "accion": "Assets (icono, ilustración, limpieza)", "pasos": [{ "agentes": ["diseno"] }, { "agentes": ["qa"] }] },
+    { "id": "pantalla-nueva", "tipo": "crear", "accion": "Pantalla o componente nuevo", "pasos": [{ "agentes": ["diseno"] }, { "agentes": ["qa", "revisor"] }] },
+    { "id": "assets", "tipo": "crear", "accion": "Assets (icono, ilustración, limpieza)", "pasos": [{ "agentes": ["diseno"] }, { "agentes": ["qa"] }] },
     {
       "id": "lola-herramienta",
+      "tipo": "crear",
       "accion": "Herramienta nueva o cambio en Lola",
-      "pasos": [{ "agentes": ["lola"] }, { "agentes": ["evaluador", "revisor"] }, { "opcional": [{ "agente": "seguridad", "si": "escribe datos" }] }]
+      "pasos": [{ "agentes": ["lola"] }, { "agentes": ["evaluador", "revisor"] }, { "opcional": [{ "agente": "seguridad", "si": "escribe datos", "bandera": "escribe_datos" }] }]
     },
-    { "id": "lola-conocimiento", "accion": "Cambiar conocimiento, prompt o enrutador del bot", "pasos": [{ "agentes": ["lola"] }, { "agentes": ["evaluador"] }] },
+    { "id": "lola-conocimiento", "tipo": "crear", "accion": "Cambiar conocimiento, prompt o enrutador del bot", "pasos": [{ "agentes": ["lola"] }, { "agentes": ["evaluador"] }] },
     {
       "id": "esquema-o-dato",
+      "tipo": "crear",
       "accion": "Cambio de esquema o dato nuevo",
-      "pasos": [{ "agentes": ["datos"] }, { "agentes": ["auditor-datos"], "opcional": [{ "agente": "seguridad", "si": "toca RLS" }] }],
+      "pasos": [{ "agentes": ["datos"] }, { "agentes": ["auditor-datos"], "opcional": [{ "agente": "seguridad", "si": "toca RLS", "bandera": "toca_rls" }] }],
       "cierra_con": "OK para aplicar"
     },
     {
-      "id": "dato-en-varias-capas",
-      "accion": "Dato que vive en varias capas (base, catálogo, constantes)",
-      "pasos": [{ "agentes": ["auditor-datos"], "nota": "mapa" }, { "agentes": ["datos"] }, { "agentes": ["auditor-datos"] }]
-    },
-    {
-      "id": "reducir-cableado",
-      "accion": "Reducir el cableado de una tabla",
-      "pasos": [{ "agentes": ["auditor-datos"], "nota": "qué ficheros" }, { "agentes": ["constructor"] }, { "agentes": ["revisor"] }]
-    },
-    {
       "id": "recetas-o-catalogo",
+      "tipo": "crear",
       "accion": "Recetas o catálogo (contenido)",
       "pasos": [{ "agentes": ["sesion"] }, { "agentes": ["revisor"], "nota": "validación del catálogo en los tests" }]
     },
     {
       "id": "funcion-entre-dominios",
+      "tipo": "crear",
       "accion": "Función que cruza dominios",
-      "pasos": [{ "agentes": ["sesion"], "nota": "plan corto" }, { "agentes": ["constructores"], "nota": "por dominio" }, { "agentes": ["revisor", "qa"] }]
+      "pasos": [{ "agentes": ["sesion"], "nota": "plan corto" }, { "agentes": ["constructores"] }, { "agentes": ["revisor", "qa"] }]
     },
-    { "id": "bug", "accion": "Bug", "pasos": [{ "agentes": ["revisor"], "nota": "diagnóstico y test que lo reproduce" }, { "agentes": ["constructor"] }, { "agentes": ["revisor"] }] },
+    { "id": "endpoint-nuevo", "tipo": "crear", "accion": "Endpoint nuevo en `api/`", "pasos": [{ "agentes": ["constructor"] }, { "agentes": ["seguridad", "revisor"] }] },
+    {
+      "id": "bug",
+      "tipo": "arreglar",
+      "accion": "Bug",
+      "pasos": [{ "agentes": ["revisor"], "nota": "diagnóstico y test que lo reproduce" }, { "agentes": ["constructor"] }, { "agentes": ["revisor"] }]
+    },
+    {
+      "id": "migrar-a-tokens",
+      "tipo": "mejorar",
+      "accion": "Migrar una pantalla a tokens",
+      "pasos": [{ "agentes": ["diseno"] }, { "agentes": ["qa"] }],
+      "medida": "violaciones de lint-tokens-base antes y después"
+    },
+    {
+      "id": "dato-en-varias-capas",
+      "tipo": "mejorar",
+      "accion": "Dato que vive en varias capas (base, catálogo, constantes)",
+      "pasos": [{ "agentes": ["auditor-datos"], "nota": "mapa" }, { "agentes": ["datos"] }, { "agentes": ["auditor-datos"] }],
+      "medida": "capas en las que vive el dato antes y después"
+    },
+    {
+      "id": "reducir-cableado",
+      "tipo": "mejorar",
+      "accion": "Reducir el cableado de una tabla",
+      "pasos": [{ "agentes": ["auditor-datos"], "nota": "qué ficheros" }, { "agentes": ["constructor"] }, { "agentes": ["revisor"] }],
+      "medida": "ficheros que nombran la tabla antes y después"
+    },
     {
       "id": "lento-o-caro",
+      "tipo": "mejorar",
       "accion": "Algo va lento o cuesta de más",
-      "pasos": [{ "agentes": ["constructor"], "nota": "mide antes; lola si es el bot" }, { "agentes": ["revisor"], "nota": "exige la medida de después" }]
+      "pasos": [{ "agentes": ["constructor"], "nota": "mide antes; `lola` si es el bot" }, { "agentes": ["revisor"], "nota": "exige la medida de después" }],
+      "medida": "milisegundos o dólares antes y después"
     },
     {
       "id": "refactor-monolito",
+      "tipo": "mejorar",
       "accion": "Refactor de un monolito",
-      "pasos": [{ "agentes": ["sesion"], "nota": "plan por pasos" }, { "agentes": ["constructor"], "nota": "por pasos" }, { "agentes": ["revisor"], "nota": "en cada paso" }]
+      "pasos": [{ "agentes": ["sesion"], "nota": "plan por pasos" }, { "agentes": ["constructor"], "nota": "por pasos" }, { "agentes": ["revisor"], "nota": "en cada paso" }],
+      "medida": "líneas del monolito y tests en verde antes y después"
     },
-    { "id": "endpoint-nuevo", "accion": "Endpoint nuevo en `api/`", "pasos": [{ "agentes": ["constructor"] }, { "agentes": ["seguridad", "revisor"] }] },
-    { "id": "ci-permisos-hooks", "accion": "CI, permisos, hooks, ramas, secretos", "pasos": [{ "agentes": ["gobierno"] }] },
+    {
+      "id": "ci-permisos-hooks",
+      "tipo": "operar",
+      "accion": "CI, permisos, hooks, ramas, secretos",
+      "pasos": [
+        { "agentes": ["gobierno"] },
+        { "agentes": ["revisor"], "opcional": [{ "agente": "seguridad", "si": "toca secretos o permisos", "bandera": "toca_secretos_o_permisos" }] }
+      ],
+      "irreversible": false
+    },
     {
       "id": "desplegar-produccion",
+      "tipo": "operar",
       "accion": "Desplegar a producción",
-      "pasos": [{ "agentes": ["gobierno"] }, { "opcional": [{ "agente": "evaluador", "si": "cambia el bot" }] }],
-      "cierra_con": "OK de una persona"
+      "pasos": [{ "agentes": ["gobierno"] }, { "agentes": ["revisor"], "opcional": [{ "agente": "evaluador", "si": "cambia el bot", "bandera": "cambia_el_bot" }] }],
+      "cierra_con": "OK de una persona",
+      "irreversible": true
     },
-    { "id": "revision-periodica", "accion": "Revisión periódica", "pasos": [{ "agentes": ["seguridad", "auditor-datos", "evaluador", "gobierno"], "nota": "planos" }] }
+    {
+      "id": "revision-periodica",
+      "tipo": "auditar",
+      "accion": "Revisión periódica",
+      "pasos": [{ "agentes": ["seguridad", "auditor-datos", "evaluador", "gobierno"], "nota": "planos" }],
+      "mide_con": ["gobierno"]
+    }
   ]
 }

@@ -25,7 +25,8 @@ import { ALCANCES_FALLO } from "./flujo.mjs";
 import { CAMPOS_ENCARGO, ESCALONES_AUTOMATICOS, GRUPOS, MAX_ENCARGOS_POR_FONDO, TIPOS_ACCION, debeReabrir, faltas, porGrupo } from "./issues.mjs";
 import { CATALOGO as MECANISMOS } from "./mecanismos.mjs";
 import { RIESGOS } from "./normas.mjs";
-import { CATALOGO, TOPE_RONDAS, presupuestoDe } from "./presupuestos.mjs";
+import { CATALOGO, COMPLEJIDADES, TOPE_RONDAS, presupuestoDe } from "./presupuestos.mjs";
+import { SUBTIPOS, TIPOS } from "./tiposDeEncargo.mjs";
 
 // ── Vocabularios cerrados ─────────────────────────────────────────────────────
 
@@ -150,6 +151,9 @@ export const TIPOS_CAMPO_ENCARGO = {
   verificacion: { tipo: "ruta" },
   hecho_cuando: { tipo: "texto" },
   ficheros: { tipo: "texto" },
+  tipo_encargo: { tipo: "vocab", valores: Object.keys(TIPOS) },
+  subtipo: { tipo: "vocab", valores: SUBTIPOS.map((t) => t.id) },
+  complejidad: { tipo: "vocab", valores: Object.keys(COMPLEJIDADES) },
 };
 
 // ── Leer la ficha ─────────────────────────────────────────────────────────────
@@ -600,12 +604,16 @@ export function validarEncargos(encargos, estado) {
     const escalon = escalonDe(e.mecanismo);
     const faltan = CAMPOS_ENCARGO.filter((c) => {
       if (c.clave === "por_que_no_mas_alto") return escalon !== null && escalon !== BARRERAS[0] && !Object.hasOwn(e, c.clave);
+      // Los campos del N1 del encargo (`desde`) solo se exigen a los creados desde su día; sin fecha, no se exigen.
+      if (c.desde) return Boolean(h.createdAt) && String(h.createdAt).slice(0, 10) >= c.desde && !Object.hasOwn(e, c.clave);
       return c.obligatorio === true && !Object.hasOwn(e, c.clave);
     }).map((c) => c.clave);
     if (faltan.length) {
       todosLeidos = false;
       dice("encargo-incompleto", `#${n} no rellena: ${faltan.join(", ")}`);
     }
+    const subtipo = SUBTIPOS.find((t) => t.id === e.subtipo);
+    if (subtipo && Object.hasOwn(e, "tipo_encargo") && subtipo.tipo !== e.tipo_encargo) dice("encargo-subtipo", `#${n}: el subtipo «${subtipo.id}» es de tipo «${subtipo.tipo}» y el encargo dice «${e.tipo_encargo}»`);
     if (Object.hasOwn(e, "juez") && Object.hasOwn(e, "constructor") && e.juez === e["constructor"]) dice("encargo-juez", `#${n}: quien construye no juzga (constructor y juez son el mismo)`);
     if (e.tipo_accion === "preventivo" && ESCALONES_AUTOMATICOS.includes(escalon)) hayPreventivo = true;
   }

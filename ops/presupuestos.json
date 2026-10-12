@@ -1,11 +1,12 @@
 {
   "$comentario": "Catálogo de presupuestos del triaje (#339, fase D del plan #334): cuánto esfuerzo se dedica a un fallo según su alcance y su tipo de causa. Es la única fuente: /orquestar la lee con `npm run presupuesto -- <alcance> <causa>` (scripts/presupuesto.mjs) y la regla rondas-excedidas de la ficha del fondo (scripts/lib/fondos.mjs) toma de aquí el tope de rondas. Lógica y vocabulario en scripts/lib/presupuestos.mjs; lo vigila ops/presupuestos.test.js. Se resuelve así: el valor del alcance, y si la causa lo sobrescribe en `por_causa`, el de la causa. Repo público (#300): cifras y jueces, nada más.",
   "version": 1,
-  "actualizado": "2026-10-09",
+  "actualizado": "2026-10-12",
   "plan": 334,
   "especificacion": 339,
   "notas_campos": {
     "minutos_orientativos": "Esfuerzo de UN FONDO: la suma de los minutos activos de las sesiones de todos sus encargos (sesiones en paralelo suman; no es el tiempo de calendario ni el de un encargo suelto). Es lo que compara npm run fabrica -- --recalibrar, con la mediana de esos totales por fondo.",
+    "por_complejidad": "La complejidad de un ENCARGO (#640; vocabulario COMPLEJIDADES de scripts/lib/presupuestos.mjs): cuántos jueces como mínimo y qué parte del pipeline de su subtipo se lanza (ninguno: lo hace la sesión; minimo: un constructor y el juez mínimo; completo: todos los pasos del subtipo). Se junta con el alcance en scripts/lib/tiposDeEncargo.mjs sin copiar nada; calcularla desde el diff es de E2 (#641).",
     "rondas_max": "Rondas de constructor y juez del fondo, tal como las apunta el campo rondas de su ficha."
   },
   "valores_iniciales": true,
@@ -39,6 +40,11 @@
       "rondas_max": 2,
       "minutos_orientativos": 60
     }
+  },
+  "por_complejidad": {
+    "trivial": { "jueces_min": 0, "pipeline": "ninguno" },
+    "normal": { "jueces_min": 1, "pipeline": "minimo" },
+    "grande": { "jueces_min": 2, "pipeline": "completo" }
   },
   "por_causa": {
     "modelo-datos": { "jueces_obligatorios": ["auditor-datos"] },

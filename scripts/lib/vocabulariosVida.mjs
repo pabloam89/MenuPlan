@@ -52,6 +52,8 @@ import { FORMAS as FORMAS_EXCEPCION, RAZONES as RAZONES_EXCEPCION } from "./exce
 import { RESULTADOS_NORMA } from "./medicionNormas.mjs";
 import { leerPrecedencia } from "./precedencia.mjs";
 import { VEREDICTOS_RUIDO } from "./ruido.mjs";
+import { COMPLEJIDADES, PIPELINES } from "./presupuestos.mjs";
+import { textosDeBanderas, textosDeSubtipos, textosDeTipos } from "./tiposDeEncargo.mjs";
 import { VOCABULARIOS as PRODUCTO } from "../../src/lib/vocabularios.js";
 
 export const RUTA_VOCABULARIOS = "ops/vocabularios-vida.json";
@@ -93,6 +95,13 @@ export const VOCABULARIOS = {
   // Por qué una excepción de un PR no cuenta, y lo que pasó con una norma en una línea `norma: <id> resultado: …` (#621).
   "pr.excepcion_razon": { fichero: "scripts/lib/excepciones.mjs", textos: conTexto(RAZONES_EXCEPCION) },
   "normas.resultado": { fichero: "scripts/lib/medicionNormas.mjs", textos: conTexto(RESULTADOS_NORMA) },
+  // Los tipos de encargo (#640): la única lista está en ops/tipos-de-encargo.json (tipos, subtipos y banderas) y en
+  // ops/presupuestos.json (la complejidad y su pipeline); sus lectores, tiposDeEncargo.mjs y presupuestos.mjs.
+  "encargo.tipo": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeTipos() },
+  "encargo.subtipo": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeSubtipos() },
+  "encargo.bandera": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeBanderas() },
+  "encargo.complejidad": { fichero: "scripts/lib/presupuestos.mjs", textos: conTexto(COMPLEJIDADES) },
+  "encargo.pipeline": { fichero: "scripts/lib/presupuestos.mjs", textos: conTexto(PIPELINES) },
   // El registro de entidades (#566): sus valores van a ops/entidades.json y a ops/entidades-sujetos.json.
   "entidades.axis": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(AXES) },
   "entidades.registry": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(REGISTRIES) },

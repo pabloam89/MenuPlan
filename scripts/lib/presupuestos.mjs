@@ -20,8 +20,9 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
+import { JUECES } from "./agentes.mjs";
 import { ALCANCES_FALLO, DIAGNOSTICAN } from "./flujo.mjs";
-import { GRUPOS } from "./issues.mjs";
+import { COMPLEJIDADES, GRUPOS } from "./issues.mjs";
 
 /** Las causas de `causa:` (issues.mjs), sin copiarlas. */
 export const CAUSAS = Object.keys(GRUPOS.causa.valores);
@@ -32,10 +33,20 @@ export const TOPE_RONDAS = 2;
 
 /**
  * Los jueces que se pueden exigir: los agentes con «Tipo: juez» de
- * .claude/agents/. Un test lo cruza con la carpeta, así que un juez nuevo
- * obliga a añadirlo aquí.
+ * .claude/agents/. La lista sale de agentes.mjs (una sola fuente, #640): aquí
+ * solo se re-exporta.
  */
-export const JUECES = ["auditor-datos", "evaluador", "qa", "revisor", "seguridad"];
+export { JUECES };
+
+/** La complejidad de un encargo (issues.mjs, #640): los números de cada una están en `por_complejidad` de ops/presupuestos.json. */
+export { COMPLEJIDADES };
+
+/** Qué parte del pipeline de un subtipo lanza cada complejidad. */
+export const PIPELINES = {
+  ninguno: "La sesión lo hace sin subagentes",
+  minimo: "Un constructor y el juez mínimo del tipo",
+  completo: "Todos los pasos del subtipo",
+};
 
 /** Rangos admitidos de cada cifra: [mínimo, máximo], enteros. */
 export const RANGOS = {
@@ -117,6 +128,18 @@ export function problemas(catalogo) {
         if (new Set(js).size !== js.length) p.push(`juez: la causa ${causa} repite un juez`);
       }
     }
+  }
+
+  // La complejidad de un encargo (#640): una fila por valor del vocabulario, jueces crecientes, pipeline del vocabulario.
+  const cx = catalogo?.por_complejidad ?? {};
+  if (JSON.stringify(Object.keys(cx)) !== JSON.stringify(Object.keys(COMPLEJIDADES))) p.push(`complejidad: «por_complejidad» tiene que cubrir ${Object.keys(COMPLEJIDADES).join(", ")} (en ese orden) y cubre ${Object.keys(cx).join(", ")}`);
+  let anterior = -1;
+  for (const [c, b] of Object.entries(cx)) {
+    for (const k of Object.keys(b ?? {})) if (!["jueces_min", "pipeline"].includes(k)) p.push(`complejidad: ${c} tiene un campo desconocido «${k}»`);
+    if (!entero(b?.jueces_min) || b.jueces_min < 0 || b.jueces_min > RANGOS.jueces_min[1]) p.push(`complejidad: ${c} «jueces_min» tiene que ser un entero entre 0 y ${RANGOS.jueces_min[1]}`);
+    else if (b.jueces_min < anterior) p.push(`complejidad: ${c} «jueces_min» (${b.jueces_min}) es menor que el de la complejidad anterior (${anterior})`);
+    else anterior = b.jueces_min;
+    if (!(b?.pipeline in PIPELINES)) p.push(`complejidad: ${c} «pipeline» «${b?.pipeline}» está fuera de ${Object.keys(PIPELINES).join(", ")}`);
   }
 
   // Todas las celdas se resuelven y ninguna pasa del tope ni se queda sin jueces suficientes.
