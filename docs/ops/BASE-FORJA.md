@@ -64,7 +64,7 @@ Propuesta de seis valores cerrados. Las cuatro primeras ya existen como `concept
 
 El orden de las dos metas nuevas es una propuesta mía: entre coste y velocidad, para que reducir intervenciones nunca debilite la seguridad. Falta decidirlo.
 
-«0 % de intervención humana evitable» se puede medir solo si existe el evento `intervencion_humana` con su campo `evitable`. Eso lo propone `docs/entidades/analisis/agentes.md` (decisiones 2 y 3) y es de otra línea; sin él la meta de la base queda declarada pero sin cifra. Es la regla «ninguna cifra sin pregunta».
+«0 % de intervención humana evitable» se mide con el evento `intervencion_humana`, que **ya existe** en `.claude/hooks/eventos.mjs` (`EVENTOS`, con `quien`, `motivo`, `entidad_exigida` y `evitable`) y se describe en `docs/ops/CONTRATO-FACTORIA.md`. Hoy lo escriben dos puntos: la guardia al preguntar y `pendientes.mjs` al frenar por una decisión sin issue. **Falta para tener la cifra completa**: no registra el `!` de Pablo ni `--pablo`, porque instrumentarlos exige tocar `.claude/settings.json`, que es ampliar permisos (decisión de Pablo). Mientras tanto la cifra es un mínimo, como dice el propio contrato. Cada meta lleva su cifra: es la regla «ninguna cifra sin pregunta».
 
 ### 3.4 Pasos con nombre
 
@@ -89,11 +89,13 @@ No hace falta vocabulario nuevo: `accion` ya tiene siete valores y las normas ya
 |---|---|---|---|---|---|
 | construir | 20 | 4 | 76 | 35 (25) | an-evals 10, casa-design-system 9, casa-lola-regla 9 |
 | juzgar | 22 | 5 | 76 | 34 (25) | casa-principios-datos 11, casa-plantilla-agente 8, gg-estandar 6 |
-| medir | 6 | 4 | 30 | 9 (4) | an-evals 13, casa-lola-regla 6 |
-| documentar | 6 | 6 | 25 | 16 (6) | casa-plantilla-agente 4 |
-| diagnosticar | 4 | 4 | 21 | 8 (5) | sre-troubleshooting 6, sre-postmortem 5 |
+| medir | 6 | 4 | 30 | 9 (4) | an-evals 13, casa-lola-regla 6, casa-claude 3 |
+| documentar | 8 | 7 | 29 | 16 (6) | casa-plantilla-agente 6, casa-estilo 4, casa-agente-qa 2 |
+| diagnosticar | 4 | 4 | 21 | 8 (5) | sre-troubleshooting 6, sre-postmortem 5, an-evals 3 |
 | operar | 6 | 2 | 16 | 11 (9) | casa-claude 2, gh-protected-branches 2, owasp-secrets 2 |
-| decidir | 2 | 1 | 7 | 4 (2) | casa-principios-datos 3 |
+| decidir | 3 | 2 | 9 | 5 (2) | casa-claude 3, casa-principios-datos 3, casa-plantilla-agente 1 |
+
+Salida de `node scripts/base-forja-medir.mjs tareas` (las tareas suman 69). La columna «Reglas» cuenta, por tipo de tarea, las propias de cada tarea más las de sus tareas comunes: una regla común que usan varias tareas se cuenta en cada una, por eso las siete filas suman 257 y no las 162 propias (más 19 comunes) de §6.3. «Agentes» es el número de agentes distintos con tareas de ese tipo.
 
 «Constructor → generación de código» corresponde a `construir` (20 tareas, solo de constructores). `juzgar` es solo de jueces (22 de 22). Los demás tipos mezclan constructores y jueces.
 
@@ -129,10 +131,10 @@ Las otras acepciones de la palabra no se tocan: la entrada y la salida estándar
 | Palabra | Usos en la prosa de las zonas | Como unidad exigible |
 |---|---|---|
 | criterio / criterios | 75 + 53 = 128 en 29 ficheros (36 en `docs/ops/FORJA.md`, que se regenera) | 16 usos en frases como «criterios de la forja» o «de calidad» |
-| regla / reglas | 350 + 139 = 489 en 57 ficheros | 43 usos en frases como «regla de la casa» (28) o «reglas propias» (13) |
-| norma / normas | 175 + 82 | ya es la unidad |
+| regla / reglas | 355 + 143 = 498 en 58 ficheros | 43 usos en frases como «regla de la casa» (28) o «reglas propias» (13) |
+| norma / normas | 180 + 87 | ya es la unidad |
 
-Retirar `criterio` entero es mecánico pero toca 128 usos, de los que unos 112 son castellano corriente («criterio de parada»). Retirar `regla` entera toca 489 y no es razonable. De ahí que se proponga retirar `criterio` y dejar `regla` como el fichero de `.claude/rules/` (decisión pendiente 2 del informe).
+Retirar `criterio` entero es mecánico pero toca 128 usos, de los que unos 112 son castellano corriente («criterio de parada»). Retirar `regla` entera toca 498 y no es razonable. De ahí que se proponga retirar `criterio` y dejar `regla` como el fichero de `.claude/rules/` (decisión pendiente 2 del informe).
 
 ### 6.2 Los 75 criterios
 
@@ -169,7 +171,7 @@ Resultado esperado: de 183 normas se pasaría a un máximo de 439 (183 + 75 + 18
 |---|---|---|
 | La guardia (`.claude/hooks/avisos-guardia.mjs`, campo `codigo`) | 42 avisos, **27 normas distintas** (lista exacta al final del informe de `normas`) | el id de esas 27 es estable sí o sí |
 | Skills (`metadata.normas`) | 48 normas distintas | ídem |
-| Marcas `<!-- norma:id -->` | 24 marcas, 17 normas, 13 ficheros, sin contar los placeholders `id` e `inventada` de dos tests (con ellos salía 28/18/14) | `node scripts/base-forja-medir.mjs normas` (líneas «marcas») |
+| Marcas `<!-- norma:id -->` | 24 marcas, 17 normas, 13 ficheros, sin contar los placeholders `id` e `inventada` de dos tests (con ellos salía 28/18/14). Solo cuenta marcas cerradas (`<!-- norma:id -->`) cuyo id es de una norma de `ops/normas.json`, y lee los ficheros de texto versionados (`.md`, `.json`, `.mjs`, `.js`, `.jsx`, `.yml`) fuera de `src/data/` y de los generados `docs/PRINCIPIOS.md`, `docs/ops/NORMAS.md`, `docs/ops/ESTANDARES.md`, `ops/normas.json` y `ops/estandares-agentes.json`, de las carpetas de principios (`ops/principios/principios/` y `ops/principios-producto/principios/`) y de este documento y su script | `node scripts/base-forja-medir.mjs normas` (líneas «marcas») |
 | Eventos (`norma: <id>`) y la línea `Excepción: <id>` del PR | 3 ficheros de hooks que escriben el id | un id desaparecido rompe el conteo |
 | Cualquier otro fichero | 142 normas se citan por id fuera de los catálogos; **41 no las cita nadie** | los 183 ids se congelan igual: más simple que decidir caso a caso |
 
@@ -317,7 +319,7 @@ Recuento: 3 + 4 + 2 + 6 = 15.
 | `ops/glosario-dominios.test.js` | `dominio` cerrado, invariante «solo añade», dominios que declara cada forja | `problemasDeGlosario` |
 | `ops/glosario-mapeo.test.js` | relación por clase, entidad existente, artefacto sin entidad con motivo | `ops/entidades.json` |
 | frases del glosario | «estándar de cada tipo» y las frases de criterio y regla fallan como sinónimos de `plantilla` y `norma` | `ops/glosario.test.js` tal como está |
-| métrica de la meta | cuando exista el evento `intervencion_humana`, la cifra de evitables por encargo | otra línea |
+| métrica de la meta | que la cifra de `intervencion_humana` evitables por encargo (`npm run fabrica`) esté registrada en `ops/metricas.json` con su pregunta y su lector; el evento ya existe | otra línea, hasta que se registren `!` y `--pablo` |
 
 Cada test nuevo se ve fallar una vez antes de creerlo.
 
