@@ -25,7 +25,9 @@ import { ALCANCES_FALLO } from "./flujo.mjs";
 import { CAMPOS_ENCARGO, ESCALONES_AUTOMATICOS, GRUPOS, MAX_ENCARGOS_POR_FONDO, TIPOS_ACCION, debeReabrir, faltas, porGrupo } from "./issues.mjs";
 import { CATALOGO as MECANISMOS } from "./mecanismos.mjs";
 import { RIESGOS } from "./normas.mjs";
-import { CATALOGO, TOPE_RONDAS, presupuestoDe } from "./presupuestos.mjs";
+import { CATALOGO, COMPLEXITIES, TOPE_RONDAS, presupuestoDe } from "./presupuestos.mjs";
+import { AGENTES, JUECES } from "./agentes.mjs";
+import { SUBTYPES, TYPES } from "./tiposDeEncargo.mjs";
 
 // ── Vocabularios cerrados ─────────────────────────────────────────────────────
 
@@ -54,7 +56,8 @@ export const ESTADOS_CON_DIAGNOSTICO = ["diagnosticado", "plan", "en-curso", "en
  * principal. Un test (fondos.test.js) lo cruza con la carpeta: si nace un agente
  * y no se añade aquí, falla.
  */
-export const CAPAS_AGENTE = ["auditor-datos", "datos", "diseno", "evaluador", "gobierno", "lola", "qa", "revisor", "seguridad", "sesión"];
+/** Los agentes de .claude/agents/ (agentes.mjs, una sola fuente) y la sesión principal. */
+export const CAPAS_AGENTE = [...Object.keys(AGENTES), "sesión"];
 
 /** Barrera = escalón de la escalera de durabilidad (scripts/lib/escalas.mjs), del más al menos duradero. */
 export const BARRERAS = ESCALONES;
@@ -146,10 +149,13 @@ export const TIPOS_CAMPO_ENCARGO = {
   clase: { tipo: "texto" },
   depende_de: { tipo: "lista" },
   constructor: { tipo: "vocab", valores: CAPAS_AGENTE },
-  juez: { tipo: "vocab", valores: CAPAS_AGENTE },
+  juez: { tipo: "vocab", valores: JUECES },
   verificacion: { tipo: "ruta" },
   hecho_cuando: { tipo: "texto" },
   ficheros: { tipo: "texto" },
+  assignment_type: { tipo: "vocab", valores: Object.keys(TYPES) },
+  subtype: { tipo: "vocab", valores: SUBTYPES.map((t) => t.id) },
+  complexity: { tipo: "vocab", valores: Object.keys(COMPLEXITIES) },
 };
 
 // ── Leer la ficha ─────────────────────────────────────────────────────────────
@@ -600,12 +606,16 @@ export function validarEncargos(encargos, estado) {
     const escalon = escalonDe(e.mecanismo);
     const faltan = CAMPOS_ENCARGO.filter((c) => {
       if (c.clave === "por_que_no_mas_alto") return escalon !== null && escalon !== BARRERAS[0] && !Object.hasOwn(e, c.clave);
+      // Los campos del N1 del encargo (`desde`) solo se exigen a los creados desde su día; sin fecha, no se exigen.
+      if (c.desde) return Boolean(h.createdAt) && String(h.createdAt).slice(0, 10) >= c.desde && !Object.hasOwn(e, c.clave);
       return c.obligatorio === true && !Object.hasOwn(e, c.clave);
     }).map((c) => c.clave);
     if (faltan.length) {
       todosLeidos = false;
       dice("encargo-incompleto", `#${n} no rellena: ${faltan.join(", ")}`);
     }
+    const subtipo = SUBTYPES.find((t) => t.id === e.subtype);
+    if (subtipo && Object.hasOwn(e, "assignment_type") && subtipo.type !== e.assignment_type) dice("encargo-subtipo", `#${n}: el subtipo «${subtipo.id}» es de tipo «${subtipo.type}» y el encargo dice «${e.assignment_type}»`);
     if (Object.hasOwn(e, "juez") && Object.hasOwn(e, "constructor") && e.juez === e["constructor"]) dice("encargo-juez", `#${n}: quien construye no juzga (constructor y juez son el mismo)`);
     if (e.tipo_accion === "preventivo" && ESCALONES_AUTOMATICOS.includes(escalon)) hayPreventivo = true;
   }

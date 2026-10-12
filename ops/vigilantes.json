@@ -5,9 +5,9 @@
     {
       "id": "tipos-de-encargo",
       "tests": ["ops/tipos-de-encargo.test.js"],
-      "mira": ["ops/tipos-de-encargo.json", ".claude/commands/orquestar.md", ".claude/agents/*.md"],
-      "porque": "El JSON de tipos de encargo y la tabla «Qué pipeline» de /orquestar dicen lo mismo, y cada agente nombrado existe en .claude/agents; tocar uno de los tres sin los otros rompe el panel de la factoría, que lee el JSON.",
-      "evidencia": "#557 (revisor: el cruce solo miraba nombres de agente)"
+      "mira": ["ops/tipos-de-encargo.json", ".claude/commands/orquestar.md", ".claude/agents/*.md", "scripts/lib/tiposDeEncargo.mjs", "scripts/lib/agentes.mjs", "ops/presupuestos.json", "ops/estandares-agentes.json"],
+      "porque": "Los cinco tipos de encargo con sus 17 subtipos, el presupuesto y la lista de jueces se unen: la tabla «Qué pipeline» de /orquestar se genera del JSON, cada agente nombrado existe en .claude/agents y tiene tarea con estándar, ningún tipo se queda sin juez y la lista de jueces sale de las cabeceras de los agentes; tocar una pieza sin las otras rompe el panel de la factoría, que lee el JSON.",
+      "evidencia": "#557 (revisor: el cruce solo miraba nombres de agente); #640 (los tipos se unen al presupuesto)"
     },
     {
       "id": "procesos-ocultos",

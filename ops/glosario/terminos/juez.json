@@ -2,7 +2,7 @@
   "termino": "juez",
   "estado": "activo",
   "clase": "rol",
-  "definicion": "Un agente sin Edit ni Write que juzga el trabajo de otro: revisor, qa, evaluador, seguridad o auditor-datos.",
+  "definicion": "Un agente sin Edit ni Write que juzga el trabajo de otro y lleva «Tipo: juez» en su ficha de .claude/agents/.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
     "todas"
