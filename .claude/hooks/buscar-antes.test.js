@@ -176,7 +176,7 @@ describe("la guardia añade el «ya apuntado» a sus denegaciones (no llegan a P
     const issues = [issue(401, "[caso] La guardia bloquea el push a main hecho por una sesión", "push a main negado por la guardia")];
     escribirIndice(construirIndice(issues), join(dir, "indice.json"));
     const orden = { session_id: "g1", cwd: repo, tool_name: "Bash", tool_input: { command: "git push origin main" } };
-    const lanza = (d) => spawnSync(process.execPath, [GUARDIA], { input: JSON.stringify(orden), encoding: "utf8", timeout: 20000, env: { ...process.env, MENUPLAN_BUSCAR_DIR: d, CLAUDE_PROJECT_DIR: repo } });
+    const lanza = (d) => spawnSync(process.execPath, [GUARDIA], { input: JSON.stringify(orden), encoding: "utf8", timeout: 20000, env: { ...process.env, MENUPLAN_BUSCAR_DIR: d, CLAUDE_PROJECT_DIR: repo, MENUPLAN_FABRICA_DIR: mkdtempSync(join(tmpdir(), "buscar-fabrica-")) } });
     const con = JSON.parse(lanza(dir).stdout).hookSpecificOutput;
     expect(con.permissionDecision).toBe("deny");
     expect(con.permissionDecisionReason).toMatch(/^\[guardia\]/);

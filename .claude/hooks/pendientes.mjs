@@ -457,10 +457,11 @@ if (esPrincipal) {
       writeFileSync(marca, new Date().toISOString());
       process.stdout.write(JSON.stringify({ decision: "block", reason: RECORDATORIO }));
       frenado = true;
-      // Dejar una decisión o un pendiente es pasarle la pelota a una persona (#652): queda como intervención humana.
+      // Dejar una decisión o un pendiente sin issue es pasarle la pelota a una persona (#652). Queda como intervención
+      // `evitable: si`: lo que se mide es el olvido del agente (no registrar la decisión), no la decisión, que sigue siendo de la persona.
       try {
         const { registrarEvento } = await import("./eventos.mjs");
-        registrarEvento({ evento: "intervencion_humana", nombre: "decision", motivo: "decision", entidad_exigida: "pendientes-a-issue", evitable: "no", fuente: "pendientes", sesion: entrada.session_id, cwd: entrada.cwd });
+        registrarEvento({ evento: "intervencion_humana", nombre: "decision", motivo: "decision", entidad_exigida: "pendientes-a-issue", evitable: "si", fuente: "pendientes", sesion: entrada.session_id, cwd: entrada.cwd });
       } catch {
         // a propósito: el registro es una ayuda; un fallo suyo no puede cambiar el freno que ya salió
       }

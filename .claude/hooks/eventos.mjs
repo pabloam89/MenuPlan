@@ -18,11 +18,13 @@
  * eventos recientes salían con `actor: null`; 3) el usuario de git de la carpeta (`pablo` o `alvaro`);
  * 4) `desconocido`. El nombre real nunca se anota: solo la palabra del vocabulario.
  *
+ * El actor es una métrica, no una autorización: ninguna regla ni permiso puede depender de él.
+ *
  * `intervencion_humana` (#652): una vez que una persona tiene que intervenir. Lleva además
  * `quien` (ACTORES: la persona a la que se le pide, que es el usuario de git del PC aunque la
  * sesión vaya con la identidad de la App; `desconocido` si no se lee), `motivo` (MOTIVOS_INTERVENCION), `entidad_exigida` (el id de la norma de
  * ops/normas.json que exige a la persona) y `evitable` (EVITABLE: `si` cuando el paso humano
- * vino de un fallo de la propia comprobación y no de una decisión). Solo lo escriben los puntos que ya
+ * vino de un fallo de la propia comprobación o de un olvido de la sesión, y no de una decisión que hiciera falta). Solo lo escriben los puntos que ya
  * existían: la guardia al pedir permiso (`intervencionDeAviso`) y pendientes.mjs al dejar una decisión.
  *
  * Eventos (vocabulario cerrado, EVENTOS): `skill_cargada` (skill-abierta.mjs),

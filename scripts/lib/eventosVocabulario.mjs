@@ -29,7 +29,7 @@ export const MOTIVOS_INTERVENCION = Object.keys(DEF_MOTIVOS_INTERVENCION);
 
 /** ¿Se habría podido evitar el paso humano? */
 export const DEF_EVITABLE = {
-  si: "vino de un fallo de la propia comprobación (no pudo leer git o la red), no de una decisión",
+  si: "vino de un fallo de la propia comprobación (no pudo leer git o la red) o de un olvido de la sesión (dejó una decisión sin issue), no de una decisión que hiciera falta",
   no: "hacía falta una persona de verdad",
 };
 export const EVITABLE = Object.keys(DEF_EVITABLE);

@@ -138,6 +138,7 @@ const TABLA = [
   ["tipos-de-encargo", ".claude/agents/x.md", "ops/tipos-de-encargo.test.js"],
   ["principios-y-uniones", "ops/principios/principios/x.json", "ops/principios.test.js"],
   ["principios-y-uniones", "ops/normas.json", "ops/uniones.test.js"],
+  ["tests-sin-registro-real", "scripts/un-test-nuevo.test.js", ".claude/hooks/eventos.test.js"],
   ["zonas-del-repo", "ops/zonas.json", "ops/zonas.test.js"],
   ["zonas-del-repo", "scripts/un-script-nuevo.mjs", "ops/zonas.test.js"],
   ["zonas-del-repo", "un-fichero-nuevo-en-la-raiz.md", "ops/zonas.test.js"],

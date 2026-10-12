@@ -2,7 +2,7 @@
   "$comentario": "Zonas del repo (#652, línea 3 del programa factoría/proyecto): cada fichero del repo cae en UNA zona. «factoria» es el proceso (hooks, ops, skills de oficio, scripts de flujo); «producto» es HoMenu (app, bot, catálogo, base, imágenes); «mixto» sirve a los dos o es la puerta entre ambos (CLAUDE.md, package.json, la guardia, el CI de tests). Resolución, de más a menos fuerte: 1) «excepciones» (ruta exacta), 2) «patrones» (expresión regular sobre la ruta, la primera que casa), 3) «prefijos» (el más largo). Sin regla no hay zona y ops/zonas.test.js falla: un fichero nuevo obliga a decidir. «tope_mixto» solo baja. «medidas» es el registro de la cifra «ficheros por zona»; la actual sale de `npm run zonas-proyecto`. La clasificación es por nombre y por la lectura de algunas cabeceras, no fichero a fichero: se corrige moviendo una regla, nunca borrando un fichero. Lectores: scripts/zonas-proyecto.mjs (la cifra) y ops/zonas.test.js (la vigilancia).",
   "version": 1,
   "zonas": ["factoria", "producto", "mixto"],
-  "tope_mixto": 49,
+  "tope_mixto": 52,
   "prefijos": [
     { "prefijo": "public/", "zona": "producto" },
     { "prefijo": "src/", "zona": "producto" },
@@ -74,6 +74,6 @@
   },
   "medidas": [
     { "fecha": "2026-10-12", "origen": "antes: estimación del informe, por nombre", "factoria": 596, "producto": 2052, "mixto": 74, "sin_zona": 0, "total": 2722, "nota": "informe de gobierno sobre origin/staging 3164ba0b; ±30 ficheros por la clasificación por nombre" },
-    { "fecha": "2026-10-12", "origen": "despues: reglas de ops/zonas.json", "factoria": 597, "producto": 2099, "mixto": 49, "sin_zona": 0, "total": 2745, "nota": "con los 6 ficheros nuevos de este PR (591 / 2099 / 49 sobre los 2739 de origin/staging)" }
+    { "fecha": "2026-10-12", "origen": "despues: reglas de ops/zonas.json", "factoria": 608, "producto": 2099, "mixto": 49, "sin_zona": 0, "total": 2756, "nota": "tras fusionar origin/staging el 12 oct; sobre los 2739 de antes de este PR: 591 / 2099 / 49. La cifra viva sale de npm run zonas-proyecto" }
   ]
 }

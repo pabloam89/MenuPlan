@@ -230,7 +230,7 @@
       "desconocido": "no se pudo saber: sin marca del arranque y sin usuario de git legible"
     },
     "eventos.evitable": {
-      "si": "vino de un fallo de la propia comprobación (no pudo leer git o la red), no de una decisión",
+      "si": "vino de un fallo de la propia comprobación (no pudo leer git o la red) o de un olvido de la sesión (dejó una decisión sin issue), no de una decisión que hiciera falta",
       "no": "hacía falta una persona de verdad"
     },
     "eventos.motivo_intervencion": {

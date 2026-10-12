@@ -508,7 +508,7 @@ describe("intervencion_humana en los puntos que ya existían (#652)", () => {
     expect(JSON.parse(r.stdout).decision).toBe("block");
     const iv = leer(dir).filter((x) => x.evento === "intervencion_humana");
     expect(iv).toHaveLength(1);
-    expect(iv[0]).toMatchObject({ nombre: "decision", motivo: "decision", entidad_exigida: "pendientes-a-issue", evitable: "no", fuente: "pendientes" });
+    expect(iv[0]).toMatchObject({ nombre: "decision", motivo: "decision", entidad_exigida: "pendientes-a-issue", evitable: "si", fuente: "pendientes" });
   });
 
   it("el arranque anota la identidad que consiguió (la marca que leen los demás hooks) con la misma función que prueba este fichero", () => {
@@ -520,5 +520,26 @@ describe("intervencion_humana en los puntos que ya existían (#652)", () => {
     const arranque = readFileSync(join(AQUI, "arranque.mjs"), "utf8");
     expect(arranque).toMatch(/aplicarIdentidad\(\{\s*registrar:/);
     expect(arranque).toContain("anotarActorDeLinea(dirFabrica(), entrada.session_id, linea)");
+  });
+});
+
+describe("ningún test escribe en el eventos.jsonl real (#652)", () => {
+  it("todo test que lanza la guardia, pendientes o skill-abierta como proceso fija MENUPLAN_FABRICA_DIR", () => {
+    const RAIZ = join(AQUI, "..", "..");
+    const lanzan = /(spawnSync|execFileSync)\([^)]*(guardia|pendientes|skill-abierta|GUARDIA|hook|HOOK)/s;
+    const ficheros = execFileSync("git", ["ls-files", "-z", "--", "*.test.js"], { cwd: RAIZ, encoding: "utf8" }).split("\0").filter(Boolean);
+    // Lanza buscar-antes.mjs, que no registra eventos; solo nombra la guardia en un comentario.
+    const NO_REGISTRAN = ["scripts/buscarAntesRonda3.test.js"];
+    const sin = ficheros.filter((f) => {
+      if (NO_REGISTRAN.includes(f)) return false;
+      const texto = readFileSync(join(RAIZ, f), "utf8");
+      return /(guardia|pendientes|skill-abierta)\.mjs/.test(texto) && lanzan.test(texto) && !texto.includes("MENUPLAN_FABRICA_DIR");
+    });
+    expect(sin, "estos tests lanzan un hook que registra eventos sin fijar MENUPLAN_FABRICA_DIR: escribirían en el registro real").toEqual([]);
+  });
+
+  it("el detector ve un test que lanza la guardia sin carpeta temporal", () => {
+    const malo = 'const r = spawnSync(process.execPath, [join(RAIZ, "guardia.mjs")], { input: "{}" });';
+    expect(/(spawnSync|execFileSync)\([^)]*(guardia|pendientes|skill-abierta|GUARDIA|hook|HOOK)/s.test(malo)).toBe(true);
   });
 });

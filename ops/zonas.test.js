@@ -15,6 +15,8 @@ import { RUTA_ZONAS, ZONAS, clasificar, compilar, contarPorZona, leerZonas, line
  *  3. el fichero de reglas está bien formado y ninguna regla sobra (cada una decide algo);
  *  4. la cifra «ficheros por zona» está registrada con su «antes» y su «después».
  */
+/** Cuántos ficheros mixtos más que los reales puede dejar el tope. */
+const HOLGURA_MAX = 3;
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const DATOS = leerZonas(RAIZ);
 const C = compilar(DATOS);
@@ -27,10 +29,10 @@ describe("ops/zonas.json: cada fichero tiene su zona", () => {
     expect(CUENTA.factoria + CUENTA.producto + CUENTA.mixto).toBe(CUENTA.total);
   });
 
-  it("lo mixto no supera el tope, y el tope solo baja", () => {
+  it("lo mixto no supera el tope (con una holgura fija de unos pocos ficheros) y el tope solo baja", () => {
     expect(CUENTA.mixto, "hay más ficheros mixtos que el tope: decide si son de la factoría o del producto, o sube el tope con su motivo en el PR").toBeLessThanOrEqual(DATOS.tope_mixto);
-    // Un tope muy por encima de lo real no vigila nada: no puede sobrar más de 5 ficheros.
-    expect(DATOS.tope_mixto - CUENTA.mixto, "baja tope_mixto a la cifra real").toBeLessThanOrEqual(5);
+    // La holgura es fija y pequeña: un PR ajeno que añade un mixto no rompe, pero el tope no queda lejos de lo real.
+    expect(DATOS.tope_mixto - CUENTA.mixto, "el tope deja demasiada holgura: bájalo").toBeLessThanOrEqual(HOLGURA_MAX);
   });
 
   it("el tope de lo mixto no sube respecto a origin/staging (se baja, no se sube)", () => {
@@ -39,14 +41,29 @@ describe("ops/zonas.json: cada fichero tiene su zona", () => {
     expect(DATOS.tope_mixto, `tope_mixto subió de ${ref.tope_mixto} a ${DATOS.tope_mixto}: separa ficheros en vez de subir el tope`).toBeLessThanOrEqual(ref.tope_mixto);
   });
 
-  it("el fichero de reglas está bien formado y ninguna regla sobra", () => {
+  it("el fichero de reglas está bien formado", () => {
     expect(problemasDeReglas(DATOS)).toEqual([]);
-    const sobran = [
-      ...(DATOS.prefijos ?? []).map((p) => `prefijo:${p.prefijo}`),
-      ...(DATOS.patrones ?? []).map((p) => `patron:${p.re}`),
-      ...Object.keys(DATOS.excepciones ?? {}).map((r) => `excepcion:${r}`),
-    ].filter((k) => !CUENTA.usadas.has(k));
-    expect(sobran, "reglas que no deciden ningún fichero (bórralas)").toEqual([]);
+  });
+
+  it("una regla que no decide ningún fichero AVISA; solo falla si la deja huérfana este PR (no estaba en staging)", () => {
+    const claves = (d) => [
+      ...(d.prefijos ?? []).map((p) => `prefijo:${p.prefijo}`),
+      ...(d.patrones ?? []).map((p) => `patron:${p.re}`),
+      ...Object.keys(d.excepciones ?? {}).map((r) => `excepcion:${r}`),
+    ];
+    const huerfanas = claves(DATOS).filter((k) => !CUENTA.usadas.has(k));
+    if (huerfanas.length) console.warn(`[zonas] reglas que no deciden ningún fichero (bórralas cuando puedas): ${huerfanas.join(" | ")}`);
+    const ref = jsonEnReferenciaAvisando(RAIZ, REFERENCIA(), RUTA_ZONAS, "reglas huérfanas");
+    if (!ref) return; // sin referencia solo se avisa
+    const deAntes = new Set(claves(ref));
+    expect(huerfanas.filter((k) => !deAntes.has(k)), "reglas nuevas de este PR que no deciden nada (bórralas)").toEqual([]);
+  });
+
+  it("la lógica de las huérfanas: una regla de antes sin ficheros no rompe, una nueva sí", () => {
+    const antes = new Set(["prefijo:a/"]);
+    const nuevas = (huerfanas) => huerfanas.filter((k) => !antes.has(k));
+    expect(nuevas(["prefijo:a/"])).toEqual([]);
+    expect(nuevas(["prefijo:b/"])).toEqual(["prefijo:b/"]);
   });
 
   it("la cifra «ficheros por zona» está registrada antes y después", () => {
