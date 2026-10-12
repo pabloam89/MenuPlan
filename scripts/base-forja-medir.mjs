@@ -5,16 +5,16 @@
  * red, ni claves, ni cambia ops/normas.json ni ops/glosario/. Cada cifra del documento sale de aquí.
  *
  *   node scripts/base-forja-medir.mjs                 todas las secciones
- *   node scripts/base-forja-medir.mjs glosario        una sola: glosario | normas | reglas | tareas | conexion
+ *   node scripts/base-forja-medir.mjs glosario        una sola: glosario | dominios | mapeo | normas | reglas | tareas | conexion
  *
  * Es una herramienta de diseño: cuando el PR del glosario y de las normas se fusione y las cifras ya no
  * tengan sentido, se borra con el documento. Lo que cuenta del glosario usa el propio `medir` de
  * scripts/lib/glosario.mjs (la misma prosa que ve ops/glosario.test.js: sin código, sin «», sin historia).
  */
 import { execFileSync } from "node:child_process";
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { leerCatalogo } from "./lib/catalogos.mjs";
 import { ficherosDe, leerGlosario, medir, patronDe, plano, prosaDeJson, prosaDeMarkdown } from "./lib/glosario.mjs";
@@ -23,8 +23,11 @@ import { leerForja } from "./lib/forja.mjs";
 import { leerEstandares, normasPorConsulta, reglasDelCatalogo, tareasDe } from "./lib/estandaresAgentes.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
+const SECCIONES = ["glosario", "dominios", "mapeo", "normas", "reglas", "tareas", "conexion"];
 const pedida = process.argv[2] ?? "todo";
 const quiere = (s) => pedida === "todo" || pedida === s;
+/** Los dos ficheros de esta propuesta: no se cuentan a sí mismos en ninguna cifra. */
+export const PROPIOS = new Set(["docs/ops/BASE-FORJA.md", "scripts/base-forja-medir.mjs"]);
 const linea = (c, v) => console.log(`${c}: ${v}`);
 const tabla = (filas) => filas.forEach((f) => console.log(`  ${f.join(" | ")}`));
 const cuenta = (xs, f) => xs.reduce((o, x) => ((o[f(x)] = (o[f(x)] ?? 0) + 1), o), Object.create(null));
@@ -33,7 +36,7 @@ const orden = (o) => Object.entries(o).sort((a, b) => b[1] - a[1] || String(a[0]
 const ficherosGit = () =>
   execFileSync("git", ["ls-files"], { cwd: RAIZ, encoding: "utf8", maxBuffer: 1e9 })
     .split("\n")
-    .filter((f) => f && /\.(m?js|jsx|json|md|yml|yaml)$/.test(f) && !f.startsWith("src/data/") && !f.includes("package-lock"));
+    .filter((f) => f && /\.(m?js|jsx|json|md|yml|yaml)$/.test(f) && !f.startsWith("src/data/") && !f.includes("package-lock") && !PROPIOS.has(f));
 const texto = (f) => {
   try {
     return statSync(join(RAIZ, f)).size < 2e6 ? readFileSync(join(RAIZ, f), "utf8") : "";
@@ -86,6 +89,7 @@ function prosaDeZonas(g) {
   for (const pats of Object.values(g.zonas)) for (const p of pats) for (const r of ficherosDe(RAIZ, p)) rutas.add(r);
   const salida = [];
   for (const ruta of [...rutas].sort()) {
+    if (PROPIOS.has(ruta)) continue;
     const t = texto(ruta);
     if (!t) continue;
     const trozos = ruta.endsWith(".json") ? prosaDeJson(t).map((x) => x.texto) : [prosaDeMarkdown(t)];
@@ -130,7 +134,7 @@ function seccionGlosario() {
   };
   console.log("usos que tocaría cada cambio en las zonas del test (medidos con medir() de scripts/lib/glosario.mjs):");
   for (const [nombre, frases] of Object.entries(conjuntos)) {
-    const { medida, detalle } = medir(RAIZ, { ...g, terminos: [hipotetico(nombre, frases)] });
+    const { medida, detalle } = medir(RAIZ, { ...g, terminos: [hipotetico(nombre, frases)] }, { ficheros: (pat) => ficherosDe(RAIZ, pat).filter((f) => !PROPIOS.has(f)) });
     const total = detalle.length;
     const porFrase = cuenta(detalle, (d) => d.sinonimo);
     const ficheros = Object.keys(medida).length;
@@ -223,8 +227,11 @@ function seccionNormas() {
   for (const c of citadasNormas) for (const z of new Set(c.fs.map(zonaDe))) porZona[z] = (porZona[z] ?? 0) + 1;
   linea("normas citadas por id, por zona (nº de normas distintas)", orden(porZona).map(([k, v]) => `${k} ${v}`).join(", "));
   linea("normas que ningún fichero fuera de los catálogos cita por id", citadasNormas.filter((c) => !c.fs.length).length);
-  const marcas = [...textos].flatMap(([f, t]) => [...t.matchAll(/<!--\s*norma:([\w-]+)\s*-->/g)].map((m) => ({ f, id: m[1] })));
-  linea("marcas <!-- norma:id --> en el repo", `${marcas.length} (${new Set(marcas.map((m) => m.id)).size} normas, en ${new Set(marcas.map((m) => m.f)).size} ficheros)`);
+  const idsNormas = new Set(normas.map((n) => n.id));
+  const marcasTodas = [...textos].flatMap(([f, t]) => [...t.matchAll(/<!--\s*norma:([\w-]+)\s*-->/g)].map((m) => ({ f, id: m[1] })));
+  const marcas = marcasTodas.filter((m) => idsNormas.has(m.id));
+  linea("marcas <!-- norma:id --> de normas que existen", `${marcas.length} (${new Set(marcas.map((m) => m.id)).size} normas, en ${new Set(marcas.map((m) => m.f)).size} ficheros)`);
+  linea("marcas descartadas por no ser el id de una norma (placeholders)", [...new Set(marcasTodas.filter((m) => !idsNormas.has(m.id)).map((m) => m.id))].join(", ") || "ninguna");
   linea("metadata.normas de las skills", `${new Set([...textos].filter(([f]) => /^\.claude\/skills\/[^/]+\/SKILL\.md$/.test(f)).flatMap(([, t]) => (/normas:\s*\[?([^\n\]]*)/.exec(t)?.[1] ?? "").split(/[,\s]+/).filter(Boolean))).size} normas distintas`);
   const eventos = [...textos].filter(([f]) => f.startsWith(".claude/hooks/eventos")).length;
   linea("ficheros de eventos que escriben «norma: <id>»", eventos);
@@ -362,11 +369,11 @@ function seccionConexion() {
 
 /** Propuesta de campo `dominio` (vocabulario cerrado) para cada término de hoy. base = lenguaje de la factoría que vale en cualquier proyecto. */
 export const DOMINIO_PROPUESTO = {
-  base: ["agente","juez","constructor","revisor","dueño","persona","sesión","orquestador","vigilante","comprobar","verificar","validar","probar","medir","registrar","revisar","juzgar","auditar","ensayar","aplicar","fusionar","podar","retirar","diagnosticar","norma","principio","criterio","regla","estándar","plantilla","vocabulario","ficha","control","test","evidencia","hallazgo","informe","métrica","evento","eval","entidad","eje","zona","módulo","falta","aviso","defecto","fallo","tarea de agente","skill","capa","caso de prueba","juicio de skill","hook","guardia","gateway","decisión"],
-  ops: ["rama","pr","issue","caso","fondo","encargo","causa","causa de escape","clase","arreglo","aprendizaje","barrera","mecanismo","despliegue","entorno","producción","staging","servicio","bóveda","clave","identidad","carpeta de trabajo","carpeta principal","tarea"],
+  base: ["agente","juez","constructor","revisor","dueño","persona","sesión","orquestador","vigilante","comprobar","verificar","validar","probar","medir","registrar","revisar","juzgar","auditar","ensayar","aplicar","fusionar","podar","retirar","diagnosticar","norma","principio","criterio","regla","estándar","plantilla","vocabulario","ficha","control","test","evidencia","hallazgo","informe","métrica","evento","eval","entidad","eje","zona","módulo","falta","aviso","defecto","fallo","tarea de agente","skill","capa","caso de prueba","juicio de skill","hook","guardia","gateway","decisión","comprobación","proyecto"],
+  ops: ["rama","pr","issue","caso","fondo","encargo","causa","causa de escape","clase","arreglo","aprendizaje","barrera","mecanismo","despliegue","entorno","producción","staging","servicio","bóveda","clave","identidad","carpeta de trabajo","carpeta principal","tarea","plano","recurso","repositorio","tipo de encargo","workflow"],
   datos: ["migración","tabla","fuente de datos"],
   producto: ["persona de la casa"],
-  diseno: [],
+  diseno: ["componente de diseño","patrón de diseño","perfil de diseño","sistema de diseño","token de diseño"],
 };
 
 function seccionDominios() {
@@ -403,14 +410,17 @@ function seccionMapeo() {
   }
   const sin = activos.filter((t) => t.clase === "artefacto" && !usados.has(t.termino)).map((t) => t.termino);
   linea("artefactos que ninguna entidad nombra", `${sin.length}: ${sin.join(", ")}`);
-  linea("entidades sin término", ent.filter((e) => !e.term).map((e) => `${e.id}(${e.axis})`).join(", "));
+  linea("entidades sin término", ent.filter((e) => !e.term).map((e) => `${e.id}(${e.scope})`).join(", "));
 }
 
-if (quiere("glosario")) seccionGlosario();
-if (quiere("mapeo")) seccionMapeo();
-if (quiere("dominios")) seccionDominios();
-if (quiere("normas")) seccionNormas();
-if (quiere("reglas")) seccionReglas();
-if (quiere("tareas")) seccionTareas();
-if (quiere("conexion")) seccionConexion();
-void existsSync;
+const SECCION = { glosario: seccionGlosario, dominios: seccionDominios, mapeo: seccionMapeo, normas: seccionNormas, reglas: seccionReglas, tareas: seccionTareas, conexion: seccionConexion };
+
+/** Solo corre como programa: importarlo (un test, otro script) no ejecuta nada. */
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  if (pedida !== "todo" && !SECCIONES.includes(pedida)) {
+    console.error(`Uso: node scripts/base-forja-medir.mjs [${SECCIONES.join("|")}]
+Sin argumento corre todas las secciones. «${pedida}» no es una sección.`);
+    process.exit(2);
+  }
+  for (const nombre of SECCIONES) if (quiere(nombre)) SECCION[nombre]();
+}

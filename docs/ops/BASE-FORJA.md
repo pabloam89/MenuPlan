@@ -6,7 +6,7 @@ Línea 2 del programa #652. **Solo diseño**: no cambia `ops/normas.json`, `ops/
 
 1. Hay una **base** que toda forja hereda, con tres partes: redacción, metas y fuente de industria. Los pasos se llaman, no se numeran: `base` → `forja` de la familia → `plantilla` por tipo → `pieza`.
 2. **Estándar** pasa a significar solo la ejecución de una tarea de un agente. La forja de estándares tiene una entrada por tipo de tarea; el tipo de tarea es la `accion` que ya existe (siete valores).
-3. La unidad exigible se llama **norma**, con ámbito y acción. Los 75 criterios de la forja y las 175 reglas de estándar pasan a ser normas; los 183 ids de hoy no se tocan.
+3. La unidad exigible se llama **norma**, con ámbito y acción. Los 75 criterios de la forja y las 181 reglas de estándar pasan a ser normas; los 183 ids de hoy no se tocan.
 4. El glosario tiene dos pisos: la base y los dominios. Basta un campo `dominio`; carpetas, cuando haya un segundo proyecto.
 5. Cada término se mapea a 0..N entidades con una relación que fija su `clase`. Un repaso propio, la skill `higiene-de-vocabulario`, nace cuando existan campo y mapeo.
 
@@ -18,11 +18,11 @@ Línea 2 del programa #652. **Solo diseño**: no cambia `ops/normas.json`, `ops/
 | Principios | 111 (56 propios, 40 de producto, 15 de redacción); 108 citados por alguna norma | ídem |
 | Principios con una sola norma | **75** (35 producto, 25 propios, 15 redacción); 3 sin norma | ídem |
 | Criterios de la forja | 75 (formal 43, material 16, subjetiva 16); 0 citan principio; 0 chocan de id con una norma | `base-forja-medir.mjs reglas` |
-| Tareas de agente | 66 de 9 agentes (5 jueces, 4 constructores); 16 con más de un ámbito | `base-forja-medir.mjs tareas` |
-| Reglas de estándar | 156 propias + 19 en tareas comunes = 175; 143 con control `juicio`, 32 con fichero | `base-forja-medir.mjs reglas` |
+| Tareas de agente | 69 de 10 agentes (5 jueces, 5 constructores); 16 con más de un ámbito | `base-forja-medir.mjs tareas` |
+| Reglas de estándar | 162 propias + 19 en tareas comunes = 181; 143 con control `juicio`, 38 con fichero | `base-forja-medir.mjs reglas` |
 | Fuentes del catálogo de estándares | 66 (49 externas) | `ops/estandares-agentes.json` |
-| Términos del glosario | 85 activos, todos con `aplica_a: ["todas"]`, 80 con relaciones | `base-forja-medir.mjs dominios` |
-| Entidades | 41; 33 con término; las 8 sin término son verticales de producto | `base-forja-medir.mjs conexion` |
+| Términos del glosario | 97 activos, todos con `aplica_a: ["todas"]`, 80 con relaciones | `base-forja-medir.mjs dominios` |
+| Entidades | 60 (54 activas, 6 retiradas); 48 con término; las 12 sin término son verticales de producto | `base-forja-medir.mjs conexion` |
 | Campos de las 5 fichas de la forja | 44; solo 3 se llaman como un término | ídem |
 
 Dos usos de «nivel» chocan hoy: el 0/1/2 de la forja (pieza meta, plantilla, pieza) y el nivel 1/2 de las pruebas de skills (forma en el CI, medida con modelo). `base-forja-medir.mjs glosario` cuenta 46 usos de «nivel 0/1/2» en 13 ficheros de las zonas; no se ha separado a mano cuántos son de cada sentido.
@@ -75,7 +75,7 @@ Sin números negativos ni escala nueva. El campo `nivel` (0, 1, 2) se sustituye 
 | base | lo común a toda forja | disperso (3.1) | nada |
 | forja | lo que hace buena a una pieza de una familia | `ops/forja/` (skills, estándares); la de estándares aún sin pieza meta | base |
 | plantilla | el molde por tipo | 7 tipos de skill en `.claude/plantillas-skill/`; el tipo de tarea (4.1) | forja |
-| pieza | una skill, una tarea de un agente | 15 skills, 66 tareas | plantilla |
+| pieza | una skill, una tarea de un agente | 15 skills, 69 tareas | plantilla |
 
 Regla de herencia: cada paso declara `hereda` (el paso de arriba) y solo puede endurecer. Una norma que la base marca DEBE no pasa a CONVIENE en una forja.
 
@@ -101,13 +101,13 @@ No hace falta vocabulario nuevo: `accion` ya tiene siete valores y las normas ya
 
 | Elemento | Forja de tipo (plantilla) | Pieza: estándar de un agente en una tarea |
 |---|---|---|
-| Identidad | el tipo (`accion`) | agente + id de tarea (66 hoy) |
+| Identidad | el tipo (`accion`) | agente + id de tarea (69 hoy) |
 | Buenas prácticas | de 2 a 5, con la forma de `forma_practica` y una fuente `[F]` obligatoria | las hereda; no las repite |
 | Normas | las que tienen ese tipo en `acciones` (consulta) | las de sus ámbitos y su acción, por consulta; `normas` solo para citar una más |
 | Específico de la pieza | nada | `tarea`, `ambitos`, `origen`, `no_hace`, `rondas` |
 | Reglas propias | no | **desaparecen**: pasan a normas (sección 6) |
 
-Hoy las buenas prácticas están repartidas por ámbito dentro de las 175 reglas y no hay una por tipo. Las 3 rondas de investigación de la forja (buscar, contrastar, destilar) hay que hacerlas por tipo; no las he hecho. Como semilla, las fuentes más citadas de la tabla anterior, sin haber leído cada fuente.
+Hoy las buenas prácticas están repartidas por ámbito dentro de las 181 reglas y no hay una por tipo. Las 3 rondas de investigación de la forja (buscar, contrastar, destilar) hay que hacerlas por tipo; no las he hecho. Como semilla, las fuentes más citadas de la tabla anterior, sin haber leído cada fuente.
 
 ## 5. «Estándar» solo es la ejecución de una tarea de agente
 
@@ -129,10 +129,10 @@ Las otras acepciones de la palabra no se tocan: la entrada y la salida estándar
 | Palabra | Usos en la prosa de las zonas | Como unidad exigible |
 |---|---|---|
 | criterio / criterios | 75 + 53 = 128 en 29 ficheros (36 en `docs/ops/FORJA.md`, que se regenera) | 16 usos en frases como «criterios de la forja» o «de calidad» |
-| regla / reglas | 348 + 135 = 483 en 56 ficheros | 43 usos en frases como «regla de la casa» (28) o «reglas propias» (13) |
+| regla / reglas | 350 + 139 = 489 en 57 ficheros | 43 usos en frases como «regla de la casa» (28) o «reglas propias» (13) |
 | norma / normas | 175 + 82 | ya es la unidad |
 
-Retirar `criterio` entero es mecánico pero toca 128 usos, de los que unos 112 son castellano corriente («criterio de parada»). Retirar `regla` entera toca 483 y no es razonable. De ahí que se proponga retirar `criterio` y dejar `regla` como el fichero de `.claude/rules/` (decisión pendiente 2 del informe).
+Retirar `criterio` entero es mecánico pero toca 128 usos, de los que unos 112 son castellano corriente («criterio de parada»). Retirar `regla` entera toca 489 y no es razonable. De ahí que se proponga retirar `criterio` y dejar `regla` como el fichero de `.claude/rules/` (decisión pendiente 2 del informe).
 
 ### 6.2 Los 75 criterios
 
@@ -149,17 +149,17 @@ Cada criterio ya tiene casi los campos de una norma (nombre, sujeto, fuerza, exi
 | `principio` | `meta` | los 75 criterios no citan principio hoy; se les da la meta por defecto de su ámbito y se revisa |
 | `casos_calibracion`, `cumple`, `no_cumple` | igual | solo los 16 subjetivos |
 
-### 6.3 Las 175 reglas de estándar
+### 6.3 Las 181 reglas de estándar
 
 | Cuestión | Dato | Consecuencia |
 |---|---|---|
 | Ids | `kebab(nombre)`: 0 choques con normas o criterios; 1 nombre repetido (`sin-navegador-dicho`, 2 reglas) | prefijar solo ese caso con la tarea |
-| Tareas con más de un ámbito | 16 de 66; 42 reglas propias están en ellas | la norma tiene un solo ámbito: hay que elegir uno por regla |
-| Alcance al pasar de «esta tarea» a «ámbito × acción» | 18 reglas no llegarían a ninguna otra tarea; 138 llegarían a otras, con mediana 4 y máximo 12 (en el ámbito más estrecho) | falta un limitador: campo opcional `tareas` (lista de ids) que restringe la consulta |
+| Tareas con más de un ámbito | 16 de 69; 42 reglas propias están en ellas | la norma tiene un solo ámbito: hay que elegir uno por regla |
+| Alcance al pasar de «esta tarea» a «ámbito × acción» | 20 reglas no llegarían a ninguna otra tarea; 142 llegarían a otras, con mediana 4 y máximo 12 (en el ámbito más estrecho) | falta un limitador: campo opcional `tareas` (lista de ids) que restringe la consulta |
 | Parecido a una norma | 4 en `reglas_que_no_son_norma` y 15 citas explícitas | las parecidas se funden con su norma antes de migrar |
-| Control | 143 de 175 son `juicio` | quedan como normas con `control: juicio`; no empeora nada, pero tampoco mejora |
+| Control | 143 de 181 son `juicio` | quedan como normas con `control: juicio`; no empeora nada, pero tampoco mejora |
 
-Resultado esperado: de 183 normas se pasaría a un máximo de 433 (183 + 75 + 175), menos las que se fundan por parecidas.
+Resultado esperado: de 183 normas se pasaría a un máximo de 439 (183 + 75 + 181), menos las que se fundan por parecidas.
 
 ## 7. Plan de migración de las normas y los principios
 
@@ -169,7 +169,7 @@ Resultado esperado: de 183 normas se pasaría a un máximo de 433 (183 + 75 + 17
 |---|---|---|
 | La guardia (`.claude/hooks/avisos-guardia.mjs`, campo `codigo`) | 42 avisos, **27 normas distintas** (lista exacta al final del informe de `normas`) | el id de esas 27 es estable sí o sí |
 | Skills (`metadata.normas`) | 48 normas distintas | ídem |
-| Marcas `<!-- norma:id -->` | 28 marcas, 18 normas, 14 ficheros | ídem |
+| Marcas `<!-- norma:id -->` | 24 marcas, 17 normas, 13 ficheros, sin contar los placeholders `id` e `inventada` de dos tests (con ellos salía 28/18/14) | `node scripts/base-forja-medir.mjs normas` (líneas «marcas») |
 | Eventos (`norma: <id>`) y la línea `Excepción: <id>` del PR | 3 ficheros de hooks que escriben el id | un id desaparecido rompe el conteo |
 | Cualquier otro fichero | 142 normas se citan por id fuera de los catálogos; **41 no las cita nadie** | los 183 ids se congelan igual: más simple que decidir caso a caso |
 
@@ -196,7 +196,7 @@ Las normas pasan a llevar `meta` (seis valores, 3.3) en vez de `principio`. Hoy 
 | F2 | Base y pasos: `ops/forja/base.json`, `paso` en lugar de `nivel`, rename del apartado de la plantilla | `ops/base.test.js` |
 | F3 | Normas: campos nuevos (`meta`, `porque`, `fuente`, `origen_principio`, `tipos`, `tareas`) sin quitar nada | `ops/normas.test.js` + test de ids congelados |
 | F4 | Criterios → normas (75), sin cambiar ids | ídem, y `ops/forja.test.js` lee de normas |
-| F5 | Reglas de estándar → normas (175) y retirada de `reglas` en las tareas | `ops/estandares-agentes.test.js` y `ops/uniones.test.js` |
+| F5 | Reglas de estándar → normas (181) y retirada de `reglas` en las tareas | `ops/estandares-agentes.test.js` y `ops/uniones.test.js` |
 | F6 | Plegar los 40 principios y pasar a `meta` | `ops/principios.test.js`, `ops/precedencia.test.js` |
 
 Cada fase es reversible hasta fusionar; ninguna borra un id.
@@ -207,11 +207,11 @@ Cifras de «usos» = apariciones en la prosa de las zonas, medidas con `medir()`
 
 | Término | Definición actual | Definición nueva | Sinónimos prohibidos | Usos que toca |
 |---|---|---|---|---|
-| estándar | «El conjunto de criterios que dice qué es hacer bien una tarea de agente o un tipo de skill, con qué comprueba, qué no hace y su fuente.» | «El modo en que un agente ejecuta una tarea suya, que fija las normas que la rigen, con qué se comprueba, qué no hace y su fuente.» Nota: «El de un tipo de skill es la plantilla del tipo.» Relacionado: norma, tarea de agente, plantilla (sale criterio) | ninguno | 0 por sí mismo; los 7 van por plantilla |
+| estándar | «El conjunto de criterios que dice qué es hacer bien una tarea de agente o un tipo de skill, con qué comprueba, qué no hace y su fuente.» | «La ficha de una tarea de agente: qué es hacerla bien, con qué se comprueba, qué no hace y su fuente; las normas que la rigen no se guardan en ella, llegan por consulta de ámbito y acción.» (187 caracteres; `faltaDeForma` da `null`). Nota: «El de un tipo de skill es la plantilla del tipo.» Relacionado: norma, tarea de agente, plantilla (sale criterio). Conserva `en: standard` | ninguno | 0 por sí mismo; los 7 van por plantilla |
 | plantilla | «El molde de una forma común que se repite: la de skills, la de agentes, la del encargo y los formularios de issue.» | «El molde de una forma común que se repite y hereda de la base y de la forja de su familia: el de cada tipo de skill, el de agente, el del encargo y los formularios.» | los dos actuales y las nueve frases «estándar de cada tipo», «de un tipo», «del tipo», «de este tipo», «por tipo», «para cada tipo», «de los tipos», «por tipos», «estándares de los tipos» | 7 en zonas, 27 fuera |
 | norma | «Una obligación del proceso que está registrada en ops/normas.json, con quién la hace cumplir, su dureza y su test.» | «Una obligación exigible del proceso que declara su ámbito, su acción, su fuerza y su control y se registra una sola vez en ops/normas.json; absorbe al criterio y a la regla propia.» | las 11 frases «criterio de la forja», «criterios de la forja», «de calidad», «de juicio», «de skill», «de la skill», «de las skills»; y las 10 «regla propia», «reglas propias», «de la casa», «del estándar», «de un estándar», «de la forja» | 16 (criterio) + 43 (regla) |
-| criterio | «Una condición de calidad que lleva id, fuente y quién la vigila (un control o un juez).» | retirado, `pasa_a: norma` | su nombre pasa a prohibido de `norma` | 128 en 29 ficheros (36 en FORJA.md, que se regenera) |
-| regla | «Una condición concreta que hay que cumplir, escrita donde se aplica: un fichero de .claude/rules/, la guardia o un test.» | «Un fichero de .claude/rules/ que Claude Code carga al tocar una zona y que recuerda normas; no es una unidad exigible.» | se mantienen «directriz» y «pauta» | 0 (las 43 frases ya van por norma) |
+| criterio | «Una condición de calidad que lleva id, fuente y quién la vigila (un control o un juez).» | retirado, `pasa_a: norma`. **Solo a la vez o después de retirar la entidad `criterion`** (§10.3). Conserva `en: criterion` | su nombre pasa a prohibido de `norma` | 128 en 29 ficheros (36 en FORJA.md, que se regenera) |
+| regla | «Una condición concreta que hay que cumplir, escrita donde se aplica: un fichero de .claude/rules/, la guardia o un test.» | «Un fichero de .claude/rules/ que Claude Code carga al tocar una zona y que recuerda normas; no es una unidad exigible.» (la entidad `rule` ya está retirada en el registro) | se mantienen «directriz» y «pauta» | 0 (las 43 frases ya van por norma) |
 | principio | «Una razón de fondo que dice por qué se pide algo, con su fuente; vive en la lista única de ops/principios/ y de ella salen las normas.» | «Una razón de fondo del producto, con su fuente, que decide cómo se diseña algo para las familias; la de una norma de proceso es su porqué.» | ninguno | 0 |
 | tarea de agente | «Un tipo de trabajo que repite un agente, con su estándar, en ops/estandares-agentes.json.» | «Un tipo de trabajo que repite un agente, con su tipo de tarea, sus ámbitos y su estándar, en ops/estandares-agentes.json.» | ninguno | 0 |
 | control | «Una comprobación automática concreta con su código de vocabulario cerrado, que da falta, aviso o bien.» | sin cambio de texto; se anota que `norma.control` es el fichero que la ejecuta | ninguno | 0 (choque conocido, ver decisión pendiente en el análisis de conocimiento) |
@@ -240,7 +240,7 @@ Salen de la lista de pendientes del glosario por esto: `ámbito`, `acción`, `fu
 
 | Parte | Estado |
 |---|---|
-| Entidad → término | `ops/entidades.json` tiene `term` y `ops/entidades.test.js` lo comprueba: 33 de 41 (las 8 sin término son verticales) |
+| Entidad → término | `ops/entidades.json` tiene `term` y `ops/entidades.test.js` lo comprueba: 48 de 60 (las 12 sin término son verticales) |
 | Campo del molde → término | **0 vigilados**: de 44 campos de las fichas de la forja, 3 se llaman como un término. Al irse la ficha `criterio` quedan 36 |
 | Forja → término | **0**: ninguna forja nombra el suyo |
 
@@ -252,21 +252,21 @@ Piso 1: la base del glosario (qué es un término, la forma «un X que Y», esta
 
 Campo propuesto: `dominio`, de vocabulario cerrado (`base`, `ops`, `datos`, `producto`, `diseno`, y los proyectos que vengan). No es `aplica_a`, que sigue diciendo en qué zonas de ficheros se buscan los sinónimos.
 
-Cuenta propuesta (mi clasificación, a revisar):
+Cuenta propuesta (mi clasificación, a revisar; los 12 términos que entraron con #654 y #655 van así: componente, patrón, perfil, sistema y token de diseño a diseño; comprobación y proyecto a base; plano, recurso, repositorio, tipo de encargo y workflow a ops):
 
 | Dominio | Términos | Ejemplos |
 |---|---|---|
-| base | 57 | agente, juez, norma, principio, comprobar, hook, skill, vocabulario |
-| ops | 24 | rama, pr, issue, fondo, encargo, despliegue, staging, clave |
+| base | 59 | agente, juez, norma, principio, comprobar, hook, skill, vocabulario, comprobación, proyecto |
+| ops | 29 | rama, pr, issue, fondo, encargo, despliegue, plano, recurso, repositorio, tipo de encargo, workflow |
 | datos | 3 | migración, tabla, fuente de datos |
 | producto | 1 | persona de la casa |
-| diseño | 0 | aún no hay glosario de diseño |
+| diseño | 5 | componente, patrón, perfil, sistema y token de diseño |
 
 De las 138 relaciones entre términos, 24 cruzan de dominio. Cada forja declara `dominios` (la base va siempre).
 
 Invariante, con test (`ops/glosario-dominios.test.js`): un término de dominio no puede tener el nombre de uno de la base, ni el de un sinónimo prohibido de la base, ni una definición que el test de forma marque como choque. Puede estrechar con `amplio` hacia un término de la base. Nunca lo contrario.
 
-**¿Carpetas ya o basta el campo?** Basta el campo. Con 85 términos y un fichero por término ya partido (`ops/glosario/terminos/`), mover a subcarpetas no añade nada y no he comprobado si `componer` de `scripts/lib/catalogos.mjs` acepta subcarpetas de un catálogo con `$partida`. Se parte cuando un dominio pase de unos 100 términos o llegue el glosario de otro proyecto con su propio repo. El diseño de la familia de diseño (base → forja de diseño → tipos → subtipos opcionales → referencia concreta) es horizontal; HoMenu y el panel serían referencias de proyecto con `dominio: producto` o el propio.
+**¿Carpetas ya o basta el campo?** Basta el campo. Con 97 términos y un fichero por término ya partido (`ops/glosario/terminos/`), mover a subcarpetas no añade nada y no he comprobado si `componer` de `scripts/lib/catalogos.mjs` acepta subcarpetas de un catálogo con `$partida`. Se parte cuando un dominio pase de unos 100 términos o llegue el glosario de otro proyecto con su propio repo. El diseño de la familia de diseño (base → forja de diseño → tipos → subtipos opcionales → referencia concreta) es horizontal; HoMenu y el panel serían referencias de proyecto con `dominio: producto` o el propio.
 
 ## 10. Mapeo término → entidad
 
@@ -276,27 +276,35 @@ Cada término puede nombrar entre 0 y N entidades; la relación la fija su `clas
 
 | Clase del término | Relación | Términos | Los nombra hoy una entidad en `term` |
 |---|---|---|---|
-| artefacto | denota | 42 | 24 |
+| artefacto | denota | 54 | 39 |
 | campo | campo_de | 7 | 2 |
 | estado | valor_de | 3 | 0 |
 | rol | rol_de | 10 | 5 |
 | acción | acción_sobre | 16 | 0 |
 | lugar | ubicación_de | 7 | 2 |
 
-Test `ops/glosario-mapeo.test.js` (propuesto): la relación es la de la clase; la entidad existe; toda entidad no vertical tiene al menos un término; un artefacto sin entidad declara un motivo cerrado (`componente`, `salida`, `paso`, `meta`, `retirado`, `candidato`). El campo `term` de `entidades.json` queda como está hasta el registro v2.
+Test `ops/glosario-mapeo.test.js` (propuesto): la relación es la de la clase; la entidad existe; toda entidad no vertical tiene al menos un término; un artefacto sin entidad declara un motivo cerrado (`componente`, `salida`, `paso`, `meta`, `retirado`, `candidato`). El campo `term` de `entidades.json` queda como está. El registro ya no usa `axis`: usa `scope` (`horizontal`, `both`, `vertical`) y trae `family`, `level` y `status` (6 entidades retiradas); el mapeo lee `scope`.
 
-### 10.2 Primer caso: los 18 artefactos que ninguna entidad nombra
+### 10.2 Primer caso: los 15 artefactos que ninguna entidad nombra
 
-Lista comprobada con `base-forja-medir.mjs mapeo`: arreglo, capa, caso de prueba, control, criterio, defecto, entidad, estándar, evidencia, ficha, guardia, hallazgo, informe, juicio de skill, plantilla, tarea de agente, tarea, test.
+Lista comprobada con `node scripts/base-forja-medir.mjs mapeo` sobre staging con #654 y #655: arreglo, capa, caso de prueba, control, defecto, entidad, evidencia, ficha, guardia, hallazgo, informe, juicio de skill, plantilla, tarea, test. Eran 18: `criterio`, `estándar` y `tarea de agente` ya tienen entidad (`criterion`, `standard`, `agent-task`) en el registro.
 
 | Grupo | Términos | Propuesta |
 |---|---|---|
-| Deberían ser entidad (o nombrar una) | **tarea de agente**: la entidad `agent-task` (hijo del agente; en el análisis de agentes, 66 ids únicos); **estándar**: nombra la misma entidad, es su pieza; **guardia**: nombra `hook` (es un hook); **caso de prueba**: nombra `eval` (el de skill); **tarea**: nombra `session` (una sesión = una tarea); **criterio**: se retira y pasa a `norm` | `agent-task` es la única entidad nueva y es del registro v2 |
-| Son campo de otra entidad | **control**: campo de `norm` (cambiar su clase a campo); **ficha**: campo de `root-problem` y de `assignment` (dos entidades: el 0..N); **arreglo**: campo de `root-problem`; **evidencia**: campo de los juicios y los casos | cambiar la clase de cuatro términos |
-| Candidato a entidad | **hallazgo** y **juicio de skill**: el análisis de agentes dice que lo que sí es entidad es el juicio; hoy no hay registro | nombrar `judgment` cuando exista; mientras, motivo `candidato` |
+| Nombran una entidad que ya existe | **guardia**: `hook` (es un hook); **caso de prueba**: `eval` (el de skill); **tarea**: `session` (una sesión = una tarea) | 3 relaciones nuevas, ninguna entidad nueva |
+| Son campo de otra entidad | **control**: nombra `verification`, igual que «comprobación» (el 0..N lo permite); falta decidir si los dos términos se funden; **ficha**: campo de `root-problem` y de `assignment`; **arreglo**: campo de `root-problem`; **evidencia**: campo de los juicios y los casos | cambiar la clase de `ficha`, `arreglo` y `evidencia` a campo |
+| Candidato a entidad | **hallazgo** y **juicio de skill**: el análisis de agentes dice que lo que sí es entidad es el juicio; hoy no hay entidad `judgment` | nombrarla cuando exista; mientras, motivo `candidato` |
 | No son nada | **capa** (parte de una skill), **plantilla** (un paso de herencia), **informe** (salida efímera de un agente), **defecto** (salida de una comprobación), **test** (el fichero de un control), **entidad** (el concepto mismo) | motivo cerrado (`componente`, `paso`, `salida`, `meta`) |
 
-Recuento: 6 + 4 + 2 + 6 = 18.
+Recuento: 3 + 4 + 2 + 6 = 15.
+
+### 10.3 Lo que #654 cambia en este diseño
+
+- `agent-task` ya es entidad (término «tarea de agente»); su nota dice 66 tareas y hoy son 69 (`node scripts/base-forja-medir.mjs tareas`).
+- `criterion` es entidad (término «criterio») y `standard` también (término «estándar»); sus notas dejan abiertas las dos preguntas que este documento responde: fundir criterio con norma y pasar las reglas propias a normas.
+- `rule` está retirada (sustituida por `norm`); su término «regla» sigue activo y este diseño lo deja como el fichero de `.claude/rules/`.
+- `judge`, `deployment`, `learning`, `secret` y `vault` también están retiradas y sus términos siguen activos: el mapeo tiene que aceptar un término cuya entidad está retirada.
+- **Retirar el término «criterio» exige retirar antes o a la vez la entidad `criterion`.** Escenario local, no commiteado y ya revertido (`git checkout` de los dos ficheros): con `criterio.json` en estado retirado y `pasa_a: norma`, `npx vitest run ops/entidades.test.js` falla 2 tests (la entidad apunta a un término no activo y su `en` no coincide). Si además se retira la entidad (`status: retired`, `replaced_by: norm`), el test sigue fallando por siete problemas: una retirada no lleva lectores, su nombre «Criterio» queda como sinónimo prohibido, cuatro relaciones (`enforced_by verification`, `refers_to skill`, `refers_to standard`, `refers_to agent`) no admiten una entidad retirada, y además falla la lista de entidades obligatorias y hay que regenerar `docs/entidades/MAPA.md`. Ese cambio es de la línea del registro; aquí queda como dependencia de la fase F3.
 
 ## 11. Qué se automatiza con test
 
@@ -342,12 +350,14 @@ Casos de prueba (`casos.json`): tres que la cargan y tres de frontera.
 ## 13. NO COMPROBADO
 
 - Ninguna URL de fuente externa se ha abierto en esta sesión. La de Google SRE «Eliminating Toil» no está en el catálogo de fuentes: es la que propongo para la meta de intervención humana y hay que contrastarla.
-- La clasificación de los 85 términos en dominios y la de los 18 artefactos son mías; no las ha visto Pablo ni el revisor.
-- El reparto de «nivel 0/1/2» entre sus dos sentidos (solo el total, 46 usos).
+- La clasificación de los 97 términos en dominios y la de los 15 artefactos son mías; no las ha visto Pablo ni el revisor.
+- El reparto de «nivel 0/1/2» entre sus dos sentidos (solo el total: 46 usos en 13 ficheros, sin contar este documento).
 - Que `componer` de `scripts/lib/catalogos.mjs` acepte subcarpetas en un catálogo partido.
 - Que cambiar la definición de un término activo no choque con ningún otro test del glosario o de vocabularios (solo he leído `problemasDeVidaGlosario`).
 - Que las 27 normas de la guardia sean las únicas cuyo id lee un hook: he contado el campo `codigo` de `avisos-guardia.mjs` y la aparición literal del id en `.claude/hooks/`.
 - El comportamiento del campo `capa` frente a `veredicto` y a `problemasDeDureza` cuando un criterio pase a norma.
 - El orden de precedencia de las dos metas nuevas.
-- La cifra de «138 reglas que llegarían a otras tareas» supone que la regla pasa a un solo ámbito (el más estrecho) y la misma acción; no he simulado el efecto en `uniones.test.js`.
+- La cifra de «142 reglas que llegarían a otras tareas» supone que la regla pasa a un solo ámbito (el más estrecho) y la misma acción; no he simulado el efecto en `uniones.test.js`.
 - Cuántos términos nuevos pedirían los 36 campos de ficha sin término.
+- La definición nueva de «estándar» usa la palabra «ficha», que el glosario ya define como el bloque `fondo` o `encargo` de un issue (término `ficha`): hay un equívoco que habrá que resolver al aplicar (por ejemplo, ampliar la definición de `ficha`). No lo he probado contra `ops/glosario.test.js`.
+- La nota de la entidad `agent-task` dice 66 tareas; hoy son 69. Es del registro, no lo he tocado.
