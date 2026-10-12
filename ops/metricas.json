@@ -12,6 +12,7 @@
     "planos-medidos": "Que el nivel de cada plano sea el que se mide, no el que se declara",
     "fabrica-a-presupuesto": "Que el trabajo de cada fondo cueste lo presupuestado en tiempo, tokens y dinero",
     "guardia-proporcionada": "Que los hooks frenen lo que deben y no interrumpan de más",
+    "factoria-separable": "Que se pueda contar qué es de la factoría y qué es de cada proyecto, y quién actúa, para decidir con cifras si y cómo separarlos (#652)",
     "normas-vivas": "Que cada norma diga si salta, se cumple o se exceptúa, para saber cuáles sobran y cuáles se esquivan"
   },
   "lineas": [
@@ -460,6 +461,108 @@
           "menciona": "subtipo-uso subtype:"
         }
       ]
+    },
+    {
+      "firma": "actor-evento actor",
+      "emisores": [
+        "scripts/lib/fabrica.mjs"
+      ],
+      "campos": {
+        "actor": "estado",
+        "eventos": "metrica"
+      },
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": ".claude/commands/revision-issues.md",
+          "menciona": "fabrica"
+        }
+      ]
+    },
+    {
+      "firma": "proyecto-evento proyecto",
+      "emisores": [
+        "scripts/lib/fabrica.mjs"
+      ],
+      "campos": {
+        "proyecto": "estado",
+        "eventos": "metrica"
+      },
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": ".claude/commands/revision-issues.md",
+          "menciona": "fabrica"
+        }
+      ]
+    },
+    {
+      "firma": "intervencion-motivo motivo",
+      "emisores": [
+        "scripts/lib/fabrica.mjs"
+      ],
+      "campos": {
+        "motivo": "estado",
+        "intervenciones": "metrica"
+      },
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": ".claude/commands/revision-issues.md",
+          "menciona": "fabrica"
+        }
+      ]
+    },
+    {
+      "firma": "intervencion-humana total",
+      "emisores": [
+        "scripts/lib/fabrica.mjs"
+      ],
+      "campos": {
+        "total": "derivado",
+        "evitables": "metrica"
+      },
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": ".claude/commands/revision-issues.md",
+          "menciona": "fabrica"
+        }
+      ]
+    },
+    {
+      "firma": "zonas-proyecto zona",
+      "emisores": [
+        "scripts/lib/zonasProyecto.mjs"
+      ],
+      "campos": {
+        "zona": "estado",
+        "ficheros": "metrica"
+      },
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": "docs/ops/CONTRATO-FACTORIA.md",
+          "menciona": "zonas-proyecto zona"
+        }
+      ]
+    },
+    {
+      "firma": "zonas-proyecto total",
+      "emisores": [
+        "scripts/lib/zonasProyecto.mjs"
+      ],
+      "campos": {
+        "total": "derivado",
+        "sin_zona": "metrica"
+      },
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": "docs/ops/CONTRATO-FACTORIA.md",
+          "menciona": "zonas-proyecto total"
+        }
+      ]
     }
   ],
   "informes": {
@@ -488,6 +591,7 @@
     {
       "id": "fondos_sin_diagnostico",
       "objetivo": "flujo-cumplido",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántos fondos abiertos con encargos o ya diagnosticados no dicen su mecanismo y su causa de escape?",
       "emisor": "scripts/lib/cumplimiento.mjs",
       "sale_en": [
@@ -510,6 +614,7 @@
     {
       "id": "encargos_sin_juez",
       "objetivo": "flujo-cumplido",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántos encargos abiertos de un fondo con plan no tienen juez, o lo tienen igual que el constructor?",
       "emisor": "scripts/lib/cumplimiento.mjs",
       "sale_en": [
@@ -532,6 +637,7 @@
     {
       "id": "cerrados_sin_aprendizaje",
       "objetivo": "flujo-cumplido",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántos fondos cerrados como arreglados no dejaron su aprendizaje en un test, una skill o un catálogo?",
       "emisor": "scripts/lib/cumplimiento.mjs",
       "sale_en": [
@@ -554,6 +660,7 @@
     {
       "id": "reabiertos_clase_mal_definida",
       "objetivo": "flujo-cumplido",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántos fondos tienen un caso de no aguantó corto en las últimas cuatro semanas, porque el arreglo tapó casos y no la clase?",
       "emisor": "scripts/lib/cumplimiento.mjs",
       "sale_en": [
@@ -576,6 +683,7 @@
     {
       "id": "ciclos_sobre_presupuesto",
       "objetivo": "fabrica-a-presupuesto",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántos fondos abiertos llevan más rondas de constructor y juez que su tope del presupuesto?",
       "emisor": "scripts/lib/cumplimiento.mjs",
       "sale_en": [
@@ -598,6 +706,7 @@
     {
       "id": "fondos_abiertos",
       "objetivo": "flujo-cumplido",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántos fondos de la casa siguen abiertos, para ver si se dejan sin cerrar en vez de cerrarlos con su lección?",
       "emisor": "scripts/lib/cumplimiento.mjs",
       "sale_en": [
@@ -619,6 +728,7 @@
     {
       "id": "casos_puntuales_recientes",
       "objetivo": "flujo-cumplido",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántos casos se apuntaron como puntuales en las últimas cuatro semanas, para ver si un no aguantó se esconde como puntual?",
       "emisor": "scripts/lib/cumplimiento.mjs",
       "sale_en": [
@@ -640,6 +750,7 @@
     {
       "id": "skills_con_faltas",
       "objetivo": "skills-utiles",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántas skills tienen alguna falta de higiene que el nivel 1 negaría sin su lista de excepciones?",
       "emisor": "scripts/lib/saludSkills.mjs",
       "sale_en": [
@@ -662,6 +773,7 @@
     {
       "id": "skills_caducadas",
       "objetivo": "skills-utiles",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántas skills tienen su fecha de comprobación pasada de 90 días o sin poner?",
       "emisor": "scripts/lib/saludSkills.mjs",
       "sale_en": [
@@ -684,6 +796,7 @@
     {
       "id": "skills_medida_desactualizada",
       "objetivo": "skills-utiles",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántas skills tienen su última pasada de pago hecha con un texto o unos casos distintos de los de hoy?",
       "emisor": "scripts/lib/saludSkills.mjs",
       "sale_en": [
@@ -706,6 +819,7 @@
     {
       "id": "higiene_faltas",
       "objetivo": "skills-utiles",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántas faltas de higiene tiene cada skill que toca un PR o que se revisa?",
       "emisor": "scripts/lib/higieneSkills.mjs",
       "sale_en": [
@@ -736,6 +850,7 @@
     {
       "id": "higiene_avisos",
       "objetivo": "skills-utiles",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántos avisos de higiene tiene cada skill, para ver si las faltas bajan pasándose a avisos?",
       "emisor": "scripts/lib/higieneSkills.mjs",
       "sale_en": [
@@ -760,6 +875,7 @@
     {
       "id": "higiene_solape",
       "objetivo": "skills-utiles",
+      "proyecto": "factoria",
       "pregunta": "¿Cuánto se parece la descripción de una skill a la de su vecina más cercana?",
       "emisor": "scripts/lib/higieneSkills.mjs",
       "sale_en": [
@@ -784,6 +900,7 @@
     {
       "id": "criterios_por_origen",
       "objetivo": "skills-utiles",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántos criterios de la forja de cada skill vigila un control y cuántos quedan a juicio, juzgados o pendientes?",
       "emisor": "scripts/lib/juiciosSkills.mjs",
       "sale_en": [
@@ -820,6 +937,7 @@
     {
       "id": "criterios_por_estado",
       "objetivo": "skills-utiles",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántos criterios de cada skill cumple, no cumple, no le aplican o esperan juicio?",
       "emisor": "scripts/lib/juiciosSkills.mjs",
       "sale_en": [
@@ -852,6 +970,7 @@
     {
       "id": "skills_prueba_disparo",
       "objetivo": "skills-utiles",
+      "proyecto": "factoria",
       "pregunta": "¿En cuántos casos de una skill elige el modelo esa skill, y no otra, por su descripción?",
       "emisor": "scripts/skills-prueba.mjs",
       "sale_en": [
@@ -881,6 +1000,7 @@
     {
       "id": "skills_prueba_comprobaciones",
       "objetivo": "skills-utiles",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántas comprobaciones de los casos cumple la respuesta que da el modelo con la skill cargada?",
       "emisor": "scripts/skills-prueba.mjs",
       "sale_en": [
@@ -910,6 +1030,7 @@
     {
       "id": "skills_prueba_sin_correr",
       "objetivo": "skills-utiles",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántos casos de una pasada se quedaron sin correr por el tope o por un fallo, y no cuentan en la cifra?",
       "emisor": "scripts/skills-prueba.mjs",
       "sale_en": [
@@ -934,6 +1055,7 @@
     {
       "id": "skills_prueba_coste",
       "objetivo": "skills-utiles",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántos dólares costó medir una skill con modelos de pago?",
       "emisor": "scripts/skills-prueba.mjs",
       "sale_en": [
@@ -958,6 +1080,7 @@
     {
       "id": "skills_sin_uso_semana",
       "objetivo": "skills-utiles",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántas skills no se abrieron ninguna vez en la última semana?",
       "emisor": "scripts/lib/cumplimiento.mjs",
       "sale_en": [
@@ -982,6 +1105,7 @@
     {
       "id": "skills_candidatas_a_podar",
       "objetivo": "skills-utiles",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántas skills no se abrieron en 90 días, con registro suficiente para proponer podarlas?",
       "emisor": "scripts/lib/cumplimiento.mjs",
       "sale_en": [
@@ -1006,6 +1130,7 @@
     {
       "id": "glosario_excepciones",
       "objetivo": "vocabulario-estable",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántos usos de un sinónimo prohibido se admiten todavía como excepción, y cuántos ya se pueden bajar?",
       "emisor": "scripts/lib/glosarioCandidatos.mjs",
       "sale_en": [
@@ -1036,6 +1161,7 @@
     {
       "id": "glosario_candidatos",
       "objetivo": "vocabulario-estable",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántas palabras y pares de proceso se repiten sin estar en el glosario, y cuántos juicios suyos esperan un término o una regla?",
       "emisor": "scripts/lib/glosarioCandidatos.mjs",
       "sale_en": [
@@ -1069,6 +1195,7 @@
     {
       "id": "glosario_candidatos_revision",
       "objetivo": "vocabulario-estable",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántos candidatos a término quedan por juzgar en la revisión del glosario, y cuántas excepciones hay al lado?",
       "emisor": "scripts/glosario.mjs",
       "sale_en": [
@@ -1100,6 +1227,7 @@
     {
       "id": "glosario_medida",
       "objetivo": "vocabulario-estable",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántos sinónimos prohibidos hay hoy en el repo, cuántos son nuevos respecto a lo admitido y cuántos han bajado?",
       "emisor": "scripts/glosario.mjs",
       "sale_en": [
@@ -1126,6 +1254,7 @@
     {
       "id": "glosario_candidato_apariciones",
       "objetivo": "vocabulario-estable",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántas veces y en cuántos ficheros aparece cada palabra candidata a término del glosario?",
       "emisor": "scripts/lib/glosarioCandidatos.mjs",
       "sale_en": [
@@ -1151,6 +1280,7 @@
     {
       "id": "planos_desajustes",
       "objetivo": "planos-medidos",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántos planos tienen un nivel guardado que no cuadra con el que se mide hoy?",
       "emisor": "scripts/planos.mjs",
       "sale_en": [
@@ -1181,6 +1311,7 @@
     {
       "id": "planos_juicios_caducados",
       "objetivo": "planos-medidos",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántos juicios de los planos tienen más días que su caducidad y se siguen dando por buenos?",
       "emisor": "scripts/planos.mjs",
       "sale_en": [
@@ -1211,6 +1342,7 @@
     {
       "id": "plano_nivel",
       "objetivo": "planos-medidos",
+      "proyecto": "factoria",
       "pregunta": "¿Qué nivel alcanza cada plano con solo lo que está comprobado?",
       "emisor": "scripts/planos.mjs",
       "sale_en": [
@@ -1238,6 +1370,7 @@
     {
       "id": "plano_techo",
       "objetivo": "planos-medidos",
+      "proyecto": "factoria",
       "pregunta": "¿Qué nivel alcanzaría cada plano si lo que no se ha podido comprobar cumpliera?",
       "emisor": "scripts/planos.mjs",
       "sale_en": [
@@ -1260,6 +1393,7 @@
     {
       "id": "fabrica_cobertura",
       "objetivo": "fabrica-a-presupuesto",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántas sesiones, fondos y encargos tienen medidas en las transcripciones, y por tanto cuánto respaldan las cifras de coste?",
       "emisor": "scripts/lib/fabrica.mjs",
       "sale_en": [
@@ -1285,6 +1419,7 @@
     {
       "id": "fabrica_minutos_por_fondo",
       "objetivo": "fabrica-a-presupuesto",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántos minutos activos sumaron las sesiones de los encargos de cada fondo frente a su presupuesto?",
       "emisor": "scripts/lib/fabrica.mjs",
       "sale_en": [
@@ -1307,6 +1442,7 @@
     {
       "id": "fabrica_tokens_por_fondo",
       "objetivo": "fabrica-a-presupuesto",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántos tokens gastaron los encargos de cada fondo?",
       "emisor": "scripts/lib/fabrica.mjs",
       "sale_en": [
@@ -1329,6 +1465,7 @@
     {
       "id": "fabrica_coste_por_fondo",
       "objetivo": "fabrica-a-presupuesto",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántos dólares estimados costaron los encargos de cada fondo a precio de API?",
       "emisor": "scripts/lib/fabrica.mjs",
       "sale_en": [
@@ -1351,6 +1488,7 @@
     {
       "id": "skill_cargada",
       "objetivo": "skills-utiles",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántas veces se abrió cada skill, según el registro local de los hooks?",
       "emisor": ".claude/hooks/skill-abierta.mjs",
       "sale_en": [
@@ -1377,6 +1515,7 @@
     {
       "id": "agente_lanzado",
       "objetivo": "flujo-cumplido",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántas veces se lanzó cada agente, según el registro local de los hooks?",
       "emisor": ".claude/hooks/skill-abierta.mjs",
       "sale_en": [
@@ -1398,6 +1537,7 @@
     {
       "id": "bloqueo_guardia",
       "objetivo": "guardia-proporcionada",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántas veces negó la guardia una orden, y por qué norma?",
       "emisor": ".claude/hooks/guardia.mjs",
       "sale_en": [
@@ -1419,6 +1559,7 @@
     {
       "id": "permiso_pedido",
       "objetivo": "guardia-proporcionada",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántas veces pidió la guardia permiso en vez de dejar pasar o negar, y por qué norma?",
       "emisor": ".claude/hooks/guardia.mjs",
       "sale_en": [
@@ -1440,6 +1581,7 @@
     {
       "id": "estado_sin_leer",
       "objetivo": "flujo-cumplido",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántas veces se frenó a una sesión por afirmar el estado de un issue o un PR sin haber leído la fuente?",
       "emisor": ".claude/hooks/pendientes.mjs",
       "sale_en": [
@@ -1461,6 +1603,7 @@
     {
       "id": "aviso_guardia",
       "objetivo": "guardia-proporcionada",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántas veces avisó la guardia sin bloquear (hoy, un fichero que otra rama tiene en su zona)?",
       "emisor": ".claude/hooks/guardia.mjs",
       "sale_en": [
@@ -1482,6 +1625,7 @@
     {
       "id": "normas_nunca_saltan",
       "objetivo": "normas-vivas",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántas normas se han comprobado alguna vez y jamás han saltado, para ver si su control sobra o si nadie las incumple?",
       "emisor": "scripts/normas.mjs",
       "sale_en": [
@@ -1507,6 +1651,7 @@
     {
       "id": "normas_exceptuadas_siempre",
       "objetivo": "normas-vivas",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántas normas se exceptúan cada vez que saltan, para ver si están mal puestas o si la excepción se usa de atajo?",
       "emisor": "scripts/normas.mjs",
       "sale_en": [
@@ -1532,6 +1677,7 @@
     {
       "id": "subtipos_con_pocos_usos",
       "objetivo": "flujo-cumplido",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántos encargos usan cada subtipo activo que no es liso, para ver si merece seguir siendo subtipo (la puerta pide al menos 3)?",
       "emisor": "scripts/lib/tiposDeEncargo.mjs",
       "sale_en": [
@@ -1556,6 +1702,7 @@
     {
       "id": "subtipos_alias_en_uso",
       "objetivo": "flujo-cumplido",
+      "proyecto": "factoria",
       "pregunta": "¿Cuántos encargos siguen usando un id retirado de subtipo, para ver si el alias ya se puede dejar de aceptar?",
       "emisor": "scripts/lib/tiposDeEncargo.mjs",
       "sale_en": [
@@ -1576,6 +1723,178 @@
       "unidad": "cuenta",
       "umbral": null,
       "vigilante": "subtipos_con_pocos_usos"
+    },
+    {
+      "id": "intervencion_humana",
+      "objetivo": "guardia-proporcionada",
+      "proyecto": "factoria",
+      "pregunta": "¿Cuántas veces tuvo que intervenir una persona (Pablo o Álvaro), registradas por la guardia al preguntar y por pendientes.mjs al dejar una decisión?",
+      "emisor": ".claude/hooks/eventos.mjs",
+      "sale_en": [
+        {
+          "evento": true
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "script",
+          "ref": "scripts/lib/fabrica.mjs",
+          "menciona": "intervenciones"
+        }
+      ],
+      "unidad": "cuenta",
+      "umbral": null,
+      "vigilante": "intervenciones_evitables"
+    },
+    {
+      "id": "intervenciones_por_motivo",
+      "objetivo": "guardia-proporcionada",
+      "proyecto": "factoria",
+      "pregunta": "¿Por qué motivo (permiso, decisión, rescate, secreto, producción, otro) tuvo que intervenir una persona?",
+      "emisor": "scripts/lib/fabrica.mjs",
+      "sale_en": [
+        {
+          "linea": "intervencion-motivo motivo",
+          "campos": [
+            "intervenciones"
+          ]
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": ".claude/commands/revision-issues.md",
+          "menciona": "fabrica"
+        }
+      ],
+      "unidad": "cuenta",
+      "umbral": null,
+      "vigilante": "intervenciones_evitables"
+    },
+    {
+      "id": "intervenciones_evitables",
+      "objetivo": "guardia-proporcionada",
+      "proyecto": "factoria",
+      "pregunta": "¿Cuántas de las intervenciones humanas venían de un fallo de la propia comprobación y no de una decisión, y por tanto se podían haber evitado?",
+      "emisor": "scripts/lib/fabrica.mjs",
+      "sale_en": [
+        {
+          "linea": "intervencion-humana total",
+          "campos": [
+            "evitables"
+          ]
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": ".claude/commands/revision-issues.md",
+          "menciona": "fabrica"
+        }
+      ],
+      "unidad": "cuenta",
+      "umbral": null,
+      "vigilante": "intervenciones_por_motivo"
+    },
+    {
+      "id": "eventos_por_actor",
+      "objetivo": "factoria-separable",
+      "proyecto": "factoria",
+      "pregunta": "¿Qué parte de los eventos de los hooks sabe quién actuó (pablo, alvaro, app) y cuántos siguen en desconocido o sin dato?",
+      "emisor": "scripts/lib/fabrica.mjs",
+      "sale_en": [
+        {
+          "linea": "actor-evento actor",
+          "campos": [
+            "eventos"
+          ]
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": ".claude/commands/revision-issues.md",
+          "menciona": "fabrica"
+        }
+      ],
+      "unidad": "cuenta",
+      "umbral": null,
+      "vigilante": "eventos_por_proyecto"
+    },
+    {
+      "id": "eventos_por_proyecto",
+      "objetivo": "factoria-separable",
+      "proyecto": "factoria",
+      "pregunta": "¿De qué proyecto (homenu, panel, factoria) son los eventos de los hooks, y cuántos son anteriores al campo y salen sin dato?",
+      "emisor": "scripts/lib/fabrica.mjs",
+      "sale_en": [
+        {
+          "linea": "proyecto-evento proyecto",
+          "campos": [
+            "eventos"
+          ]
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": ".claude/commands/revision-issues.md",
+          "menciona": "fabrica"
+        }
+      ],
+      "unidad": "cuenta",
+      "umbral": null,
+      "vigilante": "eventos_por_actor"
+    },
+    {
+      "id": "ficheros_por_zona",
+      "objetivo": "factoria-separable",
+      "proyecto": "factoria",
+      "pregunta": "¿Cuántos ficheros del repo son de la factoría, del producto o de los dos, para saber cuánto cuesta separarlos?",
+      "emisor": "scripts/lib/zonasProyecto.mjs",
+      "sale_en": [
+        {
+          "linea": "zonas-proyecto zona",
+          "campos": [
+            "ficheros"
+          ]
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": "docs/ops/CONTRATO-FACTORIA.md",
+          "menciona": "zonas-proyecto zona"
+        }
+      ],
+      "unidad": "cuenta",
+      "umbral": null,
+      "vigilante": "ficheros_sin_zona"
+    },
+    {
+      "id": "ficheros_sin_zona",
+      "objetivo": "factoria-separable",
+      "proyecto": "factoria",
+      "pregunta": "¿Cuántos ficheros del repo no caen en ninguna zona, para que un fichero nuevo obligue a decidir de quién es?",
+      "emisor": "scripts/lib/zonasProyecto.mjs",
+      "sale_en": [
+        {
+          "linea": "zonas-proyecto total",
+          "campos": [
+            "sin_zona"
+          ]
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": "docs/ops/CONTRATO-FACTORIA.md",
+          "menciona": "zonas-proyecto total"
+        }
+      ],
+      "unidad": "cuenta",
+      "umbral": null,
+      "vigilante": "ficheros_por_zona"
     }
   ],
   "excepciones": [

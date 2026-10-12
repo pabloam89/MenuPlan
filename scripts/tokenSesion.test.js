@@ -282,7 +282,7 @@ describe("arranque.mjs", () => {
     const ruta = fileURLToPath(new URL("../.claude/hooks/arranque.mjs", import.meta.url));
     execFileSync(process.execPath, ["--check", ruta]);
     const src = readFileSync(ruta, "utf8");
-    expect(src).toContain("aplicarIdentidad()");
+    expect(src).toMatch(/aplicarIdentidad\(/); // con o sin opciones (#652: registrar)
     expect(src).toContain("avisos.push(await identidad)");
   });
 });

@@ -55,6 +55,8 @@ import { VEREDICTOS_RUIDO } from "./ruido.mjs";
 import { MOTIVOS_COMPLEJIDAD, PIPELINES } from "./presupuestos.mjs";
 import { textosDeBanderas, textosDeCierres, textosDeContadores, textosDeDiffersIn, textosDeEstados, textosDeFinalidades, textosDeMedidas, textosDeSubtipos, textosDeTipos } from "./tiposDeEncargo.mjs";
 import { VOCABULARIOS as PRODUCTO } from "../../src/lib/vocabularios.js";
+import { DEF_ACTORES, DEF_EVITABLE, DEF_MOTIVOS_INTERVENCION } from "./eventosVocabulario.mjs";
+import { DEF_PROYECTOS, DEF_ZONAS } from "./zonasProyecto.mjs";
 
 export const RUTA_VOCABULARIOS = "ops/vocabularios-vida.json";
 /** El prefijo de los vocabularios del producto en el registro: `producto.<nombre en VOCABULARIOS>`. */
@@ -126,6 +128,13 @@ export const VOCABULARIOS = {
   "entidades.stored_as": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(STORED_AS) },
   "entidades.relation": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(RELATIONS) },
   "entidades.subject_kind": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(SUBJECT_KINDS) },
+  // Las zonas del repo y los proyectos (#652): las listas, con su significado, en scripts/lib/zonasProyecto.mjs.
+  "zonas.zona": { fichero: "scripts/lib/zonasProyecto.mjs", textos: conTexto(DEF_ZONAS) },
+  "eventos.proyecto": { fichero: "scripts/lib/zonasProyecto.mjs", textos: conTexto(DEF_PROYECTOS) },
+  // Quién está detrás de un evento y por qué hace falta una persona (#652): scripts/lib/eventosVocabulario.mjs.
+  "eventos.actor": { fichero: "scripts/lib/eventosVocabulario.mjs", textos: conTexto(DEF_ACTORES) },
+  "eventos.motivo_intervencion": { fichero: "scripts/lib/eventosVocabulario.mjs", textos: conTexto(DEF_MOTIVOS_INTERVENCION) },
+  "eventos.evitable": { fichero: "scripts/lib/eventosVocabulario.mjs", textos: conTexto(DEF_EVITABLE) },
   // Los del producto (#497): src/lib/vocabularios.js, con el nombre de su mapa VOCABULARIOS. No llevan
   // definición en el código (texto vacío, como flujo.pasos): se ancla el valor. Un cambio de significado
   // se declara en «redefiniciones»; la primera definición que se escriba no cuenta como cambio (igual()).
