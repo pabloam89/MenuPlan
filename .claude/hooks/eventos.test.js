@@ -57,7 +57,7 @@ describe("la línea de un evento", () => {
     for (const p of PROYECTOS) expect(lineaDeEvento({ evento: "skill_cargada", nombre: "x", proyecto: p }, AHORA).proyecto).toBe(p);
   });
 
-  it("las fuentes son los tres hooks que escriben", () => expect(FUENTES).toEqual(["guardia", "skill-abierta", "pendientes"]));
+  it("las fuentes son los cuatro hooks que escriben", () => expect(FUENTES).toEqual(["guardia", "skill-abierta", "pendientes", "intervenciones"]));
 
   it("cada hook que anota un evento pasa su propia fuente (si no, la línea sale con fuente null)", () => {
     for (const fuente of FUENTES) {
