@@ -142,6 +142,14 @@ export function problemas(catalogo) {
     if (!(b?.pipeline in PIPELINES)) p.push(`complejidad: ${c} «pipeline» «${b?.pipeline}» está fuera de ${Object.keys(PIPELINES).join(", ")}`);
   }
 
+  // El dimensionado (#641): los números con que `npm run dimensionar` saca alcance y complejidad.
+  const dm = catalogo?.dimensionado;
+  const positivo = (v) => entero(v) && v >= 1;
+  if (!positivo(dm?.local_max_files)) p.push("dimensionado: «local_max_files» tiene que ser un entero de 1 o más");
+  if (!positivo(dm?.transversal_min_dominios)) p.push("dimensionado: «transversal_min_dominios» tiene que ser un entero de 1 o más");
+  for (const k of ["lines_max", "files_max", "areas_max"]) if (!positivo(dm?.trivial?.[k])) p.push(`dimensionado: trivial «${k}» tiene que ser un entero de 1 o más`);
+  for (const k of Object.keys(dm ?? {})) if (!["local_max_files", "transversal_min_dominios", "trivial"].includes(k)) p.push(`dimensionado: campo desconocido «${k}»`);
+
   // Todas las celdas se resuelven y ninguna pasa del tope ni se queda sin jueces suficientes.
   // Y por CELDA ya resuelta: lo que una causa sobrescriba tampoco puede abaratar un alcance mayor.
   if (JSON.stringify(alcances) === JSON.stringify(ALCANCES)) {

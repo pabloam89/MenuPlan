@@ -10,8 +10,8 @@ import { CAPAS_AGENTE } from "../scripts/lib/fondos.mjs";
 import { ACCIONES, leerEstandares, tareasDe } from "../scripts/lib/estandaresAgentes.mjs";
 import { CATALOGO, COMPLEXITIES, PIPELINES, problemas as problemasDePresupuesto } from "../scripts/lib/presupuestos.mjs";
 import {
-  ALIASES, ALL_SUBTYPES, COUNTERS, DATOS, DIFFERS_IN, FLAGS, MARCA_FIN, MARCA_INICIO, MARCA_JUECES_FIN, MARCA_JUECES_INICIO, MAX_ACCION, MAX_NOTE, MIN_USOS, REGLAS_PUERTA, SUBTYPES, TYPES, ZONAS,
-  avisosDeUso, conPuertaN1, tablaJueces, encargoDe, facetasDe, juecesDe, pasosMinimos, problemas, problemasDeEsqueleto, regenerarOrquestar, rolDe, tablaPipelines, textoN1Puerta, zonasQueNombra,
+  ALIASES, ALL_SUBTYPES, COUNTERS, DATOS, DIFFERS_IN, FLAGS, MARCA_FIN, MARCA_INICIO, MAX_ACCION, MAX_NOTE, MIN_USOS, REGLAS_PUERTA, SUBTYPES, TYPES, ZONAS,
+  avisosDeUso, conPuertaN1, encargoDe, facetasDe, juecesDe, pasosMinimos, problemas, problemasDeEsqueleto, regenerarOrquestar, rolDe, tablaPipelines, textoN1Puerta, zonasQueNombra,
 } from "../scripts/lib/tiposDeEncargo.mjs";
 
 /**
@@ -428,7 +428,7 @@ describe("la puerta de entrada: mismo plano, difiere de verdad, lo discreto prim
   it("lo que declaran es todo lo que difiere: ni más ni menos que el esqueleto de su tipo", () => {
     for (const s of SUBTYPES) expect([...facetasDe(s)].sort(), s.id).toEqual([...s.differs_in].sort());
     // Un juez de zona (fijo o por bandera) no es una diferencia: no hay valores para eso.
-    expect(Object.keys(DIFFERS_IN).sort()).toEqual(["builds_in_session", "closing", "maps_first", "measure", "plans_first", "steps"]);
+    expect(Object.keys(DIFFERS_IN).sort()).toEqual(["builds_in_session", "closing", "maps_first", "measure", "measures_with", "plans_first", "steps"]);
     // Cada valor del vocabulario lo cumple algún subtipo (nada sin lector).
     for (const v of Object.keys(DIFFERS_IN)) expect(SUBTYPES.some((s) => s.differs_in.includes(v)), v).toBe(true);
   });
@@ -455,6 +455,16 @@ describe("la puerta de entrada: mismo plano, difiere de verdad, lo discreto prim
         for (const t of textos) expect(zonasQueNombra(t), `${s.id}: «${t}»`).toEqual([]);
       }
     });
+    it("un paso fijo que nombra al constructor o al juez de una zona falla; los de operate y audit y el juez por bandera, no", () => {
+      falla("plano", (d) => { act(d, "create-plain").pasos[0].agentes = ["lola"]; }, "lola");
+      falla("plano", (d) => { act(d, "fix-bug").pasos[2].agentes = ["qa"]; }, "qa");
+      falla("plano", (d) => { act(d, "improve-structure").pasos[1].agentes = ["auditor-datos"]; }, "auditor-datos");
+      // gobierno construye en operate (su tipo es operar la casa) y nombrarlo en un create sí es una zona.
+      falla("plano", (d) => { act(d, "create-plain").pasos[0].agentes = ["gobierno"]; }, "gobierno");
+      expect(problemas()).toEqual([]);
+      // El juez de zona por bandera va en `opcional` y es lo que ya hace operate-irreversible.
+      expect(act(clon(DATOS), "operate-irreversible").pasos[1].opcional.map((o) => o.agente)).toContain("evaluador");
+    });
     it("una finalidad de paso que nombra una zona falla, como el catálogo que tuvo antes", () => {
       falla("plano", (d) => { d.step_purposes.validate_catalog = { what: "Validación del catálogo en los tests" }; act(d, "create-in-session").pasos[1].purpose = "validate_catalog"; }, "validate_catalog");
     });
@@ -477,7 +487,7 @@ describe("la puerta de entrada: mismo plano, difiere de verdad, lo discreto prim
       falla("difiere", (d) => { act(d, "create-planned").pasos.shift(); }, "plans_first");
       falla("difiere", (d) => { act(d, "improve-layers").measure_kind = "counter_before_after"; act(d, "improve-layers").differs_in = ["maps_first", "steps", "measure"]; }, "measure");
       falla("difiere", (d) => { act(d, "improve-layers").pasos[0] = { agentes: ["constructor"] }; }, "maps_first");
-      falla("difiere", (d) => { act(d, "audit-periodic").measured_with = []; }, "measure");
+      falla("difiere", (d) => { act(d, "audit-periodic").measured_with = []; }, "measures_with");
       falla("difiere", (d) => { act(d, "create-planned").differs_in = ["plans_first", "steps", "flags"]; }, "flags");
       falla("difiere", (d) => { delete act(d, "create-in-session").builds_in_session; }, "builds_in_session");
     });
@@ -610,8 +620,8 @@ describe("la puerta de entrada: mismo plano, difiere de verdad, lo discreto prim
 });
 
 /**
- * Los jueces por zona (#646): el puente hasta que #641 los calcule. Un subtipo no nombra la zona, así que la zona de los
- * ficheros pide sus jueces desde este dato (AMBITOS, scripts/lib/ambitos.mjs). Cada juez sale de una norma o de un agente.
+ * Los jueces por zona (#646): un subtipo no nombra la zona, así que la zona de los ficheros pide sus jueces desde este dato
+ * (AMBITOS, scripts/lib/ambitos.mjs), y el dimensionador (#641) los calcula; no hay otra copia. Cada juez sale de una norma o de un agente.
  */
 describe("los jueces por zona: dato de AMBITOS, con su fuente y su tabla generada", () => {
   const normas = JSON.parse(leer("ops/normas.json")).normas;
@@ -652,13 +662,11 @@ describe("los jueces por zona: dato de AMBITOS, con su fuente y su tabla generad
     }
   });
 
-  it("la tabla de /orquestar sale de AMBITOS, y un juez que sobra o falta en el fichero falla", () => {
+  it("la tabla de jueces ya no se copia en /orquestar: la zona la calcula el dimensionador desde AMBITOS", () => {
     const md = leer(".claude/commands/orquestar.md");
-    const i = md.indexOf(MARCA_JUECES_INICIO) + MARCA_JUECES_INICIO.length;
-    expect(md.slice(i, md.indexOf(MARCA_JUECES_FIN)).trim(), "Regenera con `npm run flujo -- --escribir`").toBe(tablaJueces());
+    expect(md).not.toContain("ambitos:jueces");
     expect(regenerarOrquestar(md)).toBe(md);
-    expect(tablaJueces()).toContain("| `api` (api) | `seguridad` | `norma:endpoint-nuevo-juez-seguridad` |");
-    expect(tablaJueces()).toContain("| `bot` (bot) | `evaluador` | `norma:evals-antes-de-fusionar` |");
+    expect(md).toContain("npm run dimensionar");
   });
 
   it("una fuente rota se ve: sin norma, de otro ámbito o con otro agente no pasa", () => {

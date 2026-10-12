@@ -7,6 +7,7 @@
   "notas_campos": {
     "minutos_orientativos": "Esfuerzo de UN FONDO: la suma de los minutos activos de las sesiones de todos sus encargos (sesiones en paralelo suman; no es el tiempo de calendario ni el de un encargo suelto). Es lo que compara npm run fabrica -- --recalibrar, con la mediana de esos totales por fondo.",
     "by_complexity": "La complejidad de un ENCARGO (#640; vocabulario COMPLEXITIES de scripts/lib/issues.mjs): cuántos jueces como mínimo (siempre uno, también en lo trivial) y qué parte del pipeline de su subtipo se lanza (minimal: un constructor y el juez mínimo; complete: todos los pasos del subtipo). Se junta con el alcance y la causa en scripts/lib/tiposDeEncargo.mjs sin copiar nada; calcularla desde el diff es de E2 (#641).",
+    "dimensionado": "Cómo `npm run dimensionar` (#641) saca el alcance y la complejidad de un diff o de los ficheros previstos de un encargo, a ojo mientras valores_iniciales sea true. Alcance: local (hasta `local_max_files` ficheros, un dominio y un módulo), transversal (`transversal_min_dominios` dominios o más, o módulos de la app y de Lola a la vez) y módulo el resto; un dominio es un ámbito de scripts/lib/ambitos.mjs que no es `code`. Complejidad: large si pasa algún umbral de tamaño de UMBRALES_TAMANO (scripts/lib/avisosPr.mjs, los del aviso del CI, sin copiarlos aquí) o el alcance es transversal; trivial si el alcance es local y cabe en `trivial`; normal el resto. Sin líneas (ficheros previstos, no un diff) solo cuentan ficheros y áreas.",
     "rondas_max": "Rondas de constructor y juez del fondo, tal como las apunta el campo rondas de su ficha."
   },
   "valores_iniciales": true,
@@ -45,6 +46,11 @@
     "trivial": { "jueces_min": 1, "pipeline": "minimal" },
     "normal": { "jueces_min": 1, "pipeline": "minimal" },
     "large": { "jueces_min": 2, "pipeline": "complete" }
+  },
+  "dimensionado": {
+    "local_max_files": 2,
+    "transversal_min_dominios": 3,
+    "trivial": { "lines_max": 40, "files_max": 2, "areas_max": 1 }
   },
   "por_causa": {
     "modelo-datos": { "jueces_obligatorios": ["auditor-datos"] },

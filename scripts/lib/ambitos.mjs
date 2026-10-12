@@ -18,12 +18,14 @@ export const AMBITOS = {
     legible: "código",
     que: "El código del repo y su forma: tests, lint y ficheros",
     jueces: [],
+    constructor: "gobierno",
     rutas: [/\.(m?js|cjs|jsx|ts|tsx|py|html)$/, /^(package(-lock)?|lint-base|lint-tokens-base)\.json$/, /^eslint-rules\//, /^scripts\/fixtures\//],
   },
   infra: {
     legible: "infraestructura",
     que: "Identidades, permisos, secretos, ramas, CI, despliegues, copias y servicios",
     jueces: [],
+    constructor: "gobierno",
     rutas: [
       /^\.github\/(?!ISSUE_TEMPLATE\/)/, /^\.claude\/hooks\//, /^\.claude\/settings/, /^(vercel\.json|\.vercelignore|\.gitattributes|\.gitignore|\.env\.example)$/,
       /^ops\/(INVENTARIO\.md|recursos\.json|planos\.json|PLANOS\.md|env\.1password|copias\/)/,
@@ -34,57 +36,81 @@ export const AMBITOS = {
     legible: "datos",
     que: "La base: tablas, migraciones, roles y cada dato que guarda",
     jueces: [{ juez: "auditor-datos", fuente: "norma:aplicar-migracion-con-permiso" }],
+    constructor: "datos",
     rutas: [/^supabase\//, /^docs\/datos\//, /^scripts\/(apply-migration|verificar-estado|consulta|bot-cron|clave-[\w-]+)\.mjs$/, /^src\/data\/model\.js$/, /^HOUSEHOLDS\.md$/],
   },
   catalog: {
     legible: "catálogo",
     que: "El catálogo de recetas y alimentos que vive en git",
     jueces: [{ juez: "auditor-datos", fuente: "agente:auditor-datos" }],
+    constructor: "datos",
     rutas: [/^src\/data\//, /^src\/utils\//, /^src\/lib\//, /^api\/_bot\//, /^src\/assets\/dishes\//, /^scripts\/[^/]*catalog/, /^scripts\/(bedca|ciqual)/, /^scripts\/(validate-catalog|mercadona-[\w-]+|build-derived)\.mjs$/],
   },
   bot: {
     legible: "bot",
     que: "Lola, el bot de mensajería, sus evals y su coste",
     jueces: [{ juez: "evaluador", fuente: "norma:evals-antes-de-fusionar" }],
+    constructor: "lola",
     rutas: [/^api\/_bot\//, /^api\/bot\//, /^scripts\/(bot|router|telegram)-[\w-]+\.(mjs|json)$/, /^\.claude\/rules\/lola\.md$/],
   },
   api: {
     legible: "api",
     que: "Las funciones de api/ y lo que protegen",
     jueces: [{ juez: "seguridad", fuente: "norma:endpoint-nuevo-juez-seguridad" }],
+    constructor: null,
     rutas: [/^api\/(?!_bot\/|bot\/)/, /^ops\/api-sin-credencial\.json$/, /^\.claude\/rules\/api\.md$/],
   },
   ui: {
     legible: "pantallas",
     que: "Las pantallas de la app",
     jueces: [{ juez: "qa", fuente: "agente:qa" }],
+    constructor: "diseno",
     rutas: [/^src\/.*\.(jsx|css)$/, /^src\/(design|components|screens|assets|dev)\//, /^public\//, /^Avatares\//, /^brand\//, /^dish-gallery\//, /^scripts\/(make_|mj-prompts-)/, /^docs\/medios\.md$/, /^(DESIGN_SYSTEM|ILUSTRACIONES-PASOS)\.md$/, /^docs\/diseno\//, /^\.claude\/rules\/ui\.md$/],
   },
   product: {
     legible: "producto",
     que: "Qué hace bien HoMenu y Lola para las familias",
     jueces: [],
+    constructor: null,
     rutas: [/^ops\/principios-producto\//, /^docs\/producto\//, /^specs\//, /^README\.md$/],
   },
   process: {
     legible: "proceso",
     que: "Cómo se trabaja: issues, fondos, PR, sesiones, agentes, jueces y cifras",
     jueces: [],
+    constructor: "gobierno",
     rutas: [/^\.claude\/(?!hooks\/|settings)/, /^CLAUDE\.md$/, /^ops\//, /^docs\/ops\//, /^\.github\/ISSUE_TEMPLATE\//, /^docs\/PRINCIPIOS\.md$/],
   },
   writing: {
     legible: "redacción",
     que: "Cómo se escribe una regla o un principio de la casa",
     jueces: [],
+    constructor: "gobierno",
     rutas: [/^ops\/redaccion(-pendientes)?\.json$/, /^docs\/ops\/REDACCION\.md$/, /^ops\/glosario(-excepciones)?\//, /^scripts\/lib\/regla\.mjs$/],
   },
   entities: {
     legible: "entidades",
     que: "Cómo se nombra, se identifica y se registra cada cosa del proyecto",
     jueces: [],
+    constructor: "gobierno",
     rutas: [/^ops\/entidades(-sujetos)?\.json$/, /^docs\/entidades\//],
   },
 };
+
+/**
+ * Quién construye en cada ámbito: `constructor` de AMBITOS (un agente de .claude/agents/ o null si ninguno es dueño: entonces
+ * construye la sesión y el dimensionador lo avisa). Un fichero con varios ámbitos lo construye el primero de DUENO_ORDEN
+ * (sea cual sea su constructor), el más específico antes que el genérico (api/_bot/ es del bot antes que del catálogo); `code` solo decide
+ * cuando el fichero no es de ningún otro ámbito (un script suelto de scripts/). Es la única copia de zona → constructor (#641).
+ */
+export const DUENO_ORDEN = ["bot", "ui", "data", "infra", "catalog", "api", "product", "writing", "entities", "process", "code"];
+
+/** El constructor de un fichero por sus ámbitos: { agente, ambito }, con `agente: null` si el ámbito dueño no tiene constructor. null si no cae en ningún ámbito. */
+export function constructorDeFichero(ruta) {
+  const ids = ambitosDeFichero(ruta);
+  const dueno = DUENO_ORDEN.find((id) => ids.includes(id));
+  return dueno ? { agente: AMBITOS[dueno].constructor, ambito: dueno } : null;
+}
 
 /**
  * Los jueces de zona (#646): lo que el dimensionador de #641 calculará desde los ficheros, como dato hasta entonces. Un subtipo

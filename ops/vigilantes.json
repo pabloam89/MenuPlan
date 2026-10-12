@@ -4,9 +4,9 @@
   "vigilantes": [
     {
       "id": "tipos-de-encargo",
-      "tests": ["ops/tipos-de-encargo.test.js"],
-      "mira": ["ops/tipos-de-encargo.json", ".claude/commands/orquestar.md", ".claude/agents/*.md", "scripts/lib/tiposDeEncargo.mjs", "scripts/lib/agentes.mjs", "ops/presupuestos.json", "ops/estandares-agentes.json"],
-      "porque": "Los cinco tipos de encargo con sus 17 subtipos, el presupuesto y la lista de jueces se unen: la tabla «Qué pipeline» de /orquestar se genera del JSON, cada agente nombrado existe en .claude/agents y tiene tarea con estándar, ningún tipo se queda sin juez y la lista de jueces sale de las cabeceras de los agentes; tocar una pieza sin las otras rompe el panel de la factoría, que lee el JSON.",
+      "tests": ["ops/tipos-de-encargo.test.js", "scripts/dimensionar.test.js"],
+      "mira": ["ops/tipos-de-encargo.json", ".claude/commands/orquestar.md", ".claude/agents/*.md", "scripts/lib/tiposDeEncargo.mjs", "scripts/lib/agentes.mjs", "ops/presupuestos.json", "ops/estandares-agentes.json", "scripts/lib/dimensionado.mjs", "scripts/lib/ambitos.mjs", "ops/MODULOS.json"],
+      "porque": "Los cinco tipos de encargo con sus 17 subtipos, el presupuesto y la lista de jueces se unen (y el dimensionador saca de ahí los agentes y el brief de un encargo): la tabla «Qué pipeline» de /orquestar se genera del JSON, cada agente nombrado existe en .claude/agents y tiene tarea con estándar, ningún tipo se queda sin juez y la lista de jueces sale de las cabeceras de los agentes; tocar una pieza sin las otras rompe el panel de la factoría, que lee el JSON.",
       "evidencia": "#557 (revisor: el cruce solo miraba nombres de agente); #640 (los tipos se unen al presupuesto)"
     },
     {

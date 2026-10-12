@@ -33,7 +33,8 @@
     "encargo.differs_in": {
       "steps": "Sus pasos, en orden de roles, no son los del esqueleto de su tipo",
       "closing": "Cierra con el OK de una persona, que el esqueleto no pide",
-      "measure": "Mide otra cosa que la medida por defecto de su tipo, o (en audit) mide con un agente que no es juez",
+      "measure": "Mide otra cosa que la medida por defecto de su tipo (su `measure_kind`)",
+      "measures_with": "En una auditoría, mide con un agente que no es juez (`measured_with`)",
       "plans_first": "Empieza por un plan de la sesión, antes de construir",
       "maps_first": "Empieza por un juez que mapea lo que hay, antes de construir",
       "builds_in_session": "Lo construye la propia sesión, sin subagente constructor"
@@ -1016,6 +1017,12 @@
       "valor": "agente_dominio",
       "desde": "2026-10-12",
       "motivo": "Misma idea: el constructor del dominio se define por su cabecera «Tipo: constructor» en vez de enumerarlo a mano (#640)"
+    },
+    {
+      "vocabulario": "encargo.differs_in",
+      "valor": "measure",
+      "desde": "2026-10-12",
+      "motivo": "Se estrecha a lo que ya significaba para mejorar (otra medida que la de su tipo); medir con un agente que no es juez, que era su segundo sentido, pasa al valor nuevo measures_with (#641)"
     }
   ],
   "vocabularios_retirados": [

@@ -116,7 +116,7 @@ Qué puede ser un subtipo (fondo #645, encargo #646): un subtipo es una **natura
 <!-- n1:encargo:puerta:inicio -->
 Las reglas de la puerta (`REGLAS_PUERTA` de `scripts/lib/tiposDeEncargo.mjs`; cada una la comprueba `ops/tipos-de-encargo.test.js`):
 
-- `plano`: Mismo plano: un subtipo describe la naturaleza del trabajo y no la zona. La zona sale de los ficheros (ámbitos de scripts/lib/ambitos.mjs) y de ella salen el constructor y los jueces.
+- `plano`: Mismo plano: un subtipo describe la naturaleza del trabajo y no la zona. La zona sale de los ficheros (ámbitos de scripts/lib/ambitos.mjs) y de ella salen el constructor y los jueces: ni el id, ni la etiqueta, ni las finalidades de paso, ni los agentes de los pasos nombran una zona. Un paso no nombra al constructor ni al juez de una zona; solo lo admiten operate, cuyo constructor es `gobierno`, y audit, que son solo jueces. Un juez de zona por bandera va en `opcional`.
 - `difiere`: Difiere de su tipo en algo medible: lo declara en `differs_in` (vocabulario cerrado) y un test lo comprueba contra el esqueleto de su tipo. El subtipo liso (`plain`) es el esqueleto y no declara nada; si no difiere, no es subtipo.
 - `repite`: Se repite: al menos 3 encargos con el patrón. Lo mide `npm run fabrica` y solo avisa. La válvula `<tipo>-other` cuenta sus usos, pide un motivo en `subtype_note` y, si se repite, propone un subtipo nuevo.
 - `texto-libre`: Lo discreto primero: todo atributo es un valor de vocabulario cerrado o un número; los únicos huecos de texto son `note` (de 160 caracteres como mucho) y la etiqueta `accion` (la definición del valor, de 100).
@@ -128,7 +128,8 @@ En qué puede diferir un subtipo de su tipo (`differs_in`, vocabulario cerrado):
 |---|---|
 | `steps` | Sus pasos, en orden de roles, no son los del esqueleto de su tipo |
 | `closing` | Cierra con el OK de una persona, que el esqueleto no pide |
-| `measure` | Mide otra cosa que la medida por defecto de su tipo, o (en audit) mide con un agente que no es juez |
+| `measure` | Mide otra cosa que la medida por defecto de su tipo (su `measure_kind`) |
+| `measures_with` | En una auditoría, mide con un agente que no es juez (`measured_with`) |
 | `plans_first` | Empieza por un plan de la sesión, antes de construir |
 | `maps_first` | Empieza por un juez que mapea lo que hay, antes de construir |
 | `builds_in_session` | Lo construye la propia sesión, sin subagente constructor |
@@ -147,7 +148,7 @@ Los subtipos activos y en qué difieren:
 | `improve-layers` | un subtipo | `maps_first`, `steps` |
 | `operate-reversible` | el liso del tipo | — |
 | `operate-irreversible` | un subtipo | `closing` |
-| `audit-periodic` | un subtipo | `measure` |
+| `audit-periodic` | un subtipo | `measures_with` |
 | `audit-other` | la válvula del tipo | — |
 
 Los ids de antes, retirados (alias para el panel de la factoría; el dimensionador usa solo los activos):
