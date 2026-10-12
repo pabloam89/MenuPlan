@@ -1,0 +1,53 @@
+{
+  "skill": "revision-de-diseno",
+  "casos": [
+    {
+      "id": "antes-de-entregar-una-pantalla",
+      "peticion": "He rehecho la hoja de ajustes con los tokens. Antes de pasarla a qa, repasa el diseño y dime qué le falta.",
+      "skill": "revision-de-diseno",
+      "debe_salir": [
+        "Busca antes lo ya apuntado con npm run buscar y npm run issues, y marca cada hallazgo como YA APUNTADO o NUEVO",
+        "Lanza los tests de contraste y de bloques y npm run lint:base, y comprueba que los valores sueltos no suben",
+        "Devuelve los hallazgos con código del vocabulario (por ejemplo contraste-bajo u objetivo-pequeno), evidencia y arreglo, y una línea de cifra"
+      ]
+    },
+    {
+      "id": "llega-el-contraste",
+      "peticion": "¿Llega el contraste de los textos grises de HoMenu a AA? Quiero saber cuáles no.",
+      "skill": "revision-de-diseno",
+      "debe_salir": [
+        "Lanza npx vitest run src/design/contraste.test.js y lee las parejas de ops/diseno/contraste.json",
+        "Dice que las parejas que no llegan están en la lista de excepciones con su motivo, y que esa lista solo baja",
+        "No cambia ningún color de tokens.js en la misma pasada: lo que pide un cambio de token va a token-o-primitivo-nuevo"
+      ]
+    },
+    {
+      "id": "que-le-falta-al-panel",
+      "peticion": "Vamos a montar el diseño del panel de la factoría. ¿Qué tiene que declarar para estar completo?",
+      "skill": "revision-de-diseno",
+      "debe_salir": [
+        "Toma el perfil P2 de ops/diseno/bloques.json y lista los bloques que obliga, los opcionales y los que no aplican",
+        "Dice que un bloque obligatorio se cubre o lleva no aplica con motivo, y que una ley marcada por construir no cuenta como cumplida",
+        "Aclara que hoy el panel no tiene tokens y su instancia de contraste está en sin-tokens"
+      ]
+    },
+    {
+      "id": "frontera-revisar-una-skill",
+      "peticion": "¿Está al día la skill de github? ¿Cita rutas o comandos que ya no existen?",
+      "skill": "higiene-de-skills",
+      "nota": "Casi-fallo: revisar y comandos muertos suenan a control de calidad, pero el artefacto es una skill, no un sistema de diseño."
+    },
+    {
+      "id": "frontera-captura-en-navegador",
+      "peticion": "Abre la app en el navegador, haz capturas a 375 y 420 y dime si la pantalla de recetas se ve bien.",
+      "skill": "ninguna",
+      "nota": "Casi-fallo: es un juicio de diseño, pero con capturas en el navegador y es del agente qa."
+    },
+    {
+      "id": "frontera-crear-un-token",
+      "peticion": "Añade un color nuevo de aviso suave para los banners y úsalo en la pantalla de planes.",
+      "skill": "ninguna",
+      "nota": "Casi-fallo: toca tokens y color, pero es construir (token-o-primitivo-nuevo del agente diseno), no revisar."
+    }
+  ]
+}

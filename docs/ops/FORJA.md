@@ -61,7 +61,7 @@ Taxonomía decidida por Pablo el 10 oct 2026. Un tipo existe solo si cambia qué
 | diagnostico | De un síntoma a su causa | fallo → causa en campos cerrados | la salida rellena la ficha y hay un criterio de parada | causa-raiz |
 | flujo | Encadenar skills y agentes | caso → cerrado por etapas | cada etapa apunta a una skill o agente que existe y tiene puerta | issues |
 | procedimiento | Pasos fijos que cambian algo | situación → cambio hecho y comprobado | cada paso con su verificación y su marcha atrás | alta-de-secreto |
-| revision | Juzgar un artefacto contra un catálogo y aplicar lo mecánico | artefacto → criterio, estado y arreglo | una pieza mala a propósito da todos sus fallos | higiene-de-skills |
+| revision | Juzgar un artefacto contra un catálogo y aplicar lo mecánico | artefacto → criterio, estado y arreglo | una pieza mala a propósito da todos sus fallos | higiene-de-skills, revision-de-diseno |
 | servicio | Operar un sistema externo concreto | petición → comando y resultado esperado | los comandos existen, la salida es comprobable y la caducidad es corta | github, vercel, supabase, telegram, hetzner, tailscale, 1password |
 
 El tipo de una skill sale de `tipoDeSkill(respuestas)`: el de la primera pregunta con sí, en este orden; si ninguna, `conocimiento`.

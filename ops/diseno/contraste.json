@@ -1,0 +1,56 @@
+{
+  "_": "Las parejas texto/fondo (y control/fondo) que cada sistema de diseño declara, para la ley L05 de docs/diseno/META-DISENO.md (WCAG 2.2, 1.4.3 y 1.4.11). Las lee src/design/contraste.test.js, que mide cada pareja con los colores reales de la instancia. `uso` es una clave de `usos`. Un color con alfa se compone sobre `sobre` (por defecto, sobre blanco). `excepciones` son parejas que HOY no llegan y se declaran con su motivo; la lista solo baja: el test falla si una pareja de la lista ya llega (hay que quitarla) y si una pareja que no está en la lista no llega. Repo público: solo nombres de roles y cifras.",
+  "usos": {
+    "texto": "Texto normal: 4,5:1 (1.4.3).",
+    "texto-grande": "Texto de 24 px, o de 18,5 px en negrita, o más: 3:1 (1.4.3).",
+    "grafico": "Control, icono o gráfico que transmite información: 3:1 (1.4.11)."
+  },
+  "instancias": {
+    "homenu": {
+      "perfil": "P1",
+      "fuente": "src/design/tokens.js",
+      "tema": "claro",
+      "pares": [
+        {"id": "tinta-sobre-superficie", "texto": "tinta", "fondo": "superficie", "uso": "texto", "donde": "títulos y cuerpo sobre tarjeta"},
+        {"id": "tinta-sobre-fondo-pantalla", "texto": "tinta", "fondo": "fondo-pantalla", "uso": "texto", "donde": "título sobre el fondo de la pantalla"},
+        {"id": "tinta-sobre-fondo-suave", "texto": "tinta", "fondo": "fondo-suave", "uso": "texto", "donde": "pista de segmented, botón ghost"},
+        {"id": "tinta-media-sobre-superficie", "texto": "tinta-media", "fondo": "superficie", "uso": "texto", "donde": "texto secundario"},
+        {"id": "tinta-media-sobre-fondo-pantalla", "texto": "tinta-media", "fondo": "fondo-pantalla", "uso": "texto", "donde": "texto secundario"},
+        {"id": "tinta-suave-sobre-superficie", "texto": "tinta-suave", "fondo": "superficie", "uso": "texto", "donde": "texto terciario"},
+        {"id": "tinta-suave-sobre-fondo-pantalla", "texto": "tinta-suave", "fondo": "fondo-pantalla", "uso": "texto", "donde": "texto terciario"},
+        {"id": "tinta-suave-sobre-fondo-suave", "texto": "tinta-suave", "fondo": "fondo-suave", "uso": "texto", "donde": "texto terciario en botón ghost"},
+        {"id": "tinta-tenue-sobre-superficie", "texto": "tinta-tenue", "fondo": "superficie", "uso": "texto", "donde": "metadatos"},
+        {"id": "tinta-palida-sobre-superficie", "texto": "tinta-palida", "fondo": "superficie", "uso": "texto", "donde": "placeholder (D14)"},
+        {"id": "superficie-sobre-marca", "texto": "superficie", "fondo": "marca", "uso": "texto", "donde": "texto del botón primario"},
+        {"id": "marca-sobre-marca-fondo", "texto": "marca", "fondo": "marca-fondo", "uso": "texto", "donde": "badge, nav activo, éxito"},
+        {"id": "seleccionado-sobre-seleccionado-fondo", "texto": "seleccionado", "fondo": "seleccionado-fondo", "uso": "texto", "donde": "lo elegido en lista, tesela u hoja"},
+        {"id": "peligro-sobre-superficie", "texto": "peligro", "fondo": "superficie", "uso": "texto", "donde": "acción destructiva"},
+        {"id": "peligro-sobre-peligro-fondo", "texto": "peligro", "fondo": "peligro-fondo", "uso": "texto", "donde": "mensaje de error"},
+        {"id": "aviso-sobre-superficie", "texto": "aviso", "fondo": "superficie", "uso": "texto", "donde": "texto de aviso"},
+        {"id": "aviso-sobre-aviso-fondo", "texto": "aviso", "fondo": "aviso-fondo", "uso": "texto", "donde": "banner de aviso"},
+        {"id": "info-sobre-superficie", "texto": "info", "fondo": "superficie", "uso": "texto", "donde": "texto informativo"},
+        {"id": "info-sobre-info-fondo", "texto": "info", "fondo": "info-fondo", "sobre": "superficie", "uso": "texto", "donde": "banner informativo (el fondo lleva alfa y se compone sobre la tarjeta)"},
+        {"id": "favorito-sobre-superficie", "texto": "favorito", "fondo": "superficie", "uso": "grafico", "donde": "corazón activo"},
+        {"id": "marca-viva-sobre-superficie", "texto": "marca-viva", "fondo": "superficie", "uso": "grafico", "donde": "indicador de «hecho»"},
+        {"id": "linea-fuerte-sobre-superficie", "texto": "linea-fuerte", "fondo": "superficie", "uso": "grafico", "donde": "borde de checkbox"},
+        {"id": "tinta-palida-icono-sobre-superficie", "texto": "tinta-palida", "fondo": "superficie", "uso": "grafico", "donde": "icono inactivo"}
+      ],
+      "excepciones": [
+        {"par": "tinta-tenue-sobre-superficie", "motivo": "Los metadatos salen a 3,28:1 y piden 4,5. Subir el rol a una salvia más oscura cambia el aspecto de todas las pantallas: se decide al migrar la primera."},
+        {"par": "tinta-palida-sobre-superficie", "motivo": "El placeholder (D14) sale a 2,31:1. WCAG lo mide como texto; hay que oscurecerlo o dejar de usarlo como único rótulo."},
+        {"par": "marca-viva-sobre-superficie", "motivo": "El verde vivo del «hecho» sale a 2,45:1 sobre blanco; ha de ir con icono o texto (L08), no solo con el color."},
+        {"par": "linea-fuerte-sobre-superficie", "motivo": "El borde del checkbox sale a 1,47:1 y pide 3:1 (1.4.11); hay que oscurecer el trazo del control, no el de los separadores."},
+        {"par": "tinta-palida-icono-sobre-superficie", "motivo": "El icono inactivo sale a 2,31:1 y pide 3:1; hoy el estado inactivo se distingue solo por este tono."}
+      ]
+    },
+    "panel": {
+      "perfil": "P2",
+      "fuente": null,
+      "tema": "claro",
+      "estado": "sin-tokens",
+      "motivo": "El panel (repo homenu-panel) aún no tiene sistema de diseño: son cinco líneas de CSS. Cuando diseno construya sus tokens (paso 3 de docs/diseno/META-DISENO.md), se declara aquí su fuente, sus parejas en claro y en oscuro, y se quita este estado.",
+      "pares": [],
+      "excepciones": []
+    }
+  }
+}

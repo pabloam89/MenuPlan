@@ -399,11 +399,11 @@ Leído el 11 oct 2026 a partir de las cabeceras de `DESIGN_SYSTEM.md` y de
 ## 6. Qué se construye, en qué orden
 
 1. **Aprobar este documento** (leyes, bloques, perfiles). Lo que no convenza se corrige aquí.
-2. **Dato.** `ops/diseno/bloques.json` con los bloques de N1, sus campos y sus vocabularios, y un test que exige a cada instancia declarar cada bloque (cubierto o «no aplica» con motivo).
+2. **Dato.** `ops/diseno/bloques.json` con los bloques de N1, sus campos y sus vocabularios, y un test que exige a cada instancia declarar cada bloque (cubierto o «no aplica» con motivo). **Hecho el 12 oct 2026 (#591) el dato y su test contra este documento; falta la declaración por instancia.**
 3. **Primera instancia nueva: el panel (P2).** Tokens mínimos, componentes que usa (tabla, barra lateral, tarjeta de resumen, aviso), tema claro y oscuro, contraste medido. Lo construye `diseno` y lo juzga `qa`.
-4. **Contraste por test** para las dos instancias (L05), el cambio más barato con más efecto.
+4. **Contraste por test** para las dos instancias (L05), el cambio más barato con más efecto. **Hecho el 12 oct 2026 (#591) para HoMenu** (`src/design/contraste.test.js`, parejas en `ops/diseno/contraste.json`, 5 excepciones declaradas); el panel, cuando tenga tokens.
 5. **Ficha por componente** en HoMenu (L14, L17) conforme se migren pantallas.
-6. **Skill de revisión de diseño** (hermana de `higiene-de-skills`): lee N0 y N1 como criterios y revisa una instancia; el agente `diseno` la carga. Las leyes de N0 se comprueban con tests (paso 4), no con una skill por nivel.
+6. **Skill de revisión de diseño** (hermana de `higiene-de-skills`): lee N0 y N1 como criterios y revisa una instancia; el agente `diseno` la carga. **Hecho el 12 oct 2026 (#591): `revision-de-diseno`.** Las leyes de N0 se comprueban con tests (paso 4), no con una skill por nivel.
 7. **Entidades** `sistema-de-diseno`, `token`, `componente` y `patron` en el mapa (#566).
 
 ## 7. Riesgos y qué no hacer

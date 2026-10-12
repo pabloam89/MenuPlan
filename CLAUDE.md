@@ -186,7 +186,7 @@ las de oficio, cómo se piensa un fallo: `causa-raiz` (diagnosticar) y
 (crear, probar y podar skills) e `higiene-de-skills` (revisar una ya escrita);
 y el estándar `estilo-de-respuesta` (cómo se escribe a Pablo: idea raíz en
 negrita, cuatro ideas y tres opciones); y la de conocimiento `principios-de-producto`
-(los principios con fuente para decidir sobre el producto, en `docs/producto/PRINCIPIOS.md`). Todas siguen
+(los principios con fuente para decidir sobre el producto, en `docs/producto/PRINCIPIOS.md`); y la de revisión `revision-de-diseno` (repasar un sistema de diseño o una pantalla contra las leyes y los bloques de `docs/diseno/META-DISENO.md`, la carga `diseno`). Todas siguen
 `.claude/PLANTILLA-SKILL.md`, que vigila `.claude/skills.test.js`: un tipo de
 los siete de `ops/forja/`, el que dan sus respuestas, con su molde generado en
 `.claude/plantillas-skill/` (salvo `forja-de-skills`, la pieza meta de nivel 0, sin tipo), dueño, fecha
