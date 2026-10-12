@@ -39,7 +39,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { AXES, ID_FORMATS, REGISTRIES, RELATIONS, STATUSES, STORED_AS, SUBJECT_KINDS } from "./entidades.mjs";
+import { BECOMES, CARDINALITIES, CREATORS, FAMILIES, ID_FORMATS, LEVELS, PARENT_KINDS, REGISTRIES, RELATION_CLASSES, RELATIONS, SCOPES, STATUSES, STORED_AS, SUBJECT_KINDS } from "./entidades.mjs";
 import { leerEstandares } from "./estandaresAgentes.mjs";
 import { ESTADOS } from "./fondos.mjs";
 import { ACTORES, ALCANCES_FALLO, DIAGNOSTICAN, ESTADOS_MEDIDA, PASOS } from "./flujo.mjs";
@@ -113,7 +113,15 @@ export const VOCABULARIOS = {
   "encargo.complexity": { fichero: "scripts/lib/issues.mjs", textos: conTexto(COMPLEXITIES) },
   "encargo.pipeline": { fichero: "scripts/lib/presupuestos.mjs", textos: conTexto(PIPELINES) },
   // El registro de entidades (#566): sus valores van a ops/entidades.json y a ops/entidades-sujetos.json.
-  "entidades.axis": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(AXES) },
+  // El eje (entidades.axis) se retiró entero el 12 oct 2026 (vocabularios_retirados): lo sustituye el alcance de las piezas.
+  "entidades.scope": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(SCOPES) },
+  "entidades.level": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(LEVELS) },
+  "entidades.family": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(FAMILIES) },
+  "entidades.creator": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(CREATORS) },
+  "entidades.relation_class": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(RELATION_CLASSES) },
+  "entidades.parent_kind": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(PARENT_KINDS) },
+  "entidades.cardinality": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(CARDINALITIES) },
+  "entidades.becomes": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(BECOMES) },
   "entidades.registry": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(REGISTRIES) },
   "entidades.status": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(STATUSES) },
   "entidades.id_format": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(ID_FORMATS) },
