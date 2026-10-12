@@ -13,9 +13,9 @@ dueño, su juez y su PR. Su fondo es #639; este documento sale del encargo #640.
 | N0 | Cómo se aplica al encargo |
 |---|---|
 | 1 y 2, un nombre por concepto | «tipo», «subtipo» y «complejidad» significan una cosa cada una (abajo). `tipo_accion` (preventivo, detectivo, correctivo) es otra cosa y no se llama «tipo». |
-| 3, valores discretos | Las condiciones de un paso opcional son banderas con nombre, no texto libre; el texto `si` se queda como compatibilidad con el panel. Cada tipo tiene un subtipo `<tipo>-other` para lo que no encaja, en vez de un valor libre. |
+| 3, valores discretos | Las condiciones de un paso opcional son banderas con nombre, no texto libre; el texto `si` se queda como compatibilidad con el panel. Lo que no encaja no es un valor libre: cada tipo tiene un subtipo liso o, si no lo tiene, una válvula `<tipo>-other` con su motivo en cada uso (`subtype_note`). Los atributos de un subtipo son valores de vocabulario cerrado o números; el único texto libre es `note`, de longitud acotada. |
 | 4, id estable | El número del issue de GitHub. Los tipos y subtipos llevan un id en minúsculas (kebab los subtipos). |
-| 5, forma de los nombres | Los campos, los ids de tipo y los valores nuevos van en inglés y en snake (`assignment_type`, `subtype`, `complexity`, `writes_data`), como pide N0. Los 17 ids de subtipo de siempre se quedan, porque los lee el panel de la factoría. |
+| 5, forma de los nombres | Los campos, los ids de tipo y los valores nuevos van en inglés y en snake (`assignment_type`, `subtype`, `complexity`, `writes_data`), como pide N0. Los subtipos nuevos siguen la plantilla `<tipo>-<objeto>`. Los ids de antes se quedan como alias retirados (`status: retired`, `replaced_by`), porque los lee el panel de la factoría. |
 | 6, registro con definición | `scripts/lib/issues.mjs` (el formato) y `ops/tipos-de-encargo.json` (tipos, subtipos y banderas). |
 | 7, una fuente por dato | La lista de jueces sale de `.claude/agents/` (`scripts/lib/agentes.mjs`); la tabla de `/orquestar` y `docs/ops/ENCARGO.md` se generan; el alcance no se copia al encargo. |
 | 8, quién, qué y cuándo | Quién: `constructor` y `juez`. Qué: tipo, subtipo y mecanismo. Cuándo: la fecha de alta del issue, que guarda GitHub. |
@@ -60,8 +60,9 @@ Claves del bloque `encargo` (la fuente es `CAMPOS_ENCARGO` de `scripts/lib/issue
 | `hecho_cuando` | texto: lo que se ve cuando está hecho | sí |
 | `ficheros` | rutas que toca, separadas por coma | no |
 | `assignment_type` | un tipo de `ops/tipos-de-encargo.json` (`assignment_types`) | sí en los creados desde 2026-10-13; antes, no |
-| `subtype` | un `id` de `tipos` de `ops/tipos-de-encargo.json` que cuelgue de ese tipo | sí en los creados desde 2026-10-13; antes, no |
+| `subtype` | un `id` activo de `tipos` de `ops/tipos-de-encargo.json` que cuelgue de ese tipo (un id retirado vale, con aviso) | sí en los creados desde 2026-10-13; antes, no |
 | `complexity` | `trivial`, `normal`, `large` | sí en los creados desde 2026-10-13; antes, no |
+| `subtype_note` | texto de hasta 160 caracteres: por qué ningún subtipo encaja; hace falta con una válvula (`<tipo>-other`) en los creados desde 2026-10-13 | solo con una válvula |
 <!-- n1:encargo:campos:fin -->
 
 Los tres campos nuevos (`assignment_type`, `subtype`, `complexity`) son **opcionales para los encargos abiertos antes del
@@ -78,7 +79,8 @@ Todos cerrados y anclados en `ops/vocabularios-vida.json` (N0 §12):
 |---|---|---|
 | `issues.tipo_accion` | preventivo, detectivo, correctivo | `scripts/lib/issues.mjs` |
 | `encargo.type` | los cinco tipos: create, fix, improve, operate, audit | `ops/tipos-de-encargo.json` (`assignment_types`) |
-| `encargo.subtype` | los 17 subtipos y un `<tipo>-other` por tipo, cada uno con su `type` | `ops/tipos-de-encargo.json` (`tipos`) |
+| `encargo.subtype` | los subtipos activos (12), cada uno con su `type`; los 21 ids de antes están retirados con su sustituto | `ops/tipos-de-encargo.json` (`tipos`) |
+| `encargo.differs_in`, `encargo.closing`, `encargo.measure`, `encargo.step_purpose`, `encargo.subtype_status` | lo que puede declarar un subtipo (la puerta de entrada, abajo) | `ops/tipos-de-encargo.json` |
 | `encargo.flag` | las condiciones de un paso opcional | `ops/tipos-de-encargo.json` (`flags`) |
 | `encargo.complexity` | trivial, normal, large | `scripts/lib/issues.mjs` (`COMPLEXITIES`) |
 | `encargo.pipeline` | cuánto del pipeline lanza cada complejidad | `scripts/lib/presupuestos.mjs` (`PIPELINES`) |
@@ -93,11 +95,11 @@ de `ops/tipos-de-encargo.json`:
 <!-- n1:encargo:tipos:inicio -->
 | Tipo | Qué es | Esqueleto de pasos | Subtipos |
 |---|---|---|---|
-| `create` | Algo nuevo o un cambio de lo que hace: pantalla, herramienta, tabla, endpoint, contenido | builder → judge | `pantalla-nueva`, `assets`, `lola-herramienta`, `lola-conocimiento`, `esquema-o-dato`, `recetas-o-catalogo`, `funcion-entre-dominios`, `endpoint-nuevo`, `create-other` |
-| `fix` | Algo que debía funcionar y no funciona | judge → builder → judge | `bug`, `fix-other` |
-| `improve` | Mejorar sin cambiar lo que hace: migrar, simplificar, acelerar, abaratar | builder → judge; mide antes y después | `migrar-a-tokens`, `dato-en-varias-capas`, `reducir-cableado`, `lento-o-caro`, `refactor-monolito`, `improve-other` |
-| `operate` | Operar la casa: CI, permisos, hooks, ramas, secretos, despliegues | builder → judge; si es irreversible, cierra con el OK de una persona | `ci-permisos-hooks`, `desplegar-produccion`, `operate-other` |
-| `audit` | Mirar sin tocar: solo jueces, en paralelo | judge; solo jueces, en paralelo | `revision-periodica`, `audit-other` |
+| `create` | Algo nuevo o un cambio de lo que hace: pantalla, herramienta, tabla, endpoint, contenido | builder → judge | `create-plain`, `create-gated-change`, `create-cross-domain`, `create-content` |
+| `fix` | Algo que debía funcionar y no funciona | judge → builder → judge | `fix-bug` |
+| `improve` | Mejorar sin cambiar lo que hace: migrar, simplificar, acelerar, abaratar | builder → judge; mide antes y después | `improve-measured`, `improve-structure`, `improve-layers` |
+| `operate` | Operar la casa: CI, permisos, hooks, ramas, secretos, despliegues | builder → judge; si es irreversible, cierra con el OK de una persona | `operate-reversible`, `operate-irreversible` |
+| `audit` | Mirar sin tocar: solo jueces, en paralelo | judge; solo jueces, en paralelo | `audit-periodic`, `audit-other` |
 
 Banderas de una condición (`flags`):
 
@@ -106,6 +108,76 @@ Banderas de una condición (`flags`):
 - `changes_bot`: El encargo cambia lo que Lola dice o hace.
 - `touches_secrets_or_permissions`: El encargo toca secretos, variables de entorno, permisos de Claude o de GitHub.
 <!-- n1:encargo:tipos:fin -->
+
+### La puerta de entrada de un subtipo
+
+Qué puede ser un subtipo (fondo #645, encargo #646): un subtipo es una **naturaleza de trabajo**, no una zona. Pablo decidió el 12 oct 2026 que todos los subtipos viven en el mismo plano y que lo discreto va primero. Se generó del lector:
+
+<!-- n1:encargo:puerta:inicio -->
+Las reglas de la puerta (`REGLAS_PUERTA` de `scripts/lib/tiposDeEncargo.mjs`; cada una la comprueba `ops/tipos-de-encargo.test.js`):
+
+- `plano`: Mismo plano: un subtipo describe la naturaleza del trabajo y no la zona. La zona sale de los ficheros (ámbitos de scripts/lib/ambitos.mjs) y de ella salen el constructor y los jueces.
+- `difiere`: Difiere de su tipo en algo medible: lo declara en `differs_in` (vocabulario cerrado) y un test lo comprueba contra el esqueleto de su tipo. El subtipo liso (`plain`) es el esqueleto y no declara nada; si no difiere, no es subtipo.
+- `repite`: Se repite: al menos 3 encargos con el patrón. Lo mide `npm run fabrica` y solo avisa. La válvula `<tipo>-other` cuenta sus usos, pide un motivo en `subtype_note` y, si se repite, propone un subtipo nuevo.
+- `texto-libre`: Lo discreto primero: todo atributo es un valor de vocabulario cerrado o un número; el único texto libre es `note`, de 160 caracteres como mucho.
+- `nombre`: Nombre con plantilla <tipo>-<objeto>, en inglés y en kebab-case: el prefijo es su tipo (create, fix, improve, operate, audit) y el objeto, de una a tres palabras.
+
+En qué puede diferir un subtipo de su tipo (`differs_in`, vocabulario cerrado):
+
+| Valor | Se cumple si |
+|---|---|
+| `steps` | Sus pasos, en orden de roles, no son los del esqueleto de su tipo |
+| `closing` | Cierra con el OK de una persona, que el esqueleto no pide |
+| `measure` | Mide otra cosa que la medida por defecto de su tipo |
+| `flags` | Tiene un juez que entra solo si se cumple una bandera |
+| `extra_judge` | Lleva un juez fijo que no es el juez por defecto |
+| `plans_first` | Empieza por un plan de la sesión, antes de construir |
+| `maps_first` | Empieza por un juez que mapea lo que hay, antes de construir |
+| `builds_in_session` | Lo construye la propia sesión, sin subagente constructor |
+
+Los subtipos activos y en qué difieren:
+
+| Subtipo | Es | Difiere en |
+|---|---|---|
+| `create-plain` | el liso del tipo | — |
+| `create-gated-change` | un subtipo | `closing`, `flags` |
+| `create-cross-domain` | un subtipo | `plans_first`, `steps`, `extra_judge` |
+| `create-content` | un subtipo | `builds_in_session` |
+| `fix-bug` | el liso del tipo | — |
+| `improve-measured` | el liso del tipo | — |
+| `improve-structure` | un subtipo | `measure` |
+| `improve-layers` | un subtipo | `maps_first`, `steps`, `measure` |
+| `operate-reversible` | un subtipo | `flags` |
+| `operate-irreversible` | un subtipo | `closing`, `flags` |
+| `audit-periodic` | un subtipo | `extra_judge` |
+| `audit-other` | la válvula del tipo | `extra_judge` |
+
+Los ids de antes, retirados (alias para el panel de la factoría; el dimensionador usa solo los activos):
+
+| Id retirado | Pasa a |
+|---|---|
+| `pantalla-nueva` | `create-plain` |
+| `assets` | `create-plain` |
+| `lola-herramienta` | `create-plain` |
+| `lola-conocimiento` | `create-plain` |
+| `esquema-o-dato` | `create-gated-change` |
+| `recetas-o-catalogo` | `create-content` |
+| `funcion-entre-dominios` | `create-cross-domain` |
+| `endpoint-nuevo` | `create-plain` |
+| `create-other` | `create-plain` |
+| `bug` | `fix-bug` |
+| `fix-other` | `fix-bug` |
+| `migrar-a-tokens` | `improve-structure` |
+| `dato-en-varias-capas` | `improve-layers` |
+| `reducir-cableado` | `improve-structure` |
+| `lento-o-caro` | `improve-measured` |
+| `refactor-monolito` | `improve-structure` |
+| `improve-other` | `improve-measured` |
+| `ci-permisos-hooks` | `operate-reversible` |
+| `desplegar-produccion` | `operate-irreversible` |
+| `operate-other` | `operate-reversible` |
+| `revision-periodica` | `audit-periodic` |
+<!-- n1:encargo:puerta:fin -->
 
 ## 5. Ciclo de vida
 
@@ -125,7 +197,7 @@ uno preventivo y automático (`docs/ops/ENCARGO.md`).
 - **Fuente de verdad:** `scripts/lib/issues.mjs` (`CAMPOS_ENCARGO`, `TIPOS_ACCION`, `COMPLEJIDADES`).
 - **Tipos, subtipos y banderas:** `ops/tipos-de-encargo.json`, con su lector único en `scripts/lib/tiposDeEncargo.mjs`.
   También lo lee el panel de la factoría (repo `homenu-panel`): los campos `tipos[].id`, `accion`, `pasos`, `cierra_con`,
-  `opcional` y `especiales` no se quitan ni se renombran.
+  `opcional` y `especiales` no se quitan ni se renombran; solo se añaden campos (`status`, `replaced_by`, `differs_in`…).
 - **Presupuesto:** `ops/presupuestos.json` (rondas, minutos y `by_complexity`). El lector común, `encargoDe`, junta los
   dos catálogos sin duplicar nada.
 - **Derivados:** `docs/ops/ENCARGO.md`, la tabla «Qué pipeline» de `.claude/commands/orquestar.md` y las tablas de este
@@ -138,7 +210,8 @@ uno preventivo y automático (`docs/ops/ENCARGO.md`).
 |---|---|
 | El bloque se lee, sus valores son del vocabulario y el subtipo cuelga del tipo | `scripts/fondos-encargos.test.js` y el workflow `fondos` |
 | El documento de formato y las tablas de este N1 son lo que genera `issues.mjs` | `scripts/encargo.test.js` |
-| Cada subtipo cumple el esqueleto de su tipo, ninguno se queda sin juez, las condiciones son banderas, la tabla de `/orquestar` se genera y la lista de jueces sale de `.claude/agents/` | `ops/tipos-de-encargo.test.js` |
+| Cada subtipo cumple el esqueleto de su tipo, pasa la puerta de entrada (mismo plano, difiere de verdad, sin texto libre fuera de `note`, nombre con plantilla), ninguno se queda sin juez, las condiciones son banderas, la tabla de `/orquestar` se genera y la lista de jueces sale de `.claude/agents/` | `ops/tipos-de-encargo.test.js` |
+| Cuántos encargos usa cada subtipo (aviso, no falla; una línea `subtipo-uso subtype: … aviso: pocos-usos`, `valvula-repetida` o `alias-retirado` por cada uno que no llega a 3) | `npm run fabrica` (`avisosDeUso`) |
 | La complejidad cubre su vocabulario y sus jueces no bajan al subir | `ops/presupuestos.test.js` |
 | Los vocabularios no pierden valores sin retirarlos | `ops/vocabularios-vida.test.js` |
 
