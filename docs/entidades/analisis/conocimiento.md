@@ -24,9 +24,9 @@ Fecha de datos: 12 oct 2026, leídos en `C:\dev\MenuPlan` (staging). «Comprobad
 2. **«Los estándares son agregaciones de normas»**: cierto solo a medias. Comprobado en `ops/estandares-agentes.json`: 66 tareas de 9 agentes; 176 normas llegan a alguna por consulta ámbito × acción (la tarea no las copia); pero solo 15 citas explícitas (13 normas distintas) y **156 reglas propias** con la misma forma que una norma. Por eso el estándar mezcla dos cosas: agregación derivada y reglas propias.
 3. **«El hook es un tipo de control o mecanismo con fuerza dura/semi/blanda»**: falso en tres puntos, todos con dato.
    - El hook no es un tipo de control. El `control` de una norma es el fichero que la vigila, y para las normas con ejecutor `guardia` es casi siempre un **test** (`guardia.test.js` en 20 de 26; 157 de las 183 normas no tienen control en hooks). Comprobado.
-   - Sí existe un mecanismo `hook` en `ops/mecanismos.json` (escalón `bloqueo`, ejecutor `guardia`, alcance `solo_claude`, veredicto `semidura`), pero es un **techo**, no el veredicto de la norma.
-   - «dura/semi/blanda» es el `veredicto` (`VEREDICTOS` en `scripts/lib/escalas.mjs`: dura, semidura, blanda, rota), no la `fuerza`. `fuerza` es otra cosa: `debe` 141, `no_debe` 41, `conviene` 1. Cruce comprobado: `debe|blanda` 73, `no_debe|blanda` 16, `debe|dura` 17, `no_debe|dura` 7 (no se pueden mezclar).
-   - Con ejecutor `guardia`: 23 semiduras, 3 blandas, 0 duras, coherente con el techo. Pero con ejecutor `ci` hay 19 duras, 27 semiduras y 3 blandas: el veredicto lo pone cada norma, no el mecanismo.
+   - Sí existe un mecanismo `hook` en `ops/mecanismos.json` (escalón `bloqueo`, ejecutor `guardia`, alcance `solo_claude`, veredicto intermedio), pero es un **techo**, no el veredicto de la norma.
+   - «dura/semi/blanda» es el `veredicto` (`VEREDICTOS` en `scripts/lib/escalas.mjs`, su única fuente), no la `fuerza`. `fuerza` es otra cosa: `debe` 141, `no_debe` 41, `conviene` 1. Cruce comprobado: `debe|blanda` 73, `no_debe|blanda` 16, `debe|dura` 17, `no_debe|dura` 7 (no se pueden mezclar).
+   - Con ejecutor `guardia`: 26 normas, ninguna del valor más fuerte, coherente con el techo. Pero con ejecutor `ci` hay 49 normas repartidas entre los tres primeros valores de la escala (19 de la más fuerte, 27 de la intermedia y 3 de la más débil): el veredicto lo pone cada norma, no el mecanismo.
 
 ---
 
@@ -48,7 +48,7 @@ Fecha de datos: 12 oct 2026, leídos en `C:\dev\MenuPlan` (staging). «Comprobad
 2. **Quién la lee.** `ops/normas.test.js`, `docs/ops/NORMAS.md` (generado), `scripts/lib/estandaresAgentes.mjs` (consulta por ámbito × acción), el `revisor`, `npm run estandar`.
 3. **Nivel.** Pieza concreta; su plantilla de forma es `scripts/lib/regla.mjs` (compartida con criterios y reglas propias de estándar).
 4. **Relaciones.** cita principio (N:1, campo `principio`); aplica a un `sujeto` (vocabulario cerrado); se vigila con un control (N:1, campo `control`, 59 ficheros distintos); la ejecuta un ejecutor (N:1, campo `ejecutor`, 10 valores); refiere a un issue (campo `issue`). **No guarda el id del mecanismo**: `ejecutor` guarda un valor de `EJECUTORES` (`github_regla`) y el mecanismo se llama `regla_github`. Estándar ← norma: por consulta, no por campo.
-5. **Ciclo de vida.** Se mide con `veredicto`: dura, semidura, blanda, rota. Comprobado: blanda 90, semidura 67, dura 24, rota 2. Lo sube o baja quien cambia su ejecutor o su test; `forja-capas` y ` ops/` hacen que solo suba.
+5. **Ciclo de vida.** Se mide con `veredicto` (valores en `scripts/lib/escalas.mjs`). Comprobado: 90 blandas, 67 semiduras, 24 duras y 2 rotas. Lo sube o baja quien cambia su ejecutor o su test; `forja-capas` y ` ops/` hacen que solo suba.
 6. **Fuente y copias.** Fuente: `ops/normas.json`. Copias: `docs/ops/NORMAS.md` (generado), y el campo `donde` apunta a donde está escrita en prosa (17 en `.claude/rules/`, 24 en hooks, 36 en `CLAUDE.md` según el super-tabla, sin recontar).
 7. **Quién la crea.** Agent (gobierno) con juez; Pablo cuando es un gateway (52 normas con ejecutor `persona`).
 8. **Veredicto.** **Se queda.** Hay que separar en el modelo, con nombre distinto, `fuerza` (debe/no_debe/conviene: RFC 2119) y `veredicto` (cuánto se hace cumplir). Dos columnas, dos vocabularios, no se mezclan.
@@ -59,7 +59,7 @@ Fecha de datos: 12 oct 2026, leídos en `C:\dev\MenuPlan` (staging). «Comprobad
 1. **Qué es.** «Una forma de hacer cumplir algo que está en el catálogo `ops/mecanismos.json`; el arreglo elige el más alto posible» (glosario `mecanismo.json`). 12 mecanismos con `id, nombre, escalon, ejecutor, alcance, veredicto, cuando, cuesta, ejemplo`. El glosario avisa de tres usos de la palabra (ids del catálogo; `ficha.mecanismo` del fondo; `recorded_in` del aprendizaje).
 2. **Quién la lee.** Skills `plan-de-arreglo` y `causa-raiz`, `npm run mecanismos`, `ops/mecanismos.test.js`, el bloque `encargo.mecanismo`.
 3. **Nivel.** Plantilla (el tipo de control), no pieza.
-4. **Relaciones.** mecanismo → escalón de `ESCALERA` (5: bloqueo, test_ci, script, skill, texto; N:1, campo); mecanismo → ejecutor (N:1, campo; el test cruza los dos vocabularios). Norma → mecanismo: **ninguna** (`stored_as: none` en `ops/entidades.json`). Fondo y encargo → mecanismo: el encargo lo guarda; el fondo guarda un escalón (`barrera`) y texto libre (`mecanismo`).
+4. **Relaciones.** mecanismo → escalón de `ESCALERA` (sus 5 escalones, definidos en `ESCALERA`; N:1, campo); mecanismo → ejecutor (N:1, campo; el test cruza los dos vocabularios). Norma → mecanismo: **ninguna** (`stored_as: none` en `ops/entidades.json`). Fondo y encargo → mecanismo: el encargo lo guarda; el fondo guarda un escalón (`barrera`) y texto libre (`mecanismo`).
 5. **Ciclo de vida.** Estático; lo cambia gobierno. Su `veredicto` es el techo.
 6. **Fuente y copias.** Fuente: `ops/mecanismos.json`. Tres vocabularios solapados: `ejecutor` (10), `control_tipo` (5), ids de mecanismo (12).
 7. **Quién la crea.** Agent (gobierno).
