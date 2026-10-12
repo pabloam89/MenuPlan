@@ -147,7 +147,7 @@ const PALABRAS_DE_ZONA = [
 ];
 /** Los jueces y los constructores que son de una zona (de AMBITOS): un paso fijo de un subtipo no los nombra. */
 const JUECES_DE_ZONA = [...new Set(Object.values(AMBITOS).flatMap((a) => a.jueces.map((j) => j.juez)))];
-const CONSTRUCTORES_DE_ZONA = [...new Set(Object.values(AMBITOS).map((a) => a.constructor).filter(Boolean))];
+const CONSTRUCTORES_DE_ZONA = [...new Set(Object.values(AMBITOS).map((a) => a.construye).filter(Boolean))];
 /** Las palabras de zona: lo anterior más los ids y los nombres de AMBITOS. */
 export const ZONAS = [...new Set([...PALABRAS_DE_ZONA, ...Object.entries(AMBITOS).flatMap(([id, a]) => [id, a.legible])].map(sinAcentos))];
 /** Qué palabras de zona nombra un texto. */

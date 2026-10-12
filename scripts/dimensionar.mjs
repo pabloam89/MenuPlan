@@ -4,9 +4,9 @@
  *
  *   npm run dimensionar -- 641                      el encargo #641: su bloque `encargo` da subtipo, ficheros previstos y causa
  *   npm run dimensionar -- 641 --diff               lo mismo con el diff real de la rama frente a origin/staging, y avisa si hay que redimensionar
- *   npm run dimensionar -- --ficheros a,b --tipo fix --causa codigo
- *   npm run dimensionar -- --diff --subtipo improve-measured
- *   opciones: --subtipo <id> | --tipo <create|fix|improve|operate|audit>   --causa <causa>   --banderas a,b
+ *   npm run dimensionar -- --ficheros a,b --tipo <tipo> --causa <causa>
+ *   npm run dimensionar -- --diff --subtipo <id de subtipo>
+ *   opciones: --subtipo <id> | --tipo <tipo de ops/tipos-de-encargo.json>   --causa <causa>   --banderas a,b
  *             --objetivo "<texto>"   --rama <rama>   --tarea <id de la tarea del constructor>   --json   --brief <agente> [--fase n]   --briefs
  *
  * Por defecto imprime líneas `campo: valor`. `--json` imprime el plan entero. `--brief <agente>` imprime el brief de ese agente (las
@@ -14,6 +14,7 @@
  * (subtipo, tipo, causa, bandera o encargo) y dice cuáles hay; nunca inventa un plan.
  */
 import { execFileSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -60,8 +61,14 @@ function diffDeLaRama() {
   const rama = git("diff", "-U0", "origin/staging...HEAD");
   const porRuta = new Map(leerDiff(rama).map((f) => [f.ruta, f.anadidas.length + f.quitadas.length]));
   // Lo sin commitear y lo nuevo también es de la rama: se suma para que `--diff` antes del commit no salga vacío.
-  const sucio = git("status", "--porcelain").split(/\r?\n/).filter(Boolean).map((l) => l.slice(3).replace(/^"|"$/g, "").split(" -> ").at(-1));
-  for (const r of sucio) if (!porRuta.has(r)) porRuta.set(r, null);
+  const sucio = git("status", "--porcelain", "-uall").split(/\r?\n/).filter(Boolean).map((l) => l.slice(3).replace(/^"|"$/g, "").split(" -> ").at(-1));
+  // `-uall` expande las carpetas sin seguimiento; de un fichero nuevo se cuentan sus líneas (todas son añadidas).
+  for (const r of sucio) {
+    if (porRuta.has(r)) continue;
+    let lines = null;
+    try { lines = readFileSync(join(RAIZ, r), "utf8").split("\n").length - 1; } catch { /* a propósito: un fichero borrado o ilegible se queda sin líneas y la medida lo marca como mínimo */ }
+    porRuta.set(r, lines);
+  }
   return [...porRuta].map(([ruta, lines]) => ({ ruta, lines }));
 }
 

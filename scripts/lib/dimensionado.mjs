@@ -7,7 +7,7 @@
  *   - el tamaño es el del aviso del CI (`UMBRALES_TAMANO` y `esGenerado` de avisosPr.mjs: líneas, ficheros y áreas, sin lo generado);
  *   - el alcance sale de los módulos de ops/MODULOS.json y de los ámbitos de ambitos.mjs; los números, de `dimensionado` de
  *     ops/presupuestos.json (a ojo mientras `valores_iniciales` sea true);
- *   - el constructor y el juez de la zona, de AMBITOS (`constructor` y `jueces`); el revisor entra siempre (`JUEZ_SIEMPRE`);
+ *   - el constructor y el juez de la zona, de AMBITOS (`construye` y `jueces`); el revisor entra siempre (`JUEZ_SIEMPRE`);
  *   - los pasos de cada tipo, de ops/tipos-de-encargo.json por `encargoDe` (tiposDeEncargo.mjs), con el presupuesto por causa;
  *   - el estándar y las normas del brief, de `textoDeTarea` (estandaresAgentes.mjs): el mismo texto que `npm run estandar`.
  *
@@ -21,11 +21,11 @@ import { join } from "node:path";
 
 import { cargarMapa } from "../../.claude/hooks/dominios.mjs";
 import { JUECES } from "./agentes.mjs";
-import { AMBITOS, JUEZ_SIEMPRE, ambitosDeFichero, constructorDeFichero, juecesDeAmbitos } from "./ambitos.mjs";
+import { AMBITOS, ambitosDeFichero, constructorDeFichero, juecesDeAmbitos } from "./ambitos.mjs";
 import { UMBRALES_TAMANO, esGenerado } from "./avisosPr.mjs";
 import { leerEstandares, leerNormasEn, RAIZ_REPO, tareasDe, textoDeTarea } from "./estandaresAgentes.mjs";
 import { leerPrecedencia } from "./precedencia.mjs";
-import { CATALOGO, CAUSAS, COMPLEXITIES, presupuestoDe } from "./presupuestos.mjs";
+import { ALCANCES, CATALOGO, CAUSAS, COMPLEXITIES, MOTIVOS_COMPLEJIDAD, presupuestoDe } from "./presupuestos.mjs";
 import { ALL_SUBTYPES, FLAGS, SUBTYPES, TYPES, encargoDe, rolDe } from "./tiposDeEncargo.mjs";
 import { precargadasDe, skillsDelEncargo } from "./usoSkills.mjs";
 
@@ -34,18 +34,33 @@ const RAIZ = RAIZ_REPO;
 /** Los ficheros que casi todo PR toca (orquestar, «Paralelo sin pisarse»): con varios constructores se tocan al final. */
 export const COMPARTIDOS_AL_FINAL = ["CLAUDE.md", "package.json", ".github/workflows/tests.yml", "vite.config.js", "src/App.jsx"];
 
-/** La forma de cada tipo: lo que hace distinto el orden de sus pasos. */
-export const FORMAS = {
-  create: "construir-y-juzgar",
-  fix: "diagnosticar-primero",
-  improve: "medir-antes-y-despues",
-  operate: "construir-y-juzgar",
-  audit: "solo-jueces-en-paralelo",
+/**
+ * Los literales de vocabulario que usa este módulo, juntos para que un test los cruce con su fuente (acciones de ops/estandares-agentes.json,
+ * finalidades y especiales de ops/tipos-de-encargo.json, causa de issues.mjs, roles de scripts/lib/tiposDeEncargo.mjs).
+ */
+export const LITERALES = {
+  acciones: ["diagnosticar", "juzgar", "medir", "construir", "operar"],
+  finalidades: ["diagnose", "measure_before", "measure_after"],
+  especiales: ["sesion", "constructor", "constructores"],
+  roles: ["builder", "judge", "planner", "measurer"],
+  causa_defecto: "sin-comprobar",
+  subtipo_defecto: "create-plain",
 };
+const [SESION, CONSTRUCTOR, CONSTRUCTORES_PLURAL] = LITERALES.especiales;
+const ES_CONSTRUCTOR_GENERICO = [CONSTRUCTOR, CONSTRUCTORES_PLURAL];
+
+/** Las formas de un tipo, derivadas de su `skeleton` en ops/tipos-de-encargo.json (nada por nombre de tipo). */
+export const FORMAS = ["solo-jueces-en-paralelo", "medir-antes-y-despues", "diagnosticar-primero", "construir-y-juzgar"];
+export function formaDe(skeleton) {
+  if (skeleton.judges_only_in_parallel) return FORMAS[0];
+  if (skeleton.measures_before_after) return FORMAS[1];
+  if (skeleton.roles[0] === "judge") return FORMAS[2];
+  return FORMAS[3];
+}
 
 const ORDEN_COMPLEJIDAD = Object.keys(COMPLEXITIES);
-const ORDEN_ALCANCE = ["local", "modulo", "transversal"];
-const ACCIONES_DE_JUEZ_EXTRA = ["juzgar", "medir", "diagnosticar"];
+const ORDEN_ALCANCE = ALCANCES;
+const ACCIONES_DE_JUEZ_EXTRA = ["juzgar", "medir", "diagnosticar"];  // subconjunto de LITERALES.acciones
 
 const norm = (r) => String(r).replace(/\\/g, "/").replace(/^\.\//, "");
 const unicos = (xs) => [...new Set(xs)];
@@ -57,14 +72,16 @@ const comoFicheros = (xs) => (xs ?? []).map((x) => (typeof x === "string" ? { ru
 
 /**
  * La medida del tamaño, la del aviso del CI (`evaluarC1`): líneas (añadidas más quitadas), ficheros y áreas (la primera carpeta),
- * sin lo generado. `lines` es null si algún fichero no trae sus líneas (ficheros previstos, no un diff).
+ * sin lo generado. `lines` suma las líneas que se conocen (null si no se conoce ninguna: ficheros previstos, no un diff);
+ * `lines_minimo` es true si falta alguna, y entonces `lines` es un mínimo.
  */
 export function medidaDe(ficheros) {
   const todos = comoFicheros(ficheros);
   const propios = todos.filter((x) => !esGenerado(x.ruta));
-  const lines = propios.every((x) => x.lines !== null) ? propios.reduce((n, x) => n + x.lines, 0) : null;
+  const conocidas = propios.filter((x) => x.lines !== null);
+  const lines = conocidas.length ? conocidas.reduce((n, x) => n + x.lines, 0) : null;
   const areas = new Set(propios.map((x) => (x.ruta.includes("/") ? x.ruta.split("/")[0] : "(root)")));
-  return { lines, files: propios.length, areas: areas.size, generated_skipped: todos.length - propios.length };
+  return { lines, lines_minimo: conocidas.length < propios.length, files: propios.length, areas: areas.size, generated_skipped: todos.length - propios.length };
 }
 
 /** El módulo de nivel superior de ops/MODULOS.json de cada ruta (también de submódulos y tests). → { modulos: [id], ambitos: [app|lola|compartido] } */
@@ -89,16 +106,19 @@ export function alcanceDe({ ficheros, mapa, cfg = CATALOGO.dimensionado }) {
   return { alcance, dominios, modulos, ambitos_modulo: ambitos };
 }
 
-/** La complejidad por la medida y el alcance → { complejidad, motivo }. El motivo es un id: `over:<medida>` (pasa un umbral del CI), `transversal`, `small` o `default`. */
+/**
+ * La complejidad por la medida y el alcance → { complejidad, motivo }. El motivo es un id de MOTIVOS_COMPLEJIDAD (presupuestos.mjs).
+ * Trivial pide que el tamaño se conozca entero: con líneas sueltas sin conocer (`lines_minimo` y alguna conocida) no vale; con ninguna
+ * conocida (ficheros previstos) cuentan solo ficheros y áreas.
+ */
 export function complejidadDe(medida, alcance, cfg = CATALOGO.dimensionado) {
-  const sobre = [];
-  if (medida.lines !== null && medida.lines > UMBRALES_TAMANO.lines) sobre.push("lines");
-  if (medida.files > UMBRALES_TAMANO.files) sobre.push("files");
-  if (medida.areas > UMBRALES_TAMANO.areas) sobre.push("areas");
-  if (sobre.length) return { complejidad: "large", motivo: `over:${sobre.join(",")}` };
+  if (medida.lines !== null && medida.lines > UMBRALES_TAMANO.lines) return { complejidad: "large", motivo: "over_lines" };
+  if (medida.files > UMBRALES_TAMANO.files) return { complejidad: "large", motivo: "over_files" };
+  if (medida.areas > UMBRALES_TAMANO.areas) return { complejidad: "large", motivo: "over_areas" };
   if (alcance === "transversal") return { complejidad: "large", motivo: "transversal" };
   const t = cfg.trivial;
-  if (alcance === "local" && (medida.lines === null || medida.lines <= t.lines_max) && medida.files <= t.files_max && medida.areas <= t.areas_max) return { complejidad: "trivial", motivo: "small" };
+  const tamanoConocido = medida.lines === null || !medida.lines_minimo;
+  if (alcance === "local" && tamanoConocido && (medida.lines === null || medida.lines <= t.lines_max) && medida.files <= t.files_max && medida.areas <= t.areas_max) return { complejidad: "trivial", motivo: "small" };
   return { complejidad: "normal", motivo: "default" };
 }
 
@@ -118,7 +138,7 @@ function subtipoDe({ subtipo, tipo }) {
     const s = SUBTYPES.find((x) => x.type === tipo && x.plain) ?? SUBTYPES.find((x) => x.type === tipo && x.valve);
     return { id: s.id, origen: "tipo" };
   }
-  return { id: "create-plain", origen: "defecto" };
+  return { id: LITERALES.subtipo_defecto, origen: "defecto" };
 }
 
 /** Reparte los ficheros entre constructores: uno por dominio; lo que casi todo PR toca va al final si hay varios. */
@@ -129,7 +149,7 @@ function repartir(propios) {
   const resto = compartidos.length && compartidos.length < propios.length ? propios.filter((r) => !compartidos.includes(r)) : propios;
   for (const r of resto) {
     const c = constructorDeFichero(r);
-    const agente = c?.agente ?? "sesion";
+    const agente = c?.agente ?? SESION;
     if (!c?.agente) avisos.push(`${r} es del ámbito ${c?.ambito ?? "ninguno"}, que no tiene constructor dueño: construye la sesión`);
     if (!grupos.has(agente)) grupos.set(agente, []);
     grupos.get(agente).push(r);
@@ -152,7 +172,7 @@ function repartir(propios) {
 export function dimensionar(entrada, deps = {}) {
   const mapa = deps.mapa ?? mapaDeModulos();
   const cfg = deps.cfg ?? CATALOGO.dimensionado;
-  const causa = entrada.causa ?? "sin-comprobar";
+  const causa = entrada.causa ?? LITERALES.causa_defecto;
   if (!CAUSAS.includes(causa)) throw new Error(`causa «${String(causa).slice(0, 40)}» desconocida; las hay: ${CAUSAS.join(", ")}`);
   const banderas = entrada.banderas ?? [];
   for (const b of banderas) if (!(b in FLAGS)) throw new Error(`bandera «${String(b).slice(0, 40)}» desconocida; las hay: ${Object.keys(FLAGS).join(", ")}`);
@@ -170,9 +190,11 @@ export function dimensionar(entrada, deps = {}) {
   const enc = encargoDe({ subtype: sub.id, scope: alcance, cause: causa, complexity: complejidad }, deps.presupuestos);
   if (!enc) throw new Error(`no hay encargo para ${sub.id}, ${alcance}, ${causa}, ${complejidad}`);
   avisos.push(...enc.warnings);
-  if (medida.lines === null && propios.length) avisos.push("sin líneas (ficheros previstos, no un diff): la complejidad es un mínimo; con --diff sale la real");
-  if (sub.origen === "defecto") avisos.push("sin subtipo ni tipo: create-plain por defecto; di --subtipo o --tipo para que la forma sea la del trabajo");
+  if ((medida.lines === null || medida.lines_minimo) && propios.length) avisos.push("sin todas las líneas (ficheros previstos o sin commitear): la complejidad es un mínimo; con --diff sale la real");
+  if (sub.origen === "defecto") avisos.push(`sin subtipo ni tipo: ${LITERALES.subtipo_defecto} por defecto; di --subtipo o --tipo para que la forma sea la del trabajo`);
   const tipo = enc.type;
+  const esqueleto = TYPES[tipo].skeleton;
+  const forma = formaDe(esqueleto);
   const subDatos = ALL_SUBTYPES.find((x) => x.id === enc.subtype);
 
   // Constructores: los fijos del subtipo (gobierno en operate) o uno por dominio.
@@ -181,19 +203,22 @@ export function dimensionar(entrada, deps = {}) {
   const sinFicheros = !propios.length;
   let constructores = reparto.constructores;
   const medidores = subDatos.measured_with ?? [];
-  const fijos = enc.steps.flatMap((p) => p.agentes ?? []).filter((a) => rolDe(a) === "builder" && !["constructor", "constructores"].includes(a) && !medidores.includes(a));
+  const fijos = enc.steps.flatMap((p) => p.agentes ?? []).filter((a) => rolDe(a) === "builder" && !ES_CONSTRUCTOR_GENERICO.includes(a) && !medidores.includes(a));
   if (fijos.length) constructores = unicos(fijos).map((agente) => ({ agente, ficheros: propios }));
-  else if (enc.steps.some((p) => (p.agentes ?? []).some((a) => ["constructor", "constructores"].includes(a)))) {
+  else if (enc.steps.some((p) => (p.agentes ?? []).some((a) => ES_CONSTRUCTOR_GENERICO.includes(a)))) {
     if (sinFicheros) {
-      constructores = [{ agente: "constructor", ficheros: [] }];
+      constructores = [{ agente: CONSTRUCTOR, ficheros: [] }];
       avisos.push("sin ficheros: el constructor del dominio no se puede elegir; da --ficheros o --diff");
-    } else if (constructores.length > 1 && enc.subtype !== "create-planned" && tipo === "create") avisos.push(`${constructores.length} dominios con ${enc.subtype}: considera create-planned (plan primero)`);
-  } else if (tipo === "audit") constructores = [];
-  else if (enc.steps.some((p) => (p.agentes ?? []).includes("sesion")) && subDatos.builds_in_session) constructores = [{ agente: "sesion", ficheros: propios }];
+    } else if (constructores.length > 1 && !subDatos.differs_in.includes("plans_first")) {
+      const conPlan = SUBTYPES.find((x) => x.type === tipo && x.differs_in.includes("plans_first"));
+      if (conPlan) avisos.push(`${constructores.length} dominios con ${enc.subtype}: considera ${conPlan.id} (plan primero)`);
+    }
+  } else if (esqueleto.judges_only_in_parallel) constructores = [];
+  else if (enc.steps.some((p) => (p.agentes ?? []).includes(SESION)) && subDatos.builds_in_session) constructores = [{ agente: SESION, ficheros: propios }];
 
   // Los pasos del subtipo, con el diagnóstico siempre primero en un arreglo (el pipeline mínimo lo salta).
   let pasos = enc.steps;
-  if (tipo === "fix" && !pasos.some((p) => p.purpose === "diagnose")) pasos = [...subDatos.pasos.filter((p) => p.purpose === "diagnose"), ...pasos];
+  if (forma === FORMAS[2] && !pasos.some((p) => p.purpose === LITERALES.finalidades[0])) pasos = [...subDatos.pasos.filter((p) => p.purpose === LITERALES.finalidades[0]), ...pasos];
 
   const fases = [];
   const condicionales = [];
@@ -201,9 +226,9 @@ export function dimensionar(entrada, deps = {}) {
     const agentes = [];
     const pon = (agente, rol) => { if (!agentes.some((a) => a.agente === agente)) agentes.push({ agente, rol }); };
     for (const a of paso.agentes ?? []) {
-      if (a === "constructor" || a === "constructores") for (const c of constructores) pon(c.agente, "builder");
+      if (ES_CONSTRUCTOR_GENERICO.includes(a)) for (const c of constructores) pon(c.agente, "builder");
       else if (medidores.includes(a)) pon(a, "measurer");
-      else if (a === "sesion") pon(a, subDatos.builds_in_session ? "builder" : "planner");
+      else if (a === SESION) pon(a, subDatos.builds_in_session ? "builder" : "planner");
       else pon(a, rolDe(a) ?? "judge");
     }
     for (const o of paso.opcional ?? []) {
@@ -258,9 +283,9 @@ export function dimensionar(entrada, deps = {}) {
     dominios,
     modulos,
     ficheros: propios,
-    forma: FORMAS[tipo],
-    medicion: tipo === "improve" ? { kind: subDatos.measure_kind, counters: subDatos.counters ?? [] } : null,
-    diagnostico: tipo === "fix" ? { quien: presu.diagnostica, hipotesis_max: presu.hipotesis_en_paralelo_max, es_no_es: presu.es_no_es } : null,
+    forma,
+    medicion: esqueleto.measures_before_after ? { kind: subDatos.measure_kind, counters: subDatos.counters ?? [] } : null,
+    diagnostico: forma === FORMAS[2] ? { quien: presu.diagnostica, hipotesis_max: presu.hipotesis_en_paralelo_max, es_no_es: presu.es_no_es } : null,
     constructores,
     al_final: reparto.alFinal,
     jueces: unicos(fasesFinal.flatMap((x) => x.agentes.filter((a) => a.rol === "judge").map((a) => a.agente))),
@@ -310,7 +335,7 @@ export function textoDe(plan, redim = null) {
   campo("complejidad", plan.complejidad);
   campo("complejidad_motivo", plan.motivo_complejidad);
   if (plan.declarada) campo("complejidad_declarada", plan.declarada);
-  campo("medida", `lines=${m.lines ?? "desconocidas"} files=${m.files} areas=${m.areas} generated_skipped=${m.generated_skipped}`);
+  campo("medida", `lines=${m.lines ?? "desconocidas"}${m.lines_minimo ? "+" : ""} files=${m.files} areas=${m.areas} generated_skipped=${m.generated_skipped}`);
   campo("ambitos", plan.ambitos.join(", ") || "ninguno");
   campo("dominios", plan.dominios.join(", ") || "ninguno");
   campo("modulos", plan.modulos.join(", ") || "ninguno");
@@ -354,12 +379,12 @@ let _real = null;
 const depsReales = () => (_real ??= { datos: leerEstandares(RAIZ), registro: leerNormasEn(RAIZ), precedencia: leerPrecedencia(RAIZ), mapaSkills: cargarMapa(RAIZ) });
 
 /** Qué acciones del catálogo de estándares sirven para este agente en esta fase, por orden de preferencia. */
-function accionesDeFase(rol, finalidad, tipo) {
-  if (finalidad === "diagnose") return ["diagnosticar", "juzgar"];
-  if (finalidad === "measure_before") return ["medir", "construir"];
-  if (finalidad === "measure_after") return ["medir", "juzgar"];
+function accionesDeFase(rol, finalidad, esqueleto) {
+  if (finalidad === LITERALES.finalidades[0]) return ["diagnosticar", "juzgar"];
+  if (finalidad === LITERALES.finalidades[1]) return ["medir", "construir"];
+  if (finalidad === LITERALES.finalidades[2]) return ["medir", "juzgar"];
   if (rol === "judge" || rol === "measurer") return ["juzgar", "medir"];
-  return tipo === "operate" ? ["operar", "construir"] : ["construir", "operar"];
+  return esqueleto?.irreversible_needs_close ? ["operar", "construir"] : ["construir", "operar"];
 }
 
 /**
@@ -373,7 +398,7 @@ export function tareaParaFase(plan, agente, fase, datos) {
     if (!ag.tareas.some((t) => t.id === plan.tarea)) throw new Error(`${agente} no tiene la tarea «${plan.tarea}»; tiene: ${ag.tareas.map((t) => t.id).join(", ")}`);
     return { id: plan.tarea, aproximada: false };
   }
-  const quiero = accionesDeFase(fase.rol, fase.finalidad, plan.tipo);
+  const quiero = accionesDeFase(fase.rol, fase.finalidad, TYPES[plan.tipo].skeleton);
   const cand = ag.tareas.filter((t) => quiero.includes(t.accion)).map((t) => ({ t, solape: (t.ambitos ?? []).filter((a) => plan.ambitos.includes(a)).length, rango: quiero.indexOf(t.accion) }));
   if (fase.finalidad) cand.sort((a, b) => a.rango - b.rango || b.solape - a.solape);
   else cand.sort((a, b) => b.solape - a.solape || a.rango - b.rango);

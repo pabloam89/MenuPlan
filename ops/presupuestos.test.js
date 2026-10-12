@@ -310,6 +310,7 @@ const MALOS = [
   ["dimensionado", "sin el bloque del dimensionado", (c) => { delete c.dimensionado; }],
   ["dimensionado", "un umbral de trivial a cero", (c) => { c.dimensionado.trivial.lines_max = 0; }],
   ["dimensionado", "ningún fichero para ser local", (c) => { c.dimensionado.local_max_files = 0; }],
+  ["dimensionado", "trivial con más ficheros que un alcance local", (c) => { c.dimensionado.trivial.files_max = c.dimensionado.local_max_files + 1; }],
   ["dimensionado", "un campo que el dimensionado no tiene", (c) => { c.dimensionado.inventado = 1; }],
   ["calibracion", "valores iniciales con fecha de calibrado", (c) => { c.calibrado_el = "2026-10-20"; }],
   ["calibracion", "calibrado sin fecha", (c) => { c.valores_iniciales = false; }],

@@ -117,6 +117,8 @@ ficheros que toca el encargo (pantallas, bot, api, datos…) y de ella salen su
 constructor y los jueces que se suman a los de la tabla. Lo calcula
 `npm run dimensionar` desde `AMBITOS` (`scripts/lib/ambitos.mjs`: `constructor` y
 `jueces` de cada ámbito, y el `revisor` en toda zona); no se copia en este texto.
+Un ámbito sin dueño (`construye: null`: catálogo, api, producto, entidades) lo
+construye la sesión, y el comando lo avisa.
 Los ids de antes (`bug`, `esquema-o-dato`…) son alias retirados: valen con
 aviso, y el JSON dice a cuál pasa cada uno.
 
@@ -188,7 +190,8 @@ escribas a mano: añade solo lo que el comando no sabe (el objetivo con
   defecto, que es `staging`.
 - Ficheros que tocan casi todos (`CLAUDE.md`, `package.json`,
   `.github/workflows/tests.yml`, `vite.config.js`, `src/App.jsx`): se tocan
-  al final, por un solo agente o por ti.
+  al final, por un solo agente o por ti (la lista es `COMPARTIDOS_AL_FINAL` de
+  `scripts/lib/dimensionado.mjs`; un test la cruza con esta).
 - Los agentes no lanzan otros agentes: si un informe pide otro agente, lo
   decides y lo lanzas tú.
 

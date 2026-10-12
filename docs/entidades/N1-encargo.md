@@ -83,6 +83,7 @@ Todos cerrados y anclados en `ops/vocabularios-vida.json` (N0 §12):
 | `encargo.differs_in`, `encargo.closing`, `encargo.measure`, `encargo.counter`, `encargo.step_purpose`, `encargo.subtype_status` | lo que puede declarar un subtipo (la puerta de entrada, abajo) | `ops/tipos-de-encargo.json` |
 | `encargo.flag` | las condiciones de un paso opcional | `ops/tipos-de-encargo.json` (`flags`) |
 | `encargo.complexity` | trivial, normal, large | `scripts/lib/issues.mjs` (`COMPLEXITIES`) |
+| `encargo.complexity_reason` | over_lines, over_files, over_areas, transversal, small, default | `scripts/lib/presupuestos.mjs` (`MOTIVOS_COMPLEJIDAD`), por qué `npm run dimensionar` da esa complejidad |
 | `encargo.pipeline` | cuánto del pipeline lanza cada complejidad | `scripts/lib/presupuestos.mjs` (`PIPELINES`) |
 | `flujo.actores` | quién interviene en un paso; el juez es un agente con «Tipo: juez» | `scripts/lib/flujo.mjs` (`ACTORES`) |
 
