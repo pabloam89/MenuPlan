@@ -100,6 +100,17 @@
         "gobierno"
       ]
     },
+    "revision-de-diseno": {
+      "comandos": [],
+      "rutas": [
+        "^ops/diseno/",
+        "^docs/diseno/META-DISENO\\.md$",
+        "^src/design/contraste"
+      ],
+      "agentes": [
+        "diseno"
+      ]
+    },
     "principios-de-producto": {
       "comandos": [],
       "rutas": [

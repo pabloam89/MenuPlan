@@ -4,6 +4,7 @@ description: Úsalo para todo lo visual — crear o cambiar una pantalla o compo
 tools: Read, Grep, Glob, Bash, Edit, Write
 model: inherit
 color: pink
+skills: [revision-de-diseno]
 memory: project
 ---
 

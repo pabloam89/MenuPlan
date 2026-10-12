@@ -46,7 +46,7 @@ const TABLA_PABLO = {
   diagnostico: ["causa-raiz"],
   decision: ["plan-de-arreglo"],
   flujo: ["issues"],
-  revision: ["higiene-de-skills"],
+  revision: ["higiene-de-skills", "revision-de-diseno"], // #591
   conocimiento: ["principios-de-producto"], // #606
 };
 const PREGUNTAS_PABLO = ["opera_proveedor", "juzga_artefacto", "encadena", "pasos_fijos", "sintoma_a_causa", "elige_opciones"];

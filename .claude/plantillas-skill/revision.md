@@ -6,7 +6,7 @@ El molde de una skill de tipo `revision`: se copia el esqueleto y se rellena. Lo
 
 | Qué hace | Entra | Sale | Cómo se prueba | Skills de hoy |
 |---|---|---|---|---|
-| Juzgar un artefacto contra un catálogo y aplicar lo mecánico | artefacto | criterio, estado y arreglo | una pieza mala a propósito da todos sus fallos | `higiene-de-skills` |
+| Juzgar un artefacto contra un catálogo y aplicar lo mecánico | artefacto | criterio, estado y arreglo | una pieza mala a propósito da todos sus fallos | `higiene-de-skills`, `revision-de-diseno` |
 
 ## Cómo se llega a este tipo
 
