@@ -48,11 +48,28 @@ paso. Los números no se escriben aquí ni en ningún brief: salen del comando.
 ## 1. Dimensiona antes de orquestar
 
 Agentes cuestan: un subagente gasta varias veces los tokens de un chat, y
-varios en paralelo, mucho más. Escala el esfuerzo al encargo:
+varios en paralelo, mucho más. El esfuerzo no lo estimas tú: lo calcula
+`npm run dimensionar -- <n.º de encargo | --ficheros a,b | --diff>`
+(`scripts/lib/dimensionado.mjs`, #641), con `--subtipo <id>` o `--tipo <tipo>`,
+`--causa <causa>` si es un fallo y `--banderas a,b` si toca RLS, secretos o
+datos. Devuelve en líneas `campo: valor`:
 
-- **Trivial** (una línea, un texto, una duda): lo construyes tú y lo mira un juez. Hasta lo trivial lleva un juez.
-- **Normal** (un cambio en un dominio): un constructor y un juez.
-- **Grande** (varios dominios, o refactor; `large` en el catálogo): el pipeline completo de la tabla.
+- **Alcance** (`local`, `modulo` o `transversal`) por los módulos de
+  `ops/MODULOS.json` y los ámbitos de los ficheros, y **complejidad**
+  (`COMPLEXITIES` de `scripts/lib/issues.mjs`) por la medida de tamaño del aviso
+  del CI. Qué lanza cada complejidad (jueces mínimos y parte del pipeline) está en
+  `by_complexity` de `ops/presupuestos.json`: no se repite aquí.
+- **Agentes y fases**: el constructor del ámbito de los ficheros (uno por dominio
+  si cruza varios), el `revisor` en toda zona, el juez de la zona, los que pide la
+  causa y la forma del tipo (arreglar diagnostica primero, mejorar mide antes y
+  después, auditar son solo jueces en paralelo). Cada fase dice si va en
+  paralelo o en serie; en paralelo solo con ficheros distintos (sección 5).
+- **Hasta lo trivial lleva un juez**, y lo construye el constructor del dominio,
+  no tú, salvo que el subtipo diga que construye la sesión (`builds_in_session`).
+- **Redimensionar**: al planificar corre con el n.º del encargo; antes de abrir
+  el PR, otra vez con `--diff`. Si dice `redimensionar: si`, el diff real supera
+  a lo previsto: vuelve a planificar antes de seguir. Los avisos (`aviso:`) se
+  resuelven o se dicen en el resumen.
 
 Si el encargo es ambiguo (no está claro el objetivo, qué queda fuera, o cómo
 se sabrá que está bien), pregunta antes de lanzar nada.
@@ -88,7 +105,7 @@ no se lanzan hasta que vuelvan a `.claude/agents/`.
 ## 3. Qué pipeline según la acción
 
 `→` es secuencial; `+` es en paralelo. Entre corchetes, solo si aplica (la
-condición es una bandera con nombre, en `banderas` del JSON).
+condición es una bandera con nombre, en `flags` del JSON).
 Hay cinco tipos de encargo (crear, arreglar, mejorar, operar y auditar) y los
 subtipos de abajo cuelgan de ellos. La tabla **se genera** desde
 `ops/tipos-de-encargo.json` (lo lee también el panel de la factoría) con
@@ -97,10 +114,13 @@ subtipos de abajo cuelgan de ellos. La tabla **se genera** desde
 
 El subtipo es la **naturaleza del trabajo**, no la zona: la zona sale de los
 ficheros que toca el encargo (pantallas, bot, api, datos…) y de ella salen su
-constructor y los jueces que se suman a los de la tabla (el dimensionador de
-#641 lo calculará; mientras tanto, lo decide quien orquesta). Los ids de antes
-(`bug`, `esquema-o-dato`…) son alias retirados: valen con aviso, y el JSON dice
-a cuál pasa cada uno.
+constructor y los jueces que se suman a los de la tabla. Lo calcula
+`npm run dimensionar` desde `AMBITOS` (`scripts/lib/ambitos.mjs`: `constructor` y
+`jueces` de cada ámbito, y el `revisor` en toda zona); no se copia en este texto.
+Un ámbito sin dueño (`construye: null`: catálogo, api, producto, entidades) lo
+construye la sesión, y el comando lo avisa.
+Los ids de antes (`bug`, `esquema-o-dato`…) son alias retirados: valen con
+aviso, y el JSON dice a cuál pasa cada uno.
 
 <!-- tipos:tabla:inicio -->
 | Tipo | Subtipo | Acción | Pipeline |
@@ -119,26 +139,17 @@ a cuál pasa cada uno.
 | audit | `audit-other` | Otra auditoría | `revisor` |
 <!-- tipos:tabla:fin -->
 
-Jueces por zona. Un subtipo no nombra la zona, pero la zona de los ficheros pide
-sus jueces; hasta que #641 los calcule, salen de esta tabla (dato en
-`scripts/lib/ambitos.mjs`), además de `revisor`, que va en todas las zonas:
-
-<!-- ambitos:jueces:inicio -->
-| Zona | Jueces, además de `revisor` | De dónde sale |
-|---|---|---|
-| `data` (datos) | `auditor-datos` | `norma:aplicar-migracion-con-permiso` |
-| `catalog` (catálogo) | `auditor-datos` | `agente:auditor-datos` |
-| `bot` (bot) | `evaluador` | `norma:evals-antes-de-fusionar` |
-| `api` (api) | `seguridad` | `norma:endpoint-nuevo-juez-seguridad` |
-| `ui` (pantallas) | `qa` | `agente:qa` |
-<!-- ambitos:jueces:fin -->
-
 Regla fija: **quien construye no juzga**. Cada constructor va seguido de al
 menos un juez distinto.
 
 ## 4. El brief de cada agente
 
-Un subagente no ve esta conversación. Cada encargo que le pases lleva:
+Un subagente no ve esta conversación. **El brief sale de
+`npm run dimensionar -- <encargo | --ficheros | --diff> --brief <agente>`** (o
+`--briefs`, el de todos): trae las nueve piezas de abajo, con la tarea del
+catálogo, las normas por ámbito × acción y por los ficheros, y la precedencia. No lo
+escribas a mano: añade solo lo que el comando no sabe (el objetivo con
+`--objetivo "…"` si no hay issue, y el resumen de los informes previos). Lo que lleva:
 
 1. **Objetivo**: qué tiene que conseguir, en una o dos frases.
 2. **Contexto**: lo decidido hasta ahora y los informes previos que necesite
@@ -179,7 +190,8 @@ Un subagente no ve esta conversación. Cada encargo que le pases lleva:
   defecto, que es `staging`.
 - Ficheros que tocan casi todos (`CLAUDE.md`, `package.json`,
   `.github/workflows/tests.yml`, `vite.config.js`, `src/App.jsx`): se tocan
-  al final, por un solo agente o por ti.
+  al final, por un solo agente o por ti (la lista es `COMPARTIDOS_AL_FINAL` de
+  `scripts/lib/dimensionado.mjs`; un test la cruza con esta).
 - Los agentes no lanzan otros agentes: si un informe pide otro agente, lo
   decides y lo lanzas tú.
 

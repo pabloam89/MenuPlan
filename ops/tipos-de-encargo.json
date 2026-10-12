@@ -42,7 +42,10 @@
       "what": "Cierra con el OK de una persona, que el esqueleto no pide"
     },
     "measure": {
-      "what": "Mide otra cosa que la medida por defecto de su tipo, o (en audit) mide con un agente que no es juez"
+      "what": "Mide otra cosa que la medida por defecto de su tipo (su `measure_kind`)"
+    },
+    "measures_with": {
+      "what": "En una auditoría, mide con un agente que no es juez (`measured_with`)"
     },
     "plans_first": {
       "what": "Empieza por un plan de la sesión, antes de construir"
@@ -439,7 +442,7 @@
         "gobierno"
       ],
       "differs_in": [
-        "measure"
+        "measures_with"
       ]
     },
     {

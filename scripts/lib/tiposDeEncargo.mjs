@@ -8,15 +8,15 @@
  * cada línea) y la tabla de `/orquestar`, que se GENERA desde el JSON. Los agentes salen de `.claude/agents/` (agentes.mjs) y el
  * presupuesto, de `ops/presupuestos.json` (presupuestos.mjs): `encargoDe` los junta sin copiar nada.
  *
- * No calcula agentes desde el diff (eso es E2, #641): dado un subtipo, un alcance, una causa y una complejidad,
- * devuelve lo que dicen los dos catálogos.
+ * No calcula agentes desde el diff (eso lo hace el dimensionador, scripts/lib/dimensionado.mjs, #641): dado un subtipo, un alcance,
+ * una causa y una complejidad, devuelve lo que dicen los dos catálogos.
  */
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { AGENTES, CONSTRUCTORES, JUECES } from "./agentes.mjs";
-import { AMBITOS, JUEZ_SIEMPRE } from "./ambitos.mjs";
+import { AMBITOS } from "./ambitos.mjs";
 import { MAX_NOTA_SUBTIPO } from "./issues.mjs";
 import { CATALOGO as PRESUPUESTOS, COMPLEXITIES, PIPELINES, presupuestoDe } from "./presupuestos.mjs";
 
@@ -29,8 +29,6 @@ export const MARCA_N1_TIPOS_INICIO = "<!-- n1:encargo:tipos:inicio -->";
 export const MARCA_N1_TIPOS_FIN = "<!-- n1:encargo:tipos:fin -->";
 export const MARCA_N1_PUERTA_INICIO = "<!-- n1:encargo:puerta:inicio -->";
 export const MARCA_N1_PUERTA_FIN = "<!-- n1:encargo:puerta:fin -->";
-export const MARCA_JUECES_INICIO = "<!-- ambitos:jueces:inicio -->";
-export const MARCA_JUECES_FIN = "<!-- ambitos:jueces:fin -->";
 
 export const leerTipos = (raiz = RAIZ) => JSON.parse(readFileSync(join(raiz, RUTA_TIPOS), "utf8"));
 export const DATOS = leerTipos();
@@ -133,7 +131,7 @@ export function problemasDeEsqueleto(sub, tipos = TYPES, ctx = CTX, d = DATOS) {
 
 /** Las reglas de la puerta, con el nombre que lleva cada línea de `problemas`; el N1 del encargo las recoge tal cual. */
 export const REGLAS_PUERTA = [
-  { id: "plano", texto: "Mismo plano: un subtipo describe la naturaleza del trabajo y no la zona. La zona sale de los ficheros (ámbitos de scripts/lib/ambitos.mjs) y de ella salen el constructor y los jueces." },
+  { id: "plano", texto: "Mismo plano: un subtipo describe la naturaleza del trabajo y no la zona. La zona sale de los ficheros (ámbitos de scripts/lib/ambitos.mjs) y de ella salen el constructor y los jueces: ni el id, ni la etiqueta, ni las finalidades de paso, ni los agentes de los pasos nombran una zona. Un paso no nombra al constructor ni al juez de una zona; solo lo admiten operate, cuyo constructor es `gobierno`, y audit, que son solo jueces. Un juez de zona por bandera va en `opcional`." },
   { id: "difiere", texto: "Difiere de su tipo en algo medible: lo declara en `differs_in` (vocabulario cerrado) y un test lo comprueba contra el esqueleto de su tipo. El subtipo liso (`plain`) es el esqueleto y no declara nada; si no difiere, no es subtipo." },
   { id: "repite", texto: `Se repite: al menos ${MIN_USOS} encargos con el patrón. Lo mide \`npm run fabrica\` y solo avisa. La válvula \`<tipo>-other\` cuenta sus usos, pide un motivo en \`subtype_note\` y, si se repite, propone un subtipo nuevo.` },
   { id: "texto-libre", texto: `Lo discreto primero: todo atributo es un valor de vocabulario cerrado o un número; los únicos huecos de texto son \`note\` (de ${MAX_NOTE} caracteres como mucho) y la etiqueta \`accion\` (la definición del valor, de ${MAX_ACCION}).` },
@@ -147,6 +145,9 @@ const PALABRAS_DE_ZONA = [
   "migracion", "migraciones", "migration", "despliegue", "deploy", "catalogo", "receta", "recetas", "recipe", "asset", "assets", "hook", "hooks",
   "workflow", "ci", "rls", "base", "token", "tokens", "monolito", "monolith", "cableado", "wiring",
 ];
+/** Los jueces y los constructores que son de una zona (de AMBITOS): un paso fijo de un subtipo no los nombra. */
+const JUECES_DE_ZONA = [...new Set(Object.values(AMBITOS).flatMap((a) => a.jueces.map((j) => j.juez)))];
+const CONSTRUCTORES_DE_ZONA = [...new Set(Object.values(AMBITOS).map((a) => a.construye).filter(Boolean))];
 /** Las palabras de zona: lo anterior más los ids y los nombres de AMBITOS. */
 export const ZONAS = [...new Set([...PALABRAS_DE_ZONA, ...Object.entries(AMBITOS).flatMap(([id, a]) => [id, a.legible])].map(sinAcentos))];
 /** Qué palabras de zona nombra un texto. */
@@ -167,7 +168,7 @@ function secuenciaDeRoles(sub, ctx = CTX) {
 /**
  * En qué difiere de verdad un subtipo del esqueleto de su tipo: el conjunto de valores de `differs_in` que se cumplen.
  * steps (sus roles no son los del esqueleto), closing (cierra con una persona), measure (mide otra cosa que la medida por
- * defecto; en audit, mide con un agente que no es juez), plans_first (empieza por el plan de la sesión), maps_first (empieza
+ * defecto de su tipo: `measure_kind`), measures_with (en audit, mide con un agente que no es juez: `measured_with`; son dos cosas y cada una tiene su valor), plans_first (empieza por el plan de la sesión), maps_first (empieza
  * por un juez que mapea, donde el esqueleto empieza por construir) y builds_in_session (lo construye la sesión). Un juez de
  * zona, fijo o por bandera, NO cuenta: la zona sale de los ficheros (`jueces` de AMBITOS en ambitos.mjs).
  */
@@ -178,7 +179,8 @@ export function facetasDe(sub, tipos = TYPES, ctx = CTX) {
   const f = new Set();
   if (JSON.stringify(seq) !== JSON.stringify(esq.roles)) f.add("steps");
   if (sub.cierra_con) f.add("closing");
-  if (("measure_kind" in sub && sub.measure_kind !== esq.default_measure) || (esq.judges_only_in_parallel && sub.measured_with?.length)) f.add("measure");
+  if ("measure_kind" in sub && sub.measure_kind !== esq.default_measure) f.add("measure");
+  if (esq.judges_only_in_parallel && sub.measured_with?.length) f.add("measures_with");
   if (seq[0] === "planner") f.add("plans_first");
   if (seq[0] === "judge" && esq.roles[0] === "builder") f.add("maps_first");
   if (sub.builds_in_session === true) f.add("builds_in_session");
@@ -207,6 +209,11 @@ export function problemasDeLaPuerta(sub, d = DATOS, ctx = { agentes: AGENTES, es
   const objeto = m ? m[2] : sub.id;
   for (const z of zonasQueNombra(objeto)) p.push(`plano: ${sub.id} nombra la zona «${z}» en su id; un subtipo describe la naturaleza del trabajo, la zona sale de los ficheros`);
   for (const z of zonasQueNombra(sub.accion ?? "")) p.push(`plano: ${sub.id} nombra la zona «${z}» en su etiqueta; un subtipo describe la naturaleza del trabajo, la zona sale de los ficheros`);
+  // plano: los agentes fijos de un paso tampoco son de una zona (#641, pendiente de #646). El juez de zona entra por bandera, en `opcional`.
+  for (const paso of sub.pasos ?? []) for (const a of paso.agentes ?? []) {
+    if (sub.type !== "audit" && JUECES_DE_ZONA.includes(a)) p.push(`plano: ${sub.id} nombra al juez «${a}» en un paso fijo, y es el juez de una zona; un subtipo no nombra la zona (si depende de una bandera, va en «opcional»)`);
+    if (sub.type !== "operate" && !(sub.measured_with ?? []).includes(a) && CONSTRUCTORES_DE_ZONA.includes(a)) p.push(`plano: ${sub.id} nombra al constructor «${a}» en un paso fijo, y es el de una zona; el constructor sale de los ficheros (usa «constructor»)`);
+  }
   for (const paso of sub.pasos ?? []) for (const z of zonasQueNombra(`${paso.purpose ?? ""} ${d?.step_purposes?.[paso.purpose]?.what ?? ""}`)) p.push(`plano: ${sub.id} lleva un paso con la finalidad «${paso.purpose}», que nombra la zona «${z}»; las finalidades de paso también describen el trabajo`);
   // texto-libre: solo `note`, con tope; lo demás, vocabularios cerrados
   for (const k of Object.keys(sub)) if (!CLAVES_ACTIVO.includes(k)) p.push(`texto-libre: ${sub.id} lleva el campo «${k}», que no es de un subtipo activo: el texto libre vive solo en «note» (hasta ${MAX_NOTE} caracteres) y en la etiqueta «accion» (hasta ${MAX_ACCION}), que define el valor`);
@@ -455,15 +462,8 @@ const entre = (md, ini, fin, texto) => {
   return `${md.slice(0, i + ini.length)}\n${texto}\n${md.slice(f)}`;
 };
 
-/** La tabla «jueces por zona» (de AMBITOS, scripts/lib/ambitos.mjs): hasta que #641 los calcule, la zona de los ficheros pide estos jueces. */
-export function tablaJueces() {
-  const filas = Object.entries(AMBITOS).filter(([, a]) => a.jueces.length)
-    .map(([id, a]) => `| \`${id}\` (${a.legible}) | ${a.jueces.map((j) => `\`${j.juez}\``).join(", ")} | ${a.jueces.map((j) => `\`${j.fuente}\``).join(", ")} |`);
-  return ["| Zona | Jueces, además de `" + JUEZ_SIEMPRE + "` | De dónde sale |", "|---|---|---|", ...filas].join("\n");
-}
-
-/** Pone las tablas generadas entre las marcas de un `orquestar.md` (subtipos y jueces por zona); si no están, lo dice. */
-export const regenerarOrquestar = (md, d = DATOS) => entre(entre(md, MARCA_INICIO, MARCA_FIN, tablaPipelines(d)), MARCA_JUECES_INICIO, MARCA_JUECES_FIN, tablaJueces());
+/** Pone la tabla generada de subtipos entre las marcas de un `orquestar.md`; si no están, lo dice. Los jueces por zona ya no se copian ahí: los calcula `npm run dimensionar` (scripts/lib/dimensionado.mjs) desde AMBITOS. */
+export const regenerarOrquestar = (md, d = DATOS) => entre(md, MARCA_INICIO, MARCA_FIN, tablaPipelines(d));
 
 /** Los tipos y las banderas, como prosa del N1 (docs/entidades/N1-encargo.md, §4), generada del JSON. */
 export function textoN1Tipos(d = DATOS) {
