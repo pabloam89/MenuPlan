@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
+import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { CAMPOS_COMUNES_ENCARGO, CAMPOS_ENCARGO, ENCARGO_N1_DESDE, ESCALONES_AUTOMATICOS, conCamposN1, formatoEncargoMd, plantillaEncargo } from "./lib/issues.mjs";
 import { CATALOGO as MECANISMOS, ESCALONES } from "./lib/mecanismos.mjs";
+import { conTiposN1 } from "./lib/tiposDeEncargo.mjs";
 
 /**
  * El formato de un encargo (#338): una sola fuente (`CAMPOS_ENCARGO` de
@@ -66,6 +68,11 @@ describe("el N1 del encargo (docs/entidades/N1-encargo.md, #640)", () => {
     expect(() => conCamposN1("sin marcas")).toThrow(/marcas/);
   });
 
+  it("la prosa de tipos y banderas del §4 es la que sale del JSON, y el documento no habla de idioma pendiente", () => {
+    expect(conTiposN1(n1), "Regenera con `npm run flujo -- --escribir`").toBe(n1);
+    expect(n1).not.toMatch(/## Idioma|pendiente de Pablo/);
+  });
+
   it("cada campo común apunta a una clave del bloque o dice que se deduce, y no hay dos con el mismo nombre", () => {
     const claves = CAMPOS_ENCARGO.map((c) => c.clave);
     for (const c of CAMPOS_COMUNES_ENCARGO) if (c.clave !== null) expect(claves, c.campo).toContain(c.clave);
@@ -75,12 +82,26 @@ describe("el N1 del encargo (docs/entidades/N1-encargo.md, #640)", () => {
 
   it("los campos nuevos son opcionales para lo anterior a ENCARGO_N1_DESDE y el documento lo dice", () => {
     const nuevos = CAMPOS_ENCARGO.filter((c) => c.desde);
-    expect(nuevos.map((c) => c.clave)).toEqual(["tipo_encargo", "subtipo", "complejidad"]);
+    expect(nuevos.map((c) => c.clave)).toEqual(["assignment_type", "subtype", "complexity"]);
     for (const c of nuevos) {
       expect(c.desde).toBe(ENCARGO_N1_DESDE);
       expect(c.obligatorio).toContain(ENCARGO_N1_DESDE);
     }
     expect(n1).toContain("opcionales para los encargos abiertos antes del");
+    expect(n1).toContain("13 oct 2026");
+  });
+
+  it("ENCARGO_N1_DESDE no es anterior al día en que nació el N1 (si lo fuera, los campos serían obligatorios con carácter retroactivo)", () => {
+    expect(ENCARGO_N1_DESDE).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    let nacio = "";
+    try {
+      nacio = execFileSync("git", ["log", "--diff-filter=A", "--format=%cs", "-1", "--", "docs/entidades/N1-encargo.md"], { cwd: RAIZ, encoding: "utf8", windowsHide: true }).trim();
+    } catch {
+      // sin git (o sin historia): no se puede comprobar aquí
+    }
+    if (nacio) expect(ENCARGO_N1_DESDE >= nacio, `${ENCARGO_N1_DESDE} es anterior a ${nacio}`).toBe(true);
+    // Y no es un día que ya pasó respecto a la fecha del propio campo: todo `desde` es el mismo.
+    for (const c of CAMPOS_ENCARGO.filter((x) => x.desde)) expect(c.desde).toBe(ENCARGO_N1_DESDE);
   });
 
   it("lleva las secciones de la plantilla N1, en orden, y cita los principios de N0 por su número", () => {

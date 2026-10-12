@@ -80,7 +80,11 @@ describe("validarEncargos", () => {
     expect(validarEncargos([enc(2), enc(1, { tipo_accion: "detectivo", mecanismo: BLANDO, ...POR })], "plan")).toEqual([]);
   });
   it("quien construye no juzga", () => {
-    expect(reglas(validarEncargos([enc(1, { juez: "gobierno" })], "plan"))).toEqual(["encargo-juez"]);
+    expect(reglas(validarEncargos([enc(1, { constructor: "revisor", juez: "revisor" })], "plan"))).toEqual(["encargo-juez"]);
+  });
+  it("el juez tiene que ser un agente con «Tipo: juez»: un constructor o la sesión no valen", () => {
+    expect(reglas(leerEncargo(bloque({ ...BUENO, juez: "gobierno" })).errores)).toEqual(["encargo-vocabulario"]);
+    expect(reglas(leerEncargo(bloque({ ...BUENO, juez: "sesión" })).errores)).toEqual(["encargo-vocabulario"]);
   });
   it("sin preventivo automático: todo detectivo, o preventivo con un mecanismo blando", () => {
     expect(reglas(validarEncargos([enc(1, { tipo_accion: "detectivo", ...POR })], "plan"))).toEqual(["sin-preventivo-automatico"]);
@@ -166,11 +170,11 @@ describe("ronda 2 de #396: constructor heredado, autores de fuera y plan vigente
   });
 });
 
-describe("el N1 del encargo: tipo_encargo, subtipo y complejidad (#640)", () => {
-  const N1 = { tipo_encargo: "operar", subtipo: "ci-permisos-hooks", complejidad: "normal" };
+describe("el N1 del encargo: assignment_type, subtype y complexity (#640)", () => {
+  const N1 = { assignment_type: "operate", subtype: "ci-permisos-hooks", complexity: "normal" };
   const CAMPOS_N1 = Object.keys(N1);
-  const antes = (e) => ({ ...e, createdAt: "2026-10-11T23:59:59Z" });
-  const despues = (e) => ({ ...e, createdAt: "2026-10-12T00:00:00Z" });
+  const antes = (e) => ({ ...e, createdAt: "2026-10-12T23:59:59Z" });
+  const despues = (e) => ({ ...e, createdAt: "2026-10-13T00:00:00Z" });
 
   it("un encargo abierto antes de ENCARGO_N1_DESDE sin los tres campos no falla (el workflow no se rompe)", () => {
     expect(validarEncargos([antes(enc(1))], "plan")).toEqual([]);
@@ -185,12 +189,12 @@ describe("el N1 del encargo: tipo_encargo, subtipo y complejidad (#640)", () => 
     expect(validarEncargos([enc(1)], "plan")).toEqual([]);
   });
   it("un subtipo que no cuelga del tipo dicho es un error, y un valor fuera del vocabulario también", () => {
-    expect(reglas(validarEncargos([despues(enc(1, { ...N1, tipo_encargo: "crear" }))], "plan"))).toEqual(["encargo-subtipo"]);
-    expect(reglas(leerEncargo(bloque({ ...BUENO, ...N1, complejidad: "enorme" })).errores)).toEqual(["encargo-vocabulario"]);
-    expect(reglas(leerEncargo(bloque({ ...BUENO, ...N1, subtipo: "inventado" })).errores)).toEqual(["encargo-vocabulario"]);
+    expect(reglas(validarEncargos([despues(enc(1, { ...N1, assignment_type: "create" }))], "plan"))).toEqual(["encargo-subtipo"]);
+    expect(reglas(leerEncargo(bloque({ ...BUENO, ...N1, complexity: "enorme" })).errores)).toEqual(["encargo-vocabulario"]);
+    expect(reglas(leerEncargo(bloque({ ...BUENO, ...N1, subtype: "inventado" })).errores)).toEqual(["encargo-vocabulario"]);
   });
   it("viene del hijo de la REST con su createdAt", () => {
-    const h = hijoDeRest({ number: 3, state: "open", body: bloque(BUENO), labels: [], created_at: "2026-10-12T08:00:00Z" });
+    const h = hijoDeRest({ number: 3, state: "open", body: bloque(BUENO), labels: [], created_at: "2026-10-13T08:00:00Z" });
     expect(reglas(validarEncargos([h], "plan"))).toEqual(["encargo-incompleto"]);
   });
 });

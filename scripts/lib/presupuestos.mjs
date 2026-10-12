@@ -22,7 +22,7 @@ import { fileURLToPath } from "node:url";
 
 import { JUECES } from "./agentes.mjs";
 import { ALCANCES_FALLO, DIAGNOSTICAN } from "./flujo.mjs";
-import { COMPLEJIDADES, GRUPOS } from "./issues.mjs";
+import { COMPLEXITIES, GRUPOS } from "./issues.mjs";
 
 /** Las causas de `causa:` (issues.mjs), sin copiarlas. */
 export const CAUSAS = Object.keys(GRUPOS.causa.valores);
@@ -38,14 +38,13 @@ export const TOPE_RONDAS = 2;
  */
 export { JUECES };
 
-/** La complejidad de un encargo (issues.mjs, #640): los números de cada una están en `por_complejidad` de ops/presupuestos.json. */
-export { COMPLEJIDADES };
+/** La complejidad de un encargo (issues.mjs, #640): los números de cada una están en `by_complexity` de ops/presupuestos.json. */
+export { COMPLEXITIES };
 
 /** Qué parte del pipeline de un subtipo lanza cada complejidad. */
 export const PIPELINES = {
-  ninguno: "La sesión lo hace sin subagentes",
-  minimo: "Un constructor y el juez mínimo del tipo",
-  completo: "Todos los pasos del subtipo",
+  minimal: "Un constructor y el juez mínimo, con las condiciones de sus pasos",
+  complete: "Todos los pasos del subtipo",
 };
 
 /** Rangos admitidos de cada cifra: [mínimo, máximo], enteros. */
@@ -130,13 +129,14 @@ export function problemas(catalogo) {
     }
   }
 
-  // La complejidad de un encargo (#640): una fila por valor del vocabulario, jueces crecientes, pipeline del vocabulario.
-  const cx = catalogo?.por_complejidad ?? {};
-  if (JSON.stringify(Object.keys(cx)) !== JSON.stringify(Object.keys(COMPLEJIDADES))) p.push(`complejidad: «por_complejidad» tiene que cubrir ${Object.keys(COMPLEJIDADES).join(", ")} (en ese orden) y cubre ${Object.keys(cx).join(", ")}`);
-  let anterior = -1;
+  // La complejidad de un encargo (#640): una fila por valor del vocabulario, siempre con juez (también lo trivial),
+  // jueces que no bajan al subir y un pipeline del vocabulario.
+  const cx = catalogo?.by_complexity ?? {};
+  if (JSON.stringify(Object.keys(cx)) !== JSON.stringify(Object.keys(COMPLEXITIES))) p.push(`complejidad: «by_complexity» tiene que cubrir ${Object.keys(COMPLEXITIES).join(", ")} (en ese orden) y cubre ${Object.keys(cx).join(", ")}`);
+  let anterior = 1;
   for (const [c, b] of Object.entries(cx)) {
     for (const k of Object.keys(b ?? {})) if (!["jueces_min", "pipeline"].includes(k)) p.push(`complejidad: ${c} tiene un campo desconocido «${k}»`);
-    if (!entero(b?.jueces_min) || b.jueces_min < 0 || b.jueces_min > RANGOS.jueces_min[1]) p.push(`complejidad: ${c} «jueces_min» tiene que ser un entero entre 0 y ${RANGOS.jueces_min[1]}`);
+    if (!entero(b?.jueces_min) || b.jueces_min < 1 || b.jueces_min > RANGOS.jueces_min[1]) p.push(`complejidad: ${c} «jueces_min» tiene que ser un entero entre 1 y ${RANGOS.jueces_min[1]}: hasta lo trivial lleva un juez`);
     else if (b.jueces_min < anterior) p.push(`complejidad: ${c} «jueces_min» (${b.jueces_min}) es menor que el de la complejidad anterior (${anterior})`);
     else anterior = b.jueces_min;
     if (!(b?.pipeline in PIPELINES)) p.push(`complejidad: ${c} «pipeline» «${b?.pipeline}» está fuera de ${Object.keys(PIPELINES).join(", ")}`);

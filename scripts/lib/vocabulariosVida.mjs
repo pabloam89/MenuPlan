@@ -45,14 +45,14 @@ import { ESTADOS } from "./fondos.mjs";
 import { ACTORES, ALCANCES_FALLO, DIAGNOSTICAN, ESTADOS_MEDIDA, PASOS } from "./flujo.mjs";
 import { leerForja } from "./forja.mjs";
 import { CLASES, ESTADOS_TERMINO, plano } from "./glosario.mjs";
-import { GRUPOS, TIPOS_ACCION } from "./issues.mjs";
+import { COMPLEXITIES, GRUPOS, TIPOS_ACCION } from "./issues.mjs";
 import { CAUSAS_EXCEPCION, ROLES_CAMPO, TIPOS_LECTOR, UNIDADES } from "./metricas.mjs";
 import { AMBITOS } from "./ambitos.mjs";
 import { FORMAS as FORMAS_EXCEPCION, RAZONES as RAZONES_EXCEPCION } from "./excepciones.mjs";
 import { RESULTADOS_NORMA } from "./medicionNormas.mjs";
 import { leerPrecedencia } from "./precedencia.mjs";
 import { VEREDICTOS_RUIDO } from "./ruido.mjs";
-import { COMPLEJIDADES, PIPELINES } from "./presupuestos.mjs";
+import { PIPELINES } from "./presupuestos.mjs";
 import { textosDeBanderas, textosDeSubtipos, textosDeTipos } from "./tiposDeEncargo.mjs";
 import { VOCABULARIOS as PRODUCTO } from "../../src/lib/vocabularios.js";
 
@@ -96,11 +96,11 @@ export const VOCABULARIOS = {
   "pr.excepcion_razon": { fichero: "scripts/lib/excepciones.mjs", textos: conTexto(RAZONES_EXCEPCION) },
   "normas.resultado": { fichero: "scripts/lib/medicionNormas.mjs", textos: conTexto(RESULTADOS_NORMA) },
   // Los tipos de encargo (#640): la única lista está en ops/tipos-de-encargo.json (tipos, subtipos y banderas) y en
-  // ops/presupuestos.json (la complejidad y su pipeline); sus lectores, tiposDeEncargo.mjs y presupuestos.mjs.
-  "encargo.tipo": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeTipos() },
-  "encargo.subtipo": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeSubtipos() },
-  "encargo.bandera": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeBanderas() },
-  "encargo.complejidad": { fichero: "scripts/lib/presupuestos.mjs", textos: conTexto(COMPLEJIDADES) },
+  // ops/presupuestos.json (el pipeline de cada complejidad); sus lectores, tiposDeEncargo.mjs y presupuestos.mjs.
+  "encargo.type": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeTipos() },
+  "encargo.subtype": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeSubtipos() },
+  "encargo.flag": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeBanderas() },
+  "encargo.complexity": { fichero: "scripts/lib/issues.mjs", textos: conTexto(COMPLEXITIES) },
   "encargo.pipeline": { fichero: "scripts/lib/presupuestos.mjs", textos: conTexto(PIPELINES) },
   // El registro de entidades (#566): sus valores van a ops/entidades.json y a ops/entidades-sujetos.json.
   "entidades.axis": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(AXES) },

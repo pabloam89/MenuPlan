@@ -50,9 +50,9 @@ paso. Los números no se escriben aquí ni en ningún brief: salen del comando.
 Agentes cuestan: un subagente gasta varias veces los tokens de un chat, y
 varios en paralelo, mucho más. Escala el esfuerzo al encargo:
 
-- **Trivial** (una línea, un texto, una duda): hazlo tú, sin agentes.
+- **Trivial** (una línea, un texto, una duda): lo construyes tú y lo mira un juez. Hasta lo trivial lleva un juez.
 - **Normal** (un cambio en un dominio): un constructor y un juez.
-- **Grande** (varios dominios, o refactor): el pipeline completo de la tabla.
+- **Grande** (varios dominios, o refactor; `large` en el catálogo): el pipeline completo de la tabla.
 
 Si el encargo es ambiguo (no está claro el objetivo, qué queda fuera, o cómo
 se sabrá que está bien), pregunta antes de lanzar nada.
@@ -98,23 +98,28 @@ subtipos de abajo cuelgan de ellos. La tabla **se genera** desde
 <!-- tipos:tabla:inicio -->
 | Tipo | Acción | Pipeline |
 |---|---|---|
-| crear | Pantalla o componente nuevo | `diseno` → `qa` + `revisor` |
-| crear | Assets (icono, ilustración, limpieza) | `diseno` → `qa` |
-| crear | Herramienta nueva o cambio en Lola | `lola` → `evaluador` + `revisor` → [`seguridad` si escribe datos] |
-| crear | Cambiar conocimiento, prompt o enrutador del bot | `lola` → `evaluador` |
-| crear | Cambio de esquema o dato nuevo | `datos` → `auditor-datos` + [`seguridad` si toca RLS] → *OK para aplicar* |
-| crear | Recetas o catálogo (contenido) | sesión principal → `revisor` (validación del catálogo en los tests) |
-| crear | Función que cruza dominios | sesión principal (plan corto) → constructores por dominio → `revisor` + `qa` |
-| crear | Endpoint nuevo en `api/` | constructor del dominio → `seguridad` + `revisor` |
-| arreglar | Bug | `revisor` (diagnóstico y test que lo reproduce) → constructor del dominio → `revisor` |
-| mejorar | Migrar una pantalla a tokens | `diseno` → `qa` |
-| mejorar | Dato que vive en varias capas (base, catálogo, constantes) | `auditor-datos` (mapa) → `datos` → `auditor-datos` |
-| mejorar | Reducir el cableado de una tabla | `auditor-datos` (qué ficheros) → constructor del dominio → `revisor` |
-| mejorar | Algo va lento o cuesta de más | constructor del dominio (mide antes; `lola` si es el bot) → `revisor` (pide la medida de después) |
-| mejorar | Refactor de un monolito | sesión principal (plan por pasos) → constructor del dominio (por pasos) → `revisor` (en cada paso) |
-| operar | CI, permisos, hooks, ramas, secretos | `gobierno` → `revisor` + [`seguridad` si toca secretos o permisos] |
-| operar | Desplegar a producción | `gobierno` → `revisor` + [`evaluador` si cambia el bot] → *OK de una persona* |
-| auditar | Revisión periódica | `seguridad` + `auditor-datos` + `evaluador` + `gobierno` (planos), en paralelo |
+| create | Pantalla o componente nuevo | `diseno` → `qa` + `revisor` |
+| create | Assets (icono, ilustración, limpieza) | `diseno` → `qa` |
+| create | Herramienta nueva o cambio en Lola | `lola` → `evaluador` + `revisor` → [`seguridad` si escribe datos] |
+| create | Cambiar conocimiento, prompt o enrutador del bot | `lola` → `evaluador` |
+| create | Cambio de esquema o dato nuevo | `datos` → `auditor-datos` + [`seguridad` si toca RLS] → *OK para aplicar* |
+| create | Recetas o catálogo (contenido) | sesión principal → `revisor` (validación del catálogo en los tests) |
+| create | Función que cruza dominios | sesión principal (plan corto) → constructores por dominio → `revisor` + `qa` |
+| create | Endpoint nuevo en `api/` | constructor del dominio → `seguridad` + `revisor` |
+| create | Otro encargo de crear (lo que no encaja en los demás) | constructor del dominio → `revisor` |
+| fix | Bug | `revisor` (diagnóstico y test que lo reproduce) → constructor del dominio → `revisor` |
+| fix | Otro encargo de arreglar (lo que no encaja en los demás) | `revisor` (diagnóstico y test que lo reproduce) → constructor del dominio → `revisor` |
+| improve | Migrar una pantalla a tokens | `diseno` → `qa` |
+| improve | Dato que vive en varias capas (base, catálogo, constantes) | `auditor-datos` (mapa) → `datos` → `auditor-datos` |
+| improve | Reducir el cableado de una tabla | `auditor-datos` (qué ficheros) → constructor del dominio → `revisor` |
+| improve | Algo va lento o cuesta de más | constructor del dominio (mide antes; `lola` si es el bot) → `revisor` (pide la medida de después) |
+| improve | Refactor de un monolito | sesión principal (plan por pasos) → constructor del dominio (por pasos) → `revisor` (en cada paso) |
+| improve | Otra mejora sin cambiar lo que hace | constructor del dominio (mide antes) → `revisor` (pide la medida de después) |
+| operate | CI, permisos, hooks, ramas, secretos | `gobierno` → `revisor` + [`seguridad` si toca secretos o permisos] |
+| operate | Desplegar a producción | `gobierno` → `revisor` + [`evaluador` si cambia el bot] → *OK de una persona* |
+| operate | Otra operación de la casa | `gobierno` → `revisor` |
+| audit | Revisión periódica | `seguridad` + `auditor-datos` + `evaluador` + `gobierno` (planos), en paralelo |
+| audit | Otra auditoría | `revisor` + `seguridad`, en paralelo |
 <!-- tipos:tabla:fin -->
 
 Regla fija: **quien construye no juzga**. Cada constructor va seguido de al

@@ -6,7 +6,7 @@
   "especificacion": 339,
   "notas_campos": {
     "minutos_orientativos": "Esfuerzo de UN FONDO: la suma de los minutos activos de las sesiones de todos sus encargos (sesiones en paralelo suman; no es el tiempo de calendario ni el de un encargo suelto). Es lo que compara npm run fabrica -- --recalibrar, con la mediana de esos totales por fondo.",
-    "por_complejidad": "La complejidad de un ENCARGO (#640; vocabulario COMPLEJIDADES de scripts/lib/presupuestos.mjs): cuántos jueces como mínimo y qué parte del pipeline de su subtipo se lanza (ninguno: lo hace la sesión; minimo: un constructor y el juez mínimo; completo: todos los pasos del subtipo). Se junta con el alcance en scripts/lib/tiposDeEncargo.mjs sin copiar nada; calcularla desde el diff es de E2 (#641).",
+    "by_complexity": "La complejidad de un ENCARGO (#640; vocabulario COMPLEXITIES de scripts/lib/issues.mjs): cuántos jueces como mínimo (siempre uno, también en lo trivial) y qué parte del pipeline de su subtipo se lanza (minimal: un constructor y el juez mínimo; complete: todos los pasos del subtipo). Se junta con el alcance y la causa en scripts/lib/tiposDeEncargo.mjs sin copiar nada; calcularla desde el diff es de E2 (#641).",
     "rondas_max": "Rondas de constructor y juez del fondo, tal como las apunta el campo rondas de su ficha."
   },
   "valores_iniciales": true,
@@ -41,10 +41,10 @@
       "minutos_orientativos": 60
     }
   },
-  "por_complejidad": {
-    "trivial": { "jueces_min": 0, "pipeline": "ninguno" },
-    "normal": { "jueces_min": 1, "pipeline": "minimo" },
-    "grande": { "jueces_min": 2, "pipeline": "completo" }
+  "by_complexity": {
+    "trivial": { "jueces_min": 1, "pipeline": "minimal" },
+    "normal": { "jueces_min": 1, "pipeline": "minimal" },
+    "large": { "jueces_min": 2, "pipeline": "complete" }
   },
   "por_causa": {
     "modelo-datos": { "jueces_obligatorios": ["auditor-datos"] },

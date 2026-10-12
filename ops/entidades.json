@@ -274,7 +274,7 @@
       "id_format": "number",
       "registry": "with_registry",
       "status": "active",
-      "note": "Su N1 (el piloto de la plantilla) es docs/entidades/N1-encargo.md: cinco tipos de encargo con los 17 de siempre como subtipos, la complejidad y las banderas, en ops/tipos-de-encargo.json."
+      "note": "Su N1 (el piloto de la plantilla) es docs/entidades/N1-encargo.md: cinco tipos de encargo con sus subtipos, la complejidad y las banderas, en ops/tipos-de-encargo.json."
     },
     {
       "id": "decision",

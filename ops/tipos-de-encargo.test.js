@@ -5,10 +5,11 @@ import { fileURLToPath } from "node:url";
 
 import { AGENTES, CONSTRUCTORES, JUECES, agentesDe } from "../scripts/lib/agentes.mjs";
 import { ACTORES } from "../scripts/lib/flujo.mjs";
+import { CAPAS_AGENTE } from "../scripts/lib/fondos.mjs";
 import { ACCIONES, leerEstandares, tareasDe } from "../scripts/lib/estandaresAgentes.mjs";
-import { CATALOGO, COMPLEJIDADES, PIPELINES, problemas as problemasDePresupuesto } from "../scripts/lib/presupuestos.mjs";
+import { CATALOGO, COMPLEXITIES, PIPELINES, problemas as problemasDePresupuesto } from "../scripts/lib/presupuestos.mjs";
 import {
-  BANDERAS, DATOS, MARCA_FIN, MARCA_INICIO, SUBTIPOS, TIPOS, encargoDe, juecesDe, problemas, problemasDeEsqueleto, regenerarOrquestar, tablaPipelines,
+  DATOS, FLAGS, MARCA_FIN, MARCA_INICIO, SUBTYPES, TYPES, encargoDe, juecesDe, pasosMinimos, problemas, problemasDeEsqueleto, regenerarOrquestar, rolDe, tablaPipelines,
 } from "../scripts/lib/tiposDeEncargo.mjs";
 
 /**
@@ -27,16 +28,17 @@ const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const leer = (r) => readFileSync(join(RAIZ, r), "utf8").replace(/\r\n/g, "\n");
 const clon = (x) => JSON.parse(JSON.stringify(x));
 const ESPECIALES = Object.keys(DATOS.especiales);
-const sub = (id) => SUBTIPOS.find((s) => s.id === id);
+const sub = (id) => SUBTYPES.find((s) => s.id === id);
 
 describe("los tipos y subtipos", () => {
-  it("son cinco tipos y diecisiete subtipos, cada uno colgado de un tipo que existe", () => {
-    expect(Object.keys(TIPOS)).toEqual(["crear", "arreglar", "mejorar", "operar", "auditar"]);
-    expect(SUBTIPOS).toHaveLength(17);
-    const ids = SUBTIPOS.map((s) => s.id);
+  it("son cinco tipos y 22 subtipos (los 17 de siempre y un `<tipo>-other` por tipo), cada uno colgado de un tipo que existe", () => {
+    expect(Object.keys(TYPES)).toEqual(["create", "fix", "improve", "operate", "audit"]);
+    expect(SUBTYPES).toHaveLength(22);
+    const ids = SUBTYPES.map((s) => s.id);
+    for (const t of Object.keys(TYPES)) expect(ids, `falta ${t}-other`).toContain(`${t}-other`);
     expect(new Set(ids).size).toBe(ids.length);
-    for (const s of SUBTIPOS) expect(Object.keys(TIPOS), `${s.id} cuelga de «${s.tipo}»`).toContain(s.tipo);
-    for (const t of Object.keys(TIPOS)) expect(SUBTIPOS.some((s) => s.tipo === t), `el tipo ${t} no tiene subtipos`).toBe(true);
+    for (const s of SUBTYPES) expect(Object.keys(TYPES), `${s.id} cuelga de «${s.type}»`).toContain(s.type);
+    for (const t of Object.keys(TYPES)) expect(SUBTYPES.some((s) => s.type === t), `el tipo ${t} no tiene subtipos`).toBe(true);
   });
 
   it("el catálogo entero pasa sus reglas de forma, esqueleto y banderas", () => {
@@ -44,24 +46,24 @@ describe("los tipos y subtipos", () => {
   });
 
   it("cada subtipo cumple el esqueleto de su tipo", () => {
-    for (const s of SUBTIPOS) expect(problemasDeEsqueleto(s), s.id).toEqual([]);
+    for (const s of SUBTYPES) expect(problemasDeEsqueleto(s), s.id).toEqual([]);
   });
 
   it("ningún tipo ni subtipo se queda con constructor y sin juez (el juez mínimo, siempre)", () => {
-    for (const [k, t] of Object.entries(TIPOS)) expect(t.esqueleto.roles, k).toContain("juez");
-    for (const s of SUBTIPOS) expect(juecesDe(s).siempre.length, `${s.id} sin juez que entre siempre`).toBeGreaterThan(0);
+    for (const [k, t] of Object.entries(TYPES)) expect(t.skeleton.roles, k).toContain("judge");
+    for (const s of SUBTYPES) expect(juecesDe(s).always.length, `${s.id} sin juez que entre siempre`).toBeGreaterThan(0);
     // Los dos que tenían constructor y ningún juez (#639): ahora llevan revisor, y seguridad por bandera.
-    expect(juecesDe(sub("ci-permisos-hooks"))).toEqual({ siempre: ["revisor"], opcionales: [{ agente: "seguridad", bandera: "toca_secretos_o_permisos" }] });
-    expect(juecesDe(sub("desplegar-produccion"))).toEqual({ siempre: ["revisor"], opcionales: [{ agente: "evaluador", bandera: "cambia_el_bot" }] });
+    expect(juecesDe(sub("ci-permisos-hooks"))).toEqual({ always: ["revisor"], optional: [{ agente: "seguridad", flag: "touches_secrets_or_permissions" }] });
+    expect(juecesDe(sub("desplegar-produccion"))).toEqual({ always: ["revisor"], optional: [{ agente: "evaluador", flag: "changes_bot" }] });
   });
 
   it("lo irreversible cierra con una persona, lo que se mejora dice qué mide y una auditoría solo lleva jueces", () => {
     expect(sub("desplegar-produccion")).toMatchObject({ irreversible: true, cierra_con: "OK de una persona" });
     expect(sub("esquema-o-dato").cierra_con).toBe("OK para aplicar");
-    for (const s of SUBTIPOS.filter((x) => x.tipo === "mejorar")) expect(s.medida.length, s.id).toBeGreaterThan(9);
+    for (const s of SUBTYPES.filter((x) => x.type === "improve")) expect(s.measure.length, s.id).toBeGreaterThan(9);
     const auditoria = sub("revision-periodica");
     expect(auditoria.pasos).toHaveLength(1);
-    expect(auditoria.pasos[0].agentes.filter((a) => !JUECES.includes(a))).toEqual(auditoria.mide_con);
+    expect(auditoria.pasos[0].agentes.filter((a) => !JUECES.includes(a))).toEqual(auditoria.measured_with);
   });
 
   it("un bug se diagnostica antes de construir", () => {
@@ -74,17 +76,17 @@ describe("los tipos y subtipos", () => {
 
 describe("las condiciones, en vocabulario cerrado", () => {
   it("toda condición opcional es una bandera con nombre y su texto es el de la bandera", () => {
-    const usadas = SUBTIPOS.flatMap((s) => s.pasos.flatMap((p) => p.opcional ?? []));
+    const usadas = SUBTYPES.flatMap((s) => s.pasos.flatMap((p) => p.opcional ?? []));
     expect(usadas.length).toBeGreaterThanOrEqual(4);
     for (const o of usadas) {
-      expect(Object.keys(BANDERAS), o.si).toContain(o.bandera);
-      expect(o.si).toBe(BANDERAS[o.bandera].si);
+      expect(Object.keys(FLAGS), o.si).toContain(o.flag);
+      expect(o.si).toBe(FLAGS[o.flag].si);
     }
   });
 
   it("cada bandera la usa algún subtipo (nada sin lector)", () => {
-    const usadas = new Set(SUBTIPOS.flatMap((s) => s.pasos.flatMap((p) => (p.opcional ?? []).map((o) => o.bandera))));
-    expect([...usadas].sort()).toEqual(Object.keys(BANDERAS).sort());
+    const usadas = new Set(SUBTYPES.flatMap((s) => s.pasos.flatMap((p) => (p.opcional ?? []).map((o) => o.flag))));
+    expect([...usadas].sort()).toEqual(Object.keys(FLAGS).sort());
   });
 });
 
@@ -106,8 +108,8 @@ describe("la tabla de /orquestar se genera desde el catálogo", () => {
 
   it("tiene una fila por subtipo, con su tipo, y cada agente que nombra existe", () => {
     const filas = generada.split("\n").slice(2);
-    expect(filas).toHaveLength(SUBTIPOS.length);
-    filas.forEach((f, i) => expect(f.startsWith(`| ${SUBTIPOS[i].tipo} |`)).toBe(true));
+    expect(filas).toHaveLength(SUBTYPES.length);
+    filas.forEach((f, i) => expect(f.startsWith(`| ${SUBTYPES[i].type} |`)).toBe(true));
   });
 
   it("el catálogo de agentes de /orquestar lista los mismos jueces y constructores que .claude/agents", () => {
@@ -121,7 +123,7 @@ describe("la tabla de /orquestar se genera desde el catálogo", () => {
 describe("uniones con los agentes y sus estándares", () => {
   const estandares = leerEstandares(RAIZ);
   const tareas = tareasDe(estandares);
-  const nombrados = [...new Set(SUBTIPOS.flatMap((s) => s.pasos.flatMap((p) => [...(p.agentes ?? []), ...(p.opcional ?? []).map((o) => o.agente)])))];
+  const nombrados = [...new Set(SUBTYPES.flatMap((s) => s.pasos.flatMap((p) => [...(p.agentes ?? []), ...(p.opcional ?? []).map((o) => o.agente)])))];
 
   it("todo agente de un tipo existe (o es un especial) y tiene tarea con estándar", () => {
     for (const a of nombrados.filter((x) => !ESPECIALES.includes(x))) {
@@ -155,11 +157,7 @@ describe("la lista de jueces vive en un solo sitio", () => {
     expect(agentesDe()).toEqual(AGENTES);
   });
 
-  it("el vocabulario de actores y el glosario salen de ella, y el presupuesto la re-exporta", async () => {
-    for (const j of JUECES) expect(ACTORES.juez).toContain(j);
-    expect(ACTORES.juez).toBe(`Un agente juez (${JUECES.join(", ")})`);
-    const glosario = JSON.parse(leer("ops/glosario/terminos/juez.json"));
-    for (const j of JUECES) expect(glosario.definicion, "la definición del glosario nombra a cada juez").toContain(j);
+  it("el vocabulario de actores y el glosario la definen sin copiarla, y el presupuesto la re-exporta", async () => {
     const presupuestos = await import("../scripts/lib/presupuestos.mjs");
     expect(presupuestos.JUECES).toBe(JUECES);
     const vida = JSON.parse(leer("ops/vocabularios-vida.json"));
@@ -171,27 +169,106 @@ describe("la lista de jueces vive en un solo sitio", () => {
 
 describe("el presupuesto y los tipos, por un mismo lector", () => {
   it("la complejidad cubre el vocabulario y el catálogo de presupuestos la valida", () => {
-    expect(Object.keys(COMPLEJIDADES)).toEqual(["trivial", "normal", "grande"]);
-    expect(Object.keys(CATALOGO.por_complejidad)).toEqual(Object.keys(COMPLEJIDADES));
-    for (const c of Object.values(CATALOGO.por_complejidad)) expect(Object.keys(PIPELINES)).toContain(c.pipeline);
+    expect(Object.keys(COMPLEXITIES)).toEqual(["trivial", "normal", "large"]);
+    expect(Object.keys(CATALOGO.by_complexity)).toEqual(Object.keys(COMPLEXITIES));
+    for (const c of Object.values(CATALOGO.by_complexity)) expect(Object.keys(PIPELINES)).toContain(c.pipeline);
     expect(problemasDePresupuesto(CATALOGO)).toEqual([]);
   });
 
-  it("dado subtipo, alcance y complejidad, devuelve los datos de los dos catálogos sin copiarlos", () => {
-    const g = encargoDe({ subtipo: "desplegar-produccion", alcance: "transversal", complejidad: "grande" });
-    expect(g).toMatchObject({ tipo: "operar", pipeline: "completo", cierra_con: "OK de una persona", jueces_min: 2, rondas_max: CATALOGO.por_alcance.transversal.rondas_max, minutos_orientativos: CATALOGO.por_alcance.transversal.minutos_orientativos });
-    expect(g.pasos).toEqual(sub("desplegar-produccion").pasos);
-    const n = encargoDe({ subtipo: "esquema-o-dato", alcance: "local", complejidad: "normal" });
-    expect(n.jueces_min).toBe(1);
-    expect(n.pasos.map((p) => p.agentes)).toEqual([["datos"], ["auditor-datos"]]);
-    expect(n.pasos.every((p) => !p.opcional)).toBe(true);
-    expect(encargoDe({ subtipo: "bug", alcance: "modulo", complejidad: "trivial" }).pasos).toEqual([]);
+  it("toda complejidad lanza al menos un juez, también lo trivial, en cualquier subtipo", () => {
+    for (const [c, b] of Object.entries(CATALOGO.by_complexity)) expect(b.jueces_min, c).toBeGreaterThanOrEqual(1);
+    expect(Object.keys(PIPELINES)).toEqual(["minimal", "complete"]);
+    for (const s of SUBTYPES) {
+      for (const complexity of Object.keys(COMPLEXITIES)) {
+        const e = encargoDe({ subtype: s.id, scope: "local", cause: "codigo", complexity });
+        const nombrados = e.steps.flatMap((p) => [...(p.agentes ?? []), ...(p.opcional ?? []).map((o) => o.agente)]).filter((a) => JUECES.includes(a));
+        expect(nombrados.length, `${s.id} ${complexity} no lanza ningún juez`).toBeGreaterThan(0);
+        expect(e.judges_min).toBeGreaterThanOrEqual(1);
+      }
+    }
+  });
+
+  it("dado subtipo, alcance, causa y complejidad, devuelve los datos de los dos catálogos sin copiarlos", () => {
+    const g = encargoDe({ subtype: "desplegar-produccion", scope: "transversal", cause: "codigo", complexity: "large" });
+    expect(g).toMatchObject({ type: "operate", pipeline: "complete", close_with: "OK de una persona", judges_min: 2 });
+    expect(g.steps).toEqual(sub("desplegar-produccion").pasos);
+    // Las rondas y los minutos son del fondo, no del encargo.
+    expect(g).not.toHaveProperty("rondas_max");
+    expect(g.fund_rondas_max).toBe(CATALOGO.por_alcance.transversal.rondas_max);
+    expect(g.fund_minutes).toBe(CATALOGO.por_alcance.transversal.minutos_orientativos);
+  });
+
+  it("compone con el presupuesto de la causa: un bug de modelo-datos pide auditor-datos y avisa de que el subtipo no lo lleva", () => {
+    const e = encargoDe({ subtype: "bug", scope: "modulo", cause: "modelo-datos", complexity: "normal" });
+    expect(e.judges_required).toEqual(["auditor-datos"]);
+    expect(e.missing_judges).toEqual(["auditor-datos"]);
+    expect(e.judges_min).toBe(1);
+    expect(e.warnings.join(" ")).toMatch(/auditor-datos/);
+    const bien = encargoDe({ subtype: "esquema-o-dato", scope: "modulo", cause: "modelo-datos", complexity: "normal" });
+    expect(bien.missing_judges).toEqual([]);
+  });
+
+  it("avisa si el subtipo lleva menos jueces distintos de los que pide el presupuesto", () => {
+    const e = encargoDe({ subtype: "bug", scope: "transversal", cause: "codigo", complexity: "large" });
+    expect(e.judges_min).toBe(2);
+    expect(e.warnings.some((w) => /pide 2/.test(w))).toBe(true);
+    const ok = encargoDe({ subtype: "pantalla-nueva", scope: "transversal", cause: "codigo", complexity: "large" });
+    expect(ok.warnings).toEqual([]);
   });
 
   it("devuelve null si algún valor no existe", () => {
-    expect(encargoDe({ subtipo: "nada", alcance: "local", complejidad: "normal" })).toBeNull();
-    expect(encargoDe({ subtipo: "bug", alcance: "enorme", complejidad: "normal" })).toBeNull();
-    expect(encargoDe({ subtipo: "bug", alcance: "local", complejidad: "gigante" })).toBeNull();
+    expect(encargoDe({ subtype: "nada", scope: "local", cause: "codigo", complexity: "normal" })).toBeNull();
+    expect(encargoDe({ subtype: "bug", scope: "enorme", cause: "codigo", complexity: "normal" })).toBeNull();
+    expect(encargoDe({ subtype: "bug", scope: "local", cause: "inventada", complexity: "normal" })).toBeNull();
+    expect(encargoDe({ subtype: "bug", scope: "local", cause: "codigo", complexity: "gigante" })).toBeNull();
+  });
+});
+
+describe("los pasos mínimos conservan las condiciones y no cuentan la planificación como construcción", () => {
+  const agentes = (pasos) => pasos.map((p) => p.agentes ?? []);
+  it("un esquema normal con RLS conserva a seguridad con su bandera", () => {
+    const e = encargoDe({ subtype: "esquema-o-dato", scope: "local", cause: "codigo", complexity: "normal" });
+    expect(agentes(e.steps)).toEqual([["datos"], ["auditor-datos"]]);
+    expect(e.steps[1].opcional).toEqual([{ agente: "seguridad", si: "toca RLS", flag: "touches_rls" }]);
+    expect(e.steps[1].opcional[0].flag).toBe("touches_rls");
+  });
+  it("una función entre dominios: la sesión planifica y no cuenta; queda el constructor por dominio y su juez", () => {
+    expect(rolDe("sesion")).toBe("planner");
+    expect(agentes(pasosMinimos(sub("funcion-entre-dominios")))).toEqual([["constructores"], ["revisor", "qa"]]);
+  });
+  it("un refactor de monolito: plan de la sesión fuera, queda constructor y revisor", () => {
+    expect(agentes(pasosMinimos(sub("refactor-monolito")))).toEqual([["constructor"], ["revisor"]]);
+  });
+  it("las recetas las construye la sesión (builds_in_session): su mínimo es la sesión y el revisor", () => {
+    expect(sub("recetas-o-catalogo").builds_in_session).toBe(true);
+    expect(agentes(pasosMinimos(sub("recetas-o-catalogo")))).toEqual([["sesion"], ["revisor"]]);
+  });
+  it("una desplegada normal conserva la bandera de evaluador", () => {
+    const pasos = pasosMinimos(sub("desplegar-produccion"));
+    expect(pasos[1].opcional).toEqual([{ agente: "evaluador", si: "cambia el bot", flag: "changes_bot" }]);
+  });
+  it("una auditoría: el primer paso con juez, entero", () => {
+    expect(pasosMinimos(sub("revision-periodica"))).toEqual(sub("revision-periodica").pasos);
+  });
+});
+
+describe("las definiciones no enumeran a mano a los agentes", () => {
+  it("«juez» y el constructor del dominio se definen por su cabecera y ningún nombre de agente va escrito", () => {
+    const glosario = JSON.parse(leer("ops/glosario/terminos/juez.json"));
+    for (const texto of [ACTORES.juez, ACTORES.agente_dominio, glosario.definicion]) {
+      for (const a of Object.keys(AGENTES)) expect(texto, `«${texto}» nombra a ${a}`).not.toContain(a);
+    }
+    expect(ACTORES.juez).toContain("Tipo: juez");
+    expect(ACTORES.agente_dominio).toContain("Tipo: constructor");
+    expect(glosario.definicion).toContain("Tipo: juez");
+    // Los dos sentidos: lo definido es lo que hay en la carpeta.
+    expect(JUECES.length + CONSTRUCTORES.length).toBe(Object.keys(AGENTES).length);
+  });
+  it("los agentes del vocabulario de capas del fondo son los de la carpeta más la sesión", () => {
+    expect([...CAPAS_AGENTE].sort()).toEqual([...Object.keys(AGENTES), "sesión"].sort());
+  });
+  it("el JSON de tipos no enumera a los constructores en la descripción de «constructor»", () => {
+    for (const a of CONSTRUCTORES) expect(DATOS.especiales.constructor).not.toContain(a);
   });
 });
 
@@ -211,21 +288,25 @@ describe("lo que lee el panel de la factoría (homenu-panel) no se rompe", () =>
 
 describe("cada regla nueva, vista fallar con datos malos", () => {
   const MALOS = [
-    ["tipo", "un subtipo cuelga de un tipo que no existe", (d) => { d.tipos[0].tipo = "inventar"; }],
+    ["tipo", "un subtipo cuelga de un tipo que no existe", (d) => { d.tipos[0].type = "inventar"; }],
     ["roles", "un tipo crear sin juez detrás del constructor", (d) => { d.tipos.find((s) => s.id === "assets").pasos = [{ agentes: ["diseno"] }]; }],
-    ["juez-siempre", "un juez que solo entra por una bandera", (d) => { d.tipos.find((s) => s.id === "ci-permisos-hooks").pasos = [{ agentes: ["gobierno"] }, { opcional: [{ agente: "seguridad", si: "toca secretos o permisos", bandera: "toca_secretos_o_permisos" }] }]; }],
+    ["juez-siempre", "un juez que solo entra por una bandera", (d) => { d.tipos.find((s) => s.id === "ci-permisos-hooks").pasos = [{ agentes: ["gobierno"] }, { opcional: [{ agente: "seguridad", si: "toca secretos o permisos", flag: "touches_secrets_or_permissions" }] }]; }],
     ["roles", "arreglar sin diagnóstico antes de construir", (d) => { d.tipos.find((s) => s.id === "bug").pasos = [{ agentes: ["constructor"] }, { agentes: ["revisor"] }]; }],
-    ["medida", "mejorar sin decir qué se mide", (d) => { delete d.tipos.find((s) => s.id === "lento-o-caro").medida; }],
+    ["medida", "improve sin decir qué se mide", (d) => { delete d.tipos.find((s) => s.id === "lento-o-caro").measure; }],
     ["cierre", "operar irreversible sin cierre de persona", (d) => { delete d.tipos.find((s) => s.id === "desplegar-produccion").cierra_con; }],
     ["cierre", "operar sin decir si es irreversible", (d) => { delete d.tipos.find((s) => s.id === "ci-permisos-hooks").irreversible; }],
-    ["solo-jueces", "auditar con un constructor que no mide", (d) => { delete d.tipos.find((s) => s.id === "revision-periodica").mide_con; }],
+    ["solo-jueces", "auditar con un constructor que no mide", (d) => { delete d.tipos.find((s) => s.id === "revision-periodica").measured_with; }],
     ["paralelo", "auditar en dos pasos", (d) => { d.tipos.find((s) => s.id === "revision-periodica").pasos = [{ agentes: ["seguridad"] }, { agentes: ["revisor"] }]; }],
-    ["bandera", "una condición sin bandera", (d) => { delete d.tipos.find((s) => s.id === "esquema-o-dato").pasos[1].opcional[0].bandera; }],
+    ["bandera", "una condición sin bandera", (d) => { delete d.tipos.find((s) => s.id === "esquema-o-dato").pasos[1].opcional[0].flag; }],
     ["bandera", "un texto que no es el de su bandera", (d) => { d.tipos.find((s) => s.id === "esquema-o-dato").pasos[1].opcional[0].si = "toca rls o algo"; }],
     ["agente", "un agente que no existe", (d) => { d.tipos.find((s) => s.id === "bug").pasos[0].agentes = ["inventado"]; }],
-    ["juez", "un tipo sin juez en su esqueleto", (d) => { d.tipos_de_encargo.crear.esqueleto.roles = ["constructor"]; }],
+    ["juez", "un tipo sin juez en su esqueleto", (d) => { d.assignment_types.create.skeleton.roles = ["builder"]; }],
     ["id", "dos subtipos con el mismo id", (d) => { d.tipos[1].id = d.tipos[0].id; }],
-    ["medida", "medida en un subtipo que no es de mejorar", (d) => { d.tipos.find((s) => s.id === "bug").medida = "una medida que no toca aquí"; }],
+    ["otro", "un tipo sin su subtipo «-other»", (d) => { d.tipos = d.tipos.filter((s) => s.id !== "fix-other"); }],
+    ["orden", "subtipos que no van agrupados por tipo", (d) => { d.tipos.push(d.tipos.shift()); }],
+    ["roles", "el subtipo que construye en la sesión sin paso de sesión", (d) => { d.tipos.find((s) => s.id === "recetas-o-catalogo").pasos[0] = { agentes: ["revisor"] }; }],
+    ["especial", "un especial sin rol", (d) => { delete d.special_roles.sesion; }],
+    ["medida", "medida en un subtipo que no es de mejorar", (d) => { d.tipos.find((s) => s.id === "bug").measure = "una medida que no toca aquí"; }],
   ];
   it.each(MALOS)("%s: %s", (regla, _que, cambia) => {
     const d = clon(DATOS);
@@ -235,11 +316,11 @@ describe("cada regla nueva, vista fallar con datos malos", () => {
 
   it("la complejidad: sin una fila, con un pipeline que no existe o con jueces que bajan", () => {
     const sin = clon(CATALOGO);
-    delete sin.por_complejidad.normal;
+    delete sin.by_complexity.normal;
     const raro = clon(CATALOGO);
-    raro.por_complejidad.grande.pipeline = "todo";
+    raro.by_complexity.large.pipeline = "todo";
     const baja = clon(CATALOGO);
-    baja.por_complejidad.grande.jueces_min = 0;
+    baja.by_complexity.large.jueces_min = 0;
     for (const c of [sin, raro, baja]) expect(problemasDePresupuesto(c).some((p) => p.startsWith("complejidad:"))).toBe(true);
   });
 });

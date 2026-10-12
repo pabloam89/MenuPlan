@@ -25,8 +25,9 @@ import { ALCANCES_FALLO } from "./flujo.mjs";
 import { CAMPOS_ENCARGO, ESCALONES_AUTOMATICOS, GRUPOS, MAX_ENCARGOS_POR_FONDO, TIPOS_ACCION, debeReabrir, faltas, porGrupo } from "./issues.mjs";
 import { CATALOGO as MECANISMOS } from "./mecanismos.mjs";
 import { RIESGOS } from "./normas.mjs";
-import { CATALOGO, COMPLEJIDADES, TOPE_RONDAS, presupuestoDe } from "./presupuestos.mjs";
-import { SUBTIPOS, TIPOS } from "./tiposDeEncargo.mjs";
+import { CATALOGO, COMPLEXITIES, TOPE_RONDAS, presupuestoDe } from "./presupuestos.mjs";
+import { AGENTES, JUECES } from "./agentes.mjs";
+import { SUBTYPES, TYPES } from "./tiposDeEncargo.mjs";
 
 // ── Vocabularios cerrados ─────────────────────────────────────────────────────
 
@@ -55,7 +56,8 @@ export const ESTADOS_CON_DIAGNOSTICO = ["diagnosticado", "plan", "en-curso", "en
  * principal. Un test (fondos.test.js) lo cruza con la carpeta: si nace un agente
  * y no se añade aquí, falla.
  */
-export const CAPAS_AGENTE = ["auditor-datos", "datos", "diseno", "evaluador", "gobierno", "lola", "qa", "revisor", "seguridad", "sesión"];
+/** Los agentes de .claude/agents/ (agentes.mjs, una sola fuente) y la sesión principal. */
+export const CAPAS_AGENTE = [...Object.keys(AGENTES), "sesión"];
 
 /** Barrera = escalón de la escalera de durabilidad (scripts/lib/escalas.mjs), del más al menos duradero. */
 export const BARRERAS = ESCALONES;
@@ -147,13 +149,13 @@ export const TIPOS_CAMPO_ENCARGO = {
   clase: { tipo: "texto" },
   depende_de: { tipo: "lista" },
   constructor: { tipo: "vocab", valores: CAPAS_AGENTE },
-  juez: { tipo: "vocab", valores: CAPAS_AGENTE },
+  juez: { tipo: "vocab", valores: JUECES },
   verificacion: { tipo: "ruta" },
   hecho_cuando: { tipo: "texto" },
   ficheros: { tipo: "texto" },
-  tipo_encargo: { tipo: "vocab", valores: Object.keys(TIPOS) },
-  subtipo: { tipo: "vocab", valores: SUBTIPOS.map((t) => t.id) },
-  complejidad: { tipo: "vocab", valores: Object.keys(COMPLEJIDADES) },
+  assignment_type: { tipo: "vocab", valores: Object.keys(TYPES) },
+  subtype: { tipo: "vocab", valores: SUBTYPES.map((t) => t.id) },
+  complexity: { tipo: "vocab", valores: Object.keys(COMPLEXITIES) },
 };
 
 // ── Leer la ficha ─────────────────────────────────────────────────────────────
@@ -612,8 +614,8 @@ export function validarEncargos(encargos, estado) {
       todosLeidos = false;
       dice("encargo-incompleto", `#${n} no rellena: ${faltan.join(", ")}`);
     }
-    const subtipo = SUBTIPOS.find((t) => t.id === e.subtipo);
-    if (subtipo && Object.hasOwn(e, "tipo_encargo") && subtipo.tipo !== e.tipo_encargo) dice("encargo-subtipo", `#${n}: el subtipo «${subtipo.id}» es de tipo «${subtipo.tipo}» y el encargo dice «${e.tipo_encargo}»`);
+    const subtipo = SUBTYPES.find((t) => t.id === e.subtype);
+    if (subtipo && Object.hasOwn(e, "assignment_type") && subtipo.type !== e.assignment_type) dice("encargo-subtipo", `#${n}: el subtipo «${subtipo.id}» es de tipo «${subtipo.type}» y el encargo dice «${e.assignment_type}»`);
     if (Object.hasOwn(e, "juez") && Object.hasOwn(e, "constructor") && e.juez === e["constructor"]) dice("encargo-juez", `#${n}: quien construye no juzga (constructor y juez son el mismo)`);
     if (e.tipo_accion === "preventivo" && ESCALONES_AUTOMATICOS.includes(escalon)) hayPreventivo = true;
   }

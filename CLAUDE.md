@@ -146,7 +146,7 @@ que ejecutar. Plantillas fijas: resultado, decisión, error, concepto y resumen
 
 ## Encargos
 
-Clasifica lo que pide Pablo. Lo trivial lo haces tú. Si es normal (un dominio)
+Clasifica lo que pide Pablo. Hasta lo trivial lleva un juez. Si es normal (un dominio)
 o grande (varios, o un refactor), propón **`/orquestar <encargo>`**, que elige
 el pipeline por tipo de encargo y escribe el brief de cada agente. Regla fija:
 quien construye no juzga.

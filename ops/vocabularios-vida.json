@@ -14,23 +14,22 @@
       "writing": "Cómo se escribe una regla o un principio de la casa",
       "entities": "Cómo se nombra, se identifica y se registra cada cosa del proyecto"
     },
-    "encargo.bandera": {
-      "escribe_datos": "El encargo escribe datos de familias o de la base",
-      "toca_rls": "El encargo cambia políticas RLS o permisos de tablas",
-      "cambia_el_bot": "El encargo cambia lo que Lola dice o hace",
-      "toca_secretos_o_permisos": "El encargo toca secretos, variables de entorno, permisos de Claude o de GitHub"
+    "encargo.complexity": {
+      "trivial": "Una línea, un texto o una duda",
+      "normal": "Un cambio en un dominio",
+      "large": "Varios dominios, o un refactor"
     },
-    "encargo.complejidad": {
-      "trivial": "Una línea, un texto o una duda: la hace la sesión, sin agentes",
-      "normal": "Un cambio en un dominio: un constructor y el juez mínimo",
-      "grande": "Varios dominios o un refactor: todos los pasos del subtipo"
+    "encargo.flag": {
+      "writes_data": "El encargo escribe datos de familias o de la base",
+      "touches_rls": "El encargo cambia políticas RLS o permisos de tablas",
+      "changes_bot": "El encargo cambia lo que Lola dice o hace",
+      "touches_secrets_or_permissions": "El encargo toca secretos, variables de entorno, permisos de Claude o de GitHub"
     },
     "encargo.pipeline": {
-      "ninguno": "La sesión lo hace sin subagentes",
-      "minimo": "Un constructor y el juez mínimo del tipo",
-      "completo": "Todos los pasos del subtipo"
+      "minimal": "Un constructor y el juez mínimo, con las condiciones de sus pasos",
+      "complete": "Todos los pasos del subtipo"
     },
-    "encargo.subtipo": {
+    "encargo.subtype": {
       "pantalla-nueva": "Pantalla o componente nuevo",
       "assets": "Assets (icono, ilustración, limpieza)",
       "lola-herramienta": "Herramienta nueva o cambio en Lola",
@@ -39,22 +38,27 @@
       "recetas-o-catalogo": "Recetas o catálogo (contenido)",
       "funcion-entre-dominios": "Función que cruza dominios",
       "endpoint-nuevo": "Endpoint nuevo en `api/`",
+      "create-other": "Otro encargo de crear (lo que no encaja en los demás)",
       "bug": "Bug",
+      "fix-other": "Otro encargo de arreglar (lo que no encaja en los demás)",
       "migrar-a-tokens": "Migrar una pantalla a tokens",
       "dato-en-varias-capas": "Dato que vive en varias capas (base, catálogo, constantes)",
       "reducir-cableado": "Reducir el cableado de una tabla",
       "lento-o-caro": "Algo va lento o cuesta de más",
       "refactor-monolito": "Refactor de un monolito",
+      "improve-other": "Otra mejora sin cambiar lo que hace",
       "ci-permisos-hooks": "CI, permisos, hooks, ramas, secretos",
       "desplegar-produccion": "Desplegar a producción",
-      "revision-periodica": "Revisión periódica"
+      "operate-other": "Otra operación de la casa",
+      "revision-periodica": "Revisión periódica",
+      "audit-other": "Otra auditoría"
     },
-    "encargo.tipo": {
-      "crear": "Algo que no existía: pantalla, herramienta, tabla, endpoint, contenido",
-      "arreglar": "Algo que debía funcionar y no funciona",
-      "mejorar": "Mejorar sin cambiar lo que hace: migrar, simplificar, acelerar, abaratar",
-      "operar": "Operar la casa: CI, permisos, hooks, ramas, secretos, despliegues",
-      "auditar": "Mirar sin tocar: solo jueces, en paralelo"
+    "encargo.type": {
+      "create": "Algo nuevo o un cambio de lo que hace: pantalla, herramienta, tabla, endpoint, contenido",
+      "fix": "Algo que debía funcionar y no funciona",
+      "improve": "Mejorar sin cambiar lo que hace: migrar, simplificar, acelerar, abaratar",
+      "operate": "Operar la casa: CI, permisos, hooks, ramas, secretos, despliegues",
+      "audit": "Mirar sin tocar: solo jueces, en paralelo"
     },
     "entidades.axis": {
       "horizontal": "Cómo trabajamos: sesiones, normas, agentes, issues y PR",
@@ -139,9 +143,9 @@
       "entregables": "Entregables"
     },
     "flujo.actores": {
-      "agente_dominio": "El constructor del dominio (datos, lola, diseno, gobierno)",
+      "agente_dominio": "El constructor del dominio: un agente con «Tipo: constructor» en .claude/agents/",
       "orquestador": "La sesión principal con /orquestar",
-      "juez": "Un agente juez (auditor-datos, evaluador, qa, revisor, seguridad)",
+      "juez": "Un agente con «Tipo: juez» en .claude/agents/",
       "persona": "Pablo o Álvaro",
       "automatico": "Un script, un hook o un workflow, sin nadie delante"
     },
@@ -848,12 +852,18 @@
       "vocabulario": "flujo.actores",
       "valor": "juez",
       "desde": "2026-10-12",
-      "motivo": "Misma lista de jueces, ahora leída de .claude/agents y por orden alfabético en vez de copiada a mano; mismo significado (#640)"
+      "motivo": "Mismo significado: el juez se define por su cabecera «Tipo: juez» en vez de enumerar la lista a mano (#640)"
     },
     {
       "termino": "juez",
       "desde": "2026-10-12",
-      "motivo": "Misma lista de jueces en orden alfabético, el de .claude/agents; mismo significado (#640)"
+      "motivo": "Mismo significado: se define por su cabecera «Tipo: juez» en vez de enumerar la lista a mano (#640)"
+    },
+    {
+      "vocabulario": "flujo.actores",
+      "valor": "agente_dominio",
+      "desde": "2026-10-12",
+      "motivo": "Misma idea: el constructor del dominio se define por su cabecera «Tipo: constructor» en vez de enumerarlo a mano (#640)"
     }
   ],
   "vocabularios_retirados": [

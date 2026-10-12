@@ -24,7 +24,6 @@
 
 import { basename } from "node:path";
 
-import { JUECES } from "./agentes.mjs";
 import { ESCALERA, ORDEN_VEREDICTO, VEREDICTOS, masDebil } from "./escalas.mjs";
 import { CONTROL_TIPOS, EJECUTORES, EJECUTORES_DEL_SISTEMA, problemasDeControl } from "./normas.mjs";
 import { FUERZAS, LIMITES_REGLA, fraseDeRegla, problemasDeRegla, problemasDeSujetos } from "./regla.mjs";
@@ -46,9 +45,9 @@ export const DIAGNOSTICAN = {
 
 /** Quién interviene en un paso. */
 export const ACTORES = {
-  agente_dominio: "El constructor del dominio (datos, lola, diseno, gobierno)",
+  agente_dominio: "El constructor del dominio: un agente con «Tipo: constructor» en .claude/agents/",
   orquestador: "La sesión principal con /orquestar",
-  juez: `Un agente juez (${JUECES.join(", ")})`,
+  juez: "Un agente con «Tipo: juez» en .claude/agents/",
   persona: "Pablo o Álvaro",
   automatico: "Un script, un hook o un workflow, sin nadie delante",
 };

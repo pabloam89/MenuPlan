@@ -44,7 +44,7 @@ describe("el catálogo: forma y vocabulario", () => {
     const jueces = readdirSync(dir).filter((f) => f.endsWith(".md"))
       .filter((f) => /^Tipo:\s*juez\s*$/m.test(readFileSync(join(dir, f), "utf8")))
       .map((f) => f.replace(/\.md$/, ""));
-    expect([...JUECES].sort(), "Si nace o se retira un juez, actualiza JUECES en scripts/lib/presupuestos.mjs").toEqual(jueces.sort());
+    expect([...JUECES].sort(), "JUECES sale de scripts/lib/agentes.mjs: un juez es un agente con «Tipo: juez» en .claude/agents").toEqual(jueces.sort());
   });
 
   it("el tope de rondas del catálogo es el duro: ninguna celda lo pasa", () => {

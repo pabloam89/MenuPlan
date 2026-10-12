@@ -55,9 +55,9 @@ body:
         verificacion:
         hecho_cuando:
         ficheros:
-        tipo_encargo:
-        subtipo:
-        complejidad:
+        assignment_type:
+        subtype:
+        complexity:
         ```
     validations:
       required: false

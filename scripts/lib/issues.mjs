@@ -578,22 +578,22 @@ export const TIPOS_ACCION = {
 };
 
 /**
- * La complejidad de un encargo (#640, fondo #639): cuánto del pipeline de su subtipo se lanza. Vocabulario cerrado,
- * anclado como `encargo.complejidad` en ops/vocabularios-vida.json; los números de cada una (jueces mínimos y
- * qué parte del pipeline) están en `por_complejidad` de ops/presupuestos.json. Calcularla desde el diff es de E2 (#641).
+ * La complejidad de un encargo (#640, fondo #639), definida por su tamaño. Vocabulario cerrado, anclado como
+ * `encargo.complexity` en ops/vocabularios-vida.json; qué lanza cada una (jueces mínimos y parte del pipeline) está en
+ * `by_complexity` de ops/presupuestos.json. Hasta lo trivial lleva un juez. Calcularla desde el diff es de E2 (#641).
  */
-export const COMPLEJIDADES = {
-  trivial: "Una línea, un texto o una duda: la hace la sesión, sin agentes",
-  normal: "Un cambio en un dominio: un constructor y el juez mínimo",
-  grande: "Varios dominios o un refactor: todos los pasos del subtipo",
+export const COMPLEXITIES = {
+  trivial: "Una línea, un texto o una duda",
+  normal: "Un cambio en un dominio",
+  large: "Varios dominios, o un refactor",
 };
 
 /**
  * Desde cuándo (día UTC del alta del encargo) son obligatorios los campos con `desde` en CAMPOS_ENCARGO (N1 del
  * encargo, docs/entidades/N1-encargo.md): los encargos abiertos antes no los llevan y no fallan (el workflow `fondos`
- * no se rompe); los creados desde este día, sí.
+ * no se rompe); los creados desde este día, sí. Un test vigila que no sea anterior al día en que nació el N1.
  */
-export const ENCARGO_N1_DESDE = "2026-10-12";
+export const ENCARGO_N1_DESDE = "2026-10-13";
 
 /** Escalones de la escalera (scripts/lib/escalas.mjs) que se cumplen sin que nadie se acuerde: se re-exportan de allí. */
 export { ESCALONES_AUTOMATICOS };
@@ -617,9 +617,9 @@ export const CAMPOS_ENCARGO = [
   { clave: "verificacion", vale: "ruta del fichero que prueba la clase (un `*.test.js` si el escalón es test_ci)", obligatorio: true },
   { clave: "hecho_cuando", vale: "texto: lo que se ve cuando está hecho", obligatorio: true },
   { clave: "ficheros", vale: "rutas que toca, separadas por coma", obligatorio: false },
-  { clave: "tipo_encargo", vale: "un tipo de `ops/tipos-de-encargo.json` (`tipos_de_encargo`)", obligatorio: `sí en los creados desde ${ENCARGO_N1_DESDE}; antes, no`, desde: ENCARGO_N1_DESDE },
-  { clave: "subtipo", vale: "un `id` de `tipos` de `ops/tipos-de-encargo.json` que cuelgue de ese tipo", obligatorio: `sí en los creados desde ${ENCARGO_N1_DESDE}; antes, no`, desde: ENCARGO_N1_DESDE },
-  { clave: "complejidad", vale: Object.keys(COMPLEJIDADES).map((v) => `\`${v}\``).join(", "), obligatorio: `sí en los creados desde ${ENCARGO_N1_DESDE}; antes, no`, desde: ENCARGO_N1_DESDE },
+  { clave: "assignment_type", vale: "un tipo de `ops/tipos-de-encargo.json` (`assignment_types`)", obligatorio: `sí en los creados desde ${ENCARGO_N1_DESDE}; antes, no`, desde: ENCARGO_N1_DESDE },
+  { clave: "subtype", vale: "un `id` de `tipos` de `ops/tipos-de-encargo.json` que cuelgue de ese tipo", obligatorio: `sí en los creados desde ${ENCARGO_N1_DESDE}; antes, no`, desde: ENCARGO_N1_DESDE },
+  { clave: "complexity", vale: Object.keys(COMPLEXITIES).map((v) => `\`${v}\``).join(", "), obligatorio: `sí en los creados desde ${ENCARGO_N1_DESDE}; antes, no`, desde: ENCARGO_N1_DESDE },
 ];
 
 /**
@@ -629,11 +629,11 @@ export const CAMPOS_ENCARGO = [
  */
 export const CAMPOS_COMUNES_ENCARGO = [
   { campo: "id", clave: null, vive: "el número del issue de GitHub (`#n`); no se repite en el bloque" },
-  { campo: "tipo", clave: "tipo_encargo", vive: "`tipo_encargo` del bloque" },
-  { campo: "subtipo", clave: "subtipo", vive: "`subtipo` del bloque; tiene que colgar del tipo dicho" },
+  { campo: "tipo", clave: "assignment_type", vive: "`assignment_type` del bloque" },
+  { campo: "subtipo", clave: "subtype", vive: "`subtype` del bloque; tiene que colgar del tipo dicho" },
   { campo: "ámbitos", clave: null, vive: "se deducen de `ficheros` con `ambitosDeFichero` (scripts/lib/ambitos.mjs); no se guardan" },
   { campo: "alcance", clave: null, vive: "el `alcance` de la ficha del fondo del que cuelga; no se copia al encargo" },
-  { campo: "complejidad", clave: "complejidad", vive: "`complejidad` del bloque" },
+  { campo: "complejidad", clave: "complexity", vive: "`complexity` del bloque" },
   { campo: "constructor", clave: "constructor", vive: "`constructor` del bloque" },
   { campo: "jueces", clave: "juez", vive: "`juez` del bloque es el mínimo; los demás que exige el subtipo salen del lector `encargoDe` (scripts/lib/tiposDeEncargo.mjs); declarar la lista entera en el PR es de E2 (#641)" },
   { campo: "estado", clave: null, vive: "el estado del issue en GitHub (abierto, o cerrado con su motivo); no se guarda en el bloque" },
