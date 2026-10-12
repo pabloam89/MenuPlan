@@ -11,7 +11,8 @@ solo lo nombra.
 - **Qué corre:** Node 24 sin dependencias, en Docker Compose en `/opt/panel/app`
   (`mem_limit 128m`, `read_only`, `cap_drop ALL`, volumen `datos:/data` para los informes).
 - **Qué enseña:** glosario, estándares, agentes, skills, tipos de encargo, fondos,
-  entidades, issues y coste. Todo se lee de MenuPlan (rama `staging`):
+  entidades, la biblioteca de diseño (`/diseno`: meta-sistema, HoMenu y estado, con
+  barra lateral e índice), issues y coste. Todo se lee de MenuPlan (rama `staging`):
   ficheros por `raw.githubusercontent.com` y issues por la API REST pública, con caché
   de 15 minutos y datos viejos si GitHub falla.
 - **Qué manda el PC de Pablo:** el informe de `npm run fabrica -- --json` (coste y
@@ -53,3 +54,8 @@ Comprobar: `curl http://100.73.252.32:8080/<vista>` devuelve 200.
 - **2026-10-11 · sin la tarea reinstalada, la acción seguía siendo la antigua** (`conhost`
   y `C:\dev\MenuPlan`), y el panel solo se actualizaba a mano. Arreglo: reinstalar con el
   script de arriba; el primer envío llegó a las 08:37 (hora de Madrid).
+- **2026-10-11 · el despliegue de `/diseno` dejó el contenedor reiniciándose en bucle.**
+  Causa: el `Dockerfile` copia los `.mjs` uno a uno y no incluía el nuevo `markdown.mjs`;
+  el script daba `FIN ok` aunque el servidor no arrancaba. Arreglo: añadirlo, y un test del
+  repo del panel que comprueba que el `Dockerfile` copia todos los `.mjs` de la raíz (visto fallar sin
+  la línea). Tras desplegar, comprobar con `curl` que la vista responde 200; `FIN ok` no basta.
