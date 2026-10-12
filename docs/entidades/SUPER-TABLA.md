@@ -1,58 +1,73 @@
 # Súper tabla de entidades
 
-Propuesta del 12 oct 2026 (agente `datos`, a petición de Pablo). **Nada de esto cambia
-`ops/entidades.json` todavía**: la tabla de abajo la genera
-`node scripts/super-tabla-entidades.mjs --escribir` desde el registro más una propuesta
-(familia, nivel, ámbito, quién la crea y quién la lee) que vive en ese script hasta que Pablo decida.
-Lo vigila `ops/super-tabla.test.js`. Marca de certeza: lo que sale del registro está **comprobado**; las
-columnas «quién la crea» y «quién la lee» son **creo** (inferidas de las fuentes, sin leer cada script).
+Segunda versión (12 oct 2026, agente `datos`), tras los seis retos de Pablo. **Nada de esto cambia
+`ops/entidades.json` todavía.** La tabla de la sección 2 la genera
+`node scripts/super-tabla-entidades.mjs --escribir` desde el registro más una propuesta (familia, nivel,
+contención, quién la crea y quién la lee) que vive en ese script hasta que Pablo decida; lo vigila
+`ops/super-tabla.test.js`. Certeza: lo que sale del registro y de los ficheros citados está **comprobado**;
+las columnas «quién la crea» y «quién la lee» y la comparación con Backstage son **creo** (de memoria, sin
+consultar la web; GitHub no contestó, así que no conté issues vivos).
 
-## 0. Lo que dicen los datos del modelo de dos ejes
+## 0. Resumen de lo que dicen los datos
 
-La propuesta (nivel N0/N1/N2 y ámbito horizontal/vertical, independientes) **sirve con tres correcciones**:
+| Reto de Pablo | Veredicto | Dato que lo decide |
+|---|---|---|
+| 1. Issue N0, cada tipo N1, concreto N2 | **Mal planteado**: es especialización (`is_a`), no abstracción | fondo y encargo comparten 3 de sus campos propios; caso y decisión casi no tienen |
+| 2. Principio → Norma → Estándar | **Cierto a medias** | 183 de 183 normas citan principio; pero el estándar lleva 156 reglas propias, no solo normas agregadas |
+| 3. Agente = perfil ejecutor | **Cierto.** Tarea de agente es entidad; Herramienta y Relación entre agentes, no | 66 tareas con id en 9 agentes; las herramientas son nombres de un vocabulario de Claude Code |
+| 4. Hook = implementación de un Control | **Casi.** Control es entidad; el veredicto no sale del mecanismo | 107 normas con control automático usan 59 ficheros; `ci` da duras, semiduras y blandas |
+| 5. Evento sin actor | **Desfasado**: el campo existe, el hueco es otro | `actor` está desde #568 y vale null para Pablo; ninguna de las otras 28 firmas lleva actor |
+| 6. Nivel de contención | **Hace falta**, con `project` y sin Programa | el repo mezcla factoría y HoMenu; 82 de 183 normas son de producto |
 
-1. **Hay tres escalas de «nivel» ya escritas y no coinciden** (rompe el principio 1 de N0, un nombre por concepto):
-   - `docs/ops/FORJA.md`: 0 pieza meta, 1 plantilla por tipo, 2 pieza concreta. Es la de Pablo.
-   - `docs/diseno/META-DISENO.md`: N0 leyes, N1 forja (bloques), N2 perfil por tipo de proyecto, y la instancia **no** es un nivel.
-   - `docs/entidades/N0-principios.md`: N0 principios, N1 forja de una entidad, N2 tipos, N3 tipos específicos, con una «extensión de la base (vertical)» en medio.
-   Además `ops/planos.json` usa «nivel» 0 a 4 para otra cosa (madurez de un plano). Recomendación: la escala de FORJA (3 niveles) y llamar a los valores `meta`, `template` y `piece`, sin números.
-2. **El nivel es de la pieza, no de la entidad.** Las 41 filas del registro son **familias** (la familia «skill»); sus niveles son piezas: la forja de skills (meta), las 7 plantillas por tipo (template) y las 15 skills (piece). Por eso el campo `level` de una entidad dice **el nivel de sus piezas**: hoy 4 son `meta` (principle, norm, rule, mechanism) y 37 `piece`; **ninguna es `template`**. Ese hueco es la mayor falta de datos (sección 3).
-3. **«N0 y N1 siempre horizontales» falla en dos sitios reales.** `docs/datos/PRINCIPIOS.md` (reglas de las tablas, solo HoMenu: «todo cuelga de la casa») es un N0 vertical, y `docs/entidades/N0-principios.md` ya lo llama «extensión del eje vertical». Los 40 principios de producto (`docs/producto/PRINCIPIOS.md`) son N0 sobre HoMenu y Lola, aunque su base es genérica. Regla que sí aguanta: **un meta o una plantilla vertical es una extensión que cita a su meta horizontal y no relaja nada** (reglas 1 a 4 de N0). El test solo exige lo débil: `meta` o `template` sin ámbito `vertical`, salvo que la pieza se declare extensión.
+## 1. Dos ejes, y algo que no es un eje
 
-## 1. La tabla
+El mapa mezclaba tres cosas distintas (principio 1 de N0, un nombre por concepto):
 
-Eje hoy = lo que dice `ops/entidades.json`. Ámbito propuesto = `horizontal`, `vertical` o `both` (la familia tiene piezas en los dos y cada pieza declara el suyo; ver sección 5).
+1. **Abstracción** (`level`): `meta` (N0: lo que hace buena una pieza de la familia), `template` (N1: plantilla por tipo) y `piece` (N2: la pieza). Es la escala de `docs/ops/FORJA.md`. Otras escalas escritas la contradicen: `docs/diseno/META-DISENO.md` (N2 es el perfil y la instancia no es nivel) y `docs/entidades/N0-principios.md` (N2 son tipos y N3 tipos específicos); y `ops/planos.json` usa «nivel» 0 a 4 para madurez. **Cuatro significados de «nivel».**
+2. **Contención** (`project`): factoría > proyecto > entorno o instancia. De quién es una pieza y de qué cuelga. Es lo que llamábamos horizontal y vertical, pero con un id de proyecto (sección 8).
+3. **Derivación** (no es un eje): principio → norma → estándar, y fondo → caso → encargo. Una cosa sale de otra o la justifica. No son niveles; por eso los retos 1 y 2 se confunden con la abstracción (secciones 3 y 4).
+
+El nivel es de la pieza, no de la entidad: las 41 filas son **familias**, y `level` de una entidad dice el nivel de sus piezas.
+Hoy: 3 `meta` (principle, norm, rule), 1 `template` (mechanism) y 37 `piece`. «N0 y N1 siempre horizontales» falla en 2 sitios
+reales (`docs/datos/PRINCIPIOS.md`, solo de HoMenu, y los 40 principios de producto). Lo que aguanta: un meta o una plantilla de
+proyecto es una **extensión** que cita su meta horizontal (reglas 1 a 4 de N0).
+
+## 2. La tabla
+
+Eje hoy = lo de `ops/entidades.json`. Contención propuesta: `horizontal` (sus piezas nunca llevan proyecto), `vertical`
+(siempre) o `both` (opcional: cada pieza dice su `project` o ninguno). Salen 8 horizontales, 14 verticales y 19 `both`: casi
+todo lo de trabajo es `both`, porque un mismo registro mezcla factoría y producto (sección 8).
 
 <!-- super-tabla:inicio -->
-| id | familia | nivel | eje hoy | ámbito propuesto | quién la crea | dónde vive (registro) | quién la lee | depende de |
+| id | familia | nivel | eje hoy | contención propuesta | quién la crea | dónde vive (registro) | quién la lee | depende de |
 |---|---|---|---|---|---|---|---|---|
 | `session` | work | piece | horizontal | horizontal | npm run tarea y el arranque | ninguno (without_registry) | guardia, avisos, eventos.jsonl | branch |
 | `team-member` | access | piece | horizontal | horizontal | Pablo (a mano, en prosa) | `CLAUDE.md` (without_registry) | nadie por máquina: decision.assigned_to lo nombra en GitHub | — |
 | `identity` | access | piece | horizontal | horizontal | Pablo (alta de App o cuenta) | `scripts/lib/tokenSesion.mjs` (partial) | scripts/lib/tokenSesion.mjs, arranque | team-member |
-| `service` | access | piece | horizontal | horizontal | Pablo (alta de cuenta) | `ops/INVENTARIO.md` (without_registry) | ops/INVENTARIO.md, skills de servicio | — |
-| `environment` | delivery | piece | bridge | horizontal | gobierno / Vercel | `ops/INVENTARIO.md` (without_registry) | salud-despliegue, apply-migration | service |
-| `deployment` | delivery | piece | bridge | horizontal | Vercel al empujar una rama | ninguno (without_registry) | salud-despliegue, qa | environment, branch |
+| `service` | access | piece | horizontal | both | Pablo (alta de cuenta) | `ops/INVENTARIO.md` (without_registry) | ops/INVENTARIO.md, skills de servicio | — |
+| `environment` | delivery | piece | bridge | both | gobierno / Vercel | `ops/INVENTARIO.md` (without_registry) | salud-despliegue, apply-migration | service |
+| `deployment` | delivery | piece | bridge | vertical | Vercel al empujar una rama | ninguno (without_registry) | salud-despliegue, qa | environment, branch |
 | `event` | measure | piece | bridge | both | hooks y scripts (proceso); la app y Lola (producto, user_events) | `.claude/hooks/eventos.mjs` (partial) | metricas.json (proceso); embudo y evals (producto) | session |
-| `norm` | rules | meta | horizontal | horizontal | gobierno, con juez | `ops/normas.json` (with_registry) | ops/normas.test.js, estándares, revisor | — |
+| `norm` | rules | meta | horizontal | both | gobierno, con juez | `ops/normas.json` (with_registry) | ops/normas.test.js, estándares, revisor | — |
 | `learning` | work | piece | horizontal | horizontal | quien cierra el fondo (a mano) | ninguno (without_registry) | nadie: recorded_in no se escribe en ningún sitio | — |
-| `mechanism` | rules | meta | horizontal | horizontal | gobierno | `ops/mecanismos.json` (with_registry) | plan-de-arreglo, encargo.mecanismo, escalas.mjs | — |
+| `mechanism` | rules | template | horizontal | horizontal | gobierno | `ops/mecanismos.json` (with_registry) | plan-de-arreglo, encargo.mecanismo, escalas.mjs; ninguna norma lo cita por id (usa ejecutor) | — |
 | `metric` | measure | piece | bridge | both | gobierno (proceso); cada módulo (producto) | `ops/metricas.json` (with_registry) | cumplimiento.mjs, informe semanal; MODULOS.json | — |
-| `eval` | measure | piece | bridge | horizontal | lola y evaluador (Lola); forja (skills) | `scripts/bot-evals.json` (partial) | bot-evals.mjs, skills-prueba | — |
+| `eval` | measure | piece | bridge | both | lola y evaluador (Lola); forja (skills) | `scripts/bot-evals.json` (partial) | bot-evals.mjs, skills-prueba | — |
 | `judge` | agents | piece | bridge | horizontal | gobierno (ficha en .claude/agents) | `.claude/agents` (partial) | orquestar, presupuestos, flujo | agent |
-| `secret` | access | piece | horizontal | horizontal | Pablo (alta-de-secreto) | `ops/INVENTARIO.md` (without_registry) | ops/recursos.json, scripts/lib/env.mjs | vault, service |
+| `secret` | access | piece | horizontal | both | Pablo (alta-de-secreto) | `ops/INVENTARIO.md` (without_registry) | ops/recursos.json, scripts/lib/env.mjs | vault, service |
 | `vault` | access | piece | horizontal | horizontal | Pablo | `ops/INVENTARIO.md` (without_registry) | ops/recursos.json, ops/env.1password | — |
-| `agent` | agents | piece | horizontal | horizontal | gobierno | `.claude/agents` (with_registry) | agentes.test.js, orquestar | — |
-| `skill` | agents | piece | horizontal | horizontal | forja-de-skills | `.claude/skills` (with_registry) | skills.test.js, hooks de skill | agent |
-| `rule` | rules | meta | horizontal | horizontal | gobierno | `.claude/rules` (partial) | Claude Code (reglas por carpeta) | — |
+| `agent` | agents | piece | horizontal | both | gobierno | `.claude/agents` (with_registry) | agentes.test.js, orquestar | — |
+| `skill` | agents | piece | horizontal | both | forja-de-skills | `.claude/skills` (with_registry) | skills.test.js, hooks de skill | agent |
+| `rule` | rules | meta | horizontal | both | gobierno | `.claude/rules` (partial) | Claude Code (reglas por carpeta) | — |
 | `hook` | agents | piece | horizontal | horizontal | gobierno | `.claude/settings.json` (partial) | Claude Code (settings.json) | — |
-| `issue` | work | piece | horizontal | horizontal | npm run issues -- --nuevo | `scripts/lib/issues.mjs` (with_registry) | issues.mjs, arranque, informes | — |
-| `root-problem` | work | piece | horizontal | horizontal | quien diagnostica el caso | `scripts/lib/fondos.mjs` (with_registry) | fondos.mjs, workflow fondos | issue |
-| `case` | work | piece | horizontal | horizontal | quien detecta el fallo | `scripts/lib/issues.mjs` (with_registry) | PR (Casos:), fondos.mjs | issue, root-problem |
-| `assignment` | work | piece | horizontal | horizontal | plan-de-arreglo / orquestar | `scripts/lib/issues.mjs` (with_registry) | tipos-de-encargo, panel | issue, root-problem, assignment |
-| `decision` | work | piece | horizontal | horizontal | cualquier sesión (issue); Pablo (DECISIONES.md) | `ops/DECISIONES.md` (partial) | pendientes.mjs, Pablo | issue |
-| `pull-request` | work | piece | horizontal | horizontal | la sesión | ninguno (without_registry) | guardia, CI, revisor | — |
-| `branch` | work | piece | horizontal | horizontal | npm run tarea | ninguno (without_registry) | guardia, deployment | issue |
-| `migration` | delivery | piece | bridge | horizontal | datos | `supabase/ESTADO.md` (partial) | apply-migration, verificar-estado, ESTADO.md | environment |
+| `issue` | work | piece | horizontal | both | npm run issues -- --nuevo | `scripts/lib/issues.mjs` (with_registry) | issues.mjs, arranque, informes | — |
+| `root-problem` | work | piece | horizontal | both | quien diagnostica el caso | `scripts/lib/fondos.mjs` (with_registry) | fondos.mjs, workflow fondos | issue |
+| `case` | work | piece | horizontal | both | quien detecta el fallo | `scripts/lib/issues.mjs` (with_registry) | PR (Casos:), fondos.mjs | issue, root-problem |
+| `assignment` | work | piece | horizontal | both | plan-de-arreglo / orquestar | `scripts/lib/issues.mjs` (with_registry) | tipos-de-encargo, panel | issue, root-problem, assignment |
+| `decision` | work | piece | horizontal | both | cualquier sesión (issue); Pablo (DECISIONES.md) | `ops/DECISIONES.md` (partial) | pendientes.mjs, Pablo | issue |
+| `pull-request` | work | piece | horizontal | both | la sesión | ninguno (without_registry) | guardia, CI, revisor | — |
+| `branch` | work | piece | horizontal | both | npm run tarea | ninguno (without_registry) | guardia, deployment | issue |
+| `migration` | delivery | piece | bridge | vertical | datos | `supabase/ESTADO.md` (partial) | apply-migration, verificar-estado, ESTADO.md | environment |
 | `table` | data | piece | bridge | vertical | una migración | `ops/MODULOS.json` (partial) | MODULOS.json, cableado.test.js, el código del módulo dueño | module |
 | `data-source` | data | piece | bridge | vertical | datos / catálogo | `src/data/model.js` (with_registry) | src/data/model.js, fuentes.test.js, la app | — |
 | `module` | data | piece | bridge | vertical | datos (MODULOS.json) | `ops/MODULOS.json` (with_registry) | modulos.test.js, panel | — |
@@ -68,105 +83,194 @@ Eje hoy = lo que dice `ops/entidades.json`. Ámbito propuesto = `horizontal`, `v
 | `shopping-list` | food | piece | vertical | vertical | se calcula del menú | `specs/shopping-list.md` (partial) | la familia, Lola | menu |
 | `lola-conversation` | lola | piece | vertical | vertical | Lola | `specs/plan-bot-mensajeria.md` (partial) | bot-evals, retención | household |
 
-Cifras: 41 entidades. Nivel: piece 37, meta 4. Ámbito propuesto: horizontal 25, both 4, vertical 12. Familias: work 9, access 5, delivery 3, measure 3, rules 5, agents 4, data 3, home 3, food 5, lola 1.
+Cifras: 41 entidades. Nivel: piece 37, meta 3, template 1. Contención propuesta: horizontal 8, both 19, vertical 14. Familias: work 9, access 5, delivery 3, measure 3, rules 5, agents 4, data 3, home 3, food 5, lola 1.
 <!-- super-tabla:fin -->
 
-## 2. Relaciones que faltan o están rotas
+## 3. Reto 1: Fondo, Caso, Encargo, Decisión
 
-Cifras (`ops/entidades.json`, comprobado): 63 relaciones; 35 guardadas en un campo, 5 en un fichero, **13 sin ningún campo que las guarde** y **10 sin auditar** (todas verticales). 10 entidades no reciben ninguna flecha: deployment, judge, secret, rule, decision, pull-request, migration, data-source, channel-identity y shopping-list; 8 de ellas son horizontales o puentes, y significa que nadie las referencia por id.
+**Son cuatro subtipos de un registro común, no un Issue con N1 por tipo; el registro ya lo dice (`is_a issue`).**
 
-**Rotas** (existen en el registro y nada las guarda), por orden de importancia:
+Datos (`scripts/lib/issues.mjs`, `scripts/lib/fondos.mjs`):
+- Lo común es de GitHub: número (un solo espacio de ids), título, estado, etiquetas, asignado, padre. El grupo `tipo` tiene 4 valores cerrados.
+- Lo propio es casi disjunto: la ficha del fondo tiene 19 campos, el bloque del encargo 15, el caso 2 (etiquetas `analisis` y `causa`) y la decisión 0. Solo `mecanismo`, `clase` y `verificacion` se repiten entre fondo y encargo.
+- Relaciones propias: caso y encargo cuelgan del fondo; el encargo depende de otro encargo; la decisión no cuelga de nada y se asigna a una persona.
 
-| Relación | Por qué importa | Qué la arreglaría |
+Por qué N0, N1 y N2 no encajan: son **generación** (la forja produce plantillas, la plantilla produce piezas). Un fondo no es la plantilla de un issue: es otra cosa con otro ciclo de vida.
+
+Dónde sí hay niveles en esta familia: el **encargo**. `ops/tipos-de-encargo.json` tiene 5 tipos y 12 subtipos activos (21 retirados, que se conservan para el panel) con pasos, banderas y presupuesto: son plantillas (`template`) de las que sale cada encargo (`piece`).
+
+¿Ayuda un N3? **No.** Los subtipos son valores de vocabulario cerrado con atributos y un lector (`tiposDeEncargo.mjs`), que es lo que PRINCIPIOS §6 pide para una tabla catálogo. Un nivel más no añade un lector. Lo que falta son relaciones:
+- un caso y un encargo guardan su fondo en tres sitios (sub-issue, ficha y bloque): una sola fuente;
+- la decisión tiene dos copias sin enlace (el issue y la fila de `ops/DECISIONES.md`).
+
+Recomendación: mantener las 4 entidades con `is_a issue`, sin N3. Caso y decisión podrían ser solo valores de `kind`, pero ya son ids fijados del registro y retirarlos cuesta más que mantenerlos.
+
+## 4. Reto 2: Principio → Norma → Estándar; Regla y Mecanismo
+
+Comprobado en `ops/normas.json`, `ops/estandares-agentes.json`, `docs/ops/ESTANDARES.md` y `ops/mecanismos.json`:
+
+| Pieza | Qué es de verdad | Dato |
 |---|---|---|
-| `migration creates table` | La 0003, 0006 y 0051 están repetidas; la tabla no sabe qué migración la creó | `scripts/lib/migraciones.mjs` ya lee los `create table`: derivarla, no guardarla |
-| `norm enforced_by mechanism` | `EJECUTORES` y los ids de `ops/mecanismos.json` se escriben distinto (`github_regla` frente a `regla_github`) | unificar vocabulario (ya apuntado en la nota de `norm`) |
-| `root-problem uses mechanism` | `ficha.mecanismo` es texto libre | campo con un id de `ops/mecanismos.json` |
-| `event produces learning` y `event triggers skill` | propuestos en #568, sin campo | #568 |
-| `session uses identity`, `identity belongs_to team-member`, `identity uses vault` | no hay registro de identidades ni de personas del equipo | ver entidad que falta `team-member` con registro |
-| `deployment belongs_to environment`, `environment belongs_to service` | los tres «entorno» (Vercel, `VIGIA_ENTORNO`, GitHub) no comparten id | decidir qué es un entorno (sección 4) |
-| `rule enforced_by hook` | las reglas sin id no se pueden enlazar | dar id a las reglas, o dejar de decir que son entidad |
-| `judge judges eval` | ninguno de los 5 jueces declara qué evals lee | campo `juez` en cada eval |
-| `team-member coincides_with person` | dos personas distintas con el mismo nombre en el glosario | renombrar el término «persona» (ya pendiente) |
+| Principio | el porqué, con fuente propia | 56 propios y 40 de producto delegados; las normas citan 108 distintos |
+| Norma | lo que debe ser verdad, con control, ejecutor y veredicto. **Siempre cita principio** | 183 normas, 183 con `principio` |
+| Estándar | **dos cosas mezcladas**: normas agregadas por ámbito × acción (derivado, no copia) y reglas propias | 66 tareas de 9 agentes; 176 normas llegan a alguna tarea por consulta y 7 a ninguna; **156 reglas propias** y 11 tareas comunes |
+| Regla (`.claude/rules`) | un **vehículo de texto**, no un tipo; 6 ficheros sin id | solo 17 de 183 normas dicen `donde` en `.claude/rules/`; 36 en `CLAUDE.md`; 17 en skills |
+| Mecanismo (`ops/mecanismos.json`) | un **tipo de control con atributos** (escalón, ejecutor, alcance, veredicto): una plantilla | 12 mecanismos; la norma cita su `ejecutor` (10 valores), no el id del mecanismo |
 
-**Que faltan** (la relación no existe en el registro y el repo la usa):
+Lo cierto: el estándar no copia las normas, las consulta. Lo que no es cierto: **no es solo agregación**; tiene 156 reglas propias con la misma plantilla (`scripts/lib/regla.mjs`). Tres hallazgos:
+- **`regla` significa dos cosas**: el fichero de `.claude/rules` y la plantilla de `regla.mjs`. Recomiendo que la entidad `rule` sea el vehículo de texto y la unidad con id sea la norma.
+- **La cadena es de derivación**: principio → norma (control + ejecutor) → estándar (consulta). Se modela con relaciones (`norm cites principle` ya existe; `standard reads norm` falta), sin niveles.
+- **`fuerza` y `veredicto` son dos cosas**: `fuerza` (debe 141, no_debe 41, conviene 1) es cuánto obliga; `veredicto` (blanda 90, semidura 67, dura 24, rota 2) es cuánto se hace cumplir. Lo que Pablo llama «fuerza dura/semi/blanda» es el `veredicto`.
 
-| Relación | Evidencia |
+## 5. Reto 3: Agente, Skill, Herramienta, Tarea de agente, Relación entre agentes
+
+Verificado en `.claude/agents/*.md`, `.claude/agentes.test.js`, `ops/estandares-agentes.json` y `ops/tipos-de-encargo.json`.
+
+- **Agente = perfil ejecutor: cierto.** Cada ficha lleva `Tipo` (constructor o juez), `tools`, `skills` precargadas, misión y estándares de sus tareas. El juez se distingue por no tener herramientas de escritura, y lo vigila `agentes.test.js` (`ESCRITURA`). Es una pieza `both`: `lola` solo trabaja en HoMenu, `gobierno` en la factoría.
+- **Skill = conocimiento: cierto.** 15 skills; el `dueno` de cada una es un agente; 7 tipos de plantilla.
+- **Tarea de agente: es entidad.** 66 con `id`, registro propio, lectores (`npm run estandar`, `ESTANDARES.md`, el brief de `/orquestar`) y término en el glosario. Falta en el registro de entidades (`agent-task`).
+- **Herramienta: no es entidad.** Es un valor de un vocabulario cerrado externo (`HERRAMIENTAS`, 9 nombres de Claude Code, más las del navegador en `qa`) con un lector. Las herramientas de Lola son otra cosa (piezas de producto en `api/_bot`); no tienen registro con id y no las cuento.
+- **Relación entre agentes: no es entidad, es una arista con atributos.** Está en tres sitios y solo uno estructurado: los `pasos` de cada subtipo (qué agente sigue a cuál), `constructor` y `juez` del encargo, y las secciones «Gateways» y «Escalado» de cada ficha (texto). El gateway es `agent hands_to agent` (o a una persona) y hoy es prosa. Vale como relación, sin id.
+
+## 6. Reto 4: Hook, Control y Mecanismo
+
+- **Hook:** 9 entradas en `settings.json` y 18 ficheros en `.claude/hooks`. Es un **ejecutor**: `guardia` lo ejecuta en 26 normas.
+- **Control: sí es entidad, con un problema de nombre.** De 183 normas, 76 tienen control `juicio` (sin artefacto) y 107 un fichero: **59 ficheros distintos, 14 compartidos**. `guardia.test.js` vigila 20 normas, `ops/planos.json` 7 y `ops/regla.test.js` 7. Es de muchos a uno y con vida propia: si se borra el fichero se rompen todas. `control_tipo` tiene 5 valores (test 92, juicio 76, planos 7, script 7, workflow 1). Pero **el glosario ya usa «control»** para «una comprobación automática… con código que da falta, aviso o bien», y el `control` de una norma es una ruta. Hay que decidir el nombre antes de crear la entidad.
+- **Mecanismo = plantilla.** 12 tipos con escalón, ejecutor, alcance y veredicto. Hay **tres vocabularios solapados**: `ejecutor` (10 valores), `control_tipo` (5) y los 12 ids de mecanismo.
+- **El veredicto de la norma no sale del mecanismo.** Con ejecutor `ci` hay 19 duras, 27 semiduras y 3 blandas; con `guardia`, 23 semiduras y 3 blandas. El mecanismo pone un **techo** (una norma `dura` exige ejecutor del sistema, `normas.mjs:210`); el veredicto concreto depende del control de cada norma. Copiarlo del mecanismo (`ci` es `dura`) falsearía 30 de las 49 normas con ejecutor `ci` (27 semiduras y 3 blandas).
+- Relaciones que faltan: `norm checked_by control`, `control runs_in hook`, `hook implements mechanism`. Sin ellas «¿qué norma se queda sin control si cambio este hook?» solo se contesta leyendo.
+
+## 7. Reto 5: eventos sin actor, y los huecos
+
+**El campo `actor` ya existe** (`.claude/hooks/eventos.mjs`, #568). La nota de `event` en `ops/entidades.json` («ninguno lleva actor») está desfasada. Lo que de verdad falta:
+- `actor` solo reconoce la App de sesiones: **Pablo y «desconocido» salen los dos como null**.
+- Solo `eventos.jsonl` lleva sesión y actor. Las otras **28 firmas** de las 29 de `ops/metricas.json` no llevan ninguno.
+- El destino que falta es el registro de sesiones: `session` no tiene id común (ficha local, carpeta y rama, `eventos.jsonl` y transcripción). Un evento apunta a la sesión por `sesion`, pero las otras tres huellas no se cruzan.
+- `nombre` es polimórfico (skill o agente según el evento), señalado en el propio fichero.
+
+Tus siete huecos:
+
+| Hueco | Qué es | Dato |
+|---|---|---|
+| Intervención humana | **tipo de evento** con `actor` de tipo persona | hoy: `permiso_pedido` y los issues `tipo:decision`; 52 normas con ejecutor `persona` |
+| Veredicto | **valor de vocabulario y tipo de evento**, no entidad. Otra colisión: veredicto de cumplimiento (dura…) y veredicto del juez (pasa o no pasa) | `VEREDICTOS` en `escalas.mjs` |
+| Riesgo | **campo** (vocabulario alto, medio, bajo) | 32 alto, 64 medio, 87 bajo en las normas |
+| Permiso | **entidad candidata, solo si hay registro**: hoy 41 `allow` y 5 `deny` en `settings.json`, más los de la App de GitHub y los `grant` de Postgres, sin id | el evento `permiso_pedido` ya existe |
+| Workflow | **entidad (falta)**: 11 ficheros en `.github/workflows`, vigilados por `workflows.test.js` | — |
+| Presupuesto | **no es entidad**: `ops/presupuestos.json` es una tabla por complejidad del encargo; el gasto es un tipo de evento (`gasto.jsonl`) | — |
+| Ejecución | **tipo de evento** (quién, qué, coste, resultado); hoy en `pasadas.jsonl`, `gasto.jsonl` y la línea de `skills-prueba` | — |
+
+De los siete: **una entidad real** (workflow), **una dudosa** (permiso), **cuatro tipos de evento** y un campo. Recomiendo un esquema único de evento con campos fijos (`id`, `ts`, `session`, `source`, `actor_kind`, `actor`, `subject_type`, `subject_id`, `type`) y un tipo por hueco, en vez de seis registros.
+
+## 8. Reto 6: contención (factoría, proyecto, entorno)
+
+**Hace falta un nivel de contención, que se llama `project` y no necesita Programa ni Portfolio.**
+
+Datos:
+- Hay **dos proyectos reales**: HoMenu (con Lola) y el panel (`homenu-panel`, repo privado, Hetzner). La factoría **vive dentro del repo de HoMenu**: de unos 2.700 ficheros, `ops`, `scripts` y `.claude` (881) son factoría y `src`, `api`, `supabase` y `public` (1.752) son producto. El repo no es el proyecto.
+- Las normas ya se mezclan: de 183, 82 son de producto (bot 24, data 33, catalog 14, product 9, ui 2), 82 de factoría (process 36, infra 30, writing 16) y 19 dudosas (code 10, api 9). Sin campo `project`, una sesión del panel recibiría las 82 de HoMenu.
+- Los 23 recursos de `ops/recursos.json` son de la factoría (GitHub 5, 1Password 6), de HoMenu (Supabase, Telegram, Vercel) o de los dos: Hetzner sirve al panel y a las copias de la base de HoMenu, así que `project`–`service` es **muchos a muchos**.
+- Los 16 módulos y las 55 tablas son todos de HoMenu: `project` obligatorio.
+
+Modelo propuesto:
+
+| Capa | Qué es | Entidad |
+|---|---|---|
+| Factoría | la raíz implícita: equipo, reglas y mecanismos que valen para todos | **no se crea**: sería una fila con un solo lector; se expresa con `project` vacío |
+| Proyecto | HoMenu, panel | **sí, `project`**: id, nombre, repos, servicios que usa, estado |
+| Entorno o instancia | staging, producción; el sistema de diseño de un proyecto | `environment` gana `project`; el sistema de diseño es la instancia de diseño |
+| Programa o Portfolio | agrupar proyectos | **no**: sin lector (2 proyectos, equipo de 3) |
+
+Qué cuelga de cada capa (**creo**; es la columna «contención» de la tabla):
+
+| Siempre de un proyecto | De un proyecto o de la factoría | Siempre de la factoría |
+|---|---|---|
+| módulo, tabla, fuente de datos, despliegue, migración, casa y todo el vertical | entorno, servicio, clave, norma, regla, agente, skill, issue, PR, rama, evento, métrica, eval, vocabulario, principio | sesión, miembro del equipo, identidad, bóveda, juez, hook, aprendizaje |
+
+Falta una entidad que la primera versión no vio: **`repo`**. Factoría y HoMenu comparten repo y el panel tiene otro: issue, PR y rama cuelgan de un repo (hoy `ops/planos.json` lleva uno escrito a mano), y el repo se relaciona con el proyecto por carpetas.
+
+Comparación con Backstage (de memoria, **creo**): Domain agrupa sistemas; System agrupa componentes y recursos; Component es una unidad desplegable con `owner` y `lifecycle`; Resource es infraestructura; Group y User son la propiedad; Template genera componentes. Encaja así:
+- nuestro `project` = su System;
+- su Component = la app web de HoMenu, Lola o el panel (nuestro `module` es más fino);
+- su Resource = nuestro `resource` y `service`;
+- su Group o User = `team-member`;
+- su Template = nuestro nivel `template`;
+- su Domain = nuestro Programa, que con dos proyectos no se justifica;
+- su `lifecycle` (experimental, production, deprecated) se parece al `grado` de los módulos (`usable`, `en_marcha`): conviene alinearlos.
+
+Contradice un punto de la primera propuesta: «horizontal/vertical» pierde sentido como valor de la entidad y gana como **campo de la pieza** (`project`). La entidad solo dice si sus piezas pueden llevarlo.
+
+## 9. Los diez puentes, revisados
+
+Con la contención cambian dos veredictos (entorno y migración). **`bridge` no es un valor legítimo del eje**: reunía «una palabra en los dos lados» y los datos dicen otra cosa.
+
+| Entidad | Contención | Por qué (dato) |
+|---|---|---|
+| `environment` | both | Vercel y Supabase son de HoMenu; los environments de GitHub (`vigia`) son de la factoría; tres sentidos de la palabra |
+| `deployment` | vertical | un despliegue es de un proyecto (Vercel de HoMenu, el panel en Hetzner) |
+| `event` | both (se parte) | `eventos.jsonl` sin datos de familias frente a `user_events` con usuario y casa: dos regímenes de privacidad |
+| `metric` | both (se parte) | 44 métricas GQM de proceso (`ops/metricas.json`) frente a 54 de módulo (`MODULOS.json`), con formas distintas |
+| `eval` | both | Lola (`bot-evals.json`, `router-evals.json`) frente a las pruebas de skills |
+| `judge` | horizontal | 5 jueces, todos de factoría |
+| `migration` | vertical | 101 ficheros que cambian la base de HoMenu; la pasarela es una relación |
+| `table`, `data-source`, `module` | vertical | 55, 40 y 16 piezas, todas de HoMenu |
+
+Dos familias con piezas de los dos lados no estaban entre los puentes: `vocabulary` y `principle`.
+
+## 10. Relaciones rotas o ausentes
+
+Comprobado en `ops/entidades.json`: 63 relaciones; 35 en un campo, 5 en un fichero, **13 sin campo** y **10 sin auditar** (todas verticales). 10 entidades no reciben ninguna flecha (deployment, judge, secret, rule, decision, pull-request, migration, data-source, channel-identity, shopping-list).
+
+| Rota o ausente | Nota |
 |---|---|
-| `pull-request comes_from branch` | cada PR sale de una rama; el registro solo lo dice de `deployment` |
-| `migration judged_by judge` / `migration made_by agent` | la cabecera de una migración exige el OK de `auditor-datos` y la hace `datos` |
-| `module belongs_to agent` (dueño) | `role_in_axis` de `module` dice «tiene dueño», pero un módulo de `ops/MODULOS.json` no tiene ese campo (sus claves: id, nombre, ambito, hace, grado, motivo_grado, ficheros, tests, metricas, submodulos). La nota del registro afirma algo que el dato no guarda |
-| `learning recorded_in` → test, guard, rule, skill | el campo está declarado y no se escribe en ningún sitio; es la entidad sin lector (principio «ningún campo sin lector») |
-| `secret belongs_to environment` | una clave de GitHub vive en un environment; ahora solo se ata al servicio |
-| `hook implements mechanism` | un hook es un mecanismo del escalón «bloqueo»; sin enlace |
-| `metric reads` a `objective` | `ops/metricas.json` tiene 7 objetivos con id; no son entidad |
-| `table belongs_to household` (todas) y `data-source has table` (36 de 40 sin él) | la RLS y PRINCIPIOS §1 lo exigen; no consta en el registro |
-| vertical, 10 `unaudited` | 55 tablas de 23 módulos y solo 9 entidades verticales; ninguna relación vertical está auditada |
+| `migration creates table` | derivable de `scripts/lib/migraciones.mjs`, no hace falta guardarla |
+| `norm enforced_by mechanism` | la norma guarda el `ejecutor`, no el id del mecanismo |
+| `norm checked_by control`, `control runs_in hook` | no existen (sección 6) |
+| `standard reads norm` | es una consulta por ámbito × acción, sin relación |
+| `pull-request comes_from branch`; `issue in repo` | no constan |
+| `migration judged_by judge` / `made_by agent` | la cabecera exige el OK de `auditor-datos` |
+| `module belongs_to agent` | la nota del registro dice que el módulo tiene dueño y `MODULOS.json` no lo guarda |
+| `learning recorded_in …` | campo declarado y no escrito en ningún sitio |
+| `secret belongs_to environment`; `resource uses project` | la clave de GitHub vive en un environment |
+| `event happens_in session` | existe, pero la sesión no tiene id común |
+| `session uses identity` y compañeras | no hay registro de identidades |
+| `ops/recursos.json` | existe y el registro no lo conoce (`secret` y `vault` figuran sin registro) |
 
-**Registros que dicen una cosa y hay otra** (comprobado): `secret` y `vault` figuran `without_registry` con fuente `ops/INVENTARIO.md`, pero `ops/recursos.json` (#581) ya tiene **23 recursos** con id, tipo (clave 7, cuenta 4, bóveda 3, app 2, proyecto 2, service-account 2, token 1, deploy-key 1, servidor 1), dueño y caducidad. Ese fichero es el registro de `secret`, `vault` y parte de `service` e `identity`; el registro de entidades no lo conoce.
+## 11. Entidades que faltan (de verdad)
 
-## 3. Entidades que faltan
+Criterio: se usa dos veces o más, no repite otra, tiene dueño y **un lector concreto**.
 
-Criterio: se usa dos veces o más, no repite otra y tiene dueño (regla de «Añadir una entidad» de N0) y **tiene lector**.
+### 11.1 Las necesita ya la factoría
 
-### 3.1 Las necesita ya la factoría
-
-| Entidad propuesta | Por qué | Qué la usaría (lector) | Nivel / ámbito |
-|---|---|---|---|
-| `project` (Proyecto) | HoMenu y el panel (`homenu-panel`, repo privado) ya son dos; el ámbito horizontal/vertical no tiene a qué colgar. Hoy «vertical» = HoMenu sin nombre | el campo `project` de toda pieza vertical; `ops/MODULOS.json`, `docs/diseno` | piece, horizontal |
-| `plane` (Plano) | `ops/planos.json` tiene 13 planos con escala 0 a 4, criterios y test; el glosario no lo tiene como entidad. Es la 4.ª acepción de «nivel» | `npm run planos`, `ops/PLANOS.md`, mi propia ficha (planos 4, 5 y 8) | piece, horizontal |
-| `resource` (Recurso) | `ops/recursos.json`: 23 entradas con dueño y caducidad que `secret`, `vault`, `service` e `identity` no referencian | `cumplimiento.mjs --informe` (caducidades) | piece, horizontal; **sustituye** el registro de `secret` y `vault` |
-| `template` (Plantilla por tipo) | La N1 de cada familia existe como vocabulario: 7 tipos de skill (`ops/forja/tipos_skill`), 5 tipos de encargo (`ops/tipos-de-encargo.json`), 6 perfiles de diseño (META-DISENO). Hoy no son entidad ni tienen id común | forja de skills, `/orquestar`, el panel | **template**, horizontal |
-| `forge` (Forja / pieza meta) | exactamente una por familia (FORJA: «nivel 0»): `ops/forja/`, `docs/entidades/N0-principios.md`, `ops/principios`, `docs/diseno/META-DISENO.md`. No se puede preguntar «¿qué familias tienen forja?» | test de cobertura de forjas por familia | **meta**, horizontal |
-| `standard` y `agent-task` (Estándar, Tarea de agente) | `ops/estandares-agentes.json` (el estándar de cada tarea de cada agente) y el término `tarea de agente`; sus sujetos están en `ops/entidades-sujetos.json` pero ellos no | `npm run estandar`, brief de `/orquestar`, `revisor` | piece, horizontal |
-| `zone` (Zona) y `workspace` (Carpeta de trabajo) | términos de glosario sin entidad; `npm run tarea -- … --zona`, `issues --zonas` | guardia, arranque | piece, horizontal |
-| `objective` (Objetivo de medida) | los 7 objetivos GQM de `ops/metricas.json` | `metricas.test.js` | piece, horizontal |
-| `entity` y `level` (la entidad como entidad) | el glosario ya traduce «entidad» a `entity` y no está en el registro | este test | meta, horizontal |
-
-### 3.2 Solo hacen falta con un segundo proyecto de verdad
-
-Lo que Pablo nombró y no hace falta antes (**creo**: no hay segundo proyecto con datos propios; el panel solo tiene 5 líneas de CSS):
-
-| Entidad | Qué sería | Por qué esperar |
+| Entidad | Evidencia | Lector |
 |---|---|---|
-| `campaign` (Campaña) | un empuje con fecha de inicio y fin que agrupa encargos | hoy un fondo y sus encargos cubren la agrupación; abrirlo sin lector es un campo sin lector |
-| `sprint` | ventana de tiempo | idem; el repo no planifica por ventanas |
-| `design-system` / `design-instance` (Instancia de diseño), `token`, `component`, `pattern` | META-DISENO ya las propone («cuatro entidades nuevas») | el panel será la primera instancia; con HoMenu solo es una (`DESIGN_SYSTEM.md` + 77 tokens), y una sola instancia no se puede contrastar |
-| `style` o `profile` (Estilo/perfil) | un N1 por tipo de proyecto (6 perfiles P1 a P6 de META-DISENO, hoy solo P2 se usará) | misma razón: `template` ya cubre esto como nivel; cada perfil es una pieza de `template` |
-| `app` / `brand-identity` (App o identidad de marca) | qué app es (HoMenu, panel) y su voz | es un atributo del `project`, no una entidad aparte, mientras haya un proyecto con marca |
-| `tenant` | familia de otro cliente | solo con otro producto vertical |
+| `project` | 2 proyectos; 82 de 183 normas son de producto | el campo `project` de toda pieza; el panel |
+| `repo` | 2 repos; `ops/planos.json` lleva uno a mano | issues, PR, rulesets, panel |
+| `agent-task` | 66 tareas con id | `npm run estandar`, `/orquestar` |
+| `control` | 59 ficheros para 107 normas | `normas.test.js` (**decidir el nombre**: choca con el glosario) |
+| `standard` | 66 estándares por tarea y 156 reglas propias | `ESTANDARES.md` |
+| `workflow` | 11 workflows con test propio | `workflows.test.js` |
+| `resource` | 23 recursos con dueño y caducidad; sustituye el registro de `secret` y `vault` | informe semanal |
+| `plane` | `ops/planos.json`: 13 planos con escala 0 a 4 | `npm run planos` |
+| `template` y `forge` | 7 tipos de skill, 5 de encargo y 6 perfiles de diseño sin id común; una forja por familia | forja de skills, `/orquestar` |
+| `zone`, `workspace`, `objective` | términos de glosario, `--zona`, 7 objetivos GQM | guardia, `metricas.test.js` |
 
-Verticales con tablas y sin entidad (**comprobado** contra `ops/MODULOS.json`): de 55 tablas en 23 módulos, el producto tiene entidad para 9. Faltan las que tienen datos propios y lector claro: `group` (grupo, grupo_persona), `allergy` (persona_alergia, persona_intolerancia, persona_perfil_salud), `favorite` y `rating`, `cooking` (cookings), `reminder` y `task` (bot_reminders, bot_tareas), `shared-menu` y `share-link`, `folder` y `collection`, `store-product`, `saved-menu`, `user-event` y `feedback`, `invite`. Es el trabajo de auditar el eje vertical (fuera de este ataque), no se cuela aquí.
+### 11.2 Solo con un segundo proyecto de verdad
 
-## 4. Los diez puentes, uno a uno
+`campaign`, `sprint` y `tenant`: sin lector hoy, serían campos sin lector. `design-system` (instancia), `token`, `component` y `pattern`: META-DISENO ya los propone y hoy hay una sola instancia (HoMenu, 77 tokens); el panel será la segunda y entonces se pueden contrastar. `style` o `profile` es un `template` de diseño, no otra entidad. `program` o `portfolio`: no.
 
-Pregunta: ¿es `bridge` un valor legítimo del eje, o un cajón de sastre? **Honestamente, es un cajón de sastre.** Lo que reunió fue «una palabra usada en los dos lados»; los datos dicen que hay cuatro cosas distintas dentro (y dos más fuera):
+### 11.3 Verticales con tablas y sin entidad
 
-| Entidad | Datos (comprobado) | Veredicto |
-|---|---|---|
-| `environment` | Hay **una sola base** (producción) para todos; los entornos son de Vercel, de GitHub y `VIGIA_ENTORNO` | **horizontal**. El lado producto es una relación (`table` vive en el entorno producción), no otra pieza |
-| `deployment` | Un despliegue sale de una rama; las casas ven «la versión» | **horizontal**. «Lo que ven las casas» es una vista, sin dato propio |
-| `event` | `eventos.jsonl` y otros logs de proceso (29 formas de línea en `ops/metricas.json`, sin datos de familias) frente a `user_events` (tabla de la app, con usuario y casa, RGPD) | **partir**: N1 horizontal (campos fijos del principio 10) + N2 de proceso + N2 vertical. Dos regímenes de privacidad distintos justifican dos registros |
-| `metric` | `ops/metricas.json`: **44** métricas GQM de proceso; `MODULOS.json`: **54** métricas de módulo (producto), otra forma y otro lector | **partir**: N1 horizontal + N2 de proceso + N2 vertical. Es lo que la nota del registro llama «decisión del N1 de Métrica» |
-| `eval` | `scripts/bot-evals.json` y `router-evals.json` (Lola) frente a `casos.json` de skills | **horizontal**: es un instrumento de la factoría; lo que mide (`lola-conversation`) ya es una relación (`measures`). Un campo `subject` lo reparte |
-| `judge` | 5 jueces, todos en `.claude/agents` con `Tipo: juez`; ninguno es de producto | **horizontal**. Ya es `is_a agent`; «juzga lo que sale a las casas» es lo que juzga, no lo que es |
-| `migration` | 101 ficheros en `supabase/migrations`, pasan por gateway y juez; la cambiada es la base | **horizontal**: la crea y la juzga la factoría. Que cambie datos de casas es la relación `creates table` |
-| `table` | 55 tablas, las 55 con módulo dueño de producto | **vertical** |
-| `data-source` | 40 fuentes: 17 derivado, 14 fuente_de_verdad, 6 copia_retirada, 3 ingesta; todas datos de la app | **vertical** |
-| `module` | 16 módulos con `ambito` compartido 8, lola 7, app 1; son el mapa del producto | **vertical** (y `ambito` aquí es una tercera acepción de la palabra) |
+55 tablas en 23 módulos y solo 9 entidades: `group`, `allergy`, `favorite` y `rating`, `cooking`, `reminder`, `task`, `shared-menu`, `folder`, `store-product`, `saved-menu`, `user-event`, `invite`. Es auditar el eje vertical, fuera de este ataque.
 
-Resultado: **5 horizontales, 3 verticales, 2 partidas**. Ninguno se queda como puente. Además, el criterio «misma palabra en los dos lados» deja fuera dos que sí tienen piezas en los dos ámbitos: **`vocabulary`** (CLAUDE.md: «los de proceso y los del producto», `ops/vocabularios-vida.json`) y **`principle`** (los de la casa y los 40 de producto delegados, `ops/principios/_catalogo.json`). Si `bridge` vale algo, es esto, y se detecta por datos (hay piezas de los dos ámbitos), no a mano.
+## 12. Cómo meter `level` y `project` en `ops/entidades.json` (propuesta, sin aplicar)
 
-**Propuesta:** `bridge` no es un valor de eje, es una propiedad **calculada**: «esta familia tiene piezas en los dos ámbitos» (`both`) o «esta relación cruza de ámbito». Entonces cada pieza declara `scope: horizontal | vertical`, y las 4 familias `both` (event, metric, vocabulary, principle) tienen un N1 horizontal y N2 de cada ámbito. Contradice la propuesta de dos ejes solo en un punto: el ámbito es de la **pieza** y no de la entidad.
+1. Vocabularios cerrados `LEVELS` (`meta`, `template`, `piece`) y `SCOPES` (`horizontal`, `vertical`, `both`) en `scripts/lib/entidades.mjs`, anclados en `ops/vocabularios-vida.json`. Campos `level` y `scope` obligatorios; `axis` convive hasta decidir y luego se retira (con `replaced_by`).
+2. Entidad `project` con dos filas (homenu, panel) y relación `belongs_to project` en cada entidad no horizontal. Las piezas llevan el campo `project`, validado contra esa lista.
+3. Tests escritos (`ops/super-tabla.test.js`): propuesta completa, vocabulario cerrado, ningún meta ni template vertical. Por escribir con la decisión: relación `extends` de cada meta o template a su meta; que toda familia `both` tenga dos registros; «ninguna entidad sin lector» con una lista de excepciones que solo baja (hoy `team-member` y `learning`).
+4. `MAPA.md` pierde «Los puentes». Tocar el glosario («eje») y el test de entidades es un encargo propio.
+5. Orden: decisión; luego `level` y `scope`; luego `project` y `repo`; luego `control`, `agent-task` y `workflow`.
 
-## 5. Cómo meter `level` en `ops/entidades.json` (propuesta, sin aplicar)
+## 13. Decisiones pendientes
 
-1. **Vocabulario cerrado** `LEVELS` en `scripts/lib/entidades.mjs` (`meta`, `template`, `piece`) y `SCOPES` (`horizontal`, `vertical`, `both`), anclados en `ops/vocabularios-vida.json` (`entidades.level`, `entidades.scope`), como los otros vocabularios del registro (principio 12 de N0).
-2. **Campos** `level` en `REQUERIDOS` de `ops/entidades.test.js` (nivel de sus piezas) y `scope` en lugar de `axis`. Mientras `bridge` exista, `scope` y `axis` conviven; tras la decisión, `axis` se retira (status retired, con su sustituto) y `role_in_axis` desaparece.
-3. **Tests.** Ya escritos, sobre la propuesta (`ops/super-tabla.test.js`): las 41 entidades tienen familia, nivel y ámbito de vocabulario; ningún `meta` o `template` es `vertical`; el bloque de esta tabla es el generado. **Por escribir** con la decisión: una relación nueva `extends` para que cada `meta` o `template` cite el meta del que cuelga, que toda familia `both` tenga dos registros, y «ninguna entidad sin lector» con una lista de excepciones que solo puede bajar (hoy `team-member` y `learning`).
-4. **MAPA.md** pierde el apartado «Los puentes» y gana una columna de nivel. Cuesta tocar `MAPA.md`, el glosario (término «eje») y `PUENTES` del test: es un encargo propio, no se hace aquí.
-5. **Orden:** primero la decisión de la sección 6; después `level` y `scope` (un PR); después `project` y `template` (otro).
-
-## 6. Decisiones pendientes
-
-Están en el informe del agente: (A) qué hacer con `bridge`; (B) qué escala de «nivel» queda; (C) si `project` se crea ya.
+Están en el informe del agente, cada una con tres opciones.

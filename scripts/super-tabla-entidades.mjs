@@ -24,11 +24,11 @@ export const LEVELS = {
   template: "N1: plantilla por tipo o estilo, de la que salen las piezas",
   piece: "N2: la pieza concreta",
 };
-/** Ámbito propuesto: horizontal, vertical, o both (hay piezas en los dos y cada una declara el suyo). */
+/** Contención propuesta: horizontal (sus piezas nunca llevan proyecto), vertical (siempre) o both (opcional: cada pieza declara su `project` o ninguno). */
 export const SCOPES = {
-  horizontal: "Factoría: vale para cualquier proyecto",
-  vertical: "Un proyecto (HoMenu hoy)",
-  both: "La familia tiene piezas de los dos ámbitos y cada pieza declara el suyo",
+  horizontal: "Factoría: sus piezas no cuelgan de ningún proyecto",
+  vertical: "Sus piezas cuelgan siempre de un proyecto (HoMenu hoy)",
+  both: "Hay piezas de factoría y de proyecto; cada pieza declara su project o ninguna",
 };
 export const FAMILIES = {
   work: "Cómo se trabaja: sesión, rama, PR, issues, fondos, encargos",
@@ -48,30 +48,30 @@ const PROPUESTA = [
   ["session", "work", "piece", "horizontal", "npm run tarea y el arranque", "guardia, avisos, eventos.jsonl"],
   ["team-member", "access", "piece", "horizontal", "Pablo (a mano, en prosa)", "nadie por máquina: decision.assigned_to lo nombra en GitHub"],
   ["identity", "access", "piece", "horizontal", "Pablo (alta de App o cuenta)", "scripts/lib/tokenSesion.mjs, arranque"],
-  ["service", "access", "piece", "horizontal", "Pablo (alta de cuenta)", "ops/INVENTARIO.md, skills de servicio"],
-  ["environment", "delivery", "piece", "horizontal", "gobierno / Vercel", "salud-despliegue, apply-migration"],
-  ["deployment", "delivery", "piece", "horizontal", "Vercel al empujar una rama", "salud-despliegue, qa"],
+  ["service", "access", "piece", "both", "Pablo (alta de cuenta)", "ops/INVENTARIO.md, skills de servicio"],
+  ["environment", "delivery", "piece", "both", "gobierno / Vercel", "salud-despliegue, apply-migration"],
+  ["deployment", "delivery", "piece", "vertical", "Vercel al empujar una rama", "salud-despliegue, qa"],
   ["event", "measure", "piece", "both", "hooks y scripts (proceso); la app y Lola (producto, user_events)", "metricas.json (proceso); embudo y evals (producto)"],
-  ["norm", "rules", "meta", "horizontal", "gobierno, con juez", "ops/normas.test.js, estándares, revisor"],
+  ["norm", "rules", "meta", "both", "gobierno, con juez", "ops/normas.test.js, estándares, revisor"],
   ["learning", "work", "piece", "horizontal", "quien cierra el fondo (a mano)", "nadie: recorded_in no se escribe en ningún sitio"],
-  ["mechanism", "rules", "meta", "horizontal", "gobierno", "plan-de-arreglo, encargo.mecanismo, escalas.mjs"],
+  ["mechanism", "rules", "template", "horizontal", "gobierno", "plan-de-arreglo, encargo.mecanismo, escalas.mjs; ninguna norma lo cita por id (usa ejecutor)"],
   ["metric", "measure", "piece", "both", "gobierno (proceso); cada módulo (producto)", "cumplimiento.mjs, informe semanal; MODULOS.json"],
-  ["eval", "measure", "piece", "horizontal", "lola y evaluador (Lola); forja (skills)", "bot-evals.mjs, skills-prueba"],
+  ["eval", "measure", "piece", "both", "lola y evaluador (Lola); forja (skills)", "bot-evals.mjs, skills-prueba"],
   ["judge", "agents", "piece", "horizontal", "gobierno (ficha en .claude/agents)", "orquestar, presupuestos, flujo"],
-  ["secret", "access", "piece", "horizontal", "Pablo (alta-de-secreto)", "ops/recursos.json, scripts/lib/env.mjs"],
+  ["secret", "access", "piece", "both", "Pablo (alta-de-secreto)", "ops/recursos.json, scripts/lib/env.mjs"],
   ["vault", "access", "piece", "horizontal", "Pablo", "ops/recursos.json, ops/env.1password"],
-  ["agent", "agents", "piece", "horizontal", "gobierno", "agentes.test.js, orquestar"],
-  ["skill", "agents", "piece", "horizontal", "forja-de-skills", "skills.test.js, hooks de skill"],
-  ["rule", "rules", "meta", "horizontal", "gobierno", "Claude Code (reglas por carpeta)"],
+  ["agent", "agents", "piece", "both", "gobierno", "agentes.test.js, orquestar"],
+  ["skill", "agents", "piece", "both", "forja-de-skills", "skills.test.js, hooks de skill"],
+  ["rule", "rules", "meta", "both", "gobierno", "Claude Code (reglas por carpeta)"],
   ["hook", "agents", "piece", "horizontal", "gobierno", "Claude Code (settings.json)"],
-  ["issue", "work", "piece", "horizontal", "npm run issues -- --nuevo", "issues.mjs, arranque, informes"],
-  ["root-problem", "work", "piece", "horizontal", "quien diagnostica el caso", "fondos.mjs, workflow fondos"],
-  ["case", "work", "piece", "horizontal", "quien detecta el fallo", "PR (Casos:), fondos.mjs"],
-  ["assignment", "work", "piece", "horizontal", "plan-de-arreglo / orquestar", "tipos-de-encargo, panel"],
-  ["decision", "work", "piece", "horizontal", "cualquier sesión (issue); Pablo (DECISIONES.md)", "pendientes.mjs, Pablo"],
-  ["pull-request", "work", "piece", "horizontal", "la sesión", "guardia, CI, revisor"],
-  ["branch", "work", "piece", "horizontal", "npm run tarea", "guardia, deployment"],
-  ["migration", "delivery", "piece", "horizontal", "datos", "apply-migration, verificar-estado, ESTADO.md"],
+  ["issue", "work", "piece", "both", "npm run issues -- --nuevo", "issues.mjs, arranque, informes"],
+  ["root-problem", "work", "piece", "both", "quien diagnostica el caso", "fondos.mjs, workflow fondos"],
+  ["case", "work", "piece", "both", "quien detecta el fallo", "PR (Casos:), fondos.mjs"],
+  ["assignment", "work", "piece", "both", "plan-de-arreglo / orquestar", "tipos-de-encargo, panel"],
+  ["decision", "work", "piece", "both", "cualquier sesión (issue); Pablo (DECISIONES.md)", "pendientes.mjs, Pablo"],
+  ["pull-request", "work", "piece", "both", "la sesión", "guardia, CI, revisor"],
+  ["branch", "work", "piece", "both", "npm run tarea", "guardia, deployment"],
+  ["migration", "delivery", "piece", "vertical", "datos", "apply-migration, verificar-estado, ESTADO.md"],
   ["table", "data", "piece", "vertical", "una migración", "MODULOS.json, cableado.test.js, el código del módulo dueño"],
   ["data-source", "data", "piece", "vertical", "datos / catálogo", "src/data/model.js, fuentes.test.js, la app"],
   ["module", "data", "piece", "vertical", "datos (MODULOS.json)", "modulos.test.js, panel"],
@@ -100,7 +100,7 @@ export const PROPUESTA_FILAS = PROPUESTA;
 export function bloque(datos = cargar()) {
   const por = new Map(datos.entities.map((e) => [e.id, e]));
   const filas = [
-    "| id | familia | nivel | eje hoy | ámbito propuesto | quién la crea | dónde vive (registro) | quién la lee | depende de |",
+    "| id | familia | nivel | eje hoy | contención propuesta | quién la crea | dónde vive (registro) | quién la lee | depende de |",
     "|---|---|---|---|---|---|---|---|---|",
   ];
   for (const [id, fam, nivel, ambito, crea, lee] of PROPUESTA) {
@@ -115,7 +115,7 @@ export function bloque(datos = cargar()) {
     for (const p of PROPUESTA) c[p[i]] = (c[p[i]] || 0) + 1;
     return Object.entries(c).map(([k, v]) => `${k} ${v}`).join(", ");
   };
-  filas.push("", `Cifras: ${PROPUESTA.length} entidades. Nivel: ${cuenta("nivel", 2)}. Ámbito propuesto: ${cuenta("ambito", 3)}. Familias: ${cuenta("familia", 1)}.`);
+  filas.push("", `Cifras: ${PROPUESTA.length} entidades. Nivel: ${cuenta("nivel", 2)}. Contención propuesta: ${cuenta("ambito", 3)}. Familias: ${cuenta("familia", 1)}.`);
   return filas.join("\n");
 }
 
