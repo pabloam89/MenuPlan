@@ -1728,7 +1728,7 @@
       "id": "intervencion_humana",
       "objetivo": "guardia-proporcionada",
       "proyecto": "factoria",
-      "pregunta": "¿Cuántas veces tuvo que intervenir una persona (Pablo o Álvaro), registradas por la guardia al preguntar, por pendientes.mjs al dejar una decisión y por intervenciones.mjs en cada comando que Pablo escribe con !?",
+      "pregunta": "¿Cuántas veces tuvo que intervenir una persona (Pablo o Álvaro), registradas por la guardia al preguntar, por pendientes.mjs al dejar una decisión y por intervenciones.mjs en cada comando que Pablo escribe con ! (límite: el motivo sale del texto suelto del comando, así que un --pablo citado en un mensaje cuenta como producción: es un techo)?",
       "emisor": ".claude/hooks/eventos.mjs",
       "sale_en": [
         {

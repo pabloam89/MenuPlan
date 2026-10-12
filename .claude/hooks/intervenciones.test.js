@@ -142,6 +142,25 @@ describe("anotarBangs: una línea por `!`, solo vocabulario", () => {
     expect(eventos(dir)).toEqual([]);
   });
 
+  it("una línea gigante (más de 8 MB, sin salto de línea en la ventana) no atasca la marca: los `!` de después se anotan", () => {
+    const dir = temporal("iv-bang-");
+    const f = join(dir, "t.jsonl");
+    writeFileSync(f, "x".repeat(9 * 1024 * 1024) + "\n" + bang("ls"));
+    let total = 0;
+    for (let i = 0; i < 4; i++) total += anotar(f, dir);
+    expect(total).toBe(1);
+    expect(eventos(dir)).toHaveLength(1);
+  });
+
+  it("la marca se escribe antes de anotar: tras la llamada ya apunta al final de lo leído", () => {
+    const dir = temporal("iv-bang-");
+    const f = join(dir, "t.jsonl");
+    const t = bang("ls");
+    writeFileSync(f, t);
+    anotar(f, dir);
+    expect(readFileSync(join(dir, "marcas", `${SESION}.bang`), "utf8")).toBe(String(Buffer.byteLength(t)));
+  });
+
   it("si el transcript se acorta (rotó), se vuelve a leer desde el principio", () => {
     const dir = temporal("iv-bang-");
     const f = join(dir, "t.jsonl");

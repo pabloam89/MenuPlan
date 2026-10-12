@@ -22,6 +22,14 @@
  * Lo que este hook NO ve: un comando de Pablo en una PowerShell aparte, fuera de Claude Code (así se
  * lanzan las migraciones con `--pablo`, según CLAUDE.md). Eso solo lo vería el propio script.
  *
+ * Límites conocidos (no se cambian):
+ * - La clasificación mira el texto suelto del comando: `git commit -m "no usar --pablo aqui"` cuenta como
+ *   `produccion` y `grep -r MENUPLAN_OP_PABLO .` como `secreto`. La cifra de esos dos motivos es un techo.
+ * - Si Stop y SessionEnd corren exactamente a la vez, ambos pueden leer la marca vieja antes de que
+ *   cualquiera la escriba y anotar el mismo `!` dos veces (la marca se escribe antes de anotar para
+ *   que sea raro, pero no hay bloqueo de fichero).
+ * - Una línea de transcript de más de 8 MB se salta entera; no es un `!`.
+ *
  * Falla abierto: cualquier error sale con 0 y sin escribir nada. Solo la sesión principal (con
  * `agent_id` es un subagente y no puede haber `!`).
  */
@@ -84,7 +92,13 @@ export function leerDesde(ruta, desde) {
     readSync(fd, buf, 0, largo, ini);
     const texto = buf.toString("utf8");
     const corte = texto.lastIndexOf("\n");
-    if (corte < 0) return { texto: "", hasta: ini }; // ninguna línea completa todavía
+    if (corte < 0) {
+      // Sin salto de línea: o es una línea que aún se está escribiendo (se espera a la vez siguiente), o la
+      // ventana entera es un trozo de una línea gigante (más de MAX_LECTURA): esa no es un `!` y se salta, si no
+      // la marca no avanzaría nunca y ningún `!` posterior de la sesión se anotaría. El resto de esa línea
+      // se lee luego como un trozo roto y `bangsDe` lo descarta.
+      return { texto: "", hasta: largo >= MAX_LECTURA ? ini + largo : ini };
+    }
     const util = texto.slice(0, corte + 1);
     return { texto: util, hasta: ini + Buffer.byteLength(util, "utf8") };
   } finally {
@@ -112,6 +126,10 @@ export function anotarBangs(entrada, opc = {}) {
       // a propósito: sin marca es la primera vez que se mira esta sesión
     }
     const { texto, hasta } = leerDesde(ruta, desde);
+    // La marca se escribe ANTES de anotar: si Stop y SessionEnd corren casi a la vez, el segundo ya ve el
+    // desplazamiento nuevo y no repite. Si algo falla después, se pierde ese `!` (contabilidad que falla abierto).
+    mkdirSync(join(dir, "marcas"), { recursive: true });
+    writeFileSync(marca, String(hasta));
     const ahora = opc.ahora ?? new Date();
     let n = 0;
     for (const { comando, ts } of bangsDe(texto)) {
@@ -124,8 +142,6 @@ export function anotarBangs(entrada, opc = {}) {
       );
       if (ok) n++;
     }
-    mkdirSync(join(dir, "marcas"), { recursive: true });
-    writeFileSync(marca, String(hasta));
     return n;
   } catch {
     return 0; // a propósito: es contabilidad; un fallo suyo no puede cambiar nada de la sesión
