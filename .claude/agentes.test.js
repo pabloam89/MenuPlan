@@ -207,6 +207,17 @@ describe("los traspasos entre agentes son un dato de la cabecera (#652)", () => 
     expect([...h.permitidos].sort()).toEqual([...traspasos.orquestador.declarado].sort());
   });
 
+  // Decisión de Pablo (12 oct 2026, #652): toda sesión arranca como el orquestador. La clave `agent` de
+  // settings.json (code.claude.com/docs/en/settings-reference#agent, sub-agents.md «Run the whole session
+  // as a subagent») hace que el hilo principal use el prompt, las herramientas y el modelo de ese agente.
+  // Un nombre con errata no da error: la sesión arranca como la de por defecto, sin avisar.
+  it("settings.json arranca toda sesión como el orquestador, y ese agente existe con ese nombre", () => {
+    const ajustes = JSON.parse(readFileSync(join(AQUI, "settings.json"), "utf8"));
+    expect(ajustes.agent).toBe("orquestador");
+    expect(existsSync(join(DIR, "orquestador.md"))).toBe(true);
+    expect(leer("orquestador.md").meta.name).toBe(ajustes.agent);
+  });
+
   it.each(agentes)("%s: declara tools (si no, hereda todas) y no usa permissionMode: bypassPermissions", (f) => {
     const { meta } = leer(f);
     expect(nombresTools(meta.tools).length, "tools explícito").toBeGreaterThan(0);
