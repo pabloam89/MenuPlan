@@ -1,0 +1,11 @@
+{
+  "termino": "recurso",
+  "estado": "activo",
+  "clase": "artefacto",
+  "definicion": "Una cosa con dueño y caducidad que la factoría usa o paga, anotada en ops/recursos.json: una clave, una bóveda, una App, un servidor o una cuenta.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "en": "resource"
+}

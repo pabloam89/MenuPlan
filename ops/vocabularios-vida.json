@@ -95,10 +95,36 @@
       "operate": "Operar la casa: CI, permisos, hooks, ramas, secretos, despliegues",
       "audit": "Mirar sin tocar: solo jueces, en paralelo"
     },
-    "entidades.axis": {
-      "horizontal": "Cómo trabajamos: sesiones, normas, agentes, issues y PR",
-      "vertical": "El producto HoMenu: casas, recetas, menús y Lola",
-      "bridge": "Lo que cruza los dos ejes y se define una sola vez"
+    "entidades.becomes": {
+      "value": "un valor de un campo de otra entidad",
+      "field": "un campo de otra entidad",
+      "event_type": "un tipo de evento",
+      "type": "un tipo de otra entidad"
+    },
+    "entidades.cardinality": {
+      "one_to_one": "Uno con uno",
+      "one_to_many": "Un a con varios b",
+      "many_to_one": "Varios a con un b",
+      "many_to_many": "Varios con varios"
+    },
+    "entidades.creator": {
+      "agent": "Un agente o una sesión, con juez",
+      "human": "Una persona, a mano",
+      "automatic": "Un script, un hook o un servicio, sin intervención"
+    },
+    "entidades.family": {
+      "work": "Cómo se trabaja: sesión, rama, PR, issues, fondos, encargos",
+      "access": "Quién y con qué cuenta: equipo, identidad, servicios, recursos",
+      "structure": "Cómo se organiza lo que hacemos: proyecto y repositorio",
+      "rules": "Lo que hace buena una pieza: principios, normas, criterios, estándares, vocabularios",
+      "agents": "Quién hace y quién juzga: agentes, tareas, skills, hooks",
+      "measure": "Lo que se mide: eventos, métricas, evals, planos",
+      "delivery": "Cómo llega el código a producción: entornos, migraciones, workflows",
+      "data": "Cómo se ordenan los datos del producto: tablas, fuentes, módulos",
+      "design": "El diseño: sistema, perfil, tokens, componentes y patrones",
+      "home": "La casa y su gente",
+      "food": "Comida: recetas, ingredientes, menús, despensa, compra",
+      "lola": "La conversación con Lola"
     },
     "entidades.id_format": {
       "kebab": "Palabras unidas por guion",
@@ -112,6 +138,15 @@
       "mixed": "Varias formas a la vez",
       "none": "La entidad no tiene id hoy",
       "unchecked": "No se ha auditado"
+    },
+    "entidades.level": {
+      "meta": "N0: lo que hace buena una pieza de la familia (leyes, principios, criterios)",
+      "template": "N1: plantilla por tipo o perfil, de la que salen las piezas",
+      "piece": "N2: la pieza concreta"
+    },
+    "entidades.parent_kind": {
+      "evidence": "Evidencia: los casos; crecen después de cerrar el fondo y pueden reabrirlo",
+      "remedy": "Remedio: los encargos; como mucho 3 por fondo y se cierran antes que él"
     },
     "entidades.registry": {
       "with_registry": "Tiene un fichero propio con id y test",
@@ -143,6 +178,17 @@
       "triggers": "a dispara la revisión de b",
       "refers_to": "a nombra b",
       "depends_on": "a depende de b"
+    },
+    "entidades.relation_class": {
+      "is_a": "a es un tipo (subtipo) de b",
+      "part_of": "a es parte de b y desaparece con él: contención (factoría > proyecto > entorno, casa > persona)",
+      "parent_of": "b es hijo de a dentro de la misma naturaleza (fondo y sus casos); si el padre es un fondo, dice su clase en parent_kind",
+      "reference": "a nombra a b; ninguna de las tres anteriores"
+    },
+    "entidades.scope": {
+      "horizontal": "Factoría: sus piezas no cuelgan de ningún proyecto (cómo trabajamos)",
+      "vertical": "Sus piezas cuelgan siempre de un proyecto (el producto HoMenu hoy)",
+      "both": "Hay piezas que sirven a la factoría y piezas que sirven a un proyecto, y la entidad dice qué es a cada lado (role_by_scope). El alcance se decide por a quién sirve la pieza, no por dónde está el fichero: vivir hoy en el repo de HoMenu no hace a nadie both"
     },
     "entidades.status": {
       "active": "Se usa",
@@ -1031,6 +1077,17 @@
       "valor": "measure",
       "desde": "2026-10-12",
       "motivo": "Se estrecha a lo que ya significaba para mejorar (otra medida que la de su tipo); medir con un agente que no es juez, que era su segundo sentido, pasa al valor nuevo measures_with; no queda ningún dato con el sentido viejo (#641)"
+    },
+    {
+      "termino": "eje",
+      "desde": "2026-10-12",
+      "motivo": "Deja de ser horizontal, vertical o puente: dice si las piezas de una entidad son de la factoría, de un proyecto o de los dos, y el puente se calcula; su nombre en inglés pasa de axis a scope (decisión de Pablo, #652)"
+    },
+    {
+      "vocabulario": "entidades.scope",
+      "valor": "both",
+      "desde": "2026-10-12",
+      "motivo": "Exige role_by_scope y se decide por a qué proyecto sirve la pieza, no por dónde vive el fichero (hallazgo del revisor de #654); 13 entidades pasaron a horizontal o vertical"
     }
   ],
   "vocabularios_retirados": [
@@ -1038,6 +1095,11 @@
       "vocabulario": "flujo.estado_tipo_skill",
       "desde": "2026-10-10",
       "motivo": "El catálogo de tipos de skill sale de ops/flujo.json: los tipos viven en ops/forja.json y su estado (existe, en plan, reservado) se deriva de skills_hoy (#495)"
+    },
+    {
+      "vocabulario": "entidades.axis",
+      "desde": "2026-10-12",
+      "motivo": "El eje de una entidad (horizontal, vertical, bridge) lo sustituye entidades.scope (horizontal, vertical, both): bridge pasa a ser both y «puente» una propiedad calculada, no un valor (decisión de Pablo, #652)"
     }
   ]
 }

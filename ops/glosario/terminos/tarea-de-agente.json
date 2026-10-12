@@ -14,5 +14,6 @@
   "ref": {
     "fichero": "scripts/lib/estandaresAgentes.mjs",
     "clave": "CAMPOS_TAREA"
-  }
+  },
+  "en": "agent-task"
 }
