@@ -148,7 +148,7 @@ que ejecutar. Plantillas fijas: resultado, decisión, error, concepto y resumen
 
 Clasifica lo que pide Pablo. Hasta lo trivial lleva un juez. Si es normal (un dominio)
 o grande (varios, o un refactor), propón **`/orquestar <encargo>`**, que elige
-el pipeline por tipo de encargo y escribe el brief de cada agente. Regla fija:
+el pipeline por tipo de encargo y saca de `npm run dimensionar` (tipo, alcance y complejidad) los agentes y el brief de cada uno. Regla fija:
 quien construye no juzga.
 
 ## Agentes

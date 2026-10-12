@@ -52,7 +52,7 @@ import { FORMAS as FORMAS_EXCEPCION, RAZONES as RAZONES_EXCEPCION } from "./exce
 import { RESULTADOS_NORMA } from "./medicionNormas.mjs";
 import { leerPrecedencia } from "./precedencia.mjs";
 import { VEREDICTOS_RUIDO } from "./ruido.mjs";
-import { PIPELINES } from "./presupuestos.mjs";
+import { MOTIVOS_COMPLEJIDAD, PIPELINES } from "./presupuestos.mjs";
 import { textosDeBanderas, textosDeCierres, textosDeContadores, textosDeDiffersIn, textosDeEstados, textosDeFinalidades, textosDeMedidas, textosDeSubtipos, textosDeTipos } from "./tiposDeEncargo.mjs";
 import { VOCABULARIOS as PRODUCTO } from "../../src/lib/vocabularios.js";
 
@@ -107,6 +107,7 @@ export const VOCABULARIOS = {
   "encargo.counter": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeContadores() },
   "encargo.step_purpose": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeFinalidades() },
   "encargo.subtype_status": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeEstados() },
+  "encargo.complexity_reason": { fichero: "scripts/lib/presupuestos.mjs", textos: conTexto(MOTIVOS_COMPLEJIDAD) },
   "encargo.complexity": { fichero: "scripts/lib/issues.mjs", textos: conTexto(COMPLEXITIES) },
   "encargo.pipeline": { fichero: "scripts/lib/presupuestos.mjs", textos: conTexto(PIPELINES) },
   // El registro de entidades (#566): sus valores van a ops/entidades.json y a ops/entidades-sujetos.json.

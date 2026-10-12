@@ -55,6 +55,7 @@
     "skills-encargo": "node scripts/skills-encargo.mjs",
     "estandar": "node scripts/estandares-agentes.mjs",
     "presupuesto": "node scripts/presupuesto.mjs",
+    "dimensionar": "node scripts/dimensionar.mjs",
     "fabrica": "node scripts/fabrica.mjs",
     "tecnica": "node scripts/oficio.mjs tecnica",
     "mecanismos": "node scripts/oficio.mjs mecanismos",

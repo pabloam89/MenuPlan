@@ -1,5 +1,5 @@
 {
-  "$comentario": "Ciclo de vida de los vocabularios cerrados de proceso (#481, fondo #479; scripts/lib/vocabulariosVida.mjs). «anclados»: los valores de hoy de cada vocabulario con su definición; lo escribe npm run glosario -- --vocabularios --escribir, no se edita a mano. «retirados»: un valor que deja de usarse no se borra ni se reutiliza: {vocabulario, valor, pasa_a (un valor vivo, o null con motivo), desde (AAAA-MM-DD)}. «redefiniciones»: una definición que cambia sin cambiar de significado, de un valor {vocabulario, valor, desde, motivo} o de un término del glosario {termino, desde, motivo}. «vocabularios_retirados»: {vocabulario, desde, motivo}. Los tres registros solo crecen. Lo vigilan ops/vocabularios-vida.test.js y ops/glosario.test.js, también contra origin/staging.",
+  "$comentario": "Ciclo de vida de los vocabularios cerrados de proceso (#481, fondo #479; scripts/lib/vocabulariosVida.mjs). «anclados»: los valores de hoy de cada vocabulario con su definición; lo escribe npm run glosario -- --vocabularios --escribir, no se edita a mano. «retirados»: un valor que deja de usarse no se borra ni se reutiliza: {vocabulario, valor, pasa_a (un valor vivo, o null con motivo), desde (AAAA-MM-DD)}. «redefiniciones»: una definición que cambia sin cambiar de significado (o que se estrecha cuando ningún dato conserva el sentido viejo; el motivo lo dice), de un valor {vocabulario, valor, desde, motivo} o de un término del glosario {termino, desde, motivo}. «vocabularios_retirados»: {vocabulario, desde, motivo}. Los tres registros solo crecen. Lo vigilan ops/vocabularios-vida.test.js y ops/glosario.test.js, también contra origin/staging.",
   "anclados": {
     "ambitos": {
       "code": "El código del repo y su forma: tests, lint y ficheros",
@@ -22,6 +22,14 @@
       "normal": "Un cambio en un dominio",
       "large": "Varios dominios, o un refactor"
     },
+    "encargo.complexity_reason": {
+      "over_lines": "Pasa el umbral de líneas del aviso del CI",
+      "over_files": "Pasa el umbral de ficheros del aviso del CI",
+      "over_areas": "Pasa el umbral de áreas del aviso del CI",
+      "transversal": "El alcance es transversal, aunque el tamaño sea pequeño",
+      "small": "Alcance local y tamaño dentro de lo trivial",
+      "default": "Ni grande ni trivial"
+    },
     "encargo.counter": {
       "lint_tokens_base": "Violaciones de lint-tokens-base",
       "wiring_pairs": "Pares del cableado de una tabla (cableado.json)",
@@ -33,7 +41,8 @@
     "encargo.differs_in": {
       "steps": "Sus pasos, en orden de roles, no son los del esqueleto de su tipo",
       "closing": "Cierra con el OK de una persona, que el esqueleto no pide",
-      "measure": "Mide otra cosa que la medida por defecto de su tipo, o (en audit) mide con un agente que no es juez",
+      "measure": "Mide otra cosa que la medida por defecto de su tipo (su `measure_kind`)",
+      "measures_with": "En una auditoría, mide con un agente que no es juez (`measured_with`)",
       "plans_first": "Empieza por un plan de la sesión, antes de construir",
       "maps_first": "Empieza por un juez que mapea lo que hay, antes de construir",
       "builds_in_session": "Lo construye la propia sesión, sin subagente constructor"
@@ -1016,6 +1025,12 @@
       "valor": "agente_dominio",
       "desde": "2026-10-12",
       "motivo": "Misma idea: el constructor del dominio se define por su cabecera «Tipo: constructor» en vez de enumerarlo a mano (#640)"
+    },
+    {
+      "vocabulario": "encargo.differs_in",
+      "valor": "measure",
+      "desde": "2026-10-12",
+      "motivo": "Se estrecha a lo que ya significaba para mejorar (otra medida que la de su tipo); medir con un agente que no es juez, que era su segundo sentido, pasa al valor nuevo measures_with; no queda ningún dato con el sentido viejo (#641)"
     }
   ],
   "vocabularios_retirados": [
