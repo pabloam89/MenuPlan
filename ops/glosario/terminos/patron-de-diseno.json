@@ -1,0 +1,11 @@
+{
+  "termino": "patrón de diseño",
+  "estado": "activo",
+  "clase": "artefacto",
+  "definicion": "Una forma de combinar componentes que resuelve un problema de interfaz repetido, con su cuándo usarlo y sus errores.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "en": "pattern"
+}
