@@ -366,6 +366,24 @@
       "aplica_a": [
         "bot"
       ]
+    },
+    "respuesta.pablo": {
+      "legible": "cada respuesta a Pablo",
+      "aplica_a": [
+        "operacion"
+      ]
+    },
+    "encargo": {
+      "legible": "cada encargo que se reparte",
+      "aplica_a": [
+        "operacion"
+      ]
+    },
+    "traspaso": {
+      "legible": "cada traspaso entre agentes",
+      "aplica_a": [
+        "operacion"
+      ]
     }
   },
   "fuentes": {
@@ -4154,6 +4172,140 @@
             "ronda: 1 fuentes: 3 cambios: Consultadas la descripción de normalización de Microsoft, las restricciones de Postgres y la guía de comentarios de Postgres",
             "ronda: 2 fuentes: 1 cambios: Contrastado con docs/datos/PRINCIPIOS.md y las excepciones aceptadas en los issues de datos",
             "ronda: 3 fuentes: 1 cambios: Dos reglas: forma por tabla y convención como propuesta"
+          ]
+        }
+      ]
+    },
+    "orquestador": {
+      "tareas": [
+        {
+          "id": "contestar-a-pablo",
+          "tarea": "Contestar a Pablo, y a terceros en su nombre, con la forma de la skill estilo-de-respuesta y la plantilla que toca",
+          "accion": "documentar",
+          "origen": "mision",
+          "ambitos": [
+            "process"
+          ],
+          "reglas": [
+            {
+              "nombre": "Idea raíz primero",
+              "sujeto": "respuesta.pablo",
+              "fuerza": "debe",
+              "exigencia": "abrir con la idea raíz en negrita, llevar cuatro ideas como mucho y cerrar con lo que necesita de él",
+              "control": "scripts/voz.test.js",
+              "fuente": "casa-estilo",
+              "porque": "Pablo no es informático y decide leyendo solo la primera y la última línea",
+              "ejemplo_bueno": "una frase en negrita con el resultado, tres ideas cortas y una línea final con lo que le toca",
+              "ejemplo_malo": "un párrafo que cuenta el camino y deja el resultado para el final"
+            },
+            {
+              "nombre": "Decisión con tres opciones",
+              "sujeto": "respuesta.pablo",
+              "fuerza": "debe",
+              "condicion": "cuando hay una decisión que tomar",
+              "exigencia": "dar tres opciones A, B y C con la recomendada primero y, en cada una, su coste y si es reversible",
+              "control": ".claude/voz.test.js",
+              "fuente": "casa-estilo",
+              "porque": "Una decisión sin coste ni vuelta atrás a la vista obliga a preguntar de nuevo",
+              "ejemplo_bueno": "A (recomendada): en el servidor actual. Coste: nada. Reversible",
+              "ejemplo_malo": "una tabla de columnas técnicas sin recomendación"
+            }
+          ],
+          "no_hace": [
+            "construir lo que es de un agente del dominio",
+            "dar ficheros, ramas o comandos en el chat salvo que Pablo los pida o tenga que ejecutarlos",
+            "tomar por Pablo lo irreversible o lo que sale fuera"
+          ],
+          "rondas": [
+            "ronda: 1 fuentes: 2 cambios: Leídas la skill estilo-de-respuesta y la plantilla de agentes: la forma ya tiene una sola fuente",
+            "ronda: 2 fuentes: 1 cambios: Contrastado con .claude/voz.test.js y el medidor de scripts/voz.test.js: la forma se mide",
+            "ronda: 3 fuentes: 1 cambios: Dos reglas: idea raíz primero y decisión con tres opciones"
+          ]
+        },
+        {
+          "id": "repartir-el-encargo",
+          "tarea": "Clasificar un encargo y repartirlo entre agentes con un constructor y un juez distintos y un brief autocontenido",
+          "accion": "decidir",
+          "origen": "metodo",
+          "ambitos": [
+            "process"
+          ],
+          "reglas": [
+            {
+              "nombre": "Esfuerzo por el comando",
+              "sujeto": "encargo",
+              "fuerza": "debe",
+              "exigencia": "dimensionarse con npm run dimensionar y repartirse con un constructor y, aparte, un juez",
+              "control": "scripts/dimensionar.test.js",
+              "fuente": "casa-claude",
+              "porque": "Un agente gasta varias veces los tokens de un chat y el esfuerzo estimado a ojo se descontrola",
+              "ejemplo_bueno": "npm run dimensionar -- --diff antes de lanzar a nadie",
+              "ejemplo_malo": "lanzar cuatro agentes en paralelo por si acaso"
+            },
+            {
+              "nombre": "Brief autocontenido",
+              "sujeto": "encargo",
+              "fuerza": "debe",
+              "exigencia": "llevar al agente su estándar (npm run estandar), sus skills (skills-encargo) y lo ya apuntado, porque no ve la conversación",
+              "control": ".claude/agentes.test.js",
+              "fuente": "casa-plantilla-agente",
+              "porque": "Un agente no hereda el contexto de la sesión y rehace o inventa lo que no le llega",
+              "ejemplo_bueno": "un brief con ESTÁNDAR A CUMPLIR, SKILLS A ABRIR y los issues parecidos",
+              "ejemplo_malo": "«arregla lo de antes» sin más contexto"
+            }
+          ],
+          "no_hace": [
+            "lanzar un agente dentro de otro agente",
+            "saltarse al juez en un cambio normal",
+            "elegir el esfuerzo a ojo"
+          ],
+          "rondas": [
+            "ronda: 1 fuentes: 2 cambios: Leídos .claude/commands/orquestar.md y la documentación de los agentes de Claude Code (qué recibe cada agente al arrancar)",
+            "ronda: 2 fuentes: 1 cambios: Contrastado con scripts/dimensionar.test.js: el esfuerzo sale de un comando y no de una estimación",
+            "ronda: 3 fuentes: 1 cambios: Dos reglas: esfuerzo por el comando y brief autocontenido"
+          ]
+        },
+        {
+          "id": "juntar-informes-y-traspasos",
+          "tarea": "Juntar los informes de los agentes y pasar el trabajo al siguiente según sus traspasos declarados",
+          "accion": "documentar",
+          "origen": "entregables",
+          "ambitos": [
+            "process"
+          ],
+          "reglas": [
+            {
+              "nombre": "Hallazgo con marca",
+              "sujeto": "hallazgo",
+              "fuerza": "no_debe",
+              "exigencia": "darse por bueno sin su marca YA APUNTADO o NUEVO con la consulta que se buscó",
+              "control": "scripts/buscarAntes.test.js",
+              "fuente": "casa-plantilla-agente",
+              "porque": "Presentar como nuevo lo ya apuntado duplica trabajo y esconde el plan que ya existe",
+              "ejemplo_bueno": "YA APUNTADO: #n con su estado, o NUEVO (buscado: la consulta)",
+              "ejemplo_malo": "un hallazgo sin marca copiado al resumen"
+            },
+            {
+              "nombre": "Traspaso declarado",
+              "sujeto": "traspaso",
+              "fuerza": "debe",
+              "exigencia": "salir del campo traspasa_a de la cabecera del agente y coincidir con lo que dicen su «No para:» y su Escalado",
+              "control": ".claude/agentes.test.js",
+              "fuente": "casa-plantilla-agente",
+              "porque": "Si el traspaso solo vive en prosa, una arista cambia o se pierde sin que nada falle",
+              "ejemplo_bueno": "traspasa_a: [datos, gobierno] y los dos citados en su Escalado",
+              "ejemplo_malo": "un «a gobierno» en el Escalado que ninguna cabecera declara"
+            }
+          ],
+          "no_hace": [
+            "elegir ganador cuando dos agentes se pisan",
+            "registrar un caso sin el informe que lo prueba",
+            "dar por resuelto un traspaso que el agente destino no ha recibido"
+          ],
+          "rondas": [
+            "ronda: 1 fuentes: 2 cambios: Leídas la plantilla de agentes (informe común) y las secciones de Escalado de los nueve agentes",
+            "ronda: 2 fuentes: 1 cambios: Contrastado con scripts/lib/agentes.mjs: los traspasos salen de la cabecera y se cruzan con el texto",
+            "ronda: 3 fuentes: 1 cambios: Dos reglas: hallazgo con marca y traspaso declarado"
           ]
         }
       ]

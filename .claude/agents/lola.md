@@ -5,6 +5,7 @@ tools: Read, Grep, Glob, Bash, Edit, Write
 model: inherit
 skills: [telegram, principios-de-producto]
 color: green
+traspasa_a: [datos, diseno, evaluador, seguridad]
 ---
 
 ## 1. Identidad

@@ -4,6 +4,7 @@ description: Úsalo después de un cambio visible para el usuario (pantalla, flu
 tools: Read, Grep, Glob, Bash, mcp__claude-in-chrome__tabs_context_mcp, mcp__claude-in-chrome__tabs_create_mcp, mcp__claude-in-chrome__navigate, mcp__claude-in-chrome__computer, mcp__claude-in-chrome__read_page, mcp__claude-in-chrome__read_console_messages, mcp__claude-in-chrome__resize_window
 model: sonnet
 color: cyan
+traspasa_a: [diseno, evaluador, lola, revisor]
 ---
 
 ## 1. Identidad

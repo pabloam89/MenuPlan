@@ -4,6 +4,7 @@ description: Úsalo después de que `datos` prepare una migración o un cambio d
 tools: Read, Grep, Glob, Bash
 model: opus
 color: blue
+traspasa_a: [datos, revisor, seguridad]
 ---
 
 ## 1. Identidad
