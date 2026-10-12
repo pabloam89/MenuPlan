@@ -110,7 +110,7 @@ subtipos de abajo cuelgan de ellos. La tabla **se genera** desde
 | mejorar | Migrar una pantalla a tokens | `diseno` → `qa` |
 | mejorar | Dato que vive en varias capas (base, catálogo, constantes) | `auditor-datos` (mapa) → `datos` → `auditor-datos` |
 | mejorar | Reducir el cableado de una tabla | `auditor-datos` (qué ficheros) → constructor del dominio → `revisor` |
-| mejorar | Algo va lento o cuesta de más | constructor del dominio (mide antes; `lola` si es el bot) → `revisor` (exige la medida de después) |
+| mejorar | Algo va lento o cuesta de más | constructor del dominio (mide antes; `lola` si es el bot) → `revisor` (pide la medida de después) |
 | mejorar | Refactor de un monolito | sesión principal (plan por pasos) → constructor del dominio (por pasos) → `revisor` (en cada paso) |
 | operar | CI, permisos, hooks, ramas, secretos | `gobierno` → `revisor` + [`seguridad` si toca secretos o permisos] |
 | operar | Desplegar a producción | `gobierno` → `revisor` + [`evaluador` si cambia el bot] → *OK de una persona* |

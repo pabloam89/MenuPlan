@@ -102,7 +102,7 @@
       "id": "lento-o-caro",
       "tipo": "mejorar",
       "accion": "Algo va lento o cuesta de más",
-      "pasos": [{ "agentes": ["constructor"], "nota": "mide antes; `lola` si es el bot" }, { "agentes": ["revisor"], "nota": "exige la medida de después" }],
+      "pasos": [{ "agentes": ["constructor"], "nota": "mide antes; `lola` si es el bot" }, { "agentes": ["revisor"], "nota": "pide la medida de después" }],
       "medida": "milisegundos o dólares antes y después"
     },
     {
