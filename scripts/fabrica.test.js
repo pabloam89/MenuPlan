@@ -614,6 +614,27 @@ describe("npm run fabrica con transcripciones sintéticas", () => {
     expect(contarEventos("\u0000\n[1]\nnull").total).toBe(0);
   });
 
+  it("cuenta el actor y el proyecto de cada línea (las de antes de #652 salen sin_dato) y las intervenciones humanas por motivo, a quién y cuántas evitables", () => {
+    const l = (o) => JSON.stringify({ ts: "2026-10-10T08:00:00.000Z", evento: "skill_cargada", nombre: "github", ...o });
+    const c = contarEventos([
+      l({}), // formato antiguo: sin actor ni proyecto
+      l({ actor: null }),
+      l({ actor: "homenu-sesiones[bot]" }), // el valor de antes de #652
+      l({ actor: "pablo", proyecto: "homenu" }),
+      l({ actor: "app", proyecto: "factoria" }),
+      l({ actor: "Pablo Artiñano", proyecto: "otro" }), // fuera del vocabulario: no se copia
+      l({ evento: "intervencion_humana", nombre: "permiso", motivo: "permiso", quien: "pablo", evitable: "si", actor: "app", proyecto: "homenu" }),
+      l({ evento: "intervencion_humana", nombre: "decision", motivo: "decision", quien: "alvaro", evitable: "no", actor: "alvaro", proyecto: "homenu" }),
+      l({ evento: "intervencion_humana", nombre: "permiso", motivo: "permiso" }), // sin quien ni evitable
+    ].join("\n"));
+    expect(c.total).toBe(9);
+    expect(c.por_actor).toEqual({ sin_dato: 5, pablo: 1, app: 2, alvaro: 1 });
+    expect(c.por_proyecto).toEqual({ sin_dato: 5, homenu: 3, factoria: 1 });
+    expect(c.intervenciones).toEqual({ total: 3, evitables: 1, por_motivo: { permiso: 2, decision: 1 }, por_quien: { pablo: 1, alvaro: 1, sin_dato: 1 } });
+    expect(JSON.stringify(c)).not.toContain("Artiñano");
+    expect(contarEventos("").intervenciones).toEqual({ total: 0, evitables: 0, por_motivo: {}, por_quien: {} });
+  });
+
   it("dentroDe distingue lo que está dentro del repo de lo que está fuera", () => {
     expect(dentroDe(join(RAIZ, "x", "y.txt"), RAIZ)).toBe(true);
     expect(dentroDe(RAIZ, RAIZ)).toBe(true);

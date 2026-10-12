@@ -262,6 +262,20 @@
       "mira": ["ops/principios/**", "ops/normas.json", "ops/principios-producto/**", "ops/redaccion.json", "ops/estandares-agentes.json", "ops/forja/**", "docs/datos/PRINCIPIOS.md", "docs/entidades/N0-principios.md", "CLAUDE.md", "docs/PRINCIPIOS.md", "docs/producto/PRINCIPIOS.md", "scripts/lib/principios.mjs", "scripts/lib/principiosProducto.mjs", "scripts/lib/regla.mjs", "scripts/lib/estandaresAgentes.mjs", "scripts/lib/ambitos.mjs", "scripts/lib/skills.mjs", "scripts/lib/vecinos.mjs", ".claude/skills/**", ".claude/agents/**", ".claude/rules/**", "scripts/lib/precedencia.mjs", "scripts/lib/excepciones.mjs", "scripts/lib/medicionNormas.mjs", "scripts/lib/avisosPr.mjs", "scripts/lib/normas.mjs", "scripts/lib/vocabulariosVida.mjs", "ops/vocabularios-vida.json", "ops/metricas.json", ".github/pull_request_template.md", ".github/workflows/tests.yml", "docs/ops/NORMAS.md"],
       "porque": "La lista única de principios compone su catálogo con los de producto y redacción, pide que cada sección numerada de los documentos de datos y del N0 la cite un principio y que «Pensar en datos» de CLAUDE.md nombre ids que existen; y cada norma de ops/normas.json cita un principio de ella y acciones de los estándares. Desde #620 las uniones miran también los estándares (normas citadas, reglas que reescriben una norma, normas a juicio sin juez), las skills (las normas que citan y que no copian su frase) y que cada fichero del repo caiga en un ámbito: un fichero nuevo en una carpeta que ningún ámbito cubre lo rompe lejos de lo tocado: esa parte la ve el CI del PR, que corre la suite entera. Desde #621 también la precedencia entre áreas (total y sin empates, con rango para toda norma), la forma única de excepción (con las formas de antes retiradas en ops/vocabularios-vida.json) y la medición por norma (su registro en ops/metricas.json), con la forma escrita en la plantilla del PR, tests.yml, la skill github y NORMAS.md.",
       "evidencia": "#619, #620, #621"
+    },
+    {
+      "id": "tests-sin-registro-real",
+      "tests": [".claude/hooks/eventos.test.js"],
+      "mira": ["**/*.test.{js,mjs,jsx}", ".claude/hooks/guardia.mjs", ".claude/hooks/pendientes.mjs", ".claude/hooks/skill-abierta.mjs"],
+      "porque": "Un test que lanza la guardia, pendientes o skill-abierta como proceso sin fijar MENUPLAN_FABRICA_DIR escribe en el eventos.jsonl real de quien lo corre y ensucia las cifras (el revisor del PR #656 vio líneas de push-a-main de un test en el registro real). Un test nuevo en cualquier carpeta puede romperlo.",
+      "evidencia": "#652 (revisión del PR #656)"
+    },
+    {
+      "id": "zonas-del-repo",
+      "tests": ["ops/zonas.test.js"],
+      "mira": ["ops/**", "scripts/**", ".claude/**", ".github/**", "docs/**", "*", "scripts/lib/zonasProyecto.mjs"],
+      "porque": "Cada fichero del repo cae en una zona (factoría, producto o mixto) de ops/zonas.json: un fichero nuevo en una carpeta con reglas por patrón (ops, scripts, .claude, .github, docs) o en la raíz, sin regla que lo cubra, o más ficheros mixtos que el tope, rompen este test lejos de lo que tocas. Las carpetas de producto (src, api, supabase, public…) las cubre un prefijo entero y no pueden quedar sin zona.",
+      "evidencia": "#652 (línea 3 del programa factoría/proyecto: sin zonas no se puede contar qué hay que separar)"
     }
   ],
   "pasos": [
