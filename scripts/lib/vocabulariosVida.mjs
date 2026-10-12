@@ -53,7 +53,7 @@ import { RESULTADOS_NORMA } from "./medicionNormas.mjs";
 import { leerPrecedencia } from "./precedencia.mjs";
 import { VEREDICTOS_RUIDO } from "./ruido.mjs";
 import { PIPELINES } from "./presupuestos.mjs";
-import { textosDeBanderas, textosDeCierres, textosDeDiffersIn, textosDeEstados, textosDeFinalidades, textosDeMedidas, textosDeSubtipos, textosDeTipos } from "./tiposDeEncargo.mjs";
+import { textosDeBanderas, textosDeCierres, textosDeContadores, textosDeDiffersIn, textosDeEstados, textosDeFinalidades, textosDeMedidas, textosDeSubtipos, textosDeTipos } from "./tiposDeEncargo.mjs";
 import { VOCABULARIOS as PRODUCTO } from "../../src/lib/vocabularios.js";
 
 export const RUTA_VOCABULARIOS = "ops/vocabularios-vida.json";
@@ -104,6 +104,7 @@ export const VOCABULARIOS = {
   "encargo.differs_in": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeDiffersIn() },
   "encargo.closing": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeCierres() },
   "encargo.measure": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeMedidas() },
+  "encargo.counter": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeContadores() },
   "encargo.step_purpose": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeFinalidades() },
   "encargo.subtype_status": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeEstados() },
   "encargo.complexity": { fichero: "scripts/lib/issues.mjs", textos: conTexto(COMPLEXITIES) },

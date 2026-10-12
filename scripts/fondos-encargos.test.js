@@ -211,9 +211,12 @@ describe("el N1 del encargo: assignment_type, subtype y complexity (#640)", () =
     expect(validarEncargos([antes(enc(1, V))], "plan")).toEqual([]);
     expect(validarEncargos([despues(enc(1, N1))], "plan")).toEqual([]);
   });
-  it("la nota del subtipo tiene tope", () => {
-    expect(reglas(validarEncargos([despues(enc(1, { ...N1, subtype_note: "x".repeat(161) }))], "plan"))).toEqual(["encargo-subtype-note"]);
-    expect(validarEncargos([despues(enc(1, { ...N1, subtype_note: "x".repeat(160) }))], "plan")).toEqual([]);
+  it("la nota del subtipo tiene tope y es solo de la válvula", () => {
+    const V = { assignment_type: "audit", subtype: "audit-other", complexity: "normal" };
+    expect(reglas(validarEncargos([despues(enc(1, { ...V, subtype_note: "x".repeat(161) }))], "plan"))).toEqual(["encargo-subtype-note"]);
+    expect(validarEncargos([despues(enc(1, { ...V, subtype_note: "x".repeat(160) }))], "plan")).toEqual([]);
+    // Fuera de la válvula no se admite: el motivo solo se pide donde ningún subtipo encaja.
+    expect(reglas(validarEncargos([despues(enc(1, { ...N1, subtype_note: "un motivo que sobra" }))], "plan"))).toEqual(["encargo-subtype-note"]);
   });
   it("viene del hijo de la REST con su createdAt", () => {
     const h = hijoDeRest({ number: 3, state: "open", body: bloque(BUENO), labels: [], created_at: "2026-10-13T08:00:00Z" });

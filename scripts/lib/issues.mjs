@@ -595,6 +595,9 @@ export const COMPLEXITIES = {
  */
 export const ENCARGO_N1_DESDE = "2026-10-13";
 
+/** Tope de caracteres del único texto libre de un subtipo (`note`) y de `subtype_note` en el bloque del encargo (#646). */
+export const MAX_NOTA_SUBTIPO = 160;
+
 /** Escalones de la escalera (scripts/lib/escalas.mjs) que se cumplen sin que nadie se acuerde: se re-exportan de allí. */
 export { ESCALONES_AUTOMATICOS };
 
@@ -620,7 +623,7 @@ export const CAMPOS_ENCARGO = [
   { clave: "assignment_type", vale: "un tipo de `ops/tipos-de-encargo.json` (`assignment_types`)", obligatorio: `sí en los creados desde ${ENCARGO_N1_DESDE}; antes, no`, desde: ENCARGO_N1_DESDE },
   { clave: "subtype", vale: "un `id` activo de `tipos` de `ops/tipos-de-encargo.json` que cuelgue de ese tipo (un id retirado vale, con aviso)", obligatorio: `sí en los creados desde ${ENCARGO_N1_DESDE}; antes, no`, desde: ENCARGO_N1_DESDE },
   { clave: "complexity", vale: Object.keys(COMPLEXITIES).map((v) => `\`${v}\``).join(", "), obligatorio: `sí en los creados desde ${ENCARGO_N1_DESDE}; antes, no`, desde: ENCARGO_N1_DESDE },
-  { clave: "subtype_note", vale: `texto de hasta 160 caracteres: por qué ningún subtipo encaja; hace falta con una válvula (\`<tipo>-other\`) en los creados desde ${ENCARGO_N1_DESDE}`, obligatorio: "solo con una válvula" },
+  { clave: "subtype_note", vale: `texto de hasta ${MAX_NOTA_SUBTIPO} caracteres: por qué ningún subtipo encaja; hace falta con una válvula (\`<tipo>-other\`) en los creados desde ${ENCARGO_N1_DESDE}`, obligatorio: "solo con una válvula" },
 ];
 
 /**

@@ -504,7 +504,7 @@ describe("los subtipos de encargo: la regla «repite» de la puerta de entrada, 
     const usos = usosDeSubtipos([1, 2, 3].map((n) => conSubtipo(n, "fix-bug")));
     const texto = textoInforme({ cobertura: cob, union, recal, subtipos: avisosDeUso(usos) });
     expect(texto).toMatch(/Subtipos de encargo \(aviso, no falla/);
-    expect(texto).toMatch(/subtype: create-plain usos: 0 minimo: 3 aviso: pocos-usos/);
+    expect(texto).toMatch(/subtype: create-person-approved usos: 0 minimo: 3 aviso: pocos-usos/);
     expect(texto).not.toMatch(/subtype: fix-bug/);
     expect(textoInforme({ cobertura: cob, union, recal })).not.toMatch(/Subtipos de encargo/);
   });

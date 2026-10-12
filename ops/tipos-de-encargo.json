@@ -12,23 +12,26 @@
     "constructor": "builder",
     "constructores": "builder"
   },
-  "default_judge": "revisor",
   "flags": {
     "writes_data": {
       "si": "escribe datos",
-      "what": "El encargo escribe datos de familias o de la base"
+      "what": "El encargo escribe datos de familias o de la base",
+      "judge": "seguridad"
     },
     "touches_rls": {
       "si": "toca RLS",
-      "what": "El encargo cambia políticas RLS o permisos de tablas"
+      "what": "El encargo cambia políticas RLS o permisos de tablas",
+      "judge": "seguridad"
     },
     "changes_bot": {
       "si": "cambia el bot",
-      "what": "El encargo cambia lo que Lola dice o hace"
+      "what": "El encargo cambia lo que Lola dice o hace",
+      "judge": "evaluador"
     },
     "touches_secrets_or_permissions": {
       "si": "toca secretos o permisos",
-      "what": "El encargo toca secretos, variables de entorno, permisos de Claude o de GitHub"
+      "what": "El encargo toca secretos, variables de entorno, permisos de Claude o de GitHub",
+      "judge": "seguridad"
     }
   },
   "differs_in": {
@@ -39,13 +42,7 @@
       "what": "Cierra con el OK de una persona, que el esqueleto no pide"
     },
     "measure": {
-      "what": "Mide otra cosa que la medida por defecto de su tipo"
-    },
-    "flags": {
-      "what": "Tiene un juez que entra solo si se cumple una bandera"
-    },
-    "extra_judge": {
-      "what": "Lleva un juez fijo que no es el juez por defecto"
+      "what": "Mide otra cosa que la medida por defecto de su tipo, o (en audit) mide con un agente que no es juez"
     },
     "plans_first": {
       "what": "Empieza por un plan de la sesión, antes de construir"
@@ -58,24 +55,17 @@
     }
   },
   "closings": {
-    "apply_ok": {
-      "what": "Lo que se construye no se aplica hasta que una persona da el OK",
-      "label": "OK para aplicar"
-    },
     "person_ok": {
-      "what": "Lo que no se puede deshacer lo cierra una persona con su OK",
+      "what": "Lo que no se puede deshacer o aplicar lo cierra una persona con su OK",
       "label": "OK de una persona"
     }
   },
   "measures": {
-    "time_or_cost": {
-      "what": "Milisegundos, tokens o dólares, antes y después"
+    "counter_before_after": {
+      "what": "Un contador del vocabulario «counters», antes y después"
     },
     "behavior_unchanged": {
       "what": "Los tests dan lo mismo antes y después"
-    },
-    "layers_of_datum": {
-      "what": "Capas en las que vive un dato, antes y después"
     }
   },
   "step_purposes": {
@@ -94,11 +84,11 @@
     "measure_after": {
       "what": "Pide la medida de después"
     },
-    "validate_catalog": {
-      "what": "Validación del catálogo en los tests"
-    },
     "review_planes": {
       "what": "Revisa los planos"
+    },
+    "validate_in_tests": {
+      "what": "Validación en los tests del repo"
     }
   },
   "statuses": {
@@ -137,7 +127,7 @@
           "judge"
         ],
         "measures_before_after": true,
-        "default_measure": "time_or_cost"
+        "default_measure": "counter_before_after"
       }
     },
     "operate": {
@@ -182,7 +172,7 @@
       "differs_in": []
     },
     {
-      "id": "create-gated-change",
+      "id": "create-person-approved",
       "type": "create",
       "status": "active",
       "accion": "Crear algo que se aplica solo con el OK de una persona",
@@ -195,30 +185,17 @@
         {
           "agentes": [
             "revisor"
-          ],
-          "opcional": [
-            {
-              "agente": "seguridad",
-              "si": "toca RLS",
-              "flag": "touches_rls"
-            },
-            {
-              "agente": "seguridad",
-              "si": "escribe datos",
-              "flag": "writes_data"
-            }
           ]
         }
       ],
-      "closing": "apply_ok",
-      "cierra_con": "OK para aplicar",
+      "closing": "person_ok",
+      "cierra_con": "OK de una persona",
       "differs_in": [
-        "closing",
-        "flags"
+        "closing"
       ]
     },
     {
-      "id": "create-cross-domain",
+      "id": "create-planned",
       "type": "create",
       "status": "active",
       "accion": "Crear algo que cruza varios dominios: plan primero y un constructor por dominio",
@@ -236,19 +213,17 @@
         },
         {
           "agentes": [
-            "revisor",
-            "qa"
+            "revisor"
           ]
         }
       ],
       "differs_in": [
         "plans_first",
-        "steps",
-        "extra_judge"
+        "steps"
       ]
     },
     {
-      "id": "create-content",
+      "id": "create-in-session",
       "type": "create",
       "status": "active",
       "accion": "Crear contenido que construye la propia sesión",
@@ -262,7 +237,7 @@
           "agentes": [
             "revisor"
           ],
-          "purpose": "validate_catalog"
+          "purpose": "validate_in_tests"
         }
       ],
       "builds_in_session": true,
@@ -301,7 +276,7 @@
       "type": "improve",
       "status": "active",
       "plain": true,
-      "accion": "Mejorar un tiempo o un coste: mide antes y después",
+      "accion": "Mejorar una cifra: mide antes y después",
       "pasos": [
         {
           "agentes": [
@@ -316,8 +291,15 @@
           "purpose": "measure_after"
         }
       ],
-      "measure_kind": "time_or_cost",
-      "differs_in": []
+      "measure_kind": "counter_before_after",
+      "differs_in": [],
+      "counters": [
+        "lint_tokens_base",
+        "wiring_pairs",
+        "time_ms",
+        "cost_usd",
+        "tokens"
+      ]
     },
     {
       "id": "improve-structure",
@@ -364,11 +346,13 @@
           ]
         }
       ],
-      "measure_kind": "layers_of_datum",
+      "measure_kind": "counter_before_after",
       "differs_in": [
         "maps_first",
-        "steps",
-        "measure"
+        "steps"
+      ],
+      "counters": [
+        "layers_of_datum"
       ]
     },
     {
@@ -396,9 +380,8 @@
         }
       ],
       "irreversible": false,
-      "differs_in": [
-        "flags"
-      ]
+      "differs_in": [],
+      "plain": true
     },
     {
       "id": "operate-irreversible",
@@ -433,8 +416,7 @@
       "closing": "person_ok",
       "cierra_con": "OK de una persona",
       "differs_in": [
-        "closing",
-        "flags"
+        "closing"
       ]
     },
     {
@@ -457,7 +439,7 @@
         "gobierno"
       ],
       "differs_in": [
-        "extra_judge"
+        "measure"
       ]
     },
     {
@@ -469,14 +451,11 @@
       "pasos": [
         {
           "agentes": [
-            "revisor",
-            "seguridad"
+            "revisor"
           ]
         }
       ],
-      "differs_in": [
-        "extra_judge"
-      ],
+      "differs_in": [],
       "note": "Válvula: cada uso dice en subtype_note por qué ningún otro subtipo encaja"
     },
     {
@@ -570,7 +549,7 @@
       "id": "esquema-o-dato",
       "type": "create",
       "status": "retired",
-      "replaced_by": "create-gated-change",
+      "replaced_by": "create-person-approved",
       "accion": "Cambio de esquema o dato nuevo",
       "pasos": [
         {
@@ -597,7 +576,7 @@
       "id": "recetas-o-catalogo",
       "type": "create",
       "status": "retired",
-      "replaced_by": "create-content",
+      "replaced_by": "create-in-session",
       "accion": "Recetas o catálogo (contenido)",
       "pasos": [
         {
@@ -618,7 +597,7 @@
       "id": "funcion-entre-dominios",
       "type": "create",
       "status": "retired",
-      "replaced_by": "create-cross-domain",
+      "replaced_by": "create-planned",
       "accion": "Función que cruza dominios",
       "pasos": [
         {
@@ -733,7 +712,7 @@
       "id": "migrar-a-tokens",
       "type": "improve",
       "status": "retired",
-      "replaced_by": "improve-structure",
+      "replaced_by": "improve-measured",
       "accion": "Migrar una pantalla a tokens",
       "pasos": [
         {
@@ -779,7 +758,7 @@
       "id": "reducir-cableado",
       "type": "improve",
       "status": "retired",
-      "replaced_by": "improve-structure",
+      "replaced_by": "improve-measured",
       "accion": "Reducir el cableado de una tabla",
       "pasos": [
         {
@@ -969,5 +948,25 @@
         "gobierno"
       ]
     }
-  ]
+  ],
+  "counters": {
+    "lint_tokens_base": {
+      "what": "Violaciones de lint-tokens-base"
+    },
+    "wiring_pairs": {
+      "what": "Pares del cableado de una tabla (cableado.json)"
+    },
+    "layers_of_datum": {
+      "what": "Capas en las que vive un dato"
+    },
+    "time_ms": {
+      "what": "Milisegundos"
+    },
+    "cost_usd": {
+      "what": "Dólares estimados a precio de API"
+    },
+    "tokens": {
+      "what": "Tokens de modelo gastados"
+    }
+  }
 }

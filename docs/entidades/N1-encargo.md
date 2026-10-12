@@ -80,7 +80,7 @@ Todos cerrados y anclados en `ops/vocabularios-vida.json` (N0 §12):
 | `issues.tipo_accion` | preventivo, detectivo, correctivo | `scripts/lib/issues.mjs` |
 | `encargo.type` | los cinco tipos: create, fix, improve, operate, audit | `ops/tipos-de-encargo.json` (`assignment_types`) |
 | `encargo.subtype` | los subtipos activos (12), cada uno con su `type`; los 21 ids de antes están retirados con su sustituto | `ops/tipos-de-encargo.json` (`tipos`) |
-| `encargo.differs_in`, `encargo.closing`, `encargo.measure`, `encargo.step_purpose`, `encargo.subtype_status` | lo que puede declarar un subtipo (la puerta de entrada, abajo) | `ops/tipos-de-encargo.json` |
+| `encargo.differs_in`, `encargo.closing`, `encargo.measure`, `encargo.counter`, `encargo.step_purpose`, `encargo.subtype_status` | lo que puede declarar un subtipo (la puerta de entrada, abajo) | `ops/tipos-de-encargo.json` |
 | `encargo.flag` | las condiciones de un paso opcional | `ops/tipos-de-encargo.json` (`flags`) |
 | `encargo.complexity` | trivial, normal, large | `scripts/lib/issues.mjs` (`COMPLEXITIES`) |
 | `encargo.pipeline` | cuánto del pipeline lanza cada complejidad | `scripts/lib/presupuestos.mjs` (`PIPELINES`) |
@@ -95,7 +95,7 @@ de `ops/tipos-de-encargo.json`:
 <!-- n1:encargo:tipos:inicio -->
 | Tipo | Qué es | Esqueleto de pasos | Subtipos |
 |---|---|---|---|
-| `create` | Algo nuevo o un cambio de lo que hace: pantalla, herramienta, tabla, endpoint, contenido | builder → judge | `create-plain`, `create-gated-change`, `create-cross-domain`, `create-content` |
+| `create` | Algo nuevo o un cambio de lo que hace: pantalla, herramienta, tabla, endpoint, contenido | builder → judge | `create-plain`, `create-person-approved`, `create-planned`, `create-in-session` |
 | `fix` | Algo que debía funcionar y no funciona | judge → builder → judge | `fix-bug` |
 | `improve` | Mejorar sin cambiar lo que hace: migrar, simplificar, acelerar, abaratar | builder → judge; mide antes y después | `improve-measured`, `improve-structure`, `improve-layers` |
 | `operate` | Operar la casa: CI, permisos, hooks, ramas, secretos, despliegues | builder → judge; si es irreversible, cierra con el OK de una persona | `operate-reversible`, `operate-irreversible` |
@@ -119,7 +119,7 @@ Las reglas de la puerta (`REGLAS_PUERTA` de `scripts/lib/tiposDeEncargo.mjs`; ca
 - `plano`: Mismo plano: un subtipo describe la naturaleza del trabajo y no la zona. La zona sale de los ficheros (ámbitos de scripts/lib/ambitos.mjs) y de ella salen el constructor y los jueces.
 - `difiere`: Difiere de su tipo en algo medible: lo declara en `differs_in` (vocabulario cerrado) y un test lo comprueba contra el esqueleto de su tipo. El subtipo liso (`plain`) es el esqueleto y no declara nada; si no difiere, no es subtipo.
 - `repite`: Se repite: al menos 3 encargos con el patrón. Lo mide `npm run fabrica` y solo avisa. La válvula `<tipo>-other` cuenta sus usos, pide un motivo en `subtype_note` y, si se repite, propone un subtipo nuevo.
-- `texto-libre`: Lo discreto primero: todo atributo es un valor de vocabulario cerrado o un número; el único texto libre es `note`, de 160 caracteres como mucho.
+- `texto-libre`: Lo discreto primero: todo atributo es un valor de vocabulario cerrado o un número; los únicos huecos de texto son `note` (de 160 caracteres como mucho) y la etiqueta `accion` (la definición del valor, de 100).
 - `nombre`: Nombre con plantilla <tipo>-<objeto>, en inglés y en kebab-case: el prefijo es su tipo (create, fix, improve, operate, audit) y el objeto, de una a tres palabras.
 
 En qué puede diferir un subtipo de su tipo (`differs_in`, vocabulario cerrado):
@@ -128,9 +128,7 @@ En qué puede diferir un subtipo de su tipo (`differs_in`, vocabulario cerrado):
 |---|---|
 | `steps` | Sus pasos, en orden de roles, no son los del esqueleto de su tipo |
 | `closing` | Cierra con el OK de una persona, que el esqueleto no pide |
-| `measure` | Mide otra cosa que la medida por defecto de su tipo |
-| `flags` | Tiene un juez que entra solo si se cumple una bandera |
-| `extra_judge` | Lleva un juez fijo que no es el juez por defecto |
+| `measure` | Mide otra cosa que la medida por defecto de su tipo, o (en audit) mide con un agente que no es juez |
 | `plans_first` | Empieza por un plan de la sesión, antes de construir |
 | `maps_first` | Empieza por un juez que mapea lo que hay, antes de construir |
 | `builds_in_session` | Lo construye la propia sesión, sin subagente constructor |
@@ -140,17 +138,17 @@ Los subtipos activos y en qué difieren:
 | Subtipo | Es | Difiere en |
 |---|---|---|
 | `create-plain` | el liso del tipo | — |
-| `create-gated-change` | un subtipo | `closing`, `flags` |
-| `create-cross-domain` | un subtipo | `plans_first`, `steps`, `extra_judge` |
-| `create-content` | un subtipo | `builds_in_session` |
+| `create-person-approved` | un subtipo | `closing` |
+| `create-planned` | un subtipo | `plans_first`, `steps` |
+| `create-in-session` | un subtipo | `builds_in_session` |
 | `fix-bug` | el liso del tipo | — |
 | `improve-measured` | el liso del tipo | — |
 | `improve-structure` | un subtipo | `measure` |
-| `improve-layers` | un subtipo | `maps_first`, `steps`, `measure` |
-| `operate-reversible` | un subtipo | `flags` |
-| `operate-irreversible` | un subtipo | `closing`, `flags` |
-| `audit-periodic` | un subtipo | `extra_judge` |
-| `audit-other` | la válvula del tipo | `extra_judge` |
+| `improve-layers` | un subtipo | `maps_first`, `steps` |
+| `operate-reversible` | el liso del tipo | — |
+| `operate-irreversible` | un subtipo | `closing` |
+| `audit-periodic` | un subtipo | `measure` |
+| `audit-other` | la válvula del tipo | — |
 
 Los ids de antes, retirados (alias para el panel de la factoría; el dimensionador usa solo los activos):
 
@@ -160,16 +158,16 @@ Los ids de antes, retirados (alias para el panel de la factoría; el dimensionad
 | `assets` | `create-plain` |
 | `lola-herramienta` | `create-plain` |
 | `lola-conocimiento` | `create-plain` |
-| `esquema-o-dato` | `create-gated-change` |
-| `recetas-o-catalogo` | `create-content` |
-| `funcion-entre-dominios` | `create-cross-domain` |
+| `esquema-o-dato` | `create-person-approved` |
+| `recetas-o-catalogo` | `create-in-session` |
+| `funcion-entre-dominios` | `create-planned` |
 | `endpoint-nuevo` | `create-plain` |
 | `create-other` | `create-plain` |
 | `bug` | `fix-bug` |
 | `fix-other` | `fix-bug` |
-| `migrar-a-tokens` | `improve-structure` |
+| `migrar-a-tokens` | `improve-measured` |
 | `dato-en-varias-capas` | `improve-layers` |
-| `reducir-cableado` | `improve-structure` |
+| `reducir-cableado` | `improve-measured` |
 | `lento-o-caro` | `improve-measured` |
 | `refactor-monolito` | `improve-structure` |
 | `improve-other` | `improve-measured` |

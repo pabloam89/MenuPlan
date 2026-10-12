@@ -4,14 +4,14 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { AGENTES, CONSTRUCTORES, JUECES, agentesDe } from "../scripts/lib/agentes.mjs";
-import { AMBITOS } from "../scripts/lib/ambitos.mjs";
+import { AMBITOS, JUEZ_SIEMPRE, juecesDeAmbitos } from "../scripts/lib/ambitos.mjs";
 import { ACTORES } from "../scripts/lib/flujo.mjs";
 import { CAPAS_AGENTE } from "../scripts/lib/fondos.mjs";
 import { ACCIONES, leerEstandares, tareasDe } from "../scripts/lib/estandaresAgentes.mjs";
 import { CATALOGO, COMPLEXITIES, PIPELINES, problemas as problemasDePresupuesto } from "../scripts/lib/presupuestos.mjs";
 import {
-  ALIASES, ALL_SUBTYPES, DATOS, DIFFERS_IN, FLAGS, MARCA_FIN, MARCA_INICIO, MAX_ACCION, MAX_NOTE, MIN_USOS, REGLAS_PUERTA, SUBTYPES, TYPES, ZONAS,
-  avisosDeUso, conPuertaN1, encargoDe, facetasDe, juecesDe, pasosMinimos, problemas, problemasDeEsqueleto, regenerarOrquestar, rolDe, tablaPipelines, textoN1Puerta, zonasQueNombra,
+  ALIASES, ALL_SUBTYPES, COUNTERS, DATOS, DIFFERS_IN, FLAGS, MARCA_FIN, MARCA_INICIO, MARCA_JUECES_FIN, MARCA_JUECES_INICIO, MAX_ACCION, MAX_NOTE, MIN_USOS, REGLAS_PUERTA, SUBTYPES, TYPES, ZONAS,
+  avisosDeUso, conPuertaN1, tablaJueces, encargoDe, facetasDe, juecesDe, pasosMinimos, problemas, problemasDeEsqueleto, regenerarOrquestar, rolDe, tablaPipelines, textoN1Puerta, zonasQueNombra,
 } from "../scripts/lib/tiposDeEncargo.mjs";
 
 /**
@@ -40,7 +40,7 @@ const IDS_DE_ANTES = [
   "ci-permisos-hooks", "desplegar-produccion", "operate-other", "revision-periodica", "audit-other",
 ];
 const ACTIVOS = [
-  "create-plain", "create-gated-change", "create-cross-domain", "create-content", "fix-bug", "improve-measured", "improve-structure", "improve-layers",
+  "create-plain", "create-person-approved", "create-planned", "create-in-session", "fix-bug", "improve-measured", "improve-structure", "improve-layers",
   "operate-reversible", "operate-irreversible", "audit-periodic", "audit-other",
 ];
 
@@ -94,8 +94,9 @@ describe("los tipos y subtipos", () => {
   it("lo irreversible cierra con una persona, lo que se mejora dice qué mide y una auditoría solo lleva jueces", () => {
     expect(sub("operate-irreversible")).toMatchObject({ irreversible: true, closing: "person_ok", cierra_con: "OK de una persona" });
     expect(sub("operate-reversible")).toMatchObject({ irreversible: false });
-    expect(sub("create-gated-change")).toMatchObject({ closing: "apply_ok", cierra_con: "OK para aplicar" });
+    expect(sub("create-person-approved")).toMatchObject({ closing: "person_ok", cierra_con: "OK de una persona" });
     for (const s of SUBTYPES.filter((x) => x.type === "improve")) expect(Object.keys(DATOS.measures), s.id).toContain(s.measure_kind);
+    for (const s of SUBTYPES.filter((x) => x.measure_kind === "counter_before_after")) for (const c of s.counters) expect(Object.keys(COUNTERS), s.id).toContain(c);
     const auditoria = sub("audit-periodic");
     expect(auditoria.pasos).toHaveLength(1);
     expect(auditoria.pasos[0].agentes.filter((a) => !JUECES.includes(a))).toEqual(auditoria.measured_with);
@@ -112,16 +113,16 @@ describe("los tipos y subtipos", () => {
 describe("las condiciones, en vocabulario cerrado", () => {
   it("toda condición opcional es una bandera con nombre y su texto es el de la bandera", () => {
     const usadas = SUBTYPES.flatMap((s) => s.pasos.flatMap((p) => p.opcional ?? []));
-    expect(usadas.length).toBeGreaterThanOrEqual(4);
+    expect(usadas.length).toBeGreaterThanOrEqual(3);
     for (const o of usadas) {
       expect(Object.keys(FLAGS), o.si).toContain(o.flag);
       expect(o.si).toBe(FLAGS[o.flag].si);
     }
   });
 
-  it("cada bandera la usa algún subtipo (nada sin lector)", () => {
-    const usadas = new Set(SUBTYPES.flatMap((s) => s.pasos.flatMap((p) => (p.opcional ?? []).map((o) => o.flag))));
-    expect([...usadas].sort()).toEqual(Object.keys(FLAGS).sort());
+  it("cada bandera dice el juez que dispara (un juez que existe) y el que la usa en un subtipo es ese mismo", () => {
+    for (const [k, b] of Object.entries(FLAGS)) expect(JUECES, `${k}: su juez`).toContain(b.judge);
+    for (const s of SUBTYPES) for (const o of s.pasos.flatMap((p) => p.opcional ?? [])) expect(o.agente, `${s.id}: ${o.flag}`).toBe(FLAGS[o.flag].judge);
   });
 });
 
@@ -174,8 +175,11 @@ describe("uniones con los agentes y sus estándares", () => {
     }
   });
 
-  it("todo juez con tarea lo usa algún subtipo activo, y los constructores entran por el especial «constructor»", () => {
-    const activos = new Set(SUBTYPES.flatMap((s) => s.pasos.flatMap((p) => [...(p.agentes ?? []), ...(p.opcional ?? []).map((o) => o.agente)])));
+  it("todo juez con tarea lo usa algún subtipo activo o lo pide una zona, y los constructores entran por el especial «constructor»", () => {
+    const activos = new Set([
+      ...SUBTYPES.flatMap((s) => s.pasos.flatMap((p) => [...(p.agentes ?? []), ...(p.opcional ?? []).map((o) => o.agente)])),
+      ...Object.values(AMBITOS).flatMap((a) => a.jueces.map((j) => j.juez)),
+    ]);
     for (const a of new Set(tareas.map((t) => t.agente))) {
       // Un subtipo describe el trabajo, no la zona: el constructor de la zona (diseno, lola, datos…) sale de los ficheros, no del subtipo.
       if (CONSTRUCTORES.includes(a)) continue;
@@ -269,30 +273,29 @@ describe("el presupuesto y los tipos, por un mismo lector", () => {
 
   it("un alias retirado se resuelve a su sustituto y avisa", () => {
     const e = encargoDe({ subtype: "esquema-o-dato", scope: "local", cause: "codigo", complexity: "normal" });
-    expect(e.subtype).toBe("create-gated-change");
+    expect(e.subtype).toBe("create-person-approved");
     expect(e.type).toBe("create");
-    expect(e.warnings.join(" ")).toMatch(/esquema-o-dato está retirado: usa create-gated-change/);
+    expect(e.warnings.join(" ")).toMatch(/esquema-o-dato está retirado: usa create-person-approved/);
   });
 });
 
 describe("los pasos mínimos conservan las condiciones y no cuentan la planificación como construcción", () => {
   const agentes = (pasos) => pasos.map((p) => p.agentes ?? []);
-  it("un cambio con OK para aplicar, normal, conserva a seguridad con sus banderas", () => {
-    const e = encargoDe({ subtype: "create-gated-change", scope: "local", cause: "codigo", complexity: "normal" });
+  it("un cambio con el OK de una persona, normal: constructor y revisor, sin juez de zona", () => {
+    const e = encargoDe({ subtype: "create-person-approved", scope: "local", cause: "codigo", complexity: "normal" });
     expect(agentes(e.steps)).toEqual([["constructor"], ["revisor"]]);
-    expect(e.steps[1].opcional.map((o) => o.flag)).toEqual(["touches_rls", "writes_data"]);
-    expect(e.close_with).toBe("OK para aplicar");
+    expect(e.close_with).toBe("OK de una persona");
   });
   it("una función entre dominios: la sesión planifica y no cuenta; queda el constructor por dominio y su juez", () => {
     expect(rolDe("sesion")).toBe("planner");
-    expect(agentes(pasosMinimos(sub("create-cross-domain")))).toEqual([["constructores"], ["revisor", "qa"]]);
+    expect(agentes(pasosMinimos(sub("create-planned")))).toEqual([["constructores"], ["revisor"]]);
   });
   it("una mejora de estructura: constructor y revisor", () => {
     expect(agentes(pasosMinimos(sub("improve-structure")))).toEqual([["constructor"], ["revisor"]]);
   });
   it("el contenido lo construye la sesión (builds_in_session): su mínimo es la sesión y el revisor", () => {
-    expect(sub("create-content").builds_in_session).toBe(true);
-    expect(agentes(pasosMinimos(sub("create-content")))).toEqual([["sesion"], ["revisor"]]);
+    expect(sub("create-in-session").builds_in_session).toBe(true);
+    expect(agentes(pasosMinimos(sub("create-in-session")))).toEqual([["sesion"], ["revisor"]]);
   });
   it("una operación irreversible normal conserva la bandera de evaluador", () => {
     const pasos = pasosMinimos(sub("operate-irreversible"));
@@ -336,7 +339,7 @@ describe("lo que lee el panel de la factoría (homenu-panel) no se rompe", () =>
         for (const o of p.opcional ?? []) expect(typeof o.si).toBe("string");
       }
     }
-    expect(DATOS.tipos.filter((t) => t.cierra_con).map((t) => t.id)).toEqual(["create-gated-change", "operate-irreversible", "esquema-o-dato", "desplegar-produccion"]);
+    expect(DATOS.tipos.filter((t) => t.cierra_con).map((t) => t.id)).toEqual(["create-person-approved", "operate-irreversible", "esquema-o-dato", "desplegar-produccion"]);
   });
 
   it("cada id de antes conserva sus campos de antes, intactos: solo se añaden status y replaced_by", () => {
@@ -363,22 +366,25 @@ describe("cada regla nueva, vista fallar con datos malos", () => {
     ["medida", "improve que mide algo que no es del vocabulario", (d) => { act(d, "improve-structure").measure_kind = "lo que sea"; }],
     ["cierre", "operar irreversible sin cierre de persona", (d) => { delete act(d, "operate-irreversible").cierra_con; }],
     ["cierre", "operar sin decir si es irreversible", (d) => { delete act(d, "operate-reversible").irreversible; }],
-    ["cierre", "un cierre cuyo texto no es el de su vocabulario", (d) => { act(d, "create-gated-change").cierra_con = "OK de alguien"; }],
+    ["cierre", "un cierre cuyo texto no es el de su vocabulario", (d) => { act(d, "create-person-approved").cierra_con = "OK de alguien"; }],
+    ["vocabulario", "un contador sin definición", (d) => { delete d.counters.tokens.what; }],
+    ["medida", "una medida de contador sin decir cuáles", (d) => { delete act(d, "improve-measured").counters; }],
+    ["medida", "un contador que no es del vocabulario", (d) => { act(d, "improve-measured").counters = ["lo_que_sea"]; }],
+    ["medida", "contadores en una medida que no es de contador", (d) => { act(d, "improve-structure").counters = ["tokens"]; }],
     ["solo-jueces", "auditar con un constructor que no mide", (d) => { delete act(d, "audit-periodic").measured_with; }],
     ["paralelo", "auditar en dos pasos", (d) => { act(d, "audit-periodic").pasos = [{ agentes: ["seguridad"] }, { agentes: ["revisor"] }]; }],
-    ["bandera", "una condición sin bandera", (d) => { delete act(d, "create-gated-change").pasos[1].opcional[0].flag; }],
-    ["bandera", "un texto que no es el de su bandera", (d) => { act(d, "create-gated-change").pasos[1].opcional[0].si = "toca rls o algo"; }],
+    ["bandera", "una condición sin bandera", (d) => { delete act(d, "operate-irreversible").pasos[1].opcional[0].flag; }],
+    ["bandera", "un texto que no es el de su bandera", (d) => { act(d, "operate-irreversible").pasos[1].opcional[0].si = "toca rls o algo"; }],
     ["agente", "un agente que no existe", (d) => { act(d, "fix-bug").pasos[0].agentes = ["inventado"]; }],
     ["juez", "un tipo sin juez en su esqueleto", (d) => { d.assignment_types.create.skeleton.roles = ["builder"]; }],
     ["id", "dos subtipos con el mismo id", (d) => { d.tipos[1].id = d.tipos[0].id; }],
     ["orden", "subtipos que no van agrupados por tipo", (d) => { d.tipos.push(d.tipos.shift()); }],
     ["orden", "un alias retirado antes que un subtipo activo", (d) => { d.tipos.unshift(d.tipos.pop()); }],
-    ["roles", "el subtipo que construye en la sesión sin paso de sesión", (d) => { act(d, "create-content").pasos[0] = { agentes: ["revisor"] }; }],
+    ["roles", "el subtipo que construye en la sesión sin paso de sesión", (d) => { act(d, "create-in-session").pasos[0] = { agentes: ["revisor"] }; }],
     ["especial", "un especial sin rol", (d) => { delete d.special_roles.sesion; }],
     ["medida", "medida en un subtipo que no es de mejorar", (d) => { act(d, "fix-bug").measure_kind = "time_or_cost"; }],
-    ["juez-defecto", "un juez por defecto que no es un juez", (d) => { d.default_judge = "datos"; }],
     ["vocabulario", "un valor de differs_in sin definición", (d) => { delete d.differs_in.steps.what; }],
-    ["vocabulario", "un cierre sin su texto", (d) => { delete d.closings.apply_ok.label; }],
+    ["vocabulario", "un cierre sin su texto", (d) => { delete d.closings.person_ok.label; }],
     ["esqueleto", "improve sin una medida por defecto del vocabulario", (d) => { d.assignment_types.improve.skeleton.default_measure = "otra"; }],
   ];
   it.each(MALOS)("%s: %s", (regla, _que, cambia) => {
@@ -415,13 +421,14 @@ describe("la puerta de entrada: mismo plano, difiere de verdad, lo discreto prim
   it("los 12 subtipos activos la pasan, y el liso es el esqueleto: no difiere de nada", () => {
     expect(problemas()).toEqual([]);
     for (const s of SUBTYPES.filter((x) => x.plain)) expect([...facetasDe(s)], s.id).toEqual([]);
-    expect(SUBTYPES.filter((x) => x.plain).map((x) => x.id)).toEqual(["create-plain", "fix-bug", "improve-measured"]);
+    expect(SUBTYPES.filter((x) => x.plain).map((x) => x.id)).toEqual(["create-plain", "fix-bug", "improve-measured", "operate-reversible"]);
     expect(SUBTYPES.filter((x) => x.valve).map((x) => x.id)).toEqual(["audit-other"]);
   });
 
   it("lo que declaran es todo lo que difiere: ni más ni menos que el esqueleto de su tipo", () => {
     for (const s of SUBTYPES) expect([...facetasDe(s)].sort(), s.id).toEqual([...s.differs_in].sort());
-    expect(Object.keys(DIFFERS_IN).sort()).toEqual(["builds_in_session", "closing", "extra_judge", "flags", "maps_first", "measure", "plans_first", "steps"]);
+    // Un juez de zona (fijo o por bandera) no es una diferencia: no hay valores para eso.
+    expect(Object.keys(DIFFERS_IN).sort()).toEqual(["builds_in_session", "closing", "maps_first", "measure", "plans_first", "steps"]);
     // Cada valor del vocabulario lo cumple algún subtipo (nada sin lector).
     for (const v of Object.keys(DIFFERS_IN)) expect(SUBTYPES.some((s) => s.differs_in.includes(v)), v).toBe(true);
   });
@@ -442,7 +449,14 @@ describe("la puerta de entrada: mismo plano, difiere de verdad, lo discreto prim
         expect(ZONAS, id).toContain(id);
         expect(zonasQueNombra(a.legible), a.legible).not.toEqual([]);
       }
-      for (const t of ["Operar la casa de modo que se pueda deshacer", "Revisión periódica", "Mejorar un tiempo o un coste", "plain measured structure layers cross-domain content gated"]) expect(zonasQueNombra(t), t).toEqual([]);
+      // Lo que dicen los subtipos activos (ids, etiquetas y finalidades de paso) no cae en ninguna palabra de zona: sale de AMBITOS, no de una lista a mano.
+      for (const s of SUBTYPES) {
+        const textos = [s.id.split("-").slice(1).join(" "), s.accion, ...s.pasos.map((p) => `${p.purpose ?? ""} ${DATOS.step_purposes[p.purpose]?.what ?? ""}`)];
+        for (const t of textos) expect(zonasQueNombra(t), `${s.id}: «${t}»`).toEqual([]);
+      }
+    });
+    it("una finalidad de paso que nombra una zona falla, como el catálogo que tuvo antes", () => {
+      falla("plano", (d) => { d.step_purposes.validate_catalog = { what: "Validación del catálogo en los tests" }; act(d, "create-in-session").pasos[1].purpose = "validate_catalog"; }, "validate_catalog");
     });
   });
 
@@ -459,17 +473,17 @@ describe("la puerta de entrada: mismo plano, difiere de verdad, lo discreto prim
       falla("difiere", (d) => { act(d, "improve-structure").differs_in = ["measure", "measure"]; }, "repite");
     });
     it("cada hecho medible se comprueba contra el esqueleto: se declara sin tenerlo y falla", () => {
-      falla("difiere", (d) => { act(d, "create-gated-change").differs_in = ["closing", "flags", "extra_judge"]; }, "extra_judge");
-      falla("difiere", (d) => { delete act(d, "create-gated-change").cierra_con; delete act(d, "create-gated-change").closing; }, "closing");
-      falla("difiere", (d) => { act(d, "create-cross-domain").pasos.shift(); }, "plans_first");
-      falla("difiere", (d) => { act(d, "improve-layers").measure_kind = "time_or_cost"; }, "measure");
+      falla("difiere", (d) => { delete act(d, "create-person-approved").cierra_con; delete act(d, "create-person-approved").closing; }, "closing");
+      falla("difiere", (d) => { act(d, "create-planned").pasos.shift(); }, "plans_first");
+      falla("difiere", (d) => { act(d, "improve-layers").measure_kind = "counter_before_after"; act(d, "improve-layers").differs_in = ["maps_first", "steps", "measure"]; }, "measure");
       falla("difiere", (d) => { act(d, "improve-layers").pasos[0] = { agentes: ["constructor"] }; }, "maps_first");
-      falla("difiere", (d) => { act(d, "operate-reversible").pasos[1].opcional = []; }, "flags");
-      falla("difiere", (d) => { delete act(d, "create-content").builds_in_session; }, "builds_in_session");
+      falla("difiere", (d) => { act(d, "audit-periodic").measured_with = []; }, "measure");
+      falla("difiere", (d) => { act(d, "create-planned").differs_in = ["plans_first", "steps", "flags"]; }, "flags");
+      falla("difiere", (d) => { delete act(d, "create-in-session").builds_in_session; }, "builds_in_session");
     });
     it("el liso no declara nada y no puede diferir; un liso que difiere deja de serlo", () => {
       falla("liso", (d) => { act(d, "create-plain").differs_in = ["steps"]; }, "no declara");
-      falla("liso", (d) => { act(d, "create-plain").pasos[1].opcional = [{ agente: "seguridad", si: "toca RLS", flag: "touches_rls" }]; }, "flags");
+      falla("liso", (d) => { act(d, "create-plain").pasos.unshift({ agentes: ["sesion"] }); }, "steps");
     });
     it("dos subtipos con lo mismo son uno: gemelo", () => {
       falla("gemelo", (d) => { const g = clon(act(d, "improve-structure")); g.id = "improve-twin"; g.differs_in = ["measure"]; d.tipos.splice(d.tipos.indexOf(act(d, "improve-structure")) + 1, 0, g); }, "improve-twin");
@@ -485,10 +499,11 @@ describe("la puerta de entrada: mismo plano, difiere de verdad, lo discreto prim
       falla("valvula", (d) => { act(d, "audit-other").id = "audit-misc"; }, "audit-other");
       falla("valvula", (d) => { delete act(d, "audit-other").note; }, "note");
     });
-    it("un tipo sin liso, sin válvula y sin la pareja reversible e irreversible falla", () => {
+    it("un tipo sin liso ni válvula falla; operate tiene su liso (reversible), sin pareja que lo salve", () => {
+      expect(SUBTYPES.find((x) => x.type === "operate" && x.plain).id).toBe("operate-reversible");
       falla("cobertura", (d) => { d.tipos = d.tipos.filter((s) => s.id !== "create-plain"); }, "create");
       falla("cobertura", (d) => { d.tipos = d.tipos.filter((s) => s.id !== "audit-other"); }, "audit");
-      falla("cobertura", (d) => { act(d, "operate-irreversible").irreversible = false; delete act(d, "operate-irreversible").closing; delete act(d, "operate-irreversible").cierra_con; }, "operate");
+      falla("cobertura", (d) => { delete act(d, "operate-reversible").plain; act(d, "operate-reversible").differs_in = ["steps"]; }, "operate");
     });
   });
 
@@ -497,12 +512,12 @@ describe("la puerta de entrada: mismo plano, difiere de verdad, lo discreto prim
       falla("texto-libre", (d) => { act(d, "create-plain").measure = "una cifra escrita a mano"; }, "measure");
       falla("texto-libre", (d) => { act(d, "create-plain").comentario = "algo"; }, "comentario");
       falla("texto-libre", (d) => { act(d, "fix-bug").pasos[0].nota = "diagnóstico a mano"; }, "nota");
-      falla("texto-libre", (d) => { act(d, "create-gated-change").pasos[1].opcional[0].motivo = "porque sí"; }, "motivo");
+      falla("texto-libre", (d) => { act(d, "operate-irreversible").pasos[1].opcional[0].motivo = "porque sí"; }, "motivo");
     });
     it("una finalidad, una medida o un cierre fuera de su vocabulario falla", () => {
       falla("texto-libre", (d) => { act(d, "fix-bug").pasos[0].purpose = "mirar un rato"; }, "mirar un rato");
       falla("texto-libre", (d) => { act(d, "improve-structure").measure_kind = "lo que salga"; }, "lo que salga");
-      falla("texto-libre", (d) => { act(d, "create-gated-change").closing = "ok_de_alguien"; }, "ok_de_alguien");
+      falla("texto-libre", (d) => { act(d, "create-person-approved").closing = "ok_de_alguien"; }, "ok_de_alguien");
     });
     it("la nota tiene tope, y la etiqueta también", () => {
       expect(MAX_NOTE).toBe(160);
@@ -554,8 +569,15 @@ describe("la puerta de entrada: mismo plano, difiere de verdad, lo discreto prim
     const sinUsos = avisosDeUso({});
     it("sin usos, cada subtipo activo que no es válvula avisa de que le faltan encargos; los retirados no", () => {
       expect(MIN_USOS).toBe(3);
-      expect(sinUsos).toHaveLength(SUBTYPES.filter((s) => !s.valve).length);
-      expect(sinUsos[0]).toBe("subtipo-uso subtype: create-plain usos: 0 minimo: 3 aviso: pocos-usos usa: -");
+      // Ni el liso (es el esqueleto del tipo) ni la válvula (otro aviso) entran en «pocos-usos».
+      expect(sinUsos).toHaveLength(SUBTYPES.filter((s) => !s.valve && !s.plain).length);
+      expect(sinUsos[0]).toBe("subtipo-uso subtype: create-person-approved usos: 0 minimo: 3 aviso: pocos-usos usa: -");
+    });
+    it("los usos de un alias cuentan para su sustituto", () => {
+      const l = avisosDeUso({ "esquema-o-dato": 2, "create-person-approved": 1 });
+      expect(l.some((x) => x.includes("subtype: create-person-approved ")), l.join("|")).toBe(false);
+      expect(l).toContain("subtipo-uso subtype: esquema-o-dato usos: 2 minimo: 3 aviso: alias-retirado usa: create-person-approved");
+      expect(avisosDeUso({ "esquema-o-dato": 1, "create-person-approved": 1 }).some((x) => x.includes("subtype: create-person-approved "))).toBe(true);
     });
     it("con 3 o más usos no avisa", () => {
       expect(avisosDeUso(Object.fromEntries(SUBTYPES.map((s) => [s.id, MIN_USOS])))).toEqual(["subtipo-uso subtype: audit-other usos: 3 minimo: 3 aviso: valvula-repetida usa: -"]);
@@ -563,7 +585,7 @@ describe("la puerta de entrada: mismo plano, difiere de verdad, lo discreto prim
     });
     it("la válvula repetida pide un subtipo nuevo, un alias dice cuál usar y un id que no existe se señala", () => {
       const l = avisosDeUso({ "esquema-o-dato": 2, "inventado-del-todo": 1, "audit-other": 4 });
-      expect(l).toContain("subtipo-uso subtype: esquema-o-dato usos: 2 minimo: 3 aviso: alias-retirado usa: create-gated-change");
+      expect(l).toContain("subtipo-uso subtype: esquema-o-dato usos: 2 minimo: 3 aviso: alias-retirado usa: create-person-approved");
       expect(l).toContain("subtipo-uso subtype: inventado-del-todo usos: 1 minimo: 3 aviso: subtipo-desconocido usa: -");
       expect(l.some((x) => /audit-other usos: 4 .*valvula-repetida/.test(x))).toBe(true);
     });
@@ -584,5 +606,65 @@ describe("la puerta de entrada: mismo plano, difiere de verdad, lo discreto prim
       for (const id of ["plano", "difiere", "texto-libre", "nombre"]) expect(fuente, id).toContain(`p.push(\`${id}: `);
       expect(fuente).toContain("subtipo-uso subtype:");
     });
+  });
+});
+
+/**
+ * Los jueces por zona (#646): el puente hasta que #641 los calcule. Un subtipo no nombra la zona, así que la zona de los
+ * ficheros pide sus jueces desde este dato (AMBITOS, scripts/lib/ambitos.mjs). Cada juez sale de una norma o de un agente.
+ */
+describe("los jueces por zona: dato de AMBITOS, con su fuente y su tabla generada", () => {
+  const normas = JSON.parse(leer("ops/normas.json")).normas;
+  const fuentes = Object.entries(AMBITOS).flatMap(([ambito, a]) => a.jueces.map((j) => ({ ambito, ...j })));
+
+  it("todo ámbito dice sus jueces (una lista, vacía si no pide ninguno) y cada uno existe en JUECES", () => {
+    for (const [id, a] of Object.entries(AMBITOS)) expect(Array.isArray(a.jueces), id).toBe(true);
+    for (const j of fuentes) expect(JUECES, `${j.ambito}: ${j.juez}`).toContain(j.juez);
+    expect(JUECES).toContain(JUEZ_SIEMPRE);
+    expect(juecesDeAmbitos(["api", "bot", "ui", "data"])).toEqual(["revisor", "seguridad", "evaluador", "qa", "auditor-datos"]);
+    expect(juecesDeAmbitos([])).toEqual(["revisor"]);
+  });
+
+  it("cada juez dice de dónde sale: una norma de su ámbito o un agente que existe con tareas", () => {
+    const tareas = tareasDe(leerEstandares(RAIZ));
+    for (const j of fuentes) {
+      const [tipo, id] = j.fuente.split(":");
+      if (tipo === "norma") {
+        const n = normas.find((x) => x.id === id);
+        expect(n, `${j.ambito}: la norma ${id}`).toBeTruthy();
+        expect(n.ambito, `${id} es del ámbito ${j.ambito}`).toBe(j.ambito);
+      } else {
+        expect(tipo, j.fuente).toBe("agente");
+        expect(id, `${j.ambito}: el agente ${id} es el juez`).toBe(j.juez);
+        expect(tareas.some((t) => t.agente === id), `${id} sin tareas`).toBe(true);
+      }
+    }
+  });
+
+  it("toda norma de riesgo alto que pide un juez de zona queda cubierta por la tabla", () => {
+    // Las normas de riesgo alto que nombran a un juez («el juez seguridad», «el OK del juez auditor-datos») o piden evals.
+    const pideJuez = normas.filter((n) => n.riesgo === "alto" && (/juez (\S+)/.test(n.exigencia) || n.id === "evals-antes-de-fusionar"));
+    expect(pideJuez.map((n) => n.id).sort()).toEqual(["aplicar-migracion-con-permiso", "endpoint-nuevo-juez-seguridad", "evals-antes-de-fusionar"]);
+    for (const n of pideJuez) {
+      expect(fuentes.some((j) => j.fuente === `norma:${n.id}` && j.ambito === n.ambito), `${n.id} (${n.ambito}) sin juez en AMBITOS`).toBe(true);
+      const nombrado = /juez (auditor-datos|seguridad|evaluador|qa)/.exec(n.exigencia)?.[1];
+      if (nombrado) expect(AMBITOS[n.ambito].jueces.map((j) => j.juez), n.id).toContain(nombrado);
+    }
+  });
+
+  it("la tabla de /orquestar sale de AMBITOS, y un juez que sobra o falta en el fichero falla", () => {
+    const md = leer(".claude/commands/orquestar.md");
+    const i = md.indexOf(MARCA_JUECES_INICIO) + MARCA_JUECES_INICIO.length;
+    expect(md.slice(i, md.indexOf(MARCA_JUECES_FIN)).trim(), "Regenera con `npm run flujo -- --escribir`").toBe(tablaJueces());
+    expect(regenerarOrquestar(md)).toBe(md);
+    expect(tablaJueces()).toContain("| `api` (api) | `seguridad` | `norma:endpoint-nuevo-juez-seguridad` |");
+    expect(tablaJueces()).toContain("| `bot` (bot) | `evaluador` | `norma:evals-antes-de-fusionar` |");
+  });
+
+  it("una fuente rota se ve: sin norma, de otro ámbito o con otro agente no pasa", () => {
+    const cambia = (fuente, ambito = "api") => { return normas.find((x) => x.id === fuente.split(":")[1])?.ambito === ambito; };
+    expect(cambia("norma:no-existe")).toBe(false);
+    expect(cambia("norma:evals-antes-de-fusionar")).toBe(false);
+    expect(cambia("norma:endpoint-nuevo-juez-seguridad")).toBe(true);
   });
 });

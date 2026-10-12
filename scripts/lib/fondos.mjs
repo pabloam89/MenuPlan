@@ -622,6 +622,7 @@ export function validarEncargos(encargos, estado) {
     if (subtipo?.status === "retired") dice("encargo-subtipo-retirado", `#${n}: el subtipo «${subtipo.id}» está retirado; usa «${subtipo.replaced_by}»`, "aviso");
     // La válvula (`<tipo>-other`) pide su motivo, y todo motivo tiene tope (la puerta de entrada, #646).
     if (Object.hasOwn(e, "subtype_note") && String(e.subtype_note).length > MAX_NOTE) dice("encargo-subtype-note", `#${n}: «subtype_note» pasa de ${MAX_NOTE} caracteres`);
+    if (Object.hasOwn(e, "subtype_note") && subtipo && !subtipo.valve) dice("encargo-subtype-note", `#${n}: «subtype_note» es solo de una válvula (\`<tipo>-other\`) y «${subtipo.id}» no lo es`);
     if (subtipo?.valve && Boolean(h.createdAt) && String(h.createdAt).slice(0, 10) >= ENCARGO_N1_DESDE && String(e.subtype_note ?? "").trim().length < 10) {
       dice("encargo-valvula", `#${n}: «${subtipo.id}» es la válvula de ${subtipo.type}: «subtype_note» dice (de 10 a ${MAX_NOTE} caracteres) por qué ningún otro subtipo encaja`);
     }
