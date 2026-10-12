@@ -35,7 +35,7 @@ Dos usos de «nivel» chocan hoy: el 0/1/2 de la forja (pieza meta, plantilla, p
 |---|---|---|---|
 | Redacción | Para cada tipo de texto: voz, modo, tiempo, persona y sintaxis | `forma_practica` (solo para la práctica de un estándar), `scripts/lib/regla.mjs` (EARS y RFC 2119) y 15 normas de ámbito `writing` | Un bloque `redaccion` en la base, una fila por tipo de texto (tabla 3.2) |
 | Metas | Seis objetivos que toda norma sirve (3.3) | `precedencia.concepts` en `ops/principios/_catalogo.json`: 4 conceptos | Ampliar a seis y hacerlos explícitos en cada norma |
-| Fuente de industria | Cada meta, cada forja de tipo y cada norma nueva lleva al menos una fuente `[F]` | `MARCAS_FUENTE` ya distingue `[F]`, `[I]` y `[S]` | Regla de la base: una forja sin `[F]` no se acepta |
+| Fuente de industria | Cada meta, cada forja de tipo y cada norma nueva lleva al menos una fuente `[F]` | `MARCAS_FUENTE` ya distingue las marcas de fuente | Regla de la base: una forja sin `[F]` no se acepta |
 
 ### 3.2 Redacción por tipo de texto
 
@@ -145,7 +145,7 @@ Cada criterio ya tiene casi los campos de una norma (nombre, sujeto, fuerza, exi
 | `tipos` | `tipos` (campo nuevo, opcional) | qué tipos de skill alcanza |
 | `capa` | derivada de `control_tipo` y de si tiene lista de excepciones | formal: test sin excepciones; material: heurística con excepciones; subjetiva: `juicio` |
 | `sujeto` | `sujeto` | se funden los vocabularios: 11 sujetos de la forja pasan a `ops/normas.json` |
-| `fuente` | `fuente` | se mantiene la marca `[F]`, `[I]`, `[S]` |
+| `fuente` | `fuente` | se mantienen las marcas de `MARCAS_FUENTE` |
 | `principio` | `meta` | los 75 criterios no citan principio hoy; se les da la meta por defecto de su ámbito y se revisa |
 | `casos_calibracion`, `cumple`, `no_cumple` | igual | solo los 16 subjetivos |
 
