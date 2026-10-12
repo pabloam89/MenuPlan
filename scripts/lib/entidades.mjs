@@ -6,11 +6,79 @@
  * Los lee ops/entidades.test.js, que vigila el registro.
  */
 
-/** El eje de una entidad: a qué bloque pertenece. */
-export const AXES = {
-  horizontal: "Cómo trabajamos: sesiones, normas, agentes, issues y PR",
-  vertical: "El producto HoMenu: casas, recetas, menús y Lola",
-  bridge: "Lo que cruza los dos ejes y se define una sola vez",
+/**
+ * A qué lado pertenecen las PIEZAS de una entidad (decisión de Pablo del 12 oct 2026, #652). Sustituye al
+ * eje (horizontal, vertical, puente): «puente» deja de ser un valor y pasa a ser una propiedad calculada
+ * (una entidad cuyas piezas están de los dos lados; ver `esPuente`). Un valor retirado de `entidades.axis`,
+ * `bridge`, pasa aquí a `both`.
+ */
+export const SCOPES = {
+  horizontal: "Factoría: sus piezas no cuelgan de ningún proyecto (cómo trabajamos)",
+  vertical: "Sus piezas cuelgan siempre de un proyecto (el producto HoMenu hoy)",
+  both: "Hay piezas de la factoría y de un proyecto; cada pieza declara su project o ninguno",
+};
+
+/** Una entidad es puente si sus piezas están de los dos lados. Calculado, no guardado. */
+export const esPuente = (e) => e.scope === "both";
+
+/** El nivel de las PIEZAS de una entidad: la escala única de la forja (docs/ops/FORJA.md). */
+export const LEVELS = {
+  meta: "N0: lo que hace buena una pieza de la familia (leyes, principios, criterios)",
+  template: "N1: plantilla por tipo o perfil, de la que salen las piezas",
+  piece: "N2: la pieza concreta",
+};
+
+/** La familia de una entidad: para agruparlas al leerlas, no un eje. */
+export const FAMILIES = {
+  work: "Cómo se trabaja: sesión, rama, PR, issues, fondos, encargos",
+  access: "Quién y con qué cuenta: equipo, identidad, servicios, recursos",
+  structure: "Cómo se organiza lo que hacemos: proyecto y repositorio",
+  rules: "Lo que hace buena una pieza: principios, normas, criterios, estándares, vocabularios",
+  agents: "Quién hace y quién juzga: agentes, tareas, skills, hooks",
+  measure: "Lo que se mide: eventos, métricas, evals, planos",
+  delivery: "Cómo llega el código a producción: entornos, migraciones, workflows",
+  data: "Cómo se ordenan los datos del producto: tablas, fuentes, módulos",
+  design: "El diseño: sistema, perfil, tokens, componentes y patrones",
+  home: "La casa y su gente",
+  food: "Comida: recetas, ingredientes, menús, despensa, compra",
+  lola: "La conversación con Lola",
+};
+
+/** Quién crea las piezas de una entidad (puede ser más de uno). */
+export const CREATORS = {
+  agent: "Un agente o una sesión, con juez",
+  human: "Una persona, a mano",
+  automatic: "Un script, un hook o un servicio, sin intervención",
+};
+
+/** La clase de una relación (decisión de Pablo del 12 oct 2026, #652). */
+export const RELATION_CLASSES = {
+  is_a: "a es un tipo (subtipo) de b",
+  part_of: "a es parte de b y desaparece con él: contención (factoría > proyecto > entorno, casa > persona)",
+  parent_of: "b es hijo de a dentro de la misma naturaleza (fondo y sus casos); si el padre es un fondo, dice su clase en parent_kind",
+  reference: "a nombra a b; ninguna de las tres anteriores",
+};
+
+/** Las dos clases de hijo de un fondo: reglas de ciclo de vida opuestas (issues.mjs, ENCARGO.md). */
+export const PARENT_KINDS = {
+  evidence: "Evidencia: los casos; crecen después de cerrar el fondo y pueden reabrirlo",
+  remedy: "Remedio: los encargos; como mucho 3 por fondo y se cierran antes que él",
+};
+
+/** Cuántos de cada lado hay en una relación, leída de a hacia b. */
+export const CARDINALITIES = {
+  one_to_one: "Uno con uno",
+  one_to_many: "Un a con varios b",
+  many_to_one: "Varios a con un b",
+  many_to_many: "Varios con varios",
+};
+
+/** Qué es la nueva forma de una entidad que deja de serlo (`becomes`). */
+export const BECOMES = {
+  value: "un valor de un campo de otra entidad",
+  field: "un campo de otra entidad",
+  event_type: "un tipo de evento",
+  type: "un tipo de otra entidad",
 };
 
 /** Cómo vive hoy una entidad. */
@@ -89,4 +157,14 @@ export const SUBJECT_KINDS = {
   instance_of: "El sujeto es una instancia concreta de una entidad",
   produced_by: "El sujeto es lo que produce una entidad",
   outside: "El sujeto queda fuera del registro, con su motivo",
+};
+
+/**
+ * Qué verbos (`relation`) admite cada clase. `hangs_from` se lee de hijo a padre: `from` es el hijo.
+ * La clase `reference` admite cualquier otro verbo.
+ */
+export const VERBOS_DE_CLASE = {
+  is_a: ["is_a"],
+  part_of: ["belongs_to", "has"],
+  parent_of: ["hangs_from"],
 };

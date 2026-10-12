@@ -1,12 +1,14 @@
 # Súper tabla de entidades
 
-Segunda versión (12 oct 2026, agente `datos`), tras los seis retos de Pablo. **Nada de esto cambia
-`ops/entidades.json` todavía.** La tabla de la sección 2 la genera
-`node scripts/super-tabla-entidades.mjs --escribir` desde el registro más una propuesta (familia, nivel,
-contención, quién la crea y quién la lee) que vive en ese script hasta que Pablo decida; lo vigila
-`ops/super-tabla.test.js`. Certeza: lo que sale del registro y de los ficheros citados está **comprobado**;
-las columnas «quién la crea» y «quién la lee» y la comparación con Backstage son **creo** (de memoria, sin
-consultar la web; GitHub no contestó, así que no conté issues vivos).
+Segunda versión (12 oct 2026, agente `datos`), tras los seis retos de Pablo. **Pablo ya decidió y el registro
+lo aplica** (#652): `ops/entidades.json` pasó a su tercera versión, con nivel (`level`), alcance (`scope`),
+familia, quién la crea y quién la lee en cada entidad. Las secciones 0 a 13 son el **análisis que llevó a eso**,
+con las cifras del 12 oct; donde choquen con el registro manda el registro. La tabla de la sección 2 y
+`MAPA.md` los genera `node scripts/mapa-entidades.mjs --escribir` desde el registro (ya no hay una propuesta
+aparte en un script); los vigila `ops/entidades.test.js`. Certeza: lo que sale del registro y de los ficheros
+citados está **comprobado**; las columnas «quién la crea» y «quién la lee» vienen de los análisis por familia
+(`docs/entidades/analisis/`), leídos y no recontados, y la comparación con Backstage es **creo** (de memoria,
+sin consultar la web; GitHub no contestó, así que no conté issues vivos).
 
 ## 0. Resumen de lo que dicen los datos
 
@@ -27,63 +29,78 @@ El mapa mezclaba tres cosas distintas (principio 1 de N0, un nombre por concepto
 2. **Contención** (`project`): factoría > proyecto > entorno o instancia. De quién es una pieza y de qué cuelga. Es lo que llamábamos horizontal y vertical, pero con un id de proyecto (sección 8).
 3. **Derivación** (no es un eje): principio → norma → estándar, y fondo → caso → encargo. Una cosa sale de otra o la justifica. No son niveles; por eso los retos 1 y 2 se confunden con la abstracción (secciones 3 y 4).
 
-El nivel es de la pieza, no de la entidad: las 41 filas son **familias**, y `level` de una entidad dice el nivel de sus piezas.
-Hoy: 3 `meta` (principle, norm, rule), 1 `template` (mechanism) y 37 `piece`. «N0 y N1 siempre horizontales» falla en 2 sitios
+El nivel es de la pieza, no de la entidad: las filas son **familias**, y `level` de una entidad dice el nivel de sus piezas.
+El 12 oct, antes de #652: 3 `meta` (principle, norm, rule), 1 `template` (mechanism) y 37 `piece`. «N0 y N1 siempre horizontales» falla en 2 sitios
 reales (`docs/datos/PRINCIPIOS.md`, solo de HoMenu, y los 40 principios de producto). Lo que aguanta: un meta o una plantilla de
 proyecto es una **extensión** que cita su meta horizontal (reglas 1 a 4 de N0).
 
 ## 2. La tabla
 
-Eje hoy = lo de `ops/entidades.json`. Contención propuesta: `horizontal` (sus piezas nunca llevan proyecto), `vertical`
-(siempre) o `both` (opcional: cada pieza dice su `project` o ninguno). Salen 8 horizontales, 14 verticales y 19 `both`: casi
-todo lo de trabajo es `both`, porque un mismo registro mezcla factoría y producto (sección 8).
+Todo sale de `ops/entidades.json`. Alcance (`scope`): `horizontal` (sus piezas nunca llevan proyecto), `vertical`
+(siempre) o `both` (cada pieza dice su `project` o ninguno); «puente» es el `both`, calculado. Hoy: 10 horizontales,
+21 verticales y 23 `both` entre 54 activas (6 retiradas: judge, rule, learning, deployment, secret y vault, que
+pasan a ser un valor, un campo, un tipo de evento o un tipo de recurso). Casi todo lo de trabajo es `both`, porque un
+mismo registro mezcla factoría y producto (sección 8). Nivel de las piezas: 46 `piece`, 4 `meta` y 4 `template`.
 
 <!-- super-tabla:inicio -->
-| id | familia | nivel | eje hoy | contención propuesta | quién la crea | dónde vive (registro) | quién la lee | depende de |
+| id | familia | nivel | alcance | puente | quién la crea | dónde vive (registro) | quién la lee | parte de, tipo de o hijo de |
 |---|---|---|---|---|---|---|---|---|
-| `session` | work | piece | horizontal | horizontal | npm run tarea y el arranque | ninguno (without_registry) | guardia, avisos, eventos.jsonl | branch |
-| `team-member` | access | piece | horizontal | horizontal | Pablo (a mano, en prosa) | `CLAUDE.md` (without_registry) | nadie por máquina: decision.assigned_to lo nombra en GitHub | — |
-| `identity` | access | piece | horizontal | horizontal | Pablo (alta de App o cuenta) | `scripts/lib/tokenSesion.mjs` (partial) | scripts/lib/tokenSesion.mjs, arranque | team-member |
-| `service` | access | piece | horizontal | both | Pablo (alta de cuenta) | `ops/INVENTARIO.md` (without_registry) | ops/INVENTARIO.md, skills de servicio | — |
-| `environment` | delivery | piece | bridge | both | gobierno / Vercel | `ops/INVENTARIO.md` (without_registry) | salud-despliegue, apply-migration | service |
-| `deployment` | delivery | piece | bridge | vertical | Vercel al empujar una rama | ninguno (without_registry) | salud-despliegue, qa | environment, branch |
-| `event` | measure | piece | bridge | both | hooks y scripts (proceso); la app y Lola (producto, user_events) | `.claude/hooks/eventos.mjs` (partial) | metricas.json (proceso); embudo y evals (producto) | session |
-| `norm` | rules | meta | horizontal | both | gobierno, con juez | `ops/normas.json` (with_registry) | ops/normas.test.js, estándares, revisor | — |
-| `learning` | work | piece | horizontal | horizontal | quien cierra el fondo (a mano) | ninguno (without_registry) | nadie: recorded_in no se escribe en ningún sitio | — |
-| `mechanism` | rules | template | horizontal | horizontal | gobierno | `ops/mecanismos.json` (with_registry) | plan-de-arreglo, encargo.mecanismo, escalas.mjs; ninguna norma lo cita por id (usa ejecutor) | — |
-| `metric` | measure | piece | bridge | both | gobierno (proceso); cada módulo (producto) | `ops/metricas.json` (with_registry) | cumplimiento.mjs, informe semanal; MODULOS.json | — |
-| `eval` | measure | piece | bridge | both | lola y evaluador (Lola); forja (skills) | `scripts/bot-evals.json` (partial) | bot-evals.mjs, skills-prueba | — |
-| `judge` | agents | piece | bridge | horizontal | gobierno (ficha en .claude/agents) | `.claude/agents` (partial) | orquestar, presupuestos, flujo | agent |
-| `secret` | access | piece | horizontal | both | Pablo (alta-de-secreto) | `ops/INVENTARIO.md` (without_registry) | ops/recursos.json, scripts/lib/env.mjs | vault, service |
-| `vault` | access | piece | horizontal | horizontal | Pablo | `ops/INVENTARIO.md` (without_registry) | ops/recursos.json, ops/env.1password | — |
-| `agent` | agents | piece | horizontal | both | gobierno | `.claude/agents` (with_registry) | agentes.test.js, orquestar | — |
-| `skill` | agents | piece | horizontal | both | forja-de-skills | `.claude/skills` (with_registry) | skills.test.js, hooks de skill | agent |
-| `rule` | rules | meta | horizontal | both | gobierno | `.claude/rules` (partial) | Claude Code (reglas por carpeta) | — |
-| `hook` | agents | piece | horizontal | horizontal | gobierno | `.claude/settings.json` (partial) | Claude Code (settings.json) | — |
-| `issue` | work | piece | horizontal | both | npm run issues -- --nuevo | `scripts/lib/issues.mjs` (with_registry) | issues.mjs, arranque, informes | — |
-| `root-problem` | work | piece | horizontal | both | quien diagnostica el caso | `scripts/lib/fondos.mjs` (with_registry) | fondos.mjs, workflow fondos | issue |
-| `case` | work | piece | horizontal | both | quien detecta el fallo | `scripts/lib/issues.mjs` (with_registry) | PR (Casos:), fondos.mjs | issue, root-problem |
-| `assignment` | work | piece | horizontal | both | plan-de-arreglo / orquestar | `scripts/lib/issues.mjs` (with_registry) | tipos-de-encargo, panel | issue, root-problem, assignment |
-| `decision` | work | piece | horizontal | both | cualquier sesión (issue); Pablo (DECISIONES.md) | `ops/DECISIONES.md` (partial) | pendientes.mjs, Pablo | issue |
-| `pull-request` | work | piece | horizontal | both | la sesión | ninguno (without_registry) | guardia, CI, revisor | — |
-| `branch` | work | piece | horizontal | both | npm run tarea | ninguno (without_registry) | guardia, deployment | issue |
-| `migration` | delivery | piece | bridge | vertical | datos | `supabase/ESTADO.md` (partial) | apply-migration, verificar-estado, ESTADO.md | environment |
-| `table` | data | piece | bridge | vertical | una migración | `ops/MODULOS.json` (partial) | MODULOS.json, cableado.test.js, el código del módulo dueño | module |
-| `data-source` | data | piece | bridge | vertical | datos / catálogo | `src/data/model.js` (with_registry) | src/data/model.js, fuentes.test.js, la app | — |
-| `module` | data | piece | bridge | vertical | datos (MODULOS.json) | `ops/MODULOS.json` (with_registry) | modulos.test.js, panel | — |
-| `vocabulary` | rules | piece | horizontal | both | quien crea el CHECK o la constante | `ops/vocabularios-vida.json` (partial) | vocabularios-vida.test.js, el código que valida | — |
-| `principle` | rules | meta | horizontal | both | gobierno (proceso); producto (principios de producto) | `ops/principios/_catalogo.json` (with_registry) | normas, skill principios-de-producto | — |
-| `household` | home | piece | vertical | vertical | la app al registrarse | `specs/modelo-datos.md` (partial) | toda tabla con household_id | — |
-| `person` | home | piece | vertical | vertical | la familia | `specs/modelo-datos.md` (partial) | menús, alergias, Lola | household |
-| `channel-identity` | home | piece | vertical | vertical | el enlace con Telegram | `ops/MODULOS.json` (partial) | api/bot | person |
-| `recipe` | food | piece | vertical | vertical | catálogo JSON o la familia | `src/data/recipes` (partial) | menús, Lola | — |
-| `ingredient` | food | piece | vertical | vertical | catálogo JSON | `src/data/ingredients.json` (partial) | recetas, despensa, lista | — |
-| `menu` | food | piece | vertical | vertical | el generador o la familia | `specs/menu-generation.md` (partial) | lista de la compra, Lola | household |
-| `pantry` | food | piece | vertical | vertical | la familia | `specs/modelo-datos.md` (partial) | lista de la compra, menús | household |
-| `shopping-list` | food | piece | vertical | vertical | se calcula del menú | `specs/shopping-list.md` (partial) | la familia, Lola | menu |
-| `lola-conversation` | lola | piece | vertical | vertical | Lola | `specs/plan-bot-mensajeria.md` (partial) | bot-evals, retención | household |
+| `session` | work | piece | horizontal | no | automatic | ninguno (without_registry) | .claude/hooks/guardia.mjs, .claude/hooks/avisos.mjs, .claude/hooks/eventos.mjs | — |
+| `team-member` | access | piece | horizontal | no | human | `CLAUDE.md` (without_registry) | nadie | — |
+| `identity` | access | piece | horizontal | no | human | `scripts/lib/tokenSesion.mjs` (partial) | scripts/lib/tokenSesion.mjs, .claude/hooks/arranque.mjs | resource |
+| `service` | access | piece | both | sí | human | `ops/INVENTARIO.md` (without_registry) | ops/INVENTARIO.md, scripts/lib/recursos.mjs | — |
+| `environment` | delivery | piece | both | sí | human | `ops/INVENTARIO.md` (without_registry) | ops/planos.json, scripts/apply-migration.mjs | project |
+| `event` | measure | piece | both | sí | automatic | `.claude/hooks/eventos.mjs` (partial) | ops/metricas.json, scripts/lib/cumplimiento.mjs | — |
+| `norm` | rules | meta | both | sí | agent | `ops/normas.json` (with_registry) | ops/normas.test.js, scripts/lib/estandaresAgentes.mjs, docs/ops/NORMAS.md | — |
+| `mechanism` | rules | template | horizontal | no | agent | `ops/mecanismos.json` (with_registry) | scripts/lib/escalas.mjs, ops/mecanismos.test.js, scripts/lib/tiposDeEncargo.mjs | — |
+| `metric` | measure | piece | both | sí | agent | `ops/metricas.json` (with_registry) | scripts/lib/cumplimiento.mjs, ops/metricas.test.js | — |
+| `eval` | measure | piece | both | sí | agent | `scripts/bot-evals.json` (partial) | scripts/bot-evals.mjs, scripts/skills-prueba.mjs | — |
+| `agent` | agents | piece | both | sí | agent | `.claude/agents` (with_registry) | .claude/agentes.test.js, scripts/lib/agentes.mjs | — |
+| `skill` | agents | piece | both | sí | agent | `.claude/skills` (with_registry) | .claude/skills.test.js, scripts/lib/skills.mjs | — |
+| `hook` | agents | piece | horizontal | no | agent | `.claude/settings.json` (partial) | Claude Code (.claude/settings.json) | — |
+| `issue` | work | piece | both | sí | agent | `scripts/lib/issues.mjs` (with_registry) | scripts/lib/issues.mjs, .claude/hooks/arranque.mjs, scripts/lib/situacion.mjs | — |
+| `root-problem` | work | piece | both | sí | agent | `scripts/lib/fondos.mjs` (with_registry) | scripts/lib/fondos.mjs, .github/workflows/fondos.yml, scripts/fondos-pr.mjs | issue |
+| `case` | work | piece | both | sí | agent, automatic | `scripts/lib/issues.mjs` (with_registry) | scripts/casos-pr.mjs, scripts/lib/fondos.mjs, .claude/hooks/guardia.mjs | issue, root-problem |
+| `assignment` | work | piece | both | sí | agent | `scripts/lib/issues.mjs` (with_registry) | scripts/lib/tiposDeEncargo.mjs, scripts/lib/fondos.mjs, scripts/fondos-pr.mjs | issue, root-problem |
+| `decision` | work | piece | both | sí | agent, human | `ops/DECISIONES.md` (partial) | .claude/hooks/pendientes.mjs, scripts/lib/situacion.mjs, .claude/hooks/arranque.mjs | issue |
+| `pull-request` | work | piece | both | sí | agent | ninguno (without_registry) | .claude/hooks/guardia.mjs, scripts/casos-pr.mjs, scripts/fondos-pr.mjs | — |
+| `branch` | work | piece | both | sí | automatic | ninguno (without_registry) | scripts/tarea.mjs, .claude/hooks/guardia.mjs | — |
+| `migration` | delivery | piece | vertical | no | agent | `supabase/ESTADO.md` (partial) | scripts/apply-migration.mjs, scripts/verificar-estado.mjs, supabase/migrations.test.js | — |
+| `table` | data | piece | vertical | no | agent | `ops/MODULOS.json` (partial) | ops/modulos.test.js, supabase/cableado.test.js | module |
+| `data-source` | data | piece | vertical | no | agent | `src/data/model.js` (with_registry) | src/data/model.test.js, ops/fuentes.test.js | — |
+| `module` | data | piece | vertical | no | agent | `ops/MODULOS.json` (with_registry) | ops/modulos.test.js | project, metric |
+| `vocabulary` | rules | piece | both | sí | agent | `ops/vocabularios-vida.json` (partial) | ops/vocabularios-vida.test.js, scripts/lib/vocabulariosVida.mjs | — |
+| `principle` | rules | meta | both | sí | agent, human | `ops/principios/_catalogo.json` (with_registry) | ops/normas.test.js, ops/principios.test.js, ops/uniones.test.js | — |
+| `household` | home | piece | vertical | no | automatic, human | `specs/modelo-datos.md` (partial) | src/lib/householdsSync.js, api/_bot/casa.js | — |
+| `person` | home | piece | vertical | no | human | `specs/modelo-datos.md` (partial) | api/_bot/ficha.js, src/utils/validateMenu.js | household |
+| `channel-identity` | home | piece | vertical | no | automatic | `ops/MODULOS.json` (partial) | api/_bot/enlace.js | account |
+| `recipe` | food | piece | vertical | no | agent, human | `src/data/recipes` (partial) | src/utils/validateMenu.js, api/_bot/propias.js | — |
+| `ingredient` | food | piece | vertical | no | human | `src/data/ingredients.json` (partial) | src/lib/ingredients.js, src/lib/shoppingBuilder.js | — |
+| `menu` | food | piece | vertical | no | agent, human | `specs/menu-generation.md` (partial) | src/lib/menusSync.js, api/_bot/menu.js | household |
+| `pantry` | food | piece | vertical | no | human | `specs/modelo-datos.md` (partial) | src/lib/pantry.js, api/_bot/despensa.js | household |
+| `shopping-list` | food | piece | vertical | no | automatic, human | `specs/shopping-list.md` (partial) | src/lib/shoppingBuilder.js, api/_bot/menu.js | menu-week |
+| `lola-conversation` | lola | piece | vertical | no | automatic | `specs/plan-bot-mensajeria.md` (partial) | api/_bot/agente.js, scripts/bot-evals.mjs | chat, household |
+| `resource` | access | template | both | sí | human | `ops/recursos.json` (with_registry) | ops/recursos.test.js, scripts/cumplimiento.mjs | project |
+| `criterion` | rules | meta | horizontal | no | agent | `ops/forja/_catalogo.json` (with_registry) | scripts/lib/forja.mjs, ops/forja.test.js | — |
+| `verification` | rules | piece | both | sí | agent | `ops/normas.json` (partial) | ops/normas.test.js | — |
+| `standard` | rules | piece | both | sí | agent | `ops/estandares-agentes.json` (with_registry) | docs/ops/ESTANDARES.md, scripts/estandares-agentes.mjs, ops/estandares-agentes.test.js | agent-task |
+| `plane` | measure | meta | horizontal | no | agent, human | `ops/planos.json` (with_registry) | scripts/planos.mjs, ops/planos.test.js | — |
+| `agent-task` | agents | piece | both | sí | agent | `ops/estandares-agentes.json` (with_registry) | scripts/estandares-agentes.mjs, ops/estandares-agentes.test.js, docs/ops/ESTANDARES.md | agent |
+| `workflow` | delivery | piece | both | sí | agent | `.github/workflows` (partial) | ops/workflows.test.js, ops/salud-despliegue.test.js | repo |
+| `project` | structure | piece | horizontal | no | human | `ops/entidades.json` (with_registry) | ops/entidades.test.js, docs/entidades/MAPA.md | — |
+| `repo` | structure | piece | both | sí | human | `ops/entidades.json` (partial) | ops/planos.json, scripts/rulesets.mjs | project |
+| `design-system` | design | piece | vertical | no | agent | `src/design/tokens.js` (partial) | ops/diseno/bloques.json, ops/diseno/bloques.test.js, .claude/skills/revision-de-diseno/SKILL.md, .claude/agents/diseno.md | project |
+| `design-profile` | design | template | horizontal | no | agent | `ops/diseno/bloques.json` (with_registry) | ops/diseno/bloques.test.js, .claude/skills/revision-de-diseno/SKILL.md, .claude/agents/diseno.md | — |
+| `token` | design | piece | vertical | no | agent | `src/design/tokens.js` (with_registry) | src/design/tokens.test.js, src/design/contraste.js, scripts/diseno/generar-tokens-css.mjs | design-system |
+| `component` | design | piece | vertical | no | agent | `DESIGN_SYSTEM.md` (partial) | .claude/skills/revision-de-diseno/SKILL.md, .claude/agents/diseno.md | design-system |
+| `pattern` | design | piece | vertical | no | agent | `DESIGN_SYSTEM.md` (partial) | .claude/skills/revision-de-diseno/SKILL.md, .claude/agents/diseno.md | design-system |
+| `account` | home | piece | vertical | no | automatic, human | `ops/MODULOS.json` (partial) | src/lib/useAuth.js, api/_bot/enlace.js | — |
+| `group` | home | piece | vertical | no | human | `supabase/migrations/0079_personas_y_grupos.sql` (partial) | api/_bot/ficha.js | household |
+| `menu-week` | food | piece | vertical | no | agent, human | `supabase/migrations/0005_multiweek_menus.sql` (partial) | src/lib/menusSync.js, src/lib/shoppingBuilder.js | menu |
+| `chat` | lola | piece | vertical | no | automatic | `supabase/migrations/0057_bot_cimientos.sql` (partial) | api/_bot/enlace.js, api/_bot/turnos.js | household |
+| `assignment-type` | work | template | horizontal | no | agent | `ops/tipos-de-encargo.json` (with_registry) | scripts/lib/tiposDeEncargo.mjs, ops/tipos-de-encargo.test.js | — |
 
-Cifras: 41 entidades. Nivel: piece 37, meta 3, template 1. Contención propuesta: horizontal 8, both 19, vertical 14. Familias: work 9, access 5, delivery 3, measure 3, rules 5, agents 4, data 3, home 3, food 5, lola 1.
+Cifras: 54 entidades activas y 6 retiradas. Alcance: horizontal 10, vertical 21, both 23. Nivel: piece 46, meta 4, template 4. Familias: work 9, access 4, delivery 3, measure 4, rules 7, agents 4, data 3, home 5, food 6, lola 2, structure 2, design 5. Relaciones: 94 (is_a 5, parent_of 4, part_of 22, reference 63).
 <!-- super-tabla:fin -->
 
 ## 3. Reto 1: Fondo, Caso, Encargo, Decisión
@@ -257,13 +274,17 @@ Criterio: se usa dos veces o más, no repite otra, tiene dueño y **un lector co
 
 ### 11.2 Solo con un segundo proyecto de verdad
 
-`campaign`, `sprint` y `tenant`: sin lector hoy, serían campos sin lector. `design-system` (instancia), `token`, `component` y `pattern`: META-DISENO ya los propone y hoy hay una sola instancia (HoMenu, 77 tokens); el panel será la segunda y entonces se pueden contrastar. `style` o `profile` es un `template` de diseño, no otra entidad. `program` o `portfolio`: no.
+`campaign`, `sprint` y `tenant`: sin lector hoy, serían campos sin lector. `program` o `portfolio`: no.
+
+**Corregido el 12 oct 2026 (Pablo, #652):** esta sección aplazaba `design-system`, `token`, `component` y `pattern` por haber una sola instancia (HoMenu, 77 tokens). Ya no: HoMenu y el panel tienen instancia, y el diseño tiene lectores reales (`ops/diseno/bloques.json` y su test, `ops/diseno/contraste.json`, `src/design/contraste.js`, la skill `revision-de-diseno` y el agente `diseno`). Entran como entidades `design-system` (pieza, parte de un proyecto), `design-profile` (plantilla: los perfiles P1 a P6 de META-DISENO.md), `token`, `component` y `pattern` (piezas del sistema). Los bloques A a Q y las leyes L01 a L22 son el nivel meta, la base de la que sale todo; no tienen entidad propia. Lo que sigue en duda es si el panel tiene ya un `token` o un `component` registrado (no lo he comprobado: su repo es privado).
 
 ### 11.3 Verticales con tablas y sin entidad
 
 55 tablas en 23 módulos y solo 9 entidades: `group`, `allergy`, `favorite` y `rating`, `cooking`, `reminder`, `task`, `shared-menu`, `folder`, `store-product`, `saved-menu`, `user-event`, `invite`. Es auditar el eje vertical, fuera de este ataque.
 
-## 12. Cómo meter `level` y `project` en `ops/entidades.json` (propuesta, sin aplicar)
+## 12. Cómo se metieron `level` y `project` en `ops/entidades.json` (aplicado el 12 oct 2026, #652)
+
+Hecho: el eje `axis` se retiró entero y lo sustituye `scope`; `project` y `repo` son entidades con la lista `projects` (homenu y panel); los tests viven en `ops/entidades.test.js` (el antiguo `ops/super-tabla.test.js` se fundió allí) y «ninguna entidad sin lector» lleva su lista de excepciones, que solo baja (hoy `team-member`; `learning` se retiró). Lo que sigue por hacer: la relación `extends` de cada meta o plantilla a su meta, y que toda familia `both` tenga dos registros. El texto original de la propuesta:
 
 1. Vocabularios cerrados `LEVELS` (`meta`, `template`, `piece`) y `SCOPES` (`horizontal`, `vertical`, `both`) en `scripts/lib/entidades.mjs`, anclados en `ops/vocabularios-vida.json`. Campos `level` y `scope` obligatorios; `axis` convive hasta decidir y luego se retira (con `replaced_by`).
 2. Entidad `project` con dos filas (homenu, panel) y relación `belongs_to project` en cada entidad no horizontal. Las piezas llevan el campo `project`, validado contra esa lista.
