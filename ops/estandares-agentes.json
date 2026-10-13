@@ -741,6 +741,156 @@
       "url": "https://dama.org/learning-resources/dama-data-management-body-of-knowledge-dmbok/",
       "uso": "pool"
     },
+    "an-multi-agent": {
+      "nombre": "Anthropic: How we built our multi-agent research system",
+      "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "uso": "pool"
+    },
+    "an-context-engineering": {
+      "nombre": "Anthropic: Effective context engineering for AI agents",
+      "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+      "uso": "pool"
+    },
+    "an-cuando-multiagente": {
+      "nombre": "Anthropic: When to use multi-agent systems (and when not to)",
+      "url": "https://claude.com/blog/building-multi-agent-systems-when-and-how-to-use-them",
+      "uso": "pool"
+    },
+    "claude-best-practices": {
+      "nombre": "Claude Code Docs: Best practices",
+      "url": "https://code.claude.com/docs/en/best-practices",
+      "uso": "pool"
+    },
+    "nng-piramide": {
+      "nombre": "Nielsen Norman Group: Inverted Pyramid, writing for comprehension",
+      "url": "https://www.nngroup.com/articles/inverted-pyramid/",
+      "uso": "pool"
+    },
+    "nng-divulgacion": {
+      "nombre": "Nielsen Norman Group: Progressive Disclosure",
+      "url": "https://www.nngroup.com/articles/progressive-disclosure/",
+      "uso": "pool"
+    },
+    "digital-lenguaje-claro": {
+      "nombre": "Digital.gov: Principles of plain language",
+      "url": "https://digital.gov/guides/plain-language/principles/",
+      "uso": "pool"
+    },
+    "dtcg-formato": {
+      "nombre": "Design Tokens Community Group: Design Tokens Format Module",
+      "url": "https://www.designtokens.org/tr/drafts/format/",
+      "uso": "pool"
+    },
+    "nng-heuristicas": {
+      "nombre": "Nielsen Norman Group: 10 Usability Heuristics for User Interface Design",
+      "url": "https://www.nngroup.com/articles/ten-usability-heuristics/",
+      "uso": "pool"
+    },
+    "nng-vacios": {
+      "nombre": "Nielsen Norman Group: Designing Empty States in Complex Applications",
+      "url": "https://www.nngroup.com/articles/empty-state-interface-design/",
+      "uso": "pool"
+    },
+    "nng-iconos": {
+      "nombre": "Nielsen Norman Group: Icon Usability",
+      "url": "https://www.nngroup.com/articles/icon-usability/",
+      "uso": "pool"
+    },
+    "govuk-boton": {
+      "nombre": "GOV.UK Design System: Button",
+      "url": "https://design-system.service.gov.uk/components/button/",
+      "uso": "pool"
+    },
+    "pw-snapshots": {
+      "nombre": "Playwright: Visual comparisons",
+      "url": "https://playwright.dev/docs/test-snapshots",
+      "uso": "pool"
+    },
+    "w3-uso-color": {
+      "nombre": "WCAG 2.2: Use of Color",
+      "url": "https://www.w3.org/WAI/WCAG22/Understanding/use-of-color.html",
+      "uso": "pool"
+    },
+    "w3-contraste-no-texto": {
+      "nombre": "WCAG 2.2: Non-text Contrast",
+      "url": "https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html",
+      "uso": "pool"
+    },
+    "w3-foco-visible": {
+      "nombre": "WCAG 2.2: Focus Visible",
+      "url": "https://www.w3.org/WAI/WCAG22/Understanding/focus-visible.html",
+      "uso": "pool"
+    },
+    "w3-contenido-no-texto": {
+      "nombre": "WCAG 2.2: Non-text Content",
+      "url": "https://www.w3.org/WAI/WCAG22/Understanding/non-text-content.html",
+      "uso": "pool"
+    },
+    "w3-redimensionar-texto": {
+      "nombre": "WCAG 2.2: Resize Text",
+      "url": "https://www.w3.org/WAI/WCAG22/Understanding/resize-text.html",
+      "uso": "pool"
+    },
+    "w3-reflujo": {
+      "nombre": "WCAG 2.2: Reflow",
+      "url": "https://www.w3.org/WAI/WCAG22/Understanding/reflow.html",
+      "uso": "pool"
+    },
+    "w3-espaciado-texto": {
+      "nombre": "WCAG 2.2: Text Spacing",
+      "url": "https://www.w3.org/WAI/WCAG22/Understanding/text-spacing.html",
+      "uso": "pool"
+    },
+    "w3-etiquetas": {
+      "nombre": "WCAG 2.2: Headings and Labels",
+      "url": "https://www.w3.org/WAI/WCAG22/Understanding/headings-and-labels.html",
+      "uso": "pool"
+    },
+    "w3-error-sugerencia": {
+      "nombre": "WCAG 2.2: Error Suggestion",
+      "url": "https://www.w3.org/WAI/WCAG22/Understanding/error-suggestion.html",
+      "uso": "pool"
+    },
+    "w3-animacion-interaccion": {
+      "nombre": "WCAG 2.2: Animation from Interactions",
+      "url": "https://www.w3.org/WAI/WCAG22/Understanding/animation-from-interactions.html",
+      "uso": "pool"
+    },
+    "mdn-esquema-color": {
+      "nombre": "MDN: prefers-color-scheme",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-color-scheme",
+      "uso": "pool"
+    },
+    "web-fuentes": {
+      "nombre": "web.dev: Best practices for fonts",
+      "url": "https://web.dev/articles/font-best-practices",
+      "uso": "pool"
+    },
+    "web-cls": {
+      "nombre": "web.dev: Cumulative Layout Shift (CLS)",
+      "url": "https://web.dev/articles/cls",
+      "uso": "pool"
+    },
+    "web-carga-diferida": {
+      "nombre": "web.dev: Browser-level image lazy loading",
+      "url": "https://web.dev/articles/browser-level-image-lazy-loading",
+      "uso": "pool"
+    },
+    "web-animaciones": {
+      "nombre": "web.dev: How to create high-performance CSS animations",
+      "url": "https://web.dev/articles/animations-guide",
+      "uso": "pool"
+    },
+    "web-responsive-basico": {
+      "nombre": "web.dev: Responsive web design basics",
+      "url": "https://web.dev/articles/responsive-web-design-basics",
+      "uso": "pool"
+    },
+    "mdn-movil-primero": {
+      "nombre": "MDN: Responsive design (mobile first y puntos de corte)",
+      "url": "https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/CSS_layout/Responsive_design",
+      "uso": "pool"
+    },
     "claude-subagents": {
       "nombre": "Claude Code Docs: Subagents",
       "url": "https://code.claude.com/docs/en/sub-agents"
