@@ -686,6 +686,61 @@
       "nombre": "Fuente de la casa: skill estilo-de-respuesta",
       "ruta": ".claude/skills/estilo-de-respuesta/SKILL.md"
     },
+    "ms-normalizacion": {
+      "nombre": "Microsoft Learn: descripción de la normalización de bases de datos",
+      "url": "https://learn.microsoft.com/en-us/office/troubleshoot/access/database-normalization-description",
+      "uso": "pool"
+    },
+    "kent-5nf": {
+      "nombre": "William Kent: A Simple Guide to Five Normal Forms in Relational Database Theory",
+      "url": "https://www.bkent.net/Doc/simple5.htm",
+      "uso": "pool"
+    },
+    "pg-matviews": {
+      "nombre": "PostgreSQL: Materialized Views (copia derivada con su consulta de recálculo)",
+      "url": "https://www.postgresql.org/docs/current/rules-materializedviews.html",
+      "uso": "pool"
+    },
+    "pg-comment": {
+      "nombre": "PostgreSQL: COMMENT (describir los objetos del esquema)",
+      "url": "https://www.postgresql.org/docs/current/sql-comment.html",
+      "uso": "pool"
+    },
+    "pg-createindex": {
+      "nombre": "PostgreSQL: CREATE INDEX (CONCURRENTLY)",
+      "url": "https://www.postgresql.org/docs/current/sql-createindex.html",
+      "uso": "pool"
+    },
+    "pg-locking": {
+      "nombre": "PostgreSQL: Explicit Locking (qué bloqueo toma cada orden)",
+      "url": "https://www.postgresql.org/docs/current/explicit-locking.html",
+      "uso": "pool"
+    },
+    "fowler-evodb": {
+      "nombre": "Fowler y Sadalage: Evolutionary Database Design",
+      "url": "https://martinfowler.com/articles/evodb.html",
+      "uso": "pool"
+    },
+    "fowler-parallel-change": {
+      "nombre": "Danilo Sato en martinfowler.com: Parallel Change (expandir, migrar, contraer)",
+      "url": "https://martinfowler.com/bliki/ParallelChange.html",
+      "uso": "pool"
+    },
+    "w3-dwbp": {
+      "nombre": "W3C: Data on the Web Best Practices (procedencia, calidad y versiones)",
+      "url": "https://www.w3.org/TR/dwbp/",
+      "uso": "pool"
+    },
+    "dbt-data-tests": {
+      "nombre": "dbt Docs: Data tests (unique, not_null, accepted_values, relationships)",
+      "url": "https://docs.getdbt.com/docs/build/data-tests",
+      "uso": "pool"
+    },
+    "dama-dmbok": {
+      "nombre": "DAMA International: DAMA-DMBOK, cuerpo de conocimiento de la gestión de datos",
+      "url": "https://dama.org/learning-resources/dama-data-management-body-of-knowledge-dmbok/",
+      "uso": "pool"
+    },
     "claude-subagents": {
       "nombre": "Claude Code Docs: Subagents",
       "url": "https://code.claude.com/docs/en/sub-agents"
