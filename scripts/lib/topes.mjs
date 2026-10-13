@@ -178,6 +178,8 @@ export function problemasContraReferencia(topes, ref) {
     const hoy = topes.campos?.[c];
     if (!hoy) { malos.push(`${c}: tenía tope en la referencia y ha desaparecido; un campo no deja de medirse`); continue; }
     if (hoy.tope > d.tope) malos.push(`${c}: el tope sube de ${d.tope} a ${hoy.tope}; solo baja`);
+    if (hoy.tipo_texto !== d.tipo_texto) malos.push(`${c}: el tipo_texto cambia de ${d.tipo_texto} a ${hoy.tipo_texto}; cambiarlo deja de vigilar su wording`);
+    if (d.palabras_max !== undefined && !(hoy.palabras_max <= d.palabras_max)) malos.push(`${c}: palabras_max sube de ${d.palabras_max} a ${hoy.palabras_max ?? "ninguno"}; solo baja`);
   }
   for (const [k, n] of Object.entries(topes.excepciones_wording ?? {})) {
     const antes = ref?.excepciones_wording?.[k];
