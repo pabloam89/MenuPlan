@@ -297,6 +297,13 @@
       "mira": ["ops/inventario-vertical.json", "ops/principios/**", "ops/principios-producto/**", "ops/fuentes-documentales/**", "ops/entidades.json", "ops/proyectos/**", "ops/normas.json", "ops/glosario/terminos/*.json", "ops/zonas.json", "scripts/lib/inventarioVertical.mjs", "scripts/lib/zonasProyecto.mjs", "scripts/lib/normas.mjs", "ops/redaccion.json", "ops/ficherosGit.js", "docs/ops/INVENTARIO-VERTICAL.md", ".claude/agents/*.md"],
       "porque": "El inventario de lados (horizontal, vertical, duda) lee los registros de la casa y de HoMenu; sus decisiones a mano nombran principios, entidades y agentes por id, y borrar o renombrar uno sin tocar ops/inventario-vertical.json rompe la cuenta lejos de lo que tocas.",
       "evidencia": "#710 (primera fase del programa #652)"
+    },
+    {
+      "id": "lados",
+      "tests": ["ops/lados.test.js"],
+      "mira": ["ops/lados-techos.json", "scripts/lib/lados.mjs", "scripts/lib/inventarioVertical.mjs", "scripts/lib/normas.mjs", "scripts/lib/zonasProyecto.mjs", "ops/inventario-vertical.json", "ops/estandares-agentes.json", "ops/principios/**", "ops/fuentes-documentales/**", "ops/entidades.json", "ops/proyectos/**", "ops/normas.json", "ops/glosario/terminos/*.json", "ops/zonas.json", ".claude/agents/*.md"],
+      "porque": "Una pieza de la factoría no cita una de un proyecto: cualquier norma, principio, fuente, estándar, entidad o término que cambie de lado, de texto o de registro mueve las cifras de dudas y de citas, y subirlas sin tocar ops/lados-techos.json rompe el vigilante lejos de lo que tocas.",
+      "evidencia": "#710 (PR 1 del orden de INVENTARIO-VERTICAL.md: el vigilante antes de mover nada)"
     }
   ],
   "pasos": [

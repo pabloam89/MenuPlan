@@ -1,0 +1,23 @@
+{
+  "$comentario": "Techos del vigilante de lados (#710, programa #652). «dudas»: piezas que el inventario no sabe asignar a un lado, por capa. «citas»: una pieza horizontal que cita una vertical, por tipo de cita. Cada cifra es la que mide scripts/lib/lados.mjs hoy, medida con el inventario y no inventada. Solo bajan: ops/lados.test.js falla si una cifra pasa de su techo, si un techo deja holgura y si algún techo sube respecto a origin/staging. El objetivo del programa es 0 en todas.",
+  "version": 1,
+  "dudas": {
+    "principios": 28,
+    "fuentes": 12,
+    "normas": 38,
+    "entidades": 19,
+    "glosario": 46,
+    "skills": 4,
+    "reglas": 1,
+    "agentes": 3,
+    "docs": 1,
+    "tests": 10
+  },
+  "citas": {
+    "estandar_nombra_proyecto": 7,
+    "estandar_recibe_norma_vertical": 0,
+    "norma_cita_principio_vertical": 0,
+    "norma_nombra_proyecto": 3,
+    "principio_cita_fuente_de_proyecto": 17
+  }
+}
