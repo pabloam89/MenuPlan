@@ -172,7 +172,7 @@ Marca de la fuente, con un solo significado en todos los catálogos (`MARCAS_FUE
 | `ops/normas.json` | regla | cumple | 205 | - |
 | `ops/flujo.json` | regla | cumple | 53 | - |
 | `ops/estandares-agentes.json` | regla | cumple | 191 | - |
-| `ops/principios-producto/` | principio | cumple | 40 | - |
+| `ops/principios-producto/` | principio | cumple | 41 | - |
 | `ops/principios/` | principio | cumple | 56 | - |
 
 - cumple: Cada entrada pasa las comprobaciones de regla.mjs.
