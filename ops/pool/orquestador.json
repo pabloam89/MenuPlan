@@ -159,8 +159,9 @@
       "fuente": "an-cuando-multiagente",
       "origen": "campo",
       "lectura": "leida",
-      "estado": "pendiente",
-      "revisada": "2026-10-13"
+      "estado": "descartada",
+      "revisada": "2026-10-13",
+      "motivo": "No se aplica a esta casa: quien construye no juzga, así que construcción y pruebas no pueden quedar en el mismo agente, y el reparto es por dominio"
     },
     {
       "id": "resumen-condensado-del-agente",

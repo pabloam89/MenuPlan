@@ -46,8 +46,8 @@ describe("pool de buenas prácticas", () => {
 
   it("orquestador y diseno cierran las reglas y sus cifras cuadran con los datos", () => {
     for (const [agente, reglas, deCampo, practicas, porEstado, porOrigen] of [
-      ["orquestador", 9, 7, 23, { cubierta: 9, pendiente: 12, descartada: 2 }, { campo: 21, casa: 2 }],
-      ["diseno", 23, 13, 46, { cubierta: 24, pendiente: 20, descartada: 2 }, { campo: 36, casa: 10 }],
+      ["orquestador", 9, 7, 23, { cubierta: 9, pendiente: 11, descartada: 3 }, { campo: 21, casa: 2 }],
+      ["diseno", 23, 9, 50, { cubierta: 24, pendiente: 24, descartada: 2 }, { campo: 36, casa: 14 }],
     ]) {
       expect(pool.agentes[agente].cierra_reglas).toBe(true);
       const c = cifrasDeAgente(pool, estandares, agente);

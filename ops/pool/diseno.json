@@ -37,10 +37,7 @@
       "fuente": "dtcg-formato",
       "origen": "campo",
       "lectura": "leida",
-      "estado": "cubierta",
-      "cubierta_por": [
-        "diseno/token-o-primitivo-nuevo/Token con su porqué"
-      ],
+      "estado": "pendiente",
       "revisada": "2026-10-13"
     },
     {
@@ -50,10 +47,7 @@
       "fuente": "dtcg-formato",
       "origen": "campo",
       "lectura": "leida",
-      "estado": "cubierta",
-      "cubierta_por": [
-        "diseno/token-o-primitivo-nuevo/CSS generado"
-      ],
+      "estado": "pendiente",
       "revisada": "2026-10-13"
     },
     {
@@ -63,10 +57,7 @@
       "fuente": "gg-small-cls",
       "origen": "campo",
       "lectura": "leida",
-      "estado": "cubierta",
-      "cubierta_por": [
-        "diseno/migrar-pantalla-a-tokens/Una pantalla por PR"
-      ],
+      "estado": "pendiente",
       "revisada": "2026-10-13"
     },
     {
@@ -128,10 +119,7 @@
       "fuente": "pw-snapshots",
       "origen": "campo",
       "lectura": "leida",
-      "estado": "cubierta",
-      "cubierta_por": [
-        "diseno/capturas-antes-despues/Misma pantalla y estado"
-      ],
+      "estado": "pendiente",
       "revisada": "2026-10-13"
     },
     {
@@ -536,6 +524,58 @@
       "lectura": "leida",
       "estado": "descartada",
       "motivo": "Es un criterio de nivel AAA y queda dentro de respetar la preferencia de movimiento reducido, que es la práctica pendiente de nivel AA",
+      "revisada": "2026-10-13"
+    },
+    {
+      "id": "token-con-su-porque-y-nombre-por-rol",
+      "agente": "diseno",
+      "practica": "Añade cada token nuevo con su porqué y un nombre por rol antes de usarlo en una pantalla",
+      "fuente": "casa-design-system",
+      "origen": "casa",
+      "estado": "cubierta",
+      "motivo": "Exigencia propia de la casa con su test; la fuente leída sobre tokens habla de alias a un valor base, que esta regla no pide",
+      "cubierta_por": [
+        "diseno/token-o-primitivo-nuevo/Token con su porqué"
+      ],
+      "revisada": "2026-10-13"
+    },
+    {
+      "id": "css-generado-no-a-mano",
+      "agente": "diseno",
+      "practica": "Genera la variable CSS de cada token con un comando y no la escribas a mano",
+      "fuente": "casa-design-system",
+      "origen": "casa",
+      "estado": "cubierta",
+      "motivo": "Exigencia propia de la casa con su test; la especificación leída propone una fuente única traducida a cada plataforma, algo más amplio que esta regla",
+      "cubierta_por": [
+        "diseno/token-o-primitivo-nuevo/CSS generado"
+      ],
+      "revisada": "2026-10-13"
+    },
+    {
+      "id": "captura-de-la-misma-pantalla-y-estado",
+      "agente": "diseno",
+      "practica": "Haz las capturas de antes y después de la misma pantalla y del mismo estado",
+      "fuente": "casa-plantilla-agente",
+      "origen": "casa",
+      "estado": "cubierta",
+      "motivo": "Exigencia propia de la casa; la fuente leída pide el mismo entorno de renderizado, que esta regla no exige",
+      "cubierta_por": [
+        "diseno/capturas-antes-despues/Misma pantalla y estado"
+      ],
+      "revisada": "2026-10-13"
+    },
+    {
+      "id": "una-pantalla-por-cambio-al-migrar",
+      "agente": "diseno",
+      "practica": "Al migrar a tokens, migra una sola pantalla por cambio para poder revisar su diferencia visual",
+      "fuente": "casa-diseno-estado",
+      "origen": "casa",
+      "estado": "cubierta",
+      "motivo": "Exigencia propia de la casa que solo aplica al migrar; la fuente leída pide cambios pequeños en general, algo más amplio",
+      "cubierta_por": [
+        "diseno/migrar-pantalla-a-tokens/Una pantalla por PR"
+      ],
       "revisada": "2026-10-13"
     }
   ]
