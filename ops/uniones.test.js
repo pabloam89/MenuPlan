@@ -10,9 +10,9 @@ import { AMBITOS, AMBITO_DE_REGLA, ambitosDeFichero } from "../scripts/lib/ambit
 import { globARegex } from "../scripts/lib/vecinos.mjs";
 import { MIN_PALABRAS_COPIA, cargarSkill, nombresDeSkills, parsearSkill, problemasDeNormasDeSkill } from "../scripts/lib/skills.mjs";
 import {
-  TECHO_NORMAS_SIN_JUEZ, TECHO_REGLAS_QUE_NO_SON_NORMA, accionesDeConsulta, juecesPorNorma, normaReescrita, parecido, problemasDeEmparejamiento, reglasDelCatalogo, leerEstandares, normasDeTarea, normasHuerfanas, verticalesEnEstandares, verticalesPorProyecto, problemasDeUnionesEstandar, tareasDe,
+  TECHO_NORMAS_SIN_JUEZ, TECHO_REGLAS_QUE_NO_SON_NORMA, accionesDeConsulta, juecesPorNorma, normaReescrita, parecido, problemasDeEmparejamiento, reglasDelCatalogo, leerEstandares, normasDeTarea, normasHuerfanas, verticalesEnEstandares, problemasDeUnionesEstandar, tareasDe,
 } from "../scripts/lib/estandaresAgentes.mjs";
-import { cargarNormas, leerRegistro, problemasDeProyectos, proyectosDeEntidades } from "../scripts/lib/normas.mjs";
+import { cargarNormas, leerRegistro, problemasDeProyectos, sinControlDeTest, proyectosDeEntidades } from "../scripts/lib/normas.mjs";
 import { leerN2 } from "../scripts/lib/estandaresN2.mjs";
 import { TECHO_PRINCIPIOS_QUE_REPITEN, TECHO_SIN_NORMA, leerPrincipiosCasa, principiosQueRepitenSuNorma, problemasDeUniones } from "../scripts/lib/principios.mjs";
 
@@ -330,7 +330,7 @@ describe("las normas del proyecto no van en un estándar horizontal (#704, fondo
   const carga = cargarNormas(RAIZ);
   const proyectos = proyectosDeEntidades(RAIZ);
   const TECHOS = JSON.parse(readFileSync(join(RAIZ, "ops/normas-techos.json"), "utf8"));
-  const sinSalida = TECHOS.verticales_sin_salida_excepciones ?? {};
+  const sinTest = TECHOS.verticales_sin_test_excepciones ?? {};
 
   it("toda norma tiene lado; ops/normas.json solo lleva horizontales y cada vertical vive en el registro de su proyecto, con un project válido", () => {
     for (const n of normas) expect(["horizontal", "vertical"], `${n.id}: lado`).toContain(n.lado);
@@ -344,17 +344,27 @@ describe("las normas del proyecto no van en un estándar horizontal (#704, fondo
     expect("verticales_en_estandares" in TECHOS, "el techo se eliminó: ahora es 0 por construcción").toBe(false);
   });
 
-  it("cada vertical llega a la salida de `--proyecto <su proyecto>` de alguna tarea o consta en la lista de excepciones, que solo baja", () => {
-    for (const p of Object.keys(carga.delProyecto)) {
-      const { llegan, sinSalida: fuera } = verticalesPorProyecto(estandares, normas, p);
-      expect(fuera.filter((id) => !(id in sinSalida)), "Dale a una tarea su ámbito y su acción, o ponla en verticales_sin_salida_excepciones con su motivo").toEqual([]);
-      for (const id of llegan) expect(id in sinSalida, `${id}: ya llega con --proyecto ${p}, quítala de la lista y baja el techo`).toBe(false);
-    }
-    for (const [id, motivo] of Object.entries(sinSalida)) {
-      expect(normas.find((n) => n.id === id)?.lado, `${id}: no es una norma vertical`).toBe("vertical");
+  it("cada vertical acaba en un test: de código con un *.test.js que existe, de juez con su test_del_juez o dentro del techo juez_sin_test_del_juez; las que no, en una lista que solo baja", () => {
+    const verticales = Object.values(carga.delProyecto).flatMap((p) => p.normas ?? p);
+    expect(verticales.length, "hay verticales que mirar").toBeGreaterThan(0);
+    const fuera = sinControlDeTest(verticales, RAIZ).map((n) => n.id);
+    expect(fuera.filter((id) => !(id in sinTest)), "Dale un test a su control, o ponla en verticales_sin_test_excepciones con su motivo").toEqual([]);
+    for (const [id, motivo] of Object.entries(sinTest)) {
+      expect(fuera, `${id}: ya acaba en un test, quítala de la lista y baja el techo`).toContain(id);
       expect(motivo.length, `${id}: motivo`).toBeGreaterThan(20);
     }
-    expect(Object.keys(sinSalida)).toHaveLength(TECHOS.verticales_sin_salida);
+    expect(Object.keys(sinTest)).toHaveLength(TECHOS.verticales_sin_test);
+    expect("verticales_sin_salida" in TECHOS, "la exigencia de salida con --proyecto se retiró (#704)").toBe(false);
+  });
+
+  it("se ve fallar el control sin test: un control de código que no es un test, o que no existe, y un test del juez declarado que no existe", () => {
+    const codigo = { id: "x", control_procesador: "codigo", control: "api/_bot/voz.test.js" };
+    expect(sinControlDeTest([codigo], RAIZ)).toEqual([]);
+    expect(sinControlDeTest([{ ...codigo, control: "api/_bot/voz.js" }], RAIZ)).toHaveLength(1);
+    expect(sinControlDeTest([{ ...codigo, control: "api/_bot/noexiste.test.js" }], RAIZ)).toHaveLength(1);
+    const juez = { id: "y", control_procesador: "juez", test_del_juez: null };
+    expect(sinControlDeTest([juez], RAIZ)).toEqual([]);
+    expect(sinControlDeTest([{ ...juez, test_del_juez: "ops/no-existe.test.js" }], RAIZ)).toHaveLength(1);
   });
 
   it("se ve fallar: una vertical citada por una tarea horizontal, una vertical en el registro horizontal y un project desconocido", () => {
