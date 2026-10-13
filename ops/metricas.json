@@ -17,6 +17,17 @@
   },
   "lineas": [
     {
+      "firma": "test-del-juez forma juez",
+      "emisores": ["scripts/test-del-juez.mjs"],
+      "campos": {"juez": "id", "casos": "derivado", "buenos": "derivado", "malos": "derivado", "normas": "derivado", "faltas": "derivado"},
+      "lectores": [{"tipo": "rutina", "ref": "docs/ops/TEST-DEL-JUEZ.md", "menciona": "npm run test-del-juez"}]
+    },
+    {
+      "firma": "test-del-juez juez",
+      "emisores": ["scripts/lib/testDelJuez.mjs"],
+      "campos": {"juez": "id", "aciertos": "derivado", "buenos": "metrica", "malos": "metrica", "sin_correr": "derivado", "acierto": "derivado", "coste_usd": "derivado"}
+    },
+    {
       "firma": "salud-despliegue chequeo",
       "emisores": ["scripts/salud-despliegue.mjs"],
       "campos": {"chequeo": "id", "ok": "estado", "motivo": "estado", "ms": "derivado", "intentos": "derivado"},
@@ -600,6 +611,30 @@
     }
   },
   "metricas": [
+    {
+      "id": "test_del_juez_malos",
+      "objetivo": "normas-vivas",
+      "proyecto": "factoria",
+      "pregunta": "¿Cuántos casos malos de su fichero señala un juez con lo esperado?",
+      "emisor": "scripts/lib/testDelJuez.mjs",
+      "sale_en": [{"linea": "test-del-juez juez", "campos": ["malos"]}],
+      "lectores": [{"tipo": "rutina", "ref": "docs/ops/TEST-DEL-JUEZ.md", "menciona": "npm run test-del-juez"}],
+      "unidad": "proporcion",
+      "umbral": null,
+      "vigilante": "test_del_juez_buenos"
+    },
+    {
+      "id": "test_del_juez_buenos",
+      "objetivo": "normas-vivas",
+      "proyecto": "factoria",
+      "pregunta": "¿Cuántos casos buenos de su fichero aprueba un juez?",
+      "emisor": "scripts/lib/testDelJuez.mjs",
+      "sale_en": [{"linea": "test-del-juez juez", "campos": ["buenos"]}],
+      "lectores": [{"tipo": "rutina", "ref": "docs/ops/TEST-DEL-JUEZ.md", "menciona": "npm run test-del-juez"}],
+      "unidad": "proporcion",
+      "umbral": null,
+      "vigilante": "test_del_juez_malos"
+    },
     {
       "id": "fondos_sin_diagnostico",
       "objetivo": "flujo-cumplido",

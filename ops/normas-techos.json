@@ -1,6 +1,6 @@
 {
   "$comentario": "Techos de ops/normas.test.js que solo bajan (#682). El test compara este fichero con el de origin/staging y falla si algún número sube. Se bajan al dar su test del juez a una norma de juez o al quitar el ejecutor «persona» de una norma. «normas_huerfanas» es el techo de normas_huerfanas_excepciones: normas que ninguna tarea de ops/estandares-agentes.json recibe (ni por ámbito y acción ni citadas) y que son conducta del producto, no trabajo de un agente (#683); solo baja y el test lo compara con staging.",
-  "juez_sin_test_del_juez": 89,
+  "juez_sin_test_del_juez": 83,
   "ejecutor_persona": 70,
   "normas_huerfanas": 10,
   "normas_huerfanas_excepciones": {
