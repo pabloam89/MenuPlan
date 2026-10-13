@@ -133,7 +133,8 @@ describe("ops/estandares-agentes.json", () => {
     expect(c.reglas).toBe(todasLasTareas.reduce((s, t) => s + t.reglas.length, 0));
     expect(c.comunes).toBe(11);
     expect(c.reglasComunes).toBe(Object.values(datos.comunes).reduce((s, x) => s + (x.reglas ?? []).length, 0));
-    expect(c.fuentes.externas + c.fuentes.casa).toBe(Object.keys(datos.fuentes).length);
+    // Las fuentes con uso «pool» las citan las prácticas de ops/pool/, no las reglas (ops/pool.test.js).
+    expect(c.fuentes.externas + c.fuentes.casa).toBe(Object.values(datos.fuentes).filter((f) => f.uso !== "pool").length);
     expect(Object.values(c.porAccion).reduce((a, b) => a + b, 0)).toBe(69);
   });
 

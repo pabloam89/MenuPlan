@@ -1,0 +1,27 @@
+{
+  "$comentario": "Pool de buenas prácticas por agente (parte de #652): para cada agente, las prácticas de su oficio con su fuente, y a qué regla de ops/estandares-agentes.json responde cada una. Sirve para ver lo que FALTA, no solo lo que ya escribimos. Un fichero por agente en esta carpeta (<agente>.json); este es el vocabulario cerrado. Lo lee scripts/lib/pool.mjs y lo vigila ops/pool.test.js. La práctica se escribe en imperativo y en horizontal: oficio, no terreno (sin nombrar proyecto, tabla ni módulo); lo concreto vive en la regla.",
+  "origenes": {
+    "campo": "Buena práctica del oficio con una fuente externa (documentación oficial, libro o artículo de referencia) que se ha leído",
+    "casa": "Decisión propia de la casa; lleva motivo de por qué no es una práctica externa y una fuente de la casa"
+  },
+  "estados": {
+    "cubierta": "Alguna regla de los estándares del agente la cumple; cubierta_por dice cuáles",
+    "descartada": "No se adopta, con el motivo",
+    "pendiente": "Es del campo y ninguna regla la cubre todavía; no se ha decidido"
+  },
+  "lectura": {
+    "leida": "El contenido de la fuente se leyó para respaldar la práctica",
+    "no-leida": "La dirección existe (HTTP 200) pero el contenido no se leyó; la práctica descansa en el conocimiento general del campo"
+  },
+  "terminos_de_proyecto": [
+    "HoMenu",
+    "MenuPlan",
+    "Supabase",
+    "Lola",
+    "Vercel",
+    "Telegram",
+    "households",
+    "src/",
+    "api/"
+  ]
+}

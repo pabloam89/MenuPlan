@@ -276,6 +276,13 @@
       "mira": ["ops/**", "scripts/**", ".claude/**", ".github/**", "docs/**", "*", "scripts/lib/zonasProyecto.mjs"],
       "porque": "Cada fichero del repo cae en una zona (factoría, producto o mixto) de ops/zonas.json: un fichero nuevo en una carpeta con reglas por patrón (ops, scripts, .claude, .github, docs) o en la raíz, sin regla que lo cubra, o más ficheros mixtos que el tope, rompen este test lejos de lo que tocas. Las carpetas de producto (src, api, supabase, public…) las cubre un prefijo entero y no pueden quedar sin zona.",
       "evidencia": "#652 (línea 3 del programa factoría/proyecto: sin zonas no se puede contar qué hay que separar)"
+    },
+    {
+      "id": "pool-de-buenas-practicas",
+      "tests": ["ops/pool.test.js"],
+      "mira": ["ops/pool/*.json", "scripts/lib/pool.mjs", "ops/estandares-agentes.json"],
+      "porque": "Cada práctica del pool cita una fuente que existe en el catálogo de fuentes de los estándares y cada regla de un agente con el pool cerrado responde a una práctica por su nombre; renombrar una regla o quitar una fuente en estandares-agentes.json rompe el pool lejos de lo que tocas.",
+      "evidencia": "#652 (decisión de Pablo, 13 oct 2026: cada regla responde a una buena práctica del campo con fuente)"
     }
   ],
   "pasos": [

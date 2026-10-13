@@ -73,6 +73,8 @@ export const DOMINIOS_FUENTE = [
   "git-scm.com", "vercel.com", "code.claude.com", "docs.anthropic.com",
   "platform.claude.com", "www.anthropic.com", "www.w3.org", "developer.mozilla.org", "web.dev",
   "playwright.dev", "developer.chrome.com", "learn.microsoft.com", "m3.material.io", "www.designtokens.org",
+  // Del pool de buenas prácticas (ops/pool/): referencias de oficio de datos.
+  "martinfowler.com", "www.bkent.net", "docs.getdbt.com", "dama.org",
 ];
 
 /** Extensiones de lo que puede vigilar una regla: un test, un hook, un script o un workflow, no un documento. */
@@ -319,7 +321,8 @@ export function problemasDeEstandares(datos, agentes, raiz = null, normas = null
     }
   }
   for (const c of Object.keys(comunes)) if (!comunesCitadas.has(c)) malos.push(`común ${c}: ninguna tarea la cita`);
-  for (const f of Object.keys(fuentes)) if (!usadas.has(f)) malos.push(`fuente «${f}»: ninguna regla la cita`);
+  // Una fuente con uso «pool» la cita una práctica de ops/pool/ (lo vigila ops/pool.test.js), no una regla.
+  for (const f of Object.keys(fuentes)) if (!usadas.has(f) && fuentes[f]?.uso !== "pool") malos.push(`fuente «${f}»: ninguna regla la cita`);
   return malos;
 }
 
