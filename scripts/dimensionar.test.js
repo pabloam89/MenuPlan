@@ -349,6 +349,14 @@ describe("el brief de cada agente sale del plan", () => {
     expect(briefDe(q, "revisor")).not.toMatch(/catalogo-de-ops-con-test/);
     expect(() => briefDe(dim({ tipo: "create", ficheros: [f("scripts/lib/suelto.mjs", 10)], tarea: "no-existe" }), "gobierno")).toThrow(/no-existe/);
   });
+  it("el brief de una tarea de bot trae las normas verticales del producto (el proyecto va por defecto)", () => {
+    const q = dim({ subtipo: "fix-bug", causa: "codigo", ficheros: [f("api/_bot/x.js", 20)], objetivo: "Arreglar el bot" });
+    for (const agente of ["lola", "revisor"]) {
+      const b = briefDe(q, agente);
+      expect(b, `${agente}: sin normas del proyecto homenu`).toMatch(/proyecto homenu/);
+      expect(b, `${agente}: sin ninguna vertical de bot`).toMatch(/Incluye .* del proyecto homenu/);
+    }
+  });
   it("un agente que no está en el plan no tiene brief", () => {
     expect(() => briefDe(p, "qa")).toThrow(/no está en el plan/);
   });

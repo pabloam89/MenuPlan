@@ -23,6 +23,7 @@ import { cargarMapa } from "../../.claude/hooks/dominios.mjs";
 import { JUECES } from "./agentes.mjs";
 import { AMBITOS, ambitosDeFichero, constructorDeFichero, juecesDeAmbitos } from "./ambitos.mjs";
 import { UMBRALES_TAMANO, esGenerado } from "./avisosPr.mjs";
+import { PROYECTO_POR_DEFECTO } from "./zonasProyecto.mjs";
 import { leerEstandares, leerNormasEn, RAIZ_REPO, tareasDe, textoDeTarea } from "./estandaresAgentes.mjs";
 import { leerPrecedencia } from "./precedencia.mjs";
 import { ALCANCES, CATALOGO, CAUSAS, COMPLEXITIES, MOTIVOS_COMPLEJIDAD, presupuestoDe } from "./presupuestos.mjs";
@@ -422,7 +423,7 @@ export function briefDe(plan, agente, opciones = {}, deps = depsReales()) {
   const abrir = skills.filter((s) => !s.precargada).map((s) => s.skill);
   const estandar = tarea
     ? [tarea.aproximada ? `Coincidencia: aproximada (ninguna tarea de ${agente} es de los ámbitos ${plan.ambitos.join(", ") || "de los ficheros"}; si el encargo no encaja en ninguna, es la señal de una tarea que falta)` : null,
-      textoDeTarea(agente, tarea.id, deps.datos, deps.registro, { ficheros: alcance, precedencia: deps.precedencia })].filter(Boolean).join("\n")
+      textoDeTarea(agente, tarea.id, deps.datos, deps.registro, { ficheros: alcance, precedencia: deps.precedencia, proyecto: PROYECTO_POR_DEFECTO })].filter(Boolean).join("\n")
     : `ESTÁNDAR: ninguna tarea del catálogo para ${agente} en esta fase (${agente in deps.datos.agentes ? "ninguna de sus tareas es de la acción que toca" : "no es un agente de .claude/agents/"}); dilo en el informe`;
   const forma = {
     "diagnosticar-primero": "primero se diagnostica (causa raíz y test que reproduce el fallo), después se arregla, y el juez repite",

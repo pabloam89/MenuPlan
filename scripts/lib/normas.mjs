@@ -419,7 +419,7 @@ export function problemasDeAvisos(avisos, normas, porCredencial = {}) {
   for (const [id, a] of Object.entries(avisos ?? {})) {
     if (!/^[a-z]+(-[a-z]+)*$/.test(id)) malos.push(`aviso ${id}: el id va en minúsculas con guiones`);
     if (typeof a?.codigo !== "string" || !a.codigo) malos.push(`aviso ${id}: sin «codigo»: cada aviso apunta a una norma`);
-    else if (!ids.has(a.codigo)) malos.push(`aviso ${id}: su codigo «${a.codigo}» no es una norma de ops/normas.json`);
+    else if (!ids.has(a.codigo)) malos.push(`aviso ${id}: su codigo «${a.codigo}» no es una norma de ops/normas.json ni del registro de un proyecto (${RUTA_PROYECTOS}/<id>/normas.json)`);
     for (const p of ["que", "porque", "enSuLugar"]) {
       if (typeof a?.[p] !== "string" || a[p].trim().length < 8) malos.push(`aviso ${id}: falta «${p}»`);
     }
@@ -687,12 +687,12 @@ export function comprobarNormasPr({ diff, cuerpo = "", autor = "", ids }) {
     for (const c of r.citasMalas) citasMalas.push(`${a.ruta}:${a.linea} norma:${c}`);
   }
   // Una cita a una norma que no existe falla siempre: «sin novedades» no la arregla.
-  if (citasMalas.length) return { ok: false, motivo: `Cita a una norma que no está en ops/normas.json: ${citasMalas.join(", ")}.`, sueltas };
+  if (citasMalas.length) return { ok: false, motivo: `Cita a una norma que no está en ops/normas.json ni en el registro de un proyecto (${RUTA_PROYECTOS}/<id>/normas.json): ${citasMalas.join(", ")}.`, sueltas };
   if (!sueltas.length) return { ok: true, motivo: "Ninguna línea añadida con palabras fuertes sin citar.", sueltas };
   const l = lineaNormas(cuerpo);
   if (l.presente && l.motivo) return { ok: true, motivo: `Normas: sin novedades — ${l.motivo} (${sueltas.length} líneas)`, sueltas };
   const donde = sueltas.slice(0, 5).map((s) => `${s.ruta}:${s.linea} («${s.palabras.join("», «")}»)`).join("; ");
-  const ayuda = "Cita la norma en la misma línea (<!-- norma:<id> -->, alta en ops/normas.json si no está) o, si no es una norma, pon en el cuerpo del PR «Normas: sin novedades — <motivo>».";
+  const ayuda = "Cita la norma en la misma línea (<!-- norma:<id> -->, alta en ops/normas.json, o en el registro de su proyecto si es vertical, si no está) o, si no es una norma, pon en el cuerpo del PR «Normas: sin novedades — <motivo>».";
   return { ok: false, motivo: `${l.error ? `${l.error} ` : ""}${sueltas.length} líneas añadidas con palabras fuertes sin citar norma: ${donde}. ${ayuda}`, sueltas };
 }
 
