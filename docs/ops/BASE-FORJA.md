@@ -49,6 +49,8 @@ La heurística de voz, modo, tiempo y persona ya existe (`scripts/lib/forjaForma
 | Cuerpo de una skill | activa | imperativo | segunda | pasos con su salida observable |
 | Respuesta a Pablo | activa | presente | primera y segunda | la forma de `estilo-de-respuesta` |
 
+Cada campo de texto declara su tipo de esta tabla y su tope en caracteres en `ops/topes.json` (#689): el tope es el máximo medido (`npm run topes`) y solo baja; un solo test, `ops/topes.test.js`, aplica a cada campo la regla de su tipo, y los textos que hoy ya la incumplen figuran como excepciones que solo bajan.
+
 ### 3.3 Metas
 
 Propuesta de seis valores cerrados. Las cuatro primeras ya existen como `concepts` y su orden decide qué gana cuando dos normas chocan (`precedencia.clash`); las dos últimas son las de Pablo.
