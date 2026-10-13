@@ -3,7 +3,7 @@
   "area": "data",
   "nombre": "Transformaciones en módulos puros",
   "enunciado": "Cada transformación del dominio vive en un módulo puro con tests, y la base la deriva en vez de duplicarla.",
-  "porque": "Dos implementaciones de la misma cuenta acaban dando resultados distintos.",
+  "porque": "Dos implementaciones de la misma cuenta terminan dando resultados distintos.",
   "fuentes": [
     {
       "marca": "I",

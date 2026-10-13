@@ -24,7 +24,7 @@ Cada principio es el porqué, sin fuerza: su enunciado, su porqué, un ejemplo b
 
 Que el producto no se pueda usar contra la familia ni contra el negocio.
 
-- `abuse-of-business-flows-limited` — **Flujos de negocio limitados.** Un flujo de negocio abierto sin límite acaba usado en masa por quien busca hacer spam o abusar de él.
+- `abuse-of-business-flows-limited` — **Flujos de negocio limitados.** Quien busca hacer spam o abusar de un flujo de negocio abierto sin límite lo usa en masa.
   - Porqué: El spam y el abuso automatizado son el riesgo típico de un flujo abierto, y cuestan dinero o reputación.
   - Norma: `limite-por-ip` — **Límite por IP.** Cuando usa IA, cada endpoint de la app DEBE tener un límite por IP. Control: `api/_guard.test.js` (semidura).
   - Norma: `business-flow-rate-limited` — **Flujos de negocio limitados.** Cuando una función puede dañar al negocio si se usa en masa (crear cuentas, comentar, pedir menús), el producto DEBE limitarla por persona o por origen. Control: juicio (blanda).
@@ -67,7 +67,7 @@ Que el producto no se pueda usar contra la familia ni contra el negocio.
   - Bueno: «Una receta propuesta por el modelo no entra al catálogo sin pasar el esquema de recetas».
   - Malo: «El resultado del modelo se guarda tal cual en la ficha de la casa».
   - Fuentes: [F] https://genai.owasp.org/llm-top-10/; [F] https://www.anthropic.com/engineering/writing-tools-for-agents.
-- `no-secrets-in-prompts-or-client` — **Secretos fuera del prompt.** Una clave o una regla interna puesta en un prompt o en el código del navegador acaba a la vista de cualquiera.
+- `no-secrets-in-prompts-or-client` — **Secretos fuera del prompt.** Una clave o una regla interna puesta en un prompt o en el código del navegador queda a la vista de cualquiera.
   - Porqué: Un prompt puede filtrarse y el código del cliente lo ve cualquiera.
   - Norma: `no-secrets-in-prompt-or-client` — **Secretos fuera del prompt.** Cuando el producto tiene claves o reglas internas, el producto NO DEBE ponerlas en el prompt de un modelo ni en el código que llega al navegador. Control: juicio (blanda).
   - Bueno: «El conocimiento de Lola no lleva claves; viven en variables de entorno del servidor».
@@ -109,8 +109,8 @@ Qué datos se piden, para qué, cuánto se guardan y a quién se enseñan.
   - Bueno: «Lola dice que ha evitado el cacahuete por la alergia que le contó la familia».
   - Malo: «Lola cambia el menú por motivos que la familia no sabe de dónde salen».
   - Fuentes: [F] https://pair.withgoogle.com/chapter/explainability-trust/.
-- `no-sensitive-data-in-chat-by-default` — **Sin datos sensibles de más.** Un canal de mensajería de terceros guarda lo que se escribe fuera de nuestro control.
-  - Porqué: En los estudios de NN/g los usuarios dudaban de dar datos sensibles a un bot, y el canal no es nuestro.
+- `no-sensitive-data-in-chat-by-default` — **Sin datos sensibles de más.** Un canal de mensajería de terceros guarda lo que se escribe fuera del control de la casa.
+  - Porqué: En los estudios de NN/g, los usuarios dudan de dar datos sensibles a un bot, y el canal no es de la casa.
   - Norma: `no-sensitive-data-asked-in-chat` — **Sin datos sensibles de más.** Cuando la conversación pasa por un canal de terceros (Telegram, WhatsApp), el bot Lola NO DEBE pedir datos sensibles que no necesita para su tarea. Control: juicio (blanda).
   - Bueno: «Lola pregunta si hay algún alimento que no toleren, no pide historial médico».
   - Malo: «Lola pide el informe del alergólogo por el chat».
@@ -146,7 +146,7 @@ Cómo habla, decide y se equivoca un bot como Lola.
   - Fuentes: [F] https://www.nngroup.com/articles/chatbots/.
 - `calibrate-not-maximise-trust` — **Calibrar la confianza.** La confianza útil es la calibrada, la que distingue lo estimado de lo confirmado.
   - Porqué: Señalar el posible error baja la confianza en ese dato, pero evita la sobreconfianza después.
-  - Norma: `bot-marks-estimates` — **Calibrar la confianza.** Cuando muestra una respuesta cuya fiabilidad no es pareja, el bot Lola DEBE dejar claro qué es estimado y qué está confirmado, sin inducir confianza ciega. Control: juicio (blanda).
+  - Norma: `bot-marks-estimates` — **Calibrar la confianza.** Cuando muestra una respuesta cuya fiabilidad no es pareja, el bot Lola DEBE distinguir lo estimado de lo confirmado, sin inducir confianza ciega. Control: juicio (blanda).
   - Bueno: «Lola marca como estimadas las calorías y no marca así un alérgeno confirmado».
   - Malo: «Lola da las calorías y los alérgenos con el mismo aplomo aunque unas sean aproximadas».
   - Fuentes: [F] https://pair.withgoogle.com/chapter/explainability-trust/.
@@ -175,7 +175,7 @@ Cómo habla, decide y se equivoca un bot como Lola.
   - Malo: «Lola cambia el plato del martes sin decir nada».
   - Fuentes: [F] https://www.microsoft.com/en-us/research/articles/guidelines-for-human-ai-interaction-eighteen-best-practices-for-human-centered-ai-design/; [F] https://pair.withgoogle.com/chapter/explainability-trust/.
 - `keep-context-no-reask` — **No repetir preguntas.** Un dato que la persona ya dio se recuerda en vez de pedirse otra vez.
-  - Porqué: En los estudios de NN/g, los bots que repetían preguntas cansaban a la gente.
+  - Porqué: En los estudios de NN/g, los bots que repiten preguntas cansan a la gente.
   - Norma: `bot-does-not-reask` — **No repetir preguntas.** Cuando la persona ya dio un dato en la conversación o en su ficha, el bot Lola NO DEBE volver a pedírselo. Control: juicio (blanda).
   - Norma: `design-accessible-entry` — **Entrada y acceso accesibles.** Cada pantalla de la app DEBE no pedir datos ya dados ni pruebas cognitivas para entrar, y dar una alternativa al arrastre. Control: juicio (blanda).
   - Bueno: «Lola usa los comensales que ya constan en la ficha de la casa».
@@ -217,7 +217,7 @@ Cómo entra alguien nuevo y cuándo ve el valor.
   - Malo: «El primer mensaje enumera todas las funciones de Lola de golpe».
   - Fuentes: [F] https://pair.withgoogle.com/chapter/mental-models/.
 - `value-before-signup` — **Valor antes del registro.** Probar el valor antes de dar la cuenta o los datos hace que más gente se quede.
-  - Porqué: Retrasar el registro subió la actividad en un caso conocido, según esa fuente.
+  - Porqué: Retrasar el registro sube la actividad en un caso conocido, según esa fuente.
   - Norma: `value-before-signup-shown` — **Valor antes del registro.** Cuando alguien llega por primera vez, el producto DEBE dejarle probar el valor antes de pedirle cuenta o datos. Control: juicio (blanda).
   - Bueno: «Lola propone un menú de ejemplo antes de pedir alergias y tamaño de la familia».
   - Malo: «Lo primero que ve alguien nuevo es un formulario largo de la casa».

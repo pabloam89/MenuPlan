@@ -96,7 +96,7 @@
       "id": "nota-solo-para-el-matiz",
       "nombre": "Nota solo para el matiz",
       "enunciado": "La nota de una regla guarda el matiz, la cifra o la heurística que la exigencia no admite.",
-      "porque": "Una nota que repite la exigencia o la amplía en prosa vuelve a meter la ambigüedad que los campos quitaron.",
+      "porque": "Una nota que repite la exigencia o la amplía en prosa vuelve a meter la ambigüedad que los campos quitan.",
       "fuente": "[I] scripts/lib/regla.mjs",
       "ejemplo_bueno": "nota: La description queda por debajo de los 1.024 caracteres del estándar abierto",
       "ejemplo_malo": "nota: Además, la skill debe llevar un dueño y casos de frontera"
@@ -113,8 +113,8 @@
     {
       "id": "fuente-marcada",
       "nombre": "Fuente marcada",
-      "enunciado": "Cada regla dice de dónde sale, una fuente externa, una ruta de la casa o una inferencia nuestra, con su marca.",
-      "porque": "Sin la fuente marcada no se sabe si una regla es un hecho comprobado o una decisión nuestra.",
+      "enunciado": "Cada regla dice de dónde sale, una fuente externa, una ruta de la casa o una inferencia propia, con su marca.",
+      "porque": "Sin la fuente marcada no se sabe si una regla es un hecho comprobado o una decisión propia.",
       "fuente": "[I] docs/ops/FORJA.md",
       "ejemplo_bueno": "[F] https://www.rfc-editor.org/rfc/rfc2119",
       "ejemplo_malo": "Lo dice RFC 2119"

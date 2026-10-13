@@ -2,7 +2,7 @@
   "id": "who-what-when",
   "area": "entities",
   "nombre": "Quién, qué y cuándo",
-  "enunciado": "Todo lo que cambia guarda quién lo cambió, qué cambió y cuándo, con una identidad, un valor de vocabulario y un instante.",
+  "enunciado": "Todo lo que cambia guarda quién lo ha cambiado, qué ha cambiado y cuándo, con una identidad, un valor de vocabulario y un instante.",
   "porque": "Sin autor ni fecha nadie sabe desde cuándo consta un dato ni quién lo puso, y un error no se puede deshacer.",
   "fuentes": [
     {

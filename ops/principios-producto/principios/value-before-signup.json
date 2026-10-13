@@ -3,7 +3,7 @@
   "nombre": "Valor antes del registro",
   "area": "onboarding",
   "enunciado": "Probar el valor antes de dar la cuenta o los datos hace que más gente se quede.",
-  "porque": "Retrasar el registro subió la actividad en un caso conocido, según esa fuente.",
+  "porque": "Retrasar el registro sube la actividad en un caso conocido, según esa fuente.",
   "ejemplo_bueno": "Lola propone un menú de ejemplo antes de pedir alergias y tamaño de la familia",
   "ejemplo_malo": "Lo primero que ve alguien nuevo es un formulario largo de la casa",
   "fuentes": [

@@ -81,7 +81,7 @@ Cada principio de abajo es el porqué, sin fuerza, con su ejemplo bueno, su ejem
   - Malo: «texto: Esto es muy importante, hazlo siempre».
   - Fuente: [I] CLAUDE.md.
 - `nota-solo-para-el-matiz` — **Nota solo para el matiz.** La nota de una regla guarda el matiz, la cifra o la heurística que la exigencia no admite.
-  - Porqué: Una nota que repite la exigencia o la amplía en prosa vuelve a meter la ambigüedad que los campos quitaron.
+  - Porqué: Una nota que repite la exigencia o la amplía en prosa vuelve a meter la ambigüedad que los campos quitan.
   - Norma: `note-only-for-nuance` — **Nota solo para el matiz.** La nota de cada regla DEBE recoger solo el matiz, la cifra o la heurística que la exigencia no admite, en una línea de 400 caracteres como mucho. Control: `ops/regla.test.js`.
     - Nota: El test vigila solo la forma (una línea, 15 a 400 caracteres); que la nota sea un matiz y no la exigencia es de juicio: si quitarla cambia lo que se exige, esa parte va en la exigencia o en otra regla.
   - Bueno: «nota: La description queda por debajo de los 1.024 caracteres del estándar abierto».
@@ -94,10 +94,10 @@ Cada principio de abajo es el porqué, sin fuerza, con su ejemplo bueno, su ejem
   - Bueno: «Las ramas se crean desde staging y vuelven por PR».
   - Malo: «Las ramas, que se crean siempre desde staging, aunque algunas veces no, vuelven por PR cuando el CI, que también vigila otras cosas, está en verde».
   - Fuente: [F] https://www.plainlanguage.gov/guidelines/.
-- `fuente-marcada` — **Fuente marcada.** Cada regla dice de dónde sale, una fuente externa, una ruta de la casa o una inferencia nuestra, con su marca.
-  - Porqué: Sin la fuente marcada no se sabe si una regla es un hecho comprobado o una decisión nuestra.
+- `fuente-marcada` — **Fuente marcada.** Cada regla dice de dónde sale, una fuente externa, una ruta de la casa o una inferencia propia, con su marca.
+  - Porqué: Sin la fuente marcada no se sabe si una regla es un hecho comprobado o una decisión propia.
   - Norma: `source-marked` — **Fuente marcada.** La fuente de cada regla DEBE empezar por [F] y una dirección https, por [I] y una ruta del repo que exista, o por [S] y una dirección https. Control: `ops/forja.test.js`.
-    - Nota: [F] está en una fuente externa; [I] está escrito en la casa; [S] es inferencia nuestra o fuente secundaria. Son las letras de MARCAS_FUENTE de scripts/lib/regla.mjs, con un solo significado en todo el repo. Que la dirección [F] responda lo mide npm run forja -- --urls; las marcas de catálogos y textos las vigila principios.test.js.
+    - Nota: [F] está en una fuente externa; [I] está escrito en la casa; [S] es inferencia de la casa o fuente secundaria. Son las letras de MARCAS_FUENTE de scripts/lib/regla.mjs, con un solo significado en todo el repo. Que la dirección [F] responda lo mide npm run forja -- --urls; las marcas de catálogos y textos las vigila principios.test.js.
   - Bueno: «[F] https://www.rfc-editor.org/rfc/rfc2119».
   - Malo: «Lo dice RFC 2119».
   - Fuente: [I] docs/ops/FORJA.md.

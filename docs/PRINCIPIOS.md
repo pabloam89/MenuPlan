@@ -40,7 +40,7 @@ Constancia, en el cuerpo del PR: `Excepción: <id de la norma que cede> — <qu�
 El código del repo y su forma: tests, lint y ficheros.
 
 - `builder-does-not-judge` — **Quien construye no juzga.** El veredicto sobre un cambio lo da otro agente distinto del constructor y sin herramientas de escritura.
-  - Porqué: Quien ha escrito algo ve lo que quiso hacer y no lo que hizo, y un juez que escribe acaba arreglando en vez de juzgar.
+  - Porqué: Quien ha escrito algo ve lo que quiso hacer y no lo que hizo, y un juez que escribe termina arreglando en vez de juzgar.
   - Fuentes: [I] `CLAUDE.md`
   - Detalle: `CLAUDE.md#agentes`
   - Viene de: C7
@@ -72,7 +72,7 @@ El código del repo y su forma: tests, lint y ficheros.
   - Detalle: `.claude/rules/tests.md#tests`
   - Viene de: C6
 - `tests-are-not-relaxed` — **Los tests no se relajan.** Un test en rojo se arregla en el código o se discute con su motivo, sin aflojarlo, saltarlo ni borrarlo.
-  - Porqué: Un test relajado sigue en verde y deja de vigilar justo lo que acababa de fallar.
+  - Porqué: Un test relajado sigue en verde y deja de vigilar justo lo que ha fallado.
   - Fuentes: [I] `scripts/lib/avisosPr.mjs`
   - Viene de: C8
 
@@ -85,7 +85,7 @@ Identidades, permisos, secretos, ramas, CI, despliegues, copias y servicios.
   - Fuentes: [I] `api/_guard.test.js`
   - Viene de: I4
 - `declared-is-real` — **Lo declarado es lo real.** Lo que el repo declara de la infraestructura se compara cada cierto tiempo con lo que hay de verdad.
-  - Porqué: Un registro que nadie compara con la realidad acaba mintiendo, y se decide con datos falsos.
+  - Porqué: Un registro que nadie compara con la realidad termina mintiendo, y se decide con datos falsos.
   - Fuentes: [I] `scripts/verificar-estado.mjs`
   - Viene de: I8
 - `emergency-access` — **Acceso de emergencia.** Una guía escrita y probada permite operar sin Claude y restaurar la base desde una copia.
@@ -170,20 +170,20 @@ La base: tablas, migraciones, roles y cada dato que guarda.
   - Fuentes: [I] `docs/datos/PRINCIPIOS.md`
   - Detalle: `docs/datos/PRINCIPIOS.md#13-normalización`
 - `one-fact-one-place` — **Un dato, un sitio.** Cada dato y cada regla vive en un solo sitio con su lector, y cada copia es una proyección generada que un test compara.
-  - Porqué: Dos copias escritas a mano acaban diciendo cosas distintas, y nadie sabe cuál vale.
+  - Porqué: Dos copias escritas a mano terminan diciendo cosas distintas, y nadie sabe cuál vale.
   - Fuentes: [I] `CLAUDE.md`
   - Detalle: `docs/datos/PRINCIPIOS.md#6-un-dato-un-sitio`, `docs/entidades/N0-principios.md#7-una-fuente-de-verdad-por-dato-y-por-vocabulario`, `CLAUDE.md#base-de-datos`
   - Viene de: C3
 - `pure-transformations` — **Transformaciones en módulos puros.** Cada transformación del dominio vive en un módulo puro con tests, y la base la deriva en vez de duplicarla.
-  - Porqué: Dos implementaciones de la misma cuenta acaban dando resultados distintos.
+  - Porqué: Dos implementaciones de la misma cuenta terminan dando resultados distintos.
   - Fuentes: [I] `docs/datos/PRINCIPIOS.md`
   - Detalle: `docs/datos/PRINCIPIOS.md#11-transformaciones`
 - `self-describing-catalog` — **Diccionario en la base.** Cada tabla nueva dice en su comentario qué guarda y quién la escribe, y el código pide las columnas que usa.
   - Porqué: El catálogo de la base es la documentación que no se queda vieja, y un select de todo esconde quién lee qué.
   - Fuentes: [I] `docs/datos/PRINCIPIOS.md`
   - Detalle: `docs/datos/PRINCIPIOS.md#16-diccionario-y-lectura`
-- `status-is-state-machine` — **El estado es una máquina.** Un estado sin vocabulario ni saltos escritos admite combinaciones que nadie decidió y no deja ver cuándo cambió.
-  - Porqué: Un estado que se escribe sin reglas acaba en combinaciones imposibles que nadie sabe interpretar.
+- `status-is-state-machine` — **El estado es una máquina.** Un estado sin vocabulario ni saltos escritos admite combinaciones que nadie ha decidido y no deja ver cuándo ha cambiado.
+  - Porqué: Un estado que se escribe sin reglas termina en combinaciones imposibles que nadie sabe interpretar.
   - Fuentes: [I] `docs/datos/PRINCIPIOS.md`
   - Detalle: `docs/datos/PRINCIPIOS.md#21-estados`
 - `table-has-owner-module` — **Una tabla, un módulo dueño.** Cada tabla se lee y se escribe desde un solo módulo, y el resto del código llama a sus funciones.
@@ -214,7 +214,7 @@ Qué hace bien HoMenu y Lola para las familias.
 
 Lo trae el catálogo delegado `ops/principios-producto/`, con su detalle en `docs/producto/PRINCIPIOS.md`. Los principios de producto con fuente (#606), con su test y la skill principios-de-producto; sus normas, en ops/normas.json. Lo que piden con DEBE es una norma de `ops/normas.json` que los cita.
 
-- `abuse-of-business-flows-limited` — **Flujos de negocio limitados.** Un flujo de negocio abierto sin límite acaba usado en masa por quien busca hacer spam o abusar de él.
+- `abuse-of-business-flows-limited` — **Flujos de negocio limitados.** Quien busca hacer spam o abusar de un flujo de negocio abierto sin límite lo usa en masa.
   - Porqué: El spam y el abuso automatizado son el riesgo típico de un flujo abierto, y cuestan dinero o reputación.
   - Fuentes: [F] https://api-security.owasp.org/editions/2023/en/0xa6-unrestricted-access-to-sensitive-business-flows
 - `authenticate-machine-callers` — **Autenticar a las máquinas.** Una llamada de una máquina sin credencial la puede imitar cualquiera que conozca la dirección.
@@ -270,7 +270,7 @@ Lo trae el catálogo delegado `ops/principios-producto/`, con su detalle en `doc
   - Fuentes: [F] https://docs.stripe.com/api/idempotent_requests
   - Detalle: `docs/datos/PRINCIPIOS.md#19-cada-orden-una-vez`
 - `keep-context-no-reask` — **No repetir preguntas.** Un dato que la persona ya dio se recuerda en vez de pedirse otra vez.
-  - Porqué: En los estudios de NN/g, los bots que repetían preguntas cansaban a la gente.
+  - Porqué: En los estudios de NN/g, los bots que repiten preguntas cansan a la gente.
   - Fuentes: [F] https://www.nngroup.com/articles/chatbots/ ; [F] https://www.microsoft.com/en-us/research/articles/guidelines-for-human-ai-interaction-eighteen-best-practices-for-human-centered-ai-design/
 - `least-privilege-for-the-model` — **Mínimo privilegio para el modelo.** Lo que el modelo no puede tocar no lo rompe aunque se equivoque o lo engañen.
   - Porqué: Una alucinación o una inyección convierten cualquier permiso de más en daño real.
@@ -286,11 +286,11 @@ Lo trae el catálogo delegado `ops/principios-producto/`, con su detalle en `doc
 - `no-pretend-human` — **No hacerse pasar por humano.** Un bot que se presenta como bot evita que la persona sobrestime lo que puede hacer.
   - Porqué: Los personajes con aire humano hacen sobrestimar al sistema.
   - Fuentes: [F] https://pair.withgoogle.com/chapter/mental-models/
-- `no-secrets-in-prompts-or-client` — **Secretos fuera del prompt.** Una clave o una regla interna puesta en un prompt o en el código del navegador acaba a la vista de cualquiera.
+- `no-secrets-in-prompts-or-client` — **Secretos fuera del prompt.** Una clave o una regla interna puesta en un prompt o en el código del navegador queda a la vista de cualquiera.
   - Porqué: Un prompt puede filtrarse y el código del cliente lo ve cualquiera.
   - Fuentes: [F] https://genai.owasp.org/llm-top-10/
-- `no-sensitive-data-in-chat-by-default` — **Sin datos sensibles de más.** Un canal de mensajería de terceros guarda lo que se escribe fuera de nuestro control.
-  - Porqué: En los estudios de NN/g los usuarios dudaban de dar datos sensibles a un bot, y el canal no es nuestro.
+- `no-sensitive-data-in-chat-by-default` — **Sin datos sensibles de más.** Un canal de mensajería de terceros guarda lo que se escribe fuera del control de la casa.
+  - Porqué: En los estudios de NN/g, los usuarios dudan de dar datos sensibles a un bot, y el canal no es de la casa.
   - Fuentes: [F] https://www.nngroup.com/articles/chatbots/ ; [F] https://gdpr-info.eu/art-25-gdpr/
 - `onboard-in-stages` — **Presentarse por etapas.** Las funciones se aprenden mejor por etapas cortas, cuando cada una es relevante.
   - Porqué: Una lista larga al principio no se retiene.
@@ -332,7 +332,7 @@ Lo trae el catálogo delegado `ops/principios-producto/`, con su detalle en `doc
   - Porqué: Los bots que solo duplican la web o la app tienen una propuesta de valor débil.
   - Fuentes: [S] https://www.nngroup.com/articles/chatbots/
 - `value-before-signup` — **Valor antes del registro.** Probar el valor antes de dar la cuenta o los datos hace que más gente se quede.
-  - Porqué: Retrasar el registro subió la actividad en un caso conocido, según esa fuente.
+  - Porqué: Retrasar el registro sube la actividad en un caso conocido, según esa fuente.
   - Fuentes: [S] https://taplytics.com/blog/duolingo-ab-test-onboarding
 - `visibility-of-status` — **Estado visible.** Una acción lenta que enseña su estado evita que la persona la repita o la abandone.
   - Porqué: Sin estado, la persona repite la acción o abandona.
@@ -375,11 +375,11 @@ Cómo se trabaja: issues, fondos, PR, sesiones, agentes, jueces y cifras.
   - Fuentes: [I] `ops/metricas.json`
   - Viene de: claude:ninguna-cifra-sin-pregunta, claude:ninguna-cifra-es-objetivo-sola
 - `number-before-and-after` — **La cifra antes y después.** Cada arreglo se mide con la misma cifra antes y después, y mejora solo si la diferencia supera lo que varía sola.
-  - Porqué: Sin la cifra de partida nadie sabe si un arreglo sirvió, y una diferencia pequeña puede ser solo ruido.
+  - Porqué: Sin la cifra de partida nadie sabe si un arreglo ha servido, y una diferencia pequeña puede ser solo ruido.
   - Fuentes: [I] `ops/metricas.json`
   - Viene de: claude:la-cifra-antes-y-despues
 - `person-over-the-loop` — **Persona sobre el bucle.** Pablo no aprueba cada paso, sino que lee una muestra periódica y ajusta las reglas.
-  - Porqué: Pedir el sí en cada paso interrumpe y acaba en un sí a todo, y mirar una muestra mantiene el control sin frenar.
+  - Porqué: Pedir el sí en cada paso interrumpe y termina en un sí a todo, y mirar una muestra mantiene el control sin frenar.
   - Fuentes: [I] `CLAUDE.md`
   - Detalle: `CLAUDE.md#qué-se-le-pregunta-a-pablo-y-qué-no`
   - Viene de: N7
@@ -434,13 +434,13 @@ Lo trae el catálogo delegado `ops/redaccion.json`, con su detalle en `docs/ops/
   - Porqué: Un dato metido en texto libre no se puede contar ni filtrar sin releerlo a mano.
   - Fuentes: [I] `CLAUDE.md`
 - `nota-solo-para-el-matiz` — **Nota solo para el matiz.** La nota de una regla guarda el matiz, la cifra o la heurística que la exigencia no admite.
-  - Porqué: Una nota que repite la exigencia o la amplía en prosa vuelve a meter la ambigüedad que los campos quitaron.
+  - Porqué: Una nota que repite la exigencia o la amplía en prosa vuelve a meter la ambigüedad que los campos quitan.
   - Fuentes: [I] `scripts/lib/regla.mjs`
 - `frases-cortas` — **Frases cortas.** Las frases cortas y los párrafos breves se leen y se entienden a la primera.
   - Porqué: Las guías de lenguaje claro observan que una frase larga se entiende peor y se relee más.
   - Fuentes: [F] https://www.plainlanguage.gov/guidelines/
-- `fuente-marcada` — **Fuente marcada.** Cada regla dice de dónde sale, una fuente externa, una ruta de la casa o una inferencia nuestra, con su marca.
-  - Porqué: Sin la fuente marcada no se sabe si una regla es un hecho comprobado o una decisión nuestra.
+- `fuente-marcada` — **Fuente marcada.** Cada regla dice de dónde sale, una fuente externa, una ruta de la casa o una inferencia propia, con su marca.
+  - Porqué: Sin la fuente marcada no se sabe si una regla es un hecho comprobado o una decisión propia.
   - Fuentes: [I] `docs/ops/FORJA.md`
 - `control-declarado` — **Control declarado.** Cada regla nombra lo que la vigila, un fichero que falla o el juicio de alguien.
   - Porqué: Una regla sin control declarado parece vigilada aunque nadie la mire.
@@ -487,10 +487,10 @@ Cómo se nombra, se identifica y se registra cada cosa del proyecto.
   - Detalle: `docs/entidades/N0-principios.md#9-la-persona-y-la-identidad-son-entidades-distintas`
   - Sin norma: Principio del N0 de entidades: su norma la pone el N1 de cada entidad, que aún no está escrito
 - `stable-unique-id` — **Id estable y único.** Cada entidad y cada fila lleva un id propio, único en su registro, que no cambia ni se reutiliza.
-  - Porqué: Un id que cambia o se reutiliza rompe cada referencia que lo apuntaba, también las de los recuentos viejos.
+  - Porqué: Un id que cambia o se reutiliza rompe cada referencia que lo apunta, también las de los recuentos viejos.
   - Fuentes: [I] `docs/entidades/N0-principios.md`
   - Detalle: `docs/entidades/N0-principios.md#4-cada-entidad-tiene-un-id-estable-único-y-con-forma`, `docs/datos/PRINCIPIOS.md#3-claves-primarias`
-- `who-what-when` — **Quién, qué y cuándo.** Todo lo que cambia guarda quién lo cambió, qué cambió y cuándo, con una identidad, un valor de vocabulario y un instante.
+- `who-what-when` — **Quién, qué y cuándo.** Todo lo que cambia guarda quién lo ha cambiado, qué ha cambiado y cuándo, con una identidad, un valor de vocabulario y un instante.
   - Porqué: Sin autor ni fecha nadie sabe desde cuándo consta un dato ni quién lo puso, y un error no se puede deshacer.
   - Fuentes: [F] https://www.w3.org/TR/prov-o/
   - Detalle: `docs/entidades/N0-principios.md#8-todo-lo-que-cambia-lleva-quién-qué-y-cuándo`, `docs/datos/PRINCIPIOS.md#9-fechas-de-cada-fila`, `docs/datos/PRINCIPIOS.md#18-quién-y-por-dónde`

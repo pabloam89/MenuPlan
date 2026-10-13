@@ -2,8 +2,8 @@
   "id": "status-is-state-machine",
   "area": "data",
   "nombre": "El estado es una máquina",
-  "enunciado": "Un estado sin vocabulario ni saltos escritos admite combinaciones que nadie decidió y no deja ver cuándo cambió.",
-  "porque": "Un estado que se escribe sin reglas acaba en combinaciones imposibles que nadie sabe interpretar.",
+  "enunciado": "Un estado sin vocabulario ni saltos escritos admite combinaciones que nadie ha decidido y no deja ver cuándo ha cambiado.",
+  "porque": "Un estado que se escribe sin reglas termina en combinaciones imposibles que nadie sabe interpretar.",
   "fuentes": [
     {
       "marca": "I",
