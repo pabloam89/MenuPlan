@@ -160,6 +160,8 @@ const TABLA = [
   ["campos-por-entidad", ".claude/skills/x/SKILL.md", "ops/campos-por-entidad.test.js"],
   ["inventario-vertical", "ops/inventario-vertical.json", "ops/inventario-vertical.test.js"],
   ["inventario-vertical", "scripts/lib/inventarioVertical.mjs", "ops/inventario-vertical.test.js"],
+  ["vigilante-lados", "ops/techos-lados.json", "ops/vigilante-lados.test.js"],
+  ["vigilante-lados", "scripts/lib/vigilanteLados.mjs", "ops/vigilante-lados.test.js"],
 ];
 
 describe("tabla: ruta de ejemplo → vigilante que debe salir", () => {
