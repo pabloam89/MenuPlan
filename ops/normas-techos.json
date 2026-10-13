@@ -1,5 +1,18 @@
 {
-  "$comentario": "Techos de ops/normas.test.js que solo bajan (#682). El test compara este fichero con el de origin/staging y falla si algún número sube. Se bajan al dar su test del juez a una norma de juez o al quitar el ejecutor «persona» de una norma.",
+  "$comentario": "Techos de ops/normas.test.js que solo bajan (#682). El test compara este fichero con el de origin/staging y falla si algún número sube. Se bajan al dar su test del juez a una norma de juez o al quitar el ejecutor «persona» de una norma. «normas_huerfanas» es el techo de normas_huerfanas_excepciones: normas que ninguna tarea de ops/estandares-agentes.json recibe (ni por ámbito y acción ni citadas) y que son conducta del producto, no trabajo de un agente (#683); solo baja y el test lo compara con staging.",
   "juez_sin_test_del_juez": 83,
-  "ejecutor_persona": 70
+  "ejecutor_persona": 70,
+  "normas_huerfanas": 10,
+  "normas_huerfanas_excepciones": {
+    "masa-no-comestible-fuera-de-la-compra": "conducta del producto, ver encargo de horizontal y vertical (#687)",
+    "solo-estrella-se-propone": "conducta del producto, ver encargo de horizontal y vertical (#687)",
+    "pool-corto-es-error": "conducta del producto, ver encargo de horizontal y vertical (#687)",
+    "estrella-a-mano-con-foto": "conducta del producto, ver encargo de horizontal y vertical (#687)",
+    "cocina-extranjera-apagada": "conducta del producto, ver encargo de horizontal y vertical (#687)",
+    "sin-pairing-de-platos": "conducta del producto, ver encargo de horizontal y vertical (#687)",
+    "procedencia-del-numero": "conducta del producto, ver encargo de horizontal y vertical (#687)",
+    "nombre-y-clave-al-mismo-ingrediente": "conducta del producto, ver encargo de horizontal y vertical (#687)",
+    "vispera-no-es-rapida": "conducta del producto, ver encargo de horizontal y vertical (#687)",
+    "aparato-en-su-vocabulario": "conducta del producto, ver encargo de horizontal y vertical (#687)"
+  }
 }

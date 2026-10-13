@@ -900,7 +900,8 @@
           ],
           "normas": [
             "secretos-en-environments",
-            "secretos-de-repo"
+            "secretos-de-repo",
+            "catalogo-mercadona-minimo"
           ],
           "reglas": [
             {
@@ -1064,6 +1065,9 @@
           "origen": "mision",
           "ambitos": [
             "infra"
+          ],
+          "normas": [
+            "build-valida-catalogo"
           ],
           "comunes": [
             "causa-frente-a-sintoma"
