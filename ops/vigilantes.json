@@ -290,6 +290,13 @@
       "mira": ["ops/pool/*.json", "scripts/lib/pool.mjs", "ops/estandares-agentes.json"],
       "porque": "Cada práctica del pool cita una fuente que existe en el catálogo de fuentes de los estándares y cada regla de un agente con el pool cerrado responde a una práctica por su nombre; renombrar una regla o quitar una fuente en estandares-agentes.json rompe el pool lejos de lo que tocas.",
       "evidencia": "#652 (decisión de Pablo, 13 oct 2026: cada regla responde a una buena práctica del campo con fuente)"
+    },
+    {
+      "id": "inventario-vertical",
+      "tests": ["ops/inventario-vertical.test.js"],
+      "mira": ["ops/inventario-vertical.json", "ops/principios/**", "ops/principios-producto/**", "ops/fuentes-documentales/**", "ops/entidades.json", "ops/proyectos/**", "ops/normas.json", "ops/glosario/terminos/*.json", "ops/zonas.json", "scripts/lib/inventarioVertical.mjs", ".claude/agents/*.md"],
+      "porque": "El inventario de lados (horizontal, vertical, duda) lee los registros de la casa y de HoMenu; sus decisiones a mano nombran principios, entidades y agentes por id, y borrar o renombrar uno sin tocar ops/inventario-vertical.json rompe la cuenta lejos de lo que tocas.",
+      "evidencia": "#710 (primera fase del programa #652)"
     }
   ],
   "pasos": [
