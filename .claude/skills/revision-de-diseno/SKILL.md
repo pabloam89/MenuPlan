@@ -1,6 +1,6 @@
 ---
 name: revision-de-diseno
-description: Úsala para revisar un sistema de diseño o una pantalla contra las leyes y los bloques de META-DISENO.md y sacar su lista de hallazgos con el arreglo de cada uno: «revisa el diseño de esta pantalla», «¿cumple el sistema del panel?», «¿qué le falta a HoMenu para estar completo?», «¿llega el contraste?», «antes de entregar, repasa el diseño». No para: revisar una skill (higiene-de-skills), juzgar la app en el navegador con capturas (agente qa), crear tokens, primitivos o pantallas (agente diseno) ni la voz de Lola.
+description: Úsala para revisar un sistema de diseño o una pantalla contra las normas y los bloques de META-DISENO.md y sacar su lista de hallazgos con el arreglo de cada uno: «revisa el diseño de esta pantalla», «¿cumple el sistema del panel?», «¿qué le falta a HoMenu para estar completo?», «¿llega el contraste?», «antes de entregar, repasa el diseño». No para: revisar una skill (higiene-de-skills), juzgar la app en el navegador con capturas (agente qa), crear tokens, primitivos o pantallas (agente diseno) ni la voz de Lola.
 metadata:
   tipo: revision
   opera_proveedor: false
@@ -39,9 +39,9 @@ test y pasa a leerse a mano otra vez.
 
 Dos catálogos, que se citan y no se copian:
 
-- **N0, las leyes** L01–L22 (`docs/diseno/META-DISENO.md`, sección 2). Cada una
+- **N0, las normas** L01–L22 (`docs/diseno/META-DISENO.md`, sección 2). Cada una
   dice cómo se comprueba y si existe (`[existe]`) o no (`[por construir]`).
-  Una ley sin comprobación **no cuenta como cumplida**.
+  Una norma sin comprobación **no cuenta como cumplida**.
 - **N1, los bloques** A–Q, en `ops/diseno/bloques.json`: cuáles obliga su perfil,
   los apartados de cada uno y las fichas de token, componente, patrón y
   biblioteca. Un bloque que su perfil pide está cubierto o lleva «no aplica» con motivo.
@@ -51,7 +51,7 @@ El contraste, con una norma detrás <!-- norma:screen-accessible -->, lo mide
 
 Vocabulario cerrado de hallazgos (el código es lo que se cuenta):
 
-| Código | Señal observable | Ley o bloque | Gravedad |
+| Código | Señal observable | Norma o bloque | Gravedad |
 |---|---|---|---|
 | `valor-suelto-nuevo` | `npm run lint:base` da más valores sueltos que antes | L01 | falta |
 | `contraste-bajo` | una pareja de `ops/diseno/contraste.json` no llega y no está en `excepciones` | L05 | falta |
@@ -64,7 +64,7 @@ Vocabulario cerrado de hallazgos (el código es lo que se cuenta):
 | `bloque-sin-declarar` | bloque que el perfil pide, sin contenido ni «no aplica» con motivo | N1 | falta |
 | `no-aplica-sin-motivo` | un «no aplica» sin su porqué | N1 | falta |
 | `ficha-incompleta` | token, componente o patrón al que le falta un campo de su ficha | N1 C, D, E | aviso |
-| `ley-sin-comprobacion` | se da por cumplida una ley marcada `[por construir]` | N0 | falta |
+| `norma-sin-comprobacion` | se da por cumplida una norma marcada `[por construir]` | N0 | falta |
 
 Falso positivo conocido: `estado-sin-definir` y `ficha-incompleta` saltan en casi
 todo componente de HoMenu hoy, porque no hay ficha por componente (paso 5 del
@@ -101,7 +101,7 @@ script: es lectura con la lista.
 4. **Abre el perfil**: busca el perfil de la instancia en `ops/diseno/bloques.json`
    y, de los 17 bloques, los que obligan. Para cada uno, dónde está su contenido
    (`DESIGN_SYSTEM.md`, `docs/diseno/ESTADO.md`, el código) o su «no aplica».
-5. **Recorre L01–L22** con la instancia delante. Por cada ley, una de tres: test
+5. **Recorre L01–L22** con la instancia delante. Por cada norma, una de tres: test
    en verde (paso 2 o 3), revisada a mano con su evidencia (fichero, línea o captura de
    `qa`), o `[por construir]` y entonces no se da por cumplida.
 6. **Redacta los hallazgos** con el código de la tabla, su evidencia y su arreglo:
@@ -111,7 +111,7 @@ script: es lectura con la lista.
    sueltos del fichero antes y después.
 
 Sale bien si: los dos tests del paso 2 en verde, `lint:base` sin subir, cada
-hallazgo con código, evidencia y arreglo, y cada ley con su estado dicho.
+hallazgo con código, evidencia y arreglo, y cada norma con su estado dicho.
 
 ## Lo que falló y por qué
 
@@ -122,11 +122,11 @@ hallazgo con código, evidencia y arreglo, y cada ley con su estado dicho.
 
 ## Registro de cambios
 
-- **2026-10-12** · Primera versión: doce códigos de hallazgo sobre las leyes de N0 y los bloques de N1, con el contraste y los bloques medidos por test (#591, paso 6 del orden de META-DISENO.md).
+- **2026-10-12** · Primera versión: doce códigos de hallazgo sobre las normas de N0 y los bloques de N1, con el contraste y los bloques medidos por test (#591, paso 6 del orden de META-DISENO.md).
 
 ## Fuentes y comprobación
 
-- `docs/diseno/META-DISENO.md`: las leyes (sección 2), los bloques (sección 3) y los perfiles (sección 4).
+- `docs/diseno/META-DISENO.md`: las normas (sección 2), los bloques (sección 3) y los perfiles (sección 4).
 - `docs/diseno/ESTADO.md`: decisiones D1–D12 y cifras de HoMenu.
 - WCAG 2.2: https://www.w3.org/TR/WCAG22/ (1.4.3, 1.4.11, 2.5.8).
 

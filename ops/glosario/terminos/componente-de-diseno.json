@@ -8,6 +8,10 @@
   "aplica_a": [
     "todas"
   ],
+  "relacionado": [
+    "ficha de componente",
+    "catálogo de componentes"
+  ],
   "en": "component",
   "entidades": [
     {

@@ -12,7 +12,7 @@ forja de skills (#458) y los niveles de las entidades:
 
 | Nivel | Qué es | Obedece a | Ejemplo |
 |---|---|---|---|
-| **N0** | Las **leyes** de diseño: valen para todo proyecto (contraste, tamaños, escalas, un valor por rol). | — | «Texto normal, 4,5:1 de contraste.» |
+| **N0** | Las **normas** de diseño: valen para todo proyecto (contraste, tamaños, escalas, un valor por rol). | — | «Texto normal, 4,5:1 de contraste.» |
 | **N1** | La **forja**: qué debe listar y definir cualquier sistema de diseño (bloques, campos, vocabularios cerrados). | N0 | «Todo sistema define su escala tipográfica con estos campos.» |
 | **N2** | El **perfil por tipo de proyecto**: qué parámetros se eligen y cuáles son obligatorios, opcionales o no aplican. | N1 | «Herramienta interna: densidad alta, sin modo táctil.» |
 | *Instancia* | El sistema de **un** proyecto: sus tokens, sus componentes y su documento. No es un nivel. | Su N2 | HoMenu hoy (`DESIGN_SYSTEM.md`, `tokens.js`); el panel mañana. |
@@ -20,7 +20,24 @@ forja de skills (#458) y los niveles de las entidades:
 Reglas de siempre en estos niveles: uno inferior **cumple** todo lo del superior,
 puede **añadir** y no puede **quitar ni relajar**; si chocan, se corrige el inferior.
 
-**Lo que se comparte entre proyectos es la ley y la forma, no los píxeles.** HoMenu
+**Cómo se leen N0 y N1.** Van en ficheros distintos (las normas en la sección 2, los
+bloques en `ops/diseno/bloques.json`) y se leen juntos: N1 obedece a N0. Ampliar un
+bloque de N1 no toca N0; cambiar una norma de N0 obliga a revisar los bloques que la
+aplican. Juntos son la **forja de diseño**, la familia entera.
+
+**Los mismos pasos con los nombres de la Base** (`docs/ops/BASE-FORJA.md`, §3.4):
+
+| Aquí | En la Base | Entidad |
+|---|---|---|
+| N0 + N1 | `forja` de la familia (nivel `meta`) | las normas de ámbito diseño, en `ops/normas.json`; los bloques, en `bloques.json` |
+| N2 | `plantilla` por tipo | `design-profile` (P1 a P6) |
+| Instancia | `pieza` | `design-system` de un proyecto (`project`: `homenu` o `panel`), con sus `token`, `component` y `pattern` |
+
+El **catálogo de componentes** (`/catalogo`, #259; lo que otras herramientas llaman
+Storybook) no es un nivel: es una vista de los `component` ya rellenos de una
+instancia, cada uno con su ficha.
+
+**Lo que se comparte entre proyectos es la norma y la forma, no los píxeles.** HoMenu
 y el panel no usarán el mismo botón ni la misma letra; sí el mismo criterio de
 contraste, la misma forma de definir un token y la misma lista de lo que hay que
 decidir. Ejemplo de Pablo: HoMenu usa DM Sans y el panel otra letra. Las dos
@@ -34,18 +51,19 @@ que su N2 permite.
   Es un sistema ya hecho; este documento no lo sustituye, lo pone en un marco.
 - **Forja de skills** (`ops/forja/`, #458): el mismo patrón de tres capas (criterios
   base, por tipo, por ficha). La skill y el agente `diseno` leerían N1 como sus criterios.
-- **Entidades** (#566): hacen falta cuatro entidades nuevas, `sistema-de-diseno`,
-  `token`, `componente` y `patron`. Se proponen allí; no se tocan desde aquí.
+- **Entidades** (#566, #652): `design-system`, `design-profile`, `token`, `component`
+  y `pattern` ya están en `ops/entidades.json`; las normas y los bloques son su nivel
+  `meta` y no tienen entidad propia. Sus términos viven en el glosario, dominio `diseno`.
 - **Panel de la factoría** (`homenu-panel`): hoy sin sistema de diseño (cinco líneas
   de CSS). Será la primera instancia del perfil P2 de N2.
 
-## 2. N0: las leyes
+## 2. N0: las normas
 
-Cada ley dice **cómo se comprueba**. Lo que obliga es un test o un lint, no el
+Cada norma dice **cómo se comprueba**. Lo que obliga es un test o un lint, no el
 texto (hereda el principio de las entidades). `[existe]` = ya hay en HoMenu;
 `[por construir]` = no.
 
-| Id | Ley | Cómo se comprueba |
+| Id | Norma | Cómo se comprueba |
 |---|---|---|
 | L01 | **Ningún valor visual suelto.** Color, tamaño, espacio, radio, sombra, capa y tiempo salen de un token. | Lint `no-valor-suelto` con base que solo baja `[existe]` |
 | L02 | **Un token por rol, no por valor.** Se llama `texto-secundario`, no `gris-600`. | Test de nombres contra el vocabulario de roles `[por construir]` |
@@ -398,26 +416,26 @@ Leído el 11 oct 2026 a partir de las cabeceras de `DESIGN_SYSTEM.md` y de
 
 ## 6. Qué se construye, en qué orden
 
-1. **Aprobar este documento** (leyes, bloques, perfiles). Lo que no convenza se corrige aquí.
+1. **Aprobar este documento** (normas, bloques, perfiles). Lo que no convenza se corrige aquí.
 2. **Dato.** `ops/diseno/bloques.json` con los bloques de N1, sus campos y sus vocabularios, y un test que exige a cada instancia declarar cada bloque (cubierto o «no aplica» con motivo). **Hecho el 12 oct 2026 (#591) el dato y su test contra este documento; falta la declaración por instancia.**
 3. **Primera instancia nueva: el panel (P2).** Tokens mínimos, componentes que usa (tabla, barra lateral, tarjeta de resumen, aviso), tema claro y oscuro, contraste medido. Lo construye `diseno` y lo juzga `qa`.
 4. **Contraste por test** para las dos instancias (L05), el cambio más barato con más efecto. **Hecho el 12 oct 2026 (#591) para HoMenu** (`src/design/contraste.test.js`, parejas en `ops/diseno/contraste.json`, 5 excepciones declaradas); el panel, cuando tenga tokens.
 5. **Ficha por componente** en HoMenu (L14, L17) conforme se migren pantallas.
-6. **Skill de revisión de diseño** (hermana de `higiene-de-skills`): lee N0 y N1 como criterios y revisa una instancia; el agente `diseno` la carga. **Hecho el 12 oct 2026 (#591): `revision-de-diseno`.** Las leyes de N0 se comprueban con tests (paso 4), no con una skill por nivel.
+6. **Skill de revisión de diseño** (hermana de `higiene-de-skills`): lee N0 y N1 como criterios y revisa una instancia; el agente `diseno` la carga. **Hecho el 12 oct 2026 (#591): `revision-de-diseno`.** Las normas de N0 se comprueban con tests (paso 4), no con una skill por nivel.
 7. **Entidades** `sistema-de-diseno`, `token`, `componente` y `patron` en el mapa (#566).
 
 ## 7. Riesgos y qué no hacer
 
 - **Sobreingeniería.** Con dos proyectos, un generador que construya sistemas a partir del perfil sería excesivo. El valor está en N0 con tests, N1 como lista de bloques que se exige y N2 como tabla de parámetros. Un generador, si llega, llega después.
-- **Compartir píxeles.** Un paquete común de componentes entre HoMenu y el panel los ataría: son repos, lenguajes visuales y ritmos distintos. Se comparte la ley y la forma.
-- **Prosa sin test.** Si una ley no tiene comprobación, queda marcada `[por construir]` y no cuenta como cumplida.
+- **Compartir píxeles.** Un paquete común de componentes entre HoMenu y el panel los ataría: son repos, lenguajes visuales y ritmos distintos. Se comparte la norma y la forma.
+- **Prosa sin test.** Si una norma no tiene comprobación, queda marcada `[por construir]` y no cuenta como cumplida.
 - **Empezar por el aspecto.** El orden de 6 pone el contraste y el dato antes que el CSS bonito.
 
 ## 8. Decisiones para Pablo
 
 1. **¿Dónde vive el meta-sistema?** Recomendado: en MenuPlan (`docs/diseno/`), porque ahí están el agente `diseno`, la forja y el CI; el panel y cualquier proyecto nuevo lo citan. Alternativa: un repo propio.
 2. **¿Accesibilidad objetivo?** Recomendado: WCAG 2.2 AA para todos los perfiles que tienen pantalla.
-3. **¿Qué comparten HoMenu y el panel?** Recomendado: solo la ley y la forma; el panel tiene su propia identidad de «factoría», sobria. Alternativa: compartir el verde de marca como acento.
+3. **¿Qué comparten HoMenu y el panel?** Recomendado: solo la norma y la forma; el panel tiene su propia identidad de «factoría», sobria. Alternativa: compartir el verde de marca como acento.
 4. **¿Orden?** Recomendado: el de la sección 6, empezando por el panel como primera instancia.
 
 ## Fuentes
