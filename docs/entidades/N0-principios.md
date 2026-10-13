@@ -178,7 +178,7 @@ Principio: `log-what-happens` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el 
 
 Principio: `deprecate-not-delete` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
 
-**Desarrollo.** Un id, un campo, un valor o un término que deja de usarse se marca `retired` y dice qué lo sustituye (`replaced_by`). No se borra ni se reutiliza el nombre. Un retirado no vuelve a activo. Un cambio de definición que no cambia el significado se registra con su motivo.
+**Desarrollo.** Salvo las entidades (ver «Quitar o sustituir una entidad»), un id, un campo, un valor o un término que deja de usarse se marca `retired` y dice qué lo sustituye (`replaced_by`). No se borra ni se reutiliza el nombre. Un retirado no vuelve a activo. Un cambio de definición que no cambia el significado se registra con su motivo.
 
 **Por qué.** El glosario y los vocabularios ya lo hacen, y hay test. Hoy ningún término del glosario está retirado. Se mide con `ls ops/glosario/terminos | wc -l` (66 fichas en staging, 84 con las de este PR) y `grep -l '"estado": "retirado"' ops/glosario/terminos/*.json` (ninguna). En cambio, la base borra de verdad en despensa, menús y favoritos sin dejar rastro.
 

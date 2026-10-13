@@ -375,7 +375,7 @@ describe("el registro de entidades", () => {
     expect(prohibidosDe(termino(G, "aprendizaje"))).toContain("lección");
   });
 
-  it("el control (antes comprobación, #682) es la entidad de lo que comprueba una norma, ", () => {
+  it("el control (antes comprobación, #682) es la entidad de lo que comprueba una norma", () => {
     expect(E("control").term).toBe("control");
     expect(E("control").name).toBe("Control");
     expect(hay("norm", "enforced_by", "control")).toBe(true);
