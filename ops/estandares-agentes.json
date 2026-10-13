@@ -4360,9 +4360,7 @@
   },
   "normas_sin_juez": {
     "produccion-solo-desde-main": "Gateway de Pablo: lo juzga él al pulsar fusionar a main, no un agente juez",
-    "ajustes-servicios-ok-pablo": "Gateway de Pablo: el ajuste lo aprueba o lo hace él; ningún agente juez lo ve antes",
     "gasto-ok-pablo": "Gateway de Pablo: el gasto lo aprueba él antes de lanzarlo; ningún agente juez lo ve antes",
-    "fuera-de-onedrive": "Lo ve el arranque de la sesión por la ruta de la carpeta; no hay un cambio que juzgar",
     "copia-restaurada-ensayada": "Lo comprueba el ensayo mensual de copias (#282), que lanza Pablo; no hay un cambio que juzgar"
   }
 }

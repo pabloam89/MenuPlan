@@ -1,0 +1,5 @@
+{
+  "$comentario": "Techos de ops/normas.test.js que solo bajan (#682). El test compara este fichero con el de origin/staging y falla si algún número sube. Se bajan al dar su test del juez a una norma de juez o al quitar el ejecutor «persona» de una norma.",
+  "juez_sin_test_del_juez": 89,
+  "ejecutor_persona": 70
+}

@@ -15,8 +15,8 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `tope-diario-voz` | lola | DEBE | **Tope diario de voz.** Cuando transcribe notas de voz, el bot Lola DEBE aplicar un tope diario. | codigo_en_ejecucion · dura | test: `api/_bot/voz.test.js` | — | `bounded-blast-radius` | bot | construir, juzgar |
 | `jueces-sin-escritura` | agente | NO DEBE | **Jueces sin escritura.** Cuando es un juez, cada agente NO DEBE tener Edit ni Write, contando las herramientas que da la memoria. | ci · dura | test: `.claude/agentes.test.js` | — | `builder-does-not-judge` | process | construir, juzgar |
 | `produccion-solo-desde-main` | despliegue | DEBE | **Producción solo desde main.** Cada despliegue a producción DEBE salir solo de main. | nada · blanda | juicio | — | `progressive-deploy-with-rollback` | infra | operar |
-| `ajustes-servicios-ok-pablo` | ajuste | DEBE | **Ajustes con OK de Pablo.** Cada cambio de ajustes de GitHub, Vercel o Supabase DEBE pedir el OK de Pablo. | clasificador · blanda | juicio | `reglas-del-repo` | `user-does-not-widen-permission` | infra | operar |
-| `secretos-ok-pablo` | secreto | DEBE | **Secretos con OK de Pablo.** Cuando se crea, rota o cambia, cada secreto o variable de entorno DEBE pedir el OK de Pablo. | clasificador · blanda | juicio | — | `user-does-not-widen-permission` | infra | operar |
+| `ajustes-servicios-ok-pablo` | ajuste | DEBE | **Ajustes con OK de Pablo.** Cada cambio de ajustes de GitHub, Vercel o Supabase DEBE pedir el OK de Pablo. | clasificador · blanda | test: `.claude/hooks/guardia.test.js` | `reglas-del-repo` | `user-does-not-widen-permission` | infra | operar |
+| `secretos-ok-pablo` | secreto | DEBE | **Secretos con OK de Pablo.** Cuando se crea, rota o cambia, cada secreto o variable de entorno DEBE pedir el OK de Pablo. | clasificador · blanda | test: `.claude/hooks/guardia.test.js` | — | `user-does-not-widen-permission` | infra | operar |
 | `permisos-ok-pablo` | permiso | DEBE | **Permisos con OK de Pablo.** Cuando amplía los permisos de .claude/settings.json, cada cambio de permisos o de hooks de Claude DEBE pedir el OK de Pablo. | persona · blanda | juicio | — | `user-does-not-widen-permission` | infra | construir, operar |
 | `evals-antes-de-fusionar` | lola | DEBE | **Evals antes de fusionar.** Cuando cambia lo que lee, el bot Lola DEBE pasar las evals antes de fusionar. | nada · blanda | juicio | `escribir-lo-de-lola` | `test-is-the-contract` | bot | construir, medir |
 | `endpoint-nuevo-juez-seguridad` | endpoint | DEBE | **Endpoint nuevo al juez.** Cuando es nuevo, cada endpoint de la app DEBE pasar por el juez seguridad. | nada · blanda | juicio | — | `builder-does-not-judge` | api | construir, juzgar |
@@ -29,8 +29,8 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `migracion-pablo-solo-pablo` | migracion | DEBE | **Migraciones de Pablo.** Cuando contrae o toca permisos (--pablo), cada migración DEBE lanzarla solo Pablo. | guardia · semidura | test: `scripts/lib/permisoAplicar.test.js` | `apply-migration-pablo` | `reversibility-decides-autonomy` | data | operar |
 | `sin-sql-a-mano` | sesion | NO DEBE | **Sin SQL a mano.** Cada sesión de Claude NO DEBE escribir en producción con SQL a mano. | guardia · semidura | test: `.claude/hooks/guardia.test.js` | `sql-contra-produccion` | `plan-evaluated-before-apply` | data | diagnosticar, operar |
 | `staging-exige-tests` | staging | DEBE | **Staging exige tests.** La rama staging DEBE recibir cambios solo con el check tests en verde, sea por PR o por push. | github_regla · semidura | planos: check_obligatorio:staging | `push-directo-a-staging` | `test-is-the-contract` | infra | operar |
-| `limite-mensajes-bot` | lola | DEBE | **Límite mensual de mensajes.** El bot Lola DEBE limitar a 100 los mensajes al mes de cada casa. | codigo_en_ejecucion · semidura | juicio | — | `caller-pays-quota` | bot | construir, juzgar |
-| `limite-por-ip` | endpoint | DEBE | **Límite por IP.** Cuando usa IA, cada endpoint de la app DEBE tener un límite por IP. | codigo_en_ejecucion · semidura | juicio | — | `abuse-of-business-flows-limited` | api | construir, juzgar |
+| `limite-mensajes-bot` | lola | DEBE | **Límite mensual de mensajes.** El bot Lola DEBE limitar a 100 los mensajes al mes de cada casa. | codigo_en_ejecucion · semidura | test: `api/bot/turnoRapido.test.js` | — | `caller-pays-quota` | bot | construir, juzgar |
+| `limite-por-ip` | endpoint | DEBE | **Límite por IP.** Cuando usa IA, cada endpoint de la app DEBE tener un límite por IP. | codigo_en_ejecucion · semidura | test: `api/_guard.test.js` | — | `abuse-of-business-flows-limited` | api | construir, juzgar |
 | `rol-solo-lectura` | base | DEBE | **Consultas de solo lectura.** Cuando se consulta, la base de datos de producción DEBE entrar con el rol de solo lectura. | base_datos · semidura | test: `scripts/rolLectura.test.js` | — | `least-short-lived-permissions` | data | diagnosticar, medir |
 | `migracion-aplicada-no-se-edita` | migracion | DEBE | **Migración aplicada intocable.** Cuando ya está aplicada, cada migración DEBE dejarse como está y corregirse con una migración nueva. | guardia · semidura | test: `.claude/hooks/guardia.test.js` | `migracion-estado-ilegible`, `migracion-aplicada` | `expand-and-contract` | data | construir |
 | `secretos-en-environments` | secreto | DEBE | **Secretos en environments.** Cuando está en un environment, cada secreto o variable de entorno DEBE llegar solo a la rama staging. | github_regla · dura | planos: environment_solo_rama:staging | — | `least-short-lived-permissions` | infra | operar |
@@ -66,7 +66,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `vocabulario-cerrado` | dato | DEBE | **Vocabulario cerrado.** Cuando se va a agrupar o contar, cada tabla y cada campo de la base DEBE tener un vocabulario cerrado. | nada · blanda | test: `src/lib/vocabularios.test.js` | — | `closed-vocabulary` | data | construir, juzgar, decidir |
 | `campo-con-lector` | dato | DEBE | **Dato con lector.** Cada tabla y cada campo de la base DEBE tener algún lector. | persona · blanda | juicio | — | `one-fact-one-place` | data | construir, juzgar, decidir |
 | `hora-de-madrid` | sesion | DEBE | **Hora de Madrid.** Cuando da una hora, cada sesión de Claude DEBE sacarla de npm run hora y nunca de date. | nada · blanda | test: `scripts/hora.test.js` | — | `days-hours-zones` | process | operar, documentar |
-| `fuera-de-onedrive` | sesion | NO DEBE | **Fuera de OneDrive.** Cada sesión de Claude NO DEBE trabajar dentro de OneDrive. | guardia · blanda | juicio | — | `one-fact-one-place` | infra | operar |
+| `fuera-de-onedrive` | sesion | NO DEBE | **Fuera de OneDrive.** Cada sesión de Claude NO DEBE trabajar dentro de OneDrive. | guardia · blanda | script: `.claude/hooks/arranque.mjs` | — | `one-fact-one-place` | infra | operar |
 | `tests-del-fichero` | sesion | DEBE | **Tests del fichero.** Cada sesión de Claude DEBE lanzar los tests de los ficheros que toca y no la suite entera. | nada · blanda | juicio | — | `test-is-the-contract` | code | construir |
 | `lecciones-a-un-test` | fallo | DEBE | **Aprendizajes a un test.** Cada fallo DEBE dejar su aprendizaje en un test o en la guardia; si no se puede, en una regla o una skill; nunca en la memoria. | ci · blanda | script: `scripts/lib/avisosPr.mjs` | — | `highest-mechanism` | process | construir, diagnosticar |
 | `cuando-algo-falla` | fallo | DEBE | **Hasta el problema de fondo.** Cada fallo DEBE analizarse hasta su problema de fondo y registrarse como caso en un issue. | ci · semidura | test: `scripts/casos-pr.test.js` | `pr-sin-casos` | `class-not-case` | process | diagnosticar |
@@ -291,11 +291,49 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 
 | Tipo de control | Qué es | Normas |
 |---|---|---|
-| test | Un test del repo que falla en el CI | 95 |
+| test | Un test del repo que falla en el CI | 99 |
 | planos | Una condición de la medición semanal de ops/planos.json (con red, cada lunes) | 7 |
 | workflow | Un paso de un workflow de GitHub Actions que falla el check | 2 |
-| script | Un script del repo que comprueba y se lanza a mano o en el build | 7 |
-| juicio | El juicio de una persona o de un LLM sobre sus casos: no hay nada que falle solo | 94 |
+| script | Un script del repo que comprueba y se lanza a mano o en el build | 8 |
+| juicio | El juicio de una persona o de un LLM sobre sus casos: no hay nada que falle solo | 89 |
+
+## Ejes del control (#682)
+
+Cada norma dice en cinco ejes cerrados cómo se controla (`control_procesador`, `control_fuerza`, `control_momento`, `control_que_mira`, `control_cobertura`). **Ninguna persona es procesador**: lo decide código o un juez, y un juez solo cuenta si tiene su test del juez (`test_del_juez`); mientras no lo tiene, la norma queda sin comprobar.
+
+| Procesador \ Fuerza | bloquea | avisa |
+|---|---|---|
+| codigo | 96 | 20 |
+| juez | 0 | 89 |
+
+| control_procesador | Qué es | Normas |
+|---|---|---|
+| codigo | Un programa decide si se cumple: un test, un script, un workflow o el código en ejecución | 116 |
+| juez | Un agente juez lo decide leyendo el trabajo, con su motivo y pudiendo decir «no sé»; solo cuenta con su test del juez | 89 |
+
+| control_fuerza | Qué es | Normas |
+|---|---|---|
+| bloquea | Si no se cumple, lo detiene: el cambio o la acción no pasa | 96 |
+| avisa | Si no se cumple, lo dice y deja pasar | 109 |
+
+| control_momento | Qué es | Normas |
+|---|---|---|
+| editar | Al editar un fichero o lanzar un comando (la guardia) | 29 |
+| pr | Al abrir o fusionar un PR (el CI o el juez de ese PR) | 172 |
+| periodico | En un pase programado o a mano, fuera de un PR | 4 |
+
+| control_que_mira | Qué es | Normas |
+|---|---|---|
+| forma | Cómo está escrito: estructura, vocabulario y formato | 52 |
+| contenido | Lo que dice, a juicio de quien lo lee | 89 |
+| comportamiento | Lo que hace el sistema al ejecutarse o al aplicarse | 64 |
+
+| control_cobertura | Qué es | Normas |
+|---|---|---|
+| total | Alcanza a cualquiera y a toda la norma | 69 |
+| parcial | Deja fuera a alguien o a una parte de la norma | 136 |
+
+Normas de juez sin test del juez: 89 de 89. Normas con ejecutor «persona» (sin quitar todavía): 70.
 
 ## Avisos de la guardia
 

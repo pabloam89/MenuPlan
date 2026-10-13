@@ -326,7 +326,7 @@ describe("el registro de entidades", () => {
   it("tiene las entidades que pidió Pablo, las del auditor de datos y las nuevas de #652", () => {
     const activas = DATOS.entities.filter((e) => e.status === "active").map((e) => e.id);
     for (const id of [...PEDIDAS, "identity", "agent", "skill", "hook", "issue", "root-problem", "case", "assignment", "decision", "pull-request", "branch", "migration", "data-source", "module", "table", "vocabulary"]) expect(activas, id).toContain(id);
-    for (const id of ["project", "repo", "resource", "agent-task", "standard", "workflow", "plane", "assignment-type", "verification"]) expect(activas, id).toContain(id);
+    for (const id of ["project", "repo", "resource", "agent-task", "standard", "workflow", "plane", "assignment-type", "control"]) expect(activas, id).toContain(id);
     for (const id of ["design-system", "design-profile", "token", "component", "pattern"]) expect(activas, id).toContain(id);
     for (const id of ["household", "person", "recipe", "ingredient", "menu", "pantry", "shopping-list", "lola-conversation", "account", "menu-week", "group", "chat"]) expect(E(id)?.scope, id).toBe("vertical");
   });
@@ -345,7 +345,7 @@ describe("el registro de entidades", () => {
 
   it("both no es un cajón: las 10 que quedan explican su doble lado, y las del proceso son horizontales", () => {
     const both = DATOS.entities.filter((e) => e.status === "active" && e.scope === "both").map((e) => e.id).sort();
-    expect(both).toEqual(["environment", "eval", "event", "metric", "norm", "principle", "resource", "verification", "vocabulary", "workflow"]);
+    expect(both).toEqual(["control", "environment", "eval", "event", "metric", "norm", "principle", "resource", "vocabulary", "workflow"]);
     for (const id of both) expect(E(id).role_by_scope, id).toMatch(/Proceso: .*Producto: |Proceso: .*Producto:/);
     for (const id of ["issue", "case", "root-problem", "assignment", "decision", "pull-request", "branch", "agent", "agent-task", "skill", "standard", "service"]) expect(E(id).scope, id).toBe("horizontal");
     expect(E("repo").scope).toBe("vertical");
@@ -422,12 +422,11 @@ describe("el registro de entidades", () => {
     expect(sinonimosDe(G, l)).toContain("lección");
   });
 
-  it("la verificación (comprobación) es la entidad del fichero que vigila una norma; «control» queda para el glosario", () => {
-    expect(E("verification").term).toBe("comprobación");
-    expect(E("verification").name).toBe("Comprobación");
-    expect(DATOS.entities.find((e) => e.id === "control")).toBeUndefined();
-    expect(termino(G, "control").en).toBeUndefined();
-    expect(hay("norm", "enforced_by", "verification")).toBe(true);
+  it("el control (antes comprobación, #682) es la entidad de lo que comprueba una norma, y 'verification' queda retirada y renombrada", () => {
+    expect(E("control").term).toBe("control");
+    expect(E("control").name).toBe("Control");
+    expect(E("verification")).toMatchObject({ status: "retired", replaced_by: "control", becomes: "renamed" });
+    expect(hay("norm", "enforced_by", "control")).toBe(true);
   });
 
   it("la norma no se cumple por id de mecanismo (EJECUTORES no es mecanismos.json), y el evento nombra skill y agente", () => {
@@ -668,7 +667,7 @@ describe("autotest: cada regla falla con datos malos", () => {
     expect(con((d) => { d.entities.find((x) => x.id === "secret").becomes_types = ["inventado"]; })).toMatch(/becomes type necesita becomes_types/);
     expect(con((d) => { d.entities.find((x) => x.id === "judge").becomes_types = ["clave"]; })).toMatch(/becomes_types solo va con becomes type/);
     expect(con((d) => { d.entities.find((x) => x.id === "judge").readers = ["ops/entidades.json"]; })).toMatch(/una entidad retirada no lleva lectores/);
-    expect(Object.keys(BECOMES)).toEqual(["value", "field", "event_type", "type"]);
+    expect(Object.keys(BECOMES)).toEqual(["value", "field", "event_type", "type", "renamed"]);
     const d = copia();
     d.entities = d.entities.filter((e) => e.id !== "session");
     expect(problemasDeVida(d, [{ id: "session", status: "active" }]).join()).toMatch(/session: estaba en el registro y ha desaparecido/);

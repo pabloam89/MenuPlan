@@ -59,6 +59,44 @@ export const RIESGOS = {
   bajo: "Molesta, se ve enseguida y se arregla",
 };
 
+/**
+ * Los cinco ejes del control de una norma (#682, fondo #652). Cada norma los dice con un valor cerrado en
+ * `control_procesador`, `control_fuerza`, `control_momento`, `control_que_mira` y `control_cobertura` (con el
+ * prefijo porque `fuerza` ya es el grado de exigencia de la norma). Ninguna persona es procesador: el
+ * objetivo es 0 % de intervención humana evitable; en una puerta irreducible (subir a main, secretos, dinero)
+ * comprueba la guardia, que es código, y la persona solo aprueba.
+ */
+export const PROCESADORES = {
+  codigo: "Un programa decide si se cumple: un test, un script, un workflow o el código en ejecución",
+  juez: "Un agente juez lo decide leyendo el trabajo, con su motivo y pudiendo decir «no sé»; solo cuenta con su test del juez",
+};
+export const FUERZAS_CONTROL = {
+  bloquea: "Si no se cumple, lo detiene: el cambio o la acción no pasa",
+  avisa: "Si no se cumple, lo dice y deja pasar",
+};
+export const MOMENTOS = {
+  editar: "Al editar un fichero o lanzar un comando (la guardia)",
+  pr: "Al abrir o fusionar un PR (el CI o el juez de ese PR)",
+  periodico: "En un pase programado o a mano, fuera de un PR",
+};
+export const QUE_MIRA = {
+  forma: "Cómo está escrito: estructura, vocabulario y formato",
+  contenido: "Lo que dice, a juicio de quien lo lee",
+  comportamiento: "Lo que hace el sistema al ejecutarse o al aplicarse",
+};
+export const COBERTURAS = {
+  total: "Alcanza a cualquiera y a toda la norma",
+  parcial: "Deja fuera a alguien o a una parte de la norma",
+};
+/** Los cinco ejes: campo de la norma → su vocabulario. */
+export const EJES_CONTROL = {
+  control_procesador: PROCESADORES,
+  control_fuerza: FUERZAS_CONTROL,
+  control_momento: MOMENTOS,
+  control_que_mira: QUE_MIRA,
+  control_cobertura: COBERTURAS,
+};
+
 /** El ámbito de una norma (#619): el vocabulario único de scripts/lib/ambitos.mjs, el mismo que el área de un principio. */
 export { AMBITOS };
 
@@ -85,9 +123,9 @@ export const RUTA_PLANOS = "ops/planos.json";
  */
 export const CAMPOS = [
   "id", "nombre", "sujeto", "fuerza", "exigencia", "donde", "ejecutor", "alcance", "ante_fallo",
-  "control", "control_tipo", "veredicto", "riesgo", "issue", "principio", "ambito", "acciones",
+  "control", "control_tipo", "control_procesador", "control_fuerza", "control_momento", "control_que_mira", "control_cobertura", "veredicto", "riesgo", "issue", "principio", "ambito", "acciones",
 ];
-export const CAMPOS_OPCIONALES = ["condicion", "nota", "criterio_planos", "test_fallo", "desde", "concepto"];
+export const CAMPOS_OPCIONALES = ["condicion", "nota", "criterio_planos", "test_fallo", "desde", "concepto", "test_del_juez"];
 
 export const RUTA_REGISTRO = "ops/normas.json";
 export const RUTA_MD = "docs/ops/NORMAS.md";
@@ -140,6 +178,43 @@ export function problemasDeControl(n, id) {
 }
 
 /**
+ * Errores de los ejes del control (#682): cada eje en su vocabulario, el procesador cuadra con `control_tipo`
+ * (`juicio` lo juzga un juez; lo demás es código) y un juez lleva `test_del_juez`: la ruta de su test o null si
+ * aún no lo tiene (la norma queda «sin test del juez», no comprobada). Un procesador de código no lo lleva.
+ */
+export function problemasDeEjes(n, id) {
+  const malos = [];
+  for (const [campo, v] of Object.entries(EJES_CONTROL)) if (campo in n && !(n[campo] in v)) malos.push(`${id}: ${campo} «${n[campo]}» no está en el vocabulario (${Object.keys(v).join(", ")})`);
+  if ((n.control_procesador === "juez") !== (n.control_tipo === "juicio")) malos.push(`${id}: el procesador «${n.control_procesador}» no cuadra con control_tipo «${n.control_tipo}» (juicio pide juez; lo demás, código)`);
+  if (n.control_procesador === "juez") {
+    if (!("test_del_juez" in n) || !(n.test_del_juez === null || (typeof n.test_del_juez === "string" && n.test_del_juez.trim()))) malos.push(`${id}: un control de juez lleva «test_del_juez» (la ruta de su test, o null si aún no lo tiene)`);
+  } else if ("test_del_juez" in n) malos.push(`${id}: «test_del_juez» solo con procesador «juez»`);
+  if (n.control_momento === "periodico" && n.control_fuerza === "bloquea") malos.push(`${id}: un control que bloquea no es periódico: bloquea en el push, el merge o el comando, y un pase programado solo avisa (usa momento «pr» o «editar»)`);
+  if (n.control_procesador === "juez" && n.control_momento === "editar") malos.push(`${id}: un juez no procesa al editar (la guardia es código): procesador «codigo» o momento «pr»`);
+  if (n.control_procesador === "juez" && EJECUTORES_DE_CODIGO.includes(n.ejecutor)) malos.push(`${id}: el ejecutor «${n.ejecutor}» es código, no puede llevar procesador «juez»: en una puerta comprueba el código y la persona solo aprueba`);
+  return malos;
+}
+
+/** Ejecutores que son código: con ellos el procesador es «codigo», nunca un juez. */
+export const EJECUTORES_DE_CODIGO = ["guardia", "clasificador", "ci", "github_regla", "codigo_en_ejecucion", "script_propio", "base_datos", "proveedor"];
+
+/**
+ * Un test del juez de verdad: un *.test.js o un casos.json que contiene el id de la norma (existsSync no basta:
+ * una ruta cualquiera que exista no prueba nada). Devuelve el motivo o null si vale.
+ */
+export function motivoTestDelJuezMalo(n, raiz) {
+  const r = n.test_del_juez;
+  if (typeof r !== "string") return null;
+  if (!existsSync(join(raiz, r))) return "no existe";
+  if (/\.test\.(js|jsx|mjs)$/.test(r)) return null;
+  if (/(^|\/)casos\.json$/.test(r) && readFileSync(join(raiz, r), "utf8").includes(n.id)) return null;
+  return "debe ser un *.test.js o un casos.json que nombre el id de la norma";
+}
+
+/** Las normas cuyo control lo juzga un juez y aún no tiene su test: no comprobadas. */
+export const sinTestDelJuez = (normas) => normas.filter((n) => n.control_procesador === "juez" && n.test_del_juez == null);
+
+/**
  * Errores de forma de una norma: los campos de regla (regla.mjs), los de dureza, el vocabulario y
  * que `control` y `control_tipo` cuenten lo mismo. Lista vacía si está bien. `sujetos`: el
  * vocabulario del registro.
@@ -155,6 +230,7 @@ export function problemasDeForma(n, sujetos) {
   const vocab = [["ejecutor", EJECUTORES], ["alcance", ALCANCES], ["ante_fallo", ANTE_FALLO], ["veredicto", VEREDICTOS], ["riesgo", RIESGOS], ["control_tipo", CONTROL_TIPOS]];
   for (const [campo, v] of vocab) if (!(n[campo] in v)) malos.push(`${id}: ${campo} «${n[campo]}» no está en el vocabulario (${Object.keys(v).join(", ")})`);
   malos.push(...problemasDeControl(n, id));
+  malos.push(...problemasDeEjes(n, id));
   if (n.issue !== null && !Number.isInteger(n.issue)) malos.push(`${id}: «issue» es un número o null`);
   // La unión con su principio (#619): que el principio exista lo mira ops/uniones.test.js, que lee la lista.
   if (typeof n.principio !== "string" || !ID_KEBAB.test(n.principio)) malos.push(`${id}: «principio» es el id de un principio de docs/PRINCIPIOS.md`);
@@ -206,6 +282,7 @@ export function testExiste(test, { raiz, planos }) {
  */
 export function problemasDeDureza(n, ctx) {
   const malos = [];
+  { const m = motivoTestDelJuezMalo(n, ctx.raiz); if (m) malos.push(`${n.id}: su test_del_juez «${n.test_del_juez}» ${m}`); }
   if (!controlExiste(n, ctx)) malos.push(`${n.id}: su control «${n.control}»${n.criterio_planos ? ` (${n.criterio_planos})` : ""} no existe`);
   if (n.veredicto === "dura") {
     if (!EJECUTORES_DEL_SISTEMA.includes(n.ejecutor)) malos.push(`${n.id}: dura, pero su ejecutor (${n.ejecutor}) no es del sistema`);
@@ -343,6 +420,11 @@ export function generarMd(registro, avisos) {
   for (const [id, a] of Object.entries(AMBITOS)) L.push(`| ${id} | ${celda(a.que)} | ${normas.filter((n) => n.ambito === id).length} |`);
   L.push("", "## Cómo se comprueban", "", "| Tipo de control | Qué es | Normas |", "|---|---|---|");
   for (const [id, t] of Object.entries(CONTROL_TIPOS)) L.push(`| ${id} | ${celda(t.que)} | ${normas.filter((n) => n.control_tipo === id).length} |`);
+  const rc = recuento(normas);
+  L.push("", "## Ejes del control (#682)", "", "Cada norma dice en cinco ejes cerrados cómo se controla (`control_procesador`, `control_fuerza`, `control_momento`, `control_que_mira`, `control_cobertura`). **Ninguna persona es procesador**: lo decide código o un juez, y un juez solo cuenta si tiene su test del juez (`test_del_juez`); mientras no lo tiene, la norma queda sin comprobar.", "", "| Procesador \\ Fuerza | bloquea | avisa |", "|---|---|---|");
+  for (const [p, f] of Object.entries(rc.procesador_fuerza)) L.push(`| ${p} | ${f.bloquea} | ${f.avisa} |`);
+  for (const [campo, v] of Object.entries(EJES_CONTROL)) L.push("", `| ${campo} | Qué es | Normas |`, "|---|---|---|", ...Object.entries(v).map(([id, que]) => `| ${id} | ${celda(que)} | ${rc.ejes[campo][id]} |`));
+  L.push("", `Normas de juez sin test del juez: ${rc.sin_test_del_juez} de ${rc.ejes.control_procesador.juez}. Normas con ejecutor «persona» (sin quitar todavía): ${rc.ejecutor_persona}.`);
   L.push("", "## Avisos de la guardia", "", "| Aviso | Norma | Qué se niega |", "|---|---|---|");
   for (const [id, a] of Object.entries(avisos)) L.push(`| \`${id}\` | \`${a.codigo}\` | ${celda(a.que)} |`);
   L.push(
@@ -575,5 +657,11 @@ export function medirFondo(issues) {
 /** Recuento por veredicto, por riesgo y por tipo de control: las cifras de partida. */
 export function recuento(normas) {
   const por = (campo, vocab) => Object.fromEntries(Object.keys(vocab).map((k) => [k, normas.filter((n) => n[campo] === k).length]));
-  return { total: normas.length, veredicto: por("veredicto", VEREDICTOS), riesgo: por("riesgo", RIESGOS), control_tipo: por("control_tipo", CONTROL_TIPOS) };
+  const ejes = Object.fromEntries(Object.entries(EJES_CONTROL).map(([campo, v]) => [campo, por(campo, v)]));
+  // La tabla procesador × fuerza del control (#682): cuántas normas en cada casilla.
+  const procesador_fuerza = Object.fromEntries(Object.keys(PROCESADORES).map((p) => [p, Object.fromEntries(Object.keys(FUERZAS_CONTROL).map((f) => [f, normas.filter((n) => n.control_procesador === p && n.control_fuerza === f).length]))]));
+  return {
+    total: normas.length, veredicto: por("veredicto", VEREDICTOS), riesgo: por("riesgo", RIESGOS), control_tipo: por("control_tipo", CONTROL_TIPOS),
+    ejes, procesador_fuerza, sin_test_del_juez: sinTestDelJuez(normas).length, ejecutor_persona: normas.filter((n) => n.ejecutor === "persona").length,
+  };
 }

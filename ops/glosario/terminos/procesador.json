@@ -1,0 +1,22 @@
+{
+  "termino": "procesador",
+  "estado": "activo",
+  "clase": "rol",
+  "dominio": "base",
+  "definicion": "Un rol que decide si un control se cumple: el código o un juez, nunca una persona.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "control",
+    "juez",
+    "test del juez"
+  ],
+  "entidades": [
+    {
+      "entidad": "control",
+      "relacion": "rol_de"
+    }
+  ]
+}

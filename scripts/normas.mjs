@@ -62,6 +62,7 @@ const ids = new Set(registro.normas.map((n) => n.id));
 const r = recuento(registro.normas);
 console.log(`normas total: ${r.total} ${Object.entries(r.veredicto).map(([k, v]) => `${k}: ${v}`).join(" ")}`);
 console.log(`normas control_tipo ${Object.entries(r.control_tipo).map(([k, v]) => `${k}: ${v}`).join(" ")}`);
+console.log(`normas control_ejes ${Object.entries({ ...r.ejes.control_procesador, ...r.ejes.control_fuerza, juez_sin_test: r.sin_test_del_juez, ejecutor_persona: r.ejecutor_persona }).map(([k, v]) => `${k}: ${v}`).join(" ")}`);
 console.log(`normas sujetos: ${Object.keys(registro.sujetos).length} avisos_guardia: ${Object.keys(AVISOS).length}`);
 console.log(`normas riesgo ${Object.entries(r.riesgo).map(([k, v]) => `${k}: ${v}`).join(" ")}`);
 const { actual, citasMalas } = medirFrases(RAIZ, ids);

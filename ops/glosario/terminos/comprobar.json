@@ -29,7 +29,7 @@
   "nota": "No es «verificar», que es el paso 8 del flujo, ni «validar», que mira la forma de un dato.",
   "entidades": [
     {
-      "entidad": "verification",
+      "entidad": "control",
       "relacion": "accion_sobre"
     }
   ]

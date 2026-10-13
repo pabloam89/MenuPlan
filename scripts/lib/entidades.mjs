@@ -79,6 +79,7 @@ export const BECOMES = {
   field: "un campo de otra entidad",
   event_type: "un tipo de evento",
   type: "un tipo de otra entidad",
+  renamed: "la misma entidad con otro id y otro nombre: cambia cómo se llama, no qué es",
 };
 
 /** Cómo vive hoy una entidad. */
