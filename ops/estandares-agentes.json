@@ -729,6 +729,7 @@
             "infra",
             "process"
           ],
+          "n2": "operar.infra+process",
           "normas": [
             "cuando-algo-falla"
           ],
@@ -759,6 +760,7 @@
           "ambitos": [
             "infra"
           ],
+          "n2": "operar.infra",
           "reglas": [
             {
               "nombre": "Plan antes de main",
@@ -798,6 +800,7 @@
           "ambitos": [
             "infra"
           ],
+          "n2": "operar.infra",
           "normas": [
             "uniones-antes-de-borrar"
           ],
@@ -840,6 +843,7 @@
           "ambitos": [
             "infra"
           ],
+          "n2": "diagnosticar.infra",
           "comunes": [
             "causa-frente-a-sintoma",
             "buscar-lo-ya-apuntado"
@@ -898,6 +902,7 @@
             "infra",
             "code"
           ],
+          "n2": "construir.code+infra",
           "normas": [
             "secretos-en-environments",
             "secretos-de-repo",
@@ -965,6 +970,7 @@
             "infra",
             "code"
           ],
+          "n2": "construir.code+infra",
           "comunes": [
             "tests-de-lo-tocado"
           ],
@@ -1017,6 +1023,7 @@
           "ambitos": [
             "infra"
           ],
+          "n2": "operar.infra",
           "reglas": [
             {
               "nombre": "Un secreto, un uso",
@@ -1066,6 +1073,7 @@
           "ambitos": [
             "infra"
           ],
+          "n2": "operar.infra",
           "normas": [
             "build-valida-catalogo"
           ],
@@ -1123,6 +1131,7 @@
           "ambitos": [
             "process"
           ],
+          "n2": "documentar.process",
           "reglas": [
             {
               "nombre": "Fila por gateway",
@@ -1176,6 +1185,7 @@
             "code",
             "writing"
           ],
+          "n2": "construir.code+process+writing",
           "reglas": [
             {
               "nombre": "Datos con lector único",
@@ -1208,6 +1218,7 @@
           "ambitos": [
             "process"
           ],
+          "n2": "construir.process",
           "normas": [
             "test-visto-fallar"
           ],
@@ -1280,6 +1291,7 @@
           "ambitos": [
             "data"
           ],
+          "n2": "decidir.data",
           "comunes": [
             "donde-vive-el-dato"
           ],
@@ -1310,6 +1322,7 @@
           "ambitos": [
             "data"
           ],
+          "n2": "construir.data",
           "reglas": [
             {
               "nombre": "Claves técnica y natural",
@@ -1359,6 +1372,7 @@
           "ambitos": [
             "data"
           ],
+          "n2": "construir.data",
           "comunes": [
             "tests-de-lo-tocado"
           ],
@@ -1411,6 +1425,7 @@
           "ambitos": [
             "data"
           ],
+          "n2": "operar.data",
           "reglas": [
             {
               "nombre": "Ensayo que deshace",
@@ -1461,6 +1476,7 @@
           "ambitos": [
             "data"
           ],
+          "n2": "documentar.data",
           "comunes": [
             "base-solo-lectura"
           ],
@@ -1513,6 +1529,7 @@
           "ambitos": [
             "data"
           ],
+          "n2": "construir.data",
           "comunes": [
             "rls-escribe-datos-audita-seguridad"
           ],
@@ -1566,6 +1583,7 @@
           "ambitos": [
             "data"
           ],
+          "n2": "decidir.data",
           "comunes": [
             "donde-vive-el-dato"
           ],
@@ -1610,6 +1628,7 @@
           "ambitos": [
             "data"
           ],
+          "n2": "construir.data",
           "comunes": [
             "base-solo-lectura",
             "medir-antes-despues"
@@ -1669,6 +1688,7 @@
             "infra",
             "catalog"
           ],
+          "n2": "juzgar.catalog+code+infra",
           "normas": [
             "foodid-nulo-mira-las-dos-tablas"
           ],
@@ -1732,6 +1752,7 @@
           "ambitos": [
             "code"
           ],
+          "n2": "juzgar.code",
           "comunes": [
             "buscar-lo-ya-apuntado",
             "informe-comun"
@@ -1808,6 +1829,7 @@
           "ambitos": [
             "code"
           ],
+          "n2": "juzgar.code",
           "comunes": [
             "tests-de-lo-tocado"
           ],
@@ -1837,6 +1859,7 @@
           "ambitos": [
             "process"
           ],
+          "n2": "juzgar.process",
           "reglas": [
             {
               "nombre": "Skill sin novedades",
@@ -1889,6 +1912,7 @@
           "ambitos": [
             "process"
           ],
+          "n2": "juzgar.process",
           "reglas": [
             {
               "nombre": "Skills contrastadas",
@@ -1928,6 +1952,7 @@
             "process",
             "writing"
           ],
+          "n2": "juzgar.process+writing",
           "reglas": [
             {
               "nombre": "Cada regla con evidencia",
@@ -1978,6 +2003,7 @@
           "ambitos": [
             "code"
           ],
+          "n2": "juzgar.code",
           "reglas": [
             {
               "nombre": "Reutilizar si evita fallo",
@@ -2016,6 +2042,7 @@
           "ambitos": [
             "code"
           ],
+          "n2": "diagnosticar.code",
           "comunes": [
             "causa-frente-a-sintoma"
           ],
@@ -2061,6 +2088,7 @@
             "api",
             "bot"
           ],
+          "n2": "juzgar.api+bot",
           "reglas": [
             {
               "nombre": "Datos actores caminos",
@@ -2098,6 +2126,7 @@
           "ambitos": [
             "data"
           ],
+          "n2": "juzgar.data",
           "comunes": [
             "rls-escribe-datos-audita-seguridad",
             "base-solo-lectura"
@@ -2150,6 +2179,7 @@
           "ambitos": [
             "api"
           ],
+          "n2": "juzgar.api",
           "reglas": [
             {
               "nombre": "Autoriza el objeto",
@@ -2187,6 +2217,7 @@
           "ambitos": [
             "infra"
           ],
+          "n2": "juzgar.infra",
           "normas": [
             "no-secrets-in-prompt-or-client",
             "secretos-ok-pablo",
@@ -2219,6 +2250,7 @@
             "data",
             "product"
           ],
+          "n2": "juzgar.data+product",
           "reglas": [
             {
               "nombre": "Solo campos necesarios",
@@ -2267,6 +2299,7 @@
           "ambitos": [
             "bot"
           ],
+          "n2": "juzgar.bot",
           "reglas": [
             {
               "nombre": "Escritura acotada",
@@ -2293,6 +2326,7 @@
           "ambitos": [
             "data"
           ],
+          "n2": "juzgar.data",
           "comunes": [
             "base-solo-lectura"
           ],
@@ -2334,6 +2368,7 @@
           "ambitos": [
             "process"
           ],
+          "n2": "documentar.process",
           "comunes": [
             "informe-comun",
             "buscar-lo-ya-apuntado"
@@ -2392,6 +2427,7 @@
             "diseno",
             "code"
           ],
+          "n2": "construir.code+diseno+ui",
           "comunes": [
             "comprobar-design-system",
             "tests-de-lo-tocado"
@@ -2430,6 +2466,7 @@
             "diseno",
             "code"
           ],
+          "n2": "construir.code+diseno+ui",
           "reglas": [
             {
               "nombre": "Token con su porqué",
@@ -2497,6 +2534,7 @@
             "diseno",
             "code"
           ],
+          "n2": "construir.code+diseno+ui",
           "comunes": [
             "medir-antes-despues",
             "capturas-375-420"
@@ -2546,6 +2584,7 @@
           "ambitos": [
             "ui"
           ],
+          "n2": "construir.ui",
           "reglas": [
             {
               "nombre": "Original y derivado",
@@ -2601,6 +2640,7 @@
           "ambitos": [
             "ui"
           ],
+          "n2": "construir.ui",
           "reglas": [
             {
               "nombre": "Una familia, un estilo",
@@ -2643,6 +2683,7 @@
           "ambitos": [
             "ui"
           ],
+          "n2": "construir.ui",
           "reglas": [
             {
               "nombre": "Verde atado a tokens",
@@ -2696,6 +2737,7 @@
           "ambitos": [
             "ui"
           ],
+          "n2": "medir.ui",
           "comunes": [
             "capturas-375-420"
           ],
@@ -2743,6 +2785,7 @@
             "ui",
             "product"
           ],
+          "n2": "construir.product+ui",
           "reglas": [
             {
               "nombre": "Botón con verbo",
@@ -2799,6 +2842,7 @@
           "ambitos": [
             "ui"
           ],
+          "n2": "documentar.ui",
           "reglas": [
             {
               "nombre": "Cifra con comando",
@@ -2846,6 +2890,7 @@
             "bot",
             "code"
           ],
+          "n2": "construir.bot+code",
           "comunes": [
             "tests-de-lo-tocado",
             "evals-antes-despues"
@@ -2905,6 +2950,7 @@
           "ambitos": [
             "bot"
           ],
+          "n2": "diagnosticar.bot",
           "comunes": [
             "causa-frente-a-sintoma",
             "buscar-lo-ya-apuntado"
@@ -2951,6 +2997,7 @@
           "ambitos": [
             "bot"
           ],
+          "n2": "construir.bot",
           "comunes": [
             "evals-antes-despues"
           ],
@@ -3010,6 +3057,7 @@
             "bot",
             "code"
           ],
+          "n2": "construir.bot+code",
           "comunes": [
             "evals-antes-despues"
           ],
@@ -3067,6 +3115,7 @@
             "bot",
             "code"
           ],
+          "n2": "construir.bot+code",
           "reglas": [
             {
               "nombre": "Revisión de seguridad",
@@ -3099,6 +3148,7 @@
           "ambitos": [
             "bot"
           ],
+          "n2": "construir.bot",
           "comunes": [
             "medir-antes-despues",
             "evals-antes-despues"
@@ -3145,6 +3195,7 @@
           "ambitos": [
             "bot"
           ],
+          "n2": "construir.bot",
           "comunes": [
             "evals-antes-despues"
           ],
@@ -3191,6 +3242,7 @@
           "ambitos": [
             "bot"
           ],
+          "n2": "medir.bot",
           "comunes": [
             "medir-antes-despues",
             "evals-antes-despues"
@@ -3243,6 +3295,7 @@
             "ui",
             "product"
           ],
+          "n2": "juzgar.product+ui",
           "comunes": [
             "capturas-375-420"
           ],
@@ -3301,6 +3354,7 @@
             "ui",
             "diseno"
           ],
+          "n2": "juzgar.diseno+ui",
           "comunes": [
             "capturas-375-420"
           ],
@@ -3347,6 +3401,7 @@
             "ui",
             "diseno"
           ],
+          "n2": "juzgar.diseno+ui",
           "comunes": [
             "comprobar-design-system"
           ],
@@ -3368,6 +3423,7 @@
           "ambitos": [
             "ui"
           ],
+          "n2": "juzgar.ui",
           "comunes": [
             "causa-frente-a-sintoma"
           ],
@@ -3402,6 +3458,7 @@
           "ambitos": [
             "process"
           ],
+          "n2": "documentar.process",
           "comunes": [
             "informe-comun",
             "buscar-lo-ya-apuntado"
@@ -3452,6 +3509,7 @@
           "ambitos": [
             "bot"
           ],
+          "n2": "medir.bot",
           "comunes": [
             "evals-antes-despues"
           ],
@@ -3510,6 +3568,7 @@
           "ambitos": [
             "bot"
           ],
+          "n2": "medir.bot",
           "comunes": [
             "evals-antes-despues",
             "medir-antes-despues"
@@ -3568,6 +3627,7 @@
           "ambitos": [
             "bot"
           ],
+          "n2": "diagnosticar.bot",
           "comunes": [
             "causa-frente-a-sintoma"
           ],
@@ -3614,6 +3674,7 @@
           "ambitos": [
             "bot"
           ],
+          "n2": "juzgar.bot",
           "comunes": [
             "informe-comun"
           ],
@@ -3651,6 +3712,7 @@
           "ambitos": [
             "bot"
           ],
+          "n2": "medir.bot",
           "comunes": [
             "evals-antes-despues"
           ],
@@ -3701,6 +3763,7 @@
           "ambitos": [
             "data"
           ],
+          "n2": "juzgar.data",
           "comunes": [
             "rls-escribe-datos-audita-seguridad",
             "donde-vive-el-dato"
@@ -3772,6 +3835,7 @@
           "ambitos": [
             "data"
           ],
+          "n2": "juzgar.data",
           "comunes": [
             "donde-vive-el-dato",
             "buscar-lo-ya-apuntado"
@@ -3830,6 +3894,7 @@
           "ambitos": [
             "data"
           ],
+          "n2": "medir.data",
           "comunes": [
             "medir-antes-despues",
             "base-solo-lectura"
@@ -3868,6 +3933,7 @@
           "ambitos": [
             "data"
           ],
+          "n2": "documentar.data",
           "comunes": [
             "donde-vive-el-dato"
           ],
@@ -3905,6 +3971,7 @@
           "ambitos": [
             "data"
           ],
+          "n2": "juzgar.data",
           "comunes": [
             "buscar-lo-ya-apuntado"
           ],
@@ -3958,6 +4025,7 @@
           "ambitos": [
             "process"
           ],
+          "n2": "documentar.process",
           "reglas": [
             {
               "nombre": "Idea raíz primero",
@@ -4002,6 +4070,7 @@
           "ambitos": [
             "process"
           ],
+          "n2": "decidir.process",
           "reglas": [
             {
               "nombre": "Esfuerzo por el comando",
@@ -4045,6 +4114,7 @@
           "ambitos": [
             "process"
           ],
+          "n2": "documentar.process",
           "reglas": [
             {
               "nombre": "Hallazgo con marca",
@@ -4088,6 +4158,7 @@
           "ambitos": [
             "process"
           ],
+          "n2": "decidir.process",
           "reglas": [
             {
               "nombre": "Brief con referencias",
@@ -4125,6 +4196,7 @@
           "ambitos": [
             "process"
           ],
+          "n2": "decidir.process",
           "reglas": [
             {
               "nombre": "Trivial medido",
@@ -4175,6 +4247,7 @@
           "ambitos": [
             "process"
           ],
+          "n2": "documentar.process",
           "comunes": [
             "buscar-lo-ya-apuntado"
           ],
@@ -4225,6 +4298,7 @@
           "ambitos": [
             "process"
           ],
+          "n2": "diagnosticar.process",
           "comunes": [
             "causa-frente-a-sintoma",
             "buscar-lo-ya-apuntado"
@@ -4273,6 +4347,7 @@
           "ambitos": [
             "process"
           ],
+          "n2": "decidir.process",
           "reglas": [
             {
               "nombre": "Encargo con su clasificación",
@@ -4308,6 +4383,7 @@
           "ambitos": [
             "process"
           ],
+          "n2": "medir.process",
           "comunes": [
             "medir-antes-despues",
             "buscar-lo-ya-apuntado"

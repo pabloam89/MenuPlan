@@ -147,7 +147,7 @@ Se sistematiza lo máximo posible con atributos discretos, aunque lo continuo nu
 |---|---|---|---|
 | `agente` | 3 | 1 | 4 |
 | `criterio` | 2 | 6 | 8 |
-| `estandar` | 6 | 3 | 9 |
+| `estandar` | 7 | 3 | 10 |
 | `juicio` | 6 | 1 | 7 |
 | `skill` | 14 | 2 | 16 |
 
@@ -181,6 +181,7 @@ Una tarea de un agente en ops/estandares-agentes.json (la clave es su id). Su es
 - `accion` — enum (accion_tarea)
 - `origen` — enum (origen_tarea)
 - `ambitos` — enum (ambito), lista
+- `n2` — ref a estandar_n2
 - `comunes` — ref a estandar_comun, lista, opcional
 - `normas` — ref a norma, lista, opcional
 - `reglas` — regla, lista, opcional
