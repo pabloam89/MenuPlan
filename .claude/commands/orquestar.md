@@ -248,3 +248,4 @@ escribas a mano: añade solo lo que el comando no sabe (el objetivo con
 5. Termina con un resumen corto: qué se hizo, en qué rama o PR, qué se
    verificó, qué queda pendiente y qué gateway falta.
 6. Tras el merge, retirar: `npm run retirar -- <tarea>` en la misma sesión.
+7. Al vencer la ventana de observación de un fondo, lanza al `analista` con la tarea `evaluar-la-eficacia` (skill `cierre-eficaz`): cifra antes y después, veredicto y propuesta de cierre o reapertura; lo contrasta el `revisor`.
