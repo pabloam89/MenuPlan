@@ -77,6 +77,12 @@ describe("cada regla se ve fallar", () => {
     const u = clon(); const k = Object.keys(u.excepciones_wording)[0]; u.excepciones_wording[k] += 1;
     expect(problemasContraReferencia(u, topes).join("\n")).toContain("sube de");
   });
+  it("cambiar el tipo de texto o subir palabras_max respecto a la referencia esquivaría el wording (hallazgo del revisor, #701)", () => {
+    const t = clon(); t.campos["norma.nota"].tipo_texto = "documento";
+    expect(problemasContraReferencia(t, topes).join("\n")).toContain("tipo_texto");
+    const u = clon(); const c = Object.keys(u.campos).find((k) => u.campos[k].palabras_max); u.campos[c].palabras_max += 5;
+    expect(problemasContraReferencia(u, topes).join("\n")).toContain("palabras_max");
+  });
   it("un campo que deja de medirse respecto a la referencia", () => {
     const t = clon(); delete t.campos["norma.nota"];
     expect(problemasContraReferencia(t, topes).join("\n")).toContain("ha desaparecido");
