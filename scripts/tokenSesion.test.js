@@ -1,13 +1,13 @@
 // tokenSesion.test.js — la identidad de máquina de las sesiones (#329): JWT firmado de verdad,
 // canje del token con un fetch de mentira, fallo cerrado sin filtrar nada y el aviso del arranque.
 import { createPublicKey, createVerify, generateKeyPairSync } from "node:crypto";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, statSync, unlinkSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it, vi } from "vitest";
-import { main } from "./token-sesion.mjs";
+import { NO_LANZADO, lanzar, main, resolverComando } from "./token-sesion.mjs";
 import { ADVERTENCIAS, APP_ID, BOT_ID, CACHES, ErrorTokenSesion, FICHAS_CLAVE, IDENTIDADES, MOTIVOS, aplicarIdentidad, avisoDeIdentidad, identidadDe, leerClaveDeBoveda, lineaIdentidad, entornoDeComando, lineasDeEntorno, motivoDeCanje, tokenConCache, tokenDeSesion } from "./lib/tokenSesion.mjs";
 import { MARGEN_MS, escribirCache, leerCache, permisosDelUsuario, principalesDeIcacls, protegerFichero, rutaDeCache } from "./lib/cacheTokenSesion.mjs";
 import { PERMISOS } from "./token-sesiones.mjs";
@@ -668,5 +668,122 @@ describe("caché del token entre sesiones", () => {
       expect(s2.log.mock.calls[0][0]).toMatch(/cache: no$/);
       expect(s2.error.mock.calls[0][0]).toMatch(/aviso.*caduca a las x \(UTC\)/);
     });
+  });
+});
+
+// #720: el envoltorio lanza siempre el comando y, si no puede, lo dice. Antes, con npm en Windows
+// spawnSync daba EINVAL, el código convertía status null en 1 y descartaba el error (#718).
+describe("token-sesion lanza el comando sin shell y nunca sale mudo (#720)", () => {
+  const generar = async () => ({ token: TOKEN, autor: { nombre: "homenu-sesiones[bot]", correo: "1+homenu-sesiones[bot]@users.noreply.github.com" } });
+  const mudo = () => ({ log: vi.fn(), error: vi.fn() });
+  const carpetaScripts = dirname(fileURLToPath(import.meta.url));
+  const raiz = join(carpetaScripts, "..");
+
+  it("npm run hora dentro del envoltorio imprime la hora y sale con 0", async () => {
+    let captura = "";
+    const correr = (c, a, o) => {
+      const r = spawnSync(c, a, { ...o, stdio: ["ignore", "pipe", "pipe"], encoding: "utf8", cwd: raiz });
+      captura = r.stdout ?? "";
+      return r;
+    };
+    const salida = mudo();
+    expect(await main(["--", "npm", "run", "hora"], { generar, correr, salida })).toBe(0);
+    expect(captura).toMatch(/\d{1,2}:\d{2}/);
+    expect(salida.error).not.toHaveBeenCalled();
+  });
+
+  it("un argumento con %GH_TOKEN%, &, comillas y espacios llega literal al hijo", () => {
+    const dir = mkdtempSync(join(tmpdir(), "tsesion-"));
+    try {
+      writeFileSync(join(dir, "npm-cli.js"), "process.stdout.write(JSON.stringify(process.argv.slice(2)));"); // un «npm» de mentira que imprime sus argumentos
+      const raros = ["%GH_TOKEN%", "a & b", 'di "hola" mundo', "x y  z", "%PATH%&calc", "^&|<>"];
+      let salidaHijo = "";
+      const correr = (c, a, o) => {
+        const r = spawnSync(c, a, { ...o, stdio: ["ignore", "pipe", "pipe"], encoding: "utf8" });
+        salidaHijo = r.stdout;
+        return r;
+      };
+      const code = lanzar("npm", raros, { env: { ...process.env, GH_TOKEN: TOKEN } }, { correr, salida: mudo(), resolver: { env: { npm_execpath: join(dir, "npm-cli.js") } } });
+      expect(code).toBe(0);
+      expect(JSON.parse(salidaHijo)).toEqual(raros);
+      expect(salidaHijo).not.toContain(TOKEN);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("npm.cmd y npx se lanzan con node y su .js, sin shell", () => {
+    const existe = (r) => r.endsWith("npm-cli.js") || r.endsWith("npx-cli.js");
+    const r1 = resolverComando("npm.cmd", ["run", "hora"], { env: {}, execPath: "/n/node", existe });
+    expect(r1.cmd).toBe("/n/node");
+    expect(r1.args[0]).toMatch(/npm-cli\.js$/);
+    expect(r1.args.slice(1)).toEqual(["run", "hora"]);
+    expect(resolverComando("NPX", ["x"], { env: {}, execPath: "/n/node", existe }).args[0]).toMatch(/npx-cli\.js$/);
+    expect(resolverComando("npm", [], { env: {}, existe: () => false, plataforma: "win32" }).rechazo).toBe("sin-npm-cli");
+    expect(resolverComando("gh", ["pr", "list"])).toEqual({ cmd: "gh", args: ["pr", "list"] });
+  });
+
+  it("un comando inexistente sale con 127 y una línea con el motivo", async () => {
+    const salida = mudo();
+    expect(await main(["--", "comando-que-no-existe-720"], { generar, salida })).toBe(NO_LANZADO);
+    expect(NO_LANZADO).toBe(127);
+    expect(salida.error.mock.calls.map((c) => c[0])).toContain("token-sesion resultado: fallo motivo: comando-no-lanzado (ENOENT)");
+  });
+
+  it("un .cmd o .bat ajeno se rechaza con 127, sin ejecutarlo", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "tsesion-"));
+    try {
+      const marca = join(dir, "ejecutado.txt");
+      const bat = join(dir, "ajeno.bat");
+      writeFileSync(bat, `@echo off\r\necho x> "${marca}"\r\n`);
+      for (const c of [bat, join(dir, "otro.CMD")]) {
+        const correr = vi.fn();
+        const salida = mudo();
+        expect(await main(["--", c, "%GH_TOKEN%"], { generar, correr, salida })).toBe(127);
+        expect(correr).not.toHaveBeenCalled();
+        expect(salida.error.mock.calls[0][0]).toBe("token-sesion resultado: fallo motivo: comando-no-lanzado (cmd-o-bat-sin-shell)");
+      }
+      expect(existsSync(marca)).toBe(false);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("un error de spawn (EINVAL de Node 24 con un .cmd) sale con 127 y su código, no con 1", () => {
+    const salida = mudo();
+    const code = lanzar("gh", [], {}, { correr: () => ({ status: null, error: Object.assign(new Error("x"), { code: "EINVAL" }) }), salida });
+    expect(code).toBe(127);
+    expect(salida.error).toHaveBeenCalledWith("token-sesion resultado: fallo motivo: comando-no-lanzado (EINVAL)");
+  });
+
+  it("un hijo muerto por señal (status null, sin error) NO es 127: motivo propio y 128 + señal", () => {
+    const salida = mudo();
+    const code = lanzar("gh", [], {}, { correr: () => ({ status: null, signal: "SIGTERM" }), salida });
+    expect(code).toBe(128 + 15);
+    expect(salida.error).toHaveBeenCalledWith("token-sesion resultado: fallo motivo: comando-muerto-por-senal (SIGTERM)");
+  });
+
+  it("el código del propio comando pasa tal cual (el 1 de un gh que falla no se confunde con 127)", () => {
+    const salida = mudo();
+    expect(lanzar("gh", [], {}, { correr: () => ({ status: 1 }), salida })).toBe(1);
+    expect(salida.error).not.toHaveBeenCalled();
+  });
+
+  // Barrido de la clase «envoltorio que devuelve un código sin decir por qué».
+  // Criterio cerrado: un scripts/*.mjs (no test) con una línea que sale con el .status de un hijo
+  // (`exit(…status ?? 1)` o `return …status ?? 1`). Comando del barrido (3 ficheros antes de #720,
+  // de los que solo token-sesion.mjs era un envoltorio de comandos ajenos sin motivo: 1 sitio):
+  //   grep -rnE "(exit\(|return ).*\.status \?\? 1" scripts --include=*.mjs --exclude=*.test.*
+  // Cada fichero que lo cumple debe llevar el motivo («comando-no-lanzado») o estar exento con su porqué.
+  it("barrido: todo envoltorio que sale con el status de un hijo dice por qué no pudo lanzarlo", () => {
+    const EXENTOS = {
+      "build-coste.mjs": "lanza node con un script fijo del repo, no un comando ajeno",
+      "op.mjs": "ya lee r.error y nombra el motivo (ENOENT)",
+    };
+    const patron = /(exit\(|return ).*\.status \?\? 1/;
+    const leer = (f) => readFileSync(join(carpetaScripts, f), "utf8");
+    const sitios = readdirSync(carpetaScripts).filter((f) => f.endsWith(".mjs") && !/\.test\./.test(f) && patron.test(leer(f)));
+    expect(sitios.filter((f) => !EXENTOS[f] && !/comando-no-lanzado/.test(leer(f)))).toEqual([]);
+    for (const f of Object.keys(EXENTOS)) expect(sitios).toContain(f); // si un exento deja de cumplir el criterio, se quita de la lista
   });
 });
