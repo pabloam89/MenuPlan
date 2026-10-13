@@ -2,10 +2,12 @@
   "id": "revision",
   "que": "Juzgar un artefacto contra un catálogo y aplicar lo mecánico",
   "entra": "artefacto",
-  "sale": "criterio, estado y arreglo",
+  "sale": "`criterio`, estado y arreglo",
   "prueba": "una pieza mala a propósito da todos sus fallos",
   "skills_hoy": [
-    "higiene-de-skills"
+    "higiene-de-skills",
+    "higiene-de-vocabulario",
+    "revision-de-diseno"
   ],
   "secciones": [
     "Cuándo y para qué",

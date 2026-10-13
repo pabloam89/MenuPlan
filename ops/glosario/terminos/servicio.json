@@ -1,0 +1,21 @@
+{
+  "termino": "servicio",
+  "estado": "activo",
+  "clase": "artefacto",
+  "dominio": "ops",
+  "definicion": "Un proveedor externo con cuenta dueña (Vercel, Supabase, GitHub, Anthropic o 1Password) que el proyecto usa y que ops/INVENTARIO.md apunta.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "entorno"
+  ],
+  "en": "service",
+  "entidades": [
+    {
+      "entidad": "service",
+      "relacion": "denota"
+    }
+  ]
+}

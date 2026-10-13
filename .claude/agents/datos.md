@@ -5,6 +5,7 @@ tools: Read, Grep, Glob, Bash, Edit, Write
 skills: [supabase, alta-de-secreto]
 model: inherit
 color: blue
+traspasa_a: [auditor-datos, gobierno]
 memory: project
 ---
 

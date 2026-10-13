@@ -50,6 +50,7 @@ metadata:
   elige_opciones: false
   dueno: <agente de .claude/agents/ que la carga en su skills:>
   comprobado: AAAA-MM-DD
+  normas: [<id de ops/normas.json a la que sirve>, <otra>]
 ---
 
 # <Nombre>
@@ -100,6 +101,7 @@ Los de `campos_ficha.skill` de `ops/forja/`; lo que no está declarado no va en 
 | `nivel` | enum | no | `2`, o sin él (el 1 son los moldes; el 0, la pieza meta) |
 | `dueno` | ref | sí | un agente que existe |
 | `comprobado` | fecha | sí | AAAA-MM-DD |
+| `normas` | ref | sí | una norma que existe |
 | `libertad` | enum | no | `alta`, `media`, `baja` |
 | `invocacion` | enum | no | `descripcion`, `guardia`, `precarga` |
 
@@ -117,19 +119,19 @@ Lo que pide este tipo: cada etapa apunta a una skill o agente que existe y tiene
 
 No hay criterio de skill que no se le aplique.
 
-## El estándar de este tipo
+## La plantilla de este tipo
 
 ### Qué lo hace bueno
 
 - Cada etapa nombra la skill o el agente que la lleva, y existe [I, prueba del tipo en `ops/forja/`].
 - Cada etapa tiene su puerta: lo que la hace cumplir (un hook, el CI, un workflow), no solo el texto [I, CLAUDE.md «Lo que hace cumplir esto»].
-- Dice qué entra y qué sale de cada etapa, para que la siguiente sepa por dónde empezar [I].
+- Dice qué entra y qué sale de cada etapa, para que la siguiente sepa por dónde empezar [S].
 
 ### Errores típicos
 
-- Copiar dentro el método de una etapa que ya tiene su skill: dos versiones [I].
+- Copiar dentro el método de una etapa que ya tiene su skill: dos versiones [S].
 - Una etapa sin dueño o sin puerta, que depende de que alguien se acuerde [I, CLAUDE.md «Cuando algo falla»].
-- Encadenar etapas sin decir qué sale de cada una, y que la siguiente lo adivine [I].
+- Encadenar etapas sin decir qué sale de cada una, y que la siguiente lo adivine [S].
 
 ### Ejemplo mínimo
 

@@ -1,0 +1,80 @@
+{
+  "skill": "principios-de-producto",
+  "casos": [
+    {
+      "id": "aviso-de-reportes-abierto",
+      "peticion": "Tenemos un aviso de reportes que lo llama la base y no lleva ninguna contraseña. ¿Lo dejamos así o le ponemos algo? Recomiéndame una opción.",
+      "skill": "principios-de-producto",
+      "debe_salir": [
+        "Busca en el catálogo con npm run principios (el área trust-safety o un id) antes de recomendar",
+        "Cita por id, en la línea de la opción recomendada, el principio que manda (por ejemplo public-endpoint-justified)",
+        "Da las opciones con la recomendada primero, y si dos principios chocan lo dice con sus ids"
+      ],
+      "nota": "Abstracto de #596"
+    },
+    {
+      "id": "historial-medico-por-chat",
+      "peticion": "Se me ha ocurrido que Lola pida el historial médico de cada persona para afinar los menús. ¿Qué te parece, lo hacemos?",
+      "skill": "principios-de-producto",
+      "debe_salir": [
+        "Cita principios de privacidad por id (por ejemplo no-sensitive-data-in-chat-by-default o data-minimisation)",
+        "Recomienda pedir solo lo necesario, por ejemplo qué alimentos no toleran, y explica por qué en llano",
+        "Avisa de la marca F o S de la fuente si se apoya en una inferencia"
+      ]
+    },
+    {
+      "id": "se-cae-el-modelo",
+      "peticion": "Qué debería hacer Lola cuando el modelo de IA se cae o se nos acaba el crédito del día. Dame una recomendación.",
+      "skill": "principios-de-producto",
+      "debe_salir": [
+        "Busca los principios del área cost-reliability y cita graceful-degradation por id",
+        "Distingue si hay un filtro de seguridad de por medio y cita fail-closed-for-safety-filters",
+        "Dice qué hace el producto sin IA y cómo se lo cuenta a la familia"
+      ]
+    },
+    {
+      "id": "apuntar-lo-aprendido",
+      "peticion": "He leído un artículo de un producto que lo hace muy bien: muestra el estado del pedido antes de que se lo pidan. Quiero que nos acordemos de esto para próximas decisiones.",
+      "skill": "principios-de-producto",
+      "debe_salir": [
+        "Busca antes si ya existe un principio parecido en el catálogo, por ejemplo visibility-of-status",
+        "Si hace falta uno nuevo, lo añade como fichero nuevo en ops/principios-producto/principios con su fuente y lo regenera con npm run principios -- --escribir",
+        "No lo deja solo en el chat ni en la memoria"
+      ]
+    },
+    {
+      "id": "primer-mensaje-de-lola",
+      "peticion": "Cuando alguien nuevo escribe a Lola por primera vez, ¿le pedimos ya las alergias y cuántos son en casa, o le enseñamos algo antes? Recomiéndame.",
+      "skill": "principios-de-producto",
+      "debe_salir": [
+        "Busca los principios del área onboarding o privacy con npm run principios antes de recomendar",
+        "Cita por id, en la línea de la opción recomendada, el que manda (por ejemplo value-before-signup u onboard-in-stages)",
+        "Avisa de que value-before-signup se apoya en una fuente secundaria (marca S)"
+      ]
+    },
+    {
+      "id": "frontera-como-trabajan-los-agentes",
+      "peticion": "¿Qué tiene que cumplir un agente de datos al aplicar una migración, según los estándares que tenemos?",
+      "skill": "ninguna",
+      "nota": "Casi-fallo: suena a norma, pero es cómo trabajamos (ops/estandares-agentes.json), no una decisión de producto."
+    },
+    {
+      "id": "frontera-redis-o-postgres",
+      "peticion": "Para guardar el contador del límite diario, ¿Redis o Postgres? Dime cuál es más barato y más rápido.",
+      "skill": "ninguna",
+      "nota": "Casi-fallo: suena a decisión con coste, pero elegir tecnología sin efecto en la familia no es de los principios de producto."
+    },
+    {
+      "id": "frontera-boton-del-menu",
+      "peticion": "¿Qué radio de borde y qué color de relleno lleva el botón principal de la pantalla del menú?",
+      "skill": "ninguna",
+      "nota": "Casi-fallo: es una pantalla, pero la UI fina es de DESIGN_SYSTEM.md y src/design/tokens.js."
+    },
+    {
+      "id": "frontera-rotar-clave",
+      "peticion": "Ha caducado el token de Vercel del vigía, ¿cómo lo doy de alta otra vez sin que salga en pantalla?",
+      "skill": "alta-de-secreto",
+      "nota": "Casi-fallo: toca secretos del producto, pero el procedimiento es de alta-de-secreto."
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "id": "no-pretend-human",
+  "nombre": "No hacerse pasar por humano",
+  "area": "conversational-ai",
+  "enunciado": "Un bot que se presenta como bot evita que la persona sobrestime lo que puede hacer.",
+  "porque": "Los personajes con aire humano hacen sobrestimar al sistema.",
+  "ejemplo_bueno": "Lola tiene nombre y tono cálido, pero contesta con claridad a si es una persona",
+  "ejemplo_malo": "Lola dice que está cocinando mientras responde",
+  "fuentes": [
+    {
+      "url": "https://pair.withgoogle.com/chapter/mental-models/",
+      "marca": "F"
+    }
+  ]
+}

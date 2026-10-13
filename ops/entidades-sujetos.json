@@ -1,0 +1,428 @@
+{
+  "$comentario": "Cruce de los sujetos de ops/normas.json y ops/estandares-agentes.json con las entidades (#566, principio 13 del N0). Cada sujeto es una entidad (entity), un tipo (type_of), una parte (part_of), una instancia (instance_of) o un producto (produced_by) de una entidad, o queda fuera con su motivo (outside). Los valores de kind son el vocabulario entidades.subject_kind. Lo vigila ops/entidades.test.js: un sujeto nuevo en cualquiera de los dos registros falla hasta que se clasifica aquí.",
+  "sujetos": {
+    "agente": {
+      "kind": "entity",
+      "entity": "agent"
+    },
+    "ajuste": {
+      "kind": "part_of",
+      "entity": "service",
+      "reason": "un ajuste es una parte de la configuración de un servicio"
+    },
+    "alimento": {
+      "kind": "outside",
+      "reason": "alimento no es ingrediente (Fase A, specs/modelo-datos.md); entidad vertical pendiente"
+    },
+    "alimento.decision": {
+      "kind": "outside",
+      "reason": "alimento no es ingrediente (Fase A, specs/modelo-datos.md); entidad vertical pendiente"
+    },
+    "alimento.regex": {
+      "kind": "outside",
+      "reason": "alimento no es ingrediente (Fase A, specs/modelo-datos.md); entidad vertical pendiente"
+    },
+    "asset": {
+      "kind": "outside",
+      "reason": "pieza de diseño del producto o de la factoría de Lola: fuera de este ataque"
+    },
+    "base": {
+      "kind": "outside",
+      "reason": "la base de producción se cubre con table, migration y service; sin entidad propia"
+    },
+    "cableado": {
+      "kind": "outside",
+      "reason": "relación entre el código y una tabla: no es un tipo de ninguna entidad"
+    },
+    "captura": {
+      "kind": "produced_by",
+      "entity": "metric",
+      "reason": "la captura la produce una medida de interfaz"
+    },
+    "carpeta": {
+      "kind": "outside",
+      "reason": "carpeta de trabajo: candidata a entidad horizontal, sin registro todavía"
+    },
+    "carpeta.principal": {
+      "kind": "outside",
+      "reason": "carpeta principal: candidata a entidad horizontal, sin registro todavía"
+    },
+    "catalogo": {
+      "kind": "type_of",
+      "entity": "data-source",
+      "reason": "catálogo de datos de src/data"
+    },
+    "catalogo.mercadona": {
+      "kind": "instance_of",
+      "entity": "data-source",
+      "reason": "el catálogo de Mercadona es una fuente concreta"
+    },
+    "catalogo.reglas": {
+      "kind": "outside",
+      "reason": "un catálogo de reglas es un fichero de ops/ con su lector y su test; sin entidad propia"
+    },
+    "ci.rojo": {
+      "kind": "type_of",
+      "entity": "event",
+      "reason": "un CI en rojo es un hecho con fecha"
+    },
+    "codigo": {
+      "kind": "outside",
+      "reason": "el código del producto es lo que cambian las demás entidades, no una entidad"
+    },
+    "dato": {
+      "kind": "outside",
+      "reason": "palabra genérica: cada dato es de una entidad concreta"
+    },
+    "decision": {
+      "kind": "type_of",
+      "entity": "decision",
+      "reason": "una decisión de producto es un tipo de decisión"
+    },
+    "despliegue": {
+      "kind": "type_of",
+      "entity": "event",
+      "reason": "un despliegue es un tipo de evento (event_types.deployment): Vercel lo guarda y el registro lo cuenta"
+    },
+    "diagnostico": {
+      "kind": "part_of",
+      "entity": "root-problem",
+      "reason": "el diagnóstico es una parte de la ficha del fondo"
+    },
+    "diff": {
+      "kind": "part_of",
+      "entity": "pull-request",
+      "reason": "el diff es una parte de un PR"
+    },
+    "encargo": {
+      "kind": "type_of",
+      "entity": "issue",
+      "reason": "un encargo es un tipo de issue (tipo:encargo) que se reparte entre agentes"
+    },
+    "endpoint": {
+      "kind": "outside",
+      "reason": "endpoint del producto o de la factoría de Lola: fuera de este ataque"
+    },
+    "enrutador": {
+      "kind": "outside",
+      "reason": "enrutador del producto o de la factoría de Lola: fuera de este ataque"
+    },
+    "entidad": {
+      "kind": "outside",
+      "reason": "la entidad es la unidad del propio registro de entidades, no una entidad registrada en él"
+    },
+    "estado.diseno": {
+      "kind": "outside",
+      "reason": "estado del diseño del producto o de la factoría de Lola: fuera de este ataque"
+    },
+    "estado.migraciones": {
+      "kind": "part_of",
+      "entity": "migration",
+      "reason": "el estado de las migraciones es una parte de ESTADO.md"
+    },
+    "eval": {
+      "kind": "entity",
+      "entity": "eval"
+    },
+    "eval.caso": {
+      "kind": "part_of",
+      "entity": "eval",
+      "reason": "un caso es una parte de un eval"
+    },
+    "evento": {
+      "kind": "entity",
+      "entity": "event"
+    },
+    "fallo": {
+      "kind": "type_of",
+      "entity": "case",
+      "reason": "un fallo concreto se registra como caso"
+    },
+    "ficha": {
+      "kind": "outside",
+      "reason": "palabra de varias entidades (fondo, skill, tabla): su N1 decide"
+    },
+    "fondo": {
+      "kind": "entity",
+      "entity": "root-problem"
+    },
+    "forja": {
+      "kind": "outside",
+      "reason": "la forja es un catálogo de criterios: candidata a entidad, con registro propio"
+    },
+    "funcion": {
+      "kind": "outside",
+      "reason": "función del código del producto o de la factoría de Lola: fuera de este ataque"
+    },
+    "gasto": {
+      "kind": "type_of",
+      "entity": "metric",
+      "reason": "gasto en tokens o dinero"
+    },
+    "guardia": {
+      "kind": "instance_of",
+      "entity": "hook",
+      "reason": "la guardia es un hook concreto"
+    },
+    "hallazgo": {
+      "kind": "produced_by",
+      "entity": "agent",
+      "reason": "el hallazgo lo produce un agente juez (el juez es un valor del agente)"
+    },
+    "herramienta": {
+      "kind": "outside",
+      "reason": "herramienta de Lola del producto o de la factoría de Lola: fuera de este ataque"
+    },
+    "hook": {
+      "kind": "entity",
+      "entity": "hook"
+    },
+    "icono": {
+      "kind": "outside",
+      "reason": "icono del producto o de la factoría de Lola: fuera de este ataque"
+    },
+    "ilustracion": {
+      "kind": "outside",
+      "reason": "ilustración del producto o de la factoría de Lola: fuera de este ataque"
+    },
+    "informe": {
+      "kind": "produced_by",
+      "entity": "agent",
+      "reason": "el informe lo produce un agente"
+    },
+    "issue": {
+      "kind": "entity",
+      "entity": "issue"
+    },
+    "log": {
+      "kind": "produced_by",
+      "entity": "event",
+      "reason": "un log lo producen los eventos que registra"
+    },
+    "lola": {
+      "kind": "outside",
+      "reason": "Lola es el producto entero: su entidad vertical es lola-conversation"
+    },
+    "main": {
+      "kind": "instance_of",
+      "entity": "branch",
+      "reason": "main es una rama concreta"
+    },
+    "manifest": {
+      "kind": "outside",
+      "reason": "manifest del producto o de la factoría de Lola: fuera de este ataque"
+    },
+    "mapa.verdades": {
+      "kind": "outside",
+      "reason": "documento de la auditoría de datos, sin entidad"
+    },
+    "marca": {
+      "kind": "outside",
+      "reason": "marca del producto o de la factoría de Lola: fuera de este ataque"
+    },
+    "medida": {
+      "kind": "produced_by",
+      "entity": "metric",
+      "reason": "la medida la produce una métrica"
+    },
+    "metrica": {
+      "kind": "entity",
+      "entity": "metric"
+    },
+    "migracion": {
+      "kind": "entity",
+      "entity": "migration"
+    },
+    "modelo": {
+      "kind": "outside",
+      "reason": "modelo de IA: no tiene registro ni dueño en el repo"
+    },
+    "modelo.turno": {
+      "kind": "outside",
+      "reason": "modelo de un turno del producto o de la factoría de Lola: fuera de este ataque"
+    },
+    "pantalla": {
+      "kind": "outside",
+      "reason": "pantalla del producto: fuera de este ataque, como primitivo y asset"
+    },
+    "papel": {
+      "kind": "outside",
+      "reason": "papel de diseño del producto o de la factoría de Lola: fuera de este ataque"
+    },
+    "permiso": {
+      "kind": "type_of",
+      "entity": "mechanism",
+      "reason": "un permiso es un mecanismo de la escalera"
+    },
+    "plano": {
+      "kind": "entity",
+      "entity": "plane"
+    },
+    "politica": {
+      "kind": "type_of",
+      "entity": "norm",
+      "reason": "una política es una norma agrupada"
+    },
+    "pr": {
+      "kind": "entity",
+      "entity": "pull-request"
+    },
+    "presupuesto": {
+      "kind": "outside",
+      "reason": "presupuesto: candidata a entidad, con registro propio en ops/presupuestos.json"
+    },
+    "primitivo": {
+      "kind": "type_of",
+      "entity": "token",
+      "reason": "un primitivo es la primera capa de los tokens de diseño (valor crudo)"
+    },
+    "principio": {
+      "kind": "entity",
+      "entity": "principle"
+    },
+    "produccion": {
+      "kind": "instance_of",
+      "entity": "environment",
+      "reason": "producción es un entorno concreto"
+    },
+    "producto": {
+      "kind": "outside",
+      "reason": "el producto entero (la app y Lola): no es una entidad del registro, sino el conjunto"
+    },
+    "prompt": {
+      "kind": "outside",
+      "reason": "prompt del producto o de la factoría de Lola: fuera de este ataque"
+    },
+    "prompt.prefijo": {
+      "kind": "outside",
+      "reason": "prefijo de prompt del producto o de la factoría de Lola: fuera de este ataque"
+    },
+    "rama": {
+      "kind": "entity",
+      "entity": "branch"
+    },
+    "rama.estado": {
+      "kind": "part_of",
+      "entity": "branch",
+      "reason": "el estado es una parte de una rama"
+    },
+    "receta": {
+      "kind": "entity",
+      "entity": "recipe"
+    },
+    "recurso": {
+      "kind": "entity",
+      "entity": "resource"
+    },
+    "registro": {
+      "kind": "outside",
+      "reason": "palabra genérica: es la noción misma de registro de este N0"
+    },
+    "regla": {
+      "kind": "outside",
+      "reason": "palabra genérica: una regla de la casa es una norma, un criterio de la forja, una obligación del flujo o una regla de estándar, y cada una tiene su entidad"
+    },
+    "regla.condicion": {
+      "kind": "outside",
+      "reason": "parte de una regla de la casa: palabra genérica: una regla de la casa es una norma, un criterio de la forja, una obligación del flujo o una regla de estándar, y cada una tiene su entidad"
+    },
+    "regla.control": {
+      "kind": "outside",
+      "reason": "parte de una regla de la casa: palabra genérica: una regla de la casa es una norma, un criterio de la forja, una obligación del flujo o una regla de estándar, y cada una tiene su entidad"
+    },
+    "regla.dato": {
+      "kind": "outside",
+      "reason": "parte de una regla de la casa: palabra genérica: una regla de la casa es una norma, un criterio de la forja, una obligación del flujo o una regla de estándar, y cada una tiene su entidad"
+    },
+    "regla.exigencia": {
+      "kind": "outside",
+      "reason": "parte de una regla de la casa: palabra genérica: una regla de la casa es una norma, un criterio de la forja, una obligación del flujo o una regla de estándar, y cada una tiene su entidad"
+    },
+    "regla.fuente": {
+      "kind": "outside",
+      "reason": "parte de una regla de la casa: palabra genérica: una regla de la casa es una norma, un criterio de la forja, una obligación del flujo o una regla de estándar, y cada una tiene su entidad"
+    },
+    "regla.fuerza": {
+      "kind": "outside",
+      "reason": "parte de una regla de la casa: palabra genérica: una regla de la casa es una norma, un criterio de la forja, una obligación del flujo o una regla de estándar, y cada una tiene su entidad"
+    },
+    "regla.nombre": {
+      "kind": "outside",
+      "reason": "parte de una regla de la casa: palabra genérica: una regla de la casa es una norma, un criterio de la forja, una obligación del flujo o una regla de estándar, y cada una tiene su entidad"
+    },
+    "regla.nota": {
+      "kind": "outside",
+      "reason": "parte de una regla de la casa: palabra genérica: una regla de la casa es una norma, un criterio de la forja, una obligación del flujo o una regla de estándar, y cada una tiene su entidad"
+    },
+    "repo": {
+      "kind": "entity",
+      "entity": "repo"
+    },
+    "respuesta": {
+      "kind": "outside",
+      "reason": "respuesta de Lola del producto o de la factoría de Lola: fuera de este ataque"
+    },
+    "respuesta.pablo": {
+      "kind": "produced_by",
+      "entity": "agent",
+      "reason": "la respuesta a Pablo la produce el agente orquestador"
+    },
+    "secreto": {
+      "kind": "type_of",
+      "entity": "resource",
+      "reason": "un secreto es un recurso de tipo clave, token o deploy-key"
+    },
+    "sesion": {
+      "kind": "entity",
+      "entity": "session"
+    },
+    "staging": {
+      "kind": "instance_of",
+      "entity": "environment",
+      "reason": "staging es un entorno concreto"
+    },
+    "superficie": {
+      "kind": "outside",
+      "reason": "superficie de una revisión: palabra de proceso sin registro"
+    },
+    "tabla": {
+      "kind": "entity",
+      "entity": "table"
+    },
+    "test": {
+      "kind": "type_of",
+      "entity": "mechanism",
+      "reason": "un test es un mecanismo de la escalera"
+    },
+    "texto": {
+      "kind": "outside",
+      "reason": "palabra genérica: cada texto de proceso es de una skill, un agente, una regla o un documento"
+    },
+    "texto.interfaz": {
+      "kind": "outside",
+      "reason": "texto de interfaz del producto o de la factoría de Lola: fuera de este ataque"
+    },
+    "token": {
+      "kind": "type_of",
+      "entity": "resource",
+      "reason": "un token de acceso es un recurso de tipo token; no es el token de diseño"
+    },
+    "traspaso": {
+      "kind": "part_of",
+      "entity": "agent",
+      "reason": "el traspaso es una arista declarada en la cabecera de un agente (traspasa_a)"
+    },
+    "turno": {
+      "kind": "outside",
+      "reason": "turno de Lola del producto o de la factoría de Lola: fuera de este ataque"
+    },
+    "vocabulario": {
+      "kind": "entity",
+      "entity": "vocabulary"
+    },
+    "workflow": {
+      "kind": "entity",
+      "entity": "workflow"
+    }
+  }
+}

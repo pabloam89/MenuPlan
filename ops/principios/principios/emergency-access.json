@@ -1,0 +1,16 @@
+{
+  "id": "emergency-access",
+  "area": "infra",
+  "nombre": "Acceso de emergencia",
+  "enunciado": "Una guía escrita y probada permite operar sin Claude y restaurar la base desde una copia.",
+  "porque": "Si el día que algo falla solo sabe arreglarlo una herramienta que no está, no hay arreglo.",
+  "fuentes": [
+    {
+      "marca": "I",
+      "ruta": "docs/ops/SIN-CLAUDE.md"
+    }
+  ],
+  "origen": [
+    "I10"
+  ]
+}

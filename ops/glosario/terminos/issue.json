@@ -2,6 +2,7 @@
   "termino": "issue",
   "estado": "activo",
   "clase": "artefacto",
+  "dominio": "ops",
   "definicion": "Un elemento de GitHub del repo que lleva su tipo: fondo, caso, encargo o decisión.",
   "sinonimos_prohibidos": [
     "ticket",
@@ -19,5 +20,12 @@
   "ref": {
     "fichero": "scripts/lib/issues.mjs",
     "clave": "GRUPOS.tipo"
-  }
+  },
+  "en": "issue",
+  "entidades": [
+    {
+      "entidad": "issue",
+      "relacion": "denota"
+    }
+  ]
 }

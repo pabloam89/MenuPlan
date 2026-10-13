@@ -11,6 +11,7 @@ metadata:
   elige_opciones: false
   dueno: gobierno
   comprobado: "2026-10-09"
+  normas: [main-solo-por-pr-con-tests, staging-exige-tests, sin-push-forzado, deploy-key-unica, secretos-de-repo, push-protection, pr-al-dia-y-closes, pr-agente-y-closes-en-ci, linea-runbook, sesion-con-su-identidad]
 ---
 
 # GitHub
@@ -20,18 +21,18 @@ metadata:
 - **Repo** `pabloam89/MenuPlan`, **público**. Rama por defecto: `staging` (desde cuándo, en «Fechas» de Fuentes y comprobación). `main` es producción.
 - **Protección de ramas** (desde el 7 oct, también para administradores):
   - `main`: solo por PR con el check `tests` en verde; sin force push ni
-    borrado. Con los rulesets de #330 (por aplicar), solo fusiona Pablo (bypass).
+    borrado. Con los rulesets de #330 (aplicados), solo fusiona Pablo (bypass).
   - `staging`: sin force push ni borrado (protección clásica) y el **ruleset
     «staging: tests obligatorios»**: nada entra sin `tests` en verde, ni por PR
     ni por push, tampoco Pablo. Solo se lo saltan las deploy keys, y la única
     es la del cron de Mercadona, cuyo secreto vive en el environment
     `mercadona-sync` (solo rama staging). Decidido y activo (id 24770007; día en «Fechas» de Fuentes y comprobación),
-    sin exigir la rama al día. Dueño de código (#330): `.claude/skills/github/referencias/duenos-de-codigo.md`.
+    sin exigir la rama al día. Sin aprobación humana ni dueño de código (#608): `.claude/skills/github/referencias/duenos-de-codigo.md`.
 - **Workflows** (`.github/workflows/`):
 
 | Workflow | Cuándo | Qué hace |
 |---|---|---|
-| `tests.yml` | PR a `staging` o `main` (también al editar su cuerpo), push a `staging`, a mano | las líneas «Runbook:», «Casos:», «Agente:» y «Closes» del PR (esas dos, en el paso «Fondos del PR»), la higiene de las skills que toca el PR (paso «Higiene de las skills del PR», #341: una falta falla), lint con línea base, tests y build. Es el check `tests` |
+| `tests.yml` | PR a `staging` o `main` (también al editar su cuerpo), push a `staging`, a mano | las líneas «Runbook:», «Casos:», «Agente:» y «Closes» del PR (esas dos, en el paso «Fondos del PR», que mira también que cada norma sin ejecutor cuelgue de un encargo o una decisión abiertos, #620), la higiene de las skills que toca el PR (paso «Higiene de las skills del PR», #341: una falta falla), los avisos del PR (paso «Avisos del PR», #576: tests relajados, PR grande y fondo cerrado sin aprendizaje; solo avisan, con UNA forma de excepción en el cuerpo, `Excepción: <id de norma> — <motivo> — hasta AAAA-MM-DD` (#621; una caducada o de una norma inexistente no cuenta y solo falla la de una norma dura que el PR toca; cada aviso deja además su línea `norma: <id> resultado: …`; las formas de antes siguen valiendo con aviso en la transición, ver «Fechas»), lint con línea base, tests y build. Es el check `tests` |
 | `fondos.yml` | eventos de issues (alta, edición, etiqueta, cierre, reapertura), cada día 06:35 UTC, a mano | los controles de la ficha del fondo (#337, skill `issues`): un comentario del bot con la marca `<!-- menuplan:fondo -->`, la etiqueta `control:ok` o `control:falla`, y reabrir, subir alcance o cerrar como `cerrado-eficaz`. `issues: write`, `contents: read` y `actions: read` (para comprobar el run de su comentario), acciones fijadas por SHA, solo issues de OWNER, MEMBER o COLLABORATOR, sin secretos ni `pull_request_target`; nada del issue entra en un `run:` |
 | `mercadona-sync.yml` | lunes 06:15 UTC, a mano (con `probar_push`, un commit vacío si no hay precios nuevos) | precios de Mercadona; commitea y **empuja a `staging` con la deploy key** (sin el secreto, con el token). Ese push sí lanza `tests` |
 | `agente-fallos.yml` | cada día 06:20 UTC, a mano | agente de fallos de generación (`.claude/routines/fallos-generacion.md`) |
@@ -192,7 +193,7 @@ la visibilidad. Dependabot, secret scanning y push protection no tienen coste.
 - https://docs.github.com/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow
 - https://github.com/actions/checkout (`ssh-key`)
 
-Fechas que estaban repartidas por el cuerpo (#411): rama por defecto `staging` desde el 7 oct 2026; el ruleset «staging: tests obligatorios» se decidió el 9 oct 2026; `delete_branch_on_merge` rige desde el 8 oct 2026 (las ramas anteriores se quedaron).
+Fechas que estaban repartidas por el cuerpo (#411): rama por defecto `staging` desde el 7 oct 2026; el ruleset «staging: tests obligatorios» se decidió el 9 oct 2026; las formas de excepción de antes de #621 («Tests relajados:», «Tamaño:», «Aprendizaje:») valen con aviso hasta el 15 nov 2026; `delete_branch_on_merge` rige desde el 8 oct 2026 (las ramas anteriores se quedaron).
 
 Comprobado el 2026-10-11 (#551): los drivers `generado` y `json-claves` con git 2.52 en repos de prueba (`ops/generados.test.js`, visto fallar sin las líneas de `.gitattributes`); sin comprobar: una fusión real entre dos PR ni `gh pr update-branch` con un generado desfasado.
 

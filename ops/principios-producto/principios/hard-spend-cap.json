@@ -1,0 +1,19 @@
+{
+  "id": "hard-spend-cap",
+  "nombre": "Límite de gasto en IA",
+  "area": "cost-reliability",
+  "enunciado": "Un límite global que corta antes de gastar protege la factura de IA del abuso.",
+  "porque": "El abuso puede disparar la factura (denial of wallet) sin que nadie haya entrado en el sistema.",
+  "ejemplo_bueno": "Generar un menú sin sesión corta en un límite diario global y falla cerrado si Redis cae",
+  "ejemplo_malo": "Un endpoint llama al modelo sin contar y una noche de peticiones vacía el crédito",
+  "fuentes": [
+    {
+      "url": "https://api-security.owasp.org/editions/2023/en/0xa4-unrestricted-resource-consumption",
+      "marca": "F"
+    },
+    {
+      "url": "https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/",
+      "marca": "F"
+    }
+  ]
+}

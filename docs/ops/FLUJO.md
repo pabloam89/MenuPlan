@@ -122,12 +122,12 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | P06.4 | **Plan de tres encargos.** Cada problema de fondo DEBE tener como mucho tres encargos, cada uno con su bloque encargo completo, y al menos uno preventivo con mecanismo automático. | DEBE | script_propio · semidura · `scripts/lib/fondos.mjs` | test: `scripts/fondos-encargos.test.js` | `plan-tres-encargos-con-preventivo` | #337 |
 | **Ejecutar** · blanda | | | | | | |
 | P07.1 | **Encargo en su rama.** Cada encargo de un fondo DEBE ser una rama con el número de su issue y dejar ver quién lo lleva. | DEBE | script_propio · semidura · `scripts/tarea.mjs` | test: `scripts/lleva.test.js` | — | #337 |
-| P07.2 | **PR al día con Closes.** Cada PR DEBE abrirse con la rama al día y, si la rama es de un issue, con Closes #n. | DEBE | guardia · semidura · `.claude/hooks/guardia.mjs` | test: `.claude/hooks/guardia.test.js` | `pr-al-dia-y-closes` | #337 |
+| P07.2 | **PR al día con Closes.** Cada PR DEBE abrirse y fusionarse con la rama al día y, si la rama es de un issue, abrirse con Closes #n. | DEBE | guardia · semidura · `.claude/hooks/guardia.mjs` | test: `.claude/hooks/guardia.test.js` | `pr-al-dia-y-closes` | #337 |
 | P07.3 | **Constructor distinto del juez.** Cada agente NO DEBE juzgar lo que ha construido. | NO DEBE | nada · blanda · `CLAUDE.md` | juicio | `quien-construye-no-juzga` | #341 |
 | P07.4 | **Tope de rondas.** Cada problema de fondo NO DEBE pasar de las rondas del presupuesto de constructor y juez. | NO DEBE | script_propio · semidura · `scripts/lib/fondos.mjs` | test: `scripts/fondos-rondas.test.js` | `rondas-tope-duro` | #340 |
 | P07.5 | **Agente con plantilla.** Cada agente DEBE seguir la plantilla: tipo, planos, método e informe común. | DEBE | ci · dura · `.claude/PLANTILLA-AGENTE.md` | test: `.claude/agentes.test.js` | — | — |
 | P07.6 | **Main solo por PR.** La rama main DEBE recibir cambios solo por PR con el check tests en verde. | DEBE | github_regla · semidura · `ops/DECISIONES.md` | planos: `ops/planos.json` | `main-solo-por-pr-con-tests` | #330 |
-| P07.7 | **Reglas propias intocables.** Cada sesión de Claude NO DEBE cambiar las propias reglas (protecciones, permisos, guardia) con credenciales de sesión. | NO DEBE | nada · blanda · no escrita aún | juicio | — | #326 |
+| P07.7 | **Normas propias intocables.** Cada sesión de Claude NO DEBE cambiar las propias normas (protecciones, permisos, guardia) con credenciales de sesión. | NO DEBE | nada · blanda · no escrita aún | juicio | — | #326 |
 | P07.8 | **Staging exige tests.** La rama staging DEBE recibir cambios solo con el check tests en verde, sea por PR o por push. | DEBE | github_regla · semidura · `ops/DECISIONES.md` | planos: `ops/planos.json` | `staging-exige-tests` | #263 |
 | P07.9 | **Agente y Closes del PR.** Cada PR DEBE llevar la línea Agente: y, si la rama es de un issue, su Closes #n. | DEBE | ci · semidura · `scripts/fondos-pr.mjs` | test: `scripts/fondos-pr.test.js` | `pr-agente-y-closes-en-ci` | — |
 | P07.10 | **Jueces sin escritura.** Cuando es un juez, cada agente NO DEBE tener Edit ni Write, contando las herramientas que da la memoria. | NO DEBE | ci · dura · `CLAUDE.md` | test: `.claude/agentes.test.js` | `jueces-sin-escritura` | — |
@@ -146,7 +146,7 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | P10.1 | **Cierre completo del fondo.** Cada problema de fondo NO DEBE cerrarse con encargos abiertos, sin el PR de su arreglo ni sin su etiqueta de arreglo. | NO DEBE | script_propio · semidura · `scripts/lib/issues.mjs` | test: `scripts/issues.test.js` | — | #341 |
 | P10.2 | **Cierre con aprendizaje.** Cada problema de fondo NO DEBE cerrarse sin aprendizaje registrado. | NO DEBE | script_propio · semidura · `scripts/lib/fondos.mjs` | test: `scripts/fondos.test.js` | `fondo-no-cierra-sin-aprendizaje` | #341 |
 | **Aprender** · blanda | | | | | | |
-| P11.1 | **Aprendizajes a un test.** Cada fallo DEBE dejar su aprendizaje en un test y nunca en la memoria. | DEBE | nada · blanda · `CLAUDE.md` | juicio | `lecciones-a-un-test` | #337 |
+| P11.1 | **Aprendizajes a un test.** Cada fallo DEBE dejar su aprendizaje en un test o en la guardia; si no se puede, en una regla o una skill; nunca en la memoria. | DEBE | ci · blanda · `CLAUDE.md` | script: `scripts/lib/avisosPr.mjs` | `lecciones-a-un-test` | #337 |
 | P11.2 | **Skill con su plantilla.** Cada skill DEBE seguir la plantilla de su tipo: tipo, dueño, fecha de comprobación, secciones, tamaño, rutas y nada copiado. | DEBE | ci · dura · `.claude/PLANTILLA-SKILL.md` | test: `.claude/skills.test.js` | — | — |
 | P11.3 | **Skill probada con casos.** Cada skill DEBE probarse con casos y seguir funcionando tras cambiarla. | DEBE | ci · semidura · `.claude/PLANTILLA-SKILL.md` | test: `.claude/skills.test.js` | — | #341 |
 | P11.4 | **Regla de parada.** Cuando es nueva, cada pieza (catálogo, skill o agente) DEBE cumplir la regla de parada antes de crearse. | DEBE | nada · blanda · `docs/ops/FLUJO.md` | juicio | — | #341 |
@@ -284,7 +284,7 @@ nada. De ahí salen quién diagnostica, las hipótesis, los jueces y el tope.
   por alcance y tipo de causa) y propondrá recalibrarlos. Una persona los
   aplicará. Una causa puede sobrescribir al alcance (p. ej. `modelo-datos` pide
   siempre `auditor-datos`); la celda alcance × causa la resuelve el comando.
-- **El diagnóstico se parará por criterio, no por cansancio.** Se dejará de
+- **El diagnóstico se parará por condición, no por cansancio.** Se dejará de
   preguntar «¿por qué?» cuando se llega a algo que se puede cambiar con un
   mecanismo; cuando se llega a algo fuera de nuestro control (se pone una
   barrera de nuestro lado); o cuando se acaba la evidencia (se marca como

@@ -14,6 +14,8 @@ diga cuál y por qué. Lo que no vale es saltársela sin decirlo.
 
 ## 1. Todo cuelga de la casa
 
+Principio: `household-owns-data` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
 - Las tablas de dominio llevan `household_id uuid not null references
   public.households(id) on delete cascade`, y su índice principal empieza por
   `household_id`. **[revisión]**
@@ -33,6 +35,8 @@ diga cuál y por qué. Lo que no vale es saltársela sin decirlo.
 
 ## 2. Toda FK dice qué pasa al borrar
 
+Principio: `fk-declares-on-delete` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
 - Cada `references` declara `on delete` (`cascade`, `restrict` o `set null`).
   **[auto]** Por qué: el valor por defecto (`no action`) es una decisión que
   nadie tomó; con cascadas hacia `persona`, borrar mal se lleva tareas en
@@ -48,6 +52,8 @@ diga cuál y por qué. Lo que no vale es saltársela sin decirlo.
   decisión.
 
 ## 3. Claves primarias
+
+Principio: `stable-unique-id` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
 
 | Caso | Clave |
 |---|---|
@@ -65,6 +71,8 @@ ids viejos no se reescriben nunca. El CHECK de formato en la base usa las
 regex que exporta `ids.js`.
 
 ## 4. Vocabularios cerrados
+
+Principio: `closed-vocabulary` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
 
 - `text` + CHECK llamado `<tabla>_<col>_vocabulario`. La lista vive en una
   constante JS, y un solo test compara SQL y JS: `src/lib/vocabularios.test.js`.
@@ -127,6 +135,8 @@ regex que exporta `ids.js`.
 
 ## 5. JSON o tabla
 
+Principio: `json-or-table` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
 | Tabla si… | JSON si… |
 |---|---|
 | se filtra o agrega en el servidor, o entre casas | un solo escritor lo lee y escribe entero |
@@ -153,6 +163,8 @@ quien lo escribió.
 
 ## 6. Un dato, un sitio
 
+Principio: `one-fact-one-place` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
 Cada hecho vive en un solo lugar. Cualquier otra copia es una proyección
 calculada, y se documenta de dónde sale y quién la recalcula. **[revisión]**
 Por qué: dos copias acaban diciendo cosas distintas (los comensales en el
@@ -166,6 +178,8 @@ compare. **[revisión]**
 
 ## 7. Concurrencia
 
+Principio: `versioned-concurrency` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
 El estado compartido de la casa se escribe con RPC que comprueban y suben una
 versión (`bot_rev`, 0057/0068). En funciones nuevas, el cliente no lee el
 documento entero, lo modifica y lo vuelve a escribir. **[revisión]**
@@ -173,6 +187,8 @@ Por qué: la app, el bot y otro miembro escriben la misma casa; sin versión,
 gana el último y nadie se entera.
 
 ## 8. Seguridad
+
+Principio: `secure-by-default` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
 
 - `enable row level security` en la misma migración que crea la tabla.
   **[auto]** Por qué: entre una migración y la siguiente la tabla queda abierta
@@ -203,6 +219,8 @@ gana el último y nadie se entera.
 
 ## 9. Fechas de cada fila
 
+Principio: `who-what-when` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
 Toda tabla nueva lleva `created_at timestamptz not null default now()`.
 **[auto]** Por qué: sin ella no se sabe desde cuándo consta un dato; el 8 oct
 2026, 18 tablas no la tenían, entre ellas `persona_alergia`. `updated_at` solo
@@ -211,6 +229,8 @@ miente (8 lo hacían ese día). **[revisión]** El resto de fechas (días del
 menú, zona de la casa, rangos) está en la sección 20.
 
 ## 10. Migraciones
+
+Principio: `expand-and-contract` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
 
 Producción y staging comparten base: cada migración tiene que convivir con el
 código desplegado de antes y de después.
@@ -238,6 +258,8 @@ código desplegado de antes y de después.
 
 ## 11. Transformaciones
 
+Principio: `pure-transformations` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
 Cada transformación del dominio vive en un módulo puro con tests
 (`src/lib/nutricionPlato.js`, `src/data/axisRegistry.js`). La base no la
 duplica: si la necesita, la deriva con una vista o una columna generada a
@@ -246,6 +268,8 @@ misma cuenta divergen. Y nada de un framework genérico de calculadoras: un
 módulo por transformación.
 
 ## 12. Nombres
+
+Principio: `names-have-form` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
 
 Un mismo patrón en todas las tablas, para que leer una sea leerlas todas.
 
@@ -263,6 +287,8 @@ Un mismo patrón en todas las tablas, para que leer una sea leerlas todas.
   `idx_`. **[revisión]**
 
 ## 13. Normalización
+
+Principio: `normalised-tables` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
 
 Las tablas nuevas nacen en tercera forma normal. En llano:
 
@@ -286,6 +312,8 @@ Las tablas nuevas nacen en tercera forma normal. En llano:
   **[revisión]**
 
 ## 14. Tipos y nulos
+
+Principio: `types-and-nulls` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
 
 - **`not null` por defecto.** Un `null` es una decisión: si una columna lo
   admite, su `comment on column` dice qué significa (¿desconocido? ¿no
@@ -313,6 +341,8 @@ Las tablas nuevas nacen en tercera forma normal. En llano:
 
 ## 15. Cableado: del código a la tabla
 
+Principio: `table-has-owner-module` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
 La base puede estar perfecta y romperse igual si el código la toca con
 strings sueltos desde cualquier sitio.
 
@@ -337,6 +367,8 @@ strings sueltos desde cualquier sitio.
 
 ## 16. Diccionario y lectura
 
+Principio: `self-describing-catalog` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
 - **Cada tabla nueva dice qué es**: `comment on table` con una frase sobre qué
   guarda y quién la escribe. **[auto]** Las columnas que no se explican por
   su nombre, también (`comment on column`). **[revisión]** Por qué: el
@@ -351,6 +383,8 @@ strings sueltos desde cualquier sitio.
   paginación. **[revisión]**
 
 ## 17. Datos de salud
+
+Principio: `health-data-apart` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
 
 Alergias, intolerancias, dietas médicas, peso, altura y fecha de nacimiento
 son categoría especial del RGPD (art. 9). Se tratan aparte.
@@ -370,6 +404,8 @@ son categoría especial del RGPD (art. 9). Se tratan aparte.
 
 ## 18. Quién y por dónde
 
+Principio: `who-what-when` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
 - Las tablas de la casa llevan `created_by` y, si se editan, `updated_by`:
   el usuario (`uuid` con FK) o un actor de sistema. El actor va en una columna
   `actor` con vocabulario (`usuario`, `bot`, `cron`, `script`), y el canal en
@@ -384,6 +420,8 @@ son categoría especial del RGPD (art. 9). Se tratan aparte.
 
 ## 19. Cada orden, una vez
 
+Principio: `idempotent-writes` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
 - Lo que llega de fuera (cada update de Telegram, un webhook, una ejecución de
   cron) se guarda con su id externo y `unique (proveedor, <algo>_xid)`, y se
   procesa con `insert … on conflict do nothing`: si ya estaba, no se repite.
@@ -394,6 +432,8 @@ son categoría especial del RGPD (art. 9). Se tratan aparte.
   nuestras. **[revisión]**
 
 ## 20. Días, horas y zonas
+
+Principio: `days-hours-zones` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
 
 - Un **instante** («se creó a las 10:32») es `timestamptz`. Un **día del
   calendario** («el menú del martes», «vence el 12») es `date`, nunca un
@@ -412,6 +452,8 @@ son categoría especial del RGPD (art. 9). Se tratan aparte.
   crons se definen en UTC y su hora local se documenta al lado. **[revisión]**
 
 ## 21. Estados
+
+Principio: `status-is-state-machine` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
 
 Una columna `status` es una máquina de estados, no una etiqueta.
 

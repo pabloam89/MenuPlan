@@ -79,6 +79,15 @@
         "gobierno"
       ]
     },
+    "higiene-de-vocabulario": {
+      "comandos": [],
+      "rutas": [
+        "^scripts/lib/glosario(?:Dominios|Mapeo|Higiene).mjs$"
+      ],
+      "agentes": [
+        "gobierno"
+      ]
+    },
     "forja-de-skills": {
       "comandos": [],
       "rutas": [
@@ -97,7 +106,31 @@
         "^[.]claude/skills/estilo-de-respuesta/"
       ],
       "agentes": [
-        "gobierno"
+        "gobierno",
+        "orquestador"
+      ]
+    },
+    "revision-de-diseno": {
+      "comandos": [],
+      "rutas": [
+        "^ops/diseno/",
+        "^docs/diseno/META-DISENO\\.md$",
+        "^src/design/contraste"
+      ],
+      "agentes": [
+        "diseno"
+      ]
+    },
+    "principios-de-producto": {
+      "comandos": [],
+      "rutas": [
+        "^ops/principios-producto/",
+        "^docs/producto/PRINCIPIOS\\.md$",
+        "^scripts/lib/principiosProducto\\.mjs$",
+        "^scripts/principios\\.mjs$"
+      ],
+      "agentes": [
+        "lola"
       ]
     },
     "plan-de-arreglo": {

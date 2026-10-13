@@ -53,5 +53,14 @@ cifra a la vez lo dejan así), y el test «está al día» del CI lo para. Tras 
 limpio, si el CI da rojo en uno de esos tests: trae la rama, `node scripts/generados.mjs
 --escribir`, commit y push.
 
-Medido con dos ramas que añaden un criterio cada una (`ops/generados.test.js`): sin drivers,
-18 líneas en conflicto en 9 ficheros (criterios vecinos) y 14 en 7 (lejanos); con drivers, 0.
+Medido con dos ramas que añaden una norma cada una (`ops/generados.test.js`): sin drivers,
+18 líneas en conflicto en 9 ficheros (normas vecinas) y 14 en 7 (lejanos); con drivers, 0.
+
+## El inventario de todo lo derivado (#584)
+
+`GENERADOS` es un filtro (las clases `documento` y `ancla`) de `DERIVADOS`, el inventario
+general de `scripts/lib/generados.mjs`. Ahí también están, sin driver de fusión, los ficheros
+con bloques generados (`partial`), los datos derivados (`data`, con los de `TABLAS` añadidos por
+`scripts/lib/derivados.mjs`), el código generado (`code`) y las specs (`spec`). Cada entrada dice
+de qué fuente sale, qué script la regenera (o `manual` con motivo) y qué test la vigila (o `none`
+con motivo). `ops/derivados.test.js` falla si un fichero con cabecera de generado no está.

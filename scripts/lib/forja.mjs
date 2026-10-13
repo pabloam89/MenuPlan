@@ -52,7 +52,7 @@ export const ARTEFACTOS = {
 export const ESTADOS_CRITERIO = {
   cumple: "Lo comprobó un control o un juicio y se cumple",
   no_cumple: "Lo comprobó un control o un juicio y no se cumple",
-  no_aplica: "El criterio no se aplica a este artefacto",
+  no_aplica: "La norma no se aplica a este artefacto",
   juicio: "Pendiente de juicio: lo puntúa un LLM o una persona y aún no se ha hecho",
 };
 /** Solo el hueco lleva nota de texto: lo que no se cumple o lo que falta por juzgar. */
@@ -537,7 +537,7 @@ export function problemasDeTaxonomia(datos, { skills: todas, fichaDe = {} }) {
 export const CLASES_CAMPO = {
   bool: "Verdadero o falso",
   enum: "Un valor de un vocabulario cerrado",
-  ref: "Apunta a algo que existe: skill, agente, criterio, ruta, comando, issue, fuente, evidencia o versión",
+  ref: "Apunta a algo que existe: skill, agente, `criterio`, ruta, comando, issue, fuente, evidencia, versión, común de estándar o norma",
   numero: "Un número",
   fecha: "Una fecha AAAA-MM-DD",
   texto: "Prosa: solo como hueco, con su motivo",
@@ -548,7 +548,7 @@ export const CLASES_CAMPO = {
  * respalda un juicio (una ruta con su cabecera, un caso, un comando, un PR o un issue: la valida quien da
  * `ctx.existe`); `version`, el hash de 12 de una versión de un fichero (hashLF de scripts/lib/evals.mjs).
  */
-export const REFS_CAMPO = ["skill", "agente", "criterio", "ruta", "comando", "issue", "fuente", "evidencia", "version", "estandar_comun"];
+export const REFS_CAMPO = ["skill", "agente", "criterio", "ruta", "comando", "issue", "fuente", "evidencia", "version", "estandar_comun", "norma"];
 /** Nivel de una clase para el trinquete: el texto es el hueco; todo lo demás es discreto. */
 export const NIVELES_CAMPO = ["texto", "discreto"];
 export const nivelDeClase = (clase) => (clase === "texto" ? "texto" : "discreto");
@@ -766,7 +766,7 @@ function mdTipos(datos) {
     "|---|---|",
     ...Object.entries(datos.niveles ?? {}).map(([n, q]) => `| ${n} | ${celda(q)} |`),
     "",
-    "Herencia: esqueleto común (la base) → plantilla por tipo (los criterios que le tocan, `tipos` de cada criterio) → cada skill. Criterios de skill por tipo y capa:",
+    "Herencia: esqueleto común (la base) → plantilla por tipo (las normas que le tocan, `tipos` de cada norma) → cada skill. Normas de skill por tipo y capa:",
     "",
     `| Tipo | ${capasAlReves.join(" | ")} | Criterios |`,
     `|${"---|".repeat(ORDEN_CAPAS.length + 2)}`,
@@ -780,9 +780,9 @@ function mdRegla(datos) {
   const L = LIMITES_REGLA;
   const usos = Object.fromEntries(Object.keys(datos.sujetos).map((s) => [s, datos.criterios.filter((c) => c.sujeto === s).length]));
   return [
-    "## Cómo se escribe un criterio",
+    "## Cómo se escribe una norma de la forja",
     "",
-    `Cada criterio se escribe por campos y su frase se genera; no hay prosa libre. La forma sigue EARS (Mavin et al., Rolls-Royce, 2009) y las palabras de RFC 2119. El esquema vive en \`scripts/lib/regla.mjs\`, para que lo reutilicen las normas y las obligaciones del flujo (#488). La frase es: **Nombre.** [Condición,] sujeto DEBE | NO DEBE exigencia. Se comprueba con: control. Con \`conviene\`: [Condición, para] sujeto, CONVIENE exigencia.`,
+    `Cada norma de la forja se escribe por campos y su frase se genera; no hay prosa libre. La forma sigue EARS (Mavin et al., Rolls-Royce, 2009) y las palabras de RFC 2119. El esquema vive en \`scripts/lib/regla.mjs\`, para que lo reutilicen las normas y las obligaciones del flujo (#488). La frase es: **Nombre.** [Condición,] sujeto DEBE | NO DEBE exigencia. Se comprueba con: control. Con \`conviene\`: [Condición, para] sujeto, CONVIENE exigencia.`,
     "",
     "| Campo | Qué es |",
     "|---|---|",
@@ -820,11 +820,11 @@ function mdCampos(datos) {
     "",
     "| Artefacto | Campos discretos | Huecos de texto | Campos |",
     "|---|---|---|---|",
-    ...Object.keys(k).map((a) => `| ${a} | ${k[a].discretos} | ${k[a].huecos} | ${k[a].total} |`),
+    ...Object.keys(k).map((a) => `| \`${a}\` | ${k[a].discretos} | ${k[a].huecos} | ${k[a].total} |`),
     "",
   ];
   for (const [a, decl] of Object.entries(datos.campos_ficha)) {
-    L.push(`### Campos de ${a}`, "", decl.fuente, "");
+    L.push(`### Campos de \`${a}\``, "", decl.fuente, "");
     for (const [n, c] of Object.entries(decl.campos)) {
       const que = c.clase === "enum" ? `enum (${c.vocab})` : c.clase === "ref" ? `ref a ${c.ref}` : c.clase;
       L.push(`- \`${n}\` — ${que}${c.lista ? ", lista" : ""}${c.obligatorio ? "" : ", opcional"}${c.hueco ? `. Hueco: ${c.cubre}` : ""}`);
@@ -844,7 +844,7 @@ function mdForma(datos) {
     "",
     "| Artefacto | Bullets | Estructura de cada bullet | Fuente por bullet | Voz | Modo y tiempo | Persona |",
     "|---|---|---|---|---|---|---|",
-    ...Object.entries(datos.forma_practica).map(([a, f]) => `| ${a} | de ${f.bullets.min} a ${f.bullets.max} | ${f.estructura.join(" · ")} | ${f.fuente_por_bullet ? "[F] o [I]" : "no"} | ${f.voz} | ${f.modo_tiempo} | ${f.persona} |`),
+    ...Object.entries(datos.forma_practica).map(([a, f]) => `| ${a} | de ${f.bullets.min} a ${f.bullets.max} | ${f.estructura.join(" · ")} | ${f.fuente_por_bullet ? "[F] o [I] (ruta de la casa)" : "no"} | ${f.voz} | ${f.modo_tiempo} | ${f.persona} |`),
     "",
     "## Método de construcción",
     "",
@@ -857,11 +857,11 @@ function mdForma(datos) {
 export function generarMd(datos) {
   const k = cifras(datos);
   const L = [
-    "# Forja: criterios de calidad",
+    "# Forja: normas de calidad",
     "",
     `<!-- Generado desde ${RUTA_FORJA} con «npm run forja -- --escribir». No se edita a mano: ops/forja.test.js lo compara. -->`,
     "",
-    `La única fuente de lo que se le pide a una skill, a un estándar de agente y a lo que venga es \`${RUTA_FORJA}\`, partida en un fichero por criterio, por tipo de skill y por ficha para que dos ramas no choquen (#505; formato en \`scripts/lib/catalogos.mjs\`). Tres capas, porque convertir algo continuo en atributos discretos nunca cubre todo; para los huecos están los textos que juzga un LLM. La capa de cada criterio solo sube (\`${RUTA_CAPAS}\`). Cómo se redacta cada criterio, y cualquier otra regla de la casa: [REDACCION.md](REDACCION.md).`,
+    `La única fuente de lo que se le pide a una skill, a un estándar de agente y a lo que venga es \`${RUTA_FORJA}\`, partida en un fichero por norma, por tipo de skill y por ficha para que dos ramas no choquen (#505; formato en \`scripts/lib/catalogos.mjs\`). Tres capas, porque convertir algo continuo en atributos discretos nunca cubre todo; para los huecos están los textos que juzga un LLM. La capa de cada norma solo sube (\`${RUTA_CAPAS}\`). Cómo se redacta cada norma, y cualquier otra norma de la casa: [REDACCION.md](REDACCION.md).`,
     "",
     "## Cifras",
     "",
@@ -870,7 +870,7 @@ export function generarMd(datos) {
     ...ORDEN_CAPAS.slice().reverse().map((capa) => `| ${capa} | ${Object.keys(ARTEFACTOS).map((a) => k.porCapaYArtefacto[capa][a]).join(" | ")} | ${k.porCapa[capa]} |`),
     `| total | ${Object.keys(ARTEFACTOS).map((a) => ORDEN_CAPAS.reduce((s, capa) => s + k.porCapaYArtefacto[capa][a], 0)).join(" | ")} | ${k.total} |`,
     "",
-    "Un criterio que se aplica a dos artefactos cuenta en las dos columnas y una vez en el total.",
+    "Una norma que se aplica a dos artefactos cuenta en las dos columnas y una vez en el total.",
     "",
     ...mdRegla(datos),
     ...mdTipos(datos),
@@ -882,21 +882,21 @@ export function generarMd(datos) {
     "|---|---|",
     ...ORDEN_CAPAS.slice().reverse().map((capa) => `| ${capa} | ${celda(CAPAS_CRITERIO[capa])} |`),
     "",
-    "| Estado de un criterio | Qué quiere decir |",
+    "| Estado de una norma | Qué quiere decir |",
     "|---|---|",
     ...Object.entries(ESTADOS_CRITERIO).map(([e, t]) => `| ${e} | ${celda(t)} |`),
     "",
-    `El estado de un criterio sobre un artefacto es una línea \`<artefacto>: <nombre> criterio: <id> estado: <estado>\`; solo ${ESTADOS_CON_NOTA.join(" y ")} llevan \`nota:\` (el hueco). Los juicios de skill (los criterios de juicio de cada skill, con su evidencia) viven en \`ops/juicios-skills/<skill>.json\` y sus campos son los de \`campos_ficha.juicio\`.`,
+    `El estado de una norma sobre un artefacto es una línea \`<artefacto>: <nombre> criterio: <id> estado: <estado>\`; solo ${ESTADOS_CON_NOTA.join(" y ")} llevan \`nota:\` (el hueco). Los juicios de skill (las normas de juicio de cada skill, con su evidencia) viven en \`ops/juicios-skills/<skill>.json\` y sus campos son los de \`campos_ficha.juicio\`.`,
     "",
     "| Motivo de un pendiente | Qué quiere decir | Dónde se escribe |",
     "|---|---|---|",
-    ...Object.entries(MOTIVOS_PENDIENTE).map(([m, x]) => `| ${m} | ${celda(x.que)} | ${x.en.join(", ")} |`),
+    ...Object.entries(MOTIVOS_PENDIENTE).map(([m, x]) => `| ${m} | ${celda(x.que)} | ${x.en.map((e) => `\`${e}\``).join(", ")} |`),
     "",
     "## Promoción de una rúbrica",
     "",
-    `Un criterio subjetivo lleva casos de calibración (un texto de ejemplo y el estado que se espera, cumple o no_cumple) y solo puede marcarse \`listo_para_subir\` si sus medidas cumplen la promoción: coincidencia del juez con la respuesta conocida de al menos **${datos.promocion.coincidencia_minima}** en **${datos.promocion.repeticiones}** repeticiones.`,
+    `Una norma subjetiva lleva casos de calibración (un texto de ejemplo y el estado que se espera, cumple o no_cumple) y solo puede marcarse \`listo_para_subir\` si sus medidas cumplen la promoción: coincidencia del juez con la respuesta conocida de al menos **${datos.promocion.coincidencia_minima}** en **${datos.promocion.repeticiones}** repeticiones.`,
     "",
-    "**Estos valores son un primer tiro, pendientes de ajustar con datos.** Están en el bloque `promocion` de `ops/forja/` y se cambian ahí; aún no hay juez montado ni medidas. Subir de capa sigue siendo editar el criterio; el trinquete (`ops/forja-capas.json`) impide bajar.",
+    "**Estos valores son un primer tiro, pendientes de ajustar con datos.** Están en el bloque `promocion` de `ops/forja/` y se cambian ahí; aún no hay juez montado ni medidas. Subir de capa sigue siendo editar la norma; el trinquete (`ops/forja-capas.json`) impide bajar.",
     "",
     "Marca de la fuente: **[F]** está en una fuente externa (con su URL); **[I]** es de la casa (con la ruta del repo donde está escrito).",
   ];

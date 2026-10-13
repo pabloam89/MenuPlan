@@ -59,7 +59,7 @@ describe("ningún test que enumera ficheros del repo queda fuera de la lista", (
 
   it("la búsqueda encuentra tests (no una lista vacía que pase en vacío)", () => {
     expect(enumeradores.length).toBeGreaterThan(40);
-    for (const t of ["scripts/sinErroresTragados.test.js", "scripts/rulesets.test.js", ".claude/rutas.test.js", "ops/fuentes.test.js"]) expect(enumeradores.map((e) => e.test)).toContain(t);
+    for (const t of ["scripts/sinErroresTragados.test.js", ".claude/rutas.test.js", "ops/fuentes.test.js"]) expect(enumeradores.map((e) => e.test)).toContain(t);
   });
 
   it("todo test detectado es vigilante o excepción con motivo", () => {
@@ -83,6 +83,8 @@ const TABLA = [
   ["catalogos-partidos", "ops/glosario/terminos/x.json", "ops/catalogos.test.js"],
   ["generados-sin-choque", "docs/ops/NUEVO.md", "ops/generados.test.js"],
   ["generados-sin-choque", ".gitattributes", "ops/generados.test.js"],
+  ["derivados-registrados", "src/design/tokens.css", "ops/derivados.test.js"],
+  ["derivados-registrados", "scripts/lib/derivados.mjs", "ops/derivados.test.js"],
   ["forja", "ops/forja/criterios/x.json", "ops/forja.test.js"],
   ["forja", "ops/forja/tipos_skill/x.json", "scripts/higiene-skills.test.js"],
   ["forja", "ops/forja/campos_ficha/x.json", "ops/forja-forma.test.js"],
@@ -97,8 +99,8 @@ const TABLA = [
   ["errores-tragados-scripts", "scripts/lib/x.mjs", "scripts/sinErroresTragados.test.js"],
   ["errores-tragados-scripts", ".claude/hooks/x.mjs", "scripts/sinErroresTragados.test.js"],
   ["errores-tragados-bot", "api/bot/x.js", "api/_bot/sinErroresTragados.test.js"],
-  ["dueno-de-lo-que-ejecuta-un-hook", ".claude/hooks/x.mjs", "scripts/rulesets.test.js"],
-  ["dueno-de-lo-que-ejecuta-un-hook", ".github/CODEOWNERS", "scripts/rulesets.test.js"],
+  ["api-sin-credencial", "api/x.js", "api/sinCredencial.test.js"],
+  ["api-sin-credencial", "ops/api-sin-credencial.json", "api/sinCredencial.test.js"],
   ["scripts-sin-caminos-sueltos", "scripts/lib/x.mjs", "scripts/lib/env.test.js"],
   ["cuota-de-gh", "scripts/lib/x.mjs", "scripts/cuotaGh.test.js"],
   ["cuota-de-gh", "docs/ops/x.md", "scripts/cuotaGh.test.js"],
@@ -112,11 +114,13 @@ const TABLA = [
   ["frases-normativas", ".claude/skills/x/referencias/y.md", "ops/planos.test.js"],
   ["frases-normativas", "ops/X.md", "ops/normas.test.js"],
   ["glosario", "docs/ops/x.md", "ops/glosario.test.js"],
+  ["entidades", "docs/entidades/MAPA.md", "ops/entidades.test.js"],
   ["redaccion-de-reglas", "ops/catalogo-nuevo.json", "ops/redaccion.test.js"],
   ["fuentes-y-modulos", "src/lib/x.js", "ops/modulos.test.js"],
   ["fuentes-y-modulos", "scripts/lib/x.mjs", "ops/fuentes.test.js"],
   ["cableado", "api/_bot/x.js", "supabase/cableado.test.js"],
   ["migraciones-sql", "supabase/migrations/9999_x.sql", "supabase/principios.test.js"],
+  ["migraciones-sql", "ops/columnas-texto.json", "supabase/columnasTexto.test.js"],
   ["catalogo-de-recetas", "src/data/recipes/x.json", "src/data/model.test.js"],
   ["fuentes-sin-invisibles", "src/lib/x.js", "src/data/fuentesLimpias.test.js"],
   ["app-y-bot", "src/components/x.jsx", "src/components/coachAnchors.test.js"],
@@ -127,10 +131,17 @@ const TABLA = [
   ["vigilantes", "scripts/x.test.js", "ops/vigilantes.test.js"],
   ["una-lista-de-tipos", "docs/x.md", ".claude/plantillas-skill.test.js"],
   ["metricas", "scripts/lib/x.mjs", "ops/metricas.test.js"],
+  ["recursos-con-caducidad", "ops/recursos.json", "ops/recursos.test.js"],
   ["workflows-yaml", ".github/workflows/x.yml", "ops/workflows.test.js"],
   ["una-escala-y-una-escalera", "ops/flujo.json", "ops/escalas.test.js"],
   ["tipos-de-encargo", "ops/tipos-de-encargo.json", "ops/tipos-de-encargo.test.js"],
   ["tipos-de-encargo", ".claude/agents/x.md", "ops/tipos-de-encargo.test.js"],
+  ["principios-y-uniones", "ops/principios/principios/x.json", "ops/principios.test.js"],
+  ["principios-y-uniones", "ops/normas.json", "ops/uniones.test.js"],
+  ["tests-sin-registro-real", "scripts/un-test-nuevo.test.js", ".claude/hooks/eventos.test.js"],
+  ["zonas-del-repo", "ops/zonas.json", "ops/zonas.test.js"],
+  ["zonas-del-repo", "scripts/un-script-nuevo.mjs", "ops/zonas.test.js"],
+  ["zonas-del-repo", "un-fichero-nuevo-en-la-raiz.md", "ops/zonas.test.js"],
 ];
 
 describe("tabla: ruta de ejemplo → vigilante que debe salir", () => {
@@ -160,10 +171,11 @@ describe("`npm run vecinos` elige el vigilante de cada caso que cayó en el CI (
     expect(testsDe([M(".claude/hooks/buscar-antes.mjs")])).toContain("scripts/sinErroresTragados.test.js");
   });
 
-  it("3 · texto nuevo en una skill, un script que ejecuta un hook y un catch: planos, rulesets y sinErroresTragados", () => {
+  it("3 · texto nuevo en una skill y un catch: planos y sinErroresTragados", () => {
+    // #608: sin revisión de dueño de código ya no hay vigilante de «dueño de lo que ejecuta un hook»
+    // (rulesets.test.js dejó de recorrer los scripts); se quita esa expectativa a propósito, no por flojera.
     expect(testsDe([M(".claude/skills/github/SKILL.md")])).toContain("ops/planos.test.js");
     const script = testsDe([A("scripts/lib/cuotaGh.mjs")]);
-    expect(script).toContain("scripts/rulesets.test.js");
     expect(script).toContain("scripts/sinErroresTragados.test.js");
   });
 

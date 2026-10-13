@@ -1,0 +1,22 @@
+{
+  "termino": "entorno",
+  "estado": "activo",
+  "clase": "lugar",
+  "dominio": "ops",
+  "definicion": "Un sitio donde corre el código y que tiene su propia configuración: local, preview, staging o producción.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "servicio",
+    "despliegue"
+  ],
+  "en": "environment",
+  "entidades": [
+    {
+      "entidad": "environment",
+      "relacion": "ubicacion_de"
+    }
+  ]
+}

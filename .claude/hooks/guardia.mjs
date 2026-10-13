@@ -25,6 +25,7 @@ import { AVISO_POR_CREDENCIAL, avisoDe } from "./avisos-guardia.mjs";
 import { credencialDeComando } from "./credenciales.mjs";
 import { cargarMapa, skillsDeComando, skillsDeFicheros, unirContinuaciones } from "./dominios.mjs";
 import { enStaging as enStagingTodas } from "./migraciones.mjs";
+import { esSesionDeNube, nubePosible } from "./nube.mjs";
 import { anotarSkill, dirSesiones, skillAnotada, tocar } from "./sesiones.mjs";
 import { anotarVista, consultarZona, listaDeRamas } from "./zonas.mjs";
 
@@ -307,15 +308,26 @@ const GIT_QUE_ESCRIBE = /^git\s+(?:-C\s+(?:"[^"]+"|'[^']+'|\S+)\s+)?(add|commit|
 /** Lo que sí vale en la principal: ponerla al día y volver a staging. */
 const GIT_DE_MANTENER = /\bmerge\s+(.*\s)?--ff-only\b|\b(checkout|switch)\s+staging\s*$/;
 
-export function contextoReal(raiz, entrada = {}, { dirReg: dirRegDado } = {}) {
+export function contextoReal(raiz, entrada = {}, { dirReg: dirRegDado, env = process.env, plataforma = process.platform, gitDado } = {}) {
   let deStaging;
-  const git = (args) => execFileSync("git", args, { windowsHide: true, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 15000 }).trim();
+  const git = gitDado ?? ((args) => execFileSync("git", args, { windowsHide: true, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 15000 }).trim());
   let comunPropio;
   const esPrincipal = (dir) => {
     try {
       comunPropio ??= resolve(git(["-C", raiz, "rev-parse", "--path-format=absolute", "--git-common-dir"])).toLowerCase();
       const [gitDir, comun] = git(["-C", dir, "rev-parse", "--path-format=absolute", "--git-dir", "--git-common-dir"]).split(/\r?\n/);
-      return resolve(gitDir).toLowerCase() === resolve(comun).toLowerCase() && resolve(comun).toLowerCase() === comunPropio;
+      const esLaPrincipal = resolve(gitDir).toLowerCase() === resolve(comun).toLowerCase() && resolve(comun).toLowerCase() === comunPropio;
+      if (!esLaPrincipal) return false;
+      // Sesión de la nube (#635): su único clon, en la rama ccr-… de la plataforma, es su carpeta de tarea.
+      // Sin variable o en Windows no hay nube posible: no se pide la rama (un git que falle no abre nada).
+      if (!nubePosible(env, plataforma)) return true;
+      let rama;
+      try {
+        rama = git(["-C", dir, "rev-parse", "--abbrev-ref", "HEAD"]);
+      } catch {
+        return true; // a propósito: sin rama legible no se prueba que sea la nube; sigue siendo la principal (cerrado)
+      }
+      return !esSesionDeNube(env, rama, dir, plataforma);
     } catch {
       // a propósito: fuera de un repo (o si git no contesta) no es la carpeta principal
       return false;
@@ -826,7 +838,7 @@ if (esPrincipal) {
     try {
       if (!hayTiempoParaRegistrar(INICIO)) throw new Error("la guardia ya tardó demasiado: sin registro");
       const registro = (async () => {
-        const { dirFabrica, registrarEvento } = await import("./eventos.mjs");
+        const { dirFabrica, intervencionDeAviso, registrarEvento } = await import("./eventos.mjs");
         // Un aviso de zona deja además su línea contable por rama (`zona: … rama: … aviso: si`).
         if (r.zona) {
           const { anotarLineas, lineasDeAviso } = await import("./zonas.mjs");
@@ -835,10 +847,14 @@ if (esPrincipal) {
         registrarEvento({
           evento: { deny: "bloqueo_guardia", ask: "permiso_pedido", aviso: "aviso_guardia" }[r.decision],
           nombre: r.aviso,
-          codigo: r.codigo,
+          fuente: "guardia",
+          norma: r.codigo,
           sesion: entrada.session_id,
           cwd: entrada.cwd || raiz,
         });
+        // Una pregunta de la guardia es además una intervención de una persona (#652): quién, por qué y si se podía evitar.
+        const intervencion = r.decision === "ask" ? intervencionDeAviso(r.aviso, r.codigo) : null;
+        if (intervencion) registrarEvento({ ...intervencion, fuente: "guardia", sesion: entrada.session_id, cwd: entrada.cwd || raiz });
       })();
       let temporizador;
       await Promise.race([registro, new Promise((alTiempo) => { temporizador = setTimeout(alTiempo, 3000); })]);

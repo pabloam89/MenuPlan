@@ -1,0 +1,16 @@
+{
+  "id": "normalised-tables",
+  "area": "data",
+  "nombre": "Tablas normalizadas",
+  "enunciado": "Cada tabla nueva nace en tercera forma normal, con un valor por celda y referencias en vez de copias.",
+  "porque": "Una copia de un nombre o un precio en otra tabla se queda vieja sin que nada lo avise.",
+  "fuentes": [
+    {
+      "marca": "I",
+      "ruta": "docs/datos/PRINCIPIOS.md"
+    }
+  ],
+  "detalle": [
+    "docs/datos/PRINCIPIOS.md#13-normalización"
+  ]
+}

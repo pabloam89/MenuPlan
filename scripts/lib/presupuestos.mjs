@@ -20,8 +20,9 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
+import { JUECES } from "./agentes.mjs";
 import { ALCANCES_FALLO, DIAGNOSTICAN } from "./flujo.mjs";
-import { GRUPOS } from "./issues.mjs";
+import { COMPLEXITIES, GRUPOS } from "./issues.mjs";
 
 /** Las causas de `causa:` (issues.mjs), sin copiarlas. */
 export const CAUSAS = Object.keys(GRUPOS.causa.valores);
@@ -32,10 +33,29 @@ export const TOPE_RONDAS = 2;
 
 /**
  * Los jueces que se pueden exigir: los agentes con «Tipo: juez» de
- * .claude/agents/. Un test lo cruza con la carpeta, así que un juez nuevo
- * obliga a añadirlo aquí.
+ * .claude/agents/. La lista sale de agentes.mjs (una sola fuente, #640): aquí
+ * solo se re-exporta.
  */
-export const JUECES = ["auditor-datos", "evaluador", "qa", "revisor", "seguridad"];
+export { JUECES };
+
+/** La complejidad de un encargo (issues.mjs, #640): los números de cada una están en `by_complexity` de ops/presupuestos.json. */
+export { COMPLEXITIES };
+
+/** Por qué una complejidad es la que es (`npm run dimensionar`, #641): vocabulario cerrado, anclado como `encargo.complexity_reason`. */
+export const MOTIVOS_COMPLEJIDAD = {
+  over_lines: "Pasa el umbral de líneas del aviso del CI",
+  over_files: "Pasa el umbral de ficheros del aviso del CI",
+  over_areas: "Pasa el umbral de áreas del aviso del CI",
+  transversal: "El alcance es transversal, aunque el tamaño sea pequeño",
+  small: "Alcance local y tamaño dentro de lo trivial",
+  default: "Ni grande ni trivial",
+};
+
+/** Qué parte del pipeline de un subtipo lanza cada complejidad. */
+export const PIPELINES = {
+  minimal: "Un constructor y el juez mínimo, con las condiciones de sus pasos",
+  complete: "Todos los pasos del subtipo",
+};
 
 /** Rangos admitidos de cada cifra: [mínimo, máximo], enteros. */
 export const RANGOS = {
@@ -118,6 +138,28 @@ export function problemas(catalogo) {
       }
     }
   }
+
+  // La complejidad de un encargo (#640): una fila por valor del vocabulario, siempre con juez (también lo trivial),
+  // jueces que no bajan al subir y un pipeline del vocabulario.
+  const cx = catalogo?.by_complexity ?? {};
+  if (JSON.stringify(Object.keys(cx)) !== JSON.stringify(Object.keys(COMPLEXITIES))) p.push(`complejidad: «by_complexity» tiene que cubrir ${Object.keys(COMPLEXITIES).join(", ")} (en ese orden) y cubre ${Object.keys(cx).join(", ")}`);
+  let anterior = 1;
+  for (const [c, b] of Object.entries(cx)) {
+    for (const k of Object.keys(b ?? {})) if (!["jueces_min", "pipeline"].includes(k)) p.push(`complejidad: ${c} tiene un campo desconocido «${k}»`);
+    if (!entero(b?.jueces_min) || b.jueces_min < 1 || b.jueces_min > RANGOS.jueces_min[1]) p.push(`complejidad: ${c} «jueces_min» tiene que ser un entero entre 1 y ${RANGOS.jueces_min[1]}: hasta lo trivial lleva un juez`);
+    else if (b.jueces_min < anterior) p.push(`complejidad: ${c} «jueces_min» (${b.jueces_min}) es menor que el de la complejidad anterior (${anterior})`);
+    else anterior = b.jueces_min;
+    if (!(b?.pipeline in PIPELINES)) p.push(`complejidad: ${c} «pipeline» «${b?.pipeline}» está fuera de ${Object.keys(PIPELINES).join(", ")}`);
+  }
+
+  // El dimensionado (#641): los números con que `npm run dimensionar` saca alcance y complejidad.
+  const dm = catalogo?.dimensionado;
+  const positivo = (v) => entero(v) && v >= 1;
+  if (!positivo(dm?.local_max_files)) p.push("dimensionado: «local_max_files» tiene que ser un entero de 1 o más");
+  if (!positivo(dm?.transversal_min_dominios)) p.push("dimensionado: «transversal_min_dominios» tiene que ser un entero de 1 o más");
+  for (const k of ["lines_max", "files_max", "areas_max"]) if (!positivo(dm?.trivial?.[k])) p.push(`dimensionado: trivial «${k}» tiene que ser un entero de 1 o más`);
+  if (positivo(dm?.trivial?.files_max) && positivo(dm?.local_max_files) && dm.trivial.files_max > dm.local_max_files) p.push("dimensionado: trivial «files_max» no puede pasar de «local_max_files»: lo trivial es local");
+  for (const k of Object.keys(dm ?? {})) if (!["local_max_files", "transversal_min_dominios", "trivial"].includes(k)) p.push(`dimensionado: campo desconocido «${k}»`);
 
   // Todas las celdas se resuelven y ninguna pasa del tope ni se queda sin jueces suficientes.
   // Y por CELDA ya resuelta: lo que una causa sobrescriba tampoco puede abaratar un alcance mayor.

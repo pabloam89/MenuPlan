@@ -1,0 +1,19 @@
+{
+  "id": "simple-first-agents",
+  "nombre": "Lo simple primero",
+  "area": "conversational-ai",
+  "enunciado": "Cada paso, herramienta o agente de más añade coste y errores, y rara vez mejora lo que se mide.",
+  "porque": "La complejidad cuesta tokens, errores y mantenimiento, y rara vez se nota en la conversación.",
+  "ejemplo_bueno": "Antes de crear un agente nuevo, se mejora la descripción de la herramienta y se miden las evals",
+  "ejemplo_malo": "Se añade un segundo agente porque parece más elegante, sin una cifra que lo justifique",
+  "fuentes": [
+    {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "marca": "F"
+    },
+    {
+      "url": "https://www.anthropic.com/engineering/writing-tools-for-agents",
+      "marca": "F"
+    }
+  ]
+}

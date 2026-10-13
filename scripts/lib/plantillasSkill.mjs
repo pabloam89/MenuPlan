@@ -18,9 +18,9 @@
  * dice si están al día y `npm run plantillas -- --escribir` los regenera;
  * `.claude/plantillas-skill.test.js` falla si no coinciden con lo generado.
  *
- * Lo que aún es texto (el estándar de cada tipo: qué lo hace bueno, sus errores
+ * Lo que aún es texto (la plantilla de cada tipo: qué lo hace bueno, sus errores
  * típicos y su ejemplo mínimo) se escribe una vez en `.claude/PLANTILLA-SKILL.md`
- * («El estándar de cada tipo») y de ahí se copia al molde al generarlo.
+ * («La plantilla de cada tipo») y de ahí se copia al molde al generarlo.
  */
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -31,7 +31,7 @@ import { ORDEN_CAPAS, RUTA_FORJA, TIPO_POR_DEFECTO, criteriosDeTipo, leerForja }
 export const RAIZ_REPO = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 export const DIR_PLANTILLAS = ".claude/plantillas-skill";
 export const RUTA_PLANTILLA_COMUN = ".claude/PLANTILLA-SKILL.md";
-export const SECCION_ESTANDARES = "El estándar de cada tipo";
+export const SECCION_ESTANDARES = "La plantilla de cada tipo";
 
 /** Los tipos de skill, en el orden de `ops/forja/`: la única lista. */
 export const tiposDeForja = (datos) => (datos?.tipos_skill ?? []).map((t) => t.id);
@@ -115,7 +115,7 @@ export function problemasDePlantillas(datos, secciones = seccionesDeForja(datos)
   return malos;
 }
 
-// ── El estándar de cada tipo, leído de la plantilla común ─────────────────
+// ── La plantilla de cada tipo, leído de la plantilla común ─────────────────
 
 /** Trozos de un texto que empiezan en una cabecera con ese prefijo, sin mirar dentro de los bloques de código. */
 function partir(texto, prefijo) {
@@ -130,7 +130,7 @@ function partir(texto, prefijo) {
 }
 
 /**
- * El estándar de un tipo tal como está en «El estándar de cada tipo» de la
+ * La plantilla de un tipo tal como está en «La plantilla de cada tipo» de la
  * plantilla común, con sus cabeceras subidas un nivel (de #### a ###) para el
  * molde; null si no está.
  */
@@ -218,6 +218,7 @@ function esqueleto(datos, tipo, secciones) {
     ...respuestas,
     "  dueno: <agente de .claude/agents/ que la carga en su skills:>",
     "  comprobado: AAAA-MM-DD",
+    "  normas: [<id de ops/normas.json a la que sirve>, <otra>]",
     "---",
     "",
     "# <Nombre>",
@@ -276,7 +277,7 @@ export function generarPlantilla(datos, tipo, { secciones = seccionesDeForja(dat
     "",
     ...criterios(datos, tipo),
     "",
-    "## El estándar de este tipo",
+    "## La plantilla de este tipo",
     "",
     estandar ?? `Aún no está escrito en «${SECCION_ESTANDARES}» de \`${RUTA_PLANTILLA_COMUN}\`.`,
   ];

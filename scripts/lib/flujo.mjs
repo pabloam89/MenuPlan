@@ -45,9 +45,9 @@ export const DIAGNOSTICAN = {
 
 /** Quién interviene en un paso. */
 export const ACTORES = {
-  agente_dominio: "El constructor del dominio (datos, lola, diseno, gobierno)",
+  agente_dominio: "El constructor del dominio: un agente con «Tipo: constructor» en .claude/agents/",
   orquestador: "La sesión principal con /orquestar",
-  juez: "Un agente juez (revisor, qa, evaluador, seguridad, auditor-datos)",
+  juez: "Un agente con «Tipo: juez» en .claude/agents/",
   persona: "Pablo o Álvaro",
   automatico: "Un script, un hook o un workflow, sin nadie delante",
 };

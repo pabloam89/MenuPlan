@@ -2,6 +2,7 @@
   "termino": "capa",
   "estado": "activo",
   "clase": "artefacto",
+  "dominio": "base",
   "definicion": "Un fichero de referencias o plantillas de una skill que su SKILL.md cita con la ruta y solo se lee si hace falta.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
@@ -9,5 +10,6 @@
   ],
   "relacionado": [
     "skill"
-  ]
+  ],
+  "sin_entidad": "componente"
 }

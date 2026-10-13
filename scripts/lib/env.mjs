@@ -13,8 +13,9 @@
  * Un `.env.local` con valores en claro sigue funcionando igual.
  */
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { appendFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 export const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -60,7 +61,7 @@ export function tokenServicio() {
       + ` $c = (New-Object Windows.Security.Credentials.PasswordVault).Retrieve('${LLAVERO.recurso}', '${LLAVERO.usuario}');`
       + " $c.RetrievePassword(); [Console]::Out.Write($c.Password)";
     try {
-      token = execFileSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", ps], { windowsHide: true, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim() || null;
+      token = execFileSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", ps], { windowsHide: true, encoding: "utf8", timeout: 5000, stdio: ["ignore", "pipe", "ignore"] }).trim() || null;
     } catch {
       // a propósito: sin token en el llavero; entornoOp falla cerrado con su mensaje (#328)
       token = null;
@@ -131,12 +132,35 @@ export function enOtraBoveda(ref) {
   return null;
 }
 
-const motivoDe = (e) => (e.code === "ENOENT"
-  ? "no encuentro el comando `op` (instala 1Password CLI o reinicia el terminal)"
-  : String(e.stderr || e.message).trim().split("\n")[0]);
+const motivoDe = (e) => {
+  if (e.code === "ENOENT") return "no encuentro el comando `op` (instala 1Password CLI o reinicia el terminal)";
+  const linea = String(e.stderr || e.message).trim().split("\n")[0];
+  // El aviso de 1Password sale con el tiempo vacío («Try again in  seconds»): la hora de verdad la da `ratelimit` (#556).
+  return /too many requests/i.test(linea) ? `${linea} (cuándo se reinicia el cupo: npm run op -- service-account ratelimit)` : linea;
+};
+
+/**
+ * Dónde se apunta cada lectura a 1Password (#556): una línea JSON por llamada a
+ * `op inject`, sin valores ni direcciones, para sumar después por script cuántas
+ * lecturas gasta cada uno (el cupo es de toda la cuenta). En los tests no se
+ * escribe salvo que MENUPLAN_OP_LOG diga dónde. Un fallo al apuntar no para nada.
+ * Se cuenta sumando `claves` por `script` sobre ese fichero.
+ */
+export const LOG_LECTURAS = () => process.env.MENUPLAN_OP_LOG || (process.env.VITEST ? null : join(homedir(), ".menuplan", "op-lecturas.jsonl"));
+function apuntarLectura(claves, reintento) {
+  const ruta = LOG_LECTURAS();
+  if (!ruta) return;
+  try {
+    mkdirSync(dirname(ruta), { recursive: true });
+    appendFileSync(ruta, `${JSON.stringify({ cuando: new Date().toISOString(), script: basename(process.argv[1] || "?"), claves, reintento })}\n`);
+  } catch {
+    // a propósito: medir no puede romper la lectura
+  }
+}
 
 /** Los valores de varias direcciones, en una sola llamada a `op inject`. Lanza si falla alguna. */
-function inyectar(pares) {
+function inyectar(pares, reintento = false) {
+  apuntarLectura(pares.length, reintento);
   const plantilla = pares.map(([k, ref]) => `${k}={{ ${ref} }}`).join("\n");
   const salida = execFileSync("op", ["inject"], { windowsHide: true, input: plantilla, encoding: "utf8", env: entornoOp(), stdio: ["pipe", "pipe", "pipe"] });
   const lineas = salida.split(/\r?\n/);
@@ -164,7 +188,7 @@ function resolverVarias(pares, { tolerante = false } = {}) {
   let motivo = "";
   for (const [k, ref] of nuevas) {
     try {
-      resueltas.set(ref, inyectar([[k, ref]])[0]);
+      resueltas.set(ref, inyectar([[k, ref]], true)[0]);
       continue;
     } catch (e) {
       motivo ||= motivoDe(e);
@@ -172,7 +196,7 @@ function resolverVarias(pares, { tolerante = false } = {}) {
     const otra = enOtraBoveda(ref);
     if (otra) {
       try {
-        resueltas.set(ref, inyectar([[k, otra]])[0]);
+        resueltas.set(ref, inyectar([[k, otra]], true)[0]);
         const de = ref.split("/")[2];
         const a = otra.split("/")[2];
         console.error(`env-boveda clave: ${k} de: ${de} a: ${a} motivo: respaldo`);

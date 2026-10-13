@@ -1,0 +1,19 @@
+{
+  "id": "easy-correction-and-undo",
+  "nombre": "Corregir y deshacer fácil",
+  "area": "conversational-ai",
+  "enunciado": "Poder corregir o deshacer con un gesto da a la persona el control de lo que el bot hace.",
+  "porque": "El control y la libertad del usuario son una de las heurísticas básicas de usabilidad.",
+  "ejemplo_bueno": "Tras cambiar un menú, un botón de deshacer lo devuelve a como estaba",
+  "ejemplo_malo": "Para corregir un cambio hay que pedirlo todo de nuevo",
+  "fuentes": [
+    {
+      "url": "https://www.microsoft.com/en-us/research/articles/guidelines-for-human-ai-interaction-eighteen-best-practices-for-human-centered-ai-design/",
+      "marca": "F"
+    },
+    {
+      "url": "https://www.nngroup.com/articles/ten-usability-heuristics/",
+      "marca": "F"
+    }
+  ]
+}

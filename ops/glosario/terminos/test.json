@@ -2,6 +2,7 @@
   "termino": "test",
   "estado": "activo",
   "clase": "artefacto",
+  "dominio": "base",
   "definicion": "Un fichero .test que vitest ejecuta en el CI; se ve fallar una vez antes de creérselo.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
@@ -9,5 +10,6 @@
   ],
   "relacionado": [
     "probar"
-  ]
+  ],
+  "sin_entidad": "componente"
 }

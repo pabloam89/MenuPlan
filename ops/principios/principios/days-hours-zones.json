@@ -1,0 +1,16 @@
+{
+  "id": "days-hours-zones",
+  "area": "data",
+  "nombre": "Días, horas y zonas",
+  "enunciado": "Un instante es un timestamptz, un día es una date y la hora se calcula con la zona de la casa.",
+  "porque": "La casa, el bot y los servidores viven en zonas distintas, y una hora sin zona sale con horas de error.",
+  "fuentes": [
+    {
+      "marca": "I",
+      "ruta": "docs/datos/PRINCIPIOS.md"
+    }
+  ],
+  "detalle": [
+    "docs/datos/PRINCIPIOS.md#20-días-horas-y-zonas"
+  ]
+}

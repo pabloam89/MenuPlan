@@ -1,6 +1,213 @@
 {
-  "$comentario": "Ciclo de vida de los vocabularios cerrados de proceso (#481, fondo #479; scripts/lib/vocabulariosVida.mjs). «anclados»: los valores de hoy de cada vocabulario con su definición; lo escribe npm run glosario -- --vocabularios --escribir, no se edita a mano. «retirados»: un valor que deja de usarse no se borra ni se reutiliza: {vocabulario, valor, pasa_a (un valor vivo, o null con motivo), desde (AAAA-MM-DD)}. «redefiniciones»: una definición que cambia sin cambiar de significado, de un valor {vocabulario, valor, desde, motivo} o de un término del glosario {termino, desde, motivo}. «vocabularios_retirados»: {vocabulario, desde, motivo}. Los tres registros solo crecen. Lo vigilan ops/vocabularios-vida.test.js y ops/glosario.test.js, también contra origin/staging.",
+  "$comentario": "Ciclo de vida de los vocabularios cerrados de proceso (#481, fondo #479; scripts/lib/vocabulariosVida.mjs). «anclados»: los valores de hoy de cada vocabulario con su definición; lo escribe npm run glosario -- --vocabularios --escribir, no se edita a mano. «retirados»: un valor que deja de usarse no se borra ni se reutiliza: {vocabulario, valor, pasa_a (un valor vivo, o null con motivo), desde (AAAA-MM-DD)}. «redefiniciones»: una definición que cambia sin cambiar de significado (o que se estrecha cuando ningún dato conserva el sentido viejo; el motivo lo dice), de un valor {vocabulario, valor, desde, motivo} o de un término del glosario {termino, desde, motivo}. «vocabularios_retirados»: {vocabulario, desde, motivo}. Los tres registros solo crecen. Lo vigilan ops/vocabularios-vida.test.js y ops/glosario.test.js, también contra origin/staging.",
   "anclados": {
+    "ambitos": {
+      "code": "El código del repo y su forma: tests, lint y ficheros",
+      "infra": "Identidades, permisos, secretos, ramas, CI, despliegues, copias y servicios",
+      "data": "La base: tablas, migraciones, roles y cada dato que guarda",
+      "catalog": "El catálogo de recetas y alimentos que vive en git",
+      "bot": "Lola, el bot de mensajería, sus evals y su coste",
+      "api": "Las funciones de api/ y lo que protegen",
+      "ui": "Las pantallas de la app",
+      "product": "Qué hace bien HoMenu y Lola para las familias",
+      "process": "Cómo se trabaja: issues, fondos, PR, sesiones, agentes, jueces y cifras",
+      "writing": "Cómo se escribe una regla o un principio de la casa",
+      "entities": "Cómo se nombra, se identifica y se registra cada cosa del proyecto"
+    },
+    "encargo.closing": {
+      "person_ok": "Lo que no se puede deshacer o aplicar lo cierra una persona con su OK"
+    },
+    "encargo.complexity": {
+      "trivial": "Una línea, un texto o una duda",
+      "normal": "Un cambio en un dominio",
+      "large": "Varios dominios, o un refactor"
+    },
+    "encargo.complexity_reason": {
+      "over_lines": "Pasa el umbral de líneas del aviso del CI",
+      "over_files": "Pasa el umbral de ficheros del aviso del CI",
+      "over_areas": "Pasa el umbral de áreas del aviso del CI",
+      "transversal": "El alcance es transversal, aunque el tamaño sea pequeño",
+      "small": "Alcance local y tamaño dentro de lo trivial",
+      "default": "Ni grande ni trivial"
+    },
+    "encargo.counter": {
+      "lint_tokens_base": "Violaciones de lint-tokens-base",
+      "wiring_pairs": "Pares del cableado de una tabla (cableado.json)",
+      "layers_of_datum": "Capas en las que vive un dato",
+      "time_ms": "Milisegundos",
+      "cost_usd": "Dólares estimados a precio de API",
+      "tokens": "Tokens de modelo gastados"
+    },
+    "encargo.differs_in": {
+      "steps": "Sus pasos, en orden de roles, no son los del esqueleto de su tipo",
+      "closing": "Cierra con el OK de una persona, que el esqueleto no pide",
+      "measure": "Mide otra cosa que la medida por defecto de su tipo (su `measure_kind`)",
+      "measures_with": "En una auditoría, mide con un agente que no es juez (`measured_with`)",
+      "plans_first": "Empieza por un plan de la sesión, antes de construir",
+      "maps_first": "Empieza por un juez que mapea lo que hay, antes de construir",
+      "builds_in_session": "Lo construye la propia sesión, sin subagente constructor"
+    },
+    "encargo.flag": {
+      "writes_data": "El encargo escribe datos de familias o de la base",
+      "touches_rls": "El encargo cambia políticas RLS o permisos de tablas",
+      "changes_bot": "El encargo cambia lo que Lola dice o hace",
+      "touches_secrets_or_permissions": "El encargo toca secretos, variables de entorno, permisos de Claude o de GitHub"
+    },
+    "encargo.measure": {
+      "counter_before_after": "Un contador del vocabulario «counters», antes y después",
+      "behavior_unchanged": "Los tests dan lo mismo antes y después"
+    },
+    "encargo.pipeline": {
+      "minimal": "Un constructor y el juez mínimo, con las condiciones de sus pasos",
+      "complete": "Todos los pasos del subtipo"
+    },
+    "encargo.step_purpose": {
+      "diagnose": "Diagnóstico y test que lo reproduce",
+      "plan": "Plan corto",
+      "map": "Mapa de lo que hay antes de tocar",
+      "measure_before": "Mide antes",
+      "measure_after": "Pide la medida de después",
+      "review_planes": "Revisa los planos",
+      "validate_in_tests": "Validación en los tests del repo"
+    },
+    "encargo.subtype": {
+      "create-plain": "Crear algo nuevo sin más condiciones que el esqueleto del tipo",
+      "create-person-approved": "Crear algo que se aplica solo con el OK de una persona",
+      "create-planned": "Crear algo que cruza varios dominios: plan primero y un constructor por dominio",
+      "create-in-session": "Crear contenido que construye la propia sesión",
+      "fix-bug": "Arreglar un fallo: diagnóstico y test que lo reproduce antes de construir",
+      "improve-measured": "Mejorar una cifra: mide antes y después",
+      "improve-structure": "Reordenar por dentro con el comportamiento idéntico",
+      "improve-layers": "Reunir en un solo sitio lo que vive en varias capas: mapa primero",
+      "operate-reversible": "Operar la casa de modo que se pueda deshacer",
+      "operate-irreversible": "Operar algo que no se puede deshacer: cierra con el OK de una persona",
+      "audit-periodic": "Revisión periódica con varios jueces a la vez",
+      "audit-other": "Otra auditoría"
+    },
+    "encargo.subtype_status": {
+      "active": "Se ofrece al crear un encargo y lo usa el dimensionador",
+      "retired": "Alias de un id histórico: se conserva para el panel y apunta a su sustituto en replaced_by"
+    },
+    "encargo.type": {
+      "create": "Algo nuevo o un cambio de lo que hace: pantalla, herramienta, tabla, endpoint, contenido",
+      "fix": "Algo que debía funcionar y no funciona",
+      "improve": "Mejorar sin cambiar lo que hace: migrar, simplificar, acelerar, abaratar",
+      "operate": "Operar la casa: CI, permisos, hooks, ramas, secretos, despliegues",
+      "audit": "Mirar sin tocar: solo jueces, en paralelo"
+    },
+    "entidades.becomes": {
+      "value": "un valor de un campo de otra entidad",
+      "field": "un campo de otra entidad",
+      "event_type": "un tipo de evento",
+      "type": "un tipo de otra entidad"
+    },
+    "entidades.cardinality": {
+      "one_to_one": "Uno con uno",
+      "one_to_many": "Un a con varios b",
+      "many_to_one": "Varios a con un b",
+      "many_to_many": "Varios con varios"
+    },
+    "entidades.creator": {
+      "agent": "Un agente o una sesión, con juez",
+      "human": "Una persona, a mano",
+      "automatic": "Un script, un hook o un servicio, sin intervención"
+    },
+    "entidades.family": {
+      "work": "Cómo se trabaja: sesión, rama, PR, issues, fondos, encargos",
+      "access": "Quién y con qué cuenta: equipo, identidad, servicios, recursos",
+      "structure": "Cómo se organiza lo que hacemos: proyecto y repositorio",
+      "rules": "Lo que hace buena una pieza: principios, normas, criterios, estándares, vocabularios",
+      "agents": "Quién hace y quién juzga: agentes, tareas, skills, hooks",
+      "measure": "Lo que se mide: eventos, métricas, evals, planos",
+      "delivery": "Cómo llega el código a producción: entornos, migraciones, workflows",
+      "data": "Cómo se ordenan los datos del producto: tablas, fuentes, módulos",
+      "design": "El diseño: sistema, perfil, tokens, componentes y patrones",
+      "home": "La casa y su gente",
+      "food": "Comida: recetas, ingredientes, menús, despensa, compra",
+      "lola": "La conversación con Lola"
+    },
+    "entidades.id_format": {
+      "kebab": "Palabras unidas por guion",
+      "snake": "Palabras unidas por guion bajo",
+      "camel": "camelCase",
+      "number": "Número que da GitHub",
+      "number_with_name": "Número de cuatro cifras y nombre",
+      "uuid": "uuid de Postgres",
+      "prefixed_text": "Texto con un prefijo fijo",
+      "compound": "Varias partes con separadores",
+      "mixed": "Varias formas a la vez",
+      "none": "La entidad no tiene id hoy",
+      "unchecked": "No se ha auditado"
+    },
+    "entidades.level": {
+      "meta": "N0: lo que hace buena una pieza de la familia (leyes, principios, criterios)",
+      "template": "N1: plantilla por tipo o perfil, de la que salen las piezas",
+      "piece": "N2: la pieza concreta"
+    },
+    "entidades.parent_kind": {
+      "evidence": "Evidencia: los casos; crecen después de cerrar el fondo y pueden reabrirlo",
+      "remedy": "Remedio: los encargos; como mucho 3 por fondo y se cierran antes que él"
+    },
+    "entidades.registry": {
+      "with_registry": "Tiene un fichero propio con id y test",
+      "partial": "Hay algo, pero incompleto o repartido",
+      "without_registry": "Solo existe en prosa o en logs"
+    },
+    "entidades.relation": {
+      "works_in": "a trabaja en b",
+      "is_a": "a es un tipo de b",
+      "has": "a contiene a b",
+      "belongs_to": "a pertenece a b",
+      "hangs_from": "a cuelga de b",
+      "uses": "a usa b",
+      "produces": "a produce b",
+      "enforced_by": "a se hace cumplir con b",
+      "judges": "a juzga b",
+      "cites": "a cita b",
+      "closes": "a cierra b",
+      "made_by": "a lo hace b",
+      "lives_in": "a vive en b",
+      "happens_in": "a ocurre en b",
+      "comes_from": "a sale de b",
+      "reads": "a lee b",
+      "creates": "a crea b",
+      "applied_in": "a se aplica en b",
+      "assigned_to": "a se asigna a b",
+      "coincides_with": "a puede ser la misma persona que b",
+      "measures": "a mide b",
+      "triggers": "a dispara la revisión de b",
+      "refers_to": "a nombra b",
+      "depends_on": "a depende de b"
+    },
+    "entidades.relation_class": {
+      "is_a": "a es un tipo (subtipo) de b",
+      "part_of": "a es parte de b y desaparece con él: contención (factoría > proyecto > entorno, casa > persona)",
+      "parent_of": "b es hijo de a dentro de la misma naturaleza (fondo y sus casos); si el padre es un fondo, dice su clase en parent_kind",
+      "reference": "a nombra a b; ninguna de las tres anteriores"
+    },
+    "entidades.scope": {
+      "horizontal": "Factoría: sus piezas no cuelgan de ningún proyecto (cómo trabajamos)",
+      "vertical": "Sus piezas cuelgan siempre de un proyecto (el producto HoMenu hoy)",
+      "both": "Hay piezas que sirven a la factoría y piezas que sirven a un proyecto, y la entidad dice qué es a cada lado (role_by_scope). El alcance se decide por a quién sirve la pieza, no por dónde está el fichero: vivir hoy en el repo de HoMenu no hace a nadie both"
+    },
+    "entidades.status": {
+      "active": "Se usa",
+      "retired": "Ya no se usa: replaced_by dice qué lo sustituye y el id no se reutiliza"
+    },
+    "entidades.stored_as": {
+      "field": "Un campo de un registro o de una tabla",
+      "file": "Un fichero o una constante, no un campo",
+      "none": "La relación existe y ningún campo la guarda",
+      "unaudited": "No se ha auditado (solo con una entidad vertical)"
+    },
+    "entidades.subject_kind": {
+      "entity": "El sujeto es una entidad",
+      "type_of": "El sujeto es un tipo de una entidad; lo fijará su N2",
+      "part_of": "El sujeto es una parte de una entidad, no un tipo",
+      "instance_of": "El sujeto es una instancia concreta de una entidad",
+      "produced_by": "El sujeto es lo que produce una entidad",
+      "outside": "El sujeto queda fuera del registro, con su motivo"
+    },
     "estandares.accion": {
       "construir": "Crear o cambiar un artefacto del repo: una migración, una pantalla, una herramienta, un workflow o un catálogo",
       "juzgar": "Revisar o auditar el trabajo de otro y dar un veredicto, sin arreglarlo",
@@ -16,10 +223,33 @@
       "metodo": "Método",
       "entregables": "Entregables"
     },
+    "eventos.actor": {
+      "pablo": "Pablo (usuario de git del PC o identidad de GitHub pabloam89)",
+      "alvaro": "Álvaro (usuario de git del PC)",
+      "app": "la identidad homenu-sesiones[bot] de las sesiones; no dice qué persona hay detrás",
+      "desconocido": "no se pudo saber: sin marca del arranque y sin usuario de git legible"
+    },
+    "eventos.evitable": {
+      "si": "vino de un fallo de la propia comprobación (no pudo leer git o la red) o de un olvido de la sesión (dejó una decisión sin issue), no de una decisión que hiciera falta",
+      "no": "hacía falta una persona de verdad"
+    },
+    "eventos.motivo_intervencion": {
+      "permiso": "una norma pide su sí antes de seguir (la guardia pregunta)",
+      "decision": "una decisión que solo puede tomar una persona (la sesión la deja para Pablo)",
+      "rescate": "la sesión no puede seguir sola y hay que sacarla (un bloqueo, una carpeta, una herramienta)",
+      "secreto": "crear, rotar o leer una clave que solo puede tocar una persona",
+      "produccion": "un paso en producción (main, migración con --pablo, datos de familias) que solo hace una persona",
+      "otro": "cualquier otra intervención; si un valor se repite, pasa a vocabulario"
+    },
+    "eventos.proyecto": {
+      "homenu": "HoMenu / MenuPlan: la app, Lola y su base; este repo",
+      "panel": "el panel de la factoría (repo homenu-panel, en el servidor): un visor de lo que mide la factoría",
+      "factoria": "la propia factoría: el trabajo sobre el proceso, no sobre un producto"
+    },
     "flujo.actores": {
-      "agente_dominio": "El constructor del dominio (datos, lola, diseno, gobierno)",
+      "agente_dominio": "El constructor del dominio: un agente con «Tipo: constructor» en .claude/agents/",
       "orquestador": "La sesión principal con /orquestar",
-      "juez": "Un agente juez (revisor, qa, evaluador, seguridad, auditor-datos)",
+      "juez": "Un agente con «Tipo: juez» en .claude/agents/",
       "persona": "Pablo o Álvaro",
       "automatico": "Un script, un hook o un workflow, sin nadie delante"
     },
@@ -60,13 +290,13 @@
       "reabierto": "Un caso nuevo o un «no aguantó» lo reabrió"
     },
     "forja.tipo_skill": {
-      "servicio": "Operar un sistema externo concreto",
-      "procedimiento": "Pasos fijos que cambian algo",
-      "diagnostico": "De un síntoma a su causa",
+      "conocimiento": "Lo que hay que saber del negocio",
       "decision": "Elegir entre opciones con criterios",
+      "diagnostico": "De un síntoma a su causa",
       "flujo": "Encadenar skills y agentes",
+      "procedimiento": "Pasos fijos que cambian algo",
       "revision": "Juzgar un artefacto contra un catálogo y aplicar lo mecánico",
-      "conocimiento": "Lo que hay que saber del negocio"
+      "servicio": "Operar un sistema externo concreto"
     },
     "glosario.clase": {
       "accion": "Un verbo del proceso: lo que alguien o algo hace",
@@ -76,9 +306,32 @@
       "campo": "Una clave de una ficha o de un catálogo, con su significado",
       "lugar": "Dónde vive algo: una carpeta, una rama, un entorno"
     },
+    "glosario.dominio": {
+      "base": "Lenguaje de la factoría que vale en cualquier proyecto: cómo se trabaja, se juzga y se escribe",
+      "ops": "Cómo se opera el repo y los servicios: ramas, PR, issues, fondos, entornos, claves y despliegues",
+      "datos": "La base de datos y su esquema: migraciones, tablas, fuentes de datos y módulos",
+      "producto": "Lo que hace HoMenu para las familias: la casa, sus personas y la comida",
+      "diseno": "El diseño de la interfaz: sistema, perfil, tokens, componentes y patrones"
+    },
     "glosario.estado": {
       "activo": "Se usa: es la palabra canónica de su significado",
       "retirado": "Ya no se usa: se dice su pasa_a; el nombre queda para que nadie lo reutilice"
+    },
+    "glosario.motivo_sin_entidad": {
+      "componente": "Parte de otra cosa que ya es entidad (una capa de una skill, un test, una ficha): no tiene id propio",
+      "salida": "Lo que produce una tarea o una comprobación y no se guarda como cosa con id (un informe, un defecto)",
+      "paso": "Un peldaño de herencia (base, forja, plantilla, pieza), no una cosa",
+      "meta": "El concepto mismo del registro de entidades, no una cosa registrada en él",
+      "retirado": "Su entidad se retiró y lo que el término nombra ahora no es una entidad",
+      "candidato": "Será entidad cuando exista; mientras, se declara"
+    },
+    "glosario.relacion_entidad": {
+      "denota": "El término nombra una cosa que es esa entidad",
+      "campo_de": "El término nombra un campo o una propiedad de esa entidad",
+      "valor_de": "El término nombra un valor o un grado que esa entidad toma",
+      "rol_de": "El término nombra el papel que esa entidad hace",
+      "accion_sobre": "El término nombra lo que se hace con esa entidad",
+      "ubicacion_de": "El término nombra el sitio donde esa entidad vive o corre"
     },
     "issues.analisis": {
       "nuevo": "No había problema de fondo: se abrió uno para este caso",
@@ -158,6 +411,31 @@
       "minutos": "minutos activos de trabajo",
       "tokens": "tokens de modelo",
       "nivel": "el nivel de un plano, de 0 a 4"
+    },
+    "normas.resultado": {
+      "ok": "el control miró y la norma se cumplía",
+      "warning": "el control miró y la norma no se cumplía; avisó sin bloquear (un aviso del CI, un aviso o un bloqueo de la guardia)",
+      "fail": "el control miró y la norma no se cumplía; bloqueó (un check del CI en rojo)",
+      "exempt": "se incumplía y una excepción válida del PR lo dejó pasar",
+      "declared": "el PR declara una excepción válida de una norma que ningún control del CI consulta: no se midió ningún incumplimiento",
+      "unchecked": "no se pudo mirar (sin diff, sin API, un fallo del script): no cuenta"
+    },
+    "pr.excepcion_forma": {
+      "single": "Excepción: <id de norma> — <motivo> — hasta AAAA-MM-DD, una línea por excepción, con caducidad"
+    },
+    "pr.excepcion_razon": {
+      "form": "no sigue la forma «Excepción: <id de norma> — <motivo> — hasta AAAA-MM-DD»",
+      "unknown_norm": "la norma no existe en ops/normas.json",
+      "short_reason": "el motivo tiene menos de 10 caracteres",
+      "bad_date": "la fecha no es un día real AAAA-MM-DD",
+      "expired": "la caducidad ya ha pasado",
+      "too_far": "la caducidad pasa de 90 días"
+    },
+    "precedencia.concepto": {
+      "security": "Que nadie ajeno entre ni haga más de lo que le toca: identidades, permisos, secretos y puertas",
+      "family-data": "Que los datos de las familias no se pierdan, no se mezclen y no se enseñen a quien no toca",
+      "cost": "Que el gasto en dinero, tokens y tiempo de servicio no se descontrole",
+      "speed": "Que el trabajo avance: forma, proceso y pantallas ceden ante lo anterior si chocan"
     },
     "producto.acciones_alergias": {
       "apuntada": "",
@@ -439,9 +717,35 @@
       "fuera_por_encima": "la cifra de después pasa del límite superior: subió de verdad",
       "fuera_por_debajo": "la cifra de después baja del límite inferior: bajó de verdad",
       "sin_datos_suficientes": "hay menos puntos de antes que el mínimo, o falta la cifra de después: no se puede decir si cambió"
+    },
+    "zonas.zona": {
+      "factoria": "el proceso de trabajo: hooks, guardia de proceso, skills de oficio, normas, scripts de flujo y su documentación",
+      "producto": "HoMenu: la app, el bot Lola, el catálogo, la base de datos, las imágenes y sus scripts",
+      "mixto": "sirve a los dos o es la puerta entre ambos (CLAUDE.md, package.json, la guardia, el CI de tests); lo que aún no se ha separado"
     }
   },
   "retirados": [
+    {
+      "vocabulario": "pr.excepcion_forma",
+      "valor": "relaxed_tests",
+      "pasa_a": "single",
+      "desde": "2026-11-15",
+      "motivo": "La línea «Tests relajados: sí — <motivo>» pasa a la excepción única de tests-no-se-relajan; sigue valiendo, con aviso, hasta el 2026-11-15 (scripts/lib/excepciones.mjs) (#621)"
+    },
+    {
+      "vocabulario": "pr.excepcion_forma",
+      "valor": "big_pr",
+      "pasa_a": "single",
+      "desde": "2026-11-15",
+      "motivo": "La línea «Tamaño: grande — <motivo>» pasa a la excepción única de pr-acotado; sigue valiendo, con aviso, hasta el 2026-11-15 (scripts/lib/excepciones.mjs) (#621)"
+    },
+    {
+      "vocabulario": "pr.excepcion_forma",
+      "valor": "learning",
+      "pasa_a": "single",
+      "desde": "2026-11-15",
+      "motivo": "La línea «Aprendizaje: <dónde>» pasa a la excepción única de lecciones-a-un-test; sigue valiendo, con aviso, hasta el 2026-11-15 (scripts/lib/excepciones.mjs) (#621)"
+    },
     {
       "vocabulario": "forja.tipo_skill",
       "valor": "herramienta",
@@ -498,6 +802,132 @@
       "pasa_a": null,
       "desde": "2026-10-10",
       "motivo": "Retirado el 10 oct 2026 por decisión de Pablo, sin sucesor: crear skills es de la pieza meta (nivel 0, forja-de-skills), que no tiene tipo. (#495)"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "pantalla-nueva",
+      "pasa_a": "create-plain",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "assets",
+      "pasa_a": "create-plain",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "lola-herramienta",
+      "pasa_a": "create-plain",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "lola-conocimiento",
+      "pasa_a": "create-plain",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "esquema-o-dato",
+      "pasa_a": "create-person-approved",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "recetas-o-catalogo",
+      "pasa_a": "create-in-session",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "funcion-entre-dominios",
+      "pasa_a": "create-planned",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "endpoint-nuevo",
+      "pasa_a": "create-plain",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "create-other",
+      "pasa_a": "create-plain",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "bug",
+      "pasa_a": "fix-bug",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "fix-other",
+      "pasa_a": "fix-bug",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "migrar-a-tokens",
+      "pasa_a": "improve-measured",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "dato-en-varias-capas",
+      "pasa_a": "improve-layers",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "reducir-cableado",
+      "pasa_a": "improve-measured",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "lento-o-caro",
+      "pasa_a": "improve-measured",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "refactor-monolito",
+      "pasa_a": "improve-structure",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "improve-other",
+      "pasa_a": "improve-measured",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "ci-permisos-hooks",
+      "pasa_a": "operate-reversible",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "desplegar-produccion",
+      "pasa_a": "operate-irreversible",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "operate-other",
+      "pasa_a": "operate-reversible",
+      "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "revision-periodica",
+      "pasa_a": "audit-periodic",
+      "desde": "2026-10-12"
     }
   ],
   "redefiniciones": [
@@ -675,6 +1105,85 @@
       "termino": "skill",
       "desde": "2026-10-10",
       "motivo": "Los tipos de skill pasan de ops/flujo.json a ops/forja.json (tipos_skill), y la pieza meta (nivel 0) no tiene tipo; mismo significado (#495)"
+    },
+    {
+      "vocabulario": "flujo.actores",
+      "valor": "juez",
+      "desde": "2026-10-12",
+      "motivo": "Mismo significado: el juez se define por su cabecera «Tipo: juez» en vez de enumerar la lista a mano (#640)"
+    },
+    {
+      "termino": "juez",
+      "desde": "2026-10-12",
+      "motivo": "Mismo significado: se define por su cabecera «Tipo: juez» en vez de enumerar la lista a mano (#640)"
+    },
+    {
+      "vocabulario": "flujo.actores",
+      "valor": "agente_dominio",
+      "desde": "2026-10-12",
+      "motivo": "Misma idea: el constructor del dominio se define por su cabecera «Tipo: constructor» en vez de enumerarlo a mano (#640)"
+    },
+    {
+      "vocabulario": "encargo.differs_in",
+      "valor": "measure",
+      "desde": "2026-10-12",
+      "motivo": "Se estrecha a lo que ya significaba para mejorar (otra medida que la de su tipo); medir con un agente que no es juez, que era su segundo sentido, pasa al valor nuevo measures_with; no queda ningún dato con el sentido viejo (#641)"
+    },
+    {
+      "termino": "eje",
+      "desde": "2026-10-12",
+      "motivo": "Deja de ser horizontal, vertical o puente: dice si las piezas de una entidad son de la factoría, de un proyecto o de los dos, y el puente se calcula; su nombre en inglés pasa de axis a scope (decisión de Pablo, #652)"
+    },
+    {
+      "vocabulario": "entidades.scope",
+      "valor": "both",
+      "desde": "2026-10-12",
+      "motivo": "Exige role_by_scope y se decide por a qué proyecto sirve la pieza, no por dónde vive el fichero (hallazgo del revisor de #654); 13 entidades pasaron a horizontal o vertical"
+    },
+    {
+      "termino": "estándar",
+      "desde": "2026-10-12",
+      "motivo": "Se estrecha: ya no es el conjunto de criterios de una tarea o de un tipo de skill, sino la ficha de una tarea de agente; el de un tipo de skill pasa a «plantilla» (decisión de Pablo, #652, F1)"
+    },
+    {
+      "termino": "plantilla",
+      "desde": "2026-10-12",
+      "motivo": "Se amplía: hereda de la base y de la forja de su familia, y absorbe el uso de «estándar» para un tipo de skill; sus nueve frases viejas pasan a sinónimos prohibidos (#652, F1)"
+    },
+    {
+      "termino": "norma",
+      "desde": "2026-10-12",
+      "motivo": "Se precisa: la unidad exigible con ámbito, acción, fuerza y control; absorbe al criterio de la forja y a la regla propia de un estándar (decisión de Pablo, #652, F1)"
+    },
+    {
+      "termino": "regla",
+      "desde": "2026-10-12",
+      "motivo": "Se estrecha: queda como el fichero de .claude/rules/ y deja de ser una unidad exigible, que es la norma; sus frases de «regla propia» y «de la casa» pasan a sinónimos de norma (#652, F1)"
+    },
+    {
+      "termino": "principio",
+      "desde": "2026-10-12",
+      "motivo": "Se estrecha a la razón de fondo del producto; la de una norma de proceso es su porqué y se plegará en F6 (#652, F1)"
+    },
+    {
+      "termino": "tarea de agente",
+      "desde": "2026-10-12",
+      "motivo": "Se amplía con su tipo de tarea y sus ámbitos; mismo significado (#652, F1)"
+    },
+    {
+      "termino": "ficha",
+      "desde": "2026-10-12",
+      "motivo": "Se amplía: también es el estándar de una tarea de agente, que antes no tenía nombre de ficha (#652, F1)"
+    },
+    {
+      "termino": "juicio de skill",
+      "desde": "2026-10-12",
+      "motivo": "Su definición dice «norma de juicio» donde decía «criterio de juicio», porque el criterio pasa a norma; mismo significado (#652, F1)"
+    },
+    {
+      "termino": "defecto",
+      "desde": "2026-10-12",
+      "motivo": "Su definición dice «norma de calidad» donde decía «criterio de calidad»; mismo significado (#652, F1)"
     }
   ],
   "vocabularios_retirados": [
@@ -682,6 +1191,11 @@
       "vocabulario": "flujo.estado_tipo_skill",
       "desde": "2026-10-10",
       "motivo": "El catálogo de tipos de skill sale de ops/flujo.json: los tipos viven en ops/forja.json y su estado (existe, en plan, reservado) se deriva de skills_hoy (#495)"
+    },
+    {
+      "vocabulario": "entidades.axis",
+      "desde": "2026-10-12",
+      "motivo": "El eje de una entidad (horizontal, vertical, bridge) lo sustituye entidades.scope (horizontal, vertical, both): bridge pasa a ser both y «puente» una propiedad calculada, no un valor (decisión de Pablo, #652)"
     }
   ]
 }

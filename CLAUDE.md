@@ -31,8 +31,9 @@ RLS); catálogo de recetas y alimentos en JSON en git (`src/data/`).
 | Las claves en local | 1Password: las sesiones, bóveda `HoMenu-sesiones`; lo de producción, solo `HoMenu` (Pablo). `.env.local` guarda direcciones `op://` (plantilla `ops/env.1password`), no claves. Skill `1password` |
 | Estado real de las migraciones | `supabase/ESTADO.md`; NOT VALID por validar en `supabase/PENDIENTES.md` |
 | Cómo deben ser las tablas | `docs/datos/PRINCIPIOS.md` (con test desde la 0087) |
-| Reglas de UI | `DESIGN_SYSTEM.md` (criterio); valores en `src/design/tokens.js`; estado y plan en `docs/diseno/ESTADO.md` |
+| Reglas de UI | `DESIGN_SYSTEM.md`; valores en `src/design/tokens.js`; estado y plan en `docs/diseno/ESTADO.md` |
 | Decisiones de operación y hoja de ruta | `ops/DECISIONES.md`, `ops/PLANOS.md` |
+| Principios de la casa (el porqué de cada norma) | `docs/PRINCIPIOS.md`, generado de `ops/principios/` |
 
 `pabloartinano/MenuPlan` y OneDrive son restos de antes del 7 oct: un error.
 
@@ -44,14 +45,13 @@ RLS); catálogo de recetas y alimentos en JSON en git (`src/data/`).
   la propia sesión.
 - **`main` es producción.** Ninguna sesión sube ni fusiona a `main`; solo
   cuando Pablo lo pide, con el método que se decida con él.
-- **Dueño de código** (`.github/CODEOWNERS`, #330), cuando Pablo aplique y pruebe los
-  rulesets (hasta entonces es texto): un PR a `staging` que toca `.claude/`,
-  `.github/`, `CLAUDE.md`, `ops/DECISIONES.md`, `ops/normas.json`, el script de
-  aplicar migraciones o lo que ejecutan los hooks y los workflows con secretos
-  (`CODEOWNERS` lista cada fichero) espera la aprobación de Pablo; uno que no
-  toca nada de eso se fusiona solo con el CI en verde. A `main` solo fusiona
-  Pablo, desde el botón del PR. Se aplican con `scripts/rulesets.mjs`; detalle
-  en la skill `github`.
+- **Ningún PR a `staging` espera la aprobación de una persona** (decisión de Pablo,
+  11 oct 2026, #608; sin revisión de dueño de código ni `CODEOWNERS`). El control que
+  queda: el check `tests` en verde (lo hace cumplir GitHub) y el juez `revisor`
+  (quien construye no juzga; de proceso, GitHub no lo hace cumplir). Un PR que toca
+  `.claude/`, `.github/`, `CLAUDE.md`, los hooks o lo que corre con secretos debe pasar por
+  su juez antes de fusionarse; nada lo impide si no pasa. A `main` solo fusiona Pablo, desde el botón del PR.
+  Los rulesets se aplican con `scripts/rulesets.mjs` (Pablo); detalle en la skill `github`.
 - Una rama por tarea, prefijo de área y nombre en castellano: `bot/`, `datos/`,
   `ux/`, `fix/`, `feat/`, `ops/`, `motor/`. Las de la nube empujan solo a la
   suya. «¿Está en staging?» se mira en `origin/staging` tras `git fetch`.
@@ -116,39 +116,19 @@ El cómo, en la regla `migraciones`; cómo es una tabla, en `PRINCIPIOS.md`.
 
 ## Cómo se le habla a Pablo
 
-Pablo no es informático: toda sesión y todo agente le escribe con la misma
-forma, para que decidir le cueste poco (skill `estilo-de-respuesta`).
-
-1. Primera línea: la idea raíz en **negrita**, una frase con el resultado o la respuesta.
-2. Cuatro ideas cortas, como mucho; es un techo, no un molde: una pregunta corta
-   se contesta con la idea raíz y, si hace falta, una línea. El resto, «si quieres
-   te lo cuento».
-3. Al final, una línea con lo que le toca. Si es una decisión, **tres opciones**
-   en llano (A, B, C), la recomendada primero y qué pasa con cada una, con su
-   «Coste:» (dinero, tiempo o riesgo) y «reversible» o «no se puede deshacer» en la
-   misma línea.
-
-Si afirmas un estado o un resultado que él no puede comprobar, una línea
-«Certeza:» con «Comprobado» (lo he visto yo, y qué), «Creo» (inferencia, y en qué
-me baso) o «No sé» (y cómo lo averiguo); un estado solo se da como hecho si se
-comprobó en ese momento. Un issue se nombra por su nombre; el número, si hace
-falta, va solo entre paréntesis, detrás del nombre. Al volver tras un rato o
-retomar un tema, la idea raíz en negrita lo recuerda
-(«**Seguimos con X: falta Y.**»).
-
-Siempre en castellano, también los avisos cortos. Frases de menos de 25 palabras, sin preámbulo ni recapitulación, sin emojis.
-Un término técnico se explica la primera vez y después se llama igual. Ficheros,
-ramas y comandos van a un issue, no al chat, salvo que él los pida o los tenga
-que ejecutar. Plantillas fijas: resultado, decisión, error, concepto y resumen
-(estructura, glosario y ejemplos, en la skill). De un informe de agente, solo el
-`RESUMEN` y las `DECISIONES PENDIENTES` siguen esta forma
+Pablo no es informático: toda sesión y todo agente le escribe con la misma forma,
+y el único que le habla es el agente `orquestador`. **La regla entera vive en una
+sola fuente: la skill `estilo-de-respuesta`.** Lo esencial, también sin `--agent`:
+la primera línea del mensaje es la idea raíz en **negrita**, una frase. Abre la skill
+`estilo-de-respuesta` antes de escribirle. De un
+informe de agente, solo el `RESUMEN` y las `DECISIONES PENDIENTES` siguen esta forma
 (`.claude/PLANTILLA-AGENTE.md`).
 
 ## Encargos
 
-Clasifica lo que pide Pablo. Lo trivial lo haces tú. Si es normal (un dominio)
+Clasifica lo que pide Pablo. Hasta lo trivial lleva un juez. Si es normal (un dominio)
 o grande (varios, o un refactor), propón **`/orquestar <encargo>`**, que elige
-el pipeline por tipo de encargo y escribe el brief de cada agente. Regla fija:
+el pipeline por tipo de encargo y saca de `npm run dimensionar` (tipo, alcance y complejidad) los agentes y el brief de cada uno. Regla fija:
 quien construye no juzga.
 
 ## Agentes
@@ -163,8 +143,9 @@ trabajo: devuelve «Decisiones para Pablo».
 | `datos`: esquema, migraciones, modelo, ESTADO.md | `qa`: la app en el navegador (Chrome en local) |
 | `diseno`: pantallas, tokens, iconos y assets | `evaluador`: evals de Lola antes y después |
 | `lola`: el bot, herramientas, conocimiento, coste | `seguridad`: RLS, endpoints, secretos, prompts |
-| | `auditor-datos`: normalización, duplicados y cableado |
+| `orquestador`: la sesión principal; habla con Pablo y reparte (`claude --agent orquestador`) | `auditor-datos`: normalización, duplicados y cableado |
 
+Cada cabecera dice a quién pasa trabajo (`traspasa_a`, vigilado por `.claude/agentes.test.js`).
 Cada agente lista sus tareas y el estándar de cada una (qué es hacerla bien,
 qué comprueba, qué no hace y su fuente) en `ops/estandares-agentes.json`; el
 brief de `/orquestar` lo trae con `npm run estandar -- <agente> <tarea>` y el
@@ -183,9 +164,10 @@ por su nombre: `1password`, `alta-de-secreto`, `vercel`, `supabase`, `github`, `
 `telegram`, `hetzner` y `tailscale` (precargadas en los agentes que el mapa `.claude/dominios-skills.json` pone en su dominio); y
 las de oficio, cómo se piensa un fallo: `causa-raiz` (diagnosticar) y
 `plan-de-arreglo` (partir el arreglo en encargos); las meta `forja-de-skills`
-(crear, probar y podar skills) e `higiene-de-skills` (revisar una ya escrita);
-y el estándar `estilo-de-respuesta` (cómo se escribe a Pablo: idea raíz en
-negrita, cuatro ideas y tres opciones). Todas siguen
+(crear, probar y podar), `higiene-de-skills` e `higiene-de-vocabulario` (revisar lo ya escrito);
+y `estilo-de-respuesta` (cómo se escribe a Pablo: idea raíz en
+negrita, cuatro ideas y tres opciones); y la de conocimiento `principios-de-producto`
+(los principios con fuente para decidir sobre el producto, en `docs/producto/PRINCIPIOS.md`); y la de revisión `revision-de-diseno` (repasar un sistema de diseño o una pantalla contra las leyes y los bloques de `docs/diseno/META-DISENO.md`, la carga `diseno`). Todas siguen
 `.claude/PLANTILLA-SKILL.md`, que vigila `.claude/skills.test.js`: un tipo de
 los siete de `ops/forja/`, el que dan sus respuestas, con su molde generado en
 `.claude/plantillas-skill/` (salvo `forja-de-skills`, la pieza meta de nivel 0, sin tipo), dueño, fecha
@@ -217,54 +199,24 @@ y su fecha, está en `src/data/model.js` (`TABLAS`, vigilado por `ops/fuentes.te
 ## Pensar en datos
 
 Lo que se repite se diseña para poder contarse, y corregir es ver qué falla en
-qué hueco, no releer un texto continuo. Cada principio dice entre paréntesis
-qué lo hace cumplir; lo que aún no tiene mecanismo lleva su issue (fondo #479).
+qué hueco, no releer un texto continuo. Estos principios, con su porqué, su
+fuente y las normas que los hacen cumplir, viven en la lista única de
+principios de la casa, `docs/PRINCIPIOS.md` (generada de `ops/principios/`;
+uno, con sus normas: `npm run principios-casa -- <id>`). Tres capas que no se
+repiten: el principio dice por qué; la norma (`ops/normas.json`), lo que debe
+ser verdad, con su control y su principio; el estándar de tarea cita normas.
 
-- **Discreto primero**: sí/no, un valor de vocabulario, una referencia a algo
-  que existe, un número o una fecha. El texto libre, solo en un hueco
-  declarado: un campo que dice qué cubre que lo discreto no alcanza (la base
-  de la forja, #458).
-- **Vocabulario cerrado** para todo lo que se agrupa (motivos de fallo,
-  estados, causas, tipos, sitios): una constante en JS, un CHECK si va a SQL y
-  su test, como `src/lib/vocabularios.js`. Un valor de un vocabulario no se
-  borra, no se reutiliza ni se redefine sin registro: se retira y dice a cuál
-  pasa (los de proceso y los del producto, en `ops/vocabularios-vida.json`, y
-  los términos del glosario, con su test contra `origin/staging`). En el
-  producto, el retirado deja de ofrecerse pero el CHECK lo sigue admitiendo
-  (hay filas guardadas con él).
-- **Una palabra, un significado**: las palabras de proceso (comprobar, caso,
-  fondo, encargo, juez…) salen de `ops/glosario/` (`npm run glosario`);
-  su test falla con un sinónimo prohibido nuevo.
-- **Ninguna cifra sin pregunta**: cada métrica dice qué pregunta responde y
-  qué script la lee; si nadie la lee, no se recoge (#480).
-- **Cada cosa que pasa deja una línea `campo: valor`** que un script pueda
-  contar, con un nombre de evento que no se repite y sin datos de familias:
-  lo que no deja rastro no se mide, y lo que no se mide no mejora
-  (`.claude/hooks/eventos.mjs`; el registro de qué se cuenta, #480).
-- **La clase, no el caso**: se arregla el caso y se ataca su problema de
-  fondo; el caso cuelga de su fondo, y el fondo se cierra con su barrera y
-  una verificación que cubre la clase (línea `Casos:` del PR, workflow
-  `fondos`; «Cuando algo falla», abajo). Una regla, un dato, una fuente que el
-  resto usa.
-- **La cifra antes y después**: cuántos casos, desde cuándo y dónde, antes de
-  proponer un arreglo; la misma cifra después, para saber si sirvió. «Mejoró»
-  solo si la diferencia es mayor que lo que la cifra varía sola, o si hay
-  casos de sobra (#480).
-- **El mecanismo más alto de la escalera**: bloqueo, test en el CI, script,
-  skill y, en último lugar, texto; se baja de escalón solo con su motivo
-  (`npm run mecanismos`, skill `plan-de-arreglo`).
-- **Tres capas de comprobación**: formal (un test que da lo mismo cada vez),
-  material (una regla aproximada con una lista de excepciones que solo puede
-  bajar) y subjetiva (un juez LLM con presupuesto). Lo subjetivo que se juzga
-  igual una y otra vez pasa a material o formal; se vuelve atrás solo si el
-  test sale frágil, con el porqué escrito (la base de la forja, #458).
-- **El juez LLM dice pasa o no pasa con su motivo**, puede decir «no sé» y se
-  calibra contra ejemplos marcados por Pablo (#482).
-- **Ninguna cifra es objetivo sola**: una cifra que se persigue deja de medir;
-  va con otra que la vigile y con una muestra leída a mano (#480).
-- **De arriba abajo**: primero la forja (qué hace buena a una pieza), luego
-  la plantilla de su tipo y después cada pieza; no se rellena una pieza antes
-  que su plantilla (#458).
+- Discreto primero (`discrete-first`) y vocabulario cerrado (`closed-vocabulary`).
+- Una palabra, un significado (`one-word-one-meaning`): las palabras de proceso
+  salen de `ops/glosario/` (`npm run glosario`).
+- Ninguna cifra sin pregunta ni objetivo sola (`no-number-without-question`), y
+  la cifra antes y después (`number-before-and-after`).
+- Cada cosa que pasa deja una línea `campo: valor` (`log-what-happens`).
+- La clase, no el caso (`class-not-case`).
+- El mecanismo más alto de la escalera (`highest-mechanism`).
+- Tres capas de comprobación (`three-check-layers`) y un juez distinto y
+  calibrado (`calibrated-distinct-judge`).
+- De arriba abajo (`top-down`).
 
 ## Qué se le pregunta a Pablo, y qué no
 
@@ -283,8 +235,6 @@ sí. Preguntar algo de la segunda lista también es un fallo; se cuenta (#185).
 - Gastar dinero: un plan de pago, una compra, evals de pago que no tocan.
 - Escribir a personas o publicar algo en su nombre.
 - Ampliar los permisos de `.claude/settings.json` (la sesión pregunta en el chat antes de abrir el PR y el juez lo marca; la guardia ya no pregunta al editar).
-- Fusionar un PR que toca las rutas de `.github/CODEOWNERS`: la sesión lo
-  deja listo con el CI en verde y espera la aprobación de Pablo.
 - Reescribir historia de una rama que no es tuya.
 
 **Autorizado de forma permanente** (se hace y se cuenta en el resumen):
@@ -297,8 +247,8 @@ sí. Preguntar algo de la segunda lista también es un fallo; se cuenta (#185).
 - Issues y etiquetas: crearlos, clasificarlos, colgarlos, cerrarlos con su PR,
   y `npm run issues -- --etiquetas`.
 - Cambiar hooks, guardia, reglas, skills y agentes, siempre por PR con su juez
-  y el CI en verde. Fusionar a staging es de la propia sesión; con los
-  rulesets de #330 aplicados y probados, si el PR toca `.claude/` espera la aprobación de Pablo.
+  y el CI en verde. Fusionar a staging es de la propia sesión, también si toca `.claude/`
+  (#608: ningún PR espera la aprobación de una persona).
 - Ajustes del repo que no tocan permisos ni producción: etiquetas,
   plantillas, la descripción de un PR.
 - Poner al día la carpeta principal (`git pull --ff-only`) y las copias de

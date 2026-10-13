@@ -1,0 +1,15 @@
+{
+  "id": "explain-data-use",
+  "nombre": "Explicar el uso de datos",
+  "area": "privacy",
+  "enunciado": "Saber qué datos usa el sistema permite a la persona corregirlos y calibrar su confianza.",
+  "porque": "Saber qué sabe el sistema de uno calibra la confianza y permite corregirlo.",
+  "ejemplo_bueno": "Lola dice que ha evitado el cacahuete por la alergia que le contó la familia",
+  "ejemplo_malo": "Lola cambia el menú por motivos que la familia no sabe de dónde salen",
+  "fuentes": [
+    {
+      "url": "https://pair.withgoogle.com/chapter/explainability-trust/",
+      "marca": "F"
+    }
+  ]
+}

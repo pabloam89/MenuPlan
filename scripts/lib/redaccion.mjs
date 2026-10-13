@@ -1,8 +1,10 @@
 /**
  * La guía única de redacción de reglas (#493, fondo #488). `ops/redaccion.json` guarda
  * los principios de cómo se escribe cualquier regla de la casa (criterios, normas, avisos
- * de la guardia, obligaciones del proceso, estándares de agente). Cada principio es una
- * regla con la plantilla de `regla.mjs`, más su ejemplo bueno, su ejemplo malo y su fuente.
+ * de la guardia, obligaciones del proceso, estándares de agente). Desde #620 cada principio es el
+ * porqué, sin fuerza (la plantilla de principio de `regla.mjs`: nombre, enunciado y porqué), con su
+ * ejemplo bueno, su ejemplo malo y su fuente; lo que pide con DEBE es una norma de `ops/normas.json`
+ * (ámbito `writing`) que lo cita, con su control. El documento junta las dos capas.
  * `docs/ops/REDACCION.md` se GENERA de aquí (`npm run redaccion -- --escribir`) y
  * `ops/redaccion.test.js` lo compara.
  *
@@ -17,7 +19,7 @@ import { join } from "node:path";
 
 import { FUENTE_F, FUENTE_I } from "./forja.mjs";
 import { leerJsonOCatalogo, renombrarRuta } from "./catalogos.mjs";
-import { CONTROL_JUICIO, FUERZAS, LIMITES_REGLA, fraseDeRegla, problemasDeRegla, problemasDeSujetos } from "./regla.mjs";
+import { CONTROL_JUICIO, FUERZAS, LIMITES_PRINCIPIO, LIMITES_REGLA, fraseDeRegla, problemasDePrincipio as problemasDeFormaPrincipio, problemasDeRegla, problemasDeSujetos } from "./regla.mjs";
 
 export const RUTA_REDACCION = "ops/redaccion.json";
 export const RUTA_PENDIENTES = "ops/redaccion-pendientes.json";
@@ -32,9 +34,25 @@ export const ESTADOS_CATALOGO = {
   pendiente: "Aún no sigue la guía; lleva el encargo que lo pone al día y la lista solo baja",
 };
 
-/** Los campos de un principio: los de regla.mjs más los propios de la guía. */
-export const CAMPOS_PRINCIPIO = ["id", "nombre", "sujeto", "fuerza", "exigencia", "control", "fuente", "ejemplo_bueno", "ejemplo_malo"];
-export const CAMPOS_PRINCIPIO_OPCIONALES = ["condicion", "nota"];
+/**
+ * La forma de las entradas de un catálogo (#619): una regla (sujeto, fuerza, exigencia; problemasDeRegla) o
+ * un principio de la lista única (nombre, enunciado y porqué; problemasDePrincipio de regla.mjs). Sin
+ * `forma`, un catálogo es de reglas.
+ */
+export const FORMAS_CATALOGO = {
+  regla: "Cada entrada es una regla: nombre, sujeto, fuerza, condición y exigencia",
+  principio: "Cada entrada es un principio: nombre, un enunciado de una frase sin fuerza y su porqué",
+};
+
+/** Los campos de un principio: la plantilla de principio de regla.mjs más los propios de la guía. Sin fuerza ni control: son de su norma. */
+export const CAMPOS_PRINCIPIO = ["id", "nombre", "enunciado", "porque", "fuente", "ejemplo_bueno", "ejemplo_malo"];
+export const CAMPOS_PRINCIPIO_OPCIONALES = [];
+
+/** El registro de normas, donde viven las normas de redacción (ámbito `writing`). */
+export const RUTA_NORMAS = "ops/normas.json";
+export const AMBITO_REDACCION = "writing";
+/** Los principios de la lista única (ops/principios/) que la guía aplica sin copiarlos (`principios_de_la_lista`). */
+export const RUTA_LISTA = "ops/principios/";
 
 const ID_PRINCIPIO = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const ENCARGO = /^(#\d+|en cola #\d+)$/;
@@ -49,12 +67,12 @@ const esTexto = (v, min = 1) => typeof v === "string" && v.trim().length >= min;
 
 const esRuta = (v) => esTexto(v) || (Array.isArray(v) && v.length > 0 && v.every((x) => esTexto(x)));
 
-/** Errores de un principio, además de los de regla (lista vacía si está bien). */
-function problemasDePrincipio(p, d, datos, existe) {
+/** Errores de un principio (lista vacía si está bien): su forma de principio, sus ejemplos y su fuente. */
+function problemasDePrincipio(p, d, existe) {
   const malos = [];
-  for (const c of Object.keys(p ?? {})) if (![...CAMPOS_PRINCIPIO, ...CAMPOS_PRINCIPIO_OPCIONALES].includes(c)) malos.push(`${d}: campo desconocido «${c}»`);
+  for (const c of Object.keys(p ?? {})) if (![...CAMPOS_PRINCIPIO, ...CAMPOS_PRINCIPIO_OPCIONALES].includes(c)) malos.push(`${d}: campo desconocido «${c}»${["sujeto", "fuerza", "condicion", "exigencia", "control", "nota"].includes(c) ? " (la obligación es de su norma en ops/normas.json, #620)" : ""}`);
   for (const c of CAMPOS_PRINCIPIO) if (!(c in (p ?? {}))) malos.push(`${d}: falta «${c}»`);
-  malos.push(...problemasDeRegla(p, d, datos.sujetos));
+  malos.push(...problemasDeFormaPrincipio(p, d));
   if (!ID_PRINCIPIO.test(p?.id ?? "")) malos.push(`${d}: «id» va en minúsculas y con guiones`);
   for (const c of ["ejemplo_bueno", "ejemplo_malo"]) {
     const e = p?.[c];
@@ -69,9 +87,6 @@ function problemasDePrincipio(p, d, datos, existe) {
     if (!m) malos.push(`${d}: «fuente» empieza por [F] con una dirección web o por [I] con una ruta del repo`);
     else if (!existe(m[1])) malos.push(`${d}: la fuente [I] apunta a ${m[1]}, que no existe`);
   }
-  const c = p?.control;
-  if (!esTexto(c)) malos.push(`${d}: falta «control»`);
-  else if (c !== CONTROL_JUICIO && !existe(c)) malos.push(`${d}: el control ${c} no existe`);
   return malos;
 }
 
@@ -118,6 +133,15 @@ function problemasDeCatalogo(k, d, { existe, leerJson }) {
     if (!ENCARGO.test(k.encargo ?? "")) malos.push(`${d}: un catálogo pendiente lleva su encargo («#494» o «en cola #488»)`);
     return malos;
   }
+  if ("forma" in k && !(k.forma in FORMAS_CATALOGO)) return [...malos, `${d}: forma «${k.forma}» fuera del vocabulario (${Object.keys(FORMAS_CATALOGO).join(", ")})`];
+  if (k.forma === "principio") {
+    if (!esRuta(k.clave_reglas)) return [...malos, `${d}: un catálogo de principios dice «clave_reglas»`];
+    if (malos.length) return malos;
+    const de = reglasDe(leerJson(k.fichero), k.clave_reglas);
+    if (!de || !de.reglas.length) return [...malos, `${d}: «${k.clave_reglas}» no es una lista de principios`];
+    de.reglas.forEach((r, i) => malos.push(...problemasDeFormaPrincipio(r, `${d} · ${r?.id ?? `entrada ${i + 1}`}`)));
+    return malos;
+  }
   if (!esRuta(k.clave_reglas) || !esTexto(k.clave_sujetos)) return [...malos, `${d}: un catálogo que cumple dice «clave_reglas» y «clave_sujetos»`];
   if (malos.length) return malos;
   const json = leerJson(k.fichero);
@@ -137,7 +161,14 @@ function problemasDeCatalogo(k, d, { existe, leerJson }) {
  */
 export function problemasDeRedaccion(datos, { existe = () => true, leerJson = () => ({}) } = {}) {
   const malos = [];
-  malos.push(...problemasDeSujetos(datos?.sujetos, datos?.artefactos ?? []).map((x) => `sujetos: ${x}`));
+  for (const k of ["sujetos", "artefactos"]) if (k in (datos ?? {})) malos.push(`${k}: la guía ya no lleva «${k}»: los sujetos son de sus normas (ops/normas.json, #620)`);
+  const deLista = datos?.principios_de_la_lista ?? [];
+  if (!Array.isArray(deLista)) malos.push("principios_de_la_lista: es una lista de ids de ops/principios/");
+  else {
+    const lista = leerJson(RUTA_LISTA)?.principios;
+    if (Array.isArray(lista)) for (const id of deLista) if (!lista.some((x) => x.id === id)) malos.push(`principios_de_la_lista: «${id}» no es un principio de ops/principios/`);
+    for (const id of deLista) if ((datos?.principios ?? []).some((x) => x.id === id)) malos.push(`principios_de_la_lista: «${id}» también está en principios: un principio vive en un solo sitio`);
+  }
   const ps = datos?.principios;
   if (!Array.isArray(ps)) return [...malos, "principios: no es una lista"];
   if (ps.length < MIN_PRINCIPIOS || ps.length > MAX_PRINCIPIOS) malos.push(`principios: hay ${ps.length}, de ${MIN_PRINCIPIOS} a ${MAX_PRINCIPIOS}`);
@@ -145,7 +176,7 @@ export function problemasDeRedaccion(datos, { existe = () => true, leerJson = ()
   const nombres = new Set();
   ps.forEach((p, i) => {
     const d = `principio ${p?.id ?? i + 1}`;
-    malos.push(...problemasDePrincipio(p, d, datos, existe));
+    malos.push(...problemasDePrincipio(p, d, existe));
     if (ids.has(p?.id)) malos.push(`${d}: id repetido`);
     ids.add(p?.id);
     if (nombres.has(p?.nombre)) malos.push(`${d}: nombre repetido`);
@@ -215,27 +246,50 @@ const celda = (t) => String(t).replace(/\|/g, "\\|");
 
 /** Lo escrito a mano: breve, y lo único del fichero que no sale del JSON. */
 const INTRO = [
-  "Esta guía dice cómo se escribe cualquier regla de la casa: un criterio de la forja, una norma, un aviso de la guardia, una obligación del proceso o el estándar de una tarea de agente. Es una sola, para que todas se lean igual y se puedan contar.",
+  "Esta guía dice cómo se escribe cualquier norma de la casa: una norma de la forja, una norma, un aviso de la guardia, una obligación del proceso o el estándar de una tarea de agente. Es una sola, para que todas se lean igual y se puedan contar.",
   "",
   "Se apoya en tres ideas. La forma sale de EARS (Mavin et al., 2009) y la fuerza de RFC 2119: la regla se escribe por campos y su frase se genera, sin prosa libre. El idioma es el castellano y cada concepto tiene un solo término, el del glosario. Y lo que se vaya a contar va en un campo de vocabulario cerrado, con el texto libre solo en un hueco declarado.",
   "",
-  "Cada principio de abajo se escribe él mismo como regla, con su control, su ejemplo bueno, su ejemplo malo y su fuente. Para una regla nueva, se empieza por `scripts/lib/regla.mjs` y por esta lista.",
+  "Cada principio de abajo es el porqué, sin fuerza, con su ejemplo bueno, su ejemplo malo y su fuente; lo que obliga es su norma, en `ops/normas.json` (ámbito `writing`), con su control. Para una regla nueva, se empieza por `scripts/lib/regla.mjs` y por esta lista.",
 ];
 
-function mdPrincipios(datos) {
+const normasDeRedaccion = (registro) => (registro?.normas ?? []).filter((n) => n.ambito === AMBITO_REDACCION);
+const controlCorto = (n) => (n.control === CONTROL_JUICIO ? "juicio" : `\`${n.control}\``);
+
+function mdDeLaLista(datos, registro, leerJson) {
+  const ids = datos.principios_de_la_lista ?? [];
+  if (!ids.length) return [];
+  const lista = leerJson(RUTA_LISTA)?.principios ?? [];
+  const L = ["## Principios de la lista única que la guía aplica", "", "No se copian aquí: viven en `ops/principios/` (`docs/PRINCIPIOS.md`) y la guía los cita.", ""];
+  for (const id of ids) {
+    const p = lista.find((x) => x.id === id);
+    if (!p) continue;
+    L.push(`- \`${id}\` — **${p.nombre}.** ${p.enunciado}`);
+    for (const n of (registro?.normas ?? []).filter((x) => x.principio === id)) L.push(`  - Norma: \`${n.id}\` — ${celda(fraseDeRegla(n, registro.sujetos, { conControl: false }))} Control: ${controlCorto(n)}.`);
+  }
+  return [...L, ""];
+}
+
+function mdPrincipios(datos, registro) {
   const L = ["## Principios", ""];
+  const normas = normasDeRedaccion(registro);
   for (const p of datos.principios) {
-    L.push(`- \`${p.id}\` — ${fraseDeRegla(p, datos.sujetos)}`);
+    L.push(`- \`${p.id}\` — **${p.nombre}.** ${p.enunciado}`);
+    L.push(`  - Porqué: ${p.porque}`);
+    for (const n of normas.filter((x) => x.principio === p.id)) {
+      L.push(`  - Norma: \`${n.id}\` — ${celda(fraseDeRegla(n, registro.sujetos, { conControl: false }))} Control: ${controlCorto(n)}.`);
+      if (n.nota) L.push(`    - Nota: ${n.nota}.`);
+    }
     L.push(`  - Bueno: «${p.ejemplo_bueno}».`, `  - Malo: «${p.ejemplo_malo}».`);
-    if (p.nota) L.push(`  - Nota: ${p.nota}.`);
     L.push(`  - Fuente: ${p.fuente}.`);
   }
   return [...L, ""];
 }
 
-function mdVocabularios(datos) {
+function mdVocabularios(registro) {
   const L = LIMITES_REGLA;
-  const usos = Object.fromEntries(Object.keys(datos.sujetos).map((s) => [s, datos.principios.filter((p) => p.sujeto === s).length]));
+  const normas = normasDeRedaccion(registro);
+  const sujetos = [...new Set(normas.map((n) => n.sujeto))];
   return [
     "## Vocabularios y topes",
     "",
@@ -245,9 +299,11 @@ function mdVocabularios(datos) {
     "|---|---|---|",
     ...Object.entries(FUERZAS).map(([f, x]) => `| ${f} | ${x.palabra} | ${celda(x.que)} |`),
     "",
-    "| Sujeto | En la frase | Se aplica a | Principios |",
-    "|---|---|---|---|",
-    ...Object.entries(datos.sujetos).map(([s, x]) => `| ${s} | ${x.legible} | ${x.aplica_a.join(", ")} | ${usos[s]} |`),
+    "Los sujetos de las normas de redacción (vocabulario de `ops/normas.json`):",
+    "",
+    "| Sujeto | En la frase | Normas |",
+    "|---|---|---|",
+    ...sujetos.map((s) => `| ${s} | ${registro.sujetos[s]?.legible ?? "?"} | ${normas.filter((n) => n.sujeto === s).length} |`),
     "",
     "| Campo | Tope |",
     "|---|---|",
@@ -257,34 +313,38 @@ function mdVocabularios(datos) {
     `| nota | de ${L.nota.min} a ${L.nota.max} caracteres |`,
     `| rúbrica (cumple, no_cumple) | ${L.rubrica.min} caracteres o más |`,
     "",
-    "Marca de la fuente: **[F]** está en una fuente externa (con su URL); **[I]** es de la casa (con la ruta del repo donde está escrito).",
+    `Un **principio** (catálogos con forma \`principio\`, #619) no es una regla: no lleva sujeto, fuerza ni control, porque la obligación es de la norma que lo cita. Su frase es: **Nombre.** Enunciado Por qué: porqué. El nombre, de ${LIMITES_PRINCIPIO.nombre.palabras_min} a ${LIMITES_PRINCIPIO.nombre.palabras_max} palabras; el enunciado, una sola frase en presente con sujeto y verbo, de ${LIMITES_PRINCIPIO.enunciado.palabras_max} palabras como mucho, que acaba en punto, sin punto y coma ni dos puntos y sin palabras de fuerza (debe, conviene, hay que); el porqué, una frase así de ${LIMITES_PRINCIPIO.porque.palabras_max} palabras como mucho. Que el verbo vaya en presente lo juzga el revisor; lo demás lo comprueba \`problemasDePrincipio\` de \`scripts/lib/regla.mjs\`.`,
+    "",
+    "Marca de la fuente, con un solo significado en todos los catálogos (`MARCAS_FUENTE` de `scripts/lib/regla.mjs`): **[F]** está en una fuente externa (con su URL); **[I]** es de la casa (con la ruta del repo donde está escrito); **[S]** es inferencia nuestra o una fuente secundaria (con su URL).",
     "",
   ];
 }
 
 function mdCatalogos(datos, leerJson) {
-  const L = ["## Catálogos que siguen la guía", "", "| Catálogo | Estado | Reglas | Encargo |", "|---|---|---|---|"];
+  const L = ["## Catálogos que siguen la guía", "", "| Catálogo | Forma | Estado | Entradas | Encargo |", "|---|---|---|---|---|"];
   for (const k of datos.catalogos) {
     const de = k.estado === "cumple" ? reglasDe(leerJson(k.fichero), k.clave_reglas) : null;
     const n = de ? String(de.reglas.length + de.remisiones.length) : "-";
-    L.push(`| \`${k.fichero}\` | ${k.estado} | ${n} | ${k.encargo ?? "-"} |`);
+    L.push(`| \`${k.fichero}\` | ${k.forma ?? "regla"} | ${k.estado} | ${n} | ${k.encargo ?? "-"} |`);
   }
   const pend = pendientesDe(datos).length;
   L.push("", ...Object.entries(ESTADOS_CATALOGO).map(([e, t]) => `- ${e}: ${t}.`), "", `Pendientes hoy: ${pend}. La lista solo baja (\`${RUTA_PENDIENTES}\`).`, "");
   return L;
 }
 
-/** El Markdown completo de docs/ops/REDACCION.md. */
+/** El Markdown completo de docs/ops/REDACCION.md: los principios de la guía con sus normas (de ops/normas.json, que lee `leerJson`). */
 export function generarMd(datos, leerJson) {
+  const registro = leerJson(RUTA_NORMAS);
   return `${[
     "# Redacción de reglas",
     "",
-    `<!-- Generado desde ${RUTA_REDACCION} con «npm run redaccion -- --escribir». No se edita a mano: ops/redaccion.test.js lo compara. -->`,
+    `<!-- Generado desde ${RUTA_REDACCION} y ${RUTA_NORMAS} con «npm run redaccion -- --escribir». No se edita a mano: ops/redaccion.test.js lo compara. -->`,
     "",
     ...INTRO,
     "",
-    ...mdPrincipios(datos),
-    ...mdVocabularios(datos),
+    ...mdPrincipios(datos, registro),
+    ...mdDeLaLista(datos, registro, leerJson),
+    ...mdVocabularios(registro),
     ...mdCatalogos(datos, leerJson),
   ].join("\n").replace(/\n{3,}/g, "\n\n").trimEnd()}\n`;
 }

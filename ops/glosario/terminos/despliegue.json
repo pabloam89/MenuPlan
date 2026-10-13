@@ -1,0 +1,22 @@
+{
+  "termino": "despliegue",
+  "estado": "activo",
+  "clase": "artefacto",
+  "dominio": "ops",
+  "definicion": "Una versión del código publicada en un entorno, que sale de una rama o de un PR.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "entorno",
+    "rama"
+  ],
+  "en": "deployment",
+  "entidades": [
+    {
+      "entidad": "event",
+      "relacion": "denota"
+    }
+  ]
+}

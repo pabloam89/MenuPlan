@@ -1,0 +1,15 @@
+{
+  "id": "scope-when-in-doubt",
+  "nombre": "Acotar ante la duda",
+  "area": "conversational-ai",
+  "enunciado": "Ante la duda, preguntar o proponer lo más acotado cuesta menos que actuar a lo grande.",
+  "porque": "Un malentendido pequeño cuesta poco, y uno grande estropea un menú entero.",
+  "ejemplo_bueno": "Ante cambia el jueves sin más, Lola pregunta qué comida del jueves",
+  "ejemplo_malo": "Ante cambia el jueves, Lola rehace el menú de la semana entera",
+  "fuentes": [
+    {
+      "url": "https://www.microsoft.com/en-us/research/articles/guidelines-for-human-ai-interaction-eighteen-best-practices-for-human-centered-ai-design/",
+      "marca": "F"
+    }
+  ]
+}

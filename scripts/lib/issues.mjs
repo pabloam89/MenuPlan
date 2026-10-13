@@ -577,13 +577,37 @@ export const TIPOS_ACCION = {
   correctivo: "Arregla las instancias que ya hay (el barrido)",
 };
 
+/**
+ * La complejidad de un encargo (#640, fondo #639), definida por su tamaño. Vocabulario cerrado, anclado como
+ * `encargo.complexity` en ops/vocabularios-vida.json; qué lanza cada una (jueces mínimos y parte del pipeline) está en
+ * `by_complexity` de ops/presupuestos.json. Hasta lo trivial lleva un juez. Calcularla desde el diff es de E2 (#641).
+ */
+export const COMPLEXITIES = {
+  trivial: "Una línea, un texto o una duda",
+  normal: "Un cambio en un dominio",
+  large: "Varios dominios, o un refactor",
+};
+
+/**
+ * Desde cuándo (día UTC del alta del encargo) son obligatorios los campos con `desde` en CAMPOS_ENCARGO (N1 del
+ * encargo, docs/entidades/N1-encargo.md): los encargos abiertos antes no los llevan y no fallan (el workflow `fondos`
+ * no se rompe); los creados desde este día, sí. Un test vigila que no sea anterior al día en que nació el N1.
+ */
+export const ENCARGO_N1_DESDE = "2026-10-13";
+
+/** Tope de caracteres del único texto libre de un subtipo (`note`) y de `subtype_note` en el bloque del encargo (#646). */
+export const MAX_NOTA_SUBTIPO = 160;
+
 /** Escalones de la escalera (scripts/lib/escalas.mjs) que se cumplen sin que nadie se acuerde: se re-exportan de allí. */
 export { ESCALONES_AUTOMATICOS };
 
 /** Como mucho tantos encargos por fondo, y al menos uno preventivo y automático (FLUJO.md, P06.4). */
 export const MAX_ENCARGOS_POR_FONDO = 3;
 
-/** Los campos de la ficha del encargo, en orden. `obligatorio`: true, false o el texto de cuándo. */
+/**
+ * Los campos de la ficha del encargo, en orden. `obligatorio`: true, false o el texto de cuándo. `desde`: el día
+ * (AAAA-MM-DD, UTC) desde el que lo exige el control; antes es opcional (ENCARGO_N1_DESDE).
+ */
 export const CAMPOS_ENCARGO = [
   { clave: "fondo", vale: "`#n` del fondo del que cuelga", obligatorio: true },
   { clave: "tipo_accion", vale: Object.keys(TIPOS_ACCION).map((v) => `\`${v}\``).join(", "), obligatorio: true },
@@ -596,7 +620,57 @@ export const CAMPOS_ENCARGO = [
   { clave: "verificacion", vale: "ruta del fichero que prueba la clase (un `*.test.js` si el escalón es test_ci)", obligatorio: true },
   { clave: "hecho_cuando", vale: "texto: lo que se ve cuando está hecho", obligatorio: true },
   { clave: "ficheros", vale: "rutas que toca, separadas por coma", obligatorio: false },
+  { clave: "assignment_type", vale: "un tipo de `ops/tipos-de-encargo.json` (`assignment_types`)", obligatorio: `sí en los creados desde ${ENCARGO_N1_DESDE}; antes, no`, desde: ENCARGO_N1_DESDE },
+  { clave: "subtype", vale: "un `id` activo de `tipos` de `ops/tipos-de-encargo.json` que cuelgue de ese tipo (un id retirado vale, con aviso)", obligatorio: `sí en los creados desde ${ENCARGO_N1_DESDE}; antes, no`, desde: ENCARGO_N1_DESDE },
+  { clave: "complexity", vale: Object.keys(COMPLEXITIES).map((v) => `\`${v}\``).join(", "), obligatorio: `sí en los creados desde ${ENCARGO_N1_DESDE}; antes, no`, desde: ENCARGO_N1_DESDE },
+  { clave: "subtype_note", vale: `texto de hasta ${MAX_NOTA_SUBTIPO} caracteres: por qué ningún subtipo encaja; hace falta con una válvula (\`<tipo>-other\`) en los creados desde ${ENCARGO_N1_DESDE}`, obligatorio: "solo con una válvula" },
 ];
+
+/**
+ * Los campos comunes del N1 del encargo (docs/entidades/N1-encargo.md, #640): qué dice la plantilla N1 que lleva toda
+ * entidad y dónde vive hoy cada uno. `clave` es la del bloque `encargo` (CAMPOS_ENCARGO) o null si no se guarda en él
+ * (cada dato en un solo sitio, N0 §7): se deduce o lo guarda GitHub. La tabla del N1 sale de aquí y un test la compara.
+ */
+export const CAMPOS_COMUNES_ENCARGO = [
+  { campo: "id", clave: null, vive: "el número del issue de GitHub (`#n`); no se repite en el bloque" },
+  { campo: "tipo", clave: "assignment_type", vive: "`assignment_type` del bloque" },
+  { campo: "subtipo", clave: "subtype", vive: "`subtype` del bloque; tiene que colgar del tipo dicho" },
+  { campo: "ámbitos", clave: null, vive: "se deducen de `ficheros` con `ambitosDeFichero` (scripts/lib/ambitos.mjs); no se guardan" },
+  { campo: "alcance", clave: null, vive: "el `alcance` de la ficha del fondo del que cuelga; no se copia al encargo" },
+  { campo: "complejidad", clave: "complexity", vive: "`complexity` del bloque" },
+  { campo: "constructor", clave: "constructor", vive: "`constructor` del bloque" },
+  { campo: "jueces", clave: "juez", vive: "`juez` del bloque es el mínimo; los demás que exige el subtipo salen del lector `encargoDe` (scripts/lib/tiposDeEncargo.mjs); declarar la lista entera en el PR es de E2 (#641)" },
+  { campo: "estado", clave: null, vive: "el estado del issue en GitHub (abierto, o cerrado con su motivo); no se guarda en el bloque" },
+];
+
+/** El bloque del N1 que se genera: la tabla de campos comunes y la del bloque entero, con la misma fuente que ENCARGO.md. */
+export function formatoN1CamposMd() {
+  const si = (o) => (o === true ? "sí" : o === false ? "no" : o);
+  return [
+    "Campos comunes del encargo y dónde vive cada uno:",
+    "",
+    "| Campo común | Dónde vive hoy |",
+    "|---|---|",
+    ...CAMPOS_COMUNES_ENCARGO.map((c) => `| ${c.campo} | ${c.vive} |`),
+    "",
+    "Claves del bloque `encargo` (la fuente es `CAMPOS_ENCARGO` de `scripts/lib/issues.mjs`):",
+    "",
+    "| Clave | Vale | Obligatoria |",
+    "|---|---|---|",
+    ...CAMPOS_ENCARGO.map((c) => `| \`${c.clave}\` | ${c.vale} | ${si(c.obligatorio)} |`),
+  ].join("\n");
+}
+
+export const MARCA_N1_INICIO = "<!-- n1:encargo:campos:inicio -->";
+export const MARCA_N1_FIN = "<!-- n1:encargo:campos:fin -->";
+
+/** Pone las tablas generadas entre las marcas de `docs/entidades/N1-encargo.md`. */
+export function conCamposN1(md) {
+  const i = md.indexOf(MARCA_N1_INICIO);
+  const f = md.indexOf(MARCA_N1_FIN);
+  if (i < 0 || f < i) throw new Error(`N1-encargo.md no tiene las marcas ${MARCA_N1_INICIO} y ${MARCA_N1_FIN}`);
+  return `${md.slice(0, i + MARCA_N1_INICIO.length)}\n${formatoN1CamposMd()}\n${md.slice(f)}`;
+}
 
 /** La plantilla del bloque, vacía: la del formulario y la de la referencia. */
 export function plantillaEncargo() {

@@ -1,0 +1,16 @@
+{
+  "id": "public-repo-no-sensitive-detail",
+  "area": "infra",
+  "nombre": "Repo público sin detalle",
+  "enunciado": "El repo público dice qué se pide y quién lo vigila, sin explicar cómo se salta un control ni dar datos de familias.",
+  "porque": "Cualquiera lee los issues, los PR y el historial, y lo que se publica no se retira del todo.",
+  "fuentes": [
+    {
+      "marca": "I",
+      "ruta": "CLAUDE.md"
+    }
+  ],
+  "detalle": [
+    "CLAUDE.md#cuando-algo-falla-hasta-el-problema-de-fondo"
+  ]
+}

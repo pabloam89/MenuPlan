@@ -1,0 +1,22 @@
+{
+  "termino": "meta",
+  "estado": "activo",
+  "clase": "campo",
+  "dominio": "base",
+  "definicion": "Un objetivo de la base que una norma sirve y que ordena qué gana cuando dos normas chocan; hay seis, de vocabulario cerrado.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "en": "goal",
+  "relacionado": [
+    "norma",
+    "principio"
+  ],
+  "entidades": [
+    {
+      "entidad": "norm",
+      "relacion": "campo_de"
+    }
+  ]
+}

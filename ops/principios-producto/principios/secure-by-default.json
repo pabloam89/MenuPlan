@@ -1,0 +1,15 @@
+{
+  "id": "secure-by-default",
+  "nombre": "Seguro de serie",
+  "area": "trust-safety",
+  "enunciado": "Lo nuevo nace cerrado, y abrirlo es un paso consciente que no depende de que alguien se acuerde.",
+  "porque": "Lo seguro de serie no depende de la memoria de nadie, y lo inseguro cuesta un paso consciente.",
+  "ejemplo_bueno": "Una tabla nueva de menús nace sin permisos para anon",
+  "ejemplo_malo": "Una tabla nueva queda legible para cualquiera hasta que alguien se acuerda de cerrarla",
+  "fuentes": [
+    {
+      "url": "https://www.cisa.gov/securebydesign",
+      "marca": "F"
+    }
+  ]
+}

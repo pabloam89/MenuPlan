@@ -1,6 +1,6 @@
 ---
 name: higiene-de-skills
-description: Úsala para revisar UNA skill ya escrita y sacar su lista de defectos con el arreglo de cada uno: «revisa la skill de vercel», «¿está al día esta skill?», «¿cuánto le queda para caducar?», «¿cita algo que ya no existe?», «¿solapa con otra?», «higiene de skills», y en el repaso periódico de todas, glosario incluido («¿qué palabras faltan en el glosario?»). No para: crear una skill nueva ni decidir si hace falta (forja-de-skills), medir con tokens si dispara (npm run skills-prueba) ni operar el servicio que describe (su skill).
+description: Úsala para revisar UNA skill ya escrita y sacar su lista de defectos con el arreglo de cada uno: «revisa la skill de vercel», «¿está al día esta skill?», «¿cuánto le queda para caducar?», «¿cita algo que ya no existe?», «¿solapa con otra?», «higiene de skills», y en el repaso periódico de todas. No para: el glosario y sus términos (higiene-de-vocabulario), crear una skill nueva ni decidir si hace falta (forja-de-skills), medir con tokens si dispara (npm run skills-prueba) ni operar el servicio que describe (su skill).
 metadata:
   tipo: revision
   opera_proveedor: false
@@ -11,6 +11,7 @@ metadata:
   elige_opciones: false
   dueno: gobierno
   comprobado: 2026-10-10
+  normas: [criterios-de-forja-en-un-catalogo, glosario-sin-sinonimos-nuevos]
 ---
 
 # Higiene de skills
@@ -78,7 +79,7 @@ buena que sale limpia y el script sobre el repo.
 - **La cifra**: una línea por skill, `higiene skill: <s> faltas: a avisos: b
   solape: x con: <otra>`, y la del conjunto, `Higiene: n skills, … faltas y …
   avisos`. Se pone antes y después en el PR, y la del conjunto no sube.
-- **Los criterios**: por cada criterio de `ops/forja/` que se le aplica,
+- **Los criterios**: por cada norma de `ops/forja/` que se le aplica,
   una línea `skill: <s> criterio: <id> estado: <estado>` (cumple, no_cumple,
   no_aplica o juicio) y, en el hueco, su nota; encima, `criterios skill: <s>
   criterios: n vigilados: a de_juicio: b …`. Lo que vigila un control o se
@@ -98,7 +99,7 @@ buena que sale limpia y el script sobre el repo.
    pida un defecto. Si el arreglo mueve texto (fechas, un bloque largo), nada de
    información se pierde: va a «Lo que falló y por qué», a «Fuentes y
    comprobación» o a una capa citada con su ruta entera.
-4. **Juzga lo que el script no ve**: los criterios de juicio (si cada párrafo
+4. **Juzga lo que el script no ve**: las normas de juicio (si cada párrafo
    justifica su coste, si hay un camino por defecto y no un menú, si los
    ejemplos se contradicen, si los casos de frontera son casi-fallos de verdad).
    Cada juicio de skill va a `ops/juicios-skills/<skill>.json` con los campos de
@@ -113,11 +114,8 @@ buena que sale limpia y el script sobre el repo.
    descripción sin pasar el solape.
 6. **Vuelve a lanzar** el script y `npx vitest run .claude/skills.test.js`.
    Pon la cifra antes y después en el PR.
-7. **En el repaso periódico, también el glosario**: baja sus excepciones
-   (`npm run glosario -- --medir`) y juzga cada candidato a término de
-   `npm run glosario -- --candidatos` (término nuevo, sinónimo de otro o nada,
-   con su motivo). El método, en
-   `.claude/skills/higiene-de-skills/referencias/glosario.md`.
+7. **El glosario ya no es de esta skill**: su repaso (excepciones, candidatos a
+   término, dominios y entidades) es de `higiene-de-vocabulario`.
 
 Sale bien si: `faltas: 0` en el script, el nivel 1 en verde, cada aviso
 arreglado o explicado, y la cifra del conjunto no sube.
@@ -136,15 +134,16 @@ arreglado o explicado, y la cifra del conjunto no sube.
 
 ## Registro de cambios
 
+- **2026-10-12** · El paso 7 (el repaso del glosario) pasa a la skill `higiene-de-vocabulario`, con su método (F1 de #652).
 - **2026-10-10** · Los criterios de cada skill: el script da una línea `skill: x criterio: y estado: z` por criterio de la forja (lo que vigila un control o sale de una pasada vigente se calcula; los juicios de skill, en `ops/juicios-skills/<skill>.json`, caducan si cambia el SKILL.md) y la cifra de vigilados y de juicio; el paso 4 rellena los juicios (#457).
 
 - **2026-10-10** · Las secciones del tipo `revision`: «Qué mira» (el molde de su tipo para las de nivel 2, las reglas comunes para la pieza meta, y la tabla de códigos) y «Cómo puntúa» (falta, aviso y la cifra); «Cómo se prueba» se reparte entre las dos y «Cuándo se poda» pasa a «Cuándo y para qué» (#495).
-- **2026-10-10** · El repaso periódico incluye el glosario: bajar sus excepciones y juzgar los candidatos a término de `npm run glosario -- --candidatos`, con el método en `.claude/skills/higiene-de-skills/referencias/glosario.md` (#481).
+- **2026-10-10** · El repaso periódico incluye el glosario: bajar sus excepciones y juzgar los candidatos a término de `npm run glosario -- --candidatos`, con el método en `.claude/skills/higiene-de-vocabulario/referencias/glosario.md` (#481, movido en F1 de #652).
 - **2026-10-10** · Primera versión: lista de defectos de una skill con su arreglo, script `npm run higiene-skills`, diez controles propios sobre los de la forja y su test con una skill mala (#411).
 
 ## Fuentes y comprobación
 
 - `.claude/skills/forja-de-skills/referencias/defectos.md`: los defectos de la forja, con su señal.
-- `.claude/PLANTILLA-SKILL.md`: el estándar por tipo.
+- `.claude/PLANTILLA-SKILL.md`: la plantilla por tipo.
 
 Comprobado el 2026-10-10: el script sobre las 12 skills del repo y su test con una skill mala hecha a propósito (cada código visto fallar); y en #457, los criterios y juicios de las 14 skills con `ops/criterios-skills.test.js` (cada regla vista fallar). Sin comprobar: el A/B con y sin esta skill, y `npm run skills-prueba -- higiene-de-skills` (cuesta tokens).

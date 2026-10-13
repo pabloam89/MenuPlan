@@ -4,10 +4,10 @@
   "vigilantes": [
     {
       "id": "tipos-de-encargo",
-      "tests": ["ops/tipos-de-encargo.test.js"],
-      "mira": ["ops/tipos-de-encargo.json", ".claude/commands/orquestar.md", ".claude/agents/*.md"],
-      "porque": "El JSON de tipos de encargo y la tabla «Qué pipeline» de /orquestar dicen lo mismo, y cada agente nombrado existe en .claude/agents; tocar uno de los tres sin los otros rompe el panel de la factoría, que lee el JSON.",
-      "evidencia": "#557 (revisor: el cruce solo miraba nombres de agente)"
+      "tests": ["ops/tipos-de-encargo.test.js", "scripts/dimensionar.test.js"],
+      "mira": ["ops/tipos-de-encargo.json", ".claude/commands/orquestar.md", ".claude/agents/*.md", "scripts/lib/tiposDeEncargo.mjs", "scripts/lib/agentes.mjs", "ops/presupuestos.json", "ops/estandares-agentes.json", "scripts/lib/dimensionado.mjs", "scripts/lib/ambitos.mjs", "ops/MODULOS.json"],
+      "porque": "Los cinco tipos de encargo con sus subtipos, el presupuesto y la lista de jueces se unen (y el dimensionador saca de ahí los agentes y el brief de un encargo): la tabla «Qué pipeline» de /orquestar se genera del JSON, cada agente nombrado existe en .claude/agents y tiene tarea con estándar, ningún tipo se queda sin juez y la lista de jueces sale de las cabeceras de los agentes; tocar una pieza sin las otras rompe el panel de la factoría, que lee el JSON.",
+      "evidencia": "#557 (revisor: el cruce solo miraba nombres de agente); #640 (los tipos se unen al presupuesto)"
     },
     {
       "id": "procesos-ocultos",
@@ -38,6 +38,13 @@
       "evidencia": "#551 (fondo #504): 18 líneas en conflicto en 9 ficheros a 0"
     },
     {
+      "id": "derivados-registrados",
+      "tests": ["ops/derivados.test.js"],
+      "mira": ["**/*.md", ".github/ISSUE_TEMPLATE/*.yml", "src/design/tokens.css", "src/components/icons.jsx", "src/lib/ingredientImageIds.js", "src/data/model.js", "scripts/lib/generados.mjs", "scripts/lib/derivados.mjs"],
+      "porque": "Todo fichero del repo con cabecera de generado o con bloques generados, y todo dato derivado de TABLAS, está en el inventario de derivados (DERIVADOS de scripts/lib/generados.mjs) con su fuente, su script y su test, o con el motivo de que no tiene: uno nuevo sin registrar se queda sin dueño y nadie sabe de qué sale ni cómo se regenera.",
+      "evidencia": "#584 (norma C3, un dato un sitio): 37 derivados en 6 clases, 14 sin test propio, todos con motivo"
+    },
+    {
       "id": "tests-de-tiempo",
       "tests": ["ops/testsDeTiempo.test.js"],
       "mira": ["**/*.test.{js,mjs,jsx}", "scripts/lib/medirTiempo.mjs"],
@@ -60,12 +67,11 @@
       "evidencia": "#177"
     },
     {
-      "id": "dueno-de-lo-que-ejecuta-un-hook",
-      "tests": ["scripts/rulesets.test.js"],
-      "mira": ["scripts/**/*.{js,mjs}", ".claude/hooks/*.mjs", ".github/workflows/*.yml", ".github/CODEOWNERS", ".claude/settings.json", "package.json"],
-      "porque": "Todo lo que corre con secretos o por un hook, y sus imports, tiene dueño en CODEOWNERS: un script nuevo importado por un hook sin dueño lo rompe.",
-      "evidencia": "PR #424",
-      "amplio": true
+      "id": "api-sin-credencial",
+      "tests": ["api/sinCredencial.test.js"],
+      "mira": ["api/**/*.{js,mjs,cjs,ts}", "ops/api-sin-credencial.json"],
+      "porque": "Todo endpoint de api/ rechaza con 401 o 403 una petición sin credencial, salvo la lista de públicos con su motivo; un endpoint nuevo que no rechaza falla aquí.",
+      "evidencia": "#582"
     },
     {
       "id": "scripts-sin-caminos-sueltos",
@@ -132,9 +138,15 @@
     },
     {
       "id": "glosario",
-      "tests": ["ops/glosario.test.js"],
-      "mira": ["ops/glosario/**", "ops/glosario-excepciones/**", ".claude/skills/**/*.md", ".claude/PLANTILLA-*.md", ".claude/agents/*.md", ".claude/rules/*.md", "CLAUDE.md", "docs/ops/*.md", ".claude/commands/*.md", "ops/estandares-agentes.json", "ops/normas.json"],
+      "tests": ["ops/glosario.test.js", "ops/glosario-dominios.test.js", "ops/glosario-mapeo.test.js", "scripts/higiene-vocabulario.test.js"],
+      "mira": ["scripts/lib/glosario*.mjs", "ops/entidades.json", "ops/glosario/**", "ops/glosario-excepciones/**", ".claude/skills/**/*.md", ".claude/PLANTILLA-*.md", ".claude/agents/*.md", ".claude/rules/*.md", "CLAUDE.md", "docs/ops/*.md", ".claude/commands/*.md", "ops/estandares-agentes.json", "ops/normas.json"],
       "porque": "Las zonas del glosario no usan un término prohibido ni lo definen dos veces."
+    },
+    {
+      "id": "entidades",
+      "tests": ["ops/entidades.test.js"],
+      "mira": ["ops/entidades.json","ops/entidades-sujetos.json","docs/entidades/*.md","ops/glosario/**","ops/normas.json","ops/estandares-agentes.json","scripts/lib/glosario.mjs","scripts/lib/forjaReferencia.mjs","scripts/lib/entidades.mjs","scripts/lib/vocabulariosVida.mjs","ops/vocabularios-vida.json","CLAUDE.md","scripts/lib/tokenSesion.mjs","ops/INVENTARIO.md",".claude/hooks/eventos.mjs","ops/mecanismos.json","ops/metricas.json","scripts/bot-evals.json",".claude/agents/**",".claude/skills/**",".claude/rules/**",".claude/settings.json","scripts/lib/issues.mjs","scripts/lib/fondos.mjs","ops/DECISIONES.md","supabase/ESTADO.md","ops/MODULOS.json","src/data/model.js","specs/modelo-datos.md","src/data/recipes/**","src/data/ingredients.json","specs/menu-generation.md","specs/shopping-list.md","specs/plan-bot-mensajeria.md","scripts/mapa-entidades.mjs","scripts/lib/recursos.mjs","ops/recursos.json","ops/planos.json","ops/tipos-de-encargo.json","ops/forja/**","ops/diseno/**","src/design/tokens.js","DESIGN_SYSTEM.md",".github/workflows/**","supabase/migrations/*.sql"],
+      "porque": "El registro de entidades nombra fuentes de verdad por su ruta, cruza el glosario (term y su traducción en inglés) y clasifica los sujetos de normas y estándares: borrar o renombrar una fuente, cambiar la traducción de un término o añadir un sujeto nuevo lo rompe lejos de lo tocado."
     },
     {
       "id": "redaccion-de-reglas",
@@ -157,9 +169,9 @@
     },
     {
       "id": "migraciones-sql",
-      "tests": ["supabase/anonPorDefecto.test.js", "supabase/cascadaPersona.test.js", "supabase/errores.test.js", "supabase/idsPersonaGrupo.test.js", "supabase/migrations.test.js", "supabase/principios.test.js", "supabase/rolLectura.test.js", "src/lib/registroTareas.test.js", "src/lib/vocabularios.test.js", "api/_bot/fichaExtras.test.js", "scripts/lib/migraciones.test.js", "supabase/fichaSobre.test.js"],
-      "mira": ["supabase/migrations/*.sql"],
-      "porque": "Leen todas las migraciones: numeración contigua, principios de tablas, anon por defecto, errores, vocabularios y cascada de personas. Una migración nueva se mide contra todas."
+      "tests": ["supabase/anonPorDefecto.test.js", "supabase/cascadaPersona.test.js", "supabase/errores.test.js", "supabase/idsPersonaGrupo.test.js", "supabase/migrations.test.js", "supabase/principios.test.js", "supabase/rolLectura.test.js", "src/lib/registroTareas.test.js", "src/lib/vocabularios.test.js", "api/_bot/fichaExtras.test.js", "scripts/lib/migraciones.test.js", "supabase/fichaSobre.test.js", "supabase/columnasTexto.test.js"],
+      "mira": ["supabase/migrations/*.sql", "ops/columnas-texto.json"],
+      "porque": "Leen todas las migraciones: numeración contigua, principios de tablas, anon por defecto, errores, vocabularios, cascada de personas y la clase de cada columna de texto (ops/columnas-texto.json). Una migración nueva se mide contra todas."
     },
     {
       "id": "catalogo-de-recetas",
@@ -224,6 +236,13 @@
       "evidencia": "#480"
     },
     {
+      "id": "recursos-con-caducidad",
+      "tests": ["ops/recursos.test.js"],
+      "mira": ["ops/recursos.json", "ops/normas.json", "ops/INVENTARIO.md", "scripts/lib/recursos.mjs", ".claude/skills/*/SKILL.md"],
+      "porque": "Lee el registro de recursos con su caducidad y el reloj: la forma del registro, las normas caducidad-* que tienen que apuntar a él y las skills que cuenta para el informe salen de sus SKILL.md.",
+      "evidencia": "#581"
+    },
+    {
       "id": "workflows-yaml",
       "tests": ["ops/workflows.test.js"],
       "mira": [".github/workflows/*.yml", "package.json"],
@@ -236,6 +255,27 @@
       "mira": ["**/*.{json,js,mjs,jsx,yml,yaml}"],
       "porque": "La escala de veredicto y la escalera de durabilidad se declaran solo en scripts/lib/escalas.mjs: cualquier JSON, JS o YAML nuevo que las escriba a mano es otra copia, y los lectores (normas, mecanismos, ficha del fondo, etiquetas) tienen que salir de ahí.",
       "evidencia": "#515"
+    },
+    {
+      "id": "principios-y-uniones",
+      "tests": ["ops/principios.test.js", "ops/uniones.test.js", "ops/principios-producto.test.js", "ops/precedencia.test.js", "ops/vocabularios-vida.test.js"],
+      "mira": ["ops/principios/**", "ops/normas.json", "ops/principios-producto/**", "ops/redaccion.json", "ops/estandares-agentes.json", "ops/forja/**", "docs/datos/PRINCIPIOS.md", "docs/entidades/N0-principios.md", "CLAUDE.md", "docs/PRINCIPIOS.md", "docs/producto/PRINCIPIOS.md", "scripts/lib/principios.mjs", "scripts/lib/principiosProducto.mjs", "scripts/lib/regla.mjs", "scripts/lib/estandaresAgentes.mjs", "scripts/lib/ambitos.mjs", "scripts/lib/skills.mjs", "scripts/lib/vecinos.mjs", ".claude/skills/**", ".claude/agents/**", ".claude/rules/**", "scripts/lib/precedencia.mjs", "scripts/lib/excepciones.mjs", "scripts/lib/medicionNormas.mjs", "scripts/lib/avisosPr.mjs", "scripts/lib/normas.mjs", "scripts/lib/vocabulariosVida.mjs", "ops/vocabularios-vida.json", "ops/metricas.json", ".github/pull_request_template.md", ".github/workflows/tests.yml", "docs/ops/NORMAS.md"],
+      "porque": "La lista única de principios compone su catálogo con los de producto y redacción, pide que cada sección numerada de los documentos de datos y del N0 la cite un principio y que «Pensar en datos» de CLAUDE.md nombre ids que existen; y cada norma de ops/normas.json cita un principio de ella y acciones de los estándares. Desde #620 las uniones miran también los estándares (normas citadas, reglas que reescriben una norma, normas a juicio sin juez), las skills (las normas que citan y que no copian su frase) y que cada fichero del repo caiga en un ámbito: un fichero nuevo en una carpeta que ningún ámbito cubre lo rompe lejos de lo tocado: esa parte la ve el CI del PR, que corre la suite entera. Desde #621 también la precedencia entre áreas (total y sin empates, con rango para toda norma), la forma única de excepción (con las formas de antes retiradas en ops/vocabularios-vida.json) y la medición por norma (su registro en ops/metricas.json), con la forma escrita en la plantilla del PR, tests.yml, la skill github y NORMAS.md.",
+      "evidencia": "#619, #620, #621"
+    },
+    {
+      "id": "tests-sin-registro-real",
+      "tests": [".claude/hooks/eventos.test.js"],
+      "mira": ["**/*.test.{js,mjs,jsx}", ".claude/hooks/guardia.mjs", ".claude/hooks/pendientes.mjs", ".claude/hooks/skill-abierta.mjs"],
+      "porque": "Un test que lanza la guardia, pendientes o skill-abierta como proceso sin fijar MENUPLAN_FABRICA_DIR escribe en el eventos.jsonl real de quien lo corre y ensucia las cifras (el revisor del PR #656 vio líneas de push-a-main de un test en el registro real). Un test nuevo en cualquier carpeta puede romperlo.",
+      "evidencia": "#652 (revisión del PR #656)"
+    },
+    {
+      "id": "zonas-del-repo",
+      "tests": ["ops/zonas.test.js"],
+      "mira": ["ops/**", "scripts/**", ".claude/**", ".github/**", "docs/**", "*", "scripts/lib/zonasProyecto.mjs"],
+      "porque": "Cada fichero del repo cae en una zona (factoría, producto o mixto) de ops/zonas.json: un fichero nuevo en una carpeta con reglas por patrón (ops, scripts, .claude, .github, docs) o en la raíz, sin regla que lo cubra, o más ficheros mixtos que el tope, rompen este test lejos de lo que tocas. Las carpetas de producto (src, api, supabase, public…) las cubre un prefijo entero y no pueden quedar sin zona.",
+      "evidencia": "#652 (línea 3 del programa factoría/proyecto: sin zonas no se puede contar qué hay que separar)"
     }
   ],
   "pasos": [

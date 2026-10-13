@@ -140,7 +140,7 @@ describe("freno de los casos: de punta a punta, como lo lanza Claude Code", () =
     const dir = mkdtempSync(join(tmpdir(), "freno-"));
     const f = join(dir, "t.jsonl");
     writeFileSync(f, transcript);
-    const r = spawnSync("node", [hook], { input: JSON.stringify({ session_id: id, transcript_path: f, last_assistant_message: "Hecho.", ...extra }), encoding: "utf8" });
+    const r = spawnSync("node", [hook], { input: JSON.stringify({ session_id: id, transcript_path: f, last_assistant_message: "Hecho.", ...extra }), encoding: "utf8", env: { ...process.env, MENUPLAN_FABRICA_DIR: dir } });
     return r.stdout ? JSON.parse(r.stdout) : null;
   };
   const mala = sesion(uso("a", "Agent", {}), res("a", "ESTADO: bloqueado"));

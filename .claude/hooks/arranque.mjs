@@ -23,11 +23,14 @@ import { ahoraEnMadrid } from "../../scripts/lib/hora.mjs";
 import { numeroDeRama } from "../../scripts/lib/lleva.mjs";
 import { avisosDeLimpieza, leerPendientes, worktreesVivos } from "../../scripts/limpiar-worktrees.mjs";
 import { sinAplicar } from "./guardia.mjs";
+import { esSesionDeNube } from "./nube.mjs";
 import { avisoRamaPrincipal, avisoTrasAdelantar, planAdelantar } from "./principal.mjs";
 import { avisoDeIndice, leerIndice } from "../../scripts/lib/buscarAntes.mjs";
 import { aplicarIdentidad } from "../../scripts/lib/tokenSesion.mjs";
+import { avisoDeCupos } from "../../scripts/lib/cupos.mjs";
 import { enPrs, enStaging, enWorktrees, pedirPrs, resumen } from "./migraciones.mjs";
 import { activas, apuntar, dirSesiones, listar, normaRuta } from "./sesiones.mjs";
+import { anotarActorDeLinea, dirFabrica } from "./eventos.mjs";
 
 let entrada = {};
 try {
@@ -81,8 +84,10 @@ if ((rama === "staging" || rama === "main") && !esWorktree) {
 if (rama === "main") avisos.push("main es producción: aquí no se commitea.");
 // La carpeta principal fuera de staging (#348, #384): con el reflog, para ver quién la cambió.
 {
-  const fuera = !esWorktree && rama && rama !== "staging";
-  const aviso = avisoRamaPrincipal({ esWorktree, rama, reflog: fuera ? git("reflog", "HEAD", "-n", "30", "--format=%gs|%cr") : null });
+  // En la nube (#635) el único clon va en la rama ccr-… de la plataforma: no es la principal de Pablo.
+  const nube = esSesionDeNube(process.env, rama, raiz);
+  const fuera = !esWorktree && rama && rama !== "staging" && !nube;
+  const aviso = avisoRamaPrincipal({ esWorktree, rama, nube, reflog: fuera ? git("reflog", "HEAD", "-n", "30", "--format=%gs|%cr") : null });
   if (aviso) avisos.push(aviso);
 }
 if (!existsSync(join(raiz, ".env.local"))) {
@@ -127,8 +132,17 @@ try {
 // el token de 1 hora va al fichero de entorno de la sesión (CLAUDE_ENV_FILE, que
 // lee el shell Bash de cada comando) y `gh` y `git` actúan como homenu-sesiones[bot].
 // Si no se puede, se dice por qué y se sigue con la identidad actual (plan B).
-const identidad = aplicarIdentidad();
-
+// La identidad que sale (`identidad-sesion identidad: app|pablo|…`) se anota para esta sesión (#652): los demás
+// hooks no ven el entorno de Bash y, sin la marca, anotaban `actor: null` en 83 de 85 eventos.
+const identidad = aplicarIdentidad({
+  registrar: (linea) => {
+    console.error(linea);
+    anotarActorDeLinea(dirFabrica(), entrada.session_id, linea); // nunca lanza
+  },
+});
+// Los cupos compartidos (GitHub y 1Password, #578): también en paralelo, con su caché de 5 min
+// y su tope de 4 s. Nunca lanza; callada si todo va por debajo del 80 %.
+const cupos = avisoDeCupos({ despuesDe: identidad });
 
 // ── Staging y migraciones ──────────────────────────────────────────────────
 const prs = pedirPrs(raiz, 10_000); // a la vez que el fetch: los dos son red, y gh es el lento
@@ -187,6 +201,11 @@ else avisos.push("Issues: no he podido leerlos (GitHub no contesta, gh sin sesi�
 {
   const aviso = avisoDeIndice(leerIndice());
   if (aviso) avisos.push(aviso);
+}
+
+{
+  const linea = await cupos;
+  if (linea) avisos.push(linea);
 }
 
 avisos.push(await identidad);

@@ -44,7 +44,7 @@ describe("el catálogo: forma y vocabulario", () => {
     const jueces = readdirSync(dir).filter((f) => f.endsWith(".md"))
       .filter((f) => /^Tipo:\s*juez\s*$/m.test(readFileSync(join(dir, f), "utf8")))
       .map((f) => f.replace(/\.md$/, ""));
-    expect([...JUECES].sort(), "Si nace o se retira un juez, actualiza JUECES en scripts/lib/presupuestos.mjs").toEqual(jueces.sort());
+    expect([...JUECES].sort(), "JUECES sale de scripts/lib/agentes.mjs: un juez es un agente con «Tipo: juez» en .claude/agents").toEqual(jueces.sort());
   });
 
   it("el tope de rondas del catálogo es el duro: ninguna celda lo pasa", () => {
@@ -307,6 +307,11 @@ const MALOS = [
   ["juez", "jueces obligatorios vacíos", (c) => { c.por_causa["modelo-datos"].jueces_obligatorios = []; }],
   ["juez", "un juez repetido", (c) => { c.por_causa["modelo-datos"].jueces_obligatorios = ["revisor", "revisor"]; }],
   ["celda", "más jueces obligatorios que el máximo admitido", (c) => { c.por_causa["modelo-datos"].jueces_obligatorios = ["revisor", "qa", "seguridad", "evaluador"]; }],
+  ["dimensionado", "sin el bloque del dimensionado", (c) => { delete c.dimensionado; }],
+  ["dimensionado", "un umbral de trivial a cero", (c) => { c.dimensionado.trivial.lines_max = 0; }],
+  ["dimensionado", "ningún fichero para ser local", (c) => { c.dimensionado.local_max_files = 0; }],
+  ["dimensionado", "trivial con más ficheros que un alcance local", (c) => { c.dimensionado.trivial.files_max = c.dimensionado.local_max_files + 1; }],
+  ["dimensionado", "un campo que el dimensionado no tiene", (c) => { c.dimensionado.inventado = 1; }],
   ["calibracion", "valores iniciales con fecha de calibrado", (c) => { c.calibrado_el = "2026-10-20"; }],
   ["calibracion", "calibrado sin fecha", (c) => { c.valores_iniciales = false; }],
   ["calibracion", "sin el hueco de recalibración", (c) => { delete c.recalibracion; }],

@@ -1,0 +1,18 @@
+{
+  "termino": "tipo de encargo",
+  "estado": "activo",
+  "clase": "artefacto",
+  "dominio": "ops",
+  "definicion": "Una plantilla de encargo de ops/tipos-de-encargo.json, con su subtipo, sus pasos y sus banderas, de la que sale cada encargo.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "en": "assignment-type",
+  "entidades": [
+    {
+      "entidad": "assignment-type",
+      "relacion": "denota"
+    }
+  ]
+}

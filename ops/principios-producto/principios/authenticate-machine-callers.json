@@ -1,0 +1,19 @@
+{
+  "id": "authenticate-machine-callers",
+  "nombre": "Autenticar a las máquinas",
+  "area": "trust-safety",
+  "enunciado": "Una llamada de una máquina sin credencial la puede imitar cualquiera que conozca la dirección.",
+  "porque": "Que no haya una persona detrás no quita la necesidad de credencial, y sin ella cualquiera se hace pasar por el disparador.",
+  "ejemplo_bueno": "El webhook de Telegram y el cron de recordatorios exigen su secreto y contestan 401 si falta",
+  "ejemplo_malo": "Hoy api/report-alert.js acepta la llamada del disparador de la base sin ninguna credencial (#596)",
+  "fuentes": [
+    {
+      "url": "https://api-security.owasp.org/editions/2023/en/0xa2-broken-authentication/",
+      "marca": "F"
+    },
+    {
+      "url": "https://docs.stripe.com/webhooks",
+      "marca": "F"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "termino": "proyecto",
+  "estado": "activo",
+  "clase": "artefacto",
+  "dominio": "base",
+  "definicion": "Un producto o herramienta con su repositorio, sus entornos y sus recursos, que la factoría construye; hoy HoMenu y el panel.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "en": "project",
+  "relacionado": [
+    "dominio"
+  ],
+  "entidades": [
+    {
+      "entidad": "project",
+      "relacion": "denota"
+    }
+  ]
+}

@@ -32,9 +32,10 @@
  * driver solo ahorra el choque.
  *
  * Lo que solo es en parte generado (las tablas de FLUJO.md y PLANOS.md, la sección de estándares
- * de cada agente) no entra: quedarse con una versión perdería lo escrito a mano en la otra rama.
+ * de cada agente) no tiene driver: quedarse con una versión perdería lo escrito a mano en la otra rama.
  * Tampoco `supabase/cableado.json`: su `--escribir` acepta cualquier cableado nuevo, y su test
- * está para que eso se decida a mano (es de `datos`).
+ * está para que eso se decida a mano (es de `datos`). Todos están en el inventario `DERIVADOS`
+ * (más abajo), con otra clase; `GENERADOS` es el filtro que usan los drivers.
  */
 import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
@@ -51,8 +52,33 @@ export const DRIVERS = {
 export const CLASES = { documento: "generado", ancla: "json-claves" };
 
 /**
- * El registro. `ruta` es una ruta o un patrón de `.gitattributes` (solo `*` dentro de una
- * carpeta). `regenera`, el script que lo escribe (con `--escribir`); `test`, el que lo vigila.
+ * Las clases del inventario general de derivados (#584, norma C3 «un dato, un sitio»). Las dos
+ * primeras son las de arriba y las únicas con driver de fusión; el resto solo se registran:
+ *   - `partial`: un fichero escrito a mano con bloques generados (tablas de FLUJO.md y PLANOS.md,
+ *     la sección de estándares de cada agente). Sin driver: quedarse con una versión perdería lo
+ *     escrito a mano en la otra rama.
+ *   - `data`: datos derivados que un script calcula de otras fuentes (`src/data/derived/`, etc.).
+ *   - `code`: código o configuración que sale de otra fuente (`tokens.css`, `icons.jsx`).
+ *   - `spec`: especificaciones sacadas de leer el código.
+ */
+export const CLASES_DERIVADOS = {
+  documento: "documento entero generado, con driver de fusión",
+  ancla: "JSON por claves que un script mantiene, con driver de fusión",
+  partial: "fichero con bloques generados y el resto a mano",
+  data: "datos derivados de otras fuentes",
+  code: "código o configuración generado",
+  spec: "especificación sacada del código",
+};
+
+/**
+ * El inventario general de lo que se deriva de otra cosa. Una entrada por fichero o patrón:
+ *   - `ruta`: ruta o patrón de `.gitattributes` (solo `*` dentro de una carpeta);
+ *   - `clase`: una de `CLASES_DERIVADOS`;
+ *   - `source`: de qué fuente sale;
+ *   - `regenera`: el script que lo escribe (con `--escribir`), o `"manual"` con `manualReason`;
+ *   - `test`: el que vigila que está al día, o `"none"` con `noTestReason`.
+ * Los datos derivados de `TABLAS` (`src/data/model.js`) no se copian aquí: los añade
+ * `scripts/lib/derivados.mjs` desde el modelo, que es su única fuente.
  *
  * Orden en las anclas: `mezclarJson` ordena las claves de un objeto y una lista de valores
  * sueltos si tu versión ya iba ordenada (por `localeCompare` o por código), y si no, deja tu
@@ -60,18 +86,53 @@ export const CLASES = { documento: "generado", ancla: "json-claves" };
  * la forja se escriben ordenadas por `localeCompare` y `pendientes` de la redacción es un
  * conjunto. Un ancla nueva cuyo orden signifique algo (una lista de pasos) no va aquí.
  */
-export const GENERADOS = [
-  { ruta: "docs/ops/FORJA.md", clase: "documento", regenera: "scripts/forja.mjs", test: "ops/forja.test.js" },
-  { ruta: ".claude/plantillas-skill/*.md", clase: "documento", regenera: "scripts/plantillas.mjs", test: ".claude/plantillas-skill.test.js" },
-  { ruta: "docs/ops/REDACCION.md", clase: "documento", regenera: "scripts/redaccion.mjs", test: "ops/redaccion.test.js" },
-  { ruta: "docs/ops/NORMAS.md", clase: "documento", regenera: "scripts/normas.mjs", test: "ops/normas.test.js" },
-  { ruta: "docs/ops/ESTANDARES.md", clase: "documento", regenera: "scripts/estandares-agentes.mjs", test: "ops/estandares-agentes.test.js" },
-  { ruta: "docs/ops/ENCARGO.md", clase: "documento", regenera: "scripts/flujo.mjs", test: "scripts/encargo.test.js" },
-  { ruta: "ops/forja-capas.json", clase: "ancla", regenera: "scripts/forja.mjs", test: "ops/forja.test.js" },
-  { ruta: "ops/forja-campos.json", clase: "ancla", regenera: "scripts/forja.mjs", test: "ops/forja.test.js" },
-  { ruta: "ops/forja-excepciones.json", clase: "ancla", regenera: "scripts/forja.mjs", test: "ops/forja-forma.test.js" },
-  { ruta: "ops/redaccion-pendientes.json", clase: "ancla", regenera: "scripts/redaccion.mjs", test: "ops/redaccion.test.js" },
+export const DERIVADOS = [
+  { ruta: "docs/ops/FORJA.md", clase: "documento", source: "ops/forja/ (criterios, tipos de skill y campos)", regenera: "scripts/forja.mjs", test: "ops/forja.test.js" },
+  { ruta: ".claude/plantillas-skill/*.md", clase: "documento", source: "ops/forja/ y .claude/PLANTILLA-SKILL.md", regenera: "scripts/plantillas.mjs", test: ".claude/plantillas-skill.test.js" },
+  { ruta: "docs/ops/REDACCION.md", clase: "documento", source: "ops/redaccion.json y ops/normas.json", regenera: "scripts/redaccion.mjs", test: "ops/redaccion.test.js" },
+  { ruta: "docs/ops/NORMAS.md", clase: "documento", source: "ops/normas.json, .claude/hooks/avisos-guardia.mjs, las constantes de scripts/lib/excepciones.mjs y scripts/lib/medicionNormas.mjs y el orden de precedencia de ops/principios/_catalogo.json", regenera: "scripts/normas.mjs", test: "ops/normas.test.js" },
+  { ruta: "docs/ops/ESTANDARES.md", clase: "documento", source: "ops/estandares-agentes.json", regenera: "scripts/estandares-agentes.mjs", test: "ops/estandares-agentes.test.js" },
+  { ruta: "docs/producto/PRINCIPIOS.md", clase: "documento", source: "ops/principios-producto/ y ops/normas.json", regenera: "scripts/principios.mjs", test: "ops/principios-producto.test.js" },
+  { ruta: "docs/PRINCIPIOS.md", clase: "documento", source: "ops/principios/, ops/principios-producto/ y ops/redaccion.json", regenera: "scripts/principios-casa.mjs", test: "ops/principios.test.js" },
+  { ruta: "docs/ops/ENCARGO.md", clase: "documento", source: "scripts/lib/issues.mjs", regenera: "scripts/flujo.mjs", test: "scripts/encargo.test.js" },
+  { ruta: "ops/forja-capas.json", clase: "ancla", source: "ops/forja/ (el ancla guarda las capas ya vistas)", regenera: "scripts/forja.mjs", test: "ops/forja.test.js" },
+  { ruta: "ops/forja-campos.json", clase: "ancla", source: "ops/forja/ (el ancla guarda los campos ya vistos)", regenera: "scripts/forja.mjs", test: "ops/forja.test.js" },
+  { ruta: "ops/forja-excepciones.json", clase: "ancla", source: "ops/forja/ (el ancla guarda las excepciones ya vistas)", regenera: "scripts/forja.mjs", test: "ops/forja-forma.test.js" },
+  { ruta: "ops/redaccion-pendientes.json", clase: "ancla", source: "ops/redaccion.json (las reglas aún sin redactar)", regenera: "scripts/redaccion.mjs", test: "ops/redaccion.test.js" },
+
+  // ---------- solo inventario (#584): sin driver de fusión ----------
+  { ruta: "docs/ops/FLUJO.md", clase: "partial", source: "ops/flujo.json, ops/normas.json y ops/presupuestos.json (tres bloques entre marcas flujo:*:inicio y :fin)", regenera: "scripts/flujo.mjs", test: "ops/flujo.test.js" },
+  { ruta: "docs/entidades/N1-encargo.md", clase: "partial", source: "scripts/lib/issues.mjs (las tablas de campos entre las marcas n1:encargo:campos)", regenera: "scripts/flujo.mjs", test: "scripts/encargo.test.js" },
+  { ruta: ".claude/commands/orquestar.md", clase: "partial", source: "ops/tipos-de-encargo.json (la tabla «Qué pipeline» entre las marcas tipos:tabla)", regenera: "scripts/flujo.mjs", test: "ops/tipos-de-encargo.test.js" },
+  { ruta: "ops/PLANOS.md", clase: "partial", source: "ops/planos.json (la tabla entre las marcas planos:tabla)", regenera: "scripts/planos.mjs", test: "ops/planos.test.js" },
+  { ruta: ".claude/agents/*.md", clase: "partial", source: "ops/estandares-agentes.json (la sección «Tareas y su estándar» de cada agente)", regenera: "scripts/estandares-agentes.mjs", test: "ops/estandares-agentes.test.js" },
+  { ruta: "src/design/tokens.css", clase: "code", source: "src/design/tokens.js", regenera: "scripts/diseno/generar-tokens-css.mjs", test: "src/design/tokensCss.test.js" },
+  {
+    ruta: "src/components/icons.jsx", clase: "code", source: "biblioteca local de Nucleo (fuera del repo) y la lista de iconos del script",
+    regenera: "scripts/build-nucleo-icons.mjs",
+    test: "none", noTestReason: "la fuente está en ~/.nucleo, fuera del repo: ningún test puede regenerar el fichero para compararlo",
+  },
+  {
+    ruta: "src/lib/ingredientImageIds.js", clase: "code", source: "las imágenes de ingredientes de public/ingredients/ (salen de Avatares/, fuera del repo)",
+    regenera: "scripts/make_ingredient_images.py",
+    test: "none", noTestReason: "tandaFamilias.test.js lo importa pero no lo compara con las imágenes, y Avatares/ no está en el repo",
+  },
+  {
+    ruta: ".github/ISSUE_TEMPLATE/*.yml", clase: "code", source: "scripts/lib/issues.mjs (la clasificación: tipos, áreas, causas)",
+    regenera: "manual", manualReason: "las opciones de los desplegables se copian a mano del vocabulario; no hay script que escriba los formularios",
+    test: "scripts/issues.test.js",
+  },
+  { ruta: "supabase/cableado.json", clase: "data", source: "src/ y api/ (qué fichero nombra qué tabla de las migraciones)", regenera: "scripts/cableado.mjs", test: "supabase/cableado.test.js" },
+  { ruta: "ops/vocabularios-vida.json", clase: "data", source: "los vocabularios cerrados del código (scripts/lib/vocabulariosVida.mjs)", regenera: "scripts/glosario.mjs", test: "ops/glosario.test.js" },
+  ...["auth", "batch-cooking", "menu-generation", "pagos", "receipt-ocr", "recipe-catalog", "shopping-list"].map((dominio) => ({
+    ruta: `specs/${dominio}.md`, clase: "spec", source: "el código real (src/, api/ y el esquema de Supabase), según specs/INDEX.md",
+    regenera: "manual", manualReason: "se escribió leyendo el código (ingeniería inversa); no hay script que la rehaga y se actualiza a mano al cambiar el dominio",
+    test: "none", noTestReason: "ningún test compara una spec con el código que describe",
+  })),
 ];
+
+/** Lo que usan los drivers de fusión: solo las clases con driver, un filtro del inventario general. */
+export const GENERADOS = DERIVADOS.filter((g) => g.clase in CLASES);
 
 /** Las líneas de `.gitattributes` que pide el registro, en su orden. */
 export const lineasGitattributes = (generados = GENERADOS) => generados.map((g) => `${g.ruta} merge=${CLASES[g.clase]}`);

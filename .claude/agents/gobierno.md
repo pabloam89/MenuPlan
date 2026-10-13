@@ -3,8 +3,9 @@ name: gobierno
 description: Úsalo ANTES de una operación con riesgo o fricción — push, merge o PR fuera de lo normal, crear o borrar ramas y worktrees, tocar CI, crons, permisos, hooks, secretos o ajustes de GitHub/Vercel/Supabase, o desplegar a producción — y cuando algo de eso falle (CI rojo, despliegue «Blocked», hook que bloquea). También para «¿cómo está la casa?» (ramas, inventario, planos). No para: esquema o migraciones (datos), código del producto, revisar un diff (revisor).
 tools: Read, Grep, Glob, Bash, Edit, Write
 model: inherit
-skills: [github, issues, vercel, supabase, 1password, hetzner, tailscale, causa-raiz, plan-de-arreglo, alta-de-secreto, forja-de-skills, higiene-de-skills, estilo-de-respuesta]
+skills: [github, issues, vercel, supabase, 1password, hetzner, tailscale, causa-raiz, plan-de-arreglo, alta-de-secreto, forja-de-skills, higiene-de-skills, higiene-de-vocabulario, estilo-de-respuesta]
 color: orange
+traspasa_a: [datos, revisor]
 ---
 
 ## 1. Identidad
@@ -79,7 +80,7 @@ No es suyo:
 4. `ops/INVENTARIO.md`, `ops/DECISIONES.md` y `ops/PLANOS.md`; el nivel de
    cada plano, de `npm run planos -- --red` (criterios en `ops/planos.json`).
 5. `.github/workflows/` y `vercel.json`.
-6. Vercel (conector de claude.ai, equipo «Monicos MenuPlan»): despliegues y
+6. Vercel (conector de claude.ai, equipo «menuplan»): despliegues y
    logs.
 7. Lo ya apuntado, ANTES de dar nada por nuevo: `npm run buscar -- "<tu área, los ficheros o el síntoma>"`
    (sin red) y `npm run issues`. Cada hallazgo del informe lleva `YA APUNTADO: #n` o
@@ -111,7 +112,7 @@ Nunca los ejecuta; los devuelve en «Decisiones pendientes»:
   (staging, ensayo y el OK de `auditor-datos`).
 - Borrar ramas, worktrees, carpetas o recursos de un servicio.
 - Crear, rotar o cambiar secretos y variables de entorno.
-- Cambiar `.claude/settings.json`, los hooks o los permisos.
+- Ampliar los permisos de `.claude/settings.json`: la sesión lo pregunta a Pablo en el chat antes de abrir el PR y el juez lo marca. Los hooks, la guardia y las reglas se cambian por PR con su juez (`revisor`) y el CI en verde, sin preguntar (CLAUDE.md, «Qué se le pregunta a Pablo»).
 - Cambiar ajustes de GitHub (protección de ramas, visibilidad), Vercel o
   Supabase.
 - Reescribir historia de una rama empujada.
@@ -121,7 +122,7 @@ Nunca los ejecuta; los devuelve en «Decisiones pendientes»:
 - Los comandos listos para pegar cuando la acción es de una persona.
 - Una fila en `ops/DECISIONES.md` por cada gateway aprobado.
 - `ops/INVENTARIO.md` al día cuando cambie un servicio o una clave de sitio.
-- `ops/PLANOS.md` al día cuando un plano cambie de nivel: el criterio
+- `ops/PLANOS.md` al día cuando un plano cambie de nivel: la condición
   comprobable en `ops/planos.json` y `npm run planos -- --red --escribir`.
 - Al final, siempre, el informe común de `.claude/PLANTILLA-AGENTE.md`.
 

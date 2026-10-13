@@ -10,7 +10,7 @@
       "ejecutor": "github_regla",
       "alcance": "todos",
       "veredicto": "dura",
-      "cuando": "Lo que no debe entrar en una rama o en el repo: exigir un check, prohibir el push forzado o el borrado, exigir revisión de dueño de código.",
+      "cuando": "Lo que no debe entrar en una rama o en el repo: exigir un check, prohibir el push forzado o el borrado.",
       "cuesta": "Un ajuste de GitHub (OK de Pablo); se mide desde fuera con npm run planos. Si está mal puesto, bloquea a todos a la vez.",
       "ejemplo": "ops/planos.json"
     },

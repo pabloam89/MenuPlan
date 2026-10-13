@@ -1,0 +1,20 @@
+{
+  "termino": "pieza",
+  "estado": "activo",
+  "clase": "artefacto",
+  "dominio": "base",
+  "definicion": "Una cosa concreta que cumple una forja: una skill, un agente o la tarea de un agente.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "base",
+    "forja",
+    "skill",
+    "agente",
+    "tarea de agente",
+    "paso"
+  ],
+  "sin_entidad": "paso"
+}

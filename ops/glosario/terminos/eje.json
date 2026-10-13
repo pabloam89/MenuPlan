@@ -1,0 +1,15 @@
+{
+  "termino": "eje",
+  "estado": "activo",
+  "clase": "campo",
+  "dominio": "base",
+  "definicion": "Un campo de cada entidad que dice si sus piezas son de la factoría, de un proyecto o de los dos; si son de los dos, la entidad es un puente.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "entidad"
+  ],
+  "en": "scope"
+}

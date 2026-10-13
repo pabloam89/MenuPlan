@@ -48,11 +48,28 @@ paso. Los números no se escriben aquí ni en ningún brief: salen del comando.
 ## 1. Dimensiona antes de orquestar
 
 Agentes cuestan: un subagente gasta varias veces los tokens de un chat, y
-varios en paralelo, mucho más. Escala el esfuerzo al encargo:
+varios en paralelo, mucho más. El esfuerzo no lo estimas tú: lo calcula
+`npm run dimensionar -- <n.º de encargo | --ficheros a,b | --diff>`
+(`scripts/lib/dimensionado.mjs`, #641), con `--subtipo <id>` o `--tipo <tipo>`,
+`--causa <causa>` si es un fallo y `--banderas a,b` si toca RLS, secretos o
+datos. Devuelve en líneas `campo: valor`:
 
-- **Trivial** (una línea, un texto, una duda): hazlo tú, sin agentes.
-- **Normal** (un cambio en un dominio): un constructor y un juez.
-- **Grande** (varios dominios, o refactor): el pipeline completo de la tabla.
+- **Alcance** (`local`, `modulo` o `transversal`) por los módulos de
+  `ops/MODULOS.json` y los ámbitos de los ficheros, y **complejidad**
+  (`COMPLEXITIES` de `scripts/lib/issues.mjs`) por la medida de tamaño del aviso
+  del CI. Qué lanza cada complejidad (jueces mínimos y parte del pipeline) está en
+  `by_complexity` de `ops/presupuestos.json`: no se repite aquí.
+- **Agentes y fases**: el constructor del ámbito de los ficheros (uno por dominio
+  si cruza varios), el `revisor` en toda zona, el juez de la zona, los que pide la
+  causa y la forma del tipo (arreglar diagnostica primero, mejorar mide antes y
+  después, auditar son solo jueces en paralelo). Cada fase dice si va en
+  paralelo o en serie; en paralelo solo con ficheros distintos (sección 5).
+- **Hasta lo trivial lleva un juez**, y lo construye el constructor del dominio,
+  no tú, salvo que el subtipo diga que construye la sesión (`builds_in_session`).
+- **Redimensionar**: al planificar corre con el n.º del encargo; antes de abrir
+  el PR, otra vez con `--diff`. Si dice `redimensionar: si`, el diff real supera
+  a lo previsto: vuelve a planificar antes de seguir. Los avisos (`aviso:`) se
+  resuelven o se dicen en el resumen.
 
 Si el encargo es ambiguo (no está claro el objetivo, qué queda fuera, o cómo
 se sabrá que está bien), pregunta antes de lanzar nada.
@@ -80,6 +97,7 @@ lleva; si el encargo no tiene issue y no es trivial, ábrelo primero.
 | `evaluador` | juez | 9, 10 | evals de Lola antes y después |
 | `seguridad` | juez | 7 | RLS, endpoints, secretos, inyección en prompts |
 | `auditor-datos` | juez | 4, 8 | modelo de datos: normalización, homogeneidad, duplicados, cableado |
+| `orquestador` | constructor | 2, 11 | la sesión principal (`claude --agent orquestador`): habla con Pablo y reparte; no se lanza como agente de otro |
 
 Fichas completas en `.claude/agents/`; planos en `ops/PLANOS.md`. Hay dos
 agentes aparcados (rendimiento y arquitecto) en `.claude/agentes-aparcados/`:
@@ -87,37 +105,52 @@ no se lanzan hasta que vuelvan a `.claude/agents/`.
 
 ## 3. Qué pipeline según la acción
 
-`→` es secuencial; `+` es en paralelo. Entre corchetes, solo si aplica.
-El mismo dato, para máquinas, está en `ops/tipos-de-encargo.json` (lo lee el
-panel de la factoría); `ops/tipos-de-encargo.test.js` vigila que dicen lo
-mismo: si cambias una fila, cambia la otra.
+`→` es secuencial; `+` es en paralelo. Entre corchetes, solo si aplica (la
+condición es una bandera con nombre, en `flags` del JSON).
+Hay cinco tipos de encargo (crear, arreglar, mejorar, operar y auditar) y los
+subtipos de abajo cuelgan de ellos. La tabla **se genera** desde
+`ops/tipos-de-encargo.json` (lo lee también el panel de la factoría) con
+`npm run flujo -- --escribir`; no se edita a mano, y
+`ops/tipos-de-encargo.test.js` falla si se separan. Cambia el JSON, no la tabla.
 
-| Acción | Pipeline |
-|---|---|
-| Pantalla o componente nuevo | `diseno` → `qa` + `revisor` |
-| Migrar una pantalla a tokens | `diseno` → `qa` |
-| Assets (icono, ilustración, limpieza) | `diseno` → `qa` |
-| Herramienta nueva o cambio en Lola | `lola` → `evaluador` + `revisor` → [`seguridad` si escribe datos] |
-| Cambiar conocimiento, prompt o enrutador del bot | `lola` → `evaluador` |
-| Cambio de esquema o dato nuevo | `datos` → `auditor-datos` + [`seguridad` si toca RLS] → *OK para aplicar* |
-| Dato que vive en varias capas (base, catálogo, constantes) | `auditor-datos` (mapa) → `datos` → `auditor-datos` |
-| Reducir el cableado de una tabla | `auditor-datos` (qué ficheros) → constructor del dominio → `revisor` |
-| Recetas o catálogo (contenido) | sesión principal → `revisor` (validación del catálogo en los tests) |
-| Función que cruza dominios | sesión principal (plan corto) → constructores por dominio → `revisor` + `qa` |
-| Bug | `revisor` (diagnóstico y test que lo reproduce) → constructor del dominio → `revisor` |
-| Algo va lento o cuesta de más | constructor del dominio (mide antes; `lola` si es el bot) → `revisor` (exige la medida de después) |
-| Refactor de un monolito | sesión principal (plan por pasos) → constructor por pasos → `revisor` en cada paso |
-| Endpoint nuevo en `api/` | constructor → `seguridad` + `revisor` |
-| CI, permisos, hooks, ramas, secretos | `gobierno` |
-| Desplegar a producción | `gobierno` → [`evaluador` si cambia el bot] → *OK de una persona* |
-| Revisión periódica | `seguridad` + `auditor-datos` + `evaluador` + `gobierno` (planos), en paralelo |
+El subtipo es la **naturaleza del trabajo**, no la zona: la zona sale de los
+ficheros que toca el encargo (pantallas, bot, api, datos…) y de ella salen su
+constructor y los jueces que se suman a los de la tabla. Lo calcula
+`npm run dimensionar` desde `AMBITOS` (`scripts/lib/ambitos.mjs`: `constructor` y
+`jueces` de cada ámbito, y el `revisor` en toda zona); no se copia en este texto.
+Un ámbito sin dueño (`construye: null`: catálogo, api, producto, entidades) lo
+construye la sesión, y el comando lo avisa.
+Los ids de antes (`bug`, `esquema-o-dato`…) son alias retirados: valen con
+aviso, y el JSON dice a cuál pasa cada uno.
+
+<!-- tipos:tabla:inicio -->
+| Tipo | Subtipo | Acción | Pipeline |
+|---|---|---|---|
+| create | `create-plain` | Crear algo nuevo sin más condiciones que el esqueleto del tipo | constructor del dominio → `revisor` |
+| create | `create-person-approved` | Crear algo que se aplica solo con el OK de una persona | constructor del dominio → `revisor` → *OK de una persona* |
+| create | `create-planned` | Crear algo que cruza varios dominios: plan primero y un constructor por dominio | sesión principal (plan corto) → constructores por dominio → `revisor` |
+| create | `create-in-session` | Crear contenido que construye la propia sesión | sesión principal → `revisor` (validación en los tests del repo) |
+| fix | `fix-bug` | Arreglar un fallo: diagnóstico y test que lo reproduce antes de construir | `revisor` (diagnóstico y test que lo reproduce) → constructor del dominio → `revisor` |
+| improve | `improve-measured` | Mejorar una cifra: mide antes y después | constructor del dominio (mide antes) → `revisor` (pide la medida de después) |
+| improve | `improve-structure` | Reordenar por dentro con el comportamiento idéntico | constructor del dominio → `revisor` |
+| improve | `improve-layers` | Reunir en un solo sitio lo que vive en varias capas: mapa primero | `revisor` (mapa de lo que hay antes de tocar) → constructor del dominio → `revisor` |
+| operate | `operate-reversible` | Operar la casa de modo que se pueda deshacer | `gobierno` → `revisor` + [`seguridad` si toca secretos o permisos] |
+| operate | `operate-irreversible` | Operar algo que no se puede deshacer: cierra con el OK de una persona | `gobierno` → `revisor` + [`evaluador` si cambia el bot] + [`seguridad` si toca secretos o permisos] → *OK de una persona* |
+| audit | `audit-periodic` | Revisión periódica con varios jueces a la vez | `seguridad` + `auditor-datos` + `evaluador` + `gobierno` (revisa los planos), en paralelo |
+| audit | `audit-other` | Otra auditoría | `revisor` |
+<!-- tipos:tabla:fin -->
 
 Regla fija: **quien construye no juzga**. Cada constructor va seguido de al
 menos un juez distinto.
 
 ## 4. El brief de cada agente
 
-Un subagente no ve esta conversación. Cada encargo que le pases lleva:
+Un subagente no ve esta conversación. **El brief sale de
+`npm run dimensionar -- <encargo | --ficheros | --diff> --brief <agente>`** (o
+`--briefs`, el de todos): trae las nueve piezas de abajo, con la tarea del
+catálogo, las normas por ámbito × acción y por los ficheros, y la precedencia. No lo
+escribas a mano: añade solo lo que el comando no sabe (el objetivo con
+`--objetivo "…"` si no hay issue, y el resumen de los informes previos). Lo que lleva:
 
 1. **Objetivo**: qué tiene que conseguir, en una o dos frases.
 2. **Contexto**: lo decidido hasta ahora y los informes previos que necesite
@@ -137,10 +170,13 @@ Un subagente no ve esta conversación. Cada encargo que le pases lleva:
    como nuevos: cada hallazgo suyo lleva `YA APUNTADO: #n` o `NUEVO (buscado: …)`.
    Un hallazgo sin esa marca se devuelve.
 8. **Estándar de la tarea** (#413): la línea `ESTÁNDAR A CUMPLIR: <agente>/<tarea>`
-   que da `npm run estandar -- <agente> <tarea>` (las tareas de cada agente están
-   en `ops/estandares-agentes.json`; `npm run estandar -- <agente>` las lista),
-   con su acción, sus reglas (cada una con su control y su fuente), las comunes
-   que nombra y lo que no hace pegados en el brief. Si el encargo no encaja en
+   que da `npm run estandar -- <agente> <tarea> --ficheros <a,b,…>` (las tareas de
+   cada agente están en `ops/estandares-agentes.json`; `npm run estandar -- <agente>`
+   las lista), con su acción, las normas que le tocan por id (sus ámbitos × su
+   acción, más las del ámbito de cada fichero que va a tocar; #620), sus condiciones
+   propias, las comunes que nombra y lo que no hace pegados en el brief. En el
+   brief del juez, `npm run estandar -- <juez> <tarea> --diff` (los ficheros de la
+   rama, como `skills-encargo --diff`): recibe las mismas normas que el constructor. Si el encargo no encaja en
    ninguna tarea, «ninguna tarea del catálogo» y por qué: es la señal de una
    tarea que falta. Todas las tareas, en una tabla: `docs/ops/ESTANDARES.md`.
 9. Recordatorio: termina con el informe común de
@@ -155,7 +191,8 @@ Un subagente no ve esta conversación. Cada encargo que le pases lleva:
   defecto, que es `staging`.
 - Ficheros que tocan casi todos (`CLAUDE.md`, `package.json`,
   `.github/workflows/tests.yml`, `vite.config.js`, `src/App.jsx`): se tocan
-  al final, por un solo agente o por ti.
+  al final, por un solo agente o por ti (la lista es `COMPARTIDOS_AL_FINAL` de
+  `scripts/lib/dimensionado.mjs`; un test la cruza con esta).
 - Los agentes no lanzan otros agentes: si un informe pide otro agente, lo
   decides y lo lanzas tú.
 

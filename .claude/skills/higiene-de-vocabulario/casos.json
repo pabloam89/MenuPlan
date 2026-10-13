@@ -1,0 +1,63 @@
+{
+  "skill": "higiene-de-vocabulario",
+  "casos": [
+    {
+      "id": "terminos-sin-entidad",
+      "peticion": "Repasa el glosario y dime qué términos no tienen entidad.",
+      "skill": "higiene-de-vocabulario",
+      "debe_salir": [
+        "Lanza npm run glosario -- --higiene y lee la cifra y las líneas antes de proponer nada",
+        "Lista los artefactos sin entidad con su código termino-sin-entidad y la propuesta de cada uno: nombrar la entidad o un motivo de sin_entidad",
+        "Distingue las faltas, que se arreglan, de los avisos, que se miran y pueden ser falsos positivos"
+      ]
+    },
+    {
+      "id": "equivoco-entre-dominios",
+      "peticion": "He añadido un término token en diseño y ya existe en ops, ¿choca?",
+      "skill": "higiene-de-vocabulario",
+      "debe_salir": [
+        "Marca el código equivoco-entre-dominios: el mismo nombre en dos dominios con definiciones distintas",
+        "Propone dar a uno otro nombre o llevar los dos a la base con una sola definición",
+        "Comprueba antes con npm run glosario -- token cómo está definido y no decide a ojo"
+      ]
+    },
+    {
+      "id": "redefinir-norma-en-datos",
+      "peticion": "¿Puedo redefinir norma en el glosario de datos para que valga solo para las migraciones?",
+      "skill": "higiene-de-vocabulario",
+      "debe_salir": [
+        "Responde que no: es dominio-redefine-base, porque un dominio solo añade o estrecha y nunca redefine un término de la base",
+        "Propone estrechar con un término nuevo de datos cuyo amplio sea norma, o darle otro nombre",
+        "Cita el invariante de los dominios y el test que lo vigila, ops/glosario-dominios.test.js"
+      ]
+    },
+    {
+      "id": "repaso-del-glosario",
+      "peticion": "Toca el repaso de la semana: ¿qué palabras se repiten y faltan en el glosario? Y baja lo que ya cumple.",
+      "skill": "higiene-de-vocabulario",
+      "debe_salir": [
+        "Lanza npm run glosario -- --candidatos y juzga cada candidato como término nuevo, sinónimo de otro o nada, con su motivo",
+        "Baja las excepciones que ya cumplen con npm run glosario -- --medir, sin subir ninguna",
+        "Apunta los juicios en ops/glosario-candidatos.json y propone como regla un juicio que se repite tres veces"
+      ]
+    },
+    {
+      "id": "frontera-arreglar-skill",
+      "peticion": "Arregla esta skill, le falta la sección de método.",
+      "skill": "higiene-de-skills",
+      "nota": "Casi-fallo: pide una revisión de higiene, pero de una skill y no del glosario; es higiene-de-skills."
+    },
+    {
+      "id": "frontera-crear-termino",
+      "peticion": "Añade el término cola al glosario con su definición.",
+      "skill": "ninguna",
+      "nota": "Casi-fallo: toca el glosario, pero crear un término es una edición de ops/glosario/terminos/ que vigila ops/glosario.test.js, no un repaso; después se repasa con la skill."
+    },
+    {
+      "id": "frontera-migraciones-sin-aplicar",
+      "peticion": "¿Cuántas migraciones hay sin aplicar y cuál es la siguiente?",
+      "skill": "supabase",
+      "nota": "Casi-fallo: la migración es un término del glosario, pero contar las que faltan por aplicar es de datos y de verificar-estado, no de la higiene del vocabulario."
+    }
+  ]
+}

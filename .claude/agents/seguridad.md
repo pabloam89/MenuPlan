@@ -4,6 +4,7 @@ description: Úsalo cuando un cambio toque autenticación, RLS o permisos de la 
 tools: Read, Grep, Glob, Bash
 model: opus
 color: red
+traspasa_a: [datos, gobierno, lola, revisor]
 ---
 
 ## 1. Identidad

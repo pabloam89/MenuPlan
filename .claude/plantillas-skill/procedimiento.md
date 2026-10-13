@@ -52,6 +52,7 @@ metadata:
   elige_opciones: false
   dueno: <agente de .claude/agents/ que la carga en su skills:>
   comprobado: AAAA-MM-DD
+  normas: [<id de ops/normas.json a la que sirve>, <otra>]
 ---
 
 # <Nombre>
@@ -110,6 +111,7 @@ Los de `campos_ficha.skill` de `ops/forja/`; lo que no está declarado no va en 
 | `nivel` | enum | no | `2`, o sin él (el 1 son los moldes; el 0, la pieza meta) |
 | `dueno` | ref | sí | un agente que existe |
 | `comprobado` | fecha | sí | AAAA-MM-DD |
+| `normas` | ref | sí | una norma que existe |
 | `libertad` | enum | no | `alta`, `media`, `baja` |
 | `invocacion` | enum | no | `descripcion`, `guardia`, `precarga` |
 
@@ -127,22 +129,22 @@ Lo que pide este tipo: cada paso con su verificación y su marcha atrás. Lo com
 
 No hay criterio de skill que no se le aplique.
 
-## El estándar de este tipo
+## La plantilla de este tipo
 
 ### Qué lo hace bueno
 
 - Pasos numerados en orden fijo, cada uno con lo que sale al terminarlo [F: BP, flujos con pasos claros y listas de comprobación].
 - «Antes de empezar» comprueba las condiciones y «Cómo se comprueba» confirma el resultado sin enseñar datos sensibles [F: BP, bucles de comprobación].
-- Los pasos que no se pueden deshacer son de una persona: el procedimiento deja los comandos listos y no los lanza [I].
-- Al sustituir algo, primero se comprueba lo nuevo y solo entonces se retira lo viejo [I].
+- Los pasos que no se pueden deshacer son de una persona: el procedimiento deja los comandos listos y no los lanza [S].
+- Al sustituir algo, primero se comprueba lo nuevo y solo entonces se retira lo viejo [S].
 - Una lista de comprobación que se copia y se marca al final [F: BP, listas de comprobación].
 
 ### Errores típicos
 
 - Pasos sin salida observable: «comprueba que esté bien» [F: BP, instrucciones claras].
 - Probar solo en local algo que corre en otro entorno [I, lección de la propia `alta-de-secreto`].
-- Un valor secreto escrito en el comando, que queda en la conversación [I].
-- Mezclar varios procedimientos en uno (dar de alta, rotar y operar el servicio) sin decir qué es de cada uno [I].
+- Un valor secreto escrito en el comando, que queda en la conversación [S].
+- Mezclar varios procedimientos en uno (dar de alta, rotar y operar el servicio) sin decir qué es de cada uno [S].
 
 ### Ejemplo mínimo
 

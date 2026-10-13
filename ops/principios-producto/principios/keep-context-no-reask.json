@@ -1,0 +1,19 @@
+{
+  "id": "keep-context-no-reask",
+  "nombre": "No repetir preguntas",
+  "area": "conversational-ai",
+  "enunciado": "Un dato que la persona ya dio se recuerda en vez de pedirse otra vez.",
+  "porque": "En los estudios de NN/g, los bots que repetían preguntas cansaban a la gente.",
+  "ejemplo_bueno": "Lola usa los comensales que ya constan en la ficha de la casa",
+  "ejemplo_malo": "Lola vuelve a preguntar cuántos comen cada vez que se pide un menú",
+  "fuentes": [
+    {
+      "url": "https://www.nngroup.com/articles/chatbots/",
+      "marca": "F"
+    },
+    {
+      "url": "https://www.microsoft.com/en-us/research/articles/guidelines-for-human-ai-interaction-eighteen-best-practices-for-human-centered-ai-design/",
+      "marca": "F"
+    }
+  ]
+}

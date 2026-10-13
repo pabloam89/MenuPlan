@@ -19,6 +19,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { aplicaATipo, leerForja } from "./forja.mjs";
+import { MARCAS_FUENTE } from "./regla.mjs";
 
 /** Códigos de las faltas de la forja (vocabulario cerrado). Cada uno, con su porqué en `referencias/defectos.md`. */
 export const CODIGOS_FORJA = ["casos-negativos", "fechas", "sin-parada", "ejemplos", "solape", "comando-suelto", "tabla", "cabeceras"];
@@ -64,7 +65,7 @@ const PROSA_FECHADA = [
 /** Secciones donde una fecha es lo correcto: son un registro. */
 const SECCIONES_CON_FECHA = ["Lo que falló y por qué", "Registro de cambios", "Fuentes y comprobación"];
 // Una frase de cierre al principio de una línea o dentro de una negrita; una palabra suelta («parar», «parada») en mitad de un párrafo no cuenta.
-const FRASES_DE_PARADA = "Sale bien si|Sale:|Para por criterio|Hecho cuando|Debe salir";
+const FRASES_DE_PARADA = "Sale bien si|Sale:|Para por condición|Para por criterio|Hecho cuando|Debe salir";
 const CRITERIO_DE_PARADA = new RegExp(String.raw`^[ \t]*(?:(?:[-*]|\d+\.)[ \t]+)?\**(?:${FRASES_DE_PARADA})|\*\*[^*\n]*(?:${FRASES_DE_PARADA})`, "im");
 const SECCIONES_DE_EJEMPLOS = ["Ejemplo resuelto", "Ejemplos calibrados", "Bien y mal"];
 
@@ -197,20 +198,23 @@ export function faltasForja({ nombre, cuerpo, tipo, casos, extra = {}, parada })
   return f;
 }
 
-// ── El estándar de cada tipo de skill (#410) ─────────────────────────────
+// ── La plantilla de cada tipo de skill (#410) ─────────────────────────────
 
-/** Vocabulario cerrado de las faltas del estándar por tipo (para contarlas). */
+/** Vocabulario cerrado de las faltas de la plantilla por tipo (para contarlas). */
 export const CODIGOS_ESTANDAR = ["tipo-sin-estandar", "apartado-ausente", "pocos-puntos", "sin-fuente", "ejemplo-sin-origen", "ejemplo-largo", "ejemplo-no-cuadra"];
-/** Dónde vive el estándar en `.claude/PLANTILLA-SKILL.md`, y los apartados de cada tipo. */
-export const SECCION_ESTANDARES = "El estándar de cada tipo";
+/** Dónde vive la plantilla de cada tipo en `.claude/PLANTILLA-SKILL.md`, y los apartados de cada tipo. */
+export const SECCION_ESTANDARES = "La plantilla de cada tipo";
 export const APARTADO_BUENO = "Qué lo hace bueno";
 export const APARTADO_ERRORES = "Errores típicos";
 export const APARTADO_EJEMPLO = "Ejemplo mínimo";
 /** Puntos como mínimo en «Qué lo hace bueno» y en «Errores típicos»; líneas del ejemplo. */
 export const MIN_PUNTOS_ESTANDAR = 2;
 export const LINEAS_EJEMPLO = { min: 3, max: 6 };
-/** Cada punto lleva [F: fuente] (está en la fuente) o [I] (inferencia nuestra). */
-const MARCA_FUENTE = /\[(?:F|I)(?:[:;,\s][^\]]*)?\]/;
+/**
+ * Cada punto lleva su marca de fuente: [F: fuente] (está en la fuente), [I] (escrito en la casa) o [S]
+ * (inferencia nuestra). Las letras son las de MARCAS_FUENTE de regla.mjs, un solo significado en todo el repo (#620).
+ */
+const MARCA_FUENTE = new RegExp(`\\[(?:${Object.keys(MARCAS_FUENTE).join("|")})(?:[:;,\\s][^\\]]*)?\\]`);
 
 /** Trozos de un texto que empiezan en una cabecera de ese nivel (`prefijo` es «## », «### »…), sin mirar dentro de los bloques de código. */
 function partirPorCabecera(texto, prefijo) {
@@ -228,9 +232,9 @@ const faltaEstandar = (codigo, tipo, detalle) => ({ regla: "estandar", codigo, t
 const sinEspacios = (s) => s.replace(/\s+/g, " ").trim();
 
 /**
- * El estándar de cada tipo de skill, leído de la plantilla: para cada tipo, «Qué
+ * La plantilla de cada tipo de skill, leído de la plantilla: para cada tipo, «Qué
  * lo hace bueno» y «Errores típicos» (dos puntos como mínimo, cada uno con su
- * marca [F] o [I]) y un «Ejemplo mínimo» de 3 a 6 líneas. El ejemplo es o
+ * marca [F], [I] o [S]) y un «Ejemplo mínimo» de 3 a 6 líneas. El ejemplo es o
  * `Real: \`skill\`` (la skill existe, es de ese tipo y cada línea sale tal cual
  * de su SKILL.md: no se inventa) o `Esqueleto:` (solo mientras no haya ninguna
  * skill de ese tipo; con la primera, el ejemplo pasa a ser real).
@@ -253,7 +257,7 @@ export function faltasDeEstandares(plantilla, tipos, skills) {
     for (const a of [APARTADO_BUENO, APARTADO_ERRORES]) {
       const puntos = (partes.get(a) ?? "").split(/^(?=- )/m).filter((p) => p.startsWith("- "));
       if ((partes.get(a) ?? "").trim() && puntos.length < MIN_PUNTOS_ESTANDAR) f.push(faltaEstandar("pocos-puntos", tipo, `«${a}» tiene ${puntos.length} puntos; hacen falta ${MIN_PUNTOS_ESTANDAR}`));
-      for (const p of puntos) if (!MARCA_FUENTE.test(p)) f.push(faltaEstandar("sin-fuente", tipo, `punto de «${a}» sin [F: fuente] ni [I]: ${sinEspacios(p).slice(0, 60)}`));
+      for (const p of puntos) if (!MARCA_FUENTE.test(p)) f.push(faltaEstandar("sin-fuente", tipo, `punto de «${a}» sin [F: fuente], [I] ni [S]: ${sinEspacios(p).slice(0, 60)}`));
     }
     const ej = partes.get(APARTADO_EJEMPLO) ?? "";
     if (!ej.trim()) continue;

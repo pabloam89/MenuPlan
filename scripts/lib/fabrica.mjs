@@ -26,7 +26,8 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { CAPAS_AGENTE, leerFicha } from "./fondos.mjs";
+import { ACTORES, MOTIVOS_INTERVENCION, PROYECTOS } from "../../.claude/hooks/eventos.mjs";
+import { CAPAS_AGENTE, leerEncargo, leerFicha } from "./fondos.mjs";
 import { porGrupo } from "./issues.mjs";
 import { numeroDeRama } from "./lleva.mjs";
 import { ALCANCES, CATALOGO, CAUSAS, RANGOS, TOPE_RONDAS, celdas, presupuestoDe, problemas } from "./presupuestos.mjs";
@@ -303,6 +304,20 @@ export function agregarPorIssue(sesiones) {
 // ── Unir con los issues ───────────────────────────────────────────────────────
 
 const nombres = (labels) => (labels ?? []).map((l) => (typeof l === "string" ? l : l?.name)).filter(Boolean);
+/**
+ * Cuántos encargos usan cada subtipo (#646, la regla «repite» de la puerta de entrada de ops/tipos-de-encargo.json):
+ * { id: n } sobre los issues de tipo encargo cuyo bloque dice `subtype`. Los avisos los da `avisosDeUso` del lector de tipos.
+ */
+export function usosDeSubtipos(issues) {
+  const usos = {};
+  for (const i of issues) {
+    if (tipoDe(i) !== "encargo") continue;
+    const id = leerEncargo(i.body).ficha.subtype;
+    if (typeof id === "string") usos[id] = (usos[id] ?? 0) + 1;
+  }
+  return usos;
+}
+
 const tipoDe = (issue) => [...porGrupo(nombres(issue.labels)).tipo][0] ?? null;
 const causaDe = (issue) => [...porGrupo(nombres(issue.labels)).causa].find((c) => CAUSAS.includes(c)) ?? null;
 
@@ -392,10 +407,17 @@ const NOMBRE_EVENTO = /^[\w:.-]{1,60}$/;
  * Cuenta el registro de eventos de los hooks (.claude/hooks/eventos.mjs, una línea JSON
  * por evento) por `evento` y `nombre`. Tolera todo: texto ausente, líneas corruptas o con
  * otra forma (se cuentan en `descartadas`). Solo salen palabras con forma de vocabulario.
- * → { total, descartadas, por_evento: { <evento>: { total, nombres: { <nombre>: n } } } }
+ * → { total, descartadas, por_evento: { <evento>: { total, nombres: { <nombre>: n } } },
+ *     por_actor: { <actor>: n }, por_proyecto: { <proyecto>: n },
+ *     intervenciones: { total, evitables, por_motivo: { <motivo>: n }, por_quien: { <quien>: n } } }
+ *
+ * #652: `actor` y `proyecto` van por líneas; las de antes (sin `proyecto`, o con `actor` null o
+ * `homenu-sesiones[bot]`) se cuentan como `sin_dato` en vez de adivinarse, así la cifra de antes y la
+ * de después se pueden comparar. Las intervenciones humanas (`intervencion_humana`) se cuentan aparte
+ * por motivo y por persona, con cuántas eran evitables.
  */
 export function contarEventos(texto) {
-  const r = { total: 0, descartadas: 0, por_evento: {} };
+  const r = { total: 0, descartadas: 0, por_evento: {}, por_actor: {}, por_proyecto: {}, intervenciones: { total: 0, evitables: 0, por_motivo: {}, por_quien: {} } };
   for (const l of String(texto ?? "").split(/\r?\n/)) {
     if (!l.trim()) continue;
     let o = null;
@@ -405,6 +427,19 @@ export function contarEventos(texto) {
     e.total += 1;
     e.nombres[o.nombre] = (e.nombres[o.nombre] ?? 0) + 1;
     r.total += 1;
+    const actor = typeof o.actor === "string" && ACTORES.includes(o.actor) ? o.actor : "sin_dato";
+    const proyecto = typeof o.proyecto === "string" && PROYECTOS.includes(o.proyecto) ? o.proyecto : "sin_dato";
+    r.por_actor[actor] = (r.por_actor[actor] ?? 0) + 1;
+    r.por_proyecto[proyecto] = (r.por_proyecto[proyecto] ?? 0) + 1;
+    if (o.evento === "intervencion_humana") {
+      const iv = r.intervenciones;
+      const motivo = typeof o.motivo === "string" && NOMBRE_EVENTO.test(o.motivo) ? o.motivo : "sin_dato";
+      const quien = typeof o.quien === "string" && ACTORES.includes(o.quien) ? o.quien : "sin_dato";
+      iv.total += 1;
+      if (o.evitable === "si") iv.evitables += 1;
+      iv.por_motivo[motivo] = (iv.por_motivo[motivo] ?? 0) + 1;
+      iv.por_quien[quien] = (iv.por_quien[quien] ?? 0) + 1;
+    }
   }
   return r;
 }
@@ -548,7 +583,7 @@ const miles = (x) => Math.round(x).toLocaleString("es-ES");
 const usd = (x) => (x === null ? "sin precio" : `${f1(x)} USD`);
 
 /** El informe en texto. Solo números, números de issue y palabras de vocabularios cerrados. */
-export function textoInforme({ cobertura: cob, union, recal, desde = null, huecoMin = HUECO_ACTIVO_MIN, precios = PRECIOS, recalibracion = false, eventos = null, datosGithub = null }) {
+export function textoInforme({ cobertura: cob, union, recal, desde = null, huecoMin = HUECO_ACTIVO_MIN, precios = PRECIOS, recalibracion = false, eventos = null, datosGithub = null, subtipos = null }) {
   const L = [];
   L.push("Informe de la fábrica (fase F, #340) — solo agregados; los costes son una estimación a precio de API.");
   L.push(`Desde: ${desde ?? "el principio de las transcripciones"}. Minutos activos: huecos de menos de ${huecoMin} min. Precios de ${precios.comprobado_el} (${precios.estimacion ? "estimación" : "oficial"}).`);
@@ -575,12 +610,27 @@ export function textoInforme({ cobertura: cob, union, recal, desde = null, hueco
     const ag = Object.entries(e.agentes).map(([t, n]) => `${t}×${n}`).join(" ") || "ninguno";
     L.push(`  #${e.issue} (fondo ${e.fondo ? `#${e.fondo}` : "—"}) | ${f1(e.minutos)} min | ${miles(e.tokens.total)} tokens (salida ${miles(e.tokens.salida)}) | ${usd(e.coste_usd)} | ${e.sesiones} sesiones | agentes ${ag}`);
   }
+  if (subtipos) {
+    L.push("");
+    L.push("Subtipos de encargo (aviso, no falla: la puerta de entrada pide al menos 3 encargos con el patrón de cada subtipo)");
+    if (!subtipos.length) L.push("  todos cumplen");
+    for (const l of subtipos) L.push(`  ${l}`);
+  }
   if (eventos) {
     L.push("");
     L.push(`Eventos de los hooks (registro local: ${eventos.total} líneas, ${eventos.descartadas} descartadas)`);
     if (!eventos.total) L.push("  ninguno todavía");
     for (const [ev, e] of Object.entries(eventos.por_evento).sort((a, b) => b[1].total - a[1].total)) {
       L.push(`  ${ev}: ${e.total} (${Object.entries(e.nombres).sort((a, b) => b[1] - a[1]).map(([n, c]) => `${n}×${c}`).join(" ")})`);
+    }
+    // #652: quién y de qué proyecto (las líneas de antes de #652 salen como sin_dato) y las intervenciones de una persona.
+    // Una línea `campo: valor` por valor del vocabulario, para poder contarlas (ops/metricas.json).
+    if (eventos.total) {
+      for (const a of [...ACTORES, "sin_dato"]) L.push(`  actor-evento actor: ${a} eventos: ${eventos.por_actor?.[a] ?? 0}`);
+      for (const p of [...PROYECTOS, "sin_dato"]) L.push(`  proyecto-evento proyecto: ${p} eventos: ${eventos.por_proyecto?.[p] ?? 0}`);
+      const iv = eventos.intervenciones ?? { total: 0, evitables: 0, por_motivo: {} };
+      for (const m of [...MOTIVOS_INTERVENCION, "sin_dato"]) L.push(`  intervencion-motivo motivo: ${m} intervenciones: ${iv.por_motivo?.[m] ?? 0}`);
+      L.push(`  intervencion-humana total: ${iv.total} evitables: ${iv.evitables}`);
     }
   }
   if (!recalibracion) return `${L.join("\n")}\n`;

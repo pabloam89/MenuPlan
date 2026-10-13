@@ -1,0 +1,15 @@
+{
+  "id": "onboard-in-stages",
+  "nombre": "Presentarse por etapas",
+  "area": "onboarding",
+  "enunciado": "Las funciones se aprenden mejor por etapas cortas, cuando cada una es relevante.",
+  "porque": "Una lista larga al principio no se retiene.",
+  "ejemplo_bueno": "El primer día, el menú; unos días después, la lista de la compra; luego la despensa",
+  "ejemplo_malo": "El primer mensaje enumera todas las funciones de Lola de golpe",
+  "fuentes": [
+    {
+      "url": "https://pair.withgoogle.com/chapter/mental-models/",
+      "marca": "F"
+    }
+  ]
+}

@@ -165,3 +165,54 @@ describe("scripts/fondos-pr.mjs: el PR y su problema de fondo (#337)", () => {
     expect(ms).toBeLessThan(topeMs(SUELTO_HOSTIL_MS));
   });
 });
+
+describe("las normas sin ejecutor: falla solo el PR responsable, el resto recibe un aviso (#620, ronda 3)", () => {
+  const N = (id, issue) => ({ id, ejecutor: "nada", issue });
+  const tabla = {
+    51: ENCARGO,
+    624: { number: 624, state: "open", labels: etiquetas("tipo:encargo") },
+    387: { number: 387, state: "open", labels: etiquetas("tipo:decision") },
+    297: { number: 297, state: "closed", labels: etiquetas("tipo:encargo") },
+    210: { number: 210, state: "open", labels: etiquetas("tipo:caso") },
+    185: { number: 185, state: "open", labels: etiquetas("tipo:fondo") },
+  };
+  const con = (normas, extra = {}) => comprobar({ cuerpo: CUERPO, rama: "ops/51-algo", normas, ...consultaDe(tabla, { 51: FONDO(ficha(DIAG)) }), ...extra });
+
+  it("con su encargo o su decisión abiertos, vale sin avisos; una norma con ejecutor no se mira", async () => {
+    const r = await con([N("a", 624), N("b", 387), { id: "c", ejecutor: "ci", issue: 297 }], { tocaNormas: true });
+    expect(r.ok).toBe(true);
+    expect(r.avisos).toEqual([]);
+  });
+  it("un PR que no toca normas, con un issue de una norma cerrado, pasa y recibe el aviso", async () => {
+    const r = await con([N("a", 297)]);
+    expect(r.ok).toBe(true);
+    expect(r.avisos.join()).toMatch(/norma a: su issue #297 está cerrado/);
+  });
+  it("un PR que toca ops/normas.json con un issue cerrado, un caso, un fondo, uno que no existe o ninguno, falla", async () => {
+    const f = async (n) => (await con([n], { tocaNormas: true })).motivo;
+    expect(await f(N("a", 297))).toMatch(/norma a: su issue #297 está cerrado/);
+    expect(await f(N("b", 210))).toMatch(/norma b: su issue #210 es de tipo caso/);
+    expect(await f(N("c", 185))).toMatch(/norma c: su issue #185 es de tipo fondo/);
+    expect(await f(N("d", 999))).toMatch(/norma d: su issue #999 no existe/);
+    expect(await f(N("e", null))).toMatch(/norma e: sin ejecutor y sin issue/);
+  });
+  it("un PR con Closes #n que deja una norma colgando de #n falla; si cuelga de otro, solo avisa", async () => {
+    const cierra = { cuerpo: "Closes #297\nAgente: gobierno\nCasos: ninguno — prueba de la norma\n" };
+    const r = await comprobar({ ...cierra, normas: [N("a", 297)], ...consultaDe(tabla, {}) });
+    expect(r.ok).toBe(false);
+    expect(r.motivo).toMatch(/norma a: su issue #297 está cerrado/);
+    const otro = await comprobar({ ...cierra, normas: [N("b", 210)], ...consultaDe(tabla, {}) });
+    expect(otro.ok).toBe(true);
+    expect(otro.avisos.join()).toMatch(/norma b: su issue #210 es de tipo caso/);
+  });
+  it("si la API no responde, falla cerrado; un token sin permiso lo dice distinto y no manda relanzar", async () => {
+    const cae = (e) => comprobar({ cuerpo: CUERPO, rama: "ops/51-algo", normas: [N("a", 624)], consultar: async (n) => { if (n === 624) throw e; return tabla[n] ?? null; }, consultarPadre: async () => FONDO(ficha(DIAG)) });
+    const r = await cae(new ErrorDeApi("caída"));
+    expect(r.ok).toBe(false);
+    expect(r.api).toBe(true);
+    expect(r.motivo).toMatch(/normas sin ejecutor[\s\S]*relanza el check/);
+    const p = await cae(new ErrorDeApi("403", { permisos: true }));
+    expect(p.motivo).toMatch(/rechaza el token[\s\S]*no es culpa del PR ni sirve relanzar/);
+    expect(p.motivo).not.toMatch(/relanza el check/);
+  });
+});

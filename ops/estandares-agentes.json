@@ -1,5 +1,5 @@
 {
-  "$comentario": "Un estándar por tarea de cada agente (#413, fondo #416; por campos en #516, fondo #488). Es el dato: lo lee `npm run estandar`, lo pega /orquestar en el brief, genera la sección «Tareas y su estándar» de cada .claude/agents/<agente>.md y la tabla docs/ops/ESTANDARES.md, y lo vigila ops/estandares-agentes.test.js con las reglas de scripts/lib/estandaresAgentes.mjs. Cada tarea lleva su acción (vocabulario `acciones`) y sus reglas por campos (la plantilla de scripts/lib/regla.mjs: nombre, sujeto, fuerza, condicion, exigencia, nota) más lo que pide la forma de práctica de ops/forja/: porque, ejemplo bueno, ejemplo malo y fuente. El control de cada regla es un fichero que exista (test, hook o script) o juicio. Las tareas compartidas por varios agentes viven una sola vez en `comunes` y cada tarea las nombra en `comunes`. `origen` es una sección del agente (vocabulario `origenes`). Las fuentes son documentación oficial (externas, [F]) o reglas de la casa (con ruta del repo, [I]). Repo público: nada de cómo se salta una barrera.",
+  "$comentario": "Un estándar por tarea de cada agente (#413, fondo #416; por campos en #516, fondo #488; normas por consulta en #620, fondo #618). Es el dato: lo lee `npm run estandar`, lo pega /orquestar en el brief, genera la sección «Tareas y su estándar» de cada .claude/agents/<agente>.md y la tabla docs/ops/ESTANDARES.md, y lo vigilan ops/estandares-agentes.test.js y ops/uniones.test.js con las reglas de scripts/lib/estandaresAgentes.mjs. Cada tarea lleva su acción (vocabulario `acciones`) y sus `ambitos` (AMBITOS de scripts/lib/ambitos.mjs): las normas de ops/normas.json le llegan por consulta, ámbito × acción (construir y juzgar consultan las dos, así que constructor y juez del mismo ámbito reciben las mismas), y `normas` cita por id solo las que la consulta no trae; ninguna norma se reescribe aquí. Sus `reglas` propias, solo para los pasos que no son norma, van por campos (la plantilla de scripts/lib/regla.mjs: nombre, sujeto, fuerza, condicion, exigencia, nota) más lo que pide la forma de práctica de ops/forja/: porque, ejemplo bueno, ejemplo malo y fuente. El control de cada regla es un fichero que exista (test, hook o script) o juicio. Las tareas compartidas por varios agentes viven una sola vez en `comunes` (con sus reglas y las normas que citan) y cada tarea las nombra en `comunes`. `origen` es una sección del agente (vocabulario `origenes`). Las fuentes son documentación oficial (externas, [F]) o fuentes de la casa (con ruta del repo, [I]). `reglas_que_no_son_norma`: reglas que se parecen a una norma y no la repiten, con la norma y su motivo; `normas_sin_juez`: normas vigiladas por juicio que ningún estándar de juez cita, con su motivo. Las dos solo bajan (techos en scripts/lib/estandaresAgentes.mjs). Repo público: nada de cómo se salta una barrera.",
   "version": 2,
   "actualizado": "2026-10-10",
   "artefactos": [
@@ -366,6 +366,24 @@
       "aplica_a": [
         "bot"
       ]
+    },
+    "respuesta.pablo": {
+      "legible": "cada respuesta a Pablo",
+      "aplica_a": [
+        "operacion"
+      ]
+    },
+    "encargo": {
+      "legible": "cada encargo que se reparte",
+      "aplica_a": [
+        "operacion"
+      ]
+    },
+    "traspaso": {
+      "legible": "cada traspaso entre agentes",
+      "aplica_a": [
+        "operacion"
+      ]
     }
   },
   "fuentes": {
@@ -408,10 +426,6 @@
     "owasp-threat-model": {
       "nombre": "OWASP Cheat Sheet: Threat Modeling",
       "url": "https://cheatsheetseries.owasp.org/cheatsheets/Threat_Modeling_Cheat_Sheet.html"
-    },
-    "owasp-llm-injection": {
-      "nombre": "OWASP Cheat Sheet: LLM Prompt Injection Prevention",
-      "url": "https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html"
     },
     "owasp-llm-top10": {
       "nombre": "OWASP Top 10 for LLM Applications",
@@ -465,10 +479,6 @@
       "nombre": "GitHub Docs: About protected branches",
       "url": "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches"
     },
-    "gh-pull-requests": {
-      "nombre": "GitHub Docs: About pull requests",
-      "url": "https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests"
-    },
     "gh-actions-hardening": {
       "nombre": "GitHub Docs: Security hardening for GitHub Actions",
       "url": "https://docs.github.com/en/actions/reference/security/secure-use"
@@ -476,10 +486,6 @@
     "gh-secrets-actions": {
       "nombre": "GitHub Docs: Using secrets in GitHub Actions",
       "url": "https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets"
-    },
-    "gh-environments": {
-      "nombre": "GitHub Docs: Managing environments for deployment",
-      "url": "https://docs.github.com/en/actions/deployment/targeting-different-environments/managing-environments-for-deployment"
     },
     "git-worktree": {
       "nombre": "Git: git-worktree",
@@ -505,10 +511,6 @@
       "nombre": "Vercel Docs: Troubleshoot a build",
       "url": "https://vercel.com/docs/deployments/troubleshoot-a-build"
     },
-    "vercel-rollback": {
-      "nombre": "Vercel Docs: Instant Rollback",
-      "url": "https://vercel.com/docs/instant-rollback"
-    },
     "claude-hooks": {
       "nombre": "Claude Code Docs: Hooks",
       "url": "https://code.claude.com/docs/en/hooks"
@@ -519,42 +521,42 @@
     },
     "casa-claude": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: CLAUDE.md (qué se pregunta a Pablo, ramas y flujo, base de datos)",
+      "nombre": "Fuente de la casa: CLAUDE.md (qué se pregunta a Pablo, ramas y flujo, base de datos)",
       "ruta": "CLAUDE.md"
     },
     "casa-principios-datos": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: principios de datos (PRINCIPIOS.md)",
+      "nombre": "Fuente de la casa: principios de datos (PRINCIPIOS.md)",
       "ruta": "docs/datos/PRINCIPIOS.md"
     },
     "casa-skill-issues": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: skill issues (repo público, nada sensible en un issue)",
+      "nombre": "Fuente de la casa: skill issues (repo público, nada sensible en un issue)",
       "ruta": ".claude/skills/issues/SKILL.md"
     },
     "casa-skill-alta-secreto": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: skill alta-de-secreto",
+      "nombre": "Fuente de la casa: skill alta-de-secreto",
       "ruta": ".claude/skills/alta-de-secreto/SKILL.md"
     },
     "casa-decisiones": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: registro de decisiones de operación",
+      "nombre": "Fuente de la casa: registro de decisiones de operación",
       "ruta": "ops/DECISIONES.md"
     },
     "casa-planos": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: planos y sus niveles",
+      "nombre": "Fuente de la casa: planos y sus niveles",
       "ruta": "ops/PLANOS.md"
     },
     "casa-plantilla-agente": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: plantilla de agente (juez y constructor, skills que abrió)",
+      "nombre": "Fuente de la casa: plantilla de agente (juez y constructor, skills que abrió)",
       "ruta": ".claude/PLANTILLA-AGENTE.md"
     },
     "casa-migraciones": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: regla de migraciones",
+      "nombre": "Fuente de la casa: regla de migraciones",
       "ruta": ".claude/rules/migraciones.md"
     },
     "m3-tokens": {
@@ -580,10 +582,6 @@
     "mdn-movimiento": {
       "nombre": "MDN: prefers-reduced-motion",
       "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion"
-    },
-    "w3-no-textual": {
-      "nombre": "WCAG 2.2: Non-text Content",
-      "url": "https://www.w3.org/WAI/WCAG22/Understanding/non-text-content.html"
     },
     "w3-error-id": {
       "nombre": "WCAG 2.2: Error Identification",
@@ -627,52 +625,47 @@
     },
     "casa-design-system": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: DESIGN_SYSTEM.md (componentes, voz y accesibilidad)",
+      "nombre": "Fuente de la casa: DESIGN_SYSTEM.md (componentes, voz y accesibilidad)",
       "ruta": "DESIGN_SYSTEM.md"
     },
     "casa-diseno-estado": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: estado del diseño, decisiones y cifras",
+      "nombre": "Fuente de la casa: estado del diseño, decisiones y cifras",
       "ruta": "docs/diseno/ESTADO.md"
     },
     "casa-lola-regla": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: regla lola (evals, enrutador, modelos)",
+      "nombre": "Fuente de la casa: regla lola (evals, enrutador, modelos)",
       "ruta": ".claude/rules/lola.md"
     },
     "casa-router": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: el enrutador de Lola y su esquema plano",
+      "nombre": "Fuente de la casa: el enrutador de Lola y su esquema plano",
       "ruta": "api/_bot/router.js"
     },
     "casa-agente-lola": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: agente lola (gateways y escalado)",
+      "nombre": "Fuente de la casa: agente lola (gateways y escalado)",
       "ruta": ".claude/agents/lola.md"
     },
     "casa-agente-qa": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: agente qa (severidad y método)",
+      "nombre": "Fuente de la casa: agente qa (severidad y método)",
       "ruta": ".claude/agents/qa.md"
     },
     "casa-agente-evaluador": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: agente evaluador",
+      "nombre": "Fuente de la casa: agente evaluador",
       "ruta": ".claude/agents/evaluador.md"
-    },
-    "casa-agente-auditor": {
-      "tipo": "casa",
-      "nombre": "Regla de la casa: agente auditor-datos",
-      "ruta": ".claude/agents/auditor-datos.md"
     },
     "casa-redaccion": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: guía de redacción de reglas",
+      "nombre": "Fuente de la casa: guía de redacción de reglas",
       "ruta": "docs/ops/REDACCION.md"
     },
     "casa-estilo": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: skill estilo-de-respuesta",
+      "nombre": "Fuente de la casa: skill estilo-de-respuesta",
       "ruta": ".claude/skills/estilo-de-respuesta/SKILL.md"
     }
   },
@@ -746,31 +739,9 @@
     "tests-de-lo-tocado": {
       "tarea": "Correr los tests de lo tocado y verlos fallar una vez antes de creérselos",
       "accion": "medir",
-      "reglas": [
-        {
-          "nombre": "Solo lo tocado",
-          "sujeto": "test",
-          "fuerza": "debe",
-          "condicion": "cuando se prepara un PR",
-          "exigencia": "correrse solo para los ficheros tocados, y la suite entera la corre el CI del PR",
-          "control": "juicio",
-          "fuente": "casa-claude",
-          "porque": "Varias sesiones con la suite entera a la vez saturan la máquina",
-          "ejemplo_bueno": "npx vitest run sobre las dos rutas tocadas",
-          "ejemplo_malo": "npm test sin filtro en cada cambio"
-        },
-        {
-          "nombre": "Visto fallar",
-          "sujeto": "test",
-          "fuerza": "debe",
-          "condicion": "cuando es nuevo",
-          "exigencia": "verse fallar una vez, sin el cambio, antes de creérselo",
-          "control": "juicio",
-          "fuente": "gg-que-mirar",
-          "porque": "Un test que nunca falló puede no vigilar nada",
-          "ejemplo_bueno": "el test falla sin el arreglo y pasa con él",
-          "ejemplo_malo": "un test nuevo que se da por bueno al verlo verde"
-        }
+      "normas": [
+        "tests-del-fichero",
+        "test-visto-fallar"
       ],
       "rondas": [
         "ronda: 1 fuentes: 2 cambios: Consultadas la guía de revisión de Google sobre tests y la regla tests de la casa",
@@ -881,6 +852,9 @@
     "base-solo-lectura": {
       "tarea": "Leer la base solo en lectura y nunca escribir para comprobar",
       "accion": "operar",
+      "normas": [
+        "rol-solo-lectura"
+      ],
       "reglas": [
         {
           "nombre": "Lectura sin escritura",
@@ -892,17 +866,6 @@
           "porque": "Hay una sola base y es la de producción: una prueba escribiendo cambia datos reales",
           "ejemplo_bueno": "npm run consulta con un select y su recuento",
           "ejemplo_malo": "insertar una fila de prueba para ver si funciona"
-        },
-        {
-          "nombre": "Rol de lectura",
-          "sujeto": "base",
-          "fuerza": "debe",
-          "exigencia": "leerse con el rol de lectura, y la conexión de administrador solo con --admin explícito",
-          "control": "scripts/consulta.test.js",
-          "fuente": "casa-claude",
-          "porque": "El rol de lectura no puede escribir aunque el script se equivoque",
-          "ejemplo_bueno": "SUPABASE_DB_URL_LECTURA en npm run consulta",
-          "ejemplo_malo": "npm run consulta -- --admin para un select cualquiera"
         }
       ],
       "rondas": [
@@ -914,30 +877,9 @@
     "rls-escribe-datos-audita-seguridad": {
       "tarea": "Escribir las políticas RLS y permisos por datos, auditarlos por seguridad y aplicar los cambios sobre lo existente por Pablo",
       "accion": "construir",
-      "reglas": [
-        {
-          "nombre": "Quien escribe no juzga",
-          "sujeto": "politica",
-          "fuerza": "debe",
-          "exigencia": "escribirla datos en la migración, con su test, y juzgarla seguridad",
-          "control": "juicio",
-          "fuente": "casa-claude",
-          "porque": "El que construye no ve igual los abusos que el que los busca",
-          "ejemplo_bueno": "datos escribe la política y seguridad la audita en el catálogo",
-          "ejemplo_malo": "datos que revisa su propia política"
-        },
-        {
-          "nombre": "Cambio existente con Pablo",
-          "sujeto": "politica",
-          "fuerza": "no_debe",
-          "condicion": "cuando cambia RLS o permisos de lo que ya existía",
-          "exigencia": "aplicarse sin Pablo: el cambio se prepara y lo lanza él con --pablo",
-          "control": ".claude/hooks/guardia.test.js",
-          "fuente": "casa-migraciones",
-          "porque": "Cambiar quién ve qué en producción es irreversible para los datos que ya salieron",
-          "ejemplo_bueno": "dejar la migración lista y el comando de Pablo en las decisiones",
-          "ejemplo_malo": "aplicar la política nueva en cuanto pasa el ensayo"
-        }
+      "normas": [
+        "quien-construye-no-juzga",
+        "migracion-pablo-solo-pablo"
       ],
       "rondas": [
         "ronda: 1 fuentes: 4 cambios: Consultadas las referencias de Postgres sobre seguridad por filas, la de Supabase, y la regla de migraciones de la casa",
@@ -1077,6 +1019,13 @@
           "tarea": "Llevar un cambio de su rama a staging por PR con el CI en verde, mirando el estado real de origin/staging",
           "accion": "operar",
           "origen": "mision",
+          "ambitos": [
+            "infra",
+            "process"
+          ],
+          "normas": [
+            "cuando-algo-falla"
+          ],
           "reglas": [
             {
               "nombre": "Rama y estado desde origin",
@@ -1088,53 +1037,6 @@
               "porque": "Una rama de otra base arrastra cambios ajenos, y el upstream dice lo que se empujó, no lo que entró en staging",
               "ejemplo_bueno": "git fetch y git branch -r --contains <commit> sobre origin/staging",
               "ejemplo_malo": "dar por fusionado lo que figura como empujado, o salir de otra rama de trabajo sin fusionar"
-            },
-            {
-              "nombre": "Closes y Agente",
-              "sujeto": "pr",
-              "fuerza": "debe",
-              "exigencia": "llevar en el cuerpo un Closes #n por cada encargo o fondo que cierra y una línea Agente",
-              "control": "scripts/fondos-pr.mjs",
-              "fuente": "gh-pull-requests",
-              "porque": "De esas líneas sale quién arregló qué; sin ellas el dato se pierde",
-              "ejemplo_bueno": "Closes #516 y Agente: gobierno en el cuerpo del PR",
-              "ejemplo_malo": "un cuerpo de PR con solo el título"
-            },
-            {
-              "nombre": "Casos y skill del PR",
-              "sujeto": "pr",
-              "fuerza": "debe",
-              "exigencia": "llevar la línea Casos con los casos que arregla, o Casos: ninguno con su motivo, y la línea de la skill del dominio, actualizada o sin novedades",
-              "control": "scripts/casos-pr.mjs",
-              "fuente": "gh-pull-requests",
-              "porque": "Sin Casos no se sabe de qué problema de fondo es síntoma el arreglo, y una skill sin tocar se queda diciendo lo viejo",
-              "ejemplo_bueno": "Casos: #488, #527 y la línea de skill actualizada en un PR que cambia un workflow",
-              "ejemplo_malo": "un PR que cambia un workflow sin línea de casos ni de skill",
-              "condicion": "cuando el PR arregla un fallo o toca rutas de un dominio con skill"
-            },
-            {
-              "nombre": "Fusión con CI verde",
-              "sujeto": "pr",
-              "fuerza": "debe",
-              "condicion": "cuando se va a fusionar en staging",
-              "exigencia": "tener el check tests en verde",
-              "control": ".github/workflows/tests.yml",
-              "fuente": "gh-protected-branches",
-              "porque": "El check es lo único que impide que un cambio roto llegue a la rama que despliega",
-              "ejemplo_bueno": "gh pr checks 12 con tests en pass",
-              "ejemplo_malo": "fusionar con el check en curso porque el cambio es pequeño"
-            },
-            {
-              "nombre": "Rama al día",
-              "sujeto": "rama",
-              "fuerza": "debe",
-              "condicion": "cuando se va a abrir o a fusionar un PR",
-              "exigencia": "estar al día con origin/staging, fusionándolo en la rama, antes de abrir el PR y antes de fusionarlo",
-              "control": ".claude/hooks/guardia.test.js",
-              "fuente": "gh-protected-branches",
-              "porque": "Una rama atrasada se prueba contra una base que ya no existe y el choque llega tarde",
-              "ejemplo_bueno": "git merge origin/staging y el CI de nuevo antes de fusionar",
-              "ejemplo_malo": "fusionar una rama a la que staging ha cambiado los mismos ficheros"
             }
           ],
           "no_hace": [
@@ -1148,6 +1050,9 @@
           "tarea": "Preparar el paso a main cuando Pablo lo pide, dejando los comandos listos sin ejecutarlos",
           "accion": "operar",
           "origen": "mision",
+          "ambitos": [
+            "infra"
+          ],
           "reglas": [
             {
               "nombre": "Plan antes de main",
@@ -1160,17 +1065,6 @@
               "porque": "Producción se cambia pocas veces y sin ver qué entra no se puede decidir ni deshacer",
               "ejemplo_bueno": "git log origin/main..origin/staging, migraciones sin aplicar de ESTADO.md y rollback de Vercel nombrado",
               "ejemplo_malo": "un aviso de que staging está listo, sin lista de lo que entra"
-            },
-            {
-              "nombre": "Main de una persona",
-              "sujeto": "produccion",
-              "fuerza": "no_debe",
-              "exigencia": "ejecutarse desde una sesión: se dejan los comandos listos para que los pegue Pablo",
-              "control": ".claude/hooks/guardia.test.js",
-              "fuente": "casa-claude",
-              "porque": "Subir a producción es irreversible para las familias y la decisión es suya",
-              "ejemplo_bueno": "dejar el comando gh pr create --base main en el informe, sin lanzarlo",
-              "ejemplo_malo": "gh pr merge hacia main lanzado por la propia sesión"
             },
             {
               "nombre": "Commit con CI verde",
@@ -1195,6 +1089,12 @@
           "tarea": "Crear, retirar y podar carpetas de trabajo y ramas sin perder trabajo sin subir",
           "accion": "operar",
           "origen": "disparadores",
+          "ambitos": [
+            "infra"
+          ],
+          "normas": [
+            "uniones-antes-de-borrar"
+          ],
           "reglas": [
             {
               "nombre": "Inventario antes de borrar",
@@ -1218,28 +1118,6 @@
               "porque": "El modo auto bloquea los borrados a propósito y una ruta relativa puede apuntar a otro sitio",
               "ejemplo_bueno": "rm de C:\\dev\\MenuPlan-tema entre comillas dobles, listo para pegar con !",
               "ejemplo_malo": "un bucle de borrado lanzado a mano sobre varias carpetas"
-            },
-            {
-              "nombre": "Carpeta principal quieta",
-              "sujeto": "carpeta.principal",
-              "fuerza": "no_debe",
-              "exigencia": "usarse para editar, commitear ni cambiar de rama",
-              "control": ".claude/hooks/principal.test.js",
-              "fuente": "casa-claude",
-              "porque": "Varias sesiones comparten esa carpeta y un cambio de rama le quita el suelo a las demás",
-              "ejemplo_bueno": "trabajar en C:\\dev\\MenuPlan-tema, abierta con npm run tarea",
-              "ejemplo_malo": "editar un fichero en C:\\dev\\MenuPlan"
-            },
-            {
-              "nombre": "Sin stash compartido",
-              "sujeto": "carpeta",
-              "fuerza": "no_debe",
-              "exigencia": "guardar cambios con git stash: es común a todas las carpetas de trabajo y se cruza entre sesiones",
-              "control": ".claude/hooks/guardia.test.js",
-              "fuente": "git-worktree",
-              "porque": "El stash no pertenece a una carpeta, así que una sesión puede recuperar el de otra",
-              "ejemplo_bueno": "commit en la propia rama aunque sea provisional",
-              "ejemplo_malo": "git stash antes de cambiar de tarea"
             }
           ],
           "no_hace": [
@@ -1253,9 +1131,15 @@
           "tarea": "Diagnosticar un CI rojo, un despliegue fallido o en Blocked y un hook que bloquea, separando causa de síntoma",
           "accion": "diagnosticar",
           "origen": "disparadores",
+          "ambitos": [
+            "infra"
+          ],
           "comunes": [
             "causa-frente-a-sintoma",
             "buscar-lo-ya-apuntado"
+          ],
+          "normas": [
+            "lecciones-a-un-test"
           ],
           "reglas": [
             {
@@ -1291,17 +1175,6 @@
               "porque": "Un arreglo que no hace pasar el check que falló no arregla ese fallo",
               "ejemplo_bueno": "gh pr checks con tests en pass tras el cambio",
               "ejemplo_malo": "dar por bueno el arreglo sin volver a mirar el run"
-            },
-            {
-              "nombre": "Aprendizaje a un test",
-              "sujeto": "diagnostico",
-              "fuerza": "debe",
-              "exigencia": "dejar el aprendizaje en un test o en la guardia, y en una skill si no se puede, nunca en la memoria",
-              "control": "juicio",
-              "fuente": "sre-postmortem",
-              "porque": "Lo que solo vive en la memoria de una sesión no lo ven las demás ni el CI",
-              "ejemplo_bueno": "un caso en guardia.test.js visto fallar antes de la regla",
-              "ejemplo_malo": "una nota en la memoria personal de la sesión"
             }
           ],
           "no_hace": [
@@ -1315,6 +1188,14 @@
           "tarea": "Cambiar o revisar un workflow o un cron con permisos mínimos y acciones fijadas",
           "accion": "construir",
           "origen": "mision",
+          "ambitos": [
+            "infra",
+            "code"
+          ],
+          "normas": [
+            "secretos-en-environments",
+            "secretos-de-repo"
+          ],
           "reglas": [
             {
               "nombre": "Permisos y acciones fijadas",
@@ -1337,18 +1218,6 @@
               "porque": "Quien escribe un título de issue o un nombre de rama decide qué se ejecuta",
               "ejemplo_bueno": "pasar el valor por env: y leer la variable de entorno en el script",
               "ejemplo_malo": "echo con el título del issue pegado en el run"
-            },
-            {
-              "nombre": "Secretos de environment",
-              "sujeto": "workflow",
-              "fuerza": "debe",
-              "condicion": "cuando el workflow usa un secreto",
-              "exigencia": "leerlo de un environment con política de ramas y no de un secreto de repo",
-              "control": "juicio",
-              "fuente": "gh-environments",
-              "porque": "Un secreto de repo lo ve cualquier rama; el environment lo limita a las ramas autorizadas",
-              "ejemplo_bueno": "environment: vigia, solo para la rama staging",
-              "ejemplo_malo": "un secreto de repo leído por todos los workflows"
             },
             {
               "nombre": "Fallo con lector",
@@ -1385,6 +1254,10 @@
           "tarea": "Cambiar permisos y hooks, y convertir en regla de la guardia lo que importa y solo está escrito",
           "accion": "construir",
           "origen": "mision",
+          "ambitos": [
+            "infra",
+            "code"
+          ],
           "comunes": [
             "tests-de-lo-tocado"
           ],
@@ -1413,17 +1286,6 @@
               "ejemplo_malo": "allow de una orden que escribe sin regla en la guardia"
             },
             {
-              "nombre": "Ampliar con permiso",
-              "sujeto": "permiso",
-              "fuerza": "no_debe",
-              "exigencia": "ampliarse sin preguntar antes a Pablo en el chat y sin pasar por PR con juez",
-              "control": "juicio",
-              "fuente": "casa-claude",
-              "porque": "Ampliar permisos cambia lo que cualquier sesión puede hacer sin preguntar",
-              "ejemplo_bueno": "preguntar a Pablo en el chat, abrir el PR y esperar al juez",
-              "ejemplo_malo": "editar settings.json y fusionar en el mismo paso"
-            },
-            {
               "nombre": "Norma registrada",
               "sujeto": "hook",
               "fuerza": "debe",
@@ -1445,6 +1307,9 @@
           "tarea": "Llevar al día qué secretos y servicios existen, de quién son y dónde viven, sin escribir un valor",
           "accion": "operar",
           "origen": "mision",
+          "ambitos": [
+            "infra"
+          ],
           "reglas": [
             {
               "nombre": "Un secreto, un uso",
@@ -1478,29 +1343,6 @@
               "porque": "Sin inventario no se sabe qué rotar cuando alguien se va o una clave sale",
               "ejemplo_bueno": "una fila de ops/INVENTARIO.md con ficha, destino y fecha de caducidad",
               "ejemplo_malo": "una clave en uso que no figura en el inventario"
-            },
-            {
-              "nombre": "Secreto en environment por tubería",
-              "sujeto": "secreto",
-              "fuerza": "debe",
-              "condicion": "cuando vive en GitHub",
-              "exigencia": "estar en un environment con política de ramas, entregado por tubería desde su ficha, y no a nivel de repo ni en un comando",
-              "control": "juicio",
-              "fuente": "gh-environments",
-              "porque": "En un environment solo lo lee la rama permitida, y por tubería el valor no queda en ningún historial",
-              "ejemplo_bueno": "la ficha leída con op y pasada por tubería a gh secret set --env",
-              "ejemplo_malo": "gh secret set de repo con el valor escrito en el comando"
-            },
-            {
-              "nombre": "Alta por una persona",
-              "sujeto": "secreto",
-              "fuerza": "no_debe",
-              "exigencia": "crearse ni rotarse desde una sesión: se preparan los comandos para que los pegue Pablo",
-              "control": ".claude/hooks/guardia.test.js",
-              "fuente": "casa-skill-alta-secreto",
-              "porque": "Crear o rotar una clave es de Pablo y el valor no puede pasar por la conversación",
-              "ejemplo_bueno": "los comandos con op y gh listos para pegar con !",
-              "ejemplo_malo": "una sesión que ejecuta gh secret set por su cuenta"
             }
           ],
           "no_hace": [
@@ -1514,6 +1356,9 @@
           "tarea": "Informar del estado y los logs de un despliegue de Vercel y preparar el despliegue a producción cuando se pide",
           "accion": "operar",
           "origen": "mision",
+          "ambitos": [
+            "infra"
+          ],
           "comunes": [
             "causa-frente-a-sintoma"
           ],
@@ -1552,18 +1397,6 @@
               "porque": "Un commit de quien no es miembro del equipo retiene el despliegue en un repo privado",
               "ejemplo_bueno": "comprobar el correo del autor del commit contra el equipo",
               "ejemplo_malo": "redesplegar varias veces el mismo commit"
-            },
-            {
-              "nombre": "Producción con vuelta atrás",
-              "sujeto": "produccion",
-              "fuerza": "debe",
-              "condicion": "cuando Pablo pide desplegar a producción",
-              "exigencia": "desplegarse desde main con el rollback de Vercel nombrado antes de lanzar",
-              "control": "juicio",
-              "fuente": "vercel-rollback",
-              "porque": "Si falla en producción, la vuelta atrás tiene que estar pensada antes y no durante",
-              "ejemplo_bueno": "Instant Rollback al despliegue anterior, nombrado en el plan",
-              "ejemplo_malo": "lanzar sin saber a qué despliegue se vuelve"
             }
           ],
           "no_hace": [
@@ -1577,6 +1410,9 @@
           "tarea": "Poner al día DECISIONES, INVENTARIO y PLANOS y contestar «¿cómo está la casa?» con cifras",
           "accion": "documentar",
           "origen": "entregables",
+          "ambitos": [
+            "process"
+          ],
           "reglas": [
             {
               "nombre": "Fila por gateway",
@@ -1599,7 +1435,7 @@
               "control": "ops/planos.test.js",
               "fuente": "casa-planos",
               "porque": "Un nivel dado por hecho se queda aunque el mecanismo se rompa",
-              "ejemplo_bueno": "npm run planos -- --red con el criterio de ops/planos.json cumplido",
+              "ejemplo_bueno": "npm run planos -- --red con la condición de ops/planos.json cumplida",
               "ejemplo_malo": "subir el nivel porque ya está hecho"
             },
             {
@@ -1625,6 +1461,11 @@
           "tarea": "Construir un catálogo de ops con su test: datos en JSON, módulo lector en scripts/lib, test que lo vigila y documento generado",
           "accion": "construir",
           "origen": "mision",
+          "ambitos": [
+            "process",
+            "code",
+            "writing"
+          ],
           "reglas": [
             {
               "nombre": "Datos con lector único",
@@ -1636,41 +1477,6 @@
               "porque": "Un dato en un solo sitio no se separa de su copia; el módulo lector es el único camino",
               "ejemplo_bueno": "ops/normas.json leído por scripts/lib/normas.mjs",
               "ejemplo_malo": "la misma lista copiada en un test, un script y un documento"
-            },
-            {
-              "nombre": "Test visto fallar",
-              "sujeto": "catalogo",
-              "fuerza": "debe",
-              "exigencia": "llevar un test que lo valide y que se vea fallar con un dato estropeado a propósito",
-              "control": "juicio",
-              "fuente": "gg-que-mirar",
-              "porque": "Un test que no puede fallar no vigila nada y da una falsa seguridad",
-              "ejemplo_bueno": "un caso con un campo borrado que el test rechaza",
-              "ejemplo_malo": "un test que solo comprueba que el JSON se lee"
-            },
-            {
-              "nombre": "Documento generado",
-              "sujeto": "catalogo",
-              "fuerza": "debe",
-              "condicion": "cuando el catálogo tiene una versión legible en docs/",
-              "exigencia": "generarla desde el JSON y compararla en un test, sin editarla a mano",
-              "control": "juicio",
-              "fuente": "casa-redaccion",
-              "porque": "Un documento escrito a mano se separa del dato sin que nadie lo vea",
-              "ejemplo_bueno": "docs/ops/NORMAS.md generado y comparado con lo generado",
-              "ejemplo_malo": "una tabla copiada a mano en un markdown"
-            },
-            {
-              "nombre": "Reglas por campos",
-              "sujeto": "catalogo",
-              "fuerza": "debe",
-              "condicion": "cuando sus entradas son reglas",
-              "exigencia": "seguir la guía de redacción y pasar problemasDeRegla",
-              "control": "ops/redaccion.test.js",
-              "fuente": "casa-redaccion",
-              "porque": "La misma plantilla permite contar, cruzar y comparar reglas de catálogos distintos",
-              "ejemplo_bueno": "nombre, sujeto, fuerza y exigencia en campos cerrados",
-              "ejemplo_malo": "un campo texto con la regla en prosa libre"
             }
           ],
           "no_hace": [
@@ -1693,6 +1499,9 @@
           "tarea": "Diseñar el modelo antes del SQL: entidades, relaciones, ciclo de vida e invariantes",
           "accion": "decidir",
           "origen": "metodo",
+          "ambitos": [
+            "data"
+          ],
           "comunes": [
             "donde-vive-el-dato"
           ],
@@ -1707,18 +1516,6 @@
               "porque": "Las dependencias entre tablas se pagan en cada cambio posterior; verlas antes cuesta un párrafo",
               "ejemplo_bueno": "hogar tiene miembros: on delete cascade, ciclo de vida y quién valida el tope",
               "ejemplo_malo": "una tabla creada sin decir de quién cuelga ni qué pasa al borrar"
-            },
-            {
-              "nombre": "Lector por campo",
-              "sujeto": "tabla",
-              "fuerza": "debe",
-              "condicion": "cuando se añade una columna o una tabla",
-              "exigencia": "tener un lector señalado antes de crearse",
-              "control": "juicio",
-              "fuente": "casa-principios-datos",
-              "porque": "Un campo sin lector es un dato que se escribe y nadie usa, y acaba contradiciendo a otro",
-              "ejemplo_bueno": "grep que encuentra el módulo que lee la columna nueva",
-              "ejemplo_malo": "una columna añadida por si hace falta"
             }
           ],
           "no_hace": [
@@ -1732,12 +1529,15 @@
           "tarea": "Dar a cada tabla sus claves, relaciones, tipos y vocabulario cerrado con CHECK y su constante JS",
           "accion": "construir",
           "origen": "metodo",
+          "ambitos": [
+            "data"
+          ],
           "reglas": [
             {
-              "nombre": "Claves y relaciones",
+              "nombre": "Claves técnica y natural",
               "sujeto": "tabla",
               "fuerza": "debe",
-              "exigencia": "tener clave técnica, clave natural única y cada FK con su on delete explícito",
+              "exigencia": "tener clave técnica y clave natural única",
               "control": "supabase/principios.test.js",
               "fuente": "pg-constraints",
               "porque": "Sin on delete explícito, borrar un padre deja huérfanos o falla de forma que nadie decidió",
@@ -1748,7 +1548,7 @@
               "nombre": "Tipos de la casa",
               "sujeto": "tabla",
               "fuerza": "debe",
-              "exigencia": "usar timestamptz, text con CHECK en vez de enum y la unidad en el nombre de cada magnitud",
+              "exigencia": "usar text con CHECK en vez de enum y la unidad en el nombre de cada magnitud",
               "control": "supabase/principios.test.js",
               "fuente": "pg-dont-do-this",
               "porque": "timestamp sin zona y los enum mienten con el tiempo; la unidad en el nombre evita sumar gramos con kilos",
@@ -1756,37 +1556,15 @@
               "ejemplo_malo": "peso integer y fecha timestamp"
             },
             {
-              "nombre": "Vocabulario espejo",
-              "sujeto": "vocabulario",
-              "fuerza": "debe",
-              "exigencia": "llevar su CHECK en SQL y su constante JS espejo con un test de SQL a JS",
-              "control": "src/lib/vocabularios.test.js",
-              "fuente": "casa-principios-datos",
-              "porque": "La base dice que no y el código lo recuerda; si se separan, un valor válido en un lado falla en el otro",
-              "ejemplo_bueno": "CHECK (estado in ('abierto','cerrado')) y ESTADOS en vocabularios.js",
-              "ejemplo_malo": "un CHECK sin constante ni test"
-            },
-            {
-              "nombre": "Tabla comentada",
+              "nombre": "Columnas comentadas",
               "sujeto": "tabla",
               "fuerza": "debe",
-              "exigencia": "llevar comment on table y comentario en las columnas que no se entienden por su nombre",
+              "exigencia": "llevar comentario en cada columna que no se entiende por su nombre",
               "control": "supabase/principios.test.js",
               "fuente": "casa-principios-datos",
               "porque": "El diccionario vive en la base: quien consulta ve qué es cada cosa sin abrir el repo",
               "ejemplo_bueno": "comment on column pedidos.estado is 'abierto hasta que Lola lo cierra'",
               "ejemplo_malo": "una columna estado sin explicar sus valores"
-            },
-            {
-              "nombre": "Not null por defecto",
-              "sujeto": "tabla",
-              "fuerza": "debe",
-              "exigencia": "declarar cada columna not null salvo decisión comentada, y dejar que sea la base la que diga no a lo que no puede darse",
-              "control": "juicio",
-              "fuente": "pg-constraints",
-              "porque": "Un nulo permitido es un caso más que cada lector tiene que recordar, y lo que solo se prohíbe en el código acaba rompiéndose",
-              "ejemplo_bueno": "not null en la columna y un comentario en la que admite nulo, con su porqué",
-              "ejemplo_malo": "una columna que admite nulo porque aún no se sabe"
             }
           ],
           "no_hace": [
@@ -1800,6 +1578,9 @@
           "tarea": "Escribir una migración nueva con cabecera, consultas previas, objeto testigo y plan B del código",
           "accion": "construir",
           "origen": "metodo",
+          "ambitos": [
+            "data"
+          ],
           "comunes": [
             "tests-de-lo-tocado"
           ],
@@ -1808,7 +1589,7 @@
               "nombre": "Número contiguo",
               "sujeto": "migracion",
               "fuerza": "debe",
-              "exigencia": "llevar el siguiente número libre de origin/staging, tras git fetch",
+              "exigencia": "llevar el número contiguo al más alto de origin/staging, sin huecos, tras git fetch",
               "control": "supabase/migrations.test.js",
               "fuente": "sb-migrations",
               "porque": "Dos ramas con el mismo número se pisan y el orden de aplicación deja de ser el escrito",
@@ -1836,29 +1617,6 @@
               "porque": "Un if exists esconde que el objeto no estaba y la migración sigue como si nada",
               "ejemplo_bueno": "alter table t drop constraint t_estado_check",
               "ejemplo_malo": "drop constraint if exists que no avisa si falta"
-            },
-            {
-              "nombre": "Aplicada, intocable",
-              "sujeto": "migracion",
-              "fuerza": "no_debe",
-              "condicion": "cuando ya está aplicada",
-              "exigencia": "editarse: se escribe otra migración nueva",
-              "control": ".claude/hooks/guardia.test.js",
-              "fuente": "casa-migraciones",
-              "porque": "Lo aplicado ya está en producción: editarlo deja el fichero diciendo algo que la base no tiene",
-              "ejemplo_bueno": "la 0098 que corrige lo que dejó la 0097",
-              "ejemplo_malo": "cambiar un create de la 0097 ya aplicada"
-            },
-            {
-              "nombre": "Plan B del código",
-              "sujeto": "migracion",
-              "fuerza": "debe",
-              "exigencia": "venir con un plan B en el código para el tiempo en que aún no esté aplicada",
-              "control": "juicio",
-              "fuente": "casa-claude",
-              "porque": "La rama se despliega antes de que alguien aplique la migración",
-              "ejemplo_bueno": "el módulo lee la columna nueva solo si existe y si no usa la antigua",
-              "ejemplo_malo": "un select de la columna nueva sin salida si falta"
             }
           ],
           "no_hace": [
@@ -1872,6 +1630,9 @@
           "tarea": "Ensayar la migración contra la base y comprobar el resultado leyendo el catálogo",
           "accion": "operar",
           "origen": "metodo",
+          "ambitos": [
+            "data"
+          ],
           "reglas": [
             {
               "nombre": "Ensayo que deshace",
@@ -1919,6 +1680,9 @@
           "tarea": "Mantener ESTADO.md y PENDIENTES.md y contestar si una migración está aplicada",
           "accion": "documentar",
           "origen": "disparadores",
+          "ambitos": [
+            "data"
+          ],
           "comunes": [
             "base-solo-lectura"
           ],
@@ -1968,6 +1732,9 @@
           "tarea": "Escribir las políticas RLS, los grants y las funciones security definer de una migración para que las juzgue seguridad",
           "accion": "construir",
           "origen": "mision",
+          "ambitos": [
+            "data"
+          ],
           "comunes": [
             "rls-escribe-datos-audita-seguridad"
           ],
@@ -1996,10 +1763,10 @@
               "ejemplo_malo": "una security definer con el EXECUTE por defecto"
             },
             {
-              "nombre": "Permiso en migración",
+              "nombre": "Grant en una migración",
               "sujeto": "migracion",
               "fuerza": "debe",
-              "exigencia": "crear cada permiso o grant nuevo en una migración con su número, y no con SQL escrito a mano contra la base",
+              "exigencia": "crear cada permiso o grant nuevo en una migración con su número",
               "control": ".claude/hooks/guardia.test.js",
               "fuente": "casa-migraciones",
               "porque": "Un permiso dado a mano no queda en ningún sitio: nadie sabe quién lo tiene ni cómo quitarlo",
@@ -2018,8 +1785,14 @@
           "tarea": "Decidir dónde vive un dato (SQL, JSON en git o los dos) y deshacer repeticiones y cruces por nombre",
           "accion": "decidir",
           "origen": "disparadores",
+          "ambitos": [
+            "data"
+          ],
           "comunes": [
             "donde-vive-el-dato"
+          ],
+          "normas": [
+            "tabla-modulo-dueno"
           ],
           "reglas": [
             {
@@ -2032,17 +1805,6 @@
               "porque": "Cada origen tiene su ciclo: lo curado se revisa por PR y lo de usuarios se guarda con RLS",
               "ejemplo_bueno": "las recetas en src/data y los menús de la casa en la base",
               "ejemplo_malo": "los menús de una familia guardados como JSON en git"
-            },
-            {
-              "nombre": "Módulo dueño",
-              "sujeto": "tabla",
-              "fuerza": "debe",
-              "exigencia": "tener un único camino de acceso: su módulo dueño, sin columnas ni filtros a mano fuera",
-              "control": "supabase/cableado.test.js",
-              "fuente": "casa-principios-datos",
-              "porque": "Si cinco ficheros escriben el filtro, cambiar la columna rompe cinco sitios",
-              "ejemplo_bueno": "un solo módulo que arma el filtro de la tabla",
-              "ejemplo_malo": "un filtro PostgREST escrito en una pantalla"
             },
             {
               "nombre": "Relación por id",
@@ -2067,6 +1829,9 @@
           "tarea": "Convertir un texto libre que se agrupa en vocabulario cerrado con su CHECK y su constante",
           "accion": "construir",
           "origen": "disparadores",
+          "ambitos": [
+            "data"
+          ],
           "comunes": [
             "base-solo-lectura",
             "medir-antes-despues"
@@ -2121,6 +1886,14 @@
           "tarea": "Revisar el diff entero de la rama contra origin/staging y levantar solo lo que rompe",
           "accion": "juzgar",
           "origen": "mision",
+          "ambitos": [
+            "code",
+            "infra",
+            "catalog"
+          ],
+          "normas": [
+            "foodid-nulo-mira-las-dos-tablas"
+          ],
           "reglas": [
             {
               "nombre": "Diff entero y contexto",
@@ -2178,6 +1951,9 @@
           "tarea": "Escribir cada hallazgo con severidad, línea, caso concreto y arreglo propuesto",
           "accion": "juzgar",
           "origen": "metodo",
+          "ambitos": [
+            "code"
+          ],
           "comunes": [
             "buscar-lo-ya-apuntado",
             "informe-comun"
@@ -2251,21 +2027,13 @@
           "tarea": "Correr los tests de lo tocado y comprobar que un test nuevo fallaría sin el cambio",
           "accion": "juzgar",
           "origen": "mision",
+          "ambitos": [
+            "code"
+          ],
           "comunes": [
             "tests-de-lo-tocado"
           ],
           "reglas": [
-            {
-              "nombre": "Test que puede fallar",
-              "sujeto": "test",
-              "fuerza": "debe",
-              "exigencia": "fallar si el código se rompe: un test que no puede fallar no cuenta como cobertura",
-              "control": "juicio",
-              "fuente": "gg-que-mirar",
-              "porque": "Un test siempre verde da seguridad falsa y tapa el hueco que debía vigilar",
-              "ejemplo_bueno": "el test nuevo se ve fallar al quitar el arreglo",
-              "ejemplo_malo": "un test que comprueba que la función existe"
-            },
             {
               "nombre": "Ruta de lo tocado",
               "sujeto": "test",
@@ -2288,19 +2056,10 @@
           "tarea": "Comprobar que un PR que arregla un fallo deja su aprendizaje en un test, la guardia o la skill",
           "accion": "juzgar",
           "origen": "metodo",
+          "ambitos": [
+            "process"
+          ],
           "reglas": [
-            {
-              "nombre": "Aprendizaje del fallo",
-              "sujeto": "pr",
-              "fuerza": "debe",
-              "condicion": "cuando arregla un fallo",
-              "exigencia": "dejar su aprendizaje donde se hace cumplir: un test que falla sin el arreglo, la guardia o la skill",
-              "control": "juicio",
-              "fuente": "sre-postmortem",
-              "porque": "Un arreglo sin aprendizaje deja que el mismo fallo vuelva con otro nombre",
-              "ejemplo_bueno": "un caso en guardia.test.js visto fallar sin el arreglo",
-              "ejemplo_malo": "el código corregido sin ningún test nuevo"
-            },
             {
               "nombre": "Skill sin novedades",
               "sujeto": "pr",
@@ -2349,6 +2108,9 @@
           "tarea": "Contrastar las skills que pedía el diff con las que el constructor dijo abrir",
           "accion": "juzgar",
           "origen": "metodo",
+          "ambitos": [
+            "process"
+          ],
           "reglas": [
             {
               "nombre": "Skills contrastadas",
@@ -2384,18 +2146,11 @@
           "tarea": "Contrastar el diff con el estándar de la tarea que el constructor dice haber cumplido",
           "accion": "juzgar",
           "origen": "metodo",
+          "ambitos": [
+            "process",
+            "writing"
+          ],
           "reglas": [
-            {
-              "nombre": "Línea ESTÁNDAR citada",
-              "sujeto": "informe",
-              "fuerza": "debe",
-              "exigencia": "citar en la línea ESTÁNDAR: el agente y la tarea cumplida, y el revisor la lee con npm run estandar",
-              "control": "juicio",
-              "fuente": "gg-estandar",
-              "porque": "Un estándar que nadie cita no se cumple",
-              "ejemplo_bueno": "ESTÁNDAR: gobierno/workflows-y-crons, cumplida con el diff",
-              "ejemplo_malo": "ESTÁNDAR: lo normal"
-            },
             {
               "nombre": "Cada regla con evidencia",
               "sujeto": "diff",
@@ -2442,6 +2197,9 @@
           "tarea": "Señalar la reutilización evidente cuando evita un fallo o una segunda verdad",
           "accion": "juzgar",
           "origen": "mision",
+          "ambitos": [
+            "code"
+          ],
           "reglas": [
             {
               "nombre": "Reutilizar si evita fallo",
@@ -2477,6 +2235,9 @@
           "tarea": "Localizar dónde está un fallo antes de que alguien lo arregle",
           "accion": "diagnosticar",
           "origen": "disparadores",
+          "ambitos": [
+            "code"
+          ],
           "comunes": [
             "causa-frente-a-sintoma"
           ],
@@ -2518,6 +2279,10 @@
           "tarea": "Delimitar la superficie a auditar: datos, actores y caminos",
           "accion": "juzgar",
           "origen": "metodo",
+          "ambitos": [
+            "api",
+            "bot"
+          ],
           "reglas": [
             {
               "nombre": "Datos actores caminos",
@@ -2552,6 +2317,9 @@
           "tarea": "Auditar RLS, grants y funciones security definer de las migraciones y del catálogo vivo",
           "accion": "juzgar",
           "origen": "mision",
+          "ambitos": [
+            "data"
+          ],
           "comunes": [
             "rls-escribe-datos-audita-seguridad",
             "base-solo-lectura"
@@ -2601,6 +2369,9 @@
           "tarea": "Auditar la autorización, la validación y los límites de los endpoints de api/",
           "accion": "juzgar",
           "origen": "mision",
+          "ambitos": [
+            "api"
+          ],
           "reglas": [
             {
               "nombre": "Autoriza el objeto",
@@ -2623,17 +2394,6 @@
               "porque": "El cliente lo controla quien ataca: lo que no valida el servidor no está validado",
               "ejemplo_bueno": "un esquema que rechaza el campo con un tipo o un tamaño fuera de rango",
               "ejemplo_malo": "confiar en que la pantalla ya limita el campo"
-            },
-            {
-              "nombre": "Límite que falla cerrado",
-              "sujeto": "endpoint",
-              "fuerza": "debe",
-              "exigencia": "limitar el uso con api/_guard.js y fallar cerrado si el límite no responde",
-              "control": "api/_guard.test.js",
-              "fuente": "owasp-api-top10",
-              "porque": "Un límite que se abre cuando falla deja de limitar justo cuando hace falta",
-              "ejemplo_bueno": "si el contador no responde, devuelve 503",
-              "ejemplo_malo": "si el contador no responde, deja pasar"
             }
           ],
           "no_hace": [
@@ -2646,6 +2406,14 @@
           "tarea": "Auditar que ningún secreto esté en el código ni en el historial y quién lo lee",
           "accion": "juzgar",
           "origen": "mision",
+          "ambitos": [
+            "infra"
+          ],
+          "normas": [
+            "no-secrets-in-prompt-or-client",
+            "secretos-ok-pablo",
+            "repo-publico-sin-detalle"
+          ],
           "reglas": [
             {
               "nombre": "Fuera del repo",
@@ -2657,17 +2425,6 @@
               "porque": "El repo es público y lo que entra en el historial no se recoge",
               "ejemplo_bueno": "una búsqueda de patrones de clave en el diff sin resultados",
               "ejemplo_malo": "una clave en un fichero de ejemplo"
-            },
-            {
-              "nombre": "Nada secreto al cliente",
-              "sujeto": "secreto",
-              "fuerza": "no_debe",
-              "exigencia": "viajar en una variable pública del cliente (VITE_ y similares)",
-              "control": "juicio",
-              "fuente": "owasp-secrets",
-              "porque": "Todo lo que llega al navegador lo lee quien abre las herramientas de desarrollo",
-              "ejemplo_bueno": "la clave de servicio solo en funciones de api/",
-              "ejemplo_malo": "la clave en una variable VITE_"
             }
           ],
           "no_hace": [
@@ -2680,6 +2437,10 @@
           "tarea": "Auditar qué datos personales se exponen en respuestas públicas y en registros",
           "accion": "juzgar",
           "origen": "mision",
+          "ambitos": [
+            "data",
+            "product"
+          ],
           "reglas": [
             {
               "nombre": "Solo campos necesarios",
@@ -2725,39 +2486,20 @@
           "tarea": "Auditar que un mensaje no haga escribir a Lola para otra casa ni saltarse la confirmación",
           "accion": "juzgar",
           "origen": "mision",
+          "ambitos": [
+            "bot"
+          ],
           "reglas": [
-            {
-              "nombre": "Texto de usuario es dato",
-              "sujeto": "prompt",
-              "fuerza": "debe",
-              "exigencia": "separar el texto del usuario de las instrucciones, sin tratarlo como orden",
-              "control": "juicio",
-              "fuente": "owasp-llm-injection",
-              "porque": "Un mensaje que parece una instrucción puede reorientar al modelo",
-              "ejemplo_bueno": "el mensaje va en su bloque de usuario y las reglas en el sistema",
-              "ejemplo_malo": "el texto del usuario pegado dentro de las instrucciones"
-            },
             {
               "nombre": "Escritura acotada",
               "sujeto": "herramienta",
               "fuerza": "debe",
-              "exigencia": "actuar solo sobre la casa del papel y confirmar antes de cambiar datos",
+              "exigencia": "actuar solo sobre la casa del papel que llama",
               "control": "juicio",
               "fuente": "owasp-llm-top10",
               "porque": "Un mensaje malicioso solo puede hacer lo que la herramienta le deja hacer",
               "ejemplo_bueno": "la herramienta de borrar pide confirmación y usa la casa del papel",
               "ejemplo_malo": "una herramienta que acepta el id de casa en sus argumentos"
-            },
-            {
-              "nombre": "Herramientas mínimas",
-              "sujeto": "papel",
-              "fuerza": "debe",
-              "exigencia": "dar al modelo las herramientas mínimas que necesita su tarea",
-              "control": "juicio",
-              "fuente": "owasp-llm-top10",
-              "porque": "Cada herramienta de más es una acción que un mensaje malicioso puede provocar",
-              "ejemplo_bueno": "el papel de consulta sin herramientas de escritura",
-              "ejemplo_malo": "todas las herramientas para todos los papeles"
             }
           ],
           "no_hace": [
@@ -2770,6 +2512,9 @@
           "tarea": "Confirmar un hallazgo en vivo solo con lecturas, o marcarlo sin verificar",
           "accion": "juzgar",
           "origen": "metodo",
+          "ambitos": [
+            "data"
+          ],
           "comunes": [
             "base-solo-lectura"
           ],
@@ -2808,6 +2553,9 @@
           "tarea": "Redactar la tabla de hallazgos por severidad, con escenario y arreglo, sin ningún valor secreto",
           "accion": "documentar",
           "origen": "entregables",
+          "ambitos": [
+            "process"
+          ],
           "comunes": [
             "informe-comun",
             "buscar-lo-ya-apuntado"
@@ -2836,17 +2584,6 @@
               "ejemplo_malo": "hallazgos por orden de fichero"
             },
             {
-              "nombre": "Detalle en privado",
-              "sujeto": "informe",
-              "fuerza": "no_debe",
-              "exigencia": "dejar en un issue público cómo se explota algo: el detalle va a Pablo en privado",
-              "control": "juicio",
-              "fuente": "casa-skill-issues",
-              "porque": "El repo es público y un issue es un manual para quien ataque",
-              "ejemplo_bueno": "el issue dice que hay un fallo de autorización y el detalle va en privado",
-              "ejemplo_malo": "los pasos de la explotación en el cuerpo del issue"
-            },
-            {
               "nombre": "Sin valores secretos",
               "sujeto": "informe",
               "fuerza": "no_debe",
@@ -2872,6 +2609,10 @@
           "tarea": "Diseñar o cambiar una pantalla, hoja, tarjeta o componente con los tokens y primitivos del sistema",
           "accion": "construir",
           "origen": "disparadores",
+          "ambitos": [
+            "ui",
+            "code"
+          ],
           "comunes": [
             "comprobar-design-system",
             "tests-de-lo-tocado"
@@ -2908,7 +2649,7 @@
           "rondas": [
             "ronda: 1 fuentes: 2 cambios: Consultados los tokens de la casa y el formato de tokens de diseño del W3C; ambos separan el valor del nombre con un rol",
             "ronda: 2 fuentes: 2 cambios: Contrastado con la regla de lint de la casa: ningún valor suelto, y la lista base solo baja; el estándar externo no dice cuántos",
-            "ronda: 3 fuentes: 1 cambios: Reducido a dos reglas propias (tokens y reutilizar) más las comunes del design system"
+            "ronda: 3 fuentes: 1 cambios: Reducido a dos condiciones propias (tokens y reutilizar) más las comunes del design system"
           ]
         },
         {
@@ -2916,6 +2657,10 @@
           "tarea": "Crear en el sistema el token o el primitivo que falta, con su porqué, antes de usarlo",
           "accion": "construir",
           "origen": "metodo",
+          "ambitos": [
+            "ui",
+            "code"
+          ],
           "reglas": [
             {
               "nombre": "Token con su porqué",
@@ -2969,7 +2714,7 @@
           ],
           "rondas": [
             "ronda: 1 fuentes: 2 cambios: Consultada la visión general de tokens de Material y el formato del W3C; los dos piden un nombre por rol y no por valor",
-            "ronda: 2 fuentes: 2 cambios: Contrastado con tokens.js y DESIGN_SYSTEM.md: la casa ya genera el CSS y valida la tabla con un test, y esa parte se queda como regla de la casa",
+            "ronda: 2 fuentes: 2 cambios: Contrastado con tokens.js y DESIGN_SYSTEM.md: la casa ya genera el CSS y valida la tabla con un test, y esa parte se queda como norma de la casa",
             "ronda: 3 fuentes: 1 cambios: Cuatro reglas: porqué, CSS generado, documento al día y primitivo único"
           ]
         },
@@ -2978,6 +2723,10 @@
           "tarea": "Migrar una pantalla a tokens bajando la lista de valores sueltos",
           "accion": "construir",
           "origen": "disparadores",
+          "ambitos": [
+            "ui",
+            "code"
+          ],
           "comunes": [
             "medir-antes-despues",
             "capturas-375-420"
@@ -3006,18 +2755,6 @@
               "porque": "Un diff visual de cinco pantallas no lo revisa nadie con cuidado",
               "ejemplo_bueno": "un PR que migra Despensa y nada más",
               "ejemplo_malo": "un PR que migra seis pantallas a la vez"
-            },
-            {
-              "nombre": "Ningún píxel cambia",
-              "sujeto": "pantalla",
-              "fuerza": "debe",
-              "condicion": "cuando se migra a tokens exactos",
-              "exigencia": "verse igual que antes: las capturas de antes y de después coinciden",
-              "control": "juicio",
-              "fuente": "casa-diseno-estado",
-              "porque": "Migrar es cambiar la fuente del valor, no el aspecto",
-              "ejemplo_bueno": "captura antes y después idénticas a 375 y 420 px",
-              "ejemplo_malo": "aprovechar la migración para ajustar un margen"
             }
           ],
           "no_hace": [
@@ -3027,7 +2764,7 @@
           ],
           "rondas": [
             "ronda: 1 fuentes: 2 cambios: Consultada la guía de cambios pequeños de Google y el formato de tokens; piden un cambio revisable y valores con nombre",
-            "ronda: 2 fuentes: 2 cambios: Contrastado con docs/diseno/ESTADO.md: la lista base por pantalla y la captura sin cambios son criterio de la casa",
+            "ronda: 2 fuentes: 2 cambios: Contrastado con docs/diseno/ESTADO.md: la lista base por pantalla y la captura sin cambios son decisión de la casa",
             "ronda: 3 fuentes: 1 cambios: Tres reglas: la lista baja, una pantalla por PR y sin cambio de píxeles"
           ]
         },
@@ -3036,6 +2773,9 @@
           "tarea": "Entregar assets optimizados: original en su carpeta, derivado por script y entrada en el manifiesto",
           "accion": "construir",
           "origen": "metodo",
+          "ambitos": [
+            "ui"
+          ],
           "reglas": [
             {
               "nombre": "Original y derivado",
@@ -3088,6 +2828,9 @@
           "tarea": "Añadir un icono, una ilustración o una familia de assets al sistema",
           "accion": "construir",
           "origen": "disparadores",
+          "ambitos": [
+            "ui"
+          ],
           "reglas": [
             {
               "nombre": "Una familia, un estilo",
@@ -3099,17 +2842,6 @@
               "porque": "Una ilustración que rompe el estilo hace que la app parezca varias",
               "ejemplo_bueno": "mismo fondo blanco, mismo tamaño y la seed junto al original",
               "ejemplo_malo": "una ilustración con otro fondo en la misma familia"
-            },
-            {
-              "nombre": "Alternativa de texto",
-              "sujeto": "icono",
-              "fuerza": "debe",
-              "exigencia": "llevar texto alternativo o marcarse como decorativo",
-              "control": "juicio",
-              "fuente": "w3-no-textual",
-              "porque": "Un icono sin alternativa no existe para quien usa lector de pantalla",
-              "ejemplo_bueno": "aria-hidden en el icono decorativo y aria-label en el que actúa",
-              "ejemplo_malo": "un icono-botón sin etiqueta"
             },
             {
               "nombre": "Coste aprobado",
@@ -3138,6 +2870,9 @@
           "tarea": "Tocar el logo, el favicon, el manifest o el color de marca",
           "accion": "construir",
           "origen": "disparadores",
+          "ambitos": [
+            "ui"
+          ],
           "reglas": [
             {
               "nombre": "Verde atado a tokens",
@@ -3188,6 +2923,9 @@
           "tarea": "Hacer las capturas de antes y después a 375×812 y 420×900",
           "accion": "medir",
           "origen": "metodo",
+          "ambitos": [
+            "ui"
+          ],
           "comunes": [
             "capturas-375-420"
           ],
@@ -3223,7 +2961,7 @@
           "rondas": [
             "ronda: 1 fuentes: 2 cambios: Consultada la documentación de capturas y las buenas prácticas de Playwright; piden capturas repetibles de lo visible",
             "ronda: 2 fuentes: 1 cambios: Contrastado con el método de diseno: la captura de antes se hace antes de tocar nada",
-            "ronda: 3 fuentes: 1 cambios: Dos reglas propias más la común de los dos anchos"
+            "ronda: 3 fuentes: 1 cambios: Dos condiciones propias más la común de los dos anchos"
           ]
         },
         {
@@ -3231,6 +2969,10 @@
           "tarea": "Escribir la voz de la interfaz: botones, vacíos y errores",
           "accion": "construir",
           "origen": "mision",
+          "ambitos": [
+            "ui",
+            "product"
+          ],
           "reglas": [
             {
               "nombre": "Botón con verbo",
@@ -3284,6 +3026,9 @@
           "tarea": "Poner al día docs/diseno/ESTADO.md con las cifras y decisiones",
           "accion": "documentar",
           "origen": "entregables",
+          "ambitos": [
+            "ui"
+          ],
           "reglas": [
             {
               "nombre": "Cifra con comando",
@@ -3327,6 +3072,10 @@
           "tarea": "Crear o cambiar una herramienta del bot con su descripción, su papel y sus tests",
           "accion": "construir",
           "origen": "disparadores",
+          "ambitos": [
+            "bot",
+            "code"
+          ],
           "comunes": [
             "tests-de-lo-tocado",
             "evals-antes-despues"
@@ -3356,18 +3105,6 @@
               "ejemplo_malo": "cambiar_plato devuelve ok y obliga a leer el menú otra vez"
             },
             {
-              "nombre": "Escritura segura",
-              "sujeto": "herramienta",
-              "fuerza": "debe",
-              "condicion": "cuando cambia datos de la casa",
-              "exigencia": "pasar por confirmación, cola e idempotencia, sin borrar nada sin el sí de la familia",
-              "control": "juicio",
-              "fuente": "casa-agente-lola",
-              "porque": "Una acción repetida o no pedida sobre datos de familias no se puede deshacer",
-              "ejemplo_bueno": "la herramienta pide confirmación y repite sin duplicar",
-              "ejemplo_malo": "borrar un plato en cuanto el modelo lo decide"
-            },
-            {
               "nombre": "Papel y permiso",
               "sujeto": "herramienta",
               "fuerza": "debe",
@@ -3395,6 +3132,9 @@
           "tarea": "Reproducir un fallo de Lola con el caso exacto y localizar su causa",
           "accion": "diagnosticar",
           "origen": "metodo",
+          "ambitos": [
+            "bot"
+          ],
           "comunes": [
             "causa-frente-a-sintoma",
             "buscar-lo-ya-apuntado"
@@ -3438,6 +3178,9 @@
           "tarea": "Cambiar el conocimiento o la ficha cuidando el prefijo cacheado",
           "accion": "construir",
           "origen": "disparadores",
+          "ambitos": [
+            "bot"
+          ],
           "comunes": [
             "evals-antes-despues"
           ],
@@ -3493,6 +3236,10 @@
           "tarea": "Cambiar el enrutador o la vía rápida y sus reglas",
           "accion": "construir",
           "origen": "mision",
+          "ambitos": [
+            "bot",
+            "code"
+          ],
           "comunes": [
             "evals-antes-despues"
           ],
@@ -3546,30 +3293,11 @@
           "tarea": "Cambiar los papeles y permisos de las herramientas de Lola",
           "accion": "construir",
           "origen": "mision",
+          "ambitos": [
+            "bot",
+            "code"
+          ],
           "reglas": [
-            {
-              "nombre": "Herramientas mínimas",
-              "sujeto": "papel",
-              "fuerza": "debe",
-              "exigencia": "tener solo las herramientas que su tarea necesita",
-              "control": "juicio",
-              "fuente": "owasp-llm-top10",
-              "porque": "Cada herramienta de más es una acción que un mensaje malicioso puede provocar",
-              "ejemplo_bueno": "el papel de consulta sin herramientas de escritura",
-              "ejemplo_malo": "un papel con todas las herramientas por comodidad"
-            },
-            {
-              "nombre": "Garantía en código",
-              "sujeto": "herramienta",
-              "fuerza": "debe",
-              "condicion": "cuando algo no puede fallar",
-              "exigencia": "ir en la base o en código determinista y no solo en el prompt",
-              "control": "juicio",
-              "fuente": "casa-lola-regla",
-              "porque": "Cada vez que una garantía dependió del modelo, los evals fallaron 1 de cada 3",
-              "ejemplo_bueno": "la tarea abierta vive en bot_tareas y se comprueba en código",
-              "ejemplo_malo": "pedirle al modelo en el prompt que no se olvide"
-            },
             {
               "nombre": "Revisión de seguridad",
               "sujeto": "papel",
@@ -3598,6 +3326,9 @@
           "tarea": "Bajar el coste o la latencia de un tipo de turno",
           "accion": "construir",
           "origen": "disparadores",
+          "ambitos": [
+            "bot"
+          ],
           "comunes": [
             "medir-antes-despues",
             "evals-antes-despues"
@@ -3633,7 +3364,7 @@
           "rondas": [
             "ronda: 1 fuentes: 3 cambios: Consultadas las guías de Anthropic sobre latencia y sobre elegir modelo, y la de caché",
             "ronda: 2 fuentes: 2 cambios: Contrastado con la medida del 1 oct de la casa: lo que tarda es el número de llamadas, no cada llamada",
-            "ronda: 3 fuentes: 1 cambios: Dos reglas propias: menos vueltas y el modelo más barato que aprueba"
+            "ronda: 3 fuentes: 1 cambios: Dos condiciones propias: menos vueltas y el modelo más barato que aprueba"
           ]
         },
         {
@@ -3641,6 +3372,9 @@
           "tarea": "Añadir a los evals el caso de un fallo real que se arregla",
           "accion": "construir",
           "origen": "entregables",
+          "ambitos": [
+            "bot"
+          ],
           "comunes": [
             "evals-antes-despues"
           ],
@@ -3684,6 +3418,9 @@
           "tarea": "Medir pase de evals, tokens por turno y vueltas antes y después del cambio",
           "accion": "medir",
           "origen": "entregables",
+          "ambitos": [
+            "bot"
+          ],
           "comunes": [
             "medir-antes-despues",
             "evals-antes-despues"
@@ -3720,7 +3457,7 @@
           "rondas": [
             "ronda: 1 fuentes: 2 cambios: Consultados el artículo de Anthropic sobre evals y su guía de latencia",
             "ronda: 2 fuentes: 1 cambios: Contrastado con scripts/bot-medidas.mjs y scripts/bot-coste.mjs: de ahí salen tokens y vueltas",
-            "ronda: 3 fuentes: 1 cambios: Dos reglas propias: la tabla del turno y decir lo que no se pudo correr"
+            "ronda: 3 fuentes: 1 cambios: Dos condiciones propias: la tabla del turno y decir lo que no se pudo correr"
           ]
         }
       ]
@@ -3732,6 +3469,10 @@
           "tarea": "Arrancar la app y recorrer el flujo tocado en un navegador a los dos anchos",
           "accion": "juzgar",
           "origen": "metodo",
+          "ambitos": [
+            "ui",
+            "product"
+          ],
           "comunes": [
             "capturas-375-420"
           ],
@@ -3786,6 +3527,9 @@
           "tarea": "Capturar cada pantalla afectada en los estados vacío, cargando y peligro",
           "accion": "juzgar",
           "origen": "mision",
+          "ambitos": [
+            "ui"
+          ],
           "comunes": [
             "capturas-375-420"
           ],
@@ -3828,22 +3572,11 @@
           "tarea": "Comprobar tokens, primitivos, objetivos táctiles, contraste y movimiento reducido contra el design system",
           "accion": "juzgar",
           "origen": "metodo",
+          "ambitos": [
+            "ui"
+          ],
           "comunes": [
             "comprobar-design-system"
-          ],
-          "reglas": [
-            {
-              "nombre": "Migrada, ni un píxel",
-              "sujeto": "pantalla",
-              "fuerza": "debe",
-              "condicion": "cuando está migrada a tokens exactos",
-              "exigencia": "no cambiar ni un píxel: la captura de antes y la de después coinciden",
-              "control": "juicio",
-              "fuente": "casa-diseno-estado",
-              "porque": "Una migración exacta cambia la fuente del valor y no el aspecto",
-              "ejemplo_bueno": "las dos capturas son idénticas a 375 px",
-              "ejemplo_malo": "un margen distinto tras la migración sin avisar"
-            }
           ],
           "no_hace": [
             "arreglar los valores sueltos que encuentra",
@@ -3852,7 +3585,7 @@
           "rondas": [
             "ronda: 1 fuentes: 2 cambios: Consultadas las requisitos de WCAG 2.2 sobre contraste y tamaño de objetivo",
             "ronda: 2 fuentes: 1 cambios: Contrastado con DESIGN_SYSTEM.md: la casa pide 40 px, más que el mínimo de WCAG",
-            "ronda: 3 fuentes: 1 cambios: Una regla propia (la pantalla migrada no cambia) más las cuatro comunes"
+            "ronda: 3 fuentes: 1 cambios: Una condición propia (la pantalla migrada no cambia) más las cuatro comunes"
           ]
         },
         {
@@ -3860,6 +3593,9 @@
           "tarea": "Recoger los errores de consola y las peticiones fallidas con el paso que los provoca",
           "accion": "juzgar",
           "origen": "metodo",
+          "ambitos": [
+            "ui"
+          ],
           "comunes": [
             "causa-frente-a-sintoma"
           ],
@@ -3891,6 +3627,9 @@
           "tarea": "Redactar los hallazgos visuales por pantalla con severidad y ruta de captura",
           "accion": "documentar",
           "origen": "entregables",
+          "ambitos": [
+            "process"
+          ],
           "comunes": [
             "informe-comun",
             "buscar-lo-ya-apuntado"
@@ -3938,6 +3677,9 @@
           "tarea": "Correr los evals del bot, del enrutador y de modelos que afectan al cambio",
           "accion": "medir",
           "origen": "metodo",
+          "ambitos": [
+            "bot"
+          ],
           "comunes": [
             "evals-antes-despues"
           ],
@@ -3969,7 +3711,7 @@
               "nombre": "Gasto sin repetir",
               "sujeto": "eval",
               "fuerza": "no_debe",
-              "exigencia": "pagar de nuevo lo ya medido sin cambios ni superar el tope mensual",
+              "exigencia": "pagar de nuevo lo ya medido sin cambios",
               "control": "scripts/lib/evals.test.js",
               "fuente": "casa-lola-regla",
               "porque": "Los evals de pago tienen un tope y lo medido sin cambios no se vuelve a pagar",
@@ -3993,6 +3735,9 @@
           "tarea": "Comparar la rama contra origin/staging con las mismas opciones y tabular el resultado",
           "accion": "medir",
           "origen": "mision",
+          "ambitos": [
+            "bot"
+          ],
           "comunes": [
             "evals-antes-despues",
             "medir-antes-despues"
@@ -4048,6 +3793,9 @@
           "tarea": "Leer las transcripciones de los casos que empeoran o fallan y explicar la causa",
           "accion": "diagnosticar",
           "origen": "metodo",
+          "ambitos": [
+            "bot"
+          ],
           "comunes": [
             "causa-frente-a-sintoma"
           ],
@@ -4091,8 +3839,14 @@
           "tarea": "Proponer los casos de eval que faltan, con su forma exacta en JSON",
           "accion": "juzgar",
           "origen": "entregables",
+          "ambitos": [
+            "bot"
+          ],
           "comunes": [
             "informe-comun"
+          ],
+          "normas": [
+            "jueces-sin-escritura"
           ],
           "reglas": [
             {
@@ -4105,17 +3859,6 @@
               "porque": "Un caso a medio escribir se pierde entre el informe y el repo",
               "ejemplo_bueno": "un objeto con id, tipo, dominio, origen y mensaje esperado",
               "ejemplo_malo": "describir el caso en una frase"
-            },
-            {
-              "nombre": "Un juez no escribe",
-              "sujeto": "eval.caso",
-              "fuerza": "no_debe",
-              "exigencia": "escribirse en el repo desde el evaluador: lo propone y lola lo añade",
-              "control": "juicio",
-              "fuente": "casa-agente-evaluador",
-              "porque": "Quien juzga no construye, para que el juicio siga siendo independiente",
-              "ejemplo_bueno": "el informe trae el caso y lola lo añade al set",
-              "ejemplo_malo": "editar scripts/bot-evals.json desde el evaluador"
             }
           ],
           "no_hace": [
@@ -4133,6 +3876,9 @@
           "tarea": "Evaluar el cambio de modelo de un tipo de turno antes de desplegarlo",
           "accion": "medir",
           "origen": "disparadores",
+          "ambitos": [
+            "bot"
+          ],
           "comunes": [
             "evals-antes-despues"
           ],
@@ -4180,9 +3926,15 @@
           "tarea": "Juzgar una migración o un cambio de modelo contra PRINCIPIOS.md y dejar su veredicto en una línea",
           "accion": "juzgar",
           "origen": "entregables",
+          "ambitos": [
+            "data"
+          ],
           "comunes": [
             "rls-escribe-datos-audita-seguridad",
             "donde-vive-el-dato"
+          ],
+          "normas": [
+            "ensayo-fuera-de-produccion"
           ],
           "reglas": [
             {
@@ -4245,6 +3997,9 @@
           "tarea": "Encontrar datos repetidos entre tabla, catálogo JSON, constantes JS y prompts del bot",
           "accion": "juzgar",
           "origen": "mision",
+          "ambitos": [
+            "data"
+          ],
           "comunes": [
             "donde-vive-el-dato",
             "buscar-lo-ya-apuntado"
@@ -4300,9 +4055,15 @@
           "tarea": "Vigilar el cableado: qué ficheros tocan cada tabla y qué filtros se escriben a mano",
           "accion": "medir",
           "origen": "mision",
+          "ambitos": [
+            "data"
+          ],
           "comunes": [
             "medir-antes-despues",
             "base-solo-lectura"
+          ],
+          "normas": [
+            "tabla-modulo-dueno"
           ],
           "reglas": [
             {
@@ -4315,17 +4076,6 @@
               "porque": "Un camino único a cada tabla solo se mantiene si se mira",
               "ejemplo_bueno": "scripts/cableado.mjs con los ficheros que tocan pedidos",
               "ejemplo_malo": "suponer que solo la toca su módulo"
-            },
-            {
-              "nombre": "Nada a mano fuera",
-              "sujeto": "cableado",
-              "fuerza": "no_debe",
-              "exigencia": "tener filtros ni nombres de columna escritos a mano fuera del módulo dueño de la tabla",
-              "control": "supabase/cableado.test.js",
-              "fuente": "casa-principios-datos",
-              "porque": "Un filtro a mano en una pantalla se rompe en silencio cuando cambia la columna",
-              "ejemplo_bueno": "la pantalla llama a la función del módulo dueño",
-              "ejemplo_malo": "un filtro PostgREST escrito en la pantalla"
             }
           ],
           "no_hace": [
@@ -4335,7 +4085,7 @@
           "rondas": [
             "ronda: 1 fuentes: 2 cambios: Consultados las restricciones de Postgres y el PRINCIPIOS.md de la casa",
             "ronda: 2 fuentes: 1 cambios: Contrastado con supabase/cableado.json y scripts/cableado.mjs, que ya cuentan los pares",
-            "ronda: 3 fuentes: 1 cambios: Dos reglas propias: ficheros por tabla y filtros fuera de su módulo"
+            "ronda: 3 fuentes: 1 cambios: Dos condiciones propias: ficheros por tabla y filtros fuera de su módulo"
           ]
         },
         {
@@ -4343,8 +4093,14 @@
           "tarea": "Proponer el mapa de dónde vive cada hecho y quién recalcula sus proyecciones",
           "accion": "documentar",
           "origen": "entregables",
+          "ambitos": [
+            "data"
+          ],
           "comunes": [
             "donde-vive-el-dato"
+          ],
+          "normas": [
+            "jueces-sin-escritura"
           ],
           "reglas": [
             {
@@ -4357,17 +4113,6 @@
               "porque": "Sin el mapa nadie sabe qué tocar cuando un hecho cambia",
               "ejemplo_bueno": "calorías: tabla de alimentos y proyección en el plato, recalculada por build-derived",
               "ejemplo_malo": "una lista de tablas sin decir de quién son las copias"
-            },
-            {
-              "nombre": "Propuesta por el informe",
-              "sujeto": "mapa.verdades",
-              "fuerza": "no_debe",
-              "exigencia": "escribirse en una memoria ni en el repo desde el juez: va al informe como propuesta",
-              "control": "juicio",
-              "fuente": "casa-agente-auditor",
-              "porque": "Un juez que escribe deja de ser independiente y la memoria no la ve el CI",
-              "ejemplo_bueno": "la propuesta de convención va al informe y a un issue",
-              "ejemplo_malo": "guardar la convención en la memoria del agente"
             }
           ],
           "no_hace": [
@@ -4385,8 +4130,14 @@
           "tarea": "Hacer la auditoría periódica del modelo y proponer convenciones o excepciones",
           "accion": "juzgar",
           "origen": "disparadores",
+          "ambitos": [
+            "data"
+          ],
           "comunes": [
             "buscar-lo-ya-apuntado"
+          ],
+          "normas": [
+            "estado-de-la-base-verificado"
           ],
           "reglas": [
             {
@@ -4424,6 +4175,153 @@
           ]
         }
       ]
+    },
+    "orquestador": {
+      "tareas": [
+        {
+          "id": "contestar-a-pablo",
+          "tarea": "Contestar a Pablo, y a terceros en su nombre, con la forma de la skill estilo-de-respuesta y la plantilla que toca",
+          "accion": "documentar",
+          "origen": "mision",
+          "ambitos": [
+            "process"
+          ],
+          "reglas": [
+            {
+              "nombre": "Idea raíz primero",
+              "sujeto": "respuesta.pablo",
+              "fuerza": "debe",
+              "exigencia": "abrir con la idea raíz en negrita, llevar cuatro ideas como mucho y cerrar con lo que necesita de él",
+              "control": "scripts/voz.test.js",
+              "fuente": "casa-estilo",
+              "porque": "Pablo no es informático y decide leyendo solo la primera y la última línea",
+              "ejemplo_bueno": "una frase en negrita con el resultado, tres ideas cortas y una línea final con lo que le toca",
+              "ejemplo_malo": "un párrafo que cuenta el camino y deja el resultado para el final"
+            },
+            {
+              "nombre": "Decisión con tres opciones",
+              "sujeto": "respuesta.pablo",
+              "fuerza": "debe",
+              "condicion": "cuando hay una decisión que tomar",
+              "exigencia": "dar tres opciones A, B y C con la recomendada primero y, en cada una, su coste y si es reversible",
+              "control": ".claude/voz.test.js",
+              "fuente": "casa-estilo",
+              "porque": "Una decisión sin coste ni vuelta atrás a la vista obliga a preguntar de nuevo",
+              "ejemplo_bueno": "A (recomendada): en el servidor actual. Coste: nada. Reversible",
+              "ejemplo_malo": "una tabla de columnas técnicas sin recomendación"
+            }
+          ],
+          "no_hace": [
+            "construir lo que es de un agente del dominio",
+            "dar ficheros, ramas o comandos en el chat salvo que Pablo los pida o tenga que ejecutarlos",
+            "tomar por Pablo lo irreversible o lo que sale fuera"
+          ],
+          "rondas": [
+            "ronda: 1 fuentes: 2 cambios: Leídas la skill estilo-de-respuesta y la plantilla de agentes: la forma ya tiene una sola fuente",
+            "ronda: 2 fuentes: 1 cambios: Contrastado con .claude/voz.test.js y el medidor de scripts/voz.test.js: la forma se mide",
+            "ronda: 3 fuentes: 1 cambios: Dos reglas: idea raíz primero y decisión con tres opciones"
+          ]
+        },
+        {
+          "id": "repartir-el-encargo",
+          "tarea": "Clasificar un encargo y repartirlo entre agentes con un constructor y un juez distintos y un brief autocontenido",
+          "accion": "decidir",
+          "origen": "metodo",
+          "ambitos": [
+            "process"
+          ],
+          "reglas": [
+            {
+              "nombre": "Esfuerzo por el comando",
+              "sujeto": "encargo",
+              "fuerza": "debe",
+              "exigencia": "dimensionarse con npm run dimensionar y repartirse con un constructor y, aparte, un juez",
+              "control": "scripts/dimensionar.test.js",
+              "fuente": "casa-claude",
+              "porque": "Un agente gasta varias veces los tokens de un chat y el esfuerzo estimado a ojo se descontrola",
+              "ejemplo_bueno": "npm run dimensionar -- --diff antes de lanzar a nadie",
+              "ejemplo_malo": "lanzar cuatro agentes en paralelo por si acaso"
+            },
+            {
+              "nombre": "Brief autocontenido",
+              "sujeto": "encargo",
+              "fuerza": "debe",
+              "exigencia": "llevar al agente su estándar (npm run estandar), sus skills (skills-encargo) y lo ya apuntado, porque no ve la conversación",
+              "control": ".claude/agentes.test.js",
+              "fuente": "casa-plantilla-agente",
+              "porque": "Un agente no hereda el contexto de la sesión y rehace o inventa lo que no le llega",
+              "ejemplo_bueno": "un brief con ESTÁNDAR A CUMPLIR, SKILLS A ABRIR y los issues parecidos",
+              "ejemplo_malo": "«arregla lo de antes» sin más contexto"
+            }
+          ],
+          "no_hace": [
+            "lanzar un agente dentro de otro agente",
+            "saltarse al juez en un cambio normal",
+            "elegir el esfuerzo a ojo"
+          ],
+          "rondas": [
+            "ronda: 1 fuentes: 2 cambios: Leídos .claude/commands/orquestar.md y la documentación de los agentes de Claude Code (qué recibe cada agente al arrancar)",
+            "ronda: 2 fuentes: 1 cambios: Contrastado con scripts/dimensionar.test.js: el esfuerzo sale de un comando y no de una estimación",
+            "ronda: 3 fuentes: 1 cambios: Dos reglas: esfuerzo por el comando y brief autocontenido"
+          ]
+        },
+        {
+          "id": "juntar-informes-y-traspasos",
+          "tarea": "Juntar los informes de los agentes y pasar el trabajo al siguiente según sus traspasos declarados",
+          "accion": "documentar",
+          "origen": "entregables",
+          "ambitos": [
+            "process"
+          ],
+          "reglas": [
+            {
+              "nombre": "Hallazgo con marca",
+              "sujeto": "hallazgo",
+              "fuerza": "no_debe",
+              "exigencia": "darse por bueno sin su marca YA APUNTADO o NUEVO con la consulta que se buscó",
+              "control": "scripts/buscarAntes.test.js",
+              "fuente": "casa-plantilla-agente",
+              "porque": "Presentar como nuevo lo ya apuntado duplica trabajo y esconde el plan que ya existe",
+              "ejemplo_bueno": "YA APUNTADO: #n con su estado, o NUEVO (buscado: la consulta)",
+              "ejemplo_malo": "un hallazgo sin marca copiado al resumen"
+            },
+            {
+              "nombre": "Traspaso declarado",
+              "sujeto": "traspaso",
+              "fuerza": "debe",
+              "exigencia": "salir del campo traspasa_a de la cabecera del agente y coincidir con lo que dicen su «No para:» y su Escalado",
+              "control": ".claude/agentes.test.js",
+              "fuente": "casa-plantilla-agente",
+              "porque": "Si el traspaso solo vive en prosa, una arista cambia o se pierde sin que nada falle",
+              "ejemplo_bueno": "traspasa_a: [datos, gobierno] y los dos citados en su Escalado",
+              "ejemplo_malo": "un «a gobierno» en el Escalado que ninguna cabecera declara"
+            }
+          ],
+          "no_hace": [
+            "elegir ganador cuando dos agentes se pisan",
+            "registrar un caso sin el informe que lo prueba",
+            "dar por resuelto un traspaso que el agente destino no ha recibido"
+          ],
+          "rondas": [
+            "ronda: 1 fuentes: 2 cambios: Leídas la plantilla de agentes (informe común) y las secciones de Escalado de los nueve agentes",
+            "ronda: 2 fuentes: 1 cambios: Contrastado con scripts/lib/agentes.mjs: los traspasos salen de la cabecera y se cruzan con el texto",
+            "ronda: 3 fuentes: 1 cambios: Dos reglas: hallazgo con marca y traspaso declarado"
+          ]
+        }
+      ]
     }
+  },
+  "reglas_que_no_son_norma": {
+    "revisor/contrastar-estandar-del-constructor · Sin informe, no comprobado": "principios-auto: se parecen solo en comprobar; la regla es cómo marca el juez una regla sin evidencia",
+    "lola/papeles-y-permisos-de-herramientas · Revisión de seguridad": "evals-antes-de-fusionar: se parecen solo en fusionar; la regla es que un cambio de papel o permiso pase por el juez seguridad",
+    "común buscar-lo-ya-apuntado · Buscar antes de apuntar": "issues-con-buscar-antes: la norma es crear un issue con el script que busca parecidos; la regla es buscar antes de dar un hallazgo por nuevo en un informe",
+    "gobierno/worktrees-y-ramas · Inventario antes de borrar": "uniones-antes-de-borrar: la norma es quitar las uniones; la regla es enseñar antes lo que se perdería (cambios, commits sin subir y uniones)"
+  },
+  "normas_sin_juez": {
+    "produccion-solo-desde-main": "Gateway de Pablo: lo juzga él al pulsar fusionar a main, no un agente juez",
+    "ajustes-servicios-ok-pablo": "Gateway de Pablo: el ajuste lo aprueba o lo hace él; ningún agente juez lo ve antes",
+    "gasto-ok-pablo": "Gateway de Pablo: el gasto lo aprueba él antes de lanzarlo; ningún agente juez lo ve antes",
+    "fuera-de-onedrive": "Lo ve el arranque de la sesión por la ruta de la carpeta; no hay un cambio que juzgar",
+    "copia-restaurada-ensayada": "Lo comprueba el ensayo mensual de copias (#282), que lanza Pablo; no hay un cambio que juzgar"
   }
 }

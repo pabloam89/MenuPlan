@@ -22,10 +22,12 @@
 import { MAX_NUMERO, MIN_MOTIVO } from "../../.claude/hooks/casos.mjs";
 import { ESCALONES, etiquetaDeEscalon } from "./escalas.mjs";
 import { ALCANCES_FALLO } from "./flujo.mjs";
-import { CAMPOS_ENCARGO, ESCALONES_AUTOMATICOS, GRUPOS, MAX_ENCARGOS_POR_FONDO, TIPOS_ACCION, debeReabrir, faltas, porGrupo } from "./issues.mjs";
+import { CAMPOS_ENCARGO, ENCARGO_N1_DESDE, ESCALONES_AUTOMATICOS, GRUPOS, MAX_ENCARGOS_POR_FONDO, TIPOS_ACCION, debeReabrir, faltas, porGrupo } from "./issues.mjs";
 import { CATALOGO as MECANISMOS } from "./mecanismos.mjs";
 import { RIESGOS } from "./normas.mjs";
-import { CATALOGO, TOPE_RONDAS, presupuestoDe } from "./presupuestos.mjs";
+import { CATALOGO, COMPLEXITIES, TOPE_RONDAS, presupuestoDe } from "./presupuestos.mjs";
+import { AGENTES, JUECES } from "./agentes.mjs";
+import { ALL_SUBTYPES, MAX_NOTE, TYPES } from "./tiposDeEncargo.mjs";
 
 // ── Vocabularios cerrados ─────────────────────────────────────────────────────
 
@@ -54,7 +56,8 @@ export const ESTADOS_CON_DIAGNOSTICO = ["diagnosticado", "plan", "en-curso", "en
  * principal. Un test (fondos.test.js) lo cruza con la carpeta: si nace un agente
  * y no se añade aquí, falla.
  */
-export const CAPAS_AGENTE = ["auditor-datos", "datos", "diseno", "evaluador", "gobierno", "lola", "qa", "revisor", "seguridad", "sesión"];
+/** Los agentes de .claude/agents/ (agentes.mjs, una sola fuente) y la sesión principal. */
+export const CAPAS_AGENTE = [...Object.keys(AGENTES), "sesión"];
 
 /** Barrera = escalón de la escalera de durabilidad (scripts/lib/escalas.mjs), del más al menos duradero. */
 export const BARRERAS = ESCALONES;
@@ -146,10 +149,15 @@ export const TIPOS_CAMPO_ENCARGO = {
   clase: { tipo: "texto" },
   depende_de: { tipo: "lista" },
   constructor: { tipo: "vocab", valores: CAPAS_AGENTE },
-  juez: { tipo: "vocab", valores: CAPAS_AGENTE },
+  juez: { tipo: "vocab", valores: JUECES },
   verificacion: { tipo: "ruta" },
   hecho_cuando: { tipo: "texto" },
   ficheros: { tipo: "texto" },
+  assignment_type: { tipo: "vocab", valores: Object.keys(TYPES) },
+  // Los activos y los alias retirados (con aviso al validar): un id que no existe se rechaza.
+  subtype: { tipo: "vocab", valores: ALL_SUBTYPES.map((t) => t.id) },
+  subtype_note: { tipo: "texto" },
+  complexity: { tipo: "vocab", valores: Object.keys(COMPLEXITIES) },
 };
 
 // ── Leer la ficha ─────────────────────────────────────────────────────────────
@@ -600,11 +608,23 @@ export function validarEncargos(encargos, estado) {
     const escalon = escalonDe(e.mecanismo);
     const faltan = CAMPOS_ENCARGO.filter((c) => {
       if (c.clave === "por_que_no_mas_alto") return escalon !== null && escalon !== BARRERAS[0] && !Object.hasOwn(e, c.clave);
+      // Los campos del N1 del encargo (`desde`) solo se exigen a los creados desde su día; sin fecha, no se exigen.
+      if (c.desde) return Boolean(h.createdAt) && String(h.createdAt).slice(0, 10) >= c.desde && !Object.hasOwn(e, c.clave);
       return c.obligatorio === true && !Object.hasOwn(e, c.clave);
     }).map((c) => c.clave);
     if (faltan.length) {
       todosLeidos = false;
       dice("encargo-incompleto", `#${n} no rellena: ${faltan.join(", ")}`);
+    }
+    const subtipo = ALL_SUBTYPES.find((t) => t.id === e.subtype);
+    if (subtipo && Object.hasOwn(e, "assignment_type") && subtipo.type !== e.assignment_type) dice("encargo-subtipo", `#${n}: el subtipo «${subtipo.id}» es de tipo «${subtipo.type}» y el encargo dice «${e.assignment_type}»`);
+    // Durante la transición, un id de antes vale, con un aviso que dice el id nuevo (#646).
+    if (subtipo?.status === "retired") dice("encargo-subtipo-retirado", `#${n}: el subtipo «${subtipo.id}» está retirado; usa «${subtipo.replaced_by}»`, "aviso");
+    // La válvula (`<tipo>-other`) pide su motivo, y todo motivo tiene tope (la puerta de entrada, #646).
+    if (Object.hasOwn(e, "subtype_note") && String(e.subtype_note).length > MAX_NOTE) dice("encargo-subtype-note", `#${n}: «subtype_note» pasa de ${MAX_NOTE} caracteres`);
+    if (Object.hasOwn(e, "subtype_note") && subtipo && !subtipo.valve) dice("encargo-subtype-note", `#${n}: «subtype_note» es solo de una válvula (\`<tipo>-other\`) y «${subtipo.id}» no lo es`);
+    if (subtipo?.valve && Boolean(h.createdAt) && String(h.createdAt).slice(0, 10) >= ENCARGO_N1_DESDE && String(e.subtype_note ?? "").trim().length < 10) {
+      dice("encargo-valvula", `#${n}: «${subtipo.id}» es la válvula de ${subtipo.type}: «subtype_note» dice (de 10 a ${MAX_NOTE} caracteres) por qué ningún otro subtipo encaja`);
     }
     if (Object.hasOwn(e, "juez") && Object.hasOwn(e, "constructor") && e.juez === e["constructor"]) dice("encargo-juez", `#${n}: quien construye no juzga (constructor y juez son el mismo)`);
     if (e.tipo_accion === "preventivo" && ESCALONES_AUTOMATICOS.includes(escalon)) hayPreventivo = true;

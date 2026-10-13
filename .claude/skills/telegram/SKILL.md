@@ -11,6 +11,7 @@ metadata:
   elige_opciones: false
   dueno: lola
   comprobado: "2026-10-09"
+  normas: [secretos-ok-pablo, bot-write-idempotent, machine-caller-authenticated]
 ---
 
 # Telegram

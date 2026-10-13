@@ -87,7 +87,7 @@ describe("los moldes de .claude/plantillas-skill/ están al día", () => {
 /**
  * Dónde puede haber varios tipos juntos, y por qué no es otra lista:
  * - ops/forja/: es LA lista (y los retirados, con su destino);
- * - .claude/PLANTILLA-SKILL.md, SOLO su sección «El estándar de cada tipo»: un apartado
+ * - .claude/PLANTILLA-SKILL.md, SOLO su sección «La plantilla de cada tipo»: un apartado
  *   por tipo, que .claude/skills.test.js obliga a tener exactamente los tipos de la forja;
  *   el resto del fichero se mira como cualquier otro;
  * - docs/ops/FORJA.md: se genera de la forja y ops/forja.test.js lo compara.
@@ -99,7 +99,7 @@ describe("los moldes de .claude/plantillas-skill/ están al día", () => {
  */
 const PERMITIDOS = ["ops/forja/", "docs/ops/FORJA.md", "ops/vocabularios-vida.json"];
 /** Secciones exentas dentro de un fichero que por lo demás se mira: { ruta: título de la sección ## }. */
-const SECCIONES_EXENTAS = { ".claude/PLANTILLA-SKILL.md": "El estándar de cada tipo" };
+const SECCIONES_EXENTAS = { ".claude/PLANTILLA-SKILL.md": "La plantilla de cada tipo" };
 /** El texto sin la sección `## titulo` (hasta la siguiente cabecera ##); falla si la sección no está, para que la exención no quede vieja. */
 function sinSeccion(texto, titulo, ruta) {
   const lineas = texto.replace(/\r\n/g, "\n").split("\n");
@@ -149,12 +149,12 @@ describe("una sola lista de tipos de skill", () => {
   });
 
   it("la exención de .claude/PLANTILLA-SKILL.md es solo su sección de estándares: fuera de ella, una lista se ve", () => {
-    const texto = "# P\n\n## Antes\n\n- servicio\n- flujo\n- revision\n\n## El estándar de cada tipo\n\n### `servicio`\n\n### `flujo`\n\n### `revision`\n\n## Después\n\nNada.\n";
-    const resto = sinSeccion(texto, "El estándar de cada tipo", "x.md");
+    const texto = "# P\n\n## Antes\n\n- servicio\n- flujo\n- revision\n\n## La plantilla de cada tipo\n\n### `servicio`\n\n### `flujo`\n\n### `revision`\n\n## Después\n\nNada.\n";
+    const resto = sinSeccion(texto, "La plantilla de cada tipo", "x.md");
     expect(resto).not.toContain("### `servicio`");
     expect(resto).toContain("## Después");
     expect(listasDeTipos(resto, "x.md", VOCABULARIOS).map((h) => h.donde)).toEqual(["lista de la línea 5"]);
-    expect(() => sinSeccion("# P\n", "El estándar de cada tipo", "x.md")).toThrow(/no tiene la sección/);
+    expect(() => sinSeccion("# P\n", "La plantilla de cada tipo", "x.md")).toThrow(/no tiene la sección/);
   });
 
   it("ningún texto dice ya que las respuestas van en respuestas_tipo de la forja: van en el frontmatter", () => {

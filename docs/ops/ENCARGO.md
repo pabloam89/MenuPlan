@@ -17,6 +17,10 @@ Referencia común de las skills de oficio (`causa-raiz`, `plan-de-arreglo`) para
 | `verificacion` | ruta del fichero que prueba la clase (un `*.test.js` si el escalón es test_ci) | sí |
 | `hecho_cuando` | texto: lo que se ve cuando está hecho | sí |
 | `ficheros` | rutas que toca, separadas por coma | no |
+| `assignment_type` | un tipo de `ops/tipos-de-encargo.json` (`assignment_types`) | sí en los creados desde 2026-10-13; antes, no |
+| `subtype` | un `id` activo de `tipos` de `ops/tipos-de-encargo.json` que cuelgue de ese tipo (un id retirado vale, con aviso) | sí en los creados desde 2026-10-13; antes, no |
+| `complexity` | `trivial`, `normal`, `large` | sí en los creados desde 2026-10-13; antes, no |
+| `subtype_note` | texto de hasta 160 caracteres: por qué ningún subtipo encaja; hace falta con una válvula (`<tipo>-other`) en los creados desde 2026-10-13 | solo con una válvula |
 
 Tipos de acción:
 
@@ -40,4 +44,8 @@ juez:
 verificacion:
 hecho_cuando:
 ficheros:
+assignment_type:
+subtype:
+complexity:
+subtype_note:
 ```

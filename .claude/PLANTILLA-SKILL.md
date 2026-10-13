@@ -76,8 +76,14 @@ metadata:
   opera_proveedor: <true o false>   # y una línea por cada pregunta de preguntas_tipo; el molde las trae todas
   dueno: <agente de .claude/agents/ que la carga en su skills:>
   comprobado: AAAA-MM-DD
+  normas: [<id de ops/normas.json a la que sirve>, <otra>]
 ---
 ```
+
+- `normas` (#620): las normas de `ops/normas.json` a las que sirve la skill, por su id. La
+  skill las cita (aquí y, junto a una frase, con `<!-- norma:id -->`) y no copia su frase:
+  `ops/uniones.test.js` falla si una cita no está en la lista o si el texto contiene la
+  exigencia de una norma.
 
 - `tipo` no se elige: sale de sus respuestas (`true` o `false`) a las preguntas de
   `preguntas_tipo` de `ops/forja/`, que van en el frontmatter (metadata), junto a `tipo`
@@ -163,12 +169,12 @@ comprobación»).
   reciente arriba; al menos la primera versión.
 - La última línea, como en servicio: `Comprobado el …` o `Sin comprobar: …`.
 
-## El estándar de cada tipo
+## La plantilla de cada tipo
 
 El molde de cada tipo dice qué secciones lleva; esto dice **qué hace buena
 a una skill de ese tipo**, qué la estropea y cómo se ve una buena. Cada punto lleva
 su marca: **[F: fuente]** está en la fuente (las siglas BP, CC, DESC, EVAL, SB, CE y
-BEA y sus URL, en la skill `forja-de-skills`) y **[I]** es inferencia nuestra,
+BEA y sus URL, en la skill `forja-de-skills`) y **[S]** es inferencia nuestra,
 también la que se traslada por analogía desde guías de prompts o de agentes. Un
 tipo sin su estándar no se puede usar: `.claude/skills.test.js` falla si a un tipo le
 falta «Qué lo hace bueno», «Errores típicos» o su ejemplo, si un punto no lleva
@@ -183,16 +189,16 @@ su molde al generarlo: se escribe aquí y solo aquí, uno por cada tipo de la fo
 #### Qué lo hace bueno
 
 - Cada operación es una fila con el comando exacto y lo que debe salir: donde un error cuesta caro, pasos cerrados y no consejos [F: BP, grados de libertad].
-- «Lo que falló y por qué» recoge fallos reales con su causa y su arreglo; es la memoria del servicio y lo que el modelo no sabe [I].
-- Lo irreversible está nombrado en «Qué requiere el OK de Pablo», y lo no comprobado se dice en la última línea [I].
+- «Lo que falló y por qué» recoge fallos reales con su causa y su arreglo; es la memoria del servicio y lo que el modelo no sabe [S].
+- Lo irreversible está nombrado en «Qué requiere el OK de Pablo», y lo no comprobado se dice en la última línea [S].
 - El estado real y lo pendiente, sin disimular; el procedimiento largo, en una capa que `SKILL.md` cita [F: BP, un solo nivel de profundidad].
 
 #### Errores típicos
 
 - Pegar la documentación del proveedor, que el modelo ya conoce [F: BP, lo conciso].
-- Una fila sin «Debe salir»: no se sabe si fue bien [I].
+- Una fila sin «Debe salir»: no se sabe si fue bien [S].
 - Precios, versiones o «desde tal día» escritos en el cuerpo, que se quedan viejos [F: BP, información que caduca].
-- Un procedimiento de veinte pasos metido en una celda de la tabla [I].
+- Un procedimiento de veinte pasos metido en una celda de la tabla [S].
 
 #### Ejemplo mínimo
 
@@ -210,16 +216,16 @@ Real: `tailscale`, la tabla de «Operaciones habituales».
 
 - Pasos numerados en orden fijo, cada uno con lo que sale al terminarlo [F: BP, flujos con pasos claros y listas de comprobación].
 - «Antes de empezar» comprueba las condiciones y «Cómo se comprueba» confirma el resultado sin enseñar datos sensibles [F: BP, bucles de comprobación].
-- Los pasos que no se pueden deshacer son de una persona: el procedimiento deja los comandos listos y no los lanza [I].
-- Al sustituir algo, primero se comprueba lo nuevo y solo entonces se retira lo viejo [I].
+- Los pasos que no se pueden deshacer son de una persona: el procedimiento deja los comandos listos y no los lanza [S].
+- Al sustituir algo, primero se comprueba lo nuevo y solo entonces se retira lo viejo [S].
 - Una lista de comprobación que se copia y se marca al final [F: BP, listas de comprobación].
 
 #### Errores típicos
 
 - Pasos sin salida observable: «comprueba que esté bien» [F: BP, instrucciones claras].
 - Probar solo en local algo que corre en otro entorno [I, lección de la propia `alta-de-secreto`].
-- Un valor secreto escrito en el comando, que queda en la conversación [I].
-- Mezclar varios procedimientos en uno (dar de alta, rotar y operar el servicio) sin decir qué es de cada uno [I].
+- Un valor secreto escrito en el comando, que queda en la conversación [S].
+- Mezclar varios procedimientos en uno (dar de alta, rotar y operar el servicio) sin decir qué es de cada uno [S].
 
 #### Ejemplo mínimo
 
@@ -237,16 +243,16 @@ Real: `alta-de-secreto`, el primer paso de su método.
 
 - Un camino por defecto y una salida para el caso raro, no un menú de opciones [F: BP, demasiadas opciones].
 - Cada paso del método dice lo que sale, y el método dice cuándo se acaba [F: BP, bucles de comprobación] y la condición de parada [I: por analogía, BEA].
-- Las técnicas se eligen por un dato del problema (su tipo de causa, su alcance), no por gusto [I].
-- Lo que no se ha podido comprobar se escribe como hipótesis, con la observación que la confirmaría [I].
+- Las técnicas se eligen por un dato del problema (su tipo de causa, su alcance), no por gusto [S].
+- Lo que no se ha podido comprobar se escribe como hipótesis, con la observación que la confirmaría [S].
 - Un ejemplo resuelto, abstracto y canónico, que sigue la propia norma de la skill [I por analogía, CE, ejemplos canónicos].
 
 #### Errores típicos
 
 - Un método de principios («analiza bien») sin pasos que se puedan ver [F: BP, instrucciones claras].
-- Un ejemplo copiado de un caso real, con nombres o datos de familias [I].
+- Un ejemplo copiado de un caso real, con nombres o datos de familias [S].
 - Dar libertad total donde un fallo cuesta caro [F: BP, grados de libertad].
-- El catálogo de técnicas copiado dentro de la skill y también en su fuente: dos versiones [I].
+- El catálogo de técnicas copiado dentro de la skill y también en su fuente: dos versiones [S].
 
 #### Ejemplo mínimo
 
@@ -263,16 +269,16 @@ Real: `causa-raiz`, el paso que cierra la causa.
 
 #### Qué lo hace bueno
 
-- Las opciones se ordenan con un catálogo escrito (la escalera, los mecanismos) y se empieza por la más alta; bajar exige su motivo [I].
-- Cada criterio del catálogo se aplica a la opción elegida y se dice cómo, no solo el resultado [I, prueba del tipo en `ops/forja/`].
+- Las opciones se ordenan con un catálogo escrito (la escalera, los mecanismos) y se empieza por la más alta; bajar exige su motivo [S].
+- Cada norma del catálogo se aplica a la opción elegida y se dice cómo, no solo el resultado [I, prueba del tipo en `ops/forja/`].
 - Una recomendación por defecto y, aparte, cuándo conviene otra, no un menú [F: BP, demasiadas opciones].
 - Cada paso del método dice lo que sale, y el método dice cuándo se acaba [F: BP, bucles de comprobación].
 
 #### Errores típicos
 
-- Elegir por gusto o por costumbre sin pasar por el catálogo [I].
+- Elegir por gusto o por costumbre sin pasar por el catálogo [S].
 - Un menú de opciones sin la recomendada [F: BP, demasiadas opciones].
-- Copiar el catálogo de opciones dentro de la skill: dos versiones que se separan [I].
+- Copiar el catálogo de opciones dentro de la skill: dos versiones que se separan [S].
 
 #### Ejemplo mínimo
 
@@ -292,13 +298,13 @@ Real: `plan-de-arreglo`, el paso que elige el mecanismo.
 
 - Cada etapa nombra la skill o el agente que la lleva, y existe [I, prueba del tipo en `ops/forja/`].
 - Cada etapa tiene su puerta: lo que la hace cumplir (un hook, el CI, un workflow), no solo el texto [I, CLAUDE.md «Lo que hace cumplir esto»].
-- Dice qué entra y qué sale de cada etapa, para que la siguiente sepa por dónde empezar [I].
+- Dice qué entra y qué sale de cada etapa, para que la siguiente sepa por dónde empezar [S].
 
 #### Errores típicos
 
-- Copiar dentro el método de una etapa que ya tiene su skill: dos versiones [I].
+- Copiar dentro el método de una etapa que ya tiene su skill: dos versiones [S].
 - Una etapa sin dueño o sin puerta, que depende de que alguien se acuerde [I, CLAUDE.md «Cuando algo falla»].
-- Encadenar etapas sin decir qué sale de cada una, y que la siguiente lo adivine [I].
+- Encadenar etapas sin decir qué sale de cada una, y que la siguiente lo adivine [S].
 
 #### Ejemplo mínimo
 
@@ -314,17 +320,17 @@ problema de fondo (tipo:fondo)   qué falla de fondo, su arreglo general y cómo
 
 #### Qué lo hace bueno
 
-- Cada criterio es observable y va separado de los demás, con la evidencia que lo cumple (fichero y línea, una salida) [I].
-- Los criterios viven en su catálogo y la skill los cita; no los copia [I].
-- Cada hallazgo sale con un código de un vocabulario cerrado y su arreglo, para poder contarlo [I].
-- Quien construye no juzga, y el juez no escribe lo que revisa [I].
-- Un criterio discrimina: si pasa igual con la pieza buena que con la mala, se retira [F: EVAL, aserciones que no miden nada].
+- Cada norma es observable y va separada de las demás, con la evidencia que la cumple (fichero y línea, una salida) [S].
+- Los criterios viven en su catálogo y la skill los cita; no los copia [S].
+- Cada hallazgo sale con un código de un vocabulario cerrado y su arreglo, para poder contarlo [S].
+- Quien construye no juzga, y el juez no escribe lo que revisa [S].
+- Una norma discrimina: si pasa igual con la pieza buena que con la mala, se retira [F: EVAL, aserciones que no miden nada].
 
 #### Errores típicos
 
-- Criterios con adjetivos («claro», «bueno») sin nada que mirar [I].
-- Ejemplos calibrados solo de lo obvio, que cualquier rúbrica separa [I].
-- Un juez que arregla lo que juzga: deja de ser independiente [I].
+- Criterios con adjetivos («claro», «bueno») sin nada que mirar [S].
+- Ejemplos calibrados solo de lo obvio, que cualquier rúbrica separa [S].
+- Un juez que arregla lo que juzga: deja de ser independiente [S].
 - Juzgar sin mirar antes lo ya apuntado, y dar por nuevo lo conocido [I, caso #320].
 
 #### Ejemplo mínimo
@@ -342,13 +348,13 @@ Real: `higiene-de-skills`, el primer paso de su método.
 #### Qué lo hace bueno
 
 - «Lo que hay que saber» son hechos que el modelo no tiene (reglas del negocio, excepciones, vocabulario propio), no definiciones generales [F: BP, lo conciso].
-- «Dónde vive el dato» apunta a la fuente de verdad y dice cómo leerla; no copia el dato [I].
+- «Dónde vive el dato» apunta a la fuente de verdad y dice cómo leerla; no copia el dato [S].
 - Se organiza por tema, con el detalle de cada uno en su capa, para cargar solo lo que se necesita [F: BP, organización por dominio].
 - Una palabra por cosa en toda la skill [F: BP, terminología coherente].
 
 #### Errores típicos
 
-- Copiar el dato (una cifra, una lista, un estado) en la skill: pasa a haber dos fuentes y una se queda vieja [I].
+- Copiar el dato (una cifra, una lista, un estado) en la skill: pasa a haber dos fuentes y una se queda vieja [S].
 - Cifras o estados que caducan escritos en el cuerpo [F: BP, información que caduca].
 - Mezclar dos temas en una skill, que acaba solapando con otra [F: SB, según resúmenes; I el reparto].
 - Explicar el tema como un manual en lugar de lo que el modelo no sabe [F: BP, lo conciso].
@@ -374,7 +380,7 @@ forja paso a paso (incluido cuándo **no** crearla) está en la skill
 - **3 casos de frontera** como mínimo (peticiones parecidas que son de otra skill).
 - **Sin fechas en el cuerpo** fuera de «Lo que falló y por qué», «Registro de
   cambios» y «Fuentes y comprobación».
-- **Criterio de parada**: el «Método» (salvo en servicio) dice qué sale o cuándo se acaba.
+- **Condición de parada**: el «Método» (salvo en servicio) dice qué sale o cuándo se acaba.
 - **Como mucho 3 ejemplos** por sección de ejemplos.
 - **Descripciones sin solape** léxico entre skills.
 - **Presentación mecánica**: los comandos en código (en línea o en bloque), las

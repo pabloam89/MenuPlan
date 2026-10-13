@@ -2,6 +2,7 @@
   "termino": "podar",
   "estado": "activo",
   "clase": "accion",
+  "dominio": "base",
   "definicion": "Quitar lo que ya no aporta: ramas fusionadas o una skill que no mejora sobre el modelo solo.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
@@ -9,5 +10,11 @@
   ],
   "relacionado": [
     "retirar"
+  ],
+  "entidades": [
+    {
+      "entidad": "branch",
+      "relacion": "accion_sobre"
+    }
   ]
 }

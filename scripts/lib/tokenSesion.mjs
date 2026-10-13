@@ -84,18 +84,19 @@ function leerFicha(f) {
 /** Lee la clave de la bóveda. `leer` se inyecta para probarlo. Devuelve { pem, temporal }. */
 export function leerClaveDeBoveda({ fichas = FICHAS_CLAVE, leer = leerFicha } = {}) {
   return (async () => {
-    let ultimo = "";
+    const intentos = [];
     for (const f of fichas) {
       try {
         return { pem: await leer(f), temporal: Boolean(f.temporal) };
       } catch (e) {
-        ultimo = e.message;
+        // Cada intento con su bóveda y su ficha: si solo quedara el último, un fallo del plan B tapa el de verdad
+        intentos.push(`${f.vault}/${f.titulo}: ${e.message}`);
         // Probar en la otra bóveda gastaría otra lectura del límite que acaba de agotarse
-        if (LIMITE_OP.test(ultimo)) throw new ErrorTokenSesion("limite-de-1password", ultimo);
+        if (LIMITE_OP.test(e.message)) throw new ErrorTokenSesion("limite-de-1password", intentos.join(" | "));
         if (e.code === "SIN_TOKEN") break; // sin cuenta de servicio no hay a quién probar en otra bóveda
       }
     }
-    throw new ErrorTokenSesion("sin-clave", ultimo);
+    throw new ErrorTokenSesion("sin-clave", intentos.join(" | "));
   })();
 }
 

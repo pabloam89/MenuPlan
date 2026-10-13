@@ -51,7 +51,10 @@ export const TODAS = "todas";
 export const SECCIONES_DE_HISTORIA = ["Lo que falló y por qué", "Registro de cambios"];
 
 /** En un JSON de una zona, campos que son identificadores o rutas, no prosa. */
-export const CAMPOS_NO_PROSA = ["id", "fuentes", "origen", "ref", "test", "donde"];
+export const CAMPOS_NO_PROSA = ["id", "clave", "fuentes", "origen", "ref", "test", "donde"];
+
+/** El nombre en inglés de un término (#566): la única traducción castellano-inglés del proyecto. Minúsculas ASCII unidas por guion; no se repite entre términos. */
+export const FORMA_EN = /^[a-z]+(-[a-z]+)*$/;
 
 /**
  * Ciclo de vida de un término (#481, fondo #479): un término no se borra ni se
@@ -64,8 +67,57 @@ export const ESTADOS_TERMINO = {
   retirado: "Ya no se usa: se dice su pasa_a; el nombre queda para que nadie lo reutilice",
 };
 
-export const CAMPOS_TERMINO = ["termino", "estado", "clase", "definicion", "sinonimos_prohibidos", "aplica_a"];
-export const CAMPOS_TERMINO_OPCIONALES = ["pasa_a", "amplio", "estrecho", "relacionado", "ref", "nota"];
+/**
+ * El dominio de un término (F1 de #652, docs/ops/BASE-FORJA.md §9.2): a qué área de la factoría pertenece. Vocabulario
+ * cerrado; un proyecto nuevo (otro repo con su glosario) es un valor más. No es `aplica_a`, que sigue diciendo en qué zonas
+ * de ficheros se buscan los sinónimos prohibidos. Un glosario de dominio solo añade o estrecha, nunca redefine uno de la
+ * base (scripts/lib/glosarioDominios.mjs). Anclado en ops/vocabularios-vida.json (`glosario.dominio`).
+ */
+export const DOMINIOS = {
+  base: "Lenguaje de la factoría que vale en cualquier proyecto: cómo se trabaja, se juzga y se escribe",
+  ops: "Cómo se opera el repo y los servicios: ramas, PR, issues, fondos, entornos, claves y despliegues",
+  datos: "La base de datos y su esquema: migraciones, tablas, fuentes de datos y módulos",
+  producto: "Lo que hace HoMenu para las familias: la casa, sus personas y la comida",
+  diseno: "El diseño de la interfaz: sistema, perfil, tokens, componentes y patrones",
+};
+
+/**
+ * La relación de un término con una entidad la fija su clase (F1 de #652, §10.1): un artefacto `denota` una entidad, un campo
+ * es `campo_de` ella, un estado es `valor_de`, un rol `rol_de`, una acción `accion_sobre` y un lugar `ubicacion_de`.
+ * Anclado en `glosario.relacion_entidad`.
+ */
+export const RELACION_POR_CLASE = {
+  artefacto: "denota",
+  campo: "campo_de",
+  estado: "valor_de",
+  rol: "rol_de",
+  accion: "accion_sobre",
+  lugar: "ubicacion_de",
+};
+export const RELACIONES_ENTIDAD = {
+  denota: "El término nombra una cosa que es esa entidad",
+  campo_de: "El término nombra un campo o una propiedad de esa entidad",
+  valor_de: "El término nombra un valor o un grado que esa entidad toma",
+  rol_de: "El término nombra el papel que esa entidad hace",
+  accion_sobre: "El término nombra lo que se hace con esa entidad",
+  ubicacion_de: "El término nombra el sitio donde esa entidad vive o corre",
+};
+
+/**
+ * Un artefacto que ninguna entidad nombra declara por qué (`sin_entidad`): vocabulario cerrado, anclado en
+ * `glosario.motivo_sin_entidad`. Un término retirado no lo necesita.
+ */
+export const MOTIVOS_SIN_ENTIDAD = {
+  componente: "Parte de otra cosa que ya es entidad (una capa de una skill, un test, una ficha): no tiene id propio",
+  salida: "Lo que produce una tarea o una comprobación y no se guarda como cosa con id (un informe, un defecto)",
+  paso: "Un peldaño de herencia (base, forja, plantilla, pieza), no una cosa",
+  meta: "El concepto mismo del registro de entidades, no una cosa registrada en él",
+  retirado: "Su entidad se retiró y lo que el término nombra ahora no es una entidad",
+  candidato: "Será entidad cuando exista; mientras, se declara",
+};
+
+export const CAMPOS_TERMINO = ["termino", "estado", "clase", "dominio", "definicion", "sinonimos_prohibidos", "aplica_a"];
+export const CAMPOS_TERMINO_OPCIONALES = ["pasa_a", "amplio", "estrecho", "relacionado", "ref", "nota", "en", "entidades", "sin_entidad"];
 
 /**
  * Relaciones entre términos (#481), las de un tesauro (ISO 25964, SKOS): `amplio` es el
@@ -159,6 +211,7 @@ export function problemasDeGlosario(g, { existe = () => true, leer = () => null 
   const nombresActivos = new Set(terminos.filter(activo).map((t) => t.termino));
   const vistos = new Map();
   const sinonimoDe = new Map();
+  const enDe = new Map();
   for (const t of terminos) {
     const id = t.termino ?? "(sin término)";
     for (const c of CAMPOS_TERMINO) if (!(c in t)) p.push(`${id}: falta ${c}`);
@@ -170,7 +223,14 @@ export function problemasDeGlosario(g, { existe = () => true, leer = () => null 
       if (!t.pasa_a) p.push(`${id}: retirado sin pasa_a (di a qué término activo pasa)`);
       else if (!nombresActivos.has(t.pasa_a)) p.push(`${id}: pasa_a «${t.pasa_a}», que no es un término activo`);
     } else if ("pasa_a" in t) p.push(`${id}: pasa_a solo va en un término retirado`);
+    if ("en" in t) {
+      if (typeof t.en !== "string" || !FORMA_EN.test(t.en)) p.push(`${id}: en «${t.en}» no tiene la forma de un nombre inglés (minúsculas y guiones)`);
+      else if (enDe.has(t.en)) p.push(`${id}: en «${t.en}» ya es el de ${enDe.get(t.en)}`);
+      else enDe.set(t.en, id);
+    }
     if (!(t.clase in CLASES)) p.push(`${id}: clase «${t.clase}» fuera del vocabulario (${Object.keys(CLASES).join(", ")})`);
+    if ("dominio" in t && !(t.dominio in DOMINIOS)) p.push(`${id}: dominio «${t.dominio}» fuera del vocabulario (${Object.keys(DOMINIOS).join(", ")})`);
+    p.push(...problemasDeMapeoEnTermino(t));
     if (typeof t.definicion !== "string" || t.definicion.trim().length < 10) p.push(`${id}: definición vacía`);
     else if (t.definicion.length > MAX_DEFINICION) p.push(`${id}: definición de ${t.definicion.length} caracteres (máximo ${MAX_DEFINICION})`);
     if (!Array.isArray(t.sinonimos_prohibidos)) p.push(`${id}: sinonimos_prohibidos no es una lista`);
@@ -205,6 +265,34 @@ export function problemasDeGlosario(g, { existe = () => true, leer = () => null 
       if (patronDe(s).test(plano(limpiarProsa(String(t.definicion ?? ""))))) p.push(`${t.termino}: su definición usa «${s}» (di «${canon}»)`);
     }
   }
+  return p;
+}
+
+/** La forma del mapeo a entidades de un término. Que la entidad exista lo mira scripts/lib/glosarioMapeo.mjs. */
+export function problemasDeMapeoEnTermino(t) {
+  const p = [];
+  const id = t.termino ?? "(sin término)";
+  const retirado = t.estado === "retirado";
+  if ("entidades" in t) {
+    if (!Array.isArray(t.entidades) || t.entidades.length === 0) p.push(`${id}: entidades es una lista no vacía (sin entidad, quítala)`);
+    const vistas = new Set();
+    for (const x of Array.isArray(t.entidades) ? t.entidades : []) {
+      const extra = Object.keys(x ?? {}).filter((c) => c !== "entidad" && c !== "relacion");
+      if (extra.length) p.push(`${id}: entidades lleva un campo desconocido (${extra.join(", ")})`);
+      if (typeof x?.entidad !== "string" || !x.entidad) p.push(`${id}: una entidad sin nombre`);
+      else if (vistas.has(x.entidad)) p.push(`${id}: la entidad «${x.entidad}» está repetida`);
+      else vistas.add(x.entidad);
+      if (!(x?.relacion in RELACIONES_ENTIDAD)) p.push(`${id}: relación «${x?.relacion}» fuera del vocabulario (${Object.keys(RELACIONES_ENTIDAD).join(", ")})`);
+      else if (t.clase in RELACION_POR_CLASE && x.relacion !== RELACION_POR_CLASE[t.clase]) p.push(`${id}: un término de clase ${t.clase} nombra a su entidad con «${RELACION_POR_CLASE[t.clase]}», no con «${x.relacion}»`);
+    }
+  }
+  if ("sin_entidad" in t) {
+    if (!(t.sin_entidad in MOTIVOS_SIN_ENTIDAD)) p.push(`${id}: sin_entidad «${t.sin_entidad}» fuera del vocabulario (${Object.keys(MOTIVOS_SIN_ENTIDAD).join(", ")})`);
+    if (t.clase !== "artefacto") p.push(`${id}: sin_entidad solo va en un artefacto`);
+    if ("entidades" in t) p.push(`${id}: o nombra entidades o dice sin_entidad, no las dos`);
+  }
+  if (retirado && ("entidades" in t || "sin_entidad" in t)) p.push(`${id}: un retirado no lleva mapeo a entidades`);
+  if (!retirado && t.clase === "artefacto" && !("entidades" in t) && !("sin_entidad" in t)) p.push(`${id}: un artefacto nombra una entidad (entidades) o dice por qué no (sin_entidad: ${Object.keys(MOTIVOS_SIN_ENTIDAD).join(", ")})`);
   return p;
 }
 
@@ -476,6 +564,9 @@ export function textoTermino(t, g, excepciones) {
   if (rel.length) l.push(`  ${rel.join("; ")}`);
   if (t.nota) l.push(`  nota: ${t.nota}`);
   if (t.ref) l.push(`  ref: ${t.ref.fichero} (${t.ref.clave})`);
+  if (t.dominio) l.push(`  dominio: ${t.dominio}`);
+  if (t.entidades?.length) l.push(`  entidades (${t.entidades[0].relacion}): ${t.entidades.map((x) => x.entidad).join(", ")}`);
+  if (t.sin_entidad) l.push(`  sin entidad (${t.sin_entidad}), ${MOTIVOS_SIN_ENTIDAD[t.sin_entidad] ?? "motivo desconocido"}`);
   l.push(`  aplica a: ${t.aplica_a.join(", ")}`);
   l.push(`  excepciones: ${n}`);
   return l.join("\n");

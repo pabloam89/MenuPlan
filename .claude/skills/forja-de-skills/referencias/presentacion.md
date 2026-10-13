@@ -3,9 +3,9 @@
 Cómo se da forma al texto de una skill (`SKILL.md` y sus capas). Pablo lo pidió
 el 10 oct 2026 (#410): una skill bien pensada pero mal puesta en la página se
 lee peor y se copia peor. Marca: **[F: fuente]** está en la fuente citada (en
-`SKILL.md`, «Fuentes y comprobación»); **[I]** es criterio nuestro. Las guías
+`SKILL.md`, «Fuentes y comprobación»); **[S]** es juicio nuestro. Las guías
 oficiales dicen poco de formato: pasos numerados si importa el orden, tablas
-para referencia y los comandos en bloque de código. Lo demás es [I].
+para referencia y los comandos en bloque de código. Lo demás es [S].
 
 ## Cuándo usar cada forma
 
@@ -13,20 +13,20 @@ para referencia y los comandos en bloque de código. Lo demás es [I].
 |---|---|---|---|
 | Tabla | Datos comparables con las mismas columnas en cada fila (comando y salida, vocabulario y significado) | Explicar o razonar: la prosa no cabe en una celda | [F: BP] |
 | Lista numerada | Pasos en orden, donde cambiar el orden rompe el resultado | Cosas que no tienen orden | [F: BP] |
-| Lista con viñetas | Cosas sin orden: opciones, condiciones, lo que hay que saber | Pasos que se hacen uno detrás de otro | [I] |
-| Negrita | Una idea que no puede pasar desapercibida, o el nombre de lo que se define | Decoración, o más de una o dos por sección | [I] |
-| Código en línea | Un comando corto, una ruta, un nombre de fichero o de variable, un valor literal | Una frase normal | [I] |
+| Lista con viñetas | Cosas sin orden: opciones, condiciones, lo que hay que saber | Pasos que se hacen uno detrás de otro | [S] |
+| Negrita | Una idea que no puede pasar desapercibida, o el nombre de lo que se define | Decoración, o más de una o dos por sección | [S] |
+| Código en línea | Un comando corto, una ruta, un nombre de fichero o de variable, un valor literal | Una frase normal | [S] |
 | Bloque de código | Un comando largo o de varias líneas, una salida esperada, el formato de un fichero | Un nombre suelto | [F: BP] |
-| Párrafo | Una sola idea, de dos a cuatro frases | Un muro de texto: se parte | [I] |
+| Párrafo | Una sola idea, de dos a cuatro frases | Un muro de texto: se parte | [S] |
 
 ## Un idioma y un vocabulario
 
 - **Castellano** en la prosa; los comandos, rutas y nombres de código, tal cual
-  están [I].
+  están [S].
 - **Una palabra por cosa**: si el fallo se llama «caso», no se llama también
   «incidente» ni «problema» en la misma skill [F: BP, terminología coherente].
 - Las cabeceras bajan de nivel de una en una: de `##` a `###`, no de `##` a
-  `####` [I].
+  `####` [S].
 
 ## Quién lo comprueba
 

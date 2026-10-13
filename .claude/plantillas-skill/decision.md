@@ -6,7 +6,7 @@ El molde de una skill de tipo `decision`: se copia el esqueleto y se rellena. Lo
 
 | Qué hace | Entra | Sale | Cómo se prueba | Skills de hoy |
 |---|---|---|---|---|
-| Elegir entre opciones con criterios | dilema | opción y porqué | cada criterio aplicado y la escalera seguida | `plan-de-arreglo` |
+| Elegir entre opciones con criterios | dilema | opción y porqué | cada norma aplicada y la escalera seguida | `plan-de-arreglo` |
 
 ## Cómo se llega a este tipo
 
@@ -51,6 +51,7 @@ metadata:
   elige_opciones: true
   dueno: <agente de .claude/agents/ que la carga en su skills:>
   comprobado: AAAA-MM-DD
+  normas: [<id de ops/normas.json a la que sirve>, <otra>]
 ---
 
 # <Nombre>
@@ -105,12 +106,13 @@ Los de `campos_ficha.skill` de `ops/forja/`; lo que no está declarado no va en 
 | `nivel` | enum | no | `2`, o sin él (el 1 son los moldes; el 0, la pieza meta) |
 | `dueno` | ref | sí | un agente que existe |
 | `comprobado` | fecha | sí | AAAA-MM-DD |
+| `normas` | ref | sí | una norma que existe |
 | `libertad` | enum | no | `alta`, `media`, `baja` |
 | `invocacion` | enum | no | `descripcion`, `guardia`, `precarga` |
 
 ## Cómo se prueba
 
-Lo que pide este tipo: cada criterio aplicado y la escalera seguida. Lo comprueban el nivel 1 (`npx vitest run .claude/skills.test.js`, gratis, en el CI) y el nivel 2 (`npm run skills-prueba -- <skill>`, cuesta tokens).
+Lo que pide este tipo: cada norma aplicada y la escalera seguida. Lo comprueban el nivel 1 (`npx vitest run .claude/skills.test.js`, gratis, en el CI) y el nivel 2 (`npm run skills-prueba -- <skill>`, cuesta tokens).
 
 52 criterios de la forja se aplican a este tipo (los que dicen `tipos: "todos"` o lo nombran). La frase entera de cada uno, en `docs/ops/FORJA.md`.
 
@@ -122,20 +124,20 @@ Lo que pide este tipo: cada criterio aplicado y la escalera seguida. Lo comprueb
 
 No hay criterio de skill que no se le aplique.
 
-## El estándar de este tipo
+## La plantilla de este tipo
 
 ### Qué lo hace bueno
 
-- Las opciones se ordenan con un catálogo escrito (la escalera, los mecanismos) y se empieza por la más alta; bajar exige su motivo [I].
-- Cada criterio del catálogo se aplica a la opción elegida y se dice cómo, no solo el resultado [I, prueba del tipo en `ops/forja/`].
+- Las opciones se ordenan con un catálogo escrito (la escalera, los mecanismos) y se empieza por la más alta; bajar exige su motivo [S].
+- Cada norma del catálogo se aplica a la opción elegida y se dice cómo, no solo el resultado [I, prueba del tipo en `ops/forja/`].
 - Una recomendación por defecto y, aparte, cuándo conviene otra, no un menú [F: BP, demasiadas opciones].
 - Cada paso del método dice lo que sale, y el método dice cuándo se acaba [F: BP, bucles de comprobación].
 
 ### Errores típicos
 
-- Elegir por gusto o por costumbre sin pasar por el catálogo [I].
+- Elegir por gusto o por costumbre sin pasar por el catálogo [S].
 - Un menú de opciones sin la recomendada [F: BP, demasiadas opciones].
-- Copiar el catálogo de opciones dentro de la skill: dos versiones que se separan [I].
+- Copiar el catálogo de opciones dentro de la skill: dos versiones que se separan [S].
 
 ### Ejemplo mínimo
 

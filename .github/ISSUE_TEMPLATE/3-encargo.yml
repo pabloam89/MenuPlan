@@ -55,6 +55,10 @@ body:
         verificacion:
         hecho_cuando:
         ficheros:
+        assignment_type:
+        subtype:
+        complexity:
+        subtype_note:
         ```
     validations:
       required: false

@@ -1,0 +1,16 @@
+{
+  "id": "three-check-layers",
+  "area": "process",
+  "nombre": "Tres capas de comprobación",
+  "enunciado": "Cada comprobación es formal, material o subjetiva, y lo subjetivo repetido pasa a mecánico salvo que el test salga frágil.",
+  "porque": "Un juicio repetido cuesta y varía cada vez, y volver de un test frágil a un juicio deja escrito su porqué.",
+  "fuentes": [
+    {
+      "marca": "I",
+      "ruta": "ops/forja/"
+    }
+  ],
+  "origen": [
+    "claude:tres-capas"
+  ]
+}

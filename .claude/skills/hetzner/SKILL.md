@@ -11,6 +11,7 @@ metadata:
   elige_opciones: false
   dueno: gobierno
   comprobado: "2026-10-09"
+  normas: [copia-nocturna-base, copias-solo-con-su-rol, copia-restaurada-ensayada]
 ---
 
 # Hetzner (servidor propio)
@@ -51,7 +52,9 @@ metadata:
     están en el mismo disco.
   - **Aviso de las copias** (#273): sin `COPIA_AVISO_URL`, `aviso: sin-canal`.
   - **Instalar las copias**: nada instalado ni clave creada (al día de «Fechas» de Fuentes y comprobación).
-  - Usuario sin privilegios y el repo del panel, que aún no existe.
+  - Usuario sin privilegios (el repo del panel ya existe y corre, ver abajo).
+- **El panel**: repo `homenu-panel`, en `http://100.73.252.32:8080`; cómo se despliega, la tarea de
+  Windows que le envía el coste y lo que falló, en `.claude/skills/hetzner/referencias/panel.md`.
 
 ## Claves y accesos
 

@@ -1,0 +1,18 @@
+{
+  "termino": "token de diseño",
+  "estado": "activo",
+  "clase": "artefacto",
+  "dominio": "diseno",
+  "definicion": "Un valor visual con nombre de rol (color, espacio, radio, sombra, tiempo) que los componentes usan en vez del valor suelto.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "en": "token",
+  "entidades": [
+    {
+      "entidad": "token",
+      "relacion": "denota"
+    }
+  ]
+}

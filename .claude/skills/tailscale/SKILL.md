@@ -11,6 +11,7 @@ metadata:
   elige_opciones: false
   dueno: gobierno
   comprobado: "2026-10-08"
+  normas: [ajustes-servicios-ok-pablo]
 ---
 
 # Tailscale

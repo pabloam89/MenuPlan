@@ -80,7 +80,11 @@ describe("validarEncargos", () => {
     expect(validarEncargos([enc(2), enc(1, { tipo_accion: "detectivo", mecanismo: BLANDO, ...POR })], "plan")).toEqual([]);
   });
   it("quien construye no juzga", () => {
-    expect(reglas(validarEncargos([enc(1, { juez: "gobierno" })], "plan"))).toEqual(["encargo-juez"]);
+    expect(reglas(validarEncargos([enc(1, { constructor: "revisor", juez: "revisor" })], "plan"))).toEqual(["encargo-juez"]);
+  });
+  it("el juez tiene que ser un agente con «Tipo: juez»: un constructor o la sesión no valen", () => {
+    expect(reglas(leerEncargo(bloque({ ...BUENO, juez: "gobierno" })).errores)).toEqual(["encargo-vocabulario"]);
+    expect(reglas(leerEncargo(bloque({ ...BUENO, juez: "sesión" })).errores)).toEqual(["encargo-vocabulario"]);
   });
   it("sin preventivo automático: todo detectivo, o preventivo con un mecanismo blando", () => {
     expect(reglas(validarEncargos([enc(1, { tipo_accion: "detectivo", ...POR })], "plan"))).toEqual(["sin-preventivo-automatico"]);
@@ -163,5 +167,59 @@ describe("ronda 2 de #396: constructor heredado, autores de fuera y plan vigente
   });
   it("un cancelado no aporta el «preventivo automático»", () => {
     expect(reglas(validarEncargos([enc(1, { tipo_accion: "detectivo", ...POR2 }), cerrado(2, {}, "NOT_PLANNED")], "plan"))).toEqual(["sin-preventivo-automatico"]);
+  });
+});
+
+describe("el N1 del encargo: assignment_type, subtype y complexity (#640)", () => {
+  const N1 = { assignment_type: "operate", subtype: "operate-reversible", complexity: "normal" };
+  const CAMPOS_N1 = Object.keys(N1);
+  const antes = (e) => ({ ...e, createdAt: "2026-10-12T23:59:59Z" });
+  const despues = (e) => ({ ...e, createdAt: "2026-10-13T00:00:00Z" });
+
+  it("un encargo abierto antes de ENCARGO_N1_DESDE sin los tres campos no falla (el workflow no se rompe)", () => {
+    expect(validarEncargos([antes(enc(1))], "plan")).toEqual([]);
+  });
+  it("uno creado desde ese día sin ellos queda incompleto y dice cuáles", () => {
+    const r = validarEncargos([despues(enc(1))], "plan");
+    expect(reglas(r)).toEqual(["encargo-incompleto"]);
+    for (const c of CAMPOS_N1) expect(r[0].mensaje).toContain(c);
+  });
+  it("con los tres campos, uno creado desde ese día pasa; sin fecha de alta no se exige", () => {
+    expect(validarEncargos([despues(enc(1, N1))], "plan")).toEqual([]);
+    expect(validarEncargos([enc(1)], "plan")).toEqual([]);
+  });
+  it("un subtipo que no cuelga del tipo dicho es un error, y un valor fuera del vocabulario también", () => {
+    expect(reglas(validarEncargos([despues(enc(1, { ...N1, assignment_type: "create" }))], "plan"))).toEqual(["encargo-subtipo"]);
+    expect(reglas(leerEncargo(bloque({ ...BUENO, ...N1, complexity: "enorme" })).errores)).toEqual(["encargo-vocabulario"]);
+    expect(reglas(leerEncargo(bloque({ ...BUENO, ...N1, subtype: "inventado" })).errores)).toEqual(["encargo-vocabulario"]);
+  });
+  it("un id de antes vale durante la transición, con un aviso que dice el id nuevo; uno que no existe se rechaza (#646)", () => {
+    const r = validarEncargos([despues(enc(1, { ...N1, subtype: "ci-permisos-hooks" }))], "plan");
+    expect(reglas(r)).toEqual(["encargo-subtipo-retirado"]);
+    expect(r[0]).toMatchObject({ gravedad: "aviso" });
+    expect(r[0].mensaje).toContain("operate-reversible");
+    expect(reglas(validarEncargos([despues(enc(1, { ...N1, subtype: "esquema-o-dato", assignment_type: "create" }))], "plan"))).toEqual(["encargo-subtipo-retirado"]);
+    expect(reglas(leerEncargo(bloque({ ...BUENO, ...N1, subtype: "dato-en-varias-capasx" })).errores)).toEqual(["encargo-vocabulario"]);
+    // Un alias retirado cuelga de su tipo de antes: si el encargo dice otro tipo, también falla.
+    expect(reglas(validarEncargos([despues(enc(1, { ...N1, subtype: "ci-permisos-hooks", assignment_type: "fix" }))], "plan"))).toEqual(["encargo-subtipo", "encargo-subtipo-retirado"]);
+  });
+  it("la válvula pide su motivo (de 10 a 160 caracteres) a los creados desde ENCARGO_N1_DESDE; otro subtipo no", () => {
+    const V = { assignment_type: "audit", subtype: "audit-other", complexity: "normal" };
+    expect(reglas(validarEncargos([despues(enc(1, V))], "plan"))).toEqual(["encargo-valvula"]);
+    expect(reglas(validarEncargos([despues(enc(1, { ...V, subtype_note: "corto" }))], "plan"))).toEqual(["encargo-valvula"]);
+    expect(validarEncargos([despues(enc(1, { ...V, subtype_note: "una auditoría única de un solo caso" }))], "plan")).toEqual([]);
+    expect(validarEncargos([antes(enc(1, V))], "plan")).toEqual([]);
+    expect(validarEncargos([despues(enc(1, N1))], "plan")).toEqual([]);
+  });
+  it("la nota del subtipo tiene tope y es solo de la válvula", () => {
+    const V = { assignment_type: "audit", subtype: "audit-other", complexity: "normal" };
+    expect(reglas(validarEncargos([despues(enc(1, { ...V, subtype_note: "x".repeat(161) }))], "plan"))).toEqual(["encargo-subtype-note"]);
+    expect(validarEncargos([despues(enc(1, { ...V, subtype_note: "x".repeat(160) }))], "plan")).toEqual([]);
+    // Fuera de la válvula no se admite: el motivo solo se pide donde ningún subtipo encaja.
+    expect(reglas(validarEncargos([despues(enc(1, { ...N1, subtype_note: "un motivo que sobra" }))], "plan"))).toEqual(["encargo-subtype-note"]);
+  });
+  it("viene del hijo de la REST con su createdAt", () => {
+    const h = hijoDeRest({ number: 3, state: "open", body: bloque(BUENO), labels: [], created_at: "2026-10-13T08:00:00Z" });
+    expect(reglas(validarEncargos([h], "plan"))).toEqual(["encargo-incompleto"]);
   });
 });

@@ -1,0 +1,19 @@
+{
+  "id": "bounded-loops-and-timeouts",
+  "nombre": "Bucles y tiempos acotados",
+  "area": "cost-reliability",
+  "enunciado": "Un agente que encadena pasos sin tope acumula errores en cada vuelta y gasta sin techo.",
+  "porque": "Los errores se acumulan en cada vuelta y el coste no tiene techo.",
+  "ejemplo_bueno": "Lola corta a las pocas llamadas a herramientas y contesta con lo que ya tiene",
+  "ejemplo_malo": "Un turno puede encadenar llamadas sin fin si el modelo no se decide",
+  "fuentes": [
+    {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "marca": "F"
+    },
+    {
+      "url": "https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/",
+      "marca": "F"
+    }
+  ]
+}

@@ -10,7 +10,8 @@ metadata:
   sintoma_a_causa: false
   elige_opciones: false
   dueno: gobierno
-  comprobado: "2026-10-10"
+  comprobado: "2026-10-11"
+  normas: [claves-de-pablo-solo-pablo, secretos-ok-pablo]
 ---
 
 # 1Password
@@ -18,7 +19,7 @@ metadata:
 ## Qué es y dónde
 
 - **Cuenta** de Pablo en `my.1password.eu` (plan Familias, en prueba; desde cuándo, en «Fechas» de Fuentes y comprobación). Cinco bóvedas (#328;
-  `HoMenu-sesiones`, **pendiente de crear**, ver «Fechas» de Fuentes y comprobación):
+  `HoMenu-sesiones`, creada, ver «Fuentes y comprobación»):
   - **`HoMenu`**: todas las claves de MenuPlan, también las de producción, una
     ficha por servicio y un campo por variable
     (`op://HoMenu/Supabase/SUPABASE_DB_URL`). Solo Pablo.
@@ -70,9 +71,9 @@ metadata:
   guarda `scripts/llavero-op.mjs` por stdin, con un solo `Add` (sustituye en
   sitio: el llavero no se queda vacío) y lo relee a ciegas.
 - **Service account «MenuPlan PC Pablo»**: lee toda `HoMenu`, URL de
-  administrador incluida. Es la del llavero hasta el cambio de #328; luego se
-  anula.
-- **Service account «MenuPlan sesiones»** (#328, **pendiente de crear**): solo
+  administrador incluida. Fue la del llavero hasta el cambio de #328; anularla en
+  1Password.com es de Pablo (sin comprobar).
+- **Service account «MenuPlan sesiones»** (#328, creada; es la del llavero): solo
   lectura de `HoMenu-sesiones`, donde vive también la clave de la App de GitHub (#329, skill `github`); no se le da lectura de `HoMenu`. Sustituye a la anterior en el llavero.
 - **Ficha `Postgres del panel`** (bóveda `Panel HoMenu`, id
   `c64ol4a3oewjeue3szoafrrr6q`): servidor, puerto, base, usuario y contraseña
@@ -143,6 +144,11 @@ escritorio y qué no, y qué hace la guardia), están en `.claude/skills/1passwo
   sale el motivo `limite-de-1password`, sin probar otra bóveda, y se usa el token guardado si no caducó; el test ya no
   llama a `op`. Tests en `scripts/tokenSesion.test.js`, vistos fallar. Antes: 1 lectura del `.pem` por sesión; después:
   1 por hora entre todas.
+  Seguimiento (11 oct, #556): `service-account ratelimit` mostró el cupo **de la cuenta** agotado (1000 por hora) con el
+  token de la sesión a 0: lo gastan otras sesiones. Cada llamada a `op inject` deja ya una línea en
+  `~/.menuplan/op-lecturas.jsonl` (`script`, `claves`, `reintento`; sin valores) para sumar por script, y el error de
+  «Too many requests» manda a `npm run op -- service-account ratelimit` para ver cuándo se reinicia. Sin cerrar:
+  quién gasta más (hay que dejar correr el registro) y reutilizar las claves leídas durante la hora.
 - **2026-10-09 · una dirección `op://` daba error con la ficha y el campo bien puestos.**
   Causa: el nombre de la ficha llevaba una tilde; la sintaxis de `op://` solo
   admite letras y cifras sin acento, espacios, `-`, `_` y `.` (lo demás, por id).
@@ -221,4 +227,4 @@ Fechas que estaban repartidas por el cuerpo (#411): plan Familias en prueba desd
 
 Comprobado el 2026-10-08: lectura con service account, creación y lectura de una ficha en `Panel HoMenu` y agente SSH con una conexión real. Sin probar: caducidad del token ni el límite de peticiones. Sin probar (9 oct 2026): `copias-clave.mjs --si` y `--comprobar` contra 1Password, y la ficha «Copias de la base», que aún no existe. Tampoco si `op` acepta la etiqueta `clave_privada_age` en el campo de contraseña: si no, la relectura del script no coincide y no escribe la pública.
 
-Comprobado el 2026-10-10: en #328, el inventario de `HoMenu` (16 fichas, solo títulos y campos); el ensayo de `boveda-sesiones.mjs` (lee los campos de `COPIAR` sin escribir); que `PasswordVault.Add` con el mismo recurso sustituye en sitio, y `llavero-op.mjs` contra un recurso de prueba (`COINCIDEN` dos veces, una sola entrada; borrado después); `--comprobar` con «MenuPlan PC Pablo» (12 `MAL`); y `bot-coste`, `bot-medidas`, `bot-panel` y `verificar-estado` con el usuario de lectura (este, igual que con `--admin` salvo los 2 testigos de `cron`). En #299, el plan B contra 1Password de verdad. Sin probar: `--si` (la bóveda no existe), `op service-account create` con `HoMenu-sesiones`, `--comprobar` con la cuenta nueva, y `lola-feedback` y `router-feedback` con el de lectura (escriben ficheros del repo; misma consulta a `user_events` que `bot-panel`).
+Comprobado el 2026-10-10: en #328, el inventario de `HoMenu` (16 fichas, solo títulos y campos); el ensayo de `boveda-sesiones.mjs` (lee los campos de `COPIAR` sin escribir); que `PasswordVault.Add` con el mismo recurso sustituye en sitio, y `llavero-op.mjs` contra un recurso de prueba (`COINCIDEN` dos veces, una sola entrada; borrado después); `--comprobar` con «MenuPlan PC Pablo» (12 `MAL`); y `bot-coste`, `bot-medidas`, `bot-panel` y `verificar-estado` con el usuario de lectura (este, igual que con `--admin` salvo los 2 testigos de `cron`). En #299, el plan B contra 1Password de verdad. Comprobado el 2026-10-11: `--comprobar` con la cuenta de sesiones, todo `BIEN` (la bóveda y la cuenta existen; ve solo `HoMenu-sesiones`, la URL de administrador no se lee, la ficha de la App está dentro). Sin probar: `lola-feedback` y `router-feedback` con el de lectura (escriben ficheros del repo; misma consulta a `user_events` que `bot-panel`).

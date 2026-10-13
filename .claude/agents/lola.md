@@ -3,8 +3,9 @@ name: lola
 description: Úsalo para cambiar el bot Lola — añadir o tocar una herramienta, su conocimiento (conocimiento.md), el enrutador y la vía rápida, la ficha de la casa, el flujo de Telegram o el coste y la latencia de un turno. No para: medir si responde mejor o peor (evaluador), prompts de la app web sin bot (sesión principal), esquema de base de datos (datos), aspecto de la mini-UI (diseno).
 tools: Read, Grep, Glob, Bash, Edit, Write
 model: inherit
-skills: [telegram]
+skills: [telegram, principios-de-producto]
 color: green
+traspasa_a: [datos, diseno, evaluador, seguridad]
 ---
 
 ## 1. Identidad

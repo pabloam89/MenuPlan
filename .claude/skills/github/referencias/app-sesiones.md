@@ -150,9 +150,12 @@ guardia futura: el token solo debe capturarse con `$(…)`, y no imprimirse.
 - **`staging` no es una frontera de seguridad.** Con Contents y PR en escritura el
   bot puede fusionar en `staging` (con `tests` en verde) scripts que los crons
   ejecutan con secretos (`OPS_DB_URL`, `ANTHROPIC_API_KEY`, `VERCEL_TOKEN`,
-  `MERCADONA_DEPLOY_KEY`). E4 (#330) solo pondrá revisión de dueño de código en
-  `.claude/**` y `.github/**`, **no en `scripts/`**. Hasta entonces, lo único que lo
-  frena es que Pablo lea el PR; hay que decidir si `scripts/` entra en E4.
+  `MERCADONA_DEPLOY_KEY`). Desde `staging` también se llega a escribir workflows (el
+  token de la App de Dependabot lleva Workflows) y a producción (el `VERCEL_TOKEN` es de
+  cuenta entera). Pablo lo acepta. Desde #608 no hay revisión de dueño de código ni
+  aprobación humana en ningún PR a `staging`: lo que lo frena es el juez `revisor` (de
+  proceso, GitHub no lo hace cumplir) y `tests`. Un check «Juez:» en el PR queda como
+  encargo (#612), contra el olvido y no contra el abuso.
 - **Si se filtra el `.pem` o el token (revocación completa), en este orden:**
   1. App → **Private keys** → **Delete** **todas** las claves que pudieran estar
      expuestas (tras una rotación conviven dos): no basta borrar «la filtrada».
@@ -273,6 +276,24 @@ Hasta entonces, sus credenciales siguen ahí.
   --comprobar` ahora verifica que existe con ese título en la bóveda de sesiones.
   Una sesión abierta antes del arreglo no tiene `GH_TOKEN`: usa
   `node scripts/token-sesion.mjs -- gh …`.
+
+## Lo que la sesión no debe poder hacer (#333)
+
+`npm run detector-identidades` prueba, con el token que de verdad tiene una sesión, lo que tiene que
+fallar: crear un ruleset, proteger `main` y escribir un secreto de Actions (cuerpo vacío: con el
+permiso, GitHub contestaría 422 y no cambiaría nada), ver las invitaciones del repo (solo lectura,
+mismo permiso de administración que invitar) y, con la cuenta de servicio, listar las bóvedas (debe
+ver solo `HoMenu-sesiones`). Antes lee el repo con ese token: si no da 200, no prueba nada.
+Cada sonda sale `bien` (un 403 «Resource not accessible by integration»), `mal` (2xx o 422) o
+`sin-comprobar` (sin red, 401, 404, límite de uso o error de GitHub: no cuenta como bien). Salida 0
+solo si todas dan `bien`; 1 si alguna da `mal` (es un caso y se cuelga del fondo #326); 2 si alguna
+quedó sin comprobar.
+
+Lo que NO prueba: que la App en GitHub no haya ganado permisos. El token de sesión va recortado a
+`PERMISOS`, así que dice «no» tenga la App lo que tenga; eso lo avisa el arranque con
+«permisos-de-mas». Es la primera mitad de E7: falta la parte de las reglas de E4 y el entorno de E5,
+y correrlo cada semana (el workflow semanal no lleva credenciales de sesión; hasta entonces las
+líneas del detector las lee quien lo corra).
 
 Fuentes: https://docs.github.com/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-json-web-token-jwt-for-a-github-app
 y https://docs.github.com/rest/apps/apps#create-an-installation-access-token-for-an-app

@@ -1,0 +1,18 @@
+{
+  "termino": "plano",
+  "estado": "activo",
+  "clase": "artefacto",
+  "dominio": "ops",
+  "definicion": "Una pregunta de ops/planos.json sobre el estado del proyecto, con criterios por nivel y un agente dueño, que se mide cada semana.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "en": "plane",
+  "entidades": [
+    {
+      "entidad": "plane",
+      "relacion": "denota"
+    }
+  ]
+}

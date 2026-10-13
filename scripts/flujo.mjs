@@ -4,6 +4,8 @@
 //   npm run flujo -- --json       lo mismo para máquinas
 //   npm run flujo -- --escribir   regenera las tablas de docs/ops/FLUJO.md desde ops/flujo.json y ops/normas.json
 //                                 y docs/ops/ENCARGO.md desde scripts/lib/issues.mjs (#338)
+//                                 y las tablas de campos de docs/entidades/N1-encargo.md desde scripts/lib/issues.mjs (#640)
+//                                 y la tabla «Qué pipeline» de .claude/commands/orquestar.md desde ops/tipos-de-encargo.json (#640)
 //
 // El veredicto de un paso es el de su obligación más débil (la escala, en scripts/lib/escalas.mjs). Lo que sale aquí es lo
 // que dice ops/flujo.json; ops/flujo.test.js comprueba que es verdad.
@@ -13,14 +15,16 @@ import { fileURLToPath } from "node:url";
 
 import { ORDEN_VEREDICTO } from "./lib/escalas.mjs";
 import { contextoDeNormas, cuentaPorVeredicto, obligacionesDe, regenerar, resolver, veredictoDelPaso } from "./lib/flujo.mjs";
-import { formatoEncargoMd } from "./lib/issues.mjs";
+import { conCamposN1, formatoEncargoMd } from "./lib/issues.mjs";
 import { leerRegistro } from "./lib/normas.mjs";
 import { generarTabla } from "./lib/presupuestos.mjs";
+import { RUTA_ORQUESTAR, conPuertaN1, conTiposN1, regenerarOrquestar } from "./lib/tiposDeEncargo.mjs";
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const RUTA_JSON = join(RAIZ, "ops/flujo.json");
 const RUTA_MD = join(RAIZ, "docs/ops/FLUJO.md");
 const RUTA_ENCARGO = join(RAIZ, "docs/ops/ENCARGO.md");
+const RUTA_N1 = join(RAIZ, "docs/entidades/N1-encargo.md");
 const args = process.argv.slice(2);
 
 const datos = JSON.parse(readFileSync(RUTA_JSON, "utf8"));
@@ -31,6 +35,10 @@ if (args.includes("--escribir")) {
   console.log("Tablas de docs/ops/FLUJO.md regeneradas desde ops/flujo.json, ops/normas.json y ops/presupuestos.json.");
   writeFileSync(RUTA_ENCARGO, formatoEncargoMd());
   console.log("docs/ops/ENCARGO.md regenerado desde scripts/lib/issues.mjs.");
+  writeFileSync(RUTA_N1, conPuertaN1(conTiposN1(conCamposN1(readFileSync(RUTA_N1, "utf8")))));
+  console.log("Tablas de docs/entidades/N1-encargo.md regeneradas desde scripts/lib/issues.mjs.");
+  writeFileSync(join(RAIZ, RUTA_ORQUESTAR), regenerarOrquestar(readFileSync(join(RAIZ, RUTA_ORQUESTAR), "utf8")));
+  console.log("Tabla de .claude/commands/orquestar.md regenerada desde ops/tipos-de-encargo.json.");
 }
 
 const filas = datos.pasos.map((p) => ({

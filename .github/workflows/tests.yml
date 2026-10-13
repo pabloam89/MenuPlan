@@ -103,6 +103,9 @@ jobs:
       # encargo cuyo fondo tiene diagnóstico (mecanismo y causa de escape), o un
       # fondo con aprendizaje. Mismo patrón que «Casos del PR»: si la API no
       # responde, falla con la causa (relanza el check); los bots, exentos.
+      # Además mira que cada norma sin ejecutor cuelgue de un encargo o una decisión abiertos
+      # (#620): falla solo el PR que toca ops/normas.json o cierra ese issue; para los demás
+      # sale un aviso (`fondos-pr: regla=normas-sin-ejecutor resultado=warning`).
       - name: Fondos del PR
         if: github.event_name == 'pull_request'
         run: node scripts/fondos-pr.mjs
@@ -110,6 +113,7 @@ jobs:
           PR_BODY: ${{ github.event.pull_request.body }}
           PR_AUTOR: ${{ github.event.pull_request.user.login }}
           PR_RAMA: ${{ github.event.pull_request.head.ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
           GITHUB_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
       # Las frases normativas nuevas (#296): cada «nunca», «siempre», «tope»…
@@ -128,6 +132,35 @@ jobs:
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
           PR_AUTOR: ${{ github.event.pull_request.user.login }}
+      # Tres avisos, SOLO AVISOS (#576; nunca fallan el job: romperían los PR de las demás
+      # sesiones): C8 tests relajados (aserciones quitadas, .skip/.only/.todo, un umbral que sube),
+      # C1 PR demasiado grande (líneas, ficheros o áreas, sin contar lo generado) y C12 un PR que
+      # cierra un fondo sin tocar un test, la guardia ni una skill. Cada uno deja la línea de su norma,
+      # `norma: <id> resultado: ok|warning|exempt|declared|unchecked pr: <n> detalle: …` (#621; sustituye a la
+      # `avisos-pr: regla=…` de antes y es la misma de «Fondos del PR»), que se cuenta con
+      # `gh run view <run> --log > f.txt` y `npm run normas -- --medir --log f.txt` (la unidad es el run de un
+      # PR; el lector cuenta una vez por PR, norma y resultado).
+      # La excepción se declara en el cuerpo del PR con UNA forma (#621):
+      # «Excepción: <id de norma> — <motivo> — hasta AAAA-MM-DD» (las de antes, «Tests relajados: sí — …»,
+      # «Tamaño: grande — …» y «Aprendizaje: …», valen con aviso hasta el 2026-11-15). Una excepción
+      # vencida o de una norma que no existe no cuenta; este paso solo FALLA si es de una norma dura que
+      # el PR toca. De aviso a fallo (las tres reglas): cuando una lleve 30 PR seguidos con menos del 10 % de avisos
+      # falsos (los que acaban en la línea de excepción por un motivo trivial), su
+      # `resultado: warning` pasa a salir con código 1 en scripts/avisos-pr.mjs (detalle en la
+      # cabecera de scripts/lib/avisosPr.mjs). Usa el diff del paso anterior; sin npm ci. El
+      # cuerpo va por entorno, nunca en el script. La API solo se lee para saber si un `Closes`
+      # es un fondo: si no responde, C12 sale `unchecked` y no avisa.
+      - name: Avisos del PR
+        if: github.event_name == 'pull_request'
+        run: |
+          [ -s "$RUNNER_TEMP/diff-del-pr.txt" ] || git -c core.quotePath=false diff -U0 HEAD^1 HEAD > "$RUNNER_TEMP/diff-del-pr.txt" || rm -f "$RUNNER_TEMP/diff-del-pr.txt"
+          node scripts/avisos-pr.mjs "$RUNNER_TEMP/diff-del-pr.txt"
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_AUTOR: ${{ github.event.pull_request.user.login }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
       - run: npm ci
       # Falla solo con errores de lint NUEVOS respecto a lint-base.json (ver
       # scripts/lint-base.mjs); los viejos se arreglan cuando se toca el fichero.

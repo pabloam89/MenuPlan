@@ -140,7 +140,14 @@ const RUTA_CITADA = /`((?:\.claude|\.github|ops|supabase|docs|specs|src|scripts|
 // Un valor YAML entre comillas ("2026-10-09") es la misma cadena sin ellas.
 const sinComillas = (v) => v.replace(/^(["'])(.*)\1$/, "$2");
 // true y false sin comillas son las respuestas a las preguntas del tipo (#495): booleanos, como en YAML.
-const valorDe = (v) => (v === "true" ? true : v === "false" ? false : sinComillas(v));
+// Una lista en línea, `[a, b]` (las normas a las que sirve, #620), es una lista de cadenas, como en YAML.
+const valorDe = (v) => {
+  if (v === "true") return true;
+  if (v === "false") return false;
+  const lista = /^\[(.*)\]$/.exec(v);
+  if (lista) return lista[1].split(",").map((x) => sinComillas(x.trim())).filter(Boolean);
+  return sinComillas(v);
+};
 
 export function parsearSkill(texto) {
   const t = String(texto).replace(/\r\n/g, "\n");
@@ -602,4 +609,42 @@ export function comparar(anterior, actual) {
     }
   }
   return fuera;
+}
+
+// ── Las normas a las que sirve una skill (#620, fondo #618) ─────────────────
+
+/** Una cita `<!-- norma:id -->` en el texto de una skill. */
+const CITA_NORMA = /<!--\s*norma:([a-z0-9-]+)\s*-->/g;
+/** Un texto sin tildes, en minúsculas y con cualquier signo como un espacio: para ver si una frase está dentro de otra. */
+const llano = (t) => String(t ?? "").normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+/** Palabras que ha de tener la exigencia de una norma para que encontrarla dentro de una skill cuente como copia. */
+export const MIN_PALABRAS_COPIA = 4;
+
+/**
+ * Errores de las normas de una skill (lista vacía si está bien). `skill`: { nombre, texto, extra: {ruta: texto} },
+ * como la da `cargarSkill`; `normas`: la lista de ops/normas.json.
+ *  1. `metadata.normas` es la lista de ids de las normas a las que sirve, y cada id existe;
+ *  2. cada `<!-- norma:id -->` de su texto (SKILL.md y capas) está en esa lista;
+ *  3. no contiene la frase de ninguna norma: la exigencia de una norma, de MIN_PALABRAS_COPIA palabras o más,
+ *     no aparece en su texto. Una skill cita la norma; no la copia.
+ */
+export function problemasDeNormasDeSkill(skill, normas) {
+  const malos = [];
+  const d = `skill ${skill.nombre}`;
+  const lista = parsearSkill(skill.texto).meta?.metadata?.normas;
+  const ids = new Set((normas ?? []).map((n) => n.id));
+  if (!Array.isArray(lista) || !lista.length) malos.push(`${d}: metadata.normas es la lista de las normas a las que sirve («normas: [id, id]»)`);
+  const propias = new Set(Array.isArray(lista) ? lista : []);
+  for (const id of propias) if (!ids.has(id)) malos.push(`${d}: metadata.normas cita «${id}», que no está en ops/normas.json`);
+  if (Array.isArray(lista) && propias.size !== lista.length) malos.push(`${d}: metadata.normas repite una norma`);
+  const textos = { "SKILL.md": skill.texto, ...(skill.extra ?? {}) };
+  for (const [ruta, t] of Object.entries(textos)) {
+    for (const m of String(t).matchAll(CITA_NORMA)) if (!propias.has(m[1])) malos.push(`${d}: ${ruta} cita la norma «${m[1]}» y no está en metadata.normas`);
+  }
+  const todo = Object.values(textos).map(llano).join(" ");
+  for (const n of normas ?? []) {
+    const e = llano(n.exigencia);
+    if (e.split(" ").length >= MIN_PALABRAS_COPIA && todo.includes(e)) malos.push(`${d}: contiene la frase de la norma «${n.id}» («${n.exigencia}»); cítala por su id y no la copies`);
+  }
+  return malos;
 }

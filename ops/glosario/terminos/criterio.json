@@ -1,14 +1,13 @@
 {
   "termino": "criterio",
-  "estado": "activo",
+  "estado": "retirado",
   "clase": "artefacto",
+  "dominio": "base",
   "definicion": "Una condición de calidad que lleva id, fuente y quién la vigila (un control o un juez).",
   "sinonimos_prohibidos": [],
   "aplica_a": [
     "todas"
   ],
-  "relacionado": [
-    "estándar",
-    "juicio de skill"
-  ]
+  "en": "criterion",
+  "pasa_a": "norma"
 }

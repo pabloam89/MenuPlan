@@ -34,6 +34,22 @@ export const LIMITES_REGLA = {
   rubrica: { min: 20 },
 };
 
+/** Un id en minúsculas con guiones (kebab): el de una norma, un principio o una regla. Un solo sitio (#619). */
+export const ID_KEBAB = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+
+/**
+ * La marca de una fuente, con UN significado en todos los catálogos (#620): F, una fuente externa
+ * lo dice (url); I, está escrito en la casa (una ruta del repo); S, inferencia nuestra o fuente
+ * secundaria (url). [F] e [I] son las de la forja, las normas, los estándares y la redacción; la
+ * lista de principios y producto usaban I para la inferencia y C para la casa, y se migraron a esto.
+ * Lo vigila ops/principios.test.js en cada catálogo.
+ */
+export const MARCAS_FUENTE = {
+  F: "Una fuente externa lo dice (url)",
+  I: "Está escrito en la casa (ruta del repo)",
+  S: "Inferencia nuestra o fuente secundaria (url)",
+};
+
 /** El valor de `control` cuando no lo vigila un fichero sino un juicio. */
 export const CONTROL_JUICIO = "juicio";
 
@@ -130,4 +146,60 @@ export function fraseDeRegla(r, sujetos, { conControl = true } = {}) {
   if (r.fuerza === "conviene") cuerpo = `${condicion ? `${condicion}para ${legible}` : `Para ${legible}`}, ${fuerza.palabra} ${r.exigencia}`;
   else cuerpo = `${condicion || ""}${condicion ? legible : mayuscula(legible)} ${fuerza.palabra} ${r.exigencia}`;
   return conControl ? `${cabeza} ${cuerpo}. Se comprueba con: ${controlLegible(r.control)}.` : `${cabeza} ${cuerpo}.`;
+}
+
+// ── La plantilla de un principio (#619) ───────────────────────────────────
+
+/**
+ * Un principio es el porqué de las normas (ops/principios/), no una regla: no lleva sujeto
+ * de vocabulario, fuerza ni control. Se escribe con la misma disciplina que una regla:
+ *   - `nombre`: sustantivo de 2 a 5 palabras, mayúscula inicial y sin punto (como una regla);
+ *   - `enunciado`: UNA frase en presente de indicativo, con sujeto y verbo, de 25 palabras como
+ *     mucho, que acaba en punto, sin punto y coma ni dos puntos (que abren otra frase) y sin
+ *     palabras de fuerza (debe, conviene, hay que…): la obligación es de la norma que cita el
+ *     principio, no del principio;
+ *   - `porque`: una frase de 30 palabras como mucho, con las mismas reglas.
+ * Que el verbo vaya en presente lo juzga el revisor: sin un diccionario de verbos no hay forma
+ * fiable de comprobarlo; lo demás lo comprueba `problemasDePrincipio`.
+ */
+export const LIMITES_PRINCIPIO = {
+  nombre: { palabras_min: 2, palabras_max: 5 },
+  enunciado: { palabras_max: 25, min: 20 },
+  porque: { palabras_max: 30, min: 20 },
+};
+
+/** Palabras de fuerza: en un principio no van (son de la norma). Sin tildes ni mayúsculas. */
+export const PALABRAS_DE_FUERZA = /(?<![\p{L}])(debe|deben|deberia|deberian|no debe|conviene|convendria|hay que|tiene que|tienen que|obligatori[oa]s?|must|should)(?![\p{L}])/u;
+
+const sinTildes = (t) => String(t).normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+
+function problemasDeFrase(t, campo, d, lim) {
+  const malos = [];
+  if (!esTexto(t, lim.min)) return [`${d}: «${campo}» es una frase de ${lim.min} caracteres o más`];
+  if (/\n/.test(t)) malos.push(`${d}: «${campo}» va en una sola línea`);
+  if (t !== t.trim() || !/^[A-ZÁÉÍÓÚÑÜ¿«]/.test(t)) malos.push(`${d}: «${campo}» empieza por mayúscula`);
+  if (!/\.$/.test(t)) malos.push(`${d}: «${campo}» acaba en punto`);
+  if (/[.!?](\s|$)/.test(t.slice(0, -1)) || /[;:]/.test(t)) malos.push(`${d}: «${campo}» es una sola frase: sin otro punto, ni punto y coma, ni dos puntos`);
+  if (palabras(t) > lim.palabras_max) malos.push(`${d}: «${campo}» pasa de ${lim.palabras_max} palabras (${palabras(t)})`);
+  const f = PALABRAS_DE_FUERZA.exec(sinTildes(t));
+  if (f) malos.push(`${d}: «${campo}» lleva una palabra de fuerza («${f[1]}»): un principio dice el porqué, la obligación es de la norma`);
+  return malos;
+}
+
+/** Errores de los campos de texto de un principio (nombre, enunciado y porqué); lista vacía si está bien. */
+export function problemasDePrincipio(p, d) {
+  const malos = [];
+  const n = p?.nombre;
+  if (typeof n !== "string" || !NOMBRE.test(n)) malos.push(`${d}: «nombre» es un sustantivo corto con mayúscula inicial y sin punto final`);
+  else if (palabras(n) < LIMITES_PRINCIPIO.nombre.palabras_min || palabras(n) > LIMITES_PRINCIPIO.nombre.palabras_max) {
+    malos.push(`${d}: «nombre» tiene de ${LIMITES_PRINCIPIO.nombre.palabras_min} a ${LIMITES_PRINCIPIO.nombre.palabras_max} palabras, no ${palabras(n)}`);
+  }
+  malos.push(...problemasDeFrase(p?.enunciado, "enunciado", d, LIMITES_PRINCIPIO.enunciado));
+  malos.push(...problemasDeFrase(p?.porque, "porque", d, LIMITES_PRINCIPIO.porque));
+  return malos;
+}
+
+/** La frase de un principio: «**Nombre.** Enunciado Por qué: porqué» (sin la segunda parte con `{ conPorque: false }`). */
+export function fraseDePrincipio(p, { conPorque = true } = {}) {
+  return conPorque ? `**${p.nombre}.** ${p.enunciado} Por qué: ${p.porque}` : `**${p.nombre}.** ${p.enunciado}`;
 }

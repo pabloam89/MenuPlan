@@ -2,6 +2,7 @@
   "termino": "constructor",
   "estado": "activo",
   "clase": "rol",
+  "dominio": "base",
   "definicion": "El agente o la sesión que hace un cambio en su dominio; no juzga lo suyo.",
   "sinonimos_prohibidos": [
     "implementador",
@@ -17,5 +18,11 @@
     "fichero": "scripts/lib/flujo.mjs",
     "clave": "ACTORES.agente_dominio"
   },
-  "nota": "No es el «ejecutor» de una norma, que es quien la hace cumplir."
+  "nota": "No es el «ejecutor» de una norma, que es quien la hace cumplir.",
+  "entidades": [
+    {
+      "entidad": "agent",
+      "relacion": "rol_de"
+    }
+  ]
 }

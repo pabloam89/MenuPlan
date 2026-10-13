@@ -8,7 +8,7 @@ import { catalogoEnReferencia, leerTexto } from "../scripts/lib/catalogos.mjs";
 import { RUTA_VOCABULARIOS, leerRegistro, redefinicionesDelGlosario } from "../scripts/lib/vocabulariosVida.mjs";
 import { JUICIOS, MAX_CANDIDATOS, MOTIVOS_JUICIO, aJuzgar, candidatos, leerJuicios, lineaCandidato, pendientesDeJuicios, problemasDeJuicios, prosaDeZonas } from "../scripts/lib/glosarioCandidatos.mjs";
 import {
-  CLASES, ESTADOS_TERMINO, EXCEPCIONES_FORMA, canonicoDe, cifrasDeForma, faltaDeForma, problemasDeRelaciones, problemasDeVidaGlosario, comparar, ficherosDe, leerExcepciones, leerGlosario, medir, patronDe, plano, problemasDeGlosario, prosaDeJson, prosaDeMarkdown, sobrePartida, total,
+  CLASES, DOMINIOS, ESTADOS_TERMINO, EXCEPCIONES_FORMA, MOTIVOS_SIN_ENTIDAD, RELACION_POR_CLASE, canonicoDe, cifrasDeForma, faltaDeForma, problemasDeRelaciones, problemasDeVidaGlosario, comparar, ficherosDe, leerExcepciones, leerGlosario, medir, patronDe, plano, problemasDeGlosario, prosaDeJson, prosaDeMarkdown, sobrePartida, total,
 } from "../scripts/lib/glosario.mjs";
 
 /**
@@ -207,6 +207,13 @@ describe("autotest de la forma", () => {
     expect(conTermino((t) => { t.definicion = "x".repeat(300); }).join()).toMatch(/definición de 300/);
   });
 
+  it("el nombre inglés (en): forma de minúsculas y guiones, y no se repite entre términos (#566)", () => {
+    expect(conTermino((t) => { t.en = "Mala Forma"; }).join()).toMatch(/no tiene la forma de un nombre inglés/);
+    expect(conTermino((t) => { t.en = "casa_x"; }).join()).toMatch(/no tiene la forma/);
+    expect(conTermino((t) => { t.en = "judge"; }).join()).toMatch(/en «judge» ya es el de /);
+    expect(G.terminos.find((t) => t.termino === "juez")?.en).toBe("judge");
+  });
+
   it("una definición que usa un sinónimo prohibido", () => {
     expect(conTermino((t) => { t.definicion = "Mirar si hay un bug con evidencia repetible."; }).join()).toMatch(/usa «bug» \(di «fallo»\)/);
   });
@@ -307,7 +314,7 @@ describe("autotest del ciclo de vida", () => {
     expect(problemasDeVidaGlosario(g, G).join()).toMatch(/fallo: estaba en el glosario y ha desaparecido/);
     expect(problemasDeVidaGlosario(g, TERMINOS_FIJADOS).join()).toMatch(/fallo: estaba en el glosario/);
     const r = copia();
-    Object.assign(r.terminos.find((t) => t.termino === "zona"), { estado: "retirado", pasa_a: "regla" });
+    Object.assign(r.terminos.find((t) => t.termino === "plano"), { estado: "retirado", pasa_a: "regla" });
     expect(problemasDeVidaGlosario(r, G)).toEqual([]);
     expect(problemasDeGlosario(r, { existe, leer }).filter((x) => /pasa_a|estado/.test(x))).toEqual([]);
   });
@@ -432,9 +439,9 @@ describe("autotest de los candidatos", () => {
   });
 
   it("los falsos parientes de una palabra del glosario sí cuentan; su familia, no", () => {
-    const r = candidatos(trozos("principio constante normalización información guardar contrato normativa; comprueba fondos revisores guardias"), G, { umbral: UMB }).map((c) => c.candidato);
-    for (const w of ["principio", "constante", "normalizacion", "informacion", "guardar", "contrato", "normativa"]) expect(r, w).toContain(w);
-    for (const w of ["comprueba", "fondos", "revisores", "guardias"]) expect(r, w).not.toContain(w);
+    const r = candidatos(trozos("constante normalización información guardar contrato normativa; comprueba fondos revisores guardias principios"), G, { umbral: UMB }).map((c) => c.candidato);
+    for (const w of ["constante", "normalizacion", "informacion", "guardar", "contrato", "normativa"]) expect(r, w).toContain(w);
+    for (const w of ["comprueba", "fondos", "revisores", "guardias", "principios"]) expect(r, w).not.toContain(w);
   });
 
   it("no cuenta palabras vacías, ni lo que va en código o entre «»", () => {
@@ -458,9 +465,9 @@ describe("autotest de los candidatos", () => {
   it("lo juzgado deja de salir; el mismo juicio y motivo tres veces es una regla propuesta", () => {
     const j = (candidato, juicio = "nada", motivo = "uso_general") => ({ candidato, juicio, motivo, detalle: `${candidato}: se usa en su sentido de diccionario`, fecha: "2026-10-10" });
     expect(candidatos(trozos("Una ventana."), G, { umbral: UMB, juicios: [j("ventana")] })).toEqual([]);
-    const { reglas, sinTermino } = pendientesDeJuicios([j("lista"), j("linea"), j("texto"), j("codigo", "nada", "jerga_de_servicio"), j("pieza", "termino_nuevo", "significado_propio")], G);
+    const { reglas, sinTermino } = pendientesDeJuicios([j("lista"), j("linea"), j("texto"), j("codigo", "nada", "jerga_de_servicio"), j("estampa", "termino_nuevo", "significado_propio")], G);
     expect(reglas).toEqual([{ juicio_y_motivo: "nada: uso_general", candidatos: ["lista", "linea", "texto"] }]);
-    expect(sinTermino).toEqual(["pieza"]);
+    expect(sinTermino).toEqual(["estampa"]);
   });
 
   it("los juicios: vocabulario, motivo cerrado de su juicio, detalle, fecha y sinonimo_de que existe", () => {
@@ -479,5 +486,87 @@ describe("autotest de los candidatos", () => {
     expect(p({ juicio: "sinonimo", motivo: "nombre_largo", sinonimo_de: "fondo" })).toBe("");
     expect(p({ sinonimo_de: "fondo" })).toMatch(/solo va con el juicio sinonimo/);
     expect(problemasDeJuicios([base, { ...base, candidato: "VENTANA" }], G).join()).toMatch(/juzgado dos veces/);
+  });
+});
+
+// ── F1 de #652: palabras que se unifican (docs/ops/BASE-FORJA.md §5, §6 y §8) ─────────────────────────
+describe("estándar, plantilla, norma, criterio y regla (F1 de #652)", () => {
+  const T = (n) => G.terminos.find((t) => t.termino === n);
+  const medirTexto = (texto) => medir(RAIZ, G, { leer: () => texto, ficheros: (p) => (p === ".claude/skills/**/*.md" ? [".claude/skills/x/SKILL.md"] : []) }).detalle.map((d) => `${d.sinonimo}→${d.canonico}`);
+
+  it("estándar es la ficha de una tarea de agente; el de un tipo de skill es la plantilla del tipo", () => {
+    expect(T("estándar").definicion).toMatch(/^La ficha de una tarea de agente/);
+    expect(T("estándar").en).toBe("standard");
+    expect(T("estándar").relacionado).toEqual(expect.arrayContaining(["norma", "tarea de agente", "plantilla"]));
+    expect(T("estándar").relacionado).not.toContain("criterio");
+    expect(T("plantilla").sinonimos_prohibidos).toEqual(expect.arrayContaining(["template", "estándar de cada tipo", "estándar de un tipo", "estándares de los tipos", "estándar por tipos"]));
+    expect(T("plantilla").sinonimos_prohibidos).toHaveLength(2 + 9);
+  });
+
+  it("«estándar de cada tipo» y sus variantes fallan como sinónimos de plantilla", () => {
+    for (const f of ["estándar de cada tipo", "estándar de un tipo", "estándar por tipo", "estándares de los tipos", "estándar de este tipo"]) {
+      expect(medirTexto(`Aquí el ${f} dice qué es bueno.\n`), f).toEqual([`${f}→plantilla`]);
+    }
+    expect(medirTexto("La entrada estándar y el estándar de una tarea.\n")).toEqual([]);
+  });
+
+  it("criterio está retirado y pasa a norma: su nombre y sus once frases fallan, y «criterio de parada» también", () => {
+    expect(T("criterio")).toMatchObject({ estado: "retirado", pasa_a: "norma", en: "criterion" });
+    expect(T("norma").sinonimos_prohibidos).toEqual(expect.arrayContaining(["criterios de la forja", "criterios de calidad", "criterio de juicio", "criterios de las skills"]));
+    expect(canonicoDe(G).get("criterio")).toBe("norma");
+    expect(medirTexto("Un criterio de parada.\nLos criterios de la forja.\nLos criterios de calidad.\n")).toEqual(["criterio→norma", "criterios de la forja→norma", "criterios de calidad→norma"]);
+    expect(medirTexto("Los criterios sueltos y la condición de parada.\n")).toEqual([]);
+  });
+
+  it("«regla propia» y «de la casa» fallan como sinónimos de norma; regla queda como el fichero de .claude/rules/", () => {
+    expect(T("norma").sinonimos_prohibidos).toEqual(expect.arrayContaining(["regla propia", "reglas propias", "regla de la casa", "reglas de la casa", "regla del estándar", "reglas de la forja"]));
+    expect(T("norma").sinonimos_prohibidos).toHaveLength(11 + 10);
+    expect(medirTexto("Una regla propia y las reglas de la casa.\n")).toEqual(["regla propia→norma", "reglas de la casa→norma"]);
+    expect(medirTexto("La regla de .claude/rules/ui.md y una norma de la casa.\n")).toEqual([]);
+    expect(T("regla").definicion).toMatch(/^Un fichero de \.claude\/rules\//);
+    expect(T("regla").sinonimos_prohibidos).toEqual(["directriz", "directrices", "pauta", "pautas"]);
+  });
+
+  it("los términos nuevos de §8 existen con su clase y su traducción", () => {
+    const esperado = { meta: "campo", base: "artefacto", forja: "artefacto", pieza: "artefacto", "tipo de tarea": "campo", ámbito: "campo", acción: "campo", fuerza: "campo", veredicto: "campo", dominio: "campo", paso: "campo" };
+    for (const [n, clase] of Object.entries(esperado)) expect(T(n), n).toMatchObject({ clase, estado: "activo" });
+    expect(T("ámbito").en).toBe("area");
+    expect(T("dominio").en).toBe("domain");
+    // artefactos sin traducción a propósito: ops/entidades.test.js pediría una entidad por cada artefacto con `en`
+    for (const n of ["base", "forja", "pieza"]) expect(T(n).en, n).toBeUndefined();
+  });
+});
+
+describe("autotest del campo dominio y de la forma del mapeo (F1 de #652)", () => {
+  const con = (cambio) => { const g = copia(); cambio(g.terminos.find((t) => t.termino === "fallo"), g); return problemasDeGlosario(g, { existe, leer }).join(); };
+  const conArt = (cambio) => { const g = copia(); cambio(g.terminos.find((t) => t.termino === "rama"), g); return problemasDeGlosario(g, { existe, leer }).join(); };
+
+  it("el dominio es obligatorio y de vocabulario cerrado", () => {
+    expect(Object.keys(DOMINIOS)).toEqual(["base", "ops", "datos", "producto", "diseno"]);
+    for (const t of G.terminos) expect(Object.keys(DOMINIOS), t.termino).toContain(t.dominio);
+    expect(con((t) => { delete t.dominio; })).toMatch(/fallo: falta dominio/);
+    expect(con((t) => { t.dominio = "cocina"; })).toMatch(/fallo: dominio «cocina» fuera del vocabulario/);
+  });
+
+  it("la relación con la entidad la fija la clase del término", () => {
+    expect(RELACION_POR_CLASE).toEqual({ artefacto: "denota", campo: "campo_de", estado: "valor_de", rol: "rol_de", accion: "accion_sobre", lugar: "ubicacion_de" });
+    expect(Object.keys(RELACION_POR_CLASE).sort()).toEqual(Object.keys(CLASES).sort());
+    expect(con((t) => { t.entidades = [{ entidad: "case", relacion: "denota" }]; })).toMatch(/un término de clase estado nombra a su entidad con «valor_de», no con «denota»/);
+    expect(con((t) => { t.entidades = [{ entidad: "case", relacion: "ama" }]; })).toMatch(/relación «ama» fuera del vocabulario/);
+    expect(con((t) => { t.entidades = []; })).toMatch(/entidades es una lista no vacía/);
+    expect(con((t) => { t.entidades = [{ entidad: "case", relacion: "valor_de" }, { entidad: "case", relacion: "valor_de" }]; })).toMatch(/«case» está repetida/);
+    expect(con((t) => { t.entidades = [{ entidad: "case", relacion: "valor_de", peso: 2 }]; })).toMatch(/campo desconocido \(peso\)/);
+  });
+
+  it("un artefacto nombra una entidad o dice por qué no, con motivo cerrado, y no las dos cosas", () => {
+    expect(Object.keys(MOTIVOS_SIN_ENTIDAD)).toEqual(["componente", "salida", "paso", "meta", "retirado", "candidato"]);
+    expect(conArt((t) => { delete t.entidades; })).toMatch(/rama: un artefacto nombra una entidad/);
+    expect(conArt((t) => { delete t.entidades; t.sin_entidad = "capricho"; })).toMatch(/sin_entidad «capricho» fuera del vocabulario/);
+    expect(conArt((t) => { t.sin_entidad = "paso"; })).toMatch(/o nombra entidades o dice sin_entidad/);
+    expect(con((t) => { t.sin_entidad = "paso"; })).toMatch(/sin_entidad solo va en un artefacto/);
+  });
+
+  it("un retirado no lleva mapeo a entidades", () => {
+    expect(conArt((t) => { Object.assign(t, { estado: "retirado", pasa_a: "pr" }); delete t.relacionado; delete t.estrecho; delete t.amplio; })).toMatch(/rama: un retirado no lleva mapeo a entidades/);
   });
 });

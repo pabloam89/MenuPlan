@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * rulesets.mjs — los rulesets de `main` y `staging` frente a lo deseado (E4, #330;
- * fondo #326: dueño de código).
+ * fondo #326; sin aprobación humana desde #608).
  *
  *   node scripts/rulesets.mjs             # solo LEE y enseña la diferencia
  *   node scripts/rulesets.mjs --escribir  # crea o actualiza (SOLO Pablo, con su credencial de administrador)
@@ -11,10 +11,11 @@
  *   `update` (restringir actualizaciones) con bypass solo para el rol Administrador,
  *   en modo `pull_request`: solo Pablo fusiona, por el botón del PR. Sin aprobación
  *   de dueño en main: no hace falta, fusiona quien tiene el bypass.
- * - staging: lo de hoy (`tests`, excepción de la deploy key) y, además, PR con la
- *   revisión de dueño de código y 0 aprobaciones: GitHub no deja condicionar una
- *   regla de ruleset por ruta; el filtro por ruta lo pone CODEOWNERS. Sin bypass para
- *   nadie salvo la deploy key (un bypass también saltaría `tests`).
+ * - staging: `tests` obligatorio y la excepción de la deploy key; nada más. Ningún
+ *   PR espera la aprobación de una persona (#608, decisión de Pablo del 11 oct 2026):
+ *   ni revisión de dueño de código ni aprobaciones. El control que queda es `tests` y el
+ *   juez `revisor` («quien construye no juzga»), que es de proceso y no de GitHub.
+ *   Sin bypass para nadie salvo la deploy key (un bypass también saltaría `tests`).
  *
  * Falla cerrado: sin token, sin respuesta, con una respuesta rara o sin permiso de
  * administrador, no escribe nada. No imprime el token ni lo que GitHub devuelva sin
@@ -38,12 +39,13 @@ const checks = () => ({
   type: "required_status_checks",
   parameters: { strict_required_status_checks_policy: false, do_not_enforce_on_create: false, required_status_checks: [{ ...CHECK_TESTS }] },
 });
-const revision = (aprobaciones, dueno) => ({
+/** PR obligatorio sin aprobaciones humanas ni revisión de dueño (#608). */
+const revision = () => ({
   type: "pull_request",
   parameters: {
-    required_approving_review_count: aprobaciones,
+    required_approving_review_count: 0,
     dismiss_stale_reviews_on_push: true,
-    require_code_owner_review: dueno,
+    require_code_owner_review: false,
     require_last_push_approval: false,
     required_review_thread_resolution: false,
   },
@@ -57,13 +59,13 @@ export function deseados() {
     rules, bypass_actors: bypass,
   });
   return [
-    rama(NOMBRE_MAIN, "main", [revision(0, false), checks()], []),
+    rama(NOMBRE_MAIN, "main", [revision(), checks()], []),
     // «update»: solo quien tiene bypass actualiza la rama; el rol Administrador, y solo por PR.
-    // Sin comprobar a 10 oct 2026: el nombre exacto del parámetro (update_allows_fetch_and_merge).
-    rama(NOMBRE_MAIN_SOLO, "main", [{ type: "update", parameters: { update_allows_fetch_and_merge: false } }],
+    // Comprobado el 11 oct 2026: GitHub no guarda ningún parámetro en `update` (devuelve {}); se desea sin ellos.
+    rama(NOMBRE_MAIN_SOLO, "main", [{ type: "update", parameters: {} }],
       [{ actor_id: ROL_ADMIN, actor_type: "RepositoryRole", bypass_mode: "pull_request" }]),
     // La excepción de la deploy key (el cron de Mercadona empuja con ella) se mantiene tal cual.
-    rama(NOMBRE_STAGING, "staging", [checks(), revision(0, true)], [{ actor_id: null, actor_type: "DeployKey", bypass_mode: "always" }]),
+    rama(NOMBRE_STAGING, "staging", [checks()], [{ actor_id: null, actor_type: "DeployKey", bypass_mode: "always" }]),
   ];
 }
 

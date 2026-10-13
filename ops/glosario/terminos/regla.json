@@ -2,7 +2,8 @@
   "termino": "regla",
   "estado": "activo",
   "clase": "artefacto",
-  "definicion": "Una condición concreta que hay que cumplir, escrita donde se aplica: un fichero de .claude/rules/, la guardia o un test.",
+  "dominio": "base",
+  "definicion": "Un fichero de .claude/rules/ que Claude Code carga al tocar una zona y que recuerda normas; no es una unidad exigible.",
   "sinonimos_prohibidos": [
     "directriz",
     "directrices",
@@ -14,5 +15,7 @@
   ],
   "relacionado": [
     "norma"
-  ]
+  ],
+  "en": "rule",
+  "sin_entidad": "retirado"
 }

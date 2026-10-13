@@ -1,0 +1,16 @@
+{
+  "id": "versioned-concurrency",
+  "area": "data",
+  "nombre": "Concurrencia con versión",
+  "enunciado": "Varios dispositivos de una casa escriben a la vez, y sin una versión el último pisa al primero sin saberlo.",
+  "porque": "La app, el bot y otro miembro escriben la misma casa, y sin versión gana el último sin que nadie se entere.",
+  "fuentes": [
+    {
+      "marca": "I",
+      "ruta": "docs/datos/PRINCIPIOS.md"
+    }
+  ],
+  "detalle": [
+    "docs/datos/PRINCIPIOS.md#7-concurrencia"
+  ]
+}

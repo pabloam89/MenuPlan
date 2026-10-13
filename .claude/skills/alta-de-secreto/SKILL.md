@@ -12,6 +12,7 @@ metadata:
   porque_tipo: "opera_proveedor es false: da de alta claves de GitHub, Vercel, Anthropic, Telegram o Supabase, así que no hay un proveedor único que operar; lo que la define son los pasos fijos con comprobación"
   dueno: gobierno
   comprobado: 2026-10-10
+  normas: [secretos-ok-pablo, secretos-en-environments, secretos-de-repo, caducidad-token-vercel, caducidad-clave-anthropic-evals, recurso-con-dueno-y-caducidad]
 ---
 
 # Alta de un secreto

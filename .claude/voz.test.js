@@ -6,7 +6,8 @@ import { cargarContexto, cargarSkill, faltasDeSkill } from "../scripts/lib/skill
 import { MAX_FRASES_PARRAFO, MAX_IDEAS, MAX_PALABRAS_FRASE, faltasDeMensaje } from "../scripts/lib/voz.mjs";
 
 /**
- * La voz con Pablo (10 oct 2026): una regla corta en CLAUDE.md, el detalle en la
+ * La voz con Pablo (10 oct 2026; #652: una sola fuente): CLAUDE.md solo apunta a la skill
+ * (no repite ninguna regla), el detalle está en la
  * skill `estilo-de-respuesta` y un resumen en la plantilla de agentes. Aquí se vigila
  * lo medible (el medidor es `scripts/lib/voz.mjs`, el mismo del vigilante #453): que las tres piezas nombren las mismas cinco plantillas y la regla
  * de las tres opciones, que la skill pase el nivel 1 y que los ejemplos
@@ -42,32 +43,41 @@ describe("las tres piezas de la voz dicen lo mismo", () => {
   const skill = leer(".claude/skills/estilo-de-respuesta/SKILL.md");
   const plantillaAgente = leer(".claude/PLANTILLA-AGENTE.md");
 
-  it("CLAUDE.md y la plantilla de agentes nombran las cinco plantillas", () => {
-    expect(nombraPlantillas(claude), "CLAUDE.md").toBe(true);
+  it("la plantilla de agentes nombra las cinco plantillas, y CLAUDE.md no las repite (apunta a la skill)", () => {
     expect(nombraPlantillas(plantillaAgente), "PLANTILLA-AGENTE.md").toBe(true);
+    expect(nombraPlantillas(claude), "CLAUDE.md es un puntero: las plantillas viven en la skill").toBe(false);
   });
 
   it("la skill describe las cinco plantillas con su fila de la tabla", () => {
     for (const p of PLANTILLAS) expect(skill, p).toMatch(new RegExp(`\\| ${p} \\|`));
   });
 
-  it("CLAUDE.md y la skill piden hablarle siempre en castellano (lo mide la falta no_castellano)", () => {
-    expect(claude, "CLAUDE.md").toMatch(/[Ss]iempre en castellano/);
+  it("la skill pide hablarle siempre en castellano (lo mide la falta no_castellano)", () => {
     expect(skill, "SKILL.md").toMatch(/siempre en castellano/);
   });
 
   it("las tres piezas piden tres opciones, la recomendada primero", () => {
-    for (const [nombre, t] of [["CLAUDE.md", claude], ["PLANTILLA-AGENTE.md", plantillaAgente], ["SKILL.md", skill]]) {
+    for (const [nombre, t] of [["PLANTILLA-AGENTE.md", plantillaAgente], ["SKILL.md", skill]]) {
       expect(t, nombre).toMatch(/tres opciones/);
       expect(t, nombre).toMatch(/recomendada primero/);
     }
   });
 
-  it("CLAUDE.md y la plantilla de agentes apuntan a la skill, y la regla de CLAUDE.md está en su sitio", () => {
+  it("CLAUDE.md y la plantilla de agentes apuntan a la skill, y CLAUDE.md es un puntero corto, sin las reglas (#652)", () => {
     expect(claude).toMatch(/skill `estilo-de-respuesta`/);
     expect(plantillaAgente).toMatch(/skill `estilo-de-respuesta`/);
     expect(claude).toMatch(/## Cómo se le habla a Pablo/);
     expect(claude).toMatch(/`estilo-de-respuesta`\s*\(cómo\s+se\s+escribe\s+a\s+Pablo/);
+    // Una sola fuente: la sección de CLAUDE.md no crece ni copia lo que ya dice la skill.
+    const bruto = readFileSync(join(RAIZ, "CLAUDE.md"), "utf8");
+    const ini = bruto.indexOf("## Cómo se le habla a Pablo");
+    const sec = bruto.slice(ini, bruto.indexOf("\n## ", ini + 3));
+    expect(sec.split("\n").length, "líneas de la sección").toBeLessThanOrEqual(12);
+    for (const copia of [/Coste:/, /Certeza:/, /tres opciones/, /Seguimos con X/, /25 palabras/]) expect(sec, String(copia)).not.toMatch(copia);
+    expect(sec).toMatch(/`orquestador`/);
+    // Lo esencial inline, para la sesión sin --agent (que no trae la skill precargada).
+    expect(sec).toMatch(/primera línea del mensaje es la idea raíz en \*\*negrita\*\*/);
+    expect(sec).toMatch(/[Aa]bre la skill\s+`estilo-de-respuesta` antes de escribirle/);
   });
 
   it("el informe de agente: solo RESUMEN y DECISIONES PENDIENTES siguen la voz, y la decisión pide A/B/C con la recomendada", () => {
@@ -83,8 +93,8 @@ describe("las tres piezas de la voz dicen lo mismo", () => {
     for (const [nombre, t] of [["CLAUDE.md", claude], ["PLANTILLA-AGENTE.md", plantillaAgente], ["SKILL.md", skill]]) expect(t, nombre).toMatch(frase);
   });
 
-  it("las tres piezas dan la misma excepción para ficheros y comandos", () => {
-    for (const [nombre, t] of [["CLAUDE.md", claude], ["PLANTILLA-AGENTE.md", plantillaAgente], ["SKILL.md", skill]]) {
+  it("la plantilla de agentes y la skill dan la misma excepción para ficheros y comandos", () => {
+    for (const [nombre, t] of [["PLANTILLA-AGENTE.md", plantillaAgente], ["SKILL.md", skill]]) {
       expect(t, nombre).toMatch(/salvo que él los pida o los tenga que ejecutar/);
     }
   });
@@ -96,7 +106,7 @@ describe("las tres piezas de la voz dicen lo mismo", () => {
   });
 });
 
-describe("las tres mejoras de calibración (10 oct) están en su sitio en las tres piezas", () => {
+describe("las mejoras de calibración (10 oct) están en su sitio en la plantilla de agentes y en la skill", () => {
   // Cada pieza lo dice en SU sección, no en cualquier parte del fichero.
   const seccion = (ruta, titulo) => {
     const raw = readFileSync(join(RAIZ, ruta), "utf8");
@@ -106,7 +116,6 @@ describe("las tres mejoras de calibración (10 oct) están en su sitio en las tr
     return raw.slice(ini, fin === -1 ? undefined : fin).replace(/\s+/g, " ");
   };
   const piezas = () => [
-    ["CLAUDE.md", seccion("CLAUDE.md", "Cómo se le habla a Pablo")],
     ["PLANTILLA-AGENTE.md", seccion(".claude/PLANTILLA-AGENTE.md", "Cómo se le escribe a Pablo")],
     ["SKILL.md", seccion(".claude/skills/estilo-de-respuesta/SKILL.md", "Método")],
   ];

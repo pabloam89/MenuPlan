@@ -11,6 +11,7 @@ metadata:
   elige_opciones: true
   dueno: gobierno
   comprobado: 2026-10-10
+  normas: [plan-tres-encargos-con-preventivo, presupuesto-por-alcance, fondo-observado-con-verificacion]
 ---
 
 # Plan de arreglo

@@ -39,15 +39,24 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { BECOMES, CARDINALITIES, CREATORS, FAMILIES, ID_FORMATS, LEVELS, PARENT_KINDS, REGISTRIES, RELATION_CLASSES, RELATIONS, SCOPES, STATUSES, STORED_AS, SUBJECT_KINDS } from "./entidades.mjs";
 import { leerEstandares } from "./estandaresAgentes.mjs";
 import { ESTADOS } from "./fondos.mjs";
 import { ACTORES, ALCANCES_FALLO, DIAGNOSTICAN, ESTADOS_MEDIDA, PASOS } from "./flujo.mjs";
 import { leerForja } from "./forja.mjs";
-import { CLASES, ESTADOS_TERMINO, plano } from "./glosario.mjs";
-import { GRUPOS, TIPOS_ACCION } from "./issues.mjs";
+import { CLASES, DOMINIOS, ESTADOS_TERMINO, MOTIVOS_SIN_ENTIDAD, RELACIONES_ENTIDAD, plano } from "./glosario.mjs";
+import { COMPLEXITIES, GRUPOS, TIPOS_ACCION } from "./issues.mjs";
 import { CAUSAS_EXCEPCION, ROLES_CAMPO, TIPOS_LECTOR, UNIDADES } from "./metricas.mjs";
+import { AMBITOS } from "./ambitos.mjs";
+import { FORMAS as FORMAS_EXCEPCION, RAZONES as RAZONES_EXCEPCION } from "./excepciones.mjs";
+import { RESULTADOS_NORMA } from "./medicionNormas.mjs";
+import { leerPrecedencia } from "./precedencia.mjs";
 import { VEREDICTOS_RUIDO } from "./ruido.mjs";
+import { MOTIVOS_COMPLEJIDAD, PIPELINES } from "./presupuestos.mjs";
+import { textosDeBanderas, textosDeCierres, textosDeContadores, textosDeDiffersIn, textosDeEstados, textosDeFinalidades, textosDeMedidas, textosDeSubtipos, textosDeTipos } from "./tiposDeEncargo.mjs";
 import { VOCABULARIOS as PRODUCTO } from "../../src/lib/vocabularios.js";
+import { DEF_ACTORES, DEF_EVITABLE, DEF_MOTIVOS_INTERVENCION } from "./eventosVocabulario.mjs";
+import { DEF_PROYECTOS, DEF_ZONAS } from "./zonasProyecto.mjs";
 
 export const RUTA_VOCABULARIOS = "ops/vocabularios-vida.json";
 /** El prefijo de los vocabularios del producto en el registro: `producto.<nombre en VOCABULARIOS>`. */
@@ -70,6 +79,10 @@ export const VOCABULARIOS = {
   // Los tipos de skill: la única lista es tipos_skill de ops/forja/ (#495), que lee forja.mjs; su definición, «que».
   "forja.tipo_skill": { fichero: "scripts/lib/forja.mjs", textos: () => Object.fromEntries(leerForja(RAIZ).tipos_skill.map((x) => [x.id, x.que])) },
   "glosario.estado": { fichero: "scripts/lib/glosario.mjs", textos: conTexto(ESTADOS_TERMINO) },
+  // El dominio de un término y su mapeo a entidades (F1 de #652): la relación la fija la clase del término.
+  "glosario.dominio": { fichero: "scripts/lib/glosario.mjs", textos: conTexto(DOMINIOS) },
+  "glosario.relacion_entidad": { fichero: "scripts/lib/glosario.mjs", textos: conTexto(RELACIONES_ENTIDAD) },
+  "glosario.motivo_sin_entidad": { fichero: "scripts/lib/glosario.mjs", textos: conTexto(MOTIVOS_SIN_ENTIDAD) },
   // La acción y el origen de una tarea de agente: la única lista está en ops/estandares-agentes.json (#516).
   "estandares.accion": { fichero: "scripts/lib/estandaresAgentes.mjs", textos: () => ({ ...leerEstandares(RAIZ).acciones }) },
   "estandares.origen": { fichero: "scripts/lib/estandaresAgentes.mjs", textos: () => ({ ...leerEstandares(RAIZ).origenes }) },
@@ -79,6 +92,53 @@ export const VOCABULARIOS = {
   "metricas.rol_campo": { fichero: "scripts/lib/metricas.mjs", textos: conTexto(ROLES_CAMPO) },
   "metricas.causa_excepcion": { fichero: "scripts/lib/metricas.mjs", textos: conTexto(CAUSAS_EXCEPCION) },
   "ruido.veredicto": { fichero: "scripts/lib/ruido.mjs", textos: conTexto(VEREDICTOS_RUIDO) },
+  // El área de un principio y el ámbito de una norma (#619): un solo vocabulario, en scripts/lib/ambitos.mjs.
+  ambitos: { fichero: "scripts/lib/ambitos.mjs", textos: () => Object.fromEntries(Object.entries(AMBITOS).map(([k, a]) => [k, a.que])) },
+  // La excepción de un PR a una norma (#621): una sola forma viva; las tres de antes están retiradas (scripts/lib/excepciones.mjs).
+  "pr.excepcion_forma": { fichero: "scripts/lib/excepciones.mjs", textos: conTexto(FORMAS_EXCEPCION) },
+  // Los conceptos de la precedencia entre áreas (#621): el dato vive en ops/principios/_catalogo.json.
+  "precedencia.concepto": { fichero: "scripts/lib/precedencia.mjs", textos: () => Object.fromEntries(Object.entries(leerPrecedencia(RAIZ).concepts).map(([k, c]) => [k, c.what])) },
+  // Por qué una excepción de un PR no cuenta, y lo que pasó con una norma en una línea `norma: <id> resultado: …` (#621).
+  "pr.excepcion_razon": { fichero: "scripts/lib/excepciones.mjs", textos: conTexto(RAZONES_EXCEPCION) },
+  "normas.resultado": { fichero: "scripts/lib/medicionNormas.mjs", textos: conTexto(RESULTADOS_NORMA) },
+  // Los tipos de encargo (#640): la única lista está en ops/tipos-de-encargo.json (tipos, subtipos y banderas) y en
+  // ops/presupuestos.json (el pipeline de cada complejidad); sus lectores, tiposDeEncargo.mjs y presupuestos.mjs.
+  "encargo.type": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeTipos() },
+  "encargo.subtype": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeSubtipos() },
+  "encargo.flag": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeBanderas() },
+  // La puerta de entrada de un subtipo (#646): todo atributo es un valor de estos vocabularios cerrados.
+  "encargo.differs_in": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeDiffersIn() },
+  "encargo.closing": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeCierres() },
+  "encargo.measure": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeMedidas() },
+  "encargo.counter": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeContadores() },
+  "encargo.step_purpose": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeFinalidades() },
+  "encargo.subtype_status": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeEstados() },
+  "encargo.complexity_reason": { fichero: "scripts/lib/presupuestos.mjs", textos: conTexto(MOTIVOS_COMPLEJIDAD) },
+  "encargo.complexity": { fichero: "scripts/lib/issues.mjs", textos: conTexto(COMPLEXITIES) },
+  "encargo.pipeline": { fichero: "scripts/lib/presupuestos.mjs", textos: conTexto(PIPELINES) },
+  // El registro de entidades (#566): sus valores van a ops/entidades.json y a ops/entidades-sujetos.json.
+  // El eje (entidades.axis) se retiró entero el 12 oct 2026 (vocabularios_retirados): lo sustituye el alcance de las piezas.
+  "entidades.scope": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(SCOPES) },
+  "entidades.level": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(LEVELS) },
+  "entidades.family": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(FAMILIES) },
+  "entidades.creator": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(CREATORS) },
+  "entidades.relation_class": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(RELATION_CLASSES) },
+  "entidades.parent_kind": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(PARENT_KINDS) },
+  "entidades.cardinality": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(CARDINALITIES) },
+  "entidades.becomes": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(BECOMES) },
+  "entidades.registry": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(REGISTRIES) },
+  "entidades.status": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(STATUSES) },
+  "entidades.id_format": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(ID_FORMATS) },
+  "entidades.stored_as": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(STORED_AS) },
+  "entidades.relation": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(RELATIONS) },
+  "entidades.subject_kind": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(SUBJECT_KINDS) },
+  // Las zonas del repo y los proyectos (#652): las listas, con su significado, en scripts/lib/zonasProyecto.mjs.
+  "zonas.zona": { fichero: "scripts/lib/zonasProyecto.mjs", textos: conTexto(DEF_ZONAS) },
+  "eventos.proyecto": { fichero: "scripts/lib/zonasProyecto.mjs", textos: conTexto(DEF_PROYECTOS) },
+  // Quién está detrás de un evento y por qué hace falta una persona (#652): scripts/lib/eventosVocabulario.mjs.
+  "eventos.actor": { fichero: "scripts/lib/eventosVocabulario.mjs", textos: conTexto(DEF_ACTORES) },
+  "eventos.motivo_intervencion": { fichero: "scripts/lib/eventosVocabulario.mjs", textos: conTexto(DEF_MOTIVOS_INTERVENCION) },
+  "eventos.evitable": { fichero: "scripts/lib/eventosVocabulario.mjs", textos: conTexto(DEF_EVITABLE) },
   // Los del producto (#497): src/lib/vocabularios.js, con el nombre de su mapa VOCABULARIOS. No llevan
   // definición en el código (texto vacío, como flujo.pasos): se ancla el valor. Un cambio de significado
   // se declara en «redefiniciones»; la primera definición que se escriba no cuenta como cambio (igual()).

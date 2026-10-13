@@ -20,6 +20,7 @@ description: <QUÉ hace y CUÁNDO usarlo, empezando por el disparador. Termina c
 tools: <lista cerrada: solo las que necesita. Un juez no lleva Edit, Write ni NotebookEdit>
 model: <inherit | opus | sonnet | haiku>
 color: <red, blue, green, yellow, purple, orange, pink, cyan>
+traspasa_a: <[ids de agente]: a quién pasa trabajo; vocabulario cerrado, coincide con su «No para:» y su Escalado>
 memory: <opcional y solo para constructores: project, si acumula criterio entre sesiones. A un juez le daría Write y Edit (#351)>
 ---
 
@@ -66,6 +67,8 @@ Cómo comprueba que terminó bien antes de devolver el informe, con evidencia.
 
 ## Constructor o juez
 
+`Tipo:` es un vocabulario cerrado, `TIPOS_AGENTE` de `scripts/lib/agentes.mjs`: `constructor` o `juez`. «juez» es un valor de `Tipo`, no una categoría aparte: la lista de jueces sale de las cabeceras `Tipo: juez`, y nadie la copia a mano.
+
 - **Constructor**: escribe código, datos o documentos. Lleva `Edit`/`Write`.
 - **Juez**: solo lee, ejecuta comprobaciones y opina. Sin `Edit`, `Write` ni
   `NotebookEdit` (el test lo impide). Quien construye algo no lo juzga: la
@@ -73,6 +76,10 @@ Cómo comprueba que terminó bien antes de devolver el informe, con evidencia.
   Ojo: un juez lleva `Bash`, y con `Bash` se puede escribir (`sed`, `>`). Que
   no escriba es una convención, no un candado; el `revisor` lo vigila en el
   diff.
+
+## Traspasos entre agentes
+
+Cada agente declara en su cabecera, en `traspasa_a`, a quién pasa trabajo (ids de `.claude/agents/`, ordenados, sin él mismo). Es el dato; la prosa lo explica. `.claude/agentes.test.js` lo cruza con los agentes que existen y con el texto: los ids entre paréntesis de su «No para:» y entre comillas invertidas de su «Escalado» tienen que ser exactamente los declarados. Un traspaso nuevo se escribe en los dos sitios o el test falla. La «sesión principal» no es un agente: no entra.
 
 ## Reglas comunes a todos
 
@@ -82,7 +89,9 @@ Cómo comprueba que terminó bien antes de devolver el informe, con evidencia.
 - **No pregunta a mitad de trabajo.** Las decisiones van al final, en
   «Decisiones pendientes», para quien lanzó la sesión (Pablo o Álvaro).
 - **No lanza otros agentes.** Profundidad 1: coordinar es cosa de la sesión
-  principal (`/orquestar`). Así el coste no se multiplica sin que se vea.
+  principal (`/orquestar`). Así el coste no se multiplica sin que se vea. La única
+  excepción es `orquestador`, que ES la sesión principal (`claude --agent orquestador`,
+  sin `--agent` la sesión sigue funcionando como hasta ahora) y lleva la herramienta `Agent`.
 - **Pide y da evidencia, no afirmaciones**: el comando que corrió y lo que
   salió, la ruta y la línea, la captura. Lo no comprobado se dice como no
   comprobado.
@@ -126,9 +135,11 @@ quién tocó un dominio sin abrir la suya.
 ## Estándar de la tarea que se encarga
 
 Cada agente tiene la lista de las tareas que hace y, por cada una, su acción
-(construir, juzgar, diagnosticar, operar, medir, documentar o decidir) y su
-estándar: unas reglas por campos, cada una con su control (un test, un hook o un
-script que exista, o juicio) y su fuente pública o de la casa, más lo que la
+(construir, juzgar, diagnosticar, operar, medir, documentar o decidir), sus
+ámbitos y su estándar: las normas de `ops/normas.json` que le tocan por ámbito ×
+acción y las que cita por id, sin reescribirlas (#620), y unas condiciones propias por
+campos para los pasos que no son norma, cada una con su control (un test, un hook
+o un script que exista, o juicio) y su fuente pública o de la casa, más lo que la
 tarea no hace (#413, fondo #416; por campos en #516). Lo que hacen varios agentes
 está una sola vez en las tareas comunes. Todo vive en `ops/estandares-agentes.json`;
 la sección «Tareas y su estándar» del final de cada agente y la tabla

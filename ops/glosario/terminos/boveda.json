@@ -1,0 +1,21 @@
+{
+  "termino": "bóveda",
+  "estado": "activo",
+  "clase": "lugar",
+  "dominio": "ops",
+  "definicion": "Un almacén de 1Password con su propio acceso que guarda las fichas de las claves.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "clave"
+  ],
+  "en": "vault",
+  "entidades": [
+    {
+      "entidad": "resource",
+      "relacion": "ubicacion_de"
+    }
+  ]
+}

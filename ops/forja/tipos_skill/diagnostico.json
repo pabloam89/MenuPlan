@@ -3,7 +3,7 @@
   "que": "De un síntoma a su causa",
   "entra": "fallo",
   "sale": "causa en campos cerrados",
-  "prueba": "la salida rellena la ficha y hay un criterio de parada",
+  "prueba": "la salida rellena la ficha y hay una condición de parada",
   "skills_hoy": [
     "causa-raiz"
   ],

@@ -1,0 +1,15 @@
+{
+  "id": "purpose-limitation",
+  "nombre": "Limitación de la finalidad",
+  "area": "privacy",
+  "enunciado": "Un dato recogido para un fin se usa solo para ese fin.",
+  "porque": "La familia dio el dato para algo y espera que sea solo para eso, y en eso se basa su confianza.",
+  "ejemplo_bueno": "Las alergias se usan para filtrar menús y nada más",
+  "ejemplo_malo": "Las alergias de una familia entran en un análisis de mercado o en el prompt de moderación",
+  "fuentes": [
+    {
+      "url": "https://gdpr-info.eu/art-5-gdpr/",
+      "marca": "F"
+    }
+  ]
+}

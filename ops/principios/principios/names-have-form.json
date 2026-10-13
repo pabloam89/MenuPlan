@@ -1,0 +1,17 @@
+{
+  "id": "names-have-form",
+  "area": "entities",
+  "nombre": "Los nombres tienen forma",
+  "enunciado": "Cada nombre de tabla, campo, id, valor o evento sigue un mismo patrón ASCII, con su separador y el sufijo de su tipo.",
+  "porque": "Con un solo patrón, leer una tabla o un registro es leerlos todos, y con varios cada lectura es una adivinanza.",
+  "fuentes": [
+    {
+      "marca": "I",
+      "ruta": "docs/entidades/N0-principios.md"
+    }
+  ],
+  "detalle": [
+    "docs/entidades/N0-principios.md#5-los-nombres-tienen-forma-caracteres-separador-y-espacio-de-nombres",
+    "docs/datos/PRINCIPIOS.md#12-nombres"
+  ]
+}

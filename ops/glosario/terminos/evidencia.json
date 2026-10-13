@@ -2,6 +2,7 @@
   "termino": "evidencia",
   "estado": "activo",
   "clase": "artefacto",
+  "dominio": "base",
   "definicion": "Un dato que respalda una afirmación y que otro puede repetir: comando y salida, fichero:línea, un run o un PR.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
@@ -11,5 +12,6 @@
     "comprobar",
     "hallazgo",
     "juicio de skill"
-  ]
+  ],
+  "sin_entidad": "componente"
 }
