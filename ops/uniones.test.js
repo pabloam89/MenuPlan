@@ -242,7 +242,7 @@ describe("los estándares citan normas y no las reescriben (#620)", () => {
     });
     it("una norma vigilada por juicio que ningún juez cita", () => {
       expect(juecesPorNorma(estandares, normas)["migrated-screen-pixel-identical"]).toContain("qa/comprobar-design-system");
-      expect(con((d) => { for (const t of d.agentes.qa.tareas) t.ambitos = t.ambitos.filter((a) => a !== "ui"); })).toMatch(/norma migrated-screen-pixel-identical: la vigila un juicio y ningún estándar de juez la cita/);
+      expect(con((d) => { for (const t of d.agentes.qa.tareas) t.ambitos = t.ambitos.filter((a) => a !== "diseno"); })).toMatch(/norma migrated-screen-pixel-identical: la vigila un juicio y ningún estándar de juez la cita/);
       expect(con((d) => { d.agentes.seguridad.tareas.find((t) => t.id === "auditar-secretos").normas = []; })).toMatch(/norma repo-publico-sin-detalle: la vigila un juicio y ningún estándar de juez la cita/);
     });
     it("una norma en normas_sin_juez que ya tiene juez, que no existe o que no es de juicio; y el techo", () => {
