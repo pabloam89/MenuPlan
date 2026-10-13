@@ -294,7 +294,7 @@
     {
       "id": "inventario-vertical",
       "tests": ["ops/inventario-vertical.test.js"],
-      "mira": ["ops/inventario-vertical.json", "ops/principios/**", "ops/principios-producto/**", "ops/fuentes-documentales/**", "ops/entidades.json", "ops/proyectos/**", "ops/normas.json", "ops/glosario/terminos/*.json", "ops/zonas.json", "scripts/lib/inventarioVertical.mjs", ".claude/agents/*.md"],
+      "mira": ["ops/inventario-vertical.json", "ops/principios/**", "ops/principios-producto/**", "ops/fuentes-documentales/**", "ops/entidades.json", "ops/proyectos/**", "ops/normas.json", "ops/glosario/terminos/*.json", "ops/zonas.json", "scripts/lib/inventarioVertical.mjs", "scripts/lib/zonasProyecto.mjs", "scripts/lib/normas.mjs", "ops/redaccion.json", "ops/ficherosGit.js", "docs/ops/INVENTARIO-VERTICAL.md", ".claude/agents/*.md"],
       "porque": "El inventario de lados (horizontal, vertical, duda) lee los registros de la casa y de HoMenu; sus decisiones a mano nombran principios, entidades y agentes por id, y borrar o renombrar uno sin tocar ops/inventario-vertical.json rompe la cuenta lejos de lo que tocas.",
       "evidencia": "#710 (primera fase del programa #652)"
     }

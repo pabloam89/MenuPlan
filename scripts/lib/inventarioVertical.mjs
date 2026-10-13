@@ -62,6 +62,7 @@ export function calcular(raiz) {
   const fuentes = new Map(jsonsDe(raiz, "ops/fuentes-documentales/fuentes").map((f) => [f.id, f]));
   const casa = jsonsDe(raiz, "ops/principios/principios").map((p) => {
     if (Object.hasOwn(decisiones.principios_verticales, p.id)) return { id: p.id, lado: "vertical", razon: decisiones.principios_verticales[p.id] };
+    if (!(p.fuentes ?? []).length) return { id: p.id, lado: "duda", razon: "no registra ninguna fuente: sin origen no se puede decidir su lado" };
     const externas = (p.fuentes ?? []).filter((s) => fuentes.get(s.fuente)?.tipo === "externa");
     const rutas = (p.fuentes ?? []).map((s) => fuentes.get(s.fuente)).filter((f) => f?.tipo === "casa").map((f) => f.ruta);
     if (externas.length) return { id: p.id, lado: "horizontal" };
@@ -75,6 +76,7 @@ export function calcular(raiz) {
   filas.push(contar("principios de la casa (ops/principios/)", casa));
 
   const producto = jsonsDe(raiz, "ops/principios-producto/principios").map((p) => {
+    if (!(p.fuentes ?? []).length) return { id: p.id, lado: "duda", razon: "no registra ninguna fuente: sin origen no se puede decidir su lado" };
     const todasExternas = (p.fuentes ?? []).every((s) => fuentes.get(s.fuente)?.tipo === "externa");
     if (p.area === "conversational-ai") {
       return { id: p.id, lado: "duda", razon: "tiene fuente externa (literatura), pero solo vale para un proyecto con bot conversacional (paquete de bots, línea 2 de #652)" };
@@ -92,7 +94,8 @@ export function calcular(raiz) {
   const hostsProveedor = decisiones.fuentes_externas_de_proveedor.hosts;
   const fu = [...fuentes.values()].map((f) => {
     if (f.tipo === "externa") {
-      const host = new URL(f.url).host;
+      let host = "";
+      try { host = new URL(f.url).host; } catch { return { id: f.id, lado: "duda", razon: `la dirección «${f.url}» no es una URL válida: no se puede ver de quién es el sitio` }; }
       if (hostsProveedor.includes(host)) return { id: f.id, lado: "duda", razon: decisiones.fuentes_externas_de_proveedor.razon };
       return { id: f.id, lado: "horizontal" };
     }
@@ -232,6 +235,46 @@ export function calcular(raiz) {
   };
 }
 
+// ---- Comprobaciones (puras, para que el test las pruebe con datos buenos y con datos rotos) ------------------------
+
+/** En cada capa, horizontal + vertical + duda tienen que sumar el total. Devuelve los fallos (vacío = bien). */
+export function fallosDeCuentas(filas) {
+  return filas.filter((f) => f.horizontal + f.vertical + f.duda !== f.total).map((f) => `${f.unidad}: ${f.horizontal}+${f.vertical}+${f.duda} no suman ${f.total}`);
+}
+
+/** Las normas verticales son todas verticales y las horizontales ninguna (el cargador común ya las separa). */
+export function fallosDeNormas(filas) {
+  const h = filas.find((f) => f.unidad.startsWith("normas horizontales"));
+  const v = filas.find((f) => f.unidad.startsWith("normas verticales"));
+  if (!h || !v) return ["falta la fila de normas horizontales o verticales"];
+  const fallos = [];
+  if (h.vertical !== 0) fallos.push(`hay ${h.vertical} normas verticales en el registro horizontal`);
+  if (v.vertical !== v.total) fallos.push(`solo ${v.vertical} de ${v.total} normas del registro vertical cuentan como verticales`);
+  return fallos;
+}
+
+/** Cada duda lleva capa, id y una razón con sentido. Cero dudas es un resultado válido (es el objetivo del programa). */
+export function fallosDeDudas(dudosos) {
+  const fallos = [];
+  for (const x of dudosos) {
+    if (!x.capa || !x.id) fallos.push(`duda sin capa o sin id: ${JSON.stringify(x)}`);
+    else if (String(x.razon ?? "").length <= 15) fallos.push(`${x.capa}/${x.id}: sin razón`);
+  }
+  return fallos;
+}
+
+/**
+ * Las decisiones a mano apuntan a piezas que existen. `existe(ruta)` dice si un fichero del repo existe y `entidades`
+ * son los ids de ops/entidades.json (inyectables para poder probar el caso roto).
+ */
+export function fallosDeDecisiones(decisiones, { existe, entidades }) {
+  const fallos = [];
+  for (const id of Object.keys(decisiones.principios_verticales ?? {})) if (!existe(`ops/principios/principios/${id}.json`)) fallos.push(`principio ${id}`);
+  for (const id of Object.keys(decisiones.entidades_verticales_genericas ?? {})) if (!entidades.includes(id)) fallos.push(`entidad ${id}`);
+  for (const id of Object.keys(decisiones.agentes_dudosos ?? {})) if (!existe(`.claude/agents/${id}.md`)) fallos.push(`agente ${id}`);
+  return fallos;
+}
+
 const sumar = (filas, campo) => filas.reduce((a, f) => a + f[campo], 0);
 const lineaTabla = (f) => `| ${f.unidad} | ${f.total} | ${f.horizontal} | ${f.vertical} | ${f.duda} |`;
 const TITULOS_DE_CAPA = {
@@ -328,7 +371,7 @@ export function documento(d, fecha) {
   L.push("1. **Principios de base de datos con origen solo en `docs/datos/PRINCIPIOS.md`.** A (recomendada): horizontales; se les busca fuente externa (PostgreSQL, Fowler) y `docs/datos/` queda como «cómo los aplica HoMenu». B: verticales, al registro de HoMenu. C: verticales los que dicen «casa» y horizontales el resto.");
   L.push("2. **Lo que solo vale con un bot conversacional** (principios del área `conversational-ai` y normas de ámbito `bot`). A (recomendada): horizontales con una condición `aplica_si: bot` en el registro. B: un tercer lado, «paquete de bots» (línea 2 de #652). C: verticales de HoMenu.");
   L.push("3. **Entidades marcadas `both`.** A (recomendada): obligar a un lado; la clase es horizontal y sus instancias son del proyecto. B: admitir `both` con un techo que solo baja. C: partir cada una en dos entidades.");
-  L.push("4. **Skills de servicio** (1password, github, hetzner, tailscale, vercel, supabase). A (recomendada): partir cada una en método (casa) y datos del proyecto (ids, bóvedas, repo), que el agente recibe por referencia. B: dejarlos enteros en la casa. C: marcarlos verticales.");
+  L.push("4. **Skills de servicio** (hoy en duda: 1password, github, hetzner y tailscale, que están en zona factoría; vercel y supabase ya están en zona producto y cuentan como verticales, pero mezclan igual método y datos del proyecto). A (recomendada): partir cada una en método (casa) y datos del proyecto (ids, bóvedas, repo), que el agente recibe por referencia. B: dejarlos enteros en la casa. C: marcarlos verticales.");
   L.push("5. **Las zonas de `ops/zonas.json` contradicen la regla de los agentes**: `evaluador`, `qa` y `auditor-datos` están en producto. A (recomendada): moverlos a factoría y que lo vertical llegue por referencia. B: dejar la zona y marcar los tres como duda. C: moverlos a un paquete opcional.");
   L.push("");
   L.push("## Qué no mide");
