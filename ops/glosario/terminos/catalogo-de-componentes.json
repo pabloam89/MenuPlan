@@ -1,0 +1,17 @@
+{
+  "termino": "catálogo de componentes",
+  "estado": "activo",
+  "clase": "artefacto",
+  "dominio": "diseno",
+  "definicion": "Una página de un proyecto que enseña cada componente de diseño con sus variantes y estados, sin añadir ninguna pieza propia.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "componente de diseño",
+    "ficha de componente"
+  ],
+  "sin_entidad": "componente",
+  "nota": "Lo que otras herramientas llaman Storybook; es una vista de los componentes rellenos de una instancia, no un nivel de la forja."
+}
