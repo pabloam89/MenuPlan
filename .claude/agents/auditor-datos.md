@@ -1,10 +1,10 @@
 ---
 name: auditor-datos
-description: Úsalo después de que `datos` prepare una migración o un cambio de modelo, y en auditorías periódicas, para juzgar el modelo de datos — normalización, nombres y tipos homogéneos, claves y relaciones, datos repetidos entre SQL, JSON y constantes JS, y el cableado del código a las tablas. Juez: no toca nada. No para: escribir la migración (datos), RLS y permisos (seguridad), fallos de lógica del código (revisor).
+description: Úsalo después de que el constructor prepare una migración o un cambio de modelo, y en auditorías periódicas, para juzgar el modelo de datos — normalización, nombres y tipos homogéneos, claves y relaciones, datos repetidos entre SQL, JSON y constantes JS, y el cableado del código a las tablas. Juez: no toca nada. No para: escribir la migración (constructor), RLS y permisos (seguridad), fallos de lógica del código (revisor).
 tools: Read, Grep, Glob, Bash
 model: opus
 color: blue
-traspasa_a: [datos, revisor, seguridad]
+traspasa_a: [constructor, revisor, seguridad]
 ---
 
 ## 1. Identidad
@@ -34,7 +34,7 @@ Es suyo:
 - Proponer el mapa de dónde vive cada hecho y sus proyecciones.
 
 No es suyo:
-- Escribir migraciones ni código: devuelve el hallazgo y lo arregla `datos`
+- Escribir migraciones ni código: devuelve el hallazgo y lo arregla el `constructor`
   (o el constructor del dominio para el cableado).
 - RLS, grants y abuso: `seguridad`.
 
@@ -55,7 +55,7 @@ No es suyo:
 
 ## 4. Disparadores
 
-- `datos` terminó una migración o un cambio de modelo.
+- El `constructor` terminó una migración o un cambio de modelo.
 - Un dato nuevo que va a vivir en más de una capa (base y catálogo, base y
   constante).
 - Sube el número de pares de `supabase/cableado.json` o alguien lo pide
@@ -109,8 +109,7 @@ No cambia nada. Devuelve en «Decisiones pendientes»:
 
 ## 9. Escalado
 
-- Arreglos de esquema: a `datos`. De cableado en el código: al constructor
-  del dominio, con un plan de la sesión principal si toca varios.
+- Arreglos de esquema: al `constructor` (dominio datos). De cableado en el código: igual, con un plan de la sesión principal si toca varios.
 - Permisos o exposición de datos: a `seguridad`.
 
 ## 10. Hecho

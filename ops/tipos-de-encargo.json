@@ -4,8 +4,8 @@
   "actualizado": "2026-10-12",
   "especiales": {
     "sesion": "la sesión principal, sin subagente",
-    "constructor": "el constructor del dominio que toque",
-    "constructores": "un constructor por cada dominio que toca el encargo"
+    "constructor": "quien construye, con el dominio que dan los ficheros del encargo",
+    "constructores": "igual que el anterior: desde #688 hay un solo agente que construye, y ya no uno por dominio (se conserva por compatibilidad)"
   },
   "special_roles": {
     "sesion": "planner",
@@ -201,7 +201,7 @@
       "id": "create-planned",
       "type": "create",
       "status": "active",
-      "accion": "Crear algo que cruza varios dominios: plan primero y un constructor por dominio",
+      "accion": "Crear algo que cruza varios dominios: plan primero y el constructor lo hace dominio a dominio",
       "pasos": [
         {
           "agentes": [
@@ -366,7 +366,7 @@
       "pasos": [
         {
           "agentes": [
-            "gobierno"
+            "constructor"
           ]
         },
         {
@@ -394,7 +394,7 @@
       "pasos": [
         {
           "agentes": [
-            "gobierno"
+            "constructor"
           ]
         },
         {
@@ -433,13 +433,13 @@
             "seguridad",
             "auditor-datos",
             "evaluador",
-            "gobierno"
+            "constructor"
           ],
           "purpose": "review_planes"
         }
       ],
       "measured_with": [
-        "gobierno"
+        "constructor"
       ],
       "differs_in": [
         "measures_with"
@@ -470,7 +470,7 @@
       "pasos": [
         {
           "agentes": [
-            "diseno"
+            "constructor"
           ]
         },
         {
@@ -490,7 +490,7 @@
       "pasos": [
         {
           "agentes": [
-            "diseno"
+            "constructor"
           ]
         },
         {
@@ -509,7 +509,7 @@
       "pasos": [
         {
           "agentes": [
-            "lola"
+            "constructor"
           ]
         },
         {
@@ -538,7 +538,7 @@
       "pasos": [
         {
           "agentes": [
-            "lola"
+            "constructor"
           ]
         },
         {
@@ -557,7 +557,7 @@
       "pasos": [
         {
           "agentes": [
-            "datos"
+            "constructor"
           ]
         },
         {
@@ -720,7 +720,7 @@
       "pasos": [
         {
           "agentes": [
-            "diseno"
+            "constructor"
           ]
         },
         {
@@ -746,7 +746,7 @@
         },
         {
           "agentes": [
-            "datos"
+            "constructor"
           ]
         },
         {
@@ -864,7 +864,7 @@
       "pasos": [
         {
           "agentes": [
-            "gobierno"
+            "constructor"
           ]
         },
         {
@@ -891,7 +891,7 @@
       "pasos": [
         {
           "agentes": [
-            "gobierno"
+            "constructor"
           ]
         },
         {
@@ -919,7 +919,7 @@
       "pasos": [
         {
           "agentes": [
-            "gobierno"
+            "constructor"
           ]
         },
         {
@@ -942,13 +942,13 @@
             "seguridad",
             "auditor-datos",
             "evaluador",
-            "gobierno"
+            "constructor"
           ],
           "nota": "planos"
         }
       ],
       "measured_with": [
-        "gobierno"
+        "constructor"
       ]
     }
   ],

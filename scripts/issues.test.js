@@ -185,26 +185,27 @@ describe("reordenar no inventa fallos (notas del revisor, PR #173)", () => {
 
 describe("trazabilidad desde GitHub", () => {
   it("el agente sale de la línea «Agente:» del PR; sin ella, la sesión principal", () => {
-    expect(agenteDe("Arregla el PATH.\n\nAgente: gobierno\n")).toBe("gobierno");
+    expect(agenteDe("Arregla el PATH.\n\nAgente: constructor\n")).toBe("constructor");
     expect(agenteDe("Agente: `Datos`")).toBe("datos");
     expect(agenteDe("Closes #3")).toBe("sesión");
   });
 
   it("los PR que cierran: los fusionados con «Closes #n», o «PR #n» en un comentario al cerrar", () => {
     const conPr = leerIssue(nodo(FONDO, { state: "CLOSED", closedByPullRequestsReferences: { nodes: [
-      { number: 150, headRefName: "ops/path", mergedAt: "2026-10-03T00:00:00Z", body: "Agente: gobierno", author: { login: "pabloam89" } },
+      { number: 150, headRefName: "ops/path", mergedAt: "2026-10-03T00:00:00Z", body: "Agente: constructor", author: { login: "pabloam89" } },
       { number: 149, headRefName: "ops/otro", mergedAt: null, body: "", author: { login: "pabloam89" } },
     ] } }));
-    expect(conPr.prs).toEqual([{ number: 150, rama: "ops/path", autor: "pabloam89", agente: "gobierno", mergedAt: "2026-10-03T00:00:00Z" }]);
+    expect(conPr.prs).toEqual([{ number: 150, rama: "ops/path", autor: "pabloam89", agente: "constructor", mergedAt: "2026-10-03T00:00:00Z" }]);
     const aMano = leerIssue(nodo(FONDO, { state: "CLOSED", comments: { nodes: [{ body: "Queda en el PR #137." }] } }));
     expect(aMano.prs.map((p) => p.number)).toEqual([137]);
   });
 
   it("por agente: fondos que cerró y cuántos no aguantaron, rotos o cortos", () => {
     const f = (casos) => leerIssue(nodo(FONDO, { state: "CLOSED", closedAt: "2026-10-03T00:00:00Z", body: "Arreglo general",
-      subIssues: { nodes: casos.map((a, i) => hijo(i, ["tipo:caso", `analisis:${a}`])) }, ...pr("gobierno") }));
+      subIssues: { nodes: casos.map((a, i) => hijo(i, ["tipo:caso", `analisis:${a}`])) }, ...pr("constructor") }));
     const r = resumen([f(["abierto"]), f(["no-aguanto-roto", "no-aguanto-corto", "no-aguanto-corto"])]);
-    expect(r.agentes.gobierno).toMatchObject({ fondos: 2, roto: 1, corto: 2, medianaDias: 2 });
+    // El agente se llama `constructor`, como la clave heredada de todo objeto: la fila tiene que crearse y contar (#688).
+    expect(r.agentes.constructor).toMatchObject({ fondos: 2, roto: 1, corto: 2, medianaDias: 2 });
   });
 });
 

@@ -9,7 +9,7 @@ metadata:
   pasos_fijos: false
   sintoma_a_causa: false
   elige_opciones: false
-  dueno: lola
+  dueno: constructor
   comprobado: 2026-10-11
   normas: [endpoint-rechaza-sin-credencial, business-flow-rate-limited, family-text-is-data, essentials-work-without-ai]
 ---

@@ -7,7 +7,7 @@
         ".claude/skills/estilo-de-respuesta/SKILL.md"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "8bc6d8a594d0"
     },
     "frontera-casi-fallos": {
@@ -17,7 +17,7 @@
         "caso:estilo-de-respuesta/frontera-informe-agente"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "8bc6d8a594d0"
     },
     "disparador-al-principio": {
@@ -27,7 +27,7 @@
         ".claude/skills.test.js"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "8bc6d8a594d0"
     },
     "solo-lo-que-el-modelo-no-sabe": {
@@ -44,7 +44,7 @@
         ".claude/skills/estilo-de-respuesta/SKILL.md#Método"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "8bc6d8a594d0"
     },
     "pasos-con-salida-observable": {
@@ -62,7 +62,7 @@
         ".claude/skills/estilo-de-respuesta/SKILL.md#Bien y mal"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "8bc6d8a594d0"
     },
     "skill-contrastada-con-fallo-real": {
@@ -77,7 +77,7 @@
         ".claude/skills/estilo-de-respuesta/SKILL.md#Las cinco plantillas"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "8bc6d8a594d0"
     }
   }

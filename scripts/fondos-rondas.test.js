@@ -17,7 +17,7 @@ const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 const bloque = (lineas) => `Texto del fondo.\n\n\`\`\`fondo\n${lineas.join("\n")}\n\`\`\`\n`;
 const BUENA = {
-  estado: "plan", tipo_causa: "codigo", alcance: "local", severidad: "medio", capa_agente: "gobierno",
+  estado: "plan", tipo_causa: "codigo", alcance: "local", severidad: "medio", capa_agente: "constructor",
   mecanismo: "El control solo corre si alguien lo lanza", causa_escape: "Ningún workflow reacciona",
 };
 const ficha = (extra = {}, quitar = []) => {

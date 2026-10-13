@@ -47,7 +47,7 @@
       "id": "frontera-crear-un-token",
       "peticion": "Añade un color nuevo de aviso suave para los banners y úsalo en la pantalla de planes.",
       "skill": "ninguna",
-      "nota": "Casi-fallo: toca tokens y color, pero es construir (token-o-primitivo-nuevo del agente diseno), no revisar."
+      "nota": "Casi-fallo: toca tokens y color, pero es construir (token-o-primitivo-nuevo del constructor, dominio diseño), no revisar."
     }
   ]
 }

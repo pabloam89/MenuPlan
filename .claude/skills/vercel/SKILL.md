@@ -9,7 +9,7 @@ metadata:
   pasos_fijos: false
   sintoma_a_causa: false
   elige_opciones: false
-  dueno: gobierno
+  dueno: constructor
   comprobado: "2026-10-08"
   normas: [produccion-solo-desde-main, variables-production-solo-pablo, vuelta-atras-probada]
 ---

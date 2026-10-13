@@ -139,12 +139,11 @@ trabajo: devuelve «Decisiones para Pablo».
 
 | Constructores | Jueces (sin Edit ni Write; no escribir por Bash es convención que vigila `revisor`) |
 |---|---|
-| `gobierno`: git, CI, permisos, hooks, secretos, servicios, `ops/` | `revisor`: fallos reales en un diff |
-| `datos`: esquema, migraciones, modelo, ESTADO.md | `qa`: la app en el navegador (Chrome en local) |
-| `diseno`: pantallas, tokens, iconos y assets | `evaluador`: evals de Lola antes y después |
-| `lola`: el bot, herramientas, conocimiento, coste | `seguridad`: RLS, endpoints, secretos, prompts |
-| `orquestador`: la sesión principal por defecto (`"agent"` en `.claude/settings.json`); habla con Pablo y reparte | `auditor-datos`: normalización, duplicados y cableado |
-| `analista`: del fallo al plan; registra el caso, diagnostica y redacta los encargos en el issue. Constructor de documentos: lleva `Write` y no `Edit`, y no construye código | |
+| `constructor`: uno solo para todo; el dominio lo da la tarea y abre sus skills al empezar: git, CI, permisos y secretos (`ops/`); esquema y migraciones; el bot; pantallas y assets | `revisor`: fallos reales en un diff |
+| `orquestador`: la sesión principal por defecto (`"agent"` en `.claude/settings.json`); habla con Pablo y reparte | `qa`: la app en el navegador (Chrome en local) |
+| `analista`: del fallo al plan; registra el caso, diagnostica y redacta los encargos en el issue. Constructor de documentos: lleva `Write` y no `Edit`, y no construye código | `evaluador`: evals de Lola antes y después |
+| | `seguridad`: RLS, endpoints, secretos, prompts |
+| | `auditor-datos`: normalización, duplicados y cableado |
 
 Cada cabecera dice a quién pasa trabajo (`traspasa_a`, vigilado por `.claude/agentes.test.js`).
 El diagnóstico y el plan del `analista` los juzga otro agente (`revisor`, y `auditor-datos` si el fondo es del modelo de datos).
@@ -163,7 +162,7 @@ zona: `ui` (`src/**/*.jsx`), `migraciones` (`supabase/`), `lola`
 `api/_bot/`), `tests` (`*.test.{js,jsx,mjs}`) y
 `api` (`api/*.js`). Las skills (`.claude/skills/`) son runbooks que se abren
 por su nombre: `1password`, `alta-de-secreto`, `vercel`, `supabase`, `github`, `issues`,
-`telegram`, `hetzner` y `tailscale` (precargadas en los agentes que el mapa `.claude/dominios-skills.json` pone en su dominio); y
+`telegram`, `hetzner` y `tailscale` (el `constructor` las abre según el dominio de la tarea; el mapa `.claude/dominios-skills.json`); y
 las de oficio, cómo se piensa un fallo: `causa-raiz` (diagnosticar) y
 `plan-de-arreglo` (partir el arreglo en encargos) y `cierre-eficaz` (evaluar con la cifra antes y después si aguantó); las meta `forja-de-skills`
 (crear, probar y podar), `higiene-de-skills` e `higiene-de-vocabulario` (revisar lo ya escrito);

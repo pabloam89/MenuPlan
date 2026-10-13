@@ -95,8 +95,8 @@ describe("leer una transcripción: solo estructura", () => {
     expect(tipoDeAgente("general-purpose")).toBe("general-purpose");
     expect(tipoDeAgente(SECRETO)).toBe("otro");
     expect(tipoDeAgente(undefined)).toBe("sin-tipo");
-    const r = extraer([respuesta(1, "x", { id: "m1", agente: "gobierno" }), respuesta(2, "x", { id: "m2", agente: SECRETO })]);
-    expect(r.agentes.map((a) => a.tipo)).toEqual(["gobierno", "otro"]);
+    const r = extraer([respuesta(1, "x", { id: "m1", agente: "constructor" }), respuesta(2, "x", { id: "m2", agente: SECRETO })]);
+    expect(r.agentes.map((a) => a.tipo)).toEqual(["constructor", "otro"]);
   });
 
   it("`desde` descarta lo anterior", () => {
@@ -212,7 +212,7 @@ describe("unir lo medido con los issues", () => {
   /** Un mundo: fondo 10 (transversal·codigo) con encargos 11 y 12; un encargo suelto 13; un caso 14; una rama con un número que no es issue (999). */
   function mundo() {
     const sesiones = [
-      resumirSesion([[linea("user", 0, "ops/11-a"), respuesta(5, "ops/11-a", { id: "a1", salida: 100, agente: "gobierno" })]]),
+      resumirSesion([[linea("user", 0, "ops/11-a"), respuesta(5, "ops/11-a", { id: "a1", salida: 100, agente: "constructor" })]]),
       resumirSesion([[linea("user", 100, "ops/11-a"), respuesta(103, "ops/11-a", { id: "a2", salida: 50 })]]),
       resumirSesion([[linea("user", 200, "ops/12-b"), respuesta(209, "ops/12-b", { id: "b1", salida: 200 })]]),
       resumirSesion([[linea("user", 300, "ops/13-c"), respuesta(302, "ops/13-c", { id: "c1" })]]),
@@ -235,7 +235,7 @@ describe("unir lo medido con los issues", () => {
     expect([f.alcance, f.tipo_causa, f.rondas, f.aguanto]).toEqual(["transversal", "codigo", 1, "si"]);
     expect(f.tokens.salida).toBe(350);
     expect(f.sesiones).toBe(3);
-    expect(f.agentes).toEqual({ gobierno: 1 });
+    expect(f.agentes).toEqual({ constructor: 1 });
     expect(union.encargos.map((e) => [e.issue, e.fondo, e.rondas, e.aguanto])).toEqual([[11, 10, 1, "si"], [12, 10, 1, "si"], [13, null, null, null]]);
     expect(union.otros).toEqual([14]);
     expect(union.sinLocalizar).toEqual([999]);
@@ -456,7 +456,7 @@ describe("las constantes tienen sentido junto al criterio de #340", () => {
 describe("el informe: solo agregados y números de issue", () => {
   function informeCompleto() {
     const rama = "ops/11-a";
-    const principal = [linea("user", 0, rama), ...ruido, respuesta(5, rama, { id: "a1", salida: 100, agente: "gobierno" })];
+    const principal = [linea("user", 0, rama), ...ruido, respuesta(5, rama, { id: "a1", salida: 100, agente: "constructor" })];
     const sesion = resumirSesion([principal]);
     const issues = [fondo(10, { alcance: "local", tipo_causa: "codigo", estado: "abierto" }), encargo(11, 10)];
     issues[0].title = `${SECRETO} título`;
@@ -634,6 +634,23 @@ describe("npm run fabrica con transcripciones sintéticas", () => {
     expect(c.intervenciones).toEqual({ total: 3, evitables: 1, por_motivo: { permiso: 2, decision: 1 }, por_quien: { pablo: 1, alvaro: 1, sin_dato: 1 } });
     expect(JSON.stringify(c)).not.toContain("Artiñano");
     expect(contarEventos("").intervenciones).toEqual({ total: 0, evitables: 0, por_motivo: {}, por_quien: {} });
+  });
+
+  it("un evento, un nombre, un motivo o un actor llamados constructor se cuentan como cualquier otro (#688)", () => {
+    const l = (o) => JSON.stringify({ ts: "2026-10-10T08:00:00.000Z", evento: "skill_cargada", nombre: "github", ...o });
+    const c = contarEventos([
+      l({ evento: "constructor", nombre: "constructor" }),
+      l({ evento: "constructor", nombre: "constructor" }),
+      l({ actor: "constructor" }),
+      l({ actor: "constructor" }),
+      l({ evento: "intervencion_humana", nombre: "x", motivo: "constructor", quien: "constructor" }),
+    ].join("\n"));
+    expect(c.total).toBe(5);
+    expect(Object.hasOwn(c.por_evento, "constructor")).toBe(true);
+    expect(c.por_evento.constructor).toEqual({ total: 2, nombres: { constructor: 2 } });
+    expect(c.por_actor.sin_dato).toBe(5); // un actor fuera del vocabulario no se copia
+    expect(c.intervenciones.por_motivo.constructor).toBe(1);
+    expect(c.intervenciones.por_quien.sin_dato).toBe(1);
   });
 
   it("dentroDe distingue lo que está dentro del repo de lo que está fuera", () => {

@@ -1,6 +1,6 @@
 ---
 name: revision-de-diseno
-description: Úsala para revisar un sistema de diseño o una pantalla contra las normas y los bloques de META-DISENO.md y sacar su lista de hallazgos con el arreglo de cada uno: «revisa el diseño de esta pantalla», «¿cumple el sistema del panel?», «¿qué le falta a HoMenu para estar completo?», «¿llega el contraste?», «antes de entregar, repasa el diseño». No para: revisar una skill (higiene-de-skills), juzgar la app en el navegador con capturas (agente qa), crear tokens, primitivos o pantallas (agente diseno) ni la voz de Lola.
+description: Úsala para revisar un sistema de diseño o una pantalla contra las normas y los bloques de META-DISENO.md y sacar su lista de hallazgos con el arreglo de cada uno: «revisa el diseño de esta pantalla», «¿cumple el sistema del panel?», «¿qué le falta a HoMenu para estar completo?», «¿llega el contraste?», «antes de entregar, repasa el diseño». No para: revisar una skill (higiene-de-skills), juzgar la app en el navegador con capturas (agente qa), crear tokens, primitivos o pantallas (el constructor, en su dominio de diseño) ni la voz de Lola.
 metadata:
   tipo: revision
   opera_proveedor: false
@@ -9,7 +9,7 @@ metadata:
   pasos_fijos: false
   sintoma_a_causa: false
   elige_opciones: false
-  dueno: diseno
+  dueno: constructor
   comprobado: 2026-10-13
   normas: [design-contrast-aa, test-visto-fallar]
 ---
@@ -22,14 +22,14 @@ Para repasar una **instancia** (HoMenu, el panel, una pantalla o hoja nueva)
 contra los dos niveles de `docs/diseno/META-DISENO.md` y devolver una lista de
 hallazgos, cada uno con su código y su arreglo (#591). Entra el nombre de la
 instancia y su perfil N2 (P1 para HoMenu, P2 para el panel), o una pantalla;
-sale la lista y una cifra. Es el control que hace `diseno` antes de entregar;
+sale la lista y una cifra. Es el control que hace el `constructor` (dominio diseño) antes de entregar;
 el juicio final con capturas es de `qa`, y quien construye no juzga.
 
 No es para:
 - revisar una skill: `higiene-de-skills`;
 - juzgar la app en el navegador, a 375 y 420 px, con capturas: el agente `qa`;
-- crear o cambiar un token, un primitivo o una pantalla: el agente `diseno`, con
-  su estándar (`npm run estandar -- diseno pantalla-con-tokens`);
+- crear o cambiar un token, un primitivo o una pantalla: el `constructor`, con
+  su estándar (`npm run estandar -- constructor pantalla-con-tokens`);
 - la voz de Lola o el tono del bot.
 
 Se poda si nadie la abre en 90 días, o si el paso 2 del método deja de ser un
@@ -40,7 +40,7 @@ test y pasa a leerse a mano otra vez.
 Dos catálogos, que se citan y no se copian:
 
 - **N0, las normas** L01–L22, en `ops/normas.json` con ámbito `diseno` (la tabla de
-  `docs/diseno/META-DISENO.md`, sección 2, conserva los ids Lxx; `npm run estandar -- diseno
+  `docs/diseno/META-DISENO.md`, sección 2, conserva los ids Lxx; `npm run estandar -- constructor
   pantalla-con-tokens` las trae). Cada una dice cómo se comprueba: un test o un lint, o
   `juicio` si está por construir.
   Una norma sin comprobación **no cuenta como cumplida**.

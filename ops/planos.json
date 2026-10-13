@@ -28,7 +28,7 @@
   },
   "medicion": {
     "fecha": "2026-10-09",
-    "por": "gobierno",
+    "por": "constructor",
     "red": true,
     "niveles": {
       "1": 3,
@@ -53,7 +53,7 @@
       "pregunta": "¿Dónde vive el código y cómo llega a producción?",
       "lanzar": 3,
       "escalar": 4,
-      "agentes": "gobierno",
+      "agentes": "constructor",
       "niveles": {
         "1": [
           {
@@ -130,7 +130,7 @@
           {
             "tipo": "a_juicio",
             "que": "Nada llega rojo a staging, tampoco el cron",
-            "quien": "gobierno",
+            "quien": "constructor",
             "fecha": "2026-10-09",
             "cumple": false,
             "nota": "El cron de Mercadona se salta el ruleset con su deploy key; el 9 oct su commit be7ca05 dejó staging en rojo (run 37888775813, productoBuscado.test.js) y Vercel lo desplegó igual"
@@ -156,7 +156,7 @@
       "pregunta": "¿Qué sabe cada sesión antes de tocar nada?",
       "lanzar": 3,
       "escalar": 4,
-      "agentes": "gobierno, revisor",
+      "agentes": "constructor, revisor",
       "niveles": {
         "1": [
           {
@@ -267,7 +267,7 @@
       "pregunta": "¿Qué es imposible hacer mal?",
       "lanzar": 3,
       "escalar": 4,
-      "agentes": "gobierno",
+      "agentes": "constructor",
       "niveles": {
         "1": [
           {
@@ -359,7 +359,7 @@
       "pregunta": "¿Cómo sé, sin mirar, que no he roto nada?",
       "lanzar": 3,
       "escalar": 4,
-      "agentes": "revisor, qa, gobierno",
+      "agentes": "revisor, qa, constructor",
       "niveles": {
         "1": [
           {
@@ -430,7 +430,7 @@
       "pregunta": "¿Dónde pruebo sin riesgo?",
       "lanzar": 3,
       "escalar": 4,
-      "agentes": "gobierno, datos",
+      "agentes": "constructor",
       "niveles": {
         "1": [
           {
@@ -441,7 +441,7 @@
           {
             "tipo": "a_juicio",
             "que": "Cada PR tiene preview y staging su entorno (staging-menuplan)",
-            "quien": "gobierno",
+            "quien": "constructor",
             "fecha": "2026-10-09",
             "cumple": true,
             "nota": "Visto en `gh api repos/pabloam89/MenuPlan/deployments`: despliegues Preview y staging-menuplan del 9 oct"
@@ -524,7 +524,7 @@
       "pregunta": "¿Quién puede ver o romper qué?",
       "lanzar": 3,
       "escalar": 4,
-      "agentes": "seguridad, gobierno",
+      "agentes": "seguridad, constructor",
       "niveles": {
         "1": [
           {
@@ -601,7 +601,7 @@
           {
             "tipo": "a_juicio",
             "que": "Los críticos de coste de specs/AUDIT-REPORT.md están cerrados",
-            "quien": "gobierno",
+            "quien": "constructor",
             "fecha": "2026-10-09",
             "cumple": false,
             "nota": "Abiertos según la medición del 8 oct; no se han revisado uno a uno el 9 oct"
@@ -621,7 +621,7 @@
       "pregunta": "¿Están bien modelados y puedo recuperarlos?",
       "lanzar": 3,
       "escalar": 4,
-      "agentes": "datos, auditor-datos",
+      "agentes": "constructor, auditor-datos",
       "niveles": {
         "1": [
           {
@@ -688,7 +688,7 @@
       "pregunta": "¿Lola responde bien tras cada cambio?",
       "lanzar": 2,
       "escalar": 3,
-      "agentes": "lola, evaluador",
+      "agentes": "constructor, evaluador",
       "niveles": {
         "1": [
           {
@@ -733,7 +733,7 @@
       "pregunta": "¿Cuánto gasto y quién lo gasta?",
       "lanzar": 3,
       "escalar": 4,
-      "agentes": "lola, evaluador",
+      "agentes": "constructor, evaluador",
       "niveles": {
         "1": [
           {
@@ -869,7 +869,7 @@
       "pregunta": "¿Cómo subo y cómo deshago?",
       "lanzar": 3,
       "escalar": 4,
-      "agentes": "gobierno",
+      "agentes": "constructor",
       "niveles": {
         "1": [
           {
@@ -918,7 +918,7 @@
       "pregunta": "¿Se ve, se siente y responde como debe?",
       "lanzar": 3,
       "escalar": 4,
-      "agentes": "diseno, qa",
+      "agentes": "constructor, qa",
       "niveles": {
         "1": [
           {

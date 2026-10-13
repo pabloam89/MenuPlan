@@ -13,7 +13,7 @@
         "caso:github/frontera-token-workflow"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "0eb63fc06276"
     },
     "disparador-al-principio": {
@@ -23,7 +23,7 @@
         ".claude/skills.test.js"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "0eb63fc06276"
     },
     "solo-lo-que-el-modelo-no-sabe": {
@@ -44,7 +44,7 @@
         ".claude/skills/github/SKILL.md#Operaciones habituales"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "0eb63fc06276"
     },
     "vocabulario-unico": {
@@ -61,7 +61,7 @@
         ".claude/skills/github/SKILL.md#Lo que falló y por qué"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "0eb63fc06276"
     },
     "forma-adecuada-al-contenido": {
@@ -71,7 +71,7 @@
         ".claude/skills/github/SKILL.md#Qué es y dónde"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "0eb63fc06276"
     }
   }

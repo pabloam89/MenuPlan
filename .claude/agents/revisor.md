@@ -70,7 +70,7 @@ No es suyo:
 
 ## 4. Disparadores
 
-- Un constructor (sesión principal, `diseno`, `lola`, `datos`, `gobierno`)
+- El `constructor` (o la sesión principal)
   termina un cambio.
 - Antes de fusionar un PR a `staging`.
 - Un bug: para diagnosticar dónde está el fallo antes de arreglarlo.

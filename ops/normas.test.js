@@ -166,7 +166,7 @@ describe("frases normativas", () => {
 
   it("recorre CLAUDE.md, las reglas, skills, agentes y comandos, PRINCIPIOS y ops/*.md, y esVigilado dice lo mismo", () => {
     const f = ficherosNormativos(RAIZ);
-    for (const r of ["CLAUDE.md", "docs/datos/PRINCIPIOS.md", "ops/PLANOS.md", ".claude/rules/tests.md", ".claude/skills/github/SKILL.md", ".claude/agents/gobierno.md", ".claude/commands/orquestar.md"]) expect(f).toContain(r);
+    for (const r of ["CLAUDE.md", "docs/datos/PRINCIPIOS.md", "ops/PLANOS.md", ".claude/rules/tests.md", ".claude/skills/github/SKILL.md", ".claude/agents/constructor.md", ".claude/commands/orquestar.md"]) expect(f).toContain(r);
     expect(f.some((r) => r.startsWith("ops/copias/"))).toBe(false);
     expect(f.filter((r) => !esVigilado(r))).toEqual([]);
     for (const r of ["ops/copias/LEEME.md", "src/x.md", ".claude/hooks/x.md", "ops/normas.json"]) expect(esVigilado(r)).toBe(false);

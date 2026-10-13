@@ -28,7 +28,7 @@ const leer = (...p) => readFileSync(join(RAIZ, ...p), "utf8");
 const bloque = (lineas) => `Texto del fondo.\n\n\`\`\`fondo\n${lineas.join("\n")}\n\`\`\`\n`;
 /** Una ficha completa y buena, en estado «diagnosticado». */
 const BUENA = {
-  estado: "diagnosticado", tipo_causa: "vigilante-hueco", alcance: "modulo", severidad: "medio", capa_agente: "gobierno",
+  estado: "diagnosticado", tipo_causa: "vigilante-hueco", alcance: "modulo", severidad: "medio", capa_agente: "constructor",
   mecanismo: "El control solo corre si alguien lanza el script", causa_escape: "Ningún workflow reacciona a un issue",
 };
 const fichaDe = (extra = {}, quitar = []) => {

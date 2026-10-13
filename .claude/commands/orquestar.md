@@ -67,8 +67,8 @@ datos. Devuelve en líneas `campo: valor`:
   (`COMPLEXITIES` de `scripts/lib/issues.mjs`) por la medida de tamaño del aviso
   del CI. Qué lanza cada complejidad (jueces mínimos y parte del pipeline) está en
   `by_complexity` de `ops/presupuestos.json`: no se repite aquí.
-- **Agentes y fases**: el constructor del ámbito de los ficheros (uno por dominio
-  si cruza varios), el `revisor` en toda zona, el juez de la zona, los que pide la
+- **Agentes y fases**: el `constructor` (uno solo: el dominio sale de los ficheros, y si cruza
+  varios se hace un plan primero y se construye dominio a dominio), el `revisor` en toda zona, el juez de la zona, los que pide la
   causa y la forma del tipo (arreglar diagnostica primero, mejorar mide antes y
   después, auditar son solo jueces en paralelo). Cada fase dice si va en
   paralelo o en serie; en paralelo solo con ficheros distintos (sección 5).
@@ -97,10 +97,7 @@ lleva; si el encargo no tiene issue y no es trivial, ábrelo primero.
 
 | Agente | Tipo | Planos | Para |
 |---|---|---|---|
-| `gobierno` | constructor | 1, 2, 3, 4, 5, 7, 12 | ramas, CI, permisos, secretos, despliegues, inventario |
-| `datos` | constructor | 4, 5, 8 | esquema, migraciones, vocabularios, dónde vive cada dato |
-| `diseno` | constructor | 2, 4, 13 | pantallas, tokens, design system, iconos y assets; peso de imágenes y carga |
-| `lola` | constructor | 9, 10 | el bot: herramientas, conocimiento, enrutador, turnos, coste y latencia |
+| `constructor` | constructor | 1, 2, 3, 4, 5, 7, 8, 9, 10, 12, 13 | un solo constructor; el dominio lo da la tarea: ramas, CI, permisos, secretos, despliegues, inventario; esquema, migraciones y dónde vive cada dato; el bot (herramientas, conocimiento, enrutador, coste); pantallas, tokens, design system, iconos y assets |
 | `revisor` | juez | 2, 4 | fallos reales en un diff |
 | `qa` | juez | 4, 13 | la app en el navegador: flujos, capturas, accesibilidad |
 | `evaluador` | juez | 9, 10 | evals de Lola antes y después |
@@ -136,17 +133,17 @@ aviso, y el JSON dice a cuál pasa cada uno.
 <!-- tipos:tabla:inicio -->
 | Tipo | Subtipo | Acción | Pipeline |
 |---|---|---|---|
-| create | `create-plain` | Crear algo nuevo sin más condiciones que el esqueleto del tipo | constructor del dominio → `revisor` |
-| create | `create-person-approved` | Crear algo que se aplica solo con el OK de una persona | constructor del dominio → `revisor` → *OK de una persona* |
-| create | `create-planned` | Crear algo que cruza varios dominios: plan primero y un constructor por dominio | sesión principal (plan corto) → constructores por dominio → `revisor` |
+| create | `create-plain` | Crear algo nuevo sin más condiciones que el esqueleto del tipo | constructor → `revisor` |
+| create | `create-person-approved` | Crear algo que se aplica solo con el OK de una persona | constructor → `revisor` → *OK de una persona* |
+| create | `create-planned` | Crear algo que cruza varios dominios: plan primero y el constructor lo hace dominio a dominio | sesión principal (plan corto) → constructor, dominio a dominio → `revisor` |
 | create | `create-in-session` | Crear contenido que construye la propia sesión | sesión principal → `revisor` (validación en los tests del repo) |
-| fix | `fix-bug` | Arreglar un fallo: diagnóstico y test que lo reproduce antes de construir | `revisor` (diagnóstico y test que lo reproduce) → constructor del dominio → `revisor` |
-| improve | `improve-measured` | Mejorar una cifra: mide antes y después | constructor del dominio (mide antes) → `revisor` (pide la medida de después) |
-| improve | `improve-structure` | Reordenar por dentro con el comportamiento idéntico | constructor del dominio → `revisor` |
-| improve | `improve-layers` | Reunir en un solo sitio lo que vive en varias capas: mapa primero | `revisor` (mapa de lo que hay antes de tocar) → constructor del dominio → `revisor` |
-| operate | `operate-reversible` | Operar la casa de modo que se pueda deshacer | `gobierno` → `revisor` + [`seguridad` si toca secretos o permisos] |
-| operate | `operate-irreversible` | Operar algo que no se puede deshacer: cierra con el OK de una persona | `gobierno` → `revisor` + [`evaluador` si cambia el bot] + [`seguridad` si toca secretos o permisos] → *OK de una persona* |
-| audit | `audit-periodic` | Revisión periódica con varios jueces a la vez | `seguridad` + `auditor-datos` + `evaluador` + `gobierno` (revisa los planos), en paralelo |
+| fix | `fix-bug` | Arreglar un fallo: diagnóstico y test que lo reproduce antes de construir | `revisor` (diagnóstico y test que lo reproduce) → constructor → `revisor` |
+| improve | `improve-measured` | Mejorar una cifra: mide antes y después | constructor (mide antes) → `revisor` (pide la medida de después) |
+| improve | `improve-structure` | Reordenar por dentro con el comportamiento idéntico | constructor → `revisor` |
+| improve | `improve-layers` | Reunir en un solo sitio lo que vive en varias capas: mapa primero | `revisor` (mapa de lo que hay antes de tocar) → constructor → `revisor` |
+| operate | `operate-reversible` | Operar la casa de modo que se pueda deshacer | constructor → `revisor` + [`seguridad` si toca secretos o permisos] |
+| operate | `operate-irreversible` | Operar algo que no se puede deshacer: cierra con el OK de una persona | constructor → `revisor` + [`evaluador` si cambia el bot] + [`seguridad` si toca secretos o permisos] → *OK de una persona* |
+| audit | `audit-periodic` | Revisión periódica con varios jueces a la vez | `seguridad` + `auditor-datos` + `evaluador` + constructor (revisa los planos), en paralelo |
 | audit | `audit-other` | Otra auditoría | `revisor` |
 <!-- tipos:tabla:fin -->
 

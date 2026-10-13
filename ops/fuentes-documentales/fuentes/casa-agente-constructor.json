@@ -1,0 +1,9 @@
+{
+  "id": "casa-agente-constructor",
+  "nombre": "Fuente de la casa: agente constructor (gateways y escalado)",
+  "tipo": "casa",
+  "ruta": ".claude/agents/constructor.md",
+  "fecha_alta": "2026-10-13",
+  "revisada": "no",
+  "fecha_revision": null
+}

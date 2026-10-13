@@ -323,24 +323,31 @@ it("el informe común lleva ESTÁNDAR:, /orquestar pega el de la tarea, el revis
   }
 });
 
-it("cada agente trae precargadas las skills de su dominio, y solo esas: una sola fuente, el mapa (#397)", () => {
+it("cada agente trae precargadas las skills de su dominio, y solo esas, salvo el constructor, que las abre según su tarea: una sola fuente, el mapa (#397, #688)", () => {
   // El 10 oct, `datos` editó supabase/ 9 veces en una semana sin la skill
   // supabase: no la traía precargada y nada lo pedía. El mapa dice qué
-  // constructores trabajan en cada dominio (`agentes`); el frontmatter lo sigue.
+  // agentes trabajan en cada dominio (`agentes`); el frontmatter lo sigue.
+  // Desde #688 hay un solo constructor para todos los dominios: precargar las de
+  // todos (gobierno traía 14) pesaría en cada tarea, así que va en `bajo_demanda`
+  // y las abre por la puerta de la guardia y el `SKILLS A ABRIR` del brief.
   const mapa = JSON.parse(readFileSync(join(AQUI, "dominios-skills.json"), "utf8"));
-  const esperado = {};
+  expect(mapa.bajo_demanda, "falta bajo_demanda en el mapa").toEqual(["constructor"]);
+  const esperado = new Map();
   for (const [skill, d] of Object.entries(mapa.skills)) {
     expect(Array.isArray(d.agentes) && d.agentes.length > 0, `${skill}: falta "agentes" en el mapa`).toBe(true);
     for (const a of d.agentes) {
       expect(existsSync(join(DIR, `${a}.md`)), `${skill}: el agente ${a} no existe`).toBe(true);
-      (esperado[a] ??= []).push(skill);
+      esperado.set(a, [...(esperado.get(a) ?? []), skill]);
     }
   }
   for (const f of agentes) {
     const nombre = f.replace(/\.md$/, "");
     const { meta } = leer(f);
-    expect(lista(meta.skills).sort(), `${nombre}: su skills: no cuadra con "agentes" del mapa`).toEqual((esperado[nombre] ?? []).sort());
+    const quiero = mapa.bajo_demanda.includes(nombre) ? [] : (esperado.get(nombre) ?? []);
+    expect(lista(meta.skills).sort(), `${nombre}: su skills: no cuadra con "agentes" del mapa`).toEqual([...quiero].sort());
   }
+  // El constructor sigue siendo dueño de sus skills: el mapa le da más de diez y ninguna va en su cabecera.
+  expect(esperado.get("constructor").length).toBeGreaterThan(10);
 });
 
 it("buscar antes de dar nada por nuevo: plantilla, orquestar y las fuentes de cada agente (#384, #320)", () => {

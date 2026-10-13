@@ -7,7 +7,7 @@
         ".claude/skills/forja-de-skills/SKILL.md"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "f178d0f2a159"
     },
     "frontera-casi-fallos": {
@@ -17,7 +17,7 @@
         "caso:forja-de-skills/frontera-medir-disparo"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "f178d0f2a159"
     },
     "disparador-al-principio": {
@@ -27,7 +27,7 @@
         ".claude/skills.test.js"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "f178d0f2a159"
     },
     "solo-lo-que-el-modelo-no-sabe": {
@@ -44,7 +44,7 @@
         ".claude/skills/forja-de-skills/SKILL.md#Método"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "f178d0f2a159"
     },
     "pasos-con-salida-observable": {
@@ -53,7 +53,7 @@
         ".claude/skills/forja-de-skills/SKILL.md#Método"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "f178d0f2a159"
     },
     "vocabulario-unico": {
@@ -66,7 +66,7 @@
         ".claude/skills/forja-de-skills/SKILL.md#Método"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "f178d0f2a159"
     },
     "skill-contrastada-con-fallo-real": {

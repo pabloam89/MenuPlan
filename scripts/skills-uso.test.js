@@ -155,14 +155,17 @@ describe("skillsDelEncargo: las skills del brief salen del mapa", () => {
   });
 
   it("marca las que el agente ya trae precargadas, y un fichero sin dominio no pide nada", () => {
-    expect(skillsDelEncargo({ ficheros: ["scripts/telegram-perfil.mjs"], mapa, precargadas: precargadasDe(RAIZ, "lola") })[0].precargada).toBe(true);
+    expect(skillsDelEncargo({ ficheros: [".github/ISSUE_TEMPLATE/1-caso.yml"], mapa, precargadas: precargadasDe(RAIZ, "analista") })[0]).toMatchObject({ skill: "issues", precargada: true });
+    // El constructor no precarga ninguna (#688): su brief pide abrirlas todas.
+    expect(skillsDelEncargo({ ficheros: ["scripts/telegram-perfil.mjs"], mapa, precargadas: precargadasDe(RAIZ, "constructor") })[0]).toMatchObject({ skill: "telegram", precargada: false });
     expect(skillsDelEncargo({ ficheros: ["src/App.jsx"], mapa })).toEqual([]);
   });
 
   it("precargadasDe lee el frontmatter, y solo de un nombre válido", () => {
-    expect(precargadasDe(RAIZ, "gobierno")).toContain("github");
+    expect(precargadasDe(RAIZ, "analista")).toContain("causa-raiz");
+    expect(precargadasDe(RAIZ, "constructor")).toEqual([]);
     expect(precargadasDe(RAIZ, "no-existe")).toEqual([]);
-    expect(precargadasDe(RAIZ, "../gobierno")).toEqual([]);
+    expect(precargadasDe(RAIZ, "../constructor")).toEqual([]);
   });
 
   it("cada skill de la lista es una skill de verdad", () => {
