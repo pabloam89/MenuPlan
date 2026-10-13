@@ -1,0 +1,49 @@
+{
+  "skill": "cierre-eficaz",
+  "juicios": {
+    "camino-por-defecto": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar"
+    },
+    "descripcion-palabras-de-quien-pide": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar"
+    },
+    "disparador-al-principio": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar"
+    },
+    "ejemplos-canonicos": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar"
+    },
+    "forma-adecuada-al-contenido": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar"
+    },
+    "frontera-casi-fallos": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar"
+    },
+    "libertad-ajustada": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar"
+    },
+    "pasos-con-salida-observable": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar"
+    },
+    "skill-contrastada-con-fallo-real": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar"
+    },
+    "solo-lo-que-el-modelo-no-sabe": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar"
+    },
+    "vocabulario-unico": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar"
+    }
+  }
+}

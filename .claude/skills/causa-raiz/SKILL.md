@@ -30,6 +30,7 @@ No es para:
   skill `issues`;
 - decidir los encargos, el mecanismo del arreglo y la ventana: skill
   `plan-de-arreglo`, que empieza donde esta acaba;
+- evaluar si el arreglo aguantó al vencer la ventana: skill `cierre-eficaz`;
 - un fallo que se arregla en una línea y no puede repetirse: eso es un caso
   `puntual`, con su porqué, y no necesita técnica.
 

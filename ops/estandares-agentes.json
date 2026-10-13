@@ -4804,6 +4804,59 @@
           "normas": [
             "quien-construye-no-juzga"
           ]
+        },
+        {
+          "id": "evaluar-la-eficacia",
+          "tarea": "Al vencer la ventana de observación de un fondo, comprobar con la cifra de antes y la de después, del mismo comando, si el arreglo sirvió, dar un veredicto de vocabulario cerrado y proponer el cierre o la reapertura",
+          "accion": "medir",
+          "origen": "metodo",
+          "ambitos": [
+            "process"
+          ],
+          "comunes": [
+            "medir-antes-despues",
+            "buscar-lo-ya-apuntado"
+          ],
+          "reglas": [
+            {
+              "nombre": "Veredicto con dos cifras",
+              "sujeto": "fondo",
+              "fuerza": "debe",
+              "exigencia": "cerrar la evaluación con uno de los veredictos eficaz, insuficiente o no-evaluable y con la cifra de antes y la de después del mismo comando",
+              "control": ".claude/cierre-eficaz.test.js",
+              "fuente": "casa-flujo",
+              "porque": "Una ventana limpia dice que nadie ha vuelto a ver el fallo, no que el arreglo hiciera nada; sin las dos cifras un fondo se da por eficaz por silencio",
+              "ejemplo_bueno": "cierre-eficaz: veredicto=eficaz antes=17 despues=4, con el comando que da las dos",
+              "ejemplo_malo": "«lleva tres meses sin fallar, eficaz» sin ninguna cifra"
+            },
+            {
+              "nombre": "Evaluar solo con partida",
+              "sujeto": "fondo",
+              "fuerza": "no_debe",
+              "exigencia": "darse por eficaz ni por insuficiente sin una cifra de partida con su comando: el veredicto es no-evaluable y el fondo vuelve a plan-de-arreglo",
+              "control": ".claude/cierre-eficaz.test.js",
+              "fuente": "sre-postmortem",
+              "porque": "Una cifra de partida inventada al final convierte cualquier resultado en una mejora; hay que fijarla antes de arreglar",
+              "ejemplo_bueno": "no-evaluable porque el barrido de la ficha no trae número ni comando, y vuelve a plan-de-arreglo",
+              "ejemplo_malo": "estimar de memoria cuántos había antes y declarar la mejora"
+            }
+          ],
+          "no_hace": [
+            "cerrar el fondo: lo cierra el workflow fondos o lo decide otro agente, y quien evalúa no cierra",
+            "arreglar de nuevo el fallo: si es insuficiente, registra el caso y reabre el fondo para un plan nuevo",
+            "añadir claves a la ficha del fondo: el veredicto va en una línea contable de un comentario",
+            "juzgar su propia evaluación: la contrasta el revisor repitiendo el comando"
+          ],
+          "rondas": [
+            "ronda: 1 fuentes: 3 cambios: Leídos docs/ops/FLUJO.md, scripts/lib/fondos.mjs y el capítulo de Google SRE sobre postmortems: el workflow cierra por ventana limpia, nadie compara la cifra",
+            "ronda: 2 fuentes: 1 cambios: Contrastado con las obligaciones de npm run flujo: verificar, aprender y medir son blandos y no hay quien compare antes y después",
+            "ronda: 3 fuentes: 1 cambios: Dos reglas encima de las comunes de cifra antes y después: veredicto cerrado con dos cifras y no evaluar sin partida"
+          ],
+          "normas": [
+            "quien-construye-no-juzga",
+            "fondo-no-cierra-sin-aprendizaje",
+            "lecciones-a-un-test"
+          ]
         }
       ]
     }

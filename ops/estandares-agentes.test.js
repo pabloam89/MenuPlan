@@ -108,14 +108,14 @@ describe("ops/estandares-agentes.json", () => {
     expect(contar(datos, normas).pendientes).toBe(0);
   });
 
-  it("las 75 tareas de los 11 agentes, con los cinco agentes que estaban pendientes completos", () => {
-    expect(todasLasTareas).toHaveLength(75);
+  it("las 76 tareas de los 11 agentes, con los cinco agentes que estaban pendientes completos", () => {
+    expect(todasLasTareas).toHaveLength(76);
     for (const n of ["diseno", "lola", "qa", "evaluador", "auditor-datos"]) expect(datos.agentes[n].tareas.length, n).toBeGreaterThanOrEqual(5);
     expect(datos.agentes.gobierno.tareas.map((t) => t.id)).toContain("catalogo-de-ops-con-test");
   });
 
-  it("el analista y el reparto con él (línea #652): sus tres tareas, las dos del orquestador y la de gobierno que reúne el estándar de crear un agente", () => {
-    expect(datos.agentes.analista.tareas.map((t) => t.id)).toEqual(["registrar-el-caso", "diagnosticar-causa-raiz", "planificar-los-encargos"]);
+  it("el analista y el reparto con él (línea #652): sus cuatro tareas, las dos del orquestador y la de gobierno que reúne el estándar de crear un agente", () => {
+    expect(datos.agentes.analista.tareas.map((t) => t.id)).toEqual(["registrar-el-caso", "diagnosticar-causa-raiz", "planificar-los-encargos", "evaluar-la-eficacia"]);
     expect(datos.agentes.orquestador.tareas.map((t) => t.id)).toEqual(expect.arrayContaining(["recoger-el-plan-del-analista", "ejecutar-lo-trivial-el-mismo"]));
     const crear = datos.agentes.gobierno.tareas.find((t) => t.id === "crear-o-cambiar-agente");
     expect(crear.accion).toBe("construir");
@@ -141,15 +141,15 @@ describe("ops/estandares-agentes.json", () => {
 
   it("la cifra: tareas, reglas, comunes y fuentes externas y de la casa", () => {
     const c = contar(datos);
-    expect(c.total).toBe(75);
-    expect(c.conEstandar).toBe(75);
+    expect(c.total).toBe(76);
+    expect(c.conEstandar).toBe(76);
     expect(c.reglas).toBe(todasLasTareas.reduce((s, t) => s + t.reglas.length, 0));
     expect(c.comunes).toBe(11);
     expect(c.reglasComunes).toBe(Object.values(datos.comunes).reduce((s, x) => s + (x.reglas ?? []).length, 0));
     // Una fuente con uso «pool» la cita una práctica de ops/pool/ (ops/pool.test.js); solo cuenta aquí si además la cita una regla.
     const citadasPorReglas = new Set([...todasLasTareas.flatMap((t) => t.reglas), ...Object.values(datos.comunes).flatMap((x) => x.reglas ?? [])].map((r) => r.fuente));
     expect(c.fuentes.externas + c.fuentes.casa).toBe(Object.entries(datos.fuentes).filter(([id, f]) => f.uso !== "pool" || citadasPorReglas.has(id)).length);
-    expect(Object.values(c.porAccion).reduce((a, b) => a + b, 0)).toBe(75);
+    expect(Object.values(c.porAccion).reduce((a, b) => a + b, 0)).toBe(76);
   });
 
   it("todas las tareas nuevas de #516 dejan el rastro de tres rondas de investigación", () => {
@@ -292,7 +292,7 @@ describe("docs/ops/ESTANDARES.md sale del catálogo", () => {
     const comunes = md.split("\n").filter((l) => /^\| `[a-z0-9-]+` \| (construir|juzgar|diagnosticar|operar|medir|documentar|decidir) \|/.test(l) && !l.includes("cita las normas"));
     expect(comunes).toHaveLength(contar(datos).reglasComunes);
     const porTarea = md.split("\n").filter((l) => /^\| `[a-z-]+\/[a-z0-9-]+` \|/.test(l));
-    expect(porTarea).toHaveLength(75);
+    expect(porTarea).toHaveLength(76);
   });
 
   it("la frase de cada regla sale de sus campos y no lleva el control", () => {
@@ -354,7 +354,7 @@ describe("npm run estandar", () => {
 
   it("la cifra sale por --contar", () => {
     const out = execFileSync("node", ["scripts/estandares-agentes.mjs", "--contar"], { cwd: RAIZ, encoding: "utf8" });
-    expect(out).toContain("TOTAL 75/75 tareas con estándar; 0 pendientes");
+    expect(out).toContain("TOTAL 76/76 tareas con estándar; 0 pendientes");
     expect(out).toMatch(/normas: \d+ citadas aparte; \d+ distintas llegan a alguna tarea/);
   });
 });
