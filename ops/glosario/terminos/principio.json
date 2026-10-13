@@ -11,7 +11,8 @@
   "relacionado": [
     "norma",
     "meta",
-    "ámbito"
+    "ámbito",
+    "fuente documental"
   ],
   "ref": {
     "fichero": "scripts/lib/principios.mjs",

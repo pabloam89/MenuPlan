@@ -8,12 +8,12 @@
   "ejemplo_malo": "Hoy api/moderate.js contesta sin sesión y gasta el límite diario global compartido con el resto de la IA (#597)",
   "fuentes": [
     {
-      "url": "https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "owasp-genai-llm102025-unbounded-consumption"
     },
     {
-      "url": "https://api-security.owasp.org/editions/2023/en/0xa4-unrestricted-resource-consumption",
-      "marca": "S"
+      "marca": "S",
+      "fuente": "owasp-api-0xa4-unrestricted-resource-consumption"
     }
   ]
 }

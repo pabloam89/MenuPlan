@@ -70,6 +70,7 @@ pasan a ser un valor, un campo, un tipo de evento o un tipo de recurso). Corregi
 | `module` | data | piece | vertical | no | agent | `ops/MODULOS.json` (with_registry) | ops/modulos.test.js | project, metric |
 | `vocabulary` | rules | piece | both | sí | agent | `ops/vocabularios-vida.json` (partial) | ops/vocabularios-vida.test.js, scripts/lib/vocabulariosVida.mjs | — |
 | `principle` | rules | meta | both | sí | agent, human | `ops/principios/_catalogo.json` (with_registry) | ops/normas.test.js, ops/principios.test.js, ops/uniones.test.js | — |
+| `source` | rules | piece | horizontal | no | agent, human | `ops/fuentes-documentales/_catalogo.json` (with_registry) | ops/fuentes-documentales.test.js, scripts/lib/fuentesDoc.mjs, ops/principios.test.js, ops/estandares-agentes.test.js | — |
 | `household` | home | piece | vertical | no | automatic, human | `specs/modelo-datos.md` (partial) | src/lib/householdsSync.js, api/_bot/casa.js | — |
 | `person` | home | piece | vertical | no | human | `specs/modelo-datos.md` (partial) | api/_bot/ficha.js, src/utils/validateMenu.js | household |
 | `channel-identity` | home | piece | vertical | no | automatic | `ops/MODULOS.json` (partial) | api/_bot/enlace.js | account |
@@ -98,7 +99,7 @@ pasan a ser un valor, un campo, un tipo de evento o un tipo de recurso). Corregi
 | `chat` | lola | piece | vertical | no | automatic | `supabase/migrations/0057_bot_cimientos.sql` (partial) | api/_bot/enlace.js, api/_bot/turnos.js | household |
 | `assignment-type` | work | template | horizontal | no | agent | `ops/tipos-de-encargo.json` (with_registry) | scripts/lib/tiposDeEncargo.mjs, ops/tipos-de-encargo.test.js | — |
 
-Cifras: 53 entidades activas y 7 retiradas. Alcance: horizontal 21, vertical 22, both 10. Nivel: piece 46, meta 3, template 4. Familias: work 9, access 4, delivery 3, measure 4, rules 6, agents 4, data 3, home 5, food 6, lola 2, structure 2, design 5. Relaciones: 90 (is_a 5, parent_of 4, part_of 22, reference 59).
+Cifras: 54 entidades activas y 7 retiradas. Alcance: horizontal 22, vertical 22, both 10. Nivel: piece 47, meta 3, template 4. Familias: work 9, access 4, delivery 3, measure 4, rules 7, agents 4, data 3, home 5, food 6, lola 2, structure 2, design 5. Relaciones: 92 (is_a 5, parent_of 4, part_of 22, reference 61).
 <!-- super-tabla:fin -->
 
 ## 3. Reto 1: Fondo, Caso, Encargo, Decisión

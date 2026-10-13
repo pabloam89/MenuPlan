@@ -1,0 +1,10 @@
+{
+  "id": "owasp-genai-llm01-prompt-injection",
+  "nombre": "OWASP GenAI: llm01 prompt injection",
+  "tipo": "externa",
+  "url": "https://genai.owasp.org/llmrisk/llm01-prompt-injection/",
+  "uso": "principio",
+  "fecha_alta": "2026-10-13",
+  "revisada": "no",
+  "fecha_revision": null
+}

@@ -8,8 +8,8 @@
   "ejemplo_malo": "Un reintento del disparador manda dos correos por el mismo reporte",
   "fuentes": [
     {
-      "url": "https://docs.stripe.com/api/idempotent_requests",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "stripe-api-idempotent-requests"
     }
   ]
 }

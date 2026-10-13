@@ -1,0 +1,9 @@
+{
+  "id": "casa-router",
+  "nombre": "Fuente de la casa: el enrutador de Lola y su esquema plano",
+  "tipo": "casa",
+  "ruta": "api/_bot/router.js",
+  "fecha_alta": "2026-10-13",
+  "revisada": "no",
+  "fecha_revision": null
+}

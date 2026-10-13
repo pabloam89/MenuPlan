@@ -20,6 +20,7 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 
 import { leerCatalogo } from "./catalogos.mjs";
+import { conFuentesResueltas } from "./fuentesDoc.mjs";
 import { CONTROL_JUICIO, MARCAS_FUENTE, fraseDeRegla, problemasDePrincipio as problemasDeForma } from "./regla.mjs";
 
 export const RUTA_PRINCIPIOS = "ops/principios-producto/";
@@ -45,7 +46,7 @@ export const MAX_PALABRAS_CITA = 15;
 const esTexto = (v, min = 1) => typeof v === "string" && v.trim().length >= min;
 const palabras = (t) => t.trim().split(/\s+/).length;
 
-export const leerPrincipios = (raiz) => leerCatalogo(raiz, RUTA_PRINCIPIOS);
+export const leerPrincipios = (raiz) => conFuentesResueltas(raiz, leerCatalogo(raiz, RUTA_PRINCIPIOS));
 
 /** Las citas entre comillas («…», “…» o "…") de un texto. */
 export function citasDe(texto) {

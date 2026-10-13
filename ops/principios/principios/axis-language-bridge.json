@@ -7,7 +7,7 @@
   "fuentes": [
     {
       "marca": "I",
-      "ruta": "ops/entidades.json"
+      "fuente": "casa-ops-entidades-json"
     }
   ],
   "detalle": [

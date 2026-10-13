@@ -8,8 +8,8 @@
   "ejemplo_malo": "Se guardan indefinidamente los mensajes de una familia que borró su cuenta",
   "fuentes": [
     {
-      "url": "https://gdpr-info.eu/art-5-gdpr/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "gdpr-art-5-gdpr"
     }
   ]
 }

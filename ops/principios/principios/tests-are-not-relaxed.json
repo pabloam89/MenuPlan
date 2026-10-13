@@ -7,7 +7,7 @@
   "fuentes": [
     {
       "marca": "I",
-      "ruta": "scripts/lib/avisosPr.mjs"
+      "fuente": "casa-scripts-lib-avisospr-mjs"
     }
   ],
   "origen": [

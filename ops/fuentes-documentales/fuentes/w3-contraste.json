@@ -1,0 +1,10 @@
+{
+  "id": "w3-contraste",
+  "nombre": "WCAG 2.2: Contrast (Minimum)",
+  "tipo": "externa",
+  "url": "https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html",
+  "uso": "pool",
+  "fecha_alta": "2026-10-13",
+  "revisada": "si",
+  "fecha_revision": "2026-10-13"
+}

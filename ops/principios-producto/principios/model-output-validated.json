@@ -8,12 +8,12 @@
   "ejemplo_malo": "El resultado del modelo se guarda tal cual en la ficha de la casa",
   "fuentes": [
     {
-      "url": "https://genai.owasp.org/llm-top-10/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "owasp-llm-top10"
     },
     {
-      "url": "https://www.anthropic.com/engineering/writing-tools-for-agents",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "an-tools-agents"
     }
   ]
 }

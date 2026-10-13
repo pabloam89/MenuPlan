@@ -8,12 +8,12 @@
   "ejemplo_malo": "Un endpoint llama al modelo sin contar y una noche de peticiones vacía el crédito",
   "fuentes": [
     {
-      "url": "https://api-security.owasp.org/editions/2023/en/0xa4-unrestricted-resource-consumption",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "owasp-api-0xa4-unrestricted-resource-consumption"
     },
     {
-      "url": "https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "owasp-genai-llm102025-unbounded-consumption"
     }
   ]
 }

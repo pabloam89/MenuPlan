@@ -31,6 +31,13 @@
       "evidencia": "#505 (fondo #504)"
     },
     {
+      "id": "fuentes-documentales",
+      "tests": ["ops/fuentes-documentales.test.js"],
+      "mira": ["ops/fuentes-documentales/**", "ops/principios/**", "ops/principios-producto/**", "ops/pool/**", "ops/estandares-agentes.json", "scripts/lib/fuentesDoc.mjs"],
+      "porque": "Las fuentes son una sola lista (ops/fuentes-documentales/) y todo lo demás las cita por id: un principio, una regla o una práctica del pool que cita una fuente que no existe, una fuente que nadie cita, o más fuentes sin revisar que el techo, rompen el catálogo.",
+      "evidencia": "#681 (parte de #652): de dos catálogos de fuentes a uno"
+    },
+    {
       "id": "generados-sin-choque",
       "tests": ["ops/generados.test.js"],
       "mira": ["**/*.md", ".gitattributes", "scripts/lib/generados.mjs", "scripts/merge-driver.mjs", "ops/forja/**", "ops/forja-capas.json", "scripts/lib/forja.mjs", "scripts/lib/plantillasSkill.mjs"],

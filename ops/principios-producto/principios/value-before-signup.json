@@ -8,8 +8,8 @@
   "ejemplo_malo": "Lo primero que ve alguien nuevo es un formulario largo de la casa",
   "fuentes": [
     {
-      "url": "https://taplytics.com/blog/duolingo-ab-test-onboarding",
-      "marca": "S"
+      "marca": "S",
+      "fuente": "taplytics-blog-duolingo-ab-test-onboarding"
     }
   ]
 }

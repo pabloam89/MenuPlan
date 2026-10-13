@@ -8,12 +8,12 @@
   "ejemplo_malo": "Un turno puede encadenar llamadas sin fin si el modelo no se decide",
   "fuentes": [
     {
-      "url": "https://www.anthropic.com/engineering/building-effective-agents",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "an-building-agents"
     },
     {
-      "url": "https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "owasp-genai-llm102025-unbounded-consumption"
     }
   ]
 }

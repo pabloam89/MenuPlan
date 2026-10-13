@@ -1,0 +1,9 @@
+{
+  "id": "pg-altertable",
+  "nombre": "PostgreSQL: ALTER TABLE (NOT VALID y VALIDATE CONSTRAINT)",
+  "tipo": "externa",
+  "url": "https://www.postgresql.org/docs/current/sql-altertable.html",
+  "fecha_alta": "2026-10-13",
+  "revisada": "si",
+  "fecha_revision": "2026-10-13"
+}

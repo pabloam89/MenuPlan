@@ -1,0 +1,9 @@
+{
+  "id": "casa-agente-lola",
+  "nombre": "Fuente de la casa: agente lola (gateways y escalado)",
+  "tipo": "casa",
+  "ruta": ".claude/agents/lola.md",
+  "fecha_alta": "2026-10-13",
+  "revisada": "no",
+  "fecha_revision": null
+}

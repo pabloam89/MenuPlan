@@ -7,7 +7,7 @@
   "fuentes": [
     {
       "marca": "I",
-      "ruta": "src/lib/vocabularios.js"
+      "fuente": "casa-src-lib-vocabularios-js"
     }
   ],
   "detalle": [

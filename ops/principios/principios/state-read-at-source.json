@@ -7,7 +7,7 @@
   "fuentes": [
     {
       "marca": "I",
-      "ruta": ".claude/hooks/pendientes.mjs"
+      "fuente": "casa-claude-hooks-pendientes-mjs"
     }
   ],
   "origen": [
