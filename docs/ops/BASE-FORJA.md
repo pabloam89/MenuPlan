@@ -58,7 +58,7 @@ Propuesta de seis valores cerrados. Las cuatro primeras ya existen como `concept
 | seguridad | que nadie ajeno entre ni haga más de lo que le toca | OWASP ASVS, ya en el catálogo (`owasp-asvs`) |
 | datos de familias | que no se pierdan, mezclen ni enseñen a quien no toca | `owasp-idor`, `pg-rls`, ya en el catálogo |
 | coste | que el gasto no se descontrole | `an-cache` y `an-choose-model`, ya en el catálogo |
-| intervención humana evitable: 0 % | que una persona solo intervenga donde CLAUDE.md lo exige (8 puertas irreducibles) | Google SRE, «Eliminating Toil»; **no está en el catálogo y no la he abierto** |
+| intervención humana evitable: 0 % | que una persona solo intervenga donde CLAUDE.md lo exige (8 puertas irreducibles) | Google SRE, «Eliminating Toil» (ya en `base.metas.human-intervention`, URL con 200 en F2) |
 | UX por y para agentes | que lo que usa un agente tenga salida con forma fija, error con causa y arreglo y ninguna pregunta a mitad | `an-tools-agents` (Anthropic, herramientas para agentes), ya en el catálogo |
 | velocidad | que el trabajo avance | la de hoy (cede ante las demás) |
 
@@ -68,7 +68,7 @@ El orden de las dos metas nuevas es una propuesta mía: entre coste y velocidad,
 
 ### 3.4 Pasos con nombre
 
-Sin números negativos ni escala nueva. El campo `nivel` (0, 1, 2) se sustituye por `paso`, de vocabulario cerrado, y el 0/1/2 queda como alias hasta que nadie lo lea.
+Sin números negativos ni escala nueva. El campo `nivel` (0, 1, 2) se sustituye por `paso`, de vocabulario cerrado, sin alias: el test falla si queda un `nivel` en una ficha (F2, `ops/DECISIONES.md`).
 
 | Paso | Qué es | Hoy | Hereda de |
 |---|---|---|---|
@@ -195,7 +195,7 @@ Las normas pasan a llevar `meta` (seis valores, 3.3) en vez de `principio`. Hoy 
 | Fase | Contenido | Puerta (test) |
 |---|---|---|
 | F1 | Glosario: términos de la sección 8, campo `dominio`, campo de mapeo | `ops/glosario.test.js` y los dos nuevos de la sección 11 |
-| F2 | Base y pasos: `ops/forja/base.json`, `paso` en lugar de `nivel`, rename del apartado de la plantilla | `ops/base.test.js` |
+| F2 | Base y pasos: `ops/forja/base/*.json` (colección, no un fichero suelto: el catálogo partido no los admite), `paso` en lugar de `nivel`, rename del apartado de la plantilla | `ops/base.test.js` |
 | F3 | Normas: campos nuevos (`meta`, `porque`, `fuente`, `origen_principio`, `tipos`, `tareas`) sin quitar nada | `ops/normas.test.js` + test de ids congelados |
 | F4 | Criterios → normas (75), sin cambiar ids | ídem, y `ops/forja.test.js` lee de normas |
 | F5 | Reglas de estándar → normas (181) y retirada de `reglas` en las tareas | `ops/estandares-agentes.test.js` y `ops/uniones.test.js` |
@@ -351,7 +351,7 @@ Casos de prueba (`casos.json`): tres que la cargan y tres de frontera.
 
 ## 13. NO COMPROBADO
 
-- Ninguna URL de fuente externa se ha abierto en esta sesión. La de Google SRE «Eliminating Toil» no está en el catálogo de fuentes: es la que propongo para la meta de intervención humana y hay que contrastarla.
+- Ninguna URL de fuente externa se ha abierto en esta sesión. La de Google SRE «Eliminating Toil» ya está en `base.metas.human-intervention` (F2) y respondió 200; las demás siguen sin abrir.
 - La clasificación de los 97 términos en dominios y la de los 15 artefactos son mías; no las ha visto Pablo ni el revisor.
 - El reparto de «nivel 0/1/2» entre sus dos sentidos (solo el total: 46 usos en 13 ficheros, sin contar este documento).
 - Que `componer` de `scripts/lib/catalogos.mjs` acepte subcarpetas en un catálogo partido.
