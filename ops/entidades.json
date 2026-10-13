@@ -1106,7 +1106,7 @@
         ".claude/skills/revision-de-diseno/SKILL.md",
         ".claude/agents/diseno.md"
       ],
-      "note": "La instancia de diseño de un proyecto: sus tokens, componentes y patrones y su documento. Dos instancias: HoMenu (DESIGN_SYSTEM.md y src/design/tokens.js) y el panel (por hacer según docs/diseno/ESTADO.md; Pablo da por hecha la instancia, no comprobada aquí). El nivel meta (los bloques A a Q y las leyes L01 a L22 de docs/diseno/META-DISENO.md, en ops/diseno/bloques.json) es la base de la que sale; no tiene entidad propia."
+      "note": "La instancia de diseño de un proyecto: sus tokens, componentes y patrones y su documento. Dos instancias: HoMenu (DESIGN_SYSTEM.md y src/design/tokens.js) y el panel (por hacer según docs/diseno/ESTADO.md; Pablo da por hecha la instancia, no comprobada aquí). El nivel meta (los bloques A a Q y las normas L01 a L22 de docs/diseno/META-DISENO.md, en ops/diseno/bloques.json) es la base de la que sale; no tiene entidad propia."
     },
     {
       "id": "design-profile",

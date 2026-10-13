@@ -75,6 +75,9 @@ export const DOMINIOS_FUENTE = [
   "playwright.dev", "developer.chrome.com", "learn.microsoft.com", "m3.material.io", "www.designtokens.org",
 ];
 
+/** Dominios que solo admite una fuente con uso «pool» (ops/pool/): referencias de oficio, no sirven a una regla. */
+export const DOMINIOS_POOL = ["martinfowler.com", "www.bkent.net", "docs.getdbt.com", "dama.org", "claude.com", "www.nngroup.com", "digital.gov", "design-system.service.gov.uk"];
+
 /** Extensiones de lo que puede vigilar una regla: un test, un hook, un script o un workflow, no un documento. */
 const CONTROL_EJECUTABLE = /\.(m?js|jsx|cjs|ya?ml)$/;
 
@@ -234,7 +237,7 @@ export function problemasDeEstandares(datos, agentes, raiz = null, normas = null
     if (f?.tipo !== undefined && f.tipo !== "externa") malos.push(`fuente «${id}»: tipo «${f.tipo}» no es casa ni externa`);
     let host = "";
     try { const u = new URL(f?.url); host = u.hostname; if (u.protocol !== "https:") malos.push(`fuente «${id}»: la url va en https`); } catch { malos.push(`fuente «${id}»: url no válida`); }
-    if (host && !DOMINIOS_FUENTE.includes(host)) malos.push(`fuente «${id}»: ${host} no es una documentación admitida (DOMINIOS_FUENTE)`);
+    if (host && !DOMINIOS_FUENTE.includes(host) && !(f?.uso === "pool" && DOMINIOS_POOL.includes(host))) malos.push(`fuente «${id}»: ${host} no es una documentación admitida (DOMINIOS_FUENTE)`);
   }
 
   const contexto = { raiz, forja };
@@ -319,7 +322,8 @@ export function problemasDeEstandares(datos, agentes, raiz = null, normas = null
     }
   }
   for (const c of Object.keys(comunes)) if (!comunesCitadas.has(c)) malos.push(`común ${c}: ninguna tarea la cita`);
-  for (const f of Object.keys(fuentes)) if (!usadas.has(f)) malos.push(`fuente «${f}»: ninguna regla la cita`);
+  // Una fuente con uso «pool» la cita una práctica de ops/pool/ (lo vigila ops/pool.test.js), no una regla.
+  for (const f of Object.keys(fuentes)) if (!usadas.has(f) && fuentes[f]?.uso !== "pool") malos.push(`fuente «${f}»: ninguna regla la cita`);
   return malos;
 }
 
