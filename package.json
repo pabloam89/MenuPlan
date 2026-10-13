@@ -51,6 +51,7 @@
     "principios-casa": "node scripts/principios-casa.mjs",
     "higiene-skills": "node scripts/higiene-skills.mjs",
     "skills-prueba": "node scripts/skills-prueba.mjs",
+    "test-del-juez": "node scripts/test-del-juez.mjs",
     "cumplimiento": "node scripts/cumplimiento.mjs",
     "skills-uso": "node scripts/skills-uso.mjs",
     "skills-encargo": "node scripts/skills-encargo.mjs",
