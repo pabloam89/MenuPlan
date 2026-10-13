@@ -117,7 +117,7 @@ export function cifrasDeFuentes(catalogo, hoy = new Date()) {
  * (regla, pool o principio): una fuente que nadie cita sobra. `raiz` permite comprobar que la ruta de una
  * fuente de la casa existe. Sin reloj: lo que depende de la fecha de hoy se mira con `estadoDeRevision`.
  */
-export function problemasDeFuentes(catalogo, { citadas = null, raiz = null, techo = TECHO_SIN_REVISAR } = {}) {
+export function problemasDeFuentes(catalogo, { citadas = null, raiz = null, techo = TECHO_SIN_REVISAR, hoy = new Date() } = {}) {
   const malos = [];
   if (!Array.isArray(catalogo?.fuentes) || !catalogo.fuentes.length) return ["fuentes: el catálogo es una lista con una fuente como mínimo"];
   if (catalogo.plazo_revision_dias !== PLAZO_REVISION_DIAS) malos.push(`plazo_revision_dias: ${catalogo.plazo_revision_dias} no es ${PLAZO_REVISION_DIAS} (PLAZO_REVISION_DIAS)`);
@@ -151,6 +151,7 @@ export function problemasDeFuentes(catalogo, { citadas = null, raiz = null, tech
     else if (f.revisada === "si") {
       if (!esFecha(f.fecha_revision)) malos.push(`${d}: revisada sin fecha_revision AAAA-MM-DD`);
       else if (esFecha(f.fecha_alta) && aMs(f.fecha_revision) < aMs(f.fecha_alta)) malos.push(`${d}: fecha_revision anterior a fecha_alta`);
+      else if (aMs(f.fecha_revision) > hoy.getTime()) malos.push(`${d}: fecha_revision en el futuro (una revisión futura no caduca nunca)`);
     } else {
       sinRevisar += 1;
       if (f.fecha_revision !== null) malos.push(`${d}: sin revisar lleva fecha_revision null`);

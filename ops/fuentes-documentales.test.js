@@ -127,6 +127,7 @@ describe("cada regla de forma, vista fallar", () => {
   it("revisada con un valor fuera de si | no", () => falla((c) => { c.fuentes[0].revisada = "quizá"; }, "fuera de si, no"));
   it("revisada sin fecha de revisión", () => falla((c) => { const f = c.fuentes.find((x) => x.revisada === "si"); f.fecha_revision = null; }, "revisada sin fecha_revision"));
   it("revisión anterior al alta", () => falla((c) => { const f = c.fuentes.find((x) => x.revisada === "si"); f.fecha_revision = "2020-01-01"; }, "anterior a fecha_alta"));
+  it("una revisión en el futuro no caduca nunca y no vale", () => falla((c) => { const f = c.fuentes.find((x) => x.revisada === "si"); f.fecha_revision = "2099-01-01"; }, "en el futuro"));
   it("sin revisar con fecha de revisión", () => falla((c) => { const f = c.fuentes.find((x) => x.revisada === "no"); f.fecha_revision = "2026-10-13"; }, "lleva fecha_revision null"));
   it("una fuente que nadie cita", () => falla((c) => { c.fuentes.push({ id: "sobra-una", nombre: "Una fuente que sobra en la lista", tipo: "externa", url: "https://sre.google/sobra", fecha_alta: "2026-10-13", revisada: "si", fecha_revision: "2026-10-13" }); }, "nadie la cita"));
   it("se cita una fuente que no existe", () => {
