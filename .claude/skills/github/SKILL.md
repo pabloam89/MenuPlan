@@ -167,7 +167,7 @@ repo; el alta entera, en la skill `alta-de-secreto`.
 
 ## Qué requiere el OK de Pablo
 
-- Rotar o retirar la clave de la App `homenu-sesiones`, y el `gh auth logout` de Pablo (sigue en su llavero).
+- Rotar o retirar la clave de la App `homenu-sesiones`, y volver a entrar con `gh auth login` (su sesión está cerrada; la cierra otra vez al acabar, y el registro está en app-sesiones.md).
 - Cualquier ajuste del repo: protección de ramas y rulesets, visibilidad, rama
   por defecto, Dependabot, secret scanning, environments, secretos y deploy keys
   (una de escritura se salta el ruleset de `staging`: no se crea otra sin más).

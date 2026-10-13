@@ -139,13 +139,14 @@ describe("identidad y aviso del arranque", () => {
     expect(a).toMatch(/^AVISO: .*pabloam89/);
     expect(a).toContain("identidad-sesion identidad: pablo token: no motivo: sin-clave");
   });
-  it("con la App dice solo lo que sabe: Bash sí, PowerShell no, y las credenciales de Pablo siguen", () => {
+  it("con la App dice solo lo que sabe: Bash sí, PowerShell no, y que Pablo ya cerró su sesión de gh", () => {
     const a = avisoDeIdentidad({ identidad: "app", token: "app" });
     expect(a).not.toMatch(/^AVISO/);
     expect(a).toContain("identidad: app token: app");
     expect(a).toMatch(/Bash/);
     expect(a).toMatch(/PowerShell/);
-    expect(a).toMatch(/gh auth logout/);
+    expect(a).toMatch(/cerró su sesión de `gh`/);
+    expect(a).not.toMatch(/siguen en el llavero/);
     expect(a).toContain("-- git push");
     expect(a).not.toMatch(/sin administraci/);
   });
