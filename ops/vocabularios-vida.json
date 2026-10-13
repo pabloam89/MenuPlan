@@ -746,6 +746,22 @@
       "fuera_por_debajo": "la cifra de después baja del límite inferior: bajó de verdad",
       "sin_datos_suficientes": "hay menos puntos de antes que el mínimo, o falta la cifra de después: no se puede decir si cambió"
     },
+    "topes.codigo_wording": {
+      "voz-pasiva": "El texto está en voz pasiva y la tabla de redacción pide voz activa",
+      "modo-tiempo": "El texto no está en el modo y tiempo de su tipo: futuro o pasado, un sujeto nominal o un modal que describe en vez de mandar",
+      "persona": "El texto usa una persona que no es la de su tipo",
+      "fuerza-en-principio": "Un principio lleva una palabra de fuerza: la obligación es de la norma",
+      "frase-larga": "El texto pasa del máximo de palabras que declara su campo"
+    },
+    "topes.tipo_texto": {
+      "norma": "Una obligación o prohibición: sujeto, fuerza y exigencia en infinitivo, en tercera persona y voz activa",
+      "principio": "El porqué de una norma: una frase en presente de indicativo, tercera persona y sin palabras de fuerza",
+      "practica": "Una práctica de oficio de una forja o del pool: imperativo en segunda persona, con su porqué y sus ejemplos",
+      "skill": "El texto de una skill: pasos en imperativo y segunda persona, cada uno con su salida observable",
+      "respuesta": "Lo que se le dice a Pablo: presente, primera y segunda persona, con la forma de la skill estilo-de-respuesta",
+      "definicion": "Qué es un término del glosario: una idea corta en presente de indicativo y tercera persona, sin regla propia de redacción",
+      "documento": "Un fichero entero cuyo único control es su tope en caracteres, sin regla de redacción por frase"
+    },
     "zonas.zona": {
       "factoria": "el proceso de trabajo: hooks, guardia de proceso, skills de oficio, normas, scripts de flujo y su documentación",
       "producto": "HoMenu: la app, el bot Lola, el catálogo, la base de datos, las imágenes y sus scripts",
