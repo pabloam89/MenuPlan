@@ -189,7 +189,26 @@ export function problemasDeEjes(n, id) {
   if (n.control_procesador === "juez") {
     if (!("test_del_juez" in n) || !(n.test_del_juez === null || (typeof n.test_del_juez === "string" && n.test_del_juez.trim()))) malos.push(`${id}: un control de juez lleva «test_del_juez» (la ruta de su test, o null si aún no lo tiene)`);
   } else if ("test_del_juez" in n) malos.push(`${id}: «test_del_juez» solo con procesador «juez»`);
+  if (n.control_momento === "periodico" && n.control_fuerza === "bloquea") malos.push(`${id}: un control que bloquea no es periódico: bloquea en el push, el merge o el comando, y un pase programado solo avisa (usa momento «pr» o «editar»)`);
+  if (n.control_procesador === "juez" && n.control_momento === "editar") malos.push(`${id}: un juez no procesa al editar (la guardia es código): procesador «codigo» o momento «pr»`);
+  if (n.control_procesador === "juez" && EJECUTORES_DE_CODIGO.includes(n.ejecutor)) malos.push(`${id}: el ejecutor «${n.ejecutor}» es código, no puede llevar procesador «juez»: en una puerta comprueba el código y la persona solo aprueba`);
   return malos;
+}
+
+/** Ejecutores que son código: con ellos el procesador es «codigo», nunca un juez. */
+export const EJECUTORES_DE_CODIGO = ["guardia", "clasificador", "ci", "github_regla", "codigo_en_ejecucion", "script_propio", "base_datos", "proveedor"];
+
+/**
+ * Un test del juez de verdad: un *.test.js o un casos.json que contiene el id de la norma (existsSync no basta:
+ * una ruta cualquiera que exista no prueba nada). Devuelve el motivo o null si vale.
+ */
+export function motivoTestDelJuezMalo(n, raiz) {
+  const r = n.test_del_juez;
+  if (typeof r !== "string") return null;
+  if (!existsSync(join(raiz, r))) return "no existe";
+  if (/\.test\.(js|jsx|mjs)$/.test(r)) return null;
+  if (/(^|\/)casos\.json$/.test(r) && readFileSync(join(raiz, r), "utf8").includes(n.id)) return null;
+  return "debe ser un *.test.js o un casos.json que nombre el id de la norma";
 }
 
 /** Las normas cuyo control lo juzga un juez y aún no tiene su test: no comprobadas. */
@@ -263,7 +282,7 @@ export function testExiste(test, { raiz, planos }) {
  */
 export function problemasDeDureza(n, ctx) {
   const malos = [];
-  if (typeof n.test_del_juez === "string" && !existsSync(join(ctx.raiz, n.test_del_juez))) malos.push(`${n.id}: su test_del_juez «${n.test_del_juez}» no existe`);
+  { const m = motivoTestDelJuezMalo(n, ctx.raiz); if (m) malos.push(`${n.id}: su test_del_juez «${n.test_del_juez}» ${m}`); }
   if (!controlExiste(n, ctx)) malos.push(`${n.id}: su control «${n.control}»${n.criterio_planos ? ` (${n.criterio_planos})` : ""} no existe`);
   if (n.veredicto === "dura") {
     if (!EJECUTORES_DEL_SISTEMA.includes(n.ejecutor)) malos.push(`${n.id}: dura, pero su ejecutor (${n.ejecutor}) no es del sistema`);

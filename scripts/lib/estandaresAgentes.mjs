@@ -645,7 +645,7 @@ export const UMBRAL_REESCRITURA = 0.5;
  *  - `normas_sin_juez`: normas vigiladas por juicio que ningún estándar de juez cita (id: motivo).
  */
 export const TECHO_REGLAS_QUE_NO_SON_NORMA = 4;
-export const TECHO_NORMAS_SIN_JUEZ = 5;
+export const TECHO_NORMAS_SIN_JUEZ = 3;
 
 /** Todas las reglas del catálogo con la clave con la que se nombran en las excepciones: «agente/tarea · Nombre» o «común id · Nombre». */
 export function reglasDelCatalogo(datos) {

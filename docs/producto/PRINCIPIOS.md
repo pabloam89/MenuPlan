@@ -10,15 +10,15 @@ Cada principio es el porqué, sin fuerza: su enunciado, su porqué, un ejemplo b
 
 | Área | Principios | Con norma | Con control de verdad |
 |---|---|---|---|
-| confianza y seguridad (`trust-safety`) | 11 | 11 | 3 |
+| confianza y seguridad (`trust-safety`) | 11 | 11 | 4 |
 | privacidad (`privacy`) | 6 | 6 | 0 |
 | IA conversacional (`conversational-ai`) | 11 | 11 | 0 |
 | primeros pasos (`onboarding`) | 2 | 2 | 0 |
-| coste y fiabilidad (`cost-reliability`) | 5 | 5 | 3 |
+| coste y fiabilidad (`cost-reliability`) | 5 | 5 | 4 |
 | claridad de uso (`ux-clarity`) | 2 | 2 | 0 |
 | accesibilidad (`accessibility`) | 1 | 1 | 1 |
 | alcance (`scope`) | 2 | 2 | 0 |
-| **Total** | **40** | **40** | **7** |
+| **Total** | **40** | **40** | **9** |
 
 ## Confianza y seguridad (`trust-safety`)
 
@@ -26,7 +26,7 @@ Que el producto no se pueda usar contra la familia ni contra el negocio.
 
 - `abuse-of-business-flows-limited` — **Flujos de negocio limitados.** Un flujo de negocio abierto sin límite acaba usado en masa por quien busca hacer spam o abusar de él.
   - Porqué: El spam y el abuso automatizado son el riesgo típico de un flujo abierto, y cuestan dinero o reputación.
-  - Norma: `limite-por-ip` — **Límite por IP.** Cuando usa IA, cada endpoint de la app DEBE tener un límite por IP. Control: juicio (semidura).
+  - Norma: `limite-por-ip` — **Límite por IP.** Cuando usa IA, cada endpoint de la app DEBE tener un límite por IP. Control: `api/_guard.test.js` (semidura).
   - Norma: `business-flow-rate-limited` — **Flujos de negocio limitados.** Cuando una función puede dañar al negocio si se usa en masa (crear cuentas, comentar, pedir menús), el producto DEBE limitarla por persona o por origen. Control: juicio (blanda).
   - Bueno: «Los reportes y los comentarios tienen un máximo por hora y por persona o por IP».
   - Malo: «Un script puede crear cientos de reportes por minuto sin que nada lo frene».
@@ -236,7 +236,7 @@ Cuánto cuesta cada uso, qué pasa cuando algo falla y cómo se sabe.
   - Fuentes: [F] https://www.anthropic.com/engineering/building-effective-agents; [F] https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/.
 - `caller-pays-quota` — **El cupo, a quien llama.** El gasto de IA se controla cuando cada llamada se atribuye a quien la hace.
   - Porqué: Sin identidad no se puede limitar por persona, y un cupo compartido deja que un anónimo agote el de todos.
-  - Norma: `limite-mensajes-bot` — **Límite mensual de mensajes.** El bot Lola DEBE limitar a 100 los mensajes al mes de cada casa. Control: juicio (semidura).
+  - Norma: `limite-mensajes-bot` — **Límite mensual de mensajes.** El bot Lola DEBE limitar a 100 los mensajes al mes de cada casa. Control: `api/bot/turnoRapido.test.js` (semidura).
   - Norma: `ai-spend-charged-to-caller` — **El cupo, a quien llama.** Cuando un endpoint gasta IA, el producto DEBE atribuir el gasto a quien llama y, si no se sabe quién es, darle un cupo pequeño y propio. Control: juicio (blanda).
   - Bueno: «Objetivo para un filtro sin sesión: un cupo global bajo y propio, que se corte antes que el de Lola».
   - Malo: «Hoy api/moderate.js contesta sin sesión y gasta el límite diario global compartido con el resto de la IA (#597)».

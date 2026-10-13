@@ -968,7 +968,7 @@
       "scope": "both",
       "level": "piece",
       "family": "rules",
-      "term": "comprobación",
+      "term": null,
       "source_of_truth": "ops/normas.json",
       "id_format": "mixed",
       "registry": "partial",
