@@ -9,10 +9,11 @@ secciones en orden, los campos de la ficha, cómo se prueba y su ejemplo mínimo
 está en su molde, `.claude/plantillas-skill/<tipo>.md`, generado desde la forja.
 La de tipo **servicio** es un **runbook**: cómo se opera un servicio.
 
-Tres niveles (`niveles` de `ops/forja/`): la pieza meta, `forja-de-skills`
-(nivel 0, `nivel: 0` en su ficha y sin tipo), de la que salen los moldes por tipo
-(nivel 1), y de ellos cada skill (nivel 2). A la pieza meta le valen las reglas
-comunes de aquí, no el molde de un tipo: sus secciones las fija `nivel_0` de la forja.
+Tres pasos de la familia (`base.pasos` de `ops/forja/`, que heredan de la base común):
+la pieza meta, `forja-de-skills` (paso `forja`, `paso: forja` en su ficha y sin tipo),
+de la que salen las plantillas por tipo (paso `plantilla`), y de ellas cada skill
+(paso `pieza`, el de por defecto). A la pieza meta le valen las reglas comunes de aquí,
+no el molde de un tipo: sus secciones las fija `forma_forja` de la forja.
 
 La forma la vigila `.claude/skills.test.js` (nivel 1, gratis, en el CI) con las
 reglas de `scripts/lib/skills.mjs`; si algo de aquí cambia, cambia allí y el test
@@ -169,7 +170,7 @@ comprobación»).
   reciente arriba; al menos la primera versión.
 - La última línea, como en servicio: `Comprobado el …` o `Sin comprobar: …`.
 
-## El estándar de cada tipo
+## La plantilla de cada tipo
 
 El molde de cada tipo dice qué secciones lleva; esto dice **qué hace buena
 a una skill de ese tipo**, qué la estropea y cómo se ve una buena. Cada punto lleva
@@ -270,7 +271,7 @@ Real: `causa-raiz`, el paso que cierra la causa.
 #### Qué lo hace bueno
 
 - Las opciones se ordenan con un catálogo escrito (la escalera, los mecanismos) y se empieza por la más alta; bajar exige su motivo [S].
-- Cada criterio del catálogo se aplica a la opción elegida y se dice cómo, no solo el resultado [I, prueba del tipo en `ops/forja/`].
+- Cada norma del catálogo se aplica a la opción elegida y se dice cómo, no solo el resultado [I, prueba del tipo en `ops/forja/`].
 - Una recomendación por defecto y, aparte, cuándo conviene otra, no un menú [F: BP, demasiadas opciones].
 - Cada paso del método dice lo que sale, y el método dice cuándo se acaba [F: BP, bucles de comprobación].
 
@@ -320,11 +321,11 @@ problema de fondo (tipo:fondo)   qué falla de fondo, su arreglo general y cómo
 
 #### Qué lo hace bueno
 
-- Cada criterio es observable y va separado de los demás, con la evidencia que lo cumple (fichero y línea, una salida) [S].
+- Cada norma es observable y va separada de las demás, con la evidencia que la cumple (fichero y línea, una salida) [S].
 - Los criterios viven en su catálogo y la skill los cita; no los copia [S].
 - Cada hallazgo sale con un código de un vocabulario cerrado y su arreglo, para poder contarlo [S].
 - Quien construye no juzga, y el juez no escribe lo que revisa [S].
-- Un criterio discrimina: si pasa igual con la pieza buena que con la mala, se retira [F: EVAL, aserciones que no miden nada].
+- Una norma discrimina: si pasa igual con la pieza buena que con la mala, se retira [F: EVAL, aserciones que no miden nada].
 
 #### Errores típicos
 
@@ -380,7 +381,7 @@ forja paso a paso (incluido cuándo **no** crearla) está en la skill
 - **3 casos de frontera** como mínimo (peticiones parecidas que son de otra skill).
 - **Sin fechas en el cuerpo** fuera de «Lo que falló y por qué», «Registro de
   cambios» y «Fuentes y comprobación».
-- **Criterio de parada**: el «Método» (salvo en servicio) dice qué sale o cuándo se acaba.
+- **Condición de parada**: el «Método» (salvo en servicio) dice qué sale o cuándo se acaba.
 - **Como mucho 3 ejemplos** por sección de ejemplos.
 - **Descripciones sin solape** léxico entre skills.
 - **Presentación mecánica**: los comandos en código (en línea o en bloque), las

@@ -2,7 +2,7 @@
 name: forja-de-skills
 description: Úsala al crear, reestructurar, revisar o podar una skill de .claude/skills: «hazme una skill para…», «¿hace falta una skill nueva?», «esta skill no se abre cuando toca», «está muy larga», «el test de skills falla con forja», «¿la borro?». Dice cuándo NO crearla, cómo se forja paso a paso, qué comprueba el test y qué solo juzga una persona. No para: operar un servicio (su skill), escribir o cambiar un agente (PLANTILLA-AGENTE) ni medir una skill ya hecha sin tocarla (npm run skills-prueba).
 metadata:
-  nivel: 0
+  paso: forja
   dueno: gobierno
   comprobado: 2026-10-10
   normas: [criterios-de-forja-en-un-catalogo, recurso-con-dueno-y-caducidad]
@@ -56,7 +56,7 @@ No es para:
 4. **La descripción** (lo único que se lee en cada sesión): `Úsala <cuándo, con las
    palabras de quien pide>. No para: <lo que es de otra>.` El disparador
    principal va en los primeros 250 caracteres. Por qué «Úsala» y no otra forma:
-   `.claude/skills/forja-de-skills/referencias/criterios.md`, criterio 1.
+   `.claude/skills/forja-de-skills/referencias/criterios.md`, norma 1.
    Sale: una descripción que `npm run skills-prueba` acierta en todos los casos.
    Un ejemplo, mala y buena:
    - Mala: «Úsala con claves y secretos. No para: otras cosas.» No dice cuándo,
@@ -84,19 +84,19 @@ No es para:
 8. **Revisión**: el juez `revisor` mira lo que ningún test ve (tabla de abajo).
    Quien escribe la skill no la juzga.
 
-Para por criterio: se acaba cuando el nivel 1 pasa, el disparo es completo, los
+Para por condición: se acaba cuando el nivel 1 pasa, el disparo es completo, los
 `debe_salir` de los casos propios se cumplen y el `revisor` no deja nada
 abierto. Si tras dos pasadas de medida una skill no mejora sobre el modelo
 solo, se para y se va a «Cuándo se poda», no se sigue alargando el texto.
 
 ## Cómo se prueba
 
-Cada criterio de `.claude/skills/forja-de-skills/referencias/criterios.md` tiene
+Cada norma de `.claude/skills/forja-de-skills/referencias/criterios.md` tiene
 quien lo vigila. El reparto:
 
 | Quién | Qué mira | Cuesta |
 |---|---|---|
-| `.claude/skills.test.js` (nivel 1, en el CI) | forma, tipo, dueño, secciones, límite de líneas y de descripción, rutas, capas, copiado, casos (mínimos propios y **tres de frontera**), fechas en el cuerpo, criterio de parada en «Método», límite de ejemplos, solape entre descripciones y presentación mecánica (comandos en código, tablas bien formadas, cabeceras sin saltos) | nada |
+| `.claude/skills.test.js` (nivel 1, en el CI) | forma, tipo, dueño, secciones, límite de líneas y de descripción, rutas, capas, copiado, casos (mínimos propios y **tres de frontera**), fechas en el cuerpo, condición de parada en «Método», límite de ejemplos, solape entre descripciones y presentación mecánica (comandos en código, tablas bien formadas, cabeceras sin saltos) | nada |
 | `npm run skills-prueba` (nivel 2) | si la descripción dispara (también en los casi-fallos) y si el `SKILL.md` hace decir lo que pide `debe_salir` | tokens |
 | El `revisor` | si cada párrafo justifica su coste, si la libertad es la adecuada (pasos exactos donde hay riesgo), si hay un camino por defecto y no un menú, si los ejemplos son canónicos y no se contradicen, si el vocabulario es uno solo, si los casos de frontera son casi-fallos de verdad | una revisión |
 
@@ -147,7 +147,7 @@ prepara el PR con el inventario (qué decía, quién la citaba, a dónde pasa lo
 ## Registro de cambios
 
 - **2026-10-11** · La cabecera de cada skill dice a qué normas sirve (`metadata.normas`, ids de `ops/normas.json`); la skill las cita y no copia su frase, y `ops/uniones.test.js` lo comprueba (#620).
-- **2026-10-10** · Esta skill pasa a ser la pieza meta (nivel 0, sin tipo); una skill nueva copia el molde de su tipo, generado desde la forja en `.claude/plantillas-skill/` (#495).
+- **2026-10-10** · Esta skill pasa a ser la pieza meta (paso forja, sin tipo); una skill nueva copia el molde de su tipo, generado desde la forja en `.claude/plantillas-skill/` (#495).
 - **2026-10-10** · Las 7 excepciones de fechas que quedaban se arreglan y la lista queda vacía; la revisión de una skill concreta pasa a `higiene-de-skills` (#411).
 - **2026-10-10** · Presentación (`.claude/skills/forja-de-skills/referencias/presentacion.md`) con tres controles mecánicos, el estándar de cada tipo en la plantilla con su test, y 12 de las 19 excepciones quitadas (#410).
 - **2026-10-10** · Primera versión: doce criterios con fuente, defectos con su señal, método con regla de parada, y la regla `forja` del nivel 1 con su lista de excepciones que solo baja (#409).
@@ -164,4 +164,4 @@ prepara el PR con el inventario (qué decía, quién la citaba, a dónde pasa lo
 
 Cada afirmación de los criterios y los defectos va marcada: [F] está en la fuente citada, [S] es inferencia nuestra y no se toma por hecho.
 
-Comprobado el 2026-10-10: el nivel 1 con `.claude/skills.test.js` (cada control de la forja visto fallar con una skill de mentira) y las cifras de las excepciones sobre las 11 skills del repo. Comprobado el 2026-10-10 (#410): los tres controles de presentación y el estándar de cada tipo de la plantilla, cada uno visto fallar en `.claude/skills.test.js`. Sin comprobar: las fuentes se recogieron de la investigación del encargo y no se han releído al escribir; las cifras de SkillsBench vienen de resúmenes, no del artículo; el solape entre descripciones y el valor de `MAX_SOLAPE` son inferencia (no hay fuente oficial); el A/B con y sin skill no existe aún; `npm run skills-prueba -- forja-de-skills` no se ha lanzado (cuesta tokens).
+Comprobado el 2026-10-10: el nivel 1 con `.claude/skills.test.js` (cada control de la forja visto fallar con una skill de mentira) y las cifras de las excepciones sobre las 11 skills del repo. Comprobado el 2026-10-10 (#410): los tres controles de presentación y la plantilla de cada tipo, cada uno visto fallar en `.claude/skills.test.js`. Sin comprobar: las fuentes se recogieron de la investigación del encargo y no se han releído al escribir; las cifras de SkillsBench vienen de resúmenes, no del artículo; el solape entre descripciones y el valor de `MAX_SOLAPE` son inferencia (no hay fuente oficial); el A/B con y sin skill no existe aún; `npm run skills-prueba -- forja-de-skills` no se ha lanzado (cuesta tokens).

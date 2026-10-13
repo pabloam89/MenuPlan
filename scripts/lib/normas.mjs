@@ -70,7 +70,7 @@ export { AMBITOS };
  */
 export const CONTROL_TIPOS = {
   test: { que: "Un test del repo que falla en el CI", prueba: true },
-  planos: { que: "Un criterio de la medición semanal de ops/planos.json (con red, cada lunes)", prueba: true },
+  planos: { que: "Una condición de la medición semanal de ops/planos.json (con red, cada lunes)", prueba: true },
   workflow: { que: "Un paso de un workflow de GitHub Actions que falla el check", prueba: false },
   script: { que: "Un script del repo que comprueba y se lanza a mano o en el build", prueba: false },
   juicio: { que: "El juicio de una persona o de un LLM sobre sus casos: no hay nada que falle solo", prueba: false },

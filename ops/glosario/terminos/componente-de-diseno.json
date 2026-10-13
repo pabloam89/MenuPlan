@@ -2,10 +2,21 @@
   "termino": "componente de diseño",
   "estado": "activo",
   "clase": "artefacto",
+  "dominio": "diseno",
   "definicion": "Una pieza de interfaz reutilizable de un sistema de diseño, con su ficha, que las pantallas importan en vez de rehacerla.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
     "todas"
   ],
-  "en": "component"
+  "relacionado": [
+    "ficha de componente",
+    "catálogo de componentes"
+  ],
+  "en": "component",
+  "entidades": [
+    {
+      "entidad": "component",
+      "relacion": "denota"
+    }
+  ]
 }

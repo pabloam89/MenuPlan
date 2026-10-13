@@ -3,7 +3,7 @@
 Cómo se da forma al texto de una skill (`SKILL.md` y sus capas). Pablo lo pidió
 el 10 oct 2026 (#410): una skill bien pensada pero mal puesta en la página se
 lee peor y se copia peor. Marca: **[F: fuente]** está en la fuente citada (en
-`SKILL.md`, «Fuentes y comprobación»); **[S]** es criterio nuestro. Las guías
+`SKILL.md`, «Fuentes y comprobación»); **[S]** es juicio nuestro. Las guías
 oficiales dicen poco de formato: pasos numerados si importa el orden, tablas
 para referencia y los comandos en bloque de código. Lo demás es [S].
 

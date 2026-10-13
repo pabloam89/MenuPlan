@@ -189,6 +189,18 @@
       }
     },
     {
+      "firma": "higiene vocabulario",
+      "emisores": [
+        "scripts/lib/glosarioHigiene.mjs"
+      ],
+      "campos": {
+        "vocabulario": "id",
+        "terminos": "metrica",
+        "faltas": "metrica",
+        "avisos": "metrica"
+      }
+    },
+    {
       "firma": "skills-prueba skill",
       "emisores": [
         "scripts/skills-prueba.mjs"
@@ -873,6 +885,84 @@
       "vigilante": "higiene_faltas"
     },
     {
+      "id": "vocabulario_terminos",
+      "objetivo": "vocabulario-estable",
+      "proyecto": "factoria",
+      "pregunta": "¿Cuántos términos activos tiene el glosario, para dar su tamaño a las faltas y los avisos?",
+      "emisor": "scripts/lib/glosarioHigiene.mjs",
+      "sale_en": [
+        {
+          "linea": "higiene vocabulario",
+          "campos": [
+            "terminos"
+          ]
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": ".claude/skills/higiene-de-vocabulario/SKILL.md",
+          "menciona": "higiene vocabulario:"
+        }
+      ],
+      "unidad": "cuenta",
+      "umbral": null,
+      "vigilante": "vocabulario_faltas",
+      "muestra": "Contar a mano los términos de un dominio y ver que la cifra los incluye"
+    },
+    {
+      "id": "vocabulario_faltas",
+      "objetivo": "vocabulario-estable",
+      "proyecto": "factoria",
+      "pregunta": "¿Cuántas faltas formales tiene el glosario (términos sin entidad, entidades sin término, sinónimos nuevos, dominios que redefinen la base)?",
+      "emisor": "scripts/lib/glosarioHigiene.mjs",
+      "sale_en": [
+        {
+          "linea": "higiene vocabulario",
+          "campos": [
+            "faltas"
+          ]
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": ".claude/skills/higiene-de-vocabulario/SKILL.md",
+          "menciona": "higiene vocabulario:"
+        }
+      ],
+      "unidad": "cuenta",
+      "umbral": 0,
+      "vigilante": "vocabulario_avisos",
+      "muestra": "Al repasar, leer un aviso y ver que de verdad es el mismo concepto y no un falso positivo del parecido"
+    },
+    {
+      "id": "vocabulario_avisos",
+      "objetivo": "vocabulario-estable",
+      "proyecto": "factoria",
+      "pregunta": "¿Cuántos avisos materiales tiene el glosario (definiciones de dominio casi iguales a las de la base, mismo nombre en dos dominios)?",
+      "emisor": "scripts/lib/glosarioHigiene.mjs",
+      "sale_en": [
+        {
+          "linea": "higiene vocabulario",
+          "campos": [
+            "avisos"
+          ]
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": ".claude/skills/higiene-de-vocabulario/SKILL.md",
+          "menciona": "higiene vocabulario:"
+        }
+      ],
+      "unidad": "cuenta",
+      "umbral": null,
+      "vigilante": "vocabulario_faltas",
+      "muestra": "Leer a mano tres avisos y contar cuántos eran un falso positivo del umbral de parecido"
+    },
+    {
       "id": "higiene_solape",
       "objetivo": "skills-utiles",
       "proyecto": "factoria",
@@ -1150,7 +1240,7 @@
         },
         {
           "tipo": "rutina",
-          "ref": ".claude/skills/higiene-de-skills/referencias/glosario.md",
+          "ref": ".claude/skills/higiene-de-vocabulario/referencias/glosario.md",
           "menciona": "npm run glosario -- --medir"
         }
       ],
@@ -1184,7 +1274,7 @@
         },
         {
           "tipo": "rutina",
-          "ref": ".claude/skills/higiene-de-skills/referencias/glosario.md",
+          "ref": ".claude/skills/higiene-de-vocabulario/referencias/glosario.md",
           "menciona": "npm run glosario -- --candidatos"
         }
       ],
@@ -1216,7 +1306,7 @@
       "lectores": [
         {
           "tipo": "rutina",
-          "ref": ".claude/skills/higiene-de-skills/referencias/glosario.md",
+          "ref": ".claude/skills/higiene-de-vocabulario/referencias/glosario.md",
           "menciona": "npm run glosario -- --candidatos"
         }
       ],
@@ -1243,7 +1333,7 @@
       "lectores": [
         {
           "tipo": "rutina",
-          "ref": ".claude/skills/higiene-de-skills/referencias/glosario.md",
+          "ref": ".claude/skills/higiene-de-vocabulario/referencias/glosario.md",
           "menciona": "npm run glosario -- --medir"
         }
       ],
@@ -1269,7 +1359,7 @@
       "lectores": [
         {
           "tipo": "rutina",
-          "ref": ".claude/skills/higiene-de-skills/referencias/glosario.md",
+          "ref": ".claude/skills/higiene-de-vocabulario/referencias/glosario.md",
           "menciona": "candidato:"
         }
       ],
@@ -1728,7 +1818,7 @@
       "id": "intervencion_humana",
       "objetivo": "guardia-proporcionada",
       "proyecto": "factoria",
-      "pregunta": "¿Cuántas veces tuvo que intervenir una persona (Pablo o Álvaro), registradas por la guardia al preguntar y por pendientes.mjs al dejar una decisión?",
+      "pregunta": "¿Cuántas veces tuvo que intervenir una persona (Pablo o Álvaro), registradas por la guardia al preguntar, por pendientes.mjs al dejar una decisión y por intervenciones.mjs en cada comando que Pablo escribe con ! (límite: el motivo sale del texto suelto del comando, así que un --pablo citado en un mensaje cuenta como producción: es un techo)?",
       "emisor": ".claude/hooks/eventos.mjs",
       "sale_en": [
         {

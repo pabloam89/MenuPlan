@@ -1,0 +1,22 @@
+{
+  "termino": "veredicto",
+  "estado": "activo",
+  "clase": "campo",
+  "dominio": "base",
+  "definicion": "El grado en que se hace cumplir una norma hoy, con un valor de VEREDICTOS de scripts/lib/escalas.mjs.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "en": "verdict",
+  "relacionado": [
+    "fuerza",
+    "norma"
+  ],
+  "entidades": [
+    {
+      "entidad": "norm",
+      "relacion": "campo_de"
+    }
+  ]
+}

@@ -103,7 +103,7 @@ Los de `campos_ficha.skill` de `ops/forja/`; lo que no está declarado no va en 
 | `sintoma_a_causa` | bool | sí | `false` en este tipo |
 | `elige_opciones` | bool | sí | `false` en este tipo |
 | `porque_tipo` | texto | no | hueco de texto |
-| `nivel` | enum | no | `2`, o sin él (el 1 son los moldes; el 0, la pieza meta) |
+| `paso` | enum | no | `pieza`, o sin él (la plantilla son los moldes; `forja`, la pieza meta) |
 | `dueno` | ref | sí | un agente que existe |
 | `comprobado` | fecha | sí | AAAA-MM-DD |
 | `normas` | ref | sí | una norma que existe |
@@ -124,7 +124,7 @@ Lo que pide este tipo: los comandos existen, la salida es comprobable y la caduc
 
 No se le aplican: `sin-parada`.
 
-## El estándar de este tipo
+## La plantilla de este tipo
 
 ### Qué lo hace bueno
 

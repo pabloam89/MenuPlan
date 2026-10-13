@@ -247,6 +247,7 @@
       "factoria": "la propia factoría: el trabajo sobre el proceso, no sobre un producto"
     },
     "flujo.actores": {
+      "analista": "El analista: un agente de .claude/agents/ que registra el caso, diagnostica y redacta el plan en el issue; no construye",
       "agente_dominio": "El constructor del dominio: un agente con «Tipo: constructor» en .claude/agents/",
       "orquestador": "La sesión principal con /orquestar",
       "juez": "Un agente con «Tipo: juez» en .claude/agents/",
@@ -259,7 +260,7 @@
       "transversal": "La misma causa en módulos de ámbitos distintos, tres casos parecidos, o la segunda vez que «no aguantó»"
     },
     "flujo.diagnostican": {
-      "agente_dominio": "El agente del dominio, en una pasada, con la skill causa-raiz",
+      "analista": "El analista (agente de .claude/agents/), en una pasada, con la skill causa-raiz",
       "orquestador_con_diagnosticadores": "El orquestador lanza varios diagnosticadores en paralelo, cada uno con su lente, y sintetiza"
     },
     "flujo.estado_medida": {
@@ -306,9 +307,32 @@
       "campo": "Una clave de una ficha o de un catálogo, con su significado",
       "lugar": "Dónde vive algo: una carpeta, una rama, un entorno"
     },
+    "glosario.dominio": {
+      "base": "Lenguaje de la factoría que vale en cualquier proyecto: cómo se trabaja, se juzga y se escribe",
+      "ops": "Cómo se opera el repo y los servicios: ramas, PR, issues, fondos, entornos, claves y despliegues",
+      "datos": "La base de datos y su esquema: migraciones, tablas, fuentes de datos y módulos",
+      "producto": "Lo que hace HoMenu para las familias: la casa, sus personas y la comida",
+      "diseno": "El diseño de la interfaz: sistema, perfil, tokens, componentes y patrones"
+    },
     "glosario.estado": {
       "activo": "Se usa: es la palabra canónica de su significado",
       "retirado": "Ya no se usa: se dice su pasa_a; el nombre queda para que nadie lo reutilice"
+    },
+    "glosario.motivo_sin_entidad": {
+      "componente": "Parte de otra cosa que ya es entidad (una capa de una skill, un test, una ficha): no tiene id propio",
+      "salida": "Lo que produce una tarea o una comprobación y no se guarda como cosa con id (un informe, un defecto)",
+      "paso": "Un peldaño de herencia (base, forja, plantilla, pieza), no una cosa",
+      "meta": "El concepto mismo del registro de entidades, no una cosa registrada en él",
+      "retirado": "Su entidad se retiró y lo que el término nombra ahora no es una entidad",
+      "candidato": "Será entidad cuando exista; mientras, se declara"
+    },
+    "glosario.relacion_entidad": {
+      "denota": "El término nombra una cosa que es esa entidad",
+      "campo_de": "El término nombra un campo o una propiedad de esa entidad",
+      "valor_de": "El término nombra un valor o un grado que esa entidad toma",
+      "rol_de": "El término nombra el papel que esa entidad hace",
+      "accion_sobre": "El término nombra lo que se hace con esa entidad",
+      "ubicacion_de": "El término nombra el sitio donde esa entidad vive o corre"
     },
     "issues.analisis": {
       "nuevo": "No había problema de fondo: se abrió uno para este caso",
@@ -905,6 +929,13 @@
       "valor": "revision-periodica",
       "pasa_a": "audit-periodic",
       "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "flujo.diagnostican",
+      "valor": "agente_dominio",
+      "pasa_a": "analista",
+      "desde": "2026-10-13",
+      "motivo": "Quien diagnostica en local y módulo es el agente analista, no cualquier agente del dominio (línea #652); el constructor del dominio sigue construyendo y sigue en flujo.actores"
     }
   ],
   "redefiniciones": [
@@ -1116,6 +1147,51 @@
       "valor": "both",
       "desde": "2026-10-12",
       "motivo": "Exige role_by_scope y se decide por a qué proyecto sirve la pieza, no por dónde vive el fichero (hallazgo del revisor de #654); 13 entidades pasaron a horizontal o vertical"
+    },
+    {
+      "termino": "estándar",
+      "desde": "2026-10-12",
+      "motivo": "Se estrecha: ya no es el conjunto de criterios de una tarea o de un tipo de skill, sino la ficha de una tarea de agente; el de un tipo de skill pasa a «plantilla» (decisión de Pablo, #652, F1)"
+    },
+    {
+      "termino": "plantilla",
+      "desde": "2026-10-12",
+      "motivo": "Se amplía: hereda de la base y de la forja de su familia, y absorbe el uso de «estándar» para un tipo de skill; sus nueve frases viejas pasan a sinónimos prohibidos (#652, F1)"
+    },
+    {
+      "termino": "norma",
+      "desde": "2026-10-12",
+      "motivo": "Se precisa: la unidad exigible con ámbito, acción, fuerza y control; absorbe al criterio de la forja y a la regla propia de un estándar (decisión de Pablo, #652, F1)"
+    },
+    {
+      "termino": "regla",
+      "desde": "2026-10-12",
+      "motivo": "Se estrecha: queda como el fichero de .claude/rules/ y deja de ser una unidad exigible, que es la norma; sus frases de «regla propia» y «de la casa» pasan a sinónimos de norma (#652, F1)"
+    },
+    {
+      "termino": "principio",
+      "desde": "2026-10-12",
+      "motivo": "Se estrecha a la razón de fondo del producto; la de una norma de proceso es su porqué y se plegará en F6 (#652, F1)"
+    },
+    {
+      "termino": "tarea de agente",
+      "desde": "2026-10-12",
+      "motivo": "Se amplía con su tipo de tarea y sus ámbitos; mismo significado (#652, F1)"
+    },
+    {
+      "termino": "ficha",
+      "desde": "2026-10-12",
+      "motivo": "Se amplía: también es el estándar de una tarea de agente, que antes no tenía nombre de ficha (#652, F1)"
+    },
+    {
+      "termino": "juicio de skill",
+      "desde": "2026-10-12",
+      "motivo": "Su definición dice «norma de juicio» donde decía «criterio de juicio», porque el criterio pasa a norma; mismo significado (#652, F1)"
+    },
+    {
+      "termino": "defecto",
+      "desde": "2026-10-12",
+      "motivo": "Su definición dice «norma de calidad» donde decía «criterio de calidad»; mismo significado (#652, F1)"
     }
   ],
   "vocabularios_retirados": [

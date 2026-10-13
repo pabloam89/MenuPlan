@@ -87,7 +87,7 @@ describe("los moldes de .claude/plantillas-skill/ están al día", () => {
 /**
  * Dónde puede haber varios tipos juntos, y por qué no es otra lista:
  * - ops/forja/: es LA lista (y los retirados, con su destino);
- * - .claude/PLANTILLA-SKILL.md, SOLO su sección «El estándar de cada tipo»: un apartado
+ * - .claude/PLANTILLA-SKILL.md, SOLO su sección «La plantilla de cada tipo»: un apartado
  *   por tipo, que .claude/skills.test.js obliga a tener exactamente los tipos de la forja;
  *   el resto del fichero se mira como cualquier otro;
  * - docs/ops/FORJA.md: se genera de la forja y ops/forja.test.js lo compara.
@@ -99,7 +99,7 @@ describe("los moldes de .claude/plantillas-skill/ están al día", () => {
  */
 const PERMITIDOS = ["ops/forja/", "docs/ops/FORJA.md", "ops/vocabularios-vida.json"];
 /** Secciones exentas dentro de un fichero que por lo demás se mira: { ruta: título de la sección ## }. */
-const SECCIONES_EXENTAS = { ".claude/PLANTILLA-SKILL.md": "El estándar de cada tipo" };
+const SECCIONES_EXENTAS = { ".claude/PLANTILLA-SKILL.md": "La plantilla de cada tipo" };
 /** El texto sin la sección `## titulo` (hasta la siguiente cabecera ##); falla si la sección no está, para que la exención no quede vieja. */
 function sinSeccion(texto, titulo, ruta) {
   const lineas = texto.replace(/\r\n/g, "\n").split("\n");
@@ -149,12 +149,12 @@ describe("una sola lista de tipos de skill", () => {
   });
 
   it("la exención de .claude/PLANTILLA-SKILL.md es solo su sección de estándares: fuera de ella, una lista se ve", () => {
-    const texto = "# P\n\n## Antes\n\n- servicio\n- flujo\n- revision\n\n## El estándar de cada tipo\n\n### `servicio`\n\n### `flujo`\n\n### `revision`\n\n## Después\n\nNada.\n";
-    const resto = sinSeccion(texto, "El estándar de cada tipo", "x.md");
+    const texto = "# P\n\n## Antes\n\n- servicio\n- flujo\n- revision\n\n## La plantilla de cada tipo\n\n### `servicio`\n\n### `flujo`\n\n### `revision`\n\n## Después\n\nNada.\n";
+    const resto = sinSeccion(texto, "La plantilla de cada tipo", "x.md");
     expect(resto).not.toContain("### `servicio`");
     expect(resto).toContain("## Después");
     expect(listasDeTipos(resto, "x.md", VOCABULARIOS).map((h) => h.donde)).toEqual(["lista de la línea 5"]);
-    expect(() => sinSeccion("# P\n", "El estándar de cada tipo", "x.md")).toThrow(/no tiene la sección/);
+    expect(() => sinSeccion("# P\n", "La plantilla de cada tipo", "x.md")).toThrow(/no tiene la sección/);
   });
 
   it("ningún texto dice ya que las respuestas van en respuestas_tipo de la forja: van en el frontmatter", () => {
@@ -203,14 +203,14 @@ describe("lo escrito a mano cuadra con la forja", () => {
     const bools = Object.entries(datos.campos_ficha.skill.campos).filter(([, c]) => c.clase === "bool").map(([n]) => n);
     expect(bools.sort()).toEqual(datos.preguntas_tipo.map((p) => p.clave).sort());
   });
-  it("en cada molde (nivel 2), tipo y las respuestas son obligatorios con el valor de su tipo, y nivel no ofrece el 1", () => {
+  it("en cada molde (paso pieza), tipo y las respuestas son obligatorios con el valor de su tipo, y paso no ofrece la plantilla", () => {
     for (const t of tiposDeForja(datos)) {
       const molde = generarPlantilla(datos, t, { estandar: estandarDeTipo(comun, t) });
       expect(molde, t).toContain(`| \`tipo\` | enum | sí | \`${t}\` |`);
       for (const p of datos.preguntas_tipo) expect(molde, `${t} ${p.clave}`).toContain(`| \`${p.clave}\` | bool | sí | \`${p.tipo === t}\` en este tipo |`);
-      const nivel = molde.split("\n").find((l) => l.startsWith("| `nivel` |"));
-      expect(nivel, t).not.toContain("`1`");
-      expect(nivel, t).toContain("`2`");
+      const paso = molde.split("\n").find((l) => l.startsWith("| `paso` |"));
+      expect(paso, t).toMatch(/^\| `paso` \| enum \| no \| `pieza`, o sin él/);
+      expect(paso, t).not.toContain("`plantilla`,");
     }
   });
 });
@@ -242,9 +242,9 @@ describe("EXCEPCIONES_PLANTILLA: lo que la migración de tipos no pudo arreglar 
       expect(Array.isArray(e.secciones) && e.secciones.at(-1), n).toBe("Fuentes y comprobación");
     }
   });
-  it("las demás skills de nivel 2 llevan exactamente las secciones de su tipo, y la pieza meta las de nivel_0", () => {
-    const nivel0 = (n) => parsearSkill(skills[n].texto).meta.metadata.nivel === "0";
+  it("las demás skills de paso pieza llevan exactamente las secciones de su tipo, y la pieza meta las de forma_forja", () => {
+    const nivel0 = (n) => parsearSkill(skills[n].texto).meta.metadata.paso === "forja";
     for (const n of Object.keys(skills).filter((x) => !(x in EXCEPCIONES_PLANTILLA) && !nivel0(x))) expect(titulos(n), `${n} (${tipo(n)})`).toEqual(SECCIONES_POR_TIPO[tipo(n)]);
-    for (const n of Object.keys(skills).filter(nivel0)) expect(titulos(n), n).toEqual(datos.nivel_0.skills.secciones);
+    for (const n of Object.keys(skills).filter(nivel0)) expect(titulos(n), n).toEqual(datos.forma_forja.skills.secciones);
   });
 });

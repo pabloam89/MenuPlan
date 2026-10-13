@@ -122,7 +122,7 @@
       "nombre": "Registrar el caso",
       "entra": "Una señal de fallo",
       "sale": "Un issue tipo:caso con su área, buscado antes entre los parecidos",
-      "quien": ["agente_dominio", "orquestador", "automatico"],
+      "quien": ["analista", "orquestador", "automatico"],
       "skill": "issues",
       "skill_fase": [],
       "mide": [
@@ -142,7 +142,7 @@
       "nombre": "Triaje",
       "entra": "Un caso registrado",
       "sale": "Alcance (local, módulo o transversal) y tipo de causa fijados",
-      "quien": ["orquestador", "agente_dominio"],
+      "quien": ["orquestador", "analista"],
       "skill": "causa-raiz",
       "skill_fase": [],
       "mide": [
@@ -158,7 +158,7 @@
       "nombre": "Diagnosticar",
       "entra": "Un caso con alcance y tipo",
       "sale": "Mecanismo, causa de escape y clase del fallo; o una hipótesis marcada como tal",
-      "quien": ["agente_dominio", "juez", "orquestador"],
+      "quien": ["analista", "juez", "orquestador"],
       "skill": "causa-raiz",
       "skill_fase": [],
       "mide": [
@@ -178,7 +178,7 @@
       "nombre": "Fondo",
       "entra": "Un diagnóstico",
       "sale": "Un issue tipo:fondo con su arreglo general, su causa y cómo se probará",
-      "quien": ["agente_dominio", "orquestador"],
+      "quien": ["analista", "orquestador"],
       "skill": "causa-raiz",
       "skill_fase": [],
       "mide": [
@@ -195,7 +195,7 @@
       "nombre": "Plan",
       "entra": "Un fondo diagnosticado",
       "sale": "Encargos colgados del fondo, con dependencias, agente, juez y verificación",
-      "quien": ["orquestador", "agente_dominio"],
+      "quien": ["orquestador", "analista"],
       "skill": "plan-de-arreglo",
       "skill_fase": [],
       "mide": [
@@ -227,7 +227,7 @@
         { "id": "P07.4", "norma": "rondas-tope-duro", "ref": "scripts/lib/fondos.mjs", "contiene": "rondas-excedidas", "fase": ["#340"], "nota": "El conteo vive en el campo rondas de la ficha del fondo y el workflow fondos falla la ficha que pasa del máximo de su alcance y causa (ops/presupuestos.json). Semidura: el contador lo escribe la sesión, nada comprueba que sea cierto, y el workflow no crea el issue de decisión; F medirá las rondas reales por PR" },
         { "id": "P07.5", "nombre": "Agente con plantilla", "sujeto": "agente", "fuerza": "debe", "exigencia": "seguir la plantilla: tipo, planos, método e informe común", "ejecutor": "ci", "veredicto": "dura", "control": ".claude/agentes.test.js", "control_tipo": "test", "ref": ".claude/PLANTILLA-AGENTE.md", "contiene": "informe común", "fase": [] },
         { "id": "P07.6", "norma": "main-solo-por-pr-con-tests", "ref": "ops/DECISIONES.md", "contiene": "solo por PR con", "fase": ["#330"], "nota": "El ruleset exige el check y cero aprobaciones; con el token del workflow semanal la protección clásica de main sale «sin comprobar»" },
-        { "id": "P07.7", "nombre": "Reglas propias intocables", "sujeto": "sesion", "fuerza": "no_debe", "exigencia": "cambiar las propias reglas (protecciones, permisos, guardia) con credenciales de sesión", "ejecutor": "nada", "veredicto": "blanda", "control": "juicio", "control_tipo": "juicio", "ref": null, "contiene": null, "fase": ["#326"], "nota": "No escrita aún: es la decisión #299 y el fondo #326. Ya hay una App de GitHub con escritura en Workflows (PR #342); la decisión #353 dice cómo convive" },
+        { "id": "P07.7", "nombre": "Normas propias intocables", "sujeto": "sesion", "fuerza": "no_debe", "exigencia": "cambiar las propias normas (protecciones, permisos, guardia) con credenciales de sesión", "ejecutor": "nada", "veredicto": "blanda", "control": "juicio", "control_tipo": "juicio", "ref": null, "contiene": null, "fase": ["#326"], "nota": "No escrita aún: es la decisión #299 y el fondo #326. Ya hay una App de GitHub con escritura en Workflows (PR #342); la decisión #353 dice cómo convive" },
         { "id": "P07.8", "norma": "staging-exige-tests", "ref": "ops/DECISIONES.md", "contiene": "no exige PR en GitHub", "fase": ["#263"], "nota": "Una llave de despliegue entra sin pasar el CI (#263)" },
         { "id": "P07.9", "norma": "pr-agente-y-closes-en-ci", "ref": "scripts/fondos-pr.mjs", "contiene": "falta la línea «Agente: <nombre>»", "fase": [], "aceptada": true, "nota": "Desde #337 el paso «Fondos del PR» de tests.yml exige la línea y que el nombre sea de un agente o «sesión»; es declarada, el CI no comprueba que sea cierta. Bots exentos" },
         { "id": "P07.10", "norma": "jueces-sin-escritura", "ref": "CLAUDE.md", "contiene": "sin Edit ni Write", "fase": [], "nota": "Dura desde #351: el test mira las herramientas efectivas (tools, memory y disallowedTools). No escribir por Bash sigue siendo convención" },

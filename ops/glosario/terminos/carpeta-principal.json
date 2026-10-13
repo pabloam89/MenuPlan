@@ -2,6 +2,7 @@
   "termino": "carpeta principal",
   "estado": "activo",
   "clase": "lugar",
+  "dominio": "ops",
   "definicion": "La carpeta C:\\dev\\MenuPlan, que solo se pone al día: en ella no se trabaja.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
@@ -9,5 +10,11 @@
   ],
   "relacionado": [
     "carpeta de trabajo"
+  ],
+  "entidades": [
+    {
+      "entidad": "repo",
+      "relacion": "ubicacion_de"
+    }
   ]
 }

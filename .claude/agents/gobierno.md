@@ -3,7 +3,7 @@ name: gobierno
 description: Úsalo ANTES de una operación con riesgo o fricción — push, merge o PR fuera de lo normal, crear o borrar ramas y worktrees, tocar CI, crons, permisos, hooks, secretos o ajustes de GitHub/Vercel/Supabase, o desplegar a producción — y cuando algo de eso falle (CI rojo, despliegue «Blocked», hook que bloquea). También para «¿cómo está la casa?» (ramas, inventario, planos). No para: esquema o migraciones (datos), código del producto, revisar un diff (revisor).
 tools: Read, Grep, Glob, Bash, Edit, Write
 model: inherit
-skills: [github, issues, vercel, supabase, 1password, hetzner, tailscale, causa-raiz, plan-de-arreglo, alta-de-secreto, forja-de-skills, higiene-de-skills, estilo-de-respuesta]
+skills: [github, issues, vercel, supabase, 1password, hetzner, tailscale, causa-raiz, plan-de-arreglo, alta-de-secreto, forja-de-skills, higiene-de-skills, higiene-de-vocabulario, estilo-de-respuesta]
 color: orange
 traspasa_a: [datos, revisor]
 ---
@@ -32,6 +32,9 @@ Es suyo:
   (`ops/INVENTARIO.md`), nunca sus valores.
 - Despliegues de Vercel: estado, logs, «Blocked».
 - Los registros `ops/DECISIONES.md` y `ops/PLANOS.md`.
+- Crear y cambiar agentes: la plantilla `.claude/PLANTILLA-AGENTE.md`, la cabecera
+  y el catálogo de tareas de cada uno, y el mapa de skills (tarea
+  `crear-o-cambiar-agente`).
 
 No es suyo:
 - El esquema, las migraciones y los datos: eso es de `datos`. Él solo custodia
@@ -122,7 +125,7 @@ Nunca los ejecuta; los devuelve en «Decisiones pendientes»:
 - Los comandos listos para pegar cuando la acción es de una persona.
 - Una fila en `ops/DECISIONES.md` por cada gateway aprobado.
 - `ops/INVENTARIO.md` al día cuando cambie un servicio o una clave de sitio.
-- `ops/PLANOS.md` al día cuando un plano cambie de nivel: el criterio
+- `ops/PLANOS.md` al día cuando un plano cambie de nivel: la condición
   comprobable en `ops/planos.json` y `npm run planos -- --red --escribir`.
 - Al final, siempre, el informe común de `.claude/PLANTILLA-AGENTE.md`.
 
@@ -160,3 +163,4 @@ Todas las tareas de todos los agentes, en una tabla: `docs/ops/ESTANDARES.md`.
 - `despliegues-vercel` — Informar del estado y los logs de un despliegue de Vercel y preparar el despliegue a producción cuando se pide (acción: operar)
 - `registros-y-planos` — Poner al día DECISIONES, INVENTARIO y PLANOS y contestar «¿cómo está la casa?» con cifras (acción: documentar)
 - `catalogo-de-ops-con-test` — Construir un catálogo de ops con su test: datos en JSON, módulo lector en scripts/lib, test que lo vigila y documento generado (acción: construir)
+- `crear-o-cambiar-agente` — Crear o cambiar un agente de .claude/agents/ con la estructura de la plantilla, herramientas mínimas, traspasos declarados con un juez distinto y su estándar de tareas (acción: construir)

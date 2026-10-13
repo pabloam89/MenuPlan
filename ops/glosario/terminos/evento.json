@@ -2,6 +2,7 @@
   "termino": "evento",
   "estado": "activo",
   "clase": "artefacto",
+  "dominio": "base",
   "definicion": "Un hecho con fecha que un hook, un script o el producto registra al ocurrir, en un log o en una tabla, para poder contarlo.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
@@ -10,5 +11,11 @@
   "relacionado": [
     "métrica"
   ],
-  "en": "event"
+  "en": "event",
+  "entidades": [
+    {
+      "entidad": "event",
+      "relacion": "denota"
+    }
+  ]
 }

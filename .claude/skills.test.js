@@ -180,12 +180,12 @@ it("el tipo declarado tiene que ser el que dan las respuestas de su ficha (#495)
   expect(solo({ encadena: "sí" })[0]).toContain("no responde con true o false a encadena");
   // Con más de un sí manda la primera pregunta: un servicio que además encadena sigue siendo servicio.
   expect(solo({ encadena: true })).toEqual([]);
-  // La pieza meta (nivel 0) no lleva tipo ni respuestas.
-  expect(solo({ nivel: 0, tipo: null })[0]).toContain("es la pieza meta");
+  // La pieza meta (paso forja) no lleva tipo ni respuestas.
+  expect(solo({ paso: "forja", tipo: null })[0]).toContain("es la pieza meta");
 });
 
-it("las skills de nivel 2 declaran el tipo que dan sus respuestas, y es uno de la forja", () => {
-  for (const s of skills.filter((x) => parsearSkill(x.texto).meta.metadata.nivel === undefined)) {
+it("las skills de paso pieza declaran el tipo que dan sus respuestas, y es uno de la forja", () => {
+  for (const s of skills.filter((x) => parsearSkill(x.texto).meta.metadata.paso === undefined)) {
     const m = parsearSkill(s.texto).meta.metadata;
     expect(m.tipo, s.nombre).toBe(tipoDeSkill(m, FORJA.preguntas_tipo));
     expect(ctx.tipos, s.nombre).toContain(m.tipo);
@@ -207,8 +207,8 @@ it("un tipo nuevo pasa con sus secciones y su registro de cambios", () => {
   expect(nivel1({ ...skill, texto: sinRegistro }).map((f) => f.regla)).toContain("formato");
 });
 
-it("la pieza meta (nivel 0) también dice en su «Método» cuándo se acaba (sin-parada)", () => {
-  const seccionesMeta = FORJA.nivel_0.skills.secciones;
+it("la pieza meta (paso forja) también dice en su «Método» cuándo se acaba (sin-parada)", () => {
+  const seccionesMeta = FORJA.forma_forja.skills.secciones;
   expect(seccionesMeta).toContain("Método");
   const meta = (metodo) => {
     const cuerpo = seccionesMeta.map((t) => {
@@ -218,7 +218,7 @@ it("la pieza meta (nivel 0) también dice en su «Método» cuándo se acaba (si
       if (t === "Método") return `## ${t}\n\n${metodo}`;
       return `## ${t}\n\n${relleno}`;
     }).join("\n\n");
-    const texto = `---\nname: prueba\ndescription: Úsala cuando haya que probar el nivel 1 de las skills con una pieza meta de mentira. No para: nada real.\nmetadata:\n  nivel: 0\n  dueno: gobierno\n  comprobado: 2026-10-09\n---\n\n# Prueba\n\n${cuerpo}\n`;
+    const texto = `---\nname: prueba\ndescription: Úsala cuando haya que probar el nivel 1 de las skills con una pieza meta de mentira. No para: nada real.\nmetadata:\n  paso: forja\n  dueno: gobierno\n  comprobado: 2026-10-09\n---\n\n# Prueba\n\n${cuerpo}\n`;
     return nivel1(buena({ texto, ficheros: ["SKILL.md", "casos.json"], extra: {} }), { seccionesMeta });
   };
   expect(ver(meta(`${relleno}\n\nSale bien si la prueba pasa.`))).toEqual([]);
@@ -283,10 +283,10 @@ describe("la forja ve fallar cada control", () => {
 
   it("sin-parada: el Método de un tipo que no es servicio (lo dice `tipos` del criterio en ops/forja/) no dice cuándo se acaba", () => {
     expect(codigos(faltasDe(oficio({ metodo: relleno })))).toEqual(["sin-parada"]);
-    for (const frase of ["Sale bien si X.", "Sale: el fichero.", "Debe salir Y.", "Hecho cuando Z.", "Para por criterio, no por cansancio.", "- **Sale bien si** X.", "1. Paso. **Sale:** Y."]) {
+    for (const frase of ["Sale bien si X.", "Sale: el fichero.", "Debe salir Y.", "Hecho cuando Z.", "Para por condición, no por cansancio.", "Para por criterio, no por cansancio.", "- **Sale bien si** X.", "1. Paso. **Sale:** Y."]) {
       expect(faltasDe(oficio({ metodo: `${relleno}\n\n${frase}` })), frase).toEqual([]);
     }
-    // Una palabra suelta en mitad de un párrafo no es un criterio de parada.
+    // Una palabra suelta en mitad de un párrafo no es una condición de parada.
     for (const frase of ["Hay que parar si algo falla.", "La parada es de la persona.", "Para si hace falta, y sale algo.", "Aquí se dice que sale bien si todo va bien."]) {
       expect(codigos(faltasDe(oficio({ metodo: `${relleno} ${frase}` }))), frase).toEqual(["sin-parada"]);
     }
@@ -391,8 +391,8 @@ describe("PLANTILLA-SKILL.md y forja-de-skills dicen lo mismo", () => {
     expect(MAX_LINEAS).toBeLessThan(LIMITE_LINEAS_ESTANDAR);
   });
 
-  it("la forja es la pieza meta (nivel 0, sin tipo), dice la regla de parada y cita al menos cinco fuentes con URL", () => {
-    expect(parsearSkill(forja).meta.metadata).toMatchObject({ nivel: "0" });
+  it("la forja es la pieza meta (paso forja, sin tipo), dice la regla de parada y cita al menos cinco fuentes con URL", () => {
+    expect(parsearSkill(forja).meta.metadata).toMatchObject({ paso: "forja" });
     expect(parsearSkill(forja).meta.metadata.tipo).toBeUndefined();
     expect(forja).toContain("regla_de_parada");
     const fuentes = seccion(parsearSkill(forja).cuerpo, "Fuentes y comprobación");
@@ -460,9 +460,9 @@ describe("la presentación ve fallar cada control", () => {
   });
 });
 
-// ── El estándar de cada tipo (#410) ──────────────────────────────────────
+// ── La plantilla de cada tipo (#410) ──────────────────────────────────────
 
-describe("el estándar de cada tipo de la plantilla", () => {
+describe("la plantilla de cada tipo", () => {
   const plantilla = readFileSync(join(AQUI, "PLANTILLA-SKILL.md"), "utf8").replace(/\r\n/g, "\n");
   const tiposSkills = skills.map((s) => ({ nombre: s.nombre, tipo: parsearSkill(s.texto).meta?.metadata?.tipo, texto: s.texto }));
   const tipos = tiposDeSkill(RAIZ);
@@ -490,7 +490,7 @@ describe("el estándar de cada tipo de la plantilla", () => {
   it("falla si falta un tipo entero, o la sección entera", () => {
     const sinTipo = plantilla.replace(/### `conocimiento`\n[\s\S]*?(?=\n## )/, "");
     expect(faltasE(sinTipo).map((f) => `${f.tipo}:${f.codigo}`)).toEqual(["conocimiento:tipo-sin-estandar"]);
-    const sinSeccion = plantilla.replace("## El estándar de cada tipo", "## Otra cosa");
+    const sinSeccion = plantilla.replace("## La plantilla de cada tipo", "## Otra cosa");
     expect(codigosE(sinSeccion)).toEqual(Array(tipos.length).fill("tipo-sin-estandar"));
   });
 
@@ -528,7 +528,7 @@ describe("el estándar de cada tipo de la plantilla", () => {
   });
 
   it("los apartados del estándar son los tipos de ops/forja/, ni uno más (#495)", () => {
-    const seccionE = plantilla.slice(plantilla.indexOf("## El estándar de cada tipo")).split("\n## ")[0];
+    const seccionE = plantilla.slice(plantilla.indexOf("## La plantilla de cada tipo")).split("\n## ")[0];
     const enPlantilla = [...seccionE.matchAll(/^### `([^`]+)`$/gm)].map((m) => m[1]);
     expect(enPlantilla.sort()).toEqual([...tipos].sort());
   });

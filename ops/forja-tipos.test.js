@@ -18,7 +18,7 @@ import { nombresDeSkills, parsearSkill } from "../scripts/lib/skills.mjs";
 /**
  * Tipos de skill (decisión de Pablo, 10 oct 2026) y campos discretos frente a huecos de texto (#458).
  * Falla cuando: a una skill le faltan respuestas, el tipo derivado no coincide con la tabla de Pablo o con
- * su frontmatter, un tipo retirado vuelve o no dice a cuál pasa, no hay exactamente una pieza meta (nivel 0), un texto no es hueco, un enum se sale del vocabulario,
+ * su frontmatter, un tipo retirado vuelve o no dice a cuál pasa, no hay exactamente una pieza meta (paso forja), un texto no es hueco, un enum se sale del vocabulario,
  * una ref no existe o un campo vuelve de discreto a texto.
  */
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -32,9 +32,9 @@ const todas = nombresDeSkills(RAIZ);
 const metaDe = (s) => parsearSkill(leer(`.claude/skills/${s}/SKILL.md`)).meta;
 /** La ficha (metadata del frontmatter) de cada skill: ahí declara sus respuestas y su tipo (#495). */
 const fichaDe = Object.fromEntries(todas.map((s) => [s, metaDe(s).metadata]));
-const nivelDe = Object.fromEntries(todas.map((s) => [s, fichaDe[s].nivel ?? "2"]));
-/** Las skills de nivel 2 (con tipo); la pieza meta (nivel 0) va aparte. */
-const skills = todas.filter((s) => nivelDe[s] !== "0");
+const pasoDe = Object.fromEntries(todas.map((s) => [s, fichaDe[s].paso ?? "pieza"]));
+/** Las skills de paso pieza (con tipo); la pieza meta (paso forja) va aparte. */
+const skills = todas.filter((s) => pasoDe[s] !== "forja");
 const ctxTaxonomia = { skills: todas, fichaDe };
 /** Un contexto con la ficha de una skill cambiada. */
 const conFicha = (s, cambia) => ({ ...ctxTaxonomia, fichaDe: { ...fichaDe, [s]: cambia(structuredClone(fichaDe[s])) } });
@@ -46,7 +46,7 @@ const TABLA_PABLO = {
   diagnostico: ["causa-raiz"],
   decision: ["plan-de-arreglo"],
   flujo: ["issues"],
-  revision: ["higiene-de-skills", "revision-de-diseno"], // #591
+  revision: ["higiene-de-skills", "higiene-de-vocabulario", "revision-de-diseno"], // #591 y F1 de #652
   conocimiento: ["principios-de-producto"], // #606
 };
 const PREGUNTAS_PABLO = ["opera_proveedor", "juzga_artefacto", "encadena", "pasos_fijos", "sintoma_a_causa", "elige_opciones"];
@@ -100,10 +100,10 @@ describe("la taxonomía de tipos y la ficha de cada skill", () => {
     expect("migracion_tipos" in datos).toBe(false);
     expect(Object.keys(datos.skills_provisionales)).toEqual(["estilo-de-respuesta", "issues"]);
   });
-  it("forja-de-skills es la pieza meta (nivel 0): sin tipo ni respuestas; issues es provisional; las que no son evidentes dicen por qué", () => {
-    expect(todas.filter((s) => nivelDe[s] === "0")).toEqual(["forja-de-skills"]);
+  it("forja-de-skills es la pieza meta (paso forja): sin tipo ni respuestas; issues es provisional; las que no son evidentes dicen por qué", () => {
+    expect(todas.filter((s) => pasoDe[s] === "forja")).toEqual(["forja-de-skills"]);
     for (const k of ["tipo", ...PREGUNTAS_PABLO]) expect(fichaDe["forja-de-skills"][k], k).toBeUndefined();
-    expect(datos.nivel_0.skills.secciones.at(-1)).toBe("Fuentes y comprobación");
+    expect(datos.forma_forja.skills.secciones.at(-1)).toBe("Fuentes y comprobación");
     expect(datos.skills_provisionales.issues).toMatchObject({ en_tabla: true });
     expect(datos.skills_provisionales["estilo-de-respuesta"]).toMatchObject({ en_tabla: false });
     expect(datos.tipos_skill.find((t) => t.id === "flujo").skills_hoy).toEqual(["issues"]);
@@ -151,13 +151,13 @@ describe("la taxonomía de tipos y la ficha de cada skill", () => {
     mal((d) => { d.destino_tipos_actuales.forja.nota = "corta"; }, "el destino lleva su nota");
     mal(() => {}, "su metadata.tipo «herramienta» es un tipo retirado", conFicha("github", (f) => ({ ...f, tipo: "herramienta" })));
   });
-  it("falla si no hay exactamente una pieza meta, si lleva tipo o respuestas, o si su forma o los niveles no están", () => {
-    mal(() => {}, "hay 0 piezas meta", conFicha("forja-de-skills", (f) => ({ ...f, nivel: "2" })));
-    mal(() => {}, "hay 2 piezas meta", conFicha("github", (f) => ({ ...f, nivel: "0" })));
-    mal(() => {}, "es la pieza meta (nivel 0) y no lleva tipo", conFicha("forja-de-skills", (f) => ({ ...f, tipo: "revision" })));
-    mal(() => {}, "es la pieza meta (nivel 0) y no responde «encadena»", conFicha("forja-de-skills", (f) => ({ ...f, encadena: false })));
-    mal((d) => { delete d.nivel_0; }, "nivel_0.skills.secciones");
-    mal((d) => { delete d.niveles["1"]; }, "niveles: falta el 1");
+  it("falla si no hay exactamente una pieza meta, si lleva tipo o respuestas, o si su forma o los pasos no están", () => {
+    mal(() => {}, "hay 0 piezas meta", conFicha("forja-de-skills", (f) => ({ ...f, paso: "pieza" })));
+    mal(() => {}, "hay 2 piezas meta", conFicha("github", (f) => ({ ...f, paso: "forja" })));
+    mal(() => {}, "es la pieza meta (paso forja) y no lleva tipo", conFicha("forja-de-skills", (f) => ({ ...f, tipo: "revision" })));
+    mal(() => {}, "es la pieza meta (paso forja) y no responde «encadena»", conFicha("forja-de-skills", (f) => ({ ...f, encadena: false })));
+    mal((d) => { delete d.forma_forja; }, "forma_forja.skills.secciones");
+    mal((d) => { delete d.base.pasos.plantilla; }, "base.pasos: falta el paso plantilla");
   });
   it("falla con un provisional mal puesto", () => {
     mal((d) => { delete d.skills_provisionales.issues.en_tabla; }, "dice en_tabla");
@@ -220,7 +220,7 @@ const ctxCampos = {
   existe: existeFicha,
   sujetos: estandares.sujetos,
   vocabularios: {
-    niveles: Object.keys(datos.niveles),
+    pasos: Object.keys(datos.base.pasos),
     tipos_skill: datos.tipos_skill.map((t) => t.id),
     libertad: Object.keys(datos.libertad),
     invocacion: Object.keys(datos.invocacion),
@@ -240,7 +240,7 @@ const tareas = Object.entries(estandares.agentes).flatMap(([a, ag]) => ag.tareas
 describe("campos de las fichas: lo que ya existe cumple lo que declara campos_ficha", () => {
   it("el frontmatter de todas las skills", () => {
     for (const s of todas) expect(problemasDeCampos(fichaDeSkill(s), "skill", datos, ctxCampos), s).toEqual([]);
-    expect(problemasDeCampos({ ...fichaDeSkill("forja-de-skills"), nivel: "3" }, "skill", datos, ctxCampos).join()).toContain("skill.nivel: «3» no está en el vocabulario");
+    expect(problemasDeCampos({ ...fichaDeSkill("forja-de-skills"), paso: "nivel3" }, "skill", datos, ctxCampos).join()).toContain("skill.paso: «nivel3» no está en el vocabulario");
   });
   it("todas las tareas del catálogo de estándares", () => {
     expect(tareas.length).toBeGreaterThan(50);
@@ -419,10 +419,10 @@ describe("trinquete de los campos (ops/forja-campos.json): de texto a discreto, 
 describe("cifras: campos discretos frente a huecos", () => {
   it("por artefacto, en la vista y en las cifras", () => {
     expect(cifrasDeCampos(datos)).toEqual({ skill: { discretos: 14, huecos: 2, total: 16 }, estandar: { discretos: 6, huecos: 3, total: 9 }, agente: { discretos: 3, huecos: 1, total: 4 }, juicio: { discretos: 6, huecos: 1, total: 7 }, criterio: { discretos: 2, huecos: 6, total: 8 } });
-    expect(md).toContain("| skill | 14 | 2 | 16 |");
-    expect(md).toContain("| criterio | 2 | 6 | 8 |");
-    expect(md).toContain("| estandar | 6 | 3 | 9 |");
-    expect(md).toContain("| juicio | 6 | 1 | 7 |");
+    expect(md).toContain("| `skill` | 14 | 2 | 16 |");
+    expect(md).toContain("| `criterio` | 2 | 6 | 8 |");
+    expect(md).toContain("| `estandar` | 6 | 3 | 9 |");
+    expect(md).toContain("| `juicio` | 6 | 1 | 7 |");
   });
   it("FORJA.md dice que la única lista de tipos es la de ops/forja/ y dónde están los moldes", () => {
     expect(md).toContain("La única lista de tipos es la de `ops/forja/`");

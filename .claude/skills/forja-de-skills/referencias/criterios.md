@@ -88,7 +88,7 @@ Anthropic; **BEA** = «building effective agents»; **SB** = SkillsBench (arXiv
 - **Error contrario:** «usa A, o B, o C» sin decir cuál; la sesión elige al azar.
   Se escribe el camino por defecto y, aparte, la salida para el caso raro.
 
-## 8. Cada paso con su comprobación y un criterio de parada
+## 8. Cada paso con su comprobación y una condición de parada
 
 - **Fuente:** [F] BP («feedback loops»); [S] por analogía, BEA («stopping conditions» de un agente).
 - **Lo vigila:** `sin-parada` (el «Método» de los tipos que no son herramienta

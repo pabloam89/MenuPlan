@@ -101,13 +101,13 @@
     },
     {
       "id": "agentes",
-      "tests": [".claude/agentes.test.js", "scripts/fondos.test.js", "ops/presupuestos.test.js", "ops/forja-tipos.test.js", "ops/estandares-agentes.test.js"],
-      "mira": [".claude/agents/*.md", "ops/estandares-agentes.json", "ops/forja/**"],
-      "porque": "Recorren todos los agentes: estructura de la plantilla, capas de la ficha del fondo, jueces del presupuesto y estándar de cada tarea. Un agente nuevo o cambiado rompe el que no se actualizó."
+      "tests": [".claude/agentes.test.js", "scripts/fondos.test.js", "ops/presupuestos.test.js", "ops/forja-tipos.test.js", "ops/estandares-agentes.test.js", "ops/actores-agentes.test.js"],
+      "mira": [".claude/agents/*.md", "ops/estandares-agentes.json", "ops/forja/**", "ops/flujo.json", "scripts/lib/flujo.mjs"],
+      "porque": "Recorren todos los agentes: estructura de la plantilla, capas de la ficha del fondo, jueces del presupuesto, estándar de cada tarea y actores del flujo que son un agente. Un agente nuevo o cambiado rompe el que no se actualizó."
     },
     {
       "id": "skills-forma",
-      "tests": [".claude/skills.test.js", ".claude/voz.test.js", ".claude/dominios-skills.test.js", "ops/flujo.test.js", "scripts/encargo.test.js"],
+      "tests": [".claude/skills.test.js", ".claude/voz.test.js", ".claude/dominios-skills.test.js", "ops/flujo.test.js", "scripts/encargo.test.js", "ops/base.test.js"],
       "mira": [".claude/skills/**", ".claude/dominios-skills.json", "ops/forja/**", ".claude/PLANTILLA-SKILL.md", "ops/flujo.json", "docs/ops/*.md"],
       "porque": "Recorren todas las skills: forma, forja, mapa de dominios, nombres que cita el flujo y plantilla del encargo sin copiar. Un cambio en una skill rompe la vecina.",
       "amplio": true
@@ -138,8 +138,8 @@
     },
     {
       "id": "glosario",
-      "tests": ["ops/glosario.test.js"],
-      "mira": ["ops/glosario/**", "ops/glosario-excepciones/**", ".claude/skills/**/*.md", ".claude/PLANTILLA-*.md", ".claude/agents/*.md", ".claude/rules/*.md", "CLAUDE.md", "docs/ops/*.md", ".claude/commands/*.md", "ops/estandares-agentes.json", "ops/normas.json"],
+      "tests": ["ops/glosario.test.js", "ops/glosario-dominios.test.js", "ops/glosario-mapeo.test.js", "scripts/higiene-vocabulario.test.js"],
+      "mira": ["scripts/lib/glosario*.mjs", "ops/entidades.json", "ops/glosario/**", "ops/glosario-excepciones/**", ".claude/skills/**/*.md", ".claude/PLANTILLA-*.md", ".claude/agents/*.md", ".claude/rules/*.md", "CLAUDE.md", "docs/ops/*.md", ".claude/commands/*.md", "ops/estandares-agentes.json", "ops/normas.json"],
       "porque": "Las zonas del glosario no usan un término prohibido ni lo definen dos veces."
     },
     {
@@ -276,6 +276,13 @@
       "mira": ["ops/**", "scripts/**", ".claude/**", ".github/**", "docs/**", "*", "scripts/lib/zonasProyecto.mjs"],
       "porque": "Cada fichero del repo cae en una zona (factoría, producto o mixto) de ops/zonas.json: un fichero nuevo en una carpeta con reglas por patrón (ops, scripts, .claude, .github, docs) o en la raíz, sin regla que lo cubra, o más ficheros mixtos que el tope, rompen este test lejos de lo que tocas. Las carpetas de producto (src, api, supabase, public…) las cubre un prefijo entero y no pueden quedar sin zona.",
       "evidencia": "#652 (línea 3 del programa factoría/proyecto: sin zonas no se puede contar qué hay que separar)"
+    },
+    {
+      "id": "pool-de-buenas-practicas",
+      "tests": ["ops/pool.test.js"],
+      "mira": ["ops/pool/*.json", "scripts/lib/pool.mjs", "ops/estandares-agentes.json"],
+      "porque": "Cada práctica del pool cita una fuente que existe en el catálogo de fuentes de los estándares y cada regla de un agente con el pool cerrado responde a una práctica por su nombre; renombrar una regla o quitar una fuente en estandares-agentes.json rompe el pool lejos de lo que tocas.",
+      "evidencia": "#652 (decisión de Pablo, 13 oct 2026: cada regla responde a una buena práctica del campo con fuente)"
     }
   ],
   "pasos": [

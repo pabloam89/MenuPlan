@@ -69,7 +69,9 @@ Cómo comprueba que terminó bien antes de devolver el informe, con evidencia.
 
 `Tipo:` es un vocabulario cerrado, `TIPOS_AGENTE` de `scripts/lib/agentes.mjs`: `constructor` o `juez`. «juez» es un valor de `Tipo`, no una categoría aparte: la lista de jueces sale de las cabeceras `Tipo: juez`, y nadie la copia a mano.
 
-- **Constructor**: escribe código, datos o documentos. Lleva `Edit`/`Write`.
+- **Constructor**: escribe código, datos o documentos. Lleva `Edit`/`Write`; el `analista`, que
+  solo escribe documentos (el cuerpo de un issue), lleva `Write` y no `Edit`, y lo vigila `.claude/agentes.test.js`.
+  Crear o cambiar un agente es la tarea `crear-o-cambiar-agente` de `gobierno`.
 - **Juez**: solo lee, ejecuta comprobaciones y opina. Sin `Edit`, `Write` ni
   `NotebookEdit` (el test lo impide). Quien construye algo no lo juzga: la
   sesión principal pasa el resultado de un constructor a un juez distinto.
@@ -137,7 +139,7 @@ quién tocó un dominio sin abrir la suya.
 Cada agente tiene la lista de las tareas que hace y, por cada una, su acción
 (construir, juzgar, diagnosticar, operar, medir, documentar o decidir), sus
 ámbitos y su estándar: las normas de `ops/normas.json` que le tocan por ámbito ×
-acción y las que cita por id, sin reescribirlas (#620), y unas reglas propias por
+acción y las que cita por id, sin reescribirlas (#620), y unas condiciones propias por
 campos para los pasos que no son norma, cada una con su control (un test, un hook
 o un script que exista, o juicio) y su fuente pública o de la casa, más lo que la
 tarea no hace (#413, fondo #416; por campos en #516). Lo que hacen varios agentes

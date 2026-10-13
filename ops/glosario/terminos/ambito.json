@@ -1,0 +1,27 @@
+{
+  "termino": "ámbito",
+  "estado": "activo",
+  "clase": "campo",
+  "dominio": "base",
+  "definicion": "La parte del trabajo a la que pertenece una norma o un principio, de un vocabulario cerrado de once valores.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "en": "area",
+  "relacionado": [
+    "norma",
+    "principio",
+    "acción"
+  ],
+  "entidades": [
+    {
+      "entidad": "norm",
+      "relacion": "campo_de"
+    },
+    {
+      "entidad": "principle",
+      "relacion": "campo_de"
+    }
+  ]
+}

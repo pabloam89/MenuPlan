@@ -16,7 +16,7 @@
   "codigo": null,
   "casos_calibracion": [
     {
-      "texto": "Para borrar una carpeta: pasos exactos en orden y el comando listo; para elegir un nombre de rama: criterio libre.",
+      "texto": "Para borrar una carpeta: pasos exactos en orden y el comando listo; para elegir un nombre de rama: a gusto de quien lo pone.",
       "esperado": "cumple"
     },
     {

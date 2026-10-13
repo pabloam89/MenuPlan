@@ -2,10 +2,17 @@
   "termino": "workflow",
   "estado": "activo",
   "clase": "artefacto",
+  "dominio": "ops",
   "definicion": "Un fichero de .github/workflows que GitHub ejecuta solo, por horario, por evento o a mano, para vigilar o publicar algo.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
     "todas"
   ],
-  "en": "workflow"
+  "en": "workflow",
+  "entidades": [
+    {
+      "entidad": "workflow",
+      "relacion": "denota"
+    }
+  ]
 }

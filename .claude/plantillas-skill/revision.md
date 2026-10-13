@@ -6,7 +6,7 @@ El molde de una skill de tipo `revision`: se copia el esqueleto y se rellena. Lo
 
 | Qué hace | Entra | Sale | Cómo se prueba | Skills de hoy |
 |---|---|---|---|---|
-| Juzgar un artefacto contra un catálogo y aplicar lo mecánico | artefacto | criterio, estado y arreglo | una pieza mala a propósito da todos sus fallos | `higiene-de-skills`, `revision-de-diseno` |
+| Juzgar un artefacto contra un catálogo y aplicar lo mecánico | artefacto | `criterio`, estado y arreglo | una pieza mala a propósito da todos sus fallos | `higiene-de-skills`, `higiene-de-vocabulario`, `revision-de-diseno` |
 
 ## Cómo se llega a este tipo
 
@@ -103,7 +103,7 @@ Los de `campos_ficha.skill` de `ops/forja/`; lo que no está declarado no va en 
 | `sintoma_a_causa` | bool | sí | `false` en este tipo |
 | `elige_opciones` | bool | sí | `false` en este tipo |
 | `porque_tipo` | texto | no | hueco de texto |
-| `nivel` | enum | no | `2`, o sin él (el 1 son los moldes; el 0, la pieza meta) |
+| `paso` | enum | no | `pieza`, o sin él (la plantilla son los moldes; `forja`, la pieza meta) |
 | `dueno` | ref | sí | un agente que existe |
 | `comprobado` | fecha | sí | AAAA-MM-DD |
 | `normas` | ref | sí | una norma que existe |
@@ -124,15 +124,15 @@ Lo que pide este tipo: una pieza mala a propósito da todos sus fallos. Lo compr
 
 No hay criterio de skill que no se le aplique.
 
-## El estándar de este tipo
+## La plantilla de este tipo
 
 ### Qué lo hace bueno
 
-- Cada criterio es observable y va separado de los demás, con la evidencia que lo cumple (fichero y línea, una salida) [S].
+- Cada norma es observable y va separada de las demás, con la evidencia que la cumple (fichero y línea, una salida) [S].
 - Los criterios viven en su catálogo y la skill los cita; no los copia [S].
 - Cada hallazgo sale con un código de un vocabulario cerrado y su arreglo, para poder contarlo [S].
 - Quien construye no juzga, y el juez no escribe lo que revisa [S].
-- Un criterio discrimina: si pasa igual con la pieza buena que con la mala, se retira [F: EVAL, aserciones que no miden nada].
+- Una norma discrimina: si pasa igual con la pieza buena que con la mala, se retira [F: EVAL, aserciones que no miden nada].
 
 ### Errores típicos
 

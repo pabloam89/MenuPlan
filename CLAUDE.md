@@ -31,7 +31,7 @@ RLS); catálogo de recetas y alimentos en JSON en git (`src/data/`).
 | Las claves en local | 1Password: las sesiones, bóveda `HoMenu-sesiones`; lo de producción, solo `HoMenu` (Pablo). `.env.local` guarda direcciones `op://` (plantilla `ops/env.1password`), no claves. Skill `1password` |
 | Estado real de las migraciones | `supabase/ESTADO.md`; NOT VALID por validar en `supabase/PENDIENTES.md` |
 | Cómo deben ser las tablas | `docs/datos/PRINCIPIOS.md` (con test desde la 0087) |
-| Reglas de UI | `DESIGN_SYSTEM.md` (criterio); valores en `src/design/tokens.js`; estado y plan en `docs/diseno/ESTADO.md` |
+| Reglas de UI | `DESIGN_SYSTEM.md`; valores en `src/design/tokens.js`; estado y plan en `docs/diseno/ESTADO.md` |
 | Decisiones de operación y hoja de ruta | `ops/DECISIONES.md`, `ops/PLANOS.md` |
 | Principios de la casa (el porqué de cada norma) | `docs/PRINCIPIOS.md`, generado de `ops/principios/` |
 
@@ -144,8 +144,10 @@ trabajo: devuelve «Decisiones para Pablo».
 | `diseno`: pantallas, tokens, iconos y assets | `evaluador`: evals de Lola antes y después |
 | `lola`: el bot, herramientas, conocimiento, coste | `seguridad`: RLS, endpoints, secretos, prompts |
 | `orquestador`: la sesión principal; habla con Pablo y reparte (`claude --agent orquestador`) | `auditor-datos`: normalización, duplicados y cableado |
+| `analista`: del fallo al plan; registra el caso, diagnostica y redacta los encargos en el issue. Constructor de documentos: lleva `Write` y no `Edit`, y no construye código | |
 
 Cada cabecera dice a quién pasa trabajo (`traspasa_a`, vigilado por `.claude/agentes.test.js`).
+El diagnóstico y el plan del `analista` los juzga otro agente (`revisor`, y `auditor-datos` si el fondo es del modelo de datos).
 Cada agente lista sus tareas y el estándar de cada una (qué es hacerla bien,
 qué comprueba, qué no hace y su fuente) en `ops/estandares-agentes.json`; el
 brief de `/orquestar` lo trae con `npm run estandar -- <agente> <tarea>` y el
@@ -164,10 +166,10 @@ por su nombre: `1password`, `alta-de-secreto`, `vercel`, `supabase`, `github`, `
 `telegram`, `hetzner` y `tailscale` (precargadas en los agentes que el mapa `.claude/dominios-skills.json` pone en su dominio); y
 las de oficio, cómo se piensa un fallo: `causa-raiz` (diagnosticar) y
 `plan-de-arreglo` (partir el arreglo en encargos); las meta `forja-de-skills`
-(crear, probar y podar skills) e `higiene-de-skills` (revisar una ya escrita);
-y el estándar `estilo-de-respuesta` (cómo se escribe a Pablo: idea raíz en
+(crear, probar y podar), `higiene-de-skills` e `higiene-de-vocabulario` (revisar lo ya escrito);
+y `estilo-de-respuesta` (cómo se escribe a Pablo: idea raíz en
 negrita, cuatro ideas y tres opciones); y la de conocimiento `principios-de-producto`
-(los principios con fuente para decidir sobre el producto, en `docs/producto/PRINCIPIOS.md`); y la de revisión `revision-de-diseno` (repasar un sistema de diseño o una pantalla contra las leyes y los bloques de `docs/diseno/META-DISENO.md`, la carga `diseno`). Todas siguen
+(los principios con fuente para decidir sobre el producto, en `docs/producto/PRINCIPIOS.md`); y la de revisión `revision-de-diseno` (repasar un sistema de diseño o una pantalla contra las normas y los bloques de `docs/diseno/META-DISENO.md`, la carga `diseno`). Todas siguen
 `.claude/PLANTILLA-SKILL.md`, que vigila `.claude/skills.test.js`: un tipo de
 los siete de `ops/forja/`, el que dan sus respuestas, con su molde generado en
 `.claude/plantillas-skill/` (salvo `forja-de-skills`, la pieza meta de nivel 0, sin tipo), dueño, fecha

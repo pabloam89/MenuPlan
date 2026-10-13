@@ -1,0 +1,23 @@
+{
+  "termino": "tipo de tarea",
+  "estado": "activo",
+  "clase": "campo",
+  "dominio": "base",
+  "definicion": "La acción de una tarea de agente (construir, juzgar, diagnosticar, operar, medir, documentar o decidir), que decide qué forja le da sus buenas prácticas.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "en": "task-type",
+  "relacionado": [
+    "forja",
+    "acción",
+    "tarea de agente"
+  ],
+  "entidades": [
+    {
+      "entidad": "agent-task",
+      "relacion": "campo_de"
+    }
+  ]
+}

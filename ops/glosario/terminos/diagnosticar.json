@@ -2,16 +2,24 @@
   "termino": "diagnosticar",
   "estado": "activo",
   "clase": "accion",
+  "dominio": "base",
   "definicion": "El paso 4 del flujo, que lleva de un caso a su causa cambiable y a su causa de escape, con evidencia.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
     "todas"
   ],
   "relacionado": [
-    "causa"
+    "causa",
+    "analista"
   ],
   "ref": {
     "fichero": "scripts/lib/flujo.mjs",
     "clave": "PASOS.diagnosticar"
-  }
+  },
+  "entidades": [
+    {
+      "entidad": "case",
+      "relacion": "accion_sobre"
+    }
+  ]
 }

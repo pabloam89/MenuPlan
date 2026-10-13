@@ -13,7 +13,7 @@ inferencia, también la aplicada por analogía desde CE y BEA (las fuentes está
 | 4 | Demasiado larga o con relleno | Líneas por encima del límite; párrafos que el modelo ya sabe; un A/B que no mejora ni un punto | `tamano`; el `revisor`; A/B manual | [F] BP; [S] por analogía, CE |
 | 5 | Instrucción vaga | Pasos sin salida observable; «Método» sin nada que diga cuándo está hecho | `sin-parada`; `formato` | [F] BP; la señal es [S] |
 | 6 | Ejemplos de más o que se contradicen | Más de tres ejemplos en una sección; un ejemplo que viola la norma de la misma skill | `ejemplos`; el `revisor` (la contradicción) | [S] por analogía, CE; la señal es [S] |
-| 7 | Sin criterio de parada ni de escalada | No hay «cuándo parar» ni «cuándo preguntar» | `sin-parada`; «Qué requiere el OK» en herramientas | [S] por analogía, BEA; la señal es [S] |
+| 7 | Sin condición de parada ni de escalada | No hay «cuándo parar» ni «cuándo preguntar» | `sin-parada`; «Qué requiere el OK» en herramientas | [S] por analogía, BEA; la señal es [S] |
 | 8 | Información caducada | Fecha de comprobación pasada; rutas o comandos que ya no existen; fechas en el cuerpo | `fechas`; `rutas`; `caducada` | [F] BP |
 | 9 | Menú sin valor por defecto | «o … o …» sin recomendación | el `revisor` (aviso, no test) | [F] BP |
 | 10 | Autogenerada sin contrastar | «Lo que falló» sin ningún fallo real; no se vio fallar sin la skill | `formato` (una herramienta pide entradas); el paso 2 del método | [F] SB; la señal es [S] |
@@ -22,7 +22,7 @@ inferencia, también la aplicada por analogía desde CE y BEA (las fuentes está
 
 ## Presentación (#410)
 
-Tres controles más, sobre la forma del texto (criterio nuestro [S], sin fuente
+Tres controles más, sobre la forma del texto (juicio nuestro [S], sin fuente
 oficial que los mida; el porqué y lo que solo juzga una persona, en
 `.claude/skills/forja-de-skills/referencias/presentacion.md`):
 
@@ -42,10 +42,10 @@ revisa con `npm run higiene-skills -- <skill>`.
 
 ## Lo que ningún test ve (juzga el `revisor` o `skills-prueba`)
 
-- Si cada párrafo justifica su coste (defecto 4, criterio 5).
-- Si la libertad es la adecuada a la fragilidad (criterio 6).
+- Si cada párrafo justifica su coste (defecto 4, norma 5).
+- Si la libertad es la adecuada a la fragilidad (norma 6).
 - Si hay un menú sin valor por defecto (defecto 9).
 - Si los ejemplos son canónicos y coherentes (defecto 6).
-- Si los casos de frontera son casi-fallos de verdad (criterio 2).
-- Si mejora con respecto al modelo solo, y con cuánta varianza (criterio 11).
+- Si los casos de frontera son casi-fallos de verdad (norma 2).
+- Si mejora con respecto al modelo solo, y con cuánta varianza (norma 11).
 - Si la descripción dispara (defecto 1).

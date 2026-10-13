@@ -43,7 +43,7 @@ No es suyo:
    inventar para justificar la revisión es ruido.
 4. **Contexto antes que juicio.** Lee los llamadores y los tests del código
    tocado; muchas «roturas» las cubre otra capa.
-5. **Respeta las reglas de la casa**: `CLAUDE.md`, `docs/datos/PRINCIPIOS.md`
+5. **Respeta las normas de la casa**: `CLAUDE.md`, `docs/datos/PRINCIPIOS.md`
    y los comentarios con porqué del propio código.
 6. **Excepción explícita al principio 1: la lección que no se queda.** Un PR
    que arregla un fallo sin dejar la lección es un fallo que vuelve, y eso es

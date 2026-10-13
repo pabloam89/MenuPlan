@@ -1,5 +1,5 @@
 {
-  "$comentario": "Un estándar por tarea de cada agente (#413, fondo #416; por campos en #516, fondo #488; normas por consulta en #620, fondo #618). Es el dato: lo lee `npm run estandar`, lo pega /orquestar en el brief, genera la sección «Tareas y su estándar» de cada .claude/agents/<agente>.md y la tabla docs/ops/ESTANDARES.md, y lo vigilan ops/estandares-agentes.test.js y ops/uniones.test.js con las reglas de scripts/lib/estandaresAgentes.mjs. Cada tarea lleva su acción (vocabulario `acciones`) y sus `ambitos` (AMBITOS de scripts/lib/ambitos.mjs): las normas de ops/normas.json le llegan por consulta, ámbito × acción (construir y juzgar consultan las dos, así que constructor y juez del mismo ámbito reciben las mismas), y `normas` cita por id solo las que la consulta no trae; ninguna norma se reescribe aquí. Sus `reglas` propias, solo para los pasos que no son norma, van por campos (la plantilla de scripts/lib/regla.mjs: nombre, sujeto, fuerza, condicion, exigencia, nota) más lo que pide la forma de práctica de ops/forja/: porque, ejemplo bueno, ejemplo malo y fuente. El control de cada regla es un fichero que exista (test, hook o script) o juicio. Las tareas compartidas por varios agentes viven una sola vez en `comunes` (con sus reglas y las normas que citan) y cada tarea las nombra en `comunes`. `origen` es una sección del agente (vocabulario `origenes`). Las fuentes son documentación oficial (externas, [F]) o reglas de la casa (con ruta del repo, [I]). `reglas_que_no_son_norma`: reglas que se parecen a una norma y no la repiten, con la norma y su motivo; `normas_sin_juez`: normas vigiladas por juicio que ningún estándar de juez cita, con su motivo. Las dos solo bajan (techos en scripts/lib/estandaresAgentes.mjs). Repo público: nada de cómo se salta una barrera.",
+  "$comentario": "Un estándar por tarea de cada agente (#413, fondo #416; por campos en #516, fondo #488; normas por consulta en #620, fondo #618). Es el dato: lo lee `npm run estandar`, lo pega /orquestar en el brief, genera la sección «Tareas y su estándar» de cada .claude/agents/<agente>.md y la tabla docs/ops/ESTANDARES.md, y lo vigilan ops/estandares-agentes.test.js y ops/uniones.test.js con las reglas de scripts/lib/estandaresAgentes.mjs. Cada tarea lleva su acción (vocabulario `acciones`) y sus `ambitos` (AMBITOS de scripts/lib/ambitos.mjs): las normas de ops/normas.json le llegan por consulta, ámbito × acción (construir y juzgar consultan las dos, así que constructor y juez del mismo ámbito reciben las mismas), y `normas` cita por id solo las que la consulta no trae; ninguna norma se reescribe aquí. Sus `reglas` propias, solo para los pasos que no son norma, van por campos (la plantilla de scripts/lib/regla.mjs: nombre, sujeto, fuerza, condicion, exigencia, nota) más lo que pide la forma de práctica de ops/forja/: porque, ejemplo bueno, ejemplo malo y fuente. El control de cada regla es un fichero que exista (test, hook o script) o juicio. Las tareas compartidas por varios agentes viven una sola vez en `comunes` (con sus reglas y las normas que citan) y cada tarea las nombra en `comunes`. `origen` es una sección del agente (vocabulario `origenes`). Las fuentes son documentación oficial (externas, [F]) o fuentes de la casa (con ruta del repo, [I]). `reglas_que_no_son_norma`: reglas que se parecen a una norma y no la repiten, con la norma y su motivo; `normas_sin_juez`: normas vigiladas por juicio que ningún estándar de juez cita, con su motivo. Las dos solo bajan (techos en scripts/lib/estandaresAgentes.mjs). Repo público: nada de cómo se salta una barrera.",
   "version": 2,
   "actualizado": "2026-10-10",
   "artefactos": [
@@ -384,6 +384,24 @@
       "aplica_a": [
         "operacion"
       ]
+    },
+    "agente": {
+      "legible": "cada agente",
+      "aplica_a": [
+        "operacion"
+      ]
+    },
+    "fallo": {
+      "legible": "cada fallo",
+      "aplica_a": [
+        "operacion"
+      ]
+    },
+    "fondo": {
+      "legible": "cada problema de fondo",
+      "aplica_a": [
+        "operacion"
+      ]
     }
   },
   "fuentes": {
@@ -521,42 +539,42 @@
     },
     "casa-claude": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: CLAUDE.md (qué se pregunta a Pablo, ramas y flujo, base de datos)",
+      "nombre": "Fuente de la casa: CLAUDE.md (qué se pregunta a Pablo, ramas y flujo, base de datos)",
       "ruta": "CLAUDE.md"
     },
     "casa-principios-datos": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: principios de datos (PRINCIPIOS.md)",
+      "nombre": "Fuente de la casa: principios de datos (PRINCIPIOS.md)",
       "ruta": "docs/datos/PRINCIPIOS.md"
     },
     "casa-skill-issues": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: skill issues (repo público, nada sensible en un issue)",
+      "nombre": "Fuente de la casa: skill issues (repo público, nada sensible en un issue)",
       "ruta": ".claude/skills/issues/SKILL.md"
     },
     "casa-skill-alta-secreto": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: skill alta-de-secreto",
+      "nombre": "Fuente de la casa: skill alta-de-secreto",
       "ruta": ".claude/skills/alta-de-secreto/SKILL.md"
     },
     "casa-decisiones": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: registro de decisiones de operación",
+      "nombre": "Fuente de la casa: registro de decisiones de operación",
       "ruta": "ops/DECISIONES.md"
     },
     "casa-planos": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: planos y sus niveles",
+      "nombre": "Fuente de la casa: planos y sus niveles",
       "ruta": "ops/PLANOS.md"
     },
     "casa-plantilla-agente": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: plantilla de agente (juez y constructor, skills que abrió)",
+      "nombre": "Fuente de la casa: plantilla de agente (juez y constructor, skills que abrió)",
       "ruta": ".claude/PLANTILLA-AGENTE.md"
     },
     "casa-migraciones": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: regla de migraciones",
+      "nombre": "Fuente de la casa: regla de migraciones",
       "ruta": ".claude/rules/migraciones.md"
     },
     "m3-tokens": {
@@ -625,48 +643,121 @@
     },
     "casa-design-system": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: DESIGN_SYSTEM.md (componentes, voz y accesibilidad)",
+      "nombre": "Fuente de la casa: DESIGN_SYSTEM.md (componentes, voz y accesibilidad)",
       "ruta": "DESIGN_SYSTEM.md"
     },
     "casa-diseno-estado": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: estado del diseño, decisiones y cifras",
+      "nombre": "Fuente de la casa: estado del diseño, decisiones y cifras",
       "ruta": "docs/diseno/ESTADO.md"
     },
     "casa-lola-regla": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: regla lola (evals, enrutador, modelos)",
+      "nombre": "Fuente de la casa: regla lola (evals, enrutador, modelos)",
       "ruta": ".claude/rules/lola.md"
     },
     "casa-router": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: el enrutador de Lola y su esquema plano",
+      "nombre": "Fuente de la casa: el enrutador de Lola y su esquema plano",
       "ruta": "api/_bot/router.js"
     },
     "casa-agente-lola": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: agente lola (gateways y escalado)",
+      "nombre": "Fuente de la casa: agente lola (gateways y escalado)",
       "ruta": ".claude/agents/lola.md"
     },
     "casa-agente-qa": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: agente qa (severidad y método)",
+      "nombre": "Fuente de la casa: agente qa (severidad y método)",
       "ruta": ".claude/agents/qa.md"
     },
     "casa-agente-evaluador": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: agente evaluador",
+      "nombre": "Fuente de la casa: agente evaluador",
       "ruta": ".claude/agents/evaluador.md"
     },
     "casa-redaccion": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: guía de redacción de reglas",
+      "nombre": "Fuente de la casa: guía de redacción de reglas",
       "ruta": "docs/ops/REDACCION.md"
     },
     "casa-estilo": {
       "tipo": "casa",
-      "nombre": "Regla de la casa: skill estilo-de-respuesta",
+      "nombre": "Fuente de la casa: skill estilo-de-respuesta",
       "ruta": ".claude/skills/estilo-de-respuesta/SKILL.md"
+    },
+    "ms-normalizacion": {
+      "nombre": "Microsoft Learn: descripción de la normalización de bases de datos",
+      "url": "https://learn.microsoft.com/en-us/office/troubleshoot/access/database-normalization-description",
+      "uso": "pool"
+    },
+    "kent-5nf": {
+      "nombre": "William Kent: A Simple Guide to Five Normal Forms in Relational Database Theory",
+      "url": "https://www.bkent.net/Doc/simple5.htm",
+      "uso": "pool"
+    },
+    "pg-matviews": {
+      "nombre": "PostgreSQL: Materialized Views (copia derivada con su consulta de recálculo)",
+      "url": "https://www.postgresql.org/docs/current/rules-materializedviews.html",
+      "uso": "pool"
+    },
+    "pg-comment": {
+      "nombre": "PostgreSQL: COMMENT (describir los objetos del esquema)",
+      "url": "https://www.postgresql.org/docs/current/sql-comment.html",
+      "uso": "pool"
+    },
+    "pg-createindex": {
+      "nombre": "PostgreSQL: CREATE INDEX (CONCURRENTLY)",
+      "url": "https://www.postgresql.org/docs/current/sql-createindex.html",
+      "uso": "pool"
+    },
+    "pg-locking": {
+      "nombre": "PostgreSQL: Explicit Locking (qué bloqueo toma cada orden)",
+      "url": "https://www.postgresql.org/docs/current/explicit-locking.html",
+      "uso": "pool"
+    },
+    "fowler-evodb": {
+      "nombre": "Fowler y Sadalage: Evolutionary Database Design",
+      "url": "https://martinfowler.com/articles/evodb.html",
+      "uso": "pool"
+    },
+    "fowler-parallel-change": {
+      "nombre": "Danilo Sato en martinfowler.com: Parallel Change (expandir, migrar, contraer)",
+      "url": "https://martinfowler.com/bliki/ParallelChange.html",
+      "uso": "pool"
+    },
+    "w3-dwbp": {
+      "nombre": "W3C: Data on the Web Best Practices (procedencia, calidad y versiones)",
+      "url": "https://www.w3.org/TR/dwbp/",
+      "uso": "pool"
+    },
+    "dbt-data-tests": {
+      "nombre": "dbt Docs: Data tests (unique, not_null, accepted_values, relationships)",
+      "url": "https://docs.getdbt.com/docs/build/data-tests",
+      "uso": "pool"
+    },
+    "dama-dmbok": {
+      "nombre": "DAMA International: DAMA-DMBOK, cuerpo de conocimiento de la gestión de datos",
+      "url": "https://dama.org/learning-resources/dama-data-management-body-of-knowledge-dmbok/",
+      "uso": "pool"
+    },
+    "claude-subagents": {
+      "nombre": "Claude Code Docs: Subagents",
+      "url": "https://code.claude.com/docs/en/sub-agents"
+    },
+    "an-building-agents": {
+      "nombre": "Anthropic: Building effective agents",
+      "url": "https://www.anthropic.com/engineering/building-effective-agents"
+    },
+    "casa-encargo": {
+      "tipo": "casa",
+      "nombre": "Fuente de la casa: formato común del encargo",
+      "ruta": "docs/ops/ENCARGO.md"
+    },
+    "casa-flujo": {
+      "tipo": "casa",
+      "nombre": "Fuente de la casa: el camino de un fallo, de detectar a cerrar",
+      "ruta": "docs/ops/FLUJO.md"
     }
   },
   "comunes": {
@@ -1435,7 +1526,7 @@
               "control": "ops/planos.test.js",
               "fuente": "casa-planos",
               "porque": "Un nivel dado por hecho se queda aunque el mecanismo se rompa",
-              "ejemplo_bueno": "npm run planos -- --red con el criterio de ops/planos.json cumplido",
+              "ejemplo_bueno": "npm run planos -- --red con la condición de ops/planos.json cumplida",
               "ejemplo_malo": "subir el nivel porque ya está hecho"
             },
             {
@@ -1488,6 +1579,74 @@
             "ronda: 1 fuentes: 3 cambios: Revisadas la guía de redacción, la forja y el catálogo de normas de la casa: los tres siguen el mismo patrón dato, lector, test, documento",
             "ronda: 2 fuentes: 3 cambios: Contrastado con Google Engineering Practices sobre tests: el test que no puede fallar no cuenta, así que se exige verlo fallar",
             "ronda: 3 fuentes: 2 cambios: Reducido a cuatro reglas: datos cerrados, test visto fallar, documento generado y reglas por campos"
+          ]
+        },
+        {
+          "id": "crear-o-cambiar-agente",
+          "tarea": "Crear o cambiar un agente de .claude/agents/ con la estructura de la plantilla, herramientas mínimas, traspasos declarados con un juez distinto y su estándar de tareas",
+          "accion": "construir",
+          "origen": "mision",
+          "ambitos": [
+            "process"
+          ],
+          "normas": [
+            "test-visto-fallar"
+          ],
+          "reglas": [
+            {
+              "nombre": "Plantilla y descripción",
+              "sujeto": "agente",
+              "fuerza": "debe",
+              "exigencia": "seguir la estructura de .claude/PLANTILLA-AGENTE.md: frontmatter con campos que existen, diez secciones en orden y una descripción que acaba en «No para:»",
+              "control": ".claude/agentes.test.js",
+              "fuente": "claude-subagents",
+              "porque": "Una errata en un campo de la cabecera no da error en Claude Code: se ignora en silencio, y una descripción sin frontera enruta mal",
+              "ejemplo_bueno": "name igual que el fichero, tools como lista cerrada y description con «No para: … (revisor)»",
+              "ejemplo_malo": "un campo escrito toolz, o una sección de las diez que falta o está desordenada"
+            },
+            {
+              "nombre": "Herramientas mínimas",
+              "sujeto": "agente",
+              "fuerza": "debe",
+              "exigencia": "llevar una lista cerrada con solo las herramientas que su tarea necesita, sin permissionMode bypassPermissions y sin Agent salvo el orquestador",
+              "control": ".claude/agentes.test.js",
+              "fuente": "claude-subagents",
+              "porque": "Un agente con tools vacío hereda todas, y cada herramienta de más es una puerta que el juez tiene que vigilar",
+              "ejemplo_bueno": "tools: Read, Grep, Glob, Bash, Write, con la razón de Write dicha en el informe",
+              "ejemplo_malo": "tools sin rellenar, o Edit en un agente que solo registra y diagnostica"
+            },
+            {
+              "nombre": "Traspaso a otro juez",
+              "sujeto": "agente",
+              "fuerza": "debe",
+              "exigencia": "declarar en traspasa_a a quién pasa su trabajo, con al menos un juez que no sea él, y decir lo mismo en su «No para:» y su Escalado",
+              "control": ".claude/agentes.test.js",
+              "fuente": "casa-plantilla-agente",
+              "porque": "Quien construye no juzga lo suyo, y una arista que solo vive en prosa cambia o se pierde sin que nada falle",
+              "ejemplo_bueno": "traspasa_a: [auditor-datos, revisor] y los dos nombrados en el Escalado",
+              "ejemplo_malo": "un agente que se juzga a sí mismo, o un «a revisor» en el Escalado que la cabecera no declara"
+            },
+            {
+              "nombre": "Skills de su dominio",
+              "sujeto": "agente",
+              "fuerza": "debe",
+              "exigencia": "traer precargadas en skills las de su dominio, que salen del mapa .claude/dominios-skills.json y de ninguna otra lista",
+              "control": ".claude/agentes.test.js",
+              "fuente": "casa-plantilla-agente",
+              "porque": "El 10 oct un agente editó un dominio nueve veces sin su skill porque nada se la traía",
+              "ejemplo_bueno": "añadir el agente al campo agentes de cada skill de su dominio en el mapa",
+              "ejemplo_malo": "escribir a mano skills en la cabecera sin tocar el mapa"
+            }
+          ],
+          "no_hace": [
+            "juzgar el agente que ha construido: lo juzga el revisor, y seguridad si cambia herramientas o permisos",
+            "ampliar los permisos de .claude/settings.json sin preguntar antes a Pablo",
+            "activar un agente como sesión por defecto: eso se mide antes y lo decide Pablo"
+          ],
+          "rondas": [
+            "ronda: 1 fuentes: 3 cambios: Leídas la plantilla de agente, la documentación de agentes de Claude Code y Building effective agents: la estructura, el mínimo privilegio y el traspaso ya estaban repartidos",
+            "ronda: 2 fuentes: 2 cambios: Contrastado con .claude/agentes.test.js y ops/estandares-agentes.test.js: cada regla tiene ya un test que la hace cumplir",
+            "ronda: 3 fuentes: 1 cambios: Cuatro reglas: plantilla, herramientas, traspaso y skills; el estándar de tareas y el test visto fallar llegan como normas del registro"
           ]
         }
       ]
@@ -2649,7 +2808,7 @@
           "rondas": [
             "ronda: 1 fuentes: 2 cambios: Consultados los tokens de la casa y el formato de tokens de diseño del W3C; ambos separan el valor del nombre con un rol",
             "ronda: 2 fuentes: 2 cambios: Contrastado con la regla de lint de la casa: ningún valor suelto, y la lista base solo baja; el estándar externo no dice cuántos",
-            "ronda: 3 fuentes: 1 cambios: Reducido a dos reglas propias (tokens y reutilizar) más las comunes del design system"
+            "ronda: 3 fuentes: 1 cambios: Reducido a dos condiciones propias (tokens y reutilizar) más las comunes del design system"
           ]
         },
         {
@@ -2714,7 +2873,7 @@
           ],
           "rondas": [
             "ronda: 1 fuentes: 2 cambios: Consultada la visión general de tokens de Material y el formato del W3C; los dos piden un nombre por rol y no por valor",
-            "ronda: 2 fuentes: 2 cambios: Contrastado con tokens.js y DESIGN_SYSTEM.md: la casa ya genera el CSS y valida la tabla con un test, y esa parte se queda como regla de la casa",
+            "ronda: 2 fuentes: 2 cambios: Contrastado con tokens.js y DESIGN_SYSTEM.md: la casa ya genera el CSS y valida la tabla con un test, y esa parte se queda como norma de la casa",
             "ronda: 3 fuentes: 1 cambios: Cuatro reglas: porqué, CSS generado, documento al día y primitivo único"
           ]
         },
@@ -2764,7 +2923,7 @@
           ],
           "rondas": [
             "ronda: 1 fuentes: 2 cambios: Consultada la guía de cambios pequeños de Google y el formato de tokens; piden un cambio revisable y valores con nombre",
-            "ronda: 2 fuentes: 2 cambios: Contrastado con docs/diseno/ESTADO.md: la lista base por pantalla y la captura sin cambios son criterio de la casa",
+            "ronda: 2 fuentes: 2 cambios: Contrastado con docs/diseno/ESTADO.md: la lista base por pantalla y la captura sin cambios son decisión de la casa",
             "ronda: 3 fuentes: 1 cambios: Tres reglas: la lista baja, una pantalla por PR y sin cambio de píxeles"
           ]
         },
@@ -2961,7 +3120,7 @@
           "rondas": [
             "ronda: 1 fuentes: 2 cambios: Consultada la documentación de capturas y las buenas prácticas de Playwright; piden capturas repetibles de lo visible",
             "ronda: 2 fuentes: 1 cambios: Contrastado con el método de diseno: la captura de antes se hace antes de tocar nada",
-            "ronda: 3 fuentes: 1 cambios: Dos reglas propias más la común de los dos anchos"
+            "ronda: 3 fuentes: 1 cambios: Dos condiciones propias más la común de los dos anchos"
           ]
         },
         {
@@ -3364,7 +3523,7 @@
           "rondas": [
             "ronda: 1 fuentes: 3 cambios: Consultadas las guías de Anthropic sobre latencia y sobre elegir modelo, y la de caché",
             "ronda: 2 fuentes: 2 cambios: Contrastado con la medida del 1 oct de la casa: lo que tarda es el número de llamadas, no cada llamada",
-            "ronda: 3 fuentes: 1 cambios: Dos reglas propias: menos vueltas y el modelo más barato que aprueba"
+            "ronda: 3 fuentes: 1 cambios: Dos condiciones propias: menos vueltas y el modelo más barato que aprueba"
           ]
         },
         {
@@ -3457,7 +3616,7 @@
           "rondas": [
             "ronda: 1 fuentes: 2 cambios: Consultados el artículo de Anthropic sobre evals y su guía de latencia",
             "ronda: 2 fuentes: 1 cambios: Contrastado con scripts/bot-medidas.mjs y scripts/bot-coste.mjs: de ahí salen tokens y vueltas",
-            "ronda: 3 fuentes: 1 cambios: Dos reglas propias: la tabla del turno y decir lo que no se pudo correr"
+            "ronda: 3 fuentes: 1 cambios: Dos condiciones propias: la tabla del turno y decir lo que no se pudo correr"
           ]
         }
       ]
@@ -3585,7 +3744,7 @@
           "rondas": [
             "ronda: 1 fuentes: 2 cambios: Consultadas las requisitos de WCAG 2.2 sobre contraste y tamaño de objetivo",
             "ronda: 2 fuentes: 1 cambios: Contrastado con DESIGN_SYSTEM.md: la casa pide 40 px, más que el mínimo de WCAG",
-            "ronda: 3 fuentes: 1 cambios: Una regla propia (la pantalla migrada no cambia) más las cuatro comunes"
+            "ronda: 3 fuentes: 1 cambios: Una condición propia (la pantalla migrada no cambia) más las cuatro comunes"
           ]
         },
         {
@@ -4085,7 +4244,7 @@
           "rondas": [
             "ronda: 1 fuentes: 2 cambios: Consultados las restricciones de Postgres y el PRINCIPIOS.md de la casa",
             "ronda: 2 fuentes: 1 cambios: Contrastado con supabase/cableado.json y scripts/cableado.mjs, que ya cuentan los pares",
-            "ronda: 3 fuentes: 1 cambios: Dos reglas propias: ficheros por tabla y filtros fuera de su módulo"
+            "ronda: 3 fuentes: 1 cambios: Dos condiciones propias: ficheros por tabla y filtros fuera de su módulo"
           ]
         },
         {
@@ -4306,6 +4465,226 @@
             "ronda: 1 fuentes: 2 cambios: Leídas la plantilla de agentes (informe común) y las secciones de Escalado de los nueve agentes",
             "ronda: 2 fuentes: 1 cambios: Contrastado con scripts/lib/agentes.mjs: los traspasos salen de la cabecera y se cruzan con el texto",
             "ronda: 3 fuentes: 1 cambios: Dos reglas: hallazgo con marca y traspaso declarado"
+          ]
+        },
+        {
+          "id": "recoger-el-plan-del-analista",
+          "tarea": "Leer el issue del fondo que deja el analista, pasarlo por un juez distinto y repartir sus encargos con briefs autocontenidos que citan referencias y no copian contexto",
+          "accion": "decidir",
+          "origen": "metodo",
+          "ambitos": [
+            "process"
+          ],
+          "reglas": [
+            {
+              "nombre": "Brief con referencias",
+              "sujeto": "encargo",
+              "fuerza": "debe",
+              "exigencia": "llevar al agente el objetivo y las rutas de los ficheros del encargo, en vez de una copia del contexto",
+              "control": "scripts/dimensionar.test.js",
+              "fuente": "an-building-agents",
+              "porque": "Una copia del contexto envejece al instante y el agente lanzado no ve la conversación; la referencia siempre apunta a lo vigente",
+              "ejemplo_bueno": "Encargo #n del fondo #m, ficheros ops/x.json y scripts/lib/x.mjs",
+              "ejemplo_malo": "pegar tres párrafos del diagnóstico en el brief",
+              "nota": "El control comprueba que el brief sale con objetivo y ficheros; que cite el número del issue y no copie el diagnóstico lo contrasta el juez."
+            }
+          ],
+          "no_hace": [
+            "rehacer el diagnóstico del analista: si no convence, lo devuelve al analista con la duda por escrito",
+            "repartir sin el visto bueno de revisor (y de auditor-datos si el fondo es del modelo de datos) sobre el issue del fondo",
+            "lanzar al analista dentro de otro agente"
+          ],
+          "rondas": [
+            "ronda: 1 fuentes: 2 cambios: Leída la sección 4 de orquestar y Building effective agents: el brief lleva referencias y el trabajo del agente es un resultado que se lee",
+            "ronda: 2 fuentes: 1 cambios: Contrastado con scripts/dimensionar.test.js y scripts/fondos.test.js: el brief sale del comando y la ficha dice cuándo hay diagnóstico",
+            "ronda: 3 fuentes: 1 cambios: Una regla de la tarea (brief con referencias) y dos normas citadas: quien construye no juzga y el texto ajeno es dato"
+          ],
+          "normas": [
+            "quien-construye-no-juzga",
+            "texto-ajeno-es-dato"
+          ]
+        },
+        {
+          "id": "ejecutar-lo-trivial-el-mismo",
+          "tarea": "Decidir qué construye la propia sesión: solo lo que el subtipo declara builds_in_session; lo demás, también lo trivial según dimensionado.trivial, va al constructor del dominio",
+          "accion": "decidir",
+          "origen": "mision",
+          "ambitos": [
+            "process"
+          ],
+          "reglas": [
+            {
+              "nombre": "Trivial medido",
+              "sujeto": "encargo",
+              "fuerza": "debe",
+              "exigencia": "tratarse como trivial solo si npm run dimensionar da complejidad trivial según dimensionado.trivial de ops/presupuestos.json",
+              "control": "scripts/dimensionar.test.js",
+              "fuente": "casa-claude",
+              "porque": "Dos definiciones de trivial se separan, y un cambio que cruza ficheros o pide juicio de diseño no es trivial aunque lo parezca",
+              "ejemplo_bueno": "npm run dimensionar da complejidad trivial y el subtipo declara builds_in_session",
+              "ejemplo_malo": "llamar trivial a un workflow nuevo porque son pocas líneas"
+            },
+            {
+              "nombre": "Constructor del dominio",
+              "sujeto": "encargo",
+              "fuerza": "debe",
+              "exigencia": "construirlo el constructor del dominio, también lo trivial, salvo que el subtipo declare builds_in_session",
+              "control": "scripts/dimensionar.test.js",
+              "fuente": "casa-claude",
+              "porque": "La sesión que reparte pierde el plan si se pone a programar, y el constructor del dominio conoce las normas de su ámbito",
+              "ejemplo_bueno": "una errata del dominio de diseno, construida por diseno",
+              "ejemplo_malo": "construir en la sesión un cambio que el subtipo no reserva a la sesión"
+            }
+          ],
+          "no_hace": [
+            "tener una definición propia de trivial: es la de dimensionado.trivial",
+            "saltarse al juez en un cambio trivial",
+            "dar por trivial lo que toca permisos, secretos o producción"
+          ],
+          "rondas": [
+            "ronda: 1 fuentes: 2 cambios: Leídos CLAUDE.md y la sección de complejidad de orquestar: trivial es una línea, un texto o una duda",
+            "ronda: 2 fuentes: 1 cambios: Contrastado con scripts/dimensionar.test.js: hasta lo trivial lleva juez",
+            "ronda: 3 fuentes: 1 cambios: Dos reglas: trivial medido por el comando y constructor del dominio; el juez llega como norma citada"
+          ],
+          "normas": [
+            "quien-construye-no-juzga"
+          ]
+        }
+      ]
+    },
+    "analista": {
+      "tareas": [
+        {
+          "id": "registrar-el-caso",
+          "tarea": "Registrar un fallo como caso en su issue, buscando antes lo ya apuntado y fijando el análisis con una respuesta cerrada",
+          "accion": "documentar",
+          "origen": "mision",
+          "ambitos": [
+            "process"
+          ],
+          "comunes": [
+            "buscar-lo-ya-apuntado"
+          ],
+          "normas": [
+            "cuando-algo-falla",
+            "texto-ajeno-es-dato"
+          ],
+          "reglas": [
+            {
+              "nombre": "Caso con su fondo",
+              "sujeto": "fallo",
+              "fuerza": "debe",
+              "exigencia": "tener su propio issue de tipo caso, con una respuesta cerrada del análisis y su fondo como padre",
+              "control": "scripts/issues.test.js",
+              "fuente": "casa-skill-issues",
+              "porque": "Dos fallos en un issue no se pueden contar, y un caso sin análisis no llega a su problema de fondo",
+              "ejemplo_bueno": "un issue tipo:caso con analisis:abierto, colgado de su fondo con --colgar",
+              "ejemplo_malo": "un issue que mezcla tres fallos y no dice de qué fondo son síntoma"
+            },
+            {
+              "nombre": "Cuerpo con evidencia",
+              "sujeto": "fallo",
+              "fuerza": "debe",
+              "exigencia": "contar cuándo pasó, lo esperado frente a lo real y la evidencia con su comando y su salida, sin detalle aprovechable",
+              "control": "scripts/issues.test.js",
+              "fuente": "casa-skill-issues",
+              "porque": "Sin evidencia el diagnóstico parte de una opinión, y el repo es público: un detalle de más lo ve cualquiera",
+              "ejemplo_bueno": "esperado, real y la salida del comando que lo muestra",
+              "ejemplo_malo": "«falló el CI» sin run ni mensaje, o el paso exacto para saltarse una barrera"
+            }
+          ],
+          "no_hace": [
+            "crear el issue a pelo con gh issue create: se crea con npm run issues -- --nuevo, que busca los parecidos",
+            "cerrar un caso como puntual sin el porqué ni la causa",
+            "arreglar el fallo ni tocar el código"
+          ],
+          "rondas": [
+            "ronda: 1 fuentes: 3 cambios: Leídas la skill issues, la sección Cuando algo falla de CLAUDE.md y el flujo: el caso lleva análisis cerrado y se cuelga de su fondo",
+            "ronda: 2 fuentes: 1 cambios: Contrastado con scripts/issues.test.js: el caso sin análisis o el puntual sin porqué fallan",
+            "ronda: 3 fuentes: 1 cambios: Dos reglas: un caso por issue y cuerpo con evidencia"
+          ]
+        },
+        {
+          "id": "diagnosticar-causa-raiz",
+          "tarea": "Leer el mapa de módulos del proyecto y diagnosticar la causa de un fondo con la técnica que toca, dejando escritos en su issue mecanismo, causa de escape, evidencias y alternativas descartadas",
+          "accion": "diagnosticar",
+          "origen": "metodo",
+          "ambitos": [
+            "process"
+          ],
+          "comunes": [
+            "causa-frente-a-sintoma",
+            "buscar-lo-ya-apuntado"
+          ],
+          "reglas": [
+            {
+              "nombre": "Diagnóstico en el issue",
+              "sujeto": "fondo",
+              "fuerza": "debe",
+              "exigencia": "dejar en su issue el mecanismo, la causa de escape, la clase, las evidencias y las alternativas descartadas con el motivo de cada una",
+              "control": "scripts/fondos.test.js",
+              "fuente": "casa-flujo",
+              "porque": "El orquestador lee el issue y no le pregunta al analista: lo que no está escrito allí se pierde con la sesión",
+              "ejemplo_bueno": "ficha en diagnosticado y un comentario con tecnica, parada, evidencias y tres hipótesis descartadas",
+              "ejemplo_malo": "la causa dicha en el chat y el issue sin ficha",
+              "nota": "El control comprueba la ficha (mecanismo y causa de escape); las evidencias y las alternativas descartadas las contrasta el juez del diagnóstico."
+            },
+            {
+              "nombre": "Técnica del catálogo",
+              "sujeto": "diagnostico",
+              "fuerza": "debe",
+              "exigencia": "aplicar la técnica que da npm run tecnica para su tipo de causa y decir en qué parada de PARADAS se detuvo",
+              "control": "ops/tecnicas.test.js",
+              "fuente": "sre-troubleshooting",
+              "porque": "Sin técnica ni condición de parada el diagnóstico se alarga por cansancio o se corta por prisa, y lo no comprobado se cuela como hecho",
+              "ejemplo_bueno": "tecnica y parada con un id del catálogo, y lo no comprobado marcado como HIPÓTESIS con la observación que la confirmaría",
+              "ejemplo_malo": "una cadena de porqués sin evidencia que acaba cuando se acaban las ganas"
+            }
+          ],
+          "no_hace": [
+            "juzgar su propio diagnóstico: lo juzga otro agente, y auditor-datos si el fondo es del modelo de datos",
+            "arreglar la causa: eso es de un encargo con su constructor",
+            "pasarse del presupuesto de rondas del alcance y la causa"
+          ],
+          "rondas": [
+            "ronda: 1 fuentes: 3 cambios: Leídas las skills causa-raiz e issues y el capítulo de Google SRE sobre depuración: el diagnóstico se escribe donde se lee",
+            "ronda: 2 fuentes: 1 cambios: Contrastado con scripts/fondos.test.js: la ficha diagnosticado exige mecanismo y causa de escape",
+            "ronda: 3 fuentes: 1 cambios: Dos reglas encima de las comunes de causa y síntoma: diagnóstico en el issue e hipótesis marcada"
+          ]
+        },
+        {
+          "id": "planificar-los-encargos",
+          "tarea": "Leer el mapa de módulos del proyecto, partir un fondo diagnosticado en pocos encargos con su tipo, subtipo, alcance y complejidad, y dejar el plan escrito en el issue para que lo reparta el orquestador",
+          "accion": "decidir",
+          "origen": "entregables",
+          "ambitos": [
+            "process"
+          ],
+          "reglas": [
+            {
+              "nombre": "Encargo con su clasificación",
+              "sujeto": "encargo",
+              "fuerza": "debe",
+              "exigencia": "llevar el bloque encargo con tipo y subtipo de docs/ops/ENCARGO.md y con el alcance y la complejidad que da npm run dimensionar",
+              "control": "scripts/fondos-encargos.test.js",
+              "fuente": "casa-encargo",
+              "porque": "El orquestador reparte por tipo, alcance y complejidad: un encargo sin ellos obliga a clasificarlo otra vez",
+              "ejemplo_bueno": "subtype fix-bug, complexity normal y el alcance salidos de npm run dimensionar",
+              "ejemplo_malo": "un encargo con el tipo puesto a ojo o sin complejidad"
+            }
+          ],
+          "no_hace": [
+            "repartir los encargos o lanzar agentes: reparte el orquestador",
+            "construir ni arreglar nada del plan",
+            "crear más de tres encargos por fondo sin una razón escrita"
+          ],
+          "rondas": [
+            "ronda: 1 fuentes: 3 cambios: Leídas la skill plan-de-arreglo, docs/ops/ENCARGO.md y Building effective agents: el plan parte el trabajo y lo entrega a quien reparte",
+            "ronda: 2 fuentes: 1 cambios: Contrastado con scripts/encargo.test.js: el bloque encargo exige constructor, juez y clasificación",
+            "ronda: 3 fuentes: 1 cambios: Una regla de la tarea (clasificación del encargo) y quien construye no juzga como norma citada"
+          ],
+          "normas": [
+            "quien-construye-no-juzga"
           ]
         }
       ]

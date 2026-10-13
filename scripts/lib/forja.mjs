@@ -52,7 +52,7 @@ export const ARTEFACTOS = {
 export const ESTADOS_CRITERIO = {
   cumple: "Lo comprobó un control o un juicio y se cumple",
   no_cumple: "Lo comprobó un control o un juicio y no se cumple",
-  no_aplica: "El criterio no se aplica a este artefacto",
+  no_aplica: "La norma no se aplica a este artefacto",
   juicio: "Pendiente de juicio: lo puntúa un LLM o una persona y aún no se ha hecho",
 };
 /** Solo el hueco lleva nota de texto: lo que no se cumple o lo que falta por juzgar. */
@@ -111,6 +111,16 @@ const ID = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 export const FUENTE_F = /^\[F\] https:\/\/[^\s/]+\/\S*$/;
 export const FUENTE_I = /^\[I\] (\S+)$/;
 export const esTexto = (v, min) => typeof v === "string" && v.trim().length >= min;
+
+/**
+ * Los pasos de herencia (#652, docs/ops/BASE-FORJA.md §3.4), de arriba abajo: base, forja, plantilla, pieza.
+ * Espejo de `base.pasos` de ops/forja/ (lo comprueba ops/base.test.js). Sustituyen al «nivel» 0/1/2: el
+ * 0 es la forja (la pieza meta de la familia), el 1 la plantilla y el 2 la pieza. Una skill dice su paso
+ * en `metadata.paso` solo si no es la pieza (hoy, solo forja-de-skills lleva `forja`).
+ */
+export const PASOS = ["base", "forja", "plantilla", "pieza"];
+export const PASO_FORJA = "forja";
+export const PASO_PIEZA = "pieza";
 
 export function leerForja(raiz) {
   return leerCatalogo(raiz, RUTA_FORJA);
@@ -453,15 +463,15 @@ function problemasDeTipos(c, d, datos, malos) {
 
 /**
  * La taxonomía. `skills`: los nombres de las skills del repo; `fichaDe`: skill → su
- * `metadata` (con las respuestas ya como true o false). Cada skill de nivel 2 declara
+ * `metadata` (con las respuestas ya como true o false). Cada skill (paso pieza) declara
  * en su ficha sus respuestas a `preguntas_tipo` y su `tipo`, que tiene que ser el que
  * ellas dan; la base no guarda datos de cada pieza (#495). `destino_tipos_actuales`
  * guarda los tipos retirados y a cuáles pasan: ninguno vuelve a ser un tipo ni a estar en una skill.
  */
 export function problemasDeTaxonomia(datos, { skills: todas, fichaDe = {} }) {
-  const nivel = (s) => String(fichaDe[s]?.nivel ?? "2");
-  // La pieza meta (nivel 0) no tiene tipo ni respuestas.
-  const metas = todas.filter((s) => nivel(s) === "0");
+  const paso = (s) => String(fichaDe[s]?.paso ?? PASO_PIEZA);
+  // La pieza meta (paso forja) no tiene tipo ni respuestas.
+  const metas = todas.filter((s) => paso(s) === PASO_FORJA);
   const skills = todas.filter((s) => !metas.includes(s));
   const malos = [];
   const tipos = datos.tipos_skill ?? [];
@@ -500,13 +510,13 @@ export function problemasDeTaxonomia(datos, { skills: todas, fichaDe = {} }) {
   }
   for (const s of metas) {
     const r = fichaDe[s] ?? {};
-    if ("tipo" in r) malos.push(`${s}: es la pieza meta (nivel 0) y no lleva tipo`);
-    for (const k of claves) if (k in r) malos.push(`${s}: es la pieza meta (nivel 0) y no responde «${k}»`);
+    if ("tipo" in r) malos.push(`${s}: es la pieza meta (paso forja) y no lleva tipo`);
+    for (const k of claves) if (k in r) malos.push(`${s}: es la pieza meta (paso forja) y no responde «${k}»`);
   }
-  if (metas.length !== 1) malos.push(`hay ${metas.length} piezas meta (nivel 0) entre las skills; tiene que haber exactamente una`);
-  const n0 = datos.nivel_0?.skills?.secciones;
-  if (!Array.isArray(n0) || !n0.length || n0.at(-1) !== "Fuentes y comprobación") malos.push("nivel_0.skills.secciones: la forma de la pieza meta es una lista de secciones que acaba en «Fuentes y comprobación»");
-  for (const k of ["0", "1", "2"]) if (!esTexto(datos.niveles?.[k], 20)) malos.push(`niveles: falta el ${k} con su explicación`);
+  if (metas.length !== 1) malos.push(`hay ${metas.length} piezas meta (paso forja) entre las skills; tiene que haber exactamente una`);
+  const n0 = datos.forma_forja?.skills?.secciones;
+  if (!Array.isArray(n0) || !n0.length || n0.at(-1) !== "Fuentes y comprobación") malos.push("forma_forja.skills.secciones: la forma de la pieza meta es una lista de secciones que acaba en «Fuentes y comprobación»");
+  for (const k of PASOS) if (!esTexto(datos.base?.pasos?.[k]?.que, 20)) malos.push(`base.pasos: falta el paso ${k} con su explicación`);
   for (const [s, p] of Object.entries(provisionales)) {
     if (!skills.includes(s)) malos.push(`${s}: skill provisional que no existe`);
     if (!esTexto(p?.motivo, 30)) malos.push(`${s}: skills_provisionales lleva su motivo (30 caracteres o más)`);
@@ -537,7 +547,7 @@ export function problemasDeTaxonomia(datos, { skills: todas, fichaDe = {} }) {
 export const CLASES_CAMPO = {
   bool: "Verdadero o falso",
   enum: "Un valor de un vocabulario cerrado",
-  ref: "Apunta a algo que existe: skill, agente, criterio, ruta, comando, issue, fuente, evidencia, versión, común de estándar o norma",
+  ref: "Apunta a algo que existe: skill, agente, `criterio`, ruta, comando, issue, fuente, evidencia, versión, común de estándar o norma",
   numero: "Un número",
   fecha: "Una fecha AAAA-MM-DD",
   texto: "Prosa: solo como hueco, con su motivo",
@@ -760,13 +770,21 @@ function mdTipos(datos) {
     "|---|---|",
     ...Object.entries(datos.destino_tipos_actuales).map(([t, d]) => `| ${t} | ${d.destinos.join(", ") || "sin sucesor"} |`),
     "",
-    "Cada skill declara en su ficha (frontmatter) sus respuestas a las preguntas y su `tipo`, que tiene que ser el que ellas dan: la base es norma y no guarda datos de cada pieza (`ops/forja-tipos.test.js` y `.claude/skills.test.js`). Niveles:",
+    "Cada skill declara en su ficha (frontmatter) sus respuestas a las preguntas y su `tipo`, que tiene que ser el que ellas dan: el catálogo es norma y no guarda datos de cada pieza (`ops/forja-tipos.test.js` y `.claude/skills.test.js`). Pasos de herencia (`base.pasos`; el campo `paso` de la ficha sustituye al antiguo `nivel`, 0 = forja, 1 = plantilla, 2 = pieza):",
     "",
-    "| Nivel | Qué es |",
-    "|---|---|",
-    ...Object.entries(datos.niveles ?? {}).map(([n, q]) => `| ${n} | ${celda(q)} |`),
+    "| Paso | Qué es | Hereda de |",
+    "|---|---|---|",
+    ...Object.entries(datos.base?.pasos ?? {}).map(([p, d]) => `| ${p} | ${celda(d.que)} | ${d.hereda ?? "nada"} |`),
     "",
-    "Herencia: esqueleto común (la base) → plantilla por tipo (los criterios que le tocan, `tipos` de cada criterio) → cada skill. Criterios de skill por tipo y capa:",
+    "La base común (`base` de `ops/forja/`, la vigila `ops/base.test.js`): lo que toda forja hereda y solo puede endurecer. Redacción por tipo de texto:",
+    "",
+    "| Tipo de texto | Voz | Modo y tiempo | Persona | Sintaxis |",
+    "|---|---|---|---|---|",
+    ...Object.entries(datos.base?.redaccion ?? {}).map(([k, r]) => `| ${k} | ${r.voz} | ${r.modo_tiempo} | ${r.persona.join(" y ")} | ${celda(r.sintaxis)} |`),
+    "",
+    `Metas (cada una con al menos una fuente de marca ${datos.base?.fuente?.marca}): ${Object.keys(datos.base?.metas ?? {}).join(", ")}.`,
+    "",
+    "Herencia: esqueleto común (la base) → plantilla por tipo (las normas que le tocan, `tipos` de cada norma) → cada skill. Normas de skill por tipo y capa:",
     "",
     `| Tipo | ${capasAlReves.join(" | ")} | Criterios |`,
     `|${"---|".repeat(ORDEN_CAPAS.length + 2)}`,
@@ -780,9 +798,9 @@ function mdRegla(datos) {
   const L = LIMITES_REGLA;
   const usos = Object.fromEntries(Object.keys(datos.sujetos).map((s) => [s, datos.criterios.filter((c) => c.sujeto === s).length]));
   return [
-    "## Cómo se escribe un criterio",
+    "## Cómo se escribe una norma de la forja",
     "",
-    `Cada criterio se escribe por campos y su frase se genera; no hay prosa libre. La forma sigue EARS (Mavin et al., Rolls-Royce, 2009) y las palabras de RFC 2119. El esquema vive en \`scripts/lib/regla.mjs\`, para que lo reutilicen las normas y las obligaciones del flujo (#488). La frase es: **Nombre.** [Condición,] sujeto DEBE | NO DEBE exigencia. Se comprueba con: control. Con \`conviene\`: [Condición, para] sujeto, CONVIENE exigencia.`,
+    `Cada norma de la forja se escribe por campos y su frase se genera; no hay prosa libre. La forma sigue EARS (Mavin et al., Rolls-Royce, 2009) y las palabras de RFC 2119. El esquema vive en \`scripts/lib/regla.mjs\`, para que lo reutilicen las normas y las obligaciones del flujo (#488). La frase es: **Nombre.** [Condición,] sujeto DEBE | NO DEBE exigencia. Se comprueba con: control. Con \`conviene\`: [Condición, para] sujeto, CONVIENE exigencia.`,
     "",
     "| Campo | Qué es |",
     "|---|---|",
@@ -820,11 +838,11 @@ function mdCampos(datos) {
     "",
     "| Artefacto | Campos discretos | Huecos de texto | Campos |",
     "|---|---|---|---|",
-    ...Object.keys(k).map((a) => `| ${a} | ${k[a].discretos} | ${k[a].huecos} | ${k[a].total} |`),
+    ...Object.keys(k).map((a) => `| \`${a}\` | ${k[a].discretos} | ${k[a].huecos} | ${k[a].total} |`),
     "",
   ];
   for (const [a, decl] of Object.entries(datos.campos_ficha)) {
-    L.push(`### Campos de ${a}`, "", decl.fuente, "");
+    L.push(`### Campos de \`${a}\``, "", decl.fuente, "");
     for (const [n, c] of Object.entries(decl.campos)) {
       const que = c.clase === "enum" ? `enum (${c.vocab})` : c.clase === "ref" ? `ref a ${c.ref}` : c.clase;
       L.push(`- \`${n}\` — ${que}${c.lista ? ", lista" : ""}${c.obligatorio ? "" : ", opcional"}${c.hueco ? `. Hueco: ${c.cubre}` : ""}`);
@@ -857,11 +875,11 @@ function mdForma(datos) {
 export function generarMd(datos) {
   const k = cifras(datos);
   const L = [
-    "# Forja: criterios de calidad",
+    "# Forja: normas de calidad",
     "",
     `<!-- Generado desde ${RUTA_FORJA} con «npm run forja -- --escribir». No se edita a mano: ops/forja.test.js lo compara. -->`,
     "",
-    `La única fuente de lo que se le pide a una skill, a un estándar de agente y a lo que venga es \`${RUTA_FORJA}\`, partida en un fichero por criterio, por tipo de skill y por ficha para que dos ramas no choquen (#505; formato en \`scripts/lib/catalogos.mjs\`). Tres capas, porque convertir algo continuo en atributos discretos nunca cubre todo; para los huecos están los textos que juzga un LLM. La capa de cada criterio solo sube (\`${RUTA_CAPAS}\`). Cómo se redacta cada criterio, y cualquier otra regla de la casa: [REDACCION.md](REDACCION.md).`,
+    `La única fuente de lo que se le pide a una skill, a un estándar de agente y a lo que venga es \`${RUTA_FORJA}\`, partida en un fichero por norma, por tipo de skill y por ficha para que dos ramas no choquen (#505; formato en \`scripts/lib/catalogos.mjs\`). Tres capas, porque convertir algo continuo en atributos discretos nunca cubre todo; para los huecos están los textos que juzga un LLM. La capa de cada norma solo sube (\`${RUTA_CAPAS}\`). Cómo se redacta cada norma, y cualquier otra norma de la casa: [REDACCION.md](REDACCION.md).`,
     "",
     "## Cifras",
     "",
@@ -870,7 +888,7 @@ export function generarMd(datos) {
     ...ORDEN_CAPAS.slice().reverse().map((capa) => `| ${capa} | ${Object.keys(ARTEFACTOS).map((a) => k.porCapaYArtefacto[capa][a]).join(" | ")} | ${k.porCapa[capa]} |`),
     `| total | ${Object.keys(ARTEFACTOS).map((a) => ORDEN_CAPAS.reduce((s, capa) => s + k.porCapaYArtefacto[capa][a], 0)).join(" | ")} | ${k.total} |`,
     "",
-    "Un criterio que se aplica a dos artefactos cuenta en las dos columnas y una vez en el total.",
+    "Una norma que se aplica a dos artefactos cuenta en las dos columnas y una vez en el total.",
     "",
     ...mdRegla(datos),
     ...mdTipos(datos),
@@ -882,21 +900,21 @@ export function generarMd(datos) {
     "|---|---|",
     ...ORDEN_CAPAS.slice().reverse().map((capa) => `| ${capa} | ${celda(CAPAS_CRITERIO[capa])} |`),
     "",
-    "| Estado de un criterio | Qué quiere decir |",
+    "| Estado de una norma | Qué quiere decir |",
     "|---|---|",
     ...Object.entries(ESTADOS_CRITERIO).map(([e, t]) => `| ${e} | ${celda(t)} |`),
     "",
-    `El estado de un criterio sobre un artefacto es una línea \`<artefacto>: <nombre> criterio: <id> estado: <estado>\`; solo ${ESTADOS_CON_NOTA.join(" y ")} llevan \`nota:\` (el hueco). Los juicios de skill (los criterios de juicio de cada skill, con su evidencia) viven en \`ops/juicios-skills/<skill>.json\` y sus campos son los de \`campos_ficha.juicio\`.`,
+    `El estado de una norma sobre un artefacto es una línea \`<artefacto>: <nombre> criterio: <id> estado: <estado>\`; solo ${ESTADOS_CON_NOTA.join(" y ")} llevan \`nota:\` (el hueco). Los juicios de skill (las normas de juicio de cada skill, con su evidencia) viven en \`ops/juicios-skills/<skill>.json\` y sus campos son los de \`campos_ficha.juicio\`.`,
     "",
     "| Motivo de un pendiente | Qué quiere decir | Dónde se escribe |",
     "|---|---|---|",
-    ...Object.entries(MOTIVOS_PENDIENTE).map(([m, x]) => `| ${m} | ${celda(x.que)} | ${x.en.join(", ")} |`),
+    ...Object.entries(MOTIVOS_PENDIENTE).map(([m, x]) => `| ${m} | ${celda(x.que)} | ${x.en.map((e) => `\`${e}\``).join(", ")} |`),
     "",
     "## Promoción de una rúbrica",
     "",
-    `Un criterio subjetivo lleva casos de calibración (un texto de ejemplo y el estado que se espera, cumple o no_cumple) y solo puede marcarse \`listo_para_subir\` si sus medidas cumplen la promoción: coincidencia del juez con la respuesta conocida de al menos **${datos.promocion.coincidencia_minima}** en **${datos.promocion.repeticiones}** repeticiones.`,
+    `Una norma subjetiva lleva casos de calibración (un texto de ejemplo y el estado que se espera, cumple o no_cumple) y solo puede marcarse \`listo_para_subir\` si sus medidas cumplen la promoción: coincidencia del juez con la respuesta conocida de al menos **${datos.promocion.coincidencia_minima}** en **${datos.promocion.repeticiones}** repeticiones.`,
     "",
-    "**Estos valores son un primer tiro, pendientes de ajustar con datos.** Están en el bloque `promocion` de `ops/forja/` y se cambian ahí; aún no hay juez montado ni medidas. Subir de capa sigue siendo editar el criterio; el trinquete (`ops/forja-capas.json`) impide bajar.",
+    "**Estos valores son un primer tiro, pendientes de ajustar con datos.** Están en el bloque `promocion` de `ops/forja/` y se cambian ahí; aún no hay juez montado ni medidas. Subir de capa sigue siendo editar la norma; el trinquete (`ops/forja-capas.json`) impide bajar.",
     "",
     "Marca de la fuente: **[F]** está en una fuente externa (con su URL); **[I]** es de la casa (con la ruta del repo donde está escrito).",
   ];

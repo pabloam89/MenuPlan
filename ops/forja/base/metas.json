@@ -1,0 +1,28 @@
+{
+  "clave": "metas",
+  "valor": {
+    "security": {
+      "fuentes": ["owasp-asvs"]
+    },
+    "family-data": {
+      "fuentes": ["owasp-idor", "pg-rls"]
+    },
+    "cost": {
+      "fuentes": ["an-cache", "an-choose-model"]
+    },
+    "human-intervention": {
+      "label": "intervención humana evitable: 0 %",
+      "what": "Que una persona solo intervenga donde CLAUDE.md lo exige (las puertas irreducibles)",
+      "fuentes": ["[F] https://sre.google/sre-book/eliminating-toil/"],
+      "medida": { "evento": "intervencion_humana", "campo": "evitable" }
+    },
+    "agent-ux": {
+      "label": "UX por y para agentes",
+      "what": "Que lo que usa un agente tenga salida con forma fija, error con causa y arreglo y ninguna pregunta a mitad",
+      "fuentes": ["an-tools-agents"]
+    },
+    "speed": {
+      "fuentes": ["[F] https://dora.dev/guides/dora-metrics/"]
+    }
+  }
+}

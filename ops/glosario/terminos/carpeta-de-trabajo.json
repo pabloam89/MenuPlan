@@ -2,6 +2,7 @@
   "termino": "carpeta de trabajo",
   "estado": "activo",
   "clase": "lugar",
+  "dominio": "ops",
   "definicion": "La carpeta C:\\dev\\MenuPlan-<tarea> de una sesión, con su rama, que abre npm run tarea y cierra npm run retirar.",
   "sinonimos_prohibidos": [
     "worktree",
@@ -14,5 +15,11 @@
     "carpeta principal",
     "tarea"
   ],
-  "nota": "La orden git worktree, en código, no cuenta."
+  "nota": "La orden git worktree, en código, no cuenta.",
+  "entidades": [
+    {
+      "entidad": "session",
+      "relacion": "ubicacion_de"
+    }
+  ]
 }

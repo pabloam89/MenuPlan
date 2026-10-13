@@ -72,11 +72,11 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | # | Paso | Entra | Sale | Quién | Skill | Se mide |
 |---|---|---|---|---|---|---|
 | 1 | Detectar | Un fallo en producción, en el CI o en el trabajo de una sesión | Una señal que alguien ve: un aviso, un check rojo, un hallazgo de un juez | automatico, juez, persona | (—) | ○ fallos detectados por fuente (vigía, agente de fallos, jueces) (#340) |
-| 2 | Registrar el caso | Una señal de fallo | Un issue tipo:caso con su área, buscado antes entre los parecidos | agente_dominio, orquestador, automatico | `issues` | ✓ casos abiertos por área y tipo; ✓ PR con casos frente a PR con «ninguno» |
-| 3 | Triaje | Un caso registrado | Alcance (local, módulo o transversal) y tipo de causa fijados | orquestador, agente_dominio | `causa-raiz` | ○ casos por alcance (#337) |
-| 4 | Diagnosticar | Un caso con alcance y tipo | Mecanismo, causa de escape y clase del fallo; o una hipótesis marcada como tal | agente_dominio, juez, orquestador | `causa-raiz` | ✓ fondos y casos por causa; ✓ casos puntuales, para ver si eran un patrón |
-| 5 | Fondo | Un diagnóstico | Un issue tipo:fondo con su arreglo general, su causa y cómo se probará | agente_dominio, orquestador | `causa-raiz` | ✓ fondos ordenados por casos (dónde duele) |
-| 6 | Plan | Un fondo diagnosticado | Encargos colgados del fondo, con dependencias, agente, juez y verificación | orquestador, agente_dominio | `plan-de-arreglo` | ✓ encargos hechos frente a encargos por fondo |
+| 2 | Registrar el caso | Una señal de fallo | Un issue tipo:caso con su área, buscado antes entre los parecidos | analista, orquestador, automatico | `issues` | ✓ casos abiertos por área y tipo; ✓ PR con casos frente a PR con «ninguno» |
+| 3 | Triaje | Un caso registrado | Alcance (local, módulo o transversal) y tipo de causa fijados | orquestador, analista | `causa-raiz` | ○ casos por alcance (#337) |
+| 4 | Diagnosticar | Un caso con alcance y tipo | Mecanismo, causa de escape y clase del fallo; o una hipótesis marcada como tal | analista, juez, orquestador | `causa-raiz` | ✓ fondos y casos por causa; ✓ casos puntuales, para ver si eran un patrón |
+| 5 | Fondo | Un diagnóstico | Un issue tipo:fondo con su arreglo general, su causa y cómo se probará | analista, orquestador | `causa-raiz` | ✓ fondos ordenados por casos (dónde duele) |
+| 6 | Plan | Un fondo diagnosticado | Encargos colgados del fondo, con dependencias, agente, juez y verificación | orquestador, analista | `plan-de-arreglo` | ✓ encargos hechos frente a encargos por fondo |
 | 7 | Ejecutar | Un encargo colgado de su fondo, con su issue | Un PR con su issue, su agente y su juez | agente_dominio, juez, orquestador | (—) | ✓ tiempo activo, tokens, coste estimado y agentes por encargo y por fondo (npm run fabrica, a mano, con las transcripciones de cada PC); ○ rondas reales por encargo (hoy solo el campo rondas de la ficha, que apunta la sesión) (#340) |
 | 8 | Verificar | El PR de un encargo | CI en verde, juez conforme y un test que cubre la clase | automatico, juez | (—) | ○ fondos cerrados con test de clase (#341) |
 | 9 | Observar | Un fondo con su arreglo fusionado | Una ventana sin casos nuevos, o el fondo reabierto | automatico, persona | (—) | ✓ fondos que no aguantaron, rotos o cortos |
@@ -127,7 +127,7 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | P07.4 | **Tope de rondas.** Cada problema de fondo NO DEBE pasar de las rondas del presupuesto de constructor y juez. | NO DEBE | script_propio · semidura · `scripts/lib/fondos.mjs` | test: `scripts/fondos-rondas.test.js` | `rondas-tope-duro` | #340 |
 | P07.5 | **Agente con plantilla.** Cada agente DEBE seguir la plantilla: tipo, planos, método e informe común. | DEBE | ci · dura · `.claude/PLANTILLA-AGENTE.md` | test: `.claude/agentes.test.js` | — | — |
 | P07.6 | **Main solo por PR.** La rama main DEBE recibir cambios solo por PR con el check tests en verde. | DEBE | github_regla · semidura · `ops/DECISIONES.md` | planos: `ops/planos.json` | `main-solo-por-pr-con-tests` | #330 |
-| P07.7 | **Reglas propias intocables.** Cada sesión de Claude NO DEBE cambiar las propias reglas (protecciones, permisos, guardia) con credenciales de sesión. | NO DEBE | nada · blanda · no escrita aún | juicio | — | #326 |
+| P07.7 | **Normas propias intocables.** Cada sesión de Claude NO DEBE cambiar las propias normas (protecciones, permisos, guardia) con credenciales de sesión. | NO DEBE | nada · blanda · no escrita aún | juicio | — | #326 |
 | P07.8 | **Staging exige tests.** La rama staging DEBE recibir cambios solo con el check tests en verde, sea por PR o por push. | DEBE | github_regla · semidura · `ops/DECISIONES.md` | planos: `ops/planos.json` | `staging-exige-tests` | #263 |
 | P07.9 | **Agente y Closes del PR.** Cada PR DEBE llevar la línea Agente: y, si la rama es de un issue, su Closes #n. | DEBE | ci · semidura · `scripts/fondos-pr.mjs` | test: `scripts/fondos-pr.test.js` | `pr-agente-y-closes-en-ci` | — |
 | P07.10 | **Jueces sin escritura.** Cuando es un juez, cada agente NO DEBE tener Edit ni Write, contando las herramientas que da la memoria. | NO DEBE | ci · dura · `CLAUDE.md` | test: `.claude/agentes.test.js` | `jueces-sin-escritura` | — |
@@ -243,8 +243,8 @@ Valores iniciales de F0, a ojo y marcados como tales. `npm run fabrica -- --reca
 
 | Alcance | Diagnostica | ES / NO ES | Hipótesis en paralelo (máx.) | Jueces (mín.) | Rondas (máx.) | Minutos orientativos |
 |---|---|---|---|---|---|---|
-| **local** | agente_dominio | no | 1 | 1 | 2 | 15 |
-| **modulo** | agente_dominio | sí | 1 | 1 | 2 | 30 |
+| **local** | analista | no | 1 | 1 | 2 | 15 |
+| **modulo** | analista | sí | 1 | 1 | 2 | 30 |
 | **transversal** | orquestador_con_diagnosticadores | sí | 3 | 2 | 2 | 60 |
 
 Una causa puede sobrescribir al alcance (`por_causa`):
@@ -284,7 +284,7 @@ nada. De ahí salen quién diagnostica, las hipótesis, los jueces y el tope.
   por alcance y tipo de causa) y propondrá recalibrarlos. Una persona los
   aplicará. Una causa puede sobrescribir al alcance (p. ej. `modelo-datos` pide
   siempre `auditor-datos`); la celda alcance × causa la resuelve el comando.
-- **El diagnóstico se parará por criterio, no por cansancio.** Se dejará de
+- **El diagnóstico se parará por condición, no por cansancio.** Se dejará de
   preguntar «¿por qué?» cuando se llega a algo que se puede cambiar con un
   mecanismo; cuando se llega a algo fuera de nuestro control (se pone una
   barrera de nuestro lado); o cuando se acaba la evidencia (se marca como

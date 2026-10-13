@@ -1,10 +1,10 @@
 {
-  "$comentario": "Catálogo de criterios de calidad de la forja (#458, fondo #455): la única fuente de lo que se le pide a una skill, a un estándar de agente y a lo que venga. Tres capas: formal (esquema y forma, determinista, test del CI), material (heurística automática con lista de excepciones que solo baja) y subjetiva (rúbrica que puntúa un LLM sobre casos). Cada criterio dice a qué se aplica, qué pide, de dónde sale ([F] fuente externa con url, [I] de la casa con ruta del repo), quién lo vigila (un fichero, o juicio) y qué código emite el script al detectarlo. Lo lee scripts/lib/forja.mjs, lo vigila ops/forja.test.js y de él sale docs/ops/FORJA.md (npm run forja -- --escribir). La capa de cada criterio queda anclada en ops/forja-capas.json y solo sube. Repo público: nada de cómo se salta un control.",
+  "$comentario": "Catálogo de normas de calidad de la forja (#458, fondo #455): la única fuente de lo que se le pide a una skill, a un estándar de agente y a lo que venga. Tres capas: formal (esquema y forma, determinista, test del CI), material (heurística automática con lista de excepciones que solo baja) y subjetiva (rúbrica que puntúa un LLM sobre casos). Cada norma dice a qué se aplica, qué pide, de dónde sale ([F] fuente externa con url, [I] de la casa con ruta del repo), quién lo vigila (un fichero, o juicio) y qué código emite el script al detectarlo. La sección base (redacción, metas, pasos y la obligación de fuente) es la base común de toda forja (#652, docs/ops/BASE-FORJA.md): una forja hereda de ella y solo puede endurecerla; la lee scripts/lib/forja.mjs (problemasDeBase) y la vigila ops/base.test.js. forma_forja es la forma de la pieza meta de cada familia (paso forja). Lo lee scripts/lib/forja.mjs, lo vigila ops/forja.test.js y de él sale docs/ops/FORJA.md (npm run forja -- --escribir). La capa de cada norma queda anclada en ops/forja-capas.json y solo sube. Repo público: nada de cómo se salta un control.",
   "version": 1,
   "promocion": {
     "coincidencia_minima": 0.9,
     "repeticiones": 10,
-    "nota": "Primer tiro, pendiente de ajustar con datos: un criterio subjetivo solo puede marcarse listo_para_subir si sus medidas (coincidencia del juicio del LLM con la respuesta conocida de sus casos de calibración, sobre n repeticiones) cumplen los dos valores."
+    "nota": "Primer tiro, pendiente de ajustar con datos: una norma subjetiva solo puede marcarse listo_para_subir si sus medidas (coincidencia del juicio del LLM con la respuesta conocida de sus casos de calibración, sobre n repeticiones) cumplen los dos valores."
   },
   "tipos_skill": {
     "$partida": "lista",
@@ -43,7 +43,7 @@
     }
   ],
   "libertad": {
-    "alta": "Una heurística o un criterio: hay varios caminos buenos",
+    "alta": "Una heurística o una norma: hay varios caminos buenos",
     "media": "Un camino recomendado con variantes admitidas",
     "baja": "Pasos exactos o un script: un error cuesta caro"
   },
@@ -62,14 +62,12 @@
       "en_tabla": true
     }
   },
-  "niveles": {
-    "0": "Pieza meta de una familia (skills hoy; la de estándares vendrá): de ella salen las plantillas por tipo. Sin tipo de skill y exactamente una por familia",
-    "1": "Plantilla por tipo, generada en .claude/plantillas-skill/<tipo>.md: no es una skill",
-    "2": "Skill concreta, con su tipo (el que dan sus respuestas); es el nivel si la ficha no dice otro"
+  "base": {
+    "$partida": "mapa"
   },
-  "nivel_0": {
+  "forma_forja": {
     "skills": {
-      "nota": "La forma de la pieza meta de las skills (forja-de-skills, decisión de Pablo del 10 oct 2026) la fija la forja misma: le valen las reglas comunes del nivel 1 y estas secciones, no el molde de un tipo",
+      "nota": "La forma de la pieza meta de las skills (forja-de-skills, decisión de Pablo del 10 oct 2026) la fija la forja misma: le valen las reglas comunes de la prueba de forma (nivel 1 de las pruebas de skills) y estas secciones, no el molde de un tipo",
       "secciones": [
         "Cuándo y para qué",
         "Método",
@@ -130,7 +128,7 @@
       "destinos": [
         "revision"
       ],
-      "nota": "Juzgar lo existente es revision; crear skills es de la pieza meta (nivel 0), que no tiene tipo."
+      "nota": "Juzgar lo existente es revision; crear skills es de la pieza meta (paso forja), que no tiene tipo."
     },
     "forja": {
       "destinos": [],

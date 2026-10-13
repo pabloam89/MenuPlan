@@ -41,7 +41,8 @@
         "^scripts/lib/(?:issues|lleva)\\.mjs$"
       ],
       "agentes": [
-        "gobierno"
+        "gobierno",
+        "analista"
       ]
     },
     "causa-raiz": {
@@ -51,7 +52,8 @@
         "^scripts/lib/tecnicas\\.mjs$"
       ],
       "agentes": [
-        "gobierno"
+        "gobierno",
+        "analista"
       ]
     },
     "alta-de-secreto": {
@@ -79,6 +81,15 @@
         "gobierno"
       ]
     },
+    "higiene-de-vocabulario": {
+      "comandos": [],
+      "rutas": [
+        "^scripts/lib/glosario(?:Dominios|Mapeo|Higiene).mjs$"
+      ],
+      "agentes": [
+        "gobierno"
+      ]
+    },
     "forja-de-skills": {
       "comandos": [],
       "rutas": [
@@ -98,7 +109,8 @@
       ],
       "agentes": [
         "gobierno",
-        "orquestador"
+        "orquestador",
+        "analista"
       ]
     },
     "revision-de-diseno": {
@@ -132,7 +144,8 @@
         "^docs/ops/ENCARGO\\.md$"
       ],
       "agentes": [
-        "gobierno"
+        "gobierno",
+        "analista"
       ]
     },
     "vercel": {

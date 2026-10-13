@@ -1,0 +1,35 @@
+{
+  "clave": "redaccion",
+  "valor": {
+    "norma": {
+      "voz": "activa",
+      "modo_tiempo": "presente",
+      "persona": ["tercera"],
+      "sintaxis": "EARS: [condición,] sujeto DEBE exigencia (la forma de scripts/lib/regla.mjs); la exigencia, en infinitivo"
+    },
+    "principio": {
+      "voz": "activa",
+      "modo_tiempo": "presente",
+      "persona": ["tercera"],
+      "sintaxis": "una frase de 25 palabras como mucho, sin palabras de fuerza"
+    },
+    "practica": {
+      "voz": "activa",
+      "modo_tiempo": "imperativo",
+      "persona": ["segunda"],
+      "sintaxis": "regla, porqué, ejemplo bueno, ejemplo malo y fuente (forma_practica de la forja)"
+    },
+    "skill": {
+      "voz": "activa",
+      "modo_tiempo": "imperativo",
+      "persona": ["segunda"],
+      "sintaxis": "pasos, cada uno con su salida observable"
+    },
+    "respuesta": {
+      "voz": "activa",
+      "modo_tiempo": "presente",
+      "persona": ["primera", "segunda"],
+      "sintaxis": "la forma de la skill estilo-de-respuesta"
+    }
+  }
+}

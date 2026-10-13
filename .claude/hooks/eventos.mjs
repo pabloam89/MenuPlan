@@ -25,7 +25,8 @@
  * sesión vaya con la identidad de la App; `desconocido` si no se lee), `motivo` (MOTIVOS_INTERVENCION), `entidad_exigida` (el id de la norma de
  * ops/normas.json que exige a la persona) y `evitable` (EVITABLE: `si` cuando el paso humano
  * vino de un fallo de la propia comprobación o de un olvido de la sesión, y no de una decisión que hiciera falta). Solo lo escriben los puntos que ya
- * existían: la guardia al pedir permiso (`intervencionDeAviso`) y pendientes.mjs al dejar una decisión.
+ * existían: la guardia al pedir permiso (`intervencionDeAviso`) y pendientes.mjs al dejar una decisión; y
+ * intervenciones.mjs (fuente `intervenciones`) con cada comando que Pablo escribe con `!`.
  *
  * Eventos (vocabulario cerrado, EVENTOS): `skill_cargada` (skill-abierta.mjs),
  * `bloqueo_guardia` y `permiso_pedido` (guardia.mjs: un deny y un ask),
@@ -64,7 +65,7 @@ export { ACTORES, EVITABLE, MOTIVOS_INTERVENCION };
 /** De qué iba la afirmación de un `estado_sin_leer` (#579); lo cruza el test con los temas de pendientes.mjs. */
 export const TEMAS_ESTADO = ["issues-pr", "despliegue", "base", "ci"];
 /** Quién escribe el evento: el hook que llama a `registrarEvento`. */
-export const FUENTES = ["guardia", "skill-abierta", "pendientes"];
+export const FUENTES = ["guardia", "skill-abierta", "pendientes", "intervenciones"];
 /** La identidad de la App de sesiones. Las líneas de antes de #652 la anotaban así; hoy el actor es `app`. */
 export const ACTOR_APP = "homenu-sesiones[bot]";
 

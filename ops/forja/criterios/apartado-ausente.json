@@ -8,7 +8,7 @@
   "nombre": "Apartados del tipo",
   "sujeto": "plantilla.tipo",
   "fuerza": "debe",
-  "exigencia": "llevar en el estándar de cada tipo «Qué lo hace bueno», «Errores típicos» y «Ejemplo mínimo», ninguno vacío",
+  "exigencia": "llevar en la plantilla de cada tipo «Qué lo hace bueno», «Errores típicos» y «Ejemplo mínimo», ninguno vacío",
   "fuente": "[I] .claude/PLANTILLA-SKILL.md",
   "control": ".claude/skills.test.js",
   "codigo": "apartado-ausente"

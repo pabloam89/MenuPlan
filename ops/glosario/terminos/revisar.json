@@ -2,6 +2,7 @@
   "termino": "revisar",
   "estado": "activo",
   "clase": "accion",
+  "dominio": "base",
   "definicion": "Leer un cambio o un texto buscando fallos o lo que ha caducado; puede correr sus tests, pero no lo cambia.",
   "sinonimos_prohibidos": [
     "inspeccionar"

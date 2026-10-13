@@ -2,6 +2,7 @@
   "termino": "mecanismo",
   "estado": "activo",
   "clase": "campo",
+  "dominio": "ops",
   "definicion": "Una forma de hacer cumplir algo que está en el catálogo ops/mecanismos.json; el arreglo elige el más alto posible.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
@@ -16,5 +17,11 @@
     "clave": "MECANISMOS_PEDIDOS"
   },
   "nota": "Hay tres cosas llamadas «mecanismo»: los ids de ops/mecanismos.json (la escalera), ficha.mecanismo del fondo (texto libre con la causa) y el campo recorded_in del aprendizaje (test, guard, rule o skill), renombrado para no chocar (principio 1).",
-  "en": "mechanism"
+  "en": "mechanism",
+  "entidades": [
+    {
+      "entidad": "mechanism",
+      "relacion": "campo_de"
+    }
+  ]
 }

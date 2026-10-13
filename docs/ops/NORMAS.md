@@ -83,7 +83,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `estandar-por-tarea-de-agente` | agente | DEBE | **Estándar por tarea.** Cada agente DEBE listar sus tareas, cada una con su estándar y su fuente pública. | ci · dura | test: `ops/estandares-agentes.test.js` | — | `top-down` | process | construir |
 | `estandar-citado-en-el-informe` | agente | DEBE | **Estándar citado en el informe.** Cuando construye, cada agente DEBE citar en su informe el estándar de la tarea (ESTÁNDAR:), que el revisor contrasta con el diff. | persona · blanda | test: `.claude/agentes.test.js` | — | `builder-does-not-judge` | process | juzgar, documentar |
 | `presupuestos-se-recalibran` | presupuesto | DEBE | **Presupuestos recalibrados.** Cada presupuesto del catálogo de esfuerzo DEBE recalibrarse con lo medido. | persona · blanda | test: `scripts/fabrica.test.js` | — | `number-before-and-after` | process | medir |
-| `criterios-de-forja-en-un-catalogo` | forja | DEBE | **Criterios de la forja.** El catálogo de criterios de la forja DEBE guardar cada criterio una vez, en ops/forja/, con su capa, su fuente y su control. | ci · dura | test: `ops/forja.test.js` | — | `three-check-layers` | process | construir |
+| `criterios-de-forja-en-un-catalogo` | forja | DEBE | **Normas de la forja.** El catálogo de normas de la forja DEBE guardar cada norma de la forja una vez, en ops/forja/, con su capa, su fuente y su control. | ci · dura | test: `ops/forja.test.js` | — | `three-check-layers` | process | construir |
 | `push-forzado-con-permiso` | sesion | DEBE | **Push forzado con permiso.** Cuando hace un push forzado, cada sesión de Claude DEBE confirmar antes que la rama es suya y que nadie más trabaja en ella. | guardia · semidura | test: `.claude/hooks/guardia.test.js` | `push-forzado` | `reversibility-decides-autonomy` | infra | operar |
 | `build-con-prebuild` | sesion | NO DEBE | **Build con prebuild.** Cada sesión de Claude NO DEBE lanzar vite build a secas. | guardia · semidura | test: `.claude/hooks/guardia.test.js` | `vite-build-a-secas` | `test-is-the-contract` | code | construir |
 | `variables-production-solo-pablo` | secreto | DEBE | **Variables de producción de Pablo.** Cuando son las variables de Production de Vercel, cada secreto o variable de entorno DEBE bajarse y listarse solo desde la terminal de Pablo. | guardia · semidura | test: `.claude/hooks/guardia.test.js` | `vercel-production` | `least-short-lived-permissions` | infra | diagnosticar, operar |
@@ -175,8 +175,8 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `value-before-signup-shown` | producto | DEBE | **Valor antes del registro.** Cuando alguien llega por primera vez, el producto DEBE dejarle probar el valor antes de pedirle cuenta o datos. | persona · blanda | juicio | — | `value-before-signup` | product | construir, juzgar |
 | `slow-action-shows-status` | producto | DEBE | **Estado visible.** Cuando una acción tarda o sigue en curso, el producto DEBE indicar su estado. | persona · blanda | juicio | — | `visibility-of-status` | product | construir, juzgar |
 | `screen-accessible` | producto | DEBE | **Accesible para todos.** Cuando se diseña una pantalla, el producto DEBE poner texto alternativo a las imágenes, poder usar todo con teclado y cuidar el contraste del texto. | persona · blanda | juicio | — | `wcag-pour` | ui | construir, juzgar |
-| `rule-in-spanish` | regla | DEBE | **Castellano siempre.** Cada regla de la casa DEBE escribirse en castellano, salvo los nombres propios, el código y las citas. | persona · blanda | juicio | — | `castellano-siempre` | writing | construir, juzgar, documentar |
-| `no-anglicism-with-term` | regla | NO DEBE | **Sin anglicismos con término.** Cada regla de la casa NO DEBE usar un anglicismo cuando el glosario ya tiene su término en castellano. | ci · semidura | test: `ops/glosario.test.js` | — | `sin-anglicismos-con-termino` | writing | construir, juzgar, documentar |
+| `rule-in-spanish` | regla | DEBE | **Castellano siempre.** Cada norma de la casa DEBE escribirse en castellano, salvo los nombres propios, el código y las citas. | persona · blanda | juicio | — | `castellano-siempre` | writing | construir, juzgar, documentar |
+| `no-anglicism-with-term` | regla | NO DEBE | **Sin anglicismos con término.** Cada norma de la casa NO DEBE usar un anglicismo cuando el glosario ya tiene su término en castellano. | ci · semidura | test: `ops/glosario.test.js` | — | `sin-anglicismos-con-termino` | writing | construir, juzgar, documentar |
 | `strength-per-rfc-2119` | regla.fuerza | DEBE | **Fuerza según RFC 2119.** La fuerza de cada regla DEBE ser debe, no_debe o conviene, con el sentido de MUST, MUST NOT y SHOULD de RFC 2119. | ci · semidura | test: `ops/regla.test.js` | — | `fuerza-segun-rfc-2119` | writing | construir, juzgar, documentar |
 | `uppercase-only-normative` | regla.exigencia | NO DEBE | **Mayúsculas solo normativas.** La exigencia de cada regla NO DEBE llevar DEBE, NO DEBE ni CONVIENE en mayúsculas: la fuerza solo la pone el campo fuerza. | persona · blanda | juicio | — | `mayusculas-solo-normativas` | writing | construir, juzgar, documentar |
 | `condition-ears-style` | regla.condicion | DEBE | **Condición estilo EARS.** La condición de cada regla DEBE empezar por «cuando» o «si» y nombrar el disparador, en una línea y sin punto final. | ci · semidura | test: `ops/regla.test.js` | — | `condicion-estilo-ears` | writing | construir, juzgar, documentar |
@@ -219,7 +219,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | issue | cada issue | 2 |
 | guardia | la guardia de Claude | 2 |
 | presupuesto | cada presupuesto del catálogo de esfuerzo | 1 |
-| forja | el catálogo de criterios de la forja | 1 |
+| forja | el catálogo de normas de la forja | 1 |
 | catalogo.mercadona | el catálogo de productos de Mercadona | 1 |
 | catalogo | el catálogo de recetas y alimentos | 2 |
 | receta | cada receta del catálogo | 8 |
@@ -235,7 +235,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | producto | el producto | 18 |
 | pantalla | cada pantalla de la app | 1 |
 | decision | cada decisión de producto | 2 |
-| regla | cada regla de la casa | 2 |
+| regla | cada norma de la casa | 2 |
 | regla.nombre | el nombre de cada regla | 1 |
 | regla.fuerza | la fuerza de cada regla | 1 |
 | regla.condicion | la condición de cada regla | 1 |
@@ -267,7 +267,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | Tipo de control | Qué es | Normas |
 |---|---|---|
 | test | Un test del repo que falla en el CI | 92 |
-| planos | Un criterio de la medición semanal de ops/planos.json (con red, cada lunes) | 7 |
+| planos | Una condición de la medición semanal de ops/planos.json (con red, cada lunes) | 7 |
 | workflow | Un paso de un workflow de GitHub Actions que falla el check | 1 |
 | script | Un script del repo que comprueba y se lanza a mano o en el build | 7 |
 | juicio | El juicio de una persona o de un LLM sobre sus casos: no hay nada que falle solo | 76 |

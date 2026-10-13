@@ -159,7 +159,7 @@ export function informe({ indicadores, salud, uso = null, glosario = null, crite
   if (caducidades) L.push(...seccionCaducidades(caducidades));
   if (glosario) {
     L.push("", "### Glosario", "", "```", lineaDelGlosario(glosario), "```", "");
-    L.push("Excepciones que ya se pueden bajar y candidatos a término sin juzgar: los repasa un agente con `npm run glosario -- --medir` y `npm run glosario -- --candidatos` (método: `.claude/skills/higiene-de-skills/referencias/glosario.md`).");
+    L.push("Excepciones que ya se pueden bajar y candidatos a término sin juzgar: los repasa un agente con `npm run glosario -- --medir` y `npm run glosario -- --candidatos` (método: `.claude/skills/higiene-de-vocabulario/referencias/glosario.md`).");
   }
   if (uso) L.push("", "### Poda (registro local de la fábrica)", "", "```", ...lineasDeUso(uso), "```");
   if (margen) {

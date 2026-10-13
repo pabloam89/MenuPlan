@@ -1,7 +1,7 @@
 {
   "clave": "juicio",
   "valor": {
-    "fuente": "Un juicio de skill: el estado de un criterio de juicio (control «juicio») sobre una skill, en ops/juicios-skills/<skill>.json bajo el id del criterio (#457). Los criterios con control no se escriben: los calcula su control. Lo valida scripts/lib/juiciosSkills.mjs.",
+    "fuente": "Un juicio de skill: el estado de una norma de juicio (control «juicio») sobre una skill, en ops/juicios-skills/<skill>.json bajo el id de la norma (#457). Las normas con control no se escriben: los calcula su control. Lo valida scripts/lib/juiciosSkills.mjs.",
     "clave": "criterio",
     "campos": {
       "estado": {
@@ -20,12 +20,12 @@
         "clase": "enum",
         "vocab": "motivos_pendiente",
         "obligatorio": false,
-        "nota": "Obligatorio con estado juicio; falta_herramienta y falta_decision exigen que el criterio esté pendiente_de su issue con ese motivo"
+        "nota": "Obligatorio con estado juicio; falta_herramienta y falta_decision exigen que la norma esté pendiente_de su issue con ese motivo"
       },
       "nota": {
         "clase": "texto",
         "hueco": true,
-        "cubre": "Lo propio de esta skill que el estado no dice: qué falla en el hueco o qué falta mirar; lo que es del criterio va al criterio",
+        "cubre": "Lo propio de esta skill que el estado no dice: qué falla en el hueco o qué falta mirar; lo que es de la norma va a la norma",
         "obligatorio": false
       },
       "fecha": {

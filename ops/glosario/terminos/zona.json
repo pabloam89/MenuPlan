@@ -2,9 +2,13 @@
   "termino": "zona",
   "estado": "activo",
   "clase": "lugar",
+  "dominio": "base",
   "definicion": "El conjunto de ficheros, por sus rutas, al que aplica una regla, un dominio o un término del glosario.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
     "todas"
+  ],
+  "relacionado": [
+    "dominio"
   ]
 }

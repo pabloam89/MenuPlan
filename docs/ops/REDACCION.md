@@ -2,7 +2,7 @@
 
 <!-- Generado desde ops/redaccion.json y ops/normas.json con «npm run redaccion -- --escribir». No se edita a mano: ops/redaccion.test.js lo compara. -->
 
-Esta guía dice cómo se escribe cualquier regla de la casa: un criterio de la forja, una norma, un aviso de la guardia, una obligación del proceso o el estándar de una tarea de agente. Es una sola, para que todas se lean igual y se puedan contar.
+Esta guía dice cómo se escribe cualquier norma de la casa: una norma de la forja, una norma, un aviso de la guardia, una obligación del proceso o el estándar de una tarea de agente. Es una sola, para que todas se lean igual y se puedan contar.
 
 Se apoya en tres ideas. La forma sale de EARS (Mavin et al., 2009) y la fuerza de RFC 2119: la regla se escribe por campos y su frase se genera, sin prosa libre. El idioma es el castellano y cada concepto tiene un solo término, el del glosario. Y lo que se vaya a contar va en un campo de vocabulario cerrado, con el texto libre solo en un hueco declarado.
 
@@ -12,14 +12,14 @@ Cada principio de abajo es el porqué, sin fuerza, con su ejemplo bueno, su ejem
 
 - `castellano-siempre` — **Castellano siempre.** Una regla que todo el equipo lee en su idioma se entiende a la primera y se discute menos.
   - Porqué: Quien trabaja en el repo lee en castellano, y mezclar idiomas en una regla la hace más difícil de entender.
-  - Norma: `rule-in-spanish` — **Castellano siempre.** Cada regla de la casa DEBE escribirse en castellano, salvo los nombres propios, el código y las citas. Control: juicio.
+  - Norma: `rule-in-spanish` — **Castellano siempre.** Cada norma de la casa DEBE escribirse en castellano, salvo los nombres propios, el código y las citas. Control: juicio.
     - Nota: Las palabras de fuerza de RFC 2119 se traducen: debe, no debe y conviene; no se deja MUST ni SHOULD.
   - Bueno: «Cada skill debe llevar su dueño».
   - Malo: «Each skill must have an owner».
   - Fuente: [I] CLAUDE.md.
 - `sin-anglicismos-con-termino` — **Sin anglicismos con término.** El glosario de la casa ya tiene término castellano para lo que se repite, y el préstamo lo duplica.
   - Porqué: Dos palabras para lo mismo parten la búsqueda y el recuento, y el término castellano lo entiende todo el equipo.
-  - Norma: `no-anglicism-with-term` — **Sin anglicismos con término.** Cada regla de la casa NO DEBE usar un anglicismo cuando el glosario ya tiene su término en castellano. Control: `ops/glosario.test.js`.
+  - Norma: `no-anglicism-with-term` — **Sin anglicismos con término.** Cada norma de la casa NO DEBE usar un anglicismo cuando el glosario ya tiene su término en castellano. Control: `ops/glosario.test.js`.
     - Nota: Lo que no tiene término en el glosario (hook, staging, lint) se deja como está y se añade al glosario si se repite.
   - Bueno: «Fusionar el PR con el CI en verde».
   - Malo: «Hacer el merge del PR con el CI en verde».
@@ -138,7 +138,7 @@ Los sujetos de las normas de redacción (vocabulario de `ops/normas.json`):
 | Sujeto | En la frase | Normas |
 |---|---|---|
 | texto | cada texto de proceso (skills, agentes, reglas, CLAUDE.md y ops) | 1 |
-| regla | cada regla de la casa | 2 |
+| regla | cada norma de la casa | 2 |
 | regla.fuerza | la fuerza de cada regla | 1 |
 | regla.exigencia | la exigencia de cada regla | 4 |
 | regla.condicion | la condición de cada regla | 1 |
@@ -169,7 +169,7 @@ Marca de la fuente, con un solo significado en todos los catálogos (`MARCAS_FUE
 | `ops/redaccion.json` | principio | cumple | 15 | - |
 | `ops/normas.json` | regla | cumple | 183 | - |
 | `ops/flujo.json` | regla | cumple | 53 | - |
-| `ops/estandares-agentes.json` | regla | cumple | 181 | - |
+| `ops/estandares-agentes.json` | regla | cumple | 193 | - |
 | `ops/principios-producto/` | principio | cumple | 40 | - |
 | `ops/principios/` | principio | cumple | 56 | - |
 

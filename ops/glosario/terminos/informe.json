@@ -2,6 +2,7 @@
   "termino": "informe",
   "estado": "activo",
   "clase": "artefacto",
+  "dominio": "base",
   "definicion": "El texto que devuelve un agente al acabar, con la forma de .claude/PLANTILLA-AGENTE.md, o el que deja un workflow semanal.",
   "sinonimos_prohibidos": [
     "reporte",
@@ -12,5 +13,6 @@
   ],
   "relacionado": [
     "agente"
-  ]
+  ],
+  "sin_entidad": "salida"
 }

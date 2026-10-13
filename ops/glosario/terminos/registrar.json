@@ -2,6 +2,7 @@
   "termino": "registrar",
   "estado": "activo",
   "clase": "accion",
+  "dominio": "base",
   "definicion": "Apuntar algo en un sitio que se puede contar: un fallo como caso en un issue, una línea estructurada en un log.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
@@ -13,5 +14,15 @@
   "ref": {
     "fichero": "scripts/lib/flujo.mjs",
     "clave": "PASOS.registrar_caso"
-  }
+  },
+  "entidades": [
+    {
+      "entidad": "case",
+      "relacion": "accion_sobre"
+    },
+    {
+      "entidad": "event",
+      "relacion": "accion_sobre"
+    }
+  ]
 }
