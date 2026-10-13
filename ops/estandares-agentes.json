@@ -593,6 +593,21 @@
       "nombre": "web.dev: Add a web app manifest",
       "url": "https://web.dev/articles/add-manifest"
     },
+    "mdn-movimiento": {
+      "nombre": "MDN: prefers-reduced-motion",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion",
+      "uso": "pool"
+    },
+    "w3-contraste": {
+      "nombre": "WCAG 2.2: Contrast (Minimum)",
+      "url": "https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html",
+      "uso": "pool"
+    },
+    "w3-tamano-objetivo": {
+      "nombre": "WCAG 2.2: Target Size (Minimum)",
+      "url": "https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html",
+      "uso": "pool"
+    },
     "mdn-manifest": {
       "nombre": "MDN: Web app manifests",
       "url": "https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Manifest"
