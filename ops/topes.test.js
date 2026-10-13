@@ -108,6 +108,10 @@ describe("la regla de wording de cada tipo", () => {
     expect(codigosDeWording("Mantén la coherencia dentro del producto", base.practica, { tipo: "practica" })).toEqual([]);
     expect(codigosDeWording("gastar menos de 75 € al mes", base.norma, { tipo: "norma" })).toEqual([]);
   });
+  it("lo citado entre « » no cuenta: es la frase de quien pide y se escribe como la dice (hallazgo del revisor, #705)", () => {
+    expect(codigosDeWording("Úsala con «no aguantó» o «¿qué hacemos con X?»", base.practica, { tipo: "skill" })).toEqual([]);
+    expect(codigosDeWording("El fichero es guardado por el script, como «lo dijo»", base.norma)).toContain("voz-pasiva");
+  });
   it("voz pasiva", () => expect(codigosDeWording("El fichero es guardado por el script", base.norma)).toContain("voz-pasiva"));
   it("voz pasiva con participio en -ído y con tilde", () => {
     for (const t of ["El fichero es leído por el script", "El módulo fue construido a mano", "El dato es traído de la base", "El árbol ha sido caído", "La norma es comprendida"]) expect(codigosDeWording(t, base.norma), t).toContain("voz-pasiva");

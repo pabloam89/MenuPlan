@@ -1,6 +1,6 @@
 ---
 name: cierre-eficaz
-description: Úsala cuando la ventana de observación de un fondo vence o está a punto («¿ha aguantado el arreglo?», «¿se puede cerrar este fondo?», «evalúa si ha servido», un fondo en en-observacion). Lleva el fondo hasta el cierre con una cifra antes y después y un veredicto. No para: diagnosticar el fallo (causa-raiz), partir el arreglo en encargos o fijar la cifra de partida (plan-de-arreglo), registrar casos o editar la ficha (issues).
+description: Úsala cuando la ventana de observación de un fondo vence o está a punto («¿aguantó el arreglo?», «¿se puede cerrar este fondo?», «evalúa si sirvió», un fondo en en-observacion). Lleva el fondo hasta el cierre con una cifra antes y después y un veredicto. No para: diagnosticar el fallo (causa-raiz), partir el arreglo en encargos o fijar la cifra de partida (plan-de-arreglo), registrar casos o editar la ficha (issues).
 metadata:
   tipo: revision
   opera_proveedor: false
