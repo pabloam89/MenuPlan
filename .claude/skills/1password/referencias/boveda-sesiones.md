@@ -8,6 +8,13 @@ Bash de las sesiones y podría compartir la aprobación. Las sesiones no pueden
 lanzar `op` ni `opPorLaApp`: la guardia lo niega. Una ventana de aprobación que
 no has lanzado tú: no la apruebes.
 
+**El camino corto (#328):** crea la bóveda (paso 1), enciende la integración y, desde la
+PowerShell aparte, `cd C:\dev\MenuPlan; node scripts/boveda-pablo.mjs`. Hace los pasos 2, 5 y 6 en orden con una sola
+aprobación: comprueba la bóveda, copia las 8 fichas, crea «MenuPlan sesiones» y la pasa por tubería al llavero
+(el token no se imprime), comprueba, y dice qué salió BIEN o MAL. Cada paso se salta si ya está hecho y para en el
+primero que falla. Se niega si ve las variables de Claude Code; la barrera de verdad es la ventana de aprobación de 1Password y la guardia. Al final solo quedan a mano los pasos 7 y 9. Los
+pasos de abajo son el detalle y el plan B si el script falla.
+
 1. App de 1Password → **Nueva bóveda** → `HoMenu-sesiones` (con guion).
 2. PowerShell aparte, en `C:\dev\MenuPlan`: `node scripts/boveda-sesiones.mjs`
    (ensayo, no abre la app) y `$env:MENUPLAN_OP_PABLO = "1"; node scripts/boveda-sesiones.mjs --si`:
@@ -33,3 +40,15 @@ Desde el paso 5 las sesiones no leen la URL de administrador:
 `verificar-estado` entran con `SUPABASE_DB_URL_LECTURA` (`verificar-estado` no
 ve `cron`: con `--admin`, Pablo). Aplicar migraciones, `bot-cron`, `ensayo-*`,
 `telegram-webhook`, `telegram-perfil` y los de Blob: Pablo con `MENUPLAN_OP_PABLO=1` hasta E5 (#331).
+
+## Por qué existe el comando único (2026-10-10, #328)
+
+Causa: configurar la bóveda eran seis pasos a mano, tres con ventana de
+aprobación; cada uno era un comando que Pablo tenía que acordarse de lanzar en
+orden, y un `!` dentro de Claude Code comparte entorno con las sesiones.
+Arreglo: `scripts/boveda-pablo.mjs`, que los encadena, es idempotente, falla
+cerrado y se niega si ve las variables de Claude Code; la barrera de verdad es
+la ventana de aprobación de 1Password y la guardia, que niega nombrar el
+script. Test en `scripts/boveda-pablo.test.js`, visto fallar sin la negativa y
+sin el freno. Quedan a mano anular «MenuPlan PC Pablo» y apagar la integración.
+Sin probar contra 1Password de verdad.
