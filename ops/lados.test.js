@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { RUTA_TECHOS, fallosDeSubida, fallosDeTechos, medirLados } from "../scripts/lib/lados.mjs";
+import { RUTA_TECHOS, citasDeEstandares, citasDeNormas, fallosDeSubida, fallosDeTechos, medirLados } from "../scripts/lib/lados.mjs";
 import { cargarNormas, problemasDeProyectos } from "../scripts/lib/normas.mjs";
 
 /**
@@ -83,5 +83,23 @@ describe("las comprobaciones, con datos rotos (casos negativos)", () => {
   it("una norma horizontal marcada vertical, o una vertical con un project que no existe, se denuncia", () => {
     const carga = { horizontales: [{ id: "a", lado: "vertical" }], ficheros: { x: { project: "x", normas: [{ id: "b", lado: "vertical", project: "x" }] } } };
     expect(problemasDeProyectos(carga, ["p"])).toHaveLength(3);
+  });
+
+  it("el detector lee todo el texto: una cita real en un estándar o en una norma (también en minúscula) se cuenta", () => {
+    const vacio = () => ({ estandar_nombra_proyecto: [], estandar_nombra_servicio_del_proyecto: [], estandar_recibe_norma_vertical: [], norma_cita_principio_vertical: [], norma_nombra_proyecto: [], norma_nombra_servicio_del_proyecto: [] });
+    const est = { comunes: {}, agentes: { x: { tareas: [
+      { id: "a", tarea: "Cambiar lo que dice Lola", reglas: [{ nombre: "r", exigencia: "ok", porque: "ok" }] },
+      { id: "b", tarea: "ok", no_hace: ["tocar Supabase"], reglas: [{ nombre: "r", exigencia: "ok", porque: "ok", nota: "mira MENUPLAN" }] },
+      { id: "c", tarea: "ok", reglas: [{ nombre: "r", exigencia: "ok", porque: "ok", ejemplos: ["despliega en vercel"] }] },
+      { id: "d", tarea: "ok", reglas: [{ nombre: "r", exigencia: "ok", porque: "sin cita" }] },
+    ] } } };
+    const d = vacio();
+    citasDeEstandares(est, new Set(), d);
+    expect(d.estandar_nombra_proyecto).toEqual(["x/a · (tarea)", "x/b · r"]);
+    expect(d.estandar_nombra_servicio_del_proyecto).toEqual(["x/b · (tarea)", "x/c · r"]);
+    const dn = vacio();
+    citasDeNormas([{ id: "n1", principio: "p", porque: "lo pidió lola" }, { id: "n2", principio: "p", nota: "se despliega en Vercel" }, { id: "n3", principio: "p", porque: "nada" }], new Set(), dn);
+    expect(dn.norma_nombra_proyecto).toEqual(["n1"]);
+    expect(dn.norma_nombra_servicio_del_proyecto).toEqual(["n2"]);
   });
 });
