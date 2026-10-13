@@ -9,6 +9,7 @@
       "bot": "Lola, el bot de mensajería, sus evals y su coste",
       "api": "Las funciones de api/ y lo que protegen",
       "ui": "Las pantallas de la app",
+      "diseno": "El sistema de diseño: tokens, primitivos, accesibilidad, estados y voz de la interfaz",
       "product": "Qué hace bien HoMenu y Lola para las familias",
       "process": "Cómo se trabaja: issues, fondos, PR, sesiones, agentes, jueces y cifras",
       "writing": "Cómo se escribe una regla o un principio de la casa",

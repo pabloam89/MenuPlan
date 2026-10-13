@@ -67,6 +67,13 @@ export const AMBITOS = {
     construye: "diseno",
     rutas: [/^src\/.*\.(jsx|css)$/, /^src\/(design|components|screens|assets|dev)\//, /^public\//, /^Avatares\//, /^brand\//, /^dish-gallery\//, /^scripts\/(make_|mj-prompts-)/, /^docs\/medios\.md$/, /^(DESIGN_SYSTEM|ILUSTRACIONES-PASOS)\.md$/, /^docs\/diseno\//, /^\.claude\/rules\/ui\.md$/],
   },
+  diseno: {
+    legible: "diseño",
+    que: "El sistema de diseño: tokens, primitivos, accesibilidad, estados y voz de la interfaz",
+    jueces: [{ juez: "qa", fuente: "agente:qa" }],
+    construye: "diseno",
+    rutas: [/^docs\/diseno\//, /^ops\/diseno\//, /^src\/design\//, /^DESIGN_SYSTEM\.md$/],
+  },
   product: {
     legible: "producto",
     que: "Qué hace bien HoMenu y Lola para las familias",
@@ -103,7 +110,7 @@ export const AMBITOS = {
  * (sea cual sea su constructor), el más específico antes que el genérico (api/_bot/ es del bot antes que del catálogo); `code` solo decide
  * cuando el fichero no es de ningún otro ámbito (un script suelto de scripts/). Es la única copia de zona → constructor (#641).
  */
-export const DUENO_ORDEN = ["bot", "ui", "data", "infra", "catalog", "api", "product", "writing", "entities", "process", "code"];
+export const DUENO_ORDEN = ["bot", "ui", "diseno", "data", "infra", "catalog", "api", "product", "writing", "entities", "process", "code"];
 
 /** El constructor de un fichero por sus ámbitos: { agente, ambito }, con `agente: null` si el ámbito dueño no tiene constructor. null si no cae en ningún ámbito. */
 export function constructorDeFichero(ruta) {

@@ -54,6 +54,7 @@
       "bot": "cost",
       "product": "speed",
       "ui": "speed",
+      "diseno": "speed",
       "catalog": "speed",
       "code": "speed",
       "entities": "speed",

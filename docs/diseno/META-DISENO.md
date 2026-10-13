@@ -29,7 +29,7 @@ aplican. Juntos son la **forja de diseño**, la familia entera.
 
 | Aquí | En la Base | Entidad |
 |---|---|---|
-| N0 + N1 | `forja` de la familia (nivel `meta`) | las normas L01 a L22, en la sección 2 de este documento (aún no están en `ops/normas.json`); los bloques, en `bloques.json` |
+| N0 + N1 | `forja` de la familia (nivel `meta`) | las normas L01 a L22, en `ops/normas.json` con ámbito `diseno` (hecho el 13 oct 2026; la sección 2 de este documento conserva los ids Lxx y el porqué); los bloques, en `bloques.json` |
 | N2 | `plantilla` por tipo | `design-profile` (P1 a P6) |
 | Instancia | `pieza` | `design-system` de un proyecto (`project`: `homenu` o `panel`), con sus `token`, `component` y `pattern` |
 
@@ -63,13 +63,17 @@ Cada norma dice **cómo se comprueba**. Lo que obliga es un test o un lint, no e
 texto (hereda el principio de las entidades). `[existe]` = ya hay en HoMenu;
 `[por construir]` = no.
 
+Desde el 13 oct 2026 cada una es una norma de `ops/normas.json` con ámbito `diseno` (id
+`design-…`; su `nota` empieza por el id Lxx de esta tabla). Las que no tienen test llevan
+control `juicio` y veredicto `blanda`: no cuentan como cumplidas.
+
 | Id | Norma | Cómo se comprueba |
 |---|---|---|
 | L01 | **Ningún valor visual suelto.** Color, tamaño, espacio, radio, sombra, capa y tiempo salen de un token. | Lint `no-valor-suelto` con base que solo baja `[existe]` |
 | L02 | **Un token por rol, no por valor.** Se llama `texto-secundario`, no `gris-600`. | Test de nombres contra el vocabulario de roles `[por construir]` |
 | L03 | **Tres capas de tokens:** primitivo → semántico → de componente. Las pantallas solo usan las dos últimas. | Test: ningún componente referencia un primitivo `[por construir]` |
 | L04 | **Una fuente por valor.** El resto (CSS, docs, JSON) se genera y un test compara. | `disenoDoc.test.js` y `tokens:css` `[existe]` |
-| L05 | **Contraste.** Texto normal ≥ 4,5:1, texto grande ≥ 3:1, controles, iconos y gráficos ≥ 3:1 (WCAG 1.4.3 y 1.4.11). | Test que calcula las parejas texto/fondo declaradas, en cada tema `[por construir]` |
+| L05 | **Contraste.** Texto normal ≥ 4,5:1, texto grande ≥ 3:1, controles, iconos y gráficos ≥ 3:1 (WCAG 1.4.3 y 1.4.11). | Test que calcula las parejas texto/fondo declaradas, en cada tema `[existe]` para HoMenu (tema claro; #591) |
 | L06 | **Objetivo táctil o de clic.** Mínimo 24×24 px CSS (WCAG 2.5.8); el perfil fija el recomendado (44 px táctil, 32 px puntero). | Test sobre los tamaños de los tokens y revisión de `qa` `[parcial: 40 px en HoMenu]` |
 | L07 | **Foco visible y no tapado**; todo se maneja con teclado, en orden lógico (WCAG 2.4.7, 2.4.11). | Revisión de `qa` + test de navegación con Playwright `[por construir]` |
 | L08 | **El color nunca es la única señal** (WCAG 1.4.1): error, estado y selección llevan además forma, texto o icono. | Revisión de `qa` y lista de estados con su señal `[por construir]` |

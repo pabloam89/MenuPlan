@@ -191,6 +191,28 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `control-declared` | regla.control | DEBE | **Control declarado.** El control de cada regla DEBE ser el fichero que vigila la regla o el valor juicio, y no quedar vacío. | ci · semidura | test: `ops/forja.test.js` | — | `control-declarado` | writing | construir, juzgar, documentar |
 | `catalog-declares-status` | catalogo.reglas | DEBE | **Catálogo declara su estado.** Cada catálogo de reglas DEBE figurar en la lista de catálogos como cumple, o como pendiente con el encargo que lo pone al día. | ci · semidura | test: `ops/redaccion.test.js` | — | `catalogo-declara-su-estado` | writing | construir, juzgar, documentar |
 | `migrated-screen-pixel-identical` | pantalla | DEBE | **Pantalla migrada sin cambio visual.** Cuando se migra a tokens o a primitivos, cada pantalla de la app DEBE verse igual que antes, con las capturas de antes y de después iguales. | persona · blanda | juicio | — | `one-change-one-intent` | ui | construir, juzgar |
+| `design-no-loose-values` | codigo | DEBE | **Ningún valor visual suelto.** Cuando se escribe el estilo de una pantalla o un componente, el código del producto DEBE sacar color, tamaño, espacio, radio, sombra, capa y tiempo de un token, sin valores sueltos. | ci · semidura | workflow: `.github/workflows/tests.yml` | — | `one-fact-one-place` | diseno | construir, juzgar |
+| `design-token-per-role` | token.diseno | DEBE | **Token por rol.** Cada token de diseño DEBE llamarse por su rol, como texto-secundario, y no por su valor, como gris-600. | persona · blanda | juicio | — | `one-word-one-meaning` | diseno | construir, juzgar |
+| `design-token-layers` | pantalla | DEBE | **Tres capas de tokens.** Cada pantalla de la app DEBE usar solo tokens semánticos o de componente, nunca los primitivos directamente. | persona · blanda | juicio | — | `one-fact-one-place` | diseno | construir, juzgar |
+| `design-single-token-source` | token.diseno | DEBE | **Una fuente por valor.** Cada token de diseño DEBE tener una sola fuente, src/design/tokens.js, de la que se generan el CSS y las tablas del documento. | ci · dura | test: `src/design/disenoDoc.test.js` | — | `one-fact-one-place` | diseno | construir, juzgar |
+| `design-contrast-aa` | pantalla | DEBE | **Contraste mínimo AA.** Cada pantalla de la app DEBE dar al texto normal 4,5:1 de contraste, y 3:1 al texto grande y a los controles, sobre su fondo. | ci · semidura | test: `src/design/contraste.test.js` | — | `wcag-pour` | diseno | construir, juzgar |
+| `design-touch-target` | pantalla | DEBE | **Objetivo táctil mínimo.** Cada pantalla de la app DEBE dar a cada control interactivo un área de 24 por 24 píxeles como mínimo, y de 40 en HoMenu. | persona · blanda | juicio | — | `wcag-pour` | diseno | construir, juzgar |
+| `design-visible-focus` | pantalla | DEBE | **Foco visible y manejable.** Cada pantalla de la app DEBE mostrar el foco sin taparlo y poder manejarse todo con teclado, en orden lógico. | persona · blanda | juicio | — | `wcag-pour` | diseno | construir, juzgar |
+| `design-color-not-only-signal` | pantalla | NO DEBE | **Color nunca única señal.** Cada pantalla de la app NO DEBE dar solo con el color un error, un estado o una selección, sin forma, texto o icono. | persona · blanda | juicio | — | `wcag-pour` | diseno | construir, juzgar |
+| `design-reflow-zoom` | pantalla | DEBE | **Reflow y zoom.** Cada pantalla de la app DEBE conservar todo el contenido a 320 píxeles de ancho y con el texto al 200 %. | persona · blanda | juicio | — | `wcag-pour` | diseno | construir, juzgar |
+| `design-motion-tokens` | pantalla | DEBE | **Movimiento por tokens.** Cada pantalla de la app DEBE sacar duración y curva de un token, respetar prefers-reduced-motion y no depender solo de una animación. | persona · blanda | juicio | — | `wcag-pour` | diseno | construir, juzgar |
+| `design-scales-not-free` | token.diseno | DEBE | **Escalas, no valores libres.** Cada token de diseño DEBE seguir una escala: espacio en rejilla de 4 píxeles, tipografía con razón fija, radios y sombras por pasos. | ci · semidura | test: `src/design/tokens.test.js` | — | `discrete-first` | diseno | construir, juzgar |
+| `design-hierarchy` | pantalla | CONVIENE | **Jerarquía de la vista.** Para cada pantalla de la app, CONVIENE tener una sola acción primaria por vista, con el énfasis según la importancia. | persona · blanda | juicio | — | `wcag-pour` | diseno | construir, juzgar |
+| `design-proximity-alignment` | pantalla | CONVIENE | **Proximidad y alineación.** Para cada pantalla de la app, CONVIENE agrupar lo relacionado, con menos espacio dentro de un grupo que entre grupos, sobre una rejilla. | persona · blanda | juicio | — | `wcag-pour` | diseno | construir, juzgar |
+| `design-complete-states` | componente | DEBE | **Estados completos.** Cuando un componente es interactivo, cada componente de la interfaz DEBE definir reposo, foco, pulsado, activo, deshabilitado, cargando, error y vacío, y hover si hay puntero. | persona · blanda | juicio | — | `visibility-of-status` | diseno | construir, juzgar |
+| `design-elastic-text` | pantalla | CONVIENE | **Texto elástico.** Para cada pantalla de la app, CONVIENE soportar cadenas un 40 % más largas y dar a fechas, números y moneda el formato local. | persona · blanda | juicio | — | `wcag-pour` | diseno | construir, juzgar |
+| `design-themes` | producto | DEBE | **Temas desde los tokens.** El producto DEBE ofrecer tema claro y oscuro desde los mismos tokens semánticos, o declarar por qué falta uno. | persona · blanda | juicio | — | `wcag-pour` | diseno | construir, juzgar |
+| `design-component-catalogue` | componente | DEBE | **Componente del catálogo.** Cada componente de la interfaz DEBE existir en el catálogo con su ficha, sin copiarse ni rehacerse por pantalla. | persona · blanda | juicio | — | `one-fact-one-place` | diseno | construir, juzgar |
+| `design-visual-performance` | pantalla | CONVIENE | **Rendimiento visual.** Para cada pantalla de la app, CONVIENE cargar las fuentes con alternativa, reservar el tamaño de las imágenes y evitar saltos de maquetación. | persona · blanda | juicio | — | `graceful-degradation` | diseno | construir, juzgar |
+| `design-declared-voice` | producto | DEBE | **Voz declarada.** El producto DEBE fijar el tono, el vocabulario y las reglas de redacción de la interfaz, con un nombre por concepto. | persona · blanda | juicio | — | `one-word-one-meaning` | diseno | construir, juzgar |
+| `design-change-trace` | producto | DEBE | **Rastro de cada cambio.** El producto DEBE dejar rastro de cada cambio del sistema de diseño con versión, decisión y registro de cambios, y deprecar en vez de borrar. | persona · blanda | juicio | — | `deprecate-not-delete` | diseno | construir, juzgar |
+| `design-measured` | producto | CONVIENE | **Cifras del sistema.** Para el producto, CONVIENE publicar las cifras del sistema de diseño: valores sueltos, cobertura de tokens, componentes migrados y fallos de contraste. | persona · blanda | juicio | — | `no-number-without-question` | diseno | construir, juzgar |
+| `design-accessible-entry` | pantalla | DEBE | **Entrada y acceso accesibles.** Cada pantalla de la app DEBE no pedir datos ya dados ni pruebas cognitivas para entrar, y dar una alternativa al arrastre. | persona · blanda | juicio | — | `keep-context-no-reask` | diseno | construir, juzgar |
 
 ## Sujetos
 
@@ -211,7 +233,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | sesion | cada sesión de Claude | 18 |
 | repo | el repositorio | 5 |
 | fondo | cada problema de fondo | 8 |
-| codigo | el código del producto | 5 |
+| codigo | el código del producto | 6 |
 | principio | cada principio de datos | 2 |
 | gasto | cada gasto de dinero | 1 |
 | dato | cada tabla y cada campo de la base | 13 |
@@ -232,8 +254,10 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | metrica | cada métrica que se recoge | 1 |
 | vocabulario | cada vocabulario cerrado | 1 |
 | entidad | cada entidad del proyecto | 1 |
-| producto | el producto | 18 |
-| pantalla | cada pantalla de la app | 1 |
+| producto | el producto | 22 |
+| pantalla | cada pantalla de la app | 13 |
+| token.diseno | cada token de diseño | 3 |
+| componente | cada componente de la interfaz | 2 |
 | decision | cada decisión de producto | 2 |
 | regla | cada norma de la casa | 2 |
 | regla.nombre | el nombre de cada regla | 1 |
@@ -257,6 +281,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | bot | Lola, el bot de mensajería, sus evals y su coste | 24 |
 | api | Las funciones de api/ y lo que protegen | 9 |
 | ui | Las pantallas de la app | 2 |
+| diseno | El sistema de diseño: tokens, primitivos, accesibilidad, estados y voz de la interfaz | 22 |
 | product | Qué hace bien HoMenu y Lola para las familias | 9 |
 | process | Cómo se trabaja: issues, fondos, PR, sesiones, agentes, jueces y cifras | 36 |
 | writing | Cómo se escribe una regla o un principio de la casa | 16 |
@@ -266,11 +291,11 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 
 | Tipo de control | Qué es | Normas |
 |---|---|---|
-| test | Un test del repo que falla en el CI | 92 |
+| test | Un test del repo que falla en el CI | 95 |
 | planos | Una condición de la medición semanal de ops/planos.json (con red, cada lunes) | 7 |
-| workflow | Un paso de un workflow de GitHub Actions que falla el check | 1 |
+| workflow | Un paso de un workflow de GitHub Actions que falla el check | 2 |
 | script | Un script del repo que comprueba y se lanza a mano o en el build | 7 |
-| juicio | El juicio de una persona o de un LLM sobre sus casos: no hay nada que falle solo | 76 |
+| juicio | El juicio de una persona o de un LLM sobre sus casos: no hay nada que falle solo | 94 |
 
 ## Avisos de la guardia
 
@@ -327,4 +352,4 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 
 **Cada control que salta deja su línea** `norma: <id> resultado: ok|warning|fail|exempt|declared|unchecked pr: <n> detalle: …` (una sola sintaxis: los avisos del CI y «Fondos del PR» en el log del run; la guardia, en el registro local de eventos, con la `norma` que hace cumplir lo que bloquea). `declared` es una excepción válida de una norma que ningún control del CI consulta: queda anotada, pero no cuenta como incumplimiento medido. La unidad es el run de un PR; el lector cuenta una vez por PR, norma y resultado. `npm run normas -- --medir` las cuenta por norma y dice cuáles nunca saltan, cuáles no han dejado dato y cuáles se exceptúan siempre (desde 3 veces, sin un solo salto). Registrada en `ops/metricas.json`.
 
-Total: 183 normas (rota 2, semidura 67, dura 24, blanda 90) y 42 avisos de la guardia.
+Total: 205 normas (rota 2, semidura 70, dura 25, blanda 108) y 42 avisos de la guardia.

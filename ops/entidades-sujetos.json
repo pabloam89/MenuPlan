@@ -402,10 +402,18 @@
       "kind": "outside",
       "reason": "texto de interfaz del producto o de la factoría de Lola: fuera de este ataque"
     },
+    "componente": {
+      "kind": "entity",
+      "entity": "component"
+    },
     "token": {
       "kind": "type_of",
       "entity": "resource",
       "reason": "un token de acceso es un recurso de tipo token; no es el token de diseño"
+    },
+    "token.diseno": {
+      "kind": "entity",
+      "entity": "token"
     },
     "traspaso": {
       "kind": "part_of",

@@ -122,6 +122,8 @@ No se copian aquí: viven en `ops/principios/` (`docs/PRINCIPIOS.md`) y la guía
 
 - `one-word-one-meaning` — **Una palabra, un significado.** Cada concepto tiene un solo nombre y cada nombre un solo concepto, y el glosario anota los sinónimos prohibidos.
   - Norma: `glosario-sin-sinonimos-nuevos` — **Sin sinónimos prohibidos nuevos.** Cada texto de proceso (skills, agentes, reglas, CLAUDE.md y ops) NO DEBE usar un sinónimo prohibido del glosario en vez de su término. Control: `ops/glosario.test.js`.
+  - Norma: `design-token-per-role` — **Token por rol.** Cada token de diseño DEBE llamarse por su rol, como texto-secundario, y no por su valor, como gris-600. Control: juicio.
+  - Norma: `design-declared-voice` — **Voz declarada.** El producto DEBE fijar el tono, el vocabulario y las reglas de redacción de la interfaz, con un nombre por concepto. Control: juicio.
 
 ## Vocabularios y topes
 
@@ -167,9 +169,9 @@ Marca de la fuente, con un solo significado en todos los catálogos (`MARCAS_FUE
 |---|---|---|---|---|
 | `ops/forja/` | regla | cumple | 75 | - |
 | `ops/redaccion.json` | principio | cumple | 15 | - |
-| `ops/normas.json` | regla | cumple | 183 | - |
+| `ops/normas.json` | regla | cumple | 205 | - |
 | `ops/flujo.json` | regla | cumple | 53 | - |
-| `ops/estandares-agentes.json` | regla | cumple | 195 | - |
+| `ops/estandares-agentes.json` | regla | cumple | 191 | - |
 | `ops/principios-producto/` | principio | cumple | 40 | - |
 | `ops/principios/` | principio | cumple | 56 | - |
 
