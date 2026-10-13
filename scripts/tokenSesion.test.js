@@ -771,8 +771,9 @@ describe("token-sesion lanza el comando sin shell y nunca sale mudo (#720)", () 
 
   // Barrido de la clase «envoltorio que devuelve un código sin decir por qué».
   // Criterio cerrado: un scripts/*.mjs (no test) con una línea que sale con el .status de un hijo
-  // (`exit(…status ?? 1)` o `return …status ?? 1`). Comando del barrido (3 ficheros antes de #720,
-  // de los que solo token-sesion.mjs era un envoltorio de comandos ajenos sin motivo: 1 sitio):
+  // (`exit(…status ?? 1)` o `return …status ?? 1`). Comando del barrido (el comando recorre tambien scripts/lib: antes
+  // de #720 daba 4 ficheros; el test mira solo el primer nivel de scripts/, donde solo token-sesion.mjs era un
+  // envoltorio de comandos ajenos sin motivo; hoy el comando da 3, con lib/env.mjs fuera del test). Es el criterio de esta clase concreta, no una cobertura de todos los envoltorios posibles:
   //   grep -rnE "(exit\(|return ).*\.status \?\? 1" scripts --include=*.mjs --exclude=*.test.*
   // Cada fichero que lo cumple debe llevar el motivo («comando-no-lanzado») o estar exento con su porqué.
   it("barrido: todo envoltorio que sale con el status de un hijo dice por qué no pudo lanzarlo", () => {
