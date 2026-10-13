@@ -339,7 +339,7 @@ describe("npm run estandar", () => {
   it("de una tarea con comunes pega también las reglas comunes", () => {
     const out = textoDeTarea("diseno", "pantalla-con-tokens", datos);
     expect(out).toContain("Común comprobar-design-system");
-    expect(out).toContain("Objetivo táctil");
+    expect(out).toContain("design-touch-target");
     expect(reglasDeTarea(datos.agentes.diseno.tareas[0], datos).length).toBeGreaterThan(datos.agentes.diseno.tareas[0].reglas.length);
   });
 

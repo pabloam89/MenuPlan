@@ -16,9 +16,9 @@ Cada principio es el porqué, sin fuerza: su enunciado, su porqué, un ejemplo b
 | primeros pasos (`onboarding`) | 2 | 2 | 0 |
 | coste y fiabilidad (`cost-reliability`) | 5 | 5 | 3 |
 | claridad de uso (`ux-clarity`) | 2 | 2 | 0 |
-| accesibilidad (`accessibility`) | 1 | 1 | 0 |
+| accesibilidad (`accessibility`) | 1 | 1 | 1 |
 | alcance (`scope`) | 2 | 2 | 0 |
-| **Total** | **40** | **40** | **6** |
+| **Total** | **40** | **40** | **7** |
 
 ## Confianza y seguridad (`trust-safety`)
 
@@ -177,6 +177,7 @@ Cómo habla, decide y se equivoca un bot como Lola.
 - `keep-context-no-reask` — **No repetir preguntas.** Un dato que la persona ya dio se recuerda en vez de pedirse otra vez.
   - Porqué: En los estudios de NN/g, los bots que repetían preguntas cansaban a la gente.
   - Norma: `bot-does-not-reask` — **No repetir preguntas.** Cuando la persona ya dio un dato en la conversación o en su ficha, el bot Lola NO DEBE volver a pedírselo. Control: juicio (blanda).
+  - Norma: `design-accessible-entry` — **Entrada y acceso accesibles.** Cada pantalla de la app DEBE no pedir datos ya dados ni pruebas cognitivas para entrar, y dar una alternativa al arrastre. Control: juicio (blanda).
   - Bueno: «Lola usa los comensales que ya constan en la ficha de la casa».
   - Malo: «Lola vuelve a preguntar cuántos comen cada vez que se pide un menú».
   - Fuentes: [F] https://www.nngroup.com/articles/chatbots/; [F] https://www.microsoft.com/en-us/research/articles/guidelines-for-human-ai-interaction-eighteen-best-practices-for-human-centered-ai-design/.
@@ -243,6 +244,7 @@ Cuánto cuesta cada uso, qué pasa cuando algo falla y cómo se sabe.
 - `graceful-degradation` — **Degradación elegante.** Lo esencial del producto sigue funcionando sin IA cuando el modelo falla, tarda o se queda sin cupo.
   - Porqué: Un fallo seguro y aburrido deja seguir a la persona, y un callejón sin salida la hace abandonar.
   - Norma: `essentials-work-without-ai` — **Degradación elegante.** Cuando el modelo falla, tarda o se agota el cupo, el producto DEBE seguir ofreciendo lo esencial sin IA y decirlo en llano. Control: juicio (blanda).
+  - Norma: `design-visual-performance` — **Rendimiento visual.** Para cada pantalla de la app, CONVIENE cargar las fuentes con alternativa, reservar el tamaño de las imágenes y evitar saltos de maquetación. Control: juicio (blanda).
   - Bueno: «Sin modelo, Lola enseña el menú ya guardado y los botones, y dice que hoy no puede pensar».
   - Malo: «Sin modelo, Lola se queda callada o responde con un error técnico».
   - Fuentes: [F] https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/; [F] https://pair.withgoogle.com/chapter/errors-failing/; [F] https://pair.withgoogle.com/chapter/mental-models/.
@@ -274,6 +276,7 @@ Que se entienda qué pasa y cómo seguir.
 - `visibility-of-status` — **Estado visible.** Una acción lenta que enseña su estado evita que la persona la repita o la abandone.
   - Porqué: Sin estado, la persona repite la acción o abandona.
   - Norma: `slow-action-shows-status` — **Estado visible.** Cuando una acción tarda o sigue en curso, el producto DEBE indicar su estado. Control: juicio (blanda).
+  - Norma: `design-complete-states` — **Estados completos.** Cuando un componente es interactivo, cada componente de la interfaz DEBE definir reposo, foco, pulsado, activo, deshabilitado, cargando, error y vacío, y hover si hay puntero. Control: juicio (blanda).
   - Bueno: «Lola avisa de que el menú tarda un poco antes de ponerse a generarlo».
   - Malo: «La pantalla se queda quieta mientras se genera el menú».
   - Fuentes: [F] https://www.nngroup.com/articles/ten-usability-heuristics/.
@@ -285,6 +288,16 @@ Que lo pueda usar cualquier persona, con cualquier ayuda.
 - `wcag-pour` — **Accesible para todos.** Un producto accesible se puede percibir, manejar y entender con cualquier ayuda, también con un lector de pantalla.
   - Porqué: WCAG es el estándar de accesibilidad y llega a más gente, incluida la que usa lector de pantalla.
   - Norma: `screen-accessible` — **Accesible para todos.** Cuando se diseña una pantalla, el producto DEBE poner texto alternativo a las imágenes, poder usar todo con teclado y cuidar el contraste del texto. Control: juicio (blanda).
+  - Norma: `design-contrast-aa` — **Contraste mínimo AA.** Cada pantalla de la app DEBE dar al texto normal 4,5:1 de contraste, y 3:1 al texto grande y a los controles, sobre su fondo. Control: `src/design/contraste.test.js` (dura).
+  - Norma: `design-touch-target` — **Objetivo táctil mínimo.** Cada pantalla de la app DEBE dar a cada control interactivo un área de 24 por 24 píxeles como mínimo, y de 40 en HoMenu. Control: juicio (blanda).
+  - Norma: `design-visible-focus` — **Foco visible y manejable.** Cada pantalla de la app DEBE mostrar el foco sin taparlo y poder manejarse todo con teclado, en orden lógico. Control: juicio (blanda).
+  - Norma: `design-color-not-only-signal` — **Color nunca única señal.** Cada pantalla de la app NO DEBE dar solo con el color un error, un estado o una selección, sin forma, texto o icono. Control: juicio (blanda).
+  - Norma: `design-reflow-zoom` — **Reflow y zoom.** Cada pantalla de la app DEBE conservar todo el contenido a 320 píxeles de ancho y con el texto al 200 %. Control: juicio (blanda).
+  - Norma: `design-motion-tokens` — **Movimiento por tokens.** Cada pantalla de la app DEBE sacar duración y curva de un token, respetar prefers-reduced-motion y no depender solo de una animación. Control: juicio (blanda).
+  - Norma: `design-hierarchy` — **Jerarquía de la vista.** Para cada pantalla de la app, CONVIENE tener una sola acción primaria por vista, con el énfasis según la importancia. Control: juicio (blanda).
+  - Norma: `design-proximity-alignment` — **Proximidad y alineación.** Para cada pantalla de la app, CONVIENE agrupar lo relacionado, con menos espacio dentro de un grupo que entre grupos, sobre una rejilla. Control: juicio (blanda).
+  - Norma: `design-elastic-text` — **Texto elástico.** Para cada pantalla de la app, CONVIENE soportar cadenas un 40 % más largas y dar a fechas, números y moneda el formato local. Control: juicio (blanda).
+  - Norma: `design-themes` — **Temas desde los tokens.** El producto DEBE ofrecer tema claro y oscuro desde los mismos tokens semánticos, o declarar por qué falta uno. Control: juicio (blanda).
   - Bueno: «Toda imagen de plato tiene su texto alternativo y los botones se alcanzan con el teclado».
   - Malo: «Un menú solo se puede abrir con el ratón y la foto del plato no tiene descripción».
   - Fuentes: [F] https://www.w3.org/WAI/standards-guidelines/wcag/glance/.

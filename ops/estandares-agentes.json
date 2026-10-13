@@ -597,21 +597,9 @@
       "nombre": "MDN: Web app manifests",
       "url": "https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Manifest"
     },
-    "mdn-movimiento": {
-      "nombre": "MDN: prefers-reduced-motion",
-      "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion"
-    },
     "w3-error-id": {
       "nombre": "WCAG 2.2: Error Identification",
       "url": "https://www.w3.org/WAI/WCAG22/Understanding/error-identification.html"
-    },
-    "w3-tamano-objetivo": {
-      "nombre": "WCAG 2.2: Target Size (Minimum)",
-      "url": "https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html"
-    },
-    "w3-contraste": {
-      "nombre": "WCAG 2.2: Contrast (Minimum)",
-      "url": "https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html"
     },
     "pw-screenshots": {
       "nombre": "Playwright: Screenshots",
@@ -1048,6 +1036,11 @@
     "comprobar-design-system": {
       "tarea": "Comprobar tokens, primitivos, objetivos táctiles, contraste y movimiento reducido contra el design system",
       "accion": "juzgar",
+      "normas": [
+        "design-touch-target",
+        "design-contrast-aa",
+        "design-motion-tokens"
+      ],
       "reglas": [
         {
           "nombre": "Tokens y primitivos",
@@ -1059,46 +1052,12 @@
           "porque": "Un valor suelto o un componente copiado se queda fuera de cualquier cambio de sistema",
           "ejemplo_bueno": "color por token y Boton de ui.jsx",
           "ejemplo_malo": "un hex y un botón con los estilos copiados"
-        },
-        {
-          "nombre": "Objetivo táctil",
-          "sujeto": "pantalla",
-          "fuerza": "debe",
-          "exigencia": "dar a cada objetivo táctil 40 px o más, que la regla de lint no mide",
-          "control": "juicio",
-          "fuente": "w3-tamano-objetivo",
-          "porque": "WCAG 2.2 pide 24 px como mínimo AA y en un móvil la casa exige más",
-          "ejemplo_bueno": "botón de 44 px de alto en la barra inferior",
-          "ejemplo_malo": "un icono de 28 px como único punto de toque"
-        },
-        {
-          "nombre": "Contraste AA",
-          "sujeto": "pantalla",
-          "fuerza": "debe",
-          "exigencia": "tener texto con contraste AA: 4,5 a 1 para el texto normal",
-          "control": "juicio",
-          "fuente": "w3-contraste",
-          "porque": "Con poco contraste el texto no se lee al sol ni con vista cansada",
-          "ejemplo_bueno": "texto gris oscuro sobre blanco con relación 7 a 1",
-          "ejemplo_malo": "gris claro sobre blanco, a 2 a 1"
-        },
-        {
-          "nombre": "Movimiento reducido",
-          "sujeto": "pantalla",
-          "fuerza": "debe",
-          "condicion": "cuando anima algo",
-          "exigencia": "respetar prefers-reduced-motion",
-          "control": "juicio",
-          "fuente": "mdn-movimiento",
-          "porque": "Las animaciones marean a quien lo ha pedido en el sistema",
-          "ejemplo_bueno": "la animación se apaga con prefers-reduced-motion: reduce",
-          "ejemplo_malo": "una animación que no consulta la preferencia"
         }
       ],
       "rondas": [
         "ronda: 1 fuentes: 4 cambios: Consultadas las requisitos de WCAG 2.2 sobre contraste y tamaño de objetivo, la de MDN sobre movimiento reducido y la visión general de tokens de Material",
         "ronda: 2 fuentes: 1 cambios: Contrastado con DESIGN_SYSTEM.md: la casa pide 40 px y contraste AA, más estricta que el mínimo de WCAG en tamaño",
-        "ronda: 3 fuentes: 1 cambios: Cuatro reglas, una por comprobación"
+        "ronda: 3 fuentes: 1 cambios: Un paso propio; objetivo táctil, contraste y movimiento reducido pasan a las normas del ámbito diseño y se citan por id"
       ]
     }
   },
@@ -2770,6 +2729,7 @@
           "origen": "disparadores",
           "ambitos": [
             "ui",
+            "diseno",
             "code"
           ],
           "comunes": [
@@ -2777,17 +2737,6 @@
             "tests-de-lo-tocado"
           ],
           "reglas": [
-            {
-              "nombre": "Todo por token",
-              "sujeto": "pantalla",
-              "fuerza": "debe",
-              "exigencia": "usar los tokens y los primitivos del sistema para cada color, tamaño, radio y sombra, sin valores sueltos",
-              "control": "eslint-rules/no-valor-suelto.test.js",
-              "fuente": "casa-design-system",
-              "porque": "Un token cambia en un sitio y toda la app lo sigue; un valor suelto se queda atrás",
-              "ejemplo_bueno": "color: token marca, de src/design/tokens.js",
-              "ejemplo_malo": "un hex escrito en el estilo del componente"
-            },
             {
               "nombre": "Primero reutilizar",
               "sujeto": "pantalla",
@@ -2818,6 +2767,7 @@
           "origen": "metodo",
           "ambitos": [
             "ui",
+            "diseno",
             "code"
           ],
           "reglas": [
@@ -2884,6 +2834,7 @@
           "origen": "disparadores",
           "ambitos": [
             "ui",
+            "diseno",
             "code"
           ],
           "comunes": [
@@ -3687,7 +3638,8 @@
           "accion": "juzgar",
           "origen": "mision",
           "ambitos": [
-            "ui"
+            "ui",
+            "diseno"
           ],
           "comunes": [
             "capturas-375-420"
@@ -3732,7 +3684,8 @@
           "accion": "juzgar",
           "origen": "metodo",
           "ambitos": [
-            "ui"
+            "ui",
+            "diseno"
           ],
           "comunes": [
             "comprobar-design-system"

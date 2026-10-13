@@ -10,8 +10,8 @@ metadata:
   sintoma_a_causa: false
   elige_opciones: false
   dueno: diseno
-  comprobado: 2026-10-12
-  normas: [screen-accessible, test-visto-fallar]
+  comprobado: 2026-10-13
+  normas: [design-contrast-aa, test-visto-fallar]
 ---
 
 # Revisión de diseño
@@ -39,14 +39,16 @@ test y pasa a leerse a mano otra vez.
 
 Dos catálogos, que se citan y no se copian:
 
-- **N0, las normas** L01–L22 (`docs/diseno/META-DISENO.md`, sección 2). Cada una
-  dice cómo se comprueba y si existe (`[existe]`) o no (`[por construir]`).
+- **N0, las normas** L01–L22, en `ops/normas.json` con ámbito `diseno` (la tabla de
+  `docs/diseno/META-DISENO.md`, sección 2, conserva los ids Lxx; `npm run estandar -- diseno
+  pantalla-con-tokens` las trae). Cada una dice cómo se comprueba: un test o un lint, o
+  `juicio` si está por construir.
   Una norma sin comprobación **no cuenta como cumplida**.
 - **N1, los bloques** A–Q, en `ops/diseno/bloques.json`: cuáles obliga su perfil,
   los apartados de cada uno y las fichas de token, componente, patrón y
   biblioteca. Un bloque que su perfil pide está cubierto o lleva «no aplica» con motivo.
 
-El contraste, con una norma detrás <!-- norma:screen-accessible -->, lo mide
+El contraste, con una norma detrás <!-- norma:design-contrast-aa -->, lo mide
 `src/design/contraste.test.js` sobre `ops/diseno/contraste.json`.
 
 Vocabulario cerrado de hallazgos (el código es lo que se cuenta):
@@ -122,6 +124,7 @@ hallazgo con código, evidencia y arreglo, y cada norma con su estado dicho.
 
 ## Registro de cambios
 
+- **2026-10-13** · Las normas L01–L22 pasan a `ops/normas.json` con ámbito `diseno`; el contraste cita `design-contrast-aa`.
 - **2026-10-12** · Primera versión: doce códigos de hallazgo sobre las normas de N0 y los bloques de N1, con el contraste y los bloques medidos por test (#591, paso 6 del orden de META-DISENO.md).
 
 ## Fuentes y comprobación
@@ -130,4 +133,4 @@ hallazgo con código, evidencia y arreglo, y cada norma con su estado dicho.
 - `docs/diseno/ESTADO.md`: decisiones D1–D12 y cifras de HoMenu.
 - WCAG 2.2: https://www.w3.org/TR/WCAG22/ (1.4.3, 1.4.11, 2.5.8).
 
-Comprobado el 2026-10-12: los dos tests del paso 2 y `npm run lint:base` sobre HoMenu, cada regla de los tests vista fallar. Sin comprobar: el uso con una pantalla real de principio a fin, el panel (aún sin tokens) y `npm run skills-prueba -- revision-de-diseno` (cuesta tokens).
+Comprobado el 2026-10-13: los dos tests del paso 2, `npm run lint:base` sobre HoMenu y las 22 normas `design-*` en `ops/normas.json` (`ops/uniones.test.js`, `ops/normas.test.js`), cada regla de los tests vista fallar. Sin comprobar: el uso con una pantalla real de principio a fin, el panel (aún sin tokens) y `npm run skills-prueba -- revision-de-diseno` (cuesta tokens).
