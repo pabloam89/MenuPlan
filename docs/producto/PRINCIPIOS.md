@@ -15,10 +15,10 @@ Cada principio es el porqué, sin fuerza: su enunciado, su porqué, un ejemplo b
 | IA conversacional (`conversational-ai`) | 11 | 11 | 0 |
 | primeros pasos (`onboarding`) | 2 | 2 | 0 |
 | coste y fiabilidad (`cost-reliability`) | 5 | 5 | 4 |
-| claridad de uso (`ux-clarity`) | 2 | 2 | 0 |
+| claridad de uso (`ux-clarity`) | 3 | 3 | 0 |
 | accesibilidad (`accessibility`) | 1 | 1 | 1 |
 | alcance (`scope`) | 2 | 2 | 0 |
-| **Total** | **40** | **40** | **9** |
+| **Total** | **41** | **41** | **9** |
 
 ## Confianza y seguridad (`trust-safety`)
 
@@ -280,6 +280,15 @@ Que se entienda qué pasa y cómo seguir.
   - Bueno: «Lola avisa de que el menú tarda un poco antes de ponerse a generarlo».
   - Malo: «La pantalla se queda quieta mientras se genera el menú».
   - Fuentes: [F] https://www.nngroup.com/articles/ten-usability-heuristics/.
+- `visual-order-and-consistency` — **Pantalla ordenada y coherente.** Una pantalla se entiende de un vistazo cuando lo importante destaca, lo relacionado va junto y todo sale del mismo sistema.
+  - Porqué: La persona mira con prisa y deduce la importancia y los grupos por tamaño y distancia, y lo que se repite igual se aprende una sola vez.
+  - Norma: `design-hierarchy` — **Jerarquía de la vista.** Para cada pantalla de la app, CONVIENE tener una sola acción primaria por vista, con el énfasis según la importancia. Control: juicio (blanda).
+  - Norma: `design-proximity-alignment` — **Proximidad y alineación.** Para cada pantalla de la app, CONVIENE agrupar lo relacionado, con menos espacio dentro de un grupo que entre grupos, sobre una rejilla. Control: juicio (blanda).
+  - Norma: `design-elastic-text` — **Texto elástico.** Para cada pantalla de la app, CONVIENE soportar cadenas un 40 % más largas y dar a fechas, números y moneda el formato local. Control: juicio (blanda).
+  - Norma: `design-themes` — **Temas desde los tokens.** El producto DEBE ofrecer tema claro y oscuro desde los mismos tokens semánticos, o declarar por qué falta uno. Control: juicio (blanda).
+  - Bueno: «Una sola acción grande por pantalla y el botón de cada tarjeta pegado a su tarjeta».
+  - Malo: «Tres botones del mismo tamaño y un espacio igual entre todos los elementos».
+  - Fuentes: [F] https://www.nngroup.com/articles/visual-hierarchy-ux-definition/; [F] https://www.nngroup.com/articles/gestalt-proximity/; [F] https://www.nngroup.com/articles/ten-usability-heuristics/.
 
 ## Accesibilidad (`accessibility`)
 
@@ -294,10 +303,6 @@ Que lo pueda usar cualquier persona, con cualquier ayuda.
   - Norma: `design-color-not-only-signal` — **Color nunca única señal.** Cada pantalla de la app NO DEBE dar solo con el color un error, un estado o una selección, sin forma, texto o icono. Control: juicio (blanda).
   - Norma: `design-reflow-zoom` — **Reflow y zoom.** Cada pantalla de la app DEBE conservar todo el contenido a 320 píxeles de ancho y con el texto al 200 %. Control: juicio (blanda).
   - Norma: `design-motion-tokens` — **Movimiento por tokens.** Cada pantalla de la app DEBE sacar duración y curva de un token, respetar prefers-reduced-motion y no depender solo de una animación. Control: juicio (blanda).
-  - Norma: `design-hierarchy` — **Jerarquía de la vista.** Para cada pantalla de la app, CONVIENE tener una sola acción primaria por vista, con el énfasis según la importancia. Control: juicio (blanda).
-  - Norma: `design-proximity-alignment` — **Proximidad y alineación.** Para cada pantalla de la app, CONVIENE agrupar lo relacionado, con menos espacio dentro de un grupo que entre grupos, sobre una rejilla. Control: juicio (blanda).
-  - Norma: `design-elastic-text` — **Texto elástico.** Para cada pantalla de la app, CONVIENE soportar cadenas un 40 % más largas y dar a fechas, números y moneda el formato local. Control: juicio (blanda).
-  - Norma: `design-themes` — **Temas desde los tokens.** El producto DEBE ofrecer tema claro y oscuro desde los mismos tokens semánticos, o declarar por qué falta uno. Control: juicio (blanda).
   - Bueno: «Toda imagen de plato tiene su texto alternativo y los botones se alcanzan con el teclado».
   - Malo: «Un menú solo se puede abrir con el ratón y la foto del plato no tiene descripción».
   - Fuentes: [F] https://www.w3.org/WAI/standards-guidelines/wcag/glance/.

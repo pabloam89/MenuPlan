@@ -14,11 +14,11 @@ Las normas de cada principio: `npm run principios-casa -- <id>`. Un principio qu
 | infraestructura (`infra`) | 12 | 0 | 0 |
 | datos (`data`) | 15 | 0 | 0 |
 | catálogo (`catalog`) | 1 | 0 | 0 |
-| producto (`product`) | 40 | 40 | 0 |
+| producto (`product`) | 41 | 41 | 0 |
 | proceso (`process`) | 11 | 0 | 0 |
 | redacción (`writing`) | 15 | 15 | 0 |
 | entidades (`entities`) | 9 | 0 | 3 |
-| **Total** | **111** | **55** | **3** |
+| **Total** | **112** | **56** | **3** |
 
 ## Precedencia
 
@@ -337,6 +337,9 @@ Lo trae el catálogo delegado `ops/principios-producto/`, con su detalle en `doc
 - `visibility-of-status` — **Estado visible.** Una acción lenta que enseña su estado evita que la persona la repita o la abandone.
   - Porqué: Sin estado, la persona repite la acción o abandona.
   - Fuentes: [F] https://www.nngroup.com/articles/ten-usability-heuristics/
+- `visual-order-and-consistency` — **Pantalla ordenada y coherente.** Una pantalla se entiende de un vistazo cuando lo importante destaca, lo relacionado va junto y todo sale del mismo sistema.
+  - Porqué: La persona mira con prisa y deduce la importancia y los grupos por tamaño y distancia, y lo que se repite igual se aprende una sola vez.
+  - Fuentes: [F] https://www.nngroup.com/articles/visual-hierarchy-ux-definition/ ; [F] https://www.nngroup.com/articles/gestalt-proximity/ ; [F] https://www.nngroup.com/articles/ten-usability-heuristics/
 - `wcag-pour` — **Accesible para todos.** Un producto accesible se puede percibir, manejar y entender con cualquier ayuda, también con un lector de pantalla.
   - Porqué: WCAG es el estándar de accesibilidad y llega a más gente, incluida la que usa lector de pantalla.
   - Fuentes: [F] https://www.w3.org/WAI/standards-guidelines/wcag/glance/
