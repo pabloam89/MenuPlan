@@ -2,8 +2,8 @@
   "id": "no-sensitive-data-in-chat-by-default",
   "nombre": "Sin datos sensibles de más",
   "area": "privacy",
-  "enunciado": "Un canal de mensajería de terceros guarda lo que se escribe fuera de nuestro control.",
-  "porque": "En los estudios de NN/g los usuarios dudaban de dar datos sensibles a un bot, y el canal no es nuestro.",
+  "enunciado": "Un canal de mensajería de terceros guarda lo que se escribe fuera del control de la casa.",
+  "porque": "En los estudios de NN/g, los usuarios dudan de dar datos sensibles a un bot, y el canal no es de la casa.",
   "ejemplo_bueno": "Lola pregunta si hay algún alimento que no toleren, no pide historial médico",
   "ejemplo_malo": "Lola pide el informe del alergólogo por el chat",
   "fuentes": [

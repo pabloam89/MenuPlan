@@ -38,7 +38,7 @@
     },
     "tarea.tarea": {
       "tipo_texto": "norma",
-      "tope": 215
+      "tope": 214
     },
     "regla.exigencia": {
       "tipo_texto": "norma",
@@ -65,27 +65,5 @@
       "tope": 19798
     }
   },
-  "excepciones_wording": {
-    "norma.exigencia:modo-tiempo": 2,
-    "norma.exigencia:voz-pasiva": 1,
-    "norma.nota:modo-tiempo": 2,
-    "norma.nota:voz-pasiva": 3,
-    "norma.nota:persona": 5,
-    "principio.enunciado:modo-tiempo": 4,
-    "principio.enunciado:persona": 2,
-    "principio.porque:modo-tiempo": 13,
-    "principio.porque:persona": 2,
-    "practica.practica:modo-tiempo": 2,
-    "practica.practica:voz-pasiva": 1,
-    "skill.description:modo-tiempo": 3,
-    "skill.description:persona": 1,
-    "tarea.tarea:modo-tiempo": 1,
-    "regla.exigencia:modo-tiempo": 3,
-    "regla.exigencia:voz-pasiva": 1,
-    "regla.porque:modo-tiempo": 16,
-    "regla.porque:fuerza-en-principio": 5,
-    "regla.porque:voz-pasiva": 2,
-    "criterio.exigencia:persona": 1,
-    "criterio.exigencia:modo-tiempo": 2
-  }
+  "excepciones_wording": {}
 }

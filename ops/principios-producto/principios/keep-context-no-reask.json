@@ -3,7 +3,7 @@
   "nombre": "No repetir preguntas",
   "area": "conversational-ai",
   "enunciado": "Un dato que la persona ya dio se recuerda en vez de pedirse otra vez.",
-  "porque": "En los estudios de NN/g, los bots que repetían preguntas cansaban a la gente.",
+  "porque": "En los estudios de NN/g, los bots que repiten preguntas cansan a la gente.",
   "ejemplo_bueno": "Lola usa los comensales que ya constan en la ficha de la casa",
   "ejemplo_malo": "Lola vuelve a preguntar cuántos comen cada vez que se pide un menú",
   "fuentes": [

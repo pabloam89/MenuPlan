@@ -416,7 +416,7 @@
           "exigencia": "buscarse antes de darse por nuevo, con npm run buscar y npm run issues",
           "control": "juicio",
           "fuente": "casa-skill-issues",
-          "porque": "El mismo fallo se abrió tres veces como issue porque nadie miró lo que ya existía",
+          "porque": "El mismo fallo se abre tres veces como issue cuando nadie mira lo que ya existe",
           "ejemplo_bueno": "npm run buscar con el síntoma y el fichero, y el resultado en el informe",
           "ejemplo_malo": "abrir el hallazgo como nuevo sin buscar"
         },
@@ -427,7 +427,7 @@
           "exigencia": "llevar la marca YA APUNTADO: #n o NUEVO (buscado: consulta)",
           "control": "juicio",
           "fuente": "casa-plantilla-agente",
-          "porque": "Un hallazgo sin marca se devuelve: no se sabe si es repetido",
+          "porque": "Un hallazgo sin marca se devuelve: no se sabe si se repite",
           "ejemplo_bueno": "NUEVO (buscado: cableado pedidos)",
           "ejemplo_malo": "un hallazgo sin ninguna de las dos marcas"
         }
@@ -559,7 +559,7 @@
           "nombre": "Cifra antes y después",
           "sujeto": "medida",
           "fuerza": "debe",
-          "exigencia": "darse antes y después con el comando del que sale, para saber si el arreglo sirvió",
+          "exigencia": "darse antes y después con el comando del que sale, para saber si el arreglo ha servido",
           "control": "juicio",
           "fuente": "casa-claude",
           "porque": "Lo que no se mide no mejora",
@@ -633,7 +633,7 @@
           "exigencia": "vivir en un solo sitio, y una copia es una proyección declarada con quién la recalcula",
           "control": "juicio",
           "fuente": "casa-principios-datos",
-          "porque": "Dos copias sin dueño acaban diciendo cosas distintas",
+          "porque": "Dos copias sin dueño terminan diciendo cosas distintas",
           "ejemplo_bueno": "tabla de alimentos y plato derivado, con el script que lo recalcula",
           "ejemplo_malo": "la misma lista copiada a mano en un JSON y una constante"
         },
@@ -1031,7 +1031,7 @@
               "exigencia": "tener un solo uso, el ámbito mínimo y la caducidad anotada",
               "control": "juicio",
               "fuente": "owasp-secrets",
-              "porque": "Si se filtra, cae solo ese uso; con más ámbito del necesario, cae todo lo que alcanzaba",
+              "porque": "Si se filtra, cae solo ese uso; con más ámbito del necesario, cae todo lo que alcanza",
               "ejemplo_bueno": "un token de un solo repo, 90 días, para un solo workflow",
               "ejemplo_malo": "la misma clave para el vigía y para el despliegue"
             },
@@ -1099,7 +1099,7 @@
               "exigencia": "coincidir con el commit de origin/staging tras git fetch",
               "control": "juicio",
               "fuente": "casa-claude",
-              "porque": "Vercel solo dice si desplegó bien un commit, no si es el que se esperaba",
+              "porque": "Vercel solo dice si ha desplegado bien un commit, no si es el esperado",
               "ejemplo_bueno": "el commit del despliegue igual al de cabeza de origin/staging",
               "ejemplo_malo": "dar por bueno un despliegue por estar en Ready"
             },
@@ -1140,7 +1140,7 @@
               "exigencia": "dejar una fila fechada en ops/DECISIONES.md con qué, por qué y quién lo aprobó",
               "control": "juicio",
               "fuente": "casa-decisiones",
-              "porque": "Sin la fila, nadie sabe luego quién decidió ni con qué motivo",
+              "porque": "Sin la fila, nadie sabe luego quién ha decidido ni con qué motivo",
               "ejemplo_bueno": "2026-10-10, qué se hizo, por qué y la aprobación de Pablo",
               "ejemplo_malo": "una decisión tomada en el chat y sin registro"
             },
@@ -1226,7 +1226,7 @@
               "nombre": "Plantilla y descripción",
               "sujeto": "agente",
               "fuerza": "debe",
-              "exigencia": "seguir la estructura de .claude/PLANTILLA-AGENTE.md: frontmatter con campos que existen, diez secciones en orden y una descripción que acaba en «No para:»",
+              "exigencia": "seguir la estructura de .claude/PLANTILLA-AGENTE.md: frontmatter con campos que existen, diez secciones en orden y una descripción con «No para:» al final",
               "control": ".claude/agentes.test.js",
               "fuente": "claude-subagents",
               "porque": "Una errata en un campo de la cabecera no da error en Claude Code: se ignora en silencio, y una descripción sin frontera enruta mal",
@@ -1240,7 +1240,7 @@
               "exigencia": "llevar una lista cerrada con solo las herramientas que su tarea necesita, sin permissionMode bypassPermissions y sin Agent salvo el orquestador",
               "control": ".claude/agentes.test.js",
               "fuente": "claude-subagents",
-              "porque": "Un agente con tools vacío hereda todas, y cada herramienta de más es una puerta que el juez tiene que vigilar",
+              "porque": "Un agente con tools vacío hereda todas, y cada herramienta de más es una puerta más que vigilar para el juez",
               "ejemplo_bueno": "tools: Read, Grep, Glob, Bash, Write, con la razón de Write dicha en el informe",
               "ejemplo_malo": "tools sin rellenar, o Edit en un agente que solo registra y diagnostica"
             },
@@ -1330,7 +1330,7 @@
               "exigencia": "tener clave técnica y clave natural única",
               "control": "supabase/principios.test.js",
               "fuente": "pg-constraints",
-              "porque": "Sin on delete explícito, borrar un padre deja huérfanos o falla de forma que nadie decidió",
+              "porque": "Sin on delete explícito, borrar un padre deja huérfanos o falla de forma que nadie ha decidido",
               "ejemplo_bueno": "foreign key (hogar_id) references hogares on delete cascade",
               "ejemplo_malo": "una FK sin on delete escrito"
             },
@@ -1352,7 +1352,7 @@
               "exigencia": "llevar comentario en cada columna que no se entiende por su nombre",
               "control": "supabase/principios.test.js",
               "fuente": "casa-principios-datos",
-              "porque": "El diccionario vive en la base: quien consulta ve qué es cada cosa sin abrir el repo",
+              "porque": "El diccionario vive en la base: quien consulta ve qué significa cada cosa sin abrir el repo",
               "ejemplo_bueno": "comment on column pedidos.estado is 'abierto hasta que Lola lo cierra'",
               "ejemplo_malo": "una columna estado sin explicar sus valores"
             }
@@ -1405,7 +1405,7 @@
               "exigencia": "fallar en vez de callar: drop constraint sin if exists",
               "control": "juicio",
               "fuente": "pg-altertable",
-              "porque": "Un if exists esconde que el objeto no estaba y la migración sigue como si nada",
+              "porque": "Un if exists esconde que el objeto falta y la migración sigue como si nada",
               "ejemplo_bueno": "alter table t drop constraint t_estado_check",
               "ejemplo_malo": "drop constraint if exists que no avisa si falta"
             }
@@ -1498,7 +1498,7 @@
               "exigencia": "ponerse al día en el mismo PR que la migración, diciendo la verdad sobre lo que trae la rama",
               "control": "juicio",
               "fuente": "casa-migraciones",
-              "porque": "Un registro que se pone al día después acaba mintiendo durante el tiempo que tarda",
+              "porque": "Un registro que se pone al día después termina mintiendo durante el tiempo que tarda",
               "ejemplo_bueno": "supabase/ESTADO.md tocado en el diff de la migración",
               "ejemplo_malo": "una migración fusionada y un ESTADO.md sin la fila"
             },
@@ -1783,7 +1783,7 @@
               "exigencia": "proponer el arreglo sin dictar la forma y dirigir el tono al código y no a la persona",
               "control": "juicio",
               "fuente": "gg-comentarios",
-              "porque": "El que construye conoce el código y decide la forma; el comentario tiene que poder aceptarse",
+              "porque": "El que construye conoce el código y decide la forma; un comentario solo sirve si el constructor puede aceptarlo",
               "ejemplo_bueno": "esta rama devuelve vacío cuando falta la casa; tal vez comprobarlo antes",
               "ejemplo_malo": "no sabes manejar las casas vacías"
             },
@@ -1806,7 +1806,7 @@
               "exigencia": "salir como nit y sin bloquear la fusión",
               "control": "juicio",
               "fuente": "gg-comentarios",
-              "porque": "El constructor debe distinguir lo que rompe de lo que solo se podría pulir",
+              "porque": "Etiquetar un nit permite al constructor distinguir lo que rompe de lo que solo se podría pulir",
               "ejemplo_bueno": "Nit: este nombre podría ser más corto",
               "ejemplo_malo": "bloquear el PR por el nombre de una variable"
             }
@@ -1929,7 +1929,7 @@
               "exigencia": "salir medio con su nombre, y alto si el diff repite lo que la skill ya cuenta",
               "control": "juicio",
               "fuente": "claude-skills",
-              "porque": "La skill existe para no repetir ese fallo y si el diff lo repite es que no se abrió",
+              "porque": "La skill existe para no repetir ese fallo y si el diff lo repite, la skill no se ha abierto",
               "ejemplo_bueno": "medio: no abrió vercel y toca el despliegue",
               "ejemplo_malo": "un nit sin nombrar la skill"
             }
@@ -2008,7 +2008,7 @@
               "exigencia": "señalar con su ruta la función o la fuente que ya existe, si reutilizarla evita un fallo o una segunda verdad",
               "control": "juicio",
               "fuente": "gg-que-mirar",
-              "porque": "Dos copias de una regla acaban diciendo cosas distintas",
+              "porque": "Dos copias de una regla terminan diciendo cosas distintas",
               "ejemplo_bueno": "ya existe esaHora en scripts/lib/hora.mjs y esta copia la repite con otra zona",
               "ejemplo_malo": "pedir unificar dos funciones parecidas porque sí",
               "condicion": "cuando el diff duplica algo que ya existe"
@@ -2480,7 +2480,7 @@
               "exigencia": "llevar su variable CSS generada con npm run tokens:css y no escrita a mano",
               "control": "src/design/tokensCss.test.js",
               "fuente": "casa-design-system",
-              "porque": "Dos escrituras del mismo valor acaban distintas",
+              "porque": "Dos escrituras del mismo valor terminan distintas",
               "ejemplo_bueno": "tokens.css regenerado en el mismo PR",
               "ejemplo_malo": "una variable CSS retocada a mano en tokens.css"
             },
@@ -2541,7 +2541,7 @@
               "exigencia": "dejar la lista de valores sueltos más corta que antes, con la cifra antes y después",
               "control": "scripts/lib/sueltos-base.test.js",
               "fuente": "casa-diseno-estado",
-              "porque": "Sin una cifra que baje no se sabe si la migración sirvió",
+              "porque": "Sin una cifra que baje no se sabe si la migración ha servido",
               "ejemplo_bueno": "de 18 valores sueltos a 0 en HoyScreen",
               "ejemplo_malo": "migrar y no mirar cuántos quedan"
             },
@@ -2788,7 +2788,7 @@
               "exigencia": "decir la acción que ocurre al pulsarlo, con un verbo",
               "control": "juicio",
               "fuente": "casa-design-system",
-              "porque": "El botón es la promesa de lo que pasa y debe poder leerse sin contexto",
+              "porque": "El botón es la promesa de lo que pasa y se lee solo, sin contexto",
               "ejemplo_bueno": "Guardar menú",
               "ejemplo_malo": "Botón con el texto Aceptar"
             },
@@ -3023,7 +3023,7 @@
               "sujeto": "ficha",
               "fuerza": "debe",
               "condicion": "cuando cambia la ficha de la casa",
-              "exigencia": "actualizar la instantánea solo si el cambio es intencionado y decirlo en el informe",
+              "exigencia": "actualizar la instantánea solo si el cambio es intencional y decirlo en el informe",
               "control": "api/_bot/fichas.test.js",
               "fuente": "casa-lola-regla",
               "porque": "La instantánea es lo que avisa de un cambio de ficha sin querer",
@@ -3070,7 +3070,7 @@
               "nombre": "Cero rápidas de más",
               "sujeto": "enrutador",
               "fuerza": "no_debe",
-              "exigencia": "mandar a la vía rápida un mensaje que tocaba a Lola: la cifra que importa es 0",
+              "exigencia": "mandar a la vía rápida un mensaje que toca a Lola: la cifra que importa es 0",
               "control": "scripts/router-evals.mjs",
               "fuente": "casa-lola-regla",
               "porque": "Una respuesta rápida equivocada cuesta más que dejar pasar a Lola",
@@ -3084,7 +3084,7 @@
               "exigencia": "mantener su esquema de salida plano y cerrado, con el umbral de cada modo",
               "control": "juicio",
               "fuente": "casa-router",
-              "porque": "Con objetos anidados el modelo pequeño acertaba el modo y se dejaba los datos sin rellenar",
+              "porque": "Con objetos anidados el modelo pequeño acierta el modo y se deja los datos sin rellenar",
               "ejemplo_bueno": "modo, confianza y datos al mismo nivel con enum cerrado",
               "ejemplo_malo": "un objeto anidado por modo"
             }
@@ -3260,7 +3260,7 @@
               "exigencia": "decirlo en el informe en lugar de estimar las cifras",
               "control": "juicio",
               "fuente": "an-evals",
-              "porque": "Una cifra estimada se lee como medida y se acaba usando de referencia",
+              "porque": "Una cifra estimada se lee como medida y termina usándose de referencia",
               "ejemplo_bueno": "NO COMPROBADO: sin clave de Anthropic en esta sesión",
               "ejemplo_malo": "unos 2.500 tokens, calculados a ojo"
             }
@@ -3584,7 +3584,7 @@
               "exigencia": "ser bloqueante aunque el total suba",
               "control": "juicio",
               "fuente": "an-evals",
-              "porque": "El total esconde que se rompió algo que iba bien",
+              "porque": "El total esconde que se rompe algo que va bien",
               "ejemplo_bueno": "bloqueante: el caso de alergias pasaba y ahora falla, aunque el total sube",
               "ejemplo_malo": "aprobar porque el pase total sube dos puntos"
             },
@@ -3851,7 +3851,7 @@
               "exigencia": "ser una proyección declarada, con quién la recalcula",
               "control": "juicio",
               "fuente": "casa-principios-datos",
-              "porque": "Una copia sin dueño de su recálculo acaba desfasada",
+              "porque": "Una copia sin dueño de su recálculo termina desfasada",
               "ejemplo_bueno": "derivado declarado en model.js con su script",
               "ejemplo_malo": "dos listas iguales sin saber cuál manda"
             },
@@ -4368,7 +4368,7 @@
         },
         {
           "id": "evaluar-la-eficacia",
-          "tarea": "Al vencer la ventana de observación de un fondo, comprobar con la cifra de antes y la de después, del mismo comando, si el arreglo sirvió, dar un veredicto de vocabulario cerrado y proponer el cierre o la reapertura",
+          "tarea": "Al vencer la ventana de observación de un fondo, comprobar con la cifra de antes y la de después, del mismo comando, si el arreglo sirve, dar un veredicto de vocabulario cerrado y proponer el cierre o la reapertura",
           "accion": "medir",
           "origen": "metodo",
           "ambitos": [
@@ -4398,7 +4398,7 @@
               "exigencia": "darse por eficaz ni por insuficiente sin una cifra de partida con su comando: el veredicto es no-evaluable y el fondo vuelve a plan-de-arreglo",
               "control": ".claude/cierre-eficaz.test.js",
               "fuente": "sre-postmortem",
-              "porque": "Una cifra de partida inventada al final convierte cualquier resultado en una mejora; hay que fijarla antes de arreglar",
+              "porque": "Una cifra de partida inventada al final convierte cualquier resultado en una mejora, y solo una fijada antes de arreglar sirve de referencia",
               "ejemplo_bueno": "no-evaluable porque el barrido de la ficha no trae número ni comando, y vuelve a plan-de-arreglo",
               "ejemplo_malo": "estimar de memoria cuántos había antes y declarar la mejora"
             }

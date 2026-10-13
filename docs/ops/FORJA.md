@@ -315,9 +315,9 @@ Esquema y forma: determinista, lo vigila un test del CI.
   - Fuente: [I] .claude/PLANTILLA-SKILL.md. Código: `secciones`.
 - `secretos` — **Sin secretos.** Cada skill NO DEBE contener ningún patrón de clave ni cadena de conexión con contraseña, ni en sus capas. Se comprueba con: `.claude/skills.test.js`.
   - Fuente: [I] scripts/lib/skills.mjs. Código: `secretos`.
-- `sin-fuente` — **Marca de fuente.** La plantilla de skills DEBE marcar cada punto de la plantilla de un tipo con su [F: fuente], [I] (ruta de la casa) o [S] (inferencia nuestra). Se comprueba con: `.claude/skills.test.js`.
+- `sin-fuente` — **Marca de fuente.** La plantilla de skills DEBE marcar cada punto de la plantilla de un tipo con su [F: fuente], [I] (ruta de la casa) o [S] (inferencia propia). Se comprueba con: `.claude/skills.test.js`.
   - Fuente: [I] .claude/PLANTILLA-SKILL.md. Código: `sin-fuente`.
-- `sin-parada` — **Parada del método.** El cuerpo de cada skill DEBE decir en el «Método» cuándo se acaba y qué se ve cuando sale bien. Se comprueba con: `.claude/skills.test.js`.
+- `sin-parada` — **Parada del método.** El cuerpo de cada skill DEBE decir en el «Método» cuándo termina y qué se ve cuando sale bien. Se comprueba con: `.claude/skills.test.js`.
   - Nota: Es heurístico: el control detecta la frase («Sale bien si», «Hecho cuando»…), no que el método diga de verdad cuándo acaba; candidato a revisar su capa. Se exceptúa el tipo servicio, que no tiene «Método».
   - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Código: `sin-parada`.
 - `tabla` — **Tablas regulares.** El cuerpo de cada skill DEBE tener tablas con todas las filas del mismo ancho y ninguna celda vacía. Se comprueba con: `.claude/skills.test.js`.
@@ -476,7 +476,7 @@ Una rúbrica escrita que un LLM puntúa sobre casos; para lo que no se puede dis
   - Cumple si dos personas leyendo las descripciones de esta y de su vecina eligen la misma para una petición dada. No cumple si hay peticiones en las que dudarían entre las dos.
   - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, no_cumple).
   - Fuente: [I] .claude/skills/forja-de-skills/referencias/criterios.md.
-- `skill-contrastada-con-fallo-real` — **Nacida de un fallo.** Cada skill DEBE nacer de un fallo real visto sin ella, no de lo que se imagina que hará falta. Se comprueba con: el juicio de una persona o de un LLM sobre sus casos.
+- `skill-contrastada-con-fallo-real` — **Nacida de un fallo.** Cada skill DEBE nacer de un fallo real visto sin ella, no de lo que se imagina que hace falta. Se comprueba con: el juicio de una persona o de un LLM sobre sus casos.
   - Cumple si el PR o «Lo que falló y por qué» cuentan en qué fallaba la sesión sin la skill. No cumple si sale de documentación copiada o de una lista de buenas intenciones.
   - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, no_cumple).
   - Fuente: [I] .claude/skills/forja-de-skills/SKILL.md.

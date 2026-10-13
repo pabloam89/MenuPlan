@@ -46,7 +46,7 @@
     {
       "id": "redundancia-en-todas-las-capas",
       "agente": "auditor-datos",
-      "practica": "Evita que un mismo dato viva en más de un sitio, porque lo que existe en varios hay que cambiarlo igual en todos",
+      "practica": "Evita que un mismo dato viva en más de un sitio, porque lo que existe en varios exige el mismo cambio en todos",
       "fuente": "ms-normalizacion",
       "origen": "campo",
       "lectura": "leida",
@@ -141,7 +141,7 @@
     {
       "id": "nulos-y-valores-validos-en-la-base",
       "agente": "auditor-datos",
-      "practica": "Declara como restricciones del motor qué columnas no admiten nulo y qué valores son válidos, en vez de fiarlo al código que escribe",
+      "practica": "Declara como restricciones del motor qué columnas no admiten nulo y qué valores aceptan, en vez de fiarlo al código que escribe",
       "fuente": "pg-constraints",
       "origen": "campo",
       "lectura": "leida",

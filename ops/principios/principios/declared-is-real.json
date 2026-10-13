@@ -3,7 +3,7 @@
   "area": "infra",
   "nombre": "Lo declarado es lo real",
   "enunciado": "Lo que el repo declara de la infraestructura se compara cada cierto tiempo con lo que hay de verdad.",
-  "porque": "Un registro que nadie compara con la realidad acaba mintiendo, y se decide con datos falsos.",
+  "porque": "Un registro que nadie compara con la realidad termina mintiendo, y se decide con datos falsos.",
   "fuentes": [
     {
       "marca": "I",
