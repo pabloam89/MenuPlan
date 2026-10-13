@@ -102,6 +102,12 @@ describe("el test del juez: la cifra de acierto (con un juez de mentira)", () =>
     expect(lineaDeCifra("revisor", c)).toBe("test-del-juez juez: revisor aciertos: 3/3 buenos: 2/2 malos: 1/1 sin_correr: 1 acierto: 1");
   });
 
+  it("si el corrector se queda sin tope tras señalar, el caso queda sin correr y la medida sigue (hallazgo del revisor, #697)", async () => {
+    const perfecto = (c) => (c.tipo === "bueno" ? { veredicto: "aprueba" } : { veredicto: "senala", hallazgos: ["ok"] });
+    const filas = await medir(casos, { juzgar: async (c) => perfecto(c), corregir: async () => { throw new Error("tope: sin cupo"); } });
+    expect(cifra(filas)).toMatchObject({ aciertos: 2, total: 2, sin_correr: 2, acierto: 1 });
+  });
+
   it("un veredicto ilegible es un fallo, no un acierto", async () => {
     const filas = await medir(casos, { juzgar: async () => ({ veredicto: "quizá" }), corregir: async () => true });
     expect(cifra(filas).aciertos).toBe(0);

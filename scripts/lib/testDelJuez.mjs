@@ -89,7 +89,9 @@ export async function medir(casos, { juzgar, corregir }) {
     const veredicto = r?.veredicto === "senala" ? "senala" : r?.veredicto === "aprueba" ? "aprueba" : null;
     let acierta = false;
     if (c.tipo === "bueno") acierta = veredicto === "aprueba";
-    else if (veredicto === "senala") acierta = (await corregir(c, r.hallazgos ?? [])) === true;
+    else if (veredicto === "senala") {
+      try { acierta = (await corregir(c, r.hallazgos ?? [])) === true; } catch (e) { filas.push({ id: c.id, norma: c.norma, tipo: c.tipo, estado: "sin_correr", motivo: String(e.message).slice(0, 120) }); continue; }
+    }
     filas.push({ id: c.id, norma: c.norma, tipo: c.tipo, estado: acierta ? "ok" : "falla", veredicto });
   }
   return filas;
