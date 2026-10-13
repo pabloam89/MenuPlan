@@ -13,7 +13,7 @@ forja de skills (#458) y los niveles de las entidades:
 | Nivel | Qué es | Obedece a | Ejemplo |
 |---|---|---|---|
 | **N0** | Las **normas** de diseño: valen para todo proyecto (contraste, tamaños, escalas, un valor por rol). | — | «Texto normal, 4,5:1 de contraste.» |
-| **N1** | La **forja**: qué debe listar y definir cualquier sistema de diseño (bloques, campos, vocabularios cerrados). | N0 | «Todo sistema define su escala tipográfica con estos campos.» |
+| **N1** | Los **bloques**: qué debe listar y definir cualquier sistema de diseño (bloques, campos, vocabularios cerrados). | N0 | «Todo sistema define su escala tipográfica con estos campos.» |
 | **N2** | El **perfil por tipo de proyecto**: qué parámetros se eligen y cuáles son obligatorios, opcionales o no aplican. | N1 | «Herramienta interna: densidad alta, sin modo táctil.» |
 | *Instancia* | El sistema de **un** proyecto: sus tokens, sus componentes y su documento. No es un nivel. | Su N2 | HoMenu hoy (`DESIGN_SYSTEM.md`, `tokens.js`); el panel mañana. |
 
@@ -29,7 +29,7 @@ aplican. Juntos son la **forja de diseño**, la familia entera.
 
 | Aquí | En la Base | Entidad |
 |---|---|---|
-| N0 + N1 | `forja` de la familia (nivel `meta`) | las normas de ámbito diseño, en `ops/normas.json`; los bloques, en `bloques.json` |
+| N0 + N1 | `forja` de la familia (nivel `meta`) | las normas L01 a L22, en la sección 2 de este documento (aún no están en `ops/normas.json`); los bloques, en `bloques.json` |
 | N2 | `plantilla` por tipo | `design-profile` (P1 a P6) |
 | Instancia | `pieza` | `design-system` de un proyecto (`project`: `homenu` o `panel`), con sus `token`, `component` y `pattern` |
 
@@ -422,7 +422,7 @@ Leído el 11 oct 2026 a partir de las cabeceras de `DESIGN_SYSTEM.md` y de
 4. **Contraste por test** para las dos instancias (L05), el cambio más barato con más efecto. **Hecho el 12 oct 2026 (#591) para HoMenu** (`src/design/contraste.test.js`, parejas en `ops/diseno/contraste.json`, 5 excepciones declaradas); el panel, cuando tenga tokens.
 5. **Ficha por componente** en HoMenu (L14, L17) conforme se migren pantallas.
 6. **Skill de revisión de diseño** (hermana de `higiene-de-skills`): lee N0 y N1 como criterios y revisa una instancia; el agente `diseno` la carga. **Hecho el 12 oct 2026 (#591): `revision-de-diseno`.** Las normas de N0 se comprueban con tests (paso 4), no con una skill por nivel.
-7. **Entidades** `sistema-de-diseno`, `token`, `componente` y `patron` en el mapa (#566).
+7. **Entidades** `design-system`, `design-profile`, `token`, `component` y `pattern` en el mapa. **Hecho (#652).**
 
 ## 7. Riesgos y qué no hacer
 
