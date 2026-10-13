@@ -301,7 +301,7 @@ export const AVISOS = {
   },
   "token-impreso": {
     codigo: "token-de-sesion-no-se-imprime",
-    que: "Imprimir el token de la sesión o usarlo como argumento (incluida su caché y session-env)",
+    que: "Imprimir el token de la sesión, usarlo como argumento o nombrar la ruta de su caché o de session-env (también el directorio o con comodín)",
     porque: "lo dejaría en la conversación o en un texto público (#447, #715)",
     enSuLugar: "para comprobar que existe, usa `node scripts/token-sesion.mjs --comprobar`, que dice si vale sin enseñarlo",
   },

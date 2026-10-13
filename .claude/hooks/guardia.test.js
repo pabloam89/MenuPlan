@@ -1464,3 +1464,88 @@ describe("credenciales de la sesión: el token como argumento, su caché y sessi
     expect(negadas).toBe(NEGADAS.length);
   });
 });
+
+// Segunda vuelta de revisor y seguridad sobre el mismo filtro (#738): formas de escribir lo
+// mismo que el primer corpus no veía. Sigue siendo un filtro de buena fe, no una barrera.
+describe("credenciales de la sesión: segunda vuelta del filtro del token como argumento (#738)", () => {
+  const ps = (command) => decidir({ tool_name: "PowerShell", tool_input: { command } }, ctx())?.decision ?? null;
+  const principal = (d) => /MenuPlan$/.test(d);
+  const enPrincipal = (command, cwd = "C:/dev/MenuPlan") =>
+    decidir({ tool_name: "Bash", tool_input: { command }, cwd }, ctx({ esPrincipal: principal }))?.decision ?? null;
+
+  const NEGADAS_2 = [
+    // el escape fuera de comillas simples se come siempre el carácter siguiente
+    'gh issue comment 12 -b "x\\\\$GH_TOKEN"',
+    "gh issue comment 12 -b \\'$GH_TOKEN\\'",
+    // un intérprete que se lleva el texto entre comillas simples lo expande él
+    "bash -c 'echo $GH_TOKEN'",
+    "sh -c 'gh issue comment 1 -b $GH_TOKEN'",
+    "zsh -c 'echo ${GH_TOKEN}'",
+    "eval 'echo $GITHUB_TOKEN'",
+    // cmd: %VAR:~a,b%
+    "echo %GH_TOKEN:~0,40%",
+    'curl -H "Authorization: token %GH_TOKEN:~0,40%" https://api.github.com/user',
+    // printenv del token dentro de otra orden
+    'gh issue comment 1 -b "$(printenv GH_TOKEN)"',
+    "gh issue comment 1 -b `printenv GITHUB_TOKEN`",
+    // lo que sigue al envoltorio también se mira
+    "node scripts/token-sesion.mjs -- printenv",
+    "node scripts/token-sesion.mjs -- env",
+    "node scripts/token-sesion.mjs -- printenv GH_TOKEN",
+    // el directorio de la caché y de session-env, no solo el fichero
+    'ls "$LOCALAPPDATA/MenuPlan"',
+    "cat /c/Users/pablo/AppData/Local/MenuPlan/token-*",
+    "cat ~/.claude/token-*",
+    "cat ~/.claude/sess*",
+    "type %LOCALAPPDATA%\\MenuPlan\\*",
+    // gh con ruta delante, o el shim de E1
+    "/usr/bin/gh auth token",
+    "/usr/local/bin/gh secret set X",
+    "node scripts/gh-shim.mjs auth token",
+  ];
+  it.each(NEGADAS_2)("deniega %s", (c) => expect(bash(c)).toBe("deny"));
+
+  const NEGADAS_PS = [
+    'curl -H "Authorization: token ``$env:GH_TOKEN" https://api.github.com/user',
+    "pwsh -c 'echo $env:GH_TOKEN'",
+    "iex 'echo $env:GH_TOKEN'",
+    "Invoke-Expression 'echo $env:GH_TOKEN'",
+    "Get-ChildItem $env:LOCALAPPDATA\\MenuPlan",
+    "cmd /c 'echo %GH_TOKEN:~0,40%'",
+  ];
+  it.each(NEGADAS_PS)("deniega en PowerShell %s", (c) => expect(ps(c)).toBe("deny"));
+
+  it.each(["gh pr checkout 12", "gh pr checkout 12 --detach", "gh co 12"])(
+    "niega en la carpeta principal %s (cambia la rama como git checkout)",
+    (c) => expect(enPrincipal(c)).toBe("deny"),
+  );
+  it("deja gh pr view en la principal y gh pr checkout en una carpeta de tarea", () => {
+    expect(enPrincipal("gh pr view 12")).toBe(null);
+    expect(enPrincipal("gh pr checkout 12", "C:/dev/MenuPlan-x")).toBe(null);
+  });
+
+  it("el aviso dice que leer la ruta de la caché o de session-env también se niega", () => {
+    expect(AVISOS_CREDENCIALES.imprimir).toMatch(/ruta/);
+    expect(AVISOS_CREDENCIALES.imprimir).toMatch(/session-env/);
+  });
+
+  it.each([
+    "bash -c 'echo hola'",
+    "git commit -m 'bash -c $GH_TOKEN; eval $GH_TOKEN'",
+    "gh issue comment 12 --body 'sh -c $GH_TOKEN'",
+    "git log --oneline -- token-sesion.json",
+    "git log --oneline -3 -- .claude/hooks/credenciales.mjs",
+    "git grep -n session-env -- .claude",
+    "node scripts/token-sesion.mjs -- gh pr list",
+    "node scripts/token-sesion.mjs -- git push -u origin ops/x",
+    "cat .claude/settings.json",
+    "ls .claude/skills",
+    "echo $HOME/MenuPlan",
+    "gh pr view 12",
+  ])("deja pasar %s", (c) => expect(bash(c)).toBe(null));
+
+  it("cifra: todo el corpus de la segunda vuelta se niega", () => {
+    const negadas = NEGADAS_2.filter((c) => bash(c) === "deny").length + NEGADAS_PS.filter((c) => ps(c) === "deny").length;
+    expect(negadas).toBe(NEGADAS_2.length + NEGADAS_PS.length);
+  });
+});

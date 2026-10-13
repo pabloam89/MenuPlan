@@ -46,7 +46,8 @@ const TOKEN_PS = String.raw`(?:${TOKEN}|\w*[*?][\w*?]*)`;
 const GIT_ID = String.raw`GIT_(?:(?:AUTHOR|COMMITTER)_(?:NAME|EMAIL)|CONFIG_(?:COUNT|KEY_\d+|VALUE_\d+|GLOBAL|PARAMETERS|SYSTEM))`;
 // Lo que puede haber justo antes de una palabra de shell: inicio, espacio, `(`, comillas, `{`.
 const IZQ = String.raw`(?:^|[\s("'\x60{])`;
-const GH = String.raw`${IZQ}gh(?:\.exe)?\s+(?:(?:-R|--repo)\s+\S+\s+)?`;
+// `gh` suelto, con ruta delante (`/usr/bin/gh`) o el shim de las sesiones (`scripts/gh-shim.mjs`, E1 #719).
+const GH = String.raw`(?:${IZQ}|/)(?:gh(?:\.exe)?|gh-shim\.mjs)\s+(?:(?:-R|--repo)\s+\S+\s+)?`;
 // Tope a los comodines: una orden enorme no puede disparar el retroceso de la expresión.
 const RESTO = String.raw`[^|;&\n]{0,200}`;
 
@@ -210,12 +211,14 @@ const IMPRIME_TOKEN = [
 const FILTRA_SIN_TOKEN = /^(?:grep|rg|egrep|findstr|Select-String|sls|wc)\b/i;
 const PIDE_SECRETOS = /token|secret|passw|key|\bGH_|GITHUB|auth/i;
 
+// El envoltorio de la sesión al principio de la orden: `node scripts/token-sesion.mjs -- `.
+const ENVOLTORIO = /^(?:node(?:\.exe)?\s+)?\S*token-sesion\.mjs\s+--\s+/;
+
 // Atajo: un trozo sin ninguna de estas palabras no puede disparar ninguna regla de arriba.
 const ALGO_QUE_MIRAR = /gh|git|env|unset|export|printenv|declare|cmdkey|vaultcmd|credential|rulesets|node|proc|Item|Variable|Environment|ri|si|del|rm|rd|gi|gc|ls|dir|cat|type|Write-|print/i;
 
 /** ¿Es `gh` o un `git` de red, sin el envoltorio de la sesión? (solo en PowerShell) */
 function sinEnvoltorioEnPowerShell(o) {
-  if (/token-sesion\.mjs\s+--/.test(o)) return false;
   return new RegExp(String.raw`${IZQ}(?:&\s*)?gh(?:\.exe)?(?:\s|$)`).test(o)
     || new RegExp(String.raw`${IZQ}(?:&\s*)?git(?:\.exe)?\s+(?:-\S+\s+(?:\S+\s+)?){0,4}(?:push|pull|fetch|clone|ls-remote|remote\s+update)\b`).test(o);
 }
@@ -228,7 +231,11 @@ function sinEnvoltorioEnPowerShell(o) {
 export function credencialDeSesion(orden, opc = {}) {
   const crudo = String(orden);
   if (!ALGO_QUE_MIRAR.test(crudo.replace(/['"\\]/g, ""))) return null;
-  const o = normalizar(crudo).trim();
+  // Lo que va detrás del envoltorio es la orden de verdad: se mira como si fuese sola
+  // (`token-sesion.mjs -- printenv` vuelca el entorno igual que `printenv`).
+  const entera = normalizar(crudo).trim();
+  const envuelta = ENVOLTORIO.exec(entera);
+  const o = envuelta ? entera.slice(envuelta[0].length) : entera;
   const soloTexto = SOLO_TEXTO.test(o) && !EJECUTA_DENTRO.test(o);
 
   // Imprimir el token es justo lo que hace un `echo`: se mira aunque sea solo texto.
@@ -239,7 +246,7 @@ export function credencialDeSesion(orden, opc = {}) {
   }
   if (soloTexto) return null;
 
-  if (opc.powershell && sinEnvoltorioEnPowerShell(o)) return "powershell";
+  if (opc.powershell && !envuelta && sinEnvoltorioEnPowerShell(o)) return "powershell";
   if (QUITA_TOKEN.some((re) => re.test(o))) return "token";
   if (TOCA_IDENTIDAD_GIT.some((re) => re.test(o))) return "identidad";
   if (CREDENCIALES_GUARDADAS.some((re) => re.test(o))) return "guardadas";
@@ -266,10 +273,22 @@ export function credencialDeSesion(orden, opc = {}) {
 }
 
 // El token como argumento: `$GH_TOKEN`, `${GH_TOKEN}`, `$env:GH_TOKEN`, `${env:GH_TOKEN}`, `%GH_TOKEN%`.
-const TOKEN_COMO_ARGUMENTO = new RegExp(String.raw`\$\{?(?:env:)?${TOKEN}\b|%${TOKEN}%`, "i");
+// `%GH_TOKEN:~0,40%` (cmd, con subcadena) también, y `printenv GH_TOKEN` dentro de `$(…)`, de acentos graves o tras un separador.
+const TOKEN_COMO_ARGUMENTO = new RegExp(
+  String.raw`\$\{?(?:env:)?${TOKEN}\b|%${TOKEN}(?::[^%]*)?%|(?:^|[;&|(\x60]|\$\()\s*printenv\s+(?:-\S+\s+)*${TOKEN}\b`,
+  "i",
+);
 // La caché del token de sesión (scripts/lib/cacheTokenSesion.mjs) y el directorio de entorno de las sesiones de Claude.
 // `token-sesion.json` es la caché; `token-sesion.mjs` es el envoltorio y no se toca.
-const FICHERO_DEL_TOKEN = /token-sesion\.json|\bsession-env\b/i;
+// También el directorio, porque un comodín o un `ls` no necesitan el nombre del fichero:
+// `…\AppData\Local\MenuPlan`, `$LOCALAPPDATA/MenuPlan`, `%LOCALAPPDATA%\MenuPlan`, `~/.claude/token-*`, `~/.claude/sess*`.
+const FICHERO_DEL_TOKEN =
+  /token-sesion\.json|\bsession-env\b|AppData[\\/]Local[\\/]MenuPlan|LOCALAPPDATA\W{0,3}[\\/]?MenuPlan|\.claude[\\/](?:token|sess)/i;
+// Una orden que lleva su texto a otro intérprete: `bash -c '…'`, `eval`, `iex`, `pwsh -c`, `cmd /c`.
+const INTERPRETE_DENTRO =
+  /(?:^|[\s;&|(])(?:(?:ba|z|da|k)?sh\s+(?:-\S+\s+)*-\w*c\b|eval\b|iex\b|Invoke-Expression\b|(?:pwsh|powershell)(?:\.exe)?\s+(?:-\S+\s+)*-(?:c|command)\b|cmd(?:\.exe)?\s+\/c\b)/i;
+// Un `git log` o `git grep` del repo solo nombra la ruta (no lee nada de fuera); con `$(…)`, acentos graves o `--no-index` no vale.
+const GIT_SOLO_DEL_REPO = /^git\s+(?:log|grep)\b(?![^\n]*--no-index)(?![^\n]*(?:\$\(|\x60))/;
 
 /** Como `quitarHeredocs`, pero solo los de delimitador entrecomillado o con barra: su cuerpo no se expande. */
 function quitarHeredocsLiterales(texto) {
@@ -291,8 +310,13 @@ function quitarHeredocsLiterales(texto) {
  * Lo que el shell expandiría: quita el texto entre comillas simples (en PowerShell
  * también), los heredocs de delimitador entrecomillado y el `$` escapado. Lo que va entre
  * comillas dobles se queda, porque ahí `$GH_TOKEN` sí se sustituye.
+ *
+ * El carácter de escape (fuera de comillas simples) se come SIEMPRE el siguiente: `\\$X` es una
+ * barra literal y el `$X` se expande, y `\'` no abre una comilla simple. Con `envuelto` (la
+ * orden lleva `bash -c`, `eval`, `iex`…) las comillas simples no protegen nada: el intérprete
+ * de dentro expande lo que lleven.
  */
-function loQueSeExpande(cmd, powershell) {
+function loQueSeExpande(cmd, powershell, envuelto = false) {
   const t = quitarHeredocsLiterales(String(cmd).replace(/\\\r?\n/g, " "));
   const escape = powershell ? "`" : "\\";
   let fuera = "";
@@ -303,11 +327,11 @@ function loQueSeExpande(cmd, powershell) {
       if (c === "'") estado = "";
       continue;
     }
-    if (c === escape && t[i + 1] === "$") {
-      i++; // un dólar escapado es literal, no una variable
+    if (c === escape && i + 1 < t.length) {
+      i++; // el carácter escapado es literal: ni variable ni comilla
       continue;
     }
-    if (c === "'" && estado === "") {
+    if (c === "'" && estado === "" && !envuelto) {
       estado = "'";
       continue;
     }
@@ -328,8 +352,12 @@ function loQueSeExpande(cmd, powershell) {
  */
 export function tokenComoArgumento(cmd, { powershell = false } = {}) {
   const crudo = String(cmd);
-  if (!/GH_|GITHUB_|token-sesion|session-env/i.test(crudo)) return false;
-  return TOKEN_COMO_ARGUMENTO.test(loQueSeExpande(crudo, powershell)) || FICHERO_DEL_TOKEN.test(sinTextos(crudo));
+  if (!/GH_|GITHUB_|token-sesion|session-env|MenuPlan|\.claude/i.test(crudo)) return false;
+  const sinMensajes = sinTextos(crudo);
+  const envuelto = INTERPRETE_DENTRO.test(sinMensajes);
+  if (TOKEN_COMO_ARGUMENTO.test(loQueSeExpande(crudo, powershell, envuelto))) return true;
+  // Los ficheros, por trozos: un `git log`/`git grep` del repo que solo nombra la ruta no la lee.
+  return trozos(sinMensajes).some((t) => FICHERO_DEL_TOKEN.test(t.texto) && !GIT_SOLO_DEL_REPO.test(t.texto));
 }
 
 /** La orden entera (puede llevar varias): la primera familia que salta, o null. */
