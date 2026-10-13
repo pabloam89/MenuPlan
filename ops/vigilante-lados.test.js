@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 import { cargarNormas, problemasDeProyectos } from "../scripts/lib/normas.mjs";
 import { calcular } from "../scripts/lib/inventarioVertical.mjs";
-import { RUTA_TECHOS, citasAVertical, fallosDeSubida, fallosDeTechos, leerTechos, medir } from "../scripts/lib/vigilanteLados.mjs";
+import { RUTA_TECHOS, citasAVertical, fallosDeSubida, fallosDeTechos, leerDeclaradas, leerTechos, medir } from "../scripts/lib/vigilanteLados.mjs";
 
 /**
  * El vigilante de lados (#710, programa #652, punto 7). Dos cosas, las dos con datos rotos probados abajo:
@@ -45,7 +45,13 @@ const techosDeStaging = () => {
 
 describe("los techos solo bajan", () => {
   it("los techos no suben respecto a origin/staging (si se puede leer sin red)", () => {
-    expect(fallosDeSubida(leerTechos(RAIZ), techosDeStaging())).toEqual([]);
+    expect(fallosDeSubida(leerTechos(RAIZ), techosDeStaging(), medir(RAIZ), leerDeclaradas(RAIZ))).toEqual([]);
+  });
+
+  // En el CI la referencia se trae a propósito (tests.yml, «Traer staging para los trinquetes»): si falta, el trinquete
+  // no puede quedarse mudo y verde. En local, sin red, se salta.
+  it.skipIf(!process.env.CI)("en el CI, origin/staging existe y se puede leer (si no, el trinquete no comprobaría nada)", () => {
+    expect(techosDeStaging(), "falta origin/staging o ops/techos-lados.json en él: revisa el paso «Traer staging» de tests.yml").not.toBeNull();
   });
 
   it("las cifras del inventario coinciden con ops/techos-lados.json (sube = fallo; baja = bajar el techo)", () => {
@@ -77,6 +83,25 @@ describe("con datos rotos (casos negativos)", () => {
     expect(fallosDeSubida({ x: 1 }, { x: 2 })).toEqual([]);
     expect(fallosDeSubida({ x: 2 }, { x: 2 })).toEqual([]);
     expect(fallosDeSubida({ x: 9 }, null)).toEqual([]);
+  });
+
+  it("una clave nueva con techo sin declarar, o con techo mayor que su medida, falla; con medida igual y declarada, no", () => {
+    const st = { x: 2 };
+    expect(fallosDeSubida({ x: 2, y: 4 }, st, { x: 2, y: 4 }).join()).toMatch(/«y»: clave nueva con techo 4, sube desde 0/);
+    expect(fallosDeSubida({ x: 2, y: 0 }, st, { x: 2, y: 0 })).toEqual([]);
+    expect(fallosDeSubida({ x: 2, y: 5 }, st, { x: 2, y: 4 }, { y: { hasta: 5, razon: "una razón de al menos veinte letras" } }).join()).toMatch(/mayor que la medida 4/);
+    expect(fallosDeSubida({ x: 2, y: 4 }, st, { x: 2, y: 4 }, { y: { hasta: 4, razon: "una razón de al menos veinte letras" } })).toEqual([]);
+  });
+
+  it("una subida declarada solo vale con razón, dentro de su tope y mientras staging esté por debajo", () => {
+    const razon = "el detector pasó a leer todo el texto";
+    expect(fallosDeSubida({ x: 6 }, { x: 4 }, null, { x: { hasta: 6, razon } })).toEqual([]);
+    expect(fallosDeSubida({ x: 7 }, { x: 4 }, null, { x: { hasta: 6, razon } })).toHaveLength(1);
+    expect(fallosDeSubida({ x: 6 }, { x: 4 }, null, { x: { hasta: 6, razon: "corta" } })).toHaveLength(1);
+    expect(fallosDeSubida({ x: 6 }, { x: 4 }, null, { otra: { hasta: 6, razon } })).toHaveLength(1);
+    // ya fusionada: staging tiene el 6; subir a 7 no está declarado
+    expect(fallosDeSubida({ x: 6 }, { x: 6 }, null, { x: { hasta: 6, razon } })).toEqual([]);
+    expect(fallosDeSubida({ x: 7 }, { x: 6 }, null, { x: { hasta: 6, razon } })).toHaveLength(1);
   });
 
   it("subir una cifra, bajarla sin bajar el techo, medir algo sin techo o dejar un techo huérfano fallan; igual, no", () => {

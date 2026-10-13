@@ -31,8 +31,22 @@ const leerJson = (raiz, ruta) => JSON.parse(readFileSync(join(raiz, ruta), "utf8
 const jsonsDe = (raiz, dir) => readdirSync(join(raiz, dir)).filter((f) => f.endsWith(".json") && !f.startsWith("_")).sort().map((f) => leerJson(raiz, `${dir}/${f}`));
 
 /** Palabras que nombran el proyecto de verdad (sin «casa», «bot» ni «familia», que son castellano corriente). */
-const PROYECTO = /\b(HoMenu|MenuPlan|Lola|homenu)\b|C:\\dev|Vercel|Supabase/;
-const PROYECTO_ESTRICTO = /\b(HoMenu|MenuPlan|Lola|homenu)\b/;
+const PROYECTO = /\b(HoMenu|MenuPlan|Lola|homenu)\b/i;
+/** Servicios que usa el proyecto (no son la factoría): citarlos ata la pieza a este proyecto. Mayúsculas da igual. */
+const SERVICIOS = /\b(Vercel|Supabase|Telegram|WhatsApp|Gemini|Anthropic|Mercadona)\b|C:\\dev/i;
+export const nombraProyecto = (texto) => PROYECTO.test(texto);
+export const nombraServicio = (texto) => SERVICIOS.test(texto);
+/** Campos de un registro que son ids, rutas o enlaces y no prosa: no cuentan como texto. */
+export const NO_ES_PROSA = ["id", "control", "donde", "principio", "ambito", "lado", "project", "normas", "agente", "ruta", "url"];
+/** Todos los textos de un valor: cadenas sueltas, listas y objetos anidados (recursivo). */
+export const textos = (v) => (typeof v === "string" ? [v] : Array.isArray(v) ? v.flatMap(textos) : v && typeof v === "object" ? Object.values(v).flatMap(textos) : []);
+/** Todo el texto de un registro (norma, tarea o regla de estándar), menos los campos que son ids o rutas de control. */
+export const textoDe = (o, salvo = NO_ES_PROSA) => Object.entries(o ?? {}).filter(([k]) => !salvo.includes(k)).flatMap(([, v]) => textos(v)).join(" ");
+/** Dos razones distintas: nombrar el proyecto y nombrar un servicio del proyecto. */
+export const razonesDeNombre = (texto) => [
+  ...(nombraProyecto(texto) ? ["su texto nombra el proyecto"] : []),
+  ...(nombraServicio(texto) ? ["su texto nombra un servicio del proyecto"] : []),
+];
 /** Prefijos de fichero que son de HoMenu y no de la factoría. */
 const FICHEROS_DE_PRODUCTO = /^(api\/|src\/|supabase\/|specs\/|docs\/datos\/|docs\/producto\/|DESIGN_SYSTEM\.md|public\/)/;
 
@@ -119,13 +133,7 @@ export function calcular(raiz) {
   // ---- 3. Normas ----------------------------------------------------------------------------------------------
   const carga = cargarNormas(raiz);
   const horizontales = carga.horizontales.map((n) => {
-    const razones = [];
-    if (PROYECTO_ESTRICTO.test([n.nombre, n.exigencia, n.condicion].filter(Boolean).join(" "))) razones.push("su texto nombra el proyecto");
-    if (["bot", "product", "catalog"].includes(n.ambito)) razones.push(`ámbito «${n.ambito}» (conducta de un producto con bot, catálogo o familias)`);
-    else if (n.ambito !== "diseno") {
-      const nombradas = [n.control, ...(n.donde ?? [])].filter((s) => typeof s === "string" && FICHEROS_DE_PRODUCTO.test(s));
-      if (nombradas.length) razones.push(`depende de un fichero de HoMenu (${nombradas[0]})`);
-    }
+    const razones = razonesDeNormaHorizontal(n);
     return razones.length ? { id: n.id, lado: "duda", razon: razones.join("; ") } : { id: n.id, lado: "horizontal" };
   });
   for (const n of horizontales) if (n.lado === "duda") duda("normas", n.id, n.razon);
@@ -159,7 +167,11 @@ export function calcular(raiz) {
     else if (t.dominio === "producto") lado = "vertical";
     else if (t.dominio === "datos") { lado = "duda"; razon = "dominio «datos»: habla de migraciones, tablas y fuentes de datos, que son de HoMenu en la práctica"; }
     else lado = "horizontal";
-    if (lado === "horizontal" && PROYECTO.test(`${t.termino} ${t.definicion}`)) { lado = "duda"; razon = `la definición nombra el proyecto o su infraestructura («${(t.definicion.match(PROYECTO) ?? [])[0]}»)`; }
+    const textoT = `${t.termino} ${t.definicion}`;
+    if (lado === "horizontal" && (nombraProyecto(textoT) || nombraServicio(textoT))) {
+      lado = "duda";
+      razon = [nombraProyecto(textoT) && `la definición nombra el proyecto («${textoT.match(PROYECTO)[0]}»)`, nombraServicio(textoT) && `la definición nombra un servicio del proyecto («${textoT.match(SERVICIOS)[0]}»)`].filter(Boolean).join("; ");
+    }
     if (lado === "vertical" && Object.hasOwn(decisiones.entidades_verticales_genericas, ligadas[0]?.id ?? "")) { lado = "duda"; razon = `su entidad ${ligadas[0].id} es un concepto general marcado vertical`; }
     return { id: t.termino, lado, razon };
   });
@@ -245,6 +257,20 @@ export function calcular(raiz) {
 /** En cada capa, horizontal + vertical + duda tienen que sumar el total. Devuelve los fallos (vacío = bien). */
 export function fallosDeCuentas(filas) {
   return filas.filter((f) => f.horizontal + f.vertical + f.duda !== f.total).map((f) => `${f.unidad}: ${f.horizontal}+${f.vertical}+${f.duda} no suman ${f.total}`);
+}
+
+/**
+ * Por qué una norma horizontal duda: lee TODOS sus campos de prosa (nombre, exigencia, condición, porque, nota,
+ * ejemplos…, también dentro de listas) sin distinguir mayúsculas, con una razón para el proyecto y otra para sus servicios.
+ */
+export function razonesDeNormaHorizontal(n) {
+  const razones = razonesDeNombre(textoDe(n));
+  if (["bot", "product", "catalog"].includes(n.ambito)) razones.push(`ámbito «${n.ambito}» (conducta de un producto con bot, catálogo o familias)`);
+  else if (n.ambito !== "diseno") {
+    const nombradas = [n.control, ...(n.donde ?? [])].filter((s) => typeof s === "string" && FICHEROS_DE_PRODUCTO.test(s));
+    if (nombradas.length) razones.push(`depende de un fichero de HoMenu (${nombradas[0]})`);
+  }
+  return razones;
 }
 
 /** Las normas verticales son todas verticales y las horizontales ninguna (el cargador común ya las separa). */
