@@ -36,6 +36,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { AMBITOS, ambitosDeFichero } from "./ambitos.mjs";
+import { leerRegistro } from "./normas.mjs";
 import { textoDePrecedencia } from "./precedencia.mjs";
 import { CONTROL_JUICIO, fraseDeRegla, problemasDeRegla, problemasDeSujetos } from "./regla.mjs";
 import { problemasDePractica } from "./forjaForma.mjs";
@@ -124,9 +125,12 @@ export function normasPorConsulta(normas, ambitos, accion, deConsulta = acciones
 /**
  * Las normas de una tarea: [{ norma, por }] sin repetir, con `por` = «consulta» (sus ámbitos × su
  * acción), «fichero» (el ámbito de un fichero tocado), «citada» (su lista `normas`) o «común <id>».
- * `normas`: la lista de ops/normas.json. Una norma citada que no existe sale con `norma: null`.
+ * `normas`: la lista de normas (ops/normas.json y, si se pide, las de `proyecto`: ops/proyectos/<id>/normas.json). Sin `proyecto`, nada
+ * vertical (#704): las de un proyecto solo llegan con `proyecto: "homenu"`, y solo las de su ámbito y su acción. Una norma citada que no existe sale con `norma: null`.
  */
-export function normasDeTarea(t, datos, normas, { ficheros = [], deConsulta = accionesDeConsulta } = {}) {
+export function normasDeTarea(t, datos, normas, { ficheros = [], deConsulta = accionesDeConsulta, proyecto = null } = {}) {
+  // Un estándar horizontal no lleva normas verticales (#704): solo las del proyecto en el que trabaja la tarea, por referencia.
+  normas = (normas ?? []).filter((n) => n.lado !== "vertical" || (proyecto !== null && n.project === proyecto));
   const porId = new Map((normas ?? []).map((n) => [n.id, n]));
   const fuera = new Map();
   const pon = (n, por) => { if (n && !fuera.has(n.id)) fuera.set(n.id, { norma: n, por }); };
@@ -201,13 +205,19 @@ const FUERZA_OK = { debe: 1, no_debe: 1, conviene: 1 };
 export function problemasDeEstandares(datos, agentes, raiz = null, normas = null) {
   const malos = [];
   // Las normas del registro, para las uniones de cada tarea (#620); sin raíz ni normas, no se miran.
-  const registro = normas ?? (raiz && existsSync(join(raiz, RUTA_NORMAS)) ? JSON.parse(readFileSync(join(raiz, RUTA_NORMAS), "utf8")).normas : null);
+  const todas = normas ?? (raiz && existsSync(join(raiz, RUTA_NORMAS)) ? leerRegistro(raiz).normas : null);
+  // Un estándar horizontal solo cita horizontales (#704): las del proyecto llegan por referencia, con --proyecto.
+  const registro = todas ? todas.filter((n) => n.lado !== "vertical") : null;
   const idsNormas = registro ? new Set(registro.map((n) => n.id)) : null;
+  const verticales = new Set((todas ?? []).filter((n) => n.lado === "vertical").map((n) => n.id));
   const citaNormas = (lista, d) => {
     if (lista === undefined) return;
     if (!Array.isArray(lista) || lista.some((x) => typeof x !== "string")) { malos.push(`${d}: «normas» es una lista de ids de ops/normas.json`); return; }
     if (new Set(lista).size !== lista.length) malos.push(`${d}: repite una norma en «normas»`);
-    if (idsNormas) for (const id of lista) if (!idsNormas.has(id)) malos.push(`${d}: cita la norma «${id}», que no está en ${RUTA_NORMAS}`);
+    if (idsNormas) for (const id of lista) {
+      if (verticales.has(id)) malos.push(`${d}: cita la norma «${id}», que es de un proyecto (vertical); un estándar horizontal no la lleva: se pide con --proyecto`);
+      else if (!idsNormas.has(id)) malos.push(`${d}: cita la norma «${id}», que no está en ${RUTA_NORMAS}`);
+    }
   };
   const fuentes = datos?.fuentes ?? {};
   const usadas = new Set();
@@ -361,7 +371,7 @@ export function contar(datos, normas = null) {
   if (normas) {
     const distintas = new Set(tareasDe(datos).flatMap(({ tarea }) => normasDeTarea(tarea, datos, normas).filter((x) => x.norma).map((x) => x.norma.id)));
     fuera.normasDistintas = distintas.size;
-    fuera.normasSinTarea = normas.filter((n) => !distintas.has(n.id)).length;
+    fuera.normasSinTarea = normas.filter((n) => n.lado !== "vertical" && !distintas.has(n.id)).length;
   }
   return fuera;
 }
@@ -444,7 +454,7 @@ export function lineaDeNorma(n, sujetos, por) {
  * El estándar de una tarea en texto: lo que el brief de /orquestar pega para el agente. `registro`: ops/normas.json
  * leído ({ normas, sujetos }), para sus normas; `ficheros`, los tocados, que suman las normas de su ámbito.
  */
-export function textoDeTarea(nombre, idTarea, datos, registro = null, { ficheros = [], precedencia = null } = {}) {
+export function textoDeTarea(nombre, idTarea, datos, registro = null, { ficheros = [], precedencia = null, proyecto = null } = {}) {
   const ag = datos.agentes[nombre];
   if (!ag) return null;
   const t = ag.tareas.find((x) => x.id === idTarea);
@@ -457,10 +467,13 @@ export function textoDeTarea(nombre, idTarea, datos, registro = null, { ficheros
     `Ámbitos: ${(t.ambitos ?? []).join(", ")}`,
   ];
   if (registro) {
-    const ns = normasDeTarea(t, datos, registro.normas, { ficheros }).filter((x) => x.norma);
+    const ns = normasDeTarea(t, datos, registro.normas, { ficheros, proyecto }).filter((x) => x.norma);
     const extra = [...new Set(ficheros.flatMap(ambitosDeFichero))].filter((a) => !(t.ambitos ?? []).includes(a));
     const cabeza = `Normas que tocan (${ns.length}; por consulta ${(t.ambitos ?? []).join(", ")} × ${accionesDeConsulta(t.accion).join(" y ")}${extra.length ? `, y ${extra.join(", ")} por los ficheros` : ""}; cada una con su frase, su control y su principio):`;
-    partes.push(`${cabeza}\n${ns.map((x) => lineaDeNorma(x.norma, registro.sujetos, x.por)).join("\n")}`);
+    const delProyecto = ns.filter((x) => x.norma.lado === "vertical").length;
+    const aviso = proyecto ? ` Incluye ${delProyecto} del proyecto ${proyecto}, por referencia (ops/proyectos/${proyecto}/normas.json).` : "";
+    const por = (x) => (x.norma.lado === "vertical" ? `proyecto ${x.norma.project}, ${x.por}` : x.por);
+    partes.push(`${cabeza}${aviso}\n${ns.map((x) => lineaDeNorma(x.norma, registro.sujetos, por(x))).join("\n")}`);
   }
   // Qué gana si dos normas chocan (#621): el dato es el de ops/principios/_catalogo.json, que lee precedencia.mjs.
   if (precedencia) partes.push(textoDePrecedencia(precedencia));
@@ -503,7 +516,7 @@ export function generarMd(datos, normas = null) {
     "",
     `<!-- Generado desde ${RUTA_ESTANDARES} con «npm run estandar -- --escribir». No se edita a mano: ops/estandares-agentes.test.js lo compara. -->`,
     "",
-    "Qué es hacer bien cada tarea de cada agente. Las normas no se reescriben aquí: cada tarea lleva sus ámbitos y le tocan las normas de `ops/normas.json` (`docs/ops/NORMAS.md`) de esos ámbitos y su acción (construir y juzgar consultan las dos, así que constructor y juez del mismo ámbito reciben las mismas), más las que cita aparte y las de sus comunes. Las condiciones propias son los pasos de la tarea que no son norma, escritas por campos con la plantilla de `scripts/lib/regla.mjs` (guía en `docs/ops/REDACCION.md`) y la forma de práctica de `ops/forja/`: su frase sale de sus campos, su control es el test, el hook, el script o el workflow que la vigila (o `juicio`, si la vigila una persona o un LLM) y su fuente es externa ([F]) o de la casa ([I]). Lo que repiten varios agentes está una sola vez en las tareas comunes. En el brief de una tarea: `npm run estandar -- <agente> <tarea> [--ficheros a,b]`, que suma las normas del ámbito de cada fichero tocado.",
+    "Qué es hacer bien cada tarea de cada agente. Las normas no se reescriben aquí: cada tarea lleva sus ámbitos y le tocan las normas de `ops/normas.json` (`docs/ops/NORMAS.md`) de esos ámbitos y su acción (construir y juzgar consultan las dos, así que constructor y juez del mismo ámbito reciben las mismas), más las que cita aparte y las de sus comunes. Ninguna es vertical: las normas de un proyecto (`ops/proyectos/<id>/normas.json`) no van en el estándar de una tarea horizontal, se piden con `npm run estandar -- <agente> <tarea> --proyecto <id>` (#704). Las condiciones propias son los pasos de la tarea que no son norma, escritas por campos con la plantilla de `scripts/lib/regla.mjs` (guía en `docs/ops/REDACCION.md`) y la forma de práctica de `ops/forja/`: su frase sale de sus campos, su control es el test, el hook, el script o el workflow que la vigila (o `juicio`, si la vigila una persona o un LLM) y su fuente es externa ([F]) o de la casa ([I]). Lo que repiten varios agentes está una sola vez en las tareas comunes. En el brief de una tarea: `npm run estandar -- <agente> <tarea> [--ficheros a,b]`, que suma las normas del ámbito de cada fichero tocado.",
     "",
     `Hoy: ${k.total} tareas de ${Object.keys(datos.agentes).length} agentes, ${k.conEstandar} de ${k.total} con estándar; ${k.reglas} condiciones propias; ${k.comunes} tareas comunes con ${k.reglasComunes} reglas; ${k.normasCitadas} normas citadas aparte${normas ? `; ${k.normasDistintas} normas distintas llegan a alguna tarea y ${k.normasSinTarea} a ninguna` : ""}; ${k.fuentes.externas} fuentes externas y ${k.fuentes.casa} de la casa.`,
     "",
@@ -546,7 +559,7 @@ export function generarMd(datos, normas = null) {
 }
 
 /** Las normas de ops/normas.json de una raíz (la lista). */
-export const leerNormasEn = (raiz) => JSON.parse(readFileSync(join(raiz, RUTA_NORMAS), "utf8"));
+export const leerNormasEn = (raiz) => leerRegistro(raiz);
 
 /** Escribe docs/ops/ESTANDARES.md; devuelve si cambió. */
 export function escribirMd(raiz, datos) {
@@ -716,7 +729,7 @@ export function juecesPorNorma(datos, normas) {
 export function problemasDeUnionesEstandar(datos, normas, { umbral = UMBRAL_REESCRITURA, techos = { reglas: TECHO_REGLAS_QUE_NO_SON_NORMA, juicio: TECHO_NORMAS_SIN_JUEZ } } = {}) {
   const malos = [];
   const ids = new Set(normas.map((n) => n.id));
-  for (const { agente, tarea } of tareasDe(datos)) for (const id of tarea.normas ?? []) if (!ids.has(id)) malos.push(`${agente}/${tarea.id}: cita la norma «${id}», que no existe`);
+  for (const { agente, tarea } of tareasDe(datos)) for (const id of tarea.normas ?? []) if (normas.find((n) => n.id === id)?.lado === "vertical") malos.push(`${agente}/${tarea.id}: cita la norma «${id}», que es de un proyecto; un estándar horizontal no la lleva`); else if (!ids.has(id)) malos.push(`${agente}/${tarea.id}: cita la norma «${id}», que no existe`);
   for (const [c, x] of Object.entries(datos?.comunes ?? {})) for (const id of x.normas ?? []) if (!ids.has(id)) malos.push(`común ${c}: cita la norma «${id}», que no existe`);
 
   const noNorma = datos?.reglas_que_no_son_norma ?? {};
@@ -738,7 +751,8 @@ export function problemasDeUnionesEstandar(datos, normas, { umbral = UMBRAL_REES
 
   const sinJuez = datos?.normas_sin_juez ?? {};
   const jueces = juecesPorNorma(datos, normas);
-  for (const n of normas) {
+  // Las de un proyecto (verticales) no van en un estándar horizontal: las juzga quien trabaja ese proyecto (#704).
+  for (const n of normas.filter((x) => x.lado !== "vertical")) {
     if (n.control !== CONTROL_JUICIO) continue;
     if (jueces[n.id]) { if (n.id in sinJuez) malos.push(`normas_sin_juez «${n.id}»: ya la cita ${jueces[n.id][0]}; quítala de la lista y baja el techo`); continue; }
     if (!(n.id in sinJuez)) malos.push(`norma ${n.id}: la vigila un juicio y ningún estándar de juez la cita; dale el ámbito y la acción a un juez, cítala en una tarea de juzgar o, con su motivo, ponla en normas_sin_juez`);
@@ -766,15 +780,33 @@ export function normasHuerfanas(datos, normas) {
     for (const x of normasDeTarea(tarea, datos, normas, { deConsulta: (a) => [a] })) if (x.norma) recibidas.add(x.norma.id);
   }
   for (const c of Object.values(datos?.comunes ?? {})) for (const id of c.normas ?? []) recibidas.add(id);
-  return (normas ?? []).filter((n) => !recibidas.has(n.id)).map((n) => n.id);
+  return (normas ?? []).filter((n) => n.lado !== "vertical" && !recibidas.has(n.id)).map((n) => n.id);
 }
 
 /**
- * Las normas verticales (#687: conducta del producto, no trabajo de un agente) que alguna tarea sí recibe: el resto de las
- * verticales son huérfanas por diseño (normas_huerfanas_excepciones). Hoy las recibe quien construye o juzga el producto
- * (lola, datos, diseno, qa…); el techo de ops/normas-techos.json solo baja a medida que pasan a ser dato de la pieza o specs/.
+ * Las normas verticales (#687, #704) que un estándar horizontal lista: ninguna, por construcción. `normasDeTarea` las deja fuera
+ * salvo que se pida un `proyecto`; esto lo comprueba sobre el catálogo entero (el techo `verticales_en_estandares` se eliminó).
  */
 export function verticalesEnEstandares(datos, normas) {
-  const huerfanas = new Set(normasHuerfanas(datos, normas));
-  return (normas ?? []).filter((n) => n.lado === "vertical" && !huerfanas.has(n.id)).map((n) => n.id);
+  const dentro = new Set();
+  const esVertical = (id) => (normas ?? []).find((n) => n.id === id)?.lado === "vertical";
+  for (const { tarea } of tareasDe(datos)) {
+    for (const x of normasDeTarea(tarea, datos, normas)) if (x.norma?.lado === "vertical") dentro.add(x.norma.id);
+    for (const id of tarea.normas ?? []) if (esVertical(id)) dentro.add(id);
+  }
+  for (const c of Object.values(datos?.comunes ?? {})) for (const id of c.normas ?? []) if (esVertical(id)) dentro.add(id);
+  return [...dentro];
+}
+
+/**
+ * Las normas de un proyecto que llegan a alguna tarea con `--proyecto <id>` (su ámbito y su acción tal cual, sin la equivalencia
+ * construir ↔ juzgar), y las que no llegan a ninguna: { llegan: [ids], sinSalida: [ids] }.
+ */
+export function verticalesPorProyecto(datos, normas, proyecto) {
+  const llegan = new Set();
+  for (const { tarea } of tareasDe(datos)) {
+    for (const x of normasDeTarea(tarea, datos, normas, { deConsulta: (a) => [a], proyecto })) if (x.norma?.project === proyecto) llegan.add(x.norma.id);
+  }
+  const suyas = (normas ?? []).filter((n) => n.project === proyecto).map((n) => n.id);
+  return { llegan: suyas.filter((id) => llegan.has(id)), sinSalida: suyas.filter((id) => !llegan.has(id)) };
 }

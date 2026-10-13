@@ -905,8 +905,7 @@
           "n2": "construir.code+infra",
           "normas": [
             "secretos-en-environments",
-            "secretos-de-repo",
-            "catalogo-mercadona-minimo"
+            "secretos-de-repo"
           ],
           "reglas": [
             {
@@ -1689,9 +1688,6 @@
             "catalog"
           ],
           "n2": "juzgar.catalog+code+infra",
-          "normas": [
-            "foodid-nulo-mira-las-dos-tablas"
-          ],
           "reglas": [
             {
               "nombre": "Diff entero y contexto",

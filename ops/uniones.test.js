@@ -10,9 +10,10 @@ import { AMBITOS, AMBITO_DE_REGLA, ambitosDeFichero } from "../scripts/lib/ambit
 import { globARegex } from "../scripts/lib/vecinos.mjs";
 import { MIN_PALABRAS_COPIA, cargarSkill, nombresDeSkills, parsearSkill, problemasDeNormasDeSkill } from "../scripts/lib/skills.mjs";
 import {
-  TECHO_NORMAS_SIN_JUEZ, TECHO_REGLAS_QUE_NO_SON_NORMA, accionesDeConsulta, juecesPorNorma, normaReescrita, parecido, problemasDeEmparejamiento, reglasDelCatalogo, leerEstandares, normasHuerfanas, verticalesEnEstandares, problemasDeUnionesEstandar, tareasDe,
+  TECHO_NORMAS_SIN_JUEZ, TECHO_REGLAS_QUE_NO_SON_NORMA, accionesDeConsulta, juecesPorNorma, normaReescrita, parecido, problemasDeEmparejamiento, reglasDelCatalogo, leerEstandares, normasDeTarea, normasHuerfanas, verticalesEnEstandares, verticalesPorProyecto, problemasDeUnionesEstandar, tareasDe,
 } from "../scripts/lib/estandaresAgentes.mjs";
-import { leerRegistro } from "../scripts/lib/normas.mjs";
+import { cargarNormas, leerRegistro, problemasDeProyectos, proyectosDeEntidades } from "../scripts/lib/normas.mjs";
+import { leerN2 } from "../scripts/lib/estandaresN2.mjs";
 import { TECHO_PRINCIPIOS_QUE_REPITEN, TECHO_SIN_NORMA, leerPrincipiosCasa, principiosQueRepitenSuNorma, problemasDeUniones } from "../scripts/lib/principios.mjs";
 
 /**
@@ -293,20 +294,20 @@ describe("las skills citan normas y no las contienen (#620)", () => {
   });
 });
 
-describe("toda norma llega a algún agente (#683, fondo #652)", () => {
+describe("toda norma horizontal llega a algún agente (#683, #704, fondo #652)", () => {
   const estandares = leerEstandares(RAIZ);
   const TECHOS = JSON.parse(readFileSync(join(RAIZ, "ops/normas-techos.json"), "utf8"));
   const excepciones = TECHOS.normas_huerfanas_excepciones ?? {};
   const sinExcepcion = (ids) => ids.filter((id) => !(id in excepciones));
 
-  it("ninguna norma queda sin tarea que la reciba, salvo las de la lista de excepciones", () => {
-    expect(sinExcepcion(normasHuerfanas(estandares, normas)), "Mapéala a la tarea del agente que corresponda (ámbito o `normas`), o si es conducta del producto, a normas_huerfanas_excepciones con su motivo").toEqual([]);
+  it("ninguna norma horizontal queda sin tarea que la reciba, salvo las de la lista de excepciones (vacía desde #704)", () => {
+    expect(sinExcepcion(normasHuerfanas(estandares, normas)), "Mapéala a la tarea del agente que corresponda (ámbito o `normas`)").toEqual([]);
   });
 
-  it("la lista de excepciones solo tiene normas que existen y siguen huérfanas, con motivo, y su techo es su tamaño", () => {
+  it("la lista de excepciones solo tiene normas horizontales que existen y siguen huérfanas, con motivo, y su techo es su tamaño", () => {
     const huerfanas = normasHuerfanas(estandares, normas);
     for (const [id, motivo] of Object.entries(excepciones)) {
-      expect(normas.some((n) => n.id === id), `${id}: no es una norma`).toBe(true);
+      expect(normas.find((n) => n.id === id)?.lado, `${id}: una vertical no va aquí, va a verticales_sin_salida_excepciones`).toBe("horizontal");
       expect(huerfanas, `${id}: ya la recibe una tarea, quítala de la lista`).toContain(id);
       expect(motivo.length, `${id}: motivo`).toBeGreaterThan(20);
     }
@@ -314,7 +315,7 @@ describe("toda norma llega a algún agente (#683, fondo #652)", () => {
   });
 
   it("se ve fallar: una norma nueva sin ámbito de ninguna tarea, y una citada que deja de ser huérfana", () => {
-    const nueva = { id: "norma-de-ejemplo", ambito: "catalog", acciones: ["construir"] };
+    const nueva = { id: "norma-de-ejemplo", ambito: "catalog", acciones: ["construir"], lado: "horizontal" };
     expect(normasHuerfanas(estandares, [...normas, nueva])).toContain("norma-de-ejemplo");
     const citada = structuredClone(estandares);
     citada.agentes.gobierno.tareas[0].normas = [...(citada.agentes.gobierno.tareas[0].normas ?? []), "norma-de-ejemplo"];
@@ -324,24 +325,57 @@ describe("toda norma llega a algún agente (#683, fondo #652)", () => {
   });
 });
 
-describe("el lado de cada norma (#687, fondo #652)", () => {
+describe("las normas del proyecto no van en un estándar horizontal (#704, fondo #652)", () => {
   const estandares = leerEstandares(RAIZ);
+  const carga = cargarNormas(RAIZ);
+  const proyectos = proyectosDeEntidades(RAIZ);
   const TECHOS = JSON.parse(readFileSync(join(RAIZ, "ops/normas-techos.json"), "utf8"));
-  const excepciones = TECHOS.normas_huerfanas_excepciones ?? {};
+  const sinSalida = TECHOS.verticales_sin_salida_excepciones ?? {};
 
-  it("toda norma tiene lado, y las de la lista de excepciones de huérfanas son verticales", () => {
+  it("toda norma tiene lado; ops/normas.json solo lleva horizontales y cada vertical vive en el registro de su proyecto, con un project válido", () => {
     for (const n of normas) expect(["horizontal", "vertical"], `${n.id}: lado`).toContain(n.lado);
-    for (const id of Object.keys(excepciones)) expect(normas.find((n) => n.id === id)?.lado, `${id}: conducta del producto`).toBe("vertical");
+    expect(problemasDeProyectos(carga, proyectos)).toEqual([]);
+    expect(Object.keys(carga.delProyecto).length, "hay al menos un registro de proyecto").toBeGreaterThan(0);
   });
 
-  it("las verticales que algún estándar recibe son la cifra del techo, que solo baja", () => {
-    const dentro = verticalesEnEstandares(estandares, normas);
-    expect(dentro.length, "baja el techo verticales_en_estandares de ops/normas-techos.json si ya no las recibe una tarea (o súbelo solo con una decisión)").toBe(TECHOS.verticales_en_estandares);
+  it("ningún estándar horizontal (tarea, común ni N2) lista una norma vertical: 0 por construcción, sin techo", () => {
+    expect(verticalesEnEstandares(estandares, normas)).toEqual([]);
+    for (const c of Object.values(leerN2(RAIZ).combinaciones)) for (const id of c.normas) expect(normas.find((n) => n.id === id)?.lado, `${id} en un N2`).toBe("horizontal");
+    expect("verticales_en_estandares" in TECHOS, "el techo se eliminó: ahora es 0 por construcción").toBe(false);
   });
 
-  it("se ve fallar: una vertical nueva que una tarea recibe cuenta, y una horizontal no", () => {
-    const nueva = { id: "norma-de-ejemplo", ambito: "code", acciones: ["construir"], lado: "vertical" };
-    expect(verticalesEnEstandares(estandares, [...normas, nueva])).toContain("norma-de-ejemplo");
-    expect(verticalesEnEstandares(estandares, [...normas, { ...nueva, lado: "horizontal" }])).not.toContain("norma-de-ejemplo");
+  it("cada vertical llega a la salida de `--proyecto <su proyecto>` de alguna tarea o consta en la lista de excepciones, que solo baja", () => {
+    for (const p of Object.keys(carga.delProyecto)) {
+      const { llegan, sinSalida: fuera } = verticalesPorProyecto(estandares, normas, p);
+      expect(fuera.filter((id) => !(id in sinSalida)), "Dale a una tarea su ámbito y su acción, o ponla en verticales_sin_salida_excepciones con su motivo").toEqual([]);
+      for (const id of llegan) expect(id in sinSalida, `${id}: ya llega con --proyecto ${p}, quítala de la lista y baja el techo`).toBe(false);
+    }
+    for (const [id, motivo] of Object.entries(sinSalida)) {
+      expect(normas.find((n) => n.id === id)?.lado, `${id}: no es una norma vertical`).toBe("vertical");
+      expect(motivo.length, `${id}: motivo`).toBeGreaterThan(20);
+    }
+    expect(Object.keys(sinSalida)).toHaveLength(TECHOS.verticales_sin_salida);
+  });
+
+  it("se ve fallar: una vertical citada por una tarea horizontal, una vertical en el registro horizontal y un project desconocido", () => {
+    const vertical = normas.find((n) => n.lado === "vertical");
+    const citada = structuredClone(estandares);
+    citada.agentes.gobierno.tareas[0].normas = [...(citada.agentes.gobierno.tareas[0].normas ?? []), vertical.id];
+    expect(verticalesEnEstandares(citada, normas)).toContain(vertical.id);
+    const mal = structuredClone(carga);
+    mal.horizontales = [...mal.horizontales, { ...vertical, project: undefined }];
+    expect(problemasDeProyectos(mal, proyectos).join("\n")).toMatch(/su lado es «vertical»/);
+    const otro = structuredClone(carga);
+    otro.ficheros.homenu.normas[0] = { ...otro.ficheros.homenu.normas[0], project: "inventado" };
+    expect(problemasDeProyectos(otro, proyectos).join("\n")).toMatch(/«inventado» no es un proyecto/);
+  });
+
+  it("sin --proyecto no llega nada vertical, y con --proyecto llegan las de su ámbito y su acción", () => {
+    const t = estandares.agentes.lola.tareas.find((x) => x.id === "herramienta-de-lola");
+    expect(normasDeTarea(t, estandares, normas).filter((x) => x.norma?.lado === "vertical")).toEqual([]);
+    const con = normasDeTarea(t, estandares, normas, { proyecto: "homenu" }).filter((x) => x.norma?.lado === "vertical");
+    expect(con.length).toBeGreaterThan(0);
+    for (const x of con) expect(x.norma.project).toBe("homenu");
+    expect(normasDeTarea(t, estandares, normas, { proyecto: "panel" }).filter((x) => x.norma?.lado === "vertical")).toEqual([]);
   });
 });
