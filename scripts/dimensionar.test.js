@@ -337,6 +337,12 @@ describe("el brief de cada agente sale del plan", () => {
     expect(b).toMatch(/Lo ya apuntado.*npm run buscar/);
     expect(b).toMatch(/PLANTILLA-AGENTE/);
   });
+  it("el constructor no precarga skills: su brief manda abrir supabase para supabase/ y github para .github/ (#688)", () => {
+    const linea = (q) => briefDe(q, "constructor").match(/^6\. SKILLS A ABRIR: (.*)$/m)?.[1] ?? "";
+    expect(linea(p).split(", ")).toContain("supabase");
+    const wf = dim({ tipo: "create", ficheros: [f(".github/workflows/x.yml", 10)] });
+    expect(linea(wf).split(", ")).toContain("github");
+  });
   it("el juez lleva el estándar de juzgar con las mismas normas que el constructor", () => {
     const b = briefDe(p, "auditor-datos");
     expect(b).toMatch(/^ESTÁNDAR A CUMPLIR: auditor-datos\//m);

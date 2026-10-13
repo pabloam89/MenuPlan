@@ -1,6 +1,6 @@
 ---
 name: supabase
-description: Úsala para operar la base de datos de MenuPlan en Supabase: una consulta a producción, «¿está aplicada?», pg_cron y los crons del bot, el login y Auth (Google), copias o backup (lo que llevan; el cómo, hetzner), o cuando algo de la base no cuadra con el repo. No para: escribir una migración (regla migraciones y agente datos) ni el Postgres del panel en Hetzner (hetzner).
+description: Úsala para operar la base de datos de MenuPlan en Supabase: una consulta a producción, «¿está aplicada?», pg_cron y los crons del bot, el login y Auth (Google), copias o backup (lo que llevan; el cómo, hetzner), o cuando algo de la base no cuadra con el repo. No para: escribir una migración (regla migraciones y agente constructor) ni el Postgres del panel en Hetzner (hetzner).
 metadata:
   tipo: servicio
   opera_proveedor: true
@@ -35,7 +35,7 @@ metadata:
 - **Qué da**: Postgres, Auth (login con Google) y RLS. El código depende de
   las tres, por eso irse de Supabase no es un cambio de proveedor sin más.
 - **Escribir migraciones** no es de esta skill: `.claude/rules/migraciones.md`,
-  `docs/datos/PRINCIPIOS.md` y el agente `datos`.
+  `docs/datos/PRINCIPIOS.md` y el agente `constructor`.
 - **Copias: propias, no de Supabase.** Decidido (#156; día en «Fechas» de Fuentes y comprobación): una copia
   cifrada cada noche en el servidor de Hetzner (encargo #247). Cómo se hace, se
   instala, se ensaya y se restaura: skill `hetzner`. Lo que lleva y lo que no:

@@ -40,7 +40,7 @@ test y pasa a leerse a mano otra vez.
 Dos catálogos, que se citan y no se copian:
 
 - **N0, las normas** L01–L22, en `ops/normas.json` con ámbito `diseno` (la tabla de
-  `docs/diseno/META-DISENO.md`, sección 2, conserva los ids Lxx; `npm run estandar -- diseno
+  `docs/diseno/META-DISENO.md`, sección 2, conserva los ids Lxx; `npm run estandar -- constructor
   pantalla-con-tokens` las trae). Cada una dice cómo se comprueba: un test o un lint, o
   `juicio` si está por construir.
   Una norma sin comprobación **no cuenta como cumplida**.

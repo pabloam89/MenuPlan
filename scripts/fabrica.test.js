@@ -636,6 +636,23 @@ describe("npm run fabrica con transcripciones sintéticas", () => {
     expect(contarEventos("").intervenciones).toEqual({ total: 0, evitables: 0, por_motivo: {}, por_quien: {} });
   });
 
+  it("un evento, un nombre, un motivo o un actor llamados constructor se cuentan como cualquier otro (#688)", () => {
+    const l = (o) => JSON.stringify({ ts: "2026-10-10T08:00:00.000Z", evento: "skill_cargada", nombre: "github", ...o });
+    const c = contarEventos([
+      l({ evento: "constructor", nombre: "constructor" }),
+      l({ evento: "constructor", nombre: "constructor" }),
+      l({ actor: "constructor" }),
+      l({ actor: "constructor" }),
+      l({ evento: "intervencion_humana", nombre: "x", motivo: "constructor", quien: "constructor" }),
+    ].join("\n"));
+    expect(c.total).toBe(5);
+    expect(Object.hasOwn(c.por_evento, "constructor")).toBe(true);
+    expect(c.por_evento.constructor).toEqual({ total: 2, nombres: { constructor: 2 } });
+    expect(c.por_actor.sin_dato).toBe(5); // un actor fuera del vocabulario no se copia
+    expect(c.intervenciones.por_motivo.constructor).toBe(1);
+    expect(c.intervenciones.por_quien.sin_dato).toBe(1);
+  });
+
   it("dentroDe distingue lo que está dentro del repo de lo que está fuera", () => {
     expect(dentroDe(join(RAIZ, "x", "y.txt"), RAIZ)).toBe(true);
     expect(dentroDe(RAIZ, RAIZ)).toBe(true);

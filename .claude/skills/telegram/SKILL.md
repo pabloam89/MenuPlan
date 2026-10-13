@@ -1,6 +1,6 @@
 ---
 name: telegram
-description: Úsala al operar el bot de Telegram: Lola no contesta, poner, mirar o quitar el webhook, la foto del bot o su perfil en BotFather, los comandos del menú «/», meter a Lola en un grupo, el bot de pruebas, la checklist de la compra o mensajes que llegan repetidos. No para: cómo se escribe el código de Lola (regla lola y agente lola).
+description: Úsala al operar el bot de Telegram: Lola no contesta, poner, mirar o quitar el webhook, la foto del bot o su perfil en BotFather, los comandos del menú «/», meter a Lola en un grupo, el bot de pruebas, la checklist de la compra o mensajes que llegan repetidos. No para: cómo se escribe el código de Lola (regla lola y agente constructor).
 metadata:
   tipo: servicio
   opera_proveedor: true
@@ -17,7 +17,7 @@ metadata:
 # Telegram
 
 Esto es operar la plataforma. Cómo se escribe el código de Lola está en
-`.claude/rules/lola.md` y en el agente `lola`.
+`.claude/rules/lola.md` y en el agente `constructor`.
 
 ## Qué es y dónde
 

@@ -418,13 +418,15 @@ const NOMBRE_EVENTO = /^[\w:.-]{1,60}$/;
  * por motivo y por persona, con cuántas eran evitables.
  */
 export function contarEventos(texto) {
-  const r = { total: 0, descartadas: 0, por_evento: {}, por_actor: {}, por_proyecto: {}, intervenciones: { total: 0, evitables: 0, por_motivo: {}, por_quien: {} } };
+  // Los contadores van por nombre que viene del registro: sin prototipo, para que `constructor` o `__proto__` cuenten como cualquier otro (#688).
+  const sinProto = () => Object.create(null);
+  const r = { total: 0, descartadas: 0, por_evento: sinProto(), por_actor: sinProto(), por_proyecto: sinProto(), intervenciones: { total: 0, evitables: 0, por_motivo: sinProto(), por_quien: sinProto() } };
   for (const l of String(texto ?? "").split(/\r?\n/)) {
     if (!l.trim()) continue;
     let o = null;
     try { o = JSON.parse(l); } catch { /* a propósito: una línea corrupta se cuenta como descartada */ }
     if (!o || typeof o !== "object" || typeof o.evento !== "string" || typeof o.nombre !== "string" || !NOMBRE_EVENTO.test(o.evento) || !NOMBRE_EVENTO.test(o.nombre)) { r.descartadas += 1; continue; }
-    const e = (r.por_evento[o.evento] ??= { total: 0, nombres: {} });
+    const e = (r.por_evento[o.evento] ??= { total: 0, nombres: sinProto() });
     e.total += 1;
     e.nombres[o.nombre] = (e.nombres[o.nombre] ?? 0) + 1;
     r.total += 1;
