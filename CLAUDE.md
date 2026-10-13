@@ -144,8 +144,10 @@ trabajo: devuelve «Decisiones para Pablo».
 | `diseno`: pantallas, tokens, iconos y assets | `evaluador`: evals de Lola antes y después |
 | `lola`: el bot, herramientas, conocimiento, coste | `seguridad`: RLS, endpoints, secretos, prompts |
 | `orquestador`: la sesión principal; habla con Pablo y reparte (`claude --agent orquestador`) | `auditor-datos`: normalización, duplicados y cableado |
+| `analista`: del fallo al plan; registra el caso, diagnostica y redacta los encargos en el issue. Constructor de documentos: lleva `Write` y no `Edit`, y no construye código | |
 
 Cada cabecera dice a quién pasa trabajo (`traspasa_a`, vigilado por `.claude/agentes.test.js`).
+El diagnóstico y el plan del `analista` los juzga otro agente (`revisor`, y `auditor-datos` si el fondo es del modelo de datos).
 Cada agente lista sus tareas y el estándar de cada una (qué es hacerla bien,
 qué comprueba, qué no hace y su fuente) en `ops/estandares-agentes.json`; el
 brief de `/orquestar` lo trae con `npm run estandar -- <agente> <tarea>` y el

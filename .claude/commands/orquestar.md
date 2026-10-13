@@ -10,9 +10,16 @@ $ARGUMENTS
 
 ## 0. Triaje (primer paso, si el encargo arregla un fallo)
 
+**Este paso lo hace el `analista`**, no tú: lánzalo con un brief de referencias (el
+número del issue o del encargo, los ficheros, el síntoma) y lee su issue (la ficha
+del fondo, el comentario de diagnóstico y los encargos), sin pedirle que lo repita.
+El diagnóstico y el plan los juzga otro agente (`revisor`, y `auditor-datos` si el
+fondo es del modelo de datos), y no el propio analista. Lo que sigue es lo que él
+hace, con sus comandos, y lo que tú compruebas al leerlo.
+
 Si el encargo es arreglar algo que falló (un caso, un fondo, un hallazgo de un
-juez), antes de dimensionar fija el **alcance** y el **tipo de causa** con
-datos, y deja que el esfuerzo salga del presupuesto y no de lo que parezca. Un
+juez), antes de dimensionar se fija el **alcance** y el **tipo de causa** con
+datos, y el esfuerzo sale del presupuesto y no de lo que parezca. Un
 encargo que no es un fallo (una pantalla, una herramienta nueva) se salta este
 paso. Los números no se escriben aquí ni en ningún brief: salen del comando.
 
@@ -32,10 +39,11 @@ paso. Los números no se escriben aquí ni en ningún brief: salen del comando.
   los recalibra la fase F del plan #334 y el comando da los vigentes.
 - **Sigue lo que salga** en vez de la tabla de «Qué pipeline según la acción»,
   y deja `alcance` y `tipo_causa` en la ficha del fondo.
-- **Quién itera**: en `local` y `modulo`, el agente del dominio, que
+- **Quién itera**: en `local` y `modulo`, el `analista` (el «agente del dominio» del presupuesto:
+  un solo agente, en una pasada), que
   diagnostica con la skill `causa-raiz` (la técnica sale de `npm run tecnica`)
   y, con el diagnóstico hecho, parte el arreglo con la skill `plan-de-arreglo`. En `transversal`, tú lanzas los
-  diagnosticadores en paralelo, cada uno con una lente distinta, y sintetizas
+  diagnosticadores en paralelo (varios `analista`), cada uno con una lente distinta, y sintetizas
   sus informes; los agentes no lanzan agentes (ver «Paralelo sin pisarse»).
 - **Rondas**: construir, juzgar y reparar es una
   ronda. El conteo vive en el campo `rondas` de la ficha del fondo, no en tu
@@ -97,6 +105,7 @@ lleva; si el encargo no tiene issue y no es trivial, ábrelo primero.
 | `evaluador` | juez | 9, 10 | evals de Lola antes y después |
 | `seguridad` | juez | 7 | RLS, endpoints, secretos, inyección en prompts |
 | `auditor-datos` | juez | 4, 8 | modelo de datos: normalización, homogeneidad, duplicados, cableado |
+| `analista` | constructor | 2, 11 | del fallo al plan: registra el caso, fija alcance y causa, diagnostica y redacta los encargos en el issue; no construye código |
 | `orquestador` | constructor | 2, 11 | la sesión principal (`claude --agent orquestador`): habla con Pablo y reparte; no se lanza como agente de otro |
 
 Fichas completas en `.claude/agents/`; planos en `ops/PLANOS.md`. Hay dos

@@ -12,7 +12,8 @@
   "relacionado": [
     "registrar",
     "fallo",
-    "caso de prueba"
+    "caso de prueba",
+    "analista"
   ],
   "ref": {
     "fichero": "scripts/lib/issues.mjs",

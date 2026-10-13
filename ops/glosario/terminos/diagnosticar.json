@@ -9,7 +9,8 @@
     "todas"
   ],
   "relacionado": [
-    "causa"
+    "causa",
+    "analista"
   ],
   "ref": {
     "fichero": "scripts/lib/flujo.mjs",
