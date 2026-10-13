@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { AGENTES, CONSTRUCTORES, JUECES, agentesDe } from "../scripts/lib/agentes.mjs";
 import { AMBITOS, JUEZ_SIEMPRE, juecesDeAmbitos } from "../scripts/lib/ambitos.mjs";
 import { ACTORES } from "../scripts/lib/flujo.mjs";
+import { leerRegistro } from "../scripts/lib/normas.mjs";
 import { CAPAS_AGENTE } from "../scripts/lib/fondos.mjs";
 import { ACCIONES, leerEstandares, tareasDe } from "../scripts/lib/estandaresAgentes.mjs";
 import { CATALOGO, COMPLEXITIES, PIPELINES, problemas as problemasDePresupuesto } from "../scripts/lib/presupuestos.mjs";
@@ -624,14 +625,14 @@ describe("la puerta de entrada: mismo plano, difiere de verdad, lo discreto prim
  * (AMBITOS, scripts/lib/ambitos.mjs), y el dimensionador (#641) los calcula; no hay otra copia. Cada juez sale de una norma o de un agente.
  */
 describe("los jueces por zona: dato de AMBITOS, con su fuente y su tabla generada", () => {
-  const normas = JSON.parse(leer("ops/normas.json")).normas;
+  const normas = leerRegistro(RAIZ).normas;
   const fuentes = Object.entries(AMBITOS).flatMap(([ambito, a]) => a.jueces.map((j) => ({ ambito, ...j })));
 
   it("todo ámbito dice sus jueces (una lista, vacía si no pide ninguno) y cada uno existe en JUECES", () => {
     for (const [id, a] of Object.entries(AMBITOS)) expect(Array.isArray(a.jueces), id).toBe(true);
     for (const j of fuentes) expect(JUECES, `${j.ambito}: ${j.juez}`).toContain(j.juez);
     expect(JUECES).toContain(JUEZ_SIEMPRE);
-    expect(juecesDeAmbitos(["api", "bot", "ui", "data"])).toEqual(["revisor", "seguridad", "evaluador", "qa", "auditor-datos"]);
+    expect(juecesDeAmbitos(["api", "bot", "diseno", "data"])).toEqual(["revisor", "seguridad", "evaluador", "qa", "auditor-datos"]);
     expect(juecesDeAmbitos([])).toEqual(["revisor"]);
   });
 

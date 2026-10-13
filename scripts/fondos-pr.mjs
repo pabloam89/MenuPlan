@@ -41,6 +41,7 @@ import { MAX_CASOS, MAX_NUMERO, limpiarCuerpo } from "../.claude/hooks/casos.mjs
 import { ErrorDeApi, pedir } from "./lib/ghApi.mjs";
 import { CAPAS_AGENTE, aprendizajeValido, fichaObligatoria, fondoDeRest, leerFicha } from "./lib/fondos.mjs";
 import { porGrupo } from "./lib/issues.mjs";
+import { leerRegistro } from "./lib/normas.mjs";
 import { lineaDeNorma } from "./lib/medicionNormas.mjs";
 
 const BOTS = new Set(["dependabot[bot]", "github-actions[bot]"]);
@@ -185,7 +186,7 @@ if (esPrincipal) {
   // ¿Toca este PR ops/normas.json? Lo dice el diff del commit de fusión que revisa el CI (HEAD^1 es la base).
   let tocaNormas = false;
   try {
-    tocaNormas = execFileSync("git", ["diff", "--name-only", "HEAD^1", "HEAD"], { encoding: "utf8" }).split(/\r?\n/).includes("ops/normas.json");
+    tocaNormas = execFileSync("git", ["diff", "--name-only", "HEAD^1", "HEAD"], { encoding: "utf8" }).split(/\r?\n/).some((f) => f === "ops/normas.json" || /^ops[/]proyectos[/][^/]+[/]normas[.]json$/.test(f));
   } catch {
     tocaNormas = true; // a propósito: sin diff no se sabe, y es mejor un fallo que se explica que un hueco
   }
@@ -196,7 +197,7 @@ if (esPrincipal) {
     consultar: (n) => pedir({ ...base, ruta: `/issues/${n}` }),
     consultarPadre: (n) => pedir({ ...base, ruta: `/issues/${n}/parent` }),
     tocaNormas,
-    normas: JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), "..", "ops", "normas.json"), "utf8")).normas,
+    normas: leerRegistro(join(dirname(fileURLToPath(import.meta.url)), "..")).normas,
   });
   for (const m of r.medidas ?? []) console.log(lineaDeNorma(m.norma, m.resultado, { pr: PR_NUMBER }));
   for (const a of r.avisos ?? []) console.log(`::warning title=Norma sin ejecutor mal colgada::${a}. No es de este PR: lo arregla quien la toque o quien cierre ese issue.\nfondos-pr: regla=normas-sin-ejecutor resultado=warning detalle=${a.split(":")[0].replace("norma ", "")}`);

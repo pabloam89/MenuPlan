@@ -50,7 +50,7 @@ pasan a ser un valor, un campo, un tipo de evento o un tipo de recurso). Corregi
 | `service` | access | piece | horizontal | no | human | `ops/INVENTARIO.md` (without_registry) | ops/INVENTARIO.md, scripts/lib/recursos.mjs | — |
 | `environment` | delivery | piece | both | sí | human | `ops/INVENTARIO.md` (without_registry) | ops/planos.json, scripts/apply-migration.mjs | project |
 | `event` | measure | piece | both | sí | automatic | `.claude/hooks/eventos.mjs` (partial) | ops/metricas.json, scripts/lib/cumplimiento.mjs | — |
-| `norm` | rules | meta | both | sí | agent | `ops/normas.json` (with_registry) | ops/normas.test.js, scripts/lib/estandaresAgentes.mjs, docs/ops/NORMAS.md | — |
+| `norm` | rules | meta | both | sí | agent | `ops/normas.json` (with_registry) | ops/normas.test.js, scripts/lib/estandaresAgentes.mjs, docs/ops/NORMAS.md | project |
 | `mechanism` | rules | template | horizontal | no | agent | `ops/mecanismos.json` (with_registry) | scripts/lib/escalas.mjs, ops/mecanismos.test.js, scripts/lib/tiposDeEncargo.mjs | — |
 | `metric` | measure | piece | both | sí | agent | `ops/metricas.json` (with_registry) | scripts/lib/cumplimiento.mjs, ops/metricas.test.js | — |
 | `eval` | measure | piece | both | sí | agent | `scripts/bot-evals.json` (partial) | scripts/bot-evals.mjs, scripts/skills-prueba.mjs | — |
@@ -99,7 +99,7 @@ pasan a ser un valor, un campo, un tipo de evento o un tipo de recurso). Corregi
 | `chat` | lola | piece | vertical | no | automatic | `supabase/migrations/0057_bot_cimientos.sql` (partial) | api/_bot/enlace.js, api/_bot/turnos.js | household |
 | `assignment-type` | work | template | horizontal | no | agent | `ops/tipos-de-encargo.json` (with_registry) | scripts/lib/tiposDeEncargo.mjs, ops/tipos-de-encargo.test.js | — |
 
-Cifras: 54 entidades activas y 8 retiradas. Alcance: horizontal 22, vertical 22, both 10. Nivel: piece 47, meta 3, template 4. Familias: work 9, access 4, delivery 3, measure 4, rules 7, agents 4, data 3, home 5, food 6, lola 2, structure 2, design 5. Relaciones: 92 (is_a 5, parent_of 4, part_of 22, reference 61).
+Cifras: 54 entidades activas y 8 retiradas. Alcance: horizontal 22, vertical 22, both 10. Nivel: piece 47, meta 3, template 4. Familias: work 9, access 4, delivery 3, measure 4, rules 7, agents 4, data 3, home 5, food 6, lola 2, structure 2, design 5. Relaciones: 93 (is_a 5, parent_of 4, part_of 23, reference 61).
 <!-- super-tabla:fin -->
 
 ## 3. Reto 1: Fondo, Caso, Encargo, Decisión

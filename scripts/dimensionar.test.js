@@ -76,7 +76,7 @@ describe("el alcance: ficheros, dominios y módulos de ops/MODULOS.json", () => 
   });
   it("tres dominios distintos son transversales aunque no estén en ningún módulo", () => {
     const a = alc(["supabase/migrations/0001_x.sql", "src/screens/Z.jsx", ".github/workflows/x.yml"]);
-    expect(a.dominios).toEqual(expect.arrayContaining(["data", "ui", "infra"]));
+    expect(a.dominios).toEqual(expect.arrayContaining(["data", "diseno", "infra"]));
     expect(a.alcance).toBe("transversal");
   });
   it("el ámbito code no cuenta como dominio: un test y su script son un solo dominio", () => {
@@ -348,6 +348,14 @@ describe("el brief de cada agente sale del plan", () => {
     expect(briefDe(q, "gobierno")).toMatch(/^ESTÁNDAR A CUMPLIR: gobierno\/catalogo-de-ops-con-test$/m);
     expect(briefDe(q, "revisor")).not.toMatch(/catalogo-de-ops-con-test/);
     expect(() => briefDe(dim({ tipo: "create", ficheros: [f("scripts/lib/suelto.mjs", 10)], tarea: "no-existe" }), "gobierno")).toThrow(/no-existe/);
+  });
+  it("el brief de una tarea de bot trae las normas verticales del producto (el proyecto va por defecto)", () => {
+    const q = dim({ subtipo: "fix-bug", causa: "codigo", ficheros: [f("api/_bot/x.js", 20)], objetivo: "Arreglar el bot" });
+    for (const agente of ["lola", "revisor"]) {
+      const b = briefDe(q, agente);
+      expect(b, `${agente}: sin normas del proyecto homenu`).toMatch(/proyecto homenu/);
+      expect(b, `${agente}: sin ninguna vertical de bot`).toMatch(/Incluye .* del proyecto homenu/);
+    }
   });
   it("un agente que no está en el plan no tiene brief", () => {
     expect(() => briefDe(p, "qa")).toThrow(/no está en el plan/);

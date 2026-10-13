@@ -52,5 +52,8 @@
       "entidad": "norm",
       "relacion": "denota"
     }
+  ],
+  "estrecho": [
+    "norma del proyecto"
   ]
 }

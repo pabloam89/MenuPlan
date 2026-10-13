@@ -44,7 +44,7 @@ describe("el estándar de cada combinación acción × ámbitos (#684)", () => {
     const enCombinaciones = new Set(Object.values(n2.combinaciones).flatMap((c) => c.normas));
     for (const { tarea: t } of tareasDe(datos)) {
       const c = n2.combinaciones[t.n2];
-      for (const n of normas.filter((x) => t.ambitos.includes(x.ambito) && x.acciones.some((a) => (["construir", "juzgar"].includes(t.accion) ? ["construir", "juzgar"] : [t.accion]).includes(a)))) {
+      for (const n of normas.filter((x) => x.lado === "horizontal" && t.ambitos.includes(x.ambito) && x.acciones.some((a) => (["construir", "juzgar"].includes(t.accion) ? ["construir", "juzgar"] : [t.accion]).includes(a)))) {
         expect(c.normas, `${t.id}: ${n.id}`).toContain(n.id);
         expect(enCombinaciones.has(n.id)).toBe(true);
       }
@@ -57,7 +57,7 @@ describe("el estándar de cada combinación acción × ámbitos (#684)", () => {
       expect(malo((c) => { c[primera].normas.splice(1, 1); })).toContain(`${primera}: falta la norma «${quitada}», que dan sus ámbitos (${n2.combinaciones[primera].ambitos.join(", ")}) × ${n2.combinaciones[primera].accion}`);
     });
     it("una norma que sobra (existe, pero no es de sus ámbitos ni de su acción)", () => {
-      const ajena = normas.find((n) => !n2.combinaciones[primera].normas.includes(n.id)).id;
+      const ajena = normas.find((n) => n.lado === "horizontal" && !n2.combinaciones[primera].normas.includes(n.id)).id;
       expect(malo((c) => { c[primera].normas.push(ajena); }).join("\n")).toContain(`${primera}: sobra la norma «${ajena}»`);
     });
     it("una norma que no existe", () => {

@@ -1,18 +1,22 @@
 {
-  "$comentario": "Techos de ops/normas.test.js que solo bajan (#682). El test compara este fichero con el de origin/staging y falla si algún número sube. Se bajan al dar su test del juez a una norma de juez o al quitar el ejecutor «persona» de una norma. «normas_huerfanas» es el techo de normas_huerfanas_excepciones: normas que ninguna tarea de ops/estandares-agentes.json recibe (ni por ámbito y acción ni citadas) y que son conducta del producto, no trabajo de un agente (#683); solo baja y el test lo compara con staging.",
+  "$comentario": "Techos de ops/normas.test.js que solo bajan (#682). El test compara este fichero con el de origin/staging y falla si algún número sube. Se bajan al dar su test del juez a una norma de juez o al quitar el ejecutor «persona» de una norma. «normas_huerfanas» es el techo de normas_huerfanas_excepciones: normas HORIZONTALES que ninguna tarea de ops/estandares-agentes.json recibe (ni por ámbito y acción ni citadas); es 0 desde #704 y solo baja. Las normas del proyecto (verticales, ops/proyectos/<id>/normas.json) no entran en ningún estándar horizontal: «verticales_en_estandares» se eliminó porque ahora es 0 por construcción (lo vigila ops/uniones.test.js). «verticales_sin_salida» es el techo de verticales_sin_salida_excepciones: normas de un proyecto que no llegan a la salida de `npm run estandar -- <agente> <tarea> --proyecto <id>` de ninguna tarea (su ámbito y su acción no coinciden con los de ninguna); solo baja.",
   "juez_sin_test_del_juez": 83,
   "ejecutor_persona": 70,
-  "normas_huerfanas": 10,
-  "normas_huerfanas_excepciones": {
-    "masa-no-comestible-fuera-de-la-compra": "conducta del producto, ver encargo de horizontal y vertical (#687)",
-    "solo-estrella-se-propone": "conducta del producto, ver encargo de horizontal y vertical (#687)",
-    "pool-corto-es-error": "conducta del producto, ver encargo de horizontal y vertical (#687)",
-    "estrella-a-mano-con-foto": "conducta del producto, ver encargo de horizontal y vertical (#687)",
-    "cocina-extranjera-apagada": "conducta del producto, ver encargo de horizontal y vertical (#687)",
-    "sin-pairing-de-platos": "conducta del producto, ver encargo de horizontal y vertical (#687)",
-    "procedencia-del-numero": "conducta del producto, ver encargo de horizontal y vertical (#687)",
-    "nombre-y-clave-al-mismo-ingrediente": "conducta del producto, ver encargo de horizontal y vertical (#687)",
-    "vispera-no-es-rapida": "conducta del producto, ver encargo de horizontal y vertical (#687)",
-    "aparato-en-su-vocabulario": "conducta del producto, ver encargo de horizontal y vertical (#687)"
+  "normas_huerfanas": 0,
+  "normas_huerfanas_excepciones": {},
+  "verticales_sin_salida": 12,
+  "verticales_sin_salida_excepciones": {
+    "catalogo-mercadona-minimo": "conducta del producto sin tarea con ese ámbito y acción: no llega con --proyecto homenu (#704)",
+    "foodid-nulo-mira-las-dos-tablas": "conducta del producto sin tarea con ese ámbito y acción: no llega con --proyecto homenu (#704)",
+    "masa-no-comestible-fuera-de-la-compra": "conducta del producto sin tarea con ese ámbito y acción: no llega con --proyecto homenu (#704)",
+    "solo-estrella-se-propone": "conducta del producto sin tarea con ese ámbito y acción: no llega con --proyecto homenu (#704)",
+    "pool-corto-es-error": "conducta del producto sin tarea con ese ámbito y acción: no llega con --proyecto homenu (#704)",
+    "estrella-a-mano-con-foto": "conducta del producto sin tarea con ese ámbito y acción: no llega con --proyecto homenu (#704)",
+    "cocina-extranjera-apagada": "conducta del producto sin tarea con ese ámbito y acción: no llega con --proyecto homenu (#704)",
+    "sin-pairing-de-platos": "conducta del producto sin tarea con ese ámbito y acción: no llega con --proyecto homenu (#704)",
+    "procedencia-del-numero": "conducta del producto sin tarea con ese ámbito y acción: no llega con --proyecto homenu (#704)",
+    "nombre-y-clave-al-mismo-ingrediente": "conducta del producto sin tarea con ese ámbito y acción: no llega con --proyecto homenu (#704)",
+    "vispera-no-es-rapida": "conducta del producto sin tarea con ese ámbito y acción: no llega con --proyecto homenu (#704)",
+    "aparato-en-su-vocabulario": "conducta del producto sin tarea con ese ámbito y acción: no llega con --proyecto homenu (#704)"
   }
 }

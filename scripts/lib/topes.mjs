@@ -21,6 +21,7 @@ import { MODAL_DESCRIPTIVO, OTRO_TIEMPO, PASIVA_REFLEJA, PASIVA_SER, PERSONA_MAL
 import { leerEstandares } from "./estandaresAgentes.mjs";
 import { activos, leerGlosario } from "./glosario.mjs";
 import { leerForja } from "./forja.mjs";
+import { leerRegistro } from "./normas.mjs";
 import { leerPool } from "./pool.mjs";
 import { PALABRAS_DE_FUERZA } from "./regla.mjs";
 import { leerPrincipiosCasa } from "./principios.mjs";
@@ -56,8 +57,8 @@ function deEstandares(raiz) {
  * (el dato); aquí solo cómo se leen del repo. Un campo nuevo se añade aquí y se siembra con `npm run topes -- --escribir`.
  */
 export const LECTORES = {
-  "norma.exigencia": (r) => sinVacios(json(r, "ops/normas.json").normas.map((n) => n.exigencia)),
-  "norma.nota": (r) => sinVacios(json(r, "ops/normas.json").normas.map((n) => n.nota)),
+  "norma.exigencia": (r) => sinVacios(leerRegistro(r).normas.map((n) => n.exigencia)),
+  "norma.nota": (r) => sinVacios(leerRegistro(r).normas.map((n) => n.nota)),
   "principio.enunciado": (r) => sinVacios(leerPrincipiosCasa(r).principios.map((p) => p.enunciado)),
   "principio.porque": (r) => sinVacios(leerPrincipiosCasa(r).principios.map((p) => p.porque)),
   "practica.practica": (r) => sinVacios(Object.values(leerPool(r).agentes).flatMap((a) => (a.practicas ?? []).map((p) => p.practica))),

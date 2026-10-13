@@ -17,7 +17,7 @@ Un **puente** ya no es un valor: es una entidad de alcance `both`, y se calcula.
 Los ids van en inglés (decisión de Pablo del 11 oct 2026); los nombres y las notas, en castellano.
 
 Hoy hay 54 entidades activas: 22 horizontales, 22 verticales y 10 de los dos lados (puentes), y 8 retiradas.
-Las relaciones son 92: is_a 5, parent_of 4, part_of 22, reference 61.
+Las relaciones son 93: is_a 5, parent_of 4, part_of 23, reference 61.
 
 ## Horizontales: la factoría
 
@@ -133,6 +133,7 @@ flowchart LR
     menu_week -->|parent_of| menu
     environment -->|part_of| project
     repo -->|part_of| project
+    norm -->|part_of| project
     resource -->|part_of| project
     design_system -->|part_of| project
     module -->|part_of| project
@@ -165,12 +166,13 @@ flowchart LR
 | `decision` | is_a | `issue` | one_to_one | field: etiqueta tipo:decision |
 | `identity` | is_a | `resource` | many_to_one | ningún campo: tipos cuenta, app, service-account y deploy-key de recursos.json; la identidad no tiene registro propio |
 
-## Relaciones part_of (22)
+## Relaciones part_of (23)
 
 | de | verbo | a | cardinalidad | cómo se guarda |
 |---|---|---|---|---|
 | `environment` | belongs_to | `project` | many_to_one | ningún campo: hoy solo en la prosa de ops/INVENTARIO.md |
 | `repo` | belongs_to | `project` | many_to_one | file: projects[].repos (este fichero) |
+| `norm` | belongs_to | `project` | many_to_one | field: project (solo las normas verticales, en ops/proyectos/<id>/normas.json); una norma horizontal no lo lleva y cuelga de la factoría (#704) |
 | `resource` | belongs_to | `project` | many_to_one | ningún campo: recursos.json no guarda de qué proyecto es cada recurso (sin campo); sin project, cuelga de la factoría |
 | `design-system` | belongs_to | `project` | many_to_one | ningún campo: hoy solo en la prosa de docs/diseno/META-DISENO.md |
 | `module` | belongs_to | `project` | many_to_one | ningún campo: todos son de HoMenu; MODULOS.json no lo dice |

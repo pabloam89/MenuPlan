@@ -16,6 +16,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { cargarEnv } from "./lib/env.mjs";
+import { leerRegistro } from "./lib/normas.mjs";
 import { SALIDA, costeUsd, estimadoSiguiente, opcionNumero, topeDePasada, apuntarOAvisar, puedeGastar } from "./lib/evals.mjs";
 import { RAIZ, MODELO_BARATO, MODELO_EJECUTA, ESTIMADO_LLAMADA, TOPE_SKILLS_USD, jsonDeTexto, leerRespuesta } from "./lib/skills.mjs";
 import { JUECES, cifra, faltasDeFichero, leerFichero, lineaDeCifra, medir, promptCaso } from "./lib/testDelJuez.mjs";
@@ -28,7 +29,7 @@ const salir = (codigo, msg) => { if (msg) console.error(msg); process.exit(codig
 const desconocidos = pedidos.filter((j) => !JUECES.includes(j));
 if (desconocidos.length) salir(SALIDA.entrada, `No son jueces: ${desconocidos.join(", ")}. Hay: ${JUECES.join(", ")}`);
 
-const normas = JSON.parse(readFileSync(join(RAIZ, "ops/normas.json"), "utf8")).normas;
+const normas = leerRegistro(RAIZ).normas;
 const normasDeJuez = normas.filter((n) => n.control_procesador === "juez");
 const lista = pedidos.length ? pedidos : JUECES.filter((j) => existsSync(join(RAIZ, "ops/test-del-juez", `${j}.json`)));
 if (!lista.length) salir(SALIDA.entrada, "Ningún juez tiene fichero en ops/test-del-juez/.");
