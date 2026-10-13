@@ -17,7 +17,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { leerForja, tipoDeSkill } from "./forja.mjs";
+import { PASO_FORJA, PASO_PIEZA, PASOS, leerForja, tipoDeSkill } from "./forja.mjs";
 import { EXCEPCIONES_PLANTILLA, SECCIONES_POR_TIPO, SECCIONES_SERVICIO, tiposDeForja } from "./plantillasSkill.mjs";
 import { EXCEPCIONES_FORJA, faltasDeSolape, faltasForja, sinExcepciones } from "./skillsForja.mjs";
 
@@ -37,18 +37,18 @@ export function tiposDeSkill(raiz = RAIZ) {
 }
 
 /**
- * Niveles (#495, decisión de Pablo): 0 es la pieza meta de la familia (forja-de-skills),
- * de la que salen las plantillas por tipo (1, generadas, no son skills), y de ellas las
- * skills concretas (2). La ficha solo lo dice si no es 2. Vocabulario en `niveles` de ops/forja/.
+ * Pasos (#495, #652): `forja` es la pieza meta de la familia (forja-de-skills), de la que salen las
+ * plantillas por tipo (`plantilla`, generadas, no son skills), y de ellas las skills concretas
+ * (`pieza`). La ficha solo lo dice si no es `pieza`. Vocabulario en `base.pasos` de ops/forja/;
+ * sustituye al `nivel` 0/1/2 (0 = forja, 1 = plantilla, 2 = pieza), que ya no se lee.
  */
-export const NIVEL_META = "0";
-export const NIVEL_SKILL = "2";
-export const nivelDe = (metadata) => (metadata?.nivel === undefined ? NIVEL_SKILL : String(metadata.nivel));
+export { PASO_FORJA, PASO_PIEZA };
+export const pasoDe = (metadata) => (metadata?.paso === undefined ? PASO_PIEZA : String(metadata.paso));
 
 /** Las reglas del nivel 1. Cada falta lleva una de estas claves: se pueden contar. */
 export const REGLAS = {
   frontmatter: "name igual a la carpeta, description que enruta («Úsala …», «No para:»), y solo name, description y metadata",
-  tipo: "metadata.tipo es uno de los de ops/forja/ y el que dan las respuestas de su ficha a preguntas_tipo (tipoDeSkill); la pieza meta (nivel 0), sin tipo ni respuestas",
+  tipo: "metadata.tipo es uno de los de ops/forja/ y el que dan las respuestas de su ficha a preguntas_tipo (tipoDeSkill); la pieza meta (paso forja), sin tipo ni respuestas",
   dueno: "metadata.dueno es un agente de .claude/agents/ que la carga en su `skills:`",
   comprobado: "metadata.comprobado es una fecha AAAA-MM-DD, no futura, y el texto dice qué se comprobó ese día",
   caducada: "una skill que toca el PR no tiene su comprobado de hace más de PLAZO_COMPROBADO_DIAS (lo mira scripts/skills-pr.mjs, no npm test)",
@@ -227,7 +227,7 @@ export function cargarContexto(raiz = RAIZ, hoy = new Date()) {
   return {
     hoy,
     tipos: tiposDeForja(forja),
-    seccionesMeta: forja.nivel_0?.skills?.secciones ?? null,
+    seccionesMeta: forja.forma_forja?.skills?.secciones ?? null,
     preguntas: forja.preguntas_tipo ?? [],
     agentes: agentesYSkills(raiz),
     skills: nombres,
@@ -255,13 +255,13 @@ function reglaFrontmatter(nombre, meta) {
 }
 
 function reglaTipo(m, ctx) {
-  const nivel = nivelDe(m);
+  const paso = pasoDe(m);
   const claves = (ctx.preguntas ?? []).map((p) => p.clave);
-  if (nivel === NIVEL_META) {
+  if (paso === PASO_FORJA) {
     const sobran = ["tipo", ...claves].filter((k) => k in m);
-    return sobran.length ? [falta("tipo", `es la pieza meta (nivel ${NIVEL_META}): no lleva tipo de skill ni respuestas (${sobran.join(", ")})`)] : [];
+    return sobran.length ? [falta("tipo", `es la pieza meta (paso ${PASO_FORJA}): no lleva tipo de skill ni respuestas (${sobran.join(", ")})`)] : [];
   }
-  if (nivel !== NIVEL_SKILL) return [falta("tipo", `metadata.nivel «${nivel}»: una skill es ${NIVEL_META} (la pieza meta) o ${NIVEL_SKILL}; el 1 son las plantillas`)];
+  if (paso !== PASO_PIEZA) return [falta("tipo", `metadata.paso «${paso}»: una skill es ${PASO_FORJA} (la pieza meta) o ${PASO_PIEZA}; ${PASOS.filter((p) => p !== PASO_FORJA && p !== PASO_PIEZA).join(" y ")} no son skills`)];
   if (!m.tipo) return [falta("tipo", "falta metadata.tipo")];
   if (!ctx.tipos.includes(m.tipo) || !(m.tipo in SECCIONES_POR_TIPO)) return [falta("tipo", `«${m.tipo}» no es ninguno de los de ops/forja/: ${ctx.tipos.join(", ")}`)];
   // El tipo no se elige: sale de las respuestas que declara su ficha (#495).
@@ -397,8 +397,8 @@ export function faltasDeSkill(skill, ctx) {
   const f = [...reglaFrontmatter(skill.nombre, meta)];
   const m = typeof meta?.metadata === "object" ? meta.metadata : {};
   f.push(...reglaTipo(m, ctx), ...reglaDueno(skill.nombre, m, ctx), ...reglaComprobado(m, texto, ctx));
-  // La pieza meta no sigue el molde de un tipo: su forma la fija la forja (nivel_0 de ops/forja/).
-  const esMeta = nivelDe(m) === NIVEL_META;
+  // La pieza meta no sigue el molde de un tipo: su forma la fija la forja (forma_forja de ops/forja/).
+  const esMeta = pasoDe(m) === PASO_FORJA;
   const tipo = esMeta ? null : m.tipo in SECCIONES_POR_TIPO ? m.tipo : "servicio";
   const secciones = esMeta ? ctx.seccionesMeta ?? null : seccionesPedidas(skill.nombre, tipo, ctx.excepcionesPlantilla ?? EXCEPCIONES_PLANTILLA);
   f.push(...reglaSecciones(secciones, cuerpo), ...reglaFormato(cuerpo, texto, tipo, secciones));
@@ -407,17 +407,17 @@ export function faltasDeSkill(skill, ctx) {
   for (const t of [texto, ...Object.values(skill.extra ?? {})]) for (const p of SECRETOS) if (p.test(t)) f.push(falta("secretos", String(p)));
   f.push(...reglaRutasYEstructura(skill, ctx));
   f.push(...faltasDeCasos(skill.casos, skill.nombre, ctx.skills));
-  // La pieza meta no tiene tipo: si su forma (nivel_0 de la forja) lleva «Método», se le pide criterio de parada como a los demás.
+  // La pieza meta no tiene tipo: si su forma (forma_forja de la forja) lleva «Método», se le pide criterio de parada como a los demás.
   const parada = esMeta ? (secciones ?? []).includes("Método") : undefined;
   f.push(...sinExcepciones(faltasForja({ nombre: skill.nombre, cuerpo, tipo, casos: skill.casos, extra: skill.extra, parada }), skill.nombre, ctx.excepcionesForja ?? EXCEPCIONES_FORJA));
   return f;
 }
 
-/** Exactamente una pieza meta (nivel 0) en la familia de las skills: [{ regla, detalle, skills }]. */
+/** Exactamente una pieza meta (paso forja) en la familia de las skills: [{ regla, detalle, skills }]. */
 export function faltasDeNiveles(skills) {
-  const metas = skills.filter((s) => nivelDe(parsearSkill(s.texto).meta?.metadata) === NIVEL_META).map((s) => s.nombre);
+  const metas = skills.filter((s) => pasoDe(parsearSkill(s.texto).meta?.metadata) === PASO_FORJA).map((s) => s.nombre);
   if (metas.length === 1) return [];
-  return [{ ...falta("tipo", `hay ${metas.length} piezas meta (nivel ${NIVEL_META}): tiene que haber exactamente una${metas.length ? ` (${metas.join(", ")})` : ""}`), skills: metas }];
+  return [{ ...falta("tipo", `hay ${metas.length} piezas meta (paso ${PASO_FORJA}): tiene que haber exactamente una${metas.length ? ` (${metas.join(", ")})` : ""}`), skills: metas }];
 }
 
 /** Párrafos (bloques separados por una línea en blanco, o entradas de lista), normalizados. */

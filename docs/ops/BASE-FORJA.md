@@ -19,7 +19,7 @@ Línea 2 del programa #652. **Solo diseño**: no cambia `ops/normas.json`, `ops/
 | Principios con una sola norma | **75** (35 producto, 25 propios, 15 redacción); 3 sin norma | ídem |
 | «Criterios de la forja» | 75 (formal 43, material 16, subjetiva 16); 0 citan principio; 0 chocan de id con una norma | `base-forja-medir.mjs reglas` |
 | Tareas de agente | 75 de 11 agentes (5 jueces, 6 constructores); 16 con más de un ámbito | `base-forja-medir.mjs tareas` |
-| Reglas de estándar | 162 propias + 19 en tareas comunes = 181; 143 con control `juicio`, 38 con fichero | `base-forja-medir.mjs reglas` |
+| Reglas de estándar | 174 propias + 19 en tareas comunes = 193; 143 con control `juicio`, 50 con fichero | `base-forja-medir.mjs reglas` |
 | Fuentes del catálogo de estándares | 66 (49 externas) | `ops/estandares-agentes.json` |
 | Términos del glosario | 97 activos, todos con `aplica_a: ["todas"]`, 80 con relaciones | `base-forja-medir.mjs dominios` |
 | Entidades | 60 (54 activas, 6 retiradas); 48 con término; las 12 sin término son verticales de producto | `base-forja-medir.mjs conexion` |
@@ -58,7 +58,7 @@ Propuesta de seis valores cerrados. Las cuatro primeras ya existen como `concept
 | seguridad | que nadie ajeno entre ni haga más de lo que le toca | OWASP ASVS, ya en el catálogo (`owasp-asvs`) |
 | datos de familias | que no se pierdan, mezclen ni enseñen a quien no toca | `owasp-idor`, `pg-rls`, ya en el catálogo |
 | coste | que el gasto no se descontrole | `an-cache` y `an-choose-model`, ya en el catálogo |
-| intervención humana evitable: 0 % | que una persona solo intervenga donde CLAUDE.md lo exige (8 puertas irreducibles) | Google SRE, «Eliminating Toil»; **no está en el catálogo y no la he abierto** |
+| intervención humana evitable: 0 % | que una persona solo intervenga donde CLAUDE.md lo exige (8 puertas irreducibles) | Google SRE, «Eliminating Toil» (ya en `base.metas.human-intervention`, URL con 200 en F2) |
 | UX por y para agentes | que lo que usa un agente tenga salida con forma fija, error con causa y arreglo y ninguna pregunta a mitad | `an-tools-agents` (Anthropic, herramientas para agentes), ya en el catálogo |
 | velocidad | que el trabajo avance | la de hoy (cede ante las demás) |
 
@@ -68,7 +68,7 @@ El orden de las dos metas nuevas es una propuesta mía: entre coste y velocidad,
 
 ### 3.4 Pasos con nombre
 
-Sin números negativos ni escala nueva. El campo `nivel` (0, 1, 2) se sustituye por `paso`, de vocabulario cerrado, y el 0/1/2 queda como alias hasta que nadie lo lea.
+Sin números negativos ni escala nueva. El campo `nivel` (0, 1, 2) se sustituye por `paso`, de vocabulario cerrado, sin alias: el test falla si queda un `nivel` en una ficha (F2, `ops/DECISIONES.md`).
 
 | Paso | Qué es | Hoy | Hereda de |
 |---|---|---|---|
@@ -87,17 +87,17 @@ No hace falta vocabulario nuevo: `accion` ya tiene siete valores y las normas ya
 
 | Tipo (acción) | Tareas | Agentes | Reglas | Fuentes distintas (externas) | Más citadas |
 |---|---|---|---|---|---|
-| construir | 20 | 4 | 76 | 35 (25) | an-evals 10, casa-design-system 9, casa-lola-regla 9 |
+| construir | 21 | 4 | 80 | 36 (26) | an-evals 10, casa-design-system 9, casa-lola-regla 9 |
 | juzgar | 22 | 5 | 76 | 34 (25) | casa-principios-datos 11, casa-plantilla-agente 8, gg-estandar 6 |
 | medir | 6 | 4 | 30 | 9 (4) | an-evals 13, casa-lola-regla 6, casa-claude 3 |
-| documentar | 8 | 7 | 29 | 16 (6) | casa-plantilla-agente 6, casa-estilo 4, casa-agente-qa 2 |
-| diagnosticar | 4 | 4 | 21 | 8 (5) | sre-troubleshooting 6, sre-postmortem 5, an-evals 3 |
+| documentar | 9 | 8 | 33 | 16 (6) | casa-plantilla-agente 7, casa-skill-issues 5, casa-estilo 4 |
+| diagnosticar | 5 | 5 | 27 | 9 (5) | sre-troubleshooting 8, sre-postmortem 6, an-evals 3 |
 | operar | 6 | 2 | 16 | 11 (9) | casa-claude 2, gh-protected-branches 2, owasp-secrets 2 |
-| decidir | 3 | 2 | 9 | 5 (2) | casa-claude 3, casa-principios-datos 3, casa-plantilla-agente 1 |
+| decidir | 6 | 3 | 13 | 7 (3) | casa-claude 5, casa-principios-datos 3, an-building-agents 1 |
 
-Salida de `node scripts/base-forja-medir.mjs tareas` (las tareas suman 69). La columna «Reglas» cuenta, por tipo de tarea, las propias de cada tarea más las de sus tareas comunes: una regla común que usan varias tareas se cuenta en cada una, por eso las siete filas suman 257 y no las 162 propias (más 19 comunes) de §6.3. «Agentes» es el número de agentes distintos con tareas de ese tipo.
+Salida de `node scripts/base-forja-medir.mjs tareas` (las tareas suman 75, de 11 agentes). La columna «Reglas» cuenta, por tipo de tarea, las propias de cada tarea más las de sus tareas comunes: una regla común que usan varias tareas se cuenta en cada una, por eso las siete filas suman 275 y no las 174 propias (más 19 comunes) de §6.3. «Agentes» es el número de agentes distintos con tareas de ese tipo.
 
-«Constructor → generación de código» corresponde a `construir` (20 tareas, solo de constructores). `juzgar` es solo de jueces (22 de 22). Los demás tipos mezclan constructores y jueces.
+«Constructor → generación de código» corresponde a `construir` (21 tareas, solo de constructores). `juzgar` es solo de jueces (22 de 22). Los demás tipos mezclan constructores y jueces.
 
 ### 4.2 Qué lleva una forja de tipo y una pieza
 
@@ -195,7 +195,7 @@ Las normas pasan a llevar `meta` (seis valores, 3.3) en vez de `principio`. Hoy 
 | Fase | Contenido | Puerta (test) |
 |---|---|---|
 | F1 | Glosario: términos de la sección 8, campo `dominio`, campo de mapeo | `ops/glosario.test.js` y los dos nuevos de la sección 11 |
-| F2 | Base y pasos: `ops/forja/base.json`, `paso` en lugar de `nivel`, rename del apartado de la plantilla | `ops/base.test.js` |
+| F2 | Base y pasos: `ops/forja/base/*.json` (colección, no un fichero suelto: el catálogo partido no los admite), `paso` en lugar de `nivel`, rename del apartado de la plantilla | `ops/base.test.js` |
 | F3 | Normas: campos nuevos (`meta`, `porque`, `fuente`, `origen_principio`, `tipos`, `tareas`) sin quitar nada | `ops/normas.test.js` + test de ids congelados |
 | F4 | Criterios → normas (75), sin cambiar ids | ídem, y `ops/forja.test.js` lee de normas |
 | F5 | Reglas de estándar → normas (181) y retirada de `reglas` en las tareas | `ops/estandares-agentes.test.js` y `ops/uniones.test.js` |
@@ -351,7 +351,7 @@ Casos de prueba (`casos.json`): tres que la cargan y tres de frontera.
 
 ## 13. NO COMPROBADO
 
-- Ninguna URL de fuente externa se ha abierto en esta sesión. La de Google SRE «Eliminating Toil» no está en el catálogo de fuentes: es la que propongo para la meta de intervención humana y hay que contrastarla.
+- Ninguna URL de fuente externa se ha abierto en esta sesión. La de Google SRE «Eliminating Toil» ya está en `base.metas.human-intervention` (F2) y respondió 200; las demás siguen sin abrir.
 - La clasificación de los 97 términos en dominios y la de los 15 artefactos son mías; no las ha visto Pablo ni el revisor.
 - El reparto de «nivel 0/1/2» entre sus dos sentidos (solo el total: 46 usos en 13 ficheros, sin contar este documento).
 - Que `componer` de `scripts/lib/catalogos.mjs` acepte subcarpetas en un catálogo partido.

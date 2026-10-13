@@ -96,13 +96,26 @@ Los tipos retirados al migrar (#495) y a cuáles pasan; no vuelven a usarse:
 | meta | revision |
 | forja | sin sucesor |
 
-Cada skill declara en su ficha (frontmatter) sus respuestas a las preguntas y su `tipo`, que tiene que ser el que ellas dan: la base es norma y no guarda datos de cada pieza (`ops/forja-tipos.test.js` y `.claude/skills.test.js`). Niveles:
+Cada skill declara en su ficha (frontmatter) sus respuestas a las preguntas y su `tipo`, que tiene que ser el que ellas dan: el catálogo es norma y no guarda datos de cada pieza (`ops/forja-tipos.test.js` y `.claude/skills.test.js`). Pasos de herencia (`base.pasos`; el campo `paso` de la ficha sustituye al antiguo `nivel`, 0 = forja, 1 = plantilla, 2 = pieza):
 
-| Nivel | Qué es |
-|---|---|
-| 0 | Pieza meta de una familia (skills hoy; la de estándares vendrá): de ella salen las plantillas por tipo. Sin tipo de skill y exactamente una por familia |
-| 1 | Plantilla por tipo, generada en .claude/plantillas-skill/<tipo>.md: no es una skill |
-| 2 | Skill concreta, con su tipo (el que dan sus respuestas); es el nivel si la ficha no dice otro |
+| Paso | Qué es | Hereda de |
+|---|---|---|
+| base | Lo común a toda forja: su redacción, sus metas y la obligación de una fuente de industria. No es una pieza ni un molde: se hereda. | nada |
+| forja | Lo que hace buena a una pieza de una familia (skills, estándares). La forja de skills es la pieza meta forja-de-skills; de ella salen las plantillas por tipo. | base |
+| plantilla | El molde por tipo, generado desde la forja (los de skill, en .claude/plantillas-skill/<tipo>.md). No es una skill. | forja |
+| pieza | Una cosa concreta que cumple una forja: una skill con su tipo, o la tarea de un agente. Es el paso de una skill si su ficha no dice otro. | plantilla |
+
+La base común (`base` de `ops/forja/`, la vigila `ops/base.test.js`): lo que toda forja hereda y solo puede endurecer. Redacción por tipo de texto:
+
+| Tipo de texto | Voz | Modo y tiempo | Persona | Sintaxis |
+|---|---|---|---|---|
+| norma | activa | presente | tercera | EARS: [condición,] sujeto DEBE exigencia (la forma de scripts/lib/regla.mjs); la exigencia, en infinitivo |
+| principio | activa | presente | tercera | una frase de 25 palabras como mucho, sin palabras de fuerza |
+| practica | activa | imperativo | segunda | regla, porqué, ejemplo bueno, ejemplo malo y fuente (forma_practica de la forja) |
+| skill | activa | imperativo | segunda | pasos, cada uno con su salida observable |
+| respuesta | activa | presente | primera y segunda | la forma de la skill estilo-de-respuesta |
+
+Metas (cada una con al menos una fuente de marca F): security, family-data, cost, human-intervention, agent-ux, speed.
 
 Herencia: esqueleto común (la base) → plantilla por tipo (las normas que le tocan, `tipos` de cada norma) → cada skill. Normas de skill por tipo y capa:
 
@@ -200,7 +213,7 @@ El frontmatter de .claude/skills/<skill>/SKILL.md (name y description arriba; ti
 - `sintoma_a_causa` — bool, opcional
 - `elige_opciones` — bool, opcional
 - `porque_tipo` — texto, opcional. Hueco: Por qué responde así cuando la respuesta no es evidente (una skill que podría parecer de otro tipo): el motivo cambia con cada skill
-- `nivel` — enum (niveles), opcional
+- `paso` — enum (pasos), opcional
 - `dueno` — ref a agente
 - `comprobado` — fecha
 - `normas` — ref a norma, lista

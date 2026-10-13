@@ -41,9 +41,9 @@
     "skill.juzga_artefacto": "discreto",
     "skill.libertad": "discreto",
     "skill.name": "discreto",
-    "skill.nivel": "discreto",
     "skill.normas": "discreto",
     "skill.opera_proveedor": "discreto",
+    "skill.paso": "discreto",
     "skill.pasos_fijos": "discreto",
     "skill.porque_tipo": "texto",
     "skill.sintoma_a_causa": "discreto",
@@ -58,6 +58,9 @@
     },
     "estandar.fuentes": {
       "motivo": "La fuente pasa a cada regla (campo fuente), como pide la forma de práctica de la forja: una fuente por bullet (#516)."
+    },
+    "skill.nivel": {
+      "motivo": "Pasa a skill.paso (#652, BASE-FORJA §3.4): el paso de herencia con nombre (forja, plantilla, pieza) sustituye al nivel 0/1/2, que se confundía con los niveles de las pruebas."
     }
   }
 }
