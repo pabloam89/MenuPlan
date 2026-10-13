@@ -6,7 +6,9 @@
  *   … --sin-cache                               fuerza un canje nuevo (antes de `--`)
  *
  * El arranque ya deja el token en el entorno de la sesión; esto sirve cuando
- * caduca (1 hora) o para probar la cadena entera sin abrir otra sesión. Reutiliza
+ * caduca (1 hora), cuando la sesión perdió ese entorno (p. ej. al continuar tras
+ * compactar) o para probar la cadena entera. El comando sale con el token, el
+ * ayudante de git y el autor de la App puestos, sin depender del arranque. Reutiliza
  * el token que guarda la caché por usuario (scripts/lib/cacheTokenSesion.mjs)
  * mientras falten más de 15 minutos; `--comprobar` dice si salió de la caché
  * (`cache: si`) o se canjeó (`cache: no`). El token y la clave no salen nunca por
@@ -14,7 +16,7 @@
  */
 import { spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
-import { ErrorTokenSesion, tokenConCache } from "./lib/tokenSesion.mjs";
+import { ErrorTokenSesion, entornoDeComando, tokenConCache } from "./lib/tokenSesion.mjs";
 
 export async function main(argv, { generar = tokenConCache, correr = spawnSync, salida = console } = {}) {
   const corte = argv.indexOf("--");
@@ -45,7 +47,7 @@ export async function main(argv, { generar = tokenConCache, correr = spawnSync, 
     salida.error("falta el comando después de --");
     return 2;
   }
-  return correr(cmd, args, { stdio: "inherit", env: { ...process.env, GH_TOKEN: t.token } }).status ?? 1;
+  return correr(cmd, args, { stdio: "inherit", env: entornoDeComando({ token: t.token, autor: t.autor, base: process.env }) }).status ?? 1;
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {

@@ -277,6 +277,22 @@ export function lineasDeEntorno({ token, autor, configPrevia = 0 }) {
   ].join("\n");
 }
 
+/**
+ * El entorno con el que `token-sesion.mjs -- <comando>` lanza su comando: el token,
+ * el ayudante de git que lo lee y el autor de la App, igual que `lineasDeEntorno` pero
+ * en el entorno del hijo y sin depender de que el arranque dejara su fichero puesto.
+ * Sin esto, `git push` caía al ayudante interactivo de la máquina y se colgaba sin error.
+ * `base`: el entorno del que se parte; sus GIT_CONFIG_* se respetan y las nuevas van detrás.
+ */
+export function entornoDeComando({ token, autor, base = {} }) {
+  const pares = {};
+  for (const linea of lineasDeEntorno({ token, autor, configPrevia: Number.parseInt(base.GIT_CONFIG_COUNT, 10) || 0 }).split(String.fromCharCode(10))) {
+    const m = /^export ([A-Z_0-9]+)=(.*)$/.exec(linea);
+    if (m) pares[m[1]] = m[2].replace(/^'(.*)'$/, "$1");
+  }
+  return { ...base, ...pares };
+}
+
 /** Con qué identidad respondió `gh api user`: uno de IDENTIDADES. */
 export function identidadDe({ status, stdout = "", stderr = "" }) {
   if (status === 0) {
