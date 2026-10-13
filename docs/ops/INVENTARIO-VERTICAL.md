@@ -48,7 +48,7 @@ Principios, las tres filas juntas: 112 en total, 82 horizontales, 2 verticales y
 - **Principios.** Solo 2 de los 56 propios de la casa son claramente de HoMenu (`curated-catalog-only` y `household-owns-data`): origen una decisión de producto, sin fuente externa. La mayoría no tiene fuente externa, pero eso no los hace verticales: son del método de trabajo. La duda real son los principios de base de datos cuyo único origen es `docs/datos/PRINCIPIOS.md`. Los 41 de producto tienen literatura detrás y son horizontales; los del área `conversational-ai` solo valen si el proyecto tiene un bot.
 - **Fuentes.** 119 externas (literatura) y 42 de la casa (una ruta del repo).
 - **Normas.** El registro vertical ya está separado (39). En el horizontal hay 38 que dudan (lista abajo). De las 166, 60 tienen como control «juicio» y 28 acaban en un fichero de zona producto. De las 39 verticales, 0 tienen su control en una carpeta de la factoría.
-- **Entidades y glosario.** 8 entidades retiradas no cuentan. El glosario no tiene lado propio: hoy se deduce de sus entidades; es el registro donde más falta el campo.
+- **Entidades y glosario.** 0 entidades retiradas no cuentan. El glosario no tiene lado propio: hoy se deduce de sus entidades; es el registro donde más falta el campo.
 - **Tests.** 111 tests viven en carpetas de la casa; 2 de ellos leen tres ficheros de HoMenu o más (sin contar `src/App.jsx`, el ejemplo de casi todos). 330 viven en carpetas de producto, coherentes con lo que vigilan.
 
 ## Los dudosos, con su razón
