@@ -143,7 +143,7 @@ trabajo: devuelve «Decisiones para Pablo».
 | `datos`: esquema, migraciones, modelo, ESTADO.md | `qa`: la app en el navegador (Chrome en local) |
 | `diseno`: pantallas, tokens, iconos y assets | `evaluador`: evals de Lola antes y después |
 | `lola`: el bot, herramientas, conocimiento, coste | `seguridad`: RLS, endpoints, secretos, prompts |
-| `orquestador`: la sesión principal; habla con Pablo y reparte (`claude --agent orquestador`) | `auditor-datos`: normalización, duplicados y cableado |
+| `orquestador`: la sesión principal por defecto (`"agent"` en `.claude/settings.json`); habla con Pablo y reparte | `auditor-datos`: normalización, duplicados y cableado |
 | `analista`: del fallo al plan; registra el caso, diagnostica y redacta los encargos en el issue. Constructor de documentos: lleva `Write` y no `Edit`, y no construye código | |
 
 Cada cabecera dice a quién pasa trabajo (`traspasa_a`, vigilado por `.claude/agentes.test.js`).
