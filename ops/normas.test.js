@@ -33,7 +33,7 @@ const DURA = {
   id: "ejemplo", nombre: "Tope de ejemplo", sujeto: "endpoint", fuerza: "debe", exigencia: "aplicar un tope diario",
   donde: ["CLAUDE.md"], ejecutor: "codigo_en_ejecucion", alcance: "todos", ante_fallo: "cerrado",
   control: "api/_guard.test.js", control_tipo: "test", control_procesador: "codigo", control_fuerza: "bloquea", control_momento: "pr", control_que_mira: "comportamiento", control_cobertura: "total", test_fallo: { ruta: "api/_guard.test.js", caso: "sin_redis" }, veredicto: "dura", riesgo: "alto", issue: null,
-  principio: "bounded-blast-radius", ambito: "api", acciones: ["construir"],
+  principio: "bounded-blast-radius", ambito: "api", lado: "horizontal", acciones: ["construir"],
 };
 
 describe("vocabulario de normas", () => {
@@ -110,7 +110,7 @@ describe("los cinco ejes del control (#682)", () => {
   it("los techos del fichero no suben respecto a origin/staging (si se puede leer sin red)", () => {
     const en = techosDeStaging();
     if (!en) return; // sin la referencia (o el fichero aún no está en staging): no se puede comprobar; el CI sí la tiene
-    for (const k of Object.keys(en)) if (typeof en[k] === "number") expect(TECHOS[k], `${k} no puede subir (staging: ${en[k]})`).toBeLessThanOrEqual(en[k]);
+    for (const k of Object.keys(en)) if (typeof en[k] === "number") expect(TECHOS[k] ?? 0, `${k} no puede subir (staging: ${en[k]})`).toBeLessThanOrEqual(en[k]);
   });
 
   it("las normas de juez sin test del juez (no comprobadas) y las de ejecutor «persona» solo bajan", () => {
@@ -354,6 +354,8 @@ describe("la plantilla de regla en cada norma (#494)", () => {
     ["un campo desconocido", { texto_viejo: "x" }, /campo desconocido/],
     ["un principio que no es un id", { principio: "Un principio" }, /«principio» es el id/],
     ["un ámbito fuera de su vocabulario", { ambito: "marketing" }, /ambito «marketing»/],
+    ["un lado fuera de su vocabulario", { lado: "transversal" }, /lado «transversal»/],
+    ["sin lado", { lado: undefined }, /lado «undefined»|falta «lado»/],
     ["sin acciones", { acciones: [] }, /«acciones» es una lista/],
     ["una acción repetida", { acciones: ["construir", "construir"] }, /repite una acción/],
   ])("falla con %s", (_, cambios, trozo) => expect(problemas(cambios).join("\n")).toMatch(trozo));

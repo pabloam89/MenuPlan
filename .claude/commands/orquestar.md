@@ -180,12 +180,12 @@ escribas a mano: añade solo lo que el comando no sabe (el objetivo con
    como nuevos: cada hallazgo suyo lleva `YA APUNTADO: #n` o `NUEVO (buscado: …)`.
    Un hallazgo sin esa marca se devuelve.
 8. **Estándar de la tarea** (#413): la línea `ESTÁNDAR A CUMPLIR: <agente>/<tarea>`
-   que da `npm run estandar -- <agente> <tarea> --ficheros <a,b,…>` (las tareas de
+   que da `npm run estandar -- <agente> <tarea> --proyecto homenu --ficheros <a,b,…>` (las tareas de
    cada agente están en `ops/estandares-agentes.json`; `npm run estandar -- <agente>`
    las lista), con su acción, las normas que le tocan por id (sus ámbitos × su
    acción, más las del ámbito de cada fichero que va a tocar; #620), sus condiciones
    propias, las comunes que nombra y lo que no hace pegados en el brief. En el
-   brief del juez, `npm run estandar -- <juez> <tarea> --diff` (los ficheros de la
+   brief del juez, `npm run estandar -- <juez> <tarea> --proyecto homenu --diff` (los ficheros de la
    rama, como `skills-encargo --diff`): recibe las mismas normas que el constructor. Si el encargo no encaja en
    ninguna tarea, «ninguna tarea del catálogo» y por qué: es la señal de una
    tarea que falta. Todas las tareas, en una tabla: `docs/ops/ESTANDARES.md`.

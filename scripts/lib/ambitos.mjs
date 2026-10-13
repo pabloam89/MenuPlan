@@ -60,19 +60,15 @@ export const AMBITOS = {
     construye: null,
     rutas: [/^api\/(?!_bot\/|bot\/)/, /^ops\/api-sin-credencial\.json$/, /^\.claude\/rules\/api\.md$/],
   },
-  ui: {
-    legible: "pantallas",
-    que: "Las pantallas de la app",
-    jueces: [{ juez: "qa", fuente: "agente:qa" }],
-    construye: "diseno",
-    rutas: [/^src\/.*\.(jsx|css)$/, /^src\/(design|components|screens|assets|dev)\//, /^public\//, /^Avatares\//, /^brand\//, /^dish-gallery\//, /^scripts\/(make_|mj-prompts-)/, /^docs\/medios\.md$/, /^(DESIGN_SYSTEM|ILUSTRACIONES-PASOS)\.md$/, /^docs\/diseno\//, /^\.claude\/rules\/ui\.md$/],
-  },
   diseno: {
     legible: "diseño",
-    que: "El sistema de diseño: tokens, primitivos, accesibilidad, estados y voz de la interfaz",
+    que: "El diseño de la app: el sistema (tokens, primitivos, accesibilidad, estados) y los patrones y flujos (UX), con sus pantallas",
     jueces: [{ juez: "qa", fuente: "agente:qa" }],
     construye: "diseno",
-    rutas: [/^docs\/diseno\//, /^ops\/diseno\//, /^src\/design\//, /^DESIGN_SYSTEM\.md$/],
+    rutas: [
+      /^src\/.*\.(jsx|css)$/, /^src\/(design|components|screens|assets|dev)\//, /^public\//, /^Avatares\//, /^brand\//, /^dish-gallery\//, /^scripts\/(make_|mj-prompts-)/,
+      /^docs\/medios\.md$/, /^(DESIGN_SYSTEM|ILUSTRACIONES-PASOS)\.md$/, /^docs\/diseno\//, /^\.claude\/rules\/ui\.md$/, /^ops\/diseno\//,
+    ],
   },
   product: {
     legible: "producto",
@@ -110,7 +106,7 @@ export const AMBITOS = {
  * (sea cual sea su constructor), el más específico antes que el genérico (api/_bot/ es del bot antes que del catálogo); `code` solo decide
  * cuando el fichero no es de ningún otro ámbito (un script suelto de scripts/). Es la única copia de zona → constructor (#641).
  */
-export const DUENO_ORDEN = ["bot", "ui", "diseno", "data", "infra", "catalog", "api", "product", "writing", "entities", "process", "code"];
+export const DUENO_ORDEN = ["bot", "diseno", "data", "infra", "catalog", "api", "product", "writing", "entities", "process", "code"];
 
 /** El constructor de un fichero por sus ámbitos: { agente, ambito }, con `agente: null` si el ámbito dueño no tiene constructor. null si no cae en ningún ámbito. */
 export function constructorDeFichero(ruta) {
@@ -134,7 +130,7 @@ export const juecesDeAmbitos = (ids) => [...new Set([JUEZ_SIEMPRE, ...ids.flatMa
  * Qué ámbito toca cada regla por carpeta de `.claude/rules/` (#620): todo fichero que casa con los `paths:` de
  * una regla es de su ámbito. Así el mapa de arriba y las reglas no se separan; lo vigila ops/uniones.test.js.
  */
-export const AMBITO_DE_REGLA = { api: "api", catalogo: "catalog", lola: "bot", migraciones: "data", tests: "code", ui: "ui" };
+export const AMBITO_DE_REGLA = { api: "api", catalogo: "catalog", lola: "bot", migraciones: "data", tests: "code", ui: "diseno" };
 
 /** Los ámbitos de un fichero del repo (ruta relativa, con «/»), en el orden de AMBITOS; lista vacía si no cae en ninguno. */
 export function ambitosDeFichero(ruta) {

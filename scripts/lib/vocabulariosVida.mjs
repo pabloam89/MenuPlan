@@ -50,7 +50,7 @@ import { CAUSAS_EXCEPCION, ROLES_CAMPO, TIPOS_LECTOR, UNIDADES } from "./metrica
 import { AMBITOS } from "./ambitos.mjs";
 import { FORMAS as FORMAS_EXCEPCION, RAZONES as RAZONES_EXCEPCION } from "./excepciones.mjs";
 import { RESULTADOS_NORMA } from "./medicionNormas.mjs";
-import { COBERTURAS, FUERZAS_CONTROL, MOMENTOS, PROCESADORES, QUE_MIRA } from "./normas.mjs";
+import { COBERTURAS, FUERZAS_CONTROL, LADOS, MOMENTOS, PROCESADORES, QUE_MIRA } from "./normas.mjs";
 import { leerPrecedencia } from "./precedencia.mjs";
 import { VEREDICTOS_RUIDO } from "./ruido.mjs";
 import { MOTIVOS_COMPLEJIDAD, PIPELINES } from "./presupuestos.mjs";
@@ -96,6 +96,8 @@ export const VOCABULARIOS = {
   "ruido.veredicto": { fichero: "scripts/lib/ruido.mjs", textos: conTexto(VEREDICTOS_RUIDO) },
   // El área de un principio y el ámbito de una norma (#619): un solo vocabulario, en scripts/lib/ambitos.mjs.
   ambitos: { fichero: "scripts/lib/ambitos.mjs", textos: () => Object.fromEntries(Object.entries(AMBITOS).map(([k, a]) => [k, a.que])) },
+  // El lado de una norma (#687): horizontal (la factoría) o vertical (el producto).
+  "normas.lado": { fichero: "scripts/lib/normas.mjs", textos: conTexto(LADOS) },
   // La excepción de un PR a una norma (#621): una sola forma viva; las tres de antes están retiradas (scripts/lib/excepciones.mjs).
   "pr.excepcion_forma": { fichero: "scripts/lib/excepciones.mjs", textos: conTexto(FORMAS_EXCEPCION) },
   // Los conceptos de la precedencia entre áreas (#621): el dato vive en ops/principios/_catalogo.json.

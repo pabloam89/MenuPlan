@@ -46,6 +46,15 @@ export const ALCANCES = {
   nadie: "No alcanza a nadie: no hay ejecutor",
 };
 
+/**
+ * El lado de una norma (#687): a quién sirve. Mismo vocabulario que el `scope` de ops/entidades.json (sin `both`: una norma
+ * sirve a un lado; si sirve a los dos, es horizontal). Ante la duda, horizontal.
+ */
+export const LADOS = {
+  horizontal: "Trata de cómo trabaja la factoría o de cualquier proyecto: método, infraestructura, seguridad, código, diseño",
+  vertical: "Trata de la conducta del producto HoMenu o de Lola, no del trabajo de un agente",
+};
+
 /** Qué pasa si el ejecutor falla (se cae, no puede leer, se pasa de tiempo). */
 export const ANTE_FALLO = {
   cerrado: "Si el ejecutor falla, no deja pasar",
@@ -124,9 +133,9 @@ export const RUTA_PLANOS = "ops/planos.json";
  */
 export const CAMPOS = [
   "id", "nombre", "sujeto", "fuerza", "exigencia", "donde", "ejecutor", "alcance", "ante_fallo",
-  "control", "control_tipo", "control_procesador", "control_fuerza", "control_momento", "control_que_mira", "control_cobertura", "veredicto", "riesgo", "issue", "principio", "ambito", "acciones",
+  "control", "control_tipo", "control_procesador", "control_fuerza", "control_momento", "control_que_mira", "control_cobertura", "veredicto", "riesgo", "issue", "principio", "ambito", "lado", "acciones",
 ];
-export const CAMPOS_OPCIONALES = ["condicion", "nota", "criterio_planos", "test_fallo", "desde", "concepto", "test_del_juez"];
+export const CAMPOS_OPCIONALES = ["condicion", "nota", "criterio_planos", "test_fallo", "desde", "concepto", "test_del_juez", "project"];
 
 export const RUTA_REGISTRO = "ops/normas.json";
 export const RUTA_MD = "docs/ops/NORMAS.md";
@@ -142,8 +151,64 @@ export function ordenDePrecedencia(raiz = join(dirname(fileURLToPath(import.meta
   return Object.values(c).map((x) => x.label).join(" > ");
 }
 
+/** Dónde viven los registros de normas de cada proyecto (#704): ops/proyectos/<id>/normas.json. */
+export const RUTA_PROYECTOS = "ops/proyectos";
+export const rutaNormasDeProyecto = (id) => `${RUTA_PROYECTOS}/${id}/normas.json`;
+
+/** Los ids de proyecto de ops/entidades.json (`projects`), la lista contra la que se valida `project`. */
+export function proyectosDeEntidades(raiz) {
+  return JSON.parse(readFileSync(join(raiz, "ops", "entidades.json"), "utf8")).projects.map((p) => p.id);
+}
+
+/**
+ * El cargador común de normas (#704, programa #652). Las horizontales (la factoría) viven en ops/normas.json; las verticales
+ * (conducta del producto de un proyecto) en el registro de su proyecto, ops/proyectos/<id>/normas.json. Devuelve
+ * { registro, horizontales, delProyecto: { <id>: [norma] }, todas, sujetos }: `todas` para lo que mira el conjunto
+ * (control, redacción, topes, uniones) y `horizontales` / `delProyecto` para lo que distingue (el estándar de una tarea).
+ */
+export function cargarNormas(raiz) {
+  const registro = JSON.parse(readFileSync(join(raiz, RUTA_REGISTRO), "utf8"));
+  const delProyecto = {};
+  const dir = join(raiz, RUTA_PROYECTOS);
+  if (existsSync(dir)) {
+    for (const id of readdirSync(dir).sort()) {
+      const ruta = join(dir, id, "normas.json");
+      if (existsSync(ruta)) delProyecto[id] = JSON.parse(readFileSync(ruta, "utf8"));
+    }
+  }
+  const horizontales = registro.normas;
+  const todas = [...horizontales, ...Object.values(delProyecto).flatMap((r) => r.normas)];
+  return { registro, horizontales, delProyecto: Object.fromEntries(Object.entries(delProyecto).map(([id, r]) => [id, r.normas])), todas, sujetos: registro.sujetos, ficheros: delProyecto };
+}
+
+/** El registro entero para quien necesita todas las normas: { ...ops/normas.json, normas: todas, horizontales, delProyecto }. */
 export function leerRegistro(raiz) {
-  return JSON.parse(readFileSync(join(raiz, RUTA_REGISTRO), "utf8"));
+  const c = cargarNormas(raiz);
+  return { ...c.registro, normas: c.todas, horizontales: c.horizontales, delProyecto: c.delProyecto };
+}
+
+/**
+ * Errores de dónde vive cada norma (#704): ninguna vertical en el registro horizontal ni al revés, cada vertical con un
+ * `project` válido (de ops/entidades.json) que es el de su registro, y ninguna horizontal con `project`.
+ * `carga`: lo que da cargarNormas; `proyectos`: los ids válidos.
+ */
+export function problemasDeProyectos(carga, proyectos) {
+  const malos = [];
+  for (const n of carga.horizontales) {
+    if (n.lado !== "horizontal") malos.push(`${n.id}: está en ops/normas.json y su lado es «${n.lado}»; una norma vertical va al registro de su proyecto (${RUTA_PROYECTOS}/<id>/normas.json)`);
+    if ("project" in n) malos.push(`${n.id}: una norma horizontal no lleva «project»`);
+  }
+  for (const [id, r] of Object.entries(carga.ficheros)) {
+    const ruta = rutaNormasDeProyecto(id);
+    if (!proyectos.includes(id)) malos.push(`${ruta}: «${id}» no es un proyecto de ops/entidades.json (${proyectos.join(", ")})`);
+    if (r.project !== id) malos.push(`${ruta}: su «project» es «${r.project}» y la carpeta es «${id}»`);
+    for (const n of r.normas) {
+      if (n.lado !== "vertical") malos.push(`${n.id}: está en ${ruta} y su lado es «${n.lado}»; una norma horizontal va a ops/normas.json`);
+      if (n.project !== id) malos.push(`${n.id}: su «project» es «${n.project}» y vive en el registro de «${id}»`);
+      if (!proyectos.includes(n.project)) malos.push(`${n.id}: «project» «${n.project}» no es un proyecto de ops/entidades.json`);
+    }
+  }
+  return malos;
 }
 
 /** `test` de una obligación de flujo.json puede ser una ruta o una comprobación de planos: `planos:<regla>[:<rama>]`. */
@@ -234,7 +299,7 @@ export function problemasDeForma(n, sujetos) {
   if (typeof n.id !== "string" || !ID_KEBAB.test(n.id)) malos.push(`${id}: el id va en minúsculas con guiones`);
   malos.push(...problemasDeRegla(n, id, sujetos));
   if (!Array.isArray(n.donde) || !n.donde.length) malos.push(`${id}: «donde» es una lista de rutas`);
-  const vocab = [["ejecutor", EJECUTORES], ["alcance", ALCANCES], ["ante_fallo", ANTE_FALLO], ["veredicto", VEREDICTOS], ["riesgo", RIESGOS], ["control_tipo", CONTROL_TIPOS]];
+  const vocab = [["ejecutor", EJECUTORES], ["alcance", ALCANCES], ["ante_fallo", ANTE_FALLO], ["veredicto", VEREDICTOS], ["riesgo", RIESGOS], ["control_tipo", CONTROL_TIPOS], ["lado", LADOS]];
   for (const [campo, v] of vocab) if (!(n[campo] in v)) malos.push(`${id}: ${campo} «${n[campo]}» no está en el vocabulario (${Object.keys(v).join(", ")})`);
   malos.push(...problemasDeControl(n, id));
   malos.push(...problemasDeEjes(n, id));
@@ -354,7 +419,7 @@ export function problemasDeAvisos(avisos, normas, porCredencial = {}) {
   for (const [id, a] of Object.entries(avisos ?? {})) {
     if (!/^[a-z]+(-[a-z]+)*$/.test(id)) malos.push(`aviso ${id}: el id va en minúsculas con guiones`);
     if (typeof a?.codigo !== "string" || !a.codigo) malos.push(`aviso ${id}: sin «codigo»: cada aviso apunta a una norma`);
-    else if (!ids.has(a.codigo)) malos.push(`aviso ${id}: su codigo «${a.codigo}» no es una norma de ops/normas.json`);
+    else if (!ids.has(a.codigo)) malos.push(`aviso ${id}: su codigo «${a.codigo}» no es una norma de ops/normas.json ni del registro de un proyecto (${RUTA_PROYECTOS}/<id>/normas.json)`);
     for (const p of ["que", "porque", "enSuLugar"]) {
       if (typeof a?.[p] !== "string" || a[p].trim().length < 8) malos.push(`aviso ${id}: falta «${p}»`);
     }
@@ -404,27 +469,33 @@ export function generarMd(registro, avisos) {
   const L = [
     "# Normas de HoMenu",
     "",
-    `<!-- Generado desde ${RUTA_REGISTRO} y .claude/hooks/avisos-guardia.mjs con «npm run normas -- --escribir». No se edita a mano: ops/normas.test.js lo compara. -->`,
+    `<!-- Generado desde ${RUTA_REGISTRO}, el registro de cada proyecto (${RUTA_PROYECTOS}/<id>/normas.json) y .claude/hooks/avisos-guardia.mjs con «npm run normas -- --escribir». No se edita a mano: ops/normas.test.js lo compara. -->`,
     "",
     "Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe por campos (nombre, sujeto, fuerza, condición, exigencia, control; plantilla de `scripts/lib/regla.mjs`, guía en `docs/ops/REDACCION.md`) y su frase sale de ellos. Cada una cita el principio del que sale (`docs/PRINCIPIOS.md`) y dice su ámbito y a qué acciones de un agente se aplica. La tabla dice también quién la hace cumplir, con qué se comprueba y qué avisos de la guardia la citan. Un aviso que salta dice, en este orden, qué se niega, por qué, qué hacer en su lugar y a quién pedirlo, y deja en el registro de eventos su id y el de su norma.",
     "",
-    "## Normas",
+    "## Normas (horizontales: la factoría)",
     "",
-    "| Norma | Sujeto | Fuerza | Frase | Quién la hace cumplir | Control | Avisos de la guardia | Principio | Ámbito | Acciones |",
-    "|---|---|---|---|---|---|---|---|---|---|",
   ];
-  for (const n of normas) {
+  const fila = (n) => {
     const frase = fraseDeRegla(n, sujetos).replace(/ Se comprueba con: .*$/, "");
     const control = n.control_tipo === "juicio" ? "juicio" : n.control_tipo === "planos" ? `planos: ${n.criterio_planos}` : `${n.control_tipo}: \`${n.control}\``;
     const quien = `${n.ejecutor} · ${n.veredicto}`;
     const av = (porNorma[n.id] ?? []).map((a) => `\`${a}\``).join(", ") || "—";
-    L.push(`| \`${n.id}\` | ${n.sujeto} | ${FUERZAS[n.fuerza].palabra} | ${celda(frase)} | ${quien} | ${celda(control)} | ${av} | \`${n.principio}\` | ${n.ambito} | ${(n.acciones ?? []).join(", ")} |`);
+    return `| \`${n.id}\` | ${n.sujeto} | ${FUERZAS[n.fuerza].palabra} | ${celda(frase)} | ${quien} | ${celda(control)} | ${av} | \`${n.principio}\` | ${n.ambito} | ${n.lado} | ${(n.acciones ?? []).join(", ")} |`;
+  };
+  const cabecera = ["| Norma | Sujeto | Fuerza | Frase | Quién la hace cumplir | Control | Avisos de la guardia | Principio | Ámbito | Lado | Acciones |", "|---|---|---|---|---|---|---|---|---|---|---|"];
+  // Un registro por proyecto (#704): las horizontales de ops/normas.json y, aparte, las de cada proyecto.
+  L.push(...cabecera, ...(registro.horizontales ?? normas).map(fila));
+  for (const [proyecto, lista] of Object.entries(registro.delProyecto ?? {})) {
+    L.push("", `## Normas del proyecto ${proyecto} (verticales: ${rutaNormasDeProyecto(proyecto)})`, "", ...cabecera, ...lista.map(fila));
   }
   const contar = (campo) => Object.entries(normas.reduce((a, n) => ({ ...a, [n[campo]]: (a[n[campo]] ?? 0) + 1 }), {}));
   L.push("", "## Sujetos", "", "| Sujeto | En la frase | Normas |", "|---|---|---|");
   for (const [id, s] of Object.entries(sujetos)) L.push(`| ${id} | ${s.legible} | ${normas.filter((n) => n.sujeto === id).length} |`);
   L.push("", "## Ámbitos", "", "| Ámbito | Qué es | Normas |", "|---|---|---|");
   for (const [id, a] of Object.entries(AMBITOS)) L.push(`| ${id} | ${celda(a.que)} | ${normas.filter((n) => n.ambito === id).length} |`);
+  L.push("", "## Lados (#687)", "", "| Lado | Qué es | Normas |", "|---|---|---|");
+  for (const [id, t] of Object.entries(LADOS)) L.push(`| ${id} | ${celda(t)} | ${normas.filter((n) => n.lado === id).length} |`);
   L.push("", "## Cómo se comprueban", "", "| Tipo de control | Qué es | Normas |", "|---|---|---|");
   for (const [id, t] of Object.entries(CONTROL_TIPOS)) L.push(`| ${id} | ${celda(t.que)} | ${normas.filter((n) => n.control_tipo === id).length} |`);
   const rc = recuento(normas);
@@ -616,12 +687,12 @@ export function comprobarNormasPr({ diff, cuerpo = "", autor = "", ids }) {
     for (const c of r.citasMalas) citasMalas.push(`${a.ruta}:${a.linea} norma:${c}`);
   }
   // Una cita a una norma que no existe falla siempre: «sin novedades» no la arregla.
-  if (citasMalas.length) return { ok: false, motivo: `Cita a una norma que no está en ops/normas.json: ${citasMalas.join(", ")}.`, sueltas };
+  if (citasMalas.length) return { ok: false, motivo: `Cita a una norma que no está en ops/normas.json ni en el registro de un proyecto (${RUTA_PROYECTOS}/<id>/normas.json): ${citasMalas.join(", ")}.`, sueltas };
   if (!sueltas.length) return { ok: true, motivo: "Ninguna línea añadida con palabras fuertes sin citar.", sueltas };
   const l = lineaNormas(cuerpo);
   if (l.presente && l.motivo) return { ok: true, motivo: `Normas: sin novedades — ${l.motivo} (${sueltas.length} líneas)`, sueltas };
   const donde = sueltas.slice(0, 5).map((s) => `${s.ruta}:${s.linea} («${s.palabras.join("», «")}»)`).join("; ");
-  const ayuda = "Cita la norma en la misma línea (<!-- norma:<id> -->, alta en ops/normas.json si no está) o, si no es una norma, pon en el cuerpo del PR «Normas: sin novedades — <motivo>».";
+  const ayuda = "Cita la norma en la misma línea (<!-- norma:<id> -->, alta en ops/normas.json, o en el registro de su proyecto si es vertical, si no está) o, si no es una norma, pon en el cuerpo del PR «Normas: sin novedades — <motivo>».";
   return { ok: false, motivo: `${l.error ? `${l.error} ` : ""}${sueltas.length} líneas añadidas con palabras fuertes sin citar norma: ${donde}. ${ayuda}`, sueltas };
 }
 

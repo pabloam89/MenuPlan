@@ -40,7 +40,8 @@ export function combinacionesDeTareas(datos) {
 
 /** Los ids de norma que dan unos ámbitos y una acción, en el orden del registro. */
 export const normasDeCombinacion = (normas, accion, ambitos, deConsulta = accionesDeConsulta) =>
-  normasPorConsulta(normas, ambitos, accion, deConsulta).map((n) => n.id);
+  // Solo horizontales (#704): las del proyecto no entran en el estándar de una combinación, se piden con --proyecto.
+  normasPorConsulta((normas ?? []).filter((n) => n.lado !== "vertical"), ambitos, accion, deConsulta).map((n) => n.id);
 
 /** El catálogo N2 que salen de las tareas y del registro de normas. */
 export function generarN2(datos, normas) {
@@ -62,7 +63,7 @@ export const escribirN2 = (raiz, n2) => writeFileSync(join(raiz, RUTA_N2), JSON.
 export function problemasDeN2(n2, datos, normas, { deConsulta = accionesDeConsulta } = {}) {
   const malos = [];
   const combos = n2?.combinaciones ?? {};
-  const ids = new Set((normas ?? []).map((n) => n.id));
+  const ids = new Set((normas ?? []).filter((n) => n.lado !== "vertical").map((n) => n.id));
   const usadas = new Set();
   for (const { agente, tarea: t } of tareasDe(datos)) {
     const donde = `${agente}/${t.id}`;

@@ -8,8 +8,7 @@
       "catalog": "El catálogo de recetas y alimentos que vive en git",
       "bot": "Lola, el bot de mensajería, sus evals y su coste",
       "api": "Las funciones de api/ y lo que protegen",
-      "ui": "Las pantallas de la app",
-      "diseno": "El sistema de diseño: tokens, primitivos, accesibilidad, estados y voz de la interfaz",
+      "diseno": "El diseño de la app: el sistema (tokens, primitivos, accesibilidad, estados) y los patrones y flujos (UX), con sus pantallas",
       "product": "Qué hace bien HoMenu y Lola para las familias",
       "process": "Cómo se trabaja: issues, fondos, PR, sesiones, agentes, jueces y cifras",
       "writing": "Cómo se escribe una regla o un principio de la casa",
@@ -436,6 +435,10 @@
       "forma": "Cómo está escrito: estructura, vocabulario y formato",
       "contenido": "Lo que dice, a juicio de quien lo lee",
       "comportamiento": "Lo que hace el sistema al ejecutarse o al aplicarse"
+    },
+    "normas.lado": {
+      "horizontal": "Trata de cómo trabaja la factoría o de cualquier proyecto: método, infraestructura, seguridad, código, diseño",
+      "vertical": "Trata de la conducta del producto HoMenu o de Lola, no del trabajo de un agente"
     },
     "normas.resultado": {
       "ok": "el control miró y la norma se cumplía",
@@ -976,6 +979,13 @@
       "pasa_a": "analista",
       "desde": "2026-10-13",
       "motivo": "Quien diagnostica en local y módulo es el agente analista, no cualquier agente del dominio (línea #652); el constructor del dominio sigue construyendo y sigue en flujo.actores"
+    },
+    {
+      "vocabulario": "ambitos",
+      "valor": "ui",
+      "pasa_a": "diseno",
+      "desde": "2026-10-13",
+      "motivo": "Un único ámbito de diseño con dos zonas (el sistema, y los patrones y flujos de UX); sus normas pasan a diseno (decisión de Pablo, #652; #687)"
     }
   ],
   "redefiniciones": [
@@ -1237,6 +1247,12 @@
       "termino": "control",
       "desde": "2026-10-13",
       "motivo": "Se amplía: ya no solo da falta, aviso o bien; es la comprobación de una norma, que puede procesar un juez, y se describe en cinco ejes (#682)"
+    },
+    {
+      "vocabulario": "ambitos",
+      "valor": "diseno",
+      "desde": "2026-10-13",
+      "motivo": "Se amplía: absorbe las pantallas del ámbito ui retirado y suma la zona de patrones y flujos (UX); el sentido viejo (el sistema de diseño) queda dentro (#687)"
     }
   ],
   "vocabularios_retirados": [
