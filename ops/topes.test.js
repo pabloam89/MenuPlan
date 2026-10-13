@@ -35,6 +35,10 @@ describe("ops/topes.json", () => {
   });
   it("ningún texto pasa del tope de su campo y el tope no tiene holgura", () => expect(problemasDeMedida(topes, medido)).toEqual([]));
   it("el wording de hoy es el de las excepciones: ni una falta nueva ni una excepción que sobre", () => expect(problemasDeWording(faltas, topes.excepciones_wording)).toEqual([]));
+  it("la lista de excepciones de wording está vacía (techo 0, #652): todo texto cumple la regla de su tipo", () => {
+    expect(topes.excepciones_wording).toEqual({});
+    expect(faltas).toEqual({});
+  });
   it("ningún tope ni excepción sube respecto a origin/staging (si se puede leer sin red)", () => {
     const ref = deStaging();
     if (!ref) return;
@@ -74,8 +78,9 @@ describe("cada regla se ve fallar", () => {
   it("una excepción nueva o que sube respecto a la referencia", () => {
     const t = clon(); t.excepciones_wording["norma.exigencia:fuerza-en-principio"] = 1;
     expect(problemasContraReferencia(t, topes).join("\n")).toContain("excepción nueva");
-    const u = clon(); const k = Object.keys(u.excepciones_wording)[0]; u.excepciones_wording[k] += 1;
-    expect(problemasContraReferencia(u, topes).join("\n")).toContain("sube de");
+    const ref = clon(); ref.excepciones_wording = { "norma.nota:persona": 2 };
+    const u = clon(); u.excepciones_wording = { "norma.nota:persona": 3 };
+    expect(problemasContraReferencia(u, ref).join("\n")).toContain("sube de");
   });
   it("cambiar el tipo de texto o subir palabras_max respecto a la referencia esquivaría el wording (hallazgo del revisor, #701)", () => {
     const t = clon(); t.campos["norma.nota"].tipo_texto = "documento";
@@ -89,8 +94,7 @@ describe("cada regla se ve fallar", () => {
   });
   it("una falta de wording sin excepción, y una excepción que ya sobra", () => {
     expect(problemasDeWording({ ...faltas, "norma.exigencia:fuerza-en-principio": 1 }, topes.excepciones_wording).join("\n")).toContain("incumplen la regla de su tipo");
-    const k = Object.keys(faltas)[0];
-    expect(problemasDeWording({ ...faltas, [k]: faltas[k] - 1 }, topes.excepciones_wording).join("\n")).toContain("Bájalo");
+    expect(problemasDeWording({ "norma.nota:persona": 1 }, { "norma.nota:persona": 2 }).join("\n")).toContain("Bájalo");
   });
   it("una excepción con un código inventado", () => {
     const t = clon(); t.excepciones_wording["norma.nota:poesia"] = 1;
@@ -131,10 +135,10 @@ describe("la medida y el ajuste", () => {
     for (const c of Object.keys(LECTORES)) expect(medido[c].n, c).toBeGreaterThan(0);
   });
   it("ajustar solo baja: un tope con holgura baja y una excepción que sobra se ajusta", () => {
-    const t = clon(); t.campos["norma.exigencia"].tope += 40; const k = Object.keys(t.excepciones_wording)[0]; t.excepciones_wording[k] += 2;
-    const a = ajustar(t, medido, faltas);
+    const t = clon(); t.campos["norma.exigencia"].tope += 40; const k = "norma.nota:persona"; t.excepciones_wording = { [k]: 3 };
+    const a = ajustar(t, medido, { [k]: 1 });
     expect(a.campos["norma.exigencia"].tope).toBe(medido["norma.exigencia"].max);
-    expect(a.excepciones_wording[k]).toBe(faltas[k]);
+    expect(a.excepciones_wording[k]).toBe(1);
   });
   it("ajustar nunca sube un tope aunque lo medido sea mayor", () => {
     const t = clon(); const m = structuredClone(medido); m["norma.nota"].max += 100;
