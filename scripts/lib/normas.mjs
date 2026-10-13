@@ -283,6 +283,18 @@ export function motivoTestDelJuezMalo(n, raiz) {
   return "debe ser un *.test.js o un casos.json que nombre el id de la norma";
 }
 
+/**
+ * Las normas cuyo control no acaba en un test (#704): de código, sin un *.test.js/.mjs/.jsx que exista; de juez, con un
+ * test_del_juez declarado que no vale. Un juez con test_del_juez null no cuenta aquí: lo vigila el techo juez_sin_test_del_juez.
+ */
+export function sinControlDeTest(normas, raiz) {
+  return normas.filter((n) => {
+    if (n.control_procesador === "codigo") return !(typeof n.control === "string" && /\.test\.(js|jsx|mjs)$/.test(n.control) && existsSync(join(raiz, n.control)));
+    if (n.control_procesador === "juez") return typeof n.test_del_juez === "string" && motivoTestDelJuezMalo(n, raiz) !== null;
+    return true;
+  });
+}
+
 /** Las normas cuyo control lo juzga un juez y aún no tiene su test: no comprobadas. */
 export const sinTestDelJuez = (normas) => normas.filter((n) => n.control_procesador === "juez" && n.test_del_juez == null);
 

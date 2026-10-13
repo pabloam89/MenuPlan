@@ -797,16 +797,3 @@ export function verticalesEnEstandares(datos, normas) {
   for (const c of Object.values(datos?.comunes ?? {})) for (const id of c.normas ?? []) if (esVertical(id)) dentro.add(id);
   return [...dentro];
 }
-
-/**
- * Las normas de un proyecto que llegan a alguna tarea con `--proyecto <id>` (su ámbito y su acción tal cual, sin la equivalencia
- * construir ↔ juzgar), y las que no llegan a ninguna: { llegan: [ids], sinSalida: [ids] }.
- */
-export function verticalesPorProyecto(datos, normas, proyecto) {
-  const llegan = new Set();
-  for (const { tarea } of tareasDe(datos)) {
-    for (const x of normasDeTarea(tarea, datos, normas, { deConsulta: (a) => [a], proyecto })) if (x.norma?.project === proyecto) llegan.add(x.norma.id);
-  }
-  const suyas = (normas ?? []).filter((n) => n.project === proyecto).map((n) => n.id);
-  return { llegan: suyas.filter((id) => llegan.has(id)), sinSalida: suyas.filter((id) => !llegan.has(id)) };
-}
