@@ -247,6 +247,7 @@
       "factoria": "la propia factoría: el trabajo sobre el proceso, no sobre un producto"
     },
     "flujo.actores": {
+      "analista": "El analista: un agente de .claude/agents/ que registra el caso, diagnostica y redacta el plan en el issue; no construye",
       "agente_dominio": "El constructor del dominio: un agente con «Tipo: constructor» en .claude/agents/",
       "orquestador": "La sesión principal con /orquestar",
       "juez": "Un agente con «Tipo: juez» en .claude/agents/",
@@ -259,7 +260,7 @@
       "transversal": "La misma causa en módulos de ámbitos distintos, tres casos parecidos, o la segunda vez que «no aguantó»"
     },
     "flujo.diagnostican": {
-      "agente_dominio": "El agente del dominio, en una pasada, con la skill causa-raiz",
+      "analista": "El analista (agente de .claude/agents/), en una pasada, con la skill causa-raiz",
       "orquestador_con_diagnosticadores": "El orquestador lanza varios diagnosticadores en paralelo, cada uno con su lente, y sintetiza"
     },
     "flujo.estado_medida": {
@@ -928,6 +929,13 @@
       "valor": "revision-periodica",
       "pasa_a": "audit-periodic",
       "desde": "2026-10-12"
+    },
+    {
+      "vocabulario": "flujo.diagnostican",
+      "valor": "agente_dominio",
+      "pasa_a": "analista",
+      "desde": "2026-10-13",
+      "motivo": "Quien diagnostica en local y módulo es el agente analista, no cualquier agente del dominio (línea #652); el constructor del dominio sigue construyendo y sigue en flujo.actores"
     }
   ],
   "redefiniciones": [

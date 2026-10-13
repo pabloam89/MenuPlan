@@ -361,13 +361,14 @@ it("CLAUDE.md y /orquestar nombran a todos los agentes", () => {
 describe("el analista: oficio horizontal y mínimo privilegio (línea #652)", () => {
   // Nace como oficio de la factoría: no nombra ningún proyecto. El terreno lo lee de la ficha del proyecto
   // (su CLAUDE.md y ops/MODULOS.json), apuntando a esos ficheros y sin copiar su contenido.
-  const PROHIBIDOS = /homenu|menuplan|supabase|lola|vercel|telegram|(?<![\w.-])(?:src|api)\//i;
+  const PROHIBIDOS = /homenu|menuplan|supabase|lola|vercel|telegram|mercadona|hetzner|gemini|(?<![\w.-])(?:src|api)\//i;
   const nombra = (texto) => [...new Set([...String(texto).matchAll(new RegExp(PROHIBIDOS.source, "gi"))].map((m) => m[0].toLowerCase()))];
   const estandar = JSON.parse(readFileSync(join(RAIZ, "ops", "estandares-agentes.json"), "utf8")).agentes.analista;
 
   it("ni su fichero ni sus tareas y estándares nombran un proyecto, un servicio ni una ruta del producto", () => {
     expect(nombra(readFileSync(join(DIR, "analista.md"), "utf8"))).toEqual([]);
     expect(nombra(JSON.stringify(estandar))).toEqual([]);
+    expect(nombra(readFileSync(join(RAIZ, "ops", "glosario", "terminos", "analista.json"), "utf8"))).toEqual([]);
   });
 
   it("el detector ve fallar un nombre de proyecto, de servicio y una ruta del producto", () => {
@@ -375,6 +376,7 @@ describe("el analista: oficio horizontal y mínimo privilegio (línea #652)", ()
     expect(nombra("en Supabase, Vercel o Telegram")).toEqual(["supabase", "vercel", "telegram"]);
     expect(nombra("mira src/lib/x.js y api/bot")).toEqual(["src/", "api/"]);
     expect(nombra("Lola responde")).toEqual(["lola"]);
+    expect(nombra("precios de Mercadona, el servidor de Hetzner y Gemini")).toEqual(["mercadona", "hetzner", "gemini"]);
     expect(nombra("ops/MODULOS.json, CLAUDE.md y scripts/lib/x.mjs")).toEqual([]);
   });
 

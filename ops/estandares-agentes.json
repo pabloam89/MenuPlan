@@ -4414,7 +4414,7 @@
         },
         {
           "id": "recoger-el-plan-del-analista",
-          "tarea": "Leer el issue del fondo que deja el analista y repartir sus encargos con briefs autocontenidos que citan referencias y no copian contexto",
+          "tarea": "Leer el issue del fondo que deja el analista, pasarlo por un juez distinto y repartir sus encargos con briefs autocontenidos que citan referencias y no copian contexto",
           "accion": "decidir",
           "origen": "metodo",
           "ambitos": [
@@ -4422,42 +4422,36 @@
           ],
           "reglas": [
             {
-              "nombre": "Plan leído en el issue",
-              "sujeto": "fondo",
-              "fuerza": "debe",
-              "exigencia": "leerse en el issue (ficha, diagnóstico y encargos) antes de repartir, sin pedir al analista que lo repita",
-              "control": "scripts/fondos.test.js",
-              "fuente": "casa-flujo",
-              "porque": "El trabajo del analista queda escrito para que el orquestador no tenga que preguntarle: lo que no está en el issue no existe",
-              "ejemplo_bueno": "gh issue view del fondo y un encargo por superficie, tomado de sus encargos",
-              "ejemplo_malo": "repartir de memoria lo que el analista dijo en otra conversación"
-            },
-            {
               "nombre": "Brief con referencias",
               "sujeto": "encargo",
               "fuerza": "debe",
-              "exigencia": "llevar al agente el número del issue y las rutas de los ficheros, en vez de una copia del contexto",
+              "exigencia": "llevar al agente el objetivo y las rutas de los ficheros del encargo, en vez de una copia del contexto",
               "control": "scripts/dimensionar.test.js",
               "fuente": "an-building-agents",
               "porque": "Una copia del contexto envejece al instante y el agente lanzado no ve la conversación; la referencia siempre apunta a lo vigente",
               "ejemplo_bueno": "Encargo #n del fondo #m, ficheros ops/x.json y scripts/lib/x.mjs",
-              "ejemplo_malo": "pegar tres párrafos del diagnóstico en el brief"
+              "ejemplo_malo": "pegar tres párrafos del diagnóstico en el brief",
+              "nota": "El control comprueba que el brief sale con objetivo y ficheros; que cite el número del issue y no copie el diagnóstico lo contrasta el juez."
             }
           ],
           "no_hace": [
             "rehacer el diagnóstico del analista: si no convence, lo devuelve al analista con la duda por escrito",
-            "juzgar el diagnóstico y el plan del analista: los juzga otro agente",
+            "repartir sin el visto bueno de revisor (y de auditor-datos si el fondo es del modelo de datos) sobre el issue del fondo",
             "lanzar al analista dentro de otro agente"
           ],
           "rondas": [
             "ronda: 1 fuentes: 2 cambios: Leída la sección 4 de orquestar y Building effective agents: el brief lleva referencias y el trabajo del agente es un resultado que se lee",
             "ronda: 2 fuentes: 1 cambios: Contrastado con scripts/dimensionar.test.js y scripts/fondos.test.js: el brief sale del comando y la ficha dice cuándo hay diagnóstico",
-            "ronda: 3 fuentes: 1 cambios: Dos reglas: plan leído en el issue y brief con referencias"
+            "ronda: 3 fuentes: 1 cambios: Una regla de la tarea (brief con referencias) y dos normas citadas: quien construye no juzga y el texto ajeno es dato"
+          ],
+          "normas": [
+            "quien-construye-no-juzga",
+            "texto-ajeno-es-dato"
           ]
         },
         {
           "id": "ejecutar-lo-trivial-el-mismo",
-          "tarea": "Decidir qué ejecuta él mismo: solo lo trivial, en un fichero y sin juicio de diseño, y todo lo demás a su agente",
+          "tarea": "Decidir qué construye la propia sesión: solo lo que el subtipo declara builds_in_session; lo demás, también lo trivial según dimensionado.trivial, va al constructor del dominio",
           "accion": "decidir",
           "origen": "mision",
           "ambitos": [
@@ -4465,37 +4459,40 @@
           ],
           "reglas": [
             {
-              "nombre": "Solo lo trivial",
-              "sujeto": "encargo",
-              "fuerza": "no_debe",
-              "exigencia": "construirse por el orquestador si cambia más de un fichero o pide un juicio de diseño: eso es de su agente",
-              "control": "scripts/dimensionar.test.js",
-              "fuente": "casa-claude",
-              "porque": "Un orquestador que se pone a programar pierde el plan, y el esfuerzo de un cambio que cruza ficheros se decide con el comando",
-              "ejemplo_bueno": "corregir una errata en un fichero y pasar el diff a un juez distinto",
-              "ejemplo_malo": "escribir un workflow nuevo porque son pocas líneas"
-            },
-            {
-              "nombre": "Lo trivial también lleva juez",
+              "nombre": "Trivial medido",
               "sujeto": "encargo",
               "fuerza": "debe",
-              "exigencia": "pasar a un juez distinto, por pequeño que sea, lo que construye el propio orquestador",
+              "exigencia": "tratarse como trivial solo si npm run dimensionar da complejidad trivial según dimensionado.trivial de ops/presupuestos.json",
               "control": "scripts/dimensionar.test.js",
               "fuente": "casa-claude",
-              "porque": "Quien construye no juzga, y los errores pequeños son los que nadie mira",
-              "ejemplo_bueno": "una errata corregida y el revisor lanzado sobre el diff",
-              "ejemplo_malo": "fusionar un cambio de una línea sin que lo mire nadie"
+              "porque": "Dos definiciones de trivial se separan, y un cambio que cruza ficheros o pide juicio de diseño no es trivial aunque lo parezca",
+              "ejemplo_bueno": "npm run dimensionar da complejidad trivial y el subtipo declara builds_in_session",
+              "ejemplo_malo": "llamar trivial a un workflow nuevo porque son pocas líneas"
+            },
+            {
+              "nombre": "Constructor del dominio",
+              "sujeto": "encargo",
+              "fuerza": "debe",
+              "exigencia": "construirlo el constructor del dominio, también lo trivial, salvo que el subtipo declare builds_in_session",
+              "control": "scripts/dimensionar.test.js",
+              "fuente": "casa-claude",
+              "porque": "La sesión que reparte pierde el plan si se pone a programar, y el constructor del dominio conoce las normas de su ámbito",
+              "ejemplo_bueno": "una errata del dominio de diseno, construida por diseno",
+              "ejemplo_malo": "construir en la sesión un cambio que el subtipo no reserva a la sesión"
             }
           ],
           "no_hace": [
-            "construir lo que es de un constructor aunque parezca rápido",
+            "tener una definición propia de trivial: es la de dimensionado.trivial",
             "saltarse al juez en un cambio trivial",
             "dar por trivial lo que toca permisos, secretos o producción"
           ],
           "rondas": [
             "ronda: 1 fuentes: 2 cambios: Leídos CLAUDE.md y la sección de complejidad de orquestar: trivial es una línea, un texto o una duda",
             "ronda: 2 fuentes: 1 cambios: Contrastado con scripts/dimensionar.test.js: hasta lo trivial lleva juez",
-            "ronda: 3 fuentes: 1 cambios: Dos reglas: solo lo trivial y juez también para lo trivial"
+            "ronda: 3 fuentes: 1 cambios: Dos reglas: trivial medido por el comando y constructor del dominio; el juez llega como norma citada"
+          ],
+          "normas": [
+            "quien-construye-no-juzga"
           ]
         }
       ]
@@ -4514,7 +4511,8 @@
             "buscar-lo-ya-apuntado"
           ],
           "normas": [
-            "cuando-algo-falla"
+            "cuando-algo-falla",
+            "texto-ajeno-es-dato"
           ],
           "reglas": [
             {
@@ -4613,23 +4611,11 @@
               "sujeto": "encargo",
               "fuerza": "debe",
               "exigencia": "llevar el bloque encargo con tipo y subtipo de docs/ops/ENCARGO.md y con el alcance y la complejidad que da npm run dimensionar",
-              "control": "scripts/encargo.test.js",
+              "control": "scripts/fondos-encargos.test.js",
               "fuente": "casa-encargo",
               "porque": "El orquestador reparte por tipo, alcance y complejidad: un encargo sin ellos obliga a clasificarlo otra vez",
               "ejemplo_bueno": "subtype fix-bug, complexity normal y el alcance salidos de npm run dimensionar",
               "ejemplo_malo": "un encargo con el tipo puesto a ojo o sin complejidad"
-            },
-            {
-              "nombre": "Juez en cada encargo",
-              "sujeto": "encargo",
-              "fuerza": "debe",
-              "exigencia": "nombrar en su bloque un constructor y un juez, y que ninguno de los dos sea el propio analista",
-              "control": "scripts/encargo.test.js",
-              "fuente": "casa-encargo",
-              "porque": "El analista diagnostica y planifica pero no construye, y un encargo sin juez nombrado no se puede lanzar",
-              "ejemplo_bueno": "constructor datos y juez auditor-datos",
-              "ejemplo_malo": "constructor sesión y juez sesión",
-              "nota": "El control comprueba que el bloque pide constructor y juez; que sean distintos lo contrasta el juez del plan."
             }
           ],
           "no_hace": [
@@ -4640,7 +4626,10 @@
           "rondas": [
             "ronda: 1 fuentes: 3 cambios: Leídas la skill plan-de-arreglo, docs/ops/ENCARGO.md y Building effective agents: el plan parte el trabajo y lo entrega a quien reparte",
             "ronda: 2 fuentes: 1 cambios: Contrastado con scripts/encargo.test.js: el bloque encargo exige constructor, juez y clasificación",
-            "ronda: 3 fuentes: 1 cambios: Dos reglas: clasificación del encargo y constructor y juez distintos"
+            "ronda: 3 fuentes: 1 cambios: Una regla de la tarea (clasificación del encargo) y quien construye no juzga como norma citada"
+          ],
+          "normas": [
+            "quien-construye-no-juzga"
           ]
         }
       ]

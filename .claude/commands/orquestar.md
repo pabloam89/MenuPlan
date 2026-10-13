@@ -14,8 +14,9 @@ $ARGUMENTS
 número del issue o del encargo, los ficheros, el síntoma) y lee su issue (la ficha
 del fondo, el comentario de diagnóstico y los encargos), sin pedirle que lo repita.
 El diagnóstico y el plan los juzga otro agente (`revisor`, y `auditor-datos` si el
-fondo es del modelo de datos), y no el propio analista. Lo que sigue es lo que él
-hace, con sus comandos, y lo que tú compruebas al leerlo.
+fondo es del modelo de datos), y no el propio analista. Antes de repartir, lanza a `revisor` (y a `auditor-datos` si el fondo es del modelo
+de datos) sobre el issue del fondo y reparte solo con su visto bueno. Lo que sigue es lo
+que el analista hace, con sus comandos, y lo que tú compruebas al leerlo.
 
 Si el encargo es arreglar algo que falló (un caso, un fondo, un hallazgo de un
 juez), antes de dimensionar se fija el **alcance** y el **tipo de causa** con
@@ -39,8 +40,7 @@ paso. Los números no se escriben aquí ni en ningún brief: salen del comando.
   los recalibra la fase F del plan #334 y el comando da los vigentes.
 - **Sigue lo que salga** en vez de la tabla de «Qué pipeline según la acción»,
   y deja `alcance` y `tipo_causa` en la ficha del fondo.
-- **Quién itera**: en `local` y `modulo`, el `analista` (el «agente del dominio» del presupuesto:
-  un solo agente, en una pasada), que
+- **Quién itera**: en `local` y `modulo`, el `analista` (en una pasada), que
   diagnostica con la skill `causa-raiz` (la técnica sale de `npm run tecnica`)
   y, con el diagnóstico hecho, parte el arreglo con la skill `plan-de-arreglo`. En `transversal`, tú lanzas los
   diagnosticadores en paralelo (varios `analista`), cada uno con una lente distinta, y sintetizas
@@ -74,6 +74,7 @@ datos. Devuelve en líneas `campo: valor`:
   paralelo o en serie; en paralelo solo con ficheros distintos (sección 5).
 - **Hasta lo trivial lleva un juez**, y lo construye el constructor del dominio,
   no tú, salvo que el subtipo diga que construye la sesión (`builds_in_session`).
+  «Trivial» es `dimensionado.trivial` de `ops/presupuestos.json` y lo mide este comando.
 - **Redimensionar**: al planificar corre con el n.º del encargo; antes de abrir
   el PR, otra vez con `--diff`. Si dice `redimensionar: si`, el diff real supera
   a lo previsto: vuelve a planificar antes de seguir. Los avisos (`aviso:`) se
