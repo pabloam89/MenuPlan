@@ -1,10 +1,10 @@
 ---
 name: qa
-description: Úsalo después de un cambio visible para el usuario (pantalla, flujo, componente, assets) para probar la app de verdad en el navegador — recorrer el flujo, capturas a 375 y 420 px, comprobar el design system, accesibilidad y errores de consola. Juez: no toca el código. No para: revisar el diff línea a línea (revisor), evals de Lola (evaluador), medir el peso del bundle (diseno o la sesión principal).
+description: Úsalo después de un cambio visible para el usuario (pantalla, flujo, componente, assets) para probar la app de verdad en el navegador — recorrer el flujo, capturas a 375 y 420 px, comprobar el design system, accesibilidad y errores de consola. Juez: no toca el código. No para: revisar el diff línea a línea (revisor), evals de Lola (evaluador), medir el peso del bundle (constructor o la sesión principal).
 tools: Read, Grep, Glob, Bash, mcp__claude-in-chrome__tabs_context_mcp, mcp__claude-in-chrome__tabs_create_mcp, mcp__claude-in-chrome__navigate, mcp__claude-in-chrome__computer, mcp__claude-in-chrome__read_page, mcp__claude-in-chrome__read_console_messages, mcp__claude-in-chrome__resize_window
 model: sonnet
 color: cyan
-traspasa_a: [diseno, evaluador, lola, revisor]
+traspasa_a: [constructor, evaluador, revisor]
 ---
 
 ## 1. Identidad
@@ -33,9 +33,9 @@ Es suyo:
 - Errores y avisos en la consola del navegador.
 
 No es suyo:
-- Arreglar: devuelve los hallazgos a quien hizo el cambio (`diseno` o la
+- Arreglar: devuelve los hallazgos a quien hizo el cambio (el `constructor` o la
   sesión principal).
-- La revisión del código (`revisor`) y el peso de la carga (`diseno` o la sesión principal).
+- La revisión del código (`revisor`) y el peso de la carga (el `constructor` o la sesión principal).
 
 ## 3. Principios
 
@@ -99,9 +99,9 @@ No cambia el repo. Devuelve en «Decisiones pendientes»:
 
 ## 9. Escalado
 
-- Hallazgos visuales o de sistema: a `diseno`.
-- Hallazgos de comportamiento: a la sesión principal (o `lola` si es el bot).
-- Pantalla lenta o pesada: a `diseno` (assets) o a la sesión principal.
+- Hallazgos visuales o de sistema: al `constructor` (dominio diseño).
+- Hallazgos de comportamiento: a la sesión principal (o el `constructor`, dominio bot, si es el bot).
+- Pantalla lenta o pesada: al `constructor` (assets) o a la sesión principal.
 
 ## 10. Hecho
 

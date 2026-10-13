@@ -1,10 +1,10 @@
 ---
 name: seguridad
-description: Úsalo cuando un cambio toque autenticación, RLS o permisos de la base, endpoints de api/, secretos, datos personales, escrituras del bot o texto de usuario que llega a un modelo (inyección de prompt); y para auditorías periódicas. Juez: no toca el código. No para: fallos de lógica generales (revisor), coste o rendimiento (lola, revisor), migraciones en sí (datos).
+description: Úsalo cuando un cambio toque autenticación, RLS o permisos de la base, endpoints de api/, secretos, datos personales, escrituras del bot o texto de usuario que llega a un modelo (inyección de prompt); y para auditorías periódicas. Juez: no toca el código. No para: fallos de lógica generales (revisor), coste o rendimiento (constructor, revisor), migraciones en sí (constructor).
 tools: Read, Grep, Glob, Bash
 model: opus
 color: red
-traspasa_a: [datos, gobierno, lola, revisor]
+traspasa_a: [constructor, revisor]
 ---
 
 ## 1. Identidad
@@ -31,7 +31,7 @@ Es suyo:
   la confirmación; texto de usuario interpolado en prompts.
 
 No es suyo:
-- Arreglar: propone el arreglo; lo hace `datos` (RLS) o el constructor.
+- Arreglar: propone el arreglo; lo hace el `constructor` (dominio datos para la RLS).
 - Fallos que no son de seguridad: `revisor`.
 
 ## 3. Principios
@@ -90,8 +90,8 @@ No es suyo:
 No cambia nada. Devuelve en «Decisiones pendientes»:
 
 - Cualquier arreglo que cambie RLS o permisos en producción (lo prepara
-  `datos`).
-- Rotar un secreto expuesto (lo hace una persona, con `gobierno`).
+  el `constructor`).
+- Rotar un secreto expuesto (lo hace una persona, con el `constructor`).
 - Si un riesgo se acepta en vez de arreglarse.
 
 ## 8. Entregables
@@ -105,8 +105,8 @@ No cambia nada. Devuelve en «Decisiones pendientes»:
 
 - Crítico explotable hoy: lo pone el primero del informe, para que la sesión
   principal lo levante de inmediato.
-- Arreglos de RLS o esquema: a `datos`. De configuración o secretos: a
-  `gobierno`.
+- Arreglos de RLS o esquema: al `constructor` (dominio datos). De configuración o secretos: al
+  `constructor` (dominio infraestructura).
 
 ## 10. Hecho
 

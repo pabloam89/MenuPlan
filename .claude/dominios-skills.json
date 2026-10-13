@@ -1,5 +1,8 @@
 {
-  "_nota": "Un solo mapa de qué dominios tienen skill (runbook en .claude/skills/<nombre>/). Lo leen la guardia (.claude/hooks/guardia.mjs: puerta de lectura) y scripts/runbook-pr.mjs (la línea «Runbook:» de cada PR en el CI). Lo cruza .claude/dominios-skills.test.js con las skills reales. 'comandos': expresiones regulares (sin distinguir mayúsculas) que se buscan en el comando ENTERO, solo los que mutan o son de alto riesgo: leer no tiene puerta. 'rutas': expresiones regulares sobre rutas del repo con barras normales (sensibles a mayúsculas): tocarlas pide la línea «Runbook:» en el PR. 'exentas': skill -> motivo, para una skill que no tiene ni comandos ni rutas que vigilar. Una skill nueva se añade aquí o el test falla. Los comodines entre dos piezas de un patrón llevan tope ([\\s\\S]{0,1000} o {0,2000}): sin él, una entrada grande y repetida es cuadrática. 'agentes': los constructores cuyo trabajo cae en el dominio; los traen precargados en su `skills:` (lo vigila .claude/agentes.test.js, #397).",
+  "_nota": "Un solo mapa de qué dominios tienen skill (runbook en .claude/skills/<nombre>/). Lo leen la guardia (.claude/hooks/guardia.mjs: puerta de lectura) y scripts/runbook-pr.mjs (la línea «Runbook:» de cada PR en el CI). Lo cruza .claude/dominios-skills.test.js con las skills reales. 'comandos': expresiones regulares (sin distinguir mayúsculas) que se buscan en el comando ENTERO, solo los que mutan o son de alto riesgo: leer no tiene puerta. 'rutas': expresiones regulares sobre rutas del repo con barras normales (sensibles a mayúsculas): tocarlas pide la línea «Runbook:» en el PR. 'exentas': skill -> motivo, para una skill que no tiene ni comandos ni rutas que vigilar. Una skill nueva se añade aquí o el test falla. Los comodines entre dos piezas de un patrón llevan tope ([\\s\\S]{0,1000} o {0,2000}): sin él, una entrada grande y repetida es cuadrática. 'agentes': los agentes que usan la skill. El `constructor` (uno solo desde #688) NO la trae precargada: la abre según el dominio de su tarea (la puerta de la guardia y el SKILLS A ABRIR del brief salen de este mismo mapa); los demás (analista, orquestador) la traen en su `skills:` (lo vigila .claude/agentes.test.js, #397). 'bajo_demanda': los agentes que NO precargan ninguna skill y las abren según el dominio de su tarea (hoy, el constructor); su `skills:` va vacío y sus skills son las que este mapa les da en `agentes`.",
+  "bajo_demanda": [
+    "constructor"
+  ],
   "skills": {
     "supabase": {
       "comandos": [
@@ -14,8 +17,7 @@
         "^scripts/(?:apply-migration|bot-cron|verificar-estado)\\.mjs$"
       ],
       "agentes": [
-        "gobierno",
-        "datos"
+        "constructor"
       ]
     },
     "github": {
@@ -30,7 +32,7 @@
         "^\\.claude/dominios-skills\\.json$"
       ],
       "agentes": [
-        "gobierno"
+        "constructor"
       ]
     },
     "issues": {
@@ -41,7 +43,7 @@
         "^scripts/lib/(?:issues|lleva)\\.mjs$"
       ],
       "agentes": [
-        "gobierno",
+        "constructor",
         "analista"
       ]
     },
@@ -52,7 +54,7 @@
         "^scripts/lib/tecnicas\\.mjs$"
       ],
       "agentes": [
-        "gobierno",
+        "constructor",
         "analista"
       ]
     },
@@ -67,8 +69,7 @@
         "^scripts/lib/claveRol\\.mjs$"
       ],
       "agentes": [
-        "gobierno",
-        "datos"
+        "constructor"
       ]
     },
     "higiene-de-skills": {
@@ -78,7 +79,7 @@
         "^scripts/lib/higieneSkills\\.mjs$"
       ],
       "agentes": [
-        "gobierno"
+        "constructor"
       ]
     },
     "higiene-de-vocabulario": {
@@ -87,7 +88,7 @@
         "^scripts/lib/glosario(?:Dominios|Mapeo|Higiene).mjs$"
       ],
       "agentes": [
-        "gobierno"
+        "constructor"
       ]
     },
     "forja-de-skills": {
@@ -99,7 +100,7 @@
         "^scripts/lib/plantillasSkill\\.mjs$"
       ],
       "agentes": [
-        "gobierno"
+        "constructor"
       ]
     },
     "estilo-de-respuesta": {
@@ -108,7 +109,7 @@
         "^[.]claude/skills/estilo-de-respuesta/"
       ],
       "agentes": [
-        "gobierno",
+        "constructor",
         "orquestador",
         "analista"
       ]
@@ -121,7 +122,7 @@
         "^src/design/contraste"
       ],
       "agentes": [
-        "diseno"
+        "constructor"
       ]
     },
     "principios-de-producto": {
@@ -133,7 +134,7 @@
         "^scripts/principios\\.mjs$"
       ],
       "agentes": [
-        "lola"
+        "constructor"
       ]
     },
     "cierre-eficaz": {
@@ -154,7 +155,7 @@
         "^docs/ops/ENCARGO\\.md$"
       ],
       "agentes": [
-        "gobierno",
+        "constructor",
         "analista"
       ]
     },
@@ -169,7 +170,7 @@
         "^scripts/(?:upload-to-blob|build-vectores)\\.mjs$"
       ],
       "agentes": [
-        "gobierno"
+        "constructor"
       ]
     },
     "1password": {
@@ -182,7 +183,7 @@
         "^scripts/lib/env\\.mjs$"
       ],
       "agentes": [
-        "gobierno"
+        "constructor"
       ]
     },
     "telegram": {
@@ -196,7 +197,7 @@
         "^api/bot/telegram\\.js$"
       ],
       "agentes": [
-        "lola"
+        "constructor"
       ]
     },
     "hetzner": {
@@ -215,7 +216,7 @@
         "^scripts/lib/copias\\.mjs$"
       ],
       "agentes": [
-        "gobierno"
+        "constructor"
       ]
     },
     "tailscale": {
@@ -225,7 +226,7 @@
       ],
       "rutas": [],
       "agentes": [
-        "gobierno"
+        "constructor"
       ]
     }
   },

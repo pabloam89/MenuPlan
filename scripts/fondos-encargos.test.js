@@ -19,7 +19,7 @@ const CERCA = "```";
 const bloque = (c) => `Qué.\n\n${CERCA}encargo\n${Object.entries(c).map(([k, v]) => `${k}: ${v}`).join("\n")}\n${CERCA}\n`;
 const BUENO = {
   fondo: "#50", tipo_accion: "preventivo", mecanismo: AUTOMATICO, clase: "toda X que Y", depende_de: "ninguno",
-  constructor: "gobierno", juez: "revisor", verificacion: "scripts/fondos.test.js", hecho_cuando: "falla sin la regla",
+  constructor: "constructor", juez: "revisor", verificacion: "scripts/fondos.test.js", hecho_cuando: "falla sin la regla",
 };
 const enc = (number, extra = {}, quitar = []) => {
   const c = { ...BUENO, ...extra };
@@ -83,7 +83,7 @@ describe("validarEncargos", () => {
     expect(reglas(validarEncargos([enc(1, { constructor: "revisor", juez: "revisor" })], "plan"))).toEqual(["encargo-juez"]);
   });
   it("el juez tiene que ser un agente con «Tipo: juez»: un constructor o la sesión no valen", () => {
-    expect(reglas(leerEncargo(bloque({ ...BUENO, juez: "gobierno" })).errores)).toEqual(["encargo-vocabulario"]);
+    expect(reglas(leerEncargo(bloque({ ...BUENO, juez: "constructor" })).errores)).toEqual(["encargo-vocabulario"]);
     expect(reglas(leerEncargo(bloque({ ...BUENO, juez: "sesión" })).errores)).toEqual(["encargo-vocabulario"]);
   });
   it("sin preventivo automático: todo detectivo, o preventivo con un mecanismo blando", () => {

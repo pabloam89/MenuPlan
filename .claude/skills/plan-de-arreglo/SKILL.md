@@ -9,7 +9,7 @@ metadata:
   pasos_fijos: false
   sintoma_a_causa: false
   elige_opciones: true
-  dueno: gobierno
+  dueno: constructor
   comprobado: 2026-10-10
   normas: [plan-tres-encargos-con-preventivo, presupuesto-por-alcance, fondo-observado-con-verificacion]
 ---

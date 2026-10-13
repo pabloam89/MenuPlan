@@ -9,7 +9,7 @@ import { ErrorDeApi, pedir } from "./lib/ghApi.mjs";
 
 const bloque = (lineas) => `Texto del fondo.\n\n\`\`\`fondo\n${lineas.join("\n")}\n\`\`\`\n`;
 const BUENA = {
-  estado: "diagnosticado", tipo_causa: "vigilante-hueco", alcance: "local", severidad: "medio", capa_agente: "gobierno",
+  estado: "diagnosticado", tipo_causa: "vigilante-hueco", alcance: "local", severidad: "medio", capa_agente: "constructor",
   mecanismo: "El control solo corre si alguien lo lanza", causa_escape: "Ningún workflow reacciona a un issue",
 };
 const fichaDe = (extra = {}, quitar = []) => {

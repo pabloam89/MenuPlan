@@ -142,15 +142,23 @@ function subtipoDe({ subtipo, tipo }) {
   return { id: LITERALES.subtipo_defecto, origen: "defecto" };
 }
 
-/** Reparte los ficheros entre constructores: uno por dominio; lo que casi todo PR toca va al final si hay varios. */
+/**
+ * Reparte los ficheros entre quien construye: el `constructor` (uno solo desde #688, con el dominio que dan los ámbitos de sus ficheros: `ambitos`) y
+ * la sesión, para lo que no tiene dueño. Lo que casi todo PR toca va al final si hay varios grupos.
+ */
+/** Los dominios (ids de ámbito) en que construye alguien del reparto. */
+const dominiosDe = (constructores) => unicos(constructores.flatMap((c) => c.ambitos ?? []));
+
 function repartir(propios) {
   const grupos = new Map();
+  const ambitosPorAgente = new Map();
   const avisos = [];
   const compartidos = propios.filter((r) => COMPARTIDOS_AL_FINAL.includes(r));
   const resto = compartidos.length && compartidos.length < propios.length ? propios.filter((r) => !compartidos.includes(r)) : propios;
   for (const r of resto) {
     const c = constructorDeFichero(r);
     const agente = c?.agente ?? SESION;
+    if (c?.agente) ambitosPorAgente.set(agente, [...(ambitosPorAgente.get(agente) ?? []), c.ambito]);
     if (!c?.agente) avisos.push(`${r} es del ámbito ${c?.ambito ?? "ninguno"}, que no tiene constructor dueño: construye la sesión`);
     if (!grupos.has(agente)) grupos.set(agente, []);
     grupos.get(agente).push(r);
@@ -160,7 +168,7 @@ function repartir(propios) {
     if (grupos.size >= 2) alFinal = compartidos;
     else if (grupos.size === 1) [...grupos.values()][0].push(...compartidos);
   }
-  return { constructores: [...grupos].map(([agente, ficheros]) => ({ agente, ficheros })), alFinal, avisos: unicos(avisos) };
+  return { constructores: [...grupos].map(([agente, ficheros]) => ({ agente, ficheros, ...(ambitosPorAgente.has(agente) ? { ambitos: unicos(ambitosPorAgente.get(agente)) } : {}) })), alFinal, avisos: unicos(avisos) };
 }
 
 /**
@@ -198,7 +206,7 @@ export function dimensionar(entrada, deps = {}) {
   const forma = formaDe(esqueleto);
   const subDatos = ALL_SUBTYPES.find((x) => x.id === enc.subtype);
 
-  // Constructores: los fijos del subtipo (gobierno en operate) o uno por dominio.
+  // Quién construye: los fijos del subtipo, o el `constructor` (uno solo desde #688; el dominio sale de los ficheros) y la sesión donde un ámbito no tiene dueño.
   const reparto = repartir(propios);
   avisos.push(...reparto.avisos);
   const sinFicheros = !propios.length;
@@ -206,13 +214,18 @@ export function dimensionar(entrada, deps = {}) {
   const medidores = subDatos.measured_with ?? [];
   const fijos = enc.steps.flatMap((p) => p.agentes ?? []).filter((a) => rolDe(a) === "builder" && !ES_CONSTRUCTOR_GENERICO.includes(a) && !medidores.includes(a));
   if (fijos.length) constructores = unicos(fijos).map((agente) => ({ agente, ficheros: propios }));
-  else if (enc.steps.some((p) => (p.agentes ?? []).some((a) => ES_CONSTRUCTOR_GENERICO.includes(a)))) {
+  else if (tipo === "operate") {
+    // Operar la casa lo hace el constructor entero, sea cual sea la zona de los ficheros.
+    const ambitos = unicos(propios.map((r) => constructorDeFichero(r)).filter((c) => c?.agente).map((c) => c.ambito));
+    constructores = [{ agente: CONSTRUCTOR, ficheros: propios, ...(ambitos.length ? { ambitos } : {}) }];
+  }
+  else if (enc.steps.some((p) => (p.agentes ?? []).some((a) => ES_CONSTRUCTOR_GENERICO.includes(a) && !medidores.includes(a)))) {
     if (sinFicheros) {
       constructores = [{ agente: CONSTRUCTOR, ficheros: [] }];
-      avisos.push("sin ficheros: el constructor del dominio no se puede elegir; da --ficheros o --diff");
-    } else if (constructores.length > 1 && !subDatos.differs_in.includes("plans_first")) {
+      avisos.push("sin ficheros: el dominio de la tarea no se puede saber; da --ficheros o --diff");
+    } else if (dominiosDe(constructores).length > 1 && !subDatos.differs_in.includes("plans_first")) {
       const conPlan = SUBTYPES.find((x) => x.type === tipo && x.differs_in.includes("plans_first"));
-      if (conPlan) avisos.push(`${constructores.length} dominios con ${enc.subtype}: considera ${conPlan.id} (plan primero)`);
+      if (conPlan) avisos.push(`${dominiosDe(constructores).length} dominios con ${enc.subtype}: considera ${conPlan.id} (plan primero)`);
     }
   } else if (esqueleto.judges_only_in_parallel) constructores = [];
   else if (enc.steps.some((p) => (p.agentes ?? []).includes(SESION)) && subDatos.builds_in_session) constructores = [{ agente: SESION, ficheros: propios }];
@@ -227,8 +240,8 @@ export function dimensionar(entrada, deps = {}) {
     const agentes = [];
     const pon = (agente, rol) => { if (!agentes.some((a) => a.agente === agente)) agentes.push({ agente, rol }); };
     for (const a of paso.agentes ?? []) {
-      if (ES_CONSTRUCTOR_GENERICO.includes(a)) for (const c of constructores) pon(c.agente, "builder");
-      else if (medidores.includes(a)) pon(a, "measurer");
+      if (medidores.includes(a)) pon(a, "measurer");
+      else if (ES_CONSTRUCTOR_GENERICO.includes(a)) for (const c of constructores) pon(c.agente, "builder");
       else if (a === SESION) pon(a, subDatos.builds_in_session ? "builder" : "planner");
       else pon(a, rolDe(a) ?? "judge");
     }

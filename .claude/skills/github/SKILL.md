@@ -9,7 +9,7 @@ metadata:
   pasos_fijos: false
   sintoma_a_causa: false
   elige_opciones: false
-  dueno: gobierno
+  dueno: constructor
   comprobado: "2026-10-09"
   normas: [main-solo-por-pr-con-tests, staging-exige-tests, sin-push-forzado, deploy-key-unica, secretos-de-repo, push-protection, pr-al-dia-y-closes, pr-agente-y-closes-en-ci, linea-runbook, sesion-con-su-identidad]
 ---

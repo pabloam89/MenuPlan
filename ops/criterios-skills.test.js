@@ -33,7 +33,7 @@ const problemas = (s, ...g) => problemasDeJuicios(s, g.length ? g[0] : GUARDADOS
 const copia = (x) => JSON.parse(JSON.stringify(x));
 const deJuicio = (s) => criteriosDeSkill(DATOS, metaDe(s)).filter((c) => origenDe(c) === "juicio").map((c) => c.id);
 const unAutomatico = (s) => criteriosDeSkill(DATOS, metaDe(s)).find((c) => esAutomatico(c) && typeof c.codigo === "string" && c.sujeto !== "plantilla.tipo");
-const hecho = (s, extra = {}) => ({ estado: "cumple", evidencia: [`.claude/skills/${s}/SKILL.md`], fecha: "2026-10-10", firmante: "gobierno", version_skill_md: SENALES[s].version, ...extra });
+const hecho = (s, extra = {}) => ({ estado: "cumple", evidencia: [`.claude/skills/${s}/SKILL.md`], fecha: "2026-10-10", firmante: "constructor", version_skill_md: SENALES[s].version, ...extra });
 
 describe("los juicios de skill del repo", () => {
   it("toda skill tiene sus juicios y no hay juicios de una skill que no existe", () => {
@@ -246,7 +246,7 @@ describe("lo calculado", () => {
 
   it("un juicio hecho sobre otra versión del SKILL.md vuelve a pendiente (otra_version) sin tocar el fichero", () => {
     const id = "frontera-casi-fallos";
-    const j = { juicios: { [id]: { estado: "cumple", evidencia: ["x"], fecha: "2026-10-10", firmante: "gobierno", version_skill_md: "bbbbbbbbbbbb" } } };
+    const j = { juicios: { [id]: { estado: "cumple", evidencia: ["x"], fecha: "2026-10-10", firmante: "constructor", version_skill_md: "bbbbbbbbbbbb" } } };
     expect(fila(criteriosEvaluados("x", vacio, j, DATOS), id)).toMatchObject({ estado: "juicio", motivo: "otra_version" });
     j.juicios[id].version_skill_md = vacio.version;
     expect(fila(criteriosEvaluados("x", vacio, j, DATOS), id).estado).toBe("cumple");

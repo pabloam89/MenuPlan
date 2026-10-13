@@ -108,16 +108,17 @@ describe("ops/estandares-agentes.json", () => {
     expect(contar(datos, normas).pendientes).toBe(0);
   });
 
-  it("las 76 tareas de los 11 agentes, con los cinco agentes que estaban pendientes completos", () => {
+  it("las 76 tareas de los 8 agentes; el constructor reúne las 36 de los cuatro constructores de antes (#688)", () => {
     expect(todasLasTareas).toHaveLength(76);
-    for (const n of ["diseno", "lola", "qa", "evaluador", "auditor-datos"]) expect(datos.agentes[n].tareas.length, n).toBeGreaterThanOrEqual(5);
-    expect(datos.agentes.gobierno.tareas.map((t) => t.id)).toContain("catalogo-de-ops-con-test");
+    for (const n of ["constructor", "qa", "evaluador", "auditor-datos"]) expect(datos.agentes[n].tareas.length, n).toBeGreaterThanOrEqual(5);
+    expect(datos.agentes.constructor.tareas).toHaveLength(36);
+    expect(datos.agentes.constructor.tareas.map((t) => t.id)).toContain("catalogo-de-ops-con-test");
   });
 
-  it("el analista y el reparto con él (línea #652): sus cuatro tareas, las dos del orquestador y la de gobierno que reúne el estándar de crear un agente", () => {
+  it("el analista y el reparto con él (línea #652): sus cuatro tareas, las dos del orquestador y la del constructor que reúne el estándar de crear un agente", () => {
     expect(datos.agentes.analista.tareas.map((t) => t.id)).toEqual(["registrar-el-caso", "diagnosticar-causa-raiz", "planificar-los-encargos", "evaluar-la-eficacia"]);
     expect(datos.agentes.orquestador.tareas.map((t) => t.id)).toEqual(expect.arrayContaining(["recoger-el-plan-del-analista", "ejecutar-lo-trivial-el-mismo"]));
-    const crear = datos.agentes.gobierno.tareas.find((t) => t.id === "crear-o-cambiar-agente");
+    const crear = datos.agentes.constructor.tareas.find((t) => t.id === "crear-o-cambiar-agente");
     expect(crear.accion).toBe("construir");
     // Reúne lo que estaba repartido entre la plantilla, agentes.test.js y este catálogo: estructura, herramientas, traspaso con juez y skills (el estándar de tareas llega como norma).
     expect(crear.reglas.map((r) => r.nombre)).toEqual(["Plantilla y descripción", "Herramientas mínimas", "Traspaso a otro juez", "Skills de su dominio"]);
@@ -153,8 +154,10 @@ describe("ops/estandares-agentes.json", () => {
   });
 
   it("todas las tareas nuevas de #516 dejan el rastro de tres rondas de investigación", () => {
-    const nuevos = ["diseno", "lola", "qa", "evaluador", "auditor-datos"];
-    for (const t of todasLasTareas.filter((x) => nuevos.includes(x.agente) || ["catalogo-de-ops-con-test", "crear-o-cambiar-agente", "recoger-el-plan-del-analista", "ejecutar-lo-trivial-el-mismo"].includes(x.id) || x.agente === "analista")) expect(t.rondas?.length, `${t.agente}/${t.id}`).toBe(3);
+    const nuevos = ["qa", "evaluador", "auditor-datos"];
+    // Del constructor, las tareas que eran de diseno y lola (las 17 últimas del catálogo: las de #516); el resto llegó con otra forma.
+    const deDisenoYLola = new Set(datos.agentes.constructor.tareas.slice(19).map((x) => x.id));
+    for (const t of todasLasTareas.filter((x) => nuevos.includes(x.agente) || deDisenoYLola.has(x.id) || ["catalogo-de-ops-con-test", "crear-o-cambiar-agente", "recoger-el-plan-del-analista", "ejecutar-lo-trivial-el-mismo"].includes(x.id) || x.agente === "analista")) expect(t.rondas?.length, `${t.agente}/${t.id}`).toBe(3);
     for (const [id, c] of Object.entries(datos.comunes)) expect(c.rondas?.length, `común ${id}`).toBe(3);
   });
 });
@@ -165,7 +168,7 @@ describe("las reglas se ven fallar (cada una con un catálogo estropeado a prop�
     cambia(d);
     expect(problemasDeEstandares(d, ags, RAIZ).join("\n")).toContain(trozo);
   };
-  const regla = (d) => d.agentes.datos.tareas[0].reglas[0];
+  const regla = (d) => d.agentes.constructor.tareas[11].reglas[0];
 
   // La plantilla de regla (regla.mjs)
   it("una regla con la exigencia mal escrita (no pasa problemasDeRegla)", () => falla((d) => { regla(d).exigencia = "El modelo se describe antes."; }, "«exigencia» empieza en minúscula"));
@@ -177,13 +180,13 @@ describe("las reglas se ven fallar (cada una con un catálogo estropeado a prop�
   it("una regla sin porque", () => falla((d) => { delete regla(d).porque; }, "falta «porque»"));
   it("una regla con el ejemplo bueno igual que el malo", () => falla((d) => { regla(d).ejemplo_malo = regla(d).ejemplo_bueno; }, "el ejemplo bueno y el malo son el mismo"));
   it("una regla sin ejemplo malo suficiente", () => falla((d) => { regla(d).ejemplo_malo = "no"; }, "falta «ejemplo_malo»"));
-  it("dos reglas con el mismo nombre en una tarea", () => falla((d) => { d.agentes.datos.tareas[1].reglas[1].nombre = d.agentes.datos.tareas[1].reglas[0].nombre; }, "nombre repetido en la tarea"));
+  it("dos reglas con el mismo nombre en una tarea", () => falla((d) => { d.agentes.constructor.tareas[12].reglas[1].nombre = d.agentes.constructor.tareas[12].reglas[0].nombre; }, "nombre repetido en la tarea"));
 
   // La acción y el origen (vocabularios cerrados)
-  it("una acción fuera de su vocabulario", () => falla((d) => { d.agentes.datos.tareas[0].accion = "inventar"; }, "acción «inventar» no está en el vocabulario"));
-  it("una tarea sin acción", () => falla((d) => { delete d.agentes.datos.tareas[0].accion; }, "acción «undefined» no está en el vocabulario"));
+  it("una acción fuera de su vocabulario", () => falla((d) => { d.agentes.constructor.tareas[11].accion = "inventar"; }, "acción «inventar» no está en el vocabulario"));
+  it("una tarea sin acción", () => falla((d) => { delete d.agentes.constructor.tareas[11].accion; }, "acción «undefined» no está en el vocabulario"));
   it("una común con una acción fuera de su vocabulario", () => falla((d) => { d.comunes["informe-comun"].accion = "escribir"; }, "común informe-comun: acción «escribir»"));
-  it("un origen que no es una sección del agente", () => falla((d) => { d.agentes.datos.tareas[0].origen = "Identidad"; }, "origen «Identidad» no está en el vocabulario"));
+  it("un origen que no es una sección del agente", () => falla((d) => { d.agentes.constructor.tareas[11].origen = "Identidad"; }, "origen «Identidad» no está en el vocabulario"));
   it("un origen que el agente no tiene como sección", () => falla((d) => { d.origenes.mision = "Una sección inventada"; }, "el agente no tiene la sección «Una sección inventada»"));
 
   // El control (comprueba)
@@ -193,35 +196,35 @@ describe("las reglas se ven fallar (cada una con un catálogo estropeado a prop�
   it("una regla sin control", () => falla((d) => { delete regla(d).control; }, "falta «control»"));
 
   // Tareas sin estándar y cuántas reglas
-  it("una tarea sin reglas ni normas", () => falla((d) => { const t = d.agentes.lola.tareas[0]; t.reglas = []; t.ambitos = ["entities"]; t.comunes = []; }, "lola/herramienta-de-lola: sin estándar"));
+  it("una tarea sin reglas ni normas", () => falla((d) => { const t = d.agentes.constructor.tareas[28]; t.reglas = []; t.ambitos = ["entities"]; t.comunes = []; }, "constructor/herramienta-de-lola: sin estándar"));
   it("un agente con todas sus tareas sin estándar", () => falla((d) => { for (const t of d.agentes.qa.tareas) { delete t.reglas; t.ambitos = ["entities"]; delete t.comunes; } }, "qa/recorrer-flujo-en-navegador: sin estándar"));
   it("una tarea sin ámbitos, o con uno inventado", () => {
-    falla((d) => { delete d.agentes.datos.tareas[0].ambitos; }, "«ambitos» es una lista de ámbitos");
-    falla((d) => { d.agentes.datos.tareas[0].ambitos = ["marketing"]; }, "ámbito «marketing» fuera del vocabulario");
+    falla((d) => { delete d.agentes.constructor.tareas[11].ambitos; }, "«ambitos» es una lista de ámbitos");
+    falla((d) => { d.agentes.constructor.tareas[11].ambitos = ["marketing"]; }, "ámbito «marketing» fuera del vocabulario");
   });
   it("una tarea que cita aparte una norma que no existe, o una que ya le llega por la consulta", () => {
-    falla((d) => { d.agentes.datos.tareas[0].normas = ["norma-inventada"]; }, "cita la norma «norma-inventada», que no está en ops/normas.json");
-    falla((d) => { d.agentes.datos.tareas[1].normas = ["fk-con-on-delete"]; }, "cita aparte «fk-con-on-delete», que ya le llega por la consulta");
+    falla((d) => { d.agentes.constructor.tareas[11].normas = ["norma-inventada"]; }, "cita la norma «norma-inventada», que no está en ops/normas.json");
+    falla((d) => { d.agentes.constructor.tareas[12].normas = ["fk-con-on-delete"]; }, "cita aparte «fk-con-on-delete», que ya le llega por la consulta");
   });
-  it("una tarea con más reglas que el máximo de la forma de práctica", () => falla((d) => { const t = d.agentes.datos.tareas[0]; t.reglas = Array.from({ length: 6 }, (_, i) => ({ ...t.reglas[0], nombre: `Regla número ${i + 1}` })); }, "6 reglas propias; la forma de práctica de la forja pide 5 como mucho"));
+  it("una tarea con más reglas que el máximo de la forma de práctica", () => falla((d) => { const t = d.agentes.constructor.tareas[11]; t.reglas = Array.from({ length: 6 }, (_, i) => ({ ...t.reglas[0], nombre: `Regla número ${i + 1}` })); }, "6 reglas propias; la forma de práctica de la forja pide 5 como mucho"));
   it("una tarea con menos reglas y normas que el mínimo, contando las comunes", () => falla((d) => { const t = d.agentes.qa.tareas.find((x) => x.id === "comprobar-design-system"); t.comunes = []; t.ambitos = ["entities"]; t.reglas = [d.agentes.qa.tareas[0].reglas[0]]; }, "1 reglas y normas con las comunes; la forma de práctica de la forja pide 2 o más"));
-  it("una tarea que conserva el estándar en prosa", () => falla((d) => { d.agentes.datos.tareas[0].estandar = "x".repeat(80); }, "campo «estandar» no admitido"));
-  it("una tarea que conserva la lista comprueba", () => falla((d) => { d.agentes.datos.tareas[0].comprueba = ["una comprobación suelta"]; }, "campo «comprueba» no admitido"));
+  it("una tarea que conserva el estándar en prosa", () => falla((d) => { d.agentes.constructor.tareas[11].estandar = "x".repeat(80); }, "campo «estandar» no admitido"));
+  it("una tarea que conserva la lista comprueba", () => falla((d) => { d.agentes.constructor.tareas[11].comprueba = ["una comprobación suelta"]; }, "campo «comprueba» no admitido"));
   it("un agente con estado: ya no hay pendientes", () => falla((d) => { d.agentes.qa.estado = "pendiente"; }, "qa: campo «estado» no admitido"));
 
   // Las comunes
-  it("una común que no existe", () => falla((d) => { d.agentes.datos.tareas[0].comunes = ["no-existe"]; }, "la común «no-existe» no existe en comunes"));
+  it("una común que no existe", () => falla((d) => { d.agentes.constructor.tareas[11].comunes = ["no-existe"]; }, "la común «no-existe» no existe en comunes"));
   it("una común que ninguna tarea cita", () => falla((d) => { d.comunes.sobra = { ...d.comunes["informe-comun"] }; }, "común sobra: ninguna tarea la cita"));
   it("una común con una sola regla y sin normas", () => falla((d) => { d.comunes["informe-comun"].reglas = [d.comunes["informe-comun"].reglas[0]]; }, "común informe-comun: 1 reglas y normas; la forma de práctica de la forja pide 2 o más"));
   it("una común que cita una norma que no existe", () => falla((d) => { d.comunes["tests-de-lo-tocado"].normas = ["norma-inventada"]; }, "común tests-de-lo-tocado: cita la norma «norma-inventada»"));
 
   // Agentes y tareas
   it("un agente nuevo sin su lista de tareas", () => falla(() => {}, "agente-nuevo: el agente existe y no tiene su lista", [...agentes, "agente-nuevo"]));
-  it("una entrada sin su agente", () => falla((d) => { d.agentes.fantasma = d.agentes.datos; }, "fantasma: está en ops/estandares-agentes.json y no existe"));
-  it("menos de tres tareas", () => falla((d) => { d.agentes.datos.tareas = d.agentes.datos.tareas.slice(0, 2); }, "datos: la lista de tareas tiene al menos tres"));
-  it("un id repetido", () => falla((d) => { d.agentes.datos.tareas[1].id = d.agentes.datos.tareas[0].id; }, "id repetido"));
-  it("una tarea sin descripción de lo que se hace", () => falla((d) => { d.agentes.datos.tareas[0].tarea = ""; }, "«tarea» dice qué se hace"));
-  it("una tarea sin lo que no hace", () => falla((d) => { delete d.agentes.datos.tareas[0].no_hace; }, "«no_hace» es una lista"));
+  it("una entrada sin su agente", () => falla((d) => { d.agentes.fantasma = d.agentes.constructor; }, "fantasma: está en ops/estandares-agentes.json y no existe"));
+  it("menos de tres tareas", () => falla((d) => { d.agentes.constructor.tareas = d.agentes.constructor.tareas.slice(0, 2); }, "constructor: la lista de tareas tiene al menos tres"));
+  it("un id repetido", () => falla((d) => { d.agentes.constructor.tareas[12].id = d.agentes.constructor.tareas[11].id; }, "id repetido"));
+  it("una tarea sin descripción de lo que se hace", () => falla((d) => { d.agentes.constructor.tareas[11].tarea = ""; }, "«tarea» dice qué se hace"));
+  it("una tarea sin lo que no hace", () => falla((d) => { delete d.agentes.constructor.tareas[11].no_hace; }, "«no_hace» es una lista"));
 
   // Las fuentes
   it("una fuente que no está en el catálogo", () => falla((d) => { regla(d).fuente = "no-existe"; }, "la fuente «no-existe» no está en el catálogo"));
@@ -248,14 +251,14 @@ describe("la sección «Tareas y su estándar» de cada agente sale del catálog
   });
 
   it("cada tarea sale con su acción en la lista del agente", () => {
-    const seccion = extraerSeccion(textoAgente("gobierno"));
+    const seccion = extraerSeccion(textoAgente("constructor"));
     expect(seccion).toContain("- `flujo-rama-pr-staging` — Llevar un cambio de su rama a staging por PR con el CI en verde, mirando el estado real de origin/staging (acción: operar)");
   });
 
   it("generar es idempotente y sustituye sin duplicar", () => {
     const base = "## 10. Hecho\n\nalgo\n";
-    const una = conSeccion(base, renderSeccion("gobierno", datos));
-    expect(conSeccion(una, renderSeccion("gobierno", datos))).toBe(una);
+    const una = conSeccion(base, renderSeccion("constructor", datos));
+    expect(conSeccion(una, renderSeccion("constructor", datos))).toBe(una);
     expect(una.match(/## Tareas y su estándar/g)).toHaveLength(1);
     expect(conSeccion(una, "## Tareas y su estándar\n\ncambiada")).toContain("cambiada");
   });
@@ -270,20 +273,20 @@ describe("docs/ops/ESTANDARES.md sale del catálogo", () => {
 
   it("falla si se estropea el catálogo, la tabla o una celda", () => {
     const d = clon();
-    d.agentes.datos.tareas[0].reglas[0].exigencia = "describir otra cosa distinta antes del SQL";
+    d.agentes.constructor.tareas[11].reglas[0].exigencia = "describir otra cosa distinta antes del SQL";
     expect(generarMd(d, normas)).not.toBe(md);
-    expect(md.replace("| datos |", "| datoz |")).not.toBe(generarMd(datos, normas));
+    expect(md.replace("| constructor |", "| constructoz |")).not.toBe(generarMd(datos, normas));
     expect(`${md}\nuna línea escrita a mano\n`).not.toBe(generarMd(datos, normas));
     const otraNorma = clon();
-    otraNorma.agentes.datos.tareas[0].ambitos = ["data", "code"];
+    otraNorma.agentes.constructor.tareas[11].ambitos = ["data", "code"];
     expect(generarMd(otraNorma, normas)).not.toBe(md);
   });
 
   it("lleva una fila por regla, con agente, tarea, acción, frase, control y fuente", () => {
-    const filas = md.split("\n").filter((l) => /^\| (gobierno|datos|revisor|seguridad|diseno|lola|qa|evaluador|auditor-datos|orquestador|analista) \| `/.test(l));
+    const filas = md.split("\n").filter((l) => /^\| (constructor|revisor|seguridad|qa|evaluador|auditor-datos|orquestador|analista) \| `/.test(l));
     expect(filas).toHaveLength(contar(datos).reglas);
     const [agente, tarea, accion, frase, control, fuente] = filas[0].split(" | ").map((x) => x.replace(/^\| /, ""));
-    expect(agente).toBe("gobierno");
+    expect(agente).toBe("constructor");
     expect(tarea).toBe("`flujo-rama-pr-staging`");
     expect(ACCIONES).toContain(accion);
     expect(frase).toContain("**Rama y estado desde origin.** Cada rama de trabajo DEBE salir de origin/staging");
@@ -296,7 +299,7 @@ describe("docs/ops/ESTANDARES.md sale del catálogo", () => {
   });
 
   it("la frase de cada regla sale de sus campos y no lleva el control", () => {
-    const r = datos.agentes.gobierno.tareas[0].reglas[0];
+    const r = datos.agentes.constructor.tareas[0].reglas[0];
     expect(fraseDeEstandar(r, datos.sujetos)).toBe("**Rama y estado desde origin.** Cada rama de trabajo DEBE salir de origin/staging con una sola tarea y, para saber si un cambio está en staging, leerse en origin/staging tras git fetch.");
   });
 });
@@ -305,8 +308,8 @@ describe("npm run estandar", () => {
   it("está en package.json y da el estándar con la línea que pega /orquestar", () => {
     const pkg = JSON.parse(readFileSync(join(RAIZ, "package.json"), "utf8"));
     expect(pkg.scripts.estandar).toMatch(/scripts\/estandares-agentes\.mjs/);
-    const out = execFileSync("node", ["scripts/estandares-agentes.mjs", "gobierno", "flujo-rama-pr-staging"], { cwd: RAIZ, encoding: "utf8" });
-    expect(out).toContain("ESTÁNDAR A CUMPLIR: gobierno/flujo-rama-pr-staging");
+    const out = execFileSync("node", ["scripts/estandares-agentes.mjs", "constructor", "flujo-rama-pr-staging"], { cwd: RAIZ, encoding: "utf8" });
+    expect(out).toContain("ESTÁNDAR A CUMPLIR: constructor/flujo-rama-pr-staging");
     expect(out).toMatch(/Acción: operar/);
     expect(out).toMatch(/Reglas propias de la tarea \(cada una con su control y su fuente\):/);
     expect(out).toMatch(/Control: juicio/);
@@ -337,14 +340,14 @@ describe("npm run estandar", () => {
   });
 
   it("de una tarea con comunes pega también las reglas comunes", () => {
-    const out = textoDeTarea("diseno", "pantalla-con-tokens", datos);
+    const out = textoDeTarea("constructor", "pantalla-con-tokens", datos);
     expect(out).toContain("Común comprobar-design-system");
     expect(out).toContain("design-touch-target");
-    expect(reglasDeTarea(datos.agentes.diseno.tareas[0], datos).length).toBeGreaterThan(datos.agentes.diseno.tareas[0].reglas.length);
+    expect(reglasDeTarea(datos.agentes.constructor.tareas[19], datos).length).toBeGreaterThan(datos.agentes.constructor.tareas[19].reglas.length);
   });
 
   it("de una tarea que no existe, nada; de una común, su estándar", () => {
-    expect(textoDeTarea("gobierno", "no-existe", datos)).toBeNull();
+    expect(textoDeTarea("constructor", "no-existe", datos)).toBeNull();
     expect(textoDeTarea("nadie", "x", datos)).toBeNull();
     expect(textoDeComun("no-existe", datos)).toBeNull();
     expect(textoDeComun("base-solo-lectura", datos)).toContain("ESTÁNDAR COMÚN: base-solo-lectura");

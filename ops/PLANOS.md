@@ -31,23 +31,23 @@ El nivel no se pone a ojo: sale de comprobaciones.
   se cumple, y guardar la medición en el mismo PR que lo construye.
 
 <!-- planos:tabla:inicio (la genera `npm run planos -- --escribir` desde ops/planos.json; no se edita a mano) -->
-Medido el 2026-10-09 por `gobierno`, con GitHub.
+Medido el 2026-10-09 por `constructor`, con GitHub.
 
 | # | Plano | Pregunta | Hoy | Lanzar | Escalar | Agentes |
 |---|---|---|---|---|---|---|
-| 1 | Flujo | ¿Dónde vive el código y cómo llega a producción? | 3 | 3 | 4 | gobierno |
-| 2 | Reglas y contexto | ¿Qué sabe cada sesión antes de tocar nada? | 3 | 3 | 4 | gobierno, revisor |
-| 3 | Guardarraíles | ¿Qué es imposible hacer mal? | 3 | 3 | 4 | gobierno |
-| 4 | Verificación | ¿Cómo sé, sin mirar, que no he roto nada? | 2 | 3 | 4 | revisor, qa, gobierno |
-| 5 | Entornos | ¿Dónde pruebo sin riesgo? | 1 | 3 | 4 | gobierno, datos |
+| 1 | Flujo | ¿Dónde vive el código y cómo llega a producción? | 3 | 3 | 4 | constructor |
+| 2 | Reglas y contexto | ¿Qué sabe cada sesión antes de tocar nada? | 3 | 3 | 4 | constructor, revisor |
+| 3 | Guardarraíles | ¿Qué es imposible hacer mal? | 3 | 3 | 4 | constructor |
+| 4 | Verificación | ¿Cómo sé, sin mirar, que no he roto nada? | 2 | 3 | 4 | revisor, qa, constructor |
+| 5 | Entornos | ¿Dónde pruebo sin riesgo? | 1 | 3 | 4 | constructor |
 | 6 | Observabilidad | ¿Cómo me entero de que algo falla en producción? | 1 | 3 | 4 | (vigía, cuando exista la herramienta) |
-| 7 | Seguridad | ¿Quién puede ver o romper qué? | 2 | 3 | 4 | seguridad, gobierno |
-| 8 | Datos | ¿Están bien modelados y puedo recuperarlos? | 1 | 3 | 4 | datos, auditor-datos |
-| 9 | Calidad de la IA | ¿Lola responde bien tras cada cambio? | 1 | 2 | 3 | lola, evaluador |
-| 10 | Coste | ¿Cuánto gasto y quién lo gasta? | 1 | 3 | 4 | lola, evaluador |
+| 7 | Seguridad | ¿Quién puede ver o romper qué? | 2 | 3 | 4 | seguridad, constructor |
+| 8 | Datos | ¿Están bien modelados y puedo recuperarlos? | 1 | 3 | 4 | constructor, auditor-datos |
+| 9 | Calidad de la IA | ¿Lola responde bien tras cada cambio? | 1 | 2 | 3 | constructor, evaluador |
+| 10 | Coste | ¿Cuánto gasto y quién lo gasta? | 1 | 3 | 4 | constructor, evaluador |
 | 11 | Entrada del trabajo | ¿Cómo pasa una idea a tarea bien definida? | 3 | 2 | 3 | (la sesión principal con `/orquestar`) |
-| 12 | Release y vuelta atrás | ¿Cómo subo y cómo deshago? | 1 | 3 | 4 | gobierno |
-| 13 | Diseño y experiencia | ¿Se ve, se siente y responde como debe? | 1 | 3 | 4 | diseno, qa |
+| 12 | Release y vuelta atrás | ¿Cómo subo y cómo deshago? | 1 | 3 | 4 | constructor |
+| 13 | Diseño y experiencia | ¿Se ve, se siente y responde como debe? | 1 | 3 | 4 | constructor, qa |
 <!-- planos:tabla:fin -->
 
 El mapa de módulos del producto (qué hace cada uno, sus tablas, ficheros,

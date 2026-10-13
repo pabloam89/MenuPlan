@@ -718,7 +718,7 @@
     }
   },
   "agentes": {
-    "gobierno": {
+    "constructor": {
       "tareas": [
         {
           "id": "flujo-rama-pr-staging",
@@ -868,7 +868,7 @@
               "sujeto": "ci.rojo",
               "fuerza": "no_debe",
               "condicion": "cuando el rojo es un test del producto",
-              "exigencia": "arreglarse desde gobierno: se devuelve a la sesión con el fichero y el error",
+              "exigencia": "arreglarse en la tarea de diagnóstico: se devuelve a la sesión con el fichero y el error",
               "control": "juicio",
               "fuente": "casa-claude",
               "porque": "El código del producto es de su dueño y el juez no arregla lo que juzga",
@@ -1277,11 +1277,7 @@
             "ronda: 2 fuentes: 2 cambios: Contrastado con .claude/agentes.test.js y ops/estandares-agentes.test.js: cada regla tiene ya un test que la hace cumplir",
             "ronda: 3 fuentes: 1 cambios: Cuatro reglas: plantilla, herramientas, traspaso y skills; el estándar de tareas y el test visto fallar llegan como normas del registro"
           ]
-        }
-      ]
-    },
-    "datos": {
-      "tareas": [
+        },
         {
           "id": "modelar-antes-de-sql",
           "tarea": "Diseñar el modelo antes del SQL: entidades, relaciones, ciclo de vida e invariantes",
@@ -1671,6 +1667,864 @@
             "borrar o reescribir datos de familias sin Pablo",
             "crear una tabla catálogo cuyos atributos no tienen lector",
             "usar un enum de Postgres salvo con su porqué (casi nunca)"
+          ]
+        },
+        {
+          "id": "pantalla-con-tokens",
+          "tarea": "Diseñar o cambiar una pantalla, hoja, tarjeta o componente con los tokens y primitivos del sistema",
+          "accion": "construir",
+          "origen": "disparadores",
+          "ambitos": [
+            "diseno",
+            "code"
+          ],
+          "n2": "construir.code+diseno",
+          "comunes": [
+            "comprobar-design-system",
+            "tests-de-lo-tocado"
+          ],
+          "reglas": [
+            {
+              "nombre": "Primero reutilizar",
+              "sujeto": "pantalla",
+              "fuerza": "debe",
+              "exigencia": "reutilizar el primitivo de ui.jsx que ya hace lo mismo antes de crear un componente nuevo",
+              "control": "juicio",
+              "fuente": "casa-design-system",
+              "porque": "Dos componentes casi iguales envejecen cada uno a su manera y la app deja de verse como una sola",
+              "ejemplo_bueno": "usar el Boton de ui.jsx con su variante",
+              "ejemplo_malo": "un botón nuevo con los mismos estilos copiados"
+            }
+          ],
+          "no_hace": [
+            "lógica, datos o el bot: es de la sesión principal o de las tareas de ese dominio",
+            "juzgar su propio resultado: lo hace qa con capturas",
+            "cambiar el color de marca, el logo o el nombre"
+          ],
+          "rondas": [
+            "ronda: 1 fuentes: 2 cambios: Consultados los tokens de la casa y el formato de tokens de diseño del W3C; ambos separan el valor del nombre con un rol",
+            "ronda: 2 fuentes: 2 cambios: Contrastado con la regla de lint de la casa: ningún valor suelto, y la lista base solo baja; el estándar externo no dice cuántos",
+            "ronda: 3 fuentes: 1 cambios: Reducido a dos condiciones propias (tokens y reutilizar) más las comunes del design system"
+          ]
+        },
+        {
+          "id": "token-o-primitivo-nuevo",
+          "tarea": "Crear en el sistema el token o el primitivo que falta, con su porqué, antes de usarlo",
+          "accion": "construir",
+          "origen": "metodo",
+          "ambitos": [
+            "diseno",
+            "code"
+          ],
+          "n2": "construir.code+diseno",
+          "reglas": [
+            {
+              "nombre": "Token con su porqué",
+              "sujeto": "token",
+              "fuerza": "debe",
+              "exigencia": "añadirse a src/design/tokens.js con su porqué y un nombre por rol antes de usarse en una pantalla",
+              "control": "src/design/tokens.test.js",
+              "fuente": "m3-tokens",
+              "porque": "Un nombre por rol deja cambiar el valor sin tocar las pantallas",
+              "ejemplo_bueno": "color.aviso, con la nota de dónde se usa",
+              "ejemplo_malo": "color.naranja8 sin decir para qué"
+            },
+            {
+              "nombre": "CSS generado",
+              "sujeto": "token",
+              "fuerza": "debe",
+              "exigencia": "llevar su variable CSS generada con npm run tokens:css y no escrita a mano",
+              "control": "src/design/tokensCss.test.js",
+              "fuente": "casa-design-system",
+              "porque": "Dos escrituras del mismo valor terminan distintas",
+              "ejemplo_bueno": "tokens.css regenerado en el mismo PR",
+              "ejemplo_malo": "una variable CSS retocada a mano en tokens.css"
+            },
+            {
+              "nombre": "Documento al día",
+              "sujeto": "token",
+              "fuerza": "debe",
+              "exigencia": "figurar en su tabla de DESIGN_SYSTEM.md con el mismo valor que en tokens.js",
+              "control": "src/design/disenoDoc.test.js",
+              "fuente": "casa-design-system",
+              "porque": "El documento es lo que lee quien diseña y no puede contradecir al código",
+              "ejemplo_bueno": "la fila del token nuevo en la tabla de su familia",
+              "ejemplo_malo": "un token que solo existe en el código"
+            },
+            {
+              "nombre": "Primitivo único",
+              "sujeto": "primitivo",
+              "fuerza": "debe",
+              "condicion": "cuando ya hay dos casi iguales",
+              "exigencia": "fundirse en uno antes de crear el tercero",
+              "control": "juicio",
+              "fuente": "casa-design-system",
+              "porque": "Cada copia es una decisión visual más que mantener",
+              "ejemplo_bueno": "fundir Tarjeta y TarjetaPlana en un primitivo con una propiedad",
+              "ejemplo_malo": "añadir un tercer componente de tarjeta"
+            }
+          ],
+          "no_hace": [
+            "escribir el valor en la pantalla mientras el token no existe",
+            "crear un primitivo sin buscar antes si ya hay uno parecido"
+          ],
+          "rondas": [
+            "ronda: 1 fuentes: 2 cambios: Consultada la visión general de tokens de Material y el formato del W3C; los dos piden un nombre por rol y no por valor",
+            "ronda: 2 fuentes: 2 cambios: Contrastado con tokens.js y DESIGN_SYSTEM.md: la casa ya genera el CSS y valida la tabla con un test, y esa parte se queda como norma de la casa",
+            "ronda: 3 fuentes: 1 cambios: Cuatro reglas: porqué, CSS generado, documento al día y primitivo único"
+          ]
+        },
+        {
+          "id": "migrar-pantalla-a-tokens",
+          "tarea": "Migrar una pantalla a tokens bajando la lista de valores sueltos",
+          "accion": "construir",
+          "origen": "disparadores",
+          "ambitos": [
+            "diseno",
+            "code"
+          ],
+          "n2": "construir.code+diseno",
+          "comunes": [
+            "medir-antes-despues",
+            "capturas-375-420"
+          ],
+          "reglas": [
+            {
+              "nombre": "Lista base más corta",
+              "sujeto": "pantalla",
+              "fuerza": "debe",
+              "condicion": "cuando un PR la migra",
+              "exigencia": "dejar la lista de valores sueltos más corta que antes, con la cifra antes y después",
+              "control": "scripts/lib/sueltos-base.test.js",
+              "fuente": "casa-diseno-estado",
+              "porque": "Sin una cifra que baje no se sabe si la migración ha servido",
+              "ejemplo_bueno": "de 18 valores sueltos a 0 en HoyScreen",
+              "ejemplo_malo": "migrar y no mirar cuántos quedan"
+            },
+            {
+              "nombre": "Una pantalla por PR",
+              "sujeto": "pr",
+              "fuerza": "debe",
+              "condicion": "cuando migra a tokens",
+              "exigencia": "migrar una sola pantalla para que su diff visual pueda revisarse",
+              "control": "juicio",
+              "fuente": "gg-small-cls",
+              "porque": "Un diff visual de cinco pantallas no lo revisa nadie con cuidado",
+              "ejemplo_bueno": "un PR que migra Despensa y nada más",
+              "ejemplo_malo": "un PR que migra seis pantallas a la vez"
+            }
+          ],
+          "no_hace": [
+            "migrar de paso lo que no es del encargo",
+            "cambiar el aspecto de la pantalla al migrarla a tokens exactos",
+            "subir la lista base de valores sueltos"
+          ],
+          "rondas": [
+            "ronda: 1 fuentes: 2 cambios: Consultada la guía de cambios pequeños de Google y el formato de tokens; piden un cambio revisable y valores con nombre",
+            "ronda: 2 fuentes: 2 cambios: Contrastado con docs/diseno/ESTADO.md: la lista base por pantalla y la captura sin cambios son decisión de la casa",
+            "ronda: 3 fuentes: 1 cambios: Tres reglas: la lista baja, una pantalla por PR y sin cambio de píxeles"
+          ]
+        },
+        {
+          "id": "assets-reproducibles",
+          "tarea": "Entregar assets optimizados: original en su carpeta, derivado por script y entrada en el manifiesto",
+          "accion": "construir",
+          "origen": "metodo",
+          "ambitos": [
+            "diseno"
+          ],
+          "n2": "construir.diseno",
+          "reglas": [
+            {
+              "nombre": "Original y derivado",
+              "sujeto": "asset",
+              "fuerza": "debe",
+              "exigencia": "salir de un original guardado en su carpeta y de un script, sin retoques a mano en public/",
+              "control": "juicio",
+              "fuente": "casa-diseno-estado",
+              "porque": "Un derivado retocado a mano no se puede rehacer desde un clon limpio",
+              "ejemplo_bueno": "original en la carpeta de fuentes y el derivado generado por script",
+              "ejemplo_malo": "un PNG retocado directamente en public/",
+              "nota": "El agente cita un manifiesto de assets que aún no existe (docs/diseno/ESTADO.md habla de uno solo, sin crear); cuando exista, entra aquí una regla suya."
+            },
+            {
+              "nombre": "Optimizado con peso",
+              "sujeto": "asset",
+              "fuerza": "debe",
+              "exigencia": "entregarse optimizado, en un formato moderno y con su peso antes y después",
+              "control": "juicio",
+              "fuente": "webdev-image-format",
+              "porque": "Los assets son lo que más pesa en la carga de un móvil",
+              "ejemplo_bueno": "WebP de 40 KB frente a un PNG original de 600 KB",
+              "ejemplo_malo": "un PNG de 600 KB servido tal cual"
+            },
+            {
+              "nombre": "Nombre en kebab ASCII",
+              "sujeto": "asset",
+              "fuerza": "debe",
+              "exigencia": "llamarse en kebab-case ASCII, sin espacios ni acentos, en una sola lengua de carpetas",
+              "control": "juicio",
+              "fuente": "casa-design-system",
+              "porque": "Los nombres con acentos o espacios se rompen según el sistema que los lea",
+              "ejemplo_bueno": "plato-de-lentejas.webp",
+              "ejemplo_malo": "Plato de Lentejas (1).webp"
+            }
+          ],
+          "no_hace": [
+            "borrar assets o carpetas, aunque parezcan sin uso",
+            "subir o reemplazar ficheros en Vercel Blob",
+            "generar imágenes con coste sin que Pablo lo apruebe"
+          ],
+          "rondas": [
+            "ronda: 1 fuentes: 2 cambios: Consultadas las guías de formatos de imagen y de imágenes adaptables de web.dev; piden un formato moderno y varias medidas",
+            "ronda: 2 fuentes: 2 cambios: Contrastado con docs/diseno/ESTADO.md: la casa exige original y script reproducibles desde un clon limpio",
+            "ronda: 3 fuentes: 1 cambios: Cuatro reglas: derivado por script, optimizado con peso, manifiesto y nombre"
+          ]
+        },
+        {
+          "id": "iconos-e-ilustraciones",
+          "tarea": "Añadir un icono, una ilustración o una familia de assets al sistema",
+          "accion": "construir",
+          "origen": "disparadores",
+          "ambitos": [
+            "diseno"
+          ],
+          "n2": "construir.diseno",
+          "reglas": [
+            {
+              "nombre": "Una familia, un estilo",
+              "sujeto": "ilustracion",
+              "fuerza": "debe",
+              "exigencia": "compartir con su familia el fondo, el formato y el tamaño, con el prompt y la seed guardados junto al original",
+              "control": "juicio",
+              "fuente": "casa-design-system",
+              "porque": "Una ilustración que rompe el estilo hace que la app parezca varias",
+              "ejemplo_bueno": "mismo fondo blanco, mismo tamaño y la seed junto al original",
+              "ejemplo_malo": "una ilustración con otro fondo en la misma familia"
+            },
+            {
+              "nombre": "Coste aprobado",
+              "sujeto": "ilustracion",
+              "fuerza": "no_debe",
+              "exigencia": "generarse con un servicio de pago sin que Pablo lo apruebe antes",
+              "control": "juicio",
+              "fuente": "casa-claude",
+              "porque": "Gastar dinero es de las cosas que se pregunta y se espera el sí",
+              "ejemplo_bueno": "dejar el coste estimado en las decisiones pendientes",
+              "ejemplo_malo": "lanzar 40 imágenes de Gemini para ver cómo salen"
+            }
+          ],
+          "no_hace": [
+            "generar imágenes con coste (Gemini, fal, Midjourney) sin que Pablo lo apruebe",
+            "mezclar estilos dentro de una familia"
+          ],
+          "rondas": [
+            "ronda: 1 fuentes: 2 cambios: Consultada la requisito de texto alternativo de WCAG y la guía de formatos de web.dev; piden alternativa a lo no textual",
+            "ronda: 2 fuentes: 2 cambios: Contrastado con DESIGN_SYSTEM.md e ILUSTRACIONES-PASOS.md: una familia un estilo, con prompt y seed guardados",
+            "ronda: 3 fuentes: 1 cambios: Tres reglas: familia coherente, alternativa de texto y coste aprobado"
+          ]
+        },
+        {
+          "id": "marca-y-manifest",
+          "tarea": "Tocar el logo, el favicon, el manifest o el color de marca",
+          "accion": "construir",
+          "origen": "disparadores",
+          "ambitos": [
+            "diseno"
+          ],
+          "n2": "construir.diseno",
+          "reglas": [
+            {
+              "nombre": "Verde atado a tokens",
+              "sujeto": "marca",
+              "fuerza": "debe",
+              "exigencia": "tomar el verde del token de marca en el favicon, el theme-color y el manifest",
+              "control": "src/design/marca.test.js",
+              "fuente": "webdev-manifest",
+              "porque": "Lo que el navegador lee antes de cargar la app repite el color a mano y se separa si nadie lo ata",
+              "ejemplo_bueno": "el test compara el color del favicon con tokens.js",
+              "ejemplo_malo": "cambiar el verde en el favicon y no en el manifest"
+            },
+            {
+              "nombre": "Marca de Pablo",
+              "sujeto": "marca",
+              "fuerza": "no_debe",
+              "exigencia": "cambiarse (color, logo o nombre) sin pasar por Pablo: va a las decisiones pendientes",
+              "control": "juicio",
+              "fuente": "casa-diseno-estado",
+              "porque": "La marca es una decisión abierta de producto, no de la sesión",
+              "ejemplo_bueno": "devolver la propuesta de logo a las decisiones pendientes",
+              "ejemplo_malo": "sustituir el logo porque queda mejor"
+            },
+            {
+              "nombre": "Manifest completo",
+              "sujeto": "manifest",
+              "fuerza": "debe",
+              "exigencia": "declarar nombre, iconos y color en la ruta que pide el navegador",
+              "control": "juicio",
+              "fuente": "mdn-manifest",
+              "porque": "Sin esos campos el navegador no ofrece instalar la app como aplicación",
+              "ejemplo_bueno": "name, icons y theme_color en el manifest servido desde su ruta",
+              "ejemplo_malo": "un manifest sin iconos de 512 px"
+            }
+          ],
+          "no_hace": [
+            "cambiar el color de marca, el logo o el nombre sin Pablo",
+            "dejar el verde de marca escrito a mano en tres sitios"
+          ],
+          "rondas": [
+            "ronda: 1 fuentes: 2 cambios: Consultadas la guía del manifest de web.dev y la de MDN; piden nombre, iconos y color",
+            "ronda: 2 fuentes: 2 cambios: Contrastado con src/design/marca.test.js: favicon, theme-color y manifest repiten el verde y el test los ata a tokens",
+            "ronda: 3 fuentes: 1 cambios: Tres reglas: verde atado a tokens, marca de Pablo y manifest completo"
+          ]
+        },
+        {
+          "id": "capturas-antes-despues",
+          "tarea": "Hacer las capturas de antes y después a 375×812 y 420×900",
+          "accion": "medir",
+          "origen": "metodo",
+          "ambitos": [
+            "diseno"
+          ],
+          "n2": "medir.diseno",
+          "comunes": [
+            "capturas-375-420"
+          ],
+          "reglas": [
+            {
+              "nombre": "Misma pantalla y estado",
+              "sujeto": "captura",
+              "fuerza": "debe",
+              "exigencia": "hacerse de la misma pantalla y el mismo estado antes y después del cambio",
+              "control": "juicio",
+              "fuente": "pw-screenshots",
+              "porque": "Dos capturas de estados distintos no se pueden comparar",
+              "ejemplo_bueno": "antes y después con la lista llena a 375 px",
+              "ejemplo_malo": "antes con datos y después sin datos"
+            },
+            {
+              "nombre": "Sin navegador, dicho",
+              "sujeto": "captura",
+              "fuerza": "debe",
+              "condicion": "cuando no hay navegador disponible",
+              "exigencia": "decirlo en NO COMPROBADO en lugar de describir lo que no se ha visto",
+              "control": "juicio",
+              "fuente": "casa-plantilla-agente",
+              "porque": "Una descripción inventada se lee como una comprobación",
+              "ejemplo_bueno": "NO COMPROBADO: sin navegador en esta sesión",
+              "ejemplo_malo": "una pantalla descrita a partir del código"
+            }
+          ],
+          "no_hace": [
+            "describir una pantalla que no ha visto",
+            "dar el juicio final: es de qa"
+          ],
+          "rondas": [
+            "ronda: 1 fuentes: 2 cambios: Consultada la documentación de capturas y las buenas prácticas de Playwright; piden capturas repetibles de lo visible",
+            "ronda: 2 fuentes: 1 cambios: Contrastado con el método de diseno: la captura de antes se hace antes de tocar nada",
+            "ronda: 3 fuentes: 1 cambios: Dos condiciones propias más la común de los dos anchos"
+          ]
+        },
+        {
+          "id": "voz-de-la-interfaz",
+          "tarea": "Escribir la voz de la interfaz: botones, vacíos y errores",
+          "accion": "construir",
+          "origen": "mision",
+          "ambitos": [
+            "diseno",
+            "product"
+          ],
+          "n2": "construir.diseno+product",
+          "reglas": [
+            {
+              "nombre": "Botón con verbo",
+              "sujeto": "texto.interfaz",
+              "fuerza": "debe",
+              "condicion": "cuando es el texto de un botón",
+              "exigencia": "decir la acción que ocurre al pulsarlo, con un verbo",
+              "control": "juicio",
+              "fuente": "casa-design-system",
+              "porque": "El botón es la promesa de lo que pasa y se lee solo, sin contexto",
+              "ejemplo_bueno": "Guardar menú",
+              "ejemplo_malo": "Botón con el texto Aceptar"
+            },
+            {
+              "nombre": "Error que ayuda",
+              "sujeto": "texto.interfaz",
+              "fuerza": "debe",
+              "condicion": "cuando muestra un error",
+              "exigencia": "decir qué ha pasado y qué puede hacer la persona, con texto y no solo con color",
+              "control": "juicio",
+              "fuente": "w3-error-id",
+              "porque": "Quien no ve el color o no entiende el código no puede arreglar nada",
+              "ejemplo_bueno": "No se pudo guardar. Revisa la conexión y vuelve a probar",
+              "ejemplo_malo": "Error 500 sin más texto"
+            },
+            {
+              "nombre": "Vacío con salida",
+              "sujeto": "texto.interfaz",
+              "fuerza": "debe",
+              "condicion": "cuando la pantalla está vacía",
+              "exigencia": "ofrecer la acción que la llena en lugar de solo decir que no hay nada",
+              "control": "juicio",
+              "fuente": "casa-design-system",
+              "porque": "Un vacío sin salida deja a la persona en una pantalla muerta",
+              "ejemplo_bueno": "Aún no hay platos. Añade el primero",
+              "ejemplo_malo": "No hay datos"
+            }
+          ],
+          "no_hace": [
+            "escribir los textos de Lola",
+            "dejar un error sin decir qué puede hacer la persona"
+          ],
+          "rondas": [
+            "ronda: 1 fuentes: 2 cambios: Consultadas las requisitos de WCAG sobre identificación de errores y mensajes de estado",
+            "ronda: 2 fuentes: 2 cambios: Contrastado con DESIGN_SYSTEM.md, que fija la voz y el tono de la casa",
+            "ronda: 3 fuentes: 1 cambios: Tres reglas: botón con verbo, error útil y vacío con salida"
+          ]
+        },
+        {
+          "id": "estado-del-diseno",
+          "tarea": "Poner al día docs/diseno/ESTADO.md con las cifras y decisiones",
+          "accion": "documentar",
+          "origen": "entregables",
+          "ambitos": [
+            "diseno"
+          ],
+          "n2": "documentar.diseno",
+          "reglas": [
+            {
+              "nombre": "Cifra con comando",
+              "sujeto": "estado.diseno",
+              "fuerza": "debe",
+              "exigencia": "dar cada cifra con el comando del que sale y la fecha en que se tomó",
+              "control": "juicio",
+              "fuente": "casa-diseno-estado",
+              "porque": "Una cifra sin origen no se puede repetir ni comparar",
+              "ejemplo_bueno": "18 valores sueltos en lint:base, a 10 oct 2026",
+              "ejemplo_malo": "quedan pocos valores sueltos"
+            },
+            {
+              "nombre": "Decisión respetada",
+              "sujeto": "estado.diseno",
+              "fuerza": "no_debe",
+              "exigencia": "reabrir una decisión ya tomada ni tomar una abierta: se devuelve a Pablo",
+              "control": "juicio",
+              "fuente": "casa-diseno-estado",
+              "porque": "Las decisiones abiertas son de Pablo y las tomadas ya tienen su motivo",
+              "ejemplo_bueno": "dejar la decisión D12 como abierta y devolverla",
+              "ejemplo_malo": "decidir el logo desde la sesión"
+            }
+          ],
+          "no_hace": [
+            "reabrir una decisión ya tomada",
+            "tomar una decisión abierta: la devuelve a Pablo"
+          ],
+          "rondas": [
+            "ronda: 1 fuentes: 1 cambios: Consultado el propio ESTADO.md: su tabla de decisiones y sus cifras de cumplimiento",
+            "ronda: 2 fuentes: 1 cambios: Contrastado con la regla de registros de gobierno: cada cifra con su comando",
+            "ronda: 3 fuentes: 1 cambios: Dos reglas: cifra con comando y decisiones respetadas"
+          ]
+        },
+        {
+          "id": "herramienta-de-lola",
+          "tarea": "Crear o cambiar una herramienta del bot con su descripción, su papel y sus tests",
+          "accion": "construir",
+          "origen": "disparadores",
+          "ambitos": [
+            "bot",
+            "code"
+          ],
+          "n2": "construir.bot+code",
+          "comunes": [
+            "tests-de-lo-tocado",
+            "evals-antes-despues"
+          ],
+          "reglas": [
+            {
+              "nombre": "Descripción única",
+              "sujeto": "herramienta",
+              "fuerza": "debe",
+              "exigencia": "llevar un nombre y una descripción que no se confundan con los de otra herramienta",
+              "control": "juicio",
+              "fuente": "an-tools-agents",
+              "porque": "El modelo elige la herramienta por su descripción: un solapamiento es un fallo de enrutado",
+              "ejemplo_bueno": "consulta_menu: lee el menú de la semana, sin cambiar nada",
+              "ejemplo_malo": "una segunda herramienta cuya descripción también dice ver el menú"
+            },
+            {
+              "nombre": "Devuelve poco y relevante",
+              "sujeto": "herramienta",
+              "fuerza": "debe",
+              "condicion": "cuando escribe",
+              "exigencia": "devolver el estado final y solo lo relevante, para que el modelo no tenga que volver a leer",
+              "control": "juicio",
+              "fuente": "an-tools-agents",
+              "porque": "Lo que tarda un turno es el número de llamadas al modelo, no cada llamada",
+              "ejemplo_bueno": "cambiar_plato devuelve el día ya cambiado",
+              "ejemplo_malo": "cambiar_plato devuelve ok y obliga a leer el menú otra vez"
+            },
+            {
+              "nombre": "Papel y permiso",
+              "sujeto": "herramienta",
+              "fuerza": "debe",
+              "exigencia": "figurar en su papel de src/lib/papeles.js con el permiso que necesita",
+              "control": "juicio",
+              "fuente": "casa-lola-regla",
+              "porque": "Un papel sin la herramienta no la usa y una herramienta sin papel la usa cualquiera",
+              "ejemplo_bueno": "la herramienta nueva en el papel de compra",
+              "ejemplo_malo": "una herramienta sin papel asignado"
+            }
+          ],
+          "no_hace": [
+            "borrar datos ni escribir para otros miembros de la casa sin Pablo",
+            "cambiar el esquema que usa la herramienta: es de datos",
+            "dar por mejor un cambio sin evals"
+          ],
+          "rondas": [
+            "ronda: 1 fuentes: 3 cambios: Consultadas la guía de Anthropic sobre herramientas, su artículo de herramientas para agentes y OWASP LLM Top 10",
+            "ronda: 2 fuentes: 2 cambios: Contrastado con la regla lola de la casa: la escritura segura y el estado final ya están, y se llevan tal cual",
+            "ronda: 3 fuentes: 1 cambios: Cuatro reglas: descripción única, respuesta corta, escritura segura y papel"
+          ]
+        },
+        {
+          "id": "reproducir-fallo-de-lola",
+          "tarea": "Reproducir un fallo de Lola con el caso exacto y localizar su causa",
+          "accion": "diagnosticar",
+          "origen": "metodo",
+          "ambitos": [
+            "bot"
+          ],
+          "n2": "diagnosticar.bot",
+          "comunes": [
+            "causa-frente-a-sintoma",
+            "buscar-lo-ya-apuntado"
+          ],
+          "reglas": [
+            {
+              "nombre": "Caso exacto",
+              "sujeto": "diagnostico",
+              "fuerza": "debe",
+              "exigencia": "partir del caso exacto: el mensaje, el papel y el estado de la casa, y ver qué hizo Lola",
+              "control": "juicio",
+              "fuente": "an-evals",
+              "porque": "Un fallo que no se reproduce no se puede arreglar ni dejar vigilado",
+              "ejemplo_bueno": "el mensaje, el papel de compra y la casa con dos miembros",
+              "ejemplo_malo": "Lola a veces se equivoca con la compra"
+            },
+            {
+              "nombre": "Causa localizada",
+              "sujeto": "diagnostico",
+              "fuerza": "debe",
+              "exigencia": "localizar la causa entre la descripción de la herramienta, el conocimiento, el enrutador, los datos devueltos o la lógica del turno",
+              "control": "juicio",
+              "fuente": "an-tools-agents",
+              "porque": "Cada una se arregla en un sitio distinto y tocar la equivocada deja el fallo",
+              "ejemplo_bueno": "la descripción de la herramienta se solapa con otra",
+              "ejemplo_malo": "añadir una frase al conocimiento por si acaso"
+            }
+          ],
+          "no_hace": [
+            "arreglar sin reproducir antes",
+            "dar por causa el primer síntoma"
+          ],
+          "rondas": [
+            "ronda: 1 fuentes: 2 cambios: Consultados el artículo de Anthropic sobre evals de agentes y su guía de herramientas",
+            "ronda: 2 fuentes: 1 cambios: Contrastado con el método de lola: caso exacto, causa localizada, cambio mínimo",
+            "ronda: 3 fuentes: 1 cambios: Dos reglas: caso exacto y dónde está la causa"
+          ]
+        },
+        {
+          "id": "conocimiento-y-descripciones",
+          "tarea": "Cambiar el conocimiento o la ficha cuidando el prefijo cacheado",
+          "accion": "construir",
+          "origen": "disparadores",
+          "ambitos": [
+            "bot"
+          ],
+          "n2": "construir.bot",
+          "comunes": [
+            "evals-antes-despues"
+          ],
+          "reglas": [
+            {
+              "nombre": "Prefijo estable",
+              "sujeto": "prompt.prefijo",
+              "fuerza": "debe",
+              "exigencia": "mantener herramientas y conocimiento estables y en orden fijo, sin nada variable antes del último punto de caché",
+              "control": "api/_bot/unaVuelta.test.js",
+              "fuente": "an-cache",
+              "porque": "La caché se invalida desde el primer byte que cambia",
+              "ejemplo_bueno": "lo variable de la casa va después del último punto de caché",
+              "ejemplo_malo": "la fecha de hoy al principio del prompt de sistema"
+            },
+            {
+              "nombre": "Cambio justificado",
+              "sujeto": "prompt.prefijo",
+              "fuerza": "debe",
+              "condicion": "cuando cambia el conocimiento o las herramientas",
+              "exigencia": "justificarse en el informe, porque invalida la caché de todos los turnos",
+              "control": "juicio",
+              "fuente": "an-cache",
+              "porque": "Cada cambio del prefijo cuesta un turno entero de tokens a todas las familias",
+              "ejemplo_bueno": "el informe dice que cambia conocimiento.md y cuánto cuesta reescribir la caché",
+              "ejemplo_malo": "retocar una frase del conocimiento sin decir nada"
+            },
+            {
+              "nombre": "Instantánea intencionada",
+              "sujeto": "ficha",
+              "fuerza": "debe",
+              "condicion": "cuando cambia la ficha de la casa",
+              "exigencia": "actualizar la instantánea solo si el cambio es intencional y decirlo en el informe",
+              "control": "api/_bot/fichas.test.js",
+              "fuente": "casa-lola-regla",
+              "porque": "La instantánea es lo que avisa de un cambio de ficha sin querer",
+              "ejemplo_bueno": "actualizar la instantánea y explicar el campo nuevo",
+              "ejemplo_malo": "regenerar la instantánea para que el test pase"
+            }
+          ],
+          "no_hace": [
+            "poner nada variable antes del último punto de caché",
+            "actualizar la instantánea de fichas sin que el cambio sea intencionado"
+          ],
+          "rondas": [
+            "ronda: 1 fuentes: 2 cambios: Consultada la documentación de Anthropic sobre caché de prompts",
+            "ronda: 2 fuentes: 2 cambios: Contrastado con api/_bot/agente.js y la regla lola: el orden fijo del prefijo y la instantánea de fichas",
+            "ronda: 3 fuentes: 1 cambios: Tres reglas: prefijo estable, cambio justificado e instantánea intencionada"
+          ]
+        },
+        {
+          "id": "enrutador-y-via-rapida",
+          "tarea": "Cambiar el enrutador o la vía rápida y sus reglas",
+          "accion": "construir",
+          "origen": "mision",
+          "ambitos": [
+            "bot",
+            "code"
+          ],
+          "n2": "construir.bot+code",
+          "comunes": [
+            "evals-antes-despues"
+          ],
+          "reglas": [
+            {
+              "nombre": "Regla con su caso",
+              "sujeto": "enrutador",
+              "fuerza": "debe",
+              "exigencia": "cambiar una regla solo con el caso de scripts/router-evals.json que la cubre, visto fallar antes",
+              "control": "juicio",
+              "fuente": "an-evals",
+              "porque": "Sin caso no se sabe si la regla nueva arregla algo ni si rompe lo que iba",
+              "ejemplo_bueno": "un caso de ejemplo nuevo que falla y pasa tras la regla",
+              "ejemplo_malo": "retocar la regla porque un mensaje salió mal una vez"
+            },
+            {
+              "nombre": "Cero rápidas de más",
+              "sujeto": "enrutador",
+              "fuerza": "no_debe",
+              "exigencia": "mandar a la vía rápida un mensaje que toca a Lola: la cifra que importa es 0",
+              "control": "scripts/router-evals.mjs",
+              "fuente": "casa-lola-regla",
+              "porque": "Una respuesta rápida equivocada cuesta más que dejar pasar a Lola",
+              "ejemplo_bueno": "0 de rápida cuando tocaba Lola en router-evals",
+              "ejemplo_malo": "subir el umbral para ganar velocidad a costa de aciertos"
+            },
+            {
+              "nombre": "Esquema plano",
+              "sujeto": "enrutador",
+              "fuerza": "debe",
+              "exigencia": "mantener su esquema de salida plano y cerrado, con el umbral de cada modo",
+              "control": "juicio",
+              "fuente": "casa-router",
+              "porque": "Con objetos anidados el modelo pequeño acierta el modo y se deja los datos sin rellenar",
+              "ejemplo_bueno": "modo, confianza y datos al mismo nivel con enum cerrado",
+              "ejemplo_malo": "un objeto anidado por modo"
+            }
+          ],
+          "no_hace": [
+            "cambiar el modelo del enrutador o su umbral sin Pablo",
+            "mandar a la vía rápida un mensaje que escribe datos sin pasar por la confirmación"
+          ],
+          "rondas": [
+            "ronda: 1 fuentes: 2 cambios: Consultados el artículo de Anthropic sobre evals de agentes y su guía de latencia",
+            "ronda: 2 fuentes: 2 cambios: Contrastado con api/_bot/router.js y la regla lola: la cifra que importa es cero rápidas cuando tocaba Lola",
+            "ronda: 3 fuentes: 1 cambios: Tres reglas: regla con caso, cero rápidas de más y esquema plano"
+          ]
+        },
+        {
+          "id": "papeles-y-permisos-de-herramientas",
+          "tarea": "Cambiar los papeles y permisos de las herramientas de Lola",
+          "accion": "construir",
+          "origen": "mision",
+          "ambitos": [
+            "bot",
+            "code"
+          ],
+          "n2": "construir.bot+code",
+          "reglas": [
+            {
+              "nombre": "Revisión de seguridad",
+              "sujeto": "papel",
+              "fuerza": "debe",
+              "condicion": "cuando cambia un papel o un permiso",
+              "exigencia": "pasar por seguridad antes de fusionarse",
+              "control": "juicio",
+              "fuente": "casa-agente-constructor",
+              "porque": "Quien construye un permiso no es quien mejor ve cómo se abusa",
+              "ejemplo_bueno": "pedir a la sesión principal que lo vea seguridad",
+              "ejemplo_malo": "fusionar el cambio con la revisión del propio autor"
+            }
+          ],
+          "no_hace": [
+            "dar al modelo una herramienta de escritura que no necesita su papel",
+            "dar por bueno un cambio de papel sin que lo vea seguridad"
+          ],
+          "rondas": [
+            "ronda: 1 fuentes: 2 cambios: Consultados OWASP LLM Top 10 y la guía de herramientas de Anthropic",
+            "ronda: 2 fuentes: 1 cambios: Contrastado con src/lib/papeles.js y la regla lola: lo que no puede fallar va en código determinista",
+            "ronda: 3 fuentes: 1 cambios: Tres reglas: mínimo, garantía en código y revisión de seguridad"
+          ]
+        },
+        {
+          "id": "coste-y-latencia",
+          "tarea": "Bajar el coste o la latencia de un tipo de turno",
+          "accion": "construir",
+          "origen": "disparadores",
+          "ambitos": [
+            "bot"
+          ],
+          "n2": "construir.bot",
+          "comunes": [
+            "medir-antes-despues",
+            "evals-antes-despues"
+          ],
+          "reglas": [
+            {
+              "nombre": "Menos vueltas",
+              "sujeto": "turno",
+              "fuerza": "debe",
+              "exigencia": "bajar el número de llamadas al modelo antes que acelerar cada llamada",
+              "control": "juicio",
+              "fuente": "casa-agente-constructor",
+              "porque": "Medido el 1 oct de 2026: lo que tarda un turno es el número de llamadas",
+              "ejemplo_bueno": "una herramienta de escritura que devuelve el estado final",
+              "ejemplo_malo": "pasar a un modelo más rápido sin quitar vueltas"
+            },
+            {
+              "nombre": "Modelo más barato que aprueba",
+              "sujeto": "modelo.turno",
+              "fuerza": "debe",
+              "exigencia": "ser el más barato que aprueba los evals, y subir de modelo es la última opción",
+              "control": "juicio",
+              "fuente": "an-choose-model",
+              "porque": "El coste de un turno se multiplica por todas las familias y todos los días",
+              "ejemplo_bueno": "Haiku si aprueba el set de evals del turno",
+              "ejemplo_malo": "Opus por defecto porque contesta mejor"
+            }
+          ],
+          "no_hace": [
+            "cambiar el modelo por defecto de un turno ni subir el tope de iteraciones: es gateway",
+            "cambiar límites de uso o de coste"
+          ],
+          "rondas": [
+            "ronda: 1 fuentes: 3 cambios: Consultadas las guías de Anthropic sobre latencia y sobre elegir modelo, y la de caché",
+            "ronda: 2 fuentes: 2 cambios: Contrastado con la medida del 1 oct de la casa: lo que tarda es el número de llamadas, no cada llamada",
+            "ronda: 3 fuentes: 1 cambios: Dos condiciones propias: menos vueltas y el modelo más barato que aprueba"
+          ]
+        },
+        {
+          "id": "casos-de-eval",
+          "tarea": "Añadir a los evals el caso de un fallo real que se arregla",
+          "accion": "construir",
+          "origen": "entregables",
+          "ambitos": [
+            "bot"
+          ],
+          "n2": "construir.bot",
+          "comunes": [
+            "evals-antes-despues"
+          ],
+          "reglas": [
+            {
+              "nombre": "Un caso por fallo",
+              "sujeto": "eval.caso",
+              "fuerza": "debe",
+              "condicion": "cuando se arregla un fallo real",
+              "exigencia": "añadirse al set y verse fallar antes del arreglo",
+              "control": "juicio",
+              "fuente": "an-evals",
+              "porque": "Un fallo sin caso puede volver sin que nada avise, y un caso que nunca falló no prueba nada",
+              "ejemplo_bueno": "el caso falla en staging y pasa con el arreglo",
+              "ejemplo_malo": "arreglar y dejar los evals como estaban"
+            },
+            {
+              "nombre": "Campos del caso",
+              "sujeto": "eval.caso",
+              "fuerza": "debe",
+              "exigencia": "llevar id, tipo, dominio y origen, y dependeDeFecha si habla de días",
+              "control": "scripts/lib/evals.test.js",
+              "fuente": "casa-lola-regla",
+              "porque": "Los campos permiten contar y agrupar los casos, y los de fecha caducan",
+              "ejemplo_bueno": "id, tipo alergias, dominio compra, origen fallo real",
+              "ejemplo_malo": "un caso solo con el mensaje y la respuesta esperada"
+            }
+          ],
+          "no_hace": [
+            "arreglar sin dejar el caso",
+            "añadir un caso que no se ha visto fallar"
+          ],
+          "rondas": [
+            "ronda: 1 fuentes: 3 cambios: Consultados el artículo de Anthropic sobre evals, su guía de pruebas y la regla lola",
+            "ronda: 2 fuentes: 2 cambios: Contrastado con scripts/lib/evals.mjs: los campos obligatorios del caso ya están definidos",
+            "ronda: 3 fuentes: 1 cambios: Dos reglas: un caso por fallo visto fallar y campos completos"
+          ]
+        },
+        {
+          "id": "medir-antes-despues",
+          "tarea": "Medir pase de evals, tokens por turno y vueltas antes y después del cambio",
+          "accion": "medir",
+          "origen": "entregables",
+          "ambitos": [
+            "bot"
+          ],
+          "n2": "medir.bot",
+          "comunes": [
+            "medir-antes-despues",
+            "evals-antes-despues"
+          ],
+          "reglas": [
+            {
+              "nombre": "Tabla del turno",
+              "sujeto": "medida",
+              "fuerza": "debe",
+              "exigencia": "dar el pase de evals, los tokens por turno y las vueltas al modelo antes y después del cambio",
+              "control": "juicio",
+              "fuente": "an-evals",
+              "porque": "Sin las tres cifras no se sabe si un arreglo cuesta lo que ahorra",
+              "ejemplo_bueno": "pase 24 de 24 a 24 de 24, 3.100 a 2.400 tokens y 3 a 2 vueltas",
+              "ejemplo_malo": "va más rápido"
+            },
+            {
+              "nombre": "Lo no corrido, dicho",
+              "sujeto": "medida",
+              "fuerza": "debe",
+              "condicion": "cuando no se pueden correr los evals por claves o por red",
+              "exigencia": "decirlo en el informe en lugar de estimar las cifras",
+              "control": "juicio",
+              "fuente": "an-evals",
+              "porque": "Una cifra estimada se lee como medida y termina usándose de referencia",
+              "ejemplo_bueno": "NO COMPROBADO: sin clave de Anthropic en esta sesión",
+              "ejemplo_malo": "unos 2.500 tokens, calculados a ojo"
+            }
+          ],
+          "no_hace": [
+            "estimar una cifra que no se ha medido",
+            "comparar medidas tomadas en condiciones distintas"
+          ],
+          "rondas": [
+            "ronda: 1 fuentes: 2 cambios: Consultados el artículo de Anthropic sobre evals y su guía de latencia",
+            "ronda: 2 fuentes: 1 cambios: Contrastado con scripts/bot-medidas.mjs y scripts/bot-coste.mjs: de ahí salen tokens y vueltas",
+            "ronda: 3 fuentes: 1 cambios: Dos condiciones propias: la tabla del turno y decir lo que no se pudo correr"
           ]
         }
       ]
@@ -2163,7 +3017,7 @@
             }
           ],
           "no_hace": [
-            "cambiar RLS o permisos: lo prepara datos y lo lanza Pablo",
+            "cambiar RLS o permisos: lo prepara el constructor y lo lanza Pablo",
             "escribir en la base para probar"
           ]
         },
@@ -2233,7 +3087,7 @@
             }
           ],
           "no_hace": [
-            "rotar un secreto: lo hace una persona con gobierno",
+            "rotar un secreto: lo hace una persona con el constructor",
             "imprimir un valor en el informe"
           ]
         },
@@ -2407,872 +3261,6 @@
           "no_hace": [
             "poner en un issue público cómo se explota algo",
             "subir la severidad sin vector con los permisos actuales"
-          ]
-        }
-      ]
-    },
-    "diseno": {
-      "tareas": [
-        {
-          "id": "pantalla-con-tokens",
-          "tarea": "Diseñar o cambiar una pantalla, hoja, tarjeta o componente con los tokens y primitivos del sistema",
-          "accion": "construir",
-          "origen": "disparadores",
-          "ambitos": [
-            "diseno",
-            "code"
-          ],
-          "n2": "construir.code+diseno",
-          "comunes": [
-            "comprobar-design-system",
-            "tests-de-lo-tocado"
-          ],
-          "reglas": [
-            {
-              "nombre": "Primero reutilizar",
-              "sujeto": "pantalla",
-              "fuerza": "debe",
-              "exigencia": "reutilizar el primitivo de ui.jsx que ya hace lo mismo antes de crear un componente nuevo",
-              "control": "juicio",
-              "fuente": "casa-design-system",
-              "porque": "Dos componentes casi iguales envejecen cada uno a su manera y la app deja de verse como una sola",
-              "ejemplo_bueno": "usar el Boton de ui.jsx con su variante",
-              "ejemplo_malo": "un botón nuevo con los mismos estilos copiados"
-            }
-          ],
-          "no_hace": [
-            "lógica, datos o el bot: es de la sesión principal o de lola",
-            "juzgar su propio resultado: lo hace qa con capturas",
-            "cambiar el color de marca, el logo o el nombre"
-          ],
-          "rondas": [
-            "ronda: 1 fuentes: 2 cambios: Consultados los tokens de la casa y el formato de tokens de diseño del W3C; ambos separan el valor del nombre con un rol",
-            "ronda: 2 fuentes: 2 cambios: Contrastado con la regla de lint de la casa: ningún valor suelto, y la lista base solo baja; el estándar externo no dice cuántos",
-            "ronda: 3 fuentes: 1 cambios: Reducido a dos condiciones propias (tokens y reutilizar) más las comunes del design system"
-          ]
-        },
-        {
-          "id": "token-o-primitivo-nuevo",
-          "tarea": "Crear en el sistema el token o el primitivo que falta, con su porqué, antes de usarlo",
-          "accion": "construir",
-          "origen": "metodo",
-          "ambitos": [
-            "diseno",
-            "code"
-          ],
-          "n2": "construir.code+diseno",
-          "reglas": [
-            {
-              "nombre": "Token con su porqué",
-              "sujeto": "token",
-              "fuerza": "debe",
-              "exigencia": "añadirse a src/design/tokens.js con su porqué y un nombre por rol antes de usarse en una pantalla",
-              "control": "src/design/tokens.test.js",
-              "fuente": "m3-tokens",
-              "porque": "Un nombre por rol deja cambiar el valor sin tocar las pantallas",
-              "ejemplo_bueno": "color.aviso, con la nota de dónde se usa",
-              "ejemplo_malo": "color.naranja8 sin decir para qué"
-            },
-            {
-              "nombre": "CSS generado",
-              "sujeto": "token",
-              "fuerza": "debe",
-              "exigencia": "llevar su variable CSS generada con npm run tokens:css y no escrita a mano",
-              "control": "src/design/tokensCss.test.js",
-              "fuente": "casa-design-system",
-              "porque": "Dos escrituras del mismo valor terminan distintas",
-              "ejemplo_bueno": "tokens.css regenerado en el mismo PR",
-              "ejemplo_malo": "una variable CSS retocada a mano en tokens.css"
-            },
-            {
-              "nombre": "Documento al día",
-              "sujeto": "token",
-              "fuerza": "debe",
-              "exigencia": "figurar en su tabla de DESIGN_SYSTEM.md con el mismo valor que en tokens.js",
-              "control": "src/design/disenoDoc.test.js",
-              "fuente": "casa-design-system",
-              "porque": "El documento es lo que lee quien diseña y no puede contradecir al código",
-              "ejemplo_bueno": "la fila del token nuevo en la tabla de su familia",
-              "ejemplo_malo": "un token que solo existe en el código"
-            },
-            {
-              "nombre": "Primitivo único",
-              "sujeto": "primitivo",
-              "fuerza": "debe",
-              "condicion": "cuando ya hay dos casi iguales",
-              "exigencia": "fundirse en uno antes de crear el tercero",
-              "control": "juicio",
-              "fuente": "casa-design-system",
-              "porque": "Cada copia es una decisión visual más que mantener",
-              "ejemplo_bueno": "fundir Tarjeta y TarjetaPlana en un primitivo con una propiedad",
-              "ejemplo_malo": "añadir un tercer componente de tarjeta"
-            }
-          ],
-          "no_hace": [
-            "escribir el valor en la pantalla mientras el token no existe",
-            "crear un primitivo sin buscar antes si ya hay uno parecido"
-          ],
-          "rondas": [
-            "ronda: 1 fuentes: 2 cambios: Consultada la visión general de tokens de Material y el formato del W3C; los dos piden un nombre por rol y no por valor",
-            "ronda: 2 fuentes: 2 cambios: Contrastado con tokens.js y DESIGN_SYSTEM.md: la casa ya genera el CSS y valida la tabla con un test, y esa parte se queda como norma de la casa",
-            "ronda: 3 fuentes: 1 cambios: Cuatro reglas: porqué, CSS generado, documento al día y primitivo único"
-          ]
-        },
-        {
-          "id": "migrar-pantalla-a-tokens",
-          "tarea": "Migrar una pantalla a tokens bajando la lista de valores sueltos",
-          "accion": "construir",
-          "origen": "disparadores",
-          "ambitos": [
-            "diseno",
-            "code"
-          ],
-          "n2": "construir.code+diseno",
-          "comunes": [
-            "medir-antes-despues",
-            "capturas-375-420"
-          ],
-          "reglas": [
-            {
-              "nombre": "Lista base más corta",
-              "sujeto": "pantalla",
-              "fuerza": "debe",
-              "condicion": "cuando un PR la migra",
-              "exigencia": "dejar la lista de valores sueltos más corta que antes, con la cifra antes y después",
-              "control": "scripts/lib/sueltos-base.test.js",
-              "fuente": "casa-diseno-estado",
-              "porque": "Sin una cifra que baje no se sabe si la migración ha servido",
-              "ejemplo_bueno": "de 18 valores sueltos a 0 en HoyScreen",
-              "ejemplo_malo": "migrar y no mirar cuántos quedan"
-            },
-            {
-              "nombre": "Una pantalla por PR",
-              "sujeto": "pr",
-              "fuerza": "debe",
-              "condicion": "cuando migra a tokens",
-              "exigencia": "migrar una sola pantalla para que su diff visual pueda revisarse",
-              "control": "juicio",
-              "fuente": "gg-small-cls",
-              "porque": "Un diff visual de cinco pantallas no lo revisa nadie con cuidado",
-              "ejemplo_bueno": "un PR que migra Despensa y nada más",
-              "ejemplo_malo": "un PR que migra seis pantallas a la vez"
-            }
-          ],
-          "no_hace": [
-            "migrar de paso lo que no es del encargo",
-            "cambiar el aspecto de la pantalla al migrarla a tokens exactos",
-            "subir la lista base de valores sueltos"
-          ],
-          "rondas": [
-            "ronda: 1 fuentes: 2 cambios: Consultada la guía de cambios pequeños de Google y el formato de tokens; piden un cambio revisable y valores con nombre",
-            "ronda: 2 fuentes: 2 cambios: Contrastado con docs/diseno/ESTADO.md: la lista base por pantalla y la captura sin cambios son decisión de la casa",
-            "ronda: 3 fuentes: 1 cambios: Tres reglas: la lista baja, una pantalla por PR y sin cambio de píxeles"
-          ]
-        },
-        {
-          "id": "assets-reproducibles",
-          "tarea": "Entregar assets optimizados: original en su carpeta, derivado por script y entrada en el manifiesto",
-          "accion": "construir",
-          "origen": "metodo",
-          "ambitos": [
-            "diseno"
-          ],
-          "n2": "construir.diseno",
-          "reglas": [
-            {
-              "nombre": "Original y derivado",
-              "sujeto": "asset",
-              "fuerza": "debe",
-              "exigencia": "salir de un original guardado en su carpeta y de un script, sin retoques a mano en public/",
-              "control": "juicio",
-              "fuente": "casa-diseno-estado",
-              "porque": "Un derivado retocado a mano no se puede rehacer desde un clon limpio",
-              "ejemplo_bueno": "original en la carpeta de fuentes y el derivado generado por script",
-              "ejemplo_malo": "un PNG retocado directamente en public/",
-              "nota": "El agente cita un manifiesto de assets que aún no existe (docs/diseno/ESTADO.md habla de uno solo, sin crear); cuando exista, entra aquí una regla suya."
-            },
-            {
-              "nombre": "Optimizado con peso",
-              "sujeto": "asset",
-              "fuerza": "debe",
-              "exigencia": "entregarse optimizado, en un formato moderno y con su peso antes y después",
-              "control": "juicio",
-              "fuente": "webdev-image-format",
-              "porque": "Los assets son lo que más pesa en la carga de un móvil",
-              "ejemplo_bueno": "WebP de 40 KB frente a un PNG original de 600 KB",
-              "ejemplo_malo": "un PNG de 600 KB servido tal cual"
-            },
-            {
-              "nombre": "Nombre en kebab ASCII",
-              "sujeto": "asset",
-              "fuerza": "debe",
-              "exigencia": "llamarse en kebab-case ASCII, sin espacios ni acentos, en una sola lengua de carpetas",
-              "control": "juicio",
-              "fuente": "casa-design-system",
-              "porque": "Los nombres con acentos o espacios se rompen según el sistema que los lea",
-              "ejemplo_bueno": "plato-de-lentejas.webp",
-              "ejemplo_malo": "Plato de Lentejas (1).webp"
-            }
-          ],
-          "no_hace": [
-            "borrar assets o carpetas, aunque parezcan sin uso",
-            "subir o reemplazar ficheros en Vercel Blob",
-            "generar imágenes con coste sin que Pablo lo apruebe"
-          ],
-          "rondas": [
-            "ronda: 1 fuentes: 2 cambios: Consultadas las guías de formatos de imagen y de imágenes adaptables de web.dev; piden un formato moderno y varias medidas",
-            "ronda: 2 fuentes: 2 cambios: Contrastado con docs/diseno/ESTADO.md: la casa exige original y script reproducibles desde un clon limpio",
-            "ronda: 3 fuentes: 1 cambios: Cuatro reglas: derivado por script, optimizado con peso, manifiesto y nombre"
-          ]
-        },
-        {
-          "id": "iconos-e-ilustraciones",
-          "tarea": "Añadir un icono, una ilustración o una familia de assets al sistema",
-          "accion": "construir",
-          "origen": "disparadores",
-          "ambitos": [
-            "diseno"
-          ],
-          "n2": "construir.diseno",
-          "reglas": [
-            {
-              "nombre": "Una familia, un estilo",
-              "sujeto": "ilustracion",
-              "fuerza": "debe",
-              "exigencia": "compartir con su familia el fondo, el formato y el tamaño, con el prompt y la seed guardados junto al original",
-              "control": "juicio",
-              "fuente": "casa-design-system",
-              "porque": "Una ilustración que rompe el estilo hace que la app parezca varias",
-              "ejemplo_bueno": "mismo fondo blanco, mismo tamaño y la seed junto al original",
-              "ejemplo_malo": "una ilustración con otro fondo en la misma familia"
-            },
-            {
-              "nombre": "Coste aprobado",
-              "sujeto": "ilustracion",
-              "fuerza": "no_debe",
-              "exigencia": "generarse con un servicio de pago sin que Pablo lo apruebe antes",
-              "control": "juicio",
-              "fuente": "casa-claude",
-              "porque": "Gastar dinero es de las cosas que se pregunta y se espera el sí",
-              "ejemplo_bueno": "dejar el coste estimado en las decisiones pendientes",
-              "ejemplo_malo": "lanzar 40 imágenes de Gemini para ver cómo salen"
-            }
-          ],
-          "no_hace": [
-            "generar imágenes con coste (Gemini, fal, Midjourney) sin que Pablo lo apruebe",
-            "mezclar estilos dentro de una familia"
-          ],
-          "rondas": [
-            "ronda: 1 fuentes: 2 cambios: Consultada la requisito de texto alternativo de WCAG y la guía de formatos de web.dev; piden alternativa a lo no textual",
-            "ronda: 2 fuentes: 2 cambios: Contrastado con DESIGN_SYSTEM.md e ILUSTRACIONES-PASOS.md: una familia un estilo, con prompt y seed guardados",
-            "ronda: 3 fuentes: 1 cambios: Tres reglas: familia coherente, alternativa de texto y coste aprobado"
-          ]
-        },
-        {
-          "id": "marca-y-manifest",
-          "tarea": "Tocar el logo, el favicon, el manifest o el color de marca",
-          "accion": "construir",
-          "origen": "disparadores",
-          "ambitos": [
-            "diseno"
-          ],
-          "n2": "construir.diseno",
-          "reglas": [
-            {
-              "nombre": "Verde atado a tokens",
-              "sujeto": "marca",
-              "fuerza": "debe",
-              "exigencia": "tomar el verde del token de marca en el favicon, el theme-color y el manifest",
-              "control": "src/design/marca.test.js",
-              "fuente": "webdev-manifest",
-              "porque": "Lo que el navegador lee antes de cargar la app repite el color a mano y se separa si nadie lo ata",
-              "ejemplo_bueno": "el test compara el color del favicon con tokens.js",
-              "ejemplo_malo": "cambiar el verde en el favicon y no en el manifest"
-            },
-            {
-              "nombre": "Marca de Pablo",
-              "sujeto": "marca",
-              "fuerza": "no_debe",
-              "exigencia": "cambiarse (color, logo o nombre) sin pasar por Pablo: va a las decisiones pendientes",
-              "control": "juicio",
-              "fuente": "casa-diseno-estado",
-              "porque": "La marca es una decisión abierta de producto, no de la sesión",
-              "ejemplo_bueno": "devolver la propuesta de logo a las decisiones pendientes",
-              "ejemplo_malo": "sustituir el logo porque queda mejor"
-            },
-            {
-              "nombre": "Manifest completo",
-              "sujeto": "manifest",
-              "fuerza": "debe",
-              "exigencia": "declarar nombre, iconos y color en la ruta que pide el navegador",
-              "control": "juicio",
-              "fuente": "mdn-manifest",
-              "porque": "Sin esos campos el navegador no ofrece instalar la app como aplicación",
-              "ejemplo_bueno": "name, icons y theme_color en el manifest servido desde su ruta",
-              "ejemplo_malo": "un manifest sin iconos de 512 px"
-            }
-          ],
-          "no_hace": [
-            "cambiar el color de marca, el logo o el nombre sin Pablo",
-            "dejar el verde de marca escrito a mano en tres sitios"
-          ],
-          "rondas": [
-            "ronda: 1 fuentes: 2 cambios: Consultadas la guía del manifest de web.dev y la de MDN; piden nombre, iconos y color",
-            "ronda: 2 fuentes: 2 cambios: Contrastado con src/design/marca.test.js: favicon, theme-color y manifest repiten el verde y el test los ata a tokens",
-            "ronda: 3 fuentes: 1 cambios: Tres reglas: verde atado a tokens, marca de Pablo y manifest completo"
-          ]
-        },
-        {
-          "id": "capturas-antes-despues",
-          "tarea": "Hacer las capturas de antes y después a 375×812 y 420×900",
-          "accion": "medir",
-          "origen": "metodo",
-          "ambitos": [
-            "diseno"
-          ],
-          "n2": "medir.diseno",
-          "comunes": [
-            "capturas-375-420"
-          ],
-          "reglas": [
-            {
-              "nombre": "Misma pantalla y estado",
-              "sujeto": "captura",
-              "fuerza": "debe",
-              "exigencia": "hacerse de la misma pantalla y el mismo estado antes y después del cambio",
-              "control": "juicio",
-              "fuente": "pw-screenshots",
-              "porque": "Dos capturas de estados distintos no se pueden comparar",
-              "ejemplo_bueno": "antes y después con la lista llena a 375 px",
-              "ejemplo_malo": "antes con datos y después sin datos"
-            },
-            {
-              "nombre": "Sin navegador, dicho",
-              "sujeto": "captura",
-              "fuerza": "debe",
-              "condicion": "cuando no hay navegador disponible",
-              "exigencia": "decirlo en NO COMPROBADO en lugar de describir lo que no se ha visto",
-              "control": "juicio",
-              "fuente": "casa-plantilla-agente",
-              "porque": "Una descripción inventada se lee como una comprobación",
-              "ejemplo_bueno": "NO COMPROBADO: sin navegador en esta sesión",
-              "ejemplo_malo": "una pantalla descrita a partir del código"
-            }
-          ],
-          "no_hace": [
-            "describir una pantalla que no ha visto",
-            "dar el juicio final: es de qa"
-          ],
-          "rondas": [
-            "ronda: 1 fuentes: 2 cambios: Consultada la documentación de capturas y las buenas prácticas de Playwright; piden capturas repetibles de lo visible",
-            "ronda: 2 fuentes: 1 cambios: Contrastado con el método de diseno: la captura de antes se hace antes de tocar nada",
-            "ronda: 3 fuentes: 1 cambios: Dos condiciones propias más la común de los dos anchos"
-          ]
-        },
-        {
-          "id": "voz-de-la-interfaz",
-          "tarea": "Escribir la voz de la interfaz: botones, vacíos y errores",
-          "accion": "construir",
-          "origen": "mision",
-          "ambitos": [
-            "diseno",
-            "product"
-          ],
-          "n2": "construir.diseno+product",
-          "reglas": [
-            {
-              "nombre": "Botón con verbo",
-              "sujeto": "texto.interfaz",
-              "fuerza": "debe",
-              "condicion": "cuando es el texto de un botón",
-              "exigencia": "decir la acción que ocurre al pulsarlo, con un verbo",
-              "control": "juicio",
-              "fuente": "casa-design-system",
-              "porque": "El botón es la promesa de lo que pasa y se lee solo, sin contexto",
-              "ejemplo_bueno": "Guardar menú",
-              "ejemplo_malo": "Botón con el texto Aceptar"
-            },
-            {
-              "nombre": "Error que ayuda",
-              "sujeto": "texto.interfaz",
-              "fuerza": "debe",
-              "condicion": "cuando muestra un error",
-              "exigencia": "decir qué ha pasado y qué puede hacer la persona, con texto y no solo con color",
-              "control": "juicio",
-              "fuente": "w3-error-id",
-              "porque": "Quien no ve el color o no entiende el código no puede arreglar nada",
-              "ejemplo_bueno": "No se pudo guardar. Revisa la conexión y vuelve a probar",
-              "ejemplo_malo": "Error 500 sin más texto"
-            },
-            {
-              "nombre": "Vacío con salida",
-              "sujeto": "texto.interfaz",
-              "fuerza": "debe",
-              "condicion": "cuando la pantalla está vacía",
-              "exigencia": "ofrecer la acción que la llena en lugar de solo decir que no hay nada",
-              "control": "juicio",
-              "fuente": "casa-design-system",
-              "porque": "Un vacío sin salida deja a la persona en una pantalla muerta",
-              "ejemplo_bueno": "Aún no hay platos. Añade el primero",
-              "ejemplo_malo": "No hay datos"
-            }
-          ],
-          "no_hace": [
-            "escribir los textos de Lola",
-            "dejar un error sin decir qué puede hacer la persona"
-          ],
-          "rondas": [
-            "ronda: 1 fuentes: 2 cambios: Consultadas las requisitos de WCAG sobre identificación de errores y mensajes de estado",
-            "ronda: 2 fuentes: 2 cambios: Contrastado con DESIGN_SYSTEM.md, que fija la voz y el tono de la casa",
-            "ronda: 3 fuentes: 1 cambios: Tres reglas: botón con verbo, error útil y vacío con salida"
-          ]
-        },
-        {
-          "id": "estado-del-diseno",
-          "tarea": "Poner al día docs/diseno/ESTADO.md con las cifras y decisiones",
-          "accion": "documentar",
-          "origen": "entregables",
-          "ambitos": [
-            "diseno"
-          ],
-          "n2": "documentar.diseno",
-          "reglas": [
-            {
-              "nombre": "Cifra con comando",
-              "sujeto": "estado.diseno",
-              "fuerza": "debe",
-              "exigencia": "dar cada cifra con el comando del que sale y la fecha en que se tomó",
-              "control": "juicio",
-              "fuente": "casa-diseno-estado",
-              "porque": "Una cifra sin origen no se puede repetir ni comparar",
-              "ejemplo_bueno": "18 valores sueltos en lint:base, a 10 oct 2026",
-              "ejemplo_malo": "quedan pocos valores sueltos"
-            },
-            {
-              "nombre": "Decisión respetada",
-              "sujeto": "estado.diseno",
-              "fuerza": "no_debe",
-              "exigencia": "reabrir una decisión ya tomada ni tomar una abierta: se devuelve a Pablo",
-              "control": "juicio",
-              "fuente": "casa-diseno-estado",
-              "porque": "Las decisiones abiertas son de Pablo y las tomadas ya tienen su motivo",
-              "ejemplo_bueno": "dejar la decisión D12 como abierta y devolverla",
-              "ejemplo_malo": "decidir el logo desde la sesión"
-            }
-          ],
-          "no_hace": [
-            "reabrir una decisión ya tomada",
-            "tomar una decisión abierta: la devuelve a Pablo"
-          ],
-          "rondas": [
-            "ronda: 1 fuentes: 1 cambios: Consultado el propio ESTADO.md: su tabla de decisiones y sus cifras de cumplimiento",
-            "ronda: 2 fuentes: 1 cambios: Contrastado con la regla de registros de gobierno: cada cifra con su comando",
-            "ronda: 3 fuentes: 1 cambios: Dos reglas: cifra con comando y decisiones respetadas"
-          ]
-        }
-      ]
-    },
-    "lola": {
-      "tareas": [
-        {
-          "id": "herramienta-de-lola",
-          "tarea": "Crear o cambiar una herramienta del bot con su descripción, su papel y sus tests",
-          "accion": "construir",
-          "origen": "disparadores",
-          "ambitos": [
-            "bot",
-            "code"
-          ],
-          "n2": "construir.bot+code",
-          "comunes": [
-            "tests-de-lo-tocado",
-            "evals-antes-despues"
-          ],
-          "reglas": [
-            {
-              "nombre": "Descripción única",
-              "sujeto": "herramienta",
-              "fuerza": "debe",
-              "exigencia": "llevar un nombre y una descripción que no se confundan con los de otra herramienta",
-              "control": "juicio",
-              "fuente": "an-tools-agents",
-              "porque": "El modelo elige la herramienta por su descripción: un solapamiento es un fallo de enrutado",
-              "ejemplo_bueno": "consulta_menu: lee el menú de la semana, sin cambiar nada",
-              "ejemplo_malo": "una segunda herramienta cuya descripción también dice ver el menú"
-            },
-            {
-              "nombre": "Devuelve poco y relevante",
-              "sujeto": "herramienta",
-              "fuerza": "debe",
-              "condicion": "cuando escribe",
-              "exigencia": "devolver el estado final y solo lo relevante, para que el modelo no tenga que volver a leer",
-              "control": "juicio",
-              "fuente": "an-tools-agents",
-              "porque": "Lo que tarda un turno es el número de llamadas al modelo, no cada llamada",
-              "ejemplo_bueno": "cambiar_plato devuelve el día ya cambiado",
-              "ejemplo_malo": "cambiar_plato devuelve ok y obliga a leer el menú otra vez"
-            },
-            {
-              "nombre": "Papel y permiso",
-              "sujeto": "herramienta",
-              "fuerza": "debe",
-              "exigencia": "figurar en su papel de src/lib/papeles.js con el permiso que necesita",
-              "control": "juicio",
-              "fuente": "casa-lola-regla",
-              "porque": "Un papel sin la herramienta no la usa y una herramienta sin papel la usa cualquiera",
-              "ejemplo_bueno": "la herramienta nueva en el papel de compra",
-              "ejemplo_malo": "una herramienta sin papel asignado"
-            }
-          ],
-          "no_hace": [
-            "borrar datos ni escribir para otros miembros de la casa sin Pablo",
-            "cambiar el esquema que usa la herramienta: es de datos",
-            "dar por mejor un cambio sin evals"
-          ],
-          "rondas": [
-            "ronda: 1 fuentes: 3 cambios: Consultadas la guía de Anthropic sobre herramientas, su artículo de herramientas para agentes y OWASP LLM Top 10",
-            "ronda: 2 fuentes: 2 cambios: Contrastado con la regla lola de la casa: la escritura segura y el estado final ya están, y se llevan tal cual",
-            "ronda: 3 fuentes: 1 cambios: Cuatro reglas: descripción única, respuesta corta, escritura segura y papel"
-          ]
-        },
-        {
-          "id": "reproducir-fallo-de-lola",
-          "tarea": "Reproducir un fallo de Lola con el caso exacto y localizar su causa",
-          "accion": "diagnosticar",
-          "origen": "metodo",
-          "ambitos": [
-            "bot"
-          ],
-          "n2": "diagnosticar.bot",
-          "comunes": [
-            "causa-frente-a-sintoma",
-            "buscar-lo-ya-apuntado"
-          ],
-          "reglas": [
-            {
-              "nombre": "Caso exacto",
-              "sujeto": "diagnostico",
-              "fuerza": "debe",
-              "exigencia": "partir del caso exacto: el mensaje, el papel y el estado de la casa, y ver qué hizo Lola",
-              "control": "juicio",
-              "fuente": "an-evals",
-              "porque": "Un fallo que no se reproduce no se puede arreglar ni dejar vigilado",
-              "ejemplo_bueno": "el mensaje, el papel de compra y la casa con dos miembros",
-              "ejemplo_malo": "Lola a veces se equivoca con la compra"
-            },
-            {
-              "nombre": "Causa localizada",
-              "sujeto": "diagnostico",
-              "fuerza": "debe",
-              "exigencia": "localizar la causa entre la descripción de la herramienta, el conocimiento, el enrutador, los datos devueltos o la lógica del turno",
-              "control": "juicio",
-              "fuente": "an-tools-agents",
-              "porque": "Cada una se arregla en un sitio distinto y tocar la equivocada deja el fallo",
-              "ejemplo_bueno": "la descripción de la herramienta se solapa con otra",
-              "ejemplo_malo": "añadir una frase al conocimiento por si acaso"
-            }
-          ],
-          "no_hace": [
-            "arreglar sin reproducir antes",
-            "dar por causa el primer síntoma"
-          ],
-          "rondas": [
-            "ronda: 1 fuentes: 2 cambios: Consultados el artículo de Anthropic sobre evals de agentes y su guía de herramientas",
-            "ronda: 2 fuentes: 1 cambios: Contrastado con el método de lola: caso exacto, causa localizada, cambio mínimo",
-            "ronda: 3 fuentes: 1 cambios: Dos reglas: caso exacto y dónde está la causa"
-          ]
-        },
-        {
-          "id": "conocimiento-y-descripciones",
-          "tarea": "Cambiar el conocimiento o la ficha cuidando el prefijo cacheado",
-          "accion": "construir",
-          "origen": "disparadores",
-          "ambitos": [
-            "bot"
-          ],
-          "n2": "construir.bot",
-          "comunes": [
-            "evals-antes-despues"
-          ],
-          "reglas": [
-            {
-              "nombre": "Prefijo estable",
-              "sujeto": "prompt.prefijo",
-              "fuerza": "debe",
-              "exigencia": "mantener herramientas y conocimiento estables y en orden fijo, sin nada variable antes del último punto de caché",
-              "control": "api/_bot/unaVuelta.test.js",
-              "fuente": "an-cache",
-              "porque": "La caché se invalida desde el primer byte que cambia",
-              "ejemplo_bueno": "lo variable de la casa va después del último punto de caché",
-              "ejemplo_malo": "la fecha de hoy al principio del prompt de sistema"
-            },
-            {
-              "nombre": "Cambio justificado",
-              "sujeto": "prompt.prefijo",
-              "fuerza": "debe",
-              "condicion": "cuando cambia el conocimiento o las herramientas",
-              "exigencia": "justificarse en el informe, porque invalida la caché de todos los turnos",
-              "control": "juicio",
-              "fuente": "an-cache",
-              "porque": "Cada cambio del prefijo cuesta un turno entero de tokens a todas las familias",
-              "ejemplo_bueno": "el informe dice que cambia conocimiento.md y cuánto cuesta reescribir la caché",
-              "ejemplo_malo": "retocar una frase del conocimiento sin decir nada"
-            },
-            {
-              "nombre": "Instantánea intencionada",
-              "sujeto": "ficha",
-              "fuerza": "debe",
-              "condicion": "cuando cambia la ficha de la casa",
-              "exigencia": "actualizar la instantánea solo si el cambio es intencional y decirlo en el informe",
-              "control": "api/_bot/fichas.test.js",
-              "fuente": "casa-lola-regla",
-              "porque": "La instantánea es lo que avisa de un cambio de ficha sin querer",
-              "ejemplo_bueno": "actualizar la instantánea y explicar el campo nuevo",
-              "ejemplo_malo": "regenerar la instantánea para que el test pase"
-            }
-          ],
-          "no_hace": [
-            "poner nada variable antes del último punto de caché",
-            "actualizar la instantánea de fichas sin que el cambio sea intencionado"
-          ],
-          "rondas": [
-            "ronda: 1 fuentes: 2 cambios: Consultada la documentación de Anthropic sobre caché de prompts",
-            "ronda: 2 fuentes: 2 cambios: Contrastado con api/_bot/agente.js y la regla lola: el orden fijo del prefijo y la instantánea de fichas",
-            "ronda: 3 fuentes: 1 cambios: Tres reglas: prefijo estable, cambio justificado e instantánea intencionada"
-          ]
-        },
-        {
-          "id": "enrutador-y-via-rapida",
-          "tarea": "Cambiar el enrutador o la vía rápida y sus reglas",
-          "accion": "construir",
-          "origen": "mision",
-          "ambitos": [
-            "bot",
-            "code"
-          ],
-          "n2": "construir.bot+code",
-          "comunes": [
-            "evals-antes-despues"
-          ],
-          "reglas": [
-            {
-              "nombre": "Regla con su caso",
-              "sujeto": "enrutador",
-              "fuerza": "debe",
-              "exigencia": "cambiar una regla solo con el caso de scripts/router-evals.json que la cubre, visto fallar antes",
-              "control": "juicio",
-              "fuente": "an-evals",
-              "porque": "Sin caso no se sabe si la regla nueva arregla algo ni si rompe lo que iba",
-              "ejemplo_bueno": "un caso de ejemplo nuevo que falla y pasa tras la regla",
-              "ejemplo_malo": "retocar la regla porque un mensaje salió mal una vez"
-            },
-            {
-              "nombre": "Cero rápidas de más",
-              "sujeto": "enrutador",
-              "fuerza": "no_debe",
-              "exigencia": "mandar a la vía rápida un mensaje que toca a Lola: la cifra que importa es 0",
-              "control": "scripts/router-evals.mjs",
-              "fuente": "casa-lola-regla",
-              "porque": "Una respuesta rápida equivocada cuesta más que dejar pasar a Lola",
-              "ejemplo_bueno": "0 de rápida cuando tocaba Lola en router-evals",
-              "ejemplo_malo": "subir el umbral para ganar velocidad a costa de aciertos"
-            },
-            {
-              "nombre": "Esquema plano",
-              "sujeto": "enrutador",
-              "fuerza": "debe",
-              "exigencia": "mantener su esquema de salida plano y cerrado, con el umbral de cada modo",
-              "control": "juicio",
-              "fuente": "casa-router",
-              "porque": "Con objetos anidados el modelo pequeño acierta el modo y se deja los datos sin rellenar",
-              "ejemplo_bueno": "modo, confianza y datos al mismo nivel con enum cerrado",
-              "ejemplo_malo": "un objeto anidado por modo"
-            }
-          ],
-          "no_hace": [
-            "cambiar el modelo del enrutador o su umbral sin Pablo",
-            "mandar a la vía rápida un mensaje que escribe datos sin pasar por la confirmación"
-          ],
-          "rondas": [
-            "ronda: 1 fuentes: 2 cambios: Consultados el artículo de Anthropic sobre evals de agentes y su guía de latencia",
-            "ronda: 2 fuentes: 2 cambios: Contrastado con api/_bot/router.js y la regla lola: la cifra que importa es cero rápidas cuando tocaba Lola",
-            "ronda: 3 fuentes: 1 cambios: Tres reglas: regla con caso, cero rápidas de más y esquema plano"
-          ]
-        },
-        {
-          "id": "papeles-y-permisos-de-herramientas",
-          "tarea": "Cambiar los papeles y permisos de las herramientas de Lola",
-          "accion": "construir",
-          "origen": "mision",
-          "ambitos": [
-            "bot",
-            "code"
-          ],
-          "n2": "construir.bot+code",
-          "reglas": [
-            {
-              "nombre": "Revisión de seguridad",
-              "sujeto": "papel",
-              "fuerza": "debe",
-              "condicion": "cuando cambia un papel o un permiso",
-              "exigencia": "pasar por seguridad antes de fusionarse",
-              "control": "juicio",
-              "fuente": "casa-agente-lola",
-              "porque": "Quien construye un permiso no es quien mejor ve cómo se abusa",
-              "ejemplo_bueno": "pedir a la sesión principal que lo vea seguridad",
-              "ejemplo_malo": "fusionar el cambio con la revisión del propio autor"
-            }
-          ],
-          "no_hace": [
-            "dar al modelo una herramienta de escritura que no necesita su papel",
-            "dar por bueno un cambio de papel sin que lo vea seguridad"
-          ],
-          "rondas": [
-            "ronda: 1 fuentes: 2 cambios: Consultados OWASP LLM Top 10 y la guía de herramientas de Anthropic",
-            "ronda: 2 fuentes: 1 cambios: Contrastado con src/lib/papeles.js y la regla lola: lo que no puede fallar va en código determinista",
-            "ronda: 3 fuentes: 1 cambios: Tres reglas: mínimo, garantía en código y revisión de seguridad"
-          ]
-        },
-        {
-          "id": "coste-y-latencia",
-          "tarea": "Bajar el coste o la latencia de un tipo de turno",
-          "accion": "construir",
-          "origen": "disparadores",
-          "ambitos": [
-            "bot"
-          ],
-          "n2": "construir.bot",
-          "comunes": [
-            "medir-antes-despues",
-            "evals-antes-despues"
-          ],
-          "reglas": [
-            {
-              "nombre": "Menos vueltas",
-              "sujeto": "turno",
-              "fuerza": "debe",
-              "exigencia": "bajar el número de llamadas al modelo antes que acelerar cada llamada",
-              "control": "juicio",
-              "fuente": "casa-agente-lola",
-              "porque": "Medido el 1 oct de 2026: lo que tarda un turno es el número de llamadas",
-              "ejemplo_bueno": "una herramienta de escritura que devuelve el estado final",
-              "ejemplo_malo": "pasar a un modelo más rápido sin quitar vueltas"
-            },
-            {
-              "nombre": "Modelo más barato que aprueba",
-              "sujeto": "modelo.turno",
-              "fuerza": "debe",
-              "exigencia": "ser el más barato que aprueba los evals, y subir de modelo es la última opción",
-              "control": "juicio",
-              "fuente": "an-choose-model",
-              "porque": "El coste de un turno se multiplica por todas las familias y todos los días",
-              "ejemplo_bueno": "Haiku si aprueba el set de evals del turno",
-              "ejemplo_malo": "Opus por defecto porque contesta mejor"
-            }
-          ],
-          "no_hace": [
-            "cambiar el modelo por defecto de un turno ni subir el tope de iteraciones: es gateway",
-            "cambiar límites de uso o de coste"
-          ],
-          "rondas": [
-            "ronda: 1 fuentes: 3 cambios: Consultadas las guías de Anthropic sobre latencia y sobre elegir modelo, y la de caché",
-            "ronda: 2 fuentes: 2 cambios: Contrastado con la medida del 1 oct de la casa: lo que tarda es el número de llamadas, no cada llamada",
-            "ronda: 3 fuentes: 1 cambios: Dos condiciones propias: menos vueltas y el modelo más barato que aprueba"
-          ]
-        },
-        {
-          "id": "casos-de-eval",
-          "tarea": "Añadir a los evals el caso de un fallo real que se arregla",
-          "accion": "construir",
-          "origen": "entregables",
-          "ambitos": [
-            "bot"
-          ],
-          "n2": "construir.bot",
-          "comunes": [
-            "evals-antes-despues"
-          ],
-          "reglas": [
-            {
-              "nombre": "Un caso por fallo",
-              "sujeto": "eval.caso",
-              "fuerza": "debe",
-              "condicion": "cuando se arregla un fallo real",
-              "exigencia": "añadirse al set y verse fallar antes del arreglo",
-              "control": "juicio",
-              "fuente": "an-evals",
-              "porque": "Un fallo sin caso puede volver sin que nada avise, y un caso que nunca falló no prueba nada",
-              "ejemplo_bueno": "el caso falla en staging y pasa con el arreglo",
-              "ejemplo_malo": "arreglar y dejar los evals como estaban"
-            },
-            {
-              "nombre": "Campos del caso",
-              "sujeto": "eval.caso",
-              "fuerza": "debe",
-              "exigencia": "llevar id, tipo, dominio y origen, y dependeDeFecha si habla de días",
-              "control": "scripts/lib/evals.test.js",
-              "fuente": "casa-lola-regla",
-              "porque": "Los campos permiten contar y agrupar los casos, y los de fecha caducan",
-              "ejemplo_bueno": "id, tipo alergias, dominio compra, origen fallo real",
-              "ejemplo_malo": "un caso solo con el mensaje y la respuesta esperada"
-            }
-          ],
-          "no_hace": [
-            "arreglar sin dejar el caso",
-            "añadir un caso que no se ha visto fallar"
-          ],
-          "rondas": [
-            "ronda: 1 fuentes: 3 cambios: Consultados el artículo de Anthropic sobre evals, su guía de pruebas y la regla lola",
-            "ronda: 2 fuentes: 2 cambios: Contrastado con scripts/lib/evals.mjs: los campos obligatorios del caso ya están definidos",
-            "ronda: 3 fuentes: 1 cambios: Dos reglas: un caso por fallo visto fallar y campos completos"
-          ]
-        },
-        {
-          "id": "medir-antes-despues",
-          "tarea": "Medir pase de evals, tokens por turno y vueltas antes y después del cambio",
-          "accion": "medir",
-          "origen": "entregables",
-          "ambitos": [
-            "bot"
-          ],
-          "n2": "medir.bot",
-          "comunes": [
-            "medir-antes-despues",
-            "evals-antes-despues"
-          ],
-          "reglas": [
-            {
-              "nombre": "Tabla del turno",
-              "sujeto": "medida",
-              "fuerza": "debe",
-              "exigencia": "dar el pase de evals, los tokens por turno y las vueltas al modelo antes y después del cambio",
-              "control": "juicio",
-              "fuente": "an-evals",
-              "porque": "Sin las tres cifras no se sabe si un arreglo cuesta lo que ahorra",
-              "ejemplo_bueno": "pase 24 de 24 a 24 de 24, 3.100 a 2.400 tokens y 3 a 2 vueltas",
-              "ejemplo_malo": "va más rápido"
-            },
-            {
-              "nombre": "Lo no corrido, dicho",
-              "sujeto": "medida",
-              "fuerza": "debe",
-              "condicion": "cuando no se pueden correr los evals por claves o por red",
-              "exigencia": "decirlo en el informe en lugar de estimar las cifras",
-              "control": "juicio",
-              "fuente": "an-evals",
-              "porque": "Una cifra estimada se lee como medida y termina usándose de referencia",
-              "ejemplo_bueno": "NO COMPROBADO: sin clave de Anthropic en esta sesión",
-              "ejemplo_malo": "unos 2.500 tokens, calculados a ojo"
-            }
-          ],
-          "no_hace": [
-            "estimar una cifra que no se ha medido",
-            "comparar medidas tomadas en condiciones distintas"
-          ],
-          "rondas": [
-            "ronda: 1 fuentes: 2 cambios: Consultados el artículo de Anthropic sobre evals y su guía de latencia",
-            "ronda: 2 fuentes: 1 cambios: Contrastado con scripts/bot-medidas.mjs y scripts/bot-coste.mjs: de ahí salen tokens y vueltas",
-            "ronda: 3 fuentes: 1 cambios: Dos condiciones propias: la tabla del turno y decir lo que no se pudo correr"
           ]
         }
       ]
@@ -3733,7 +3721,7 @@
             }
           ],
           "no_hace": [
-            "cambiar el modelo: es gateway de lola",
+            "cambiar el modelo: es gateway del constructor",
             "cambiar a la vez el modelo y el código"
           ],
           "rondas": [
@@ -3868,7 +3856,7 @@
             }
           ],
           "no_hace": [
-            "escribir migraciones ni código: lo arregla datos",
+            "escribir migraciones ni código: lo arregla el constructor",
             "dar un hallazgo sin su ejemplo"
           ],
           "rondas": [
@@ -4127,7 +4115,7 @@
               "fuente": "casa-plantilla-agente",
               "porque": "Si el traspaso solo vive en prosa, una arista cambia o se pierde sin que nada falle",
               "ejemplo_bueno": "traspasa_a: [datos, gobierno] y los dos citados en su Escalado",
-              "ejemplo_malo": "un «a gobierno» en el Escalado que ninguna cabecera declara"
+              "ejemplo_malo": "un «a `qa`» en el Escalado que ninguna cabecera declara"
             }
           ],
           "no_hace": [
@@ -4425,9 +4413,9 @@
   },
   "reglas_que_no_son_norma": {
     "revisor/contrastar-estandar-del-constructor · Sin informe, no comprobado": "principios-auto: se parecen solo en comprobar; la regla es cómo marca el juez una regla sin evidencia",
-    "lola/papeles-y-permisos-de-herramientas · Revisión de seguridad": "evals-antes-de-fusionar: se parecen solo en fusionar; la regla es que un cambio de papel o permiso pase por el juez seguridad",
+    "constructor/papeles-y-permisos-de-herramientas · Revisión de seguridad": "evals-antes-de-fusionar: se parecen solo en fusionar; la regla es que un cambio de papel o permiso pase por el juez seguridad",
     "común buscar-lo-ya-apuntado · Buscar antes de apuntar": "issues-con-buscar-antes: la norma es crear un issue con el script que busca parecidos; la regla es buscar antes de dar un hallazgo por nuevo en un informe",
-    "gobierno/worktrees-y-ramas · Inventario antes de borrar": "uniones-antes-de-borrar: la norma es quitar las uniones; la regla es enseñar antes lo que se perdería (cambios, commits sin subir y uniones)"
+    "constructor/worktrees-y-ramas · Inventario antes de borrar": "uniones-antes-de-borrar: la norma es quitar las uniones; la regla es enseñar antes lo que se perdería (cambios, commits sin subir y uniones)"
   },
   "normas_sin_juez": {
     "produccion-solo-desde-main": "Gateway de Pablo: lo juzga él al pulsar fusionar a main, no un agente juez",

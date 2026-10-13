@@ -88,11 +88,11 @@ pasan a ser un valor, un campo, un tipo de evento o un tipo de recurso). Corregi
 | `workflow` | delivery | piece | both | sí | agent | `.github/workflows` (partial) | ops/workflows.test.js, ops/salud-despliegue.test.js | repo |
 | `project` | structure | piece | horizontal | no | human | `ops/entidades.json` (with_registry) | ops/entidades.test.js, docs/entidades/MAPA.md | — |
 | `repo` | structure | piece | vertical | no | human | `ops/entidades.json` (partial) | ops/planos.json, scripts/rulesets.mjs | project |
-| `design-system` | design | piece | vertical | no | agent | `src/design/tokens.js` (partial) | ops/diseno/bloques.json, ops/diseno/bloques.test.js, .claude/skills/revision-de-diseno/SKILL.md, .claude/agents/diseno.md | project |
-| `design-profile` | design | template | horizontal | no | agent | `ops/diseno/bloques.json` (with_registry) | ops/diseno/bloques.test.js, .claude/skills/revision-de-diseno/SKILL.md, .claude/agents/diseno.md | — |
+| `design-system` | design | piece | vertical | no | agent | `src/design/tokens.js` (partial) | ops/diseno/bloques.json, ops/diseno/bloques.test.js, .claude/skills/revision-de-diseno/SKILL.md, .claude/agents/constructor.md | project |
+| `design-profile` | design | template | horizontal | no | agent | `ops/diseno/bloques.json` (with_registry) | ops/diseno/bloques.test.js, .claude/skills/revision-de-diseno/SKILL.md, .claude/agents/constructor.md | — |
 | `token` | design | piece | vertical | no | agent | `src/design/tokens.js` (with_registry) | src/design/tokens.test.js, src/design/contraste.js, scripts/diseno/generar-tokens-css.mjs | design-system |
-| `component` | design | piece | vertical | no | agent | `DESIGN_SYSTEM.md` (partial) | .claude/skills/revision-de-diseno/SKILL.md, .claude/agents/diseno.md | design-system |
-| `pattern` | design | piece | vertical | no | agent | `DESIGN_SYSTEM.md` (partial) | .claude/skills/revision-de-diseno/SKILL.md, .claude/agents/diseno.md | design-system |
+| `component` | design | piece | vertical | no | agent | `DESIGN_SYSTEM.md` (partial) | .claude/skills/revision-de-diseno/SKILL.md, .claude/agents/constructor.md | design-system |
+| `pattern` | design | piece | vertical | no | agent | `DESIGN_SYSTEM.md` (partial) | .claude/skills/revision-de-diseno/SKILL.md, .claude/agents/constructor.md | design-system |
 | `account` | home | piece | vertical | no | automatic, human | `ops/MODULOS.json` (partial) | src/lib/useAuth.js, api/_bot/enlace.js | — |
 | `group` | home | piece | vertical | no | human | `supabase/migrations/0079_personas_y_grupos.sql` (partial) | api/_bot/ficha.js | household |
 | `menu-week` | food | piece | vertical | no | agent, human | `supabase/migrations/0005_multiweek_menus.sql` (partial) | src/lib/menusSync.js, src/lib/shoppingBuilder.js | menu |

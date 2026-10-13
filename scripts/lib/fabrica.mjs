@@ -219,7 +219,7 @@ export function sumar(a, b) {
   a.minutos += b.minutos; a.mensajes += b.mensajes; a.sesiones += b.sesiones; a.subagentes += b.subagentes;
   for (const k of Object.keys(a.tokens)) a.tokens[k] += b.tokens[k];
   a.coste_usd += b.coste_usd; a.sin_precio += b.sin_precio;
-  for (const k of ["modelos", "agentes"]) for (const [x, v] of Object.entries(b[k])) a[k][x] = (a[k][x] ?? 0) + v;
+  for (const k of ["modelos", "agentes"]) for (const [x, v] of Object.entries(b[k])) a[k][x] = (Object.hasOwn(a[k], x) ? a[k][x] : 0) + v;
   return a;
 }
 
@@ -274,7 +274,8 @@ export function resumirPartes(partes, { huecoMin = HUECO_ACTIVO_MIN, precios = P
     }
     for (const a of p.agentes) {
       const c = de(a.rama);
-      c.agentes[a.tipo] = (c.agentes[a.tipo] ?? 0) + 1;
+      // hasOwn: un agente se llama `constructor` (#688) y en un {} ya existe esa clave (es Object).
+      c.agentes[a.tipo] = (Object.hasOwn(c.agentes, a.tipo) ? c.agentes[a.tipo] : 0) + 1;
     }
   }
   for (const c of porIssue.values()) { c.subagentes = Object.values(c.agentes).reduce((x, y) => x + y, 0); c.sesiones = 1; }

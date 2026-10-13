@@ -9,7 +9,7 @@ metadata:
   pasos_fijos: false
   sintoma_a_causa: false
   elige_opciones: false
-  dueno: gobierno
+  dueno: constructor
   comprobado: "2026-10-09"
   normas: [copia-nocturna-base, copias-solo-con-su-rol, copia-restaurada-ensayada]
 ---

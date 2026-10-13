@@ -200,7 +200,7 @@ describe("catálogos con las reglas dentro de otras entradas (#516)", () => {
   });
   it("una regla mal escrita dentro de una tarea hace fallar al catálogo", () => {
     const json = structuredClone(leerJson("ops/estandares-agentes.json"));
-    json.agentes.datos.tareas[0].reglas[0].exigencia = "Describir el modelo.";
+    json.agentes.constructor.tareas[11].reglas[0].exigencia = "Describir el modelo.";
     const salida = problemasDeRedaccion(datos, { existe, leerJson: (r) => (r === "ops/estandares-agentes.json" ? json : leerJson(r)) });
     expect(salida.join(String.fromCharCode(10))).toContain("«exigencia» empieza en minúscula");
   });

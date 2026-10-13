@@ -73,7 +73,7 @@
     "encargo.subtype": {
       "create-plain": "Crear algo nuevo sin más condiciones que el esqueleto del tipo",
       "create-person-approved": "Crear algo que se aplica solo con el OK de una persona",
-      "create-planned": "Crear algo que cruza varios dominios: plan primero y un constructor por dominio",
+      "create-planned": "Crear algo que cruza varios dominios: plan primero y el constructor lo hace dominio a dominio",
       "create-in-session": "Crear contenido que construye la propia sesión",
       "fix-bug": "Arreglar un fallo: diagnóstico y test que lo reproduce antes de construir",
       "improve-measured": "Mejorar una cifra: mide antes y después",
@@ -249,7 +249,7 @@
     },
     "flujo.actores": {
       "analista": "El analista: un agente de .claude/agents/ que registra el caso, diagnostica y redacta el plan en el issue; no construye",
-      "agente_dominio": "El constructor del dominio: un agente con «Tipo: constructor» en .claude/agents/",
+      "agente_dominio": "El constructor: el agente con «Tipo: constructor» en .claude/agents/, que trabaja en el dominio que da la tarea",
       "orquestador": "La sesión principal con /orquestar",
       "juez": "Un agente con «Tipo: juez» en .claude/agents/",
       "persona": "Pablo o Álvaro",
@@ -1253,6 +1253,18 @@
       "valor": "diseno",
       "desde": "2026-10-13",
       "motivo": "Se amplía: absorbe las pantallas del ámbito ui retirado y suma la zona de patrones y flujos (UX); el sentido viejo (el sistema de diseño) queda dentro (#687)"
+    },
+    {
+      "vocabulario": "flujo.actores",
+      "valor": "agente_dominio",
+      "desde": "2026-10-13",
+      "motivo": "Mismo significado: quien construye es el agente con «Tipo: constructor»; desde #688 es uno solo y el dominio lo da la tarea, en vez de uno por dominio"
+    },
+    {
+      "vocabulario": "encargo.subtype",
+      "valor": "create-planned",
+      "desde": "2026-10-13",
+      "motivo": "Mismo significado: crear algo que cruza varios dominios con el plan primero; desde #688 lo construye un solo constructor dominio a dominio, no uno por dominio"
     }
   ],
   "vocabularios_retirados": [

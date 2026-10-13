@@ -115,29 +115,31 @@ describe("la complejidad: trivial, normal y large", () => {
     expect(p.complejidad).toBe("trivial");
     expect(p.avisos.join("|")).toMatch(/declarada large.*calculada trivial/);
   });
-  it("hasta lo trivial lleva juez, y el constructor es el del dominio", () => {
+  it("hasta lo trivial lleva juez, y construye el constructor, con el dominio de los ficheros", () => {
     const p = dim({ tipo: "create", ficheros: [f("src/screens/A.jsx", 3)] });
     expect(p.complejidad).toBe("trivial");
     expect(rolesDe(p, "judge")).toContain("revisor");
-    expect(rolesDe(p, "builder")).toEqual(["diseno"]);
+    expect(rolesDe(p, "builder")).toEqual(["constructor"]);
+    expect(p.constructores[0].ambitos).toEqual(["diseno"]);
   });
 });
 
 describe("los agentes: constructor por ámbito, juez mínimo siempre y juez del ámbito", () => {
   it("el constructor sale del ámbito de los ficheros y el del bot gana al del catálogo en api/_bot", () => {
-    expect(constructorDeFichero("api/_bot/x.js")).toEqual({ agente: "lola", ambito: "bot" });
-    expect(constructorDeFichero("supabase/migrations/0001_x.sql").agente).toBe("datos");
+    expect(constructorDeFichero("api/_bot/x.js")).toEqual({ agente: "constructor", ambito: "bot" });
+    expect(constructorDeFichero("supabase/migrations/0001_x.sql").agente).toBe("constructor");
     expect(constructorDeFichero("src/lib/b.js")).toEqual({ agente: null, ambito: "catalog" });
-    expect(constructorDeFichero("scripts/lib/suelto.mjs").agente).toBe("gobierno");
+    expect(constructorDeFichero("scripts/lib/suelto.mjs").agente).toBe("constructor");
     expect(constructorDeFichero("api/otra.js")).toEqual({ agente: null, ambito: "api" });
     expect(DUENO_ORDEN.slice().sort()).toEqual(Object.keys(AMBITOS).sort());
     for (const a of Object.values(AMBITOS)) if (a.construye) expect(CONSTRUCTORES).toContain(a.construye);
   });
-  it("varios dominios, un constructor por cada uno, en paralelo y con ficheros distintos", () => {
+  it("varios dominios: un solo constructor, que los recorre en serie, y se avisa de planificar primero (#688)", () => {
     const p = dim({ tipo: "create", ficheros: [f("src/screens/A.jsx", 5), f("api/_bot/x.js", 5), f("supabase/migrations/0001_x.sql", 5)] });
-    expect(p.constructores.map((c) => c.agente).sort()).toEqual(["datos", "diseno", "lola"]);
+    expect(p.constructores.map((c) => c.agente)).toEqual(["constructor"]);
+    expect([...p.constructores[0].ambitos].sort()).toEqual(["bot", "data", "diseno"]);
     const fase = p.fases.find((x) => x.agentes.some((a) => a.rol === "builder"));
-    expect(fase.modo).toBe("paralelo");
+    expect(fase.modo).toBe("serie");
     const todos = p.constructores.flatMap((c) => c.ficheros);
     expect(new Set(todos).size).toBe(todos.length);
     expect(p.avisos.join("|")).toMatch(/create-planned/);
@@ -149,12 +151,12 @@ describe("los agentes: constructor por ámbito, juez mínimo siempre y juez del 
   });
   it("si un juez de zona fuera también el constructor, no juzga: se avisa y no entra en la fase de jueces", () => {
     const original = AMBITOS.infra.jueces;
-    AMBITOS.infra.jueces = [{ juez: "gobierno", fuente: "agente:gobierno" }];
+    AMBITOS.infra.jueces = [{ juez: "constructor", fuente: "agente:constructor" }];
     try {
       const p = dim({ subtipo: "operate-reversible", ficheros: [f(".github/workflows/x.yml", 10)] });
-      expect(rolesDe(p, "builder")).toEqual(["gobierno"]);
+      expect(rolesDe(p, "builder")).toEqual(["constructor"]);
       expect(rolesDe(p, "judge")).toEqual(["revisor"]);
-      expect(p.avisos.join("|")).toMatch(/gobierno es juez de la zona pero construye/);
+      expect(p.avisos.join("|")).toMatch(/constructor es juez de la zona pero construye/);
     } finally {
       AMBITOS.infra.jueces = original;
     }
@@ -217,7 +219,7 @@ describe("la forma depende del tipo", () => {
     expect(p.fases[0].modo).toBe("paralelo");
     expect(p.constructores).toEqual([]);
     expect(rolesDe(p, "builder")).toEqual([]);
-    expect(rolesDe(p, "measurer")).toEqual(["gobierno"]);
+    expect(rolesDe(p, "measurer")).toEqual(["constructor"]);
     expect(rolesDe(p, "judge").sort()).toEqual(["auditor-datos", "evaluador", "revisor", "seguridad"]);
   });
   it("audit sobre una zona suma el juez de la zona a la fase de jueces", () => {
@@ -225,10 +227,10 @@ describe("la forma depende del tipo", () => {
     expect(p.fases).toHaveLength(1);
     expect(rolesDe(p, "judge")).toEqual(["revisor", "qa"]);
   });
-  it("operate: gobierno construye, y lo irreversible cierra con el OK de una persona", () => {
+  it("operate: el constructor construye, y lo irreversible cierra con el OK de una persona", () => {
     const p = dim({ subtipo: "operate-irreversible", ficheros: [f(".github/workflows/x.yml", 10)] });
     expect(p.forma).toBe("construir-y-juzgar");
-    expect(rolesDe(p, "builder")).toEqual(["gobierno"]);
+    expect(rolesDe(p, "builder")).toEqual(["constructor"]);
     expect(p.cierre).toBe("OK de una persona");
     expect(dim({ subtipo: "operate-reversible", ficheros: [f(".github/workflows/x.yml", 10)] }).cierre).toBeNull();
   });
@@ -244,7 +246,8 @@ describe("la forma depende del tipo", () => {
   it("create-planned empieza por el plan de la sesión", () => {
     const p = dim({ subtipo: "create-planned", ficheros: [f("src/screens/A.jsx", 5), f("api/_bot/x.js", 5), f("supabase/migrations/0001_x.sql", 5)] });
     expect(p.fases[0].agentes[0]).toMatchObject({ agente: "sesion", rol: "planner" });
-    expect(p.fases[1].modo).toBe("paralelo");
+    expect(p.fases[1].modo).toBe("serie");
+    expect(p.constructores).toHaveLength(1);
   });
   it("cada tipo del catálogo sale con su forma", () => {
     const formas = Object.fromEntries(Object.keys(TYPES).map((t) => [t, dim({ tipo: t, ficheros: [f("src/lib/b.js", 5)] }).forma]));
@@ -253,8 +256,8 @@ describe("la forma depende del tipo", () => {
 });
 
 describe("paralelo y serie", () => {
-  it("lo que comparten todos los PR se toca al final cuando hay varios constructores", () => {
-    const p = dim({ tipo: "create", ficheros: [f("src/screens/A.jsx", 5), f("api/_bot/x.js", 5), f("package.json", 2)] });
+  it("lo que comparten todos los PR se toca al final cuando construyen dos (el constructor y la sesión, donde un ámbito no tiene dueño)", () => {
+    const p = dim({ tipo: "create", ficheros: [f("src/screens/A.jsx", 5), f("api/otra.js", 5), f("package.json", 2)] });
     expect(p.al_final).toEqual(["package.json"]);
     expect(p.constructores.flatMap((c) => c.ficheros)).not.toContain("package.json");
   });
@@ -324,8 +327,8 @@ describe("la salida: campo: valor, y el JSON es el mismo plan", () => {
 describe("el brief de cada agente sale del plan", () => {
   const p = dim({ subtipo: "fix-bug", causa: "modelo-datos", ficheros: [f("supabase/migrations/0001_x.sql", 30), f("supabase/migrations/0002_y.sql", 20)], numero: 641, objetivo: "Arreglar b" });
   it("el constructor lleva su tarea, su estándar con las normas de los ficheros y la precedencia", () => {
-    const b = briefDe(p, "datos");
-    expect(b).toMatch(/^ESTÁNDAR A CUMPLIR: datos\//m);
+    const b = briefDe(p, "constructor");
+    expect(b).toMatch(/^ESTÁNDAR A CUMPLIR: constructor\//m);
     expect(b).toMatch(/Normas que tocan/);
     expect(b).toMatch(/Precedencia/);
     expect(b).toMatch(/Objetivo: Arreglar b/);
@@ -345,13 +348,13 @@ describe("el brief de cada agente sale del plan", () => {
   });
   it("la tarea que da quien orquesta manda sobre la que se deduce de los ficheros, para el constructor", () => {
     const q = dim({ tipo: "create", ficheros: [f("scripts/lib/suelto.mjs", 10)], tarea: "catalogo-de-ops-con-test" });
-    expect(briefDe(q, "gobierno")).toMatch(/^ESTÁNDAR A CUMPLIR: gobierno\/catalogo-de-ops-con-test$/m);
+    expect(briefDe(q, "constructor")).toMatch(/^ESTÁNDAR A CUMPLIR: constructor\/catalogo-de-ops-con-test$/m);
     expect(briefDe(q, "revisor")).not.toMatch(/catalogo-de-ops-con-test/);
-    expect(() => briefDe(dim({ tipo: "create", ficheros: [f("scripts/lib/suelto.mjs", 10)], tarea: "no-existe" }), "gobierno")).toThrow(/no-existe/);
+    expect(() => briefDe(dim({ tipo: "create", ficheros: [f("scripts/lib/suelto.mjs", 10)], tarea: "no-existe" }), "constructor")).toThrow(/no-existe/);
   });
   it("el brief de una tarea de bot trae las normas verticales del producto (el proyecto va por defecto)", () => {
     const q = dim({ subtipo: "fix-bug", causa: "codigo", ficheros: [f("api/_bot/x.js", 20)], objetivo: "Arreglar el bot" });
-    for (const agente of ["lola", "revisor"]) {
+    for (const agente of ["constructor", "revisor"]) {
       const b = briefDe(q, agente);
       expect(b, `${agente}: sin normas del proyecto homenu`).toMatch(/proyecto homenu/);
       expect(b, `${agente}: sin ninguna vertical de bot`).toMatch(/Incluye .* del proyecto homenu/);

@@ -261,7 +261,7 @@ export const CONSULTA = `query($cursor: String) {
 }`;
 
 /**
- * Quién arregló: la línea «Agente: gobierno» del PR. Sin ella, «sesión»
+ * Quién arregló: la línea «Agente: constructor» del PR. Sin ella, «sesión»
  * (la sesión principal, sin agente). Un nombre que no es de .claude/agents/
  * se cuenta tal cual: mejor verlo raro en la tabla que perderlo.
  */
@@ -394,7 +394,8 @@ export function resumen(issues) {
   }
   for (const p of puntuales) fila([...grupos(p).causa][0]).puntuales++;
 
-  const agentes = {};
+  // Sin prototipo: un agente se llama `constructor` (#688) y en un {} normal `agentes["constructor"]` ya existe (es Object), así que `??=` no creaba la fila.
+  const agentes = Object.create(null);
   for (const f of fondos.filter((x) => x.agente)) {
     const a = (agentes[f.agente] ??= { fondos: 0, roto: 0, corto: 0, diasCierre: [] });
     a.fondos++;

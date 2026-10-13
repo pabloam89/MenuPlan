@@ -145,9 +145,8 @@ const PALABRAS_DE_ZONA = [
   "migracion", "migraciones", "migration", "despliegue", "deploy", "catalogo", "receta", "recetas", "recipe", "asset", "assets", "hook", "hooks",
   "workflow", "ci", "rls", "base", "token", "tokens", "monolito", "monolith", "cableado", "wiring",
 ];
-/** Los jueces y los constructores que son de una zona (de AMBITOS): un paso fijo de un subtipo no los nombra. */
+/** Los jueces que son de una zona (de AMBITOS): un paso fijo de un subtipo no los nombra. Constructores de zona ya no hay: desde #688 construye uno solo (`constructor`) en cualquier ámbito. */
 const JUECES_DE_ZONA = [...new Set(Object.values(AMBITOS).flatMap((a) => a.jueces.map((j) => j.juez)))];
-const CONSTRUCTORES_DE_ZONA = [...new Set(Object.values(AMBITOS).map((a) => a.construye).filter(Boolean))];
 /** Las palabras de zona: lo anterior más los ids y los nombres de AMBITOS. */
 export const ZONAS = [...new Set([...PALABRAS_DE_ZONA, ...Object.entries(AMBITOS).flatMap(([id, a]) => [id, a.legible])].map(sinAcentos))];
 /** Qué palabras de zona nombra un texto. */
@@ -212,7 +211,6 @@ export function problemasDeLaPuerta(sub, d = DATOS, ctx = { agentes: AGENTES, es
   // plano: los agentes fijos de un paso tampoco son de una zona (#641, pendiente de #646). El juez de zona entra por bandera, en `opcional`.
   for (const paso of sub.pasos ?? []) for (const a of paso.agentes ?? []) {
     if (sub.type !== "audit" && JUECES_DE_ZONA.includes(a)) p.push(`plano: ${sub.id} nombra al juez «${a}» en un paso fijo, y es el juez de una zona; un subtipo no nombra la zona (si depende de una bandera, va en «opcional»)`);
-    if (sub.type !== "operate" && !(sub.measured_with ?? []).includes(a) && CONSTRUCTORES_DE_ZONA.includes(a)) p.push(`plano: ${sub.id} nombra al constructor «${a}» en un paso fijo, y es el de una zona; el constructor sale de los ficheros (usa «constructor»)`);
   }
   for (const paso of sub.pasos ?? []) for (const z of zonasQueNombra(`${paso.purpose ?? ""} ${d?.step_purposes?.[paso.purpose]?.what ?? ""}`)) p.push(`plano: ${sub.id} lleva un paso con la finalidad «${paso.purpose}», que nombra la zona «${z}»; las finalidades de paso también describen el trabajo`);
   // texto-libre: solo `note`, con tope; lo demás, vocabularios cerrados
@@ -430,7 +428,7 @@ export { PIPELINES };
 
 // ── La tabla de /orquestar, generada ────────────────────────────────────────────────────────
 
-const TEXTO_ESPECIAL = { sesion: "sesión principal", constructor: "constructor del dominio", constructores: "constructores por dominio" };
+const TEXTO_ESPECIAL = { sesion: "sesión principal", constructor: "constructor", constructores: "constructor, dominio a dominio" };
 const agenteMd = (a) => TEXTO_ESPECIAL[a] ?? `\`${a}\``;
 
 /** Un paso como texto: agentes con `+`, el opcional entre corchetes y la nota entre paréntesis. */

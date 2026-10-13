@@ -42,12 +42,13 @@ describe("pool de buenas prácticas", () => {
     expect(Object.values(c.por_estado).reduce((a, b) => a + b, 0)).toBe(c.practicas);
   });
 
-  it("orquestador y diseno cierran las reglas y sus cifras cuadran con los datos", () => {
-    for (const [agente, reglas, deCampo, practicas, porEstado, porOrigen] of [
+  it("orquestador cierra las reglas, el constructor solo tiene el oficio de diseño inventariado y sus cifras cuadran con los datos", () => {
+    for (const [agente, reglas, deCampo, practicas, porEstado, porOrigen, cierra] of [
       ["orquestador", 9, 7, 23, { cubierta: 9, pendiente: 11, descartada: 3 }, { campo: 21, casa: 2 }],
-      ["diseno", 22, 9, 50, { cubierta: 24, pendiente: 24, descartada: 2 }, { campo: 36, casa: 14 }],
+      // Tras #688 las 90 reglas de los cuatro constructores son de uno: 22 de ellas eran las de diseno; faltan los oficios de datos, bot e infraestructura.
+      ["constructor", 90, 9, 50, { cubierta: 24, pendiente: 24, descartada: 2 }, { campo: 36, casa: 14 }, false],
     ]) {
-      expect(pool.agentes[agente].cierra_reglas).toBe(true);
+      expect(pool.agentes[agente].cierra_reglas).toBe(cierra ?? true);
       const c = cifrasDeAgente(pool, estandares, agente);
       expect(c.reglas).toBe(reglas);
       expect(c.reglas_con_practica_de_campo).toBe(deCampo);

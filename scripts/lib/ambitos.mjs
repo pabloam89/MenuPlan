@@ -18,14 +18,14 @@ export const AMBITOS = {
     legible: "código",
     que: "El código del repo y su forma: tests, lint y ficheros",
     jueces: [],
-    construye: "gobierno",
+    construye: "constructor",
     rutas: [/\.(m?js|cjs|jsx|ts|tsx|py|html)$/, /^(package(-lock)?|lint-base|lint-tokens-base)\.json$/, /^eslint-rules\//, /^scripts\/fixtures\//],
   },
   infra: {
     legible: "infraestructura",
     que: "Identidades, permisos, secretos, ramas, CI, despliegues, copias y servicios",
     jueces: [],
-    construye: "gobierno",
+    construye: "constructor",
     rutas: [
       /^\.github\/(?!ISSUE_TEMPLATE\/)/, /^\.claude\/hooks\//, /^\.claude\/settings/, /^(vercel\.json|\.vercelignore|\.gitattributes|\.gitignore|\.env\.example)$/,
       /^ops\/(INVENTARIO\.md|recursos\.json|planos\.json|PLANOS\.md|env\.1password|copias\/)/,
@@ -36,7 +36,7 @@ export const AMBITOS = {
     legible: "datos",
     que: "La base: tablas, migraciones, roles y cada dato que guarda",
     jueces: [{ juez: "auditor-datos", fuente: "norma:aplicar-migracion-con-permiso" }],
-    construye: "datos",
+    construye: "constructor",
     rutas: [/^supabase\//, /^docs\/datos\//, /^scripts\/(apply-migration|verificar-estado|consulta|bot-cron|clave-[\w-]+)\.mjs$/, /^src\/data\/model\.js$/, /^HOUSEHOLDS\.md$/],
   },
   catalog: {
@@ -50,7 +50,7 @@ export const AMBITOS = {
     legible: "bot",
     que: "Lola, el bot de mensajería, sus evals y su coste",
     jueces: [{ juez: "evaluador", fuente: "norma:evals-antes-de-fusionar" }],
-    construye: "lola",
+    construye: "constructor",
     rutas: [/^api\/_bot\//, /^api\/bot\//, /^scripts\/(bot|router|telegram)-[\w-]+\.(mjs|json)$/, /^\.claude\/rules\/lola\.md$/],
   },
   api: {
@@ -64,7 +64,7 @@ export const AMBITOS = {
     legible: "diseño",
     que: "El diseño de la app: el sistema (tokens, primitivos, accesibilidad, estados) y los patrones y flujos (UX), con sus pantallas",
     jueces: [{ juez: "qa", fuente: "agente:qa" }],
-    construye: "diseno",
+    construye: "constructor",
     rutas: [
       /^src\/.*\.(jsx|css)$/, /^src\/(design|components|screens|assets|dev)\//, /^public\//, /^Avatares\//, /^brand\//, /^dish-gallery\//, /^scripts\/(make_|mj-prompts-)/,
       /^docs\/medios\.md$/, /^(DESIGN_SYSTEM|ILUSTRACIONES-PASOS)\.md$/, /^docs\/diseno\//, /^\.claude\/rules\/ui\.md$/, /^ops\/diseno\//,
@@ -81,14 +81,14 @@ export const AMBITOS = {
     legible: "proceso",
     que: "Cómo se trabaja: issues, fondos, PR, sesiones, agentes, jueces y cifras",
     jueces: [],
-    construye: "gobierno",
+    construye: "constructor",
     rutas: [/^\.claude\/(?!hooks\/|settings)/, /^CLAUDE\.md$/, /^ops\//, /^docs\/ops\//, /^\.github\/ISSUE_TEMPLATE\//, /^docs\/PRINCIPIOS\.md$/],
   },
   writing: {
     legible: "redacción",
     que: "Cómo se escribe una regla o un principio de la casa",
     jueces: [],
-    construye: "gobierno",
+    construye: "constructor",
     rutas: [/^ops\/redaccion(-pendientes)?\.json$/, /^docs\/ops\/REDACCION\.md$/, /^ops\/glosario(-excepciones)?\//, /^scripts\/lib\/regla\.mjs$/],
   },
   entities: {

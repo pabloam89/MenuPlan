@@ -9,7 +9,7 @@ metadata:
   pasos_fijos: false
   sintoma_a_causa: true
   elige_opciones: false
-  dueno: gobierno
+  dueno: constructor
   comprobado: 2026-10-10
   normas: [cuando-algo-falla, fondo-con-ficha-y-controles, repo-publico-sin-detalle]
 ---

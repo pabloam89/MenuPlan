@@ -50,5 +50,5 @@ Además:
 - Dónde vive un dato: lo curado, en JSON en git; lo que escriben los usuarios,
   en SQL; los dos solo si uno se genera del otro.
 - Cambios de modelo: primero el modelo (entidades, `on delete`, ciclo de vida,
-  invariantes) y luego el código. Lo lleva `datos` y lo juzga `auditor-datos`.
+  invariantes) y luego el código. Lo lleva el `constructor` y lo juzga `auditor-datos`.
 - Una tabla, un módulo dueño: `node scripts/cableado.mjs` da el mapa.

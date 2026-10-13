@@ -9,7 +9,7 @@ metadata:
   pasos_fijos: false
   sintoma_a_causa: false
   elige_opciones: false
-  dueno: gobierno
+  dueno: constructor
   comprobado: "2026-10-09"
   normas: [aplicar-migracion-con-permiso, migracion-pablo-solo-pablo, sin-sql-a-mano, rol-solo-lectura, ensayo-no-cambia-nada]
 ---

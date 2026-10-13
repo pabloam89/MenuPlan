@@ -222,20 +222,20 @@ describe("los estándares citan normas y no las reescriben (#620)", () => {
   describe("se ven fallar", () => {
     const con = (cambia, opciones) => { const d = clon(); cambia(d); return problemasDeUnionesEstandar(d, normas, opciones).join("\n"); };
     const visto = normas.find((n) => n.id === "test-visto-fallar");
-    const copia = { ...estandares.agentes.gobierno.tareas[0].reglas[0], nombre: "Prueba antes de fiarse", condicion: visto.condicion, exigencia: visto.exigencia };
+    const copia = { ...estandares.agentes.constructor.tareas[0].reglas[0], nombre: "Prueba antes de fiarse", condicion: visto.condicion, exigencia: visto.exigencia };
 
     it("una tarea o una común que cita una norma que no existe", () => {
-      expect(con((d) => { d.agentes.datos.tareas[0].normas = ["norma-inventada"]; })).toMatch(/datos\/modelar-antes-de-sql: cita la norma «norma-inventada», que no existe/);
+      expect(con((d) => { d.agentes.constructor.tareas[11].normas = ["norma-inventada"]; })).toMatch(/constructor\/modelar-antes-de-sql: cita la norma «norma-inventada», que no existe/);
       expect(con((d) => { d.comunes["tests-de-lo-tocado"].normas.push("otra-inventada"); })).toMatch(/común tests-de-lo-tocado: cita la norma «otra-inventada»/);
     });
     it("una regla que copia una norma, o que se llama igual que una", () => {
-      expect(con((d) => { d.agentes.gobierno.tareas[0].reglas.push(copia); })).toMatch(/gobierno\/flujo-rama-pr-staging · Prueba antes de fiarse: reescribe la norma «test-visto-fallar» \(parecido 1\.00\)/);
+      expect(con((d) => { d.agentes.constructor.tareas[0].reglas.push(copia); })).toMatch(/constructor\/flujo-rama-pr-staging · Prueba antes de fiarse: reescribe la norma «test-visto-fallar» \(parecido 1\.00\)/);
       expect(con((d) => { d.comunes["informe-comun"].reglas[0].nombre = "Test visto fallar"; })).toMatch(/común informe-comun · Test visto fallar: reescribe la norma «test-visto-fallar»/);
     });
     it("una excepción con su motivo deja pasar la regla; una que ya no hace falta, o sin motivo, falla", () => {
-      const clave = "gobierno/flujo-rama-pr-staging · Prueba antes de fiarse";
+      const clave = "constructor/flujo-rama-pr-staging · Prueba antes de fiarse";
       const techos = { reglas: TECHO_REGLAS_QUE_NO_SON_NORMA + 1, juicio: TECHO_NORMAS_SIN_JUEZ };
-      expect(con((d) => { d.agentes.gobierno.tareas[0].reglas.push(copia); d.reglas_que_no_son_norma[clave] = "test-visto-fallar: motivo de ejemplo con más de quince caracteres"; }, { techos })).toBe("");
+      expect(con((d) => { d.agentes.constructor.tareas[0].reglas.push(copia); d.reglas_que_no_son_norma[clave] = "test-visto-fallar: motivo de ejemplo con más de quince caracteres"; }, { techos })).toBe("");
       expect(con((d) => { d.reglas_que_no_son_norma[clave] = "test-visto-fallar: motivo de ejemplo con más de quince caracteres"; }, { techos })).toMatch(/no es una regla del catálogo/);
       const vieja = Object.keys(estandares.reglas_que_no_son_norma)[0];
       expect(con((d) => { d.reglas_que_no_son_norma[vieja] = "corto"; })).toMatch(/el valor es «<norma>: motivo»/);
@@ -254,7 +254,7 @@ describe("los estándares citan normas y no las reescriben (#620)", () => {
     });
     it("el constructor y el juez de un ámbito dejan de recibir lo mismo si la consulta no los empareja", () => {
       const sinPareja = problemasDeEmparejamiento(estandares, normas, { deConsulta: (a) => [a] }).join("\n");
-      expect(sinPareja).toMatch(/infra: gobierno\/workflows-y-crons y revisor\/revisar-diff no reciben las mismas normas/);
+      expect(sinPareja).toMatch(/infra: constructor\/[\w-]+ y revisor\/revisar-diff no reciben las mismas normas/);
       expect(sinPareja).toMatch(/code: /);
     });
   });
@@ -318,7 +318,7 @@ describe("toda norma horizontal llega a algún agente (#683, #704, fondo #652)",
     const nueva = { id: "norma-de-ejemplo", ambito: "catalog", acciones: ["construir"], lado: "horizontal" };
     expect(normasHuerfanas(estandares, [...normas, nueva])).toContain("norma-de-ejemplo");
     const citada = structuredClone(estandares);
-    citada.agentes.gobierno.tareas[0].normas = [...(citada.agentes.gobierno.tareas[0].normas ?? []), "norma-de-ejemplo"];
+    citada.agentes.constructor.tareas[0].normas = [...(citada.agentes.constructor.tareas[0].normas ?? []), "norma-de-ejemplo"];
     expect(normasHuerfanas(citada, [...normas, nueva])).not.toContain("norma-de-ejemplo");
     // un juez del ámbito no basta: la acción tiene que ser la de la norma
     expect(normasHuerfanas(estandares, [...normas, { ...nueva, id: "otra", ambito: "code", acciones: ["operar"] }])).toContain("otra");
@@ -360,7 +360,7 @@ describe("las normas del proyecto no van en un estándar horizontal (#704, fondo
   it("se ve fallar: una vertical citada por una tarea horizontal, una vertical en el registro horizontal y un project desconocido", () => {
     const vertical = normas.find((n) => n.lado === "vertical");
     const citada = structuredClone(estandares);
-    citada.agentes.gobierno.tareas[0].normas = [...(citada.agentes.gobierno.tareas[0].normas ?? []), vertical.id];
+    citada.agentes.constructor.tareas[0].normas = [...(citada.agentes.constructor.tareas[0].normas ?? []), vertical.id];
     expect(verticalesEnEstandares(citada, normas)).toContain(vertical.id);
     const mal = structuredClone(carga);
     mal.horizontales = [...mal.horizontales, { ...vertical, project: undefined }];
@@ -371,7 +371,7 @@ describe("las normas del proyecto no van en un estándar horizontal (#704, fondo
   });
 
   it("sin --proyecto no llega nada vertical, y con --proyecto llegan las de su ámbito y su acción", () => {
-    const t = estandares.agentes.lola.tareas.find((x) => x.id === "herramienta-de-lola");
+    const t = estandares.agentes.constructor.tareas.find((x) => x.id === "herramienta-de-lola");
     expect(normasDeTarea(t, estandares, normas).filter((x) => x.norma?.lado === "vertical")).toEqual([]);
     const con = normasDeTarea(t, estandares, normas, { proyecto: "homenu" }).filter((x) => x.norma?.lado === "vertical");
     expect(con.length).toBeGreaterThan(0);

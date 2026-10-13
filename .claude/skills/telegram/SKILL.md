@@ -9,7 +9,7 @@ metadata:
   pasos_fijos: false
   sintoma_a_causa: false
   elige_opciones: false
-  dueno: lola
+  dueno: constructor
   comprobado: "2026-10-09"
   normas: [secretos-ok-pablo, bot-write-idempotent, machine-caller-authenticated]
 ---

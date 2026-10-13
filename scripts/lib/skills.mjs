@@ -49,7 +49,7 @@ export const pasoDe = (metadata) => (metadata?.paso === undefined ? PASO_PIEZA :
 export const REGLAS = {
   frontmatter: "name igual a la carpeta, description que enruta («Úsala …», «No para:»), y solo name, description y metadata",
   tipo: "metadata.tipo es uno de los de ops/forja/ y el que dan las respuestas de su ficha a preguntas_tipo (tipoDeSkill); la pieza meta (paso forja), sin tipo ni respuestas",
-  dueno: "metadata.dueno es un agente de .claude/agents/ que la carga en su `skills:`",
+  dueno: "metadata.dueno es un agente de .claude/agents/ que la usa: la trae en su `skills:` o, si es el constructor, la tiene en el mapa de .claude/dominios-skills.json y la abre según el dominio de su tarea",
   comprobado: "metadata.comprobado es una fecha AAAA-MM-DD, no futura, y el texto dice qué se comprobó ese día",
   caducada: "una skill que toca el PR no tiene su comprobado de hace más de PLAZO_COMPROBADO_DIAS (lo mira scripts/skills-pr.mjs, no npm test)",
   secciones: "las secciones de su tipo (su molde de .claude/plantillas-skill/), en orden y ninguna vacía; las de EXCEPCIONES_PLANTILLA, que solo baja, las que tienen hoy",
@@ -206,16 +206,31 @@ export function nombresDeSkills(raiz = RAIZ) {
   return readdirSync(dir, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name).sort();
 }
 
-/** { agente: [skills que carga] } de `.claude/agents/*.md`. */
+/**
+ * { agente: [skills que usa] } de `.claude/agents/*.md`: las que trae precargadas en su `skills:` y, si el agente está en el
+ * `bajo_demanda` del mapa `.claude/dominios-skills.json`, también las que ese mapa le da (`agentes`). El constructor no precarga
+ * ninguna (#688): las abre según el dominio de su tarea, pero sigue siendo el dueño de las suyas.
+ */
 export function agentesYSkills(raiz = RAIZ) {
   const dir = join(raiz, ".claude/agents");
+  let mapa = {};
+  let bajoDemanda = [];
+  try {
+    const j = JSON.parse(readFileSync(join(raiz, ".claude/dominios-skills.json"), "utf8"));
+    mapa = j.skills ?? {};
+    bajoDemanda = j.bajo_demanda ?? [];
+  } catch {
+    mapa = {}; // a propósito: sin mapa (un repo de prueba) un agente solo cuenta con lo que precarga
+  }
   const fuera = {};
   for (const f of readdirSync(dir).filter((x) => x.endsWith(".md"))) {
     const t = readFileSync(join(dir, f), "utf8").replace(/\r\n/g, "\n");
     const fm = t.match(/^---\n([\s\S]*?)\n---/)?.[1] ?? "";
     const nombre = fm.match(/^name:\s*(\S+)/m)?.[1] ?? f.replace(/\.md$/, "");
     const lista = fm.match(/^skills:\s*\[([^\]]*)\]/m)?.[1] ?? "";
-    fuera[nombre] = lista.split(",").map((s) => s.trim()).filter(Boolean);
+    const propias = lista.split(",").map((s) => s.trim()).filter(Boolean);
+    const delMapa = bajoDemanda.includes(nombre) ? Object.entries(mapa).filter(([, d]) => (d.agentes ?? []).includes(nombre)).map(([s]) => s) : [];
+    fuera[nombre] = [...new Set([...propias, ...delMapa])];
   }
   return fuera;
 }
@@ -275,7 +290,7 @@ function reglaTipo(m, ctx) {
 function reglaDueno(nombre, m, ctx) {
   if (!m.dueno) return [falta("dueno", "falta metadata.dueno")];
   if (!(m.dueno in ctx.agentes)) return [falta("dueno", `«${m.dueno}» no es un agente de .claude/agents/`)];
-  if (!ctx.agentes[m.dueno].includes(nombre)) return [falta("dueno", `${m.dueno} no la carga en su «skills:»`)];
+  if (!ctx.agentes[m.dueno].includes(nombre)) return [falta("dueno", `${m.dueno} no la usa: ni la trae en su «skills:» ni la tiene en el mapa de dominios-skills.json`)];
   return [];
 }
 

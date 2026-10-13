@@ -259,9 +259,21 @@ describe("las excepciones solo bajan", () => {
 
 const REF = REFERENCIA();
 const enRef = jsonEnReferenciaAvisando(RAIZ, REF, RUTA_EXCEPCIONES, "excepciones");
+/**
+ * #688: los cuatro constructores (gobierno, datos, diseno, lola) pasan a ser uno, `constructor`. Las excepciones de la referencia que
+ * todavía llevan el nombre viejo se leen con el nuevo: es el mismo estándar con otro dueño, no una excepción nueva. Cuando
+ * origin/staging ya traiga las claves nuevas esto no cambia nada y se puede quitar.
+ */
+const conNombreNuevo = (rondas) => Object.fromEntries(Object.entries(rondas ?? {}).map(([k, v]) => [k.replace(/^estandar:(gobierno|datos|diseno|lola)\//, "estandar:constructor/"), v]));
+
 describe(`las excepciones contra ${REF}`, () => {
   it.skipIf(!enRef || !enRef.sembrado)("no suben", () => {
-    expect(problemasDeExcepcionesContraReferencia(excepciones.rondas, enRef.rondas)).toEqual([]);
+    expect(problemasDeExcepcionesContraReferencia(excepciones.rondas, conNombreNuevo(enRef.rondas))).toEqual([]);
+  });
+  it("una excepción con el nombre del constructor de antes cuenta como la del constructor, y una nueva sigue siendo nueva (#688)", () => {
+    expect(conNombreNuevo({ "estandar:gobierno/a": 1, "estandar:revisor/b": 1 })).toEqual({ "estandar:constructor/a": 1, "estandar:revisor/b": 1 });
+    expect(problemasDeExcepcionesContraReferencia({ "estandar:constructor/a": 1 }, conNombreNuevo({ "estandar:datos/a": 1 }))).toEqual([]);
+    expect(problemasDeExcepcionesContraReferencia({ "estandar:constructor/z": 1 }, conNombreNuevo({ "estandar:datos/a": 1 })).join()).toContain("excepción nueva");
   });
 });
 
