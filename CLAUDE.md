@@ -165,7 +165,7 @@ zona: `ui` (`src/**/*.jsx`), `migraciones` (`supabase/`), `lola`
 por su nombre: `1password`, `alta-de-secreto`, `vercel`, `supabase`, `github`, `issues`,
 `telegram`, `hetzner` y `tailscale` (precargadas en los agentes que el mapa `.claude/dominios-skills.json` pone en su dominio); y
 las de oficio, cómo se piensa un fallo: `causa-raiz` (diagnosticar) y
-`plan-de-arreglo` (partir el arreglo en encargos); las meta `forja-de-skills`
+`plan-de-arreglo` (partir el arreglo en encargos) y `cierre-eficaz` (evaluar con la cifra antes y después si aguantó); las meta `forja-de-skills`
 (crear, probar y podar), `higiene-de-skills` e `higiene-de-vocabulario` (revisar lo ya escrito);
 y `estilo-de-respuesta` (cómo se escribe a Pablo: idea raíz en
 negrita, cuatro ideas y tres opciones); y la de conocimiento `principios-de-producto`

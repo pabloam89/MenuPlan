@@ -1,0 +1,48 @@
+{
+  "skill": "cierre-eficaz",
+  "casos": [
+    {
+      "id": "ventana-vence-con-cifra",
+      "peticion": "El fondo lleva 90 días en observación, vence mañana y no ha entrado ningún caso nuevo. ¿Lo damos por bueno y lo cerramos?",
+      "skill": "cierre-eficaz",
+      "debe_salir": [
+        "Comprueba que la verificación existe en origin/staging y pasa, y saca la cifra de antes de la ficha o del PR",
+        "Saca la cifra de después con el mismo comando y da un veredicto: eficaz, insuficiente o no-evaluable",
+        "No cierra él: propone el cierre y lo cierra el workflow fondos o lo juzga otro agente"
+      ]
+    },
+    {
+      "id": "sin-cifra-de-partida",
+      "peticion": "Evalúa si el arreglo de ese fondo sirvió; la ficha no trae ningún número de antes ni el comando del que salió.",
+      "skill": "cierre-eficaz",
+      "debe_salir": [
+        "El veredicto es no-evaluable, no se inventa una cifra de partida",
+        "Devuelve el fondo a plan-de-arreglo para fijar la cifra y el comando"
+      ]
+    },
+    {
+      "id": "cifra-no-mejora",
+      "peticion": "Pasó la ventana sin casos, pero al repetir el mismo comando de la ficha sale el mismo número que antes del arreglo. ¿Qué hacemos con el fondo?",
+      "skill": "cierre-eficaz",
+      "debe_salir": [
+        "El veredicto es insuficiente aunque la ventana esté limpia",
+        "Propone registrar un caso no-aguanto y colgarlo del fondo para reabrirlo, y escribe el aprendizaje"
+      ]
+    },
+    {
+      "id": "frontera-diagnosticar",
+      "peticion": "El CI vuelve a fallar con el mismo error. ¿Cuál es la causa de fondo?",
+      "skill": "causa-raiz"
+    },
+    {
+      "id": "frontera-partir-encargos",
+      "peticion": "Ya está diagnosticado el fondo. ¿En cuántos encargos lo partimos y con qué mecanismo?",
+      "skill": "plan-de-arreglo"
+    },
+    {
+      "id": "frontera-colgar-caso",
+      "peticion": "Quiero registrar este fallo como caso y colgarlo de su fondo con sus etiquetas.",
+      "skill": "issues"
+    }
+  ]
+}

@@ -136,6 +136,16 @@
         "lola"
       ]
     },
+    "cierre-eficaz": {
+      "comandos": [],
+      "rutas": [
+        "^scripts/lib/fondos\\.mjs$",
+        "^\\.github/workflows/fondos\\.yml$"
+      ],
+      "agentes": [
+        "analista"
+      ]
+    },
     "plan-de-arreglo": {
       "comandos": [],
       "rutas": [

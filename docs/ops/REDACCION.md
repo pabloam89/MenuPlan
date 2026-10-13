@@ -169,7 +169,7 @@ Marca de la fuente, con un solo significado en todos los catálogos (`MARCAS_FUE
 | `ops/redaccion.json` | principio | cumple | 15 | - |
 | `ops/normas.json` | regla | cumple | 183 | - |
 | `ops/flujo.json` | regla | cumple | 53 | - |
-| `ops/estandares-agentes.json` | regla | cumple | 193 | - |
+| `ops/estandares-agentes.json` | regla | cumple | 195 | - |
 | `ops/principios-producto/` | principio | cumple | 40 | - |
 | `ops/principios/` | principio | cumple | 56 | - |
 
