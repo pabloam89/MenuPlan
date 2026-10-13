@@ -7,7 +7,7 @@
   "fuentes": [
     {
       "marca": "I",
-      "ruta": "scripts/apply-migration.mjs"
+      "fuente": "casa-scripts-apply-migration-mjs"
     }
   ],
   "detalle": [

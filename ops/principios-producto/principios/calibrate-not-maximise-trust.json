@@ -8,8 +8,8 @@
   "ejemplo_malo": "Lola da las calorías y los alérgenos con el mismo aplomo aunque unas sean aproximadas",
   "fuentes": [
     {
-      "url": "https://pair.withgoogle.com/chapter/explainability-trust/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "google-pair-explainability-trust"
     }
   ]
 }

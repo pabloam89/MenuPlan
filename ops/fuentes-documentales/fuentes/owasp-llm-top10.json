@@ -1,0 +1,9 @@
+{
+  "id": "owasp-llm-top10",
+  "nombre": "OWASP Top 10 for LLM Applications",
+  "tipo": "externa",
+  "url": "https://genai.owasp.org/llm-top-10/",
+  "fecha_alta": "2026-10-13",
+  "revisada": "no",
+  "fecha_revision": null
+}

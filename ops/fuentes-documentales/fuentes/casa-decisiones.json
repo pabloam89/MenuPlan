@@ -1,0 +1,9 @@
+{
+  "id": "casa-decisiones",
+  "nombre": "Fuente de la casa: registro de decisiones de operación",
+  "tipo": "casa",
+  "ruta": "ops/DECISIONES.md",
+  "fecha_alta": "2026-10-13",
+  "revisada": "no",
+  "fecha_revision": null
+}

@@ -8,8 +8,8 @@
   "ejemplo_malo": "Ante cambia el jueves, Lola rehace el menú de la semana entera",
   "fuentes": [
     {
-      "url": "https://www.microsoft.com/en-us/research/articles/guidelines-for-human-ai-interaction-eighteen-best-practices-for-human-centered-ai-design/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "microsoft-guidelines-for-human-ai-interaction-eighteen-best"
     }
   ]
 }

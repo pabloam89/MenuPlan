@@ -8,8 +8,8 @@
   "ejemplo_malo": "El filtro de comentarios crece mes a mes sin que nadie haya dicho cuánto merece",
   "fuentes": [
     {
-      "url": "https://basecamp.com/shapeup/1.2-chapter-03",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "basecamp-shapeup-1-2-chapter-03"
     }
   ]
 }

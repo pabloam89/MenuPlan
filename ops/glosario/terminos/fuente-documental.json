@@ -1,0 +1,29 @@
+{
+  "termino": "fuente documental",
+  "estado": "activo",
+  "clase": "artefacto",
+  "dominio": "base",
+  "definicion": "Un documento, externo o de la casa, que respalda un principio, una regla o una práctica, y que se registra una sola vez en ops/fuentes-documentales/ con su fecha de alta y de revisión.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "principio",
+    "norma",
+    "estándar",
+    "fuente de datos"
+  ],
+  "ref": {
+    "fichero": "scripts/lib/fuentesDoc.mjs",
+    "clave": "PLAZO_REVISION_DIAS"
+  },
+  "en": "source",
+  "nota": "No es la fuente de datos (un conjunto de datos del producto): esta es un documento que respalda una regla. Un principio la cita con su marca (F, S o I) y la norma llega a ella por su principio.",
+  "entidades": [
+    {
+      "entidad": "source",
+      "relacion": "denota"
+    }
+  ]
+}

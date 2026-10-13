@@ -1,0 +1,9 @@
+{
+  "id": "casa-skill-issues",
+  "nombre": "Fuente de la casa: skill issues (repo público, nada sensible en un issue)",
+  "tipo": "casa",
+  "ruta": ".claude/skills/issues/SKILL.md",
+  "fecha_alta": "2026-10-13",
+  "revisada": "no",
+  "fecha_revision": null
+}

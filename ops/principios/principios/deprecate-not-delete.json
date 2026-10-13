@@ -7,7 +7,7 @@
   "fuentes": [
     {
       "marca": "I",
-      "ruta": "ops/vocabularios-vida.json"
+      "fuente": "casa-ops-vocabularios-vida-json"
     }
   ],
   "detalle": [

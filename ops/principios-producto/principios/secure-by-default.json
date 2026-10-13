@@ -8,8 +8,8 @@
   "ejemplo_malo": "Una tabla nueva queda legible para cualquiera hasta que alguien se acuerda de cerrarla",
   "fuentes": [
     {
-      "url": "https://www.cisa.gov/securebydesign",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "cisa-securebydesign"
     }
   ]
 }

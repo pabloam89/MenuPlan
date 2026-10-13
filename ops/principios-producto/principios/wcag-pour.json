@@ -8,8 +8,8 @@
   "ejemplo_malo": "Un menú solo se puede abrir con el ratón y la foto del plato no tiene descripción",
   "fuentes": [
     {
-      "url": "https://www.w3.org/WAI/standards-guidelines/wcag/glance/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "w3c-wai-standards-guidelines-wcag-glance"
     }
   ]
 }

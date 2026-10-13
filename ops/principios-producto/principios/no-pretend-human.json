@@ -8,8 +8,8 @@
   "ejemplo_malo": "Lola dice que está cocinando mientras responde",
   "fuentes": [
     {
-      "url": "https://pair.withgoogle.com/chapter/mental-models/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "google-pair-mental-models"
     }
   ]
 }

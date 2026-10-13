@@ -7,7 +7,7 @@
   "fuentes": [
     {
       "marca": "I",
-      "ruta": ".claude/rules/tests.md"
+      "fuente": "casa-claude-rules-tests-md"
     }
   ],
   "detalle": [

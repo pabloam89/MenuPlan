@@ -1,0 +1,10 @@
+{
+  "id": "owasp-api-0xa2-broken-authentication",
+  "nombre": "OWASP API Security 2023: 0xa2 broken authentication",
+  "tipo": "externa",
+  "url": "https://api-security.owasp.org/editions/2023/en/0xa2-broken-authentication/",
+  "uso": "principio",
+  "fecha_alta": "2026-10-13",
+  "revisada": "no",
+  "fecha_revision": null
+}

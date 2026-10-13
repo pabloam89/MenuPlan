@@ -1,0 +1,10 @@
+{
+  "id": "mdn-esquema-color",
+  "nombre": "MDN: prefers-color-scheme",
+  "tipo": "externa",
+  "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-color-scheme",
+  "uso": "pool",
+  "fecha_alta": "2026-10-13",
+  "revisada": "si",
+  "fecha_revision": "2026-10-13"
+}

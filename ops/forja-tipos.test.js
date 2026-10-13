@@ -11,7 +11,7 @@ import {
 } from "../scripts/lib/forja.mjs";
 import { leerJuicios, vocabulariosDeJuicio } from "../scripts/lib/juiciosSkills.mjs";
 import { REFERENCIA, jsonEnReferenciaAvisando } from "../scripts/lib/forjaReferencia.mjs";
-import { ACCIONES, ORIGENES } from "../scripts/lib/estandaresAgentes.mjs";
+import { ACCIONES, ORIGENES, leerEstandares } from "../scripts/lib/estandaresAgentes.mjs";
 import { AMBITOS } from "../scripts/lib/ambitos.mjs";
 import { nombresDeSkills, parsearSkill } from "../scripts/lib/skills.mjs";
 
@@ -204,7 +204,7 @@ describe("tipos de cada criterio: la plantilla de cada tipo sale de filtrar la b
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Discreto y texto: los campos de cada ficha.
-const estandares = JSON.parse(leer("ops/estandares-agentes.json"));
+const estandares = leerEstandares(RAIZ);
 const idsDeNormas = new Set(JSON.parse(leer("ops/normas.json")).normas.map((n) => n.id));
 const agentesDelRepo = readdirSync(join(RAIZ, ".claude/agents")).filter((f) => f.endsWith(".md")).map((f) => f.slice(0, -3));
 const existeFicha = (tipo, v) => {

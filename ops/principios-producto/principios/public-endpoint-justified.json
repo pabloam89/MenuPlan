@@ -8,12 +8,12 @@
   "ejemplo_malo": "Un endpoint que gasta IA contesta a cualquiera y su motivo para ser público es que lo llama alguien, sin comprobar quién",
   "fuentes": [
     {
-      "url": "https://api-security.owasp.org/editions/2023/en/0xa9-improper-inventory-management/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "owasp-api-0xa9-improper-inventory-management"
     },
     {
-      "url": "https://api-security.owasp.org/editions/2023/en/0xa6-unrestricted-access-to-sensitive-business-flows",
-      "marca": "S"
+      "marca": "S",
+      "fuente": "owasp-api-0xa6-unrestricted-access-to-sensitive-business"
     }
   ]
 }

@@ -8,8 +8,8 @@
   "ejemplo_malo": "Lola reproduce pantallas de la app dentro del chat sin añadir nada",
   "fuentes": [
     {
-      "url": "https://www.nngroup.com/articles/chatbots/",
-      "marca": "S"
+      "marca": "S",
+      "fuente": "nng-chatbots"
     }
   ]
 }

@@ -8,12 +8,12 @@
   "ejemplo_malo": "Lola usa una clave de administrador y confía en que el prompt le diga que no toque otras casas",
   "fuentes": [
     {
-      "url": "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "owasp-genai-llm062025-excessive-agency"
     },
     {
-      "url": "https://www.anthropic.com/engineering/building-effective-agents",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "an-building-agents"
     }
   ]
 }

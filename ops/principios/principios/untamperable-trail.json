@@ -7,7 +7,7 @@
   "fuentes": [
     {
       "marca": "I",
-      "ruta": ".claude/hooks/eventos.mjs"
+      "fuente": "casa-claude-hooks-eventos-mjs"
     }
   ],
   "origen": [

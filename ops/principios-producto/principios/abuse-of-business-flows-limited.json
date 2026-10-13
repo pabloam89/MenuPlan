@@ -8,8 +8,8 @@
   "ejemplo_malo": "Un script puede crear cientos de reportes por minuto sin que nada lo frene",
   "fuentes": [
     {
-      "url": "https://api-security.owasp.org/editions/2023/en/0xa6-unrestricted-access-to-sensitive-business-flows",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "owasp-api-0xa6-unrestricted-access-to-sensitive-business"
     }
   ]
 }

@@ -11,7 +11,8 @@
   "relacionado": [
     "tarea de agente",
     "norma",
-    "plantilla"
+    "plantilla",
+    "fuente documental"
   ],
   "ref": {
     "fichero": "scripts/lib/estandaresAgentes.mjs",

@@ -40,6 +40,7 @@ import { textoDePrecedencia } from "./precedencia.mjs";
 import { CONTROL_JUICIO, fraseDeRegla, problemasDeRegla, problemasDeSujetos } from "./regla.mjs";
 import { problemasDePractica } from "./forjaForma.mjs";
 import { leerForja } from "./forja.mjs";
+import { leerFuentes, vistaParaEstandares } from "./fuentesDoc.mjs";
 
 export const RAIZ_REPO = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 export const RUTA_ESTANDARES = "ops/estandares-agentes.json";
@@ -47,7 +48,8 @@ export const RUTA_ESTANDARES = "ops/estandares-agentes.json";
 export const RUTA_NORMAS = "ops/normas.json";
 export const RUTA_MD = "docs/ops/ESTANDARES.md";
 
-export const leerEstandares = (raiz) => JSON.parse(readFileSync(join(raiz, RUTA_ESTANDARES), "utf8"));
+/** El catálogo de estándares con sus `fuentes` de siempre, leídas de la entidad única (ops/fuentes-documentales/, #681). */
+export const leerEstandares = (raiz) => ({ ...JSON.parse(readFileSync(join(raiz, RUTA_ESTANDARES), "utf8")), fuentes: vistaParaEstandares(leerFuentes(raiz)) });
 const DEL_REPO = leerEstandares(RAIZ_REPO);
 
 /** Las acciones y los orígenes de una tarea: la única lista está en el JSON (`acciones` y `origenes`). */

@@ -8,8 +8,8 @@
   "ejemplo_malo": "El fallo se traga con un catch vacío y nadie sabe cuántas veces ocurre",
   "fuentes": [
     {
-      "url": "https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "owasp-genai-llm102025-unbounded-consumption"
     }
   ]
 }

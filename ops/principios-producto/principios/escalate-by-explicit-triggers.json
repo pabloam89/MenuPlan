@@ -8,8 +8,8 @@
   "ejemplo_malo": "Lola contesta a una reacción alérgica grave proponiendo una receta sin alérgenos",
   "fuentes": [
     {
-      "url": "https://www.intercom.com/learning-center/ai-human-collaboration-procedures-handoffs",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "intercom-ai-human-collaboration-procedures-handoffs"
     }
   ]
 }

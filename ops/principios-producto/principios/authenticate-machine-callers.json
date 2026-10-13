@@ -8,12 +8,12 @@
   "ejemplo_malo": "Hoy api/report-alert.js acepta la llamada del disparador de la base sin ninguna credencial (#596)",
   "fuentes": [
     {
-      "url": "https://api-security.owasp.org/editions/2023/en/0xa2-broken-authentication/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "owasp-api-0xa2-broken-authentication"
     },
     {
-      "url": "https://docs.stripe.com/webhooks",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "stripe-webhooks"
     }
   ]
 }

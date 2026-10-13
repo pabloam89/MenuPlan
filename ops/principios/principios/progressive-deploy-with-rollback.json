@@ -7,7 +7,7 @@
   "fuentes": [
     {
       "marca": "I",
-      "ruta": ".claude/skills/vercel/SKILL.md"
+      "fuente": "casa-claude-skills-vercel-skill-md"
     }
   ],
   "detalle": [

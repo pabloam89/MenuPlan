@@ -8,8 +8,8 @@
   "ejemplo_malo": "La pantalla se queda quieta mientras se genera el menú",
   "fuentes": [
     {
-      "url": "https://www.nngroup.com/articles/ten-usability-heuristics/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "nng-heuristicas"
     }
   ]
 }

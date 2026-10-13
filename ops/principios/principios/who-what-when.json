@@ -7,7 +7,7 @@
   "fuentes": [
     {
       "marca": "F",
-      "url": "https://www.w3.org/TR/prov-o/"
+      "fuente": "w3c-tr-prov-o"
     }
   ],
   "detalle": [

@@ -8,12 +8,12 @@
   "ejemplo_malo": "Lola cambia el plato del martes sin decir nada",
   "fuentes": [
     {
-      "url": "https://www.microsoft.com/en-us/research/articles/guidelines-for-human-ai-interaction-eighteen-best-practices-for-human-centered-ai-design/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "microsoft-guidelines-for-human-ai-interaction-eighteen-best"
     },
     {
-      "url": "https://pair.withgoogle.com/chapter/explainability-trust/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "google-pair-explainability-trust"
     }
   ]
 }

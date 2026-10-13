@@ -8,8 +8,8 @@
   "ejemplo_malo": "Un menú nace con enlace público y la familia tiene que acordarse de cerrarlo",
   "fuentes": [
     {
-      "url": "https://gdpr-info.eu/art-25-gdpr/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "gdpr-art-25-gdpr"
     }
   ]
 }

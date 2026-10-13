@@ -16,8 +16,8 @@ Un **puente** ya no es un valor: es una entidad de alcance `both`, y se calcula.
 `parent_of` o `reference`) y cardinalidad. La contención va de la factoría al proyecto y de este al entorno (`part_of`).
 Los ids van en inglés (decisión de Pablo del 11 oct 2026); los nombres y las notas, en castellano.
 
-Hoy hay 53 entidades activas: 21 horizontales, 22 verticales y 10 de los dos lados (puentes), y 8 retiradas.
-Las relaciones son 90: is_a 5, parent_of 4, part_of 22, reference 59.
+Hoy hay 54 entidades activas: 22 horizontales, 22 verticales y 10 de los dos lados (puentes), y 8 retiradas.
+Las relaciones son 92: is_a 5, parent_of 4, part_of 22, reference 61.
 
 ## Horizontales: la factoría
 
@@ -40,6 +40,7 @@ Sus piezas no cuelgan de ningún proyecto.
 | `decision` | Decisión | horizontal | piece | work | decisión | `ops/DECISIONES.md` | partial |
 | `pull-request` | PR | horizontal | piece | work | pr | ninguna | without_registry |
 | `branch` | Rama | horizontal | piece | work | rama | ninguna | without_registry |
+| `source` | Fuente documental | horizontal | piece | rules | fuente documental | `ops/fuentes-documentales/_catalogo.json` | with_registry |
 | `standard` | Estándar | horizontal | piece | rules | estándar | `ops/estandares-agentes.json` | with_registry |
 | `plane` | Plano | horizontal | meta | measure | plano | `ops/planos.json` | with_registry |
 | `agent-task` | Tarea de agente | horizontal | piece | agents | tarea de agente | `ops/estandares-agentes.json` | with_registry |
@@ -200,11 +201,13 @@ flowchart LR
 | `agent-task` | hangs_from | `agent` | many_to_one | field: agentes.<id>.tareas[] (estandares-agentes.json) |
 | `menu-week` | hangs_from | `menu` | many_to_one | field: user_menu_weeks (user_id, menu_id), clave ajena con on delete cascade |
 
-## Relaciones reference (59)
+## Relaciones reference (61)
 
 | de | verbo | a | cardinalidad | cómo se guarda |
 |---|---|---|---|---|
 | `norm` | cites | `principle` | many_to_one | field: principio |
+| `principle` | cites | `source` | many_to_many | field: fuentes[].fuente |
+| `standard` | cites | `source` | many_to_many | field: reglas[].fuente |
 | `norm` | refers_to | `issue` | many_to_one | field: issue |
 | `norm` | enforced_by | `mechanism` | many_to_one | ningún campo: el ejecutor guarda un valor de EJECUTORES, no un id de mecanismo (github_regla no es regla_github) |
 | `norm` | enforced_by | `control` | many_to_one | field: control y control_tipo |

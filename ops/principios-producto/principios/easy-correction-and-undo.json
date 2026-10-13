@@ -8,12 +8,12 @@
   "ejemplo_malo": "Para corregir un cambio hay que pedirlo todo de nuevo",
   "fuentes": [
     {
-      "url": "https://www.microsoft.com/en-us/research/articles/guidelines-for-human-ai-interaction-eighteen-best-practices-for-human-centered-ai-design/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "microsoft-guidelines-for-human-ai-interaction-eighteen-best"
     },
     {
-      "url": "https://www.nngroup.com/articles/ten-usability-heuristics/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "nng-heuristicas"
     }
   ]
 }

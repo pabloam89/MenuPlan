@@ -8,8 +8,8 @@
   "ejemplo_malo": "Las alergias de una familia entran en un análisis de mercado o en el prompt de moderación",
   "fuentes": [
     {
-      "url": "https://gdpr-info.eu/art-5-gdpr/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "gdpr-art-5-gdpr"
     }
   ]
 }

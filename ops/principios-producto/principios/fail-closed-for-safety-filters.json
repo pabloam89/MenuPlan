@@ -8,12 +8,12 @@
   "ejemplo_malo": "Hoy api/moderate.js falla abierto en varios caminos y ante la duda acepta (#597)",
   "fuentes": [
     {
-      "url": "https://www.cisa.gov/securebydesign",
-      "marca": "S"
+      "marca": "S",
+      "fuente": "cisa-securebydesign"
     },
     {
-      "url": "https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/",
-      "marca": "S"
+      "marca": "S",
+      "fuente": "owasp-genai-llm102025-unbounded-consumption"
     }
   ]
 }
