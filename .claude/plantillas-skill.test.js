@@ -203,14 +203,14 @@ describe("lo escrito a mano cuadra con la forja", () => {
     const bools = Object.entries(datos.campos_ficha.skill.campos).filter(([, c]) => c.clase === "bool").map(([n]) => n);
     expect(bools.sort()).toEqual(datos.preguntas_tipo.map((p) => p.clave).sort());
   });
-  it("en cada molde (nivel 2), tipo y las respuestas son obligatorios con el valor de su tipo, y nivel no ofrece el 1", () => {
+  it("en cada molde (paso pieza), tipo y las respuestas son obligatorios con el valor de su tipo, y paso no ofrece la plantilla", () => {
     for (const t of tiposDeForja(datos)) {
       const molde = generarPlantilla(datos, t, { estandar: estandarDeTipo(comun, t) });
       expect(molde, t).toContain(`| \`tipo\` | enum | sí | \`${t}\` |`);
       for (const p of datos.preguntas_tipo) expect(molde, `${t} ${p.clave}`).toContain(`| \`${p.clave}\` | bool | sí | \`${p.tipo === t}\` en este tipo |`);
-      const nivel = molde.split("\n").find((l) => l.startsWith("| `nivel` |"));
-      expect(nivel, t).not.toContain("`1`");
-      expect(nivel, t).toContain("`2`");
+      const paso = molde.split("\n").find((l) => l.startsWith("| `paso` |"));
+      expect(paso, t).toMatch(/^\| `paso` \| enum \| no \| `pieza`, o sin él/);
+      expect(paso, t).not.toContain("`plantilla`,");
     }
   });
 });
@@ -242,9 +242,9 @@ describe("EXCEPCIONES_PLANTILLA: lo que la migración de tipos no pudo arreglar 
       expect(Array.isArray(e.secciones) && e.secciones.at(-1), n).toBe("Fuentes y comprobación");
     }
   });
-  it("las demás skills de nivel 2 llevan exactamente las secciones de su tipo, y la pieza meta las de nivel_0", () => {
-    const nivel0 = (n) => parsearSkill(skills[n].texto).meta.metadata.nivel === "0";
+  it("las demás skills de paso pieza llevan exactamente las secciones de su tipo, y la pieza meta las de forma_forja", () => {
+    const nivel0 = (n) => parsearSkill(skills[n].texto).meta.metadata.paso === "forja";
     for (const n of Object.keys(skills).filter((x) => !(x in EXCEPCIONES_PLANTILLA) && !nivel0(x))) expect(titulos(n), `${n} (${tipo(n)})`).toEqual(SECCIONES_POR_TIPO[tipo(n)]);
-    for (const n of Object.keys(skills).filter(nivel0)) expect(titulos(n), n).toEqual(datos.nivel_0.skills.secciones);
+    for (const n of Object.keys(skills).filter(nivel0)) expect(titulos(n), n).toEqual(datos.forma_forja.skills.secciones);
   });
 });

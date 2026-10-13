@@ -2,7 +2,7 @@
 name: forja-de-skills
 description: Úsala al crear, reestructurar, revisar o podar una skill de .claude/skills: «hazme una skill para…», «¿hace falta una skill nueva?», «esta skill no se abre cuando toca», «está muy larga», «el test de skills falla con forja», «¿la borro?». Dice cuándo NO crearla, cómo se forja paso a paso, qué comprueba el test y qué solo juzga una persona. No para: operar un servicio (su skill), escribir o cambiar un agente (PLANTILLA-AGENTE) ni medir una skill ya hecha sin tocarla (npm run skills-prueba).
 metadata:
-  nivel: 0
+  paso: forja
   dueno: gobierno
   comprobado: 2026-10-10
   normas: [criterios-de-forja-en-un-catalogo, recurso-con-dueno-y-caducidad]
@@ -147,7 +147,7 @@ prepara el PR con el inventario (qué decía, quién la citaba, a dónde pasa lo
 ## Registro de cambios
 
 - **2026-10-11** · La cabecera de cada skill dice a qué normas sirve (`metadata.normas`, ids de `ops/normas.json`); la skill las cita y no copia su frase, y `ops/uniones.test.js` lo comprueba (#620).
-- **2026-10-10** · Esta skill pasa a ser la pieza meta (nivel 0, sin tipo); una skill nueva copia el molde de su tipo, generado desde la forja en `.claude/plantillas-skill/` (#495).
+- **2026-10-10** · Esta skill pasa a ser la pieza meta (paso forja, sin tipo); una skill nueva copia el molde de su tipo, generado desde la forja en `.claude/plantillas-skill/` (#495).
 - **2026-10-10** · Las 7 excepciones de fechas que quedaban se arreglan y la lista queda vacía; la revisión de una skill concreta pasa a `higiene-de-skills` (#411).
 - **2026-10-10** · Presentación (`.claude/skills/forja-de-skills/referencias/presentacion.md`) con tres controles mecánicos, el estándar de cada tipo en la plantilla con su test, y 12 de las 19 excepciones quitadas (#410).
 - **2026-10-10** · Primera versión: doce criterios con fuente, defectos con su señal, método con regla de parada, y la regla `forja` del nivel 1 con su lista de excepciones que solo baja (#409).

@@ -41,7 +41,8 @@
         "^scripts/lib/(?:issues|lleva)\\.mjs$"
       ],
       "agentes": [
-        "gobierno"
+        "gobierno",
+        "analista"
       ]
     },
     "causa-raiz": {
@@ -51,7 +52,8 @@
         "^scripts/lib/tecnicas\\.mjs$"
       ],
       "agentes": [
-        "gobierno"
+        "gobierno",
+        "analista"
       ]
     },
     "alta-de-secreto": {
@@ -107,7 +109,8 @@
       ],
       "agentes": [
         "gobierno",
-        "orquestador"
+        "orquestador",
+        "analista"
       ]
     },
     "revision-de-diseno": {
@@ -141,7 +144,8 @@
         "^docs/ops/ENCARGO\\.md$"
       ],
       "agentes": [
-        "gobierno"
+        "gobierno",
+        "analista"
       ]
     },
     "vercel": {

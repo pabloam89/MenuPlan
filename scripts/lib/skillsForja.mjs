@@ -166,7 +166,7 @@ export function faltasDePresentacion(texto, donde = "SKILL.md") {
  * Los controles de una skill sola. `cuerpo` es el de `parsearSkill`; `tipo`, el
  * de su metadata; `extra`, los ficheros .md de sus capas ({ruta: texto}). `parada`
  * fuerza si se pide criterio de parada en «Método» (la pieza meta, que no tiene tipo:
- * lo decide su forma de `nivel_0`); si no se da, lo dice el criterio según el tipo.
+ * lo decide su forma de `forma_forja`); si no se da, lo dice el criterio según el tipo.
  * Devuelve [] si cumple todo.
  */
 export function faltasForja({ nombre, cuerpo, tipo, casos, extra = {}, parada }) {

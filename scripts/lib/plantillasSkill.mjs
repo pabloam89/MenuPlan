@@ -163,9 +163,9 @@ function comoSeLlega(datos, tipo) {
 
 /**
  * Los campos de la ficha de una skill, con su clase, de `campos_ficha.skill`. Un molde es de
- * nivel 2: ahí `tipo` y las respuestas de `preguntas_tipo` son obligatorios (en la ficha
+ * paso pieza: ahí `tipo` y las respuestas de `preguntas_tipo` son obligatorios (en la ficha
  * común no, porque la pieza meta no los lleva), cada respuesta con el valor que da este tipo,
- * y `nivel` solo puede ser 2 (el 1 son los moldes; el 0, la pieza meta).
+ * y `paso` solo puede ser pieza (la plantilla son los moldes; la forja, la pieza meta).
  */
 function campos(datos, tipo) {
   const decl = datos.campos_ficha?.skill?.campos ?? {};
@@ -174,7 +174,7 @@ function campos(datos, tipo) {
   const valores = (n, c) => {
     if (n === "tipo") return `\`${tipo}\``;
     if (n in respuestas) return `\`${respuestas[n]}\` en este tipo`;
-    if (n === "nivel") return "`2`, o sin él (el 1 son los moldes; el 0, la pieza meta)";
+    if (n === "paso") return "`pieza`, o sin él (la plantilla son los moldes; `forja`, la pieza meta)";
     if (c.clase === "enum" && datos[c.vocab] && typeof datos[c.vocab] === "object" && !Array.isArray(datos[c.vocab])) return Object.keys(datos[c.vocab]).map((v) => `\`${v}\``).join(", ");
     if (c.clase === "ref") return `${["agente", "criterio", "issue", "comando"].includes(c.ref) ? "un" : "una"} ${c.ref} que existe`;
     if (c.clase === "fecha") return "AAAA-MM-DD";

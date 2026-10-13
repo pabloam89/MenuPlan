@@ -101,13 +101,13 @@
     },
     {
       "id": "agentes",
-      "tests": [".claude/agentes.test.js", "scripts/fondos.test.js", "ops/presupuestos.test.js", "ops/forja-tipos.test.js", "ops/estandares-agentes.test.js"],
-      "mira": [".claude/agents/*.md", "ops/estandares-agentes.json", "ops/forja/**"],
-      "porque": "Recorren todos los agentes: estructura de la plantilla, capas de la ficha del fondo, jueces del presupuesto y estándar de cada tarea. Un agente nuevo o cambiado rompe el que no se actualizó."
+      "tests": [".claude/agentes.test.js", "scripts/fondos.test.js", "ops/presupuestos.test.js", "ops/forja-tipos.test.js", "ops/estandares-agentes.test.js", "ops/actores-agentes.test.js"],
+      "mira": [".claude/agents/*.md", "ops/estandares-agentes.json", "ops/forja/**", "ops/flujo.json", "scripts/lib/flujo.mjs"],
+      "porque": "Recorren todos los agentes: estructura de la plantilla, capas de la ficha del fondo, jueces del presupuesto, estándar de cada tarea y actores del flujo que son un agente. Un agente nuevo o cambiado rompe el que no se actualizó."
     },
     {
       "id": "skills-forma",
-      "tests": [".claude/skills.test.js", ".claude/voz.test.js", ".claude/dominios-skills.test.js", "ops/flujo.test.js", "scripts/encargo.test.js"],
+      "tests": [".claude/skills.test.js", ".claude/voz.test.js", ".claude/dominios-skills.test.js", "ops/flujo.test.js", "scripts/encargo.test.js", "ops/base.test.js"],
       "mira": [".claude/skills/**", ".claude/dominios-skills.json", "ops/forja/**", ".claude/PLANTILLA-SKILL.md", "ops/flujo.json", "docs/ops/*.md"],
       "porque": "Recorren todas las skills: forma, forja, mapa de dominios, nombres que cita el flujo y plantilla del encargo sin copiar. Un cambio en una skill rompe la vecina.",
       "amplio": true

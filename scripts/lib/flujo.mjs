@@ -39,12 +39,13 @@ export const ALCANCES_FALLO = {
 
 /** Quién diagnostica según el alcance. */
 export const DIAGNOSTICAN = {
-  agente_dominio: "El agente del dominio, en una pasada, con la skill causa-raiz",
+  analista: "El analista (agente de .claude/agents/), en una pasada, con la skill causa-raiz",
   orquestador_con_diagnosticadores: "El orquestador lanza varios diagnosticadores en paralelo, cada uno con su lente, y sintetiza",
 };
 
 /** Quién interviene en un paso. */
 export const ACTORES = {
+  analista: "El analista: un agente de .claude/agents/ que registra el caso, diagnostica y redacta el plan en el issue; no construye",
   agente_dominio: "El constructor del dominio: un agente con «Tipo: constructor» en .claude/agents/",
   orquestador: "La sesión principal con /orquestar",
   juez: "Un agente con «Tipo: juez» en .claude/agents/",

@@ -1,0 +1,21 @@
+{
+  "clave": "pasos",
+  "valor": {
+    "base": {
+      "que": "Lo común a toda forja: su redacción, sus metas y la obligación de una fuente de industria. No es una pieza ni un molde: se hereda.",
+      "hereda": null
+    },
+    "forja": {
+      "que": "Lo que hace buena a una pieza de una familia (skills, estándares). La forja de skills es la pieza meta forja-de-skills; de ella salen las plantillas por tipo.",
+      "hereda": "base"
+    },
+    "plantilla": {
+      "que": "El molde por tipo, generado desde la forja (los de skill, en .claude/plantillas-skill/<tipo>.md). No es una skill.",
+      "hereda": "forja"
+    },
+    "pieza": {
+      "que": "Una cosa concreta que cumple una forja: una skill con su tipo, o la tarea de un agente. Es el paso de una skill si su ficha no dice otro.",
+      "hereda": "plantilla"
+    }
+  }
+}

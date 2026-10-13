@@ -18,37 +18,37 @@
         "clase": "enum",
         "vocab": "tipos_skill",
         "obligatorio": false,
-        "nota": "Lo llevan todas las de nivel 2; la de nivel 0 no tiene tipo, y el nivel 1 lo comprueba"
+        "nota": "Lo llevan todas las de paso pieza; la de paso forja no tiene tipo, y la prueba de forma (nivel 1 de las pruebas) lo comprueba"
       },
       "opera_proveedor": {
         "clase": "bool",
         "obligatorio": false,
-        "nota": "Respuesta a «¿Opera un sistema o proveedor externo concreto?» (preguntas_tipo); la piden todas las skills de nivel 2"
+        "nota": "Respuesta a «¿Opera un sistema o proveedor externo concreto?» (preguntas_tipo); la piden todas las skills de paso pieza"
       },
       "juzga_artefacto": {
         "clase": "bool",
         "obligatorio": false,
-        "nota": "Respuesta a «¿Juzga un artefacto que ya existe?» (preguntas_tipo); la piden todas las skills de nivel 2"
+        "nota": "Respuesta a «¿Juzga un artefacto que ya existe?» (preguntas_tipo); la piden todas las skills de paso pieza"
       },
       "encadena": {
         "clase": "bool",
         "obligatorio": false,
-        "nota": "Respuesta a «¿Encadena skills o agentes?» (preguntas_tipo); la piden todas las skills de nivel 2"
+        "nota": "Respuesta a «¿Encadena skills o agentes?» (preguntas_tipo); la piden todas las skills de paso pieza"
       },
       "pasos_fijos": {
         "clase": "bool",
         "obligatorio": false,
-        "nota": "Respuesta a «¿Son pasos fijos con comprobación?» (preguntas_tipo); la piden todas las skills de nivel 2"
+        "nota": "Respuesta a «¿Son pasos fijos con comprobación?» (preguntas_tipo); la piden todas las skills de paso pieza"
       },
       "sintoma_a_causa": {
         "clase": "bool",
         "obligatorio": false,
-        "nota": "Respuesta a «¿Va de un síntoma a su causa?» (preguntas_tipo); la piden todas las skills de nivel 2"
+        "nota": "Respuesta a «¿Va de un síntoma a su causa?» (preguntas_tipo); la piden todas las skills de paso pieza"
       },
       "elige_opciones": {
         "clase": "bool",
         "obligatorio": false,
-        "nota": "Respuesta a «¿Elige entre opciones con criterios?» (preguntas_tipo); la piden todas las skills de nivel 2"
+        "nota": "Respuesta a «¿Elige entre opciones con criterios?» (preguntas_tipo); la piden todas las skills de paso pieza"
       },
       "porque_tipo": {
         "clase": "texto",
@@ -56,11 +56,11 @@
         "cubre": "Por qué responde así cuando la respuesta no es evidente (una skill que podría parecer de otro tipo): el motivo cambia con cada skill",
         "obligatorio": false
       },
-      "nivel": {
+      "paso": {
         "clase": "enum",
-        "vocab": "niveles",
+        "vocab": "pasos",
         "obligatorio": false,
-        "nota": "Sin él, 2 (skill concreta); solo la pieza meta lo lleva, con 0"
+        "nota": "Sin él, pieza (skill concreta); solo la pieza meta lo lleva, con forja. Sustituye al antiguo nivel (0 = forja, 2 = pieza)"
       },
       "dueno": {
         "clase": "ref",

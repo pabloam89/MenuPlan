@@ -69,7 +69,9 @@ Cómo comprueba que terminó bien antes de devolver el informe, con evidencia.
 
 `Tipo:` es un vocabulario cerrado, `TIPOS_AGENTE` de `scripts/lib/agentes.mjs`: `constructor` o `juez`. «juez» es un valor de `Tipo`, no una categoría aparte: la lista de jueces sale de las cabeceras `Tipo: juez`, y nadie la copia a mano.
 
-- **Constructor**: escribe código, datos o documentos. Lleva `Edit`/`Write`.
+- **Constructor**: escribe código, datos o documentos. Lleva `Edit`/`Write`; el `analista`, que
+  solo escribe documentos (el cuerpo de un issue), lleva `Write` y no `Edit`, y lo vigila `.claude/agentes.test.js`.
+  Crear o cambiar un agente es la tarea `crear-o-cambiar-agente` de `gobierno`.
 - **Juez**: solo lee, ejecuta comprobaciones y opina. Sin `Edit`, `Write` ni
   `NotebookEdit` (el test lo impide). Quien construye algo no lo juzga: la
   sesión principal pasa el resultado de un constructor a un juez distinto.
