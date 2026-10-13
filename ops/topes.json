@@ -1,0 +1,91 @@
+{
+  "$comentario": "Topes en caracteres y tipo de texto de cada campo (#689, programa #652, acuerdo del 13 oct 2026). «tope»: el máximo de hoy, medido con npm run topes, en caracteres; solo baja (ops/topes.test.js lo compara con origin/staging, como ops/normas-techos.json) y nunca se fija por debajo de lo que ya existe. «tipo_texto»: la fila de la tabla de redacción (ops/forja/base/redaccion.json, BASE-FORJA §3.2) que rige el campo; un solo control aplica su regla a todos. «excepciones_wording»: campo:código → cuántos textos de hoy la incumplen; solo baja. «documento.claude_md» es el tope de #314: CLAUDE.md, hoy sin bajar de ~20.000 caracteres; el tope es la excepción que solo baja hasta que se recorte. Lo escribe npm run topes -- --escribir; lo lee scripts/lib/topes.mjs. Repo público: nada de cómo se salta un control.",
+  "tipos_de_texto": {
+    "norma": "Una obligación o prohibición: sujeto, fuerza y exigencia en infinitivo, en tercera persona y voz activa",
+    "principio": "El porqué de una norma: una frase en presente de indicativo, tercera persona y sin palabras de fuerza",
+    "practica": "Una práctica de oficio de una forja o del pool: imperativo en segunda persona, con su porqué y sus ejemplos",
+    "skill": "El texto de una skill: pasos en imperativo y segunda persona, cada uno con su salida observable",
+    "respuesta": "Lo que se le dice a Pablo: presente, primera y segunda persona, con la forma de la skill estilo-de-respuesta",
+    "definicion": "Qué es un término del glosario: una idea corta en presente de indicativo y tercera persona, sin regla propia de redacción",
+    "documento": "Un fichero entero cuyo único control es su tope en caracteres, sin regla de redacción por frase"
+  },
+  "campos": {
+    "norma.exigencia": {
+      "tipo_texto": "norma",
+      "tope": 123
+    },
+    "norma.nota": {
+      "tipo_texto": "norma",
+      "tope": 353
+    },
+    "principio.enunciado": {
+      "tipo_texto": "principio",
+      "tope": 128,
+      "palabras_max": 25
+    },
+    "principio.porque": {
+      "tipo_texto": "principio",
+      "tope": 136,
+      "palabras_max": 30
+    },
+    "practica.practica": {
+      "tipo_texto": "practica",
+      "tope": 177
+    },
+    "skill.description": {
+      "tipo_texto": "skill",
+      "tope": 583
+    },
+    "tarea.tarea": {
+      "tipo_texto": "norma",
+      "tope": 215
+    },
+    "regla.exigencia": {
+      "tipo_texto": "norma",
+      "tope": 154
+    },
+    "regla.nota": {
+      "tipo_texto": "norma",
+      "tope": 152
+    },
+    "regla.porque": {
+      "tipo_texto": "principio",
+      "tope": 149
+    },
+    "criterio.exigencia": {
+      "tipo_texto": "norma",
+      "tope": 155
+    },
+    "termino.definicion": {
+      "tipo_texto": "definicion",
+      "tope": 193
+    },
+    "documento.claude_md": {
+      "tipo_texto": "documento",
+      "tope": 19798
+    }
+  },
+  "excepciones_wording": {
+    "norma.exigencia:modo-tiempo": 2,
+    "norma.exigencia:voz-pasiva": 1,
+    "norma.nota:modo-tiempo": 2,
+    "norma.nota:voz-pasiva": 3,
+    "norma.nota:persona": 5,
+    "principio.enunciado:modo-tiempo": 4,
+    "principio.enunciado:persona": 2,
+    "principio.porque:modo-tiempo": 13,
+    "principio.porque:persona": 2,
+    "practica.practica:modo-tiempo": 2,
+    "practica.practica:voz-pasiva": 1,
+    "skill.description:modo-tiempo": 3,
+    "skill.description:persona": 1,
+    "tarea.tarea:modo-tiempo": 1,
+    "regla.exigencia:modo-tiempo": 3,
+    "regla.exigencia:voz-pasiva": 1,
+    "regla.porque:modo-tiempo": 16,
+    "regla.porque:fuerza-en-principio": 5,
+    "regla.porque:voz-pasiva": 2,
+    "criterio.exigencia:persona": 1,
+    "criterio.exigencia:modo-tiempo": 2
+  }
+}
