@@ -10,7 +10,7 @@ import { AMBITOS, AMBITO_DE_REGLA, ambitosDeFichero } from "../scripts/lib/ambit
 import { globARegex } from "../scripts/lib/vecinos.mjs";
 import { MIN_PALABRAS_COPIA, cargarSkill, nombresDeSkills, parsearSkill, problemasDeNormasDeSkill } from "../scripts/lib/skills.mjs";
 import {
-  TECHO_NORMAS_SIN_JUEZ, TECHO_REGLAS_QUE_NO_SON_NORMA, accionesDeConsulta, juecesPorNorma, normaReescrita, parecido, problemasDeEmparejamiento, reglasDelCatalogo, leerEstandares, problemasDeUnionesEstandar, tareasDe,
+  TECHO_NORMAS_SIN_JUEZ, TECHO_REGLAS_QUE_NO_SON_NORMA, accionesDeConsulta, juecesPorNorma, normaReescrita, parecido, problemasDeEmparejamiento, reglasDelCatalogo, leerEstandares, normasHuerfanas, problemasDeUnionesEstandar, tareasDe,
 } from "../scripts/lib/estandaresAgentes.mjs";
 import { leerRegistro } from "../scripts/lib/normas.mjs";
 import { TECHO_PRINCIPIOS_QUE_REPITEN, TECHO_SIN_NORMA, leerPrincipiosCasa, principiosQueRepitenSuNorma, problemasDeUniones } from "../scripts/lib/principios.mjs";
@@ -290,5 +290,36 @@ describe("las skills citan normas y no las contienen (#620)", () => {
       const otra = normas.find((n) => n.id === "test-visto-fallar");
       expect(con(sk.texto, { ...sk.extra, "referencias/y.md": `Un test nuevo ha de ${otra.exigencia}.` })).toMatch(/contiene la frase de la norma «test-visto-fallar»/);
     });
+  });
+});
+
+describe("toda norma llega a algún agente (#683, fondo #652)", () => {
+  const estandares = leerEstandares(RAIZ);
+  const TECHOS = JSON.parse(readFileSync(join(RAIZ, "ops/normas-techos.json"), "utf8"));
+  const excepciones = TECHOS.normas_huerfanas_excepciones ?? {};
+  const sinExcepcion = (ids) => ids.filter((id) => !(id in excepciones));
+
+  it("ninguna norma queda sin tarea que la reciba, salvo las de la lista de excepciones", () => {
+    expect(sinExcepcion(normasHuerfanas(estandares, normas)), "Mapéala a la tarea del agente que corresponda (ámbito o `normas`), o si es conducta del producto, a normas_huerfanas_excepciones con su motivo").toEqual([]);
+  });
+
+  it("la lista de excepciones solo tiene normas que existen y siguen huérfanas, con motivo, y su techo es su tamaño", () => {
+    const huerfanas = normasHuerfanas(estandares, normas);
+    for (const [id, motivo] of Object.entries(excepciones)) {
+      expect(normas.some((n) => n.id === id), `${id}: no es una norma`).toBe(true);
+      expect(huerfanas, `${id}: ya la recibe una tarea, quítala de la lista`).toContain(id);
+      expect(motivo.length, `${id}: motivo`).toBeGreaterThan(20);
+    }
+    expect(Object.keys(excepciones)).toHaveLength(TECHOS.normas_huerfanas);
+  });
+
+  it("se ve fallar: una norma nueva sin ámbito de ninguna tarea, y una citada que deja de ser huérfana", () => {
+    const nueva = { id: "norma-de-ejemplo", ambito: "catalog", acciones: ["construir"] };
+    expect(normasHuerfanas(estandares, [...normas, nueva])).toContain("norma-de-ejemplo");
+    const citada = structuredClone(estandares);
+    citada.agentes.gobierno.tareas[0].normas = [...(citada.agentes.gobierno.tareas[0].normas ?? []), "norma-de-ejemplo"];
+    expect(normasHuerfanas(citada, [...normas, nueva])).not.toContain("norma-de-ejemplo");
+    // un juez del ámbito no basta: la acción tiene que ser la de la norma
+    expect(normasHuerfanas(estandares, [...normas, { ...nueva, id: "otra", ambito: "code", acciones: ["operar"] }])).toContain("otra");
   });
 });

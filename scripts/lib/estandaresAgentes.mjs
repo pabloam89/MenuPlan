@@ -752,3 +752,19 @@ export function problemasDeUnionesEstandar(datos, normas, { umbral = UMBRAL_REES
   if (Object.keys(sinJuez).length > techos.juicio) malos.push(`normas_sin_juez: ${Object.keys(sinJuez).length} y el techo es ${techos.juicio}; la lista solo baja`);
   return malos;
 }
+
+// ── Normas que ninguna tarea recibe (#683, fondo #652) ──────────────────────
+
+/**
+ * Las normas que ninguna tarea recibe: ni por su ámbito y su acción tal cual (sin la equivalencia
+ * construir ↔ juzgar: que un juez las vea no es que alguien las construya) ni porque la lista `normas`
+ * de una tarea o de una tarea común las cite. Devuelve los ids, en el orden del registro.
+ */
+export function normasHuerfanas(datos, normas) {
+  const recibidas = new Set();
+  for (const { tarea } of tareasDe(datos)) {
+    for (const x of normasDeTarea(tarea, datos, normas, { deConsulta: (a) => [a] })) if (x.norma) recibidas.add(x.norma.id);
+  }
+  for (const c of Object.values(datos?.comunes ?? {})) for (const id of c.normas ?? []) recibidas.add(id);
+  return (normas ?? []).filter((n) => !recibidas.has(n.id)).map((n) => n.id);
+}
