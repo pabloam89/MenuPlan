@@ -9,7 +9,7 @@ metadata:
   pasos_fijos: false
   sintoma_a_causa: false
   elige_opciones: false
-  porque_tipo: "juzga_artefacto es true: el artefacto es el arreglo ya fusionado de un fondo, y lo que sale es un veredicto con su cifra; los pasos del método sirven a ese juicio"
+  porque_tipo: "juzga_artefacto es true: el artefacto es el arreglo ya fusionado de un fondo. Escribe rastro (comentario, aprendizaje, --colgar) pero no cambia código ni datos de producción; se eligió revision y no procedimiento por su salida, un veredicto con cifra"
   dueno: analista
   comprobado: 2026-10-13
   normas: [fondo-ventana-sin-casos, fondo-no-cierra-sin-aprendizaje, lecciones-a-un-test, quien-construye-no-juzga]
@@ -53,14 +53,15 @@ Un solo veredicto por fondo, y su porqué en una frase:
 | `insuficiente` | la verificación falla, o la cifra no mejora, o hay casos nuevos o `no-aguanto-*` | caso nuevo y reapertura del fondo |
 | `no-evaluable` | no hay cifra de partida, o no hay comando que se pueda repetir, o cambiaron las condiciones | vuelve a `plan-de-arreglo` para fijarla; la ventana sigue abierta |
 
-La cifra que sale es una línea `antes: <n> después: <m> comando: <c>`. Un `no-evaluable` no cierra ni reabre
+La cifra que sale es la línea de rastro `cierre-eficaz: veredicto=<v> antes=<n> despues=<m> comando=<c>`. Un `no-evaluable` no cierra ni reabre
 el fondo: lo deja donde estaba y pide la cifra de partida.
 
 ## Método
 
 1. **Mira el momento y lo apuntado.** `git fetch origin`, la hora con `npm run hora` (no con `date`) y
-   `npm run buscar -- "<fondo>"`. El fondo está en `en-observacion` y `ventana_hasta` venció o vence en 7 días;
-   si otro agente ya dejó un `cierre-eficaz:` en el fondo, se añade evidencia y no se repite.
+   `npm run buscar -- "<fondo>"`. Se evalúa 7 días antes de `ventana_hasta`, con el fondo todavía en `en-observacion`
+   (el workflow `fondos` cierra el primer día tras la ventana). Si ya cerró sin veredicto, se evalúa igual y,
+   si es `insuficiente`, se reabre con un caso `no-aguanto-*`. Si otro agente ya dejó un `cierre-eficaz:` en el fondo, se añade evidencia y no se repite.
 2. **Lee la ficha y el PR del arreglo.** Sale: `barrera`, `verificacion`, `barrido`, `ventana_desde`,
    `ventana_hasta`, `casos`, `encargos`. Si falta alguno, el veredicto es `no-evaluable`.
 3. **Comprueba la verificación.** Existe en `origin/staging` y pasa. Si falla, es `insuficiente`.
@@ -72,8 +73,7 @@ el fondo: lo deja donde estaba y pide la cifra de partida.
 7. **Decide el veredicto** con la tabla de arriba.
 8. **Escribe el aprendizaje**: qué skill, regla, test o catálogo quedó tocado, o `ninguno — <motivo>`
    <!-- norma:lecciones-a-un-test -->. En un `insuficiente`, el aprendizaje es lo que faltaba.
-9. **Deja el rastro**: un comentario del fondo con `cierre-eficaz: veredicto=<v> antes=<n> despues=<m>` y
-   `comando: <c>`, y el campo `aprendizaje` en la ficha. No se añaden claves nuevas a la ficha: su vocabulario es cerrado.
+9. **Deja el rastro**: un comentario del fondo con `cierre-eficaz: veredicto=<v> antes=<n> despues=<m> comando=<c>`, y el campo `aprendizaje` en la ficha. No se añaden claves nuevas a la ficha: su vocabulario es cerrado.
 10. **Propón, no cierres.** `eficaz`: cierra el workflow `fondos` al vencer la ventana
     <!-- norma:fondo-no-cierra-sin-aprendizaje -->; si ya cerró sin tu veredicto, lo dejas escrito igualmente.
     `insuficiente`: registra un caso `no-aguanto-corto` o `no-aguanto-roto` (skill `issues`) y cuélgalo con
