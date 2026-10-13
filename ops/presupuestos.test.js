@@ -183,7 +183,7 @@ describe("/orquestar: el triaje lee el catálogo y no lleva sus números", () =>
   });
 
   it("dice quién itera según el alcance y con qué skills diagnostica y planea (#338)", () => {
-    expect(triaje).toMatch(/agente del dominio/);
+    expect(triaje).toMatch(/`analista`/);
     expect(triaje).toMatch(/diagnosticadores en paralelo/);
     expect(triaje).toContain("`causa-raiz`");
     expect(triaje).toContain("`plan-de-arreglo`");

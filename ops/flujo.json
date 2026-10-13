@@ -122,7 +122,7 @@
       "nombre": "Registrar el caso",
       "entra": "Una señal de fallo",
       "sale": "Un issue tipo:caso con su área, buscado antes entre los parecidos",
-      "quien": ["agente_dominio", "orquestador", "automatico"],
+      "quien": ["analista", "orquestador", "automatico"],
       "skill": "issues",
       "skill_fase": [],
       "mide": [
@@ -142,7 +142,7 @@
       "nombre": "Triaje",
       "entra": "Un caso registrado",
       "sale": "Alcance (local, módulo o transversal) y tipo de causa fijados",
-      "quien": ["orquestador", "agente_dominio"],
+      "quien": ["orquestador", "analista"],
       "skill": "causa-raiz",
       "skill_fase": [],
       "mide": [
@@ -158,7 +158,7 @@
       "nombre": "Diagnosticar",
       "entra": "Un caso con alcance y tipo",
       "sale": "Mecanismo, causa de escape y clase del fallo; o una hipótesis marcada como tal",
-      "quien": ["agente_dominio", "juez", "orquestador"],
+      "quien": ["analista", "juez", "orquestador"],
       "skill": "causa-raiz",
       "skill_fase": [],
       "mide": [
@@ -178,7 +178,7 @@
       "nombre": "Fondo",
       "entra": "Un diagnóstico",
       "sale": "Un issue tipo:fondo con su arreglo general, su causa y cómo se probará",
-      "quien": ["agente_dominio", "orquestador"],
+      "quien": ["analista", "orquestador"],
       "skill": "causa-raiz",
       "skill_fase": [],
       "mide": [
@@ -195,7 +195,7 @@
       "nombre": "Plan",
       "entra": "Un fondo diagnosticado",
       "sale": "Encargos colgados del fondo, con dependencias, agente, juez y verificación",
-      "quien": ["orquestador", "agente_dominio"],
+      "quien": ["orquestador", "analista"],
       "skill": "plan-de-arreglo",
       "skill_fase": [],
       "mide": [

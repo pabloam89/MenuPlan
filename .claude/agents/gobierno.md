@@ -32,6 +32,9 @@ Es suyo:
   (`ops/INVENTARIO.md`), nunca sus valores.
 - Despliegues de Vercel: estado, logs, «Blocked».
 - Los registros `ops/DECISIONES.md` y `ops/PLANOS.md`.
+- Crear y cambiar agentes: la plantilla `.claude/PLANTILLA-AGENTE.md`, la cabecera
+  y el catálogo de tareas de cada uno, y el mapa de skills (tarea
+  `crear-o-cambiar-agente`).
 
 No es suyo:
 - El esquema, las migraciones y los datos: eso es de `datos`. Él solo custodia
@@ -160,3 +163,4 @@ Todas las tareas de todos los agentes, en una tabla: `docs/ops/ESTANDARES.md`.
 - `despliegues-vercel` — Informar del estado y los logs de un despliegue de Vercel y preparar el despliegue a producción cuando se pide (acción: operar)
 - `registros-y-planos` — Poner al día DECISIONES, INVENTARIO y PLANOS y contestar «¿cómo está la casa?» con cifras (acción: documentar)
 - `catalogo-de-ops-con-test` — Construir un catálogo de ops con su test: datos en JSON, módulo lector en scripts/lib, test que lo vigila y documento generado (acción: construir)
+- `crear-o-cambiar-agente` — Crear o cambiar un agente de .claude/agents/ con la estructura de la plantilla, herramientas mínimas, traspasos declarados con un juez distinto y su estándar de tareas (acción: construir)
