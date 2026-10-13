@@ -493,8 +493,25 @@ describe("una sesión, una carpeta: en la principal no se trabaja", () => {
     "git switch ops/x",
     "git merge origin/staging",
     "git reset --hard HEAD~1",
+    "git reset --hard",
+    "git reset --soft HEAD~1",
+    "git reset --merge",
+    "git reset -q --hard",
+    "git reset HEAD~1",
+    "git reset origin/staging",
+    "git reset src/App.jsx",
+    "git reset -q src/App.jsx",
+    "git reset -q HEAD~1",
+    "git -C C:/dev/MenuPlan reset --hard",
     "git -C C:/dev/MenuPlan commit -m x",
   ])("niega %s", (c) => expect(enPrincipal(c)).toBe("deny"));
+
+  // #675: deshacer lo PREPARADO es lo único que arregla un índice sucio de la principal.
+  it.each([
+    "git reset",
+    "git reset -q",
+    "git -C C:/dev/MenuPlan reset -q",
+  ])("deja %s (solo deshace lo preparado)", (c) => expect(enPrincipal(c)).toBe(null));
 
   it.each([
     "git status --short",
