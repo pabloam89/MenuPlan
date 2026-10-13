@@ -58,6 +58,7 @@ import { textosDeBanderas, textosDeCierres, textosDeContadores, textosDeDiffersI
 import { VOCABULARIOS as PRODUCTO } from "../../src/lib/vocabularios.js";
 import { DEF_ACTORES, DEF_EVITABLE, DEF_MOTIVOS_INTERVENCION } from "./eventosVocabulario.mjs";
 import { DEF_PROYECTOS, DEF_ZONAS } from "./zonasProyecto.mjs";
+import { CODIGOS_WORDING, leerTopes } from "./topes.mjs";
 
 export const RUTA_VOCABULARIOS = "ops/vocabularios-vida.json";
 /** El prefijo de los vocabularios del producto en el registro: `producto.<nombre en VOCABULARIOS>`. */
@@ -123,6 +124,9 @@ export const VOCABULARIOS = {
   "encargo.complexity_reason": { fichero: "scripts/lib/presupuestos.mjs", textos: conTexto(MOTIVOS_COMPLEJIDAD) },
   "encargo.complexity": { fichero: "scripts/lib/issues.mjs", textos: conTexto(COMPLEXITIES) },
   "encargo.pipeline": { fichero: "scripts/lib/presupuestos.mjs", textos: conTexto(PIPELINES) },
+  // El tipo de texto de cada campo y los códigos de wording (#689): el dato vive en ops/topes.json y la tabla de redacción de la base.
+  "topes.tipo_texto": { fichero: "scripts/lib/topes.mjs", textos: () => ({ ...leerTopes(RAIZ).tipos_de_texto }) },
+  "topes.codigo_wording": { fichero: "scripts/lib/topes.mjs", textos: conTexto(CODIGOS_WORDING) },
   // El registro de entidades (#566): sus valores van a ops/entidades.json y a ops/entidades-sujetos.json.
   // El eje (entidades.axis) se retiró entero el 12 oct 2026 (vocabularios_retirados): lo sustituye el alcance de las piezas.
   "entidades.scope": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(SCOPES) },

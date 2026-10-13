@@ -59,14 +59,14 @@ export function problemasDeFormaDeclarada(datos, artefactos) {
 /** Una expresión con \b que entiende las letras con tilde (el \b de JavaScript no). */
 const FRONTERA = String.raw`(?:(?<![\p{L}])(?=[\p{L}])|(?<=[\p{L}])(?![\p{L}]))`;
 const ub = (re) => new RegExp(re.source.replace(/\\b/g, () => FRONTERA), "iu");
-const PASIVA_SER = ub(/\b(?:es|son|fue|fueron|será|serán|sea|sean|siendo|ha sido|han sido|había sido)\s+[a-záéíóúñ]+(?:ad|id)[oa]s?\b/);
+export const PASIVA_SER = ub(/\b(?:es|son|fue|fueron|será|serán|sea|sean|siendo|ha sido|han sido|había sido)\s+[a-záéíóúñ]+(?:ad|id)[oa]s?\b/);
 /** Pasiva refleja: solo el verbo que abre la regla (las subordinadas no cuentan), salvo 'se' + {ha, han, pueda, puede, trata, te, me, acabe}. */
-const PASIVA_REFLEJA = ub(/^\s*se\s+(?!(?:ha|han|pueda|puede|trata|te|me|acabe)\b)[a-záéíóúñ]+(?:a|an|e|en|ará|arán|erá|erán|irá|irán)\b/);
+export const PASIVA_REFLEJA = ub(/^\s*se\s+(?!(?:ha|han|pueda|puede|trata|te|me|acabe)\b)[a-záéíóúñ]+(?:a|an|e|en|ará|arán|erá|erán|irá|irán)\b/);
 /** Futuro y pasado de verbo regular. Sin condicional (-ería, -aría, -iría: librería, tubería…) ni -ó suelto. */
-const OTRO_TIEMPO = ub(/\b[a-záéíóúñ]+(?:ará|erá|irá|arán|erán|irán|aron|ieron|ió|yó|aba|aban)\b/);
-const SUJETO_NOMINAL = ub(/^(?:el|la|los|las|un|una|unos|unas|todo|toda|todos|todas|cada)\b/);
-const MODAL_DESCRIPTIVO = ub(/\b(?:debe|deben|debería|deberían|hay que|conviene|es necesario)\b/);
-const PERSONA_MALA = {
+export const OTRO_TIEMPO = ub(/\b[a-záéíóúñ]+(?:ará|erá|irá|arán|erán|irán|aron|ieron|ió|yó|aba|aban)\b/);
+export const SUJETO_NOMINAL = ub(/^(?:el|la|los|las|un|una|unos|unas|todo|toda|todos|todas|cada)\b/);
+export const MODAL_DESCRIPTIVO = ub(/\b(?:debe|deben|debería|deberían|hay que|conviene|es necesario)\b/);
+export const PERSONA_MALA = {
   segunda: ub(/\b(?:usted(?:es)?|nosotros|nosotras|nuestr[oa]s?|hemos|tenemos|hacemos|debemos|podemos|yo|mi|mis)\b/),
   tercera: ub(/\b(?:tú|tu|tus|usted(?:es)?|nosotros|nosotras|nuestr[oa]s?|yo|mi|mis)\b/),
   impersonal: ub(/\b(?:tú|tu|tus|usted(?:es)?|nosotros|nosotras|nuestr[oa]s?|yo|mi|mis)\b/),
