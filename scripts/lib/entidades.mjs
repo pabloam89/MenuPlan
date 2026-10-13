@@ -73,15 +73,6 @@ export const CARDINALITIES = {
   many_to_many: "Varios con varios",
 };
 
-/** Qué es la nueva forma de una entidad que deja de serlo (`becomes`). */
-export const BECOMES = {
-  value: "un valor de un campo de otra entidad",
-  field: "un campo de otra entidad",
-  event_type: "un tipo de evento",
-  type: "un tipo de otra entidad",
-  renamed: "la misma entidad con otro id y otro nombre: cambia cómo se llama, no qué es",
-};
-
 /** Cómo vive hoy una entidad. */
 export const REGISTRIES = {
   with_registry: "Tiene un fichero propio con id y test",

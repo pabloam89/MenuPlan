@@ -50,14 +50,14 @@ describe("el mapeo del glosario de hoy", () => {
     for (const e of sin) expect(e.scope, e.id).toBe("vertical");
   });
 
-  it("el mapeo acepta un término cuya entidad está retirada y distingue los dos casos", () => {
-    // «regla»: su entidad rule se retiró y lo que queda (el fichero de .claude/rules/) no es una entidad
-    expect(REG.entities.find((e) => e.id === "rule").status).toBe("retired");
-    expect(T(G, "regla")).toMatchObject({ clase: "artefacto", sin_entidad: "retirado" });
+  it("los términos de las entidades borradas (13 oct 2026, #706) nombran la que los sustituye, o dicen su motivo", () => {
+    // «regla»: ya no hay entidad rule y el fichero de .claude/rules/ no es una entidad
+    expect(REG.entities.find((e) => e.id === "rule")).toBeUndefined();
+    expect(T(G, "regla")).toMatchObject({ clase: "artefacto", sin_entidad: "componente" });
     expect(T(G, "regla").entidades).toBeUndefined();
-    // «clave», «bóveda», «aprendizaje», «juez», «despliegue»: su entidad se retiró y el término nombra la que la sustituye
-    for (const [t, retirada, activa] of [["clave", "secret", "resource"], ["bóveda", "vault", "resource"], ["aprendizaje", "learning", "root-problem"], ["juez", "judge", "agent"], ["despliegue", "deployment", "event"]]) {
-      expect(REG.entities.find((e) => e.id === retirada).status, retirada).toBe("retired");
+    // «clave», «bóveda», «aprendizaje», «juez», «despliegue»: nombran la entidad que absorbió su significado
+    for (const [t, borrada, activa] of [["clave", "secret", "resource"], ["bóveda", "vault", "resource"], ["aprendizaje", "learning", "root-problem"], ["juez", "judge", "agent"], ["despliegue", "deployment", "event"]]) {
+      expect(REG.entities.find((e) => e.id === borrada), borrada).toBeUndefined();
       expect(T(G, t).entidades.map((x) => x.entidad), t).toContain(activa);
     }
   });
