@@ -211,7 +211,7 @@ export function motivoTestDelJuezMalo(n, raiz) {
   // El fichero de casos de un juez (#693): con casos buenos y malos de ESTA norma, no solo su nombre.
   if (esFicheroDeJuez(r)) {
     let f = null;
-    try { f = JSON.parse(readFileSync(join(raiz, r), "utf8")); } catch { return "no es un JSON legible"; }
+    try { f = JSON.parse(readFileSync(join(raiz, r), "utf8")); } catch (e) { return `no es un JSON legible (${e.message})`; }
     return motivoFicheroSinNorma(f, n.id);
   }
   if (/(^|\/)casos\.json$/.test(r) && readFileSync(join(raiz, r), "utf8").includes(n.id)) return null;

@@ -9,7 +9,7 @@
  * Los casos: ops/test-del-juez/<juez>.json (forma y reglas en scripts/lib/testDelJuez.mjs). Cada norma de
  * juez apunta a su fichero con `test_del_juez` en ops/normas.json.
  *
- * Una línea por juez, para contarla:
+ * Una línea por juez, para contarla (registrada en ops/metricas.json):
  *   test-del-juez juez: <j> aciertos: a/b buenos: c/d malos: e/f sin_correr: n acierto: 0.83 coste_usd: x
  * Salida (SALIDA de evals.mjs): 0 bien, 1 forma mala, 2 entrada mala, 3 se paró por el tope.
  */
@@ -41,7 +41,7 @@ for (const j of lista) {
   if (!f) salir(SALIDA.entrada, `${j}: no hay ops/test-del-juez/${j}.json`);
   const faltas = faltasDeFichero(f, j, normasDeJuez.map((n) => n.id));
   const casos = f.casos ?? [];
-  console.log(`test-del-juez juez: ${j} casos: ${casos.length} buenos: ${casos.filter((c) => c.tipo === "bueno").length} malos: ${casos.filter((c) => c.tipo === "malo").length} normas: ${new Set(casos.map((c) => c.norma)).size} faltas: ${faltas.length}`);
+  console.log(`test-del-juez forma juez: ${j} casos: ${casos.length} buenos: ${casos.filter((c) => c.tipo === "bueno").length} malos: ${casos.filter((c) => c.tipo === "malo").length} normas: ${new Set(casos.map((c) => c.norma)).size} faltas: ${faltas.length}`);
   for (const m of faltas) console.log(`  - ${m}`);
   if (faltas.length) codigo = SALIDA.fallos;
   ficheros[j] = f;
@@ -70,7 +70,7 @@ async function llamar({ modelo, system, usuario, maxTokens }) {
     headers: { "x-api-key": API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
     body: JSON.stringify({ model: modelo, max_tokens: maxTokens, system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }], messages: [{ role: "user", content: usuario }], thinking: { type: "disabled" } }),
   });
-  const data = await res.json().catch(() => ({}));
+  const data = await res.json().catch((e) => { console.warn(`[test-del-juez] respuesta ${res.status} sin JSON: ${e.message}`); return {}; });
   if (!res.ok) throw new Error(`API ${res.status}: ${data?.error?.message ?? "sin detalle"}`);
   llamadas++;
   const coste = costeUsd(data.usage, modelo, { ttl: "5m" });
@@ -100,10 +100,10 @@ for (const j of lista) {
     },
   });
   const c = cifra(filas);
-  for (const f of filas.filter((x) => x.estado === "falla")) console.log(`  falla: ${f.id} (${f.tipo}, norma ${f.norma}) veredicto: ${f.veredicto ?? "ninguno"}`);
+  for (const f of filas.filter((x) => x.estado === "falla")) console.log(`  no acierta ${f.id} (${f.tipo}, norma ${f.norma}, veredicto ${f.veredicto ?? "ninguno"})`);
   console.log(lineaDeCifra(j, c, ` coste_usd: ${(gastado - antes).toFixed(4)}`));
   if (c.sin_correr) codigo = SALIDA.tope;
 }
-if (motivoTope) console.log(`tope_evals script: test-del-juez motivo: ${motivoTope} gastado_usd: ${gastado.toFixed(3)} tope_usd: ${tope.toFixed(2)}`);
-console.log(`test-del-juez total coste_usd: ${gastado.toFixed(4)} llamadas: ${llamadas} tope_usd: ${tope.toFixed(2)}`);
+if (motivoTope) console.log(`Paró en el tope (${motivoTope}); gastado ${gastado.toFixed(3)} $ de ${tope.toFixed(2)} $.`);
+console.log(`Total ${gastado.toFixed(4)} $ en ${llamadas} llamadas (tope ${tope.toFixed(2)} $).`);
 process.exit(codigo);

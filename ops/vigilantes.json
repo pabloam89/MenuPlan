@@ -329,7 +329,7 @@
       "motivo": "Prueban la librería de búsqueda de lo ya apuntado con índices de mentira: la enumeración es de esa librería, no un conjunto que se rompa por un fichero ajeno."
     },
     {
-      "tests": ["scripts/skills-pr.test.js", "scripts/skills-prueba.test.js", "scripts/skills-uso.test.js"],
+      "tests": ["scripts/skills-pr.test.js", "scripts/skills-prueba.test.js", "scripts/skills-uso.test.js", "scripts/testDelJuez.test.js"],
       "motivo": "Pruebas de unidad de las librerías de skills con skills de mentira; el vigilante real de las skills del repo es .claude/skills.test.js y los pasos del CI que lanza vecinos."
     },
     {
