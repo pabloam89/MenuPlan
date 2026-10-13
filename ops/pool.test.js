@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { agentesEnDisco, problemasDeEstandares } from "../scripts/lib/estandaresAgentes.mjs";
 import { cifrasDeAgente, leerPool, problemasDePool, RAIZ_REPO, reglasDeAgente, terminoDeProyecto } from "../scripts/lib/pool.mjs";
 
 const estandares = JSON.parse(readFileSync(join(RAIZ_REPO, "ops/estandares-agentes.json"), "utf8"));
@@ -34,7 +35,12 @@ describe("pool de buenas prácticas", () => {
     const c = cifrasDeAgente(pool, estandares, "auditor-datos");
     expect(c.reglas).toBe(11);
     expect(c.reglas_con_fuente_externa_hoy).toBe(0);
-    expect(c.reglas_con_practica_de_campo).toBe(9);
+    expect(c.reglas_con_practica_de_campo).toBe(7);
+    expect(c.practicas).toBe(29);
+    expect(c.por_estado).toEqual({ cubierta: 14, pendiente: 13, descartada: 2 });
+    expect(c.por_origen).toEqual({ campo: 25, casa: 4 });
+    expect(c.por_estado).toEqual({ cubierta: 14, pendiente: 13, descartada: 2 });
+    expect(c.por_origen).toEqual({ campo: 25, casa: 4 });
     expect(Object.values(c.por_estado).reduce((a, b) => a + b, 0)).toBe(c.practicas);
   });
 });
@@ -63,6 +69,30 @@ describe("el control falla cuando el pool se rompe", () => {
 
   it.each(["HoMenu", "MenuPlan", "Supabase", "Lola", "Vercel", "Telegram", "households", "src/data", "api/_bot"])("nombrar «%s» en la práctica", (t) => {
     rompe((p) => { practica(p, "severidad-por-impacto").practica = `Gradúa cada hallazgo por lo que se rompe en ${t} si no se atiende`; }, "es de oficio, no de terreno");
+  });
+
+  it("el motivo y el campo también vigilan los términos de proyecto", () => {
+    rompe((p) => { practica(p, "veredicto-escrito-en-el-cambio").motivo = "Mecanismo propio de MenuPlan que no está en ninguna fuente leída del oficio"; }, "el motivo nombra «MenuPlan»");
+    rompe((p) => { p.agentes["auditor-datos"].campo = "Modelado de datos para Supabase y su calidad en general"; }, "el campo nombra «Supabase»");
+  });
+  it("un id repetido", () => rompe((p) => { practica(p, "severidad-por-impacto").id = "no-reescribir-en-bloque"; }, "id repetido"));
+  it("un agente distinto al del fichero", () => rompe((p) => { practica(p, "severidad-por-impacto").agente = "datos"; }, "está en auditor-datos.json"));
+  it("una práctica que acaba en punto", () => rompe((p) => { practica(p, "severidad-por-impacto").practica += "."; }, "no acaba en punto"));
+
+  it("los dominios del pool solo valen para una fuente con uso pool", () => {
+    const e = structuredClone(estandares);
+    const agentes = agentesEnDisco(RAIZ_REPO);
+    expect(problemasDeEstandares(e, agentes, RAIZ_REPO).filter((m) => m.includes("documentación admitida"))).toEqual([]);
+    delete e.fuentes["fowler-evodb"].uso;
+    expect(problemasDeEstandares(e, agentes, RAIZ_REPO).join("\n")).toContain("martinfowler.com no es una documentación admitida");
+  });
+
+  it("un término de proyecto se busca por palabra entera", () => {
+    const ts = pool.vocabularios.terminos_de_proyecto;
+    expect(terminoDeProyecto("la descripción del valor, sin Lolas", ts)).toBeUndefined();
+    expect(terminoDeProyecto("un fichero en api/ cualquiera", ts)).toBe("api/");
+    expect(terminoDeProyecto("cierra la capa de la API", ts)).toBeUndefined();
+    expect(terminoDeProyecto("la función Lola, aparte", ts)).toBe("Lola");
   });
 
   it("la lista de términos de proyecto se lee del vocabulario", () => {

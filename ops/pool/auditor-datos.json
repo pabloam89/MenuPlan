@@ -12,7 +12,9 @@
       "origen": "campo",
       "lectura": "leida",
       "estado": "cubierta",
-      "cubierta_por": ["auditor-datos/juzgar-migracion/Mismos criterios"],
+      "cubierta_por": [
+        "auditor-datos/juzgar-migracion/Mismos criterios"
+      ],
       "revisada": "2026-10-13"
     },
     {
@@ -23,7 +25,9 @@
       "origen": "campo",
       "lectura": "leida",
       "estado": "cubierta",
-      "cubierta_por": ["auditor-datos/juzgar-migracion/Severidad por daño"],
+      "cubierta_por": [
+        "auditor-datos/juzgar-migracion/Severidad por daño"
+      ],
       "revisada": "2026-10-13"
     },
     {
@@ -34,18 +38,19 @@
       "origen": "campo",
       "lectura": "leida",
       "estado": "cubierta",
-      "cubierta_por": ["auditor-datos/juzgar-migracion/Lo heredado se mide"],
+      "cubierta_por": [
+        "auditor-datos/juzgar-migracion/Lo heredado se mide"
+      ],
       "revisada": "2026-10-13"
     },
     {
       "id": "redundancia-en-todas-las-capas",
       "agente": "auditor-datos",
-      "practica": "Busca la misma información repetida en todas las capas que la guardan, por su nombre y por sus valores, porque un dato que vive en más de un sitio hay que cambiarlo igual en todos",
+      "practica": "Evita que un mismo dato viva en más de un sitio, porque lo que existe en varios hay que cambiarlo igual en todos",
       "fuente": "ms-normalizacion",
       "origen": "campo",
       "lectura": "leida",
-      "estado": "cubierta",
-      "cubierta_por": ["auditor-datos/buscar-datos-repetidos/Capas buscadas"],
+      "estado": "pendiente",
       "revisada": "2026-10-13"
     },
     {
@@ -56,7 +61,9 @@
       "origen": "campo",
       "lectura": "leida",
       "estado": "cubierta",
-      "cubierta_por": ["auditor-datos/buscar-datos-repetidos/Copia declarada"],
+      "cubierta_por": [
+        "auditor-datos/buscar-datos-repetidos/Copia declarada"
+      ],
       "revisada": "2026-10-13"
     },
     {
@@ -67,7 +74,9 @@
       "origen": "campo",
       "lectura": "leida",
       "estado": "cubierta",
-      "cubierta_por": ["auditor-datos/buscar-datos-repetidos/Hallazgo con ejemplo"],
+      "cubierta_por": [
+        "auditor-datos/buscar-datos-repetidos/Hallazgo con ejemplo"
+      ],
       "revisada": "2026-10-13"
     },
     {
@@ -77,8 +86,7 @@
       "fuente": "fowler-evodb",
       "origen": "campo",
       "lectura": "leida",
-      "estado": "cubierta",
-      "cubierta_por": ["auditor-datos/vigilar-cableado/Ficheros por tabla"],
+      "estado": "pendiente",
       "revisada": "2026-10-13"
     },
     {
@@ -89,7 +97,9 @@
       "origen": "campo",
       "lectura": "leida",
       "estado": "cubierta",
-      "cubierta_por": ["auditor-datos/mapa-de-verdades/Hecho, sitio y copias"],
+      "cubierta_por": [
+        "auditor-datos/mapa-de-verdades/Hecho, sitio y copias"
+      ],
       "revisada": "2026-10-13"
     },
     {
@@ -100,7 +110,9 @@
       "origen": "campo",
       "lectura": "leida",
       "estado": "cubierta",
-      "cubierta_por": ["auditor-datos/auditoria-periodica-del-modelo/Forma por tabla"],
+      "cubierta_por": [
+        "auditor-datos/auditoria-periodica-del-modelo/Forma por tabla"
+      ],
       "revisada": "2026-10-13"
     },
     {
@@ -111,7 +123,9 @@
       "origen": "campo",
       "lectura": "leida",
       "estado": "cubierta",
-      "cubierta_por": ["auditor-datos/auditoria-periodica-del-modelo/Forma por tabla"],
+      "cubierta_por": [
+        "auditor-datos/auditoria-periodica-del-modelo/Forma por tabla"
+      ],
       "revisada": "2026-10-13"
     },
     {
@@ -121,8 +135,7 @@
       "fuente": "pg-constraints",
       "origen": "campo",
       "lectura": "leida",
-      "estado": "cubierta",
-      "cubierta_por": ["auditor-datos/auditoria-periodica-del-modelo/Forma por tabla"],
+      "estado": "pendiente",
       "revisada": "2026-10-13"
     },
     {
@@ -132,8 +145,7 @@
       "fuente": "pg-constraints",
       "origen": "campo",
       "lectura": "leida",
-      "estado": "cubierta",
-      "cubierta_por": ["auditor-datos/auditoria-periodica-del-modelo/Forma por tabla"],
+      "estado": "pendiente",
       "revisada": "2026-10-13"
     },
     {
@@ -144,7 +156,9 @@
       "origen": "campo",
       "lectura": "leida",
       "estado": "cubierta",
-      "cubierta_por": ["auditor-datos/auditoria-periodica-del-modelo/Forma por tabla"],
+      "cubierta_por": [
+        "auditor-datos/auditoria-periodica-del-modelo/Forma por tabla"
+      ],
       "revisada": "2026-10-13"
     },
     {
@@ -155,8 +169,36 @@
       "origen": "campo",
       "lectura": "leida",
       "estado": "cubierta",
-      "cubierta_por": ["auditor-datos/auditoria-periodica-del-modelo/Forma por tabla"],
+      "cubierta_por": [
+        "auditor-datos/auditoria-periodica-del-modelo/Forma por tabla"
+      ],
       "revisada": "2026-10-13"
+    },
+    {
+      "id": "buscar-duplicados-por-nombre-y-valor",
+      "practica": "Busca un dato repetido por su nombre y por sus valores en todas las capas que pueden guardarlo, y no solo en la base",
+      "agente": "auditor-datos",
+      "fuente": "casa-principios-datos",
+      "origen": "casa",
+      "estado": "cubierta",
+      "revisada": "2026-10-13",
+      "motivo": "Es el método propio del auditor para aplicar la idea de no repetir datos. La fuente del campo respalda el objetivo (menos redundancia) pero no esta forma de buscar",
+      "cubierta_por": [
+        "auditor-datos/buscar-datos-repetidos/Capas buscadas"
+      ]
+    },
+    {
+      "id": "contar-caminos-de-acceso-por-tabla",
+      "practica": "Cuenta con un script qué ficheros acceden a cada tabla para comprobar que cada una tiene un camino de acceso único",
+      "agente": "auditor-datos",
+      "fuente": "casa-principios-datos",
+      "origen": "casa",
+      "estado": "cubierta",
+      "revisada": "2026-10-13",
+      "motivo": "Es la medición propia que verifica la separación del acceso a datos. La fuente del campo respalda separar ese código, no medirlo así",
+      "cubierta_por": [
+        "auditor-datos/vigilar-cableado/Ficheros por tabla"
+      ]
     },
     {
       "id": "veredicto-escrito-en-el-cambio",
@@ -166,7 +208,9 @@
       "origen": "casa",
       "motivo": "Es un mecanismo propio: el script que aplica el cambio lee la marca. El campo pide revisión previa del cambio, pero ninguna fuente leída propone esta marca en la cabecera",
       "estado": "cubierta",
-      "cubierta_por": ["auditor-datos/juzgar-migracion/Veredicto en cabecera"],
+      "cubierta_por": [
+        "auditor-datos/juzgar-migracion/Veredicto en cabecera"
+      ],
       "revisada": "2026-10-13"
     },
     {
@@ -177,7 +221,9 @@
       "origen": "casa",
       "motivo": "Es el proceso propio de cómo crece el documento de principios de datos. Registrar decisiones por escrito es habitual en el oficio, pero no se ha leído ninguna fuente que lo respalde",
       "estado": "cubierta",
-      "cubierta_por": ["auditor-datos/auditoria-periodica-del-modelo/Convención propuesta"],
+      "cubierta_por": [
+        "auditor-datos/auditoria-periodica-del-modelo/Convención propuesta"
+      ],
       "revisada": "2026-10-13"
     },
     {

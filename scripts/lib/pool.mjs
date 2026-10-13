@@ -39,10 +39,14 @@ export function reglasDeAgente(estandares, agente) {
 
 const esFecha = (s) => typeof s === "string" && FECHA.test(s) && !Number.isNaN(Date.parse(s));
 
-/** ¿Nombra la práctica algún término de proyecto? Devuelve el primero que encuentra. */
+/** ¿Nombra el texto algún término de proyecto? Por palabra entera (los de ruta, como «src/», por su inicio). Devuelve el primero. */
 export function terminoDeProyecto(texto, terminos) {
-  const t = String(texto).toLowerCase();
-  return terminos.find((x) => t.includes(x.toLowerCase()));
+  const L = String.raw`\p{L}\p{N}_`;
+  return terminos.find((x) => {
+    const esc = x.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
+    const fin = x.endsWith("/") ? "" : `(?![${L}])`;
+    return new RegExp(`(?<![${L}])${esc}${fin}`, "iu").test(String(texto));
+  });
 }
 
 /**
@@ -60,6 +64,7 @@ export function problemasDePool(pool, estandares) {
     if (!(nombre in (estandares.agentes ?? {}))) malos.push(`${nombre}.json: no es un agente de estandares-agentes.json`);
     if (!esFecha(f.revisada)) malos.push(`${nombre}.json: revisada no es una fecha AAAA-MM-DD`);
     if (typeof f.campo !== "string" || f.campo.length < 20) malos.push(`${nombre}.json: le falta el campo (el oficio que cubre)`);
+    else if (terminoDeProyecto(f.campo, terminos)) malos.push(`${nombre}.json: el campo nombra «${terminoDeProyecto(f.campo, terminos)}»; es de oficio, no de terreno`);
     const reglas = new Set(reglasDeAgente(estandares, nombre));
     const cubiertas = new Set();
     for (const p of f.practicas ?? []) {
@@ -88,6 +93,7 @@ export function problemasDePool(pool, estandares) {
         if (!(p?.lectura in lectura)) malos.push(`${donde}: lectura «${p?.lectura}» fuera del vocabulario`);
         if ("motivo" in p && p.estado !== "descartada") malos.push(`${donde}: una práctica de campo no lleva motivo de casa`);
       }
+      if (typeof p?.motivo === "string" && terminoDeProyecto(p.motivo, terminos)) malos.push(`${donde}: el motivo nombra «${terminoDeProyecto(p.motivo, terminos)}»; es de oficio, no de terreno`);
       if (p?.origen === "casa" && (typeof p.motivo !== "string" || p.motivo.length < 40)) malos.push(`${donde}: una práctica de casa lleva motivo (40 caracteres o más) de por qué no es externa`);
       if (p?.estado === "descartada" && (typeof p.motivo !== "string" || p.motivo.length < 40)) malos.push(`${donde}: descartada sin motivo`);
       if (p?.estado === "cubierta") {
