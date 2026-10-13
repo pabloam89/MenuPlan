@@ -38,7 +38,7 @@ Cinco señales observables, que salen de la ficha del fondo (`gh issue view <fon
 | Señal | De dónde sale | Código |
 |---|---|---|
 | La verificación existe y pasa | `verificacion` en `origin/staging` (tras `git fetch`) y su comando (`npx vitest run <fichero>` si es un test) | `verificacion` |
-| La cifra de antes, con su comando y condiciones | `barrido` de la ficha o el cuerpo del PR | `sin-partida` |
+| La cifra de antes, con su comando y condiciones | «Cómo se probará» del fondo o el cuerpo del PR | `sin-partida` |
 | La cifra de después, con el mismo comando y las mismas condiciones | el comando repetido hoy | `condiciones` |
 | Los casos nuevos de la ventana | `npm run issues`: creados desde `ventana_desde` o `no-aguanto-*` | `casos-nuevos` |
 | El aprendizaje | campo `aprendizaje` de la ficha | `sin-aprendizaje` |
@@ -62,10 +62,10 @@ el fondo: lo deja donde estaba y pide la cifra de partida.
    `npm run buscar -- "<fondo>"`. Se evalúa 7 días antes de `ventana_hasta`, con el fondo todavía en `en-observacion`
    (el workflow `fondos` cierra el primer día tras la ventana). Si ya cerró sin veredicto, se evalúa igual y,
    si es `insuficiente`, se reabre con un caso `no-aguanto-*`. Si otro agente ya dejó un `cierre-eficaz:` en el fondo, se añade evidencia y no se repite.
-2. **Lee la ficha y el PR del arreglo.** Sale: `barrera`, `verificacion`, `barrido`, `ventana_desde`,
+2. **Lee la ficha y el PR del arreglo.** Sale: `barrera`, `verificacion`, `ventana_desde`,
    `ventana_hasta`, `casos`, `encargos`. Si falta alguno, el veredicto es `no-evaluable`.
 3. **Comprueba la verificación.** Existe en `origin/staging` y pasa. Si falla, es `insuficiente`.
-4. **Cifra de antes.** De `barrido` o del PR: número, comando y condiciones. Sin número y sin comando de donde
+4. **Cifra de antes.** De «Cómo se probará» o del PR: número, comando y condiciones. Sin número y sin comando de donde
    sale, es `no-evaluable` y el fondo vuelve a `plan-de-arreglo`; no se inventa una cifra de partida de memoria.
 5. **Cifra de después** con el mismo comando y las mismas condiciones. Si cambiaron el comando, el set o los
    datos a la vez que el código, la comparación no vale: `no-evaluable`.

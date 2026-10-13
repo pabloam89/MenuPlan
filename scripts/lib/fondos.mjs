@@ -120,12 +120,16 @@ export const CAMPOS_FICHA = {
   ventana_hasta: { tipo: "fecha" },
   mecanismo: { tipo: "texto" },
   causa_escape: { tipo: "texto" },
-  clase: { tipo: "texto" },
-  barrido: { tipo: "texto" },
-  solucion_temporal: { tipo: "texto" },
   matiz: { tipo: "texto" },
   aprendizaje: { tipo: "texto" },
 };
+
+/**
+ * Campos que ya no existen en la ficha (retirados el 13 oct 2026, #706: ningún lector).
+ * Los fondos abiertos antes los traen vacíos, copiados de la plantilla: vacíos se ignoran;
+ * con texto, el lector pide pasarlo al cuerpo del issue, para no perderlo en silencio.
+ */
+export const CAMPOS_RETIRADOS = ["clase", "barrido", "solucion_temporal"];
 
 /** Un trozo de texto ajeno, seguro para enseñarlo: sin Markdown, HTML ni menciones, y corto. */
 export function limpio(valor, max = 40) {
@@ -225,7 +229,7 @@ function leerValor(clave, def, valor) {
  * Un valor vacío (`clave:`) es «sin rellenar», no un error: la plantilla trae todas las claves.
  */
 export function leerFicha(body) {
-  return leerBloque(body, "fondo", CAMPOS_FICHA, "ficha");
+  return leerBloque(body, "fondo", CAMPOS_FICHA, "ficha", CAMPOS_RETIRADOS);
 }
 
 /**
@@ -233,7 +237,7 @@ export function leerFicha(body) {
  * siempre: la ficha del fondo y el bloque `encargo` comparten lector.
  * Reglas de error: `<prefijo>-bloque` y `<prefijo>-vocabulario`.
  */
-function leerBloque(body, nombre, campos, prefijo) {
+function leerBloque(body, nombre, campos, prefijo, retirados = []) {
   const lineas = lineasDe(body);
   const sitio = ubicarBloque(lineas, nombre);
   if (!sitio) return { presente: false, ficha: {}, errores: [] };
@@ -261,6 +265,10 @@ function leerBloque(body, nombre, campos, prefijo) {
     const m = /^([a-z_]+):[ \t]*(.*)$/.exec(cruda);
     if (!m) return malo(`${prefijo}-bloque`, `línea ${n}: tiene que ser «clave: valor»`);
     const [, clave, crudo] = m;
+    if (retirados.includes(clave) && !Object.hasOwn(campos, clave)) {
+      if (crudo.trim()) malo(`${prefijo}-bloque`, `línea ${n}: «${clave}» ya no es un campo de la ficha; pasa el texto al cuerpo del issue y deja la línea vacía o bórrala`);
+      return;
+    }
     const def = Object.hasOwn(campos, clave) ? campos[clave] : undefined;
     if (!def) return malo(`${prefijo}-bloque`, `línea ${n}: la clave «${limpio(clave, 30)}» no existe en el bloque «${nombre}» (${Object.keys(campos).join(", ")})`);
     if (vistas.has(clave)) return malo(`${prefijo}-bloque`, `la clave «${clave}» está repetida`);

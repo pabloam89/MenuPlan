@@ -436,7 +436,7 @@
         ".claude/hooks/arranque.mjs",
         "scripts/lib/situacion.mjs"
       ],
-      "note": "Es el sobre común de cuatro tipos (fondo, caso, encargo y decisión), no un nivel: lo propio de cada tipo es casi disjunto (la ficha del fondo tiene 19 campos, el bloque del encargo 15, el caso 2 etiquetas y la decisión ninguno). Las etiquetas grupo:valor salen de scripts/lib/issues.mjs. La rama, el título y el área de la etiqueta no siempre coinciden."
+      "note": "Es el sobre común de cuatro tipos (fondo, caso, encargo y decisión), no un nivel: lo propio de cada tipo es casi disjunto (la ficha del fondo tiene 16 campos, el bloque del encargo 15, el caso 2 etiquetas y la decisión ninguno). Las etiquetas grupo:valor salen de scripts/lib/issues.mjs. La rama, el título y el área de la etiqueta no siempre coinciden."
     },
     {
       "id": "root-problem",

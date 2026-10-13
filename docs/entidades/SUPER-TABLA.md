@@ -108,7 +108,7 @@ Cifras: 54 entidades activas y 8 retiradas. Alcance: horizontal 22, vertical 22,
 
 Datos (`scripts/lib/issues.mjs`, `scripts/lib/fondos.mjs`):
 - Lo común es de GitHub: número (un solo espacio de ids), título, estado, etiquetas, asignado, padre. El grupo `tipo` tiene 4 valores cerrados.
-- Lo propio es casi disjunto: la ficha del fondo tiene 19 campos, el bloque del encargo 15, el caso 2 (etiquetas `analisis` y `causa`) y la decisión 0. Solo `mecanismo`, `clase` y `verificacion` se repiten entre fondo y encargo.
+- Lo propio es casi disjunto: la ficha del fondo tiene 16 campos, el bloque del encargo 15, el caso 2 (etiquetas `analisis` y `causa`) y la decisión 0. Solo `mecanismo` y `verificacion` se repiten entre fondo y encargo.
 - Relaciones propias: caso y encargo cuelgan del fondo; el encargo depende de otro encargo; la decisión no cuelga de nada y se asigna a una persona.
 
 Por qué N0, N1 y N2 no encajan: son **generación** (la forja produce plantillas, la plantilla produce piezas). Un fondo no es la plantilla de un issue: es otra cosa con otro ciclo de vida.

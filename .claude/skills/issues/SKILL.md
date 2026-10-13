@@ -80,7 +80,7 @@ cualquiera. <!-- norma:fondo-con-ficha-y-controles -->
 | `casos`, `encargos` | `#n, #m` o `ninguno` |
 | `verificacion` | ruta de un FICHERO de `origin/staging` que vale para su barrera: un `*.test.js` para `test_ci`, un hook, workflow o migración para `bloqueo`, un script, una skill o un texto; una carpeta no vale |
 | `ventana_desde`, `ventana_hasta` | fechas AAAA-MM-DD de inicio y fin de la observación (90 días como mucho); los casos creados desde `ventana_desde` (a las 00:00 UTC de ese día) cuentan como nuevos, estén o no en `casos`: si el caso de origen es del mismo día de la fusión, pon el día siguiente |
-| `mecanismo`, `causa_escape`, `clase`, `barrido`, `solucion_temporal`, `matiz`, `aprendizaje` | texto libre corto |
+| `mecanismo`, `causa_escape`, `matiz`, `aprendizaje` | texto libre corto |
 
 **Estados:** `abierto` (registrado) → `diagnosticado` (hay `mecanismo` y
 `causa_escape`: qué falla y qué control debía pararlo y por qué no) → `plan`

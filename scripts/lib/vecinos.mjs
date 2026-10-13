@@ -51,14 +51,25 @@ export function globARegex(glob) {
 
 export const casa = (globs, ruta) => (globs ?? []).some((g) => globARegex(g).test(ruta));
 
+/** Claves que admite cada nivel de ops/vigilantes.json: una nueva falla hasta que se declare aquí (#706). */
+const CLAVES_VIGILANTES = {
+  raiz: ["_", "conocidas", "vigilantes", "pasos", "excepciones"],
+  vigilante: ["id", "tests", "mira", "porque", "evidencia", "amplio", "borrados"],
+  excepcion: ["tests", "motivo"],
+  paso: ["id", "cmd", "mira", "porque", "evidencia"],
+};
+const sobran = (obj, admitidas) => Object.keys(obj ?? {}).filter((k) => !admitidas.includes(k));
+
 /** Faltas de forma de ops/vigilantes.json (vacío si está bien). */
 export function faltasDeDatos(datos) {
   const f = [];
   const ids = new Set();
   const enVigilantes = new Set();
   const esTest = (t) => typeof t === "string" && ES_TEST.test(t);
+  for (const k of sobran(datos, CLAVES_VIGILANTES.raiz)) f.push(`clave desconocida «${k}» en la raíz`);
   if (!Array.isArray(datos.conocidas) || !datos.conocidas.length) f.push("falta `conocidas`");
   for (const v of datos.vigilantes ?? []) {
+    for (const k of sobran(v, CLAVES_VIGILANTES.vigilante)) f.push(`${v.id}: clave desconocida «${k}»`);
     if (!v.id || ids.has(v.id)) f.push(`id repetido o vacío: ${v.id}`);
     ids.add(v.id);
     if (!Array.isArray(v.tests) || !v.tests.length || !v.tests.every(esTest)) f.push(`${v.id}: «tests» ha de ser una lista de ficheros *.test.*`);
@@ -71,6 +82,7 @@ export function faltasDeDatos(datos) {
   }
   const enExcepciones = new Set();
   for (const e of datos.excepciones ?? []) {
+    for (const k of sobran(e, CLAVES_VIGILANTES.excepcion)) f.push(`excepción ${e.tests?.[0]}: clave desconocida «${k}»`);
     if (!Array.isArray(e.tests) || !e.tests.length || !e.tests.every(esTest)) f.push("excepción sin «tests» válidos");
     if (typeof e.motivo !== "string" || e.motivo.length < 25) f.push(`excepción ${e.tests?.[0]}: «motivo» de 25 caracteres o más`);
     for (const t of e.tests ?? []) {
@@ -80,6 +92,7 @@ export function faltasDeDatos(datos) {
     }
   }
   for (const p of datos.pasos ?? []) {
+    for (const k of sobran(p, CLAVES_VIGILANTES.paso)) f.push(`paso ${p.id}: clave desconocida «${k}»`);
     if (!p.id || !Array.isArray(p.cmd) || !p.cmd.length || !Array.isArray(p.mira) || !p.mira.length) f.push(`paso ${p.id}: id, mira y cmd son obligatorios`);
   }
   return f;
