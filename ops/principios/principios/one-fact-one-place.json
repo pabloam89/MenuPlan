@@ -3,7 +3,7 @@
   "area": "data",
   "nombre": "Un dato, un sitio",
   "enunciado": "Cada dato y cada regla vive en un solo sitio con su lector, y cada copia es una proyección generada que un test compara.",
-  "porque": "Dos copias escritas a mano acaban diciendo cosas distintas, y nadie sabe cuál vale.",
+  "porque": "Dos copias escritas a mano terminan diciendo cosas distintas, y nadie sabe cuál vale.",
   "fuentes": [
     {
       "marca": "I",

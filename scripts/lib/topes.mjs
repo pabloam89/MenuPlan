@@ -96,7 +96,8 @@ export function medir(raiz = RAIZ_REPO, lectores = LECTORES) {
 
 /** Los códigos de wording que incumple un texto. `regla` es la fila de su tipo en la base (voz, modo_tiempo, persona). */
 export function codigosDeWording(texto, regla, { palabras_max: max, tipo } = {}) {
-  const t = String(texto);
+  // Lo citado entre « » es la frase de quien pide (una skill la lleva tal cual la dice); no se mide.
+  const t = String(texto).replace(/«[^»]*»/g, "«»");
   const malos = new Set();
   if (PASIVA_SER.test(t) || PASIVA_REFLEJA.test(t)) malos.add("voz-pasiva");
   if (OTRO_TIEMPO.test(t)) malos.add("modo-tiempo");
