@@ -243,13 +243,13 @@ describe("los estándares citan normas y no las reescriben (#620)", () => {
     it("una norma vigilada por juicio que ningún juez cita", () => {
       expect(juecesPorNorma(estandares, normas)["migrated-screen-pixel-identical"]).toContain("qa/comprobar-design-system");
       expect(con((d) => { for (const t of d.agentes.qa.tareas) t.ambitos = t.ambitos.filter((a) => a !== "ui"); })).toMatch(/norma migrated-screen-pixel-identical: la vigila un juicio y ningún estándar de juez la cita/);
-      expect(con((d) => { d.agentes.seguridad.tareas.find((t) => t.id === "auditar-secretos").normas = []; })).toMatch(/norma secretos-ok-pablo: la vigila un juicio y ningún estándar de juez la cita/);
+      expect(con((d) => { d.agentes.seguridad.tareas.find((t) => t.id === "auditar-secretos").normas = []; })).toMatch(/norma repo-publico-sin-detalle: la vigila un juicio y ningún estándar de juez la cita/);
     });
     it("una norma en normas_sin_juez que ya tiene juez, que no existe o que no es de juicio; y el techo", () => {
       expect(con((d) => { d.normas_sin_juez["test-visto-fallar"] = "Motivo de ejemplo con veinte caracteres"; }, { techos: { reglas: TECHO_REGLAS_QUE_NO_SON_NORMA, juicio: 7 } })).toMatch(/normas_sin_juez «test-visto-fallar»: ya la cita/);
       expect(con((d) => { d.normas_sin_juez["inventada"] = "Motivo de ejemplo con veinte caracteres"; }, { techos: { reglas: TECHO_REGLAS_QUE_NO_SON_NORMA, juicio: 7 } })).toMatch(/«inventada»: no es una norma/);
       expect(con((d) => { d.normas_sin_juez["tope-diario-ia"] = "Motivo de ejemplo con veinte caracteres"; }, { techos: { reglas: TECHO_REGLAS_QUE_NO_SON_NORMA, juicio: 7 } })).toMatch(/«tope-diario-ia»: no la vigila un juicio/);
-      expect(con((d) => { d.normas_sin_juez["inventada"] = "Motivo de ejemplo con veinte caracteres"; })).toMatch(/normas_sin_juez: 6 y el techo es 5; la lista solo baja/);
+      expect(con((d) => { d.normas_sin_juez["inventada"] = "Motivo de ejemplo con veinte caracteres"; })).toMatch(/normas_sin_juez: 4 y el techo es 3; la lista solo baja/);
     });
     it("el constructor y el juez de un ámbito dejan de recibir lo mismo si la consulta no los empareja", () => {
       const sinPareja = problemasDeEmparejamiento(estandares, normas, { deConsulta: (a) => [a] }).join("\n");

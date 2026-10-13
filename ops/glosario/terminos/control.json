@@ -3,7 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "base",
-  "definicion": "Una comprobación automática concreta con su código de vocabulario cerrado, que da falta, aviso o bien.",
+  "definicion": "Una comprobación concreta que hace cumplir una norma y se describe en cinco ejes: procesador, fuerza, momento, qué mira y cobertura.",
   "sinonimos_prohibidos": [
     "chequeo",
     "chequeos"
@@ -15,13 +15,17 @@
     "falta",
     "aviso",
     "defecto",
-    "vigilante"
+    "vigilante",
+    "procesador",
+    "test del juez",
+    "cobertura"
   ],
-  "nota": "El campo control de una norma es el fichero que ejecuta esa comprobación.",
+  "nota": "El campo control de una norma es el fichero que ejecuta esa comprobación, o «juicio»; sus cinco ejes están en los campos control_procesador, control_fuerza, control_momento, control_que_mira y control_cobertura.",
   "entidades": [
     {
-      "entidad": "verification",
+      "entidad": "control",
       "relacion": "denota"
     }
-  ]
+  ],
+  "en": "control"
 }

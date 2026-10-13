@@ -81,7 +81,7 @@ pasan a ser un valor, un campo, un tipo de evento o un tipo de recurso). Corregi
 | `shopping-list` | food | piece | vertical | no | automatic, human | `specs/shopping-list.md` (partial) | src/lib/shoppingBuilder.js, api/_bot/menu.js | menu-week |
 | `lola-conversation` | lola | piece | vertical | no | automatic | `specs/plan-bot-mensajeria.md` (partial) | api/_bot/agente.js, scripts/bot-evals.mjs | chat, household |
 | `resource` | access | template | both | sí | human | `ops/recursos.json` (with_registry) | ops/recursos.test.js, scripts/cumplimiento.mjs | project |
-| `verification` | rules | piece | both | sí | agent | `ops/normas.json` (partial) | ops/normas.test.js | — |
+| `control` | rules | piece | both | sí | agent | `ops/normas.json` (partial) | ops/normas.test.js | — |
 | `standard` | rules | piece | horizontal | no | agent | `ops/estandares-agentes.json` (with_registry) | docs/ops/ESTANDARES.md, scripts/estandares-agentes.mjs, ops/estandares-agentes.test.js | agent-task |
 | `plane` | measure | meta | horizontal | no | agent, human | `ops/planos.json` (with_registry) | scripts/planos.mjs, ops/planos.test.js | — |
 | `agent-task` | agents | piece | horizontal | no | agent | `ops/estandares-agentes.json` (with_registry) | scripts/estandares-agentes.mjs, ops/estandares-agentes.test.js, docs/ops/ESTANDARES.md | agent |
@@ -99,7 +99,7 @@ pasan a ser un valor, un campo, un tipo de evento o un tipo de recurso). Corregi
 | `chat` | lola | piece | vertical | no | automatic | `supabase/migrations/0057_bot_cimientos.sql` (partial) | api/_bot/enlace.js, api/_bot/turnos.js | household |
 | `assignment-type` | work | template | horizontal | no | agent | `ops/tipos-de-encargo.json` (with_registry) | scripts/lib/tiposDeEncargo.mjs, ops/tipos-de-encargo.test.js | — |
 
-Cifras: 54 entidades activas y 7 retiradas. Alcance: horizontal 22, vertical 22, both 10. Nivel: piece 47, meta 3, template 4. Familias: work 9, access 4, delivery 3, measure 4, rules 7, agents 4, data 3, home 5, food 6, lola 2, structure 2, design 5. Relaciones: 92 (is_a 5, parent_of 4, part_of 22, reference 61).
+Cifras: 54 entidades activas y 8 retiradas. Alcance: horizontal 22, vertical 22, both 10. Nivel: piece 47, meta 3, template 4. Familias: work 9, access 4, delivery 3, measure 4, rules 7, agents 4, data 3, home 5, food 6, lola 2, structure 2, design 5. Relaciones: 92 (is_a 5, parent_of 4, part_of 22, reference 61).
 <!-- super-tabla:fin -->
 
 ## 3. Reto 1: Fondo, Caso, Encargo, Decisión

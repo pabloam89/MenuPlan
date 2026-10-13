@@ -8,10 +8,9 @@
   "aplica_a": [
     "todas"
   ],
-  "en": "verification",
   "entidades": [
     {
-      "entidad": "verification",
+      "entidad": "control",
       "relacion": "denota"
     }
   ]

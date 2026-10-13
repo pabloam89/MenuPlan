@@ -16,7 +16,9 @@
     "juzgar",
     "constructor",
     "hallazgo",
-    "analista"
+    "analista",
+    "procesador",
+    "test del juez"
   ],
   "ref": {
     "fichero": "scripts/lib/flujo.mjs",

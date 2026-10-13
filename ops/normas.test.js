@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   ALCANCES, ANTE_FALLO, CONTROL_TIPOS, EJECUTORES, EJECUTORES_DEL_SISTEMA, RIESGOS, RUTA_MD,
   comprobarNormasPr, contarFrases, esVigilado, ficherosNormativos, generarMd, leerRegistro, lineaNormas, lineasAnadidas, llamadasDeAviso, medirFrases,
+  EJES_CONTROL, EJECUTORES_DE_CODIGO, PROCESADORES, motivoTestDelJuezMalo, problemasDeEjes, sinTestDelJuez,
   problemasDeAvisos, problemasDeConjunto, problemasDeDureza, problemasDeForma, problemasDeRegistro, recuento, CIFRAS_FONDO, medirFondo,
 } from "../scripts/lib/normas.mjs";
 import { VEREDICTOS } from "../scripts/lib/escalas.mjs";
@@ -30,7 +32,7 @@ const ADMITIDAS = ["AVISO_POR_CREDENCIAL[cred]"];
 const DURA = {
   id: "ejemplo", nombre: "Tope de ejemplo", sujeto: "endpoint", fuerza: "debe", exigencia: "aplicar un tope diario",
   donde: ["CLAUDE.md"], ejecutor: "codigo_en_ejecucion", alcance: "todos", ante_fallo: "cerrado",
-  control: "api/_guard.test.js", control_tipo: "test", test_fallo: { ruta: "api/_guard.test.js", caso: "sin_redis" }, veredicto: "dura", riesgo: "alto", issue: null,
+  control: "api/_guard.test.js", control_tipo: "test", control_procesador: "codigo", control_fuerza: "bloquea", control_momento: "pr", control_que_mira: "comportamiento", control_cobertura: "total", test_fallo: { ruta: "api/_guard.test.js", caso: "sin_redis" }, veredicto: "dura", riesgo: "alto", issue: null,
   principio: "bounded-blast-radius", ambito: "api", acciones: ["construir"],
 };
 
@@ -39,6 +41,81 @@ describe("vocabulario de normas", () => {
     for (const v of [EJECUTORES, ALCANCES, ANTE_FALLO, VEREDICTOS, RIESGOS]) for (const d of Object.values(v)) expect(d.length).toBeGreaterThan(10);
     for (const e of EJECUTORES_DEL_SISTEMA) expect(Object.keys(EJECUTORES)).toContain(e);
     for (const t of Object.values(CONTROL_TIPOS)) expect(t.que.length).toBeGreaterThan(10);
+  });
+});
+
+describe("los cinco ejes del control (#682)", () => {
+  // Techos que solo bajan, en un fichero versionado: se bajan al dar su test a un juez o al quitar el ejecutor «persona».
+  const TECHOS = JSON.parse(readFileSync(join(RAIZ, "ops/normas-techos.json"), "utf8"));
+  const TECHO_JUEZ_SIN_TEST = TECHOS.juez_sin_test_del_juez;
+  const TECHO_EJECUTOR_PERSONA = TECHOS.ejecutor_persona;
+  // El mismo fichero en origin/staging, sin red (la referencia local tras un fetch); null si no se puede leer.
+  const techosDeStaging = () => {
+    try {
+      return JSON.parse(execFileSync("git", ["show", "origin/staging:ops/normas-techos.json"], { cwd: RAIZ, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }));
+    } catch { return null; }
+  };
+  const JUEZ = { ...DURA, control: "juicio", control_tipo: "juicio", control_procesador: "juez", control_fuerza: "avisa", control_momento: "pr", control_que_mira: "contenido", control_cobertura: "parcial", ejecutor: "persona", test_del_juez: null };
+  const CODIGO = { ...DURA, control_procesador: "codigo", control_fuerza: "bloquea", control_momento: "pr", control_que_mira: "comportamiento", control_cobertura: "total" };
+
+  it("ninguna norma tiene a una persona como procesador: código o juez, y el vocabulario es el de la lista", () => {
+    expect(Object.keys(PROCESADORES)).toEqual(["codigo", "juez"]);
+    expect(registro.normas.filter((n) => !(n.control_procesador in PROCESADORES)).map((n) => n.id)).toEqual([]);
+    for (const [campo, v] of Object.entries(EJES_CONTROL)) expect(registro.normas.filter((n) => !(n[campo] in v)).map((n) => n.id), campo).toEqual([]);
+  });
+
+  it("un control de juicio lo procesa un juez y cualquier otro, código; los de juez dicen su test del juez o null", () => {
+    expect(registro.normas.flatMap((n) => problemasDeEjes(n, n.id))).toEqual([]);
+    expect(problemasDeEjes(JUEZ, "j")).toEqual([]);
+    expect(problemasDeEjes(CODIGO, "c")).toEqual([]);
+  });
+
+  it("se ven fallar: persona como procesador, juez sin campo de test, código con test del juez, y un eje fuera de lista", () => {
+    expect(problemasDeEjes({ ...CODIGO, control_procesador: "persona" }, "x").join(" ")).toMatch(/control_procesador «persona» no está en el vocabulario/);
+    expect(problemasDeEjes({ ...JUEZ, test_del_juez: undefined, ...{} }, "x").join(" ")).toMatch(/test_del_juez/);
+    const { test_del_juez: _quitado, ...sinCampo } = JUEZ;
+    expect(problemasDeEjes(sinCampo, "x").join(" ")).toMatch(/lleva «test_del_juez»/);
+    expect(problemasDeEjes({ ...CODIGO, test_del_juez: null }, "x").join(" ")).toMatch(/solo con procesador «juez»/);
+    expect(problemasDeEjes({ ...CODIGO, control_procesador: "juez" }, "x").join(" ")).toMatch(/no cuadra con control_tipo/);
+    expect(problemasDeEjes({ ...CODIGO, control_momento: "siempre" }, "x").join(" ")).toMatch(/control_momento «siempre»/);
+  });
+
+  it("un test del juez que se nombra existe", () => {
+    expect(problemasDeDureza({ ...JUEZ, veredicto: "blanda", riesgo: "bajo", test_del_juez: "ops/no-existe.test.js" }, ctx).join(" ")).toContain("no existe");
+    for (const n of registro.normas.filter((x) => typeof x.test_del_juez === "string")) expect(motivoTestDelJuezMalo(n, RAIZ), n.id).toBeNull();
+  });
+
+  it("un control que bloquea no es periódico, un juez no procesa al editar y un ejecutor de código no lleva juez (#682)", () => {
+    const base = { ...CODIGO };
+    expect(problemasDeEjes({ ...base, control_momento: "periodico", control_fuerza: "bloquea" }, "x").join(" ")).toMatch(/no es periódico/);
+    expect(problemasDeEjes({ ...base, control_momento: "periodico", control_fuerza: "avisa" }, "x")).toEqual([]);
+    expect(problemasDeEjes({ ...JUEZ, control_momento: "editar" }, "x").join(" ")).toMatch(/un juez no procesa al editar/);
+    for (const ejecutor of EJECUTORES_DE_CODIGO) expect(problemasDeEjes({ ...JUEZ, ejecutor }, "x").join(" "), ejecutor).toMatch(/es código, no puede llevar procesador «juez»/);
+    for (const ejecutor of ["persona", "nada"]) expect(problemasDeEjes({ ...JUEZ, ejecutor }, "x")).toEqual([]);
+  });
+
+  it("un test del juez vale si es un *.test.js o un casos.json que nombra la norma, y no una ruta cualquiera", () => {
+    const n = (r) => ({ ...JUEZ, id: "limite-por-ip", test_del_juez: r });
+    expect(motivoTestDelJuezMalo(n(null), RAIZ)).toBeNull();
+    expect(motivoTestDelJuezMalo(n("ops/no-existe.test.js"), RAIZ)).toBe("no existe");
+    expect(motivoTestDelJuezMalo(n("package.json"), RAIZ)).toMatch(/debe ser un \*\.test\.js o un casos\.json/);
+    expect(motivoTestDelJuezMalo(n("ops/normas.test.js"), RAIZ)).toBeNull();
+    const casos = ".claude/skills/github/casos.json";
+    expect(existsSync(join(RAIZ, casos))).toBe(true);
+    const unId = JSON.parse(readFileSync(join(RAIZ, casos), "utf8")).casos[0].id;
+    expect(motivoTestDelJuezMalo({ ...JUEZ, id: unId, test_del_juez: casos }, RAIZ)).toBeNull();
+    expect(motivoTestDelJuezMalo({ ...JUEZ, id: "id-que-no-aparece-en-ningun-caso-zzz", test_del_juez: casos }, RAIZ)).toMatch(/debe ser un [*][.]test[.]js o un casos[.]json/);
+  });
+
+  it("los techos del fichero no suben respecto a origin/staging (si se puede leer sin red)", () => {
+    const en = techosDeStaging();
+    if (!en) return; // sin la referencia (o el fichero aún no está en staging): no se puede comprobar; el CI sí la tiene
+    for (const k of Object.keys(en)) if (typeof en[k] === "number") expect(TECHOS[k], `${k} no puede subir (staging: ${en[k]})`).toBeLessThanOrEqual(en[k]);
+  });
+
+  it("las normas de juez sin test del juez (no comprobadas) y las de ejecutor «persona» solo bajan", () => {
+    expect(sinTestDelJuez(registro.normas).length, "Un juez nuevo sin test aumenta la lista: dale su test del juez (casos buenos y malos medidos)").toBeLessThanOrEqual(TECHO_JUEZ_SIN_TEST);
+    expect(registro.normas.filter((n) => n.ejecutor === "persona").length, "Una persona no es ejecutor de una norma nueva").toBeLessThanOrEqual(TECHO_EJECUTOR_PERSONA);
   });
 });
 
