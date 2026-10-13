@@ -1,0 +1,8 @@
+{
+  "clave": "fuente",
+  "valor": {
+    "marca": "F",
+    "minimo": 1,
+    "regla": "Cada meta, cada forja de tipo y cada norma nueva lleva al menos una fuente de industria con la marca F; una forja sin ella no se acepta"
+  }
+}

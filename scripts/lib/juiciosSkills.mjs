@@ -34,7 +34,7 @@ import {
 import { leerGlosario, medir } from "./glosario.mjs";
 import { ctxHigiene, higieneDeSkill, scriptsDeNpm } from "./higieneSkills.mjs";
 import { pasadaVigente } from "./saludSkills.mjs";
-import { DIR_SKILLS, NIVEL_META, RAIZ, cargarSkill, nivelDe, nombresDeSkills, parsearSkill, tiposDeSkill } from "./skills.mjs";
+import { DIR_SKILLS, PASO_FORJA, RAIZ, cargarSkill, nombresDeSkills, pasoDe, parsearSkill, tiposDeSkill } from "./skills.mjs";
 import { faltasDeEstandares } from "./skillsForja.mjs";
 
 export const DIR_JUICIOS = "ops/juicios-skills";
@@ -66,9 +66,9 @@ const plana = (t) => String(t ?? "").replace(/\s+/g, " ").trim();
 /** La versión de un SKILL.md, como la guarda skills-prueba (`version.skill_md`). */
 export const versionDe = (texto) => hashLF(texto);
 
-/** Los criterios que se aplican a una skill: los de su tipo; a la pieza meta (nivel 0), todos los de skill. */
+/** Los criterios que se aplican a una skill: los de su tipo; a la pieza meta (paso forja), todos los de skill. */
 export function criteriosDeSkill(datos, metadata) {
-  if (nivelDe(metadata) === NIVEL_META) return datos.criterios.filter((c) => c.aplica_a.includes("skill"));
+  if (pasoDe(metadata) === PASO_FORJA) return datos.criterios.filter((c) => c.aplica_a.includes("skill"));
   return criteriosDeTipo(datos, metadata?.tipo);
 }
 
@@ -168,7 +168,7 @@ export function senalesDelRepo(raiz = RAIZ, hoy = new Date()) {
       metadata: m,
       version: versionDe(s.texto),
       defectos: higieneDeSkill(s, ctxHigiene(s.nombre, raiz, hoy)),
-      estandar: nivelDe(m) === NIVEL_META ? null : estandar.filter((x) => x.tipo === m.tipo),
+      estandar: pasoDe(m) === PASO_FORJA ? null : estandar.filter((x) => x.tipo === m.tipo),
       glosario: detalle.filter((d) => d.ruta.startsWith(dir)),
       pasadas,
     };
