@@ -1,11 +1,9 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { JUECES, cifra, esFicheroDeJuez, faltasDeFichero, leerFichero, lineaDeCifra, medir, motivoFicheroSinNorma, promptCaso } from "./lib/testDelJuez.mjs";
-import { motivoTestDelJuezMalo } from "./lib/normas.mjs";
+import { leerRegistro, motivoTestDelJuezMalo } from "./lib/normas.mjs";
 import { RAIZ } from "./lib/skills.mjs";
 
-const registro = JSON.parse(readFileSync(join(RAIZ, "ops/normas.json"), "utf8"));
+const registro = leerRegistro(RAIZ);
 const deJuez = registro.normas.filter((n) => n.control_procesador === "juez");
 const idsDeJuez = deJuez.map((n) => n.id);
 

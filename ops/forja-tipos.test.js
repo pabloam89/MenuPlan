@@ -14,6 +14,7 @@ import { REFERENCIA, jsonEnReferenciaAvisando } from "../scripts/lib/forjaRefere
 import { ACCIONES, ORIGENES, leerEstandares } from "../scripts/lib/estandaresAgentes.mjs";
 import { leerN2 } from "../scripts/lib/estandaresN2.mjs";
 import { AMBITOS } from "../scripts/lib/ambitos.mjs";
+import { leerRegistro } from "../scripts/lib/normas.mjs";
 import { nombresDeSkills, parsearSkill } from "../scripts/lib/skills.mjs";
 
 /**
@@ -206,7 +207,7 @@ describe("tipos de cada criterio: la plantilla de cada tipo sale de filtrar la b
 // ─────────────────────────────────────────────────────────────────────────────
 // Discreto y texto: los campos de cada ficha.
 const estandares = leerEstandares(RAIZ);
-const idsDeNormas = new Set(JSON.parse(leer("ops/normas.json")).normas.map((n) => n.id));
+const idsDeNormas = new Set(leerRegistro(RAIZ).normas.map((n) => n.id));
 const agentesDelRepo = readdirSync(join(RAIZ, ".claude/agents")).filter((f) => f.endsWith(".md")).map((f) => f.slice(0, -3));
 const existeFicha = (tipo, v) => {
   if (tipo === "skill") return existe(`.claude/skills/${v}/SKILL.md`);

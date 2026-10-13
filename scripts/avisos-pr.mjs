@@ -21,6 +21,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { ErrorDeApi, pedir } from "./lib/ghApi.mjs";
 import { BOTS, REGLAS, avisosDelPr, excepcionesDelPr, hoyUtc, leerDiff, lineaContable, mensajeAviso } from "./lib/avisosPr.mjs";
 import { cierresDelPr, tipoDe } from "./fondos-pr.mjs";
+import { leerRegistro } from "./lib/normas.mjs";
 
 /** Los `Closes #n` del cuerpo que son tipo:fondo → { fondosCerrados } o { sinComprobar }. */
 export async function fondosCerrados({ cuerpo, token, repo, consultar }) {
@@ -43,7 +44,7 @@ export async function fondosCerrados({ cuerpo, token, repo, consultar }) {
 
 const RAIZ = resolve(fileURLToPath(import.meta.url), "..", "..");
 /** Las normas de ops/normas.json (con sus veredictos y ficheros), para validar las excepciones. */
-export const leerNormas = () => JSON.parse(readFileSync(resolve(RAIZ, "ops", "normas.json"), "utf8")).normas;
+export const leerNormas = () => leerRegistro(RAIZ).normas;
 
 const esPrincipal = process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
 

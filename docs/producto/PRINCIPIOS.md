@@ -176,8 +176,8 @@ Cómo habla, decide y se equivoca un bot como Lola.
   - Fuentes: [F] https://www.microsoft.com/en-us/research/articles/guidelines-for-human-ai-interaction-eighteen-best-practices-for-human-centered-ai-design/; [F] https://pair.withgoogle.com/chapter/explainability-trust/.
 - `keep-context-no-reask` — **No repetir preguntas.** Un dato que la persona ya dio se recuerda en vez de pedirse otra vez.
   - Porqué: En los estudios de NN/g, los bots que repetían preguntas cansaban a la gente.
-  - Norma: `bot-does-not-reask` — **No repetir preguntas.** Cuando la persona ya dio un dato en la conversación o en su ficha, el bot Lola NO DEBE volver a pedírselo. Control: juicio (blanda).
   - Norma: `design-accessible-entry` — **Entrada y acceso accesibles.** Cada pantalla de la app DEBE no pedir datos ya dados ni pruebas cognitivas para entrar, y dar una alternativa al arrastre. Control: juicio (blanda).
+  - Norma: `bot-does-not-reask` — **No repetir preguntas.** Cuando la persona ya dio un dato en la conversación o en su ficha, el bot Lola NO DEBE volver a pedírselo. Control: juicio (blanda).
   - Bueno: «Lola usa los comensales que ya constan en la ficha de la casa».
   - Malo: «Lola vuelve a preguntar cuántos comen cada vez que se pide un menú».
   - Fuentes: [F] https://www.nngroup.com/articles/chatbots/; [F] https://www.microsoft.com/en-us/research/articles/guidelines-for-human-ai-interaction-eighteen-best-practices-for-human-centered-ai-design/.
@@ -236,15 +236,15 @@ Cuánto cuesta cada uso, qué pasa cuando algo falla y cómo se sabe.
   - Fuentes: [F] https://www.anthropic.com/engineering/building-effective-agents; [F] https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/.
 - `caller-pays-quota` — **El cupo, a quien llama.** El gasto de IA se controla cuando cada llamada se atribuye a quien la hace.
   - Porqué: Sin identidad no se puede limitar por persona, y un cupo compartido deja que un anónimo agote el de todos.
-  - Norma: `limite-mensajes-bot` — **Límite mensual de mensajes.** El bot Lola DEBE limitar a 100 los mensajes al mes de cada casa. Control: `api/bot/turnoRapido.test.js` (semidura).
   - Norma: `ai-spend-charged-to-caller` — **El cupo, a quien llama.** Cuando un endpoint gasta IA, el producto DEBE atribuir el gasto a quien llama y, si no se sabe quién es, darle un cupo pequeño y propio. Control: juicio (blanda).
+  - Norma: `limite-mensajes-bot` — **Límite mensual de mensajes.** El bot Lola DEBE limitar a 100 los mensajes al mes de cada casa. Control: `api/bot/turnoRapido.test.js` (semidura).
   - Bueno: «Objetivo para un filtro sin sesión: un cupo global bajo y propio, que se corte antes que el de Lola».
   - Malo: «Hoy api/moderate.js contesta sin sesión y gasta el límite diario global compartido con el resto de la IA (#597)».
   - Fuentes: [F] https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/; [S] https://api-security.owasp.org/editions/2023/en/0xa4-unrestricted-resource-consumption.
 - `graceful-degradation` — **Degradación elegante.** Lo esencial del producto sigue funcionando sin IA cuando el modelo falla, tarda o se queda sin cupo.
   - Porqué: Un fallo seguro y aburrido deja seguir a la persona, y un callejón sin salida la hace abandonar.
-  - Norma: `essentials-work-without-ai` — **Degradación elegante.** Cuando el modelo falla, tarda o se agota el cupo, el producto DEBE seguir ofreciendo lo esencial sin IA y decirlo en llano. Control: juicio (blanda).
   - Norma: `design-visual-performance` — **Rendimiento visual.** Para cada pantalla de la app, CONVIENE cargar las fuentes con alternativa, reservar el tamaño de las imágenes y evitar saltos de maquetación. Control: juicio (blanda).
+  - Norma: `essentials-work-without-ai` — **Degradación elegante.** Cuando el modelo falla, tarda o se agota el cupo, el producto DEBE seguir ofreciendo lo esencial sin IA y decirlo en llano. Control: juicio (blanda).
   - Bueno: «Sin modelo, Lola enseña el menú ya guardado y los botones, y dice que hoy no puede pensar».
   - Malo: «Sin modelo, Lola se queda callada o responde con un error técnico».
   - Fuentes: [F] https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/; [F] https://pair.withgoogle.com/chapter/errors-failing/; [F] https://pair.withgoogle.com/chapter/mental-models/.
@@ -275,8 +275,8 @@ Que se entienda qué pasa y cómo seguir.
   - Fuentes: [F] https://www.nngroup.com/articles/ten-usability-heuristics/; [F] https://pair.withgoogle.com/chapter/errors-failing/.
 - `visibility-of-status` — **Estado visible.** Una acción lenta que enseña su estado evita que la persona la repita o la abandone.
   - Porqué: Sin estado, la persona repite la acción o abandona.
-  - Norma: `slow-action-shows-status` — **Estado visible.** Cuando una acción tarda o sigue en curso, el producto DEBE indicar su estado. Control: juicio (blanda).
   - Norma: `design-complete-states` — **Estados completos.** Cuando un componente es interactivo, cada componente de la interfaz DEBE definir reposo, foco, pulsado, activo, deshabilitado, cargando, error y vacío, y hover si hay puntero. Control: juicio (blanda).
+  - Norma: `slow-action-shows-status` — **Estado visible.** Cuando una acción tarda o sigue en curso, el producto DEBE indicar su estado. Control: juicio (blanda).
   - Bueno: «Lola avisa de que el menú tarda un poco antes de ponerse a generarlo».
   - Malo: «La pantalla se queda quieta mientras se genera el menú».
   - Fuentes: [F] https://www.nngroup.com/articles/ten-usability-heuristics/.

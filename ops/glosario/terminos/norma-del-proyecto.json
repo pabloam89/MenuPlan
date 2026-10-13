@@ -1,0 +1,21 @@
+{
+  "termino": "norma del proyecto",
+  "estado": "activo",
+  "clase": "artefacto",
+  "dominio": "base",
+  "definicion": "Una norma vertical que describe la conducta de un producto concreto y se registra en el registro de su proyecto, no en el horizontal.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "norma",
+  "relacionado": [
+    "proyecto"
+  ],
+  "ref": {
+    "fichero": "scripts/lib/normas.mjs",
+    "clave": "cargarNormas"
+  },
+  "nota": "Vive en ops/proyectos/<id>/normas.json con su campo project; el estándar de una tarea horizontal no la lista, se pide con npm run estandar -- <agente> <tarea> --proyecto <id> (#704).",
+  "sin_entidad": "componente"
+}

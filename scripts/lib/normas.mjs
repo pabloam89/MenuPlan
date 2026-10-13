@@ -135,7 +135,7 @@ export const CAMPOS = [
   "id", "nombre", "sujeto", "fuerza", "exigencia", "donde", "ejecutor", "alcance", "ante_fallo",
   "control", "control_tipo", "control_procesador", "control_fuerza", "control_momento", "control_que_mira", "control_cobertura", "veredicto", "riesgo", "issue", "principio", "ambito", "lado", "acciones",
 ];
-export const CAMPOS_OPCIONALES = ["condicion", "nota", "criterio_planos", "test_fallo", "desde", "concepto", "test_del_juez"];
+export const CAMPOS_OPCIONALES = ["condicion", "nota", "criterio_planos", "test_fallo", "desde", "concepto", "test_del_juez", "project"];
 
 export const RUTA_REGISTRO = "ops/normas.json";
 export const RUTA_MD = "docs/ops/NORMAS.md";
@@ -151,8 +151,64 @@ export function ordenDePrecedencia(raiz = join(dirname(fileURLToPath(import.meta
   return Object.values(c).map((x) => x.label).join(" > ");
 }
 
+/** Dónde viven los registros de normas de cada proyecto (#704): ops/proyectos/<id>/normas.json. */
+export const RUTA_PROYECTOS = "ops/proyectos";
+export const rutaNormasDeProyecto = (id) => `${RUTA_PROYECTOS}/${id}/normas.json`;
+
+/** Los ids de proyecto de ops/entidades.json (`projects`), la lista contra la que se valida `project`. */
+export function proyectosDeEntidades(raiz) {
+  return JSON.parse(readFileSync(join(raiz, "ops", "entidades.json"), "utf8")).projects.map((p) => p.id);
+}
+
+/**
+ * El cargador común de normas (#704, programa #652). Las horizontales (la factoría) viven en ops/normas.json; las verticales
+ * (conducta del producto de un proyecto) en el registro de su proyecto, ops/proyectos/<id>/normas.json. Devuelve
+ * { registro, horizontales, delProyecto: { <id>: [norma] }, todas, sujetos }: `todas` para lo que mira el conjunto
+ * (control, redacción, topes, uniones) y `horizontales` / `delProyecto` para lo que distingue (el estándar de una tarea).
+ */
+export function cargarNormas(raiz) {
+  const registro = JSON.parse(readFileSync(join(raiz, RUTA_REGISTRO), "utf8"));
+  const delProyecto = {};
+  const dir = join(raiz, RUTA_PROYECTOS);
+  if (existsSync(dir)) {
+    for (const id of readdirSync(dir).sort()) {
+      const ruta = join(dir, id, "normas.json");
+      if (existsSync(ruta)) delProyecto[id] = JSON.parse(readFileSync(ruta, "utf8"));
+    }
+  }
+  const horizontales = registro.normas;
+  const todas = [...horizontales, ...Object.values(delProyecto).flatMap((r) => r.normas)];
+  return { registro, horizontales, delProyecto: Object.fromEntries(Object.entries(delProyecto).map(([id, r]) => [id, r.normas])), todas, sujetos: registro.sujetos, ficheros: delProyecto };
+}
+
+/** El registro entero para quien necesita todas las normas: { ...ops/normas.json, normas: todas, horizontales, delProyecto }. */
 export function leerRegistro(raiz) {
-  return JSON.parse(readFileSync(join(raiz, RUTA_REGISTRO), "utf8"));
+  const c = cargarNormas(raiz);
+  return { ...c.registro, normas: c.todas, horizontales: c.horizontales, delProyecto: c.delProyecto };
+}
+
+/**
+ * Errores de dónde vive cada norma (#704): ninguna vertical en el registro horizontal ni al revés, cada vertical con un
+ * `project` válido (de ops/entidades.json) que es el de su registro, y ninguna horizontal con `project`.
+ * `carga`: lo que da cargarNormas; `proyectos`: los ids válidos.
+ */
+export function problemasDeProyectos(carga, proyectos) {
+  const malos = [];
+  for (const n of carga.horizontales) {
+    if (n.lado !== "horizontal") malos.push(`${n.id}: está en ops/normas.json y su lado es «${n.lado}»; una norma vertical va al registro de su proyecto (${RUTA_PROYECTOS}/<id>/normas.json)`);
+    if ("project" in n) malos.push(`${n.id}: una norma horizontal no lleva «project»`);
+  }
+  for (const [id, r] of Object.entries(carga.ficheros)) {
+    const ruta = rutaNormasDeProyecto(id);
+    if (!proyectos.includes(id)) malos.push(`${ruta}: «${id}» no es un proyecto de ops/entidades.json (${proyectos.join(", ")})`);
+    if (r.project !== id) malos.push(`${ruta}: su «project» es «${r.project}» y la carpeta es «${id}»`);
+    for (const n of r.normas) {
+      if (n.lado !== "vertical") malos.push(`${n.id}: está en ${ruta} y su lado es «${n.lado}»; una norma horizontal va a ops/normas.json`);
+      if (n.project !== id) malos.push(`${n.id}: su «project» es «${n.project}» y vive en el registro de «${id}»`);
+      if (!proyectos.includes(n.project)) malos.push(`${n.id}: «project» «${n.project}» no es un proyecto de ops/entidades.json`);
+    }
+  }
+  return malos;
 }
 
 /** `test` de una obligación de flujo.json puede ser una ruta o una comprobación de planos: `planos:<regla>[:<rama>]`. */
@@ -413,21 +469,25 @@ export function generarMd(registro, avisos) {
   const L = [
     "# Normas de HoMenu",
     "",
-    `<!-- Generado desde ${RUTA_REGISTRO} y .claude/hooks/avisos-guardia.mjs con «npm run normas -- --escribir». No se edita a mano: ops/normas.test.js lo compara. -->`,
+    `<!-- Generado desde ${RUTA_REGISTRO}, el registro de cada proyecto (${RUTA_PROYECTOS}/<id>/normas.json) y .claude/hooks/avisos-guardia.mjs con «npm run normas -- --escribir». No se edita a mano: ops/normas.test.js lo compara. -->`,
     "",
     "Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe por campos (nombre, sujeto, fuerza, condición, exigencia, control; plantilla de `scripts/lib/regla.mjs`, guía en `docs/ops/REDACCION.md`) y su frase sale de ellos. Cada una cita el principio del que sale (`docs/PRINCIPIOS.md`) y dice su ámbito y a qué acciones de un agente se aplica. La tabla dice también quién la hace cumplir, con qué se comprueba y qué avisos de la guardia la citan. Un aviso que salta dice, en este orden, qué se niega, por qué, qué hacer en su lugar y a quién pedirlo, y deja en el registro de eventos su id y el de su norma.",
     "",
-    "## Normas",
+    "## Normas (horizontales: la factoría)",
     "",
-    "| Norma | Sujeto | Fuerza | Frase | Quién la hace cumplir | Control | Avisos de la guardia | Principio | Ámbito | Lado | Acciones |",
-    "|---|---|---|---|---|---|---|---|---|---|---|",
   ];
-  for (const n of normas) {
+  const fila = (n) => {
     const frase = fraseDeRegla(n, sujetos).replace(/ Se comprueba con: .*$/, "");
     const control = n.control_tipo === "juicio" ? "juicio" : n.control_tipo === "planos" ? `planos: ${n.criterio_planos}` : `${n.control_tipo}: \`${n.control}\``;
     const quien = `${n.ejecutor} · ${n.veredicto}`;
     const av = (porNorma[n.id] ?? []).map((a) => `\`${a}\``).join(", ") || "—";
-    L.push(`| \`${n.id}\` | ${n.sujeto} | ${FUERZAS[n.fuerza].palabra} | ${celda(frase)} | ${quien} | ${celda(control)} | ${av} | \`${n.principio}\` | ${n.ambito} | ${n.lado} | ${(n.acciones ?? []).join(", ")} |`);
+    return `| \`${n.id}\` | ${n.sujeto} | ${FUERZAS[n.fuerza].palabra} | ${celda(frase)} | ${quien} | ${celda(control)} | ${av} | \`${n.principio}\` | ${n.ambito} | ${n.lado} | ${(n.acciones ?? []).join(", ")} |`;
+  };
+  const cabecera = ["| Norma | Sujeto | Fuerza | Frase | Quién la hace cumplir | Control | Avisos de la guardia | Principio | Ámbito | Lado | Acciones |", "|---|---|---|---|---|---|---|---|---|---|---|"];
+  // Un registro por proyecto (#704): las horizontales de ops/normas.json y, aparte, las de cada proyecto.
+  L.push(...cabecera, ...(registro.horizontales ?? normas).map(fila));
+  for (const [proyecto, lista] of Object.entries(registro.delProyecto ?? {})) {
+    L.push("", `## Normas del proyecto ${proyecto} (verticales: ${rutaNormasDeProyecto(proyecto)})`, "", ...cabecera, ...lista.map(fila));
   }
   const contar = (campo) => Object.entries(normas.reduce((a, n) => ({ ...a, [n[campo]]: (a[n[campo]] ?? 0) + 1 }), {}));
   L.push("", "## Sujetos", "", "| Sujeto | En la frase | Normas |", "|---|---|---|");

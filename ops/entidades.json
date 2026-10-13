@@ -181,7 +181,7 @@
         "docs/ops/NORMAS.md"
       ],
       "role_by_scope": "Proceso: obligaciones del flujo, la escritura y la infra. Producto: obligaciones sobre el bot, los datos, el catálogo y la interfaz (82 de 183 normas, según el análisis).",
-      "note": "Hay tres colecciones de reglas con sujetos separados (normas, estándares de agente, obligaciones del flujo) que comparten 9 ids. Los sujetos de normas y estándares se cruzan con las entidades en ops/entidades-sujetos.json. Absorbe a la antigua entidad criterion (tipo forge-norm: las normas de la forja, hasta F4 en ops/forja/criterios/) y a la antigua entidad rule: el campo donde de la norma dice dónde está escrita (un fichero de .claude/rules, un hook, CLAUDE.md o una skill). Guarda fuerza (debe, no_debe, conviene) y veredicto (cuánto se hace cumplir) como dos campos distintos. Futuro encargo: unificar EJECUTORES (scripts/lib/normas.mjs) con los ids de ops/mecanismos.json, que hoy se escriben distinto (github_regla frente a regla_github).",
+      "note": "Hay tres colecciones de reglas con sujetos separados (normas, estándares de agente, obligaciones del flujo) que comparten 9 ids. Los sujetos de normas y estándares se cruzan con las entidades en ops/entidades-sujetos.json. Absorbe a la antigua entidad criterion (tipo forge-norm: las normas de la forja, hasta F4 en ops/forja/criterios/) y a la antigua entidad rule: el campo donde de la norma dice dónde está escrita (un fichero de .claude/rules, un hook, CLAUDE.md o una skill). Desde #704 las horizontales viven en ops/normas.json y las verticales en el registro de su proyecto (ops/proyectos/<id>/normas.json, con su campo project); scripts/lib/normas.mjs (cargarNormas) lee los dos. Guarda fuerza (debe, no_debe, conviene) y veredicto (cuánto se hace cumplir) como dos campos distintos. Futuro encargo: unificar EJECUTORES (scripts/lib/normas.mjs) con los ids de ops/mecanismos.json, que hoy se escriben distinto (github_regla frente a regla_github).",
       "types": [
         "forge-norm"
       ]
@@ -1485,6 +1485,15 @@
       "cardinality": "many_to_one",
       "stored_as": "file",
       "stored_in": "projects[].repos (este fichero)"
+    },
+    {
+      "from": "norm",
+      "relation": "belongs_to",
+      "to": "project",
+      "class": "part_of",
+      "cardinality": "many_to_one",
+      "stored_as": "field",
+      "stored_in": "project (solo las normas verticales, en ops/proyectos/<id>/normas.json); una norma horizontal no lo lleva y cuelga de la factoría (#704)"
     },
     {
       "from": "resource",

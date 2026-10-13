@@ -110,7 +110,7 @@ describe("los cinco ejes del control (#682)", () => {
   it("los techos del fichero no suben respecto a origin/staging (si se puede leer sin red)", () => {
     const en = techosDeStaging();
     if (!en) return; // sin la referencia (o el fichero aún no está en staging): no se puede comprobar; el CI sí la tiene
-    for (const k of Object.keys(en)) if (typeof en[k] === "number") expect(TECHOS[k], `${k} no puede subir (staging: ${en[k]})`).toBeLessThanOrEqual(en[k]);
+    for (const k of Object.keys(en)) if (typeof en[k] === "number") expect(TECHOS[k] ?? 0, `${k} no puede subir (staging: ${en[k]})`).toBeLessThanOrEqual(en[k]);
   });
 
   it("las normas de juez sin test del juez (no comprobadas) y las de ejecutor «persona» solo bajan", () => {

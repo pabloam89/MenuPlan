@@ -13,12 +13,14 @@ import {
  * ops/PLANOS.md salga de él (no se edita a mano) y que la medición guardada
  * siga siendo posible con lo que hay hoy en el repo (sin red).
  */
+import { leerRegistro } from "../scripts/lib/normas.mjs";
+
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const leer = (ruta) => readFileSync(join(RAIZ, ruta), "utf8");
 const datos = JSON.parse(leer("ops/planos.json"));
 const md = leer("ops/PLANOS.md");
 const AGENTES = readdirSync(join(RAIZ, ".claude/agents")).map((f) => f.replace(/\.md$/, ""));
-const NORMAS = new Set(JSON.parse(leer("ops/normas.json")).normas.map((n) => n.id));
+const NORMAS = new Set(leerRegistro(RAIZ).normas.map((n) => n.id));
 const todos = datos.planos.flatMap((p) => NIVELES.flatMap((n) => (p.niveles[String(n)] ?? []).map((c) => ({ plano: p.id, nivel: n, c }))));
 const donde = ({ plano, nivel, c }) => `plano ${plano}, nivel ${nivel}: «${c.que}»`;
 

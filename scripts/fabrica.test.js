@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 
 import { dentroDe, dentroDeUnRepo } from "./fabrica.mjs";
 import { resolver } from "./lib/flujo.mjs";
+import { leerRegistro } from "./lib/normas.mjs";
 import {
   ADVERTENCIA_BAJAR, HUECO_ACTIVO_MIN, MIN_ENCARGOS_CELDA, MIN_ENCARGOS_INFORME, MIN_FONDOS_CELDA, PRECIOS, RATIO_PROPUESTA,
   agregarPorIssue, aguantoDe, cobertura, contarEventos, costeDeMensaje, extraer, leerLineas, listarTranscripciones, mediana, precioDe,
@@ -434,7 +435,7 @@ describe("revisión de #340: bajar avisa, la unidad está dicha y lo raro va a �
 
   it("P12.3, P12.4 y la norma de recalibración son blandas: el script es una ayuda que nada lanza", () => {
     const flujo = JSON.parse(readFileSync(join(RAIZ, "ops/flujo.json"), "utf8"));
-    const normas = JSON.parse(readFileSync(join(RAIZ, "ops/normas.json"), "utf8")).normas;
+    const normas = leerRegistro(RAIZ).normas;
     const todas = flujo.pasos.flatMap((p) => p.obligaciones);
     for (const id of ["P12.3", "P12.4"]) expect(resolver(todas.find((o) => o.id === id), Object.fromEntries(normas.map((n) => [n.id, n]))).veredicto, id).toBe("blanda");
     const norma = normas.find((n) => n.id === "presupuestos-se-recalibran");
