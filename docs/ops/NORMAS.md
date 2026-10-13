@@ -333,7 +333,7 @@ Cada norma dice en cinco ejes cerrados cómo se controla (`control_procesador`, 
 | total | Alcanza a cualquiera y a toda la norma | 69 |
 | parcial | Deja fuera a alguien o a una parte de la norma | 136 |
 
-Normas de juez sin test del juez: 89 de 89. Normas con ejecutor «persona» (sin quitar todavía): 70.
+Normas de juez sin test del juez: 83 de 89. Normas con ejecutor «persona» (sin quitar todavía): 70.
 
 ## Avisos de la guardia
 

@@ -19,6 +19,7 @@ import { FORMA, MAX_DIAS, RETIRADA_FORMAS_ANTIGUAS } from "./excepciones.mjs";
 import { MIN_EXCEPTUADAS, RESULTADOS_NORMA } from "./medicionNormas.mjs";
 import { VEREDICTOS } from "./escalas.mjs";
 import { CONTROL_JUICIO, FUERZAS, ID_KEBAB, fraseDeRegla, problemasDeRegla, problemasDeSujetos } from "./regla.mjs";
+import { esFicheroDeJuez, motivoFicheroSinNorma } from "./testDelJuez.mjs";
 
 /** Quién hace cumplir la norma. Los cinco primeros son «del sistema»: no dependen de que alguien se acuerde. */
 export const EJECUTORES = {
@@ -207,6 +208,12 @@ export function motivoTestDelJuezMalo(n, raiz) {
   if (typeof r !== "string") return null;
   if (!existsSync(join(raiz, r))) return "no existe";
   if (/\.test\.(js|jsx|mjs)$/.test(r)) return null;
+  // El fichero de casos de un juez (#693): con casos buenos y malos de ESTA norma, no solo su nombre.
+  if (esFicheroDeJuez(r)) {
+    let f = null;
+    try { f = JSON.parse(readFileSync(join(raiz, r), "utf8")); } catch { return "no es un JSON legible"; }
+    return motivoFicheroSinNorma(f, n.id);
+  }
   if (/(^|\/)casos\.json$/.test(r) && readFileSync(join(raiz, r), "utf8").includes(n.id)) return null;
   return "debe ser un *.test.js o un casos.json que nombre el id de la norma";
 }
