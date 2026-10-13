@@ -92,8 +92,8 @@ Cada agente declara en su cabecera, en `traspasa_a`, a quién pasa trabajo (ids 
   «Decisiones pendientes», para quien lanzó la sesión (Pablo o Álvaro).
 - **No lanza otros agentes.** Profundidad 1: coordinar es cosa de la sesión
   principal (`/orquestar`). Así el coste no se multiplica sin que se vea. La única
-  excepción es `orquestador`, que ES la sesión principal (`claude --agent orquestador`,
-  sin `--agent` la sesión sigue funcionando como hasta ahora) y lleva la herramienta `Agent`.
+  excepción es `orquestador`, que ES la sesión principal (arranca por defecto por `"agent"` en
+  `.claude/settings.json`; `claude --agent <otro>` manda sobre la clave) y lleva la herramienta `Agent`.
 - **Pide y da evidencia, no afirmaciones**: el comando que corrió y lo que
   salió, la ruta y la línea, la captura. Lo no comprobado se dice como no
   comprobado.
