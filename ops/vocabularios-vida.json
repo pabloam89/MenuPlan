@@ -100,7 +100,8 @@
       "value": "un valor de un campo de otra entidad",
       "field": "un campo de otra entidad",
       "event_type": "un tipo de evento",
-      "type": "un tipo de otra entidad"
+      "type": "un tipo de otra entidad",
+      "renamed": "la misma entidad con otro id y otro nombre: cambia cómo se llama, no qué es"
     },
     "entidades.cardinality": {
       "one_to_one": "Uno con uno",
@@ -413,6 +414,28 @@
       "minutos": "minutos activos de trabajo",
       "tokens": "tokens de modelo",
       "nivel": "el nivel de un plano, de 0 a 4"
+    },
+    "normas.control_cobertura": {
+      "total": "Alcanza a cualquiera y a toda la norma",
+      "parcial": "Deja fuera a alguien o a una parte de la norma"
+    },
+    "normas.control_fuerza": {
+      "bloquea": "Si no se cumple, lo detiene: el cambio o la acción no pasa",
+      "avisa": "Si no se cumple, lo dice y deja pasar"
+    },
+    "normas.control_momento": {
+      "editar": "Al editar un fichero o lanzar un comando (la guardia)",
+      "pr": "Al abrir o fusionar un PR (el CI o el juez de ese PR)",
+      "periodico": "En un pase programado o a mano, fuera de un PR"
+    },
+    "normas.control_procesador": {
+      "codigo": "Un programa decide si se cumple: un test, un script, un workflow o el código en ejecución",
+      "juez": "Un agente juez lo decide leyendo el trabajo, con su motivo y pudiendo decir «no sé»; solo cuenta con su test del juez"
+    },
+    "normas.control_que_mira": {
+      "forma": "Cómo está escrito: estructura, vocabulario y formato",
+      "contenido": "Lo que dice, a juicio de quien lo lee",
+      "comportamiento": "Lo que hace el sistema al ejecutarse o al aplicarse"
     },
     "normas.resultado": {
       "ok": "el control miró y la norma se cumplía",
@@ -1193,6 +1216,11 @@
       "termino": "defecto",
       "desde": "2026-10-12",
       "motivo": "Su definición dice «norma de calidad» donde decía «criterio de calidad»; mismo significado (#652, F1)"
+    },
+    {
+      "termino": "control",
+      "desde": "2026-10-13",
+      "motivo": "Se amplía: ya no solo da falta, aviso o bien; es la comprobación de una norma, que puede procesar un juez, y se describe en cinco ejes (#682)"
     }
   ],
   "vocabularios_retirados": [

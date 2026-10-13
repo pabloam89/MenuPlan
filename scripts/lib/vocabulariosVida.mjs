@@ -50,6 +50,7 @@ import { CAUSAS_EXCEPCION, ROLES_CAMPO, TIPOS_LECTOR, UNIDADES } from "./metrica
 import { AMBITOS } from "./ambitos.mjs";
 import { FORMAS as FORMAS_EXCEPCION, RAZONES as RAZONES_EXCEPCION } from "./excepciones.mjs";
 import { RESULTADOS_NORMA } from "./medicionNormas.mjs";
+import { COBERTURAS, FUERZAS_CONTROL, MOMENTOS, PROCESADORES, QUE_MIRA } from "./normas.mjs";
 import { leerPrecedencia } from "./precedencia.mjs";
 import { VEREDICTOS_RUIDO } from "./ruido.mjs";
 import { MOTIVOS_COMPLEJIDAD, PIPELINES } from "./presupuestos.mjs";
@@ -101,6 +102,12 @@ export const VOCABULARIOS = {
   // Por qué una excepción de un PR no cuenta, y lo que pasó con una norma en una línea `norma: <id> resultado: …` (#621).
   "pr.excepcion_razon": { fichero: "scripts/lib/excepciones.mjs", textos: conTexto(RAZONES_EXCEPCION) },
   "normas.resultado": { fichero: "scripts/lib/medicionNormas.mjs", textos: conTexto(RESULTADOS_NORMA) },
+  // Los cinco ejes del control de una norma (#682): procesador (nunca una persona), fuerza, momento, qué mira y cobertura.
+  "normas.control_procesador": { fichero: "scripts/lib/normas.mjs", textos: conTexto(PROCESADORES) },
+  "normas.control_fuerza": { fichero: "scripts/lib/normas.mjs", textos: conTexto(FUERZAS_CONTROL) },
+  "normas.control_momento": { fichero: "scripts/lib/normas.mjs", textos: conTexto(MOMENTOS) },
+  "normas.control_que_mira": { fichero: "scripts/lib/normas.mjs", textos: conTexto(QUE_MIRA) },
+  "normas.control_cobertura": { fichero: "scripts/lib/normas.mjs", textos: conTexto(COBERTURAS) },
   // Los tipos de encargo (#640): la única lista está en ops/tipos-de-encargo.json (tipos, subtipos y banderas) y en
   // ops/presupuestos.json (el pipeline de cada complejidad); sus lectores, tiposDeEncargo.mjs y presupuestos.mjs.
   "encargo.type": { fichero: "scripts/lib/tiposDeEncargo.mjs", textos: () => textosDeTipos() },

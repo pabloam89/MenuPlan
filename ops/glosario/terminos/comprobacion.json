@@ -11,7 +11,7 @@
   "en": "verification",
   "entidades": [
     {
-      "entidad": "verification",
+      "entidad": "control",
       "relacion": "denota"
     }
   ]

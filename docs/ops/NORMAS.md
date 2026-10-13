@@ -297,6 +297,44 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | script | Un script del repo que comprueba y se lanza a mano o en el build | 7 |
 | juicio | El juicio de una persona o de un LLM sobre sus casos: no hay nada que falle solo | 94 |
 
+## Ejes del control (#682)
+
+Cada norma dice en cinco ejes cerrados cómo se controla (`control_procesador`, `control_fuerza`, `control_momento`, `control_que_mira`, `control_cobertura`). **Ninguna persona es procesador**: lo decide código o un juez, y un juez solo cuenta si tiene su test del juez (`test_del_juez`); mientras no lo tiene, la norma queda sin comprobar.
+
+| Procesador \ Fuerza | bloquea | avisa |
+|---|---|---|
+| codigo | 93 | 18 |
+| juez | 2 | 92 |
+
+| control_procesador | Qué es | Normas |
+|---|---|---|
+| codigo | Un programa decide si se cumple: un test, un script, un workflow o el código en ejecución | 111 |
+| juez | Un agente juez lo decide leyendo el trabajo, con su motivo y pudiendo decir «no sé»; solo cuenta con su test del juez | 94 |
+
+| control_fuerza | Qué es | Normas |
+|---|---|---|
+| bloquea | Si no se cumple, lo detiene: el cambio o la acción no pasa | 95 |
+| avisa | Si no se cumple, lo dice y deja pasar | 110 |
+
+| control_momento | Qué es | Normas |
+|---|---|---|
+| editar | Al editar un fichero o lanzar un comando (la guardia) | 28 |
+| pr | Al abrir o fusionar un PR (el CI o el juez de ese PR) | 167 |
+| periodico | En un pase programado o a mano, fuera de un PR | 10 |
+
+| control_que_mira | Qué es | Normas |
+|---|---|---|
+| forma | Cómo está escrito: estructura, vocabulario y formato | 53 |
+| contenido | Lo que dice, a juicio de quien lo lee | 94 |
+| comportamiento | Lo que hace el sistema al ejecutarse o al aplicarse | 58 |
+
+| control_cobertura | Qué es | Normas |
+|---|---|---|
+| total | Alcanza a cualquiera y a toda la norma | 71 |
+| parcial | Deja fuera a alguien o a una parte de la norma | 134 |
+
+Normas de juez sin test del juez: 94 de 94. Normas con ejecutor «persona» (sin quitar todavía): 70.
+
 ## Avisos de la guardia
 
 | Aviso | Norma | Qué se niega |

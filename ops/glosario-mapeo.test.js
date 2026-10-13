@@ -64,7 +64,7 @@ describe("el mapeo del glosario de hoy", () => {
 
   it("los 15 artefactos que ninguna entidad nombraba (§10.2) quedan resueltos, con relación o con motivo", () => {
     const esperado = {
-      guardia: ["hook"], "caso de prueba": ["eval"], tarea: ["session"], control: ["verification"],
+      guardia: ["hook"], "caso de prueba": ["eval"], tarea: ["session"], control: ["control"],
       ficha: "componente", arreglo: "componente", evidencia: "componente", capa: "componente", test: "componente",
       hallazgo: "candidato", "juicio de skill": "candidato", plantilla: "paso", informe: "salida", defecto: "salida", entidad: "meta",
     };

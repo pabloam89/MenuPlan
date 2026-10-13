@@ -679,7 +679,7 @@
         "scripts/lib/vocabulariosVida.mjs"
       ],
       "role_by_scope": "Proceso: listas cerradas de ops y scripts/lib. Producto: las de src/lib/vocabularios.js, que además llevan CHECK en la base.",
-      "note": "95 vocabularios y 534 valores anclados (a 13 oct 2026; el test compara estas cifras con ops/vocabularios-vida.json). Hay constantes duplicadas (MESES en 4 sitios, dos ESTADOS_CRITERIO con valores distintos)."
+      "note": "100 vocabularios y 547 valores anclados (a 13 oct 2026; el test compara estas cifras con ops/vocabularios-vida.json). Hay constantes duplicadas (MESES en 4 sitios, dos ESTADOS_CRITERIO con valores distintos)."
     },
     {
       "id": "principle",
@@ -943,12 +943,12 @@
       "note": "Retirada el 12 oct 2026 (decisión de Pablo, #652): el criterio de la forja y la norma son la misma unidad exigible; el término «criterio» pasa a «norma». Los 75 ficheros de ops/forja/criterios/ siguen donde están hasta F4 (docs/ops/BASE-FORJA.md §7.3); sus ids no cambian."
     },
     {
-      "id": "verification",
-      "name": "Comprobación",
+      "id": "control",
+      "name": "Control",
       "scope": "both",
       "level": "piece",
       "family": "rules",
-      "term": "comprobación",
+      "term": "control",
       "source_of_truth": "ops/normas.json",
       "id_format": "mixed",
       "registry": "partial",
@@ -960,7 +960,27 @@
         "ops/normas.test.js"
       ],
       "role_by_scope": "Proceso: tests y scripts de ops/ y scripts/. Producto: tests de supabase/ y src/ que vigilan normas de datos y de interfaz.",
-      "note": "El fichero (test, script o workflow) que vigila una norma, guardado hoy como texto en el campo control de la norma, junto con control_tipo. El nombre «control» queda para el término del glosario (una comprobación concreta con su código). No tiene registro propio: un fichero puede vigilar varias normas y esa relación solo se ve con grep."
+      "note": "Lo que comprueba una norma (antes «comprobación», id verification; renombrada el 13 oct 2026, #682): un fichero (test, script o workflow) o un juicio, guardado hoy en los campos de la norma control, control_tipo y los cinco ejes (control_procesador, control_fuerza, control_momento, control_que_mira, control_cobertura; test_del_juez si lo procesa un juez). Ninguna persona es procesador: código o juez. No tiene registro propio: un fichero puede vigilar varias normas y esa relación solo se ve con grep."
+    },
+    {
+      "id": "verification",
+      "name": "Comprobación",
+      "scope": "both",
+      "level": "piece",
+      "family": "rules",
+      "term": "comprobación",
+      "source_of_truth": "ops/normas.json",
+      "id_format": "mixed",
+      "registry": "partial",
+      "status": "retired",
+      "replaced_by": "control",
+      "becomes": "renamed",
+      "becomes_in": "la entidad control: mismo contenido, id y nombre nuevos",
+      "created_by": [
+        "agent"
+      ],
+      "readers": [],
+      "note": "Renombrada el 13 oct 2026 (decisión de Pablo, #652 y #682): el control de una norma es una entidad con sus ejes y no solo un fichero; el término «comprobación» sigue vivo en el glosario y nombra la misma entidad."
     },
     {
       "id": "standard",
@@ -1653,7 +1673,7 @@
     {
       "from": "norm",
       "relation": "enforced_by",
-      "to": "verification",
+      "to": "control",
       "class": "reference",
       "cardinality": "many_to_one",
       "stored_as": "field",

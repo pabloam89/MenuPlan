@@ -16,7 +16,7 @@ Un **puente** ya no es un valor: es una entidad de alcance `both`, y se calcula.
 `parent_of` o `reference`) y cardinalidad. La contención va de la factoría al proyecto y de este al entorno (`part_of`).
 Los ids van en inglés (decisión de Pablo del 11 oct 2026); los nombres y las notas, en castellano.
 
-Hoy hay 53 entidades activas: 21 horizontales, 22 verticales y 10 de los dos lados (puentes), y 7 retiradas.
+Hoy hay 53 entidades activas: 21 horizontales, 22 verticales y 10 de los dos lados (puentes), y 8 retiradas.
 Las relaciones son 90: is_a 5, parent_of 4, part_of 22, reference 59.
 
 ## Horizontales: la factoría
@@ -90,7 +90,7 @@ Sirven a la factoría y a un proyecto, y cada una dice qué es a cada lado. El a
 | `vocabulary` | Vocabulario | both | piece | rules | vocabulario | `ops/vocabularios-vida.json` | partial |
 | `principle` | Principio | both | meta | rules | principio | `ops/principios/_catalogo.json` | with_registry |
 | `resource` | Recurso | both | template | access | recurso | `ops/recursos.json` | with_registry |
-| `verification` | Comprobación | both | piece | rules | comprobación | `ops/normas.json` | partial |
+| `control` | Control | both | piece | rules | control | `ops/normas.json` | partial |
 | `workflow` | Workflow | both | piece | delivery | workflow | `.github/workflows` | partial |
 
 Qué es cada puente a cada lado:
@@ -103,7 +103,7 @@ Qué es cada puente a cada lado:
 - **vocabulary**: Proceso: listas cerradas de ops y scripts/lib. Producto: las de src/lib/vocabularios.js, que además llevan CHECK en la base.
 - **principle**: Proceso: principios propios de la casa (ops/principios). Producto: los 40 principios de producto y los 15 de redacción, leídos de su catálogo.
 - **resource**: Proceso: GitHub y 1Password. Producto: Supabase, Telegram y Vercel. Hetzner sirve a las dos cosas.
-- **verification**: Proceso: tests y scripts de ops/ y scripts/. Producto: tests de supabase/ y src/ que vigilan normas de datos y de interfaz.
+- **control**: Proceso: tests y scripts de ops/ y scripts/. Producto: tests de supabase/ y src/ que vigilan normas de datos y de interfaz.
 - **workflow**: Proceso: fondos, planos, flujo semanal, tests, dependabot y agente de fallos. Producto: vigía de Lola, bot semanal, salud del despliegue, mercadona-sync e iOS (por el nombre de cada fichero).
 
 ## Proyectos
@@ -207,7 +207,7 @@ flowchart LR
 | `norm` | cites | `principle` | many_to_one | field: principio |
 | `norm` | refers_to | `issue` | many_to_one | field: issue |
 | `norm` | enforced_by | `mechanism` | many_to_one | ningún campo: el ejecutor guarda un valor de EJECUTORES, no un id de mecanismo (github_regla no es regla_github) |
-| `norm` | enforced_by | `verification` | many_to_one | field: control y control_tipo |
+| `norm` | enforced_by | `control` | many_to_one | field: control y control_tipo |
 | `norm` | enforced_by | `hook` | many_to_many | ningún campo: el ejecutor guardia guarda un tipo, no el hook concreto |
 | `standard` | reads | `norm` | many_to_many | ningún campo: consulta por ámbito y acción, calculada; no se copia |
 | `session` | works_in | `branch` | one_to_one | field: rama (ficha local de la sesión) |
@@ -286,3 +286,4 @@ Un id no se borra: se retira y dice a qué pasa.
 | `vault` | `resource` | type | tipo boveda de resource |
 | `rule` | `norm` | field | campo donde de la norma (qué fichero la escribe) |
 | `criterion` | `norm` | type | tipo de norma: las 75 de ops/forja/criterios/ son normas de la forja hasta que la fase F4 de #652 las pase a ops/normas.json |
+| `verification` | `control` | renamed | la entidad control: mismo contenido, id y nombre nuevos |
