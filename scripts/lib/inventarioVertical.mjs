@@ -95,7 +95,12 @@ export function calcular(raiz) {
   const fu = [...fuentes.values()].map((f) => {
     if (f.tipo === "externa") {
       let host = "";
-      try { host = new URL(f.url).host; } catch { return { id: f.id, lado: "duda", razon: `la dirección «${f.url}» no es una URL válida: no se puede ver de quién es el sitio` }; }
+      try {
+        host = new URL(f.url).host;
+      } catch {
+        // a propósito: una URL rota no tira el inventario; sale como duda con su razón en el documento
+        return { id: f.id, lado: "duda", razon: `la dirección «${f.url}» no es una URL válida: no se puede ver de quién es el sitio` };
+      }
       if (hostsProveedor.includes(host)) return { id: f.id, lado: "duda", razon: decisiones.fuentes_externas_de_proveedor.razon };
       return { id: f.id, lado: "horizontal" };
     }
