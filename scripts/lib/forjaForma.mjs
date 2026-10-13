@@ -59,7 +59,7 @@ export function problemasDeFormaDeclarada(datos, artefactos) {
 /** Una expresión con \b que entiende las letras con tilde (el \b de JavaScript no). */
 const FRONTERA = String.raw`(?:(?<![\p{L}])(?=[\p{L}])|(?<=[\p{L}])(?![\p{L}]))`;
 const ub = (re) => new RegExp(re.source.replace(/\\b/g, () => FRONTERA), "iu");
-export const PASIVA_SER = ub(/\b(?:es|son|fue|fueron|será|serán|sea|sean|siendo|ha sido|han sido|había sido)\s+[a-záéíóúñ]+(?:ad|id)[oa]s?\b/);
+export const PASIVA_SER = ub(/\b(?:es|son|fue|fueron|será|serán|sea|sean|siendo|ha sido|han sido|había sido)\s+[a-záéíóúñ]+(?:ad|[ií]d)[oa]s?\b/);
 /** Pasiva refleja: solo el verbo que abre la regla (las subordinadas no cuentan), salvo 'se' + {ha, han, pueda, puede, trata, te, me, acabe}. */
 export const PASIVA_REFLEJA = ub(/^\s*se\s+(?!(?:ha|han|pueda|puede|trata|te|me|acabe)\b)[a-záéíóúñ]+(?:a|an|e|en|ará|arán|erá|erán|irá|irán)\b/);
 /** Futuro y pasado de verbo regular. Sin condicional (-ería, -aría, -iría: librería, tubería…) ni -ó suelto. */

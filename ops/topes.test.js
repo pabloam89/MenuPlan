@@ -105,6 +105,10 @@ describe("la regla de wording de cada tipo", () => {
     expect(codigosDeWording("gastar menos de 75 € al mes", base.norma, { tipo: "norma" })).toEqual([]);
   });
   it("voz pasiva", () => expect(codigosDeWording("El fichero es guardado por el script", base.norma)).toContain("voz-pasiva"));
+  it("voz pasiva con participio en -ído y con tilde", () => {
+    for (const t of ["El fichero es leído por el script", "El módulo fue construido a mano", "El dato es traído de la base", "El árbol ha sido caído", "La norma es comprendida"]) expect(codigosDeWording(t, base.norma), t).toContain("voz-pasiva");
+    expect(codigosDeWording("El script lee el fichero", base.norma)).not.toContain("voz-pasiva");
+  });
   it("futuro en un tipo de presente", () => expect(codigosDeWording("El script leerá el fichero", base.norma)).toContain("modo-tiempo"));
   it("una práctica que empieza por un sujeto en vez de un imperativo", () => expect(codigosDeWording("La coherencia dentro del producto importa", base.practica)).toContain("modo-tiempo"));
   it("persona que no es la del tipo", () => expect(codigosDeWording("Guarda tu fichero", base.norma)).toContain("persona"));
