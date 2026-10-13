@@ -112,7 +112,7 @@ describe("boveda-pablo: idempotencia", () => {
   it("si la copia solo salta fichas, lo marca como ya estaba", () => {
     const { fx, salida } = mundo({ hijo: (s, a) => ({ status: 0, salida: a[0] === "--si" ? "salto  «fal»: ya existe" : "Todo bien" }) });
     ejecutar(fx);
-    expect(todo(salida)).toMatch(/YA ESTABA: fichas copiadas: 0, ya estaban: 1/);
+    expect(todo(salida)).toMatch(/YA ESTABA: se copiaron 0 fichas y 1 ya estaban/);
   });
 });
 

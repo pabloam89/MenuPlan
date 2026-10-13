@@ -104,7 +104,7 @@ function paso2(fx) {
   if (r.status !== 0) return { estado: MAL, texto: "la copia de fichas ha fallado en alguna (arriba, las líneas FALLA o NO COINCIDEN). Repite el comando: las ya copiadas se saltan." };
   const copiadas = lineas.filter((l) => /^copiada/.test(l)).length;
   const saltadas = lineas.filter((l) => /^salto/.test(l)).length;
-  return { estado: copiadas ? BIEN : SALTADO, texto: `fichas copiadas: ${copiadas}, ya estaban: ${saltadas}.` };
+  return { estado: copiadas ? BIEN : SALTADO, texto: `se copiaron ${copiadas} fichas y ${saltadas} ya estaban.` };
 }
 
 /** ¿El token del llavero ya es el de sesiones (ve solo HoMenu-sesiones)? */
@@ -173,7 +173,7 @@ export function ejecutar(fx = efectosReales) {
   for (const p of PASOS) {
     fx.log(`Paso ${p.id}: ${p.nombre}…`);
     let r;
-    try { r = p.corre(fx); } catch (e) { r = { estado: MAL, texto: `error inesperado: ${primeraLinea(e.message)}` }; }
+    try { r = p.corre(fx); } catch (e) { r = { estado: MAL, texto: `falló sin esperarlo (${primeraLinea(e.message)})` }; }
     resultados.push({ ...p, ...r });
     fx.log(`  ${r.estado}: ${r.texto}`);
     if (r.estado === MAL) break;
