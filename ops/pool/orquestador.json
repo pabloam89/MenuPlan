@@ -246,7 +246,7 @@
     {
       "id": "evaluar-el-estado-final",
       "agente": "orquestador",
-      "practica": "Evalúa a los agentes por el estado final que alcanzan y no por los pasos que siguieron",
+      "practica": "Evalúa a los agentes por el estado final que alcanzan y no por los pasos que siguen",
       "fuente": "an-multi-agent",
       "origen": "campo",
       "lectura": "leida",

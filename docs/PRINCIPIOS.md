@@ -490,7 +490,7 @@ Cómo se nombra, se identifica y se registra cada cosa del proyecto.
   - Porqué: Un id que cambia o se reutiliza rompe cada referencia que lo apunta, también las de los recuentos viejos.
   - Fuentes: [I] `docs/entidades/N0-principios.md`
   - Detalle: `docs/entidades/N0-principios.md#4-cada-entidad-tiene-un-id-estable-único-y-con-forma`, `docs/datos/PRINCIPIOS.md#3-claves-primarias`
-- `who-what-when` — **Quién, qué y cuándo.** Todo lo que cambia guarda quién lo ha cambiado, qué ha cambiado y cuándo, con una identidad, un valor de vocabulario y un instante.
+- `who-what-when` — **Quién, qué y cuándo.** Todo cambio guarda quién lo hace, qué cambia y cuándo, con una identidad, un valor de vocabulario y un instante.
   - Porqué: Sin autor ni fecha nadie sabe desde cuándo consta un dato ni quién lo puso, y un error no se puede deshacer.
   - Fuentes: [F] https://www.w3.org/TR/prov-o/
   - Detalle: `docs/entidades/N0-principios.md#8-todo-lo-que-cambia-lleva-quién-qué-y-cuándo`, `docs/datos/PRINCIPIOS.md#9-fechas-de-cada-fila`, `docs/datos/PRINCIPIOS.md#18-quién-y-por-dónde`

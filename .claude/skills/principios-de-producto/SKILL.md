@@ -1,6 +1,6 @@
 ---
 name: principios-de-producto
-description: Úsala al decidir, recomendar o diseñar algo del producto (Lola, la app, una pantalla, un endpoint, un dato de familias, un coste de IA), con «¿qué hacemos con X?» o «recomiéndame una opción». Busca el principio con fuente que manda y lo cita por su id. No para: cómo trabajamos (ops/estandares-agentes.json), cómo se le escribe a Pablo (estilo-de-respuesta), la UI fina (DESIGN_SYSTEM.md) ni elegir tecnología o infraestructura sin efecto en la familia.
+description: Úsala al decidir, recomendar o diseñar algo del producto (Lola, la app, una pantalla, un endpoint, un dato de familias, un coste de IA), con «¿qué se hace con X?» o «recomiéndame una opción». Busca el principio con fuente que manda y lo cita por su id. No para: cómo trabajamos (ops/estandares-agentes.json), cómo se le escribe a Pablo (estilo-de-respuesta), la UI fina (DESIGN_SYSTEM.md) ni elegir tecnología o infraestructura sin efecto en la familia.
 metadata:
   tipo: conocimiento
   opera_proveedor: false
