@@ -1,0 +1,389 @@
+/**
+ * inventarioVertical.mjs — cuánto hay de cada lado (horizontal: vale para cualquier proyecto; vertical: solo para
+ * HoMenu) en cada capa del repo, y cuáles dudan (#710, primera fase del programa #652). Solo mide: no mueve nada.
+ *
+ * Las fuentes de datos, por capa (todas del propio repo, sin red):
+ *  - principios: ops/principios/ y los catálogos delegados (ops/principios-producto/, ops/redaccion.json), con los
+ *    registros de fuentes de ops/fuentes-documentales/ y las zonas de ops/zonas.json;
+ *  - fuentes: ops/fuentes-documentales/ (la ruta de una fuente de la casa cae en una zona);
+ *  - normas: ops/normas.json (horizontales) y ops/proyectos/<id>/normas.json (verticales), por el cargador común;
+ *  - glosario y entidades: ops/glosario/terminos/ y ops/entidades.json (su campo `scope`);
+ *  - skills, reglas, comandos, agentes, specs y docs: ops/zonas.json (factoría / producto / mixto, por ruta);
+ *  - controles: los tests de git, según la zona de su carpeta y los ficheros de producto que nombran.
+ * Lo que no se deduce, a mano, en ops/inventario-vertical.json.
+ *
+ * Una zona no es un lado: `producto` es «dónde vive el fichero», y aquí se usa como pista, no como veredicto. Por eso
+ * `duda` existe. Puro: nada de red; lee ficheros del repo que le pasa `raiz`.
+ */
+import { readFileSync, readdirSync, existsSync } from "node:fs";
+import { join } from "node:path";
+
+import { ficherosDeGit } from "../../ops/ficherosGit.js";
+import { cargarNormas } from "./normas.mjs";
+import { clasificar, compilar, leerZonas } from "./zonasProyecto.mjs";
+
+export const RUTA_DECISIONES = "ops/inventario-vertical.json";
+export const RUTA_DOC = "docs/ops/INVENTARIO-VERTICAL.md";
+/** Los ficheros de esta herramienta no cuentan en sus propias cifras (si no, cada PR los movería). */
+export const PROPIOS = [RUTA_DOC, RUTA_DECISIONES, "ops/inventario-vertical.test.js", "scripts/inventario-vertical.mjs", "scripts/lib/inventarioVertical.mjs"];
+
+const leerJson = (raiz, ruta) => JSON.parse(readFileSync(join(raiz, ruta), "utf8"));
+const jsonsDe = (raiz, dir) => readdirSync(join(raiz, dir)).filter((f) => f.endsWith(".json") && !f.startsWith("_")).sort().map((f) => leerJson(raiz, `${dir}/${f}`));
+
+/** Palabras que nombran el proyecto de verdad (sin «casa», «bot» ni «familia», que son castellano corriente). */
+const PROYECTO = /\b(HoMenu|MenuPlan|Lola|homenu)\b|C:\\dev|Vercel|Supabase/;
+const PROYECTO_ESTRICTO = /\b(HoMenu|MenuPlan|Lola|homenu)\b/;
+/** Prefijos de fichero que son de HoMenu y no de la factoría. */
+const FICHEROS_DE_PRODUCTO = /^(api\/|src\/|supabase\/|specs\/|docs\/datos\/|docs\/producto\/|DESIGN_SYSTEM\.md|public\/)/;
+
+/** Ficheros que los tests de la casa nombran como texto de ejemplo, no porque los vigilen. */
+const EJEMPLOS = new Set(["src/App.jsx"]);
+
+const fila = (unidad, total, horizontal, vertical, duda) => ({ unidad, total, horizontal, vertical, duda });
+const porZona = (z) => (z === "factoria" ? "horizontal" : z === "producto" ? "vertical" : "duda");
+
+/** Cuenta una lista de { lado } en una fila. */
+function contar(unidad, items) {
+  const n = { horizontal: 0, vertical: 0, duda: 0 };
+  for (const i of items) n[i.lado] += 1;
+  return fila(unidad, items.length, n.horizontal, n.vertical, n.duda);
+}
+
+export function calcular(raiz) {
+  const decisiones = leerJson(raiz, RUTA_DECISIONES);
+  const zonas = compilar(leerZonas(raiz));
+  const zonaDe = (ruta) => clasificar(ruta, zonas).zona;
+  const ficheros = ficherosDeGit(raiz).filter((f) => !PROPIOS.includes(f));
+  const filas = [];
+  const dudosos = [];
+  const duda = (capa, id, razon) => dudosos.push({ capa, id, razon });
+
+  // ---- 1. Principios -------------------------------------------------------------------------------------------
+  const fuentes = new Map(jsonsDe(raiz, "ops/fuentes-documentales/fuentes").map((f) => [f.id, f]));
+  const casa = jsonsDe(raiz, "ops/principios/principios").map((p) => {
+    if (Object.hasOwn(decisiones.principios_verticales, p.id)) return { id: p.id, lado: "vertical", razon: decisiones.principios_verticales[p.id] };
+    if (!(p.fuentes ?? []).length) return { id: p.id, lado: "duda", razon: "no registra ninguna fuente: sin origen no se puede decidir su lado" };
+    const externas = (p.fuentes ?? []).filter((s) => fuentes.get(s.fuente)?.tipo === "externa");
+    const rutas = (p.fuentes ?? []).map((s) => fuentes.get(s.fuente)).filter((f) => f?.tipo === "casa").map((f) => f.ruta);
+    if (externas.length) return { id: p.id, lado: "horizontal" };
+    const enProducto = rutas.filter((r) => zonaDe(r) === "producto");
+    if (rutas.length && enProducto.length === rutas.length) {
+      return { id: p.id, lado: "duda", razon: `sin fuente externa y su único origen es ${enProducto[0]} (zona producto): ¿regla general nacida en HoMenu o regla de HoMenu?` };
+    }
+    return { id: p.id, lado: "horizontal" };
+  });
+  for (const p of casa) if (p.lado === "duda") duda("principios", p.id, p.razon);
+  filas.push(contar("principios de la casa (ops/principios/)", casa));
+
+  const producto = jsonsDe(raiz, "ops/principios-producto/principios").map((p) => {
+    if (!(p.fuentes ?? []).length) return { id: p.id, lado: "duda", razon: "no registra ninguna fuente: sin origen no se puede decidir su lado" };
+    const todasExternas = (p.fuentes ?? []).every((s) => fuentes.get(s.fuente)?.tipo === "externa");
+    if (p.area === "conversational-ai") {
+      return { id: p.id, lado: "duda", razon: "tiene fuente externa (literatura), pero solo vale para un proyecto con bot conversacional (paquete de bots, línea 2 de #652)" };
+    }
+    return { id: p.id, lado: todasExternas ? "horizontal" : "duda", razon: "tiene una fuente de la casa" };
+  });
+  for (const p of producto) if (p.lado === "duda") duda("principios", p.id, p.razon);
+  filas.push(contar("principios de producto (delegado: ops/principios-producto/)", producto));
+
+  const redaccion = leerJson(raiz, "ops/redaccion.json").principios.map((p) => ({ id: p.id, lado: "horizontal" }));
+  filas.push(contar("guía de redacción (delegado: ops/redaccion.json)", redaccion));
+
+  // ---- 2. Fuentes ---------------------------------------------------------------------------------------------
+  const agentesDudosos = decisiones.agentes_dudosos;
+  const hostsProveedor = decisiones.fuentes_externas_de_proveedor.hosts;
+  const fu = [...fuentes.values()].map((f) => {
+    if (f.tipo === "externa") {
+      let host = "";
+      try {
+        host = new URL(f.url).host;
+      } catch {
+        // a propósito: una URL rota no tira el inventario; sale como duda con su razón en el documento
+        return { id: f.id, lado: "duda", razon: `la dirección «${f.url}» no es una URL válida: no se puede ver de quién es el sitio` };
+      }
+      if (hostsProveedor.includes(host)) return { id: f.id, lado: "duda", razon: decisiones.fuentes_externas_de_proveedor.razon };
+      return { id: f.id, lado: "horizontal" };
+    }
+    const agente = f.ruta.match(/^\.claude\/agents\/([\w-]+)\.md$/)?.[1];
+    if (agente && Object.hasOwn(agentesDudosos, agente)) return { id: f.id, lado: "duda", razon: `es el agente ${agente}; los agentes son horizontales (regla de Pablo, 13 oct) pero este tiene trabajo de producto` };
+    const z = zonaDe(f.ruta);
+    const lado = porZona(z);
+    if (lado === "duda") return { id: f.id, lado, razon: `la ruta ${f.ruta} está en zona mixta` };
+    return { id: f.id, lado };
+  });
+  for (const f of fu) if (f.lado === "duda") duda("fuentes", f.id, f.razon);
+  filas.push(contar("fuentes documentales (ops/fuentes-documentales/)", fu));
+  const externas = [...fuentes.values()].filter((f) => f.tipo === "externa").length;
+  const notaFuentes = `${externas} externas (literatura) y ${fuentes.size - externas} de la casa (una ruta del repo).`;
+
+  // ---- 3. Normas ----------------------------------------------------------------------------------------------
+  const carga = cargarNormas(raiz);
+  const horizontales = carga.horizontales.map((n) => {
+    const razones = [];
+    if (PROYECTO_ESTRICTO.test([n.nombre, n.exigencia, n.condicion].filter(Boolean).join(" "))) razones.push("su texto nombra el proyecto");
+    if (["bot", "product", "catalog"].includes(n.ambito)) razones.push(`ámbito «${n.ambito}» (conducta de un producto con bot, catálogo o familias)`);
+    else if (n.ambito !== "diseno") {
+      const nombradas = [n.control, ...(n.donde ?? [])].filter((s) => typeof s === "string" && FICHEROS_DE_PRODUCTO.test(s));
+      if (nombradas.length) razones.push(`depende de un fichero de HoMenu (${nombradas[0]})`);
+    }
+    return razones.length ? { id: n.id, lado: "duda", razon: razones.join("; ") } : { id: n.id, lado: "horizontal" };
+  });
+  for (const n of horizontales) if (n.lado === "duda") duda("normas", n.id, n.razon);
+  const verticales = Object.values(carga.delProyecto).flat().map((n) => ({ id: n.id, lado: "vertical" }));
+  filas.push(contar("normas horizontales (ops/normas.json)", horizontales));
+  filas.push(contar("normas verticales (ops/proyectos/<id>/normas.json)", verticales));
+  const nDiseno = carga.horizontales.filter((n) => n.ambito === "diseno").length;
+  const controlEnProducto = carga.horizontales.filter((n) => typeof n.control === "string" && n.control.includes("/") && zonaDe(n.control) === "producto").length;
+  const controlJuicio = carga.horizontales.filter((n) => n.control === "juicio").length;
+  const verticalesEnFactoria = Object.values(carga.delProyecto).flat().filter((n) => typeof n.control === "string" && n.control.includes("/") && zonaDe(n.control) === "factoria").length;
+
+  // ---- 4. Entidades y glosario --------------------------------------------------------------------------------
+  const ent = leerJson(raiz, "ops/entidades.json").entities;
+  const scopeDe = new Map(ent.map((e) => [e.id, e]));
+  const entidades = ent.filter((e) => e.status !== "retired").map((e) => {
+    if (e.scope === "both") return { id: e.id, lado: "duda", razon: "marcada «both»: sirve a los dos lados" };
+    if (e.scope === "vertical" && Object.hasOwn(decisiones.entidades_verticales_genericas, e.id)) return { id: e.id, lado: "duda", razon: decisiones.entidades_verticales_genericas[e.id] };
+    return { id: e.id, lado: e.scope };
+  });
+  for (const e of entidades) if (e.lado === "duda") duda("entidades", e.id, e.razon);
+  const retiradas = ent.length - entidades.length;
+  filas.push(contar("entidades activas (ops/entidades.json)", entidades));
+
+  const terminos = jsonsDe(raiz, "ops/glosario/terminos").filter((t) => t.estado === "activo").map((t) => {
+    const ligadas = (t.entidades ?? []).map((x) => scopeDe.get(x.entidad)).filter((e) => e && e.status !== "retired");
+    const scopes = new Set(ligadas.map((e) => e.scope));
+    let lado;
+    let razon = "";
+    if (scopes.size === 1 && !scopes.has("both")) lado = [...scopes][0];
+    else if (scopes.size) { lado = "duda"; razon = `sus entidades son de lados distintos o «both» (${[...scopes].join(", ")})`; }
+    else if (t.dominio === "producto") lado = "vertical";
+    else if (t.dominio === "datos") { lado = "duda"; razon = "dominio «datos»: habla de migraciones, tablas y fuentes de datos, que son de HoMenu en la práctica"; }
+    else lado = "horizontal";
+    if (lado === "horizontal" && PROYECTO.test(`${t.termino} ${t.definicion}`)) { lado = "duda"; razon = `la definición nombra el proyecto o su infraestructura («${(t.definicion.match(PROYECTO) ?? [])[0]}»)`; }
+    if (lado === "vertical" && Object.hasOwn(decisiones.entidades_verticales_genericas, ligadas[0]?.id ?? "")) { lado = "duda"; razon = `su entidad ${ligadas[0].id} es un concepto general marcado vertical`; }
+    return { id: t.termino, lado, razon };
+  });
+  for (const t of terminos) if (t.lado === "duda") duda("glosario", t.id, t.razon);
+  filas.push(contar("términos activos del glosario (ops/glosario/terminos/)", terminos));
+
+  // ---- 5. Skills, reglas, comandos, agentes, specs, docs ------------------------------------------------------
+  const deZona = (rutas, extra) => rutas.map((r) => {
+    const base = porZona(zonaDe(r));
+    const e = extra?.(r, base);
+    return e ?? { id: r, lado: base, razon: base === "duda" ? "zona mixta en ops/zonas.json" : "" };
+  });
+  const skills = ficheros.filter((f) => /^\.claude\/skills\/[^/]+\/SKILL\.md$/.test(f));
+  const skillsLados = deZona(skills, (r, base) => {
+    const tipo = readFileSync(join(raiz, r), "utf8").match(/^\s{2}tipo:\s*(\w+)/m)?.[1];
+    if (base === "horizontal" && tipo === "servicio") return { id: r, lado: "duda", razon: "skill de un servicio: el método es general, pero lleva los ids, las bóvedas y el repo de HoMenu" };
+    return null;
+  });
+  const reglas = deZona(ficheros.filter((f) => /^\.claude\/rules\/[^/]+\.md$/.test(f)));
+  const comandos = deZona(ficheros.filter((f) => /^\.claude\/commands\/[^/]+\.md$/.test(f)));
+  const agentes = ficheros.filter((f) => /^\.claude\/agents\/[^/]+\.md$/.test(f)).map((r) => {
+    const id = r.match(/agents\/([\w-]+)\.md$/)[1];
+    return Object.hasOwn(agentesDudosos, id) ? { id: r, lado: "duda", razon: agentesDudosos[id] } : { id: r, lado: "horizontal", razon: "" };
+  });
+  const specs = deZona(ficheros.filter((f) => f.startsWith("specs/") && f.endsWith(".md")));
+  const raizMd = ficheros.filter((f) => !f.includes("/") && f.endsWith(".md"));
+  const docs = deZona([...ficheros.filter((f) => f.startsWith("docs/") && f.endsWith(".md")), ...raizMd]);
+  for (const [capa, lista] of [["skills", skillsLados], ["reglas", reglas], ["comandos", comandos], ["agentes", agentes], ["specs", specs], ["docs", docs]]) {
+    for (const x of lista) if (x.lado === "duda") duda(capa, x.id, x.razon);
+  }
+  filas.push(contar("skills (.claude/skills/)", skillsLados));
+  filas.push(contar("reglas por carpeta (.claude/rules/)", reglas));
+  filas.push(contar("comandos (.claude/commands/)", comandos));
+  filas.push(contar("agentes (.claude/agents/; por regla de Pablo, horizontales)", agentes));
+  filas.push(contar("specs (specs/*.md)", specs));
+  filas.push(contar("documentos (docs/**/*.md y los .md de la raíz)", docs));
+
+  // ---- 6. Controles y tests -----------------------------------------------------------------------------------
+  const existentes = new Set(ficheros);
+  const tests = ficheros.filter((f) => /\.test\.(js|jsx|mjs)$/.test(f));
+  const lista = tests.map((f) => {
+    const z = zonaDe(f);
+    if (z === "producto") return { id: f, lado: "vertical", refs: 0 };
+    const t = readFileSync(join(raiz, f), "utf8");
+    const refs = new Set();
+    for (const m of t.matchAll(/["'`]((?:\.\.?\/)*[\w@.\-/]+?\.(?:js|jsx|mjs|json|md|sql|css|html|sh))["'`]/g)) {
+      const trozos = `${f.split("/").slice(0, -1).join("/")}/${m[1]}`.split("/");
+      const out = [];
+      for (const s of trozos) { if (s === "..") out.pop(); else if (s !== "." && s !== "") out.push(s); }
+      for (const q of [m[1].replace(/^(\.\.?\/)+/, ""), out.join("/")]) {
+        if (existentes.has(q) && FICHEROS_DE_PRODUCTO.test(q) && !EJEMPLOS.has(q)) { refs.add(q); break; }
+      }
+    }
+    if (refs.size >= 3) return { id: f, lado: "vertical", refs: refs.size, razon: `vive en la casa (${z}) pero lee ${refs.size} ficheros de HoMenu (p. ej. ${[...refs][0]})` };
+    if (refs.size) return { id: f, lado: "duda", refs: refs.size, razon: `vive en la casa (${z}) y nombra ${[...refs].join(", ")}: ¿vigila el fichero o lo usa de ejemplo?` };
+    return { id: f, lado: "horizontal", refs: 0 };
+  });
+  for (const t of lista) if (t.lado === "duda") duda("tests", t.id, t.razon);
+  filas.push(contar("tests (*.test.{js,jsx,mjs})", lista));
+  const dentroDeLaCasa = lista.filter((t) => zonaDe(t.id) !== "producto");
+  const vigilanVertical = lista.filter((t) => t.lado === "vertical" && zonaDe(t.id) !== "producto").length;
+
+  return {
+    filas,
+    dudosos,
+    cifras: {
+      fuentesNota: notaFuentes,
+      entidadesRetiradas: retiradas,
+      normasDiseno: nDiseno,
+      controlEnProducto,
+      controlJuicio,
+      verticalesEnFactoria,
+      testsEnCasa: dentroDeLaCasa.length,
+      vigilanVertical,
+      testsEnProducto: lista.length - dentroDeLaCasa.length,
+      principiosVerticales: casa.filter((p) => p.lado === "vertical").map((p) => p.id),
+    },
+  };
+}
+
+// ---- Comprobaciones (puras, para que el test las pruebe con datos buenos y con datos rotos) ------------------------
+
+/** En cada capa, horizontal + vertical + duda tienen que sumar el total. Devuelve los fallos (vacío = bien). */
+export function fallosDeCuentas(filas) {
+  return filas.filter((f) => f.horizontal + f.vertical + f.duda !== f.total).map((f) => `${f.unidad}: ${f.horizontal}+${f.vertical}+${f.duda} no suman ${f.total}`);
+}
+
+/** Las normas verticales son todas verticales y las horizontales ninguna (el cargador común ya las separa). */
+export function fallosDeNormas(filas) {
+  const h = filas.find((f) => f.unidad.startsWith("normas horizontales"));
+  const v = filas.find((f) => f.unidad.startsWith("normas verticales"));
+  if (!h || !v) return ["falta la fila de normas horizontales o verticales"];
+  const fallos = [];
+  if (h.vertical !== 0) fallos.push(`hay ${h.vertical} normas verticales en el registro horizontal`);
+  if (v.vertical !== v.total) fallos.push(`solo ${v.vertical} de ${v.total} normas del registro vertical cuentan como verticales`);
+  return fallos;
+}
+
+/** Cada duda lleva capa, id y una razón con sentido. Cero dudas es un resultado válido (es el objetivo del programa). */
+export function fallosDeDudas(dudosos) {
+  const fallos = [];
+  for (const x of dudosos) {
+    if (!x.capa || !x.id) fallos.push(`duda sin capa o sin id: ${JSON.stringify(x)}`);
+    else if (String(x.razon ?? "").length <= 15) fallos.push(`${x.capa}/${x.id}: sin razón`);
+  }
+  return fallos;
+}
+
+/**
+ * Las decisiones a mano apuntan a piezas que existen. `existe(ruta)` dice si un fichero del repo existe y `entidades`
+ * son los ids de ops/entidades.json (inyectables para poder probar el caso roto).
+ */
+export function fallosDeDecisiones(decisiones, { existe, entidades }) {
+  const fallos = [];
+  for (const id of Object.keys(decisiones.principios_verticales ?? {})) if (!existe(`ops/principios/principios/${id}.json`)) fallos.push(`principio ${id}`);
+  for (const id of Object.keys(decisiones.entidades_verticales_genericas ?? {})) if (!entidades.includes(id)) fallos.push(`entidad ${id}`);
+  for (const id of Object.keys(decisiones.agentes_dudosos ?? {})) if (!existe(`.claude/agents/${id}.md`)) fallos.push(`agente ${id}`);
+  return fallos;
+}
+
+const sumar = (filas, campo) => filas.reduce((a, f) => a + f[campo], 0);
+const lineaTabla = (f) => `| ${f.unidad} | ${f.total} | ${f.horizontal} | ${f.vertical} | ${f.duda} |`;
+const TITULOS_DE_CAPA = {
+  principios: "1. Principios", fuentes: "2. Fuentes", normas: "3. Normas", entidades: "4a. Entidades", glosario: "4b. Glosario",
+  skills: "5a. Skills", reglas: "5b. Reglas por carpeta", comandos: "5c. Comandos", agentes: "5d. Agentes", specs: "5e. Specs", docs: "5f. Documentos",
+  tests: "6. Tests",
+};
+
+/** Las cifras de partida de cada fila por nombre (para la propuesta de PR). */
+const buscar = (filas, empieza) => filas.find((f) => f.unidad.startsWith(empieza));
+
+export function documento(d, fecha) {
+  const { filas, dudosos, cifras } = d;
+  const L = [];
+  const f = (e) => buscar(filas, e);
+  L.push("# Inventario vertical y horizontal");
+  L.push("");
+  L.push(`<!-- Instantánea del ${fecha} que escribe \`npm run inventario-vertical -- --escribir\` (scripts/inventario-vertical.mjs). Las cifras cambian con cada PR ajeno, así que NINGÚN test las compara con el repo de hoy: se regenera al empezar cada PR de #710 y se pone al lado la cifra de después. -->`);
+  L.push("");
+  L.push("Primera fase de #710 (programa #652): solo mide, no mueve nada. **Horizontal** es lo que vale para cualquier proyecto; **vertical**, lo que solo vale para HoMenu; **duda**, lo que no se puede decidir con los datos y se enseña con su razón. La regla de Pablo (13 oct 2026): ningún registro mezcla los dos lados, y los agentes (horizontales) reciben lo vertical por referencia (`--proyecto homenu`).");
+  L.push("");
+  L.push("## Cómo se ha medido");
+  L.push("");
+  L.push("Es un **inventario de partida, no un registro de lados**: el lado todavía no es un campo de cada pieza (salvo en normas y entidades), así que se deduce. Las fuentes de datos, todas del propio repo y sin red:");
+  L.push("");
+  L.push("| Capa | De dónde sale el lado |");
+  L.push("|---|---|");
+  L.push("| Principios | `ops/principios/`, `ops/principios-producto/` y `ops/redaccion.json`, con las fuentes de `ops/fuentes-documentales/` y las zonas de `ops/zonas.json`. Vertical: la lista a mano de `ops/inventario-vertical.json`. Duda: sin fuente externa y su único origen está en un fichero de zona producto; o un principio de producto del área `conversational-ai` |");
+  L.push("| Fuentes | Externa: horizontal (salvo la documentación de Supabase y Vercel: duda). De la casa: la zona de su ruta (`ops/zonas.json`) |");
+  L.push("| Normas | El registro en que viven. Duda de una horizontal: su texto nombra HoMenu/Lola/MenuPlan, o su ámbito es `bot`/`product`/`catalog`, o su control o `donde` apunta a `api/`, `src/`, `supabase/`, `docs/datos/`, `docs/producto/`, `specs/` o `DESIGN_SYSTEM.md` (las " + cifras.normasDiseno + " de ámbito `diseno` no cuentan: Pablo decidió el 13 oct que son horizontales) |");
+  L.push("| Entidades | Su campo `scope` (`horizontal`, `vertical`, `both`); duda: `both` y las vertical que son un concepto general (lista a mano) |");
+  L.push("| Glosario | El `scope` de sus entidades; sin entidad, su dominio (`producto` vertical, `datos` duda); duda también si su definición nombra el proyecto, Vercel o Supabase |");
+  L.push("| Skills, reglas, comandos, specs, documentos | La zona de `ops/zonas.json` (factoría = horizontal, producto = vertical, mixto = duda); una skill `tipo: servicio` de factoría = duda |");
+  L.push("| Agentes | Horizontales por la regla de Pablo; los tres que trabajan sobre datos de HoMenu, duda (lista a mano) |");
+  L.push("| Tests | Zona de su carpeta. En la casa: vertical si lee 3 ficheros de HoMenu o más (existentes, no de ejemplo), duda si lee 1 o 2 |");
+  L.push("");
+  L.push("Límites: «casa» y «bot» son castellano corriente en la factoría, así que no cuentan como pista de proyecto. La zona de `ops/zonas.json` se decidió por nombre de carpeta, no pieza a pieza. Un test que nombra `src/App.jsx` como texto de un ejemplo puede salir como duda sin serlo.");
+  L.push("");
+  L.push("## Resumen por capa");
+  L.push("");
+  L.push("| Capa | Total | Horizontal | Vertical | Duda |");
+  L.push("|---|---:|---:|---:|---:|");
+  for (const x of filas) L.push(lineaTabla(x));
+  L.push("");
+  L.push(`Principios, las tres filas juntas: ${sumar(filas.slice(0, 3), "total")} en total, ${sumar(filas.slice(0, 3), "horizontal")} horizontales, ${sumar(filas.slice(0, 3), "vertical")} verticales y ${sumar(filas.slice(0, 3), "duda")} en duda.`);
+  L.push("");
+  L.push("## Lo que cuenta cada capa");
+  L.push("");
+  L.push(`- **Principios.** Solo ${cifras.principiosVerticales.length} de los ${f("principios de la casa").total} propios de la casa son claramente de HoMenu (${cifras.principiosVerticales.map((i) => `\`${i}\``).join(" y ")}): origen una decisión de producto, sin fuente externa. La mayoría no tiene fuente externa, pero eso no los hace verticales: son del método de trabajo. La duda real son los principios de base de datos cuyo único origen es \`docs/datos/PRINCIPIOS.md\`. Los ${f("principios de producto").total} de producto tienen literatura detrás y son horizontales; los del área \`conversational-ai\` solo valen si el proyecto tiene un bot.`);
+  L.push(`- **Fuentes.** ${cifras.fuentesNota}`);
+  L.push(`- **Normas.** El registro vertical ya está separado (${f("normas verticales").total}). En el horizontal hay ${f("normas horizontales").duda} que dudan (lista abajo). De las ${f("normas horizontales").total}, ${cifras.controlJuicio} tienen como control «juicio» y ${cifras.controlEnProducto} acaban en un fichero de zona producto. De las ${f("normas verticales").total} verticales, ${cifras.verticalesEnFactoria} tienen su control en una carpeta de la factoría.`);
+  L.push(`- **Entidades y glosario.** Entidades retiradas (no cuentan): ${cifras.entidadesRetiradas}. El glosario no tiene lado propio: hoy se deduce de sus entidades; es el registro donde más falta el campo.`);
+  L.push(`- **Tests.** ${cifras.testsEnCasa} tests viven en carpetas de la casa; ${cifras.vigilanVertical} de ellos leen tres ficheros de HoMenu o más (sin contar \`src/App.jsx\`, el ejemplo de casi todos). ${cifras.testsEnProducto} viven en carpetas de producto, coherentes con lo que vigilan.`);
+  L.push("");
+  L.push("## Los dudosos, con su razón");
+  L.push("");
+  const capas = [...new Set(dudosos.map((x) => x.capa))];
+  for (const capa of capas) {
+    const lista = dudosos.filter((x) => x.capa === capa);
+    L.push(`### ${TITULOS_DE_CAPA[capa] ?? capa} (${lista.length})`);
+    L.push("");
+    // Los que comparten razón van en una línea: 25 principios con la misma duda no son 25 dudas distintas.
+    const grupos = new Map();
+    for (const x of lista) grupos.set(x.razon, [...(grupos.get(x.razon) ?? []), x.id]);
+    for (const [razon, ids] of grupos) L.push(`- ${ids.map((i) => `\`${i}\``).join(", ")}: ${razon}${ids.length > 1 ? ` (${ids.length})` : ""}`);
+    L.push("");
+  }
+  L.push("## Propuesta de orden de PR, con cifra de antes y de después");
+  L.push("");
+  L.push("El orden sigue la dependencia (lo que es registro se separa antes de lo que lo cita) y empieza por el vigilante, para que ninguna cifra suba mientras se trabaja. Cada PR cierra con `Parte de #710`, la cifra de esta tabla recalculada y su juez.");
+  L.push("");
+  const dudaDe = (c) => dudosos.filter((x) => x.capa === c).length;
+  const pr = [
+    ["PR 1", "El vigilante primero (punto 7 de #710): test que lee `lado`/`project` de cada registro y falla si una horizontal cita una vertical; techos que solo bajan", "tests de vigilancia de lados = 0", "1 (con los techos de esta tabla)"],
+    ["PR 2", "Entidades: decidir las `both` y las vertical genéricas; el glosario hereda el lado de su entidad como campo `scope`", `entidades en duda = ${dudaDe("entidades")}`, "0"],
+    ["PR 3", "Principios: campo `project` y registro `ops/proyectos/homenu/principios/`; mover los verticales y resolver los de base de datos", `verticales fuera de su registro = ${f("principios de la casa").vertical}; en duda = ${f("principios de la casa").duda + f("principios de producto").duda}`, "verticales en su registro = todos; en duda = 0"],
+    ["PR 4", "Fuentes: campo `project` en las de la casa que son de HoMenu y origen (decisión o fallo) en vez de fuente externa para los principios de proyecto", `fuentes verticales sin marcar = ${f("fuentes").vertical}; en duda = ${f("fuentes").duda}`, "marcadas = todas; en duda = 0"],
+    ["PR 5", "Normas dudosas: mover al registro de HoMenu las que sean suyas, o reescribir (sin nombrar el proyecto) las que sean generales", `normas horizontales en duda = ${f("normas horizontales").duda}`, "0 (cada una, horizontal limpia o vertical)"],
+    ["PR 6", "Controles: tests de la casa que leen ficheros de HoMenu pasan a recibirlos por referencia (`--proyecto`) o se mueven; retirar `verticales_sin_salida` (#704)", `tests de la casa que leen HoMenu = ${cifras.vigilanVertical}; en duda = ${f("tests").duda}`, "0 y 0"],
+    ["PR 7", "Glosario: términos de proyecto aparte de los de la casa", `términos en duda = ${f("términos").duda}`, "0"],
+    ["PR 8", "Skills, reglas, comandos, specs y docs: marcar el lado de cada una y separar los skills de servicio en método (casa) y datos (proyecto)", `en duda = skills ${f("skills").duda}, documentos ${f("documentos").duda}; verticales sin marca = ${f("reglas").vertical + f("specs").vertical + f("skills").vertical}`, "en duda = 0; todas marcadas"],
+    ["PR 9", "Factoría frente a HoMenu (#690): CLAUDE.md como índice corto con dos partes; `docs/` y `ops/` separados", `documentos en duda = ${f("documentos").duda}`, "0"],
+  ];
+  L.push("| PR | Qué hace | Cifra de antes | Cifra objetivo |");
+  L.push("|---|---|---|---|");
+  for (const p of pr) L.push(`| ${p.join(" | ")} |`);
+  L.push("");
+  L.push("Los PR 2 a 8 son independientes entre sí salvo por el 1; el 3 y el 4 van seguidos (una fuente de proyecto la cita un principio de proyecto). El 6 depende de #704 (ya fusionado).");
+  L.push("");
+  L.push("## Dudas de clasificación que solo puede resolver Pablo");
+  L.push("");
+  L.push("Cada una, con la opción recomendada primero; la respuesta decide cuántos de los dudosos de arriba pasan a un lado u otro.");
+  L.push("");
+  L.push("1. **Principios de base de datos con origen solo en `docs/datos/PRINCIPIOS.md`.** A (recomendada): horizontales; se les busca fuente externa (PostgreSQL, Fowler) y `docs/datos/` queda como «cómo los aplica HoMenu». B: verticales, al registro de HoMenu. C: verticales los que dicen «casa» y horizontales el resto.");
+  L.push("2. **Lo que solo vale con un bot conversacional** (principios del área `conversational-ai` y normas de ámbito `bot`). A (recomendada): horizontales con una condición `aplica_si: bot` en el registro. B: un tercer lado, «paquete de bots» (línea 2 de #652). C: verticales de HoMenu.");
+  L.push("3. **Entidades marcadas `both`.** A (recomendada): obligar a un lado; la clase es horizontal y sus instancias son del proyecto. B: admitir `both` con un techo que solo baja. C: partir cada una en dos entidades.");
+  L.push("4. **Skills de servicio** (hoy en duda: 1password, github, hetzner y tailscale, que están en zona factoría; vercel y supabase ya están en zona producto y cuentan como verticales, pero mezclan igual método y datos del proyecto). A (recomendada): partir cada una en método (casa) y datos del proyecto (ids, bóvedas, repo), que el agente recibe por referencia. B: dejarlos enteros en la casa. C: marcarlos verticales.");
+  L.push("5. **Las zonas de `ops/zonas.json` contradicen la regla de los agentes**: `evaluador`, `qa` y `auditor-datos` están en producto. A (recomendada): moverlos a factoría y que lo vertical llegue por referencia. B: dejar la zona y marcar los tres como duda. C: moverlos a un paquete opcional.");
+  L.push("");
+  L.push("## Qué no mide");
+  L.push("");
+  L.push("- Las reglas de estándar de cada tarea (`ops/estandares-agentes.json`): son de la línea 1 de #652 (estándares asépticos), con su propia cifra (28 de 162 con lenguaje de proyecto, según el comentario del 13 oct).");
+  L.push("- El contenido de dentro de cada skill y documento: se clasifica el fichero entero, no sus párrafos. Una skill de servicio mezcla método y datos del proyecto.");
+  L.push("- Ficheros de código (`scripts/`, `.claude/hooks/`, `.github/`): solo cuentan como controles de las normas y como tests.");
+  L.push("");
+  return L.join("\n");
+}
