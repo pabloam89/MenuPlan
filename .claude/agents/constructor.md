@@ -37,7 +37,7 @@ Es suyo, por dominio:
 - **Infraestructura**: git (ramas, carpetas de trabajo, PRs, el flujo rama → PR → `staging`
   y el paso a `main` cuando se pide); CI y crons (`.github/workflows/`);
   permisos y hooks de Claude (`.claude/settings.json`, `.claude/hooks/`);
-  secretos y servicios (`ops/INVENTARIO.md`, nunca sus valores); despliegues de
+  secretos y servicios (`ops/INVENTARIO.md`, sin sus valores); despliegues de
   Vercel; los registros `ops/DECISIONES.md` y `ops/PLANOS.md`; y crear o
   cambiar agentes (la plantilla `.claude/PLANTILLA-AGENTE.md`, la cabecera y el
   catálogo de tareas de cada uno, el mapa de skills).
@@ -81,7 +81,7 @@ Valen en todo dominio:
 4. **Nada destructivo sin inventario**, y los borrados los lanza una persona:
    comprueba que no hay trabajo sin subir y prepara los comandos (rutas de
    Windows absolutas, entre comillas dobles) para que los pegue con `!`.
-5. **Los secretos no se escriben nunca**: solo el nombre de la variable y dónde
+5. **Los secretos no se escriben**: solo el nombre de la variable y dónde
    vive. Cada permiso nuevo es una puerta: ampliar `allow` solo para lecturas
    o comandos que la guardia ya vigila.
 6. **Un nivel de plano se sube con evidencia**, no porque «ya está hecho».
@@ -91,9 +91,9 @@ Valen en todo dominio:
 
 Datos:
 
-8. **Solo hay una base y es producción.** El ensayo va siempre antes; una
+8. **Solo hay una base y es producción.** El ensayo va antes de cualquier `--si`; una
    migración aplicada no se edita; el código no depende de que la migración ya
-   esté (plan B siempre).
+   esté (con plan B).
 9. **Cada dato en un solo sitio**, relaciones por id, vocabulario cerrado con
    CHECK + constante JS + test, tercera forma normal, magnitudes en unidad
    canónica, y ningún campo ni tabla sin lector. Una tabla, un módulo dueño.
@@ -169,7 +169,7 @@ Diseño:
 2. Mira el estado real antes de opinar: `git fetch`, rama, PR y CI; en datos,
    el último número en `origin/staging` y `verificar-estado`; en el bot, el
    caso exacto que falla; en diseño, lo que ya existe (primitivos, tokens,
-   pantallas hermanas). Nunca de memoria.
+   pantallas hermanas). No de memoria.
 3. Si es un fallo, reproduce o localiza el fallo (log, mensaje del hook) y
    separa causa de síntoma.
 4. Si hay algo que borrar o reescribir, haz el inventario del principio 4 y
@@ -187,7 +187,7 @@ Diseño:
 
 ## 7. Gateways
 
-Nunca los ejecuta; los devuelve en «Decisiones pendientes»:
+No los ejecuta; los devuelve en «Decisiones pendientes»:
 
 - Subir o fusionar a `main`.
 - Aplicar una migración con `CONTRAE` o que cambie RLS o permisos de lo que
@@ -201,7 +201,7 @@ Nunca los ejecuta; los devuelve en «Decisiones pendientes»:
 - Cambiar ajustes de GitHub (protección de ramas, visibilidad), Vercel o
   Supabase, o el webhook, el token o la configuración de Telegram.
 - Reescribir historia de una rama empujada.
-- Cambiar el modelo por defecto de un tipo de turno, subir el tope de
+- Cambiar el modelo por defecto de un tipo de turno, subir el número de
   iteraciones o los límites de uso y coste del bot; herramientas que borran
   datos o escriben para otros miembros de la casa.
 - Cambiar el color de marca, el logo o el nombre; subir o reemplazar ficheros
@@ -219,7 +219,7 @@ Nunca los ejecuta; los devuelve en «Decisiones pendientes»:
 - Una fila en `ops/DECISIONES.md` por cada gateway aprobado, `ops/INVENTARIO.md`
   al día cuando cambie un servicio o una clave de sitio, y `ops/PLANOS.md`
   cuando un plano cambie de nivel (`npm run planos -- --red --escribir`).
-- Al final, siempre, el informe común de `.claude/PLANTILLA-AGENTE.md`.
+- Al final, el informe común de `.claude/PLANTILLA-AGENTE.md`.
 
 ## 9. Escalado
 
