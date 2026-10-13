@@ -105,7 +105,7 @@ script: es lectura con la lista.
    (`DESIGN_SYSTEM.md`, `docs/diseno/ESTADO.md`, el código) o su «no aplica».
 5. **Recorre L01–L22** con la instancia delante. Por cada norma, una de tres: test
    en verde (paso 2 o 3), revisada a mano con su evidencia (fichero, línea o captura de
-   `qa`), o `[por construir]` y entonces no se da por cumplida.
+   `qa`), o sin test (control `juicio`, veredicto `blanda`) y entonces no se da por cumplida.
 6. **Redacta los hallazgos** con el código de la tabla, su evidencia y su arreglo:
    el token que falta se crea en el sistema primero (`token-o-primitivo-nuevo`).
    No se arregla en la misma pasada lo que no pide el hallazgo.

@@ -288,7 +288,7 @@ Que lo pueda usar cualquier persona, con cualquier ayuda.
 - `wcag-pour` — **Accesible para todos.** Un producto accesible se puede percibir, manejar y entender con cualquier ayuda, también con un lector de pantalla.
   - Porqué: WCAG es el estándar de accesibilidad y llega a más gente, incluida la que usa lector de pantalla.
   - Norma: `screen-accessible` — **Accesible para todos.** Cuando se diseña una pantalla, el producto DEBE poner texto alternativo a las imágenes, poder usar todo con teclado y cuidar el contraste del texto. Control: juicio (blanda).
-  - Norma: `design-contrast-aa` — **Contraste mínimo AA.** Cada pantalla de la app DEBE dar al texto normal 4,5:1 de contraste, y 3:1 al texto grande y a los controles, sobre su fondo. Control: `src/design/contraste.test.js` (dura).
+  - Norma: `design-contrast-aa` — **Contraste mínimo AA.** Cada pantalla de la app DEBE dar al texto normal 4,5:1 de contraste, y 3:1 al texto grande y a los controles, sobre su fondo. Control: `src/design/contraste.test.js` (semidura).
   - Norma: `design-touch-target` — **Objetivo táctil mínimo.** Cada pantalla de la app DEBE dar a cada control interactivo un área de 24 por 24 píxeles como mínimo, y de 40 en HoMenu. Control: juicio (blanda).
   - Norma: `design-visible-focus` — **Foco visible y manejable.** Cada pantalla de la app DEBE mostrar el foco sin taparlo y poder manejarse todo con teclado, en orden lógico. Control: juicio (blanda).
   - Norma: `design-color-not-only-signal` — **Color nunca única señal.** Cada pantalla de la app NO DEBE dar solo con el color un error, un estado o una selección, sin forma, texto o icono. Control: juicio (blanda).
