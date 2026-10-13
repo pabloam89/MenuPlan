@@ -76,7 +76,7 @@ describe("el alcance: ficheros, dominios y módulos de ops/MODULOS.json", () => 
   });
   it("tres dominios distintos son transversales aunque no estén en ningún módulo", () => {
     const a = alc(["supabase/migrations/0001_x.sql", "src/screens/Z.jsx", ".github/workflows/x.yml"]);
-    expect(a.dominios).toEqual(expect.arrayContaining(["data", "ui", "infra"]));
+    expect(a.dominios).toEqual(expect.arrayContaining(["data", "diseno", "infra"]));
     expect(a.alcance).toBe("transversal");
   });
   it("el ámbito code no cuenta como dominio: un test y su script son un solo dominio", () => {

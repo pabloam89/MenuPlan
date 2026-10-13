@@ -2423,11 +2423,10 @@
           "accion": "construir",
           "origen": "disparadores",
           "ambitos": [
-            "ui",
             "diseno",
             "code"
           ],
-          "n2": "construir.code+diseno+ui",
+          "n2": "construir.code+diseno",
           "comunes": [
             "comprobar-design-system",
             "tests-de-lo-tocado"
@@ -2462,11 +2461,10 @@
           "accion": "construir",
           "origen": "metodo",
           "ambitos": [
-            "ui",
             "diseno",
             "code"
           ],
-          "n2": "construir.code+diseno+ui",
+          "n2": "construir.code+diseno",
           "reglas": [
             {
               "nombre": "Token con su porqué",
@@ -2530,11 +2528,10 @@
           "accion": "construir",
           "origen": "disparadores",
           "ambitos": [
-            "ui",
             "diseno",
             "code"
           ],
-          "n2": "construir.code+diseno+ui",
+          "n2": "construir.code+diseno",
           "comunes": [
             "medir-antes-despues",
             "capturas-375-420"
@@ -2582,9 +2579,9 @@
           "accion": "construir",
           "origen": "metodo",
           "ambitos": [
-            "ui"
+            "diseno"
           ],
-          "n2": "construir.ui",
+          "n2": "construir.diseno",
           "reglas": [
             {
               "nombre": "Original y derivado",
@@ -2638,9 +2635,9 @@
           "accion": "construir",
           "origen": "disparadores",
           "ambitos": [
-            "ui"
+            "diseno"
           ],
-          "n2": "construir.ui",
+          "n2": "construir.diseno",
           "reglas": [
             {
               "nombre": "Una familia, un estilo",
@@ -2681,9 +2678,9 @@
           "accion": "construir",
           "origen": "disparadores",
           "ambitos": [
-            "ui"
+            "diseno"
           ],
-          "n2": "construir.ui",
+          "n2": "construir.diseno",
           "reglas": [
             {
               "nombre": "Verde atado a tokens",
@@ -2735,9 +2732,9 @@
           "accion": "medir",
           "origen": "metodo",
           "ambitos": [
-            "ui"
+            "diseno"
           ],
-          "n2": "medir.ui",
+          "n2": "medir.diseno",
           "comunes": [
             "capturas-375-420"
           ],
@@ -2782,10 +2779,10 @@
           "accion": "construir",
           "origen": "mision",
           "ambitos": [
-            "ui",
+            "diseno",
             "product"
           ],
-          "n2": "construir.product+ui",
+          "n2": "construir.diseno+product",
           "reglas": [
             {
               "nombre": "Botón con verbo",
@@ -2840,9 +2837,9 @@
           "accion": "documentar",
           "origen": "entregables",
           "ambitos": [
-            "ui"
+            "diseno"
           ],
-          "n2": "documentar.ui",
+          "n2": "documentar.diseno",
           "reglas": [
             {
               "nombre": "Cifra con comando",
@@ -3292,10 +3289,10 @@
           "accion": "juzgar",
           "origen": "metodo",
           "ambitos": [
-            "ui",
+            "diseno",
             "product"
           ],
-          "n2": "juzgar.product+ui",
+          "n2": "juzgar.diseno+product",
           "comunes": [
             "capturas-375-420"
           ],
@@ -3351,10 +3348,9 @@
           "accion": "juzgar",
           "origen": "mision",
           "ambitos": [
-            "ui",
             "diseno"
           ],
-          "n2": "juzgar.diseno+ui",
+          "n2": "juzgar.diseno",
           "comunes": [
             "capturas-375-420"
           ],
@@ -3398,10 +3394,9 @@
           "accion": "juzgar",
           "origen": "metodo",
           "ambitos": [
-            "ui",
             "diseno"
           ],
-          "n2": "juzgar.diseno+ui",
+          "n2": "juzgar.diseno",
           "comunes": [
             "comprobar-design-system"
           ],
@@ -3421,9 +3416,9 @@
           "accion": "juzgar",
           "origen": "metodo",
           "ambitos": [
-            "ui"
+            "diseno"
           ],
-          "n2": "juzgar.ui",
+          "n2": "juzgar.diseno",
           "comunes": [
             "causa-frente-a-sintoma"
           ],

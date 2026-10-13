@@ -10,7 +10,7 @@ import { AMBITOS, AMBITO_DE_REGLA, ambitosDeFichero } from "../scripts/lib/ambit
 import { globARegex } from "../scripts/lib/vecinos.mjs";
 import { MIN_PALABRAS_COPIA, cargarSkill, nombresDeSkills, parsearSkill, problemasDeNormasDeSkill } from "../scripts/lib/skills.mjs";
 import {
-  TECHO_NORMAS_SIN_JUEZ, TECHO_REGLAS_QUE_NO_SON_NORMA, accionesDeConsulta, juecesPorNorma, normaReescrita, parecido, problemasDeEmparejamiento, reglasDelCatalogo, leerEstandares, normasHuerfanas, problemasDeUnionesEstandar, tareasDe,
+  TECHO_NORMAS_SIN_JUEZ, TECHO_REGLAS_QUE_NO_SON_NORMA, accionesDeConsulta, juecesPorNorma, normaReescrita, parecido, problemasDeEmparejamiento, reglasDelCatalogo, leerEstandares, normasHuerfanas, verticalesEnEstandares, problemasDeUnionesEstandar, tareasDe,
 } from "../scripts/lib/estandaresAgentes.mjs";
 import { leerRegistro } from "../scripts/lib/normas.mjs";
 import { TECHO_PRINCIPIOS_QUE_REPITEN, TECHO_SIN_NORMA, leerPrincipiosCasa, principiosQueRepitenSuNorma, problemasDeUniones } from "../scripts/lib/principios.mjs";
@@ -242,7 +242,7 @@ describe("los estándares citan normas y no las reescriben (#620)", () => {
     });
     it("una norma vigilada por juicio que ningún juez cita", () => {
       expect(juecesPorNorma(estandares, normas)["migrated-screen-pixel-identical"]).toContain("qa/comprobar-design-system");
-      expect(con((d) => { for (const t of d.agentes.qa.tareas) t.ambitos = t.ambitos.filter((a) => a !== "ui"); })).toMatch(/norma migrated-screen-pixel-identical: la vigila un juicio y ningún estándar de juez la cita/);
+      expect(con((d) => { for (const t of d.agentes.qa.tareas) t.ambitos = t.ambitos.filter((a) => a !== "diseno"); })).toMatch(/norma migrated-screen-pixel-identical: la vigila un juicio y ningún estándar de juez la cita/);
       expect(con((d) => { d.agentes.seguridad.tareas.find((t) => t.id === "auditar-secretos").normas = []; })).toMatch(/norma repo-publico-sin-detalle: la vigila un juicio y ningún estándar de juez la cita/);
     });
     it("una norma en normas_sin_juez que ya tiene juez, que no existe o que no es de juicio; y el techo", () => {
@@ -321,5 +321,27 @@ describe("toda norma llega a algún agente (#683, fondo #652)", () => {
     expect(normasHuerfanas(citada, [...normas, nueva])).not.toContain("norma-de-ejemplo");
     // un juez del ámbito no basta: la acción tiene que ser la de la norma
     expect(normasHuerfanas(estandares, [...normas, { ...nueva, id: "otra", ambito: "code", acciones: ["operar"] }])).toContain("otra");
+  });
+});
+
+describe("el lado de cada norma (#687, fondo #652)", () => {
+  const estandares = leerEstandares(RAIZ);
+  const TECHOS = JSON.parse(readFileSync(join(RAIZ, "ops/normas-techos.json"), "utf8"));
+  const excepciones = TECHOS.normas_huerfanas_excepciones ?? {};
+
+  it("toda norma tiene lado, y las de la lista de excepciones de huérfanas son verticales", () => {
+    for (const n of normas) expect(["horizontal", "vertical"], `${n.id}: lado`).toContain(n.lado);
+    for (const id of Object.keys(excepciones)) expect(normas.find((n) => n.id === id)?.lado, `${id}: conducta del producto`).toBe("vertical");
+  });
+
+  it("las verticales que algún estándar recibe son la cifra del techo, que solo baja", () => {
+    const dentro = verticalesEnEstandares(estandares, normas);
+    expect(dentro.length, "baja el techo verticales_en_estandares de ops/normas-techos.json si ya no las recibe una tarea (o súbelo solo con una decisión)").toBe(TECHOS.verticales_en_estandares);
+  });
+
+  it("se ve fallar: una vertical nueva que una tarea recibe cuenta, y una horizontal no", () => {
+    const nueva = { id: "norma-de-ejemplo", ambito: "code", acciones: ["construir"], lado: "vertical" };
+    expect(verticalesEnEstandares(estandares, [...normas, nueva])).toContain("norma-de-ejemplo");
+    expect(verticalesEnEstandares(estandares, [...normas, { ...nueva, lado: "horizontal" }])).not.toContain("norma-de-ejemplo");
   });
 });

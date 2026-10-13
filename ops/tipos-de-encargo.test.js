@@ -631,7 +631,7 @@ describe("los jueces por zona: dato de AMBITOS, con su fuente y su tabla generad
     for (const [id, a] of Object.entries(AMBITOS)) expect(Array.isArray(a.jueces), id).toBe(true);
     for (const j of fuentes) expect(JUECES, `${j.ambito}: ${j.juez}`).toContain(j.juez);
     expect(JUECES).toContain(JUEZ_SIEMPRE);
-    expect(juecesDeAmbitos(["api", "bot", "ui", "data"])).toEqual(["revisor", "seguridad", "evaluador", "qa", "auditor-datos"]);
+    expect(juecesDeAmbitos(["api", "bot", "diseno", "data"])).toEqual(["revisor", "seguridad", "evaluador", "qa", "auditor-datos"]);
     expect(juecesDeAmbitos([])).toEqual(["revisor"]);
   });
 

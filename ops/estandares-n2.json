@@ -583,12 +583,11 @@
         "family-text-is-data"
       ]
     },
-    "construir.code+diseno+ui": {
+    "construir.code+diseno": {
       "accion": "construir",
       "ambitos": [
         "code",
-        "diseno",
-        "ui"
+        "diseno"
       ],
       "normas": [
         "test-visto-fallar",
@@ -627,28 +626,50 @@
         "design-accessible-entry"
       ]
     },
-    "construir.ui": {
+    "construir.diseno": {
       "accion": "construir",
       "ambitos": [
-        "ui"
+        "diseno"
       ],
       "normas": [
         "screen-accessible",
-        "migrated-screen-pixel-identical"
+        "migrated-screen-pixel-identical",
+        "design-no-loose-values",
+        "design-token-per-role",
+        "design-token-layers",
+        "design-single-token-source",
+        "design-contrast-aa",
+        "design-touch-target",
+        "design-visible-focus",
+        "design-color-not-only-signal",
+        "design-reflow-zoom",
+        "design-motion-tokens",
+        "design-scales-not-free",
+        "design-hierarchy",
+        "design-proximity-alignment",
+        "design-complete-states",
+        "design-elastic-text",
+        "design-themes",
+        "design-component-catalogue",
+        "design-visual-performance",
+        "design-declared-voice",
+        "design-change-trace",
+        "design-measured",
+        "design-accessible-entry"
       ]
     },
-    "medir.ui": {
+    "medir.diseno": {
       "accion": "medir",
       "ambitos": [
-        "ui"
+        "diseno"
       ],
       "normas": []
     },
-    "construir.product+ui": {
+    "construir.diseno+product": {
       "accion": "construir",
       "ambitos": [
-        "product",
-        "ui"
+        "diseno",
+        "product"
       ],
       "normas": [
         "improvement-has-fixed-appetite",
@@ -661,13 +682,35 @@
         "value-before-signup-shown",
         "slow-action-shows-status",
         "screen-accessible",
-        "migrated-screen-pixel-identical"
+        "migrated-screen-pixel-identical",
+        "design-no-loose-values",
+        "design-token-per-role",
+        "design-token-layers",
+        "design-single-token-source",
+        "design-contrast-aa",
+        "design-touch-target",
+        "design-visible-focus",
+        "design-color-not-only-signal",
+        "design-reflow-zoom",
+        "design-motion-tokens",
+        "design-scales-not-free",
+        "design-hierarchy",
+        "design-proximity-alignment",
+        "design-complete-states",
+        "design-elastic-text",
+        "design-themes",
+        "design-component-catalogue",
+        "design-visual-performance",
+        "design-declared-voice",
+        "design-change-trace",
+        "design-measured",
+        "design-accessible-entry"
       ]
     },
-    "documentar.ui": {
+    "documentar.diseno": {
       "accion": "documentar",
       "ambitos": [
-        "ui"
+        "diseno"
       ],
       "normas": []
     },
@@ -761,11 +804,11 @@
         "evals-antes-de-fusionar"
       ]
     },
-    "juzgar.product+ui": {
+    "juzgar.diseno+product": {
       "accion": "juzgar",
       "ambitos": [
-        "product",
-        "ui"
+        "diseno",
+        "product"
       ],
       "normas": [
         "improvement-has-fixed-appetite",
@@ -777,17 +820,6 @@
         "new-channel-adds-value",
         "value-before-signup-shown",
         "slow-action-shows-status",
-        "screen-accessible",
-        "migrated-screen-pixel-identical"
-      ]
-    },
-    "juzgar.diseno+ui": {
-      "accion": "juzgar",
-      "ambitos": [
-        "diseno",
-        "ui"
-      ],
-      "normas": [
         "screen-accessible",
         "migrated-screen-pixel-identical",
         "design-no-loose-values",
@@ -814,14 +846,36 @@
         "design-accessible-entry"
       ]
     },
-    "juzgar.ui": {
+    "juzgar.diseno": {
       "accion": "juzgar",
       "ambitos": [
-        "ui"
+        "diseno"
       ],
       "normas": [
         "screen-accessible",
-        "migrated-screen-pixel-identical"
+        "migrated-screen-pixel-identical",
+        "design-no-loose-values",
+        "design-token-per-role",
+        "design-token-layers",
+        "design-single-token-source",
+        "design-contrast-aa",
+        "design-touch-target",
+        "design-visible-focus",
+        "design-color-not-only-signal",
+        "design-reflow-zoom",
+        "design-motion-tokens",
+        "design-scales-not-free",
+        "design-hierarchy",
+        "design-proximity-alignment",
+        "design-complete-states",
+        "design-elastic-text",
+        "design-themes",
+        "design-component-catalogue",
+        "design-visual-performance",
+        "design-declared-voice",
+        "design-change-trace",
+        "design-measured",
+        "design-accessible-entry"
       ]
     },
     "medir.data": {
