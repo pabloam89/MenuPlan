@@ -1,0 +1,25 @@
+{
+  "$comentario": "Los techos del vigilante de lados (#710, programa #652): las cifras de scripts/lib/inventarioVertical.mjs que no pueden subir. Las vigila ops/vigilante-lados.test.js (scripts/lib/vigilanteLados.mjs) y fallan también al bajar, para que el techo baje con ellas. Se incluyen los dudosos actuales: las cinco dudas de docs/ops/INVENTARIO-VERTICAL.md las resuelve Pablo, no este fichero. Un techo solo se baja a mano; subirlo es admitir algo del otro lado y necesita su razón en el PR.",
+  "version": 1,
+  "techos": {
+    "citas_de_entidad_horizontal_a_vertical": 3,
+    "tests_de_la_casa_que_leen_homenu": 2,
+    "duda: principios de la casa (ops/principios/)": 17,
+    "duda: principios de producto (delegado: ops/principios-producto/)": 11,
+    "duda: guía de redacción (delegado: ops/redaccion.json)": 0,
+    "duda: fuentes documentales (ops/fuentes-documentales/)": 12,
+    "duda: normas horizontales (ops/normas.json)": 38,
+    "duda: normas verticales (ops/proyectos/<id>/normas.json)": 0,
+    "duda: entidades activas (ops/entidades.json)": 19,
+    "duda: términos activos del glosario (ops/glosario/terminos/)": 46,
+    "duda: skills (.claude/skills/)": 4,
+    "duda: reglas por carpeta (.claude/rules/)": 1,
+    "duda: comandos (.claude/commands/)": 0,
+    "duda: agentes (.claude/agents/; por regla de Pablo, horizontales)": 3,
+    "duda: specs (specs/*.md)": 0,
+    "duda: documentos (docs/**/*.md y los .md de la raíz)": 1,
+    "duda: tests (*.test.{js,jsx,mjs})": 10,
+    "verticales sin registro propio: principios de la casa": 2,
+    "verticales sin registro propio: fuentes documentales": 12
+  }
+}
