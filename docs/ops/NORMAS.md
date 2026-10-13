@@ -391,7 +391,7 @@ Normas de juez sin test del juez: 83 de 89. Normas con ejecutor «persona» (sin
 | `powershell-sin-token` | `sesion-con-su-identidad` | Lanzar gh o git (push, pull, fetch, clone) desde PowerShell sin envoltorio |
 | `reglas-del-repo` | `ajustes-servicios-ok-pablo` | Cambiar las reglas del repo (rulesets, protección de ramas, colaboradores, secretos, variables, ajustes del repo, environments, hooks o llaves) |
 | `aprobar-pr` | `rutas-protegidas-aprobacion-de-dueno` | Aprobar un PR desde una sesión |
-| `token-impreso` | `token-de-sesion-no-se-imprime` | Imprimir el token de la sesión |
+| `token-impreso` | `token-de-sesion-no-se-imprime` | Imprimir el token de la sesión o usarlo como argumento (incluida su caché y session-env) |
 
 ## Excepciones, choques y medición (#621)
 

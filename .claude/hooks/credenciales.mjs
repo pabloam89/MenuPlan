@@ -15,7 +15,10 @@
  *      `git credential`, `cmdkey`);
  *   4. cambiar las reglas del repo (rulesets, protección, secretos, variables,
  *      ajustes del repo, `gh pr merge --admin`) y aprobar PR;
- *   5. imprimir el token (`echo $GH_TOKEN`, `printenv` a secas…);
+ *   5. imprimir el token (`echo $GH_TOKEN`, `printenv` a secas…) o usarlo como
+ *      argumento de cualquier orden (`$GH_TOKEN`, `%GH_TOKEN%`, `$env:GH_TOKEN`), y
+ *      tocar el fichero de caché del token (`token-sesion.json`) o `~/.claude/session-env`,
+ *      se use como se use (#715, opción A de Pablo, 13 oct 2026);
  *   6. en la herramienta PowerShell, `gh` y `git push|pull|fetch|clone|ls-remote`
  *      sin el envoltorio `node scripts/token-sesion.mjs --`: esa herramienta NO
  *      carga el token de la sesión (CLAUDE_ENV_FILE es de Bash), así que ahí la
@@ -262,8 +265,76 @@ export function credencialDeSesion(orden, opc = {}) {
   return null;
 }
 
+// El token como argumento: `$GH_TOKEN`, `${GH_TOKEN}`, `$env:GH_TOKEN`, `${env:GH_TOKEN}`, `%GH_TOKEN%`.
+const TOKEN_COMO_ARGUMENTO = new RegExp(String.raw`\$\{?(?:env:)?${TOKEN}\b|%${TOKEN}%`, "i");
+// La caché del token de sesión (scripts/lib/cacheTokenSesion.mjs) y el directorio de entorno de las sesiones de Claude.
+// `token-sesion.json` es la caché; `token-sesion.mjs` es el envoltorio y no se toca.
+const FICHERO_DEL_TOKEN = /token-sesion\.json|\bsession-env\b/i;
+
+/** Como `quitarHeredocs`, pero solo los de delimitador entrecomillado o con barra: su cuerpo no se expande. */
+function quitarHeredocsLiterales(texto) {
+  const lineas = texto.split("\n");
+  const fuera = [];
+  for (let i = 0; i < lineas.length; i++) {
+    const l = lineas[i];
+    fuera.push(l);
+    const m = l.match(/<<-?[ \t]*(?:(['"])([A-Za-z_]\w*)\1|\\([A-Za-z_]\w*))/);
+    if (!m || /\b(?:ba|z|da|k)?sh\b|\bpwsh\b|\bpowershell\b|\bsource\b|\bxargs\b/i.test(l)) continue;
+    const marca = m[2] ?? m[3];
+    const fin = lineas.findIndex((x, j) => j > i && x.trim() === marca);
+    if (fin > i) i = fin;
+  }
+  return fuera.join("\n");
+}
+
+/**
+ * Lo que el shell expandiría: quita el texto entre comillas simples (en PowerShell
+ * también), los heredocs de delimitador entrecomillado y el `$` escapado. Lo que va entre
+ * comillas dobles se queda, porque ahí `$GH_TOKEN` sí se sustituye.
+ */
+function loQueSeExpande(cmd, powershell) {
+  const t = quitarHeredocsLiterales(String(cmd).replace(/\\\r?\n/g, " "));
+  const escape = powershell ? "`" : "\\";
+  let fuera = "";
+  let estado = ""; // "" | "'" | '"'
+  for (let i = 0; i < t.length; i++) {
+    const c = t[i];
+    if (estado === "'") {
+      if (c === "'") estado = "";
+      continue;
+    }
+    if (c === escape && t[i + 1] === "$") {
+      i++; // un dólar escapado es literal, no una variable
+      continue;
+    }
+    if (c === "'" && estado === "") {
+      estado = "'";
+      continue;
+    }
+    if (c === '"') estado = estado === '"' ? "" : '"';
+    fuera += c;
+  }
+  return fuera;
+}
+
+/**
+ * ¿La orden usa el token (o el fichero que lo guarda) como argumento, se use como se use?
+ * Es lo que `imprimir` no veía: `gh issue comment -b "$GH_TOKEN"`, `curl -H "Authorization:
+ * token $GH_TOKEN"`, `cat` de la caché o de `~/.claude/session-env`. Filtro de buena fe, no
+ * barrera (ver la cabecera): no ve una variable intermedia, un script ni otro intérprete.
+ * La variable se busca en lo que el shell expandiría (dobles sí, simples no); los ficheros,
+ * en la orden sin los textos de mensajes (`-m`, `--body`…) pero SIN quitar las comillas
+ * simples: `cat 'ruta\token-sesion.json'` sigue siendo leer el fichero.
+ */
+export function tokenComoArgumento(cmd, { powershell = false } = {}) {
+  const crudo = String(cmd);
+  if (!/GH_|GITHUB_|token-sesion|session-env/i.test(crudo)) return false;
+  return TOKEN_COMO_ARGUMENTO.test(loQueSeExpande(crudo, powershell)) || FICHERO_DEL_TOKEN.test(sinTextos(crudo));
+}
+
 /** La orden entera (puede llevar varias): la primera familia que salta, o null. */
 export function credencialDeComando(cmd, { powershell = false } = {}) {
+  if (tokenComoArgumento(cmd, { powershell })) return "imprimir";
   const lista = trozos(sinTextos(cmd));
   for (const t of lista) {
     const familia = credencialDeSesion(t.texto, { powershell, tuberia: t.tuberia, siguiente: t.siguiente });
