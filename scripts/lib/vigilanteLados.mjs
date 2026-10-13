@@ -66,3 +66,11 @@ export function fallosDeTechos(medidas, techos) {
 
 /** Los techos que lee el test. */
 export const leerTechos = (raiz) => leerJson(raiz, RUTA_TECHOS).techos;
+
+/** Los techos no suben respecto a los de origin/staging (null si no se puede leer: no hay nada que comparar). Así un fallo no se «arregla» subiendo el techo en el mismo PR. */
+export function fallosDeSubida(techos, deStaging) {
+  if (!deStaging) return [];
+  return Object.entries(deStaging)
+    .filter(([k, v]) => (techos[k] ?? 0) > v)
+    .map(([k, v]) => `«${k}»: el techo sube de ${v} a ${techos[k]}`);
+}

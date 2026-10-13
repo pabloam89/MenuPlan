@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { cargarNormas, problemasDeProyectos } from "../scripts/lib/normas.mjs";
 import { calcular } from "../scripts/lib/inventarioVertical.mjs";
-import { citasAVertical, fallosDeTechos, leerTechos, medir } from "../scripts/lib/vigilanteLados.mjs";
+import { RUTA_TECHOS, citasAVertical, fallosDeSubida, fallosDeTechos, leerTechos, medir } from "../scripts/lib/vigilanteLados.mjs";
 
 /**
  * El vigilante de lados (#710, programa #652, punto 7). Dos cosas, las dos con datos rotos probados abajo:
@@ -35,7 +36,18 @@ describe("ninguna horizontal cita una vertical, sobre el repo de hoy", () => {
   });
 });
 
+// El mismo fichero en origin/staging, sin red; null si no se puede leer (rama sin la referencia o fichero nuevo).
+const techosDeStaging = () => {
+  try {
+    return JSON.parse(execFileSync("git", ["show", `origin/staging:${RUTA_TECHOS}`], { cwd: RAIZ, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] })).techos;
+  } catch { return null; }
+};
+
 describe("los techos solo bajan", () => {
+  it("los techos no suben respecto a origin/staging (si se puede leer sin red)", () => {
+    expect(fallosDeSubida(leerTechos(RAIZ), techosDeStaging())).toEqual([]);
+  });
+
   it("las cifras del inventario coinciden con ops/techos-lados.json (sube = fallo; baja = bajar el techo)", () => {
     expect(fallosDeTechos(medir(RAIZ), leerTechos(RAIZ))).toEqual([]);
   });
@@ -58,6 +70,13 @@ describe("con datos rotos (casos negativos)", () => {
   it("una norma vertical en el registro horizontal se detecta (por el comprobante común)", () => {
     const mala = { ...carga, horizontales: [{ ...carga.horizontales[0], lado: "vertical" }] };
     expect(problemasDeProyectos(mala, ["homenu"]).join("\n")).toMatch(/su lado es «vertical»/);
+  });
+
+  it("un techo que sube respecto a staging falla; uno que baja o igual, no; sin staging, no hay qué comparar", () => {
+    expect(fallosDeSubida({ x: 3 }, { x: 2 })).toHaveLength(1);
+    expect(fallosDeSubida({ x: 1 }, { x: 2 })).toEqual([]);
+    expect(fallosDeSubida({ x: 2 }, { x: 2 })).toEqual([]);
+    expect(fallosDeSubida({ x: 9 }, null)).toEqual([]);
   });
 
   it("subir una cifra, bajarla sin bajar el techo, medir algo sin techo o dejar un techo huérfano fallan; igual, no", () => {
