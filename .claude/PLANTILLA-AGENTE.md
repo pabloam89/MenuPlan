@@ -69,7 +69,9 @@ Cómo comprueba que terminó bien antes de devolver el informe, con evidencia.
 
 `Tipo:` es un vocabulario cerrado, `TIPOS_AGENTE` de `scripts/lib/agentes.mjs`: `constructor` o `juez`. «juez» es un valor de `Tipo`, no una categoría aparte: la lista de jueces sale de las cabeceras `Tipo: juez`, y nadie la copia a mano.
 
-- **Constructor**: escribe código, datos o documentos. Lleva `Edit`/`Write`.
+- **Constructor**: escribe código, datos o documentos. Lleva `Edit`/`Write`; el `analista`, que
+  solo escribe documentos (el cuerpo de un issue), lleva `Write` y no `Edit`, y lo vigila `.claude/agentes.test.js`.
+  Crear o cambiar un agente es la tarea `crear-o-cambiar-agente` de `gobierno`.
 - **Juez**: solo lee, ejecuta comprobaciones y opina. Sin `Edit`, `Write` ni
   `NotebookEdit` (el test lo impide). Quien construye algo no lo juzga: la
   sesión principal pasa el resultado de un constructor a un juez distinto.
@@ -90,8 +92,8 @@ Cada agente declara en su cabecera, en `traspasa_a`, a quién pasa trabajo (ids 
   «Decisiones pendientes», para quien lanzó la sesión (Pablo o Álvaro).
 - **No lanza otros agentes.** Profundidad 1: coordinar es cosa de la sesión
   principal (`/orquestar`). Así el coste no se multiplica sin que se vea. La única
-  excepción es `orquestador`, que ES la sesión principal (`claude --agent orquestador`,
-  sin `--agent` la sesión sigue funcionando como hasta ahora) y lleva la herramienta `Agent`.
+  excepción es `orquestador`, que ES la sesión principal (arranca por defecto por `"agent"` en
+  `.claude/settings.json`; `claude --agent <otro>` manda sobre la clave) y lleva la herramienta `Agent`.
 - **Pide y da evidencia, no afirmaciones**: el comando que corrió y lo que
   salió, la ruta y la línea, la captura. Lo no comprobado se dice como no
   comprobado.

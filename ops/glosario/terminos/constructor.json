@@ -12,7 +12,8 @@
     "todas"
   ],
   "relacionado": [
-    "juez"
+    "juez",
+    "analista"
   ],
   "ref": {
     "fichero": "scripts/lib/flujo.mjs",

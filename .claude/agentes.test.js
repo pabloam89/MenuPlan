@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { TIPOS_AGENTE, traspasosDe, traspasosDeclarados, traspasosEnTexto } from "../scripts/lib/agentes.mjs";
+import { TIPOS_AGENTE, agentesDe, traspasosDe, traspasosDeclarados, traspasosEnTexto } from "../scripts/lib/agentes.mjs";
 
 /**
  * Todos los agentes con la misma forma (.claude/PLANTILLA-AGENTE.md, v2):
@@ -207,6 +207,17 @@ describe("los traspasos entre agentes son un dato de la cabecera (#652)", () => 
     expect([...h.permitidos].sort()).toEqual([...traspasos.orquestador.declarado].sort());
   });
 
+  // Decisión de Pablo (12 oct 2026, #652): toda sesión arranca como el orquestador. La clave `agent` de
+  // settings.json (code.claude.com/docs/en/settings-reference#agent, sub-agents.md «Run the whole session
+  // as a subagent») hace que el hilo principal use el prompt, las herramientas y el modelo de ese agente.
+  // Un nombre con errata no da error: la sesión arranca como la de por defecto, sin avisar.
+  it("settings.json arranca toda sesión como el orquestador, y ese agente existe con ese nombre", () => {
+    const ajustes = JSON.parse(readFileSync(join(AQUI, "settings.json"), "utf8"));
+    expect(ajustes.agent).toBe("orquestador");
+    expect(existsSync(join(DIR, "orquestador.md"))).toBe(true);
+    expect(leer("orquestador.md").meta.name).toBe(ajustes.agent);
+  });
+
   it.each(agentes)("%s: declara tools (si no, hereda todas) y no usa permissionMode: bypassPermissions", (f) => {
     const { meta } = leer(f);
     expect(nombresTools(meta.tools).length, "tools explícito").toBeGreaterThan(0);
@@ -356,4 +367,49 @@ it("CLAUDE.md y /orquestar nombran a todos los agentes", () => {
     expect(claude, `CLAUDE.md no nombra a ${nombre}`).toContain(`\`${nombre}\``);
     expect(orquestar, `/orquestar no nombra a ${nombre}`).toContain(`\`${nombre}\``);
   }
+});
+
+describe("el analista: oficio horizontal y mínimo privilegio (línea #652)", () => {
+  // Nace como oficio de la factoría: no nombra ningún proyecto. El terreno lo lee de la ficha del proyecto
+  // (su CLAUDE.md y ops/MODULOS.json), apuntando a esos ficheros y sin copiar su contenido.
+  const PROHIBIDOS = /homenu|menuplan|supabase|lola|vercel|telegram|mercadona|hetzner|gemini|(?<![\w.-])(?:src|api)\//i;
+  const nombra = (texto) => [...new Set([...String(texto).matchAll(new RegExp(PROHIBIDOS.source, "gi"))].map((m) => m[0].toLowerCase()))];
+  const estandar = JSON.parse(readFileSync(join(RAIZ, "ops", "estandares-agentes.json"), "utf8")).agentes.analista;
+
+  it("ni su fichero ni sus tareas y estándares nombran un proyecto, un servicio ni una ruta del producto", () => {
+    expect(nombra(readFileSync(join(DIR, "analista.md"), "utf8"))).toEqual([]);
+    expect(nombra(JSON.stringify(estandar))).toEqual([]);
+    expect(nombra(readFileSync(join(RAIZ, "ops", "glosario", "terminos", "analista.json"), "utf8"))).toEqual([]);
+  });
+
+  it("el detector ve fallar un nombre de proyecto, de servicio y una ruta del producto", () => {
+    expect(nombra("Lee MenuPlan y HoMenu")).toEqual(["menuplan", "homenu"]);
+    expect(nombra("en Supabase, Vercel o Telegram")).toEqual(["supabase", "vercel", "telegram"]);
+    expect(nombra("mira src/lib/x.js y api/bot")).toEqual(["src/", "api/"]);
+    expect(nombra("Lola responde")).toEqual(["lola"]);
+    expect(nombra("precios de Mercadona, el servidor de Hetzner y Gemini")).toEqual(["mercadona", "hetzner", "gemini"]);
+    expect(nombra("ops/MODULOS.json, CLAUDE.md y scripts/lib/x.mjs")).toEqual([]);
+  });
+
+  it("apunta a la ficha del proyecto que ya existe", () => {
+    const { cuerpo } = leer("analista.md");
+    expect(cuerpo).toContain("ops/MODULOS.json");
+    expect(cuerpo).toContain("CLAUDE.md");
+    expect(existsSync(join(RAIZ, "ops", "MODULOS.json"))).toBe(true);
+  });
+
+  it("solo lee y registra: nada de Edit ni NotebookEdit, ni memoria (que da Edit), ni lanzar agentes", () => {
+    const { meta } = leer("analista.md");
+    const efectivas = herramientasEfectivas(meta);
+    expect(efectivas.filter((t) => ["Edit", "NotebookEdit", "Agent"].includes(t))).toEqual([]);
+    expect(meta.memory).toBeUndefined();
+  });
+
+  it("quien construye tiene declarado al menos un juez al que pasa su trabajo", () => {
+    const jueces = Object.entries(agentesDe(RAIZ)).filter(([, t]) => t === "juez").map(([a]) => a);
+    for (const [a, t] of Object.entries(agentesDe(RAIZ))) {
+      if (t !== "constructor") continue;
+      expect(traspasosDe(RAIZ)[a].declarado.some((x) => jueces.includes(x)), `${a}: ningún juez en traspasa_a`).toBe(true);
+    }
+  });
 });
