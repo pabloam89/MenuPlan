@@ -679,7 +679,7 @@
         "scripts/lib/vocabulariosVida.mjs"
       ],
       "role_by_scope": "Proceso: listas cerradas de ops y scripts/lib. Producto: las de src/lib/vocabularios.js, que además llevan CHECK en la base.",
-      "note": "102 vocabularios y 559 valores anclados (a 13 oct 2026; el test compara estas cifras con ops/vocabularios-vida.json). Hay constantes duplicadas (MESES en 4 sitios, dos ESTADOS_CRITERIO con valores distintos)."
+      "note": "103 vocabularios y 560 valores anclados (a 13 oct 2026; el test compara estas cifras con ops/vocabularios-vida.json). Hay constantes duplicadas (MESES en 4 sitios, dos ESTADOS_CRITERIO con valores distintos)."
     },
     {
       "id": "principle",
