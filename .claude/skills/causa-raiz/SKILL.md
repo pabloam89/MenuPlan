@@ -21,7 +21,7 @@ metadata:
 Para pasar de «esto falló» a una causa que se puede cambiar, sin inventarse
 la cadena. Es el paso 4 (Diagnosticar) de `docs/ops/FLUJO.md`: entra un caso
 registrado y sale el diagnóstico que pide la ficha del fondo (`mecanismo`,
-`causa_escape`, `clase`, `tipo_causa`, `alcance`), o una hipótesis marcada como
+`causa_escape`, `tipo_causa`, `alcance`), o una hipótesis marcada como
 tal. Cubre las obligaciones P04.3 (llegar a algo cambiable y decir por qué nada
 lo detectó) y P04.4 (lo no comprobado es hipótesis).
 
@@ -80,8 +80,8 @@ No es para:
    ninguno», dilo así. Va a `causa_escape`. Sin ella el fondo no pasa a
    `diagnosticado` y el CI niega los PR de sus encargos.
 8. **La clase, no el caso**: una frase del tipo «todo X que Y» que incluye este
-   caso y sus hermanos, escrita en la respuesta. Va a `clase`; el barrido lo
-   hace `plan-de-arreglo`.
+   caso y sus hermanos, escrita en la respuesta y en el comentario del diagnóstico (ya no es un
+   campo de la ficha); el barrido lo hace `plan-de-arreglo`.
 9. **Deja el rastro**: en la ficha del fondo (`gh issue edit <n> --body-file
    <f.md>`, skill `issues`), `estado: diagnosticado` con los campos de arriba;
    y un comentario del diagnóstico con dos líneas que se puedan contar:
@@ -134,8 +134,8 @@ y sube encima copias viejas.
 5. Ficha: `mecanismo: el cargador devuelve vacío cuando falla la carga, y quien
    lo llama sube datos sin distinguirlo porque nada le dice que fue un error`;
    `causa_escape: ningún test pide que un cargador distinga error de vacío`;
-   `clase: todo cargador que devuelve lo mismo en error que en vacío y todo
-   llamador que escribe fiándose de eso`.
+   clase (en el comentario): todo cargador que devuelve lo mismo en error que en
+   vacío y todo llamador que escribe fiándose de eso.
 
 ## Lo que falló y por qué
 

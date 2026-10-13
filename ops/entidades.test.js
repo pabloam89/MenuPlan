@@ -285,10 +285,12 @@ export function problemasDeVida(actual, ref) {
 export function problemasDeSujetos(doc, entidades, sujetosUsados) {
   const p = [];
   const activas = new Set(entidades.filter((e) => e.status === "active").map((e) => e.id));
+  for (const k of Object.keys(doc ?? {})) if (!["$comentario", "sujetos"].includes(k)) p.push(`clave desconocida «${k}» en la raíz de ops/entidades-sujetos.json`);
   const s = doc.sujetos ?? {};
   for (const k of sujetosUsados) if (!(k in s)) p.push(`${k}: sujeto sin clasificar en ops/entidades-sujetos.json`);
   for (const [k, v] of Object.entries(s)) {
     if (!sujetosUsados.includes(k)) p.push(`${k}: ya no es sujeto de ninguna norma ni estándar; quítalo`);
+    for (const c of Object.keys(v ?? {})) if (!["kind", "entity", "reason"].includes(c)) p.push(`${k}: clave desconocida «${c}»`);
     if (!(v.kind in SUBJECT_KINDS)) { p.push(`${k}: kind «${v.kind}» fuera del vocabulario`); continue; }
     if (v.kind !== "outside" && !activas.has(v.entity)) p.push(`${k}: «${v.entity}» no es una entidad activa`);
     if (v.kind === "entity" && v.reason) p.push(`${k}: una entidad no lleva reason`);
@@ -729,6 +731,12 @@ describe("autotest de los sujetos", () => {
     const f = JSON.parse(JSON.stringify(SUJETOS));
     f.sujetos.agente.kind = "casi";
     expect(problemasDeSujetos(f, ents, sujetosUsados()).join()).toMatch(/kind «casi» fuera del vocabulario/);
+    const h = structuredClone(SUJETOS);
+    h.sujetos[Object.keys(h.sujetos)[0]].nota = "x";
+    h.extra = 1;
+    const dichoH = problemasDeSujetos(h, ents, sujetosUsados()).join();
+    expect(dichoH).toMatch(/clave desconocida «nota»/);
+    expect(dichoH).toMatch(/clave desconocida «extra»/);
   });
 });
 

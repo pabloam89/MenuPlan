@@ -4399,7 +4399,7 @@
               "control": ".claude/cierre-eficaz.test.js",
               "fuente": "sre-postmortem",
               "porque": "Una cifra de partida inventada al final convierte cualquier resultado en una mejora, y solo una fijada antes de arreglar sirve de referencia",
-              "ejemplo_bueno": "no-evaluable porque el barrido de la ficha no trae número ni comando, y vuelve a plan-de-arreglo",
+              "ejemplo_bueno": "no-evaluable porque el fondo no trae número ni comando, y vuelve a plan-de-arreglo",
               "ejemplo_malo": "estimar de memoria cuántos había antes y declarar la mejora"
             }
           ],

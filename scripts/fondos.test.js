@@ -4,7 +4,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
-  ALCANCES, BARRERAS, CAMPOS_FICHA, CAPAS_AGENTE, ESTADOS, FICHA_DESDE, MARCA, MARCA_HIJO,
+  ALCANCES, BARRERAS, CAMPOS_FICHA, CAMPOS_RETIRADOS, CAPAS_AGENTE, ESTADOS, FICHA_DESDE, MARCA, MARCA_HIJO,
   SEVERIDADES, TIPOS_CAUSA, aprendizajeValido, arregloDeBarrera, comentario, esComentarioNuestro, falla, fijarCampos, informeFichas,
   leerFicha, leerSubidos, limpio, subirAlcance, validarFicha, validarHijo,
 } from "./lib/fondos.mjs";
@@ -111,6 +111,18 @@ describe("leerFicha", () => {
     const l = leerFicha(bloque(["estado: abierto", "tipo_causa:", "casos:", "matiz:   "]));
     expect(l.errores).toEqual([]);
     expect(l.ficha).toEqual({ estado: "abierto" });
+  });
+
+  it("los campos retirados (#706) no son de la ficha: vacíos se ignoran y con texto piden pasarlo al cuerpo", () => {
+    expect(CAMPOS_RETIRADOS.filter((c) => c in CAMPOS_FICHA)).toEqual([]);
+    for (const c of CAMPOS_RETIRADOS) {
+      const vacio = leerFicha(bloque(["estado: abierto", `${c}:`]));
+      expect(vacio.errores, c).toEqual([]);
+      expect(vacio.ficha, c).toEqual({ estado: "abierto" });
+      const lleno = leerFicha(bloque([`${c}: algo`]));
+      expect(lleno.errores.map((e) => e.mensaje).join(), c).toMatch(/ya no es un campo de la ficha/);
+    }
+    expect(leerFicha(bloque(["inventada:"])).errores.length).toBe(1);
   });
 
   it("acepta CRLF, sangría de hasta 3 espacios en las vallas y «ninguno» en una lista", () => {
