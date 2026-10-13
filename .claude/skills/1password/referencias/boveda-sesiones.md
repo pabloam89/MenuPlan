@@ -40,3 +40,15 @@ Desde el paso 5 las sesiones no leen la URL de administrador:
 `verificar-estado` entran con `SUPABASE_DB_URL_LECTURA` (`verificar-estado` no
 ve `cron`: con `--admin`, Pablo). Aplicar migraciones, `bot-cron`, `ensayo-*`,
 `telegram-webhook`, `telegram-perfil` y los de Blob: Pablo con `MENUPLAN_OP_PABLO=1` hasta E5 (#331).
+
+## Por qué existe el comando único (2026-10-10, #328)
+
+Causa: configurar la bóveda eran seis pasos a mano, tres con ventana de
+aprobación; cada uno era un comando que Pablo tenía que acordarse de lanzar en
+orden, y un `!` dentro de Claude Code comparte entorno con las sesiones.
+Arreglo: `scripts/boveda-pablo.mjs`, que los encadena, es idempotente, falla
+cerrado y se niega si ve las variables de Claude Code; la barrera de verdad es
+la ventana de aprobación de 1Password y la guardia, que niega nombrar el
+script. Test en `scripts/boveda-pablo.test.js`, visto fallar sin la negativa y
+sin el freno. Quedan a mano anular «MenuPlan PC Pablo» y apagar la integración.
+Sin probar contra 1Password de verdad.

@@ -119,23 +119,11 @@ conversación. Se pasa por tubería (stdin) entre dos procesos.
 ### Bóveda de sesiones (#328): pasos de Pablo, en orden
 
 **Un solo comando** (Pablo, PowerShell aparte, fuera de Claude Code, con la
-integración de la CLI encendida): `node scripts/boveda-pablo.mjs`. Comprueba la
-bóveda, copia las fichas, crea «MenuPlan sesiones» al llavero sin imprimir el
-token y comprueba; cada paso se salta si ya está hecho, para en el primero que
-falla y se niega si ve las variables de Claude Code (la barrera de verdad es la ventana de aprobación de 1Password y la guardia, que niega nombrar el script). Quedan a mano anular «MenuPlan PC Pablo»
-y apagar la integración. Los pasos de Pablo, en orden (qué pasa por la app de
-escritorio y qué no, y qué hace la guardia), están en `.claude/skills/1password/referencias/boveda-sesiones.md`:
-ábrelo antes de crear la bóveda o la service account.
+integración de la CLI encendida): `node scripts/boveda-pablo.mjs`. Pasos y guardia: `.claude/skills/1password/referencias/boveda-sesiones.md`.
 
 ## Lo que falló y por qué
 
-- **2026-10-10 · configurar la bóveda eran seis pasos a mano, tres de ellos con
-  ventana de aprobación (#328).** Causa: cada paso era un comando que Pablo
-  tenía que acordarse de lanzar en orden, y un `!` dentro de Claude Code
-  comparte entorno con las sesiones. Arreglo: `scripts/boveda-pablo.mjs`, que
-  los encadena, es idempotente, falla cerrado y se niega si ve las variables de
-  Claude Code; test en `scripts/boveda-pablo.test.js`, visto fallar sin la
-  negativa y sin el freno. Sin probar contra 1Password de verdad.
+- **2026-10-10 · configurar la bóveda eran seis pasos a mano (#328).** Causa: cada paso lo lanzaba Pablo en orden. Arreglo: `scripts/boveda-pablo.mjs` con su test (detalle en la referencia).
 - **2026-10-10 · «Too many requests» de 1Password a las 19:10 (límite de lecturas por hora de la cuenta de servicio).**
   Causa: cada arranque de cada sesión leía el `.pem` de la App (dos lecturas si fallaba la primera bóveda), y un test
   llamaba a `op` de verdad en cada ejecución; qué lo agotó exactamente no se sabe, y el límite exacto tampoco. El arranque
