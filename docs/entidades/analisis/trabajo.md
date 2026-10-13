@@ -14,7 +14,7 @@ Fecha: 2026-10-12. Sigue la FICHA de `analisis/FICHA.md`. Certeza: lo leído en 
 | pull-request | La petición que lleva una rama a staging | pieza (externa, GitHub) | cierra N issues, cita N casos, sale de 1 rama | Se queda; sin registro propio, sus campos son líneas del cuerpo |
 | branch (rama) | Línea de git de una tarea | pieza (externa, git) | 0..1 issue; 1 PR | Se queda; se propone la entidad nueva `task` (tarea) |
 | assignment-type (tipo y subtipo de encargo), nuevo | Catálogo de 5 tipos y 12 subtipos activos | plantilla | instancia de él: cada encargo | Registrar como plantilla (igual que `mechanism`); el subtipo es fila, no entidad |
-| ficha del fondo, nuevo | Bloque `fondo` de 19 campos dentro del cuerpo del fondo | no es entidad | parte del fondo | No es entidad: son los campos propios del fondo |
+| ficha del fondo, nuevo | Bloque `fondo` de 16 campos dentro del cuerpo del fondo | no es entidad | parte del fondo | No es entidad: son los campos propios del fondo |
 | task (tarea), nuevo | Carpeta de trabajo + rama + lo que se pidió | pieza | contiene branch; 1:1 con sesión | Candidata, decisión de Pablo |
 
 ## Contraste del punto de partida de Pablo
@@ -23,7 +23,7 @@ Pablo dijo: «fondo→casos es una relación padre-hijo 1:N, no un nivel; fondo,
 
 **Acierta en lo grueso y hay dos matices.**
 
-1. *Tipos de Issue: cierto y ya está así.* El registro ya trae cuatro filas `is_a issue` (`ops/entidades.json:700-727`), el glosario marca `amplio: issue` en los cuatro, y la etiqueta `tipo:` admite uno solo por issue (`issues.mjs:36-46,166`). Hay un dato que lo refuerza: lo propio es casi disjunto. El fondo tiene 19 campos (`fondos.mjs:108-128`), el encargo 15 (`ENCARGO.md`), el caso 2 etiquetas (`analisis`, `causa`) y la decisión 0. Solo `mecanismo`, `clase` y `verificacion` se repiten entre fondo y encargo. **Matiz:** «tipo de Issue» no significa «Issue con N1 por tipo»; el Issue es un sobre (número, título, estado, etiquetas, asignado, fechas) y cada tipo es una plantilla distinta con su ciclo de vida. La SUPER-TABLA (sección 3) llega a la misma conclusión.
+1. *Tipos de Issue: cierto y ya está así.* El registro ya trae cuatro filas `is_a issue` (`ops/entidades.json:700-727`), el glosario marca `amplio: issue` en los cuatro, y la etiqueta `tipo:` admite uno solo por issue (`issues.mjs:36-46,166`). Hay un dato que lo refuerza: lo propio es casi disjunto. El fondo tiene 16 campos (`fondos.mjs:108-128`), el encargo 15 (`ENCARGO.md`), el caso 2 etiquetas (`analisis`, `causa`) y la decisión 0. Solo `mecanismo` y `verificacion` se repiten entre fondo y encargo. **Matiz:** «tipo de Issue» no significa «Issue con N1 por tipo»; el Issue es un sobre (número, título, estado, etiquetas, asignado, fechas) y cada tipo es una plantilla distinta con su ciclo de vida. La SUPER-TABLA (sección 3) llega a la misma conclusión.
 2. *Padre-hijo 1:N, no un nivel: cierto.* Es un enlace (sub-issue de GitHub), no un nivel de abstracción: fondo, caso y encargo son piezas del mismo nivel. **Matiz 1: no son «de la misma naturaleza».** Un fondo es una clase de fallo y un caso es una ocurrencia suya; el encargo es trabajo para arreglar la clase. El mismo mecanismo (sub-issue) lleva dos relaciones con reglas distintas: los casos son **evidencia** (crecen después de cerrar el fondo y pueden reabrirlo, `debeReabrir`, `issues.mjs:216`); los encargos son **remedio** (tope de 3 por fondo, deben cerrarse antes que el fondo, `issues.mjs:187`, `ENCARGO.md:31`). **Matiz 2: no es 1:N estricto.** Un caso puntual no cuelga de nada, y si cuelga, `faltas()` lo marca como falta (`issues.mjs:174`). Es N:1 con 0..1 padre. El encargo tampoco depende solo del fondo: tiene `depende_de` hacia otros encargos (N:M).
 
 Lo que no cuadra en el registro, dato aparte: el enlace fondo→hijo se guarda en **tres sitios** (sub-issue de GitHub, `ficha.casos` y `ficha.encargos`, y `encargo.fondo`; `entidades.json:255`). Es una repetición, y la fuente buena es el sub-issue (GitHub lo garantiza; `faltas()` y `leerIssue` ya lo leen de ahí).
@@ -46,7 +46,7 @@ Lo que no cuadra en el registro, dato aparte: el enlace fondo→hijo se guarda e
 
 1. **Qué es.** «La clase de fallo de la que cuelgan casos y encargos, con su ficha, su arreglo general y cómo se probará» (`glosario/fondo.json`; `issues.mjs:41`). La ficha vive en `fondos.mjs:108-128`. Dos nombres: «fondo» y «problema de fondo» (el glosario dice que es el mismo término).
 2. **Quién lo lee.** `fondos.mjs`, el workflow `fondos.yml`, `fondos-pr.mjs` (CI de cada PR), `issues.mjs`, `fabrica.mjs`, la skill `causa-raiz` y `/revision-issues`. Comprobado.
-3. **Nivel.** Pieza. Su plantilla es el formulario `2-fondo.yml` más la ficha (19 campos, vocabularios cerrados). Sus piezas: una ficha, casos y encargos.
+3. **Nivel.** Pieza. Su plantilla es el formulario `2-fondo.yml` más la ficha (16 campos, vocabularios cerrados). Sus piezas: una ficha, casos y encargos.
 4. **Relaciones.**
    - `es-un` Issue (etiqueta `tipo:fondo`).
    - `padre-hijo` 1:N con casos (**evidencia**), enlace: sub-issue; copia en `ficha.casos`.
@@ -133,7 +133,7 @@ Lo que no cuadra en el registro, dato aparte: el enlace fondo→hijo se guarda e
 
 ## Ficha del fondo — candidata, descartada como entidad
 
-1. **Qué es.** El bloque de código `fondo` del cuerpo del issue, 19 claves (`fondos.mjs:108-128`).
+1. **Qué es.** El bloque de código `fondo` del cuerpo del issue, 16 claves (`fondos.mjs:108-128`).
 2. **Quién la lee.** `leerFicha` (`fondos.mjs`), workflow `fondos`, `fondos-pr.mjs`, `issues.mjs`. Comprobado.
 3. **Nivel.** No es pieza propia: es el conjunto de campos del fondo.
 4. **Relaciones.** `parte-de` fondo, 1:1. Sin ciclo de vida propio (es el fondo).

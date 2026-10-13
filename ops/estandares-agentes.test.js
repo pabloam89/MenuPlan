@@ -101,6 +101,10 @@ describe("ops/estandares-agentes.json", () => {
     } finally { rmSync(tmp, { recursive: true, force: true }); }
   });
 
+  it("el catálogo no admite claves desconocidas en la raíz (las de tarea, común y regla ya las rechaza el validador)", () => {
+    expect(Object.keys(datos).sort()).toEqual(["$comentario", "acciones", "actualizado", "agentes", "artefactos", "comunes", "fuentes", "normas_sin_juez", "origenes", "reglas_que_no_son_norma", "sujetos", "version"]);
+  });
+
   it("ningún agente tiene tareas sin estándar (reglas propias o normas) y la lista de pendientes está en cero", () => {
     expect(PENDIENTES_ADMITIDOS).toEqual([]);
     expect(Object.keys(datos.agentes).sort()).toEqual(agentes);

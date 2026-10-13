@@ -32,6 +32,17 @@ describe("la lista de vigilantes está bien formada", () => {
     expect(faltasDeDatos(datos)).toEqual([]);
   });
 
+  it("una clave desconocida en cualquier nivel es una falta (#706)", () => {
+    const m = structuredClone(datos);
+    m.extra = 1;
+    m.vigilantes[0].nota = "x";
+    m.excepciones[0].nota = "x";
+    m.pasos[0].nota = "x";
+    const dicho = faltasDeDatos(m).join(" | ");
+    for (const k of ["en la raíz", "clave desconocida «nota»"]) expect(dicho).toContain(k);
+    expect(faltasDeDatos(m).filter((x) => x.includes("«nota»")).length).toBe(3);
+  });
+
   it("cada test de la lista (vigilante o excepción) existe", () => {
     const nombrados = [...datos.vigilantes.flatMap((v) => v.tests), ...datos.excepciones.flatMap((e) => e.tests)];
     expect(nombrados.filter((t) => !FICHEROS.includes(t))).toEqual([]);

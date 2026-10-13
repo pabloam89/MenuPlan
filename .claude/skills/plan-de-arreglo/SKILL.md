@@ -21,7 +21,7 @@ metadata:
 Para convertir un diagnóstico en pocos encargos que cierran la **clase** y no
 solo el caso, con el mecanismo más duradero posible y una forma de saber si
 aguantó. Es el paso 6 (Plan) de `docs/ops/FLUJO.md`: entra un fondo en
-`diagnosticado` (con `mecanismo`, `causa_escape` y `clase`) y sale el fondo en
+`diagnosticado` (con `mecanismo` y `causa_escape`, y la clase en el comentario del diagnóstico) y sale el fondo en
 `plan`, con sus encargos colgados. Cubre P06.2 (dependencias, constructor y
 juez), P06.3 (el escalón más alto) y P06.4 (tres encargos como mucho, uno
 preventivo y automático).
@@ -43,8 +43,8 @@ No es para:
    que solo cubre los casos conocidos se queda corta (`no-aguanto-corto`).
 3. **Barre las instancias** antes de arreglar: busca en el repo con `rg` o el
    script que corresponda (`npm run normas`, `npm run issues`, el test de la
-   zona) cuántos sitios caen en la clase. Apunta la cifra y dónde en `barrido`
-   de la ficha («12 sitios en 5 ficheros, buscado con …»). Es la cifra
+   zona) cuántos sitios caen en la clase. Apunta la cifra y el comando en la sección «Cómo se probará» del
+   fondo («12 sitios en 5 ficheros, buscado con …»). Es la cifra
    «antes»; la de después la da la verificación.
 4. **Elige el mecanismo, el más alto posible.** `npm run mecanismos` → el
    catálogo `ops/mecanismos.json` por escalones, de bloqueo a texto, con

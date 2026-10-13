@@ -32,7 +32,7 @@
       "debe_salir": [
         "Clasifica el tipo de causa como dos-fuentes y elige técnica para ese tipo",
         "Da una causa de escape: qué test o control debía detectar la diferencia y por qué no lo hizo",
-        "Deja el diagnóstico en la ficha del fondo (mecanismo, causa_escape, clase)"
+        "Deja el diagnóstico en la ficha del fondo (mecanismo, causa_escape) y la clase en el comentario"
       ],
       "nota": "Abstracto de #318"
     },
