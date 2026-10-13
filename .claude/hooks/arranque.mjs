@@ -24,7 +24,7 @@ import { numeroDeRama } from "../../scripts/lib/lleva.mjs";
 import { avisosDeLimpieza, leerPendientes, worktreesVivos } from "../../scripts/limpiar-worktrees.mjs";
 import { sinAplicar } from "./guardia.mjs";
 import { esSesionDeNube } from "./nube.mjs";
-import { avisoRamaPrincipal, avisoTrasAdelantar, planAdelantar } from "./principal.mjs";
+import { avisoRamaPrincipal, avisoTrasAdelantar, estadoDelArbol, planAdelantar } from "./principal.mjs";
 import { avisoDeIndice, leerIndice } from "../../scripts/lib/buscarAntes.mjs";
 import { aplicarIdentidad } from "../../scripts/lib/tokenSesion.mjs";
 import { avisoDeCupos } from "../../scripts/lib/cupos.mjs";
@@ -155,8 +155,15 @@ git("fetch", "-q", "origin", "staging");
 let detras = git("rev-list", "--count", "HEAD..origin/staging");
 
 // La carpeta principal se adelanta sola (#192): si no, sus hooks son los viejos.
-const plan = planAdelantar({ esWorktree, rama, detras, sucio: git("status", "--porcelain", "--untracked-files=no") });
+const plan = planAdelantar({ esWorktree, rama, detras, ...(esWorktree ? { sucio: "" } : estadoDelArbol(git)) });
 if (plan.aviso) avisos.push(plan.aviso);
+// Solo entradas preparadas (#675): se deshacen, sin tocar el contenido de ningún fichero.
+if (plan.adelantar && plan.reset) {
+  if (git("reset", "-q") === null) {
+    plan.adelantar = false;
+    avisos.push(`AVISO: la carpeta principal va ${detras} commits por detrás de origin/staging, tiene entradas preparadas y \`git reset -q\` falló: no la adelanto. Los hooks que corren son los viejos.`);
+  } else avisos.push("La carpeta principal tenía entradas preparadas en el índice: las he deshecho con `git reset -q` (los ficheros siguen como estaban).");
+}
 if (plan.adelantar) {
   const antes = git("rev-parse", "HEAD");
   if (git("merge", "--ff-only", "-q", "origin/staging") !== null) {

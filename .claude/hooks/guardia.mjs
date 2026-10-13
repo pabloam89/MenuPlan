@@ -304,8 +304,13 @@ export function carpetaDe(cmd, orden, cwd) {
 
 /** Git que cambia la carpeta: añadir, commitear, fusionar o cambiar de rama. */
 const GIT_QUE_ESCRIBE = /^git\s+(?:-C\s+(?:"[^"]+"|'[^']+'|\S+)\s+)?(add|commit|merge|rebase|cherry-pick|checkout|switch|reset|restore|revert|am|apply)\b/;
-/** Lo que sí vale en la principal: ponerla al día y volver a staging. */
-const GIT_DE_MANTENER = /\bmerge\s+(.*\s)?--ff-only\b|\b(checkout|switch)\s+staging\s*$/;
+/**
+ * Lo que sí vale en la principal: ponerla al día, volver a staging y deshacer lo PREPARADO
+ * (`git reset` y `git reset -q`, exactos: sin --hard, --soft, --merge, rutas ni refs; no tocan
+ * el contenido de ningún fichero). Sin esto, un índice con entradas preparadas impedía adelantar
+ * la principal y ninguna sesión podía limpiarlo (#675).
+ */
+const GIT_DE_MANTENER = /\bmerge\s+(.*\s)?--ff-only\b|\b(checkout|switch)\s+staging\s*$|^git\s+(?:-C\s+(?:"[^"]+"|'[^']+'|\S+)\s+)?reset(?:\s+-q)?\s*$/;
 
 export function contextoReal(raiz, entrada = {}, { dirReg: dirRegDado, env = process.env, plataforma = process.platform, gitDado } = {}) {
   let deStaging;

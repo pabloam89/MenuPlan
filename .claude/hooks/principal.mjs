@@ -9,19 +9,35 @@
  *
  * Solo con `--ff-only` y solo si está limpia (lo no seguido no cuenta: git
  * para solo si fuera a pisarlo). La guardia ya deja ese merge en la principal.
+ *
+ * Índice sucio (#675): si lo único «sucio» son entradas PREPARADAS (ningún
+ * fichero seguido cambiado en el árbol de trabajo), el arranque hace antes
+ * `git reset -q`, que solo deshace lo preparado y no toca el contenido de ningún
+ * fichero. Con cambios sin preparar de ficheros seguidos, no toca nada y avisa.
  */
 
 import { RAMA_SIMPLE, limpiarTexto } from "../../scripts/lib/textoExterno.mjs";
 
 /**
+ * Lo que mira el arranque para decidir: `sucio` (preparado o sin preparar, de lo
+ * seguido) y `sinPreparar` (solo lo sin preparar). `git`: función (...args) → texto|null.
+ */
+export function estadoDelArbol(git) {
+  return { sucio: git("status", "--porcelain", "--untracked-files=no"), sinPreparar: git("diff", "--name-only") };
+}
+
+/**
  * Qué hacer con la carpeta al arrancar. Devuelve { adelantar: bool, aviso:
  * string|null }. `sucio`: salida de `git status --porcelain
- * --untracked-files=no` (null si no se pudo leer).
+ * --untracked-files=no` (null si no se pudo leer). `sinPreparar`: salida de
+ * `git diff --name-only` (ficheros seguidos cambiados sin preparar; null si no
+ * se pudo leer). Devuelve además `reset: true` si hay que deshacer el índice antes.
  */
-export function planAdelantar({ esWorktree, rama, detras, sucio }) {
+export function planAdelantar({ esWorktree, rama, detras, sucio, sinPreparar = null }) {
   const n = Number(detras);
   if (esWorktree || rama !== "staging" || !Number.isFinite(n) || n <= 0) return { adelantar: false, aviso: null };
   if (sucio === null) return { adelantar: false, aviso: `La carpeta principal va ${n} commits por detrás de origin/staging y no he podido ver si está limpia: no la adelanto. Los hooks que corren son los viejos.` };
+  if (sucio.trim() && sinPreparar !== null && !sinPreparar.trim()) return { adelantar: true, reset: true, aviso: null };
   if (sucio.trim()) {
     return { adelantar: false, aviso: `AVISO: la carpeta principal va ${n} commits por detrás de origin/staging y tiene cambios sin guardar, así que no la adelanto: los hooks que corren son los viejos. Esos cambios no deberían estar ahí (en la principal no se trabaja); muévelos a una tarea.` };
   }
