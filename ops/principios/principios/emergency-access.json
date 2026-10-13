@@ -7,7 +7,7 @@
   "fuentes": [
     {
       "marca": "I",
-      "ruta": "docs/ops/SIN-CLAUDE.md"
+      "fuente": "casa-docs-ops-sin-claude-md"
     }
   ],
   "origen": [

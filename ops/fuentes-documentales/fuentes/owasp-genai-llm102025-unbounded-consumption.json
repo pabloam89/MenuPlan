@@ -1,0 +1,10 @@
+{
+  "id": "owasp-genai-llm102025-unbounded-consumption",
+  "nombre": "OWASP GenAI: llm102025 unbounded consumption",
+  "tipo": "externa",
+  "url": "https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/",
+  "uso": "principio",
+  "fecha_alta": "2026-10-13",
+  "revisada": "no",
+  "fecha_revision": null
+}

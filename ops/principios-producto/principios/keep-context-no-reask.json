@@ -8,12 +8,12 @@
   "ejemplo_malo": "Lola vuelve a preguntar cuántos comen cada vez que se pide un menú",
   "fuentes": [
     {
-      "url": "https://www.nngroup.com/articles/chatbots/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "nng-chatbots"
     },
     {
-      "url": "https://www.microsoft.com/en-us/research/articles/guidelines-for-human-ai-interaction-eighteen-best-practices-for-human-centered-ai-design/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "microsoft-guidelines-for-human-ai-interaction-eighteen-best"
     }
   ]
 }

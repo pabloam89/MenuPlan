@@ -8,12 +8,12 @@
   "ejemplo_malo": "Lola pide el informe del alergólogo por el chat",
   "fuentes": [
     {
-      "url": "https://www.nngroup.com/articles/chatbots/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "nng-chatbots"
     },
     {
-      "url": "https://gdpr-info.eu/art-25-gdpr/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "gdpr-art-25-gdpr"
     }
   ]
 }

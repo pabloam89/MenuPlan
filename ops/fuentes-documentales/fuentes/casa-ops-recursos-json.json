@@ -1,0 +1,10 @@
+{
+  "id": "casa-ops-recursos-json",
+  "nombre": "Fuente de la casa: ops/recursos.json",
+  "tipo": "casa",
+  "ruta": "ops/recursos.json",
+  "uso": "principio",
+  "fecha_alta": "2026-10-13",
+  "revisada": "no",
+  "fecha_revision": null
+}

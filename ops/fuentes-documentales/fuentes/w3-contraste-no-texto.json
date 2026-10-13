@@ -1,0 +1,10 @@
+{
+  "id": "w3-contraste-no-texto",
+  "nombre": "WCAG 2.2: Non-text Contrast",
+  "tipo": "externa",
+  "url": "https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html",
+  "uso": "pool",
+  "fecha_alta": "2026-10-13",
+  "revisada": "si",
+  "fecha_revision": "2026-10-13"
+}

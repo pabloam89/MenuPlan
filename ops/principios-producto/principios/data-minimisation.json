@@ -8,12 +8,12 @@
   "ejemplo_malo": "El formulario de la casa pide fecha de nacimiento completa solo para saber si es menor de edad",
   "fuentes": [
     {
-      "url": "https://gdpr-info.eu/art-5-gdpr/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "gdpr-art-5-gdpr"
     },
     {
-      "url": "https://gdpr-info.eu/art-25-gdpr/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "gdpr-art-25-gdpr"
     }
   ]
 }

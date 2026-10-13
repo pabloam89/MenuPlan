@@ -705,6 +705,29 @@
       "note": "La lista única (#619): los propios en ops/principios/ y los de producto y redacción leídos de su catálogo (delegados). La norma cita su principio en el campo principio."
     },
     {
+      "id": "source",
+      "name": "Fuente documental",
+      "scope": "horizontal",
+      "level": "piece",
+      "family": "rules",
+      "term": "fuente documental",
+      "source_of_truth": "ops/fuentes-documentales/_catalogo.json",
+      "id_format": "kebab",
+      "registry": "with_registry",
+      "status": "active",
+      "created_by": [
+        "agent",
+        "human"
+      ],
+      "readers": [
+        "ops/fuentes-documentales.test.js",
+        "scripts/lib/fuentesDoc.mjs",
+        "ops/principios.test.js",
+        "ops/estandares-agentes.test.js"
+      ],
+      "note": "Desde #681 hay una sola lista (antes, dos catálogos: las fuentes de ops/estandares-agentes.json y las escritas dentro de cada principio). Cada fuente lleva fecha de alta, si está revisada y la fecha de revisión, que caduca a los 90 días. Un principio la cita con { marca, fuente }, una regla de estándar y una práctica del pool con fuente; la norma llega a ella por su principio. No se funde con data-source: aquella es un conjunto de datos del producto; esta, un documento que respalda una regla."
+    },
+    {
       "id": "household",
       "name": "Casa",
       "scope": "vertical",
@@ -1631,6 +1654,24 @@
       "cardinality": "many_to_one",
       "stored_as": "field",
       "stored_in": "principio"
+    },
+    {
+      "from": "principle",
+      "relation": "cites",
+      "to": "source",
+      "class": "reference",
+      "cardinality": "many_to_many",
+      "stored_as": "field",
+      "stored_in": "fuentes[].fuente"
+    },
+    {
+      "from": "standard",
+      "relation": "cites",
+      "to": "source",
+      "class": "reference",
+      "cardinality": "many_to_many",
+      "stored_as": "field",
+      "stored_in": "reglas[].fuente"
     },
     {
       "from": "norm",

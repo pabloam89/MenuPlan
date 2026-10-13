@@ -28,6 +28,7 @@ import { join } from "node:path";
 
 import { AMBITOS } from "./ambitos.mjs";
 import { leerCatalogo } from "./catalogos.mjs";
+import { conFuentesResueltas } from "./fuentesDoc.mjs";
 import { ACCIONES, UMBRAL_REESCRITURA, leerEstandares, parecido } from "./estandaresAgentes.mjs";
 import { leerForja } from "./forja.mjs";
 import { leerPrincipios as leerProducto } from "./principiosProducto.mjs";
@@ -102,7 +103,7 @@ export function seccionDe(md, ancla) {
 }
 
 /** El catálogo propio, tal cual (sin los delegados). */
-export const leerCatalogoPropio = (raiz) => leerCatalogo(raiz, RUTA_PRINCIPIOS);
+export const leerCatalogoPropio = (raiz) => conFuentesResueltas(raiz, leerCatalogo(raiz, RUTA_PRINCIPIOS));
 
 /** Una fuente «[F] url» o «[I] ruta» de la guía de redacción, con la forma de la lista. */
 function deTextoDeFuente(t) {

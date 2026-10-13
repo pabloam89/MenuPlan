@@ -7,7 +7,7 @@
   "fuentes": [
     {
       "marca": "I",
-      "ruta": ".claude/skills/alta-de-secreto/SKILL.md"
+      "fuente": "casa-skill-alta-secreto"
     }
   ],
   "origen": [

@@ -81,6 +81,7 @@ const TABLA = [
   ["procesos-ocultos", ".claude/hooks/x.mjs", "ops/procesosOcultos.test.js"],
   ["catalogos-partidos", "ops/forja/criterios/x.json", "ops/catalogos.test.js"],
   ["catalogos-partidos", "ops/glosario/terminos/x.json", "ops/catalogos.test.js"],
+  ["fuentes-documentales", "ops/fuentes-documentales/fuentes/x.json", "ops/fuentes-documentales.test.js"],
   ["generados-sin-choque", "docs/ops/NUEVO.md", "ops/generados.test.js"],
   ["generados-sin-choque", ".gitattributes", "ops/generados.test.js"],
   ["derivados-registrados", "src/design/tokens.css", "ops/derivados.test.js"],

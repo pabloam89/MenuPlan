@@ -38,7 +38,8 @@
     "ámbito",
     "acción",
     "fuerza",
-    "veredicto"
+    "veredicto",
+    "fuente documental"
   ],
   "ref": {
     "fichero": "scripts/lib/normas.mjs",

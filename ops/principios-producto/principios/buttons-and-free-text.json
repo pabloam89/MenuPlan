@@ -8,8 +8,8 @@
   "ejemplo_malo": "Lola pide que se escriba el día exacto y no entiende abreviaturas",
   "fuentes": [
     {
-      "url": "https://www.nngroup.com/articles/chatbots/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "nng-chatbots"
     }
   ]
 }

@@ -1,0 +1,10 @@
+{
+  "id": "pg-locking",
+  "nombre": "PostgreSQL: Explicit Locking (qué bloqueo toma cada orden)",
+  "tipo": "externa",
+  "url": "https://www.postgresql.org/docs/current/explicit-locking.html",
+  "uso": "pool",
+  "fecha_alta": "2026-10-13",
+  "revisada": "no",
+  "fecha_revision": null
+}

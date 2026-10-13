@@ -8,16 +8,16 @@
   "ejemplo_malo": "Lola repite la misma respuesta con otras palabras una y otra vez",
   "fuentes": [
     {
-      "url": "https://www.nngroup.com/articles/chatbots/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "nng-chatbots"
     },
     {
-      "url": "https://www.intercom.com/learning-center/ai-human-collaboration-procedures-handoffs",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "intercom-ai-human-collaboration-procedures-handoffs"
     },
     {
-      "url": "https://pair.withgoogle.com/chapter/errors-failing/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "google-pair-errors-failing"
     }
   ]
 }

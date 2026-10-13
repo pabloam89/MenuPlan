@@ -4,10 +4,10 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { agentesEnDisco, problemasDeEstandares } from "../scripts/lib/estandaresAgentes.mjs";
+import { agentesEnDisco, leerEstandares, problemasDeEstandares } from "../scripts/lib/estandaresAgentes.mjs";
 import { cifrasDeAgente, leerPool, problemasDePool, RAIZ_REPO, reglasDeAgente, terminoDeProyecto } from "../scripts/lib/pool.mjs";
 
-const estandares = JSON.parse(readFileSync(join(RAIZ_REPO, "ops/estandares-agentes.json"), "utf8"));
+const estandares = leerEstandares(RAIZ_REPO);
 const pool = leerPool();
 const practica = (p, id) => p.agentes["auditor-datos"].practicas.find((x) => x.id === id);
 

@@ -8,12 +8,12 @@
   "ejemplo_malo": "Se añade un segundo agente porque parece más elegante, sin una cifra que lo justifique",
   "fuentes": [
     {
-      "url": "https://www.anthropic.com/engineering/building-effective-agents",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "an-building-agents"
     },
     {
-      "url": "https://www.anthropic.com/engineering/writing-tools-for-agents",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "an-tools-agents"
     }
   ]
 }

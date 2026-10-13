@@ -8,8 +8,8 @@
   "ejemplo_malo": "El primer mensaje enumera todas las funciones de Lola de golpe",
   "fuentes": [
     {
-      "url": "https://pair.withgoogle.com/chapter/mental-models/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "google-pair-mental-models"
     }
   ]
 }

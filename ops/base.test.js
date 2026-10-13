@@ -4,6 +4,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { EVENTOS } from "../.claude/hooks/eventos.mjs";
+import { leerEstandares } from "../scripts/lib/estandaresAgentes.mjs";
 import { PASOS, PASO_FORJA, PASO_PIEZA, leerForja } from "../scripts/lib/forja.mjs";
 import { METAS, METAS_NUEVAS, PERSONAS_BASE, TIPOS_DE_TEXTO, problemasDeBase, relajaLaBase } from "../scripts/lib/forjaBase.mjs";
 import { conceptosDe, leerPrecedencia } from "../scripts/lib/precedencia.mjs";
@@ -17,7 +18,7 @@ import { nombresDeSkills, parsearSkill } from "../scripts/lib/skills.mjs";
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const datos = leerForja(RAIZ);
 const leer = (r) => readFileSync(join(RAIZ, r), "utf8");
-const estandares = JSON.parse(leer("ops/estandares-agentes.json"));
+const estandares = leerEstandares(RAIZ);
 const ctx = { conceptos: conceptosDe(leerPrecedencia(RAIZ)), fuentes: Object.keys(estandares.fuentes), eventos: EVENTOS };
 const clon = () => structuredClone(datos.base);
 const mal = (cambia, trozo) => {

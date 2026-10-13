@@ -7,7 +7,7 @@
   "fuentes": [
     {
       "marca": "I",
-      "ruta": "ops/forja/"
+      "fuente": "casa-ops-forja"
     }
   ],
   "origen": [

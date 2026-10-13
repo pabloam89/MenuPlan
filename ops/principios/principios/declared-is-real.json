@@ -7,7 +7,7 @@
   "fuentes": [
     {
       "marca": "I",
-      "ruta": "scripts/verificar-estado.mjs"
+      "fuente": "casa-scripts-verificar-estado-mjs"
     }
   ],
   "origen": [

@@ -1,0 +1,10 @@
+{
+  "id": "pw-snapshots",
+  "nombre": "Playwright: Visual comparisons",
+  "tipo": "externa",
+  "url": "https://playwright.dev/docs/test-snapshots",
+  "uso": "pool",
+  "fecha_alta": "2026-10-13",
+  "revisada": "si",
+  "fecha_revision": "2026-10-13"
+}

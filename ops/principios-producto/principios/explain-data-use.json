@@ -8,8 +8,8 @@
   "ejemplo_malo": "Lola cambia el menú por motivos que la familia no sabe de dónde salen",
   "fuentes": [
     {
-      "url": "https://pair.withgoogle.com/chapter/explainability-trust/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "google-pair-explainability-trust"
     }
   ]
 }

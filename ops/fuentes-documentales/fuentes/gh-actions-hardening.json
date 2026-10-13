@@ -1,0 +1,9 @@
+{
+  "id": "gh-actions-hardening",
+  "nombre": "GitHub Docs: Security hardening for GitHub Actions",
+  "tipo": "externa",
+  "url": "https://docs.github.com/en/actions/reference/security/secure-use",
+  "fecha_alta": "2026-10-13",
+  "revisada": "no",
+  "fecha_revision": null
+}

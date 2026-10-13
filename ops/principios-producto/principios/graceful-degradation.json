@@ -8,16 +8,16 @@
   "ejemplo_malo": "Sin modelo, Lola se queda callada o responde con un error técnico",
   "fuentes": [
     {
-      "url": "https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "owasp-genai-llm102025-unbounded-consumption"
     },
     {
-      "url": "https://pair.withgoogle.com/chapter/errors-failing/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "google-pair-errors-failing"
     },
     {
-      "url": "https://pair.withgoogle.com/chapter/mental-models/",
-      "marca": "F"
+      "marca": "F",
+      "fuente": "google-pair-mental-models"
     }
   ]
 }

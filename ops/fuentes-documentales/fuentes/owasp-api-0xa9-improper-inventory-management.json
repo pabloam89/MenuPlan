@@ -1,0 +1,10 @@
+{
+  "id": "owasp-api-0xa9-improper-inventory-management",
+  "nombre": "OWASP API Security 2023: 0xa9 improper inventory management",
+  "tipo": "externa",
+  "url": "https://api-security.owasp.org/editions/2023/en/0xa9-improper-inventory-management/",
+  "uso": "principio",
+  "fecha_alta": "2026-10-13",
+  "revisada": "no",
+  "fecha_revision": null
+}
