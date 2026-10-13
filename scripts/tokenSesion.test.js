@@ -8,7 +8,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { main } from "./token-sesion.mjs";
-import { ADVERTENCIAS, APP_ID, BOT_ID, CACHES, ErrorTokenSesion, FICHAS_CLAVE, IDENTIDADES, MOTIVOS, aplicarIdentidad, avisoDeIdentidad, identidadDe, leerClaveDeBoveda, lineaIdentidad, lineasDeEntorno, motivoDeCanje, tokenConCache, tokenDeSesion } from "./lib/tokenSesion.mjs";
+import { ADVERTENCIAS, APP_ID, BOT_ID, CACHES, ErrorTokenSesion, FICHAS_CLAVE, IDENTIDADES, MOTIVOS, aplicarIdentidad, avisoDeIdentidad, identidadDe, leerClaveDeBoveda, lineaIdentidad, entornoDeComando, lineasDeEntorno, motivoDeCanje, tokenConCache, tokenDeSesion } from "./lib/tokenSesion.mjs";
 import { MARGEN_MS, escribirCache, leerCache, permisosDelUsuario, principalesDeIcacls, protegerFichero, rutaDeCache } from "./lib/cacheTokenSesion.mjs";
 import { PERMISOS } from "./token-sesiones.mjs";
 import { medianaMsAsync, topeMs } from "./lib/medirTiempo.mjs";
@@ -126,6 +126,29 @@ describe("lineasDeEntorno", () => {
   });
 });
 
+describe("entornoDeComando (que token-sesion -- git push no dependa del arranque)", () => {
+  const autor = { nombre: "homenu-sesiones[bot]", correo: "1+homenu-sesiones[bot]@users.noreply.github.com" };
+  it("desde un entorno vacío trae token, ayudante de git de github.com y autor", () => {
+    const e = entornoDeComando({ token: TOKEN, autor, base: {} });
+    expect(e.GH_TOKEN).toBe(TOKEN);
+    expect(e.GIT_CONFIG_COUNT).toBe("2");
+    expect(e.GIT_CONFIG_KEY_0).toBe("credential.https://github.com.helper");
+    expect(e.GIT_CONFIG_VALUE_0).toBe(""); // vacía el ayudante de la máquina
+    expect(e.GIT_CONFIG_VALUE_1).toContain("password=$GH_TOKEN");
+    expect(e.GIT_AUTHOR_NAME).toBe("homenu-sesiones[bot]");
+  });
+  it("respeta lo que ya hubiera: conserva el resto del entorno y añade detrás de su GIT_CONFIG_COUNT", () => {
+    const e = entornoDeComando({ token: TOKEN, autor, base: { PATH: "/x", GIT_CONFIG_COUNT: "1", GIT_CONFIG_KEY_0: "a.b", GIT_CONFIG_VALUE_0: "c" } });
+    expect(e.PATH).toBe("/x");
+    expect(e.GIT_CONFIG_COUNT).toBe("3");
+    expect(e.GIT_CONFIG_KEY_0).toBe("a.b");
+    expect(e.GIT_CONFIG_KEY_1).toBe("credential.https://github.com.helper");
+  });
+  it("sigue rechazando un token raro", () => {
+    expect(() => entornoDeComando({ token: "malo", autor, base: {} })).toThrow();
+  });
+});
+
 describe("identidad y aviso del arranque", () => {
   it("lee el login de gh api user y el 403 «by integration» de un token de instalación", () => {
     expect(identidadDe({ status: 0, stdout: "pabloam89\n" })).toBe("pablo");
@@ -167,9 +190,10 @@ describe("token-sesion.mjs", () => {
   });
   it("-- corre el comando con GH_TOKEN; si falla el token, no corre nada", async () => {
     const correr = vi.fn(() => ({ status: 0 }));
-    expect(await main(["--", "gh", "pr", "list"], { generar: async () => ({ token: TOKEN, autor: {} }), correr, salida: salida() })).toBe(0);
+    expect(await main(["--", "gh", "pr", "list"], { generar: async () => ({ token: TOKEN, autor: { nombre: "homenu-sesiones[bot]", correo: "1+homenu-sesiones[bot]@users.noreply.github.com" } }), correr, salida: salida() })).toBe(0);
     expect(correr.mock.calls[0][0]).toBe("gh");
     expect(correr.mock.calls[0][2].env.GH_TOKEN).toBe(TOKEN);
+    expect(correr.mock.calls[0][2].env.GIT_CONFIG_VALUE_1).toContain("password=$GH_TOKEN"); // git también, sin el entorno del arranque
     const c2 = vi.fn();
     expect(await main(["--", "gh"], { generar: async () => { throw new ErrorTokenSesion("red"); }, correr: c2, salida: salida() })).toBe(1);
     expect(c2).not.toHaveBeenCalled();
