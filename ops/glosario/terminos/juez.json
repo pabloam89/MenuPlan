@@ -15,7 +15,8 @@
   "relacionado": [
     "juzgar",
     "constructor",
-    "hallazgo"
+    "hallazgo",
+    "analista"
   ],
   "ref": {
     "fichero": "scripts/lib/flujo.mjs",

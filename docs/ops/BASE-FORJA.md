@@ -18,8 +18,8 @@ Línea 2 del programa #652. **Solo diseño**: no cambia `ops/normas.json`, `ops/
 | Principios | 111 (56 propios, 40 de producto, 15 de redacción); 108 citados por alguna norma | ídem |
 | Principios con una sola norma | **75** (35 producto, 25 propios, 15 redacción); 3 sin norma | ídem |
 | «Criterios de la forja» | 75 (formal 43, material 16, subjetiva 16); 0 citan principio; 0 chocan de id con una norma | `base-forja-medir.mjs reglas` |
-| Tareas de agente | 69 de 10 agentes (5 jueces, 5 constructores); 16 con más de un ámbito | `base-forja-medir.mjs tareas` |
-| Reglas de estándar | 162 propias + 19 en tareas comunes = 181; 143 con control `juicio`, 38 con fichero | `base-forja-medir.mjs reglas` |
+| Tareas de agente | 75 de 11 agentes (5 jueces, 6 constructores); 16 con más de un ámbito | `base-forja-medir.mjs tareas` |
+| Reglas de estándar | 174 propias + 19 en tareas comunes = 193; 143 con control `juicio`, 50 con fichero | `base-forja-medir.mjs reglas` |
 | Fuentes del catálogo de estándares | 66 (49 externas) | `ops/estandares-agentes.json` |
 | Términos del glosario | 97 activos, todos con `aplica_a: ["todas"]`, 80 con relaciones | `base-forja-medir.mjs dominios` |
 | Entidades | 60 (54 activas, 6 retiradas); 48 con término; las 12 sin término son verticales de producto | `base-forja-medir.mjs conexion` |
@@ -75,7 +75,7 @@ Sin números negativos ni escala nueva. El campo `nivel` (0, 1, 2) se sustituye 
 | base | lo común a toda forja | disperso (3.1) | nada |
 | forja | lo que hace buena a una pieza de una familia | `ops/forja/` (skills, estándares); la de estándares aún sin pieza meta | base |
 | plantilla | el molde por tipo | 7 tipos de skill en `.claude/plantillas-skill/`; el tipo de tarea (4.1) | forja |
-| pieza | una skill, una tarea de un agente | 15 skills, 69 tareas | plantilla |
+| pieza | una skill, una tarea de un agente | 15 skills, 75 tareas | plantilla |
 
 Regla de herencia: cada paso declara `hereda` (el paso de arriba) y solo puede endurecer. Una norma que la base marca DEBE no pasa a CONVIENE en una forja.
 
@@ -87,23 +87,23 @@ No hace falta vocabulario nuevo: `accion` ya tiene siete valores y las normas ya
 
 | Tipo (acción) | Tareas | Agentes | Reglas | Fuentes distintas (externas) | Más citadas |
 |---|---|---|---|---|---|
-| construir | 20 | 4 | 76 | 35 (25) | an-evals 10, casa-design-system 9, casa-lola-regla 9 |
+| construir | 21 | 4 | 80 | 36 (26) | an-evals 10, casa-design-system 9, casa-lola-regla 9 |
 | juzgar | 22 | 5 | 76 | 34 (25) | casa-principios-datos 11, casa-plantilla-agente 8, gg-estandar 6 |
 | medir | 6 | 4 | 30 | 9 (4) | an-evals 13, casa-lola-regla 6, casa-claude 3 |
-| documentar | 8 | 7 | 29 | 16 (6) | casa-plantilla-agente 6, casa-estilo 4, casa-agente-qa 2 |
-| diagnosticar | 4 | 4 | 21 | 8 (5) | sre-troubleshooting 6, sre-postmortem 5, an-evals 3 |
+| documentar | 9 | 8 | 33 | 16 (6) | casa-plantilla-agente 7, casa-skill-issues 5, casa-estilo 4 |
+| diagnosticar | 5 | 5 | 27 | 9 (5) | sre-troubleshooting 8, sre-postmortem 6, an-evals 3 |
 | operar | 6 | 2 | 16 | 11 (9) | casa-claude 2, gh-protected-branches 2, owasp-secrets 2 |
-| decidir | 3 | 2 | 9 | 5 (2) | casa-claude 3, casa-principios-datos 3, casa-plantilla-agente 1 |
+| decidir | 6 | 3 | 13 | 7 (3) | casa-claude 5, casa-principios-datos 3, an-building-agents 1 |
 
-Salida de `node scripts/base-forja-medir.mjs tareas` (las tareas suman 69). La columna «Reglas» cuenta, por tipo de tarea, las propias de cada tarea más las de sus tareas comunes: una regla común que usan varias tareas se cuenta en cada una, por eso las siete filas suman 257 y no las 162 propias (más 19 comunes) de §6.3. «Agentes» es el número de agentes distintos con tareas de ese tipo.
+Salida de `node scripts/base-forja-medir.mjs tareas` (las tareas suman 75, de 11 agentes). La columna «Reglas» cuenta, por tipo de tarea, las propias de cada tarea más las de sus tareas comunes: una regla común que usan varias tareas se cuenta en cada una, por eso las siete filas suman 275 y no las 174 propias (más 19 comunes) de §6.3. «Agentes» es el número de agentes distintos con tareas de ese tipo.
 
-«Constructor → generación de código» corresponde a `construir` (20 tareas, solo de constructores). `juzgar` es solo de jueces (22 de 22). Los demás tipos mezclan constructores y jueces.
+«Constructor → generación de código» corresponde a `construir` (21 tareas, solo de constructores). `juzgar` es solo de jueces (22 de 22). Los demás tipos mezclan constructores y jueces.
 
 ### 4.2 Qué lleva una forja de tipo y una pieza
 
 | Elemento | Forja de tipo (plantilla) | Pieza: estándar de un agente en una tarea |
 |---|---|---|
-| Identidad | el tipo (`accion`) | agente + id de tarea (69 hoy) |
+| Identidad | el tipo (`accion`) | agente + id de tarea (75 hoy) |
 | Buenas prácticas | de 2 a 5, con la forma de `forma_practica` y una fuente `[F]` obligatoria | las hereda; no las repite |
 | Normas | las que tienen ese tipo en `acciones` (consulta) | las de sus ámbitos y su acción, por consulta; `normas` solo para citar una más |
 | Específico de la pieza | nada | `tarea`, `ambitos`, `origen`, `no_hace`, `rondas` |
@@ -156,7 +156,7 @@ Cada «criterio» ya tiene casi los campos de una norma (nombre, sujeto, fuerza,
 | Cuestión | Dato | Consecuencia |
 |---|---|---|
 | Ids | `kebab(nombre)`: 0 choques con normas o criterios; 1 nombre repetido (`sin-navegador-dicho`, 2 reglas) | prefijar solo ese caso con la tarea |
-| Tareas con más de un ámbito | 16 de 69; 42 «reglas propias» están en ellas | la norma tiene un solo ámbito: hay que elegir uno por regla |
+| Tareas con más de un ámbito | 16 de 75; 42 «reglas propias» están en ellas | la norma tiene un solo ámbito: hay que elegir uno por regla |
 | Alcance al pasar de «esta tarea» a «ámbito × acción» | 20 reglas no llegarían a ninguna otra tarea; 142 llegarían a otras, con mediana 4 y máximo 12 (en el ámbito más estrecho) | falta un limitador: campo opcional `tareas` (lista de ids) que restringe la consulta |
 | Parecido a una norma | 4 en `reglas_que_no_son_norma` y 15 citas explícitas | las parecidas se funden con su norma antes de migrar |
 | Control | 143 de 181 son `juicio` | quedan como normas con `control: juicio`; no empeora nada, pero tampoco mejora |
@@ -302,7 +302,7 @@ Recuento: 3 + 4 + 2 + 6 = 15.
 
 ### 10.3 Lo que #654 cambia en este diseño
 
-- `agent-task` ya es entidad (término «tarea de agente»); su nota dice 66 tareas y hoy son 69 (`node scripts/base-forja-medir.mjs tareas`).
+- `agent-task` ya es entidad (término «tarea de agente»); su nota dice 66 tareas y hoy son 75 (`node scripts/base-forja-medir.mjs tareas`).
 - `criterion` es entidad (término «criterio») y `standard` también (término «estándar»); sus notas dejan abiertas las dos preguntas que este documento responde: fundir «criterio» con norma y pasar las «reglas propias» a normas.
 - `rule` está retirada (sustituida por `norm`); su término «regla» sigue activo y este diseño lo deja como el fichero de `.claude/rules/`.
 - `judge`, `deployment`, `learning`, `secret` y `vault` también están retiradas y sus términos siguen activos: el mapeo tiene que aceptar un término cuya entidad está retirada.
@@ -362,4 +362,4 @@ Casos de prueba (`casos.json`): tres que la cargan y tres de frontera.
 - La cifra de «142 reglas que llegarían a otras tareas» supone que la regla pasa a un solo ámbito (el más estrecho) y la misma acción; no he simulado el efecto en `uniones.test.js`.
 - Cuántos términos nuevos pedirían los 36 campos de ficha sin término.
 - La definición nueva de «estándar» usa la palabra «ficha», que el glosario ya define como el bloque `fondo` o `encargo` de un issue (término `ficha`): hay un equívoco que habrá que resolver al aplicar (por ejemplo, ampliar la definición de `ficha`). No lo he probado contra `ops/glosario.test.js`.
-- La nota de la entidad `agent-task` dice 66 tareas; hoy son 69. Es del registro, no lo he tocado.
+- La nota de la entidad `agent-task` dice 66 tareas; hoy son 75. Es del registro, no lo he tocado.
