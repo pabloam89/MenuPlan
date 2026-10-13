@@ -158,6 +158,8 @@ const TABLA = [
   ["pool-de-buenas-practicas", "scripts/lib/pool.mjs", "ops/pool.test.js"],
   ["campos-por-entidad", "ops/campos-por-entidad.json", "ops/campos-por-entidad.test.js"],
   ["campos-por-entidad", ".claude/skills/x/SKILL.md", "ops/campos-por-entidad.test.js"],
+  ["inventario-vertical", "ops/inventario-vertical.json", "ops/inventario-vertical.test.js"],
+  ["inventario-vertical", "scripts/lib/inventarioVertical.mjs", "ops/inventario-vertical.test.js"],
 ];
 
 describe("tabla: ruta de ejemplo → vigilante que debe salir", () => {

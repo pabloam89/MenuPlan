@@ -34,6 +34,7 @@
     "detector-identidades": "node scripts/detector-identidades.mjs",
     "vecinos": "node scripts/vecinos.mjs",
     "zonas-proyecto": "node scripts/zonas-proyecto.mjs",
+    "inventario-vertical": "node scripts/inventario-vertical.mjs",
     "podar": "node scripts/podar.mjs",
     "issues": "node scripts/issues.mjs",
     "cuota": "node scripts/cuota.mjs",
