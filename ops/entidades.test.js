@@ -5,9 +5,8 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { leerGlosario, plano, prohibidosDe } from "../scripts/lib/glosario.mjs";
-import { REFERENCIA } from "../scripts/lib/forjaReferencia.mjs";
 import {
-  BECOMES, CARDINALITIES, CREATORS, FAMILIES, ID_FORMATS, LEVELS, PARENT_KINDS, REGISTRIES, RELATION_CLASSES, RELATIONS, SCOPES, STATUSES, STORED_AS,
+  CARDINALITIES, CREATORS, FAMILIES, ID_FORMATS, LEVELS, PARENT_KINDS, REGISTRIES, RELATION_CLASSES, RELATIONS, SCOPES, STATUSES, STORED_AS,
   SUBJECT_KINDS, VERBOS_DE_CLASE, esPuente,
 } from "../scripts/lib/entidades.mjs";
 import { TIPOS as TIPOS_DE_RECURSO } from "../scripts/lib/recursos.mjs";
@@ -19,14 +18,14 @@ import { bloque, mapa } from "../scripts/mapa-entidades.mjs";
  * Vigila ops/entidades.json, ops/entidades-sujetos.json y las dos vistas generadas (MAPA.md y SUPER-TABLA.md):
  *
  *  1. vocabularios cerrados: alcance, nivel, familia, quién crea, clase y cardinalidad de una relación, registro, formato de id,
- *     verbo, cómo se guarda, estado y en qué se convierte lo retirado;
+ *     verbo, cómo se guarda y estado;
  *  2. ids únicos y con forma válida (kebab, minúsculas, ASCII, en inglés);
  *  3. la definición NO está en el JSON: vive en el glosario (`term`), que guarda también la traducción (`en` de la ficha = id de la
  *     entidad). Los sinónimos prohibidos salen del glosario;
  *  4. relaciones tipadas: a entidades activas que existen, con clase, cardinalidad y verbo que casan, sin repetirse; el fondo dice si
  *     su hijo es evidencia o remedio; la contención (part_of) no da vueltas; toda entidad activa está en alguna;
  *  5. ninguna entidad sin lector, salvo una lista que solo baja; fuentes y lectores que existen (contra `git ls-files`);
- *  6. ciclo de vida: una entidad no desaparece, se retira con `replaced_by` y `becomes` (contra origin/staging);
+ *  6. ciclo de vida: una entidad que se quita se borra del registro (el historial queda en git); no hay entidades retiradas;
  *  7. los sujetos de ops/normas.json y de ops/estandares-agentes.json son una entidad, un tipo suyo o quedan fuera con motivo;
  *  8. MAPA.md y el bloque de SUPER-TABLA.md son los generados del JSON (scripts/mapa-entidades.mjs).
  *
@@ -65,15 +64,8 @@ export const TIPOS_DE_EVENTO_SIN_LECTOR = {
   human_intervention: "ningún hook lo escribe todavía (propuesta de Pablo, #568); sin él no se cuenta la intervención humana",
 };
 export const TOPE_SIN_LECTOR = 2;
-// Los ids del nacimiento del registro (11 oct 2026). Plan B del ciclo de vida: no se edita; un id no se borra, se retira.
-export const IDS_FIJADOS = [
-  "session", "team-member", "identity", "service", "environment", "deployment", "event", "norm", "learning", "mechanism", "metric", "eval", "judge",
-  "secret", "vault", "agent", "skill", "rule", "hook", "issue", "root-problem", "case", "assignment", "decision", "pull-request", "branch",
-  "migration", "table", "data-source", "module", "vocabulary", "household", "person", "channel-identity", "recipe", "ingredient", "menu", "pantry",
-  "shopping-list", "lola-conversation",
-];
 const REQUERIDOS = ["id", "name", "scope", "level", "family", "term", "source_of_truth", "id_format", "registry", "status", "created_by", "readers"];
-const OPCIONALES = ["role_by_scope", "note", "fields", "types", "replaced_by", "becomes", "becomes_in", "becomes_types"];
+const OPCIONALES = ["role_by_scope", "note", "fields", "types"];
 const CAMPOS_RELACION = ["from", "relation", "to", "class", "cardinality", "parent_kind", "stored_as", "stored_in"];
 const FORMA_ID = /^[a-z]+(-[a-z]+)*$/;
 const FORMA_CAMPO = /^[a-z]+(_[a-z]+)*$/;
@@ -139,17 +131,9 @@ export function problemas(datos, { existe: hay, glosario = null, sinLector = SIN
       for (const r of e.readers) if (hay && esRuta(r) && !hay(r)) p.push(`${q}: el lector «${r}» no existe en git`);
       if (act && e.readers.length === 0 && !(q in sinLector)) p.push(`${q}: ninguna entidad sin lector (dile quién la lee, o añádela a SIN_LECTOR con su motivo)`);
       if (act && e.readers.length > 0 && q in sinLector) p.push(`${q}: ya tiene lector; quítala de SIN_LECTOR (la lista solo baja)`);
-      if (!act && e.readers.length > 0) p.push(`${q}: una entidad retirada no lleva lectores`);
     }
-    if (e.status === "retired") {
-      if (!e.replaced_by || !ents.some((x) => x.id === e.replaced_by && x.status === "active")) p.push(`${q}: retired sin replaced_by que sea una entidad activa`);
-      if (!(e.becomes in BECOMES)) p.push(`${q}: becomes «${e.becomes}» fuera del vocabulario (en qué se convierte lo retirado)`);
-      if (typeof e.becomes_in !== "string" || !e.becomes_in.trim()) p.push(`${q}: retired sin becomes_in (dónde queda)`);
-      if (e.becomes === "type") {
-        const tipos = porId.get(e.replaced_by)?.types ?? [];
-        if (!Array.isArray(e.becomes_types) || e.becomes_types.length === 0 || !e.becomes_types.every((t) => tipos.includes(t))) p.push(`${q}: becomes type necesita becomes_types, y todos tipos de ${e.replaced_by}`);
-      } else if ("becomes_types" in e) p.push(`${q}: becomes_types solo va con becomes type`);
-    } else for (const c of ["replaced_by", "becomes", "becomes_in", "becomes_types"]) if (c in e) p.push(`${q}: ${c} solo va en una entidad retired`);
+    // Una entidad que se quita se borra: no se conserva retirada (el historial queda en git).
+    if (e.status === "retired") p.push(`${q}: una entidad retirada se borra del registro (el historial queda en git)`);
     // both no es un cajón (hallazgo del revisor de #654): quien sirve a los dos lados dice qué es a cada uno.
     if (e.scope === "both" && act && !("role_by_scope" in e)) p.push(`${q}: una entidad both dice su role_by_scope (qué es a cada lado); si no sirve a los dos, es horizontal o vertical`);
     if ("role_by_scope" in e) {
@@ -171,7 +155,7 @@ export function problemas(datos, { existe: hay, glosario = null, sinLector = SIN
           if (idsSet.has(aId(s))) p.push(`${q}: el sinónimo prohibido «${s}» (del glosario) es el id de otra entidad`);
         }
       }
-    } else if (e.scope !== "vertical" && e.status !== "retired") p.push(`${q}: solo una entidad vertical o retirada puede quedar sin term (su glosario es de proceso)`);
+    } else if (e.scope !== "vertical") p.push(`${q}: solo una entidad vertical puede quedar sin term (su glosario es de proceso)`);
     const f = e.source_of_truth;
     if (typeof f !== "string" || !f.trim()) p.push(`${q}: source_of_truth vacía (di «none»)`);
     else if (f !== "none" && hay && !hay(f)) p.push(`${q}: la fuente «${f}» no existe en git`);
@@ -218,9 +202,7 @@ export function problemas(datos, { existe: hay, glosario = null, sinLector = SIN
     const extra = Object.keys(r).filter((c) => !CAMPOS_RELACION.includes(c));
     if (extra.length) p.push(`${q}: campo desconocido ${extra.join(", ")}`);
     if (!idsSet.has(r.from)) p.push(`${q}: «${r.from}» no es una entidad`);
-    else if (!activas.has(r.from)) p.push(`${q}: «${r.from}» está retirada y no entra en relaciones`);
     if (!idsSet.has(r.to)) p.push(`${q}: «${r.to}» no es una entidad`);
-    else if (!activas.has(r.to)) p.push(`${q}: «${r.to}» está retirada y no entra en relaciones`);
     if (!(r.relation in RELATIONS)) p.push(`${q}: relación fuera del vocabulario`);
     if (!(r.class in RELATION_CLASSES)) p.push(`${q}: class «${r.class}» fuera del vocabulario`);
     else if (r.class in VERBOS_DE_CLASE) {
@@ -269,18 +251,6 @@ export function problemas(datos, { existe: hay, glosario = null, sinLector = SIN
   return p;
 }
 
-/** El ciclo de vida: ninguna entidad desaparece ni vuelve de retired. `ref` es una lista de {id, status}. */
-export function problemasDeVida(actual, ref) {
-  const p = [];
-  const hoy = new Map((actual.entities ?? []).map((e) => [e.id, e]));
-  for (const r of ref) {
-    const e = hoy.get(r.id);
-    if (!e) p.push(`${r.id}: estaba en el registro y ha desaparecido (retírala: status retired, replaced_by y becomes)`);
-    else if (r.status === "retired" && e.status === "active") p.push(`${r.id}: estaba retired y vuelve a active (un id retirado no se reutiliza)`);
-  }
-  return p;
-}
-
 /** Los sujetos de normas y estándares: una entidad, un tipo suyo (N2) o fuera con motivo. */
 export function problemasDeSujetos(doc, entidades, sujetosUsados) {
   const p = [];
@@ -300,18 +270,6 @@ export function problemasDeSujetos(doc, entidades, sujetosUsados) {
   return p;
 }
 
-// La referencia para el ciclo de vida: el registro en origin/staging, o los ids fijados si todavía no está.
-function refDeStaging() {
-  try {
-    const t = execFileSync("git", ["show", `${REFERENCIA()}:ops/entidades.json`], { cwd: RAIZ, encoding: "utf8", windowsHide: true, stdio: "pipe" });
-    const j = JSON.parse(t);
-    return Array.isArray(j.entities) ? j.entities.map((e) => ({ id: e.id, status: e.status ?? "active" })) : null;
-  } catch {
-    // a propósito: sin git, sin la referencia o sin el fichero allí todavía, se compara con IDS_FIJADOS
-    return null;
-  }
-}
-const REF = refDeStaging();
 const sujetosUsados = () => {
   const normas = JSON.parse(leer("ops/normas.json")).sujetos;
   const estandares = JSON.parse(leer("ops/estandares-agentes.json")).sujetos;
@@ -389,23 +347,18 @@ describe("el registro de entidades", () => {
     expect(t("human_intervention").fields.find((c) => c.name === "avoidable").values).toEqual(["yes", "no"]);
     expect(E("human-intervention")).toBeUndefined();
     expect(t("deployment").of).toBe("event");
-    expect(E("deployment")).toMatchObject({ status: "retired", replaced_by: "event", becomes: "event_type" });
+    expect(E("deployment")).toBeUndefined();
   });
 
-  it("lo retirado dice a qué pasa: juez es un valor del agente, regla un campo de la norma, aprendizaje un campo del fondo, secreto y bóveda tipos de recurso", () => {
-    expect(E("judge")).toMatchObject({ status: "retired", replaced_by: "agent", becomes: "value" });
-    expect(E("rule")).toMatchObject({ status: "retired", replaced_by: "norm", becomes: "field" });
-    expect(E("learning")).toMatchObject({ status: "retired", replaced_by: "root-problem", becomes: "field" });
-    expect(E("secret")).toMatchObject({ status: "retired", replaced_by: "resource", becomes: "type", becomes_types: ["clave", "token", "deploy-key"] });
-    expect(E("vault")).toMatchObject({ status: "retired", replaced_by: "resource", becomes: "type", becomes_types: ["boveda"] });
-    expect(DATOS.relations.filter((r) => ["judge", "rule", "learning", "deployment", "secret", "vault", "criterion"].some((id) => r.from === id || r.to === id))).toEqual([]);
-  });
-
-  it("el criterio de la forja es una norma (decisión de Pablo, #652): su entidad se retira a norm, con tipo forge-norm, sin término ni relaciones", () => {
-    expect(E("criterion")).toMatchObject({ status: "retired", replaced_by: "norm", becomes: "type", becomes_types: ["forge-norm"], term: null, readers: [] });
+  it("lo retirado se borró del registro (decisión de Pablo, 13 oct 2026, #706): ni la entidad ni sus relaciones ni el id en el glosario", () => {
+    const BORRADAS = ["deployment", "learning", "judge", "secret", "vault", "rule", "criterion", "verification"];
+    for (const id of BORRADAS) expect(E(id), id).toBeUndefined();
+    expect(DATOS.entities.filter((e) => e.status !== "active").map((e) => e.id)).toEqual([]);
+    expect(DATOS.relations.filter((r) => BORRADAS.some((id) => r.from === id || r.to === id))).toEqual([]);
+    // los términos que las nombraban siguen vivos y ya no traducen a una entidad que no existe
+    for (const n of ["juez", "regla", "clave", "bóveda", "aprendizaje", "despliegue"]) expect(G.terminos.find((t) => t.termino === n)?.en, n).toBeUndefined();
     expect(E("norm").types).toEqual(["forge-norm"]);
-    expect(DATOS.relations.filter((r) => r.from === "criterion" || r.to === "criterion")).toEqual([]);
-    expect(G.terminos.find((t) => t.termino === "criterio")).toMatchObject({ estado: "retirado", pasa_a: "norma", en: "criterion" });
+    expect(G.terminos.find((t) => t.termino === "criterio")).toMatchObject({ estado: "retirado", pasa_a: "norma" });
   });
 
   it("los tipos de recurso son los de scripts/lib/recursos.mjs", () => {
@@ -418,16 +371,13 @@ describe("el registro de entidades", () => {
     expect(campo.required_when).toEqual({ value: "skill", field: "reason_not_automated" });
   });
 
-  it("el término del aprendizaje sigue siendo «aprendizaje» y «lección» sale del glosario como sinónimo prohibido", () => {
-    const l = E("learning");
-    expect(l.term).toBe("aprendizaje");
-    expect(sinonimosDe(G, l)).toContain("lección");
+  it("«lección» sigue siendo sinónimo prohibido de «aprendizaje» en el glosario", () => {
+    expect(prohibidosDe(termino(G, "aprendizaje"))).toContain("lección");
   });
 
-  it("el control (antes comprobación, #682) es la entidad de lo que comprueba una norma, y 'verification' queda retirada y renombrada", () => {
+  it("el control (antes comprobación, #682) es la entidad de lo que comprueba una norma, ", () => {
     expect(E("control").term).toBe("control");
     expect(E("control").name).toBe("Control");
-    expect(E("verification")).toMatchObject({ status: "retired", replaced_by: "control", becomes: "renamed" });
     expect(hay("norm", "enforced_by", "control")).toBe(true);
   });
 
@@ -497,12 +447,9 @@ describe("ninguna entidad sin lector", () => {
   });
 });
 
-describe("ciclo de vida: una entidad se retira, no se borra", () => {
-  it(`ninguna de ${REF ? REFERENCIA() : "los ids fijados"} desaparece ni vuelve de retired`, () => {
-    expect(problemasDeVida(DATOS, REF ?? IDS_FIJADOS.map((id) => ({ id, status: "active" }))), "Un id no se borra: status retired, replaced_by y becomes").toEqual([]);
-  });
-  it("los ids fijados también se respetan aunque haya referencia", () => {
-    expect(problemasDeVida(DATOS, IDS_FIJADOS.map((id) => ({ id, status: "active" })))).toEqual([]);
+describe("ciclo de vida: una entidad que se quita se borra", () => {
+  it("el registro no guarda entidades retiradas: el historial queda en git", () => {
+    expect(DATOS.entities.filter((e) => e.status !== "active").map((e) => e.id)).toEqual([]);
   });
 });
 
@@ -602,7 +549,7 @@ describe("autotest: cada regla falla con datos malos", () => {
     expect(con((d, e) => { e.term = "inventado"; })).toMatch(/no es un término activo del glosario/);
     expect(con((d, e) => { e.id = "sesion-x"; })).toMatch(/el glosario traduce «sesión» como «session», no como «sesion-x»/);
     expect(con((d) => { d.entities[1].term = d.entities[0].term; })).toMatch(/ya es el de session/);
-    expect(con((d, e) => { e.term = null; })).toMatch(/solo una entidad vertical o retirada puede quedar sin term/);
+    expect(con((d, e) => { e.term = null; })).toMatch(/solo una entidad vertical puede quedar sin term/);
   });
 
   it("role_by_scope solo en las que son de los dos lados", () => {
@@ -614,7 +561,6 @@ describe("autotest: cada regla falla con datos malos", () => {
 
   it("relaciones a una entidad que no existe, retirada, a sí mismas o repetidas", () => {
     expect(con((d) => { d.relations[0].to = "inventada"; })).toMatch(/«inventada» no es una entidad/);
-    expect(con((d) => { d.relations[0].to = "judge"; })).toMatch(/«judge» está retirada y no entra en relaciones/);
     expect(con((d) => { d.relations[0].to = d.relations[0].from; })).toMatch(/apunta a sí misma/);
     expect(con((d) => { d.relations.push({ ...d.relations[0] }); })).toMatch(/repetida/);
     expect(con((d) => { d.relations[0].stored_in = ""; })).toMatch(/falta stored_in/);
@@ -661,26 +607,16 @@ describe("autotest: cada regla falla con datos malos", () => {
     expect(con((d) => { d.entities.find((x) => x.id === "root-problem").fields[0].name = "Recorded_In"; })).toMatch(/sin la forma snake en inglés/);
   });
 
-  it("ciclo de vida: retirar sin sustituto ni destino, volver a activo, borrar", () => {
-    expect(con((d, e) => { e.status = "retired"; })).toMatch(/retired sin replaced_by/);
-    expect(con((d, e) => { e.replaced_by = "skill"; })).toMatch(/replaced_by solo va en una entidad retired/);
-    expect(con((d) => { d.entities.find((x) => x.id === "judge").becomes = "cosa"; })).toMatch(/becomes «cosa» fuera del vocabulario/);
-    expect(con((d) => { delete d.entities.find((x) => x.id === "judge").becomes_in; })).toMatch(/retired sin becomes_in/);
-    expect(con((d) => { d.entities.find((x) => x.id === "secret").becomes_types = ["inventado"]; })).toMatch(/becomes type necesita becomes_types/);
-    expect(con((d) => { d.entities.find((x) => x.id === "judge").becomes_types = ["clave"]; })).toMatch(/becomes_types solo va con becomes type/);
-    expect(con((d) => { d.entities.find((x) => x.id === "judge").readers = ["ops/entidades.json"]; })).toMatch(/una entidad retirada no lleva lectores/);
-    expect(Object.keys(BECOMES)).toEqual(["value", "field", "event_type", "type", "renamed"]);
-    const d = copia();
-    d.entities = d.entities.filter((e) => e.id !== "session");
-    expect(problemasDeVida(d, [{ id: "session", status: "active" }]).join()).toMatch(/session: estaba en el registro y ha desaparecido/);
-    expect(problemasDeVida(DATOS, [{ id: "judge", status: "retired" }])).toEqual([]);
-    expect(problemasDeVida(DATOS, [{ id: "session", status: "retired" }]).join()).toMatch(/session: estaba retired y vuelve a active/);
+  it("ciclo de vida: una entidad retirada no se conserva, se borra", () => {
+    expect(con((d, e) => { e.status = "retired"; })).toMatch(/session: una entidad retirada se borra del registro/);
+    expect(con((d, e) => { e.replaced_by = "skill"; })).toMatch(/campo desconocido replaced_by/);
+    expect(con((d, e) => { e.becomes = "field"; })).toMatch(/campo desconocido becomes/);
   });
 
   it("proyectos y tipos de evento mal formados", () => {
     expect(con((d) => { d.projects.pop(); })).toMatch(/hoy hay dos/);
     expect(con((d) => { d.projects[0].repos = ["sin-barra"]; })).toMatch(/repos necesita nombres propietario\/repo/);
-    expect(con((d) => { d.event_types[0].of = "judge"; })).toMatch(/of «judge» no es una entidad activa/);
+    expect(con((d) => { d.event_types[0].of = "inventada"; })).toMatch(/of «inventada» no es una entidad activa/);
     expect(con((d) => { d.event_types[0].fields[0].values = ["uno"]; })).toMatch(/vocabulario cerrado de dos valores o más/);
   });
 
@@ -693,7 +629,7 @@ describe("los vocabularios del registro están anclados en ops/vocabularios-vida
   it("cada vocabulario de scripts/lib/entidades.mjs está anclado con sus valores", () => {
     const registro = JSON.parse(leer("ops/vocabularios-vida.json")).anclados;
     const actuales = valoresActuales();
-    for (const id of ["scope", "level", "family", "creator", "relation_class", "parent_kind", "cardinality", "becomes", "registry", "status", "id_format", "stored_as", "relation", "subject_kind"]) {
+    for (const id of ["scope", "level", "family", "creator", "relation_class", "parent_kind", "cardinality", "registry", "status", "id_format", "stored_as", "relation", "subject_kind"]) {
       expect(Object.keys(registro[`entidades.${id}`] ?? {}).sort(), id).toEqual(Object.keys(actuales[`entidades.${id}`]).sort());
     }
   });
@@ -713,14 +649,12 @@ describe("los vocabularios del registro están anclados en ops/vocabularios-vida
 
 describe("autotest de los sujetos", () => {
   const ents = DATOS.entities;
-  it("falla con un sujeto sin clasificar, uno que ya no existe, una entidad inventada o retirada, o un motivo corto", () => {
+  it("falla con un sujeto sin clasificar, uno que ya no existe, una entidad inventada, o un motivo corto", () => {
     expect(problemasDeSujetos(SUJETOS, ents, [...sujetosUsados(), "nuevo"]).join()).toMatch(/nuevo: sujeto sin clasificar/);
     expect(problemasDeSujetos(SUJETOS, ents, sujetosUsados().slice(1)).join()).toMatch(/ya no es sujeto de ninguna norma/);
     const d = JSON.parse(JSON.stringify(SUJETOS));
     d.sujetos.agente.entity = "inventada";
     expect(problemasDeSujetos(d, ents, sujetosUsados()).join()).toMatch(/agente: «inventada» no es una entidad activa/);
-    d.sujetos.agente.entity = "judge";
-    expect(problemasDeSujetos(d, ents, sujetosUsados()).join()).toMatch(/agente: «judge» no es una entidad activa/);
     const e = JSON.parse(JSON.stringify(SUJETOS));
     e.sujetos.asset.reason = "corto";
     expect(problemasDeSujetos(e, ents, sujetosUsados()).join()).toMatch(/asset: outside sin motivo escrito/);

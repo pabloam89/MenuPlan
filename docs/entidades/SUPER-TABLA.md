@@ -38,8 +38,9 @@ proyecto es una **extensión** que cita su meta horizontal (reglas 1 a 4 de N0).
 
 Todo sale de `ops/entidades.json`. Alcance (`scope`): `horizontal` (sus piezas nunca llevan proyecto), `vertical`
 (siempre) o `both` (cada pieza dice su `project` o ninguno); «puente» es el `both`, calculado. Hoy: 22 horizontales,
-22 verticales y 10 `both` entre 54 activas (6 retiradas: judge, rule, learning, deployment, secret y vault, que
-pasan a ser un valor, un campo, un tipo de evento o un tipo de recurso). Corregido tras el revisor de #654: `both` no es un cajón; solo lo son las 10 que sirven de verdad a los dos lados y lo explican en `role_by_scope`. Lo de trabajo (issue, PR, rama, agente, skill…) es horizontal: que viva hoy en el repo de HoMenu no es razón para `both` (sección 8). Nivel de las piezas: 46 `piece`, 4 `meta` y 4 `template`.
+22 verticales y 10 `both` entre 54 entidades. Ocho se quitaron del registro el 13 oct 2026 (decisión de Pablo, #706): judge, rule, learning,
+deployment, secret, vault, criterion y verification; lo que eran ahora es un valor, un campo, un tipo de evento o un tipo
+de recurso, y su historial queda en git. El resto de este documento, hasta la sección 9, es el análisis de antes de quitarlas. Corregido tras el revisor de #654: `both` no es un cajón; solo lo son las 10 que sirven de verdad a los dos lados y lo explican en `role_by_scope`. Lo de trabajo (issue, PR, rama, agente, skill…) es horizontal: que viva hoy en el repo de HoMenu no es razón para `both` (sección 8). Nivel de las piezas: 46 `piece`, 4 `meta` y 4 `template`.
 
 <!-- super-tabla:inicio -->
 | id | familia | nivel | alcance | puente | quién la crea | dónde vive (registro) | quién la lee | parte de, tipo de o hijo de |
@@ -99,7 +100,7 @@ pasan a ser un valor, un campo, un tipo de evento o un tipo de recurso). Corregi
 | `chat` | lola | piece | vertical | no | automatic | `supabase/migrations/0057_bot_cimientos.sql` (partial) | api/_bot/enlace.js, api/_bot/turnos.js | household |
 | `assignment-type` | work | template | horizontal | no | agent | `ops/tipos-de-encargo.json` (with_registry) | scripts/lib/tiposDeEncargo.mjs, ops/tipos-de-encargo.test.js | — |
 
-Cifras: 54 entidades activas y 8 retiradas. Alcance: horizontal 22, vertical 22, both 10. Nivel: piece 47, meta 3, template 4. Familias: work 9, access 4, delivery 3, measure 4, rules 7, agents 4, data 3, home 5, food 6, lola 2, structure 2, design 5. Relaciones: 93 (is_a 5, parent_of 4, part_of 23, reference 61).
+Cifras: 54 entidades. Alcance: horizontal 22, vertical 22, both 10. Nivel: piece 47, meta 3, template 4. Familias: work 9, access 4, delivery 3, measure 4, rules 7, agents 4, data 3, home 5, food 6, lola 2, structure 2, design 5. Relaciones: 93 (is_a 5, parent_of 4, part_of 23, reference 61).
 <!-- super-tabla:fin -->
 
 ## 3. Reto 1: Fondo, Caso, Encargo, Decisión

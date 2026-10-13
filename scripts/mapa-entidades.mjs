@@ -41,7 +41,6 @@ export function cifras(d) {
   const c = cuenta(a, (e) => e.scope);
   return {
     total: a.length,
-    retiradas: d.entities.length - a.length,
     horizontal: c.horizontal ?? 0,
     vertical: c.vertical ?? 0,
     both: c.both ?? 0,
@@ -62,7 +61,7 @@ export function bloque(d = cargar()) {
     f.push(`| \`${e.id}\` | ${e.family} | ${e.level} | ${e.scope} | ${esPuente(e) ? "sí" : "no"} | ${e.created_by.join(", ")} | ${vive(e)} | ${e.readers.length ? e.readers.join(", ") : "nadie"} | ${deps.length ? [...new Set(deps)].join(", ") : "—"} |`);
   }
   const k = cifras(d);
-  f.push("", `Cifras: ${k.total} entidades activas y ${k.retiradas} retiradas. Alcance: horizontal ${k.horizontal}, vertical ${k.vertical}, both ${k.both}. Nivel: ${k.niveles}. Familias: ${k.familias}. Relaciones: ${k.relaciones} (${k.clases}).`);
+  f.push("", `Cifras: ${k.total} entidades. Alcance: horizontal ${k.horizontal}, vertical ${k.vertical}, both ${k.both}. Nivel: ${k.niveles}. Familias: ${k.familias}. Relaciones: ${k.relaciones} (${k.clases}).`);
   return f.join("\n");
 }
 
@@ -97,7 +96,7 @@ export function mapa(d = cargar()) {
     "`parent_of` o `reference`) y cardinalidad. La contención va de la factoría al proyecto y de este al entorno (`part_of`).",
     "Los ids van en inglés (decisión de Pablo del 11 oct 2026); los nombres y las notas, en castellano.",
     "",
-    `Hoy hay ${k.total} entidades activas: ${k.horizontal} horizontales, ${k.vertical} verticales y ${k.both} de los dos lados (puentes), y ${k.retiradas} retiradas.`,
+    `Hoy hay ${k.total} entidades activas: ${k.horizontal} horizontales, ${k.vertical} verticales y ${k.both} de los dos lados (puentes).`,
     `Las relaciones son ${k.relaciones}: ${k.clases}.`,
     "",
   );
@@ -130,8 +129,6 @@ export function mapa(d = cargar()) {
   }
   L.push("## Tipos de evento", "", "Lo que antes era una entidad o un hueco y es un tipo de `event`, con su motivo cerrado.", "", "| id | de | campos | quién lo lee |", "|---|---|---|---|");
   for (const t of d.event_types) L.push(`| \`${t.id}\` | \`${t.of}\` | ${t.fields.map((c) => `${c.name} (${c.values.join(", ")})`).join("; ")} | ${t.readers.length ? t.readers.join(", ") : "nadie"} |`);
-  L.push("", "## Retiradas", "", "Un id no se borra: se retira y dice a qué pasa.", "", "| id | Pasa a | Como | Dónde |", "|---|---|---|---|");
-  for (const e of d.entities.filter((x) => x.status === "retired")) L.push(`| \`${e.id}\` | \`${e.replaced_by}\` | ${e.becomes} | ${celda(e.becomes_in)} |`);
   L.push("");
   return L.join("\n");
 }

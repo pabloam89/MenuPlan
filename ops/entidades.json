@@ -1,7 +1,7 @@
 {
   "$comentario": "Registro de entidades del proyecto (paso 1 de la normalización del lenguaje y los datos, #566; segunda versión, #652; principios en docs/entidades/N0-principios.md, mapa en docs/entidades/MAPA.md, tabla en docs/entidades/SUPER-TABLA.md: las dos se generan de este fichero con node scripts/mapa-entidades.mjs --escribir). Una entidad es una cosa con id estable y definición propia. Los nombres que lee una máquina van en inglés (decisión de Pablo del 11 oct 2026); lo que lee una persona, en castellano. La definición de cada entidad NO está aquí: vive en la ficha del glosario que nombra `term` (ops/glosario/terminos/), que guarda también la traducción (el `en` de la ficha es el id de la entidad). Cada entidad dice el nivel de sus piezas (`level`: meta, template o piece), el lado (`scope`: horizontal si sus piezas son de la factoría, vertical si son de un proyecto, both si hay de las dos; «puente» es el both y se calcula) y su `family`. `readers` es quién la lee hoy (ninguna entidad sin lector: las que no tienen están en la lista de excepciones de ops/entidades.test.js, que solo baja); `created_by`, quién crea sus piezas. `role_by_scope` dice qué significa una entidad both a cada lado. `registry` dice cómo vive hoy la entidad: with_registry (fichero propio con id y test), partial o without_registry (solo prosa o logs). Las relaciones se anotan una vez, desde quien guarda el campo, con su clase (is_a, part_of, parent_of o reference), su cardinalidad leída de from a to, y, si el padre es un fondo, su parent_kind (evidencia o remedio); `hangs_from` se lee de hijo a padre. `stored_as` es field, file, none (existe y ningún campo la guarda) o unaudited; `stored_in` es obligatorio con field y file y opcional con none y unaudited (nunca «ninguno» ni «sin auditar»). Un id retirado no se borra: status retired con replaced_by, becomes (valor, campo, tipo de evento o tipo) y becomes_in; no entra en ninguna relación. Los sinónimos prohibidos no se copian: salen del glosario. Lo vigila ops/entidades.test.js.",
   "version": 3,
-  "actualizado": "2026-10-12",
+  "actualizado": "2026-10-13",
   "projects": [
     {
       "id": "homenu",
@@ -121,26 +121,6 @@
       "note": "La palabra tiene hoy tres sentidos: los entornos de Vercel (local, preview, staging, producción), VIGIA_ENTORNO y los environments de GitHub, que no son sitios donde corre código sino puertas de secretos con política de ramas. Es parte de un proyecto, no de un proveedor. En HoMenu hay una sola base: staging y producción comparten datos."
     },
     {
-      "id": "deployment",
-      "name": "Despliegue",
-      "scope": "both",
-      "level": "piece",
-      "family": "delivery",
-      "term": "despliegue",
-      "source_of_truth": "none",
-      "id_format": "mixed",
-      "registry": "without_registry",
-      "status": "retired",
-      "replaced_by": "event",
-      "becomes": "event_type",
-      "becomes_in": "tipo de evento deployment (event_types)",
-      "created_by": [
-        "automatic"
-      ],
-      "readers": [],
-      "note": "Retirada el 12 oct 2026 (decisión de Pablo, #652): Vercel ya guarda cada despliegue; solo hace falta contarlo como evento, con entorno y rama."
-    },
-    {
       "id": "event",
       "name": "Evento",
       "scope": "both",
@@ -181,30 +161,10 @@
         "docs/ops/NORMAS.md"
       ],
       "role_by_scope": "Proceso: obligaciones del flujo, la escritura y la infra. Producto: obligaciones sobre el bot, los datos, el catálogo y la interfaz (82 de 183 normas, según el análisis).",
-      "note": "Hay tres colecciones de reglas con sujetos separados (normas, estándares de agente, obligaciones del flujo) que comparten 9 ids. Los sujetos de normas y estándares se cruzan con las entidades en ops/entidades-sujetos.json. Absorbe a la antigua entidad criterion (tipo forge-norm: las normas de la forja, hasta F4 en ops/forja/criterios/) y a la antigua entidad rule: el campo donde de la norma dice dónde está escrita (un fichero de .claude/rules, un hook, CLAUDE.md o una skill). Desde #704 las horizontales viven en ops/normas.json y las verticales en el registro de su proyecto (ops/proyectos/<id>/normas.json, con su campo project); scripts/lib/normas.mjs (cargarNormas) lee los dos. Guarda fuerza (debe, no_debe, conviene) y veredicto (cuánto se hace cumplir) como dos campos distintos. Futuro encargo: unificar EJECUTORES (scripts/lib/normas.mjs) con los ids de ops/mecanismos.json, que hoy se escriben distinto (github_regla frente a regla_github).",
+      "note": "Hay tres colecciones de reglas con sujetos separados (normas, estándares de agente, obligaciones del flujo) que comparten 9 ids. Los sujetos de normas y estándares se cruzan con las entidades en ops/entidades-sujetos.json. Las normas de la forja son el tipo forge-norm (hasta F4, en ops/forja/criterios/). El campo donde de la norma dice dónde está escrita (un fichero de .claude/rules, un hook, CLAUDE.md o una skill). Desde #704 las horizontales viven en ops/normas.json y las verticales en el registro de su proyecto (ops/proyectos/<id>/normas.json, con su campo project); scripts/lib/normas.mjs (cargarNormas) lee los dos. Guarda fuerza (debe, no_debe, conviene) y veredicto (cuánto se hace cumplir) como dos campos distintos. Futuro encargo: unificar EJECUTORES (scripts/lib/normas.mjs) con los ids de ops/mecanismos.json, que hoy se escriben distinto (github_regla frente a regla_github).",
       "types": [
         "forge-norm"
       ]
-    },
-    {
-      "id": "learning",
-      "name": "Aprendizaje",
-      "scope": "horizontal",
-      "level": "piece",
-      "family": "work",
-      "term": "aprendizaje",
-      "source_of_truth": "none",
-      "id_format": "none",
-      "registry": "without_registry",
-      "status": "retired",
-      "replaced_by": "root-problem",
-      "becomes": "field",
-      "becomes_in": "campo aprendizaje de la ficha del fondo",
-      "created_by": [
-        "agent"
-      ],
-      "readers": [],
-      "note": "Retirada el 12 oct 2026 (decisión de Pablo, #652): ya era un campo del fondo y recorded_in no lo escribía nadie. El campo declarado pasa al fondo como learning_recorded_in."
     },
     {
       "id": "mechanism",
@@ -270,74 +230,6 @@
       "note": "Dos familias sin id ni formato común: evals de Lola (scripts/) y evals de skills (casos.json, ops/skills-prueba). «Caso» significa cinco cosas distintas entre ellas. Partirlo en dos entidades queda como decisión abierta."
     },
     {
-      "id": "judge",
-      "name": "Juez",
-      "scope": "horizontal",
-      "level": "piece",
-      "family": "agents",
-      "term": "juez",
-      "source_of_truth": ".claude/agents",
-      "id_format": "kebab",
-      "registry": "partial",
-      "status": "retired",
-      "replaced_by": "agent",
-      "becomes": "value",
-      "becomes_in": "valor juez del campo Tipo de la ficha del agente (TIPOS_AGENTE)",
-      "created_by": [
-        "agent"
-      ],
-      "readers": [],
-      "note": "Retirada el 12 oct 2026 (decisión de Pablo, #652): no hay un solo atributo de juez que no tenga un agente. Lo que sí tendría identidad propia es el juicio (el veredicto de un juez sobre un encargo), que hoy vive en el comentario del PR."
-    },
-    {
-      "id": "secret",
-      "name": "Clave",
-      "scope": "both",
-      "level": "piece",
-      "family": "access",
-      "term": "clave",
-      "source_of_truth": "ops/INVENTARIO.md",
-      "id_format": "mixed",
-      "registry": "without_registry",
-      "status": "retired",
-      "replaced_by": "resource",
-      "becomes": "type",
-      "becomes_in": "tipos clave, token y deploy-key de resource",
-      "becomes_types": [
-        "clave",
-        "token",
-        "deploy-key"
-      ],
-      "created_by": [
-        "human"
-      ],
-      "readers": [],
-      "note": "Retirada el 12 oct 2026 (decisión de Pablo, #652): hoy se dice clave, secreto y token; en recursos.json son tres tipos de recurso. El término del glosario sigue siendo «clave»."
-    },
-    {
-      "id": "vault",
-      "name": "Bóveda",
-      "scope": "horizontal",
-      "level": "piece",
-      "family": "access",
-      "term": "bóveda",
-      "source_of_truth": "ops/INVENTARIO.md",
-      "id_format": "none",
-      "registry": "without_registry",
-      "status": "retired",
-      "replaced_by": "resource",
-      "becomes": "type",
-      "becomes_in": "tipo boveda de resource",
-      "becomes_types": [
-        "boveda"
-      ],
-      "created_by": [
-        "human"
-      ],
-      "readers": [],
-      "note": "Retirada el 12 oct 2026 (decisión de Pablo, #652): es el tipo boveda de resource. Se cita como op://<bóveda>/<ficha>/<campo>."
-    },
-    {
       "id": "agent",
       "name": "Agente",
       "scope": "horizontal",
@@ -355,7 +247,7 @@
         ".claude/agentes.test.js",
         "scripts/lib/agentes.mjs"
       ],
-      "note": "«revisor» es a la vez un agente y un término del glosario. Absorbe a la antigua entidad judge: un juez es un agente con Tipo: juez (TIPOS_AGENTE en scripts/lib/agentes.mjs, constructor o juez) y sin Edit ni Write. El tipo se lee hoy de una línea de la ficha por expresión regular."
+      "note": "«revisor» es a la vez un agente y un término del glosario. Un juez es un agente con Tipo: juez (TIPOS_AGENTE en scripts/lib/agentes.mjs, constructor o juez) y sin Edit ni Write. El tipo se lee hoy de una línea de la ficha por expresión regular."
     },
     {
       "id": "skill",
@@ -376,27 +268,6 @@
         "scripts/lib/skills.mjs"
       ],
       "note": "No es solo conocimiento: siete de las quince son de servicio y la guardia exige abrirlas antes de un comando de riesgo (dominios-skills.json). El dueño de cada una es un agente (campo dueno)."
-    },
-    {
-      "id": "rule",
-      "name": "Regla",
-      "scope": "both",
-      "level": "piece",
-      "family": "rules",
-      "term": "regla",
-      "source_of_truth": ".claude/rules",
-      "id_format": "none",
-      "registry": "partial",
-      "status": "retired",
-      "replaced_by": "norm",
-      "becomes": "field",
-      "becomes_in": "campo donde de la norma (qué fichero la escribe)",
-      "created_by": [
-        "agent",
-        "human"
-      ],
-      "readers": [],
-      "note": "Retirada el 12 oct 2026 (decisión de Pablo, #652): un fichero de .claude/rules es un vehículo de texto; la unidad con id es la norma. Solo 17 de las 183 normas dicen donde .claude/rules (análisis de conocimiento)."
     },
     {
       "id": "hook",
@@ -457,7 +328,7 @@
         ".github/workflows/fondos.yml",
         "scripts/fondos-pr.mjs"
       ],
-      "note": "Es issue tipo fondo. Guarda a sus hijos en tres sitios a la vez: el sub-issue de GitHub (la fuente buena), ficha.casos y ficha.encargos, y encargo.fondo. Sus dos clases de hijo tienen reglas opuestas: los casos son evidencia y los encargos remedio (relaciones parent_of con parent_kind). En su ficha, barrera es un escalón de la escalera y mecanismo es texto libre con la causa. El aprendizaje (antes la entidad learning) es un campo de la ficha: aprendizajeValido lo exige al cerrar.",
+      "note": "Es issue tipo fondo. Guarda a sus hijos en tres sitios a la vez: el sub-issue de GitHub (la fuente buena), ficha.casos y ficha.encargos, y encargo.fondo. Sus dos clases de hijo tienen reglas opuestas: los casos son evidencia y los encargos remedio (relaciones parent_of con parent_kind). En su ficha, barrera es un escalón de la escalera y mecanismo es texto libre con la causa. El aprendizaje es un campo de la ficha: aprendizajeValido lo exige al cerrar.",
       "fields": [
         {
           "name": "learning_recorded_in",
@@ -679,7 +550,7 @@
         "scripts/lib/vocabulariosVida.mjs"
       ],
       "role_by_scope": "Proceso: listas cerradas de ops y scripts/lib. Producto: las de src/lib/vocabularios.js, que además llevan CHECK en la base.",
-      "note": "103 vocabularios y 560 valores anclados (a 13 oct 2026; el test compara estas cifras con ops/vocabularios-vida.json). Hay constantes duplicadas (MESES en 4 sitios, dos ESTADOS_CRITERIO con valores distintos)."
+      "note": "102 vocabularios y 555 valores anclados (a 13 oct 2026; el test compara estas cifras con ops/vocabularios-vida.json). Hay constantes duplicadas (MESES en 4 sitios, dos ESTADOS_CRITERIO con valores distintos)."
     },
     {
       "id": "principle",
@@ -929,7 +800,7 @@
         "scripts/cumplimiento.mjs"
       ],
       "role_by_scope": "Proceso: GitHub y 1Password. Producto: Supabase, Telegram y Vercel. Hetzner sirve a las dos cosas.",
-      "note": "Una entrada por clave, token, App, deploy key, bóveda, service account, proyecto de un servicio, servidor o cuenta, con servicio, tipo, dueño, fecha y caducidad. Sustituye a las entidades secret y vault, que son dos de sus tipos. Aún no guarda de qué proyecto es cada recurso (ver la relación resource belongs_to project, sin campo); el tipo proyecto de recursos.json es un proyecto de un servicio (Vercel, Supabase), no la entidad project.",
+      "note": "Una entrada por clave, token, App, deploy key, bóveda, service account, proyecto de un servicio, servidor o cuenta, con servicio, tipo, dueño, fecha y caducidad. Clave, token, deploy key y bóveda son tipos suyos, no entidades aparte. Aún no guarda de qué proyecto es cada recurso (ver la relación resource belongs_to project, sin campo); el tipo proyecto de recursos.json es un proyecto de un servicio (Vercel, Supabase), no la entidad project.",
       "types": [
         "clave",
         "token",
@@ -941,29 +812,6 @@
         "servidor",
         "cuenta"
       ]
-    },
-    {
-      "id": "criterion",
-      "name": "Norma de la forja",
-      "scope": "horizontal",
-      "level": "meta",
-      "family": "rules",
-      "term": null,
-      "source_of_truth": "ops/forja/_catalogo.json",
-      "id_format": "kebab",
-      "registry": "with_registry",
-      "status": "retired",
-      "replaced_by": "norm",
-      "becomes": "type",
-      "becomes_types": [
-        "forge-norm"
-      ],
-      "becomes_in": "tipo de norma: las 75 de ops/forja/criterios/ son normas de la forja hasta que la fase F4 de #652 las pase a ops/normas.json",
-      "created_by": [
-        "agent"
-      ],
-      "readers": [],
-      "note": "Retirada el 12 oct 2026 (decisión de Pablo, #652): el criterio de la forja y la norma son la misma unidad exigible; el término «criterio» pasa a «norma». Los 75 ficheros de ops/forja/criterios/ siguen donde están hasta F4 (docs/ops/BASE-FORJA.md §7.3); sus ids no cambian."
     },
     {
       "id": "control",
@@ -983,27 +831,7 @@
         "ops/normas.test.js"
       ],
       "role_by_scope": "Proceso: tests y scripts de ops/ y scripts/. Producto: tests de supabase/ y src/ que vigilan normas de datos y de interfaz.",
-      "note": "Lo que comprueba una norma (antes «comprobación», id verification; renombrada el 13 oct 2026, #682): un fichero (test, script o workflow) o un juicio, guardado hoy en los campos de la norma control, control_tipo y los cinco ejes (control_procesador, control_fuerza, control_momento, control_que_mira, control_cobertura; test_del_juez si lo procesa un juez). Ninguna persona es procesador: código o juez. No tiene registro propio: un fichero puede vigilar varias normas y esa relación solo se ve con grep."
-    },
-    {
-      "id": "verification",
-      "name": "Comprobación",
-      "scope": "both",
-      "level": "piece",
-      "family": "rules",
-      "term": null,
-      "source_of_truth": "ops/normas.json",
-      "id_format": "mixed",
-      "registry": "partial",
-      "status": "retired",
-      "replaced_by": "control",
-      "becomes": "renamed",
-      "becomes_in": "la entidad control: mismo contenido, id y nombre nuevos",
-      "created_by": [
-        "agent"
-      ],
-      "readers": [],
-      "note": "Renombrada el 13 oct 2026 (decisión de Pablo, #652 y #682): el control de una norma es una entidad con sus ejes y no solo un fichero; el término «comprobación» sigue vivo en el glosario y nombra la misma entidad."
+      "note": "Lo que comprueba una norma (antes «comprobación»; renombrada el 13 oct 2026, #682): un fichero (test, script o workflow) o un juicio, guardado hoy en los campos de la norma control, control_tipo y los cinco ejes (control_procesador, control_fuerza, control_momento, control_que_mira, control_cobertura; test_del_juez si lo procesa un juez). Ninguna persona es procesador: código o juez. No tiene registro propio: un fichero puede vigilar varias normas y esa relación solo se ve con grep."
     },
     {
       "id": "standard",
@@ -1381,7 +1209,7 @@
       "readers": [
         "ops/salud-despliegue.test.js"
       ],
-      "note": "Sustituye a la entidad deployment (decisión 7, #652). Cuenta lo que Vercel ya guarda, con el entorno y la rama; no necesita registro propio. Sin escribir todavía como evento."
+      "note": "Un despliegue no es entidad (decisión 7, #652). Cuenta lo que Vercel ya guarda, con el entorno y la rama; no necesita registro propio. Sin escribir todavía como evento."
     }
   ],
   "relations": [
