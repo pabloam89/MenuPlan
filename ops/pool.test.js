@@ -1,8 +1,6 @@
 // Vigila el pool de buenas prácticas por agente (parte de #652): ops/pool/*.json contra
 // ops/estandares-agentes.json, con el lector scripts/lib/pool.mjs.
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 
 import { agentesEnDisco, leerEstandares, problemasDeEstandares } from "../scripts/lib/estandaresAgentes.mjs";
 import { cifrasDeAgente, leerPool, problemasDePool, RAIZ_REPO, reglasDeAgente, terminoDeProyecto } from "../scripts/lib/pool.mjs";
