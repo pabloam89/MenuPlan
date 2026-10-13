@@ -156,6 +156,8 @@ const TABLA = [
   ["zonas-del-repo", "un-fichero-nuevo-en-la-raiz.md", "ops/zonas.test.js"],
   ["pool-de-buenas-practicas", "ops/pool/auditor-datos.json", "ops/pool.test.js"],
   ["pool-de-buenas-practicas", "scripts/lib/pool.mjs", "ops/pool.test.js"],
+  ["campos-por-entidad", "ops/campos-por-entidad.json", "ops/campos-por-entidad.test.js"],
+  ["campos-por-entidad", ".claude/skills/x/SKILL.md", "ops/campos-por-entidad.test.js"],
 ];
 
 describe("tabla: ruta de ejemplo → vigilante que debe salir", () => {

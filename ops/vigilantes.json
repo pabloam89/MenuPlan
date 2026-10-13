@@ -223,6 +223,13 @@
       "porque": "Todo endpoint de api/ lleva el límite por IP y la validación antes del tope."
     },
     {
+      "id": "campos-por-entidad",
+      "tests": ["ops/campos-por-entidad.test.js"],
+      "mira": ["ops/campos-por-entidad.json", "ops/entidades.json", "ops/MODULOS.json", "scripts/campos-por-entidad.mjs", "scripts/lib/camposPorEntidad*.mjs", "ops/mecanismos.json", "ops/estandares-agentes.json", "ops/planos.json", "ops/tipos-de-encargo.json", "ops/diseno/bloques.json", "ops/fuentes-documentales/fuentes/*.json", ".claude/agents/*.md", ".claude/skills/*/SKILL.md"],
+      "porque": "El recuento de campos por entidad (npm run campos-por-entidad) lee los registros de las entidades: una entidad nueva sin entrada en ops/campos-por-entidad.json, o una fuente movida de sitio, lo dejaría contando menos sin avisar.",
+      "evidencia": "#711 (continúa #706)"
+    },
+    {
       "id": "vigilantes",
       "tests": ["ops/vigilantes.test.js"],
       "mira": ["**/*.test.{js,mjs,jsx}", "ops/vigilantes.json"],
