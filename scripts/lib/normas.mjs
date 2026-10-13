@@ -46,6 +46,15 @@ export const ALCANCES = {
   nadie: "No alcanza a nadie: no hay ejecutor",
 };
 
+/**
+ * El lado de una norma (#687): a quién sirve. Mismo vocabulario que el `scope` de ops/entidades.json (sin `both`: una norma
+ * sirve a un lado; si sirve a los dos, es horizontal). Ante la duda, horizontal.
+ */
+export const LADOS = {
+  horizontal: "Trata de cómo trabaja la factoría o de cualquier proyecto: método, infraestructura, seguridad, código, diseño",
+  vertical: "Trata de la conducta del producto HoMenu o de Lola, no del trabajo de un agente",
+};
+
 /** Qué pasa si el ejecutor falla (se cae, no puede leer, se pasa de tiempo). */
 export const ANTE_FALLO = {
   cerrado: "Si el ejecutor falla, no deja pasar",
@@ -124,7 +133,7 @@ export const RUTA_PLANOS = "ops/planos.json";
  */
 export const CAMPOS = [
   "id", "nombre", "sujeto", "fuerza", "exigencia", "donde", "ejecutor", "alcance", "ante_fallo",
-  "control", "control_tipo", "control_procesador", "control_fuerza", "control_momento", "control_que_mira", "control_cobertura", "veredicto", "riesgo", "issue", "principio", "ambito", "acciones",
+  "control", "control_tipo", "control_procesador", "control_fuerza", "control_momento", "control_que_mira", "control_cobertura", "veredicto", "riesgo", "issue", "principio", "ambito", "lado", "acciones",
 ];
 export const CAMPOS_OPCIONALES = ["condicion", "nota", "criterio_planos", "test_fallo", "desde", "concepto", "test_del_juez"];
 
@@ -234,7 +243,7 @@ export function problemasDeForma(n, sujetos) {
   if (typeof n.id !== "string" || !ID_KEBAB.test(n.id)) malos.push(`${id}: el id va en minúsculas con guiones`);
   malos.push(...problemasDeRegla(n, id, sujetos));
   if (!Array.isArray(n.donde) || !n.donde.length) malos.push(`${id}: «donde» es una lista de rutas`);
-  const vocab = [["ejecutor", EJECUTORES], ["alcance", ALCANCES], ["ante_fallo", ANTE_FALLO], ["veredicto", VEREDICTOS], ["riesgo", RIESGOS], ["control_tipo", CONTROL_TIPOS]];
+  const vocab = [["ejecutor", EJECUTORES], ["alcance", ALCANCES], ["ante_fallo", ANTE_FALLO], ["veredicto", VEREDICTOS], ["riesgo", RIESGOS], ["control_tipo", CONTROL_TIPOS], ["lado", LADOS]];
   for (const [campo, v] of vocab) if (!(n[campo] in v)) malos.push(`${id}: ${campo} «${n[campo]}» no está en el vocabulario (${Object.keys(v).join(", ")})`);
   malos.push(...problemasDeControl(n, id));
   malos.push(...problemasDeEjes(n, id));
@@ -410,21 +419,23 @@ export function generarMd(registro, avisos) {
     "",
     "## Normas",
     "",
-    "| Norma | Sujeto | Fuerza | Frase | Quién la hace cumplir | Control | Avisos de la guardia | Principio | Ámbito | Acciones |",
-    "|---|---|---|---|---|---|---|---|---|---|",
+    "| Norma | Sujeto | Fuerza | Frase | Quién la hace cumplir | Control | Avisos de la guardia | Principio | Ámbito | Lado | Acciones |",
+    "|---|---|---|---|---|---|---|---|---|---|---|",
   ];
   for (const n of normas) {
     const frase = fraseDeRegla(n, sujetos).replace(/ Se comprueba con: .*$/, "");
     const control = n.control_tipo === "juicio" ? "juicio" : n.control_tipo === "planos" ? `planos: ${n.criterio_planos}` : `${n.control_tipo}: \`${n.control}\``;
     const quien = `${n.ejecutor} · ${n.veredicto}`;
     const av = (porNorma[n.id] ?? []).map((a) => `\`${a}\``).join(", ") || "—";
-    L.push(`| \`${n.id}\` | ${n.sujeto} | ${FUERZAS[n.fuerza].palabra} | ${celda(frase)} | ${quien} | ${celda(control)} | ${av} | \`${n.principio}\` | ${n.ambito} | ${(n.acciones ?? []).join(", ")} |`);
+    L.push(`| \`${n.id}\` | ${n.sujeto} | ${FUERZAS[n.fuerza].palabra} | ${celda(frase)} | ${quien} | ${celda(control)} | ${av} | \`${n.principio}\` | ${n.ambito} | ${n.lado} | ${(n.acciones ?? []).join(", ")} |`);
   }
   const contar = (campo) => Object.entries(normas.reduce((a, n) => ({ ...a, [n[campo]]: (a[n[campo]] ?? 0) + 1 }), {}));
   L.push("", "## Sujetos", "", "| Sujeto | En la frase | Normas |", "|---|---|---|");
   for (const [id, s] of Object.entries(sujetos)) L.push(`| ${id} | ${s.legible} | ${normas.filter((n) => n.sujeto === id).length} |`);
   L.push("", "## Ámbitos", "", "| Ámbito | Qué es | Normas |", "|---|---|---|");
   for (const [id, a] of Object.entries(AMBITOS)) L.push(`| ${id} | ${celda(a.que)} | ${normas.filter((n) => n.ambito === id).length} |`);
+  L.push("", "## Lados (#687)", "", "| Lado | Qué es | Normas |", "|---|---|---|");
+  for (const [id, t] of Object.entries(LADOS)) L.push(`| ${id} | ${celda(t)} | ${normas.filter((n) => n.lado === id).length} |`);
   L.push("", "## Cómo se comprueban", "", "| Tipo de control | Qué es | Normas |", "|---|---|---|");
   for (const [id, t] of Object.entries(CONTROL_TIPOS)) L.push(`| ${id} | ${celda(t.que)} | ${normas.filter((n) => n.control_tipo === id).length} |`);
   const rc = recuento(normas);

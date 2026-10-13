@@ -768,3 +768,13 @@ export function normasHuerfanas(datos, normas) {
   for (const c of Object.values(datos?.comunes ?? {})) for (const id of c.normas ?? []) recibidas.add(id);
   return (normas ?? []).filter((n) => !recibidas.has(n.id)).map((n) => n.id);
 }
+
+/**
+ * Las normas verticales (#687: conducta del producto, no trabajo de un agente) que alguna tarea sí recibe: el resto de las
+ * verticales son huérfanas por diseño (normas_huerfanas_excepciones). Hoy las recibe quien construye o juzga el producto
+ * (lola, datos, diseno, qa…); el techo de ops/normas-techos.json solo baja a medida que pasan a ser dato de la pieza o specs/.
+ */
+export function verticalesEnEstandares(datos, normas) {
+  const huerfanas = new Set(normasHuerfanas(datos, normas));
+  return (normas ?? []).filter((n) => n.lado === "vertical" && !huerfanas.has(n.id)).map((n) => n.id);
+}
