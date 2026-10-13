@@ -1,7 +1,11 @@
+import { execFileSync } from "node:child_process";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { contextoReal } from "./guardia.mjs";
-import { avisoRamaPrincipal, avisoTrasAdelantar, planAdelantar, resumenReflog } from "./principal.mjs";
+import { avisoRamaPrincipal, avisoTrasAdelantar, estadoDelArbol, planAdelantar, resumenReflog } from "./principal.mjs";
 import { esSesionDeNube, nubePosible } from "./nube.mjs";
 
 describe("la carpeta principal se adelanta al arrancar (#192)", () => {
@@ -25,6 +29,74 @@ describe("la carpeta principal se adelanta al arrancar (#192)", () => {
     expect(avisoTrasAdelantar("2", [".claude/hooks/guardia.mjs"])).toMatch(/guardia\.mjs: los hooks ya corren con la versión nueva\.$/);
     expect(avisoTrasAdelantar("2", [".claude/settings.json"])).toMatch(/próxima sesión/);
     expect(avisoTrasAdelantar("2", [".claude/hooks/guardia.test.js"])).toBe("Carpeta principal adelantada 2 commits hasta origin/staging.");
+  });
+});
+
+// #675: el índice con entradas preparadas contaba como «sucio» y la principal no se adelantaba nunca.
+describe("el índice sucio de la principal se deshace antes de adelantar (#675)", () => {
+  const base = { esWorktree: false, rama: "staging", detras: "3" };
+  it("limpio: se adelanta sin reset", () =>
+    expect(planAdelantar({ ...base, sucio: "", sinPreparar: "" })).toEqual({ adelantar: true, aviso: null }));
+  it("solo índice: reset y se adelanta", () => {
+    const r = planAdelantar({ ...base, sucio: "A  scripts/tripo.mjs", sinPreparar: "" });
+    expect(r).toEqual({ adelantar: true, reset: true, aviso: null });
+  });
+  it("solo sin preparar en seguidos: no se toca y se avisa", () => {
+    const r = planAdelantar({ ...base, sucio: " M src/App.jsx", sinPreparar: "src/App.jsx" });
+    expect(r.adelantar).toBe(false);
+    expect(r.reset).toBeUndefined();
+    expect(r.aviso).toMatch(/cambios sin guardar/);
+  });
+  it("índice más sin preparar: no hace reset y avisa", () => {
+    const r = planAdelantar({ ...base, sucio: "A  a.mjs\nAM b.mjs", sinPreparar: "b.mjs" });
+    expect(r.adelantar).toBe(false);
+    expect(r.reset).toBeUndefined();
+    expect(r.aviso).toMatch(/cambios sin guardar/);
+  });
+  it("sin poder leer lo sin preparar, no hace reset", () =>
+    expect(planAdelantar({ ...base, sucio: "A  a.mjs", sinPreparar: null }).adelantar).toBe(false));
+
+  describe("con un repositorio de verdad", () => {
+    const git = (dir, ...a) => execFileSync("git", ["-C", dir, ...a], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+    const repo = (preparar) => {
+      const dir = mkdtempSync(join(tmpdir(), "principal-indice-"));
+      git(dir, "init", "-q");
+      git(dir, "config", "user.email", "t@t");
+      git(dir, "config", "user.name", "t");
+      writeFileSync(join(dir, "seguido.txt"), "uno\n");
+      git(dir, "add", "seguido.txt");
+      git(dir, "commit", "-q", "-m", "base");
+      preparar(dir);
+      return dir;
+    };
+    const plan = (dir) => planAdelantar({ ...base, ...estadoDelArbol((...a) => git(dir, ...a)) });
+    const con = (preparar, fn) => {
+      const dir = repo(preparar);
+      try { fn(dir); } finally { rmSync(dir, { recursive: true, force: true }); }
+    };
+
+    it("limpio", () => con(() => {}, (d) => expect(plan(d).adelantar).toBe(true)));
+    it("solo un fichero nuevo sin seguir: se adelanta sin reset", () =>
+      con((d) => writeFileSync(join(d, "nuevo.txt"), "x\n"), (d) => expect(plan(d)).toEqual({ adelantar: true, aviso: null })));
+    it("solo índice: reset y el contenido del fichero queda igual", () =>
+      con((d) => { writeFileSync(join(d, "memoria.md"), "dato\n"); git(d, "add", "memoria.md"); }, (d) => {
+        expect(plan(d).reset).toBe(true);
+        git(d, "reset", "-q");
+        expect(git(d, "status", "--porcelain", "--untracked-files=no")).toBe("");
+        expect(git(d, "status", "--porcelain")).toBe("?? memoria.md");
+      }));
+    it("solo sin preparar en seguidos: avisa", () =>
+      con((d) => writeFileSync(join(d, "seguido.txt"), "dos\n"), (d) => {
+        const p = plan(d);
+        expect(p.adelantar).toBe(false);
+        expect(p.aviso).toMatch(/cambios sin guardar/);
+      }));
+    it("índice más sin preparar: no hace reset", () =>
+      con((d) => { writeFileSync(join(d, "memoria.md"), "dato\n"); git(d, "add", "memoria.md"); writeFileSync(join(d, "seguido.txt"), "dos\n"); }, (d) => {
+        const p = plan(d);
+        expect(p.adelantar).toBe(false);
+        expect(p.reset).toBeUndefined();
+      }));
   });
 });
 
