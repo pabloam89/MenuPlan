@@ -63,7 +63,7 @@ export const ORIGENES = Object.keys(DEL_REPO.origenes ?? {});
 export const PENDIENTES_ADMITIDOS = [];
 
 /** Lo que lleva una tarea, lo que lleva una común y lo que lleva cada regla (y cuáles son opcionales). */
-export const CAMPOS_TAREA = ["id", "tarea", "accion", "origen", "ambitos", "comunes", "normas", "reglas", "no_hace", "rondas"];
+export const CAMPOS_TAREA = ["id", "tarea", "accion", "origen", "ambitos", "n2", "comunes", "normas", "reglas", "no_hace", "rondas"];
 export const CAMPOS_COMUN = ["tarea", "accion", "normas", "reglas", "rondas"];
 export const CAMPOS_ESTANDAR = ["nombre", "sujeto", "fuerza", "condicion", "exigencia", "nota", "control", "fuente", "porque", "ejemplo_bueno", "ejemplo_malo"];
 const OPCIONALES = ["condicion", "nota"];

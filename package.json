@@ -56,6 +56,7 @@
     "skills-uso": "node scripts/skills-uso.mjs",
     "skills-encargo": "node scripts/skills-encargo.mjs",
     "estandar": "node scripts/estandares-agentes.mjs",
+    "estandar-n2": "node scripts/estandares-n2.mjs",
     "presupuesto": "node scripts/presupuesto.mjs",
     "dimensionar": "node scripts/dimensionar.mjs",
     "fabrica": "node scripts/fabrica.mjs",

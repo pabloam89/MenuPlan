@@ -558,7 +558,7 @@ export const CLASES_CAMPO = {
  * respalda un juicio (una ruta con su cabecera, un caso, un comando, un PR o un issue: la valida quien da
  * `ctx.existe`); `version`, el hash de 12 de una versión de un fichero (hashLF de scripts/lib/evals.mjs).
  */
-export const REFS_CAMPO = ["skill", "agente", "criterio", "ruta", "comando", "issue", "fuente", "evidencia", "version", "estandar_comun", "norma"];
+export const REFS_CAMPO = ["skill", "agente", "criterio", "ruta", "comando", "issue", "fuente", "evidencia", "version", "estandar_comun", "estandar_n2", "norma"];
 /** Nivel de una clase para el trinquete: el texto es el hueco; todo lo demás es discreto. */
 export const NIVELES_CAMPO = ["texto", "discreto"];
 export const nivelDeClase = (clase) => (clase === "texto" ? "texto" : "discreto");

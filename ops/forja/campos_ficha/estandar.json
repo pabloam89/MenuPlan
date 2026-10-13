@@ -26,6 +26,11 @@
         "lista": true,
         "obligatorio": true
       },
+      "n2": {
+        "clase": "ref",
+        "ref": "estandar_n2",
+        "obligatorio": true
+      },
       "comunes": {
         "clase": "ref",
         "ref": "estandar_comun",
