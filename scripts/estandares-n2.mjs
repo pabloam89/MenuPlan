@@ -30,10 +30,10 @@ if (args.includes("--escribir")) {
   if (args.includes("--comprobar")) {
     const malos = problemasDeN2(n2, datos, normas);
     for (const m of malos) console.log(m);
-    console.log(`estandar-n2 problemas: ${malos.length}`);
+    console.log(malos.length ? `${malos.length} problemas en el estándar N2.` : "El estándar N2 está bien.");
     process.exit(malos.length ? 1 : 0);
   }
   const c = contarN2(n2, datos);
-  console.log(`estandar-n2 combinaciones: ${c.combinaciones} tareas: ${c.tareas}`);
-  for (const x of c.porCombinacion) console.log(`${x.id.padEnd(42)} tareas: ${x.tareas} normas: ${x.normas}`);
+  console.log(`${c.combinaciones} combinaciones acción × ámbitos y ${c.tareas} tareas.`);
+  for (const x of c.porCombinacion) console.log(`${x.id.padEnd(42)} ${x.tareas} tareas, ${x.normas} normas`);
 }

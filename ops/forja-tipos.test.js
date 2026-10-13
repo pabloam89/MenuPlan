@@ -12,6 +12,7 @@ import {
 import { leerJuicios, vocabulariosDeJuicio } from "../scripts/lib/juiciosSkills.mjs";
 import { REFERENCIA, jsonEnReferenciaAvisando } from "../scripts/lib/forjaReferencia.mjs";
 import { ACCIONES, ORIGENES, leerEstandares } from "../scripts/lib/estandaresAgentes.mjs";
+import { leerN2 } from "../scripts/lib/estandaresN2.mjs";
 import { AMBITOS } from "../scripts/lib/ambitos.mjs";
 import { nombresDeSkills, parsearSkill } from "../scripts/lib/skills.mjs";
 
@@ -213,6 +214,7 @@ const existeFicha = (tipo, v) => {
   if (tipo === "ruta") return existe(v);
   if (tipo === "fuente") return v in estandares.fuentes;
   if (tipo === "estandar_comun") return v in estandares.comunes;
+  if (tipo === "estandar_n2") return v in leerN2(RAIZ).combinaciones;
   if (tipo === "norma") return idsDeNormas.has(v);
   return false;
 };
@@ -284,6 +286,8 @@ describe("campos de las fichas: lo que ya existe cumple lo que declara campos_fi
     expect(c.origen.clase).toBe("enum");
     expect(c.accion).toMatchObject({ clase: "enum", vocab: "accion_tarea", obligatorio: true });
     expect(c.comunes).toMatchObject({ clase: "ref", ref: "estandar_comun", lista: true });
+    // #684: la combinación acción × ámbitos (N2) de la tarea, de la que hereda su lista de normas.
+    expect(c.n2).toMatchObject({ clase: "ref", ref: "estandar_n2", obligatorio: true });
     expect(c.reglas).toMatchObject({ clase: "regla", lista: true, obligatorio: false });
     // #620: los ámbitos de la tarea (de ellos salen sus normas) y las normas que cita aparte, por id.
     expect(c.ambitos).toMatchObject({ clase: "enum", vocab: "ambito", lista: true, obligatorio: true });
@@ -418,10 +422,10 @@ describe("trinquete de los campos (ops/forja-campos.json): de texto a discreto, 
 
 describe("cifras: campos discretos frente a huecos", () => {
   it("por artefacto, en la vista y en las cifras", () => {
-    expect(cifrasDeCampos(datos)).toEqual({ skill: { discretos: 14, huecos: 2, total: 16 }, estandar: { discretos: 6, huecos: 3, total: 9 }, agente: { discretos: 3, huecos: 1, total: 4 }, juicio: { discretos: 6, huecos: 1, total: 7 }, criterio: { discretos: 2, huecos: 6, total: 8 } });
+    expect(cifrasDeCampos(datos)).toEqual({ skill: { discretos: 14, huecos: 2, total: 16 }, estandar: { discretos: 7, huecos: 3, total: 10 }, agente: { discretos: 3, huecos: 1, total: 4 }, juicio: { discretos: 6, huecos: 1, total: 7 }, criterio: { discretos: 2, huecos: 6, total: 8 } });
     expect(md).toContain("| `skill` | 14 | 2 | 16 |");
     expect(md).toContain("| `criterio` | 2 | 6 | 8 |");
-    expect(md).toContain("| `estandar` | 6 | 3 | 9 |");
+    expect(md).toContain("| `estandar` | 7 | 3 | 10 |");
     expect(md).toContain("| `juicio` | 6 | 1 | 7 |");
   });
   it("FORJA.md dice que la única lista de tipos es la de ops/forja/ y dónde están los moldes", () => {
