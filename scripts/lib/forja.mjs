@@ -112,6 +112,16 @@ export const FUENTE_F = /^\[F\] https:\/\/[^\s/]+\/\S*$/;
 export const FUENTE_I = /^\[I\] (\S+)$/;
 export const esTexto = (v, min) => typeof v === "string" && v.trim().length >= min;
 
+/**
+ * Los pasos de herencia (#652, docs/ops/BASE-FORJA.md §3.4), de arriba abajo: base, forja, plantilla, pieza.
+ * Espejo de `base.pasos` de ops/forja/ (lo comprueba ops/base.test.js). Sustituyen al «nivel» 0/1/2: el
+ * 0 es la forja (la pieza meta de la familia), el 1 la plantilla y el 2 la pieza. Una skill dice su paso
+ * en `metadata.paso` solo si no es la pieza (hoy, solo forja-de-skills lleva `forja`).
+ */
+export const PASOS = ["base", "forja", "plantilla", "pieza"];
+export const PASO_FORJA = "forja";
+export const PASO_PIEZA = "pieza";
+
 export function leerForja(raiz) {
   return leerCatalogo(raiz, RUTA_FORJA);
 }
@@ -453,15 +463,15 @@ function problemasDeTipos(c, d, datos, malos) {
 
 /**
  * La taxonomía. `skills`: los nombres de las skills del repo; `fichaDe`: skill → su
- * `metadata` (con las respuestas ya como true o false). Cada skill de nivel 2 declara
+ * `metadata` (con las respuestas ya como true o false). Cada skill (paso pieza) declara
  * en su ficha sus respuestas a `preguntas_tipo` y su `tipo`, que tiene que ser el que
  * ellas dan; la base no guarda datos de cada pieza (#495). `destino_tipos_actuales`
  * guarda los tipos retirados y a cuáles pasan: ninguno vuelve a ser un tipo ni a estar en una skill.
  */
 export function problemasDeTaxonomia(datos, { skills: todas, fichaDe = {} }) {
-  const nivel = (s) => String(fichaDe[s]?.nivel ?? "2");
-  // La pieza meta (nivel 0) no tiene tipo ni respuestas.
-  const metas = todas.filter((s) => nivel(s) === "0");
+  const paso = (s) => String(fichaDe[s]?.paso ?? PASO_PIEZA);
+  // La pieza meta (paso forja) no tiene tipo ni respuestas.
+  const metas = todas.filter((s) => paso(s) === PASO_FORJA);
   const skills = todas.filter((s) => !metas.includes(s));
   const malos = [];
   const tipos = datos.tipos_skill ?? [];
@@ -500,13 +510,13 @@ export function problemasDeTaxonomia(datos, { skills: todas, fichaDe = {} }) {
   }
   for (const s of metas) {
     const r = fichaDe[s] ?? {};
-    if ("tipo" in r) malos.push(`${s}: es la pieza meta (nivel 0) y no lleva tipo`);
-    for (const k of claves) if (k in r) malos.push(`${s}: es la pieza meta (nivel 0) y no responde «${k}»`);
+    if ("tipo" in r) malos.push(`${s}: es la pieza meta (paso forja) y no lleva tipo`);
+    for (const k of claves) if (k in r) malos.push(`${s}: es la pieza meta (paso forja) y no responde «${k}»`);
   }
-  if (metas.length !== 1) malos.push(`hay ${metas.length} piezas meta (nivel 0) entre las skills; tiene que haber exactamente una`);
-  const n0 = datos.nivel_0?.skills?.secciones;
-  if (!Array.isArray(n0) || !n0.length || n0.at(-1) !== "Fuentes y comprobación") malos.push("nivel_0.skills.secciones: la forma de la pieza meta es una lista de secciones que acaba en «Fuentes y comprobación»");
-  for (const k of ["0", "1", "2"]) if (!esTexto(datos.niveles?.[k], 20)) malos.push(`niveles: falta el ${k} con su explicación`);
+  if (metas.length !== 1) malos.push(`hay ${metas.length} piezas meta (paso forja) entre las skills; tiene que haber exactamente una`);
+  const n0 = datos.forma_forja?.skills?.secciones;
+  if (!Array.isArray(n0) || !n0.length || n0.at(-1) !== "Fuentes y comprobación") malos.push("forma_forja.skills.secciones: la forma de la pieza meta es una lista de secciones que acaba en «Fuentes y comprobación»");
+  for (const k of PASOS) if (!esTexto(datos.base?.pasos?.[k]?.que, 20)) malos.push(`base.pasos: falta el paso ${k} con su explicación`);
   for (const [s, p] of Object.entries(provisionales)) {
     if (!skills.includes(s)) malos.push(`${s}: skill provisional que no existe`);
     if (!esTexto(p?.motivo, 30)) malos.push(`${s}: skills_provisionales lleva su motivo (30 caracteres o más)`);
@@ -760,11 +770,19 @@ function mdTipos(datos) {
     "|---|---|",
     ...Object.entries(datos.destino_tipos_actuales).map(([t, d]) => `| ${t} | ${d.destinos.join(", ") || "sin sucesor"} |`),
     "",
-    "Cada skill declara en su ficha (frontmatter) sus respuestas a las preguntas y su `tipo`, que tiene que ser el que ellas dan: la base es norma y no guarda datos de cada pieza (`ops/forja-tipos.test.js` y `.claude/skills.test.js`). Niveles:",
+    "Cada skill declara en su ficha (frontmatter) sus respuestas a las preguntas y su `tipo`, que tiene que ser el que ellas dan: el catálogo es norma y no guarda datos de cada pieza (`ops/forja-tipos.test.js` y `.claude/skills.test.js`). Pasos de herencia (`base.pasos`; el campo `paso` de la ficha sustituye al antiguo `nivel`, 0 = forja, 1 = plantilla, 2 = pieza):",
     "",
-    "| Nivel | Qué es |",
-    "|---|---|",
-    ...Object.entries(datos.niveles ?? {}).map(([n, q]) => `| ${n} | ${celda(q)} |`),
+    "| Paso | Qué es | Hereda de |",
+    "|---|---|---|",
+    ...Object.entries(datos.base?.pasos ?? {}).map(([p, d]) => `| ${p} | ${celda(d.que)} | ${d.hereda ?? "nada"} |`),
+    "",
+    "La base común (`base` de `ops/forja/`, la vigila `ops/base.test.js`): lo que toda forja hereda y solo puede endurecer. Redacción por tipo de texto:",
+    "",
+    "| Tipo de texto | Voz | Modo y tiempo | Persona | Sintaxis |",
+    "|---|---|---|---|---|",
+    ...Object.entries(datos.base?.redaccion ?? {}).map(([k, r]) => `| ${k} | ${r.voz} | ${r.modo_tiempo} | ${r.persona.join(" y ")} | ${celda(r.sintaxis)} |`),
+    "",
+    `Metas (cada una con al menos una fuente de marca ${datos.base?.fuente?.marca}): ${Object.keys(datos.base?.metas ?? {}).join(", ")}.`,
     "",
     "Herencia: esqueleto común (la base) → plantilla por tipo (las normas que le tocan, `tipos` de cada norma) → cada skill. Normas de skill por tipo y capa:",
     "",

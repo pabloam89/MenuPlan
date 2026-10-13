@@ -42,8 +42,8 @@ mitad de los avisos de tres revisiones seguidas se dieron por falsos positivos
 Una skill de nivel 2 se mira contra el molde de su tipo
 (`.claude/plantillas-skill/<tipo>.md`, que sale de `ops/forja/`): su tipo
 tiene que ser el que dan las respuestas de su ficha, y sus secciones, las del
-molde. La pieza meta (nivel 0, `forja-de-skills`) no tiene tipo ni molde: se mira
-con las reglas comunes y las secciones de `nivel_0` de la forja.
+molde. La pieza meta (paso forja, `forja-de-skills`) no tiene tipo ni molde: se mira
+con las reglas comunes y las secciones de `forma_forja` de la forja.
 
 Sobre eso, los códigos de la forja y estos propios (los criterios que juzgan a
 mano, en `.claude/skills/forja-de-skills/referencias/criterios.md`):

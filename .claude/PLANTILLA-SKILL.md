@@ -9,10 +9,11 @@ secciones en orden, los campos de la ficha, cómo se prueba y su ejemplo mínimo
 está en su molde, `.claude/plantillas-skill/<tipo>.md`, generado desde la forja.
 La de tipo **servicio** es un **runbook**: cómo se opera un servicio.
 
-Tres niveles (`niveles` de `ops/forja/`): la pieza meta, `forja-de-skills`
-(nivel 0, `nivel: 0` en su ficha y sin tipo), de la que salen los moldes por tipo
-(nivel 1), y de ellos cada skill (nivel 2). A la pieza meta le valen las reglas
-comunes de aquí, no el molde de un tipo: sus secciones las fija `nivel_0` de la forja.
+Tres pasos de la familia (`base.pasos` de `ops/forja/`, que heredan de la base común):
+la pieza meta, `forja-de-skills` (paso `forja`, `paso: forja` en su ficha y sin tipo),
+de la que salen las plantillas por tipo (paso `plantilla`), y de ellas cada skill
+(paso `pieza`, el de por defecto). A la pieza meta le valen las reglas comunes de aquí,
+no el molde de un tipo: sus secciones las fija `forma_forja` de la forja.
 
 La forma la vigila `.claude/skills.test.js` (nivel 1, gratis, en el CI) con las
 reglas de `scripts/lib/skills.mjs`; si algo de aquí cambia, cambia allí y el test

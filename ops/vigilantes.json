@@ -107,7 +107,7 @@
     },
     {
       "id": "skills-forma",
-      "tests": [".claude/skills.test.js", ".claude/voz.test.js", ".claude/dominios-skills.test.js", "ops/flujo.test.js", "scripts/encargo.test.js"],
+      "tests": [".claude/skills.test.js", ".claude/voz.test.js", ".claude/dominios-skills.test.js", "ops/flujo.test.js", "scripts/encargo.test.js", "ops/base.test.js"],
       "mira": [".claude/skills/**", ".claude/dominios-skills.json", "ops/forja/**", ".claude/PLANTILLA-SKILL.md", "ops/flujo.json", "docs/ops/*.md"],
       "porque": "Recorren todas las skills: forma, forja, mapa de dominios, nombres que cita el flujo y plantilla del encargo sin copiar. Un cambio en una skill rompe la vecina.",
       "amplio": true
