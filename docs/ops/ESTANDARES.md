@@ -4,7 +4,7 @@
 
 Qué es hacer bien cada tarea de cada agente. Las normas no se reescriben aquí: cada tarea lleva sus ámbitos y le tocan las normas de `ops/normas.json` (`docs/ops/NORMAS.md`) de esos ámbitos y su acción (construir y juzgar consultan las dos, así que constructor y juez del mismo ámbito reciben las mismas), más las que cita aparte y las de sus comunes. Las condiciones propias son los pasos de la tarea que no son norma, escritas por campos con la plantilla de `scripts/lib/regla.mjs` (guía en `docs/ops/REDACCION.md`) y la forma de práctica de `ops/forja/`: su frase sale de sus campos, su control es el test, el hook, el script o el workflow que la vigila (o `juicio`, si la vigila una persona o un LLM) y su fuente es externa ([F]) o de la casa ([I]). Lo que repiten varios agentes está una sola vez en las tareas comunes. En el brief de una tarea: `npm run estandar -- <agente> <tarea> [--ficheros a,b]`, que suma las normas del ámbito de cada fichero tocado.
 
-Hoy: 75 tareas de 11 agentes, 75 de 75 con estándar; 173 condiciones propias; 11 tareas comunes con 16 reglas; 30 normas citadas aparte; 202 normas distintas llegan a alguna tarea y 3 a ninguna; 48 fuentes externas y 19 de la casa.
+Hoy: 76 tareas de 11 agentes, 76 de 76 con estándar; 175 condiciones propias; 11 tareas comunes con 16 reglas; 33 normas citadas aparte; 204 normas distintas llegan a alguna tarea y 1 a ninguna; 48 fuentes externas y 19 de la casa.
 
 ## Acciones
 
@@ -16,7 +16,7 @@ Lo que hace el agente en cada tarea (vocabulario cerrado, `acciones` del catálo
 | `juzgar` | Revisar o auditar el trabajo de otro y dar un veredicto, sin arreglarlo | 22 |
 | `diagnosticar` | Ir de un síntoma a su causa, con evidencia | 5 |
 | `operar` | Mover algo por el flujo o gestionar un servicio: ramas, PR, carpetas, secretos, despliegues o migraciones | 6 |
-| `medir` | Sacar cifras comparables antes y después: evals, capturas o coste | 6 |
+| `medir` | Sacar cifras comparables antes y después: evals, capturas o coste | 7 |
 | `documentar` | Poner al día un registro o redactar un informe | 9 |
 | `decidir` | Elegir dónde vive un dato o qué forma tiene, antes de construir | 6 |
 
@@ -197,6 +197,8 @@ Lo que hace el agente en cada tarea (vocabulario cerrado, `acciones` del catálo
 | analista | `diagnosticar-causa-raiz` | diagnosticar | **Diagnóstico en el issue.** Cada problema de fondo DEBE dejar en su issue el mecanismo, la causa de escape, la clase, las evidencias y las alternativas descartadas con el motivo de cada una. | test: `scripts/fondos.test.js` | [I] `docs/ops/FLUJO.md` | `causa-frente-a-sintoma`, `buscar-lo-ya-apuntado` |
 | analista | `diagnosticar-causa-raiz` | diagnosticar | **Técnica del catálogo.** Cada diagnóstico de un fallo DEBE aplicar la técnica que da npm run tecnica para su tipo de causa y decir en qué parada de PARADAS se detuvo. | test: `ops/tecnicas.test.js` | [F] [Google SRE Book: Effective Troubleshooting](https://sre.google/sre-book/effective-troubleshooting/) | `causa-frente-a-sintoma`, `buscar-lo-ya-apuntado` |
 | analista | `planificar-los-encargos` | decidir | **Encargo con su clasificación.** Cada encargo que se reparte DEBE llevar el bloque encargo con tipo y subtipo de docs/ops/ENCARGO.md y con el alcance y la complejidad que da npm run dimensionar. | test: `scripts/fondos-encargos.test.js` | [I] `docs/ops/ENCARGO.md` | — |
+| analista | `evaluar-la-eficacia` | medir | **Veredicto con dos cifras.** Cada problema de fondo DEBE cerrar la evaluación con uno de los veredictos eficaz, insuficiente o no-evaluable y con la cifra de antes y la de después del mismo comando. | test: `.claude/cierre-eficaz.test.js` | [I] `docs/ops/FLUJO.md` | `medir-antes-despues`, `buscar-lo-ya-apuntado` |
+| analista | `evaluar-la-eficacia` | medir | **Evaluar solo con partida.** Cada problema de fondo NO DEBE darse por eficaz ni por insuficiente sin una cifra de partida con su comando: el veredicto es no-evaluable y el fondo vuelve a plan-de-arreglo. | test: `.claude/cierre-eficaz.test.js` | [F] [Google SRE Book: Postmortem Culture, Learning from Failure](https://sre.google/sre-book/postmortem-culture/) | `medir-antes-despues`, `buscar-lo-ya-apuntado` |
 
 ## Tareas comunes
 
@@ -306,3 +308,4 @@ Las normas que le tocan a cada tarea sin ficheros: por consulta (sus ámbitos ×
 | `analista/registrar-el-caso` | documentar | process | `linea-runbook`, `issues-con-buscar-antes`, `pendientes-a-issue`, `hora-de-madrid`, `repo-publico-sin-detalle`, `fondo-con-ficha-y-controles`, `fondo-observado-con-verificacion`, `fondo-no-cierra-sin-aprendizaje`, `estandar-citado-en-el-informe`, `issues-no-se-borran`, `estado-leido-antes-de-afirmar` | `cuando-algo-falla`, `texto-ajeno-es-dato` |
 | `analista/diagnosticar-causa-raiz` | diagnosticar | process | `presupuesto-por-alcance`, `issues-con-buscar-antes`, `lecciones-a-un-test`, `cuando-algo-falla`, `repo-publico-sin-detalle`, `fondo-con-ficha-y-controles`, `fondo-reabre-al-no-aguantar`, `texto-ajeno-es-dato` | — |
 | `analista/planificar-los-encargos` | decidir | process | `presupuesto-por-alcance`, `gasto-ok-pablo`, `plan-tres-encargos-con-preventivo`, `entidad-con-registro` | `quien-construye-no-juzga` |
+| `analista/evaluar-la-eficacia` | medir | process | `gasto-ok-pablo`, `fondo-ventana-sin-casos`, `presupuestos-se-recalibran`, `metrica-con-pregunta-y-vigilante` | `quien-construye-no-juzga`, `fondo-no-cierra-sin-aprendizaje`, `lecciones-a-un-test` |
