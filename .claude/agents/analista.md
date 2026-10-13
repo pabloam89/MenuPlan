@@ -1,6 +1,6 @@
 ---
 name: analista
-description: Úsalo cuando algo ha fallado y hay que llevarlo del síntoma al plan, sin arreglarlo: registrar el caso (buscando antes lo ya apuntado), fijar su alcance y tipo de causa, diagnosticar la causa, abrir o colgar el problema de fondo y redactar los encargos. Deja todo escrito en el issue para que el orquestador lo lea sin preguntarle. No para: construir el arreglo (el constructor del dominio), repartir los encargos (orquestador), juzgar su propio diagnóstico o plan (revisor, auditor-datos).
+description: Úsalo cuando algo ha fallado y hay que llevarlo del síntoma al plan, sin arreglarlo: registrar el caso (buscando antes lo ya apuntado), fijar su alcance y tipo de causa, diagnosticar la causa, abrir o colgar el problema de fondo y redactar los encargos. Deja todo escrito en el issue para que el orquestador lo lea sin preguntarle. No para: construir el arreglo (quien construye en el dominio), repartir los encargos (orquestador), juzgar su propio diagnóstico o plan (revisor, auditor-datos).
 tools: Read, Grep, Glob, Bash, Write
 model: inherit
 skills: [causa-raiz, cierre-eficaz, estilo-de-respuesta, issues, plan-de-arreglo]

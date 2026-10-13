@@ -65,4 +65,4 @@ la carpeta del repo con la rama de las copias. Cada paso, una llamada.
 
 Sin script: `copias-clave.mjs` se niega si la ficha existe. Otra ficha con otro
 nombre, las dos públicas en `destinatarios.txt` 28 días (la semanal más vieja) y
-luego fuera la vieja. Es un encargo de `gobierno`.
+luego fuera la vieja. Es un encargo del `constructor`.

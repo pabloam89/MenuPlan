@@ -250,7 +250,7 @@ describe("campos de las fichas: lo que ya existe cumple lo que declara campos_fi
     for (const [id, t] of tareas) expect(problemasDeCampos(t, "estandar", datos, ctxCampos), id).toEqual([]);
   });
   it("el frontmatter de todos los agentes", () => {
-    expect(agentesDelRepo.length).toBeGreaterThanOrEqual(9);
+    expect(agentesDelRepo.length).toBeGreaterThanOrEqual(8);
     for (const a of agentesDelRepo) expect(problemasDeCampos(fichaDeAgente(a), "agente", datos, ctxCampos), a).toEqual([]);
   });
   it("cada artefacto tiene sus campos declarados, y los juicios de skill y los criterios los suyos", () => expect(Object.keys(datos.campos_ficha).sort()).toEqual([...Object.keys(ARTEFACTOS), "juicio", "criterio"].sort()));
@@ -330,7 +330,7 @@ describe("autotest de los campos: cada regla falla con datos malos", () => {
   });
   it("una ref que no existe: skill, agente, criterio, ruta, comando, issue y fuente", () => {
     falla({ ...skillOk(), dueno: "nadie" }, "skill", "agente «nadie» no existe");
-    falla({ ...fichaDeAgente("gobierno"), skills: ["github", "no-existe"] }, "agente", "skill «no-existe» no existe");
+    falla({ ...fichaDeAgente("constructor"), skills: ["github", "no-existe"] }, "agente", "skill «no-existe» no existe");
     falla({ ...estOk(), comunes: ["comun-inventada"] }, "estandar", "estandar_comun «comun-inventada» no existe");
     falla({ ...estOk(), normas: ["norma-inventada"] }, "estandar", "norma «norma-inventada» no existe");
     falla({ ...estOk(), ambitos: ["marketing"] }, "estandar", "estandar.ambitos: «marketing» no está en el vocabulario ambito");

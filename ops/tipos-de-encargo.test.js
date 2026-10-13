@@ -3,7 +3,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { AGENTES, CONSTRUCTORES, JUECES, agentesDe } from "../scripts/lib/agentes.mjs";
+import { AGENTES, CONSTRUCTORES, JUECES, TIPOS_AGENTE, agentesDe } from "../scripts/lib/agentes.mjs";
 import { AMBITOS, JUEZ_SIEMPRE, juecesDeAmbitos } from "../scripts/lib/ambitos.mjs";
 import { ACTORES } from "../scripts/lib/flujo.mjs";
 import { leerRegistro } from "../scripts/lib/normas.mjs";
@@ -311,7 +311,8 @@ describe("las definiciones no enumeran a mano a los agentes", () => {
   it("«juez» y el constructor del dominio se definen por su cabecera y ningún nombre de agente va escrito", () => {
     const glosario = JSON.parse(leer("ops/glosario/terminos/juez.json"));
     for (const texto of [ACTORES.juez, ACTORES.agente_dominio, glosario.definicion]) {
-      for (const a of Object.keys(AGENTES)) expect(texto, `«${texto}» nombra a ${a}`).not.toContain(a);
+      // «constructor» es a la vez el único agente de ese tipo (#688) y el valor de `Tipo:`: la definición lo dice como valor, no lo enumera como agente.
+      for (const a of Object.keys(AGENTES).filter((x) => !TIPOS_AGENTE.includes(x))) expect(texto, `«${texto}» nombra a ${a}`).not.toContain(a);
     }
     expect(ACTORES.juez).toContain("Tipo: juez");
     expect(ACTORES.agente_dominio).toContain("Tipo: constructor");
@@ -324,6 +325,7 @@ describe("las definiciones no enumeran a mano a los agentes", () => {
   });
   it("el JSON de tipos no enumera a los constructores en la descripción de «constructor»", () => {
     for (const a of CONSTRUCTORES) expect(DATOS.especiales.constructor).not.toContain(a);
+    expect(CONSTRUCTORES).toEqual(["analista", "constructor", "orquestador"]);
   });
 });
 
@@ -456,12 +458,9 @@ describe("la puerta de entrada: mismo plano, difiere de verdad, lo discreto prim
         for (const t of textos) expect(zonasQueNombra(t), `${s.id}: «${t}»`).toEqual([]);
       }
     });
-    it("un paso fijo que nombra al constructor o al juez de una zona falla; los de operate y audit y el juez por bandera, no", () => {
-      falla("plano", (d) => { act(d, "create-plain").pasos[0].agentes = ["lola"]; }, "lola");
+    it("un paso fijo que nombra al juez de una zona falla; el juez por bandera, no (constructores de zona ya no hay, #688)", () => {
       falla("plano", (d) => { act(d, "fix-bug").pasos[2].agentes = ["qa"]; }, "qa");
       falla("plano", (d) => { act(d, "improve-structure").pasos[1].agentes = ["auditor-datos"]; }, "auditor-datos");
-      // gobierno construye en operate (su tipo es operar la casa) y nombrarlo en un create sí es una zona.
-      falla("plano", (d) => { act(d, "create-plain").pasos[0].agentes = ["gobierno"]; }, "gobierno");
       expect(problemas()).toEqual([]);
       // El juez de zona por bandera va en `opcional` y es lo que ya hace operate-irreversible.
       expect(act(clon(DATOS), "operate-irreversible").pasos[1].opcional.map((o) => o.agente)).toContain("evaluador");

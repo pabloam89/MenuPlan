@@ -13,7 +13,7 @@
         "caso:hetzner/frontera-copias-de-supabase"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "194fc8d3762f"
     },
     "disparador-al-principio": {
@@ -23,7 +23,7 @@
         ".claude/skills.test.js"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "194fc8d3762f"
     },
     "solo-lo-que-el-modelo-no-sabe": {
@@ -36,7 +36,7 @@
         ".claude/skills/hetzner/SKILL.md#Operaciones habituales"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "194fc8d3762f"
     },
     "camino-por-defecto": {
@@ -49,7 +49,7 @@
         ".claude/skills/hetzner/SKILL.md#Operaciones habituales"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "194fc8d3762f"
     },
     "vocabulario-unico": {

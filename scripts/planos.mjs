@@ -93,7 +93,7 @@ if (escribir) {
   }
   datos.medicion = {
     fecha: m.fecha,
-    por: process.env.PLANOS_POR || "gobierno",
+    por: process.env.PLANOS_POR || "constructor",
     red,
     niveles: Object.fromEntries(m.planos.map((p) => [String(p.id), p.nivel])),
   };

@@ -7,7 +7,7 @@
         ".claude/skills/vercel/SKILL.md"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "3b1c9e203c7e"
     },
     "frontera-casi-fallos": {
@@ -17,7 +17,7 @@
         "caso:vercel/frontera-lint-rojo"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "3b1c9e203c7e"
     },
     "disparador-al-principio": {
@@ -27,7 +27,7 @@
         ".claude/skills.test.js"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "3b1c9e203c7e"
     },
     "solo-lo-que-el-modelo-no-sabe": {
@@ -48,7 +48,7 @@
         ".claude/skills/vercel/SKILL.md#Operaciones habituales"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "3b1c9e203c7e"
     },
     "vocabulario-unico": {
@@ -65,7 +65,7 @@
         ".claude/skills/vercel/SKILL.md#Lo que falló y por qué"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "3b1c9e203c7e"
     },
     "forma-adecuada-al-contenido": {

@@ -47,7 +47,7 @@ body:
         alcance: local, modulo, transversal
         severidad: alto, medio, bajo
         estado: abierto, diagnosticado, plan, en-curso, en-observacion, cerrado-eficaz, reabierto
-        capa_agente: analista, auditor-datos, datos, diseno, evaluador, gobierno, lola, orquestador, qa, revisor, seguridad, sesión
+        capa_agente: analista, auditor-datos, constructor, evaluador, orquestador, qa, revisor, seguridad, sesión
         barrera: bloqueo, test_ci, script, skill, texto
         rondas: número entero de rondas de constructor y juez ya gastadas en el arreglo (empieza en 0; el máximo está en ops/presupuestos.json y, al pasarlo, el control falla y pide una decisión)
         Texto libre (hasta 400 caracteres): mecanismo, causa_escape, matiz, aprendizaje.

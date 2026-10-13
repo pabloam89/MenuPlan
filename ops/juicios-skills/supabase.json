@@ -7,7 +7,7 @@
         ".claude/skills/supabase/SKILL.md"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "d52089112186"
     },
     "frontera-casi-fallos": {
@@ -17,7 +17,7 @@
         "caso:supabase/frontera-cron-mercadona"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "d52089112186"
     },
     "disparador-al-principio": {
@@ -27,7 +27,7 @@
         ".claude/skills.test.js"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "d52089112186"
     },
     "solo-lo-que-el-modelo-no-sabe": {
@@ -48,7 +48,7 @@
         ".claude/skills/supabase/SKILL.md#Operaciones habituales"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "d52089112186"
     },
     "vocabulario-unico": {
@@ -65,7 +65,7 @@
         ".claude/skills/supabase/SKILL.md#Lo que falló y por qué"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "d52089112186"
     },
     "forma-adecuada-al-contenido": {

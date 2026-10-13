@@ -13,7 +13,7 @@
         "caso:issues/frontera-causa-de-fondo"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "46c05e84e1ae"
     },
     "disparador-al-principio": {
@@ -23,7 +23,7 @@
         ".claude/skills.test.js"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "46c05e84e1ae"
     },
     "solo-lo-que-el-modelo-no-sabe": {
@@ -44,7 +44,7 @@
         ".claude/skills/issues/SKILL.md#Operaciones habituales"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "46c05e84e1ae"
     },
     "vocabulario-unico": {
@@ -61,7 +61,7 @@
         ".claude/skills/issues/SKILL.md#Lo que falló y por qué"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "46c05e84e1ae"
     },
     "forma-adecuada-al-contenido": {
@@ -71,7 +71,7 @@
         ".claude/skills/issues/SKILL.md#Operaciones habituales"
       ],
       "fecha": "2026-10-10",
-      "firmante": "gobierno",
+      "firmante": "constructor",
       "version_skill_md": "46c05e84e1ae"
     }
   }

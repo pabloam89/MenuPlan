@@ -27,7 +27,7 @@ falla») y en la skill `issues`.
    (propón añadirlo en `scripts/lib/fondos.mjs`).
 6. **Arreglos que no aguantaron.** Por agente: si a uno se le reabren fondos
    por «corto» a menudo, su forma de arreglar se queda en los casos; propón
-   qué cambiar en su fichero de `.claude/agents/` (lo cambia `gobierno`).
+   qué cambiar en su fichero de `.claude/agents/` (lo cambia el `constructor`).
 7. **Planos.** Corre `npm run planos -- --red` (y mira si el workflow
    `planos-semanal.yml` dejó abierto «Planos: la medición semanal no
    cuadra»). Si un nivel no cuadra, di si es real (se guarda con

@@ -18,11 +18,11 @@ const consultaDe = (tabla, padres = {}) => ({
   consultar: async (n) => tabla[n] ?? null,
   consultarPadre: async (n) => padres[n] ?? null,
 });
-const CUERPO = "Arregla.\n\nCloses #51\n\nAgente: gobierno\n\nCasos: ninguno — solo mueve ficheros de sitio\n";
+const CUERPO = "Arregla.\n\nCloses #51\n\nAgente: constructor\n\nCasos: ninguno — solo mueve ficheros de sitio\n";
 
 describe("las líneas del cuerpo", () => {
   it("Agente: acepta mayúsculas, negrita, comillas y «sesion» sin tilde; ignora comentarios y bloques de código", () => {
-    expect(agentesDelPr("Agente: Gobierno").lineas).toEqual(["gobierno"]);
+    expect(agentesDelPr("Agente: Constructor").lineas).toEqual(["constructor"]);
     expect(agentesDelPr("**Agente:** `datos`").lineas).toEqual(["datos"]);
     expect(agentesDelPr("Agente: sesion").lineas).toEqual(["sesión"]);
     expect(agentesDelPr("<!-- Agente: el que lo construyó -->\nAgente: sesión").lineas).toEqual(["sesión"]);
@@ -41,13 +41,13 @@ describe("scripts/fondos-pr.mjs: el PR y su problema de fondo (#337)", () => {
   it("un PR completo, cuyo encargo cuelga de un fondo con diagnóstico, vale", async () => {
     const r = await comprobar({ cuerpo: CUERPO, rama: "ops/51-algo", ...consultaDe({ 51: ENCARGO }, { 51: FONDO(ficha(DIAG)) }) });
     expect(r.ok).toBe(true);
-    expect(r.motivo).toMatch(/Agente: gobierno; Closes #51/);
+    expect(r.motivo).toMatch(/Agente: constructor; Closes #51/);
   });
 
   it("sin Agente: falla y dice qué agentes valen", async () => {
     const r = await comprobar({ cuerpo: "Closes #51\n", ...consultaDe({ 51: ENCARGO }, {}) });
     expect(r.ok).toBe(false);
-    expect(r.motivo).toMatch(/falta la línea «Agente: <nombre>»[\s\S]*gobierno/);
+    expect(r.motivo).toMatch(/falta la línea «Agente: <nombre>»[\s\S]*constructor/);
   });
 
   it("un agente que no existe, falla", async () => {
@@ -57,10 +57,10 @@ describe("scripts/fondos-pr.mjs: el PR y su problema de fondo (#337)", () => {
   });
 
   it("la rama es de un issue y el PR no lo cierra, falla; con otro Closes distinto, también", async () => {
-    const sin = await comprobar({ cuerpo: "Agente: gobierno", rama: "ops/337-esquema-fondo", ...consultaDe({}) });
+    const sin = await comprobar({ cuerpo: "Agente: constructor", rama: "ops/337-esquema-fondo", ...consultaDe({}) });
     expect(sin.ok).toBe(false);
     expect(sin.motivo).toMatch(/la rama es del issue #337: pon «Closes #337»/);
-    const otro = await comprobar({ cuerpo: "Agente: gobierno\nCloses #51", rama: "ops/337-esquema-fondo", ...consultaDe({ 51: ENCARGO }, {}) });
+    const otro = await comprobar({ cuerpo: "Agente: constructor\nCloses #51", rama: "ops/337-esquema-fondo", ...consultaDe({ 51: ENCARGO }, {}) });
     expect(otro.ok).toBe(false);
   });
 
@@ -68,8 +68,8 @@ describe("scripts/fondos-pr.mjs: el PR y su problema de fondo (#337)", () => {
     expect((await comprobar({ cuerpo: "Agente: sesión", rama, ...consultaDe({}) })).ok).toBe(true);
   });
 
-  it("«Agente: gobierno.» con punto o adornos se lee como gobierno", () => {
-    expect(agentesDelPr("Agente: gobierno.").lineas).toEqual(["gobierno"]);
+  it("«Agente: constructor.» con punto o adornos se lee como constructor", () => {
+    expect(agentesDelPr("Agente: constructor.").lineas).toEqual(["constructor"]);
     expect(agentesDelPr("Agente: `datos`, el de siempre").lineas).toEqual(["datos"]);
     expect(agentesDelPr("Agente: robot!").malas).toEqual(["robot"]);
   });
@@ -105,7 +105,7 @@ describe("scripts/fondos-pr.mjs: el PR y su problema de fondo (#337)", () => {
   });
 
   it("cerrar un FONDO con el PR exige aprendizaje en su ficha", async () => {
-    const cuerpo = "Closes #50\nAgente: gobierno";
+    const cuerpo = "Closes #50\nAgente: constructor";
     const sin = await comprobar({ cuerpo, ...consultaDe({ 50: FONDO(ficha(DIAG)) }) });
     expect(sin.ok).toBe(false);
     expect(sin.motivo).toMatch(/no tiene «aprendizaje»[\s\S]*sin él no se cierra[\s\S]*cierra el encargo, no el fondo/);
@@ -116,7 +116,7 @@ describe("scripts/fondos-pr.mjs: el PR y su problema de fondo (#337)", () => {
   });
 
   it("cerrar un fondo anterior a la ficha y sin ella no se exige", async () => {
-    const r = await comprobar({ cuerpo: "Closes #50\nAgente: gobierno", ...consultaDe({ 50: FONDO("### Arreglo general", { created_at: "2026-10-01T00:00:00Z" }) }) });
+    const r = await comprobar({ cuerpo: "Closes #50\nAgente: constructor", ...consultaDe({ 50: FONDO("### Arreglo general", { created_at: "2026-10-01T00:00:00Z" }) }) });
     expect(r.ok).toBe(true);
   });
 
@@ -197,7 +197,7 @@ describe("las normas sin ejecutor: falla solo el PR responsable, el resto recibe
     expect(await f(N("e", null))).toMatch(/norma e: sin ejecutor y sin issue/);
   });
   it("un PR con Closes #n que deja una norma colgando de #n falla; si cuelga de otro, solo avisa", async () => {
-    const cierra = { cuerpo: "Closes #297\nAgente: gobierno\nCasos: ninguno — prueba de la norma\n" };
+    const cierra = { cuerpo: "Closes #297\nAgente: constructor\nCasos: ninguno — prueba de la norma\n" };
     const r = await comprobar({ ...cierra, normas: [N("a", 297)], ...consultaDe(tabla, {}) });
     expect(r.ok).toBe(false);
     expect(r.motivo).toMatch(/norma a: su issue #297 está cerrado/);
