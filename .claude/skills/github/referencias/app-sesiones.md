@@ -195,8 +195,8 @@ guardia futura: el token solo debe capturarse con `$(…)`, y no imprimirse.
 El arranque canjea la clave (`scripts/lib/tokenSesion.mjs`, sobre `token-sesiones.mjs`) por un token de 1 hora
 en `CLAUDE_ENV_FILE`, que carga Bash: `GH_TOKEN`, un ayudante de `git push` y el autor `homenu-sesiones[bot]`.
 En PowerShell, `node scripts/token-sesion.mjs -- <comando>`, que sirve también con el token caducado
-(`-- gh …`, `-- git push`). Sin clave legible avisa y sigue como Pablo (a los 13 s); sus credenciales siguen en
-el llavero y el manager de github.com hasta su `gh auth logout`.
+(`-- gh …`, `-- git push`). Sin clave legible avisa (a los 13 s). Desde el 13 oct 2026 Pablo no tiene sesión de `gh` ni
+entrada de github.com en el llavero de este PC: sin la clave de la App, `gh` y `git push` no entran.
 
 ### La caché del token (E3)
 
@@ -261,9 +261,10 @@ Es un filtro de buena fe, no una barrera. Huecos que no se pueden cerrar mirando
 el texto: una variable intermedia, un script escrito en un fichero y ejecutado,
 otro intérprete, `xargs` u otro lanzador y los nombres calculados en PowerShell.
 Tampoco se vigila `git config user.name`, `--author` ni `-c user.name=…`: solo
-cambian la autoría visible del commit. La barrera de fondo es de Pablo:
-`gh auth logout` y quitar el manager de credenciales de github.com de su PC.
-Hasta entonces, sus credenciales siguen ahí.
+cambian la autoría visible del commit. La barrera de fondo es de Pablo y
+está hecha desde el 13 oct 2026: `gh auth logout` de sus dos cuentas y quitar la entrada
+`git:https://github.com` del llavero (`cmdkey`). Si vuelve a entrar con `gh auth login` para tocar reglas,
+sus credenciales vuelven a estar ahí hasta que cierre otra vez.
 
 ## Lo que falló
 

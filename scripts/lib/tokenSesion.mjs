@@ -306,7 +306,7 @@ export function avisoDeIdentidad({ identidad, token, motivo = "-", advertencias 
   const cuenta = lineaIdentidad({ identidad, token, motivo, cache });
   for (const a of advertencias) if (!ADVERTENCIAS.includes(a)) throw new Error(`advertencia fuera del vocabulario: ${a}`);
   const extra = advertencias.length ? ` ADVERTENCIA: ${advertencias.join(", ")}.` : "";
-  const resto = "Las credenciales de Pablo siguen en el llavero y en el manager de github.com hasta que haga `gh auth logout` y lo quite.";
+  const resto = "Pablo cerró su sesión de `gh` y quitó github.com del llavero el 13 oct 2026: sin el token de la App, `gh` y `git push` no entran.";
   if (identidad === "pablo") {
     const porque = token === "app" ? "el token de la App no se ha aplicado a esta sesión" : `no hay token de la App (${motivo})`;
     return `AVISO: esta sesión trabaja con la identidad de Pablo (${LOGIN_PABLO}, administrador): ${porque}. Sigue con ella (plan B): commits y PR saldrán a su nombre y nada impide cambiar reglas del repo (#326, skill github).${extra} ${cuenta}`;

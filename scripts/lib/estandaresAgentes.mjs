@@ -76,7 +76,7 @@ export const DOMINIOS_FUENTE = [
 ];
 
 /** Dominios que solo admite una fuente con uso «pool» (ops/pool/): referencias de oficio, no sirven a una regla. */
-export const DOMINIOS_POOL = ["martinfowler.com", "www.bkent.net", "docs.getdbt.com", "dama.org"];
+export const DOMINIOS_POOL = ["martinfowler.com", "www.bkent.net", "docs.getdbt.com", "dama.org", "claude.com", "www.nngroup.com", "digital.gov", "design-system.service.gov.uk"];
 
 /** Extensiones de lo que puede vigilar una regla: un test, un hook, un script o un workflow, no un documento. */
 const CONTROL_EJECUTABLE = /\.(m?js|jsx|cjs|ya?ml)$/;

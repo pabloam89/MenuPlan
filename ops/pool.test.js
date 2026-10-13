@@ -43,6 +43,21 @@ describe("pool de buenas prácticas", () => {
     expect(c.por_origen).toEqual({ campo: 25, casa: 4 });
     expect(Object.values(c.por_estado).reduce((a, b) => a + b, 0)).toBe(c.practicas);
   });
+
+  it("orquestador y diseno cierran las reglas y sus cifras cuadran con los datos", () => {
+    for (const [agente, reglas, deCampo, practicas, porEstado, porOrigen] of [
+      ["orquestador", 9, 7, 23, { cubierta: 9, pendiente: 11, descartada: 3 }, { campo: 21, casa: 2 }],
+      ["diseno", 23, 9, 50, { cubierta: 24, pendiente: 24, descartada: 2 }, { campo: 36, casa: 14 }],
+    ]) {
+      expect(pool.agentes[agente].cierra_reglas).toBe(true);
+      const c = cifrasDeAgente(pool, estandares, agente);
+      expect(c.reglas).toBe(reglas);
+      expect(c.reglas_con_practica_de_campo).toBe(deCampo);
+      expect(c.practicas).toBe(practicas);
+      expect(c.por_estado).toEqual(porEstado);
+      expect(c.por_origen).toEqual(porOrigen);
+    }
+  });
 });
 
 // Cada control se ve fallar: se rompe una copia del pool y el problema sale con su causa.
