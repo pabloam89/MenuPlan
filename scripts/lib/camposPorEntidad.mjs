@@ -201,7 +201,7 @@ export function sumaCuentas(cuentas) {
   return s;
 }
 
-const corto = (x, n = 40) => (String(x).length > n ? `${String(x).slice(0, n - 1)}…` : String(x)).replace(/[\s=]+/g, "_");
+const corto = (x, n = 40) => (String(x).length > n ? `${String(x).slice(0, n - 1)}…` : String(x)).replace(/[\s=:,]+/g, "_");
 
 /** `cerrado=17 booleano=0 … total=31`: una línea `campo: valor` contable. */
 export function textoCuenta(c) {
@@ -210,7 +210,7 @@ export function textoCuenta(c) {
   return `${claves.map((k) => `${k}=${c[k] ?? 0}`).join(" ")} total=${total}`;
 }
 
-/** Las frecuencias de un campo como `valor:veces,valor:veces`, sin espacios ni «=». */
+/** Las frecuencias de un campo como `valor:veces,valor:veces`; el valor no lleva espacios, «=», «:» ni «,» (se vuelven «_»), así que se parte sin ambigüedad por «,» y por el último «:». */
 export function textoFrecuencias(frecuencias) {
   return frecuencias.map(([v, n]) => `${corto(v)}:${n}`).join(",");
 }

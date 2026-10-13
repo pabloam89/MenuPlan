@@ -1,5 +1,5 @@
 {
-  "$comentario": "Dónde mide npm run campos-por-entidad los campos de cada entidad de ops/entidades.json (#711, continúa #706). Una entidad declara sus fuentes de datos (ficheros: un JSON y el camino a sus registros, un directorio de JSON, las cabeceras de un directorio de .md o un export de JS; `grupo` junta en un solo recuento las fuentes que guardan lo mismo, p. ej. las normas de la factoría y las de un proyecto) y/o sus tablas de la base, o dice con sin_fuente por qué no se puede medir (vive en GitHub, en prosa o en constantes). Nada se mide si no se declara aquí: una entidad nueva sin entrada hace fallar ops/campos-por-entidad.test.js. Una tabla de la base va a una sola entidad; las de sin_entidad no tienen entidad todavía. El script no escribe nada. Lo lee scripts/campos-por-entidad.mjs.",
+  "$comentario": "Dónde mide npm run campos-por-entidad los campos de cada entidad de ops/entidades.json (#711, continúa #706). Una entidad declara sus fuentes de datos (ficheros: un JSON y el camino a sus registros, un directorio de JSON, las cabeceras de un directorio de .md o un export de JS; `grupo` junta en un solo recuento las fuentes que guardan lo mismo, p. ej. las normas de la factoría y las de un proyecto) y/o sus tablas de la base, o dice con sin_fuente por qué no se puede medir (vive en GitHub, en prosa o en constantes). Nada se mide si no se declara aquí: una entidad nueva sin entrada hace fallar ops/campos-por-entidad.test.js. Una tabla de la base va a una sola entidad; las de ops/MODULOS.json que ninguna entidad reclama no tienen entidad todavía (se derivan, no se listan aquí). El script no escribe nada. Lo lee scripts/campos-por-entidad.mjs.",
   "version": 1,
   "entidades": {
     "session": {
@@ -358,17 +358,5 @@
     "shopping-list": {
       "sin_fuente": "Prosa de specs/shopping-list.md; no se guarda como entidad propia"
     }
-  },
-  "sin_entidad": [
-    "app_feedback",
-    "content_reports",
-    "content_translations",
-    "ids_uuid_equivalencias",
-    "registro_campo",
-    "sobre",
-    "social_comment_likes",
-    "social_comments",
-    "user_events",
-    "user_follows"
-  ]
+  }
 }

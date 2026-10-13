@@ -17,7 +17,7 @@ const modulos = leer("ops/MODULOS.json");
 
 describe("ops/campos-por-entidad.json", () => {
   it("solo trae las claves conocidas", () => {
-    expect(Object.keys(registro).sort()).toEqual(["$comentario", "entidades", "sin_entidad", "version"]);
+    expect(Object.keys(registro).sort()).toEqual(["$comentario", "entidades", "version"]);
     for (const [id, r] of Object.entries(registro.entidades)) {
       const sobran = Object.keys(r).filter((k) => !["sin_fuente", "ficheros", "tablas"].includes(k));
       expect(sobran, id).toEqual([]);
@@ -53,11 +53,18 @@ describe("ops/campos-por-entidad.json", () => {
 
   it("cada tabla va a una sola entidad y existe en ops/MODULOS.json", () => {
     const vistas = new Map();
-    const todas = [...Object.entries(registro.entidades).flatMap(([id, r]) => (r.tablas ?? []).map((t) => [t, id])), ...registro.sin_entidad.map((t) => [t, "sin_entidad"])];
+    const todas = [...Object.entries(registro.entidades).flatMap(([id, r]) => (r.tablas ?? []).map((t) => [t, id]))];
     for (const [t, id] of todas) {
       expect(modulos.tablas[t], `${id}: la tabla ${t} no está en ops/MODULOS.json`).toBeDefined();
       expect(vistas.has(t), `${t} está en ${vistas.get(t)} y en ${id}`).toBe(false);
       vistas.set(t, id);
     }
+  });
+
+  it("sin_entidad se deriva: las tablas de ops/MODULOS.json que ninguna entidad reclama", () => {
+    expect(registro.sin_entidad).toBeUndefined();
+    const reclamadas = new Set(Object.values(registro.entidades).flatMap((r) => r.tablas ?? []));
+    const sueltas = Object.keys(modulos.tablas).filter((t) => !reclamadas.has(t));
+    expect(sueltas.length).toBeGreaterThan(0);
   });
 });

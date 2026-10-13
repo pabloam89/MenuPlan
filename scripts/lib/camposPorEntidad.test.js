@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  ORDEN_TIPOS, TIPOS_CAMPO, cabeceraMd, camposDeRegistros, cuentaPorTipo, registrosDe, sumaCuentas, textoCuenta, tipoDeCampo, tipoDeColumna,
+  ORDEN_TIPOS, TIPOS_CAMPO, cabeceraMd, camposDeRegistros, cuentaPorTipo, registrosDe, sumaCuentas, textoCuenta, textoFrecuencias, tipoDeCampo, tipoDeColumna,
 } from "./camposPorEntidad.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -137,5 +137,13 @@ describe("npm run campos-por-entidad", () => {
     expect(r.status).toBe(0);
     expect(r.stdout).toMatch(/^entidad_campos: entidad=norm alcance=both origen=ficheros /m);
     expect(r.stdout).toMatch(/^texto_repetido: entidad=norm .* campo=control /m);
+  });
+});
+
+describe("textoFrecuencias", () => {
+  it("un valor con «:» o «,» no rompe el reparto en pares valor:veces", () => {
+    const t = textoFrecuencias([["a:b,c d=e", 3], ["x", 1]]);
+    expect(t).toBe("a_b_c_d_e:3,x:1");
+    expect(t.split(",").map((p) => p.split(":"))).toEqual([["a_b_c_d_e", "3"], ["x", "1"]]);
   });
 });
