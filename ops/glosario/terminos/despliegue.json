@@ -12,7 +12,6 @@
     "entorno",
     "rama"
   ],
-  "en": "deployment",
   "entidades": [
     {
       "entidad": "event",

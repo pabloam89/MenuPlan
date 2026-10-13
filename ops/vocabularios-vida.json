@@ -95,13 +95,6 @@
       "operate": "Operar la casa: CI, permisos, hooks, ramas, secretos, despliegues",
       "audit": "Mirar sin tocar: solo jueces, en paralelo"
     },
-    "entidades.becomes": {
-      "value": "un valor de un campo de otra entidad",
-      "field": "un campo de otra entidad",
-      "event_type": "un tipo de evento",
-      "type": "un tipo de otra entidad",
-      "renamed": "la misma entidad con otro id y otro nombre: cambia cómo se llama, no qué es"
-    },
     "entidades.cardinality": {
       "one_to_one": "Uno con uno",
       "one_to_many": "Un a con varios b",
@@ -1277,6 +1270,11 @@
       "vocabulario": "entidades.axis",
       "desde": "2026-10-12",
       "motivo": "El eje de una entidad (horizontal, vertical, bridge) lo sustituye entidades.scope (horizontal, vertical, both): bridge pasa a ser both y «puente» una propiedad calculada, no un valor (decisión de Pablo, #652)"
+    },
+    {
+      "vocabulario": "entidades.becomes",
+      "desde": "2026-10-13",
+      "motivo": "Una entidad que se quita se borra del registro (el historial queda en git) y no se conserva retirada con replaced_by y becomes: sin entidades retiradas no hay en qué se convierte lo retirado (decisión de Pablo, #706)"
     }
   ]
 }

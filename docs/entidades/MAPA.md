@@ -16,7 +16,7 @@ Un **puente** ya no es un valor: es una entidad de alcance `both`, y se calcula.
 `parent_of` o `reference`) y cardinalidad. La contención va de la factoría al proyecto y de este al entorno (`part_of`).
 Los ids van en inglés (decisión de Pablo del 11 oct 2026); los nombres y las notas, en castellano.
 
-Hoy hay 54 entidades activas: 22 horizontales, 22 verticales y 10 de los dos lados (puentes), y 8 retiradas.
+Hoy hay 54 entidades activas: 22 horizontales, 22 verticales y 10 de los dos lados (puentes).
 Las relaciones son 93: is_a 5, parent_of 4, part_of 23, reference 61.
 
 ## Horizontales: la factoría
@@ -277,18 +277,3 @@ Lo que antes era una entidad o un hueco y es un tipo de `event`, con su motivo c
 |---|---|---|---|
 | `human_intervention` | `event` | reason (gateway, permission, decision, tool_failure, clarification, manual_fix); avoidable (yes, no) | nadie |
 | `deployment` | `event` | outcome (ready, failed, superseded) | ops/salud-despliegue.test.js |
-
-## Retiradas
-
-Un id no se borra: se retira y dice a qué pasa.
-
-| id | Pasa a | Como | Dónde |
-|---|---|---|---|
-| `deployment` | `event` | event_type | tipo de evento deployment (event_types) |
-| `learning` | `root-problem` | field | campo aprendizaje de la ficha del fondo |
-| `judge` | `agent` | value | valor juez del campo Tipo de la ficha del agente (TIPOS_AGENTE) |
-| `secret` | `resource` | type | tipos clave, token y deploy-key de resource |
-| `vault` | `resource` | type | tipo boveda de resource |
-| `rule` | `norm` | field | campo donde de la norma (qué fichero la escribe) |
-| `criterion` | `norm` | type | tipo de norma: las 75 de ops/forja/criterios/ son normas de la forja hasta que la fase F4 de #652 las pase a ops/normas.json |
-| `verification` | `control` | renamed | la entidad control: mismo contenido, id y nombre nuevos |

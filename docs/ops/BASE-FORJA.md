@@ -309,6 +309,7 @@ Recuento: 3 + 4 + 2 + 6 = 15.
 - `rule` está retirada (sustituida por `norm`); su término «regla» sigue activo y este diseño lo deja como el fichero de `.claude/rules/`.
 - `judge`, `deployment`, `learning`, `secret` y `vault` también están retiradas y sus términos siguen activos: el mapeo tiene que aceptar un término cuya entidad está retirada.
 - **Retirar el término «criterio» exige retirar antes o a la vez la entidad `criterion`.** Escenario local, no commiteado y ya revertido (`git checkout` de los dos ficheros): con `criterio.json` en estado retirado y `pasa_a: norma`, `npx vitest run ops/entidades.test.js` falla 2 tests (la entidad apunta a un término no activo y su `en` no coincide). Si además se retira la entidad (`status: retired`, `replaced_by: norm`), el test sigue fallando por siete problemas: una retirada no lleva lectores, su nombre «Criterio» queda como sinónimo prohibido, cuatro relaciones (`enforced_by verification`, `refers_to skill`, `refers_to standard`, `refers_to agent`) no admiten una entidad retirada, y además falla la lista de entidades obligatorias y hay que regenerar `docs/entidades/MAPA.md`. Ese cambio es de la línea del registro; aquí queda como dependencia de la fase F3.
+- **Al día 13 oct 2026 (#706):** las entidades `criterion`, `rule`, `judge`, `deployment`, `learning`, `secret`, `vault` y `verification` ya no están en el registro (se borraron en vez de quedar retiradas; el historial está en git). Lo de arriba que habla de entidades retiradas describe el estado de antes.
 
 ## 11. Qué se automatiza con test
 

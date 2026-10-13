@@ -206,8 +206,8 @@ describe("autotest de la forma", () => {
   it("el nombre inglés (en): forma de minúsculas y guiones, y no se repite entre términos (#566)", () => {
     expect(conTermino((t) => { t.en = "Mala Forma"; }).join()).toMatch(/no tiene la forma de un nombre inglés/);
     expect(conTermino((t) => { t.en = "casa_x"; }).join()).toMatch(/no tiene la forma/);
-    expect(conTermino((t) => { t.en = "judge"; }).join()).toMatch(/en «judge» ya es el de /);
-    expect(G.terminos.find((t) => t.termino === "juez")?.en).toBe("judge");
+    expect(conTermino((t) => { t.en = "agent"; }).join()).toMatch(/en «agent» ya es el de /);
+    expect(G.terminos.find((t) => t.termino === "agente")?.en).toBe("agent");
   });
 
   it("una definición que usa un sinónimo prohibido", () => {
@@ -507,7 +507,7 @@ describe("estándar, plantilla, norma, criterio y regla (F1 de #652)", () => {
   });
 
   it("criterio está retirado y pasa a norma: su nombre y sus once frases fallan, y «criterio de parada» también", () => {
-    expect(T("criterio")).toMatchObject({ estado: "retirado", pasa_a: "norma", en: "criterion" });
+    expect(T("criterio")).toMatchObject({ estado: "retirado", pasa_a: "norma" });
     expect(T("norma").sinonimos_prohibidos).toEqual(expect.arrayContaining(["criterios de la forja", "criterios de calidad", "criterio de juicio", "criterios de las skills"]));
     expect(canonicoDe(G).get("criterio")).toBe("norma");
     expect(medirTexto("Un criterio de parada.\nLos criterios de la forja.\nLos criterios de calidad.\n")).toEqual(["criterio→norma", "criterios de la forja→norma", "criterios de calidad→norma"]);

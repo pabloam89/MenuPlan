@@ -178,7 +178,7 @@ Principio: `log-what-happens` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el 
 
 Principio: `deprecate-not-delete` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
 
-**Desarrollo.** Un id, un campo, un valor o un término que deja de usarse se marca `retired` y dice qué lo sustituye (`replaced_by`). No se borra ni se reutiliza el nombre. Un retirado no vuelve a activo. Un cambio de definición que no cambia el significado se registra con su motivo.
+**Desarrollo.** Salvo las entidades (ver «Quitar o sustituir una entidad»), un id, un campo, un valor o un término que deja de usarse se marca `retired` y dice qué lo sustituye (`replaced_by`). No se borra ni se reutiliza el nombre. Un retirado no vuelve a activo. Un cambio de definición que no cambia el significado se registra con su motivo.
 
 **Por qué.** El glosario y los vocabularios ya lo hacen, y hay test. Hoy ningún término del glosario está retirado. Se mide con `ls ops/glosario/terminos | wc -l` (66 fichas en staging, 84 con las de este PR) y `grep -l '"estado": "retirado"' ops/glosario/terminos/*.json` (ninguna). En cambio, la base borra de verdad en despensa, menús y favoritos sin dejar rastro.
 
@@ -228,7 +228,7 @@ Todo cambio va por PR con el CI en verde. Como convención, sin control que la h
   - Si su nombre se usa en los dos ejes, es un puente: lleva `role_in_axis`, flecha en el diagrama de puentes, clase `puente` y su sitio en la lista `PUENTES` del test. Una relación entre ejes distintos va también al diagrama de puentes.
 - **Añadir un tipo o un tipo específico (N2, N3).** No es una entidad: es un valor de un vocabulario cerrado de su entidad (principio 12). Anclarlo en `ops/vocabularios-vida.json` es lo correcto, pero hoy nada lo exige y el vocabulario de `recorded_in` aún no lo está. Si necesita campos propios, se estudia como entidad.
 - **Cambiar una definición.** Se cambia en el glosario, nunca en el JSON. Si cambia el significado, no se edita: se retira el término y nace otro (principio 11).
-- **Quitar o sustituir una entidad.** No se borra: `status: retired` con `replaced_by`. Un id ya fusionado en staging queda fijado. La retirada conserva su fila en el mapa y al menos una relación. **Límite de hoy:** el test exige a cada entidad horizontal o puente un `term` activo con `en` igual a su id, y no deja repetirlo; retirar y crear otra para el mismo concepto obliga a tener dos términos o falla. Hasta ajustar el test (encargo a `datos`), un id horizontal o puente no se cambia.
+- **Quitar o sustituir una entidad.** Se borra del registro, con sus relaciones y sus lectores; el historial queda en git (decisión de Pablo, 13 oct 2026, #706: las ocho retiradas del 12 oct, deployment, learning, judge, secret, vault, rule, criterion y verification, se quitaron así). Ya no hay `status: retired`, `replaced_by` ni `becomes`, ni ids fijados: `ops/entidades.test.js` falla si queda una entidad que no esté activa. El término del glosario que la nombraba pasa a nombrar la entidad que absorbe su significado, o dice su `sin_entidad`, y pierde su `en`. **Límite de hoy:** el test exige a cada entidad horizontal o puente un `term` activo con `en` igual a su id, y no deja repetirlo; quitar una entidad y crear otra para el mismo concepto obliga a cambiar a la vez el `en` del término o a tener dos términos, o falla.
 - **Añadir o cambiar una relación.** Se edita en el JSON y en el diagrama a la vez. El test exige que `stored_as` sea de su vocabulario (`field`, `file`, `none`, `unaudited`) y que `field` y `file` lleven `stored_in`. Que sea cierto lo mira el juez.
 - **Nombres.** Id de entidad en inglés y kebab; campos en inglés y snake (principio 5). Si choca con un sinónimo prohibido, manda el glosario.
 
@@ -260,7 +260,7 @@ las contó el 11 oct). Las de castellano no empiezan todas en la 0060:
 
 ## Decisiones ya tomadas sobre estas entidades
 
-- **Aprendizaje.** El término es «aprendizaje», no «lección» (glosario). El id es `learning`. Su campo declarado `recorded_in` («dónde quedó») vale `test`, `guard`, `rule` o `skill`, y con `skill` lleva `reason_not_automated`. Sigue siendo `without_registry`.
+- **Aprendizaje.** El término es «aprendizaje», no «lección» (glosario). No es entidad desde el 13 oct 2026 (#706): es un campo de la ficha del fondo, y su campo declarado `learning_recorded_in` («dónde quedó») vale `test`, `guard`, `rule` o `skill`, y con `skill` lleva `reason_not_automated`. Sigue siendo `without_registry`.
 - **Persona.** `person` es la persona de la casa, como en la base. El equipo es `team-member`. El término del glosario «persona» sigue siendo el del equipo. Renombrarlo a «miembro del equipo» irá en un PR aparte. Mientras, las fichas «persona» y «persona de la casa» se relacionan en los dos sentidos y la nota de «persona» avisa.
 - **Tres «mecanismo».** Existen tres cosas con ese nombre: los ids de `ops/mecanismos.json`, `ficha.mecanismo` del fondo (texto libre con la causa) y el campo del aprendizaje (`test`, `guard`, `rule` o `skill`). Este último se renombró a `recorded_in` para que cada «mecanismo» signifique una sola cosa (principio 1).
 - **Identidad.** `identity` es horizontal. La cuenta de un canal de la casa es `channel-identity`, vertical.
@@ -268,7 +268,7 @@ las contó el 11 oct). Las de castellano no empiezan todas en la 0060:
 
 ## Lo que este documento no resuelve
 
-- **Clave (PROPUESTA, sin decidir).** Hoy se dice clave, secreto y token. Opción A: `clave` es el término, `secreto` pasa a sinónimo prohibido y `token` es un tipo de clave. No se toca el glosario todavía, porque la skill `alta-de-secreto` usa «secreto». En inglés se usa `secret`.
+- **Clave (PROPUESTA, sin decidir).** Hoy se dice clave, secreto y token. Opción A: `clave` es el término, `secreto` pasa a sinónimo prohibido y `token` es un tipo de clave. No se toca el glosario todavía, porque la skill `alta-de-secreto` usa «secreto». No es entidad (13 oct 2026, #706): es un tipo de `resource`.
 - **Vertical.** Casa, receta, menú, despensa, lista de la compra y conversación con Lola llevan solo id y nombre. Su auditoría es otra fase.
 - **Métrica.** Hay dos registros con el mismo nombre. El N1 de Métrica decide si se fusionan o se reparten en dos entidades.
 - No se leyeron el texto original de Fowler ni el de ISO 11179: se usaron resúmenes. Antes de citar la edición concreta de ISO, hay que mirar el catálogo de ISO.
