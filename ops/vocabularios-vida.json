@@ -16,8 +16,7 @@
     },
     "diseno.biblioteca_acceso": {
       "free": "Sin coste en la licencia leída",
-      "paid": "De pago, por asiento y sin redistribuir",
-      "unverified": "No se ha comprobado"
+      "paid": "De pago, por asiento y sin redistribuir"
     },
     "diseno.biblioteca_base_de_cobertura": {
       "checked": "Una fuente dice que la biblioteca cubre ese elemento (lleva su URL)",
@@ -25,8 +24,7 @@
     },
     "diseno.biblioteca_declaracion": {
       "yes": "La fuente lo declara",
-      "no": "La fuente dice que no",
-      "unverified": "No se ha comprobado"
+      "no": "La fuente dice que no"
     },
     "diseno.biblioteca_fuente_de_dato": {
       "github": "El repositorio en GitHub, por su API: licencia SPDX, archived, pushed_at y el README",
@@ -35,16 +33,18 @@
     },
     "diseno.biblioteca_licencia_alcance": {
       "package": "La licencia vale para todo el paquete",
-      "core-only": "La licencia vale solo para el núcleo; hay un nivel de pago aparte",
-      "unverified": "No se ha comprobado"
+      "core-only": "La licencia vale solo para el núcleo; hay un nivel de pago aparte"
     },
     "diseno.biblioteca_mantenimiento": {
       "active": "Con actividad reciente en su repositorio",
       "slow": "Con actividad, pero más lenta",
       "idle": "Sin actividad en un año; no se ha comprobado si es abandono",
       "unmaintained": "Su propio README dice que no se mantiene",
-      "archived": "Archivada en GitHub",
-      "unverified": "No se ha comprobado"
+      "archived": "Archivada en GitHub"
+    },
+    "diseno.biblioteca_marca": {
+      "unverified": "No se ha comprobado: la fuente no se leyó o no lo dice. Nunca se rellena por intuición",
+      "not-applicable": "El dato no corresponde a esta biblioteca: react.estado de una que no es de React; version y peso.dependencias de una que no se instala como paquete"
     },
     "diseno.biblioteca_origen_de_alcance": {
       "mobbin-count": "Entre los 15 elementos con más ejemplos en el recuento de la fuente de la taxonomía, sin contar el grupo de imagen",
@@ -53,23 +53,19 @@
     },
     "diseno.biblioteca_react_estado": {
       "declared": "El paquete declara una versión de React (desde, hasta)",
-      "undeclared": "El paquete no declara versión de React",
-      "not-applicable": "No es una biblioteca de React",
-      "unverified": "No se ha comprobado"
+      "undeclared": "El paquete no declara versión de React"
     },
     "diseno.biblioteca_requisito": {
       "react": "Necesita React",
       "tailwind": "Necesita Tailwind, o está pensada para él",
-      "emotion": "Necesita Emotion, una biblioteca de estilos que se suma a las dependencias",
-      "unverified": "No se ha comprobado qué exige"
+      "emotion": "Necesita Emotion, una biblioteca de estilos que se suma a las dependencias"
     },
     "diseno.biblioteca_rol": {
       "headless": "Primitivas de comportamiento y accesibilidad sin estilo propio",
       "full-kit": "Kit completo de componentes con estilo propio",
       "single-piece": "Una sola pieza concreta: tabla, cajón, toast, menú de comandos o carrusel",
       "css-only": "Clases o hojas de estilo, sin componentes",
-      "icons": "Familia de iconos",
-      "unverified": "No se ha comprobado qué piezas da (el dossier no lo dice)"
+      "icons": "Familia de iconos"
     },
     "diseno.biblioteca_vinculo": {
       "candidate": "Puede elegirse para un proyecto",
@@ -1386,6 +1382,62 @@
       "pasa_a": null,
       "desde": "2026-10-14",
       "motivo": "Repetía el rol css-only y describía la ausencia de un requisito: requisitos solo dice lo que se exige (#788)"
+    },
+    {
+      "vocabulario": "diseno.biblioteca_rol",
+      "valor": "unverified",
+      "pasa_a": null,
+      "desde": "2026-10-14",
+      "motivo": "Una sola marca (#802): la de sin comprobar vive solo en diseno.biblioteca_marca, y cada campo dice en el código si la admite"
+    },
+    {
+      "vocabulario": "diseno.biblioteca_mantenimiento",
+      "valor": "unverified",
+      "pasa_a": null,
+      "desde": "2026-10-14",
+      "motivo": "Una sola marca (#802): la de sin comprobar vive solo en diseno.biblioteca_marca, y cada campo dice en el código si la admite"
+    },
+    {
+      "vocabulario": "diseno.biblioteca_licencia_alcance",
+      "valor": "unverified",
+      "pasa_a": null,
+      "desde": "2026-10-14",
+      "motivo": "Una sola marca (#802): la de sin comprobar vive solo en diseno.biblioteca_marca, y cada campo dice en el código si la admite"
+    },
+    {
+      "vocabulario": "diseno.biblioteca_declaracion",
+      "valor": "unverified",
+      "pasa_a": null,
+      "desde": "2026-10-14",
+      "motivo": "Una sola marca (#802): la de sin comprobar vive solo en diseno.biblioteca_marca, y cada campo dice en el código si la admite"
+    },
+    {
+      "vocabulario": "diseno.biblioteca_react_estado",
+      "valor": "unverified",
+      "pasa_a": null,
+      "desde": "2026-10-14",
+      "motivo": "Una sola marca (#802): la de sin comprobar vive solo en diseno.biblioteca_marca, y cada campo dice en el código si la admite"
+    },
+    {
+      "vocabulario": "diseno.biblioteca_requisito",
+      "valor": "unverified",
+      "pasa_a": null,
+      "desde": "2026-10-14",
+      "motivo": "Una sola marca (#802): la de sin comprobar vive solo en diseno.biblioteca_marca, y cada campo dice en el código si la admite"
+    },
+    {
+      "vocabulario": "diseno.biblioteca_acceso",
+      "valor": "unverified",
+      "pasa_a": null,
+      "desde": "2026-10-14",
+      "motivo": "Una sola marca (#802): la de sin comprobar vive solo en diseno.biblioteca_marca, y cada campo dice en el código si la admite"
+    },
+    {
+      "vocabulario": "diseno.biblioteca_react_estado",
+      "valor": "not-applicable",
+      "pasa_a": null,
+      "desde": "2026-10-14",
+      "motivo": "Una sola marca (#802): la de no aplica vive solo en diseno.biblioteca_marca, y react.estado la admite en el código"
     }
   ],
   "redefiniciones": [
