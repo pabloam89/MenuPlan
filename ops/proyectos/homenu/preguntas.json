@@ -20,7 +20,7 @@
     {
       "id": "aplicar-migraciones",
       "tipo": "pregunta",
-      "texto": "Ensayar y aplicar una migración: hasta E5 (#331) el ensayo y el `--si` los lanza Pablo, porque las sesiones no tienen la URL de administrador (#328); la sesión la deja en staging, con el OK del juez, y le prepara el comando.",
+      "texto": "Ensayar y aplicar migraciones: hasta E5 (#331) lo lanza Pablo; la sesión le deja el comando.",
       "norma": "aplicar-migracion-con-permiso"
     },
     {

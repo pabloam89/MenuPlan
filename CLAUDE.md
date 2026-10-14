@@ -227,7 +227,7 @@ Pablo decidió el 8 oct de 2026 que solo se le pregunte lo **irreversible o lo q
 
 - Subir o fusionar a `main` (producción).
 - Borrar o reescribir datos de familias, o cambiar RLS y permisos de lo que ya existe (`--pablo`, `CONTRAE`).
-- Ensayar y aplicar una migración: hasta E5 (#331) el ensayo y el `--si` los lanza Pablo, porque las sesiones no tienen la URL de administrador (#328); la sesión la deja en staging, con el OK del juez, y le prepara el comando.
+- Ensayar y aplicar migraciones: hasta E5 (#331) lo lanza Pablo; la sesión le deja el comando.
 - Borrar recursos de un servicio (una base, un proyecto, un bucket) o ramas que no están fusionadas.
 - Crear, rotar o cambiar secretos y variables de entorno.
 - Gastar dinero: un plan de pago, una compra, evals de pago que no tocan.
