@@ -46,7 +46,7 @@ de recurso, y su historial queda en git. El resto de este documento, hasta la se
 | id | familia | nivel | alcance | quién la crea | dónde vive (registro) | quién la lee | parte de, tipo de o hijo de |
 |---|---|---|---|---|---|---|---|
 | `session` | work | piece | horizontal | automatic | ninguno (without_registry) | .claude/hooks/guardia.mjs, .claude/hooks/avisos.mjs, .claude/hooks/eventos.mjs | — |
-| `team-member` | access | piece | horizontal | human | `CLAUDE.md` (without_registry) | nadie | — |
+| `team-member` | access | piece | horizontal | human | `scripts/lib/eventosVocabulario.mjs#MIEMBROS` (without_registry) | scripts/lib/eventosVocabulario.mjs, scripts/lib/recursos.mjs, scripts/lib/ensayosRollback.mjs | — |
 | `identity` | access | piece | horizontal | human | `scripts/lib/tokenSesion.mjs` (partial) | scripts/lib/tokenSesion.mjs, .claude/hooks/arranque.mjs | resource |
 | `service` | access | piece | horizontal | human | `ops/INVENTARIO.md` (without_registry) | ops/INVENTARIO.md, scripts/lib/recursos.mjs | — |
 | `environment` | delivery | piece | horizontal | human | `ops/INVENTARIO.md` (without_registry) | ops/planos.json, scripts/apply-migration.mjs | project |
@@ -57,7 +57,7 @@ de recurso, y su historial queda en git. El resto de este documento, hasta la se
 | `eval` | measure | piece | horizontal | agent | `scripts/bot-evals.json` (partial) | scripts/bot-evals.mjs, scripts/skills-prueba.mjs | — |
 | `agent` | agents | piece | horizontal | agent | `.claude/agents` (with_registry) | .claude/agentes.test.js, scripts/lib/agentes.mjs | — |
 | `skill` | agents | piece | horizontal | agent | `.claude/skills` (with_registry) | .claude/skills.test.js, scripts/lib/skills.mjs | — |
-| `hook` | agents | piece | horizontal | agent | `.claude/settings.json` (partial) | Claude Code (.claude/settings.json) | — |
+| `hook` | agents | piece | horizontal | agent | `.claude/settings.json` (partial) | .claude/settings.json, .claude/hooks/arranque.mjs | — |
 | `issue` | work | piece | horizontal | agent | `scripts/lib/issues.mjs` (with_registry) | scripts/lib/issues.mjs, .claude/hooks/arranque.mjs, scripts/lib/situacion.mjs | — |
 | `root-problem` | work | piece | horizontal | agent | `scripts/lib/fondos.mjs` (with_registry) | scripts/lib/fondos.mjs, .github/workflows/fondos.yml, scripts/fondos-pr.mjs | issue |
 | `case` | work | piece | horizontal | agent, automatic | `scripts/lib/issues.mjs` (with_registry) | scripts/casos-pr.mjs, scripts/lib/fondos.mjs, .claude/hooks/guardia.mjs | issue, root-problem |
@@ -67,33 +67,33 @@ de recurso, y su historial queda en git. El resto de este documento, hasta la se
 | `branch` | work | piece | horizontal | automatic | ninguno (without_registry) | scripts/tarea.mjs, .claude/hooks/guardia.mjs | — |
 | `migration` | delivery | piece | horizontal | agent | `supabase/ESTADO.md` (partial) | scripts/apply-migration.mjs, scripts/verificar-estado.mjs, supabase/migrations.test.js | — |
 | `table` | data | piece | horizontal | agent | `ops/MODULOS.json` (partial) | ops/modulos.test.js, supabase/cableado.test.js | module |
-| `data-source` | data | piece | horizontal | agent | `src/data/model.js` (with_registry) | src/data/model.test.js, ops/fuentes.test.js | — |
+| `data-source` | data | piece | horizontal | agent | `src/data/model.js#TABLAS` (with_registry) | src/data/model.test.js, ops/fuentes.test.js | — |
 | `module` | data | piece | horizontal | agent | `ops/MODULOS.json` (with_registry) | ops/modulos.test.js | project, metric |
 | `vocabulary` | rules | piece | horizontal | agent | `ops/vocabularios-vida.json` (partial) | ops/vocabularios-vida.test.js, scripts/lib/vocabulariosVida.mjs | — |
 | `principle` | rules | meta | horizontal | agent, human | `ops/principios/_catalogo.json` (with_registry) | ops/normas.test.js, ops/principios.test.js, ops/uniones.test.js | — |
 | `source` | rules | piece | horizontal | agent, human | `ops/fuentes-documentales/_catalogo.json` (with_registry) | ops/fuentes-documentales.test.js, scripts/lib/fuentesDoc.mjs, ops/principios.test.js, ops/estandares-agentes.test.js | — |
 | `household` | home | piece | vertical | automatic, human | `specs/modelo-datos.md` (partial) | src/lib/householdsSync.js, api/_bot/casa.js | — |
-| `person` | home | piece | vertical | human | `specs/modelo-datos.md` (partial) | api/_bot/ficha.js, src/utils/validateMenu.js | household |
-| `channel-identity` | home | piece | vertical | automatic | `ops/MODULOS.json` (partial) | api/_bot/enlace.js | account |
+| `person` | home | piece | vertical | human | `ops/MODULOS.json#persona` (partial) | api/_bot/ficha.js, src/utils/validateMenu.js | household |
+| `channel-identity` | home | piece | vertical | automatic | `ops/MODULOS.json#bot_identities` (partial) | api/_bot/enlace.js | account |
 | `recipe` | food | piece | vertical | agent, human | `src/data/recipes` (partial) | src/utils/validateMenu.js, api/_bot/propias.js | — |
 | `ingredient` | food | piece | vertical | human | `src/data/ingredients.json` (partial) | src/lib/ingredients.js, src/lib/shoppingBuilder.js | — |
 | `menu` | food | piece | vertical | agent, human | `specs/menu-generation.md` (partial) | src/lib/menusSync.js, api/_bot/menu.js | household |
 | `pantry` | food | piece | vertical | human | `specs/modelo-datos.md` (partial) | src/lib/pantry.js, api/_bot/despensa.js | household |
 | `shopping-list` | food | piece | vertical | automatic, human | `specs/shopping-list.md` (partial) | src/lib/shoppingBuilder.js, api/_bot/menu.js | menu-week |
-| `lola-conversation` | lola | piece | vertical | automatic | `specs/plan-bot-mensajeria.md` (partial) | api/_bot/agente.js, scripts/bot-evals.mjs | chat, household |
+| `lola-conversation` | lola | piece | vertical | automatic | `ops/MODULOS.json#bot_messages` (partial) | api/_bot/agente.js, scripts/bot-evals.mjs | chat, household |
 | `resource` | access | template | horizontal | human | `ops/recursos.json` (with_registry) | ops/recursos.test.js, scripts/cumplimiento.mjs | project |
 | `control` | rules | piece | horizontal | agent | `ops/normas.json` (partial) | ops/normas.test.js | — |
 | `standard` | rules | piece | horizontal | agent | `ops/estandares-agentes.json` (with_registry) | docs/ops/ESTANDARES.md, scripts/estandares-agentes.mjs, ops/estandares-agentes.test.js | agent-task |
 | `plane` | measure | meta | horizontal | agent, human | `ops/planos.json` (with_registry) | scripts/planos.mjs, ops/planos.test.js | — |
 | `agent-task` | agents | piece | horizontal | agent | `ops/estandares-agentes.json` (with_registry) | scripts/estandares-agentes.mjs, ops/estandares-agentes.test.js, docs/ops/ESTANDARES.md | agent |
 | `workflow` | delivery | piece | horizontal | agent | `.github/workflows` (partial) | ops/workflows.test.js, ops/salud-despliegue.test.js | repo |
-| `project` | structure | piece | horizontal | human | `scripts/lib/zonasProyecto.mjs` (with_registry) | ops/entidades.test.js, docs/entidades/MAPA.md | — |
+| `project` | structure | piece | horizontal | human | `scripts/lib/zonasProyecto.mjs#PROYECTOS` (with_registry) | scripts/lib/normas.mjs, scripts/estandares-agentes.mjs, ops/uniones.test.js, ops/vigilante-lados.test.js, scripts/lib/metricas.mjs, scripts/lib/fabrica.mjs, scripts/lib/recursos.mjs, scripts/cumplimiento.mjs, .claude/hooks/eventos.mjs | — |
 | `repo` | structure | piece | horizontal | human | `ops/entidades.json` (partial) | ops/planos.json, scripts/rulesets.mjs | project |
 | `design-system` | design | piece | horizontal | agent | `src/design/tokens.js` (partial) | ops/diseno/bloques.json, ops/diseno/bloques.test.js, .claude/skills/revision-de-diseno/SKILL.md, .claude/agents/constructor.md | project |
 | `design-profile` | design | template | horizontal | agent | `ops/diseno/bloques.json` (with_registry) | ops/diseno/bloques.test.js, .claude/skills/revision-de-diseno/SKILL.md, .claude/agents/constructor.md | — |
 | `token` | design | piece | horizontal | agent | `src/design/tokens.js` (with_registry) | src/design/tokens.test.js, src/design/contraste.js, scripts/diseno/generar-tokens-css.mjs | design-system |
 | `component` | design | piece | horizontal | agent | `DESIGN_SYSTEM.md` (partial) | scripts/lib/taxonomiaDiseno.mjs, .claude/skills/revision-de-diseno/SKILL.md, .claude/agents/constructor.md | design-system |
-| `pattern` | design | piece | horizontal | agent | `DESIGN_SYSTEM.md` (partial) | .claude/skills/revision-de-diseno/SKILL.md, .claude/agents/constructor.md | design-system |
+| `pattern` | design | piece | horizontal | agent | `ops/diseno/bloques.json#Patrones` (partial) | ops/diseno/bloques.json, .claude/skills/revision-de-diseno/SKILL.md, .claude/agents/constructor.md | design-system |
 | `screen` | design | piece | horizontal | agent | `ops/diseno/taxonomia.json` (with_registry) | scripts/lib/taxonomiaDiseno.mjs, ops/diseno/taxonomia.test.js | — |
 | `flow` | design | piece | horizontal | agent | `ops/diseno/taxonomia.json` (with_registry) | scripts/lib/taxonomiaDiseno.mjs, ops/diseno/taxonomia.test.js | — |
 | `account` | home | piece | vertical | automatic, human | `ops/MODULOS.json` (partial) | src/lib/useAuth.js, api/_bot/enlace.js | — |

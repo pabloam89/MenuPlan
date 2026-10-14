@@ -7,14 +7,24 @@
  * Los proyectos y las zonas viven en `zonasProyecto.mjs`.
  */
 
-/** Quién está detrás de la sesión. */
-export const DEF_ACTORES = {
+/**
+ * Las personas del equipo con acceso al repo (entidad `team-member` del registro, «persona» en el glosario):
+ * la única lista de personas de la casa (#748, D4). De ella salen `ACTORES` (aquí), `DUENOS` y `CONFIRMAN`
+ * (`recursos.mjs`) y `QUIENES` (`ensayosRollback.mjs`), cada una con sus valores especiales aparte. Manu, socio sin
+ * acceso al repo, no está: solo consta en prosa. No es `PERSONAS` de `planos.mjs` (que añade `sesion`) ni el
+ * `ACTORES` de `flujo.mjs` (quién hace cada paso del flujo): otros significados.
+ */
+export const MIEMBROS = ["pablo", "alvaro"];
+
+const TEXTO_DE_ACTOR = {
   pablo: "Pablo (usuario de git del PC o identidad de GitHub pabloam89)",
   alvaro: "Álvaro (usuario de git del PC)",
   app: "la identidad homenu-sesiones[bot] de las sesiones; no dice qué persona hay detrás",
   desconocido: "no se pudo saber: sin marca del arranque y sin usuario de git legible",
 };
-export const ACTORES = Object.keys(DEF_ACTORES);
+/** Quién está detrás de la sesión: los miembros más `app` y `desconocido`. Un miembro nuevo sin texto aquí rompe el test. */
+export const ACTORES = [...MIEMBROS, "app", "desconocido"];
+export const DEF_ACTORES = Object.fromEntries(ACTORES.map((a) => [a, TEXTO_DE_ACTOR[a]]));
 
 /** Por qué hace falta una persona. */
 export const DEF_MOTIVOS_INTERVENCION = {

@@ -26,7 +26,7 @@ La clase vale para cualquier proyecto; sus ejemplares del proyecto viven en el r
 | id | Nombre | Alcance | Nivel | Familia | Término del glosario | Fuente hoy | Registro |
 |---|---|---|---|---|---|---|---|
 | `session` | Sesión | horizontal | piece | work | sesión | ninguna | without_registry |
-| `team-member` | Miembro del equipo | horizontal | piece | access | persona | `CLAUDE.md` | without_registry |
+| `team-member` | Miembro del equipo | horizontal | piece | access | persona | `scripts/lib/eventosVocabulario.mjs#MIEMBROS` | without_registry |
 | `identity` | Identidad | horizontal | piece | access | identidad | `scripts/lib/tokenSesion.mjs` | partial |
 | `service` | Servicio | horizontal | piece | access | servicio | `ops/INVENTARIO.md` | without_registry |
 | `environment` | Entorno | horizontal | piece | delivery | entorno | `ops/INVENTARIO.md` | without_registry |
@@ -47,7 +47,7 @@ La clase vale para cualquier proyecto; sus ejemplares del proyecto viven en el r
 | `branch` | Rama | horizontal | piece | work | rama | ninguna | without_registry |
 | `migration` | Migración | horizontal | piece | delivery | migración | `supabase/ESTADO.md` | partial |
 | `table` | Tabla | horizontal | piece | data | tabla | `ops/MODULOS.json` | partial |
-| `data-source` | Fuente de datos | horizontal | piece | data | fuente de datos | `src/data/model.js` | with_registry |
+| `data-source` | Fuente de datos | horizontal | piece | data | fuente de datos | `src/data/model.js#TABLAS` | with_registry |
 | `module` | Módulo | horizontal | piece | data | módulo | `ops/MODULOS.json` | with_registry |
 | `vocabulary` | Vocabulario | horizontal | piece | rules | vocabulario | `ops/vocabularios-vida.json` | partial |
 | `principle` | Principio | horizontal | meta | rules | principio | `ops/principios/_catalogo.json` | with_registry |
@@ -58,13 +58,13 @@ La clase vale para cualquier proyecto; sus ejemplares del proyecto viven en el r
 | `plane` | Plano | horizontal | meta | measure | plano | `ops/planos.json` | with_registry |
 | `agent-task` | Tarea de agente | horizontal | piece | agents | tarea de agente | `ops/estandares-agentes.json` | with_registry |
 | `workflow` | Workflow | horizontal | piece | delivery | workflow | `.github/workflows` | partial |
-| `project` | Proyecto | horizontal | piece | structure | proyecto | `scripts/lib/zonasProyecto.mjs` | with_registry |
+| `project` | Proyecto | horizontal | piece | structure | proyecto | `scripts/lib/zonasProyecto.mjs#PROYECTOS` | with_registry |
 | `repo` | Repositorio | horizontal | piece | structure | repositorio | `ops/entidades.json` | partial |
 | `design-system` | Sistema de diseño | horizontal | piece | design | sistema de diseño | `src/design/tokens.js` | partial |
 | `design-profile` | Perfil de diseño | horizontal | template | design | perfil de diseño | `ops/diseno/bloques.json` | with_registry |
 | `token` | Token de diseño | horizontal | piece | design | token de diseño | `src/design/tokens.js` | with_registry |
 | `component` | Componente de diseño | horizontal | piece | design | componente de diseño | `DESIGN_SYSTEM.md` | partial |
-| `pattern` | Patrón de diseño | horizontal | piece | design | patrón de diseño | `DESIGN_SYSTEM.md` | partial |
+| `pattern` | Patrón de diseño | horizontal | piece | design | patrón de diseño | `ops/diseno/bloques.json#Patrones` | partial |
 | `screen` | Pantalla | horizontal | piece | design | pantalla | `ops/diseno/taxonomia.json` | with_registry |
 | `flow` | Flujo de usuario | horizontal | piece | design | flujo de usuario | `ops/diseno/taxonomia.json` | with_registry |
 | `assignment-type` | Tipo de encargo | horizontal | template | work | tipo de encargo | `ops/tipos-de-encargo.json` | with_registry |
@@ -76,14 +76,14 @@ Sus piezas cuelgan siempre de un proyecto. Las de la familia `home`, `food` y `l
 | id | Nombre | Alcance | Nivel | Familia | Término del glosario | Fuente hoy | Registro |
 |---|---|---|---|---|---|---|---|
 | `household` | Casa | vertical | piece | home | — | `specs/modelo-datos.md` | partial |
-| `person` | Persona de la casa | vertical | piece | home | persona de la casa | `specs/modelo-datos.md` | partial |
-| `channel-identity` | Identidad de canal | vertical | piece | home | — | `ops/MODULOS.json` | partial |
+| `person` | Persona de la casa | vertical | piece | home | persona de la casa | `ops/MODULOS.json#persona` | partial |
+| `channel-identity` | Identidad de canal | vertical | piece | home | — | `ops/MODULOS.json#bot_identities` | partial |
 | `recipe` | Receta | vertical | piece | food | — | `src/data/recipes` | partial |
 | `ingredient` | Ingrediente | vertical | piece | food | — | `src/data/ingredients.json` | partial |
 | `menu` | Menú | vertical | piece | food | — | `specs/menu-generation.md` | partial |
 | `pantry` | Despensa | vertical | piece | food | — | `specs/modelo-datos.md` | partial |
 | `shopping-list` | Lista de la compra | vertical | piece | food | — | `specs/shopping-list.md` | partial |
-| `lola-conversation` | Conversación con Lola | vertical | piece | lola | — | `specs/plan-bot-mensajeria.md` | partial |
+| `lola-conversation` | Conversación con Lola | vertical | piece | lola | — | `ops/MODULOS.json#bot_messages` | partial |
 | `account` | Cuenta | vertical | piece | home | — | `ops/MODULOS.json` | partial |
 | `group` | Grupo | vertical | piece | home | — | `supabase/migrations/0079_personas_y_grupos.sql` | partial |
 | `menu-week` | Semana de menú | vertical | piece | food | — | `supabase/migrations/0005_multiweek_menus.sql` | partial |
@@ -158,7 +158,7 @@ flowchart LR
 | `norm` | belongs_to | `project` | many_to_one | field: project (solo las normas verticales, en ops/proyectos/<id>/normas.json); una norma horizontal no lo lleva y cuelga de la factoría (#704) |
 | `resource` | belongs_to | `project` | many_to_one | field: proyecto (ops/recursos.json): obligatorio, un valor de PROYECTOS (scripts/lib/zonasProyecto.mjs) |
 | `design-system` | belongs_to | `project` | many_to_one | ningún campo: hoy solo en la prosa de docs/diseno/META-DISENO.md |
-| `module` | belongs_to | `project` | many_to_one | ningún campo: todos son de HoMenu; MODULOS.json no lo dice |
+| `module` | belongs_to | `project` | many_to_one | ningún campo: se deriva de PROYECTOS (scripts/lib/zonasProyecto.mjs): todos los módulos son de HoMenu y MODULOS.json no lo dice, porque nadie leería el campo |
 | `table` | belongs_to | `module` | many_to_one | field: tablas.<t>.dueno (MODULOS.json) |
 | `module` | has | `metric` | one_to_many | field: metricas[] (MODULOS.json) |
 | `resource` | belongs_to | `resource` | many_to_one | field: op://<bóveda>/<ficha>/<campo>: una clave vive en una bóveda |
