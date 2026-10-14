@@ -34,10 +34,15 @@ export const RUTA_ULTIMA_PASADA = "ops/test-del-juez/ultima-pasada.json";
 export const MAX_DIFF = 1500;
 
 const rutaDe = (juez) => `${DIR_TEST_DEL_JUEZ}/${juez}.json`;
-/** El hash (LF, 12) del fichero de casos de un juez: cambia si se edita cualquier caso, aunque su número no cambie. */
+/** Lo que el juez sabe de su situación en el test: no tiene herramientas. Va en el prompt y por eso entra en el hash. */
+export const AVISO_SIN_HERRAMIENTAS = "No tienes herramientas: juzga solo el diff y la norma; no señales lo que no puedes verificar.";
+/**
+ * El hash (LF, 12) de lo que se mide: el fichero de casos de un juez más el aviso fijo del prompt. Cambia si se edita
+ * cualquier caso (aunque su número no cambie) o si cambia el prompt, porque entonces las pasadas anteriores ya no miden lo mismo.
+ */
 export function hashDeCasos(juez, raiz) {
   const ruta = join(raiz, rutaDe(juez));
-  return existsSync(ruta) ? hashLF(readFileSync(ruta, "utf8")) : null;
+  return existsSync(ruta) ? hashLF(readFileSync(ruta, "utf8") + "\n--prompt--\n" + AVISO_SIN_HERRAMIENTAS) : null;
 }
 
 export const esFicheroDeJuez = (ruta) => new RegExp(`^${DIR_TEST_DEL_JUEZ}/(${JUECES.join("|")})\\.json$`).test(ruta);
@@ -165,6 +170,7 @@ export function promptCaso(c, norma) {
     `Título del PR: ${c.titulo}`,
     "<diff>", c.diff, "</diff>",
     'Responde solo con JSON: {"veredicto":"aprueba"|"senala","hallazgos":["…"]}. «senala» si el cambio incumple la norma, con el caso concreto; «aprueba» si no.',
+    AVISO_SIN_HERRAMIENTAS,
   ].join("\n");
 }
 

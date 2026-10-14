@@ -32,5 +32,6 @@ esa norma. Cómo se mide y qué hacer con la cifra:
   mayor que 0 y **cuenta como parada**: no cumple el umbral y hay que repetirla entera.
 - **Qué vigila el registro de pasadas** (`faltasDePasadas`, `faltasDeHistoria`): `coste_usd` mayor que 0;
   `casos = buenos + malos`; los aciertos no pasan de los casos; dos pasadas no pueden ser idénticas; cada
-  pasada lleva `casos_hash` (hash de los casos del juez), y editar un caso invalida las pasadas anteriores
-  aunque el número no cambie; y el fichero solo crece por el final respecto a `origin/staging`.
+  pasada lleva `casos_hash` (hash de los casos del juez **más el aviso fijo del prompt**: «No tienes
+  herramientas…»), y editar un caso o cambiar ese prompt invalida las pasadas anteriores aunque el número
+  no cambie (un prompt distinto es otro instrumento de medida); y el fichero solo crece por el final respecto a `origin/staging`.

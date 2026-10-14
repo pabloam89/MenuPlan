@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { JUECES, MIN_POR_NORMA, PASADAS_SEGUIDAS, UMBRAL_MALOS, cifra, cumpleUmbralA, esFicheroDeJuez, faltasDeFichero, faltasDeHistoria, faltasDePasadas, hashDeCasos, juezDeRuta, leerFichero, leerPasadas, lineaDeCifra, medir, motivoFicheroSinNorma, motivoSinUmbral, normasSinPasada, promptCaso, registroDeMotivos, sinClaves, RUTA_ULTIMA_PASADA } from "./lib/testDelJuez.mjs";
+import { AVISO_SIN_HERRAMIENTAS, JUECES, MIN_POR_NORMA, PASADAS_SEGUIDAS, UMBRAL_MALOS, cifra, cumpleUmbralA, esFicheroDeJuez, faltasDeFichero, faltasDeHistoria, faltasDePasadas, hashDeCasos, juezDeRuta, leerFichero, leerPasadas, lineaDeCifra, medir, motivoFicheroSinNorma, motivoSinUmbral, normasSinPasada, promptCaso, registroDeMotivos, sinClaves, RUTA_ULTIMA_PASADA } from "./lib/testDelJuez.mjs";
 import { leerRegistro, motivoTestDelJuezMalo } from "./lib/normas.mjs";
+import { hashLF } from "./lib/evals.mjs";
 import { RAIZ } from "./lib/skills.mjs";
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync } from "node:fs";
@@ -245,6 +246,21 @@ describe("el test del juez: la cifra de acierto (con un juez de mentira)", () =>
     const t = promptCaso({ ...malo, debe_senalar: "pista-secreta-zzz" }, { nombre: "N", sujeto: "codigo", fuerza: "no_debe", exigencia: "hacer algo" });
     expect(t).not.toMatch(/malo|bueno|debe_senalar|algo\b.*esperado/);
     expect(t).toContain("<diff>");
+  });
+
+  it("el prompt avisa de que el juez no tiene herramientas, y ese aviso entra en el hash de lo medido", () => {
+    const t = promptCaso(malo, { nombre: "N", sujeto: "codigo", fuerza: "debe", exigencia: "x" });
+    expect(t.endsWith(AVISO_SIN_HERRAMIENTAS)).toBe(true);
+    expect(AVISO_SIN_HERRAMIENTAS).toMatch(/No tienes herramientas/);
+    const dir = mkdtempSync(join(tmpdir(), "juez-"));
+    try {
+      mkdirSync(join(dir, "ops/test-del-juez"), { recursive: true });
+      const texto = JSON.stringify(leerFichero("revisor", RAIZ));
+      writeFileSync(join(dir, "ops/test-del-juez/revisor.json"), texto);
+      // El hash no es el del fichero a secas: lleva el prompt, así que cambiar el aviso invalida las pasadas anteriores.
+      expect(hashDeCasos("revisor", dir)).not.toBe(hashLF(texto));
+      expect(hashDeCasos("revisor", dir)).toBe(hashLF(texto + "\n--prompt--\n" + AVISO_SIN_HERRAMIENTAS));
+    } finally { rmSync(dir, { recursive: true, force: true }); }
   });
 });
 
