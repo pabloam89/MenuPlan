@@ -17,6 +17,8 @@
 import { execFile } from "node:child_process";
 import * as fsReal from "node:fs";
 import { appendFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { BOVEDA_PABLO, BOVEDA_SESIONES, entornoOp, leerEnv } from "./env.mjs";
 // El canje del token es de E1 (#327): permisos explícitos sin workflows, comprobados al
 // volver, y limitado a este repo. Aquí no se repite: se usa.
@@ -43,7 +45,13 @@ export const TOPE_IDENTIDAD_MS = 13_000;
 const MARGEN_IDENTIDAD_MS = 3000;
 
 /** Vocabulario cerrado de por qué no hay token (se cuenta en la línea `identidad-sesion`). */
-export const MOTIVOS = ["sin-clave", "clave-ilegible", "sin-instalacion", "github-rechaza", "red", "token-raro", "sin-fichero-de-entorno", "error-interno", "limite-de-1password", "bloqueo-ocupado"];
+export const MOTIVOS = ["sin-clave", "clave-ilegible", "sin-instalacion", "github-rechaza", "red", "token-raro", "sin-fichero-de-entorno", "error-interno", "limite-de-1password", "bloqueo-ocupado", "fallo-reciente", "ruta-de-shim-rara"];
+/** El valor inválido y nunca vacío que lleva GH_TOKEN cuando no hay token: `gh` da 401 claro y no cae al llavero de Pablo (#673). */
+export const TOKEN_CENTINELA = "sin-token-de-sesion";
+/** Quién escribe el ayudante de git: `gh-credential` (el `gh` del PATH, que renueva el token al usarse) o `entorno` (lee $GH_TOKEN del entorno de quien lo lanza). */
+export const AYUDANTES = ["gh-credential", "entorno"];
+/** `normal` exige un token con forma `ghs_…`; `sin-canje` solo acepta el token de relleno (el arranque lo escribe ANTES de canjear). */
+export const MODOS_ENTORNO = ["normal", "sin-canje"];
 /** Lo que dice la CLI cuando se agota el límite de lecturas por hora de la cuenta (visto el 10 oct 2026). */
 const LIMITE_OP = /too many requests|rate.?limit/i;
 
@@ -251,30 +259,81 @@ export async function tokenConCache({ sinCache = false, cache = {}, generar = to
 /**
  * Líneas para el fichero de entorno de la sesión (CLAUDE_ENV_FILE, que lee el
  * shell Bash de cada comando): el token solo en el entorno, `git` con el token como
- * contraseña de github.com (el ayudante lee $GH_TOKEN, no lo lleva escrito) y
- * el autor y committer de la App. Rechaza un token o un autor con caracteres raros.
+ * contraseña de github.com (el ayudante no lo lleva escrito) y el autor y committer de
+ * la App. Rechaza un token o un autor con caracteres raros.
  * `configPrevia`: el GIT_CONFIG_COUNT que ya hubiera; las entradas nuevas van detrás.
+ * `ayudante` (AYUDANTES): `gh-credential` (por defecto) delega en `gh auth git-credential`, que
+ * con el `gh` de scripts/bin renueva el token al usarse; `entorno` lee $GH_TOKEN tal cual (lo usa
+ * `entornoDeComando`, cuyo hijo lleva un token recién canjeado y no depende del PATH).
+ * `modo` (MODOS_ENTORNO): `sin-canje` solo acepta TOKEN_CENTINELA; `normal`, solo un token con forma.
+ * `conToken: false` no escribe la línea de GH_TOKEN (la sesión de la nube trae el suyo y el token de relleno lo taparía).
  */
-export function lineasDeEntorno({ token, autor, configPrevia = 0 }) {
-  if (!/^ghs_[A-Za-z0-9_.-]{20,}$/.test(token)) throw new ErrorTokenSesion("token-raro", "no escribo ese token");
+export function lineasDeEntorno({ token, autor, configPrevia = 0, ayudante = "gh-credential", modo = "normal", conToken = true }) {
+  if (!MODOS_ENTORNO.includes(modo)) throw new Error(`modo fuera del vocabulario: ${modo}`);
+  if (!AYUDANTES.includes(ayudante)) throw new Error(`ayudante fuera del vocabulario: ${ayudante}`);
+  if (modo === "sin-canje" ? token !== TOKEN_CENTINELA : !/^ghs_[A-Za-z0-9_.-]{20,}$/.test(token)) throw new ErrorTokenSesion("token-raro", "no escribo ese token");
   if (!/^[A-Za-z0-9._\[\]-]+$/.test(autor.nombre) || !/^[A-Za-z0-9._+\[\]-]+@users\.noreply\.github\.com$/.test(autor.correo)) {
     throw new ErrorTokenSesion("token-raro", "autor con caracteres raros");
   }
   const n = Number.isInteger(configPrevia) && configPrevia > 0 ? configPrevia : 0;
-  const ayudante = '!f() { echo username=x-access-token; echo password=$GH_TOKEN; }; f';
+  const ayudanteGit =
+    ayudante === "entorno"
+      ? "!f() { echo username=x-access-token; echo password=$GH_TOKEN; }; f"
+      : '!f() { GH_TOKEN="${GH_TOKEN:-' + TOKEN_CENTINELA + '}" gh auth git-credential "$@"; }; f';
   return [
-    `export GH_TOKEN='${token}'`,
+    ...(conToken ? [`export GH_TOKEN='${token}'`] : []),
     `export GIT_CONFIG_COUNT=${n + 2}`,
     `export GIT_CONFIG_KEY_${n}='credential.https://github.com.helper'`,
     `export GIT_CONFIG_VALUE_${n}=''`,
     `export GIT_CONFIG_KEY_${n + 1}='credential.https://github.com.helper'`,
-    `export GIT_CONFIG_VALUE_${n + 1}='${ayudante}'`,
+    `export GIT_CONFIG_VALUE_${n + 1}='${ayudanteGit}'`,
     `export GIT_AUTHOR_NAME='${autor.nombre}'`,
     `export GIT_AUTHOR_EMAIL='${autor.correo}'`,
     `export GIT_COMMITTER_NAME='${autor.nombre}'`,
     `export GIT_COMMITTER_EMAIL='${autor.correo}'`,
     "",
   ].join("\n");
+}
+
+/** El autor de la App antes de canjear: el id público del bot (BOT_ID), el mismo que usa la caché. */
+export const AUTOR_POR_DEFECTO = { nombre: BOT_LOGIN, correo: `${BOT_ID}+${BOT_LOGIN}@users.noreply.github.com` };
+
+/** La línea que cambia solo el token (la que el arranque añade DESPUÉS del canje; un `export` posterior gana al anterior). */
+export function lineaDeToken(token) {
+  if (!/^ghs_[A-Za-z0-9_.-]{20,}$/.test(token)) throw new ErrorTokenSesion("token-raro", "no escribo ese token");
+  return `export GH_TOKEN='${token}'\n`;
+}
+
+/**
+ * La carpeta del shim (`scripts/bin`) a partir de la URL de un fichero de la casa (`import.meta.url`
+ * de arranque.mjs): sale de donde vive ese fichero, NUNCA del cwd. OJO: el hook corre desde
+ * `${CLAUDE_PROJECT_DIR}`, que es la carpeta de la tarea, así que una rama ajena traída ahí SÍ podría
+ * sustituir el shim; sacarlo a una copia fuera de la carpeta es del fondo #715 (#719). `subida`: de `.claude/hooks/` al raíz.
+ */
+export function rutaDeShimDesde(url, subida = ["..", ".."]) {
+  return resolve(dirname(fileURLToPath(url)), ...subida, "scripts", "bin");
+}
+
+/** `C:\dev\X\scripts\bin` a `/c/dev/X/scripts/bin` (Git Bash); una ruta que ya es de POSIX queda igual. */
+export function rutaParaGitBash(ruta) {
+  const r = String(ruta).replace(/\\/g, "/");
+  const m = /^([A-Za-z]):\/(.*)$/.exec(r);
+  return m ? `/${m[1].toLowerCase()}/${m[2]}` : r;
+}
+
+// Absoluta, tramos de [A-Za-z0-9._-] y acabada en scripts/bin. Vale la unidad de Git Bash (`/c/dev/…`) y la de Linux o la
+// nube (`/home/…`): el primer tramo no se limita a una letra (con `^/[a-z]/` el CI de Linux no escribía la línea).
+const FORMA_RUTA_SHIM = /^(?:\/[A-Za-z0-9._-]+)+\/scripts\/bin$/;
+
+/**
+ * La línea de PATH que pone el shim delante, o { motivo: "ruta-de-shim-rara" } si la ruta no pasa la
+ * regex anclada (ni `..` ni `.` en ningún tramo, ni espacios ni comillas: va entre comillas simples a un
+ * fichero que lee un shell). Sin `:` final, que añadiría el directorio actual al PATH. No lanza.
+ */
+export function lineaDePath(rutaShim) {
+  const ruta = rutaParaGitBash(rutaShim ?? "");
+  if (!FORMA_RUTA_SHIM.test(ruta) || ruta.split("/").some((t) => t === ".." || t === ".")) return { motivo: "ruta-de-shim-rara" };
+  return { linea: `export PATH='${ruta}'\${PATH:+:$PATH}\n` };
 }
 
 /**
@@ -286,7 +345,7 @@ export function lineasDeEntorno({ token, autor, configPrevia = 0 }) {
  */
 export function entornoDeComando({ token, autor, base = {} }) {
   const pares = {};
-  for (const linea of lineasDeEntorno({ token, autor, configPrevia: Number.parseInt(base.GIT_CONFIG_COUNT, 10) || 0 }).split(String.fromCharCode(10))) {
+  for (const linea of lineasDeEntorno({ token, autor, configPrevia: Number.parseInt(base.GIT_CONFIG_COUNT, 10) || 0, ayudante: "entorno" }).split(String.fromCharCode(10))) {
     const m = /^export ([A-Z_0-9]+)=(.*)$/.exec(linea);
     if (m) pares[m[1]] = m[2].replace(/^'(.*)'$/, "$1");
   }
@@ -346,7 +405,7 @@ export function ghApiUser(env) {
  * uno), mira con qué identidad responde `gh` y devuelve el aviso. No lanza, y no pasa de `tope`
  * milisegundos (si vence: identidad desconocida, motivo red): el hook muere a los 30 s sin avisar.
  */
-export async function aplicarIdentidad({ env = process.env, escribir = appendFileSync, generar = tokenConCache, identificar = ghApiUser, registrar = (l) => console.error(l), tope = TOPE_IDENTIDAD_MS } = {}) {
+export async function aplicarIdentidad({ env = process.env, escribir = appendFileSync, generar = tokenConCache, identificar = ghApiUser, registrar = (l) => console.error(l), tope = TOPE_IDENTIDAD_MS, rutaShim, nube = false } = {}) {
   const inicio = Date.now();
   let reloj;
   let vencido = false; // pasado el tope, el trabajo que siga vivo no escribe ni registra nada
@@ -367,13 +426,29 @@ export async function aplicarIdentidad({ env = process.env, escribir = appendFil
     let cache = "no";
     const entorno = { ...env };
     try {
+      // Primero lo que no depende del canje (#719): el PATH con el shim, el ayudante de git, el autor y
+      // el token de relleno. Si el canje es lento o falla, la sesión ya tiene `gh` y `git push` que piden el
+      // token al usarse y dan un 401 claro, no el llavero de Pablo (#673).
+      if (env.CLAUDE_ENV_FILE) {
+        const previa = Number.parseInt(env.GIT_CONFIG_COUNT, 10) || 0;
+        let delPath = "";
+        if (rutaShim !== undefined) {
+          const p = lineaDePath(rutaShim);
+          if (p.linea) delPath = p.linea;
+          else registrar(`entorno-sesion path: omitido motivo: ${p.motivo}`);
+        }
+        // En la nube con su propio GH_TOKEN, el token de relleno lo taparía si el canje diera `sin-clave`: no se escribe.
+        const propio = nube && typeof env.GH_TOKEN === "string" && env.GH_TOKEN !== "" && env.GH_TOKEN !== TOKEN_CENTINELA;
+        escribir(env.CLAUDE_ENV_FILE, `\n${delPath}${lineasDeEntorno({ token: TOKEN_CENTINELA, autor: AUTOR_POR_DEFECTO, configPrevia: previa, modo: "sin-canje", conToken: !propio })}`);
+        if (!propio) entorno.GH_TOKEN = TOKEN_CENTINELA; // la comprobación de identidad no cae al llavero de Pablo
+      }
       // La espera del bloqueo de la caché sale de lo que queda del presupuesto, y deja 3 s para `gh api user`
       const t = await generar({ hasta: inicio + tope - MARGEN_IDENTIDAD_MS });
       advertencias = t.advertencias ?? [];
       if (!env.CLAUDE_ENV_FILE) throw new ErrorTokenSesion("sin-fichero-de-entorno", "este arranque no recibió CLAUDE_ENV_FILE");
       if (vencido) return null;
-      const previa = Number.parseInt(env.GIT_CONFIG_COUNT, 10) || 0;
-      escribir(env.CLAUDE_ENV_FILE, `\n${lineasDeEntorno({ token: t.token, autor: t.autor, configPrevia: previa })}`);
+      // Un `export` posterior gana al token de relleno
+      escribir(env.CLAUDE_ENV_FILE, lineaDeToken(t.token));
       entorno.GH_TOKEN = t.token;
       token = "app";
       cache = t.cache === "si" ? "si" : "no";

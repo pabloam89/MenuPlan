@@ -219,6 +219,24 @@ mientras falten más de 15 minutos para que caduque (`scripts/lib/cacheTokenSesi
 **Cortar a todas las sesiones de golpe** (token revocado o filtrado): revoca el token y borra `token-sesion.json`. Un token revocado se sigue sirviendo desde la caché hasta que caduca; `node scripts/token-sesion.mjs --sin-cache --comprobar` lo cambia por uno nuevo. Borrar el fichero solo cuesta un canje. La caché no recuerda las advertencias del canje
 (permisos de la App de más, clave en `HoMenu`); se ven al canjear o con `--sin-cache`.
 
+### El token se pide al usarse: el `gh` de `scripts/bin` (E1, #719; fondo #715)
+
+El entorno de Bash se fija una vez, al arrancar (comprobado el 13 oct 2026: `CLAUDE_ENV_FILE` solo existe en el
+hook de arranque y un fichero añadido después no se carga). Un `GH_TOKEN` escrito ahí daba 401 pasada la hora. Ahora el
+arranque pone **delante en el PATH** `scripts/bin` (solo contiene `gh`, ejecutable en git: 100755), y ese `gh`
+(`scripts/gh-shim.mjs`) pide el token a la caché **cada vez** y lanza el `gh` real con él.
+
+| Qué | Cómo |
+|---|---|
+| Ruta del shim | sale de `import.meta.url` de `arranque.mjs`, nunca del cwd. Ojo: el hook corre desde `${CLAUDE_PROJECT_DIR}`, que es la carpeta de la tarea, así que una rama ajena traída ahí podría sustituir el shim. **Deuda:** sacar el shim a una copia fuera de la carpeta de la tarea es un encargo del fondo #715. Regex anclada; si no pasa, no se escribe la línea del PATH, se registra `entorno-sesion path: omitido motivo: ruta-de-shim-rara` y el resto se escribe igual |
+| Orden del arranque | (en la nube con su propio `GH_TOKEN` no se escribe el `GH_TOKEN` inválido de relleno: taparía el suyo) antes del canje: PATH, ayudante de git, autor y `GH_TOKEN='sin-token-de-sesion'` (inválido y nunca vacío: `gh` da 401 claro y no cae al llavero); después, si el canje llega, el `GH_TOKEN` real (un `export` posterior gana) |
+| Ayudante de `git push` | `!f() { GH_TOKEN="${GH_TOKEN:-sin-token-de-sesion}" gh auth git-credential "$@"; }; f`: pasa por el shim y recibe un token fresco. `node scripts/token-sesion.mjs -- <comando>` conserva el suyo (su hijo lleva un token recién canjeado) |
+| Fallo | `gh-shim resultado: fallo motivo: <MOTIVOS>` por stderr, sin token; un éxito no escribe nada. Tope de 10 s; tras un canje fallido, 30 s sin reintentar (`fallo-reciente`, fichero `token-sesion.json.fallo.json` con solo instante y motivo) |
+| Se niega | el shim niega más formas de pedir el token o de cambiar la sesión (subcomandos de `auth`, `alias set/import`, `extension install`; código 2, sin lanzar `gh`); `auth git-credential` y lo demás pasan |
+| Argumentos | literales y sin shell (`spawnSync`, aprendizaje de #720); nunca un `gh.cmd` |
+| No cubre | un script de Node que llama a `execFile("gh")` sin shell (en Windows toma el `gh.exe` real, E3 #731), PowerShell, los hooks que lanza Claude Code y un comando de más de una hora. En Linux o en la nube un `execFile("gh")` SÍ resolvería al shim: `scripts/rulesets.mjs` (`gh auth token`, de Pablo) quedaría negado allí |
+| Un alias | el shim niega crear alias y extensiones dentro de la sesión; los que ya hubiera en la config del `gh` real no se miran (E4, #738, es la guardia) |
+
 ## Lo que la guardia niega a una sesión (#447)
 
 Sin esto, la sesión volvería a ser administradora en cuanto quitara el token y
