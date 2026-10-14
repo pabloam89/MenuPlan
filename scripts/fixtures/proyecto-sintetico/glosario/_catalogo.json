@@ -1,0 +1,6 @@
+{
+  "$comentario": "Glosario del proyecto sintético (fixture del test de escala).",
+  "version": 1,
+  "project": "sintetico",
+  "terminos": { "$partida": "lista", "clave": "termino" }
+}

@@ -147,8 +147,8 @@ trabajo: devuelve «Decisiones para Pablo».
 
 Cada cabecera dice a quién pasa trabajo (`traspasa_a`, vigilado por `.claude/agentes.test.js`).
 El diagnóstico y el plan del `analista` los juzga otro agente (`revisor`, y `auditor-datos` si el fondo es del modelo de datos).
-Cada agente lista sus tareas y el estándar de cada una (qué es hacerla bien,
-qué comprueba, qué no hace y su fuente) en `ops/estandares-agentes.json`; el
+Cada agente lista sus tareas y el estándar de cada una en
+`ops/estandares-agentes.json`; el
 brief de `/orquestar` lo trae con `npm run estandar -- <agente> <tarea>` y el
 `revisor` lo contrasta (#413).
 
@@ -218,7 +218,7 @@ ser verdad, con su control y su principio; el estándar de tarea cita normas.
 - Tres capas de comprobación (`three-check-layers`) y un juez distinto y
   calibrado (`calibrated-distinct-judge`).
 - De arriba abajo (`top-down`).
-- Lo que varía entre proyectos es un dato, no un nombre en el código (`variation-is-data`).
+- Escalar desde el diseño (`scales-by-design`).
 
 ## Qué se le pregunta a Pablo, y qué no
 

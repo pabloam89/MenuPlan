@@ -10,12 +10,12 @@ Las normas de cada principio: `npm run principios-casa -- <id>`. Un principio qu
 
 | Área | Principios | De un catálogo delegado | Propios sin norma |
 |---|---|---|---|
-| código (`code`) | 9 | 0 | 0 |
+| código (`code`) | 8 | 0 | 0 |
 | infraestructura (`infra`) | 12 | 0 | 0 |
 | datos (`data`) | 15 | 0 | 0 |
 | catálogo (`catalog`) | 1 | 0 | 0 |
 | producto (`product`) | 41 | 41 | 0 |
-| proceso (`process`) | 11 | 0 | 0 |
+| proceso (`process`) | 12 | 0 | 0 |
 | redacción (`writing`) | 15 | 15 | 0 |
 | entidades (`entities`) | 9 | 0 | 3 |
 | **Total** | **113** | **56** | **3** |
@@ -75,9 +75,6 @@ El código del repo y su forma: tests, lint y ficheros.
   - Porqué: Un test relajado sigue en verde y deja de vigilar justo lo que ha fallado.
   - Fuentes: [I] `scripts/lib/avisosPr.mjs`
   - Viene de: C8
-- `variation-is-data` — **Lo que varía, un dato.** Lo que varía entre proyectos o instancias es un dato leído de una lista, nunca un nombre escrito en el código.
-  - Porqué: Acertar nombres y relaciones pronto sale barato y corregirlos después caro, sin construir funciones para casos hipotéticos.
-  - Fuentes: [F] https://martinfowler.com/bliki/Yagni.html ; [S] https://12factor.net/config ; [S] https://blog.cleancoder.com/uncle-bob/2014/05/12/TheOpenClosedPrinciple.html
 
 ## Infraestructura (`infra`)
 
@@ -404,6 +401,10 @@ Cómo se trabaja: issues, fondos, PR, sesiones, agentes, jueces y cifras.
   - Fuentes: [I] `CLAUDE.md`
   - Detalle: `CLAUDE.md#qué-se-le-pregunta-a-pablo-y-qué-no`
   - Viene de: N1
+- `scales-by-design` — **Escala desde el diseño.** Cada solución vale para muchos proyectos, agentes y elementos: estructura desde el primer día, volumen con casos reales.
+  - Porqué: Acertar la estructura al empezar sale barato y corregirla con muchos proyectos encima, carísimo; el volumen sin casos es gasto sin uso.
+  - Fuentes: [F] https://martinfowler.com/bliki/Yagni.html ; [S] https://blog.cleancoder.com/uncle-bob/2014/05/12/TheOpenClosedPrinciple.html ; [S] https://12factor.net/concurrency ; [S] https://12factor.net/config ; [I] `docs/ops/CONTRATO-FACTORIA.md`
+  - Detalle: `docs/ops/CONTRATO-FACTORIA.md#conformidad`
 - `three-check-layers` — **Tres capas de comprobación.** Cada comprobación es formal, material o subjetiva, y lo subjetivo repetido pasa a mecánico salvo que el test salga frágil.
   - Porqué: Un juicio repetido cuesta y varía cada vez, y volver de un test frágil a un juicio deja escrito su porqué.
   - Fuentes: [I] `ops/forja/`

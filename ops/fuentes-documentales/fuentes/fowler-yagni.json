@@ -1,6 +1,6 @@
 {
   "id": "fowler-yagni",
-  "nombre": "Martin Fowler, Yagni: lo barato que abarata el cambio sí se hace (tablas de textos en vez de literales)",
+  "nombre": "Martin Fowler, Yagni: no se construye una función que nadie pide, pero sí lo que hace el software más fácil de modificar",
   "tipo": "externa",
   "url": "https://martinfowler.com/bliki/Yagni.html",
   "uso": "principio",

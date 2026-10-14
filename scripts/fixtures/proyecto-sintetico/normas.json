@@ -1,0 +1,35 @@
+{
+  "$comentario": "Norma vertical del proyecto sintético (fixture del test de escala): misma forma que ops/proyectos/<id>/normas.json.",
+  "version": 2,
+  "project": "sintetico",
+  "normas": [
+    {
+      "id": "sintetico-sin-duplicados",
+      "nombre": "Sin duplicados en el catálogo",
+      "sujeto": "codigo",
+      "fuerza": "debe",
+      "condicion": "cuando se añade una pieza al catálogo del proyecto",
+      "exigencia": "comprobar que no repite otra ya existente",
+      "donde": ["ops/escala-de-proyectos.test.js"],
+      "ejecutor": "ci",
+      "alcance": "todos",
+      "ante_fallo": "cerrado",
+      "control": "ops/normas.test.js",
+      "control_tipo": "test",
+      "control_procesador": "codigo",
+      "control_fuerza": "bloquea",
+      "control_momento": "pr",
+      "control_que_mira": "forma",
+      "control_cobertura": "total",
+      "test_fallo": { "ruta": "ops/normas.test.js", "caso": "cada norma tiene su forma" },
+      "veredicto": "dura",
+      "riesgo": "bajo",
+      "issue": null,
+      "principio": "synthetic-no-duplicates",
+      "ambito": "code",
+      "lado": "vertical",
+      "acciones": ["construir", "juzgar"],
+      "project": "sintetico"
+    }
+  ]
+}
