@@ -79,7 +79,7 @@ Principios, las cuatro filas juntas: 112 en total, 110 horizontales, 2 verticale
 
 ### 5f. Documentos (1)
 
-- `CLAUDE.md`: mezcla las reglas de la casa con las de HoMenu; se parte en dos partes en el PR 9 de #710 (#690), no aquí
+- `CLAUDE.md`: mezcla lo que vale para cualquier proyecto con lo que solo vale para HoMenu; se parte en dos partes en el PR 9 de #710 (#690), no aquí
 
 ### 6. Tests (10)
 

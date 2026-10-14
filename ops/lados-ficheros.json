@@ -57,7 +57,7 @@
       "specs/shopping-list.md": "vertical"
     },
     "documentos": {
-      "CLAUDE.md": {"lado":"duda","razon":"mezcla las reglas de la casa con las de HoMenu; se parte en dos partes en el PR 9 de #710 (#690), no aquí"},
+      "CLAUDE.md": {"lado":"duda","razon":"mezcla lo que vale para cualquier proyecto con lo que solo vale para HoMenu; se parte en dos partes en el PR 9 de #710 (#690), no aquí"},
       "DESIGN_SYSTEM.md": "vertical",
       "HOUSEHOLDS.md": "vertical",
       "ILUSTRACIONES-PASOS.md": "vertical",
