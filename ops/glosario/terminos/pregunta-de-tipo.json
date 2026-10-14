@@ -1,0 +1,15 @@
+{
+  "termino": "pregunta de tipo",
+  "estado": "activo",
+  "clase": "campo",
+  "dominio": "base",
+  "definicion": "Una pregunta de sí o no sobre una skill (opera un proveedor, juzga un artefacto, encadena…) que, con las demás, fija su tipo.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "tipo de skill",
+    "motivo del tipo"
+  ]
+}

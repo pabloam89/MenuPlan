@@ -1,0 +1,15 @@
+{
+  "termino": "estándar común",
+  "estado": "activo",
+  "clase": "campo",
+  "dominio": "base",
+  "definicion": "Un estándar de tarea que varios agentes comparten, escrito una sola vez, y que cada tarea cita por su nombre.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "origen",
+    "estándar de nivel 2"
+  ]
+}

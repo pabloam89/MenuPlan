@@ -12,7 +12,8 @@
     "tarea",
     "estándar",
     "pieza",
-    "tipo de tarea"
+    "tipo de tarea",
+    "estándar de nivel 2"
   ],
   "ref": {
     "fichero": "scripts/lib/estandaresAgentes.mjs",

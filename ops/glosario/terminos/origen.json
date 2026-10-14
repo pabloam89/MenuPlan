@@ -1,0 +1,14 @@
+{
+  "termino": "origen",
+  "estado": "activo",
+  "clase": "campo",
+  "dominio": "base",
+  "definicion": "Una sección de un agente de la que sale una tarea, de vocabulario cerrado.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "estándar común"
+  ]
+}

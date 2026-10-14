@@ -17,7 +17,8 @@
   ],
   "relacionado": [
     "informe",
-    "pieza"
+    "pieza",
+    "modelo"
   ],
   "ref": {
     "fichero": "scripts/lib/fondos.mjs",

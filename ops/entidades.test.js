@@ -692,3 +692,26 @@ describe("autotest de las vistas generadas", () => {
     expect(bloque(DATOS)).toContain("| `token` | design | piece | vertical | no |");
   });
 });
+
+/**
+ * Los documentos de entidades nombran bien las dos escalas (#748, E3). `level` (meta / plantilla / pieza) es de las entidades;
+ * N0 a N3 es la «capa» de un documento. Vigila los NOMBRES de nivel y los campos retirados, no la redacción.
+ */
+describe("N0-principios.md habla de los niveles y de las capas con su palabra", () => {
+  const ruta = join(RAIZ, "docs/entidades/N0-principios.md");
+  const problemasDeN0 = (texto) => {
+    const p = [];
+    for (const nivel of Object.keys(LEVELS)) if (!texto.includes(`\`${nivel}\``)) p.push(`no nombra el nivel «${nivel}» de LEVELS`);
+    if (/role_in_axis/.test(texto)) p.push("habla de role_in_axis, que hoy es role_by_scope");
+    if (/scope: bridge/.test(texto)) p.push("habla de scope: bridge, que se retiró");
+    if (/Hay cuatro niveles/.test(texto)) p.push("llama «niveles» a las capas N0 a N3");
+    return p;
+  };
+  it("nombra meta, template y piece y no habla de campos retirados", () => {
+    expect(problemasDeN0(readFileSync(ruta, "utf8"))).toEqual([]);
+  });
+  it("el autotest: el documento de antes del cambio falla", () => {
+    const antes = "Hay cuatro niveles. Cada uno obedece al anterior.\nse declara puente (`role_in_axis`); scope: bridge";
+    expect(problemasDeN0(antes).length).toBeGreaterThanOrEqual(4);
+  });
+});
