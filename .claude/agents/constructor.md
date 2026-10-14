@@ -64,9 +64,10 @@ No es suyo:
 - Juzgar su propio resultado: un diff (`revisor`), la app en el navegador
   (`qa`), si Lola responde mejor (`evaluador`), RLS, endpoints y secretos
   (`seguridad`) o el modelo de datos (`auditor-datos`).
-- El contenido del catálogo (recetas, nutrición) salvo su forma, la generación
-  del menú (`src/lib/solver.js`) salvo cómo la llama el bot, y el chunking del
-  bundle.
+- El contenido de un catálogo (recetas, nutrición) salvo su forma, a menos que
+  el proyecto lo declare en sus tareas (`--proyecto`): entonces lo construye él.
+  Tampoco la generación del menú (`src/lib/solver.js`) salvo cómo la llama el
+  bot, ni el chunking del bundle.
 
 ## 3. Principios
 
