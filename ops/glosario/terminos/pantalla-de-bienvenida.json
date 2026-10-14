@@ -1,0 +1,19 @@
+{
+  "termino": "pantalla de bienvenida",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Una pantalla que da la bienvenida y ofrece el primer paso para empezar a usar la aplicación.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "pantalla",
+  "entidades": [
+    {
+      "entidad": "screen",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "welcome-and-get-started"
+}

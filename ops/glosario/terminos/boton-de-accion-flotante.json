@@ -1,0 +1,19 @@
+{
+  "termino": "botón de acción flotante",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Un elemento de interfaz redondo que flota sobre el contenido y lanza la acción principal de la pantalla.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "elemento de interfaz",
+  "entidades": [
+    {
+      "entidad": "component",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "floating-action-button"
+}

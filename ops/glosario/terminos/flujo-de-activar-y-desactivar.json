@@ -1,0 +1,22 @@
+{
+  "termino": "flujo de activar y desactivar",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Un flujo de usuario que lleva a la persona a encender o apagar una función o un permiso del producto desde sus ajustes, a menudo con una explicación o una confirmación.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "flujo de usuario",
+  "entidades": [
+    {
+      "entidad": "flow",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "enabling-and-disabling",
+  "relacionado": [
+    "flujo de encendido y apagado"
+  ]
+}

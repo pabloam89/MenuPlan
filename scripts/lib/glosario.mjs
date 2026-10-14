@@ -42,6 +42,7 @@ export const CLASES = {
   rol: "Quién hace algo: una persona, una sesión, un agente o un vigilante",
   campo: "Una clave de una ficha o de un catálogo, con su significado",
   lugar: "Dónde vive algo: una carpeta, una rama, un entorno",
+  tipo: "Un valor de un vocabulario cerrado que clasifica las cosas de una entidad: un tipo de pantalla, de elemento o de flujo",
 };
 
 /** Valor de `aplica_a` que vale por todas las zonas. */
@@ -93,6 +94,7 @@ export const RELACION_POR_CLASE = {
   rol: "rol_de",
   accion: "accion_sobre",
   lugar: "ubicacion_de",
+  tipo: "tipo_de",
 };
 export const RELACIONES_ENTIDAD = {
   denota: "El término nombra una cosa que es esa entidad",
@@ -101,6 +103,7 @@ export const RELACIONES_ENTIDAD = {
   rol_de: "El término nombra el papel que esa entidad hace",
   accion_sobre: "El término nombra lo que se hace con esa entidad",
   ubicacion_de: "El término nombra el sitio donde esa entidad vive o corre",
+  tipo_de: "El término nombra un tipo que clasifica las cosas de esa entidad",
 };
 
 /**
@@ -313,7 +316,8 @@ export function problemasDeRelaciones(terminos) {
     if (!activo(t) && refs.length) p.push(`${id}: un retirado no lleva relaciones (van en su pasa_a)`);
     if (typeof t.amplio === "string" && vivo(t.amplio)) {
       const a = por.get(t.amplio);
-      if (a.clase !== t.clase) p.push(`${id}: amplio «${t.amplio}» es de clase ${a.clase} y este de ${t.clase}`);
+      // Un tipo cuelga de su artefacto (el «flujo de usuario» y sus tipos, #776): es la única mezcla de clases que vale.
+      if (a.clase !== t.clase && !(t.clase === "tipo" && a.clase === "artefacto")) p.push(`${id}: amplio «${t.amplio}» es de clase ${a.clase} y este de ${t.clase}`);
       if (!(a.estrecho ?? []).includes(id)) p.push(`${id}: amplio «${t.amplio}», pero ${t.amplio} no lo tiene en estrecho`);
     }
     for (const x of Array.isArray(t.estrecho) ? t.estrecho : []) if (vivo(x) && por.get(x).amplio !== id) p.push(`${id}: estrecho «${x}», pero el amplio de ${x} no es ${id}`);

@@ -1,0 +1,19 @@
+{
+  "termino": "pantalla de recorrido guiado",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Una pantalla que enseña paso a paso cómo se usa la aplicación, con texto o ilustración.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "pantalla",
+  "entidades": [
+    {
+      "entidad": "screen",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "guided-tour-and-tutorial"
+}

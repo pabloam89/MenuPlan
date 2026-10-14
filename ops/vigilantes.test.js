@@ -165,6 +165,8 @@ const TABLA = [
   ["vigilante-lados", "scripts/lib/vigilanteLados.mjs", "ops/vigilante-lados.test.js"],
   ["lados-ficheros", "ops/lados-ficheros.json", "ops/lados-ficheros.test.js"],
   ["lados-ficheros", "ops/proyectos/homenu/servicios/github.md", "ops/lados-ficheros.test.js"],
+  ["taxonomia-de-diseno", "ops/diseno/taxonomia.json", "ops/diseno/taxonomia.test.js"],
+  ["taxonomia-de-diseno", "scripts/lib/taxonomiaDiseno.mjs", "ops/diseno/taxonomia.test.js"],
 ];
 
 describe("tabla: ruta de ejemplo → vigilante que debe salir", () => {

@@ -177,7 +177,7 @@ describe("autotest de la forma", () => {
   const conTermino = (cambio) => { const g = copia(); cambio(g.terminos[0], g); return problemasDeGlosario(g, { existe, leer }); };
 
   it("una clase fuera del vocabulario", () => {
-    expect(Object.keys(CLASES)).toEqual(["accion", "estado", "artefacto", "rol", "campo", "lugar"]);
+    expect(Object.keys(CLASES)).toEqual(["accion", "estado", "artefacto", "rol", "campo", "lugar", "tipo"]);
     expect(conTermino((t) => { t.clase = "verbo"; }).join()).toMatch(/fuera del vocabulario/);
   });
 
@@ -249,6 +249,9 @@ describe("autotest de relaciones y forma", () => {
 
   it("amplio de otra clase, un ciclo, y el mismo término como amplio y relacionado", () => {
     expect(conTermino("caso", (t, g) => { t.amplio = "fallo"; g.terminos.find((x) => x.termino === "fallo").estrecho = ["caso"]; }).join()).toMatch(/caso: amplio «fallo» es de clase estado/);
+    // Un tipo cuelga de su artefacto (#776); con otra clase como amplio sigue fallando.
+    expect(conTermino("pantalla de estado vacío", () => {}).join()).not.toMatch(/es de clase/);
+    expect(conTermino("pantalla de estado vacío", (t, g) => { g.terminos.find((x) => x.termino === "pantalla").clase = "estado"; }).join()).toMatch(/pantalla de estado vacío: amplio «pantalla» es de clase estado y este de tipo/);
     expect(conTermino("comprobar", (t) => { t.amplio = "verificar"; }).join()).toMatch(/ciclo en amplio/);
     expect(conTermino("revisor", (t, g) => { t.relacionado = ["juez"]; g.terminos.find((x) => x.termino === "juez").relacionado.push("revisor"); }).join()).toMatch(/«juez» es amplio o estrecho y también relacionado/);
     expect(conTermino("revisor", (t) => { t.amplio = ["juez"]; }).join()).toMatch(/amplio es un término, no una lista/);
@@ -545,7 +548,7 @@ describe("autotest del campo dominio y de la forma del mapeo (F1 de #652)", () =
   });
 
   it("la relación con la entidad la fija la clase del término", () => {
-    expect(RELACION_POR_CLASE).toEqual({ artefacto: "denota", campo: "campo_de", estado: "valor_de", rol: "rol_de", accion: "accion_sobre", lugar: "ubicacion_de" });
+    expect(RELACION_POR_CLASE).toEqual({ artefacto: "denota", campo: "campo_de", estado: "valor_de", rol: "rol_de", accion: "accion_sobre", lugar: "ubicacion_de", tipo: "tipo_de" });
     expect(Object.keys(RELACION_POR_CLASE).sort()).toEqual(Object.keys(CLASES).sort());
     expect(con((t) => { t.entidades = [{ entidad: "case", relacion: "denota" }]; })).toMatch(/un término de clase estado nombra a su entidad con «valor_de», no con «denota»/);
     expect(con((t) => { t.entidades = [{ entidad: "case", relacion: "ama" }]; })).toMatch(/relación «ama» fuera del vocabulario/);
