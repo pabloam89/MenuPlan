@@ -1,0 +1,25 @@
+{
+  "termino": "plantilla de componente",
+  "estado": "activo",
+  "clase": "artefacto",
+  "dominio": "diseno",
+  "scope": "horizontal",
+  "definicion": "Un molde que dice cómo es cualquier componente de un tipo de elemento de interfaz: sus partes, atributos, estados y accesibilidad, en vocabularios cerrados y sin números.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "componente de diseño",
+    "ficha de componente",
+    "elemento de interfaz"
+  ],
+  "en": "component-template",
+  "entidades": [
+    {
+      "entidad": "component-template",
+      "relacion": "denota"
+    }
+  ],
+  "nota": "Es el nivel de plantilla: una por tipo, válida para cualquier proyecto. La ficha de componente es la pieza de un proyecto que la rellena con sus tokens."
+}
