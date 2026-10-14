@@ -238,19 +238,19 @@ describe("limpiar-worktrees: terminar el borrado de lo que quedó sin registro (
   });
 
   it("porTerminar: solo carpetas MenuPlan-… hermanas del repo, existentes y que no son worktrees vivos", () => {
-    const raiz = "C:\\dev\\MenuPlan";
+    const raiz = "C:/dev/MenuPlan";
     const p = (dir) => ({ dir, rama: "ops/x", motivo: "m" });
     const lista = [
-      p("C:\\dev\\MenuPlan-huerfana"),
-      p("C:\\dev\\MenuPlan-viva"),
-      p("C:\\dev\\MenuPlan-borrada"),
-      p("C:\\dev\\otra-cosa"),
-      p("C:\\Users\\pablo\\OneDrive\\MenuPlan-fuera"),
-      p("C:\\dev\\MenuPlan"),
+      p("C:/dev/MenuPlan-huerfana"),
+      p("C:/dev/MenuPlan-viva"),
+      p("C:/dev/MenuPlan-borrada"),
+      p("C:/dev/otra-cosa"),
+      p("C:/Users/pablo/OneDrive/MenuPlan-fuera"),
+      p("C:/dev/MenuPlan"),
     ];
     const vivos = worktreesVivos("worktree C:/dev/MenuPlan-viva\n");
     const r = porTerminar(lista, { raiz, existe: (d) => !/borrada/.test(d), vivos });
-    expect(r.map((x) => x.dir)).toEqual(["C:\\dev\\MenuPlan-huerfana"]);
+    expect(r.map((x) => x.dir)).toEqual(["C:/dev/MenuPlan-huerfana"]);
   });
 
   it("el motivo lleva el error real de git", () => {
