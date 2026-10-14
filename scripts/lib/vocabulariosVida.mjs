@@ -60,7 +60,7 @@ import { DEF_ACTORES, DEF_EVITABLE, DEF_MOTIVOS_INTERVENCION } from "./eventosVo
 import { DEF_PROYECTOS, DEF_ZONAS } from "./zonasProyecto.mjs";
 import { TIPOS as TIPOS_DE_RECURSO } from "./recursos.mjs";
 import { CODIGOS_WORDING, leerTopes } from "./topes.mjs";
-import { clavesDeVocabulario, leerBibliotecas, textosDeBibliotecas } from "./bibliotecasDiseno.mjs";
+import { VOCABULARIOS_DEL_POOL, leerBibliotecas, textosDeBibliotecas } from "./bibliotecasDiseno.mjs";
 import { leerTaxonomia, textosDeGruposDeDiseno, textosDePlataformasDeDiseno, textosDeTiposDeDiseno } from "./taxonomiaDiseno.mjs";
 
 export const RUTA_VOCABULARIOS = "ops/vocabularios-vida.json";
@@ -141,8 +141,9 @@ export const VOCABULARIOS = {
   "diseno.grupo_elemento": { fichero: "scripts/lib/taxonomiaDiseno.mjs", textos: () => textosDeGruposDeDiseno(leerTaxonomia(RAIZ), "elemento") },
   "diseno.grupo_flujo": { fichero: "scripts/lib/taxonomiaDiseno.mjs", textos: () => textosDeGruposDeDiseno(leerTaxonomia(RAIZ), "flujo") },
   "diseno.plataforma_de_tipo": { fichero: "scripts/lib/taxonomiaDiseno.mjs", textos: () => textosDePlataformasDeDiseno(leerTaxonomia(RAIZ)) },
-  // El pool de bibliotecas de interfaz (#780): los vocabularios cerrados de las fichas de ops/diseno/bibliotecas.json.
-  ...Object.fromEntries(clavesDeVocabulario(leerBibliotecas(RAIZ)).map((k) => [`diseno.biblioteca_${k}`, { fichero: "scripts/lib/bibliotecasDiseno.mjs", textos: () => textosDeBibliotecas(leerBibliotecas(RAIZ), k) }])),
+  // El pool de bibliotecas de interfaz (#780): los vocabularios cerrados de las fichas de ops/diseno/bibliotecas.json. Las claves
+  // salen de la lista del código (el test del pool exige que sean las del JSON) y el JSON se lee al pedir los textos, no al importar (#802).
+  ...Object.fromEntries(VOCABULARIOS_DEL_POOL.map((k) => [`diseno.biblioteca_${k}`, { fichero: "scripts/lib/bibliotecasDiseno.mjs", textos: () => textosDeBibliotecas(leerBibliotecas(RAIZ), k) }])),
   // El registro de entidades (#566): sus valores van a ops/entidades.json y a ops/entidades-sujetos.json.
   // El eje (entidades.axis) se retiró entero el 12 oct 2026 y entidades.becomes el 13 (vocabularios_retirados).
   "entidades.scope": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(SCOPES) },
