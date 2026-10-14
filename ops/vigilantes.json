@@ -73,6 +73,13 @@
       "evidencia": "#499, #407, #307"
     },
     {
+      "id": "claude-md-anclas",
+      "tests": ["ops/claude-md-anclas.test.js"],
+      "mira": ["**/*.test.{js,mjs,jsx}", "ops/claude-md-anclas.json"],
+      "porque": "Ningún test lee CLAUDE.md para fijar en él una copia de lo que vive en otro registro, salvo los punteros del índice de ops/claude-md-anclas.json: un test nuevo que lo lea, en cualquier carpeta, rompe este vigilante lejos de lo que tocas.",
+      "evidencia": "#690 (D3 de docs/ops/CLAUDE-MD-AFIRMACIONES.md)"
+    },
+    {
       "id": "errores-tragados-scripts",
       "tests": ["scripts/sinErroresTragados.test.js"],
       "mira": ["scripts/**/*.{js,mjs,cjs,jsx}", ".claude/hooks/**/*.{js,mjs,cjs,jsx}"],

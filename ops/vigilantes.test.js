@@ -116,6 +116,8 @@ const TABLA = [
   ["redaccion-de-reglas", "ops/glosario-excepciones/excepciones/x.json", "ops/redaccion.test.js"],
   ["tests-de-tiempo", "src/lib/x.test.js", "ops/testsDeTiempo.test.js"],
   ["tests-de-tiempo", ".claude/hooks/x.test.js", "ops/testsDeTiempo.test.js"],
+  ["claude-md-anclas", "scripts/x.test.js", "ops/claude-md-anclas.test.js"],
+  ["claude-md-anclas", "ops/claude-md-anclas.json", "ops/claude-md-anclas.test.js"],
   ["carpeta-del-shim", "scripts/bin/gh", "scripts/ghShim.test.js"],
   ["scripts-sin-caminos-sueltos", "scripts/lib/x.mjs", "scripts/lib/env.test.js"],
   ["cuota-de-gh", "scripts/lib/x.mjs", "scripts/cuotaGh.test.js"],

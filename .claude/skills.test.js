@@ -225,7 +225,7 @@ it("la pieza meta (paso forja) también dice en su «Método» cuándo se acaba 
   expect(meta(relleno).map((f) => f.codigo)).toContain("sin-parada");
 });
 
-// ── La plantilla, el catálogo del flujo y CLAUDE.md dicen lo mismo ───────
+// ── La plantilla, el catálogo del flujo y el mapa de skills dicen lo mismo ───────
 
 it("cada tipo de ops/forja/ tiene sus secciones, y ninguno más", () => {
   expect(Object.keys(SECCIONES_POR_TIPO).sort()).toEqual(tiposDeSkill(RAIZ).sort());
@@ -238,9 +238,11 @@ it("la plantilla común remite a la forja y a los moldes, y dice los números qu
   for (const n of [`${MAX_LINEAS} líneas`, `${PLAZO_COMPROBADO_DIAS} días`, `${MIN_CASOS} casos`]) expect(plantilla).toContain(n);
 });
 
-it("CLAUDE.md nombra todas las skills", () => {
-  const claude = readFileSync(join(RAIZ, "CLAUDE.md"), "utf8");
-  for (const s of skills) expect(claude, `CLAUDE.md no nombra a ${s.nombre}`).toContain(`\`${s.nombre}\``);
+it("el mapa de skills (.claude/dominios-skills.json) nombra todas las skills, y ninguna más", () => {
+  // La lista vive en .claude/skills/ y en su mapa; CLAUDE.md solo apunta, no las lista (#690, D3).
+  const mapa = JSON.parse(readFileSync(join(AQUI, "dominios-skills.json"), "utf8"));
+  const enMapa = [...Object.keys(mapa.skills ?? {}), ...Object.keys(mapa.exentas ?? {})].sort();
+  expect(enMapa, ".claude/dominios-skills.json → skills y exentas").toEqual(skills.map((s) => s.nombre).sort());
 });
 
 // ── La forja (#409): lo automatizable de forja-de-skills ─────────────────

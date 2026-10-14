@@ -222,10 +222,18 @@ describe("el arranque", () => {
 });
 
 describe("la norma está escrita donde se lee", () => {
-  // Si alguien la quita de CLAUDE.md, de /orquestar o de la skill, el sistema
-  // vuelve a apuntar casos sueltos sin que nadie se dé cuenta.
-  it("CLAUDE.md, /orquestar y la skill issues piden analizar hasta el problema de fondo", () => {
-    for (const f of ["CLAUDE.md", ".claude/commands/orquestar.md", ".claude/skills/issues/SKILL.md"]) {
+  // Si alguien la quita de su registro, de /orquestar o de la skill, el sistema
+  // vuelve a apuntar casos sueltos sin que nadie se dé cuenta. La fuente es la norma
+  // `cuando-algo-falla` (ops/normas.json) y las definiciones de scripts/lib/issues.mjs;
+  // CLAUDE.md solo apunta y nada le obliga a copiarla (#690, D3).
+  const norma = JSON.parse(leer("ops", "normas.json")).normas.find((n) => n.id === "cuando-algo-falla");
+
+  it("la norma, sus definiciones, /orquestar y la skill issues piden analizar hasta el problema de fondo", () => {
+    expect(norma, "ops/normas.json: cuando-algo-falla").toBeTruthy();
+    expect(norma.exigencia).toMatch(/problema de fondo/i);
+    expect(GRUPOS.tipo.valores.fondo).toMatch(/problema de fondo/i);
+    expect(Object.keys(GRUPOS.analisis.valores)).toContain("puntual");
+    for (const f of [".claude/commands/orquestar.md", ".claude/skills/issues/SKILL.md"]) {
       const t = leer(f);
       expect(t, f).toMatch(/problema de fondo/i);
       expect(t, f).toMatch(/puntual/i);
@@ -236,11 +244,12 @@ describe("la norma está escrita donde se lee", () => {
 
   // #185: la norma no es solo texto; la cumple un mecanismo, y ninguna de sus
   // piezas se puede quitar sin que esto falle.
-  it("la línea «Casos:» está en la plantilla del PR, en el CI, en CLAUDE.md, en /orquestar y en la skill", () => {
+  it("la línea «Casos:» está en la plantilla del PR, en el CI, en su norma, en /orquestar y en la skill", () => {
     expect(leer(".github", "pull_request_template.md")).toMatch(/^Casos:/m);
     expect(leer(".github", "workflows", "tests.yml")).toMatch(/scripts\/casos-pr\.mjs/);
     expect(leer(".github", "workflows", "tests.yml")).toMatch(/issues: read/);
-    for (const f of ["CLAUDE.md", ".claude/commands/orquestar.md", ".claude/skills/github/SKILL.md"]) {
+    expect(norma.nota, "ops/normas.json: cuando-algo-falla").toMatch(/Casos:/);
+    for (const f of [".claude/commands/orquestar.md", ".claude/skills/github/SKILL.md"]) {
       expect(leer(f), f).toMatch(/Casos:/);
     }
     expect(leer(".claude", "hooks", "guardia.mjs")).toMatch(/analizarCasos/);
