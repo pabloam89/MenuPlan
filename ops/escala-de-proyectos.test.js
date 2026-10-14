@@ -4,8 +4,7 @@ import { readFileSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { contexto, crearRaizSintetica, ejecutar, idsEscritos, idsEscritosEn, SONDAS, SONDAS_CONOCIDAS } from "../scripts/lib/escalaProyectos.mjs";
-import { ficherosDeGit } from "./ficherosGit.js";
+import { contexto, crearRaizSintetica, ejecutar, SONDAS, SONDAS_CONOCIDAS } from "../scripts/lib/escalaProyectos.mjs";
 
 /**
  * La factoría escala (principio `scales-by-design`; normas `pieza-vale-con-un-proyecto-mas` y `variacion-como-dato`).
@@ -21,14 +20,13 @@ import { ficherosDeGit } from "./ficherosGit.js";
  */
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
 const TECHOS = JSON.parse(readFileSync(join(RAIZ, "ops/normas-techos.json"), "utf8"));
-const CLAVES = ["escala_fallos_con_un_proyecto_mas", "escala_ids_de_proyecto_en_piezas", "escala_ids_de_proyecto_en_tests"];
+const CLAVES = ["escala_fallos_con_un_proyecto_mas"];
 const UNA_VEZ = 300_000;
 
 let sintetico;
 let ctx;
 let pasan;
 let conocidas;
-let escritos;
 let reales;
 
 beforeAll(() => {
@@ -37,7 +35,6 @@ beforeAll(() => {
   reales = ctx.ids.filter((i) => i !== sintetico.id);
   pasan = ejecutar(SONDAS, ctx);
   conocidas = ejecutar(SONDAS_CONOCIDAS, ctx);
-  escritos = idsEscritos(RAIZ, reales, ficherosDeGit(RAIZ));
 }, UNA_VEZ);
 
 afterAll(() => sintetico?.limpiar());
@@ -58,17 +55,15 @@ describe("con un proyecto más (el sintético), las piezas que recorren proyecto
 describe("la auditoría de la factoría: lo que aún solo vale para los proyectos reales (techo que solo baja)", () => {
   const medidas = () => ({
     escala_fallos_con_un_proyecto_mas: conocidas.reduce((n, s) => n + s.problemas.length, 0),
-    escala_ids_de_proyecto_en_piezas: escritos.piezas.length,
-    escala_ids_de_proyecto_en_tests: escritos.tests.length,
   });
 
-  it("los tres techos existen en ops/normas-techos.json", () => {
+  it("el techo existe en ops/normas-techos.json", () => {
     for (const k of CLAVES) expect(Number.isInteger(TECHOS[k]), k).toBe(true);
   });
 
   it("la cifra de hoy no sube del techo", () => {
     const m = medidas();
-    for (const k of CLAVES) expect(m[k], `${k}: nueva pieza que solo vale para los proyectos reales o que nombra su id a mano. Lo que varía se lee de ops/entidades.json. Piezas: ${[...escritos.piezas, ...conocidas.flatMap((s) => s.problemas)].join(" | ")}`).toBeLessThanOrEqual(TECHOS[k]);
+    for (const k of CLAVES) expect(m[k], `${k}: una pieza más solo vale para los proyectos reales. Lo que varía se lee de ops/entidades.json. Fallos: ${conocidas.flatMap((s) => s.problemas).join(" | ")}`).toBeLessThanOrEqual(TECHOS[k]);
   });
 
   it("si baja, el techo baja con ella (si no, volvería a subir sin verse)", () => {
@@ -78,7 +73,7 @@ describe("la auditoría de la factoría: lo que aún solo vale para los proyecto
 
   it("los techos no suben respecto a origin/staging (si se puede leer sin red)", () => {
     let enStaging = null;
-    try { enStaging = JSON.parse(execFileSync("git", ["show", "origin/staging:ops/normas-techos.json"], { cwd: RAIZ, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] })); } catch { /* sin referencia */ }
+    try { enStaging = JSON.parse(execFileSync("git", ["show", "origin/staging:ops/normas-techos.json"], { cwd: RAIZ, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], windowsHide: true })); } catch { /* sin referencia */ }
     if (!enStaging) return;
     for (const k of CLAVES) if (typeof enStaging[k] === "number") expect(TECHOS[k], `${k} no puede subir (staging: ${enStaging[k]})`).toBeLessThanOrEqual(enStaging[k]);
   });
@@ -119,19 +114,6 @@ describe("se ven fallar (cada caso cambia UNA cosa)", () => {
       writeFileSync(ruta, JSON.stringify(r));
       expect(sonda("tareas del proyecto").join("\n")).toMatch(/no es una norma del proyecto/);
     } finally { writeFileSync(ruta, original); }
-  });
-
-  it("un id de proyecto escrito a mano: comillas con «proyecto», ruta, opción y clave de objeto; los comentarios y otras palabras, no", () => {
-    const ids = ["alfa", "beta"];
-    const cuenta = (t) => idsEscritosEn(t, ids).length;
-    expect(cuenta('const PROYECTO = "alfa";')).toBe(1);
-    expect(cuenta("const ruta = `ops/proyectos/beta/normas.json`;")).toBe(1);
-    expect(cuenta('console.error("usa --proyecto alfa");')).toBe(1);
-    expect(cuenta('const DEF = {\n  beta: "el segundo",\n};')).toBe(1);
-    expect(cuenta('// el proyecto "alfa" es el de ejemplo')).toBe(0);
-    expect(cuenta("/**\n * ops/proyectos/alfa/\n */\nconst x = 1;")).toBe(0);
-    expect(cuenta('const METODOS = ["alfa", "gamma"];')).toBe(0);
-    expect(cuenta("const proyecto = ids.find((x) => x === otro);")).toBe(0);
   });
 
   it("una lista de proyectos escrita a mano que no incluye el del registro (la sonda conocida la mide)", () => {

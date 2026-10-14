@@ -401,8 +401,8 @@ Cómo se trabaja: issues, fondos, PR, sesiones, agentes, jueces y cifras.
   - Fuentes: [I] `CLAUDE.md`
   - Detalle: `CLAUDE.md#qué-se-le-pregunta-a-pablo-y-qué-no`
   - Viene de: N1
-- `scales-by-design` — **Escala desde el diseño.** Cada solución vale para muchos proyectos, agentes y elementos: estructura desde el primer día, volumen con casos reales.
-  - Porqué: Acertar la estructura al empezar sale barato y corregirla con muchos proyectos encima, carísimo; el volumen sin casos es gasto sin uso.
+- `scales-by-design` — **Escala desde el diseño.** Cada solución vale para muchos proyectos, agentes y elementos, con estructura desde el primer día y volumen según casos reales.
+  - Porqué: Acertar la estructura al empezar sale barato y corregirla con muchos proyectos encima, carísimo, y el volumen sin casos no se usa.
   - Fuentes: [F] https://martinfowler.com/bliki/Yagni.html ; [S] https://blog.cleancoder.com/uncle-bob/2014/05/12/TheOpenClosedPrinciple.html ; [S] https://12factor.net/concurrency ; [S] https://12factor.net/config ; [I] `docs/ops/CONTRATO-FACTORIA.md`
   - Detalle: `docs/ops/CONTRATO-FACTORIA.md#conformidad`
 - `three-check-layers` — **Tres capas de comprobación.** Cada comprobación es formal, material o subjetiva, y lo subjetivo repetido pasa a mecánico salvo que el test salga frágil.

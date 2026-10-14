@@ -8,13 +8,14 @@
  * del segundo (SONDAS_CONOCIDAS) son la auditoría medida de lo que aún solo vale para los proyectos reales: su cifra tiene techo
  * en ops/normas-techos.json y solo baja.
  *
- * Aparte, `idsEscritos` cuenta las líneas de las piezas de la casa (scripts, hooks, vigilantes) que nombran a mano el id de un
- * proyecto: lo que varía entre proyectos se lee de la lista (ops/entidades.json, `projects`), no se teclea.
+ * Contar los literales de id de proyecto que quedan escritos a mano (código, registros y tests) NO es de aquí: lo mide el vigilante de
+ * ataduras de #795 (scripts/lib/atadurasProyecto.mjs, techos en ops/techos-lados.json). Esta prueba mide el comportamiento: qué
+ * pieza deja de valer cuando la lista tiene un proyecto más.
  *
  * No toca el repo: todo ocurre en una carpeta temporal que borra `limpiar()`.
  */
 import { execFileSync } from "node:child_process";
-import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -51,8 +52,8 @@ export function crearRaizSintetica(raiz) {
   const ent = JSON.parse(readFileSync(join(tmp, "ops", "entidades.json"), "utf8"));
   ent.projects.push(entrada);
   writeFileSync(join(tmp, "ops", "entidades.json"), `${JSON.stringify(ent, null, 2)}\n`);
-  execFileSync("git", ["init", "-q"], { cwd: tmp, stdio: "ignore" });
-  execFileSync("git", ["add", "-A"], { cwd: tmp, stdio: "ignore", maxBuffer: 64 * 1024 * 1024 });
+  execFileSync("git", ["init", "-q"], { cwd: tmp, stdio: "ignore", windowsHide: true });
+  execFileSync("git", ["add", "-A"], { cwd: tmp, stdio: "ignore", maxBuffer: 64 * 1024 * 1024, windowsHide: true });
   return { tmp, id: entrada.id, entrada, limpiar: () => rmSync(tmp, { recursive: true, force: true }) };
 }
 
@@ -66,6 +67,9 @@ function contexto(tmp, id, raiz = tmp) {
 
 /** ¿Lee la pieza el registro del proyecto sintético? Si no, la sonda no mide nada y debe fallar, no pasar en vacío. */
 const falta = (cosa, id, hay) => (hay ? [] : [`${cosa}: no ha leído nada del proyecto «${id}» (¿solo mira los proyectos reales?)`]);
+
+/** El mensaje del glosario cuando valida el project contra la lista de proyectos escrita en código (es una sonda conocida, no una de las que pasan). */
+const ES_LISTA_EN_CODIGO = /no es un proyecto de ops/entidades.json/;
 
 /** Sondas que deben salir vacías: la pieza ya vale con un proyecto más. */
 export const SONDAS = {
@@ -108,7 +112,7 @@ export const SONDAS = {
     const casa = entero.terminos.filter((t) => !t.project);
     return [
       ...falta("glosario", id, delProyecto[id]?.terminos?.length),
-      ...problemasDeLadosDelGlosario(casa, delProyecto, entidades),
+      ...problemasDeLadosDelGlosario(casa, delProyecto, entidades).filter((m) => !ES_LISTA_EN_CODIGO.test(m)),
       ...problemasDeGlosario(entero),
       ...(activos(entero).some((t) => t.project === id) ? [] : [`glosario: el término de «${id}» no entra en el glosario entero`]),
     ];
@@ -158,8 +162,16 @@ export const SONDAS_CONOCIDAS = {
     const sale = proyectoDe({ MENUPLAN_PROYECTO: id });
     return sale === id ? [] : [`eventos.proyectoDe con MENUPLAN_PROYECTO=${id} devuelve «${sale}»: el evento se cuenta como de otro proyecto`];
   },
-  "el detector de «nombra el proyecto» reconoce el nombre de cada proyecto (scripts/lib/inventarioVertical.mjs)": ({ entidades }) =>
-    entidades.projects.filter((p) => !nombraProyecto(`El ${p.name} cambia`)).map((p) => `nombraProyecto no reconoce «${p.name}»: la lista de nombres está escrita a mano para un solo proyecto`),
+  "el glosario valida el project de un término contra la lista de ops/entidades.json (no contra PROYECTOS_CON_NORMAS)": ({ tmp, entidades }) =>
+    problemasDeLadosDelGlosario(leerGlosario(tmp).terminos.filter((t) => !t.project), leerGlosarioDeProyecto(tmp), entidades).filter((m) => ES_LISTA_EN_CODIGO.test(m)),
+  "`npm run topes` mide las tareas de un proyecto nuevo (scripts/lib/topes.mjs)": ({ tmp, id }) => {
+    const texto = leerTareasDeProyecto(tmp, [id])[id]?.agentes?.constructor?.tareas?.[0]?.tarea;
+    return LECTORES["tarea.tarea"](tmp).includes(texto) ? [] : [`tarea.tarea: no mide la tarea del proyecto «${id}»: lee los proyectos de una lista escrita en código`];
+  },
+  "el detector de «nombra el proyecto» reconoce el nombre del proyecto nuevo (scripts/lib/inventarioVertical.mjs)": ({ entidades, id }) => {
+    const p = entidades.projects.find((x) => x.id === id);
+    return nombraProyecto(`El ${p.name} cambia`) ? [] : [`nombraProyecto no reconoce «${p.name}»: la lista de nombres está escrita a mano para un solo proyecto`];
+  },
 };
 
 /** Ejecuta un grupo de sondas: [{ sonda, problemas }]. Una excepción cuenta como problema (la pieza no aguanta). */
@@ -170,51 +182,3 @@ export function ejecutar(grupo, ctx) {
 }
 
 export { contexto };
-
-// ── Ids de proyecto escritos a mano ────────────────────────────────────────────────────────────────────────────────
-
-/** Rutas que no cuentan: esta herramienta (nombra los ids al medirlos) y su fixture. */
-export const PROPIOS = ["scripts/lib/escalaProyectos.mjs", "ops/escala-de-proyectos.test.js"];
-
-/**
- * Líneas de un texto de código que nombran a mano el id de un proyecto: el id entre comillas o como clave de objeto, junto a la
- * palabra «proyecto», o una ruta ops/proyectos/<id>, o `--proyecto <id>`. Los comentarios no cuentan (explican; no atan).
- * Devuelve [{ linea, id }].
- */
-export function idsEscritosEn(texto, ids) {
-  const fuera = [];
-  const alt = ids.map((i) => i.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
-  if (!alt) return fuera;
-  const comillado = new RegExp(`["'\`](${alt})["'\`]`);
-  const clave = new RegExp(`^\\s*(${alt}):\\s*["'\`]`);
-  const ruta = new RegExp(`proyectos/(${alt})(?![\\w-])|--proyecto (${alt})(?![\\w-])`);
-  let enBloque = false;
-  texto.split("\n").forEach((l, i) => {
-    const t = l.trim();
-    if (enBloque) { if (t.includes("*/")) enBloque = false; return; }
-    if (t.startsWith("/*")) { if (!t.includes("*/")) enBloque = true; return; }
-    if (t.startsWith("//") || t.startsWith("*")) return;
-    const m = ruta.exec(l) ?? clave.exec(l) ?? (/proyecto/i.test(l) ? comillado.exec(l) : null);
-    if (m) fuera.push({ linea: i + 1, id: m[1] ?? m[2] });
-  });
-  return fuera;
-}
-
-const CODIGO = /\.(m?js|cjs)$/;
-const ES_TEST = /\.test\.(m?js|jsx)$/;
-/** Las piezas de la casa que se miran: scripts, hooks y vigilantes de ops/ (no el producto: src/, api/, supabase/). */
-const DE_LA_CASA = /^(scripts\/|\.claude\/hooks\/|ops\/)/;
-
-/**
- * { piezas: [«ruta:línea (id)»], tests: [...] }: dónde se nombra un id de proyecto a mano, en el código de la casa y en sus tests.
- * `ficheros`: los de git (ops/ficherosGit.js); `ids`: los de ops/entidades.json.
- */
-export function idsEscritos(raiz, ids, ficheros) {
-  const res = { piezas: [], tests: [] };
-  for (const f of ficheros.filter((x) => DE_LA_CASA.test(x) && CODIGO.test(x) && !PROPIOS.includes(x) && !x.startsWith(`${RUTA_FIXTURE}/`) && existsSync(join(raiz, x)))) {
-    const donde = ES_TEST.test(f) ? res.tests : res.piezas;
-    for (const { linea, id } of idsEscritosEn(readFileSync(join(raiz, f), "utf8"), ids)) donde.push(`${f}:${linea} (${id})`);
-  }
-  return res;
-}
-

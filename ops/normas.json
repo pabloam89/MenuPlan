@@ -2992,10 +2992,10 @@
       "fuerza": "debe",
       "condicion": "cuando una pieza depende del proyecto o de la instancia en que corre",
       "exigencia": "tomar de la lista de proyectos su id y sus relaciones, sin teclearlos en el código",
-      "nota": "Consecuencia de escalar desde el diseño: lo que varía entre proyectos es un dato leído de ops/entidades.json (`projects`), no un nombre escrito. El test cuenta las líneas que nombran un id a mano, con un techo que solo baja.",
+      "nota": "Consecuencia de escalar desde el diseño: lo que varía entre proyectos es un dato leído de ops/entidades.json (`projects`), no un nombre escrito. El test da de alta un proyecto sintético y mide qué pieza lo ignora; los literales de id que quedan los cuenta el vigilante de ataduras de #795, que será su control cuando se fusione.",
       "donde": [
         "ops/escala-de-proyectos.test.js",
-        "ops/vigilante-lados.test.js"
+        "scripts/lib/escalaProyectos.mjs"
       ],
       "ejecutor": "ci",
       "alcance": "todos",

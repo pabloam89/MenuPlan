@@ -332,6 +332,13 @@
       "mira": ["ops/techos-lados.json", "scripts/lib/vigilanteLados.mjs", "scripts/lib/inventarioVertical.mjs", "ops/inventario-vertical.json", "ops/principios/**", "ops/principios-producto/**", "ops/fuentes-documentales/**", "ops/entidades.json", "ops/proyectos/**", "ops/normas.json", "ops/glosario/terminos/*.json", "ops/zonas.json", "scripts/lib/normas.mjs", ".claude/agents/*.md"],
       "porque": "Los techos de lados: ninguna pieza horizontal cita una vertical y las cifras del inventario (dudas, citas, verticales sin registro propio) no suben; añadir una duda o una cita vertical en un registro rompe el techo lejos de lo que tocas, y al bajarla hay que bajar el techo.",
       "evidencia": "#710 (punto 7: el vigilante primero)"
+    },
+    {
+      "id": "escala-de-proyectos",
+      "tests": ["ops/escala-de-proyectos.test.js"],
+      "mira": ["ops/entidades.json", "ops/proyectos/**", "ops/normas.json", "ops/normas-techos.json", "ops/glosario/terminos/*.json", "ops/principios/**", "ops/estandares-agentes.json", "scripts/fixtures/proyecto-sintetico/**", "scripts/lib/escalaProyectos.mjs", "scripts/lib/zonasProyecto.mjs", "scripts/lib/normas.mjs", "scripts/lib/glosario.mjs", "scripts/lib/principios.mjs", "scripts/lib/tareasDeProyecto.mjs", "scripts/lib/estandaresAgentes.mjs", "scripts/lib/topes.mjs", "scripts/lib/inventarioVertical.mjs", ".claude/hooks/eventos.mjs"],
+      "porque": "La factoría escala: un proyecto sintético que no existe en ningún registro se da de alta en una carpeta temporal y con él se ejecutan los lectores que recorren proyectos; una pieza que solo vale para los proyectos reales (una lista escrita en código, un nombre fijo) rompe el test lejos de lo que tocas, y sus fallos conocidos tienen un techo que solo baja.",
+      "evidencia": "#793 (principio scales-by-design: Pablo pide escalar a muchos proyectos, agentes y elementos)"
     }
   ],
   "pasos": [
