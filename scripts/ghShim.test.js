@@ -202,14 +202,14 @@ describe("main: lanza el gh real con un token nuevo en su entorno", () => {
     expect(MOTIVOS).toContain("error-interno");
   });
 
-  it("un token del canje sin forma ghs_ sale como token-raro y el hijo recibe el centinela", async () => {
+  it("un token del canje sin forma ghs_ sale como token-raro y el hijo recibe el token de relleno", async () => {
     const r = ruta();
     const { errores, visto } = await usar(["x"], { generar: generador("no-es-un-token"), cache: opcionesCache(r) });
     expect(errores).toEqual(["gh-shim resultado: fallo motivo: token-raro"]);
     expect(visto.t).toBe(TOKEN_CENTINELA);
   });
 
-  it("respeta el tope: un canje colgado no pasa de él, sale motivo red y el hijo recibe el centinela", async () => {
+  it("respeta el tope: un canje colgado no pasa de él, sale motivo red y el hijo recibe el token de relleno", async () => {
     const r = ruta();
     const { errores, visto } = await usar(["x"], { generar: () => new Promise(() => {}), cache: opcionesCache(r), tope: 80 });
     // sin tope no volvería: el generador no resuelve nunca (y el test caería por el límite de vitest)
@@ -409,7 +409,7 @@ describe.skipIf(!BASH)("el camino entero con bash (la línea de PATH del arranqu
     expect(tachado(r.stderr)).not.toMatch(/gh-shim/);
   });
 
-  it.skipIf(!ghInstalado)("sin caché, con un fallo reciente apuntado: sale el centinela y la línea de fallo-reciente, sin llamar a 1Password", () => {
+  it.skipIf(!ghInstalado)("sin caché, con un fallo reciente apuntado: sale el token de relleno y la línea de fallo-reciente, sin llamar a 1Password", () => {
     const p = perfilDePrueba({ token: null });
     expect(falloReciente({ ruta: p.rutaCache, guardar: "red" })).toBe(true);
     const r = spawnSync(BASH, ["-c", `${lineaPath}gh auth git-credential get`], { cwd: temporal("otro-"), input: "protocol=https\nhost=github.com\n\n", encoding: "utf8", env: { ...sinVariablesDeGh(), ...p.env, GH_TOKEN: "ghs_caducado_del_arranque" }, timeout: 30_000 });
@@ -452,7 +452,7 @@ describe.skipIf(!BASH)("H2: git ejecuta el ayudante `!` con el PATH de la sesió
     return spawnSync("git", ["-C", repo, "credential", "fill"], { input: "protocol=https\nhost=github.com\n\n", encoding: "utf8", timeout: 60_000, env: { ...sinVariablesDeGh(), GIT_TERMINAL_PROMPT: "0", GCM_INTERACTIVE: "never", ...env } });
   }
 
-  it("con un gh falso delante en el PATH: git lo llama (`auth git-credential get`) con el GH_TOKEN de su entorno, y si falta recibe el centinela", () => {
+  it("con un gh falso delante en el PATH: git lo llama (`auth git-credential get`) con el GH_TOKEN de su entorno, y si falta recibe el token de relleno", () => {
     const falsa = temporal("gh-falso-");
     const cuenta = join(falsa, "llamadas.txt");
     const tokens = join(falsa, "tokens.txt");
@@ -463,7 +463,7 @@ describe.skipIf(!BASH)("H2: git ejecuta el ayudante `!` con el PATH de la sesió
     expect(tachado(r.stdout), tachado(r.stderr)).toContain(`password=${TOKEN_NUEVO}`);
     expect(readFileSync(cuenta, "utf8").trim().split("\n")).toEqual(["auth git-credential get"]);
     expect(readFileSync(tokens, "utf8").trim()).toBe(TOKEN_VIEJO);
-    // 2. Sin GH_TOKEN en el entorno: el ayudante pone el centinela, no deja a gh caer al llavero de Pablo
+    // 2. Sin GH_TOKEN en el entorno: el ayudante pone el token de relleno, no deja a gh caer al llavero de Pablo
     rmSync(cuenta);
     rmSync(tokens);
     r = pedirCredencial({ env: { ...entornoDeLineas(TOKEN_VIEJO, { sinToken: true }), PATH, HOME: falsa, USERPROFILE: falsa } });

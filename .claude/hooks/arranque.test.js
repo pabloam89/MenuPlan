@@ -2,7 +2,7 @@
 //
 // Las líneas que escribe `aplicarIdentidad` las lee el shell Bash de la sesión UNA vez, al arrancar: por eso
 // lo que importa es el ORDEN (primero lo que no depende del canje: PATH, ayudante de git, autor y el
-// centinela; después, solo si llega, el token real) y de dónde sale la ruta del shim (de la ubicación del
+// token de relleno; después, solo si llega, el token real) y de dónde sale la ruta del shim (de la ubicación del
 // propio arranque.mjs, nunca del cwd). Se prueba ejecutando de verdad el fichero que escribe, con `bash -c`.
 import { execFileSync, spawnSync } from "node:child_process";
 import { appendFileSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -72,7 +72,7 @@ describe("el arranque: orden de lo que escribe", () => {
     expect(texto).not.toContain(TOKEN);
   });
 
-  it("con el canje bueno, el GH_TOKEN real va DESPUÉS del centinela y gana al ejecutarlo con bash -c", async () => {
+  it("con el canje bueno, el GH_TOKEN real va DESPUÉS del token de relleno y gana al ejecutarlo con bash -c", async () => {
     const { texto, fichero } = await arrancar({ generar: async () => ({ token: TOKEN, autor: AUTOR_POR_DEFECTO, advertencias: [] }) });
     expect(texto.indexOf("sin-token-de-sesion")).toBeGreaterThan(-1);
     expect(texto.indexOf(TOKEN)).toBeGreaterThan(texto.indexOf("sin-token-de-sesion"));
@@ -129,7 +129,7 @@ describe("arranque.mjs: de dónde sale la ruta del shim", () => {
     const ruta = /^export PATH='([^']+)'/.exec(linea)[1];
     expect(norma(ruta)).toBe(norma(SHIM_ESPERADO));
     expect(norma(ruta)).not.toContain(norma(ajena));
-    // y lo que la sesión ve al cargar el fichero: el shim de este repo y el token de la caché, después del centinela
+    // y lo que la sesión ve al cargar el fichero: el shim de este repo y el token de la caché, después del token de relleno
     const visto = cargar(fichero);
     expect(norma(visto.gh)).toBe(norma(join(SHIM_ESPERADO, "gh")));
     expect(visto.token).toBe(TOKEN);

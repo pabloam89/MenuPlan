@@ -50,7 +50,7 @@ export const MOTIVOS = ["sin-clave", "clave-ilegible", "sin-instalacion", "githu
 export const TOKEN_CENTINELA = "sin-token-de-sesion";
 /** Quién escribe el ayudante de git: `gh-credential` (el `gh` del PATH, que renueva el token al usarse) o `entorno` (lee $GH_TOKEN del entorno de quien lo lanza). */
 export const AYUDANTES = ["gh-credential", "entorno"];
-/** `normal` exige un token con forma `ghs_…`; `sin-canje` solo acepta el centinela (el arranque lo escribe ANTES de canjear). */
+/** `normal` exige un token con forma `ghs_…`; `sin-canje` solo acepta el token de relleno (el arranque lo escribe ANTES de canjear). */
 export const MODOS_ENTORNO = ["normal", "sin-canje"];
 /** Lo que dice la CLI cuando se agota el límite de lecturas por hora de la cuenta (visto el 10 oct 2026). */
 const LIMITE_OP = /too many requests|rate.?limit/i;
@@ -266,7 +266,7 @@ export async function tokenConCache({ sinCache = false, cache = {}, generar = to
  * con el `gh` de scripts/bin renueva el token al usarse; `entorno` lee $GH_TOKEN tal cual (lo usa
  * `entornoDeComando`, cuyo hijo lleva un token recién canjeado y no depende del PATH).
  * `modo` (MODOS_ENTORNO): `sin-canje` solo acepta TOKEN_CENTINELA; `normal`, solo un token con forma.
- * `conToken: false` no escribe la línea de GH_TOKEN (la sesión de la nube trae el suyo y el centinela lo taparía).
+ * `conToken: false` no escribe la línea de GH_TOKEN (la sesión de la nube trae el suyo y el token de relleno lo taparía).
  */
 export function lineasDeEntorno({ token, autor, configPrevia = 0, ayudante = "gh-credential", modo = "normal", conToken = true }) {
   if (!MODOS_ENTORNO.includes(modo)) throw new Error(`modo fuera del vocabulario: ${modo}`);
@@ -427,7 +427,7 @@ export async function aplicarIdentidad({ env = process.env, escribir = appendFil
     const entorno = { ...env };
     try {
       // Primero lo que no depende del canje (#719): el PATH con el shim, el ayudante de git, el autor y
-      // el centinela. Si el canje es lento o falla, la sesión ya tiene `gh` y `git push` que piden el
+      // el token de relleno. Si el canje es lento o falla, la sesión ya tiene `gh` y `git push` que piden el
       // token al usarse y dan un 401 claro, no el llavero de Pablo (#673).
       if (env.CLAUDE_ENV_FILE) {
         const previa = Number.parseInt(env.GIT_CONFIG_COUNT, 10) || 0;
@@ -437,7 +437,7 @@ export async function aplicarIdentidad({ env = process.env, escribir = appendFil
           if (p.linea) delPath = p.linea;
           else registrar(`entorno-sesion path: omitido motivo: ${p.motivo}`);
         }
-        // En la nube con su propio GH_TOKEN, el centinela lo taparía si el canje diera `sin-clave`: no se escribe.
+        // En la nube con su propio GH_TOKEN, el token de relleno lo taparía si el canje diera `sin-clave`: no se escribe.
         const propio = nube && typeof env.GH_TOKEN === "string" && env.GH_TOKEN !== "" && env.GH_TOKEN !== TOKEN_CENTINELA;
         escribir(env.CLAUDE_ENV_FILE, `\n${delPath}${lineasDeEntorno({ token: TOKEN_CENTINELA, autor: AUTOR_POR_DEFECTO, configPrevia: previa, modo: "sin-canje", conToken: !propio })}`);
         if (!propio) entorno.GH_TOKEN = TOKEN_CENTINELA; // la comprobación de identidad no cae al llavero de Pablo
@@ -447,7 +447,7 @@ export async function aplicarIdentidad({ env = process.env, escribir = appendFil
       advertencias = t.advertencias ?? [];
       if (!env.CLAUDE_ENV_FILE) throw new ErrorTokenSesion("sin-fichero-de-entorno", "este arranque no recibió CLAUDE_ENV_FILE");
       if (vencido) return null;
-      // Un `export` posterior gana al centinela
+      // Un `export` posterior gana al token de relleno
       escribir(env.CLAUDE_ENV_FILE, lineaDeToken(t.token));
       entorno.GH_TOKEN = t.token;
       token = "app";

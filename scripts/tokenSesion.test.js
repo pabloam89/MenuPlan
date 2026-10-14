@@ -111,7 +111,7 @@ describe("lineasDeEntorno", () => {
   it("pone el token, el ayudante de git que pide la credencial a gh en el momento y el autor y committer", () => {
     const t = lineasDeEntorno({ token: TOKEN, autor });
     expect(t).toContain(`export GH_TOKEN='${TOKEN}'`);
-    // El ayudante delega en `gh auth git-credential` (el gh del PATH renueva el token al usarse) y, sin GH_TOKEN, recibe el centinela
+    // El ayudante delega en `gh auth git-credential` (el gh del PATH renueva el token al usarse) y, sin GH_TOKEN, recibe el token de relleno
     expect(t).toContain("'!f() { GH_TOKEN=\"${GH_TOKEN:-sin-token-de-sesion}\" gh auth git-credential \"$@\"; }; f'");
     expect(t).not.toContain("echo password=");
     expect(t.split(TOKEN).length - 1).toBe(1); // el token aparece una sola vez
@@ -131,7 +131,7 @@ describe("lineasDeEntorno", () => {
     expect(lineasDeEntorno({ token: TOKEN, autor, ayudante: "entorno" })).toContain("'!f() { echo username=x-access-token; echo password=$GH_TOKEN; }; f'");
     expect(() => lineasDeEntorno({ token: TOKEN, autor, ayudante: "otro" })).toThrow(/vocabulario/);
   });
-  it("el centinela pasa SOLO por el modo sin canje; un token sin forma sigue dando token-raro en el normal", () => {
+  it("el token de relleno pasa SOLO por el modo sin canje; un token sin forma sigue dando token-raro en el normal", () => {
     expect(MODOS_ENTORNO).toEqual(["normal", "sin-canje"]);
     const t = lineasDeEntorno({ token: TOKEN_CENTINELA, autor, modo: "sin-canje" });
     expect(t).toContain("export GH_TOKEN='sin-token-de-sesion'");
@@ -307,7 +307,7 @@ describe("aplicarIdentidad (lo que hace el arranque)", () => {
     return { escrito, registrado, opciones: { ...base, ...extra } };
   };
 
-  it("escribe PRIMERO el centinela y lo demás, canjea, añade el token real DESPUÉS y dice que la App responde", async () => {
+  it("escribe PRIMERO el token de relleno y lo demás, canjea, añade el token real DESPUÉS y dice que la App responde", async () => {
     const { escrito, registrado, opciones } = uso();
     const aviso = await aplicarIdentidad(opciones);
     expect(escrito).toHaveLength(2);
@@ -327,7 +327,7 @@ describe("aplicarIdentidad (lo que hace el arranque)", () => {
     expect(escrito[0][1]).toContain("export GIT_CONFIG_COUNT=4");
     expect(escrito[1][1]).not.toContain("GIT_CONFIG"); // el token real solo cambia el token
   });
-  it("sesión de la nube con su propio GH_TOKEN y canje sin-clave: no escribe el centinela (taparía el suyo) y conserva el resto", async () => {
+  it("sesión de la nube con su propio GH_TOKEN y canje sin-clave: no escribe el token de relleno (taparía el suyo) y conserva el resto", async () => {
     const vistos = [];
     const { escrito, opciones } = uso({ nube: true, env: { CLAUDE_ENV_FILE: "/tmp/f", GH_TOKEN: "ghs_propio_de_la_nube_1234567890" }, generar: async () => { throw new ErrorTokenSesion("sin-clave", "x"); }, identificar: async (e) => { vistos.push(e.GH_TOKEN); return { status: 0, stdout: "alguien" }; } });
     await aplicarIdentidad(opciones);
@@ -336,14 +336,14 @@ describe("aplicarIdentidad (lo que hace el arranque)", () => {
     expect(escrito[0][1]).toContain("gh auth git-credential");
     expect(vistos).toEqual(["ghs_propio_de_la_nube_1234567890"]);
   });
-  it("sesión de la nube SIN GH_TOKEN propio, o una que no es de la nube: el centinela se escribe como siempre", async () => {
+  it("sesión de la nube SIN GH_TOKEN propio, o una que no es de la nube: el token de relleno se escribe como siempre", async () => {
     for (const extra of [{ nube: true }, { nube: false, env: { CLAUDE_ENV_FILE: "/tmp/f", GH_TOKEN: "ghs_propio_1234567890123456" } }]) {
       const { escrito, opciones } = uso({ ...extra, generar: async () => { throw new ErrorTokenSesion("sin-clave", "x"); } });
       await aplicarIdentidad(opciones);
       expect(escrito[0][1]).toContain("export GH_TOKEN='sin-token-de-sesion'");
     }
   });
-  it("si el canje falla: ya dejó el centinela y el resto (nunca un token real), avisa con el motivo y sigue", async () => {
+  it("si el canje falla: ya dejó el token de relleno y el resto (nunca un token real), avisa con el motivo y sigue", async () => {
     const { escrito, opciones } = uso({ generar: async () => { throw new ErrorTokenSesion("sin-clave", "x"); }, identificar: async () => ({ status: 0, stdout: "pabloam89" }) });
     const aviso = await aplicarIdentidad(opciones);
     expect(escrito).toHaveLength(1);
@@ -377,7 +377,7 @@ describe("aplicarIdentidad (lo que hace el arranque)", () => {
     const aviso = await aplicarIdentidad(opciones);
     await new Promise((ok) => setTimeout(ok, 250));
     expect(aviso).toContain("identidad: desconocida token: no motivo: red");
-    expect(escrito).toHaveLength(1); // solo lo previo al canje, con el centinela
+    expect(escrito).toHaveLength(1); // solo lo previo al canje, con el token de relleno
     expect(escrito.join("")).not.toContain(TOKEN);
     expect(registrado).toHaveLength(1);
   });
