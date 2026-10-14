@@ -131,7 +131,7 @@ Herencia: esqueleto común (la base) → plantilla por tipo (las normas que le t
 
 ## Discreto y texto: los campos de cada ficha
 
-Se sistematiza lo máximo posible con atributos discretos, aunque lo continuo nunca cabe entero en ellos. Un texto solo se admite como **hueco** (`hueco: true`) con una frase que diga qué cubre que lo discreto no alcanza; los textos que lee un LLM rellenan los huecos, y corregir es «qué falla en qué hueco». `problemasDeCampos` falla con un texto sin hueco, un enum fuera de vocabulario o una ref que no existe. El trinquete de campos (`ops/forja-campos.json`) solo deja pasar un campo de texto a discreto, nunca al revés.
+Se sistematiza lo máximo posible con atributos discretos, aunque lo continuo nunca cabe entero en ellos. Un texto solo se admite como **hueco** (`hueco: true`) con una frase que diga qué cubre que lo discreto no alcanza; los textos que lee un LLM rellenan los huecos, y corregir es «qué falla en qué hueco». `problemasDeCampos` falla con un texto sin hueco, un enum fuera de vocabulario o una ref que no existe. El trinquete de campos (`ops/forja-campos.json`) solo deja pasar un campo de texto a discreto, nunca al revés. Cada campo declara con `termino` el término activo del glosario, de clase campo, que lo define (varios pueden compartir uno); `ops/glosario-conexion.test.js` lo exige sin excepciones (#744).
 
 | Clase | Qué es |
 |---|---|
@@ -155,71 +155,71 @@ Se sistematiza lo máximo posible con atributos discretos, aunque lo continuo nu
 
 El frontmatter de .claude/agents/<agente>.md.
 
-- `name` — ref a agente
-- `description` — texto. Hueco: El cuándo se usa el agente y su frontera con los demás, dicho con las palabras de quien pide
-- `model` — enum (modelo_agente)
-- `skills` — ref a skill, lista, opcional
+- `name` (término: nombre) — ref a agente
+- `description` (término: descripción) — texto. Hueco: El cuándo se usa el agente y su frontera con los demás, dicho con las palabras de quien pide
+- `model` (término: modelo) — enum (modelo_agente)
+- `skills` (término: skill del agente) — ref a skill, lista, opcional
 
 ### Campos de `criterio`
 
 Una norma de este catálogo, redactada por campos (scripts/lib/regla.mjs): nombre, sujeto, fuerza, condicion, exigencia y, en los subjetivos, cumple y no_cumple. El resto de sus campos (id, capa, aplica_a, fuente, control, codigo) los vigila problemasDeForja.
 
-- `nombre` — texto. Hueco: La etiqueta corta con que se nombra la regla (2 a 5 palabras): un nombre no cabe en un vocabulario cerrado
-- `sujeto` — enum (sujeto)
-- `fuerza` — enum (fuerza)
-- `condicion` — texto, opcional. Hueco: Cuándo se aplica la regla («cuando …» o «si …»): la situación cambia con cada regla y no tiene vocabulario común
-- `exigencia` — texto. Hueco: Lo que pide la regla, una frase verbal en infinitivo: el verbo y su objeto no caben en un vocabulario cerrado
-- `cumple` — texto, opcional. Hueco: Cuándo da por buena la regla el juicio de un LLM (solo los subjetivos): es la rúbrica y se escribe caso a caso
-- `no_cumple` — texto, opcional. Hueco: Cuándo da por mala la regla el juicio de un LLM (solo los subjetivos): es la rúbrica y se escribe caso a caso
-- `nota` — texto, opcional. Hueco: Un matiz que la exigencia no admite (una heurística, una cifra medida, un caso que la prueba): es contexto y no cabe en un campo discreto
+- `nombre` (término: nombre) — texto. Hueco: La etiqueta corta con que se nombra la regla (2 a 5 palabras): un nombre no cabe en un vocabulario cerrado
+- `sujeto` (término: sujeto) — enum (sujeto)
+- `fuerza` (término: fuerza) — enum (fuerza)
+- `condicion` (término: condición) — texto, opcional. Hueco: Cuándo se aplica la regla («cuando …» o «si …»): la situación cambia con cada regla y no tiene vocabulario común
+- `exigencia` (término: exigencia) — texto. Hueco: Lo que pide la regla, una frase verbal en infinitivo: el verbo y su objeto no caben en un vocabulario cerrado
+- `cumple` (término: ejemplo que cumple) — texto, opcional. Hueco: Cuándo da por buena la regla el juicio de un LLM (solo los subjetivos): es la rúbrica y se escribe caso a caso
+- `no_cumple` (término: ejemplo que no cumple) — texto, opcional. Hueco: Cuándo da por mala la regla el juicio de un LLM (solo los subjetivos): es la rúbrica y se escribe caso a caso
+- `nota` (término: nota) — texto, opcional. Hueco: Un matiz que la exigencia no admite (una heurística, una cifra medida, un caso que la prueba): es contexto y no cabe en un campo discreto
 
 ### Campos de `estandar`
 
 Una tarea de un agente en ops/estandares-agentes.json (la clave es su id). Su estándar son las normas de ops/normas.json que le tocan por sus ámbitos y su acción, las que cita aparte (#620) y sus reglas por campos (#516), solo para los pasos que no son norma; las compartidas por varios agentes están en comunes y la tarea las nombra.
 
-- `tarea` — texto. Hueco: La frase que dice qué se hace en esa tarea: el verbo y su objeto no caben en un vocabulario cerrado
-- `accion` — enum (accion_tarea)
-- `origen` — enum (origen_tarea)
-- `ambitos` — enum (ambito), lista
-- `n2` — ref a estandar_n2
-- `comunes` — ref a estandar_comun, lista, opcional
-- `normas` — ref a norma, lista, opcional
-- `reglas` — regla, lista, opcional
-- `no_hace` — texto, lista, opcional. Hueco: La frontera con lo que es de otro agente o de una persona, que hay que nombrar caso a caso
-- `rondas` — texto, lista, opcional. Hueco: Lo que cambió en cada ronda de investigación, una frase por ronda: el número y las fuentes son discretos, el cambio no cabe en un vocabulario
+- `tarea` (término: enunciado de tarea) — texto. Hueco: La frase que dice qué se hace en esa tarea: el verbo y su objeto no caben en un vocabulario cerrado
+- `accion` (término: acción) — enum (accion_tarea)
+- `origen` (término: origen) — enum (origen_tarea)
+- `ambitos` (término: ámbito) — enum (ambito), lista
+- `n2` (término: estándar de nivel 2) — ref a estandar_n2
+- `comunes` (término: estándar común) — ref a estandar_comun, lista, opcional
+- `normas` (término: norma citada) — ref a norma, lista, opcional
+- `reglas` (término: regla de una tarea) — regla, lista, opcional
+- `no_hace` (término: límite de tarea) — texto, lista, opcional. Hueco: La frontera con lo que es de otro agente o de una persona, que hay que nombrar caso a caso
+- `rondas` (término: ronda de investigación) — texto, lista, opcional. Hueco: Lo que cambió en cada ronda de investigación, una frase por ronda: el número y las fuentes son discretos, el cambio no cabe en un vocabulario
 
 ### Campos de `juicio`
 
 Un juicio de skill: el estado de una norma de juicio (control «juicio») sobre una skill, en ops/juicios-skills/<skill>.json bajo el id de la norma (#457). Las normas con control no se escriben: los calcula su control. Lo valida scripts/lib/juiciosSkills.mjs.
 
-- `estado` — enum (estados_criterio)
-- `evidencia` — ref a evidencia, lista, opcional
-- `motivo_pendiente` — enum (motivos_pendiente), opcional
-- `nota` — texto, opcional. Hueco: Lo propio de esta skill que el estado no dice: qué falla en el hueco o qué falta mirar; lo que es de la norma va a la norma
-- `fecha` — fecha, opcional
-- `firmante` — enum (firmantes), opcional
-- `version_skill_md` — ref a version, opcional
+- `estado` (término: estado) — enum (estados_criterio)
+- `evidencia` (término: evidencia citada) — ref a evidencia, lista, opcional
+- `motivo_pendiente` (término: motivo pendiente) — enum (motivos_pendiente), opcional
+- `nota` (término: nota) — texto, opcional. Hueco: Lo propio de esta skill que el estado no dice: qué falla en el hueco o qué falta mirar; lo que es de la norma va a la norma
+- `fecha` (término: fecha) — fecha, opcional
+- `firmante` (término: firmante) — enum (firmantes), opcional
+- `version_skill_md` (término: versión de la skill) — ref a version, opcional
 
 ### Campos de `skill`
 
 El frontmatter de .claude/skills/<skill>/SKILL.md (name y description arriba; tipo, dueno, comprobado y normas en metadata). Los juicios de sus normas de juicio van aparte, en ops/juicios-skills/<skill>.json (campos_ficha.juicio, #457).
 
-- `name` — ref a skill
-- `description` — texto. Hueco: El cuándo se abre la skill dicho con las palabras de quien pide: lo discreto no lo alcanza, es prosa para que el modelo reconozca una petición
-- `tipo` — enum (tipos_skill), opcional
-- `opera_proveedor` — bool, opcional
-- `juzga_artefacto` — bool, opcional
-- `encadena` — bool, opcional
-- `pasos_fijos` — bool, opcional
-- `sintoma_a_causa` — bool, opcional
-- `elige_opciones` — bool, opcional
-- `porque_tipo` — texto, opcional. Hueco: Por qué responde así cuando la respuesta no es evidente (una skill que podría parecer de otro tipo): el motivo cambia con cada skill
-- `paso` — enum (pasos), opcional
-- `dueno` — ref a agente
-- `comprobado` — fecha
-- `normas` — ref a norma, lista
-- `libertad` — enum (libertad), opcional
-- `invocacion` — enum (invocacion), opcional
+- `name` (término: nombre) — ref a skill
+- `description` (término: descripción) — texto. Hueco: El cuándo se abre la skill dicho con las palabras de quien pide: lo discreto no lo alcanza, es prosa para que el modelo reconozca una petición
+- `tipo` (término: tipo de skill) — enum (tipos_skill), opcional
+- `opera_proveedor` (término: pregunta de tipo) — bool, opcional
+- `juzga_artefacto` (término: pregunta de tipo) — bool, opcional
+- `encadena` (término: pregunta de tipo) — bool, opcional
+- `pasos_fijos` (término: pregunta de tipo) — bool, opcional
+- `sintoma_a_causa` (término: pregunta de tipo) — bool, opcional
+- `elige_opciones` (término: pregunta de tipo) — bool, opcional
+- `porque_tipo` (término: motivo del tipo) — texto, opcional. Hueco: Por qué responde así cuando la respuesta no es evidente (una skill que podría parecer de otro tipo): el motivo cambia con cada skill
+- `paso` (término: paso) — enum (pasos), opcional
+- `dueno` (término: dueño de la skill) — ref a agente
+- `comprobado` (término: fecha) — fecha
+- `normas` (término: norma citada) — ref a norma, lista
+- `libertad` (término: libertad) — enum (libertad), opcional
+- `invocacion` (término: invocación) — enum (invocacion), opcional
 
 ## La forma de una práctica
 

@@ -1,0 +1,16 @@
+{
+  "termino": "evidencia citada",
+  "estado": "activo",
+  "clase": "campo",
+  "dominio": "base",
+  "definicion": "Una referencia (una ruta, un caso, un comando, un PR o un issue) que respalda un juicio y de la que se comprueba que existe.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "estado",
+    "firmante",
+    "versión de la skill"
+  ]
+}

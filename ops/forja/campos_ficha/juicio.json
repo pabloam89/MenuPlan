@@ -6,11 +6,13 @@
     "campos": {
       "estado": {
         "clase": "enum",
+        "termino": "estado",
         "vocab": "estados_criterio",
         "obligatorio": true
       },
       "evidencia": {
         "clase": "ref",
+        "termino": "evidencia citada",
         "ref": "evidencia",
         "lista": true,
         "obligatorio": false,
@@ -18,29 +20,34 @@
       },
       "motivo_pendiente": {
         "clase": "enum",
+        "termino": "motivo pendiente",
         "vocab": "motivos_pendiente",
         "obligatorio": false,
         "nota": "Obligatorio con estado juicio; falta_herramienta y falta_decision exigen que la norma esté pendiente_de su issue con ese motivo"
       },
       "nota": {
         "clase": "texto",
+        "termino": "nota",
         "hueco": true,
         "cubre": "Lo propio de esta skill que el estado no dice: qué falla en el hueco o qué falta mirar; lo que es de la norma va a la norma",
         "obligatorio": false
       },
       "fecha": {
         "clase": "fecha",
+        "termino": "fecha",
         "obligatorio": false,
         "nota": "Obligatoria si el estado no es juicio"
       },
       "firmante": {
         "clase": "enum",
+        "termino": "firmante",
         "vocab": "firmantes",
         "obligatorio": false,
         "nota": "Obligatorio si el estado no es juicio; el vocabulario es CAPAS_AGENTE de scripts/lib/fondos.mjs"
       },
       "version_skill_md": {
         "clase": "ref",
+        "termino": "versión de la skill",
         "ref": "version",
         "obligatorio": false,
         "nota": "Obligatoria si el estado no es juicio: el hash del SKILL.md juzgado; si ya no es el actual, el juicio vuelve a pendiente (otra_version)"

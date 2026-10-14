@@ -1,0 +1,16 @@
+{
+  "termino": "sujeto",
+  "estado": "activo",
+  "clase": "campo",
+  "dominio": "base",
+  "definicion": "Una clase de quien debe cumplir una norma, de vocabulario cerrado, que decide a quién se aplica.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "condición",
+    "exigencia",
+    "norma"
+  ]
+}

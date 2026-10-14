@@ -1,0 +1,14 @@
+{
+  "termino": "límite de tarea",
+  "estado": "activo",
+  "clase": "campo",
+  "dominio": "base",
+  "definicion": "Una lista de frases que dicen lo que una tarea no hace, para fijar dónde acaba.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "enunciado de tarea"
+  ]
+}
