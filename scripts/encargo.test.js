@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -93,13 +92,11 @@ describe("el N1 del encargo (docs/entidades/N1-encargo.md, #640)", () => {
 
   it("ENCARGO_N1_DESDE no es anterior al día en que nació el N1 (si lo fuera, los campos serían obligatorios con carácter retroactivo)", () => {
     expect(ENCARGO_N1_DESDE).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-    let nacio = "";
-    try {
-      nacio = execFileSync("git", ["log", "--diff-filter=A", "--format=%cs", "-1", "--", "docs/entidades/N1-encargo.md"], { cwd: RAIZ, encoding: "utf8", windowsHide: true }).trim();
-    } catch {
-      // sin git (o sin historia): no se puede comprobar aquí
-    }
-    if (nacio) expect(ENCARGO_N1_DESDE >= nacio, `${ENCARGO_N1_DESDE} es anterior a ${nacio}`).toBe(true);
+    // Lección (#745): NO se lee del historial de git. En el CI el clon es poco profundo
+    // (`fetch-depth: 2`) y el commit de corte aparece como el que «añade» el fichero, con
+    // la fecha del merge (14 oct en vez de 12 oct). Fecha fija, comprobable a mano.
+    const NACIO_N1 = "2026-10-12";
+    expect(ENCARGO_N1_DESDE >= NACIO_N1, `${ENCARGO_N1_DESDE} es anterior a ${NACIO_N1}`).toBe(true);
     // Y no es un día que ya pasó respecto a la fecha del propio campo: todo `desde` es el mismo.
     for (const c of CAMPOS_ENCARGO.filter((x) => x.desde)) expect(c.desde).toBe(ENCARGO_N1_DESDE);
   });
