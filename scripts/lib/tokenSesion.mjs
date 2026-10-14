@@ -437,8 +437,10 @@ export async function aplicarIdentidad({ env = process.env, escribir = appendFil
           if (p.linea) delPath = p.linea;
           else registrar(`entorno-sesion path: omitido motivo: ${p.motivo}`);
         }
-        escribir(env.CLAUDE_ENV_FILE, `\n${delPath}${lineasDeEntorno({ token: TOKEN_CENTINELA, autor: AUTOR_POR_DEFECTO, configPrevia: previa, modo: "sin-canje" })}`);
-        entorno.GH_TOKEN = TOKEN_CENTINELA; // la comprobación de identidad no cae al llavero de Pablo
+        // En la nube con su propio GH_TOKEN, el centinela lo taparía si el canje diera `sin-clave`: no se escribe.
+        const propio = nube && typeof env.GH_TOKEN === "string" && env.GH_TOKEN !== "" && env.GH_TOKEN !== TOKEN_CENTINELA;
+        escribir(env.CLAUDE_ENV_FILE, `\n${delPath}${lineasDeEntorno({ token: TOKEN_CENTINELA, autor: AUTOR_POR_DEFECTO, configPrevia: previa, modo: "sin-canje", conToken: !propio })}`);
+        if (!propio) entorno.GH_TOKEN = TOKEN_CENTINELA; // la comprobación de identidad no cae al llavero de Pablo
       }
       // La espera del bloqueo de la caché sale de lo que queda del presupuesto, y deja 3 s para `gh api user`
       const t = await generar({ hasta: inicio + tope - MARGEN_IDENTIDAD_MS });
