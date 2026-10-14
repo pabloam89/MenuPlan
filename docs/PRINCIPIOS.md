@@ -86,7 +86,7 @@ Identidades, permisos, secretos, ramas, CI, despliegues, copias y servicios.
   - Viene de: I4
 - `declared-is-real` — **Lo declarado es lo real.** Lo que el repo declara de la infraestructura se compara cada cierto tiempo con lo que hay de verdad.
   - Porqué: Un registro que nadie compara con la realidad termina mintiendo, y se decide con datos falsos.
-  - Fuentes: [F] https://developer.hashicorp.com/terraform/cli/commands/plan
+  - Fuentes: [S] https://developer.hashicorp.com/terraform/cli/commands/plan
   - Viene de: I8
 - `emergency-access` — **Acceso de emergencia.** Una guía escrita y probada permite operar sin Claude y restaurar la base desde una copia.
   - Porqué: Si el día que algo falla solo sabe arreglarlo una herramienta que no está, no hay arreglo.

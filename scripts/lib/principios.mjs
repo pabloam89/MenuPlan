@@ -26,7 +26,7 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
-import { AMBITOS } from "./ambitos.mjs";
+import { AMBITOS, DOMINIOS_OPCIONALES } from "./ambitos.mjs";
 import { esCatalogo, leerCatalogo } from "./catalogos.mjs";
 import { conFuentesResueltas } from "./fuentesDoc.mjs";
 import { ACCIONES, UMBRAL_REESCRITURA, leerEstandares, parecido } from "./estandaresAgentes.mjs";
@@ -442,6 +442,13 @@ export function problemasDeUniones(lista, normas, { sinNorma = {} } = {}, { tech
   if (n > techo) malos.push(`principios_sin_norma: ${n} principios sin norma y el techo es ${techo}; la lista solo baja`);
   return malos;
 }
+
+/**
+ * Los principios que valen para un proyecto según sus `dominios` (ops/entidades.json, #710): los que no llevan `dominio` valen
+ * siempre; uno con `dominio` solo si el proyecto lo declara. `dominios` null = sin filtrar (todos), como en normasDeTarea.
+ */
+export const principiosDeProyecto = (principios, dominios = null) =>
+  principios.filter((p) => dominios === null || !DOMINIOS_OPCIONALES.includes(p.dominio) || dominios.includes(p.dominio));
 
 /** Las normas que citan cada principio: { id: [norma, …] }. */
 export function normasPorPrincipio(normas) {
