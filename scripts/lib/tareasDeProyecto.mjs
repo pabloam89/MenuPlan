@@ -6,7 +6,8 @@
  *
  *   { project, agentes: { <agente>: { tareas: [{ id, tarea, accion, ambitos, no_hace }] } } }
  *
- * No lleva reglas propias: su estándar son las normas del proyecto que le llegan por su ámbito y su acción. Solo se ve con
+ * No lleva reglas propias: su estándar son las normas del proyecto que le llegan por su ámbito y su acción o que cita en `normas`
+ * (por id; con eso, `ambitos` puede ir vacío y la tarea recibe solo las que cita: dos tareas del mismo ámbito no se pasan todas las normas). Solo se ve con
  * `--proyecto <id>` y no entra en ningún estándar horizontal ni en los .md de los agentes. Su texto sigue lo mismo que el de
  * la Base: `tarea` es del tipo «norma» de ops/topes.json (lo mide `npm run topes`).
  */
@@ -18,7 +19,7 @@ import { normasDeTarea, tareasDe } from "./estandaresAgentes.mjs";
 import { RUTA_PROYECTOS } from "./normas.mjs";
 
 export const rutaTareasDeProyecto = (id) => `${RUTA_PROYECTOS}/${id}/tareas.json`;
-export const CAMPOS_TAREA_DE_PROYECTO = ["id", "tarea", "accion", "ambitos", "no_hace"];
+export const CAMPOS_TAREA_DE_PROYECTO = ["id", "tarea", "accion", "ambitos", "normas", "no_hace"];
 const ID = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 /** Los registros de tareas de proyecto que hay: { <id>: registro }. */
@@ -68,7 +69,16 @@ export function problemasDeTareasDeProyecto(registro, id, { datos, normas, proye
       else vistas.add(`${agente}/${t.id}`);
       if (typeof t?.tarea !== "string" || t.tarea.trim().length < 20) malos.push(`${d}: «tarea» dice qué se hace, en una frase`);
       if (!(t?.accion in (datos?.acciones ?? {}))) malos.push(`${d}: acción «${t?.accion}» fuera del vocabulario (${Object.keys(datos?.acciones ?? {}).join(", ")})`);
-      if (!Array.isArray(t?.ambitos) || !t.ambitos.length) malos.push(`${d}: «ambitos» es una lista de ámbitos (${Object.keys(AMBITOS).join(", ")})`);
+      const cita = t?.normas !== undefined;
+      if (cita && (!Array.isArray(t.normas) || !t.normas.length)) malos.push(`${d}: «normas» es una lista de ids de normas del proyecto`);
+      if (Array.isArray(t?.normas)) {
+        for (const n of t.normas) {
+          const norma = normas.find((x) => x.id === n);
+          if (!norma || norma.project !== id) malos.push(`${d}: la norma «${n}» no es una norma del proyecto ${id}`);
+          else if (t?.accion in (datos?.acciones ?? {}) && !norma.acciones.includes(t.accion)) malos.push(`${d}: la norma «${n}» no se aplica al «${t.accion}» (${norma.acciones.join(", ")})`);
+        }
+      }
+      if (!Array.isArray(t?.ambitos) || (!t.ambitos.length && !(Array.isArray(t.normas) && t.normas.length))) malos.push(`${d}: «ambitos» es una lista de ámbitos (${Object.keys(AMBITOS).join(", ")}) o, vacía, la tarea cita sus «normas»`);
       else {
         for (const a of t.ambitos) if (!(a in AMBITOS)) malos.push(`${d}: ámbito «${a}» fuera del vocabulario`);
         if (new Set(t.ambitos).size !== t.ambitos.length) malos.push(`${d}: repite un ámbito`);

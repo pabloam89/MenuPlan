@@ -1,6 +1,6 @@
 # Inventario vertical y horizontal
 
-<!-- Instantánea del 2026-10-13 que escribe `npm run inventario-vertical -- --escribir` (scripts/inventario-vertical.mjs). Las cifras cambian con cada PR ajeno, así que NINGÚN test las compara con el repo de hoy: se regenera al empezar cada PR de #710 y se pone al lado la cifra de después. -->
+<!-- Instantánea del 2026-10-14 que escribe `npm run inventario-vertical -- --escribir` (scripts/inventario-vertical.mjs). Las cifras cambian con cada PR ajeno, así que NINGÚN test las compara con el repo de hoy: se regenera al empezar cada PR de #710 y se pone al lado la cifra de después. -->
 
 Primera fase de #710 (programa #652): solo mide, no mueve nada. **Horizontal** es lo que vale para cualquier proyecto; **vertical**, lo que solo vale para HoMenu; **duda**, lo que no se puede decidir con los datos y se enseña con su razón. La regla de Pablo (13 oct 2026): ningún registro mezcla los dos lados, y los agentes (horizontales) reciben lo vertical por referencia (`--proyecto homenu`).
 
@@ -39,7 +39,7 @@ Límites: «casa» y «bot» son castellano corriente en la factoría, así que 
 | agentes (.claude/agents/; por regla de Pablo, horizontales) | 8 | 5 | 0 | 3 |
 | specs (specs/*.md) | 17 | 0 | 17 | 0 |
 | documentos (docs/**/*.md y los .md de la raíz) | 31 | 21 | 9 | 1 |
-| tests (*.test.{js,jsx,mjs}) | 442 | 100 | 332 | 10 |
+| tests (*.test.{js,jsx,mjs}) | 445 | 103 | 332 | 10 |
 
 Principios, las tres filas juntas: 112 en total, 82 horizontales, 2 verticales y 28 en duda.
 
@@ -49,7 +49,7 @@ Principios, las tres filas juntas: 112 en total, 82 horizontales, 2 verticales y
 - **Fuentes.** 119 externas (literatura) y 42 de la casa (una ruta del repo).
 - **Normas.** El registro vertical ya está separado (39). En el horizontal hay 46 que dudan (lista abajo). De las 166, 60 tienen como control «juicio» y 28 acaban en un fichero de zona producto. De las 39 verticales, 0 tienen su control en una carpeta de la factoría.
 - **Entidades y glosario.** Entidades retiradas (no cuentan): 0. El glosario no tiene lado propio: hoy se deduce de sus entidades; es el registro donde más falta el campo.
-- **Tests.** 112 tests viven en carpetas de la casa; 2 de ellos leen tres ficheros de HoMenu o más (sin contar `src/App.jsx`, el ejemplo de casi todos). 330 viven en carpetas de producto, coherentes con lo que vigilan.
+- **Tests.** 115 tests viven en carpetas de la casa; 2 de ellos leen tres ficheros de HoMenu o más (sin contar `src/App.jsx`, el ejemplo de casi todos). 330 viven en carpetas de producto, coherentes con lo que vigilan.
 
 ## Los dudosos, con su razón
 
@@ -168,7 +168,7 @@ El orden sigue la dependencia (lo que es registro se separa antes de lo que lo c
 | PR 3 | Principios: campo `project` y registro `ops/proyectos/homenu/principios/`; mover los verticales y resolver los de base de datos | verticales fuera de su registro = 2; en duda = 28 | verticales en su registro = todos; en duda = 0 |
 | PR 4 | Fuentes: campo `project` en las de la casa que son de HoMenu y origen (decisión o fallo) en vez de fuente externa para los principios de proyecto | fuentes verticales sin marcar = 12; en duda = 12 | marcadas = todas; en duda = 0 |
 | PR 5 | Normas dudosas: mover al registro de HoMenu las que sean suyas, o reescribir (sin nombrar el proyecto) las que sean generales | normas horizontales en duda = 46 | 0 (cada una, horizontal limpia o vertical) |
-| PR 6 | Controles: tests de la casa que leen ficheros de HoMenu pasan a recibirlos por referencia (`--proyecto`) o se mueven; retirar `verticales_sin_salida` (#704) | tests de la casa que leen HoMenu = 2; en duda = 10 | 0 y 0 |
+| PR 6 | Controles: tests de la casa que leen ficheros de HoMenu pasan a recibirlos por referencia (`--proyecto`) o se mueven (el techo `verticales_sin_salida` ya se retiró, #710) | tests de la casa que leen HoMenu = 2; en duda = 10 | 0 y 0 |
 | PR 7 | Glosario: términos de proyecto aparte de los de la casa | términos en duda = 46 | 0 |
 | PR 8 | Skills, reglas, comandos, specs y docs: marcar el lado de cada una y separar los skills de servicio en método (casa) y datos (proyecto) | en duda = skills 4, documentos 1; verticales sin marca = 27 | en duda = 0; todas marcadas |
 | PR 9 | Factoría frente a HoMenu (#690): CLAUDE.md como índice corto con dos partes; `docs/` y `ops/` separados | documentos en duda = 1 | 0 |

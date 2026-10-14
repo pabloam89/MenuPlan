@@ -27,6 +27,13 @@ const normas = carga.todas;
 const verticales = Object.values(carga.delProyecto).flat();
 const delBot = (id) => (carga.delProyecto[id] ?? []).filter((n) => DOMINIOS_OPCIONALES.includes(n.ambito));
 
+const NOMBRES_DE_PROYECTO = new RegExp(`\\b(?:${ids.join("|")})\\b`, "i");
+// Los textos de las tareas generales: frase, lo que no hace y sus reglas. Un ejemplo de lo que se escribe en una ficha (ejemplo_bueno/malo) no cuenta.
+function nombranProyecto(d) {
+  const sinEjemplos = (v) => JSON.stringify(v, (k, x) => (k === "ejemplo_bueno" || k === "ejemplo_malo" ? undefined : x));
+  return tareasDe(d).filter(({ tarea }) => NOMBRES_DE_PROYECTO.test(sinEjemplos({ t: tarea.tarea, n: tarea.no_hace, r: tarea.reglas }))).map(({ agente, tarea }) => `${agente}/${tarea.id}`);
+}
+
 describe("las tareas que solo existen en un proyecto (#710)", () => {
   it("cada registro de tareas de proyecto es válido: agente que existe, campos, ids, vocabulario y alguna norma que le llega", () => {
     expect(Object.keys(registros).length, "hay un proyecto con tareas propias").toBeGreaterThan(0);
@@ -49,7 +56,10 @@ describe("las tareas que solo existen en un proyecto (#710)", () => {
     ["un ámbito fuera del vocabulario", (r, t) => { t.ambitos = ["cocina"]; }, /ámbito «cocina» fuera del vocabulario/],
     ["un campo que no admite (reglas propias)", (r, t) => { t.reglas = []; }, /campo «reglas» no admitido/],
     ["sin lista de lo que no hace", (r, t) => { delete t.no_hace; }, /«no_hace» es una lista/],
-    ["una tarea a la que no le llega ninguna norma del proyecto", (r, t) => { t.ambitos = ["infra"]; t.accion = "operar"; }, /ninguna norma del proyecto le llega/],
+    ["una tarea a la que no le llega ninguna norma del proyecto", (r, t) => { t.ambitos = ["infra"]; t.accion = "operar"; delete t.normas; }, /ninguna norma del proyecto le llega/],
+    ["una norma citada que no existe", (r, t) => { t.normas = ["no-existe"]; }, /la norma «no-existe» no es una norma del proyecto homenu/],
+    ["una norma citada que no es de la acción de la tarea", (r, t) => { t.accion = "decidir"; }, /no se aplica al «decidir»/],
+    ["sin ámbitos ni normas citadas", (r, t) => { t.ambitos = []; delete t.normas; }, /«ambitos» es una lista de ámbitos/],
   ])("falla con %s", (_, cambio, esperado) => {
     expect(mal(cambio)).toMatch(esperado);
   });
@@ -81,9 +91,17 @@ describe("toda norma vertical llega al estándar de una tarea con `--proyecto` (
     expect(con_).toContain("proyecto homenu");
   });
 
-  it("ninguna tarea general nombra un proyecto: las del proyecto no se mezclan en el catálogo del agente", () => {
+  it("ninguna tarea general nombra un proyecto: ni en su frase, ni en lo que no hace, ni en sus reglas", () => {
     const delProyecto = new Set(Object.values(registros).flatMap((r) => Object.values(r.agentes).flatMap((a) => a.tareas.map((t) => t.id))));
     for (const { tarea } of tareasDe(datos)) expect(delProyecto.has(tarea.id), tarea.id).toBe(false);
+    expect(nombranProyecto(datos), "Una tarea general no nombra el proyecto: lo de HoMenu va a ops/proyectos/homenu/").toEqual([]);
+  });
+
+  it("se ve fallar: una tarea general que nombra el proyecto en su frase, en lo que no hace o en una regla", () => {
+    const con = (cambio) => { const d = structuredClone(datos); cambio(tareasDe(d)[0].tarea); return nombranProyecto(d).length; };
+    expect(con((t) => { t.tarea = `${t.tarea} de HoMenu`; })).toBe(1);
+    expect(con((t) => { t.no_hace = [...(t.no_hace ?? []), "tocar la base de homenu"]; })).toBe(1);
+    expect(con((t) => { t.reglas = [...(t.reglas ?? []), { nombre: "x", practica: "mira HoMenu" }]; })).toBe(1);
   });
 });
 
