@@ -144,7 +144,7 @@ describe("C1: PR demasiado grande", () => {
     expect(evaluarC1({ ficheros: ficheros(...cinco) }).resultado).toBe("ok");
   });
   it("no cuenta lo generado: el lock, los documentos de GENERADOS y las fuentes derivadas", () => {
-    for (const ruta of ["package-lock.json", "docs/ops/NORMAS.md", "ops/forja-capas.json", ".claude/plantillas-skill/datos.md", "src/data/derived/recipeNutrition.json"]) {
+    for (const ruta of ["package-lock.json", "docs/ops/NORMAS.md", "ops/forja-capas.json", ".claude/plantillas-skill/datos.md", "src/data/derived/cualquier-fuente.json"]) {
       expect(esGenerado(ruta), ruta).toBe(true);
     }
     expect(esGenerado("src/data/recipes.json")).toBe(false);
