@@ -15,6 +15,7 @@ import { leerTaxonomia } from "../../scripts/lib/taxonomiaDiseno.mjs";
  *  1. todos los campos de cada ficha existen y salen de su vocabulario cerrado (que lleva definición);
  *  2. la licencia lleva la URL de su fuente (o es `unverified` entera), y la accesibilidad declarada, la suya;
  *  3. `comprobada` es una fecha válida, no anterior a la lectura del dossier; su caducidad a 90 días se calcula, como la de las skills;
+ *     `medida` (#814), la del refresco, es null o una fecha igual de válida, y no renueva esa caducidad;
  *  4. cada elemento cubierto existe en ops/diseno/taxonomia.json, y una cobertura comprobada lleva fuente (un juicio, no);
  *  5. una biblioteca sin mantenimiento o archivada no puede ser candidata: solo `retired`, con motivo y sucesora si la hay;
  *  6. cada elemento del alcance tiene al menos una candidata con acceso libre o un motivo escrito;
@@ -217,6 +218,21 @@ describe("la caducidad de comprobada (90 días, como las skills)", () => {
     expect(caducidadDeFicha(f, dia(PLAZO_COMPROBADO_DIAS + 1)).estado).toBe("caducada");
     expect(caducidadDeFicha({ comprobada: "ayer" }).estado).toBe("sin_fecha");
   });
+  it("la medida del refresco no la renueva, y su última fecha se cuenta aparte (#814)", () => {
+    const f = { comprobada: "2026-10-14", medida: "2027-03-01" };
+    expect(caducidadDeFicha(f, new Date("2027-03-02T00:00:00Z")).estado).toBe("caducada");
+    const d = copia(DATOS);
+    expect(cifrasDeBibliotecas(d).ultima_medida).toBe(d.bibliotecas.map((x) => x.medida).filter(Boolean).sort().at(-1) ?? null);
+    ficha(d, "sonner").medida = "2026-10-20";
+    ficha(d, "radix-ui").medida = "2026-10-21";
+    expect(cifrasDeBibliotecas(d).ultima_medida).toBe("2026-10-21");
+  });
+  it("con la medida, ultimo_push puede ser posterior a comprobada", () => {
+    const d = copia(DATOS);
+    ficha(d, "sonner").medida = "2026-10-21";
+    ficha(d, "sonner").ultimo_push = "2026-10-20";
+    expect(problemas(d)).toEqual([]);
+  });
 });
 
 describe("autotest: cada regla falla con un dato roto a propósito", () => {
@@ -260,6 +276,9 @@ describe("autotest: cada regla falla con un dato roto a propósito", () => {
   it("unas dependencias null", () => rompe((d) => { ficha(d, "nucleo").peso.dependencias = null; }, "peso.dependencias"));
   it("una versión leída con dependencias sin comprobar", () => rompe((d) => { ficha(d, "sonner").peso.dependencias = "unverified"; }, "deben ser a la vez"));
   it("una versión no aplicable con dependencias contadas", () => rompe((d) => { ficha(d, "shadcn-ui").peso.dependencias = 3; }, "deben ser a la vez"));
+  it("una fecha medida mal formada", () => rompe((d) => { ficha(d, "sonner").medida = "21/10/2026"; }, "medida es null o"));
+  it("una fecha medida anterior a la lectura", () => rompe((d) => { ficha(d, "sonner").medida = "2026-01-01"; }, "medida es null o"));
+  it("un último push posterior a las dos fechas", () => rompe((d) => { ficha(d, "sonner").medida = "2026-10-15"; ficha(d, "sonner").ultimo_push = "2026-10-16"; }, "ultimo_push es una fecha"));
   it("un último push null", () => rompe((d) => { ficha(d, "nucleo").ultimo_push = null; }, "ultimo_push"));
   it("una fuente de último push que falta", () => rompe((d) => { ficha(d, "sonner").ultimo_push_fuente = null; }, "ultimo_push_fuente va con ultimo_push"));
   it("una fuente de mantenimiento con doc, que pediría URL", () => rompe((d) => { ficha(d, "vaul").mantenimiento_fuente = "doc"; }, "mantenimiento_fuente va con mantenimiento"));

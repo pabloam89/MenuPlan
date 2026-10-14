@@ -6,7 +6,8 @@
  *
  * Todo vocabulario cerrado vive una vez, con su definición, en el JSON; las reglas de abajo son las que el test comprueba
  * sin lista de excepciones. La caducidad de `comprobada` (90 días, como las skills) se calcula (`caducidadDeFicha`) y se
- * cuenta en las cifras, pero no falla el test: el reloj no pone en rojo todos los PR (mismo criterio que las skills).
+ * cuenta en las cifras, pero no falla el test: el reloj no pone en rojo todos los PR (mismo criterio que las skills). La
+ * fecha del último cambio que aplicó el refresco (scripts/lib/bibliotecasRefresco.mjs) va aparte, en `medida` (#814), y no la renueva.
  *
  * Lo leen `ops/diseno/pool.test.js`, `scripts/diseno/bibliotecas.mjs` (las cifras) y `scripts/lib/vocabulariosVida.mjs`
  * (el ciclo de vida de cada vocabulario). Puro: sin red.
@@ -20,6 +21,7 @@ export const RUTA_BIBLIOTECAS = "ops/diseno/bibliotecas.json";
 export const CAMPOS_DE_FICHA = [
   "id", "nombre", "rol", "vinculo", "mantenimiento", "mantenimiento_fuente", "ultimo_push", "ultimo_push_fuente", "licencia", "version", "peso",
   "react", "requisitos", "plataforma", "accesibilidad", "cubre", "motivo_sin_cobertura", "alternativa", "retirada", "dueno", "comprobada",
+  "medida",
 ];
 /** Los campos del bloque Q de ops/diseno/bloques.json que se llaman distinto en la ficha (sin tilde): el resto coincide por nombre. */
 export const CORRESPONDENCIA_DE_Q = { "dueño": "dueno" };
@@ -223,7 +225,9 @@ export function problemasDeBibliotecas(datos, taxonomia, agentes, bloques) {
     // Mantenimiento y retirada.
     // Cada hecho lleva su fuente: la fecha del último push y el estado de mantenimiento se leen aparte (la fecha, de la API; el estado, del README).
     // Una fuente que pide URL propia (doc) no cabe aquí: estos campos no la llevan.
-    if (!(f.ultimo_push === SIN_COMPROBAR || (fechaValida(f.ultimo_push) && f.ultimo_push <= f.comprobada))) p.push(`${q}: ultimo_push es una fecha no posterior a comprobada, o ${SIN_COMPROBAR}`);
+    // El push lo lee la investigación (comprobada) o el refresco (medida, #814): no puede ser posterior a la más reciente de las dos.
+    const leida = fechaValida(f.medida) && f.medida > f.comprobada ? f.medida : f.comprobada;
+    if (!(f.ultimo_push === SIN_COMPROBAR || (fechaValida(f.ultimo_push) && f.ultimo_push <= leida))) p.push(`${q}: ultimo_push es una fecha no posterior a comprobada ni a medida, o ${SIN_COMPROBAR}`);
     for (const [hecho, fuente, sinLeer] of [["ultimo_push", "ultimo_push_fuente", f.ultimo_push === SIN_COMPROBAR], ["mantenimiento", "mantenimiento_fuente", f.mantenimiento === SIN_COMPROBAR]]) {
       if (sinLeer ? f[fuente] !== null : !(f[fuente] in patrones)) p.push(`${q}: ${fuente} va con ${hecho} (una fuente de lectura.patron_de_url si se comprobó, null si no)`);
     }
@@ -267,6 +271,8 @@ export function problemasDeBibliotecas(datos, taxonomia, agentes, bloques) {
     }
     if (!texto(f.dueno) || !(agentes ?? []).includes(f.dueno)) p.push(`${q}: dueño «${f.dueno}» no es un agente de .claude/agents/`);
     if (!fechaValida(f.comprobada) || f.comprobada < (datos?.lectura?.fecha ?? "9")) p.push(`${q}: comprobada falta, no es AAAA-MM-DD o es anterior a la lectura del dossier`);
+    // La fecha del refresco (#814): null si el script aún no ha medido la ficha; si no, una fecha no anterior a la lectura.
+    if (!(f.medida === null || (fechaValida(f.medida) && f.medida >= (datos?.lectura?.fecha ?? "9")))) p.push(`${q}: medida es null o una fecha AAAA-MM-DD no anterior a la lectura del dossier`);
   }
 
   // El alcance: cada elemento existe y tiene al menos una candidata con acceso libre, o un motivo escrito.
@@ -298,7 +304,9 @@ export function candidatasDe(datos, elemento) {
 
 /**
  * Cifras para el informe: fichas por rol, por vínculo y por mantenimiento; por elemento del alcance, las candidatas y cuántas
- * lo cubren con fuente (`checked`) o por juicio; el stack que exigen; y las caducadas.
+ * lo cubren con fuente (`checked`) o por juicio; el stack que exigen; las caducadas (por `comprobada`) y la última
+ * fecha del último cambio que aplicó el refresco a alguna ficha (`ultima_medida`, #814; null si nunca). No dice si el refresco
+ * está corriendo: una pasada sin cambios no la mueve; eso lo dirán las ejecuciones del workflow semanal.
  */
 export function cifrasDeBibliotecas(datos, hoy = new Date(), react = null) {
   const fichas = datos?.bibliotecas ?? [];
@@ -322,5 +330,6 @@ export function cifrasDeBibliotecas(datos, hoy = new Date(), react = null) {
     react,
     react_compatibles: react ? vivas.filter((f) => cumpleReact(f, react) === true).length : null,
     caducadas: fichas.filter((f) => caducidadDeFicha(f, hoy).estado !== "vigente").length,
+    ultima_medida: fichas.map((f) => f.medida).filter(fechaValida).sort().at(-1) ?? null,
   };
 }
