@@ -1335,7 +1335,7 @@
       "fuerza": "debe",
       "condicion": "cuando llama a un modelo de IA",
       "exigencia": "pedir el texto a Anthropic y las imágenes a Gemini",
-      "nota": "El 23 sep 2026 una tanda de texto pedida a la clave de las fotos agotó a mitad el crédito de AI Studio. La única excepción, declarada en el test: --proveedor gemini de scripts/gen-appliance-methods.mjs, para comparar salidas.",
+      "nota": "Pedir texto con la clave de las fotos agota el crédito de AI Studio a mitad de una tanda (caso del 23 sep 2026). La única excepción, declarada en el test: --proveedor gemini de scripts/gen-appliance-methods.mjs, para comparar salidas.",
       "donde": [
         ".claude/rules/api.md",
         ".claude/rules/lola.md",

@@ -3466,7 +3466,7 @@
       "fuerza": "debe",
       "condicion": "cuando el CI está en verde",
       "exigencia": "fusionarlo alguien distinto del constructor",
-      "nota": "La propia sesión fusiona su PR a staging (#608), pero con un juez distinto nombrado: lo decidió Pablo en #387 y el CI lo comprobará con la línea de jueces (#642). Un PR que toca .claude/, .github/, CLAUDE.md, los hooks o lo que corre con secretos pasa por su juez antes de fusionarse; hasta #642, nada lo impide.",
+      "nota": "La propia sesión fusiona su PR a staging (#608), pero con un juez distinto nombrado (decisión de Pablo en #387); la línea de jueces que mira el CI la trae #642. Un PR que toca .claude/, .github/, CLAUDE.md, los hooks o lo que corre con secretos pasa por su juez antes de fusionarse; hasta #642, nada lo impide.",
       "donde": [
         "CLAUDE.md"
       ],
