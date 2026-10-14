@@ -676,7 +676,7 @@ describe("autotest de las vistas generadas", () => {
     const d = copia();
     d.entities.find((e) => e.id === "session").level = "meta";
     expect(bloque(d)).not.toBe(bloque(DATOS));
-    expect(bloque(DATOS)).toContain("| `token` | design | piece | vertical | no |");
+    expect(bloque(DATOS)).toContain("| `token` | design | piece | horizontal | agent |");
   });
 });
 
