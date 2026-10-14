@@ -5,6 +5,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { cargarNormas, problemasDeProyectos } from "../scripts/lib/normas.mjs";
+import { PROYECTOS_CON_NORMAS } from "../scripts/lib/zonasProyecto.mjs";
 import { calcular } from "../scripts/lib/inventarioVertical.mjs";
 import { RUTA_TECHOS, citasAVertical, declaracionesCaducadas, fuentesVerticalesCitadas, fallosDeSubida, fallosDeTechos, leerDeclaradas, leerTechos, medir } from "../scripts/lib/vigilanteLados.mjs";
 
@@ -22,7 +23,7 @@ const inv = calcular(RAIZ);
 
 describe("ninguna horizontal cita una vertical, sobre el repo de hoy", () => {
   it("cada registro de normas está en su lado: lado y project coinciden con el registro", () => {
-    expect(problemasDeProyectos(carga, ent.projects.map((p) => p.id))).toEqual([]);
+    expect(problemasDeProyectos(carga, PROYECTOS_CON_NORMAS)).toEqual([]);
   });
 
   it("ninguna norma horizontal tiene como principio uno vertical", () => {

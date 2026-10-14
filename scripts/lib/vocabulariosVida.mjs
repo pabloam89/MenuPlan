@@ -58,6 +58,7 @@ import { textosDeBanderas, textosDeCierres, textosDeContadores, textosDeDiffersI
 import { VOCABULARIOS as PRODUCTO } from "../../src/lib/vocabularios.js";
 import { DEF_ACTORES, DEF_EVITABLE, DEF_MOTIVOS_INTERVENCION } from "./eventosVocabulario.mjs";
 import { DEF_PROYECTOS, DEF_ZONAS } from "./zonasProyecto.mjs";
+import { TIPOS as TIPOS_DE_RECURSO } from "./recursos.mjs";
 import { CODIGOS_WORDING, leerTopes } from "./topes.mjs";
 import { clavesDeVocabulario, leerBibliotecas, textosDeBibliotecas } from "./bibliotecasDiseno.mjs";
 import { leerTaxonomia, textosDeGruposDeDiseno, textosDePlataformasDeDiseno, textosDeTiposDeDiseno } from "./taxonomiaDiseno.mjs";
@@ -159,7 +160,11 @@ export const VOCABULARIOS = {
   "entidades.subject_kind": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(SUBJECT_KINDS) },
   // Las zonas del repo y los proyectos (#652): las listas, con su significado, en scripts/lib/zonasProyecto.mjs.
   "zonas.zona": { fichero: "scripts/lib/zonasProyecto.mjs", textos: conTexto(DEF_ZONAS) },
+  // La lista de proyectos (DEF_PROYECTOS) la usan también las métricas (`proyecto` de cada medida) y los recursos (`proyecto` de
+  // ops/recursos.json), además de los eventos: es un solo vocabulario con tres lectores (#748, #770).
   "eventos.proyecto": { fichero: "scripts/lib/zonasProyecto.mjs", textos: conTexto(DEF_PROYECTOS) },
+  // El tipo de un recurso (#748): ops/recursos.json. «proyecto» se retiró por «proyecto-servicio»: «proyecto» es ya el campo que dice de qué proyecto de la factoría es el recurso.
+  "recursos.tipo": { fichero: "scripts/lib/recursos.mjs", textos: conTexto(TIPOS_DE_RECURSO) },
   // Quién está detrás de un evento y por qué hace falta una persona (#652): scripts/lib/eventosVocabulario.mjs.
   "eventos.actor": { fichero: "scripts/lib/eventosVocabulario.mjs", textos: conTexto(DEF_ACTORES) },
   "eventos.motivo_intervencion": { fichero: "scripts/lib/eventosVocabulario.mjs", textos: conTexto(DEF_MOTIVOS_INTERVENCION) },

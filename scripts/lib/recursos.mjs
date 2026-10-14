@@ -6,6 +6,14 @@
  * Una entrada por recurso, solo NOMBRES y FECHAS (el repo es público): nunca un valor, ni la
  * ruta de una bóveda privada más allá de lo que ya dice INVENTARIO.md.
  *   id, servicio, tipo, dueno    vocabularios cerrados de aquí
+ *   proyecto                     de qué proyecto es (PROYECTOS, scripts/lib/zonasProyecto.mjs). Obligatorio, sin valor por defecto
+ *                                (#748). Regla del recurso compartido: va al proyecto que lo paga o lo administra y, si sirve a
+ *                                varios sin que ninguno lo administre (Hetzner), a `factoria`.
+ *                                Desempate (#770): la cuenta de un servicio va al proyecto al que sirve (los proyectos no pagan: paga
+ *                                Pablo); lo que vive dentro de ella (bóveda, clave, deploy key, servidor) va al proyecto al que sirve
+ *                                en exclusiva, y a `factoria` si sirve a varios.
+ *                                Hetzner: el servidor `HoMenu-Panel` aloja el panel (panel) y la copia nocturna de la base de MenuPlan
+ *                                (homenu, #273), así que sirve a dos y va a `factoria`; la bóveda `HoMenu-Panel` guarda lo del servidor y la clave de las copias, igual: `factoria`
  *   creado                       AAAA-MM-DD de alta o de la última rotación, o `por-confirmar`
  *   caducidad                    AAAA-MM-DD, `sin-caducidad` o `por-confirmar`
  *   motivo                       por qué esa caducidad (en `sin-caducidad`, por qué no caduca)
@@ -16,13 +24,14 @@
  *
  * Lectores (ningún campo sin lector): `ops/recursos.test.js` (la forma) y la sección
  * «Caducidades» del informe semanal (`scripts/cumplimiento.mjs --informe`, workflow
- * `flujo-semanal.yml`), que es donde avisa el reloj (sin bloquear: un test con fecha pondría en rojo todos los PR). La caducidad de las SKILLS no se repite aquí: la calcula
+ * `flujo-semanal.yml`, agrupada por `proyecto`), que es donde avisa el reloj (sin bloquear: un test con fecha pondría en rojo todos los PR). La caducidad de las SKILLS no se repite aquí: la calcula
  * `caducidades()` de `skills.mjs`, con su plazo de 90 días y su aviso de 14.
  */
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { AVISO_ANTES_DIAS, caducidades as caducidadesDeSkills } from "./skills.mjs";
+import { PROYECTOS } from "./zonasProyecto.mjs";
 
 export const RUTA_RECURSOS = "ops/recursos.json";
 export const DIA_MS = 24 * 60 * 60 * 1000;
@@ -48,7 +57,7 @@ export const TIPOS = {
   "deploy-key": "una deploy key del repo",
   boveda: "una bóveda de 1Password",
   "service-account": "una service account de 1Password",
-  proyecto: "un proyecto de un servicio (Vercel, Supabase)",
+  "proyecto-servicio": "un proyecto de un servicio (Vercel, Supabase); no es un proyecto de la factoría (campo `proyecto`)",
   servidor: "un servidor",
   cuenta: "una cuenta o un plan en un servicio",
 };
@@ -76,7 +85,7 @@ export const ESTADOS = {
 
 const FECHA = /^\d{4}-\d{2}-\d{2}$/;
 const esFecha = (s) => typeof s === "string" && FECHA.test(s) && !Number.isNaN(Date.parse(`${s}T00:00:00Z`)) && new Date(`${s}T00:00:00Z`).toISOString().slice(0, 10) === s;
-const CAMPOS = ["id", "servicio", "tipo", "dueno", "creado", "caducidad", "motivo", "documentado_en"];
+const CAMPOS = ["id", "servicio", "proyecto", "tipo", "dueno", "creado", "caducidad", "motivo", "documentado_en"];
 const OPCIONALES = ["confirma", "norma", "rotacion_en_curso"];
 
 export function leerRecursos(raiz) {
@@ -109,6 +118,7 @@ export function problemasDeForma(r, { raiz, normas = null } = {}) {
   for (const [campo, vocab] of [["servicio", SERVICIOS], ["tipo", TIPOS], ["dueno", DUENOS]]) {
     if (campo in r && !Object.hasOwn(vocab, r[campo])) malos.push(`${id}: ${campo} «${r[campo]}» no está en el vocabulario (${Object.keys(vocab).join(", ")})`);
   }
+  if ("proyecto" in r && !PROYECTOS.includes(r.proyecto)) malos.push(`${id}: proyecto «${r.proyecto}» no es de ${PROYECTOS.join(", ")}`);
   if ("creado" in r && r.creado !== POR_CONFIRMAR && !esFecha(r.creado)) malos.push(`${id}: «creado» es AAAA-MM-DD o «${POR_CONFIRMAR}», no «${r.creado}»`);
   if ("caducidad" in r && ![POR_CONFIRMAR, SIN_CAD].includes(r.caducidad) && !esFecha(r.caducidad)) malos.push(`${id}: «caducidad» es AAAA-MM-DD, «${SIN_CAD}» o «${POR_CONFIRMAR}», no «${r.caducidad}»`);
   if (esFecha(r.creado) && esFecha(r.caducidad) && r.caducidad < r.creado) malos.push(`${id}: caduca (${r.caducidad}) antes de crearse (${r.creado})`);

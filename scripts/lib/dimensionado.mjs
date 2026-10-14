@@ -435,6 +435,7 @@ export function briefDe(plan, agente, opciones = {}, deps = depsReales()) {
   const skills = skillsDelEncargo({ ficheros: alcance, comandos: [], mapa: deps.mapaSkills, precargadas: precargadasDe(RAIZ, agente) });
   const abrir = skills.filter((s) => !s.precargada).map((s) => s.skill);
   const estandar = tarea
+    // El proyecto del brief es el de una sesión sin marca (PROYECTO_POR_DEFECTO, homenu): el segundo uso declarado de D1 (#748); no es un «sin proyecto».
     ? [tarea.aproximada ? `Coincidencia: aproximada (ninguna tarea de ${agente} es de los ámbitos ${plan.ambitos.join(", ") || "de los ficheros"}; si el encargo no encaja en ninguna, es la señal de una tarea que falta)` : null,
       textoDeTarea(agente, tarea.id, deps.datos, deps.registro, { ficheros: alcance, precedencia: deps.precedencia, proyecto: PROYECTO_POR_DEFECTO })].filter(Boolean).join("\n")
     : `ESTÁNDAR: ninguna tarea del catálogo para ${agente} en esta fase (${agente in deps.datos.agentes ? "ninguna de sus tareas es de la acción que toca" : "no es un agente de .claude/agents/"}); dilo en el informe`;
