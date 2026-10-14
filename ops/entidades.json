@@ -287,8 +287,9 @@
         "agent"
       ],
       "readers": [
-        ".claude/settings.json",
-        ".claude/hooks/arranque.mjs"
+        ".claude/hooks/guardia.test.js",
+        ".claude/agentes.test.js",
+        ".claude/hooks/intervenciones.test.js"
       ],
       "note": "settings.json dice qué hooks corren; no hay registro con definición por hook."
     },
@@ -607,7 +608,7 @@
       "level": "piece",
       "family": "home",
       "term": null,
-      "source_of_truth": "specs/modelo-datos.md",
+      "source_of_truth": "supabase/migrations/0017_households.sql#households",
       "id_format": "uuid",
       "registry": "partial",
       "status": "active",
@@ -628,7 +629,7 @@
       "level": "piece",
       "family": "home",
       "term": "persona de la casa",
-      "source_of_truth": "ops/MODULOS.json#persona",
+      "source_of_truth": "supabase/migrations/0079_personas_y_grupos.sql#persona",
       "id_format": "unchecked",
       "registry": "partial",
       "status": "active",
@@ -636,8 +637,9 @@
         "human"
       ],
       "readers": [
-        "api/_bot/ficha.js",
-        "src/utils/validateMenu.js"
+        "src/lib/personasTabla.js",
+        "api/_bot/fichaRpc.js",
+        "api/_bot/tareas.js"
       ],
       "note": "Vertical. Es la persona de la base (tabla persona), no el miembro del equipo."
     },
@@ -648,7 +650,7 @@
       "level": "piece",
       "family": "home",
       "term": null,
-      "source_of_truth": "ops/MODULOS.json#bot_identities",
+      "source_of_truth": "supabase/migrations/0057_bot_cimientos.sql#bot_identities",
       "id_format": "compound",
       "registry": "partial",
       "status": "active",
@@ -729,7 +731,7 @@
       "level": "piece",
       "family": "food",
       "term": null,
-      "source_of_truth": "specs/modelo-datos.md",
+      "source_of_truth": "supabase/migrations/0002_user_pantry.sql#user_pantry",
       "id_format": "unchecked",
       "registry": "partial",
       "status": "active",
@@ -770,7 +772,7 @@
       "level": "piece",
       "family": "lola",
       "term": null,
-      "source_of_truth": "ops/MODULOS.json#bot_messages",
+      "source_of_truth": "supabase/migrations/0057_bot_cimientos.sql#bot_messages",
       "id_format": "unchecked",
       "registry": "partial",
       "status": "active",
@@ -779,7 +781,7 @@
       ],
       "readers": [
         "api/_bot/agente.js",
-        "scripts/bot-evals.mjs"
+        "api/_bot/db.js"
       ],
       "note": "Vertical. Los mensajes (bot_messages) de un chat, efímeros. La clave de bot_candados es solo chat_id, sin canal."
     },
@@ -1055,7 +1057,7 @@
       "level": "piece",
       "family": "design",
       "term": "patrón de diseño",
-      "source_of_truth": "ops/diseno/bloques.json#Patrones",
+      "source_of_truth": "ops/diseno/bloques.json",
       "id_format": "none",
       "registry": "partial",
       "status": "active",
@@ -1063,7 +1065,7 @@
         "agent"
       ],
       "readers": [
-        "ops/diseno/bloques.json",
+        "ops/diseno/bloques.test.js",
         ".claude/skills/revision-de-diseno/SKILL.md",
         ".claude/agents/constructor.md"
       ],
@@ -1137,7 +1139,7 @@
       "level": "piece",
       "family": "home",
       "term": null,
-      "source_of_truth": "supabase/migrations/0079_personas_y_grupos.sql",
+      "source_of_truth": "supabase/migrations/0079_personas_y_grupos.sql#grupo",
       "id_format": "unchecked",
       "registry": "partial",
       "status": "active",
@@ -1145,7 +1147,8 @@
         "human"
       ],
       "readers": [
-        "api/_bot/ficha.js"
+        "src/lib/personasTabla.js",
+        "api/_bot/fichaRpc.js"
       ],
       "note": "Solo en el registro: un grupo de personas de una casa (familia, adultos, niños…; tabla grupo y grupo_persona, 0079). Pertenece a una casa."
     },
@@ -1156,7 +1159,7 @@
       "level": "piece",
       "family": "food",
       "term": null,
-      "source_of_truth": "supabase/migrations/0005_multiweek_menus.sql",
+      "source_of_truth": "supabase/migrations/0005_multiweek_menus.sql#user_menu_weeks",
       "id_format": "compound",
       "registry": "partial",
       "status": "active",
@@ -1166,7 +1169,7 @@
       ],
       "readers": [
         "src/lib/menusSync.js",
-        "src/lib/shoppingBuilder.js"
+        "src/lib/menuArchive.js"
       ],
       "note": "Solo en el registro: la unidad real de lectura y escritura del menú (tabla user_menu_weeks; guarda el plan, la lista tachada y el horario en jsonb). Día y comida no son entidades: viven dentro del jsonb sin id."
     },
@@ -1177,7 +1180,7 @@
       "level": "piece",
       "family": "lola",
       "term": null,
-      "source_of_truth": "supabase/migrations/0057_bot_cimientos.sql",
+      "source_of_truth": "supabase/migrations/0057_bot_cimientos.sql#bot_chats",
       "id_format": "compound",
       "registry": "partial",
       "status": "active",
@@ -1186,7 +1189,7 @@
       ],
       "readers": [
         "api/_bot/enlace.js",
-        "api/_bot/turnos.js"
+        "api/_bot/db.js"
       ],
       "note": "Solo en el registro: el contenedor estable de una conversación (bot_chats, clave channel + chat_id, ligado a una casa). Los mensajes lo nombran por texto, sin clave ajena."
     },
@@ -1398,7 +1401,7 @@
       "class": "part_of",
       "cardinality": "many_to_one",
       "stored_as": "none",
-      "stored_in": "se deriva de PROYECTOS (scripts/lib/zonasProyecto.mjs): todos los módulos son de HoMenu y MODULOS.json no lo dice, porque nadie leería el campo"
+      "stored_in": "ningún campo: todo MODULOS.json es de homenu; excepción a D1 de #748, ver DECISIONES 2026-10-14"
     },
     {
       "from": "table",

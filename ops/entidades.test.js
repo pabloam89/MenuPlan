@@ -72,6 +72,7 @@ const CAMPOS_RELACION = ["from", "relation", "to", "class", "cardinality", "pare
 const FORMA_ID = /^[a-z]+(-[a-z]+)*$/;
 const FORMA_ID_CAMPO = /^[a-z]+(_[a-z]+)*$/;
 const FORMA_TIPO = /^[a-z]+(-[a-z]+)*$/;
+const escaparRe = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const aId = (s) => plano(s).replace(/\s+/g, "-");
 const G = leerGlosario(RAIZ);
 const termino = (g, t) => g.terminos.find((x) => x.termino === t && x.estado !== "retirado");
@@ -140,8 +141,8 @@ function problemasDeLectores(q, cosa, lectores, p, hay, leerLector, que) {
     else if (hay && !hay(r)) p.push(`${q}: el lector «${r}» no existe en git`);
   }
   if (lectores.length === 0) p.push(`${q}: ${que} sin lector (nombra la ruta de quien la lee)`);
-  else if (lectores.every((r) => typeof r === "string" && esRuta(r)) && lectoresQueNombran({ ...cosa, readers: lectores }, leerLector).length === 0) {
-    p.push(`${q}: ningún lector nombra la ${que} (por id, term, name o su fuente; los generadores no cuentan): ${lectores.join(", ")}`);
+  else if (lectores.every((r) => typeof r === "string" && esRuta(r))) {
+    if (lectoresQueNombran({ ...cosa, readers: lectores }, leerLector).length === 0) p.push(`${q}: ningún lector nombra la ${que} (por id, term, name o su fuente, que tampoco cuenta; los generadores no cuentan): ${lectores.join(", ")}`);
   }
 }
 
@@ -209,6 +210,7 @@ export function problemas(datos, { existe: hay, glosario = null, leerLector = le
         const texto = hay ? leerLector(fichero) : null;
         if (!simbolo.trim()) p.push(`${q}: la fuente «${f}» tiene el # vacío`);
         else if (/\.md$/i.test(fichero)) p.push(`${q}: un .md no vale como fuente con símbolo (${f}): nombra de todo y no prueba nada`);
+        else if (/\.json$/i.test(fichero) && typeof texto === "string" && !new RegExp(String.raw`"${escaparRe(simbolo)}"\s*:`).test(texto)) p.push(`${q}: el símbolo «${simbolo}» de la fuente no es una clave de ${fichero} (en un JSON tiene que ser una clave, no una palabra del texto)`);
         else if (typeof texto === "string" && !contienePalabra(simbolo, texto)) p.push(`${q}: el símbolo «${simbolo}» de la fuente no está en ${fichero}`);
       }
     }
@@ -562,7 +564,8 @@ describe("ninguna entidad sin lector que la nombre (sin lista de excepciones)", 
 
   it("los lectores son rutas (el tipo está cerrado): ninguno es un texto como «Claude Code (...)»", () => {
     for (const e of DATOS.entities) for (const r of e.readers) expect(esRuta(r) && existe(r), `${e.id}: ${r}`).toBe(true);
-    expect(E("hook").readers).toContain(".claude/settings.json");
+    expect(E("hook").source_of_truth).toBe(".claude/settings.json");
+    expect(E("hook").readers).not.toContain(".claude/settings.json");
   });
 
   it("project tiene lectores propios además de los generadores (los de E2 y los de #704)", () => {
@@ -745,6 +748,10 @@ describe("autotest: cada regla falla con datos malos", () => {
     // Un .md no vale como fuente: CLAUDE.md nombrado no basta; el generador tampoco.
     expect(lectoresQueNombran({ id: "x-cosa", name: "Cosa", term: null, source_of_truth: "CLAUDE.md", readers: ["ops/solo-doc.mjs"] }, leerFalso)).toEqual([]);
     expect(lectoresQueNombran({ ...base, readers: ["ops/entidades.test.js"] }, () => "hook")).toEqual([]);
+    // El fichero de la propia fuente no es un lector: es donde vive el dato (el caso de pattern, #803).
+    const conFuente = { id: "pattern", name: "Patrón de diseño", term: "patrón de diseño", source_of_truth: "ops/diseno/bloques.json" };
+    expect(lectoresQueNombran({ ...conFuente, readers: ["ops/diseno/bloques.json"] }, () => "bloques.json")).toEqual([]);
+    expect(lectoresQueNombran({ ...conFuente, readers: ["ops/diseno/bloques.json", "ops/otro.test.js"] }, () => "bloques.json")).toEqual(["ops/otro.test.js"]);
     // Un módulo se casa por su símbolo, no por el nombre del fichero: importa zonasProyecto.mjs pero solo usa ZONAS.
     const proyecto = { id: "project", name: "Proyecto", term: "proyecto", source_of_truth: "scripts/lib/zonasProyecto.mjs#PROYECTOS" };
     expect(lectoresQueNombran({ ...proyecto, term: null, name: "x", id: "x-p", readers: ["ops/falso.mjs"] }, leerFalso)).toEqual([]);
@@ -755,6 +762,11 @@ describe("autotest: cada regla falla con datos malos", () => {
     expect(con((d) => { d.entities.find((x) => x.id === "team-member").source_of_truth = "scripts/lib/eventosVocabulario.mjs#NO_EXISTE_ESTE_SIMBOLO"; })).toMatch(/el símbolo «NO_EXISTE_ESTE_SIMBOLO» de la fuente no está en scripts\/lib\/eventosVocabulario.mjs/);
     expect(con((d) => { d.entities.find((x) => x.id === "team-member").source_of_truth = "CLAUDE.md#MIEMBROS"; })).toMatch(/un .md no vale como fuente con símbolo/);
     expect(con((d) => { d.entities.find((x) => x.id === "team-member").source_of_truth = "scripts/lib/eventosVocabulario.mjs#"; })).toMatch(/tiene el # vacío/);
+  });
+
+  it("un símbolo en una fuente JSON tiene que ser una clave: una palabra suelta del texto no vale", () => {
+    expect(con((d) => { d.entities.find((x) => x.id === "pattern").source_of_truth = "ops/diseno/bloques.json#Patrones"; })).toMatch(/no es una clave de ops\/diseno\/bloques.json/);
+    expect(con((d) => { d.entities.find((x) => x.id === "pattern").source_of_truth = "ops/diseno/bloques.json#Patron_inexistente_xyz"; })).toMatch(/no es una clave de ops\/diseno\/bloques.json/);
   });
 
   it("team-member sin sus lectores falla; project solo con generadores falla", () => {

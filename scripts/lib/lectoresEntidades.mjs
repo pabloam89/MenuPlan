@@ -10,7 +10,8 @@
  *   - un módulo (`.js`/`.mjs`) sin sufijo: nada. Se casa por el símbolo, nunca por el nombre del fichero: importar
  *     el módulo para usar otra cosa (`ZONAS`) no es leer la entidad;
  *   - un `.md` o `none`: nada (un documento general nombra de todo).
- * Los generadores del registro no cuentan como lector: lo recorren entero.
+ * Los generadores del registro no cuentan como lector: lo recorren entero. Tampoco cuenta el fichero de la propia
+ * fuente (`source_of_truth`): es donde vive el dato, no quien lo lee (#803, auditor-datos).
  *
  * Sin imports: lo usa `ops/entidades.test.js` y cualquier script que quiera medir el criterio.
  */
@@ -50,8 +51,9 @@ export function nombraLaEntidad(e, texto) {
 
 /** Los lectores de la entidad que la nombran (sin los generadores). `leer(ruta)` da el texto o null si no se puede. */
 export function lectoresQueNombran(e, leer, generadores = GENERADORES) {
+  const fuente = partirFuente(e.source_of_truth).fichero;
   return (e.readers ?? []).filter((r) => {
-    if (generadores.includes(r)) return false;
+    if (generadores.includes(r) || r === fuente) return false;
     const t = leer(r);
     return typeof t === "string" && nombraLaEntidad(e, t);
   });

@@ -68,7 +68,8 @@ export const POR_CONFIRMAR = "por-confirmar";
 const TEXTO_DE_DUENO = {
   pablo: "Pablo (`pabloam89`)",
   alvaro: "Álvaro (`algbarc`)",
-  ambos: "Pablo y Álvaro (Owners del equipo de Vercel)",
+  // «ambos» sale de los miembros: sus nombres, sin el usuario entre paréntesis.
+  ambos: `${MIEMBROS.map((m) => String({ pablo: "Pablo", alvaro: "Álvaro" }[m] ?? m)).join(" y ")} (Owners del equipo de Vercel)`,
   [POR_CONFIRMAR]: "sin confirmar quién es el dueño",
 };
 /** Dueños: los miembros (`MIEMBROS`, la lista de personas), `ambos` o `por-confirmar` (ver `confirma`). */

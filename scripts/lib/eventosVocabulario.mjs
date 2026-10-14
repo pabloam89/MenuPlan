@@ -9,7 +9,7 @@
 
 /**
  * Las personas del equipo con acceso al repo (entidad `team-member` del registro, «persona» en el glosario):
- * la única lista de personas de la casa (#748, D4). De ella salen `ACTORES` (aquí), `DUENOS` y `CONFIRMAN`
+ * la única lista de personas del equipo (#748, D4; «de la casa» es otra cosa: la entidad `person`). De ella salen `ACTORES` (aquí), `DUENOS` y `CONFIRMAN`
  * (`recursos.mjs`) y `QUIENES` (`ensayosRollback.mjs`), cada una con sus valores especiales aparte. Manu, socio sin
  * acceso al repo, no está: solo consta en prosa. No es `PERSONAS` de `planos.mjs` (que añade `sesion`) ni el
  * `ACTORES` de `flujo.mjs` (quién hace cada paso del flujo): otros significados.
