@@ -27,7 +27,7 @@ import { execFile } from "node:child_process";
 import { appendFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 
-import { dirCuota, escribirCacheGh, leerCacheGh, registrarGh } from "./cuotaGh.mjs";
+import { dirCuota, escribirCacheGh, leerCacheGh, registrarTras } from "./cuotaGh.mjs";
 import { leerCache, rutaDeCache } from "./cacheTokenSesion.mjs";
 import { entornoOp } from "./env.mjs";
 import { APP_ID } from "./tokenSesion.mjs";
@@ -122,15 +122,12 @@ export function tokenDeLaAppGuardado() {
 }
 
 /** Las llamadas de verdad, cambiables en los tests. */
-export const pedirGh = () => {
-  registrarGh("cupos", ["api", "rate_limit"]);
-  return lanzar("gh", ["api", "rate_limit"]);
-};
+export const pedirGh = () => registrarTras("cupos", ["api", "rate_limit"], lanzar("gh", ["api", "rate_limit"]));
 export const pedirGhApp = () => {
   const token = tokenDeLaAppGuardado();
   if (!token) return Promise.reject(errorCupo("sin-token"));
-  registrarGh("cupos", ["api", "rate_limit"]);
-  return lanzar("gh", ["api", "rate_limit"], { ...process.env, GH_TOKEN: token });
+  const env = { ...process.env, GH_TOKEN: token };
+  return registrarTras("cupos", ["api", "rate_limit"], lanzar("gh", ["api", "rate_limit"], env), { env });
 };
 // `op` directo (no por op.mjs): si vence el tope se mata `op` mismo y no queda un hijo huérfano.
 // `entornoOp` lee el token del llavero (síncrono, una vez por proceso) y lanza SIN_TOKEN si no hay.

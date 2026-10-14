@@ -14,6 +14,7 @@
  * (subtipo, tipo, causa, bandera o encargo) y dice cuáles hay; nunca inventa un plan.
  */
 import { execFileSync } from "node:child_process";
+import { ghSync } from "./lib/cuotaGh.mjs";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -47,7 +48,7 @@ const lista = (t) => String(t ?? "").split(",").map((x) => x.trim()).filter(Bool
 
 /** El encargo de GitHub (REST, con la sesión de `gh`): título y bloque `encargo`. */
 function leerIssue(n) {
-  const crudo = execFileSync("gh", ["api", `repos/${REPO}/issues/${n}`], { encoding: "utf8", windowsHide: true, maxBuffer: 16 * 1024 * 1024 });
+  const crudo = ghSync("dimensionar", ["api", `repos/${REPO}/issues/${n}`], { encoding: "utf8", windowsHide: true, maxBuffer: 16 * 1024 * 1024 });
   const issue = JSON.parse(crudo);
   if (issue.pull_request) throw new Error(`#${n} es un PR, no un encargo`);
   const { presente, ficha } = leerEncargo(issue.body ?? "");

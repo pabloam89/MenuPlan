@@ -1,10 +1,11 @@
 // La cuota de GitHub (#424, fondo #326): la caché, la línea contable y el ratchet
 // que vigila que no vuelvan a subir las llamadas que agotaron el cupo GraphQL.
-import { mkdtempSync, readFileSync, readdirSync, rmSync, statSync, utimesSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { APIS_GH, CALLERS_GH, TOPE_VIEJO_MIN, TTL_MIN, apiDe, borrarCacheGh, conCache, contarLog, escribirCacheGh, leerCacheGh, lineaGh, registrarGh } from "./lib/cuotaGh.mjs";
+import { APIS_GH, CALLERS_GH, execFileGh, IDENTIDADES_GH, MEDIDAS_GH, RESULTADOS_GH, TOPE_VIEJO_MIN, TTL_MIN, apiDe, borrarCacheGh, conCache, contarLog, escribirCacheGh, ghSync, identidadDe, leerCacheGh, leerLineas, lineaGh, porHoras, puntosDe, registrarGh, rafagas, registrarTras, resumenDeHoras, sesionCorta } from "./lib/cuotaGh.mjs";
 import { conReintentos, leerArgs, resumirChecks } from "./espera-ci.mjs";
 
 const raiz = join(import.meta.dirname, "..");
@@ -253,7 +254,191 @@ describe("ratchet de la cuota GraphQL (#424)", () => {
   });
 
   it("los puntos que llaman a gh dejan su línea contable", () => {
-    expect(leer("scripts/issues.mjs")).toMatch(/registrarGh\("issues"/);
-    expect(leer(".claude/hooks/avisos.mjs")).toMatch(/registrarGh\("avisos"/);
+    expect(leer("scripts/issues.mjs")).toMatch(/ghSync\("issues"/);
+    expect(leer(".claude/hooks/avisos.mjs")).toMatch(/ghSync\("avisos"/);
+  });
+});
+
+// ── E1 de #326 (#724): puntos, origen, sesión y resultado en cada línea ──────────
+
+describe("la línea contable con puntos (#724)", () => {
+  const campos = { identidad: "app", sesion: "a1b2c3", puntos: 106, medida: "real", resultado: "ok", intento: 1 };
+
+  it("lleva identidad, sesión, puntos, medida, resultado e intento, con vocabulario cerrado", () => {
+    expect(lineaGh("issues", "graphql", campos)).toBe("gh: caller=issues api=graphql identidad=app sesion=a1b2c3 puntos=106 medida=real resultado=ok intento=1");
+    const hostil = lineaGh("issues", "graphql", { identidad: "C:\\Users\\pablo", sesion: "ghp_abc", puntos: "x", medida: "?", resultado: "npm run", intento: -3 });
+    expect(hostil).toBe("gh: caller=issues api=graphql identidad=pablo sesion=000000 puntos=0 medida=est resultado=error intento=1");
+    for (const i of IDENTIDADES_GH) for (const m of MEDIDAS_GH) for (const r of RESULTADOS_GH) expect(lineaGh("fabrica", "rest", { ...campos, identidad: i, medida: m, resultado: r })).toContain(`identidad=${i} `);
+  });
+
+  it("la sesión es un hash corto: sin rutas ni nombres", () => {
+    const s = sesionCorta({}, "C:\\dev\\MenuPlan-algo");
+    expect(s).toMatch(/^[0-9a-f]{6}$/);
+    expect(s).toBe(sesionCorta({}, "C:\\dev\\MenuPlan-algo"));
+    expect(sesionCorta({}, "C:\\dev\\MenuPlan-otra")).not.toBe(s);
+    expect(sesionCorta({ CLAUDE_SESSION_ID: "abc" }, "x")).toBe(sesionCorta({ CLAUDE_SESSION_ID: "abc" }, "y"));
+  });
+
+  it("la identidad sale del prefijo del token, nunca de su valor", () => {
+    expect(identidadDe({ GH_TOKEN: "ghs_loquesea" })).toBe("app");
+    expect(identidadDe({ GH_TOKEN: "gho_loquesea" })).toBe("pablo");
+    expect(identidadDe({})).toBe("pablo");
+  });
+
+  it("los puntos salen de rateLimit { cost } y, sin él, de la tabla de estimación", () => {
+    const q = ["api", "graphql", "-f", "query=x"];
+    expect(puntosDe("issues", q, JSON.stringify({ data: { rateLimit: { cost: 7 }, repository: {} } }))).toEqual({ puntos: 7, medida: "real" });
+    expect(puntosDe("issues", q, "{}")).toEqual({ puntos: 106, medida: "est" });
+    expect(puntosDe("fabrica", q, "{}")).toEqual({ puntos: 5, medida: "est" });
+    expect(puntosDe("avisos", ["issue", "list"], "[]")).toEqual({ puntos: 1, medida: "est" });
+    expect(puntosDe("espera-ci", ["api", "repos/x"], "{}")).toEqual({ puntos: 0, medida: "nada" });
+  });
+
+  it("ghSync registra DESPUÉS de la llamada, con el resultado, y relanza el error", () => {
+    const dir = tmp();
+    const orden = [];
+    const ejecutar = () => {
+      orden.push(existsSync(join(dir, "gh.log")) ? "log-antes" : "llamada");
+      return JSON.stringify({ data: { rateLimit: { cost: 3 } } });
+    };
+    expect(ghSync("issues", ["api", "graphql"], {}, { dir, ejecutar })).toContain("cost");
+    expect(orden).toEqual(["llamada"]); // al hacer la llamada todavía no había línea
+    expect(readFileSync(join(dir, "gh.log"), "utf8")).toMatch(/puntos=3 medida=real resultado=ok intento=1/);
+
+    const limite = Object.assign(new Error("x"), { stderr: "GraphQL: API rate limit already exceeded" });
+    expect(() => ghSync("issues", ["api", "graphql"], {}, { dir, ejecutar: () => { throw limite; }, intento: 2 })).toThrow(limite);
+    const raro = new Error("sin red");
+    expect(() => ghSync("issues", ["issue", "view", "1"], {}, { dir, ejecutar: () => { throw raro; } })).toThrow(raro);
+    const lineas = readFileSync(join(dir, "gh.log"), "utf8").trim().split("\n");
+    expect(lineas[1]).toMatch(/resultado=limitado intento=2/);
+    expect(lineas[2]).toMatch(/resultado=error intento=1/);
+  });
+
+  it("cada intento de un reintento deja su línea", () => {
+    const dir = tmp();
+    const falla = () => { throw Object.assign(new Error("x"), { stderr: "rate limit" }); };
+    for (const intento of [1, 2, 3]) expect(() => ghSync("fabrica", ["api", "graphql"], {}, { dir, intento, ejecutar: falla })).toThrow();
+    expect(readFileSync(join(dir, "gh.log"), "utf8").trim().split("\n").map((l) => /intento=(\d)/.exec(l)[1])).toEqual(["1", "2", "3"]);
+  });
+
+  it("registrarTras apunta al resolverse o fallar una llamada asíncrona", async () => {
+    const dir = tmp();
+    await registrarTras("token-sesion", ["api", "user"], Promise.resolve({ stdout: "x" }), { dir });
+    await expect(registrarTras("token-sesion", ["api", "user"], Promise.reject(Object.assign(new Error("e"), { stderr: "abuse detection" })), { dir })).rejects.toThrow("e");
+    const t = readFileSync(join(dir, "gh.log"), "utf8");
+    expect(t).toMatch(/resultado=ok/);
+    expect(t).toMatch(/resultado=limitado/);
+  });
+
+  it("leerLineas lee las líneas nuevas y las viejas (sin campos) sin romper", () => {
+    const t = "2026-10-13T10:00:00.000Z gh: caller=issues api=graphql\n2026-10-13T10:01:00.000Z " + lineaGh("fabrica", "graphql", campos) + "\nbasura\n";
+    const l = leerLineas(t);
+    expect(l).toHaveLength(2);
+    expect(l[0]).toMatchObject({ caller: "issues", resultado: "sin-dato", sesion: "sin-dato" });
+    expect(l[1]).toMatchObject({ caller: "fabrica", puntos: 106, resultado: "ok", sesion: "a1b2c3" });
+  });
+
+  it("porHoras suma puntos por hora, origen y sesión y cuenta las limitadas (hora de Madrid)", () => {
+    const l = (hora, caller, p, r, s = "a1b2c3") => `${hora} ${lineaGh(caller, "graphql", { ...campos, puntos: p, resultado: r, sesion: s })}`;
+    const t = [
+      l("2026-10-13T08:05:00Z", "issues", 100, "ok"), // 10:05 en Madrid (UTC+2)
+      l("2026-10-13T08:40:00Z", "issues", 106, "ok", "ffffff"),
+      l("2026-10-13T08:41:00Z", "fabrica", 5, "limitado"),
+      l("2026-10-13T09:00:00Z", "issues", 1, "ok"),
+    ].join("\n");
+    const h = porHoras(t);
+    expect(Object.keys(h)).toEqual(["2026-10-13 10", "2026-10-13 11"]);
+    expect(h["2026-10-13 10"]).toMatchObject({ lineas: 3, puntos: 211, limitadas: 1, porOrigen: { issues: 206, fabrica: 5 }, porSesion: { a1b2c3: 105, ffffff: 106 } });
+    expect(porHoras(t, { desde: Date.parse("2026-10-13T08:30:00Z") })["2026-10-13 10"].lineas).toBe(2);
+  });
+});
+
+// ── La clase: todo sitio que lanza gh deja su línea, y la deja DESPUÉS ──────────────
+
+describe("cobertura del registro: quien lanza gh pasa por el envoltorio común (#724)", () => {
+  // Lista que SOLO BAJA. Cada una con su motivo; E2 (#326) les exige al menos leer la marca limitado-hasta.
+  const EXCEPCIONES = {
+    ".claude/hooks/guardia.mjs": "corre en cada comando y no importa scripts/ (migraciones.mjs lo documenta); solo gh pr view y la comparación en las ramas de PR",
+    ".claude/hooks/migraciones.mjs": "la guardia lo carga sola, sin scripts/; una sola lectura de PR por sesión",
+    "scripts/rulesets.mjs": "pide a gh la sesión local, no llama a la API",
+  };
+  // Quien recibe gh como función y no lo lanza: lo lanza (y registra) el fichero que dice el valor.
+  const RECEPTORES = {
+    "scripts/lib/fabricaGh.mjs": "scripts/fabrica.mjs",
+    "scripts/lib/situacion.mjs": "scripts/situacion.mjs",
+  };
+  const LANZA = /\b(?:execFileSync|execFile|spawnSync|spawn|execSync|exec)\(\s*["'`]gh(?:\.exe)?(?:["'`]|\s)/;
+  const RECIBE = /function\s+\w+\s*\([^)]*\bgh\b[^)]*\)/;
+  const todos = [...ficheros("scripts", [".mjs", ".js"]), ...ficheros(".claude/hooks", [".mjs", ".js"])].filter((f) => f !== "scripts/lib/cuotaGh.mjs");
+  const usaElEnvoltorio = (f) => /\b(?:ghSync|registrarTras|execFileGh)\(/.test(leer(f)) && /cuotaGh\.mjs/.test(leer(f));
+
+  it("nadie lanza gh a pelo fuera del envoltorio (salvo la lista que solo baja)", () => {
+    const aPelo = todos.filter((f) => LANZA.test(leer(f)) && !EXCEPCIONES[f]);
+    expect(aPelo, "lanzan gh sin registrar: usa ghSync/registrarTras de scripts/lib/cuotaGh.mjs").toEqual([]);
+  });
+
+  it("en cupos.mjs, cada lanzamiento de gh va envuelto en registrarTras", () => {
+    const lineas = leer("scripts/lib/cupos.mjs").split("\n").filter((l) => /lanzar\("gh"/.test(l) && !/^\s*(\/\/|\*)/.test(l));
+    expect(lineas.length).toBeGreaterThan(0);
+    for (const l of lineas) expect(l, l).toMatch(/registrarTras\(/);
+  });
+
+  it("las excepciones siguen siendo necesarias: si ya no lanzan gh, se quitan de la lista", () => {
+    for (const f of Object.keys(EXCEPCIONES)) expect(LANZA.test(leer(f)), f).toBe(true);
+    expect(Object.keys(EXCEPCIONES).length).toBeLessThanOrEqual(3);
+  });
+
+  it("quien usa el envoltorio lo importa de verdad, y quien recibe un gh inyectado dice quién lo lanza", () => {
+    for (const f of todos.filter((x) => /\b(?:ghSync|registrarTras|execFileGh)\(/.test(leer(x)))) expect(leer(f), f).toMatch(/from "[./]+(?:\/scripts)?\/(?:lib\/)?cuotaGh\.mjs"/);
+    const receptores = todos.filter((f) => RECIBE.test(leer(f)) && !usaElEnvoltorio(f) && !LANZA.test(leer(f)));
+    for (const f of receptores) {
+      expect(RECEPTORES[f], `${f} recibe gh como función: di en RECEPTORES quién lo lanza`).toBeDefined();
+      expect(usaElEnvoltorio(RECEPTORES[f]), `${RECEPTORES[f]} lanza el gh de ${f} y debe registrarlo`).toBe(true);
+    }
+    for (const f of Object.keys(RECEPTORES)) expect(RECIBE.test(leer(f)), `${f} ya no recibe gh: quítalo de RECEPTORES`).toBe(true);
+  });
+
+  it("el único ejecutor de gh está en cuotaGh.mjs y registra tras llamar", () => {
+    const f = leer("scripts/lib/cuotaGh.mjs");
+    const fn = f.slice(f.indexOf("export function ghSync"), f.indexOf("export function registrarTras"));
+    expect(fn.indexOf("ejecutar(args")).toBeGreaterThan(-1);
+    expect(fn.indexOf("registrarGh(")).toBeGreaterThan(fn.indexOf("ejecutar(args"));
+  });
+
+  it("las consultas propias piden rateLimit { cost } para saber los puntos reales", () => {
+    const consultas = [["scripts/lib/issues.mjs", "CONSULTA"], ["scripts/lib/issues.mjs", "CONSULTA_PR"], ["scripts/lib/buscarAntes.mjs", "CONSULTA_PR_INDICE"], ["scripts/lib/fabricaGh.mjs", "CONSULTA_TODOS"], ["scripts/lib/fabricaGh.mjs", "CONSULTA_FONDOS"], ["scripts/lib/cumplimiento.mjs", "CONSULTA_FLUJO"]];
+    for (const [fichero, nombre] of consultas) {
+      const f = leer(fichero);
+      const ini = f.indexOf(`export const ${nombre} =`);
+      expect(ini, nombre).toBeGreaterThan(-1);
+      expect(f.slice(ini, f.indexOf("}`;", ini)), nombre).toMatch(/rateLimit \{ cost \}/);
+    }
+  });
+});
+
+describe("npm run cuota -- --horas y --rafagas (#724)", () => {
+  const c = { identidad: "app", sesion: "a1b2c3", puntos: 10, medida: "real", resultado: "ok", intento: 1 };
+  const l = (hora, p = 10, r = "ok", s = "a1b2c3") => `${hora} ${lineaGh("issues", "graphql", { ...c, puntos: p, resultado: r, sesion: s })}`;
+
+  it("resumenDeHoras da la hora más cara, el p95, el total y las limitadas", () => {
+    const t = [l("2026-10-13T08:00:00Z", 100), l("2026-10-13T09:00:00Z", 300, "limitado"), l("2026-10-13T10:00:00Z", 50)].join("\n");
+    expect(resumenDeHoras(porHoras(t))).toEqual({ horas: 3, puntos: 450, limitadas: 1, maxima: { hora: "2026-10-13 11", puntos: 300 }, p95: 300 });
+    expect(resumenDeHoras({})).toEqual({ horas: 0, puntos: 0, limitadas: 0, maxima: null, p95: 0 });
+  });
+
+  it("rafagas agrupa las líneas seguidas de un origen (menos de 30 s entre una y otra)", () => {
+    const t = [l("2026-10-13T08:00:00Z"), l("2026-10-13T08:00:10Z"), l("2026-10-13T08:00:20Z", 10, "ok", "ffffff"), l("2026-10-13T09:00:00Z")].join("\n");
+    expect(rafagas(t)).toEqual([{ inicio: "2026-10-13T08:00:00.000Z", lineas: 3, sesiones: 2 }, { inicio: "2026-10-13T09:00:00.000Z", lineas: 1, sesiones: 1 }]);
+    expect(rafagas(t, { caller: "fabrica" })).toEqual([]);
+  });
+
+  it("cuota.mjs --horas lee un gh.log y cuenta los puntos de la hora", () => {
+    const dir = tmp();
+    const ahora = new Date();
+    writeFileSync(join(dir, "gh.log"), `${ahora.toISOString()} ${lineaGh("issues", "graphql", { ...c, puntos: 106, resultado: "limitado" })}\n`);
+    const salida = execFileSync(process.execPath, [join(raiz, "scripts", "cuota.mjs"), "--horas"], { env: { ...process.env, MENUPLAN_CUOTA_DIR: dir }, encoding: "utf8" });
+    expect(salida).toMatch(/puntos +106 +limitadas 1/);
+    expect(salida).toMatch(/hora más cara gastó 106 puntos/);
+    expect(salida).toMatch(/líneas limitadas, 1/);
   });
 });

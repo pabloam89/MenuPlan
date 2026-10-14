@@ -12,9 +12,8 @@
  * y 3 si no pudo preguntar a GitHub (tras 3 intentos): no es lo mismo que un CI en rojo.
  * Una línea por cambio de estado, sin ruido: `ci pr: N estado: pendiente|ok|falla`.
  */
-import { execFileSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
-import { registrarGh } from "./lib/cuotaGh.mjs";
+import { ghSync } from "./lib/cuotaGh.mjs";
 
 /** Resume los check-runs de un commit: «falla» si alguno acabó mal, «pendiente» si queda alguno, si no «ok». */
 export function resumirChecks(runs) {
@@ -25,10 +24,7 @@ export function resumirChecks(runs) {
   return { estado: fallan.length ? "falla" : faltan ? "pendiente" : "ok", fallan, faltan };
 }
 
-const rest = (...args) => {
-  registrarGh("espera-ci", ["api", ...args]);
-  return execFileSync("gh", ["api", ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 30_000 });
-};
+const rest = (...args) => ghSync("espera-ci", ["api", ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 30_000 });
 
 /** El PR es SOLO el primer argumento; `--cada` y `--tope` llevan su valor detrás. */
 export function leerArgs(argv) {
