@@ -16,8 +16,8 @@ import { UMBRALES_TAMANO } from "./lib/avisosPr.mjs";
 import { CONSTRUCTORES, JUECES } from "./lib/agentes.mjs";
 import { ACCIONES, leerEstandares, tareasDe } from "./lib/estandaresAgentes.mjs";
 import { CATALOGO, CAUSAS, MOTIVOS_COMPLEJIDAD } from "./lib/presupuestos.mjs";
-import { ESPECIALES, STEP_PURPOSES, SUBTYPES, TYPES } from "./lib/tiposDeEncargo.mjs";
-import { COMPARTIDOS_AL_FINAL, FORMAS, LITERALES, alcanceDe, briefDe, complejidadDe, dimensionar, formaDe, medidaDe, modulosDe, redimensionar, textoDe } from "./lib/dimensionado.mjs";
+import { DATOS as DATOS_TIPOS, ESPECIALES, ROLES, ROL_DE_CABECERA, STEP_PURPOSES, SUBTYPES, TYPES } from "./lib/tiposDeEncargo.mjs";
+import { ACCIONES_DE_JUEZ_EXTRA, COMPARTIDOS_AL_FINAL, FORMAS, LITERALES, alcanceDe, briefDe, complejidadDe, dimensionar, formaDe, medidaDe, modulosDe, redimensionar, textoDe } from "./lib/dimensionado.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
 const MAPA = {
@@ -399,16 +399,36 @@ describe("las listas y vocabularios que usa el módulo salen de su fuente", () =
     for (const a of LITERALES.acciones) expect(ACCIONES, a).toContain(a);
     for (const x of LITERALES.finalidades) expect(Object.keys(STEP_PURPOSES), x).toContain(x);
     for (const x of LITERALES.especiales) expect(ESPECIALES, x).toContain(x);
-    for (const x of LITERALES.roles) expect(["builder", "judge", "planner", "measurer"], x).toContain(x);
+    // Los roles, contra su fuente y no contra una copia (deuda de #641): ROLES sale de la cabecera de los agentes y de special_roles.
+    expect(LITERALES.roles).toBe(ROLES);
+    for (const r of [...Object.values(ROL_DE_CABECERA), ...Object.values(DATOS_TIPOS.special_roles)]) expect(ROLES, r).toContain(r);
+    for (const t of Object.keys(TYPES)) for (const fase of dim({ tipo: t, ficheros: [f("scripts/x.mjs", 5)] }).fases) for (const a of fase.agentes) expect(ROLES, `${t}: ${a.agente}`).toContain(a.rol);
     expect(CAUSAS).toContain(LITERALES.causa_defecto);
     expect(SUBTYPES.map((x) => x.id)).toContain(LITERALES.subtipo_defecto);
   });
   it("las formas salen del esqueleto de cada tipo, sin mirar su nombre", () => {
-    expect(formaDe({ roles: ["judge"], judges_only_in_parallel: true })).toBe(FORMAS[0]);
-    expect(formaDe({ roles: ["builder", "judge"], measures_before_after: true })).toBe(FORMAS[1]);
-    expect(formaDe({ roles: ["judge", "builder", "judge"] })).toBe(FORMAS[2]);
-    expect(formaDe({ roles: ["builder", "judge"] })).toBe(FORMAS[3]);
-    for (const t of Object.values(TYPES)) expect(FORMAS).toContain(formaDe(t.skeleton));
+    expect(formaDe({ roles: ["judge"], judges_only_in_parallel: true })).toBe(FORMAS.soloJueces);
+    expect(formaDe({ roles: ["builder", "judge"], measures_before_after: true })).toBe(FORMAS.medir);
+    expect(formaDe({ roles: ["judge", "builder", "judge"] })).toBe(FORMAS.diagnosticar);
+    expect(formaDe({ roles: ["builder", "judge"] })).toBe(FORMAS.construir);
+    for (const t of Object.values(TYPES)) expect(Object.values(FORMAS)).toContain(formaDe(t.skeleton));
+    // Cada forma tiene su texto en el brief (por nombre, no por posición).
+    for (const t of Object.keys(TYPES)) expect(briefDe(dim({ tipo: t, ficheros: [f("scripts/x.mjs", 5)] }), "revisor"), t).not.toMatch(/; undefined\./);
+  });
+  it("ningún módulo del dimensionado compara por nombre de tipo: usan las banderas del esqueleto (deuda de #641)", () => {
+    for (const fichero of ["scripts/lib/tiposDeEncargo.mjs", "scripts/lib/dimensionado.mjs"]) {
+      const codigo = readFileSync(join(RAIZ, fichero), "utf8");
+      for (const t of Object.keys(TYPES)) expect(codigo, `${fichero}: «${t}»`).not.toMatch(new RegExp(`(?:===|!==)\\s*"${t}"|"${t}"\\s*(?:===|!==)`));
+    }
+  });
+  it("ACCIONES_DE_JUEZ_EXTRA: acciones del catálogo, de LITERALES, y cada una la tiene algún juez", () => {
+    const tareas = tareasDe(leerEstandares(RAIZ));
+    for (const a of ACCIONES_DE_JUEZ_EXTRA) {
+      expect(LITERALES.acciones, a).toContain(a);
+      expect(ACCIONES, a).toContain(a);
+      expect(tareas.some((t) => JUECES.includes(t.agente) && t.tarea.accion === a), a).toBe(true);
+    }
+    expect(ACCIONES_DE_JUEZ_EXTRA).not.toContain("construir");
   });
   it("los motivos de complejidad que da el módulo son todos del vocabulario cerrado", () => {
     const vistos = new Set([

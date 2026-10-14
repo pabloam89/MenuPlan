@@ -74,8 +74,18 @@ export const textosDeEstados = (d = DATOS) => textosDe(d.statuses);
 
 const todosLosAgentes = (paso) => [...(paso.agentes ?? []), ...(paso.opcional ?? []).map((o) => o.agente)];
 /** El tipo de un agente en su cabecera (`Tipo:` de .claude/agents/) y su rol en un paso. */
-const ROL_DE_CABECERA = { constructor: "builder", juez: "judge" };
+export const ROL_DE_CABECERA = { constructor: "builder", juez: "judge" };
 const CTX = { agentes: AGENTES, especiales: DATOS.special_roles };
+/** El rol de quien solo mide en una auditoría (`measured_with`): no construye ni juzga. */
+export const ROL_MEDIDOR = "measurer";
+/**
+ * Los roles de un agente en un paso o en una fase, con UNA fuente: los de la cabecera de un agente, los de los especiales
+ * (`special_roles` de ops/tipos-de-encargo.json) y el del medidor. El dimensionador los usa en sus fases (LITERALES.roles).
+ */
+export const ROLES = [...new Set([...Object.values(ROL_DE_CABECERA), ...Object.values(DATOS.special_roles ?? {}), ROL_MEDIDOR])];
+
+/** ¿El esqueleto del tipo es solo de jueces en paralelo (hoy, audit)? Por la bandera del esqueleto, no por el nombre del tipo. */
+const soloJueces = (tipos, tipo) => Boolean(tipos?.[tipo]?.skeleton?.judges_only_in_parallel);
 
 /** El rol de un agente en un paso: builder, judge, planner (la sesión) o null. La sesión planifica; no construye por defecto. */
 export function rolDe(agente, ctx = CTX) {
@@ -107,7 +117,7 @@ export function problemasDeEsqueleto(sub, tipos = TYPES, ctx = CTX, d = DATOS) {
   if (i < esq.roles.length) p.push(`roles: ${sub.id} (${sub.type}) tiene que llevar, en este orden, ${esq.roles.join(" → ")}; le falta «${esq.roles[i]}»`);
   if (!siempre.some((r) => r.includes("judge"))) p.push(`juez-siempre: ${sub.id} no tiene ningún juez que entre siempre (un juez solo opcional no vale): el juez mínimo es obligatorio`);
   const ultimo = siempre.at(-1) ?? [];
-  if (sub.type !== "audit" && ultimo.includes("builder") && !ultimo.includes("judge")) p.push(`juez-despues: ${sub.id} termina en un constructor sin juez detrás`);
+  if (!esq.judges_only_in_parallel && ultimo.includes("builder") && !ultimo.includes("judge")) p.push(`juez-despues: ${sub.id} termina en un constructor sin juez detrás`);
   if (esq.judges_only_in_parallel) {
     if (sub.pasos.length !== 1) p.push(`paralelo: ${sub.id} (${sub.type}) va en un solo paso con todos los jueces en paralelo y tiene ${sub.pasos.length}`);
     const permitidos = new Set([...JUECES, ...(sub.measured_with ?? [])]);
@@ -201,8 +211,10 @@ export function problemasDeLaPuerta(sub, d = DATOS, ctx = { agentes: AGENTES, es
   if (!(sub.status in (d?.statuses ?? {}))) return [`estado: ${sub.id} dice «${sub.status}», que no es un estado (${Object.keys(d?.statuses ?? {}).join(", ")})`];
   if (sub.status !== "active") return p;
   // nombre: <tipo>-<objeto>, en inglés y en kebab-case
-  const m = /^(create|fix|improve|operate|audit)-([a-z]+(?:-[a-z]+){0,2})$/.exec(sub.id);
-  if (!m) p.push(`nombre: ${sub.id} no sigue la plantilla <tipo>-<objeto> (create, fix, improve, operate o audit, un guion y de una a tres palabras en inglés y minúsculas)`);
+  // Los prefijos son los tipos del catálogo, no una lista escrita aquí (deuda de #641); un id de tipo es una palabra en minúsculas.
+  const prefijos = Object.keys(tipos).filter((k) => /^[a-z]+$/.test(k));
+  const m = new RegExp(`^(${prefijos.join("|") || "(?!)"})-([a-z]+(?:-[a-z]+){0,2})$`).exec(sub.id);
+  if (!m) p.push(`nombre: ${sub.id} no sigue la plantilla <tipo>-<objeto> (${prefijos.join(", ")}, un guion y de una a tres palabras en inglés y minúsculas)`);
   else if (m[1] !== sub.type) p.push(`nombre: ${sub.id} empieza por «${m[1]}» y es del tipo «${sub.type}»`);
   // plano: ni el id ni la etiqueta nombran una zona
   const objeto = m ? m[2] : sub.id;
@@ -210,7 +222,7 @@ export function problemasDeLaPuerta(sub, d = DATOS, ctx = { agentes: AGENTES, es
   for (const z of zonasQueNombra(sub.accion ?? "")) p.push(`plano: ${sub.id} nombra la zona «${z}» en su etiqueta; un subtipo describe la naturaleza del trabajo, la zona sale de los ficheros`);
   // plano: los agentes fijos de un paso tampoco son de una zona (#641, pendiente de #646). El juez de zona entra por bandera, en `opcional`.
   for (const paso of sub.pasos ?? []) for (const a of paso.agentes ?? []) {
-    if (sub.type !== "audit" && JUECES_DE_ZONA.includes(a)) p.push(`plano: ${sub.id} nombra al juez «${a}» en un paso fijo, y es el juez de una zona; un subtipo no nombra la zona (si depende de una bandera, va en «opcional»)`);
+    if (!soloJueces(tipos, sub.type) && JUECES_DE_ZONA.includes(a)) p.push(`plano: ${sub.id} nombra al juez «${a}» en un paso fijo, y es el juez de una zona; un subtipo no nombra la zona (si depende de una bandera, va en «opcional»)`);
   }
   for (const paso of sub.pasos ?? []) for (const z of zonasQueNombra(`${paso.purpose ?? ""} ${d?.step_purposes?.[paso.purpose]?.what ?? ""}`)) p.push(`plano: ${sub.id} lleva un paso con la finalidad «${paso.purpose}», que nombra la zona «${z}»; las finalidades de paso también describen el trabajo`);
   // texto-libre: solo `note`, con tope; lo demás, vocabularios cerrados
@@ -284,7 +296,7 @@ export function problemas(d = DATOS, ctx = { agentes: AGENTES, especiales: d?.sp
     const roles = t.skeleton?.roles;
     if (!Array.isArray(roles) || !roles.length || roles.some((r) => !["builder", "judge"].includes(r))) p.push(`esqueleto: el tipo ${k} lleva «roles» con builder y judge`);
     else if (!roles.includes("judge")) p.push(`juez: el tipo ${k} no tiene ningún juez en su esqueleto: ningún tipo se queda sin juez`);
-    else if (k !== "audit" && !roles.includes("builder")) p.push(`esqueleto: el tipo ${k} no lleva constructor`);
+    else if (!t.skeleton?.judges_only_in_parallel && !roles.includes("builder")) p.push(`esqueleto: el tipo ${k} no lleva constructor`);
     if (t.skeleton?.measures_before_after && !(t.skeleton.default_measure in (d?.measures ?? {}))) p.push(`esqueleto: el tipo ${k} mide antes y después y su «default_measure» es un valor de «measures»`);
     const activos = todos.filter((s) => s.type === k && s.status === "active");
     const lisos = activos.filter((s) => s.plain);
@@ -444,7 +456,7 @@ function pasoMd(paso) {
 /** La fila de un subtipo: tipo, id, acción y pipeline. */
 export function filaMd(sub) {
   const cierre = sub.cierra_con ? ` → *${sub.cierra_con}*` : "";
-  const paralelo = sub.type === "audit" && sub.pasos.length === 1 && (sub.pasos[0].agentes ?? []).length > 1 ? ", en paralelo" : "";
+  const paralelo = soloJueces(TYPES, sub.type) && sub.pasos.length === 1 && (sub.pasos[0].agentes ?? []).length > 1 ? ", en paralelo" : "";
   return `| ${sub.type} | \`${sub.id}\` | ${sub.accion} | ${sub.pasos.map(pasoMd).join(" → ")}${paralelo}${cierre} |`;
 }
 

@@ -27,7 +27,7 @@ import { PROYECTO_POR_DEFECTO } from "./zonasProyecto.mjs";
 import { leerEstandares, leerNormasEn, RAIZ_REPO, tareasDe, textoDeTarea } from "./estandaresAgentes.mjs";
 import { leerPrecedencia } from "./precedencia.mjs";
 import { ALCANCES, CATALOGO, CAUSAS, COMPLEXITIES, MOTIVOS_COMPLEJIDAD, presupuestoDe } from "./presupuestos.mjs";
-import { ALL_SUBTYPES, FLAGS, SUBTYPES, TYPES, encargoDe, rolDe } from "./tiposDeEncargo.mjs";
+import { ALL_SUBTYPES, FLAGS, ROLES, SUBTYPES, TYPES, encargoDe, rolDe } from "./tiposDeEncargo.mjs";
 import { precargadasDe, skillsDelEncargo } from "./usoSkills.mjs";
 
 const RAIZ = RAIZ_REPO;
@@ -43,25 +43,32 @@ export const LITERALES = {
   acciones: ["diagnosticar", "juzgar", "medir", "construir", "operar"],
   finalidades: ["diagnose", "measure_before", "measure_after"],
   especiales: ["sesion", "constructor", "constructores"],
-  roles: ["builder", "judge", "planner", "measurer"],
+  // Los roles salen de su fuente (ROLES de tiposDeEncargo.mjs), no de una copia (deuda de #641, saldada en #642).
+  roles: ROLES,
   causa_defecto: "sin-comprobar",
   subtipo_defecto: "create-plain",
 };
 const [SESION, CONSTRUCTOR, CONSTRUCTORES_PLURAL] = LITERALES.especiales;
 const ES_CONSTRUCTOR_GENERICO = [CONSTRUCTOR, CONSTRUCTORES_PLURAL];
 
-/** Las formas de un tipo, derivadas de su `skeleton` en ops/tipos-de-encargo.json (nada por nombre de tipo). */
-export const FORMAS = ["solo-jueces-en-paralelo", "medir-antes-y-despues", "diagnosticar-primero", "construir-y-juzgar"];
+/** Las formas de un tipo, derivadas de su `skeleton` en ops/tipos-de-encargo.json (nada por nombre de tipo), por nombre y no por posición. */
+export const FORMAS = {
+  soloJueces: "solo-jueces-en-paralelo",
+  medir: "medir-antes-y-despues",
+  diagnosticar: "diagnosticar-primero",
+  construir: "construir-y-juzgar",
+};
 export function formaDe(skeleton) {
-  if (skeleton.judges_only_in_parallel) return FORMAS[0];
-  if (skeleton.measures_before_after) return FORMAS[1];
-  if (skeleton.roles[0] === "judge") return FORMAS[2];
-  return FORMAS[3];
+  if (skeleton.judges_only_in_parallel) return FORMAS.soloJueces;
+  if (skeleton.measures_before_after) return FORMAS.medir;
+  if (skeleton.roles[0] === "judge") return FORMAS.diagnosticar;
+  return FORMAS.construir;
 }
 
 const ORDEN_COMPLEJIDAD = Object.keys(COMPLEXITIES);
 const ORDEN_ALCANCE = ALCANCES;
-const ACCIONES_DE_JUEZ_EXTRA = ["juzgar", "medir", "diagnosticar"];  // subconjunto de LITERALES.acciones
+/** Las acciones de una tarea que hacen de un juez un candidato para completar el mínimo de jueces (subconjunto de LITERALES.acciones; lo vigila dimensionar.test.js). */
+export const ACCIONES_DE_JUEZ_EXTRA = ["juzgar", "medir", "diagnosticar"];
 
 const norm = (r) => String(r).replace(/\\/g, "/").replace(/^\.\//, "");
 const unicos = (xs) => [...new Set(xs)];
@@ -214,8 +221,9 @@ export function dimensionar(entrada, deps = {}) {
   const medidores = subDatos.measured_with ?? [];
   const fijos = enc.steps.flatMap((p) => p.agentes ?? []).filter((a) => rolDe(a) === "builder" && !ES_CONSTRUCTOR_GENERICO.includes(a) && !medidores.includes(a));
   if (fijos.length) constructores = unicos(fijos).map((agente) => ({ agente, ficheros: propios }));
-  else if (tipo === "operate") {
-    // Operar la casa lo hace el constructor entero, sea cual sea la zona de los ficheros.
+  else if (esqueleto.irreversible_needs_close) {
+    // Operar la casa (el tipo cuyo esqueleto cierra con una persona si es irreversible: hoy, operate) lo hace el constructor entero,
+    // sea cual sea la zona de los ficheros. Por la bandera del esqueleto, no por el nombre del tipo.
     const ambitos = unicos(propios.map((r) => constructorDeFichero(r)).filter((c) => c?.agente).map((c) => c.ambito));
     constructores = [{ agente: CONSTRUCTOR, ficheros: propios, ...(ambitos.length ? { ambitos } : {}) }];
   }
@@ -232,7 +240,7 @@ export function dimensionar(entrada, deps = {}) {
 
   // Los pasos del subtipo, con el diagnóstico siempre primero en un arreglo (el pipeline mínimo lo salta).
   let pasos = enc.steps;
-  if (forma === FORMAS[2] && !pasos.some((p) => p.purpose === LITERALES.finalidades[0])) pasos = [...subDatos.pasos.filter((p) => p.purpose === LITERALES.finalidades[0]), ...pasos];
+  if (forma === FORMAS.diagnosticar && !pasos.some((p) => p.purpose === LITERALES.finalidades[0])) pasos = [...subDatos.pasos.filter((p) => p.purpose === LITERALES.finalidades[0]), ...pasos];
 
   const fases = [];
   const condicionales = [];
@@ -299,7 +307,7 @@ export function dimensionar(entrada, deps = {}) {
     ficheros: propios,
     forma,
     medicion: esqueleto.measures_before_after ? { kind: subDatos.measure_kind, counters: subDatos.counters ?? [] } : null,
-    diagnostico: forma === FORMAS[2] ? { quien: presu.diagnostica, hipotesis_max: presu.hipotesis_en_paralelo_max, es_no_es: presu.es_no_es } : null,
+    diagnostico: forma === FORMAS.diagnosticar ? { quien: presu.diagnostica, hipotesis_max: presu.hipotesis_en_paralelo_max, es_no_es: presu.es_no_es } : null,
     constructores,
     al_final: reparto.alFinal,
     jueces: unicos(fasesFinal.flatMap((x) => x.agentes.filter((a) => a.rol === "judge").map((a) => a.agente))),
@@ -440,10 +448,10 @@ export function briefDe(plan, agente, opciones = {}, deps = depsReales()) {
       textoDeTarea(agente, tarea.id, deps.datos, deps.registro, { ficheros: alcance, precedencia: deps.precedencia, proyecto: PROYECTO_POR_DEFECTO })].filter(Boolean).join("\n")
     : `ESTÁNDAR: ninguna tarea del catálogo para ${agente} en esta fase (${agente in deps.datos.agentes ? "ninguna de sus tareas es de la acción que toca" : "no es un agente de .claude/agents/"}); dilo en el informe`;
   const forma = {
-    "diagnosticar-primero": "primero se diagnostica (causa raíz y test que reproduce el fallo), después se arregla, y el juez repite",
-    "medir-antes-y-despues": `se mide antes y después (${plan.medicion?.kind ?? "medida"}${plan.medicion?.counters.length ? `: ${plan.medicion.counters.join(", ")}` : ""}) y la cifra va al informe`,
-    "solo-jueces-en-paralelo": "solo se mira, sin tocar nada, y los jueces trabajan a la vez",
-    "construir-y-juzgar": "construye el constructor y juzga uno distinto",
+    [FORMAS.diagnosticar]: "primero se diagnostica (causa raíz y test que reproduce el fallo), después se arregla, y el juez repite",
+    [FORMAS.medir]: `se mide antes y después (${plan.medicion?.kind ?? "medida"}${plan.medicion?.counters.length ? `: ${plan.medicion.counters.join(", ")}` : ""}) y la cifra va al informe`,
+    [FORMAS.soloJueces]: "solo se mira, sin tocar nada, y los jueces trabajan a la vez",
+    [FORMAS.construir]: "construye el constructor y juzga uno distinto",
   }[plan.forma];
   return [
     `BRIEF DE ${agente} — rol: ${rol}, fase ${fase.n} de ${plan.fases.length} (${fase.modo})`,

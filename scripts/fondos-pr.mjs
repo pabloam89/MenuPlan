@@ -38,6 +38,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { MAX_CASOS, MAX_NUMERO, limpiarCuerpo } from "../.claude/hooks/casos.mjs";
+import { agentesDeLineas } from "../.claude/hooks/tipo-y-jueces.mjs";
 import { ErrorDeApi, pedir } from "./lib/ghApi.mjs";
 import { CAPAS_AGENTE, aprendizajeValido, fichaObligatoria, fondoDeRest, leerFicha } from "./lib/fondos.mjs";
 import { porGrupo } from "./lib/issues.mjs";
@@ -51,8 +52,8 @@ export const tipoDe = (i) => [...porGrupo(nombres(i)).tipo][0] ?? null;
 
 /** Las líneas `Agente:` del cuerpo. → { lineas:[nombre…], malas:[…] }. */
 export function agentesDelPr(cuerpo) {
-  const re = /^[ \t>*-]*(?:\*\*)?Agente(?:\*\*)?[ \t]*:(?:\*\*)?[ \t]*`?([\p{L}-]{0,40})/gimu;
-  const lineas = [...limpiarCuerpo(cuerpo).matchAll(re)].map((m) => m[1].toLowerCase().replace(/^sesion$/, "sesión"));
+  // La lectura es la misma de la guardia y del paso «Dimensionado del PR» (tipo-y-jueces.mjs): una sola.
+  const lineas = agentesDeLineas(cuerpo);
   return { lineas, malas: lineas.filter((a) => !CAPAS_AGENTE.includes(a)) };
 }
 
