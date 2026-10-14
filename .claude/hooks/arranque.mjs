@@ -131,17 +131,20 @@ try {
 // (`aplicarIdentidad`): el hook muere a los 30 s. Con la clave de la App legible,
 // el token de 1 hora va al fichero de entorno de la sesión (CLAUDE_ENV_FILE, que
 // lee el shell Bash de cada comando) y `gh` y `git` actúan como homenu-sesiones[bot].
-// Si no se puede, se dice por qué y se sigue con la identidad actual (plan B).
+// Si no se puede, se dice por qué: `gh` y `git push` dan un 401 claro (sin llavero de Pablo); en la nube con su
+// propio GH_TOKEN se conserva ese token.
 // La identidad que sale (`identidad-sesion identidad: app|pablo|…`) se anota para esta sesión (#652): los demás
 // hooks no ven el entorno de Bash y, sin la marca, anotaban `actor: null` en 83 de 85 eventos.
 // El PATH con el `gh` que pide el token al usarse (#719): la carpeta sale de donde vive ESTE fichero
-// (import.meta.url), nunca del cwd ni de la carpeta de la tarea: una rama ajena traída ahí podría sustituir el shim.
+// (import.meta.url), nunca del cwd. Ojo: el hook corre desde ${CLAUDE_PROJECT_DIR}, o sea la carpeta de la tarea, así que
+// una rama ajena traída ahí podría sustituir el shim (deuda del fondo #715: sacarlo a una copia fuera).
 const identidad = aplicarIdentidad({
   registrar: (linea) => {
     console.error(linea);
     anotarActorDeLinea(dirFabrica(), entrada.session_id, linea); // nunca lanza
   },
   rutaShim: rutaDeShimDesde(import.meta.url),
+  nube: esSesionDeNube(process.env, rama, raiz),
 });
 // Los cupos compartidos (GitHub y 1Password, #578): también en paralelo, con su caché de 5 min
 // y su tope de 4 s. Nunca lanza; callada si todo va por debajo del 80 %.

@@ -266,8 +266,9 @@ export async function tokenConCache({ sinCache = false, cache = {}, generar = to
  * con el `gh` de scripts/bin renueva el token al usarse; `entorno` lee $GH_TOKEN tal cual (lo usa
  * `entornoDeComando`, cuyo hijo lleva un token recién canjeado y no depende del PATH).
  * `modo` (MODOS_ENTORNO): `sin-canje` solo acepta TOKEN_CENTINELA; `normal`, solo un token con forma.
+ * `conToken: false` no escribe la línea de GH_TOKEN (la sesión de la nube trae el suyo y el centinela lo taparía).
  */
-export function lineasDeEntorno({ token, autor, configPrevia = 0, ayudante = "gh-credential", modo = "normal" }) {
+export function lineasDeEntorno({ token, autor, configPrevia = 0, ayudante = "gh-credential", modo = "normal", conToken = true }) {
   if (!MODOS_ENTORNO.includes(modo)) throw new Error(`modo fuera del vocabulario: ${modo}`);
   if (!AYUDANTES.includes(ayudante)) throw new Error(`ayudante fuera del vocabulario: ${ayudante}`);
   if (modo === "sin-canje" ? token !== TOKEN_CENTINELA : !/^ghs_[A-Za-z0-9_.-]{20,}$/.test(token)) throw new ErrorTokenSesion("token-raro", "no escribo ese token");
@@ -280,7 +281,7 @@ export function lineasDeEntorno({ token, autor, configPrevia = 0, ayudante = "gh
       ? "!f() { echo username=x-access-token; echo password=$GH_TOKEN; }; f"
       : '!f() { GH_TOKEN="${GH_TOKEN:-' + TOKEN_CENTINELA + '}" gh auth git-credential "$@"; }; f';
   return [
-    `export GH_TOKEN='${token}'`,
+    ...(conToken ? [`export GH_TOKEN='${token}'`] : []),
     `export GIT_CONFIG_COUNT=${n + 2}`,
     `export GIT_CONFIG_KEY_${n}='credential.https://github.com.helper'`,
     `export GIT_CONFIG_VALUE_${n}=''`,
@@ -305,8 +306,9 @@ export function lineaDeToken(token) {
 
 /**
  * La carpeta del shim (`scripts/bin`) a partir de la URL de un fichero de la casa (`import.meta.url`
- * de arranque.mjs): sale de donde vive ese fichero, NUNCA del cwd ni de la carpeta de la tarea (una
- * rama ajena traída ahí podría haber sustituido el shim; #719). `subida`: de `.claude/hooks/` al raíz.
+ * de arranque.mjs): sale de donde vive ese fichero, NUNCA del cwd. OJO: el hook corre desde
+ * `${CLAUDE_PROJECT_DIR}`, que es la carpeta de la tarea, así que una rama ajena traída ahí SÍ podría
+ * sustituir el shim; sacarlo a una copia fuera de la carpeta es del fondo #715 (#719). `subida`: de `.claude/hooks/` al raíz.
  */
 export function rutaDeShimDesde(url, subida = ["..", ".."]) {
   return resolve(dirname(fileURLToPath(url)), ...subida, "scripts", "bin");
@@ -403,7 +405,7 @@ export function ghApiUser(env) {
  * uno), mira con qué identidad responde `gh` y devuelve el aviso. No lanza, y no pasa de `tope`
  * milisegundos (si vence: identidad desconocida, motivo red): el hook muere a los 30 s sin avisar.
  */
-export async function aplicarIdentidad({ env = process.env, escribir = appendFileSync, generar = tokenConCache, identificar = ghApiUser, registrar = (l) => console.error(l), tope = TOPE_IDENTIDAD_MS, rutaShim } = {}) {
+export async function aplicarIdentidad({ env = process.env, escribir = appendFileSync, generar = tokenConCache, identificar = ghApiUser, registrar = (l) => console.error(l), tope = TOPE_IDENTIDAD_MS, rutaShim, nube = false } = {}) {
   const inicio = Date.now();
   let reloj;
   let vencido = false; // pasado el tope, el trabajo que siga vivo no escribe ni registra nada

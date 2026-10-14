@@ -245,7 +245,7 @@ export function falloReciente({ ruta, guardar, fs = fsReal, reloj = Date.now, pr
   }
 }
 
-const dormirReal =(ms) => new Promise((ok) => setTimeout(ok, ms));
+const dormirReal = (ms) => new Promise((ok) => setTimeout(ok, ms));
 
 /**
  * Ejecuta `fn({ bloqueado, razon })` con un bloqueo de creación exclusiva (`wx`) al lado de la caché.

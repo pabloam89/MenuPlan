@@ -228,14 +228,14 @@ arranque pone **delante en el PATH** `scripts/bin` (solo contiene `gh`, ejecutab
 
 | Qué | Cómo |
 |---|---|
-| Ruta del shim | sale de `import.meta.url` de `arranque.mjs`, nunca del cwd ni de la carpeta de la tarea (una rama ajena podría sustituir el shim). Regex anclada; si no pasa, no se escribe la línea del PATH, se registra `entorno-sesion path: omitido motivo: ruta-de-shim-rara` y el resto se escribe igual |
-| Orden del arranque | antes del canje: PATH, ayudante de git, autor y `GH_TOKEN='sin-token-de-sesion'` (inválido y nunca vacío: `gh` da 401 claro y no cae al llavero); después, si el canje llega, el `GH_TOKEN` real (un `export` posterior gana) |
+| Ruta del shim | sale de `import.meta.url` de `arranque.mjs`, nunca del cwd. Ojo: el hook corre desde `${CLAUDE_PROJECT_DIR}`, que es la carpeta de la tarea, así que una rama ajena traída ahí podría sustituir el shim. **Deuda:** sacar el shim a una copia fuera de la carpeta de la tarea es un encargo del fondo #715. Regex anclada; si no pasa, no se escribe la línea del PATH, se registra `entorno-sesion path: omitido motivo: ruta-de-shim-rara` y el resto se escribe igual |
+| Orden del arranque | (en la nube con su propio `GH_TOKEN` no se escribe el centinela: lo taparía) antes del canje: PATH, ayudante de git, autor y `GH_TOKEN='sin-token-de-sesion'` (inválido y nunca vacío: `gh` da 401 claro y no cae al llavero); después, si el canje llega, el `GH_TOKEN` real (un `export` posterior gana) |
 | Ayudante de `git push` | `!f() { GH_TOKEN="${GH_TOKEN:-sin-token-de-sesion}" gh auth git-credential "$@"; }; f`: pasa por el shim y recibe un token fresco. `node scripts/token-sesion.mjs -- <comando>` conserva el suyo (su hijo lleva un token recién canjeado) |
 | Fallo | `gh-shim resultado: fallo motivo: <MOTIVOS>` por stderr, sin token; un éxito no escribe nada. Tope de 10 s; tras un canje fallido, 30 s sin reintentar (`fallo-reciente`, fichero `token-sesion.json.fallo.json` con solo instante y motivo) |
-| Se niega | `gh auth token`, `auth status -t/--show-token`, `auth login/switch/refresh/setup-git` (código 2, sin lanzar `gh`); `auth git-credential` y lo demás pasan |
+| Se niega | el shim niega más formas de pedir el token o de cambiar la sesión (subcomandos de `auth`, `alias set/import`, `extension install`; código 2, sin lanzar `gh`); `auth git-credential` y lo demás pasan |
 | Argumentos | literales y sin shell (`spawnSync`, aprendizaje de #720); nunca un `gh.cmd` |
 | No cubre | un script de Node que llama a `execFile("gh")` sin shell (en Windows toma el `gh.exe` real, E3 #731), PowerShell, los hooks que lanza Claude Code y un comando de más de una hora. En Linux o en la nube un `execFile("gh")` SÍ resolvería al shim: `scripts/rulesets.mjs` (`gh auth token`, de Pablo) quedaría negado allí |
-| Un alias | `gh alias set` podría esconder un `auth token` detrás de otro nombre; el shim no lo mira (E4, #738, es la guardia) |
+| Un alias | el shim niega crear alias y extensiones dentro de la sesión; los que ya hubiera en la config del `gh` real no se miran (E4, #738, es la guardia) |
 
 ## Lo que la guardia niega a una sesión (#447)
 

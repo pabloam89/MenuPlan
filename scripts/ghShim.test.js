@@ -70,6 +70,15 @@ describe("el shim se niega a sacar credenciales", () => {
     [["auth", "switch"]],
     [["auth", "refresh"]],
     [["auth", "setup-git"]],
+    [["auth", "status", "-t=true"]],
+    [["auth", "status", "-ht=true", "github.com"]],
+    [["auth", "--hostname", "github.com", "token"]],
+    [["auth", "-h", "github.com", "login"]],
+    [["auth", "status", "--show-token=true"]],
+    [["alias", "set", "x", "auth token"]],
+    [["alias", "import", "alias.yml"]],
+    [["extension", "install", "dueño/gh-algo"]],
+    [["ext", "install", "dueño/gh-algo"]],
   ])("%j sale con error y no lanza gh", async (args) => {
     const correr = vi.fn();
     const errores = [];
@@ -87,8 +96,15 @@ describe("el shim se niega a sacar credenciales", () => {
     [["api", "rate_limit", "--jq", ".rate.limit"]],
     [["pr", "list"]],
     [["auth", "logout"]], // no saca credenciales
+    [["alias", "list"]],
+    [["extension", "list"]],
+    [["auth", "status", "--hostname", "github.com"]],
   ])("%j sí pasa", (args) => {
     expect(negacion(args)).toBeNull();
+  });
+
+  it("tachado deja los tokens de prueba y tacha cualquier otro ghs_", () => {
+    expect(tachado(`a ${TOKEN_CACHE} b ghs_RealDeVerdad123 c`)).toBe(`a ${TOKEN_CACHE} b ghs_[tachado] c`);
   });
 
   it("el barrido de scripts/ que usa `gh auth token` lo hace con execFile contra el gh real, no contra el shim", () => {
@@ -366,6 +382,12 @@ function perfilDePrueba({ token = TOKEN_CACHE, vidaMin = 40 } = {}) {
   if (token) escribirCache({ ruta: rutaCache, datos: { token, expiraEn: new Date(Date.now() + vidaMin * MIN).toISOString().replace(/\.\d+Z$/, "Z"), appId: APP_ID, installationId: 77 } });
   return { casa, rutaCache, env: { USERPROFILE: casa, HOME: casa, LOCALAPPDATA: local } };
 }
+/**
+ * Tacha todo `ghs_…` que no sea de prueba antes de comprobar: `tokenServicio` lee también el llavero de Windows
+ * y, si una caché de prueba se rechazara, el shim canjearía un token REAL que el mensaje de fallo imprimiría.
+ */
+const DE_PRUEBA = new Set([TOKEN_CACHE, TOKEN_NUEVO, TOKEN_VIEJO]);
+const tachado = (texto) => String(texto ?? "").replace(/ghs_[A-Za-z0-9_]+/g, (m) => (DE_PRUEBA.has(m) || m.startsWith("ghs_caducado") ? m : "ghs_[tachado]"));
 const sinVariablesDeGh = () => Object.fromEntries(Object.entries(process.env).filter(([k]) => !/^(GH_|GITHUB_|GIT_|OP_SERVICE|CLAUDE)/.test(k)));
 
 describe.skipIf(!BASH)("el camino entero con bash (la línea de PATH del arranque y el script scripts/bin/gh)", () => {
@@ -382,26 +404,26 @@ describe.skipIf(!BASH)("el camino entero con bash (la línea de PATH del arranqu
     const p = perfilDePrueba();
     const entrada = "protocol=https\nhost=github.com\n\n";
     const r = spawnSync(BASH, ["-c", `${lineaPath}gh auth git-credential get`], { cwd: temporal("otro-"), input: entrada, encoding: "utf8", env: { ...sinVariablesDeGh(), ...p.env, GH_TOKEN: "ghs_caducado_del_arranque" }, timeout: 30_000 });
-    expect(r.stdout).toContain(`password=${TOKEN_CACHE}`);
-    expect(r.stdout).not.toContain("caducado_del_arranque");
-    expect(r.stderr).not.toMatch(/gh-shim/);
+    expect(tachado(r.stdout)).toContain(`password=${TOKEN_CACHE}`);
+    expect(tachado(r.stdout)).not.toContain("caducado_del_arranque");
+    expect(tachado(r.stderr)).not.toMatch(/gh-shim/);
   });
 
   it.skipIf(!ghInstalado)("sin caché, con un fallo reciente apuntado: sale el centinela y la línea de fallo-reciente, sin llamar a 1Password", () => {
     const p = perfilDePrueba({ token: null });
     expect(falloReciente({ ruta: p.rutaCache, guardar: "red" })).toBe(true);
     const r = spawnSync(BASH, ["-c", `${lineaPath}gh auth git-credential get`], { cwd: temporal("otro-"), input: "protocol=https\nhost=github.com\n\n", encoding: "utf8", env: { ...sinVariablesDeGh(), ...p.env, GH_TOKEN: "ghs_caducado_del_arranque" }, timeout: 30_000 });
-    expect(r.stdout).toContain(`password=${TOKEN_CENTINELA}`);
-    expect(r.stderr).toContain("gh-shim resultado: fallo motivo: fallo-reciente");
-    expect(r.stdout + r.stderr).not.toContain("caducado_del_arranque");
+    expect(tachado(r.stdout)).toContain(`password=${TOKEN_CENTINELA}`);
+    expect(tachado(r.stderr)).toContain("gh-shim resultado: fallo motivo: fallo-reciente");
+    expect(tachado(r.stdout) + tachado(r.stderr)).not.toContain("caducado_del_arranque");
   });
 
   it("el shim real se niega a `auth token` y no imprime nada que parezca un token", () => {
     const p = perfilDePrueba();
     const r = spawnSync(BASH, ["-c", `${lineaPath}gh auth token`], { cwd: temporal("otro-"), encoding: "utf8", env: { ...sinVariablesDeGh(), ...p.env }, timeout: 30_000 });
     expect(r.status).toBe(NEGADO);
-    expect(r.stdout + r.stderr).not.toContain(TOKEN_CACHE);
-    expect(r.stderr).toMatch(/gh-shim resultado: negado/);
+    expect(tachado(r.stdout) + tachado(r.stderr)).not.toContain(TOKEN_CACHE);
+    expect(tachado(r.stderr)).toMatch(/gh-shim resultado: negado/);
   });
 
   it("dos carpetas del shim en el PATH real terminan (sin bucle)", () => {
@@ -438,14 +460,14 @@ describe.skipIf(!BASH)("H2: git ejecuta el ayudante `!` con el PATH de la sesió
     const PATH = `${falsa}${delimiter}${process.env.PATH ?? process.env.Path}`;
     // 1. Con el GH_TOKEN del arranque (caducado): el ayudante se lo pasa a gh tal cual
     let r = pedirCredencial({ env: { ...entornoDeLineas(TOKEN_VIEJO), PATH, HOME: falsa, USERPROFILE: falsa } });
-    expect(r.stdout, r.stderr).toContain(`password=${TOKEN_NUEVO}`);
+    expect(tachado(r.stdout), tachado(r.stderr)).toContain(`password=${TOKEN_NUEVO}`);
     expect(readFileSync(cuenta, "utf8").trim().split("\n")).toEqual(["auth git-credential get"]);
     expect(readFileSync(tokens, "utf8").trim()).toBe(TOKEN_VIEJO);
     // 2. Sin GH_TOKEN en el entorno: el ayudante pone el centinela, no deja a gh caer al llavero de Pablo
     rmSync(cuenta);
     rmSync(tokens);
     r = pedirCredencial({ env: { ...entornoDeLineas(TOKEN_VIEJO, { sinToken: true }), PATH, HOME: falsa, USERPROFILE: falsa } });
-    expect(r.stdout, r.stderr).toContain(`password=${TOKEN_NUEVO}`);
+    expect(tachado(r.stdout), tachado(r.stderr)).toContain(`password=${TOKEN_NUEVO}`);
     expect(readFileSync(tokens, "utf8").trim()).toBe(TOKEN_CENTINELA);
   });
 
@@ -453,12 +475,12 @@ describe.skipIf(!BASH)("H2: git ejecuta el ayudante `!` con el PATH de la sesió
     const p = perfilDePrueba();
     const PATH = `${CARPETA_SHIM}${delimiter}${process.env.PATH ?? process.env.Path}`;
     const r = pedirCredencial({ env: { ...entornoDeLineas(TOKEN_VIEJO), PATH, ...p.env } });
-    expect(r.stdout, r.stderr).toContain(`password=${TOKEN_CACHE}`);
-    expect(r.stdout).not.toContain(TOKEN_VIEJO);
+    expect(tachado(r.stdout), tachado(r.stderr)).toContain(`password=${TOKEN_CACHE}`);
+    expect(tachado(r.stdout)).not.toContain(TOKEN_VIEJO);
   });
 
   it.skipIf(!ghInstalado)("el gh real usa el GH_TOKEN del entorno de quien lo lanza para github.com (sin red)", () => {
     const r = spawnSync("gh", ["auth", "git-credential", "get"], { input: "protocol=https\nhost=github.com\n\n", encoding: "utf8", timeout: 30_000, env: { ...sinVariablesDeGh(), GH_TOKEN: TOKEN_NUEVO, HOME: temporal("sin-config-"), USERPROFILE: temporal("sin-config-"), GH_CONFIG_DIR: temporal("sin-config-") } });
-    expect(r.stdout, r.stderr).toContain(`password=${TOKEN_NUEVO}`);
+    expect(tachado(r.stdout), tachado(r.stderr)).toContain(`password=${TOKEN_NUEVO}`);
   });
 });

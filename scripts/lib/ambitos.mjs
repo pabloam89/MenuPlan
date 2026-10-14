@@ -30,6 +30,7 @@ export const AMBITOS = {
       /^\.github\/(?!ISSUE_TEMPLATE\/)/, /^\.claude\/hooks\//, /^\.claude\/settings/, /^(vercel\.json|\.vercelignore|\.gitattributes|\.gitignore|\.env\.example)$/,
       /^ops\/(INVENTARIO\.md|recursos\.json|planos\.json|PLANOS\.md|env\.1password|copias\/)/,
       /^scripts\/bin\/gh$/, // el `gh` de las sesiones, delante en el PATH (#719)
+      /^scripts\/(gh-shim\.mjs|lib\/(tokenSesion|cacheTokenSesion)\.mjs)$/, // el shim y su canje con caché (#719)
       /^scripts\/(tarea|retirar|podar|rulesets|token-sesiones?|llavero-op|boveda-sesiones|dependabot-auto|limpiar-worktrees|copias-[\w-]+)\.mjs$/,
     ],
   },

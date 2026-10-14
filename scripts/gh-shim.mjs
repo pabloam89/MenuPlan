@@ -35,12 +35,18 @@ export const SIN_GH = 127;
 /** La carpeta del propio shim (`scripts/bin`): lo que hay que saltarse al buscar el `gh` real. */
 export const CARPETA_SHIM = join(dirname(fileURLToPath(import.meta.url)), "bin");
 
-/** ¿Pide este `gh` sacar o cambiar credenciales? Devuelve el motivo en llano, o null. */
+const AUTH_NEGADOS = ["token", "login", "switch", "refresh", "setup-git"];
+const FORMA_TOKEN_A_LA_VISTA = /^(--show-token(=.*)?|-[A-Za-z]*t[A-Za-z]*(=.*)?)$/;
+
+/** ¿Pide este `gh` sacar o cambiar credenciales, o esconder eso detrás de un alias o una extensión? Devuelve el motivo en llano, o null. */
 export function negacion(args) {
+  if (args[0] === "alias" && args.slice(1).some((a) => a === "set" || a === "import")) return "gh alias: crear alias";
+  if (["extension", "extensions", "ext"].includes(args[0]) && args.slice(1).includes("install")) return "gh extension install";
   if (args[0] !== "auth") return null;
-  const sub = args[1];
-  if (["token", "login", "switch", "refresh", "setup-git"].includes(sub)) return `gh auth ${sub}`;
-  if (sub === "status" && args.slice(2).some((a) => a === "-t" || /^--show-token(=|$)/.test(a) || /^-[A-Za-z]*t[A-Za-z]*$/.test(a))) return "gh auth status con el token a la vista";
+  const resto = args.slice(1);
+  const sub = resto.find((a) => AUTH_NEGADOS.includes(a));
+  if (sub) return `gh auth ${sub}`;
+  if (resto.includes("status") && resto.some((a) => FORMA_TOKEN_A_LA_VISTA.test(a))) return "gh auth status con el token a la vista";
   return null;
 }
 
