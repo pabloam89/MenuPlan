@@ -31,6 +31,14 @@ describe("decidirLanzamiento", () => {
     expect(r.motivo).toMatch(motivo);
     expect(r.motivo).toMatch(/npm run dimensionar/);
   });
+  it("busca la línea del agente que se lanza, no la primera: un brief que cita antes la de otro pasa; uno solo con la de otro, no", () => {
+    const conCita = `Contexto: el constructor trabajó con\nESTÁNDAR A CUMPLIR: constructor/permisos-y-hooks\n\n${BUENO}`;
+    expect(lanza(conCita)).toBe(null);
+    expect(lanza(BUENO.replace("revisor/revisar-diff", "constructor/permisos-y-hooks"))?.motivo).toMatch(/es de constructor, no de revisor/);
+  });
+  it("el motivo de la negativa dice cómo sacar el brief de un agente que no está en el plan (--tarea)", () => {
+    expect(lanza("diagnostica esto", "analista")?.motivo).toMatch(/no está en el plan[\s\S]*--tarea <una tarea suya>/);
+  });
   it("los agentes que no son del repo pasan (Explore, general-purpose)", () => {
     expect(lanza("busca x", "Explore")).toBe(null);
     expect(lanza("busca x", "general-purpose")).toBe(null);
@@ -52,6 +60,13 @@ describe("la excepción con la forma única", () => {
     const r = lanza(`haz x\n${exc("2026-10-20")}`);
     expect(r?.decision).toBe("aviso");
     expect(r.motivo).toMatch(/excepción de brief-con-estandar hasta 2026-10-20/);
+  });
+  it("citada (con > delante) no cuenta: una cita es texto de otro", () => {
+    expect(excepcionDelBrief(`> ${exc("2026-10-20")}`, HOY)).toBe(null);
+    expect(excepcionDelBrief(` >> ${exc("2026-10-20")}`, HOY)).toBe(null);
+    expect(lanza(`haz x\n> ${exc("2026-10-20")}`)?.decision).toBe("deny");
+    // En una lista sí: es la línea de quien escribe el brief.
+    expect(excepcionDelBrief(`- ${exc("2026-10-20")}`, HOY)?.hasta).toBe("2026-10-20");
   });
   it("caducada, a más de 90 días, de otra norma o sin motivo, no cuenta", () => {
     expect(excepcionDelBrief(exc("2026-10-01"), HOY)).toBe(null);

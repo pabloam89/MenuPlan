@@ -6,12 +6,15 @@
  * agente trabaja sin estándar y el juez no tiene contra qué contrastar (norma `brief-con-estandar`). Aquí se niega
  * lanzar un agente de `.claude/agents/` con un brief que no trae:
  *
- *   - la línea `ESTÁNDAR A CUMPLIR: <agente>/<tarea>`, con ESE agente y una tarea suya de ops/estandares-agentes.json;
+ *   - la línea `ESTÁNDAR A CUMPLIR: <agente>/<tarea>` de ESE agente (se busca la suya entre todas: un brief puede citar
+ *     la de otro) con una tarea suya de ops/estandares-agentes.json;
  *   - el bloque `Normas que tocan (…)` que pone el dimensionado (estandaresAgentes.mjs, textoDeTarea).
  *
- * Los agentes que no son del repo (Explore, general-purpose…) no llevan estándar: pasan. La salida, una sola, es la
- * excepción con la forma única dentro del brief (`Excepción: brief-con-estandar — <motivo> — hasta AAAA-MM-DD`,
- * excepciones.mjs): pasa y se dice. Cada negativa deja su línea en el registro de eventos (`bloqueo_guardia`, con la
+ * Un agente que el plan no trae (un analista que diagnostica, un qa o un seguridad ad hoc) saca su brief con
+ * `npm run dimensionar -- … --brief <agente> --tarea <tarea>`. Los agentes que no son del repo (Explore,
+ * general-purpose…) no llevan estándar: pasan. La salida, una sola, es la excepción con la forma única dentro del brief
+ * (`Excepción: brief-con-estandar — <motivo> — hasta AAAA-MM-DD`, excepciones.mjs), en su propia línea y sin citar: una
+ * línea con `>` delante es texto de otro y no exime. Pasa y se dice. Cada negativa deja su línea en el registro de eventos (`bloqueo_guardia`, con la
  * norma). Sin estándares legibles no puede decidir: deja pasar con un aviso (falla abierta, como skill-abierta).
  */
 import { execFileSync } from "node:child_process";
@@ -27,12 +30,14 @@ export const MARCA_NORMAS = "Normas que tocan (";
 
 const COMO =
   "Pega el brief del dimensionado: `npm run dimensionar -- <n.º de encargo> --brief <agente>` (o `--diff --tipo <tipo> --brief <agente>`), " +
-  "que trae «ESTÁNDAR A CUMPLIR: <agente>/<tarea>» y «Normas que tocan (…)». Si de verdad no hay tarea que encaje, " +
+  "que trae «ESTÁNDAR A CUMPLIR: <agente>/<tarea>» y «Normas que tocan (…)». Si el agente no está en el plan (un analista que " +
+  "diagnostica, un qa o un seguridad ad hoc), añade `--tarea <una tarea suya>`. Si de verdad no hay tarea que encaje, " +
   `una línea «Excepción: ${NORMA} — <motivo> — hasta AAAA-MM-DD» en el brief deja pasar y queda contada.`;
 
 /** La excepción de este hook en el brief: la forma única, con fecha que no ha pasado ni cae a más de 90 días. */
 export function excepcionDelBrief(prompt, hoy) {
-  const m = new RegExp(`^[ \\t>*-]*Excepci[oó]n[ \\t]*:[ \\t]*${NORMA}[ \\t]*[—–][ \\t]*(.{10,}?)[ \\t]*[—–][ \\t]*hasta[ \\t]+(\\d{4}-\\d{2}-\\d{2})[ \\t]*$`, "im").exec(String(prompt ?? ""));
+  // Sin `>` delante: una cita (de un issue, de otro informe) es texto de otro y no exime a quien lanza.
+  const m = new RegExp(`^[ \\t*-]*Excepci[oó]n[ \\t]*:[ \\t]*${NORMA}[ \\t]*[—–][ \\t]*(.{10,}?)[ \\t]*[—–][ \\t]*hasta[ \\t]+(\\d{4}-\\d{2}-\\d{2})[ \\t]*$`, "im").exec(String(prompt ?? ""));
   if (!m) return null;
   const dias = (iso) => Date.parse(`${iso}T00:00:00Z`) / 86_400_000;
   const d = dias(m[2]) - dias(hoy);
@@ -53,10 +58,12 @@ export function decidirLanzamiento(entrada, estandares, hoy) {
   const prompt = String(datos?.prompt ?? "");
   const exc = excepcionDelBrief(prompt, hoy);
   if (exc) return { decision: "aviso", motivo: `[lanzamiento] Brief de ${agente} sin comprobar: excepción de ${NORMA} hasta ${exc.hasta} (${exc.motivo.slice(0, 80)}).` };
-  const linea = new RegExp(`^[ \\t]*${MARCA_ESTANDAR}[ \\t]*([\\w-]+)/([\\w-]+)[ \\t]*$`, "m").exec(prompt);
+  // Todas las líneas de estándar, y de ellas la del agente que se lanza: un brief puede citar antes la de otro.
+  const lineas = [...prompt.matchAll(new RegExp(`^[ \\t]*${MARCA_ESTANDAR}[ \\t]*([\\w-]+)/([\\w-]+)[ \\t]*$`, "gm"))];
+  const linea = lineas.find((l) => l[1] === agente);
   const niega = (porque) => ({ decision: "deny", motivo: `[lanzamiento] No lanzo ${agente}: ${porque}. ${COMO}` });
-  if (!linea) return niega(`su brief no trae la línea «${MARCA_ESTANDAR} ${agente}/<tarea>»`);
-  if (linea[1] !== agente) return niega(`el estándar del brief es de ${linea[1]}, no de ${agente}`);
+  if (!lineas.length) return niega(`su brief no trae la línea «${MARCA_ESTANDAR} ${agente}/<tarea>»`);
+  if (!linea) return niega(`el estándar del brief es de ${[...new Set(lineas.map((l) => l[1]))].join(", ")}, no de ${agente}`);
   const tareas = (estandares.agentes[agente].tareas ?? []).map((t) => t.id);
   if (!tareas.includes(linea[2])) return niega(`«${linea[2]}» no es una tarea de ${agente} en ops/estandares-agentes.json (las hay: ${tareas.slice(0, 8).join(", ")}${tareas.length > 8 ? "…" : ""})`);
   if (!prompt.includes(MARCA_NORMAS)) return niega(`su brief no trae las normas del dimensionado («${MARCA_NORMAS}…»)`);

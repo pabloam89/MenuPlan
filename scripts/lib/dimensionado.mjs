@@ -436,17 +436,35 @@ export function tareaParaFase(plan, agente, fase, datos) {
 
 /**
  * El brief de un agente del plan (las nueve piezas de `/orquestar`, sección 4), como texto para pegar. `opciones.fase`: la fase del plan
- * (la primera en que aparece el agente, si no se da). Lanza si el agente no está en el plan.
+ * (la primera en que aparece el agente, si no se da).
+ *
+ * Fuera del plan (#642): un agente que el plan no trae (un `analista` que diagnostica, un `qa` o un `seguridad` sin bandera)
+ * también tiene brief si se da `opciones.tarea`, una tarea SUYA de ops/estandares-agentes.json: el mismo brief, con el rol de
+ * su cabecera y la fase «fuera del plan». Sin tarea, lanza y dice cómo pedirla (`--brief <agente> --tarea <tarea>`); el hook
+ * de lanzamiento no deja lanzarlo con un brief escrito a mano.
  */
 export function briefDe(plan, agente, opciones = {}, deps = depsReales()) {
   const fases = plan.fases.filter((f) => f.agentes.some((a) => a.agente === agente));
-  if (!fases.length) throw new Error(`${agente} no está en el plan (agentes: ${unicos(plan.fases.flatMap((f) => f.agentes.map((a) => a.agente))).join(", ")})`);
-  const fase = opciones.fase ? plan.fases.find((f) => f.n === opciones.fase && f.agentes.some((a) => a.agente === agente)) : fases[0];
-  if (!fase) throw new Error(`${agente} no interviene en la fase ${opciones.fase}`);
-  const rol = fase.agentes.find((a) => a.agente === agente).rol;
+  let fase;
+  let rol;
+  let tarea;
+  if (!fases.length) {
+    const enPlan = unicos(plan.fases.flatMap((f) => f.agentes.map((a) => a.agente))).join(", ");
+    const ag = deps.datos.agentes[agente];
+    if (!opciones.tarea) throw new Error(`${agente} no está en el plan (agentes: ${enPlan}). Para lanzarlo fuera del plan, da una tarea suya: --brief ${agente} --tarea <tarea>${ag ? ` (tiene: ${ag.tareas.map((t) => t.id).join(", ")})` : ""}`);
+    if (!ag) throw new Error(`${agente} no es un agente de .claude/agents/ con tareas en ops/estandares-agentes.json`);
+    if (!ag.tareas.some((t) => t.id === opciones.tarea)) throw new Error(`${agente} no tiene la tarea «${opciones.tarea}»; tiene: ${ag.tareas.map((t) => t.id).join(", ")}`);
+    rol = rolDe(agente) ?? "judge";
+    fase = { n: "fuera del plan", modo: "lo lanza quien orquesta", finalidad: null };
+    tarea = { id: opciones.tarea, aproximada: false };
+  } else {
+    fase = opciones.fase ? plan.fases.find((f) => f.n === opciones.fase && f.agentes.some((a) => a.agente === agente)) : fases[0];
+    if (!fase) throw new Error(`${agente} no interviene en la fase ${opciones.fase}`);
+    rol = fase.agentes.find((a) => a.agente === agente).rol;
+  }
   const suyos = plan.constructores.find((c) => c.agente === agente)?.ficheros;
   const alcance = rol === "builder" && suyos ? suyos : plan.ficheros;
-  const tarea = tareaParaFase(plan, agente, { rol, finalidad: fase.finalidad }, deps.datos);
+  tarea ??= tareaParaFase(plan, agente, { rol, finalidad: fase.finalidad }, deps.datos);
   const skills = skillsDelEncargo({ ficheros: alcance, comandos: [], mapa: deps.mapaSkills, precargadas: precargadasDe(RAIZ, agente) });
   const abrir = skills.filter((s) => !s.precargada).map((s) => s.skill);
   const estandar = tarea
@@ -461,7 +479,9 @@ export function briefDe(plan, agente, opciones = {}, deps = depsReales()) {
     [FORMAS.construir]: "construye el constructor y juzga uno distinto",
   }[plan.forma];
   return [
-    `BRIEF DE ${agente} — rol: ${rol}, fase ${fase.n} de ${plan.fases.length} (${fase.modo})`,
+    fases.length
+      ? `BRIEF DE ${agente} — rol: ${rol}, fase ${fase.n} de ${plan.fases.length} (${fase.modo})`
+      : `BRIEF DE ${agente} — rol: ${rol}, fuera del plan (lo lanza quien orquesta; el plan tiene ${plan.fases.length} fases)`,
     `Rol: ${rol}`,
     `1. Objetivo: ${plan.objetivo ?? "(sin objetivo escrito: lo da quien orquesta)"}`,
     `2. Contexto: ${plan.numero ? `encargo #${plan.numero}; ` : ""}tipo ${plan.tipo}, subtipo ${plan.subtipo}, alcance ${plan.alcance}, complejidad ${plan.complejidad}; ${forma}. Fases: ${plan.fases.map((f) => `${f.n}=${f.agentes.map((a) => a.agente).join("+")}`).join(" → ")}`,

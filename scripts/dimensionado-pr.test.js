@@ -210,6 +210,21 @@ describe("la cadena de punta a punta, un caso por tipo", () => {
   }
 });
 
+describe("un agente fuera del plan (#642)", () => {
+  const plan = dimensionar({ fuente: "diff", ficheros: [f("scripts/x.mjs")], tipo: "fix" });
+  it.each([["analista", "diagnosticar-causa-raiz"], ["qa", "recorrer-flujo-en-navegador"], ["seguridad", "auditar-secretos"]])("%s con --tarea tiene brief, y el hook lo deja lanzar", (agente, tarea) => {
+    expect(plan.fases.flatMap((x) => x.agentes.map((a) => a.agente))).not.toContain(agente);
+    expect(() => briefDe(plan, agente)).toThrow(/--brief .* --tarea/);
+    const brief = briefDe(plan, agente, { tarea });
+    expect(brief).toMatch(new RegExp(`^ESTÁNDAR A CUMPLIR: ${agente}/${tarea}$`, "m"));
+    expect(brief).toMatch(/fuera del plan/);
+    expect(decidirLanzamiento({ tool_name: "Agent", tool_input: { subagent_type: agente, prompt: brief } }, ESTANDARES, HOY)).toBe(null);
+  });
+  it("con una tarea que no es suya, no hay brief", () => {
+    expect(() => briefDe(plan, "analista", { tarea: "auditar-secretos" })).toThrow(/no tiene la tarea/);
+  });
+});
+
 describe("el cableado de cada eslabón", () => {
   const tests = readFileSync(join(RAIZ, ".github", "workflows", "tests.yml"), "utf8");
   it("tests.yml lanza el paso en cada PR, con el cuerpo, el autor, el número, la fecha de creación y el diff, todo por entorno", () => {

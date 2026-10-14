@@ -10,7 +10,8 @@
  *             --objetivo "<texto>"   --rama <rama>   --tarea <id de la tarea del constructor>   --json   --brief <agente> [--fase n]   --briefs
  *
  * Por defecto imprime líneas `campo: valor`. `--json` imprime el plan entero. `--brief <agente>` imprime el brief de ese agente (las
- * nueve piezas de /orquestar, sección 4) y `--briefs` el de todos. Lógica en scripts/lib/dimensionado.mjs. Sale 1 si algo no existe
+ * nueve piezas de /orquestar, sección 4) y `--briefs` el de todos. Un agente que el plan no trae (un analista, un qa o un seguridad
+ * ad hoc) tiene brief con `--brief <agente> --tarea <una tarea suya>`. Lógica en scripts/lib/dimensionado.mjs. Sale 1 si algo no existe
  * (subtipo, tipo, causa, bandera o encargo) y dice cuáles hay; nunca inventa un plan.
  */
 import { execFileSync } from "node:child_process";
@@ -101,7 +102,7 @@ function main() {
 
   if (o.brief || o.briefs) {
     const agentes = o.briefs ? [...new Set(plan.fases.flatMap((f) => f.agentes.map((a) => a.agente)))] : [o.brief];
-    console.log(agentes.map((a) => briefDe(plan, a, { fase: o.fase ? Number(o.fase) : undefined })).join("\n\n---\n\n"));
+    console.log(agentes.map((a) => briefDe(plan, a, { fase: o.fase ? Number(o.fase) : undefined, tarea: o.tarea ?? undefined })).join("\n\n---\n\n"));
   } else if (o.json) console.log(JSON.stringify({ ...plan, redimensionar: redim }, null, 2));
   else console.log(textoDe(plan, redim));
 }

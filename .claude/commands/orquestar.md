@@ -160,8 +160,10 @@ escribas a mano: añade solo lo que el comando no sabe (el objetivo con
 `--objetivo "…"` si no hay issue, y el resumen de los informes previos). El hook
 `.claude/hooks/lanzamiento.mjs` (#642, norma `brief-con-estandar`) niega lanzar un agente de
 `.claude/agents/` con un brief sin la línea `ESTÁNDAR A CUMPLIR: <ese agente>/<tarea>` o sin
-el bloque `Normas que tocan (…)`; la salida es una línea `Excepción: brief-con-estandar —
-<motivo> — hasta AAAA-MM-DD` en el brief, que se cuenta. Lo que lleva:
+el bloque `Normas que tocan (…)`. Un agente que el plan no trae (un `analista` que diagnostica,
+un `qa` o un `seguridad` ad hoc) saca el suyo con `--brief <agente> --tarea <una tarea suya>`.
+La salida es una línea `Excepción: brief-con-estandar — <motivo> — hasta AAAA-MM-DD` en el
+brief, propia y sin citar (con `>` delante no cuenta), que se cuenta. Lo que lleva:
 
 1. **Objetivo**: qué tiene que conseguir, en una o dos frases.
 2. **Contexto**: lo decidido hasta ahora y los informes previos que necesite
