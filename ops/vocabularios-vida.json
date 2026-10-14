@@ -14,6 +14,75 @@
       "writing": "Cómo se escribe una regla o un principio de la casa",
       "entities": "Cómo se nombra, se identifica y se registra cada cosa del proyecto"
     },
+    "diseno.biblioteca_acceso": {
+      "free": "Sin coste en la licencia leída",
+      "paid": "De pago, por asiento y sin redistribuir",
+      "unverified": "No se ha comprobado"
+    },
+    "diseno.biblioteca_base_de_cobertura": {
+      "checked": "Una fuente dice que la biblioteca cubre ese elemento (lleva su URL)",
+      "judgement": "Juicio por el nombre de la biblioteca: no es una medida"
+    },
+    "diseno.biblioteca_declaracion": {
+      "yes": "La fuente lo declara",
+      "no": "La fuente dice que no",
+      "unverified": "No se ha comprobado"
+    },
+    "diseno.biblioteca_fuente_de_dato": {
+      "GH": "La API de GitHub del repositorio",
+      "NPM": "El registro de paquetes de npm",
+      "DOC": "La documentación oficial"
+    },
+    "diseno.biblioteca_importacion": {
+      "package": "Un paquete con versión fijada",
+      "copied-source": "Ficheros copiados al repositorio",
+      "unverified": "No se ha comprobado"
+    },
+    "diseno.biblioteca_licencia_alcance": {
+      "package": "La licencia vale para todo el paquete",
+      "core-only": "La licencia vale solo para el núcleo; hay un nivel de pago aparte",
+      "unverified": "No se ha comprobado"
+    },
+    "diseno.biblioteca_mantenimiento": {
+      "active": "Con actividad reciente en su repositorio",
+      "slow": "Con actividad, pero más lenta",
+      "idle": "Sin actividad en un año; no se ha comprobado si es abandono",
+      "unmaintained": "Su propio README dice que no se mantiene",
+      "archived": "Archivada en GitHub",
+      "unverified": "No se ha comprobado"
+    },
+    "diseno.biblioteca_origen_de_alcance": {
+      "mobbin-count": "Entre los 15 elementos con más ejemplos en el recuento de la fuente de la taxonomía, sin contar el grupo de imagen",
+      "encargo": "Elegido en el encargo #780 entre los más comunes por el recuento, fuera de esos 15",
+      "panel": "Lo necesita el panel de la factoría, el primer proyecto"
+    },
+    "diseno.biblioteca_react_estado": {
+      "declared": "El paquete declara una versión de React (desde, hasta)",
+      "undeclared": "El paquete no declara versión de React",
+      "not-applicable": "No es una biblioteca de React",
+      "unverified": "No se ha comprobado"
+    },
+    "diseno.biblioteca_requisito": {
+      "react": "Necesita React",
+      "tailwind": "Necesita Tailwind, o está pensada para él",
+      "emotion": "Necesita Emotion, una biblioteca de estilos que se suma a las dependencias",
+      "web-components": "Funciona sin framework, como elementos web",
+      "css": "Solo hojas de estilo",
+      "unverified": "No se ha comprobado qué exige"
+    },
+    "diseno.biblioteca_rol": {
+      "headless": "Primitivas de comportamiento y accesibilidad sin estilo propio",
+      "full-kit": "Kit completo de componentes con estilo propio",
+      "single-piece": "Una sola pieza concreta: tabla, cajón, toast, menú de comandos o carrusel",
+      "css-only": "Clases o hojas de estilo, sin componentes",
+      "icons": "Familia de iconos",
+      "unverified": "No se ha comprobado qué piezas da (el dossier no lo dice)"
+    },
+    "diseno.biblioteca_vinculo": {
+      "in-use": "Ya está en uso en un proyecto",
+      "candidate": "Puede elegirse para un proyecto",
+      "retired": "Descartada: sin mantenimiento o archivada; lleva motivo y, si la hay, sucesora"
+    },
     "diseno.grupo_elemento": {
       "control": "Los elementos con los que la persona da una orden o un valor",
       "view": "Los que presentan o estructuran contenido y estado",
