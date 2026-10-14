@@ -341,6 +341,10 @@
       "motivo": "Listan una carpeta temporal que crean ellos mismos, no ficheros del repo: no vigilan ningún conjunto."
     },
     {
+      "tests": [".claude/hooks/arranque.test.js", "scripts/cupos.test.js"],
+      "motivo": "Importan arranque.mjs, que lista las carpetas hermanas MenuPlan-* para contar las huérfanas (#725); ellos prueban el fichero de entorno y los cupos, no ningún conjunto de ficheros del repo."
+    },
+    {
       "tests": ["supabase/personasAlGuardar.test.js", "scripts/lib/permisoAplicar.test.js"],
       "motivo": "Buscan UNA migración concreta por su número (0089, 0096): es un test de esa migración, y lo elige el fichero tocado."
     },
