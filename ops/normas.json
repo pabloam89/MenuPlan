@@ -1327,7 +1327,7 @@
       "control_cobertura": "parcial",
       "veredicto": "blanda",
       "riesgo": "medio",
-      "issue": 387,
+      "issue": 642,
       "principio": "builder-does-not-judge",
       "ambito": "process",
       "lado": "horizontal",
@@ -3466,7 +3466,7 @@
       "fuerza": "debe",
       "condicion": "cuando el CI está en verde",
       "exigencia": "fusionarlo alguien distinto del constructor",
-      "nota": "Hoy la propia sesión fusiona su PR a staging (#608); endurecerlo es la decisión #387. Mientras, un PR que toca .claude/, .github/, CLAUDE.md, los hooks o lo que corre con secretos pasa por su juez antes de fusionarse; nada lo impide hasta que el CI mire la línea de jueces (#642).",
+      "nota": "La propia sesión fusiona su PR a staging (#608), pero con un juez distinto nombrado: lo decidió Pablo en #387 y el CI lo comprobará con la línea de jueces (#642). Un PR que toca .claude/, .github/, CLAUDE.md, los hooks o lo que corre con secretos pasa por su juez antes de fusionarse; hasta #642, nada lo impide.",
       "donde": [
         "CLAUDE.md"
       ],
@@ -3482,7 +3482,7 @@
       "control_cobertura": "parcial",
       "veredicto": "blanda",
       "riesgo": "medio",
-      "issue": 387,
+      "issue": 642,
       "principio": "builder-does-not-merge",
       "ambito": "process",
       "lado": "horizontal",
