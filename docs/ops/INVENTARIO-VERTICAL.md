@@ -32,15 +32,15 @@ Límites: «casa» y «bot» son castellano corriente en la factoría, así que 
 | fuentes documentales (ops/fuentes-documentales/) | 165 | 158 | 7 | 0 |
 | normas horizontales (ops/normas.json) | 166 | 120 | 0 | 46 |
 | normas verticales (ops/proyectos/<id>/normas.json) | 39 | 0 | 39 | 0 |
-| entidades activas (ops/entidades.json) | 54 | 41 | 13 | 0 |
-| términos activos del glosario (ops/glosario/terminos/) | 146 | 145 | 1 | 0 |
+| entidades activas (ops/entidades.json) | 56 | 43 | 13 | 0 |
+| términos activos del glosario (ops/glosario/terminos/) | 388 | 387 | 1 | 0 |
 | skills (.claude/skills/) | 18 | 17 | 1 | 0 |
 | reglas por carpeta (.claude/rules/) | 6 | 1 | 5 | 0 |
 | comandos (.claude/commands/) | 5 | 2 | 3 | 0 |
 | agentes (.claude/agents/; por regla de Pablo, horizontales) | 8 | 8 | 0 | 0 |
 | specs (specs/*.md) | 17 | 0 | 17 | 0 |
 | documentos (docs/**/*.md y los .md de la raíz) | 37 | 22 | 14 | 1 |
-| tests (*.test.{js,jsx,mjs}) | 451 | 109 | 332 | 10 |
+| tests (*.test.{js,jsx,mjs}) | 452 | 109 | 333 | 10 |
 
 Principios, las cuatro filas juntas: 112 en total, 110 horizontales, 2 verticales y 0 en duda.
 
@@ -50,7 +50,7 @@ Principios, las cuatro filas juntas: 112 en total, 110 horizontales, 2 verticale
 - **Fuentes.** 130 externas (literatura) y 35 de la casa (una ruta del repo).
 - **Normas.** El registro vertical ya está separado (39). En el horizontal hay 46 que dudan (lista abajo). De las 166, 60 tienen como control «juicio» y 28 acaban en un fichero de zona producto. De las 39 verticales, 0 tienen su control en una carpeta de la factoría.
 - **Entidades y glosario.** Entidades retiradas (no cuentan): 0. El glosario no tiene lado propio: hoy se deduce de sus entidades; es el registro donde más falta el campo.
-- **Tests.** 121 tests viven en carpetas de la casa; 2 de ellos leen tres ficheros de HoMenu o más (sin contar `src/App.jsx`, el ejemplo de casi todos). 330 viven en carpetas de producto, coherentes con lo que vigilan.
+- **Tests.** 121 tests viven en carpetas de la casa; 2 de ellos leen tres ficheros de HoMenu o más (sin contar `src/App.jsx`, el ejemplo de casi todos). 331 viven en carpetas de producto, coherentes con lo que vigilan.
 
 ## Los dudosos, con su razón
 
