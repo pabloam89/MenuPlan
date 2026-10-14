@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que dice qué es la aplicación, qué versión es y quién la hace.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

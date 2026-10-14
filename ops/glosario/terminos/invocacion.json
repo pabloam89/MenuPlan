@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "campo",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Una forma de vocabulario cerrado que dice cómo se carga una skill: por su descripción, por la guardia o precargada en un agente.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

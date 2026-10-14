@@ -23,6 +23,12 @@
       "lectores": [{"tipo": "rutina", "ref": "docs/ops/TEST-DEL-JUEZ.md", "menciona": "npm run test-del-juez"}]
     },
     {
+      "firma": "test-del-juez umbral juez",
+      "emisores": ["scripts/test-del-juez.mjs"],
+      "campos": {"juez": "id", "cumple_pasada": "estado", "umbral_a": "estado", "motivo": "estado"},
+      "lectores": [{"tipo": "rutina", "ref": "docs/ops/TEST-DEL-JUEZ.md", "menciona": "npm run test-del-juez"}]
+    },
+    {
       "firma": "test-del-juez juez",
       "emisores": ["scripts/lib/testDelJuez.mjs"],
       "campos": {"juez": "id", "aciertos": "derivado", "buenos": "metrica", "malos": "metrica", "sin_correr": "derivado", "acierto": "derivado", "coste_usd": "derivado"}

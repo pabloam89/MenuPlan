@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que reproduce un audio con sus controles de pausa, avance y volumen.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "campo",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Un campo del control que dice si alcanza a cualquiera y a toda la norma (total) o deja fuera a alguien o a una parte (parcial).",
   "sinonimos_prohibidos": [],
   "aplica_a": [

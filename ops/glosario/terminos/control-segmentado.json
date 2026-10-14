@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Un elemento de interfaz que ofrece pocas opciones excluyentes en una fila de segmentos pegados.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

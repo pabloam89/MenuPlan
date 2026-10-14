@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Un test que mide a un juez con casos buenos y malos, y sin el que el control de ese juez no cuenta.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

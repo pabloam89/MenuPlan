@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una secuencia de pantallas que lleva a la persona que usa un producto desde un punto de partida hasta un objetivo concreto, como entrar en su cuenta o pagar.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

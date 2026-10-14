@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Un elemento de interfaz que cubre toda la pantalla para una tarea corta y se cierra para volver.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

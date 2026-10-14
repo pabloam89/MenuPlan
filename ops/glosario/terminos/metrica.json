@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Una cifra con su emisor, su lector, su unidad y su umbral, registrada en ops/metricas.json o en metricas[] de un módulo de ops/MODULOS.json, que dice si algo mejora.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

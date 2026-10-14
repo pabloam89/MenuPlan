@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que permite recuperar el acceso cuando se ha olvidado la contraseña.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

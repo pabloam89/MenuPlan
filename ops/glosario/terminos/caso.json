@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "ops",
+  "scope": "horizontal",
   "definicion": "Un issue tipo:caso que registra un fallo concreto, con su evidencia y su análisis; cuelga de su fondo o es puntual.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que permite elegir uno o varios elementos de una lista.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

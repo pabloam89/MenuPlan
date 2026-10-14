@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "campo",
   "dominio": "ops",
+  "scope": "horizontal",
   "definicion": "Una forma de hacer cumplir algo que está en el catálogo ops/mecanismos.json; el arreglo elige el más alto posible.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

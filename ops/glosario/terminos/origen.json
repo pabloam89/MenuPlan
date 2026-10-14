@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "campo",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Una sección de un agente de la que sale una tarea, de vocabulario cerrado.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

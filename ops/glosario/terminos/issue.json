@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "ops",
+  "scope": "horizontal",
   "definicion": "Un elemento de GitHub del repo que lleva su tipo: fondo, caso, encargo o decisión.",
   "sinonimos_prohibidos": [
     "ticket",

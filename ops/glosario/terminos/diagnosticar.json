@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "accion",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "El paso 4 del flujo, que lleva de un caso a su causa cambiable y a su causa de escape, con evidencia.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

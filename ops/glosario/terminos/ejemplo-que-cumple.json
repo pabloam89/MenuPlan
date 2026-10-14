@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "campo",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Un caso escrito que cumple una norma de juicio y sirve de ancla a quien la juzga.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

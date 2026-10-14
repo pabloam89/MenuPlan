@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Un fichero de .claude/rules/ que Claude Code carga al tocar una zona y que recuerda normas; no es una unidad exigible.",
   "sinonimos_prohibidos": [
     "directriz",

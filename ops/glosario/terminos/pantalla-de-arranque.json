@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que se ve mientras la aplicación carga al abrirse y muestra la marca.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

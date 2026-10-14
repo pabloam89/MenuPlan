@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que muestra contenidos breves a pantalla completa que se pasan con un toque.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

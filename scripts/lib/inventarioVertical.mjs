@@ -154,16 +154,18 @@ export function calcular(raiz) {
   const retiradas = ent.length - entidades.length;
   filas.push(contar("entidades activas (ops/entidades.json)", entidades));
 
-  const terminos = jsonsDe(raiz, "ops/glosario/terminos").filter((t) => t.estado === "activo").map((t) => {
+  // Su lado es el campo `scope` de cada término (#710, PR 7): la carpeta de la casa y la del proyecto lo comprueban en
+  // ops/glosario-scope.test.js. Aquí solo hay duda si el campo falta o no es válido, si choca con el de las entidades
+  // que nombra, o si un término horizontal nombra el proyecto o un servicio suyo.
+  const dirProyectos = join(raiz, "ops/proyectos");
+  const terminosDeProyecto = existsSync(dirProyectos) ? readdirSync(dirProyectos).filter((p) => existsSync(join(raiz, `ops/proyectos/${p}/glosario/terminos`))).flatMap((p) => jsonsDe(raiz, `ops/proyectos/${p}/glosario/terminos`)) : [];
+  const terminos = [...jsonsDe(raiz, "ops/glosario/terminos"), ...terminosDeProyecto].filter((t) => t.estado === "activo").map((t) => {
     const ligadas = (t.entidades ?? []).map((x) => scopeDe.get(x.entidad)).filter((e) => e && e.status !== "retired");
     const scopes = new Set(ligadas.map((e) => e.scope));
-    let lado;
+    let lado = t.scope;
     let razon = "";
-    if (scopes.size === 1 && ([...scopes][0] === "horizontal" || [...scopes][0] === "vertical")) lado = [...scopes][0];
-    else if (scopes.size) { lado = "duda"; razon = `sus entidades son de lados distintos o sin lado válido (${[...scopes].join(", ")})`; }
-    else if (t.dominio === "producto") lado = "vertical";
-    else if (t.dominio === "datos") { lado = "duda"; razon = "dominio «datos»: habla de migraciones, tablas y fuentes de datos, que son de HoMenu en la práctica"; }
-    else lado = "horizontal";
+    if (lado !== "horizontal" && lado !== "vertical") { lado = "duda"; razon = `sin scope válido («${t.scope}»): un término es de un lado`; }
+    else if (scopes.size && (scopes.size > 1 || !scopes.has(lado))) { lado = "duda"; razon = `su scope («${t.scope}») choca con el de sus entidades (${[...scopes].join(", ")})`; }
     const textoT = `${t.termino} ${t.definicion}`;
     if (lado === "horizontal" && (nombraProyecto(textoT) || nombraServicio(textoT))) {
       lado = "duda";
@@ -335,7 +337,7 @@ export function documento(d, fecha) {
   L.push("| Fuentes | El campo `project` la hace vertical. Sin él: la ruta de un agente o de zona factoría, horizontal; de zona producto, vertical (y debe llevarlo); zona mixta o externa, horizontal |");
   L.push("| Normas | El registro en que viven. Duda de una horizontal: su texto nombra HoMenu/Lola/MenuPlan, o su ámbito es `bot`/`product`/`catalog`, o su control o `donde` apunta a `api/`, `src/`, `supabase/`, `docs/datos/`, `docs/producto/`, `specs/` o `DESIGN_SYSTEM.md` (las " + cifras.normasDiseno + " de ámbito `diseno` no cuentan: Pablo decidió el 13 oct que son horizontales) |");
   L.push("| Entidades | Su campo `scope` (`horizontal` o `vertical`, uno solo: la clase es horizontal y sus ejemplares son del registro del proyecto); duda: un valor que no sea ninguno de los dos y las vertical que son un concepto general (lista a mano, hoy vacía) |");
-  L.push("| Glosario | El `scope` de sus entidades; sin entidad, su dominio (`producto` vertical, `datos` duda); duda también si su definición nombra el proyecto, Vercel o Supabase |");
+  L.push("| Glosario | Su campo `scope` (`horizontal` en ops/glosario/terminos/, `vertical` en ops/proyectos/<id>/glosario/); duda si falta, si choca con el de las entidades que nombra, o si un término horizontal nombra el proyecto o un servicio suyo |");
   L.push("| Skills, reglas, comandos, specs, documentos | La zona de `ops/zonas.json` (factoría = horizontal, producto = vertical, mixto = duda); una skill `tipo: servicio` de factoría = duda |");
   L.push("| Agentes | Horizontales por la regla de Pablo; los tres que trabajan sobre datos de HoMenu, duda (lista a mano) |");
   L.push("| Tests | Zona de su carpeta. En la casa: vertical si lee 3 ficheros de HoMenu o más (existentes, no de ejemplo), duda si lee 1 o 2 |");
@@ -355,7 +357,7 @@ export function documento(d, fecha) {
   L.push(`- **Principios.** Los ${f("principios del proyecto").total} de HoMenu (${cifras.principiosVerticales.map((i) => `\`${i}\``).join(" y ")}) viven en su registro, \`ops/proyectos/homenu/principios/\`, con el campo \`project\`: origen una decisión de producto, sin fuente externa. Los ${f("principios de la casa").total} de la casa son horizontales salvo los que dudan: la mayoría no tiene fuente externa, pero eso no los hace verticales, son del método de trabajo. Los de base de datos que solo tenían como origen \`docs/datos/PRINCIPIOS.md\` son horizontales por decisión de Pablo (13 oct): llevan fuente externa (PostgreSQL, Fowler) y \`docs/datos/\` es el cómo los aplica HoMenu; el que no la tiene verificable sigue en duda. Los ${f("principios de producto").total} de producto tienen literatura detrás y son horizontales; los del área \`conversational-ai\` forman el paquete de bots (\`dominio: bot\`), opcional por proyecto, y también son horizontales.`);
   L.push(`- **Fuentes.** ${cifras.fuentesNota}`);
   L.push(`- **Normas.** El registro vertical ya está separado (${f("normas verticales").total}). En el horizontal hay ${f("normas horizontales").duda} que dudan (lista abajo). De las ${f("normas horizontales").total}, ${cifras.controlJuicio} tienen como control «juicio» y ${cifras.controlEnProducto} acaban en un fichero de zona producto. De las ${f("normas verticales").total} verticales, ${cifras.verticalesEnFactoria} tienen su control en una carpeta de la factoría.`);
-  L.push(`- **Entidades y glosario.** Entidades retiradas (no cuentan): ${cifras.entidadesRetiradas}. El glosario no tiene lado propio: hoy se deduce de sus entidades; es el registro donde más falta el campo.`);
+  L.push(`- **Entidades y glosario.** Entidades retiradas (no cuentan): ${cifras.entidadesRetiradas}. Cada término lleva su \`scope\` (PR 7); los verticales viven en el glosario de su proyecto, aparte de los de la casa, y un término horizontal no nombra una entidad vertical (techo 0).`);
   L.push(`- **Tests.** ${cifras.testsEnCasa} tests viven en carpetas de la casa; ${cifras.vigilanVertical} de ellos leen tres ficheros de HoMenu o más (sin contar \`src/App.jsx\`, el ejemplo de casi todos). ${cifras.testsEnProducto} viven en carpetas de producto, coherentes con lo que vigilan.`);
   L.push("");
   L.push("## Los dudosos, con su razón");
@@ -378,12 +380,12 @@ export function documento(d, fecha) {
   const dudaDe = (c) => dudosos.filter((x) => x.capa === c).length;
   const pr = [
     ["PR 1", "El vigilante primero (punto 7 de #710): test que lee `lado`/`project` de cada registro y falla si una horizontal cita una vertical; techos que solo bajan", "tests de vigilancia de lados = 0", "1 (con los techos de esta tabla)"],
-    ["PR 2", "Entidades: cada una de un lado (sin `both`); las vertical genéricas pasan a horizontal; el glosario hereda el lado de su entidad (se calcula; el campo `scope` en cada término va con el PR 7)", `entidades en duda = ${dudaDe("entidades")}`, "0"],
+    ["PR 2", "Entidades: cada una de un lado (sin `both`); las vertical genéricas pasan a horizontal; el glosario hereda el lado de su entidad (en el PR 7 pasa a ser un campo propio de cada término)", `entidades en duda = ${dudaDe("entidades")}`, "0"],
     ["PR 3", "Principios: campo `project` y registro `ops/proyectos/homenu/principios/`; mover los verticales y resolver los de base de datos", `verticales fuera de su registro = ${f("principios de la casa").vertical}; en duda = ${f("principios de la casa").duda + f("principios de producto").duda}`, "verticales en su registro = todos; en duda = 0"],
     ["PR 4", "Fuentes: campo `project` en las de la casa que son de HoMenu y origen (decisión o fallo) en vez de fuente externa para los principios de proyecto", `fuentes verticales sin marcar = ${f("fuentes").vertical}; en duda = ${f("fuentes").duda}`, "marcadas = todas; en duda = 0"],
     ["PR 5", "Normas dudosas: mover al registro de HoMenu las que sean suyas, o reescribir (sin nombrar el proyecto) las que sean generales", `normas horizontales en duda = ${f("normas horizontales").duda}`, "0 (cada una, horizontal limpia o vertical)"],
     ["PR 6", "Controles: tests de la casa que leen ficheros de HoMenu pasan a recibirlos por referencia (`--proyecto`) o se mueven (el techo `verticales_sin_salida` ya se retiró, #710)", `tests de la casa que leen HoMenu = ${cifras.vigilanVertical}; en duda = ${f("tests").duda}`, "0 y 0"],
-    ["PR 7", "Glosario: términos de proyecto aparte de los de la casa", `términos en duda = ${f("términos").duda}`, "0"],
+    ["PR 7", "Glosario: campo `scope` propio en cada término, exigido por test; los de proyecto aparte de los de la casa y ningún horizontal nombra una entidad vertical", `términos en duda = ${f("términos").duda}; verticales dentro de la carpeta de la casa = 0`, "0 y 0"],
     ["PR 8", "Skills, reglas, comandos, specs y docs: marcar el lado de cada una y separar los skills de servicio en método (casa) y datos (proyecto)", `en duda = skills ${f("skills").duda}, documentos ${f("documentos").duda}; verticales sin marca = ${f("reglas").vertical + f("specs").vertical + f("skills").vertical}`, "en duda = 0; todas marcadas"],
     ["PR 9", "Factoría frente a HoMenu (#690): CLAUDE.md como índice corto con dos partes; `docs/` y `ops/` separados", `documentos en duda = ${f("documentos").duda}`, "0"],
   ];

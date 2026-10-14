@@ -28,10 +28,14 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 
-import { CATALOGOS, leerCatalogo } from "./catalogos.mjs";
+import { CATALOGOS, esCatalogo, leerCatalogo } from "./catalogos.mjs";
+import { SCOPES } from "./entidades.mjs";
 
 /** Partidos, un fichero por término y por ruta (#505): la carpeta es la fuente, sin agregado. */
 export const RUTA_GLOSARIO = CATALOGOS.glosario.carpeta;
+/** Los términos de cada proyecto (#710, PR 7): `ops/proyectos/<id>/glosario/`, con la misma forma que la carpeta de la casa. */
+export const RUTA_PROYECTOS = "ops/proyectos";
+export const rutaGlosarioDeProyecto = (id) => `${RUTA_PROYECTOS}/${id}/glosario/`;
 export const RUTA_EXCEPCIONES = CATALOGOS["glosario-excepciones"].carpeta;
 
 /** Clase de un término (vocabulario cerrado). */
@@ -119,8 +123,8 @@ export const MOTIVOS_SIN_ENTIDAD = {
   candidato: "Será entidad cuando exista; mientras, se declara",
 };
 
-export const CAMPOS_TERMINO = ["termino", "estado", "clase", "dominio", "definicion", "sinonimos_prohibidos", "aplica_a"];
-export const CAMPOS_TERMINO_OPCIONALES = ["pasa_a", "amplio", "estrecho", "relacionado", "ref", "nota", "en", "entidades", "sin_entidad"];
+export const CAMPOS_TERMINO = ["termino", "estado", "clase", "dominio", "scope", "definicion", "sinonimos_prohibidos", "aplica_a"];
+export const CAMPOS_TERMINO_OPCIONALES = ["project", "pasa_a", "amplio", "estrecho", "relacionado", "ref", "nota", "en", "entidades", "sin_entidad"];
 
 /**
  * Relaciones entre términos (#481), las de un tesauro (ISO 25964, SKOS): `amplio` es el
@@ -172,8 +176,24 @@ export const activos = (g) => (g.terminos ?? []).filter(activo);
 /** Una definición es una sola idea corta. */
 export const MAX_DEFINICION = 220;
 
+/** Los términos de cada proyecto, tal cual: { <id>: { project, terminos: [...] } } ({} si ninguno tiene registro). */
+export function leerGlosarioDeProyecto(raiz) {
+  const fuera = {};
+  const dir = join(raiz, RUTA_PROYECTOS);
+  if (!existsSync(dir)) return fuera;
+  for (const id of readdirSync(dir).sort()) if (esCatalogo(raiz, rutaGlosarioDeProyecto(id))) fuera[id] = leerCatalogo(raiz, rutaGlosarioDeProyecto(id));
+  return fuera;
+}
+
+/**
+ * El glosario entero: los términos de la casa y, a continuación, los de cada proyecto (llevan `project`). El lenguaje es
+ * uno, así que un sinónimo prohibido vale en todas partes; lo que separa los dos lados es el `scope` de cada término y
+ * la carpeta en que vive (la vigila ops/glosario-scope.test.js).
+ */
 export function leerGlosario(raiz) {
-  return leerCatalogo(raiz, RUTA_GLOSARIO);
+  const g = leerCatalogo(raiz, RUTA_GLOSARIO);
+  const delProyecto = Object.values(leerGlosarioDeProyecto(raiz)).flatMap((c) => c.terminos ?? []);
+  return delProyecto.length ? { ...g, terminos: [...g.terminos, ...delProyecto] } : g;
 }
 
 export function leerExcepciones(raiz) {
@@ -200,6 +220,49 @@ export function canonicoDe(glosario) {
   for (const t of glosario.terminos) for (const s of prohibidosDe(t)) m.set(normal(s), activo(t) ? t.termino : t.pasa_a);
   return m;
 }
+/**
+ * Los términos horizontales que nombran una entidad vertical, «término → entidad» (es lo que lleva techo 0 en
+ * ops/techos-lados.json: una clase de la casa no puede apoyarse en una pieza de un proyecto). `entidades`: las de
+ * ops/entidades.json con su `scope`.
+ */
+export function citasDeTerminoAEntidadVertical(terminos, entidades) {
+  const scope = new Map(entidades.map((e) => [e.id, e.scope]));
+  return terminos.filter((t) => t.scope === "horizontal").flatMap((t) => (t.entidades ?? []).filter((x) => scope.get(x.entidad) === "vertical").map((x) => `${t.termino} → ${x.entidad}`));
+}
+
+/**
+ * El lado de cada término (#710, PR 7). `casa` y `proyecto`: los términos de cada carpeta (`leerCatalogo` de la casa y
+ * `leerGlosarioDeProyecto`); `registro`: ops/entidades.json (con `projects`). Una cadena por problema:
+ *  1. los de la casa son horizontales y sin `project`; los del proyecto, verticales y con el `project` de su carpeta,
+ *     que es un proyecto de ops/entidades.json;
+ *  2. un término horizontal no nombra una entidad vertical;
+ *  3. un término vertical que nombra entidades nombra alguna vertical (si nombra solo horizontales, la clase es de la casa).
+ */
+export function problemasDeLadosDelGlosario(casa, proyecto, registro) {
+  const malos = [];
+  const validos = new Set((registro.projects ?? []).map((p) => p.id));
+  for (const t of casa) {
+    if (t.scope !== "horizontal") malos.push(`${t.termino}: está en ${RUTA_GLOSARIO} y su scope es «${t.scope}»; un término vertical va al glosario de su proyecto (${RUTA_PROYECTOS}/<id>/glosario/)`);
+    if ("project" in t) malos.push(`${t.termino}: está en ${RUTA_GLOSARIO} y lleva project «${t.project}»: quítalo`);
+  }
+  for (const [id, c] of Object.entries(proyecto)) {
+    if (c.project !== id) malos.push(`${RUTA_PROYECTOS}/${id}/glosario/: su project es «${c.project}», no «${id}»`);
+    if (!validos.has(id)) malos.push(`${RUTA_PROYECTOS}/${id}/glosario/: «${id}» no es un proyecto de ops/entidades.json`);
+    for (const t of c.terminos ?? []) {
+      if (t.scope !== "vertical") malos.push(`${t.termino}: está en el glosario de ${id} y su scope es «${t.scope}»; uno horizontal va a ${RUTA_GLOSARIO}`);
+      if (t.project !== id) malos.push(`${t.termino}: está en el glosario de ${id} y lleva project «${t.project}»`);
+    }
+  }
+  const todos = [...casa, ...Object.values(proyecto).flatMap((c) => c.terminos ?? [])];
+  for (const cita of citasDeTerminoAEntidadVertical(todos, registro.entities)) malos.push(`${cita}: un término horizontal nombra una entidad vertical`);
+  const scope = new Map(registro.entities.map((e) => [e.id, e.scope]));
+  for (const t of todos.filter((x) => x.scope === "vertical")) {
+    const lados = new Set((t.entidades ?? []).map((x) => scope.get(x.entidad)).filter(Boolean));
+    if (lados.size && !lados.has("vertical")) malos.push(`${t.termino}: es vertical y solo nombra entidades horizontales (${(t.entidades ?? []).map((x) => x.entidad).join(", ")})`);
+  }
+  return malos;
+}
+
 /** Comprueba la forma del glosario. Devuelve una lista de problemas en texto (vacía si está bien). */
 export function problemasDeGlosario(g, { existe = () => true, leer = () => null } = {}) {
   const p = [];
@@ -232,6 +295,9 @@ export function problemasDeGlosario(g, { existe = () => true, leer = () => null 
       else enDe.set(t.en, id);
     }
     if (!(t.clase in CLASES)) p.push(`${id}: clase «${t.clase}» fuera del vocabulario (${Object.keys(CLASES).join(", ")})`);
+    if ("scope" in t && !(t.scope in SCOPES)) p.push(`${id}: scope «${t.scope}» fuera del vocabulario (${Object.keys(SCOPES).join(", ")})`);
+    if (t.scope === "vertical" && !t.project) p.push(`${id}: es vertical y no lleva project (el proyecto de que es: su registro está en ${RUTA_PROYECTOS}/<id>/glosario/)`);
+    if (t.scope === "horizontal" && "project" in t) p.push(`${id}: es horizontal y lleva project «${t.project}»: quítalo`);
     if ("dominio" in t && !(t.dominio in DOMINIOS)) p.push(`${id}: dominio «${t.dominio}» fuera del vocabulario (${Object.keys(DOMINIOS).join(", ")})`);
     p.push(...problemasDeMapeoEnTermino(t));
     if (typeof t.definicion !== "string" || t.definicion.trim().length < 10) p.push(`${id}: definición vacía`);

@@ -12,6 +12,7 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
+import { citasDeTerminoAEntidadVertical, leerGlosario } from "./glosario.mjs";
 import { NO_ES_PROSA, calcular, nombraProyecto, nombraServicio, textoDe } from "./inventarioVertical.mjs";
 
 export const RUTA_TECHOS = "ops/techos-lados.json";
@@ -104,7 +105,8 @@ export function medir(raiz) {
     readdirSync(join(raiz, "ops/fuentes-documentales/fuentes")).filter((x) => x.endsWith(".json") && !x.startsWith("_")).map((x) => leerJson(raiz, `ops/fuentes-documentales/fuentes/${x}`)),
     citasHorizontalesDeFuentes(raiz),
   );
-  const medidas = { fuente_vertical_citada_por_horizontal: fuentesVert.length, estandares_que_nombran_el_proyecto: est.proyecto.length, estandares_que_nombran_un_servicio: est.servicio.length, citas_de_entidad_horizontal_a_vertical: citas.entidadAEntidad.length, tests_de_la_casa_que_leen_homenu: inv.cifras.vigilanVertical };
+  const terminosAEntidad = citasDeTerminoAEntidadVertical(leerGlosario(raiz).terminos, ent.entities);
+  const medidas = { terminos_horizontales_que_nombran_entidad_vertical: terminosAEntidad.length, fuente_vertical_citada_por_horizontal: fuentesVert.length, estandares_que_nombran_el_proyecto: est.proyecto.length, estandares_que_nombran_un_servicio: est.servicio.length, citas_de_entidad_horizontal_a_vertical: citas.entidadAEntidad.length, tests_de_la_casa_que_leen_homenu: inv.cifras.vigilanVertical };
   for (const f of inv.filas) medidas[`duda: ${f.unidad}`] = f.duda;
   medidas["verticales sin registro propio: principios de la casa"] = filas["principios de la casa (ops/principios/)"].vertical;
   medidas["verticales sin marcar: fuentes documentales"] = inv.cifras.fuentesSinMarcar;

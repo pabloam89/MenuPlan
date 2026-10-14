@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "campo",
   "dominio": "ops",
+  "scope": "horizontal",
   "definicion": "La frase «todo X que Y» que incluye un caso y sus hermanos y excluye lo que funciona; se arregla la clase, no el caso.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "El hook .claude/hooks/guardia.mjs, que corre antes de cada comando o edición de una sesión y niega lo prohibido.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
