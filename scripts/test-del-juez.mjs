@@ -19,7 +19,7 @@ import { cargarEnv } from "./lib/env.mjs";
 import { leerRegistro } from "./lib/normas.mjs";
 import { SALIDA, costeUsd, estimadoSiguiente, opcionNumero, topeDePasada, apuntarOAvisar, puedeGastar } from "./lib/evals.mjs";
 import { RAIZ, MODELO_BARATO, MODELO_EJECUTA, ESTIMADO_LLAMADA, TOPE_SKILLS_USD, jsonDeTexto, leerRespuesta } from "./lib/skills.mjs";
-import { JUECES, RUTA_PASADAS, cifra, cumpleUmbralA, faltasDeFichero, hashDeCasos, faltasDePasadas, leerFichero, leerPasadas, lineaDeCifra, medir, motivoSinUmbral, promptCaso } from "./lib/testDelJuez.mjs";
+import { JUECES, RUTA_PASADAS, RUTA_ULTIMA_PASADA, registroDeMotivos, cifra, cumpleUmbralA, faltasDeFichero, hashDeCasos, faltasDePasadas, leerFichero, leerPasadas, lineaDeCifra, medir, motivoSinUmbral, promptCaso } from "./lib/testDelJuez.mjs";
 
 /** La fecha de hoy en Madrid (AAAA-MM-DD), nunca de `date` (#210). */
 const fechaMadrid = () => new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Madrid" });
@@ -95,10 +95,11 @@ for (const j of lista) {
   const agente = readFileSync(join(RAIZ, ".claude/agents", `${j}.md`), "utf8").replace(/^---[\s\S]*?---\s*/, "");
   const antes = gastado;
   const filas = await medir(ficheros[j].casos, {
+    claves: [API_KEY],
     juzgar: async (c) => {
       const norma = normas.find((n) => n.id === c.norma);
       const texto = await llamar({ modelo: MODELO_EJECUTA, system: agente, usuario: promptCaso(c, norma), maxTokens: 1500 });
-      return jsonDeTexto(texto) ?? { veredicto: null, hallazgos: [] };
+      return { ...(jsonDeTexto(texto) ?? { veredicto: null, hallazgos: [] }), texto };
     },
     corregir: async (c, hallazgos) => {
       const texto = await llamar({
@@ -111,6 +112,8 @@ for (const j of lista) {
     },
   });
   const c = cifra(filas);
+  // El motivo del juez por caso, en un fichero que git ignora y sin la clave (para saber por qué falla un caso).
+  writeFileSync(join(RAIZ, RUTA_ULTIMA_PASADA), JSON.stringify(registroDeMotivos(j, fechaMadrid(), filas, [API_KEY]), null, 2) + "\n");
   for (const f of filas.filter((x) => x.estado === "falla")) console.log(`  no acierta ${f.id} (${f.tipo}, norma ${f.norma}, veredicto ${f.veredicto ?? "ninguno"})`);
   const coste = Number((gastado - antes).toFixed(4));
   console.log(lineaDeCifra(j, c, ` coste_usd: ${coste}`));

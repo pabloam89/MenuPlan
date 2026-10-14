@@ -28,14 +28,21 @@ export const UMBRAL_MALOS = 0.8;
 export const PASADAS_SEGUIDAS = 2;
 /** Las pasadas de pago registradas: sin pasadas que cumplan el umbral, la norma sigue sin comprobar. */
 export const RUTA_PASADAS = "ops/test-del-juez/pasadas.json";
+/** La última pasada de pago con el motivo del juez por caso. Git la ignora (.gitignore): es material de trabajo, no registro. */
+export const RUTA_ULTIMA_PASADA = "ops/test-del-juez/ultima-pasada.json";
 /** Un diff más largo que esto no es un caso fijo y pequeño: se parte. */
 export const MAX_DIFF = 1500;
 
 const rutaDe = (juez) => `${DIR_TEST_DEL_JUEZ}/${juez}.json`;
-/** El hash (LF, 12) del fichero de casos de un juez: cambia si se edita cualquier caso, aunque su número no cambie. */
+/** Lo que el juez sabe de su situación en el test: no tiene herramientas. Va en el prompt y por eso entra en el hash. */
+export const AVISO_SIN_HERRAMIENTAS = "No tienes herramientas para leer el repositorio ni correr nada: juzga con el diff, el cuerpo del PR y la norma. Si el diff o el cuerpo del PR afirman algo (que nada lee una columna, que consta o no el OK de Pablo, que un test se vio fallar o no), considéralo dato del caso; no señales lo que solo se sabría mirando fuera.";
+/**
+ * El hash (LF, 12) de lo que se mide: el fichero de casos de un juez más el aviso fijo del prompt. Cambia si se edita
+ * cualquier caso (aunque su número no cambie) o si cambia el prompt, porque entonces las pasadas anteriores ya no miden lo mismo.
+ */
 export function hashDeCasos(juez, raiz) {
   const ruta = join(raiz, rutaDe(juez));
-  return existsSync(ruta) ? hashLF(readFileSync(ruta, "utf8")) : null;
+  return existsSync(ruta) ? hashLF(readFileSync(ruta, "utf8") + "\n--prompt--\n" + AVISO_SIN_HERRAMIENTAS) : null;
 }
 
 export const esFicheroDeJuez = (ruta) => new RegExp(`^${DIR_TEST_DEL_JUEZ}/(${JUECES.join("|")})\\.json$`).test(ruta);
@@ -163,6 +170,7 @@ export function promptCaso(c, norma) {
     `Título del PR: ${c.titulo}`,
     "<diff>", c.diff, "</diff>",
     'Responde solo con JSON: {"veredicto":"aprueba"|"senala","hallazgos":["…"]}. «senala» si el cambio incumple la norma, con el caso concreto; «aprueba» si no.',
+    AVISO_SIN_HERRAMIENTAS,
   ].join("\n");
 }
 
@@ -172,20 +180,42 @@ export function promptCaso(c, norma) {
  *   corregir(caso, hallazgos) → boolean (¿algún hallazgo dice lo que `debe_senalar`?)
  * Acierta un bueno si el juez aprueba; un malo, si señala Y el corrector confirma que señala lo esperado.
  */
-export async function medir(casos, { juzgar, corregir }) {
+export async function medir(casos, { juzgar, corregir, claves = [] }) {
   const filas = [];
+  // El motivo de un caso sin correr se limpia de claves ANTES de cortarlo: cortar primero podría dejar media clave sin forma de clave.
+  const motivoDe = (e) => sinClaves(String(e?.message ?? e), claves).slice(0, 120);
   for (const c of casos) {
     let r;
-    try { r = await juzgar(c); } catch (e) { filas.push({ id: c.id, norma: c.norma, tipo: c.tipo, estado: "sin_correr", motivo: String(e.message).slice(0, 120) }); continue; }
+    try { r = await juzgar(c); } catch (e) { filas.push({ id: c.id, norma: c.norma, tipo: c.tipo, estado: "sin_correr", motivo: motivoDe(e) }); continue; }
     const veredicto = r?.veredicto === "senala" ? "senala" : r?.veredicto === "aprueba" ? "aprueba" : null;
     let acierta = false;
     if (c.tipo === "bueno") acierta = veredicto === "aprueba";
     else if (veredicto === "senala") {
-      try { acierta = (await corregir(c, r.hallazgos ?? [])) === true; } catch (e) { filas.push({ id: c.id, norma: c.norma, tipo: c.tipo, estado: "sin_correr", motivo: String(e.message).slice(0, 120) }); continue; }
+      try { acierta = (await corregir(c, r.hallazgos ?? [])) === true; } catch (e) { filas.push({ id: c.id, norma: c.norma, tipo: c.tipo, estado: "sin_correr", motivo: motivoDe(e) }); continue; }
     }
-    filas.push({ id: c.id, norma: c.norma, tipo: c.tipo, estado: acierta ? "ok" : "falla", veredicto });
+    // El motivo del juez (sus hallazgos y su respuesta tal cual) queda en la fila para ver por qué falla un caso.
+    filas.push({ id: c.id, norma: c.norma, tipo: c.tipo, estado: acierta ? "ok" : "falla", veredicto, hallazgos: r?.hallazgos ?? [], respuesta: r?.texto ?? null });
   }
   return filas;
+}
+
+/** Quita de un texto cualquier clave: las que se pasan tal cual y todo lo que tenga forma de clave de Anthropic (sk-ant-…). */
+export function sinClaves(texto, claves = []) {
+  let t = String(texto ?? "");
+  for (const k of claves) if (typeof k === "string" && k.length >= 8) t = t.split(k).join("[clave]");
+  return t.replace(/sk-ant-[A-Za-z0-9_-]{8,}/g, "[clave]");
+}
+
+/**
+ * Lo que se guarda de una pasada para leer los motivos: por caso, veredicto, hallazgos y respuesta del juez.
+ * Nunca lleva la clave (`claves` se borra de todo texto, aunque el juez la repitiera).
+ */
+export function registroDeMotivos(juez, fecha, filas, claves = []) {
+  const limpio = (v) => (Array.isArray(v) ? v.map(limpio) : typeof v === "string" ? sinClaves(v, claves) : v);
+  return {
+    juez, fecha,
+    casos: filas.map((f) => ({ id: f.id, norma: f.norma, tipo: f.tipo, estado: f.estado, veredicto: f.veredicto ?? null, hallazgos: limpio(f.hallazgos ?? []), respuesta: limpio(f.respuesta ?? null), motivo: limpio(f.motivo ?? null) })),
+  };
 }
 
 /** La cifra de un juez: aciertos entre casos corridos, por tipo y por norma. Los `sin_correr` no cuentan como acierto ni como fallo. */
