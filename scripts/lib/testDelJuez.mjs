@@ -229,7 +229,7 @@ export function extraerJson(texto, clave = null) {
     const trozo = t.slice(a, b + 1);
     for (const intento of [trozo, repararCadenas(trozo)]) {
       let v;
-      try { v = JSON.parse(intento); } catch { continue; }
+      try { v = JSON.parse(intento); } catch { /* a propósito: se prueba el siguiente intento (el reparado); si ninguno vale, el resultado es null */ continue; }
       if (v && typeof v === "object" && !Array.isArray(v) && (clave === null || clave in v)) return v;
     }
   }

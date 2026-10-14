@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { corregirPorClaves, extraerJson, leerFichero, leerRespuestaDelJuez, promptCaso, repararCadenas } from "./lib/testDelJuez.mjs";
-import { leerRegistro } from "./lib/normas.mjs";
-import { RAIZ } from "./lib/skills.mjs";
+import { fileURLToPath } from "node:url";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+const RAIZ = join(fileURLToPath(new URL(".", import.meta.url)), "..");
 
 // El instrumento del test del juez (#698): leer lo que responde el juez y decidir, sin modelo, si dijo el defecto.
 // Los hallazgos son los reales de la segunda tanda de pago (fixture sin claves).
@@ -64,7 +64,7 @@ describe("el corrector determinista (claves_senal)", () => {
 
 describe("quitar-permiso: el juez ve la condición de la norma", () => {
   it("el prompt incluye «cuando amplía…», que antes se perdía y hacía exigir el OK a un cambio que solo restringe", () => {
-    const norma = leerRegistro(RAIZ).normas.find((n) => n.id === "permisos-ok-pablo");
+    const norma = JSON.parse(readFileSync(join(RAIZ, "ops/normas.json"), "utf8")).normas.find((n) => n.id === "permisos-ok-pablo");
     const t = promptCaso({ titulo: "t", diff: "d" }, norma);
     expect(t).toContain(norma.condicion);
     expect(t).toMatch(/debe cuando amplía/);
