@@ -53,7 +53,7 @@ export function cifras(d) {
 
 export function bloque(d = cargar()) {
   const f = [
-    "| id | familia | nivel | alcance | puente | quién la crea | dónde vive (registro) | quién la lee | parte de, tipo de o hijo de |",
+    "| id | familia | nivel | alcance | de los dos lados | quién la crea | dónde vive (registro) | quién la lee | parte de, tipo de o hijo de |",
     "|---|---|---|---|---|---|---|---|---|",
   ];
   for (const e of activas(d)) {
@@ -92,23 +92,23 @@ export function mapa(d = cargar()) {
     "- **nivel** (`level`): `meta` (lo que hace buena una pieza de la familia), `template` (la plantilla de la que salen) o `piece` (la pieza);",
     "- **familia** (`family`): para agrupar al leer; no es un eje.",
     "",
-    "Un **puente** ya no es un valor: es una entidad de alcance `both`, y se calcula. Las relaciones llevan clase (`is_a`, `part_of`,",
+    "Estar «de los dos lados» no es un valor aparte: es el alcance `both`, y se calcula. Las relaciones llevan clase (`is_a`, `part_of`,",
     "`parent_of` o `reference`) y cardinalidad. La contención va de la factoría al proyecto y de este al entorno (`part_of`).",
     "Los ids van en inglés (decisión de Pablo del 11 oct 2026); los nombres y las notas, en castellano.",
     "",
-    `Hoy hay ${k.total} entidades activas: ${k.horizontal} horizontales, ${k.vertical} verticales y ${k.both} de los dos lados (puentes).`,
+    `Hoy hay ${k.total} entidades activas: ${k.horizontal} horizontales, ${k.vertical} verticales y ${k.both} de los dos lados.`,
     `Las relaciones son ${k.relaciones}: ${k.clases}.`,
     "",
   );
   for (const [titulo, scope, intro] of [
     ["Horizontales: la factoría", "horizontal", "Sus piezas no cuelgan de ningún proyecto."],
     ["Verticales: el producto", "vertical", "Sus piezas cuelgan siempre de un proyecto. Las de la familia `home`, `food` y `lola` están solo en el registro: no tienen más migraciones ni datos de familias que los que ya existen."],
-    ["Puentes: de los dos lados", "both", "Sirven a la factoría y a un proyecto, y cada una dice qué es a cada lado. El alcance se decide por a quién sirve la pieza, no por dónde está el fichero: que todo viva hoy en el repo de HoMenu no hace a nadie both."],
+    ["De los dos lados", "both", "Sirven a la factoría y a un proyecto, y cada una dice qué es a cada lado. El alcance se decide por a quién sirve la pieza, no por dónde está el fichero: que todo viva hoy en el repo de HoMenu no hace a nadie both."],
   ]) {
     L.push(`## ${titulo}`, "", intro, "", tablaDeEntidades(a.filter((e) => e.scope === scope)), "");
     if (scope === "both") {
       const conRol = a.filter((e) => e.scope === "both");
-      L.push("Qué es cada puente a cada lado:", "", ...conRol.map((e) => `- **${e.id}**: ${e.role_by_scope}`), "");
+      L.push("Qué es cada una a cada lado:", "", ...conRol.map((e) => `- **${e.id}**: ${e.role_by_scope}`), "");
     }
   }
   L.push("## Proyectos", "", "La factoría es la raíz implícita: una pieza sin proyecto cuelga de ella.", "", "| id | Nombre | Repositorios | Nota |", "|---|---|---|---|");
