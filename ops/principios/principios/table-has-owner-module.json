@@ -6,8 +6,8 @@
   "porque": "Una tabla tocada con textos sueltos desde cualquier sitio se rompe en cuanto cambia, aunque la base esté bien.",
   "fuentes": [
     {
-      "marca": "I",
-      "fuente": "casa-principios-datos"
+      "marca": "F",
+      "fuente": "fowler-table-data-gateway"
     }
   ],
   "detalle": [

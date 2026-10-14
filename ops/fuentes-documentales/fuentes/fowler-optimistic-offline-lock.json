@@ -1,0 +1,10 @@
+{
+  "id": "fowler-optimistic-offline-lock",
+  "nombre": "Martin Fowler (PoEAA): Optimistic Offline Lock, detectar el conflicto al escribir",
+  "tipo": "externa",
+  "url": "https://martinfowler.com/eaaCatalog/optimisticOfflineLock.html",
+  "uso": "principio",
+  "fecha_alta": "2026-10-14",
+  "revisada": "si",
+  "fecha_revision": "2026-10-14"
+}

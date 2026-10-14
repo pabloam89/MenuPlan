@@ -1,10 +1,6 @@
 {
   "$comentario": "Las decisiones a mano del inventario vertical/horizontal (#710, programa #652): lo que el script scripts/lib/inventarioVertical.mjs no puede deducir de los registros ni de ops/zonas.json. Cada entrada lleva su razón en una frase. Lo vigila ops/inventario-vertical.test.js: un id que ya no existe en su registro falla. Esto NO es un registro de lados: es la lista de excepciones de un inventario de partida; el registro de verdad (campo `project`/`lado` en cada pieza) llega con los PR que cuelgan de #710.",
   "version": 1,
-  "principios_verticales": {
-    "household-owns-data": "Dice que toda tabla cuelga de household_id: es el modelo de datos de HoMenu, nacido de una decisión de producto, sin fuente externa",
-    "curated-catalog-only": "El menú propone solo recetas con estrella y foto: es una decisión de producto de HoMenu, sin fuente externa"
-  },
   "entidades_verticales_genericas": {
     "migration": "La clase «migración» vale para cualquier proyecto con base; sus instancias son de HoMenu",
     "table": "La clase «tabla» vale para cualquier proyecto con base; sus instancias son de HoMenu",
