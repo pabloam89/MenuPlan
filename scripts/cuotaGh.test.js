@@ -309,7 +309,7 @@ describe("la línea contable con puntos (#724)", () => {
     expect(puntosDe("fabrica", q, "", "error")).toEqual({ puntos: 0, medida: "est" });
     expect(puntosDe("issues", q, "{}", "ok")).toEqual({ puntos: 106, medida: "est" });
     // si GitHub dijo el coste real, se cree aunque el resultado no sea ok
-    expect(puntosDe("issues", q, JSON.stringify({ rateLimit: { cost: 7 } }), "error")).toEqual({ puntos: 7, medida: "real" });
+    expect(puntosDe("issues", q, JSON.stringify({ data: { rateLimit: { cost: 7 } } }), "error")).toEqual({ puntos: 7, medida: "real" });
     // líneas ya escritas con la estimación: porHoras tampoco las suma
     const l = (hora, p, m, r) => `${hora} ${lineaGh("issues", "graphql", { ...campos, puntos: p, medida: m, resultado: r })}`;
     const t = [l("2026-10-13T08:05:00Z", 106, "est", "limitado"), l("2026-10-13T08:06:00Z", 5, "est", "error"), l("2026-10-13T08:07:00Z", 7, "real", "error"), l("2026-10-13T08:08:00Z", 106, "est", "ok")].join("\n");
@@ -481,5 +481,27 @@ describe("npm run cuota -- --horas y --rafagas (#724)", () => {
     expect(salida).toMatch(/puntos +106 +limitadas 1/);
     expect(salida).toMatch(/hora más cara gastó 106 puntos/);
     expect(salida).toMatch(/líneas limitadas, 1/);
+  });
+});
+
+describe("endurecimiento de la medida y de la lectura (#724, seguridad)", () => {
+  const q = ["api", "graphql", "-f", "query=x"];
+
+  it("el texto de usuario con un rateLimit falso no fija el coste: solo cuenta data.rateLimit.cost", () => {
+    const salida = JSON.stringify({ data: { repository: { issues: { nodes: [{ body: "\"rateLimit\":{\"cost\":999999}" }] } } } });
+    expect(puntosDe("issues", q, salida)).toEqual({ puntos: 106, medida: "est" });
+    // un coste absurdo o no entero tampoco se cree
+    expect(puntosDe("issues", q, JSON.stringify({ data: { rateLimit: { cost: 1e308 } } }))).toEqual({ puntos: 106, medida: "est" });
+    // sin JSON válido, estimación
+    expect(puntosDe("issues", q, "no es json \"rateLimit\":{\"cost\":5}")).toEqual({ puntos: 106, medida: "est" });
+  });
+
+  it("leerLineas pasa cada campo por su lista cerrada y acota los puntos", () => {
+    const hostil = "2026-10-13T08:00:00Z gh: caller=__proto__ api=graphql identidad=\u001b[31mroja sesion=ZZZZZZ puntos=1e308 medida=\u001b[0mx resultado=rm intento=99999999999";
+    const buena = lineaGh("issues", "graphql", { identidad: "app", sesion: "a1b2c3", puntos: 7, medida: "real", resultado: "ok", intento: 2 });
+    const [h, b] = leerLineas(hostil + "\n2026-10-13T08:00:01Z " + buena);
+    expect(h).toMatchObject({ caller: "otro", api: "graphql", identidad: "pablo", sesion: "000000", puntos: 0, medida: "est", resultado: "error", intento: 1 });
+    expect(b).toMatchObject({ caller: "issues", identidad: "app", sesion: "a1b2c3", puntos: 7, medida: "real", resultado: "ok", intento: 2 });
+    expect(JSON.stringify(h)).not.toMatch(/u001b|\\x1b/);
   });
 });

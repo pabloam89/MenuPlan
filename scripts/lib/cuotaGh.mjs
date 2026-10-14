@@ -73,10 +73,19 @@ export const identidadDe = (env = process.env) => (String(env.GH_TOKEN ?? env.GI
  */
 export function puntosDe(caller, args, salida, resultado = "ok") {
   if (apiDe(args) === "rest") return { puntos: 0, medida: "nada" };
-  const m = /"rateLimit"\s*:\s*\{[^}]*?"cost"\s*:\s*(\d+)/.exec(String(salida ?? ""));
-  if (m) return { puntos: Number(m[1]), medida: "real" };
-  if (resultado !== "ok") return { puntos: 0, medida: "est" };
   const consulta = args[0] === "api" && args[1] === "graphql";
+  // Solo se cree el coste de una consulta propia y leído del JSON (data.rateLimit.cost): un regex sobre el
+  // texto se dejaría engañar por un cuerpo de issue que contenga `"rateLimit":{"cost":999999}`.
+  if (consulta) {
+    let coste;
+    try {
+      coste = JSON.parse(String(salida ?? "")).data?.rateLimit?.cost;
+    } catch {
+      // a propósito: sin JSON válido no hay medida real; se estima
+    }
+    if (Number.isInteger(coste) && coste >= 0 && coste < 1e6) return { puntos: coste, medida: "real" };
+  }
+  if (resultado !== "ok") return { puntos: 0, medida: "est" };
   return { puntos: consulta ? (PUNTOS_EST[caller] ?? PUNTOS_EST.otro) : 1, medida: "est" };
 }
 
@@ -170,11 +179,17 @@ export function leerLineas(texto) {
     const t = Date.parse(m[1]);
     if (Number.isNaN(t)) continue;
     const campo = (k) => new RegExp(`\\b${k}=(\\S+)`).exec(m[4])?.[1];
+    // cada campo pasa por su lista cerrada, como al escribir: el log es local pero se lee como dato no fiable
+    const en = (lista, v, def) => (lista.includes(v) ? v : def);
+    const sesion = campo("sesion");
     out.push({
-      t, caller: m[2], api: m[3],
-      identidad: campo("identidad") ?? "sin-dato", sesion: campo("sesion") ?? "sin-dato",
-      puntos: Number(campo("puntos") ?? 0), medida: campo("medida") ?? "sin-dato",
-      resultado: campo("resultado") ?? "sin-dato", intento: Number(campo("intento") ?? 1),
+      t, caller: en(CALLERS_GH, m[2], "otro"), api: en(APIS_GH, m[3], "graphql"),
+      identidad: en(IDENTIDADES_GH, campo("identidad"), campo("identidad") === undefined ? "sin-dato" : "pablo"),
+      sesion: sesion === undefined ? "sin-dato" : /^[0-9a-f]{6}$/.test(sesion) ? sesion : "000000",
+      puntos: entero(Number(campo("puntos") ?? 0), 0),
+      medida: en(MEDIDAS_GH, campo("medida"), campo("medida") === undefined ? "sin-dato" : "est"),
+      resultado: en(RESULTADOS_GH, campo("resultado"), campo("resultado") === undefined ? "sin-dato" : "error"),
+      intento: entero(Number(campo("intento") ?? 1), 1) || 1,
     });
   }
   return out;
