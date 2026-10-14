@@ -68,6 +68,7 @@
     "situacion": "node scripts/situacion.mjs",
     "consulta": "node scripts/consulta.mjs",
     "columnas-pocos-valores": "node scripts/columnas-pocos-valores.mjs",
+    "campos-por-entidad": "node scripts/campos-por-entidad.mjs",
     "verificar:estado": "node scripts/verificar-estado.mjs",
     "op": "node scripts/op.mjs"
   },
