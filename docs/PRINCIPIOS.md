@@ -376,7 +376,7 @@ Cómo se trabaja: issues, fondos, PR, sesiones, agentes, jueces y cifras.
   - Detalle: `CLAUDE.md#cuando-algo-falla-hasta-el-problema-de-fondo`
   - Viene de: C12, claude:la-clase-no-el-caso
 - `highest-mechanism` — **El mecanismo más alto.** Cada norma usa el escalón más alto posible de la escalera de durabilidad y baja de escalón solo con su motivo.
-  - Porqué: Lo que obliga es el hook y no el texto, porque una norma solo escrita depende de que alguien se acuerde.
+  - Porqué: Lo que obliga es el hook y no el texto, y si chocan manda el hook, porque una norma solo escrita depende de que alguien se acuerde.
   - Fuentes: [I] `ops/mecanismos.json`
   - Viene de: claude:el-mecanismo-mas-alto
 - `know-when-to-stop` — **Saber parar.** Tras varios fallos seguidos, un gasto anómalo o el presupuesto agotado, el agente se detiene, lo registra y devuelve el control.

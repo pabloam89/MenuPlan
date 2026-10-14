@@ -1327,6 +1327,40 @@
       ],
       "test_del_juez": null,
       "project": "homenu"
+    },
+    {
+      "id": "texto-anthropic-imagen-gemini",
+      "nombre": "Texto Anthropic, imagen Gemini",
+      "sujeto": "codigo",
+      "fuerza": "debe",
+      "condicion": "cuando llama a un modelo de IA",
+      "exigencia": "pedir el texto a Anthropic y las imágenes a Gemini",
+      "nota": "Pedir texto con la clave de las fotos agota el crédito de AI Studio a mitad de una tanda (caso del 23 sep 2026). Las excepciones, en api/proveedoresModelo.test.js.",
+      "donde": [
+        ".claude/rules/api.md",
+        ".claude/rules/lola.md"
+      ],
+      "ejecutor": "ci",
+      "alcance": "todos",
+      "ante_fallo": "cerrado",
+      "control": "api/proveedoresModelo.test.js",
+      "control_tipo": "test",
+      "control_procesador": "codigo",
+      "control_fuerza": "bloquea",
+      "control_momento": "pr",
+      "control_que_mira": "forma",
+      "control_cobertura": "parcial",
+      "veredicto": "semidura",
+      "riesgo": "medio",
+      "issue": null,
+      "principio": "bounded-blast-radius",
+      "ambito": "code",
+      "lado": "vertical",
+      "concepto": "cost",
+      "acciones": [
+        "construir"
+      ],
+      "project": "homenu"
     }
   ]
 }
