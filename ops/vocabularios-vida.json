@@ -1343,7 +1343,8 @@
       "vocabulario": "recursos.tipo",
       "valor": "proyecto",
       "pasa_a": "proyecto-servicio",
-      "desde": "2026-10-14"
+      "desde": "2026-10-14",
+      "motivo": "proyecto pasa a ser el campo `proyecto` (#748)"
     },
     {
       "vocabulario": "entidades.scope",

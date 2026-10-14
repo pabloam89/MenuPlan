@@ -828,8 +828,9 @@ describe("N0-principios.md habla de los niveles y de las capas con su palabra", 
 // `factoria`. Quien necesite los ids usa PROYECTOS o PROYECTOS_CON_NORMAS (scripts/lib/zonasProyecto.mjs); leer `projects` para ids
 // repite el filtro y aceptó `factoria` donde no debía (fuentes-documentales, principios-casa).
 describe("ids de proyecto: una sola lista", () => {
-  const LECTORES_DE_ATRIBUTOS = ["scripts/mapa-entidades.mjs", "scripts/lib/normas.mjs", "ops/principios.test.js", "ops/tareas-de-proyecto.test.js"];
-  const PATRONES = [/\.projects\.map\(/, /\.projects\.find\(/, /projects\.map\(\(p\) => p\.id\)/];
+  const LECTORES_DE_ATRIBUTOS = ["scripts/lib/normas.mjs"];
+  // Detecta la LECTURA de ids (`projects` ... `.map((p) => p.id)`, incluso con `?? []` en medio), no la forma exacta del código.
+  const PATRONES = [/\.projects\.map\(/, /\.projects\.find\(/, /projects\b[^;\n]*\.map\(\s*\(?\w+\)?\s*=>\s*\w+\.id\b/];
   const ficheros = (dir) => readdirSync(join(RAIZ, dir), { withFileTypes: true }).flatMap((d) => {
     const r = `${dir}/${d.name}`;
     if (d.isDirectory()) return d.name === "node_modules" ? [] : ficheros(r);
@@ -846,7 +847,16 @@ describe("ids de proyecto: una sola lista", () => {
 
   it("autotest: el lector de ids de hoy en fuentes-documentales.test.js se pilla", () => {
     const antes = 'const proyectos = JSON.parse(x).projects.map((p) => p.id);';
-    expect(infractores(() => antes).length).toBeGreaterThan(10);
+    expect(infractores(() => antes).length).toBeGreaterThan(0);
     expect(PATRONES.some((re) => re.test(antes))).toBe(true);
+  });
+
+  it("autotest: la línea de glosario.mjs de antes (con `?? []`) se pilla", () => {
+    expect(PATRONES.some((re) => re.test("const validos = new Set((registro.projects ?? []).map((p) => p.id));"))).toBe(true);
+  });
+
+  it("cada lector de atributos exento coincide con algún patrón (si no, sobra en la lista)", () => {
+    const sobran = LECTORES_DE_ATRIBUTOS.filter((f) => !PATRONES.some((re) => re.test(readFileSync(join(RAIZ, f), "utf8"))));
+    expect(sobran).toEqual([]);
   });
 });

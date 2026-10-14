@@ -49,17 +49,17 @@ describe("1. la forma", () => {
     expect(datos.recursos.filter((r) => r.servicio === "hetzner").map((r) => r.proyecto)).toEqual(["factoria", "factoria"]);
   });
 
-  it("desempate (#770): las cuentas a quien las paga; lo de dentro, al proyecto al que sirve en exclusiva (el campo no sale solo del servicio)", () => {
+  it("desempate (#770): la cuenta al proyecto al que sirve; lo de dentro, al proyecto al que sirve en exclusiva (el campo no sale solo del servicio)", () => {
     const de = (id) => datos.recursos.find((r) => r.id === id)?.proyecto;
-    expect(de("1password-boveda-homenu")).toBe("homenu");
+    expect(de("1password-boveda-homenu")).toBe("factoria");
     expect(de("github-deploy-key-mercadona")).toBe("homenu");
-    // La bóveda del panel guarda lo del servidor y la clave de las copias de la base de homenu: sirve a dos, va a la factoría.
+    // La bóveda de homenu guarda la copia de lo que leen las sesiones y el .pem de dependabot-merge: factoria. La del panel guarda lo del servidor y la clave de las copias de la base de homenu: sirve a dos, va a la factoría.
     expect(de("1password-boveda-panel")).toBe("factoria");
     for (const id of ["github-app-sesiones", "1password-cuenta", "tailscale-cuenta", "hetzner-cuenta"]) expect(de(id), id).toBe("factoria");
     // El servidor aloja el panel y la copia de la base de homenu (INVENTARIO): sirve a dos, va a la factoría.
     expect(de("hetzner-servidor-panel")).toBe("factoria");
-    // Un mismo servicio reparte en proyectos distintos: «proyecto» no depende solo de «servicio».
-    for (const s of ["github", "1password"]) expect(new Set(datos.recursos.filter((r) => r.servicio === s).map((r) => r.proyecto)).size, s).toBeGreaterThan(1);
+    // Un mismo servicio reparte (github: apps a factoria, deploy key a homenu) en proyectos distintos: «proyecto» no depende solo de «servicio».
+    for (const s of ["github"]) expect(new Set(datos.recursos.filter((r) => r.servicio === s).map((r) => r.proyecto)).size, s).toBeGreaterThan(1);
   });
 
   it("«proyecto» es el campo, no un tipo: el tipo de un proyecto de un servicio es proyecto-servicio (#748)", () => {

@@ -9,8 +9,9 @@
  *   proyecto                     de qué proyecto es (PROYECTOS, scripts/lib/zonasProyecto.mjs). Obligatorio, sin valor por defecto
  *                                (#748). Regla del recurso compartido: va al proyecto que lo paga o lo administra y, si sirve a
  *                                varios sin que ninguno lo administre (Hetzner), a `factoria`.
- *                                Desempate (#770): la cuenta del servicio va a quien la paga; lo que vive dentro de ella (bóveda,
- *                                clave, deploy key, servidor) va al proyecto al que sirve en exclusiva, y a `factoria` si sirve a varios.
+ *                                Desempate (#770): la cuenta de un servicio va al proyecto al que sirve (los proyectos no pagan: paga
+ *                                Pablo); lo que vive dentro de ella (bóveda, clave, deploy key, servidor) va al proyecto al que sirve
+ *                                en exclusiva, y a `factoria` si sirve a varios.
  *                                Hetzner: el servidor `HoMenu-Panel` aloja el panel (panel) y la copia nocturna de la base de MenuPlan
  *                                (homenu, #273), así que sirve a dos y va a `factoria`; la bóveda `HoMenu-Panel` guarda lo del servidor y la clave de las copias, igual: `factoria`
  *   creado                       AAAA-MM-DD de alta o de la última rotación, o `por-confirmar`
