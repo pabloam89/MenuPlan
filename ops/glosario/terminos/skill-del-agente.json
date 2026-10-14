@@ -1,0 +1,15 @@
+{
+  "termino": "skill del agente",
+  "estado": "activo",
+  "clase": "campo",
+  "dominio": "base",
+  "definicion": "Una lista de skills que un agente trae cargadas desde el principio, cada una citada por su nombre.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "modelo",
+    "skill"
+  ]
+}

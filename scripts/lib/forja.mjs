@@ -582,9 +582,42 @@ export function problemasDeDeclaracion(datos, artefacto, vocabularios = {}) {
     if (c.clase === "ref" && !REFS_CAMPO.includes(c.ref)) malos.push(`${d}: una ref dice a qué apunta (${REFS_CAMPO.join(", ")}), no «${c.ref}»`);
     if (c.clase !== "ref" && "ref" in c) malos.push(`${d}: «ref» es solo de una ref`);
     if ("lista" in c && c.lista !== true) malos.push(`${d}: «lista» es true o no se pone`);
+    if (typeof c.termino !== "string" || !c.termino.trim()) malos.push(`${d}: «termino» es el nombre de un término del glosario (#744)`);
     if (typeof c.obligatorio !== "boolean") malos.push(`${d}: «obligatorio» es verdadero o falso`);
   }
   return malos;
+}
+
+/** La clase que ha de tener el término que define un campo (el glosario llama «campo» a una clave de una ficha o de un catálogo). */
+export const CLASE_DE_TERMINO_DE_CAMPO = "campo";
+
+/**
+ * El vínculo campo → glosario (#744, fondo #743; docs/ops/BASE-FORJA.md §9.1): cada campo de cada ficha de
+ * `campos_ficha` declara con `termino` el término activo del glosario que lo define. Varios campos pueden
+ * compartir uno (nombre, nota, fecha). Sin lista de excepciones. `terminos` es `leerGlosario(raiz).terminos`.
+ * Devuelve `{ campos, conVinculo, problemas }`: `conVinculo` cuenta los campos sin ningún problema.
+ */
+export function vinculosDeCampos(datos, terminos) {
+  const porNombre = new Map((terminos ?? []).map((t) => [t.termino, t]));
+  const problemas = [];
+  let campos = 0;
+  let conVinculo = 0;
+  for (const [artefacto, decl] of Object.entries(datos?.campos_ficha ?? {})) {
+    for (const [nombre, c] of Object.entries(decl?.campos ?? {})) {
+      campos += 1;
+      const d = `${artefacto}.${nombre}`;
+      const declarado = typeof c?.termino === "string" && c.termino.trim() !== "";
+      const t = declarado ? porNombre.get(c.termino) : undefined;
+      let malo = null;
+      if (!declarado) malo = "no declara su término del glosario (clave «termino»)";
+      else if (!t) malo = `su término «${c.termino}» no existe en el glosario`;
+      else if (t.estado === "retirado") malo = `su término «${c.termino}» está retirado (pasa a «${t.pasa_a}»)`;
+      else if (t.clase !== CLASE_DE_TERMINO_DE_CAMPO) malo = `su término «${c.termino}» es de clase ${t.clase} y un campo se define con uno de clase ${CLASE_DE_TERMINO_DE_CAMPO}`;
+      if (malo) problemas.push(`${d}: ${malo}`);
+      else conVinculo += 1;
+    }
+  }
+  return { campos, conVinculo, problemas };
 }
 
 const FECHA = /^\d{4}-\d{2}-\d{2}$/;
@@ -830,7 +863,7 @@ function mdCampos(datos) {
   const L = [
     "## Discreto y texto: los campos de cada ficha",
     "",
-    `Se sistematiza lo máximo posible con atributos discretos, aunque lo continuo nunca cabe entero en ellos. Un texto solo se admite como **hueco** (\`hueco: true\`) con una frase que diga qué cubre que lo discreto no alcanza; los textos que lee un LLM rellenan los huecos, y corregir es «qué falla en qué hueco». \`problemasDeCampos\` falla con un texto sin hueco, un enum fuera de vocabulario o una ref que no existe. El trinquete de campos (\`${RUTA_CAMPOS}\`) solo deja pasar un campo de texto a discreto, nunca al revés.`,
+    `Se sistematiza lo máximo posible con atributos discretos, aunque lo continuo nunca cabe entero en ellos. Un texto solo se admite como **hueco** (\`hueco: true\`) con una frase que diga qué cubre que lo discreto no alcanza; los textos que lee un LLM rellenan los huecos, y corregir es «qué falla en qué hueco». \`problemasDeCampos\` falla con un texto sin hueco, un enum fuera de vocabulario o una ref que no existe. El trinquete de campos (\`${RUTA_CAMPOS}\`) solo deja pasar un campo de texto a discreto, nunca al revés. Cada campo declara con \`termino\` el término activo del glosario, de clase campo, que lo define (varios pueden compartir uno); \`ops/glosario-conexion.test.js\` lo exige sin excepciones (#744).`,
     "",
     "| Clase | Qué es |",
     "|---|---|",
@@ -845,7 +878,7 @@ function mdCampos(datos) {
     L.push(`### Campos de \`${a}\``, "", decl.fuente, "");
     for (const [n, c] of Object.entries(decl.campos)) {
       const que = c.clase === "enum" ? `enum (${c.vocab})` : c.clase === "ref" ? `ref a ${c.ref}` : c.clase;
-      L.push(`- \`${n}\` — ${que}${c.lista ? ", lista" : ""}${c.obligatorio ? "" : ", opcional"}${c.hueco ? `. Hueco: ${c.cubre}` : ""}`);
+      L.push(`- \`${n}\` (término: ${c.termino}) — ${que}${c.lista ? ", lista" : ""}${c.obligatorio ? "" : ", opcional"}${c.hueco ? `. Hueco: ${c.cubre}` : ""}`);
     }
     L.push("");
   }

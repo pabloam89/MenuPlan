@@ -1,0 +1,14 @@
+{
+  "termino": "nota",
+  "estado": "activo",
+  "clase": "campo",
+  "dominio": "base",
+  "definicion": "Un texto breve que añade a un campo lo que su vocabulario cerrado no alcanza a decir.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "estado"
+  ]
+}
