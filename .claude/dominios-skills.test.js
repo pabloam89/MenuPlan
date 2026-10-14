@@ -131,7 +131,7 @@ describe("qué ficheros piden la línea del PR", () => {
     ["scripts/telegram-webhook.mjs", "telegram"],
     ["scripts/telegram-perfil.mjs", "telegram"],
     ["supabase/migrations/0090_x.sql", "supabase"],
-    ["supabase/ESTADO.md", "supabase"],
+    ["supabase/un-fichero-cualquiera.md", "supabase"], // cualquier fichero bajo supabase/: la ruta es de ejemplo, no un fichero que se lea
     ["scripts/apply-migration.mjs", "supabase"],
     [".github/workflows/tests.yml", "github"],
     [".github/pull_request_template.md", "github"],

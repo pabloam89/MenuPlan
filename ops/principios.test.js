@@ -17,8 +17,8 @@ import { leerJsonEn, leerRedaccion, problemasDeRedaccion } from "../scripts/lib/
  *  1. un principio propio no tiene su forma fija (campos, área, nombre, enunciado, porqué, fuente,
  *     detalle con su sección de verdad, origen), o un id o un nombre se repite con un delegado;
  *  2. queda algo sin migrar: un C/I/N de la auditoría de agentes o un punto de «Pensar en datos»
- *     sin principio, o una sección numerada de docs/datos/PRINCIPIOS.md o del N0 de entidades
- *     que ningún principio cita;
+ *     sin principio, o una sección numerada del N0 de entidades que ningún principio cita (las de
+ *     docs/datos/PRINCIPIOS.md, que es de HoMenu, las vigila supabase/principiosMigrados.test.js);
  *  3. docs/PRINCIPIOS.md no sale de la lista.
  * Al final, cada regla se ve fallar con datos malos: cada caso cambia UNA cosa.
  */
@@ -148,8 +148,7 @@ describe("la migración de las cinco listas y de la auditoría de agentes", () =
     expect(faltasDeMigracion(datos.principios, textos), "Cada C/I/N y cada punto de «Pensar en datos» va a un principio (origen); cada sección numerada, a un detalle").toEqual([]);
   });
 
-  it("las secciones de los documentos migrados se leen: 21 de datos y 13 del N0", () => {
-    expect(seccionesNumeradas(textos["docs/datos/PRINCIPIOS.md"]).length).toBeGreaterThanOrEqual(21);
+  it("las secciones del documento migrado se leen: 13 del N0 (las 21 de datos, en supabase/principiosMigrados.test.js)", () => {
     expect(seccionesNumeradas(textos["docs/entidades/N0-principios.md"]).length).toBeGreaterThanOrEqual(13);
   });
 
@@ -282,12 +281,11 @@ describe("se ven fallar", () => {
     expect(problemasDePrincipios(c, componerLista(c, delegados).principios, ctx).join("\n")).toMatch(/es un principio propio/);
   });
 
-  it("quitar un principio deja sin migrar su origen y sus secciones", () => {
+  it("quitar un principio deja sin migrar su origen", () => {
     const sin = datos.principios.filter((p) => p.id !== "closed-vocabulary");
     expect(faltasDeMigracion(datos.principios, textos)).toEqual([]);
     const f = faltasDeMigracion(sin, textos).join("\n");
     expect(f).toMatch(/origen C4: ningún principio lo recoge/);
-    expect(f).toMatch(/docs\/datos\/PRINCIPIOS\.md#4-vocabularios-cerrados: ningún principio la cita/);
   });
 
   it("un origen en dos principios", () => {

@@ -90,13 +90,13 @@ describe("rutas: cada glob de paths: casa con algún fichero", () => {
 
 describe("rutas: el lector", () => {
   it("saca rutas y nombres de fichero, y deja fuera comandos, comodines y marcadores", () => {
-    const texto = "Lee `docs/datos/PRINCIPIOS.md`, `pendientes.js` y `api/_bot/`; "
+    const texto = "Lee `docs/ops/BASE-FORJA.md`, `pendientes.js` y `api/_bot/`; "
       + "no `npm run build`, ni `src/**/*.jsx`, ni `src/lib/<dominio>Sync.js`, ni `https://x.com/a.md`.";
-    expect(rutasCitadas(texto).sort()).toEqual(["api/_bot/", "docs/datos/PRINCIPIOS.md", "pendientes.js"]);
+    expect(rutasCitadas(texto).sort()).toEqual(["api/_bot/", "docs/ops/BASE-FORJA.md", "pendientes.js"]);
   });
   it("una ruta inventada no existe", () => {
     expect(existe("src/no-existe-nunca.js")).toBe(false);
-    expect(existe("docs/datos/PRINCIPIOS.md")).toBe(true);
+    expect(existe("docs/ops/BASE-FORJA.md")).toBe(true);
   });
   it("lee los globs del frontmatter", () => {
     expect(globsDe('---\npaths:\n  - "src/**/*.jsx"\n  - api/*.js\n---\n# x')).toEqual(["src/**/*.jsx", "api/*.js"]);
