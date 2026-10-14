@@ -1,15 +1,15 @@
 {
-  "_": "El pool de bibliotecas de interfaz por elemento (#780, línea 2 del programa #774): una ficha por biblioteca de terceros candidata (o ya en uso, o retirada), con los campos del bloque Q de docs/diseno/META-DISENO.md más lo que añade esta línea (requisitos de stack, accesibilidad que declara, y qué elementos de la taxonomía cubre). Solo datos: no instala nada ni toca ninguna app; elegir una biblioteca es elegir tecnología y eso es de cada proyecto (línea 4). Los datos salen del dossier de investigación del comentario de #780 (lectura del 14 oct 2026); lo que el dossier no comprobó va con el valor `unverified` (nunca relleno por intuición) y el peso en kB no se mide aquí: se mide al elegir, con vite build. Los ids de vocabulario son inglés kebab (#566); los nombres de campo, en castellano como en la taxonomía. Campos de la ficha: id, nombre, rol, vinculo, mantenimiento (y ultimo_push con su estado_fuente), licencia (spdx, alcance, permite, y su fuente y URL), version, peso (dependencias y si se puede podar), importacion, react (peer declarado), requisitos (lo que exige del stack), movil, accesibilidad (qué declara la documentación, con su URL), cubre (elementos de ops/diseno/taxonomia.json, cada uno con su base, su acceso y su fuente), motivo_sin_cobertura, alternativa (otras fichas del mismo oficio que cubren algo igual: JUICIO, no medida), retirada (motivo, sucesora y, si hay sucesora, la URL de su fuente), dueno y comprobada. `cubre.base` dice si la cobertura la comprobó una fuente (`checked`, con su URL) o es juicio por el nombre de la biblioteca (`judgement`): una cifra de cobertura por juicio no es una medida. Una biblioteca `unmaintained` o `archived` no puede ser candidata: pasa a `retired` con su motivo y su sucesora si la hay. Los dos campos del bloque Q que dependen del proyecto, `envoltorio` (directa o detrás de un componente propio) y `reglas de uso` (qué piezas se admiten), no están en la ficha: los decide cada proyecto en su especificación (línea 4) y son los `decide_el_proyecto`. Lo lee scripts/lib/bibliotecasDiseno.mjs; lo vigila ops/diseno/pool.test.js; las cifras, node scripts/diseno/bibliotecas.mjs. La versión de React de un proyecto no se guarda aquí: cada ficha lleva su rango y `node scripts/diseno/bibliotecas.mjs [--react x.y]` cuenta las compatibles con la de package.json al pintar la cifra. `unverified` es el «no sé» común: en `rol` dice qué piezas da la biblioteca (no se ha comprobado); cómo se importa (`importacion`) y qué exige (`requisito`) tienen su campo y ningún valor de `rol` se repite en ellos.",
+  "_": "El pool de bibliotecas de interfaz por elemento (#780, línea 2 del programa #774; esquema limpio en #788): una ficha por biblioteca de terceros que puede elegirse (`candidate`) o que está descartada (`retired`), con los campos del bloque Q de docs/diseno/META-DISENO.md más lo que añade esta línea (requisitos de stack, accesibilidad que declara, y qué elementos de la taxonomía cubre). Solo datos: no instala nada ni toca ninguna app; elegir una biblioteca es elegir tecnología y eso es de cada proyecto (línea 4). Los datos salen del dossier de investigación del comentario de #780 (lectura del 14 oct 2026); el peso en kB no se mide aquí: se mide al elegir, al construir el proyecto. Una sola marca para lo que no se ha comprobado: `unverified`, nunca relleno por intuición. Un valor aparte, `not-applicable`, dice que el dato no corresponde a esa biblioteca (react.estado de una biblioteca que no es de React; version y peso.dependencias de una que no se instala como paquete). `null` no es «no sé»: solo dice que algo no existe (sin URL de fuente, sin sucesora, sin tope de React, sin retirada) y va siempre con la regla que lo explica en el test. El pool no guarda hechos de un proyecto: que un proyecto use una biblioteca y cómo la importa (paquete con versión fijada o ficheros copiados al repositorio), el envoltorio y las reglas de uso son `decide_el_proyecto`, con los nombres que tienen en el bloque Q, y los decide cada proyecto en su especificación (línea 4). La madurez de una pieza (`propuesto` a `retirado`) es del ciclo de vida de bloques.json, no de este vínculo. Los ids de vocabulario son inglés kebab en minúsculas (#566); los nombres de campo, en castellano como en la taxonomía. Campos de la ficha: id, nombre, rol, vinculo, mantenimiento (con mantenimiento_fuente), ultimo_push (con ultimo_push_fuente), licencia (spdx, alcance, permite, y su fuente y URL; la fuente `github` o `npm` lleva una URL del patrón de lectura.patron_de_url), version, peso (dependencias y si se puede podar), react (peer declarado), requisitos (solo lo que exige del stack; la lista vacía es «no exige nada»), plataforma (vale_en con los valores de plataformas de ops/diseno/taxonomia.json, y su URL), accesibilidad (qué declara la documentación, con su URL), cubre (elementos de ops/diseno/taxonomia.json, cada uno con su base, su acceso y su fuente), motivo_sin_cobertura, alternativa (otras fichas del mismo oficio que cubren algo igual: JUICIO, no medida), retirada (motivo, sucesora y, si hay sucesora, la URL de su fuente), dueno y comprobada. `cubre.base` dice si la cobertura la comprobó una fuente (`checked`, con su URL) o es juicio por el nombre de la biblioteca (`judgement`): una cifra de cobertura por juicio no es una medida. Una biblioteca `unmaintained` o `archived` no puede ser candidata: pasa a `retired` con su motivo y su sucesora si la hay. Lo lee scripts/lib/bibliotecasDiseno.mjs; lo vigila ops/diseno/pool.test.js; las cifras, node scripts/diseno/bibliotecas.mjs. La versión de React de un proyecto no se guarda aquí: cada ficha lleva su rango y `node scripts/diseno/bibliotecas.mjs [--react x.y]` cuenta las compatibles con la de package.json al pintar la cifra.",
   "lectura": {
     "fecha": "2026-10-14",
     "dossier": "https://github.com/pabloam89/MenuPlan/issues/780#issuecomment-6165019619",
-    "fuentes": {
-      "GH": "https://api.github.com/repos/<repo>: licencia SPDX, archived y pushed_at",
-      "NPM": "https://registry.npmjs.org/<paquete>/latest: versión, licencia, peerDependencies y número de dependencias",
-      "DOC": "La página oficial citada en la propia ficha"
+    "patron_de_url": {
+      "github": "https://api.github.com/repos/<repo>",
+      "npm": "https://registry.npmjs.org/<paquete>/latest"
     }
   },
   "decide_el_proyecto": [
+    "importación",
     "envoltorio",
     "reglas de uso"
   ],
@@ -23,7 +23,6 @@
       "unverified": "No se ha comprobado qué piezas da (el dossier no lo dice)"
     },
     "vinculo": {
-      "in-use": "Ya está en uso en un proyecto",
       "candidate": "Puede elegirse para un proyecto",
       "retired": "Descartada: sin mantenimiento o archivada; lleva motivo y, si la hay, sucesora"
     },
@@ -36,9 +35,9 @@
       "unverified": "No se ha comprobado"
     },
     "fuente_de_dato": {
-      "GH": "La API de GitHub del repositorio",
-      "NPM": "El registro de paquetes de npm",
-      "DOC": "La documentación oficial"
+      "github": "El repositorio en GitHub, por su API: licencia SPDX, archived, pushed_at y el README",
+      "npm": "El registro de paquetes de npm: versión, licencia, peerDependencies y número de dependencias",
+      "doc": "La documentación oficial; la URL de la página va con el dato"
     },
     "licencia_alcance": {
       "package": "La licencia vale para todo el paquete",
@@ -48,11 +47,6 @@
     "declaracion": {
       "yes": "La fuente lo declara",
       "no": "La fuente dice que no",
-      "unverified": "No se ha comprobado"
-    },
-    "importacion": {
-      "package": "Un paquete con versión fijada",
-      "copied-source": "Ficheros copiados al repositorio",
       "unverified": "No se ha comprobado"
     },
     "react_estado": {
@@ -65,8 +59,6 @@
       "react": "Necesita React",
       "tailwind": "Necesita Tailwind, o está pensada para él",
       "emotion": "Necesita Emotion, una biblioteca de estilos que se suma a las dependencias",
-      "web-components": "Funciona sin framework, como elementos web",
-      "css": "Solo hojas de estilo",
       "unverified": "No se ha comprobado qué exige"
     },
     "base_de_cobertura": {
@@ -80,7 +72,7 @@
     },
     "origen_de_alcance": {
       "mobbin-count": "Entre los 15 elementos con más ejemplos en el recuento de la fuente de la taxonomía, sin contar el grupo de imagen",
-      "encargo": "Elegido en el encargo #780 entre los más comunes por el recuento, fuera de esos 15",
+      "encargo": "Elegido en el encargo entre los más comunes por el recuento, fuera de esos 15",
       "panel": "Lo necesita el panel de la factoría, el primer proyecto"
     }
   },
@@ -192,8 +184,9 @@
       "rol": "headless",
       "vinculo": "candidate",
       "mantenimiento": "active",
+      "mantenimiento_fuente": "github",
       "ultimo_push": "2026-10-13",
-      "estado_fuente": "GH",
+      "ultimo_push_fuente": "github",
       "licencia": {
         "spdx": "MIT",
         "alcance": "package",
@@ -201,7 +194,7 @@
           "comercial": "yes",
           "redistribuir": "yes"
         },
-        "fuente": "NPM",
+        "fuente": "npm",
         "fuente_url": "https://registry.npmjs.org/radix-ui/latest"
       },
       "version": "1.8.1",
@@ -209,7 +202,6 @@
         "dependencias": 55,
         "podable": "unverified"
       },
-      "importacion": "package",
       "react": {
         "estado": "declared",
         "desde": "16.8",
@@ -218,7 +210,10 @@
       "requisitos": [
         "react"
       ],
-      "movil": "unverified",
+      "plataforma": {
+        "vale_en": "unverified",
+        "fuente_url": null
+      },
       "accesibilidad": {
         "aria": "yes",
         "teclado": "yes",
@@ -274,8 +269,9 @@
       "rol": "headless",
       "vinculo": "candidate",
       "mantenimiento": "active",
+      "mantenimiento_fuente": "github",
       "ultimo_push": "2026-10-13",
-      "estado_fuente": "GH",
+      "ultimo_push_fuente": "github",
       "licencia": {
         "spdx": "Apache-2.0",
         "alcance": "package",
@@ -283,7 +279,7 @@
           "comercial": "yes",
           "redistribuir": "yes"
         },
-        "fuente": "NPM",
+        "fuente": "npm",
         "fuente_url": "https://registry.npmjs.org/react-aria-components/latest"
       },
       "version": "1.22.1",
@@ -291,7 +287,6 @@
         "dependencias": 8,
         "podable": "unverified"
       },
-      "importacion": "package",
       "react": {
         "estado": "declared",
         "desde": "16.8",
@@ -300,7 +295,10 @@
       "requisitos": [
         "react"
       ],
-      "movil": "yes",
+      "plataforma": {
+        "vale_en": "unverified",
+        "fuente_url": null
+      },
       "accesibilidad": {
         "aria": "yes",
         "teclado": "yes",
@@ -380,8 +378,9 @@
       "rol": "headless",
       "vinculo": "candidate",
       "mantenimiento": "active",
+      "mantenimiento_fuente": "github",
       "ultimo_push": "2026-10-14",
-      "estado_fuente": "GH",
+      "ultimo_push_fuente": "github",
       "licencia": {
         "spdx": "MIT",
         "alcance": "package",
@@ -389,7 +388,7 @@
           "comercial": "yes",
           "redistribuir": "yes"
         },
-        "fuente": "NPM",
+        "fuente": "npm",
         "fuente_url": "https://registry.npmjs.org/@base-ui/react/latest"
       },
       "version": "1.9.0",
@@ -397,7 +396,6 @@
         "dependencias": 5,
         "podable": "yes"
       },
-      "importacion": "package",
       "react": {
         "estado": "declared",
         "desde": "17",
@@ -406,7 +404,10 @@
       "requisitos": [
         "react"
       ],
-      "movil": "unverified",
+      "plataforma": {
+        "vale_en": "unverified",
+        "fuente_url": null
+      },
       "accesibilidad": {
         "aria": "unverified",
         "teclado": "unverified",
@@ -504,8 +505,9 @@
       "rol": "headless",
       "vinculo": "candidate",
       "mantenimiento": "active",
+      "mantenimiento_fuente": "github",
       "ultimo_push": "2026-10-14",
-      "estado_fuente": "GH",
+      "ultimo_push_fuente": "github",
       "licencia": {
         "spdx": "MIT",
         "alcance": "package",
@@ -513,7 +515,7 @@
           "comercial": "yes",
           "redistribuir": "yes"
         },
-        "fuente": "NPM",
+        "fuente": "npm",
         "fuente_url": "https://registry.npmjs.org/@ark-ui/react/latest"
       },
       "version": "5.39.3",
@@ -521,7 +523,6 @@
         "dependencias": 69,
         "podable": "unverified"
       },
-      "importacion": "package",
       "react": {
         "estado": "declared",
         "desde": "18",
@@ -530,7 +531,10 @@
       "requisitos": [
         "react"
       ],
-      "movil": "unverified",
+      "plataforma": {
+        "vale_en": "unverified",
+        "fuente_url": null
+      },
       "accesibilidad": {
         "aria": "unverified",
         "teclado": "unverified",
@@ -598,8 +602,9 @@
       "rol": "headless",
       "vinculo": "candidate",
       "mantenimiento": "slow",
+      "mantenimiento_fuente": "github",
       "ultimo_push": "2026-04-13",
-      "estado_fuente": "GH",
+      "ultimo_push_fuente": "github",
       "licencia": {
         "spdx": "MIT",
         "alcance": "package",
@@ -607,7 +612,7 @@
           "comercial": "yes",
           "redistribuir": "yes"
         },
-        "fuente": "NPM",
+        "fuente": "npm",
         "fuente_url": "https://registry.npmjs.org/@headlessui/react/latest"
       },
       "version": "2.2.10",
@@ -615,7 +620,6 @@
         "dependencias": 5,
         "podable": "unverified"
       },
-      "importacion": "package",
       "react": {
         "estado": "declared",
         "desde": "18",
@@ -625,7 +629,10 @@
         "react",
         "tailwind"
       ],
-      "movil": "unverified",
+      "plataforma": {
+        "vale_en": "unverified",
+        "fuente_url": null
+      },
       "accesibilidad": {
         "aria": "unverified",
         "teclado": "unverified",
@@ -683,8 +690,9 @@
       "rol": "unverified",
       "vinculo": "candidate",
       "mantenimiento": "active",
+      "mantenimiento_fuente": "github",
       "ultimo_push": "2026-10-13",
-      "estado_fuente": "GH",
+      "ultimo_push_fuente": "github",
       "licencia": {
         "spdx": "MIT",
         "alcance": "package",
@@ -692,15 +700,14 @@
           "comercial": "yes",
           "redistribuir": "yes"
         },
-        "fuente": "GH",
+        "fuente": "github",
         "fuente_url": "https://api.github.com/repos/shadcn-ui/ui"
       },
-      "version": "cli",
+      "version": "not-applicable",
       "peso": {
-        "dependencias": null,
+        "dependencias": "not-applicable",
         "podable": "unverified"
       },
-      "importacion": "unverified",
       "react": {
         "estado": "unverified",
         "desde": null,
@@ -709,7 +716,10 @@
       "requisitos": [
         "unverified"
       ],
-      "movil": "unverified",
+      "plataforma": {
+        "vale_en": "unverified",
+        "fuente_url": null
+      },
       "accesibilidad": {
         "aria": "unverified",
         "teclado": "unverified",
@@ -734,8 +744,9 @@
       "rol": "full-kit",
       "vinculo": "candidate",
       "mantenimiento": "active",
+      "mantenimiento_fuente": "github",
       "ultimo_push": "2026-10-11",
-      "estado_fuente": "GH",
+      "ultimo_push_fuente": "github",
       "licencia": {
         "spdx": "MIT",
         "alcance": "package",
@@ -743,7 +754,7 @@
           "comercial": "yes",
           "redistribuir": "yes"
         },
-        "fuente": "NPM",
+        "fuente": "npm",
         "fuente_url": "https://registry.npmjs.org/@mantine/core/latest"
       },
       "version": "9.7.2",
@@ -751,7 +762,6 @@
         "dependencias": 5,
         "podable": "unverified"
       },
-      "importacion": "package",
       "react": {
         "estado": "declared",
         "desde": "19.2",
@@ -760,7 +770,10 @@
       "requisitos": [
         "react"
       ],
-      "movil": "unverified",
+      "plataforma": {
+        "vale_en": "unverified",
+        "fuente_url": null
+      },
       "accesibilidad": {
         "aria": "unverified",
         "teclado": "unverified",
@@ -864,8 +877,9 @@
       "rol": "full-kit",
       "vinculo": "candidate",
       "mantenimiento": "active",
+      "mantenimiento_fuente": "github",
       "ultimo_push": "2026-10-14",
-      "estado_fuente": "GH",
+      "ultimo_push_fuente": "github",
       "licencia": {
         "spdx": "MIT",
         "alcance": "package",
@@ -873,7 +887,7 @@
           "comercial": "yes",
           "redistribuir": "yes"
         },
-        "fuente": "NPM",
+        "fuente": "npm",
         "fuente_url": "https://registry.npmjs.org/@mui/material/latest"
       },
       "version": "9.5.0",
@@ -881,7 +895,6 @@
         "dependencias": 12,
         "podable": "unverified"
       },
-      "importacion": "package",
       "react": {
         "estado": "declared",
         "desde": "17",
@@ -891,7 +904,10 @@
         "react",
         "emotion"
       ],
-      "movil": "unverified",
+      "plataforma": {
+        "vale_en": "unverified",
+        "fuente_url": null
+      },
       "accesibilidad": {
         "aria": "unverified",
         "teclado": "unverified",
@@ -1007,8 +1023,9 @@
       "rol": "full-kit",
       "vinculo": "candidate",
       "mantenimiento": "active",
+      "mantenimiento_fuente": "github",
       "ultimo_push": "2026-10-12",
-      "estado_fuente": "GH",
+      "ultimo_push_fuente": "github",
       "licencia": {
         "spdx": "MIT",
         "alcance": "package",
@@ -1016,7 +1033,7 @@
           "comercial": "yes",
           "redistribuir": "yes"
         },
-        "fuente": "NPM",
+        "fuente": "npm",
         "fuente_url": "https://registry.npmjs.org/@chakra-ui/react/latest"
       },
       "version": "3.37.0",
@@ -1024,7 +1041,6 @@
         "dependencias": 7,
         "podable": "unverified"
       },
-      "importacion": "package",
       "react": {
         "estado": "declared",
         "desde": "18",
@@ -1034,7 +1050,10 @@
         "react",
         "emotion"
       ],
-      "movil": "unverified",
+      "plataforma": {
+        "vale_en": "unverified",
+        "fuente_url": null
+      },
       "accesibilidad": {
         "aria": "unverified",
         "teclado": "unverified",
@@ -1114,8 +1133,9 @@
       "rol": "full-kit",
       "vinculo": "candidate",
       "mantenimiento": "active",
+      "mantenimiento_fuente": "github",
       "ultimo_push": "2026-10-14",
-      "estado_fuente": "GH",
+      "ultimo_push_fuente": "github",
       "licencia": {
         "spdx": "MIT",
         "alcance": "package",
@@ -1123,7 +1143,7 @@
           "comercial": "yes",
           "redistribuir": "yes"
         },
-        "fuente": "NPM",
+        "fuente": "npm",
         "fuente_url": "https://registry.npmjs.org/antd/latest"
       },
       "version": "6.6.6",
@@ -1131,7 +1151,6 @@
         "dependencias": 48,
         "podable": "unverified"
       },
-      "importacion": "package",
       "react": {
         "estado": "declared",
         "desde": "18",
@@ -1140,7 +1159,10 @@
       "requisitos": [
         "react"
       ],
-      "movil": "unverified",
+      "plataforma": {
+        "vale_en": "unverified",
+        "fuente_url": null
+      },
       "accesibilidad": {
         "aria": "unverified",
         "teclado": "unverified",
@@ -1248,8 +1270,9 @@
       "rol": "single-piece",
       "vinculo": "candidate",
       "mantenimiento": "active",
+      "mantenimiento_fuente": "github",
       "ultimo_push": "2026-10-12",
-      "estado_fuente": "GH",
+      "ultimo_push_fuente": "github",
       "licencia": {
         "spdx": "MIT",
         "alcance": "package",
@@ -1257,7 +1280,7 @@
           "comercial": "yes",
           "redistribuir": "yes"
         },
-        "fuente": "NPM",
+        "fuente": "npm",
         "fuente_url": "https://registry.npmjs.org/@tanstack/react-table/latest"
       },
       "version": "9.3.1",
@@ -1265,7 +1288,6 @@
         "dependencias": 2,
         "podable": "unverified"
       },
-      "importacion": "package",
       "react": {
         "estado": "declared",
         "desde": "18",
@@ -1274,7 +1296,10 @@
       "requisitos": [
         "react"
       ],
-      "movil": "unverified",
+      "plataforma": {
+        "vale_en": "unverified",
+        "fuente_url": null
+      },
       "accesibilidad": {
         "aria": "unverified",
         "teclado": "unverified",
@@ -1293,7 +1318,7 @@
     },
     {
       "retirada": {
-        "motivo": "El README del repositorio dice «This repo is unmaintained» (lectura del 14 oct 2026). Base UI trae un componente de cajón (DOC base-ui.com); no hay sucesora declarada.",
+        "motivo": "El README del repositorio dice «This repo is unmaintained» (lectura del 14 oct 2026). Base UI trae un componente de cajón (https://base-ui.com); no hay sucesora declarada.",
         "sucesora": null,
         "fuente_url": null
       },
@@ -1306,8 +1331,9 @@
       "rol": "single-piece",
       "vinculo": "retired",
       "mantenimiento": "unmaintained",
+      "mantenimiento_fuente": "github",
       "ultimo_push": "2025-10-03",
-      "estado_fuente": "DOC",
+      "ultimo_push_fuente": "github",
       "licencia": {
         "spdx": "MIT",
         "alcance": "package",
@@ -1315,7 +1341,7 @@
           "comercial": "yes",
           "redistribuir": "yes"
         },
-        "fuente": "NPM",
+        "fuente": "npm",
         "fuente_url": "https://registry.npmjs.org/vaul/latest"
       },
       "version": "1.1.2",
@@ -1323,7 +1349,6 @@
         "dependencias": 1,
         "podable": "unverified"
       },
-      "importacion": "package",
       "react": {
         "estado": "declared",
         "desde": "16.8",
@@ -1332,7 +1357,10 @@
       "requisitos": [
         "react"
       ],
-      "movil": "unverified",
+      "plataforma": {
+        "vale_en": "unverified",
+        "fuente_url": null
+      },
       "accesibilidad": {
         "aria": "unverified",
         "teclado": "unverified",
@@ -1368,8 +1396,9 @@
       "rol": "single-piece",
       "vinculo": "candidate",
       "mantenimiento": "active",
+      "mantenimiento_fuente": "github",
       "ultimo_push": "2026-08-10",
-      "estado_fuente": "GH",
+      "ultimo_push_fuente": "github",
       "licencia": {
         "spdx": "MIT",
         "alcance": "package",
@@ -1377,7 +1406,7 @@
           "comercial": "yes",
           "redistribuir": "yes"
         },
-        "fuente": "NPM",
+        "fuente": "npm",
         "fuente_url": "https://registry.npmjs.org/sonner/latest"
       },
       "version": "2.0.8",
@@ -1385,7 +1414,6 @@
         "dependencias": 0,
         "podable": "unverified"
       },
-      "importacion": "package",
       "react": {
         "estado": "declared",
         "desde": "18",
@@ -1394,7 +1422,10 @@
       "requisitos": [
         "react"
       ],
-      "movil": "unverified",
+      "plataforma": {
+        "vale_en": "unverified",
+        "fuente_url": null
+      },
       "accesibilidad": {
         "aria": "unverified",
         "teclado": "unverified",
@@ -1422,8 +1453,9 @@
       "rol": "single-piece",
       "vinculo": "candidate",
       "mantenimiento": "idle",
+      "mantenimiento_fuente": "github",
       "ultimo_push": "2025-10-29",
-      "estado_fuente": "GH",
+      "ultimo_push_fuente": "github",
       "licencia": {
         "spdx": "MIT",
         "alcance": "package",
@@ -1431,7 +1463,7 @@
           "comercial": "yes",
           "redistribuir": "yes"
         },
-        "fuente": "NPM",
+        "fuente": "npm",
         "fuente_url": "https://registry.npmjs.org/cmdk/latest"
       },
       "version": "1.1.1",
@@ -1439,7 +1471,6 @@
         "dependencias": 4,
         "podable": "unverified"
       },
-      "importacion": "package",
       "react": {
         "estado": "declared",
         "desde": "18",
@@ -1448,7 +1479,10 @@
       "requisitos": [
         "react"
       ],
-      "movil": "unverified",
+      "plataforma": {
+        "vale_en": "unverified",
+        "fuente_url": null
+      },
       "accesibilidad": {
         "aria": "unverified",
         "teclado": "unverified",
@@ -1469,8 +1503,9 @@
       "rol": "single-piece",
       "vinculo": "candidate",
       "mantenimiento": "active",
+      "mantenimiento_fuente": "github",
       "ultimo_push": "2026-10-12",
-      "estado_fuente": "GH",
+      "ultimo_push_fuente": "github",
       "licencia": {
         "spdx": "MIT",
         "alcance": "package",
@@ -1478,7 +1513,7 @@
           "comercial": "yes",
           "redistribuir": "yes"
         },
-        "fuente": "NPM",
+        "fuente": "npm",
         "fuente_url": "https://registry.npmjs.org/embla-carousel-react/latest"
       },
       "version": "8.6.0",
@@ -1486,7 +1521,6 @@
         "dependencias": 2,
         "podable": "unverified"
       },
-      "importacion": "package",
       "react": {
         "estado": "declared",
         "desde": "16.8",
@@ -1495,7 +1529,10 @@
       "requisitos": [
         "react"
       ],
-      "movil": "unverified",
+      "plataforma": {
+        "vale_en": "unverified",
+        "fuente_url": null
+      },
       "accesibilidad": {
         "aria": "unverified",
         "teclado": "unverified",
@@ -1525,8 +1562,9 @@
       "rol": "full-kit",
       "vinculo": "candidate",
       "mantenimiento": "active",
+      "mantenimiento_fuente": "github",
       "ultimo_push": "2026-10-06",
-      "estado_fuente": "GH",
+      "ultimo_push_fuente": "github",
       "licencia": {
         "spdx": "MIT",
         "alcance": "package",
@@ -1534,7 +1572,7 @@
           "comercial": "yes",
           "redistribuir": "yes"
         },
-        "fuente": "NPM",
+        "fuente": "npm",
         "fuente_url": "https://registry.npmjs.org/konsta/latest"
       },
       "version": "5.5.0",
@@ -1542,7 +1580,6 @@
         "dependencias": 1,
         "podable": "unverified"
       },
-      "importacion": "package",
       "react": {
         "estado": "undeclared",
         "desde": null,
@@ -1551,7 +1588,10 @@
       "requisitos": [
         "tailwind"
       ],
-      "movil": "yes",
+      "plataforma": {
+        "vale_en": "unverified",
+        "fuente_url": null
+      },
       "accesibilidad": {
         "aria": "unverified",
         "teclado": "unverified",
@@ -1653,8 +1693,9 @@
       "rol": "full-kit",
       "vinculo": "candidate",
       "mantenimiento": "active",
+      "mantenimiento_fuente": "github",
       "ultimo_push": "2026-10-14",
-      "estado_fuente": "GH",
+      "ultimo_push_fuente": "github",
       "licencia": {
         "spdx": "MIT",
         "alcance": "package",
@@ -1662,7 +1703,7 @@
           "comercial": "yes",
           "redistribuir": "yes"
         },
-        "fuente": "NPM",
+        "fuente": "npm",
         "fuente_url": "https://registry.npmjs.org/@ionic/react/latest"
       },
       "version": "9.0.7",
@@ -1670,7 +1711,6 @@
         "dependencias": 4,
         "podable": "unverified"
       },
-      "importacion": "package",
       "react": {
         "estado": "declared",
         "desde": "18",
@@ -1679,7 +1719,10 @@
       "requisitos": [
         "react"
       ],
-      "movil": "yes",
+      "plataforma": {
+        "vale_en": "unverified",
+        "fuente_url": null
+      },
       "accesibilidad": {
         "aria": "unverified",
         "teclado": "unverified",
@@ -1785,8 +1828,9 @@
       "rol": "css-only",
       "vinculo": "candidate",
       "mantenimiento": "active",
+      "mantenimiento_fuente": "github",
       "ultimo_push": "2026-10-13",
-      "estado_fuente": "GH",
+      "ultimo_push_fuente": "github",
       "licencia": {
         "spdx": "MIT",
         "alcance": "package",
@@ -1794,7 +1838,7 @@
           "comercial": "yes",
           "redistribuir": "yes"
         },
-        "fuente": "NPM",
+        "fuente": "npm",
         "fuente_url": "https://registry.npmjs.org/daisyui/latest"
       },
       "version": "5.7.50",
@@ -1802,7 +1846,6 @@
         "dependencias": 0,
         "podable": "unverified"
       },
-      "importacion": "package",
       "react": {
         "estado": "not-applicable",
         "desde": null,
@@ -1811,7 +1854,10 @@
       "requisitos": [
         "tailwind"
       ],
-      "movil": "unverified",
+      "plataforma": {
+        "vale_en": "unverified",
+        "fuente_url": null
+      },
       "accesibilidad": {
         "aria": "unverified",
         "teclado": "unverified",
@@ -1893,8 +1939,9 @@
       "rol": "unverified",
       "vinculo": "candidate",
       "mantenimiento": "unverified",
-      "ultimo_push": null,
-      "estado_fuente": null,
+      "mantenimiento_fuente": null,
+      "ultimo_push": "unverified",
+      "ultimo_push_fuente": null,
       "licencia": {
         "spdx": "MIT",
         "alcance": "core-only",
@@ -1902,24 +1949,24 @@
           "comercial": "yes",
           "redistribuir": "yes"
         },
-        "fuente": "DOC",
+        "fuente": "doc",
         "fuente_url": "https://webawesome.com/pricing"
       },
-      "version": "unread",
+      "version": "unverified",
       "peso": {
-        "dependencias": null,
+        "dependencias": "unverified",
         "podable": "unverified"
       },
-      "importacion": "unverified",
       "react": {
         "estado": "not-applicable",
         "desde": null,
         "hasta": null
       },
-      "requisitos": [
-        "web-components"
-      ],
-      "movil": "unverified",
+      "requisitos": [],
+      "plataforma": {
+        "vale_en": "unverified",
+        "fuente_url": null
+      },
       "accesibilidad": {
         "aria": "unverified",
         "teclado": "unverified",
@@ -1963,8 +2010,9 @@
       "rol": "unverified",
       "vinculo": "retired",
       "mantenimiento": "archived",
+      "mantenimiento_fuente": "github",
       "ultimo_push": "2026-05-14",
-      "estado_fuente": "GH",
+      "ultimo_push_fuente": "github",
       "licencia": {
         "spdx": "MIT",
         "alcance": "package",
@@ -1972,24 +2020,24 @@
           "comercial": "yes",
           "redistribuir": "yes"
         },
-        "fuente": "GH",
+        "fuente": "github",
         "fuente_url": "https://api.github.com/repos/shoelace-style/shoelace"
       },
-      "version": "unread",
+      "version": "unverified",
       "peso": {
-        "dependencias": null,
+        "dependencias": "unverified",
         "podable": "unverified"
       },
-      "importacion": "unverified",
       "react": {
         "estado": "not-applicable",
         "desde": null,
         "hasta": null
       },
-      "requisitos": [
-        "web-components"
-      ],
-      "movil": "unverified",
+      "requisitos": [],
+      "plataforma": {
+        "vale_en": "unverified",
+        "fuente_url": null
+      },
       "accesibilidad": {
         "aria": "unverified",
         "teclado": "unverified",
@@ -2014,8 +2062,9 @@
       "rol": "css-only",
       "vinculo": "retired",
       "mantenimiento": "archived",
+      "mantenimiento_fuente": "github",
       "ultimo_push": "2026-10-04",
-      "estado_fuente": "GH",
+      "ultimo_push_fuente": "github",
       "licencia": {
         "spdx": "MIT",
         "alcance": "package",
@@ -2023,24 +2072,24 @@
           "comercial": "yes",
           "redistribuir": "yes"
         },
-        "fuente": "GH",
+        "fuente": "github",
         "fuente_url": "https://api.github.com/repos/picocss/pico"
       },
-      "version": "unread",
+      "version": "unverified",
       "peso": {
-        "dependencias": null,
+        "dependencias": "unverified",
         "podable": "unverified"
       },
-      "importacion": "unverified",
       "react": {
         "estado": "not-applicable",
         "desde": null,
         "hasta": null
       },
-      "requisitos": [
-        "css"
-      ],
-      "movil": "unverified",
+      "requisitos": [],
+      "plataforma": {
+        "vale_en": "unverified",
+        "fuente_url": null
+      },
       "accesibilidad": {
         "aria": "unverified",
         "teclado": "unverified",
@@ -2052,17 +2101,18 @@
     },
     {
       "retirada": null,
-      "motivo_sin_cobertura": null,
+      "motivo_sin_cobertura": "Falta leer su catálogo de iconos: ninguna fuente de la biblioteca se ha comprobado.",
       "alternativa": [],
       "dueno": "constructor",
       "comprobada": "2026-10-14",
       "id": "nucleo",
       "nombre": "Nucleo (iconos)",
       "rol": "icons",
-      "vinculo": "in-use",
+      "vinculo": "candidate",
       "mantenimiento": "unverified",
-      "ultimo_push": null,
-      "estado_fuente": null,
+      "mantenimiento_fuente": null,
+      "ultimo_push": "unverified",
+      "ultimo_push_fuente": null,
       "licencia": {
         "spdx": "unverified",
         "alcance": "unverified",
@@ -2073,12 +2123,11 @@
         "fuente": null,
         "fuente_url": null
       },
-      "version": "unread",
+      "version": "unverified",
       "peso": {
-        "dependencias": null,
+        "dependencias": "unverified",
         "podable": "unverified"
       },
-      "importacion": "copied-source",
       "react": {
         "estado": "unverified",
         "desde": null,
@@ -2087,7 +2136,10 @@
       "requisitos": [
         "unverified"
       ],
-      "movil": "unverified",
+      "plataforma": {
+        "vale_en": "unverified",
+        "fuente_url": null
+      },
       "accesibilidad": {
         "aria": "unverified",
         "teclado": "unverified",
@@ -2095,14 +2147,7 @@
         "wcag": "unverified",
         "fuente_url": null
       },
-      "cubre": [
-        {
-          "elemento": "icon",
-          "base": "checked",
-          "acceso": "unverified",
-          "fuente_url": "https://github.com/pabloam89/MenuPlan/blob/staging/DESIGN_SYSTEM.md"
-        }
-      ]
+      "cubre": []
     }
   ]
 }
