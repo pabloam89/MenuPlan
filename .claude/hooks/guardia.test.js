@@ -79,6 +79,65 @@ describe("hábitos que ya rompieron cosas", () => {
   );
   it.each(["npx vite build", "vite build --mode staging"])("deniega %s", (c) => expect(bash(c)).toBe("deny"));
   it("npm run build sí", () => expect(bash("npm run build")).toBe(null));
+
+  // #284 (caso #283): la suite entera en local ahoga el PC con varias sesiones; la corre el CI.
+  it.each([
+    "npm test",
+    "npm t",
+    "npm run test",
+    "npm test -- --reporter=dot",
+    "npm test 2>&1 | tail -20",
+    "npx vitest run",
+    "npx -y vitest run",
+    "npx vitest",
+    "vitest run",
+    "vitest run --reporter dot",
+    "npx vitest run -t 'nombre del test'",
+    "node node_modules/vitest/vitest.mjs run",
+    "cd /c/dev/MenuPlan-x && npm test",
+    "git fetch && npm test > /tmp/salida.txt",
+    "timeout 600 npx vitest run",
+    "TZ=UTC npm test",
+    "bash -c \"npm test\"",
+    "(cd /c/dev/MenuPlan-x; npm test)",
+  ])("niega la suite entera: %s", (c) => {
+    const r = decidir({ tool_name: "Bash", tool_input: { command: c } }, ctx());
+    expect(r?.aviso, c).toBe("suite-entera-en-local");
+  });
+  it("también desde PowerShell, y el mensaje da la salida y la alternativa", () => {
+    const r = decidir({ tool_name: "PowerShell", tool_input: { command: "Set-Location C:\\dev\\MenuPlan-x; npm test" } }, ctx());
+    expect(r.decision).toBe("deny");
+    expect(r.motivo).toMatch(/npm run vecinos/);
+    expect(r.motivo).toMatch(/MENUPLAN_SUITE_ENTERA=1/);
+    expect(r.motivo).toMatch(/CI/);
+  });
+  it.each([
+    "npm test -- scripts/lib/env.test.js",
+    "npm test src/lib",
+    "npx vitest run .claude/hooks/guardia.test.js",
+    "npx vitest run scripts/lib/prioridad.test.js --testTimeout 300000",
+    "vitest run --changed",
+    "npx vitest related src/lib/solver.js",
+    "node node_modules/vitest/vitest.mjs run scripts/__run/build.test.js",
+    "npm run vecinos",
+    "npm run test-del-juez",
+    "MENUPLAN_SUITE_ENTERA=1 npm test",
+    "export MENUPLAN_SUITE_ENTERA=1 && npx vitest run",
+    // Nombrar la orden no es lanzarla (fondo #174): mensajes, cuerpos, heredocs, grep, echo.
+    "git commit -m 'la guardia niega npm test a secas'",
+    "gh issue comment 284 --body 'no lances npm test ni npx vitest run'",
+    "grep -rn \"npm test\" docs",
+    "echo 'npm test'",
+    "cat > /tmp/nota.md <<'EOF'\nnpm test\nnpx vitest run\nEOF",
+  ])("deja pasar %s", (c) => expect(bash(c)).toBe(null));
+  it("PowerShell con la salida explícita", () => {
+    expect(decidir({ tool_name: "PowerShell", tool_input: { command: "$env:MENUPLAN_SUITE_ENTERA=1; npm test" } }, ctx())).toBe(null);
+  });
+  it("en el CI no se frena", () => expect(bash("npm test", ctx({ enCI: true }))).toBe(null));
+  it("contextoReal lee el CI del entorno", () => {
+    expect(contextoReal(RAIZ, {}, { env: { CI: "true" }, gitDado: () => "" }).enCI).toBe(true);
+    expect(contextoReal(RAIZ, {}, { env: {}, gitDado: () => "" }).enCI).toBe(false);
+  });
   // #332: con la sesión de Pablo en la CLI, una sesión se llevaba las claves de producción.
   it.each([
     "vercel env pull --environment=production .env.prod",
@@ -604,7 +663,7 @@ describe("puerta de lectura: abre la skill antes del primer comando de riesgo", 
 
   it("las lecturas y lo de cada día no tienen puerta", () => {
     const c = sesion();
-    for (const cmd of ["node scripts/verificar-estado.mjs", "git status --short", "gh pr view 3", "gh pr checks 3", "node scripts/telegram-webhook.mjs info", "npm test"]) {
+    for (const cmd of ["node scripts/verificar-estado.mjs", "git status --short", "gh pr view 3", "gh pr checks 3", "node scripts/telegram-webhook.mjs info", "npm run vecinos"]) {
       expect(bash(cmd, c), cmd).toBe(null);
     }
   });
@@ -1223,8 +1282,8 @@ describe("credenciales de la sesión: ronda de jueces (#447)", () => {
   ])("el & suelto no esconde la segunda orden: %s", (c) => expect(bash(c)).toBe("deny"));
 
   it.each([
-    "npm test 2>&1",
-    "npm test &> /tmp/salida.txt",
+    "npm test -- scripts/lib/env.test.js 2>&1",
+    "npx vitest run .claude &> /tmp/salida.txt",
     "git fetch origin staging >/dev/null 2>&1",
     "gh api 'repos/pabloam89/MenuPlan/pulls?state=open&per_page=5'",
     "git status && git log -1",

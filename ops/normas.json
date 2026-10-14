@@ -2094,23 +2094,25 @@
       "sujeto": "sesion",
       "fuerza": "debe",
       "exigencia": "lanzar los tests de los ficheros que toca y no la suite entera",
-      "nota": "La suite entera solo justo antes de abrir un PR.",
+      "nota": "La suite entera la corre el CI de cada PR. En local la guardia la niega (#284) salvo con MENUPLAN_SUITE_ENTERA=1, para cuando se toca algo transversal.",
       "donde": [
         "CLAUDE.md de usuario",
         "CLAUDE.md",
-        ".claude/rules/tests.md"
+        ".claude/rules/tests.md",
+        ".claude/hooks/guardia.mjs",
+        ".claude/hooks/suite.mjs"
       ],
-      "ejecutor": "nada",
-      "alcance": "nadie",
-      "ante_fallo": "no_aplica",
-      "control": "juicio",
-      "control_tipo": "juicio",
-      "control_procesador": "juez",
-      "control_fuerza": "avisa",
-      "control_momento": "pr",
-      "control_que_mira": "contenido",
+      "ejecutor": "guardia",
+      "alcance": "solo_claude",
+      "ante_fallo": "abierto",
+      "control": ".claude/hooks/guardia.test.js",
+      "control_tipo": "test",
+      "control_procesador": "codigo",
+      "control_fuerza": "bloquea",
+      "control_momento": "editar",
+      "control_que_mira": "comportamiento",
       "control_cobertura": "parcial",
-      "veredicto": "blanda",
+      "veredicto": "semidura",
       "riesgo": "bajo",
       "issue": 284,
       "principio": "test-is-the-contract",
@@ -2118,8 +2120,7 @@
       "lado": "horizontal",
       "acciones": [
         "construir"
-      ],
-      "test_del_juez": null
+      ]
     },
     {
       "id": "lecciones-a-un-test",

@@ -2,6 +2,7 @@ import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import { cargarEnv, esReferencia, leerFichero } from './scripts/lib/env.mjs'
+import { bajarPrioridad } from './scripts/lib/prioridad.mjs'
 import { color } from './src/design/tokens.js'
 
 function readJsonBody(req) {
@@ -129,7 +130,14 @@ function devDishPhotoApi(env) {
   }
 }
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, command }) => {
+  // Tests y build en local, con prioridad baja (#284): el PC sigue fluido con
+  // varias sesiones a la vez. Aquí y no en un envoltorio porque este fichero lo
+  // cargan todos los caminos (npm test, npx vitest, vecinos, npm run build) y
+  // antes de lanzar los workers, que heredan la prioridad. No en el CI ni en
+  // Vercel; tampoco en `npm run dev`, que no es un trabajo pesado.
+  if (command === 'build' || process.env.VITEST) bajarPrioridad()
+
   // .env.local puede guardar direcciones de 1Password (op://…) en vez de claves:
   // se resuelven aquí, antes de loadEnv, porque Vite deja que process.env pise
   // al fichero. En los tests no: corren sin claves, como en el CI. Tolerante:
