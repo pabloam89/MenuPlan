@@ -7,6 +7,8 @@
 //      o un tiempo agotado (una escritura no se repite).
 //   3. La tabla cerrada resultado × motivo: cada combinación permitida da su línea y cualquier otra falla.
 //   4. El barrido: ningún script llama a `gh` a pelo fuera del punto único y de la lista de excepciones.
+// Este test no lanza ningún hook (nombra los ficheros de hooks solo como rutas del barrido), así que no
+// escribe en el registro de eventos y no necesita fijar MENUPLAN_FABRICA_DIR.
 // Ningún token es real: son `ghs_…` inventados, y los mensajes de fallo pasan por `tachado`.
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";

@@ -247,7 +247,7 @@ El shim de E1 no lo ve ningún script que llame a `execFileSync("gh")` sin shell
 | Cuándo renueva | ANTES de la llamada, por edad y por caché, nunca por el código de la respuesta. El token del proceso es el de la caché y tiene menos de 45 min: se usa. Es otro y la caché tiene uno vigente: se usa el de la caché (`cache-mas-nueva`, sin canjear ni mirar su edad). Si no: canje por `token-sesion.mjs --comprobar` (deja el token en la caché, no lo imprime) y se relee la caché (`vencida-por-edad`). La edad sale de `expiraEn` menos 60 min: sin campo nuevo ni cambio de `VERSION` |
 | Reintento | **ninguno**: una escritura no se repite. Un 5xx o un tiempo agotado llegan a quien llama tal cual |
 | Fallo del canje | la llamada se hace igual, una vez, con el token que había (`fallo` + causa de `MOTIVOS`); tras un fallo, 30 s sin canjear (`fallo-reciente`, el mismo fichero que el shim) |
-| Línea | `credencial-sesion resultado: renovada|sin-renovar|fallo motivo: <MOTIVOS o ->` por stderr, sin token; `sin-renovar` una sola vez por proceso. Tabla cerrada en `scripts/ghConRenovacion.test.js` |
+| Línea | `credencial-sesion resultado: <renovada, sin-renovar o fallo> motivo: <uno de MOTIVOS, o ->` por stderr, sin token; `sin-renovar` una sola vez por proceso. Tabla cerrada en `scripts/ghConRenovacion.test.js` |
 | CI | con `GITHUB_ACTIONS=true` no toca nada: el token es el del workflow |
 | Excepciones (6) | `.claude/hooks/avisos.mjs`, `guardia.mjs`, `migraciones.mjs` (fallan abiertos con su tiempo corto; los lanza Claude Code); `scripts/lib/tokenSesion.mjs` (es el propio canje); `scripts/lib/cupos.mjs` (mide el cupo de una identidad); `scripts/rulesets.mjs` (`gh auth token` es el acceso de Pablo). El test de barrido falla ante un `gh` nuevo fuera de la lista |
 
