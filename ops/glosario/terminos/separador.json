@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Un elemento de interfaz, una línea o un espacio, que separa dos grupos de contenido.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "datos",
+  "scope": "horizontal",
   "definicion": "Un fichero SQL numerado que cambia la base y se aplica con el script de migraciones.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

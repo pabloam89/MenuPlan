@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Una carpeta de .claude/skills/ con su SKILL.md, sus capas y sus casos de prueba, que una sesión abre por su nombre; tiene uno de los tipos de la forja, salvo la pieza meta.",
   "sinonimos_prohibidos": [
     "runbook",

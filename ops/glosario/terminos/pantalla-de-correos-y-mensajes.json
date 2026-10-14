@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que lista o muestra correos y mensajes recibidos o enviados.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

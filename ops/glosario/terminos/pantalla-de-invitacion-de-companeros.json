@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que permite invitar a otras personas a un equipo o a un espacio común.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Una razón de fondo del producto, con su fuente, que decide cómo se diseña algo para las familias; la de una norma de proceso es su porqué.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

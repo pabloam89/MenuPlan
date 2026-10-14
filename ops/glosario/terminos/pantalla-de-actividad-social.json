@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que muestra, en orden, lo que publican las personas y cuentas a las que se sigue.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

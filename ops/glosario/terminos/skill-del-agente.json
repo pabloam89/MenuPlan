@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "campo",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Una lista de skills que un agente trae cargadas desde el principio, cada una citada por su nombre.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

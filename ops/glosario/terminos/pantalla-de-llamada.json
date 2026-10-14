@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que muestra una llamada de voz o de vídeo en curso.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

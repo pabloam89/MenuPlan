@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que reúne envío, método y total para cerrar una compra.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

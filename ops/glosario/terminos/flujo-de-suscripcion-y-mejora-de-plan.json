@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Un flujo de usuario que lleva a la persona a contratar una suscripción o a pasar a un plan superior.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

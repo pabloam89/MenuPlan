@@ -69,8 +69,10 @@ export const ORIGENES = {
 };
 const TODOS_ORIGENES = [...ORIGENES.agentes, ...ORIGENES.claude];
 
-/** Documentos cuyas secciones numeradas tienen que quedar citadas por algún `detalle` (las listas migradas). */
-export const DOCUMENTOS_MIGRADOS = ["docs/datos/PRINCIPIOS.md", "docs/entidades/N0-principios.md"];
+/** Documentos de la casa cuyas secciones numeradas tienen que quedar citadas por algún `detalle` (las listas migradas). */
+export const DOCUMENTOS_MIGRADOS = ["docs/entidades/N0-principios.md"];
+/** Lo mismo para los documentos de un proyecto (HoMenu): los vigila un test de la zona del proyecto, no de la casa (#710, PR 6). */
+export const DOCUMENTOS_MIGRADOS_DE_PROYECTO = ["docs/datos/PRINCIPIOS.md"];
 
 /**
  * Techo de principios sin ninguna norma (`principios_sin_norma`), propios o de un catálogo
@@ -370,14 +372,17 @@ export function problemasDePrincipios(propio, lista, { existe = () => true, leer
 /**
  * Lo que falta por migrar: orígenes (C/I/N y los puntos de «Pensar en datos») que ningún
  * principio declara, o que declaran dos, y secciones numeradas de los documentos migrados que
- * ningún `detalle` cita. `textos`: { ruta: markdown } de DOCUMENTOS_MIGRADOS.
+ * ningún `detalle` cita. `textos`: { ruta: markdown } de DOCUMENTOS_MIGRADOS o de DOCUMENTOS_MIGRADOS_DE_PROYECTO.
+ * Con `origenes: false` solo mira las secciones (el test del proyecto no repite lo de los orígenes).
  */
-export function faltasDeMigracion(lista, textos) {
+export function faltasDeMigracion(lista, textos, { origenes: conOrigenes = true } = {}) {
   const malos = [];
   const origenes = new Map();
   for (const p of lista) for (const o of p.origen ?? []) origenes.set(o, [...(origenes.get(o) ?? []), p.id]);
-  for (const o of TODOS_ORIGENES) if (!origenes.has(o)) malos.push(`origen ${o}: ningún principio lo recoge`);
-  for (const [o, ids] of origenes) if (ids.length > 1) malos.push(`origen ${o}: lo recogen ${ids.join(", ")}; un origen va a un solo principio`);
+  if (conOrigenes) {
+    for (const o of TODOS_ORIGENES) if (!origenes.has(o)) malos.push(`origen ${o}: ningún principio lo recoge`);
+    for (const [o, ids] of origenes) if (ids.length > 1) malos.push(`origen ${o}: lo recogen ${ids.join(", ")}; un origen va a un solo principio`);
+  }
   const citadas = new Set(lista.flatMap((p) => p.detalle ?? []));
   for (const [ruta, md] of Object.entries(textos)) {
     for (const s of seccionesNumeradas(md)) if (!citadas.has(`${ruta}#${s}`)) malos.push(`${ruta}#${s}: ningún principio la cita en «detalle»`);

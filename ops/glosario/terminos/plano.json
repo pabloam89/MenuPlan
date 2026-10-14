@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "ops",
+  "scope": "horizontal",
   "definicion": "Una pregunta de ops/planos.json sobre el estado del proyecto, con criterios por nivel y un agente dueño, que se mide cada semana.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

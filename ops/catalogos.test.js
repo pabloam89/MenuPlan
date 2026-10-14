@@ -10,7 +10,7 @@ import {
 } from "../scripts/lib/catalogos.mjs";
 import { REFERENCIA } from "../scripts/lib/forjaReferencia.mjs";
 import { leerForja } from "../scripts/lib/forja.mjs";
-import { leerExcepciones, leerGlosario } from "../scripts/lib/glosario.mjs";
+import { leerExcepciones, leerGlosario, leerGlosarioDeProyecto } from "../scripts/lib/glosario.mjs";
 
 /**
  * Los catálogos partidos en un fichero por entrada (#505, fondo #504): la forja, el glosario y
@@ -51,7 +51,9 @@ describe("cada catálogo partido", () => {
 
   it("sus lectores de siempre leen la carpeta", () => {
     expect(leerForja(RAIZ)).toEqual(leerCatalogo(RAIZ, CATALOGOS.forja.carpeta));
-    expect(leerGlosario(RAIZ)).toEqual(leerCatalogo(RAIZ, CATALOGOS.glosario.carpeta));
+    // El glosario entero: los términos de la casa y, a continuación, los del glosario de cada proyecto (#710, PR 7).
+    const casa = leerCatalogo(RAIZ, CATALOGOS.glosario.carpeta);
+    expect(leerGlosario(RAIZ)).toEqual({ ...casa, terminos: [...casa.terminos, ...Object.values(leerGlosarioDeProyecto(RAIZ)).flatMap((c) => c.terminos)] });
     expect(leerExcepciones(RAIZ)).toEqual(leerCatalogo(RAIZ, CATALOGOS["glosario-excepciones"].carpeta).excepciones);
   });
 

@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que reúne respuestas y vías de contacto para resolver un problema.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Un flujo de usuario que lleva a la persona a pasar de una cuenta a otra sin salir de la aplicación.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

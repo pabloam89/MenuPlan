@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "campo",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Un nombre de vocabulario cerrado que dice con qué modelo de lenguaje corre un agente.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

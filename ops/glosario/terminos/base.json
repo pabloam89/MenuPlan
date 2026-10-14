@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "La parte común que toda forja hereda: su redacción, sus metas y la obligación de una fuente de industria.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

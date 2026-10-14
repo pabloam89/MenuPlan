@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que lista lo descargado para usarse sin conexión.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

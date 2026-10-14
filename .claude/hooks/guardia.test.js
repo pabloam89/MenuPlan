@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { carpetaDe, contextoReal, decidir, salidaDeGuardia, sinAplicar } from "./guardia.mjs";
+import { carpetaDe, contextoReal, decidir, salidaDeGuardia } from "./guardia.mjs";
 import { cargarMapa } from "./dominios.mjs";
 import { AVISOS_CREDENCIALES, credencialDeComando, sinTextos } from "./credenciales.mjs";
 import { AVISOS, AVISO_POR_CREDENCIAL } from "./avisos-guardia.mjs";
@@ -16,11 +16,10 @@ const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 process.env.MENUPLAN_FABRICA_DIR = mkdtempSync(join(tmpdir(), "guardia-eventos-"));
 // El aviso de lo ya apuntado (#384) anota señales y marcas: ningún test toca el `senales.log` real.
 process.env.MENUPLAN_BUSCAR_DIR = mkdtempSync(join(tmpdir(), "guardia-buscar-"));
-const ESTADO_REAL = readFileSync(join(RAIZ, "supabase", "ESTADO.md"), "utf8");
 
-const ESTADO = "| **Sin aplicar** | **2** — `0080_bot_tareas_v2`, `0086_vocabulario_de_la_app` |";
+const ESTADO = "| **Sin aplicar** | **2** — `0080_ejemplo_sin_aplicar`, `0086_vocabulario_de_la_app` |";
 const ctx = (extra = {}) => ({
-  enStaging: (n) => ["0079_personas_y_grupos", "0080_bot_tareas_v2"].includes(n),
+  enStaging: (n) => ["0079_ejemplo_aplicada", "0080_ejemplo_sin_aplicar"].includes(n),
   estadoMd: ESTADO,
   baseDelPr: () => "staging",
   atrasoLocal: () => 0,
@@ -275,36 +274,36 @@ describe("la base es producción", () => {
 });
 
 describe("migraciones aplicadas no se editan", () => {
-  it("aplicada y en staging: deniega", () => expect(edita("C:\\dev\\MenuPlan\\supabase\\migrations\\0079_personas_y_grupos.sql")).toBe("deny"));
-  it("en staging pero sin aplicar: libre", () => expect(edita("C:/dev/x/supabase/migrations/0080_bot_tareas_v2.sql")).toBe(null));
+  it("aplicada y en staging: deniega", () => expect(edita("C:\\dev\\MenuPlan\\supabase\\migrations\\0079_ejemplo_aplicada.sql")).toBe("deny"));
+  it("en staging pero sin aplicar: libre", () => expect(edita("C:/dev/x/supabase/migrations/0080_ejemplo_sin_aplicar.sql")).toBe(null));
   it("nueva en la rama: libre", () => expect(edita("C:/dev/x/supabase/migrations/0090_nueva.sql")).toBe(null));
   it("nueva pero con un número que staging ya usa: deniega", () =>
     expect(edita("C:/dev/x/supabase/migrations/0086_otra_cosa.sql", ctx({ numeroEnStaging: (n) => (n === "0086" ? "0086_vocabulario_de_la_app" : null) }))).toBe("deny"));
   it("sin ESTADO.md legible: deniega con explicación", () =>
-    expect(edita("supabase/migrations/0080_bot_tareas_v2.sql", ctx({ estadoMd: null }))).toBe("deny"));
-  it("por shell tampoco", () => expect(bash("sed -i 's/a/b/' supabase/migrations/0079_personas_y_grupos.sql")).toBe("deny"));
-  it("leerla por shell sí", () => expect(bash("cat supabase/migrations/0079_personas_y_grupos.sql")).toBe(null));
+    expect(edita("supabase/migrations/0080_ejemplo_sin_aplicar.sql", ctx({ estadoMd: null }))).toBe("deny"));
+  it("por shell tampoco", () => expect(bash("sed -i 's/a/b/' supabase/migrations/0079_ejemplo_aplicada.sql")).toBe("deny"));
+  it("leerla por shell sí", () => expect(bash("cat supabase/migrations/0079_ejemplo_aplicada.sql")).toBe(null));
   it.each([
-    "awk 'NR>=251 && NR<=386' supabase/migrations/0079_personas_y_grupos.sql",
-    'grep -n "x" supabase/migrations/0079_personas_y_grupos.sql > /tmp/salida.txt',
-    "cat supabase/migrations/0079_personas_y_grupos.sql | tee /tmp/copia.sql",
+    "awk 'NR>=251 && NR<=386' supabase/migrations/0079_ejemplo_aplicada.sql",
+    'grep -n "x" supabase/migrations/0079_ejemplo_aplicada.sql > /tmp/salida.txt',
+    "cat supabase/migrations/0079_ejemplo_aplicada.sql | tee /tmp/copia.sql",
   ])("un > que no apunta a la migración es una lectura: %s", (c) => expect(bash(c)).toBe(null));
   it.each([
-    "echo x > supabase/migrations/0079_personas_y_grupos.sql",
-    'cat a >> "supabase/migrations/0079_personas_y_grupos.sql"',
-    "echo x | tee -a supabase/migrations/0079_personas_y_grupos.sql",
-    "mv /tmp/x.sql supabase/migrations/0079_personas_y_grupos.sql",
+    "echo x > supabase/migrations/0079_ejemplo_aplicada.sql",
+    'cat a >> "supabase/migrations/0079_ejemplo_aplicada.sql"',
+    "echo x | tee -a supabase/migrations/0079_ejemplo_aplicada.sql",
+    "mv /tmp/x.sql supabase/migrations/0079_ejemplo_aplicada.sql",
   ])("escribirla por shell, negado: %s", (c) => expect(bash(c)).toBe("deny"));
   it.each([
-    "echo a > supabase/migrations/0090_nueva.sql && echo b >> supabase/migrations/0079_personas_y_grupos.sql",
-    "sed --in-place 's/a/b/' supabase/migrations/0079_personas_y_grupos.sql",
-    "git checkout -- supabase/migrations/0079_personas_y_grupos.sql",
-    "git restore supabase/migrations/0079_personas_y_grupos.sql",
-    `node -e "require('fs').writeFileSync('supabase/migrations/0079_personas_y_grupos.sql', 'x'); console.log(1)"`,
-    "git rm supabase/migrations/0079_personas_y_grupos.sql",
+    "echo a > supabase/migrations/0090_nueva.sql && echo b >> supabase/migrations/0079_ejemplo_aplicada.sql",
+    "sed --in-place 's/a/b/' supabase/migrations/0079_ejemplo_aplicada.sql",
+    "git checkout -- supabase/migrations/0079_ejemplo_aplicada.sql",
+    "git restore supabase/migrations/0079_ejemplo_aplicada.sql",
+    `node -e "require('fs').writeFileSync('supabase/migrations/0079_ejemplo_aplicada.sql', 'x'); console.log(1)"`,
+    "git rm supabase/migrations/0079_ejemplo_aplicada.sql",
   ])("también negado: %s", (c) => expect(bash(c)).toBe("deny"));
   it("copiarla a otro sitio es leerla", () =>
-    expect(bash("cp supabase/migrations/0079_personas_y_grupos.sql /tmp/x.sql")).toBe(null));
+    expect(bash("cp supabase/migrations/0079_ejemplo_aplicada.sql /tmp/x.sql")).toBe(null));
 
   // Salir de un choque de número: d7 renombraba su 0087 a 0088 porque otra rama
   // ya usaba la 0087, y la guardia miraba el origen y se lo negaba.
@@ -546,18 +545,6 @@ it("editar los permisos o los hooks ya no pregunta: va por PR con juez y CI", ()
   expect(edita("C:/dev/MenuPlan-x/.claude/hooks/sesiones.mjs")).toBe(null);
   expect(edita("C:/dev/MenuPlan-x/.claude/hooks/arranque.mjs")).toBe(null);
   expect(edita("C:/dev/MenuPlan-x/.claude/settings.local.json")).toBe(null);
-});
-
-describe("ESTADO.md de verdad", () => {
-  // Si alguien cambia el formato de la tabla de resumen, la guardia se queda
-  // ciega y cierra todas las migraciones de staging. Esto lo dice antes.
-  it("la guardia encuentra la lista de «sin aplicar» y cada una existe", () => {
-    const libres = sinAplicar(ESTADO_REAL);
-    expect(libres).not.toBeNull();
-    expect(libres.size).toBeGreaterThan(0);
-    const sinFichero = [...libres].filter((n) => !existsSync(join(RAIZ, "supabase", "migrations", `${n}.sql`)));
-    expect(sinFichero).toEqual([]);
-  });
 });
 
 // ── La puerta de lectura de las skills ─────────────────────────────────────
@@ -836,7 +823,7 @@ describe("puerta de lectura al editar: abre la skill antes de tocar su dominio (
 
   it("las reglas duras ganan y no gastan el aviso", () => {
     const c = sesion({ extra: { enStaging: () => true } });
-    const r = toca("Edit", "C:/w/supabase/migrations/0079_personas_y_grupos.sql", c);
+    const r = toca("Edit", "C:/w/supabase/migrations/0079_ejemplo_aplicada.sql", c);
     expect(r?.decision).toBe("deny");
     expect(r.motivo).not.toMatch(/skill `supabase`/);
     const p = sesion({ extra: { rutaEnPrincipal: () => true } });

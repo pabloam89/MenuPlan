@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que ordena tareas en columnas según su estado y deja moverlas entre ellas.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

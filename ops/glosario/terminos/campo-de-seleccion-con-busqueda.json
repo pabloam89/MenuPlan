@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Un elemento de interfaz que combina un campo de texto con una lista de opciones que se filtra al escribir.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

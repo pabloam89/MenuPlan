@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que usa la cámara para hacer una foto o leer un código o un documento.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

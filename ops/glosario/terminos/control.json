@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Una comprobación concreta que hace cumplir una norma y se describe en cinco ejes: procesador, fuerza, momento, qué mira y cobertura.",
   "sinonimos_prohibidos": [
     "chequeo",

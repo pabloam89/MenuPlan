@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que muestra algo que hay que hacer, con su estado y su fecha.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

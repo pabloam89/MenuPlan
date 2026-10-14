@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "rol",
   "dominio": "ops",
+  "scope": "horizontal",
   "definicion": "Un agente constructor de documentos, sin Edit, que lleva un fallo del caso al plan: registra, diagnostica y redacta los encargos en el issue, y no los construye.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

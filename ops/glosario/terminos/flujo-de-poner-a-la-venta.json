@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Un flujo de usuario que lleva a la persona a publicar algo para venderlo o alquilarlo.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

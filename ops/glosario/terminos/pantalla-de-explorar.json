@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que permite recorrer contenidos por categorías o secciones para descubrir algo.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
