@@ -98,7 +98,7 @@ tenga la URL puede usar `net.http_*`, objetos grandes o bloqueos consultivos
 |---|---|---|
 | ¿Está aplicada la 00XX? | `node scripts/verificar-estado.mjs --solo 00XX` (sin argumentos, todas; `--detalle` enseña cada testigo) | cada migración con su testigo; avisa de lo que no cuadra con `supabase/ESTADO.md`. Solo lectura, sin preguntar |
 | Ensayar una migración (Pablo hasta E5, #331: pide `SUPABASE_DB_URL`, que las sesiones no tienen desde #328) | `node scripts/apply-migration.mjs <nombre>` (sin `--si`) | ejecuta y hace ROLLBACK |
-| Aplicar una migración (Pablo hasta E5, #331, desde una PowerShell aparte con `$env:MENUPLAN_OP_PABLO="1"`; la sesión le deja el comando) | `node scripts/apply-migration.mjs <nombre> --si` | exige estar en staging, un ensayo de menos de una hora y el OK de `auditor-datos` en la cabecera |
+| Aplicar una migración (Pablo hasta E5, #331, desde una PowerShell aparte con `$env:MENUPLAN_OP_PABLO="1"`; la sesión le deja el comando) | `node scripts/apply-migration.mjs <nombre> --si` | exige estar en staging, un ensayo de menos de una hora y el OK de `auditor-datos` en la cabecera <!-- norma:aplicar-migracion-con-permiso --> |
 | Consulta a producción | como `scripts/verificar-estado.mjs`: `set session characteristics as transaction read only`, `begin read only`, solo `select`, `rollback` | filas o recuentos; aunque se colara un `update`, Postgres lo rechaza |
 | ¿Qué plan y qué copias tiene? | En el navegador: Vercel → Storage → «MenuPlan» → **Open in Supabase** → Database → Backups (pestañas «Scheduled backups» y «Point in time»). Sin sesión de Supabase propia, esa es la única entrada | el plan, y o la lista de copias o el aviso «Free Plan does not include project backups». Salió ese aviso (día en «Fechas» de Fuentes y comprobación) |
 | Borrar tablas o vistas (primer drop, #303) | los pasos de abajo; la migración la lanza Pablo con `--pablo` | `verificar-estado --solo 00XX` con los testigos negativos «está» (el objeto ya falta de la base) |
@@ -177,7 +177,7 @@ tenga la URL puede usar `net.http_*`, objetos grandes o bloqueos consultivos
   de menos de una hora y el OK de `auditor-datos` en la cabecera; hasta E5
   (#331) lo lanza Pablo, porque las sesiones no tienen la URL de administrador
   (#328). Con `CONTRAE`, o RLS o permisos de lo que ya existía, además
-  `--pablo`. El SQL a mano que escribe, siempre negado.
+  `--pablo`. El SQL a mano que escribe, siempre negado. <!-- norma:sin-sql-a-mano -->
 - Cambiar ajustes del panel: Auth, proveedores, URLs de retorno, plan, crons
   fuera de `scripts/bot-cron.mjs`.
 - Subir de plan (Pro) o dar de alta cualquier gasto de Supabase.
