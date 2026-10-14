@@ -241,7 +241,7 @@ describe("ratchet de la cuota GraphQL (#424)", () => {
     const nuevo = rama(f, "--nuevo");
     const crear = nuevo.indexOf("gh(...crear)");
     const borrar = nuevo.indexOf('borrarCacheGh("issues-nodos")');
-    const releer = nuevo.indexOf("colgar(todos()");
+    const releer = nuevo.indexOf("colgar(todos(");
     expect(crear).toBeGreaterThan(-1);
     expect(borrar).toBeGreaterThan(crear);
     expect(releer).toBeGreaterThan(borrar);

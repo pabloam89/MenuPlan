@@ -2893,7 +2893,7 @@
     },
     {
       "id": "foto-de-issues-solo-workflow",
-      "nombre": "Foto de los issues solo del workflow",
+      "nombre": "Foto de issues solo automática",
       "sujeto": "sesion",
       "fuerza": "no_debe",
       "exigencia": "subir, editar ni borrar la foto publicada de los issues (release foto-issues, su asset o su tag): solo la escribe el workflow foto-issues.yml",
