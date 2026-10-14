@@ -218,8 +218,9 @@ Sin token todavía (se deciden al migrar su pantalla): sombra de la nav inferior
 
 ## 5. Iconografía
 
-- **Librería única:** [Nucleo](https://nucleoapp.com), familia **core**, relleno **outline**, tamaño **24px**. Los iconos viven copiados en el repo (`src/components/icons.jsx`, generado por `npm run build:icons`); nunca se importan desde `~/.nucleo`. Import nominal (`import { Home, Settings } from "../components/icons.jsx"`).
+- **Biblioteca única:** [Nucleo](https://nucleoapp.com), familia **core**, relleno **outline**, tamaño **24px**. Los iconos viven copiados en el repo (`src/components/icons.jsx`, generado por `npm run build:icons`); nunca se importan desde `~/.nucleo`. Import nominal (`import { Home, Settings } from "../components/icons.jsx"`).
 - **Añadir un icono:** busca el componente en la familia core/outline/24px, añádelo al mapa de `scripts/build-nucleo-icons.mjs` y regenera. No pegues SVG a mano en las pantallas.
+- **Qué es Nucleo para HoMenu (hechos de este proyecto, no de la biblioteca):** está **en uso**; se **importa como ficheros copiados al repo**, no como paquete con versión fijada; cubre el elemento `icon` de la taxonomía (fuente: esta sección). Su licencia y su mantenimiento no se han comprobado. El pool de bibliotecas (`ops/diseno/bibliotecas.json`) la guarda solo como `candidate`, sin estos datos; la línea 4 de #774 los llevará a la especificación del proyecto.
 - **Tamaños:** solo los `tam-icono-*` de §3.3 (14 / 16 / 18 / 20 / 24); decorativo grande `32`.
 - **Grosor:** `strokeWidth` por defecto `2`; **estado activo/énfasis `2.4`** (`2.2` en burbujas). El cambio de grosor es una señal de selección tan importante como el color.
 - **Color:** hereda el color de estado (verde activo `#2d5a3d`, inactivo `#9ab0a1`). Sobre verde, `#fff`.

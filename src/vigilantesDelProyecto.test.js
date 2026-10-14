@@ -45,6 +45,7 @@ const TABLA = [
   ["taxonomia-de-diseno", "scripts/lib/taxonomiaDiseno.mjs", "ops/diseno/taxonomia.test.js"],
   ["pool-de-bibliotecas", "ops/diseno/bibliotecas.json", "ops/diseno/pool.test.js"],
   ["pool-de-bibliotecas", "scripts/lib/bibliotecasDiseno.mjs", "ops/diseno/pool.test.js"],
+  ["pool-de-bibliotecas", "ops/diseno/bloques.json", "ops/diseno/pool.test.js"],
 ];
 
 describe("tabla del proyecto: ruta de ejemplo → vigilante que debe salir", () => {

@@ -59,7 +59,7 @@ import { VOCABULARIOS as PRODUCTO } from "../../src/lib/vocabularios.js";
 import { DEF_ACTORES, DEF_EVITABLE, DEF_MOTIVOS_INTERVENCION } from "./eventosVocabulario.mjs";
 import { DEF_PROYECTOS, DEF_ZONAS } from "./zonasProyecto.mjs";
 import { CODIGOS_WORDING, leerTopes } from "./topes.mjs";
-import { CLAVES_DE_VOCABULARIO, leerBibliotecas, textosDeBibliotecas } from "./bibliotecasDiseno.mjs";
+import { clavesDeVocabulario, leerBibliotecas, textosDeBibliotecas } from "./bibliotecasDiseno.mjs";
 import { leerTaxonomia, textosDeGruposDeDiseno, textosDePlataformasDeDiseno, textosDeTiposDeDiseno } from "./taxonomiaDiseno.mjs";
 
 export const RUTA_VOCABULARIOS = "ops/vocabularios-vida.json";
@@ -141,7 +141,7 @@ export const VOCABULARIOS = {
   "diseno.grupo_flujo": { fichero: "scripts/lib/taxonomiaDiseno.mjs", textos: () => textosDeGruposDeDiseno(leerTaxonomia(RAIZ), "flujo") },
   "diseno.plataforma_de_tipo": { fichero: "scripts/lib/taxonomiaDiseno.mjs", textos: () => textosDePlataformasDeDiseno(leerTaxonomia(RAIZ)) },
   // El pool de bibliotecas de interfaz (#780): los vocabularios cerrados de las fichas de ops/diseno/bibliotecas.json.
-  ...Object.fromEntries(CLAVES_DE_VOCABULARIO.map((k) => [`diseno.biblioteca_${k}`, { fichero: "scripts/lib/bibliotecasDiseno.mjs", textos: () => textosDeBibliotecas(leerBibliotecas(RAIZ), k) }])),
+  ...Object.fromEntries(clavesDeVocabulario(leerBibliotecas(RAIZ)).map((k) => [`diseno.biblioteca_${k}`, { fichero: "scripts/lib/bibliotecasDiseno.mjs", textos: () => textosDeBibliotecas(leerBibliotecas(RAIZ), k) }])),
   // El registro de entidades (#566): sus valores van a ops/entidades.json y a ops/entidades-sujetos.json.
   // El eje (entidades.axis) se retiró entero el 12 oct 2026 y entidades.becomes el 13 (vocabularios_retirados).
   "entidades.scope": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(SCOPES) },
