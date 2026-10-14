@@ -64,7 +64,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `campo-con-lector` | dato | DEBE | **Dato con lector.** Cada tabla y cada campo de la base DEBE tener algún lector. | persona · blanda | juicio | — | `one-fact-one-place` | data | horizontal | construir, juzgar, decidir |
 | `hora-de-madrid` | sesion | DEBE | **Hora de Madrid.** Cuando da una hora, cada sesión de Claude DEBE sacarla de npm run hora y nunca de date. | nada · blanda | test: `scripts/hora.test.js` | — | `days-hours-zones` | process | horizontal | operar, documentar |
 | `fuera-de-onedrive` | sesion | NO DEBE | **Fuera de OneDrive.** Cada sesión de Claude NO DEBE trabajar dentro de OneDrive. | guardia · blanda | script: `.claude/hooks/arranque.mjs` | — | `one-fact-one-place` | infra | horizontal | operar |
-| `tests-del-fichero` | sesion | DEBE | **Tests del fichero.** Cada sesión de Claude DEBE lanzar los tests de los ficheros que toca y no la suite entera. | nada · blanda | juicio | — | `test-is-the-contract` | code | horizontal | construir |
+| `tests-del-fichero` | sesion | DEBE | **Tests del fichero.** Cada sesión de Claude DEBE lanzar los tests de los ficheros que toca y no la suite entera. | guardia · semidura | test: `.claude/hooks/guardia.test.js` | `suite-entera-en-local` | `test-is-the-contract` | code | horizontal | construir |
 | `lecciones-a-un-test` | fallo | DEBE | **Aprendizajes a un test.** Cada fallo DEBE dejar su aprendizaje en un test o en la guardia; si no se puede, en una regla o una skill; nunca en la memoria. | ci · blanda | script: `scripts/lib/avisosPr.mjs` | — | `highest-mechanism` | process | horizontal | construir, diagnosticar |
 | `cuando-algo-falla` | fallo | DEBE | **Hasta el problema de fondo.** Cada fallo DEBE analizarse hasta su problema de fondo y registrarse como caso en un issue. | ci · semidura | test: `scripts/casos-pr.test.js` | `pr-sin-casos` | `class-not-case` | process | horizontal | diagnosticar |
 | `repo-publico-sin-detalle` | repo | NO DEBE | **Repo público sin detalle.** El repositorio NO DEBE contener nada sensible en un issue, un commit o un PR. | nada · blanda | juicio | — | `public-repo-no-sensitive-detail` | process | horizontal | diagnosticar, documentar |
@@ -303,11 +303,11 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 
 | Tipo de control | Qué es | Normas |
 |---|---|---|
-| test | Un test del repo que falla en el CI | 100 |
+| test | Un test del repo que falla en el CI | 101 |
 | planos | Una condición de la medición semanal de ops/planos.json (con red, cada lunes) | 7 |
 | workflow | Un paso de un workflow de GitHub Actions que falla el check | 2 |
 | script | Un script del repo que comprueba y se lanza a mano o en el build | 8 |
-| juicio | El juicio de una persona o de un LLM sobre sus casos: no hay nada que falle solo | 89 |
+| juicio | El juicio de una persona o de un LLM sobre sus casos: no hay nada que falle solo | 88 |
 
 ## Ejes del control (#682)
 
@@ -315,37 +315,37 @@ Cada norma dice en cinco ejes cerrados cómo se controla (`control_procesador`, 
 
 | Procesador \ Fuerza | bloquea | avisa |
 |---|---|---|
-| codigo | 97 | 20 |
-| juez | 0 | 89 |
+| codigo | 98 | 20 |
+| juez | 0 | 88 |
 
 | control_procesador | Qué es | Normas |
 |---|---|---|
-| codigo | Un programa decide si se cumple: un test, un script, un workflow o el código en ejecución | 117 |
-| juez | Un agente juez lo decide leyendo el trabajo, con su motivo y pudiendo decir «no sé»; solo cuenta con su test del juez | 89 |
+| codigo | Un programa decide si se cumple: un test, un script, un workflow o el código en ejecución | 118 |
+| juez | Un agente juez lo decide leyendo el trabajo, con su motivo y pudiendo decir «no sé»; solo cuenta con su test del juez | 88 |
 
 | control_fuerza | Qué es | Normas |
 |---|---|---|
-| bloquea | Si no se cumple, lo detiene: el cambio o la acción no pasa | 97 |
-| avisa | Si no se cumple, lo dice y deja pasar | 109 |
+| bloquea | Si no se cumple, lo detiene: el cambio o la acción no pasa | 98 |
+| avisa | Si no se cumple, lo dice y deja pasar | 108 |
 
 | control_momento | Qué es | Normas |
 |---|---|---|
-| editar | Al editar un fichero o lanzar un comando (la guardia) | 30 |
-| pr | Al abrir o fusionar un PR (el CI o el juez de ese PR) | 172 |
+| editar | Al editar un fichero o lanzar un comando (la guardia) | 31 |
+| pr | Al abrir o fusionar un PR (el CI o el juez de ese PR) | 171 |
 | periodico | En un pase programado o a mano, fuera de un PR | 4 |
 
 | control_que_mira | Qué es | Normas |
 |---|---|---|
 | forma | Cómo está escrito: estructura, vocabulario y formato | 52 |
-| contenido | Lo que dice, a juicio de quien lo lee | 89 |
-| comportamiento | Lo que hace el sistema al ejecutarse o al aplicarse | 65 |
+| contenido | Lo que dice, a juicio de quien lo lee | 88 |
+| comportamiento | Lo que hace el sistema al ejecutarse o al aplicarse | 66 |
 
 | control_cobertura | Qué es | Normas |
 |---|---|---|
 | total | Alcanza a cualquiera y a toda la norma | 69 |
 | parcial | Deja fuera a alguien o a una parte de la norma | 137 |
 
-Normas de juez sin test del juez: 83 de 89. Normas con ejecutor «persona» (sin quitar todavía): 70.
+Normas de juez sin test del juez: 82 de 88. Normas con ejecutor «persona» (sin quitar todavía): 70.
 
 ## Avisos de la guardia
 
@@ -370,6 +370,7 @@ Normas de juez sin test del juez: 83 de 89. Normas con ejecutor «persona» (sin
 | `stash` | `sin-git-stash` | Usar `git stash` |
 | `add-a-ciegas` | `sin-git-add-todo` | Usar `git add .`, `-A` o `commit -a` |
 | `vite-build-a-secas` | `build-con-prebuild` | Lanzar `vite build` a secas |
+| `suite-entera-en-local` | `tests-del-fichero` | Lanzar la suite entera de tests en local (`npm test`, `npx vitest run` o `vitest run` sin ficheros ni filtro) |
 | `issue-a-pelo` | `issues-con-buscar-antes` | Crear un issue con `gh issue create` |
 | `borrar-issue` | `issues-no-se-borran` | Borrar o trasladar un issue, o borrar una etiqueta |
 | `foto-de-issues` | `foto-de-issues-solo-workflow` | Subir, editar o borrar la release `foto-issues` (la foto de los issues), su tag o una release por la API |
@@ -403,4 +404,4 @@ Normas de juez sin test del juez: 83 de 89. Normas con ejecutor «persona» (sin
 
 **Cada control que salta deja su línea** `norma: <id> resultado: ok|warning|fail|exempt|declared|unchecked pr: <n> detalle: …` (una sola sintaxis: los avisos del CI y «Fondos del PR» en el log del run; la guardia, en el registro local de eventos, con la `norma` que hace cumplir lo que bloquea). `declared` es una excepción válida de una norma que ningún control del CI consulta: queda anotada, pero no cuenta como incumplimiento medido. La unidad es el run de un PR; el lector cuenta una vez por PR, norma y resultado. `npm run normas -- --medir` las cuenta por norma y dice cuáles nunca saltan, cuáles no han dejado dato y cuáles se exceptúan siempre (desde 3 veces, sin un solo salto). Registrada en `ops/metricas.json`.
 
-Total: 206 normas (rota 2, semidura 71, dura 25, blanda 108) y 43 avisos de la guardia.
+Total: 206 normas (rota 2, semidura 72, dura 25, blanda 107) y 44 avisos de la guardia.
