@@ -381,13 +381,30 @@ describe("cobertura del registro: quien lanza gh pasa por el envoltorio común (
     "scripts/lib/situacion.mjs": "scripts/situacion.mjs",
   };
   const LANZA = /\b(?:execFileSync|execFile|spawnSync|spawn|execSync|exec)\(\s*["'`]gh(?:\.exe)?(?:["'`]|\s)/;
-  const RECIBE = /function\s+\w+\s*\([^)]*\bgh\b[^)]*\)/;
+  // gh como parámetro: `function f(gh)`, `(gh) =>`, `gh =>`, `async (a, gh = x) =>`
+  const RECIBE = /function\s*\w*\s*\([^)]*\bgh\b[^)]*\)|\([^()]*\bgh\b[^()]*\)\s*=>|(?<![\w.$])gh\s*=>/;
+  // gh nombrado como ejecutable: "gh", 'gh', `gh`, gh.exe entre comillas (alias, `GH = "gh"`, `run("gh", …)`)
+  const NOMBRA = /["'`]gh(?:\.exe)?["'`]/;
+  const USA_PROCESOS = /(?:node:)?child_process/;
+  // El código sin comentarios: una mención de `gh` en un comentario no lanza nada.
+  const codigo = (f) => leer(f).replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|\s)\/\/.*$/gm, "$1");
   const todos = [...ficheros("scripts", [".mjs", ".js"]), ...ficheros(".claude/hooks", [".mjs", ".js"])].filter((f) => f !== "scripts/lib/cuotaGh.mjs");
   const usaElEnvoltorio = (f) => /\b(?:ghSync|registrarTras|execFileGh)\(/.test(leer(f)) && /cuotaGh\.mjs/.test(leer(f));
 
   it("nadie lanza gh a pelo fuera del envoltorio (salvo la lista que solo baja)", () => {
     const aPelo = todos.filter((f) => LANZA.test(leer(f)) && !EXCEPCIONES[f]);
     expect(aPelo, "lanzan gh sin registrar: usa ghSync/registrarTras de scripts/lib/cuotaGh.mjs").toEqual([]);
+  });
+
+  it("detector ancho: ningún fichero con child_process nombra gh sin el envoltorio ni estar en la lista", () => {
+    const suelto = todos.filter((f) => USA_PROCESOS.test(codigo(f)) && NOMBRA.test(codigo(f)) && !usaElEnvoltorio(f) && !EXCEPCIONES[f]);
+    expect(suelto, 'nombran "gh" junto a child_process sin ghSync/registrarTras/execFileGh: pásalos por scripts/lib/cuotaGh.mjs o apúntalos en EXCEPCIONES con motivo').toEqual([]);
+  });
+
+  it("los patrones del detector ven los alias y las flechas (y no ven lo inocente)", () => {
+    for (const c of ['const GH = "gh";', "run('gh', a)", "spawn(`gh`, a)", 'execFile("gh.exe", a)']) expect(NOMBRA.test(c), c).toBe(true);
+    for (const c of ["(gh) => gh(a)", "gh => gh(a)", "async (x, gh = y) => 1", "function f(a, gh) {}", "const f = function (gh) {}"]) expect(RECIBE.test(c), c).toBe(true);
+    for (const c of ["const ghost = 1", "obj.gh => 1", "// gh pr view", "const gha = (x) => x"]) expect(RECIBE.test(c) || NOMBRA.test(c), c).toBe(false);
   });
 
   it("en cupos.mjs, cada lanzamiento de gh va envuelto en registrarTras", () => {
