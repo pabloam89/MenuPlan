@@ -206,7 +206,7 @@ fallan con su causa y se repiten más tarde.
 primero la foto que publica `foto-issues.yml` (0 puntos, en vez de ~1 por issue) y,
 si falta, está a medias o tiene más de 15 min, van a la API; si falta o pasa de 1 h lo
 avisan en una línea `Foto de los issues: …`. **Las escrituras van a la API**:
-`--colgar`, `--ordenar` y el colgar de `--nuevo --padre` nunca la usan (colgar no
+`--colgar`, `--ordenar` y el colgar de `--nuevo --padre` no la usan (colgar no
 cambia la fecha). `--fresco` salta caché y foto; `MENUPLAN_FOTO=0` la apaga. Detalle: skill `github`.
 
 ## Fuentes y comprobación
