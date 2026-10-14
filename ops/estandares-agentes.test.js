@@ -208,7 +208,7 @@ describe("las reglas se ven fallar (cada una con un catálogo estropeado a prop�
   });
   it("una tarea que cita aparte una norma que no existe, o una que ya le llega por la consulta", () => {
     falla((d) => { d.agentes.constructor.tareas[11].normas = ["norma-inventada"]; }, "cita la norma «norma-inventada», que no está en ops/normas.json");
-    falla((d) => { d.agentes.constructor.tareas[12].normas = ["fk-con-on-delete"]; }, "cita aparte «fk-con-on-delete», que ya le llega por la consulta");
+    falla((d) => { d.agentes.constructor.tareas[12].normas = ["migracion-aplicada-no-se-edita"]; }, "cita aparte «migracion-aplicada-no-se-edita», que ya le llega por la consulta");
   });
   it("una tarea con más reglas que el máximo de la forma de práctica", () => falla((d) => { const t = d.agentes.constructor.tareas[11]; t.reglas = Array.from({ length: 6 }, (_, i) => ({ ...t.reglas[0], nombre: `Regla número ${i + 1}` })); }, "6 reglas propias; la forma de práctica de la forja pide 5 como mucho"));
   it("una tarea con menos reglas y normas que el mínimo, contando las comunes", () => falla((d) => { const t = d.agentes.qa.tareas.find((x) => x.id === "comprobar-design-system"); t.comunes = []; t.ambitos = ["entities"]; t.reglas = [d.agentes.qa.tareas[0].reglas[0]]; }, "1 reglas y normas con las comunes; la forma de práctica de la forja pide 2 o más"));
@@ -337,10 +337,10 @@ describe("npm run estandar", () => {
   it("con --ficheros suma las normas del ámbito de cada fichero tocado", () => {
     const sin = execFileSync("node", ["scripts/estandares-agentes.mjs", "revisor", "revisar-diff"], { cwd: RAIZ, encoding: "utf8" });
     const con = execFileSync("node", ["scripts/estandares-agentes.mjs", "revisor", "revisar-diff", "--ficheros", "supabase/migrations/0100_x.sql,api/_guard.js"], { cwd: RAIZ, encoding: "utf8" });
-    expect(sin).not.toContain("`fk-con-on-delete`");
+    expect(sin).not.toContain("`migracion-aplicada-no-se-edita`");
     expect(con).toMatch(/y data, api por los ficheros|y api, data por los ficheros/);
-    expect(con).toMatch(/`fk-con-on-delete` .* Por: fichero\./);
-    expect(con).toMatch(/`tope-diario-ia` .* Por: fichero\./);
+    expect(con).toMatch(/`migracion-aplicada-no-se-edita` .* Por: fichero\./);
+    expect(con).toMatch(/`endpoint-nuevo-juez-seguridad` .* Por: fichero\./);
   });
 
   it("de una tarea con comunes pega también las reglas comunes", () => {

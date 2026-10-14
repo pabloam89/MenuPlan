@@ -150,6 +150,7 @@ export function calcular(raiz) {
   const verticales = Object.values(carga.delProyecto).flat().map((n) => ({ id: n.id, lado: "vertical" }));
   filas.push(contar("normas horizontales (ops/normas.json)", horizontales));
   filas.push(contar("normas verticales (ops/proyectos/<id>/normas.json)", verticales));
+  const normasConServicio = carga.horizontales.filter(normaNombraServicio).length;
   const nDiseno = carga.horizontales.filter((n) => n.ambito === "diseno").length;
   const controlEnProducto = carga.horizontales.filter((n) => typeof n.control === "string" && n.control.includes("/") && zonaDe(n.control) === "producto").length;
   const controlJuicio = carga.horizontales.filter((n) => n.control === "juicio").length;
@@ -251,6 +252,7 @@ export function calcular(raiz) {
       fuentesNota: notaFuentes,
       entidadesRetiradas: retiradas,
       normasDiseno: nDiseno,
+      normasConServicio,
       controlEnProducto,
       controlJuicio,
       verticalesEnFactoria,
@@ -269,12 +271,15 @@ export function fallosDeCuentas(filas) {
   return filas.filter((f) => f.horizontal + f.vertical + f.duda !== f.total).map((f) => `${f.unidad}: ${f.horizontal}+${f.vertical}+${f.duda} no suman ${f.total}`);
 }
 
+/** Si el texto de una norma nombra un servicio del proyecto (Vercel, Supabase…): es lícito en la factoría, así que no duda; se cuenta aparte, con techo. */
+export const normaNombraServicio = (n) => nombraServicio(textoDe(n));
+
 /**
  * Por qué una norma horizontal duda: lee TODOS sus campos de prosa (nombre, exigencia, condición, porque, nota,
- * ejemplos…, también dentro de listas) sin distinguir mayúsculas, con una razón para el proyecto y otra para sus servicios.
+ * ejemplos…, también dentro de listas) sin distinguir mayúsculas. Nombrar el proyecto es razón; nombrar un servicio, no.
  */
 export function razonesDeNormaHorizontal(n) {
-  const razones = razonesDeNombre(textoDe(n));
+  const razones = razonesDeNombre(textoDe(n)).filter((r) => !r.includes("servicio"));
   if (["bot", "product", "catalog"].includes(n.ambito)) razones.push(`ámbito «${n.ambito}» (conducta de un producto con bot, catálogo o familias)`);
   else if (n.ambito !== "diseno") {
     const nombradas = [n.control, ...(n.donde ?? [])].filter((s) => typeof s === "string" && FICHEROS_DE_PRODUCTO.test(s));
@@ -344,7 +349,7 @@ export function documento(d, fecha) {
   L.push("|---|---|");
   L.push("| Principios | `ops/principios/`, `ops/principios-producto/` y `ops/redaccion.json`, con las fuentes de `ops/fuentes-documentales/` y las zonas de `ops/zonas.json`. Vertical: los de `ops/proyectos/<id>/principios/` (el campo `project`). Duda: sin fuente externa y su único origen está en un fichero de zona producto; o un principio de producto del área `conversational-ai` |");
   L.push("| Fuentes | Externa: horizontal (salvo la documentación de Supabase y Vercel: duda). De la casa: la zona de su ruta (`ops/zonas.json`) |");
-  L.push("| Normas | El registro en que viven. Duda de una horizontal: su texto nombra HoMenu/Lola/MenuPlan, o su ámbito es `bot`/`product`/`catalog`, o su control o `donde` apunta a `api/`, `src/`, `supabase/`, `docs/datos/`, `docs/producto/`, `specs/` o `DESIGN_SYSTEM.md` (las " + cifras.normasDiseno + " de ámbito `diseno` no cuentan: Pablo decidió el 13 oct que son horizontales) |");
+  L.push("| Normas | El registro en que viven. Duda de una horizontal: su texto nombra HoMenu/Lola/MenuPlan (nombrar un servicio como Vercel o Supabase es lícito en la factoría: no duda, se cuenta aparte con techo), o su ámbito es `bot`/`product`/`catalog`, o su control o `donde` apunta a `api/`, `src/`, `supabase/`, `docs/datos/`, `docs/producto/`, `specs/` o `DESIGN_SYSTEM.md` (las " + cifras.normasDiseno + " de ámbito `diseno` no cuentan: Pablo decidió el 13 oct que son horizontales) |");
   L.push("| Entidades | Su campo `scope` (`horizontal` o `vertical`, uno solo: la clase es horizontal y sus ejemplares son del registro del proyecto); duda: un valor que no sea ninguno de los dos y las vertical que son un concepto general (lista a mano, hoy vacía) |");
   L.push("| Glosario | El `scope` de sus entidades; sin entidad, su dominio (`producto` vertical, `datos` duda); duda también si su definición nombra el proyecto, Vercel o Supabase |");
   L.push("| Skills, reglas, comandos, specs, documentos | La zona de `ops/zonas.json` (factoría = horizontal, producto = vertical, mixto = duda); una skill `tipo: servicio` de factoría = duda |");
@@ -365,7 +370,7 @@ export function documento(d, fecha) {
   L.push("");
   L.push(`- **Principios.** Los ${f("principios del proyecto").total} de HoMenu (${cifras.principiosVerticales.map((i) => `\`${i}\``).join(" y ")}) viven en su registro, \`ops/proyectos/homenu/principios/\`, con el campo \`project\`: origen una decisión de producto, sin fuente externa. Los ${f("principios de la casa").total} de la casa son horizontales salvo los que dudan: la mayoría no tiene fuente externa, pero eso no los hace verticales, son del método de trabajo. Los de base de datos que solo tenían como origen \`docs/datos/PRINCIPIOS.md\` son horizontales por decisión de Pablo (13 oct): llevan fuente externa (PostgreSQL, Fowler) y \`docs/datos/\` es el cómo los aplica HoMenu; el que no la tiene verificable sigue en duda. Los ${f("principios de producto").total} de producto tienen literatura detrás y son horizontales; los del área \`conversational-ai\` solo valen si el proyecto tiene un bot.`);
   L.push(`- **Fuentes.** ${cifras.fuentesNota}`);
-  L.push(`- **Normas.** El registro vertical ya está separado (${f("normas verticales").total}). En el horizontal hay ${f("normas horizontales").duda} que dudan (lista abajo). De las ${f("normas horizontales").total}, ${cifras.controlJuicio} tienen como control «juicio» y ${cifras.controlEnProducto} acaban en un fichero de zona producto. De las ${f("normas verticales").total} verticales, ${cifras.verticalesEnFactoria} tienen su control en una carpeta de la factoría.`);
+  L.push(`- **Normas.** El registro vertical ya está separado (${f("normas verticales").total}). En el horizontal hay ${f("normas horizontales").duda} que dudan (lista abajo). De las ${f("normas horizontales").total}, ${cifras.normasConServicio} nombran un servicio (Vercel, Supabase…) de forma lícita para la factoría, ${cifras.controlJuicio} tienen como control «juicio» y ${cifras.controlEnProducto} acaban en un fichero de zona producto. De las ${f("normas verticales").total} verticales, ${cifras.verticalesEnFactoria} tienen su control en una carpeta de la factoría.`);
   L.push(`- **Entidades y glosario.** Entidades retiradas (no cuentan): ${cifras.entidadesRetiradas}. El glosario no tiene lado propio: hoy se deduce de sus entidades; es el registro donde más falta el campo.`);
   L.push(`- **Tests.** ${cifras.testsEnCasa} tests viven en carpetas de la casa; ${cifras.vigilanVertical} de ellos leen tres ficheros de HoMenu o más (sin contar \`src/App.jsx\`, el ejemplo de casi todos). ${cifras.testsEnProducto} viven en carpetas de producto, coherentes con lo que vigilan.`);
   L.push("");

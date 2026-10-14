@@ -236,8 +236,8 @@ Cuánto cuesta cada uso, qué pasa cuando algo falla y cómo se sabe.
   - Fuentes: [F] https://www.anthropic.com/engineering/building-effective-agents; [F] https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/.
 - `caller-pays-quota` — **El cupo, a quien llama.** El gasto de IA se controla cuando cada llamada se atribuye a quien la hace.
   - Porqué: Sin identidad no se puede limitar por persona, y un cupo compartido deja que un anónimo agote el de todos.
-  - Norma: `ai-spend-charged-to-caller` — **El cupo, a quien llama.** Cuando un endpoint gasta IA, el producto DEBE atribuir el gasto a quien llama y, si no se sabe quién es, darle un cupo pequeño y propio. Control: juicio (blanda).
   - Norma: `limite-mensajes-bot` — **Límite mensual de mensajes.** El bot Lola DEBE limitar a 100 los mensajes al mes de cada casa. Control: `api/bot/turnoRapido.test.js` (semidura).
+  - Norma: `ai-spend-charged-to-caller` — **El cupo, a quien llama.** Cuando un endpoint gasta IA, el producto DEBE atribuir el gasto a quien llama y, si no se sabe quién es, darle un cupo pequeño y propio. Control: juicio (blanda).
   - Bueno: «Objetivo para un filtro sin sesión: un cupo global bajo y propio, que se corte antes que el de Lola».
   - Malo: «Hoy api/moderate.js contesta sin sesión y gasta el límite diario global compartido con el resto de la IA (#597)».
   - Fuentes: [F] https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/; [S] https://api-security.owasp.org/editions/2023/en/0xa4-unrestricted-resource-consumption.
@@ -298,7 +298,7 @@ Que lo pueda usar cualquier persona, con cualquier ayuda.
   - Porqué: WCAG es el estándar de accesibilidad y llega a más gente, incluida la que usa lector de pantalla.
   - Norma: `screen-accessible` — **Accesible para todos.** Cuando se diseña una pantalla, el producto DEBE poner texto alternativo a las imágenes, poder usar todo con teclado y cuidar el contraste del texto. Control: juicio (blanda).
   - Norma: `design-contrast-aa` — **Contraste mínimo AA.** Cada pantalla de la app DEBE dar al texto normal 4,5:1 de contraste, y 3:1 al texto grande y a los controles, sobre su fondo. Control: `src/design/contraste.test.js` (semidura).
-  - Norma: `design-touch-target` — **Objetivo táctil mínimo.** Cada pantalla de la app DEBE dar a cada control interactivo un área de 24 por 24 píxeles como mínimo, y de 40 en HoMenu. Control: juicio (blanda).
+  - Norma: `design-touch-target` — **Objetivo táctil mínimo.** Cada pantalla de la app DEBE dar a cada control interactivo un área de 24 por 24 píxeles como mínimo, y de 40 donde el sistema de diseño del proyecto lo fije. Control: juicio (blanda).
   - Norma: `design-visible-focus` — **Foco visible y manejable.** Cada pantalla de la app DEBE mostrar el foco sin taparlo y poder manejarse todo con teclado, en orden lógico. Control: juicio (blanda).
   - Norma: `design-color-not-only-signal` — **Color nunca única señal.** Cada pantalla de la app NO DEBE dar solo con el color un error, un estado o una selección, sin forma, texto o icono. Control: juicio (blanda).
   - Norma: `design-reflow-zoom` — **Reflow y zoom.** Cada pantalla de la app DEBE conservar todo el contenido a 320 píxeles de ancho y con el texto al 200 %. Control: juicio (blanda).
