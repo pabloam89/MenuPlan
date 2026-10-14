@@ -24,6 +24,30 @@
       "malos_ok": 7,
       "sin_correr": 0,
       "coste_usd": 0.1263
+    },
+    {
+      "juez": "revisor",
+      "fecha": "2026-10-14",
+      "casos": 24,
+      "casos_hash": "31a57810853c",
+      "buenos": 12,
+      "buenos_ok": 10,
+      "malos": 12,
+      "malos_ok": 5,
+      "sin_correr": 0,
+      "coste_usd": 0.1602
+    },
+    {
+      "juez": "revisor",
+      "fecha": "2026-10-14",
+      "casos": 24,
+      "casos_hash": "31a57810853c",
+      "buenos": 12,
+      "buenos_ok": 10,
+      "malos": 12,
+      "malos_ok": 8,
+      "sin_correr": 0,
+      "coste_usd": 0.1443
     }
   ]
 }
