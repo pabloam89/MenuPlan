@@ -169,7 +169,7 @@ El orden sigue la dependencia (lo que es registro se separa antes de lo que lo c
 | PR 3 | Principios: campo `project` y registro `ops/proyectos/homenu/principios/`; mover los verticales y resolver los de base de datos | verticales fuera de su registro = 0; en duda = 18 | verticales en su registro = todos; en duda = 0 |
 | PR 4 | Fuentes: campo `project` en las de la casa que son de HoMenu y origen (decisión o fallo) en vez de fuente externa para los principios de proyecto | fuentes verticales sin marcar = 12; en duda = 12 | marcadas = todas; en duda = 0 |
 | PR 5 | Normas dudosas: mover al registro de HoMenu las que sean suyas, o reescribir (sin nombrar el proyecto) las que sean generales | normas horizontales en duda = 46 | 0 (cada una, horizontal limpia o vertical) |
-| PR 6 | Controles: tests de la casa que leen ficheros de HoMenu pasan a recibirlos por referencia (`--proyecto`) o se mueven; retirar `verticales_sin_salida` (#704) | tests de la casa que leen HoMenu = 2; en duda = 10 | 0 y 0 |
+| PR 6 | Controles: tests de la casa que leen ficheros de HoMenu pasan a recibirlos por referencia (`--proyecto`) o se mueven (el techo `verticales_sin_salida` ya se retiró, #710) | tests de la casa que leen HoMenu = 2; en duda = 10 | 0 y 0 |
 | PR 7 | Glosario: términos de proyecto aparte de los de la casa | términos en duda = 46 | 0 |
 | PR 8 | Skills, reglas, comandos, specs y docs: marcar el lado de cada una y separar los skills de servicio en método (casa) y datos (proyecto) | en duda = skills 4, documentos 1; verticales sin marca = 27 | en duda = 0; todas marcadas |
 | PR 9 | Factoría frente a HoMenu (#690): CLAUDE.md como índice corto con dos partes; `docs/` y `ops/` separados | documentos en duda = 1 | 0 |

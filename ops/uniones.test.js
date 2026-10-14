@@ -307,7 +307,7 @@ describe("toda norma horizontal llega a algún agente (#683, #704, fondo #652)",
   it("la lista de excepciones solo tiene normas horizontales que existen y siguen huérfanas, con motivo, y su techo es su tamaño", () => {
     const huerfanas = normasHuerfanas(estandares, normas);
     for (const [id, motivo] of Object.entries(excepciones)) {
-      expect(normas.find((n) => n.id === id)?.lado, `${id}: una vertical no va aquí, va a verticales_sin_salida_excepciones`).toBe("horizontal");
+      expect(normas.find((n) => n.id === id)?.lado, `${id}: una vertical no va aquí`).toBe("horizontal");
       expect(huerfanas, `${id}: ya la recibe una tarea, quítala de la lista`).toContain(id);
       expect(motivo.length, `${id}: motivo`).toBeGreaterThan(20);
     }
@@ -354,7 +354,7 @@ describe("las normas del proyecto no van en un estándar horizontal (#704, fondo
       expect(motivo.length, `${id}: motivo`).toBeGreaterThan(20);
     }
     expect(Object.keys(sinTest)).toHaveLength(TECHOS.verticales_sin_test);
-    expect("verticales_sin_salida" in TECHOS, "la exigencia de salida con --proyecto se retiró (#704)").toBe(false);
+    expect("verticales_sin_salida" in TECHOS, "llegar a una tarea con --proyecto no tiene excepciones: lo vigila ops/tareas-de-proyecto.test.js (#710)").toBe(false);
   });
 
   it("se ve fallar el control sin test: un control de código que no es un test, o que no existe, y un test del juez declarado que no existe", () => {
