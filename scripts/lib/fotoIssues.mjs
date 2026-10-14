@@ -14,8 +14,8 @@
  * lee sigue usando `leerIssue(nodo)` sin cambiar nada. Una sola fuente de la forma: este
  * módulo escribe (`actualizarFoto`) y lee (`nodosDeFoto`), y el test los compara.
  *
- * Cómo se mantiene con poco gasto (el GITHUB_TOKEN del workflow tiene 1.000 puntos por hora y
- * repositorio). En cada pasada:
+ * Cómo se mantiene con poco gasto (el GITHUB_TOKEN del workflow tiene 5.000 puntos de GraphQL por
+ * hora y repositorio, medido en el run 38611215358 del 14 oct 2026; #844). En cada pasada:
  *   1. el listado ligero de todos los issues (id, número, updatedAt, id del padre): 1 punto por
  *      cada 100. Da los nuevos, los cambiados (updatedAt distinto), los que cambiaron de padre
  *      (colgar un issue NO mueve updatedAt de hijo ni padre: medido con #768 y #176) y los
@@ -60,7 +60,7 @@ export const ROTACION = 8;
 export const IDS_POR_LLAMADA = 40;
 /** Issues por página del listado ligero (1 punto por página). */
 export const POR_PAGINA_LISTADO = 100;
-/** Puntos que se dejan sin gastar en cada pasada (el GITHUB_TOKEN tiene 1.000 por hora y repositorio). */
+/** Puntos que se dejan sin gastar en cada pasada (el GITHUB_TOKEN tiene 5.000 por hora y repositorio, medido). */
 export const RESERVA_PUNTOS = 100;
 /** Los campos de la foto: el escritor los pone todos y el lector exige todos. */
 export const CAMPOS_FOTO = ["version", "generado_en", "al_dia_desde", "completa", "total", "refrescados", "pendientes", "nodos"];

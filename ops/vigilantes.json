@@ -294,8 +294,8 @@
     {
       "id": "workflows-yaml",
       "tests": ["ops/workflows.test.js"],
-      "mira": [".github/workflows/*.yml", "package.json"],
-      "porque": "Lee todos los workflows con el parser `yaml` (devDependency): uno nuevo o editado con un bloque `run: |` roto deja de ser YAML y GitHub lo marca en rojo sin ejecutar nada.",
+      "mira": [".github/workflows/*.yml", "ops/workflows-pendientes/**", "package.json"],
+      "porque": "Lee todos los workflows con el parser `yaml` (devDependency), también los que esperan en ops/workflows-pendientes/ a que Pablo los mueva (#844): uno nuevo o editado con un bloque `run: |` roto deja de ser YAML y GitHub lo marca en rojo sin ejecutar nada.",
       "evidencia": "#480"
     },
     {

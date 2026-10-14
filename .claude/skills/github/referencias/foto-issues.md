@@ -2,7 +2,7 @@
 
 ## Qué es
 
-Un fichero, `issues.json`, con el estado de TODOS los issues, que el workflow `foto-issues.yml` sube cada 5 minutos como asset de la
+Un fichero, `issues.json`, con el estado de TODOS los issues, que el workflow `foto-issues.yml` sube cada ~5 minutos (se relanza a sí mismo, ver «La cadena») como asset de la
 release `foto-issues` (prerelease, sin «latest», reemplazado con `--clobber`). `npm run issues` y `npm run situacion` lo bajan de
 `https://github.com/pabloam89/MenuPlan/releases/download/foto-issues/issues.json` (repo público: sin autenticar y 0 puntos de la API) en vez de pedir
 ~1,1 puntos de GraphQL por issue (medido el 14 oct 2026: 414 issues, 486 puntos por lectura completa; `situacion` con 5 páginas de 107, 535).
@@ -14,7 +14,7 @@ release `foto-issues` (prerelease, sin «latest», reemplazado con `--clobber`).
 
 ## Cuánto gasta y cómo no se pasa
 
-Presupuesto: el `GITHUB_TOKEN` del workflow, **1.000 puntos por hora y repositorio** (docs de GitHub, «Rate limits for the GraphQL API»). Cada pasada:
+Presupuesto: el `GITHUB_TOKEN` del workflow, **5.000 puntos de GraphQL por hora y repositorio**, medido en el run 38611215358 del 14 oct 2026 (usados 464, restantes 4.536); antes decía 1.000, de la documentación de GitHub, y no era lo que da este repo. Cada pasada:
 
 1. **Listado ligero** de todos los issues (`id number updatedAt parent { id }`): 1 punto por cada 100 (medido: 414 issues, 5 puntos). Da:
    - los **nuevos** (no están en la foto) y los **cambiados** (`updatedAt` distinto);
@@ -23,14 +23,26 @@ Presupuesto: el `GITHUB_TOKEN` del workflow, **1.000 puntos por hora y repositor
 2. **Por id** (1 punto por id): esos, sus vecinos (padre e hijos) si cambió algo que copian (estado, etiquetas, padre) y, si cabe, una rotación de 8 de lectura más antigua.
 3. **Dentro del cupo**: deja 100 puntos restantes sin gastar (`RESERVA_PUNTOS`). Lo que no cabe queda en `pendientes` y sigue en la pasada siguiente. Sin foto previa es el mismo camino (todos son nuevos): la primera foto se hace a trozos si no cabe, y sale con `completa: false` hasta que estén todos (los lectores no la usan mientras tanto). Así no hay techo de issues: con ~850 la lectura completa ya no cabría en una hora, y aquí se reparte.
 
-Medido el 14 oct 2026 contra el repo real, con el token de la App y el cupo recortado a 50: listado de 414 en 5 puntos, 43 leídos por id, 371 pendientes; la pasada siguiente sin cupo gastó 5 y los dejó pendientes. Pasada sin cambios: ~5 del listado + 8 de rotación (~160 por hora).
+Medido el 14 oct 2026 contra el repo real, con el token de la App y el cupo recortado a 50: listado de 414 en 5 puntos, 43 leídos por id, 371 pendientes; la pasada siguiente sin cupo gastó 5 y los dejó pendientes. La primera pasada en GitHub (run 38611215358, desde cero, 427 issues): 464 puntos, `generar` 42 s y `publicar` 8 s. Pasada encadenada sin cambios (estimada, sin medir aún): ~5 del listado + 8 de rotación + los cambiados, ~15 puntos; una hora de cadena (12 pasadas), ~180 puntos, el 4 % del cupo. Lo medirá la línea `puntos:` de las pasadas `workflow_dispatch` tras moverlo Pablo.
+
+## La cadena: se relanza sola (#844, caso #843)
+
+El reloj de GitHub no sirve para minutos en este repo: entrega una pasada programada cada 3-11 h sea cual sea el cron, y la primera llega 6-7 h tras dar de alta el workflow (medido en #843 con `vigia-lola`, `dependabot-auto` y `fondos`). Así que cada pasada lanza la siguiente:
+
+- Tercer trabajo, `relanzar`: tras `publicar`, `sleep 240` y `gh workflow run foto-issues.yml --ref staging` con el `GITHUB_TOKEN` (`actions: write`, solo en ese trabajo; sin checkout ni node). Un `workflow_dispatch` lanzado con el `GITHUB_TOKEN` sí crea pasada (los demás eventos de ese token no). Una vuelta: ~5 min, ~12 pasadas por hora y ~290 al día; el runner, ocupado casi todo el tiempo (repo público: gratis, pero un bucle perpetuo roza el uso aceptable de Actions: si GitHub avisa, se para).
+- Condición: `!cancelled() && github.repository == 'pabloam89/MenuPlan' && github.ref == 'refs/heads/staging'`. Corre aunque `generar` falle (una pasada mala no rompe la cadena); **nunca `always()`**, que correría también al cancelar.
+- **No se multiplica**: el `concurrency` (`foto-issues`, sin cancelar la que corre) es del workflow entero, y `relanzar` forma parte de la pasada. Como mucho hay una corriendo y una esperando; si llega otra (el cron de respaldo, un lanzamiento a mano), GitHub cancela la que esperaba y guarda la última. Cada pasada que acaba lanza una sola.
+- El cron (`17,47 * * * *`) queda de **arranque de respaldo**: si la cadena se corta, la vuelve a arrancar cuando GitHub lo entregue.
+- **Pararla** (Pablo): `gh workflow disable foto-issues.yml` o el botón «Disable workflow» de la pestaña Actions en la web; se reanuda con `gh workflow enable foto-issues.yml` y un `gh workflow run foto-issues.yml --ref staging`. Cancelar la pasada en curso también corta la cadena, pero solo hasta que llegue el cron de respaldo.
+- Comprobarla: `gh run list --workflow foto-issues.yml --limit 20` enseña pasadas `workflow_dispatch` cada 4-6 min; cada `relanzar` deja `foto-issues relanzada: siguiente pasada pedida`. Las `cancelled` sueltas son pasadas que esperaban y GitHub reemplazó (normal).
+- **Mientras viva en `ops/workflows-pendientes/foto-issues.yml`**, `scripts/fotoIssues.test.js` y `ops/workflows.test.js` prueban el pendiente; el commit de Pablo que lo mueve a `.github/workflows/` borra el pendiente.
 
 Cada pasada deja `foto-issues modo: … total: … completa: … listados: … nuevos: … cambiados: … de_padre: … vecinos: … rotados: … borrados: … pendientes: … puntos: … restantes: …` (registrada en `ops/metricas.json`).
 
 ## Seguridad
 
-- Solo por el **reloj** (cada 5 min) y **a mano** (`workflow_dispatch`); no por eventos de issues ni de comentarios: en un repo público cualquiera puede comentar, y cada disparo gastaría del presupuesto.
-- Permisos, en dos trabajos: `generar` (`issues: read`, `contents: read`) corre el código y deja el fichero como artifact; `publicar` (`contents: write`) solo lo sube, sin checkout ni node. Sin la App de las sesiones ni secretos.
+- Solo por el **reloj** (respaldo cada 30 min), **a mano** y por su **propio relanzamiento** (`workflow_dispatch`); no por eventos de issues ni de comentarios: en un repo público cualquiera puede comentar, y cada disparo gastaría del presupuesto.
+- Permisos, en tres trabajos: `generar` (`issues: read`, `contents: read`) corre el código y deja el fichero como artifact; `publicar` (`contents: write`) solo lo sube, sin checkout ni node; `relanzar` (`actions: write`) solo lanza la pasada siguiente, sin checkout ni node. Sin la App de las sesiones ni secretos.
 - **Solo vale el asset que subió el workflow** (`uploader.login` = `github-actions[bot]`, `SUBIDOR_FOTO`). El lector lo mira por la REST (`GET /repos/…/releases/tags/foto-issues`, 0 puntos de GraphQL) antes de bajarlo y comprueba que lo bajado mide lo que dice la release; si no, va a la API. El paso «Traer la foto anterior» del workflow hace lo mismo y baja el asset por su id: si lo subió otro, empieza desde cero. Y una fecha de `refrescados` del futuro se corta a la hora de la pasada, para que no esquive la rotación. El código sale de `staging`; nada del texto de un issue entra en un `run:`.
 - **Solo el workflow escribe la release**: la guardia niega a las sesiones `gh release create|upload|edit|delete|delete-asset foto-issues`, escribir releases por `gh api` y empujar el tag `foto-issues` (norma `foto-de-issues-solo-workflow`). Los scripts se fían de lo que trae la foto, también de `authorAssociation` (quién escribió cada comentario, con lo que se cuentan las marcas «lo lleva»): una foto subida a mano, o por un texto inyectado, lo falsificaría. Es un filtro de buena fe: la App puede escribir releases.
 
@@ -55,4 +67,4 @@ Borrar el workflow `foto-issues.yml` y la release `foto-issues` con su tag (borr
 
 ## Qué no cubre
 
-`avisos.mjs` (hook, `gh issue list`, 1 por sesión), `fabrica`, `planos` y `cumplimiento` (estos últimos en CI con su propio token) siguen con su consulta. Los cron de GitHub se retrasan: si la foto pasa de 15 min con frecuencia, los lectores vuelven a la API y el ahorro baja; si pasa de 1 h, el aviso lo dice.
+`avisos.mjs` (hook, `gh issue list`, 1 por sesión), `fabrica`, `planos` y `cumplimiento` (estos últimos en CI con su propio token) siguen con su consulta. Si la cadena se corta y el cron de respaldo tarda (llega cada 3-11 h), la foto pasa de 15 min y los lectores vuelven a la API; si pasa de 1 h, el aviso lo dice.

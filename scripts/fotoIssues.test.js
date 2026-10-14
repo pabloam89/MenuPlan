@@ -3,7 +3,7 @@
  * tiene que dejar a los lectores en modo API sin romper nada. Sin red: `gh` es un doble de GitHub que
  * contesta como `gh api graphql` de verdad (texto JSON; con `errors`, sale con 1 y deja la respuesta en stdout).
  */
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -17,7 +17,10 @@ import {
 import { APIS_GH, lineaGh, registrarFoto, leerLineas } from "./lib/cuotaGh.mjs";
 
 // El workflow que escribe la foto (activo desde el 14 oct 2026, PR #824; skill github, foto-issues.md).
-const RUTA_WORKFLOW = new URL("../.github/workflows/foto-issues.yml", import.meta.url);
+// La App de las sesiones no puede empujar a .github/workflows/: un cambio espera en
+// ops/workflows-pendientes/ hasta que Pablo lo mueve (#844), y mientras tanto se prueba el pendiente.
+const RUTA_PENDIENTE = new URL("../ops/workflows-pendientes/foto-issues.yml", import.meta.url);
+const RUTA_WORKFLOW = existsSync(RUTA_PENDIENTE) ? RUTA_PENDIENTE : new URL("../.github/workflows/foto-issues.yml", import.meta.url);
 const T0 = new Date("2026-10-14T12:00:00Z");
 const min = (m) => new Date(T0.getTime() + m * 60_000);
 
@@ -490,13 +493,52 @@ describe("el workflow", () => {
 
   const pasos = () => Object.values(wf.jobs).flatMap((j) => j.steps);
 
-  it("permisos mínimos y separados: generar lee issues, publicar escribe la release, y nada más", () => {
+  it("permisos mínimos y separados: generar lee issues, publicar escribe la release, relanzar lanza la siguiente, y nada más", () => {
+    expect(Object.keys(wf.jobs).sort()).toEqual(["generar", "publicar", "relanzar"]);
     expect(wf.permissions).toEqual({ contents: "read" });
     expect(wf.jobs.generar.permissions).toEqual({ contents: "read", issues: "read" });
     expect(wf.jobs.publicar.permissions).toEqual({ contents: "write" });
+    expect(wf.jobs.relanzar.permissions).toEqual({ actions: "write" });
     expect(wf.jobs.publicar.needs).toBe("generar");
-    // quien escribe no corre código del repo: ni checkout ni node
-    expect(JSON.stringify(wf.jobs.publicar.steps)).not.toMatch(/checkout|setup-node|node /);
+    // quien escribe o relanza no corre código del repo: ni checkout ni node
+    for (const j of ["publicar", "relanzar"]) expect(JSON.stringify(wf.jobs[j].steps), j).not.toMatch(/checkout|setup-node|node /);
+  });
+
+  describe("se relanza a sí misma (#844, caso #843): sin depender del reloj de GitHub", () => {
+    const relanzar = () => wf.jobs.relanzar ?? {};
+    const run = () => (relanzar().steps ?? []).map((s) => s.run ?? "").join("\n");
+
+    it("corre tras publicar aunque la pasada falle, pero no si se canceló, y solo en este repo y en staging", () => {
+      expect(relanzar().needs).toBe("publicar");
+      const si = String(relanzar().if).replace(/\s+/g, " ");
+      expect(si).toContain("!cancelled()");
+      expect(si).not.toMatch(/always\(\)|success\(\)|failure\(\)/);
+      expect(si).toContain("github.repository == 'pabloam89/MenuPlan'");
+      expect(si).toContain("github.ref == 'refs/heads/staging'");
+      expect(si).not.toMatch(/\|\|/);
+    });
+
+    it("lanza solo este workflow, sobre staging, tras una espera de minutos que cabe en su tope", () => {
+      const lanzadas = run().match(/gh workflow run [^\n]*/g) ?? [];
+      expect(lanzadas).toHaveLength(1);
+      expect(lanzadas[0]).toMatch(/^gh workflow run foto-issues\.yml .*--ref staging/);
+      const espera = Number(run().match(/sleep (\d+)/)?.[1]);
+      expect(espera).toBeGreaterThanOrEqual(180);
+      expect(espera).toBeLessThanOrEqual(300);
+      expect(relanzar()["timeout-minutes"] * 60).toBeGreaterThan(espera);
+    });
+
+    it("la cadena no se multiplica: una sola cola para el workflow entero, sin cancelar la pasada en curso", () => {
+      expect(wf.concurrency).toEqual({ group: "foto-issues", "cancel-in-progress": false });
+      // por trabajo no: relanzar no retendría la cola y podrían correr dos pasadas a la vez
+      for (const [j, job] of Object.entries(wf.jobs)) expect(job.concurrency, j).toBeUndefined();
+    });
+
+    it("el cron se queda de respaldo (como mucho dos por hora), no cada 5 min", () => {
+      const crones = wf.on.schedule.map((s) => s.cron);
+      expect(crones).toHaveLength(1);
+      expect(crones[0].split(" ")[0].split(",").length).toBeLessThanOrEqual(2);
+    });
   });
 
   it("MEDIO: la foto anterior solo se usa si la subió el propio workflow (github-actions[bot]); si no, desde cero", () => {
