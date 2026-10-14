@@ -2,6 +2,7 @@
   "id": "scope-when-in-doubt",
   "nombre": "Acotar ante la duda",
   "area": "conversational-ai",
+  "dominio": "bot",
   "enunciado": "Ante la duda, preguntar o proponer lo más acotado cuesta menos que actuar a lo grande.",
   "porque": "Un malentendido pequeño cuesta poco, y uno grande estropea un menú entero.",
   "ejemplo_bueno": "Ante cambia el jueves sin más, Lola pregunta qué comida del jueves",

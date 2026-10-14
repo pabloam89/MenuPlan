@@ -19,6 +19,7 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 
+import { DOMINIOS_OPCIONALES } from "./ambitos.mjs";
 import { leerCatalogo } from "./catalogos.mjs";
 import { conFuentesResueltas } from "./fuentesDoc.mjs";
 import { CONTROL_JUICIO, MARCAS_FUENTE, fraseDeRegla, problemasDePrincipio as problemasDeForma } from "./regla.mjs";
@@ -28,7 +29,15 @@ export const RUTA_MD = "docs/producto/PRINCIPIOS.md";
 
 /** Lo que lleva cada principio: la plantilla de principio de regla.mjs más lo propio del producto. Sin fuerza ni control: eso es de su norma. */
 export const CAMPOS_PRINCIPIO = ["id", "nombre", "area", "enunciado", "porque", "ejemplo_bueno", "ejemplo_malo", "fuentes"];
-export const CAMPOS_OPCIONALES = [];
+/**
+ * `dominio` (#710): el paquete opcional al que pertenece el principio (uno de DOMINIOS_OPCIONALES de ambitos.mjs). Un principio con
+ * dominio solo vale en un proyecto que lo declara en `dominios` de ops/entidades.json; no es un tercer lado: sigue siendo horizontal,
+ * genérico y con su fuente. Todo el área `conversational-ai` es del dominio `bot`.
+ */
+export const CAMPOS_OPCIONALES = ["dominio"];
+/** El área que solo tiene sentido con un bot conversacional, y el dominio opcional que le toca. */
+export const AREA_DEL_BOT = "conversational-ai";
+export const DOMINIO_DEL_BOT = "bot";
 
 /** Las marcas de una fuente con url (las de MARCAS_FUENTE de regla.mjs sin I, que lleva ruta): F la fuente lo dice, S es inferencia nuestra. */
 export const MARCAS = { F: MARCAS_FUENTE.F, S: MARCAS_FUENTE.S };
@@ -84,6 +93,8 @@ function problemasDePrincipio(p, d, datos) {
   for (const c of Object.keys(p ?? {})) if (![...CAMPOS_PRINCIPIO, ...CAMPOS_OPCIONALES].includes(c)) malos.push(`${d}: campo desconocido «${c}»${["sujeto", "fuerza", "condicion", "exigencia", "control", "nota"].includes(c) ? " (la obligación es de su norma en ops/normas.json, #620)" : ""}`);
   for (const c of CAMPOS_PRINCIPIO) if (!(c in (p ?? {}))) malos.push(`${d}: falta «${c}»`);
   malos.push(...problemasDeForma(p, d));
+  if ("dominio" in (p ?? {}) && !DOMINIOS_OPCIONALES.includes(p.dominio)) malos.push(`${d}: dominio «${p.dominio}» fuera de los dominios opcionales (${DOMINIOS_OPCIONALES.join(", ")})`);
+  if (p?.area === AREA_DEL_BOT && p?.dominio !== DOMINIO_DEL_BOT) malos.push(`${d}: el área ${AREA_DEL_BOT} es del paquete de bots: lleva dominio «${DOMINIO_DEL_BOT}»`);
   if (!ID.test(p?.id ?? "")) malos.push(`${d}: «id» va en minúsculas y con guiones, en inglés`);
   if (!(p?.area in (datos.areas ?? {}))) malos.push(`${d}: área «${p?.area}» fuera del vocabulario (${Object.keys(datos.areas ?? {}).join(", ")})`);
   for (const c of ["ejemplo_bueno", "ejemplo_malo"]) {
