@@ -67,7 +67,7 @@
     "fotografía"
   ],
   "en": "interface-element",
-  "nota": "Es el tipo, no la pieza: «botón» como elemento de interfaz existe en cualquier producto. La pieza concreta de un sistema de diseño, con sus medidas y sus tokens, es el «componente de diseño». Un componente de diseño es de un elemento de interfaz; lo contrario no, porque un tipo puede no tener aún componente.",
+  "nota": "Es la cabeza de clase `tipo`, el genérico de un vocabulario de tipos. Es el tipo, no la pieza: «botón» como elemento de interfaz existe en cualquier producto. La pieza concreta de un sistema de diseño, con sus medidas y sus tokens, es el «componente de diseño». Un componente de diseño es de un elemento de interfaz; lo contrario no, porque un tipo puede no tener aún componente.",
   "relacionado": [
     "componente de diseño"
   ]

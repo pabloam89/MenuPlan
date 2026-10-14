@@ -15,5 +15,6 @@
       "relacion": "tipo_de"
     }
   ],
-  "en": "checkbox"
+  "en": "checkbox",
+  "nota": "Es el checkbox. No tiene que ver con «verificar», el paso 8 del flujo de la factoría; comprobar la identidad de una persona es la «pantalla de comprobación de identidad»."
 }
