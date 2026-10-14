@@ -12,7 +12,7 @@
  *                                Desempate (#770): la cuenta del servicio va a quien la paga; lo que vive dentro de ella (bóveda,
  *                                clave, deploy key, servidor) va al proyecto al que sirve en exclusiva, y a `factoria` si sirve a varios.
  *                                Hetzner: el servidor `HoMenu-Panel` aloja el panel (panel) y la copia nocturna de la base de MenuPlan
- *                                (homenu, #273), así que sirve a dos y va a `factoria`
+ *                                (homenu, #273), así que sirve a dos y va a `factoria`; la bóveda `HoMenu-Panel` guarda lo del servidor y la clave de las copias, igual: `factoria`
  *   creado                       AAAA-MM-DD de alta o de la última rotación, o `por-confirmar`
  *   caducidad                    AAAA-MM-DD, `sin-caducidad` o `por-confirmar`
  *   motivo                       por qué esa caducidad (en `sin-caducidad`, por qué no caduca)

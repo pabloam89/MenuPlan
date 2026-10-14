@@ -53,7 +53,8 @@ describe("1. la forma", () => {
     const de = (id) => datos.recursos.find((r) => r.id === id)?.proyecto;
     expect(de("1password-boveda-homenu")).toBe("homenu");
     expect(de("github-deploy-key-mercadona")).toBe("homenu");
-    expect(de("1password-boveda-panel")).toBe("panel");
+    // La bóveda del panel guarda lo del servidor y la clave de las copias de la base de homenu: sirve a dos, va a la factoría.
+    expect(de("1password-boveda-panel")).toBe("factoria");
     for (const id of ["github-app-sesiones", "1password-cuenta", "tailscale-cuenta", "hetzner-cuenta"]) expect(de(id), id).toBe("factoria");
     // El servidor aloja el panel y la copia de la base de homenu (INVENTARIO): sirve a dos, va a la factoría.
     expect(de("hetzner-servidor-panel")).toBe("factoria");
