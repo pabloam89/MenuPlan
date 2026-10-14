@@ -1,0 +1,8 @@
+{
+  "name": "@chakra-ui/react",
+  "version": "3.37.0",
+  "license": { "type": "MIT" },
+  "dependencies": { "a": "1", "b": "1", "c": "1", "d": "1", "e": "1", "f": "1", "g": "1" },
+  "peerDependencies": { "react": ">=18", "react-dom": ">=18" },
+  "repository": "github:chakra-ui/chakra-ui"
+}
