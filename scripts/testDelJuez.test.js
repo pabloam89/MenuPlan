@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { JUECES, MIN_POR_NORMA, PASADAS_SEGUIDAS, UMBRAL_MALOS, cifra, cumpleUmbralA, esFicheroDeJuez, faltasDeFichero, faltasDeHistoria, faltasDePasadas, hashDeCasos, juezDeRuta, leerFichero, leerPasadas, lineaDeCifra, medir, motivoFicheroSinNorma, motivoSinUmbral, normasSinPasada, promptCaso } from "./lib/testDelJuez.mjs";
+import { JUECES, MIN_POR_NORMA, PASADAS_SEGUIDAS, UMBRAL_MALOS, cifra, cumpleUmbralA, esFicheroDeJuez, faltasDeFichero, faltasDeHistoria, faltasDePasadas, hashDeCasos, juezDeRuta, leerFichero, leerPasadas, lineaDeCifra, medir, motivoFicheroSinNorma, motivoSinUmbral, normasSinPasada, promptCaso, registroDeMotivos, sinClaves, RUTA_ULTIMA_PASADA } from "./lib/testDelJuez.mjs";
 import { leerRegistro, motivoTestDelJuezMalo } from "./lib/normas.mjs";
 import { RAIZ } from "./lib/skills.mjs";
 import { execFileSync } from "node:child_process";
@@ -245,5 +245,33 @@ describe("el test del juez: la cifra de acierto (con un juez de mentira)", () =>
     const t = promptCaso({ ...malo, debe_senalar: "pista-secreta-zzz" }, { nombre: "N", sujeto: "codigo", fuerza: "no_debe", exigencia: "hacer algo" });
     expect(t).not.toMatch(/malo|bueno|debe_senalar|algo\b.*esperado/);
     expect(t).toContain("<diff>");
+  });
+});
+
+describe("los motivos del juez por caso (#698)", () => {
+  const casos = [{ ...bueno, id: "b1" }, { ...malo, id: "m1" }];
+  const CLAVE = "sk-ant-api03-SECRETO1234567890";
+
+  it("la fila de cada caso guarda el veredicto, los hallazgos y la respuesta del juez", async () => {
+    const filas = await medir(casos, {
+      juzgar: async () => ({ veredicto: "senala", hallazgos: ["falta el plan B"], texto: '{"veredicto":"senala"}' }),
+      corregir: async () => true,
+    });
+    expect(filas[0]).toMatchObject({ id: "b1", estado: "falla", veredicto: "senala", hallazgos: ["falta el plan B"], respuesta: '{"veredicto":"senala"}' });
+  });
+
+  it("el registro nunca lleva la clave, ni la dada ni la que tiene forma de clave", () => {
+    const filas = [{ id: "b1", norma: "n", tipo: "bueno", estado: "falla", veredicto: "senala", hallazgos: [`usa ${CLAVE} aquí`, "otra sk-ant-zzzzzzzzzzzz"], respuesta: `eco ${CLAVE}`, motivo: "tope" }];
+    const texto = JSON.stringify(registroDeMotivos("revisor", "2026-10-14", filas, [CLAVE, "claveliteral123"]));
+    expect(texto).not.toContain("SECRETO1234567890");
+    expect(texto).not.toMatch(/sk-ant-/);
+    expect(sinClaves("x claveliteral123 y", ["claveliteral123"])).toBe("x [clave] y");
+    expect(JSON.parse(texto).casos[0]).toMatchObject({ id: "b1", veredicto: "senala", motivo: "tope" });
+  });
+
+  it("el fichero de la última pasada lo ignora git y el script lo escribe sin pasar la clave", () => {
+    expect(execFileSync("git", ["check-ignore", RUTA_ULTIMA_PASADA], { cwd: RAIZ }).toString().trim()).toBe(RUTA_ULTIMA_PASADA);
+    const src = readFileSync(join(RAIZ, "scripts/test-del-juez.mjs"), "utf8");
+    expect(src).toMatch(/registroDeMotivos([^)]*[API_KEY])/);
   });
 });

@@ -28,6 +28,8 @@ export const UMBRAL_MALOS = 0.8;
 export const PASADAS_SEGUIDAS = 2;
 /** Las pasadas de pago registradas: sin pasadas que cumplan el umbral, la norma sigue sin comprobar. */
 export const RUTA_PASADAS = "ops/test-del-juez/pasadas.json";
+/** La última pasada de pago con el motivo del juez por caso. Git la ignora (.gitignore): es material de trabajo, no registro. */
+export const RUTA_ULTIMA_PASADA = "ops/test-del-juez/ultima-pasada.json";
 /** Un diff más largo que esto no es un caso fijo y pequeño: se parte. */
 export const MAX_DIFF = 1500;
 
@@ -183,9 +185,29 @@ export async function medir(casos, { juzgar, corregir }) {
     else if (veredicto === "senala") {
       try { acierta = (await corregir(c, r.hallazgos ?? [])) === true; } catch (e) { filas.push({ id: c.id, norma: c.norma, tipo: c.tipo, estado: "sin_correr", motivo: String(e.message).slice(0, 120) }); continue; }
     }
-    filas.push({ id: c.id, norma: c.norma, tipo: c.tipo, estado: acierta ? "ok" : "falla", veredicto });
+    // El motivo del juez (sus hallazgos y su respuesta tal cual) queda en la fila para ver por qué falla un caso.
+    filas.push({ id: c.id, norma: c.norma, tipo: c.tipo, estado: acierta ? "ok" : "falla", veredicto, hallazgos: r?.hallazgos ?? [], respuesta: r?.texto ?? null });
   }
   return filas;
+}
+
+/** Quita de un texto cualquier clave: las que se pasan tal cual y todo lo que tenga forma de clave de Anthropic (sk-ant-…). */
+export function sinClaves(texto, claves = []) {
+  let t = String(texto ?? "");
+  for (const k of claves) if (typeof k === "string" && k.length >= 8) t = t.split(k).join("[clave]");
+  return t.replace(/sk-ant-[A-Za-z0-9_-]{8,}/g, "[clave]");
+}
+
+/**
+ * Lo que se guarda de una pasada para leer los motivos: por caso, veredicto, hallazgos y respuesta del juez.
+ * Nunca lleva la clave (`claves` se borra de todo texto, aunque el juez la repitiera).
+ */
+export function registroDeMotivos(juez, fecha, filas, claves = []) {
+  const limpio = (v) => (Array.isArray(v) ? v.map(limpio) : typeof v === "string" ? sinClaves(v, claves) : v);
+  return {
+    juez, fecha,
+    casos: filas.map((f) => ({ id: f.id, norma: f.norma, tipo: f.tipo, estado: f.estado, veredicto: f.veredicto ?? null, hallazgos: limpio(f.hallazgos ?? []), respuesta: limpio(f.respuesta ?? null), motivo: limpio(f.motivo ?? null) })),
+  };
 }
 
 /** La cifra de un juez: aciertos entre casos corridos, por tipo y por norma. Los `sin_correr` no cuentan como acierto ni como fallo. */
