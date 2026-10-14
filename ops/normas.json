@@ -2896,7 +2896,7 @@
       "nombre": "Foto de issues solo automática",
       "sujeto": "sesion",
       "fuerza": "no_debe",
-      "exigencia": "subir, editar ni borrar la foto publicada de los issues (release foto-issues, su asset o su tag): solo la escribe el workflow foto-issues.yml",
+      "exigencia": "subir, editar ni borrar la foto de los issues (release foto-issues o su tag): solo la escribe su workflow",
       "nota": "Los scripts se fían de lo que trae, también del autor de cada comentario; una foto subida a mano o por un texto inyectado lo falsificaría (#326). Filtro de buena fe: la App puede escribir releases.",
       "donde": [
         ".claude/hooks/guardia.mjs"
