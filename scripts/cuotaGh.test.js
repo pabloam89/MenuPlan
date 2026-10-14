@@ -397,6 +397,9 @@ describe("cobertura del registro: quien lanza gh pasa por el envoltorio común (
   // gh nombrado como ejecutable: "gh", 'gh', `gh`, gh.exe entre comillas (alias, `GH = "gh"`, `run("gh", …)`)
   const NOMBRA = /["'`]gh(?:\.exe)?["'`]/;
   const USA_PROCESOS = /(?:node:)?child_process/;
+  // Sustitutos transparentes de gh: no son un origen, pasan el comando de quien los invoca al gh real (#719).
+  // Fuera de EXCEPCIONES a propósito: esa lista solo baja. Deuda: contar sus llamadas (#724).
+  const TRANSPARENTES = { "scripts/gh-shim.mjs": "sustituto de gh: el origen es de quien lo invoca" };
   // El código sin comentarios: una mención de `gh` en un comentario no lanza nada.
   const codigo = (f) => leer(f).replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|\s)\/\/.*$/gm, "$1");
   const todos = [...ficheros("scripts", [".mjs", ".js"]), ...ficheros(".claude/hooks", [".mjs", ".js"])].filter((f) => f !== "scripts/lib/cuotaGh.mjs");
@@ -408,7 +411,7 @@ describe("cobertura del registro: quien lanza gh pasa por el envoltorio común (
   });
 
   it("detector ancho: ningún fichero con child_process nombra gh sin el envoltorio ni estar en la lista", () => {
-    const suelto = todos.filter((f) => USA_PROCESOS.test(codigo(f)) && NOMBRA.test(codigo(f)) && !usaElEnvoltorio(f) && !EXCEPCIONES[f]);
+    const suelto = todos.filter((f) => USA_PROCESOS.test(codigo(f)) && NOMBRA.test(codigo(f)) && !usaElEnvoltorio(f) && !EXCEPCIONES[f] && !TRANSPARENTES[f]);
     expect(suelto, 'nombran "gh" junto a child_process sin ghSync/registrarTras/execFileGh: pásalos por scripts/lib/cuotaGh.mjs o apúntalos en EXCEPCIONES con motivo').toEqual([]);
   });
 
