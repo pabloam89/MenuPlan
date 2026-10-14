@@ -11,11 +11,11 @@
  *
  * Todo es plan B: si la caché no se lee o no se escribe, se pide como antes.
  */
-import { execFile, execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, statSync, unlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { ghConRenovacion } from "./ghConRenovacion.mjs";
 
 /** Vocabulario cerrado de la línea `gh: caller=… api=…`. */
 export const APIS_GH = ["rest", "graphql"];
@@ -125,11 +125,30 @@ export function registrarGh(caller, args, { dir = dirCuota(), ahora = new Date()
 }
 
 /**
+ * Lo que ejecutan POR DEFECTO `ghSync` y `execFileGh`: `ghConRenovacion` (E3 #731), que cambia el token por
+ * el de la caché o por uno canjeado ANTES de llamar si el del proceso lleva casi una hora. Así hay un solo
+ * sitio de llamada a `gh` con renovación y los scripts no importan `ghConRenovacion` directamente. Quien no
+ * debe renovar (el canje mismo, un hook con tiempo corto) pasa su `ejecutar` explícito.
+ */
+const ghSyncRenovando = (args, opciones) => ghConRenovacion(args, { windowsHide: true, ...opciones });
+/** Lo mismo con callback: la renovación es síncrona, el callback se llama al terminar con la forma de `execFile`. */
+const execFileRenovando = (args, opciones, devolver) => {
+  let salida;
+  try {
+    salida = ghSyncRenovando(args, opciones);
+  } catch (e) {
+    devolver(e, e?.stdout ?? "", e?.stderr ?? "");
+    return;
+  }
+  devolver(null, salida, "");
+};
+
+/**
  * EL sitio donde se lanza `gh` de forma síncrona: ejecuta, registra la línea DESPUÉS (con resultado,
  * puntos e intento) y devuelve la salida o relanza el error tal cual. `ejecutar` se cambia en los tests.
  * Cada reintento de quien llama es una llamada nueva y deja su línea (`intento`).
  */
-export function ghSync(caller, args, opciones = {}, { intento = 1, dir, ahora, ejecutar = (a, o) => execFileSync("gh", a, { windowsHide: true, ...o }) } = {}) {
+export function ghSync(caller, args, opciones = {}, { intento = 1, dir, ahora, ejecutar = ghSyncRenovando } = {}) {
   const env = opciones.env ?? process.env;
   let salida;
   try {
@@ -143,7 +162,7 @@ export function ghSync(caller, args, opciones = {}, { intento = 1, dir, ahora, e
 }
 
 /** Lo mismo con `execFile` y su callback: registra al terminar y luego llama al callback de quien llama. */
-export function execFileGh(caller, args, opciones, devolver, { intento = 1, dir, ahora, ejecutar = (a, o, cb) => execFile("gh", a, { windowsHide: true, ...o }, cb) } = {}) {
+export function execFileGh(caller, args, opciones, devolver, { intento = 1, dir, ahora, ejecutar = execFileRenovando } = {}) {
   const env = opciones.env ?? process.env;
   return ejecutar(args, opciones, (error, stdout, stderr) => {
     registrarGh(caller, args, { dir, ahora, env, intento, resultado: !error ? "ok" : esLimite({ stderr, stdout, message: error.message }) ? "limitado" : "error", salida: stdout });

@@ -17,6 +17,12 @@
   },
   "lineas": [
     {
+      "firma": "credencial-sesion resultado",
+      "emisores": ["scripts/lib/ghConRenovacion.mjs"],
+      "campos": {"resultado": "estado", "motivo": "estado"},
+      "lectores": [{"tipo": "rutina", "ref": ".claude/skills/github/referencias/app-sesiones.md", "menciona": "credencial-sesion resultado"}]
+    },
+    {
       "firma": "test-del-juez forma juez",
       "emisores": ["scripts/test-del-juez.mjs"],
       "campos": {"juez": "id", "casos": "derivado", "buenos": "derivado", "malos": "derivado", "normas": "derivado", "faltas": "derivado"},

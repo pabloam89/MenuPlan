@@ -16,6 +16,7 @@
  * y en un marco de datos (#313). Pendiente, en #313: filtrar aquí también por
  * `authorAssociation` de la casa, como hace el índice de `buscar-antes.mjs`.
  */
+import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -61,7 +62,8 @@ if (esPrincipal) {
     } else {
       issues = JSON.parse(ghSync("avisos", ["issue", "list", "--state", "open", "--limit", "300", "--json", "number,title,body,state"], { windowsHide: true,
         cwd: entrada.cwd || process.cwd(), encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 15000,
-      }));
+      // sin renovar: un aviso ya falla abierto con su tiempo corto, y el canje sumaría segundos a cada orden
+      }, { ejecutar: (a, o) => execFileSync("gh", a, { windowsHide: true, ...o }) }));
       writeFileSync(cache, JSON.stringify(issues));
     }
 

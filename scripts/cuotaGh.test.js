@@ -399,14 +399,19 @@ describe("cobertura del registro: quien lanza gh pasa por el envoltorio común (
   const USA_PROCESOS = /(?:node:)?child_process/;
   // Sustitutos transparentes de gh: no son un origen, pasan el comando de quien los invoca al gh real (#719).
   // Fuera de EXCEPCIONES a propósito: esa lista solo baja. Deuda: contar sus llamadas (#724).
-  const TRANSPARENTES = { "scripts/gh-shim.mjs": "sustituto de gh: el origen es de quien lo invoca" };
+  const TRANSPARENTES = {
+    "scripts/gh-shim.mjs": "sustituto de gh: el origen es de quien lo invoca",
+    "scripts/lib/ghConRenovacion.mjs": "ejecutor por defecto de ghSync/execFileGh: cambia el token y lanza el gh real; el origen y el registro son de quien lo invoca",
+  };
   // El código sin comentarios: una mención de `gh` en un comentario no lanza nada.
   const codigo = (f) => leer(f).replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|\s)\/\/.*$/gm, "$1");
   const todos = [...ficheros("scripts", [".mjs", ".js"]), ...ficheros(".claude/hooks", [".mjs", ".js"])].filter((f) => f !== "scripts/lib/cuotaGh.mjs");
   const usaElEnvoltorio = (f) => /\b(?:ghSync|registrarTras|execFileGh)\(/.test(leer(f)) && /cuotaGh\.mjs/.test(leer(f));
 
   it("nadie lanza gh a pelo fuera del envoltorio (salvo la lista que solo baja)", () => {
-    const aPelo = todos.filter((f) => LANZA.test(leer(f)) && !EXCEPCIONES[f]);
+    // Las líneas `ejecutar: …` son el ejecutor que un hook pasa a ghSync/execFileGh (registra ghSync, no el ejecutor)
+    const sinEjecutor = (f) => leer(f).split("\n").filter((l) => !/\bejecutar:\s*\(/.test(l)).join("\n");
+    const aPelo = todos.filter((f) => LANZA.test(sinEjecutor(f)) && !EXCEPCIONES[f]);
     expect(aPelo, "lanzan gh sin registrar: usa ghSync/registrarTras de scripts/lib/cuotaGh.mjs").toEqual([]);
   });
 
