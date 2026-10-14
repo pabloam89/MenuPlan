@@ -16,7 +16,6 @@
  * y en un marco de datos (#313). Pendiente, en #313: filtrar aquí también por
  * `authorAssociation` de la casa, como hace el índice de `buscar-antes.mjs`.
  */
-import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -24,7 +23,7 @@ import { pathToFileURL } from "node:url";
 
 import { issuesQueNombran } from "../../scripts/lib/issues.mjs";
 import { limpiarTexto } from "../../scripts/lib/textoExterno.mjs";
-import { registrarGh } from "../../scripts/lib/cuotaGh.mjs";
+import { ghSync } from "../../scripts/lib/cuotaGh.mjs";
 
 const VIDA_CACHE = 10 * 60 * 1000;
 
@@ -60,8 +59,7 @@ if (esPrincipal) {
     if (existsSync(cache) && Date.now() - statSync(cache).mtimeMs < VIDA_CACHE) {
       issues = JSON.parse(readFileSync(cache, "utf8"));
     } else {
-      registrarGh("avisos", ["issue", "list"]);
-      issues = JSON.parse(execFileSync("gh", ["issue", "list", "--state", "open", "--limit", "300", "--json", "number,title,body,state"], { windowsHide: true,
+      issues = JSON.parse(ghSync("avisos", ["issue", "list", "--state", "open", "--limit", "300", "--json", "number,title,body,state"], { windowsHide: true,
         cwd: entrada.cwd || process.cwd(), encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 15000,
       }));
       writeFileSync(cache, JSON.stringify(issues));

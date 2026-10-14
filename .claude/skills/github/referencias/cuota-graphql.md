@@ -45,9 +45,11 @@ Cada `npm run issues` o arranque de sesión sin caché valía **~320 puntos**: c
 
 ## Cómo se cuenta
 
-Cada llamada de `issues.mjs`, `avisos.mjs`, `fabrica.mjs` y `espera-ci.mjs` (`migraciones.mjs` no: la guardia lo carga solo, sin `scripts/`, y cuesta 1 punto por sesión) añade una línea a `<temporal>/menuplan-cuota/gh.log`:
-`<fecha> gh: caller=<quién> api=rest|graphql`. Vocabulario cerrado en `scripts/lib/cuotaGh.mjs` (`CALLERS_GH`, `APIS_GH`), sin tokens ni
-datos de familias. Contar: `node -e "import('./scripts/lib/cuotaGh.mjs').then(m=>console.log(m.contarLog(require('fs').readFileSync(require('os').tmpdir()+'/menuplan-cuota/gh.log','utf8'))))"`.
+Todo script que lanza `gh` pasa por un solo envoltorio, `ghSync` (o `execFileGh` / `registrarTras` si es asíncrono) de `scripts/lib/cuotaGh.mjs`, que registra la línea DESPUÉS de la llamada en `<temporal>/menuplan-cuota/gh.log` (#724, E1 del fondo #326):
+`<fecha> gh: caller=<quién> api=rest|graphql identidad=pablo|app sesion=<hash de 6> puntos=<n> medida=real|est|nada resultado=ok|limitado|error intento=<n>`.
+`puntos` sale de `rateLimit { cost }`, que piden las consultas propias (`medida=real`); si no viene, de la tabla `PUNTOS_EST` (`est`); REST no gasta puntos GraphQL (`nada`). Cada reintento de `fabrica` deja su línea (`intento`). `sesion` es un hash, sin rutas ni nombres.
+Vocabulario cerrado en `cuotaGh.mjs`, sin tokens ni datos de familias. Excepciones (solo bajan, con motivo, en `scripts/cuotaGh.test.js`): `guardia.mjs` y `migraciones.mjs` (no importan `scripts/`) y `rulesets.mjs` (no llama a la API).
+Contar: `npm run cuota` (llamadas por origen), `npm run cuota -- --horas [--dias N]` (puntos por hora, origen y sesión; hora más cara, percentil 95 y líneas limitadas) y `npm run cuota -- --rafagas [origen]` (ráfagas de 19 o más líneas). Las líneas anteriores a #724 no traen puntos.
 
 ## Lo que vigila el CI
 

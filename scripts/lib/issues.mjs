@@ -236,6 +236,7 @@ export function fondoDeFormulario(body) {
 
 /** Consulta GraphQL de una página de issues con todo lo que se traza. */
 export const CONSULTA = `query($cursor: String) {
+  rateLimit { cost }
   repository(owner: "pabloam89", name: "MenuPlan") {
     issues(first: 100, after: $cursor, states: [OPEN, CLOSED], orderBy: { field: CREATED_AT, direction: DESC }) {
       pageInfo { hasNextPage endCursor }
@@ -419,6 +420,7 @@ export function resumen(issues) {
 
 /** Consulta de los últimos PR fusionados: solo número, cuerpo y fecha. */
 export const CONSULTA_PR = `query {
+  rateLimit { cost }
   repository(owner: "pabloam89", name: "MenuPlan") {
     pullRequests(first: 50, states: MERGED, orderBy: { field: UPDATED_AT, direction: DESC }) {
       nodes { number body mergedAt author { login } }
