@@ -141,6 +141,8 @@ const TABLA = [
   ["workflows-yaml", ".github/workflows/x.yml", "ops/workflows.test.js"],
   ["tipos-de-encargo", "ops/tipos-de-encargo.json", "ops/tipos-de-encargo.test.js"],
   ["tipos-de-encargo", ".claude/agents/x.md", "ops/tipos-de-encargo.test.js"],
+  ["de-la-casa", "scripts/lib/x.mjs", "scripts/esDeLaCasa.test.js"],
+  ["de-la-casa", ".github/workflows/x.yml", "scripts/esDeLaCasa.test.js"],
   ["preguntas-del-proyecto", "ops/proyectos/x/preguntas.json", "ops/preguntas.test.js"],
   ["preguntas-del-proyecto", "CLAUDE.md", "ops/preguntas.test.js"],
   ["preguntas-del-proyecto", "ops/normas.json", "ops/preguntas.test.js"],

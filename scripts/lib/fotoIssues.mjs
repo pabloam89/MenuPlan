@@ -362,6 +362,8 @@ export function aplicarCambiosRest(nodos, cambios) {
       closedAt: r.closed_at ?? null,
       body: r.body ?? "",
       authorAssociation: r.author_association ?? null,
+      // El autor con la forma de GraphQL (CAMPOS_ISSUE): `databaseId` solo si es un bot, como `... on Bot`.
+      author: r.user ? { __typename: r.user.type === "Bot" ? "Bot" : "User", login: r.user.login ?? null, ...(r.user.type === "Bot" ? { databaseId: r.user.id ?? null } : {}) } : (base.author ?? null),
       labels: { nodes: (r.labels ?? []).map((l) => ({ name: typeof l === "string" ? l : l.name })) },
       assignees: { nodes: (r.assignees ?? []).map((a) => ({ login: a.login })) },
     });

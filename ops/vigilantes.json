@@ -10,6 +10,13 @@
       "evidencia": "#557 (revisor: el cruce solo miraba nombres de agente); #640 (los tipos se unen al presupuesto)"
     },
     {
+      "id": "de-la-casa",
+      "tests": ["scripts/esDeLaCasa.test.js"],
+      "mira": ["scripts/**/*.mjs", ".claude/hooks/*.mjs", ".github/workflows/*.yml"],
+      "porque": "Quién cuenta como «de la casa» (asociación o el bot de las sesiones por su id) se decide solo en esDeLaCasa de fondos.mjs: un script o un hook nuevo que filtre por la asociación a pelo, o un workflow que lo haga sin el id del bot, vuelve a dejar fuera lo que abren las sesiones o a dejar entrar a quien se parece.",
+      "evidencia": "#839 (caso #838: el workflow fondos y los lectores dejaban fuera 8 fondos, 23 casos y 80 encargos de la App)"
+    },
+    {
       "id": "preguntas-del-proyecto",
       "tests": ["ops/preguntas.test.js"],
       "mira": ["ops/proyectos/*/preguntas.json", "ops/proyectos/*/normas.json", "ops/normas.json", "CLAUDE.md", ".claude/agents/orquestador.md", "scripts/lib/preguntas.mjs", "scripts/lib/zonasProyecto.mjs"],

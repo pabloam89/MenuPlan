@@ -20,7 +20,8 @@
  * Seguridad: el cuerpo de un issue es entrada no confiable (repo público). Se
  * lee con el parser acotado de fondos.mjs, nada se ejecuta ni se interpola, y
  * lo que escribe el autor no se copia a los comentarios. Solo se actúa sobre
- * issues de la casa (OWNER, MEMBER, COLLABORATOR) con etiqueta tipo:fondo,
+ * issues de la casa (`esDeLaCasa`: OWNER, MEMBER, COLLABORATOR o el bot de las
+ * sesiones por su id, #839) con etiqueta tipo:fondo,
  * caso o encargo, y solo se tocan comentarios del propio bot con la marca Y el
  * run de este workflow. Todo llega por entorno.
  *
@@ -45,7 +46,7 @@ const nombres = (i) => (i.labels ?? []).map((l) => (typeof l === "string" ? l : 
 const tipoDe = (i) => [...porGrupo(nombres(i)).tipo][0] ?? null;
 const TIPOS_QUE_SE_MIRAN = ["fondo", "caso", "encargo"];
 /** Solo se actúa sobre issues de la casa y de los tipos que se vigilan: el repo es público y cualquiera abre issues. */
-const seMira = (i) => esDeLaCasa(i?.author_association) && TIPOS_QUE_SE_MIRAN.includes(tipoDe(i));
+const seMira = (i) => esDeLaCasa(i) && TIPOS_QUE_SE_MIRAN.includes(tipoDe(i));
 const RUTA_DEL_WORKFLOW = ".github/workflows/fondos.yml";
 
 /** La API real: lo que necesitan los controles, con el cliente común (reintentos en lecturas, un intento en el POST de comentarios). */
@@ -194,7 +195,7 @@ export async function procesarHijo(api, hijoRest, { hoy, evento, run }) {
     await upsert(api, hijoRest.number, comentario({ hallazgos, acciones: [] }, opciones), MARCA_HIJO, undefined, { propio: previo });
   }
   sal.push({ issue: hijoRest.number, control: hallazgos.some((h) => h.gravedad === "error") ? "falla" : "ok", errores: hallazgos.filter((h) => h.gravedad === "error").length, avisos: hallazgos.filter((h) => h.gravedad === "aviso").length, acciones: [] });
-  if (padre && tipoDe(padreRest) === "fondo" && esDeLaCasa(padreRest.author_association)) sal.push(await procesarFondo(api, padreRest, { hoy, evento, run }));
+  if (padre && tipoDe(padreRest) === "fondo" && esDeLaCasa(padreRest)) sal.push(await procesarFondo(api, padreRest, { hoy, evento, run }));
   return sal;
 }
 

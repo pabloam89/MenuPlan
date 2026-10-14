@@ -1,7 +1,7 @@
 # Qué hace el workflow fondos
 
-**Qué hace el workflow `fondos`**, solo sobre issues de la casa (autor
-`OWNER`, `MEMBER` o `COLLABORATOR`) con etiqueta `tipo:fondo`, `tipo:caso` o
+**Qué hace el workflow `fondos`**, solo sobre issues de la casa (`esDeLaCasa`:
+`OWNER`, `MEMBER`, `COLLABORATOR` o el bot de las sesiones por su id, #839) con etiqueta `tipo:fondo`, `tipo:caso` o
 `tipo:encargo`: en cada alta, edición, etiqueta, cierre o reapertura (venga de
 la CLI, el MCP o la web), y una vez al día (06:35 UTC). **Colgar un hijo de un
 fondo no lanza ningún workflow** (GitHub no tiene disparador para sub-issues):

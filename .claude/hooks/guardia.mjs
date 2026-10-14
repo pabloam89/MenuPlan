@@ -68,7 +68,7 @@ export function opDeSesion(o) {
 /**
  * #326: la foto de los issues (asset de la release `foto-issues`) la escribe SOLO el workflow
  * `foto-issues.yml`. Los scripts se fían de lo que trae (autor de cada comentario incluido, el
- * `authorAssociation` con que se cuentan las marcas «lo lleva»), así que una sesión que subiera otra
+ * `esDeLaCasa` con que se cuentan las marcas «lo lleva»), así que una sesión que subiera otra
  * foto, o una sesión con un texto inyectado, podría falsificarlo. ¿Esta orden escribe la release, su
  * tag o cualquier release por la API? Leer (`gh release view|download`, `gh api` sin método de
  * escritura) pasa. Filtro de buena fe: la App de las sesiones puede escribir releases; quien parta la
