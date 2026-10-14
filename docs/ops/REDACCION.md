@@ -13,7 +13,7 @@ Cada principio de abajo es el porqué, sin fuerza, con su ejemplo bueno, su ejem
 - `castellano-siempre` — **Castellano siempre.** Una regla que todo el equipo lee en su idioma se entiende a la primera y se discute menos.
   - Porqué: Quien trabaja en el repo lee en castellano, y mezclar idiomas en una regla la hace más difícil de entender.
   - Norma: `rule-in-spanish` — **Castellano siempre.** Cada norma de la casa DEBE escribirse en castellano, salvo los nombres propios, el código y las citas. Control: juicio.
-    - Nota: Las palabras de fuerza de RFC 2119 se traducen: debe, no debe y conviene; no se deja MUST ni SHOULD. Vale también para los comentarios del código y para el nombre de las ramas, detrás del prefijo de área que da scripts/tarea.mjs..
+    - Nota: Las palabras de fuerza de RFC 2119 se traducen: debe, no debe y conviene; no se deja MUST ni SHOULD. Vale también para los comentarios del código y para el nombre de las ramas, detrás del prefijo de área que da scripts/tarea.mjs.
   - Bueno: «Cada skill debe llevar su dueño».
   - Malo: «Each skill must have an owner».
   - Fuente: [I] CLAUDE.md.

@@ -1311,6 +1311,7 @@
       "sujeto": "agente",
       "fuerza": "no_debe",
       "exigencia": "juzgar lo que ha construido",
+      "nota": "Un PR que toca .claude/, .github/, CLAUDE.md, los hooks o lo que corre con secretos pasa por su juez antes de fusionarse; hasta #642, nada lo impide.",
       "donde": [
         "CLAUDE.md",
         ".claude/commands/orquestar.md"
@@ -3497,7 +3498,7 @@
       "fuerza": "debe",
       "condicion": "cuando el CI está en verde",
       "exigencia": "fusionarlo alguien distinto del constructor",
-      "nota": "La propia sesión fusiona su PR a staging (#608), pero con un juez distinto nombrado (decisión de Pablo en #387); la línea de jueces que mira el CI la trae #642. Un PR que toca .claude/, .github/, CLAUDE.md, los hooks o lo que corre con secretos pasa por su juez antes de fusionarse; hasta #642, nada lo impide.",
+      "nota": "La propia sesión fusiona su PR a staging (#608), pero con un juez distinto nombrado (decisión de Pablo en #387); la línea de jueces que mira el CI la trae #642.",
       "donde": [
         "CLAUDE.md"
       ],
@@ -4494,7 +4495,7 @@
       "sujeto": "regla",
       "fuerza": "debe",
       "exigencia": "escribirse en castellano, salvo los nombres propios, el código y las citas",
-      "nota": "Las palabras de fuerza de RFC 2119 se traducen: debe, no debe y conviene; no se deja MUST ni SHOULD. Vale también para los comentarios del código y para el nombre de las ramas, detrás del prefijo de área que da scripts/tarea.mjs.",
+      "nota": "Las palabras de fuerza de RFC 2119 se traducen: debe, no debe y conviene; no se deja MUST ni SHOULD. Vale también para los comentarios del código y para el nombre de las ramas, detrás del prefijo de área que da scripts/tarea.mjs",
       "donde": [
         "docs/ops/REDACCION.md"
       ],

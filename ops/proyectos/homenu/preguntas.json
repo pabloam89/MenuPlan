@@ -1,5 +1,5 @@
 {
-  "$comentario": "Qué se le pregunta al dueño del proyecto y qué queda autorizado de forma permanente (#690, acuerdo con Pablo del 14 oct 2026: una sola fuente, como dato del proyecto). Cada entrada es de un `tipo` de vocabulario cerrado (TIPOS_DE_ENTRADA de scripts/lib/preguntas.mjs) y lleva la `norma` que la hace cumplir (un id de ops/normas.json o del registro de normas del proyecto) o null si no hay ninguna. La sección «Qué se le pregunta a …» de CLAUDE.md sale de aquí con `npm run preguntas -- --escribir` y ops/preguntas.test.js la compara; el orquestador lee este fichero, no una copia. `aplicar-migraciones` conserva su texto a la espera de la corrección D2 de #690.",
+  "$comentario": "Qué se le pregunta al dueño del proyecto y qué queda autorizado de forma permanente (#690, acuerdo con Pablo del 14 oct 2026: una sola fuente, como dato del proyecto). Cada entrada es de un `tipo` de vocabulario cerrado (TIPOS_DE_ENTRADA de scripts/lib/preguntas.mjs) y lleva la `norma` que la hace cumplir (un id de ops/normas.json o del registro de normas del proyecto) o null si no hay ninguna. La sección «Qué se le pregunta a …» de CLAUDE.md sale de aquí con `npm run preguntas -- --escribir` y ops/preguntas.test.js la compara; el orquestador lee este fichero, no una copia.",
   "version": 1,
   "project": "homenu",
   "pregunta_a": "Pablo",
@@ -16,6 +16,12 @@
       "tipo": "pregunta",
       "texto": "Borrar o reescribir datos de familias, o cambiar RLS y permisos de lo que ya existe (`--pablo`, `CONTRAE`).",
       "norma": "migracion-pablo-solo-pablo"
+    },
+    {
+      "id": "aplicar-migraciones",
+      "tipo": "pregunta",
+      "texto": "Ensayar y aplicar una migración: hasta E5 (#331) el ensayo y el `--si` los lanza Pablo, porque las sesiones no tienen la URL de administrador (#328); la sesión la deja en staging, con el OK del juez, y le prepara el comando.",
+      "norma": "aplicar-migracion-con-permiso"
     },
     {
       "id": "borrar-recursos-o-ramas",
@@ -56,14 +62,8 @@
     {
       "id": "leer-produccion",
       "tipo": "autorizada",
-      "texto": "Leer producción en solo lectura con los scripts del repo: `npm run consulta -- \"<select>\"`, `verificar-estado`, el ensayo de `apply-migration`.",
+      "texto": "Leer producción en solo lectura con los scripts del repo: `npm run consulta -- \"<select>\"`, `verificar-estado`.",
       "norma": "rol-solo-lectura"
-    },
-    {
-      "id": "aplicar-migraciones",
-      "tipo": "autorizada",
-      "texto": "Aplicar las migraciones que el script deja aplicar (en staging, ensayadas, con el juez y sin `--pablo`).",
-      "norma": "aplicar-migracion-con-permiso"
     },
     {
       "id": "issues-y-etiquetas",

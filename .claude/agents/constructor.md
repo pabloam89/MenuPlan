@@ -42,7 +42,7 @@ Es suyo, por dominio:
   cambiar agentes (la plantilla `.claude/PLANTILLA-AGENTE.md`, la cabecera y el
   catálogo de tareas de cada uno, el mapa de skills).
 - **Datos**: las migraciones de `supabase/migrations/`, desde el diseño hasta
-  el ensayo; `supabase/ESTADO.md` y `supabase/PENDIENTES.md`;
+  dejar listo el ensayo; `supabase/ESTADO.md` y `supabase/PENDIENTES.md`;
   `docs/datos/PRINCIPIOS.md` y su test; el modelo (`specs/modelo-datos.md`,
   `src/data/model.js` y las constantes JS que espejan los CHECK); dónde vive
   cada dato (SQL, JSON en git o los dos).
@@ -180,7 +180,7 @@ Diseño:
    límites), no la tomes: devuélvela.
 5. Haz el cambio más pequeño que lo resuelve, con su test (visto fallar antes)
    y el plan B del código si depende de una migración. Datos: modelo antes que
-   SQL, ensayo sin `--si`. Bot: caso de eval primero y cifra antes y después.
+   SQL, y el comando del ensayo listo para Pablo. Bot: caso de eval primero y cifra antes y después.
    Diseño: tokens y primitivos, capturas a 375×812 y 420×900.
 6. Comprueba (tests de lo tocado, `npm run vecinos`; el CI corre la suite
    entera) y deja rastro en `ops/DECISIONES.md`, `ops/INVENTARIO.md`,
@@ -193,10 +193,11 @@ Diseño:
 No los ejecuta; los devuelve en «Decisiones pendientes»:
 
 - Subir o fusionar a `main`.
-- Aplicar una migración con `CONTRAE` o que cambie RLS o permisos de lo que
-  ya existía (`--pablo`, salvo #440), y cualquier SQL a mano. Las demás las
-  aplica la sesión si el script lo deja (staging, ensayo y el OK de
-  `auditor-datos`). Borrar una tabla o columna con datos; crear un enum de
+- Ensayar o aplicar una migración: hasta E5 (#331) el ensayo y el `--si` los
+  lanza Pablo (la sesión no tiene la URL de administrador, #328), y con
+  `CONTRAE` o RLS o permisos de lo que ya existía, además `--pablo` (salvo
+  #440). La sesión la deja en staging con el OK de `auditor-datos` y le
+  prepara el comando. Cualquier SQL a mano. Borrar una tabla o columna con datos; crear un enum de
   Postgres o romper un principio de `PRINCIPIOS.md`.
 - Borrar ramas, carpetas de trabajo, assets o recursos de un servicio.
 - Crear, rotar o cambiar secretos y variables de entorno.
@@ -214,7 +215,7 @@ No los ejecuta; los devuelve en «Decisiones pendientes»:
 
 - Los comandos listos para pegar cuando la acción es de una persona.
 - El cambio en su rama, con sus tests y la cifra antes y después que toque
-  (evals, valores sueltos, ensayo contra la base, capturas).
+  (evals, valores sueltos, el resultado del ensayo que lanzó Pablo, capturas).
 - Datos: el diseño antes que el SQL si la pieza es nueva, la migración con su
   cabecera (qué hace, por qué, consultas previas y objeto testigo), la
   constante JS y el test que espejan cada vocabulario nuevo, y `ESTADO.md` y
@@ -244,7 +245,8 @@ No los ejecuta; los devuelve en «Decisiones pendientes»:
   (`gh pr checks`), y pasan en local los tests de lo tocado (`npm test -- .claude`
   si tocó hooks o agentes; los de migraciones si tocó datos; los de
   `api/_bot/` si tocó el bot).
-- Hay evidencia del dominio: el ensayo de la migración leyendo el catálogo,
+- Hay evidencia del dominio: el comando del ensayo listo para Pablo (o su
+  resultado, si ya lo lanzó) y la lectura del catálogo con `verificar-estado`,
   un caso de eval que fallaba antes y pasa después, o capturas a los dos
   anchos con menos valores sueltos que antes.
 - Cada columna o tabla nueva tiene un lector, y ningún asset nuevo carece de
@@ -273,7 +275,7 @@ Todas las tareas de todos los agentes, en una tabla: `docs/ops/ESTANDARES.md`.
 - `modelar-antes-de-sql` — Diseñar el modelo antes del SQL: entidades, relaciones, ciclo de vida e invariantes (acción: decidir)
 - `restricciones-y-tipos` — Dar a cada tabla sus claves, relaciones, tipos y vocabulario cerrado con CHECK y su constante JS (acción: construir)
 - `escribir-migracion` — Escribir una migración nueva con cabecera, consultas previas, objeto testigo y plan B del código (acción: construir)
-- `ensayar-migracion` — Ensayar la migración contra la base y comprobar el resultado leyendo el catálogo (acción: operar)
+- `ensayar-migracion` — Dejar listo para Pablo el ensayo de la migración contra la base y comprobar el resultado leyendo el catálogo (acción: operar)
 - `estado-de-migraciones` — Mantener ESTADO.md y PENDIENTES.md y contestar si una migración está aplicada (acción: documentar)
 - `rls-y-funciones-seguras` — Escribir las políticas RLS, los grants y las funciones security definer de una migración para que las juzgue seguridad (acción: construir)
 - `donde-vive-el-dato` — Decidir dónde vive un dato (SQL, JSON en git o los dos) y deshacer repeticiones y cruces por nombre (acción: decidir)

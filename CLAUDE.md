@@ -227,6 +227,7 @@ Pablo decidió el 8 oct de 2026 que solo se le pregunte lo **irreversible o lo q
 
 - Subir o fusionar a `main` (producción).
 - Borrar o reescribir datos de familias, o cambiar RLS y permisos de lo que ya existe (`--pablo`, `CONTRAE`).
+- Ensayar y aplicar una migración: hasta E5 (#331) el ensayo y el `--si` los lanza Pablo, porque las sesiones no tienen la URL de administrador (#328); la sesión la deja en staging, con el OK del juez, y le prepara el comando.
 - Borrar recursos de un servicio (una base, un proyecto, un bucket) o ramas que no están fusionadas.
 - Crear, rotar o cambiar secretos y variables de entorno.
 - Gastar dinero: un plan de pago, una compra, evals de pago que no tocan.
@@ -236,8 +237,7 @@ Pablo decidió el 8 oct de 2026 que solo se le pregunte lo **irreversible o lo q
 
 **Autorizado de forma permanente** (se hace y se cuenta en el resumen):
 
-- Leer producción en solo lectura con los scripts del repo: `npm run consulta -- "<select>"`, `verificar-estado`, el ensayo de `apply-migration`.
-- Aplicar las migraciones que el script deja aplicar (en staging, ensayadas, con el juez y sin `--pablo`).
+- Leer producción en solo lectura con los scripts del repo: `npm run consulta -- "<select>"`, `verificar-estado`.
 - Issues y etiquetas: crearlos, clasificarlos, colgarlos, cerrarlos con su PR, y `npm run issues -- --etiquetas`.
 - Cambiar hooks, guardia, reglas, skills y agentes, siempre por PR con su juez y el CI en verde. Fusionar a staging es de la propia sesión, también si toca `.claude/` (#608: ningún PR espera la aprobación de una persona).
 - Ajustes del repo que no tocan permisos ni producción: etiquetas, plantillas, la descripción de un PR.
