@@ -122,7 +122,6 @@ export function calcular(raiz) {
     return { id: f.id, lado, sinMarcar: lado === "vertical" && !f.project };
   });
   const fuentesSinMarcar = fu.filter((f) => f.sinMarcar).length;
-  for (const f of fu) if (f.lado === "duda") duda("fuentes", f.id, f.razon);
   filas.push(contar("fuentes documentales (ops/fuentes-documentales/)", fu));
   const externas = [...fuentes.values()].filter((f) => f.tipo === "externa").length;
   const notaFuentes = `${externas} externas (literatura) y ${fuentes.size - externas} de la casa (una ruta del repo).`;

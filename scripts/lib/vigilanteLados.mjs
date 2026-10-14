@@ -9,7 +9,7 @@
  *     vertical lo ve en su PR, y las que la quitan dejan el techo fijado más abajo.
  * Puro salvo `medir`, que lee el repo con `calcular`.
  */
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 import { NO_ES_PROSA, calcular, nombraProyecto, nombraServicio, textoDe } from "./inventarioVertical.mjs";
@@ -29,6 +29,39 @@ export function citasAVertical(datos) {
     normaAPrincipio: datos.normasHorizontales.filter((n) => vert.has(n.principio)).map((n) => `${n.id} → principio ${n.principio}`),
     entidadAEntidad: datos.relaciones.filter((r) => scope.get(r.from) === "horizontal" && scope.get(r.to) === "vertical").map((r) => `${r.from} → ${r.to}`),
   };
+}
+
+/**
+ * Fuentes con `project` (verticales) que cita alguna pieza horizontal. `fuentes`: [{id, project?}]; `citas`: [{ id: id de
+ * la fuente, pieza: «quién la cita» }] de piezas ya horizontales. Devuelve una cadena «fuente ← pieza» por cada fuente
+ * vertical citada (la primera pieza que la cita), ordenadas.
+ */
+export function fuentesVerticalesCitadas(fuentes, citas) {
+  const vert = new Set(fuentes.filter((f) => f.project).map((f) => f.id));
+  const vistas = new Map();
+  for (const c of citas) if (vert.has(c.id) && !vistas.has(c.id)) vistas.set(c.id, c.pieza);
+  return [...vistas].map(([id, pieza]) => `${id} ← ${pieza}`).sort();
+}
+
+/** Citas de fuente de las piezas horizontales del repo: principios sin `project` (casa y producto delegado) y reglas de estándares. */
+function citasHorizontalesDeFuentes(raiz) {
+  const citas = [];
+  for (const dir of ["ops/principios/principios", "ops/principios-producto/principios"]) {
+    if (!existsSync(join(raiz, dir))) continue;
+    for (const f of readdirSync(join(raiz, dir)).filter((x) => x.endsWith(".json") && !x.startsWith("_")).sort()) {
+      const p = leerJson(raiz, `${dir}/${f}`);
+      if (!p.project) for (const s of p.fuentes ?? []) citas.push({ id: s.fuente, pieza: `principio ${p.id}` });
+    }
+  }
+  const recorrer = (o) => {
+    if (Array.isArray(o)) o.forEach(recorrer);
+    else if (o && typeof o === "object") {
+      if (typeof o.fuente === "string") citas.push({ id: o.fuente, pieza: "estándares de agentes" });
+      Object.values(o).forEach(recorrer);
+    }
+  };
+  recorrer(leerJson(raiz, "ops/estandares-agentes.json"));
+  return citas;
 }
 
 /**
@@ -67,7 +100,11 @@ export function medir(raiz) {
     relaciones: ent.relations,
   });
   const est = citasDeEstandares(leerJson(raiz, "ops/estandares-agentes.json"));
-  const medidas = { estandares_que_nombran_el_proyecto: est.proyecto.length, estandares_que_nombran_un_servicio: est.servicio.length, citas_de_entidad_horizontal_a_vertical: citas.entidadAEntidad.length, tests_de_la_casa_que_leen_homenu: inv.cifras.vigilanVertical };
+  const fuentesVert = fuentesVerticalesCitadas(
+    readdirSync(join(raiz, "ops/fuentes-documentales/fuentes")).filter((x) => x.endsWith(".json") && !x.startsWith("_")).map((x) => leerJson(raiz, `ops/fuentes-documentales/fuentes/${x}`)),
+    citasHorizontalesDeFuentes(raiz),
+  );
+  const medidas = { fuente_vertical_citada_por_horizontal: fuentesVert.length, estandares_que_nombran_el_proyecto: est.proyecto.length, estandares_que_nombran_un_servicio: est.servicio.length, citas_de_entidad_horizontal_a_vertical: citas.entidadAEntidad.length, tests_de_la_casa_que_leen_homenu: inv.cifras.vigilanVertical };
   for (const f of inv.filas) medidas[`duda: ${f.unidad}`] = f.duda;
   medidas["verticales sin registro propio: principios de la casa"] = filas["principios de la casa (ops/principios/)"].vertical;
   medidas["verticales sin marcar: fuentes documentales"] = inv.cifras.fuentesSinMarcar;
