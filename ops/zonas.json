@@ -50,7 +50,7 @@
     { "re": "^scripts/(add-|apply-(allergen|bedca|complemento|migration|step)|audit-(catalog|consistency)|axis-|alergenos|backfill|bedca|bot-|build-(alimentos|bases|bot|coste|derived|fix|ingredient|nucleo|retencion|review|vectores)|buscador|cableado|check-(bebes|image|step)|ciqual|clave-(consulta|copia)|convert-|copias|cutout|derive-|detect-duplicate|diag-|diff-names|diseno/|enrich-|ensayo-(herencia|papeles)|escritores|finalize|salud-despliegue|sinErroresTragados|gen-|generate-(logo|pwa)|ingredient-|lola-|make_|mark-|medir-emparejador|mercadona|mj-prompts|modelos-evals|normalize-|optimize-|prep-photo|prompt-ab|queue-missing|recetas-|reconcile|regen-|reupload|router-|rolLectura|select-recipes|sulfitos|tag-cocinas|telegram-|transform-|upload-|usda|validate-catalog|vectores-|vigia|lintsum|sueltos)", "zona": "producto" },
     { "re": "^scripts/lib/(bedca|ciqual|usda|dishDeriv|combos|familia|migraciones|rolLectura|claveRol|derivados|evals|columnas|pocosValores|erroresTragados|ensayosRollback|permisoAplicar|mercadonaFetch|copias|bot-|escalas|escritoresVocabulario|sueltos)", "zona": "producto" },
     { "re": "^scripts/lib/(consulta|env|hora|textoExterno|checksVocabulario|taxonomia)\\.", "zona": "mixto" },
-    { "re": "^scripts/(consulta|columnas-pocos-valores|verificar-estado|lint-base|hora|op|llavero-op|dependabot-auto)\\.", "zona": "mixto" }
+    { "re": "^scripts/(consulta|columnas-pocos-valores|campos-por-entidad|verificar-estado|lint-base|hora|op|llavero-op|dependabot-auto)\\.", "zona": "mixto" }
   ],
   "excepciones": {
     "CLAUDE.md": "mixto",
