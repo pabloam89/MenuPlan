@@ -1,0 +1,2108 @@
+{
+  "_": "El pool de bibliotecas de interfaz por elemento (#780, línea 2 del programa #774): una ficha por biblioteca de terceros candidata (o ya en uso, o retirada), con los campos del bloque Q de docs/diseno/META-DISENO.md más lo que añade esta línea (requisitos de stack, accesibilidad que declara, y qué elementos de la taxonomía cubre). Solo datos: no instala nada ni toca ninguna app; elegir una biblioteca es elegir tecnología y eso es de cada proyecto (línea 4). Los datos salen del dossier de investigación del comentario de #780 (lectura del 14 oct 2026); lo que el dossier no comprobó va con el valor `unverified` (nunca relleno por intuición) y el peso en kB no se mide aquí: se mide al elegir, con vite build. Los ids de vocabulario son inglés kebab (#566); los nombres de campo, en castellano como en la taxonomía. Campos de la ficha: id, nombre, rol, vinculo, mantenimiento (y ultimo_push con su estado_fuente), licencia (spdx, alcance, permite, y su fuente y URL), version, peso (dependencias y si se puede podar), importacion, react (peer declarado), requisitos (lo que exige del stack), movil, accesibilidad (qué declara la documentación, con su URL), cubre (elementos de ops/diseno/taxonomia.json, cada uno con su base, su acceso y su fuente), motivo_sin_cobertura, alternativa (otras fichas del mismo oficio que cubren algo igual: JUICIO, no medida), retirada (motivo, sucesora y, si hay sucesora, la URL de su fuente), dueno y comprobada. `cubre.base` dice si la cobertura la comprobó una fuente (`checked`, con su URL) o es juicio por el nombre de la biblioteca (`judgement`): una cifra de cobertura por juicio no es una medida. Una biblioteca `unmaintained` o `archived` no puede ser candidata: pasa a `retired` con su motivo y su sucesora si la hay. Los dos campos del bloque Q que dependen del proyecto, `envoltorio` (directa o detrás de un componente propio) y `reglas de uso` (qué piezas se admiten), no están en la ficha: los decide cada proyecto en su especificación (línea 4) y son los `decide_el_proyecto`. Lo lee scripts/lib/bibliotecasDiseno.mjs; lo vigila ops/diseno/pool.test.js; las cifras, node scripts/diseno/bibliotecas.mjs. La versión de React de un proyecto no se guarda aquí: cada ficha lleva su rango y `node scripts/diseno/bibliotecas.mjs [--react x.y]` cuenta las compatibles con la de package.json al pintar la cifra. `unverified` es el «no sé» común: en `rol` dice qué piezas da la biblioteca (no se ha comprobado); cómo se importa (`importacion`) y qué exige (`requisito`) tienen su campo y ningún valor de `rol` se repite en ellos.",
+  "lectura": {
+    "fecha": "2026-10-14",
+    "dossier": "https://github.com/pabloam89/MenuPlan/issues/780#issuecomment-6165019619",
+    "fuentes": {
+      "GH": "https://api.github.com/repos/<repo>: licencia SPDX, archived y pushed_at",
+      "NPM": "https://registry.npmjs.org/<paquete>/latest: versión, licencia, peerDependencies y número de dependencias",
+      "DOC": "La página oficial citada en la propia ficha"
+    }
+  },
+  "decide_el_proyecto": [
+    "envoltorio",
+    "reglas de uso"
+  ],
+  "vocabularios": {
+    "rol": {
+      "headless": "Primitivas de comportamiento y accesibilidad sin estilo propio",
+      "full-kit": "Kit completo de componentes con estilo propio",
+      "single-piece": "Una sola pieza concreta: tabla, cajón, toast, menú de comandos o carrusel",
+      "css-only": "Clases o hojas de estilo, sin componentes",
+      "icons": "Familia de iconos",
+      "unverified": "No se ha comprobado qué piezas da (el dossier no lo dice)"
+    },
+    "vinculo": {
+      "in-use": "Ya está en uso en un proyecto",
+      "candidate": "Puede elegirse para un proyecto",
+      "retired": "Descartada: sin mantenimiento o archivada; lleva motivo y, si la hay, sucesora"
+    },
+    "mantenimiento": {
+      "active": "Con actividad reciente en su repositorio",
+      "slow": "Con actividad, pero más lenta",
+      "idle": "Sin actividad en un año; no se ha comprobado si es abandono",
+      "unmaintained": "Su propio README dice que no se mantiene",
+      "archived": "Archivada en GitHub",
+      "unverified": "No se ha comprobado"
+    },
+    "fuente_de_dato": {
+      "GH": "La API de GitHub del repositorio",
+      "NPM": "El registro de paquetes de npm",
+      "DOC": "La documentación oficial"
+    },
+    "licencia_alcance": {
+      "package": "La licencia vale para todo el paquete",
+      "core-only": "La licencia vale solo para el núcleo; hay un nivel de pago aparte",
+      "unverified": "No se ha comprobado"
+    },
+    "declaracion": {
+      "yes": "La fuente lo declara",
+      "no": "La fuente dice que no",
+      "unverified": "No se ha comprobado"
+    },
+    "importacion": {
+      "package": "Un paquete con versión fijada",
+      "copied-source": "Ficheros copiados al repositorio",
+      "unverified": "No se ha comprobado"
+    },
+    "react_estado": {
+      "declared": "El paquete declara una versión de React (desde, hasta)",
+      "undeclared": "El paquete no declara versión de React",
+      "not-applicable": "No es una biblioteca de React",
+      "unverified": "No se ha comprobado"
+    },
+    "requisito": {
+      "react": "Necesita React",
+      "tailwind": "Necesita Tailwind, o está pensada para él",
+      "emotion": "Necesita Emotion, una biblioteca de estilos que se suma a las dependencias",
+      "web-components": "Funciona sin framework, como elementos web",
+      "css": "Solo hojas de estilo",
+      "unverified": "No se ha comprobado qué exige"
+    },
+    "base_de_cobertura": {
+      "checked": "Una fuente dice que la biblioteca cubre ese elemento (lleva su URL)",
+      "judgement": "Juicio por el nombre de la biblioteca: no es una medida"
+    },
+    "acceso": {
+      "free": "Sin coste en la licencia leída",
+      "paid": "De pago, por asiento y sin redistribuir",
+      "unverified": "No se ha comprobado"
+    },
+    "origen_de_alcance": {
+      "mobbin-count": "Entre los 15 elementos con más ejemplos en el recuento de la fuente de la taxonomía, sin contar el grupo de imagen",
+      "encargo": "Elegido en el encargo #780 entre los más comunes por el recuento, fuera de esos 15",
+      "panel": "Lo necesita el panel de la factoría, el primer proyecto"
+    }
+  },
+  "alcance": [
+    {
+      "elemento": "button",
+      "origen": "mobbin-count",
+      "motivo_sin_candidata": null
+    },
+    {
+      "elemento": "bottom-sheet",
+      "origen": "mobbin-count",
+      "motivo_sin_candidata": null
+    },
+    {
+      "elemento": "text-field",
+      "origen": "mobbin-count",
+      "motivo_sin_candidata": null
+    },
+    {
+      "elemento": "stacked-list",
+      "origen": "mobbin-count",
+      "motivo_sin_candidata": null
+    },
+    {
+      "elemento": "card",
+      "origen": "mobbin-count",
+      "motivo_sin_candidata": null
+    },
+    {
+      "elemento": "carousel",
+      "origen": "mobbin-count",
+      "motivo_sin_candidata": null
+    },
+    {
+      "elemento": "tab",
+      "origen": "mobbin-count",
+      "motivo_sin_candidata": null
+    },
+    {
+      "elemento": "search-bar",
+      "origen": "mobbin-count",
+      "motivo_sin_candidata": null
+    },
+    {
+      "elemento": "dialog",
+      "origen": "mobbin-count",
+      "motivo_sin_candidata": null
+    },
+    {
+      "elemento": "progress-indicator",
+      "origen": "mobbin-count",
+      "motivo_sin_candidata": null
+    },
+    {
+      "elemento": "chip",
+      "origen": "mobbin-count",
+      "motivo_sin_candidata": null
+    },
+    {
+      "elemento": "switch",
+      "origen": "mobbin-count",
+      "motivo_sin_candidata": null
+    },
+    {
+      "elemento": "tab-bar",
+      "origen": "mobbin-count",
+      "motivo_sin_candidata": null
+    },
+    {
+      "elemento": "toast",
+      "origen": "encargo",
+      "motivo_sin_candidata": null
+    },
+    {
+      "elemento": "data-table",
+      "origen": "panel",
+      "motivo_sin_candidata": null
+    },
+    {
+      "elemento": "side-navigation",
+      "origen": "panel",
+      "motivo_sin_candidata": null
+    },
+    {
+      "elemento": "combobox",
+      "origen": "panel",
+      "motivo_sin_candidata": null
+    },
+    {
+      "elemento": "context-menu",
+      "origen": "panel",
+      "motivo_sin_candidata": null
+    }
+  ],
+  "bibliotecas": [
+    {
+      "retirada": null,
+      "motivo_sin_cobertura": null,
+      "alternativa": [
+        "react-aria-components",
+        "base-ui",
+        "ark-ui"
+      ],
+      "dueno": "constructor",
+      "comprobada": "2026-10-14",
+      "id": "radix-ui",
+      "nombre": "Radix UI (radix-ui)",
+      "rol": "headless",
+      "vinculo": "candidate",
+      "mantenimiento": "active",
+      "ultimo_push": "2026-10-13",
+      "estado_fuente": "GH",
+      "licencia": {
+        "spdx": "MIT",
+        "alcance": "package",
+        "permite": {
+          "comercial": "yes",
+          "redistribuir": "yes"
+        },
+        "fuente": "NPM",
+        "fuente_url": "https://registry.npmjs.org/radix-ui/latest"
+      },
+      "version": "1.8.1",
+      "peso": {
+        "dependencias": 55,
+        "podable": "unverified"
+      },
+      "importacion": "package",
+      "react": {
+        "estado": "declared",
+        "desde": "16.8",
+        "hasta": "19"
+      },
+      "requisitos": [
+        "react"
+      ],
+      "movil": "unverified",
+      "accesibilidad": {
+        "aria": "yes",
+        "teclado": "yes",
+        "lectores": "yes",
+        "wcag": "unverified",
+        "fuente_url": "https://www.radix-ui.com/primitives/docs/overview/accessibility"
+      },
+      "cubre": [
+        {
+          "elemento": "dialog",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "tab",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "switch",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "progress-indicator",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "context-menu",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        }
+      ]
+    },
+    {
+      "retirada": null,
+      "motivo_sin_cobertura": null,
+      "alternativa": [
+        "radix-ui",
+        "base-ui",
+        "ark-ui"
+      ],
+      "dueno": "constructor",
+      "comprobada": "2026-10-14",
+      "id": "react-aria-components",
+      "nombre": "React Aria Components (react-aria-components)",
+      "rol": "headless",
+      "vinculo": "candidate",
+      "mantenimiento": "active",
+      "ultimo_push": "2026-10-13",
+      "estado_fuente": "GH",
+      "licencia": {
+        "spdx": "Apache-2.0",
+        "alcance": "package",
+        "permite": {
+          "comercial": "yes",
+          "redistribuir": "yes"
+        },
+        "fuente": "NPM",
+        "fuente_url": "https://registry.npmjs.org/react-aria-components/latest"
+      },
+      "version": "1.22.1",
+      "peso": {
+        "dependencias": 8,
+        "podable": "unverified"
+      },
+      "importacion": "package",
+      "react": {
+        "estado": "declared",
+        "desde": "16.8",
+        "hasta": "19"
+      },
+      "requisitos": [
+        "react"
+      ],
+      "movil": "yes",
+      "accesibilidad": {
+        "aria": "yes",
+        "teclado": "yes",
+        "lectores": "yes",
+        "wcag": "unverified",
+        "fuente_url": "https://react-aria.adobe.com"
+      },
+      "cubre": [
+        {
+          "elemento": "combobox",
+          "base": "checked",
+          "acceso": "free",
+          "fuente_url": "https://react-aria.adobe.com"
+        },
+        {
+          "elemento": "date-picker",
+          "base": "checked",
+          "acceso": "free",
+          "fuente_url": "https://react-aria.adobe.com"
+        },
+        {
+          "elemento": "data-table",
+          "base": "checked",
+          "acceso": "free",
+          "fuente_url": "https://react-aria.adobe.com"
+        },
+        {
+          "elemento": "button",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "text-field",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "tab",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "switch",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "dialog",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "progress-indicator",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        }
+      ]
+    },
+    {
+      "retirada": null,
+      "motivo_sin_cobertura": null,
+      "alternativa": [
+        "radix-ui",
+        "react-aria-components",
+        "ark-ui"
+      ],
+      "dueno": "constructor",
+      "comprobada": "2026-10-14",
+      "id": "base-ui",
+      "nombre": "Base UI (@base-ui/react)",
+      "rol": "headless",
+      "vinculo": "candidate",
+      "mantenimiento": "active",
+      "ultimo_push": "2026-10-14",
+      "estado_fuente": "GH",
+      "licencia": {
+        "spdx": "MIT",
+        "alcance": "package",
+        "permite": {
+          "comercial": "yes",
+          "redistribuir": "yes"
+        },
+        "fuente": "NPM",
+        "fuente_url": "https://registry.npmjs.org/@base-ui/react/latest"
+      },
+      "version": "1.9.0",
+      "peso": {
+        "dependencias": 5,
+        "podable": "yes"
+      },
+      "importacion": "package",
+      "react": {
+        "estado": "declared",
+        "desde": "17",
+        "hasta": "19"
+      },
+      "requisitos": [
+        "react"
+      ],
+      "movil": "unverified",
+      "accesibilidad": {
+        "aria": "unverified",
+        "teclado": "unverified",
+        "lectores": "unverified",
+        "wcag": "unverified",
+        "fuente_url": null
+      },
+      "cubre": [
+        {
+          "elemento": "dialog",
+          "base": "checked",
+          "acceso": "free",
+          "fuente_url": "https://base-ui.com"
+        },
+        {
+          "elemento": "combobox",
+          "base": "checked",
+          "acceso": "free",
+          "fuente_url": "https://base-ui.com"
+        },
+        {
+          "elemento": "tab",
+          "base": "checked",
+          "acceso": "free",
+          "fuente_url": "https://base-ui.com"
+        },
+        {
+          "elemento": "switch",
+          "base": "checked",
+          "acceso": "free",
+          "fuente_url": "https://base-ui.com"
+        },
+        {
+          "elemento": "toast",
+          "base": "checked",
+          "acceso": "free",
+          "fuente_url": "https://base-ui.com"
+        },
+        {
+          "elemento": "drawer",
+          "base": "checked",
+          "acceso": "free",
+          "fuente_url": "https://base-ui.com"
+        },
+        {
+          "elemento": "accordion",
+          "base": "checked",
+          "acceso": "free",
+          "fuente_url": "https://base-ui.com"
+        },
+        {
+          "elemento": "slider",
+          "base": "checked",
+          "acceso": "free",
+          "fuente_url": "https://base-ui.com"
+        },
+        {
+          "elemento": "button",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "text-field",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "progress-indicator",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "context-menu",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        }
+      ]
+    },
+    {
+      "retirada": null,
+      "motivo_sin_cobertura": null,
+      "alternativa": [
+        "radix-ui",
+        "react-aria-components",
+        "base-ui"
+      ],
+      "dueno": "constructor",
+      "comprobada": "2026-10-14",
+      "id": "ark-ui",
+      "nombre": "Ark UI (@ark-ui/react)",
+      "rol": "headless",
+      "vinculo": "candidate",
+      "mantenimiento": "active",
+      "ultimo_push": "2026-10-14",
+      "estado_fuente": "GH",
+      "licencia": {
+        "spdx": "MIT",
+        "alcance": "package",
+        "permite": {
+          "comercial": "yes",
+          "redistribuir": "yes"
+        },
+        "fuente": "NPM",
+        "fuente_url": "https://registry.npmjs.org/@ark-ui/react/latest"
+      },
+      "version": "5.39.3",
+      "peso": {
+        "dependencias": 69,
+        "podable": "unverified"
+      },
+      "importacion": "package",
+      "react": {
+        "estado": "declared",
+        "desde": "18",
+        "hasta": null
+      },
+      "requisitos": [
+        "react"
+      ],
+      "movil": "unverified",
+      "accesibilidad": {
+        "aria": "unverified",
+        "teclado": "unverified",
+        "lectores": "unverified",
+        "wcag": "unverified",
+        "fuente_url": null
+      },
+      "cubre": [
+        {
+          "elemento": "dialog",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "tab",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "switch",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "combobox",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "progress-indicator",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "carousel",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "toast",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        }
+      ]
+    },
+    {
+      "retirada": null,
+      "motivo_sin_cobertura": null,
+      "alternativa": [
+        "radix-ui",
+        "react-aria-components",
+        "base-ui"
+      ],
+      "dueno": "constructor",
+      "comprobada": "2026-10-14",
+      "id": "headless-ui",
+      "nombre": "Headless UI (@headlessui/react)",
+      "rol": "headless",
+      "vinculo": "candidate",
+      "mantenimiento": "slow",
+      "ultimo_push": "2026-04-13",
+      "estado_fuente": "GH",
+      "licencia": {
+        "spdx": "MIT",
+        "alcance": "package",
+        "permite": {
+          "comercial": "yes",
+          "redistribuir": "yes"
+        },
+        "fuente": "NPM",
+        "fuente_url": "https://registry.npmjs.org/@headlessui/react/latest"
+      },
+      "version": "2.2.10",
+      "peso": {
+        "dependencias": 5,
+        "podable": "unverified"
+      },
+      "importacion": "package",
+      "react": {
+        "estado": "declared",
+        "desde": "18",
+        "hasta": "19"
+      },
+      "requisitos": [
+        "react",
+        "tailwind"
+      ],
+      "movil": "unverified",
+      "accesibilidad": {
+        "aria": "unverified",
+        "teclado": "unverified",
+        "lectores": "unverified",
+        "wcag": "unverified",
+        "fuente_url": null
+      },
+      "cubre": [
+        {
+          "elemento": "button",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "text-field",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "dialog",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "tab",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "switch",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "combobox",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        }
+      ]
+    },
+    {
+      "retirada": null,
+      "motivo_sin_cobertura": "La página de instalación no lista componentes ni dice qué exige del stack; falta leer su catálogo.",
+      "alternativa": [],
+      "dueno": "constructor",
+      "comprobada": "2026-10-14",
+      "id": "shadcn-ui",
+      "nombre": "shadcn/ui",
+      "rol": "unverified",
+      "vinculo": "candidate",
+      "mantenimiento": "active",
+      "ultimo_push": "2026-10-13",
+      "estado_fuente": "GH",
+      "licencia": {
+        "spdx": "MIT",
+        "alcance": "package",
+        "permite": {
+          "comercial": "yes",
+          "redistribuir": "yes"
+        },
+        "fuente": "GH",
+        "fuente_url": "https://api.github.com/repos/shadcn-ui/ui"
+      },
+      "version": "cli",
+      "peso": {
+        "dependencias": null,
+        "podable": "unverified"
+      },
+      "importacion": "unverified",
+      "react": {
+        "estado": "unverified",
+        "desde": null,
+        "hasta": null
+      },
+      "requisitos": [
+        "unverified"
+      ],
+      "movil": "unverified",
+      "accesibilidad": {
+        "aria": "unverified",
+        "teclado": "unverified",
+        "lectores": "unverified",
+        "wcag": "unverified",
+        "fuente_url": null
+      },
+      "cubre": []
+    },
+    {
+      "retirada": null,
+      "motivo_sin_cobertura": null,
+      "alternativa": [
+        "mui-material",
+        "chakra-ui",
+        "ant-design"
+      ],
+      "dueno": "constructor",
+      "comprobada": "2026-10-14",
+      "id": "mantine",
+      "nombre": "Mantine (@mantine/core)",
+      "rol": "full-kit",
+      "vinculo": "candidate",
+      "mantenimiento": "active",
+      "ultimo_push": "2026-10-11",
+      "estado_fuente": "GH",
+      "licencia": {
+        "spdx": "MIT",
+        "alcance": "package",
+        "permite": {
+          "comercial": "yes",
+          "redistribuir": "yes"
+        },
+        "fuente": "NPM",
+        "fuente_url": "https://registry.npmjs.org/@mantine/core/latest"
+      },
+      "version": "9.7.2",
+      "peso": {
+        "dependencias": 5,
+        "podable": "unverified"
+      },
+      "importacion": "package",
+      "react": {
+        "estado": "declared",
+        "desde": "19.2",
+        "hasta": "19"
+      },
+      "requisitos": [
+        "react"
+      ],
+      "movil": "unverified",
+      "accesibilidad": {
+        "aria": "unverified",
+        "teclado": "unverified",
+        "lectores": "unverified",
+        "wcag": "unverified",
+        "fuente_url": null
+      },
+      "cubre": [
+        {
+          "elemento": "button",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "text-field",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "card",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "dialog",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "tab",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "switch",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "progress-indicator",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "chip",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "toast",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "combobox",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "carousel",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "data-table",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "side-navigation",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        }
+      ]
+    },
+    {
+      "retirada": null,
+      "motivo_sin_cobertura": null,
+      "alternativa": [
+        "mantine",
+        "chakra-ui",
+        "ant-design"
+      ],
+      "dueno": "constructor",
+      "comprobada": "2026-10-14",
+      "id": "mui-material",
+      "nombre": "MUI Material (@mui/material)",
+      "rol": "full-kit",
+      "vinculo": "candidate",
+      "mantenimiento": "active",
+      "ultimo_push": "2026-10-14",
+      "estado_fuente": "GH",
+      "licencia": {
+        "spdx": "MIT",
+        "alcance": "package",
+        "permite": {
+          "comercial": "yes",
+          "redistribuir": "yes"
+        },
+        "fuente": "NPM",
+        "fuente_url": "https://registry.npmjs.org/@mui/material/latest"
+      },
+      "version": "9.5.0",
+      "peso": {
+        "dependencias": 12,
+        "podable": "unverified"
+      },
+      "importacion": "package",
+      "react": {
+        "estado": "declared",
+        "desde": "17",
+        "hasta": "19"
+      },
+      "requisitos": [
+        "react",
+        "emotion"
+      ],
+      "movil": "unverified",
+      "accesibilidad": {
+        "aria": "unverified",
+        "teclado": "unverified",
+        "lectores": "unverified",
+        "wcag": "unverified",
+        "fuente_url": null
+      },
+      "cubre": [
+        {
+          "elemento": "button",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "text-field",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "card",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "dialog",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "tab",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "switch",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "progress-indicator",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "chip",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "toast",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "combobox",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "data-table",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "bottom-sheet",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "stacked-list",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "tab-bar",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "side-navigation",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        }
+      ]
+    },
+    {
+      "retirada": null,
+      "motivo_sin_cobertura": null,
+      "alternativa": [
+        "mantine",
+        "mui-material",
+        "ant-design"
+      ],
+      "dueno": "constructor",
+      "comprobada": "2026-10-14",
+      "id": "chakra-ui",
+      "nombre": "Chakra UI (@chakra-ui/react)",
+      "rol": "full-kit",
+      "vinculo": "candidate",
+      "mantenimiento": "active",
+      "ultimo_push": "2026-10-12",
+      "estado_fuente": "GH",
+      "licencia": {
+        "spdx": "MIT",
+        "alcance": "package",
+        "permite": {
+          "comercial": "yes",
+          "redistribuir": "yes"
+        },
+        "fuente": "NPM",
+        "fuente_url": "https://registry.npmjs.org/@chakra-ui/react/latest"
+      },
+      "version": "3.37.0",
+      "peso": {
+        "dependencias": 7,
+        "podable": "unverified"
+      },
+      "importacion": "package",
+      "react": {
+        "estado": "declared",
+        "desde": "18",
+        "hasta": null
+      },
+      "requisitos": [
+        "react",
+        "emotion"
+      ],
+      "movil": "unverified",
+      "accesibilidad": {
+        "aria": "unverified",
+        "teclado": "unverified",
+        "lectores": "unverified",
+        "wcag": "unverified",
+        "fuente_url": null
+      },
+      "cubre": [
+        {
+          "elemento": "button",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "text-field",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "card",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "dialog",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "tab",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "switch",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "progress-indicator",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "toast",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "combobox",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        }
+      ]
+    },
+    {
+      "retirada": null,
+      "motivo_sin_cobertura": null,
+      "alternativa": [
+        "mantine",
+        "mui-material",
+        "chakra-ui"
+      ],
+      "dueno": "constructor",
+      "comprobada": "2026-10-14",
+      "id": "ant-design",
+      "nombre": "Ant Design (antd)",
+      "rol": "full-kit",
+      "vinculo": "candidate",
+      "mantenimiento": "active",
+      "ultimo_push": "2026-10-14",
+      "estado_fuente": "GH",
+      "licencia": {
+        "spdx": "MIT",
+        "alcance": "package",
+        "permite": {
+          "comercial": "yes",
+          "redistribuir": "yes"
+        },
+        "fuente": "NPM",
+        "fuente_url": "https://registry.npmjs.org/antd/latest"
+      },
+      "version": "6.6.6",
+      "peso": {
+        "dependencias": 48,
+        "podable": "unverified"
+      },
+      "importacion": "package",
+      "react": {
+        "estado": "declared",
+        "desde": "18",
+        "hasta": null
+      },
+      "requisitos": [
+        "react"
+      ],
+      "movil": "unverified",
+      "accesibilidad": {
+        "aria": "unverified",
+        "teclado": "unverified",
+        "lectores": "unverified",
+        "wcag": "unverified",
+        "fuente_url": null
+      },
+      "cubre": [
+        {
+          "elemento": "button",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "text-field",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "card",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "dialog",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "tab",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "switch",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "progress-indicator",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "chip",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "toast",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "combobox",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "data-table",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "side-navigation",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "carousel",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "stacked-list",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        }
+      ]
+    },
+    {
+      "retirada": null,
+      "motivo_sin_cobertura": null,
+      "alternativa": [
+        "react-aria-components"
+      ],
+      "dueno": "constructor",
+      "comprobada": "2026-10-14",
+      "id": "tanstack-table",
+      "nombre": "TanStack Table (@tanstack/react-table)",
+      "rol": "single-piece",
+      "vinculo": "candidate",
+      "mantenimiento": "active",
+      "ultimo_push": "2026-10-12",
+      "estado_fuente": "GH",
+      "licencia": {
+        "spdx": "MIT",
+        "alcance": "package",
+        "permite": {
+          "comercial": "yes",
+          "redistribuir": "yes"
+        },
+        "fuente": "NPM",
+        "fuente_url": "https://registry.npmjs.org/@tanstack/react-table/latest"
+      },
+      "version": "9.3.1",
+      "peso": {
+        "dependencias": 2,
+        "podable": "unverified"
+      },
+      "importacion": "package",
+      "react": {
+        "estado": "declared",
+        "desde": "18",
+        "hasta": null
+      },
+      "requisitos": [
+        "react"
+      ],
+      "movil": "unverified",
+      "accesibilidad": {
+        "aria": "unverified",
+        "teclado": "unverified",
+        "lectores": "unverified",
+        "wcag": "unverified",
+        "fuente_url": null
+      },
+      "cubre": [
+        {
+          "elemento": "data-table",
+          "base": "checked",
+          "acceso": "free",
+          "fuente_url": "https://api.github.com/repos/TanStack/table"
+        }
+      ]
+    },
+    {
+      "retirada": {
+        "motivo": "El README del repositorio dice «This repo is unmaintained» (lectura del 14 oct 2026). Base UI trae un componente de cajón (DOC base-ui.com); no hay sucesora declarada.",
+        "sucesora": null,
+        "fuente_url": null
+      },
+      "motivo_sin_cobertura": null,
+      "alternativa": [],
+      "dueno": "constructor",
+      "comprobada": "2026-10-14",
+      "id": "vaul",
+      "nombre": "Vaul",
+      "rol": "single-piece",
+      "vinculo": "retired",
+      "mantenimiento": "unmaintained",
+      "ultimo_push": "2025-10-03",
+      "estado_fuente": "DOC",
+      "licencia": {
+        "spdx": "MIT",
+        "alcance": "package",
+        "permite": {
+          "comercial": "yes",
+          "redistribuir": "yes"
+        },
+        "fuente": "NPM",
+        "fuente_url": "https://registry.npmjs.org/vaul/latest"
+      },
+      "version": "1.1.2",
+      "peso": {
+        "dependencias": 1,
+        "podable": "unverified"
+      },
+      "importacion": "package",
+      "react": {
+        "estado": "declared",
+        "desde": "16.8",
+        "hasta": "19"
+      },
+      "requisitos": [
+        "react"
+      ],
+      "movil": "unverified",
+      "accesibilidad": {
+        "aria": "unverified",
+        "teclado": "unverified",
+        "lectores": "unverified",
+        "wcag": "unverified",
+        "fuente_url": null
+      },
+      "cubre": [
+        {
+          "elemento": "bottom-sheet",
+          "base": "checked",
+          "acceso": "free",
+          "fuente_url": "https://github.com/emilkowalski/vaul"
+        },
+        {
+          "elemento": "drawer",
+          "base": "checked",
+          "acceso": "free",
+          "fuente_url": "https://github.com/emilkowalski/vaul"
+        }
+      ]
+    },
+    {
+      "retirada": null,
+      "motivo_sin_cobertura": null,
+      "alternativa": [
+        "base-ui"
+      ],
+      "dueno": "constructor",
+      "comprobada": "2026-10-14",
+      "id": "sonner",
+      "nombre": "Sonner",
+      "rol": "single-piece",
+      "vinculo": "candidate",
+      "mantenimiento": "active",
+      "ultimo_push": "2026-08-10",
+      "estado_fuente": "GH",
+      "licencia": {
+        "spdx": "MIT",
+        "alcance": "package",
+        "permite": {
+          "comercial": "yes",
+          "redistribuir": "yes"
+        },
+        "fuente": "NPM",
+        "fuente_url": "https://registry.npmjs.org/sonner/latest"
+      },
+      "version": "2.0.8",
+      "peso": {
+        "dependencias": 0,
+        "podable": "unverified"
+      },
+      "importacion": "package",
+      "react": {
+        "estado": "declared",
+        "desde": "18",
+        "hasta": "19"
+      },
+      "requisitos": [
+        "react"
+      ],
+      "movil": "unverified",
+      "accesibilidad": {
+        "aria": "unverified",
+        "teclado": "unverified",
+        "lectores": "unverified",
+        "wcag": "unverified",
+        "fuente_url": null
+      },
+      "cubre": [
+        {
+          "elemento": "toast",
+          "base": "checked",
+          "acceso": "free",
+          "fuente_url": "https://api.github.com/repos/emilkowalski/sonner"
+        }
+      ]
+    },
+    {
+      "retirada": null,
+      "motivo_sin_cobertura": "Es un menú de comandos y la taxonomía no tiene ese tipo de elemento; sin push en un año, no comprobado si es abandono.",
+      "alternativa": [],
+      "dueno": "constructor",
+      "comprobada": "2026-10-14",
+      "id": "cmdk",
+      "nombre": "cmdk",
+      "rol": "single-piece",
+      "vinculo": "candidate",
+      "mantenimiento": "idle",
+      "ultimo_push": "2025-10-29",
+      "estado_fuente": "GH",
+      "licencia": {
+        "spdx": "MIT",
+        "alcance": "package",
+        "permite": {
+          "comercial": "yes",
+          "redistribuir": "yes"
+        },
+        "fuente": "NPM",
+        "fuente_url": "https://registry.npmjs.org/cmdk/latest"
+      },
+      "version": "1.1.1",
+      "peso": {
+        "dependencias": 4,
+        "podable": "unverified"
+      },
+      "importacion": "package",
+      "react": {
+        "estado": "declared",
+        "desde": "18",
+        "hasta": "19"
+      },
+      "requisitos": [
+        "react"
+      ],
+      "movil": "unverified",
+      "accesibilidad": {
+        "aria": "unverified",
+        "teclado": "unverified",
+        "lectores": "unverified",
+        "wcag": "unverified",
+        "fuente_url": null
+      },
+      "cubre": []
+    },
+    {
+      "retirada": null,
+      "motivo_sin_cobertura": null,
+      "alternativa": [],
+      "dueno": "constructor",
+      "comprobada": "2026-10-14",
+      "id": "embla-carousel",
+      "nombre": "Embla Carousel (embla-carousel-react)",
+      "rol": "single-piece",
+      "vinculo": "candidate",
+      "mantenimiento": "active",
+      "ultimo_push": "2026-10-12",
+      "estado_fuente": "GH",
+      "licencia": {
+        "spdx": "MIT",
+        "alcance": "package",
+        "permite": {
+          "comercial": "yes",
+          "redistribuir": "yes"
+        },
+        "fuente": "NPM",
+        "fuente_url": "https://registry.npmjs.org/embla-carousel-react/latest"
+      },
+      "version": "8.6.0",
+      "peso": {
+        "dependencias": 2,
+        "podable": "unverified"
+      },
+      "importacion": "package",
+      "react": {
+        "estado": "declared",
+        "desde": "16.8",
+        "hasta": "19"
+      },
+      "requisitos": [
+        "react"
+      ],
+      "movil": "unverified",
+      "accesibilidad": {
+        "aria": "unverified",
+        "teclado": "unverified",
+        "lectores": "unverified",
+        "wcag": "unverified",
+        "fuente_url": null
+      },
+      "cubre": [
+        {
+          "elemento": "carousel",
+          "base": "checked",
+          "acceso": "free",
+          "fuente_url": "https://api.github.com/repos/davidjerleke/embla-carousel"
+        }
+      ]
+    },
+    {
+      "retirada": null,
+      "motivo_sin_cobertura": null,
+      "alternativa": [
+        "ionic"
+      ],
+      "dueno": "constructor",
+      "comprobada": "2026-10-14",
+      "id": "konsta",
+      "nombre": "Konsta UI (konsta)",
+      "rol": "full-kit",
+      "vinculo": "candidate",
+      "mantenimiento": "active",
+      "ultimo_push": "2026-10-06",
+      "estado_fuente": "GH",
+      "licencia": {
+        "spdx": "MIT",
+        "alcance": "package",
+        "permite": {
+          "comercial": "yes",
+          "redistribuir": "yes"
+        },
+        "fuente": "NPM",
+        "fuente_url": "https://registry.npmjs.org/konsta/latest"
+      },
+      "version": "5.5.0",
+      "peso": {
+        "dependencias": 1,
+        "podable": "unverified"
+      },
+      "importacion": "package",
+      "react": {
+        "estado": "undeclared",
+        "desde": null,
+        "hasta": null
+      },
+      "requisitos": [
+        "tailwind"
+      ],
+      "movil": "yes",
+      "accesibilidad": {
+        "aria": "unverified",
+        "teclado": "unverified",
+        "lectores": "unverified",
+        "wcag": "unverified",
+        "fuente_url": null
+      },
+      "cubre": [
+        {
+          "elemento": "button",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "text-field",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "card",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "dialog",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "tab",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "switch",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "progress-indicator",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "chip",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "toast",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "bottom-sheet",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "search-bar",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "stacked-list",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "tab-bar",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        }
+      ]
+    },
+    {
+      "retirada": null,
+      "motivo_sin_cobertura": null,
+      "alternativa": [
+        "konsta"
+      ],
+      "dueno": "constructor",
+      "comprobada": "2026-10-14",
+      "id": "ionic",
+      "nombre": "Ionic Framework (@ionic/react)",
+      "rol": "full-kit",
+      "vinculo": "candidate",
+      "mantenimiento": "active",
+      "ultimo_push": "2026-10-14",
+      "estado_fuente": "GH",
+      "licencia": {
+        "spdx": "MIT",
+        "alcance": "package",
+        "permite": {
+          "comercial": "yes",
+          "redistribuir": "yes"
+        },
+        "fuente": "NPM",
+        "fuente_url": "https://registry.npmjs.org/@ionic/react/latest"
+      },
+      "version": "9.0.7",
+      "peso": {
+        "dependencias": 4,
+        "podable": "unverified"
+      },
+      "importacion": "package",
+      "react": {
+        "estado": "declared",
+        "desde": "18",
+        "hasta": "19"
+      },
+      "requisitos": [
+        "react"
+      ],
+      "movil": "yes",
+      "accesibilidad": {
+        "aria": "unverified",
+        "teclado": "unverified",
+        "lectores": "unverified",
+        "wcag": "unverified",
+        "fuente_url": null
+      },
+      "cubre": [
+        {
+          "elemento": "button",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "text-field",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "card",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "dialog",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "tab",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "switch",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "progress-indicator",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "chip",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "toast",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "bottom-sheet",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "search-bar",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "stacked-list",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "tab-bar",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "side-navigation",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        }
+      ]
+    },
+    {
+      "retirada": null,
+      "motivo_sin_cobertura": null,
+      "alternativa": [],
+      "dueno": "constructor",
+      "comprobada": "2026-10-14",
+      "id": "daisyui",
+      "nombre": "daisyUI",
+      "rol": "css-only",
+      "vinculo": "candidate",
+      "mantenimiento": "active",
+      "ultimo_push": "2026-10-13",
+      "estado_fuente": "GH",
+      "licencia": {
+        "spdx": "MIT",
+        "alcance": "package",
+        "permite": {
+          "comercial": "yes",
+          "redistribuir": "yes"
+        },
+        "fuente": "NPM",
+        "fuente_url": "https://registry.npmjs.org/daisyui/latest"
+      },
+      "version": "5.7.50",
+      "peso": {
+        "dependencias": 0,
+        "podable": "unverified"
+      },
+      "importacion": "package",
+      "react": {
+        "estado": "not-applicable",
+        "desde": null,
+        "hasta": null
+      },
+      "requisitos": [
+        "tailwind"
+      ],
+      "movil": "unverified",
+      "accesibilidad": {
+        "aria": "unverified",
+        "teclado": "unverified",
+        "lectores": "unverified",
+        "wcag": "unverified",
+        "fuente_url": null
+      },
+      "cubre": [
+        {
+          "elemento": "button",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "text-field",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "card",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "dialog",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "tab",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "switch",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "progress-indicator",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "carousel",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "toast",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        },
+        {
+          "elemento": "stacked-list",
+          "base": "judgement",
+          "acceso": "free",
+          "fuente_url": null
+        }
+      ]
+    },
+    {
+      "retirada": null,
+      "motivo_sin_cobertura": null,
+      "alternativa": [],
+      "dueno": "constructor",
+      "comprobada": "2026-10-14",
+      "id": "web-awesome",
+      "nombre": "Web Awesome",
+      "rol": "unverified",
+      "vinculo": "candidate",
+      "mantenimiento": "unverified",
+      "ultimo_push": null,
+      "estado_fuente": null,
+      "licencia": {
+        "spdx": "MIT",
+        "alcance": "core-only",
+        "permite": {
+          "comercial": "yes",
+          "redistribuir": "yes"
+        },
+        "fuente": "DOC",
+        "fuente_url": "https://webawesome.com/pricing"
+      },
+      "version": "unread",
+      "peso": {
+        "dependencias": null,
+        "podable": "unverified"
+      },
+      "importacion": "unverified",
+      "react": {
+        "estado": "not-applicable",
+        "desde": null,
+        "hasta": null
+      },
+      "requisitos": [
+        "web-components"
+      ],
+      "movil": "unverified",
+      "accesibilidad": {
+        "aria": "unverified",
+        "teclado": "unverified",
+        "lectores": "unverified",
+        "wcag": "unverified",
+        "fuente_url": null
+      },
+      "cubre": [
+        {
+          "elemento": "combobox",
+          "base": "checked",
+          "acceso": "paid",
+          "fuente_url": "https://webawesome.com/pricing"
+        },
+        {
+          "elemento": "data-table",
+          "base": "checked",
+          "acceso": "paid",
+          "fuente_url": "https://webawesome.com/pricing"
+        },
+        {
+          "elemento": "date-picker",
+          "base": "checked",
+          "acceso": "paid",
+          "fuente_url": "https://webawesome.com/pricing"
+        }
+      ]
+    },
+    {
+      "retirada": {
+        "motivo": "Archivada en GitHub (archived: true): «now Web Awesome».",
+        "sucesora": "web-awesome",
+        "fuente_url": "https://api.github.com/repos/shoelace-style/shoelace"
+      },
+      "motivo_sin_cobertura": "Retirada: archivada en GitHub, no se leyó su catálogo.",
+      "alternativa": [],
+      "dueno": "constructor",
+      "comprobada": "2026-10-14",
+      "id": "shoelace",
+      "nombre": "Shoelace",
+      "rol": "unverified",
+      "vinculo": "retired",
+      "mantenimiento": "archived",
+      "ultimo_push": "2026-05-14",
+      "estado_fuente": "GH",
+      "licencia": {
+        "spdx": "MIT",
+        "alcance": "package",
+        "permite": {
+          "comercial": "yes",
+          "redistribuir": "yes"
+        },
+        "fuente": "GH",
+        "fuente_url": "https://api.github.com/repos/shoelace-style/shoelace"
+      },
+      "version": "unread",
+      "peso": {
+        "dependencias": null,
+        "podable": "unverified"
+      },
+      "importacion": "unverified",
+      "react": {
+        "estado": "not-applicable",
+        "desde": null,
+        "hasta": null
+      },
+      "requisitos": [
+        "web-components"
+      ],
+      "movil": "unverified",
+      "accesibilidad": {
+        "aria": "unverified",
+        "teclado": "unverified",
+        "lectores": "unverified",
+        "wcag": "unverified",
+        "fuente_url": null
+      },
+      "cubre": []
+    },
+    {
+      "retirada": {
+        "motivo": "Archivada en GitHub (archived: true); el dossier no nombra sucesora.",
+        "sucesora": null,
+        "fuente_url": null
+      },
+      "motivo_sin_cobertura": "Retirada: archivada en GitHub, no se leyó su catálogo.",
+      "alternativa": [],
+      "dueno": "constructor",
+      "comprobada": "2026-10-14",
+      "id": "pico-css",
+      "nombre": "Pico CSS",
+      "rol": "css-only",
+      "vinculo": "retired",
+      "mantenimiento": "archived",
+      "ultimo_push": "2026-10-04",
+      "estado_fuente": "GH",
+      "licencia": {
+        "spdx": "MIT",
+        "alcance": "package",
+        "permite": {
+          "comercial": "yes",
+          "redistribuir": "yes"
+        },
+        "fuente": "GH",
+        "fuente_url": "https://api.github.com/repos/picocss/pico"
+      },
+      "version": "unread",
+      "peso": {
+        "dependencias": null,
+        "podable": "unverified"
+      },
+      "importacion": "unverified",
+      "react": {
+        "estado": "not-applicable",
+        "desde": null,
+        "hasta": null
+      },
+      "requisitos": [
+        "css"
+      ],
+      "movil": "unverified",
+      "accesibilidad": {
+        "aria": "unverified",
+        "teclado": "unverified",
+        "lectores": "unverified",
+        "wcag": "unverified",
+        "fuente_url": null
+      },
+      "cubre": []
+    },
+    {
+      "retirada": null,
+      "motivo_sin_cobertura": null,
+      "alternativa": [],
+      "dueno": "constructor",
+      "comprobada": "2026-10-14",
+      "id": "nucleo",
+      "nombre": "Nucleo (iconos)",
+      "rol": "icons",
+      "vinculo": "in-use",
+      "mantenimiento": "unverified",
+      "ultimo_push": null,
+      "estado_fuente": null,
+      "licencia": {
+        "spdx": "unverified",
+        "alcance": "unverified",
+        "permite": {
+          "comercial": "unverified",
+          "redistribuir": "unverified"
+        },
+        "fuente": null,
+        "fuente_url": null
+      },
+      "version": "unread",
+      "peso": {
+        "dependencias": null,
+        "podable": "unverified"
+      },
+      "importacion": "copied-source",
+      "react": {
+        "estado": "unverified",
+        "desde": null,
+        "hasta": null
+      },
+      "requisitos": [
+        "unverified"
+      ],
+      "movil": "unverified",
+      "accesibilidad": {
+        "aria": "unverified",
+        "teclado": "unverified",
+        "lectores": "unverified",
+        "wcag": "unverified",
+        "fuente_url": null
+      },
+      "cubre": [
+        {
+          "elemento": "icon",
+          "base": "checked",
+          "acceso": "unverified",
+          "fuente_url": "https://github.com/pabloam89/MenuPlan/blob/staging/DESIGN_SYSTEM.md"
+        }
+      ]
+    }
+  ]
+}
