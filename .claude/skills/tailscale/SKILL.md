@@ -16,7 +16,7 @@ metadata:
 
 # Tailscale
 
-Método de la casa. Las máquinas, sus direcciones y las cuentas de un proyecto concreto no van aquí: están en la ficha de servicio de ese proyecto (`ops/proyectos/<id>/servicios/tailscale.md`), que llega con `--proyecto <id>` en el brief.
+Método de la casa. Las máquinas, sus direcciones y las cuentas de un proyecto concreto no van aquí: están en la ficha de servicio de ese proyecto (`ops/proyectos/<id>/servicios/tailscale.md`), que llega con `--proyecto <id>` en el brief. Si no te llegó (no pasaste por `/orquestar`), ábrela tú en esa ruta, con el id de tu proyecto: la puerta de la guardia te la sugiere al pedirte esta skill.
 
 ## Qué es y dónde
 

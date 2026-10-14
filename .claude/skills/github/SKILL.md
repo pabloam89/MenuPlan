@@ -16,7 +16,7 @@ metadata:
 
 # GitHub
 
-Método de la casa. El repo, su protección de ramas, los workflows y los secretos que son de un proyecto concreto, la identidad de sus sesiones y lo que se decidió allí no van aquí: están en la ficha de servicio de ese proyecto (`ops/proyectos/<id>/servicios/github.md`), que llega con `--proyecto <id>` en el brief.
+Método de la casa. El repo, su protección de ramas, los workflows y los secretos que son de un proyecto concreto, la identidad de sus sesiones y lo que se decidió allí no van aquí: están en la ficha de servicio de ese proyecto (`ops/proyectos/<id>/servicios/github.md`), que llega con `--proyecto <id>` en el brief. Si no te llegó (no pasaste por `/orquestar`), ábrela tú en esa ruta, con el id de tu proyecto: la puerta de la guardia te la sugiere al pedirte esta skill.
 
 ## Qué es y dónde
 

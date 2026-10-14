@@ -370,6 +370,9 @@ export function contextoReal(raiz, entrada = {}, { dirReg: dirRegDado, env = pro
       }
     },
     esPrincipal,
+    // Las fichas de servicio del proyecto de la sesión (`MENUPLAN_PROYECTO`, o el de `PROYECTO_POR_DEFECTO`) para esas skills: las rutas
+    // `ops/proyectos/<id>/servicios/<skill>.md` que existen. La guardia no importa de scripts/lib: el valor por defecto se lee del fuente.
+    fichasDeServicio: (skills) => fichasDeServicioDe(raiz, skills),
     // La ruta de un fichero dentro de SU carpeta del repo, con barras normales
     // (`supabase/migrations/0099_x.sql`), o null si no es de este repo: la
     // puerta de las skills al editar la compara con las `rutas` de
@@ -480,6 +483,25 @@ export function contextoReal(raiz, entrada = {}, { dirReg: dirRegDado, env = pro
 
 // ── La puerta de lectura de las skills ─────────────────────────────────────
 
+/** El proyecto de la sesión: `MENUPLAN_PROYECTO` si es un nombre con carpeta en ops/proyectos/, si no el PROYECTO_POR_DEFECTO de zonasProyecto.mjs; null si no se puede saber. */
+export function proyectoDeSesion(raiz, env = process.env) {
+  const nombre = /^[a-z0-9][a-z0-9-]*$/;
+  const dado = env.MENUPLAN_PROYECTO;
+  if (typeof dado === "string" && nombre.test(dado) && existsSync(join(raiz, "ops", "proyectos", dado))) return dado;
+  try {
+    return readFileSync(join(raiz, "scripts", "lib", "zonasProyecto.mjs"), "utf8").match(/export const PROYECTO_POR_DEFECTO = "([a-z0-9-]+)"/)?.[1] ?? null;
+  } catch {
+    return null; // a propósito: sin el fuente no hay proyecto por defecto; el aviso sale sin la ficha
+  }
+}
+
+/** Las rutas de las fichas de servicio de esas skills en el proyecto de la sesión, las que existen. */
+export function fichasDeServicioDe(raiz, skills, env = process.env) {
+  const proyecto = proyectoDeSesion(raiz, env);
+  if (!proyecto) return [];
+  return skills.filter((s) => /^[a-z0-9-]+$/.test(s)).map((s) => `ops/proyectos/${proyecto}/servicios/${s}.md`).filter((r) => existsSync(join(raiz, r)));
+}
+
 /**
  * Las skills (.claude/skills/) son los runbooks, con lo que ya falló en cada
  * servicio. Se abrían solo si la sesión decidía hacerlo. Aquí, la PRIMERA vez
@@ -505,7 +527,16 @@ function puertaDeSkills(skillsDe, entrada, ctx, que = "comando") {
   const avisadas = faltan.filter((s) => ctx.marcarSkill(s));
   if (!avisadas.length) return null;
   const plural = avisadas.length > 1;
+  // La ficha del proyecto de la sesión para esas skills (los datos que la skill, ya método de la casa, no lleva; #710): una sesión
+  // que no pasó por /orquestar no recibe `--proyecto` en el brief. Falla abierta: sin ficha, el mensaje sale igual que antes.
+  let fichas = [];
+  try {
+    fichas = ctx.fichasDeServicio?.(avisadas) ?? [];
+  } catch {
+    // a propósito: la sugerencia es una ayuda; si falla, el aviso sale sin ella
+  }
   const vars = {
+    ficha: fichas.length ? `; y la ficha de servicio de tu proyecto, con sus datos (herramienta Read): ${fichas.join(" y ")}` : "",
     lista: avisadas.map((s) => `\`${s}\``).join(" y "),
     abre: avisadas.map((s) => `Skill con skill: "${s}"`).join(" y "),
     las_skills: plural ? "las skills" : "la skill",

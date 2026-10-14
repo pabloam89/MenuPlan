@@ -15,6 +15,7 @@ import { resolve } from "node:path";
 
 import { cargarMapa } from "../.claude/hooks/dominios.mjs";
 import { fichasDeProyecto, precargadasDe, skillsDelEncargo } from "./lib/usoSkills.mjs";
+import { PROYECTOS } from "./lib/zonasProyecto.mjs";
 import { ficherosDeLaRama } from "./lib/vecinos.mjs";
 
 const RAIZ = resolve(import.meta.dirname, "..");
@@ -49,4 +50,9 @@ console.log(`SKILLS A ABRIR: ${abrir.length ? abrir.join(", ") : "ninguna"}${ya.
 if (proyecto) {
   const fichas = fichasDeProyecto(RAIZ, proyecto, lista.map((s) => s.skill));
   console.log(`FICHAS DEL PROYECTO: ${fichas.length ? fichas.join(", ") : "ninguna"}`);
+  // Un id que no está en la lista única sale como «ninguna» y parece que ese proyecto no tiene ficha: se avisa y falla.
+  if (!PROYECTOS.includes(proyecto)) {
+    console.log(`AVISO: «${proyecto}» no es un proyecto de la lista (${PROYECTOS.join(", ")}); las fichas de arriba no valen.`);
+    process.exitCode = 1;
+  }
 }

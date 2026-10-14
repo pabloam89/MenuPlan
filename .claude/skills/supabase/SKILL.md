@@ -16,7 +16,7 @@ metadata:
 
 # Supabase
 
-Método de la casa. El proyecto de base de datos concreto (su id, su plan, las copias propias, los roles de lectura, cómo se aplica o se borra con migraciones, los crons y lo que ha fallado ahí) no va aquí: está en la ficha de servicio de ese proyecto (`ops/proyectos/<id>/servicios/supabase.md`), que llega con `--proyecto <id>` en el brief.
+Método de la casa. El proyecto de base de datos concreto (su id, su plan, las copias propias, los roles de lectura, cómo se aplica o se borra con migraciones, los crons y lo que ha fallado ahí) no va aquí: está en la ficha de servicio de ese proyecto (`ops/proyectos/<id>/servicios/supabase.md`), que llega con `--proyecto <id>` en el brief. Si no te llegó (no pasaste por `/orquestar`), ábrela tú en esa ruta, con el id de tu proyecto: la puerta de la guardia te la sugiere al pedirte esta skill.
 
 ## Qué es y dónde
 

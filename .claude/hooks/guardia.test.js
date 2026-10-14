@@ -5,7 +5,8 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { carpetaDe, contextoReal, decidir, salidaDeGuardia } from "./guardia.mjs";
+import { carpetaDe, contextoReal, decidir, fichasDeServicioDe, proyectoDeSesion, salidaDeGuardia } from "./guardia.mjs";
+import { PROYECTOS, PROYECTO_POR_DEFECTO } from "../../scripts/lib/zonasProyecto.mjs";
 import { cargarMapa } from "./dominios.mjs";
 import { AVISOS_CREDENCIALES, credencialDeComando, sinTextos } from "./credenciales.mjs";
 import { AVISOS, AVISO_POR_CREDENCIAL } from "./avisos-guardia.mjs";
@@ -806,6 +807,28 @@ describe("puerta de lectura al editar: abre la skill antes de tocar su dominio (
     const c = sesion();
     expect(bash("vercel env add FOO", c)).toBe("deny");
     expect(toca("Edit", "C:/w/vercel.json", c)).toBe(null);
+  });
+
+  it("la puerta sugiere la ficha de servicio del proyecto de la sesión, y sin ficha el aviso sale igual que antes (#710)", () => {
+    const con = sesion({ extra: { fichasDeServicio: (skills) => skills.map((s) => `ops/proyectos/x/servicios/${s}.md`) } });
+    const m = toca("Edit", "C:/w/vercel.json", con).motivo;
+    expect(m).toContain("la ficha de servicio de tu proyecto");
+    expect(m).toContain("ops/proyectos/x/servicios/vercel.md");
+    const sin = toca("Edit", "C:/w/vercel.json", sesion({ extra: { fichasDeServicio: () => [] } })).motivo;
+    expect(sin).not.toMatch(/ficha|{ficha}/);
+    const rota = toca("Edit", "C:/w/vercel.json", sesion({ extra: { fichasDeServicio: () => { throw new Error("x"); } } }));
+    expect(rota.decision).toBe("deny");
+  });
+
+  it("fichasDeServicioDe: el proyecto por defecto, o el de MENUPLAN_PROYECTO si existe; una ficha que no existe o un nombre raro no salen", () => {
+    const ficha = (p, s) => `ops/proyectos/${p}/servicios/${s}.md`;
+    expect(proyectoDeSesion(RAIZ, {})).toBe(PROYECTO_POR_DEFECTO);
+    expect(fichasDeServicioDe(RAIZ, ["vercel", "issues"], {})).toEqual([ficha(PROYECTO_POR_DEFECTO, "vercel")]);
+    const otro = PROYECTOS.find((p) => p !== PROYECTO_POR_DEFECTO && existsSync(join(RAIZ, ficha(p, "tailscale"))));
+    expect(otro, "algún otro proyecto con ficha de tailscale").toBeTruthy();
+    expect(fichasDeServicioDe(RAIZ, ["tailscale"], { MENUPLAN_PROYECTO: otro })).toEqual([ficha(otro, "tailscale")]);
+    expect(proyectoDeSesion(RAIZ, { MENUPLAN_PROYECTO: "inventado" })).toBe(PROYECTO_POR_DEFECTO);
+    expect(fichasDeServicioDe(RAIZ, ["../x", "vercel"], { MENUPLAN_PROYECTO: "../.." })).toEqual([ficha(PROYECTO_POR_DEFECTO, "vercel")]);
   });
 
   it("lo que no es de ningún dominio, o cae fuera de la carpeta, no tiene puerta", () => {

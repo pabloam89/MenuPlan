@@ -198,6 +198,17 @@ describe("skillsDelEncargo: las skills del brief salen del mapa", () => {
     expect(sin.stdout).not.toContain("FICHAS DEL PROYECTO");
   });
 
+  it("skills-encargo --proyecto con un id inventado avisa y falla; con uno de la lista, no", () => {
+    const corre = (id) => spawnSync(process.execPath, ["scripts/skills-encargo.mjs", "--proyecto", id, "vercel.json"], { cwd: RAIZ, encoding: "utf8", windowsHide: true });
+    const mal = corre("inventado");
+    expect(mal.stdout).toContain("FICHAS DEL PROYECTO: ninguna");
+    expect(mal.stdout).toMatch(/AVISO: «inventado» no es un proyecto de la lista/);
+    expect(mal.status).toBe(1);
+    const bien = corre(PROYECTOS_[0].id);
+    expect(bien.stdout).not.toContain("AVISO");
+    expect(bien.status).toBe(0);
+  });
+
   it("cada skill de servicio del mapa la usa algún proyecto de la lista, con su ficha (si no, --proyecto no le da nada)", () => {
     const conFicha = new Set(PROYECTOS_.flatMap((p) => fichasDeProyecto(RAIZ, p.id, skills).map((r) => r.split("/").pop().replace(/\.md$/, ""))));
     for (const s of ["1password", "github", "hetzner", "tailscale", "vercel", "supabase"]) expect(conFicha.has(s), s).toBe(true);

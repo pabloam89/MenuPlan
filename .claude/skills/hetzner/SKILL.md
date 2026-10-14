@@ -16,7 +16,7 @@ metadata:
 
 # Hetzner (servidor propio)
 
-Método de la casa. El servidor concreto de un proyecto (nombre, direcciones, qué corre, sus copias, su coste y lo que ha fallado ahí) no va aquí: está en la ficha de servicio de ese proyecto (`ops/proyectos/<id>/servicios/hetzner.md`), que llega con `--proyecto <id>` en el brief.
+Método de la casa. El servidor concreto de un proyecto (nombre, direcciones, qué corre, sus copias, su coste y lo que ha fallado ahí) no va aquí: está en la ficha de servicio de ese proyecto (`ops/proyectos/<id>/servicios/hetzner.md`), que llega con `--proyecto <id>` en el brief. Si no te llegó (no pasaste por `/orquestar`), ábrela tú en esa ruta, con el id de tu proyecto: la puerta de la guardia te la sugiere al pedirte esta skill.
 
 ## Qué es y dónde
 
