@@ -36,13 +36,19 @@ export const MAX_DIFF = 1500;
 const rutaDe = (juez) => `${DIR_TEST_DEL_JUEZ}/${juez}.json`;
 /** Lo que el juez sabe de su situación en el test: no tiene herramientas. Va en el prompt y por eso entra en el hash. */
 export const AVISO_SIN_HERRAMIENTAS = "No tienes herramientas para leer el repositorio ni correr nada: juzga con el diff, el cuerpo del PR y la norma. Si el diff o el cuerpo del PR afirman algo (que nada lee una columna, que consta o no el OK de Pablo, que un test se vio fallar o no), considéralo dato del caso; no señales lo que solo se sabría mirando fuera.";
+/** Un caso y una norma de mentira: renderizan el prompt entero (plantilla y aviso) para que cualquier cambio de él entre en el hash. */
+const CASO_TESTIGO = { titulo: "T", diff: "D" };
+const NORMA_TESTIGO = { nombre: "N", sujeto: "codigo", fuerza: "debe", condicion: "cuando C", exigencia: "E" };
+/** Versión del corrector (criterio determinista de `claves_senal`): si cambia el algoritmo, las pasadas anteriores ya no miden lo mismo. */
+export const VERSION_CORRECTOR = "claves_senal-v1: algún hallazgo contiene, por cada grupo, alguna de sus palabras (sin tildes ni mayúsculas)";
 /**
- * El hash (LF, 12) de lo que se mide: el fichero de casos de un juez más el aviso fijo del prompt. Cambia si se edita
- * cualquier caso (aunque su número no cambie) o si cambia el prompt, porque entonces las pasadas anteriores ya no miden lo mismo.
+ * El hash (LF, 12) de lo que se mide: el fichero de casos de un juez, el prompt entero (plantilla y aviso) y la versión del corrector.
+ * Cambia si se edita cualquier caso (aunque su número no cambie) o si cambia el prompt o el corrector, porque entonces las pasadas
+ * anteriores ya no miden lo mismo.
  */
 export function hashDeCasos(juez, raiz) {
   const ruta = join(raiz, rutaDe(juez));
-  return existsSync(ruta) ? hashLF(readFileSync(ruta, "utf8") + "\n--prompt--\n" + AVISO_SIN_HERRAMIENTAS) : null;
+  return existsSync(ruta) ? hashLF(readFileSync(ruta, "utf8") + "\n--prompt--\n" + promptCaso(CASO_TESTIGO, NORMA_TESTIGO) + "\n--corrector--\n" + VERSION_CORRECTOR) : null;
 }
 
 export const esFicheroDeJuez = (ruta) => new RegExp(`^${DIR_TEST_DEL_JUEZ}/(${JUECES.join("|")})\\.json$`).test(ruta);
@@ -52,6 +58,8 @@ export function leerFichero(juez, raiz) {
   if (!existsSync(ruta)) return null;
   return JSON.parse(readFileSync(ruta, "utf8"));
 }
+
+const clavesValidas = (g) => Array.isArray(g) && g.length > 0 && g.every((x) => Array.isArray(x) && x.length > 0 && x.every((p) => typeof p === "string" && p.trim()));
 
 /** Errores de forma del fichero de un juez, como lista de textos (vacía si vale). `normasDeJuez`: ids de normas con procesador juez. */
 export function faltasDeFichero(f, juez, normasDeJuez = []) {
@@ -71,6 +79,8 @@ export function faltasDeFichero(f, juez, normasDeJuez = []) {
     if (typeof c.diff === "string" && c.diff.length > MAX_DIFF) malos.push(`${d}: el diff pasa de ${MAX_DIFF} caracteres`);
     if (c.tipo === "malo" && (typeof c.debe_senalar !== "string" || !c.debe_senalar.trim())) malos.push(`${d}: un caso malo dice qué debe señalar el juez («debe_senalar»)`);
     if (c.tipo === "bueno" && "debe_senalar" in c) malos.push(`${d}: un caso bueno no lleva «debe_senalar»`);
+    if (c.tipo === "malo" && !clavesValidas(c.claves_senal)) malos.push(`${d}: un caso malo lleva «claves_senal»: lista de grupos, cada uno una lista de palabras (el corrector acepta un hallazgo con alguna palabra de cada grupo)`);
+    if (c.tipo === "bueno" && "claves_senal" in c) malos.push(`${d}: un caso bueno no lleva «claves_senal»`);
     if (String(c.marcado_por ?? "").trim().toLowerCase() === juez) malos.push(`${d}: el veredicto lo marca el propio juez (marcado_por «${c.marcado_por}»): un juez no se califica a sí mismo`);
   }
   return malos;
@@ -166,7 +176,7 @@ export function normasSinPasada(normas, raiz) {
 /** El texto que ve el juez: el diff y la norma que se le pide mirar, sin decirle si es bueno o malo. */
 export function promptCaso(c, norma) {
   return [
-    `Revisa este cambio solo contra esta norma: «${norma.nombre}» (${norma.sujeto} ${norma.fuerza === "no_debe" ? "no debe" : "debe"} ${norma.exigencia}).`,
+    `Revisa este cambio solo contra esta norma: «${norma.nombre}» (${norma.sujeto} ${norma.fuerza === "no_debe" ? "no debe" : "debe"} ${norma.condicion ? `${norma.condicion} ` : ""}${norma.exigencia}).`,
     `Título del PR: ${c.titulo}`,
     "<diff>", c.diff, "</diff>",
     'Responde solo con JSON: {"veredicto":"aprueba"|"senala","hallazgos":["…"]}. «senala» si el cambio incumple la norma, con el caso concreto; «aprueba» si no.',
@@ -174,10 +184,85 @@ export function promptCaso(c, norma) {
   ].join("\n");
 }
 
+/** Índice de la llave que cierra el objeto abierto en `a` (respeta cadenas y escapes), o -1 si no cierra. */
+function finDeObjeto(t, a) {
+  let prof = 0, cadena = false;
+  for (let i = a; i < t.length; i++) {
+    const c = t[i];
+    if (cadena) { if (c === "\\") i++; else if (c === '"') cadena = false; continue; }
+    if (c === '"') cadena = true;
+    else if (c === "{") prof++;
+    else if (c === "}" && --prof === 0) return i;
+  }
+  return -1;
+}
+
+/** Repara lo que los modelos escriben mal dentro de las cadenas de un JSON: la barra que sobra ante una comilla simple, otras barras sueltas y saltos de línea crudos. */
+export function repararCadenas(trozo) {
+  let sal = "", cadena = false;
+  for (let i = 0; i < trozo.length; i++) {
+    const c = trozo[i];
+    if (!cadena) { if (c === '"') cadena = true; sal += c; continue; }
+    if (c === '"') { cadena = false; sal += c; continue; }
+    if (c === "\n") { sal += "\\n"; continue; }
+    if (c === "\r") { sal += "\\r"; continue; }
+    if (c === "\t") { sal += "\\t"; continue; }
+    if (c !== "\\") { sal += c; continue; }
+    const n = trozo[i + 1];
+    if (n === "'") { sal += "'"; i++; }
+    else if (n !== undefined && '"\\/bfnrt'.includes(n)) { sal += c + n; i++; }
+    else if (n === "u" && /^[0-9a-fA-F]{4}$/.test(trozo.slice(i + 2, i + 6))) { sal += "\\u"; i++; }
+    else sal += "\\\\";
+  }
+  return sal;
+}
+
+/**
+ * El primer objeto JSON de un texto, aunque venga con vallas de código, prosa antes o después o escapes inválidos; si se pasa `clave`,
+ * el primero que la tenga. Devuelve null si no hay ninguno (por ejemplo, la respuesta se cortó antes de cerrar).
+ */
+export function extraerJson(texto, clave = null) {
+  const t = String(texto ?? "");
+  for (let a = t.indexOf("{"); a !== -1; a = t.indexOf("{", a + 1)) {
+    const b = finDeObjeto(t, a);
+    if (b === -1) continue;
+    const trozo = t.slice(a, b + 1);
+    for (const intento of [trozo, repararCadenas(trozo)]) {
+      let v;
+      try { v = JSON.parse(intento); } catch { continue; }
+      if (v && typeof v === "object" && !Array.isArray(v) && (clave === null || clave in v)) return v;
+    }
+  }
+  return null;
+}
+
+/** La respuesta del juez: veredicto y hallazgos (siempre una lista de textos) sacados de su texto, más el texto tal cual. */
+export function leerRespuestaDelJuez(texto) {
+  const j = extraerJson(texto, "veredicto");
+  const lista = Array.isArray(j?.hallazgos) ? j.hallazgos : typeof j?.hallazgos === "string" ? [j.hallazgos] : [];
+  const hallazgos = lista.map((h) => (typeof h === "string" ? h : JSON.stringify(h)));
+  return { veredicto: j?.veredicto ?? null, hallazgos, texto };
+}
+
+const llana = (x) => String(x ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+
+/**
+ * El corrector, sin modelo y gratis: ¿algún hallazgo contiene, por cada grupo de `claves_senal` del caso, alguna de sus palabras?
+ * Los grupos son los trazos del defecto (qué cosa, qué falta); las palabras de un grupo, formas de decir lo mismo.
+ * Mira cada hallazgo por separado: palabras repartidas en hallazgos distintos no son un solo señalamiento.
+ */
+export function corregirPorClaves(caso, hallazgos) {
+  if (!clavesValidas(caso?.claves_senal)) return false;
+  return (hallazgos ?? []).some((h) => {
+    const t = llana(h);
+    return caso.claves_senal.every((grupo) => grupo.some((p) => t.includes(llana(p))));
+  });
+}
+
 /**
  * Pasa los casos por un juez y un corrector, que son funciones (async) inyectadas:
  *   juzgar(caso) → { veredicto, hallazgos: [texto] }
- *   corregir(caso, hallazgos) → boolean (¿algún hallazgo dice lo que `debe_senalar`?)
+ *   corregir(caso, hallazgos) → boolean (¿algún hallazgo dice lo que `debe_senalar`? en la casa, `corregirPorClaves`)
  * Acierta un bueno si el juez aprueba; un malo, si señala Y el corrector confirma que señala lo esperado.
  */
 export async function medir(casos, { juzgar, corregir, claves = [] }) {

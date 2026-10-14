@@ -3,7 +3,7 @@
  *
  *   npm run test-del-juez                       → ENSAYO de todos los jueces con fichero: valida la forma, no llama a nadie
  *   npm run test-del-juez -- revisor            → ensayo de uno
- *   npm run test-del-juez -- revisor --si       → DE PAGO: lo lanza una persona (modelo del juez + corrector barato)
+ *   npm run test-del-juez -- revisor --si       → DE PAGO: lo lanza una persona (modelo del juez; el corrector es determinista y no cuesta)
  *   npm run test-del-juez -- revisor --si --tope=0.5
  *
  * Los casos: ops/test-del-juez/<juez>.json (forma y reglas en scripts/lib/testDelJuez.mjs). Cada norma de
@@ -18,8 +18,8 @@ import { join } from "node:path";
 import { cargarEnv } from "./lib/env.mjs";
 import { leerRegistro } from "./lib/normas.mjs";
 import { SALIDA, costeUsd, estimadoSiguiente, opcionNumero, topeDePasada, apuntarOAvisar, puedeGastar } from "./lib/evals.mjs";
-import { RAIZ, MODELO_BARATO, MODELO_EJECUTA, ESTIMADO_LLAMADA, TOPE_SKILLS_USD, jsonDeTexto, leerRespuesta } from "./lib/skills.mjs";
-import { JUECES, RUTA_PASADAS, RUTA_ULTIMA_PASADA, registroDeMotivos, cifra, cumpleUmbralA, faltasDeFichero, hashDeCasos, faltasDePasadas, leerFichero, leerPasadas, lineaDeCifra, medir, motivoSinUmbral, promptCaso } from "./lib/testDelJuez.mjs";
+import { RAIZ, MODELO_EJECUTA, ESTIMADO_LLAMADA, TOPE_SKILLS_USD, leerRespuesta } from "./lib/skills.mjs";
+import { JUECES, RUTA_PASADAS, RUTA_ULTIMA_PASADA, registroDeMotivos, cifra, cumpleUmbralA, faltasDeFichero, corregirPorClaves, hashDeCasos, faltasDePasadas, leerFichero, leerPasadas, leerRespuestaDelJuez, lineaDeCifra, medir, motivoSinUmbral, promptCaso } from "./lib/testDelJuez.mjs";
 
 /** La fecha de hoy en Madrid (AAAA-MM-DD), nunca de `date` (#210). */
 const fechaMadrid = () => new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Madrid" });
@@ -91,7 +91,7 @@ async function llamar({ modelo, system, usuario, maxTokens }) {
 }
 
 for (const j of lista) {
-  // El juez se mide con su propio texto de agente como sistema; el corrector es otro modelo (juez distinto).
+  // El juez se mide con su propio texto de agente como sistema; el corrector es determinista (claves_senal), no el propio juez.
   const agente = readFileSync(join(RAIZ, ".claude/agents", `${j}.md`), "utf8").replace(/^---[\s\S]*?---\s*/, "");
   const antes = gastado;
   const filas = await medir(ficheros[j].casos, {
@@ -99,17 +99,10 @@ for (const j of lista) {
     juzgar: async (c) => {
       const norma = normas.find((n) => n.id === c.norma);
       const texto = await llamar({ modelo: MODELO_EJECUTA, system: agente, usuario: promptCaso(c, norma), maxTokens: 1500 });
-      return { ...(jsonDeTexto(texto) ?? { veredicto: null, hallazgos: [] }), texto };
+      return leerRespuestaDelJuez(texto);
     },
-    corregir: async (c, hallazgos) => {
-      const texto = await llamar({
-        modelo: MODELO_BARATO,
-        system: 'Eres un corrector. Dices si algún hallazgo señala lo esperado. Responde solo con JSON: {"cumple":true|false}.',
-        usuario: `Esperado: ${c.debe_senalar}\nHallazgos:\n${hallazgos.map((h) => `- ${h}`).join("\n")}`,
-        maxTokens: 100,
-      });
-      return jsonDeTexto(texto)?.cumple === true;
-    },
+    // El corrector no llama a ningún modelo: lo decide `claves_senal` de cada caso malo (gratis y repetible).
+    corregir: async (c, hallazgos) => corregirPorClaves(c, hallazgos),
   });
   const c = cifra(filas);
   // El motivo del juez por caso, en un fichero que git ignora y sin la clave (para saber por qué falla un caso).

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AVISO_SIN_HERRAMIENTAS, JUECES, MIN_POR_NORMA, PASADAS_SEGUIDAS, UMBRAL_MALOS, cifra, cumpleUmbralA, esFicheroDeJuez, faltasDeFichero, faltasDeHistoria, faltasDePasadas, hashDeCasos, juezDeRuta, leerFichero, leerPasadas, lineaDeCifra, medir, motivoFicheroSinNorma, motivoSinUmbral, normasSinPasada, promptCaso, registroDeMotivos, sinClaves, RUTA_ULTIMA_PASADA } from "./lib/testDelJuez.mjs";
+import { AVISO_SIN_HERRAMIENTAS, JUECES, VERSION_CORRECTOR, corregirPorClaves, extraerJson, leerRespuestaDelJuez, repararCadenas, MIN_POR_NORMA, PASADAS_SEGUIDAS, UMBRAL_MALOS, cifra, cumpleUmbralA, esFicheroDeJuez, faltasDeFichero, faltasDeHistoria, faltasDePasadas, hashDeCasos, juezDeRuta, leerFichero, leerPasadas, lineaDeCifra, medir, motivoFicheroSinNorma, motivoSinUmbral, normasSinPasada, promptCaso, registroDeMotivos, sinClaves, RUTA_ULTIMA_PASADA } from "./lib/testDelJuez.mjs";
 import { leerRegistro, motivoTestDelJuezMalo } from "./lib/normas.mjs";
 import { hashLF } from "./lib/evals.mjs";
 import { RAIZ } from "./lib/skills.mjs";
@@ -13,7 +13,7 @@ const deJuez = registro.normas.filter((n) => n.control_procesador === "juez");
 const idsDeJuez = deJuez.map((n) => n.id);
 
 const bueno = { id: "b", norma: idsDeJuez[0], tipo: "bueno", titulo: "t", diff: "+x", origen: "o", marcado_por: "sesion" };
-const malo = { id: "m", norma: idsDeJuez[0], tipo: "malo", titulo: "t", diff: "+y", origen: "o", marcado_por: "sesion", debe_senalar: "algo" };
+const malo = { id: "m", norma: idsDeJuez[0], tipo: "malo", titulo: "t", diff: "+y", origen: "o", marcado_por: "sesion", debe_senalar: "algo", claves_senal: [["algo"]] };
 const fichero = (casos, juez = "revisor") => ({ juez, version: 1, casos });
 
 describe("el test del juez: la forma de los casos", () => {
@@ -263,7 +263,8 @@ describe("el test del juez: la cifra de acierto (con un juez de mentira)", () =>
       writeFileSync(join(dir, "ops/test-del-juez/revisor.json"), texto);
       // El hash no es el del fichero a secas: lleva el prompt, así que cambiar el aviso invalida las pasadas anteriores.
       expect(hashDeCasos("revisor", dir)).not.toBe(hashLF(texto));
-      expect(hashDeCasos("revisor", dir)).toBe(hashLF(texto + "\n--prompt--\n" + AVISO_SIN_HERRAMIENTAS));
+      const testigo = promptCaso({ titulo: "T", diff: "D" }, { nombre: "N", sujeto: "codigo", fuerza: "debe", condicion: "cuando C", exigencia: "E" });
+      expect(hashDeCasos("revisor", dir)).toBe(hashLF(texto + "\n--prompt--\n" + testigo + "\n--corrector--\n" + VERSION_CORRECTOR));
     } finally { rmSync(dir, { recursive: true, force: true }); }
   });
 });
