@@ -3,7 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "datos",
-  "definicion": "Un fichero SQL numerado de supabase/migrations/ que cambia la base y se aplica con apply-migration.",
+  "definicion": "Un fichero SQL numerado que cambia la base y se aplica con el script de migraciones.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
     "todas"

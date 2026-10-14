@@ -3,7 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "base",
-  "definicion": "Un producto o herramienta con su repositorio, sus entornos y sus recursos, que la factoría construye; hoy HoMenu y el panel.",
+  "definicion": "Un producto o herramienta con su repositorio, sus entornos y sus recursos, que la factoría construye.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
     "todas"

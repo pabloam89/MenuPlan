@@ -1275,6 +1275,36 @@
       "termino": "eje",
       "desde": "2026-10-14",
       "motivo": "Deja de haber un tercer valor: una entidad es de la factoría o de un proyecto, uno solo, y la clase es de la factoría (decisión de Pablo, #710)"
+    },
+    {
+      "termino": "carpeta de trabajo",
+      "desde": "2026-10-14",
+      "motivo": "Mismo significado, sin nombrar el proyecto ni sus servicios, para que el término sea horizontal (#710, PR 2)"
+    },
+    {
+      "termino": "carpeta principal",
+      "desde": "2026-10-14",
+      "motivo": "Mismo significado, sin nombrar el proyecto ni sus servicios, para que el término sea horizontal (#710, PR 2)"
+    },
+    {
+      "termino": "eval",
+      "desde": "2026-10-14",
+      "motivo": "Mismo significado, sin nombrar el proyecto ni sus servicios, para que el término sea horizontal (#710, PR 2)"
+    },
+    {
+      "termino": "migración",
+      "desde": "2026-10-14",
+      "motivo": "Mismo significado, sin nombrar el proyecto ni sus servicios, para que el término sea horizontal (#710, PR 2)"
+    },
+    {
+      "termino": "proyecto",
+      "desde": "2026-10-14",
+      "motivo": "Mismo significado, sin nombrar el proyecto ni sus servicios, para que el término sea horizontal (#710, PR 2)"
+    },
+    {
+      "termino": "servicio",
+      "desde": "2026-10-14",
+      "motivo": "Mismo significado, sin nombrar el proyecto ni sus servicios, para que el término sea horizontal (#710, PR 2)"
     }
   ],
   "vocabularios_retirados": [

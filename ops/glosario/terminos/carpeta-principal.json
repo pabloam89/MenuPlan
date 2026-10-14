@@ -3,7 +3,7 @@
   "estado": "activo",
   "clase": "lugar",
   "dominio": "ops",
-  "definicion": "La carpeta C:\\dev\\MenuPlan, que solo se pone al día: en ella no se trabaja.",
+  "definicion": "La carpeta donde está la copia de trabajo de la persona, que solo se pone al día: en ella no se trabaja.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
     "todas"
