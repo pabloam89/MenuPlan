@@ -1,0 +1,15 @@
+{
+  "termino": "libertad",
+  "estado": "activo",
+  "clase": "campo",
+  "dominio": "base",
+  "definicion": "Un grado de vocabulario cerrado (alta, media o baja) que dice cuánto margen deja una skill a quien la sigue.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "invocación",
+    "tipo de skill"
+  ]
+}

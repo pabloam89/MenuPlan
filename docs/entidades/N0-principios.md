@@ -1,14 +1,14 @@
 # N0 — Principios de las entidades
 
 Este documento es la ley de partida de todas las entidades de MenuPlan. Lo
-leen las forjas de cada entidad (el nivel N1) antes de escribir nada. Vale
+leen las forjas de cada entidad (la capa N1) antes de escribir nada. Vale
 para los tres ejes: **horizontal** (cómo trabajamos), **vertical** (el
-producto HoMenu) y **bridge**, o puente (lo que cruza los dos). Cada eje solo
+producto HoMenu) y **de los dos lados** (`scope: both`, lo que sirve a los dos). Cada eje solo
 añade extensiones. Ningún eje tiene excepciones.
 
 La lista de entidades está en `ops/entidades.json` y su mapa en
 [MAPA.md](MAPA.md). Una **entidad** es una cosa con id estable y definición
-propia. Un **eje** es el bloque al que pertenece: horizontal, vertical o puente.
+propia. Un **eje** es el bloque al que pertenece: horizontal, vertical o de los dos lados.
 
 ## Cómo se marca cada afirmación
 
@@ -21,11 +21,16 @@ Una cifra «antes» sale de las auditorías del 11 oct 2026 sobre `staging`.
 Dice con qué comando se mide o de quién es. Después de cada arreglo se mide
 la misma cifra. Una cifra que no se pudo reproducir no se cita.
 
-## Cómo se leen los niveles
+## Cómo se leen los niveles y las capas
 
-Hay cuatro niveles. Cada uno obedece al anterior.
+Son dos escalas distintas y cada una tiene su palabra.
 
-| Nivel | Qué es | A qué ley obedece | Estado |
+- **Nivel** (`level` en `ops/entidades.json`) es el grado de abstracción de una **entidad**: `meta` (lo que hace buena una pieza de la familia), `template` (plantilla: la plantilla de la que salen las piezas) o `piece` (pieza: la cosa concreta). Los tres nombres son los de `LEVELS` en `scripts/lib/entidades.mjs`.
+- **Capa** (N0 a N3) es el orden en que se escriben los **documentos** de este sistema, de la ley general a lo más concreto. Cada capa obedece a la anterior.
+
+Las capas son estas:
+
+| Capa | Qué es | A qué ley obedece | Estado |
 |---|---|---|---|
 | **N0** | Principios que valen para toda entidad: este documento. | `CLAUDE.md` y los hooks. Si chocan, manda el hook. | Escrito |
 | **Extensión de la base (vertical)** | Cómo son las tablas: fechas (§9), migraciones (§10), nombres (§12) y quién cambia (§18) de `docs/datos/PRINCIPIOS.md`. Lo vigila `supabase/principios.test.js`. [F] | N0. Es la extensión del eje vertical para la base. | Escrito |
@@ -33,18 +38,17 @@ Hay cuatro niveles. Cada uno obedece al anterior.
 | **N2** | Los tipos de una entidad (los tipos de skill, los tipos de issue). | Su N1. | Por escribir |
 | **N3** | Los tipos específicos dentro de un tipo (un tipo concreto de evento, de norma, de plano). | Su N2. | Por escribir |
 
-Estos niveles no son los niveles de una skill ni los niveles de los planos.
-Son solo de este bloque. Cinco reglas:
+Las capas no son los niveles de las entidades, ni los niveles de una skill, ni los de los planos. Cinco reglas:
 
-1. Un nivel inferior cumple todo lo del superior. No lo repite: lo cita por su número.
-2. Un nivel inferior puede **añadir** campos, controles o vocabularios. Eso es una extensión.
-3. Un nivel inferior no puede **quitar ni relajar** nada del superior. Eso sería una excepción y no existe.
-4. Si un nivel inferior choca con el superior, se corrige el inferior.
-5. Si el superior está mal, se corrige el superior con una fila en `ops/DECISIONES.md`. Después se revisan los inferiores.
+1. Una capa inferior cumple todo lo de la superior. No lo repite: lo cita por su número.
+2. Una capa inferior puede **añadir** campos, controles o vocabularios. Eso es una extensión.
+3. Una capa inferior no puede **quitar ni relajar** nada de la superior. Eso sería una excepción y no existe.
+4. Si una capa inferior choca con la superior, se corrige la inferior.
+5. Si la superior está mal, se corrige la superior con una fila en `ops/DECISIONES.md`. Después se revisan las inferiores.
 
 Una extensión de eje es, por ejemplo, que una entidad vertical lleve
 `household_id` (la casa), o que una horizontal lleve su `dueno`. Cada
-extensión nombra el principio de N0 que desarrolla. Un puente cumple las
+extensión nombra el principio de N0 que desarrolla. Una entidad de los dos lados cumple las
 extensiones de los dos ejes a la vez.
 
 Los N1, N2 y N3 no se escriben en este paso. Los sujetos de las normas y de
@@ -202,11 +206,11 @@ Principio: `closed-vocabulary` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el
 
 Principio: `axis-language-bridge` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
 
-**Desarrollo.** Cada eje usa su propio lenguaje dentro de su contexto. Una palabra que cruza de eje se declara puente en `ops/entidades.json`. Se define una sola vez, con su frase propia de cada lado (`role_in_axis`). Una palabra puente no cambia de significado según el eje. Si lo necesita, se parte en dos entidades con nombres distintos.
+**Desarrollo.** Cada eje usa su propio lenguaje dentro de su contexto. Una palabra que cruza de eje se declara de los dos lados (`scope: both`) en `ops/entidades.json`. Se define una sola vez, con su frase propia de cada lado (`role_by_scope`). Una palabra de los dos lados no cambia de significado según el eje. Si lo necesita, se parte en dos entidades con nombres distintos.
 
-**Por qué.** «Persona» ya era dos cosas y hoy son dos entidades (`team-member` y `person`). «Evento» es un registro de hooks y una tabla del producto. «Entorno» tiene tres sentidos (entornos de Vercel, `VIGIA_ENTORNO` y environments de GitHub), y hay una sola base de datos para todos. Hoy hay diez puentes: `environment`, `deployment`, `event`, `metric`, `eval`, `judge`, `migration`, `table`, `data-source` y `module`.
+**Por qué.** «Persona» ya era dos cosas y hoy son dos entidades (`team-member` y `person`). «Evento» es un registro de hooks y una tabla del producto. «Entorno» tiene tres sentidos (entornos de Vercel, `VIGIA_ENTORNO` y environments de GitHub), y hay una sola base de datos para todos. Hoy hay diez entidades de los dos lados: `environment`, `deployment`, `event`, `metric`, `eval`, `judge`, `migration`, `table`, `data-source` y `module`.
 
-**Cómo se comprueba.** `ops/entidades.test.js` exige que los puentes acordados existan con ese eje y que cada uno diga su `role_in_axis`. Exige también que `MAPA.md` y el JSON coincidan en los dos sentidos, diagrama de puentes incluido. Cada N1 de un puente trae su traducción a los dos ejes.
+**Cómo se comprueba.** `ops/entidades.test.js` exige que las entidades de los dos lados acordadas existan con ese alcance y que cada una diga su `role_by_scope`. Exige también que `MAPA.md` y el JSON coincidan en los dos sentidos. Cada N1 de una entidad de los dos lados trae su traducción a los dos ejes.
 
 **Fuente.** [F] Domain-Driven Design (lenguaje ubicuo y contexto delimitado): la misma palabra puede significar cosas distintas en contextos distintos; el lenguaje se divide donde cambia y se conecta con correspondencias explícitas (a través de fuentes secundarias; el artículo original no se encontró). [S] Los tres ejes como contextos.
 
@@ -225,10 +229,10 @@ Todo cambio va por PR con el CI en verde. Como convención, sin control que la h
   - Fila en `ops/entidades.json` con `id`, `name`, `axis`, `term`, `source_of_truth`, `id_format`, `registry` y `status`, y al menos una relación.
   - `term` apunta a una ficha del glosario con `en` igual al id (solo una vertical puede no llevar `term`).
   - Fila y flecha en `docs/entidades/MAPA.md`, y la cifra «Hoy hay N entidades» al día.
-  - Si su nombre se usa en los dos ejes, es un puente: lleva `role_in_axis`, flecha en el diagrama de puentes, clase `puente` y su sitio en la lista `PUENTES` del test. Una relación entre ejes distintos va también al diagrama de puentes.
+  - Si su nombre se usa en los dos ejes, está de los dos lados: es `scope: both` y lleva `role_by_scope`, con su frase de cada lado.
 - **Añadir un tipo o un tipo específico (N2, N3).** No es una entidad: es un valor de un vocabulario cerrado de su entidad (principio 12). Anclarlo en `ops/vocabularios-vida.json` es lo correcto, pero hoy nada lo exige y el vocabulario de `recorded_in` aún no lo está. Si necesita campos propios, se estudia como entidad.
 - **Cambiar una definición.** Se cambia en el glosario, nunca en el JSON. Si cambia el significado, no se edita: se retira el término y nace otro (principio 11).
-- **Quitar o sustituir una entidad.** Se borra del registro, con sus relaciones y sus lectores; el historial queda en git (decisión de Pablo, 13 oct 2026, #706: las ocho retiradas del 12 oct, deployment, learning, judge, secret, vault, rule, criterion y verification, se quitaron así). Ya no hay `status: retired`, `replaced_by` ni `becomes`, ni ids fijados: `ops/entidades.test.js` falla si queda una entidad que no esté activa. El término del glosario que la nombraba pasa a nombrar la entidad que absorbe su significado, o dice su `sin_entidad`, y pierde su `en`. **Límite de hoy:** el test exige a cada entidad horizontal o puente un `term` activo con `en` igual a su id, y no deja repetirlo; quitar una entidad y crear otra para el mismo concepto obliga a cambiar a la vez el `en` del término o a tener dos términos, o falla.
+- **Quitar o sustituir una entidad.** Se borra del registro, con sus relaciones y sus lectores; el historial queda en git (decisión de Pablo, 13 oct 2026, #706: las ocho retiradas del 12 oct, deployment, learning, judge, secret, vault, rule, criterion y verification, se quitaron así). Ya no hay `status: retired`, `replaced_by` ni `becomes`, ni ids fijados: `ops/entidades.test.js` falla si queda una entidad que no esté activa. El término del glosario que la nombraba pasa a nombrar la entidad que absorbe su significado, o dice su `sin_entidad`, y pierde su `en`. **Límite de hoy:** el test exige a cada entidad horizontal o de los dos lados un `term` activo con `en` igual a su id, y no deja repetirlo; quitar una entidad y crear otra para el mismo concepto obliga a cambiar a la vez el `en` del término o a tener dos términos, o falla.
 - **Añadir o cambiar una relación.** Se edita en el JSON y en el diagrama a la vez. El test exige que `stored_as` sea de su vocabulario (`field`, `file`, `none`, `unaudited`) y que `field` y `file` lleven `stored_in`. Que sea cierto lo mira el juez.
 - **Nombres.** Id de entidad en inglés y kebab; campos en inglés y snake (principio 5). Si choca con un sinónimo prohibido, manda el glosario.
 
@@ -264,7 +268,7 @@ las contó el 11 oct). Las de castellano no empiezan todas en la 0060:
 - **Persona.** `person` es la persona de la casa, como en la base. El equipo es `team-member`. El término del glosario «persona» sigue siendo el del equipo. Renombrarlo a «miembro del equipo» irá en un PR aparte. Mientras, las fichas «persona» y «persona de la casa» se relacionan en los dos sentidos y la nota de «persona» avisa.
 - **Tres «mecanismo».** Existen tres cosas con ese nombre: los ids de `ops/mecanismos.json`, `ficha.mecanismo` del fondo (texto libre con la causa) y el campo del aprendizaje (`test`, `guard`, `rule` o `skill`). Este último se renombró a `recorded_in` para que cada «mecanismo» signifique una sola cosa (principio 1).
 - **Identidad.** `identity` es horizontal. La cuenta de un canal de la casa es `channel-identity`, vertical.
-- **Tabla.** `table` es un puente: la crea una migración y la custodia un módulo. La fuente de datos no se cuelga de ellos, porque no comparten id.
+- **Tabla.** `table` es de los dos lados (`scope: both`): la crea una migración y la custodia un módulo. La fuente de datos no se cuelga de ellos, porque no comparten id.
 
 ## Lo que este documento no resuelve
 

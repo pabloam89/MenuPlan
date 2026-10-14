@@ -1,0 +1,17 @@
+{
+  "termino": "estado",
+  "estado": "activo",
+  "clase": "campo",
+  "dominio": "base",
+  "definicion": "Un valor de vocabulario cerrado que dice cómo está algo; en un juicio, si una norma se cumple, no se cumple o queda pendiente.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "motivo pendiente",
+    "evidencia citada",
+    "firmante",
+    "nota"
+  ]
+}

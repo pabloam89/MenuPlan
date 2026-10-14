@@ -37,13 +37,13 @@ proyecto es una **extensión** que cita su meta horizontal (reglas 1 a 4 de N0).
 ## 2. La tabla
 
 Todo sale de `ops/entidades.json`. Alcance (`scope`): `horizontal` (sus piezas nunca llevan proyecto), `vertical`
-(siempre) o `both` (cada pieza dice su `project` o ninguno); «puente» es el `both`, calculado. Hoy: 22 horizontales,
+(siempre) o `both` (cada pieza dice su `project` o ninguno); «de los dos lados» es el `both`, calculado. Hoy: 22 horizontales,
 22 verticales y 10 `both` entre 54 entidades. Ocho se quitaron del registro el 13 oct 2026 (decisión de Pablo, #706): judge, rule, learning,
 deployment, secret, vault, criterion y verification; lo que eran ahora es un valor, un campo, un tipo de evento o un tipo
 de recurso, y su historial queda en git. El resto de este documento, hasta la sección 9, es el análisis de antes de quitarlas. Corregido tras el revisor de #654: `both` no es un cajón; solo lo son las 10 que sirven de verdad a los dos lados y lo explican en `role_by_scope`. Lo de trabajo (issue, PR, rama, agente, skill…) es horizontal: que viva hoy en el repo de HoMenu no es razón para `both` (sección 8). Nivel de las piezas: 46 `piece`, 4 `meta` y 4 `template`.
 
 <!-- super-tabla:inicio -->
-| id | familia | nivel | alcance | puente | quién la crea | dónde vive (registro) | quién la lee | parte de, tipo de o hijo de |
+| id | familia | nivel | alcance | de los dos lados | quién la crea | dónde vive (registro) | quién la lee | parte de, tipo de o hijo de |
 |---|---|---|---|---|---|---|---|---|
 | `session` | work | piece | horizontal | no | automatic | ninguno (without_registry) | .claude/hooks/guardia.mjs, .claude/hooks/avisos.mjs, .claude/hooks/eventos.mjs | — |
 | `team-member` | access | piece | horizontal | no | human | `CLAUDE.md` (without_registry) | nadie | — |
@@ -217,9 +217,9 @@ Comparación con Backstage (de memoria, **creo**): Domain agrupa sistemas; Syste
 
 Contradice un punto de la primera propuesta: «horizontal/vertical» pierde sentido como valor de la entidad y gana como **campo de la pieza** (`project`). La entidad solo dice si sus piezas pueden llevarlo.
 
-## 9. Los diez puentes, revisados
+## 9. Las diez entidades de los dos lados, revisadas
 
-Con la contención cambian dos veredictos (entorno y migración). **`bridge` no es un valor legítimo del eje**: reunía «una palabra en los dos lados» y los datos dicen otra cosa.
+Con la contención cambian dos veredictos (entorno y migración). **El antiguo valor de eje para lo que cruza los dos lados no es legítimo**: reunía «una palabra en los dos lados» y los datos dicen otra cosa.
 
 | Entidad | Contención | Por qué (dato) |
 |---|---|---|
@@ -232,7 +232,7 @@ Con la contención cambian dos veredictos (entorno y migración). **`bridge` no 
 | `migration` | vertical | 101 ficheros que cambian la base de HoMenu; la pasarela es una relación |
 | `table`, `data-source`, `module` | vertical | 55, 40 y 16 piezas, todas de HoMenu |
 
-Dos familias con piezas de los dos lados no estaban entre los puentes: `vocabulary` y `principle`.
+Dos familias con piezas de los dos lados no estaban entre las diez: `vocabulary` y `principle`.
 
 ## 10. Relaciones rotas o ausentes
 
@@ -289,7 +289,7 @@ Hecho: el eje `axis` se retiró entero y lo sustituye `scope`; `project` y `repo
 1. Vocabularios cerrados `LEVELS` (`meta`, `template`, `piece`) y `SCOPES` (`horizontal`, `vertical`, `both`) en `scripts/lib/entidades.mjs`, anclados en `ops/vocabularios-vida.json`. Campos `level` y `scope` obligatorios; `axis` convive hasta decidir y luego se retira (con `replaced_by`).
 2. Entidad `project` con dos filas (homenu, panel) y relación `belongs_to project` en cada entidad no horizontal. Las piezas llevan el campo `project`, validado contra esa lista.
 3. Tests escritos (`ops/super-tabla.test.js`): propuesta completa, vocabulario cerrado, ningún meta ni template vertical. Por escribir con la decisión: relación `extends` de cada meta o template a su meta; que toda familia `both` tenga dos registros; «ninguna entidad sin lector» con una lista de excepciones que solo baja (hoy `team-member` y `learning`).
-4. `MAPA.md` pierde «Los puentes». Tocar el glosario («eje») y el test de entidades es un encargo propio.
+4. `MAPA.md` pierde su sección aparte de las entidades de los dos lados. Tocar el glosario («eje») y el test de entidades es un encargo propio.
 5. Orden: decisión; luego `level` y `scope`; luego `project` y `repo`; luego `control`, `agent-task` y `workflow`.
 
 ## 13. Decisiones pendientes

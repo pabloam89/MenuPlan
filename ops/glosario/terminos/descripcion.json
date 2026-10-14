@@ -1,0 +1,14 @@
+{
+  "termino": "descripción",
+  "estado": "activo",
+  "clase": "campo",
+  "dominio": "base",
+  "definicion": "Un texto que dice cuándo se usa una pieza y dónde acaba su frontera con las demás, con las palabras de quien la pide.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "nombre"
+  ]
+}
