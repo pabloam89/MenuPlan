@@ -3,6 +3,11 @@
 Reglas de estructura para todo lo que se cree a partir de la migración 0087.
 Lo anterior no se reescribe por cumplirlas: se arregla cuando se toca.
 
+Este documento es **cómo las aplica HoMenu**. Los principios de base de datos
+que no dependen del producto son generales (enunciado y fuentes, con la
+documentación de PostgreSQL o Fowler detrás, en `docs/PRINCIPIOS.md`); aquí
+queda el desarrollo y el cumplimiento en esta base.
+
 Cada regla dice por qué existe y cómo se hace cumplir:
 
 - **[auto]**: lo comprueba `supabase/principios.test.js` sobre el SQL de las

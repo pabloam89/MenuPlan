@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 import {
   DOCUMENTOS_MIGRADOS, RUTA_MD, anclaDe, componerLista, existeEn, faltasDeMigracion, fuentesMarcadas, fuentesMarcadasDelRepo, generarMd,
-  leerCatalogoPropio, leerPrincipiosCasa, leerTextoEn, problemasDeEnunciadoUnico, problemasDeMarcas, problemasDeMarcasEnTexto, problemasDePrincipios, seccionDe, seccionesNumeradas,
+  leerCatalogoPropio, leerPrincipiosCasa, leerPrincipiosDeProyecto, leerTextoEn, problemasDePrincipiosDeProyecto, problemasDeEnunciadoUnico, problemasDeMarcas, problemasDeMarcasEnTexto, problemasDePrincipios, seccionDe, seccionesNumeradas,
 } from "../scripts/lib/principios.mjs";
 import { MARCAS_FUENTE } from "../scripts/lib/regla.mjs";
 import { leerPrincipios as leerProducto } from "../scripts/lib/principiosProducto.mjs";
@@ -28,10 +28,12 @@ const datos = leerPrincipiosCasa(RAIZ);
 const ctx = { existe: existeEn(RAIZ), leerTexto: leerTextoEn(RAIZ) };
 const textos = Object.fromEntries(DOCUMENTOS_MIGRADOS.map((r) => [r, readFileSync(join(RAIZ, r), "utf8")]));
 const delegados = { producto: leerProducto(RAIZ), redaccion: leerRedaccion(RAIZ) };
+const proyectos = leerPrincipiosDeProyecto(RAIZ);
+const validos = JSON.parse(readFileSync(join(RAIZ, "ops", "entidades.json"), "utf8")).projects.map((p) => p.id);
 
 describe("ops/principios/", () => {
   it("cada principio tiene su forma fija y no se repite con los delegados", () => {
-    expect(problemasDePrincipios(propio, datos.principios, ctx)).toEqual([]);
+    expect(problemasDePrincipios(propio, datos.principios, { ...ctx, proyectos, validos })).toEqual([]);
   });
 
   it("los delegados entran enteros, sin copiar su texto en ops/principios/", () => {
@@ -39,6 +41,56 @@ describe("ops/principios/", () => {
     expect(datos.principios.filter((p) => p.catalogo === "ops/redaccion.json")).toHaveLength(delegados.redaccion.principios.length);
     const enunciados = new Set(propio.principios.map((p) => p.enunciado));
     expect(datos.principios.filter((p) => p.catalogo && enunciados.has(p.enunciado)).map((p) => p.id)).toEqual([]);
+  });
+});
+
+describe("los principios de un proyecto: ops/proyectos/<id>/principios/ (#710)", () => {
+  const de = (id) => proyectos.homenu.principios.find((p) => p.id === id);
+  const conCambio = (cambios, id = "household-owns-data") => {
+    const c = structuredClone(proyectos);
+    c.homenu.principios = c.homenu.principios.map((p) => (p.id === id ? { ...p, ...cambios } : p));
+    return problemasDePrincipiosDeProyecto(c, validos, ctx).join(" | ");
+  };
+
+  it("HoMenu tiene su registro y los dos principios verticales viven solo en él, con su project", () => {
+    expect(Object.keys(proyectos)).toEqual(["homenu"]);
+    expect(proyectos.homenu.principios.map((p) => p.id).sort()).toEqual(["curated-catalog-only", "household-owns-data"]);
+    for (const p of proyectos.homenu.principios) expect(p.project).toBe("homenu");
+    expect(problemasDePrincipiosDeProyecto(proyectos, validos, ctx)).toEqual([]);
+  });
+
+  it("ningún principio horizontal lleva project y los de proyecto entran en la lista con él", () => {
+    expect(propio.principios.filter((p) => "project" in p).map((p) => p.id)).toEqual([]);
+    expect(datos.principios.filter((p) => p.project).map((p) => p.id).sort()).toEqual(["curated-catalog-only", "household-owns-data"]);
+    for (const id of ["curated-catalog-only", "household-owns-data"]) expect(propio.principios.some((p) => p.id === id), id).toBe(false);
+  });
+
+  it("pasan la misma plantilla de texto que los horizontales (mismos topes, sin excepciones)", () => {
+    expect(conCambio({ enunciado: "Cada tabla debe colgar de la casa." })).toMatch(/palabra de fuerza/);
+    expect(conCambio({ porque: `Porque ${"sí ".repeat(30)}pasa.` })).toMatch(/«porque» pasa de 30 palabras/);
+    expect(conCambio({ fuentes: [] })).toMatch(/«fuentes» es una lista/);
+    expect(conCambio({ nombre: "Casa" })).toMatch(/«nombre» tiene de 2 a 5 palabras/);
+  });
+
+  it("se ve fallar: sin project, con otro project, un proyecto que no existe o un campo desconocido", () => {
+    expect(de("household-owns-data").project).toBe("homenu");
+    expect(conCambio({ project: undefined })).toMatch(/su «project» es «undefined»/);
+    expect(conCambio({ project: "otro" })).toMatch(/su «project» es «otro» y vive en el registro de «homenu»/);
+    expect(conCambio({ texto: "x" })).toMatch(/campo desconocido «texto»/);
+    const c = structuredClone(proyectos);
+    c.inventado = { ...c.homenu, project: "inventado" };
+    expect(problemasDePrincipiosDeProyecto(c, validos, ctx).join(" | ")).toMatch(/«inventado» no es un proyecto de ops\/entidades\.json/);
+    c.homenu.project = "otro";
+    expect(problemasDePrincipiosDeProyecto(c, validos, ctx).join(" | ")).toMatch(/su «project» es «otro» y la carpeta es «homenu»/);
+  });
+
+  it("se ve fallar: un principio horizontal con project, o el mismo id en los dos lados", () => {
+    const c = structuredClone(propio);
+    c.principios = c.principios.map((p, i) => (i === 0 ? { ...p, project: "homenu" } : p));
+    expect(problemasDePrincipios(c, componerLista(c, { ...delegados, proyectos }).principios, { ...ctx, proyectos, validos }).join(" | ")).toMatch(/un principio horizontal no lleva «project»/);
+    const d = structuredClone(propio);
+    d.principios = [...d.principios, { ...de("household-owns-data"), project: undefined }];
+    expect(problemasDePrincipios(d, componerLista(d, { ...delegados, proyectos }).principios, { ...ctx, proyectos, validos }).join(" | ")).toMatch(/id repetido/);
   });
 });
 

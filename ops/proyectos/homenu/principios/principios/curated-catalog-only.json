@@ -1,5 +1,6 @@
 {
   "id": "curated-catalog-only",
+  "project": "homenu",
   "area": "catalog",
   "nombre": "Solo catálogo revisado",
   "enunciado": "El menú propone solo recetas que una persona revisó y marcó con estrella y foto, sin rellenos ni combinaciones automáticas.",

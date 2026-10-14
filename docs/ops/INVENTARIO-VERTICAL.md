@@ -1,6 +1,6 @@
 # Inventario vertical y horizontal
 
-<!-- Instantánea del 2026-10-13 que escribe `npm run inventario-vertical -- --escribir` (scripts/inventario-vertical.mjs). Las cifras cambian con cada PR ajeno, así que NINGÚN test las compara con el repo de hoy: se regenera al empezar cada PR de #710 y se pone al lado la cifra de después. -->
+<!-- Instantánea del 2026-10-14 que escribe `npm run inventario-vertical -- --escribir` (scripts/inventario-vertical.mjs). Las cifras cambian con cada PR ajeno, así que NINGÚN test las compara con el repo de hoy: se regenera al empezar cada PR de #710 y se pone al lado la cifra de después. -->
 
 Primera fase de #710 (programa #652): solo mide, no mueve nada. **Horizontal** es lo que vale para cualquier proyecto; **vertical**, lo que solo vale para HoMenu; **duda**, lo que no se puede decidir con los datos y se enseña con su razón. La regla de Pablo (13 oct 2026): ningún registro mezcla los dos lados, y los agentes (horizontales) reciben lo vertical por referencia (`--proyecto homenu`).
 
@@ -10,7 +10,7 @@ Es un **inventario de partida, no un registro de lados**: el lado todavía no es
 
 | Capa | De dónde sale el lado |
 |---|---|
-| Principios | `ops/principios/`, `ops/principios-producto/` y `ops/redaccion.json`, con las fuentes de `ops/fuentes-documentales/` y las zonas de `ops/zonas.json`. Vertical: la lista a mano de `ops/inventario-vertical.json`. Duda: sin fuente externa y su único origen está en un fichero de zona producto; o un principio de producto del área `conversational-ai` |
+| Principios | `ops/principios/`, `ops/principios-producto/` y `ops/redaccion.json`, con las fuentes de `ops/fuentes-documentales/` y las zonas de `ops/zonas.json`. Vertical: los de `ops/proyectos/<id>/principios/` (el campo `project`). Duda: sin fuente externa y su único origen está en un fichero de zona producto; o un principio de producto del área `conversational-ai` |
 | Fuentes | Externa: horizontal (salvo la documentación de Supabase y Vercel: duda). De la casa: la zona de su ruta (`ops/zonas.json`) |
 | Normas | El registro en que viven. Duda de una horizontal: su texto nombra HoMenu/Lola/MenuPlan, o su ámbito es `bot`/`product`/`catalog`, o su control o `donde` apunta a `api/`, `src/`, `supabase/`, `docs/datos/`, `docs/producto/`, `specs/` o `DESIGN_SYSTEM.md` (las 24 de ámbito `diseno` no cuentan: Pablo decidió el 13 oct que son horizontales) |
 | Entidades | Su campo `scope` (`horizontal`, `vertical`, `both`); duda: `both` y las vertical que son un concepto general (lista a mano) |
@@ -25,42 +25,43 @@ Límites: «casa» y «bot» son castellano corriente en la factoría, así que 
 
 | Capa | Total | Horizontal | Vertical | Duda |
 |---|---:|---:|---:|---:|
-| principios de la casa (ops/principios/) | 56 | 37 | 2 | 17 |
+| principios de la casa (ops/principios/) | 54 | 47 | 0 | 7 |
+| principios del proyecto (ops/proyectos/<id>/principios/) | 2 | 0 | 2 | 0 |
 | principios de producto (delegado: ops/principios-producto/) | 41 | 30 | 0 | 11 |
 | guía de redacción (delegado: ops/redaccion.json) | 15 | 15 | 0 | 0 |
-| fuentes documentales (ops/fuentes-documentales/) | 161 | 137 | 12 | 12 |
+| fuentes documentales (ops/fuentes-documentales/) | 167 | 143 | 12 | 12 |
 | normas horizontales (ops/normas.json) | 166 | 120 | 0 | 46 |
 | normas verticales (ops/proyectos/<id>/normas.json) | 39 | 0 | 39 | 0 |
 | entidades activas (ops/entidades.json) | 54 | 22 | 13 | 19 |
-| términos activos del glosario (ops/glosario/terminos/) | 116 | 69 | 1 | 46 |
+| términos activos del glosario (ops/glosario/terminos/) | 146 | 99 | 1 | 46 |
 | skills (.claude/skills/) | 18 | 9 | 5 | 4 |
 | reglas por carpeta (.claude/rules/) | 6 | 0 | 5 | 1 |
 | comandos (.claude/commands/) | 5 | 3 | 2 | 0 |
 | agentes (.claude/agents/; por regla de Pablo, horizontales) | 8 | 5 | 0 | 3 |
 | specs (specs/*.md) | 17 | 0 | 17 | 0 |
 | documentos (docs/**/*.md y los .md de la raíz) | 31 | 21 | 9 | 1 |
-| tests (*.test.{js,jsx,mjs}) | 442 | 100 | 332 | 10 |
+| tests (*.test.{js,jsx,mjs}) | 445 | 103 | 332 | 10 |
 
-Principios, las tres filas juntas: 112 en total, 82 horizontales, 2 verticales y 28 en duda.
+Principios, las cuatro filas juntas: 112 en total, 92 horizontales, 2 verticales y 18 en duda.
 
 ## Lo que cuenta cada capa
 
-- **Principios.** Solo 2 de los 56 propios de la casa son claramente de HoMenu (`curated-catalog-only` y `household-owns-data`): origen una decisión de producto, sin fuente externa. La mayoría no tiene fuente externa, pero eso no los hace verticales: son del método de trabajo. La duda real son los principios de base de datos cuyo único origen es `docs/datos/PRINCIPIOS.md`. Los 41 de producto tienen literatura detrás y son horizontales; los del área `conversational-ai` solo valen si el proyecto tiene un bot.
-- **Fuentes.** 119 externas (literatura) y 42 de la casa (una ruta del repo).
+- **Principios.** Los 2 de HoMenu (`curated-catalog-only` y `household-owns-data`) viven en su registro, `ops/proyectos/homenu/principios/`, con el campo `project`: origen una decisión de producto, sin fuente externa. Los 54 de la casa son horizontales salvo los que dudan: la mayoría no tiene fuente externa, pero eso no los hace verticales, son del método de trabajo. Los de base de datos que solo tenían como origen `docs/datos/PRINCIPIOS.md` son horizontales por decisión de Pablo (13 oct): llevan fuente externa (PostgreSQL, Fowler) y `docs/datos/` es el cómo los aplica HoMenu; el que no la tiene verificable sigue en duda. Los 41 de producto tienen literatura detrás y son horizontales; los del área `conversational-ai` solo valen si el proyecto tiene un bot.
+- **Fuentes.** 125 externas (literatura) y 42 de la casa (una ruta del repo).
 - **Normas.** El registro vertical ya está separado (39). En el horizontal hay 46 que dudan (lista abajo). De las 166, 60 tienen como control «juicio» y 28 acaban en un fichero de zona producto. De las 39 verticales, 0 tienen su control en una carpeta de la factoría.
 - **Entidades y glosario.** Entidades retiradas (no cuentan): 0. El glosario no tiene lado propio: hoy se deduce de sus entidades; es el registro donde más falta el campo.
-- **Tests.** 112 tests viven en carpetas de la casa; 2 de ellos leen tres ficheros de HoMenu o más (sin contar `src/App.jsx`, el ejemplo de casi todos). 330 viven en carpetas de producto, coherentes con lo que vigilan.
+- **Tests.** 115 tests viven en carpetas de la casa; 2 de ellos leen tres ficheros de HoMenu o más (sin contar `src/App.jsx`, el ejemplo de casi todos). 330 viven en carpetas de producto, coherentes con lo que vigilan.
 
 ## Los dudosos, con su razón
 
-### 1. Principios (28)
+### 1. Principios (18)
 
 - `bounded-blast-radius`: sin fuente externa y su único origen es api/_guard.test.js (zona producto): ¿regla general nacida en HoMenu o regla de HoMenu?
 - `closed-vocabulary`: sin fuente externa y su único origen es src/lib/vocabularios.js (zona producto): ¿regla general nacida en HoMenu o regla de HoMenu?
-- `days-hours-zones`, `expand-and-contract`, `fk-declares-on-delete`, `json-or-table`, `normalised-tables`, `pure-transformations`, `self-describing-catalog`, `status-is-state-machine`, `table-has-owner-module`, `types-and-nulls`, `versioned-concurrency`: sin fuente externa y su único origen es docs/datos/PRINCIPIOS.md (zona producto): ¿regla general nacida en HoMenu o regla de HoMenu? (11)
 - `deny-when-in-doubt`: sin fuente externa y su único origen es api/sinCredencial.test.js (zona producto): ¿regla general nacida en HoMenu o regla de HoMenu?
 - `plan-evaluated-before-apply`, `rehearsal-undone-and-expires`: sin fuente externa y su único origen es scripts/apply-migration.mjs (zona producto): ¿regla general nacida en HoMenu o regla de HoMenu? (2)
 - `progressive-deploy-with-rollback`: sin fuente externa y su único origen es .claude/skills/vercel/SKILL.md (zona producto): ¿regla general nacida en HoMenu o regla de HoMenu?
+- `status-is-state-machine`: sin fuente externa y su único origen es docs/datos/PRINCIPIOS.md (zona producto): ¿regla general nacida en HoMenu o regla de HoMenu?
 - `buttons-and-free-text`, `calibrate-not-maximise-trust`, `easy-correction-and-undo`, `escalate-by-explicit-triggers`, `escape-hatch-when-lost`, `explain-why`, `keep-context-no-reask`, `no-pretend-human`, `scope-when-in-doubt`, `simple-first-agents`, `state-capabilities-and-limits`: tiene fuente externa (literatura), pero solo vale para un proyecto con bot conversacional (paquete de bots, línea 2 de #652) (11)
 
 ### 2. Fuentes (12)
@@ -165,7 +166,7 @@ El orden sigue la dependencia (lo que es registro se separa antes de lo que lo c
 |---|---|---|---|
 | PR 1 | El vigilante primero (punto 7 de #710): test que lee `lado`/`project` de cada registro y falla si una horizontal cita una vertical; techos que solo bajan | tests de vigilancia de lados = 0 | 1 (con los techos de esta tabla) |
 | PR 2 | Entidades: decidir las `both` y las vertical genéricas; el glosario hereda el lado de su entidad como campo `scope` | entidades en duda = 19 | 0 |
-| PR 3 | Principios: campo `project` y registro `ops/proyectos/homenu/principios/`; mover los verticales y resolver los de base de datos | verticales fuera de su registro = 2; en duda = 28 | verticales en su registro = todos; en duda = 0 |
+| PR 3 | Principios: campo `project` y registro `ops/proyectos/homenu/principios/`; mover los verticales y resolver los de base de datos | verticales fuera de su registro = 0; en duda = 18 | verticales en su registro = todos; en duda = 0 |
 | PR 4 | Fuentes: campo `project` en las de la casa que son de HoMenu y origen (decisión o fallo) en vez de fuente externa para los principios de proyecto | fuentes verticales sin marcar = 12; en duda = 12 | marcadas = todas; en duda = 0 |
 | PR 5 | Normas dudosas: mover al registro de HoMenu las que sean suyas, o reescribir (sin nombrar el proyecto) las que sean generales | normas horizontales en duda = 46 | 0 (cada una, horizontal limpia o vertical) |
 | PR 6 | Controles: tests de la casa que leen ficheros de HoMenu pasan a recibirlos por referencia (`--proyecto`) o se mueven; retirar `verticales_sin_salida` (#704) | tests de la casa que leen HoMenu = 2; en duda = 10 | 0 y 0 |

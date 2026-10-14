@@ -173,7 +173,8 @@ Marca de la fuente, con un solo significado en todos los catálogos (`MARCAS_FUE
 | `ops/flujo.json` | regla | cumple | 53 | - |
 | `ops/estandares-agentes.json` | regla | cumple | 191 | - |
 | `ops/principios-producto/` | principio | cumple | 41 | - |
-| `ops/principios/` | principio | cumple | 56 | - |
+| `ops/principios/` | principio | cumple | 54 | - |
+| `ops/proyectos/homenu/principios/` | principio | cumple | 2 | - |
 
 - cumple: Cada entrada pasa las comprobaciones de regla.mjs.
 - pendiente: Aún no sigue la guía; lleva el encargo que lo pone al día y la lista solo baja.

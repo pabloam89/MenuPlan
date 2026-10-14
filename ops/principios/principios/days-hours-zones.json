@@ -6,8 +6,12 @@
   "porque": "La casa, el bot y los servidores viven en zonas distintas, y una hora sin zona sale con horas de error.",
   "fuentes": [
     {
-      "marca": "I",
-      "fuente": "casa-principios-datos"
+      "marca": "F",
+      "fuente": "pg-dont-do-this"
+    },
+    {
+      "marca": "F",
+      "fuente": "pg-datetime"
     }
   ],
   "detalle": [

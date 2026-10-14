@@ -1,6 +1,6 @@
 # Principios de la casa
 
-<!-- Generado desde ops/principios/, ops/principios-producto/, ops/redaccion.json con «npm run principios-casa -- --escribir». No se edita a mano: ops/principios.test.js lo compara. -->
+<!-- Generado desde ops/principios/, ops/principios-producto/, ops/redaccion.json, ops/proyectos/<id>/principios/ con «npm run principios-casa -- --escribir». No se edita a mano: ops/principios.test.js lo compara. -->
 
 La lista única de principios: el porqué de lo que se pide. Tres capas que no se repiten: un **principio** dice por qué; una **norma** (`ops/normas.json`, `docs/ops/NORMAS.md`) dice lo que debe ser verdad, con su control, y cita su principio; un **estándar** de tarea (`ops/estandares-agentes.json`) cita normas. Cada principio lleva sus fuentes (**[F]** una fuente externa lo dice, **[I]** está escrito en la casa, **[S]** inferencia nuestra o fuente secundaria) y, si hay, el detalle donde se desarrolla. Los de producto y redacción viven en su propio catálogo, sin fuerza como todos, y aquí se listan sin copiarse; sus normas están en el mismo registro que las demás.
 
@@ -27,7 +27,7 @@ Si dos normas piden cosas incompatibles, gana la que defiende el concepto de má
 | Puesto | Concepto | Defiende | Ámbitos por defecto | Principios que lo defienden |
 |---|---|---|---|---|
 | 1 | `security` (seguridad) | Que nadie ajeno entre ni haga más de lo que le toca: identidades, permisos, secretos y puertas | `infra`, `api` | `least-short-lived-permissions`, `own-identity`, `user-does-not-widen-permission`, `untamperable-trail`, `public-repo-no-sensitive-detail`, `untrusted-text-is-data`, `least-privilege-for-the-model`, `no-secrets-in-prompts-or-client`, `secure-by-default`, `authenticate-machine-callers`, `fail-closed-for-safety-filters`, `public-endpoint-justified` |
-| 2 | `family-data` (datos de familias) | Que los datos de las familias no se pierdan, no se mezclen y no se enseñen a quien no toca | `data` | `household-owns-data`, `health-data-apart`, `data-minimisation`, `privacy-by-default`, `no-sensitive-data-in-chat-by-default`, `purpose-limitation`, `storage-limitation`, `explain-data-use` |
+| 2 | `family-data` (datos de familias) | Que los datos de las familias no se pierdan, no se mezclen y no se enseñen a quien no toca | `data` | `health-data-apart`, `data-minimisation`, `privacy-by-default`, `no-sensitive-data-in-chat-by-default`, `purpose-limitation`, `storage-limitation`, `explain-data-use` |
 | 3 | `cost` (coste) | Que el gasto en dinero, tokens y tiempo de servicio no se descontrole | `bot` | `bounded-blast-radius`, `hard-spend-cap`, `caller-pays-quota`, `bounded-loops-and-timeouts` |
 | 4 | `speed` (velocidad) | Que el trabajo avance: forma, proceso y pantallas ceden ante lo anterior si chocan | `product`, `diseno`, `catalog`, `code`, `entities`, `process`, `writing` | — |
 
@@ -143,31 +143,27 @@ La base: tablas, migraciones, roles y cada dato que guarda.
   - Viene de: C4, claude:vocabulario-cerrado
 - `days-hours-zones` — **Días, horas y zonas.** Un instante es un timestamptz, un día es una date y la hora se calcula con la zona de la casa.
   - Porqué: La casa, el bot y los servidores viven en zonas distintas, y una hora sin zona sale con horas de error.
-  - Fuentes: [I] `docs/datos/PRINCIPIOS.md`
+  - Fuentes: [F] https://wiki.postgresql.org/wiki/Don%27t_Do_This ; [F] https://www.postgresql.org/docs/current/datatype-datetime.html
   - Detalle: `docs/datos/PRINCIPIOS.md#20-días-horas-y-zonas`
 - `expand-and-contract` — **Expandir y contraer.** Cada migración convive con el código de antes y de después, y el código funciona aunque la migración aún no esté aplicada.
   - Porqué: La rama se despliega antes de que alguien aplique su migración, y staging y producción comparten base.
-  - Fuentes: [I] `docs/datos/PRINCIPIOS.md`
+  - Fuentes: [F] https://martinfowler.com/bliki/ParallelChange.html ; [F] https://martinfowler.com/articles/evodb.html
   - Detalle: `docs/datos/PRINCIPIOS.md#10-migraciones`, `CLAUDE.md#base-de-datos`
 - `fk-declares-on-delete` — **Borrado declarado en cada FK.** Cada clave ajena declara qué pasa al borrar lo que apunta y tiene un índice que empieza por sus columnas.
   - Porqué: El valor por defecto es una decisión que nadie tomó, y una cascada mal puesta borra en silencio.
-  - Fuentes: [I] `docs/datos/PRINCIPIOS.md`
+  - Fuentes: [F] https://www.postgresql.org/docs/current/ddl-constraints.html
   - Detalle: `docs/datos/PRINCIPIOS.md#2-toda-fk-dice-qué-pasa-al-borrar`
 - `health-data-apart` — **Datos de salud aparte.** Las alergias, las intolerancias, las dietas médicas y las medidas del cuerpo se marcan como datos de salud y se tratan aparte.
   - Porqué: Son categoría especial del RGPD, y exponerlos o copiarlos de más es el daño más grave que puede hacer el producto.
   - Fuentes: [F] https://gdpr-info.eu/art-9-gdpr/
   - Detalle: `docs/datos/PRINCIPIOS.md#17-datos-de-salud`
-- `household-owns-data` — **Todo cuelga de la casa.** Cada tabla de dominio cuelga de la casa con su household_id, que encabeza su índice principal.
-  - Porqué: La casa es la unidad de acceso, de borrado y de consulta de cada dato de una familia.
-  - Fuentes: [I] `docs/datos/PRINCIPIOS.md`
-  - Detalle: `docs/datos/PRINCIPIOS.md#1-todo-cuelga-de-la-casa`
 - `json-or-table` — **JSON o tabla.** Lo que se filtra, se referencia o editan varios va a una tabla, y lo que un solo escritor lee entero va a JSON.
-  - Porqué: Un JSON que se filtra en el servidor o que editan varios a la vez pierde datos y no se puede consultar.
-  - Fuentes: [I] `docs/datos/PRINCIPIOS.md`
+  - Porqué: Si lo editan varios a la vez se pisan, y sin estructura fija no se puede resumir ni filtrar bien.
+  - Fuentes: [S] https://www.postgresql.org/docs/current/datatype-json.html
   - Detalle: `docs/datos/PRINCIPIOS.md#5-json-o-tabla`
 - `normalised-tables` — **Tablas normalizadas.** Cada tabla nueva nace en tercera forma normal, con un valor por celda y referencias en vez de copias.
   - Porqué: Una copia de un nombre o un precio en otra tabla se queda vieja sin que nada lo avise.
-  - Fuentes: [I] `docs/datos/PRINCIPIOS.md`
+  - Fuentes: [F] https://learn.microsoft.com/en-us/office/troubleshoot/access/database-normalization-description
   - Detalle: `docs/datos/PRINCIPIOS.md#13-normalización`
 - `one-fact-one-place` — **Un dato, un sitio.** Cada dato y cada regla vive en un solo sitio con su lector, y cada copia es una proyección generada que un test compara.
   - Porqué: Dos copias escritas a mano terminan diciendo cosas distintas, y nadie sabe cuál vale.
@@ -176,11 +172,11 @@ La base: tablas, migraciones, roles y cada dato que guarda.
   - Viene de: C3
 - `pure-transformations` — **Transformaciones en módulos puros.** Cada transformación del dominio vive en un módulo puro con tests, y la base la deriva en vez de duplicarla.
   - Porqué: Dos implementaciones de la misma cuenta terminan dando resultados distintos.
-  - Fuentes: [I] `docs/datos/PRINCIPIOS.md`
+  - Fuentes: [S] https://www.postgresql.org/docs/current/ddl-generated-columns.html ; [S] https://www.postgresql.org/docs/current/xfunc-volatility.html
   - Detalle: `docs/datos/PRINCIPIOS.md#11-transformaciones`
 - `self-describing-catalog` — **Diccionario en la base.** Cada tabla nueva dice en su comentario qué guarda y quién la escribe, y el código pide las columnas que usa.
   - Porqué: El catálogo de la base es la documentación que no se queda vieja, y un select de todo esconde quién lee qué.
-  - Fuentes: [I] `docs/datos/PRINCIPIOS.md`
+  - Fuentes: [S] https://www.postgresql.org/docs/current/sql-comment.html
   - Detalle: `docs/datos/PRINCIPIOS.md#16-diccionario-y-lectura`
 - `status-is-state-machine` — **El estado es una máquina.** Un estado sin vocabulario ni saltos escritos admite combinaciones que nadie ha decidido y no deja ver cuándo ha cambiado.
   - Porqué: Un estado que se escribe sin reglas termina en combinaciones imposibles que nadie sabe interpretar.
@@ -188,16 +184,21 @@ La base: tablas, migraciones, roles y cada dato que guarda.
   - Detalle: `docs/datos/PRINCIPIOS.md#21-estados`
 - `table-has-owner-module` — **Una tabla, un módulo dueño.** Cada tabla se lee y se escribe desde un solo módulo, y el resto del código llama a sus funciones.
   - Porqué: Una tabla tocada con textos sueltos desde cualquier sitio se rompe en cuanto cambia, aunque la base esté bien.
-  - Fuentes: [I] `docs/datos/PRINCIPIOS.md`
+  - Fuentes: [F] https://martinfowler.com/eaaCatalog/tableDataGateway.html
   - Detalle: `docs/datos/PRINCIPIOS.md#15-cableado-del-código-a-la-tabla`
 - `types-and-nulls` — **Tipos justos y nulos decididos.** Un tipo justo y un nulo con significado hacen que la base rechace por sí sola los datos imposibles.
   - Porqué: Un nulo sin significado se lee de tres formas distintas, y un tipo flojo deja entrar datos imposibles.
-  - Fuentes: [I] `docs/datos/PRINCIPIOS.md`
+  - Fuentes: [F] https://www.postgresql.org/docs/current/ddl-constraints.html ; [F] https://wiki.postgresql.org/wiki/Don%27t_Do_This
   - Detalle: `docs/datos/PRINCIPIOS.md#14-tipos-y-nulos`
 - `versioned-concurrency` — **Concurrencia con versión.** Varios dispositivos de una casa escriben a la vez, y sin una versión el último pisa al primero sin saberlo.
   - Porqué: La app, el bot y otro miembro escriben la misma casa, y sin versión gana el último sin que nadie se entere.
-  - Fuentes: [I] `docs/datos/PRINCIPIOS.md`
+  - Fuentes: [F] https://martinfowler.com/eaaCatalog/optimisticOfflineLock.html
   - Detalle: `docs/datos/PRINCIPIOS.md#7-concurrencia`
+- `household-owns-data` — **Todo cuelga de la casa.** Cada tabla de dominio cuelga de la casa con su household_id, que encabeza su índice principal.
+  - Porqué: La casa es la unidad de acceso, de borrado y de consulta de cada dato de una familia.
+  - Fuentes: [I] `docs/datos/PRINCIPIOS.md`
+  - Detalle: `docs/datos/PRINCIPIOS.md#1-todo-cuelga-de-la-casa`
+  - Proyecto: homenu (solo vale aquí; vive en ops/proyectos/homenu/principios/)
 
 ## Catálogo (`catalog`)
 
@@ -207,6 +208,7 @@ El catálogo de recetas y alimentos que vive en git.
   - Porqué: Un plato que nadie revisó en el menú de una familia cuesta su confianza, y eso se nota más que un menú corto.
   - Fuentes: [I] `.claude/rules/catalogo.md`
   - Detalle: `.claude/rules/catalogo.md#catálogo-alimentos-y-nutrición`
+  - Proyecto: homenu (solo vale aquí; vive en ops/proyectos/homenu/principios/)
 
 ## Producto (`product`)
 
