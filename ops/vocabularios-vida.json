@@ -787,6 +787,7 @@
     "pr.excepcion_razon": {
       "form": "no sigue la forma «Excepción: <id de norma> — <motivo> — hasta AAAA-MM-DD»",
       "unknown_norm": "la norma no existe en ops/normas.json",
+      "not_exceptable": "la norma no admite excepción (admite_excepcion: false en ops/normas.json)",
       "short_reason": "el motivo tiene menos de 10 caracteres",
       "bad_date": "la fecha no es un día real AAAA-MM-DD",
       "expired": "la caducidad ya ha pasado",

@@ -14,8 +14,12 @@
  * Cada norma deja su línea (`norma: <id> resultado: … pr: <n> detalle: …`, medicionNormas.mjs). Falla solo al PR
  * responsable: todo lo que mira es de su propio cuerpo y su propio diff. Transición (para no poner en rojo los PR ya
  * abiertos sin las líneas): un PR CREADO antes de FALLA_DESDE solo avisa (`warning`); desde ese día, falla. Una
- * excepción válida de la norma (`Excepción: <id> — <motivo> — hasta AAAA-MM-DD`, excepciones.mjs) la deja pasar (`exempt`).
- * Los bots, exentos. Puro: el cuerpo, los ficheros, las normas y las fechas entran por argumento.
+ * excepción válida de la norma (`Excepción: <id> — <motivo> — hasta AAAA-MM-DD`, excepciones.mjs) la deja pasar (`exempt`),
+ * salvo las normas con `admite_excepcion: false` (las tres de los jueces: nadie se exime de que le juzgue otro).
+ * Los jueces exigidos incluyen los de las banderas que activan las rutas del diff (seguridad por .github/, hooks, settings…;
+ * evaluador por el bot): las deriva el dimensionador (banderasDeRutas), nadie las declara.
+ * Exentos: los bots y los PR a `main` (el paso a producción es de Pablo y lleva lo que ya se juzgó en staging).
+ * Puro: el cuerpo, los ficheros, las normas, la base y las fechas entran por argumento.
  */
 import { REGLAS, analizarTipoYJueces } from "../../.claude/hooks/tipo-y-jueces.mjs";
 import { AGENTES, JUECES } from "./agentes.mjs";
@@ -34,6 +38,9 @@ export const NORMAS_DEL_PASO = {
   noJuzga: "quien-construye-no-juzga",
   otroJuez: "fusiona-otro-que-el-constructor",
 };
+
+/** La rama de producción: un PR hacia ella no se dimensiona (lo que lleva ya pasó por staging con sus jueces). */
+export const BASE_EXENTA = "main";
 
 /** Quien construye «en la sesión»: la línea `sesión` y el agente de la sesión principal. */
 export const DE_SESION = ["sesión", "orquestador"];
@@ -54,16 +61,17 @@ export const sesionPermitida = (plan) => !plan.constructores.length || plan.cons
 export const ficherosDeDiff = (leidos) => leidos.map((f) => ({ ruta: f.ruta, lines: f.anadidas.length + f.quitadas.length }));
 
 /**
- * Comprueba el PR. entrada: { cuerpo, autor, ficheros: [{ruta, lines}] | null (sin diff), normas (de ops/normas.json),
- * hoy (AAAA-MM-DD), creado (fecha ISO de creación del PR o null) }; deps: { dimensionar } para probar.
+ * Comprueba el PR. entrada: { cuerpo, autor, base (rama destino), ficheros: [{ruta, lines}] | null (sin diff), normas (de
+ * ops/normas.json), hoy (AAAA-MM-DD), creado (fecha ISO de creación del PR o null) }; deps: { dimensionar } para probar.
  * → { exento, transicion, medidas: [{ norma, resultado, detalle }], fallos: [texto], avisos: [texto], plan }
  * `fallos` hace salir con 1; `avisos` (lo mismo en transición) no.
  */
-export function comprobarDimensionado({ cuerpo = "", autor = "", ficheros = null, normas = [], hoy, creado = null }, deps = {}) {
+export function comprobarDimensionado({ cuerpo = "", autor = "", base = "", ficheros = null, normas = [], hoy, creado = null }, deps = {}) {
   const medidas = [];
   const fallos = [];
   const avisos = [];
-  if (BOTS.has(String(autor).toLowerCase())) return { exento: true, transicion: false, medidas, fallos, avisos, plan: null };
+  if (BOTS.has(String(autor).toLowerCase())) return { exento: true, porque: "bot", transicion: false, medidas, fallos, avisos, plan: null };
+  if (String(base).trim() === BASE_EXENTA) return { exento: true, porque: "main", transicion: false, medidas, fallos, avisos, plan: null };
   const dia = /^\d{4}-\d{2}-\d{2}/.exec(String(creado ?? ""))?.[0] ?? hoy;
   const transicion = dia < FALLA_DESDE;
   const excepciones = leerExcepciones(cuerpo, { normas, hoy });
@@ -110,7 +118,10 @@ export function comprobarDimensionado({ cuerpo = "", autor = "", ficheros = null
     const sesion = agentes.find((a) => DE_SESION.includes(a));
     const desconocido = agentes.find((a) => !DE_SESION.includes(a) && !Object.hasOwn(AGENTES, a));
     const dueno = plan.constructores.map((c) => c.agente).filter((a) => a !== SESION_EN_PLAN);
-    if (desconocido !== undefined) sinMirar(NORMAS_DEL_PASO.agente, "agente-desconocido");
+    // Un nombre que no es agente ni sesión FALLA (no se deja sin mirar): si no, «Agente: <inventado>» esquivaría la regla de la
+    // sesión en una zona con dueño. Es la misma línea que falla «Fondos del PR» (pr-agente-y-closes-en-ci), pero cada norma dice
+    // una cosa distinta: aquella, que el nombre exista; esta, que encaje con el tipo, y un nombre que no existe no encaja.
+    if (desconocido !== undefined) anota(NORMAS_DEL_PASO.agente, false, `«Agente: ${desconocido.slice(0, 30).replace(/[^\p{L}\p{N}_-]/gu, "?")}» no es un agente de .claude/agents/ ni «sesión»: no se puede ver si encaja con el tipo; declara el agente real`);
     else if (juez) anota(NORMAS_DEL_PASO.agente, false, `«Agente: ${juez}» es un juez, y un juez no construye`);
     else if (sesion && !sesionPermitida(plan)) anota(NORMAS_DEL_PASO.agente, false, `«Agente: ${sesion}» no vale para ${plan.tipo} con estos ficheros: tienen constructor dueño (${dueno.join(", ")}); declara el agente real`);
     else anota(NORMAS_DEL_PASO.agente, true);

@@ -27,7 +27,7 @@ import { PROYECTO_POR_DEFECTO } from "./zonasProyecto.mjs";
 import { leerEstandares, leerNormasEn, RAIZ_REPO, tareasDe, textoDeTarea } from "./estandaresAgentes.mjs";
 import { leerPrecedencia } from "./precedencia.mjs";
 import { ALCANCES, CATALOGO, CAUSAS, COMPLEXITIES, MOTIVOS_COMPLEJIDAD, presupuestoDe } from "./presupuestos.mjs";
-import { ALL_SUBTYPES, FLAGS, ROLES, SUBTYPES, TYPES, encargoDe, rolDe } from "./tiposDeEncargo.mjs";
+import { ALL_SUBTYPES, FLAGS, ROLES, SUBTYPES, TYPES, banderasDeRutas, encargoDe, rolDe } from "./tiposDeEncargo.mjs";
 import { precargadasDe, skillsDelEncargo } from "./usoSkills.mjs";
 
 const RAIZ = RAIZ_REPO;
@@ -190,11 +190,14 @@ export function dimensionar(entrada, deps = {}) {
   const cfg = deps.cfg ?? CATALOGO.dimensionado;
   const causa = entrada.causa ?? LITERALES.causa_defecto;
   if (!CAUSAS.includes(causa)) throw new Error(`causa «${String(causa).slice(0, 40)}» desconocida; las hay: ${CAUSAS.join(", ")}`);
-  const banderas = entrada.banderas ?? [];
-  for (const b of banderas) if (!(b in FLAGS)) throw new Error(`bandera «${String(b).slice(0, 40)}» desconocida; las hay: ${Object.keys(FLAGS).join(", ")}`);
+  const declaradas = entrada.banderas ?? [];
+  for (const b of declaradas) if (!(b in FLAGS)) throw new Error(`bandera «${String(b).slice(0, 40)}» desconocida; las hay: ${Object.keys(FLAGS).join(", ")}`);
   const sub = subtipoDe(entrada);
 
   const ficheros = comoFicheros(entrada.ficheros);
+  // Las banderas: las declaradas más las que activan las rutas tocadas (#642), para que el CI las saque del diff.
+  const deRutas = banderasDeRutas(ficheros.map((x) => x.ruta));
+  const banderas = unicos([...declaradas, ...deRutas]);
   const propios = ficheros.filter((x) => !esGenerado(x.ruta)).map((x) => x.ruta);
   const medida = medidaDe(ficheros);
   const { alcance, dominios, modulos, ambitos_modulo } = alcanceDe({ ficheros, mapa, cfg });
@@ -272,6 +275,8 @@ export function dimensionar(entrada, deps = {}) {
   };
   for (const j of juecesDeAmbitos(ambitos)) pideJuez(j, "es juez de la zona");
   for (const j of enc.judges_required) pideJuez(j, "lo exige la causa");
+  // Una bandera activa trae a su juez en cualquier subtipo (#642): si no, elegir un tipo sin ese paso opcional lo esquivaría.
+  for (const b of banderas) pideJuez(FLAGS[b].judge, `lo pide la bandera ${b}`);
   const todosLosJueces = () => unicos(fases.flatMap((_, i) => juecesFase(i)));
   const tareas = tareasDe(deps.estandares ?? leerEstandares(RAIZ));
   while (todosLosJueces().length < enc.judges_min) {
@@ -314,6 +319,8 @@ export function dimensionar(entrada, deps = {}) {
     jueces_min: enc.judges_min,
     jueces_requeridos: enc.judges_required,
     condicionales,
+    banderas,
+    banderas_de_rutas: deRutas,
     fases: fasesFinal,
     cierre: enc.close_with,
     rondas_max: enc.fund_rondas_max,

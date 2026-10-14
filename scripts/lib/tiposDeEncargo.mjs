@@ -41,8 +41,19 @@ export const ALL_SUBTYPES = DATOS.tipos;
 export const SUBTYPES = ALL_SUBTYPES.filter((s) => s.status === "active");
 /** Los alias retirados: ids de antes que se conservan solo para el panel, cada uno con su `replaced_by`. */
 export const ALIASES = ALL_SUBTYPES.filter((s) => s.status === "retired");
-/** Las banderas de una condición: { id: { si, what } }. */
+/** Las banderas de una condición: { id: { si, what, judge, rutas? } }. */
 export const FLAGS = DATOS.flags;
+
+/**
+ * Las banderas que se activan solas por las rutas tocadas (#642): las de FLAGS con `rutas` (expresiones regulares sobre
+ * rutas del repo con barras normales) de las que alguna casa con alguno de los ficheros. Así el CI las deriva del diff y un
+ * PR no deja de pedir a `seguridad` o al `evaluador` por callarse una bandera. En el orden de FLAGS, sin repetir.
+ * rutas: [ruta | { ruta }].
+ */
+export function banderasDeRutas(rutas, flags = FLAGS) {
+  const rs = (rutas ?? []).map((r) => String(typeof r === "string" ? r : r?.ruta ?? "").replace(/\\/g, "/").replace(/^\.\//, ""));
+  return Object.entries(flags).filter(([, b]) => (b.rutas ?? []).some((re) => rs.some((r) => new RegExp(re).test(r)))).map(([k]) => k);
+}
 /** Los vocabularios cerrados de un subtipo: { valor: { what } }. */
 export const DIFFERS_IN = DATOS.differs_in;
 export const CLOSINGS = DATOS.closings;
@@ -320,6 +331,8 @@ export function problemas(d = DATOS, ctx = { agentes: AGENTES, especiales: d?.sp
   for (const [k, b] of Object.entries(bandera)) {
     if (!/^[a-z]+(_[a-z]+)*$/.test(k)) p.push(`bandera: «${k}» va en minúsculas y snake_case`);
     if (!b.si || !b.what) p.push(`bandera: ${k} lleva «si» (la condición corta) y «what»`);
+    const reValida = (re) => { try { new RegExp(re); return typeof re === "string"; } catch { return false; } };
+    if (b.rutas !== undefined && (!Array.isArray(b.rutas) || !b.rutas.length || !b.rutas.every(reValida))) p.push(`bandera: ${k} lleva «rutas» como lista de expresiones regulares válidas`);
   }
   for (const sub of todos) {
     if (!/^[a-z]+(-[a-z]+)*$/.test(sub.id)) p.push(`id: ${sub.id} va en minúsculas con guiones`);

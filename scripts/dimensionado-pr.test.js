@@ -79,12 +79,50 @@ describe("comprobarDimensionado", () => {
     expect(ANTES.slice(0, 10) < FALLA_DESDE && DESPUES.slice(0, 10) >= FALLA_DESDE).toBe(true);
     expect(comprueba("Agente: constructor", [f("scripts/x.mjs")], null, { hoy: "2026-10-15" }).transicion).toBe(true);
   });
-  it("una excepción válida de la norma deja pasar (exempt); una caducada no", () => {
-    const exc = (hasta) => `\nExcepción: ${NORMAS_DEL_PASO.tipoYJueces} — PR de emergencia sin tiempo de jueces — hasta ${hasta}`;
-    const r = comprueba(`Agente: constructor${exc("2026-10-25")}`, [f("scripts/x.mjs")]);
-    expect(resultado(r, NORMAS_DEL_PASO.tipoYJueces)).toBe("exempt");
+  it("la frontera de la transición: creado el mismo FALLA_DESDE a las 00:00 UTC ya falla; un segundo antes, avisa", () => {
+    const enLaFrontera = comprueba("Agente: constructor", [f("scripts/x.mjs")], `${FALLA_DESDE}T00:00:00Z`);
+    expect(enLaFrontera.transicion).toBe(false);
+    expect(resultado(enLaFrontera, NORMAS_DEL_PASO.tipoYJueces)).toBe("fail");
+    const justoAntes = new Date(Date.parse(`${FALLA_DESDE}T00:00:00Z`) - 1000).toISOString();
+    expect(comprueba("Agente: constructor", [f("scripts/x.mjs")], justoAntes).transicion).toBe(true);
+  });
+  it("una excepción válida de la norma que la admite deja pasar (exempt); una caducada no", () => {
+    const exc = (hasta) => `\nExcepción: ${NORMAS_DEL_PASO.agente} — la sesión arregla a mano un fichero de un constructor — hasta ${hasta}`;
+    const cuerpo = cuerpoDe({ agente: "sesión", tipo: "create", jueces: ["revisor"] });
+    const r = comprueba(`${cuerpo}${exc("2026-10-25")}`, [f("scripts/x.mjs")]);
+    expect(resultado(r, NORMAS_DEL_PASO.agente)).toBe("exempt");
     expect(r.fallos).toEqual([]);
-    expect(comprueba(`Agente: constructor${exc("2026-10-19")}`, [f("scripts/x.mjs")]).fallos.length).toBe(1);
+    expect(comprueba(`${cuerpo}${exc("2026-10-19")}`, [f("scripts/x.mjs")]).fallos.length).toBe(1);
+  });
+  it("las normas de los jueces no se eximen: su excepción no cuenta y el PR falla igual (#642)", () => {
+    const exc = (n) => `\nExcepción: ${n} — PR de emergencia sin tiempo de jueces — hasta 2026-10-25`;
+    const sinJueces = comprueba(`Agente: constructor${exc(NORMAS_DEL_PASO.tipoYJueces)}`, [f("scripts/x.mjs")]);
+    expect(resultado(sinJueces, NORMAS_DEL_PASO.tipoYJueces)).toBe("fail");
+    const seJuzga = comprueba(`Agente: revisor\nTipo: audit\nJueces: revisor${exc(NORMAS_DEL_PASO.noJuzga)}${exc(NORMAS_DEL_PASO.otroJuez)}`, [f("scripts/x.mjs")]);
+    expect(resultado(seJuzga, NORMAS_DEL_PASO.noJuzga)).toBe("fail");
+    expect(resultado(seJuzga, NORMAS_DEL_PASO.otroJuez)).toBe("fail");
+    for (const n of [NORMAS_DEL_PASO.tipoYJueces, NORMAS_DEL_PASO.noJuzga, NORMAS_DEL_PASO.otroJuez]) expect(NORMAS.find((x) => x.id === n).admite_excepcion, n).toBe(false);
+  });
+  it("las rutas sensibles exigen su juez aunque el Tipo no tenga ese paso: seguridad por hooks, workflows, settings y migraciones; evaluador por el bot (#642)", () => {
+    for (const ruta of [".claude/hooks/guardia.mjs", ".github/workflows/tests.yml", ".claude/settings.json", "supabase/migrations/0200_x.sql"]) {
+      const r = comprueba(cuerpoDe({ agente: "constructor", tipo: "fix", jueces: ["revisor", "auditor-datos"] }), [f(ruta)]);
+      expect(r.fallos.join(" "), ruta).toMatch(/no nombra a [^(]*seguridad/);
+    }
+    const bot = comprueba(cuerpoDe({ agente: "constructor", tipo: "improve", jueces: ["revisor"] }), [f("api/bot/telegram.js")]);
+    expect(bot.fallos.join(" ")).toMatch(/no nombra a [^(]*evaluador/);
+    const con = comprueba(cuerpoDe({ agente: "constructor", tipo: "fix", jueces: ["revisor", "seguridad"] }), [f(".claude/hooks/guardia.mjs")]);
+    expect(con.fallos).toEqual([]);
+    expect(con.plan.banderas_de_rutas).toEqual(["touches_secrets_or_permissions"]);
+  });
+  it("un Agente que no es agente ni sesión falla su norma, no queda sin mirar", () => {
+    const r = comprueba(cuerpoDe({ agente: "gobierno", tipo: "create", jueces: ["revisor"] }), [f("scripts/x.mjs")]);
+    expect(resultado(r, NORMAS_DEL_PASO.agente)).toBe("fail");
+    expect(r.fallos.join(" ")).toMatch(/«Agente: gobierno» no es un agente/);
+  });
+  it("un PR a main no se dimensiona: el paso a producción lleva lo que ya se juzgó en staging", () => {
+    const r = comprueba("Agente: constructor", [f("scripts/x.mjs")], DESPUES, { base: "main" });
+    expect([r.exento, r.porque, r.fallos]).toEqual([true, "main", []]);
+    expect(comprueba("Agente: constructor", [f("scripts/x.mjs")], DESPUES, { base: "staging" }).exento).toBe(false);
   });
   it("los bots, exentos; sin diff, los jueces exigidos quedan sin mirar", () => {
     expect(comprueba("", [], DESPUES, { autor: "dependabot[bot]" }).exento).toBe(true);
@@ -178,7 +216,7 @@ describe("el cableado de cada eslabón", () => {
     const paso = /- name: Dimensionado del PR\n([\s\S]*?)(?=\n      - )/.exec(tests)?.[1] ?? "";
     expect(paso).toMatch(/if: github\.event_name == 'pull_request'/);
     expect(paso).toMatch(/node scripts\/dimensionado-pr\.mjs "\$RUNNER_TEMP\/diff-del-pr\.txt"/);
-    for (const v of ["PR_BODY", "PR_AUTOR", "PR_NUMBER", "PR_CREADO"]) expect(paso).toMatch(new RegExp(`${v}: \\$\\{\\{ github\\.event\\.pull_request\\.`));
+    for (const v of ["PR_BODY", "PR_AUTOR", "PR_BASE", "PR_NUMBER", "PR_CREADO"]) expect(paso).toMatch(new RegExp(`${v}: \\$\\{\\{ github\\.event\\.pull_request\\.`));
     // Nada del PR interpolado en el `run:` (inyección): solo por entorno.
     expect(/run: \|\n([\s\S]*?)\n {8}env:/.exec(paso)?.[1] ?? "x").not.toMatch(/\$\{\{/);
   });

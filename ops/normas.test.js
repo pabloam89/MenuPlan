@@ -352,6 +352,7 @@ describe("la plantilla de regla en cada norma (#494)", () => {
     ["un tipo «planos» sin su criterio", { control: "ops/planos.json", control_tipo: "planos" }, /lleva «criterio_planos»/],
     ["un criterio de planos sin ser de planos", { criterio_planos: "check_obligatorio:main" }, /solo con control_tipo «planos»/],
     ["un campo desconocido", { texto_viejo: "x" }, /campo desconocido/],
+    ["admite_excepcion a true (solo existe para decir que no, #642)", { admite_excepcion: true }, /«admite_excepcion» solo puede ser false/],
     ["un principio que no es un id", { principio: "Un principio" }, /«principio» es el id/],
     ["un ámbito fuera de su vocabulario", { ambito: "marketing" }, /ambito «marketing»/],
     ["un lado fuera de su vocabulario", { lado: "transversal" }, /lado «transversal»/],

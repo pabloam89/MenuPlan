@@ -16,7 +16,7 @@ import { UMBRALES_TAMANO } from "./lib/avisosPr.mjs";
 import { CONSTRUCTORES, JUECES } from "./lib/agentes.mjs";
 import { ACCIONES, leerEstandares, tareasDe } from "./lib/estandaresAgentes.mjs";
 import { CATALOGO, CAUSAS, MOTIVOS_COMPLEJIDAD } from "./lib/presupuestos.mjs";
-import { DATOS as DATOS_TIPOS, ESPECIALES, ROLES, ROL_DE_CABECERA, STEP_PURPOSES, SUBTYPES, TYPES } from "./lib/tiposDeEncargo.mjs";
+import { DATOS as DATOS_TIPOS, ESPECIALES, ROLES, ROL_DE_CABECERA, STEP_PURPOSES, SUBTYPES, TYPES, banderasDeRutas } from "./lib/tiposDeEncargo.mjs";
 import { ACCIONES_DE_JUEZ_EXTRA, COMPARTIDOS_AL_FINAL, FORMAS, LITERALES, alcanceDe, briefDe, complejidadDe, dimensionar, formaDe, medidaDe, modulosDe, redimensionar, textoDe } from "./lib/dimensionado.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -153,7 +153,8 @@ describe("los agentes: constructor por ámbito, juez mínimo siempre y juez del 
     const original = AMBITOS.infra.jueces;
     AMBITOS.infra.jueces = [{ juez: "constructor", fuente: "agente:constructor" }];
     try {
-      const p = dim({ subtipo: "operate-reversible", ficheros: [f(".github/workflows/x.yml", 10)] });
+      // Una ruta de infraestructura que no activa ninguna bandera (las de .github/ traen a seguridad, #642).
+      const p = dim({ subtipo: "operate-reversible", ficheros: [f("scripts/podar.mjs", 10)] });
       expect(rolesDe(p, "builder")).toEqual(["constructor"]);
       expect(rolesDe(p, "judge")).toEqual(["revisor"]);
       expect(p.avisos.join("|")).toMatch(/constructor es juez de la zona pero construye/);
@@ -235,13 +236,39 @@ describe("la forma depende del tipo", () => {
     expect(dim({ subtipo: "operate-reversible", ficheros: [f(".github/workflows/x.yml", 10)] }).cierre).toBeNull();
   });
   it("una bandera hace entrar al juez condicional y sin ella solo se lista", () => {
-    const sin = dim({ subtipo: "operate-irreversible", ficheros: [f(".github/workflows/x.yml", 10)] });
+    const sin = dim({ subtipo: "operate-irreversible", ficheros: [f("scripts/podar.mjs", 10)] });
     expect(sin.jueces).not.toContain("seguridad");
     expect(sin.condicionales).toEqual(expect.arrayContaining([{ agente: "seguridad", si: "toca secretos o permisos", flag: "touches_secrets_or_permissions" }]));
-    const con = dim({ subtipo: "operate-irreversible", ficheros: [f(".github/workflows/x.yml", 10)], banderas: ["touches_secrets_or_permissions"] });
+    const con = dim({ subtipo: "operate-irreversible", ficheros: [f("scripts/podar.mjs", 10)], banderas: ["touches_secrets_or_permissions"] });
     expect(con.jueces).toContain("seguridad");
     expect(con.condicionales.map((c) => c.agente)).not.toContain("seguridad");
     expect(() => dim({ subtipo: "operate-reversible", ficheros: [], banderas: ["inventada"] })).toThrow(/bandera/);
+  });
+  it("las rutas tocadas activan su bandera sin declararla, y su juez entra en cualquier tipo (#642)", () => {
+    const casos = [
+      [".github/workflows/tests.yml", "touches_secrets_or_permissions", "seguridad"],
+      [".claude/settings.json", "touches_secrets_or_permissions", "seguridad"],
+      [".claude/settings.local.json", "touches_secrets_or_permissions", "seguridad"],
+      [".claude/hooks/guardia.mjs", "touches_secrets_or_permissions", "seguridad"],
+      ["scripts/rulesets.mjs", "touches_secrets_or_permissions", "seguridad"],
+      ["ops/env.1password", "touches_secrets_or_permissions", "seguridad"],
+      ["vercel.json", "touches_secrets_or_permissions", "seguridad"],
+      ["supabase/migrations/0200_x.sql", "touches_rls", "seguridad"],
+      ["api/_bot/agente.js", "changes_bot", "evaluador"],
+      ["api/bot/telegram.js", "changes_bot", "evaluador"],
+    ];
+    for (const [ruta, bandera, juez] of casos) {
+      expect(banderasDeRutas([ruta]), ruta).toEqual([bandera]);
+      for (const tipo of Object.keys(TYPES)) {
+        const p = dim({ tipo, ficheros: [f(ruta, 10)] });
+        expect(p.banderas_de_rutas, `${tipo} ${ruta}`).toEqual([bandera]);
+        expect(p.jueces, `${tipo} ${ruta}`).toContain(juez);
+      }
+    }
+    // Lo que no es de ninguna bandera no la activa (la plantilla de issues sí está en .github/, a propósito).
+    for (const ruta of ["scripts/podar.mjs", "src/screens/A.jsx", "supabase/ESTADO.md", "api/generate.js", "ops/normas.json", "scripts/rulesets.test.js", "x/.github/a.yml"]) {
+      expect(banderasDeRutas([ruta]), ruta).toEqual([]);
+    }
   });
   it("create-planned empieza por el plan de la sesión", () => {
     const p = dim({ subtipo: "create-planned", ficheros: [f("src/screens/A.jsx", 5), f("api/_bot/x.js", 5), f("supabase/migrations/0001_x.sql", 5)] });

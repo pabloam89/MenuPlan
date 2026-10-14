@@ -428,6 +428,12 @@ describe("la puerta de entrada: mismo plano, difiere de verdad, lo discreto prim
     expect(SUBTYPES.filter((x) => x.valve).map((x) => x.id)).toEqual(["audit-other"]);
   });
 
+  it("las «rutas» de una bandera son una lista de expresiones regulares válidas (#642)", () => {
+    falla("bandera", (d) => { d.flags.changes_bot.rutas = ["^api/(_bot"]; }, "rutas");
+    falla("bandera", (d) => { d.flags.changes_bot.rutas = []; }, "rutas");
+    falla("bandera", (d) => { d.flags.changes_bot.rutas = "^api/_bot/"; }, "rutas");
+  });
+
   it("lo que declaran es todo lo que difiere: ni más ni menos que el esqueleto de su tipo", () => {
     for (const s of SUBTYPES) expect([...facetasDe(s)].sort(), s.id).toEqual([...s.differs_in].sort());
     // Un juez de zona (fijo o por bandera) no es una diferencia: no hay valores para eso.
