@@ -21,5 +21,8 @@
       "entidad": "team-member",
       "relacion": "rol_de"
     }
+  ],
+  "relacionado": [
+    "dueño de la skill"
   ]
 }

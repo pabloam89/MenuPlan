@@ -1,0 +1,14 @@
+{
+  "termino": "nombre",
+  "estado": "activo",
+  "clase": "campo",
+  "dominio": "base",
+  "definicion": "Una etiqueta corta que identifica una pieza (un agente, una skill, una norma) entre las demás y que no se repite dentro de su ficha.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "descripción"
+  ]
+}

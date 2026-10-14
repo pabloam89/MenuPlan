@@ -1,0 +1,15 @@
+{
+  "termino": "regla de una tarea",
+  "estado": "activo",
+  "clase": "campo",
+  "dominio": "base",
+  "definicion": "Una lista de reglas escritas por campos para los pasos de una tarea que no son una norma.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "enunciado de tarea",
+    "norma citada"
+  ]
+}

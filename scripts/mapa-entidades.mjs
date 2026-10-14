@@ -59,7 +59,7 @@ export function bloque(d = cargar()) {
     f.push(`| \`${e.id}\` | ${e.family} | ${e.level} | ${e.scope} | ${e.created_by.join(", ")} | ${vive(e)} | ${e.readers.length ? e.readers.join(", ") : "nadie"} | ${deps.length ? [...new Set(deps)].join(", ") : "—"} |`);
   }
   const k = cifras(d);
-  f.push("", `Cifras: ${k.total} entidades. Alcance: horizontal ${k.horizontal}, vertical ${k.vertical}, both ${k.both}. Nivel: ${k.niveles}. Familias: ${k.familias}. Relaciones: ${k.relaciones} (${k.clases}).`);
+  f.push("", `Cifras: ${k.total} entidades. Alcance: horizontal ${k.horizontal}, vertical ${k.vertical}. Nivel: ${k.niveles}. Familias: ${k.familias}. Relaciones: ${k.relaciones} (${k.clases}).`);
   return f.join("\n");
 }
 

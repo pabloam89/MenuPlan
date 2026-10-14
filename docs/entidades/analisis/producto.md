@@ -27,10 +27,10 @@ Fecha: 12 oct 2026. Método: la FICHA, en su orden (primero cómo lo define el r
 | `pantry` | vertical | SQL `user_pantry` | household (nullable) + usuario | — | 116 | Se queda; es colección de líneas, no una cosa |
 | `shopping-list` | vertical | Derivada en cliente + estado en `user_menu_weeks.shopping` | menu-week | línea | (239 semanas) | Se queda; corregir la spec |
 | `lola-conversation` | vertical | SQL `bot_chats` + `bot_messages` | household | mensaje | 8 chats / 230 mensajes | Se queda; renombrar a `chat` o definir bien |
-| `table` | puente | `ops/MODULOS.json` | module | — | 55 (54 reales) | Se queda; 1 fantasma |
-| `data-source` | puente | `src/data/model.js` `TABLAS` | — | tablas (4 de 40) | 40 | Se queda; no mezclar con `table` |
-| `module` | puente | `ops/MODULOS.json` | — | submódulo, tabla | 16 (+7 sub) | Se parte en módulo y submódulo |
-| `migration` | puente | ficheros + `supabase/ESTADO.md` | — | crea tablas | 101 ficheros | Se queda; ESTADO.md es copia manual |
+| `table` | de los dos lados | `ops/MODULOS.json` | module | — | 55 (54 reales) | Se queda; 1 fantasma |
+| `data-source` | de los dos lados | `src/data/model.js` `TABLAS` | — | tablas (4 de 40) | 40 | Se queda; no mezclar con `table` |
+| `module` | de los dos lados | `ops/MODULOS.json` | — | submódulo, tabla | 16 (+7 sub) | Se parte en módulo y submódulo |
+| `migration` | de los dos lados | ficheros + `supabase/ESTADO.md` | — | crea tablas | 101 ficheros | Se queda; ESTADO.md es copia manual |
 
 **Entidades de producto que faltan de verdad (con lector):** `user` (cuenta), `menu-week`, `group`, `chat` (si no se funde con `lola-conversation`) y, con menos prueba, `recipe-folder`, `reminder`/`task`. Detalle al final.
 
@@ -174,7 +174,7 @@ Fecha: 12 oct 2026. Método: la FICHA, en su orden (primero cómo lo define el r
 
 ---
 
-## table (puente)
+## table (de los dos lados)
 
 1. **Qué es de verdad.** Una tabla de la base, con su módulo dueño. `ops/MODULOS.json` (`tablas.<t>.dueno`, `fichero_dueno`, `sin_puerta`); nombres/estructura en `PRINCIPIOS.md`. `ops/entidades.json:325`.
 2. **Quién la lee.** `ops/modulos.test.js`, `supabase/cableado.test.js`, `ops/fuentes.test.js`, `scripts/verificar-estado.mjs`, `scripts/lib/migraciones.mjs`.
@@ -186,7 +186,7 @@ Fecha: 12 oct 2026. Método: la FICHA, en su orden (primero cómo lo define el r
 8. **Veredicto.** Se queda. Dato: 55 registradas, 54 existentes; la 55ª pertenece a una migración sin aplicar. Distinguir `registrada` de `existente` (campo o estado) evitaría contar la fantasma.
 9. **Lo que no sé.** Si hay tablas reales sin registrar (el test `modulos.test.js` lo vigila, creo). Se averigua comparando `information_schema.tables` con MODULOS.json.
 
-## data-source (puente)
+## data-source (de los dos lados)
 
 1. **Qué es de verdad.** Un sitio de donde sale un dato, con rol (`ingesta`, `fuente_de_verdad`, `derivado`, `copia_retirada`), estado y frecuencia. `src/data/model.js` (`TABLAS`, 40 ids), `ROLES_FUENTE`, `ESTADOS_FUENTE`, `FRECUENCIAS`. Definiciones de roles en `specs/INDEX.md`.
 2. **Quién la lee.** `src/data/model.test.js` (cobertura como trinquete), `ops/fuentes.test.js`, `ops/lecturasRetiradas.test.js`, scripts de catálogo.
@@ -198,7 +198,7 @@ Fecha: 12 oct 2026. Método: la FICHA, en su orden (primero cómo lo define el r
 8. **Veredicto.** Se queda **separada de `table`**: una fuente puede ser un JSON (sin tabla) o varias tablas; son planos distintos (dato de producto vs objeto físico). No fusionar; sí completar `tablas` en las 36 fuentes SQL/mixtas que no la declaran (los datos de producto de la casa, p. ej. `user_menus`, **ni siquiera tienen una fuente** en `TABLAS`: Creo, sin contar los 40 ids uno a uno).
 9. **Lo que no sé.** Cuántas tablas de las 54 reales tienen una fuente en `model.js`. Se averigua cruzando `TABLAS[].tablas` con MODULOS.json.
 
-## module (puente)
+## module (de los dos lados)
 
 1. **Qué es de verdad.** Una unidad de código y datos con dueño, ficheros, tests y métricas. `ops/MODULOS.json` (`modulos`, 16). `ops/entidades.json:349`: «16 módulos; cada tabla tiene un dueño».
 2. **Quién la lee.** `ops/modulos.test.js`, `scripts/` de módulos, `/orquestar` (zonas), `metricas`.
@@ -210,7 +210,7 @@ Fecha: 12 oct 2026. Método: la FICHA, en su orden (primero cómo lo define el r
 8. **Veredicto.** **Se parte en `module` y `submodule`** (o `module` con campo `parent`): la nota «16 módulos y 55 tablas todos de HoMenu» contradice los 23 dueños. Dato: 16 ≠ 23.
 9. **Lo que no sé.** Si los 7 sobrantes son todos submódulos o alguno es un módulo de segundo nivel. Se averigua leyendo el campo `submodulos` de cada módulo (hecho: aparecen todos, creo).
 
-## migration (puente)
+## migration (de los dos lados)
 
 1. **Qué es de verdad.** Un fichero SQL numerado que cambia la base (que es producción). `supabase/migrations/`, registro de verdad `supabase/ESTADO.md`; `ops/entidades.json:313` (`number_with_name`). `PRINCIPIOS.md` y la regla `migraciones`.
 2. **Quién la lee.** `scripts/apply-migration.mjs`, `verificar-estado.mjs`, `supabase/migrations.test.js`, `ops/fuentes.test.js`, guardia, arranque.
