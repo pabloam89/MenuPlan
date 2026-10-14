@@ -255,6 +255,7 @@ cuerpo de PR o un heredoc que las nombre. Niega:
 | Sacar o cambiar las credenciales guardadas | `gh auth token` (también `--user`), `gh auth status --show-token`, `gh auth login`, `switch`, `refresh`, `setup-git` y `logout`, `git credential` y `git credential-manager`, `cmdkey`, `GH_TOKEN=$(gh auth token)` |
 | Más ajustes con la CLI | `gh secret set` y `delete`, `gh variable set` y `delete`, `gh repo edit`, `delete`, `archive`, `rename` y `transfer`, `gh repo deploy-key add` y `delete`, `gh pr merge --admin` |
 | Imprimir el token | `echo $GH_TOKEN`, `$env:GH_TOKEN`, `Get-Item Env:GH_TOKEN`, `node -p process.env.GH_TOKEN`, `cat /proc/self/environ`, y `printenv`, `env` o `declare -p` sin filtrar (filtrado con grep por otra palabra, como path, pasa) |
+| El token como argumento, su caché o session-env (#715) | cualquier orden con `$GH_TOKEN`, `${GH_TOKEN}`, `%GH_TOKEN%` o `$env:GH_TOKEN` fuera de comillas simples (`gh issue comment -b "$GH_TOKEN"`, `curl -H` con el token…), y cualquiera que nombre `token-sesion.json` o `~/.claude/session-env`, se use como se use. Pasa: el texto entre comillas simples, de mensajes (`-m`, `--body`) y de heredocs literales, y el envoltorio `node scripts/token-sesion.mjs --`. Filtro de buena fe: no ve una variable intermedia ni un script; lo que acota el daño es la vida de 1 h y los permisos de la App |
 | PowerShell | `gh` y `git push`, `pull`, `fetch`, `clone` o `ls-remote` sin el envoltorio `node scripts/token-sesion.mjs --` |
 
 **PowerShell.** Esa herramienta no carga el token de la sesión (el archivo de entorno
