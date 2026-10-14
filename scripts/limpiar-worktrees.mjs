@@ -33,14 +33,20 @@
  * (`.git/claude-limpieza.json`); el arranque de la sesión (arranque.mjs) lo
  * enseña mientras la carpeta siga en disco.
  *
+ * Carpetas sin registro (#725): si git quita el worktree de su lista y la
+ * carpeta no se borra, ya no se recorrería nunca. Cada pasada termina de
+ * borrar lo apuntado en ese registro que ya no es un worktree vivo (con
+ * reintentos y soltando antes la unión de node_modules), guarda el error real
+ * de git en el motivo y no toca nada con un `.git` de carpeta.
+ *
  * Dónde está enganchado: el hook de Claude Code en el settings.json de usuario
  * de cada máquina (PostToolUse tras un merge, y SessionStart para lo que se
  * mergeó desde la web), que llama a una copia de este fichero en
  * ~/.claude/hooks/. Si cambias este, copia el nuevo allí.
  */
 import { execFileSync } from "node:child_process";
-import { existsSync, lstatSync, readFileSync, readlinkSync, renameSync, rmdirSync, unlinkSync, writeFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { existsSync, lstatSync, readFileSync, readlinkSync, renameSync, rmSync, rmdirSync, unlinkSync, writeFileSync } from "node:fs";
+import { basename, dirname, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
 /**
@@ -130,14 +136,96 @@ export function guardarPendientes(comun, nuevos, { existe = existsSync, vivos = 
  * bloqueado, rutas largas en node_modules), y el `worktree prune` del final
  * borra la entrada aunque el remove fallara. Eso fue #141.
  */
-export function problemaDelBorrado({ dir, rama, quitado, sigue }, ahora = new Date()) {
+export function problemaDelBorrado({ dir, rama, quitado, sigue, detalle }, ahora = new Date()) {
   if (!sigue) return null;
+  const base = quitado ? "git la quitó de su lista, pero la carpeta sigue en disco" : "falló `git worktree remove`";
   return {
     dir,
     rama,
-    motivo: quitado ? "git la quitó de su lista, pero la carpeta sigue en disco" : "falló `git worktree remove`",
+    // El error real de git (o del borrado) va en el motivo: sin él, la causa solo se sabía reproduciendo (#725).
+    motivo: detalle ? `${base}: ${String(detalle).trim().split(/\r?\n/)[0].slice(0, 300)}` : base,
     cuando: ahora.toISOString(),
   };
+}
+
+/**
+ * Quita node_modules si es una unión o un enlace, sin tocar su destino. Si es
+ * una carpeta de verdad no hace nada. Devuelve true si quitó una unión.
+ * En Windows una junction se quita con rmdir (no recursivo); en otros, unlink.
+ */
+export function soltarUnion(dir) {
+  const nm = join(dir, "node_modules");
+  let st;
+  try {
+    st = lstatSync(nm);
+  } catch {
+    return false; // a propósito: sin node_modules no hay unión que soltar
+  }
+  let esUnion = st.isSymbolicLink();
+  if (!esUnion) {
+    try {
+      readlinkSync(nm);
+      esUnion = true;
+    } catch {
+      esUnion = false; // a propósito: readlink falla en una carpeta normal
+    }
+  }
+  if (!esUnion) return false;
+  try {
+    rmdirSync(nm);
+  } catch {
+    unlinkSync(nm);
+  }
+  return true;
+}
+
+/** ¿Tiene un `.git` que es una CARPETA? Es un clon con su propia historia, no un worktree (p. ej. MenuPlan-panel-lectura). */
+export function tieneGitPropio(dir) {
+  try {
+    return lstatSync(join(dir, ".git")).isDirectory();
+  } catch {
+    return false; // a propósito: sin .git, o ilegible, no es un clon
+  }
+}
+
+/**
+ * Termina de borrar una carpeta que quedó sin registro de git (#725): suelta
+ * antes la unión de node_modules (borrar en recursivo a través de ella vaciaría
+ * el destino, 8 oct 2026), borra con reintentos (Windows suelta tarde un
+ * fichero en uso) y nunca toca una carpeta con `.git` de carpeta. Si el
+ * proceso tiene dentro su directorio de trabajo, el borrado falla en Windows:
+ * quien llama debe haber hecho antes `process.chdir` a la raíz del repo.
+ * Devuelve { ok, motivo? }.
+ */
+export function terminarCarpeta(dir, { reintentos = 5, espera = 200 } = {}) {
+  if (!existsSync(dir)) return { ok: true };
+  if (tieneGitPropio(dir)) return { ok: false, motivo: "tiene un .git de carpeta (un clon, no un worktree): no se toca" };
+  try {
+    soltarUnion(dir);
+    rmSync(dir, { recursive: true, force: true, maxRetries: reintentos, retryDelay: espera });
+  } catch (e) {
+    return { ok: false, motivo: `no pude borrar la carpeta: ${String(e?.code ?? "")} ${String(e?.message ?? e).split("\n")[0]}`.trim() };
+  }
+  return existsSync(dir) ? { ok: false, motivo: "la carpeta sigue en disco tras borrarla" } : { ok: true };
+}
+
+/**
+ * Qué entradas del registro se pueden terminar de borrar: la carpeta existe,
+ * ya no es un worktree vivo, cuelga del mismo directorio que el repo y se llama
+ * `MenuPlan-…`. Es la barrera contra borrar nada que no sea una carpeta de
+ * trabajo de MenuPlan. Pura.
+ */
+export function porTerminar(pendientes, { raiz, existe = existsSync, vivos = new Set() }) {
+  const padre = normaRuta(dirname(raiz));
+  return pendientes.filter(
+    (p) =>
+      p?.dir &&
+      existe(p.dir) &&
+      !vivos.has(normaRuta(p.dir)) &&
+      normaRuta(dirname(p.dir)) === padre &&
+      /^MenuPlan-/i.test(basename(p.dir)) &&
+      normaRuta(p.dir) !== normaRuta(raiz),
+  );
 }
 
 /**
@@ -203,6 +291,10 @@ if (esPrincipal) {
   const comun = intenta(() => git(["rev-parse", "--path-format=absolute", "--git-common-dir"], process.cwd()));
   if (!comun) process.exit(0);
   const raiz = comun.replace(/[\\/]\.git$/, "");
+  // Este proceso no puede tener dentro la carpeta que va a borrar: en el hook
+  // hereda el directorio de la sesión que acaba de fusionar, y en Windows eso
+  // bloquea el borrado (#725). Se mueve a la raíz del repo antes de nada.
+  process.chdir(raiz);
   intenta(() => git(["fetch", "-q", "--prune", "origin"], raiz));
 
   // git worktree list --porcelain: bloques separados por línea vacía.
@@ -224,17 +316,6 @@ if (esPrincipal) {
   const remotaBorradaDe = (rama) =>
     Boolean(intenta(() => git(["config", `branch.${rama}.remote`], raiz))) &&
     !intenta(() => git(["rev-parse", "--verify", `refs/remotes/origin/${rama}`], raiz));
-
-  /** Quita node_modules si es una unión o un enlace, sin tocar su destino. */
-  const soltarUniones = (dir) => {
-    const nm = join(dir, "node_modules");
-    const st = intenta(() => lstatSync(nm));
-    if (!st) return;
-    const esUnion = st.isSymbolicLink() || Boolean(intenta(() => readlinkSync(nm)));
-    if (!esUnion) return;
-    // En Windows una junction se quita con rmdir (no recursivo); en otros, unlink.
-    if (!intenta(() => (rmdirSync(nm), true))) unlinkSync(nm);
-  };
 
   // Worktrees que prestan su node_modules a otros por una unión: no se borran
   // mientras alguien cuelgue de ellos.
@@ -273,10 +354,22 @@ if (esPrincipal) {
     }
     log(`${SI ? "✓ borro" : "· borraría"} ${dir} (${rama})`);
     if (!SI) continue;
-    soltarUniones(dir);
+    soltarUnion(dir);
     intenta(() => git(["checkout", "--", "."], dir));
-    const quitado = Boolean(intenta(() => (git(["worktree", "remove", "--force", dir], raiz), true)));
-    const problema = problemaDelBorrado({ dir, rama, quitado, sigue: existsSync(dir) });
+    // El error de git se guarda (antes iba a `ignore` y el motivo era genérico).
+    let errorGit = "";
+    const quitado = Boolean(
+      intenta(() => {
+        try {
+          execFileSync("git", ["worktree", "remove", "--force", dir], { cwd: raiz, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+          return true;
+        } catch (e) {
+          errorGit = String(e?.stderr || e?.message || "");
+          throw e;
+        }
+      }),
+    );
+    const problema = problemaDelBorrado({ dir, rama, quitado, sigue: existsSync(dir), detalle: errorGit });
     if (problema) problemas.push(problema);
     else {
       borrados++;
@@ -284,6 +377,33 @@ if (esPrincipal) {
     }
   }
   intenta(() => git(["worktree", "prune"], raiz));
+
+  // Lo que una pasada anterior dejó apuntado y ya no es un worktree vivo se
+  // termina de borrar ahora (#725): sin esto, una carpeta sin registro no volvía
+  // a entrar nunca, porque arriba solo se recorren los worktrees que git lista.
+  let rematadas = 0;
+  {
+    const vivosAhora = worktreesVivos(intenta(() => git(["worktree", "list", "--porcelain"], raiz)));
+    let previos = [];
+    try {
+      previos = leerPendientes(comun);
+    } catch (e) {
+      console.error(`⚠ limpiar-worktrees: no pude leer lo pendiente para rematarlo (${e.message}).`);
+    }
+    for (const p of porTerminar(previos, { raiz: principal, vivos: vivosAhora })) {
+      log(`${SI ? "✓ remato" : "· remataría"} ${p.dir}${p.rama ? ` (${p.rama})` : ""}`);
+      if (!SI) continue;
+      const r = terminarCarpeta(p.dir);
+      if (r.ok) {
+        rematadas++;
+        // Solo se fuerza si la rama ya está en staging/main; si no, `-d`, que git rechaza si hay commits sin fusionar.
+        if (p.rama) intenta(() => git(["branch", contenidaEn(p.rama) ? "-D" : "-d", p.rama], raiz));
+      } else if (!problemas.some((x) => normaRuta(x.dir) === normaRuta(p.dir))) {
+        problemas.push({ ...p, motivo: r.motivo, cuando: new Date().toISOString() });
+      }
+    }
+  }
+  if (rematadas) log(`${rematadas} carpetas pendientes rematadas.`);
   log(SI ? `${borrados} worktrees borrados.` : "Ensayo: repite con --si para borrar.");
 
   // Lo que no se pudo borrar se dice SIEMPRE, también en silencio, y se apunta
