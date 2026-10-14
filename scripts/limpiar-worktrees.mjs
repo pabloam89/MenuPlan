@@ -396,7 +396,8 @@ if (esPrincipal) {
       const r = terminarCarpeta(p.dir);
       if (r.ok) {
         rematadas++;
-        if (p.rama) intenta(() => git(["branch", "-D", p.rama], raiz));
+        // Solo se fuerza si la rama ya está en staging/main; si no, `-d`, que git rechaza si hay commits sin fusionar.
+        if (p.rama) intenta(() => git(["branch", contenidaEn(p.rama) ? "-D" : "-d", p.rama], raiz));
       } else if (!problemas.some((x) => normaRuta(x.dir) === normaRuta(p.dir))) {
         problemas.push({ ...p, motivo: r.motivo, cuando: new Date().toISOString() });
       }

@@ -214,6 +214,9 @@ describe("limpiar-worktrees: terminar el borrado de lo que quedó sin registro (
     }
   });
 
+  // OJO: este y el de «aunque el proceso se lance desde dentro» solo protegen en Windows local, donde una carpeta
+  // que es el directorio de trabajo de un proceso no se puede borrar. En Linux/macOS (CI) el borrado sale bien
+  // aunque falte el chdir, así que en el CI pasan igual sin él: no son la prueba del arreglo allí.
   it("con el proceso DENTRO de la carpeta: tras moverse a la raíz del repo se borra", () => {
     const t = temporal();
     try {
@@ -285,6 +288,34 @@ describe("limpiar-worktrees: terminar el borrado de lo que quedó sin registro (
       expect(existsSync(join(clon, "src", "a.js"))).toBe(true);
       expect(salida).toMatch(/MenuPlan-panel-lectura.*\.git de carpeta/);
       expect(leerPendientes(join(repo, ".git")).map((p) => p.dir)).toEqual([clon]);
+    } finally {
+      rmSync(t, { recursive: true, force: true });
+    }
+  });
+
+  // La carpeta se remata, pero la rama con commits que no están en staging NO se fuerza a borrar (`-D` perdería trabajo).
+  it("el remate borra la carpeta pero no fuerza la rama si tiene commits sin fusionar", () => {
+    const t = temporal();
+    try {
+      const repo = join(t, "MenuPlan");
+      mkdirSync(repo);
+      const g = (...a) => execFileSync("git", ["-c", "user.name=t", "-c", "user.email=t@t", ...a], { cwd: repo, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+      g("init", "-q", "-b", "staging");
+      g("commit", "-q", "--allow-empty", "-m", "ini");
+      g("checkout", "-q", "-b", "ops/sin-fusionar");
+      g("commit", "-q", "--allow-empty", "-m", "trabajo sin fusionar");
+      g("checkout", "-q", "staging");
+      g("branch", "ops/fusionada"); // en el mismo commit que staging: `-d` la borra
+      const d1 = huerfana(t, "MenuPlan-uno");
+      const d2 = huerfana(t, "MenuPlan-dos");
+      const apunte = (dir, rama) => ({ dir, rama, motivo: "falló `git worktree remove`", cuando: "2026-10-13T05:36:00Z" });
+      writeFileSync(ficheroPendientes(join(repo, ".git")), JSON.stringify([apunte(d1, "ops/sin-fusionar"), apunte(d2, "ops/fusionada")]));
+      execFileSync(process.execPath, [resolve("scripts/limpiar-worktrees.mjs"), "--si", "--silencio"], { cwd: repo, encoding: "utf8" });
+      expect(existsSync(d1)).toBe(false);
+      expect(existsSync(d2)).toBe(false);
+      const ramas = g("branch", "--format=%(refname:short)");
+      expect(ramas).toContain("ops/sin-fusionar");
+      expect(ramas).not.toContain("ops/fusionada");
     } finally {
       rmSync(t, { recursive: true, force: true });
     }
