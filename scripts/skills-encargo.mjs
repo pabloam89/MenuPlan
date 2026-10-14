@@ -6,7 +6,7 @@
 //   npm run skills-encargo -- --diff                 los ficheros de esta rama frente a origin/staging
 //   npm run skills-encargo -- --comando "node scripts/apply-migration.mjs 0099_x" <ficheros…>
 //   npm run skills-encargo -- --agente datos <ficheros…>   dice cuáles ya trae precargadas
-//   npm run skills-encargo -- --proyecto homenu <ficheros…>  suma las fichas de servicio del proyecto (#710)
+//   npm run skills-encargo -- --proyecto <id> <ficheros…>  suma las fichas de servicio del proyecto (#710)
 //
 // La línea que va al brief: `SKILLS A ABRIR: a, b` (o «ninguna»). Con --proyecto, una línea más: `FICHAS DEL PROYECTO: ruta, ruta`
 // (los datos de ese proyecto para esas skills; la skill es el método de la casa y no los lleva).

@@ -2,7 +2,7 @@
 // Transcripts de mentira, una línea JSONL por evento, como los escribe Claude Code.
 import { describe, expect, it } from "vitest";
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, utimesSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -170,26 +170,35 @@ describe("skillsDelEncargo: las skills del brief salen del mapa", () => {
     expect(precargadasDe(RAIZ, "../constructor")).toEqual([]);
   });
 
-  it("fichasDeProyecto: los datos del proyecto de las skills de servicio llegan por referencia (--proyecto)", () => {
-    expect(fichasDeProyecto(RAIZ, "homenu", ["github", "vercel"])).toEqual(["ops/proyectos/homenu/servicios/github.md", "ops/proyectos/homenu/servicios/vercel.md"]);
-    // Una skill sin ficha (de oficio, o entera y vertical) no trae nada, y un proyecto o un nombre que no valen tampoco.
-    expect(fichasDeProyecto(RAIZ, "homenu", ["causa-raiz", "telegram"])).toEqual([]);
+  // Los proyectos salen de la lista única (`projects` de ops/entidades.json): ningún id escrito a mano.
+  const PROYECTOS_ = JSON.parse(readFileSync(join(RAIZ, "ops", "entidades.json"), "utf8")).projects;
+  const fichaDe = (id, s) => `ops/proyectos/${id}/servicios/${s}.md`;
+
+  it("fichasDeProyecto: los datos de cada proyecto de la lista llegan por referencia (--proyecto)", () => {
+    expect(PROYECTOS_.length).toBeGreaterThanOrEqual(2);
+    for (const p of PROYECTOS_) {
+      expect(fichasDeProyecto(RAIZ, p.id, p.servicios), p.id).toEqual(p.servicios.map((s) => fichaDe(p.id, s)));
+      // Una skill sin ficha en ese proyecto (de oficio, entera y vertical, o de servicio que no usa) no trae nada.
+      expect(fichasDeProyecto(RAIZ, p.id, ["causa-raiz", "telegram"]), p.id).toEqual([]);
+      expect(fichasDeProyecto(RAIZ, p.id, ["../" + p.servicios[0]]), p.id).toEqual([]);
+    }
+    // Un proyecto o un nombre que no valen tampoco.
     expect(fichasDeProyecto(RAIZ, "no-existe", ["github"])).toEqual([]);
-    expect(fichasDeProyecto(RAIZ, "../homenu", ["github"])).toEqual([]);
-    expect(fichasDeProyecto(RAIZ, "homenu", ["../github"])).toEqual([]);
+    expect(fichasDeProyecto(RAIZ, "../" + PROYECTOS_[0].id, ["github"])).toEqual([]);
     expect(fichasDeProyecto(RAIZ, null, ["github"])).toEqual([]);
   });
 
   it("skills-encargo --proyecto suma la línea FICHAS DEL PROYECTO, y sin --proyecto no sale", () => {
-    const con = spawnSync(process.execPath, ["scripts/skills-encargo.mjs", "--proyecto", "homenu", "vercel.json", "supabase/x"], { cwd: RAIZ, encoding: "utf8", windowsHide: true });
+    const [p] = PROYECTOS_.filter((x) => x.servicios.includes("vercel") && x.servicios.includes("supabase"));
+    const con = spawnSync(process.execPath, ["scripts/skills-encargo.mjs", "--proyecto", p.id, "vercel.json", "supabase/x"], { cwd: RAIZ, encoding: "utf8", windowsHide: true });
     expect(con.stdout).toMatch(/^SKILLS A ABRIR: supabase, vercel$/m);
-    expect(con.stdout).toContain("\nFICHAS DEL PROYECTO: ops/proyectos/homenu/servicios/supabase.md, ops/proyectos/homenu/servicios/vercel.md");
+    expect(con.stdout).toContain(`\nFICHAS DEL PROYECTO: ${fichaDe(p.id, "supabase")}, ${fichaDe(p.id, "vercel")}`);
     const sin = spawnSync(process.execPath, ["scripts/skills-encargo.mjs", "vercel.json"], { cwd: RAIZ, encoding: "utf8", windowsHide: true });
     expect(sin.stdout).not.toContain("FICHAS DEL PROYECTO");
   });
 
-  it("cada skill de servicio horizontal del mapa tiene ficha en homenu (si no, --proyecto no le da nada)", () => {
-    const conFicha = new Set(fichasDeProyecto(RAIZ, "homenu", skills).map((r) => r.split("/").pop().replace(/\.md$/, "")));
+  it("cada skill de servicio del mapa la usa algún proyecto de la lista, con su ficha (si no, --proyecto no le da nada)", () => {
+    const conFicha = new Set(PROYECTOS_.flatMap((p) => fichasDeProyecto(RAIZ, p.id, skills).map((r) => r.split("/").pop().replace(/\.md$/, ""))));
     for (const s of ["1password", "github", "hetzner", "tailscale", "vercel", "supabase"]) expect(conFicha.has(s), s).toBe(true);
   });
 

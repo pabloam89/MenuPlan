@@ -28,12 +28,28 @@
     "verticales sin marcar: fuentes documentales": 0,
     "estandares_que_nombran_el_proyecto": 28,
     "estandares_que_nombran_un_servicio": 36,
-    "sin lado en el registro: skills, reglas, comandos, specs y documentos": 0
+    "sin lado en el registro: skills, reglas, comandos, specs y documentos": 0,
+    "verticales sin project: skills, reglas, comandos, specs y documentos": 0,
+    "ataduras a un id de proyecto: código de la casa": 1,
+    "ataduras a un id de proyecto: registros de la casa": 5,
+    "ataduras a un id de proyecto: tests de la casa": 53
   },
   "subida_declarada": {
     "citas_de_documento_horizontal_a_vertical": {
       "hasta": 27,
       "razon": "Medida nueva del PR 8 de #710 (programa #652): hasta hoy no se medían las citas de un documento horizontal a un fichero vertical; el techo fija las 27 que hay y solo baja, y las quita el PR 9 (#690) al separar docs/ y ops/."
+    },
+    "ataduras a un id de proyecto: código de la casa": {
+      "hasta": 1,
+      "razon": "Medida nueva del PR 8 de #710 (programa #652, escala a cualquier proyecto): la casa no escribe el id de un proyecto a mano; el techo fija las que hay hoy y solo baja (las de código y registros son encargos medidos del informe, las de tests se leen de la lista al tocar cada test)."
+    },
+    "ataduras a un id de proyecto: registros de la casa": {
+      "hasta": 5,
+      "razon": "Medida nueva del PR 8 de #710 (programa #652, escala a cualquier proyecto): la casa no escribe el id de un proyecto a mano; el techo fija las que hay hoy y solo baja (las de código y registros son encargos medidos del informe, las de tests se leen de la lista al tocar cada test)."
+    },
+    "ataduras a un id de proyecto: tests de la casa": {
+      "hasta": 53,
+      "razon": "Medida nueva del PR 8 de #710 (programa #652, escala a cualquier proyecto): la casa no escribe el id de un proyecto a mano; el techo fija las que hay hoy y solo baja (las de código y registros son encargos medidos del informe, las de tests se leen de la lista al tocar cada test)."
     }
   }
 }

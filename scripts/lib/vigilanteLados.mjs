@@ -14,6 +14,7 @@ import { join } from "node:path";
 
 import { ficherosDeGit } from "../../ops/ficherosGit.js";
 import { citasDeTerminoAEntidadVertical, leerGlosario } from "./glosario.mjs";
+import { medirAtaduras } from "./atadurasProyecto.mjs";
 import { NO_ES_PROSA, calcular, nombraProyecto, nombraServicio, textoDe } from "./inventarioVertical.mjs";
 import { capaDe, cargarLados, citasDeHorizontalAVertical } from "./ladosFicheros.mjs";
 
@@ -116,6 +117,12 @@ export function medir(raiz) {
   medidas["verticales sin registro propio: principios de la casa"] = filas["principios de la casa (ops/principios/)"].vertical;
   medidas["verticales sin marcar: fuentes documentales"] = inv.cifras.fuentesSinMarcar;
   medidas["sin lado en el registro: skills, reglas, comandos, specs y documentos"] = inv.cifras.sinLado;
+  medidas["verticales sin project: skills, reglas, comandos, specs y documentos"] = inv.cifras.verticalSinProyecto;
+  // Ataduras a un id de proyecto en lo de la casa (scripts/lib/atadurasProyecto.mjs): la lista de proyectos se recorre, no se escribe.
+  const ataduras = medirAtaduras(raiz);
+  medidas["ataduras a un id de proyecto: código de la casa"] = ataduras.codigo.length;
+  medidas["ataduras a un id de proyecto: registros de la casa"] = ataduras.registros.length;
+  medidas["ataduras a un id de proyecto: tests de la casa"] = ataduras.tests.length;
   return medidas;
 }
 

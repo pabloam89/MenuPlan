@@ -10,7 +10,7 @@
  *                                         cada fichero tocado y las que cita), con su frase, su control y su
  *                                         principio, la precedencia entre áreas (qué gana si dos normas chocan,
  *                                         #621) y sus reglas propias
- *   npm run estandar -- <agente> <tarea> --proyecto homenu   lo mismo, y además las normas de ese proyecto (ops/proyectos/<id>/normas.json)
+ *   npm run estandar -- <agente> <tarea> --proyecto <id>      lo mismo, y además las normas de ese proyecto (ops/proyectos/<id>/normas.json)
  *                                         cuyo ámbito y acción coinciden con los de la tarea, por referencia (el estándar base
  *                                         no lleva ninguna norma vertical, #704), y las tareas que solo existen en ese proyecto
  *                                         (ops/proyectos/<id>/tareas.json); las del bot solo si el proyecto declara el dominio (#710)
@@ -39,7 +39,7 @@ if (todos.includes("--diff")) ficheros.push(...ficherosDeLaRama(RAIZ));
 // --proyecto <id> (o --proyecto=<id>): suma las normas de ese proyecto, por referencia.
 const iProy = todos.findIndex((a) => a === "--proyecto" || a.startsWith("--proyecto="));
 const proyecto = iProy < 0 ? null : (todos[iProy].includes("=") ? todos[iProy].split("=")[1] : todos[iProy + 1] ?? "").trim() || null;
-if (iProy >= 0 && !proyecto) { console.error("--proyecto pide un id de proyecto (ops/entidades.json), p. ej. --proyecto homenu"); process.exit(1); }
+if (iProy >= 0 && !proyecto) { console.error("--proyecto pide un id de proyecto (ops/entidades.json): " + proyectosDeEntidades(RAIZ).join(", ")); process.exit(1); }
 if (proyecto && !proyectosDeEntidades(RAIZ).includes(proyecto)) { console.error(`«${proyecto}» no es un proyecto de ops/entidades.json (${proyectosDeEntidades(RAIZ).join(", ")})`); process.exit(1); }
 const salta = (i) => (iFich >= 0 && (i === iFich || (i === iFich + 1 && !todos[iFich].includes("=")))) || (iProy >= 0 && (i === iProy || (i === iProy + 1 && !todos[iProy].includes("="))));
 const args = todos.filter((a, i) => a !== "--diff" && !salta(i));

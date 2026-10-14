@@ -41,7 +41,10 @@ ahí Claude Code la cargaría como si fuera una skill más.
 - **Una skill es del lado de la casa o de un proyecto, no de los dos** (`ops/lados-ficheros.json`,
   #710). La de un servicio es el método y es horizontal; lo que es de un proyecto (ids, cuentas,
   bóvedas, repo, equipo) va a su ficha, `ops/proyectos/<id>/servicios/<skill>.md`, que el agente
-  recibe con `--proyecto`. La skill dice que la ficha existe, con `<id>` y sin la ruta real, y
+  recibe con `--proyecto`. Cada proyecto de la lista (`projects` de `ops/entidades.json`) declara en
+  `servicios` las skills de servicio que usa y tiene la ficha de cada una; ningún id se escribe a mano
+  (`ops/lados-ficheros.test.js` recorre todos los proyectos y falla con una ficha sin skill o una skill
+  sin ficha). La skill dice que la ficha existe, con `<id>` y sin la ruta real, y
   no cita ningún fichero vertical por su ruta (lo vigila `ops/lados-ficheros.test.js`); una
   referencia que es dato del proyecto la cita la ficha.
 

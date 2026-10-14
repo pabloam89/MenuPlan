@@ -7,6 +7,7 @@
       "id": "homenu",
       "name": "HoMenu",
       "dominios": ["bot"],
+      "servicios": ["1password", "github", "hetzner", "supabase", "tailscale", "vercel"],
       "repos": [
         "pabloam89/MenuPlan"
       ],
@@ -15,6 +16,7 @@
     {
       "id": "panel",
       "name": "Panel de la factoría",
+      "servicios": ["1password", "hetzner", "tailscale"],
       "repos": [
         "pabloam89/homenu-panel"
       ],
