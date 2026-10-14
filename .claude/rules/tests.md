@@ -12,6 +12,7 @@ paths:
   JSON no.
 - **No copies la verdad.** `expect(UMBRAL).toBe(4.2)` no vigila nada; fija
   suelos y relaciones (`expect(a).toBeLessThan(b)`).
+- **Un test no deriva un hecho fijo de la historia de git** (la fecha en que nació algo): en un clon superficial, como el del CI, `git log` da la de la fusión. Pon el hecho como constante en el test.
 - Cada caso malo cambia **una** cosa y debe disparar exactamente esa regla.
 - Con varias sesiones o agentes en la misma carpeta, no lances la suite
   entera a la vez: la contención de CPU da timeouts falsos. La suite entera es
