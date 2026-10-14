@@ -398,7 +398,7 @@ export function avisoDeIdentidad({ identidad, token, motivo = "-", advertencias 
 export function ghApiUser(env) {
   return new Promise((ok) => {
     // `ejecutar` explícito: esta comprobación va con el token recién canjeado y NO se renueva (renovar llamaría a este mismo canje)
-    execFileGh("token-sesion", ["api", "user", "--jq", ".login"], { windowsHide: true, env, encoding: "utf8", timeout: 8000 }, (error, stdout, stderr) => ok({ status: error ? (error.code ?? 1) : 0, stdout, stderr }), { ejecutar: (a, o, cb) => execFile("gh", a, o, cb) });
+    execFileGh("token-sesion", ["api", "user", "--jq", ".login"], { windowsHide: true, env, encoding: "utf8", timeout: 8000 }, (error, stdout, stderr) => ok({ status: error ? (error.code ?? 1) : 0, stdout, stderr }), { ejecutar: (a, o, cb) => execFile("gh", a, { windowsHide: true, ...o }, cb) });
   });
 }
 

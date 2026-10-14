@@ -63,7 +63,7 @@ if (esPrincipal) {
       issues = JSON.parse(ghSync("avisos", ["issue", "list", "--state", "open", "--limit", "300", "--json", "number,title,body,state"], { windowsHide: true,
         cwd: entrada.cwd || process.cwd(), encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 15000,
       // sin renovar: un aviso ya falla abierto con su tiempo corto, y el canje sumaría segundos a cada orden
-      }, { ejecutar: (a, o) => execFileSync("gh", a, o) }));
+      }, { ejecutar: (a, o) => execFileSync("gh", a, { windowsHide: true, ...o }) }));
       writeFileSync(cache, JSON.stringify(issues));
     }
 
