@@ -67,6 +67,13 @@
       "amplio": true
     },
     {
+      "id": "carpeta-del-shim",
+      "tests": ["scripts/ghShim.test.js"],
+      "mira": ["scripts/bin/**", "scripts/gh-shim.mjs"],
+      "porque": "scripts/bin va delante en el PATH de las sesiones: solo puede contener el shim de gh, ejecutable en git; algo más lo taparía a otra orden.",
+      "evidencia": "#719"
+    },
+    {
       "id": "errores-tragados-bot",
       "tests": ["api/_bot/sinErroresTragados.test.js"],
       "mira": ["api/_bot/**/*.{js,mjs,cjs,jsx}", "api/bot/**/*.{js,mjs,cjs,jsx}"],

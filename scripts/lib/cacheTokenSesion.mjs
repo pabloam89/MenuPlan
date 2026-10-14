@@ -196,6 +196,55 @@ export function escribirCache({ ruta, datos, fs = fsReal, proteger = protegerFic
   }
 }
 
+/** Tras un canje fallido, durante este tiempo no se reintenta (#508): cada reintento gastaría otra lectura de 1Password. */
+export const VENTANA_FALLO_MS = 30_000;
+const FORMA_MOTIVO = /^[a-z][a-z0-9-]{0,40}$/;
+
+/**
+ * El fallo reciente del canje, en un fichero hermano de la caché (`<caché>.fallo.json`). Con `guardar`
+ * (un motivo de MOTIVOS, que valida quien llama) lo escribe de forma atómica; sin él, lo lee y devuelve
+ * el motivo si cuenta, o null. Solo cuenta si `0 <= ahora - instante <= 30 s`: un instante futuro o más
+ * viejo se ignora. Guarda SOLO el instante y el motivo, nunca el texto del error. Los permisos son los
+ * de la caché: si no cuadran, el fichero se ignora y no se bloquea (se canjea como si no existiera).
+ * Nunca lanza.
+ */
+export function falloReciente({ ruta, guardar, fs = fsReal, reloj = Date.now, proteger = protegerFichero, permisosBien = permisosDelUsuario }) {
+  const fichero = `${ruta}.fallo.json`;
+  if (guardar !== undefined) {
+    if (!FORMA_MOTIVO.test(String(guardar))) return false;
+    const tmp = `${fichero}.${process.pid}.${randomBytes(4).toString("hex")}.tmp`;
+    try {
+      fs.mkdirSync(dirname(ruta), { recursive: true, mode: 0o700 });
+      fs.writeFileSync(tmp, "", { flag: "wx", mode: 0o600 });
+      if (!proteger(tmp)) throw new Error("permisos");
+      fs.writeFileSync(tmp, JSON.stringify({ v: VERSION, instante: reloj(), motivo: guardar }));
+      fs.renameSync(tmp, fichero);
+      return true;
+    } catch {
+      // a propósito: no apuntar el fallo solo cuesta un reintento de canje; nunca rompe al `gh`
+      try {
+        fs.unlinkSync(tmp);
+      } catch {
+        // a propósito: el temporal puede no haberse creado
+      }
+      return false;
+    }
+  }
+  try {
+    fs.statSync(fichero);
+    if (!permisosBien(fichero)) return null;
+    const d = JSON.parse(fs.readFileSync(fichero, "utf8"));
+    const claves = Object.keys(d ?? {});
+    if (claves.length !== 3 || !["v", "instante", "motivo"].every((k) => claves.includes(k)) || d.v !== VERSION) return null;
+    if (!Number.isFinite(d.instante) || typeof d.motivo !== "string" || !FORMA_MOTIVO.test(d.motivo)) return null;
+    const edad = reloj() - d.instante;
+    return edad >= 0 && edad <= VENTANA_FALLO_MS ? d.motivo : null;
+  } catch {
+    // a propósito: sin fichero, ilegible o roto, no hay fallo reciente y se canjea
+    return null;
+  }
+}
+
 const dormirReal = (ms) => new Promise((ok) => setTimeout(ok, ms));
 
 /**
