@@ -114,7 +114,7 @@ describe("comprobarDimensionado", () => {
 // Un PR de ejemplo por tipo. Si un eslabón deja de estar cableado al siguiente, falla aquí.
 const EJEMPLOS = {
   create: { ficheros: [f("src/screens/Plan.jsx")], agente: "constructor" },
-  fix: { ficheros: [f("api/_bot/agente.js")], agente: "constructor", subtipo: "fix-bug" },
+  fix: { ficheros: [f("api/_bot/ejemplo-inventado.js")], agente: "constructor", subtipo: "fix-bug" },
   improve: { ficheros: [f("scripts/lib/solver-medidas.mjs")], agente: "constructor" },
   operate: { ficheros: [f(".github/workflows/tests.yml"), f(".claude/hooks/guardia.mjs")], agente: "constructor" },
   audit: { ficheros: [f("src/data/recipes.json")], agente: "sesión" },

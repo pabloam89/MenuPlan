@@ -139,6 +139,8 @@ const TABLA = [
   ["workflows-yaml", ".github/workflows/x.yml", "ops/workflows.test.js"],
   ["tipos-de-encargo", "ops/tipos-de-encargo.json", "ops/tipos-de-encargo.test.js"],
   ["tipos-de-encargo", ".claude/agents/x.md", "ops/tipos-de-encargo.test.js"],
+  ["dimensionado-del-pr", ".github/pull_request_template.md", "scripts/dimensionado-pr.test.js"],
+  ["dimensionado-del-pr", ".claude/settings.json", ".claude/hooks/lanzamiento.test.js"],
   ["principios-y-uniones", "ops/principios/principios/x.json", "ops/principios.test.js"],
   ["principios-y-uniones", "ops/normas.json", "ops/uniones.test.js"],
   ["tests-sin-registro-real", "scripts/un-test-nuevo.test.js", ".claude/hooks/eventos.test.js"],

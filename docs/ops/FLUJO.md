@@ -123,7 +123,7 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | **Ejecutar** · blanda | | | | | | |
 | P07.1 | **Encargo en su rama.** Cada encargo de un fondo DEBE ser una rama con el número de su issue y dejar ver quién lo lleva. | DEBE | script_propio · semidura · `scripts/tarea.mjs` | test: `scripts/lleva.test.js` | — | #337 |
 | P07.2 | **PR al día con Closes.** Cada PR DEBE abrirse y fusionarse con la rama al día y, si la rama es de un issue, abrirse con Closes #n. | DEBE | guardia · semidura · `.claude/hooks/guardia.mjs` | test: `.claude/hooks/guardia.test.js` | `pr-al-dia-y-closes` | #337 |
-| P07.3 | **Constructor distinto del juez.** Cada agente NO DEBE juzgar lo que ha construido. | NO DEBE | nada · blanda · `CLAUDE.md` | juicio | `quien-construye-no-juzga` | #341 |
+| P07.3 | **Constructor distinto del juez.** Cada agente NO DEBE juzgar lo que ha construido. | NO DEBE | ci · semidura · `CLAUDE.md` | test: `scripts/dimensionado-pr.test.js` | `quien-construye-no-juzga` | #341 |
 | P07.4 | **Tope de rondas.** Cada problema de fondo NO DEBE pasar de las rondas del presupuesto de constructor y juez. | NO DEBE | script_propio · semidura · `scripts/lib/fondos.mjs` | test: `scripts/fondos-rondas.test.js` | `rondas-tope-duro` | #340 |
 | P07.5 | **Agente con plantilla.** Cada agente DEBE seguir la plantilla: tipo, planos, método e informe común. | DEBE | ci · dura · `.claude/PLANTILLA-AGENTE.md` | test: `.claude/agentes.test.js` | — | — |
 | P07.6 | **Main solo por PR.** La rama main DEBE recibir cambios solo por PR con el check tests en verde. | DEBE | github_regla · semidura · `ops/DECISIONES.md` | planos: `ops/planos.json` | `main-solo-por-pr-con-tests` | #330 |
@@ -158,7 +158,7 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | P12.6 | **Eventos de hooks registrados.** La guardia de Claude DEBE dejar una línea en el registro local de eventos por cada bloqueo, cada permiso que pide y cada skill que se abre. | DEBE | guardia · semidura · `.claude/hooks/eventos.mjs` | test: `.claude/hooks/eventos.test.js` | `eventos-de-hooks-registrados` | #340 |
 | P12.5 | **Normas incumplidas contadas.** Cuando se incumple, cada norma del proceso DEBE contarse cada semana. | DEBE | script_propio · semidura · `scripts/lib/normas.mjs` | test: `ops/normas.test.js` | — | #341, #185 |
 
-**53 obligaciones:** 5 duras · 31 semiduras · 17 blandas · 0 rotas. 25 remiten a su norma del registro y 28 están escritas por campos.
+**53 obligaciones:** 5 duras · 32 semiduras · 16 blandas · 0 rotas. 25 remiten a su norma del registro y 28 están escritas por campos.
 <!-- flujo:pasos:fin -->
 
 ## Lo que ya existía
