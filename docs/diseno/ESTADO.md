@@ -541,15 +541,15 @@ programa: bibliotecas por elemento, inventario de lo que hay y especificación p
 Línea 2 de #774. El pool (`ops/diseno/bibliotecas.json`, 22 fichas) dice de cada biblioteca solo lo que es de ella: candidata o
 retirada. Lo que es de un proyecto sale de la ficha: que lo use, **cómo la importa** (paquete con versión fijada o ficheros
 copiados), el envoltorio y las reglas de uso son `decide_el_proyecto` y los decidirá la especificación de cada proyecto (línea 4).
-Una sola marca para lo no comprobado (`unverified`) y un valor aparte para lo que no corresponde (`not-applicable`); la plataforma
-usa `app`, `web` o `both` de la taxonomía, con fuente. El test del pool cruza el bloque Q de `ops/diseno/bloques.json` con los
-campos de la ficha. Cifras: `node scripts/diseno/bibliotecas.mjs`.
+Las dos marcas, lo no comprobado (`unverified`) y lo que no corresponde (`not-applicable`), viven una vez en el vocabulario
+`marca` del pool (#802); la plataforma usa `app`, `web` o `both` de la taxonomía, con fuente. El test del pool cruza el bloque Q
+de `ops/diseno/bloques.json` con los campos de la ficha. Cifras: `node scripts/diseno/bibliotecas.mjs`.
 
-Lo que HoMenu usa hoy, que antes estaba en la ficha de Nucleo y ahora vive aquí:
+Los tres «móvil sí» del dossier (`react-aria-components`, `konsta`, `ionic`) constan con la plataforma `unverified`, pero no por
+falta de fuente, como se dijo en #798: el dossier la daba (la documentación de React Aria; la descripción del repositorio de Konsta
+e Ionic). Constan así porque «móvil sí» no dice en cuál de las plataformas de la taxonomía vale. Se decide al investigarlas (#790).
 
-| Biblioteca | Estado en HoMenu | Cómo se importa | Elementos que cubre | Fuente |
-|---|---|---|---|---|
-| Nucleo (iconos) | en uso | ficheros copiados al repo (`src/components/icons.jsx`, generado) | `icon` | `DESIGN_SYSTEM.md` §5 |
+Lo que HoMenu usa hoy (Nucleo para los iconos, cómo se importa y qué cubre) vive en un solo sitio: `DESIGN_SYSTEM.md` §5.
 
 ## Sin comprobar
 

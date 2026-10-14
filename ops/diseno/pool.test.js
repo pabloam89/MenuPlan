@@ -1,12 +1,11 @@
-import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { describe, expect, it, vi } from "vitest";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { agentesDe } from "../../scripts/lib/agentes.mjs";
-import { VOCABULARIOS } from "../../scripts/lib/vocabulariosVida.mjs";
+import { VOCABULARIOS, leerRegistro } from "../../scripts/lib/vocabulariosVida.mjs";
 import { PLAZO_COMPROBADO_DIAS } from "../../scripts/lib/skills.mjs";
-import { CAMPOS_DE_FICHA, CORRESPONDENCIA_DE_Q, cifrasDeBibliotecas, caducidadDeFicha, candidatasDe, clavesDeVocabulario, cumpleReact, leerBibliotecas, leerBloques, problemasDeBibliotecas, reactDePackage, validarReact } from "../../scripts/lib/bibliotecasDiseno.mjs";
+import { CAMPOS_DE_FICHA, CORRESPONDENCIA_DE_Q, NO_APLICA, RUTA_BIBLIOTECAS, SIN_COMPROBAR, VOCABULARIOS_DEL_POOL, cifrasDeBibliotecas, caducidadDeFicha, candidatasDe, clavesDeVocabulario, cumpleReact, leerBibliotecas, leerBloques, problemasDeBibliotecas, reactDePackage, validarReact } from "../../scripts/lib/bibliotecasDiseno.mjs";
 import { leerTaxonomia } from "../../scripts/lib/taxonomiaDiseno.mjs";
 
 /**
@@ -23,7 +22,9 @@ import { leerTaxonomia } from "../../scripts/lib/taxonomiaDiseno.mjs";
  *  8. (#788) una sola marca de «sin comprobar» (`unverified`) y un valor aparte de «no aplica» (`not-applicable`): ningún `null`, `unread` ni `cli` dice «no sé»;
  *  9. (#788) el pool dice solo `candidate` o `retired`, y no guarda hechos de un proyecto (cómo importa una biblioteca, que la use): son `decide_el_proyecto`;
  * 10. (#788) los campos del bloque Q de ops/diseno/bloques.json son los de la ficha (con la correspondencia de nombres) más `decide_el_proyecto`;
- * 11. (#788) la plataforma de la ficha usa las de la taxonomía, con fuente; `requisitos` solo dice lo que se exige; las fuentes tienen id kebab y un patrón de URL.
+ * 11. (#788) la plataforma de la ficha usa las de la taxonomía, con fuente; `requisitos` solo dice lo que se exige; las fuentes tienen id kebab y un patrón de URL;
+ * 12. (#802) las dos marcas viven en un solo vocabulario, `marca`, y ningún otro las repite; los vocabularios del fichero son los que el
+ *     código lee (VOCABULARIOS_DEL_POOL), y el ciclo de vida los lee del fichero solo al pedir sus textos, no al importar el módulo.
  *
  * Abajo, un autotest: cada regla falla con un dato roto a propósito. Sin red.
  */
@@ -87,7 +88,7 @@ describe("el pool de bibliotecas de hoy", () => {
   });
 
   it("los vocabularios están en el ciclo de vida: el código los registra y el registro los ancla", () => {
-    const anclados = Object.keys(JSON.parse(readFileSync(join(RAIZ, "ops/vocabularios-vida.json"), "utf8")).anclados);
+    const anclados = Object.keys(leerRegistro(RAIZ).anclados);
     expect(clavesDeVocabulario(DATOS).length).toBeGreaterThan(0);
     for (const k of clavesDeVocabulario(DATOS)) {
       expect(Object.keys(VOCABULARIOS), k).toContain(`diseno.biblioteca_${k}`);
@@ -119,7 +120,8 @@ describe("el esquema limpio (#788)", () => {
     }
     expect(ficha(DATOS, "nucleo").version).toBe("unverified");
     expect(ficha(DATOS, "nucleo").ultimo_push).toBe("unverified");
-    expect([ficha(DATOS, "shadcn-ui").version, ficha(DATOS, "shadcn-ui").peso.dependencias]).toEqual(["not-applicable", "not-applicable"]);
+    // El dossier dice «n/a (CLI)», pero también que no comprobó si se instala como paquete o copia el código (#802): sin comprobar.
+    expect([ficha(DATOS, "shadcn-ui").version, ficha(DATOS, "shadcn-ui").peso.dependencias]).toEqual([SIN_COMPROBAR, SIN_COMPROBAR]);
     expect([ficha(DATOS, "pico-css").version, ficha(DATOS, "pico-css").peso.dependencias]).toEqual(["unverified", "unverified"]);
   });
 
@@ -141,8 +143,8 @@ describe("el esquema limpio (#788)", () => {
 
   it("la plataforma de cada ficha es una de la taxonomía o unverified, y sin comprobar no lleva URL", () => {
     for (const f of DATOS.bibliotecas) {
-      expect([...Object.keys(TAXONOMIA.plataformas), "unverified"], f.id).toContain(f.plataforma.vale_en);
-      if (f.plataforma.vale_en === "unverified") expect(f.plataforma.fuente_url, f.id).toBeNull();
+      expect([...Object.keys(TAXONOMIA.plataformas), SIN_COMPROBAR], f.id).toContain(f.plataforma.vale_en);
+      if (f.plataforma.vale_en === SIN_COMPROBAR) expect(f.plataforma.fuente_url, f.id).toBeNull();
     }
   });
 
@@ -166,6 +168,38 @@ describe("el esquema limpio (#788)", () => {
   it("--react pide una versión x.y", () => {
     expect(validarReact("19.2")).toBe("19.2");
     for (const mal of [undefined, "", "19", "x.y", "--json", "19.2.1"]) expect(() => validarReact(mal), String(mal)).toThrow(/--react necesita/);
+  });
+});
+
+describe("una sola marca y lectura perezosa (#802)", () => {
+  it("las dos marcas viven en el vocabulario marca y ningún otro vocabulario las repite", () => {
+    expect(Object.keys(DATOS.vocabularios.marca)).toEqual([SIN_COMPROBAR, NO_APLICA]);
+    for (const [k, v] of Object.entries(DATOS.vocabularios)) if (k !== "marca") expect(Object.keys(v).filter((x) => x in DATOS.vocabularios.marca), k).toEqual([]);
+  });
+
+  it("los vocabularios del fichero son los que lee el código, y el ciclo de vida registra esos", () => {
+    expect([...clavesDeVocabulario(DATOS)].sort()).toEqual([...VOCABULARIOS_DEL_POOL].sort());
+    expect(Object.keys(VOCABULARIOS).filter((k) => k.startsWith("diseno.biblioteca_")).sort()).toEqual(VOCABULARIOS_DEL_POOL.map((k) => `diseno.biblioteca_${k}`).sort());
+  });
+
+  it("importar el ciclo de vida no lee el pool: lo lee al pedir los textos", async () => {
+    const leidos = [];
+    vi.resetModules();
+    vi.doMock("node:fs", async (original) => {
+      const m = await original();
+      const readFileSync = (p, ...r) => { leidos.push(String(p).replace(/\\/g, "/")); return m.readFileSync(p, ...r); };
+      return { ...m, readFileSync, default: { ...m, readFileSync } };
+    });
+    try {
+      const vida = await import("../../scripts/lib/vocabulariosVida.mjs");
+      const delPool = () => leidos.filter((p) => p.endsWith(RUTA_BIBLIOTECAS)).length;
+      expect(delPool(), "al importar").toBe(0);
+      expect(Object.keys(vida.VOCABULARIOS["diseno.biblioteca_marca"].textos())).toEqual([SIN_COMPROBAR, NO_APLICA]);
+      expect(delPool(), "al pedir los textos (si es 0, el espía no ve las lecturas y el test no prueba nada)").toBeGreaterThan(0);
+    } finally {
+      vi.doUnmock("node:fs");
+      vi.resetModules();
+    }
   });
 });
 
@@ -250,4 +284,7 @@ describe("autotest: cada regla falla con un dato roto a propósito", () => {
   it("una URL de licencia que no sigue el patrón de su fuente", () => rompe((d) => { ficha(d, "sonner").licencia.fuente = "github"; }, "no sigue el patrón de github"));
   it("un origen encargo dentro del top 15", () => rompe((d) => { d.alcance.find((a) => a.elemento === "button").origen = "encargo"; }, "dentro del top"));
   it("un requisito unverified mezclado", () => rompe((d) => { ficha(d, "sonner").requisitos = ["react", "unverified"]; }, "unverified va solo"));
+  it("una marca repetida en otro vocabulario", () => rompe((d) => { d.vocabularios.rol.unverified = "No se ha comprobado qué piezas da"; }, "vocabularios.rol.unverified: es una marca"));
+  it("un vocabulario sin marca", () => rompe((d) => { delete d.vocabularios.marca; }, "vocabularios.marca"));
+  it("un vocabulario que el código no lee", () => rompe((d) => { d.vocabularios.color = { rojo: "Un color de la ficha" }; }, "VOCABULARIOS_DEL_POOL"));
 });
