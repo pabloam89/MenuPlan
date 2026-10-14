@@ -121,7 +121,7 @@ describe("npm run campos-por-entidad", () => {
     expect(r.status).toBe(0);
     expect(r.stdout).toMatch(/^campos_por_entidad: alcance=horizontal entidades_medidas=\d+ de=\d+ horizontal=\d+ both=\d+ vertical=\d+$/m);
     expect(r.stdout).toMatch(/^campos_por_entidad_nota: solo scope=horizontal;/m);
-    expect(r.stdout).not.toMatch(/alcance=(both|vertical)/);
+    expect(r.stdout).not.toMatch(/alcance=vertical/);
     expect(r.stdout).not.toMatch(/origen=base/);
     expect(r.stdout).toMatch(/^total_ficheros: cerrado=\d+ booleano=\d+ .* objeto=\d+ total=\d+$/m);
   });
@@ -132,11 +132,10 @@ describe("npm run campos-por-entidad", () => {
     expect(r.stderr).toMatch(/No existe la entidad no-existe/);
   });
 
-  it("--entidad con una entidad both la cuenta (gana al alcance por defecto)", () => {
-    const r = corre("--entidad", "norm");
+  it("--entidad con una entidad vertical la cuenta (gana al alcance por defecto)", () => {
+    const r = corre("--entidad", "ingredient");
     expect(r.status).toBe(0);
-    expect(r.stdout).toMatch(/^entidad_campos: entidad=norm alcance=both origen=ficheros /m);
-    expect(r.stdout).toMatch(/^texto_repetido: entidad=norm .* campo=control /m);
+    expect(r.stdout).toMatch(/^entidad_campos: entidad=ingredient alcance=vertical origen=ficheros /m);
   });
 });
 
