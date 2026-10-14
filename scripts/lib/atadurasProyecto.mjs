@@ -5,7 +5,7 @@
  * Una atadura es una línea de un fichero de la casa que escribe el id de un proyecto como literal: entre comillas,
  * como carpeta (`proyectos/<id>`) o como argumento (`--proyecto <id>`). Se cuentan por línea, en tres grupos:
  *  - código: scripts/ (menos tests) y los hooks de .claude/ — son las ataduras reales, a arreglar;
- *  - registros: ops/**\/*.json — sus campos `"project": "<id>"` / `"proyecto": "<id>"` son legítimos (es el dato), el resto no;
+ *  - registros: ops/**\/*.json — sus campos `"project"`, `"proyecto"` y `"origen"` y las claves de diccionario que definen el id son legítimos (es el dato), el resto no;
  *  - tests: los *.test.js, que repiten un id como fixture; menos grave, pero a leer de la lista.
  * Solo cuentan los ficheros de zona factoría o mixta de ops/zonas.json: lo de la zona producto es de un proyecto y puede nombrarlo.
  * Las líneas de comentario no cuentan. Quedan fuera lo que ES el registro de proyectos (ops/entidades.json, ops/proyectos/, el registro de lados) y lo que
@@ -30,8 +30,16 @@ export function reDeId(id) {
   return new RegExp(`["'\`]${x}["'\`]|proyectos/${x}(?![\\w-])|--proyecto[ =]${x}(?![\\w-])`);
 }
 
-/** Los campos de registro `"project": "<id>"` y `"proyecto": "<id>"` (también en una línea con más campos): son el dato, no una atadura. */
-const sinCamposDeRegistro = (linea) => linea.replace(/"(project|proyecto)"\s*:\s*"[^"]*"/g, "");
+/**
+ * Lo que en un registro NO es una atadura: los campos `"project": "<id>"`, `"proyecto": "<id>"` y `"origen": "<id>"` (quién pidió
+ * el elemento; también en una línea con más campos), que son el dato, y la clave de un diccionario que define el propio id
+ * (`"<id>": "descripción"`, al principio de la línea). Una ruta o un literal en un valor sí cuenta.
+ */
+export const sinCamposDeRegistro = (linea, ids = []) => {
+  let t = linea.replace(/"(project|proyecto|origen)"\s*:\s*"[^"]*"/g, "");
+  for (const id of ids) t = t.replace(new RegExp(`^\\s*"${escapar(id)}"\\s*:`), "");
+  return t;
+};
 
 /** Una línea de comentario de código: una atadura en un comentario es prosa, no código. */
 const esComentario = (linea) => /^\s*(\/\/|\*|\/\*)/.test(linea);
@@ -59,7 +67,7 @@ export function atadurasAProyecto(ids, ficheros, leer, legitimos = [], zonaDe = 
     const lineas = leer(f).split("\n");
     lineas.forEach((l, i) => {
       if (g !== "registros" && esComentario(l)) return;
-      const texto = g === "registros" ? sinCamposDeRegistro(l) : l;
+      const texto = g === "registros" ? sinCamposDeRegistro(l, ids) : l;
       for (const [id, re] of res_) if (re.test(texto)) res[g].push(`${f}:${i + 1} → ${id}`);
     });
   }

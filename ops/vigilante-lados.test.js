@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { cargarNormas, problemasDeProyectos } from "../scripts/lib/normas.mjs";
-import { atadurasAProyecto, leerLegitimos, medirAtaduras } from "../scripts/lib/atadurasProyecto.mjs";
+import { atadurasAProyecto, leerLegitimos, medirAtaduras, sinCamposDeRegistro } from "../scripts/lib/atadurasProyecto.mjs";
 import { PROYECTOS_CON_NORMAS } from "../scripts/lib/zonasProyecto.mjs";
 import { calcular } from "../scripts/lib/inventarioVertical.mjs";
 import { RUTA_TECHOS, citasAVertical, declaracionesCaducadas, fuentesVerticalesCitadas, fallosDeSubida, fallosDeTechos, leerDeclaradas, leerTechos, medir } from "../scripts/lib/vigilanteLados.mjs";
@@ -185,6 +185,14 @@ describe("atadurasAProyecto: la casa recorre la lista de proyectos, no escribe u
     const r = atadurasAProyecto(IDS, ficheros, t(textos), [{ fichero: "scripts/lib/legit.mjs", razon: "homónimo" }], zona);
     expect(r.codigo).toEqual(["scripts/lib/x.mjs:1 → alfa"]);
     expect(fallosDeTechos({ ataduras: r.codigo.length }, { ataduras: 0 }).join()).toMatch(/sube a 1/);
+  });
+
+  it("en un registro, el campo «origen» y la clave de diccionario que define el id no son ataduras; una ruta o un literal en un valor, sí", () => {
+    expect(sinCamposDeRegistro('"origen": "alfa",', IDS)).not.toMatch(/alfa/);
+    expect(sinCamposDeRegistro('      "beta": "Lo necesita el beta de la factoría"', IDS)).not.toMatch(/"beta"/);
+    const ficheros = ["ops/z.json"];
+    const textos = { "ops/z.json": ['  "origen": "alfa",', '  "beta": "descripción",', '  "ruta": "ops/proyectos/alfa/x.json",', '  "lista": ["beta"]'].join("\n") };
+    expect(atadurasAProyecto(IDS, ficheros, t(textos)).registros).toEqual(["ops/z.json:3 → alfa", "ops/z.json:4 → beta"]);
   });
 
   it("los legítimos declarados del repo llevan su razón y existen", () => {
