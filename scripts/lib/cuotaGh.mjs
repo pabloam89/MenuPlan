@@ -190,7 +190,7 @@ export function porHoras(texto, { desde = 0, zona = "Europe/Madrid" } = {}) {
   for (const l of leerLineas(texto)) {
     if (l.t < desde) continue;
     const h = fmt.format(new Date(l.t)).slice(0, 13);
-    const o = (horas[h] ??= { lineas: 0, puntos: 0, limitadas: 0, porOrigen: {}, porSesion: {} });
+    const o = (horas[h] ??= { lineas: 0, puntos: 0, limitadas: 0, porOrigen: {}, porSesion: {}, porMedida: {} });
     // líneas antiguas con la estimación de un fallo: no cuentan (solo el coste real)
     const gasto = l.api === "graphql" && (l.resultado === "ok" || l.medida === "real" || l.resultado === "sin-dato") ? l.puntos : 0;
     o.lineas += 1;
@@ -198,6 +198,7 @@ export function porHoras(texto, { desde = 0, zona = "Europe/Madrid" } = {}) {
     if (l.resultado === "limitado") o.limitadas += 1;
     o.porOrigen[l.caller] = (o.porOrigen[l.caller] ?? 0) + gasto;
     o.porSesion[l.sesion] = (o.porSesion[l.sesion] ?? 0) + gasto;
+    if (gasto) o.porMedida[l.medida] = (o.porMedida[l.medida] ?? 0) + gasto; // real (lo dijo GitHub) frente a est (tabla)
   }
   return horas;
 }

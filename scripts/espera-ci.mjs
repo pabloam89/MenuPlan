@@ -24,7 +24,7 @@ export function resumirChecks(runs) {
   return { estado: fallan.length ? "falla" : faltan ? "pendiente" : "ok", fallan, faltan };
 }
 
-const rest = (...args) => ghSync("espera-ci", ["api", ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 30_000 });
+const rest = (intento, ...args) => ghSync("espera-ci", ["api", ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 30_000 }, { intento });
 
 /** El PR es SOLO el primer argumento; `--cada` y `--tope` llevan su valor detrás. */
 export function leerArgs(argv) {
@@ -36,11 +36,11 @@ export function leerArgs(argv) {
   return { pr, cada: Math.max(30, valor("--cada", 60)), topeMin: valor("--tope", 20) }; // menos de 30 s no ahorra nada
 }
 
-/** Reintenta un fallo de red unas veces antes de rendirse. */
+/** Reintenta un fallo de red unas veces antes de rendirse; `fn` recibe el número de intento (1, 2, 3) para la línea contable. */
 export async function conReintentos(fn, veces = 3, espera = 5000) {
   for (let i = 1; ; i++) {
     try {
-      return fn();
+      return fn(i);
     } catch (e) {
       if (i >= veces) throw e;
       await new Promise((ok) => setTimeout(ok, espera));
@@ -61,10 +61,10 @@ async function main(argv) {
   for (;;) {
     let r;
     try {
-      r = await conReintentos(() => {
+      r = await conReintentos((intento) => {
         // El commit puede cambiar (un push nuevo): se relee en cada vuelta, que sigue siendo REST.
-        const sha = rest(`repos/pabloam89/MenuPlan/pulls/${pr}`, "--jq", ".head.sha").trim();
-        return resumirChecks(JSON.parse(rest(`repos/pabloam89/MenuPlan/commits/${sha}/check-runs?per_page=100`, "--jq", "[.check_runs[] | {name, status, conclusion}]")));
+        const sha = rest(intento, `repos/pabloam89/MenuPlan/pulls/${pr}`, "--jq", ".head.sha").trim();
+        return resumirChecks(JSON.parse(rest(intento, `repos/pabloam89/MenuPlan/commits/${sha}/check-runs?per_page=100`, "--jq", "[.check_runs[] | {name, status, conclusion}]")));
       });
     } catch (e) {
       console.error(`ci pr: ${pr} estado: sin-respuesta (${String(e.stderr ?? e.message).trim().split("\n")[0]})`);

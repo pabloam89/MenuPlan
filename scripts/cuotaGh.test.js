@@ -142,6 +142,15 @@ describe("espera-ci (REST)", () => {
     expect(leerArgs(["123", "--cada", "5"]).cada).toBe(30);
   });
 
+  it("conReintentos pasa el número de intento a quien llama (para la línea contable)", async () => {
+    const vistos = [];
+    await conReintentos((i) => {
+      vistos.push(i);
+      if (i < 3) throw new Error("red");
+    }, 3, 0);
+    expect(vistos).toEqual([1, 2, 3]);
+  });
+
   it("reintenta un fallo de red y se rinde al tercero", async () => {
     let n = 0;
     const flojo = () => {
@@ -363,6 +372,8 @@ describe("la línea contable con puntos (#724)", () => {
     expect(Object.keys(h)).toEqual(["2026-10-13 10", "2026-10-13 11"]);
     expect(h["2026-10-13 10"]).toMatchObject({ lineas: 3, puntos: 211, limitadas: 1, porOrigen: { issues: 206, fabrica: 5 }, porSesion: { a1b2c3: 105, ffffff: 106 } });
     expect(porHoras(t, { desde: Date.parse("2026-10-13T08:30:00Z") })["2026-10-13 10"].lineas).toBe(2);
+    // el desglose por medida: todo lo de los campos de prueba es real
+    expect(h["2026-10-13 10"].porMedida).toEqual({ real: 211 });
   });
 });
 

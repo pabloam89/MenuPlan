@@ -38,7 +38,7 @@ if (argv.includes("--horas")) {
   const enVentana = lineas.filter((l) => l.t >= desde).length;
   console.log(`gh.log, últimos ${dias} días (corte: ${new Date().toISOString()}): ${enVentana} líneas, ${nuevas} con puntos y resultado`);
   for (const [h, o] of Object.entries(horas).sort()) {
-    console.log(`  ${h}  líneas ${String(o.lineas).padStart(4)}  puntos ${String(o.puntos).padStart(5)}  limitadas ${o.limitadas}  origen ${top(o.porOrigen)}  sesión ${top(o.porSesion)}`);
+    console.log(`  ${h}  líneas ${String(o.lineas).padStart(4)}  puntos ${String(o.puntos).padStart(5)}  limitadas ${o.limitadas}  origen ${top(o.porOrigen)}  sesión ${top(o.porSesion)}  medida ${top(o.porMedida, 2)}`);
   }
   console.log(`Resumen. La hora más cara gastó ${r.maxima ? `${r.maxima.puntos} puntos (${r.maxima.hora})` : "sin datos"}; percentil 95 de las horas, ${r.p95} puntos; total, ${r.puntos} puntos; líneas limitadas, ${r.limitadas}`);
 } else if (argv.includes("--rafagas")) {
