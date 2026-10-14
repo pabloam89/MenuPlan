@@ -471,6 +471,35 @@ export function problemasDeAvisos(avisos, normas, porCredencial = {}) {
 }
 
 /**
+ * Las normas de ejecutor «guardia» que no niegan ni preguntan con un aviso (parte de #690). El ejecutor «guardia» es
+ * cualquier hook de Claude Code, pero solo guardia.mjs para una orden con un aviso de .claude/hooks/avisos-guardia.mjs.
+ * Las que hace cumplir otro hook se declaran aquí, con su porqué; una norma de la guardia sin aviso ni excepción
+ * tiene el ejecutor mal puesto.
+ */
+export const GUARDIA_SIN_AVISO = {
+  "pendientes-a-issue": "La hace cumplir pendientes.mjs, el hook de Stop: frena una vez al terminar de responder, no una orden",
+  "estado-leido-antes-de-afirmar": "La hace cumplir pendientes.mjs, el hook de Stop: frena al terminar de responder si se afirma un estado sin leerlo antes",
+  "fuera-de-onedrive": "La dice arranque.mjs al abrir la sesión: avisa una vez y no niega ninguna orden",
+  "eventos-de-hooks-registrados": "No niega nada: es lo que hace cada hook al escribir su línea en el registro local (eventos.mjs)",
+};
+
+/** Normas de ejecutor «guardia» sin aviso ni excepción, y excepciones que sobran (de una norma que ya no es de la guardia o ya tiene aviso). */
+export function problemasGuardiaSinAviso(normas, avisos, excepciones = GUARDIA_SIN_AVISO) {
+  const conAviso = new Set(Object.values(avisos ?? {}).map((a) => a?.codigo));
+  const deGuardia = new Set(normas.filter((n) => n.ejecutor === "guardia").map((n) => n.id));
+  const malos = [];
+  for (const id of deGuardia) {
+    if (!conAviso.has(id) && !(id in excepciones)) malos.push(`${id}: ejecutor «guardia» sin aviso en avisos-guardia.mjs ni excepción en GUARDIA_SIN_AVISO: corrige el ejecutor o declara qué hook la hace cumplir`);
+  }
+  for (const [id, porque] of Object.entries(excepciones)) {
+    if (!deGuardia.has(id)) malos.push(`${id}: excepción de GUARDIA_SIN_AVISO para una norma que no existe o no es de la guardia: quítala`);
+    else if (conAviso.has(id)) malos.push(`${id}: ya tiene aviso en la guardia: quita su excepción`);
+    if (typeof porque !== "string" || porque.trim().length < 20) malos.push(`${id}: la excepción lleva su porqué (qué hook la hace cumplir y cómo)`);
+  }
+  return malos;
+}
+
+/**
  * Las llamadas a `deny(`, `ask(` y `avisa(` (#506) de un fichero de la guardia: { literales: [id…], otras: [texto…] }.
  * Un id literal es `deny("push-a-main")`; lo demás (un mensaje escrito a mano, una variable) va a
  * `otras`, salvo lo que se admite por nombre (`AVISO_POR_CREDENCIAL[cred]`, que se cruza con el mapa).

@@ -7,7 +7,7 @@ import {
   ALCANCES, ANTE_FALLO, CONTROL_TIPOS, EJECUTORES, EJECUTORES_DEL_SISTEMA, RIESGOS, RUTA_MD,
   comprobarNormasPr, contarFrases, esVigilado, ficherosNormativos, generarMd, leerRegistro, lineaNormas, lineasAnadidas, llamadasDeAviso, medirFrases,
   EJES_CONTROL, EJECUTORES_DE_CODIGO, PROCESADORES, motivoTestDelJuezMalo, problemasDeEjes, sinTestDelJuez,
-  problemasDeAvisos, problemasDeConjunto, problemasDeDureza, problemasDeForma, problemasDeRegistro, recuento, CIFRAS_FONDO, medirFondo,
+  problemasDeAvisos, problemasGuardiaSinAviso, problemasDeConjunto, problemasDeDureza, problemasDeForma, problemasDeRegistro, recuento, CIFRAS_FONDO, medirFondo,
 } from "../scripts/lib/normas.mjs";
 import { VEREDICTOS } from "../scripts/lib/escalas.mjs";
 import { CONSULTA_CON_MOTIVO, MEDIDORES, evaluarCriterio } from "../scripts/lib/planos.mjs";
@@ -384,6 +384,21 @@ describe("los avisos de la guardia (#494)", () => {
     expect(literales.length).toBeGreaterThan(30);
     expect(otras, "Un aviso nuevo se da de alta en .claude/hooks/avisos-guardia.mjs, con el código de su norma").toEqual([]);
     expect(literales.filter((id) => !(id in AVISOS))).toEqual([]);
+  });
+
+  it("cada norma de ejecutor «guardia» tiene un aviso o una excepción declarada con su porqué (#690)", () => {
+    expect(problemasGuardiaSinAviso(registro.normas, AVISOS)).toEqual([]);
+  });
+
+  it("se ve fallar: una norma de la guardia sin aviso, una excepción que sobra y una sin porqué", () => {
+    const norma = (id, ejecutor = "guardia") => ({ id, ejecutor });
+    const avisos = { a: { codigo: "con-aviso" } };
+    const largo = "un porqué largo de verdad, de más de veinte letras";
+    expect(problemasGuardiaSinAviso([norma("sin-aviso")], avisos, {}).join()).toMatch(/sin-aviso: ejecutor «guardia» sin aviso/);
+    expect(problemasGuardiaSinAviso([norma("con-aviso")], avisos, {})).toEqual([]);
+    expect(problemasGuardiaSinAviso([norma("otra", "ci")], avisos, { otra: largo }).join()).toMatch(/no es de la guardia/);
+    expect(problemasGuardiaSinAviso([norma("con-aviso")], avisos, { "con-aviso": largo }).join()).toMatch(/ya tiene aviso/);
+    expect(problemasGuardiaSinAviso([norma("sin-aviso")], avisos, { "sin-aviso": "corto" }).join()).toMatch(/lleva su porqué/);
   });
 
   it("todo aviso se usa: ninguno queda sin llamada en la guardia", () => {
