@@ -74,6 +74,21 @@ export function opDeSesion(o) {
  * escritura) pasa. Filtro de buena fe: la App de las sesiones puede escribir releases; quien parta la
  * orden adrede se lo salta.
  */
+/** Opciones de `gh api` que llevan valor en el trozo siguiente (si no van con `=`). */
+const OPCIONES_CON_VALOR_GH_API = new Set(["-X", "--method", "-f", "--raw-field", "-F", "--field", "-H", "--header", "--input", "-q", "--jq", "-t", "--template", "--hostname", "--cache", "-p", "--preview"]);
+
+/** La ruta de un `gh api …` (el primer argumento que no es opción ni su valor), con las comillas respetadas; "" si no hay. */
+export function rutaDeGhApi(o) {
+  const trozos = (o.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g) ?? []).map((t) => t.replace(/^["']|["']$/g, ""));
+  const i0 = trozos.findIndex((t) => t === "api");
+  for (let i = i0 + 1; i < trozos.length; i++) {
+    const t = trozos[i];
+    if (!t.startsWith("-")) return t;
+    if (!t.includes("=") && OPCIONES_CON_VALOR_GH_API.has(t)) i += 1;
+  }
+  return "";
+}
+
 export function escribeLaFoto(orden) {
   const o = sinEnvoltorio(orden).replace(/^(?:\w+=\S*\s+)*/, "");
   const nombraTag = (t) => {
@@ -81,8 +96,13 @@ export function escribeLaFoto(orden) {
     return destino === "foto-issues" || destino === "refs/tags/foto-issues";
   };
   const trozos = o.split(/\s+/);
-  if (/^gh(?:\.exe)?\s+(?:(?:-R|--repo)\s+\S+\s+)?release\s+(?:create|upload|edit|delete|delete-asset)\b/.test(o)) return trozos.some(nombraTag);
-  if (/^gh(?:\.exe)?\s+api\b/.test(o) && /\/releases\b|refs\/tags\/foto-issues|uploads\.github\.com/.test(o)) {
+  // `-R X`, `-R=X`, `--repo X` o `--repo=X`, antes o después de `release`.
+  const repo = String.raw`(?:(?:-R|--repo)(?:\s+|=)\S+\s+)*`;
+  if (new RegExp(String.raw`^gh(?:\.exe)?\s+${repo}release\s+${repo}(?:create|upload|edit|delete|delete-asset)\b`).test(o)) return trozos.some(nombraTag);
+  // En `gh api` cuenta la RUTA (el primer argumento que no es opción ni su valor), no un `-f body=…` que cite la URL de la foto;
+  // un ref del tag creado por `git/refs` lo nombra en un campo, así que ahí sí se mira la orden entera.
+  const ruta = /^gh(?:\.exe)?\s+api\b/.test(o) ? rutaDeGhApi(o) : null;
+  if (ruta != null && (/\/releases\b|refs\/tags\/foto-issues|uploads\.github\.com/.test(ruta) || (/\/git\/refs\b/.test(ruta) && /refs\/tags\/foto-issues/.test(o)))) {
     const metodo = o.match(/(?:-X|--method)[\s=]*["']?([A-Za-z]+)/)?.[1]?.toUpperCase();
     if (metodo) return metodo !== "GET";
     return /\s(?:-f|-F|--field|--raw-field|--input)(?:\s|=)/.test(o);

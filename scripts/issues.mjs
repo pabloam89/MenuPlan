@@ -61,7 +61,7 @@ import { analizarCasos } from "../.claude/hooks/casos.mjs";
 import { informeFichas } from "./lib/fondos.mjs";
 import { diaMadrid } from "./lib/hora.mjs";
 import { TTL_MIN, borrarCacheGh, conCache, ghSync } from "./lib/cuotaGh.mjs";
-import { fotoPermitida, leerEstadoFoto, lineaFoto, nodosDeLaFoto } from "./lib/fotoIssues.mjs";
+import { MS_FOTO_ARRANQUE, fotoPermitida, leerEstadoFoto, lineaFoto, nodosDeLaFoto } from "./lib/fotoIssues.mjs";
 import { construirZonas, informeZonas, leerRegistroAvisos } from "./lib/zonas.mjs";
 import { escribirZonas } from "../.claude/hooks/zonas.mjs";
 import { dirFabrica } from "../.claude/hooks/eventos.mjs";
@@ -78,7 +78,7 @@ const motivo = (e) => String(e.stderr ?? e.message).trim().split("\n")[0];
  * el último cambio de padre; `--colgar`, `--ordenar` y `--fresco` tampoco la usan (`fotoPermitida`).
  */
 function pedirNodos({ exigirVivo = false, sinFoto = false } = {}) {
-  const deFoto = sinFoto || !fotoPermitida(args) ? null : nodosDeLaFoto({ gh, caller: "issues", exigirVivo });
+  const deFoto = sinFoto || !fotoPermitida(args) ? null : nodosDeLaFoto({ gh, caller: "issues", exigirVivo, ms: args.indexOf("--arranque") >= 0 ? MS_FOTO_ARRANQUE : undefined });
   if (deFoto) return deFoto;
   const nodos = [];
   let cursor = null;

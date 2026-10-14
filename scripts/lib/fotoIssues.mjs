@@ -26,9 +26,15 @@
  *      `pendientes` y sigue en la pasada siguiente. Sin foto previa es el mismo camino (todos
  *      son «nuevos»), así que la primera foto también se hace a trozos si no cabe en una hora.
  *
+ * Dos horas: `generado_en` es cuándo corrió la pasada (dice si el workflow está vivo) y `al_dia_desde`
+ * cuándo acabó la última pasada SIN pendientes que ya estaban en la foto (desde ahí todo lo de la foto
+ * está leído). Con pendientes viejos `al_dia_desde` no avanza, y el lector pide a la REST los cambios
+ * desde `al_dia_desde`, no desde `generado_en`: si no, esos issues saldrían con sus datos viejos.
+ *
  * La foto nunca se cree sin mirar: versión distinta, forma rota, `completa: false` (faltan
  * issues por leer) o `generado_en` más viejo de `MAX_MIN_FOTO` minutos y el lector vuelve a la
- * API. Quitar el workflow y la release deja a los lectores en modo API sin romper nada (el test
+ * API; si no puede poner la foto al día por la REST, tampoco vale si `al_dia_desde` pasa de ese tope.
+ * Y solo el asset que subió el workflow (`SUBIDOR_FOTO`), con el tamaño que dice la release. Quitar el workflow y la release deja a los lectores en modo API sin romper nada (el test
  * lo comprueba). Las escrituras que dependen del padre (`--colgar`, `--ordenar`) no la usan.
  */
 import { spawnSync } from "node:child_process";
@@ -38,7 +44,7 @@ import { dirCuota, registrarFoto } from "./cuotaGh.mjs";
 import { CAMPOS_ISSUE } from "./issues.mjs";
 
 /** Versión del formato. Si cambia la forma de la foto, sube: los lectores viejos vuelven a la API. */
-export const FOTO_VERSION = 2;
+export const FOTO_VERSION = 3;
 export const REPO = "pabloam89/MenuPlan";
 /** La release (y su tag) donde vive la foto. Solo la escribe el workflow: la guardia lo niega a las sesiones. */
 export const TAG_FOTO = "foto-issues";
@@ -57,7 +63,14 @@ export const POR_PAGINA_LISTADO = 100;
 /** Puntos que se dejan sin gastar en cada pasada (el GITHUB_TOKEN tiene 1.000 por hora y repositorio). */
 export const RESERVA_PUNTOS = 100;
 /** Los campos de la foto: el escritor los pone todos y el lector exige todos. */
-export const CAMPOS_FOTO = ["version", "generado_en", "completa", "total", "refrescados", "pendientes", "nodos"];
+export const CAMPOS_FOTO = ["version", "generado_en", "al_dia_desde", "completa", "total", "refrescados", "pendientes", "nodos"];
+/**
+ * Quién sube el asset: el GITHUB_TOKEN del workflow sale como este usuario. Un asset subido por otro (la App de
+ * las sesiones, una persona) no se usa: ni el lector ni la pasada siguiente del workflow se fían de él.
+ */
+export const SUBIDOR_FOTO = "github-actions[bot]";
+/** Espera para bajar la foto desde el arranque, que tiene 10 s en total. */
+export const MS_FOTO_ARRANQUE = 3000;
 /** Margen con que se vuelve a mirar desde la foto anterior (relojes y retrasos de GitHub). */
 export const MARGEN_SEGUNDOS = 120;
 /** Las órdenes de `npm run issues` que no leen de la foto: las que escriben según el padre de un issue (la foto puede no tener el último) y `--fresco`. */
@@ -95,6 +108,8 @@ export function validarFoto(f) {
   if (f.version !== FOTO_VERSION) return { ok: false, motivo: `versión ${f.version} y se esperaba ${FOTO_VERSION}` };
   for (const c of CAMPOS_FOTO) if (!(c in f)) return { ok: false, motivo: `falta el campo ${c}` };
   if (Number.isNaN(Date.parse(f.generado_en))) return { ok: false, motivo: "generado_en no es una fecha" };
+  if (Number.isNaN(Date.parse(f.al_dia_desde))) return { ok: false, motivo: "al_dia_desde no es una fecha" };
+  if (Date.parse(f.al_dia_desde) > Date.parse(f.generado_en)) return { ok: false, motivo: "al_dia_desde es posterior a generado_en" };
   if (!Array.isArray(f.nodos)) return { ok: false, motivo: "nodos no es una lista" };
   if (!Array.isArray(f.pendientes)) return { ok: false, motivo: "pendientes no es una lista" };
   if (typeof f.completa !== "boolean") return { ok: false, motivo: "completa no es sí o no" };
@@ -121,11 +136,11 @@ export function nodosDeFoto(texto, { ahora = new Date(), maxMin = MAX_MIN_FOTO }
   const v = validarFoto(f);
   if (!v.ok) return { nodos: null, motivo: v.motivo };
   const edadMin = (ahora.getTime() - Date.parse(f.generado_en)) / 60_000;
-  const generado_en = f.generado_en;
+  const { generado_en, al_dia_desde } = f;
   if (!f.completa) return { nodos: null, generado_en, motivo: `a medias: faltan ${f.pendientes.length} issues por leer (se completa en las próximas pasadas)` };
   if (edadMin > maxMin) return { nodos: null, generado_en, motivo: `generada hace ${Math.round(edadMin)} min (tope ${maxMin})` };
   if (edadMin < -5) return { nodos: null, generado_en, motivo: "generada en el futuro" };
-  return { nodos: f.nodos, generado_en, edadMin };
+  return { nodos: f.nodos, generado_en, al_dia_desde, edadMin, pendientes: f.pendientes.length };
 }
 
 // ── Escritura: pasada incremental dentro del cupo ─────────────────────────────
@@ -218,7 +233,12 @@ export function actualizarFoto({ previa, gh, ahora = new Date(), rotacion = ROTA
   const vivos = new Map(listado.map((l) => [l.id, l]));
   const porId = new Map((valida?.nodos ?? []).filter((n) => vivos.has(n.id)).map((n) => [n.id, n]));
   resumen.borrados = (valida?.nodos ?? []).length - porId.size;
-  const refrescadosPrevios = valida?.refrescados ?? {};
+  // Una fecha de lectura que no es fecha o es del futuro (falsa) se corta a ahora: no debe esquivar la rotación.
+  const refrescadosPrevios = {};
+  for (const [k, v] of Object.entries(valida?.refrescados ?? {})) {
+    const t = Date.parse(v);
+    refrescadosPrevios[k] = Number.isNaN(t) ? "" : t > ahora.getTime() ? inicio : new Date(t).toISOString();
+  }
 
   // 2. La cola, por prioridad: lo que quedó pendiente, lo nuevo, lo cambiado y lo que cambió de padre.
   const cola = [];
@@ -302,8 +322,13 @@ export function actualizarFoto({ previa, gh, ahora = new Date(), rotacion = ROTA
   resumen.pendientes = pendientes.length;
   const nodos = [...porId.values()].sort((a, b) => b.number - a.number);
   const completa = [...vivos.keys()].every((id) => porId.has(id));
+  // Si queda pendiente alguno que ya está en la foto (con sus datos viejos), la foto no está al día desde esta
+  // pasada: `al_dia_desde` se queda donde estaba y el lector pide a la REST desde ahí.
+  const pendientesViejos = pendientes.filter((id) => porId.has(id));
+  const previoAlDia = valida && !Number.isNaN(Date.parse(valida.al_dia_desde)) ? new Date(Math.min(Date.parse(valida.al_dia_desde), ahora.getTime())).toISOString() : inicio;
+  const al_dia_desde = pendientesViejos.length ? previoAlDia : inicio;
   return {
-    foto: { version: FOTO_VERSION, generado_en: inicio, completa, total: nodos.length, refrescados, pendientes, nodos },
+    foto: { version: FOTO_VERSION, generado_en: inicio, al_dia_desde, completa, total: nodos.length, refrescados, pendientes, nodos },
     resumen,
   };
 }
@@ -360,13 +385,20 @@ export function nodosDeFotoVivos({ traerTexto, traerCambios, ahora = new Date(),
   }
   const f = nodosDeFoto(texto, { ahora, maxMin });
   if (!f.nodos) return f;
-  if (!traerCambios) return f;
+  // Sin la REST, la foto vale tal cual solo si está al día desde hace menos del tope (con pendientes viejos, no).
+  const retrasoMin = (ahora.getTime() - Date.parse(f.al_dia_desde)) / 60_000;
+  const sinPonerAlDia = (porque) => (retrasoMin > maxMin
+    ? { nodos: null, generado_en: f.generado_en, motivo: `${f.pendientes} issues sin releer desde hace ${Math.round(retrasoMin)} min y ${porque}` }
+    : { ...f, vivo: false });
+  if (!traerCambios) return sinPonerAlDia("sin la REST");
   try {
-    const desde = new Date(Date.parse(f.generado_en) - MARGEN_SEGUNDOS * 1000).toISOString();
+    // Desde `al_dia_desde`, no desde `generado_en`: lo que siga pendiente de la foto lleva los datos de entonces.
+    const desde = new Date(Date.parse(f.al_dia_desde) - MARGEN_SEGUNDOS * 1000).toISOString();
     return { ...f, nodos: aplicarCambiosRest(f.nodos, traerCambios(desde)), vivo: true };
   } catch (e) {
-    if (exigirVivo) return { nodos: null, generado_en: f.generado_en, motivo: `no pude poner la foto al día (${String(e?.message ?? e).split("\n")[0].slice(0, 80)})` };
-    return { ...f, vivo: false };
+    const porque = `no pude poner la foto al día (${String(e?.message ?? e).split("\n")[0].slice(0, 80)})`;
+    if (exigirVivo) return { nodos: null, generado_en: f.generado_en, motivo: porque };
+    return sinPonerAlDia(porque);
   }
 }
 
@@ -384,6 +416,20 @@ export function nodosDeFotoVivos({ traerTexto, traerCambios, ahora = new Date(),
 export const CODIGO_HIJO_FETCH = "(async()=>{const r=await fetch(process.argv[1],{signal:AbortSignal.timeout(Number(process.argv[2]))});"
   + "if(!r.ok){console.error('HTTP '+r.status);process.exitCode=3;return}"
   + "process.stdout.write(await r.text())})().catch((e)=>{console.error(String(e&&e.message||e));process.exitCode=4})";
+
+/**
+ * El asset de la foto de una release (lo que da `GET /repos/…/releases/tags/foto-issues`), si lo subió el
+ * workflow (`SUBIDOR_FOTO`); lanza si no está o lo subió otro. La release viva la creó la App de las sesiones
+ * con un marcador: hasta que el workflow suba la primera foto, el lector va a la API.
+ */
+export function assetDeConfianza(release) {
+  const asset = (release?.assets ?? []).find((a) => a?.name === FICHERO_FOTO);
+  if (!asset) throw new Error(`release ${TAG_FOTO} sin el asset ${FICHERO_FOTO}`);
+  const quien = asset.uploader?.login ?? "nadie";
+  if (quien !== SUBIDOR_FOTO) throw new Error(`no la subió el workflow, la subió ${quien}`);
+  if (!Number.isInteger(asset.size)) throw new Error("el asset no dice su tamaño");
+  return asset;
+}
 
 export function traerTextoSync(url = URL_FOTO, ms = 5000) {
   const codigo = CODIGO_HIJO_FETCH;
@@ -425,7 +471,9 @@ export function lineaFoto(estado, { ahora = new Date() } = {}) {
   const api = "las lecturas de issues van a la API (~1 punto por issue)";
   if (!estado.generado_en) return `Foto de los issues: no la hay (${estado.motivo ?? "sin motivo"}); ${api}. Cómo se pone en marcha: skill github, foto-issues.md.`;
   if (/a medias/.test(estado.motivo ?? "")) return `Foto de los issues: ${estado.motivo}; ${api}.`;
-  const edadMin = (ahora.getTime() - Date.parse(estado.generado_en)) / 60_000;
+  // La edad que tenía al mirarla: si nadie la ha mirado desde hace rato, eso no dice que el workflow esté parado.
+  const mirada = Date.parse(estado.mirada_en);
+  const edadMin = ((Number.isNaN(mirada) ? ahora.getTime() : mirada) - Date.parse(estado.generado_en)) / 60_000;
   if (!(edadMin > MAX_MIN_AVISO)) return null;
   const hace = edadMin >= 120 ? `${Math.round(edadMin / 60)} h` : `${Math.round(edadMin)} min`;
   return `Foto de los issues: de hace ${hace} (el workflow foto-issues.yml no la renueva); ${api}.`;
@@ -438,12 +486,23 @@ export function lineaFoto(estado, { ahora = new Date() } = {}) {
  *   gh          (...args) → texto de `gh` (el envoltorio contado del lector; aquí solo se usa la REST)
  *   caller      quién pide, para la línea contable
  *   exigirVivo  para escribir sobre un issue: sin poner la foto al día, no vale
+ *   ms          espera para bajar la foto (el arranque pide MS_FOTO_ARRANQUE)
+ *   bajar       (url, ms) → texto; por defecto traerTextoSync (los tests lo cambian para ir sin red)
+ * Antes de bajarla mira por la REST (0 puntos de GraphQL) quién subió el asset: solo vale el del workflow
+ * (`assetDeConfianza`) y con el tamaño que dice la release (otro tamaño: la reemplazaron entre medias).
  * MENUPLAN_FOTO=0 la desactiva; MENUPLAN_FOTO_ARCHIVO lee la foto de un fichero (pruebas, sin red).
  */
-export function nodosDeLaFoto({ gh, caller, exigirVivo = false, env = process.env, avisar = (m) => console.error(m), ahora = new Date() }) {
+export function nodosDeLaFoto({ gh, caller, exigirVivo = false, env = process.env, avisar = (m) => console.error(m), ahora = new Date(), ms = 5000, bajar = traerTextoSync }) {
   if (env.MENUPLAN_FOTO === "0") return null;
+  const traerDeLaRelease = () => {
+    const asset = assetDeConfianza(JSON.parse(gh("api", `repos/${REPO}/releases/tags/${TAG_FOTO}`)));
+    const texto = bajar(URL_FOTO, ms);
+    const bytes = Buffer.byteLength(String(texto), "utf8");
+    if (bytes !== asset.size) throw new Error(`la foto bajada (${bytes} bytes) no es el asset comprobado (${asset.size} bytes)`);
+    return texto;
+  };
   const r = nodosDeFotoVivos({
-    traerTexto: () => (env.MENUPLAN_FOTO_ARCHIVO ? readFileSync(env.MENUPLAN_FOTO_ARCHIVO, "utf8") : traerTextoSync()),
+    traerTexto: () => (env.MENUPLAN_FOTO_ARCHIVO ? readFileSync(env.MENUPLAN_FOTO_ARCHIVO, "utf8") : traerDeLaRelease()),
     traerCambios: (desde) => {
       const lista = JSON.parse(gh("api", `repos/${REPO}/issues?state=all&since=${desde}&per_page=100&sort=updated&direction=desc`));
       if (lista.length >= 100) throw new Error("más de 100 issues cambiados desde la foto");

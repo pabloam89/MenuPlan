@@ -71,6 +71,10 @@ describe("la foto de los issues solo la escribe su workflow (#326)", () => {
     "git push --force origin +refs/tags/foto-issues",
     "git push origin --delete foto-issues",
     "node scripts/token-sesion.mjs -- git push origin HEAD:refs/tags/foto-issues",
+    "gh release --repo=pabloam89/MenuPlan upload foto-issues f.json --clobber",
+    "gh release -R pabloam89/MenuPlan upload foto-issues f.json",
+    "gh --repo=pabloam89/MenuPlan release delete foto-issues --yes",
+    "gh api repos/pabloam89/MenuPlan/git/refs -f ref=refs/tags/foto-issues -f sha=abc",
   ])("deniega %s", (c) => expect(bash(c)).toBe("deny"));
 
   it.each([
@@ -83,6 +87,9 @@ describe("la foto de los issues solo la escribe su workflow (#326)", () => {
     "node scripts/token-sesion.mjs -- git push origin ops/foto-issues",
     "gh release upload v1.2 notas.zip",
     "curl -sSL https://github.com/pabloam89/MenuPlan/releases/download/foto-issues/issues.json",
+    // la URL de la foto citada en el cuerpo de un comentario no es escribir en la release
+    'gh api repos/pabloam89/MenuPlan/issues/5/comments -f body="mira https://github.com/pabloam89/MenuPlan/releases/download/foto-issues/issues.json"',
+    "gh release -R pabloam89/MenuPlan view foto-issues",
   ])("deja pasar %s", (c) => expect(bash(c)).toBe(null));
 
   it("el aviso dice cómo rehacerla sin tocarla", () => {

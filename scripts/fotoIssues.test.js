@@ -11,7 +11,7 @@ import { parse } from "yaml";
 import { CAMPOS_ISSUE, CONSULTA, leerIssue } from "./lib/issues.mjs";
 import {
   CAMPOS_FOTO, CONSULTA_LISTADO, CONSULTA_POR_IDS, FICHERO_FOTO, FOTO_VERSION, MAX_MIN_AVISO, MAX_MIN_FOTO, POR_PAGINA_LISTADO, REPO, RESERVA_PUNTOS, TAG_FOTO,
-  CODIGO_HIJO_FETCH, URL_FOTO, actualizarFoto, aplicarCambiosRest, datosDeGraphql, traerTextoSync, fotoPermitida, guardarEstadoFoto, leerEstadoFoto, lineaFoto, nodosDeFoto, nodosDeFotoVivos,
+  CODIGO_HIJO_FETCH, SUBIDOR_FOTO, URL_FOTO, actualizarFoto, assetDeConfianza, aplicarCambiosRest, datosDeGraphql, traerTextoSync, fotoPermitida, guardarEstadoFoto, leerEstadoFoto, lineaFoto, nodosDeFoto, nodosDeFotoVivos,
   nodosDeLaFoto, validarFoto, vecinosAActualizar,
 } from "./lib/fotoIssues.mjs";
 import { APIS_GH, lineaGh, registrarFoto, leerLineas } from "./lib/cuotaGh.mjs";
@@ -101,6 +101,8 @@ describe("el formato: escritor y lector comparten versión y campos", () => {
     expect(validarFoto({ ...foto, total: 5 }).ok).toBe(false);
     expect(validarFoto({ ...foto, nodos: [{ number: "x" }], total: 1 }).ok).toBe(false);
     expect(validarFoto({ ...foto, completa: "si" }).ok).toBe(false);
+    expect(validarFoto({ ...foto, al_dia_desde: "ayer" }).ok).toBe(false);
+    expect(validarFoto({ ...foto, al_dia_desde: min(1).toISOString() }).ok, "al día después de generarse").toBe(false);
     expect(validarFoto(null).ok).toBe(false);
   });
 
@@ -119,7 +121,7 @@ describe("el formato: escritor y lector comparten versión y campos", () => {
     const wf = parse(readFileSync(RUTA_WORKFLOW, "utf8"));
     expect(wf.env.TAG_FOTO).toBe(TAG_FOTO);
     expect(URL_FOTO).toBe(`https://github.com/${REPO}/releases/download/${TAG_FOTO}/${FICHERO_FOTO}`);
-    const pasos = JSON.stringify(wf.jobs.foto.steps);
+    const pasos = JSON.stringify(Object.values(wf.jobs).flatMap((j) => j.steps));
     expect(pasos).toContain(FICHERO_FOTO);
     expect(pasos).toContain("scripts/foto-issues.mjs");
   });
@@ -238,6 +240,33 @@ describe("el escritor: listado ligero y, por id, solo lo que cambió", () => {
     expect(r.resumen.pendientes).toBeGreaterThan(0);
     expect(r.foto.completa).toBe(true); // están todos, solo que algunos sin releer aún
     expect(r.resumen.puntos).toBeLessThanOrEqual(1000 - RESERVA_PUNTOS);
+    // pero la foto NO está al día desde esta pasada: los pendientes llevan los datos de la anterior
+    expect(r.foto.generado_en).toBe(min(5).toISOString());
+    expect(r.foto.al_dia_desde).toBe(T0.toISOString());
+  });
+
+  it("MEDIO: con pendientes viejos, el lector pide a la REST desde la última pasada completa, no desde la última pasada", () => {
+    const mundo = Array.from({ length: 1100 }, (_, i) => nodo(1100 - i));
+    const foto = actualizarFoto({ previa: null, gh: ghFalso(mundo, { remaining: 5000 }).gh, ahora: T0 }).foto;
+    const mundo2 = mundo.map((n) => ({ ...n, updatedAt: "2026-10-14T12:01:00Z", state: "CLOSED" }));
+    const a = actualizarFoto({ previa: foto, gh: ghFalso(mundo2, { remaining: 1000 }).gh, ahora: min(5) }).foto;
+    expect(a.pendientes.length).toBeGreaterThan(0);
+    // una pasada más con pendientes: la marca no avanza
+    const b = actualizarFoto({ previa: a, gh: ghFalso(mundo2, { remaining: 120 }).gh, ahora: min(10) }).foto;
+    expect(b.pendientes.length).toBeGreaterThan(0);
+    expect(b.al_dia_desde).toBe(T0.toISOString());
+    const desdes = [];
+    const r = nodosDeFotoVivos({ traerTexto: () => JSON.stringify(b), traerCambios: (d) => { desdes.push(d); return []; }, ahora: min(11) });
+    expect(r.nodos).not.toBeNull();
+    // el issue cerrado a las 12:01 (pendiente) tiene que entrar en lo que se pide a la REST
+    expect(Date.parse(desdes[0])).toBeLessThan(Date.parse("2026-10-14T12:01:00Z"));
+    // y si la REST no contesta, una foto con pendientes de hace más de 15 min no vale
+    const sinRest = () => { throw new Error("sin REST"); };
+    expect(nodosDeFotoVivos({ traerTexto: () => JSON.stringify(b), traerCambios: sinRest, ahora: min(16) })).toMatchObject({ nodos: null, motivo: expect.stringContaining("sin releer") });
+    // cuando se acaban los pendientes, la marca alcanza a la pasada
+    const c = actualizarFoto({ previa: b, gh: ghFalso(mundo2, { remaining: 5000 }).gh, ahora: min(60) }).foto;
+    expect(c.pendientes).toEqual([]);
+    expect(c.al_dia_desde).toBe(min(60).toISOString());
   });
 
   it("la rotación solo gasta lo que cabe", () => {
@@ -271,10 +300,24 @@ describe("el escritor: listado ligero y, por id, solo lo que cambió", () => {
     actualizarFoto({ previa: foto, gh: f.gh, ahora: min(5), rotacion: 1 });
     expect(f.idsPedidos()).toEqual(["I_1"]);
   });
+
+  it("MEDIO: una fecha de lectura del futuro (falsa) se corta a ahora y no esquiva la rotación", () => {
+    const mundo = [nodo(3), nodo(2), nodo(1)];
+    let foto = primeraFoto(mundo);
+    foto.refrescados = { 1: "2099-01-01T00:00:00.000Z", 2: "2026-10-14T11:30:00.000Z", 3: "2026-10-14T11:59:00.000Z" };
+    const pedidos = [];
+    for (let k = 1; k <= 4; k++) {
+      const f = ghFalso(mundo);
+      foto = actualizarFoto({ previa: foto, gh: f.gh, ahora: min(5 * k), rotacion: 1 }).foto;
+      pedidos.push(...f.idsPedidos());
+      for (const v of Object.values(foto.refrescados)) expect(Date.parse(v)).toBeLessThanOrEqual(min(5 * k).getTime());
+    }
+    expect(pedidos).toContain("I_1");
+  });
 });
 
 describe("el lector: la foto puesta al día, y la API si no sirve", () => {
-  const textoFoto = (nodos, ahora = T0) => JSON.stringify({ version: FOTO_VERSION, generado_en: ahora.toISOString(), completa: true, total: nodos.length, refrescados: {}, pendientes: [], nodos });
+  const textoFoto = (nodos, ahora = T0) => JSON.stringify({ version: FOTO_VERSION, generado_en: ahora.toISOString(), al_dia_desde: ahora.toISOString(), completa: true, total: nodos.length, refrescados: {}, pendientes: [], nodos });
 
   it("pone encima lo que cambió después de la foto (estado, etiquetas, nuevo) y salta los PR", () => {
     const base = [nodo(2), nodo(1)];
@@ -324,6 +367,50 @@ describe("el lector: la foto puesta al día, y la API si no sirve", () => {
     expect(src).toMatch(/colgar\(todos\(\{ sinFoto: true \}\), n, padre\)/);
   });
 
+  it("MEDIO: solo vale el asset que subió el workflow (github-actions[bot]) y con el tamaño que dice la release", () => {
+    expect(SUBIDOR_FOTO).toBe("github-actions[bot]");
+    const release = (login, size = 10) => ({ tag_name: TAG_FOTO, assets: [{ name: FICHERO_FOTO, size, uploader: { login, type: "Bot" } }] });
+    expect(assetDeConfianza(release("github-actions[bot]"))).toMatchObject({ size: 10 });
+    expect(() => assetDeConfianza(release("homenu-sesiones[bot]"))).toThrow(/homenu-sesiones/);
+    expect(() => assetDeConfianza(release("pabloam89"))).toThrow(/no la subió el workflow/);
+    expect(() => assetDeConfianza({ assets: [] })).toThrow(/sin el asset/);
+    expect(() => assetDeConfianza(null)).toThrow();
+
+    const dir = mkdtempSync(join(tmpdir(), "foto-subidor-"));
+    try {
+      process.env.MENUPLAN_CUOTA_DIR = dir;
+      const ahora = new Date();
+      const texto = textoFoto([nodo(1)], ahora);
+      const bytes = Buffer.byteLength(texto, "utf8");
+      const ghCon = (rel) => (...a) => (String(a[1]).includes("/releases/tags/") ? JSON.stringify(rel) : "[]");
+      const leer = (rel, bajado = texto) => nodosDeLaFoto({ gh: ghCon(rel), caller: "issues", env: { MENUPLAN_CUOTA_DIR: dir }, avisar: () => {}, ahora, bajar: () => bajado });
+      expect(leer(release("github-actions[bot]", bytes))).toHaveLength(1);
+      expect(leer(release("homenu-sesiones[bot]", bytes))).toBeNull();
+      expect(leerEstadoFoto({ dir }).motivo).toMatch(/no la subió el workflow/);
+      // otro asset entre la consulta y la bajada (no cuadra el tamaño): a la API
+      expect(leer(release("github-actions[bot]", bytes), `${texto} `)).toBeNull();
+    } finally {
+      delete process.env.MENUPLAN_CUOTA_DIR;
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("el arranque baja la foto con poca espera (tiene 10 s en total)", () => {
+    const dir = mkdtempSync(join(tmpdir(), "foto-ms-"));
+    try {
+      process.env.MENUPLAN_CUOTA_DIR = dir;
+      const esperas = [];
+      const rel = JSON.stringify({ assets: [{ name: FICHERO_FOTO, size: 1, uploader: { login: "github-actions[bot]" } }] });
+      nodosDeLaFoto({ gh: () => rel, caller: "issues", env: {}, avisar: () => {}, ms: 3000, bajar: (url, ms) => { esperas.push(ms); return "x"; } });
+      expect(esperas).toEqual([3000]);
+      const src = readFileSync(new URL("./issues.mjs", import.meta.url), "utf8");
+      expect(src).toContain('ms: args.indexOf("--arranque") >= 0 ? MS_FOTO_ARRANQUE');
+    } finally {
+      delete process.env.MENUPLAN_CUOTA_DIR;
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it("nodosDeLaFoto: lee de un fichero, cuenta el origen foto, guarda su estado, y con MENUPLAN_FOTO=0 o sin foto devuelve null", () => {
     const dir = mkdtempSync(join(tmpdir(), "foto-test-"));
     try {
@@ -361,6 +448,9 @@ describe("el aviso: foto que falta o de más de 1 h, en una línea (situacion y 
     expect(lineaFoto({ ok: false, generado_en: T0.toISOString() }, { ahora: min(180) })).toMatch(/de hace 3 h/);
     // vale aunque la lectura saliera bien hace rato y ahora venga de la caché
     expect(lineaFoto({ ok: true, generado_en: T0.toISOString() }, { ahora: min(90) })).toMatch(/de hace 90 min/);
+    // la edad se mide al mirarla: una foto de 5 min cuando se miró no acusa al workflow aunque la mirada sea de hace rato
+    expect(lineaFoto({ ok: true, generado_en: T0.toISOString(), mirada_en: min(5).toISOString() }, { ahora: min(90) })).toBeNull();
+    expect(lineaFoto({ ok: false, generado_en: T0.toISOString(), mirada_en: min(75).toISOString() }, { ahora: min(200) })).toMatch(/de hace 75 min/);
     expect(lineaFoto({ ok: false, generado_en: null, motivo: "sin foto (HTTP 404)" })).toMatch(/^Foto de los issues: no la hay \(sin foto \(HTTP 404\)\)/);
     expect(lineaFoto({ ok: false, generado_en: T0.toISOString(), motivo: "a medias: faltan 3 issues por leer" }, { ahora: min(1) })).toMatch(/a medias/);
   });
@@ -399,9 +489,23 @@ describe("el workflow", () => {
   const texto = readFileSync(RUTA_WORKFLOW, "utf8");
   const wf = parse(texto);
 
-  it("permisos mínimos: contents write e issues read, y nada más", () => {
+  const pasos = () => Object.values(wf.jobs).flatMap((j) => j.steps);
+
+  it("permisos mínimos y separados: generar lee issues, publicar escribe la release, y nada más", () => {
     expect(wf.permissions).toEqual({ contents: "read" });
-    expect(wf.jobs.foto.permissions).toEqual({ contents: "write", issues: "read" });
+    expect(wf.jobs.generar.permissions).toEqual({ contents: "read", issues: "read" });
+    expect(wf.jobs.publicar.permissions).toEqual({ contents: "write" });
+    expect(wf.jobs.publicar.needs).toBe("generar");
+    // quien escribe no corre código del repo: ni checkout ni node
+    expect(JSON.stringify(wf.jobs.publicar.steps)).not.toMatch(/checkout|setup-node|node /);
+  });
+
+  it("MEDIO: la foto anterior solo se usa si la subió el propio workflow (github-actions[bot]); si no, desde cero", () => {
+    const traer = wf.jobs.generar.steps.find((s) => /anterior/.test(s.name)).run;
+    expect(traer).toContain(".uploader.login");
+    expect(traer).toContain("github-actions[bot]");
+    // se baja el asset comprobado, por su id, y no lo que haya en la URL
+    expect(traer).toContain("releases/assets/${ID}");
   });
 
   it("usa el token del propio workflow: ningún secreto ni la App de las sesiones", () => {
@@ -412,14 +516,14 @@ describe("el workflow", () => {
   });
 
   it("acciones fijadas por SHA y el código sale de staging", () => {
-    const usos = wf.jobs.foto.steps.filter((s) => s.uses).map((s) => s.uses);
+    const usos = pasos().filter((s) => s.uses).map((s) => s.uses);
     expect(usos.length).toBeGreaterThan(0);
     for (const u of usos) expect(u, u).toMatch(/@[0-9a-f]{40}$/);
-    expect(wf.jobs.foto.steps[0].with.ref).toBe("staging");
+    expect(wf.jobs.generar.steps[0].with.ref).toBe("staging");
   });
 
   it("nada del texto de un issue ni del evento entra en un run: solo variables de entorno", () => {
-    for (const paso of wf.jobs.foto.steps.filter((s) => s.run)) {
+    for (const paso of pasos().filter((s) => s.run)) {
       expect(paso.run, paso.name).not.toMatch(/\$\{\{/);
       expect(paso.run, paso.name).not.toMatch(/github\.event/);
     }
@@ -431,7 +535,7 @@ describe("el workflow", () => {
   });
 
   it("publica en la release, sin rama ni historia: prerelease, nunca «latest», el asset reemplazado", () => {
-    const run = wf.jobs.foto.steps.filter((s) => s.run).map((s) => s.run).join("\n");
+    const run = wf.jobs.publicar.steps.filter((s) => s.run).map((s) => s.run).join("\n");
     expect(run).toMatch(/gh release upload "\$\{TAG_FOTO\}" salida\/issues\.json [^\n]*--clobber/);
     expect(run).toMatch(/gh release create [^\n]*--prerelease --latest=false/);
     expect(run).not.toMatch(/git push|vercel\.json|git commit/);
