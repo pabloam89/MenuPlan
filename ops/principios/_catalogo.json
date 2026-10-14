@@ -62,7 +62,7 @@
     },
     "principles": {
       "security": ["least-short-lived-permissions", "own-identity", "user-does-not-widen-permission", "untamperable-trail", "public-repo-no-sensitive-detail", "untrusted-text-is-data", "least-privilege-for-the-model", "no-secrets-in-prompts-or-client", "secure-by-default", "authenticate-machine-callers", "fail-closed-for-safety-filters", "public-endpoint-justified"],
-      "family-data": ["household-owns-data", "health-data-apart", "data-minimisation", "privacy-by-default", "no-sensitive-data-in-chat-by-default", "purpose-limitation", "storage-limitation", "explain-data-use"],
+      "family-data": ["health-data-apart", "data-minimisation", "privacy-by-default", "no-sensitive-data-in-chat-by-default", "purpose-limitation", "storage-limitation", "explain-data-use"],
       "cost": ["bounded-blast-radius", "hard-spend-cap", "caller-pays-quota", "bounded-loops-and-timeouts"]
     },
     "clash": {

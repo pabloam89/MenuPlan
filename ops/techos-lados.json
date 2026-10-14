@@ -4,7 +4,8 @@
   "techos": {
     "citas_de_entidad_horizontal_a_vertical": 3,
     "tests_de_la_casa_que_leen_homenu": 2,
-    "duda: principios de la casa (ops/principios/)": 17,
+    "duda: principios de la casa (ops/principios/)": 7,
+    "duda: principios del proyecto (ops/proyectos/<id>/principios/)": 0,
     "duda: principios de producto (delegado: ops/principios-producto/)": 11,
     "duda: guía de redacción (delegado: ops/redaccion.json)": 0,
     "duda: fuentes documentales (ops/fuentes-documentales/)": 12,
@@ -19,7 +20,7 @@
     "duda: specs (specs/*.md)": 0,
     "duda: documentos (docs/**/*.md y los .md de la raíz)": 1,
     "duda: tests (*.test.{js,jsx,mjs})": 10,
-    "verticales sin registro propio: principios de la casa": 2,
+    "verticales sin registro propio: principios de la casa": 0,
     "verticales sin registro propio: fuentes documentales": 12,
     "estandares_que_nombran_el_proyecto": 28,
     "estandares_que_nombran_un_servicio": 36
