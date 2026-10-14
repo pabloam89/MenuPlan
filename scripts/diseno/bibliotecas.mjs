@@ -2,22 +2,29 @@
 //
 //   node scripts/diseno/bibliotecas.mjs           las cifras, una línea `campo: valor` por cifra
 //   node scripts/diseno/bibliotecas.mjs --json    lo mismo en JSON
-//   node scripts/diseno/bibliotecas.mjs --react 19.2   compatibles con esa versión de React (por defecto, la de package.json)
+//   node scripts/diseno/bibliotecas.mjs --react 19.2   compatibles con esa versión de React (por defecto, la de package.json);
+//                                                       sin valor o con otra forma que x.y, error y salida 2
 //
 // El dato es ops/diseno/bibliotecas.json y lo vigila ops/diseno/pool.test.js. Solo lee.
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { agentesDe } from '../lib/agentes.mjs'
-import { cifrasDeBibliotecas, leerBibliotecas, problemasDeBibliotecas, reactDePackage } from '../lib/bibliotecasDiseno.mjs'
+import { cifrasDeBibliotecas, leerBibliotecas, leerBloques, problemasDeBibliotecas, reactDePackage, validarReact } from '../lib/bibliotecasDiseno.mjs'
 import { leerTaxonomia } from '../lib/taxonomiaDiseno.mjs'
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const datos = leerBibliotecas(RAIZ)
 const i = process.argv.indexOf('--react')
-const react = i > 0 ? process.argv[i + 1] : reactDePackage(RAIZ)
+let react
+try {
+  react = i > 0 ? validarReact(process.argv[i + 1]) : reactDePackage(RAIZ)
+} catch (e) {
+  console.error(`error: ${e.message}`)
+  process.exit(2)
+}
 const cifras = cifrasDeBibliotecas(datos, new Date(), react)
-const problemas = problemasDeBibliotecas(datos, leerTaxonomia(RAIZ), Object.keys(agentesDe(RAIZ)))
+const problemas = problemasDeBibliotecas(datos, leerTaxonomia(RAIZ), Object.keys(agentesDe(RAIZ)), leerBloques(RAIZ))
 
 if (process.argv.includes('--json')) {
   console.log(JSON.stringify({ ...cifras, problemas }, null, 2))
