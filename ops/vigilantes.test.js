@@ -97,6 +97,7 @@ const TABLA = [
   ["taxonomia-de-diseno", "scripts/lib/taxonomiaDiseno.mjs", "ops/diseno/taxonomia.test.js"],
   ["pool-de-bibliotecas", "ops/diseno/bibliotecas.json", "ops/diseno/pool.test.js"],
   ["pool-de-bibliotecas", "scripts/lib/bibliotecasDiseno.mjs", "ops/diseno/pool.test.js"],
+  ["pool-de-bibliotecas", "ops/diseno/bloques.json", "ops/diseno/pool.test.js"],
   ["procesos-ocultos", "scripts/lib/x.mjs", "ops/procesosOcultos.test.js"],
   ["procesos-ocultos", ".claude/hooks/x.mjs", "ops/procesosOcultos.test.js"],
   ["catalogos-partidos", "ops/forja/criterios/x.json", "ops/catalogos.test.js"],

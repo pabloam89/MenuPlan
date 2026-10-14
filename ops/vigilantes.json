@@ -19,8 +19,8 @@
     {
       "id": "pool-de-bibliotecas",
       "tests": ["ops/diseno/pool.test.js"],
-      "mira": ["ops/diseno/bibliotecas.json", "ops/diseno/taxonomia.json", "scripts/lib/bibliotecasDiseno.mjs", "scripts/lib/skills.mjs", ".claude/agents/*.md", "docs/diseno/META-DISENO.md"],
-      "porque": "Las fichas de bibliotecas de interfaz cubren elementos de la taxonomía de diseño y tienen por dueño un agente: quitar o renombrar un tipo de elemento, un agente, o cambiar el plazo de 90 días de las skills rompe un test que está lejos de lo que tocas.",
+      "mira": ["ops/diseno/bibliotecas.json", "ops/diseno/taxonomia.json", "ops/diseno/bloques.json", "scripts/lib/bibliotecasDiseno.mjs", "scripts/lib/skills.mjs", ".claude/agents/*.md", "docs/diseno/META-DISENO.md"],
+      "porque": "Las fichas de bibliotecas de interfaz cubren elementos de la taxonomía de diseño y tienen por dueño un agente: quitar o renombrar un tipo de elemento, un agente, un campo del bloque Q de bloques.json, o cambiar el plazo de 90 días de las skills rompe un test que está lejos de lo que tocas.",
       "evidencia": "#780 (línea 2 de #774: el pool de bibliotecas por elemento)"
     },
     {
