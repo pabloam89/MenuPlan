@@ -10,6 +10,13 @@
       "evidencia": "#557 (revisor: el cruce solo miraba nombres de agente); #640 (los tipos se unen al presupuesto)"
     },
     {
+      "id": "preguntas-del-proyecto",
+      "tests": ["ops/preguntas.test.js"],
+      "mira": ["ops/proyectos/*/preguntas.json", "ops/proyectos/*/normas.json", "ops/normas.json", "CLAUDE.md", ".claude/agents/orquestador.md", "scripts/lib/preguntas.mjs", "scripts/lib/zonasProyecto.mjs"],
+      "porque": "Qué se le pregunta al dueño del proyecto vive en un registro por proyecto: cada entrada cita una norma que debe existir, la sección de CLAUDE.md sale de él y el orquestador lo lee sin copiar la lista; borrar o renombrar una norma, editar CLAUDE.md a mano o copiar la lista en el orquestador rompe el vínculo.",
+      "evidencia": "#690 (acuerdo con Pablo del 14 oct 2026: una sola fuente, como dato del proyecto)"
+    },
+    {
       "id": "taxonomia-de-diseno",
       "tests": ["ops/diseno/taxonomia.test.js"],
       "mira": ["ops/diseno/taxonomia.json", "ops/diseno/bloques.json", "ops/glosario/terminos/*.json", "scripts/lib/taxonomiaDiseno.mjs", "scripts/lib/glosario.mjs", "docs/diseno/META-DISENO.md"],

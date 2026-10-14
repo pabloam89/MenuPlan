@@ -221,17 +221,15 @@ ser verdad, con su control y su principio; el estándar de tarea cita normas.
 
 ## Qué se le pregunta a Pablo, y qué no
 
-Pablo decidió el 8 oct de 2026 que solo se le pregunte lo **irreversible o lo
-que sale fuera**: cada pregunta de más le interrumpe, y casi siempre dice que
-sí. Preguntar algo de la segunda lista también es un fallo; se cuenta (#185).
+<!-- Sección que sale de ops/proyectos/homenu/preguntas.json con `npm run preguntas -- --escribir`; ops/preguntas.test.js la compara, no se edita aquí. -->
+
+Pablo decidió el 8 oct de 2026 que solo se le pregunte lo **irreversible o lo que sale fuera**: cada pregunta de más le interrumpe, y casi siempre dice que sí. Preguntar algo de la segunda lista también es un fallo; se cuenta (#185).
 
 **Se pregunta y se espera el sí:**
 
 - Subir o fusionar a `main` (producción).
-- Borrar o reescribir datos de familias, o cambiar RLS y permisos de lo que ya
-  existe (`--pablo`, `CONTRAE`).
-- Borrar recursos de un servicio (una base, un proyecto, un bucket) o ramas
-  que no están fusionadas.
+- Borrar o reescribir datos de familias, o cambiar RLS y permisos de lo que ya existe (`--pablo`, `CONTRAE`).
+- Borrar recursos de un servicio (una base, un proyecto, un bucket) o ramas que no están fusionadas.
 - Crear, rotar o cambiar secretos y variables de entorno.
 - Gastar dinero: un plan de pago, una compra, evals de pago que no tocan.
 - Escribir a personas o publicar algo en su nombre.
@@ -240,20 +238,12 @@ sí. Preguntar algo de la segunda lista también es un fallo; se cuenta (#185).
 
 **Autorizado de forma permanente** (se hace y se cuenta en el resumen):
 
-- Leer producción en solo lectura con los scripts del repo:
-  `npm run consulta -- "<select>"`, `verificar-estado`, el ensayo de
-  `apply-migration`.
-- Aplicar las migraciones que el script deja aplicar (en staging, ensayadas,
-  con el juez y sin `--pablo`).
-- Issues y etiquetas: crearlos, clasificarlos, colgarlos, cerrarlos con su PR,
-  y `npm run issues -- --etiquetas`.
-- Cambiar hooks, guardia, reglas, skills y agentes, siempre por PR con su juez
-  y el CI en verde. Fusionar a staging es de la propia sesión, también si toca `.claude/`
-  (#608: ningún PR espera la aprobación de una persona).
-- Ajustes del repo que no tocan permisos ni producción: etiquetas,
-  plantillas, la descripción de un PR.
-- Poner al día la carpeta principal (`git pull --ff-only`) y las copias de
-  hooks de usuario que salen del repo (#198).
+- Leer producción en solo lectura con los scripts del repo: `npm run consulta -- "<select>"`, `verificar-estado`, el ensayo de `apply-migration`.
+- Aplicar las migraciones que el script deja aplicar (en staging, ensayadas, con el juez y sin `--pablo`).
+- Issues y etiquetas: crearlos, clasificarlos, colgarlos, cerrarlos con su PR, y `npm run issues -- --etiquetas`.
+- Cambiar hooks, guardia, reglas, skills y agentes, siempre por PR con su juez y el CI en verde. Fusionar a staging es de la propia sesión, también si toca `.claude/` (#608: ningún PR espera la aprobación de una persona).
+- Ajustes del repo que no tocan permisos ni producción: etiquetas, plantillas, la descripción de un PR.
+- Poner al día la carpeta principal (`git pull --ff-only`) y las copias de hooks de usuario que salen del repo (#198).
 - Retirar carpetas y ramas ya fusionadas (`npm run retirar`, `npm run podar`).
 
 ## Lo que hace cumplir esto
