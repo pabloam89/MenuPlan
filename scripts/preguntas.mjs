@@ -1,6 +1,6 @@
 // preguntas.mjs — qué se le pregunta al dueño del proyecto y qué queda autorizado (#690).
 //
-//   npm run preguntas                       la lista del proyecto, con la norma que hace cumplir cada entrada
+//   npm run preguntas                       la lista del proyecto: cada entrada con su norma y su texto
 //   npm run preguntas -- --proyecto <id>    la de otro proyecto (por defecto, el de esta carpeta)
 //   npm run preguntas -- --json             lo mismo para máquinas
 //   npm run preguntas -- --escribir         regenera la sección «Qué se le pregunta a …» de CLAUDE.md
@@ -43,6 +43,7 @@ if (args.includes("--escribir")) {
     console.log(`${tipo}:`);
     for (const e of datos.entradas.filter((x) => x.tipo === tipo)) {
       console.log(`  ${e.id.padEnd(30)} ${e.norma ?? "(sin norma)"}`);
+      console.log(`    ${e.texto}`);
     }
   }
 }
