@@ -62,14 +62,14 @@ const leerJson = (raiz, ruta) => JSON.parse(readFileSync(join(raiz, ruta), "utf8
 /** Lo que casi todas las sondas necesitan, leído de la raíz (con el sintético dentro). */
 function contexto(tmp, id, raiz = tmp) {
   const entidades = leerJson(tmp, "ops/entidades.json");
-  return { tmp, raiz, id, entidades, ids: entidades.projects.map((p) => p.id), carga: cargarNormas(tmp), datos: leerEstandares(tmp) };
+  return { tmp, raiz, id, entidades, entrada: leerSintetico(raiz), ids: entidades.projects.map((p) => p.id), carga: cargarNormas(tmp), datos: leerEstandares(tmp) };
 }
 
 /** ¿Lee la pieza el registro del proyecto sintético? Si no, la sonda no mide nada y debe fallar, no pasar en vacío. */
 const falta = (cosa, id, hay) => (hay ? [] : [`${cosa}: no ha leído nada del proyecto «${id}» (¿solo mira los proyectos reales?)`]);
 
 /** El mensaje del glosario cuando valida el project contra la lista de proyectos escrita en código (es una sonda conocida, no una de las que pasan). */
-const ES_LISTA_EN_CODIGO = /no es un proyecto de ops/entidades.json/;
+const ES_LISTA_EN_CODIGO = /no es un proyecto de ops\/entidades\.json/;
 
 /** Sondas que deben salir vacías: la pieza ya vale con un proyecto más. */
 export const SONDAS = {
@@ -168,9 +168,8 @@ export const SONDAS_CONOCIDAS = {
     const texto = leerTareasDeProyecto(tmp, [id])[id]?.agentes?.constructor?.tareas?.[0]?.tarea;
     return LECTORES["tarea.tarea"](tmp).includes(texto) ? [] : [`tarea.tarea: no mide la tarea del proyecto «${id}»: lee los proyectos de una lista escrita en código`];
   },
-  "el detector de «nombra el proyecto» reconoce el nombre del proyecto nuevo (scripts/lib/inventarioVertical.mjs)": ({ entidades, id }) => {
-    const p = entidades.projects.find((x) => x.id === id);
-    return nombraProyecto(`El ${p.name} cambia`) ? [] : [`nombraProyecto no reconoce «${p.name}»: la lista de nombres está escrita a mano para un solo proyecto`];
+  "el detector de «nombra el proyecto» reconoce el nombre del proyecto nuevo (scripts/lib/inventarioVertical.mjs)": ({ entrada }) => {
+    return nombraProyecto(`El ${entrada.name} cambia`) ? [] : [`nombraProyecto no reconoce «${entrada.name}»: la lista de nombres está escrita a mano para un solo proyecto`];
   },
 };
 

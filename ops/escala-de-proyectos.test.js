@@ -4,7 +4,9 @@ import { readFileSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { leerEstandares, normasDeTarea, tareasDe } from "../scripts/lib/estandaresAgentes.mjs";
 import { contexto, crearRaizSintetica, ejecutar, SONDAS, SONDAS_CONOCIDAS } from "../scripts/lib/escalaProyectos.mjs";
+import { cargarNormas } from "../scripts/lib/normas.mjs";
 
 /**
  * La factoría escala (principio `scales-by-design`; normas `pieza-vale-con-un-proyecto-mas` y `variacion-como-dato`).
@@ -82,6 +84,37 @@ describe("la auditoría de la factoría: lo que aún solo vale para los proyecto
     for (const s of conocidas) for (const p of s.problemas) expect(p.length, s.sonda).toBeGreaterThan(20);
   });
 }, UNA_VEZ);
+
+describe("las normas de escalar llegan a las tareas que deciden, construyen y juzgan", () => {
+  const NORMAS = ["variacion-como-dato", "pieza-vale-con-un-proyecto-mas", "volumen-con-tres-casos", "solucion-para-muchos"];
+  const datos = leerEstandares(RAIZ);
+  const registro = cargarNormas(RAIZ).horizontales;
+  const llegan = (id) => tareasDe(datos).filter(({ tarea }) => normasDeTarea(tarea, datos, registro).some((x) => x.norma?.id === id)).map(({ agente, tarea }) => `${agente}/${tarea.id}`);
+
+  it.each(NORMAS)("%s llega a alguna tarea de cada acción que declara", (id) => {
+    const norma = registro.find((n) => n.id === id);
+    expect(norma, "la norma existe y es del principio scales-by-design").toMatchObject({ principio: "scales-by-design" });
+    for (const accion of norma.acciones) {
+      const conAccion = tareasDe(datos).filter(({ tarea }) => tarea.accion === accion && normasDeTarea(tarea, datos, registro).some((x) => x.norma?.id === id));
+      expect(conAccion.length, `${id}: ninguna tarea de «${accion}» la recibe`).toBeGreaterThan(0);
+    }
+  });
+
+  it("al repartir un encargo y al planear un arreglo, el orquestador y el analista reciben las de proceso", () => {
+    for (const id of ["volumen-con-tres-casos", "solucion-para-muchos"]) {
+      expect(llegan(id), id).toEqual(expect.arrayContaining(["orquestador/repartir-el-encargo", "analista/planificar-los-encargos"]));
+    }
+  });
+
+  it("construir código y juzgar un diff reciben las de código", () => {
+    for (const id of ["variacion-como-dato", "pieza-vale-con-un-proyecto-mas"]) expect(llegan(id), id).toEqual(expect.arrayContaining(["revisor/revisar-diff"]));
+  });
+
+  it("se ve fallar: una norma de un ámbito y una acción que ninguna tarea tiene no llega a ninguna", () => {
+    const sola = { ...registro.find((n) => n.id === NORMAS[0]), id: "sin-tarea", ambito: "design-inexistente", acciones: ["construir"] };
+    expect(tareasDe(datos).filter(({ tarea }) => normasDeTarea(tarea, datos, [sola]).some((x) => x.norma?.id === "sin-tarea"))).toEqual([]);
+  });
+});
 
 describe("se ven fallar (cada caso cambia UNA cosa)", () => {
   const fichero = (...r) => join(sintetico.tmp, ...r);

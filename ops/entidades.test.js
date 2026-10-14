@@ -828,7 +828,8 @@ describe("N0-principios.md habla de los niveles y de las capas con su palabra", 
 // `factoria`. Quien necesite los ids usa PROYECTOS o PROYECTOS_CON_NORMAS (scripts/lib/zonasProyecto.mjs); leer `projects` para ids
 // repite el filtro y aceptó `factoria` donde no debía (fuentes-documentales, principios-casa).
 describe("ids de proyecto: una sola lista", () => {
-  const LECTORES_DE_ATRIBUTOS = ["scripts/lib/normas.mjs"];
+  // scripts/lib/escalaProyectos.mjs lee los `projects` de la raíz temporal con el proyecto sintético para compararlos con PROYECTOS: es su trabajo.
+  const LECTORES_DE_ATRIBUTOS = ["scripts/lib/normas.mjs", "scripts/lib/escalaProyectos.mjs"];
   // Detecta la LECTURA de ids (`projects` ... `.map((p) => p.id)`, incluso con `?? []` en medio), no la forma exacta del código.
   const PATRONES = [/\.projects\.map\(/, /\.projects\.find\(/, /projects\b[^;\n]*\.map\(\s*\(?\w+\)?\s*=>\s*\w+\.id\b/];
   const ficheros = (dir) => readdirSync(join(RAIZ, dir), { withFileTypes: true }).flatMap((d) => {

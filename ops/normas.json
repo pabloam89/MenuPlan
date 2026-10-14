@@ -2992,7 +2992,7 @@
       "fuerza": "debe",
       "condicion": "cuando una pieza depende del proyecto o de la instancia en que corre",
       "exigencia": "tomar de la lista de proyectos su id y sus relaciones, sin teclearlos en el código",
-      "nota": "Consecuencia de escalar desde el diseño: lo que varía entre proyectos es un dato leído de ops/entidades.json (`projects`), no un nombre escrito. El test da de alta un proyecto sintético y mide qué pieza lo ignora; los literales de id que quedan los cuenta el vigilante de ataduras de #795, que será su control cuando se fusione.",
+      "nota": "Vale para lo que varía entre proyectos, que se lee de ops/entidades.json (`projects`) y no se escribe. El test da de alta un proyecto sintético y mide qué pieza lo ignora; los literales de id los cuenta el vigilante de ataduras de #795, que le corresponde como control.",
       "donde": [
         "ops/escala-de-proyectos.test.js",
         "scripts/lib/escalaProyectos.mjs"
@@ -3058,7 +3058,7 @@
       "fuerza": "debe",
       "condicion": "cuando una función, una pantalla o un volumen nuevo no tiene aún un caso real que lo pida",
       "exigencia": "esperar a tres casos reales antes de construirlo",
-      "nota": "Solo vale para el volumen y las funciones nuevas: la estructura (nombres, relaciones, vocabularios cerrados) no espera. Es la regla de los tres casos de docs/ops/CONTRATO-FACTORIA.md. Control a juicio, sin test del juez todavía.",
+      "nota": "Solo vale para el volumen y las funciones nuevas: la estructura (nombres, relaciones, vocabularios cerrados) no espera. Es la regla de los tres casos de docs/ops/CONTRATO-FACTORIA.md. Por código solo se vigila que llegue a las tareas que deciden, construyen y juzgan; si hay tres casos lo juzga una persona (#801).",
       "donde": [
         "docs/ops/CONTRATO-FACTORIA.md",
         "CLAUDE.md"
@@ -3066,25 +3066,24 @@
       "ejecutor": "nada",
       "alcance": "nadie",
       "ante_fallo": "no_aplica",
-      "control": "juicio",
-      "control_tipo": "juicio",
-      "control_procesador": "juez",
+      "control": "ops/escala-de-proyectos.test.js",
+      "control_tipo": "test",
+      "control_procesador": "codigo",
       "control_fuerza": "avisa",
       "control_momento": "pr",
-      "control_que_mira": "contenido",
+      "control_que_mira": "forma",
       "control_cobertura": "parcial",
       "veredicto": "blanda",
       "riesgo": "bajo",
-      "issue": null,
+      "issue": 801,
       "principio": "scales-by-design",
       "ambito": "process",
       "lado": "horizontal",
       "acciones": [
-        "decidir",
         "construir",
-        "juzgar"
-      ],
-      "test_del_juez": null
+        "juzgar",
+        "decidir"
+      ]
     },
     {
       "id": "solucion-para-muchos",
@@ -3093,7 +3092,7 @@
       "fuerza": "debe",
       "condicion": "cuando reparte un encargo, planea un arreglo o diseña una pieza",
       "exigencia": "comprobar que vale con muchos proyectos, agentes y elementos, no solo con el de hoy",
-      "nota": "La estructura se acierta desde el primer día, aunque hoy solo haya un caso; el volumen espera a sus tres casos (volumen-con-tres-casos).",
+      "nota": "La estructura se acierta desde el primer día, aunque hoy solo haya un caso; el volumen espera a sus tres casos (volumen-con-tres-casos). Por código solo se vigila que llegue a las tareas que reparten, planean, construyen y juzgan; que el diseño valga para muchos lo juzga una persona (#801).",
       "donde": [
         "CLAUDE.md",
         "docs/PRINCIPIOS.md"
@@ -3101,25 +3100,24 @@
       "ejecutor": "nada",
       "alcance": "nadie",
       "ante_fallo": "no_aplica",
-      "control": "juicio",
-      "control_tipo": "juicio",
-      "control_procesador": "juez",
+      "control": "ops/escala-de-proyectos.test.js",
+      "control_tipo": "test",
+      "control_procesador": "codigo",
       "control_fuerza": "avisa",
       "control_momento": "pr",
-      "control_que_mira": "contenido",
+      "control_que_mira": "forma",
       "control_cobertura": "parcial",
       "veredicto": "blanda",
       "riesgo": "bajo",
-      "issue": null,
+      "issue": 801,
       "principio": "scales-by-design",
       "ambito": "process",
       "lado": "horizontal",
       "acciones": [
-        "decidir",
         "construir",
-        "juzgar"
-      ],
-      "test_del_juez": null
+        "juzgar",
+        "decidir"
+      ]
     },
     {
       "id": "derivado-registrado-y-comparado",

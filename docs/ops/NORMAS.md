@@ -94,8 +94,8 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `sin-codigo-dinamico` | codigo | NO DEBE | **Sin código montado al vuelo.** El código del producto NO DEBE montar nombres en tiempo de ejecución ni usar eval, new Function o un import() con variable. | nada · blanda | juicio | — | `explicit-over-clever` | code | horizontal | construir, juzgar |
 | `variacion-como-dato` | codigo | DEBE | **Proyectos tomados de la lista.** Cuando una pieza depende del proyecto o de la instancia en que corre, el código del producto DEBE tomar de la lista de proyectos su id y sus relaciones, sin teclearlos en el código. | ci · semidura | test: `ops/escala-de-proyectos.test.js` | — | `scales-by-design` | code | horizontal | construir, juzgar |
 | `pieza-vale-con-un-proyecto-mas` | codigo | DEBE | **Un proyecto más, sin tocar.** Cuando una pieza recorre los proyectos, los agentes o los elementos de una lista, el código del producto DEBE seguir valiendo cuando la lista tiene un elemento más, sin tocar la pieza. | ci · semidura | test: `ops/escala-de-proyectos.test.js` | — | `scales-by-design` | code | horizontal | construir, juzgar |
-| `volumen-con-tres-casos` | agente | DEBE | **Volumen con tres casos.** Cuando una función, una pantalla o un volumen nuevo no tiene aún un caso real que lo pida, cada agente DEBE esperar a tres casos reales antes de construirlo. | nada · blanda | juicio | — | `scales-by-design` | process | horizontal | decidir, construir, juzgar |
-| `solucion-para-muchos` | agente | DEBE | **Solución para muchos.** Cuando reparte un encargo, planea un arreglo o diseña una pieza, cada agente DEBE comprobar que vale con muchos proyectos, agentes y elementos, no solo con el de hoy. | nada · blanda | juicio | — | `scales-by-design` | process | horizontal | decidir, construir, juzgar |
+| `volumen-con-tres-casos` | agente | DEBE | **Volumen con tres casos.** Cuando una función, una pantalla o un volumen nuevo no tiene aún un caso real que lo pida, cada agente DEBE esperar a tres casos reales antes de construirlo. | nada · blanda | test: `ops/escala-de-proyectos.test.js` | — | `scales-by-design` | process | horizontal | construir, juzgar, decidir |
+| `solucion-para-muchos` | agente | DEBE | **Solución para muchos.** Cuando reparte un encargo, planea un arreglo o diseña una pieza, cada agente DEBE comprobar que vale con muchos proyectos, agentes y elementos, no solo con el de hoy. | nada · blanda | test: `ops/escala-de-proyectos.test.js` | — | `scales-by-design` | process | horizontal | construir, juzgar, decidir |
 | `derivado-registrado-y-comparado` | repo | DEBE | **Derivado con su comparación.** Cuando un fichero se genera desde otro, el repositorio DEBE estar en el inventario de derivados con el script que lo regenera y el test que lo compara. | ci · dura | test: `ops/derivados.test.js` | — | `one-fact-one-place` | code | horizontal | construir |
 | `columnas-de-texto-clasificadas` | dato | DEBE | **Columnas de texto clasificadas.** Cuando es una columna de texto de una migración, cada tabla y cada campo de la base DEBE ser un vocabulario con CHECK o estar clasificada con su motivo en ops/columnas-texto.json. | ci · dura | test: `supabase/columnasTexto.test.js` | — | `discrete-first` | data | horizontal | construir, decidir |
 | `pr-acotado` | pr | NO DEBE | **PR acotado.** Cuando pasa de los umbrales de líneas, ficheros o áreas (sin contar lo generado), cada PR NO DEBE abrirse sin partir ni explicar por qué no se parte. | ci · blanda | script: `scripts/lib/avisosPr.mjs` | — | `one-change-one-intent` | process | horizontal | construir, juzgar |
@@ -306,11 +306,11 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 
 | Tipo de control | Qué es | Normas |
 |---|---|---|
-| test | Un test del repo que falla en el CI | 101 |
+| test | Un test del repo que falla en el CI | 103 |
 | planos | Una condición de la medición semanal de ops/planos.json (con red, cada lunes) | 7 |
 | workflow | Un paso de un workflow de GitHub Actions que falla el check | 2 |
 | script | Un script del repo que comprueba y se lanza a mano o en el build | 8 |
-| juicio | El juicio de una persona o de un LLM sobre sus casos: no hay nada que falle solo | 91 |
+| juicio | El juicio de una persona o de un LLM sobre sus casos: no hay nada que falle solo | 89 |
 
 ## Ejes del control (#682)
 
@@ -318,13 +318,13 @@ Cada norma dice en cinco ejes cerrados cómo se controla (`control_procesador`, 
 
 | Procesador \ Fuerza | bloquea | avisa |
 |---|---|---|
-| codigo | 98 | 20 |
-| juez | 0 | 91 |
+| codigo | 98 | 22 |
+| juez | 0 | 89 |
 
 | control_procesador | Qué es | Normas |
 |---|---|---|
-| codigo | Un programa decide si se cumple: un test, un script, un workflow o el código en ejecución | 118 |
-| juez | Un agente juez lo decide leyendo el trabajo, con su motivo y pudiendo decir «no sé»; solo cuenta con su test del juez | 91 |
+| codigo | Un programa decide si se cumple: un test, un script, un workflow o el código en ejecución | 120 |
+| juez | Un agente juez lo decide leyendo el trabajo, con su motivo y pudiendo decir «no sé»; solo cuenta con su test del juez | 89 |
 
 | control_fuerza | Qué es | Normas |
 |---|---|---|
@@ -339,8 +339,8 @@ Cada norma dice en cinco ejes cerrados cómo se controla (`control_procesador`, 
 
 | control_que_mira | Qué es | Normas |
 |---|---|---|
-| forma | Cómo está escrito: estructura, vocabulario y formato | 53 |
-| contenido | Lo que dice, a juicio de quien lo lee | 91 |
+| forma | Cómo está escrito: estructura, vocabulario y formato | 55 |
+| contenido | Lo que dice, a juicio de quien lo lee | 89 |
 | comportamiento | Lo que hace el sistema al ejecutarse o al aplicarse | 65 |
 
 | control_cobertura | Qué es | Normas |
@@ -348,7 +348,7 @@ Cada norma dice en cinco ejes cerrados cómo se controla (`control_procesador`, 
 | total | Alcanza a cualquiera y a toda la norma | 69 |
 | parcial | Deja fuera a alguien o a una parte de la norma | 140 |
 
-Normas de juez sin test del juez: 85 de 91. Normas con ejecutor «persona» (sin quitar todavía): 70.
+Normas de juez sin test del juez: 83 de 89. Normas con ejecutor «persona» (sin quitar todavía): 70.
 
 ## Avisos de la guardia
 
