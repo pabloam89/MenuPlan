@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "estado",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Un resultado que no es el que se esperaba: algo no hizo lo que debía.",
   "sinonimos_prohibidos": [
     "bug",

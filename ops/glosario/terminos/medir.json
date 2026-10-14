@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "accion",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Sacar una cifra que se puede repetir (cuántos, desde cuándo, dónde) para compararla antes y después de un arreglo.",
   "sinonimos_prohibidos": [
     "cuantificar"

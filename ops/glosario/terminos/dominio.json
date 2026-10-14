@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "campo",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "El área de la factoría a la que pertenece un término del glosario, de vocabulario cerrado; no es la zona donde se busca.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

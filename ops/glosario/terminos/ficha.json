@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "ops",
+  "scope": "horizontal",
   "definicion": "El bloque de líneas clave: valor que describe una cosa: el del fondo o el del encargo va en el cuerpo de un issue y lo leen el workflow fondos y el CI; el de una tarea de agente es su estándar.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

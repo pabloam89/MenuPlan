@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que se muestra con la paleta oscura del sistema de diseño.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

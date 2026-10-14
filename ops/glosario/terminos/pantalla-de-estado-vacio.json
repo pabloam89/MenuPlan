@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que explica por qué no hay nada que mostrar todavía y cómo llenarla.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "datos",
+  "scope": "horizontal",
   "definicion": "Una pieza del código que se declara en ops/MODULOS.json con su dueño, sus ficheros, sus tablas y sus métricas.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

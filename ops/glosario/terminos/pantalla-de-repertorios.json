@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que reúne temas o vídeos en repertorios que se reproducen en orden.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que muestra datos en forma de gráficos.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

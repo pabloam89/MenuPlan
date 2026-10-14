@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Un incumplimiento de una norma de calidad que se ve en una skill, con su código de la forja o de la higiene y su arreglo.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

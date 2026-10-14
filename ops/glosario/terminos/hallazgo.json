@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Un problema que un juez encuentra y devuelve en su informe, con su gravedad, su evidencia y si ya estaba apuntado.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

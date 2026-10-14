@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "accion",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Una acción que no lanza ninguna sesión ni agente: se prepara y la lanza una persona (subir a main, borrar, secretos, permisos).",
   "sinonimos_prohibidos": [
     "pasarela"

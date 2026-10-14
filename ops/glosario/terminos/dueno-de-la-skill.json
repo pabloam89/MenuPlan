@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "campo",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Un agente que mantiene al día una skill y responde de ella.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

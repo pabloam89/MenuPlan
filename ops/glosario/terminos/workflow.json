@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "ops",
+  "scope": "horizontal",
   "definicion": "Un fichero de .github/workflows que GitHub ejecuta solo, por horario, por evento o a mano, para vigilar o publicar algo.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

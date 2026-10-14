@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "accion",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Probar algo sin dejar efecto (ROLLBACK, --ensayo, sin --si) para ver lo que haría de verdad.",
   "sinonimos_prohibidos": [
     "dry-run",

@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Un elemento de interfaz que despliega o pliega un bloque de contenido al tocar su cabecera.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

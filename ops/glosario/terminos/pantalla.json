@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una vista completa de una aplicación, con un propósito único, que ocupa todo el espacio y la persona reconoce como un sitio donde está.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

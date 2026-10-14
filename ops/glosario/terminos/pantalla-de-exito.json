@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que confirma que una acción ha terminado bien y dice qué viene después.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Un elemento de interfaz que activa o desactiva un ajuste de inmediato.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

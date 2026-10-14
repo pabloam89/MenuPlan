@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que dice que algo ha fallado y qué puede hacer la persona para seguir.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

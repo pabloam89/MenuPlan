@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Un flujo de usuario que lleva a la persona a leer un código o un documento con la cámara.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Un elemento de interfaz con forma de bloque que agrupa un título, un dato o un icono y se puede tocar.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

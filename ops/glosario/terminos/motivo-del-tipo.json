@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "campo",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Un texto de una frase que explica por qué las respuestas de una skill dan su tipo.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

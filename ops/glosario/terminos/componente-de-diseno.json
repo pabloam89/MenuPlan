@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pieza de interfaz reutilizable de un sistema de diseño, con su ficha, que las pantallas importan en vez de rehacerla.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

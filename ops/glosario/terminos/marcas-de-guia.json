@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Un elemento de interfaz que señala partes de la pantalla para explicar cómo se usan.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

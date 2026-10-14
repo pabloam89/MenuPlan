@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que recoge lo que la persona piensa de la aplicación o de una función.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

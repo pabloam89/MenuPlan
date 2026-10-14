@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que pide un código o un gesto para comprobar que la persona es quien dice ser.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

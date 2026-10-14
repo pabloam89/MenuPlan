@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Un elemento de interfaz que ejecuta una acción al tocarlo o pulsarlo.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que permite recortar y retocar una foto, un audio o un vídeo.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

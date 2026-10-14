@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que permite vetar a una persona o a una cuenta para que no pueda interactuar con la propia.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

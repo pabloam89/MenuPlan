@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Un elemento de interfaz en la parte alta que dice dónde está la persona y ofrece volver o actuar.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

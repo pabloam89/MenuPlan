@@ -1,0 +1,9 @@
+{
+  "$comentario": "Los términos del glosario del proyecto HoMenu (#710, programa #652, PR 7): los de lado «vertical», que solo valen aquí (hoy, los que nombran una pieza del producto). Misma forma y mismos campos que ops/glosario/terminos/ (scope «vertical» y project, el id de esta carpeta, que ahí no van). Un fichero por término (#505). Los lee scripts/lib/glosario.mjs (leerGlosarioDeProyecto) y leerGlosario los junta con los de la casa, porque el lenguaje es uno y los sinónimos prohibidos valen en todas partes; los vigila ops/glosario-scope.test.js: ningún término de la casa lleva project o scope vertical, ninguno de aquí deja de llevarlos, y ningún término horizontal nombra una entidad vertical. Un término general nace en ops/glosario/terminos/.",
+  "version": 1,
+  "project": "homenu",
+  "terminos": {
+    "$partida": "lista",
+    "clave": "termino"
+  }
+}

@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "campo",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Un día con forma AAAA-MM-DD que dice cuándo se hizo o se comprobó algo.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
