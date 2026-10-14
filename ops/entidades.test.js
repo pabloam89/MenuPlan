@@ -11,7 +11,7 @@ import {
 } from "../scripts/lib/entidades.mjs";
 import { TIPOS as TIPOS_DE_RECURSO } from "../scripts/lib/recursos.mjs";
 import { VOCABULARIOS, valoresActuales } from "../scripts/lib/vocabulariosVida.mjs";
-import { EVENTOS } from "../.claude/hooks/eventos.mjs";
+import { EVENTOS, lineaDeEvento } from "../.claude/hooks/eventos.mjs";
 import { bloque, mapa } from "../scripts/mapa-entidades.mjs";
 
 /**
@@ -68,7 +68,6 @@ const OPCIONALES = ["role_by_scope", "note", "fields", "types"];
 const CAMPOS_RELACION = ["from", "relation", "to", "class", "cardinality", "parent_kind", "stored_as", "stored_in"];
 const FORMA_ID = /^[a-z]+(-[a-z]+)*$/;
 const FORMA_ID_CAMPO = /^[a-z]+(_[a-z]+)*$/;
-const FORMA_CAMPO = /^[a-z]+(_[a-z]+)*$/;
 const FORMA_TIPO = /^[a-z]+(-[a-z]+)*$/;
 const MAX_ROLE = 30;
 const aId = (s) => plano(s).replace(/\s+/g, "-");
@@ -86,11 +85,11 @@ export function sinonimosDe(glosario, entidad) {
 function problemasDeCampos(q, fields, p) {
   if (!Array.isArray(fields) || fields.length === 0) p.push(`${q}: fields vacío`);
   for (const c of fields ?? []) {
-    if (!FORMA_CAMPO.test(c.name ?? "")) p.push(`${q}: campo declarado «${c.name}» sin la forma snake en inglés`);
-    if (!Array.isArray(c.values) || c.values.length < 2 || new Set(c.values).size !== c.values.length || !c.values.every((v) => FORMA_CAMPO.test(v))) p.push(`${q}: el campo ${c.name} necesita un vocabulario cerrado de dos valores o más, sin repetir`);
+    if (!FORMA_ID_CAMPO.test(c.name ?? "")) p.push(`${q}: campo declarado «${c.name}» sin la forma snake en inglés`);
+    if (!Array.isArray(c.values) || c.values.length < 2 || new Set(c.values).size !== c.values.length || !c.values.every((v) => FORMA_ID_CAMPO.test(v))) p.push(`${q}: el campo ${c.name} necesita un vocabulario cerrado de dos valores o más, sin repetir`);
     if (c.required_when) {
       if (!(c.values ?? []).includes(c.required_when.value)) p.push(`${q}: required_when nombra un valor que ${c.name} no tiene`);
-      if (!FORMA_CAMPO.test(c.required_when.field ?? "")) p.push(`${q}: required_when sin campo válido`);
+      if (!FORMA_ID_CAMPO.test(c.required_when.field ?? "")) p.push(`${q}: required_when sin campo válido`);
     }
   }
 }
@@ -99,12 +98,15 @@ function problemasDeCampos(q, fields, p) {
  * Los campos de un tipo de evento no copian valores: nombran el vocabulario (una clave de VOCABULARIOS, la fuente de
  * ops/vocabularios-vida.json) del que salen. Un tipo que no se escribe (written: false) no tiene campos.
  */
-function problemasDeCamposDeEvento(q, fields, p, vocabularios) {
+function problemasDeCamposDeEvento(q, fields, p, vocabularios, activas) {
   if (!Array.isArray(fields) || fields.length === 0) p.push(`${q}: fields vacío`);
   for (const c of fields ?? []) {
     if (!FORMA_ID_CAMPO.test(c.name ?? "")) p.push(`${q}: campo declarado «${c.name}» sin la forma del log (snake en minúsculas)`);
     if ("values" in c) p.push(`${q}: el campo ${c.name} no copia valores (values): dice su vocabulary`);
-    if (typeof c.vocabulary !== "string" || !vocabularios.includes(c.vocabulary)) p.push(`${q}: el campo ${c.name} necesita un vocabulary que sea una clave de VOCABULARIOS`);
+    if ("ref" in c) {
+      if ("vocabulary" in c) p.push(`${q}: el campo ${c.name} declara vocabulary y ref a la vez`);
+      else if (!activas.has(c.ref)) p.push(`${q}: el campo ${c.name} tiene un ref «${c.ref}» que no es una entidad activa`);
+    } else if (typeof c.vocabulary !== "string" || !vocabularios.includes(c.vocabulary)) p.push(`${q}: el campo ${c.name} necesita un vocabulary que sea una clave de VOCABULARIOS (o un ref a una entidad)`);
   }
 }
 
@@ -195,7 +197,7 @@ export function problemas(datos, { existe: hay, glosario = null, sinLector = SIN
   const tipos = new Set();
   for (const t of datos.event_types ?? []) {
     const q = `tipo de evento ${t.id}`;
-    if (!FORMA_CAMPO.test(t.id ?? "")) p.push(`${q}: id sin la forma snake en inglés`);
+    if (!FORMA_ID_CAMPO.test(t.id ?? "")) p.push(`${q}: id sin la forma snake en inglés`);
     if (tipos.has(t.id)) p.push(`${q}: repetido`);
     tipos.add(t.id);
     if (!activas.has(t.of)) p.push(`${q}: of «${t.of}» no es una entidad activa`);
@@ -207,7 +209,7 @@ export function problemas(datos, { existe: hay, glosario = null, sinLector = SIN
       if ("written" in t) p.push(`${q}: written solo vale false (lo normal es que se escriba)`);
       if ("not_written_because" in t) p.push(`${q}: not_written_because solo va con written false`);
       if (!eventos.includes(t.id)) p.push(`${q}: el id no está en EVENTOS de .claude/hooks/eventos.mjs (o declara written false y su motivo)`);
-      problemasDeCamposDeEvento(q, t.fields, p, vocabularios);
+      problemasDeCamposDeEvento(q, t.fields, p, vocabularios, activas);
     }
     if (!Array.isArray(t.readers)) p.push(`${q}: readers tiene que ser una lista`);
     else {
@@ -365,13 +367,24 @@ describe("el registro de entidades", () => {
     const t = (id) => DATOS.event_types.find((x) => x.id === id);
     expect(t("intervencion_humana").of).toBe("event");
     // No copia valores: nombra el vocabulario del log, que es la única fuente (antes 1 fuente + 1 proyección + 1 copia).
-    expect(t("intervencion_humana").fields).toEqual([{ name: "motivo", vocabulary: "eventos.motivo_intervencion" }, { name: "evitable", vocabulary: "eventos.evitable" }]);
+    expect(t("intervencion_humana").fields).toEqual([{ name: "quien", vocabulary: "eventos.actor" }, { name: "motivo", vocabulary: "eventos.motivo_intervencion" }, { name: "evitable", vocabulary: "eventos.evitable" }, { name: "entidad_exigida", ref: "norm" }]);
     expect(t("intervencion_humana")).not.toHaveProperty("avoidable_rule");
     expect(t("intervencion_humana").readers).toContain("scripts/lib/fabrica.mjs");
+    // El validador escribe y valida, no lee para contar: no figura como lector.
+    expect(t("intervencion_humana").readers).not.toContain(".claude/hooks/eventos.mjs");
     expect(E("human-intervention")).toBeUndefined();
     expect(E("intervencion-humana")).toBeUndefined();
     expect(t("deployment").of).toBe("event");
     expect(E("deployment")).toBeUndefined();
+  });
+
+  it("los campos declarados de intervencion_humana son exactamente los que lineaDeEvento añade al evento", () => {
+    const base = { evento: "intervencion_humana", nombre: "permiso", motivo: "permiso", quien: "pablo", entidad_exigida: "push-forzado-con-permiso", evitable: "no", fuente: "guardia" };
+    const otro = lineaDeEvento({ ...base, evento: "permiso_pedido" }, new Date(), "x");
+    const propia = lineaDeEvento(base, new Date(), "x");
+    const escritos = Object.keys(propia).filter((k) => !(k in otro)).sort();
+    const declarados = DATOS.event_types.find((x) => x.id === "intervencion_humana").fields.map((c) => c.name).sort();
+    expect(declarados).toEqual(escritos);
   });
 
   it("lo retirado se borró del registro (decisión de Pablo, 13 oct 2026, #706): ni la entidad ni sus relaciones ni el id en el glosario", () => {
@@ -644,6 +657,8 @@ describe("autotest: cada regla falla con datos malos", () => {
     expect(con((d) => { d.event_types[0].of = "inventada"; })).toMatch(/of «inventada» no es una entidad activa/);
     expect(con((d) => { d.event_types[0].fields[0].values = ["uno", "dos"]; })).toMatch(/no copia valores/);
     expect(con((d) => { d.event_types[0].fields[0].vocabulary = "eventos.inventado"; })).toMatch(/vocabulary que sea una clave de VOCABULARIOS/);
+    expect(con((d) => { d.event_types[0].fields[3].ref = "inventada"; })).toMatch(/ref «inventada» que no es una entidad activa/);
+    expect(con((d) => { d.event_types[0].fields[3].vocabulary = "eventos.evitable"; })).toMatch(/vocabulary y ref a la vez/);
     expect(con((d) => { d.event_types[0].id = "human_intervention"; })).toMatch(/el id no está en EVENTOS/);
     expect(con((d) => { d.event_types[1].fields = [{ name: "outcome", vocabulary: "eventos.evitable" }]; })).toMatch(/no se escribe no declara fields/);
     expect(con((d) => { delete d.event_types[1].not_written_because; })).toMatch(/written false necesita not_written_because/);

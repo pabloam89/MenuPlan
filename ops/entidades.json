@@ -139,7 +139,7 @@
         "scripts/lib/cumplimiento.mjs"
       ],
       "role_by_scope": "Proceso: lo que registran los hooks y los scripts. Producto: lo que registra user_events.",
-      "note": "Seis formatos de registro hoy, y más de seis logs en total (ensayos.log, gasto.jsonl, pasadas.jsonl y 19 firmas de línea en metricas.json). Desde #568 eventos.jsonl lleva id, fuente y actor, pero actor solo reconoce a la App de sesiones: Pablo sale como null. Las otras firmas no llevan sesión ni actor. La fuente de las formas de línea es ops/metricas.json (lineas). nombre es polimórfico (skill o agente según el evento). Los tipos de evento que se registran como dato están en event_types."
+      "note": "Seis formatos de registro hoy, y más de seis logs en total (ensayos.log, gasto.jsonl, pasadas.jsonl y 19 firmas de línea en metricas.json). Desde #568 eventos.jsonl lleva id, fuente y actor, pero actor solo reconoce a la App de sesiones: Pablo sale como null. Las otras firmas no llevan sesión ni actor. La fuente de las formas de línea es ops/metricas.json (lineas). nombre es polimórfico (skill o agente según el evento). Los tipos de evento que se registran como dato están en event_types: el id de un tipo que se escribe es el del log (EVENTOS), y no todo EVENTOS tiene que estar en event_types."
     },
     {
       "id": "norm",
@@ -1170,27 +1170,34 @@
       "of": "event",
       "fields": [
         {
+          "name": "quien",
+          "vocabulary": "eventos.actor"
+        },
+        {
           "name": "motivo",
           "vocabulary": "eventos.motivo_intervencion"
         },
         {
           "name": "evitable",
           "vocabulary": "eventos.evitable"
+        },
+        {
+          "name": "entidad_exigida",
+          "ref": "norm"
         }
       ],
       "readers": [
-        ".claude/hooks/eventos.mjs",
         "ops/metricas.json",
         "scripts/lib/fabrica.mjs"
       ],
-      "note": "Un tipo de evento, no una entidad (decisión 5, #652). Se llama y se escribe como en el log (EVENTOS de .claude/hooks/eventos.mjs); el registro no copia los valores, dice de dónde salen: los ids de vocabulary son de ops/vocabularios-vida.json, cuya fuente es scripts/lib/eventosVocabulario.mjs. Si evitable es sí o no lo decide la regla (DEF_EVITABLE), no quien interviene."
+      "note": "Un tipo de evento, no una entidad (decisión 5, #652). Se llama y se escribe como en el log (EVENTOS de .claude/hooks/eventos.mjs); el registro no copia los valores, dice de dónde salen: los ids de vocabulary son de ops/vocabularios-vida.json, cuya fuente es scripts/lib/eventosVocabulario.mjs. Si evitable es sí o no lo decide la regla (DEF_EVITABLE), no quien interviene. entidad_exigida no es un vocabulario sino el id de una norma de ops/normas.json (ref: norm). Lo escribe y valida .claude/hooks/eventos.mjs (lineaDeEvento), que no cuenta como lector."
     },
     {
       "id": "deployment",
       "name": "Despliegue",
       "of": "event",
       "written": false,
-      "not_written_because": "Lo guarda Vercel, con el entorno y la rama; no se escribe como evento de la casa y no necesita registro propio",
+      "not_written_because": "Lo guarda Vercel (entorno y rama); no se escribe como evento de la casa",
       "readers": [
         "ops/salud-despliegue.test.js"
       ],
