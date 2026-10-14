@@ -7,8 +7,10 @@ esa norma. Cómo se mide y qué hacer con la cifra:
 - **Ensayo (gratis, sin red):** `npm run test-del-juez` valida la forma de los casos. Lo vigila
   `scripts/testDelJuez.test.js`.
 - **De pago (lo lanza una persona):** `npm run test-del-juez -- revisor --si [--tope=0.5]`. El juez
-  recibe cada caso (diff y norma, sin saber si es bueno o malo); un modelo barato distinto confirma
-  que un hallazgo dice lo esperado. Sale una línea `test-del-juez juez: … buenos: a/b malos: c/d`.
+  recibe cada caso (diff y norma con su condición, sin saber si es bueno o malo); el corrector **no es un modelo**:
+  es determinista y gratis. Cada caso malo lleva `claves_senal` (grupos de palabras; un hallazgo vale si contiene,
+  sin tildes ni mayúsculas, alguna palabra de cada grupo). La respuesta del juez se lee con tolerancia (vallas ```,
+  prosa alrededor y escapes inválidos; `extraerJson`). Sale una línea `test-del-juez juez: … buenos: a/b malos: c/d`.
 - **Cómo leer la línea:** `buenos` es cuántos aprueba bien (un juez que lo señala todo saca 0 aquí) y
   `malos`, cuántos señala bien (uno que lo aprueba todo saca 0 allí). Las dos se vigilan entre sí.
   Un juez que falla un caso de una norma deja esa norma sin comprobar hasta que se revise.
@@ -27,13 +29,13 @@ esa norma. Cómo se mide y qué hacer con la cifra:
   y la línea `test-del-juez umbral juez: … umbral_a: si|no`. Sin ese registro, la norma sigue sin comprobar:
   el techo `juez_sin_pasada_de_pago` de `ops/normas-techos.json` lo vigila y baja a 0 al registrarlas.
 - **Quién la lanza:** otra sesión distinta de la que escribió los casos, con tope de 0,5 $ la primera vez.
-- **Cuánto cuesta una pasada:** una pasada completa del revisor son unas 36 llamadas (24 al juez y una
-  al corrector por cada malo que señala). Si el tope de 0,5 $ corta una pasada, queda con `sin_correr`
+- **Cuánto cuesta una pasada:** una pasada completa del revisor son 24 llamadas, todas al juez (el corrector ya
+  no llama a nadie); unos 0,12-0,13 $, así que dos pasadas seguidas cuestan unos 0,25-0,3 $. Si el tope de 0,5 $ corta una pasada, queda con `sin_correr`
   mayor que 0 y **cuenta como parada**: no cumple el umbral y hay que repetirla entera.
 - **Qué vigila el registro de pasadas** (`faltasDePasadas`, `faltasDeHistoria`): `coste_usd` mayor que 0;
   `casos = buenos + malos`; los aciertos no pasan de los casos; dos pasadas no pueden ser idénticas; cada
-  pasada lleva `casos_hash` (hash de los casos del juez **más el aviso fijo del prompt**: «No tienes
-  herramientas…»), y editar un caso o cambiar ese prompt invalida las pasadas anteriores aunque el número
+  pasada lleva `casos_hash` (hash de los casos del juez **más el prompt entero y la versión del corrector**
+  (`VERSION_CORRECTOR`)), y editar un caso, el prompt o el corrector invalida las pasadas anteriores aunque el número
   no cambie (un prompt distinto es otro instrumento de medida); y el fichero solo crece por el final respecto a `origin/staging`.
 - **Qué mide: al juez sin herramientas.** El test le da solo el diff, el cuerpo del PR y la norma; no puede
   leer el repo ni correr nada (por eso el aviso fijo del prompt). El aviso le dice que tome como dato lo
@@ -43,3 +45,14 @@ esa norma. Cómo se mide y qué hacer con la cifra:
   juez que calla lo no verificable los aprueba. Si tras la medida `columna-solo-escrita` o
   `columna-sin-lector` caen, es señal de este sesgo y no necesariamente de un juez malo: el juez real, con
   herramientas, los vería.
+
+## Por qué el corrector es determinista (14 oct 2026)
+
+En la segunda tanda de pago el juez señaló casi todos los malos, pero el corrector de modelo rechazó 4 hallazgos que sí decían
+el defecto (8 de 12 aceptados) y hubo respuestas ilegibles. Con los hallazgos reales guardados
+(`scripts/fixtures/test-del-juez-pasada-2.json`, sin claves), `claves_senal` acepta los 12 de 12 y ninguno de los 132
+cruces (el hallazgo de un defecto no vale para otro): lo vigila `scripts/testDelJuezCorrector.test.js`.
+Además, el prompt del juez omitía la `condicion` de la norma, de modo que `permisos-ok-pablo` se leía como
+«todo permiso necesita el OK» y el caso bueno `quitar-permiso` (que solo restringe) salía señalado; ahora dice
+«cuando amplía los permisos…». La norma no cambia. Cualquier cambio del corrector o de los casos invalida
+las pasadas anteriores (hash): hay que repetir las dos pasadas de pago.
