@@ -160,7 +160,7 @@ tokens de `ui.md`.
    amplía con padding o pseudo-elemento). Radio interior = radio exterior −
    padding: **solo orienta al diseñar, no genera valores**; los valores son los
    de la escala.
-5. **Lean.** Sin librerías nuevas. Un token sin uso se borra. Entra al sistema
+5. **Lean.** Sin bibliotecas nuevas. Un token sin uso se borra. Entra al sistema
    solo lo que usan ≥ 3 sitios.
 
 ## Tokens propuestos (77 valores)
@@ -535,6 +535,21 @@ asunción de Pablo, no una medida. El perfil no se asigna aquí y «en espera» 
 se calcula. Las cifras salen de `npm run taxonomia`; lo que queda fuera y los límites de
 las capturas, de `fuera` y `limites` del mismo fichero. Siguen las líneas 2 a 4 del
 programa: bibliotecas por elemento, inventario de lo que hay y especificación por proyecto.
+
+## Pool de bibliotecas: esquema limpio y lo que HoMenu usa (14 oct 2026, #788)
+
+Línea 2 de #774. El pool (`ops/diseno/bibliotecas.json`, 22 fichas) dice de cada biblioteca solo lo que es de ella: candidata o
+retirada. Lo que es de un proyecto sale de la ficha: que lo use, **cómo la importa** (paquete con versión fijada o ficheros
+copiados), el envoltorio y las reglas de uso son `decide_el_proyecto` y los decidirá la especificación de cada proyecto (línea 4).
+Una sola marca para lo no comprobado (`unverified`) y un valor aparte para lo que no corresponde (`not-applicable`); la plataforma
+usa `app`, `web` o `both` de la taxonomía, con fuente. El test del pool cruza el bloque Q de `ops/diseno/bloques.json` con los
+campos de la ficha. Cifras: `node scripts/diseno/bibliotecas.mjs`.
+
+Lo que HoMenu usa hoy, que antes estaba en la ficha de Nucleo y ahora vive aquí:
+
+| Biblioteca | Estado en HoMenu | Cómo se importa | Elementos que cubre | Fuente |
+|---|---|---|---|---|
+| Nucleo (iconos) | en uso | ficheros copiados al repo (`src/components/icons.jsx`, generado) | `icon` | `DESIGN_SYSTEM.md` §5 |
 
 ## Sin comprobar
 

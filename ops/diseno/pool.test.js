@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { agentesDe } from "../../scripts/lib/agentes.mjs";
 import { VOCABULARIOS } from "../../scripts/lib/vocabulariosVida.mjs";
 import { PLAZO_COMPROBADO_DIAS } from "../../scripts/lib/skills.mjs";
-import { CLAVES_DE_VOCABULARIO, cifrasDeBibliotecas, caducidadDeFicha, candidatasDe, cumpleReact, leerBibliotecas, problemasDeBibliotecas, reactDePackage } from "../../scripts/lib/bibliotecasDiseno.mjs";
+import { CAMPOS_DE_FICHA, CORRESPONDENCIA_DE_Q, cifrasDeBibliotecas, caducidadDeFicha, candidatasDe, clavesDeVocabulario, cumpleReact, leerBibliotecas, leerBloques, problemasDeBibliotecas, reactDePackage, validarReact } from "../../scripts/lib/bibliotecasDiseno.mjs";
 import { leerTaxonomia } from "../../scripts/lib/taxonomiaDiseno.mjs";
 
 /**
@@ -18,16 +19,21 @@ import { leerTaxonomia } from "../../scripts/lib/taxonomiaDiseno.mjs";
  *  4. cada elemento cubierto existe en ops/diseno/taxonomia.json, y una cobertura comprobada lleva fuente (un juicio, no);
  *  5. una biblioteca sin mantenimiento o archivada no puede ser candidata: solo `retired`, con motivo y sucesora si la hay;
  *  6. cada elemento del alcance tiene al menos una candidata con acceso libre o un motivo escrito;
- *  7. los vocabularios están registrados en ops/vocabularios-vida.json (ciclo de vida).
+ *  7. los vocabularios están registrados en ops/vocabularios-vida.json (ciclo de vida);
+ *  8. (#788) una sola marca de «sin comprobar» (`unverified`) y un valor aparte de «no aplica» (`not-applicable`): ningún `null`, `unread` ni `cli` dice «no sé»;
+ *  9. (#788) el pool dice solo `candidate` o `retired`, y no guarda hechos de un proyecto (cómo importa una biblioteca, que la use): son `decide_el_proyecto`;
+ * 10. (#788) los campos del bloque Q de ops/diseno/bloques.json son los de la ficha (con la correspondencia de nombres) más `decide_el_proyecto`;
+ * 11. (#788) la plataforma de la ficha usa las de la taxonomía, con fuente; `requisitos` solo dice lo que se exige; las fuentes tienen id kebab y un patrón de URL.
  *
  * Abajo, un autotest: cada regla falla con un dato roto a propósito. Sin red.
  */
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const DATOS = leerBibliotecas(RAIZ);
 const TAXONOMIA = leerTaxonomia(RAIZ);
+const BLOQUES = leerBloques(RAIZ);
 const AGENTES = Object.keys(agentesDe(RAIZ));
 const copia = (x) => JSON.parse(JSON.stringify(x));
-const problemas = (d) => problemasDeBibliotecas(d, TAXONOMIA, AGENTES);
+const problemas = (d) => problemasDeBibliotecas(d, TAXONOMIA, AGENTES, BLOQUES);
 const ficha = (d, id) => d.bibliotecas.find((f) => f.id === id);
 
 describe("el pool de bibliotecas de hoy", () => {
@@ -54,10 +60,10 @@ describe("el pool de bibliotecas de hoy", () => {
 
   it("lo que el dossier no comprobó consta como unverified, no como relleno", () => {
     const sh = ficha(DATOS, "shadcn-ui");
-    expect([sh.importacion, sh.react.estado, sh.requisitos[0]]).toEqual(["unverified", "unverified", "unverified"]);
+    expect([sh.react.estado, sh.requisitos[0]]).toEqual(["unverified", "unverified"]);
     expect(ficha(DATOS, "nucleo").licencia.spdx).toBe("unverified");
     expect(ficha(DATOS, "nucleo").licencia.fuente).toBeNull();
-    expect(ficha(DATOS, "nucleo").cubre[0].acceso).toBe("unverified");
+    expect(ficha(DATOS, "nucleo").cubre).toEqual([]);
     expect(ficha(DATOS, "shadcn-ui").rol).toBe("unverified");
     expect(ficha(DATOS, "radix-ui").accesibilidad.wcag).toBe("unverified");
     for (const f of DATOS.bibliotecas.filter((x) => x.id !== "base-ui")) expect(f.peso.podable, f.id).toBe("unverified");
@@ -80,8 +86,13 @@ describe("el pool de bibliotecas de hoy", () => {
     expect(ficha(DATOS, "pico-css").retirada.sucesora).toBeNull();
   });
 
-  it("los vocabularios están en el ciclo de vida", () => {
-    for (const k of CLAVES_DE_VOCABULARIO) expect(Object.keys(VOCABULARIOS), k).toContain(`diseno.biblioteca_${k}`);
+  it("los vocabularios están en el ciclo de vida: el código los registra y el registro los ancla", () => {
+    const anclados = Object.keys(JSON.parse(readFileSync(join(RAIZ, "ops/vocabularios-vida.json"), "utf8")).anclados);
+    expect(clavesDeVocabulario(DATOS).length).toBeGreaterThan(0);
+    for (const k of clavesDeVocabulario(DATOS)) {
+      expect(Object.keys(VOCABULARIOS), k).toContain(`diseno.biblioteca_${k}`);
+      expect(anclados, k).toContain(`diseno.biblioteca_${k}`);
+    }
   });
 
   it("el pool no guarda la versión de React de ningún proyecto: sale de package.json al pintar la cifra", () => {
@@ -98,6 +109,63 @@ describe("el pool de bibliotecas de hoy", () => {
     expect(cumpleReact(ficha(DATOS, "konsta"), "19.2")).toBeNull();
     expect(cumpleReact(ficha(DATOS, "daisyui"), "19.2")).toBeNull();
     expect(cumpleReact({ react: { estado: "declared", desde: "16.8", hasta: "18" } }, "19.2")).toBe(false);
+  });
+});
+
+describe("el esquema limpio (#788)", () => {
+  it("una sola marca de «sin comprobar» y un valor aparte de «no aplica»: ningún null, unread ni cli dice «no sé»", () => {
+    for (const f of DATOS.bibliotecas) {
+      expect([f.version, f.peso.dependencias, f.ultimo_push].map((x) => x === null || x === "unread" || x === "cli"), f.id).toEqual([false, false, false]);
+    }
+    expect(ficha(DATOS, "nucleo").version).toBe("unverified");
+    expect(ficha(DATOS, "nucleo").ultimo_push).toBe("unverified");
+    expect([ficha(DATOS, "shadcn-ui").version, ficha(DATOS, "shadcn-ui").peso.dependencias]).toEqual(["not-applicable", "not-applicable"]);
+    expect([ficha(DATOS, "pico-css").version, ficha(DATOS, "pico-css").peso.dependencias]).toEqual(["unverified", "unverified"]);
+  });
+
+  it("el pool dice solo candidate o retired, y el uso por un proyecto no está en la ficha", () => {
+    expect(Object.keys(DATOS.vocabularios.vinculo)).toEqual(["candidate", "retired"]);
+    expect(Object.keys(DATOS.vocabularios)).not.toContain("importacion");
+    for (const c of ["movil", "importacion", "estado_fuente"]) expect(CAMPOS_DE_FICHA, c).not.toContain(c);
+    expect(DATOS.decide_el_proyecto).toEqual(["importación", "envoltorio", "reglas de uso"]);
+    expect(DATOS.vocabularios.requisito).not.toHaveProperty("css");
+    expect(DATOS.vocabularios.requisito).not.toHaveProperty("web-components");
+  });
+
+  it("los campos del bloque Q son de la ficha o de decide_el_proyecto, sin sobrar ni faltar", () => {
+    const q = BLOQUES.bloques.find((b) => b.id === "Q").ficha;
+    const deLaFicha = q.filter((c) => !DATOS.decide_el_proyecto.includes(c)).map((c) => CORRESPONDENCIA_DE_Q[c] ?? c);
+    expect(deLaFicha.every((c) => CAMPOS_DE_FICHA.includes(c))).toBe(true);
+    expect([...deLaFicha, ...DATOS.decide_el_proyecto].sort()).toEqual(q.map((c) => CORRESPONDENCIA_DE_Q[c] ?? c).sort());
+  });
+
+  it("la plataforma de cada ficha es una de la taxonomía o unverified, y sin comprobar no lleva URL", () => {
+    for (const f of DATOS.bibliotecas) {
+      expect([...Object.keys(TAXONOMIA.plataformas), "unverified"], f.id).toContain(f.plataforma.vale_en);
+      if (f.plataforma.vale_en === "unverified") expect(f.plataforma.fuente_url, f.id).toBeNull();
+    }
+  });
+
+  it("las fuentes tienen id en minúsculas, una sola definición y su patrón de URL aparte", () => {
+    expect(Object.keys(DATOS.vocabularios.fuente_de_dato)).toEqual(["github", "npm", "doc"]);
+    expect(DATOS.lectura).not.toHaveProperty("fuentes");
+    expect(Object.keys(DATOS.lectura.patron_de_url)).toEqual(["github", "npm"]);
+    for (const f of DATOS.bibliotecas) {
+      if (f.licencia.fuente === "npm") expect(f.licencia.fuente_url.startsWith("https://registry.npmjs.org/"), f.id).toBe(true);
+      if (f.licencia.fuente === "github") expect(f.licencia.fuente_url.startsWith("https://api.github.com/repos/"), f.id).toBe(true);
+    }
+  });
+
+  it("requisitos solo dice lo que se exige, y los neutrales de framework salen de ahí", () => {
+    const vivas = DATOS.bibliotecas.filter((f) => f.vinculo !== "retired");
+    expect(cifrasDeBibliotecas(DATOS).neutrales_de_framework).toBe(vivas.filter((f) => f.requisitos.length === 0).length);
+    expect(ficha(DATOS, "web-awesome").requisitos).toEqual([]);
+    expect(ficha(DATOS, "daisyui").requisitos).toEqual(["tailwind"]);
+  });
+
+  it("--react pide una versión x.y", () => {
+    expect(validarReact("19.2")).toBe("19.2");
+    for (const mal of [undefined, "", "19", "x.y", "--json", "19.2.1"]) expect(() => validarReact(mal), String(mal)).toThrow(/--react necesita/);
   });
 });
 
@@ -147,13 +215,39 @@ describe("autotest: cada regla falla con un dato roto a propósito", () => {
   it("un elemento del alcance con candidata y motivo", () => rompe((d) => { d.alcance[0].motivo_sin_candidata = "no hace falta ninguna candidata"; }, "lleva motivo_sin_candidata"));
   it("un vocabulario sin definición", () => rompe((d) => { d.vocabularios.rol.headless = ""; }, "sin definición"));
   it("una versión que no es x.y.z", () => rompe((d) => { ficha(d, "sonner").version = "dos"; }, "version"));
-  it("un valor de rol repetido en importacion", () => rompe((d) => { d.vocabularios.importacion["css-only"] = "Hojas de estilo"; }, "se repite en importacion"));
   it("un valor de rol repetido en requisito", () => rompe((d) => { d.vocabularios.requisito["single-piece"] = "Una pieza suelta"; }, "se repite en requisito"));
   it("una licencia unverified con fuente", () => rompe((d) => { ficha(d, "nucleo").licencia.fuente = "DOC"; }, "licencia sin comprobar no lleva fuente"));
-  it("un acceso free con licencia sin comprobar", () => rompe((d) => { ficha(d, "nucleo").cubre[0].acceso = "free"; }, "acceso free con licencia sin comprobar"));
+  it("un acceso free con licencia sin comprobar", () => rompe((d) => { const n = ficha(d, "nucleo"); n.cubre = [{ elemento: "icon", base: "judgement", acceso: "free", fuente_url: null }]; n.motivo_sin_cobertura = null; }, "acceso free con licencia sin comprobar"));
   it("una sucesora sin fuente", () => rompe((d) => { ficha(d, "shoelace").retirada.fuente_url = null; }, "sucesora sin URL"));
   it("una fuente de sucesora sin sucesora", () => rompe((d) => { ficha(d, "vaul").retirada.fuente_url = "https://x.test/a"; }, "fuente_url sin sucesora"));
   it("una versión de React de proyecto guardada en el pool", () => rompe((d) => { d.base_react = "19.2"; }, "base_react"));
   it("un origen de alcance que el recuento no sostiene", () => rompe((d) => { d.alcance.find((a) => a.elemento === "toast").origen = "mobbin-count"; }, "fuera del top 15"));
+  it("una versión unread", () => rompe((d) => { ficha(d, "nucleo").version = "unread"; }, "version"));
+  it("unas dependencias null", () => rompe((d) => { ficha(d, "nucleo").peso.dependencias = null; }, "peso.dependencias"));
+  it("una versión leída con dependencias sin comprobar", () => rompe((d) => { ficha(d, "sonner").peso.dependencias = "unverified"; }, "deben ser a la vez"));
+  it("una versión no aplicable con dependencias contadas", () => rompe((d) => { ficha(d, "shadcn-ui").peso.dependencias = 3; }, "deben ser a la vez"));
+  it("un último push null", () => rompe((d) => { ficha(d, "nucleo").ultimo_push = null; }, "ultimo_push"));
+  it("una fuente de último push que falta", () => rompe((d) => { ficha(d, "sonner").ultimo_push_fuente = null; }, "ultimo_push_fuente va con ultimo_push"));
+  it("una fuente de mantenimiento con doc, que pediría URL", () => rompe((d) => { ficha(d, "vaul").mantenimiento_fuente = "doc"; }, "mantenimiento_fuente va con mantenimiento"));
+  it("una fuente de mantenimiento sin hecho", () => rompe((d) => { ficha(d, "nucleo").mantenimiento_fuente = "github"; }, "mantenimiento_fuente va con mantenimiento"));
+  it("un vínculo in-use", () => rompe((d) => { ficha(d, "nucleo").vinculo = "in-use"; }, "vinculo «in-use»"));
+  it("un campo de proyecto en la ficha", () => rompe((d) => { ficha(d, "sonner").importacion = "package"; }, "campo desconocido"));
+  it("una plataforma fuera de la taxonomía", () => rompe((d) => { ficha(d, "sonner").plataforma.vale_en = "yes"; }, "plataforma.vale_en"));
+  it("una plataforma declarada sin fuente", () => rompe((d) => { ficha(d, "sonner").plataforma.vale_en = "both"; }, "plataforma declarada sin URL"));
+  it("una plataforma sin comprobar con URL", () => rompe((d) => { ficha(d, "sonner").plataforma.fuente_url = "https://x.test/a"; }, "plataforma sin comprobar no lleva URL"));
+  it("un campo del bloque Q que no es de la ficha ni del proyecto", () => rompe((d) => { d.decide_el_proyecto = ["envoltorio", "reglas de uso"]; }, "bloque Q «importación»"));
+  it("un campo de decide_el_proyecto que no está en el bloque Q", () => rompe((d) => { d.decide_el_proyecto.push("color"); }, "decide_el_proyecto «color»"));
+  it("un campo del bloque Q a la vez de la ficha y del proyecto", () => rompe((d) => { d.decide_el_proyecto.push("licencia"); }, "a la vez"));
+  it("un bloque Q que cambia sin que el pool lo sepa", () => {
+    const b = copia(BLOQUES);
+    b.bloques.find((x) => x.id === "Q").ficha.push("coste");
+    expect(problemasDeBibliotecas(DATOS, TAXONOMIA, AGENTES, b).join("\n")).toContain("bloque Q «coste»");
+  });
+  it("un requisito que describe una ausencia", () => rompe((d) => { ficha(d, "sonner").requisitos = ["css"]; }, "requisitos es una lista"));
+  it("un id de fuente en mayúsculas", () => rompe((d) => { d.vocabularios.fuente_de_dato.GH = "La API de GitHub"; }, "el id no es kebab"));
+  it("la definición de las fuentes repetida en lectura", () => rompe((d) => { d.lectura.fuentes = { github: "algo" }; }, "lectura.fuentes"));
+  it("un patrón de URL de una fuente que no existe", () => rompe((d) => { d.lectura.patron_de_url.gitlab = "https://x.test/<repo>"; }, "no es una fuente"));
+  it("una URL de licencia que no sigue el patrón de su fuente", () => rompe((d) => { ficha(d, "sonner").licencia.fuente = "github"; }, "no sigue el patrón de github"));
+  it("un origen encargo dentro del top 15", () => rompe((d) => { d.alcance.find((a) => a.elemento === "button").origen = "encargo"; }, "dentro del top"));
   it("un requisito unverified mezclado", () => rompe((d) => { ficha(d, "sonner").requisitos = ["react", "unverified"]; }, "unverified va solo"));
 });

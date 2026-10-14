@@ -305,8 +305,8 @@ Todo lo de terceros que entra en el sistema de diseño. Una **ficha por bibliote
 El pool de fichas vive en `ops/diseno/bibliotecas.json` (#780; cifras con
 `node scripts/diseno/bibliotecas.mjs`, test `ops/diseno/pool.test.js`): añade a estos
 campos los requisitos de stack, la accesibilidad que declara cada una y los
-elementos de la taxonomía que cubre; `envoltorio` y `reglas de uso` los decide cada
-proyecto en su especificación (línea 4), no la ficha.
+elementos de la taxonomía que cubre; `importación`, `envoltorio` y `reglas de uso` los decide
+cada proyecto en su especificación (línea 4), no la ficha.
 
 Reglas: una sola familia de iconos por proyecto; ninguna biblioteca entra sin su
 ficha; una dependencia de diseño no se actualiza sin mirar su registro de cambios.
