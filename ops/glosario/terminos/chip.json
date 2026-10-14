@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Un elemento de interfaz compacto que representa un filtro, una opción o un dato y puede quitarse.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

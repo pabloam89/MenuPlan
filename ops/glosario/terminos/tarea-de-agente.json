@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Un tipo de trabajo que repite un agente, con su tipo de tarea, sus ámbitos y su estándar, en ops/estandares-agentes.json.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que muestra un mapa con lugares sobre él.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

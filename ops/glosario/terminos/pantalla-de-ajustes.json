@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que agrupa las opciones con las que cada persona adapta la aplicación a su gusto.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

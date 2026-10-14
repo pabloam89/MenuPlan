@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que lista quién sigue a una persona y a quién sigue ella.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

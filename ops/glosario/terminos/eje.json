@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "campo",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Un campo de cada entidad que dice de qué lado es: la factoría o un proyecto, uno solo; la clase es de la factoría y sus ejemplares del proyecto viven en su registro.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

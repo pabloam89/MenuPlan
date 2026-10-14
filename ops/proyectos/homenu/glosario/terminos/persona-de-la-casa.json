@@ -3,6 +3,8 @@
   "estado": "activo",
   "clase": "rol",
   "dominio": "producto",
+  "scope": "vertical",
+  "project": "homenu",
   "definicion": "Un miembro de una casa para quien se planifica el menú y que tiene sus alergias, intolerancias y gustos.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que permite seguir a alguien o suscribirse a un contenido.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

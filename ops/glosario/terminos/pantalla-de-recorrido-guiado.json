@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que enseña paso a paso cómo se usa la aplicación, con texto o ilustración.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

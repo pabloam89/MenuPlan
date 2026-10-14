@@ -1,0 +1,29 @@
+{
+  "$comentario": "Pasadas de pago del test del juez (umbral A, #698): las escribe scripts/test-del-juez.mjs --si, una por juez y pasada. Una norma de juez solo cuenta como comprobada con las dos últimas pasadas seguidas de su juez cumpliendo el umbral sobre los casos de hoy. Solo lo escribe el script; una pasada no se corrige ni se borra (lo vigila el test).",
+  "pasadas": [
+    {
+      "juez": "revisor",
+      "fecha": "2026-10-14",
+      "casos": 24,
+      "casos_hash": "700bca80e3aa",
+      "buenos": 12,
+      "buenos_ok": 9,
+      "malos": 12,
+      "malos_ok": 9,
+      "sin_correr": 0,
+      "coste_usd": 0.1401
+    },
+    {
+      "juez": "revisor",
+      "fecha": "2026-10-14",
+      "casos": 24,
+      "casos_hash": "700bca80e3aa",
+      "buenos": 12,
+      "buenos_ok": 9,
+      "malos": 12,
+      "malos_ok": 7,
+      "sin_correr": 0,
+      "coste_usd": 0.1263
+    }
+  ]
+}

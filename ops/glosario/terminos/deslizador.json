@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Un elemento de interfaz que fija un valor al arrastrar un tirador por una barra.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

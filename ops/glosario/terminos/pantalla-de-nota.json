@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que muestra una nota y permite escribirla o cambiarla.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

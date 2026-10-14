@@ -147,7 +147,7 @@ describe("los estándares citan normas y no las reescriben (#620)", () => {
     const ficheros = execFileSync("git", ["ls-files", "-z"], { cwd: RAIZ, encoding: "utf8" }).split("\0").filter(Boolean);
     expect(ficheros.length).toBeGreaterThan(1000);
     expect(ficheros.filter((f) => !ambitosDeFichero(f).length)).toEqual([]);
-    expect(ambitosDeFichero("api/_guard.js")).toEqual(["code", "api"]);
+    expect(ambitosDeFichero("api/un-endpoint-cualquiera.js")).toEqual(["code", "api"]);
     expect(ambitosDeFichero(".claude/hooks/guardia.mjs")).toEqual(["code", "infra"]);
     expect(ambitosDeFichero("supabase/migrations/0100_x.sql")).toEqual(["data"]);
     expect(ambitosDeFichero("ops/redaccion.json")).toEqual(["process", "writing"]);
@@ -165,7 +165,7 @@ describe("los estándares citan normas y no las reescriben (#620)", () => {
       for (const f of ficheros) if (globs.some((g) => globARegex(g).test(f)) && !ambitosDeFichero(f).includes(AMBITO_DE_REGLA[r])) faltan.push(`${f}: casa con la regla ${r} y no es de ${AMBITO_DE_REGLA[r]}`);
     }
     expect(faltan).toEqual([]);
-    for (const [f, a] of [["src/lib/cocinaTopes.js", "catalog"], ["scripts/bedca-sync.mjs", "catalog"], ["scripts/ciqual-sync.mjs", "catalog"], ["scripts/build-ingredient-catalog.mjs", "catalog"], ["scripts/telegram-webhook.mjs", "bot"]]) {
+    for (const [f, a] of [["src/lib/una-cocina-cualquiera.js", "catalog"], ["scripts/bedca-sync.mjs", "catalog"], ["scripts/ciqual-sync.mjs", "catalog"], ["scripts/build-ingredient-catalog.mjs", "catalog"], ["scripts/telegram-webhook.mjs", "bot"]]) {
       expect(ambitosDeFichero(f), f).toContain(a);
     }
   });
@@ -364,10 +364,10 @@ describe("las normas del proyecto no van en un estándar horizontal (#704, fondo
   });
 
   it("se ve fallar el control sin test: un control de código que no es un test, o que no existe, y un test del juez declarado que no existe", () => {
-    const codigo = { id: "x", control_procesador: "codigo", control: "api/_bot/voz.test.js" };
+    const codigo = { id: "x", control_procesador: "codigo", control: ".claude/hooks/guardia.test.js" };
     expect(sinControlDeTest([codigo], RAIZ)).toEqual([]);
-    expect(sinControlDeTest([{ ...codigo, control: "api/_bot/voz.js" }], RAIZ)).toHaveLength(1);
-    expect(sinControlDeTest([{ ...codigo, control: "api/_bot/noexiste.test.js" }], RAIZ)).toHaveLength(1);
+    expect(sinControlDeTest([{ ...codigo, control: ".claude/hooks/guardia.mjs" }], RAIZ)).toHaveLength(1);
+    expect(sinControlDeTest([{ ...codigo, control: ".claude/hooks/noexiste.test.js" }], RAIZ)).toHaveLength(1);
     const juez = { id: "y", control_procesador: "juez", test_del_juez: null };
     expect(sinControlDeTest([juez], RAIZ)).toEqual([]);
     expect(sinControlDeTest([{ ...juez, test_del_juez: "ops/no-existe.test.js" }], RAIZ)).toHaveLength(1);

@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que muestra el contenido y el avance de una clase de un curso.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que reproduce un vídeo con sus controles.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

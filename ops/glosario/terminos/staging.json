@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "lugar",
   "dominio": "ops",
+  "scope": "horizontal",
   "definicion": "La rama por defecto y su despliegue de prueba, en la que todo entra por PR con el CI en verde.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

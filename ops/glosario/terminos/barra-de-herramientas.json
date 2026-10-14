@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Un elemento de interfaz en barra que reúne las acciones posibles sobre lo que se está viendo.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

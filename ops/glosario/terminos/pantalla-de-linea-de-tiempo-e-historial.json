@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que muestra, por orden de fecha, lo que ha ocurrido.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

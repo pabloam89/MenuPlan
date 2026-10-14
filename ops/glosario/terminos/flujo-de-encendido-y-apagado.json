@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Un flujo de usuario de un solo gesto que enciende o apaga el estado de algo concreto, como un dispositivo o un modo, sin pasos ni explicación en medio.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

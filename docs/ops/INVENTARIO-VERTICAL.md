@@ -14,7 +14,7 @@ Es un **inventario de partida, no un registro de lados**: el lado todavía no es
 | Fuentes | El campo `project` la hace vertical. Sin él: la ruta de un agente o de zona factoría, horizontal; de zona producto, vertical (y debe llevarlo); zona mixta o externa, horizontal |
 | Normas | El registro en que viven. Duda de una horizontal: su texto nombra HoMenu/Lola/MenuPlan, o su ámbito es `bot`/`product`/`catalog`, o su control o `donde` apunta a `api/`, `src/`, `supabase/`, `docs/datos/`, `docs/producto/`, `specs/` o `DESIGN_SYSTEM.md` (las 24 de ámbito `diseno` no cuentan: Pablo decidió el 13 oct que son horizontales) |
 | Entidades | Su campo `scope` (`horizontal` o `vertical`, uno solo: la clase es horizontal y sus ejemplares son del registro del proyecto); duda: un valor que no sea ninguno de los dos y las vertical que son un concepto general (lista a mano, hoy vacía) |
-| Glosario | El `scope` de sus entidades; sin entidad, su dominio (`producto` vertical, `datos` duda); duda también si su definición nombra el proyecto, Vercel o Supabase |
+| Glosario | Su campo `scope` (`horizontal` en ops/glosario/terminos/, `vertical` en ops/proyectos/<id>/glosario/); duda si falta, si choca con el de las entidades que nombra, o si un término horizontal nombra el proyecto o un servicio suyo |
 | Skills, reglas, comandos, specs, documentos | El lado escrito de cada fichero en `ops/lados-ficheros.json` (PR 8 de #710; lo vigila `ops/lados-ficheros.test.js`). Un fichero sin entrada cae en la zona de `ops/zonas.json` (factoría = horizontal, producto = vertical, mixto = duda) y cuenta como «sin lado». Una skill de servicio es horizontal (el método) y sus datos del proyecto viven en una ficha vertical, `ops/proyectos/<id>/servicios/<skill>.md` |
 | Agentes | Horizontales por la regla de Pablo; los tres que trabajan sobre datos de HoMenu, duda (lista a mano) |
 | Tests | Zona de su carpeta. En la casa: vertical si lee 3 ficheros de HoMenu o más (existentes, no de ejemplo), duda si lee 1 o 2 |
@@ -40,7 +40,7 @@ Límites: «casa» y «bot» son castellano corriente en la factoría, así que 
 | agentes (.claude/agents/; por regla de Pablo, horizontales) | 8 | 8 | 0 | 0 |
 | specs (specs/*.md) | 17 | 0 | 17 | 0 |
 | documentos (docs/**/*.md y los .md de la raíz) | 37 | 22 | 14 | 1 |
-| tests (*.test.{js,jsx,mjs}) | 452 | 109 | 333 | 10 |
+| tests (*.test.{js,jsx,mjs}) | 460 | 121 | 339 | 0 |
 
 Principios, las cuatro filas juntas: 112 en total, 110 horizontales, 2 verticales y 0 en duda.
 
@@ -49,8 +49,8 @@ Principios, las cuatro filas juntas: 112 en total, 110 horizontales, 2 verticale
 - **Principios.** Los 2 de HoMenu (`curated-catalog-only` y `household-owns-data`) viven en su registro, `ops/proyectos/homenu/principios/`, con el campo `project`: origen una decisión de producto, sin fuente externa. Los 54 de la casa son horizontales salvo los que dudan: la mayoría no tiene fuente externa, pero eso no los hace verticales, son del método de trabajo. Los de base de datos que solo tenían como origen `docs/datos/PRINCIPIOS.md` son horizontales por decisión de Pablo (13 oct): llevan fuente externa (PostgreSQL, Fowler) y `docs/datos/` es el cómo los aplica HoMenu; el que no la tiene verificable sigue en duda. Los 41 de producto tienen literatura detrás y son horizontales; los del área `conversational-ai` forman el paquete de bots (`dominio: bot`), opcional por proyecto, y también son horizontales.
 - **Fuentes.** 130 externas (literatura) y 35 de la casa (una ruta del repo).
 - **Normas.** El registro vertical ya está separado (39). En el horizontal hay 46 que dudan (lista abajo). De las 166, 60 tienen como control «juicio» y 28 acaban en un fichero de zona producto. De las 39 verticales, 0 tienen su control en una carpeta de la factoría.
-- **Entidades y glosario.** Entidades retiradas (no cuentan): 0. El glosario no tiene lado propio: hoy se deduce de sus entidades; es el registro donde más falta el campo.
-- **Tests.** 121 tests viven en carpetas de la casa; 2 de ellos leen tres ficheros de HoMenu o más (sin contar `src/App.jsx`, el ejemplo de casi todos). 331 viven en carpetas de producto, coherentes con lo que vigilan.
+- **Entidades y glosario.** Entidades retiradas (no cuentan): 0. Cada término lleva su `scope` (PR 7); los verticales viven en el glosario de su proyecto, aparte de los de la casa, y un término horizontal no nombra una entidad vertical (techo 0).
+- **Tests.** 121 tests viven en carpetas de la casa; 0 de ellos leen tres ficheros de HoMenu o más (sin contar `src/App.jsx`, el ejemplo de casi todos). 339 viven en carpetas de producto, coherentes con lo que vigilan.
 
 ## Los dudosos, con su razón
 
@@ -81,18 +81,6 @@ Principios, las cuatro filas juntas: 112 en total, 110 horizontales, 2 verticale
 
 - `CLAUDE.md`: mezcla lo que vale para cualquier proyecto con lo que solo vale para HoMenu; se parte en dos partes en el PR 9 de #710 (#690), no aquí
 
-### 6. Tests (10)
-
-- `.claude/dominios-skills.test.js`: vive en la casa (mixto) y nombra supabase/ESTADO.md: ¿vigila el fichero o lo usa de ejemplo?
-- `.claude/hooks/guardia.test.js`: vive en la casa (mixto) y nombra supabase/migrations/0080_bot_tareas_v2.sql, supabase/migrations/0079_personas_y_grupos.sql: ¿vigila el fichero o lo usa de ejemplo?
-- `.claude/rutas.test.js`, `ops/principios.test.js`: vive en la casa (factoria) y nombra docs/datos/PRINCIPIOS.md: ¿vigila el fichero o lo usa de ejemplo? (2)
-- `ops/modulos.test.js`: vive en la casa (mixto) y nombra src/lib/vocabularios.js, supabase/cableado.json: ¿vigila el fichero o lo usa de ejemplo?
-- `ops/normas.test.js`: vive en la casa (factoria) y nombra api/_guard.test.js, docs/datos/PRINCIPIOS.md: ¿vigila el fichero o lo usa de ejemplo?
-- `ops/vocabularios-vida.test.js`: vive en la casa (factoria) y nombra src/lib/vocabularios.js: ¿vigila el fichero o lo usa de ejemplo?
-- `scripts/avisos-pr.test.js`: vive en la casa (factoria) y nombra src/data/derived/recipeNutrition.json: ¿vigila el fichero o lo usa de ejemplo?
-- `scripts/consulta.test.js`: vive en la casa (mixto) y nombra src/data/model.js: ¿vigila el fichero o lo usa de ejemplo?
-- `scripts/rulesets.test.js`: vive en la casa (factoria) y nombra public/store/mercadona.json, src/data/derived/recipeCoste.json: ¿vigila el fichero o lo usa de ejemplo?
-
 ## Propuesta de orden de PR, con cifra de antes y de después
 
 El orden sigue la dependencia (lo que es registro se separa antes de lo que lo cita) y empieza por el vigilante, para que ninguna cifra suba mientras se trabaja. Cada PR cierra con `Parte de #710`, la cifra de esta tabla recalculada y su juez.
@@ -100,12 +88,12 @@ El orden sigue la dependencia (lo que es registro se separa antes de lo que lo c
 | PR | Qué hace | Cifra de antes | Cifra objetivo |
 |---|---|---|---|
 | PR 1 | El vigilante primero (punto 7 de #710): test que lee `lado`/`project` de cada registro y falla si una horizontal cita una vertical; techos que solo bajan | tests de vigilancia de lados = 0 | 1 (con los techos de esta tabla) |
-| PR 2 | Entidades: cada una de un lado (sin `both`); las vertical genéricas pasan a horizontal; el glosario hereda el lado de su entidad (se calcula; el campo `scope` en cada término va con el PR 7) | entidades en duda = 0 | 0 |
+| PR 2 | Entidades: cada una de un lado (sin `both`); las vertical genéricas pasan a horizontal; el glosario hereda el lado de su entidad (en el PR 7 pasa a ser un campo propio de cada término) | entidades en duda = 0 | 0 |
 | PR 3 | Principios: campo `project` y registro `ops/proyectos/homenu/principios/`; mover los verticales y resolver los de base de datos | verticales fuera de su registro = 0; en duda = 0 | verticales en su registro = todos; en duda = 0 |
 | PR 4 | Fuentes: campo `project` en las de la casa que son de HoMenu y origen (decisión o fallo) en vez de fuente externa para los principios de proyecto | fuentes verticales sin marcar = 7; en duda = 0 | marcadas = todas; en duda = 0 |
 | PR 5 | Normas dudosas: mover al registro de HoMenu las que sean suyas, o reescribir (sin nombrar el proyecto) las que sean generales | normas horizontales en duda = 46 | 0 (cada una, horizontal limpia o vertical) |
-| PR 6 | Controles: tests de la casa que leen ficheros de HoMenu pasan a recibirlos por referencia (`--proyecto`) o se mueven (el techo `verticales_sin_salida` ya se retiró, #710) | tests de la casa que leen HoMenu = 2; en duda = 10 | 0 y 0 |
-| PR 7 | Glosario: términos de proyecto aparte de los de la casa | términos en duda = 0 | 0 |
+| PR 6 | Controles: tests de la casa que leen ficheros de HoMenu pasan a recibirlos por referencia (`--proyecto`) o se mueven (el techo `verticales_sin_salida` ya se retiró, #710) | tests de la casa que leen HoMenu = 0; en duda = 0 | 0 y 0 |
+| PR 7 | Glosario: campo `scope` propio en cada término, exigido por test; los de proyecto aparte de los de la casa y ningún horizontal nombra una entidad vertical | términos en duda = 0; verticales dentro de la carpeta de la casa = 0 | 0 y 0 |
 | PR 8 | Skills, reglas, comandos, specs y docs: marcar el lado de cada una y separar los skills de servicio en método (casa) y datos (proyecto) | en duda = skills 0, reglas 0, documentos 1; sin lado en el registro = 0 | en duda = 0 (salvo CLAUDE.md, que es el PR 9); sin lado = 0 |
 | PR 9 | Factoría frente a HoMenu (#690): CLAUDE.md como índice corto con dos partes; `docs/` y `ops/` separados | documentos en duda = 1 | 0 |
 

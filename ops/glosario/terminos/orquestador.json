@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "rol",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "La sesión principal que sigue /orquestar: elige el pipeline, escribe el brief de cada agente y junta sus informes.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

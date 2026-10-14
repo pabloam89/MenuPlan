@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que muestra los días de un mes o de una semana y lo que hay en cada uno.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

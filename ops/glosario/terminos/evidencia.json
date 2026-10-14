@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Un dato que respalda una afirmación y que otro puede repetir: comando y salida, fichero:línea, un run o un PR.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

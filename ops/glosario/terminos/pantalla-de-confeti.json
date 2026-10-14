@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que celebra un logro con una lluvia animada de confeti.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

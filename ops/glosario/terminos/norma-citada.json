@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "campo",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Una lista de normas, por id, que una tarea o una skill cita aparte de las que le llegan por su ámbito y su acción.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que explica las consecuencias y pide confirmar al borrar o desactivar la cuenta.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

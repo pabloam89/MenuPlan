@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Un flujo de usuario que lleva a la persona a enviar un archivo a la aplicación o a bajarlo al dispositivo.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

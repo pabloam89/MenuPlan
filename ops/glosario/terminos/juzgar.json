@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "accion",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Dar un veredicto sobre el trabajo que hizo otro, sin cambiarlo; lo hace un juez y quien construye no juzga lo suyo.",
   "sinonimos_prohibidos": [
     "dictaminar",

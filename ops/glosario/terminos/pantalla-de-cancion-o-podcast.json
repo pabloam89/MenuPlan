@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que muestra un tema o un episodio con sus controles de reproducción.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Una norma vertical que describe la conducta de un producto concreto y se registra en el registro de su proyecto, no en el horizontal.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

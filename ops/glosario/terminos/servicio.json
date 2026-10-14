@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "ops",
+  "scope": "horizontal",
   "definicion": "Un proveedor externo con cuenta dueña (alojamiento, base de datos, código, claves, modelos) que el proyecto usa y que ops/INVENTARIO.md apunta.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

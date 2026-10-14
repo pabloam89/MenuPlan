@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que muestra los mensajes de una conversación y permite escribir uno nuevo.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

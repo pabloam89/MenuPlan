@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que permite traer datos de fuera o sacarlos en un archivo.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

@@ -32,7 +32,7 @@ const ADMITIDAS = ["AVISO_POR_CREDENCIAL[cred]"];
 const DURA = {
   id: "ejemplo", nombre: "Tope de ejemplo", sujeto: "endpoint", fuerza: "debe", exigencia: "aplicar un tope diario",
   donde: ["CLAUDE.md"], ejecutor: "codigo_en_ejecucion", alcance: "todos", ante_fallo: "cerrado",
-  control: "api/_guard.test.js", control_tipo: "test", control_procesador: "codigo", control_fuerza: "bloquea", control_momento: "pr", control_que_mira: "comportamiento", control_cobertura: "total", test_fallo: { ruta: "api/_guard.test.js", caso: "sin_redis" }, veredicto: "dura", riesgo: "alto", issue: null,
+  control: ".claude/hooks/guardia.test.js", control_tipo: "test", control_procesador: "codigo", control_fuerza: "bloquea", control_momento: "pr", control_que_mira: "comportamiento", control_cobertura: "total", test_fallo: { ruta: ".claude/hooks/guardia.test.js", caso: "puerta de lectura" }, veredicto: "dura", riesgo: "alto", issue: null,
   principio: "bounded-blast-radius", ambito: "api", lado: "horizontal", acciones: ["construir"],
 };
 
@@ -166,7 +166,7 @@ describe("frases normativas", () => {
 
   it("recorre CLAUDE.md, las reglas, skills, agentes y comandos, PRINCIPIOS y ops/*.md, y esVigilado dice lo mismo", () => {
     const f = ficherosNormativos(RAIZ);
-    for (const r of ["CLAUDE.md", "docs/datos/PRINCIPIOS.md", "ops/PLANOS.md", ".claude/rules/tests.md", ".claude/skills/github/SKILL.md", ".claude/agents/constructor.md", ".claude/commands/orquestar.md"]) expect(f).toContain(r);
+    for (const r of ["CLAUDE.md", "ops/PLANOS.md", ".claude/rules/tests.md", ".claude/skills/github/SKILL.md", ".claude/agents/constructor.md", ".claude/commands/orquestar.md"]) expect(f).toContain(r);
     expect(f.some((r) => r.startsWith("ops/copias/"))).toBe(false);
     expect(f.filter((r) => !esVigilado(r))).toEqual([]);
     for (const r of ["ops/copias/LEEME.md", "src/x.md", ".claude/hooks/x.md", "ops/normas.json"]) expect(esVigilado(r)).toBe(false);
@@ -324,7 +324,7 @@ describe("las reglas de dureza fallan cuando deben", () => {
   it("código en ejecución que falla cerrado sin el test que inyecta el fallo", () => {
     expect(problemas({ test_fallo: undefined }).join()).toMatch(/test_fallo/);
     expect(problemas({ test_fallo: { ruta: "no/existe.test.js", caso: "x" } }).join()).toMatch(/no existe/);
-    expect(problemas({ test_fallo: { ruta: "api/_guard.test.js", caso: "caso que ningún test nombra" } }).join()).toMatch(/no nombra/);
+    expect(problemas({ test_fallo: { ruta: ".claude/hooks/guardia.test.js", caso: "caso que ningún test nombra" } }).join()).toMatch(/no nombra/);
   });
 });
 
