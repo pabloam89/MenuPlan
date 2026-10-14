@@ -7,7 +7,7 @@
       "skill": "hetzner",
       "debe_salir": [
         "Usa la ssh de Windows (C:\\Windows\\System32\\OpenSSH\\ssh.exe) y no la de Git Bash",
-        "Entra por la IP de Tailscale 100.73.252.32, no por la pública",
+        "Entra por la IP de la red privada (Tailscale, 100.x), no por la pública",
         "Avisa de que hay que aprobar la conexión en 1Password"
       ]
     },
@@ -35,8 +35,8 @@
       "peticion": "¿Qué pasos hay que seguir para instalar la copia nocturna de la base en el servidor?",
       "skill": "hetzner",
       "debe_salir": [
-        "Dice que lo lanza Pablo con ! y que necesita su OK",
-        "Remite al procedimiento de .claude/skills/hetzner/referencias/copias-base.md"
+        "Dice que lo lanza una persona con ! y que necesita su OK",
+        "Remite a la ficha de servicio del proyecto, donde están los pasos de instalar las copias"
       ]
     },
     {

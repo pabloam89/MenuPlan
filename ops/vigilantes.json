@@ -322,16 +322,23 @@
     {
       "id": "inventario-vertical",
       "tests": ["ops/inventario-vertical.test.js"],
-      "mira": ["ops/inventario-vertical.json", "ops/principios/**", "ops/principios-producto/**", "ops/fuentes-documentales/**", "ops/entidades.json", "ops/proyectos/**", "ops/normas.json", "ops/glosario/terminos/*.json", "ops/zonas.json", "scripts/lib/inventarioVertical.mjs", "scripts/lib/zonasProyecto.mjs", "scripts/lib/normas.mjs", "ops/redaccion.json", "ops/ficherosGit.js", "docs/ops/INVENTARIO-VERTICAL.md", ".claude/agents/*.md"],
+      "mira": ["ops/inventario-vertical.json", "ops/principios/**", "ops/principios-producto/**", "ops/fuentes-documentales/**", "ops/entidades.json", "ops/proyectos/**", "ops/normas.json", "ops/glosario/terminos/*.json", "ops/zonas.json", "scripts/lib/inventarioVertical.mjs", "scripts/lib/zonasProyecto.mjs", "scripts/lib/normas.mjs", "ops/redaccion.json", "ops/ficherosGit.js", "docs/ops/INVENTARIO-VERTICAL.md", ".claude/agents/*.md", "ops/lados-ficheros.json", "scripts/lib/ladosFicheros.mjs", ".claude/skills/**/*.md", ".claude/rules/*.md", ".claude/commands/*.md", "specs/*.md", "docs/**/*.md", "*.md"],
       "porque": "El inventario de lados (horizontal, vertical, duda) lee los registros de la casa y de HoMenu; sus decisiones a mano nombran principios, entidades y agentes por id, y borrar o renombrar uno sin tocar ops/inventario-vertical.json rompe la cuenta lejos de lo que tocas.",
       "evidencia": "#710 (primera fase del programa #652)"
     },
     {
       "id": "vigilante-lados",
       "tests": ["ops/vigilante-lados.test.js"],
-      "mira": ["ops/techos-lados.json", "scripts/lib/vigilanteLados.mjs", "scripts/lib/inventarioVertical.mjs", "ops/inventario-vertical.json", "ops/principios/**", "ops/principios-producto/**", "ops/fuentes-documentales/**", "ops/entidades.json", "ops/proyectos/**", "ops/normas.json", "ops/glosario/terminos/*.json", "ops/zonas.json", "scripts/lib/normas.mjs", ".claude/agents/*.md"],
-      "porque": "Los techos de lados: ninguna pieza horizontal cita una vertical y las cifras del inventario (dudas, citas, verticales sin registro propio) no suben; añadir una duda o una cita vertical en un registro rompe el techo lejos de lo que tocas, y al bajarla hay que bajar el techo.",
+      "mira": ["ops/techos-lados.json", "scripts/lib/vigilanteLados.mjs", "scripts/lib/inventarioVertical.mjs", "ops/inventario-vertical.json", "ops/principios/**", "ops/principios-producto/**", "ops/fuentes-documentales/**", "ops/entidades.json", "ops/proyectos/**", "ops/normas.json", "ops/glosario/terminos/*.json", "ops/zonas.json", "scripts/lib/normas.mjs", ".claude/agents/*.md", "ops/lados-ficheros.json", "scripts/lib/ladosFicheros.mjs", ".claude/skills/**/*.md", ".claude/rules/*.md", ".claude/commands/*.md", "specs/*.md", "docs/**/*.md", "*.md", "scripts/lib/atadurasProyecto.mjs", "ops/ataduras-proyecto.json", "scripts/**/*.mjs", ".claude/hooks/*.mjs", "ops/**/*.json", "ops/*.test.js", "scripts/*.test.js", ".claude/**/*.test.js"],
+      "porque": "Los techos de lados: ninguna pieza horizontal cita una vertical, la casa no escribe el id de un proyecto a mano (se recorre la lista única) y las cifras del inventario (dudas, citas, verticales sin registro propio) no suben; añadir una duda o una cita vertical en un registro rompe el techo lejos de lo que tocas, y al bajarla hay que bajar el techo.",
       "evidencia": "#710 (punto 7: el vigilante primero)"
+    },
+    {
+      "id": "lados-ficheros",
+      "tests": ["ops/lados-ficheros.test.js"],
+      "mira": ["ops/lados-ficheros.json", "scripts/lib/ladosFicheros.mjs", ".claude/skills/**/*.md", ".claude/rules/*.md", ".claude/commands/*.md", "specs/*.md", "docs/**/*.md", "*.md", "ops/proyectos/*/servicios/*.md", ".claude/skills/*/referencias/*.md", "scripts/lib/skills.mjs", "ops/entidades.json", ".claude/skills/*/SKILL.md"],
+      "porque": "El lado de cada skill, regla, comando, spec y documento está escrito en ops/lados-ficheros.json: un fichero nuevo de esas capas sin lado, una ficha de proyecto sin su skill o una pieza horizontal que cita una vertical rompen el registro lejos de lo que tocas.",
+      "evidencia": "#710 (PR 8: skills, reglas, comandos, specs y documentos con su lado)"
     }
   ],
   "pasos": [

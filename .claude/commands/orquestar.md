@@ -166,23 +166,26 @@ escribas a mano: añade solo lo que el comando no sabe (el objetivo con
 4. **Rama**: en qué rama o worktree trabaja.
 5. **Verificación**: cómo sabrá que ha terminado bien.
 6. **Skills**: la línea `SKILLS A ABRIR: …` que da
-   `npm run skills-encargo -- <ficheros del alcance> [--comando "<comando de riesgo>"] --agente <agente>`
+   `npm run skills-encargo -- <ficheros del alcance> [--comando "<comando de riesgo>"] --agente <agente> --proyecto <id>`
    (sale de `.claude/dominios-skills.json`; no la escribas a mano), con la
    orden de abrirlas antes de tocar su dominio. Las que el agente trae
    precargadas salen aparte. Si no pide ninguna, «ninguna». Un juez también
-   abre las de lo que juzga.
+   abre las de lo que juzga. `<id>` es el proyecto del encargo, uno de la lista `projects` de `ops/entidades.json` (nunca uno escrito a mano). Con `--proyecto` sale además `FICHAS DEL PROYECTO: …`:
+   una skill de servicio es el método de la casa y los datos del proyecto
+   (cuentas, ids, repo) están en su ficha; pégala en el brief y manda abrirla
+   junto a la skill.
 7. **Lo ya apuntado** (#384): pasa tú `npm run buscar -- "<área, ficheros o síntoma>"`
    (y `npm run issues`, filtrado por el área) y pega en el brief los issues y
    encargos que salen, con su estado y su plan. El agente no los vuelve a presentar
    como nuevos: cada hallazgo suyo lleva `YA APUNTADO: #n` o `NUEVO (buscado: …)`.
    Un hallazgo sin esa marca se devuelve.
 8. **Estándar de la tarea** (#413): la línea `ESTÁNDAR A CUMPLIR: <agente>/<tarea>`
-   que da `npm run estandar -- <agente> <tarea> --proyecto homenu --ficheros <a,b,…>` (las tareas de
+   que da `npm run estandar -- <agente> <tarea> --proyecto <id> --ficheros <a,b,…>` (las tareas de
    cada agente están en `ops/estandares-agentes.json`; `npm run estandar -- <agente>`
    las lista), con su acción, las normas que le tocan por id (sus ámbitos × su
    acción, más las del ámbito de cada fichero que va a tocar; #620), sus condiciones
    propias, las comunes que nombra y lo que no hace pegados en el brief. En el
-   brief del juez, `npm run estandar -- <juez> <tarea> --proyecto homenu --diff` (los ficheros de la
+   brief del juez, `npm run estandar -- <juez> <tarea> --proyecto <id> --diff` (los ficheros de la
    rama, como `skills-encargo --diff`): recibe las mismas normas que el constructor. Si el encargo no encaja en
    ninguna tarea, «ninguna tarea del catálogo» y por qué: es la señal de una
    tarea que falta. Todas las tareas, en una tabla: `docs/ops/ESTANDARES.md`.

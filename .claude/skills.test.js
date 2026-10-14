@@ -152,6 +152,17 @@ it("falla «copiado» con un párrafo largo igual en dos skills", () => {
   expect(delParrafo(faltasDeCopiado([a, { ...buena(), nombre: "otra" }]))).toEqual([]);
 });
 
+// Una capa que es dato del proyecto (no método) la cita la ficha de proyecto de la skill, no SKILL.md (#710, PR 8): una skill
+// horizontal no cita un fichero vertical. Sin la ficha, la capa vuelve a ser huérfana.
+it("una capa que solo cita la ficha de proyecto de la skill no es huérfana, y sin ficha sí", () => {
+  const huerfana = { ficheros: ["SKILL.md", "casos.json", "referencias/detalle.md", "referencias/del-proyecto.md"], extra: { "referencias/detalle.md": "Detalle.\n", "referencias/del-proyecto.md": "Datos.\n" } };
+  const conFicha = buena({ ...huerfana, fichas: { "ops/proyectos/x/servicios/prueba.md": "Datos en `.claude/skills/prueba/referencias/del-proyecto.md`.\n" } });
+  expect(ver(nivel1(conFicha))).toEqual([]);
+  expect(nivel1(buena(huerfana)).map((f) => f.regla)).toContain("estructura");
+  const otraSkill = buena({ ...huerfana, fichas: { "ops/proyectos/x/servicios/prueba.md": "Datos en `.claude/skills/otra/referencias/del-proyecto.md`.\n" } });
+  expect(nivel1(otraSkill).map((f) => f.regla)).toContain("estructura");
+});
+
 // La caducidad no es del nivel 1: el reloj no pone en rojo todos los PR. Aquí
 // solo avisa; falla en el paso «Skills del PR» si el PR toca la skill.
 it("una skill caducada no falla el nivel 1, y la regla «caducada» solo salta si el PR la toca", () => {

@@ -1,17 +1,20 @@
 // El uso de las skills se cuenta desde los transcripts de Claude Code (#397).
 // Transcripts de mentira, una línea JSONL por evento, como los escribe Claude Code.
 import { describe, expect, it } from "vitest";
-import { mkdirSync, mkdtempSync, utimesSync, writeFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { mkdirSync, mkdtempSync, readFileSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { cargarMapa } from "../.claude/hooks/dominios.mjs";
+import { PROYECTOS_CON_NORMAS } from "./lib/zonasProyecto.mjs";
 import {
   TOQUES,
   VIAS,
   comandoQueCuenta,
   eventosDeTranscript,
+  fichasDeProyecto,
   lineas,
   medirUso,
   nombreDeProyecto,
@@ -166,6 +169,49 @@ describe("skillsDelEncargo: las skills del brief salen del mapa", () => {
     expect(precargadasDe(RAIZ, "constructor")).toEqual([]);
     expect(precargadasDe(RAIZ, "no-existe")).toEqual([]);
     expect(precargadasDe(RAIZ, "../constructor")).toEqual([]);
+  });
+
+  // Los proyectos salen de la lista única (PROYECTOS_CON_NORMAS, #748; `servicios` de cada uno, en `projects` de ops/entidades.json): ningún id escrito a mano.
+  const PROYECTOS_ = JSON.parse(readFileSync(join(RAIZ, "ops", "entidades.json"), "utf8")).projects.filter((p) => PROYECTOS_CON_NORMAS.includes(p.id));
+  const fichaDe = (id, s) => `ops/proyectos/${id}/servicios/${s}.md`;
+
+  it("fichasDeProyecto: los datos de cada proyecto de la lista llegan por referencia (--proyecto)", () => {
+    expect(PROYECTOS_.length).toBeGreaterThanOrEqual(2);
+    for (const p of PROYECTOS_) {
+      expect(fichasDeProyecto(RAIZ, p.id, p.servicios), p.id).toEqual(p.servicios.map((s) => fichaDe(p.id, s)));
+      // Una skill sin ficha en ese proyecto (de oficio, entera y vertical, o de servicio que no usa) no trae nada.
+      expect(fichasDeProyecto(RAIZ, p.id, ["causa-raiz", "telegram"]), p.id).toEqual([]);
+      expect(fichasDeProyecto(RAIZ, p.id, ["../" + p.servicios[0]]), p.id).toEqual([]);
+    }
+    // Un proyecto o un nombre que no valen tampoco.
+    expect(fichasDeProyecto(RAIZ, "no-existe", ["github"])).toEqual([]);
+    expect(fichasDeProyecto(RAIZ, "../" + PROYECTOS_[0].id, ["github"])).toEqual([]);
+    expect(fichasDeProyecto(RAIZ, null, ["github"])).toEqual([]);
+  });
+
+  it("skills-encargo --proyecto suma la línea FICHAS DEL PROYECTO, y sin --proyecto no sale", () => {
+    const [p] = PROYECTOS_.filter((x) => x.servicios.includes("vercel") && x.servicios.includes("supabase"));
+    const con = spawnSync(process.execPath, ["scripts/skills-encargo.mjs", "--proyecto", p.id, "vercel.json", "supabase/x"], { cwd: RAIZ, encoding: "utf8", windowsHide: true });
+    expect(con.stdout).toMatch(/^SKILLS A ABRIR: supabase, vercel$/m);
+    expect(con.stdout).toContain(`\nFICHAS DEL PROYECTO: ${fichaDe(p.id, "supabase")}, ${fichaDe(p.id, "vercel")}`);
+    const sin = spawnSync(process.execPath, ["scripts/skills-encargo.mjs", "vercel.json"], { cwd: RAIZ, encoding: "utf8", windowsHide: true });
+    expect(sin.stdout).not.toContain("FICHAS DEL PROYECTO");
+  });
+
+  it("skills-encargo --proyecto con un id inventado avisa y falla; con uno de la lista, no", () => {
+    const corre = (id) => spawnSync(process.execPath, ["scripts/skills-encargo.mjs", "--proyecto", id, "vercel.json"], { cwd: RAIZ, encoding: "utf8", windowsHide: true });
+    const mal = corre("inventado");
+    expect(mal.stdout).toContain("FICHAS DEL PROYECTO: ninguna");
+    expect(mal.stdout).toMatch(/AVISO: «inventado» no es un proyecto de la lista/);
+    expect(mal.status).toBe(1);
+    const bien = corre(PROYECTOS_[0].id);
+    expect(bien.stdout).not.toContain("AVISO");
+    expect(bien.status).toBe(0);
+  });
+
+  it("cada skill de servicio del mapa la usa algún proyecto de la lista, con su ficha (si no, --proyecto no le da nada)", () => {
+    const conFicha = new Set(PROYECTOS_.flatMap((p) => fichasDeProyecto(RAIZ, p.id, skills).map((r) => r.split("/").pop().replace(/\.md$/, ""))));
+    for (const s of ["1password", "github", "hetzner", "tailscale", "vercel", "supabase"]) expect(conFicha.has(s), s).toBe(true);
   });
 
   it("cada skill de la lista es una skill de verdad", () => {

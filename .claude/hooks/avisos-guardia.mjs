@@ -184,13 +184,13 @@ export const AVISOS = {
     codigo: "skill-antes-de-riesgo",
     que: "Lanzar este comando sin haber abierto {las_skills} {lista}",
     porque: "es de los que, mal hechos, cuestan caro, y {su_dominio_tiene} runbook con lo que ya falló aquí",
-    enSuLugar: "abre antes {las_skills} {lista} (herramienta {abre}) y reintenta el mismo comando; este aviso sale una sola vez por skill y sesión: al reintentar pasa",
+    enSuLugar: "abre antes {las_skills} {lista} (herramienta {abre}) y reintenta el mismo comando; este aviso sale una sola vez por skill y sesión: al reintentar pasa{ficha}",
   },
   "puerta-de-skill-edicion": {
     codigo: "skill-antes-de-tocar",
     que: "Editar este fichero sin haber abierto {las_skills} {lista}",
     porque: "es de un dominio con runbook: {sus_skills_tienen} lo que ya falló aquí y cómo se hace",
-    enSuLugar: "abre antes {las_skills} {lista} (herramienta {abre}) y reintenta la misma edición; este aviso sale una sola vez por skill y sesión: al reintentar pasa",
+    enSuLugar: "abre antes {las_skills} {lista} (herramienta {abre}) y reintenta la misma edición; este aviso sale una sola vez por skill y sesión: al reintentar pasa{ficha}",
   },
   "escribir-lo-de-lola": {
     codigo: "evals-antes-de-fusionar",

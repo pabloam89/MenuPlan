@@ -146,6 +146,7 @@ prepara el PR con el inventario (qué decía, quién la citaba, a dónde pasa lo
 
 ## Registro de cambios
 
+- **2026-10-14** · Una skill de servicio es el método de la casa y lo de cada proyecto va a su ficha, `ops/proyectos/<id>/servicios/<skill>.md`; el proyecto la declara en `servicios` y ningún id se escribe a mano: `ops/lados-ficheros.test.js` recorre todos los proyectos (#710).
 - **2026-10-11** · La cabecera de cada skill dice a qué normas sirve (`metadata.normas`, ids de `ops/normas.json`); la skill las cita y no copia su frase, y `ops/uniones.test.js` lo comprueba (#620).
 - **2026-10-10** · Esta skill pasa a ser la pieza meta (paso forja, sin tipo); una skill nueva copia el molde de su tipo, generado desde la forja en `.claude/plantillas-skill/` (#495).
 - **2026-10-10** · Las 7 excepciones de fechas que quedaban se arreglan y la lista queda vacía; la revisión de una skill concreta pasa a `higiene-de-skills` (#411).

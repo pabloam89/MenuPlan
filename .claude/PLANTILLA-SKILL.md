@@ -38,6 +38,15 @@ ahí Claude Code la cargaría como si fuera una skill más.
   cita por su nombre; el test falla si un párrafo largo aparece igual en dos.
 - Comandos copiables tal cual, con lo que **debe salir**. «Funciona» no es una
   comprobación: di qué se ve cuando funciona.
+- **Una skill es del lado de la casa o de un proyecto, no de los dos** (`ops/lados-ficheros.json`,
+  #710). La de un servicio es el método y es horizontal; lo que es de un proyecto (ids, cuentas,
+  bóvedas, repo, equipo) va a su ficha, `ops/proyectos/<id>/servicios/<skill>.md`, que el agente
+  recibe con `--proyecto`. Cada proyecto de la lista (`projects` de `ops/entidades.json`) declara en
+  `servicios` las skills de servicio que usa y tiene la ficha de cada una; ningún id se escribe a mano
+  (`ops/lados-ficheros.test.js` recorre todos los proyectos y falla con una ficha sin skill o una skill
+  sin ficha). La skill dice que la ficha existe, con `<id>` y sin la ruta real, y
+  no cita ningún fichero vertical por su ruta (lo vigila `ops/lados-ficheros.test.js`); una
+  referencia que es dato del proyecto la cita la ficha.
 
 ## Estructura común
 
@@ -208,7 +217,7 @@ Real: `tailscale`, la tabla de «Operaciones habituales».
 ```
 | Qué | Comando | Debe salir |
 |---|---|---|
-| Probar la entrada al servidor | `ssh root@100.73.252.32 hostname` | `HoMenu-Panel` |
+| Ver si el PC está conectado | `"C:\Program Files\Tailscale\tailscale.exe" status` | la lista de máquinas; si pone `Logged out.`, falta iniciar sesión |
 ```
 
 ### `procedimiento`

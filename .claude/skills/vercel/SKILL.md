@@ -16,48 +16,28 @@ metadata:
 
 # Vercel
 
+Método de la casa. El equipo, el proyecto, lo que despliega, sus funciones, el vigía y lo que ha fallado en un proyecto concreto no van aquí: están en la ficha de servicio de ese proyecto (`ops/proyectos/<id>/servicios/vercel.md`), que llega con `--proyecto <id>` en el brief. Si no te llegó (no pasaste por `/orquestar`), ábrela tú en esa ruta, con el id de tu proyecto: la puerta de la guardia te la sugiere al pedirte esta skill.
+
 ## Qué es y dónde
 
-- **Equipo «menuplan», proyecto `homenu`** (antes «Monicos MenuPlan» y
-  `menu-plan`: si aparecen así en algún sitio, es el mismo). Plan Pro. Owners:
-  Pablo y Álvaro.
-- **Qué despliega**: la app (Vite, `dist/`) y las funciones de `api/`. Región
-  única **fra1** (`vercel.json`), cerca de Supabase (eu-central-1).
-- **Ramas**: cada PR tiene su preview; `staging` despliega en el entorno
-  personalizado `staging-menuplan`; `main` es producción.
-- **El bot** (`api/bot/telegram.js`) lleva `maxDuration: 120` e
-  `includeFiles` con `conocimiento.md`, `recetasVectores.json`,
-  `dishImages.json` y dos que genera el propio build (core.mjs y
-  dominiosGustos.json). Un fichero que el bot lea en tiempo de ejecución y no
-  esté en esa lista no viaja al despliegue. **El canario**
-  (`api/bot/canario.js`, #267) carga el mismo agente y lleva los mismos
-  `includeFiles` y `maxDuration`; `src/lib/vigia.test.js` falla si se
-  separan. Lo que importa una función desde `scripts/` no viaja
-  (`.vercelignore`): por eso la configuración del vigía vive en
-  `src/lib/vigia.js`.
-- **Blob**: las fotos de platos y sus derivados WebP
-  (`scripts/upload-to-blob.mjs`).
-- **Crons**: en `vercel.json` no hay ninguno. Los de MenuPlan son de GitHub
-  Actions y de `pg_cron` (skills `github` y `supabase`). El vigía de Lola
-  (`vigia-lola.yml`) lee los logs de Vercel desde Actions con un
-  `VERCEL_TOKEN` y llama al canario cada 15 min.
-- **Supabase** cuelga del equipo como integración del Marketplace: Vercel es
-  quien la paga.
+- **Un equipo y un proyecto** de Vercel que despliegan la app (Vite, `dist/`) y las funciones de `api/`, en una región fija (`vercel.json`) cerca de la base de datos.
+- **Ramas**: cada PR tiene su preview; la rama de integración despliega en un entorno personalizado de staging; `main` es producción.
+- **Una función que lee un fichero en tiempo de ejecución** necesita ese fichero en su `includeFiles`: lo que no esté en la lista no viaja al despliegue. Lo que importa una función desde `scripts/` tampoco viaja (`.vercelignore`).
+- **Blob**: almacén de ficheros del proyecto (fotos y sus derivados).
+- **Crons**: los de `vercel.json`, si los hay; otros pueden vivir en GitHub Actions o en la base (skills `github` y `supabase`).
+- **Marketplace**: una integración (la base de datos, por ejemplo) cuelga del equipo y la paga Vercel.
 
 ## Claves y accesos
 
 Los nombres, para qué sirve cada una y en qué entorno están se apuntan en
 `ops/INVENTARIO.md`; las direcciones de 1Password, en `ops/env.1password`.
-Aquí no se repiten. Una sola rareza que conviene saber:
+Aquí no se repiten. Las variables se asignan **por entorno** (Production, Preview,
+Development y los personalizados): que una falte en Preview no es por fuerza un
+fallo, y la lista de las que faltan a propósito está en la ficha del proyecto.
 
-- `AI_GATEWAY_API_KEY` (vectores de Voyage y modelos por el gateway) está en
-  Production, Development y staging-menuplan, **pero no en Preview**: en la
-  preview de un PR, el buscador cae a rasgos + Haiku. Es el comportamiento
-  esperado, no un fallo. El gateway tiene crédito de pago (desde cuándo, en «Fechas» de Fuentes y comprobación).
-
-El acceso a Vercel desde Claude es el conector de claude.ai (equipo y proyecto de
-arriba). La CLI `vercel` sí está instalada en el PC de Pablo (npm global), pero
-**sin sesión**: Pablo entra con `! npx vercel login` cuando la necesita y sale
+El acceso a Vercel desde Claude es el conector de claude.ai (con el equipo y el
+proyecto de la ficha). La CLI `vercel` puede estar instalada en el PC de la persona, pero
+**sin sesión**: ella entra con `! npx vercel login` cuando la necesita y sale
 al terminar. La guardia niega a las sesiones bajar o listar las variables de
 Production (`vercel env pull|ls … production`, `vercel pull --environment=production`):
 llevan la clave de administrador de la base y el token del bot (#332).
@@ -68,45 +48,27 @@ llevan la clave de administrador de la base y el token del bot (#332).
 |---|---|---|
 | Estado y logs de un despliegue | el conector de Vercel: `list_deployments`, `get_deployment`, `get_runtime_logs`, `get_runtime_errors` | el estado (`READY`, `ERROR`, …) y los logs. Primero se miran los logs; luego se toca nada |
 | ¿Qué hay en staging? | `git fetch origin` y mirar `origin/staging` | el commit. Vercel solo dice si ese commit desplegó bien |
-| Build local igual que Vercel | `npm run build` (el `prebuild` valida el catálogo y corre `check:tdz`) | build verde. Nunca `vite build` a secas |
-| Subir fotos a Blob | `node scripts/upload-to-blob.mjs` | manifest y derivados escritos; lee `BLOB_READ_WRITE_TOKEN` por 1Password |
-| Rehacer los vectores del buscador | `node scripts/build-vectores.mjs` | `api/_bot/recetasVectores.json` actualizado solo para lo que cambió; necesita `AI_GATEWAY_API_KEY` |
+| Build local igual que Vercel | el script `build` del proyecto (`npm run build`), que corre su `prebuild` | build verde. Nunca el compilador a secas (`vite build`) |
 | Volver atrás en producción (OK) | «Instant Rollback» del panel o `request_rollback` del conector | el despliegue anterior vuelve a ser el de producción |
-| ¿Pasó el despliegue la puerta de salud? | `gh run list --workflow salud-despliegue.yml --limit 3` | el último run en verde; en rojo, el issue «Despliegue sin salud: <rama>» con el motivo |
 
-**Vuelta atrás.** Nada revierte solo: la puerta de salud
-(`.github/workflows/salud-despliegue.yml`, #589) avisa en rojo y con un issue cuando un
-despliegue de `staging` o `main` no responde, y volver al anterior lo hace una persona.
-Los clics del panel, qué mirar después, qué NO se revierte (las migraciones) y cómo
-anotar el ensayo en `ops/ensayos-rollback.json`: abre
-`.claude/skills/vercel/referencias/vuelta-atras.md`. Ensayada: todavía no (el registro
-está vacío; lo hace Pablo, issue 589).
+**Vuelta atrás.** Nada revierte solo: una puerta de salud tras desplegar avisa en rojo
+cuando un despliegue no responde, y volver al anterior lo hace una persona. Qué NO se
+revierte: las migraciones de la base. Los clics del panel y cómo anotar el ensayo, en
+la ficha del proyecto.
 
 ## Lo que falló y por qué
 
-- **2026-09-24 · despliegue «Blocked»** (repo privado `gastos-homenu`): duración
+- **2026-09-24 · despliegue «Blocked»** (repo privado): duración
   0 ms, estado `UNKNOWN` en la CLI, «This deployment can not be redeployed»,
   Cancel en gris aun siendo Owner. Causa: el ajuste «añadir como Developer a
   quien commitea en un repo privado» retiene el despliegue mientras el autor del
   commit no es miembro del equipo. Arreglo: commitear con una identidad que ya
-  sea miembro (`git config user.email 99191376+pabloam89@users.noreply.github.com`);
-  pasó de retenido a Ready en 9 s. MenuPlan es público y no lo sufre; si pasa a
+  sea miembro (`git config user.email <id>+<usuario>@users.noreply.github.com`);
+  pasó de retenido a Ready en 9 s. Un repo público no lo sufre; si pasa a
   privado, esto vuelve.
-- **2026-10-09 · staging desplegó en rojo y nada lo frenó ni lo avisó (#589).**
-  Causa: Vercel despliega al fusionar y nada miraba si lo desplegado respondía; el
-  único vigilante (el vigía de Lola) solo avisa de fallos del bot, no de un despliegue
-  roto, y la vuelta atrás no se había ensayado. Arreglo: la puerta de salud tras
-  desplegar, con test (`ops/salud-despliegue.test.js`, `scripts/salud-despliegue.test.js`), y
-  el procedimiento de vuelta atrás con su registro de ensayos. Antes: 0 despliegues con
-  comprobación y 0 ensayos; después: los de `staging-menuplan` y `Production` (no los de `Preview`), y 0 ensayos hasta que
-  Pablo lo haga. Sin comprobar: la puerta en un despliegue real (puede tapar la respuesta
-  una protección de Vercel: saldría `protegido`).
 - **2026-09-22 · staging roto por un build que en local pasaba.** Causa: se
   verificó con `vite build`, y el `prebuild` de Vercel cazó un `no-undef`.
   Arreglo: la guardia niega `vite build` a secas.
-- **2026-10-01 · los vectores no funcionan en una preview.** Causa: la clave del
-  gateway no está en Preview (ver «Claves y accesos»); no es un fallo. Arreglo:
-  ninguno; el buscador cae a rasgos + Haiku.
 - **2026-10-08 · `vercel logs` devuelve como mucho 50 peticiones**, aunque se
   pida `--limit 2000` (CLI 62.1.0), y sin avisar. Causa: es el tope de la CLI;
   las da de la más nueva a la más vieja, y `--until` incluye el instante
@@ -114,37 +76,24 @@ está vacío; lo hace Pablo, issue 589).
   atrás con `--since`/`--until` en ISO y quitar repetidos por `id`, como hace
   `scripts/bot-fallos.mjs` (`paginar`). En producción puede no haber tráfico
   reciente: el informe dice qué entorno y qué rango ha cubierto.
-- **2026-10-09 · los logs de staging no están en `production` ni en
-  `staging-menuplan`.** Causa: `vercel logs --environment` solo acepta
-  `production` o `preview` (con otro valor: «Invalid environment»), y el
-  entorno personalizado de staging sale como `preview`. Medido ese día: en 24 h, 0 peticiones en
-  `production` y en `preview` las de `/api/bot/recordatorios` y
-  `/api/bot/telegram` (el webhook de Lola apuntaba a staging). Arreglo: el
-  vigía mira el entorno de la variable `VIGIA_ENTORNO`, que tiene que seguir al
-  webhook.
-
-- **2026-10-09 · el vigía no leía los logs en Actions** (`logs: sin_configurar`
-  con `VERCEL_TOKEN` puesto). Causa: en el runner no hay `.vercel/` (checkout
-  parcial) y cualquier error con «not found» se tomaba por «falta la CLI»,
-  sin decir cuál era. Arreglo: la CLI recibe `VERCEL_ORG_ID` y
-  `VERCEL_PROJECT_ID` en su entorno (`IDS_VERCEL`, `scripts/bot-fallos.mjs`;
-  probado sin sesión, sin `.vercel/` y con token: lee el proyecto) y
-  `motivoDeCli` da el motivo del vocabulario a la línea `vigia_logs`.
-  Con eso salió el motivo de verdad, `no_existe`: «User not found.».
-  Causa: el token se creó con scope del equipo («Monicos MenuPlan»), y la
-  CLI pregunta primero por el usuario (`/v2/user` da 404 con ese token,
-  aunque el API REST del proyecto responda 200). Arreglo: un token para la
-  CLI se crea con scope **«Full Account»**, que cubre la cuenta y el equipo,
-  y a 90 días (ficha «Vercel Vigía»). Comprobado: con él, `vercel logs` lee y
-  el vigía cerró el incidente.
-
-- **2026-10-09 · la CLI tenía la sesión de Pablo abierta (Owner)** y esta
-  skill decía que la CLI no estaba instalada. Causa: un login antiguo que se
-  quedó en el AppData de Windows (carpeta com.vercel.cli); cualquier sesión podía
-  bajarse las variables de Production (lo vio el juez `seguridad`, #332).
-  Arreglo: `vercel logout` el 10 oct (comprobado: el fichero de sesión ya no existe y
-  `whoami` da «Logged out») y la regla de la guardia que niega
-  `vercel env pull|ls … production`, con su test en `guardia.test.js`.
+- **2026-10-09 · los logs de un entorno personalizado no están en su nombre.**
+  Causa: `vercel logs --environment` solo acepta `production` o `preview` (con
+  otro valor: «Invalid environment»), y el entorno personalizado de staging sale
+  como `preview`. Arreglo: elegir el entorno por una variable que siga al
+  tráfico real (en el vigía, `VIGIA_ENTORNO`).
+- **2026-10-09 · «User not found.» con un token que sí existe.** Causa: el
+  token se creó con scope del equipo, y la CLI pregunta primero por el usuario
+  (`/v2/user` da 404 con ese token, aunque el API REST del proyecto responda
+  200). Arreglo: un token para la CLI se crea con scope **«Full Account»**, que
+  cubre la cuenta y el equipo, y a 90 días. En un runner sin `.vercel/` la CLI
+  necesita `VERCEL_ORG_ID` y `VERCEL_PROJECT_ID` en su entorno.
+- **2026-10-09 · la CLI tenía la sesión de la persona abierta (Owner).**
+  Causa: un login antiguo que se quedó en el AppData de Windows (carpeta
+  com.vercel.cli); cualquier sesión podía bajarse las variables de Production
+  (lo vio el juez `seguridad`, #332). Arreglo: `vercel logout` (comprobado: el
+  fichero de sesión ya no existe y `whoami` da «Logged out») y la regla de la
+  guardia que niega `vercel env pull|ls … production`, con su test en
+  `guardia.test.js`.
 
 ## Qué requiere el OK de Pablo
 
@@ -156,10 +105,10 @@ está vacío; lo hace Pablo, issue 589).
 
 ## Coste y límites
 
-Plan Pro del equipo; Supabase y el crédito del gateway de IA salen de ahí. Límites
-que muerden: `maxDuration: 120` en el bot, y el tamaño de los ficheros que el
-bot lee (`includeFiles`). Si el repo pasa a privado, los commits de autores que
-no son miembros del equipo se bloquean y cuentan como asientos.
+Plan del equipo (Pro, por ejemplo); lo que se contrata por el Marketplace sale de
+ahí. Límites que muerden: `maxDuration` de una función y el tamaño de los
+ficheros que lee (`includeFiles`). Si el repo pasa a privado, los commits de
+autores que no son miembros del equipo se bloquean y cuentan como asientos.
 
 ## Fuentes y comprobación
 
@@ -167,6 +116,4 @@ no son miembros del equipo se bloquean y cuentan como asientos.
 - https://vercel.com/docs/projects/environment-variables
 - https://vercel.com/docs/instant-rollback
 
-Fechas que estaban repartidas por el cuerpo (#411): el gateway de IA tiene crédito de pago desde el 1 oct 2026.
-
-Comprobado el 2026-10-08: el contenido viene de la versión anterior de esta skill, reordenado a la plantilla sin cambiar los hechos; hoy no se ha vuelto a ejecutar lo que cita. Sin comprobar: un rollback real en producción.
+Comprobado el 2026-10-08: el contenido viene de la versión anterior de esta skill, reordenado a la plantilla sin cambiar los hechos; hoy no se ha vuelto a ejecutar lo que cita (qué se comprobó de cada proyecto, en su ficha). Sin comprobar: un rollback real en producción.

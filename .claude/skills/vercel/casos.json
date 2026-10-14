@@ -12,12 +12,12 @@
       ]
     },
     {
-      "id": "vectores-preview",
-      "peticion": "En la preview de mi PR el buscador de recetas no usa los vectores.",
+      "id": "variable-no-en-preview",
+      "peticion": "En la preview de mi PR una función no encuentra una variable de entorno que en producción sí funciona.",
       "skill": "vercel",
       "debe_salir": [
-        "Explica que AI_GATEWAY_API_KEY no está en el entorno Preview",
-        "Dice que es lo esperado y que el buscador cae a rasgos + Haiku",
+        "Explica que las variables se asignan por entorno y puede que falte en Preview",
+        "Dice que puede ser a propósito y manda a mirar la ficha del proyecto antes de dar por roto",
         "No propone añadir la variable sin el OK de Pablo"
       ]
     },
@@ -28,7 +28,7 @@
       "debe_salir": [
         "Propone npm run build",
         "Dice que no se lance el build de Vite directamente, sin el prebuild",
-        "Menciona que el prebuild valida el catálogo o corre check:tdz"
+        "Menciona que el prebuild del proyecto corre sus comprobaciones antes del build"
       ]
     },
     {

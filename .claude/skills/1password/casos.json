@@ -26,7 +26,7 @@
       "skill": "1password",
       "debe_salir": [
         "Dice que no: .env.local guarda direcciones op:// y no cambian al cambiar el valor de la ficha",
-        "Si la clave está en la lista COPIAR, dice que hay que cambiarla también en HoMenu-sesiones",
+        "Si la clave está copiada en más de una bóveda, dice que hay que cambiarla también en las demás",
         "Remite el cambio de punta a punta de la clave (servicio, caducidad, destinos) a la skill alta-de-secreto"
       ]
     },

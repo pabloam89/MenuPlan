@@ -346,6 +346,20 @@ export function skillsDelEncargo({ ficheros = [], comandos = [], mapa, precargad
   return [...out.values()].sort((a, b) => a.skill.localeCompare(b.skill));
 }
 
+/**
+ * Las fichas de servicio de un proyecto para esas skills (#710, decisión 4A): una skill de servicio es el método de la
+ * casa, y lo que es de un proyecto (ids, cuentas, bóvedas, repo) vive en `ops/proyectos/<id>/servicios/<skill>.md`, que el
+ * agente recibe por referencia con `--proyecto <id>`. Devuelve las rutas de las que existen (una skill sin ficha no
+ * trae nada: no todas son de servicio); [] si el id del proyecto o el nombre de una skill no valen.
+ */
+export function fichasDeProyecto(raiz, proyecto, skills) {
+  if (typeof proyecto !== "string" || !NOMBRE.test(proyecto)) return [];
+  return skills
+    .filter((s) => typeof s === "string" && NOMBRE.test(s))
+    .map((s) => `ops/proyectos/${proyecto}/servicios/${s}.md`)
+    .filter((r) => existsSync(join(raiz, r)));
+}
+
 /** Las skills del `skills: [a, b]` del frontmatter de un agente; [] si no existe o el nombre no vale. */
 export function precargadasDe(raiz, agente) {
   if (typeof agente !== "string" || !NOMBRE.test(agente)) return [];
