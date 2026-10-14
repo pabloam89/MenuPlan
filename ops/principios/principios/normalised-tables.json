@@ -6,8 +6,8 @@
   "porque": "Una copia de un nombre o un precio en otra tabla se queda vieja sin que nada lo avise.",
   "fuentes": [
     {
-      "marca": "I",
-      "fuente": "casa-principios-datos"
+      "marca": "F",
+      "fuente": "ms-normalizacion"
     }
   ],
   "detalle": [

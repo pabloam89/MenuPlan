@@ -80,11 +80,10 @@ describe("las comprobaciones, con datos rotos (casos negativos)", () => {
     expect(fallosDeDudas([{ capa: "normas", razon: "una razón suficientemente larga" }])).toHaveLength(1);
   });
 
-  it("una decisión que apunta a un principio, entidad o agente que no existe se detecta", () => {
-    const dec = { principios_verticales: { p1: "x" }, entidades_verticales_genericas: { e1: "x" }, agentes_dudosos: { a1: "x" } };
+  it("una decisión que apunta a una entidad o un agente que no existe se detecta", () => {
+    const dec = { entidades_verticales_genericas: { e1: "x" }, agentes_dudosos: { a1: "x" } };
     const todo = { existe: () => true, entidades: ["e1"] };
     expect(fallosDeDecisiones(dec, todo)).toEqual([]);
-    expect(fallosDeDecisiones(dec, { ...todo, existe: (r) => !r.includes("principios/p1") })).toEqual(["principio p1"]);
     expect(fallosDeDecisiones(dec, { ...todo, entidades: [] })).toEqual(["entidad e1"]);
     expect(fallosDeDecisiones(dec, { ...todo, existe: (r) => !r.includes("agents/a1") })).toEqual(["agente a1"]);
   });

@@ -6,8 +6,8 @@
   "porque": "El catálogo de la base es la documentación que no se queda vieja, y un select de todo esconde quién lee qué.",
   "fuentes": [
     {
-      "marca": "I",
-      "fuente": "casa-principios-datos"
+      "marca": "S",
+      "fuente": "pg-comment"
     }
   ],
   "detalle": [

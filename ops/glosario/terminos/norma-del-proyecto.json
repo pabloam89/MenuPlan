@@ -16,6 +16,6 @@
     "fichero": "scripts/lib/normas.mjs",
     "clave": "cargarNormas"
   },
-  "nota": "Vive en ops/proyectos/<id>/normas.json con su campo project; el estándar de una tarea horizontal no la lista, se pide con npm run estandar -- <agente> <tarea> --proyecto <id> (#704).",
+  "nota": "Vive en ops/proyectos/<id>/normas.json con su campo project; el estándar de una tarea horizontal no la lista, se pide con npm run estandar -- <agente> <tarea> --proyecto <id> (#704). Toda norma del proyecto llega a una tarea de un agente, general o propia del proyecto en ops/proyectos/<id>/tareas.json (#710).",
   "sin_entidad": "componente"
 }

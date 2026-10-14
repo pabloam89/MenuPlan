@@ -23,11 +23,11 @@
  * Las uniones con las normas (norma → principio, principio sin norma) las vigila ops/uniones.test.js.
  * Repo público (#300): un principio dice el porqué, nunca cómo se salta un control.
  */
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 import { AMBITOS } from "./ambitos.mjs";
-import { leerCatalogo } from "./catalogos.mjs";
+import { esCatalogo, leerCatalogo } from "./catalogos.mjs";
 import { conFuentesResueltas } from "./fuentesDoc.mjs";
 import { ACCIONES, UMBRAL_REESCRITURA, leerEstandares, parecido } from "./estandaresAgentes.mjs";
 import { leerForja } from "./forja.mjs";
@@ -37,10 +37,15 @@ import { ID_KEBAB, MARCAS_FUENTE, problemasDePrincipio } from "./regla.mjs";
 
 export const RUTA_PRINCIPIOS = "ops/principios/";
 export const RUTA_MD = "docs/PRINCIPIOS.md";
+/** Los principios de un proyecto (#710): ops/proyectos/<id>/principios/, un catálogo partido con el mismo esquema y `project`. */
+export const RUTA_PROYECTOS = "ops/proyectos";
+export const rutaPrincipiosDeProyecto = (id) => `${RUTA_PROYECTOS}/${id}/principios/`;
 
 /** Lo que lleva cada principio propio, y lo que puede faltar. */
 export const CAMPOS = ["id", "area", "nombre", "enunciado", "porque", "fuentes"];
 export const CAMPOS_OPCIONALES = ["detalle", "origen"];
+/** Solo lo lleva un principio de proyecto: el id del proyecto (un `projects` de ops/entidades.json). */
+export const CAMPO_PROYECTO = "project";
 /** Lo que puede llevar un anexo a un principio delegado. */
 export const CAMPOS_ANEXO = ["detalle", "origen", "puente"];
 
@@ -105,6 +110,17 @@ export function seccionDe(md, ancla) {
 /** El catálogo propio, tal cual (sin los delegados). */
 export const leerCatalogoPropio = (raiz) => conFuentesResueltas(raiz, leerCatalogo(raiz, RUTA_PRINCIPIOS));
 
+/** Los principios de cada proyecto, tal cual: { <id>: { project, principios: [...] } } ({} si ninguno tiene registro). */
+export function leerPrincipiosDeProyecto(raiz) {
+  const fuera = {};
+  const dir = join(raiz, RUTA_PROYECTOS);
+  if (!existsSync(dir)) return fuera;
+  for (const id of readdirSync(dir).sort()) {
+    if (esCatalogo(raiz, rutaPrincipiosDeProyecto(id))) fuera[id] = conFuentesResueltas(raiz, leerCatalogo(raiz, rutaPrincipiosDeProyecto(id)));
+  }
+  return fuera;
+}
+
 /** Una fuente «[F] url» o «[I] ruta» de la guía de redacción, con la forma de la lista. */
 function deTextoDeFuente(t) {
   const m = /^\[(F|I)\] (\S+)$/.exec(String(t));
@@ -134,11 +150,14 @@ function deRedaccion(p, datos, delegado) {
  * nombre, enunciado, porque, fuentes, detalle, origen, puente, catalogo }] }. `catalogo` es null
  * en los propios y la ruta de su catálogo en los delegados. `propio` se inyecta para poder probar.
  */
-export function componerLista(propio, { producto = null, redaccion = null } = {}) {
+export function componerLista(propio, { producto = null, redaccion = null, proyectos = {} } = {}) {
   const delegados = propio.delegados ?? {};
   const fuera = (propio.principios ?? []).map((p) => ({ ...p, detalle: p.detalle ?? [], origen: p.origen ?? [], puente: null, catalogo: null }));
   if (delegados.product && producto) fuera.push(...producto.principios.map((p) => ({ ...deProducto(p, producto, delegados.product), puente: null })));
   if (delegados.writing && redaccion) fuera.push(...redaccion.principios.map((p) => ({ ...deRedaccion(p, redaccion, delegados.writing), puente: null })));
+  for (const cat of Object.values(proyectos)) {
+    fuera.push(...(cat.principios ?? []).map((p) => ({ ...p, detalle: p.detalle ?? [], origen: p.origen ?? [], puente: null, catalogo: null })));
+  }
   for (const p of fuera) {
     const a = propio.anexos?.[p.id];
     if (!a || !p.catalogo) continue;
@@ -153,7 +172,7 @@ export function componerLista(propio, { producto = null, redaccion = null } = {}
 export function leerPrincipiosCasa(raiz) {
   const propio = leerCatalogoPropio(raiz);
   const d = propio.delegados ?? {};
-  return componerLista(propio, { producto: d.product ? leerProducto(raiz) : null, redaccion: d.writing ? leerRedaccion(raiz) : null });
+  return componerLista(propio, { producto: d.product ? leerProducto(raiz) : null, redaccion: d.writing ? leerRedaccion(raiz) : null, proyectos: leerPrincipiosDeProyecto(raiz) });
 }
 
 function problemasDeDetalle(lista, d, { existe, leerTexto }) {
@@ -214,7 +233,7 @@ function deTextoMarcado(t) {
  */
 export function fuentesMarcadas({ lista = [], forja = null, estandares = null } = {}) {
   const fuera = [];
-  for (const p of lista) for (const f of p.fuentes ?? []) fuera.push({ catalogo: p.catalogo ?? RUTA_PRINCIPIOS, donde: p.id, ...f });
+  for (const p of lista) for (const f of p.fuentes ?? []) fuera.push({ catalogo: p.catalogo ?? (p.project ? rutaPrincipiosDeProyecto(p.project) : RUTA_PRINCIPIOS), donde: p.id, ...f });
   for (const c of forja?.criterios ?? []) if (c?.fuente) fuera.push({ catalogo: "ops/forja/", donde: c.id, ...deTextoMarcado(c.fuente) });
   for (const [id, f] of Object.entries(estandares?.fuentes ?? {})) {
     fuera.push({ catalogo: "ops/estandares-agentes.json", donde: id, ...(f?.tipo === "casa" ? { marca: "I", ruta: f.ruta } : { marca: "F", url: f?.url }) });
@@ -272,7 +291,11 @@ export const fuentesMarcadasDelRepo = (raiz) => fuentesMarcadas({ lista: leerPri
 /** Errores de un principio propio (lista vacía si está bien). */
 function problemasDePropio(p, d, ctx) {
   const malos = [];
-  for (const c of Object.keys(p ?? {})) if (![...CAMPOS, ...CAMPOS_OPCIONALES].includes(c)) malos.push(`${d}: campo desconocido «${c}»`);
+  const permitidos = [...CAMPOS, ...CAMPOS_OPCIONALES, ...(ctx.deProyecto ? [CAMPO_PROYECTO] : [])];
+  for (const c of Object.keys(p ?? {})) {
+    if (c === CAMPO_PROYECTO && !ctx.deProyecto) malos.push(`${d}: un principio horizontal no lleva «${CAMPO_PROYECTO}»; el de un proyecto va a ${RUTA_PROYECTOS}/<id>/principios/`);
+    else if (!permitidos.includes(c)) malos.push(`${d}: campo desconocido «${c}»`);
+  }
   for (const c of CAMPOS) if (!(c in (p ?? {}))) malos.push(`${d}: falta «${c}»`);
   if (!ID_KEBAB.test(p?.id ?? "")) malos.push(`${d}: «id» va en minúsculas y con guiones, en inglés`);
   if (!(p?.area in AMBITOS)) malos.push(`${d}: área «${p?.area}» fuera del vocabulario (${Object.keys(AMBITOS).join(", ")})`);
@@ -285,12 +308,33 @@ function problemasDePropio(p, d, ctx) {
 }
 
 /**
+ * Errores de los registros de principios de proyecto (#710): cada carpeta es de un proyecto de `validos` (ids de
+ * ops/entidades.json), su `project` y el de cada principio coinciden con la carpeta, y cada principio pasa lo mismo que
+ * uno horizontal (plantilla, fuentes, detalle, origen). `proyectos`: lo que da leerPrincipiosDeProyecto.
+ */
+export function problemasDePrincipiosDeProyecto(proyectos, validos, ctx) {
+  const malos = [];
+  for (const [id, cat] of Object.entries(proyectos ?? {})) {
+    const ruta = rutaPrincipiosDeProyecto(id);
+    if (!validos.includes(id)) malos.push(`${ruta}: «${id}» no es un proyecto de ops/entidades.json (${validos.join(", ")})`);
+    if (cat?.project !== id) malos.push(`${ruta}: su «project» es «${cat?.project}» y la carpeta es «${id}»`);
+    if (!Array.isArray(cat?.principios) || !cat.principios.length) { malos.push(`${ruta}: «principios» no es una lista con principios`); continue; }
+    for (const [i, p] of cat.principios.entries()) {
+      const d = `principio ${p?.id ?? i + 1}`;
+      if (p?.project !== id) malos.push(`${d}: su «project» es «${p?.project}» y vive en el registro de «${id}»`);
+      malos.push(...problemasDePropio(p, d, { ...ctx, deProyecto: true }));
+    }
+  }
+  return malos;
+}
+
+/**
  * Errores de la lista (lista vacía si está bien). `propio` es el catálogo de ops/principios/ tal
  * cual; `lista`, la de `componerLista` (con los delegados). `existe(ruta)` y `leerTexto(ruta)` se
  * inyectan para poder probar con datos de mentira.
  */
-export function problemasDePrincipios(propio, lista, { existe = () => true, leerTexto = () => "" } = {}) {
-  const malos = [];
+export function problemasDePrincipios(propio, lista, { existe = () => true, leerTexto = () => "", proyectos = {}, validos = Object.keys(proyectos) } = {}) {
+  const malos = problemasDePrincipiosDeProyecto(proyectos, validos, { existe, leerTexto });
   for (const [area, dl] of Object.entries(propio?.delegados ?? {})) {
     if (!(area in AMBITOS)) malos.push(`delegado «${area}»: no es un valor de AMBITOS`);
     if (!existe(dl?.catalogo ?? "")) malos.push(`delegado «${area}»: su catálogo ${dl?.catalogo} no existe`);
@@ -446,7 +490,7 @@ export function generarMd(datos) {
   const L = [
     "# Principios de la casa",
     "",
-    `<!-- Generado desde ${[RUTA_PRINCIPIOS, ...Object.values(datos.delegados).map((d) => d.catalogo)].join(", ")} con «npm run principios-casa -- --escribir». No se edita a mano: ops/principios.test.js lo compara. -->`,
+    `<!-- Generado desde ${[RUTA_PRINCIPIOS, ...Object.values(datos.delegados).map((d) => d.catalogo), `${RUTA_PROYECTOS}/<id>/principios/`].join(", ")} con «npm run principios-casa -- --escribir». No se edita a mano: ops/principios.test.js lo compara. -->`,
     "",
     "La lista única de principios: el porqué de lo que se pide. Tres capas que no se repiten: un **principio** dice por qué; una **norma** (`ops/normas.json`, `docs/ops/NORMAS.md`) dice lo que debe ser verdad, con su control, y cita su principio; un **estándar** de tarea (`ops/estandares-agentes.json`) cita normas. Cada principio lleva sus fuentes (**[F]** una fuente externa lo dice, **[I]** está escrito en la casa, **[S]** inferencia nuestra o fuente secundaria) y, si hay, el detalle donde se desarrolla. Los de producto y redacción viven en su propio catálogo, sin fuerza como todos, y aquí se listan sin copiarse; sus normas están en el mismo registro que las demás.",
     "",
@@ -489,6 +533,7 @@ export function generarMd(datos) {
       if (det.length) L.push(`  - Detalle: ${det.map(enlace).join(", ")}`);
       if (p.origen.length) L.push(`  - Viene de: ${p.origen.join(", ")}`);
       if (p.puente) L.push(`  - Puente entre ejes: ${p.puente}`);
+      if (p.project) L.push(`  - Proyecto: ${p.project} (solo vale aquí; vive en ${rutaPrincipiosDeProyecto(p.project)})`);
       if (p.id in datos.sin_norma) L.push(`  - Sin norma: ${datos.sin_norma[p.id]}`);
     }
   }

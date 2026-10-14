@@ -6,8 +6,8 @@
   "porque": "El valor por defecto es una decisión que nadie tomó, y una cascada mal puesta borra en silencio.",
   "fuentes": [
     {
-      "marca": "I",
-      "fuente": "casa-principios-datos"
+      "marca": "F",
+      "fuente": "pg-constraints"
     }
   ],
   "detalle": [
