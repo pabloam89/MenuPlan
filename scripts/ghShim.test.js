@@ -195,9 +195,8 @@ describe("main: lanza el gh real con un token nuevo en su entorno", () => {
 
   it("respeta el tope: un canje colgado no pasa de él, sale motivo red y el hijo recibe el centinela", async () => {
     const r = ruta();
-    const inicio = Date.now();
     const { errores, visto } = await usar(["x"], { generar: () => new Promise(() => {}), cache: opcionesCache(r), tope: 80 });
-    expect(Date.now() - inicio).toBeLessThan(3000);
+    // sin tope no volvería: el generador no resuelve nunca (y el test caería por el límite de vitest)
     expect(errores).toEqual(["gh-shim resultado: fallo motivo: red"]);
     expect(visto.t).toBe(TOKEN_CENTINELA);
   });

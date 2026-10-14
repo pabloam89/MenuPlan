@@ -233,7 +233,7 @@ arranque pone **delante en el PATH** `scripts/bin` (solo contiene `gh`, ejecutab
 | Ayudante de `git push` | `!f() { GH_TOKEN="${GH_TOKEN:-sin-token-de-sesion}" gh auth git-credential "$@"; }; f`: pasa por el shim y recibe un token fresco. `node scripts/token-sesion.mjs -- <comando>` conserva el suyo (su hijo lleva un token recién canjeado) |
 | Fallo | `gh-shim resultado: fallo motivo: <MOTIVOS>` por stderr, sin token; un éxito no escribe nada. Tope de 10 s; tras un canje fallido, 30 s sin reintentar (`fallo-reciente`, fichero `token-sesion.json.fallo.json` con solo instante y motivo) |
 | Se niega | `gh auth token`, `auth status -t/--show-token`, `auth login/switch/refresh/setup-git` (código 2, sin lanzar `gh`); `auth git-credential` y lo demás pasan |
-| Argumentos | literales y sin shell (`spawnSync`, lección de #720); nunca un `gh.cmd` |
+| Argumentos | literales y sin shell (`spawnSync`, aprendizaje de #720); nunca un `gh.cmd` |
 | No cubre | un script de Node que llama a `execFile("gh")` sin shell (en Windows toma el `gh.exe` real, E3 #731), PowerShell, los hooks que lanza Claude Code y un comando de más de una hora. En Linux o en la nube un `execFile("gh")` SÍ resolvería al shim: `scripts/rulesets.mjs` (`gh auth token`, de Pablo) quedaría negado allí |
 | Un alias | `gh alias set` podría esconder un `auth token` detrás de otro nombre; el shim no lo mira (E4, #738, es la guardia) |
 
