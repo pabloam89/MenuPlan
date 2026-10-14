@@ -232,7 +232,7 @@ flowchart LR
 | `event` | refers_to | `issue` | many_to_one | field: issue (eventos.jsonl) |
 | `event` | refers_to | `skill` | many_to_one | field: nombre cuando evento es skill_cargada (campo polimórfico, eventos.mjs:11) |
 | `event` | refers_to | `agent` | many_to_one | field: nombre cuando evento es agente_lanzado (campo polimórfico, eventos.mjs:11) |
-| `event` | cites | `norm` | many_to_one | field: norma |
+| `event` | cites | `norm` | many_to_one | field: norma; y entidad_exigida cuando el evento es intervencion_humana |
 | `event` | uses | `vocabulary` | many_to_one | file: EVENTOS (constante de eventos.mjs) |
 | `event` | triggers | `skill` | many_to_many | ningún campo: propuesta de Pablo, se define en #568 |
 | `event` | refers_to | `root-problem` | many_to_one | ningún campo: evento «aprendizaje registrado», propuesta de Pablo (#568); el aprendizaje es un campo del fondo |
@@ -275,5 +275,5 @@ Lo que antes era una entidad o un hueco y es un tipo de `event`, con su motivo c
 
 | id | de | campos | quién lo lee |
 |---|---|---|---|
-| `intervencion_humana` | `event` | quien (eventos.actor); motivo (eventos.motivo_intervencion); evitable (eventos.evitable); entidad_exigida (ref norm) | ops/metricas.json, scripts/lib/fabrica.mjs |
+| `intervencion_humana` | `event` | quien (eventos.actor); motivo (eventos.motivo_intervencion); evitable (eventos.evitable); entidad_exigida (abierto) | ops/metricas.json, scripts/lib/fabrica.mjs |
 | `deployment` | `event` | no se escribe: Lo guarda Vercel (entorno y rama); no se escribe como evento de la casa | ops/salud-despliegue.test.js |

@@ -1171,26 +1171,36 @@
       "fields": [
         {
           "name": "quien",
-          "vocabulary": "eventos.actor"
+          "vocabulary": "eventos.actor",
+          "readers": [
+            "scripts/lib/fabrica.mjs"
+          ]
         },
         {
           "name": "motivo",
-          "vocabulary": "eventos.motivo_intervencion"
+          "vocabulary": "eventos.motivo_intervencion",
+          "readers": [
+            "scripts/lib/fabrica.mjs"
+          ]
         },
         {
           "name": "evitable",
-          "vocabulary": "eventos.evitable"
+          "vocabulary": "eventos.evitable",
+          "readers": [
+            "scripts/lib/fabrica.mjs"
+          ]
         },
         {
           "name": "entidad_exigida",
-          "ref": "norm"
+          "open_because": "es el id de una norma de ops/normas.json, no un vocabulario: la relación event cites norm dice dónde se guarda",
+          "readers": []
         }
       ],
       "readers": [
         "ops/metricas.json",
         "scripts/lib/fabrica.mjs"
       ],
-      "note": "Un tipo de evento, no una entidad (decisión 5, #652). Se llama y se escribe como en el log (EVENTOS de .claude/hooks/eventos.mjs); el registro no copia los valores, dice de dónde salen: los ids de vocabulary son de ops/vocabularios-vida.json, cuya fuente es scripts/lib/eventosVocabulario.mjs. Si evitable es sí o no lo decide la regla (DEF_EVITABLE), no quien interviene. entidad_exigida no es un vocabulario sino el id de una norma de ops/normas.json (ref: norm). Lo escribe y valida .claude/hooks/eventos.mjs (lineaDeEvento), que no cuenta como lector."
+      "note": "Un tipo de evento, no una entidad (decisión 5, #652). Se llama y se escribe como en el log (EVENTOS de .claude/hooks/eventos.mjs); el registro no copia los valores, dice de dónde salen: los ids de vocabulary son de ops/vocabularios-vida.json, cuya fuente es scripts/lib/eventosVocabulario.mjs. Si evitable es sí o no lo decide la regla (DEF_EVITABLE), no quien interviene. entidad_exigida no es un vocabulario sino el id de una norma de ops/normas.json (open_because; la relación event cites norm lo nombra en stored_in). Lo escribe y valida .claude/hooks/eventos.mjs (lineaDeEvento), que no cuenta como lector."
     },
     {
       "id": "deployment",
@@ -1201,7 +1211,7 @@
       "readers": [
         "ops/salud-despliegue.test.js"
       ],
-      "note": "Un despliegue no es entidad (decisión 7, #652)."
+      "note": "Un despliegue no es entidad (decisión 7, #652). Su id va en inglés porque no se escribe en el log; los tipos que sí se escriben llevan el nombre del log (intervencion_humana, en castellano)."
     }
   ],
   "relations": [
@@ -1723,7 +1733,7 @@
       "class": "reference",
       "cardinality": "many_to_one",
       "stored_as": "field",
-      "stored_in": "norma"
+      "stored_in": "norma; y entidad_exigida cuando el evento es intervencion_humana"
     },
     {
       "from": "event",

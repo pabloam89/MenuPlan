@@ -128,7 +128,7 @@ export function mapa(d = cargar()) {
     L.push("");
   }
   L.push("## Tipos de evento", "", "Lo que antes era una entidad o un hueco y es un tipo de `event`, con su motivo cerrado.", "", "| id | de | campos | quién lo lee |", "|---|---|---|---|");
-  for (const t of d.event_types) L.push(`| \`${t.id}\` | \`${t.of}\` | ${t.written === false ? `no se escribe: ${t.not_written_because}` : t.fields.map((c) => `${c.name} (${c.vocabulary ?? `ref ${c.ref}`})`).join("; ")} | ${t.readers.length ? t.readers.join(", ") : "nadie"} |`);
+  for (const t of d.event_types) L.push(`| \`${t.id}\` | \`${t.of}\` | ${t.written === false ? `no se escribe: ${t.not_written_because}` : t.fields.map((c) => `${c.name} (${c.vocabulary ?? "abierto"})`).join("; ")} | ${t.readers.length ? t.readers.join(", ") : "nadie"} |`);
   L.push("");
   return L.join("\n");
 }
