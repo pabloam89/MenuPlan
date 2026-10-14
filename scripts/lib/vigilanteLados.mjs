@@ -70,7 +70,7 @@ export function medir(raiz) {
   const medidas = { estandares_que_nombran_el_proyecto: est.proyecto.length, estandares_que_nombran_un_servicio: est.servicio.length, citas_de_entidad_horizontal_a_vertical: citas.entidadAEntidad.length, tests_de_la_casa_que_leen_homenu: inv.cifras.vigilanVertical };
   for (const f of inv.filas) medidas[`duda: ${f.unidad}`] = f.duda;
   medidas["verticales sin registro propio: principios de la casa"] = filas["principios de la casa (ops/principios/)"].vertical;
-  medidas["verticales sin registro propio: fuentes documentales"] = filas["fuentes documentales (ops/fuentes-documentales/)"].vertical;
+  medidas["verticales sin marcar: fuentes documentales"] = inv.cifras.fuentesSinMarcar;
   return medidas;
 }
 

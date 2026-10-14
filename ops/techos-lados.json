@@ -8,7 +8,7 @@
     "duda: principios del proyecto (ops/proyectos/<id>/principios/)": 0,
     "duda: principios de producto (delegado: ops/principios-producto/)": 11,
     "duda: guía de redacción (delegado: ops/redaccion.json)": 0,
-    "duda: fuentes documentales (ops/fuentes-documentales/)": 12,
+    "duda: fuentes documentales (ops/fuentes-documentales/)": 0,
     "duda: normas horizontales (ops/normas.json)": 46,
     "duda: normas verticales (ops/proyectos/<id>/normas.json)": 0,
     "duda: entidades activas (ops/entidades.json)": 0,
@@ -21,7 +21,7 @@
     "duda: documentos (docs/**/*.md y los .md de la raíz)": 1,
     "duda: tests (*.test.{js,jsx,mjs})": 10,
     "verticales sin registro propio: principios de la casa": 0,
-    "verticales sin registro propio: fuentes documentales": 12,
+    "verticales sin marcar: fuentes documentales": 0,
     "estandares_que_nombran_el_proyecto": 28,
     "estandares_que_nombran_un_servicio": 36
   },

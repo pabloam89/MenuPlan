@@ -10,12 +10,5 @@
     "evaluador": "Mide a Lola: sus casos son datos del producto (línea 2 del programa #652: paquete opcional de bots)",
     "qa": "Prueba la app en el navegador; el rol es general, los casos son de HoMenu",
     "auditor-datos": "Juzga el modelo de datos de HoMenu; el rol vale para cualquier base"
-  },
-  "fuentes_externas_de_proveedor": {
-    "hosts": [
-      "supabase.com",
-      "vercel.com"
-    ],
-    "razon": "Documentación de un proveedor concreto del proyecto: sirve a cualquiera que lo use, pero la fuente solo la cita HoMenu"
   }
 }
