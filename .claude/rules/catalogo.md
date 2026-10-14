@@ -34,5 +34,8 @@ paths:
   extranjeras, apagadas salvo que la casa las marque.
 - **Sin pairing**: no se combinan platos con guarniciones; una receta, una
   foto.
+- **Prueba con lo que entrega el motor** (`RECIPES_BY_ID` de
+  `src/data/recipes.js`), no con el JSON del catálogo: el motor normaliza y el
+  JSON no.
 - `npm run build` corre `scripts/validate-catalog.mjs`: es el filtro que usa
   Vercel.

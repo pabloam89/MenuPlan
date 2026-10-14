@@ -166,11 +166,14 @@ escribas a mano: añade solo lo que el comando no sabe (el objetivo con
 4. **Rama**: en qué rama o worktree trabaja.
 5. **Verificación**: cómo sabrá que ha terminado bien.
 6. **Skills**: la línea `SKILLS A ABRIR: …` que da
-   `npm run skills-encargo -- <ficheros del alcance> [--comando "<comando de riesgo>"] --agente <agente>`
+   `npm run skills-encargo -- <ficheros del alcance> [--comando "<comando de riesgo>"] --agente <agente> --proyecto homenu`
    (sale de `.claude/dominios-skills.json`; no la escribas a mano), con la
    orden de abrirlas antes de tocar su dominio. Las que el agente trae
    precargadas salen aparte. Si no pide ninguna, «ninguna». Un juez también
-   abre las de lo que juzga.
+   abre las de lo que juzga. Con `--proyecto` sale además `FICHAS DEL PROYECTO: …`:
+   una skill de servicio es el método de la casa y los datos del proyecto
+   (cuentas, ids, repo) están en su ficha; pégala en el brief y manda abrirla
+   junto a la skill.
 7. **Lo ya apuntado** (#384): pasa tú `npm run buscar -- "<área, ficheros o síntoma>"`
    (y `npm run issues`, filtrado por el área) y pega en el brief los issues y
    encargos que salen, con su estado y su plan. El agente no los vuelve a presentar

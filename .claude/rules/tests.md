@@ -7,9 +7,6 @@ paths:
 
 - **Un test nuevo se ve fallar una vez** (rompe a propósito lo que mide)
   antes de creértelo. Ya van cinco tests que no medían nada.
-- **Prueba con lo que entrega el motor** (`RECIPES_BY_ID` de
-  `src/data/recipes.js`), no con el JSON del catálogo: el motor normaliza y el
-  JSON no.
 - **No copies la verdad.** `expect(UMBRAL).toBe(4.2)` no vigila nada; fija
   suelos y relaciones (`expect(a).toBeLessThan(b)`).
 - **Un test no deriva un hecho fijo de la historia de git** (la fecha en que nació algo): en un clon superficial, como el del CI, `git log` da la de la fusión. Pon el hecho como constante en el test.

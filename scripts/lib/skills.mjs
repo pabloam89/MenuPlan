@@ -187,7 +187,7 @@ function ficherosDe(dir, base = "") {
   });
 }
 
-/** Una skill tal como la ve el nivel 1: { nombre, texto, ficheros, extra: {ruta: texto}, casos }. */
+/** Una skill tal como la ve el nivel 1: { nombre, texto, ficheros, extra: {ruta: texto}, casos, fichas: {ruta: texto} }. */
 export function cargarSkill(nombre, raiz = RAIZ) {
   const dir = join(raiz, DIR_SKILLS, nombre);
   const ficheros = ficherosDe(dir);
@@ -198,7 +198,17 @@ export function cargarSkill(nombre, raiz = RAIZ) {
   if (existsSync(join(dir, "casos.json"))) {
     try { casos = JSON.parse(readFileSync(join(dir, "casos.json"), "utf8")); } catch (e) { casos = { error: e.message }; }
   }
-  return { nombre, texto, ficheros, extra, casos };
+  // Las fichas de proyecto de una skill de servicio (ops/proyectos/<id>/servicios/<skill>.md, #710): citan las capas que son
+  // datos del proyecto y no método, que SKILL.md ya no puede citar (una skill horizontal no cita una vertical).
+  const fichas = {};
+  const dirProyectos = join(raiz, "ops", "proyectos");
+  if (existsSync(dirProyectos)) {
+    for (const id of readdirSync(dirProyectos)) {
+      const ruta = `ops/proyectos/${id}/servicios/${nombre}.md`;
+      if (existsSync(join(raiz, ruta))) fichas[ruta] = readFileSync(join(raiz, ruta), "utf8");
+    }
+  }
+  return { nombre, texto, ficheros, extra, casos, fichas };
 }
 
 export function nombresDeSkills(raiz = RAIZ) {
@@ -361,7 +371,7 @@ function reglaRutasYEstructura(skill, ctx) {
   const textos = [skill.texto, ...Object.values(skill.extra ?? {})];
   for (const r of new Set(textos.flatMap(rutasCitadas))) if (!ctx.existe(r)) f.push(falta("rutas", `cita ${r}, que no existe`));
   const base = `${DIR_SKILLS}/${skill.nombre}/`;
-  const citadasEnSkill = rutasCitadas(skill.texto);
+  const citadasEnSkill = [...rutasCitadas(skill.texto), ...Object.values(skill.fichas ?? {}).flatMap(rutasCitadas)];
   for (const fichero of skill.ficheros ?? []) {
     if (FICHEROS_FIJOS.includes(fichero)) continue;
     const capa = fichero.split("/")[0];
@@ -369,8 +379,8 @@ function reglaRutasYEstructura(skill, ctx) {
       f.push(falta("estructura", `${fichero}: fuera de sitio (solo ${FICHEROS_FIJOS.join(", ")} y ${CAPAS.map((c) => `${c}/`).join(", ")})`));
       continue;
     }
-    // Una capa que SKILL.md no cita no la abre nadie.
-    if (!citadasEnSkill.includes(base + fichero)) f.push(falta("estructura", `${fichero}: SKILL.md no lo cita como \`${base}${fichero}\``));
+    // Una capa que SKILL.md (o la ficha de proyecto de la skill) no cita no la abre nadie.
+    if (!citadasEnSkill.includes(base + fichero)) f.push(falta("estructura", `${fichero}: SKILL.md no lo cita como \`${base}${fichero}\` (ni la ficha de proyecto de la skill)`));
   }
   return f;
 }

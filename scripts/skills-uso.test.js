@@ -1,6 +1,7 @@
 // El uso de las skills se cuenta desde los transcripts de Claude Code (#397).
 // Transcripts de mentira, una línea JSONL por evento, como los escribe Claude Code.
 import { describe, expect, it } from "vitest";
+import { spawnSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -12,6 +13,7 @@ import {
   VIAS,
   comandoQueCuenta,
   eventosDeTranscript,
+  fichasDeProyecto,
   lineas,
   medirUso,
   nombreDeProyecto,
@@ -166,6 +168,29 @@ describe("skillsDelEncargo: las skills del brief salen del mapa", () => {
     expect(precargadasDe(RAIZ, "constructor")).toEqual([]);
     expect(precargadasDe(RAIZ, "no-existe")).toEqual([]);
     expect(precargadasDe(RAIZ, "../constructor")).toEqual([]);
+  });
+
+  it("fichasDeProyecto: los datos del proyecto de las skills de servicio llegan por referencia (--proyecto)", () => {
+    expect(fichasDeProyecto(RAIZ, "homenu", ["github", "vercel"])).toEqual(["ops/proyectos/homenu/servicios/github.md", "ops/proyectos/homenu/servicios/vercel.md"]);
+    // Una skill sin ficha (de oficio, o entera y vertical) no trae nada, y un proyecto o un nombre que no valen tampoco.
+    expect(fichasDeProyecto(RAIZ, "homenu", ["causa-raiz", "telegram"])).toEqual([]);
+    expect(fichasDeProyecto(RAIZ, "no-existe", ["github"])).toEqual([]);
+    expect(fichasDeProyecto(RAIZ, "../homenu", ["github"])).toEqual([]);
+    expect(fichasDeProyecto(RAIZ, "homenu", ["../github"])).toEqual([]);
+    expect(fichasDeProyecto(RAIZ, null, ["github"])).toEqual([]);
+  });
+
+  it("skills-encargo --proyecto suma la línea FICHAS DEL PROYECTO, y sin --proyecto no sale", () => {
+    const con = spawnSync(process.execPath, ["scripts/skills-encargo.mjs", "--proyecto", "homenu", "vercel.json", "supabase/x"], { cwd: RAIZ, encoding: "utf8", windowsHide: true });
+    expect(con.stdout).toMatch(/^SKILLS A ABRIR: supabase, vercel$/m);
+    expect(con.stdout).toContain("\nFICHAS DEL PROYECTO: ops/proyectos/homenu/servicios/supabase.md, ops/proyectos/homenu/servicios/vercel.md");
+    const sin = spawnSync(process.execPath, ["scripts/skills-encargo.mjs", "vercel.json"], { cwd: RAIZ, encoding: "utf8", windowsHide: true });
+    expect(sin.stdout).not.toContain("FICHAS DEL PROYECTO");
+  });
+
+  it("cada skill de servicio horizontal del mapa tiene ficha en homenu (si no, --proyecto no le da nada)", () => {
+    const conFicha = new Set(fichasDeProyecto(RAIZ, "homenu", skills).map((r) => r.split("/").pop().replace(/\.md$/, "")));
+    for (const s of ["1password", "github", "hetzner", "tailscale", "vercel", "supabase"]) expect(conFicha.has(s), s).toBe(true);
   });
 
   it("cada skill de la lista es una skill de verdad", () => {

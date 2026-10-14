@@ -31,7 +31,10 @@ app se vea como una sola.
 `scripts/lib/ambitos.mjs`. Al empezar abre las skills del dominio que le dice
 el brief (`SKILLS A ABRIR`, de `npm run skills-encargo`, que sale del mapa
 `.claude/dominios-skills.json`): no trae ninguna precargada, y la guardia le
-pide abrir la del dominio la primera vez que lance un comando de riesgo.
+pide abrir la del dominio la primera vez que lance un comando de riesgo. Una
+skill de servicio es el método de la casa; los datos del proyecto (cuentas, ids,
+repo) están en su ficha, que llega en la línea `FICHAS DEL PROYECTO` del brief
+(`--proyecto`): ábrela junto a la skill.
 
 Es suyo, por dominio:
 - **Infraestructura**: git (ramas, carpetas de trabajo, PRs, el flujo rama → PR → `staging`

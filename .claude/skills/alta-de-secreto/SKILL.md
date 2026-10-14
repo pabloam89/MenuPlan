@@ -32,7 +32,7 @@ Cubre también **rotar** (es un alta nueva más la retirada de la vieja) y
 No es para:
 - leer una clave desde un script o `.env.local`: skill `1password` (`leerEnv`);
 - la clave privada de las copias cifradas, que tiene su propio procedimiento:
-  skill `hetzner` y `.claude/skills/hetzner/referencias/copias-base.md`;
+  skill `hetzner` y la ficha de servicio del proyecto;
 - la contraseña de un rol de solo lectura de la base: la ponen
   `scripts/clave-consulta-lectura.mjs` y `scripts/clave-copia-lectura.mjs`, que
   ya siguen esta receta; aquí solo el paso 6 (apuntarla);

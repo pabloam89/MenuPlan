@@ -8,7 +8,9 @@
  *  - fuentes: ops/fuentes-documentales/ (la ruta de una fuente de la casa cae en una zona);
  *  - normas: ops/normas.json (horizontales) y ops/proyectos/<id>/normas.json (verticales), por el cargador común;
  *  - glosario y entidades: ops/glosario/terminos/ y ops/entidades.json (su campo `scope`);
- *  - skills, reglas, comandos, agentes, specs y docs: ops/zonas.json (factoría / producto / mixto, por ruta);
+ *  - skills, reglas, comandos, specs y docs: el lado escrito de cada fichero en ops/lados-ficheros.json (#710, PR 8); un
+ *    fichero sin entrada cae en la zona de ops/zonas.json (factoría / producto / mixto) y cuenta como «sin lado»;
+ *  - agentes: horizontales por regla de Pablo, con una lista a mano de los dudosos;
  *  - controles: los tests de git, según la zona de su carpeta y los ficheros de producto que nombran.
  * Lo que no se deduce, a mano, en ops/inventario-vertical.json.
  *
@@ -22,6 +24,7 @@ import { ficherosDeGit } from "../../ops/ficherosGit.js";
 import { cargarNormas } from "./normas.mjs";
 import { ladoDeFuente } from "./fuentesDoc.mjs";
 import { clasificar, compilar, leerZonas } from "./zonasProyecto.mjs";
+import { cargarLados, capaDe, ladoDeEntrada, razonDeEntrada } from "./ladosFicheros.mjs";
 
 export const RUTA_DECISIONES = "ops/inventario-vertical.json";
 export const RUTA_DOC = "docs/ops/INVENTARIO-VERTICAL.md";
@@ -176,27 +179,29 @@ export function calcular(raiz) {
   filas.push(contar("términos activos del glosario (ops/glosario/terminos/)", terminos));
 
   // ---- 5. Skills, reglas, comandos, agentes, specs, docs ------------------------------------------------------
-  const deZona = (rutas, extra) => rutas.map((r) => {
-    const base = porZona(zonaDe(r));
-    const e = extra?.(r, base);
-    return e ?? { id: r, lado: base, razon: base === "duda" ? "zona mixta en ops/zonas.json" : "" };
+  // El lado de estas cinco capas está escrito en ops/lados-ficheros.json; lo que no está cae en su zona y se cuenta aparte.
+  const registro = cargarLados(raiz);
+  let sinLado = 0;
+  const delRegistro = (rutas, capa) => rutas.map((r) => {
+    const e = registro.capas?.[capa]?.[r];
+    if (e === undefined) {
+      sinLado += 1;
+      const base = porZona(zonaDe(r));
+      return { id: r, lado: base, razon: base === "duda" ? "zona mixta en ops/zonas.json y sin lado en ops/lados-ficheros.json" : "" };
+    }
+    const lado = ladoDeEntrada(e);
+    return { id: r, lado, razon: lado === "duda" ? razonDeEntrada(e) : "" };
   });
-  const skills = ficheros.filter((f) => /^\.claude\/skills\/[^/]+\/SKILL\.md$/.test(f));
-  const skillsLados = deZona(skills, (r, base) => {
-    const tipo = readFileSync(join(raiz, r), "utf8").match(/^\s{2}tipo:\s*(\w+)/m)?.[1];
-    if (base === "horizontal" && tipo === "servicio") return { id: r, lado: "duda", razon: "skill de un servicio: el método es general, pero lleva los ids, las bóvedas y el repo de HoMenu" };
-    return null;
-  });
-  const reglas = deZona(ficheros.filter((f) => /^\.claude\/rules\/[^/]+\.md$/.test(f)));
-  const comandos = deZona(ficheros.filter((f) => /^\.claude\/commands\/[^/]+\.md$/.test(f)));
+  const skillsLados = delRegistro(ficheros.filter((f) => capaDe(f) === "skills"), "skills");
+  const reglas = delRegistro(ficheros.filter((f) => capaDe(f) === "reglas"), "reglas");
+  const comandos = delRegistro(ficheros.filter((f) => capaDe(f) === "comandos"), "comandos");
   const agentesDudosos = decisiones.agentes_dudosos;
   const agentes = ficheros.filter((f) => /^\.claude\/agents\/[^/]+\.md$/.test(f)).map((r) => {
     const id = r.match(/agents\/([\w-]+)\.md$/)[1];
     return Object.hasOwn(agentesDudosos, id) ? { id: r, lado: "duda", razon: agentesDudosos[id] } : { id: r, lado: "horizontal", razon: "" };
   });
-  const specs = deZona(ficheros.filter((f) => f.startsWith("specs/") && f.endsWith(".md")));
-  const raizMd = ficheros.filter((f) => !f.includes("/") && f.endsWith(".md"));
-  const docs = deZona([...ficheros.filter((f) => f.startsWith("docs/") && f.endsWith(".md")), ...raizMd]);
+  const specs = delRegistro(ficheros.filter((f) => capaDe(f) === "specs"), "specs");
+  const docs = delRegistro(ficheros.filter((f) => capaDe(f) === "documentos"), "documentos");
   for (const [capa, lista] of [["skills", skillsLados], ["reglas", reglas], ["comandos", comandos], ["agentes", agentes], ["specs", specs], ["docs", docs]]) {
     for (const x of lista) if (x.lado === "duda") duda(capa, x.id, x.razon);
   }
@@ -246,6 +251,7 @@ export function calcular(raiz) {
       testsEnCasa: dentroDeLaCasa.length,
       vigilanVertical,
       testsEnProducto: lista.length - dentroDeLaCasa.length,
+      sinLado,
       principiosVerticales: [...casa, ...delProyecto].filter((p) => p.lado === "vertical").map((p) => p.id),
     },
   };
@@ -327,7 +333,7 @@ export function documento(d, fecha) {
   L.push("");
   L.push("## Cómo se ha medido");
   L.push("");
-  L.push("Es un **inventario de partida, no un registro de lados**: el lado todavía no es un campo de cada pieza (salvo en normas y entidades), así que se deduce. Las fuentes de datos, todas del propio repo y sin red:");
+  L.push("Es un **inventario de partida, no un registro de lados**: el lado todavía no es un campo de cada pieza (salvo en normas, entidades y, desde el PR 8, skills, reglas, comandos, specs y documentos), así que en el resto se deduce. Las fuentes de datos, todas del propio repo y sin red:");
   L.push("");
   L.push("| Capa | De dónde sale el lado |");
   L.push("|---|---|");
@@ -336,7 +342,7 @@ export function documento(d, fecha) {
   L.push("| Normas | El registro en que viven. Duda de una horizontal: su texto nombra HoMenu/Lola/MenuPlan, o su ámbito es `bot`/`product`/`catalog`, o su control o `donde` apunta a `api/`, `src/`, `supabase/`, `docs/datos/`, `docs/producto/`, `specs/` o `DESIGN_SYSTEM.md` (las " + cifras.normasDiseno + " de ámbito `diseno` no cuentan: Pablo decidió el 13 oct que son horizontales) |");
   L.push("| Entidades | Su campo `scope` (`horizontal` o `vertical`, uno solo: la clase es horizontal y sus ejemplares son del registro del proyecto); duda: un valor que no sea ninguno de los dos y las vertical que son un concepto general (lista a mano, hoy vacía) |");
   L.push("| Glosario | El `scope` de sus entidades; sin entidad, su dominio (`producto` vertical, `datos` duda); duda también si su definición nombra el proyecto, Vercel o Supabase |");
-  L.push("| Skills, reglas, comandos, specs, documentos | La zona de `ops/zonas.json` (factoría = horizontal, producto = vertical, mixto = duda); una skill `tipo: servicio` de factoría = duda |");
+  L.push("| Skills, reglas, comandos, specs, documentos | El lado escrito de cada fichero en `ops/lados-ficheros.json` (PR 8 de #710; lo vigila `ops/lados-ficheros.test.js`). Un fichero sin entrada cae en la zona de `ops/zonas.json` (factoría = horizontal, producto = vertical, mixto = duda) y cuenta como «sin lado». Una skill de servicio es horizontal (el método) y sus datos del proyecto viven en una ficha vertical, `ops/proyectos/<id>/servicios/<skill>.md` |");
   L.push("| Agentes | Horizontales por la regla de Pablo; los tres que trabajan sobre datos de HoMenu, duda (lista a mano) |");
   L.push("| Tests | Zona de su carpeta. En la casa: vertical si lee 3 ficheros de HoMenu o más (existentes, no de ejemplo), duda si lee 1 o 2 |");
   L.push("");
@@ -384,7 +390,7 @@ export function documento(d, fecha) {
     ["PR 5", "Normas dudosas: mover al registro de HoMenu las que sean suyas, o reescribir (sin nombrar el proyecto) las que sean generales", `normas horizontales en duda = ${f("normas horizontales").duda}`, "0 (cada una, horizontal limpia o vertical)"],
     ["PR 6", "Controles: tests de la casa que leen ficheros de HoMenu pasan a recibirlos por referencia (`--proyecto`) o se mueven (el techo `verticales_sin_salida` ya se retiró, #710)", `tests de la casa que leen HoMenu = ${cifras.vigilanVertical}; en duda = ${f("tests").duda}`, "0 y 0"],
     ["PR 7", "Glosario: términos de proyecto aparte de los de la casa", `términos en duda = ${f("términos").duda}`, "0"],
-    ["PR 8", "Skills, reglas, comandos, specs y docs: marcar el lado de cada una y separar los skills de servicio en método (casa) y datos (proyecto)", `en duda = skills ${f("skills").duda}, documentos ${f("documentos").duda}; verticales sin marca = ${f("reglas").vertical + f("specs").vertical + f("skills").vertical}`, "en duda = 0; todas marcadas"],
+    ["PR 8", "Skills, reglas, comandos, specs y docs: marcar el lado de cada una y separar los skills de servicio en método (casa) y datos (proyecto)", `en duda = skills ${f("skills").duda}, reglas ${f("reglas").duda}, documentos ${f("documentos").duda}; sin lado en el registro = ${cifras.sinLado}`, "en duda = 0 (salvo CLAUDE.md, que es el PR 9); sin lado = 0"],
     ["PR 9", "Factoría frente a HoMenu (#690): CLAUDE.md como índice corto con dos partes; `docs/` y `ops/` separados", `documentos en duda = ${f("documentos").duda}`, "0"],
   ];
   L.push("| PR | Qué hace | Cifra de antes | Cifra objetivo |");
@@ -400,13 +406,13 @@ export function documento(d, fecha) {
   L.push("1. **Principios de base de datos con origen solo en `docs/datos/PRINCIPIOS.md`. Resuelta por Pablo el 14 oct (opción A):** horizontales, con fuente externa verificada (PostgreSQL, Fowler, Google, HashiCorp…); `docs/datos/` queda como «cómo los aplica HoMenu». Un principio sin fuente que se pueda verificar sigue en duda, dicho.");
   L.push("2. **Lo que solo vale con un bot conversacional. Resuelta por Pablo el 14 oct (opción B):** forma el «paquete de bots», opcional por proyecto (dominio `bot` de `DOMINIOS_OPCIONALES`, `scripts/lib/ambitos.mjs`); sin tercer lado. Un principio del paquete lleva `dominio: bot` y solo lo cita una norma de ámbito `bot`.");
   L.push("3. **Entidades marcadas `both`. Resuelta por Pablo el 14 oct (opción A):** cada entidad es de un lado; la clase es horizontal y sus ejemplares son del proyecto. `both` ya no existe y un test lo rechaza.");
-  L.push("4. **Skills de servicio** (hoy en duda: 1password, github, hetzner y tailscale, que están en zona factoría; vercel y supabase ya están en zona producto y cuentan como verticales, pero mezclan igual método y datos del proyecto). A (recomendada): partir cada una en método (casa) y datos del proyecto (ids, bóvedas, repo), que el agente recibe por referencia. B: dejarlos enteros en la casa. C: marcarlos verticales.");
+  L.push("4. **Skills de servicio. Resuelta por Pablo el 14 oct (opción A):** 1password, github, hetzner, tailscale, vercel y supabase se parten en método (la skill, horizontal) y datos del proyecto (una ficha vertical en `ops/proyectos/<id>/servicios/`, que el agente recibe con `--proyecto`). `telegram` queda entera y vertical (opera el bot del proyecto).");
   L.push("5. **Las zonas de `ops/zonas.json` contradicen la regla de los agentes**: `evaluador`, `qa` y `auditor-datos` están en producto. A (recomendada): moverlos a factoría y que lo vertical llegue por referencia. B: dejar la zona y marcar los tres como duda. C: moverlos a un paquete opcional.");
   L.push("");
   L.push("## Qué no mide");
   L.push("");
   L.push("- Las reglas de estándar de cada tarea (`ops/estandares-agentes.json`): son de la línea 1 de #652 (estándares asépticos), con su propia cifra (28 de 162 con lenguaje de proyecto, según el comentario del 13 oct).");
-  L.push("- El contenido de dentro de cada skill y documento: se clasifica el fichero entero, no sus párrafos. Una skill de servicio mezcla método y datos del proyecto.");
+  L.push("- El contenido de dentro de cada skill y documento: se clasifica el fichero entero, no sus párrafos. Una referencia de una skill de servicio que es dato del proyecto se marca en `capas_de_skill_del_proyecto` de `ops/lados-ficheros.json` y la cita la ficha, no la skill.");
   L.push("- Ficheros de código (`scripts/`, `.claude/hooks/`, `.github/`): solo cuentan como controles de las normas y como tests.");
   L.push("");
   return L.join("\n");

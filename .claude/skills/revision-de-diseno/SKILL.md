@@ -102,7 +102,7 @@ script: es lectura con la lista.
    (base n)`; si `n` sube, `valor-suelto-nuevo`.
 4. **Abre el perfil**: busca el perfil de la instancia en `ops/diseno/bloques.json`
    y, de los 17 bloques, los que obligan. Para cada uno, dónde está su contenido
-   (`DESIGN_SYSTEM.md`, `docs/diseno/ESTADO.md`, el código) o su «no aplica».
+   (las reglas de UI del proyecto, su estado de diseño, el código) o su «no aplica».
 5. **Recorre L01–L22** con la instancia delante. Por cada norma, una de tres: test
    en verde (paso 2 o 3), revisada a mano con su evidencia (fichero, línea o captura de
    `qa`), o sin test (control `juicio`, veredicto `blanda`) y entonces no se da por cumplida.
@@ -118,7 +118,7 @@ hallazgo con código, evidencia y arreglo, y cada norma con su estado dicho.
 ## Lo que falló y por qué
 
 - **2026-10-12 · el contraste de HoMenu no se medía y 5 de 23 parejas declaradas no llegan a AA (#591).**
-  Causa: `DESIGN_SYSTEM.md` decía «contraste alto» sin cifra y ningún test lo
+  Causa: las reglas de UI del proyecto decían «contraste alto» sin cifra y ningún test lo
   calculaba (el metadato `tinta-tenue` da 3,28:1, el placeholder 2,31:1). Arreglo: el
   test `src/design/contraste.test.js` con una lista de excepciones que solo baja.
 
@@ -130,7 +130,7 @@ hallazgo con código, evidencia y arreglo, y cada norma con su estado dicho.
 ## Fuentes y comprobación
 
 - `docs/diseno/META-DISENO.md`: las normas (sección 2), los bloques (sección 3) y los perfiles (sección 4).
-- `docs/diseno/ESTADO.md`: decisiones D1–D12 y cifras de HoMenu.
+- El estado de diseño del proyecto (en HoMenu, decisiones D1–D12 y cifras).
 - WCAG 2.2: https://www.w3.org/TR/WCAG22/ (1.4.3, 1.4.11, 2.5.8).
 
 Comprobado el 2026-10-13: los dos tests del paso 2, `npm run lint:base` sobre HoMenu y las 22 normas `design-*` en `ops/normas.json` (`ops/uniones.test.js`, `ops/normas.test.js`), cada regla de los tests vista fallar. Sin comprobar: el uso con una pantalla real de principio a fin, el panel (aún sin tokens) y `npm run skills-prueba -- revision-de-diseno` (cuesta tokens).

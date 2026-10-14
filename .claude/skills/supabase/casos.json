@@ -6,9 +6,9 @@
       "peticion": "¿Está aplicada ya la migración 0094 en producción?",
       "skill": "supabase",
       "debe_salir": [
-        "Propone node scripts/verificar-estado.mjs --solo 0094",
+        "Remite a la ficha del proyecto para el comando que comprueba migraciones",
         "Dice que es de solo lectura",
-        "Menciona supabase/ESTADO.md como el registro de verdad"
+        "Dice que el registro de verdad es el del proyecto y no la tabla de migraciones de Supabase"
       ]
     },
     {
@@ -16,7 +16,7 @@
       "peticion": "Necesito saber cuántas casas hay dadas de alta en producción.",
       "skill": "supabase",
       "debe_salir": [
-        "Propone npm run consulta (el rol de solo lectura) o una transacción read only",
+        "Propone un rol de solo lectura o una transacción read only",
         "Cuenta con count en vez de imprimir filas",
         "No usa la conexión de administrador sin --admin explícito"
       ]
@@ -27,7 +27,7 @@
       "skill": "supabase",
       "debe_salir": [
         "Dice que el plan Free no incluye copias",
-        "Explica que las copias son propias, cifradas, en el servidor de Hetzner",
+        "Explica que, sin copias del proveedor, las propias se hacen con pg_dump de solo lectura a un servidor aparte",
         "Remite a la skill hetzner para el cómo"
       ]
     },

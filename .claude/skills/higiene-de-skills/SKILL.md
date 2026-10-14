@@ -125,7 +125,7 @@ arreglado o explicado, y la cifra del conjunto no sube.
 - **2026-10-10 · mover las fechas del cuerpo dejó dos skills por encima del tope
   de 220 líneas (#411).** Causa: lo que se mueve ocupa líneas, y `1password` e
   `issues` ya estaban en el límite. Arreglo: sacar a una capa un bloque largo con
-  su ruta citada (`.claude/skills/1password/referencias/boveda-sesiones.md` y `.claude/skills/issues/referencias/workflow-fondos.md`)
+  su ruta citada (la referencia de una skill de servicio y `.claude/skills/issues/referencias/workflow-fondos.md`)
   y dejar un puntero; el aviso `tamano-cerca` lo habría dicho antes.
 - **2026-10-10 · la capa nueva chocó con un cambio de otra sesión en el mismo
   bloque (#411).** Causa: se movió un bloque que otro PR editaba a la vez. Arreglo:

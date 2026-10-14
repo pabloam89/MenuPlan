@@ -208,7 +208,7 @@ Real: `tailscale`, la tabla de «Operaciones habituales».
 ```
 | Qué | Comando | Debe salir |
 |---|---|---|
-| Probar la entrada al servidor | `ssh root@100.73.252.32 hostname` | `HoMenu-Panel` |
+| Ver si el PC está conectado | `"C:\Program Files\Tailscale\tailscale.exe" status` | la lista de máquinas; si pone `Logged out.`, falta iniciar sesión |
 ```
 
 ### `procedimiento`

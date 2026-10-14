@@ -6,13 +6,15 @@
 //   npm run skills-encargo -- --diff                 los ficheros de esta rama frente a origin/staging
 //   npm run skills-encargo -- --comando "node scripts/apply-migration.mjs 0099_x" <ficheros…>
 //   npm run skills-encargo -- --agente datos <ficheros…>   dice cuáles ya trae precargadas
+//   npm run skills-encargo -- --proyecto homenu <ficheros…>  suma las fichas de servicio del proyecto (#710)
 //
-// La última línea es la que va al brief: `SKILLS A ABRIR: a, b` (o «ninguna»).
+// La línea que va al brief: `SKILLS A ABRIR: a, b` (o «ninguna»). Con --proyecto, una línea más: `FICHAS DEL PROYECTO: ruta, ruta`
+// (los datos de ese proyecto para esas skills; la skill es el método de la casa y no los lleva).
 
 import { resolve } from "node:path";
 
 import { cargarMapa } from "../.claude/hooks/dominios.mjs";
-import { precargadasDe, skillsDelEncargo } from "./lib/usoSkills.mjs";
+import { fichasDeProyecto, precargadasDe, skillsDelEncargo } from "./lib/usoSkills.mjs";
 import { ficherosDeLaRama } from "./lib/vecinos.mjs";
 
 const RAIZ = resolve(import.meta.dirname, "..");
@@ -20,10 +22,12 @@ const args = process.argv.slice(2);
 const ficheros = [];
 const comandos = [];
 let agente = null;
+let proyecto = null;
 for (let i = 0; i < args.length; i++) {
   const a = args[i];
   if (a === "--comando") comandos.push(args[++i] ?? "");
   else if (a === "--agente") agente = args[++i] ?? null;
+  else if (a === "--proyecto") proyecto = args[++i] ?? null;
   else if (a === "--diff") ficheros.push(...ficherosDeLaRama(RAIZ));
   else ficheros.push(a);
 }
@@ -42,3 +46,7 @@ for (const s of lista) {
 const abrir = lista.filter((s) => !s.precargada).map((s) => s.skill);
 const ya = lista.filter((s) => s.precargada).map((s) => s.skill);
 console.log(`SKILLS A ABRIR: ${abrir.length ? abrir.join(", ") : "ninguna"}${ya.length ? ` (ya precargadas en ${agente}: ${ya.join(", ")})` : ""}`);
+if (proyecto) {
+  const fichas = fichasDeProyecto(RAIZ, proyecto, lista.map((s) => s.skill));
+  console.log(`FICHAS DEL PROYECTO: ${fichas.length ? fichas.join(", ") : "ninguna"}`);
+}
