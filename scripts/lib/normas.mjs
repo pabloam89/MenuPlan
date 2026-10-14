@@ -19,7 +19,7 @@ import { FORMA, MAX_DIAS, RETIRADA_FORMAS_ANTIGUAS } from "./excepciones.mjs";
 import { MIN_EXCEPTUADAS, RESULTADOS_NORMA } from "./medicionNormas.mjs";
 import { VEREDICTOS } from "./escalas.mjs";
 import { CONTROL_JUICIO, FUERZAS, ID_KEBAB, fraseDeRegla, problemasDeRegla, problemasDeSujetos } from "./regla.mjs";
-import { esFicheroDeJuez, motivoFicheroSinNorma } from "./testDelJuez.mjs";
+import { esFicheroDeJuez, juezDeRuta, motivoFicheroSinNorma } from "./testDelJuez.mjs";
 
 /** Quién hace cumplir la norma. Los cinco primeros son «del sistema»: no dependen de que alguien se acuerde. */
 export const EJECUTORES = {
@@ -301,6 +301,8 @@ export function motivoTestDelJuezMalo(n, raiz) {
   if (esFicheroDeJuez(r)) {
     let f = null;
     try { f = JSON.parse(readFileSync(join(raiz, r), "utf8")); } catch (e) { return `no es un JSON legible (${e.message})`; }
+    // El fichero es del juez que dice su nombre (#698): el de otro juez no vale como test de esta norma.
+    if (f?.juez !== juezDeRuta(r)) return `es el fichero de ${juezDeRuta(r)} pero dice ser de «${f?.juez}»`;
     return motivoFicheroSinNorma(f, n.id);
   }
   if (/(^|\/)casos\.json$/.test(r) && readFileSync(join(raiz, r), "utf8").includes(n.id)) return null;
