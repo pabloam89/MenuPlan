@@ -15,3 +15,15 @@ esa norma. Cómo se mide y qué hacer con la cifra:
 - **Quién marca los casos:** nunca el propio juez (`marcado_por`).
 - **Añadir un juez:** su fichero `<juez>.json` con casos buenos y malos por norma, y apuntar
   `test_del_juez` en cada norma; luego bajar el techo de `ops/normas-techos.json`.
+
+## El umbral A (decisión de Pablo, #698)
+
+- **Casos:** cada norma, 4 o más (2 o más buenos y 2 o más malos). Un caso mínimo no vale, y el fichero
+  de otro juez tampoco (su campo `juez` tiene que ser el de su nombre).
+- **Umbral:** todos los buenos aprobados y al menos el 80 % de los malos señalados, en **dos pasadas
+  seguidas** (como en `skills-prueba`) y sobre los casos que el fichero tiene hoy: si se amplían, hay que
+  volver a medir. Una pasada que se paró por el tope no cuenta.
+- **Registro:** cada pasada de pago escribe en `ops/test-del-juez/pasadas.json` (juez, fecha, cifra y coste),
+  y la línea `test-del-juez umbral juez: … umbral_a: si|no`. Sin ese registro, la norma sigue sin comprobar:
+  el techo `juez_sin_pasada_de_pago` de `ops/normas-techos.json` lo vigila y baja a 0 al registrarlas.
+- **Quién la lanza:** otra sesión distinta de la que escribió los casos, con tope de 0,5 $ la primera vez.

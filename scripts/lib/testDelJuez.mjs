@@ -19,8 +19,14 @@ import { join } from "node:path";
 export const DIR_TEST_DEL_JUEZ = "ops/test-del-juez";
 export const JUECES = ["revisor", "qa", "evaluador", "seguridad", "auditor-datos"];
 export const TIPOS_CASO = ["bueno", "malo"];
-/** Casos mínimos por norma y tipo para que el fichero cuente como su test del juez. */
-export const MIN_POR_NORMA_Y_TIPO = 1;
+/** Casos mínimos por norma y tipo, y en total por norma, para que el fichero cuente como su test del juez (umbral A, #698). */
+export const MIN_POR_NORMA_Y_TIPO = 2;
+export const MIN_POR_NORMA = 4;
+/** Umbral A (decisión de Pablo, #698): todos los buenos aprobados y al menos esta parte de los malos señalados, en tantas pasadas seguidas. */
+export const UMBRAL_MALOS = 0.8;
+export const PASADAS_SEGUIDAS = 2;
+/** Las pasadas de pago registradas: sin pasadas que cumplan el umbral, la norma sigue sin comprobar. */
+export const RUTA_PASADAS = "ops/test-del-juez/pasadas.json";
 /** Un diff más largo que esto no es un caso fijo y pequeño: se parte. */
 export const MAX_DIFF = 1500;
 
@@ -59,10 +65,64 @@ export function faltasDeFichero(f, juez, normasDeJuez = []) {
 /** ¿Tiene el fichero casos buenos y malos de esta norma? Devuelve el motivo o null. */
 export function motivoFicheroSinNorma(f, normaId) {
   const de = (t) => (f?.casos ?? []).filter((c) => c.norma === normaId && c.tipo === t).length;
-  if (de("bueno") < MIN_POR_NORMA_Y_TIPO || de("malo") < MIN_POR_NORMA_Y_TIPO) {
-    return `necesita al menos ${MIN_POR_NORMA_Y_TIPO} caso bueno y ${MIN_POR_NORMA_Y_TIPO} malo de «${normaId}» (hay ${de("bueno")} y ${de("malo")})`;
+  if (de("bueno") < MIN_POR_NORMA_Y_TIPO || de("malo") < MIN_POR_NORMA_Y_TIPO || de("bueno") + de("malo") < MIN_POR_NORMA) {
+    return `necesita al menos ${MIN_POR_NORMA_Y_TIPO} casos buenos y ${MIN_POR_NORMA_Y_TIPO} malos de «${normaId}», ${MIN_POR_NORMA} o más en total (hay ${de("bueno")} y ${de("malo")})`;
   }
   return null;
+}
+
+/** El juez al que pertenece una ruta de fichero de casos, o null. */
+export const juezDeRuta = (ruta) => new RegExp(`^${DIR_TEST_DEL_JUEZ}/(${JUECES.join("|")})\\.json$`).exec(ruta)?.[1] ?? null;
+
+/** ¿Cumple una pasada el umbral A? Todos los buenos aprobados, al menos UMBRAL_MALOS de los malos señalados y nada sin correr. */
+export function cumpleUmbralA(p) {
+  if (!p || ![p.buenos, p.buenos_ok, p.malos, p.malos_ok, p.sin_correr].every(Number.isInteger)) return false;
+  if (p.sin_correr !== 0 || p.buenos < 1 || p.malos < 1) return false;
+  return p.buenos_ok === p.buenos && p.malos_ok / p.malos >= UMBRAL_MALOS;
+}
+
+/** Errores de forma del registro de pasadas (lista de textos; vacía si vale). */
+export function faltasDePasadas(r) {
+  if (!r || !Array.isArray(r.pasadas)) return ["pasadas.json: falta la lista «pasadas»"];
+  const malos = [];
+  r.pasadas.forEach((p, i) => {
+    const d = `pasadas[${i}]`;
+    if (!JUECES.includes(p?.juez)) malos.push(`${d}: juez «${p?.juez}» no es de la casa`);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(p?.fecha ?? ""))) malos.push(`${d}: «fecha» AAAA-MM-DD`);
+    for (const k of ["casos", "buenos", "buenos_ok", "malos", "malos_ok", "sin_correr"]) if (!Number.isInteger(p?.[k]) || p[k] < 0) malos.push(`${d}: «${k}» es un entero`);
+    if (typeof p?.coste_usd !== "number") malos.push(`${d}: falta «coste_usd»`);
+  });
+  return malos;
+}
+
+export function leerPasadas(raiz) {
+  const ruta = join(raiz, RUTA_PASADAS);
+  return existsSync(ruta) ? JSON.parse(readFileSync(ruta, "utf8")) : { pasadas: [] };
+}
+
+/**
+ * Por qué un juez aún no cumple el umbral A, o null si cumple: sus últimas PASADAS_SEGUIDAS pasadas registradas
+ * cumplen, y se corrieron sobre los `casos` que tiene hoy su fichero (si se amplía, hay que volver a medir).
+ */
+export function motivoSinUmbral(juez, pasadas, casosHoy) {
+  const suyas = (pasadas ?? []).filter((p) => p.juez === juez);
+  if (!suyas.length) return `ninguna pasada de pago registrada de ${juez} (npm run test-del-juez -- ${juez} --si)`;
+  const ultimas = suyas.slice(-PASADAS_SEGUIDAS);
+  if (ultimas.length < PASADAS_SEGUIDAS) return `solo ${ultimas.length} pasada de pago de ${juez}: el umbral pide ${PASADAS_SEGUIDAS} seguidas`;
+  if (ultimas.some((p) => p.casos !== casosHoy)) return `las pasadas de ${juez} son de otros casos (${ultimas.map((p) => p.casos).join(", ")}; hoy ${casosHoy}): hay que volver a medir`;
+  if (!ultimas.every(cumpleUmbralA)) return `las últimas ${PASADAS_SEGUIDAS} pasadas de ${juez} no cumplen el umbral (todos los buenos y ${UMBRAL_MALOS * 100} % de los malos)`;
+  return null;
+}
+
+/** Las normas de juez con fichero de casos pero sin las pasadas de pago que exige el umbral A: siguen sin comprobar. */
+export function normasSinPasada(normas, raiz) {
+  const { pasadas } = leerPasadas(raiz);
+  return normas.filter((n) => {
+    if (n.control_procesador !== "juez" || typeof n.test_del_juez !== "string") return false;
+    const juez = juezDeRuta(n.test_del_juez);
+    if (!juez) return false;
+    return motivoSinUmbral(juez, pasadas, leerFichero(juez, raiz)?.casos?.length ?? 0) !== null;
+  });
 }
 
 /** El texto que ve el juez: el diff y la norma que se le pide mirar, sin decirle si es bueno o malo. */
