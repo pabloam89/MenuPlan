@@ -5,10 +5,7 @@
   "dominio": "diseno",
   "scope": "horizontal",
   "definicion": "Un conjunto de piezas de interfaz hecho por terceros, con su ficha en el pool de ops/diseno/bibliotecas.json, que un proyecto puede elegir en vez de construir las suyas.",
-  "sinonimos_prohibidos": [
-    "librería de interfaz",
-    "librerías de interfaz"
-  ],
+  "sinonimos_prohibidos": [],
   "aplica_a": [
     "todas"
   ],
