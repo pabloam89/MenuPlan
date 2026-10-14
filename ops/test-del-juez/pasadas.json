@@ -1,0 +1,4 @@
+{
+  "$comentario": "Pasadas de pago del test del juez (umbral A, #698): las escribe scripts/test-del-juez.mjs --si, una por juez y pasada. Una norma de juez solo cuenta como comprobada con las dos últimas pasadas seguidas de su juez cumpliendo el umbral sobre los casos de hoy. Solo lo escribe el script; una pasada no se corrige ni se borra (lo vigila el test).",
+  "pasadas": []
+}
