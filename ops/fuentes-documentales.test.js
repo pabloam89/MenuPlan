@@ -1,13 +1,15 @@
 import { describe, expect, it } from "vitest";
+import { readdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { leerCatalogo } from "../scripts/lib/catalogos.mjs";
+import { esCatalogo, leerCatalogo } from "../scripts/lib/catalogos.mjs";
 import { leerEstandares } from "../scripts/lib/estandaresAgentes.mjs";
 import {
   AVISO_ANTES_DIAS, ESTADOS_REVISION, PLAZO_REVISION_DIAS, TECHO_SIN_REVISAR, cifrasDeFuentes, estadoDeRevision, leerFuentes,
   mapaDeFuentes, problemasDeFuentes, resolverCitas, vistaParaEstandares,
 } from "../scripts/lib/fuentesDoc.mjs";
 import { leerPool } from "../scripts/lib/pool.mjs";
+import { rutaPrincipiosDeProyecto } from "../scripts/lib/principios.mjs";
 
 /**
  * La fuente documental, entidad única `source` (#681, parte de #652). Una lista (ops/fuentes-documentales/)
@@ -22,7 +24,9 @@ const clon = () => structuredClone(catalogo);
 const DIAS = (n) => new Date(Date.parse("2026-10-13T00:00:00Z") + n * 86_400_000);
 
 // Quién cita cada fuente, leído en crudo: el id que escribe cada principio, regla y práctica.
-const citasDePrincipios = ["ops/principios/", "ops/principios-producto/"].flatMap((c) => leerCatalogo(RAIZ, c).principios.flatMap((p) => p.fuentes.map((f) => ({ p: p.id, f }))));
+// Los principios de cada proyecto (ops/proyectos/<id>/principios/, #710) citan fuentes igual que los de la casa.
+const deProyectos = readdirSync(resolve(RAIZ, "ops/proyectos")).map(rutaPrincipiosDeProyecto).filter((c) => esCatalogo(RAIZ, c));
+const citasDePrincipios = ["ops/principios/", "ops/principios-producto/", ...deProyectos].flatMap((c) => leerCatalogo(RAIZ, c).principios.flatMap((p) => p.fuentes.map((f) => ({ p: p.id, f }))));
 const estandares = leerEstandares(RAIZ);
 const reglas = [...Object.values(estandares.agentes).flatMap((a) => a.tareas.flatMap((t) => t.reglas ?? [])), ...Object.values(estandares.comunes).flatMap((c) => c.reglas ?? [])];
 const citasDePool = Object.values(leerPool(RAIZ).agentes).flatMap((a) => a.practicas.map((x) => x.fuente));

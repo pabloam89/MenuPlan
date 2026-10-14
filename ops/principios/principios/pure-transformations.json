@@ -6,8 +6,12 @@
   "porque": "Dos implementaciones de la misma cuenta terminan dando resultados distintos.",
   "fuentes": [
     {
-      "marca": "I",
-      "fuente": "casa-principios-datos"
+      "marca": "S",
+      "fuente": "pg-generated-columns"
+    },
+    {
+      "marca": "S",
+      "fuente": "pg-volatility"
     }
   ],
   "detalle": [

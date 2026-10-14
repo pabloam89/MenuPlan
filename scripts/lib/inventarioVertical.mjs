@@ -77,7 +77,8 @@ export function calcular(raiz) {
   // ---- 1. Principios -------------------------------------------------------------------------------------------
   const fuentes = new Map(jsonsDe(raiz, "ops/fuentes-documentales/fuentes").map((f) => [f.id, f]));
   const casa = jsonsDe(raiz, "ops/principios/principios").map((p) => {
-    if (Object.hasOwn(decisiones.principios_verticales, p.id)) return { id: p.id, lado: "vertical", razon: decisiones.principios_verticales[p.id] };
+    // Un principio con `project` es de un proyecto: si sigue en ops/principios/ está mal puesto (vertical sin registro propio).
+    if (p.project) return { id: p.id, lado: "vertical", razon: `lleva project «${p.project}» y vive en el registro horizontal` };
     if (!(p.fuentes ?? []).length) return { id: p.id, lado: "duda", razon: "no registra ninguna fuente: sin origen no se puede decidir su lado" };
     const externas = (p.fuentes ?? []).filter((s) => fuentes.get(s.fuente)?.tipo === "externa");
     const rutas = (p.fuentes ?? []).map((s) => fuentes.get(s.fuente)).filter((f) => f?.tipo === "casa").map((f) => f.ruta);
@@ -90,6 +91,13 @@ export function calcular(raiz) {
   });
   for (const p of casa) if (p.lado === "duda") duda("principios", p.id, p.razon);
   filas.push(contar("principios de la casa (ops/principios/)", casa));
+
+  // Los principios de cada proyecto (#710): su registro propio, ops/proyectos/<id>/principios/. Son verticales por vivir ahí.
+  const delProyecto = existsSync(join(raiz, "ops/proyectos")) ? readdirSync(join(raiz, "ops/proyectos")).sort().flatMap((id) => {
+    const dir = `ops/proyectos/${id}/principios/principios`;
+    return existsSync(join(raiz, dir)) ? jsonsDe(raiz, dir).map((p) => ({ id: p.id, lado: "vertical" })) : [];
+  }) : [];
+  filas.push(contar("principios del proyecto (ops/proyectos/<id>/principios/)", delProyecto));
 
   const producto = jsonsDe(raiz, "ops/principios-producto/principios").map((p) => {
     if (!(p.fuentes ?? []).length) return { id: p.id, lado: "duda", razon: "no registra ninguna fuente: sin origen no se puede decidir su lado" };
@@ -249,7 +257,7 @@ export function calcular(raiz) {
       testsEnCasa: dentroDeLaCasa.length,
       vigilanVertical,
       testsEnProducto: lista.length - dentroDeLaCasa.length,
-      principiosVerticales: casa.filter((p) => p.lado === "vertical").map((p) => p.id),
+      principiosVerticales: [...casa, ...delProyecto].filter((p) => p.lado === "vertical").map((p) => p.id),
     },
   };
 }
@@ -302,7 +310,6 @@ export function fallosDeDudas(dudosos) {
  */
 export function fallosDeDecisiones(decisiones, { existe, entidades }) {
   const fallos = [];
-  for (const id of Object.keys(decisiones.principios_verticales ?? {})) if (!existe(`ops/principios/principios/${id}.json`)) fallos.push(`principio ${id}`);
   for (const id of Object.keys(decisiones.entidades_verticales_genericas ?? {})) if (!entidades.includes(id)) fallos.push(`entidad ${id}`);
   for (const id of Object.keys(decisiones.agentes_dudosos ?? {})) if (!existe(`.claude/agents/${id}.md`)) fallos.push(`agente ${id}`);
   return fallos;
@@ -335,7 +342,7 @@ export function documento(d, fecha) {
   L.push("");
   L.push("| Capa | De dónde sale el lado |");
   L.push("|---|---|");
-  L.push("| Principios | `ops/principios/`, `ops/principios-producto/` y `ops/redaccion.json`, con las fuentes de `ops/fuentes-documentales/` y las zonas de `ops/zonas.json`. Vertical: la lista a mano de `ops/inventario-vertical.json`. Duda: sin fuente externa y su único origen está en un fichero de zona producto; o un principio de producto del área `conversational-ai` |");
+  L.push("| Principios | `ops/principios/`, `ops/principios-producto/` y `ops/redaccion.json`, con las fuentes de `ops/fuentes-documentales/` y las zonas de `ops/zonas.json`. Vertical: los de `ops/proyectos/<id>/principios/` (el campo `project`). Duda: sin fuente externa y su único origen está en un fichero de zona producto; o un principio de producto del área `conversational-ai` |");
   L.push("| Fuentes | Externa: horizontal (salvo la documentación de Supabase y Vercel: duda). De la casa: la zona de su ruta (`ops/zonas.json`) |");
   L.push("| Normas | El registro en que viven. Duda de una horizontal: su texto nombra HoMenu/Lola/MenuPlan, o su ámbito es `bot`/`product`/`catalog`, o su control o `donde` apunta a `api/`, `src/`, `supabase/`, `docs/datos/`, `docs/producto/`, `specs/` o `DESIGN_SYSTEM.md` (las " + cifras.normasDiseno + " de ámbito `diseno` no cuentan: Pablo decidió el 13 oct que son horizontales) |");
   L.push("| Entidades | Su campo `scope` (`horizontal`, `vertical`, `both`); duda: `both` y las vertical que son un concepto general (lista a mano) |");
@@ -352,11 +359,11 @@ export function documento(d, fecha) {
   L.push("|---|---:|---:|---:|---:|");
   for (const x of filas) L.push(lineaTabla(x));
   L.push("");
-  L.push(`Principios, las tres filas juntas: ${sumar(filas.slice(0, 3), "total")} en total, ${sumar(filas.slice(0, 3), "horizontal")} horizontales, ${sumar(filas.slice(0, 3), "vertical")} verticales y ${sumar(filas.slice(0, 3), "duda")} en duda.`);
+  L.push(`Principios, las cuatro filas juntas: ${sumar(filas.slice(0, 4), "total")} en total, ${sumar(filas.slice(0, 4), "horizontal")} horizontales, ${sumar(filas.slice(0, 4), "vertical")} verticales y ${sumar(filas.slice(0, 4), "duda")} en duda.`);
   L.push("");
   L.push("## Lo que cuenta cada capa");
   L.push("");
-  L.push(`- **Principios.** Solo ${cifras.principiosVerticales.length} de los ${f("principios de la casa").total} propios de la casa son claramente de HoMenu (${cifras.principiosVerticales.map((i) => `\`${i}\``).join(" y ")}): origen una decisión de producto, sin fuente externa. La mayoría no tiene fuente externa, pero eso no los hace verticales: son del método de trabajo. La duda real son los principios de base de datos cuyo único origen es \`docs/datos/PRINCIPIOS.md\`. Los ${f("principios de producto").total} de producto tienen literatura detrás y son horizontales; los del área \`conversational-ai\` solo valen si el proyecto tiene un bot.`);
+  L.push(`- **Principios.** Los ${f("principios del proyecto").total} de HoMenu (${cifras.principiosVerticales.map((i) => `\`${i}\``).join(" y ")}) viven en su registro, \`ops/proyectos/homenu/principios/\`, con el campo \`project\`: origen una decisión de producto, sin fuente externa. Los ${f("principios de la casa").total} de la casa son horizontales salvo los que dudan: la mayoría no tiene fuente externa, pero eso no los hace verticales, son del método de trabajo. Los de base de datos que solo tenían como origen \`docs/datos/PRINCIPIOS.md\` son horizontales por decisión de Pablo (13 oct): llevan fuente externa (PostgreSQL, Fowler) y \`docs/datos/\` es el cómo los aplica HoMenu; el que no la tiene verificable sigue en duda. Los ${f("principios de producto").total} de producto tienen literatura detrás y son horizontales; los del área \`conversational-ai\` solo valen si el proyecto tiene un bot.`);
   L.push(`- **Fuentes.** ${cifras.fuentesNota}`);
   L.push(`- **Normas.** El registro vertical ya está separado (${f("normas verticales").total}). En el horizontal hay ${f("normas horizontales").duda} que dudan (lista abajo). De las ${f("normas horizontales").total}, ${cifras.controlJuicio} tienen como control «juicio» y ${cifras.controlEnProducto} acaban en un fichero de zona producto. De las ${f("normas verticales").total} verticales, ${cifras.verticalesEnFactoria} tienen su control en una carpeta de la factoría.`);
   L.push(`- **Entidades y glosario.** Entidades retiradas (no cuentan): ${cifras.entidadesRetiradas}. El glosario no tiene lado propio: hoy se deduce de sus entidades; es el registro donde más falta el campo.`);
@@ -386,7 +393,7 @@ export function documento(d, fecha) {
     ["PR 3", "Principios: campo `project` y registro `ops/proyectos/homenu/principios/`; mover los verticales y resolver los de base de datos", `verticales fuera de su registro = ${f("principios de la casa").vertical}; en duda = ${f("principios de la casa").duda + f("principios de producto").duda}`, "verticales en su registro = todos; en duda = 0"],
     ["PR 4", "Fuentes: campo `project` en las de la casa que son de HoMenu y origen (decisión o fallo) en vez de fuente externa para los principios de proyecto", `fuentes verticales sin marcar = ${f("fuentes").vertical}; en duda = ${f("fuentes").duda}`, "marcadas = todas; en duda = 0"],
     ["PR 5", "Normas dudosas: mover al registro de HoMenu las que sean suyas, o reescribir (sin nombrar el proyecto) las que sean generales", `normas horizontales en duda = ${f("normas horizontales").duda}`, "0 (cada una, horizontal limpia o vertical)"],
-    ["PR 6", "Controles: tests de la casa que leen ficheros de HoMenu pasan a recibirlos por referencia (`--proyecto`) o se mueven; retirar `verticales_sin_salida` (#704)", `tests de la casa que leen HoMenu = ${cifras.vigilanVertical}; en duda = ${f("tests").duda}`, "0 y 0"],
+    ["PR 6", "Controles: tests de la casa que leen ficheros de HoMenu pasan a recibirlos por referencia (`--proyecto`) o se mueven (el techo `verticales_sin_salida` ya se retiró, #710)", `tests de la casa que leen HoMenu = ${cifras.vigilanVertical}; en duda = ${f("tests").duda}`, "0 y 0"],
     ["PR 7", "Glosario: términos de proyecto aparte de los de la casa", `términos en duda = ${f("términos").duda}`, "0"],
     ["PR 8", "Skills, reglas, comandos, specs y docs: marcar el lado de cada una y separar los skills de servicio en método (casa) y datos (proyecto)", `en duda = skills ${f("skills").duda}, documentos ${f("documentos").duda}; verticales sin marca = ${f("reglas").vertical + f("specs").vertical + f("skills").vertical}`, "en duda = 0; todas marcadas"],
     ["PR 9", "Factoría frente a HoMenu (#690): CLAUDE.md como índice corto con dos partes; `docs/` y `ops/` separados", `documentos en duda = ${f("documentos").duda}`, "0"],
