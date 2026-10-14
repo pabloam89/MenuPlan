@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "ops",
+  "scope": "horizontal",
   "definicion": "La unidad de trabajo de una sesión: una carpeta de trabajo, una rama y lo que se pidió (npm run tarea).",
   "sinonimos_prohibidos": [],
   "aplica_a": [

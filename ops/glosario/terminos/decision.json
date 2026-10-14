@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "ops",
+  "scope": "horizontal",
   "definicion": "Un issue tipo:decision que se asigna a Pablo: la pregunta en llano, las opciones con la recomendada primero y qué pasa si no se decide.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

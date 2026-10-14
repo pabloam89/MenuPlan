@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Un elemento de interfaz en cuadrícula o secuencia que muestra imágenes y las abre a mayor tamaño.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

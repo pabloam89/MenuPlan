@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Un elemento de interfaz animado que dice que algo está cargando, sin decir cuánto falta.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

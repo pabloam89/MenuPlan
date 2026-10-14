@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Un documento, externo o de la casa, que respalda un principio, una regla o una práctica, y que se registra una sola vez en ops/fuentes-documentales/ con su fecha de alta y de revisión.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

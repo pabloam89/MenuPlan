@@ -13,13 +13,16 @@
  *   test-del-juez juez: <j> aciertos: a/b buenos: c/d malos: e/f sin_correr: n acierto: 0.83 coste_usd: x
  * Salida (SALIDA de evals.mjs): 0 bien, 1 forma mala, 2 entrada mala, 3 se paró por el tope.
  */
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { cargarEnv } from "./lib/env.mjs";
 import { leerRegistro } from "./lib/normas.mjs";
 import { SALIDA, costeUsd, estimadoSiguiente, opcionNumero, topeDePasada, apuntarOAvisar, puedeGastar } from "./lib/evals.mjs";
 import { RAIZ, MODELO_BARATO, MODELO_EJECUTA, ESTIMADO_LLAMADA, TOPE_SKILLS_USD, jsonDeTexto, leerRespuesta } from "./lib/skills.mjs";
-import { JUECES, cifra, faltasDeFichero, leerFichero, lineaDeCifra, medir, promptCaso } from "./lib/testDelJuez.mjs";
+import { JUECES, RUTA_PASADAS, cifra, cumpleUmbralA, faltasDeFichero, hashDeCasos, faltasDePasadas, leerFichero, leerPasadas, lineaDeCifra, medir, motivoSinUmbral, promptCaso } from "./lib/testDelJuez.mjs";
+
+/** La fecha de hoy en Madrid (AAAA-MM-DD), nunca de `date` (#210). */
+const fechaMadrid = () => new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Madrid" });
 
 const argv = process.argv.slice(2);
 const PAGO = argv.includes("--si");
@@ -46,6 +49,13 @@ for (const j of lista) {
   for (const m of faltas) console.log(`  - ${m}`);
   if (faltas.length) codigo = SALIDA.fallos;
   ficheros[j] = f;
+}
+{
+  const faltas = faltasDePasadas(leerPasadas(RAIZ));
+  for (const m of faltas) console.log(`  - ${m}`);
+  if (faltas.length) codigo = SALIDA.fallos;
+  const { pasadas } = leerPasadas(RAIZ);
+  for (const j of lista) { const m = motivoSinUmbral(j, pasadas, ficheros[j].casos.length, hashDeCasos(j, RAIZ)); console.log(`test-del-juez umbral juez: ${j} umbral_a: ${m ? "no" : "si"}${m ? ` motivo: ${m}` : ""}`); }
 }
 if (codigo !== SALIDA.bien) salir(codigo, "La forma de los casos no vale.");
 if (!PAGO) {
@@ -102,8 +112,15 @@ for (const j of lista) {
   });
   const c = cifra(filas);
   for (const f of filas.filter((x) => x.estado === "falla")) console.log(`  no acierta ${f.id} (${f.tipo}, norma ${f.norma}, veredicto ${f.veredicto ?? "ninguno"})`);
-  console.log(lineaDeCifra(j, c, ` coste_usd: ${(gastado - antes).toFixed(4)}`));
+  const coste = Number((gastado - antes).toFixed(4));
+  console.log(lineaDeCifra(j, c, ` coste_usd: ${coste}`));
   if (c.sin_correr) codigo = SALIDA.tope;
+  // Se registra cada pasada de pago (cifra y fecha): sin ellas la norma no cuenta como comprobada (umbral A, #698).
+  const reg = leerPasadas(RAIZ);
+  reg.pasadas.push({ juez: j, fecha: fechaMadrid(), casos: ficheros[j].casos.length, casos_hash: hashDeCasos(j, RAIZ), buenos: c.buenos, buenos_ok: c.buenos_ok, malos: c.malos, malos_ok: c.malos_ok, sin_correr: c.sin_correr, coste_usd: coste });
+  writeFileSync(join(RAIZ, RUTA_PASADAS), JSON.stringify(reg, null, 2) + "\n");
+  const sin = motivoSinUmbral(j, reg.pasadas, ficheros[j].casos.length, hashDeCasos(j, RAIZ));
+  console.log(`test-del-juez umbral juez: ${j} cumple_pasada: ${cumpleUmbralA(reg.pasadas.at(-1))} umbral_a: ${sin ? "no" : "si"}${sin ? ` motivo: ${sin}` : ""}`);
 }
 if (motivoTope) console.log(`Paró en el tope (${motivoTope}); gastado ${gastado.toFixed(3)} $ de ${tope.toFixed(2)} $.`);
 console.log(`Total ${gastado.toFixed(4)} $ en ${llamadas} llamadas (tope ${tope.toFixed(2)} $).`);

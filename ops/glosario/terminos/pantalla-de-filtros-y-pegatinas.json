@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que permite añadir efectos o pegatinas a una foto o a un vídeo.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Un flujo de usuario que lleva a la persona a elegir cuándo ocurrirá algo, como una cita o un envío.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

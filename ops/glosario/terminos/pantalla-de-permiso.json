@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que explica y pide un permiso del dispositivo, como la cámara o las notificaciones.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

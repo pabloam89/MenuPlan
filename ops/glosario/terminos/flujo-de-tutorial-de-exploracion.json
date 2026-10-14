@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Un flujo de usuario que enseña a recorrer la aplicación mostrando cómo moverse entre sus secciones.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

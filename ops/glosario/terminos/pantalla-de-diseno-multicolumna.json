@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que reparte su contenido en varias columnas a la vez, como lista y detalle.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

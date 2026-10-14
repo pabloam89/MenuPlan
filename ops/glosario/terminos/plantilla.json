@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "El molde de una forma común que se repite y hereda de la base y de la forja de su familia: el de cada tipo de skill, el de agente, el del encargo y los formularios.",
   "sinonimos_prohibidos": [
     "template",

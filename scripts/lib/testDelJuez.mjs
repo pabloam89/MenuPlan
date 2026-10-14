@@ -15,16 +15,29 @@
  */
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { hashLF } from "./evals.mjs";
 
 export const DIR_TEST_DEL_JUEZ = "ops/test-del-juez";
 export const JUECES = ["revisor", "qa", "evaluador", "seguridad", "auditor-datos"];
 export const TIPOS_CASO = ["bueno", "malo"];
-/** Casos mínimos por norma y tipo para que el fichero cuente como su test del juez. */
-export const MIN_POR_NORMA_Y_TIPO = 1;
+/** Casos mínimos por norma y tipo, y en total por norma, para que el fichero cuente como su test del juez (umbral A, #698). */
+export const MIN_POR_NORMA_Y_TIPO = 2;
+export const MIN_POR_NORMA = 4;
+/** Umbral A (decisión de Pablo, #698): todos los buenos aprobados y al menos esta parte de los malos señalados, en tantas pasadas seguidas. */
+export const UMBRAL_MALOS = 0.8;
+export const PASADAS_SEGUIDAS = 2;
+/** Las pasadas de pago registradas: sin pasadas que cumplan el umbral, la norma sigue sin comprobar. */
+export const RUTA_PASADAS = "ops/test-del-juez/pasadas.json";
 /** Un diff más largo que esto no es un caso fijo y pequeño: se parte. */
 export const MAX_DIFF = 1500;
 
 const rutaDe = (juez) => `${DIR_TEST_DEL_JUEZ}/${juez}.json`;
+/** El hash (LF, 12) del fichero de casos de un juez: cambia si se edita cualquier caso, aunque su número no cambie. */
+export function hashDeCasos(juez, raiz) {
+  const ruta = join(raiz, rutaDe(juez));
+  return existsSync(ruta) ? hashLF(readFileSync(ruta, "utf8")) : null;
+}
+
 export const esFicheroDeJuez = (ruta) => new RegExp(`^${DIR_TEST_DEL_JUEZ}/(${JUECES.join("|")})\\.json$`).test(ruta);
 
 export function leerFichero(juez, raiz) {
@@ -59,10 +72,88 @@ export function faltasDeFichero(f, juez, normasDeJuez = []) {
 /** ¿Tiene el fichero casos buenos y malos de esta norma? Devuelve el motivo o null. */
 export function motivoFicheroSinNorma(f, normaId) {
   const de = (t) => (f?.casos ?? []).filter((c) => c.norma === normaId && c.tipo === t).length;
-  if (de("bueno") < MIN_POR_NORMA_Y_TIPO || de("malo") < MIN_POR_NORMA_Y_TIPO) {
-    return `necesita al menos ${MIN_POR_NORMA_Y_TIPO} caso bueno y ${MIN_POR_NORMA_Y_TIPO} malo de «${normaId}» (hay ${de("bueno")} y ${de("malo")})`;
+  if (de("bueno") < MIN_POR_NORMA_Y_TIPO || de("malo") < MIN_POR_NORMA_Y_TIPO || de("bueno") + de("malo") < MIN_POR_NORMA) {
+    return `necesita al menos ${MIN_POR_NORMA_Y_TIPO} casos buenos y ${MIN_POR_NORMA_Y_TIPO} malos de «${normaId}», ${MIN_POR_NORMA} o más en total (hay ${de("bueno")} y ${de("malo")})`;
   }
   return null;
+}
+
+/** El juez al que pertenece una ruta de fichero de casos, o null. */
+export const juezDeRuta = (ruta) => new RegExp(`^${DIR_TEST_DEL_JUEZ}/(${JUECES.join("|")})\\.json$`).exec(ruta)?.[1] ?? null;
+
+/** ¿Cumple una pasada el umbral A? Todos los buenos aprobados, al menos UMBRAL_MALOS de los malos señalados y nada sin correr. */
+export function cumpleUmbralA(p) {
+  if (!p || ![p.buenos, p.buenos_ok, p.malos, p.malos_ok, p.sin_correr].every(Number.isInteger)) return false;
+  if (p.sin_correr !== 0 || p.buenos < 1 || p.malos < 1) return false;
+  return p.buenos_ok === p.buenos && p.malos_ok / p.malos >= UMBRAL_MALOS;
+}
+
+/** Errores de forma del registro de pasadas (lista de textos; vacía si vale). */
+export function faltasDePasadas(r) {
+  if (!r || !Array.isArray(r.pasadas)) return ["pasadas.json: falta la lista «pasadas»"];
+  const malos = [];
+  r.pasadas.forEach((p, i) => {
+    const d = `pasadas[${i}]`;
+    if (!JUECES.includes(p?.juez)) malos.push(`${d}: juez «${p?.juez}» no es de la casa`);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(p?.fecha ?? ""))) malos.push(`${d}: «fecha» AAAA-MM-DD`);
+    for (const k of ["casos", "buenos", "buenos_ok", "malos", "malos_ok", "sin_correr"]) if (!Number.isInteger(p?.[k]) || p[k] < 0) malos.push(`${d}: «${k}» es un entero`);
+    if (typeof p?.coste_usd !== "number" || !(p.coste_usd > 0)) malos.push(`${d}: «coste_usd» es un número mayor que 0 (una pasada de pago cuesta)`);
+    if (typeof p?.casos_hash !== "string" || !/^[0-9a-f]{12}$/.test(p.casos_hash)) malos.push(`${d}: falta «casos_hash» (hash de 12 de los casos del juez)`);
+    const e = (k) => Number.isInteger(p?.[k]) && p[k] >= 0;
+    if (["casos", "buenos", "malos"].every(e) && p.casos !== p.buenos + p.malos) malos.push(`${d}: «casos» (${p.casos}) no es buenos + malos (${p.buenos + p.malos})`);
+    if (["buenos", "buenos_ok"].every(e) && p.buenos_ok > p.buenos) malos.push(`${d}: buenos_ok (${p.buenos_ok}) pasa de buenos (${p.buenos})`);
+    if (["malos", "malos_ok"].every(e) && p.malos_ok > p.malos) malos.push(`${d}: malos_ok (${p.malos_ok}) pasa de malos (${p.malos})`);
+  });
+  // Dos pasadas no pueden ser la misma copiada: mismo juez, fecha y cifra completa (coste incluido).
+  const vistas = new Map();
+  r.pasadas.forEach((p, i) => {
+    const k = JSON.stringify(p);
+    if (vistas.has(k)) malos.push(`pasadas[${i}]: idéntica a pasadas[${vistas.get(k)}] (juez, fecha y cifra): una pasada copiada no es una pasada`);
+    else vistas.set(k, i);
+  });
+  return malos;
+}
+
+/**
+ * El registro solo crece por el final: `antes` (el de origin/staging) tiene que ser el comienzo exacto de `ahora`.
+ * Editar, borrar o reordenar una pasada ya subida es forjar la medida. Devuelve textos (vacía si vale).
+ */
+export function faltasDeHistoria(antes, ahora) {
+  const a = antes?.pasadas ?? [];
+  const b = ahora?.pasadas ?? [];
+  if (b.length < a.length) return [`pasadas.json: había ${a.length} pasadas en staging y ahora ${b.length}: solo se puede añadir al final`];
+  return a.flatMap((p, i) => (JSON.stringify(p) === JSON.stringify(b[i]) ? [] : [`pasadas[${i}]: distinta de la de staging: solo se puede añadir al final`]));
+}
+
+export function leerPasadas(raiz) {
+  const ruta = join(raiz, RUTA_PASADAS);
+  return existsSync(ruta) ? JSON.parse(readFileSync(ruta, "utf8")) : { pasadas: [] };
+}
+
+/**
+ * Por qué un juez aún no cumple el umbral A, o null si cumple: sus últimas PASADAS_SEGUIDAS pasadas registradas
+ * cumplen, y se corrieron sobre los `casos` que tiene hoy su fichero: mismo número y mismo hash (si se amplía o se edita un caso, hay que volver a medir).
+ */
+export function motivoSinUmbral(juez, pasadas, casosHoy, hashHoy) {
+  const suyas = (pasadas ?? []).filter((p) => p.juez === juez);
+  if (!suyas.length) return `ninguna pasada de pago registrada de ${juez} (npm run test-del-juez -- ${juez} --si)`;
+  const ultimas = suyas.slice(-PASADAS_SEGUIDAS);
+  if (ultimas.length < PASADAS_SEGUIDAS) return `solo ${ultimas.length} pasada de pago de ${juez}: el umbral pide ${PASADAS_SEGUIDAS} seguidas`;
+  if (ultimas.some((p) => p.casos !== casosHoy)) return `las pasadas de ${juez} son de otros casos (${ultimas.map((p) => p.casos).join(", ")}; hoy ${casosHoy}): hay que volver a medir`;
+  if (ultimas.some((p) => p.casos_hash !== hashHoy)) return `las pasadas de ${juez} son de una versión anterior de sus casos (se editó alguno): hay que volver a medir`;
+  if (!ultimas.every(cumpleUmbralA)) return `las últimas ${PASADAS_SEGUIDAS} pasadas de ${juez} no cumplen el umbral (todos los buenos y ${UMBRAL_MALOS * 100} % de los malos)`;
+  return null;
+}
+
+/** Las normas de juez con fichero de casos pero sin las pasadas de pago que exige el umbral A: siguen sin comprobar. */
+export function normasSinPasada(normas, raiz) {
+  const { pasadas } = leerPasadas(raiz);
+  return normas.filter((n) => {
+    if (n.control_procesador !== "juez" || typeof n.test_del_juez !== "string") return false;
+    const juez = juezDeRuta(n.test_del_juez);
+    if (!juez) return false;
+    return motivoSinUmbral(juez, pasadas, leerFichero(juez, raiz)?.casos?.length ?? 0, hashDeCasos(juez, raiz)) !== null;
+  });
 }
 
 /** El texto que ve el juez: el diff y la norma que se le pide mirar, sin decirle si es bueno o malo. */

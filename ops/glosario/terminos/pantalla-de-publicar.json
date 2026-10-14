@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que permite hacer visible un contenido ya preparado.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

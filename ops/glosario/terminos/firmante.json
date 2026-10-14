@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "campo",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Una persona o una capa de agente, de vocabulario cerrado, que firma un juicio y responde de él.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

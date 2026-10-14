@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "campo",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Una referencia (una ruta, un caso, un comando, un PR o un issue) que respalda un juicio y de la que se comprueba que existe.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

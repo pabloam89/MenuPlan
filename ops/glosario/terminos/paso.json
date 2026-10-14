@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "campo",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "El peldaño de herencia en que está una pieza: base, forja, plantilla o la propia pieza.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

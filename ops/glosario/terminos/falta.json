@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "estado",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "La gravedad de un control de la forja o de la higiene que se incumple y bloquea: se arregla, no se explica.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

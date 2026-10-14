@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Un elemento de interfaz, una imagen real, que ilustra un contenido.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

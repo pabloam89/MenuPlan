@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que permite crear algo nuevo o añadirlo a un conjunto.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "rol",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "La pieza que ejecuta controles sin nadie delante: la guardia, el CI, un script o un workflow.",
   "sinonimos_prohibidos": [
     "guardián",

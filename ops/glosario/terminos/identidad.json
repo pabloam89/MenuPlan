@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "ops",
+  "scope": "horizontal",
   "definicion": "Una cuenta con la que algo actúa en un servicio: un login, una App de GitHub, una cuenta de servicio o un bot del equipo.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

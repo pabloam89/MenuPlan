@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Un flujo de usuario que lleva a la persona a dejar de pagar una suscripción.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

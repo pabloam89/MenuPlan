@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "campo",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "El grado de exigencia que tiene una norma: debe, no debe o conviene.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

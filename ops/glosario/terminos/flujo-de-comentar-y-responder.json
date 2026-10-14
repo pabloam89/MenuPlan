@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Un flujo de usuario que lleva a la persona a escribir un comentario o contestar a otro.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

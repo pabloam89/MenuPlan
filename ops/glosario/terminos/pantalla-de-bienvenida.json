@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que da la bienvenida y ofrece el primer paso para empezar a usar la aplicación.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

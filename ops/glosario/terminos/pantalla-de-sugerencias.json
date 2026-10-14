@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que propone elementos parecidos o recomendados a partir de lo que se está mirando.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
