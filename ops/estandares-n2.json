@@ -112,6 +112,8 @@
         "build-con-prebuild",
         "edicion-con-edit-y-write",
         "sin-codigo-dinamico",
+        "variacion-como-dato",
+        "pieza-vale-con-un-proyecto-mas",
         "derivado-registrado-y-comparado",
         "tests-no-se-relajan",
         "eventos-sin-campos-prohibidos",
@@ -161,6 +163,10 @@
         "build-con-prebuild",
         "edicion-con-edit-y-write",
         "sin-codigo-dinamico",
+        "variacion-como-dato",
+        "pieza-vale-con-un-proyecto-mas",
+        "volumen-con-tres-casos",
+        "solucion-para-muchos",
         "derivado-registrado-y-comparado",
         "pr-acotado",
         "tests-no-se-relajan",
@@ -203,6 +209,8 @@
         "estandar-por-tarea-de-agente",
         "estandar-citado-en-el-informe",
         "criterios-de-forja-en-un-catalogo",
+        "volumen-con-tres-casos",
+        "solucion-para-muchos",
         "pr-acotado",
         "fusiona-otro-que-el-constructor",
         "juez-calibrado",
@@ -275,6 +283,194 @@
       ],
       "normas": []
     },
+    "construir.code+diseno": {
+      "accion": "construir",
+      "ambitos": [
+        "code",
+        "diseno"
+      ],
+      "normas": [
+        "test-visto-fallar",
+        "uniones-antes-de-borrar",
+        "lint-con-linea-base",
+        "tests-del-fichero",
+        "build-con-prebuild",
+        "edicion-con-edit-y-write",
+        "sin-codigo-dinamico",
+        "variacion-como-dato",
+        "pieza-vale-con-un-proyecto-mas",
+        "derivado-registrado-y-comparado",
+        "tests-no-se-relajan",
+        "eventos-sin-campos-prohibidos",
+        "screen-accessible",
+        "migrated-screen-pixel-identical",
+        "design-no-loose-values",
+        "design-token-per-role",
+        "design-token-layers",
+        "design-single-token-source",
+        "design-contrast-aa",
+        "design-touch-target",
+        "design-visible-focus",
+        "design-color-not-only-signal",
+        "design-reflow-zoom",
+        "design-motion-tokens",
+        "design-scales-not-free",
+        "design-hierarchy",
+        "design-proximity-alignment",
+        "design-complete-states",
+        "design-elastic-text",
+        "design-themes",
+        "design-component-catalogue",
+        "design-visual-performance",
+        "design-declared-voice",
+        "design-change-trace",
+        "design-measured",
+        "design-accessible-entry"
+      ]
+    },
+    "construir.diseno": {
+      "accion": "construir",
+      "ambitos": [
+        "diseno"
+      ],
+      "normas": [
+        "screen-accessible",
+        "migrated-screen-pixel-identical",
+        "design-no-loose-values",
+        "design-token-per-role",
+        "design-token-layers",
+        "design-single-token-source",
+        "design-contrast-aa",
+        "design-touch-target",
+        "design-visible-focus",
+        "design-color-not-only-signal",
+        "design-reflow-zoom",
+        "design-motion-tokens",
+        "design-scales-not-free",
+        "design-hierarchy",
+        "design-proximity-alignment",
+        "design-complete-states",
+        "design-elastic-text",
+        "design-themes",
+        "design-component-catalogue",
+        "design-visual-performance",
+        "design-declared-voice",
+        "design-change-trace",
+        "design-measured",
+        "design-accessible-entry"
+      ]
+    },
+    "medir.diseno": {
+      "accion": "medir",
+      "ambitos": [
+        "diseno"
+      ],
+      "normas": []
+    },
+    "construir.diseno+product": {
+      "accion": "construir",
+      "ambitos": [
+        "diseno",
+        "product"
+      ],
+      "normas": [
+        "improvement-has-fixed-appetite",
+        "product-logs-countable-line",
+        "screen-accessible",
+        "migrated-screen-pixel-identical",
+        "design-no-loose-values",
+        "design-token-per-role",
+        "design-token-layers",
+        "design-single-token-source",
+        "design-contrast-aa",
+        "design-touch-target",
+        "design-visible-focus",
+        "design-color-not-only-signal",
+        "design-reflow-zoom",
+        "design-motion-tokens",
+        "design-scales-not-free",
+        "design-hierarchy",
+        "design-proximity-alignment",
+        "design-complete-states",
+        "design-elastic-text",
+        "design-themes",
+        "design-component-catalogue",
+        "design-visual-performance",
+        "design-declared-voice",
+        "design-change-trace",
+        "design-measured",
+        "design-accessible-entry"
+      ]
+    },
+    "documentar.diseno": {
+      "accion": "documentar",
+      "ambitos": [
+        "diseno"
+      ],
+      "normas": []
+    },
+    "construir.bot+code": {
+      "accion": "construir",
+      "ambitos": [
+        "bot",
+        "code"
+      ],
+      "normas": [
+        "evals-antes-de-fusionar",
+        "test-visto-fallar",
+        "uniones-antes-de-borrar",
+        "lint-con-linea-base",
+        "tope-canario",
+        "tests-del-fichero",
+        "build-con-prebuild",
+        "edicion-con-edit-y-write",
+        "sin-codigo-dinamico",
+        "variacion-como-dato",
+        "pieza-vale-con-un-proyecto-mas",
+        "derivado-registrado-y-comparado",
+        "tests-no-se-relajan",
+        "eventos-sin-campos-prohibidos",
+        "bot-turn-bounded",
+        "bot-write-idempotent",
+        "model-least-privilege",
+        "model-output-schema-checked",
+        "bot-logic-simple-first",
+        "family-text-is-data"
+      ]
+    },
+    "diagnosticar.bot": {
+      "accion": "diagnosticar",
+      "ambitos": [
+        "bot"
+      ],
+      "normas": []
+    },
+    "construir.bot": {
+      "accion": "construir",
+      "ambitos": [
+        "bot"
+      ],
+      "normas": [
+        "evals-antes-de-fusionar",
+        "tope-canario",
+        "bot-turn-bounded",
+        "bot-write-idempotent",
+        "model-least-privilege",
+        "model-output-schema-checked",
+        "bot-logic-simple-first",
+        "family-text-is-data"
+      ]
+    },
+    "medir.bot": {
+      "accion": "medir",
+      "ambitos": [
+        "bot"
+      ],
+      "normas": [
+        "evals-tope-mensual",
+        "evals-antes-de-fusionar"
+      ]
+    },
     "juzgar.catalog+code+infra": {
       "accion": "juzgar",
       "ambitos": [
@@ -295,6 +491,8 @@
         "edicion-con-edit-y-write",
         "build-valida-catalogo",
         "sin-codigo-dinamico",
+        "variacion-como-dato",
+        "pieza-vale-con-un-proyecto-mas",
         "derivado-registrado-y-comparado",
         "tests-no-se-relajan",
         "eventos-sin-campos-prohibidos",
@@ -314,6 +512,8 @@
         "build-con-prebuild",
         "edicion-con-edit-y-write",
         "sin-codigo-dinamico",
+        "variacion-como-dato",
+        "pieza-vale-con-un-proyecto-mas",
         "derivado-registrado-y-comparado",
         "tests-no-se-relajan",
         "eventos-sin-campos-prohibidos"
@@ -334,6 +534,8 @@
         "estandar-por-tarea-de-agente",
         "estandar-citado-en-el-informe",
         "criterios-de-forja-en-un-catalogo",
+        "volumen-con-tres-casos",
+        "solucion-para-muchos",
         "pr-acotado",
         "fusiona-otro-que-el-constructor",
         "juez-calibrado",
@@ -358,6 +560,8 @@
         "estandar-por-tarea-de-agente",
         "estandar-citado-en-el-informe",
         "criterios-de-forja-en-un-catalogo",
+        "volumen-con-tres-casos",
+        "solucion-para-muchos",
         "pr-acotado",
         "fusiona-otro-que-el-constructor",
         "juez-calibrado",
@@ -520,190 +724,6 @@
         "family-text-is-data"
       ]
     },
-    "construir.code+diseno": {
-      "accion": "construir",
-      "ambitos": [
-        "code",
-        "diseno"
-      ],
-      "normas": [
-        "test-visto-fallar",
-        "uniones-antes-de-borrar",
-        "lint-con-linea-base",
-        "tests-del-fichero",
-        "build-con-prebuild",
-        "edicion-con-edit-y-write",
-        "sin-codigo-dinamico",
-        "derivado-registrado-y-comparado",
-        "tests-no-se-relajan",
-        "eventos-sin-campos-prohibidos",
-        "screen-accessible",
-        "migrated-screen-pixel-identical",
-        "design-no-loose-values",
-        "design-token-per-role",
-        "design-token-layers",
-        "design-single-token-source",
-        "design-contrast-aa",
-        "design-touch-target",
-        "design-visible-focus",
-        "design-color-not-only-signal",
-        "design-reflow-zoom",
-        "design-motion-tokens",
-        "design-scales-not-free",
-        "design-hierarchy",
-        "design-proximity-alignment",
-        "design-complete-states",
-        "design-elastic-text",
-        "design-themes",
-        "design-component-catalogue",
-        "design-visual-performance",
-        "design-declared-voice",
-        "design-change-trace",
-        "design-measured",
-        "design-accessible-entry"
-      ]
-    },
-    "construir.diseno": {
-      "accion": "construir",
-      "ambitos": [
-        "diseno"
-      ],
-      "normas": [
-        "screen-accessible",
-        "migrated-screen-pixel-identical",
-        "design-no-loose-values",
-        "design-token-per-role",
-        "design-token-layers",
-        "design-single-token-source",
-        "design-contrast-aa",
-        "design-touch-target",
-        "design-visible-focus",
-        "design-color-not-only-signal",
-        "design-reflow-zoom",
-        "design-motion-tokens",
-        "design-scales-not-free",
-        "design-hierarchy",
-        "design-proximity-alignment",
-        "design-complete-states",
-        "design-elastic-text",
-        "design-themes",
-        "design-component-catalogue",
-        "design-visual-performance",
-        "design-declared-voice",
-        "design-change-trace",
-        "design-measured",
-        "design-accessible-entry"
-      ]
-    },
-    "medir.diseno": {
-      "accion": "medir",
-      "ambitos": [
-        "diseno"
-      ],
-      "normas": []
-    },
-    "construir.diseno+product": {
-      "accion": "construir",
-      "ambitos": [
-        "diseno",
-        "product"
-      ],
-      "normas": [
-        "improvement-has-fixed-appetite",
-        "product-logs-countable-line",
-        "screen-accessible",
-        "migrated-screen-pixel-identical",
-        "design-no-loose-values",
-        "design-token-per-role",
-        "design-token-layers",
-        "design-single-token-source",
-        "design-contrast-aa",
-        "design-touch-target",
-        "design-visible-focus",
-        "design-color-not-only-signal",
-        "design-reflow-zoom",
-        "design-motion-tokens",
-        "design-scales-not-free",
-        "design-hierarchy",
-        "design-proximity-alignment",
-        "design-complete-states",
-        "design-elastic-text",
-        "design-themes",
-        "design-component-catalogue",
-        "design-visual-performance",
-        "design-declared-voice",
-        "design-change-trace",
-        "design-measured",
-        "design-accessible-entry"
-      ]
-    },
-    "documentar.diseno": {
-      "accion": "documentar",
-      "ambitos": [
-        "diseno"
-      ],
-      "normas": []
-    },
-    "construir.bot+code": {
-      "accion": "construir",
-      "ambitos": [
-        "bot",
-        "code"
-      ],
-      "normas": [
-        "evals-antes-de-fusionar",
-        "test-visto-fallar",
-        "uniones-antes-de-borrar",
-        "lint-con-linea-base",
-        "tope-canario",
-        "tests-del-fichero",
-        "build-con-prebuild",
-        "edicion-con-edit-y-write",
-        "sin-codigo-dinamico",
-        "derivado-registrado-y-comparado",
-        "tests-no-se-relajan",
-        "eventos-sin-campos-prohibidos",
-        "bot-turn-bounded",
-        "bot-write-idempotent",
-        "model-least-privilege",
-        "model-output-schema-checked",
-        "bot-logic-simple-first",
-        "family-text-is-data"
-      ]
-    },
-    "diagnosticar.bot": {
-      "accion": "diagnosticar",
-      "ambitos": [
-        "bot"
-      ],
-      "normas": []
-    },
-    "construir.bot": {
-      "accion": "construir",
-      "ambitos": [
-        "bot"
-      ],
-      "normas": [
-        "evals-antes-de-fusionar",
-        "tope-canario",
-        "bot-turn-bounded",
-        "bot-write-idempotent",
-        "model-least-privilege",
-        "model-output-schema-checked",
-        "bot-logic-simple-first",
-        "family-text-is-data"
-      ]
-    },
-    "medir.bot": {
-      "accion": "medir",
-      "ambitos": [
-        "bot"
-      ],
-      "normas": [
-        "evals-tope-mensual",
-        "evals-antes-de-fusionar"
-      ]
-    },
     "juzgar.diseno+product": {
       "accion": "juzgar",
       "ambitos": [
@@ -790,6 +810,8 @@
         "presupuesto-por-alcance",
         "gasto-ok-pablo",
         "plan-tres-encargos-con-preventivo",
+        "volumen-con-tres-casos",
+        "solucion-para-muchos",
         "entidad-con-registro"
       ]
     },
