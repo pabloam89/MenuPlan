@@ -1311,7 +1311,7 @@
       "sujeto": "agente",
       "fuerza": "no_debe",
       "exigencia": "juzgar lo que ha construido",
-      "nota": "El CI mira la declaración del PR: ningún Agente está en Jueces. Que el juez juzgara de verdad sigue siendo juicio hasta el veredicto firmado (#643).",
+      "nota": "El CI mira la declaración del PR: ningún Agente está en Jueces, y tocar .github/, los hooks, los settings o lo que corre con secretos exige a seguridad (#642). Que el juez juzgara de verdad sigue siendo juicio hasta el veredicto firmado (#643).",
       "donde": [
         "CLAUDE.md",
         ".claude/commands/orquestar.md",
@@ -1506,6 +1506,7 @@
       "fuerza": "debe",
       "condicion": "cuando borra una carpeta",
       "exigencia": "quitar antes sus uniones",
+      "nota": "Una carpeta de trabajo no se borra a mano: se retira con npm run retirar o con limpiar-worktrees --si, que comprueban que no se pierde trabajo y quitan antes las uniones.",
       "donde": [
         "CLAUDE.md de usuario"
       ],
@@ -1758,7 +1759,7 @@
       "sujeto": "sesion",
       "fuerza": "no_debe",
       "exigencia": "usar git stash",
-      "nota": "El stash es común a todas las carpetas de trabajo y se cruza entre sesiones.",
+      "nota": "El stash es común a todas las carpetas de trabajo y se cruza entre sesiones. Por lo mismo, no se cambia de rama con cambios sin commitear: se commitean antes en la suya. Fuera de la carpeta principal, eso no lo frena la guardia.",
       "donde": [
         "CLAUDE.md de usuario",
         ".claude/hooks/guardia.mjs"
@@ -1789,6 +1790,7 @@
       "sujeto": "sesion",
       "fuerza": "no_debe",
       "exigencia": "usar git add . ni commit -a",
+      "nota": "Lo que la guardia no ve: si un fichero mezcla lo tuyo con lo de otro, se dice en el mensaje del commit o se deja fuera.",
       "donde": [
         ".claude/hooks/guardia.mjs"
       ],
@@ -1818,7 +1820,7 @@
       "sujeto": "sesion",
       "fuerza": "no_debe",
       "exigencia": "trabajar en la carpeta principal",
-      "nota": "Excepción (#635): la sesión de la nube (CLAUDE_CODE_REMOTE=true, rama ccr-… y ruta que no sea de Windows) trabaja en su único clon; esSesionDeNube, en nube.mjs, falla cerrado.",
+      "nota": "Excepción (#635): la sesión de la nube (CLAUDE_CODE_REMOTE=true, rama ccr-… y ruta que no sea de Windows) trabaja en su único clon; esSesionDeNube, en nube.mjs, falla cerrado. La sesión de la nube empuja solo a su propia rama; eso no lo frena nada (nube.mjs solo la reconoce).",
       "donde": [
         "CLAUDE.md",
         ".claude/hooks/guardia.mjs",
@@ -2098,7 +2100,7 @@
       "sujeto": "sesion",
       "fuerza": "debe",
       "exigencia": "lanzar los tests de los ficheros que toca y no la suite entera",
-      "nota": "La suite entera la corre el CI de cada PR. En local la guardia la niega (#284) salvo con MENUPLAN_SUITE_ENTERA=1, para cuando se toca algo transversal.",
+      "nota": "La suite entera la corre el CI de cada PR. En local la guardia la niega (#284) salvo con MENUPLAN_SUITE_ENTERA=1, si se toca algo transversal (package.json, vite.config.js, scripts/lib/, hooks) sin otra sesión pesada en marcha. El CI se espera con npm run espera-ci, sin sondear: la cuota de GitHub es común.",
       "donde": [
         "CLAUDE.md de usuario",
         "CLAUDE.md",
@@ -2898,6 +2900,36 @@
       "control_que_mira": "comportamiento",
       "control_cobertura": "parcial",
       "veredicto": "semidura",
+      "riesgo": "bajo",
+      "issue": null,
+      "principio": "explicit-over-clever",
+      "ambito": "code",
+      "lado": "horizontal",
+      "acciones": [
+        "construir"
+      ]
+    },
+    {
+      "id": "texto-en-utf8-sin-bom",
+      "nombre": "UTF-8 sin BOM",
+      "sujeto": "repo",
+      "fuerza": "debe",
+      "exigencia": "guardar sus ficheros de texto en UTF-8 sin BOM",
+      "nota": "Los saltos de línea LF los impone .gitattributes. Editar con Set-Content mete BOM, y eso lo niega la guardia (edicion-con-edit-y-write).",
+      "donde": [
+        "CLAUDE.md"
+      ],
+      "ejecutor": "ci",
+      "alcance": "todos",
+      "ante_fallo": "cerrado",
+      "control": "ops/codificacion.test.js",
+      "control_tipo": "test",
+      "control_procesador": "codigo",
+      "control_fuerza": "bloquea",
+      "control_momento": "pr",
+      "control_que_mira": "forma",
+      "control_cobertura": "total",
+      "veredicto": "dura",
       "riesgo": "bajo",
       "issue": null,
       "principio": "explicit-over-clever",
@@ -4574,7 +4606,7 @@
       "sujeto": "regla",
       "fuerza": "debe",
       "exigencia": "escribirse en castellano, salvo los nombres propios, el código y las citas",
-      "nota": "Las palabras de fuerza de RFC 2119 se traducen: debe, no debe y conviene; no se deja MUST ni SHOULD",
+      "nota": "Las palabras de fuerza de RFC 2119 se traducen: debe, no debe y conviene; no se deja MUST ni SHOULD. Vale también para los comentarios del código y para el nombre de las ramas, detrás del prefijo de área que da scripts/tarea.mjs",
       "donde": [
         "docs/ops/REDACCION.md"
       ],

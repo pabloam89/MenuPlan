@@ -1414,7 +1414,7 @@
         },
         {
           "id": "ensayar-migracion",
-          "tarea": "Ensayar la migración contra la base y comprobar el resultado leyendo el catálogo",
+          "tarea": "Dejar listo para Pablo el ensayo de la migración contra la base y comprobar el resultado leyendo el catálogo",
           "accion": "operar",
           "origen": "metodo",
           "ambitos": [
@@ -1426,11 +1426,11 @@
               "nombre": "Ensayo que deshace",
               "sujeto": "migracion",
               "fuerza": "debe",
-              "exigencia": "ensayarse con apply-migration sin --si, que ejecuta y deshace",
+              "exigencia": "ensayarse con apply-migration sin --si, que ejecuta y deshace; hasta E5 (#331) lo lanza Pablo con el comando que le deja la sesión",
               "control": "scripts/apply-migration.mjs",
               "fuente": "sb-migrations",
-              "porque": "El ensayo prueba el SQL contra la base real sin dejar nada hecho",
-              "ejemplo_bueno": "node scripts/apply-migration.mjs 0097-x con la salida pegada",
+              "porque": "El ensayo prueba el SQL contra la base real sin dejar nada hecho, y pide SUPABASE_DB_URL, la URL de administrador que las sesiones no tienen (#328)",
+              "ejemplo_bueno": "el comando node scripts/apply-migration.mjs 0097-x listo para Pablo y su salida pegada cuando lo lanza",
               "ejemplo_malo": "aplicarla directamente para ver si funciona"
             },
             {
@@ -1458,7 +1458,7 @@
             }
           ],
           "no_hace": [
-            "lanzar --si ni --pablo",
+            "lanzar él el ensayo, el --si ni el --pablo hasta E5 (#331)",
             "SQL a mano contra producción",
             "dar el ensayo por bueno solo porque el script no falló"
           ]

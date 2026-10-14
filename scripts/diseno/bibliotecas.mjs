@@ -39,6 +39,7 @@ if (process.argv.includes('--json')) {
   console.log(`react: ${cifras.react ?? 'ninguna'} compatibles_con_ese_react: ${cifras.react_compatibles ?? 'n/a'}`)
   console.log(`neutrales_de_framework: ${cifras.neutrales_de_framework}`)
   console.log(`caducadas: ${cifras.caducadas}`)
+  console.log(`ultima_medida: ${cifras.ultima_medida ?? 'ninguna'}`)
   console.log(`problemas: ${problemas.length}`)
   for (const p of problemas) console.log(`  ${p}`)
 }

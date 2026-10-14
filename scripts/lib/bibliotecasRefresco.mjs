@@ -11,7 +11,8 @@
  * vínculo, mantenimiento) ni rellena un `unverified`: descubrir un dato nuevo es investigación con fuente, no refresco.
  * De dónde se lee cada ficha sale de ella misma: el paquete, de `licencia.fuente_url` cuando es un registro de npm; el
  * repositorio, de esa URL si es de GitHub o, si no, del `repository` que declara el paquete en npm. Una ficha sin ninguna
- * de las dos no tiene nada que refrescar. Los datos que cambian llevan `comprobada` = hoy.
+ * de las dos no tiene nada que refrescar. Una ficha con cambios lleva `medida` = hoy; `comprobada` es la fecha de lo
+ * investigado a mano y su caducidad de 90 días no se renueva por medir (#814).
  *
  * Puro salvo `refrescarPool`, que recibe la función que lee (`leer(url) -> objeto JSON`): el test le pasa muestras
  * guardadas y no usa red. Lo lanza `scripts/diseno/bibliotecas-refresco.mjs`.
@@ -50,13 +51,19 @@ export function repoDeNpm(npm) {
 /**
  * Del rango de `peerDependencies.react` a `{ desde, hasta }` con la forma de la ficha (x o x.y; `hasta` null si no hay tope).
  * `desde` es la cota más baja de las alternativas; `hasta`, el mayor mayor de ^ y ~, o null si alguna es abierta (>=, >, *).
- * Null si no hay rango o no se entiende (no se mide: se deja la ficha como está).
+ * Null si no hay rango o no se entiende (no se mide: se deja la ficha como está). Un tope con `<`, un intervalo con guion
+ * (`16.8.0 - 18`) o una alternativa con varios comparadores (`>=16 <19`) no se traduce: null, y `compararFicha` avisa de
+ * revisar a mano (#814). El guion pegado de una versión previa (`^18.0.0-rc.0`) no es un intervalo.
  */
 export function rangoDeReact(rango) {
   if (typeof rango !== "string" || !rango.trim()) return null;
+  if (rango.includes("<")) return null;
   const cotas = [];
   let abierto = false;
   for (const alt of rango.split("||")) {
+    // El espacio entre comparador y versión (`>= 18`) no es otro comparador; lo que quede separado por espacios, sí.
+    const partes = alt.replace(/(\^|~|>=|>|=)\s+/g, "$1").trim().split(/\s+/).filter(Boolean);
+    if (partes.length > 1) return null;
     const m = /^\s*(\^|~|>=|>)?\s*v?(\d+)(?:\.(\d+))?/.exec(alt);
     if (!m) { if (/^\s*\*\s*$/.test(alt)) abierto = true; continue; }
     cotas.push([Number(m[2]), Number(m[3] ?? 0)]);
@@ -77,6 +84,8 @@ export function medirNpm(r) {
     spdx: typeof lic === "string" && lic ? lic : null,
     dependencias: Object.keys(r?.dependencies ?? {}).length,
     react: rangoDeReact(r?.peerDependencies?.react),
+    // El rango tal cual: si hay rango y no se tradujo, el aviso lo cita (#814).
+    react_rango: typeof r?.peerDependencies?.react === "string" && r.peerDependencies.react.trim() ? r.peerDependencies.react : null,
     repo: repoDeNpm(r),
   };
 }
@@ -108,7 +117,9 @@ export function compararFicha(ficha, npm, github, hoy = new Date()) {
       avisos.push(`licencia cambia de ${ficha.licencia.spdx} a ${npm.spdx} en npm: revisar alcance y permite a mano`);
     }
     const r = ficha.react;
-    if (r?.estado === "declared") {
+    if (!npm.react && npm.react_rango && ["declared", "undeclared"].includes(r?.estado)) {
+      avisos.push(`rango de React «${npm.react_rango}» en npm sin traducir: revisar react a mano`);
+    } else if (r?.estado === "declared") {
       if (npm.react) {
         cambia("react.desde", ["react", "desde"], r.desde, npm.react.desde);
         cambia("react.hasta", ["react", "hasta"], r.hasta, npm.react.hasta);
@@ -153,7 +164,7 @@ export function camposRefrescables(ficha, patrones) {
 
 /**
  * Relee todas las fichas con `leer(url)` y devuelve `{ datos, informe }`: `datos` es una copia del pool con los cambios
- * aplicados (y `comprobada` = hoy en las fichas que cambiaron); `informe`, una entrada por ficha con `cambios`, `avisos`
+ * aplicados (y `medida` = hoy en las fichas que cambiaron); `informe`, una entrada por ficha con `cambios`, `avisos`
  * y `errores` (lectura que falló: esa parte queda como estaba). No escribe nada.
  */
 export async function refrescarPool(datos, leer, hoy = new Date()) {
@@ -182,9 +193,23 @@ export async function refrescarPool(datos, leer, hoy = new Date()) {
       for (const k of c.ruta.slice(0, -1)) o = o[k];
       o[c.ruta.at(-1)] = c.despues;
     }
-    if (cambios.length) ficha.comprobada = fecha;
+    // La fecha de la medida, no la de lo investigado: `comprobada` y su caducidad no se tocan (#814).
+    if (cambios.length) ficha.medida = fecha;
   }
   return { datos: copia, informe };
+}
+
+/**
+ * Una respuesta que no es 2xx, a `{ limite, mensaje }`. Un 403 o 429 con `x-ratelimit-remaining: 0` o con `retry-after` es
+ * el límite de tasa (GitHub da 403 también por otras causas, y entonces no lo es); el resto, su código y su texto (#814).
+ */
+export function errorDeLectura(estado, texto, cabeceras) {
+  const quedan = cabeceras?.get?.("x-ratelimit-remaining");
+  const espera = cabeceras?.get?.("retry-after");
+  if ((estado === 403 || estado === 429) && (quedan === "0" || espera)) {
+    return { limite: true, mensaje: `límite de tasa: ${estado} ${quedan === "0" ? "x-ratelimit-remaining 0" : `retry-after ${espera}`}` };
+  }
+  return { limite: false, mensaje: texto ? `${estado} ${texto}` : `${estado}` };
 }
 
 /** El informe en líneas `campo: valor`, una por cambio, aviso o error, y el resumen al final. */

@@ -54,7 +54,9 @@ metadata:
   borra solo las que ve **fusionadas y limpias**, tras cada `gh pr merge` y al
   abrir cualquier sesión. `--zona <fichero>` reserva lo que la tarea aún no ha
   tocado (`branch.<rama>.zona` de git, se va con la rama) y la guardia avisa a
-  otra rama que lo edite (#506).
+  otra rama que lo edite (#506). El primer push de la rama es `git push -u
+  origin <rama>`: deja el upstream con su nombre, que es lo que mira el hook
+  de limpieza para saber que la rama se subió.
 - **Lo generado al traer staging** (#551): `tarea` instala dos drivers de fusión
   (`generado` y `json-claves`); qué hacen, qué línea dejan y qué toca tras fusionar,
   en `.claude/skills/github/referencias/generados.md`.
