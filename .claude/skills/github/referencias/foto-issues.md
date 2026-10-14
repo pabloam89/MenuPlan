@@ -18,7 +18,7 @@ Un fichero, `issues.json`, con el estado de TODOS los issues, que el workflow `f
 
 ## Puesta en marcha (la hace Pablo)
 
-La App `homenu-sesiones` no tiene el permiso `workflows`: GitHub rechaza el push de cualquier fichero de `.github/workflows/` («refusing to allow a GitHub App to create or update workflow … without `workflows` permission», 14 oct 2026). Por eso el workflow espera en `ops/workflows-pendientes/foto-issues.yml` y, hasta que se mueva, los lectores van a la API (la rama no existe). Pablo, desde una PowerShell, en la carpeta de la tarea o en una copia al día de `staging`: `git mv ops/workflows-pendientes/foto-issues.yml .github/workflows/foto-issues.yml`, commit y push con sus credenciales; luego `gh workflow run foto-issues.yml --ref staging` y comprobar que aparece la rama `foto/issues`. Fuera de esa carpeta de espera, `ops/workflows-pendientes/` debe quedar vacía.
+La App `homenu-sesiones` no tiene el permiso `workflows`: GitHub rechaza el push de cualquier fichero de `.github/workflows/` («refusing to allow a GitHub App to create or update workflow … without `workflows` permission», 14 oct 2026). Por eso el workflow espera en `ops/workflows-pendientes/foto-issues.yml` y, hasta que se mueva, los lectores van a la API (la rama no existe). Pablo, desde una PowerShell, en la carpeta de la tarea o en una copia al día de `staging`: `git mv ops/workflows-pendientes/foto-issues.yml` a la carpeta `.github/workflows/`, commit y push con sus credenciales; luego `gh workflow run foto-issues.yml --ref staging` y comprobar que aparece la rama `foto/issues`. Fuera de esa carpeta de espera, `ops/workflows-pendientes/` debe quedar vacía.
 
 ## Cómo lee el lector
 
@@ -30,7 +30,7 @@ La App `homenu-sesiones` no tiene el permiso `workflows`: GitHub rechaza el push
 
 ## Cómo quitarla
 
-Borrar `.github/workflows/foto-issues.yml` y la rama `foto/issues` (borrar ramas es de Pablo: `gh api -X DELETE repos/pabloam89/MenuPlan/git/refs/heads/foto/issues`). Los lectores vuelven a la API solos, sin romper nada
+Borrar el workflow `foto-issues.yml` y la rama `foto/issues` (borrar ramas es de Pablo: `gh api -X DELETE repos/pabloam89/MenuPlan/git/refs/heads/foto/issues`). Los lectores vuelven a la API solos, sin romper nada
 (test «LIMPIEZA» de `scripts/fotoIssues.test.js`). Si la foto se estropea, el remedio rápido es `MENUPLAN_FOTO=0` en el entorno o vaciar la rama y relanzar el workflow (`gh workflow run foto-issues.yml --ref staging`).
 
 ## Qué no cubre
