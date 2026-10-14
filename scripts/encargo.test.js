@@ -95,6 +95,10 @@ describe("el N1 del encargo (docs/entidades/N1-encargo.md, #640)", () => {
     expect(ENCARGO_N1_DESDE).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     let nacio = "";
     try {
+      // En un clon superficial (el CI usa fetch-depth 2) el fichero «nace» en el commit de
+      // fusión, o sea hoy: la fecha de git no es la de nacimiento. Solo vale con historia entera.
+      const superficial = execFileSync("git", ["rev-parse", "--is-shallow-repository"], { cwd: RAIZ, encoding: "utf8", windowsHide: true }).trim();
+      if (superficial === "true") throw new Error("clon superficial");
       nacio = execFileSync("git", ["log", "--diff-filter=A", "--format=%cs", "-1", "--", "docs/entidades/N1-encargo.md"], { cwd: RAIZ, encoding: "utf8", windowsHide: true }).trim();
     } catch {
       // sin git (o sin historia): no se puede comprobar aquí
