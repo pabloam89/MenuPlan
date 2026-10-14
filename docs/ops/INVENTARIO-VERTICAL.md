@@ -37,7 +37,7 @@ Límites: «casa» y «bot» son castellano corriente en la factoría, así que 
 | skills (.claude/skills/) | 18 | 9 | 5 | 4 |
 | reglas por carpeta (.claude/rules/) | 6 | 0 | 5 | 1 |
 | comandos (.claude/commands/) | 5 | 3 | 2 | 0 |
-| agentes (.claude/agents/; por regla de Pablo, horizontales) | 8 | 5 | 0 | 3 |
+| agentes (.claude/agents/; por regla de Pablo, horizontales) | 8 | 8 | 0 | 0 |
 | specs (specs/*.md) | 17 | 0 | 17 | 0 |
 | documentos (docs/**/*.md y los .md de la raíz) | 31 | 21 | 9 | 1 |
 | tests (*.test.{js,jsx,mjs}) | 449 | 107 | 332 | 10 |
@@ -94,12 +94,6 @@ Principios, las cuatro filas juntas: 112 en total, 92 horizontales, 2 verticales
 ### 5b. Reglas por carpeta (1)
 
 - `.claude/rules/tests.md`: zona mixta en ops/zonas.json
-
-### 5d. Agentes (3)
-
-- `.claude/agents/auditor-datos.md`: Juzga el modelo de datos de HoMenu; el rol vale para cualquier base
-- `.claude/agents/evaluador.md`: Mide a Lola: sus casos son datos del producto (línea 2 del programa #652: paquete opcional de bots)
-- `.claude/agents/qa.md`: Prueba la app en el navegador; el rol es general, los casos son de HoMenu
 
 ### 5f. Documentos (1)
 
