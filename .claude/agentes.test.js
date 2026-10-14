@@ -9,7 +9,8 @@ import { TIPOS_AGENTE, agentesDe, traspasosDe, traspasosDeclarados, traspasosEnT
  * frontmatter dentro de lo que admite Claude Code, las diez secciones en
  * orden, su tipo (constructor o juez) y los planos a los que sirven.
  * Cambian la personalidad, las herramientas y los principios; la estructura
- * no. Y el catálogo no deriva: CLAUDE.md y /orquestar nombran a todos.
+ * no. Y el catálogo no deriva: /orquestar nombra a todos (que también los tenga
+ * ops/estandares-agentes.json lo mira su test); CLAUDE.md solo apunta, no los lista (#690, D3).
  */
 const AQUI = dirname(fileURLToPath(import.meta.url));
 const RAIZ = join(AQUI, "..");
@@ -366,14 +367,12 @@ it("buscar antes de dar nada por nuevo: plantilla, orquestar y las fuentes de ca
   }
 });
 
-it("CLAUDE.md y /orquestar nombran a todos los agentes", () => {
-  const claude = readFileSync(join(RAIZ, "CLAUDE.md"), "utf8");
+it("/orquestar nombra a todos los agentes", () => {
+  // La lista vive en .claude/agents/; CLAUDE.md solo apunta (#690, D3). Que el catálogo de tareas
+  // (ops/estandares-agentes.json) tenga los mismos agentes ya lo mira ops/estandares-agentes.test.js.
+  const nombres = agentes.map((f) => f.replace(/\.md$/, ""));
   const orquestar = readFileSync(join(AQUI, "commands", "orquestar.md"), "utf8");
-  for (const f of agentes) {
-    const nombre = f.replace(/\.md$/, "");
-    expect(claude, `CLAUDE.md no nombra a ${nombre}`).toContain(`\`${nombre}\``);
-    expect(orquestar, `/orquestar no nombra a ${nombre}`).toContain(`\`${nombre}\``);
-  }
+  for (const nombre of nombres) expect(orquestar, `/orquestar no nombra a ${nombre}`).toContain(`\`${nombre}\``);
 });
 
 describe("el analista: oficio horizontal y mínimo privilegio (línea #652)", () => {
