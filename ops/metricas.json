@@ -592,6 +592,34 @@
           "menciona": "zonas-proyecto total"
         }
       ]
+    },
+    {
+      "firma": "foto-issues modo",
+      "emisores": [
+        "scripts/foto-issues.mjs"
+      ],
+      "campos": {
+        "modo": "estado",
+        "total": "derivado",
+        "completa": "estado",
+        "listados": "derivado",
+        "nuevos": "derivado",
+        "cambiados": "derivado",
+        "de_padre": "derivado",
+        "vecinos": "derivado",
+        "rotados": "derivado",
+        "borrados": "derivado",
+        "pendientes": "derivado",
+        "puntos": "derivado",
+        "restantes": "derivado"
+      },
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": ".claude/skills/github/referencias/foto-issues.md",
+          "menciona": "foto-issues modo"
+        }
+      ]
     }
   ],
   "informes": {

@@ -11,7 +11,7 @@ metadata:
   elige_opciones: false
   porque_tipo: "encadena es true por anticipado: hoy issues opera los issues de GitHub (un proveedor) y solo encadenará etapas con #414, como dice la tabla de Pablo"
   dueno: constructor
-  comprobado: "2026-10-09"
+  comprobado: "2026-10-14"
   normas: [issues-con-buscar-antes, fondo-con-ficha-y-controles, issues-no-se-borran, pendientes-a-issue, cuando-algo-falla]
 ---
 
@@ -202,6 +202,13 @@ Sin coste. Repo público: los issues los ve cualquiera. `npm run issues` y
 `--nuevo` consultan la API de GitHub; con el límite de peticiones agotado,
 fallan con su causa y se repiten más tarde.
 
+**La foto de los issues** (#326): `npm run issues`, el arranque y `situacion` leen
+primero la foto que publica `foto-issues.yml` (0 puntos, en vez de ~1 por issue) y,
+si falta, está a medias o tiene más de 15 min, van a la API; si falta o pasa de 1 h lo
+avisan en una línea `Foto de los issues: …`. **Las escrituras van a la API**:
+`--colgar`, `--ordenar` y el colgar de `--nuevo --padre` no la usan (colgar no
+cambia la fecha). `--fresco` salta caché y foto; `MENUPLAN_FOTO=0` la apaga. Detalle: skill `github`.
+
 ## Fuentes y comprobación
 
 - https://docs.github.com/issues
@@ -209,4 +216,4 @@ fallan con su causa y se repiten más tarde.
 
 Fechas que estaban repartidas por el cuerpo (#411): los fondos anteriores al 10 oct 2026 sin ficha solo avisan.
 
-Comprobado el 2026-10-09: el índice y la búsqueda contra GitHub y el hook con entradas sintéticas; sin comprobar: el hook cargado en una sesión real. Comprobado el 2026-10-09: esta skill sale de partir la `github` (#219) sin cambiar los hechos; no se ha vuelto a ejecutar `npm run issues` ni `--nuevo` contra GitHub al partirla. Sin comprobar: el límite exacto de la API de GitHub con el que `npm run issues` se queda sin respuesta. Comprobado el 2026-10-09 (#337): la ficha, el workflow `fondos` y el paso «Fondos del PR» con tests y una API de mentira, vistos fallar, y el lector con cuerpos hostiles. Sin comprobar: el workflow en GitHub de verdad (los endpoints REST `sub_issues` y `parent`, el run de `schedule`, las etiquetas `control:` creadas) hasta que se fusione y se edite un fondo.
+Comprobado el 2026-10-09: el índice y la búsqueda contra GitHub y el hook con entradas sintéticas; sin comprobar: el hook cargado en una sesión real. Comprobado el 2026-10-09: esta skill sale de partir la `github` (#219) sin cambiar los hechos; no se ha vuelto a ejecutar `npm run issues` ni `--nuevo` contra GitHub al partirla. Sin comprobar: el límite exacto de la API de GitHub con el que `npm run issues` se queda sin respuesta. Comprobado el 2026-10-09 (#337): la ficha, el workflow `fondos` y el paso «Fondos del PR» con tests y una API de mentira, vistos fallar, y el lector con cuerpos hostiles. Sin comprobar: el workflow en GitHub de verdad (los endpoints REST `sub_issues` y `parent`, el run de `schedule`, las etiquetas `control:` creadas) hasta que se fusione y se edite un fondo. Comprobado el 2026-10-14 (#326): la foto con tests (cambio de padre sin fecha, id borrado, cupo repartido, escrituras a la API) vistos fallar, y una pasada real recortada a 50 puntos contra el repo.

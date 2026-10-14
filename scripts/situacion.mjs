@@ -10,6 +10,7 @@
  */
 import { execFileSync } from "node:child_process";
 import { ghSync } from "./lib/cuotaGh.mjs";
+import { leerEstadoFoto, lineaFoto, nodosDeLaFoto } from "./lib/fotoIssues.mjs";
 import { dirname } from "node:path";
 
 import { leerInventario } from "./lib/lleva.mjs";
@@ -38,7 +39,7 @@ const fuentes = {
   fusionados: (desde) => json("pr", "list", "--state", "merged", "--search", `merged:>=${desde}`, "--limit", String(LIMITE_FUSIONADOS), "--json", "number,title,headRefName,mergedAt,isCrossRepository"),
   ramas: () => leerInventario(principal()),
   // Issues, decisiones incluidas: una sola consulta GraphQL (con tope de páginas) y filtrada por autor de la casa.
-  issues: () => leerTodosLosIssues(gh),
+  issues: () => leerTodosLosIssues(gh, undefined, () => nodosDeLaFoto({ gh, caller: "situacion", avisar: () => {} })),
 };
 
 // Lo último que se sabe de origin; si el fetch falla, el atraso se calcula con lo que haya y la cabecera lo dice.
@@ -50,3 +51,6 @@ try {
 }
 
 console.log(situacion(fuentes, new Date(), { avisoFetch }));
+// La foto de los issues que falta o tiene más de 1 h, en una línea (#326): sin ella cada lectura cuesta ~1 punto por issue.
+const avisoFoto = lineaFoto(leerEstadoFoto());
+if (avisoFoto) console.log(avisoFoto);
