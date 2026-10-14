@@ -1,0 +1,10 @@
+{
+  "id": "pg-volatility",
+  "nombre": "PostgreSQL: categorías de volatilidad de una función (funciones puras)",
+  "tipo": "externa",
+  "url": "https://www.postgresql.org/docs/current/xfunc-volatility.html",
+  "uso": "principio",
+  "fecha_alta": "2026-10-14",
+  "revisada": "si",
+  "fecha_revision": "2026-10-14"
+}

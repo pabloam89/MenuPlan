@@ -11,8 +11,9 @@
  *                                         principio, la precedencia entre áreas (qué gana si dos normas chocan,
  *                                         #621) y sus reglas propias
  *   npm run estandar -- <agente> <tarea> --proyecto homenu   lo mismo, y además las normas de ese proyecto (ops/proyectos/<id>/normas.json)
- *                                         cuyo ámbito y acción coinciden con los de la tarea, por referencia: el estándar base
- *                                         no lleva ninguna norma vertical (#704)
+ *                                         cuyo ámbito y acción coinciden con los de la tarea, por referencia (el estándar base
+ *                                         no lleva ninguna norma vertical, #704), y las tareas que solo existen en ese proyecto
+ *                                         (ops/proyectos/<id>/tareas.json); las del bot solo si el proyecto declara el dominio (#710)
  *   npm run estandar -- <agente> <tarea> --diff   lo mismo con los ficheros de la rama frente a origin/staging
  *                                         (los de `skills-encargo --diff`); es lo que /orquestar pega al juez
  *   npm run estandar -- comunes           las tareas comunes a varios agentes
@@ -24,7 +25,8 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { ficherosDeLaRama } from "./lib/vecinos.mjs";
 import { leerPrecedencia } from "./lib/precedencia.mjs";
-import { proyectosDeEntidades } from "./lib/normas.mjs";
+import { dominiosDeProyecto, proyectosDeEntidades } from "./lib/normas.mjs";
+import { conTareasDeProyecto, leerTareasDeProyecto } from "./lib/tareasDeProyecto.mjs";
 import { bajarJuicioMaximo, contar, contarJuicio, escribirMd, escribirSecciones, leerEstandares, leerNormasEn, textoDeComun, textoDeTarea } from "./lib/estandaresAgentes.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -41,7 +43,10 @@ if (iProy >= 0 && !proyecto) { console.error("--proyecto pide un id de proyecto 
 if (proyecto && !proyectosDeEntidades(RAIZ).includes(proyecto)) { console.error(`«${proyecto}» no es un proyecto de ops/entidades.json (${proyectosDeEntidades(RAIZ).join(", ")})`); process.exit(1); }
 const salta = (i) => (iFich >= 0 && (i === iFich || (i === iFich + 1 && !todos[iFich].includes("=")))) || (iProy >= 0 && (i === iProy || (i === iProy + 1 && !todos[iProy].includes("="))));
 const args = todos.filter((a, i) => a !== "--diff" && !salta(i));
-const datos = leerEstandares(RAIZ);
+if (proyecto && todos.includes("--escribir")) { console.error("--escribir regenera los .md del catálogo general: no admite --proyecto"); process.exit(1); }
+// Con --proyecto, las tareas que solo existen en ese proyecto (ops/proyectos/<id>/tareas.json) se suman a las de su agente.
+const datos = proyecto ? conTareasDeProyecto(leerEstandares(RAIZ), leerTareasDeProyecto(RAIZ, [proyecto])[proyecto]) : leerEstandares(RAIZ);
+const dominios = proyecto ? dominiosDeProyecto(RAIZ, proyecto) : null;
 const registro = leerNormasEn(RAIZ);
 
 if (args.includes("--escribir")) {
@@ -70,7 +75,7 @@ if (args.includes("--escribir")) {
   if (!ag) { console.error(`No hay agente «${agente}». Los hay: ${Object.keys(datos.agentes).join(", ")}`); process.exit(1); }
   if (!tarea) { for (const t of ag.tareas) console.log(`${t.id} — ${t.tarea} (acción: ${t.accion})`); }
   else {
-    const txt = textoDeTarea(agente, tarea, datos, registro, { ficheros, precedencia: leerPrecedencia(RAIZ), proyecto });
+    const txt = textoDeTarea(agente, tarea, datos, registro, { ficheros, precedencia: leerPrecedencia(RAIZ), proyecto, dominios });
     if (!txt) { console.error(`${agente} no tiene la tarea «${tarea}». Tiene: ${ag.tareas.map((t) => t.id).join(", ")}`); process.exit(1); }
     console.log(txt);
   }

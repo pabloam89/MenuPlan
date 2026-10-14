@@ -119,7 +119,7 @@ describe("npm run campos-por-entidad", () => {
   it("por defecto cuenta solo las horizontales, sin tocar la base, y lo dice", () => {
     const r = corre();
     expect(r.status).toBe(0);
-    expect(r.stdout).toMatch(/^campos_por_entidad: alcance=horizontal entidades_medidas=\d+ de=\d+ horizontal=\d+ both=\d+ vertical=\d+$/m);
+    expect(r.stdout).toMatch(/^campos_por_entidad: alcance=horizontal entidades_medidas=\d+ de=\d+ horizontal=\d+ vertical=\d+$/m);
     expect(r.stdout).toMatch(/^campos_por_entidad_nota: solo scope=horizontal;/m);
     expect(r.stdout).not.toMatch(/alcance=vertical/);
     expect(r.stdout).not.toMatch(/origen=base/);

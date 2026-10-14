@@ -6,6 +6,7 @@
     {
       "id": "homenu",
       "name": "HoMenu",
+      "dominios": ["bot"],
       "repos": [
         "pabloam89/MenuPlan"
       ],
