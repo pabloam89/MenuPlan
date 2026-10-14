@@ -3,7 +3,7 @@
  * tiene que dejar a los lectores en modo API sin romper nada. Sin red: `gh` es un doble de GitHub que
  * contesta como `gh api graphql` de verdad (texto JSON; con `errors`, sale con 1 y deja la respuesta en stdout).
  */
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -16,9 +16,8 @@ import {
 } from "./lib/fotoIssues.mjs";
 import { APIS_GH, lineaGh, registrarFoto, leerLineas } from "./lib/cuotaGh.mjs";
 
-// El workflow vive en .github/workflows/; mientras la App de las sesiones no pueda empujar ahí (le falta el permiso
-// `workflows`), espera en ops/workflows-pendientes/ hasta que Pablo lo mueva (skill github, foto-issues.md).
-const RUTA_WORKFLOW = [".github/workflows/foto-issues.yml", "ops/workflows-pendientes/foto-issues.yml"].map((r) => new URL(`../${r}`, import.meta.url)).find((u) => existsSync(u));
+// El workflow que escribe la foto (activo desde el 14 oct 2026, PR #824; skill github, foto-issues.md).
+const RUTA_WORKFLOW = new URL("../.github/workflows/foto-issues.yml", import.meta.url);
 const T0 = new Date("2026-10-14T12:00:00Z");
 const min = (m) => new Date(T0.getTime() + m * 60_000);
 
