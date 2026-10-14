@@ -30,6 +30,11 @@
       "test": ".claude/plantillas-skill.test.js",
       "fija": "Nada: solo comprueba que CLAUDE.md no diga respuestas_tipo (not.toContain)",
       "porque": "Una comprobación negativa no obliga a copiar nada; impide una copia vieja"
+    },
+    {
+      "test": "ops/preguntas.test.js",
+      "fija": "La sección «Qué se le pregunta a Pablo, y qué no» de CLAUDE.md es la que sale de ops/proyectos/homenu/preguntas.json, y el orquestador no la copia",
+      "porque": "No fija una copia: compara la sección generada con su registro, que es la fuente única (#816; filas 86-101 de docs/ops/CLAUDE-MD-AFIRMACIONES.md, veredicto mover)"
     }
   ]
 }

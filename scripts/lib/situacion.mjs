@@ -211,7 +211,15 @@ function bloqueContradicciones(issues, ramas, ahora) {
  * si GraphQL devuelve `errors`, si no hay datos o si pasa de MAX_PAGINAS: un
  * límite agotado tiene que verse como «sin ver», no como «no hay issues».
  */
-export function leerTodosLosIssues(gh, maxPaginas = MAX_PAGINAS) {
+export function leerTodosLosIssues(gh, maxPaginas = MAX_PAGINAS, nodosDeFoto = null) {
+  const mapear = (n) => ({
+    ...leerIssue(n),
+    marcas: leerMarcas(n.comments?.nodes, { soloCasa: true }),
+    comentariosCasa: (n.comments?.nodes ?? []).filter((c) => esDeLaCasa(c?.authorAssociation)).map((c) => c.createdAt).filter(Boolean),
+  });
+  // La foto publicada (#326, 0 puntos de GraphQL) si sirve; si no, la API como siempre.
+  const deFoto = nodosDeFoto?.();
+  if (deFoto) return deFoto.map(mapear);
   const out = [];
   let cursor = null;
   for (let pagina = 0; pagina < maxPaginas; pagina++) {
@@ -221,11 +229,7 @@ export function leerTodosLosIssues(gh, maxPaginas = MAX_PAGINAS) {
     if (r?.errors?.length) throw new Error(`GraphQL: ${r.errors.map((e) => e?.message ?? "error").join("; ")}`);
     const pag = r?.data?.repository?.issues;
     if (!pag) throw new Error("GraphQL sin datos (respuesta vacía)");
-    out.push(...(pag.nodes ?? []).map((n) => ({
-      ...leerIssue(n),
-      marcas: leerMarcas(n.comments?.nodes, { soloCasa: true }),
-      comentariosCasa: (n.comments?.nodes ?? []).filter((c) => esDeLaCasa(c?.authorAssociation)).map((c) => c.createdAt).filter(Boolean),
-    })));
+    out.push(...(pag.nodes ?? []).map(mapear));
     if (!pag.pageInfo?.hasNextPage) return out;
     cursor = pag.pageInfo.endCursor;
   }
