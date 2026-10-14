@@ -288,6 +288,17 @@ describe("los motivos del juez por caso (#698)", () => {
   it("el fichero de la última pasada lo ignora git y el script lo escribe sin pasar la clave", () => {
     expect(execFileSync("git", ["check-ignore", RUTA_ULTIMA_PASADA], { cwd: RAIZ }).toString().trim()).toBe(RUTA_ULTIMA_PASADA);
     const src = readFileSync(join(RAIZ, "scripts/test-del-juez.mjs"), "utf8");
-    expect(src).toMatch(/registroDeMotivos([^)]*[API_KEY])/);
+    expect(src).toMatch(/registroDeMotivos\(j, .*filas, \[API_KEY\]\)/);
+    expect(src).toMatch(/claves: \[API_KEY\]/); // también al medir, para limpiar el motivo antes de cortarlo
+  });
+
+  it("el motivo de un caso sin correr se limpia de claves antes de cortarlo a 120 caracteres", async () => {
+    const largo = `${"x".repeat(110)} ${CLAVE} fin`; // la clave cruza el corte de 120
+    const filas = await medir(casos, { juzgar: async () => { throw new Error(largo); }, corregir: async () => true, claves: [CLAVE] });
+    for (const f of filas) {
+      expect(f.estado).toBe("sin_correr");
+      expect(f.motivo).not.toMatch(/sk-ant|SECRETO/);
+      expect(f.motivo).toContain("[clave]");
+    }
   });
 });

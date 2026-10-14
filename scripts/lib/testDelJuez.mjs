@@ -180,16 +180,18 @@ export function promptCaso(c, norma) {
  *   corregir(caso, hallazgos) → boolean (¿algún hallazgo dice lo que `debe_senalar`?)
  * Acierta un bueno si el juez aprueba; un malo, si señala Y el corrector confirma que señala lo esperado.
  */
-export async function medir(casos, { juzgar, corregir }) {
+export async function medir(casos, { juzgar, corregir, claves = [] }) {
   const filas = [];
+  // El motivo de un caso sin correr se limpia de claves ANTES de cortarlo: cortar primero podría dejar media clave sin forma de clave.
+  const motivoDe = (e) => sinClaves(String(e?.message ?? e), claves).slice(0, 120);
   for (const c of casos) {
     let r;
-    try { r = await juzgar(c); } catch (e) { filas.push({ id: c.id, norma: c.norma, tipo: c.tipo, estado: "sin_correr", motivo: String(e.message).slice(0, 120) }); continue; }
+    try { r = await juzgar(c); } catch (e) { filas.push({ id: c.id, norma: c.norma, tipo: c.tipo, estado: "sin_correr", motivo: motivoDe(e) }); continue; }
     const veredicto = r?.veredicto === "senala" ? "senala" : r?.veredicto === "aprueba" ? "aprueba" : null;
     let acierta = false;
     if (c.tipo === "bueno") acierta = veredicto === "aprueba";
     else if (veredicto === "senala") {
-      try { acierta = (await corregir(c, r.hallazgos ?? [])) === true; } catch (e) { filas.push({ id: c.id, norma: c.norma, tipo: c.tipo, estado: "sin_correr", motivo: String(e.message).slice(0, 120) }); continue; }
+      try { acierta = (await corregir(c, r.hallazgos ?? [])) === true; } catch (e) { filas.push({ id: c.id, norma: c.norma, tipo: c.tipo, estado: "sin_correr", motivo: motivoDe(e) }); continue; }
     }
     // El motivo del juez (sus hallazgos y su respuesta tal cual) queda en la fila para ver por qué falla un caso.
     filas.push({ id: c.id, norma: c.norma, tipo: c.tipo, estado: acierta ? "ok" : "falla", veredicto, hallazgos: r?.hallazgos ?? [], respuesta: r?.texto ?? null });

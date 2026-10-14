@@ -95,6 +95,7 @@ for (const j of lista) {
   const agente = readFileSync(join(RAIZ, ".claude/agents", `${j}.md`), "utf8").replace(/^---[\s\S]*?---\s*/, "");
   const antes = gastado;
   const filas = await medir(ficheros[j].casos, {
+    claves: [API_KEY],
     juzgar: async (c) => {
       const norma = normas.find((n) => n.id === c.norma);
       const texto = await llamar({ modelo: MODELO_EJECUTA, system: agente, usuario: promptCaso(c, norma), maxTokens: 1500 });
