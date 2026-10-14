@@ -133,7 +133,7 @@ export function problemasDeFuentes(catalogo, { citadas = null, raiz = null, tech
     if (typeof f?.nombre !== "string" || f.nombre.trim().length < 10) malos.push(`${d}: sin nombre (10 caracteres o más)`);
     if (!TIPOS.includes(f?.tipo)) malos.push(`${d}: tipo «${f?.tipo}» fuera de ${TIPOS.join(", ")}`);
     if (f?.uso !== undefined && !USOS.includes(f.uso)) malos.push(`${d}: uso «${f.uso}» fuera de ${USOS.join(", ")}`);
-    if (f?.project !== undefined && proyectos && !proyectos.includes(f.project)) malos.push(`${d}: project «${f.project}» no es un proyecto de ops/entidades.json (${proyectos.join(", ")})`);
+    if (f?.project !== undefined && proyectos && !proyectos.includes(f.project)) malos.push(`${d}: project «${f.project}» no es un proyecto con normas (${proyectos.join(", ")})`);
     if (f?.tipo === "casa") {
       if (typeof f.ruta !== "string" || !f.ruta) malos.push(`${d}: de la casa, sin ruta`);
       else if (raiz && !existsSync(join(raiz, f.ruta))) malos.push(`${d}: la ruta ${f.ruta} no existe en el repo`);

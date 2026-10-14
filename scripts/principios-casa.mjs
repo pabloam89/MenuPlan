@@ -9,12 +9,13 @@
 // El dato es ops/principios/ más los catálogos delegados (producto y redacción); lo leen
 // scripts/lib/principios.mjs y lo vigilan ops/principios.test.js y ops/uniones.test.js. Solo
 // lee, salvo --escribir. Los principios de producto con su detalle siguen en `npm run principios`.
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { AMBITOS } from "./lib/ambitos.mjs";
-import { leerRegistro } from "./lib/normas.mjs";
+import { dominiosDeProyecto, leerRegistro } from "./lib/normas.mjs";
+import { PROYECTOS_CON_NORMAS } from "./lib/zonasProyecto.mjs";
 import { RUTA_MD, cifras, generarMd, leerPrincipiosCasa, lineaDe, normasPorPrincipio, principiosDeProyecto } from "./lib/principios.mjs";
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -30,13 +31,14 @@ if (args.includes("--escribir")) {
 
 const iProy = args.indexOf("--proyecto");
 if (iProy >= 0) {
-  const proy = JSON.parse(readFileSync(join(RAIZ, "ops", "entidades.json"), "utf8")).projects.find((x) => x.id === args[iProy + 1]);
-  if (!proy) {
-    console.error(`«${args[iProy + 1]}» no es un proyecto de ops/entidades.json.`);
+  const idProy = args[iProy + 1];
+  if (!PROYECTOS_CON_NORMAS.includes(idProy)) {
+    console.error(`«${idProy}» no es un proyecto con normas (${PROYECTOS_CON_NORMAS.join(", ")}).`);
     process.exit(1);
   }
-  const lista = principiosDeProyecto(datos.principios, proy.dominios ?? []);
-  console.log(`${proy.id}: ${lista.length} de ${datos.principios.length} principios (dominios: ${(proy.dominios ?? []).join(", ") || "ninguno"})`);
+  const dominios = dominiosDeProyecto(RAIZ, idProy);
+  const lista = principiosDeProyecto(datos.principios, dominios);
+  console.log(`${idProy}: ${lista.length} de ${datos.principios.length} principios (dominios: ${dominios.join(", ") || "ninguno"})`);
   for (const p of lista) console.log(lineaDe(p));
   process.exit(0);
 }

@@ -78,3 +78,6 @@ scripts/bot-evals-candidatos.json
 # el 7 oct) y las capturas y PDFs de feedback de UX.
 /video/
 /ux feedback/
+
+# Motivos del juez por caso de la última pasada de pago (test-del-juez): material de trabajo.
+ops/test-del-juez/ultima-pasada.json

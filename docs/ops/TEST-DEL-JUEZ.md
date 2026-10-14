@@ -32,5 +32,14 @@ esa norma. Cómo se mide y qué hacer con la cifra:
   mayor que 0 y **cuenta como parada**: no cumple el umbral y hay que repetirla entera.
 - **Qué vigila el registro de pasadas** (`faltasDePasadas`, `faltasDeHistoria`): `coste_usd` mayor que 0;
   `casos = buenos + malos`; los aciertos no pasan de los casos; dos pasadas no pueden ser idénticas; cada
-  pasada lleva `casos_hash` (hash de los casos del juez), y editar un caso invalida las pasadas anteriores
-  aunque el número no cambie; y el fichero solo crece por el final respecto a `origin/staging`.
+  pasada lleva `casos_hash` (hash de los casos del juez **más el aviso fijo del prompt**: «No tienes
+  herramientas…»), y editar un caso o cambiar ese prompt invalida las pasadas anteriores aunque el número
+  no cambie (un prompt distinto es otro instrumento de medida); y el fichero solo crece por el final respecto a `origin/staging`.
+- **Qué mide: al juez sin herramientas.** El test le da solo el diff, el cuerpo del PR y la norma; no puede
+  leer el repo ni correr nada (por eso el aviso fijo del prompt). El aviso le dice que tome como dato lo
+  que el diff o el cuerpo afirman y que no señale lo que solo se sabría mirando fuera. Hay un sesgo posible:
+  los malos cuya señal es una **ausencia** (`columna-sin-lector`, `columna-solo-escrita`,
+  `permiso-nuevo-sin-ok`, `test-nuevo-que-nunca-falla`, `test-tautologico`) no se ven sin mirar fuera, y un
+  juez que calla lo no verificable los aprueba. Si tras la medida `columna-solo-escrita` o
+  `columna-sin-lector` caen, es señal de este sesgo y no necesariamente de un juez malo: el juez real, con
+  herramientas, los vería.

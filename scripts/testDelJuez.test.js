@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { JUECES, MIN_POR_NORMA, PASADAS_SEGUIDAS, UMBRAL_MALOS, cifra, cumpleUmbralA, esFicheroDeJuez, faltasDeFichero, faltasDeHistoria, faltasDePasadas, hashDeCasos, juezDeRuta, leerFichero, leerPasadas, lineaDeCifra, medir, motivoFicheroSinNorma, motivoSinUmbral, normasSinPasada, promptCaso } from "./lib/testDelJuez.mjs";
+import { AVISO_SIN_HERRAMIENTAS, JUECES, MIN_POR_NORMA, PASADAS_SEGUIDAS, UMBRAL_MALOS, cifra, cumpleUmbralA, esFicheroDeJuez, faltasDeFichero, faltasDeHistoria, faltasDePasadas, hashDeCasos, juezDeRuta, leerFichero, leerPasadas, lineaDeCifra, medir, motivoFicheroSinNorma, motivoSinUmbral, normasSinPasada, promptCaso, registroDeMotivos, sinClaves, RUTA_ULTIMA_PASADA } from "./lib/testDelJuez.mjs";
 import { leerRegistro, motivoTestDelJuezMalo } from "./lib/normas.mjs";
+import { hashLF } from "./lib/evals.mjs";
 import { RAIZ } from "./lib/skills.mjs";
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync } from "node:fs";
@@ -245,5 +246,63 @@ describe("el test del juez: la cifra de acierto (con un juez de mentira)", () =>
     const t = promptCaso({ ...malo, debe_senalar: "pista-secreta-zzz" }, { nombre: "N", sujeto: "codigo", fuerza: "no_debe", exigencia: "hacer algo" });
     expect(t).not.toMatch(/malo|bueno|debe_senalar|algo\b.*esperado/);
     expect(t).toContain("<diff>");
+  });
+
+  it("el prompt avisa de que el juez no tiene herramientas, y ese aviso entra en el hash de lo medido", () => {
+    const t = promptCaso(malo, { nombre: "N", sujeto: "codigo", fuerza: "debe", exigencia: "x" });
+    expect(t.endsWith(AVISO_SIN_HERRAMIENTAS)).toBe(true);
+    expect(AVISO_SIN_HERRAMIENTAS).toMatch(/No tienes herramientas/);
+    // No pide callar sin más: manda tomar como dato lo que afirman el diff y el cuerpo del PR (sesgo a aprobar ausencias).
+    expect(AVISO_SIN_HERRAMIENTAS).toMatch(/cuerpo del PR/);
+    expect(AVISO_SIN_HERRAMIENTAS).toMatch(/dato del caso/);
+    expect(AVISO_SIN_HERRAMIENTAS).not.toMatch(/no puedes verificar/);
+    const dir = mkdtempSync(join(tmpdir(), "juez-"));
+    try {
+      mkdirSync(join(dir, "ops/test-del-juez"), { recursive: true });
+      const texto = JSON.stringify(leerFichero("revisor", RAIZ));
+      writeFileSync(join(dir, "ops/test-del-juez/revisor.json"), texto);
+      // El hash no es el del fichero a secas: lleva el prompt, así que cambiar el aviso invalida las pasadas anteriores.
+      expect(hashDeCasos("revisor", dir)).not.toBe(hashLF(texto));
+      expect(hashDeCasos("revisor", dir)).toBe(hashLF(texto + "\n--prompt--\n" + AVISO_SIN_HERRAMIENTAS));
+    } finally { rmSync(dir, { recursive: true, force: true }); }
+  });
+});
+
+describe("los motivos del juez por caso (#698)", () => {
+  const casos = [{ ...bueno, id: "b1" }, { ...malo, id: "m1" }];
+  const CLAVE = "sk-ant-api03-SECRETO1234567890";
+
+  it("la fila de cada caso guarda el veredicto, los hallazgos y la respuesta del juez", async () => {
+    const filas = await medir(casos, {
+      juzgar: async () => ({ veredicto: "senala", hallazgos: ["falta el plan B"], texto: '{"veredicto":"senala"}' }),
+      corregir: async () => true,
+    });
+    expect(filas[0]).toMatchObject({ id: "b1", estado: "falla", veredicto: "senala", hallazgos: ["falta el plan B"], respuesta: '{"veredicto":"senala"}' });
+  });
+
+  it("el registro nunca lleva la clave, ni la dada ni la que tiene forma de clave", () => {
+    const filas = [{ id: "b1", norma: "n", tipo: "bueno", estado: "falla", veredicto: "senala", hallazgos: [`usa ${CLAVE} aquí`, "otra sk-ant-zzzzzzzzzzzz"], respuesta: `eco ${CLAVE}`, motivo: "tope" }];
+    const texto = JSON.stringify(registroDeMotivos("revisor", "2026-10-14", filas, [CLAVE, "claveliteral123"]));
+    expect(texto).not.toContain("SECRETO1234567890");
+    expect(texto).not.toMatch(/sk-ant-/);
+    expect(sinClaves("x claveliteral123 y", ["claveliteral123"])).toBe("x [clave] y");
+    expect(JSON.parse(texto).casos[0]).toMatchObject({ id: "b1", veredicto: "senala", motivo: "tope" });
+  });
+
+  it("el fichero de la última pasada lo ignora git y el script lo escribe sin pasar la clave", () => {
+    expect(execFileSync("git", ["check-ignore", RUTA_ULTIMA_PASADA], { cwd: RAIZ }).toString().trim()).toBe(RUTA_ULTIMA_PASADA);
+    const src = readFileSync(join(RAIZ, "scripts/test-del-juez.mjs"), "utf8");
+    expect(src).toMatch(/registroDeMotivos\(j, .*filas, \[API_KEY\]\)/);
+    expect(src).toMatch(/claves: \[API_KEY\]/); // también al medir, para limpiar el motivo antes de cortarlo
+  });
+
+  it("el motivo de un caso sin correr se limpia de claves antes de cortarlo a 120 caracteres", async () => {
+    const largo = `${"x".repeat(110)} ${CLAVE} fin`; // la clave cruza el corte de 120
+    const filas = await medir(casos, { juzgar: async () => { throw new Error(largo); }, corregir: async () => true, claves: [CLAVE] });
+    for (const f of filas) {
+      expect(f.estado).toBe("sin_correr");
+      expect(f.motivo).not.toMatch(/sk-ant|SECRETO/);
+      expect(f.motivo).toContain("[clave]");
+    }
   });
 });

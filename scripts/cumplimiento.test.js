@@ -245,7 +245,7 @@ describe("salud de las skills del repo (sin coste)", () => {
 });
 
 describe("la sección Caducidades (#581), en aviso", () => {
-  const rec = (id, estado, extra = {}) => ({ id, dueno: "pablo", creado: "2026-10-09", caducidad: "2026-10-20", dias: 9, estado, confirma: "pablo", ...extra });
+  const rec = (id, estado, extra = {}) => ({ id, proyecto: "homenu", dueno: "pablo", creado: "2026-10-09", caducidad: "2026-10-20", dias: 9, estado, confirma: "pablo", ...extra });
   const sk = (nombre, estado, dias) => ({ nombre, comprobado: "2026-07-20", dias, estado });
 
   it("lista lo vencido y lo próximo sin rotación, lo que rota, lo por confirmar y las skills", () => {
@@ -255,10 +255,18 @@ describe("la sección Caducidades (#581), en aviso", () => {
     }).join("\n");
     expect(md).toMatch(/### Caducidades/);
     expect(md).toMatch(/2 recursos vencidos o a 14 días o menos/);
-    expect(md).toMatch(/\| `a-token` \| pablo \| 2026-10-20 \| -3 \|/);
+    expect(md).toMatch(/\| homenu \| `a-token` \| pablo \| 2026-10-20 \| -3 \|/);
+    expect(md).toMatch(/Por proyecto: homenu 5, panel 0, factoria 0\./);
     expect(md).toMatch(/En rotación \(1\): `c-clave` \(#581\)/);
     expect(md).toMatch(/Caducidad por confirmar: `d-clave` \(pablo\)/);
     expect(md).toMatch(/`vercel` \(80 d de 90\), `github` \(95 d de 90\)/);
+  });
+
+  it("agrupa por proyecto: la tabla va en el orden de PROYECTOS y el total cuenta cada uno", () => {
+    const md = seccionCaducidades({ recursos: [rec("f-token", "vencida", { proyecto: "factoria" }), rec("h-token", "proxima"), rec("p-token", "vigente", { proyecto: "panel", dias: 80 })], skills: [] }).join("\n");
+    expect(md.indexOf("| homenu | `h-token`")).toBeGreaterThan(-1);
+    expect(md.indexOf("| homenu | `h-token`")).toBeLessThan(md.indexOf("| factoria | `f-token`"));
+    expect(md).toMatch(/Por proyecto: homenu 1, panel 1, factoria 1\./);
   });
 
   it("sin nada que avisar lo dice, y el informe lo lleva solo si se le da", () => {
@@ -267,7 +275,7 @@ describe("la sección Caducidades (#581), en aviso", () => {
     expect(md).toMatch(/Ninguna skill caducada/);
     const base = { indicadores: [], salud: { indicadores: [], filas: [] }, hoy: "2026-10-20" };
     expect(informe(base)).not.toMatch(/### Caducidades/);
-    expect(informe({ ...base, caducidades: caducidadesDelRepo(RAIZ, new Date("2027-01-01T00:00:00Z")) })).toMatch(/`vercel-token-vigia` \| pablo \| 2027-01-07 \| 6 \|/);
+    expect(informe({ ...base, caducidades: caducidadesDelRepo(RAIZ, new Date("2027-01-01T00:00:00Z")) })).toMatch(/\| homenu \| `vercel-token-vigia` \| pablo \| 2027-01-07 \| 6 \|/);
   });
 });
 

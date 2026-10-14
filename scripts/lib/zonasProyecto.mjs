@@ -22,6 +22,7 @@ export const DEF_ZONAS = {
   mixto: "sirve a los dos o es la puerta entre ambos (CLAUDE.md, package.json, la guardia, el CI de tests); lo que aún no se ha separado",
 };
 export const ZONAS = Object.keys(DEF_ZONAS);
+// ZONAS y PROYECTOS son dos listas distintas a propósito (de qué lado está un fichero / a qué proyecto sirve un dato): no se unen aunque compartan la palabra «factoria».
 
 /** Los proyectos que la factoría atiende (#652), con lo que es cada uno. Un valor no se borra ni se reutiliza. */
 export const DEF_PROYECTOS = {
@@ -30,6 +31,12 @@ export const DEF_PROYECTOS = {
   factoria: "la propia factoría: el trabajo sobre el proceso, no sobre un producto",
 };
 export const PROYECTOS = Object.keys(DEF_PROYECTOS);
+/**
+ * Los proyectos con normas verticales (M-h, #748): PROYECTOS menos `factoria`. «Lo horizontal es la factoría; lo marca `lado`, no la
+ * ausencia de `project`»: una norma vertical nunca dice `factoria`. Es la única derivación; nadie repite el filtro.
+ */
+export const PROYECTOS_CON_NORMAS = PROYECTOS.filter((p) => p !== "factoria");
+/** El proyecto de una sesión sin marca (hooks y brief de dimensionado). No es un «sin proyecto» de los datos: un dato nuevo declara siempre el suyo. */
 export const PROYECTO_POR_DEFECTO = "homenu";
 
 export function leerZonas(raiz) {
