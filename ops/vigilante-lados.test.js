@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 import { cargarNormas, problemasDeProyectos } from "../scripts/lib/normas.mjs";
 import { calcular } from "../scripts/lib/inventarioVertical.mjs";
-import { RUTA_TECHOS, citasAVertical, declaracionesCaducadas, fallosDeSubida, fallosDeTechos, leerDeclaradas, leerTechos, medir } from "../scripts/lib/vigilanteLados.mjs";
+import { RUTA_TECHOS, citasAVertical, declaracionesCaducadas, fuentesVerticalesCitadas, fallosDeSubida, fallosDeTechos, leerDeclaradas, leerTechos, medir } from "../scripts/lib/vigilanteLados.mjs";
 
 /**
  * El vigilante de lados (#710, programa #652, punto 7). Dos cosas, las dos con datos rotos probados abajo:
@@ -77,6 +77,18 @@ describe("con datos rotos (casos negativos)", () => {
     expect(citasAVertical(datos)).toEqual({ normaAPrincipio: ["n1 → principio pv"], entidadAEntidad: ["a → b"] });
     expect(citasAVertical({ ...datos, normasHorizontales: [datos.normasHorizontales[1]], relaciones: [datos.relaciones[1], datos.relaciones[2]] }))
       .toEqual({ normaAPrincipio: [], entidadAEntidad: [] });
+  });
+
+  it("una pieza horizontal que cita una fuente con project se detecta; una fuente horizontal o sin citar, no", () => {
+    const fuentes = [{ id: "f1", project: "homenu" }, { id: "f2" }, { id: "f3", project: "homenu" }];
+    const citas = [{ id: "f1", pieza: "principio p1" }, { id: "f1", pieza: "estándares" }, { id: "f2", pieza: "principio p2" }];
+    expect(fuentesVerticalesCitadas(fuentes, citas)).toEqual(["f1 ← principio p1"]);
+    expect(fuentesVerticalesCitadas(fuentes, [citas[2]])).toEqual([]);
+  });
+
+  it("el techo de fuentes verticales citadas por horizontales (11, deuda visible) falla si sube y si baja sin bajar el techo", () => {
+    expect(fallosDeTechos({ fuente_vertical_citada_por_horizontal: 12 }, { fuente_vertical_citada_por_horizontal: 11 }).join()).toMatch(/sube a 12/);
+    expect(fallosDeTechos({ fuente_vertical_citada_por_horizontal: 10 }, { fuente_vertical_citada_por_horizontal: 11 }).join()).toMatch(/baja su techo de 11 a 10/);
   });
 
   it("una norma vertical en el registro horizontal se detecta (por el comprobante común)", () => {

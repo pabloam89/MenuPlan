@@ -40,12 +40,12 @@ export const AVISO_ANTES_DIAS = 14;
  * Cuántas fuentes sin revisar admite el catálogo (a 13 oct 2026, al crearlo). SOLO BAJA: cada fuente que se
  * revisa baja el techo; una fuente nueva entra ya revisada, o el test falla.
  */
-export const TECHO_SIN_REVISAR = 105;
+export const TECHO_SIN_REVISAR = 98;
 
 const DIA_MS = 86_400_000;
 const ID = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const FECHA = /^\d{4}-\d{2}-\d{2}$/;
-const CAMPOS = ["id", "nombre", "tipo", "url", "ruta", "uso", "fecha_alta", "revisada", "fecha_revision"];
+const CAMPOS = ["id", "nombre", "tipo", "url", "ruta", "uso", "project", "fecha_alta", "revisada", "fecha_revision"];
 const esFecha = (s) => typeof s === "string" && FECHA.test(s) && !Number.isNaN(Date.parse(`${s}T00:00:00Z`));
 const aMs = (s) => Date.parse(`${s}T00:00:00Z`);
 
@@ -117,7 +117,7 @@ export function cifrasDeFuentes(catalogo, hoy = new Date()) {
  * (regla, pool o principio): una fuente que nadie cita sobra. `raiz` permite comprobar que la ruta de una
  * fuente de la casa existe. Sin reloj: lo que depende de la fecha de hoy se mira con `estadoDeRevision`.
  */
-export function problemasDeFuentes(catalogo, { citadas = null, raiz = null, techo = TECHO_SIN_REVISAR, hoy = new Date() } = {}) {
+export function problemasDeFuentes(catalogo, { citadas = null, raiz = null, techo = TECHO_SIN_REVISAR, hoy = new Date(), proyectos = null } = {}) {
   const malos = [];
   if (!Array.isArray(catalogo?.fuentes) || !catalogo.fuentes.length) return ["fuentes: el catálogo es una lista con una fuente como mínimo"];
   if (catalogo.plazo_revision_dias !== PLAZO_REVISION_DIAS) malos.push(`plazo_revision_dias: ${catalogo.plazo_revision_dias} no es ${PLAZO_REVISION_DIAS} (PLAZO_REVISION_DIAS)`);
@@ -133,6 +133,7 @@ export function problemasDeFuentes(catalogo, { citadas = null, raiz = null, tech
     if (typeof f?.nombre !== "string" || f.nombre.trim().length < 10) malos.push(`${d}: sin nombre (10 caracteres o más)`);
     if (!TIPOS.includes(f?.tipo)) malos.push(`${d}: tipo «${f?.tipo}» fuera de ${TIPOS.join(", ")}`);
     if (f?.uso !== undefined && !USOS.includes(f.uso)) malos.push(`${d}: uso «${f.uso}» fuera de ${USOS.join(", ")}`);
+    if (f?.project !== undefined && proyectos && !proyectos.includes(f.project)) malos.push(`${d}: project «${f.project}» no es un proyecto de ops/entidades.json (${proyectos.join(", ")})`);
     if (f?.tipo === "casa") {
       if (typeof f.ruta !== "string" || !f.ruta) malos.push(`${d}: de la casa, sin ruta`);
       else if (raiz && !existsSync(join(raiz, f.ruta))) malos.push(`${d}: la ruta ${f.ruta} no existe en el repo`);
@@ -161,5 +162,44 @@ export function problemasDeFuentes(catalogo, { citadas = null, raiz = null, tech
   if (citadas) for (const c of citadas) if (!ids.has(c)) malos.push(`se cita la fuente «${c}» y no está en ${RUTA_FUENTES}`);
   if (sinRevisar > techo) malos.push(`hay ${sinRevisar} fuentes sin revisar y el techo es ${techo} (TECHO_SIN_REVISAR solo baja): revisa la fuente antes de añadirla`);
   if (sinRevisar < techo) malos.push(`hay ${sinRevisar} fuentes sin revisar y el techo dice ${techo}: baja TECHO_SIN_REVISAR a ${sinRevisar}`);
+  return malos;
+}
+
+/**
+ * El lado que una fuente DEBE tener según lo que ya se sabe de ella (#710, PR 4), sin mirar su campo `project`:
+ *  - «horizontal»: la ruta es de un agente (los agentes son horizontales, regla de Pablo, 13 oct 2026) o cae en
+ *    zona de factoría;
+ *  - «vertical»: la ruta cae en zona de producto (de HoMenu);
+ *  - null: ninguna regla lo decide (una fuente externa, o una ruta en zona mixta): lo dice el campo `project`.
+ * `zonaDe(ruta)` se inyecta (scripts/lib/zonasProyecto.mjs) para poder probar.
+ */
+export function ladoObligado(f, zonaDe) {
+  if (f?.tipo !== "casa") return null;
+  if (/^\.claude\/agents\/[\w-]+\.md$/.test(f.ruta)) return "horizontal";
+  const z = zonaDe(f.ruta);
+  return z === "factoria" ? "horizontal" : z === "producto" ? "vertical" : null;
+}
+
+/**
+ * Decisión (orquestador, 14 oct 2026, #710; reversible): las docs de proveedor (sb-functions, sb-migrations, sb-rls,
+ * vercel-troubleshoot) son documentación que sirve a cualquiera, así que quedan horizontales y sin `project` aunque las
+ * cite una pieza del proyecto. Si Pablo decide lo contrario, basta ponerles `project`. Menor, anotado: la skill de Vercel
+ * de la casa (casa-claude-skills-vercel-skill-md) es vertical por su zona, mientras la doc de Vercel es horizontal.
+ */
+/** El lado de una fuente: el campo `project` la hace vertical; sin él, vale lo obligado y, si nada obliga, horizontal. */
+export const ladoDeFuente = (f, zonaDe) => (f?.project ? "vertical" : ladoObligado(f, zonaDe) ?? "horizontal");
+
+/**
+ * Errores de lado (lista vacía si está bien): una fuente horizontal no lleva `project` y una de proyecto sí
+ * (una fuente en zona de producto lo exige). Las que ninguna regla decide (externas, zona mixta) son libres:
+ * con `project` son del proyecto; sin él, de la casa.
+ */
+export function problemasDeLado(catalogo, zonaDe) {
+  const malos = [];
+  for (const f of catalogo?.fuentes ?? []) {
+    const obligado = ladoObligado(f, zonaDe);
+    if (obligado === "horizontal" && f.project) malos.push(`fuente «${f.id}»: es horizontal (${f.ruta}) y lleva project «${f.project}»: quítalo`);
+    if (obligado === "vertical" && !f.project) malos.push(`fuente «${f.id}»: es de proyecto (${f.ruta} está en zona de producto) y no lleva project`);
+  }
   return malos;
 }

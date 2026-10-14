@@ -3,12 +3,13 @@
   "version": 1,
   "techos": {
     "citas_de_entidad_horizontal_a_vertical": 2,
+    "fuente_vertical_citada_por_horizontal": 6,
     "tests_de_la_casa_que_leen_homenu": 2,
     "duda: principios de la casa (ops/principios/)": 0,
     "duda: principios del proyecto (ops/proyectos/<id>/principios/)": 0,
     "duda: principios de producto (delegado: ops/principios-producto/)": 0,
     "duda: guía de redacción (delegado: ops/redaccion.json)": 0,
-    "duda: fuentes documentales (ops/fuentes-documentales/)": 12,
+    "duda: fuentes documentales (ops/fuentes-documentales/)": 0,
     "duda: normas horizontales (ops/normas.json)": 46,
     "duda: normas verticales (ops/proyectos/<id>/normas.json)": 0,
     "duda: entidades activas (ops/entidades.json)": 0,
@@ -16,27 +17,13 @@
     "duda: skills (.claude/skills/)": 4,
     "duda: reglas por carpeta (.claude/rules/)": 1,
     "duda: comandos (.claude/commands/)": 0,
-    "duda: agentes (.claude/agents/; por regla de Pablo, horizontales)": 3,
+    "duda: agentes (.claude/agents/; por regla de Pablo, horizontales)": 0,
     "duda: specs (specs/*.md)": 0,
     "duda: documentos (docs/**/*.md y los .md de la raíz)": 1,
     "duda: tests (*.test.{js,jsx,mjs})": 10,
     "verticales sin registro propio: principios de la casa": 0,
-    "verticales sin registro propio: fuentes documentales": 12,
+    "verticales sin marcar: fuentes documentales": 0,
     "estandares_que_nombran_el_proyecto": 28,
     "estandares_que_nombran_un_servicio": 36
-  },
-  "subida_declarada": {
-    "estandares_que_nombran_el_proyecto": {
-      "hasta": 28,
-      "razon": "El detector pasó a leer todo el texto, sin distinguir mayúsculas y con los servicios aparte (parte de #710): la cifra sube porque ahora se ve lo que antes no, no porque entre algo nuevo."
-    },
-    "estandares_que_nombran_un_servicio": {
-      "hasta": 36,
-      "razon": "El detector pasó a leer todo el texto, sin distinguir mayúsculas y con los servicios aparte (parte de #710): la cifra sube porque ahora se ve lo que antes no, no porque entre algo nuevo."
-    },
-    "duda: normas horizontales (ops/normas.json)": {
-      "hasta": 46,
-      "razon": "El detector pasó a leer todo el texto, sin distinguir mayúsculas y con los servicios aparte (parte de #710): la cifra sube porque ahora se ve lo que antes no, no porque entre algo nuevo."
-    }
   }
 }
