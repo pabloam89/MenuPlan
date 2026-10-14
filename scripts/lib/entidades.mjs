@@ -7,19 +7,15 @@
  */
 
 /**
- * A qué lado pertenecen las PIEZAS de una entidad (decisión de Pablo del 12 oct 2026, #652). Sustituye al
- * eje (horizontal, vertical, puente): «puente» deja de ser un valor y pasa a ser una propiedad calculada
- * (una entidad cuyas piezas están de los dos lados; ver `esPuente`). Un valor retirado de `entidades.axis`,
- * `bridge`, pasa aquí a `both`.
+ * A qué lado pertenece una entidad (decisión de Pablo, 14 oct 2026, #710, opción 3A): a UNO solo. La CLASE
+ * (qué es una norma, una migración, un entorno) es horizontal, de la factoría; sus EJEMPLARES son del proyecto
+ * y viven en el registro del proyecto (ops/proyectos/<id>/), no en la entidad. Antes había un tercer valor,
+ * `both` («puente»), que dejaba a una entidad de los dos lados a la vez; se retiró entero.
  */
 export const SCOPES = {
-  horizontal: "Factoría: sus piezas no cuelgan de ningún proyecto (cómo trabajamos)",
+  horizontal: "Factoría: la clase vale para cualquier proyecto; sus ejemplares del proyecto viven en el registro del proyecto",
   vertical: "Sus piezas cuelgan siempre de un proyecto (el producto HoMenu hoy)",
-  both: "Hay piezas que sirven a la factoría y piezas que sirven a un proyecto, y la entidad dice qué es a cada lado (role_by_scope). El alcance se decide por a quién sirve la pieza, no por dónde está el fichero: vivir hoy en el repo de HoMenu no hace a nadie both",
 };
-
-/** Una entidad es puente si sus piezas están de los dos lados. Calculado, no guardado. */
-export const esPuente = (e) => e.scope === "both";
 
 /** El nivel de las PIEZAS de una entidad: la escala única de la forja (docs/ops/FORJA.md). */
 export const LEVELS = {

@@ -12,7 +12,6 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { esPuente } from "./lib/entidades.mjs";
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -43,7 +42,6 @@ export function cifras(d) {
     total: a.length,
     horizontal: c.horizontal ?? 0,
     vertical: c.vertical ?? 0,
-    both: c.both ?? 0,
     niveles: texto(cuenta(a, (e) => e.level)),
     familias: texto(cuenta(a, (e) => e.family)),
     clases: texto(cuenta(d.relations, (r) => r.class)),
@@ -53,12 +51,12 @@ export function cifras(d) {
 
 export function bloque(d = cargar()) {
   const f = [
-    "| id | familia | nivel | alcance | puente | quién la crea | dónde vive (registro) | quién la lee | parte de, tipo de o hijo de |",
-    "|---|---|---|---|---|---|---|---|---|",
+    "| id | familia | nivel | alcance | quién la crea | dónde vive (registro) | quién la lee | parte de, tipo de o hijo de |",
+    "|---|---|---|---|---|---|---|---|",
   ];
   for (const e of activas(d)) {
     const deps = dependeDe(d, e.id);
-    f.push(`| \`${e.id}\` | ${e.family} | ${e.level} | ${e.scope} | ${esPuente(e) ? "sí" : "no"} | ${e.created_by.join(", ")} | ${vive(e)} | ${e.readers.length ? e.readers.join(", ") : "nadie"} | ${deps.length ? [...new Set(deps)].join(", ") : "—"} |`);
+    f.push(`| \`${e.id}\` | ${e.family} | ${e.level} | ${e.scope} | ${e.created_by.join(", ")} | ${vive(e)} | ${e.readers.length ? e.readers.join(", ") : "nadie"} | ${deps.length ? [...new Set(deps)].join(", ") : "—"} |`);
   }
   const k = cifras(d);
   f.push("", `Cifras: ${k.total} entidades. Alcance: horizontal ${k.horizontal}, vertical ${k.vertical}, both ${k.both}. Nivel: ${k.niveles}. Familias: ${k.familias}. Relaciones: ${k.relaciones} (${k.clases}).`);
@@ -87,29 +85,24 @@ export function mapa(d = cargar()) {
     "",
     "Una **entidad** es una cosa con id estable y definición propia. Cada una dice tres cosas de sus piezas:",
     "",
-    "- **alcance** (`scope`): `horizontal` si sus piezas son de la factoría (cómo trabajamos), `vertical` si cuelgan siempre de un proyecto",
-    "  (el producto HoMenu hoy) y `both` si las hay de las dos clases, y cada pieza declara su proyecto o ninguno;",
+    "- **alcance** (`scope`): `horizontal` si la clase es de la factoría (cómo trabajamos), `vertical` si sus piezas cuelgan siempre de un proyecto",
+    "  (el producto HoMenu hoy). Solo uno: la clase es horizontal y sus ejemplares del proyecto viven en su registro (ops/proyectos/<id>/);",
     "- **nivel** (`level`): `meta` (lo que hace buena una pieza de la familia), `template` (la plantilla de la que salen) o `piece` (la pieza);",
     "- **familia** (`family`): para agrupar al leer; no es un eje.",
     "",
-    "Un **puente** ya no es un valor: es una entidad de alcance `both`, y se calcula. Las relaciones llevan clase (`is_a`, `part_of`,",
+    "No hay término medio (decisión de Pablo del 14 oct 2026, #710): una entidad es de un lado. Las relaciones llevan clase (`is_a`, `part_of`,",
     "`parent_of` o `reference`) y cardinalidad. La contención va de la factoría al proyecto y de este al entorno (`part_of`).",
     "Los ids van en inglés (decisión de Pablo del 11 oct 2026); los nombres y las notas, en castellano.",
     "",
-    `Hoy hay ${k.total} entidades activas: ${k.horizontal} horizontales, ${k.vertical} verticales y ${k.both} de los dos lados (puentes).`,
+    `Hoy hay ${k.total} entidades activas: ${k.horizontal} horizontales y ${k.vertical} verticales.`,
     `Las relaciones son ${k.relaciones}: ${k.clases}.`,
     "",
   );
   for (const [titulo, scope, intro] of [
-    ["Horizontales: la factoría", "horizontal", "Sus piezas no cuelgan de ningún proyecto."],
+    ["Horizontales: la factoría", "horizontal", "La clase vale para cualquier proyecto; sus ejemplares del proyecto viven en el registro del proyecto."],
     ["Verticales: el producto", "vertical", "Sus piezas cuelgan siempre de un proyecto. Las de la familia `home`, `food` y `lola` están solo en el registro: no tienen más migraciones ni datos de familias que los que ya existen."],
-    ["Puentes: de los dos lados", "both", "Sirven a la factoría y a un proyecto, y cada una dice qué es a cada lado. El alcance se decide por a quién sirve la pieza, no por dónde está el fichero: que todo viva hoy en el repo de HoMenu no hace a nadie both."],
   ]) {
     L.push(`## ${titulo}`, "", intro, "", tablaDeEntidades(a.filter((e) => e.scope === scope)), "");
-    if (scope === "both") {
-      const conRol = a.filter((e) => e.scope === "both");
-      L.push("Qué es cada puente a cada lado:", "", ...conRol.map((e) => `- **${e.id}**: ${e.role_by_scope}`), "");
-    }
   }
   L.push("## Proyectos", "", "La factoría es la raíz implícita: una pieza sin proyecto cuelga de ella.", "", "| id | Nombre | Repositorios | Nota |", "|---|---|---|---|");
   for (const p of d.projects) L.push(`| \`${p.id}\` | ${p.name} | ${p.repos.map((r) => `\`${r}\``).join(", ")} | ${celda(p.note)} |`);

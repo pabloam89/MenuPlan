@@ -151,7 +151,7 @@ export function calcular(raiz) {
   const ent = leerJson(raiz, "ops/entidades.json").entities;
   const scopeDe = new Map(ent.map((e) => [e.id, e]));
   const entidades = ent.filter((e) => e.status !== "retired").map((e) => {
-    if (e.scope === "both") return { id: e.id, lado: "duda", razon: "marcada «both»: sirve a los dos lados" };
+    if (e.scope !== "horizontal" && e.scope !== "vertical") return { id: e.id, lado: "duda", razon: `sin lado válido («${e.scope}»): una entidad es de un lado` };
     if (e.scope === "vertical" && Object.hasOwn(decisiones.entidades_verticales_genericas, e.id)) return { id: e.id, lado: "duda", razon: decisiones.entidades_verticales_genericas[e.id] };
     return { id: e.id, lado: e.scope };
   });
@@ -164,8 +164,8 @@ export function calcular(raiz) {
     const scopes = new Set(ligadas.map((e) => e.scope));
     let lado;
     let razon = "";
-    if (scopes.size === 1 && !scopes.has("both")) lado = [...scopes][0];
-    else if (scopes.size) { lado = "duda"; razon = `sus entidades son de lados distintos o «both» (${[...scopes].join(", ")})`; }
+    if (scopes.size === 1 && ([...scopes][0] === "horizontal" || [...scopes][0] === "vertical")) lado = [...scopes][0];
+    else if (scopes.size) { lado = "duda"; razon = `sus entidades son de lados distintos o sin lado válido (${[...scopes].join(", ")})`; }
     else if (t.dominio === "producto") lado = "vertical";
     else if (t.dominio === "datos") { lado = "duda"; razon = "dominio «datos»: habla de migraciones, tablas y fuentes de datos, que son de HoMenu en la práctica"; }
     else lado = "horizontal";
@@ -338,7 +338,7 @@ export function documento(d, fecha) {
   L.push("| Principios | `ops/principios/`, `ops/principios-producto/` y `ops/redaccion.json`, con las fuentes de `ops/fuentes-documentales/` y las zonas de `ops/zonas.json`. Vertical: la lista a mano de `ops/inventario-vertical.json`. Duda: sin fuente externa y su único origen está en un fichero de zona producto; o un principio de producto del área `conversational-ai` |");
   L.push("| Fuentes | Externa: horizontal (salvo la documentación de Supabase y Vercel: duda). De la casa: la zona de su ruta (`ops/zonas.json`) |");
   L.push("| Normas | El registro en que viven. Duda de una horizontal: su texto nombra HoMenu/Lola/MenuPlan, o su ámbito es `bot`/`product`/`catalog`, o su control o `donde` apunta a `api/`, `src/`, `supabase/`, `docs/datos/`, `docs/producto/`, `specs/` o `DESIGN_SYSTEM.md` (las " + cifras.normasDiseno + " de ámbito `diseno` no cuentan: Pablo decidió el 13 oct que son horizontales) |");
-  L.push("| Entidades | Su campo `scope` (`horizontal`, `vertical`, `both`); duda: `both` y las vertical que son un concepto general (lista a mano) |");
+  L.push("| Entidades | Su campo `scope` (`horizontal` o `vertical`, uno solo: la clase es horizontal y sus ejemplares son del registro del proyecto); duda: un valor que no sea ninguno de los dos y las vertical que son un concepto general (lista a mano, hoy vacía) |");
   L.push("| Glosario | El `scope` de sus entidades; sin entidad, su dominio (`producto` vertical, `datos` duda); duda también si su definición nombra el proyecto, Vercel o Supabase |");
   L.push("| Skills, reglas, comandos, specs, documentos | La zona de `ops/zonas.json` (factoría = horizontal, producto = vertical, mixto = duda); una skill `tipo: servicio` de factoría = duda |");
   L.push("| Agentes | Horizontales por la regla de Pablo; los tres que trabajan sobre datos de HoMenu, duda (lista a mano) |");
@@ -382,7 +382,7 @@ export function documento(d, fecha) {
   const dudaDe = (c) => dudosos.filter((x) => x.capa === c).length;
   const pr = [
     ["PR 1", "El vigilante primero (punto 7 de #710): test que lee `lado`/`project` de cada registro y falla si una horizontal cita una vertical; techos que solo bajan", "tests de vigilancia de lados = 0", "1 (con los techos de esta tabla)"],
-    ["PR 2", "Entidades: decidir las `both` y las vertical genéricas; el glosario hereda el lado de su entidad como campo `scope`", `entidades en duda = ${dudaDe("entidades")}`, "0"],
+    ["PR 2", "Entidades: cada una de un lado (sin `both`); las vertical genéricas pasan a horizontal; el glosario hereda el lado de su entidad (se calcula; el campo `scope` en cada término va con el PR 7)", `entidades en duda = ${dudaDe("entidades")}`, "0"],
     ["PR 3", "Principios: campo `project` y registro `ops/proyectos/homenu/principios/`; mover los verticales y resolver los de base de datos", `verticales fuera de su registro = ${f("principios de la casa").vertical}; en duda = ${f("principios de la casa").duda + f("principios de producto").duda}`, "verticales en su registro = todos; en duda = 0"],
     ["PR 4", "Fuentes: campo `project` en las de la casa que son de HoMenu y origen (decisión o fallo) en vez de fuente externa para los principios de proyecto", `fuentes verticales sin marcar = ${f("fuentes").vertical}; en duda = ${f("fuentes").duda}`, "marcadas = todas; en duda = 0"],
     ["PR 5", "Normas dudosas: mover al registro de HoMenu las que sean suyas, o reescribir (sin nombrar el proyecto) las que sean generales", `normas horizontales en duda = ${f("normas horizontales").duda}`, "0 (cada una, horizontal limpia o vertical)"],
@@ -403,7 +403,7 @@ export function documento(d, fecha) {
   L.push("");
   L.push("1. **Principios de base de datos con origen solo en `docs/datos/PRINCIPIOS.md`.** A (recomendada): horizontales; se les busca fuente externa (PostgreSQL, Fowler) y `docs/datos/` queda como «cómo los aplica HoMenu». B: verticales, al registro de HoMenu. C: verticales los que dicen «casa» y horizontales el resto.");
   L.push("2. **Lo que solo vale con un bot conversacional** (principios del área `conversational-ai` y normas de ámbito `bot`). A (recomendada): horizontales con una condición `aplica_si: bot` en el registro. B: un tercer lado, «paquete de bots» (línea 2 de #652). C: verticales de HoMenu.");
-  L.push("3. **Entidades marcadas `both`.** A (recomendada): obligar a un lado; la clase es horizontal y sus instancias son del proyecto. B: admitir `both` con un techo que solo baja. C: partir cada una en dos entidades.");
+  L.push("3. **Entidades marcadas `both`. Resuelta por Pablo el 14 oct (opción A):** cada entidad es de un lado; la clase es horizontal y sus ejemplares son del proyecto. `both` ya no existe y un test lo rechaza.");
   L.push("4. **Skills de servicio** (hoy en duda: 1password, github, hetzner y tailscale, que están en zona factoría; vercel y supabase ya están en zona producto y cuentan como verticales, pero mezclan igual método y datos del proyecto). A (recomendada): partir cada una en método (casa) y datos del proyecto (ids, bóvedas, repo), que el agente recibe por referencia. B: dejarlos enteros en la casa. C: marcarlos verticales.");
   L.push("5. **Las zonas de `ops/zonas.json` contradicen la regla de los agentes**: `evaluador`, `qa` y `auditor-datos` están en producto. A (recomendada): moverlos a factoría y que lo vertical llegue por referencia. B: dejar la zona y marcar los tres como duda. C: moverlos a un paquete opcional.");
   L.push("");

@@ -1,6 +1,6 @@
 # Inventario vertical y horizontal
 
-<!-- Instantánea del 2026-10-13 que escribe `npm run inventario-vertical -- --escribir` (scripts/inventario-vertical.mjs). Las cifras cambian con cada PR ajeno, así que NINGÚN test las compara con el repo de hoy: se regenera al empezar cada PR de #710 y se pone al lado la cifra de después. -->
+<!-- Instantánea del 2026-10-14 que escribe `npm run inventario-vertical -- --escribir` (scripts/inventario-vertical.mjs). Las cifras cambian con cada PR ajeno, así que NINGÚN test las compara con el repo de hoy: se regenera al empezar cada PR de #710 y se pone al lado la cifra de después. -->
 
 Primera fase de #710 (programa #652): solo mide, no mueve nada. **Horizontal** es lo que vale para cualquier proyecto; **vertical**, lo que solo vale para HoMenu; **duda**, lo que no se puede decidir con los datos y se enseña con su razón. La regla de Pablo (13 oct 2026): ningún registro mezcla los dos lados, y los agentes (horizontales) reciben lo vertical por referencia (`--proyecto homenu`).
 
@@ -13,7 +13,7 @@ Es un **inventario de partida, no un registro de lados**: el lado todavía no es
 | Principios | `ops/principios/`, `ops/principios-producto/` y `ops/redaccion.json`, con las fuentes de `ops/fuentes-documentales/` y las zonas de `ops/zonas.json`. Vertical: la lista a mano de `ops/inventario-vertical.json`. Duda: sin fuente externa y su único origen está en un fichero de zona producto; o un principio de producto del área `conversational-ai` |
 | Fuentes | Externa: horizontal (salvo la documentación de Supabase y Vercel: duda). De la casa: la zona de su ruta (`ops/zonas.json`) |
 | Normas | El registro en que viven. Duda de una horizontal: su texto nombra HoMenu/Lola/MenuPlan, o su ámbito es `bot`/`product`/`catalog`, o su control o `donde` apunta a `api/`, `src/`, `supabase/`, `docs/datos/`, `docs/producto/`, `specs/` o `DESIGN_SYSTEM.md` (las 24 de ámbito `diseno` no cuentan: Pablo decidió el 13 oct que son horizontales) |
-| Entidades | Su campo `scope` (`horizontal`, `vertical`, `both`); duda: `both` y las vertical que son un concepto general (lista a mano) |
+| Entidades | Su campo `scope` (`horizontal` o `vertical`, uno solo: la clase es horizontal y sus ejemplares son del registro del proyecto); duda: un valor que no sea ninguno de los dos y las vertical que son un concepto general (lista a mano, hoy vacía) |
 | Glosario | El `scope` de sus entidades; sin entidad, su dominio (`producto` vertical, `datos` duda); duda también si su definición nombra el proyecto, Vercel o Supabase |
 | Skills, reglas, comandos, specs, documentos | La zona de `ops/zonas.json` (factoría = horizontal, producto = vertical, mixto = duda); una skill `tipo: servicio` de factoría = duda |
 | Agentes | Horizontales por la regla de Pablo; los tres que trabajan sobre datos de HoMenu, duda (lista a mano) |
@@ -31,15 +31,15 @@ Límites: «casa» y «bot» son castellano corriente en la factoría, así que 
 | fuentes documentales (ops/fuentes-documentales/) | 161 | 137 | 12 | 12 |
 | normas horizontales (ops/normas.json) | 166 | 120 | 0 | 46 |
 | normas verticales (ops/proyectos/<id>/normas.json) | 39 | 0 | 39 | 0 |
-| entidades activas (ops/entidades.json) | 54 | 22 | 13 | 19 |
-| términos activos del glosario (ops/glosario/terminos/) | 116 | 69 | 1 | 46 |
+| entidades activas (ops/entidades.json) | 54 | 41 | 13 | 0 |
+| términos activos del glosario (ops/glosario/terminos/) | 116 | 109 | 1 | 6 |
 | skills (.claude/skills/) | 18 | 9 | 5 | 4 |
 | reglas por carpeta (.claude/rules/) | 6 | 0 | 5 | 1 |
 | comandos (.claude/commands/) | 5 | 3 | 2 | 0 |
 | agentes (.claude/agents/; por regla de Pablo, horizontales) | 8 | 5 | 0 | 3 |
 | specs (specs/*.md) | 17 | 0 | 17 | 0 |
 | documentos (docs/**/*.md y los .md de la raíz) | 31 | 21 | 9 | 1 |
-| tests (*.test.{js,jsx,mjs}) | 442 | 100 | 332 | 10 |
+| tests (*.test.{js,jsx,mjs}) | 444 | 102 | 332 | 10 |
 
 Principios, las tres filas juntas: 112 en total, 82 horizontales, 2 verticales y 28 en duda.
 
@@ -49,7 +49,7 @@ Principios, las tres filas juntas: 112 en total, 82 horizontales, 2 verticales y
 - **Fuentes.** 119 externas (literatura) y 42 de la casa (una ruta del repo).
 - **Normas.** El registro vertical ya está separado (39). En el horizontal hay 46 que dudan (lista abajo). De las 166, 60 tienen como control «juicio» y 28 acaban en un fichero de zona producto. De las 39 verticales, 0 tienen su control en una carpeta de la factoría.
 - **Entidades y glosario.** Entidades retiradas (no cuentan): 0. El glosario no tiene lado propio: hoy se deduce de sus entidades; es el registro donde más falta el campo.
-- **Tests.** 112 tests viven en carpetas de la casa; 2 de ellos leen tres ficheros de HoMenu o más (sin contar `src/App.jsx`, el ejemplo de casi todos). 330 viven en carpetas de producto, coherentes con lo que vigilan.
+- **Tests.** 114 tests viven en carpetas de la casa; 2 de ellos leen tres ficheros de HoMenu o más (sin contar `src/App.jsx`, el ejemplo de casi todos). 330 viven en carpetas de producto, coherentes con lo que vigilan.
 
 ## Los dudosos, con su razón
 
@@ -98,34 +98,13 @@ Principios, las tres filas juntas: 112 en total, 82 horizontales, 2 verticales y
 - `model-output-schema-checked`, `family-text-is-data`: ámbito «bot» (conducta de un producto con bot, catálogo o familias) (2)
 - `new-table-closed-to-anon`: depende de un fichero de HoMenu (supabase/anonPorDefecto.test.js)
 
-### 4a. Entidades (19)
+### 4b. Glosario (6)
 
-- `environment`, `event`, `norm`, `metric`, `eval`, `vocabulary`, `principle`, `resource`, `control`, `workflow`: marcada «both»: sirve a los dos lados (10)
-- `migration`: La clase «migración» vale para cualquier proyecto con base; sus instancias son de HoMenu
-- `table`: La clase «tabla» vale para cualquier proyecto con base; sus instancias son de HoMenu
-- `data-source`: Declarada en TABLAS de src/data/model.js, que es de HoMenu, pero el concepto (rol de una fuente de datos) es general
-- `module`: ops/MODULOS.json agrupa código y tablas; el concepto es general, el contenido es de HoMenu
-- `repo`: Un repositorio es un concepto general; hoy solo existe el de HoMenu
-- `design-system`: Pablo decidió el 13 oct que el diseño es horizontal (sus normas lo son), pero la entidad está marcada vertical
-- `token`: Igual que design-system: las normas de diseño son horizontales y la entidad sigue vertical
-- `component`, `pattern`: Igual que design-system (2)
-
-### 4b. Glosario (46)
-
-- `acción`, `registrar`, `vigilante`: sus entidades son de lados distintos o «both» (horizontal, both) (3)
-- `ámbito`, `aviso`, `bóveda`, `caso de prueba`, `clave`, `cobertura`, `comprobación`, `comprobar`, `control`, `despliegue`, `entorno`, `eval`, `evento`, `falta`, `fuerza`, `medir`, `meta`, `métrica`, `norma`, `principio`, `procesador`, `producción`, `recurso`, `retirar`, `staging`, `test del juez`, `veredicto`, `vocabulario`, `workflow`: sus entidades son de lados distintos o «both» (both) (29)
-- `aplicar`, `migración`: su entidad migration es un concepto general marcado vertical (2)
-- `carpeta de trabajo`: la definición nombra el proyecto («MenuPlan»); la definición nombra un servicio del proyecto («C:\dev»)
-- `carpeta principal`, `repositorio`: su entidad repo es un concepto general marcado vertical (2)
-- `componente de diseño`: su entidad component es un concepto general marcado vertical
-- `fuente de datos`: su entidad data-source es un concepto general marcado vertical
-- `módulo`: su entidad module es un concepto general marcado vertical
-- `patrón de diseño`: su entidad pattern es un concepto general marcado vertical
+- `carpeta de trabajo`, `carpeta principal`: la definición nombra el proyecto («MenuPlan»); la definición nombra un servicio del proyecto («C:\dev») (2)
+- `eval`: la definición nombra el proyecto («Lola»)
+- `migración`: la definición nombra un servicio del proyecto («supabase»)
 - `proyecto`: la definición nombra el proyecto («HoMenu»)
 - `servicio`: la definición nombra un servicio del proyecto («Vercel»)
-- `sistema de diseño`: su entidad design-system es un concepto general marcado vertical
-- `tabla`: su entidad table es un concepto general marcado vertical
-- `token de diseño`: su entidad token es un concepto general marcado vertical
 
 ### 5a. Skills (4)
 
@@ -164,12 +143,12 @@ El orden sigue la dependencia (lo que es registro se separa antes de lo que lo c
 | PR | Qué hace | Cifra de antes | Cifra objetivo |
 |---|---|---|---|
 | PR 1 | El vigilante primero (punto 7 de #710): test que lee `lado`/`project` de cada registro y falla si una horizontal cita una vertical; techos que solo bajan | tests de vigilancia de lados = 0 | 1 (con los techos de esta tabla) |
-| PR 2 | Entidades: decidir las `both` y las vertical genéricas; el glosario hereda el lado de su entidad como campo `scope` | entidades en duda = 19 | 0 |
+| PR 2 | Entidades: cada una de un lado (sin `both`); las vertical genéricas pasan a horizontal; el glosario hereda el lado de su entidad (se calcula; el campo `scope` en cada término va con el PR 7) | entidades en duda = 0 | 0 |
 | PR 3 | Principios: campo `project` y registro `ops/proyectos/homenu/principios/`; mover los verticales y resolver los de base de datos | verticales fuera de su registro = 2; en duda = 28 | verticales en su registro = todos; en duda = 0 |
 | PR 4 | Fuentes: campo `project` en las de la casa que son de HoMenu y origen (decisión o fallo) en vez de fuente externa para los principios de proyecto | fuentes verticales sin marcar = 12; en duda = 12 | marcadas = todas; en duda = 0 |
 | PR 5 | Normas dudosas: mover al registro de HoMenu las que sean suyas, o reescribir (sin nombrar el proyecto) las que sean generales | normas horizontales en duda = 46 | 0 (cada una, horizontal limpia o vertical) |
 | PR 6 | Controles: tests de la casa que leen ficheros de HoMenu pasan a recibirlos por referencia (`--proyecto`) o se mueven; retirar `verticales_sin_salida` (#704) | tests de la casa que leen HoMenu = 2; en duda = 10 | 0 y 0 |
-| PR 7 | Glosario: términos de proyecto aparte de los de la casa | términos en duda = 46 | 0 |
+| PR 7 | Glosario: términos de proyecto aparte de los de la casa | términos en duda = 6 | 0 |
 | PR 8 | Skills, reglas, comandos, specs y docs: marcar el lado de cada una y separar los skills de servicio en método (casa) y datos (proyecto) | en duda = skills 4, documentos 1; verticales sin marca = 27 | en duda = 0; todas marcadas |
 | PR 9 | Factoría frente a HoMenu (#690): CLAUDE.md como índice corto con dos partes; `docs/` y `ops/` separados | documentos en duda = 1 | 0 |
 
@@ -181,7 +160,7 @@ Cada una, con la opción recomendada primero; la respuesta decide cuántos de lo
 
 1. **Principios de base de datos con origen solo en `docs/datos/PRINCIPIOS.md`.** A (recomendada): horizontales; se les busca fuente externa (PostgreSQL, Fowler) y `docs/datos/` queda como «cómo los aplica HoMenu». B: verticales, al registro de HoMenu. C: verticales los que dicen «casa» y horizontales el resto.
 2. **Lo que solo vale con un bot conversacional** (principios del área `conversational-ai` y normas de ámbito `bot`). A (recomendada): horizontales con una condición `aplica_si: bot` en el registro. B: un tercer lado, «paquete de bots» (línea 2 de #652). C: verticales de HoMenu.
-3. **Entidades marcadas `both`.** A (recomendada): obligar a un lado; la clase es horizontal y sus instancias son del proyecto. B: admitir `both` con un techo que solo baja. C: partir cada una en dos entidades.
+3. **Entidades marcadas `both`. Resuelta por Pablo el 14 oct (opción A):** cada entidad es de un lado; la clase es horizontal y sus ejemplares son del proyecto. `both` ya no existe y un test lo rechaza.
 4. **Skills de servicio** (hoy en duda: 1password, github, hetzner y tailscale, que están en zona factoría; vercel y supabase ya están en zona producto y cuentan como verticales, pero mezclan igual método y datos del proyecto). A (recomendada): partir cada una en método (casa) y datos del proyecto (ids, bóvedas, repo), que el agente recibe por referencia. B: dejarlos enteros en la casa. C: marcarlos verticales.
 5. **Las zonas de `ops/zonas.json` contradicen la regla de los agentes**: `evaluador`, `qa` y `auditor-datos` están en producto. A (recomendada): moverlos a factoría y que lo vertical llegue por referencia. B: dejar la zona y marcar los tres como duda. C: moverlos a un paquete opcional.
 
