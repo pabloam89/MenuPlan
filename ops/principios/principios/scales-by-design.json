@@ -1,0 +1,32 @@
+{
+  "id": "scales-by-design",
+  "area": "process",
+  "nombre": "Escala desde el diseño",
+  "enunciado": "Cada solución vale para muchos proyectos, agentes y elementos, con estructura desde el primer día y volumen según casos reales.",
+  "porque": "Acertar la estructura al empezar sale barato y corregirla con muchos proyectos encima, carísimo, y el volumen sin casos no se usa.",
+  "fuentes": [
+    {
+      "marca": "F",
+      "fuente": "fowler-yagni"
+    },
+    {
+      "marca": "S",
+      "fuente": "martin-open-closed"
+    },
+    {
+      "marca": "S",
+      "fuente": "twelve-factor-concurrency"
+    },
+    {
+      "marca": "S",
+      "fuente": "twelve-factor-config"
+    },
+    {
+      "marca": "I",
+      "fuente": "casa-contrato-factoria"
+    }
+  ],
+  "detalle": [
+    "docs/ops/CONTRATO-FACTORIA.md#conformidad"
+  ]
+}

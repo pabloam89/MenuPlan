@@ -1,0 +1,7 @@
+{
+  "$comentario": "El proyecto sintético: un tercer proyecto de ejemplo que NO existe en ningún registro real. ops/escala-de-proyectos.test.js lo copia a una raíz temporal junto a ops/ y ejecuta con él los lectores y vigilantes que recorren proyectos: si algo solo funciona para los proyectos reales, el test lo dice. Aquí vive su entrada de `projects` (ops/entidades.json); el resto, en esta carpeta, con la forma de ops/proyectos/<id>/.",
+  "id": "sintetico",
+  "name": "Proyecto sintético",
+  "repos": ["ejemplo/sintetico"],
+  "note": "Solo existe en el test de escala (ops/escala-de-proyectos.test.js)."
+}

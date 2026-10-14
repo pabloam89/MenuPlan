@@ -1,0 +1,6 @@
+{
+  "$comentario": "Principios del proyecto sintético (fixture del test de escala).",
+  "version": 1,
+  "project": "sintetico",
+  "principios": { "$partida": "lista", "clave": "id" }
+}

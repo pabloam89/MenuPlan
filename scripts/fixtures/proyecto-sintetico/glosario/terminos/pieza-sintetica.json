@@ -1,0 +1,12 @@
+{
+  "termino": "pieza sintética",
+  "estado": "activo",
+  "clase": "artefacto",
+  "dominio": "producto",
+  "scope": "vertical",
+  "project": "sintetico",
+  "definicion": "Un elemento de ejemplo del catálogo del proyecto sintético, que solo existe en el test de escala.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": ["todas"],
+  "sin_entidad": "componente"
+}

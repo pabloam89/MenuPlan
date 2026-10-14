@@ -1,0 +1,10 @@
+{
+  "id": "fowler-yagni",
+  "nombre": "Martin Fowler, Yagni: no se construye una función que nadie pide, pero sí lo que hace el software más fácil de modificar",
+  "tipo": "externa",
+  "url": "https://martinfowler.com/bliki/Yagni.html",
+  "uso": "principio",
+  "fecha_alta": "2026-10-14",
+  "revisada": "si",
+  "fecha_revision": "2026-10-14"
+}

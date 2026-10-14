@@ -1,0 +1,19 @@
+{
+  "$comentario": "Tarea propia del proyecto sintético (fixture del test de escala): misma forma que ops/proyectos/<id>/tareas.json.",
+  "version": 1,
+  "project": "sintetico",
+  "agentes": {
+    "constructor": {
+      "tareas": [
+        {
+          "id": "pieza-del-catalogo-sintetico",
+          "tarea": "Añadir una pieza al catálogo del proyecto sintético comprobando que no repite otra",
+          "accion": "construir",
+          "ambitos": [],
+          "normas": ["sintetico-sin-duplicados"],
+          "no_hace": ["cambiar el esquema del catálogo"]
+        }
+      ]
+    }
+  }
+}

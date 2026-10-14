@@ -25,12 +25,12 @@ Límites: «casa» y «bot» son castellano corriente en la factoría, así que 
 
 | Capa | Total | Horizontal | Vertical | Duda |
 |---|---:|---:|---:|---:|
-| principios de la casa (ops/principios/) | 54 | 54 | 0 | 0 |
+| principios de la casa (ops/principios/) | 55 | 55 | 0 | 0 |
 | principios del proyecto (ops/proyectos/<id>/principios/) | 2 | 0 | 2 | 0 |
 | principios de producto (delegado: ops/principios-producto/) | 41 | 41 | 0 | 0 |
 | guía de redacción (delegado: ops/redaccion.json) | 15 | 15 | 0 | 0 |
-| fuentes documentales (ops/fuentes-documentales/) | 165 | 158 | 7 | 0 |
-| normas horizontales (ops/normas.json) | 166 | 120 | 0 | 46 |
+| fuentes documentales (ops/fuentes-documentales/) | 168 | 161 | 7 | 0 |
+| normas horizontales (ops/normas.json) | 167 | 121 | 0 | 46 |
 | normas verticales (ops/proyectos/<id>/normas.json) | 39 | 0 | 39 | 0 |
 | entidades activas (ops/entidades.json) | 56 | 43 | 13 | 0 |
 | términos activos del glosario (ops/glosario/terminos/) | 388 | 387 | 1 | 0 |
@@ -40,17 +40,17 @@ Límites: «casa» y «bot» son castellano corriente en la factoría, así que 
 | agentes (.claude/agents/; por regla de Pablo, horizontales) | 8 | 8 | 0 | 0 |
 | specs (specs/*.md) | 17 | 0 | 17 | 0 |
 | documentos (docs/**/*.md y los .md de la raíz) | 31 | 21 | 9 | 1 |
-| tests (*.test.{js,jsx,mjs}) | 458 | 120 | 338 | 0 |
+| tests (*.test.{js,jsx,mjs}) | 459 | 120 | 339 | 0 |
 
-Principios, las cuatro filas juntas: 112 en total, 110 horizontales, 2 verticales y 0 en duda.
+Principios, las cuatro filas juntas: 113 en total, 111 horizontales, 2 verticales y 0 en duda.
 
 ## Lo que cuenta cada capa
 
-- **Principios.** Los 2 de HoMenu (`curated-catalog-only` y `household-owns-data`) viven en su registro, `ops/proyectos/homenu/principios/`, con el campo `project`: origen una decisión de producto, sin fuente externa. Los 54 de la casa son horizontales salvo los que dudan: la mayoría no tiene fuente externa, pero eso no los hace verticales, son del método de trabajo. Los de base de datos que solo tenían como origen `docs/datos/PRINCIPIOS.md` son horizontales por decisión de Pablo (13 oct): llevan fuente externa (PostgreSQL, Fowler) y `docs/datos/` es el cómo los aplica HoMenu; el que no la tiene verificable sigue en duda. Los 41 de producto tienen literatura detrás y son horizontales; los del área `conversational-ai` forman el paquete de bots (`dominio: bot`), opcional por proyecto, y también son horizontales.
-- **Fuentes.** 130 externas (literatura) y 35 de la casa (una ruta del repo).
-- **Normas.** El registro vertical ya está separado (39). En el horizontal hay 46 que dudan (lista abajo). De las 166, 60 tienen como control «juicio» y 28 acaban en un fichero de zona producto. De las 39 verticales, 0 tienen su control en una carpeta de la factoría.
+- **Principios.** Los 2 de HoMenu (`curated-catalog-only` y `household-owns-data`) viven en su registro, `ops/proyectos/homenu/principios/`, con el campo `project`: origen una decisión de producto, sin fuente externa. Los 55 de la casa son horizontales salvo los que dudan: la mayoría no tiene fuente externa, pero eso no los hace verticales, son del método de trabajo. Los de base de datos que solo tenían como origen `docs/datos/PRINCIPIOS.md` son horizontales por decisión de Pablo (13 oct): llevan fuente externa (PostgreSQL, Fowler) y `docs/datos/` es el cómo los aplica HoMenu; el que no la tiene verificable sigue en duda. Los 41 de producto tienen literatura detrás y son horizontales; los del área `conversational-ai` forman el paquete de bots (`dominio: bot`), opcional por proyecto, y también son horizontales.
+- **Fuentes.** 133 externas (literatura) y 35 de la casa (una ruta del repo).
+- **Normas.** El registro vertical ya está separado (39). En el horizontal hay 46 que dudan (lista abajo). De las 167, 60 tienen como control «juicio» y 28 acaban en un fichero de zona producto. De las 39 verticales, 0 tienen su control en una carpeta de la factoría.
 - **Entidades y glosario.** Entidades retiradas (no cuentan): 0. Cada término lleva su `scope` (PR 7); los verticales viven en el glosario de su proyecto, aparte de los de la casa, y un término horizontal no nombra una entidad vertical (techo 0).
-- **Tests.** 120 tests viven en carpetas de la casa; 0 de ellos leen tres ficheros de HoMenu o más (sin contar `src/App.jsx`, el ejemplo de casi todos). 338 viven en carpetas de producto, coherentes con lo que vigilan.
+- **Tests.** 120 tests viven en carpetas de la casa; 0 de ellos leen tres ficheros de HoMenu o más (sin contar `src/App.jsx`, el ejemplo de casi todos). 339 viven en carpetas de producto, coherentes con lo que vigilan.
 
 ## Los dudosos, con su razón
 

@@ -15,10 +15,10 @@ Las normas de cada principio: `npm run principios-casa -- <id>`. Un principio qu
 | datos (`data`) | 15 | 0 | 0 |
 | catálogo (`catalog`) | 1 | 0 | 0 |
 | producto (`product`) | 41 | 41 | 0 |
-| proceso (`process`) | 11 | 0 | 0 |
+| proceso (`process`) | 12 | 0 | 0 |
 | redacción (`writing`) | 15 | 15 | 0 |
 | entidades (`entities`) | 9 | 0 | 3 |
-| **Total** | **112** | **56** | **3** |
+| **Total** | **113** | **56** | **3** |
 
 ## Precedencia
 
@@ -401,6 +401,10 @@ Cómo se trabaja: issues, fondos, PR, sesiones, agentes, jueces y cifras.
   - Fuentes: [I] `CLAUDE.md`
   - Detalle: `CLAUDE.md#qué-se-le-pregunta-a-pablo-y-qué-no`
   - Viene de: N1
+- `scales-by-design` — **Escala desde el diseño.** Cada solución vale para muchos proyectos, agentes y elementos, con estructura desde el primer día y volumen según casos reales.
+  - Porqué: Acertar la estructura al empezar sale barato y corregirla con muchos proyectos encima, carísimo, y el volumen sin casos no se usa.
+  - Fuentes: [F] https://martinfowler.com/bliki/Yagni.html ; [S] https://blog.cleancoder.com/uncle-bob/2014/05/12/TheOpenClosedPrinciple.html ; [S] https://12factor.net/concurrency ; [S] https://12factor.net/config ; [I] `docs/ops/CONTRATO-FACTORIA.md`
+  - Detalle: `docs/ops/CONTRATO-FACTORIA.md#conformidad`
 - `three-check-layers` — **Tres capas de comprobación.** Cada comprobación es formal, material o subjetiva, y lo subjetivo repetido pasa a mecánico salvo que el test salga frágil.
   - Porqué: Un juicio repetido cuesta y varía cada vez, y volver de un test frágil a un juicio deja escrito su porqué.
   - Fuentes: [I] `ops/forja/`
