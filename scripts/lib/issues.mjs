@@ -234,14 +234,8 @@ export function fondoDeFormulario(body) {
 
 // ── Lectura de GitHub ─────────────────────────────────────────────────────────
 
-/** Consulta GraphQL de una página de issues con todo lo que se traza. */
-export const CONSULTA = `query($cursor: String) {
-  rateLimit { cost }
-  repository(owner: "pabloam89", name: "MenuPlan") {
-    issues(first: 100, after: $cursor, states: [OPEN, CLOSED], orderBy: { field: CREATED_AT, direction: DESC }) {
-      pageInfo { hasNextPage endCursor }
-      nodes {
-        id number title state createdAt closedAt body authorAssociation
+/** Lo que se pide de cada issue (dentro de `nodes`): la usan la consulta completa y la de la foto publicada (#326); `id` de padre e hijos sirve para refrescarlos por id. */
+export const CAMPOS_ISSUE = `        id number title state createdAt closedAt body authorAssociation
         labels(first: 20) { nodes { name } }
         assignees(first: 5) { nodes { login } }
         reaperturas: timelineItems(itemTypes: [REOPENED_EVENT], last: 1) { totalCount nodes { ... on ReopenedEvent { createdAt } } }
@@ -249,13 +243,22 @@ export const CONSULTA = `query($cursor: String) {
           nodes { number headRefName mergedAt body author { login } }
         }
         comments(last: 10) { totalCount nodes { body authorAssociation createdAt } }
-        parent { number state labels(first: 20) { nodes { name } } }
+        parent { id number state labels(first: 20) { nodes { name } } }
         subIssues(first: 50) {
           nodes {
-            number state createdAt labels(first: 20) { nodes { name } }
+            id number state createdAt labels(first: 20) { nodes { name } }
             closedByPullRequestsReferences(first: 3, includeClosedPrs: true) { nodes { mergedAt body } }
           }
-        }
+        }`;
+
+/** Consulta GraphQL de una página de issues con todo lo que se traza. */
+export const CONSULTA = `query($cursor: String) {
+  rateLimit { cost }
+  repository(owner: "pabloam89", name: "MenuPlan") {
+    issues(first: 100, after: $cursor, states: [OPEN, CLOSED], orderBy: { field: CREATED_AT, direction: DESC }) {
+      pageInfo { hasNextPage endCursor }
+      nodes {
+${CAMPOS_ISSUE}
       }
     }
   }

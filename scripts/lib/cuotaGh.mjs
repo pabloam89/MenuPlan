@@ -18,8 +18,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 /** Vocabulario cerrado de la línea `gh: caller=… api=…`. */
-export const APIS_GH = ["rest", "graphql"];
-export const CALLERS_GH = ["issues", "arranque", "avisos", "migraciones", "podar", "retirar", "lleva", "planos", "cumplimiento", "fabrica", "espera-ci", "cupos", "dimensionar", "situacion", "token-sesion", "otro"];
+/** `foto` = leído de la foto publicada de los issues (scripts/lib/fotoIssues.mjs, #326): 0 puntos, pero queda contado para comparar con `graphql`. */
+export const APIS_GH = ["rest", "graphql", "foto"];
+export const CALLERS_GH = ["issues", "arranque", "avisos", "migraciones", "podar", "retirar", "lleva", "planos", "cumplimiento", "fabrica", "espera-ci", "cupos", "dimensionar", "situacion", "foto-issues", "token-sesion", "otro"];
 
 /** Minutos de vida de la caché de issues según quién pide. 0 = sin caché. */
 export const TTL_MIN = { arranque: 15, listado: 10, escritura: 0 };
@@ -105,6 +106,20 @@ export function lineaGh(caller, api, campos) {
   const m = MEDIDAS_GH.includes(campos.medida) ? campos.medida : "est";
   const r = RESULTADOS_GH.includes(campos.resultado) ? campos.resultado : "error";
   return `${base} identidad=${i} sesion=${s} puntos=${entero(campos.puntos, 0)} medida=${m} resultado=${r} intento=${entero(campos.intento, 1) || 1}`;
+}
+
+/**
+ * Una lectura de la foto publicada (origen `foto`, 0 puntos) o su intento fallido (`error`: se fue a la API). Misma línea
+ * que cualquier llamada, para que `npm run cuota` compare las lecturas por foto con las de la API.
+ */
+export function registrarFoto(caller, resultado, { dir = dirCuota(), ahora = new Date(), env = process.env } = {}) {
+  try {
+    mkdirSync(dir, { recursive: true });
+    appendFileSync(join(dir, "gh.log"), `${ahora.toISOString()} ${lineaGh(caller, "foto", { identidad: identidadDe(env), sesion: sesionCorta(env), puntos: 0, medida: "nada", resultado, intento: 1 })}
+`);
+  } catch {
+    // a propósito: contar es una ayuda; sin disco la lectura sigue
+  }
 }
 
 /**

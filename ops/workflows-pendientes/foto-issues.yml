@@ -1,0 +1,99 @@
+# La foto publicada de los issues (fondo #326, cupo de GitHub).
+#
+# Por qué: cada lectura completa de los issues cuesta ~1,1 puntos de GraphQL por issue (414 issues
+# = ~450 puntos) y la hacían todas las sesiones y agentes con la App `homenu-sesiones`; la hora
+# de más gasto llegó a 6.108 puntos. Este workflow publica el estado de todos los issues en la rama
+# `foto/issues` (fichero `issues.json`) y los lectores (`npm run issues`, `npm run situacion`) lo
+# leen por raw.githubusercontent.com: repo público, 0 puntos. Si falta, es de otra versión o tiene
+# más de 15 minutos, vuelven a la API (scripts/lib/fotoIssues.mjs).
+#
+# - Gasta SU presupuesto: el GITHUB_TOKEN del workflow (1.000 puntos/hora y repositorio). Es
+#   incremental: una consulta de 1 punto con lo cambiado, solo esos issues por id y una rotación de 8
+#   (~15 puntos por pasada); la lectura completa (~450) solo si no hay foto previa. Sin la App de las
+#   sesiones, sin secretos de nadie.
+# - Permisos mínimos: `contents: write` (para empujar la rama de la foto) e `issues: read`.
+# - Una sola rama sin historia: cada vez se crea un commit raíz nuevo y se empuja con --force a
+#   `foto/issues`. No hay ruleset ni protección sobre esa rama (comprobado el 14 oct 2026); el
+#   push con el GITHUB_TOKEN no lanza otros workflows. El commit lleva un `vercel.json` que
+#   apaga los despliegues de Vercel para esta rama (sin comprobar aún en Vercel).
+# - El código que corre sale SIEMPRE de `staging` (la rama por defecto): nada de un PR ni de un
+#   issue se ejecuta. Nada del texto de un issue entra en un `run:`: el script lee los issues por la
+#   API y escribe un fichero; los únicos valores que se usan en el shell son `github.repository`
+#   y el token, por variables de entorno.
+# - Quitarla: borrar este fichero y la rama `foto/issues` (Pablo). Los lectores vuelven a la API
+#   solos. La skill `github` lo cuenta.
+
+name: Foto de los issues
+
+on:
+  schedule:
+    # Cada 5 minutos, fuera de las horas redondas (los cron de GitHub se atascan en ellas).
+    - cron: "3,8,13,18,23,28,33,38,43,48,53,58 * * * *"
+  issues:
+    types: [opened, edited, closed, reopened, deleted, transferred, labeled, unlabeled, assigned, unassigned]
+  issue_comment:
+    types: [created, edited, deleted]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Una a la vez; si llegan varias mientras corre una, GitHub guarda solo la última: es la
+# cola que queremos (la foto siguiente ya trae todo lo anterior).
+concurrency:
+  group: foto-issues
+  cancel-in-progress: false
+
+env:
+  RAMA_FOTO: foto/issues
+
+jobs:
+  foto:
+    # Los comentarios de un PR también disparan `issue_comment`: no cambian ningún issue.
+    if: github.event_name != 'issue_comment' || !github.event.issue.pull_request
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write # empujar la rama foto/issues
+      issues: read # leer los issues
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: staging
+          persist-credentials: false
+          path: codigo
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+      - name: Traer la foto anterior (si la hay)
+        env:
+          REPO: ${{ github.repository }}
+        run: |
+          mkdir -p previa salida
+          if git ls-remote --exit-code --heads "https://github.com/${REPO}.git" "${RAMA_FOTO}" > /dev/null; then
+            git -C codigo fetch --depth=1 "https://github.com/${REPO}.git" "${RAMA_FOTO}"
+            git -C codigo show FETCH_HEAD:issues.json > previa/issues.json || rm -f previa/issues.json
+          else
+            echo "foto-issues previa: ninguna (primera vez o rama borrada)"
+          fi
+      - name: Generar la foto
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node codigo/scripts/foto-issues.mjs --previa previa/issues.json --salida salida/issues.json
+      - name: Publicar (un solo commit, historia reescrita)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          cd salida
+          printf '%s\n' '{ "git": { "deploymentEnabled": false } }' > vercel.json
+          printf '%s\n' 'Foto de los issues de MenuPlan, generada por .github/workflows/foto-issues.yml (fondo #326).' 'Es un dato: se reescribe entero en cada pasada y no tiene historia. Quien lo lee: scripts/lib/fotoIssues.mjs.' > LEEME.md
+          git init -q -b foto
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add issues.json vercel.json LEEME.md
+          git commit -q -m "foto de los issues"
+          AUTH="$(printf 'x-access-token:%s' "${GH_TOKEN}" | base64 -w0)"
+          echo "::add-mask::${AUTH}"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${AUTH}" push --force "https://github.com/${REPO}.git" "HEAD:refs/heads/${RAMA_FOTO}"
+          echo "foto-issues publicada: $(wc -c < issues.json) bytes"

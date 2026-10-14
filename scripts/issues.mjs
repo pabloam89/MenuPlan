@@ -61,6 +61,7 @@ import { analizarCasos } from "../.claude/hooks/casos.mjs";
 import { informeFichas } from "./lib/fondos.mjs";
 import { diaMadrid } from "./lib/hora.mjs";
 import { TTL_MIN, borrarCacheGh, conCache, ghSync } from "./lib/cuotaGh.mjs";
+import { nodosDeLaFoto } from "./lib/fotoIssues.mjs";
 import { construirZonas, informeZonas, leerRegistroAvisos } from "./lib/zonas.mjs";
 import { escribirZonas } from "../.claude/hooks/zonas.mjs";
 import { dirFabrica } from "../.claude/hooks/eventos.mjs";
@@ -71,8 +72,10 @@ const gh = (...args) => ghSync("issues", args, { encoding: "utf8", stdio: ["igno
 const ghCorto = (ms, ...args) => ghSync("issues", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: ms });
 const motivo = (e) => String(e.stderr ?? e.message).trim().split("\n")[0];
 
-/** Los nodos de GitHub de todos los issues (una consulta por cada 100, ~106 puntos cada una). */
-function pedirNodos() {
+/** Los nodos de GitHub de todos los issues: la foto si sirve; si no, una consulta por cada 100 (~106 puntos cada una). */
+function pedirNodos({ exigirVivo = false } = {}) {
+  const deFoto = args.includes("--fresco") ? null : nodosDeLaFoto({ gh, caller: "issues", exigirVivo });
+  if (deFoto) return deFoto;
   const nodos = [];
   let cursor = null;
   do {
@@ -95,7 +98,7 @@ let minutosDeCacheVieja = null; // se rellena si el plan B sirvió una caché vi
 function todos({ ttlMin = 0, viejoSiFalla = false } = {}) {
   const fresco = args.includes("--fresco");
   const nodos = conCache("issues-nodos", {
-    ttlMin: fresco ? 0 : ttlMin, viejoSiFalla, pedir: pedirNodos, aviso: (m, min) => { minutosDeCacheVieja = min; console.error(m); },
+    ttlMin: fresco ? 0 : ttlMin, viejoSiFalla, pedir: () => pedirNodos({ exigirVivo: ttlMin === 0 }), aviso: (m, min) => { minutosDeCacheVieja = min; console.error(m); },
   });
   // Las marcas «lo lleva» (scripts/lib/lleva.mjs) salen de los comentarios.
   return nodos.map((n) => ({ ...leerIssue(n), marcas: leerMarcas(n.comments?.nodes, { soloCasa: true }) }));
