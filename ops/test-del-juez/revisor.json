@@ -75,7 +75,7 @@
       "norma": "campo-con-lector",
       "tipo": "bueno",
       "titulo": "datos: guarda las notas del plan y las muestra",
-      "diff": "+++ supabase/migrations/0100_notas_plan.sql\n+alter table weekly_plans add column notas text;\n+++ src/components/PlanNotas.jsx\n+export default function PlanNotas({ plan }) { return plan.notas ? <p>{plan.notas}</p> : null; }\n+++ src/components/PlanNotas.test.jsx\n+it('muestra las notas del plan', () => { /* … */ });",
+      "diff": "+++ supabase/migrations/0100_notas_plan.sql\n+alter table weekly_plans add column notas text;\n+++ src/components/PlanNotas.jsx\n+export default function PlanNotas({ plan }) { return plan.notas ? <p>{plan.notas}</p> : null; }\n+++ src/pages/PlanSemana.jsx\n+<PlanNotas plan={plan} />\n+++ src/components/PlanNotas.test.jsx\n+it('muestra las notas del plan', () => {\n+  render(<PlanNotas plan={{ notas: 'sin gluten' }} />);\n+  expect(screen.getByText('sin gluten')).toBeTruthy();\n+});",
       "origen": "Sintético: el mismo cambio que columna-sin-lector, con su lector",
       "marcado_por": "sesion-gobierno"
     },
@@ -132,7 +132,7 @@
       "norma": "test-visto-fallar",
       "tipo": "bueno",
       "titulo": "fix: el plan semanal no repite receta",
-      "diff": "+++ src/lib/planSemanal.js\n-  const usadas = [];\n+  const usadas = new Set();\n   for (const dia of dias) elegir(dia, usadas);\n+++ src/lib/planSemanal.test.js\n+it('no repite receta en la semana', () => {\n+  const plan = generarPlan(sieteDias, tresRecetas);\n+  const ids = plan.map((p) => p.recetaId);\n+  expect(new Set(ids).size).toBe(ids.length);\n+});\n\nCuerpo del PR: «Visto fallar: con la línea vieja el test da `expected 3 to be 7`; con el arreglo, verde. Casos: ninguno — arreglo puntual».",
+      "diff": "+++ src/lib/planSemanal.js\n-  const usadas = [];\n+  const usadas = new Set();\n   for (const dia of dias) elegir(dia, usadas);\n+++ src/lib/planSemanal.test.js\n+it('no repite receta en la semana', () => {\n+  const plan = generarPlan(sieteDias, sieteRecetas);\n+  const ids = plan.map((p) => p.recetaId);\n+  expect(new Set(ids).size).toBe(7);\n+});\n\nCuerpo del PR: «Visto fallar: con la línea vieja el test da `expected 5 to be 7`; con el arreglo, verde. Casos: ninguno — arreglo puntual».",
       "origen": "Sintético: el mismo cambio que test-tautologico, con un test que muerde y su fallo visto",
       "marcado_por": "sesion-gobierno"
     },
@@ -170,8 +170,8 @@
       "norma": "sin-codigo-dinamico",
       "tipo": "bueno",
       "titulo": "perf: cargar el editor de recetas solo al abrirlo",
-      "diff": "+++ src/App.jsx\n-import EditorReceta from './components/EditorReceta.jsx';\n+const EditorReceta = lazy(() => import('./components/EditorReceta.jsx'));\n+++ src/lib/formulas.js\n+const PATRON = new RegExp(`^${escapar(prefijo)}-\\\\d+$`);",
-      "origen": "Sintético: import() con ruta literal y RegExp con texto escapado; ninguno monta código ni nombres de módulo",
+      "diff": "+++ src/App.jsx\n-import EditorReceta from './components/EditorReceta.jsx';\n+const EditorReceta = lazy(() => import('./components/EditorReceta.jsx'));",
+      "origen": "Sintético: import() con ruta literal (lo hace Vite para partir el bundle); no monta código ni nombres de módulo. Sin RegExp con texto interpolado, que sería discutible",
       "marcado_por": "sesion-gobierno"
     },
     {
@@ -208,7 +208,7 @@
       "norma": "permisos-ok-pablo",
       "tipo": "bueno",
       "titulo": "ops: quitar gh api del allow",
-      "diff": "+++ .claude/settings.json\n   \"allow\": [\n     \"Bash(npm run:*)\",\n-    \"Bash(gh api:*)\",\n   ],\n   \"deny\": [\n+    \"Bash(gh api -X DELETE:*)\",\n\nCuerpo del PR: «Estrecha permisos: quita uno y añade una negación. No amplía nada».",
+      "diff": "+++ .claude/settings.json\n   \"allow\": [\n     \"Bash(npm run:*)\",\n-    \"Bash(gh api:*)\",\n     \"Bash(git status:*)\"\n   ],\n   \"deny\": [\n+    \"Bash(gh api -X DELETE:*)\",\n+    \"Bash(git push --force:*)\"\n   ]\n\nCuerpo del PR: «Estrecha permisos: quita uno, añade una negación y deja el resto igual. No amplía nada».",
       "origen": "Sintético: un cambio de settings.json que solo restringe no necesita el OK de Pablo",
       "marcado_por": "sesion-gobierno"
     },

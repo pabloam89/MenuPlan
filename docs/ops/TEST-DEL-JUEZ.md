@@ -27,3 +27,10 @@ esa norma. Cómo se mide y qué hacer con la cifra:
   y la línea `test-del-juez umbral juez: … umbral_a: si|no`. Sin ese registro, la norma sigue sin comprobar:
   el techo `juez_sin_pasada_de_pago` de `ops/normas-techos.json` lo vigila y baja a 0 al registrarlas.
 - **Quién la lanza:** otra sesión distinta de la que escribió los casos, con tope de 0,5 $ la primera vez.
+- **Cuánto cuesta una pasada:** una pasada completa del revisor son unas 36 llamadas (24 al juez y una
+  al corrector por cada malo que señala). Si el tope de 0,5 $ corta una pasada, queda con `sin_correr`
+  mayor que 0 y **cuenta como parada**: no cumple el umbral y hay que repetirla entera.
+- **Qué vigila el registro de pasadas** (`faltasDePasadas`, `faltasDeHistoria`): `coste_usd` mayor que 0;
+  `casos = buenos + malos`; los aciertos no pasan de los casos; dos pasadas no pueden ser idénticas; cada
+  pasada lleva `casos_hash` (hash de los casos del juez), y editar un caso invalida las pasadas anteriores
+  aunque el número no cambie; y el fichero solo crece por el final respecto a `origin/staging`.

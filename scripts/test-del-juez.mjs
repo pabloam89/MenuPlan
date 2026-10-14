@@ -19,7 +19,7 @@ import { cargarEnv } from "./lib/env.mjs";
 import { leerRegistro } from "./lib/normas.mjs";
 import { SALIDA, costeUsd, estimadoSiguiente, opcionNumero, topeDePasada, apuntarOAvisar, puedeGastar } from "./lib/evals.mjs";
 import { RAIZ, MODELO_BARATO, MODELO_EJECUTA, ESTIMADO_LLAMADA, TOPE_SKILLS_USD, jsonDeTexto, leerRespuesta } from "./lib/skills.mjs";
-import { JUECES, RUTA_PASADAS, cifra, cumpleUmbralA, faltasDeFichero, faltasDePasadas, leerFichero, leerPasadas, lineaDeCifra, medir, motivoSinUmbral, promptCaso } from "./lib/testDelJuez.mjs";
+import { JUECES, RUTA_PASADAS, cifra, cumpleUmbralA, faltasDeFichero, hashDeCasos, faltasDePasadas, leerFichero, leerPasadas, lineaDeCifra, medir, motivoSinUmbral, promptCaso } from "./lib/testDelJuez.mjs";
 
 /** La fecha de hoy en Madrid (AAAA-MM-DD), nunca de `date` (#210). */
 const fechaMadrid = () => new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Madrid" });
@@ -55,7 +55,7 @@ for (const j of lista) {
   for (const m of faltas) console.log(`  - ${m}`);
   if (faltas.length) codigo = SALIDA.fallos;
   const { pasadas } = leerPasadas(RAIZ);
-  for (const j of lista) { const m = motivoSinUmbral(j, pasadas, ficheros[j].casos.length); console.log(`test-del-juez umbral juez: ${j} umbral_a: ${m ? "no" : "si"}${m ? ` motivo: ${m}` : ""}`); }
+  for (const j of lista) { const m = motivoSinUmbral(j, pasadas, ficheros[j].casos.length, hashDeCasos(j, RAIZ)); console.log(`test-del-juez umbral juez: ${j} umbral_a: ${m ? "no" : "si"}${m ? ` motivo: ${m}` : ""}`); }
 }
 if (codigo !== SALIDA.bien) salir(codigo, "La forma de los casos no vale.");
 if (!PAGO) {
@@ -117,9 +117,9 @@ for (const j of lista) {
   if (c.sin_correr) codigo = SALIDA.tope;
   // Se registra cada pasada de pago (cifra y fecha): sin ellas la norma no cuenta como comprobada (umbral A, #698).
   const reg = leerPasadas(RAIZ);
-  reg.pasadas.push({ juez: j, fecha: fechaMadrid(), casos: ficheros[j].casos.length, buenos: c.buenos, buenos_ok: c.buenos_ok, malos: c.malos, malos_ok: c.malos_ok, sin_correr: c.sin_correr, coste_usd: coste });
+  reg.pasadas.push({ juez: j, fecha: fechaMadrid(), casos: ficheros[j].casos.length, casos_hash: hashDeCasos(j, RAIZ), buenos: c.buenos, buenos_ok: c.buenos_ok, malos: c.malos, malos_ok: c.malos_ok, sin_correr: c.sin_correr, coste_usd: coste });
   writeFileSync(join(RAIZ, RUTA_PASADAS), JSON.stringify(reg, null, 2) + "\n");
-  const sin = motivoSinUmbral(j, reg.pasadas, ficheros[j].casos.length);
+  const sin = motivoSinUmbral(j, reg.pasadas, ficheros[j].casos.length, hashDeCasos(j, RAIZ));
   console.log(`test-del-juez umbral juez: ${j} cumple_pasada: ${cumpleUmbralA(reg.pasadas.at(-1))} umbral_a: ${sin ? "no" : "si"}${sin ? ` motivo: ${sin}` : ""}`);
 }
 if (motivoTope) console.log(`Paró en el tope (${motivoTope}); gastado ${gastado.toFixed(3)} $ de ${tope.toFixed(2)} $.`);
