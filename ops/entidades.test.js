@@ -160,7 +160,6 @@ export function problemas(datos, { existe: hay, glosario = null, leerLector = le
   const terminosUsados = new Map();
   for (const e of ents) {
     const q = `${e.id}`;
-    const act = e.status === "active";
     if ("definition" in e || "definicion" in e) p.push(`${q}: la definición no va aquí: vive en el glosario (term)`);
     const extra = Object.keys(e).filter((c) => !REQUERIDOS.includes(c) && !OPCIONALES.includes(c) && c !== "definition" && c !== "definicion");
     if (extra.length) p.push(`${q}: campo desconocido ${extra.join(", ")}`);
