@@ -103,6 +103,13 @@ export const AMBITOS = {
 };
 
 /**
+ * Los ámbitos que un proyecto puede no tener (#710): el bot es un paquete opcional. Un proyecto lo declara en `dominios` de su
+ * entrada de ops/entidades.json (`projects`); si lo declara, todas sus normas de ese ámbito llegan a los briefs de las tareas
+ * del ámbito (`--proyecto`); si no, no lleva ninguna ni se le sirve ninguna. Lo vigila ops/tareas-de-proyecto.test.js.
+ */
+export const DOMINIOS_OPCIONALES = ["bot"];
+
+/**
  * Quién construye en cada ámbito: `construye` de AMBITOS (un agente de .claude/agents/ o null si ninguno es dueño: entonces
  * construye la sesión y el dimensionador lo avisa). Un fichero con varios ámbitos lo construye el primero de DUENO_ORDEN
  * (sea cual sea su constructor), el más específico antes que el genérico (api/_bot/ es del bot antes que del catálogo); `code` solo decide

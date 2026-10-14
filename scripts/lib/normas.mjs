@@ -14,7 +14,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { AMBITOS } from "./ambitos.mjs";
+import { AMBITOS, DOMINIOS_OPCIONALES } from "./ambitos.mjs";
 import { FORMA, MAX_DIAS, RETIRADA_FORMAS_ANTIGUAS } from "./excepciones.mjs";
 import { MIN_EXCEPTUADAS, RESULTADOS_NORMA } from "./medicionNormas.mjs";
 import { VEREDICTOS } from "./escalas.mjs";
@@ -158,6 +158,30 @@ export const rutaNormasDeProyecto = (id) => `${RUTA_PROYECTOS}/${id}/normas.json
 /** Los ids de proyecto de ops/entidades.json (`projects`), la lista contra la que se valida `project`. */
 export function proyectosDeEntidades(raiz) {
   return JSON.parse(readFileSync(join(raiz, "ops", "entidades.json"), "utf8")).projects.map((p) => p.id);
+}
+
+/** Los dominios opcionales que declara un proyecto (`dominios` de su entrada en ops/entidades.json); lista vacía si no declara ninguno. */
+export function dominiosDeProyecto(raiz, id) {
+  const p = JSON.parse(readFileSync(join(raiz, "ops", "entidades.json"), "utf8")).projects.find((x) => x.id === id);
+  return p?.dominios ?? [];
+}
+
+/**
+ * Errores de los dominios opcionales (#710): un proyecto solo declara los de DOMINIOS_OPCIONALES, sin repetir, y una norma suya de
+ * un ámbito opcional exige que el proyecto lo declare. `proyectos`: las entradas de `projects` de ops/entidades.json.
+ */
+export function problemasDeDominios(carga, proyectos) {
+  const malos = [];
+  for (const p of proyectos) {
+    const d = p.dominios ?? [];
+    if (!Array.isArray(d)) { malos.push(`proyecto ${p.id}: «dominios» es una lista`); continue; }
+    for (const x of d) if (!DOMINIOS_OPCIONALES.includes(x)) malos.push(`proyecto ${p.id}: el dominio «${x}» no es opcional (${DOMINIOS_OPCIONALES.join(", ")})`);
+    if (new Set(d).size !== d.length) malos.push(`proyecto ${p.id}: repite un dominio`);
+    for (const n of carga.delProyecto[p.id] ?? []) {
+      if (DOMINIOS_OPCIONALES.includes(n.ambito) && !d.includes(n.ambito)) malos.push(`${n.id}: es del dominio opcional «${n.ambito}» y el proyecto ${p.id} no lo declara en «dominios»`);
+    }
+  }
+  return malos;
 }
 
 /**
