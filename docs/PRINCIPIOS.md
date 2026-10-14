@@ -49,13 +49,13 @@ El código del repo y su forma: tests, lint y ficheros.
   - Fuentes: [I] `CLAUDE.md`
   - Detalle: `CLAUDE.md#lo-que-hace-cumplir-esto`
   - Viene de: C5
-- `deny-when-in-doubt` — **Ante la duda, se niega.** Cuando falta un dato para decidir, como una credencial o un catálogo completo, el sistema cierra el paso.
+- `deny-when-in-doubt` — **Ante la duda, se niega.** Cuando falta un dato para decidir, como una credencial, el sistema cierra el paso.
   - Porqué: Un fallo que cierra se ve enseguida y se arregla, mientras que uno que deja pasar se descubre tarde y con daño.
-  - Fuentes: [I] `api/sinCredencial.test.js`
+  - Fuentes: [F] https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html
   - Viene de: C10
 - `explicit-over-clever` — **Explícito antes que ingenioso.** El código dice a la vista lo que hace, con nombres enteros e importaciones fijas, sin nada montado en tiempo de ejecución.
   - Porqué: Un agente o un revisor solo razona sobre lo que puede buscar, y un nombre montado al vuelo no sale en ninguna búsqueda.
-  - Fuentes: [I] `eslint.config.js`
+  - Fuentes: [S] https://peps.python.org/pep-0020/
   - Viene de: C2
 - `one-change-one-intent` — **Un cambio, una intención.** Cada sesión lleva una sola tarea en su carpeta y su rama, y cada PR cierra un solo propósito.
   - Porqué: Dos intenciones en un cambio no se revisan, se revierten ni se atribuyen por separado, y las sesiones en paralelo se pisan.
@@ -80,13 +80,13 @@ El código del repo y su forma: tests, lint y ficheros.
 
 Identidades, permisos, secretos, ramas, CI, despliegues, copias y servicios.
 
-- `bounded-blast-radius` — **Radio de daño acotado.** Todo lo que gasta o escribe tiene un límite de daño por día, por mes, por casa y por origen.
+- `bounded-blast-radius` — **Radio de daño acotado.** Todo lo que gasta o escribe tiene un límite de daño por día, por mes, por usuario y por origen.
   - Porqué: Sin límite, un bucle, un abuso o un error de código convierte un fallo pequeño en una factura o en datos rotos.
-  - Fuentes: [I] `api/_guard.test.js`
+  - Fuentes: [F] https://api-security.owasp.org/editions/2023/en/0xa4-unrestricted-resource-consumption
   - Viene de: I4
 - `declared-is-real` — **Lo declarado es lo real.** Lo que el repo declara de la infraestructura se compara cada cierto tiempo con lo que hay de verdad.
   - Porqué: Un registro que nadie compara con la realidad termina mintiendo, y se decide con datos falsos.
-  - Fuentes: [I] `scripts/verificar-estado.mjs`
+  - Fuentes: [S] https://developer.hashicorp.com/terraform/cli/commands/plan
   - Viene de: I8
 - `emergency-access` — **Acceso de emergencia.** Una guía escrita y probada permite operar sin Claude y restaurar la base desde una copia.
   - Porqué: Si el día que algo falla solo sabe arreglarlo una herramienta que no está, no hay arreglo.
@@ -105,13 +105,13 @@ Identidades, permisos, secretos, ramas, CI, despliegues, copias y servicios.
   - Fuentes: [I] `ops/recursos.json`
   - Viene de: I9
 - `plan-evaluated-before-apply` — **El plan se evalúa antes.** Cada cambio en la base o en la infraestructura se ensaya antes de aplicarlo, y lo aplica quien tiene permiso.
-  - Porqué: Solo hay una base y es producción, así que lo que se aplica sin ensayo se prueba sobre datos de familias.
-  - Fuentes: [I] `scripts/apply-migration.mjs`
+  - Porqué: Un cambio sin ensayo se prueba sobre los datos de verdad, y deshacer un error cuesta más que haberlo visto antes.
+  - Fuentes: [F] https://developer.hashicorp.com/terraform/cli/commands/plan
   - Detalle: `CLAUDE.md#base-de-datos`
   - Viene de: I5
-- `progressive-deploy-with-rollback` — **Despliegue progresivo con vuelta atrás.** Lo que llega a producción pasa antes por staging y por main con el CI en verde, y tiene una vuelta atrás probada.
-  - Porqué: Un despliegue sin paso previo ni vuelta atrás convierte cualquier error en una caída para las familias.
-  - Fuentes: [I] `.claude/skills/vercel/SKILL.md`
+- `progressive-deploy-with-rollback` — **Despliegue progresivo con vuelta atrás.** Lo que llega a producción pasa antes por un entorno previo con el CI en verde, y tiene una vuelta atrás probada.
+  - Porqué: Un despliegue sin paso previo ni vuelta atrás convierte cualquier error en una caída para quien lo usa.
+  - Fuentes: [F] https://sre.google/workbook/canarying-releases/
   - Detalle: `CLAUDE.md#ramas-y-flujo`
   - Viene de: I7
 - `public-repo-no-sensitive-detail` — **Repo público sin detalle.** El repo público dice qué se pide y quién lo vigila, sin explicar cómo se salta un control ni dar datos de familias.
@@ -120,7 +120,7 @@ Identidades, permisos, secretos, ramas, CI, despliegues, copias y servicios.
   - Detalle: `CLAUDE.md#cuando-algo-falla-hasta-el-problema-de-fondo`
 - `rehearsal-undone-and-expires` — **El ensayo se deshace.** Un ensayo no deja ningún cambio y caduca pronto, así que uno viejo ya no vale.
   - Porqué: Un ensayo que deja rastro ya no es un ensayo, y uno viejo no dice nada del estado de hoy.
-  - Fuentes: [I] `scripts/apply-migration.mjs`
+  - Fuentes: [S] https://wiki.postgresql.org/wiki/Transactional_DDL_in_PostgreSQL:_A_Competitive_Analysis
   - Viene de: I6
 - `untamperable-trail` — **Rastro que nadie reescribe.** Un rastro que su propio autor puede tocar no sirve como prueba de lo que pasó.
   - Porqué: Un rastro que se puede reescribir no sirve para saber qué pasó justo cuando más falta hace.
@@ -138,7 +138,7 @@ La base: tablas, migraciones, roles y cada dato que guarda.
 
 - `closed-vocabulary` — **Vocabulario cerrado.** Todo lo que se agrupa toma sus valores de un vocabulario cerrado con su test, y un valor retirado dice a cuál pasa.
   - Porqué: Con texto libre cada uno escribe lo mismo de otra forma, y un valor reutilizado descuadra los recuentos viejos.
-  - Fuentes: [I] `src/lib/vocabularios.js`
+  - Fuentes: [F] https://docs.getdbt.com/docs/build/data-tests
   - Detalle: `docs/datos/PRINCIPIOS.md#4-vocabularios-cerrados`, `docs/entidades/N0-principios.md#12-un-vocabulario-tiene-ciclo-de-vida`
   - Viene de: C4, claude:vocabulario-cerrado
 - `days-hours-zones` — **Días, horas y zonas.** Un instante es un timestamptz, un día es una date y la hora se calcula con la zona de la casa.
@@ -180,7 +180,7 @@ La base: tablas, migraciones, roles y cada dato que guarda.
   - Detalle: `docs/datos/PRINCIPIOS.md#16-diccionario-y-lectura`
 - `status-is-state-machine` — **El estado es una máquina.** Un estado sin vocabulario ni saltos escritos admite combinaciones que nadie ha decidido y no deja ver cuándo ha cambiado.
   - Porqué: Un estado que se escribe sin reglas termina en combinaciones imposibles que nadie sabe interpretar.
-  - Fuentes: [I] `docs/datos/PRINCIPIOS.md`
+  - Fuentes: [F] https://google.aip.dev/216
   - Detalle: `docs/datos/PRINCIPIOS.md#21-estados`
 - `table-has-owner-module` — **Una tabla, un módulo dueño.** Cada tabla se lee y se escribe desde un solo módulo, y el resto del código llama a sus funciones.
   - Porqué: Una tabla tocada con textos sueltos desde cualquier sitio se rompe en cuanto cambia, aunque la base esté bien.
@@ -228,9 +228,11 @@ Lo trae el catálogo delegado `ops/principios-producto/`, con su detalle en `doc
 - `buttons-and-free-text` — **Botones y texto libre.** Cuando las opciones son pocas y conocidas, elegir con un botón cuesta menos que escribir.
   - Porqué: Los usuarios piden opciones ya preparadas y escriben menos.
   - Fuentes: [F] https://www.nngroup.com/articles/chatbots/
+  - Paquete opcional: bot (solo vale en un proyecto que declara el dominio «bot» en ops/entidades.json)
 - `calibrate-not-maximise-trust` — **Calibrar la confianza.** La confianza útil es la calibrada, la que distingue lo estimado de lo confirmado.
   - Porqué: Señalar el posible error baja la confianza en ese dato, pero evita la sobreconfianza después.
   - Fuentes: [F] https://pair.withgoogle.com/chapter/explainability-trust/
+  - Paquete opcional: bot (solo vale en un proyecto que declara el dominio «bot» en ops/entidades.json)
 - `caller-pays-quota` — **El cupo, a quien llama.** El gasto de IA se controla cuando cada llamada se atribuye a quien la hace.
   - Porqué: Sin identidad no se puede limitar por persona, y un cupo compartido deja que un anónimo agote el de todos.
   - Fuentes: [F] https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/ ; [S] https://api-security.owasp.org/editions/2023/en/0xa4-unrestricted-resource-consumption
@@ -240,18 +242,22 @@ Lo trae el catálogo delegado `ops/principios-producto/`, con su detalle en `doc
 - `easy-correction-and-undo` — **Corregir y deshacer fácil.** Poder corregir o deshacer con un gesto da a la persona el control de lo que el bot hace.
   - Porqué: El control y la libertad del usuario son una de las heurísticas básicas de usabilidad.
   - Fuentes: [F] https://www.microsoft.com/en-us/research/articles/guidelines-for-human-ai-interaction-eighteen-best-practices-for-human-centered-ai-design/ ; [F] https://www.nngroup.com/articles/ten-usability-heuristics/
+  - Paquete opcional: bot (solo vale en un proyecto que declara el dominio «bot» en ops/entidades.json)
 - `escalate-by-explicit-triggers` — **Escalado por disparadores escritos.** Un traspaso con disparadores escritos y el contexto completo protege a la persona en los momentos de riesgo alto.
   - Porqué: Un traspaso vago obliga a la persona a empezar de cero justo cuando más lo necesita.
   - Fuentes: [F] https://www.intercom.com/learning-center/ai-human-collaboration-procedures-handoffs
+  - Paquete opcional: bot (solo vale en un proyecto que declara el dominio «bot» en ops/entidades.json)
 - `escape-hatch-when-lost` — **Salida cuando se pierde.** Un bot que admite que no entiende y ofrece otra vía conserva la confianza que la repetición destruye.
   - Porqué: Los usuarios valoran que el bot admita que no entiende y penalizan la respuesta repetida, segura pero errónea.
   - Fuentes: [F] https://www.nngroup.com/articles/chatbots/ ; [F] https://www.intercom.com/learning-center/ai-human-collaboration-procedures-handoffs ; [F] https://pair.withgoogle.com/chapter/errors-failing/
+  - Paquete opcional: bot (solo vale en un proyecto que declara el dominio «bot» en ops/entidades.json)
 - `explain-data-use` — **Explicar el uso de datos.** Saber qué datos usa el sistema permite a la persona corregirlos y calibrar su confianza.
   - Porqué: Saber qué sabe el sistema de uno calibra la confianza y permite corregirlo.
   - Fuentes: [F] https://pair.withgoogle.com/chapter/explainability-trust/
 - `explain-why` — **Explicar el porqué.** Una decisión inesperada con su motivo se entiende y se corrige, y sin motivo es opaca.
   - Porqué: Sin motivo, el error es opaco y la persona no puede corregirlo.
   - Fuentes: [F] https://www.microsoft.com/en-us/research/articles/guidelines-for-human-ai-interaction-eighteen-best-practices-for-human-centered-ai-design/ ; [F] https://pair.withgoogle.com/chapter/explainability-trust/
+  - Paquete opcional: bot (solo vale en un proyecto que declara el dominio «bot» en ops/entidades.json)
 - `fail-closed-for-safety-filters` — **Filtro que falla cerrado.** Un filtro de seguridad que deja pasar todo cuando falla equivale a no tener filtro.
   - Porqué: Si el filtro falla abierto, basta con agotarlo o tumbarlo para saltárselo.
   - Fuentes: [S] https://www.cisa.gov/securebydesign ; [S] https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/
@@ -274,6 +280,7 @@ Lo trae el catálogo delegado `ops/principios-producto/`, con su detalle en `doc
 - `keep-context-no-reask` — **No repetir preguntas.** Un dato que la persona ya dio se recuerda en vez de pedirse otra vez.
   - Porqué: En los estudios de NN/g, los bots que repiten preguntas cansan a la gente.
   - Fuentes: [F] https://www.nngroup.com/articles/chatbots/ ; [F] https://www.microsoft.com/en-us/research/articles/guidelines-for-human-ai-interaction-eighteen-best-practices-for-human-centered-ai-design/
+  - Paquete opcional: bot (solo vale en un proyecto que declara el dominio «bot» en ops/entidades.json)
 - `least-privilege-for-the-model` — **Mínimo privilegio para el modelo.** Lo que el modelo no puede tocar no lo rompe aunque se equivoque o lo engañen.
   - Porqué: Una alucinación o una inyección convierten cualquier permiso de más en daño real.
   - Fuentes: [F] https://genai.owasp.org/llmrisk/llm062025-excessive-agency/ ; [F] https://www.anthropic.com/engineering/building-effective-agents
@@ -288,6 +295,7 @@ Lo trae el catálogo delegado `ops/principios-producto/`, con su detalle en `doc
 - `no-pretend-human` — **No hacerse pasar por humano.** Un bot que se presenta como bot evita que la persona sobrestime lo que puede hacer.
   - Porqué: Los personajes con aire humano hacen sobrestimar al sistema.
   - Fuentes: [F] https://pair.withgoogle.com/chapter/mental-models/
+  - Paquete opcional: bot (solo vale en un proyecto que declara el dominio «bot» en ops/entidades.json)
 - `no-secrets-in-prompts-or-client` — **Secretos fuera del prompt.** Una clave o una regla interna puesta en un prompt o en el código del navegador queda a la vista de cualquiera.
   - Porqué: Un prompt puede filtrarse y el código del cliente lo ve cualquiera.
   - Fuentes: [F] https://genai.owasp.org/llm-top-10/
@@ -312,6 +320,7 @@ Lo trae el catálogo delegado `ops/principios-producto/`, con su detalle en `doc
 - `scope-when-in-doubt` — **Acotar ante la duda.** Ante la duda, preguntar o proponer lo más acotado cuesta menos que actuar a lo grande.
   - Porqué: Un malentendido pequeño cuesta poco, y uno grande estropea un menú entero.
   - Fuentes: [F] https://www.microsoft.com/en-us/research/articles/guidelines-for-human-ai-interaction-eighteen-best-practices-for-human-centered-ai-design/
+  - Paquete opcional: bot (solo vale en un proyecto que declara el dominio «bot» en ops/entidades.json)
 - `secure-by-default` — **Seguro de serie.** Lo nuevo nace cerrado, y abrirlo es un paso consciente que no depende de que alguien se acuerde.
   - Porqué: Lo seguro de serie no depende de la memoria de nadie, y lo inseguro cuesta un paso consciente.
   - Fuentes: [F] https://www.cisa.gov/securebydesign
@@ -319,9 +328,11 @@ Lo trae el catálogo delegado `ops/principios-producto/`, con su detalle en `doc
 - `simple-first-agents` — **Lo simple primero.** Cada paso, herramienta o agente de más añade coste y errores, y rara vez mejora lo que se mide.
   - Porqué: La complejidad cuesta tokens, errores y mantenimiento, y rara vez se nota en la conversación.
   - Fuentes: [F] https://www.anthropic.com/engineering/building-effective-agents ; [F] https://www.anthropic.com/engineering/writing-tools-for-agents
+  - Paquete opcional: bot (solo vale en un proyecto que declara el dominio «bot» en ops/entidades.json)
 - `state-capabilities-and-limits` — **Capacidades y límites visibles.** Una persona que sabe qué hace el bot, qué no y con qué fiabilidad ni se frustra ni se fía de más.
   - Porqué: Con expectativas realistas la persona no se frustra ni se fía de lo que el bot no puede hacer.
   - Fuentes: [F] https://www.microsoft.com/en-us/research/articles/guidelines-for-human-ai-interaction-eighteen-best-practices-for-human-centered-ai-design/ ; [F] https://pair.withgoogle.com/chapter/mental-models/
+  - Paquete opcional: bot (solo vale en un proyecto que declara el dominio «bot» en ops/entidades.json)
 - `storage-limitation` — **Limitación del plazo.** Un dato personal guardado más allá de su fin es riesgo para la familia sin ningún beneficio.
   - Porqué: Lo que se conserva de más es riesgo sin beneficio.
   - Fuentes: [F] https://gdpr-info.eu/art-5-gdpr/

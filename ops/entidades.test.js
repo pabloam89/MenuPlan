@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -504,8 +504,10 @@ describe("el registro de entidades", () => {
     const anclados = JSON.parse(leer("ops/vocabularios-vida.json")).anclados;
     const nVoc = Object.keys(anclados).length;
     const nVal = Object.values(anclados).reduce((a, v) => a + (Array.isArray(v) ? v.length : Object.keys(v).length), 0);
-    expect(E("vocabulary").note, "Cambia las cifras de la nota de vocabulary").toContain(`${nVoc} vocabularios y ${nVal} valores anclados`);
-    expect(E("vocabulary").note).not.toMatch(/56 vocabularios/);
+    // La nota no lleva cifras (conflicto en cada fusión, #770); las vigila este test contra el JSON.
+    expect(E("vocabulary").note, "La cifra va en el test, no en la nota").not.toMatch(/\d+ vocabularios/);
+    expect(nVoc).toBeGreaterThan(100);
+    expect(nVal).toBeGreaterThan(500);
   });
 
   it("las fuentes citadas existen en git, con las mayúsculas exactas", () => {
@@ -819,5 +821,32 @@ describe("N0-principios.md habla de los niveles y de las capas con su palabra", 
   it("el autotest: el documento de antes del cambio falla", () => {
     const antes = "Hay cuatro niveles. Cada uno obedece al anterior.\nse declara puente (`role_in_axis`); scope: bridge";
     expect(problemasDeN0(antes).length).toBeGreaterThanOrEqual(4);
+  });
+});
+
+// La clase (#770): los ids de `projects[]` (ATRIBUTOS: nombre, repos, dominios) no son la lista de proyectos con normas, porque incluyen
+// `factoria`. Quien necesite los ids usa PROYECTOS o PROYECTOS_CON_NORMAS (scripts/lib/zonasProyecto.mjs); leer `projects` para ids
+// repite el filtro y aceptó `factoria` donde no debía (fuentes-documentales, principios-casa).
+describe("ids de proyecto: una sola lista", () => {
+  const LECTORES_DE_ATRIBUTOS = ["scripts/mapa-entidades.mjs", "scripts/lib/normas.mjs", "ops/principios.test.js", "ops/tareas-de-proyecto.test.js"];
+  const PATRONES = [/\.projects\.map\(/, /\.projects\.find\(/, /projects\.map\(\(p\) => p\.id\)/];
+  const ficheros = (dir) => readdirSync(join(RAIZ, dir), { withFileTypes: true }).flatMap((d) => {
+    const r = `${dir}/${d.name}`;
+    if (d.isDirectory()) return d.name === "node_modules" ? [] : ficheros(r);
+    return /\.(mjs|js)$/.test(d.name) ? [r] : [];
+  });
+  const infractores = (leer = (f) => readFileSync(join(RAIZ, f), "utf8")) =>
+    [...ficheros("scripts"), ...ficheros("ops")]
+      .filter((f) => f !== "ops/entidades.test.js" && !LECTORES_DE_ATRIBUTOS.includes(f))
+      .filter((f) => PATRONES.some((re) => re.test(leer(f))));
+
+  it("nadie lee los ids de projects[] fuera de la lista corta de lectores de atributos", () => {
+    expect(infractores(), "usa PROYECTOS o PROYECTOS_CON_NORMAS (zonasProyecto.mjs), o dominiosDeProyecto (normas.mjs)").toEqual([]);
+  });
+
+  it("autotest: el lector de ids de hoy en fuentes-documentales.test.js se pilla", () => {
+    const antes = 'const proyectos = JSON.parse(x).projects.map((p) => p.id);';
+    expect(infractores(() => antes).length).toBeGreaterThan(10);
+    expect(PATRONES.some((re) => re.test(antes))).toBe(true);
   });
 });

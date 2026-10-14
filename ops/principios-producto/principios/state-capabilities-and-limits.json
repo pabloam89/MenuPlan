@@ -2,6 +2,7 @@
   "id": "state-capabilities-and-limits",
   "nombre": "Capacidades y límites visibles",
   "area": "conversational-ai",
+  "dominio": "bot",
   "enunciado": "Una persona que sabe qué hace el bot, qué no y con qué fiabilidad ni se frustra ni se fía de más.",
   "porque": "Con expectativas realistas la persona no se frustra ni se fía de lo que el bot no puede hacer.",
   "ejemplo_bueno": "El primer mensaje de Lola dice que arma el menú y la lista, y que no sustituye a un dietista",

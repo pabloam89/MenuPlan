@@ -49,6 +49,18 @@ describe("1. la forma", () => {
     expect(datos.recursos.filter((r) => r.servicio === "hetzner").map((r) => r.proyecto)).toEqual(["factoria", "factoria"]);
   });
 
+  it("desempate (#770): las cuentas a quien las paga; lo de dentro, al proyecto al que sirve en exclusiva (el campo no sale solo del servicio)", () => {
+    const de = (id) => datos.recursos.find((r) => r.id === id)?.proyecto;
+    expect(de("1password-boveda-homenu")).toBe("homenu");
+    expect(de("github-deploy-key-mercadona")).toBe("homenu");
+    expect(de("1password-boveda-panel")).toBe("panel");
+    for (const id of ["github-app-sesiones", "1password-cuenta", "tailscale-cuenta", "hetzner-cuenta"]) expect(de(id), id).toBe("factoria");
+    // El servidor aloja el panel y la copia de la base de homenu (INVENTARIO): sirve a dos, va a la factoría.
+    expect(de("hetzner-servidor-panel")).toBe("factoria");
+    // Un mismo servicio reparte en proyectos distintos: «proyecto» no depende solo de «servicio».
+    for (const s of ["github", "1password"]) expect(new Set(datos.recursos.filter((r) => r.servicio === s).map((r) => r.proyecto)).size, s).toBeGreaterThan(1);
+  });
+
   it("«proyecto» es el campo, no un tipo: el tipo de un proyecto de un servicio es proyecto-servicio (#748)", () => {
     expect(Object.keys(TIPOS)).not.toContain("proyecto");
     expect(Object.keys(TIPOS)).toContain("proyecto-servicio");

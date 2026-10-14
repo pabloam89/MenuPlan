@@ -6,8 +6,8 @@
   "porque": "Un registro que nadie compara con la realidad termina mintiendo, y se decide con datos falsos.",
   "fuentes": [
     {
-      "marca": "I",
-      "fuente": "casa-scripts-verificar-estado-mjs"
+      "marca": "S",
+      "fuente": "terraform-plan"
     }
   ],
   "origen": [

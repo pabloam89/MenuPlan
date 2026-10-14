@@ -16,8 +16,8 @@ No hay término medio (decisión de Pablo del 14 oct 2026, #710): una entidad es
 `parent_of` o `reference`) y cardinalidad. La contención va de la factoría al proyecto y de este al entorno (`part_of`).
 Los ids van en inglés (decisión de Pablo del 11 oct 2026); los nombres y las notas, en castellano.
 
-Hoy hay 54 entidades activas: 41 horizontales y 13 verticales.
-Las relaciones son 93: is_a 5, parent_of 4, part_of 23, reference 61.
+Hoy hay 56 entidades activas: 43 horizontales y 13 verticales.
+Las relaciones son 95: is_a 5, parent_of 4, part_of 23, reference 63.
 
 ## Horizontales: la factoría
 
@@ -65,6 +65,8 @@ La clase vale para cualquier proyecto; sus ejemplares del proyecto viven en el r
 | `token` | Token de diseño | horizontal | piece | design | token de diseño | `src/design/tokens.js` | with_registry |
 | `component` | Componente de diseño | horizontal | piece | design | componente de diseño | `DESIGN_SYSTEM.md` | partial |
 | `pattern` | Patrón de diseño | horizontal | piece | design | patrón de diseño | `DESIGN_SYSTEM.md` | partial |
+| `screen` | Pantalla | horizontal | piece | design | pantalla | `ops/diseno/taxonomia.json` | with_registry |
+| `flow` | Flujo de usuario | horizontal | piece | design | flujo de usuario | `ops/diseno/taxonomia.json` | with_registry |
 | `assignment-type` | Tipo de encargo | horizontal | template | work | tipo de encargo | `ops/tipos-de-encargo.json` | with_registry |
 
 ## Verticales: el producto
@@ -184,7 +186,7 @@ flowchart LR
 | `agent-task` | hangs_from | `agent` | many_to_one | field: agentes.<id>.tareas[] (estandares-agentes.json) |
 | `menu-week` | hangs_from | `menu` | many_to_one | field: user_menu_weeks (user_id, menu_id), clave ajena con on delete cascade |
 
-## Relaciones reference (61)
+## Relaciones reference (63)
 
 | de | verbo | a | cardinalidad | cómo se guarda |
 |---|---|---|---|---|
@@ -242,6 +244,8 @@ flowchart LR
 | `design-system` | uses | `design-profile` | many_to_one | field: Perfil N2 (bloque A de ops/diseno/bloques.json) |
 | `component` | uses | `token` | many_to_many | ningún campo: la ficha de componente que pide META-DISENO.md aún no existe |
 | `pattern` | uses | `component` | many_to_many | ningún campo: cada patrón dice los componentes que usa, en prosa |
+| `screen` | uses | `component` | many_to_many | ningún campo: ninguna especificación de pantalla dice aún qué elementos usa (línea 4 de #774) |
+| `flow` | uses | `screen` | many_to_many | ningún campo: ninguna especificación de flujo dice aún qué pantallas recorre (línea 4 de #774) |
 | `account` | belongs_to | `household` | many_to_many | field: household_members (household_id, user_id, role) |
 | `group` | has | `person` | many_to_many | field: grupo_persona |
 | `menu` | uses | `recipe` | many_to_many | field: user_menu_recipes.recipe_id (texto, sin clave ajena: la receta está en git) |

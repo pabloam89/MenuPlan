@@ -3,6 +3,7 @@
 //   npm run principios-casa                 cifras: principios por área, delegados y sin norma
 //   npm run principios-casa -- <área>       los principios de un área, con sus normas
 //   npm run principios-casa -- <id>         uno solo, entero, con las normas que lo citan
+//   npm run principios-casa -- --proyecto <id>  los principios que valen para ese proyecto según sus dominios
 //   npm run principios-casa -- --escribir   regenera docs/PRINCIPIOS.md
 //
 // El dato es ops/principios/ más los catálogos delegados (producto y redacción); lo leen
@@ -13,8 +14,9 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { AMBITOS } from "./lib/ambitos.mjs";
-import { leerRegistro } from "./lib/normas.mjs";
-import { RUTA_MD, cifras, generarMd, leerPrincipiosCasa, lineaDe, normasPorPrincipio } from "./lib/principios.mjs";
+import { dominiosDeProyecto, leerRegistro } from "./lib/normas.mjs";
+import { PROYECTOS_CON_NORMAS } from "./lib/zonasProyecto.mjs";
+import { RUTA_MD, cifras, generarMd, leerPrincipiosCasa, lineaDe, normasPorPrincipio, principiosDeProyecto } from "./lib/principios.mjs";
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const args = process.argv.slice(2);
@@ -27,7 +29,23 @@ if (args.includes("--escribir")) {
   console.log(`${RUTA_MD} regenerado desde ops/principios/ y los catálogos delegados.`);
 }
 
-const pedido = args.find((a) => !a.startsWith("--"));
+const iProy = args.indexOf("--proyecto");
+if (iProy >= 0) {
+  const idProy = args[iProy + 1];
+  if (!PROYECTOS_CON_NORMAS.includes(idProy)) {
+    console.error(`«${idProy}» no es un proyecto con normas (${PROYECTOS_CON_NORMAS.join(", ")}).`);
+    process.exit(1);
+  }
+  const dominios = dominiosDeProyecto(RAIZ, idProy);
+  const lista = principiosDeProyecto(datos.principios, dominios);
+  console.log(`${idProy}: ${lista.length} de ${datos.principios.length} principios (dominios: ${dominios.join(", ") || "ninguno"})`);
+  for (const p of lista) console.log(lineaDe(p));
+  process.exit(0);
+}
+
+// Sin --proyecto, iProy es -1 y args[iProy + 1] sería args[0]: se excluye solo si hay --proyecto.
+const excluido = iProy >= 0 ? args[iProy + 1] : undefined;
+const pedido = args.find((a) => !a.startsWith("--") && a !== excluido);
 if (pedido) {
   const porId = datos.principios.find((p) => p.id === pedido);
   const lista = porId ? [porId] : datos.principios.filter((p) => p.area === pedido);

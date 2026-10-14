@@ -10,7 +10,8 @@
   ],
   "relacionado": [
     "ficha de componente",
-    "catálogo de componentes"
+    "catálogo de componentes",
+    "elemento de interfaz"
   ],
   "en": "component",
   "entidades": [
@@ -18,5 +19,6 @@
       "entidad": "component",
       "relacion": "denota"
     }
-  ]
+  ],
+  "nota": "Es la pieza concreta de un sistema de diseño; el tipo abstracto, independiente de cualquier sistema, es el «elemento de interfaz»."
 }

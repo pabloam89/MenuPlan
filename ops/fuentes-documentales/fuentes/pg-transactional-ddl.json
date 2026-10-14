@@ -1,0 +1,10 @@
+{
+  "id": "pg-transactional-ddl",
+  "nombre": "PostgreSQL wiki: Transactional DDL in PostgreSQL, cambios de esquema que se deshacen",
+  "tipo": "externa",
+  "url": "https://wiki.postgresql.org/wiki/Transactional_DDL_in_PostgreSQL:_A_Competitive_Analysis",
+  "uso": "principio",
+  "fecha_alta": "2026-10-14",
+  "revisada": "si",
+  "fecha_revision": "2026-10-14"
+}

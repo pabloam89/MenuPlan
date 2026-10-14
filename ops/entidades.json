@@ -548,7 +548,7 @@
         "ops/vocabularios-vida.test.js",
         "scripts/lib/vocabulariosVida.mjs"
       ],
-      "note": "La clase: una lista cerrada de valores. Las de src/lib/vocabularios.js, con CHECK en la base, son ejemplares del proyecto. 103 vocabularios y 563 valores anclados (a 14 oct 2026; el test compara estas cifras con ops/vocabularios-vida.json). Hay constantes duplicadas (MESES en 4 sitios, dos ESTADOS_CRITERIO con valores distintos)."
+      "note": "La clase: una lista cerrada de valores. Las de src/lib/vocabularios.js, con CHECK en la base, son ejemplares del proyecto. Hay constantes duplicadas (MESES en 4 sitios, dos ESTADOS_CRITERIO con valores distintos)."
     },
     {
       "id": "principle",
@@ -796,7 +796,7 @@
         "ops/recursos.test.js",
         "scripts/cumplimiento.mjs"
       ],
-      "note": "La clase: una clave, cuenta o servicio y su dueño. Los de Supabase, Telegram y Vercel son ejemplares del proyecto. Una entrada por clave, token, App, deploy key, bóveda, service account, proyecto de un servicio, servidor o cuenta, con servicio, proyecto, tipo, dueño, fecha y caducidad. Clave, token, deploy key y bóveda son tipos suyos, no entidades aparte. El campo proyecto (obligatorio, un valor de PROYECTOS) dice de qué proyecto es: el que lo paga o administra y, si sirve a varios sin que ninguno lo administre (Hetzner), factoria; el tipo proyecto-servicio de recursos.json es un proyecto de un servicio (Vercel, Supabase), no la entidad project.",
+      "note": "La clase: una clave, cuenta o servicio y su dueño. Los de Supabase, Telegram y Vercel son ejemplares del proyecto. Una entrada por clave, token, App, deploy key, bóveda, service account, proyecto de un servicio, servidor o cuenta, con servicio, proyecto, tipo, dueño, fecha y caducidad. Clave, token, deploy key y bóveda son tipos suyos, no entidades aparte. El campo proyecto (obligatorio, un valor de PROYECTOS) dice de qué proyecto es: el que lo paga o administra la cuenta; lo que vive dentro (bóveda, clave, deploy key, servidor) va al proyecto al que sirve en exclusiva y a factoria si sirve a varios (Hetzner: aloja el panel y la copia de la base de homenu); el tipo proyecto-servicio de recursos.json es un proyecto de un servicio (Vercel, Supabase), no la entidad project.",
       "types": [
         "clave",
         "token",
@@ -1030,6 +1030,7 @@
         "agent"
       ],
       "readers": [
+        "scripts/lib/taxonomiaDiseno.mjs",
         ".claude/skills/revision-de-diseno/SKILL.md",
         ".claude/agents/constructor.md"
       ],
@@ -1054,6 +1055,46 @@
         ".claude/agents/constructor.md"
       ],
       "note": "La clase: cómo se combinan los componentes (tablas, hojas, avisos, formularios). Faltan vacío, error y sin conexión como patrón (docs/diseno/META-DISENO.md)."
+    },
+    {
+      "id": "screen",
+      "name": "Pantalla",
+      "scope": "horizontal",
+      "level": "piece",
+      "family": "design",
+      "term": "pantalla",
+      "source_of_truth": "ops/diseno/taxonomia.json",
+      "id_format": "kebab",
+      "registry": "with_registry",
+      "status": "active",
+      "created_by": [
+        "agent"
+      ],
+      "readers": [
+        "scripts/lib/taxonomiaDiseno.mjs",
+        "ops/diseno/taxonomia.test.js"
+      ],
+      "note": "La clase: una vista completa de una aplicación. Sus tipos son el vocabulario cerrado `pantalla` de la taxonomía (#776); cada pantalla concreta de un proyecto vive en su especificación (línea 4 de #774, aún por hacer). Cuelga de esta entidad y no de `pattern` porque un patrón es cómo se combinan los componentes, no una vista entera."
+    },
+    {
+      "id": "flow",
+      "name": "Flujo de usuario",
+      "scope": "horizontal",
+      "level": "piece",
+      "family": "design",
+      "term": "flujo de usuario",
+      "source_of_truth": "ops/diseno/taxonomia.json",
+      "id_format": "kebab",
+      "registry": "with_registry",
+      "status": "active",
+      "created_by": [
+        "agent"
+      ],
+      "readers": [
+        "scripts/lib/taxonomiaDiseno.mjs",
+        "ops/diseno/taxonomia.test.js"
+      ],
+      "note": "La clase: una secuencia de pantallas hacia un objetivo de la persona usuaria. Sus tipos son el vocabulario cerrado `flujo` de la taxonomía (#776). No es el flujo de la factoría (docs/ops/FLUJO.md), que es del proceso de trabajo y no tiene entidad."
     },
     {
       "id": "account",
@@ -1978,6 +2019,24 @@
       "cardinality": "many_to_many",
       "stored_as": "none",
       "stored_in": "cada patrón dice los componentes que usa, en prosa"
+    },
+    {
+      "from": "screen",
+      "relation": "uses",
+      "to": "component",
+      "class": "reference",
+      "cardinality": "many_to_many",
+      "stored_as": "none",
+      "stored_in": "ninguna especificación de pantalla dice aún qué elementos usa (línea 4 de #774)"
+    },
+    {
+      "from": "flow",
+      "relation": "uses",
+      "to": "screen",
+      "class": "reference",
+      "cardinality": "many_to_many",
+      "stored_as": "none",
+      "stored_in": "ninguna especificación de flujo dice aún qué pantallas recorre (línea 4 de #774)"
     },
     {
       "from": "account",

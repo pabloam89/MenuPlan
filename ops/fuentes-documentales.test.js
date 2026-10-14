@@ -1,13 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { readdirSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { esCatalogo, leerCatalogo } from "../scripts/lib/catalogos.mjs";
 import { leerEstandares } from "../scripts/lib/estandaresAgentes.mjs";
 import {
   AVISO_ANTES_DIAS, ESTADOS_REVISION, PLAZO_REVISION_DIAS, TECHO_SIN_REVISAR, cifrasDeFuentes, estadoDeRevision, leerFuentes,
-  mapaDeFuentes, problemasDeFuentes, resolverCitas, vistaParaEstandares,
+  ladoDeFuente, ladoObligado, mapaDeFuentes, problemasDeFuentes, problemasDeLado, resolverCitas, vistaParaEstandares,
 } from "../scripts/lib/fuentesDoc.mjs";
+import { PROYECTOS_CON_NORMAS, clasificar, compilar, leerZonas } from "../scripts/lib/zonasProyecto.mjs";
 import { leerPool } from "../scripts/lib/pool.mjs";
 import { rutaPrincipiosDeProyecto } from "../scripts/lib/principios.mjs";
 
@@ -31,15 +32,18 @@ const estandares = leerEstandares(RAIZ);
 const reglas = [...Object.values(estandares.agentes).flatMap((a) => a.tareas.flatMap((t) => t.reglas ?? [])), ...Object.values(estandares.comunes).flatMap((c) => c.reglas ?? [])];
 const citasDePool = Object.values(leerPool(RAIZ).agentes).flatMap((a) => a.practicas.map((x) => x.fuente));
 const citadas = new Set([...citasDePrincipios.map((c) => c.f.fuente), ...reglas.map((r) => r.fuente), ...citasDePool]);
+const zonas = compilar(leerZonas(RAIZ));
+const zonaDe = (ruta) => clasificar(ruta, zonas).zona;
+const proyectos = PROYECTOS_CON_NORMAS;
 const falla = (cambia, trozo, opciones = {}) => {
   const c = clon();
   cambia(c);
-  expect(problemasDeFuentes(c, { citadas, raiz: RAIZ, ...opciones }).join("\n")).toContain(trozo);
+  expect(problemasDeFuentes(c, { citadas, raiz: RAIZ, proyectos, ...opciones }).join("\n")).toContain(trozo);
 };
 
 describe("ops/fuentes-documentales/: una sola lista de fuentes", () => {
   it("el catálogo cumple las reglas de forma, nadie cita una fuente que no existe y no sobra ninguna", () => {
-    expect(problemasDeFuentes(catalogo, { citadas, raiz: RAIZ })).toEqual([]);
+    expect(problemasDeFuentes(catalogo, { citadas, raiz: RAIZ, proyectos })).toEqual([]);
   });
 
   it("los principios citan por id: { marca, fuente } y nada más (ni url ni ruta escritas dentro)", () => {
@@ -145,4 +149,38 @@ describe("cada regla de forma, vista fallar", () => {
   it("revisar una fuente sin bajar el techo también falla (solo baja)", () => falla((c) => {
     const f = c.fuentes.find((x) => x.revisada === "no"); f.revisada = "si"; f.fecha_revision = "2026-10-13";
   }, "baja TECHO_SIN_REVISAR"));
+});
+
+describe("el lado de cada fuente (#710, PR 4): el campo project", () => {
+  // Una ruta de zona producto sacada del propio catálogo (así el test no nombra ficheros de HoMenu a mano).
+  const rutaDeProducto = catalogo.fuentes.find((f) => f.project && f.tipo === "casa").ruta;
+  const casa = (ruta, project) => ({ id: "casa-x", nombre: "Fuente de prueba de la casa", tipo: "casa", ruta, ...(project ? { project } : {}) });
+  const con = (...fuentes) => ({ fuentes });
+
+  it("el catálogo no mezcla lados: ninguna horizontal lleva project y ninguna de producto lo olvida", () => {
+    expect(problemasDeLado(catalogo, zonaDe)).toEqual([]);
+  });
+
+  it("una fuente horizontal con project falla (agente, o zona de factoría)", () => {
+    expect(problemasDeLado(con(casa(".claude/agents/qa.md", "homenu")), zonaDe).join()).toContain("es horizontal");
+    expect(problemasDeLado(con(casa("ops/PLANOS.md", "homenu")), zonaDe).join()).toContain("es horizontal");
+  });
+
+  it("una fuente de proyecto sin project falla (ruta en zona de producto)", () => {
+    expect(problemasDeLado(con(casa(rutaDeProducto)), zonaDe).join()).toContain("no lleva project");
+    expect(problemasDeLado(con(casa(rutaDeProducto, "homenu")), zonaDe)).toEqual([]);
+  });
+
+  it("una externa o una ruta de zona mixta es libre: con project es del proyecto, sin él de la casa", () => {
+    const ext = { id: "x-docs", nombre: "Documentación de un proveedor", tipo: "externa", url: "https://supabase.com/docs" };
+    expect(problemasDeLado(con(ext, { ...ext, project: "homenu" }), zonaDe)).toEqual([]);
+    expect(ladoObligado(ext, zonaDe)).toBeNull();
+    expect(ladoDeFuente(ext, zonaDe)).toBe("horizontal");
+    expect(ladoDeFuente({ ...ext, project: "homenu" }, zonaDe)).toBe("vertical");
+    expect(ladoDeFuente(casa(rutaDeProducto), zonaDe)).toBe("vertical");
+  });
+
+  it("un project que no es un proyecto de ops/entidades.json falla", () => {
+    falla((c) => { c.fuentes.find((f) => f.project).project = "fantasma"; }, "project «fantasma» no es un proyecto");
+  });
 });

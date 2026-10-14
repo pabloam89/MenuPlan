@@ -60,6 +60,7 @@ import { DEF_ACTORES, DEF_EVITABLE, DEF_MOTIVOS_INTERVENCION } from "./eventosVo
 import { DEF_PROYECTOS, DEF_ZONAS } from "./zonasProyecto.mjs";
 import { TIPOS as TIPOS_DE_RECURSO } from "./recursos.mjs";
 import { CODIGOS_WORDING, leerTopes } from "./topes.mjs";
+import { leerTaxonomia, textosDeGruposDeDiseno, textosDePlataformasDeDiseno, textosDeTiposDeDiseno } from "./taxonomiaDiseno.mjs";
 
 export const RUTA_VOCABULARIOS = "ops/vocabularios-vida.json";
 /** El prefijo de los vocabularios del producto en el registro: `producto.<nombre en VOCABULARIOS>`. */
@@ -130,6 +131,15 @@ export const VOCABULARIOS = {
   // El tipo de texto de cada campo y los códigos de wording (#689): el dato vive en ops/topes.json y la tabla de redacción de la base.
   "topes.tipo_texto": { fichero: "scripts/lib/topes.mjs", textos: () => ({ ...leerTopes(RAIZ).tipos_de_texto }) },
   "topes.codigo_wording": { fichero: "scripts/lib/topes.mjs", textos: conTexto(CODIGOS_WORDING) },
+  // La taxonomía de diseño (#776): tipos de pantalla, de elemento y de flujo, con sus grupos y plataformas, en ops/diseno/taxonomia.json.
+  // Un tipo no lleva definición aquí: la tiene su término del glosario (clase tipo), donde se vigila su redefinición.
+  "diseno.tipo_pantalla": { fichero: "scripts/lib/taxonomiaDiseno.mjs", textos: () => textosDeTiposDeDiseno(leerTaxonomia(RAIZ), "pantalla") },
+  "diseno.tipo_elemento": { fichero: "scripts/lib/taxonomiaDiseno.mjs", textos: () => textosDeTiposDeDiseno(leerTaxonomia(RAIZ), "elemento") },
+  "diseno.tipo_flujo": { fichero: "scripts/lib/taxonomiaDiseno.mjs", textos: () => textosDeTiposDeDiseno(leerTaxonomia(RAIZ), "flujo") },
+  "diseno.grupo_pantalla": { fichero: "scripts/lib/taxonomiaDiseno.mjs", textos: () => textosDeGruposDeDiseno(leerTaxonomia(RAIZ), "pantalla") },
+  "diseno.grupo_elemento": { fichero: "scripts/lib/taxonomiaDiseno.mjs", textos: () => textosDeGruposDeDiseno(leerTaxonomia(RAIZ), "elemento") },
+  "diseno.grupo_flujo": { fichero: "scripts/lib/taxonomiaDiseno.mjs", textos: () => textosDeGruposDeDiseno(leerTaxonomia(RAIZ), "flujo") },
+  "diseno.plataforma_de_tipo": { fichero: "scripts/lib/taxonomiaDiseno.mjs", textos: () => textosDePlataformasDeDiseno(leerTaxonomia(RAIZ)) },
   // El registro de entidades (#566): sus valores van a ops/entidades.json y a ops/entidades-sujetos.json.
   // El eje (entidades.axis) se retiró entero el 12 oct 2026 y entidades.becomes el 13 (vocabularios_retirados).
   "entidades.scope": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(SCOPES) },
@@ -147,6 +157,8 @@ export const VOCABULARIOS = {
   "entidades.subject_kind": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(SUBJECT_KINDS) },
   // Las zonas del repo y los proyectos (#652): las listas, con su significado, en scripts/lib/zonasProyecto.mjs.
   "zonas.zona": { fichero: "scripts/lib/zonasProyecto.mjs", textos: conTexto(DEF_ZONAS) },
+  // La lista de proyectos (DEF_PROYECTOS) la usan también las métricas (`proyecto` de cada medida) y los recursos (`proyecto` de
+  // ops/recursos.json), además de los eventos: es un solo vocabulario con tres lectores (#748, #770).
   "eventos.proyecto": { fichero: "scripts/lib/zonasProyecto.mjs", textos: conTexto(DEF_PROYECTOS) },
   // El tipo de un recurso (#748): ops/recursos.json. «proyecto» se retiró por «proyecto-servicio»: «proyecto» es ya el campo que dice de qué proyecto de la factoría es el recurso.
   "recursos.tipo": { fichero: "scripts/lib/recursos.mjs", textos: conTexto(TIPOS_DE_RECURSO) },

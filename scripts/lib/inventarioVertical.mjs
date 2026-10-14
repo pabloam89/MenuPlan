@@ -20,6 +20,7 @@ import { join } from "node:path";
 
 import { ficherosDeGit } from "../../ops/ficherosGit.js";
 import { cargarNormas } from "./normas.mjs";
+import { ladoDeFuente } from "./fuentesDoc.mjs";
 import { clasificar, compilar, leerZonas } from "./zonasProyecto.mjs";
 
 export const RUTA_DECISIONES = "ops/inventario-vertical.json";
@@ -102,8 +103,9 @@ export function calcular(raiz) {
   const producto = jsonsDe(raiz, "ops/principios-producto/principios").map((p) => {
     if (!(p.fuentes ?? []).length) return { id: p.id, lado: "duda", razon: "no registra ninguna fuente: sin origen no se puede decidir su lado" };
     const todasExternas = (p.fuentes ?? []).every((s) => fuentes.get(s.fuente)?.tipo === "externa");
-    if (p.area === "conversational-ai") {
-      return { id: p.id, lado: "duda", razon: "tiene fuente externa (literatura), pero solo vale para un proyecto con bot conversacional (paquete de bots, línea 2 de #652)" };
+    // Un principio con `dominio` es del paquete opcional de ese dominio (decisión 2B de Pablo, #710): sigue siendo horizontal, con su literatura.
+    if (p.area === "conversational-ai" && !p.dominio) {
+      return { id: p.id, lado: "duda", razon: "tiene fuente externa (literatura), pero solo vale para un proyecto con bot conversacional y no declara su paquete («dominio»)" };
     }
     return { id: p.id, lado: todasExternas ? "horizontal" : "duda", razon: "tiene una fuente de la casa" };
   });
@@ -114,28 +116,13 @@ export function calcular(raiz) {
   filas.push(contar("guía de redacción (delegado: ops/redaccion.json)", redaccion));
 
   // ---- 2. Fuentes ---------------------------------------------------------------------------------------------
-  const agentesDudosos = decisiones.agentes_dudosos;
-  const hostsProveedor = decisiones.fuentes_externas_de_proveedor.hosts;
+  // Cada fuente es de un lado: el campo `project` la hace vertical y sin él vale lo que obliga su ruta (agente o factoría:
+  // horizontal; producto: vertical). Una externa o una ruta de zona mixta sin `project` es horizontal. Ya no hay dudas (#710, PR 4).
   const fu = [...fuentes.values()].map((f) => {
-    if (f.tipo === "externa") {
-      let host = "";
-      try {
-        host = new URL(f.url).host;
-      } catch {
-        // a propósito: una URL rota no tira el inventario; sale como duda con su razón en el documento
-        return { id: f.id, lado: "duda", razon: `la dirección «${f.url}» no es una URL válida: no se puede ver de quién es el sitio` };
-      }
-      if (hostsProveedor.includes(host)) return { id: f.id, lado: "duda", razon: decisiones.fuentes_externas_de_proveedor.razon };
-      return { id: f.id, lado: "horizontal" };
-    }
-    const agente = f.ruta.match(/^\.claude\/agents\/([\w-]+)\.md$/)?.[1];
-    if (agente && Object.hasOwn(agentesDudosos, agente)) return { id: f.id, lado: "duda", razon: `es el agente ${agente}; los agentes son horizontales (regla de Pablo, 13 oct) pero este tiene trabajo de producto` };
-    const z = zonaDe(f.ruta);
-    const lado = porZona(z);
-    if (lado === "duda") return { id: f.id, lado, razon: `la ruta ${f.ruta} está en zona mixta` };
-    return { id: f.id, lado };
+    const lado = ladoDeFuente(f, zonaDe);
+    return { id: f.id, lado, sinMarcar: lado === "vertical" && !f.project };
   });
-  for (const f of fu) if (f.lado === "duda") duda("fuentes", f.id, f.razon);
+  const fuentesSinMarcar = fu.filter((f) => f.sinMarcar).length;
   filas.push(contar("fuentes documentales (ops/fuentes-documentales/)", fu));
   const externas = [...fuentes.values()].filter((f) => f.tipo === "externa").length;
   const notaFuentes = `${externas} externas (literatura) y ${fuentes.size - externas} de la casa (una ruta del repo).`;
@@ -202,6 +189,7 @@ export function calcular(raiz) {
   });
   const reglas = deZona(ficheros.filter((f) => /^\.claude\/rules\/[^/]+\.md$/.test(f)));
   const comandos = deZona(ficheros.filter((f) => /^\.claude\/commands\/[^/]+\.md$/.test(f)));
+  const agentesDudosos = decisiones.agentes_dudosos;
   const agentes = ficheros.filter((f) => /^\.claude\/agents\/[^/]+\.md$/.test(f)).map((r) => {
     const id = r.match(/agents\/([\w-]+)\.md$/)[1];
     return Object.hasOwn(agentesDudosos, id) ? { id: r, lado: "duda", razon: agentesDudosos[id] } : { id: r, lado: "horizontal", razon: "" };
@@ -249,6 +237,7 @@ export function calcular(raiz) {
     dudosos,
     cifras: {
       fuentesNota: notaFuentes,
+      fuentesSinMarcar,
       entidadesRetiradas: retiradas,
       normasDiseno: nDiseno,
       controlEnProducto,
@@ -343,7 +332,7 @@ export function documento(d, fecha) {
   L.push("| Capa | De dónde sale el lado |");
   L.push("|---|---|");
   L.push("| Principios | `ops/principios/`, `ops/principios-producto/` y `ops/redaccion.json`, con las fuentes de `ops/fuentes-documentales/` y las zonas de `ops/zonas.json`. Vertical: los de `ops/proyectos/<id>/principios/` (el campo `project`). Duda: sin fuente externa y su único origen está en un fichero de zona producto; o un principio de producto del área `conversational-ai` |");
-  L.push("| Fuentes | Externa: horizontal (salvo la documentación de Supabase y Vercel: duda). De la casa: la zona de su ruta (`ops/zonas.json`) |");
+  L.push("| Fuentes | El campo `project` la hace vertical. Sin él: la ruta de un agente o de zona factoría, horizontal; de zona producto, vertical (y debe llevarlo); zona mixta o externa, horizontal |");
   L.push("| Normas | El registro en que viven. Duda de una horizontal: su texto nombra HoMenu/Lola/MenuPlan, o su ámbito es `bot`/`product`/`catalog`, o su control o `donde` apunta a `api/`, `src/`, `supabase/`, `docs/datos/`, `docs/producto/`, `specs/` o `DESIGN_SYSTEM.md` (las " + cifras.normasDiseno + " de ámbito `diseno` no cuentan: Pablo decidió el 13 oct que son horizontales) |");
   L.push("| Entidades | Su campo `scope` (`horizontal` o `vertical`, uno solo: la clase es horizontal y sus ejemplares son del registro del proyecto); duda: un valor que no sea ninguno de los dos y las vertical que son un concepto general (lista a mano, hoy vacía) |");
   L.push("| Glosario | El `scope` de sus entidades; sin entidad, su dominio (`producto` vertical, `datos` duda); duda también si su definición nombra el proyecto, Vercel o Supabase |");
@@ -363,7 +352,7 @@ export function documento(d, fecha) {
   L.push("");
   L.push("## Lo que cuenta cada capa");
   L.push("");
-  L.push(`- **Principios.** Los ${f("principios del proyecto").total} de HoMenu (${cifras.principiosVerticales.map((i) => `\`${i}\``).join(" y ")}) viven en su registro, \`ops/proyectos/homenu/principios/\`, con el campo \`project\`: origen una decisión de producto, sin fuente externa. Los ${f("principios de la casa").total} de la casa son horizontales salvo los que dudan: la mayoría no tiene fuente externa, pero eso no los hace verticales, son del método de trabajo. Los de base de datos que solo tenían como origen \`docs/datos/PRINCIPIOS.md\` son horizontales por decisión de Pablo (13 oct): llevan fuente externa (PostgreSQL, Fowler) y \`docs/datos/\` es el cómo los aplica HoMenu; el que no la tiene verificable sigue en duda. Los ${f("principios de producto").total} de producto tienen literatura detrás y son horizontales; los del área \`conversational-ai\` solo valen si el proyecto tiene un bot.`);
+  L.push(`- **Principios.** Los ${f("principios del proyecto").total} de HoMenu (${cifras.principiosVerticales.map((i) => `\`${i}\``).join(" y ")}) viven en su registro, \`ops/proyectos/homenu/principios/\`, con el campo \`project\`: origen una decisión de producto, sin fuente externa. Los ${f("principios de la casa").total} de la casa son horizontales salvo los que dudan: la mayoría no tiene fuente externa, pero eso no los hace verticales, son del método de trabajo. Los de base de datos que solo tenían como origen \`docs/datos/PRINCIPIOS.md\` son horizontales por decisión de Pablo (13 oct): llevan fuente externa (PostgreSQL, Fowler) y \`docs/datos/\` es el cómo los aplica HoMenu; el que no la tiene verificable sigue en duda. Los ${f("principios de producto").total} de producto tienen literatura detrás y son horizontales; los del área \`conversational-ai\` forman el paquete de bots (\`dominio: bot\`), opcional por proyecto, y también son horizontales.`);
   L.push(`- **Fuentes.** ${cifras.fuentesNota}`);
   L.push(`- **Normas.** El registro vertical ya está separado (${f("normas verticales").total}). En el horizontal hay ${f("normas horizontales").duda} que dudan (lista abajo). De las ${f("normas horizontales").total}, ${cifras.controlJuicio} tienen como control «juicio» y ${cifras.controlEnProducto} acaban en un fichero de zona producto. De las ${f("normas verticales").total} verticales, ${cifras.verticalesEnFactoria} tienen su control en una carpeta de la factoría.`);
   L.push(`- **Entidades y glosario.** Entidades retiradas (no cuentan): ${cifras.entidadesRetiradas}. El glosario no tiene lado propio: hoy se deduce de sus entidades; es el registro donde más falta el campo.`);
@@ -408,8 +397,8 @@ export function documento(d, fecha) {
   L.push("");
   L.push("Cada una, con la opción recomendada primero; la respuesta decide cuántos de los dudosos de arriba pasan a un lado u otro.");
   L.push("");
-  L.push("1. **Principios de base de datos con origen solo en `docs/datos/PRINCIPIOS.md`.** A (recomendada): horizontales; se les busca fuente externa (PostgreSQL, Fowler) y `docs/datos/` queda como «cómo los aplica HoMenu». B: verticales, al registro de HoMenu. C: verticales los que dicen «casa» y horizontales el resto.");
-  L.push("2. **Lo que solo vale con un bot conversacional** (principios del área `conversational-ai` y normas de ámbito `bot`). A (recomendada): horizontales con una condición `aplica_si: bot` en el registro. B: un tercer lado, «paquete de bots» (línea 2 de #652). C: verticales de HoMenu.");
+  L.push("1. **Principios de base de datos con origen solo en `docs/datos/PRINCIPIOS.md`. Resuelta por Pablo el 14 oct (opción A):** horizontales, con fuente externa verificada (PostgreSQL, Fowler, Google, HashiCorp…); `docs/datos/` queda como «cómo los aplica HoMenu». Un principio sin fuente que se pueda verificar sigue en duda, dicho.");
+  L.push("2. **Lo que solo vale con un bot conversacional. Resuelta por Pablo el 14 oct (opción B):** forma el «paquete de bots», opcional por proyecto (dominio `bot` de `DOMINIOS_OPCIONALES`, `scripts/lib/ambitos.mjs`); sin tercer lado. Un principio del paquete lleva `dominio: bot` y solo lo cita una norma de ámbito `bot`.");
   L.push("3. **Entidades marcadas `both`. Resuelta por Pablo el 14 oct (opción A):** cada entidad es de un lado; la clase es horizontal y sus ejemplares son del proyecto. `both` ya no existe y un test lo rechaza.");
   L.push("4. **Skills de servicio** (hoy en duda: 1password, github, hetzner y tailscale, que están en zona factoría; vercel y supabase ya están en zona producto y cuentan como verticales, pero mezclan igual método y datos del proyecto). A (recomendada): partir cada una en método (casa) y datos del proyecto (ids, bóvedas, repo), que el agente recibe por referencia. B: dejarlos enteros en la casa. C: marcarlos verticales.");
   L.push("5. **Las zonas de `ops/zonas.json` contradicen la regla de los agentes**: `evaluador`, `qa` y `auditor-datos` están en producto. A (recomendada): moverlos a factoría y que lo vertical llegue por referencia. B: dejar la zona y marcar los tres como duda. C: moverlos a un paquete opcional.");

@@ -58,7 +58,7 @@ describe("los seis códigos de la higiene del vocabulario", () => {
     expect(h.find((x) => x.codigo === "sinonimo-nuevo").texto).toMatch(/«bug».*di «fallo»/);
     expect(h.find((x) => x.codigo === "dominio-redefine-base").texto).toMatch(/norma \(ops\) lleva el nombre de un término de la base/);
     expect(h.find((x) => x.codigo === "definicion-choca-con-base").texto).toMatch(/mandato y juez/);
-    expect(h.filter((x) => x.codigo === "equivoco-entre-dominios").map((x) => x.texto).join()).toMatch(/componente de diseño está en ops y en diseno/);
+    expect(h.filter((x) => x.codigo === "equivoco-entre-dominios").map((x) => x.texto).join()).toMatch(/componente de diseño está en (ops y en diseno|diseno y en ops)/);
     expect(cifraDeHigiene(g, h)).toMatch(/faltas: 5 avisos: 3$/);
   });
 

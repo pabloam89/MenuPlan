@@ -26,7 +26,7 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
-import { AMBITOS } from "./ambitos.mjs";
+import { AMBITOS, DOMINIOS_OPCIONALES } from "./ambitos.mjs";
 import { esCatalogo, leerCatalogo } from "./catalogos.mjs";
 import { conFuentesResueltas } from "./fuentesDoc.mjs";
 import { ACCIONES, UMBRAL_REESCRITURA, leerEstandares, parecido } from "./estandaresAgentes.mjs";
@@ -134,6 +134,7 @@ function deProducto(p, datos, delegado) {
   return {
     id: p.id, area: "product", nombre: p.nombre, enunciado: p.enunciado,
     porque: p.porque, fuentes: p.fuentes.map((f) => ({ marca: f.marca, url: f.url })), detalle: [delegado.detalle], origen: [], catalogo: delegado.catalogo,
+    ...(p.dominio ? { dominio: p.dominio } : {}),
   };
 }
 
@@ -416,7 +417,10 @@ export function problemasDeUniones(lista, normas, { sinNorma = {} } = {}, { tech
   const malos = [];
   const ids = new Set(lista.map((p) => p.id));
   const citados = new Map();
+  const dominios = new Map(lista.filter((p) => p.dominio).map((p) => [p.id, p.dominio]));
   for (const n of normas) {
+    // Un principio de un paquete opcional (dominio) solo lo citan normas de ese ámbito: si no, un proyecto sin el paquete recibiría una norma suya.
+    if (dominios.has(n.principio) && n.ambito !== dominios.get(n.principio)) malos.push(`norma ${n.id}: cita el principio «${n.principio}», del paquete opcional «${dominios.get(n.principio)}», y su ámbito es «${n.ambito}»: un proyecto sin el paquete la recibiría`);
     if (typeof n.principio !== "string" || !n.principio) malos.push(`norma ${n.id}: no cita ningún principio («principio»)`);
     else if (!ids.has(n.principio)) malos.push(`norma ${n.id}: cita el principio «${n.principio}», que no está en la lista`);
     else citados.set(n.principio, [...(citados.get(n.principio) ?? []), n.id]);
@@ -438,6 +442,13 @@ export function problemasDeUniones(lista, normas, { sinNorma = {} } = {}, { tech
   if (n > techo) malos.push(`principios_sin_norma: ${n} principios sin norma y el techo es ${techo}; la lista solo baja`);
   return malos;
 }
+
+/**
+ * Los principios que valen para un proyecto según sus `dominios` (ops/entidades.json, #710): los que no llevan `dominio` valen
+ * siempre; uno con `dominio` solo si el proyecto lo declara. `dominios` null = sin filtrar (todos), como en normasDeTarea.
+ */
+export const principiosDeProyecto = (principios, dominios = null) =>
+  principios.filter((p) => dominios === null || !DOMINIOS_OPCIONALES.includes(p.dominio) || dominios.includes(p.dominio));
 
 /** Las normas que citan cada principio: { id: [norma, …] }. */
 export function normasPorPrincipio(normas) {
@@ -533,6 +544,7 @@ export function generarMd(datos) {
       if (det.length) L.push(`  - Detalle: ${det.map(enlace).join(", ")}`);
       if (p.origen.length) L.push(`  - Viene de: ${p.origen.join(", ")}`);
       if (p.puente) L.push(`  - Puente entre ejes: ${p.puente}`);
+      if (p.dominio) L.push(`  - Paquete opcional: ${p.dominio} (solo vale en un proyecto que declara el dominio «${p.dominio}» en ops/entidades.json)`);
       if (p.project) L.push(`  - Proyecto: ${p.project} (solo vale aquí; vive en ${rutaPrincipiosDeProyecto(p.project)})`);
       if (p.id in datos.sin_norma) L.push(`  - Sin norma: ${datos.sin_norma[p.id]}`);
     }

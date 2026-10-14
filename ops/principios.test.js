@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 import {
   DOCUMENTOS_MIGRADOS, RUTA_MD, anclaDe, componerLista, existeEn, faltasDeMigracion, fuentesMarcadas, fuentesMarcadasDelRepo, generarMd,
-  leerCatalogoPropio, leerPrincipiosCasa, leerPrincipiosDeProyecto, leerTextoEn, problemasDePrincipiosDeProyecto, problemasDeEnunciadoUnico, problemasDeMarcas, problemasDeMarcasEnTexto, problemasDePrincipios, seccionDe, seccionesNumeradas,
+  leerCatalogoPropio, leerPrincipiosCasa, leerPrincipiosDeProyecto, leerTextoEn, principiosDeProyecto, problemasDePrincipiosDeProyecto, problemasDeEnunciadoUnico, problemasDeMarcas, problemasDeMarcasEnTexto, problemasDePrincipios, seccionDe, seccionesNumeradas,
 } from "../scripts/lib/principios.mjs";
 import { MARCAS_FUENTE } from "../scripts/lib/regla.mjs";
 import { PROYECTOS_CON_NORMAS } from "../scripts/lib/zonasProyecto.mjs";
@@ -312,5 +312,30 @@ describe("se ven fallar", () => {
   it("el ancla de un título es la de GitHub", () => {
     expect(anclaDe("15. Cableado: del código a la tabla")).toBe("15-cableado-del-código-a-la-tabla");
     expect(anclaDe("Qué se le pregunta a Pablo, y qué no")).toBe("qué-se-le-pregunta-a-pablo-y-qué-no");
+  });
+});
+
+describe("los principios de un dominio opcional llegan solo al proyecto que lo declara (#710)", () => {
+  const delBot = datos.principios.filter((p) => p.dominio === "bot");
+  const proyectosDelRepo = JSON.parse(readFileSync(join(RAIZ, "ops", "entidades.json"), "utf8")).projects;
+
+  it("hay principios del bot", () => expect(delBot.length).toBe(11));
+
+  it("un proyecto con «bot» recibe los 11", () => {
+    const ids = principiosDeProyecto(datos.principios, ["bot"]).map((p) => p.id);
+    for (const p of delBot) expect(ids).toContain(p.id);
+  });
+
+  it("un proyecto sin «bot» no recibe ninguno, y sí el resto", () => {
+    const lista = principiosDeProyecto(datos.principios, []);
+    expect(lista.filter((p) => p.dominio === "bot")).toEqual([]);
+    expect(lista.length).toBe(datos.principios.length - delBot.length);
+  });
+
+  it("con los proyectos reales: el que declara «bot» los recibe, el que no, ninguno", () => {
+    for (const x of proyectosDelRepo) {
+      const n = principiosDeProyecto(datos.principios, x.dominios ?? []).filter((p) => p.dominio === "bot").length;
+      expect(n, x.id).toBe((x.dominios ?? []).includes("bot") ? 11 : 0);
+    }
   });
 });

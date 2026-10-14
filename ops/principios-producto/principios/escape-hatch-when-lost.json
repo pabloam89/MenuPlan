@@ -2,6 +2,7 @@
   "id": "escape-hatch-when-lost",
   "nombre": "Salida cuando se pierde",
   "area": "conversational-ai",
+  "dominio": "bot",
   "enunciado": "Un bot que admite que no entiende y ofrece otra vía conserva la confianza que la repetición destruye.",
   "porque": "Los usuarios valoran que el bot admita que no entiende y penalizan la respuesta repetida, segura pero errónea.",
   "ejemplo_bueno": "Tras dos malentendidos, Lola ofrece los botones del menú y el enlace a la app",
