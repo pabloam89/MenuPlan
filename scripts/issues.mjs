@@ -47,6 +47,7 @@
  * scripts/lib/issues.mjs; el procedimiento, en la skill `issues`.
  */
 import { execFileSync } from "node:child_process";
+import { ghConRenovacion } from "./lib/ghConRenovacion.mjs";
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -69,11 +70,11 @@ import { cruce, leerInventario, marcasHuerfanas, leerMarcas, lineaParecida, line
 // Cada llamada deja su línea `gh: caller=issues api=…` (scripts/lib/cuotaGh.mjs, #424).
 const gh = (...args) => {
   registrarGh("issues", args);
-  return execFileSync("gh", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 60_000 });
+  return ghConRenovacion(args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 60_000 });
 };
 const ghCorto = (ms, ...args) => {
   registrarGh("issues", args);
-  return execFileSync("gh", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: ms });
+  return ghConRenovacion(args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: ms });
 };
 const motivo = (e) => String(e.stderr ?? e.message).trim().split("\n")[0];
 

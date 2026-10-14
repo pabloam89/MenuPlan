@@ -18,6 +18,7 @@
  * (node_modules): entonces borra la carpeta con la ruta larga y hace `prune`.
  */
 import { execFileSync } from "node:child_process";
+import { ghConRenovacion } from "./lib/ghConRenovacion.mjs";
 import { existsSync, rmSync } from "node:fs";
 import { basename, dirname, resolve } from "node:path";
 
@@ -95,7 +96,7 @@ async function main() {
     const fuera = intenta(() => git(["-C", principal, "log", "--oneline", rama, "--not", "--remotes=origin"])) ?? "";
     sinSubir = sinMarcaInicial(fuera.split("\n").filter(Boolean));
     if (sinSubir.length) {
-      const fusionado = intenta(() => execFileSync("gh", ["pr", "list", "--head", rama, "--state", "merged", "--json", "headRefOid"], { cwd: principal, encoding: "utf8", timeout: 15000 }));
+      const fusionado = intenta(() => ghConRenovacion(["pr", "list", "--head", rama, "--state", "merged", "--json", "headRefOid"], { cwd: principal, encoding: "utf8", timeout: 15000 }));
       const cabeza = git(["-C", principal, "rev-parse", rama]);
       if (fusionado && JSON.parse(fusionado).some((p) => p.headRefOid === cabeza)) sinSubir = [];
     }

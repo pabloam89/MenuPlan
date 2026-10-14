@@ -9,12 +9,13 @@
  * de issues, de lib/issues.mjs (los mismos que usa `npm run issues`).
  */
 import { execFileSync } from "node:child_process";
+import { ghConRenovacion } from "./lib/ghConRenovacion.mjs";
 import { dirname } from "node:path";
 
 import { leerInventario } from "./lib/lleva.mjs";
 import { LIMITE_FUSIONADOS, leerTodosLosIssues, situacion } from "./lib/situacion.mjs";
 
-const gh = (...args) => execFileSync("gh", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 30_000 });
+const gh = (...args) => ghConRenovacion(args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 30_000 });
 const git = (...args) => execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 15_000 });
 const json = (...args) => JSON.parse(gh(...args));
 

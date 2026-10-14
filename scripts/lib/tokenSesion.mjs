@@ -44,8 +44,15 @@ export const TOPE_IDENTIDAD_MS = 13_000;
 /** Lo que se deja del presupuesto para comprobar la identidad con `gh` tras sacar el token. */
 const MARGEN_IDENTIDAD_MS = 3000;
 
+/**
+ * Los motivos de una renovación decidida por edad o por la caché (`ghConRenovacion`, E3 #731): no son
+ * causas de fallo, dicen por qué se cambió el token ANTES de llamar. Van dentro de MOTIVOS, que sigue
+ * siendo el único vocabulario (`-` es «sin motivo»).
+ */
+export const MOTIVOS_DE_RENOVACION = ["vencida-por-edad", "cache-mas-nueva"];
+
 /** Vocabulario cerrado de por qué no hay token (se cuenta en la línea `identidad-sesion`). */
-export const MOTIVOS = ["sin-clave", "clave-ilegible", "sin-instalacion", "github-rechaza", "red", "token-raro", "sin-fichero-de-entorno", "error-interno", "limite-de-1password", "bloqueo-ocupado", "fallo-reciente", "ruta-de-shim-rara"];
+export const MOTIVOS = ["sin-clave", "clave-ilegible", "sin-instalacion", "github-rechaza", "red", "token-raro", "sin-fichero-de-entorno", "error-interno", "limite-de-1password", "bloqueo-ocupado", "fallo-reciente", "ruta-de-shim-rara", ...MOTIVOS_DE_RENOVACION];
 /** El valor inválido y nunca vacío que lleva GH_TOKEN cuando no hay token: `gh` da 401 claro y no cae al llavero de Pablo (#673). */
 export const TOKEN_CENTINELA = "sin-token-de-sesion";
 /** Quién escribe el ayudante de git: `gh-credential` (el `gh` del PATH, que renueva el token al usarse) o `entorno` (lee $GH_TOKEN del entorno de quien lo lanza). */
@@ -126,7 +133,7 @@ const cabeceras = (jwt) => ({
 });
 
 /** App ID e Installation ID (no son secretos): del entorno o `.env.local` si están, y si no el conocido y el que dice GitHub. */
-function idsPorDefecto() {
+export function idsPorDefecto() {
   return { appId: leerEnv("SESIONES_APP_ID") || APP_ID, installationId: leerEnv("SESIONES_INSTALLATION_ID") || null };
 }
 

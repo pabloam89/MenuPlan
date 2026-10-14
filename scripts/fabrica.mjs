@@ -11,7 +11,7 @@
 // por `gh`. NO modifica ops/presupuestos.json: una propuesta la aplica una persona en
 // /revision-issues. El informe son agregados numéricos: ni mensajes, ni prompts, ni rutas.
 // Lógica y porqué de cada umbral: scripts/lib/fabrica.mjs; tests: scripts/fabrica.test.js.
-import { execFileSync } from "node:child_process";
+import { ghConRenovacion } from "./lib/ghConRenovacion.mjs";
 import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join, parse, relative, resolve } from "node:path";
@@ -66,7 +66,7 @@ function opcion(args, nombre) {
 // Cada llamada deja su línea `gh: caller=fabrica api=…` y espera si GitHub limita (#424).
 const gh = (...args) => {
   registrarGh("fabrica", args);
-  return conEsperaDeLimite(() => execFileSync("gh", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 60_000, maxBuffer: 64 * 1024 * 1024 }), { aviso: (m) => console.error(m) });
+  return conEsperaDeLimite(() => ghConRenovacion(args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 60_000, maxBuffer: 64 * 1024 * 1024 }), { aviso: (m) => console.error(m) });
 };
 
 const TTL_CACHE_MIN = 10; // el informe es diario: repetirlo en 10 min no pide nada nuevo

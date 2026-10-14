@@ -12,7 +12,7 @@
  * y 3 si no pudo preguntar a GitHub (tras 3 intentos): no es lo mismo que un CI en rojo.
  * Una línea por cambio de estado, sin ruido: `ci pr: N estado: pendiente|ok|falla`.
  */
-import { execFileSync } from "node:child_process";
+import { ghConRenovacion } from "./lib/ghConRenovacion.mjs";
 import { pathToFileURL } from "node:url";
 import { registrarGh } from "./lib/cuotaGh.mjs";
 
@@ -27,7 +27,7 @@ export function resumirChecks(runs) {
 
 const rest = (...args) => {
   registrarGh("espera-ci", ["api", ...args]);
-  return execFileSync("gh", ["api", ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 30_000 });
+  return ghConRenovacion(["api", ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 30_000 });
 };
 
 /** El PR es SOLO el primer argumento; `--cada` y `--tope` llevan su valor detrás. */

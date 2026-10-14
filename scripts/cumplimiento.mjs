@@ -22,6 +22,7 @@
  * scripts/lib/cumplimiento.mjs y scripts/lib/saludSkills.mjs.
  */
 import { execFileSync, spawnSync } from "node:child_process";
+import { ghConRenovacion } from "./lib/ghConRenovacion.mjs";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -47,7 +48,7 @@ export function issuesDeGithub() {
   do {
     const args = ["api", "graphql", "-f", `query=${CONSULTA_FLUJO}`];
     if (cursor) args.push("-f", `cursor=${cursor}`);
-    const pag = JSON.parse(execFileSync("gh", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 60_000 })).data.repository.issues;
+    const pag = JSON.parse(ghConRenovacion(args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 60_000 })).data.repository.issues;
     out.push(...pag.nodes);
     cursor = pag.pageInfo.hasNextPage ? pag.pageInfo.endCursor : null;
   } while (cursor);

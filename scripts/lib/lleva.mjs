@@ -21,6 +21,7 @@
  * «posiblemente parada».
  */
 import { execFileSync } from "node:child_process";
+import { ghConRenovacion } from "./ghConRenovacion.mjs";
 import { basename } from "node:path";
 
 import { ahoraEnMadrid } from "./hora.mjs";
@@ -87,7 +88,7 @@ export function leerMarcas(comentarios, { soloCasa = false } = {}) {
 const motivoDe = (e) => String(e?.stderr ?? e?.message ?? e).trim().split("\n")[0];
 
 /** `gh` con tope de tiempo: sin red, que falle pronto y avise. */
-export const ghReal = (...args) => execFileSync("gh", args, { windowsHide: true, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 20_000 });
+export const ghReal = (...args) => ghConRenovacion(args, { windowsHide: true, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 20_000 });
 
 /**
  * Los comentarios del issue con su id: [{ id, body }]. Pendiente en #313: `marcar` y `desmarcar` buscan su
