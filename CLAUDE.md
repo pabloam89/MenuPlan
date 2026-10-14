@@ -87,7 +87,8 @@ en staging.
    La suite entera, el build y el lint con base los corre el CI del PR (gratis en
    repo público): espera su resultado con una consulta espaciada, sin sondear. La
    suite entera en local solo si tocas algo transversal (`package.json`, `vite.config.js`,
-   `scripts/lib/`, hooks) y con ninguna otra sesión pesada en marcha. El lint
+   `scripts/lib/`, hooks) y con ninguna otra sesión pesada en marcha: la guardia la
+   niega sin `MENUPLAN_SUITE_ENTERA=1` delante (#284). El lint
    cuenta la **lista** de errores, no el recuento.
 4. Un test nuevo se ve fallar una vez antes de creértelo (detalle en la regla
    `tests`).

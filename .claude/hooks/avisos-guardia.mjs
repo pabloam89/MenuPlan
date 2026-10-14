@@ -156,6 +156,12 @@ export const AVISOS = {
     porque: "se salta el prebuild (validate-catalog + check:tdz), que es lo que corre Vercel",
     enSuLugar: "usa `npm run build`",
   },
+  "suite-entera-en-local": {
+    codigo: "tests-del-fichero",
+    que: "Lanzar la suite entera de tests en local (`npm test`, `npx vitest run` o `vitest run` sin ficheros ni filtro)",
+    porque: "cada worker carga el catálogo entero y se come la RAM; con varias sesiones a la vez el PC de Pablo se queda sin respuesta (#283). La suite entera la corre gratis el CI de GitHub en cada PR",
+    enSuLugar: "usa `npm run vecinos` (lo que tocas y los vigilantes que lo miran) o `npx vitest run <ficheros>`. Si de verdad hace falta la suite entera (has tocado algo transversal: package.json, vite.config.js, scripts/lib/ o los hooks) y no hay otra sesión pesada en marcha, pon `MENUPLAN_SUITE_ENTERA=1` delante: `MENUPLAN_SUITE_ENTERA=1 npm test` en Bash, `$env:MENUPLAN_SUITE_ENTERA=1; npm test` en PowerShell",
+  },
   "issue-a-pelo": {
     codigo: "issues-con-buscar-antes",
     que: "Crear un issue con `gh issue create`",

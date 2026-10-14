@@ -1,7 +1,7 @@
 /**
  * vecinos.mjs — los tests de lo que tocas MÁS los vigilantes de conjunto que lo
  * miran (#356). Es la selección local de tests antes de un PR; la suite entera
- * (`npm test`) sigue siendo la última comprobación.
+ * (la del CI de cada PR) sigue siendo la última comprobación.
  *
  *   npm run vecinos                       → lo tocado: la rama frente a origin/staging + lo sin commitear
  *   npm run vecinos -- a.mjs b/c.md       → esos ficheros
@@ -16,7 +16,11 @@ import { spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { isAbsolute, join, relative } from "node:path";
+import { bajarPrioridad } from "./lib/prioridad.mjs";
 import { RAIZ, elegir, ficherosDelRepo, ficherosTocados, indiceDeTests, leerVigilantes } from "./lib/vecinos.mjs";
+
+// Prioridad baja (#284) también para los pasos que no son vitest; vitest y sus workers la heredan.
+bajarPrioridad();
 
 const argv = process.argv.slice(2);
 const ensayo = argv.includes("--ensayo");
