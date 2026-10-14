@@ -13,12 +13,15 @@ Las reglas de estructura de las tablas están en `docs/datos/PRINCIPIOS.md`
    staging, los otros worktrees y los PR abiertos). Vuelve a mirarlo justo
    antes del PR. `supabase/migrations.test.js` vigila los repetidos.
 2. **Ensayo**: `node scripts/apply-migration.mjs <nombre>` (hace ROLLBACK).
-   Lo puede lanzar la sesión.
+   Necesita la URL de administrador (`SUPABASE_DB_URL`), que las sesiones no
+   tienen desde #328 (solo `SUPABASE_DB_URL_LECTURA`): hasta E5 (#331) lo
+   lanza Pablo; la sesión le deja el comando listo.
 3. **Juez y aplicar**: el juez `auditor-datos` la revisa y su veredicto va a
    la cabecera (`-- AUDITADA: auditor-datos AAAA-MM-DD OK`). Con eso, en
-   staging y con un ensayo de menos de una hora, la sesión lanza `--si`. Si
-   trae `CONTRAE` o toca RLS o permisos de lo que ya existía, la lanza Pablo,
-   desde una PowerShell aparte con `$env:MENUPLAN_OP_PABLO="1"` y `--pablo`
+   staging y con un ensayo de menos de una hora, el script deja lanzar `--si`.
+   Hasta E5 (#331) lo lanza **Pablo**, desde una PowerShell aparte con
+   `$env:MENUPLAN_OP_PABLO="1"`, por la misma razón que el ensayo. Si además
+   trae `CONTRAE` o toca RLS o permisos de lo que ya existía, añade `--pablo`
    (la guardia se lo niega a las sesiones). Un caso no cuenta como permisos
    de lo que ya existía (#440): quitar a `anon` la plantilla de tablas y
    secuencias nuevas, con `alter default privileges for role postgres in

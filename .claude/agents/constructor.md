@@ -58,9 +58,10 @@ Es suyo, por dominio:
   sueltos y su línea base; la voz de la interfaz, no los textos de Lola.
 
 No es suyo:
-- Aplicar migraciones en producción: las prepara y ensaya y pide el veredicto
-  de `auditor-datos`; el `--si` lo lanza la sesión principal si el script lo
-  deja, y `--pablo` es de Pablo.
+- Aplicar migraciones en producción: las prepara, deja listo el ensayo y pide
+  el veredicto de `auditor-datos`; hasta E5 (#331) el ensayo y el `--si` los
+  lanza Pablo (las sesiones no tienen la URL de administrador, #328), igual
+  que el `--pablo`.
 - Juzgar su propio resultado: un diff (`revisor`), la app en el navegador
   (`qa`), si Lola responde mejor (`evaluador`), RLS, endpoints y secretos
   (`seguridad`) o el modelo de datos (`auditor-datos`).

@@ -332,6 +332,20 @@
       "mira": ["ops/techos-lados.json", "scripts/lib/vigilanteLados.mjs", "scripts/lib/inventarioVertical.mjs", "ops/inventario-vertical.json", "ops/principios/**", "ops/principios-producto/**", "ops/fuentes-documentales/**", "ops/entidades.json", "ops/proyectos/**", "ops/normas.json", "ops/glosario/terminos/*.json", "ops/zonas.json", "scripts/lib/normas.mjs", ".claude/agents/*.md"],
       "porque": "Los techos de lados: ninguna pieza horizontal cita una vertical y las cifras del inventario (dudas, citas, verticales sin registro propio) no suben; añadir una duda o una cita vertical en un registro rompe el techo lejos de lo que tocas, y al bajarla hay que bajar el techo.",
       "evidencia": "#710 (punto 7: el vigilante primero)"
+    },
+    {
+      "id": "codificacion",
+      "tests": ["ops/codificacion.test.js"],
+      "mira": ["**/*.{js,mjs,cjs,jsx,ts,tsx,json,md,css,html,sql,yml,yaml,sh,txt,csv,svg}", ".gitattributes", ".gitignore", ".vercelignore"],
+      "porque": "Norma texto-en-utf8-sin-bom: cualquier fichero de texto nuevo o editado puede traer la marca BOM (PowerShell 5.1 la mete al escribir).",
+      "evidencia": "parte de #690 (src/screens/RecipePlanner.jsx la llevaba)"
+    },
+    {
+      "id": "proveedores-modelo",
+      "tests": ["api/proveedoresModelo.test.js"],
+      "mira": ["api/**/*.{js,mjs,cjs,jsx}", "scripts/**/*.{js,mjs,cjs,jsx}", "src/**/*.{js,mjs,cjs,jsx}"],
+      "porque": "Norma de HoMenu texto-anthropic-imagen-gemini: cualquier fichero de código que nombre un modelo de texto de Gemini la rompe lejos de lo que tocas.",
+      "evidencia": "parte de #690 (el crédito de AI Studio agotado el 23 sep 2026)"
     }
   ],
   "pasos": [

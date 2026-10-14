@@ -135,7 +135,8 @@
       "veredicto": "blanda",
       "cuando": "Solo cuando nada de lo de arriba es posible, o como explicación de un mecanismo que ya existe.",
       "cuesta": "Nada al escribirlo; mucho cuando se olvida.",
-      "ejemplo": "CLAUDE.md"
+      "ejemplo": "CLAUDE.md",
+      "nota": "Una regla por carpeta (.claude/rules/) solo salta al leer o editar un fichero de su zona con Read, Write o Edit, no por la terminal: lo crítico va en la guardia."
     }
   ],
   "ejecutores_sin_mecanismo": {

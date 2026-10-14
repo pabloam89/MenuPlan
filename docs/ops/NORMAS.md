@@ -86,6 +86,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `variables-production-solo-pablo` | secreto | DEBE | **Variables de producción de Pablo.** Cuando son las variables de Production de Vercel, cada secreto o variable de entorno DEBE bajarse y listarse solo desde la terminal de Pablo. | guardia · semidura | test: `.claude/hooks/guardia.test.js` | `vercel-production` | `least-short-lived-permissions` | infra | horizontal | diagnosticar, operar |
 | `claves-de-pablo-solo-pablo` | secreto | DEBE | **Claves de Pablo en 1Password.** Cuando están en la bóveda HoMenu, cada secreto o variable de entorno DEBE leerse solo desde la terminal de Pablo. | guardia · semidura | test: `.claude/hooks/guardia.test.js` | `op-de-pablo` | `least-short-lived-permissions` | infra | horizontal | operar |
 | `edicion-con-edit-y-write` | sesion | NO DEBE | **Edición con Edit y Write.** Cada sesión de Claude NO DEBE editar ficheros del repo con Set-Content, Out-File o Add-Content. | guardia · semidura | test: `.claude/hooks/guardia.test.js` | `escribir-por-terminal` | `explicit-over-clever` | code | horizontal | construir |
+| `texto-en-utf8-sin-bom` | repo | DEBE | **UTF-8 sin BOM.** El repositorio DEBE guardar sus ficheros de texto en UTF-8 sin BOM. | ci · dura | test: `ops/codificacion.test.js` | — | `explicit-over-clever` | code | horizontal | construir |
 | `sesion-con-su-identidad` | sesion | NO DEBE | **Sesión con su identidad.** Cada sesión de Claude NO DEBE salirse de la identidad de la App homenu-sesiones ni usar las credenciales de Pablo. | guardia · semidura | test: `.claude/hooks/guardia.test.js` | `token-de-sesion-quitado`, `identidad-git-cambiada`, `credenciales-guardadas`, `powershell-sin-token` | `own-identity` | infra | horizontal | operar |
 | `token-de-sesion-no-se-imprime` | sesion | NO DEBE | **Token de sesión sin imprimir.** Cada sesión de Claude NO DEBE imprimir el token de la sesión. | guardia · semidura | test: `.claude/hooks/guardia.test.js` | `token-impreso` | `own-identity` | infra | horizontal | operar |
 | `issues-no-se-borran` | issue | NO DEBE | **Issues sin borrado.** Cada issue NO DEBE borrarse ni trasladarse, ni borrar sus etiquetas. | guardia · semidura | test: `.claude/hooks/guardia.test.js` | `borrar-issue` | `untamperable-trail` | process | horizontal | documentar |
@@ -218,6 +219,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `new-channel-adds-value` | decision | DEBE | **Aportar más que la app.** Cuando se propone un canal o un bot nuevo, cada decisión de producto DEBE comprobar que aporta algo que la app ya no da. | persona · blanda | juicio | — | `use-existing-channel-first` | product | vertical | juzgar, decidir |
 | `value-before-signup-shown` | producto | DEBE | **Valor antes del registro.** Cuando alguien llega por primera vez, el producto DEBE dejarle probar el valor antes de pedirle cuenta o datos. | persona · blanda | juicio | — | `value-before-signup` | product | vertical | construir, juzgar |
 | `slow-action-shows-status` | producto | DEBE | **Estado visible.** Cuando una acción tarda o sigue en curso, el producto DEBE indicar su estado. | persona · blanda | juicio | — | `visibility-of-status` | product | vertical | construir, juzgar |
+| `texto-anthropic-imagen-gemini` | codigo | DEBE | **Texto Anthropic, imagen Gemini.** Cuando llama a un modelo de IA, el código del producto DEBE pedir el texto a Anthropic y las imágenes a Gemini. | ci · semidura | test: `api/proveedoresModelo.test.js` | — | `bounded-blast-radius` | code | vertical | construir |
 
 ## Sujetos
 
@@ -236,9 +238,9 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | pr | cada PR | 7 |
 | migracion | cada migración | 6 |
 | sesion | cada sesión de Claude | 18 |
-| repo | el repositorio | 5 |
+| repo | el repositorio | 6 |
 | fondo | cada problema de fondo | 8 |
-| codigo | el código del producto | 6 |
+| codigo | el código del producto | 7 |
 | principio | cada principio de datos | 2 |
 | gasto | cada gasto de dinero | 1 |
 | dato | cada tabla y cada campo de la base | 13 |
@@ -279,7 +281,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 
 | Ámbito | Qué es | Normas |
 |---|---|---|
-| code | El código del repo y su forma: tests, lint y ficheros | 10 |
+| code | El código del repo y su forma: tests, lint y ficheros | 12 |
 | infra | Identidades, permisos, secretos, ramas, CI, despliegues, copias y servicios | 30 |
 | data | La base: tablas, migraciones, roles y cada dato que guarda | 33 |
 | catalog | El catálogo de recetas y alimentos que vive en git | 14 |
@@ -295,14 +297,14 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 
 | Lado | Qué es | Normas |
 |---|---|---|
-| horizontal | Trata de cómo trabaja la factoría o de cualquier proyecto: método, infraestructura, seguridad, código, diseño | 166 |
-| vertical | Trata de la conducta del producto HoMenu o de Lola, no del trabajo de un agente | 39 |
+| horizontal | Trata de cómo trabaja la factoría o de cualquier proyecto: método, infraestructura, seguridad, código, diseño | 167 |
+| vertical | Trata de la conducta del producto HoMenu o de Lola, no del trabajo de un agente | 40 |
 
 ## Cómo se comprueban
 
 | Tipo de control | Qué es | Normas |
 |---|---|---|
-| test | Un test del repo que falla en el CI | 100 |
+| test | Un test del repo que falla en el CI | 102 |
 | planos | Una condición de la medición semanal de ops/planos.json (con red, cada lunes) | 7 |
 | workflow | Un paso de un workflow de GitHub Actions que falla el check | 2 |
 | script | Un script del repo que comprueba y se lanza a mano o en el build | 8 |
@@ -314,35 +316,35 @@ Cada norma dice en cinco ejes cerrados cómo se controla (`control_procesador`, 
 
 | Procesador \ Fuerza | bloquea | avisa |
 |---|---|---|
-| codigo | 97 | 20 |
+| codigo | 99 | 20 |
 | juez | 0 | 88 |
 
 | control_procesador | Qué es | Normas |
 |---|---|---|
-| codigo | Un programa decide si se cumple: un test, un script, un workflow o el código en ejecución | 117 |
+| codigo | Un programa decide si se cumple: un test, un script, un workflow o el código en ejecución | 119 |
 | juez | Un agente juez lo decide leyendo el trabajo, con su motivo y pudiendo decir «no sé»; solo cuenta con su test del juez | 88 |
 
 | control_fuerza | Qué es | Normas |
 |---|---|---|
-| bloquea | Si no se cumple, lo detiene: el cambio o la acción no pasa | 97 |
+| bloquea | Si no se cumple, lo detiene: el cambio o la acción no pasa | 99 |
 | avisa | Si no se cumple, lo dice y deja pasar | 108 |
 
 | control_momento | Qué es | Normas |
 |---|---|---|
 | editar | Al editar un fichero o lanzar un comando (la guardia) | 30 |
-| pr | Al abrir o fusionar un PR (el CI o el juez de ese PR) | 171 |
+| pr | Al abrir o fusionar un PR (el CI o el juez de ese PR) | 173 |
 | periodico | En un pase programado o a mano, fuera de un PR | 4 |
 
 | control_que_mira | Qué es | Normas |
 |---|---|---|
-| forma | Cómo está escrito: estructura, vocabulario y formato | 52 |
+| forma | Cómo está escrito: estructura, vocabulario y formato | 54 |
 | contenido | Lo que dice, a juicio de quien lo lee | 88 |
 | comportamiento | Lo que hace el sistema al ejecutarse o al aplicarse | 65 |
 
 | control_cobertura | Qué es | Normas |
 |---|---|---|
-| total | Alcanza a cualquiera y a toda la norma | 69 |
-| parcial | Deja fuera a alguien o a una parte de la norma | 136 |
+| total | Alcanza a cualquiera y a toda la norma | 70 |
+| parcial | Deja fuera a alguien o a una parte de la norma | 137 |
 
 Normas de juez sin test del juez: 82 de 88. Normas con ejecutor «persona» (sin quitar todavía): 70.
 
@@ -402,4 +404,4 @@ Normas de juez sin test del juez: 82 de 88. Normas con ejecutor «persona» (sin
 
 **Cada control que salta deja su línea** `norma: <id> resultado: ok|warning|fail|exempt|declared|unchecked pr: <n> detalle: …` (una sola sintaxis: los avisos del CI y «Fondos del PR» en el log del run; la guardia, en el registro local de eventos, con la `norma` que hace cumplir lo que bloquea). `declared` es una excepción válida de una norma que ningún control del CI consulta: queda anotada, pero no cuenta como incumplimiento medido. La unidad es el run de un PR; el lector cuenta una vez por PR, norma y resultado. `npm run normas -- --medir` las cuenta por norma y dice cuáles nunca saltan, cuáles no han dejado dato y cuáles se exceptúan siempre (desde 3 veces, sin un solo salto). Registrada en `ops/metricas.json`.
 
-Total: 205 normas (rota 2, semidura 71, dura 25, blanda 107) y 43 avisos de la guardia.
+Total: 207 normas (rota 2, semidura 72, dura 26, blanda 107) y 43 avisos de la guardia.

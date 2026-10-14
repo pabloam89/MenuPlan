@@ -41,6 +41,8 @@ const TABLA = [
   ["bot-sin-listas-a-mano", "api/_bot/x.js", "src/lib/comidas.test.js"],
   ["endpoints", "api/x.js", "api/_guard.test.js"],
   ["una-escala-y-una-escalera", "ops/flujo.json", "ops/escalas.test.js"],
+  ["proveedores-modelo", "scripts/gen-x.mjs", "api/proveedoresModelo.test.js"],
+  ["proveedores-modelo", "api/x.js", "api/proveedoresModelo.test.js"],
 ];
 
 describe("tabla del proyecto: ruta de ejemplo → vigilante que debe salir", () => {
