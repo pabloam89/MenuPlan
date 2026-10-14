@@ -52,8 +52,13 @@ export const FICHERO_FOTO = "issues.json";
 export const URL_FOTO = `https://github.com/${REPO}/releases/download/${TAG_FOTO}/${FICHERO_FOTO}`;
 /** Pasado este tiempo desde `generado_en`, la foto no se usa. */
 export const MAX_MIN_FOTO = 15;
-/** Pasado este tiempo (o sin foto), `situacion` y el arranque lo dicen en una línea: el workflow no la está renovando. */
-export const MAX_MIN_AVISO = 60;
+/**
+ * Pasado este tiempo (o sin foto), `situacion` y el arranque lo dicen en una línea: el workflow no la está
+ * renovando. La cadena la renueva cada ~10-11 min (#844), así que 20 min ya es una vuelta perdida.
+ */
+export const MAX_MIN_AVISO = 20;
+/** Cómo se rearranca la cadena si se cortó (lo dice el aviso). */
+export const REARRANCAR_FOTO = "«Run workflow» de «Foto de los issues» en la pestaña Actions, o `gh workflow run foto-issues.yml --ref staging`";
 /** Cuántos issues se refrescan por pasada aunque nadie los haya tocado (cura la deriva de los vecinos), si caben. */
 export const ROTACION = 8;
 /** Tope de ids por consulta (cuesta 1 punto por id). */
@@ -464,7 +469,7 @@ export function leerEstadoFoto({ dir = dirCuota() } = {}) {
 
 /**
  * Una línea si la foto falta, está a medias o tiene más de MAX_MIN_AVISO minutos; null si está bien
- * o nunca se miró. Entre 15 y 60 min no avisa: los cron de GitHub se retrasan y el lector ya va a la API.
+ * o nunca se miró. Entre 15 y 20 min no avisa: una pasada con cola puede llegar tarde y el lector ya va a la API.
  */
 export function lineaFoto(estado, { ahora = new Date() } = {}) {
   if (!estado) return null;
@@ -476,7 +481,7 @@ export function lineaFoto(estado, { ahora = new Date() } = {}) {
   const edadMin = ((Number.isNaN(mirada) ? ahora.getTime() : mirada) - Date.parse(estado.generado_en)) / 60_000;
   if (!(edadMin > MAX_MIN_AVISO)) return null;
   const hace = edadMin >= 120 ? `${Math.round(edadMin / 60)} h` : `${Math.round(edadMin)} min`;
-  return `Foto de los issues: de hace ${hace} (el workflow foto-issues.yml no la renueva); ${api}.`;
+  return `Foto de los issues: de hace ${hace} (el workflow foto-issues.yml no la renueva); ${api}. Rearrancarla: ${REARRANCAR_FOTO}.`;
 }
 
 /**

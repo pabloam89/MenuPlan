@@ -108,6 +108,14 @@ describe("los workflows se pueden leer como YAML", () => {
   const yamls = (dir) => (existsSync(dir) ? readdirSync(dir).filter((f) => /\.ya?ml$/.test(f)).map((f) => relative(RAIZ, join(dir, f)).replace(/\\/g, "/")) : []);
   const ficheros = [...yamls(DIR), ...yamls(PENDIENTES)];
   it("hay workflows que mirar", () => expect(ficheros.length).toBeGreaterThan(5));
+  it("un pendiente ya movido no se queda: si está igual en .github/workflows/, se borra (#844)", () => {
+    const movidos = yamls(PENDIENTES).filter((p) => {
+      const destino = join(DIR, p.split("/").pop());
+      const leer = (f) => readFileSync(f, "utf8").replace(/\r\n/g, "\n").trimEnd();
+      return existsSync(destino) && leer(join(RAIZ, p)) === leer(destino);
+    });
+    expect(movidos, "ya movido: borra el pendiente (los tests del workflow leerían el de ops/ y no el activo)").toEqual([]);
+  });
   for (const f of ficheros) {
     it(`${f}: YAML válido, con jobs y cada paso con run o uses`, () => {
       const texto = readFileSync(join(RAIZ, f), "utf8");

@@ -439,19 +439,23 @@ describe("el lector: la foto puesta al día, y la API si no sirve", () => {
   });
 });
 
-describe("el aviso: foto que falta o de más de 1 h, en una línea (situacion y arranque)", () => {
-  it("dice una línea si falta, está a medias o pasa de 60 min; calla si está bien o nunca se miró", () => {
-    expect(MAX_MIN_AVISO).toBe(60);
+describe("el aviso: foto que falta o de más de 20 min, en una línea (situacion y arranque)", () => {
+  it("dice una línea si falta, está a medias o pasa de 20 min (la cadena la renueva cada ~10, #844); calla si está bien o nunca se miró", () => {
+    expect(MAX_MIN_AVISO).toBe(20);
     expect(lineaFoto(null)).toBeNull();
     expect(lineaFoto({ ok: true, generado_en: T0.toISOString() }, { ahora: min(5) })).toBeNull();
-    // 15-60 min: el lector ya va a la API, pero los cron se retrasan; no se avisa
-    expect(lineaFoto({ ok: false, generado_en: T0.toISOString(), motivo: "generada hace 30 min (tope 15)" }, { ahora: min(30) })).toBeNull();
+    // 15-20 min: el lector ya va a la API, pero una pasada con cola puede llegar tarde; no se avisa
+    expect(lineaFoto({ ok: false, generado_en: T0.toISOString(), motivo: "generada hace 18 min (tope 15)" }, { ahora: min(18) })).toBeNull();
+    expect(lineaFoto({ ok: false, generado_en: T0.toISOString(), motivo: "generada hace 21 min" }, { ahora: min(21) })).toMatch(/^Foto de los issues: de hace 21 min/);
+    // y dice cómo rearrancar la cadena
+    expect(lineaFoto({ ok: false, generado_en: T0.toISOString() }, { ahora: min(30) })).toMatch(/Rearrancarla: «Run workflow».*gh workflow run foto-issues\.yml --ref staging/);
     expect(lineaFoto({ ok: false, generado_en: T0.toISOString(), motivo: "generada hace 61 min" }, { ahora: min(61) })).toMatch(/^Foto de los issues: de hace 61 min/);
     expect(lineaFoto({ ok: false, generado_en: T0.toISOString() }, { ahora: min(180) })).toMatch(/de hace 3 h/);
     // vale aunque la lectura saliera bien hace rato y ahora venga de la caché
     expect(lineaFoto({ ok: true, generado_en: T0.toISOString() }, { ahora: min(90) })).toMatch(/de hace 90 min/);
     // la edad se mide al mirarla: una foto de 5 min cuando se miró no acusa al workflow aunque la mirada sea de hace rato
     expect(lineaFoto({ ok: true, generado_en: T0.toISOString(), mirada_en: min(5).toISOString() }, { ahora: min(90) })).toBeNull();
+    expect(lineaFoto({ ok: true, generado_en: T0.toISOString(), mirada_en: min(19).toISOString() }, { ahora: min(90) })).toBeNull();
     expect(lineaFoto({ ok: false, generado_en: T0.toISOString(), mirada_en: min(75).toISOString() }, { ahora: min(200) })).toMatch(/de hace 75 min/);
     expect(lineaFoto({ ok: false, generado_en: null, motivo: "sin foto (HTTP 404)" })).toMatch(/^Foto de los issues: no la hay \(sin foto \(HTTP 404\)\)/);
     expect(lineaFoto({ ok: false, generado_en: T0.toISOString(), motivo: "a medias: faltan 3 issues por leer" }, { ahora: min(1) })).toMatch(/a medias/);
@@ -508,27 +512,48 @@ describe("el workflow", () => {
     const relanzar = () => wf.jobs.relanzar ?? {};
     const run = () => (relanzar().steps ?? []).map((s) => s.run ?? "").join("\n");
 
-    it("corre tras publicar aunque la pasada falle, pero no si se canceló, y solo en este repo y en staging", () => {
+    // Lo que dura una pasada sin la espera, con cola (medido en el run 38634114068: generar 20 s,
+    // publicar 8 s, hasta 71 s de cola; se redondea a 2 min).
+    const PASADA_S = 120;
+    const espera = () => Number(run().match(/^\s*sleep (\d+)\s*$/m)?.[1]);
+
+    it("corre tras publicar aunque la pasada falle, pero no si se canceló, y solo en este repo", () => {
       expect(relanzar().needs).toBe("publicar");
       const si = String(relanzar().if).replace(/\s+/g, " ");
       expect(si).toContain("!cancelled()");
       expect(si).not.toMatch(/always\(\)|success\(\)|failure\(\)/);
       expect(si).toContain("github.repository == 'pabloam89/MenuPlan'");
-      expect(si).toContain("github.ref == 'refs/heads/staging'");
+      // sin github.ref: una pasada lanzada desde otra rama comparte la cola y, si reemplazó la que
+      // esperaba de staging, tiene que relanzar staging para que la cadena no se corte
+      expect(si).not.toContain("github.ref");
       expect(si).not.toMatch(/\|\|/);
     });
 
-    it("lanza solo este workflow, sobre staging, tras una espera de minutos que cabe en su tope", () => {
+    it("lanza solo este workflow, sobre staging, cada ~10 min (uso aceptable de Actions), dentro de su tope", () => {
       const lanzadas = run().match(/gh workflow run [^\n]*/g) ?? [];
       expect(lanzadas).toHaveLength(1);
       expect(lanzadas[0]).toMatch(/^gh workflow run foto-issues\.yml .*--ref staging/);
-      const espera = Number(run().match(/sleep (\d+)/)?.[1]);
-      expect(espera).toBeGreaterThanOrEqual(180);
-      expect(espera).toBeLessThanOrEqual(300);
-      expect(relanzar()["timeout-minutes"] * 60).toBeGreaterThan(espera);
+      expect(espera()).toBeGreaterThanOrEqual(480);
+      expect(espera()).toBeLessThanOrEqual(600);
+      // la espera más dos reintentos de 20 s caben en el tope del trabajo
+      expect(relanzar()["timeout-minutes"] * 60).toBeGreaterThan(espera() + 2 * 20 + 60);
     });
 
-    it("la cadena no se multiplica: una sola cola para el workflow entero, sin cancelar la pasada en curso", () => {
+    it("la foto se renueva antes de que el lector la dé por vieja (MAX_MIN_FOTO), con margen", () => {
+      expect(espera() + 2 * 20 + PASADA_S).toBeLessThan(MAX_MIN_FOTO * 60 - 120);
+    });
+
+    it("si el lanzamiento falla, lo reintenta hasta 3 veces con 20 s entre uno y otro y, si no, sale en rojo", () => {
+      const r = run();
+      expect(r).toMatch(/for intento in 1 2 3; do/);
+      // el lanzamiento dentro de un if: con bash -e, un fallo suelto mataría el paso sin reintentar
+      expect(r).toMatch(/if gh workflow run foto-issues\.yml [^\n]*; then\s*\n[^\n]*\n\s*exit 0/);
+      expect(r).toMatch(/if \[ "\$\{intento\}" -lt 3 \]; then\s*\n\s*sleep 20\s*\n\s*fi/);
+      expect(r.trimEnd()).toMatch(/done\s*\n[^\n]*\n\s*exit 1$/);
+    });
+
+    it("la cadena no se multiplica: una sola cola para el workflow entero y todas las ramas, sin cancelar la pasada en curso", () => {
+      // sin la rama en el group: dos pasadas a la vez (una por rama) se pisarían el asset
       expect(wf.concurrency).toEqual({ group: "foto-issues", "cancel-in-progress": false });
       // por trabajo no: relanzar no retendría la cola y podrían correr dos pasadas a la vez
       for (const [j, job] of Object.entries(wf.jobs)) expect(job.concurrency, j).toBeUndefined();
