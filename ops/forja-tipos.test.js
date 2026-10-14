@@ -335,10 +335,10 @@ describe("autotest de los campos: cada regla falla con datos malos", () => {
     falla({ ...estOk(), normas: ["norma-inventada"] }, "estandar", "norma «norma-inventada» no existe");
     falla({ ...estOk(), ambitos: ["marketing"] }, "estandar", "estandar.ambitos: «marketing» no está en el vocabulario ambito");
     const d = clon();
-    d.campos_ficha.skill.campos.extra = { clase: "ref", ref: "criterio", obligatorio: false };
-    d.campos_ficha.skill.campos.donde = { clase: "ref", ref: "ruta", obligatorio: false };
-    d.campos_ficha.skill.campos.orden = { clase: "ref", ref: "comando", obligatorio: false };
-    d.campos_ficha.skill.campos.issue = { clase: "ref", ref: "issue", obligatorio: false };
+    d.campos_ficha.skill.campos.extra = { clase: "ref", ref: "criterio", termino: "nota", obligatorio: false };
+    d.campos_ficha.skill.campos.donde = { clase: "ref", ref: "ruta", termino: "nota", obligatorio: false };
+    d.campos_ficha.skill.campos.orden = { clase: "ref", ref: "comando", termino: "nota", obligatorio: false };
+    d.campos_ficha.skill.campos.issue = { clase: "ref", ref: "issue", termino: "nota", obligatorio: false };
     expect(problemasDeCampos({ ...skillOk(), extra: "solape", donde: "ops/forja/", orden: "npm run forja", issue: "#458" }, "skill", d, ctxCampos)).toEqual([]);
     falla({ ...skillOk(), extra: "criterio-inventado" }, "skill", "el criterio «criterio-inventado» no existe", d);
     falla({ ...skillOk(), donde: "ops/no-existe.json" }, "skill", "ruta «ops/no-existe.json» no existe", d);
@@ -362,8 +362,8 @@ describe("autotest de los campos: cada regla falla con datos malos", () => {
   });
   it("bool y numero, aunque hoy ningún campo los use", () => {
     const d = clon();
-    d.campos_ficha.skill.campos.activa = { clase: "bool", obligatorio: false };
-    d.campos_ficha.skill.campos.lineas = { clase: "numero", obligatorio: false };
+    d.campos_ficha.skill.campos.activa = { clase: "bool", termino: "nota", obligatorio: false };
+    d.campos_ficha.skill.campos.lineas = { clase: "numero", termino: "nota", obligatorio: false };
     expect(problemasDeCampos({ ...skillOk(), activa: true, lineas: 12 }, "skill", d, ctxCampos)).toEqual([]);
     falla({ ...skillOk(), activa: "sí" }, "skill", "no es verdadero o falso", d);
     falla({ ...skillOk(), lineas: "doce" }, "skill", "no es un número", d);

@@ -39,7 +39,9 @@
     "acción",
     "fuerza",
     "veredicto",
-    "fuente documental"
+    "fuente documental",
+    "sujeto",
+    "norma citada"
   ],
   "ref": {
     "fichero": "scripts/lib/normas.mjs",

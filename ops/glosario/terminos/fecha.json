@@ -1,0 +1,14 @@
+{
+  "termino": "fecha",
+  "estado": "activo",
+  "clase": "campo",
+  "dominio": "base",
+  "definicion": "Un día con forma AAAA-MM-DD que dice cuándo se hizo o se comprobó algo.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "firmante"
+  ]
+}

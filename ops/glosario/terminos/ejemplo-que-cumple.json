@@ -1,0 +1,14 @@
+{
+  "termino": "ejemplo que cumple",
+  "estado": "activo",
+  "clase": "campo",
+  "dominio": "base",
+  "definicion": "Un caso escrito que cumple una norma de juicio y sirve de ancla a quien la juzga.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "ejemplo que no cumple"
+  ]
+}
