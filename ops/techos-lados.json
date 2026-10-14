@@ -9,7 +9,7 @@
     "duda: principios de producto (delegado: ops/principios-producto/)": 11,
     "duda: guía de redacción (delegado: ops/redaccion.json)": 0,
     "duda: fuentes documentales (ops/fuentes-documentales/)": 12,
-    "duda: normas horizontales (ops/normas.json)": 46,
+    "duda: normas horizontales (ops/normas.json)": 2,
     "duda: normas verticales (ops/proyectos/<id>/normas.json)": 0,
     "duda: entidades activas (ops/entidades.json)": 0,
     "duda: términos activos del glosario (ops/glosario/terminos/)": 6,
@@ -23,20 +23,13 @@
     "verticales sin registro propio: principios de la casa": 0,
     "verticales sin registro propio: fuentes documentales": 12,
     "estandares_que_nombran_el_proyecto": 28,
-    "estandares_que_nombran_un_servicio": 36
+    "estandares_que_nombran_un_servicio": 36,
+    "normas_horizontales_que_nombran_un_servicio": 8
   },
   "subida_declarada": {
-    "estandares_que_nombran_el_proyecto": {
-      "hasta": 28,
-      "razon": "El detector pasó a leer todo el texto, sin distinguir mayúsculas y con los servicios aparte (parte de #710): la cifra sube porque ahora se ve lo que antes no, no porque entre algo nuevo."
-    },
-    "estandares_que_nombran_un_servicio": {
-      "hasta": 36,
-      "razon": "El detector pasó a leer todo el texto, sin distinguir mayúsculas y con los servicios aparte (parte de #710): la cifra sube porque ahora se ve lo que antes no, no porque entre algo nuevo."
-    },
-    "duda: normas horizontales (ops/normas.json)": {
-      "hasta": 46,
-      "razon": "El detector pasó a leer todo el texto, sin distinguir mayúsculas y con los servicios aparte (parte de #710): la cifra sube porque ahora se ve lo que antes no, no porque entre algo nuevo."
+    "normas_horizontales_que_nombran_un_servicio": {
+      "hasta": 8,
+      "razon": "Cifra nueva (parte de #710, PR 5): nombrar un servicio como Vercel o Supabase es lícito en la factoría y deja de contar como duda de la norma; se cuenta aparte y el techo solo baja."
     }
   }
 }

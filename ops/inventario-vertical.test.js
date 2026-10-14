@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { RUTA_DECISIONES, RUTA_DOC, calcular, documento, fallosDeCuentas, fallosDeDecisiones, fallosDeDudas, fallosDeNormas, razonesDeNormaHorizontal } from "../scripts/lib/inventarioVertical.mjs";
+import { RUTA_DECISIONES, RUTA_DOC, calcular, documento, fallosDeCuentas, fallosDeDecisiones, fallosDeDudas, fallosDeNormas, normaNombraServicio, razonesDeNormaHorizontal } from "../scripts/lib/inventarioVertical.mjs";
 
 /**
  * El inventario vertical/horizontal (#710, parte de #652). La instantánea de docs/ops/INVENTARIO-VERTICAL.md NO se
@@ -94,11 +94,14 @@ describe("las comprobaciones, con datos rotos (casos negativos)", () => {
     expect(razonesDeNormaHorizontal({ id: "n", exigencia: "ok", porque: "sin cita" })).toEqual([]);
   });
 
-  it("nombrar un servicio del proyecto es otra razón distinta de nombrar el proyecto", () => {
-    const solo = razonesDeNormaHorizontal({ id: "n", exigencia: "ok", nota: "se despliega en Vercel" });
-    expect(solo).toEqual(["su texto nombra un servicio del proyecto"]);
-    const ambas = razonesDeNormaHorizontal({ id: "n", exigencia: "Lola en vercel" });
-    expect(ambas).toEqual(["su texto nombra el proyecto", "su texto nombra un servicio del proyecto"]);
+  it("nombrar un servicio es lícito para la factoría: no es una duda, se cuenta aparte; nombrar el proyecto sí duda", () => {
+    const solo = { id: "n", exigencia: "ok", nota: "se despliega en Vercel" };
+    expect(razonesDeNormaHorizontal(solo)).toEqual([]);
+    expect(normaNombraServicio(solo)).toBe(true);
+    expect(normaNombraServicio({ id: "n", exigencia: "ok", porque: "sin cita" })).toBe(false);
+    const ambas = { id: "n", exigencia: "Lola en vercel" };
+    expect(razonesDeNormaHorizontal(ambas)).toEqual(["su texto nombra el proyecto"]);
+    expect(normaNombraServicio(ambas)).toBe(true);
   });
 
   it("los campos que son ids o rutas no cuentan como prosa", () => {

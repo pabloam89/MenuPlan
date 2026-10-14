@@ -169,9 +169,9 @@ Marca de la fuente, con un solo significado en todos los catálogos (`MARCAS_FUE
 |---|---|---|---|---|
 | `ops/forja/` | regla | cumple | 75 | - |
 | `ops/redaccion.json` | principio | cumple | 15 | - |
-| `ops/normas.json` | regla | cumple | 166 | - |
+| `ops/normas.json` | regla | cumple | 134 | - |
 | `ops/flujo.json` | regla | cumple | 53 | - |
-| `ops/estandares-agentes.json` | regla | cumple | 191 | - |
+| `ops/estandares-agentes.json` | regla | cumple | 192 | - |
 | `ops/principios-producto/` | principio | cumple | 41 | - |
 | `ops/principios/` | principio | cumple | 54 | - |
 | `ops/proyectos/homenu/principios/` | principio | cumple | 2 | - |

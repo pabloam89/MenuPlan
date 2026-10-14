@@ -12,7 +12,7 @@ Es un **inventario de partida, no un registro de lados**: el lado todavía no es
 |---|---|
 | Principios | `ops/principios/`, `ops/principios-producto/` y `ops/redaccion.json`, con las fuentes de `ops/fuentes-documentales/` y las zonas de `ops/zonas.json`. Vertical: los de `ops/proyectos/<id>/principios/` (el campo `project`). Duda: sin fuente externa y su único origen está en un fichero de zona producto; o un principio de producto del área `conversational-ai` |
 | Fuentes | Externa: horizontal (salvo la documentación de Supabase y Vercel: duda). De la casa: la zona de su ruta (`ops/zonas.json`) |
-| Normas | El registro en que viven. Duda de una horizontal: su texto nombra HoMenu/Lola/MenuPlan, o su ámbito es `bot`/`product`/`catalog`, o su control o `donde` apunta a `api/`, `src/`, `supabase/`, `docs/datos/`, `docs/producto/`, `specs/` o `DESIGN_SYSTEM.md` (las 24 de ámbito `diseno` no cuentan: Pablo decidió el 13 oct que son horizontales) |
+| Normas | El registro en que viven. Duda de una horizontal: su texto nombra HoMenu/Lola/MenuPlan (nombrar un servicio como Vercel o Supabase es lícito en la factoría: no duda, se cuenta aparte con techo), o su ámbito es `bot`/`product`/`catalog`, o su control o `donde` apunta a `api/`, `src/`, `supabase/`, `docs/datos/`, `docs/producto/`, `specs/` o `DESIGN_SYSTEM.md` (las 24 de ámbito `diseno` no cuentan: Pablo decidió el 13 oct que son horizontales) |
 | Entidades | Su campo `scope` (`horizontal` o `vertical`, uno solo: la clase es horizontal y sus ejemplares son del registro del proyecto); duda: un valor que no sea ninguno de los dos y las vertical que son un concepto general (lista a mano, hoy vacía) |
 | Glosario | El `scope` de sus entidades; sin entidad, su dominio (`producto` vertical, `datos` duda); duda también si su definición nombra el proyecto, Vercel o Supabase |
 | Skills, reglas, comandos, specs, documentos | La zona de `ops/zonas.json` (factoría = horizontal, producto = vertical, mixto = duda); una skill `tipo: servicio` de factoría = duda |
@@ -30,8 +30,8 @@ Límites: «casa» y «bot» son castellano corriente en la factoría, así que 
 | principios de producto (delegado: ops/principios-producto/) | 41 | 30 | 0 | 11 |
 | guía de redacción (delegado: ops/redaccion.json) | 15 | 15 | 0 | 0 |
 | fuentes documentales (ops/fuentes-documentales/) | 167 | 143 | 12 | 12 |
-| normas horizontales (ops/normas.json) | 166 | 120 | 0 | 46 |
-| normas verticales (ops/proyectos/<id>/normas.json) | 39 | 0 | 39 | 0 |
+| normas horizontales (ops/normas.json) | 134 | 132 | 0 | 2 |
+| normas verticales (ops/proyectos/<id>/normas.json) | 71 | 0 | 71 | 0 |
 | entidades activas (ops/entidades.json) | 54 | 41 | 13 | 0 |
 | términos activos del glosario (ops/glosario/terminos/) | 146 | 139 | 1 | 6 |
 | skills (.claude/skills/) | 18 | 9 | 5 | 4 |
@@ -40,7 +40,7 @@ Límites: «casa» y «bot» son castellano corriente en la factoría, así que 
 | agentes (.claude/agents/; por regla de Pablo, horizontales) | 8 | 5 | 0 | 3 |
 | specs (specs/*.md) | 17 | 0 | 17 | 0 |
 | documentos (docs/**/*.md y los .md de la raíz) | 31 | 21 | 9 | 1 |
-| tests (*.test.{js,jsx,mjs}) | 448 | 106 | 332 | 10 |
+| tests (*.test.{js,jsx,mjs}) | 449 | 107 | 332 | 10 |
 
 Principios, las cuatro filas juntas: 112 en total, 92 horizontales, 2 verticales y 18 en duda.
 
@@ -48,9 +48,9 @@ Principios, las cuatro filas juntas: 112 en total, 92 horizontales, 2 verticales
 
 - **Principios.** Los 2 de HoMenu (`curated-catalog-only` y `household-owns-data`) viven en su registro, `ops/proyectos/homenu/principios/`, con el campo `project`: origen una decisión de producto, sin fuente externa. Los 54 de la casa son horizontales salvo los que dudan: la mayoría no tiene fuente externa, pero eso no los hace verticales, son del método de trabajo. Los de base de datos que solo tenían como origen `docs/datos/PRINCIPIOS.md` son horizontales por decisión de Pablo (13 oct): llevan fuente externa (PostgreSQL, Fowler) y `docs/datos/` es el cómo los aplica HoMenu; el que no la tiene verificable sigue en duda. Los 41 de producto tienen literatura detrás y son horizontales; los del área `conversational-ai` solo valen si el proyecto tiene un bot.
 - **Fuentes.** 125 externas (literatura) y 42 de la casa (una ruta del repo).
-- **Normas.** El registro vertical ya está separado (39). En el horizontal hay 46 que dudan (lista abajo). De las 166, 60 tienen como control «juicio» y 28 acaban en un fichero de zona producto. De las 39 verticales, 0 tienen su control en una carpeta de la factoría.
+- **Normas.** El registro vertical ya está separado (71). En el horizontal hay 2 que dudan (lista abajo). De las 134, 8 nombran un servicio (Vercel, Supabase…) de forma lícita para la factoría, 43 tienen como control «juicio» y 13 acaban en un fichero de zona producto. De las 71 verticales, 0 tienen su control en una carpeta de la factoría.
 - **Entidades y glosario.** Entidades retiradas (no cuentan): 0. El glosario no tiene lado propio: hoy se deduce de sus entidades; es el registro donde más falta el campo.
-- **Tests.** 118 tests viven en carpetas de la casa; 2 de ellos leen tres ficheros de HoMenu o más (sin contar `src/App.jsx`, el ejemplo de casi todos). 330 viven en carpetas de producto, coherentes con lo que vigilan.
+- **Tests.** 119 tests viven en carpetas de la casa; 2 de ellos leen tres ficheros de HoMenu o más (sin contar `src/App.jsx`, el ejemplo de casi todos). 330 viven en carpetas de producto, coherentes con lo que vigilan.
 
 ## Los dudosos, con su razón
 
@@ -76,28 +76,10 @@ Principios, las cuatro filas juntas: 112 en total, 92 horizontales, 2 verticales
 - `casa-scripts-verificar-estado-mjs`: la ruta scripts/verificar-estado.mjs está en zona mixta
 - `sb-functions`, `sb-migrations`, `sb-rls`, `vercel-troubleshoot`: Documentación de un proveedor concreto del proyecto: sirve a cualquiera que lo use, pero la fuente solo la cita HoMenu (4)
 
-### 3. Normas (46)
+### 3. Normas (2)
 
-- `evals-tope-mensual`, `evals-antes-de-fusionar`, `tope-canario`, `model-least-privilege`, `bot-logic-simple-first`: su texto nombra el proyecto; ámbito «bot» (conducta de un producto con bot, catálogo o familias) (5)
-- `tope-diario-ia`, `limite-por-ip`: depende de un fichero de HoMenu (api/_guard.test.js) (2)
-- `rol-solo-lectura`: depende de un fichero de HoMenu (supabase/migrations)
-- `caducidad-token-vercel`, `vuelta-atras-probada`: su texto nombra el proyecto; su texto nombra un servicio del proyecto (2)
-- `caducidad-clave-anthropic-evals`, `build-con-prebuild`, `variables-production-solo-pablo`, `rollback-ensayado`, `estado-de-la-base-verificado`: su texto nombra un servicio del proyecto (5)
-- `principios-revision`, `column-not-null-by-default`, `json-solo-de-un-escritor`, `escritura-con-version`, `estado-con-saltos-escritos`: depende de un fichero de HoMenu (docs/datos/PRINCIPIOS.md) (5)
-- `principios-auto`, `fk-con-on-delete`, `fechas-con-zona`, `tabla-con-comentario`, `salud-marcada`: depende de un fichero de HoMenu (supabase/principios.test.js) (5)
-- `tabla-modulo-dueno`: depende de un fichero de HoMenu (supabase/cableado.test.js)
-- `vocabulario-cerrado`: depende de un fichero de HoMenu (src/lib/vocabularios.test.js)
-- `claves-de-pablo-solo-pablo`, `sesion-con-su-identidad`, `design-touch-target`, `design-themes`: su texto nombra el proyecto (4)
-- `build-valida-catalogo`: su texto nombra un servicio del proyecto; ámbito «catalog» (conducta de un producto con bot, catálogo o familias)
-- `columnas-de-texto-clasificadas`: depende de un fichero de HoMenu (supabase/columnasTexto.test.js)
-- `endpoint-rechaza-sin-credencial`: depende de un fichero de HoMenu (api/sinCredencial.test.js)
-- `business-flow-rate-limited`, `safety-filter-fails-closed`: depende de un fichero de HoMenu (docs/producto/PRINCIPIOS.md) (2)
-- `machine-caller-authenticated`: su texto nombra un servicio del proyecto; depende de un fichero de HoMenu (docs/producto/PRINCIPIOS.md)
-- `bot-turn-bounded`, `bot-write-idempotent`: su texto nombra el proyecto; su texto nombra un servicio del proyecto; ámbito «bot» (conducta de un producto con bot, catálogo o familias) (2)
-- `ai-spend-charged-to-caller`, `no-secrets-in-prompt-or-client`: su texto nombra el proyecto; depende de un fichero de HoMenu (docs/producto/PRINCIPIOS.md) (2)
-- `improvement-has-fixed-appetite`, `product-logs-countable-line`: ámbito «product» (conducta de un producto con bot, catálogo o familias) (2)
-- `model-output-schema-checked`, `family-text-is-data`: ámbito «bot» (conducta de un producto con bot, catálogo o familias) (2)
-- `new-table-closed-to-anon`: depende de un fichero de HoMenu (supabase/anonPorDefecto.test.js)
+- `evals-antes-de-fusionar`: su texto nombra el proyecto; ámbito «bot» (conducta de un producto con bot, catálogo o familias)
+- `build-valida-catalogo`: ámbito «catalog» (conducta de un producto con bot, catálogo o familias)
 
 ### 4b. Glosario (6)
 
@@ -147,7 +129,7 @@ El orden sigue la dependencia (lo que es registro se separa antes de lo que lo c
 | PR 2 | Entidades: cada una de un lado (sin `both`); las vertical genéricas pasan a horizontal; el glosario hereda el lado de su entidad (se calcula; el campo `scope` en cada término va con el PR 7) | entidades en duda = 0 | 0 |
 | PR 3 | Principios: campo `project` y registro `ops/proyectos/homenu/principios/`; mover los verticales y resolver los de base de datos | verticales fuera de su registro = 0; en duda = 18 | verticales en su registro = todos; en duda = 0 |
 | PR 4 | Fuentes: campo `project` en las de la casa que son de HoMenu y origen (decisión o fallo) en vez de fuente externa para los principios de proyecto | fuentes verticales sin marcar = 12; en duda = 12 | marcadas = todas; en duda = 0 |
-| PR 5 | Normas dudosas: mover al registro de HoMenu las que sean suyas, o reescribir (sin nombrar el proyecto) las que sean generales | normas horizontales en duda = 46 | 0 (cada una, horizontal limpia o vertical) |
+| PR 5 | Normas dudosas: mover al registro de HoMenu las que sean suyas, o reescribir (sin nombrar el proyecto) las que sean generales | normas horizontales en duda = 2 | 0 (cada una, horizontal limpia o vertical) |
 | PR 6 | Controles: tests de la casa que leen ficheros de HoMenu pasan a recibirlos por referencia (`--proyecto`) o se mueven (el techo `verticales_sin_salida` ya se retiró, #710) | tests de la casa que leen HoMenu = 2; en duda = 10 | 0 y 0 |
 | PR 7 | Glosario: términos de proyecto aparte de los de la casa | términos en duda = 6 | 0 |
 | PR 8 | Skills, reglas, comandos, specs y docs: marcar el lado de cada una y separar los skills de servicio en método (casa) y datos (proyecto) | en duda = skills 4, documentos 1; verticales sin marca = 27 | en duda = 0; todas marcadas |

@@ -1582,9 +1582,6 @@
           "comunes": [
             "donde-vive-el-dato"
           ],
-          "normas": [
-            "tabla-modulo-dueno"
-          ],
           "reglas": [
             {
               "nombre": "Curado o escrito",
@@ -3069,7 +3066,6 @@
           ],
           "n2": "juzgar.infra",
           "normas": [
-            "no-secrets-in-prompt-or-client",
             "secretos-ok-pablo",
             "repo-publico-sin-detalle"
           ],
@@ -3161,6 +3157,18 @@
               "porque": "Un mensaje malicioso solo puede hacer lo que la herramienta le deja hacer",
               "ejemplo_bueno": "la herramienta de borrar pide confirmación y usa la casa del papel",
               "ejemplo_malo": "una herramienta que acepta el id de casa en sus argumentos"
+            },
+            {
+              "nombre": "Papel manda sobre el modelo",
+              "sujeto": "herramienta",
+              "fuerza": "no_debe",
+              "condicion": "cuando el papel de quien escribe no permite la escritura",
+              "exigencia": "ejecutarse aunque el modelo la pida",
+              "control": "api/_bot/papel.test.js",
+              "fuente": "owasp-llm-top10",
+              "porque": "Un mensaje malicioso convence al modelo, no a la comprobación de código que hay detrás",
+              "ejemplo_bueno": "el lector pide borrar y la herramienta de escritura no llega a ejecutarse",
+              "ejemplo_malo": "una herramienta de escritura que se ejecuta porque el modelo la nombra"
             }
           ],
           "no_hace": [
@@ -3877,9 +3885,6 @@
           "comunes": [
             "medir-antes-despues",
             "base-solo-lectura"
-          ],
-          "normas": [
-            "tabla-modulo-dueno"
           ],
           "reglas": [
             {
