@@ -5462,11 +5462,12 @@
       "sujeto": "componente",
       "fuerza": "debe",
       "condicion": "cuando un componente es interactivo",
-      "exigencia": "definir reposo, foco, pulsado, activo, deshabilitado, cargando, error y vacío, y hover si hay puntero",
-      "nota": "L14 de la forja de diseño (docs/diseno/META-DISENO.md, sección 2). Por construir: un test que compruebe que la ficha del componente rellena el vocabulario de estados de ops/diseno/bloques.json.",
+      "exigencia": "definir los estados de su plantilla de componente, como mínimo reposo, foco, pulsado y deshabilitado, y hover con puntero",
+      "nota": "L14 de la forja de diseño (docs/diseno/META-DISENO.md, sección 2). Manda la plantilla (#842): cada tipo marca sus estados en ops/diseno/plantillas-componente.json y su test exige el mínimo a cada interactivo. Por construir: un test que compruebe que la ficha de cada componente define los de su plantilla.",
       "donde": [
         "docs/diseno/META-DISENO.md",
         "ops/diseno/bloques.json",
+        "ops/diseno/plantillas-componente.json",
         "src/components/ui.jsx"
       ],
       "ejecutor": "persona",

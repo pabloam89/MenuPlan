@@ -551,6 +551,18 @@ e Ionic). Constan así porque «móvil sí» no dice en cuál de las plataformas
 
 Lo que HoMenu usa hoy (Nucleo para los iconos, cómo se importa y qué cubre) vive en un solo sitio: `DESIGN_SYSTEM.md` §5.
 
+## Plantillas de componente: los 50 tipos de elemento (14 oct 2026, #842)
+
+El nivel de plantilla de la entidad `component` (entidad `component-template`): una plantilla por tipo de elemento de la
+taxonomía, en `ops/diseno/plantillas-componente.json`, con anatomía (partes obligatorias u opcionales), atributos de forma con su
+lista cerrada de valores, atributos visuales por rol (una propiedad de una parte que apunta a un paso de una escala, nunca a un
+número), estados, accesibilidad mínima (rol ARIA, nombre accesible, objetivo táctil, teclado) y fuente. Reutiliza los estados,
+categorías, variantes, tamaños, densidades y tipos de token de `ops/diseno/bloques.json`, y las marcas y el sí/no (`declaracion`)
+del pool. Los estados mínimos de un interactivo los marca la plantilla (norma `design-complete-states`: reposo, foco, pulsado y
+deshabilitado, y hover si hay puntero). Las 117 fuentes están `unverified`: se escribieron sin leer las páginas (el 14 oct se
+comprobó con curl que las URL existen, salvo dos de Carbon que se cambiaron o quitaron; existir no es haberlas leído). La pieza de HoMenu que rellena cada plantilla es #830. Cifras:
+`node scripts/diseno/plantillas.mjs`.
+
 ## Comparador, tanda 1: valores base agrupados (14 oct 2026, #825)
 
 Línea 3 de #774, primer paso (valores base → piezas → pantallas → flujos). `scripts/lib/comparadorFundamentos.mjs`

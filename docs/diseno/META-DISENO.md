@@ -82,7 +82,7 @@ control `juicio` y veredicto `blanda`: no cuentan como cumplidas.
 | L11 | **Escalas, no valores libres.** Espacio sobre rejilla de 4 px; tipografía con una razón fija entre pasos; radios y sombras por pasos con nombre. | Test de los tokens contra su escala `[existe]` |
 | L12 | **Jerarquía.** Una sola acción primaria por vista; el énfasis sigue a la importancia. | Checklist de pantalla `[existe]`; sin test |
 | L13 | **Proximidad y alineación.** Lo relacionado junto: el espacio dentro de un grupo es menor que el espacio entre grupos; una rejilla por pantalla. | Checklist; sin test |
-| L14 | **Estados completos.** Todo componente interactivo define reposo, foco, pulsado, activo, deshabilitado, cargando, error y vacío (y hover si hay puntero). | Test: la ficha del componente rellena el vocabulario de estados `[por construir]` |
+| L14 | **Estados completos.** Todo componente interactivo define los estados que marca su plantilla de componente, como mínimo reposo, foco, pulsado y deshabilitado (y hover si hay puntero). | Test: cada plantilla interactiva lleva el mínimo (`ops/diseno/plantillas-componente.test.js`, #842); que la ficha del componente defina los de su plantilla, `[por construir]` |
 | L15 | **Texto elástico.** Toda cadena soporta un 40 % más de longitud; fechas, números y moneda con formato local. | Captura con textos largos `[por construir]` |
 | L16 | **Temas.** Claro y oscuro desde los mismos tokens semánticos, o se declara por qué no hay uno. | Test: cada token semántico tiene valor en cada tema declarado `[por construir]` |
 | L17 | **Un componente existe en el catálogo o no existe.** No se copia ni se rehace por pantalla; uno nuevo entra con su ficha. | Test de importaciones y de fichas `[por construir]` |
