@@ -451,7 +451,7 @@ export function briefDe(plan, agente, opciones = {}, deps = depsReales()) {
   if (!fases.length) {
     const enPlan = unicos(plan.fases.flatMap((f) => f.agentes.map((a) => a.agente))).join(", ");
     const ag = deps.datos.agentes[agente];
-    if (!opciones.tarea) throw new Error(`${agente} no está en el plan (agentes: ${enPlan}). Para lanzarlo fuera del plan, da una tarea suya: --brief ${agente} --tarea <tarea>${ag ? ` (tiene: ${ag.tareas.map((t) => t.id).join(", ")})` : ""}`);
+    if (!opciones.tarea) throw new Error(`${agente} no está en el plan (agentes: ${enPlan}). Para lanzarlo fuera del plan, da una tarea suya: --brief ${agente} --tarea <tarea>${ag ? ` (sus tareas son ${ag.tareas.map((t) => t.id).join(", ")})` : ""}`);
     if (!ag) throw new Error(`${agente} no es un agente de .claude/agents/ con tareas en ops/estandares-agentes.json`);
     if (!ag.tareas.some((t) => t.id === opciones.tarea)) throw new Error(`${agente} no tiene la tarea «${opciones.tarea}»; tiene: ${ag.tareas.map((t) => t.id).join(", ")}`);
     rol = rolDe(agente) ?? "judge";

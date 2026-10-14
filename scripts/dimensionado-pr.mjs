@@ -35,7 +35,7 @@ if (esPrincipal) {
       process.exit(0);
     }
     for (const m of r.medidas) console.log(lineaDeNorma(m.norma, m.resultado, { pr: PR_NUMBER, detalle: m.detalle }));
-    if (r.plan) console.log(`Dimensionado: tipo ${r.plan.tipo} (${r.plan.subtipo}), alcance ${r.plan.alcance}, complejidad ${r.plan.complejidad}; banderas por las rutas: ${r.plan.banderas_de_rutas?.join(", ") || "ninguna"}; jueces exigidos: ${r.plan.jueces.join(", ")}.`);
+    if (r.plan) console.log(`Dimensionado: tipo ${r.plan.tipo} (${r.plan.subtipo}), alcance ${r.plan.alcance}, complejidad ${r.plan.complejidad}; jueces exigidos: ${r.plan.jueces.join(", ")}${r.plan.banderas_de_rutas?.length ? ` (por las rutas, ${r.plan.banderas_de_rutas.join(", ")})` : ""}.`);
     for (const a of r.avisos) console.log(`::warning title=Dimensionado del PR (transición hasta ${FALLA_DESDE})::${a}. Este PR se creó antes de ${FALLA_DESDE} y solo avisa; añade «Tipo:» y «Jueces:» al cuerpo.`);
     if (r.fallos.length) {
       console.log(`::error title=Falla el dimensionado del PR::${r.fallos.join("; ")}.`);

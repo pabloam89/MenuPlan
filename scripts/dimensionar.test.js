@@ -254,8 +254,8 @@ describe("la forma depende del tipo", () => {
       ["ops/env.1password", "touches_secrets_or_permissions", "seguridad"],
       ["vercel.json", "touches_secrets_or_permissions", "seguridad"],
       ["supabase/migrations/0200_x.sql", "touches_rls", "seguridad"],
-      ["api/_bot/agente.js", "changes_bot", "evaluador"],
-      ["api/bot/telegram.js", "changes_bot", "evaluador"],
+      ["api/_bot/inventado.js", "changes_bot", "evaluador"],
+      ["api/bot/inventado.js", "changes_bot", "evaluador"],
     ];
     for (const [ruta, bandera, juez] of casos) {
       expect(banderasDeRutas([ruta]), ruta).toEqual([bandera]);
@@ -266,7 +266,7 @@ describe("la forma depende del tipo", () => {
       }
     }
     // Lo que no es de ninguna bandera no la activa (la plantilla de issues sí está en .github/, a propósito).
-    for (const ruta of ["scripts/podar.mjs", "src/screens/A.jsx", "supabase/ESTADO.md", "api/generate.js", "ops/normas.json", "scripts/rulesets.test.js", "x/.github/a.yml"]) {
+    for (const ruta of ["scripts/podar.mjs", "src/screens/A.jsx", "supabase/INVENTADO.md", "api/inventado.js", "ops/normas.json", "scripts/rulesets.test.js", "x/.github/a.yml"]) {
       expect(banderasDeRutas([ruta]), ruta).toEqual([]);
     }
   });

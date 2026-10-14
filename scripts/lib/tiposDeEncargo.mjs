@@ -331,7 +331,14 @@ export function problemas(d = DATOS, ctx = { agentes: AGENTES, especiales: d?.sp
   for (const [k, b] of Object.entries(bandera)) {
     if (!/^[a-z]+(_[a-z]+)*$/.test(k)) p.push(`bandera: «${k}» va en minúsculas y snake_case`);
     if (!b.si || !b.what) p.push(`bandera: ${k} lleva «si» (la condición corta) y «what»`);
-    const reValida = (re) => { try { new RegExp(re); return typeof re === "string"; } catch { return false; } };
+    const reValida = (re) => {
+      try {
+        new RegExp(re);
+        return typeof re === "string";
+      } catch {
+        return false; // a propósito: una expresión que no compila es justo lo que se informa como problema
+      }
+    };
     if (b.rutas !== undefined && (!Array.isArray(b.rutas) || !b.rutas.length || !b.rutas.every(reValida))) p.push(`bandera: ${k} lleva «rutas» como lista de expresiones regulares válidas`);
   }
   for (const sub of todos) {

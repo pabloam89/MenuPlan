@@ -108,7 +108,7 @@ describe("comprobarDimensionado", () => {
       const r = comprueba(cuerpoDe({ agente: "constructor", tipo: "fix", jueces: ["revisor", "auditor-datos"] }), [f(ruta)]);
       expect(r.fallos.join(" "), ruta).toMatch(/no nombra a [^(]*seguridad/);
     }
-    const bot = comprueba(cuerpoDe({ agente: "constructor", tipo: "improve", jueces: ["revisor"] }), [f("api/bot/telegram.js")]);
+    const bot = comprueba(cuerpoDe({ agente: "constructor", tipo: "improve", jueces: ["revisor"] }), [f("api/bot/inventado.js")]);
     expect(bot.fallos.join(" ")).toMatch(/no nombra a [^(]*evaluador/);
     const con = comprueba(cuerpoDe({ agente: "constructor", tipo: "fix", jueces: ["revisor", "seguridad"] }), [f(".claude/hooks/guardia.mjs")]);
     expect(con.fallos).toEqual([]);
