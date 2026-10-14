@@ -91,8 +91,8 @@ describe("se ven fallar", () => {
   it("una norma de otro ámbito que cita un principio de un paquete opcional (#710)", () => {
     const Q = [...P, { id: "d-bot", dominio: "bot" }];
     const con = (normas) => problemasDeUniones(Q, [...normas, conC(), N({ id: "n-d", principio: "d-bot", ambito: "bot" })], { sinNorma: sin }, { techo: 1 }).join("\n");
-    expect(con([])).toBe("");
-    expect(con([N({ id: "diseno-a", principio: "d-bot", ambito: "diseno" })])).toMatch(/norma diseno-a: cita el principio «d-bot», del paquete opcional «bot», y su ámbito es «diseno»/);
+    expect(con([N()])).toBe("");
+    expect(con([N(), N({ id: "diseno-a", principio: "d-bot", ambito: "diseno" })])).toMatch(/norma diseno-a: cita el principio «d-bot», del paquete opcional «bot», y su ámbito es «diseno»/);
   });
   it("una acción que no es de los estándares, o fuera de su orden", () => {
     expect(problemas([N({ acciones: ["programar"] })])).toMatch(/la acción «programar» no está/);

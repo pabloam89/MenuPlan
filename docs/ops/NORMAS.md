@@ -173,7 +173,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `design-declared-voice` | producto | DEBE | **Voz declarada.** El producto DEBE fijar el tono, el vocabulario y las reglas de redacción de la interfaz, con un nombre por concepto. | persona · blanda | juicio | — | `one-word-one-meaning` | diseno | horizontal | construir, juzgar |
 | `design-change-trace` | producto | DEBE | **Rastro de cada cambio.** El producto DEBE dejar rastro de cada cambio del sistema de diseño con versión, decisión y registro de cambios, y deprecar en vez de borrar. | persona · blanda | juicio | — | `deprecate-not-delete` | diseno | horizontal | construir, juzgar |
 | `design-measured` | producto | CONVIENE | **Cifras del sistema.** Para el producto, CONVIENE publicar las cifras del sistema de diseño: valores sueltos, cobertura de tokens, componentes migrados y fallos de contraste. | persona · blanda | juicio | — | `no-number-without-question` | diseno | horizontal | construir, juzgar |
-| `design-accessible-entry` | pantalla | DEBE | **Entrada y acceso accesibles.** Cada pantalla de la app DEBE no pedir datos ya dados ni pruebas cognitivas para entrar, y dar una alternativa al arrastre. | persona · blanda | juicio | — | `keep-context-no-reask` | diseno | horizontal | construir, juzgar |
+| `design-accessible-entry` | pantalla | DEBE | **Entrada y acceso accesibles.** Cada pantalla de la app DEBE no pedir datos ya dados ni pruebas cognitivas para entrar, y dar una alternativa al arrastre. | persona · blanda | juicio | — | `wcag-pour` | diseno | horizontal | construir, juzgar |
 
 ## Normas del proyecto homenu (verticales: ops/proyectos/homenu/normas.json)
 

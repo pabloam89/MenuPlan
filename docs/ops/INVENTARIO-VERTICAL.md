@@ -25,11 +25,11 @@ Límites: «casa» y «bot» son castellano corriente en la factoría, así que 
 
 | Capa | Total | Horizontal | Vertical | Duda |
 |---|---:|---:|---:|---:|
-| principios de la casa (ops/principios/) | 54 | 47 | 0 | 7 |
+| principios de la casa (ops/principios/) | 54 | 54 | 0 | 0 |
 | principios del proyecto (ops/proyectos/<id>/principios/) | 2 | 0 | 2 | 0 |
-| principios de producto (delegado: ops/principios-producto/) | 41 | 30 | 0 | 11 |
+| principios de producto (delegado: ops/principios-producto/) | 41 | 41 | 0 | 0 |
 | guía de redacción (delegado: ops/redaccion.json) | 15 | 15 | 0 | 0 |
-| fuentes documentales (ops/fuentes-documentales/) | 167 | 143 | 12 | 12 |
+| fuentes documentales (ops/fuentes-documentales/) | 172 | 148 | 12 | 12 |
 | normas horizontales (ops/normas.json) | 166 | 120 | 0 | 46 |
 | normas verticales (ops/proyectos/<id>/normas.json) | 39 | 0 | 39 | 0 |
 | entidades activas (ops/entidades.json) | 54 | 41 | 13 | 0 |
@@ -40,29 +40,19 @@ Límites: «casa» y «bot» son castellano corriente en la factoría, así que 
 | agentes (.claude/agents/; por regla de Pablo, horizontales) | 8 | 5 | 0 | 3 |
 | specs (specs/*.md) | 17 | 0 | 17 | 0 |
 | documentos (docs/**/*.md y los .md de la raíz) | 31 | 21 | 9 | 1 |
-| tests (*.test.{js,jsx,mjs}) | 448 | 106 | 332 | 10 |
+| tests (*.test.{js,jsx,mjs}) | 449 | 107 | 332 | 10 |
 
-Principios, las cuatro filas juntas: 112 en total, 92 horizontales, 2 verticales y 18 en duda.
+Principios, las cuatro filas juntas: 112 en total, 110 horizontales, 2 verticales y 0 en duda.
 
 ## Lo que cuenta cada capa
 
-- **Principios.** Los 2 de HoMenu (`curated-catalog-only` y `household-owns-data`) viven en su registro, `ops/proyectos/homenu/principios/`, con el campo `project`: origen una decisión de producto, sin fuente externa. Los 54 de la casa son horizontales salvo los que dudan: la mayoría no tiene fuente externa, pero eso no los hace verticales, son del método de trabajo. Los de base de datos que solo tenían como origen `docs/datos/PRINCIPIOS.md` son horizontales por decisión de Pablo (13 oct): llevan fuente externa (PostgreSQL, Fowler) y `docs/datos/` es el cómo los aplica HoMenu; el que no la tiene verificable sigue en duda. Los 41 de producto tienen literatura detrás y son horizontales; los del área `conversational-ai` solo valen si el proyecto tiene un bot.
-- **Fuentes.** 125 externas (literatura) y 42 de la casa (una ruta del repo).
+- **Principios.** Los 2 de HoMenu (`curated-catalog-only` y `household-owns-data`) viven en su registro, `ops/proyectos/homenu/principios/`, con el campo `project`: origen una decisión de producto, sin fuente externa. Los 54 de la casa son horizontales salvo los que dudan: la mayoría no tiene fuente externa, pero eso no los hace verticales, son del método de trabajo. Los de base de datos que solo tenían como origen `docs/datos/PRINCIPIOS.md` son horizontales por decisión de Pablo (13 oct): llevan fuente externa (PostgreSQL, Fowler) y `docs/datos/` es el cómo los aplica HoMenu; el que no la tiene verificable sigue en duda. Los 41 de producto tienen literatura detrás y son horizontales; los del área `conversational-ai` forman el paquete de bots (`dominio: bot`), opcional por proyecto, y también son horizontales.
+- **Fuentes.** 130 externas (literatura) y 42 de la casa (una ruta del repo).
 - **Normas.** El registro vertical ya está separado (39). En el horizontal hay 46 que dudan (lista abajo). De las 166, 60 tienen como control «juicio» y 28 acaban en un fichero de zona producto. De las 39 verticales, 0 tienen su control en una carpeta de la factoría.
 - **Entidades y glosario.** Entidades retiradas (no cuentan): 0. El glosario no tiene lado propio: hoy se deduce de sus entidades; es el registro donde más falta el campo.
-- **Tests.** 118 tests viven en carpetas de la casa; 2 de ellos leen tres ficheros de HoMenu o más (sin contar `src/App.jsx`, el ejemplo de casi todos). 330 viven en carpetas de producto, coherentes con lo que vigilan.
+- **Tests.** 119 tests viven en carpetas de la casa; 2 de ellos leen tres ficheros de HoMenu o más (sin contar `src/App.jsx`, el ejemplo de casi todos). 330 viven en carpetas de producto, coherentes con lo que vigilan.
 
 ## Los dudosos, con su razón
-
-### 1. Principios (18)
-
-- `bounded-blast-radius`: sin fuente externa y su único origen es api/_guard.test.js (zona producto): ¿regla general nacida en HoMenu o regla de HoMenu?
-- `closed-vocabulary`: sin fuente externa y su único origen es src/lib/vocabularios.js (zona producto): ¿regla general nacida en HoMenu o regla de HoMenu?
-- `deny-when-in-doubt`: sin fuente externa y su único origen es api/sinCredencial.test.js (zona producto): ¿regla general nacida en HoMenu o regla de HoMenu?
-- `plan-evaluated-before-apply`, `rehearsal-undone-and-expires`: sin fuente externa y su único origen es scripts/apply-migration.mjs (zona producto): ¿regla general nacida en HoMenu o regla de HoMenu? (2)
-- `progressive-deploy-with-rollback`: sin fuente externa y su único origen es .claude/skills/vercel/SKILL.md (zona producto): ¿regla general nacida en HoMenu o regla de HoMenu?
-- `status-is-state-machine`: sin fuente externa y su único origen es docs/datos/PRINCIPIOS.md (zona producto): ¿regla general nacida en HoMenu o regla de HoMenu?
-- `buttons-and-free-text`, `calibrate-not-maximise-trust`, `easy-correction-and-undo`, `escalate-by-explicit-triggers`, `escape-hatch-when-lost`, `explain-why`, `keep-context-no-reask`, `no-pretend-human`, `scope-when-in-doubt`, `simple-first-agents`, `state-capabilities-and-limits`: tiene fuente externa (literatura), pero solo vale para un proyecto con bot conversacional (paquete de bots, línea 2 de #652) (11)
 
 ### 2. Fuentes (12)
 
@@ -137,7 +127,7 @@ El orden sigue la dependencia (lo que es registro se separa antes de lo que lo c
 |---|---|---|---|
 | PR 1 | El vigilante primero (punto 7 de #710): test que lee `lado`/`project` de cada registro y falla si una horizontal cita una vertical; techos que solo bajan | tests de vigilancia de lados = 0 | 1 (con los techos de esta tabla) |
 | PR 2 | Entidades: cada una de un lado (sin `both`); las vertical genéricas pasan a horizontal; el glosario hereda el lado de su entidad (se calcula; el campo `scope` en cada término va con el PR 7) | entidades en duda = 0 | 0 |
-| PR 3 | Principios: campo `project` y registro `ops/proyectos/homenu/principios/`; mover los verticales y resolver los de base de datos | verticales fuera de su registro = 0; en duda = 18 | verticales en su registro = todos; en duda = 0 |
+| PR 3 | Principios: campo `project` y registro `ops/proyectos/homenu/principios/`; mover los verticales y resolver los de base de datos | verticales fuera de su registro = 0; en duda = 0 | verticales en su registro = todos; en duda = 0 |
 | PR 4 | Fuentes: campo `project` en las de la casa que son de HoMenu y origen (decisión o fallo) en vez de fuente externa para los principios de proyecto | fuentes verticales sin marcar = 12; en duda = 12 | marcadas = todas; en duda = 0 |
 | PR 5 | Normas dudosas: mover al registro de HoMenu las que sean suyas, o reescribir (sin nombrar el proyecto) las que sean generales | normas horizontales en duda = 46 | 0 (cada una, horizontal limpia o vertical) |
 | PR 6 | Controles: tests de la casa que leen ficheros de HoMenu pasan a recibirlos por referencia (`--proyecto`) o se mueven (el techo `verticales_sin_salida` ya se retiró, #710) | tests de la casa que leen HoMenu = 2; en duda = 10 | 0 y 0 |
@@ -151,8 +141,8 @@ Los PR 2 a 8 son independientes entre sí salvo por el 1; el 3 y el 4 van seguid
 
 Cada una, con la opción recomendada primero; la respuesta decide cuántos de los dudosos de arriba pasan a un lado u otro.
 
-1. **Principios de base de datos con origen solo en `docs/datos/PRINCIPIOS.md`.** A (recomendada): horizontales; se les busca fuente externa (PostgreSQL, Fowler) y `docs/datos/` queda como «cómo los aplica HoMenu». B: verticales, al registro de HoMenu. C: verticales los que dicen «casa» y horizontales el resto.
-2. **Lo que solo vale con un bot conversacional** (principios del área `conversational-ai` y normas de ámbito `bot`). A (recomendada): horizontales con una condición `aplica_si: bot` en el registro. B: un tercer lado, «paquete de bots» (línea 2 de #652). C: verticales de HoMenu.
+1. **Principios de base de datos con origen solo en `docs/datos/PRINCIPIOS.md`. Resuelta por Pablo el 14 oct (opción A):** horizontales, con fuente externa verificada (PostgreSQL, Fowler, Google, HashiCorp…); `docs/datos/` queda como «cómo los aplica HoMenu». Un principio sin fuente que se pueda verificar sigue en duda, dicho.
+2. **Lo que solo vale con un bot conversacional. Resuelta por Pablo el 14 oct (opción B):** forma el «paquete de bots», opcional por proyecto (dominio `bot` de `DOMINIOS_OPCIONALES`, `scripts/lib/ambitos.mjs`); sin tercer lado. Un principio del paquete lleva `dominio: bot` y solo lo cita una norma de ámbito `bot`.
 3. **Entidades marcadas `both`. Resuelta por Pablo el 14 oct (opción A):** cada entidad es de un lado; la clase es horizontal y sus ejemplares son del proyecto. `both` ya no existe y un test lo rechaza.
 4. **Skills de servicio** (hoy en duda: 1password, github, hetzner y tailscale, que están en zona factoría; vercel y supabase ya están en zona producto y cuentan como verticales, pero mezclan igual método y datos del proyecto). A (recomendada): partir cada una en método (casa) y datos del proyecto (ids, bóvedas, repo), que el agente recibe por referencia. B: dejarlos enteros en la casa. C: marcarlos verticales.
 5. **Las zonas de `ops/zonas.json` contradicen la regla de los agentes**: `evaluador`, `qa` y `auditor-datos` están en producto. A (recomendada): moverlos a factoría y que lo vertical llegue por referencia. B: dejar la zona y marcar los tres como duda. C: moverlos a un paquete opcional.

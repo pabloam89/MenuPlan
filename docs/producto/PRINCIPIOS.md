@@ -176,7 +176,6 @@ Cómo habla, decide y se equivoca un bot como Lola.
   - Fuentes: [F] https://www.microsoft.com/en-us/research/articles/guidelines-for-human-ai-interaction-eighteen-best-practices-for-human-centered-ai-design/; [F] https://pair.withgoogle.com/chapter/explainability-trust/.
 - `keep-context-no-reask` — **No repetir preguntas.** Un dato que la persona ya dio se recuerda en vez de pedirse otra vez.
   - Porqué: En los estudios de NN/g, los bots que repiten preguntas cansan a la gente.
-  - Norma: `design-accessible-entry` — **Entrada y acceso accesibles.** Cada pantalla de la app DEBE no pedir datos ya dados ni pruebas cognitivas para entrar, y dar una alternativa al arrastre. Control: juicio (blanda).
   - Norma: `bot-does-not-reask` — **No repetir preguntas.** Cuando la persona ya dio un dato en la conversación o en su ficha, el bot Lola NO DEBE volver a pedírselo. Control: juicio (blanda).
   - Bueno: «Lola usa los comensales que ya constan en la ficha de la casa».
   - Malo: «Lola vuelve a preguntar cuántos comen cada vez que se pide un menú».
@@ -303,6 +302,7 @@ Que lo pueda usar cualquier persona, con cualquier ayuda.
   - Norma: `design-color-not-only-signal` — **Color nunca única señal.** Cada pantalla de la app NO DEBE dar solo con el color un error, un estado o una selección, sin forma, texto o icono. Control: juicio (blanda).
   - Norma: `design-reflow-zoom` — **Reflow y zoom.** Cada pantalla de la app DEBE conservar todo el contenido a 320 píxeles de ancho y con el texto al 200 %. Control: juicio (blanda).
   - Norma: `design-motion-tokens` — **Movimiento por tokens.** Cada pantalla de la app DEBE sacar duración y curva de un token, respetar prefers-reduced-motion y no depender solo de una animación. Control: juicio (blanda).
+  - Norma: `design-accessible-entry` — **Entrada y acceso accesibles.** Cada pantalla de la app DEBE no pedir datos ya dados ni pruebas cognitivas para entrar, y dar una alternativa al arrastre. Control: juicio (blanda).
   - Bueno: «Toda imagen de plato tiene su texto alternativo y los botones se alcanzan con el teclado».
   - Malo: «Un menú solo se puede abrir con el ratón y la foto del plato no tiene descripción».
   - Fuentes: [F] https://www.w3.org/WAI/standards-guidelines/wcag/glance/.
