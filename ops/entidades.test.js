@@ -9,7 +9,10 @@ import {
   CARDINALITIES, CREATORS, FAMILIES, ID_FORMATS, LEVELS, PARENT_KINDS, REGISTRIES, RELATION_CLASSES, RELATIONS, SCOPES, STATUSES, STORED_AS,
   SUBJECT_KINDS, VERBOS_DE_CLASE,
 } from "../scripts/lib/entidades.mjs";
-import { TIPOS as TIPOS_DE_RECURSO } from "../scripts/lib/recursos.mjs";
+import { GENERADORES, contienePalabra, lectoresQueNombran, partirFuente } from "../scripts/lib/lectoresEntidades.mjs";
+import { CONFIRMAN, DUENOS, TIPOS as TIPOS_DE_RECURSO } from "../scripts/lib/recursos.mjs";
+import { QUIENES } from "../scripts/lib/ensayosRollback.mjs";
+import { ACTORES, DEF_ACTORES, MIEMBROS } from "../scripts/lib/eventosVocabulario.mjs";
 import { DEF_PROYECTOS, PROYECTOS } from "../scripts/lib/zonasProyecto.mjs";
 import { VOCABULARIOS, valoresActuales } from "../scripts/lib/vocabulariosVida.mjs";
 import { EVENTOS, INTERVENCION_POR_AVISO, lineaDeEvento } from "../.claude/hooks/eventos.mjs";
@@ -27,7 +30,7 @@ import { bloque, mapa } from "../scripts/mapa-entidades.mjs";
  *     entidad). Los sinónimos prohibidos salen del glosario;
  *  4. relaciones tipadas: a entidades activas que existen, con clase, cardinalidad y verbo que casan, sin repetirse; el fondo dice si
  *     su hijo es evidencia o remedio; la contención (part_of) no da vueltas; toda entidad activa está en alguna;
- *  5. ninguna entidad sin lector, salvo una lista que solo baja; fuentes y lectores que existen (contra `git ls-files`);
+ *  5. ninguna entidad sin lector que la nombre, sin lista de excepciones (criterio en scripts/lib/lectoresEntidades.mjs); fuentes y lectores que existen (contra `git ls-files`);
  *  6. ciclo de vida: una entidad que se quita se borra del registro (el historial queda en git); no hay entidades retiradas;
  *  7. los sujetos de ops/normas.json y de ops/estandares-agentes.json son una entidad, un tipo suyo o quedan fuera con motivo;
  *  8. MAPA.md y el bloque de SUPER-TABLA.md son los generados del JSON (scripts/mapa-entidades.mjs).
@@ -56,26 +59,20 @@ const existe = (r) => (TRACKED ? TRACKED.has(r) || [...TRACKED].some((f) => f.st
 const CENTINELAS = ["ninguno", "sin auditar", "none", "n/a"];
 export const PEDIDAS = ["session", "service", "environment", "event", "norm", "mechanism", "metric", "eval", "team-member"];
 /**
- * Las entidades activas sin lector, con su motivo. SOLO BAJA (#652, «ninguna entidad sin lector»): el test falla si una de la
- * lista ya tiene lector (quítala) y si una que no está en la lista no lo tiene. Subir TOPE_SIN_LECTOR es romper el trinquete.
+ * Los campos de evento sin lector (`tipo.campo`), con su motivo. SOLO BAJA. Ya no hay lista de entidades ni de tipos de evento
+ * sin lector (#748, E5): este campo es el único hueco, justificado: el log lo escribe y nadie lo cuenta aún.
  */
-export const SIN_LECTOR = {
-  "team-member": "Pablo, Álvaro y Manu solo constan en prosa (CLAUDE.md); nada por máquina los lee: decision.assigned_to los nombra en GitHub",
-};
-/** Los tipos de evento sin lector, con su motivo. SOLO BAJA, igual que SIN_LECTOR. Vacía desde que intervencion_humana tiene lector. */
-export const TIPOS_DE_EVENTO_SIN_LECTOR = {};
-/** Los campos de evento sin lector (`tipo.campo`), con su motivo. SOLO BAJA, igual que SIN_LECTOR. */
 export const CAMPOS_DE_EVENTO_SIN_LECTOR = {
   "intervencion_humana.entidad_exigida": "lo escribe el log; nadie lo cuenta aún",
 };
 export const TOPE_CAMPOS_DE_EVENTO_SIN_LECTOR = 1;
-export const TOPE_SIN_LECTOR = 2;
 const REQUERIDOS = ["id", "name", "scope", "level", "family", "term", "source_of_truth", "id_format", "registry", "status", "created_by", "readers"];
 const OPCIONALES = ["note", "fields", "types"];
 const CAMPOS_RELACION = ["from", "relation", "to", "class", "cardinality", "parent_kind", "stored_as", "stored_in"];
 const FORMA_ID = /^[a-z]+(-[a-z]+)*$/;
 const FORMA_ID_CAMPO = /^[a-z]+(_[a-z]+)*$/;
 const FORMA_TIPO = /^[a-z]+(-[a-z]+)*$/;
+const escaparRe = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const aId = (s) => plano(s).replace(/\s+/g, "-");
 const G = leerGlosario(RAIZ);
 const termino = (g, t) => g.terminos.find((x) => x.termino === t && x.estado !== "retirado");
@@ -125,7 +122,31 @@ function problemasDeCamposDeEvento(q, fields, p, vocabularios, relaciones, tipo,
   }
 }
 
-export function problemas(datos, { existe: hay, glosario = null, sinLector = SIN_LECTOR, tiposSinLector = TIPOS_DE_EVENTO_SIN_LECTOR, camposSinLector = CAMPOS_DE_EVENTO_SIN_LECTOR, vocabularios = Object.keys(VOCABULARIOS), eventos = EVENTOS } = {}) {
+/** El texto de un fichero, o null si no se puede leer (no existe, es una carpeta). */
+function leerSiExiste(r) {
+  try {
+    return leer(r);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * El criterio de «lector» (D5, #748): cada lector es una ruta que existe en git, hay uno por lo menos, y al menos uno
+ * (sin contar los generadores del registro) nombra la cosa por límite de palabra (scripts/lib/lectoresEntidades.mjs).
+ */
+function problemasDeLectores(q, cosa, lectores, p, hay, leerLector, que) {
+  for (const r of lectores) {
+    if (typeof r !== "string" || !esRuta(r)) p.push(`${q}: el lector «${r}» no es una ruta de fichero`);
+    else if (hay && !hay(r)) p.push(`${q}: el lector «${r}» no existe en git`);
+  }
+  if (lectores.length === 0) p.push(`${q}: ${que} sin lector (nombra la ruta de quien la lee)`);
+  else if (lectores.every((r) => typeof r === "string" && esRuta(r))) {
+    if (lectoresQueNombran({ ...cosa, readers: lectores }, leerLector).length === 0) p.push(`${q}: ningún lector nombra la ${que} (por id, term, name o su fuente, que tampoco cuenta; los generadores no cuentan): ${lectores.join(", ")}`);
+  }
+}
+
+export function problemas(datos, { existe: hay, glosario = null, leerLector = leerSiExiste, camposSinLector = CAMPOS_DE_EVENTO_SIN_LECTOR, vocabularios = Object.keys(VOCABULARIOS), eventos = EVENTOS } = {}) {
   const p = [];
   const ents = datos.entities ?? [];
   const ids = ents.map((e) => e.id);
@@ -140,7 +161,6 @@ export function problemas(datos, { existe: hay, glosario = null, sinLector = SIN
   const terminosUsados = new Map();
   for (const e of ents) {
     const q = `${e.id}`;
-    const act = e.status === "active";
     if ("definition" in e || "definicion" in e) p.push(`${q}: la definición no va aquí: vive en el glosario (term)`);
     const extra = Object.keys(e).filter((c) => !REQUERIDOS.includes(c) && !OPCIONALES.includes(c) && c !== "definition" && c !== "definicion");
     if (extra.length) p.push(`${q}: campo desconocido ${extra.join(", ")}`);
@@ -160,9 +180,7 @@ export function problemas(datos, { existe: hay, glosario = null, sinLector = SIN
     if (!Array.isArray(e.created_by) || e.created_by.length === 0 || new Set(e.created_by).size !== e.created_by.length || !e.created_by.every((c) => c in CREATORS)) p.push(`${q}: created_by necesita uno o más valores de CREATORS, sin repetir`);
     if (!Array.isArray(e.readers) || !e.readers.every((r) => typeof r === "string" && r.trim())) p.push(`${q}: readers tiene que ser una lista de textos`);
     else {
-      for (const r of e.readers) if (hay && esRuta(r) && !hay(r)) p.push(`${q}: el lector «${r}» no existe en git`);
-      if (act && e.readers.length === 0 && !(q in sinLector)) p.push(`${q}: ninguna entidad sin lector (dile quién la lee, o añádela a SIN_LECTOR con su motivo)`);
-      if (act && e.readers.length > 0 && q in sinLector) p.push(`${q}: ya tiene lector; quítala de SIN_LECTOR (la lista solo baja)`);
+      problemasDeLectores(q, e, e.readers, p, hay, leerLector, "entidad");
     }
     // Una entidad que se quita se borra: no se conserva retirada (el historial queda en git).
     if (e.status === "retired") p.push(`${q}: una entidad retirada se borra del registro (el historial queda en git)`);
@@ -184,7 +202,18 @@ export function problemas(datos, { existe: hay, glosario = null, sinLector = SIN
     } else if (e.scope !== "vertical") p.push(`${q}: solo una entidad vertical puede quedar sin term (su glosario es de proceso)`);
     const f = e.source_of_truth;
     if (typeof f !== "string" || !f.trim()) p.push(`${q}: source_of_truth vacía (di «none»)`);
-    else if (f !== "none" && hay && !hay(f)) p.push(`${q}: la fuente «${f}» no existe en git`);
+    else if (f !== "none") {
+      // La fuente puede llevar el símbolo o la tabla que la nombra: `fichero#SIMBOLO` (lectoresEntidades.mjs, M-k).
+      const { fichero, simbolo } = partirFuente(f);
+      if (hay && !hay(fichero)) p.push(`${q}: la fuente «${f}» no existe en git`);
+      else if (simbolo !== null) {
+        const texto = hay ? leerLector(fichero) : null;
+        if (!simbolo.trim()) p.push(`${q}: la fuente «${f}» tiene el # vacío`);
+        else if (/\.md$/i.test(fichero)) p.push(`${q}: un .md no vale como fuente con símbolo (${f}): nombra de todo y no prueba nada`);
+        else if (/\.json$/i.test(fichero) && typeof texto === "string" && !new RegExp(String.raw`"${escaparRe(simbolo)}"\s*:`).test(texto)) p.push(`${q}: el símbolo «${simbolo}» de la fuente no es una clave de ${fichero} (en un JSON tiene que ser una clave, no una palabra del texto)`);
+        else if (typeof texto === "string" && !contienePalabra(simbolo, texto)) p.push(`${q}: el símbolo «${simbolo}» de la fuente no está en ${fichero}`);
+      }
+    }
     if (e.registry === "with_registry" && f === "none") p.push(`${q}: with_registry pero sin fuente de verdad`);
     if (f === "none" && e.registry !== "without_registry") p.push(`${q}: sin fuente de verdad solo puede ser without_registry`);
     if ("fields" in e) problemasDeCampos(q, e.fields, p);
@@ -234,11 +263,7 @@ export function problemas(datos, { existe: hay, glosario = null, sinLector = SIN
       problemasDeCamposDeEvento(q, t.fields, p, vocabularios, datos.relations ?? [], t, camposSinLector, hay);
     }
     if (!Array.isArray(t.readers)) p.push(`${q}: readers tiene que ser una lista`);
-    else {
-      for (const r of t.readers) if (hay && esRuta(r) && !hay(r)) p.push(`${q}: el lector «${r}» no existe en git`);
-      if (t.readers.length === 0 && !(t.id in tiposSinLector)) p.push(`${q}: ninguna cosa sin lector (dile quién lo lee, o añádelo a TIPOS_DE_EVENTO_SIN_LECTOR con su motivo)`);
-      if (t.readers.length > 0 && t.id in tiposSinLector) p.push(`${q}: ya tiene lector; quítalo de TIPOS_DE_EVENTO_SIN_LECTOR (la lista solo baja)`);
-    }
+    else problemasDeLectores(q, t, t.readers, p, hay, leerLector, "tipo de evento");
   }
   const usadas = new Set();
   const dichas = new Set();
@@ -360,7 +385,7 @@ describe("el registro de entidades", () => {
     expect(DATOS.projects.every((p) => p.id in DEF_PROYECTOS)).toBe(true);
     // la lista de proyectos no es una segunda fuente: ni la descripción ni «ausente = factoría» viven en el registro
     expect(DATOS.projects.filter((p) => "note" in p)).toEqual([]);
-    expect(E("project").source_of_truth).toBe("scripts/lib/zonasProyecto.mjs");
+    expect(E("project").source_of_truth).toBe("scripts/lib/zonasProyecto.mjs#PROYECTOS");
     expect(JSON.stringify([E("project"), ...DATOS.relations.filter((r) => r.to === "project")])).not.toMatch(/raíz implícita|sin project, cuelga/);
     expect(DATOS.relations.find((r) => r.from === "resource" && r.to === "project")).toMatchObject({ stored_as: "field" });
     for (const id of ["environment", "repo", "resource", "design-system", "module"]) expect(hay(id, "belongs_to", "project"), id).toBe(true);
@@ -511,7 +536,7 @@ describe("el registro de entidades", () => {
   });
 
   it("las fuentes citadas existen en git, con las mayúsculas exactas", () => {
-    for (const e of DATOS.entities) if (e.source_of_truth !== "none") expect(existe(e.source_of_truth), e.source_of_truth).toBe(true);
+    for (const e of DATOS.entities) if (e.source_of_truth !== "none") expect(existe(partirFuente(e.source_of_truth).fichero), e.source_of_truth).toBe(true);
     expect(existe("claude.md")).toBe(false);
   });
 
@@ -529,13 +554,50 @@ describe("el registro de entidades", () => {
   });
 });
 
-describe("ninguna entidad sin lector", () => {
-  it("la lista de excepciones es verdad y no puede subir", () => {
-    const sin = DATOS.entities.filter((e) => e.status === "active" && e.readers.length === 0).map((e) => e.id).sort();
-    expect(sin).toEqual(Object.keys(SIN_LECTOR).sort());
-    expect(Object.keys(SIN_LECTOR).length).toBeLessThanOrEqual(TOPE_SIN_LECTOR);
-    expect(DATOS.event_types.filter((t) => t.readers.length === 0).map((t) => t.id).sort()).toEqual(Object.keys(TIPOS_DE_EVENTO_SIN_LECTOR).sort());
-    expect(Object.keys(TIPOS_DE_EVENTO_SIN_LECTOR)).toEqual([]);
+describe("ninguna entidad sin lector que la nombre (sin lista de excepciones)", () => {
+  it("toda entidad activa y todo tipo de evento tienen un lector que existe y la nombra; los generadores no cuentan", () => {
+    const sinNombrar = DATOS.entities.filter((e) => e.status === "active" && lectoresQueNombran(e, leerSiExiste).length === 0).map((e) => e.id);
+    expect(sinNombrar).toEqual([]);
+    const tipos = DATOS.event_types.filter((t) => lectoresQueNombran(t, leerSiExiste).length === 0).map((t) => t.id);
+    expect(tipos).toEqual([]);
+  });
+
+  it("los lectores son rutas (el tipo está cerrado): ninguno es un texto como «Claude Code (...)»", () => {
+    for (const e of DATOS.entities) for (const r of e.readers) expect(esRuta(r) && existe(r), `${e.id}: ${r}`).toBe(true);
+    expect(E("hook").source_of_truth).toBe(".claude/settings.json");
+    expect(E("hook").readers).not.toContain(".claude/settings.json");
+  });
+
+  it("project tiene lectores propios además de los generadores (los de E2 y los de #704)", () => {
+    const propios = E("project").readers.filter((r) => !GENERADORES.includes(r));
+    expect(propios.length).toBeGreaterThanOrEqual(8);
+    for (const r of ["scripts/lib/normas.mjs", "ops/vigilante-lados.test.js", "scripts/lib/recursos.mjs", "scripts/cumplimiento.mjs"]) expect(propios).toContain(r);
+    expect(lectoresQueNombran(E("project"), leerSiExiste)).toEqual(propios);
+  });
+
+  it("el único hueco de lectores es un campo de evento, con su motivo (techo 1)", () => {
+    expect(Object.keys(CAMPOS_DE_EVENTO_SIN_LECTOR)).toEqual(["intervencion_humana.entidad_exigida"]);
+  });
+});
+
+describe("una sola lista de personas (MIEMBROS, D4 de #748)", () => {
+  it("ACTORES, DUENOS, CONFIRMAN y QUIENES salen de MIEMBROS más sus valores especiales", () => {
+    expect(MIEMBROS).toEqual(["pablo", "alvaro"]);
+    expect(ACTORES).toEqual([...MIEMBROS, "app", "desconocido"]);
+    expect(Object.keys(DEF_ACTORES)).toEqual(ACTORES);
+    expect(Object.keys(DUENOS)).toEqual([...MIEMBROS, "ambos", "por-confirmar"]);
+    expect(CONFIRMAN).toEqual([...MIEMBROS, "ambos"]);
+    expect(QUIENES).toEqual(MIEMBROS);
+    for (const t of [...Object.values(DEF_ACTORES), ...Object.values(DUENOS)]) expect(typeof t === "string" && t.trim().length > 0, "cada valor lleva su texto").toBe(true);
+  });
+
+  it("no hay otra lista de personas a mano en esos módulos, y team-member vive en el fichero de MIEMBROS", () => {
+    expect(leer("scripts/lib/ensayosRollback.mjs")).not.toMatch(/\["pablo",\s*"alvaro"\]/);
+    expect(leer("scripts/lib/recursos.mjs")).not.toMatch(/\["pablo",\s*"alvaro"/);
+    expect(E("team-member").source_of_truth).toBe("scripts/lib/eventosVocabulario.mjs#MIEMBROS");
+    expect(E("team-member").readers).toEqual(expect.arrayContaining(["scripts/lib/recursos.mjs", "scripts/lib/ensayosRollback.mjs"]));
+    // PERSONAS de planos.mjs (con «sesion») y ACTORES de flujo.mjs (pasos del flujo) significan otra cosa y no se unen.
+    expect(leer("scripts/lib/planos.mjs")).toMatch(/PERSONAS\s*=\s*\["pablo", "alvaro", "sesion"\]/);
   });
 });
 
@@ -667,11 +729,50 @@ describe("autotest: cada regla falla con datos malos", () => {
 
   it("una entidad sin ninguna relación, y una sin lector", () => {
     expect(con((d) => { d.entities.push({ id: "loose", name: "Suelta", scope: "vertical", level: "piece", family: "home", term: null, source_of_truth: "none", id_format: "none", registry: "without_registry", status: "active", created_by: ["human"], readers: ["ops/entidades.json"] }); })).toMatch(/loose: ninguna relación la nombra/);
-    expect(con((d, e) => { e.readers = []; })).toMatch(/session: ninguna entidad sin lector/);
-    expect(con((d) => { d.entities.find((x) => x.id === "team-member").readers = ["ops/entidades.json"]; })).toMatch(/team-member: ya tiene lector; quítala de SIN_LECTOR/);
+    expect(con((d, e) => { e.readers = []; })).toMatch(/session: entidad sin lector/);
+    expect(con((d, e) => { e.readers = ["Claude Code (.claude/settings.json)"]; })).toMatch(/el lector «Claude Code \(.claude\/settings.json\)» no es una ruta de fichero/);
     expect(con((d, e) => { e.readers = ["ops/no-existe.mjs"]; })).toMatch(/el lector «ops\/no-existe.mjs» no existe en git/);
-    expect(con((d) => { d.event_types[0].readers = []; })).toMatch(/ninguna cosa sin lector/);
-    expect(con((d) => { d.event_types[1].readers = []; })).toMatch(/ninguna cosa sin lector/);
+    expect(con((d) => { d.event_types[0].readers = []; })).toMatch(/tipo de evento sin lector/);
+    expect(con((d) => { d.event_types[1].readers = []; })).toMatch(/tipo de evento sin lector/);
+  });
+
+  it("el criterio de lector (D5): nombrar la entidad por límite de palabra, por su símbolo, y sin documentos ni generadores", () => {
+    const texto = { "ops/falso.mjs": "// los hooks y los modules del repo; personalidad; import { ZONAS } from './zonasProyecto.mjs'", "ops/bueno.mjs": "// cada hook que corre", "ops/solo-doc.mjs": "lee CLAUDE.md" };
+    const leerFalso = (r) => texto[r] ?? null;
+    const base = { id: "hook", name: "Hook", term: "hook", source_of_truth: "none" };
+    // El falso positivo de subcadena: «hooks» no es «hook», «modules» no es «module», «personalidad» no es «persona».
+    expect(lectoresQueNombran({ ...base, readers: ["ops/falso.mjs"] }, leerFalso)).toEqual([]);
+    expect(lectoresQueNombran({ ...base, readers: ["ops/falso.mjs", "ops/bueno.mjs"] }, leerFalso)).toEqual(["ops/bueno.mjs"]);
+    expect(lectoresQueNombran({ id: "module", name: "Módulo", term: "módulo", source_of_truth: "none", readers: ["ops/falso.mjs"] }, leerFalso)).toEqual([]);
+    expect(lectoresQueNombran({ id: "team-member", name: "Miembro del equipo", term: "persona", source_of_truth: "none", readers: ["ops/falso.mjs"] }, leerFalso)).toEqual([]);
+    // Un .md no vale como fuente: CLAUDE.md nombrado no basta; el generador tampoco.
+    expect(lectoresQueNombran({ id: "x-cosa", name: "Cosa", term: null, source_of_truth: "CLAUDE.md", readers: ["ops/solo-doc.mjs"] }, leerFalso)).toEqual([]);
+    expect(lectoresQueNombran({ ...base, readers: ["ops/entidades.test.js"] }, () => "hook")).toEqual([]);
+    // El fichero de la propia fuente no es un lector: es donde vive el dato (el caso de pattern, #803).
+    const conFuente = { id: "pattern", name: "Patrón de diseño", term: "patrón de diseño", source_of_truth: "ops/diseno/bloques.json" };
+    expect(lectoresQueNombran({ ...conFuente, readers: ["ops/diseno/bloques.json"] }, () => "bloques.json")).toEqual([]);
+    expect(lectoresQueNombran({ ...conFuente, readers: ["ops/diseno/bloques.json", "ops/otro.test.js"] }, () => "bloques.json")).toEqual(["ops/otro.test.js"]);
+    // Un módulo se casa por su símbolo, no por el nombre del fichero: importa zonasProyecto.mjs pero solo usa ZONAS.
+    const proyecto = { id: "project", name: "Proyecto", term: "proyecto", source_of_truth: "scripts/lib/zonasProyecto.mjs#PROYECTOS" };
+    expect(lectoresQueNombran({ ...proyecto, term: null, name: "x", id: "x-p", readers: ["ops/falso.mjs"] }, leerFalso)).toEqual([]);
+    expect(lectoresQueNombran({ ...proyecto, term: null, name: "x", id: "x-p", readers: ["ops/falso.mjs"] }, () => "import { PROYECTOS } from './zonasProyecto.mjs'")).toEqual(["ops/falso.mjs"]);
+  });
+
+  it("una fuente con símbolo: el símbolo tiene que estar en el fichero, y un .md no lo admite", () => {
+    expect(con((d) => { d.entities.find((x) => x.id === "team-member").source_of_truth = "scripts/lib/eventosVocabulario.mjs#NO_EXISTE_ESTE_SIMBOLO"; })).toMatch(/el símbolo «NO_EXISTE_ESTE_SIMBOLO» de la fuente no está en scripts\/lib\/eventosVocabulario.mjs/);
+    expect(con((d) => { d.entities.find((x) => x.id === "team-member").source_of_truth = "CLAUDE.md#MIEMBROS"; })).toMatch(/un .md no vale como fuente con símbolo/);
+    expect(con((d) => { d.entities.find((x) => x.id === "team-member").source_of_truth = "scripts/lib/eventosVocabulario.mjs#"; })).toMatch(/tiene el # vacío/);
+  });
+
+  it("un símbolo en una fuente JSON tiene que ser una clave: una palabra suelta del texto no vale", () => {
+    expect(con((d) => { d.entities.find((x) => x.id === "pattern").source_of_truth = "ops/diseno/bloques.json#Patrones"; })).toMatch(/no es una clave de ops\/diseno\/bloques.json/);
+    expect(con((d) => { d.entities.find((x) => x.id === "pattern").source_of_truth = "ops/diseno/bloques.json#Patron_inexistente_xyz"; })).toMatch(/no es una clave de ops\/diseno\/bloques.json/);
+  });
+
+  it("team-member sin sus lectores falla; project solo con generadores falla", () => {
+    expect(con((d) => { d.entities.find((x) => x.id === "team-member").readers = ["package.json"]; })).toMatch(/team-member: ningún lector nombra la entidad/);
+    expect(con((d) => { d.entities.find((x) => x.id === "project").readers = ["ops/entidades.test.js", "docs/entidades/MAPA.md"]; })).toMatch(/project: ningún lector nombra la entidad/);
+    expect(con((d) => { d.entities.find((x) => x.id === "hook").readers = ["Claude Code (.claude/settings.json)"]; })).toMatch(/hook: el lector «Claude Code/);
   });
 
   it("el nombre de una entidad usa un sinónimo que el glosario prohíbe", () => {

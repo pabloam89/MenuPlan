@@ -31,6 +31,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { AVISO_ANTES_DIAS, caducidades as caducidadesDeSkills } from "./skills.mjs";
+import { MIEMBROS } from "./eventosVocabulario.mjs";
 import { PROYECTOS } from "./zonasProyecto.mjs";
 
 export const RUTA_RECURSOS = "ops/recursos.json";
@@ -62,15 +63,19 @@ export const TIPOS = {
   cuenta: "una cuenta o un plan en un servicio",
 };
 
-/** Dueños: personas o `por-confirmar` (ver `confirma`). */
-export const DUENOS = {
+export const POR_CONFIRMAR = "por-confirmar";
+
+const TEXTO_DE_DUENO = {
   pablo: "Pablo (`pabloam89`)",
   alvaro: "Álvaro (`algbarc`)",
-  ambos: "Pablo y Álvaro (Owners del equipo de Vercel)",
-  "por-confirmar": "sin confirmar quién es el dueño",
+  // «ambos» sale de los miembros: sus nombres, sin el usuario entre paréntesis.
+  ambos: `${MIEMBROS.map((m) => String({ pablo: "Pablo", alvaro: "Álvaro" }[m] ?? m)).join(" y ")} (Owners del equipo de Vercel)`,
+  [POR_CONFIRMAR]: "sin confirmar quién es el dueño",
 };
-
-export const POR_CONFIRMAR = "por-confirmar";
+/** Dueños: los miembros (`MIEMBROS`, la lista de personas), `ambos` o `por-confirmar` (ver `confirma`). */
+export const DUENOS = Object.fromEntries([...MIEMBROS, "ambos", POR_CONFIRMAR].map((d) => [d, TEXTO_DE_DUENO[d]]));
+/** Quién puede confirmar lo `por-confirmar`: los dueños menos `por-confirmar` (miembros y `ambos`). */
+export const CONFIRMAN = Object.keys(DUENOS).filter((d) => d !== POR_CONFIRMAR);
 export const SIN_CAD = "sin-caducidad";
 
 /** Estados de un recurso a una fecha (vocabulario cerrado del informe). */
@@ -124,7 +129,7 @@ export function problemasDeForma(r, { raiz, normas = null } = {}) {
   if (esFecha(r.creado) && esFecha(r.caducidad) && r.caducidad < r.creado) malos.push(`${id}: caduca (${r.caducidad}) antes de crearse (${r.creado})`);
   if ("motivo" in r && (typeof r.motivo !== "string" || r.motivo.trim().length < 15)) malos.push(`${id}: «motivo» es una frase (15 caracteres o más): por qué esa caducidad`);
   const sinConfirmar = [r.creado, r.caducidad, r.dueno].includes(POR_CONFIRMAR);
-  if (sinConfirmar && !(typeof r.confirma === "string" && ["pablo", "alvaro", "ambos"].includes(r.confirma))) malos.push(`${id}: tiene algo «${POR_CONFIRMAR}» y no dice quién lo confirma («confirma»: pablo, alvaro o ambos)`);
+  if (sinConfirmar && !(typeof r.confirma === "string" && CONFIRMAN.includes(r.confirma))) malos.push(`${id}: tiene algo «${POR_CONFIRMAR}» y no dice quién lo confirma («confirma»: ${CONFIRMAN.join(", ")})`);
   if (!sinConfirmar && "confirma" in r) malos.push(`${id}: «confirma» sobra: no hay nada «${POR_CONFIRMAR}»`);
   if (!Array.isArray(r.documentado_en) || !r.documentado_en.length) malos.push(`${id}: «documentado_en» es una lista de rutas`);
   else for (const ruta of r.documentado_en) if (raiz && !existsSync(join(raiz, ruta))) malos.push(`${id}: documentado_en «${ruta}» no existe`);

@@ -19,8 +19,11 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { MIEMBROS } from "./eventosVocabulario.mjs";
+
 export const RUTA_ENSAYOS = "ops/ensayos-rollback.json";
-export const QUIENES = ["pablo", "alvaro"];
+/** Quién hace el ensayo: las personas del equipo (`MIEMBROS`). */
+export const QUIENES = [...MIEMBROS];
 export const METODOS = ["panel", "conector"];
 export const ENTORNOS = ["produccion", "staging"];
 export const RESULTADOS = ["ok", "fallo"];
