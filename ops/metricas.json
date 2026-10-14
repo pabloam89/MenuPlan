@@ -589,6 +589,20 @@
     }
   ],
   "informes": {
+    "gh-log": {
+      "ref": ".claude/skills/github/referencias/cuota-graphql.md",
+      "emisor": "scripts/lib/cuotaGh.mjs",
+      "columnas": {
+        "caller": "id",
+        "api": "estado",
+        "identidad": "estado",
+        "sesion": "id",
+        "puntos": "derivado",
+        "medida": "estado",
+        "resultado": "estado",
+        "intento": "derivado"
+      }
+    },
     "planos-semanal": {
       "ref": ".github/workflows/planos-semanal.yml",
       "emisor": "scripts/planos.mjs",
