@@ -29,10 +29,10 @@ mueve nada**: es la tabla que juzga un agente distinto (`revisor`) antes de toca
 
 | Veredicto | Afirmaciones | Destino |
 |---|---|---|
-| `borrar` | 74 | ya viven en `ops/normas.json` (32), en una skill o su plantilla (15), en una regla por carpeta (9), en otro registro, hook o agente (18) |
-| `mover` | 25 | registro de preguntas del proyecto (16), normas nuevas (4), ficha del proyecto (2), norma de HoMenu (1), un principio (1), `ops/mecanismos.json` (1) |
+| `borrar` | 66 | ya viven en `ops/normas.json` o su documento generado (29), en una skill o su plantilla (8), en una regla por carpeta (8), en otro registro, hook o agente (21) |
+| `mover` | 33 | registro de preguntas del proyecto (16), normas nuevas (9), ficha del proyecto, del repo o del entorno (4), una skill (1), norma de HoMenu (1), un principio (1), `ops/mecanismos.json` (1) |
 | `indice` | 9 | se quedan en `CLAUDE.md` como punteros |
-| `pendiente` | 9 | 6 atadas a un test que fija texto en `CLAUDE.md` (D3), 1 por choque de normas (D1), 1 por choque de registros (D2), 1 por el campo de proyecto (D4) |
+| `pendiente` | 9 | 6 atadas a un test que fija texto en `CLAUDE.md` (D3), 1 colgada de la decisión abierta #387 (D1), 1 a la espera de corregir otros registros (D2), 1 por el campo de proyecto (D4) |
 | **Total** | **117** | |
 
 | | Antes | Después (estimado) |
@@ -44,7 +44,12 @@ La estimación cuenta lo que queda: los 9 punteros (con la sección de voz que f
 `.claude/voz.test.js`, ≤12 líneas, y el párrafo de «Pensar en datos»), el minigrafo
 generado de «dónde vive cada cosa» (~10 líneas), la lista de preguntas generada del
 registro del proyecto (~20 líneas) y, en la primera cifra, las 9 `pendiente` tal como
-están (~25 líneas). Desglose de `borrar` por el primer registro que nombra su columna «Destino».
+están (~25 líneas). Desglose de `borrar` por el primer registro que nombra su columna «Destino», recontado fila a fila en esta versión.
+
+Una afirmación es `borrar` solo si **entera** vive ya en otro sitio. Si una parte vive
+y otra no, es `mover`: la columna «Destino» dice qué parte ya vive (y se borra) y a
+dónde va la que falta (filas 22, 32, 39, 41, 42, 46, 48 y 82, corregidas tras el juicio
+del `revisor` del PR #809).
 
 ## Tabla
 
@@ -86,7 +91,7 @@ la que es ejemplar, el destino y el veredicto.
 | 19 | 34 | Reglas de UI: `DESIGN_SYSTEM.md`, `tokens.js`, `docs/diseno/ESTADO.md` | regla por carpeta | ya vive en `.claude/rules/ui.md` | `borrar` |
 | 20 | 35 | Decisiones y hoja de ruta: `ops/DECISIONES.md`, `ops/PLANOS.md` | decision | `CLAUDE.md` (índice, factoría) | `indice` |
 | 21 | 36 | Principios de la casa: `docs/PRINCIPIOS.md`, de `ops/principios/` | principle | `CLAUDE.md` (índice, factoría) | `indice` |
-| 22 | 38 | `pabloartinano/MenuPlan` y OneDrive son restos de antes del 7 oct | resource | ya vive en `.claude/skills/supabase/SKILL.md`, `.claude/skills/tailscale/SKILL.md` y la norma `fuera-de-onedrive` | `borrar` |
+| 22 | 38 | `pabloartinano/MenuPlan` y OneDrive son restos de antes del 7 oct | repo + resource | OneDrive ya vive en la norma `fuera-de-onedrive`. Que `pabloartinano/MenuPlan` es un resto equivocado no vive en ningún sitio (en `.claude/skills/supabase/SKILL.md` L31 y `tailscale/SKILL.md` L26, «pabloartinano» es la organización de Supabase y el PC de Pablo): a la ficha del repo en `ops/entidades.json` (o al minigrafo) | `mover` |
 
 ### «Ramas y flujo» (L40-57)
 
@@ -100,8 +105,8 @@ la que es ejemplar, el destino y el veredicto.
 | 28 | 50-51 | El control que queda: `tests` en verde y el juez `revisor` (quien construye no juzga) | norm | ya vive en `ops/normas.json` (`quien-construye-no-juzga`) | `borrar` |
 | 29 | 51-53 | Un PR que toca `.claude/`, `.github/`, `CLAUDE.md`, hooks o lo que corre con secretos pasa por su juez; nada lo impide | norm | `ops/normas.json` (norma nueva, control `juicio`; ninguna la cubre hoy) | `mover` |
 | 30 | 53 | A `main` solo fusiona Pablo, desde el botón del PR | norm | ya vive en `ops/normas.json` (`main-solo-pablo`) | `borrar` |
-| 31 | 54 | Los rulesets se aplican con `scripts/rulesets.mjs` (Pablo) | skill | ya vive en `.claude/skills/github/SKILL.md` | `borrar` |
-| 32 | 55-56 | Una rama por tarea, prefijo de área y nombre en castellano; lista de prefijos | vocabulary | ya vive en `scripts/tarea.mjs` (`AREAS`, que además tiene `lola` y `roles`: la copia de `CLAUDE.md` está atrasada) | `borrar` |
+| 31 | 54 | Los rulesets se aplican con `scripts/rulesets.mjs` (Pablo) | norm | ya vive en `ops/normas.json` (nota de `rutas-protegidas-aprobacion-de-dueno`: «Los rulesets los aplica Pablo») y en la guardia (aviso de cambiar reglas del repo, `.claude/hooks/avisos-guardia.mjs`); la skill `github` solo dice que `rulesets.mjs` sin `--escribir` lee | `borrar` |
+| 32 | 55-56 | Una rama por tarea, prefijo de área y nombre en castellano; lista de prefijos | vocabulary + norm | Los prefijos ya viven en `scripts/tarea.mjs` (`AREAS`, que además tiene `lola` y `roles`: la copia de `CLAUDE.md` está atrasada). «Nombre en castellano» no vive en ningún sitio (`rule-in-spanish` solo habla de normas): a `ops/normas.json` (norma nueva o ampliar `rule-in-spanish`, como la 77) | `mover` |
 | 33 | 56-57 | Las sesiones de la nube empujan solo a su rama | norm | `ops/normas.json` (norma nueva; `.claude/hooks/nube.mjs` solo reconoce la sesión, no la frena) | `mover` |
 | 34 | 57 | «¿Está en staging?» se mira en `origin/staging` tras `git fetch` | skill + norm | ya vive en `.claude/skills/github/SKILL.md` y `ops/normas.json` (`estado-leido-antes-de-afirmar`) | `borrar` |
 
@@ -113,10 +118,10 @@ la que es ejemplar, el destino y el veredicto.
 | 36 | 62-64 | `npm run tarea` abre la carpeta; `npm run retirar` la cierra si no se pierde nada | skill | ya vive en `.claude/skills/github/SKILL.md` («Carpetas de trabajo») | `borrar` |
 | 37 | 65-66 | Si la tarea es de un issue, su número: la rama lo lleva y el PR lleva `Closes` | norm | ya vive en `ops/normas.json` (`pr-al-dia-y-closes`, `pr-closes-de-su-rama`) | `borrar` |
 | 38 | 67-68 | En la carpeta principal no se trabaja; la guardia no deja | norm | ya vive en `ops/normas.json` (`no-trabajar-en-principal`) | `borrar` |
-| 39 | 68 | Nada de borrar carpetas de trabajo a mano | norm | ya vive en `ops/normas.json` (`uniones-antes-de-borrar`) y `.claude/skills/github/SKILL.md` | `borrar` |
+| 39 | 68 | Nada de borrar carpetas de trabajo a mano | norm | `ops/normas.json` (norma horizontal nueva). Hoy solo la dice el estándar `worktrees-y-ramas` del `constructor` (`ops/estandares-agentes.json`, regla «Borrados de una persona»), que el `orquestador` no ve; `uniones-antes-de-borrar` dice quitar las uniones, no quién borra, y la skill `github` no lo dice | `mover` |
 | 40 | 69 | Si el arranque avisa de otra sesión en tu carpeta, no trabajes ahí | hook | ya vive en el aviso de `.claude/hooks/arranque.mjs` | `borrar` |
-| 41 | 69-70 | App en local: localhost y la IP de la wifi; el login con Google solo vuelve al 5176 | environment | ya vive en `.claude/skills/supabase/SKILL.md`, `scripts/tarea.mjs` y `vite.config.js` | `borrar` |
-| 42 | 70-71 | Primer push: `git push -u origin <rama>` | skill | ya vive en `.claude/skills/github/SKILL.md` | `borrar` |
+| 41 | 69-70 | App en local: localhost y la IP de la wifi, nada más; el login con Google solo vuelve al 5176 | environment | El 5176 ya vive en `.claude/skills/supabase/SKILL.md` (L137), `scripts/tarea.mjs` (L236) y `vite.config.js`. El «nada más» (ninguna otra red ni túnel) no vive en ningún sitio: a la ficha del entorno local del proyecto (D4) | `mover` |
+| 42 | 70-71 | Primer push: `git push -u origin <rama>` | skill | Solo sale de pasada en un aprendizaje de la skill `github` (L150), no como paso: al apartado «Carpetas de trabajo» de `.claude/skills/github/SKILL.md` | `mover` |
 | 43 | 71-72 | Al fusionar tu PR, `npm run retirar` en la misma sesión; la rama remota la borra GitHub | skill | ya vive en `.claude/skills/github/SKILL.md` y `.claude/commands/orquestar.md` | `borrar` |
 | 44 | 72-74 | Ramas viejas fusionadas: `npm run podar` (ensayo) y `--si` | skill | ya vive en `.claude/skills/github/SKILL.md` y `scripts/podar.mjs` | `borrar` |
 
@@ -125,18 +130,18 @@ la que es ejemplar, el destino y el veredicto.
 | # | L | Afirmación | Entidad | Destino | Veredicto |
 |---|---|---|---|---|---|
 | 45 | 78-81 | Fusiona `origin/staging`; la guardia no deja abrir ni fusionar atrasado; `gh pr update-branch` | norm | ya vive en `ops/normas.json` (`pr-al-dia-y-closes`) y `.claude/skills/github/SKILL.md` | `borrar` |
-| 46 | 82-83 | `git status --short` y añadir por nombre solo lo tuyo | norm | ya vive en `ops/normas.json` (`sin-git-add-todo`) y el aviso `add-a-ciegas` | `borrar` |
+| 46 | 82-83 | `git status --short` y añadir por nombre solo lo tuyo; si un fichero mezcla lo tuyo con lo de otro, dilo en el mensaje o déjalo fuera | norm | Añadir por nombre ya vive en `ops/normas.json` (`sin-git-add-todo`) y el aviso `add-a-ciegas`. Lo del fichero mezclado no vive en ningún sitio: a `ops/normas.json` (norma horizontal nueva, control `juicio`, o la nota de `sin-git-add-todo`) | `mover` |
 | 47 | 84-86 | `npm run vecinos`: lo tocado más los vigilantes de conjunto | regla por carpeta | ya vive en `.claude/rules/tests.md` y `ops/vigilantes.json` | `borrar` |
-| 48 | 87-91 | Suite, build y lint en el CI; suite local solo si es transversal; el lint cuenta la lista | norm | ya vive en `ops/normas.json` (`tests-del-fichero`, `lint-con-linea-base`) y `.claude/rules/tests.md` | `borrar` |
+| 48 | 87-91 | Suite, build y lint en el CI; esperarlo con una consulta espaciada, sin sondear; suite local solo si es transversal (y cuándo lo es); el lint cuenta la lista | norm | El CI y el lint ya viven en `ops/normas.json` (`tests-del-fichero`, `lint-con-linea-base`) y `.claude/rules/tests.md`. No viven: esperar el CI sin sondear (el script `espera-ci` lo hace, ninguna norma lo pide) y la lista de cuándo se corre la suite entera en local (`package.json`, `vite.config.js`, `scripts/lib/`, hooks, sin otra sesión pesada): a la nota de `tests-del-fichero` y una norma nueva de espera del CI | `mover` |
 | 49 | 92-93 | Un test nuevo se ve fallar antes de creérselo | norm | ya vive en `ops/normas.json` (`test-visto-fallar`) y `.claude/rules/tests.md` | `borrar` |
-| 50 | 94-96 | El PR lleva `Closes #n` y `Agente:` | norm | ya vive en `ops/normas.json` (`pr-agente-y-closes-en-ci`) | `borrar` |
+| 50 | 94-96 | El PR lleva `Closes #n` por cada encargo o fondo que cierra, y `Agente:` | norm | ya vive en `ops/normas.json` (`pr-agente-y-closes-en-ci`, que solo pide el `Closes` de la rama con número), `.github/pull_request_template.md` (L3, «por cada encargo o problema de fondo») y `.claude/skills/issues/SKILL.md` (L113) | `borrar` |
 
 ### «Base de datos» (L98-115)
 
 | # | L | Afirmación | Entidad | Destino | Veredicto |
 |---|---|---|---|---|---|
 | 51 | 100-101 | Solo hay una base y es la de producción | environment | ya vive en `.claude/rules/migraciones.md` (L8) y `ops/INVENTARIO.md` | `borrar` |
-| 52 | 103-105 | Aplicar (`--si`) lo lanza Pablo hasta E5 (#331); las sesiones leen con la URL de lectura | norm + decision | choca con `ops/DECISIONES.md` (2026-10-08), `.claude/rules/migraciones.md` (L19) y `.claude/skills/supabase/SKILL.md`, que dicen que lo lanza la sesión | `pendiente` (D2) |
+| 52 | 103-105 | Aplicar (`--si`) lo lanza Pablo hasta E5 (#331); las sesiones leen con la URL de lectura | norm + decision | Acierta hoy (sin URL de administrador, #328); los registros que dicen que lo lanza la sesión están atrasados y se corrigen antes de borrarla de aquí | `pendiente` (D2) |
 | 53 | 105-108 | El script pide staging, ensayo de menos de una hora y el OK de `auditor-datos`; `CONTRAE` o RLS, `--pablo`; excepción #440 | norm | ya vive en `ops/normas.json` (`aplicar-migracion-con-permiso`, `migracion-pablo-solo-pablo`) y `.claude/rules/migraciones.md` | `borrar` |
 | 54 | 109-110 | El código no depende de que la migración ya esté: plan B | norm | ya vive en `ops/normas.json` (`plan-b-migracion`) y `.claude/rules/migraciones.md` | `borrar` |
 | 55 | 111 | Ningún campo ni tabla sin lector; cada dato en un solo sitio | norm | ya vive en `ops/normas.json` (`campo-con-lector`) y `.claude/rules/migraciones.md` | `borrar` |
@@ -186,7 +191,7 @@ la que es ejemplar, el destino y el veredicto.
 | 79 | 189-190 | Edita con Edit/Write | norm | ya vive en `ops/normas.json` (`edicion-con-edit-y-write`) | `borrar` |
 | 80 | 191-192 | Regex sobre nombres de alimento: `\b` por defecto | regla por carpeta | ya vive en `.claude/rules/catalogo.md` | `borrar` |
 | 81 | 193-194 | Gemini para imágenes, Anthropic para texto | norm (HoMenu) | `ops/proyectos/homenu/normas.json` (hoy solo en `.claude/rules/api.md` y `lola.md`, que no saltan en `scripts/`) | `mover` |
-| 82 | 195 | No cambies de rama con cambios sin commitear | norm | ya vive en `ops/estandares-agentes.json` (tarea `worktrees-y-ramas`) y el principio 2 de `.claude/agents/constructor.md` | `borrar` |
+| 82 | 195 | No cambies de rama con cambios sin commitear | norm | `ops/normas.json` (norma horizontal nueva). Hoy solo la dice el principio 2 de `.claude/agents/constructor.md` (L79-80), que el `orquestador` no ve; la guardia frena cambiar de rama en la carpeta principal, no con cambios sin commitear | `mover` |
 | 83 | 196-198 | La hora es la de Madrid y sale de `npm run hora`; la hora límite la calcula el script | norm | ya vive en `ops/normas.json` (`hora-de-madrid`) y el `CLAUDE.md` de usuario | `borrar` |
 
 ### «Pensar en datos» (L200-220)
@@ -214,7 +219,7 @@ dice la norma que ya la cubre, si hay; la lista se borra de `CLAUDE.md` cuando s
 | 93 | 238 | Ampliar permisos de `.claude/settings.json` | pregunta a Pablo | `permisos-ok-pablo` | `mover` |
 | 94 | 239 | Reescribir historia de una rama que no es tuya | pregunta a Pablo | `push-forzado-con-permiso` | `mover` |
 | 95 | 243-245 | Autorizado: leer producción con `npm run consulta`, `verificar-estado`, ensayos | pregunta a Pablo | `rol-solo-lectura` | `mover` (`scripts/consulta.test.js` exige hoy el texto en `CLAUDE.md`: se cambia con el generador) |
-| 96 | 246-247 | Autorizado: aplicar las migraciones que el script deja | pregunta a Pablo | `aplicar-migracion-con-permiso` | `mover` (ver D2) |
+| 96 | 246-247 | Autorizado: aplicar las migraciones que el script deja | pregunta a Pablo | `aplicar-migracion-con-permiso` | `mover` (ver D2: hoy está atrasada, porque las sesiones no tienen la URL de administrador) |
 | 97 | 248-249 | Autorizado: issues y etiquetas | pregunta a Pablo | `issues-con-buscar-antes` | `mover` |
 | 98 | 250-252 | Autorizado: hooks, guardia, reglas, skills y agentes por PR con juez; fusionar a staging | pregunta a Pablo | `rutas-protegidas-aprobacion-de-dueno` | `mover` (ver D1) |
 | 99 | 253-254 | Autorizado: ajustes del repo que no tocan permisos ni producción | pregunta a Pablo | ninguna | `mover` |
@@ -291,7 +296,7 @@ queda escrita; si `CLAUDE.md` era el único sitio, se propone otro.
 | `push-forzado-con-permiso` | norma horizontal | `.claude/hooks/guardia.mjs`, `nube.mjs` | |
 | `build-con-prebuild` | norma de HoMenu | `.claude/hooks/guardia.mjs`, `nube.mjs` | Vite y el `prebuild` que valida el catálogo son de HoMenu |
 | `edicion-con-edit-y-write` | norma horizontal | `.claude/hooks/guardia.mjs`, `nube.mjs` | |
-| `fusiona-otro-que-el-constructor` | — | — | `pendiente` (D1): choca con `CLAUDE.md` L44-45 y #608 |
+| `fusiona-otro-que-el-constructor` | — | — | `pendiente` (D1): es la decisión abierta #387, su campo `issue` |
 
 Resumen: 27 normas horizontales (8 tenían `CLAUDE.md` como único `donde` y se les
 propone otro), 2 que repiten un principio (`vocabulario-cerrado` también tenía
@@ -300,13 +305,17 @@ Seis nombran a Pablo y esperan D5. Ningún id cambia.
 
 ## Decisiones pendientes
 
-- **D1. ¿Quién fusiona un PR a staging?** `CLAUDE.md` (L44-45) y #608 dicen que la
-  propia sesión; la norma `fusiona-otro-que-el-constructor` dice que alguien distinto
-  del constructor. Una de las dos sobra.
-- **D2. ¿Quién lanza `apply-migration --si`?** `CLAUDE.md` (L103) dice Pablo hasta E5
-  (#331), porque las sesiones no tienen la URL de administrador (#328);
-  `ops/DECISIONES.md` (2026-10-08), `.claude/rules/migraciones.md` (L19), la skill
-  `supabase` y «Autorizado de forma permanente» (L246) dicen que la sesión.
+- **D1. ¿Quién fusiona un PR a staging?** No es nueva: es la decisión abierta #387
+  («¿endurecer "quien construye no juzga" antes de la fase E?»), de la que ya cuelga la
+  norma `fusiona-otro-que-el-constructor` (campo `issue`). Hoy `CLAUDE.md` (L44-45) y
+  #608 dicen que la propia sesión; la fila 25 espera a #387.
+- **D2. No es una decisión: es una corrección pendiente.** `CLAUDE.md` (L103) acierta
+  hoy: aplicar una migración lo lanza Pablo hasta E5 (#331), porque las sesiones no
+  tienen la URL de administrador (#328, cerrado; `ops/INVENTARIO.md` L68,
+  `ops/env.1password` L38-39). Están atrasados y hay que corregirlos, a la espera de E5:
+  `.claude/rules/migraciones.md` (L19), `ops/DECISIONES.md` (L23, fila del 2026-10-08),
+  `.claude/skills/supabase/SKILL.md` (L101) y la propia «Autorizado de forma permanente»
+  de `CLAUDE.md` (L246). Hasta entonces la fila 52 no se borra.
 - **D3. Cinco tests fijan texto en `CLAUDE.md`** y bloquean borrar sus copias:
   `.claude/agentes.test.js` (todos los agentes), `.claude/skills.test.js` (todas las
   skills), `.claude/voz.test.js` (sección de voz con el `orquestador` y la frase del
@@ -329,3 +338,21 @@ Seis nombran a Pablo y esperan D5. Ningún id cambia.
   `casa-claude` y `casa-docs-ops-sin-claude-md` lo dan como fuente. Al vaciarlo, esas
   citas apuntan a texto que ya no está: hay que reapuntarlas al registro nuevo en la
   misma ronda que borre.
+
+## Para la ronda que borre
+
+- **El test «cada negativa de la guardia tiene su norma» ya existe en parte**
+  (`ops/normas.test.js`, desde L378): cada aviso de `.claude/hooks/avisos-guardia.mjs`
+  lleva el código de una norma que existe, cada `deny(` y `ask(` de `guardia.mjs` nombra
+  un aviso dado de alta y ninguno queda sin usar. Falta la dirección contraria: que cada
+  norma con `ejecutor: guardia` tenga al menos un aviso o una excepción declarada. Hoy
+  son 26 y 4 no tienen aviso (`pendientes-a-issue`, `fuera-de-onedrive`,
+  `eventos-de-hooks-registrados`, `estado-leido-antes-de-afirmar`): o se les corrige el
+  ejecutor o se declaran como excepción con su porqué.
+- **Quién lee cada norma blanda y cuándo.** `CLAUDE.md` lo carga toda sesión y todo
+  agente; una norma blanda (control `juicio`, sin hook) que solo vive ahí se lee siempre.
+  Al quitarla y dejarla en `ops/normas.json`, en una skill o en un estándar, solo la lee
+  quien abre ese fichero (el estándar del `constructor`, por ejemplo, no lo ve el
+  `orquestador`): pierde alcance. Antes de borrar hay que apuntar, por cada norma blanda,
+  quién la lee y en qué momento (brief, regla por carpeta, skill, juez), y si nadie la
+  lee fuera de `CLAUDE.md`, darle un lector o dejarla.
