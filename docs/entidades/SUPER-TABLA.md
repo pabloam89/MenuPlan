@@ -87,7 +87,7 @@ de recurso, y su historial queda en git. El resto de este documento, hasta la se
 | `plane` | measure | meta | horizontal | no | agent, human | `ops/planos.json` (with_registry) | scripts/planos.mjs, ops/planos.test.js | — |
 | `agent-task` | agents | piece | horizontal | no | agent | `ops/estandares-agentes.json` (with_registry) | scripts/estandares-agentes.mjs, ops/estandares-agentes.test.js, docs/ops/ESTANDARES.md | agent |
 | `workflow` | delivery | piece | both | sí | agent | `.github/workflows` (partial) | ops/workflows.test.js, ops/salud-despliegue.test.js | repo |
-| `project` | structure | piece | horizontal | no | human | `ops/entidades.json` (with_registry) | ops/entidades.test.js, docs/entidades/MAPA.md | — |
+| `project` | structure | piece | horizontal | no | human | `scripts/lib/zonasProyecto.mjs` (with_registry) | ops/entidades.test.js, docs/entidades/MAPA.md | — |
 | `repo` | structure | piece | vertical | no | human | `ops/entidades.json` (partial) | ops/planos.json, scripts/rulesets.mjs | project |
 | `design-system` | design | piece | vertical | no | agent | `src/design/tokens.js` (partial) | ops/diseno/bloques.json, ops/diseno/bloques.test.js, .claude/skills/revision-de-diseno/SKILL.md, .claude/agents/constructor.md | project |
 | `design-profile` | design | template | horizontal | no | agent | `ops/diseno/bloques.json` (with_registry) | ops/diseno/bloques.test.js, .claude/skills/revision-de-diseno/SKILL.md, .claude/agents/constructor.md | — |
@@ -193,7 +193,7 @@ Modelo propuesto:
 
 | Capa | Qué es | Entidad |
 |---|---|---|
-| Factoría | la raíz implícita: equipo, reglas y mecanismos que valen para todos | **no se crea**: sería una fila con un solo lector; se expresa con `project` vacío |
+| Factoría | el proceso: equipo, reglas y mecanismos que valen para todos | **no se crea como entidad**: es un valor más de `proyecto` (`factoria`, en scripts/lib/zonasProyecto.mjs) |
 | Proyecto | HoMenu, panel | **sí, `project`**: id, nombre, repos, servicios que usa, estado |
 | Entorno o instancia | staging, producción; el sistema de diseño de un proyecto | `environment` gana `project`; el sistema de diseño es la instancia de diseño |
 | Programa o Portfolio | agrupar proyectos | **no**: sin lector (2 proyectos, equipo de 3) |

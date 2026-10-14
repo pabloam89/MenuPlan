@@ -44,7 +44,7 @@ Sus piezas no cuelgan de ningún proyecto.
 | `standard` | Estándar | horizontal | piece | rules | estándar | `ops/estandares-agentes.json` | with_registry |
 | `plane` | Plano | horizontal | meta | measure | plano | `ops/planos.json` | with_registry |
 | `agent-task` | Tarea de agente | horizontal | piece | agents | tarea de agente | `ops/estandares-agentes.json` | with_registry |
-| `project` | Proyecto | horizontal | piece | structure | proyecto | `ops/entidades.json` | with_registry |
+| `project` | Proyecto | horizontal | piece | structure | proyecto | `scripts/lib/zonasProyecto.mjs` | with_registry |
 | `design-profile` | Perfil de diseño | horizontal | template | design | perfil de diseño | `ops/diseno/bloques.json` | with_registry |
 | `assignment-type` | Tipo de encargo | horizontal | template | work | tipo de encargo | `ops/tipos-de-encargo.json` | with_registry |
 
@@ -109,12 +109,13 @@ Qué es cada una a cada lado:
 
 ## Proyectos
 
-La factoría es la raíz implícita: una pieza sin proyecto cuelga de ella.
+Los ids son los de `PROYECTOS` (scripts/lib/zonasProyecto.mjs); `factoria` es un valor más, sin repositorio propio.
 
-| id | Nombre | Repositorios | Nota |
+| id | Nombre | Repositorios | Qué es |
 |---|---|---|---|
-| `homenu` | HoMenu | `pabloam89/MenuPlan` | El producto: la app y Lola. Comparte repo con la factoría. |
-| `panel` | Panel de la factoría | `pabloam89/homenu-panel` | Herramienta interna con su propio repo privado y su servidor. |
+| `homenu` | HoMenu | `pabloam89/MenuPlan` | HoMenu / MenuPlan: la app, Lola y su base; este repo |
+| `panel` | Panel de la factoría | `pabloam89/homenu-panel` | el panel de la factoría (repo homenu-panel, en el servidor): un visor de lo que mide la factoría |
+| `factoria` | Factoría |  | la propia factoría: el trabajo sobre el proceso, no sobre un producto |
 
 ## Estructura: tipo de, parte de, hijo de
 
@@ -173,7 +174,7 @@ flowchart LR
 | `environment` | belongs_to | `project` | many_to_one | ningún campo: hoy solo en la prosa de ops/INVENTARIO.md |
 | `repo` | belongs_to | `project` | many_to_one | file: projects[].repos (este fichero) |
 | `norm` | belongs_to | `project` | many_to_one | field: project (solo las normas verticales, en ops/proyectos/<id>/normas.json); una norma horizontal no lo lleva y cuelga de la factoría (#704) |
-| `resource` | belongs_to | `project` | many_to_one | ningún campo: recursos.json no guarda de qué proyecto es cada recurso (sin campo); sin project, cuelga de la factoría |
+| `resource` | belongs_to | `project` | many_to_one | field: proyecto (ops/recursos.json): obligatorio, un valor de PROYECTOS (scripts/lib/zonasProyecto.mjs) |
 | `design-system` | belongs_to | `project` | many_to_one | ningún campo: hoy solo en la prosa de docs/diseno/META-DISENO.md |
 | `module` | belongs_to | `project` | many_to_one | ningún campo: todos son de HoMenu; MODULOS.json no lo dice |
 | `table` | belongs_to | `module` | many_to_one | field: tablas.<t>.dueno (MODULOS.json) |

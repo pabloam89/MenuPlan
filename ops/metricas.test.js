@@ -39,8 +39,8 @@ const BUENO = () => ({
   lineas: [{ firma: "indicador", emisores: ["scripts/lib/cumplimiento.mjs"], campos: { indicador: "id_metrica", valor: "metrica", umbral: "umbral", estado: "estado" } }],
   informes: {},
   metricas: [
-    { id: "fondos_sin_diagnostico", objetivo: "prueba", pregunta: "¿Cuántos fondos no tienen diagnóstico?", emisor: "scripts/lib/cumplimiento.mjs", sale_en: [{ indicador: "indicador" }], lectores: [{ tipo: "informe", ref: ".github/workflows/flujo-semanal.yml", menciona: "scripts/cumplimiento.mjs --informe" }], unidad: "cuenta", umbral: 0, vigilante: "encargos_sin_juez", muestra: "Leer dos fondos al mes y ver su mecanismo" },
-    { id: "encargos_sin_juez", objetivo: "prueba", pregunta: "¿Cuántos encargos no tienen juez?", emisor: "scripts/lib/cumplimiento.mjs", sale_en: [{ indicador: "indicador" }], lectores: [{ tipo: "informe", ref: ".github/workflows/flujo-semanal.yml", menciona: "scripts/cumplimiento.mjs --informe" }], unidad: "cuenta", umbral: null, vigilante: "fondos_sin_diagnostico" },
+    { id: "fondos_sin_diagnostico", objetivo: "prueba", proyecto: "factoria", pregunta: "¿Cuántos fondos no tienen diagnóstico?", emisor: "scripts/lib/cumplimiento.mjs", sale_en: [{ indicador: "indicador" }], lectores: [{ tipo: "informe", ref: ".github/workflows/flujo-semanal.yml", menciona: "scripts/cumplimiento.mjs --informe" }], unidad: "cuenta", umbral: 0, vigilante: "encargos_sin_juez", muestra: "Leer dos fondos al mes y ver su mecanismo" },
+    { id: "encargos_sin_juez", objetivo: "prueba", proyecto: "factoria", pregunta: "¿Cuántos encargos no tienen juez?", emisor: "scripts/lib/cumplimiento.mjs", sale_en: [{ indicador: "indicador" }], lectores: [{ tipo: "informe", ref: ".github/workflows/flujo-semanal.yml", menciona: "scripts/cumplimiento.mjs --informe" }], unidad: "cuenta", umbral: null, vigilante: "fondos_sin_diagnostico" },
   ],
   excepciones: [],
 });
@@ -65,6 +65,8 @@ describe("1. el registro está bien", () => {
     expect(problemasDelRegistro(BUENO(), { leer })).toEqual([]);
   });
   it("cada regla falla con datos malos", () => {
+    expect(con((d) => { delete d.metricas[0].proyecto; })).toMatch(/proyecto «undefined» no es de homenu, panel, factoria \(es obligatorio\)/);
+    expect(con((d) => { d.metricas[0].proyecto = "inventado"; })).toMatch(/proyecto «inventado» no es de/);
     expect(con((d) => { d.metricas[0].lectores = []; })).toMatch(/sin lector/);
     expect(con((d) => { d.metricas[0].lectores[0].menciona = "algo que no está en el fichero"; })).toMatch(/no nombra/);
     expect(con((d) => { d.metricas[0].lectores[0].ref = ".github/workflows/no-existe.yml"; })).toMatch(/no existe/);

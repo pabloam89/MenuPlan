@@ -17,6 +17,7 @@ import { fileURLToPath } from "node:url";
 import { AMBITOS } from "./ambitos.mjs";
 import { FORMA, MAX_DIAS, RETIRADA_FORMAS_ANTIGUAS } from "./excepciones.mjs";
 import { MIN_EXCEPTUADAS, RESULTADOS_NORMA } from "./medicionNormas.mjs";
+import { PROYECTOS_CON_NORMAS } from "./zonasProyecto.mjs";
 import { VEREDICTOS } from "./escalas.mjs";
 import { CONTROL_JUICIO, FUERZAS, ID_KEBAB, fraseDeRegla, problemasDeRegla, problemasDeSujetos } from "./regla.mjs";
 import { esFicheroDeJuez, motivoFicheroSinNorma } from "./testDelJuez.mjs";
@@ -155,11 +156,6 @@ export function ordenDePrecedencia(raiz = join(dirname(fileURLToPath(import.meta
 export const RUTA_PROYECTOS = "ops/proyectos";
 export const rutaNormasDeProyecto = (id) => `${RUTA_PROYECTOS}/${id}/normas.json`;
 
-/** Los ids de proyecto de ops/entidades.json (`projects`), la lista contra la que se valida `project`. */
-export function proyectosDeEntidades(raiz) {
-  return JSON.parse(readFileSync(join(raiz, "ops", "entidades.json"), "utf8")).projects.map((p) => p.id);
-}
-
 /**
  * El cargador común de normas (#704, programa #652). Las horizontales (la factoría) viven en ops/normas.json; las verticales
  * (conducta del producto de un proyecto) en el registro de su proyecto, ops/proyectos/<id>/normas.json. Devuelve
@@ -189,10 +185,10 @@ export function leerRegistro(raiz) {
 
 /**
  * Errores de dónde vive cada norma (#704): ninguna vertical en el registro horizontal ni al revés, cada vertical con un
- * `project` válido (de ops/entidades.json) que es el de su registro, y ninguna horizontal con `project`.
- * `carga`: lo que da cargarNormas; `proyectos`: los ids válidos.
+ * `project` válido (de PROYECTOS_CON_NORMAS, scripts/lib/zonasProyecto.mjs: los proyectos menos `factoria`) que es el de su registro, y ninguna horizontal con `project`.
+ * `carga`: lo que da cargarNormas; `proyectos`: los ids válidos (por defecto PROYECTOS_CON_NORMAS: una vertical nunca dice `factoria`).
  */
-export function problemasDeProyectos(carga, proyectos) {
+export function problemasDeProyectos(carga, proyectos = PROYECTOS_CON_NORMAS) {
   const malos = [];
   for (const n of carga.horizontales) {
     if (n.lado !== "horizontal") malos.push(`${n.id}: está en ops/normas.json y su lado es «${n.lado}»; una norma vertical va al registro de su proyecto (${RUTA_PROYECTOS}/<id>/normas.json)`);
@@ -200,12 +196,12 @@ export function problemasDeProyectos(carga, proyectos) {
   }
   for (const [id, r] of Object.entries(carga.ficheros)) {
     const ruta = rutaNormasDeProyecto(id);
-    if (!proyectos.includes(id)) malos.push(`${ruta}: «${id}» no es un proyecto de ops/entidades.json (${proyectos.join(", ")})`);
+    if (!proyectos.includes(id)) malos.push(`${ruta}: «${id}» no es un proyecto con normas de zonasProyecto.mjs (${proyectos.join(", ")})`);
     if (r.project !== id) malos.push(`${ruta}: su «project» es «${r.project}» y la carpeta es «${id}»`);
     for (const n of r.normas) {
       if (n.lado !== "vertical") malos.push(`${n.id}: está en ${ruta} y su lado es «${n.lado}»; una norma horizontal va a ops/normas.json`);
       if (n.project !== id) malos.push(`${n.id}: su «project» es «${n.project}» y vive en el registro de «${id}»`);
-      if (!proyectos.includes(n.project)) malos.push(`${n.id}: «project» «${n.project}» no es un proyecto de ops/entidades.json`);
+      if (!proyectos.includes(n.project)) malos.push(`${n.id}: «project» «${n.project}» no es un proyecto con normas de zonasProyecto.mjs (${proyectos.join(", ")})`);
     }
   }
   return malos;

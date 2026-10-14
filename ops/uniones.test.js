@@ -12,7 +12,8 @@ import { MIN_PALABRAS_COPIA, cargarSkill, nombresDeSkills, parsearSkill, problem
 import {
   TECHO_NORMAS_SIN_JUEZ, TECHO_REGLAS_QUE_NO_SON_NORMA, accionesDeConsulta, juecesPorNorma, normaReescrita, parecido, problemasDeEmparejamiento, reglasDelCatalogo, leerEstandares, normasDeTarea, normasHuerfanas, verticalesEnEstandares, problemasDeUnionesEstandar, tareasDe,
 } from "../scripts/lib/estandaresAgentes.mjs";
-import { cargarNormas, leerRegistro, problemasDeProyectos, sinControlDeTest, proyectosDeEntidades } from "../scripts/lib/normas.mjs";
+import { PROYECTOS_CON_NORMAS } from "../scripts/lib/zonasProyecto.mjs";
+import { cargarNormas, leerRegistro, problemasDeProyectos, sinControlDeTest } from "../scripts/lib/normas.mjs";
 import { leerN2 } from "../scripts/lib/estandaresN2.mjs";
 import { TECHO_PRINCIPIOS_QUE_REPITEN, TECHO_SIN_NORMA, leerPrincipiosCasa, principiosQueRepitenSuNorma, problemasDeUniones } from "../scripts/lib/principios.mjs";
 
@@ -328,7 +329,7 @@ describe("toda norma horizontal llega a algún agente (#683, #704, fondo #652)",
 describe("las normas del proyecto no van en un estándar horizontal (#704, fondo #652)", () => {
   const estandares = leerEstandares(RAIZ);
   const carga = cargarNormas(RAIZ);
-  const proyectos = proyectosDeEntidades(RAIZ);
+  const proyectos = PROYECTOS_CON_NORMAS;
   const TECHOS = JSON.parse(readFileSync(join(RAIZ, "ops/normas-techos.json"), "utf8"));
   const sinTest = TECHOS.verticales_sin_test_excepciones ?? {};
 

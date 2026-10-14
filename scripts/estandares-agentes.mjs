@@ -24,7 +24,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { ficherosDeLaRama } from "./lib/vecinos.mjs";
 import { leerPrecedencia } from "./lib/precedencia.mjs";
-import { proyectosDeEntidades } from "./lib/normas.mjs";
+import { PROYECTOS_CON_NORMAS } from "./lib/zonasProyecto.mjs";
 import { bajarJuicioMaximo, contar, contarJuicio, escribirMd, escribirSecciones, leerEstandares, leerNormasEn, textoDeComun, textoDeTarea } from "./lib/estandaresAgentes.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -37,8 +37,8 @@ if (todos.includes("--diff")) ficheros.push(...ficherosDeLaRama(RAIZ));
 // --proyecto <id> (o --proyecto=<id>): suma las normas de ese proyecto, por referencia.
 const iProy = todos.findIndex((a) => a === "--proyecto" || a.startsWith("--proyecto="));
 const proyecto = iProy < 0 ? null : (todos[iProy].includes("=") ? todos[iProy].split("=")[1] : todos[iProy + 1] ?? "").trim() || null;
-if (iProy >= 0 && !proyecto) { console.error("--proyecto pide un id de proyecto (ops/entidades.json), p. ej. --proyecto homenu"); process.exit(1); }
-if (proyecto && !proyectosDeEntidades(RAIZ).includes(proyecto)) { console.error(`«${proyecto}» no es un proyecto de ops/entidades.json (${proyectosDeEntidades(RAIZ).join(", ")})`); process.exit(1); }
+if (iProy >= 0 && !proyecto) { console.error("--proyecto pide un id de proyecto (scripts/lib/zonasProyecto.mjs), p. ej. --proyecto homenu"); process.exit(1); }
+if (proyecto && !PROYECTOS_CON_NORMAS.includes(proyecto)) { console.error(`«${proyecto}» no es un proyecto con normas de scripts/lib/zonasProyecto.mjs (${PROYECTOS_CON_NORMAS.join(", ")})`); process.exit(1); }
 const salta = (i) => (iFich >= 0 && (i === iFich || (i === iFich + 1 && !todos[iFich].includes("=")))) || (iProy >= 0 && (i === iProy || (i === iProy + 1 && !todos[iProy].includes("="))));
 const args = todos.filter((a, i) => a !== "--diff" && !salta(i));
 const datos = leerEstandares(RAIZ);

@@ -733,6 +733,17 @@
       "plato_normal": "",
       "guarnicion": ""
     },
+    "recursos.tipo": {
+      "clave": "una clave o contraseña de un servicio",
+      "token": "un token de acceso con caducidad propia",
+      "app": "una App (GitHub App): la App en sí; su clave privada es una entrada de tipo clave",
+      "deploy-key": "una deploy key del repo",
+      "boveda": "una bóveda de 1Password",
+      "service-account": "una service account de 1Password",
+      "proyecto-servicio": "un proyecto de un servicio (Vercel, Supabase); no es un proyecto de la factoría (campo `proyecto`)",
+      "servidor": "un servidor",
+      "cuenta": "una cuenta o un plan en un servicio"
+    },
     "ruido.veredicto": {
       "dentro": "la cifra de después está dentro de los límites de antes: la diferencia es ruido",
       "fuera_por_encima": "la cifra de después pasa del límite superior: subió de verdad",
@@ -979,6 +990,12 @@
       "pasa_a": "diseno",
       "desde": "2026-10-13",
       "motivo": "Un único ámbito de diseño con dos zonas (el sistema, y los patrones y flujos de UX); sus normas pasan a diseno (decisión de Pablo, #652; #687)"
+    },
+    {
+      "vocabulario": "recursos.tipo",
+      "valor": "proyecto",
+      "pasa_a": "proyecto-servicio",
+      "desde": "2026-10-14"
     }
   ],
   "redefiniciones": [

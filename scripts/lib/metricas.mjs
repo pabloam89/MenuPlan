@@ -68,7 +68,7 @@ export const CAUSAS_EXCEPCION = {
 
 /** Los únicos campos de texto libre de una métrica, de una línea o de una excepción. */
 export const CAMPOS_DE_TEXTO = ["pregunta", "muestra", "nota"];
-// `proyecto` (#652) es opcional en el formato: una métrica de antes no lo lleva y se lee como `factoria` (todas eran de proceso).
+// `proyecto` (#652) es obligatorio (#748): un valor de PROYECTOS, `factoria` incluido; no hay «sin proyecto» ni valor por defecto.
 const CAMPOS_METRICA = ["id", "objetivo", "proyecto", "pregunta", "emisor", "sale_en", "lectores", "unidad", "umbral", "vigilante", "muestra"];
 const CAMPOS_LINEA = ["firma", "emisores", "campos", "lectores", "dinamica"];
 const CAMPOS_LECTOR = ["tipo", "ref", "menciona"];
@@ -206,7 +206,7 @@ export function problemasDelRegistro(datos, { leer }) {
     ids.add(m.id);
     if (sobran(m, CAMPOS_METRICA).length) p.push(`${d}: campos que no existen (${sobran(m, CAMPOS_METRICA).join(", ")})`);
     if (!objetivos[m.objetivo]) p.push(`${d}: el objetivo «${m.objetivo}» no está en «objetivos»`);
-    if (m.proyecto !== undefined && !PROYECTOS.includes(m.proyecto)) p.push(`${d}: el proyecto «${m.proyecto}» no es de ${PROYECTOS.join(", ")}`);
+    if (!PROYECTOS.includes(m.proyecto)) p.push(`${d}: el proyecto «${m.proyecto}» no es de ${PROYECTOS.join(", ")} (es obligatorio)`);
     if (!texto(m.pregunta) || !/^¿.*\?$/.test(m.pregunta.trim())) p.push(`${d}: la pregunta va entre ¿ y ? (${MIN_TEXTO} caracteres o más)`);
     if (!UNIDADES[m.unidad]) p.push(`${d}: la unidad «${m.unidad}» no es de UNIDADES`);
     if (m.umbral !== null && typeof m.umbral !== "number") p.push(`${d}: el umbral es un número o null`);

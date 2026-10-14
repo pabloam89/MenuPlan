@@ -12,6 +12,7 @@ import { describe, expect, it } from "vitest";
 
 import { AVISO_ANTES_DIAS } from "../scripts/lib/skills.mjs";
 import { leerRegistro } from "../scripts/lib/normas.mjs";
+import { PROYECTOS } from "../scripts/lib/zonasProyecto.mjs";
 import {
   DUENOS, ESTADOS, RUTA_RECURSOS, SERVICIOS, TIPOS, caducidadesDelRepo, diasHasta, estadoDeRecurso, leerRecursos, problemasDeConjunto, problemasDeForma, problemasDeReloj,
 } from "../scripts/lib/recursos.mjs";
@@ -23,7 +24,7 @@ const idsNormas = normas.map((n) => n.id);
 const HOY = new Date("2026-10-11T10:00:00Z");
 
 const BUENO = () => ({
-  id: "prueba-token", servicio: "vercel", tipo: "token", dueno: "pablo", creado: "2026-10-09", caducidad: "2027-01-07",
+  id: "prueba-token", servicio: "vercel", proyecto: "homenu", tipo: "token", dueno: "pablo", creado: "2026-10-09", caducidad: "2027-01-07",
   motivo: "Token de prueba a 90 días desde el alta.", documentado_en: ["ops/INVENTARIO.md"],
 });
 const con = (cambio) => { const r = BUENO(); cambio(r); return problemasDeForma(r, { raiz: RAIZ, normas: idsNormas }).join("\n"); };
@@ -43,6 +44,18 @@ describe("1. la forma", () => {
     }
   });
 
+  it("cada recurso dice de qué proyecto es (PROYECTOS, sin valor por defecto) y Hetzner, que sirve a varios, va a la factoría", () => {
+    for (const r of datos.recursos) expect(PROYECTOS, `${r.id}: proyecto`).toContain(r.proyecto);
+    expect(datos.recursos.filter((r) => r.servicio === "hetzner").map((r) => r.proyecto)).toEqual(["factoria", "factoria"]);
+  });
+
+  it("«proyecto» es el campo, no un tipo: el tipo de un proyecto de un servicio es proyecto-servicio (#748)", () => {
+    expect(Object.keys(TIPOS)).not.toContain("proyecto");
+    expect(Object.keys(TIPOS)).toContain("proyecto-servicio");
+    expect(datos.recursos.filter((r) => r.tipo === "proyecto-servicio").map((r) => r.id)).toEqual(["vercel-proyecto-homenu", "supabase-proyecto-produccion"]);
+    expect(con((r) => { r.tipo = "proyecto"; })).toContain("tipo «proyecto» no está en el vocabulario");
+  });
+
   it("repo público: ningún valor, ni dirección de bóveda, ni cadena con pinta de clave", () => {
     const texto = readFileSync(join(RAIZ, RUTA_RECURSOS), "utf8");
     expect(texto).not.toMatch(/op:\/\//);
@@ -55,6 +68,8 @@ describe("1. la forma", () => {
     expect(con((r) => { delete r.dueno; })).toContain("falta «dueno»");
     expect(con((r) => { r.extra = 1; })).toContain("campo desconocido");
     expect(con((r) => { r.servicio = "inventado"; })).toContain("servicio «inventado» no está en el vocabulario");
+    expect(con((r) => { delete r.proyecto; })).toContain("falta «proyecto»");
+    expect(con((r) => { r.proyecto = "inventado"; })).toContain("proyecto «inventado» no es de");
     expect(con((r) => { r.tipo = "otro"; })).toContain("tipo «otro»");
     expect(con((r) => { r.dueno = "manu"; })).toContain("dueno «manu»");
     expect(con((r) => { r.caducidad = "2027-02-30"; })).toContain("«caducidad» es AAAA-MM-DD");
