@@ -12,7 +12,8 @@
     "tarea de agente",
     "norma",
     "plantilla",
-    "fuente documental"
+    "fuente documental",
+    "ronda de investigación"
   ],
   "ref": {
     "fichero": "scripts/lib/estandaresAgentes.mjs",

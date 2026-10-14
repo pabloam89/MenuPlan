@@ -14,7 +14,11 @@
   "relacionado": [
     "capa",
     "caso de prueba",
-    "pieza"
+    "pieza",
+    "skill del agente",
+    "versión de la skill",
+    "dueño de la skill",
+    "invocación"
   ],
   "ref": {
     "fichero": "ops/forja/",

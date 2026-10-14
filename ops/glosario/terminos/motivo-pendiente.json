@@ -1,0 +1,14 @@
+{
+  "termino": "motivo pendiente",
+  "estado": "activo",
+  "clase": "campo",
+  "dominio": "base",
+  "definicion": "Un valor de vocabulario cerrado que dice por qué un juicio queda pendiente en vez de cumplirse o no.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "estado"
+  ]
+}

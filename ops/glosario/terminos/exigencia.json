@@ -1,0 +1,16 @@
+{
+  "termino": "exigencia",
+  "estado": "activo",
+  "clase": "campo",
+  "dominio": "base",
+  "definicion": "Una frase verbal en infinitivo que dice lo que pide una norma, con su verbo y su objeto.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "condición",
+    "sujeto",
+    "fuerza"
+  ]
+}

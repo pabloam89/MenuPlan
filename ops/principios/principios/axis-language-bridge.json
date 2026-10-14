@@ -2,7 +2,7 @@
   "id": "axis-language-bridge",
   "area": "entities",
   "nombre": "Cada eje, su lenguaje",
-  "enunciado": "Cada eje usa su lenguaje en su contexto, y una palabra que cruza de eje se declara puente una sola vez.",
+  "enunciado": "Cada eje usa su lenguaje en su contexto, y una palabra que cruza de eje se declara una sola vez como de los dos lados.",
   "porque": "La misma palabra con dos sentidos en dos ejes confunde justo donde los ejes se juntan.",
   "fuentes": [
     {
