@@ -14,7 +14,8 @@ import { ficherosDeGit } from "./ficherosGit.js";
  *
  * «Leer» es: una llamada de lectura (`readFileSync`, `readFile`, `leer…`) con el literal
  * "CLAUDE.md" (o "../CLAUDE.md") en la misma línea, o un `for (const f of [… "CLAUDE.md" …])`
- * cuyo `f` se lee en las tres líneas siguientes. Nombrar CLAUDE.md como dato de prueba
+ * cuyo `f` se lee en las tres líneas siguientes, o una llamada de lectura con un identificador
+ * que contiene «claude» entre sus argumentos (`readFileSync(join(RAIZ, RUTA_CLAUDE))`, #815). Nombrar CLAUDE.md como dato de prueba
  * (una zona, un diff de mentira) no es leerlo.
  */
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -26,11 +27,30 @@ const DATOS = JSON.parse(readFileSync(join(RAIZ, "ops", "claude-md-anclas.json")
 const LITERAL = /(["'`])(?:\.\.?\/)*CLAUDE\.md\1/;
 const LEE = String.raw`\b(?:readFileSync|readFile|leer\w*)\s*\(`;
 
+/**
+ * Si una línea lee por una constante: los argumentos de alguna llamada de lectura llevan un
+ * identificador con «claude» (`RUTA_CLAUDE`, `CLAUDE_MD`, `rutaClaude`). Se vacían antes las
+ * cadenas, para que la carpeta ".claude/" no cuente, y se corta en el paréntesis que cierra la
+ * llamada, para que lo que venga detrás (`.toMatch(claude)`) tampoco.
+ */
+function leePorConstante(l) {
+  const sinCadenas = l.replace(/(["'`])(?:\\.|(?!\1)[^\\])*\1/g, '""');
+  for (const m of sinCadenas.matchAll(new RegExp(LEE, "g"))) {
+    let nivel = 1;
+    let j = m.index + m[0].length;
+    const desde = j;
+    for (; j < sinCadenas.length && nivel > 0; j++) nivel += sinCadenas[j] === "(" ? 1 : sinCadenas[j] === ")" ? -1 : 0;
+    if (/\b[\w$]*claude[\w$]*\b/i.test(sinCadenas.slice(desde, j))) return true;
+  }
+  return false;
+}
+
 /** Las líneas (desde 1) en las que el texto de un test lee el CLAUDE.md del repo. */
 export function lecturasDeClaudeMd(texto) {
   const lineas = String(texto).split(/\r?\n/);
   const salida = [];
   lineas.forEach((l, i) => {
+    if (leePorConstante(l)) return void salida.push(i + 1);
     if (!LITERAL.test(l)) return;
     if (new RegExp(LEE).test(l)) return void salida.push(i + 1);
     const bucle = l.match(/\bfor\s*\(\s*(?:const|let|var)\s+(\w+)\s+of\s*\[/);
@@ -47,6 +67,18 @@ describe("el detector de lecturas de CLAUDE.md", () => {
     expect(lecturasDeClaudeMd(`expect(leer("CLAUDE.md")).toMatch(/x/);`)).toEqual([1]);
     expect(lecturasDeClaudeMd(`const c = readFileSync(new URL("../CLAUDE.md", import.meta.url), "utf8");`)).toEqual([1]);
     expect(lecturasDeClaudeMd(`a();\nfor (const f of ["CLAUDE.md", "x.md"]) {\n  const t = leer(f);\n}`)).toEqual([2]);
+  });
+
+  it("ve una lectura que pasa por una constante con «claude» en el nombre (#815)", () => {
+    expect(lecturasDeClaudeMd(`const claude = readFileSync(join(RAIZ, RUTA_CLAUDE), "utf8");`)).toEqual([1]);
+    expect(lecturasDeClaudeMd(`const t = leer(CLAUDE_MD);`)).toEqual([1]);
+    expect(lecturasDeClaudeMd(`const t = readFileSync(rutaClaude, "utf8");`)).toEqual([1]);
+  });
+
+  it("no confunde una constante «claude» fuera de una lectura, ni la carpeta .claude/, con leer CLAUDE.md", () => {
+    expect(lecturasDeClaudeMd(`writeFileSync(join(base, RUTA_CLAUDE), "uno");`)).toEqual([]);
+    expect(lecturasDeClaudeMd(`const claude = readFileSync(join(RAIZ, ".claude", "settings.json"), "utf8");`)).toEqual([]);
+    expect(lecturasDeClaudeMd(`expect(leer(".claude/skills/issues/SKILL.md")).toMatch(claude);`)).toEqual([]);
   });
 
   it("no confunde nombrar CLAUDE.md como dato de prueba con leerlo", () => {
