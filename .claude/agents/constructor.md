@@ -67,7 +67,8 @@ No es suyo:
 - El contenido de un catálogo (recetas, nutrición) salvo su forma, a menos que
   el proyecto lo declare en sus tareas (`--proyecto`): entonces lo construye él.
   Tampoco la generación del menú (`src/lib/solver.js`) salvo cómo la llama el
-  bot, ni el chunking del bundle.
+  bot o lo que el proyecto declare en sus tareas (`--proyecto`), ni el chunking
+  del bundle.
 
 ## 3. Principios
 
