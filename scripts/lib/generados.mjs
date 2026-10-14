@@ -105,6 +105,7 @@ export const DERIVADOS = [
   { ruta: "docs/entidades/N1-encargo.md", clase: "partial", source: "scripts/lib/issues.mjs (las tablas de campos entre las marcas n1:encargo:campos)", regenera: "scripts/flujo.mjs", test: "scripts/encargo.test.js" },
   { ruta: ".claude/commands/orquestar.md", clase: "partial", source: "ops/tipos-de-encargo.json (la tabla «Qué pipeline» entre las marcas tipos:tabla)", regenera: "scripts/flujo.mjs", test: "ops/tipos-de-encargo.test.js" },
   { ruta: "ops/PLANOS.md", clase: "partial", source: "ops/planos.json (la tabla entre las marcas planos:tabla)", regenera: "scripts/planos.mjs", test: "ops/planos.test.js" },
+  { ruta: "CLAUDE.md", clase: "partial", source: "ops/proyectos/homenu/preguntas.json (la sección «Qué se le pregunta a …, y qué no»)", regenera: "scripts/preguntas.mjs", test: "ops/preguntas.test.js" },
   { ruta: ".claude/agents/*.md", clase: "partial", source: "ops/estandares-agentes.json (la sección «Tareas y su estándar» de cada agente)", regenera: "scripts/estandares-agentes.mjs", test: "ops/estandares-agentes.test.js" },
   { ruta: "src/design/tokens.css", clase: "code", source: "src/design/tokens.js", regenera: "scripts/diseno/generar-tokens-css.mjs", test: "src/design/tokensCss.test.js" },
   {
