@@ -1,5 +1,5 @@
 {
-  "$comentario": "Los techos del vigilante de lados (#710, programa #652): las cifras de scripts/lib/inventarioVertical.mjs que no pueden subir. Las vigila ops/vigilante-lados.test.js (scripts/lib/vigilanteLados.mjs) y fallan también al bajar, para que el techo baje con ellas. Se incluyen los dudosos actuales: las cinco dudas de docs/ops/INVENTARIO-VERTICAL.md las resuelve Pablo, no este fichero. Un techo solo se baja a mano; subirlo es admitir algo del otro lado y necesita su razón en el PR.",
+  "$comentario": "Los techos del vigilante de lados (#710, programa #652): las cifras de scripts/lib/inventarioVertical.mjs que no pueden subir. Las vigila ops/vigilante-lados.test.js (scripts/lib/vigilanteLados.mjs) y fallan también al bajar, para que el techo baje con ellas. Se incluyen los dudosos actuales: las cinco dudas de docs/ops/INVENTARIO-VERTICAL.md las resuelve Pablo, no este fichero. `subida_declarada` permite subir una clave una sola vez (con su razón y su tope `hasta`) cuando cambia la medida; deja de valer en cuanto staging tiene la cifra, y hay que quitarla en el siguiente PR que toque este fichero. Un techo solo se baja a mano; subirlo es admitir algo del otro lado y necesita su razón en el PR.",
   "version": 1,
   "techos": {
     "citas_de_entidad_horizontal_a_vertical": 3,
@@ -8,7 +8,7 @@
     "duda: principios de producto (delegado: ops/principios-producto/)": 11,
     "duda: guía de redacción (delegado: ops/redaccion.json)": 0,
     "duda: fuentes documentales (ops/fuentes-documentales/)": 12,
-    "duda: normas horizontales (ops/normas.json)": 38,
+    "duda: normas horizontales (ops/normas.json)": 46,
     "duda: normas verticales (ops/proyectos/<id>/normas.json)": 0,
     "duda: entidades activas (ops/entidades.json)": 19,
     "duda: términos activos del glosario (ops/glosario/terminos/)": 46,
@@ -20,6 +20,22 @@
     "duda: documentos (docs/**/*.md y los .md de la raíz)": 1,
     "duda: tests (*.test.{js,jsx,mjs})": 10,
     "verticales sin registro propio: principios de la casa": 2,
-    "verticales sin registro propio: fuentes documentales": 12
+    "verticales sin registro propio: fuentes documentales": 12,
+    "estandares_que_nombran_el_proyecto": 28,
+    "estandares_que_nombran_un_servicio": 36
+  },
+  "subida_declarada": {
+    "estandares_que_nombran_el_proyecto": {
+      "hasta": 28,
+      "razon": "El detector pasó a leer todo el texto, sin distinguir mayúsculas y con los servicios aparte (parte de #710): la cifra sube porque ahora se ve lo que antes no, no porque entre algo nuevo."
+    },
+    "estandares_que_nombran_un_servicio": {
+      "hasta": 36,
+      "razon": "El detector pasó a leer todo el texto, sin distinguir mayúsculas y con los servicios aparte (parte de #710): la cifra sube porque ahora se ve lo que antes no, no porque entre algo nuevo."
+    },
+    "duda: normas horizontales (ops/normas.json)": {
+      "hasta": 46,
+      "razon": "El detector pasó a leer todo el texto, sin distinguir mayúsculas y con los servicios aparte (parte de #710): la cifra sube porque ahora se ve lo que antes no, no porque entre algo nuevo."
+    }
   }
 }

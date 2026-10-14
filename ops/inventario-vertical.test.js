@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { RUTA_DECISIONES, RUTA_DOC, calcular, documento, fallosDeCuentas, fallosDeDecisiones, fallosDeDudas, fallosDeNormas } from "../scripts/lib/inventarioVertical.mjs";
+import { RUTA_DECISIONES, RUTA_DOC, calcular, documento, fallosDeCuentas, fallosDeDecisiones, fallosDeDudas, fallosDeNormas, razonesDeNormaHorizontal } from "../scripts/lib/inventarioVertical.mjs";
 
 /**
  * El inventario vertical/horizontal (#710, parte de #652). La instantánea de docs/ops/INVENTARIO-VERTICAL.md NO se
@@ -87,5 +87,22 @@ describe("las comprobaciones, con datos rotos (casos negativos)", () => {
     expect(fallosDeDecisiones(dec, { ...todo, existe: (r) => !r.includes("principios/p1") })).toEqual(["principio p1"]);
     expect(fallosDeDecisiones(dec, { ...todo, entidades: [] })).toEqual(["entidad e1"]);
     expect(fallosDeDecisiones(dec, { ...todo, existe: (r) => !r.includes("agents/a1") })).toEqual(["agente a1"]);
+  });
+
+  it("una norma que nombra el proyecto en cualquier campo de prosa, también en minúscula, duda (antes solo se leían tres campos y se distinguían mayúsculas)", () => {
+    expect(razonesDeNormaHorizontal({ id: "n", exigencia: "ok", porque: "lo pidió lola" }).join()).toMatch(/nombra el proyecto/);
+    expect(razonesDeNormaHorizontal({ id: "n", exigencia: "ok", ejemplos: ["mira MENUPLAN"] }).join()).toMatch(/nombra el proyecto/);
+    expect(razonesDeNormaHorizontal({ id: "n", exigencia: "ok", porque: "sin cita" })).toEqual([]);
+  });
+
+  it("nombrar un servicio del proyecto es otra razón distinta de nombrar el proyecto", () => {
+    const solo = razonesDeNormaHorizontal({ id: "n", exigencia: "ok", nota: "se despliega en Vercel" });
+    expect(solo).toEqual(["su texto nombra un servicio del proyecto"]);
+    const ambas = razonesDeNormaHorizontal({ id: "n", exigencia: "Lola en vercel" });
+    expect(ambas).toEqual(["su texto nombra el proyecto", "su texto nombra un servicio del proyecto"]);
+  });
+
+  it("los campos que son ids o rutas no cuentan como prosa", () => {
+    expect(razonesDeNormaHorizontal({ id: "lola-id", exigencia: "ok", control: "test ops/homenu.test.js", ambito: "process" })).toEqual([]);
   });
 });
