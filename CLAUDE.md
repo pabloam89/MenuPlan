@@ -218,6 +218,7 @@ ser verdad, con su control y su principio; el estándar de tarea cita normas.
 - Tres capas de comprobación (`three-check-layers`) y un juez distinto y
   calibrado (`calibrated-distinct-judge`).
 - De arriba abajo (`top-down`).
+- Lo que varía entre proyectos es un dato, no un nombre en el código (`variation-is-data`).
 
 ## Qué se le pregunta a Pablo, y qué no
 

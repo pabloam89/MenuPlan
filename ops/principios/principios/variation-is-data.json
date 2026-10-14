@@ -1,0 +1,21 @@
+{
+  "id": "variation-is-data",
+  "area": "code",
+  "nombre": "Lo que varía, un dato",
+  "enunciado": "Lo que varía entre proyectos o instancias es un dato leído de una lista, nunca un nombre escrito en el código.",
+  "porque": "Acertar nombres y relaciones pronto sale barato y corregirlos después caro, sin construir funciones para casos hipotéticos.",
+  "fuentes": [
+    {
+      "marca": "F",
+      "fuente": "fowler-yagni"
+    },
+    {
+      "marca": "S",
+      "fuente": "twelve-factor-config"
+    },
+    {
+      "marca": "S",
+      "fuente": "martin-open-closed"
+    }
+  ]
+}

@@ -2986,6 +2986,37 @@
       "test_del_juez": "ops/test-del-juez/revisor.json"
     },
     {
+      "id": "variacion-como-dato",
+      "nombre": "Proyectos tomados de la lista",
+      "sujeto": "codigo",
+      "fuerza": "debe",
+      "condicion": "cuando una pieza depende del proyecto o de la instancia en que corre",
+      "exigencia": "tomar de la lista de proyectos su id y sus relaciones, sin teclearlos en el código",
+      "nota": "Vale para nombres, cableado y relaciones, que acertarlos pronto sale barato. No obliga a construir funciones para casos que nadie ha pedido (lo simple primero sigue mandando).",
+      "donde": [
+        "ops/vigilante-lados.test.js"
+      ],
+      "ejecutor": "ci",
+      "alcance": "todos",
+      "ante_fallo": "cerrado",
+      "control": "ops/vigilante-lados.test.js",
+      "control_tipo": "test",
+      "control_procesador": "codigo",
+      "control_fuerza": "bloquea",
+      "control_momento": "pr",
+      "control_que_mira": "forma",
+      "control_cobertura": "parcial",
+      "veredicto": "semidura",
+      "riesgo": "bajo",
+      "issue": null,
+      "principio": "variation-is-data",
+      "ambito": "code",
+      "lado": "horizontal",
+      "acciones": [
+        "construir"
+      ]
+    },
+    {
       "id": "derivado-registrado-y-comparado",
       "nombre": "Derivado con su comparación",
       "sujeto": "repo",

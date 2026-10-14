@@ -1,0 +1,10 @@
+{
+  "id": "twelve-factor-config",
+  "nombre": "The Twelve-Factor App, III Config: lo que varía entre despliegues se separa del código",
+  "tipo": "externa",
+  "url": "https://12factor.net/config",
+  "uso": "principio",
+  "fecha_alta": "2026-10-14",
+  "revisada": "si",
+  "fecha_revision": "2026-10-14"
+}

@@ -10,7 +10,7 @@ Las normas de cada principio: `npm run principios-casa -- <id>`. Un principio qu
 
 | Área | Principios | De un catálogo delegado | Propios sin norma |
 |---|---|---|---|
-| código (`code`) | 8 | 0 | 0 |
+| código (`code`) | 9 | 0 | 0 |
 | infraestructura (`infra`) | 12 | 0 | 0 |
 | datos (`data`) | 15 | 0 | 0 |
 | catálogo (`catalog`) | 1 | 0 | 0 |
@@ -18,7 +18,7 @@ Las normas de cada principio: `npm run principios-casa -- <id>`. Un principio qu
 | proceso (`process`) | 11 | 0 | 0 |
 | redacción (`writing`) | 15 | 15 | 0 |
 | entidades (`entities`) | 9 | 0 | 3 |
-| **Total** | **112** | **56** | **3** |
+| **Total** | **113** | **56** | **3** |
 
 ## Precedencia
 
@@ -75,6 +75,9 @@ El código del repo y su forma: tests, lint y ficheros.
   - Porqué: Un test relajado sigue en verde y deja de vigilar justo lo que ha fallado.
   - Fuentes: [I] `scripts/lib/avisosPr.mjs`
   - Viene de: C8
+- `variation-is-data` — **Lo que varía, un dato.** Lo que varía entre proyectos o instancias es un dato leído de una lista, nunca un nombre escrito en el código.
+  - Porqué: Acertar nombres y relaciones pronto sale barato y corregirlos después caro, sin construir funciones para casos hipotéticos.
+  - Fuentes: [F] https://martinfowler.com/bliki/Yagni.html ; [S] https://12factor.net/config ; [S] https://blog.cleancoder.com/uncle-bob/2014/05/12/TheOpenClosedPrinciple.html
 
 ## Infraestructura (`infra`)
 

@@ -92,6 +92,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `migracion-numero-libre` | migracion | NO DEBE | **Número de migración libre.** Cuando se crea, cada migración NO DEBE usar un número que staging ya usa. | guardia · semidura | test: `.claude/hooks/guardia.test.js` | `migracion-numero-ocupado` | `stable-unique-id` | data | horizontal | construir |
 | `build-valida-catalogo` | catalogo | DEBE | **Build valida el catálogo.** Cuando se hace el build, el catálogo de recetas y alimentos DEBE validarse con scripts/validate-catalog.mjs, el filtro que usa Vercel. | ci · semidura | script: `scripts/validate-catalog.mjs` | — | `test-is-the-contract` | catalog | horizontal | construir |
 | `sin-codigo-dinamico` | codigo | NO DEBE | **Sin código montado al vuelo.** El código del producto NO DEBE montar nombres en tiempo de ejecución ni usar eval, new Function o un import() con variable. | nada · blanda | juicio | — | `explicit-over-clever` | code | horizontal | construir, juzgar |
+| `variacion-como-dato` | codigo | DEBE | **Proyectos tomados de la lista.** Cuando una pieza depende del proyecto o de la instancia en que corre, el código del producto DEBE tomar de la lista de proyectos su id y sus relaciones, sin teclearlos en el código. | ci · semidura | test: `ops/vigilante-lados.test.js` | — | `variation-is-data` | code | horizontal | construir |
 | `derivado-registrado-y-comparado` | repo | DEBE | **Derivado con su comparación.** Cuando un fichero se genera desde otro, el repositorio DEBE estar en el inventario de derivados con el script que lo regenera y el test que lo compara. | ci · dura | test: `ops/derivados.test.js` | — | `one-fact-one-place` | code | horizontal | construir |
 | `columnas-de-texto-clasificadas` | dato | DEBE | **Columnas de texto clasificadas.** Cuando es una columna de texto de una migración, cada tabla y cada campo de la base DEBE ser un vocabulario con CHECK o estar clasificada con su motivo en ops/columnas-texto.json. | ci · dura | test: `supabase/columnasTexto.test.js` | — | `discrete-first` | data | horizontal | construir, decidir |
 | `pr-acotado` | pr | NO DEBE | **PR acotado.** Cuando pasa de los umbrales de líneas, ficheros o áreas (sin contar lo generado), cada PR NO DEBE abrirse sin partir ni explicar por qué no se parte. | ci · blanda | script: `scripts/lib/avisosPr.mjs` | — | `one-change-one-intent` | process | horizontal | construir, juzgar |
@@ -238,7 +239,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | sesion | cada sesión de Claude | 18 |
 | repo | el repositorio | 5 |
 | fondo | cada problema de fondo | 8 |
-| codigo | el código del producto | 6 |
+| codigo | el código del producto | 7 |
 | principio | cada principio de datos | 2 |
 | gasto | cada gasto de dinero | 1 |
 | dato | cada tabla y cada campo de la base | 13 |
@@ -279,7 +280,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 
 | Ámbito | Qué es | Normas |
 |---|---|---|
-| code | El código del repo y su forma: tests, lint y ficheros | 10 |
+| code | El código del repo y su forma: tests, lint y ficheros | 11 |
 | infra | Identidades, permisos, secretos, ramas, CI, despliegues, copias y servicios | 30 |
 | data | La base: tablas, migraciones, roles y cada dato que guarda | 33 |
 | catalog | El catálogo de recetas y alimentos que vive en git | 14 |
@@ -295,14 +296,14 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 
 | Lado | Qué es | Normas |
 |---|---|---|
-| horizontal | Trata de cómo trabaja la factoría o de cualquier proyecto: método, infraestructura, seguridad, código, diseño | 166 |
+| horizontal | Trata de cómo trabaja la factoría o de cualquier proyecto: método, infraestructura, seguridad, código, diseño | 167 |
 | vertical | Trata de la conducta del producto HoMenu o de Lola, no del trabajo de un agente | 39 |
 
 ## Cómo se comprueban
 
 | Tipo de control | Qué es | Normas |
 |---|---|---|
-| test | Un test del repo que falla en el CI | 99 |
+| test | Un test del repo que falla en el CI | 100 |
 | planos | Una condición de la medición semanal de ops/planos.json (con red, cada lunes) | 7 |
 | workflow | Un paso de un workflow de GitHub Actions que falla el check | 2 |
 | script | Un script del repo que comprueba y se lanza a mano o en el build | 8 |
@@ -314,35 +315,35 @@ Cada norma dice en cinco ejes cerrados cómo se controla (`control_procesador`, 
 
 | Procesador \ Fuerza | bloquea | avisa |
 |---|---|---|
-| codigo | 96 | 20 |
+| codigo | 97 | 20 |
 | juez | 0 | 89 |
 
 | control_procesador | Qué es | Normas |
 |---|---|---|
-| codigo | Un programa decide si se cumple: un test, un script, un workflow o el código en ejecución | 116 |
+| codigo | Un programa decide si se cumple: un test, un script, un workflow o el código en ejecución | 117 |
 | juez | Un agente juez lo decide leyendo el trabajo, con su motivo y pudiendo decir «no sé»; solo cuenta con su test del juez | 89 |
 
 | control_fuerza | Qué es | Normas |
 |---|---|---|
-| bloquea | Si no se cumple, lo detiene: el cambio o la acción no pasa | 96 |
+| bloquea | Si no se cumple, lo detiene: el cambio o la acción no pasa | 97 |
 | avisa | Si no se cumple, lo dice y deja pasar | 109 |
 
 | control_momento | Qué es | Normas |
 |---|---|---|
 | editar | Al editar un fichero o lanzar un comando (la guardia) | 29 |
-| pr | Al abrir o fusionar un PR (el CI o el juez de ese PR) | 172 |
+| pr | Al abrir o fusionar un PR (el CI o el juez de ese PR) | 173 |
 | periodico | En un pase programado o a mano, fuera de un PR | 4 |
 
 | control_que_mira | Qué es | Normas |
 |---|---|---|
-| forma | Cómo está escrito: estructura, vocabulario y formato | 52 |
+| forma | Cómo está escrito: estructura, vocabulario y formato | 53 |
 | contenido | Lo que dice, a juicio de quien lo lee | 89 |
 | comportamiento | Lo que hace el sistema al ejecutarse o al aplicarse | 64 |
 
 | control_cobertura | Qué es | Normas |
 |---|---|---|
 | total | Alcanza a cualquiera y a toda la norma | 69 |
-| parcial | Deja fuera a alguien o a una parte de la norma | 136 |
+| parcial | Deja fuera a alguien o a una parte de la norma | 137 |
 
 Normas de juez sin test del juez: 83 de 89. Normas con ejecutor «persona» (sin quitar todavía): 70.
 
@@ -401,4 +402,4 @@ Normas de juez sin test del juez: 83 de 89. Normas con ejecutor «persona» (sin
 
 **Cada control que salta deja su línea** `norma: <id> resultado: ok|warning|fail|exempt|declared|unchecked pr: <n> detalle: …` (una sola sintaxis: los avisos del CI y «Fondos del PR» en el log del run; la guardia, en el registro local de eventos, con la `norma` que hace cumplir lo que bloquea). `declared` es una excepción válida de una norma que ningún control del CI consulta: queda anotada, pero no cuenta como incumplimiento medido. La unidad es el run de un PR; el lector cuenta una vez por PR, norma y resultado. `npm run normas -- --medir` las cuenta por norma y dice cuáles nunca saltan, cuáles no han dejado dato y cuáles se exceptúan siempre (desde 3 veces, sin un solo salto). Registrada en `ops/metricas.json`.
 
-Total: 205 normas (rota 2, semidura 70, dura 25, blanda 108) y 42 avisos de la guardia.
+Total: 206 normas (rota 2, semidura 71, dura 25, blanda 108) y 42 avisos de la guardia.

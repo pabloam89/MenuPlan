@@ -1,0 +1,10 @@
+{
+  "id": "martin-open-closed",
+  "nombre": "Robert C. Martin, The Open-Closed Principle: extender sin modificar el código existente",
+  "tipo": "externa",
+  "url": "https://blog.cleancoder.com/uncle-bob/2014/05/12/TheOpenClosedPrinciple.html",
+  "uso": "principio",
+  "fecha_alta": "2026-10-14",
+  "revisada": "si",
+  "fecha_revision": "2026-10-14"
+}
