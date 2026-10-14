@@ -247,7 +247,7 @@ el bloque `Normas que tocan (…)`; la salida es una línea `Excepción: brief-c
    `Tipo:` (el tipo o subtipo del encargo) y `Jueces:` con los que da la línea
    `jueces:` de `npm run dimensionar -- <n> --diff`, ninguno el del `Agente:` (#642,
    decisión #387): la guardia las pide al abrir el PR y el CI (paso «Dimensionado del PR»)
-   comprueba que estén los jueces que exige el diff. Con un juez distinto nombrado, la
+   comprueba que estén los jueces que exige el diff <!-- norma:pr-tipo-y-jueces-exigidos -->. Con un juez distinto nombrado, la
    sesión puede fusionar su PR a staging.
    Si el encargo era arreglar un problema de fondo, el juez comprueba que el
    arreglo cubre la clase (un test que la vigila), no solo los casos conocidos.

@@ -36,7 +36,7 @@ Detalle de la sección «Qué es y dónde» de la skill `github`; sacado aquí p
     causa y se relanza el check.
   - **Líneas «Tipo:» y «Jueces:» del PR** (#642, decisión #387 del 14 oct 2026: quien
     construye no juzga): `Tipo:` es un tipo o subtipo de `ops/tipos-de-encargo.json` y
-    `Jueces:` nombra los jueces que exige el dimensionado del diff (`npm run dimensionar --
+    `Jueces:` nombra los jueces que exige el dimensionado del diff <!-- norma:pr-tipo-y-jueces-exigidos --> (`npm run dimensionar --
     --diff --tipo <tipo>`, línea `jueces:`), ninguno el del `Agente:`; y `Agente: sesión`
     solo vale donde no hay constructor dueño. La guardia pide las dos al abrir el PR (solo la
     forma) y el CI las comprueba en el paso «Dimensionado del PR» (`scripts/dimensionado-pr.mjs`,
