@@ -10,7 +10,7 @@
  */
 import { execFileSync } from "node:child_process";
 import { ghSync } from "./lib/cuotaGh.mjs";
-import { nodosDeLaFoto } from "./lib/fotoIssues.mjs";
+import { leerEstadoFoto, lineaFoto, nodosDeLaFoto } from "./lib/fotoIssues.mjs";
 import { dirname } from "node:path";
 
 import { leerInventario } from "./lib/lleva.mjs";
@@ -51,3 +51,6 @@ try {
 }
 
 console.log(situacion(fuentes, new Date(), { avisoFetch }));
+// La foto de los issues que falta o tiene más de 1 h, en una línea (#326): sin ella cada lectura cuesta ~1 punto por issue.
+const avisoFoto = lineaFoto(leerEstadoFoto());
+if (avisoFoto) console.log(avisoFoto);

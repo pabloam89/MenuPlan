@@ -61,7 +61,7 @@ import { analizarCasos } from "../.claude/hooks/casos.mjs";
 import { informeFichas } from "./lib/fondos.mjs";
 import { diaMadrid } from "./lib/hora.mjs";
 import { TTL_MIN, borrarCacheGh, conCache, ghSync } from "./lib/cuotaGh.mjs";
-import { nodosDeLaFoto } from "./lib/fotoIssues.mjs";
+import { fotoPermitida, leerEstadoFoto, lineaFoto, nodosDeLaFoto } from "./lib/fotoIssues.mjs";
 import { construirZonas, informeZonas, leerRegistroAvisos } from "./lib/zonas.mjs";
 import { escribirZonas } from "../.claude/hooks/zonas.mjs";
 import { dirFabrica } from "../.claude/hooks/eventos.mjs";
@@ -72,9 +72,13 @@ const gh = (...args) => ghSync("issues", args, { encoding: "utf8", stdio: ["igno
 const ghCorto = (ms, ...args) => ghSync("issues", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: ms });
 const motivo = (e) => String(e.stderr ?? e.message).trim().split("\n")[0];
 
-/** Los nodos de GitHub de todos los issues: la foto si sirve; si no, una consulta por cada 100 (~106 puntos cada una). */
-function pedirNodos({ exigirVivo = false } = {}) {
-  const deFoto = args.includes("--fresco") ? null : nodosDeLaFoto({ gh, caller: "issues", exigirVivo });
+/**
+ * Los nodos de GitHub de todos los issues: la foto si sirve; si no, una consulta por cada 100 (~106 puntos cada una).
+ * `sinFoto`: lo que escribe según el padre de un issue (colgar) va siempre a la API, porque la foto puede no tener
+ * el último cambio de padre; `--colgar`, `--ordenar` y `--fresco` tampoco la usan (`fotoPermitida`).
+ */
+function pedirNodos({ exigirVivo = false, sinFoto = false } = {}) {
+  const deFoto = sinFoto || !fotoPermitida(args) ? null : nodosDeLaFoto({ gh, caller: "issues", exigirVivo });
   if (deFoto) return deFoto;
   const nodos = [];
   let cursor = null;
@@ -95,10 +99,10 @@ function pedirNodos({ exigirVivo = false } = {}) {
  * respuesta vieja sustituye a un error. Sin caché, se pide como antes.
  */
 let minutosDeCacheVieja = null; // se rellena si el plan B sirvió una caché vieja (el arranque lo cuenta en stdout)
-function todos({ ttlMin = 0, viejoSiFalla = false } = {}) {
+function todos({ ttlMin = 0, viejoSiFalla = false, sinFoto = false } = {}) {
   const fresco = args.includes("--fresco");
   const nodos = conCache("issues-nodos", {
-    ttlMin: fresco ? 0 : ttlMin, viejoSiFalla, pedir: () => pedirNodos({ exigirVivo: ttlMin === 0 }), aviso: (m, min) => { minutosDeCacheVieja = min; console.error(m); },
+    ttlMin: fresco ? 0 : ttlMin, viejoSiFalla, pedir: () => pedirNodos({ exigirVivo: ttlMin === 0, sinFoto }), aviso: (m, min) => { minutosDeCacheVieja = min; console.error(m); },
   });
   // Las marcas «lo lleva» (scripts/lib/lleva.mjs) salen de los comentarios.
   return nodos.map((n) => ({ ...leerIssue(n), marcas: leerMarcas(n.comments?.nodes, { soloCasa: true }) }));
@@ -271,7 +275,7 @@ if (args.includes("--etiquetas")) {
     borrarCacheGh("issues-nodos"); // hay un issue nuevo: la próxima lectura va a GitHub
     const n = Number(url.match(/(\d+)\s*$/)?.[1]);
     console.log(`Creado #${n}: ${url}`);
-    if (padre) colgar(todos(), n, padre);
+    if (padre) colgar(todos({ sinFoto: true }), n, padre);
   } catch (e) {
     console.error(motivo(e));
     process.exitCode = 1;
@@ -342,7 +346,8 @@ if (args.includes("--etiquetas")) {
   // Primero las líneas y después, de paso, el índice con lo ya leído: el arranque da 10 s en total y
   // una consulta lenta no puede costar el aviso de issues (ronda 2 de #384).
   arrancar({
-    lineas: [...(minutosDeCacheVieja != null ? [`Issues (caché de hace ${minutosDeCacheVieja} min: GitHub no contesta o no hay cuota)`] : []), ...avisoDeArranque(issues), ...lineasDeLleva(issues, ramasVivas())],
+    // La foto de los issues que falta o tiene más de 1 h se dice en una línea (#326): sin ella cada lectura cuesta ~450 puntos.
+    lineas: [...(minutosDeCacheVieja != null ? [`Issues (caché de hace ${minutosDeCacheVieja} min: GitHub no contesta o no hay cuota)`] : []), ...[lineaFoto(leerEstadoFoto())].filter(Boolean), ...avisoDeArranque(issues), ...lineasDeLleva(issues, ramasVivas())],
     imprimir: (l) => console.log(l),
     indexar: ({ restanteMs }) => indexar(issues, { reusarPrsMenosDeHoras: 1, restanteMs }),
     avisar: (m) => console.error(m),

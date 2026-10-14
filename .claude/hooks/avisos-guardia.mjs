@@ -168,6 +168,12 @@ export const AVISOS = {
     porque: "no tiene vuelta atrás",
     enSuLugar: "ciérralo o retírala con `npm run issues -- --etiquetas`",
   },
+  "foto-de-issues": {
+    codigo: "foto-de-issues-solo-workflow",
+    que: "Subir, editar o borrar la release `foto-issues` (la foto de los issues), su tag o una release por la API",
+    porque: "los scripts se fían de lo que trae (también de quién escribió cada comentario) y solo la escribe el workflow `foto-issues.yml`",
+    enSuLugar: "para rehacerla, `gh workflow run foto-issues.yml --ref staging`; para no usarla, `MENUPLAN_FOTO=0` o `npm run issues -- --fresco`",
+  },
   "escribir-por-terminal": {
     codigo: "edicion-con-edit-y-write",
     que: "Usar Set-Content, Out-File o Add-Content sobre ficheros del repo",

@@ -234,8 +234,11 @@ export function fondoDeFormulario(body) {
 
 // ── Lectura de GitHub ─────────────────────────────────────────────────────────
 
-/** Lo que se pide de cada issue (dentro de `nodes`): la usan la consulta completa y la de la foto publicada (#326); `id` de padre e hijos sirve para refrescarlos por id. */
-export const CAMPOS_ISSUE = `        id number title state createdAt closedAt body authorAssociation
+/**
+ * Lo que se pide de cada issue (dentro de `nodes`): la usan la consulta completa y la de la foto publicada (#326); `id` de padre e
+ * hijos sirve para refrescarlos por id, y `updatedAt` para saber, comparando con el listado ligero, cuáles hay que releer.
+ */
+export const CAMPOS_ISSUE = `        id number title state createdAt updatedAt closedAt body authorAssociation
         labels(first: 20) { nodes { name } }
         assignees(first: 5) { nodes { login } }
         reaperturas: timelineItems(itemTypes: [REOPENED_EVENT], last: 1) { totalCount nodes { ... on ReopenedEvent { createdAt } } }

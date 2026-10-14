@@ -1,6 +1,7 @@
 /**
  * La foto publicada de los issues (fondo #326): escritor y lector tienen que coincidir, y quitarla
- * tiene que dejar a los lectores en modo API sin romper nada. Sin red: `gh` es una función falsa.
+ * tiene que dejar a los lectores en modo API sin romper nada. Sin red: `gh` es un doble de GitHub que
+ * contesta como `gh api graphql` de verdad (texto JSON; con `errors`, sale con 1 y deja la respuesta en stdout).
  */
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -9,8 +10,9 @@ import { describe, expect, it } from "vitest";
 import { parse } from "yaml";
 import { CAMPOS_ISSUE, CONSULTA, leerIssue } from "./lib/issues.mjs";
 import {
-  CAMPOS_FOTO, CONSULTA_CAMBIOS, CONSULTA_COMPLETA, CONSULTA_POR_IDS, FICHERO_FOTO, FOTO_VERSION, MAX_MIN_FOTO, PUNTOS_MIN_COMPLETA, RAMA_FOTO,
-  REPO, URL_FOTO, actualizarFoto, aplicarCambiosRest, nodosDeFoto, nodosDeFotoVivos, nodosDeLaFoto, validarFoto, vecinosAActualizar,
+  CAMPOS_FOTO, CONSULTA_LISTADO, CONSULTA_POR_IDS, FICHERO_FOTO, FOTO_VERSION, MAX_MIN_AVISO, MAX_MIN_FOTO, POR_PAGINA_LISTADO, REPO, RESERVA_PUNTOS, TAG_FOTO,
+  CODIGO_HIJO_FETCH, URL_FOTO, actualizarFoto, aplicarCambiosRest, datosDeGraphql, traerTextoSync, fotoPermitida, guardarEstadoFoto, leerEstadoFoto, lineaFoto, nodosDeFoto, nodosDeFotoVivos,
+  nodosDeLaFoto, validarFoto, vecinosAActualizar,
 } from "./lib/fotoIssues.mjs";
 import { APIS_GH, lineaGh, registrarFoto, leerLineas } from "./lib/cuotaGh.mjs";
 
@@ -22,43 +24,66 @@ const min = (m) => new Date(T0.getTime() + m * 60_000);
 
 /** Un nodo con la forma de CAMPOS_ISSUE. */
 const nodo = (number, extra = {}) => ({
-  id: `I_${number}`, number, title: `[caso] issue ${number}`, state: "OPEN", createdAt: "2026-10-01T00:00:00Z", closedAt: null, body: `cuerpo ${number}`,
+  id: `I_${number}`, number, title: `[caso] issue ${number}`, state: "OPEN", createdAt: "2026-10-01T00:00:00Z", updatedAt: "2026-10-01T00:00:00Z", closedAt: null, body: `cuerpo ${number}`,
   authorAssociation: "OWNER", labels: { nodes: [{ name: "tipo:caso" }] }, assignees: { nodes: [] },
   reaperturas: { totalCount: 0, nodes: [] }, closedByPullRequestsReferences: { nodes: [] }, comments: { totalCount: 0, nodes: [] },
   parent: null, subIssues: { nodes: [] }, ...extra,
 });
+const padreDe = (id, number) => ({ id, number, state: "OPEN", labels: { nodes: [] } });
 
 /**
- * `gh` falso: sirve la base `mundo` (lista de nodos) según la consulta que le llega y cuenta los puntos como GitHub
- * (1 por cambios, 1 por id, 54 por página completa).
+ * Doble de GitHub: sirve la base `mundo` (lista de nodos) según la consulta, cobra los puntos como GitHub (1 por página del
+ * listado, 1 por id) y los descuenta de `remaining`. Un id que no existe sale como en GitHub: `null` en `nodes` y un error
+ * NOT_FOUND con su `path`, y `gh` sale con 1 dejando la respuesta en stdout (comprobado el 14 oct 2026 contra la API real).
+ * `fallo` fuerza otro error de GraphQL (p. ej. RATE_LIMITED) en la consulta por ids.
  */
-function ghFalso(mundo, { cambiados = [], remaining = 4000 } = {}) {
+function ghFalso(mundo, { remaining = 4000, fallo = null } = {}) {
   const llamadas = [];
+  let quedan = remaining;
+  const responder = (cuerpo) => {
+    const texto = JSON.stringify(cuerpo);
+    if (cuerpo.errors?.length) {
+      const e = new Error(`gh: ${cuerpo.errors[0].message}`);
+      e.status = 1;
+      e.stdout = texto;
+      throw e;
+    }
+    return texto;
+  };
   const gh = (consulta, vars = {}) => {
     llamadas.push({ consulta, vars });
-    if (consulta === CONSULTA_CAMBIOS) {
-      return { rateLimit: { cost: 1, remaining }, repository: { issues: { pageInfo: { hasNextPage: false }, nodes: mundo.filter((n) => cambiados.includes(n.number)).map((n) => ({ id: n.id, number: n.number, updatedAt: "x" })) } } };
+    if (consulta === CONSULTA_LISTADO) {
+      quedan -= 1;
+      const desde = vars.cursor ? Number(vars.cursor) : 0;
+      const pagina = mundo.slice(desde, desde + POR_PAGINA_LISTADO);
+      const mas = desde + POR_PAGINA_LISTADO < mundo.length;
+      return responder({ data: { rateLimit: { cost: 1, remaining: quedan }, repository: { issues: {
+        pageInfo: { hasNextPage: mas, endCursor: mas ? String(desde + POR_PAGINA_LISTADO) : null },
+        nodes: pagina.map((n) => ({ id: n.id, number: n.number, updatedAt: n.updatedAt, parent: n.parent ? { id: n.parent.id } : null })),
+      } } } });
     }
     if (consulta === CONSULTA_POR_IDS) {
       const ids = vars["ids[]"];
-      return { rateLimit: { cost: ids.length, remaining }, nodes: ids.map((id) => mundo.find((n) => n.id === id) ?? null) };
+      if (fallo) return responder({ data: null, errors: [{ type: fallo, message: `fallo ${fallo}` }] });
+      quedan -= ids.length;
+      const nodes = ids.map((id) => mundo.find((n) => n.id === id) ?? null);
+      const errors = nodes.flatMap((n, i) => (n ? [] : [{ type: "NOT_FOUND", path: ["nodes", i], locations: [{ line: 1, column: 34 }], message: `Could not resolve to a node with the global id of '${ids[i]}'` }]));
+      return responder({ data: { rateLimit: { cost: ids.length, remaining: quedan }, nodes }, ...(errors.length ? { errors } : {}) });
     }
-    if (consulta === CONSULTA_COMPLETA) {
-      return { rateLimit: { cost: 54, remaining }, repository: { issues: { pageInfo: { hasNextPage: false }, nodes: mundo } } };
-    }
-    if (/rateLimit \{ remaining \}/.test(consulta)) return { rateLimit: { remaining } };
     throw new Error("consulta inesperada");
   };
-  return { gh, llamadas };
+  return { gh, llamadas, idsPedidos: () => llamadas.filter((l) => l.consulta === CONSULTA_POR_IDS).flatMap((l) => l.vars["ids[]"]) };
 }
+
+const primeraFoto = (mundo) => actualizarFoto({ previa: null, gh: ghFalso(mundo).gh, ahora: T0 }).foto;
 
 describe("el formato: escritor y lector comparten versión y campos", () => {
   it("la foto que escribe el escritor la acepta el lector, con los mismos nodos", () => {
-    const mundo = [nodo(3), nodo(2), nodo(1)];
-    const { foto } = actualizarFoto({ previa: null, gh: ghFalso(mundo).gh, ahora: T0 });
+    const foto = primeraFoto([nodo(3), nodo(2), nodo(1)]);
     expect(foto.version).toBe(FOTO_VERSION);
     for (const c of CAMPOS_FOTO) expect(foto).toHaveProperty(c);
     expect(validarFoto(foto)).toEqual({ ok: true, motivo: null });
+    expect(foto).toMatchObject({ completa: true, pendientes: [] });
     const leida = nodosDeFoto(JSON.stringify(foto), { ahora: min(1) });
     expect(leida.nodos.map((n) => n.number)).toEqual([3, 2, 1]);
     // y lo que sale sirve a quien ya usaba leerIssue
@@ -66,7 +91,7 @@ describe("el formato: escritor y lector comparten versión y campos", () => {
   });
 
   it("una versión distinta, un campo que falta o un total que no cuadra no se aceptan", () => {
-    const { foto } = actualizarFoto({ previa: null, gh: ghFalso([nodo(1)]).gh, ahora: T0 });
+    const foto = primeraFoto([nodo(1)]);
     expect(validarFoto({ ...foto, version: FOTO_VERSION + 1 }).ok).toBe(false);
     for (const c of CAMPOS_FOTO) {
       const rota = { ...foto };
@@ -75,101 +100,181 @@ describe("el formato: escritor y lector comparten versión y campos", () => {
     }
     expect(validarFoto({ ...foto, total: 5 }).ok).toBe(false);
     expect(validarFoto({ ...foto, nodos: [{ number: "x" }], total: 1 }).ok).toBe(false);
+    expect(validarFoto({ ...foto, completa: "si" }).ok).toBe(false);
     expect(validarFoto(null).ok).toBe(false);
   });
 
-  it("una foto de más de 15 minutos, del futuro o que no es JSON no vale", () => {
-    const { foto } = actualizarFoto({ previa: null, gh: ghFalso([nodo(1)]).gh, ahora: T0 });
+  it("una foto de más de 15 minutos, del futuro, a medias o que no es JSON no vale", () => {
+    const foto = primeraFoto([nodo(1)]);
     const texto = JSON.stringify(foto);
     expect(MAX_MIN_FOTO).toBe(15);
     expect(nodosDeFoto(texto, { ahora: min(14) }).nodos).not.toBeNull();
-    expect(nodosDeFoto(texto, { ahora: min(16) })).toMatchObject({ nodos: null, motivo: expect.stringContaining("16 min") });
+    expect(nodosDeFoto(texto, { ahora: min(16) })).toMatchObject({ nodos: null, motivo: expect.stringContaining("16 min"), generado_en: T0.toISOString() });
     expect(nodosDeFoto(texto, { ahora: min(-10) }).nodos).toBeNull();
+    expect(nodosDeFoto(JSON.stringify({ ...foto, completa: false, pendientes: ["I_9"] }), { ahora: min(1) })).toMatchObject({ nodos: null, motivo: expect.stringContaining("a medias") });
     expect(nodosDeFoto("<html>", { ahora: T0 }).nodos).toBeNull();
   });
 
-  it("la URL y la rama que lee el lector son las que publica el workflow", () => {
+  it("la URL y la release que lee el lector son las que publica el workflow", () => {
     const wf = parse(readFileSync(RUTA_WORKFLOW, "utf8"));
-    expect(wf.env.RAMA_FOTO).toBe(RAMA_FOTO);
-    expect(URL_FOTO).toBe(`https://raw.githubusercontent.com/${REPO}/${RAMA_FOTO}/${FICHERO_FOTO}`);
+    expect(wf.env.TAG_FOTO).toBe(TAG_FOTO);
+    expect(URL_FOTO).toBe(`https://github.com/${REPO}/releases/download/${TAG_FOTO}/${FICHERO_FOTO}`);
     const pasos = JSON.stringify(wf.jobs.foto.steps);
     expect(pasos).toContain(FICHERO_FOTO);
     expect(pasos).toContain("scripts/foto-issues.mjs");
   });
 
-  it("la consulta de la foto pide los mismos campos que la consulta completa de issues", () => {
+  it("la consulta de la foto pide los mismos campos que la consulta completa de issues, con updatedAt", () => {
     expect(CONSULTA).toContain(CAMPOS_ISSUE);
     expect(CONSULTA_POR_IDS).toContain(CAMPOS_ISSUE);
-    expect(CONSULTA_COMPLETA).toContain(CAMPOS_ISSUE);
+    expect(CAMPOS_ISSUE).toMatch(/\bupdatedAt\b/);
+    expect(CONSULTA_LISTADO).toMatch(/parent \{ id \}/);
   });
 });
 
-describe("el escritor: completa la primera vez, incremental después", () => {
-  it("sin foto previa lee todo; con una de otra versión, también", () => {
+describe("el escritor: listado ligero y, por id, solo lo que cambió", () => {
+  it("sin foto previa (o de otra versión) lee todo por id: 1 punto por página del listado y 1 por id", () => {
     const mundo = [nodo(2), nodo(1)];
     const a = actualizarFoto({ previa: null, gh: ghFalso(mundo).gh, ahora: T0 });
-    expect(a.resumen).toMatchObject({ modo: "completa", cambiados: 2, puntos: 54 });
+    expect(a.resumen).toMatchObject({ modo: "desde-cero", nuevos: 2, puntos: 1 + 2 });
     const b = actualizarFoto({ previa: { ...a.foto, version: 99 }, gh: ghFalso(mundo).gh, ahora: min(5) });
-    expect(b.resumen.modo).toBe("completa");
+    expect(b.resumen.modo).toBe("desde-cero");
   });
 
-  it("no empieza una lectura completa si no queda cupo", () => {
-    expect(() => actualizarFoto({ previa: null, gh: ghFalso([nodo(1)], { remaining: PUNTOS_MIN_COMPLETA - 1 }).gh, ahora: T0 })).toThrow(/puntos/);
-  });
-
-  it("incremental: sin cambios solo gasta la consulta de cambios y la rotación", () => {
+  it("incremental: sin cambios solo gasta el listado y la rotación", () => {
     const mundo = [nodo(3), nodo(2), nodo(1)];
-    const { foto } = actualizarFoto({ previa: null, gh: ghFalso(mundo).gh, ahora: T0 });
+    const foto = primeraFoto(mundo);
     const f = ghFalso(mundo);
     const r = actualizarFoto({ previa: foto, gh: f.gh, ahora: min(5), rotacion: 2 });
-    expect(r.resumen).toMatchObject({ modo: "incremental", cambiados: 0, rotados: 2 });
+    expect(r.resumen).toMatchObject({ modo: "incremental", cambiados: 0, nuevos: 0, de_padre: 0, rotados: 2 });
     expect(r.resumen.puntos).toBe(1 + 2);
-    // nada de páginas completas
-    expect(f.llamadas.some((l) => l.consulta === CONSULTA_COMPLETA)).toBe(false);
     expect(r.foto.nodos.map((n) => n.number)).toEqual([3, 2, 1]);
   });
 
-  it("un issue cambiado se actualiza, uno nuevo se añade y uno borrado desaparece", () => {
-    const mundo = [nodo(3), nodo(2), nodo(1)];
-    const { foto } = actualizarFoto({ previa: null, gh: ghFalso(mundo).gh, ahora: T0 });
-    const cambiado = nodo(2, { title: "[caso] cambiado", state: "CLOSED" });
-    const nuevo = nodo(4);
-    // el 1 ya no existe en el mundo (borrado): la rotación lo pide y no vuelve
-    const mundo2 = [nuevo, nodo(3), cambiado];
-    const r = actualizarFoto({ previa: foto, gh: ghFalso(mundo2, { cambiados: [2, 4] }).gh, ahora: min(5), rotacion: 10 });
+  it("un issue cambiado (updatedAt distinto) se relee, uno nuevo se añade y uno borrado desaparece sin pedir su id", () => {
+    const foto = primeraFoto([nodo(3), nodo(2), nodo(1)]);
+    const cambiado = nodo(2, { title: "[caso] cambiado", state: "CLOSED", updatedAt: "2026-10-14T12:03:00Z" });
+    // el 1 ya no existe en el mundo (borrado o trasladado): el listado no lo trae
+    const f = ghFalso([nodo(4), nodo(3), cambiado]);
+    const r = actualizarFoto({ previa: foto, gh: f.gh, ahora: min(5), rotacion: 0 });
     expect(r.foto.nodos.map((n) => n.number)).toEqual([4, 3, 2]);
     expect(r.foto.nodos.find((n) => n.number === 2).title).toBe("[caso] cambiado");
-    expect(r.resumen).toMatchObject({ cambiados: 2, borrados: 1 });
-    expect(r.foto.total).toBe(3);
+    expect(r.resumen).toMatchObject({ cambiados: 1, nuevos: 1, borrados: 1 });
+    expect(f.idsPedidos().sort()).toEqual(["I_2", "I_4"]);
+    expect(r.foto).toMatchObject({ total: 3, completa: true });
+  });
+
+  it("ALTO: un cambio de padre que no mueve updatedAt (addSubIssue) se ve y relee al hijo y a los dos padres", () => {
+    const viejo = nodo(10, { subIssues: { nodes: [{ id: "I_12", number: 12, state: "OPEN", labels: { nodes: [] } }] } });
+    const nuevoPadre = nodo(11);
+    const hijo = nodo(12, { parent: padreDe("I_10", 10) });
+    const foto = primeraFoto([hijo, nuevoPadre, viejo]);
+    // Colgado de #11: mismas fechas que antes (medido con #768 y #176), solo cambia parent.
+    const mundo2 = [
+      { ...hijo, parent: padreDe("I_11", 11) },
+      { ...nuevoPadre, subIssues: { nodes: [{ id: "I_12", number: 12, state: "OPEN", labels: { nodes: [] } }] } },
+      { ...viejo, subIssues: { nodes: [] } },
+    ];
+    const f = ghFalso(mundo2);
+    const r = actualizarFoto({ previa: foto, gh: f.gh, ahora: min(5), rotacion: 0 });
+    expect(r.resumen).toMatchObject({ cambiados: 0, de_padre: 1 });
+    expect(f.idsPedidos().sort()).toEqual(["I_10", "I_11", "I_12"]);
+    const por = (n) => leerIssue(r.foto.nodos.find((x) => x.number === n));
+    expect(por(12).padre?.number).toBe(11);
+    expect(por(11).hijos.map((h) => h.number)).toEqual([12]);
+    expect(por(10).hijos).toEqual([]);
+  });
+
+  it("ALTO: un id que GitHub ya no encuentra (NOT_FOUND con su path) se quita y no tumba la pasada", () => {
+    const foto = primeraFoto([nodo(2), nodo(1)]);
+    // El 2 sale en el listado como cambiado pero, al pedirlo por id, ya no existe (borrado entre medias): GitHub contesta con errors.
+    const listado = ghFalso([nodo(2, { updatedAt: "2026-10-14T12:01:00Z" }), nodo(1)]);
+    const porIds = ghFalso([nodo(1)]);
+    const gh = (c, v) => (c === CONSULTA_POR_IDS ? porIds.gh(c, v) : listado.gh(c, v));
+    const r = actualizarFoto({ previa: foto, gh, ahora: min(5), rotacion: 0 });
+    expect(porIds.idsPedidos()).toEqual(["I_2"]);
+    expect(r.foto.nodos.map((n) => n.number)).toEqual([1]);
+    expect(r.resumen.borrados).toBe(1);
+    expect(r.foto.completa).toBe(true);
+  });
+
+  it("cualquier otro error de GraphQL sí para la pasada", () => {
+    const foto = primeraFoto([nodo(1)]);
+    const f = ghFalso([nodo(1, { updatedAt: "2026-10-14T12:01:00Z" })], { fallo: "RATE_LIMITED" });
+    expect(() => actualizarFoto({ previa: foto, gh: f.gh, ahora: min(5) })).toThrow(/RATE_LIMITED/);
+  });
+
+  it("datosDeGraphql lee la respuesta real de GitHub a un id inexistente (gh sale con 1)", () => {
+    // Copiada de `gh api graphql` el 14 oct 2026.
+    const real = '{"data":{"rateLimit":{"cost":1,"remaining":3263},"nodes":[null]},"errors":[{"type":"NOT_FOUND","path":["nodes",0],"locations":[{"line":1,"column":34}],"message":"Could not resolve to a node with the global id of \'I_kwDONOEXISTE00\'"}]}';
+    const comoGh = () => { const e = new Error("gh: Could not resolve"); e.status = 1; e.stdout = real; throw e; };
+    expect(datosDeGraphql(comoGh)).toMatchObject({ nodes: [null] });
+    const sinStdout = () => { const e = new Error("red caída"); e.stdout = ""; throw e; };
+    expect(() => datosDeGraphql(sinStdout)).toThrow(/red caída/);
+    expect(() => datosDeGraphql(() => '{"errors":[{"type":"NOT_FOUND","path":["repository"],"message":"no repo"}]}')).toThrow(/no repo/);
+  });
+
+  it("MEDIO: con más issues de los que caben en el cupo, lee lo que cabe, deja el resto pendiente y sigue en la pasada siguiente", () => {
+    const mundo = Array.from({ length: 900 }, (_, i) => nodo(900 - i));
+    // 600 puntos: el listado gasta 9 y la reserva deja 100 sin tocar.
+    const a = actualizarFoto({ previa: null, gh: ghFalso(mundo, { remaining: 600 }).gh, ahora: T0 });
+    expect(a.resumen.puntos).toBeLessThanOrEqual(600 - RESERVA_PUNTOS);
+    expect(a.foto.completa).toBe(false);
+    expect(a.foto.pendientes.length).toBe(900 - a.foto.total);
+    expect(a.foto.total).toBeGreaterThan(400);
+    expect(nodosDeFoto(JSON.stringify(a.foto), { ahora: min(1) }).nodos).toBeNull();
+    // la hora siguiente, con cupo nuevo, la acaba
+    const b = actualizarFoto({ previa: a.foto, gh: ghFalso(mundo, { remaining: 1000 }).gh, ahora: min(60) });
+    expect(b.foto).toMatchObject({ completa: true, total: 900, pendientes: [] });
+    expect(nodosDeFoto(JSON.stringify(b.foto), { ahora: min(61) }).nodos).toHaveLength(900);
+  });
+
+  it("MEDIO: mil issues cambiados de golpe no lanzan: lo que no cabe queda pendiente", () => {
+    const mundo = Array.from({ length: 1100 }, (_, i) => nodo(1100 - i));
+    const foto = actualizarFoto({ previa: null, gh: ghFalso(mundo, { remaining: 5000 }).gh, ahora: T0 }).foto;
+    const mundo2 = mundo.map((n) => ({ ...n, updatedAt: "2026-10-14T12:01:00Z" }));
+    const r = actualizarFoto({ previa: foto, gh: ghFalso(mundo2, { remaining: 1000 }).gh, ahora: min(5) });
+    expect(r.resumen.cambiados).toBe(1100);
+    expect(r.resumen.pendientes).toBeGreaterThan(0);
+    expect(r.foto.completa).toBe(true); // están todos, solo que algunos sin releer aún
+    expect(r.resumen.puntos).toBeLessThanOrEqual(1000 - RESERVA_PUNTOS);
+  });
+
+  it("la rotación solo gasta lo que cabe", () => {
+    const mundo = [nodo(3), nodo(2), nodo(1)];
+    const foto = primeraFoto(mundo);
+    // 1 del listado; quedan 102, menos la reserva de 100: caben 2 de rotación.
+    const r = actualizarFoto({ previa: foto, gh: ghFalso(mundo, { remaining: 103 }).gh, ahora: min(5), rotacion: 8 });
+    expect(r.resumen.rotados).toBe(2);
   });
 
   it("al cerrarse un hijo se vuelve a leer su padre (guarda el estado de los hijos); si no cambió nada que copien, no", () => {
     const padre = nodo(10, { subIssues: { nodes: [{ id: "I_11", number: 11, state: "OPEN", labels: { nodes: [] } }] } });
-    const hijo = nodo(11, { parent: { id: "I_10", number: 10, state: "OPEN", labels: { nodes: [] } } });
-    const { foto } = actualizarFoto({ previa: null, gh: ghFalso([hijo, padre]).gh, ahora: T0 });
-    const hijoCerrado = { ...hijo, state: "CLOSED" };
+    const hijo = nodo(11, { parent: padreDe("I_10", 10) });
+    const foto = primeraFoto([hijo, padre]);
+    const hijoCerrado = { ...hijo, state: "CLOSED", updatedAt: "2026-10-14T12:02:00Z" };
     const padreAlDia = { ...padre, subIssues: { nodes: [{ id: "I_11", number: 11, state: "CLOSED", labels: { nodes: [] } }] } };
-    const r = actualizarFoto({ previa: foto, gh: ghFalso([hijoCerrado, padreAlDia], { cambiados: [11] }).gh, ahora: min(5), rotacion: 0 });
+    const r = actualizarFoto({ previa: foto, gh: ghFalso([hijoCerrado, padreAlDia]).gh, ahora: min(5), rotacion: 0 });
     expect(r.resumen.vecinos).toBe(1);
     expect(r.foto.nodos.find((n) => n.number === 10).subIssues.nodes[0].state).toBe("CLOSED");
     // un comentario nuevo en el hijo (mismo estado y etiquetas) no arrastra al padre
     expect(vecinosAActualizar(hijo, { ...hijo, comments: { totalCount: 1, nodes: [] } }).size).toBe(0);
     // cambiar de padre arrastra a los dos
-    expect([...vecinosAActualizar(hijo, { ...hijo, parent: { id: "I_20", number: 20, state: "OPEN", labels: { nodes: [] } } })].sort()).toEqual(["I_10", "I_20"]);
+    expect([...vecinosAActualizar(hijo, { ...hijo, parent: padreDe("I_20", 20) })].sort()).toEqual(["I_10", "I_20"]);
   });
 
   it("la rotación empieza por el de lectura más antigua", () => {
     const mundo = [nodo(3), nodo(2), nodo(1)];
-    const { foto } = actualizarFoto({ previa: null, gh: ghFalso(mundo).gh, ahora: T0 });
+    const foto = primeraFoto(mundo);
     foto.refrescados = { 1: "2026-10-14T11:00:00.000Z", 2: "2026-10-14T11:30:00.000Z", 3: "2026-10-14T11:59:00.000Z" };
     const f = ghFalso(mundo);
     actualizarFoto({ previa: foto, gh: f.gh, ahora: min(5), rotacion: 1 });
-    expect(f.llamadas.find((l) => l.consulta === CONSULTA_POR_IDS).vars["ids[]"]).toEqual(["I_1"]);
+    expect(f.idsPedidos()).toEqual(["I_1"]);
   });
 });
 
 describe("el lector: la foto puesta al día, y la API si no sirve", () => {
-  const textoFoto = (nodos, ahora = T0) => JSON.stringify({ version: FOTO_VERSION, generado_en: ahora.toISOString(), completa_en: ahora.toISOString(), total: nodos.length, refrescados: {}, nodos });
+  const textoFoto = (nodos, ahora = T0) => JSON.stringify({ version: FOTO_VERSION, generado_en: ahora.toISOString(), completa: true, total: nodos.length, refrescados: {}, pendientes: [], nodos });
 
   it("pone encima lo que cambió después de la foto (estado, etiquetas, nuevo) y salta los PR", () => {
     const base = [nodo(2), nodo(1)];
@@ -193,15 +298,33 @@ describe("el lector: la foto puesta al día, y la API si no sirve", () => {
     expect(nodosDeFotoVivos({ traerTexto, traerCambios: sinRest, ahora: min(3), exigirVivo: true }).nodos).toBeNull();
   });
 
-  it("LIMPIEZA: sin la rama, con otra versión o vieja, el lector no lanza y dice «a la API»", () => {
-    const sinRama = () => { throw new Error("HTTP 404"); };
-    expect(nodosDeFotoVivos({ traerTexto: sinRama, ahora: T0 })).toMatchObject({ nodos: null, motivo: expect.stringContaining("404") });
+  it("LIMPIEZA: sin la release, con otra versión o vieja, el lector no lanza y dice «a la API»", () => {
+    const sinRelease = () => { throw new Error("HTTP 404"); };
+    expect(nodosDeFotoVivos({ traerTexto: sinRelease, ahora: T0 })).toMatchObject({ nodos: null, motivo: expect.stringContaining("404") });
     const otra = JSON.stringify({ version: FOTO_VERSION + 1, generado_en: T0.toISOString(), nodos: [] });
     expect(nodosDeFotoVivos({ traerTexto: () => otra, ahora: T0 }).nodos).toBeNull();
+    // el marcador con que se creó la release (versión 0) tampoco vale
+    expect(nodosDeFotoVivos({ traerTexto: () => '{"version":0,"marca":"c3"}', ahora: T0 }).nodos).toBeNull();
     expect(nodosDeFotoVivos({ traerTexto: () => textoFoto([nodo(1)]), ahora: min(60) }).nodos).toBeNull();
   });
 
-  it("nodosDeLaFoto: lee de un fichero, cuenta el origen foto, y con MENUPLAN_FOTO=0 o sin foto devuelve null", () => {
+  it("el hijo que baja la foto no llama a process.exit (en Windows revienta tras escribirla) y devuelve el texto", () => {
+    // El fallo solo sale con HTTPS de verdad (visto el 14 oct 2026: código 127 tras escribir la foto entera); aquí se vigila la causa.
+    expect(CODIGO_HIJO_FETCH).not.toMatch(/process\.exit\(/);
+    expect(traerTextoSync('data:application/json,{"a":1}', 5000)).toMatch(/^\{"a":1\}/);
+    expect(() => traerTextoSync("http://127.0.0.1:1/no-hay-nadie", 2000)).toThrow();
+  });
+
+  it("las escrituras que dependen del padre (--colgar, --ordenar) y --fresco no leen de la foto", () => {
+    for (const a of ["--colgar", "--ordenar", "--fresco"]) expect(fotoPermitida([a, "12", "34"]), a).toBe(false);
+    for (const a of [[], ["--arranque"], ["--nuevo", "x"], ["--listar"]]) expect(fotoPermitida(a), a.join(" ")).toBe(true);
+    // y el script los conecta: `pedirNodos` mira fotoPermitida y colgar tras --nuevo va sin foto
+    const src = readFileSync(new URL("./issues.mjs", import.meta.url), "utf8");
+    expect(src).toMatch(/sinFoto \|\| !fotoPermitida\(args\)/);
+    expect(src).toMatch(/colgar\(todos\(\{ sinFoto: true \}\), n, padre\)/);
+  });
+
+  it("nodosDeLaFoto: lee de un fichero, cuenta el origen foto, guarda su estado, y con MENUPLAN_FOTO=0 o sin foto devuelve null", () => {
     const dir = mkdtempSync(join(tmpdir(), "foto-test-"));
     try {
       const ruta = join(dir, "issues.json");
@@ -212,9 +335,11 @@ describe("el lector: la foto puesta al día, y la API si no sirve", () => {
       const env = { MENUPLAN_FOTO_ARCHIVO: ruta, MENUPLAN_CUOTA_DIR: dir };
       process.env.MENUPLAN_CUOTA_DIR = dir;
       expect(nodosDeLaFoto({ gh, caller: "issues", env, avisar: (m) => avisos.push(m) })).toHaveLength(1);
+      expect(leerEstadoFoto({ dir })).toMatchObject({ ok: true, generado_en: ahora.toISOString() });
       expect(nodosDeLaFoto({ gh, caller: "issues", env: { ...env, MENUPLAN_FOTO: "0" } })).toBeNull();
       expect(nodosDeLaFoto({ gh, caller: "issues", env: { MENUPLAN_FOTO_ARCHIVO: join(dir, "no-existe.json") }, avisar: (m) => avisos.push(m) })).toBeNull();
       expect(avisos.at(-1)).toMatch(/voy a la API/);
+      expect(leerEstadoFoto({ dir })).toMatchObject({ ok: false, generado_en: null });
       const lineas = leerLineas(readFileSync(join(dir, "gh.log"), "utf8"));
       expect(lineas.map((l) => `${l.api}:${l.resultado}`)).toEqual(["foto:ok", "foto:error"]);
       expect(lineas.every((l) => l.puntos === 0)).toBe(true);
@@ -222,6 +347,42 @@ describe("el lector: la foto puesta al día, y la API si no sirve", () => {
       delete process.env.MENUPLAN_CUOTA_DIR;
       rmSync(dir, { recursive: true, force: true });
     }
+  });
+});
+
+describe("el aviso: foto que falta o de más de 1 h, en una línea (situacion y arranque)", () => {
+  it("dice una línea si falta, está a medias o pasa de 60 min; calla si está bien o nunca se miró", () => {
+    expect(MAX_MIN_AVISO).toBe(60);
+    expect(lineaFoto(null)).toBeNull();
+    expect(lineaFoto({ ok: true, generado_en: T0.toISOString() }, { ahora: min(5) })).toBeNull();
+    // 15-60 min: el lector ya va a la API, pero los cron se retrasan; no se avisa
+    expect(lineaFoto({ ok: false, generado_en: T0.toISOString(), motivo: "generada hace 30 min (tope 15)" }, { ahora: min(30) })).toBeNull();
+    expect(lineaFoto({ ok: false, generado_en: T0.toISOString(), motivo: "generada hace 61 min" }, { ahora: min(61) })).toMatch(/^Foto de los issues: de hace 61 min/);
+    expect(lineaFoto({ ok: false, generado_en: T0.toISOString() }, { ahora: min(180) })).toMatch(/de hace 3 h/);
+    // vale aunque la lectura saliera bien hace rato y ahora venga de la caché
+    expect(lineaFoto({ ok: true, generado_en: T0.toISOString() }, { ahora: min(90) })).toMatch(/de hace 90 min/);
+    expect(lineaFoto({ ok: false, generado_en: null, motivo: "sin foto (HTTP 404)" })).toMatch(/^Foto de los issues: no la hay \(sin foto \(HTTP 404\)\)/);
+    expect(lineaFoto({ ok: false, generado_en: T0.toISOString(), motivo: "a medias: faltan 3 issues por leer" }, { ahora: min(1) })).toMatch(/a medias/);
+  });
+
+  it("el estado se guarda y se lee del disco, y sin disco no rompe", () => {
+    const dir = mkdtempSync(join(tmpdir(), "foto-estado-"));
+    try {
+      expect(leerEstadoFoto({ dir })).toBeNull();
+      guardarEstadoFoto({ ok: false, generado_en: null, motivo: "x" }, { dir });
+      expect(leerEstadoFoto({ dir })).toMatchObject({ motivo: "x" });
+      writeFileSync(join(dir, "fichero"), "");
+      expect(() => guardarEstadoFoto({ ok: true }, { dir: join(dir, "fichero", "dentro") })).not.toThrow();
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("situacion y el arranque (issues --arranque) imprimen la línea", () => {
+    expect(readFileSync(new URL("./situacion.mjs", import.meta.url), "utf8")).toMatch(/lineaFoto\(leerEstadoFoto\(\)\)/);
+    const src = readFileSync(new URL("./issues.mjs", import.meta.url), "utf8");
+    const arranque = src.slice(src.indexOf('} else if (args.includes("--arranque"))'));
+    expect(arranque.slice(0, 1500)).toMatch(/lineaFoto\(leerEstadoFoto\(\)\)/);
   });
 });
 
@@ -264,8 +425,15 @@ describe("el workflow", () => {
     }
   });
 
-  it("se dispara por el reloj y por los cambios de un issue, de uno en uno", () => {
-    expect(Object.keys(wf.on)).toEqual(expect.arrayContaining(["schedule", "issues", "issue_comment", "workflow_dispatch"]));
+  it("solo por el reloj y a mano: ningún evento que un tercero pueda disparar (issues, comentarios)", () => {
+    expect(Object.keys(wf.on).sort()).toEqual(["schedule", "workflow_dispatch"]);
     expect(wf.concurrency).toMatchObject({ group: "foto-issues", "cancel-in-progress": false });
+  });
+
+  it("publica en la release, sin rama ni historia: prerelease, nunca «latest», el asset reemplazado", () => {
+    const run = wf.jobs.foto.steps.filter((s) => s.run).map((s) => s.run).join("\n");
+    expect(run).toMatch(/gh release upload "\$\{TAG_FOTO\}" salida\/issues\.json [^\n]*--clobber/);
+    expect(run).toMatch(/gh release create [^\n]*--prerelease --latest=false/);
+    expect(run).not.toMatch(/git push|vercel\.json|git commit/);
   });
 });

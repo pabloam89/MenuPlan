@@ -601,10 +601,15 @@
       "campos": {
         "modo": "estado",
         "total": "derivado",
+        "completa": "estado",
+        "listados": "derivado",
+        "nuevos": "derivado",
         "cambiados": "derivado",
+        "de_padre": "derivado",
         "vecinos": "derivado",
         "rotados": "derivado",
         "borrados": "derivado",
+        "pendientes": "derivado",
         "puntos": "derivado",
         "restantes": "derivado"
       },

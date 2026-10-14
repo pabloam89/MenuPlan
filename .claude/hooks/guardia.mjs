@@ -64,7 +64,38 @@ export function opDeSesion(o) {
     || /\bitem\s+(?:get|edit|share|delete)\s+["']?[a-z0-9]{26}\b/i.test(o);
 }
 
+/**
+ * #326: la foto de los issues (asset de la release `foto-issues`) la escribe SOLO el workflow
+ * `foto-issues.yml`. Los scripts se fían de lo que trae (autor de cada comentario incluido, el
+ * `authorAssociation` con que se cuentan las marcas «lo lleva»), así que una sesión que subiera otra
+ * foto, o una sesión con un texto inyectado, podría falsificarlo. ¿Esta orden escribe la release, su
+ * tag o cualquier release por la API? Leer (`gh release view|download`, `gh api` sin método de
+ * escritura) pasa. Filtro de buena fe: la App de las sesiones puede escribir releases; quien parta la
+ * orden adrede se lo salta.
+ */
+export function escribeLaFoto(orden) {
+  const o = sinEnvoltorio(orden).replace(/^(?:\w+=\S*\s+)*/, "");
+  const nombraTag = (t) => {
+    const destino = t.replace(/^["']|["']$/g, "").split(":").pop().replace(/^\+/, "");
+    return destino === "foto-issues" || destino === "refs/tags/foto-issues";
+  };
+  const trozos = o.split(/\s+/);
+  if (/^gh(?:\.exe)?\s+(?:(?:-R|--repo)\s+\S+\s+)?release\s+(?:create|upload|edit|delete|delete-asset)\b/.test(o)) return trozos.some(nombraTag);
+  if (/^gh(?:\.exe)?\s+api\b/.test(o) && /\/releases\b|refs\/tags\/foto-issues|uploads\.github\.com/.test(o)) {
+    const metodo = o.match(/(?:-X|--method)[\s=]*["']?([A-Za-z]+)/)?.[1]?.toUpperCase();
+    if (metodo) return metodo !== "GET";
+    return /\s(?:-f|-F|--field|--raw-field|--input)(?:\s|=)/.test(o);
+  }
+  if (/^git\s+push\b/.test(o)) return trozos.slice(2).filter((t) => !t.startsWith("-")).some(nombraTag);
+  return false;
+}
+
 const REGLAS_COMANDO = [
+  {
+    // #326: la foto de los issues solo la escribe su workflow (ver escribeLaFoto).
+    si: escribeLaFoto,
+    da: () => deny("foto-de-issues"),
+  },
   {
     // main es producción. Ni push ni push forzado, por ninguna variante.
     si: (o) => /^git\s+push\b/.test(o) && /(^|[\s:+])(refs\/heads\/)?main(\s|$)/.test(o),
