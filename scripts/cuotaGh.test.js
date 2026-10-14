@@ -294,6 +294,19 @@ describe("la línea contable con puntos (#724)", () => {
     expect(puntosDe("espera-ci", ["api", "repos/x"], "{}")).toEqual({ puntos: 0, medida: "nada" });
   });
 
+  it("un fallo sin medida real no cuenta como puntos gastados (ni en la línea ni en las horas)", () => {
+    const q = ["api", "graphql", "-f", "query=x"];
+    expect(puntosDe("issues", q, "{}", "limitado")).toEqual({ puntos: 0, medida: "est" });
+    expect(puntosDe("fabrica", q, "", "error")).toEqual({ puntos: 0, medida: "est" });
+    expect(puntosDe("issues", q, "{}", "ok")).toEqual({ puntos: 106, medida: "est" });
+    // si GitHub dijo el coste real, se cree aunque el resultado no sea ok
+    expect(puntosDe("issues", q, JSON.stringify({ rateLimit: { cost: 7 } }), "error")).toEqual({ puntos: 7, medida: "real" });
+    // líneas ya escritas con la estimación: porHoras tampoco las suma
+    const l = (hora, p, m, r) => `${hora} ${lineaGh("issues", "graphql", { ...campos, puntos: p, medida: m, resultado: r })}`;
+    const t = [l("2026-10-13T08:05:00Z", 106, "est", "limitado"), l("2026-10-13T08:06:00Z", 5, "est", "error"), l("2026-10-13T08:07:00Z", 7, "real", "error"), l("2026-10-13T08:08:00Z", 106, "est", "ok")].join("\n");
+    expect(porHoras(t)["2026-10-13 10"]).toMatchObject({ lineas: 4, puntos: 113, limitadas: 1 });
+  });
+
   it("ghSync registra DESPUÉS de la llamada, con el resultado, y relanza el error", () => {
     const dir = tmp();
     const orden = [];

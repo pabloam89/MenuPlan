@@ -66,11 +66,16 @@ export function sesionCorta(env = process.env, cwd = process.cwd()) {
 /** `app` si la llamada va con un token de instalación (ghs_…); si no, `pablo`. Solo mira el prefijo. */
 export const identidadDe = (env = process.env) => (String(env.GH_TOKEN ?? env.GITHUB_TOKEN ?? "").startsWith("ghs_") ? "app" : "pablo");
 
-/** Puntos que costó la llamada y cómo se sabe: de `rateLimit { cost }` si viene en la respuesta, o estimados. */
-export function puntosDe(caller, args, salida) {
+/**
+ * Puntos que costó la llamada y cómo se sabe: de `rateLimit { cost }` si viene en la respuesta, o estimados.
+ * Una llamada que no salió bien (`resultado` distinto de `ok`) y sin coste real no suma la estimación: no
+ * sabemos que gastara y inflaría la hora más cara y la comparación con `used`.
+ */
+export function puntosDe(caller, args, salida, resultado = "ok") {
   if (apiDe(args) === "rest") return { puntos: 0, medida: "nada" };
   const m = /"rateLimit"\s*:\s*\{[^}]*?"cost"\s*:\s*(\d+)/.exec(String(salida ?? ""));
   if (m) return { puntos: Number(m[1]), medida: "real" };
+  if (resultado !== "ok") return { puntos: 0, medida: "est" };
   const consulta = args[0] === "api" && args[1] === "graphql";
   return { puntos: consulta ? (PUNTOS_EST[caller] ?? PUNTOS_EST.otro) : 1, medida: "est" };
 }
@@ -103,7 +108,7 @@ export function registrarGh(caller, args, { dir = dirCuota(), ahora = new Date()
     mkdirSync(dir, { recursive: true });
     const linea = resultado === undefined
       ? lineaGh(caller, apiDe(args))
-      : lineaGh(caller, apiDe(args), { identidad: identidadDe(env), sesion: sesionCorta(env), ...puntosDe(caller, args, salida), resultado, intento });
+      : lineaGh(caller, apiDe(args), { identidad: identidadDe(env), sesion: sesionCorta(env), ...puntosDe(caller, args, salida, resultado), resultado, intento });
     appendFileSync(join(dir, "gh.log"), `${ahora.toISOString()} ${linea}\n`);
   } catch {
     // a propósito: contar es una ayuda; sin disco o sin permisos, la llamada sigue
@@ -186,7 +191,8 @@ export function porHoras(texto, { desde = 0, zona = "Europe/Madrid" } = {}) {
     if (l.t < desde) continue;
     const h = fmt.format(new Date(l.t)).slice(0, 13);
     const o = (horas[h] ??= { lineas: 0, puntos: 0, limitadas: 0, porOrigen: {}, porSesion: {} });
-    const gasto = l.api === "graphql" ? l.puntos : 0;
+    // líneas antiguas con la estimación de un fallo: no cuentan (solo el coste real)
+    const gasto = l.api === "graphql" && (l.resultado === "ok" || l.medida === "real" || l.resultado === "sin-dato") ? l.puntos : 0;
     o.lineas += 1;
     o.puntos += gasto;
     if (l.resultado === "limitado") o.limitadas += 1;
