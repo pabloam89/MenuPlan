@@ -10,8 +10,7 @@
       "servicios": ["1password", "github", "hetzner", "supabase", "tailscale", "vercel"],
       "repos": [
         "pabloam89/MenuPlan"
-      ],
-      "note": "El producto: la app y Lola. Comparte repo con la factoría."
+      ]
     },
     {
       "id": "panel",
@@ -19,8 +18,12 @@
       "servicios": ["1password", "hetzner", "tailscale"],
       "repos": [
         "pabloam89/homenu-panel"
-      ],
-      "note": "Herramienta interna con su propio repo privado y su servidor."
+      ]
+    },
+    {
+      "id": "factoria",
+      "name": "Factoría",
+      "repos": []
     }
   ],
   "entities": [
@@ -547,7 +550,7 @@
         "ops/vocabularios-vida.test.js",
         "scripts/lib/vocabulariosVida.mjs"
       ],
-      "note": "La clase: una lista cerrada de valores. Las de src/lib/vocabularios.js, con CHECK en la base, son ejemplares del proyecto. 121 vocabularios y 865 valores anclados (a 14 oct 2026; el test compara estas cifras con ops/vocabularios-vida.json). Hay constantes duplicadas (MESES en 4 sitios, dos ESTADOS_CRITERIO con valores distintos)."
+      "note": "La clase: una lista cerrada de valores. Las de src/lib/vocabularios.js, con CHECK en la base, son ejemplares del proyecto. Hay constantes duplicadas (MESES en 4 sitios, dos ESTADOS_CRITERIO con valores distintos)."
     },
     {
       "id": "principle",
@@ -795,7 +798,7 @@
         "ops/recursos.test.js",
         "scripts/cumplimiento.mjs"
       ],
-      "note": "La clase: una clave, cuenta o servicio y su dueño. Los de Supabase, Telegram y Vercel son ejemplares del proyecto. Una entrada por clave, token, App, deploy key, bóveda, service account, proyecto de un servicio, servidor o cuenta, con servicio, tipo, dueño, fecha y caducidad. Clave, token, deploy key y bóveda son tipos suyos, no entidades aparte. Aún no guarda de qué proyecto es cada recurso (ver la relación resource belongs_to project, sin campo); el tipo proyecto de recursos.json es un proyecto de un servicio (Vercel, Supabase), no la entidad project.",
+      "note": "La clase: una clave, cuenta o servicio y su dueño. Los de Supabase, Telegram y Vercel son ejemplares del proyecto. Una entrada por clave, token, App, deploy key, bóveda, service account, proyecto de un servicio, servidor o cuenta, con servicio, proyecto, tipo, dueño, fecha y caducidad. Clave, token, deploy key y bóveda son tipos suyos, no entidades aparte. El campo proyecto (obligatorio, un valor de PROYECTOS) dice de qué proyecto es: el que lo paga o administra la cuenta; lo que vive dentro (bóveda, clave, deploy key, servidor) va al proyecto al que sirve en exclusiva y a factoria si sirve a varios (Hetzner: aloja el panel y la copia de la base de homenu); el tipo proyecto-servicio de recursos.json es un proyecto de un servicio (Vercel, Supabase), no la entidad project.",
       "types": [
         "clave",
         "token",
@@ -803,7 +806,7 @@
         "deploy-key",
         "boveda",
         "service-account",
-        "proyecto",
+        "proyecto-servicio",
         "servidor",
         "cuenta"
       ]
@@ -917,7 +920,7 @@
       "level": "piece",
       "family": "structure",
       "term": "proyecto",
-      "source_of_truth": "ops/entidades.json",
+      "source_of_truth": "scripts/lib/zonasProyecto.mjs",
       "id_format": "kebab",
       "registry": "with_registry",
       "status": "active",
@@ -928,7 +931,7 @@
         "ops/entidades.test.js",
         "docs/entidades/MAPA.md"
       ],
-      "note": "Un producto o herramienta con su repositorio, sus entornos y sus recursos; las instancias están en la lista projects de este fichero (homenu y panel). La factoría es la raíz implícita: una pieza sin project cuelga de ella (no se crea como entidad, tendría un solo lector). Contención: factoría > proyecto > entorno. No hay programa ni portfolio: con dos proyectos no tendrían lector. La palabra «proyecto» tiene más sentidos en el repo (el tipo proyecto de recursos.json es un proyecto de un servicio)."
+      "note": "Un producto o herramienta con su repositorio, sus entornos y sus recursos. Los ids son PROYECTOS de scripts/lib/zonasProyecto.mjs (homenu, panel y factoria, que es el trabajo sobre el proceso y un valor más, sin repositorio propio); la lista projects de este fichero solo guarda el nombre y los repositorios de cada uno. Contención: factoría > proyecto > entorno. No hay programa ni portfolio: con dos productos no tendrían lector. La palabra «proyecto» tiene más sentidos en el repo: el tipo proyecto-servicio de recursos.json es un proyecto de un servicio (Vercel, Supabase), no esta entidad."
     },
     {
       "id": "repo",
@@ -1365,8 +1368,8 @@
       "to": "project",
       "class": "part_of",
       "cardinality": "many_to_one",
-      "stored_as": "none",
-      "stored_in": "recursos.json no guarda de qué proyecto es cada recurso (sin campo); sin project, cuelga de la factoría"
+      "stored_as": "field",
+      "stored_in": "proyecto (ops/recursos.json): obligatorio, un valor de PROYECTOS (scripts/lib/zonasProyecto.mjs)"
     },
     {
       "from": "design-system",

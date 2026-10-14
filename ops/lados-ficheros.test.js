@@ -4,6 +4,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { ficherosDeGit } from "./ficherosGit.js";
+import { PROYECTOS_CON_NORMAS } from "../scripts/lib/zonasProyecto.mjs";
 import { cargarSkill } from "../scripts/lib/skills.mjs";
 import {
   CAPAS_DE_LADOS,
@@ -32,9 +33,10 @@ const ficheros = ficherosDeGit(RAIZ);
 const registro = cargarLados(RAIZ);
 const leer = (ruta) => readFileSync(join(RAIZ, ruta), "utf8");
 
-// Los proyectos salen de la lista única (`projects` de ops/entidades.json): ningún test de este fichero escribe un id.
-const proyectos = JSON.parse(readFileSync(join(RAIZ, "ops", "entidades.json"), "utf8")).projects;
-const ids = proyectos.map((p) => p.id);
+// Los proyectos salen de la lista única (PROYECTOS_CON_NORMAS, #748; `servicios` de cada uno, en `projects` de ops/entidades.json):
+// ningún test de este fichero escribe un id.
+const ids = PROYECTOS_CON_NORMAS;
+const proyectos = JSON.parse(readFileSync(join(RAIZ, "ops", "entidades.json"), "utf8")).projects.filter((p) => ids.includes(p.id));
 const servicio = skillsDeServicio(registro, ficheros, leer);
 
 describe("el registro de lados, sobre el repo de hoy", () => {
@@ -55,6 +57,7 @@ describe("el registro de lados, sobre el repo de hoy", () => {
 
   it("cada proyecto de la lista tiene la ficha de cada servicio que declara, sin fichas ni skills de servicio huérfanas", () => {
     expect(ids.length).toBeGreaterThanOrEqual(2);
+    expect(proyectos.map((p) => p.id)).toEqual(ids);
     expect(servicio.length).toBeGreaterThanOrEqual(6);
     expect(fallosDeServicios(proyectos, ficheros, servicio)).toEqual([]);
     // Recorre todos los proyectos: una carpeta de ops/proyectos que no es de la lista también es un fallo.

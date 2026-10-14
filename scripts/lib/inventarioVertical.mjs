@@ -23,7 +23,7 @@ import { join } from "node:path";
 import { ficherosDeGit } from "../../ops/ficherosGit.js";
 import { cargarNormas } from "./normas.mjs";
 import { ladoDeFuente } from "./fuentesDoc.mjs";
-import { clasificar, compilar, leerZonas } from "./zonasProyecto.mjs";
+import { PROYECTOS_CON_NORMAS, clasificar, compilar, leerZonas } from "./zonasProyecto.mjs";
 import { cargarLados, capaDe, ladoDe } from "./ladosFicheros.mjs";
 
 export const RUTA_DECISIONES = "ops/inventario-vertical.json";
@@ -147,7 +147,6 @@ export function calcular(raiz) {
 
   // ---- 4. Entidades y glosario --------------------------------------------------------------------------------
   const registroEntidades = leerJson(raiz, "ops/entidades.json");
-  const proyectos = registroEntidades.projects;
   const ent = registroEntidades.entities;
   const scopeDe = new Map(ent.map((e) => [e.id, e]));
   const entidades = ent.filter((e) => e.status !== "retired").map((e) => {
@@ -187,7 +186,7 @@ export function calcular(raiz) {
   const registro = cargarLados(raiz);
   let sinLado = 0;
   let verticalSinProyecto = 0;
-  const idsProyecto = new Set(proyectos.map((p) => p.id));
+  const idsProyecto = new Set(PROYECTOS_CON_NORMAS);
   const delRegistro = (rutas) => rutas.map((r) => {
     const e = ladoDe(r, registro);
     if (e === null) {

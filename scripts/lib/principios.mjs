@@ -44,7 +44,7 @@ export const rutaPrincipiosDeProyecto = (id) => `${RUTA_PROYECTOS}/${id}/princip
 /** Lo que lleva cada principio propio, y lo que puede faltar. */
 export const CAMPOS = ["id", "area", "nombre", "enunciado", "porque", "fuentes"];
 export const CAMPOS_OPCIONALES = ["detalle", "origen"];
-/** Solo lo lleva un principio de proyecto: el id del proyecto (un `projects` de ops/entidades.json). */
+/** Solo lo lleva un principio de proyecto: el id del proyecto (un id de PROYECTOS_CON_NORMAS, scripts/lib/zonasProyecto.mjs). */
 export const CAMPO_PROYECTO = "project";
 /** Lo que puede llevar un anexo a un principio delegado. */
 export const CAMPOS_ANEXO = ["detalle", "origen", "puente"];
@@ -311,15 +311,15 @@ function problemasDePropio(p, d, ctx) {
 }
 
 /**
- * Errores de los registros de principios de proyecto (#710): cada carpeta es de un proyecto de `validos` (ids de
- * ops/entidades.json), su `project` y el de cada principio coinciden con la carpeta, y cada principio pasa lo mismo que
+ * Errores de los registros de principios de proyecto (#710): cada carpeta es de un proyecto de `validos` (PROYECTOS_CON_NORMAS de
+ * scripts/lib/zonasProyecto.mjs), su `project` y el de cada principio coinciden con la carpeta, y cada principio pasa lo mismo que
  * uno horizontal (plantilla, fuentes, detalle, origen). `proyectos`: lo que da leerPrincipiosDeProyecto.
  */
 export function problemasDePrincipiosDeProyecto(proyectos, validos, ctx) {
   const malos = [];
   for (const [id, cat] of Object.entries(proyectos ?? {})) {
     const ruta = rutaPrincipiosDeProyecto(id);
-    if (!validos.includes(id)) malos.push(`${ruta}: «${id}» no es un proyecto de ops/entidades.json (${validos.join(", ")})`);
+    if (!validos.includes(id)) malos.push(`${ruta}: «${id}» no es un proyecto con normas de scripts/lib/zonasProyecto.mjs (${validos.join(", ")})`);
     if (cat?.project !== id) malos.push(`${ruta}: su «project» es «${cat?.project}» y la carpeta es «${id}»`);
     if (!Array.isArray(cat?.principios) || !cat.principios.length) { malos.push(`${ruta}: «principios» no es una lista con principios`); continue; }
     for (const [i, p] of cat.principios.entries()) {

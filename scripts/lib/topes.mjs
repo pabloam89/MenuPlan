@@ -21,7 +21,8 @@ import { MODAL_DESCRIPTIVO, OTRO_TIEMPO, PASIVA_REFLEJA, PASIVA_SER, PERSONA_MAL
 import { leerEstandares } from "./estandaresAgentes.mjs";
 import { activos, leerGlosario } from "./glosario.mjs";
 import { leerForja } from "./forja.mjs";
-import { leerRegistro, proyectosDeEntidades } from "./normas.mjs";
+import { leerRegistro } from "./normas.mjs";
+import { PROYECTOS_CON_NORMAS } from "./zonasProyecto.mjs";
 import { leerTareasDeProyecto } from "./tareasDeProyecto.mjs";
 import { leerPool } from "./pool.mjs";
 import { PALABRAS_DE_FUERZA } from "./regla.mjs";
@@ -48,7 +49,7 @@ const json = (raiz, ruta) => JSON.parse(readFileSync(join(raiz, ruta), "utf8"));
 /** Las tareas (las de cada agente y las que solo existen en un proyecto, #710), las comunes y las reglas por campos de los estándares. */
 function deEstandares(raiz) {
   const e = leerEstandares(raiz);
-  const deProyecto = Object.values(leerTareasDeProyecto(raiz, proyectosDeEntidades(raiz))).flatMap((r) => Object.values(r.agentes ?? {}).flatMap((a) => a.tareas ?? []));
+  const deProyecto = Object.values(leerTareasDeProyecto(raiz, PROYECTOS_CON_NORMAS)).flatMap((r) => Object.values(r.agentes ?? {}).flatMap((a) => a.tareas ?? []));
   const tareas = [...Object.values(e.agentes ?? {}).flatMap((a) => a.tareas ?? []), ...deProyecto];
   const comunes = Object.values(e.comunes ?? {});
   return { tareas, comunes, reglas: [...tareas, ...comunes].flatMap((t) => t.reglas ?? []) };

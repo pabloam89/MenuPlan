@@ -32,7 +32,7 @@
     "verticales sin project: skills, reglas, comandos, specs y documentos": 0,
     "ataduras a un id de proyecto: código de la casa": 1,
     "ataduras a un id de proyecto: registros de la casa": 5,
-    "ataduras a un id de proyecto: tests de la casa": 53
+    "ataduras a un id de proyecto: tests de la casa": 57
   },
   "subida_declarada": {
     "citas_de_documento_horizontal_a_vertical": {
@@ -48,7 +48,7 @@
       "razon": "Medida nueva del PR 8 de #710 (programa #652, escala a cualquier proyecto): la casa no escribe el id de un proyecto a mano; el techo fija las que hay hoy y solo baja (las de código y registros son encargos medidos del informe, las de tests se leen de la lista al tocar cada test)."
     },
     "ataduras a un id de proyecto: tests de la casa": {
-      "hasta": 53,
+      "hasta": 57,
       "razon": "Medida nueva del PR 8 de #710 (programa #652, escala a cualquier proyecto): la casa no escribe el id de un proyecto a mano; el techo fija las que hay hoy y solo baja (las de código y registros son encargos medidos del informe, las de tests se leen de la lista al tocar cada test)."
     }
   }

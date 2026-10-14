@@ -9,6 +9,7 @@ import { cargarNormas, dominiosDeProyecto, problemasDeDominios } from "../script
 import { problemasDeRegla } from "../scripts/lib/regla.mjs";
 import { conTareasDeProyecto, leerTareasDeProyecto, problemasDeTareasDeProyecto } from "../scripts/lib/tareasDeProyecto.mjs";
 import { LECTORES } from "../scripts/lib/topes.mjs";
+import { PROYECTOS_CON_NORMAS } from "../scripts/lib/zonasProyecto.mjs";
 
 /**
  * Toda norma, también la vertical, llega al estándar de una tarea de un agente (#710, decisión de Pablo del 13 oct 2026).
@@ -19,7 +20,8 @@ import { LECTORES } from "../scripts/lib/topes.mjs";
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
 const entidades = JSON.parse(readFileSync(join(RAIZ, "ops", "entidades.json"), "utf8"));
 const proyectos = entidades.projects;
-const ids = proyectos.map((p) => p.id);
+// Los proyectos con normas y tareas propias: PROYECTOS menos `factoria` (lista única, scripts/lib/zonasProyecto.mjs).
+const ids = PROYECTOS_CON_NORMAS;
 const datos = leerEstandares(RAIZ);
 const carga = cargarNormas(RAIZ);
 const registros = leerTareasDeProyecto(RAIZ, ids);

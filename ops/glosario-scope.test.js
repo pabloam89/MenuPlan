@@ -71,6 +71,11 @@ describe("autotest del lado de los términos (visto fallar con datos malos)", ()
     expect(lados([], { homenu: { project: "otro", terminos: [] } }, reg).join("\n")).toMatch(/su project es «otro», no «homenu»/);
   });
 
+  it("`factoria` no es un proyecto con glosario propio, aunque esté en projects[] (#770)", () => {
+    const reg2 = { projects: [{ id: "homenu" }, { id: "factoria" }], entities: entidades };
+    expect(lados([], { factoria: { project: "factoria", terminos: [{ ...v, project: "factoria" }] } }, reg2).join(" ")).toMatch(/«factoria» no es un proyecto/);
+  });
+
   it("un término horizontal que nombra una entidad vertical", () => {
     const malo = { ...h, entidades: [{ entidad: "y", relacion: "campo_de" }] };
     expect(lados([malo], delProyecto, reg).join("\n")).toMatch(/uno → y: un término horizontal nombra una entidad vertical/);

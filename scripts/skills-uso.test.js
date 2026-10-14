@@ -8,6 +8,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { cargarMapa } from "../.claude/hooks/dominios.mjs";
+import { PROYECTOS_CON_NORMAS } from "./lib/zonasProyecto.mjs";
 import {
   TOQUES,
   VIAS,
@@ -170,8 +171,8 @@ describe("skillsDelEncargo: las skills del brief salen del mapa", () => {
     expect(precargadasDe(RAIZ, "../constructor")).toEqual([]);
   });
 
-  // Los proyectos salen de la lista única (`projects` de ops/entidades.json): ningún id escrito a mano.
-  const PROYECTOS_ = JSON.parse(readFileSync(join(RAIZ, "ops", "entidades.json"), "utf8")).projects;
+  // Los proyectos salen de la lista única (PROYECTOS_CON_NORMAS, #748; `servicios` de cada uno, en `projects` de ops/entidades.json): ningún id escrito a mano.
+  const PROYECTOS_ = JSON.parse(readFileSync(join(RAIZ, "ops", "entidades.json"), "utf8")).projects.filter((p) => PROYECTOS_CON_NORMAS.includes(p.id));
   const fichaDe = (id, s) => `ops/proyectos/${id}/servicios/${s}.md`;
 
   it("fichasDeProyecto: los datos de cada proyecto de la lista llegan por referencia (--proyecto)", () => {

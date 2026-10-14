@@ -1,7 +1,7 @@
 /**
  * atadurasProyecto.mjs — las ataduras a un id de proyecto en lo de la casa (#710, programa #652; requisito de Pablo del
  * 14 oct 2026: la casa escala a cualquier número de proyectos). Lo de la casa (la factoría) no escribe el id de un
- * proyecto a mano: lo recorre en la lista única (`projects` de ops/entidades.json) o lo lee de un campo `project: <id>`.
+ * proyecto a mano: lo recorre en la lista única (`PROYECTOS` de scripts/lib/zonasProyecto.mjs, #748) o lo lee de un campo `project: <id>`.
  * Una atadura es una línea de un fichero de la casa que escribe el id de un proyecto como literal: entre comillas,
  * como carpeta (`proyectos/<id>`) o como argumento (`--proyecto <id>`). Se cuentan por línea, en tres grupos:
  *  - código: scripts/ (menos tests) y los hooks de .claude/ — son las ataduras reales, a arreglar;
@@ -16,7 +16,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { ficherosDeGit } from "../../ops/ficherosGit.js";
-import { clasificar, compilar, leerZonas } from "./zonasProyecto.mjs";
+import { PROYECTOS_CON_NORMAS, clasificar, compilar, leerZonas } from "./zonasProyecto.mjs";
 
 export const RUTA_LEGITIMOS = "ops/ataduras-proyecto.json";
 /** Los registros que SON la lista de proyectos o dicen de qué proyecto es cada pieza: nombrar un id es su trabajo. */
@@ -30,8 +30,8 @@ export function reDeId(id) {
   return new RegExp(`["'\`]${x}["'\`]|proyectos/${x}(?![\\w-])|--proyecto[ =]${x}(?![\\w-])`);
 }
 
-/** Un campo de registro `"project": "<id>"` o `"proyecto": "<id>"`: es el dato, no una atadura. */
-const esCampoDeRegistro = (linea) => /^\s*"(project|proyecto)"\s*:\s*"[^"]*"\s*,?\s*$/.test(linea);
+/** Los campos de registro `"project": "<id>"` y `"proyecto": "<id>"` (también en una línea con más campos): son el dato, no una atadura. */
+const sinCamposDeRegistro = (linea) => linea.replace(/"(project|proyecto)"\s*:\s*"[^"]*"/g, "");
 
 /** Una línea de comentario de código: una atadura en un comentario es prosa, no código. */
 const esComentario = (linea) => /^\s*(\/\/|\*|\/\*)/.test(linea);
@@ -58,8 +58,9 @@ export function atadurasAProyecto(ids, ficheros, leer, legitimos = [], zonaDe = 
     if (!g || exentos.has(f) || zonaDe(f) === "producto") continue;
     const lineas = leer(f).split("\n");
     lineas.forEach((l, i) => {
-      if (g === "registros" ? esCampoDeRegistro(l) : esComentario(l)) return;
-      for (const [id, re] of res_) if (re.test(l)) res[g].push(`${f}:${i + 1} → ${id}`);
+      if (g !== "registros" && esComentario(l)) return;
+      const texto = g === "registros" ? sinCamposDeRegistro(l) : l;
+      for (const [id, re] of res_) if (re.test(texto)) res[g].push(`${f}:${i + 1} → ${id}`);
     });
   }
   for (const g of Object.keys(res)) res[g].sort();
@@ -73,7 +74,6 @@ export function leerLegitimos(raiz) {
 
 /** Mide el repo: las ataduras por grupo. */
 export function medirAtaduras(raiz) {
-  const ids = JSON.parse(readFileSync(join(raiz, "ops/entidades.json"), "utf8")).projects.map((p) => p.id);
   const zonas = compilar(leerZonas(raiz));
-  return atadurasAProyecto(ids, ficherosDeGit(raiz), (f) => readFileSync(join(raiz, f), "utf8"), leerLegitimos(raiz), (f) => clasificar(f, zonas).zona);
+  return atadurasAProyecto(PROYECTOS_CON_NORMAS, ficherosDeGit(raiz), (f) => readFileSync(join(raiz, f), "utf8"), leerLegitimos(raiz), (f) => clasificar(f, zonas).zona);
 }

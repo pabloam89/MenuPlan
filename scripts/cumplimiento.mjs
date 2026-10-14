@@ -38,6 +38,7 @@ import { leerMetricas } from "./lib/metricas.mjs";
 import { lineaDeRuido, salDelMargen, textoDeRuido } from "./lib/ruido.mjs";
 import { INDICADORES_SKILLS, lineaDeIndicadorSkill, saludDeSkills } from "./lib/saludSkills.mjs";
 import { caducidadesDelRepo } from "./lib/recursos.mjs";
+import { PROYECTOS } from "./lib/zonasProyecto.mjs";
 import { AVISO_ANTES_DIAS, PLAZO_COMPROBADO_DIAS, RAIZ, nombresDeSkills, skillsTocadas } from "./lib/skills.mjs";
 import { medirUso } from "./lib/usoSkills.mjs";
 
@@ -88,25 +89,28 @@ function tablaAntesYDespues(filas) {
 /**
  * La sección «Caducidades» (#581), en AVISO: no falla nada. Recursos de `ops/recursos.json` vencidos
  * o a 14 días o menos, los que tienen una rotación en curso y los que esperan una fecha; y las
- * skills próximas o caducadas (el plazo de 90 días lo calcula skills.mjs). Solo ids y fechas.
+ * skills próximas o caducadas (el plazo de 90 días lo calcula skills.mjs). Solo ids y fechas. Agrupada por `proyecto` del recurso
+ * (#748): la tabla de alertas va en el orden de PROYECTOS y el total dice cuántos recursos tiene cada uno.
  * `datos`: lo que da `caducidadesDelRepo()`.
  */
 export function seccionCaducidades({ recursos, skills }) {
   const por = (e) => recursos.filter((r) => r.estado === e);
   const L = ["", "### Caducidades", ""];
-  const alertas = [...por("vencida"), ...por("proxima")];
+  const delProyecto = (p) => recursos.filter((r) => r.proyecto === p);
+  const alertas = [...por("vencida"), ...por("proxima")].sort((a, b) => PROYECTOS.indexOf(a.proyecto) - PROYECTOS.indexOf(b.proyecto));
   L.push(alertas.length
     ? `**${alertas.length} recurso${alertas.length > 1 ? "s" : ""} vencido${alertas.length > 1 ? "s" : ""} o a ${AVISO_ANTES_DIAS} días o menos de caducar, sin rotación en curso.** Rótalo o marca su \`rotacion_en_curso\` en \`ops/recursos.json\` (solo avisa: no bloquea ningún PR).`
     : `Ningún recurso vencido ni a ${AVISO_ANTES_DIAS} días o menos de caducar sin rotación en curso.`);
   if (alertas.length) {
-    L.push("", "| recurso | dueño | caduca | días |", "|---|---|---|---|");
-    for (const r of alertas) L.push(`| \`${r.id}\` | ${r.dueno} | ${r.caducidad} | ${r.dias} |`);
+    L.push("", "| proyecto | recurso | dueño | caduca | días |", "|---|---|---|---|---|");
+    for (const r of alertas) L.push(`| ${r.proyecto} | \`${r.id}\` | ${r.dueno} | ${r.caducidad} | ${r.dias} |`);
   }
   const rotando = por("en_rotacion");
   if (rotando.length) L.push("", `En rotación (${rotando.length}): ${rotando.map((r) => `\`${r.id}\` (#${r.rotacion_en_curso})`).join(", ")}.`);
   const sin = por("por_confirmar");
   const sinOtro = recursos.filter((r) => [r.creado, r.dueno].includes("por-confirmar") && r.estado !== "por_confirmar");
   L.push("", `Recursos en total ${recursos.length}: ${por("vigente").length} con fecha vigente, ${por("sin_caducidad").length} sin caducidad, ${sin.length} con la caducidad por confirmar y ${sinOtro.length} más con el alta o el dueño por confirmar.`);
+  L.push("", `Por proyecto: ${PROYECTOS.map((p) => `${p} ${delProyecto(p).length}`).join(", ")}.`);
   if (sin.length) L.push("", `Caducidad por confirmar: ${sin.map((r) => `\`${r.id}\` (${r.confirma})`).join(", ")}.`);
   const malas = skills.filter((s) => s.estado !== "vigente");
   L.push("", malas.length
