@@ -13,7 +13,7 @@
     "duda: normas horizontales (ops/normas.json)": 46,
     "duda: normas verticales (ops/proyectos/<id>/normas.json)": 0,
     "duda: entidades activas (ops/entidades.json)": 0,
-    "duda: términos activos del glosario (ops/glosario/terminos/)": 6,
+    "duda: términos activos del glosario (ops/glosario/terminos/)": 0,
     "duda: skills (.claude/skills/)": 4,
     "duda: reglas por carpeta (.claude/rules/)": 1,
     "duda: comandos (.claude/commands/)": 0,
