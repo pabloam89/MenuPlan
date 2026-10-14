@@ -483,6 +483,7 @@ export const GUARDIA_SIN_AVISO = {
   "estado-leido-antes-de-afirmar": "La hace cumplir pendientes.mjs, el hook de Stop: frena al terminar de responder si se afirma un estado sin leerlo antes",
   "fuera-de-onedrive": "La dice arranque.mjs al abrir la sesión: avisa una vez y no niega ninguna orden",
   "eventos-de-hooks-registrados": "No niega nada: es lo que hace cada hook al escribir su línea en el registro local (eventos.mjs)",
+  "brief-con-estandar": "La hace cumplir lanzamiento.mjs, un hook aparte sobre Agent|Task (#642): niega con su propio motivo, no con un aviso de la guardia",
 };
 
 /** Normas de ejecutor «guardia» sin aviso ni excepción, y excepciones que sobran (de una norma que ya no es de la guardia o ya tiene aviso). */
