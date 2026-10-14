@@ -7,7 +7,8 @@ import { MAX_FRASES_PARRAFO, MAX_IDEAS, MAX_PALABRAS_FRASE, faltasDeMensaje } fr
 
 /**
  * La voz con Pablo (10 oct 2026; #652: una sola fuente): CLAUDE.md solo apunta a la skill
- * (no repite ninguna regla), el detalle está en la
+ * (no repite ninguna regla, y desde #690 D3 nada le obliga a copiar ni quién habla con Pablo
+ * ni la frase del informe: eso lo vigilan su cabecera y la skill), el detalle está en la
  * skill `estilo-de-respuesta` y un resumen en la plantilla de agentes. Aquí se vigila
  * lo medible (el medidor es `scripts/lib/voz.mjs`, el mismo del vigilante #453): que las tres piezas nombren las mismas cinco plantillas y la regla
  * de las tres opciones, que la skill pase el nivel 1 y que los ejemplos
@@ -74,23 +75,28 @@ describe("las tres piezas de la voz dicen lo mismo", () => {
     const sec = bruto.slice(ini, bruto.indexOf("\n## ", ini + 3));
     expect(sec.split("\n").length, "líneas de la sección").toBeLessThanOrEqual(12);
     for (const copia of [/Coste:/, /Certeza:/, /tres opciones/, /Seguimos con X/, /25 palabras/]) expect(sec, String(copia)).not.toMatch(copia);
-    expect(sec).toMatch(/`orquestador`/);
     // Lo esencial inline, para la sesión sin --agent (que no trae la skill precargada).
     expect(sec).toMatch(/primera línea del mensaje es la idea raíz en \*\*negrita\*\*/);
     expect(sec).toMatch(/[Aa]bre la skill\s+`estilo-de-respuesta` antes de escribirle/);
   });
 
+  it("el único que habla con Pablo es el orquestador: lo dicen su cabecera y la skill, no CLAUDE.md (#690, D3)", () => {
+    expect(leer(".claude/agents/orquestador.md")).toMatch(/[Ee]s el único agente que habla con Pablo/);
+    expect(skill).toMatch(/el agente `orquestador`, el único que le habla/);
+  });
+
   it("el informe de agente: solo RESUMEN y DECISIONES PENDIENTES siguen la voz, y la decisión pide A/B/C con la recomendada", () => {
-    for (const [nombre, t] of [["CLAUDE.md", claude], ["PLANTILLA-AGENTE.md", plantillaAgente], ["SKILL.md", skill]]) {
+    // Las dos fuentes son la plantilla de agentes y la skill; CLAUDE.md no hace falta que lo copie (#690, D3).
+    for (const [nombre, t] of [["PLANTILLA-AGENTE.md", plantillaAgente], ["SKILL.md", skill]]) {
       expect(t, nombre).toMatch(/RESUMEN/);
       expect(t, nombre).toMatch(/DECISIONES PENDIENTES/);
     }
     expect(plantillaAgente).toMatch(/DECISIONES PENDIENTES: - Necesito que decidas: <pregunta> · A \(recomendada\), B y C/);
   });
 
-  it("las tres piezas dicen que del informe de agente solo siguen la forma RESUMEN y DECISIONES PENDIENTES", () => {
+  it("la plantilla de agentes y la skill dicen que del informe de agente solo siguen la forma RESUMEN y DECISIONES PENDIENTES", () => {
     const frase = /solo el `?RESUMEN`? y las `?DECISIONES PENDIENTES`? siguen esta forma/i;
-    for (const [nombre, t] of [["CLAUDE.md", claude], ["PLANTILLA-AGENTE.md", plantillaAgente], ["SKILL.md", skill]]) expect(t, nombre).toMatch(frase);
+    for (const [nombre, t] of [["PLANTILLA-AGENTE.md", plantillaAgente], ["SKILL.md", skill]]) expect(t, nombre).toMatch(frase);
   });
 
   it("la plantilla de agentes y la skill dan la misma excepción para ficheros y comandos", () => {

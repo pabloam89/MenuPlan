@@ -325,6 +325,12 @@ Seis nombran a Pablo y esperan D5. Ningún id cambia.
   regla, en la ronda de los tests. Además fijan anclas que se quedan:
   `ops/flujo.test.js`, `ops/glosario.test.js`, `ops/principios.test.js` y
   `scripts/hora.test.js`.
+  **Resuelta en #815:** los cinco miran su fuente (`ops/estandares-agentes.json`,
+  `.claude/dominios-skills.json`, la cabecera del `orquestador` y la skill, la norma
+  `cuando-algo-falla` con `scripts/lib/issues.mjs`, la norma `rol-solo-lectura` con la
+  skill `supabase`). Las filas 58, 60, 65, 72, 113 y 114 quedan libres para borrarse;
+  la 95 espera al registro de preguntas. `ops/claude-md-anclas.test.js` falla si un test
+  lee `CLAUDE.md` fuera de `ops/claude-md-anclas.json`.
 - **D4. El campo de proyecto por entidad** (#710): hoy cada entidad es horizontal o
   vertical, sin `project`. El equipo (`team-member`), los recursos y el entorno local
   necesitan decir de qué proyecto son sus ejemplares para el minigrafo y para

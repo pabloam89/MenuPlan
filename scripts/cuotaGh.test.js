@@ -241,7 +241,7 @@ describe("ratchet de la cuota GraphQL (#424)", () => {
     const nuevo = rama(f, "--nuevo");
     const crear = nuevo.indexOf("gh(...crear)");
     const borrar = nuevo.indexOf('borrarCacheGh("issues-nodos")');
-    const releer = nuevo.indexOf("colgar(todos()");
+    const releer = nuevo.indexOf("colgar(todos(");
     expect(crear).toBeGreaterThan(-1);
     expect(borrar).toBeGreaterThan(crear);
     expect(releer).toBeGreaterThan(borrar);
@@ -390,6 +390,7 @@ describe("cobertura del registro: quien lanza gh pasa por el envoltorio común (
   const RECEPTORES = {
     "scripts/lib/fabricaGh.mjs": "scripts/fabrica.mjs",
     "scripts/lib/situacion.mjs": "scripts/situacion.mjs",
+    "scripts/lib/fotoIssues.mjs": "scripts/issues.mjs", // la REST de los cambios desde la foto; la foto la escribe scripts/foto-issues.mjs, que usa ghSync
   };
   const LANZA = /\b(?:execFileSync|execFile|spawnSync|spawn|execSync|exec)\(\s*["'`]gh(?:\.exe)?(?:["'`]|\s)/;
   // gh como parámetro: `function f(gh)`, `(gh) =>`, `gh =>`, `async (a, gh = x) =>`

@@ -35,6 +35,7 @@ Cada `npm run issues` o arranque de sesión sin caché valía **~320 puntos**: c
 
 ## Cómo se gasta menos
 
+- **La foto de los issues** (#326): `npm run issues` y `situacion` leen una foto publicada como asset de la release `foto-issues` (0 puntos GraphQL; medido el 14 oct 2026: 414 issues = 486 puntos por lectura completa, ~1,08 por issue, así que el coste crece con el total). Funcionamiento y cómo quitarla: `foto-issues.md`.
 - **Esperar al CI**: `npm run espera-ci -- <pr>` (REST, una llamada cada 60 s, sale con 0 si todo pasa, 1 si algo falla o se acaba el tiempo y 3 si no pudo preguntar tras 3 intentos; el PR va en primer lugar).
   No uses `gh pr checks --watch`.
 - **Leer un issue o un PR suelto**: `gh api repos/pabloam89/MenuPlan/issues/<n> --jq .body` (REST) en vez de `gh issue view`.

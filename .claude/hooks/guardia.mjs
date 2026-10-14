@@ -65,7 +65,58 @@ export function opDeSesion(o) {
     || /\bitem\s+(?:get|edit|share|delete)\s+["']?[a-z0-9]{26}\b/i.test(o);
 }
 
+/**
+ * #326: la foto de los issues (asset de la release `foto-issues`) la escribe SOLO el workflow
+ * `foto-issues.yml`. Los scripts se fían de lo que trae (autor de cada comentario incluido, el
+ * `authorAssociation` con que se cuentan las marcas «lo lleva»), así que una sesión que subiera otra
+ * foto, o una sesión con un texto inyectado, podría falsificarlo. ¿Esta orden escribe la release, su
+ * tag o cualquier release por la API? Leer (`gh release view|download`, `gh api` sin método de
+ * escritura) pasa. Filtro de buena fe: la App de las sesiones puede escribir releases; quien parta la
+ * orden adrede se lo salta.
+ */
+/** Opciones de `gh api` que llevan valor en el trozo siguiente (si no van con `=`). */
+const OPCIONES_CON_VALOR_GH_API = new Set(["-X", "--method", "-f", "--raw-field", "-F", "--field", "-H", "--header", "--input", "-q", "--jq", "-t", "--template", "--hostname", "--cache", "-p", "--preview"]);
+
+/** La ruta de un `gh api …` (el primer argumento que no es opción ni su valor), con las comillas respetadas; "" si no hay. */
+export function rutaDeGhApi(o) {
+  const trozos = (o.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g) ?? []).map((t) => t.replace(/^["']|["']$/g, ""));
+  const i0 = trozos.findIndex((t) => t === "api");
+  for (let i = i0 + 1; i < trozos.length; i++) {
+    const t = trozos[i];
+    if (!t.startsWith("-")) return t;
+    if (!t.includes("=") && OPCIONES_CON_VALOR_GH_API.has(t)) i += 1;
+  }
+  return "";
+}
+
+export function escribeLaFoto(orden) {
+  const o = sinEnvoltorio(orden).replace(/^(?:\w+=\S*\s+)*/, "");
+  const nombraTag = (t) => {
+    const destino = t.replace(/^["']|["']$/g, "").split(":").pop().replace(/^\+/, "");
+    return destino === "foto-issues" || destino === "refs/tags/foto-issues";
+  };
+  const trozos = o.split(/\s+/);
+  // `-R X`, `-R=X`, `--repo X` o `--repo=X`, antes o después de `release`.
+  const repo = String.raw`(?:(?:-R|--repo)(?:\s+|=)\S+\s+)*`;
+  if (new RegExp(String.raw`^gh(?:\.exe)?\s+${repo}release\s+${repo}(?:create|upload|edit|delete|delete-asset)\b`).test(o)) return trozos.some(nombraTag);
+  // En `gh api` cuenta la RUTA (el primer argumento que no es opción ni su valor), no un `-f body=…` que cite la URL de la foto;
+  // un ref del tag creado por `git/refs` lo nombra en un campo, así que ahí sí se mira la orden entera.
+  const ruta = /^gh(?:\.exe)?\s+api\b/.test(o) ? rutaDeGhApi(o) : null;
+  if (ruta != null && (/\/releases\b|refs\/tags\/foto-issues|uploads\.github\.com/.test(ruta) || (/\/git\/refs\b/.test(ruta) && /refs\/tags\/foto-issues/.test(o)))) {
+    const metodo = o.match(/(?:-X|--method)[\s=]*["']?([A-Za-z]+)/)?.[1]?.toUpperCase();
+    if (metodo) return metodo !== "GET";
+    return /\s(?:-f|-F|--field|--raw-field|--input)(?:\s|=)/.test(o);
+  }
+  if (/^git\s+push\b/.test(o)) return trozos.slice(2).filter((t) => !t.startsWith("-")).some(nombraTag);
+  return false;
+}
+
 const REGLAS_COMANDO = [
+  {
+    // #326: la foto de los issues solo la escribe su workflow (ver escribeLaFoto).
+    si: escribeLaFoto,
+    da: () => deny("foto-de-issues"),
+  },
   {
     // main es producción. Ni push ni push forzado, por ninguna variante.
     si: (o) => /^git\s+push\b/.test(o) && /(^|[\s:+])(refs\/heads\/)?main(\s|$)/.test(o),
