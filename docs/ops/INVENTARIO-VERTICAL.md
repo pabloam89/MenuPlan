@@ -33,7 +33,7 @@ Límites: «casa» y «bot» son castellano corriente en la factoría, así que 
 | normas horizontales (ops/normas.json) | 166 | 120 | 0 | 46 |
 | normas verticales (ops/proyectos/<id>/normas.json) | 39 | 0 | 39 | 0 |
 | entidades activas (ops/entidades.json) | 54 | 41 | 13 | 0 |
-| términos activos del glosario (ops/glosario/terminos/) | 146 | 139 | 1 | 6 |
+| términos activos del glosario (ops/glosario/terminos/) | 146 | 145 | 1 | 0 |
 | skills (.claude/skills/) | 18 | 9 | 5 | 4 |
 | reglas por carpeta (.claude/rules/) | 6 | 0 | 5 | 1 |
 | comandos (.claude/commands/) | 5 | 3 | 2 | 0 |
@@ -99,14 +99,6 @@ Principios, las cuatro filas juntas: 112 en total, 92 horizontales, 2 verticales
 - `model-output-schema-checked`, `family-text-is-data`: ámbito «bot» (conducta de un producto con bot, catálogo o familias) (2)
 - `new-table-closed-to-anon`: depende de un fichero de HoMenu (supabase/anonPorDefecto.test.js)
 
-### 4b. Glosario (6)
-
-- `carpeta de trabajo`, `carpeta principal`: la definición nombra el proyecto («MenuPlan»); la definición nombra un servicio del proyecto («C:\dev») (2)
-- `eval`: la definición nombra el proyecto («Lola»)
-- `migración`: la definición nombra un servicio del proyecto («supabase»)
-- `proyecto`: la definición nombra el proyecto («HoMenu»)
-- `servicio`: la definición nombra un servicio del proyecto («Vercel»)
-
 ### 5a. Skills (4)
 
 - `.claude/skills/1password/SKILL.md`, `.claude/skills/github/SKILL.md`, `.claude/skills/hetzner/SKILL.md`, `.claude/skills/tailscale/SKILL.md`: skill de un servicio: el método es general, pero lleva los ids, las bóvedas y el repo de HoMenu (4)
@@ -149,7 +141,7 @@ El orden sigue la dependencia (lo que es registro se separa antes de lo que lo c
 | PR 4 | Fuentes: campo `project` en las de la casa que son de HoMenu y origen (decisión o fallo) en vez de fuente externa para los principios de proyecto | fuentes verticales sin marcar = 12; en duda = 12 | marcadas = todas; en duda = 0 |
 | PR 5 | Normas dudosas: mover al registro de HoMenu las que sean suyas, o reescribir (sin nombrar el proyecto) las que sean generales | normas horizontales en duda = 46 | 0 (cada una, horizontal limpia o vertical) |
 | PR 6 | Controles: tests de la casa que leen ficheros de HoMenu pasan a recibirlos por referencia (`--proyecto`) o se mueven (el techo `verticales_sin_salida` ya se retiró, #710) | tests de la casa que leen HoMenu = 2; en duda = 10 | 0 y 0 |
-| PR 7 | Glosario: términos de proyecto aparte de los de la casa | términos en duda = 6 | 0 |
+| PR 7 | Glosario: términos de proyecto aparte de los de la casa | términos en duda = 0 | 0 |
 | PR 8 | Skills, reglas, comandos, specs y docs: marcar el lado de cada una y separar los skills de servicio en método (casa) y datos (proyecto) | en duda = skills 4, documentos 1; verticales sin marca = 27 | en duda = 0; todas marcadas |
 | PR 9 | Factoría frente a HoMenu (#690): CLAUDE.md como índice corto con dos partes; `docs/` y `ops/` separados | documentos en duda = 1 | 0 |
 
