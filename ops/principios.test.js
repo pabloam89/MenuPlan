@@ -9,6 +9,7 @@ import {
   leerCatalogoPropio, leerPrincipiosCasa, leerPrincipiosDeProyecto, leerTextoEn, problemasDePrincipiosDeProyecto, problemasDeEnunciadoUnico, problemasDeMarcas, problemasDeMarcasEnTexto, problemasDePrincipios, seccionDe, seccionesNumeradas,
 } from "../scripts/lib/principios.mjs";
 import { MARCAS_FUENTE } from "../scripts/lib/regla.mjs";
+import { PROYECTOS_CON_NORMAS } from "../scripts/lib/zonasProyecto.mjs";
 import { leerPrincipios as leerProducto } from "../scripts/lib/principiosProducto.mjs";
 import { leerJsonEn, leerRedaccion, problemasDeRedaccion } from "../scripts/lib/redaccion.mjs";
 
@@ -29,7 +30,7 @@ const ctx = { existe: existeEn(RAIZ), leerTexto: leerTextoEn(RAIZ) };
 const textos = Object.fromEntries(DOCUMENTOS_MIGRADOS.map((r) => [r, readFileSync(join(RAIZ, r), "utf8")]));
 const delegados = { producto: leerProducto(RAIZ), redaccion: leerRedaccion(RAIZ) };
 const proyectos = leerPrincipiosDeProyecto(RAIZ);
-const validos = JSON.parse(readFileSync(join(RAIZ, "ops", "entidades.json"), "utf8")).projects.map((p) => p.id);
+const validos = PROYECTOS_CON_NORMAS; // PROYECTOS menos factoria: la lista única de proyectos (#748)
 
 describe("ops/principios/", () => {
   it("cada principio tiene su forma fija y no se repite con los delegados", () => {
@@ -79,7 +80,7 @@ describe("los principios de un proyecto: ops/proyectos/<id>/principios/ (#710)",
     expect(conCambio({ texto: "x" })).toMatch(/campo desconocido «texto»/);
     const c = structuredClone(proyectos);
     c.inventado = { ...c.homenu, project: "inventado" };
-    expect(problemasDePrincipiosDeProyecto(c, validos, ctx).join(" | ")).toMatch(/«inventado» no es un proyecto de ops\/entidades\.json/);
+    expect(problemasDePrincipiosDeProyecto(c, validos, ctx).join(" | ")).toMatch(/«inventado» no es un proyecto con normas de scripts\/lib\/zonasProyecto\.mjs/);
     c.homenu.project = "otro";
     expect(problemasDePrincipiosDeProyecto(c, validos, ctx).join(" | ")).toMatch(/su «project» es «otro» y la carpeta es «homenu»/);
   });

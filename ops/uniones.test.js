@@ -12,7 +12,7 @@ import { MIN_PALABRAS_COPIA, cargarSkill, nombresDeSkills, parsearSkill, problem
 import {
   TECHO_NORMAS_SIN_JUEZ, TECHO_REGLAS_QUE_NO_SON_NORMA, accionesDeConsulta, juecesPorNorma, normaReescrita, parecido, problemasDeEmparejamiento, reglasDelCatalogo, leerEstandares, normasDeTarea, normasHuerfanas, verticalesEnEstandares, problemasDeUnionesEstandar, tareasDe,
 } from "../scripts/lib/estandaresAgentes.mjs";
-import { PROYECTOS_CON_NORMAS } from "../scripts/lib/zonasProyecto.mjs";
+import { PROYECTOS, PROYECTOS_CON_NORMAS } from "../scripts/lib/zonasProyecto.mjs";
 import { cargarNormas, leerRegistro, problemasDeProyectos, sinControlDeTest } from "../scripts/lib/normas.mjs";
 import { leerN2 } from "../scripts/lib/estandaresN2.mjs";
 import { TECHO_PRINCIPIOS_QUE_REPITEN, TECHO_SIN_NORMA, leerPrincipiosCasa, principiosQueRepitenSuNorma, problemasDeUniones } from "../scripts/lib/principios.mjs";
@@ -379,6 +379,23 @@ describe("las normas del proyecto no van en un estándar horizontal (#704, fondo
     const otro = structuredClone(carga);
     otro.ficheros.homenu.normas[0] = { ...otro.ficheros.homenu.normas[0], project: "inventado" };
     expect(problemasDeProyectos(otro, proyectos).join("\n")).toMatch(/«inventado» no es un proyecto/);
+  });
+
+  it("la factoría es un proyecto, pero lo horizontal lo marca `lado`: ni un registro ops/proyectos/factoria/ ni una vertical con project factoria (#748)", () => {
+    expect(PROYECTOS).toContain("factoria");
+    expect(PROYECTOS_CON_NORMAS).toEqual(PROYECTOS.filter((p) => p !== "factoria"));
+    // lo que de verdad hay: ninguna norma vertical dice factoria
+    expect(carga.todas.filter((n) => n.lado === "vertical" && n.project === "factoria").map((n) => n.id)).toEqual([]);
+    // con datos de mentira: la carpeta factoria y una vertical con project factoria fallan con la lista derivada por defecto
+    const vertical = normas.find((n) => n.lado === "vertical");
+    const carpeta = structuredClone(carga);
+    carpeta.ficheros.factoria = { project: "factoria", normas: [{ ...vertical, project: "factoria" }] };
+    const malos = problemasDeProyectos(carpeta).join("\n");
+    expect(malos).toMatch(/ops\/proyectos\/factoria\/normas.json: «factoria» no es un proyecto con normas/);
+    expect(malos).toMatch(/«project» «factoria» no es un proyecto con normas/);
+    const dentro = structuredClone(carga);
+    dentro.ficheros.homenu.normas[0] = { ...dentro.ficheros.homenu.normas[0], project: "factoria" };
+    expect(problemasDeProyectos(dentro).join("\n")).toMatch(/«project» «factoria» no es un proyecto con normas/);
   });
 
   it("sin --proyecto no llega nada vertical, y con --proyecto llegan las de su ámbito y su acción", () => {
