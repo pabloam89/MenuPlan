@@ -216,6 +216,10 @@ describe("las líneas estructuradas de los scripts que ya tienen test", () => {
     for (const caller of [...CALLERS_GH, "C:\\Users\\pablo\\x", "pablo@gmail.com", "npm run issues"]) {
       for (const api of [...APIS_GH, "ghp_abcdefghijklmnopqrstuvwxyz0123456789"]) {
         expect(camposProhibidos(lineaGh(caller, api)), `${caller}/${api}`).toEqual([]);
+        // La forma con puntos (#724): identidad, sesión, puntos y resultado también salen limpios, hostiles o no.
+        const hostil = { identidad: "ghp_abcdefghijklmnopqrstuvwxyz0123456789", sesion: "C:\\Users\\pablo", puntos: 106, medida: "real", resultado: "npm run issues", intento: 2 };
+        expect(camposProhibidos(lineaGh(caller, api, hostil)), `${caller}/${api} con campos`).toEqual([]);
+        expect(camposProhibidos(lineaGh(caller, api, { identidad: "app", sesion: "a1b2c3", puntos: 106, medida: "real", resultado: "ok", intento: 1 }))).toEqual([]);
       }
     }
   });

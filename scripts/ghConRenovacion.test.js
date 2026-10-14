@@ -7,8 +7,8 @@
 //      o un tiempo agotado (una escritura no se repite).
 //   3. La tabla cerrada resultado × motivo: cada combinación permitida da su línea y cualquier otra falla.
 //   4. El barrido: ningún script llama a `gh` a pelo fuera del punto único y de la lista de excepciones.
-// Este test no lanza ningún hook (nombra los ficheros de hooks solo como rutas del barrido), así que no
-// escribe en el registro de eventos y no necesita fijar MENUPLAN_FABRICA_DIR.
+// Este test no lanza ningún hook (nombra los ficheros de hooks solo como rutas del barrido): por eso figura en
+// NO_REGISTRAN de .claude/hooks/eventos.test.js.
 // Ningún token es real: son `ghs_…` inventados, y los mensajes de fallo pasan por `tachado`.
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
@@ -20,7 +20,7 @@ import { escribirCache, falloReciente } from "./lib/cacheTokenSesion.mjs";
 import {
   MOTIVOS_POR_RESULTADO, RESULTADOS, UMBRAL_EDAD_MS, _reiniciarAvisos, elegirToken, ghConRenovacion, lineaCredencial, motivoDeSalida, planDeToken, renovarEnCache,
 } from "./lib/ghConRenovacion.mjs";
-import { MOTIVOS } from "./lib/tokenSesion.mjs";
+import { MOTIVOS, TOKEN_CENTINELA } from "./lib/tokenSesion.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
 const MIN = 60_000;
@@ -65,7 +65,7 @@ function montaje({ cacheToken = null, restanteMs = 50 * MIN, renovacion = "ok", 
     if (ghFalla) throw ghFalla;
     return "ok";
   };
-  const deps = { ruta, ids: IDS, reloj: () => T, cache: LIBRE, renovar, ejecutar, registrar: (l) => lineas.push(l) };
+  const deps = { ruta, ids: IDS, reloj: () => T, cache: LIBRE, renovar, ejecutar, registrar: (l) => lineas.push(l), buscarGh: () => "gh" };
   return { ruta, lineas, llamadas, canjes, deps };
 }
 
@@ -199,11 +199,56 @@ describe("ghConRenovacion: una sola llamada, con el token elegido antes", () => 
     expect(tachado(m.llamadas[1].token)).toBe(TOKEN_VIEJO);
     expect(m.lineas).toEqual(["credencial-sesion resultado: fallo motivo: limite-de-1password", "credencial-sesion resultado: fallo motivo: fallo-reciente"]);
   });
-  it("sin token en el entorno y el canje roto: la llamada va sin GH_TOKEN inventado", () => {
-    const m = montaje({ renovacion: "sin-clave" });
-    ghConRenovacion(["api", "user"], { env: { PATH: "x" } }, m.deps);
-    expect(m.llamadas).toHaveLength(1);
+  it("sin token en el entorno (ausente o vacío) y el canje roto: la llamada va con el token de relleno, no con el llavero", () => {
+    for (const env of [{ PATH: "x" }, { PATH: "x", GH_TOKEN: "" }]) {
+      const m = montaje({ renovacion: "sin-clave" });
+      ghConRenovacion(["api", "user"], { env }, m.deps);
+      expect(m.llamadas).toHaveLength(1);
+      expect(m.llamadas[0].token).toBe(TOKEN_CENTINELA);
+    }
+  });
+  it("en GitHub Actions sin GH_TOKEN no se pone el token de relleno: no se toca nada", () => {
+    const m = montaje();
+    ghConRenovacion(["pr", "list"], { env: { PATH: "x", GITHUB_ACTIONS: "true" } }, m.deps);
     expect(m.llamadas[0].token).toBeUndefined();
+    expect(m.canjes).toHaveLength(0);
+  });
+  it("un GH_TOKEN propio que no es de la App (una sesión de la nube) no se pisa ni se canjea", () => {
+    const m = montaje();
+    ghConRenovacion(["pr", "list"], { env: { GH_TOKEN: "github_pat_de_la_nube" } }, m.deps);
+    expect(m.canjes).toHaveLength(0);
+    expect(m.llamadas[0].token).toBe("github_pat_de_la_nube");
+    expect(m.lineas).toEqual(["credencial-sesion resultado: sin-renovar motivo: -"]);
+  });
+  it("el canje recibe el entorno de quien llama", () => {
+    const m = montaje();
+    let visto;
+    m.deps.renovar = (o) => {
+      visto = o;
+      return { motivo: "red" };
+    };
+    const env = { GH_TOKEN: TOKEN_VIEJO, MARCA: "mia" };
+    ghConRenovacion(["pr", "list"], { env }, m.deps);
+    expect(visto.env).toBe(env);
+  });
+  it("lanza el gh real que dice buscarGh (el mismo camino en todos los sistemas)", () => {
+    const m = montaje({ cacheToken: TOKEN_CACHE, restanteMs: 30 * MIN });
+    m.deps.buscarGh = () => "C:/real/gh.exe";
+    ghConRenovacion(["pr", "list"], { env: { GH_TOKEN: TOKEN_CACHE } }, m.deps);
+    expect(m.llamadas[0].cmd).toBe("C:/real/gh.exe");
+  });
+  it("50 llamadas pasada la hora dejan UNA línea por pareja resultado × motivo, no 50", () => {
+    const m = montaje({ cacheToken: TOKEN_CACHE, restanteMs: -1 * MIN });
+    for (let i = 0; i < 50; i++) ghConRenovacion(["pr", "list"], { env: { GH_TOKEN: TOKEN_VIEJO } }, m.deps);
+    expect(m.llamadas).toHaveLength(50);
+    expect(m.lineas).toEqual(["credencial-sesion resultado: renovada motivo: vencida-por-edad", "credencial-sesion resultado: renovada motivo: cache-mas-nueva"]);
+    expect(m.canjes).toHaveLength(1);
+  });
+  it("50 llamadas con el canje roto también dejan una línea de fallo por motivo", () => {
+    const m = montaje({ renovacion: "red" });
+    for (let i = 0; i < 50; i++) ghConRenovacion(["pr", "list"], { env: { GH_TOKEN: TOKEN_VIEJO } }, m.deps);
+    expect(m.lineas.length).toBeLessThanOrEqual(2);
+    expect(new Set(m.lineas).size).toBe(m.lineas.length);
   });
   it("en GitHub Actions no toca nada: ni caché ni canje", () => {
     const m = montaje();
@@ -269,6 +314,8 @@ describe("el canje de verdad (`renovarEnCache`) y el motivo que deja", () => {
     const ruta = rutaTemporal();
     const r = elegirToken({ env: { GH_TOKEN: TOKEN_VIEJO }, ruta, ids: IDS, reloj: () => T, cache: LIBRE, renovar: () => ({ ok: true }) });
     expect(r).toEqual({ token: TOKEN_VIEJO, resultado: "fallo", motivo: "error-interno" });
+    // y no se vuelve a probar en 30 s
+    expect(falloReciente({ ruta, reloj: () => T + 5000, ...LIBRE })).toBe("error-interno");
   });
 });
 
@@ -278,17 +325,22 @@ describe("el canje de verdad (`renovarEnCache`) y el motivo que deja", () => {
 export const COMANDO_BARRIDO = String.raw`git grep -nE "(\w+)\(\s*[\"']gh[\"']\s*," -- scripts .claude/hooks ':!*.test.js'`;
 const PATRON_BARRIDO = String.raw`(\w+)\(\s*["']gh["']\s*,`;
 export const PUNTO = "scripts/lib/ghConRenovacion.mjs";
-/** Los 10 que pasan por el punto único (cada uno importa `ghConRenovacion`). */
+/**
+ * El punto de llamada es `ghSync`/`execFileGh` de `scripts/lib/cuotaGh.mjs` (#724), cuyo `ejecutar` por defecto es
+ * `ghConRenovacion`. Los 10 que pasan por él llaman a `ghSync` y NO importan `ghConRenovacion` directamente.
+ */
+export const PUNTO_DE_LLAMADA = "scripts/lib/cuotaGh.mjs";
+/** Los 10 migrados. */
 export const MIGRADOS = [
   "scripts/cumplimiento.mjs", "scripts/dimensionar.mjs", "scripts/espera-ci.mjs", "scripts/fabrica.mjs", "scripts/issues.mjs",
   "scripts/podar.mjs", "scripts/retirar.mjs", "scripts/situacion.mjs", "scripts/lib/lleva.mjs", "scripts/lib/planos.mjs",
 ];
-/** Las 6 excepciones, cada una con su motivo (el del cuerpo de #731). */
+/** Las 6 excepciones, cada una con su motivo (el del cuerpo de #731). `ghSync`/`execFileGh` de `avisos.mjs` y `tokenSesion.mjs` pasan su propio `ejecutar`. */
 export const EXCEPCIONES = {
-  ".claude/hooks/avisos.mjs": "hook: es un aviso que ya falla abierto con su propio tiempo corto; renovar dentro suma 0,25 s o más a cada orden",
+  ".claude/hooks/avisos.mjs": "hook: llama a `ghSync` de cuotaGh con su propio `ejecutar` (sin renovar): es un aviso que ya falla abierto con su tiempo corto; renovar dentro suma 0,25 s o más a cada orden",
   ".claude/hooks/guardia.mjs": "hook: es un filtro que ya falla abierto con su propio tiempo corto; renovar dentro suma 0,25 s o más a cada orden",
   ".claude/hooks/migraciones.mjs": "hook: es un aviso que ya falla abierto con su propio tiempo corto; renovar dentro suma 0,25 s o más a cada orden",
-  "scripts/lib/tokenSesion.mjs": "su `gh api user` es la comprobación de identidad con un token recién canjeado y env explícito: es el propio canje",
+  "scripts/lib/tokenSesion.mjs": "llama a `execFileGh` con su propio `ejecutar` (sin renovar): su `gh api user` es la comprobación de identidad con un token recién canjeado y env explícito: es el propio canje",
   "scripts/lib/cupos.mjs": "mide el cupo de una identidad concreta y su fallo `sin-token` es el dato: renovar falsearía la medida",
   "scripts/rulesets.mjs": "`gh auth token` no es una llamada a la API, es el acceso de Pablo",
 };
@@ -333,11 +385,21 @@ describe(`el barrido de llamadas a gh (${COMANDO_BARRIDO})`, () => {
       expect(motivo.length).toBeGreaterThan(20);
     }
   });
-  it("los 10 migrados importan el punto único y ya no llaman a `gh` a pelo", () => {
+  it("los 10 migrados llaman a `ghSync`/`execFileGh` de cuotaGh, no importan `ghConRenovacion` y no llaman a `gh` a pelo", () => {
     const hoy = new Set(barrer().split("\n").filter(Boolean).map((l) => l.split(":")[0]));
     for (const f of MIGRADOS) {
-      expect(readFileSync(join(RAIZ, f), "utf8"), f).toMatch(/import \{ ghConRenovacion \} from "\.\/(lib\/)?ghConRenovacion\.mjs"/);
+      const texto = readFileSync(join(RAIZ, f), "utf8");
+      expect(texto, f).toMatch(/\b(ghSync|execFileGh)\b/);
+      expect(texto, f).not.toMatch(/ghConRenovacion/);
       expect(hoy.has(f), `${f} sigue llamando a gh a pelo`).toBe(false);
     }
+  });
+  it("el punto de llamada (cuotaGh) renueva por defecto: es el único sitio que importa ghConRenovacion", () => {
+    const texto = readFileSync(join(RAIZ, PUNTO_DE_LLAMADA), "utf8");
+    expect(texto).toMatch(/import \{ ghConRenovacion \} from "\.\/ghConRenovacion\.mjs"/);
+    expect(texto).toMatch(/ejecutar = ghSyncRenovando/);
+    expect(texto).toMatch(/ejecutar = execFileRenovando/);
+    const importadores = execFileSync("git", ["grep", "--untracked", "-lE", "import .*ghConRenovacion", "--", "scripts", ".claude/hooks", ":!*.test.js"], { cwd: RAIZ, encoding: "utf8" }).split("\n").filter(Boolean);
+    expect(importadores).toEqual([PUNTO_DE_LLAMADA]);
   });
 });

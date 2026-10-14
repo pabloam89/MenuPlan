@@ -15,6 +15,8 @@
  * Cómo se usa y qué pasa a ser de Pablo: skills `github` y `1password`.
  */
 import { execFile } from "node:child_process";
+import { execFileGh } from "./cuotaGh.mjs";
+import { MOTIVOS, MOTIVOS_DE_RENOVACION } from "./motivosToken.mjs";
 import * as fsReal from "node:fs";
 import { appendFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -44,15 +46,8 @@ export const TOPE_IDENTIDAD_MS = 13_000;
 /** Lo que se deja del presupuesto para comprobar la identidad con `gh` tras sacar el token. */
 const MARGEN_IDENTIDAD_MS = 3000;
 
-/**
- * Los motivos de una renovación decidida por edad o por la caché (`ghConRenovacion`, E3 #731): no son
- * causas de fallo, dicen por qué se cambió el token ANTES de llamar. Van dentro de MOTIVOS, que sigue
- * siendo el único vocabulario (`-` es «sin motivo»).
- */
-export const MOTIVOS_DE_RENOVACION = ["vencida-por-edad", "cache-mas-nueva"];
-
-/** Vocabulario cerrado de por qué no hay token (se cuenta en la línea `identidad-sesion`). */
-export const MOTIVOS = ["sin-clave", "clave-ilegible", "sin-instalacion", "github-rechaza", "red", "token-raro", "sin-fichero-de-entorno", "error-interno", "limite-de-1password", "bloqueo-ocupado", "fallo-reciente", "ruta-de-shim-rara", ...MOTIVOS_DE_RENOVACION];
+// El vocabulario vive en una hoja sin imports (ver motivosToken.mjs) y se vuelve a exportar desde aquí.
+export { MOTIVOS, MOTIVOS_DE_RENOVACION };
 /** El valor inválido y nunca vacío que lleva GH_TOKEN cuando no hay token: `gh` da 401 claro y no cae al llavero de Pablo (#673). */
 export const TOKEN_CENTINELA = "sin-token-de-sesion";
 /** Quién escribe el ayudante de git: `gh-credential` (el `gh` del PATH, que renueva el token al usarse) o `entorno` (lee $GH_TOKEN del entorno de quien lo lanza). */
@@ -402,7 +397,8 @@ export function avisoDeIdentidad({ identidad, token, motivo = "-", advertencias 
 /** `gh api user` con el entorno dado; devuelve { status, stdout, stderr }. */
 export function ghApiUser(env) {
   return new Promise((ok) => {
-    execFile("gh", ["api", "user", "--jq", ".login"], { windowsHide: true, env, encoding: "utf8", timeout: 8000 }, (error, stdout, stderr) => ok({ status: error ? (error.code ?? 1) : 0, stdout, stderr }));
+    // `ejecutar` explícito: esta comprobación va con el token recién canjeado y NO se renueva (renovar llamaría a este mismo canje)
+    execFileGh("token-sesion", ["api", "user", "--jq", ".login"], { windowsHide: true, env, encoding: "utf8", timeout: 8000 }, (error, stdout, stderr) => ok({ status: error ? (error.code ?? 1) : 0, stdout, stderr }), { ejecutar: (a, o, cb) => execFile("gh", a, o, cb) });
   });
 }
 

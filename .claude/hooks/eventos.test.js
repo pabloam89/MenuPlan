@@ -529,7 +529,7 @@ describe("ningún test escribe en el eventos.jsonl real (#652)", () => {
     const lanzan = /(spawnSync|execFileSync)\([^)]*(guardia|pendientes|skill-abierta|GUARDIA|hook|HOOK)/s;
     const ficheros = execFileSync("git", ["ls-files", "-z", "--", "*.test.js"], { cwd: RAIZ, encoding: "utf8" }).split("\0").filter(Boolean);
     // Lanza buscar-antes.mjs, que no registra eventos; solo nombra la guardia en un comentario.
-    const NO_REGISTRAN = ["scripts/buscarAntesRonda3.test.js"];
+    const NO_REGISTRAN = ["scripts/buscarAntesRonda3.test.js", "scripts/ghConRenovacion.test.js"];
     const sin = ficheros.filter((f) => {
       if (NO_REGISTRAN.includes(f)) return false;
       const texto = readFileSync(join(RAIZ, f), "utf8");

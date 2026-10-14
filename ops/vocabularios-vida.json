@@ -180,9 +180,8 @@
       "reference": "a nombra a b; ninguna de las tres anteriores"
     },
     "entidades.scope": {
-      "horizontal": "Factoría: sus piezas no cuelgan de ningún proyecto (cómo trabajamos)",
-      "vertical": "Sus piezas cuelgan siempre de un proyecto (el producto HoMenu hoy)",
-      "both": "Hay piezas que sirven a la factoría y piezas que sirven a un proyecto, y la entidad dice qué es a cada lado (role_by_scope). El alcance se decide por a quién sirve la pieza, no por dónde está el fichero: vivir hoy en el repo de HoMenu no hace a nadie both"
+      "horizontal": "Factoría: la clase vale para cualquier proyecto; sus ejemplares del proyecto viven en el registro del proyecto",
+      "vertical": "Sus piezas cuelgan siempre de un proyecto (el producto HoMenu hoy)"
     },
     "entidades.status": {
       "active": "Se usa",
@@ -979,6 +978,13 @@
       "pasa_a": "diseno",
       "desde": "2026-10-13",
       "motivo": "Un único ámbito de diseño con dos zonas (el sistema, y los patrones y flujos de UX); sus normas pasan a diseno (decisión de Pablo, #652; #687)"
+    },
+    {
+      "vocabulario": "entidades.scope",
+      "valor": "both",
+      "pasa_a": "horizontal",
+      "desde": "2026-10-14",
+      "motivo": "Una entidad es de un lado: la clase es horizontal y sus ejemplares del proyecto viven en su registro (decisión de Pablo, 14 oct 2026, #710, opción 3A)"
     }
   ],
   "redefiniciones": [
@@ -1186,12 +1192,6 @@
       "motivo": "Deja de ser horizontal, vertical o puente: dice si las piezas de una entidad son de la factoría, de un proyecto o de los dos, y el puente se calcula; su nombre en inglés pasa de axis a scope (decisión de Pablo, #652)"
     },
     {
-      "vocabulario": "entidades.scope",
-      "valor": "both",
-      "desde": "2026-10-12",
-      "motivo": "Exige role_by_scope y se decide por a qué proyecto sirve la pieza, no por dónde vive el fichero (hallazgo del revisor de #654); 13 entidades pasaron a horizontal o vertical"
-    },
-    {
       "termino": "estándar",
       "desde": "2026-10-12",
       "motivo": "Se estrecha: ya no es el conjunto de criterios de una tarea o de un tipo de skill, sino la ficha de una tarea de agente; el de un tipo de skill pasa a «plantilla» (decisión de Pablo, #652, F1)"
@@ -1258,6 +1258,23 @@
       "valor": "create-planned",
       "desde": "2026-10-13",
       "motivo": "Mismo significado: crear algo que cruza varios dominios con el plan primero; desde #688 lo construye un solo constructor dominio a dominio, no uno por dominio"
+    },
+    {
+      "vocabulario": "entidades.scope",
+      "valor": "horizontal",
+      "desde": "2026-10-14",
+      "motivo": "Ahora incluye las clases que valen para cualquier proyecto aunque HoMenu tenga ejemplares (norma, migración, entorno, diseño): la clase es horizontal y sus ejemplares son del registro del proyecto (decisión de Pablo, #710)"
+    },
+    {
+      "vocabulario": "entidades.scope",
+      "valor": "both",
+      "desde": "2026-10-12",
+      "motivo": "Exige role_by_scope y se decide por a qué proyecto sirve la pieza, no por dónde vive el fichero (hallazgo del revisor de #654); 13 entidades pasaron a horizontal o vertical"
+    },
+    {
+      "termino": "eje",
+      "desde": "2026-10-14",
+      "motivo": "Deja de haber un tercer valor: una entidad es de la factoría o de un proyecto, uno solo, y la clase es de la factoría (decisión de Pablo, #710)"
     }
   ],
   "vocabularios_retirados": [

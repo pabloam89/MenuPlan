@@ -3,7 +3,7 @@
  *
  * Por qué: el token de la App dura 1 hora y se escribe una vez en el entorno de la sesión. Pasada la
  * hora, todo script que llama a `gh` da 401. El shim de E1 (`scripts/bin/gh`) no lo remedia: es un script
- * de sh en el PATH y `execFileSync("gh")` sin shell no lo ve (comprobado el 13 oct 2026).
+ * de sh en el PATH y un `execFileSync` de `gh` sin shell no lo ve (comprobado el 13 oct 2026).
  *
  * Qué hace, ANTES de la llamada y sin mirar jamás la respuesta:
  *   1. El token del proceso es el de la caché y tiene menos de 45 min -> se usa tal cual (`sin-renovar`).
@@ -16,10 +16,19 @@
  *      Si el canje falla, o hay un fallo guardado de hace menos de 30 s (#508), la llamada se hace igual con
  *      el token que había (`fallo`): puede dar 401 y no se reintenta.
  *
+ * Falla cerrado: si el punto no elige ningún token y el entorno no trae GH_TOKEN (vacío o ausente), el hijo
+ * recibe TOKEN_CENTINELA (inválido y nunca vacío: `gh` da 401 claro y no cae al llavero, #673), como el shim.
+ * En GitHub Actions no se toca nada. Un GH_TOKEN propio que no es de la App (una sesión de la nube) tampoco.
+ *
+ * Quien llama es `ghSync` de `scripts/lib/cuotaGh.mjs` (y su `execFileGh`): este es el único sitio de llamada
+ * a `gh` con renovación y los scripts no lo importan directamente. Lanza el `gh` REAL (`buscarGhReal`,
+ * el de gh-shim), el mismo camino en todos los sistemas, no el shim del PATH.
+ *
  * NUNCA reintenta: una escritura (un comentario, un merge) no se repite. Una sola llamada, con el token
  * elegido en un `env` explícito. Deja una línea `credencial-sesion resultado: … motivo: …` (el motivo es de
  * MOTIVOS, el único vocabulario, o `-`); sin el token ni parte de él. Para no llenar la salida de
- * quien llama, `sin-renovar` se escribe una sola vez por proceso.
+ * quien llama, cada pareja (resultado, motivo) se escribe una sola vez por proceso: 50 llamadas pasada la
+ * hora dejan una línea, no 50.
  *
  * Fuera de este punto solo llaman a `gh` las excepciones de `scripts/ghConRenovacion.test.js` (con su motivo).
  */
@@ -27,7 +36,9 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { FORMA_TOKEN, MARGEN_MS, falloReciente, leerCache, rutaDeCache } from "./cacheTokenSesion.mjs";
-import { MOTIVOS, MOTIVOS_DE_RENOVACION, idsPorDefecto } from "./tokenSesion.mjs";
+import { buscarGhReal } from "../gh-shim.mjs";
+import { MOTIVOS, MOTIVOS_DE_RENOVACION } from "./motivosToken.mjs";
+import { TOKEN_CENTINELA, idsPorDefecto } from "./tokenSesion.mjs";
 
 const SCRIPT_TOKEN = join(dirname(fileURLToPath(import.meta.url)), "..", "token-sesion.mjs");
 /** Tope del canje: un canje normal tarda unos segundos (la lectura de 1Password, la más lenta). */
@@ -95,6 +106,8 @@ export function elegirToken({ env = process.env, ruta = rutaDeCache(env), ids = 
   const tokenEnv = FORMA_TOKEN.test(String(env.GH_TOKEN)) ? env.GH_TOKEN : null;
   // En CI el token es el del workflow y no hay caché ni 1Password: nada que renovar
   if (!ruta || env.GITHUB_ACTIONS === "true") return { resultado: "sin-renovar", motivo: "-" };
+  // Un GH_TOKEN propio que no es de la App (la sesión de la nube trae el suyo) no se pisa
+  if (env.GH_TOKEN && env.GH_TOKEN !== TOKEN_CENTINELA && !tokenEnv) return { resultado: "sin-renovar", motivo: "-" };
   const { appId, installationId } = ids();
   const leer = () => leerCache({ ruta, ids: { appId, installationId }, reloj, ...cache });
   const lectura = leer();
@@ -105,34 +118,47 @@ export function elegirToken({ env = process.env, ruta = rutaDeCache(env), ids = 
   const sinCambio = (motivo) => ({ ...(tokenEnv ? { token: tokenEnv } : {}), resultado: "fallo", motivo });
   // Tras un canje fallido no se canjea otra vez en 30 s (#508): la llamada sigue con lo que había
   if (falloReciente({ ruta, reloj, ...opcionesFallo })) return sinCambio("fallo-reciente");
-  const r = renovar();
+  const r = renovar({ env });
   if (!r.ok) {
     falloReciente({ ruta, guardar: r.motivo, reloj, ...opcionesFallo });
     return sinCambio(r.motivo);
   }
   const nueva = leer();
-  if (nueva.motivo !== "ok") return sinCambio("error-interno");
+  if (nueva.motivo !== "ok") {
+    // El canje dijo bien pero la caché no se puede leer: no se vuelve a probar en 30 s
+    falloReciente({ ruta, guardar: "error-interno", reloj, ...opcionesFallo });
+    return sinCambio("error-interno");
+  }
   return { token: nueva.entrada.token, resultado: plan.resultado, motivo: plan.motivo };
 }
 
-let sinRenovarYaDicho = false;
+/** Las líneas `credencial-sesion` ya dichas por este proceso (resultado × motivo): cada una sale una vez. */
+const lineasDichas = new Set();
 const registrarPorDefecto = (linea) => console.error(linea);
+/** El `gh` real, buscado una vez por proceso (no cambia entre llamadas). */
+let ghReal;
+const buscarUnaVez = () => (ghReal ??= buscarGhReal() ?? "gh");
 
 /**
- * `execFileSync("gh", args, opciones)` con el token elegido antes de la llamada. Una sola llamada, sin
+ * `execFileSync` del gh real con (args, opciones) con el token elegido antes de la llamada. Una sola llamada, sin
  * reintento: lo que lance `gh` (un código distinto de 0, un tiempo agotado) lo recibe quien llama tal cual.
- * `deps`: { ejecutar, registrar, ...lo de elegirToken }, para probarlo.
+ * `deps`: { ejecutar, registrar, buscarGh, ...lo de elegirToken }, para probarlo.
  */
-export function ghConRenovacion(args, opciones = {}, { ejecutar = execFileSync, registrar = registrarPorDefecto, ...resto } = {}) {
+export function ghConRenovacion(args, opciones = {}, { ejecutar = execFileSync, registrar = registrarPorDefecto, buscarGh = buscarUnaVez, ...resto } = {}) {
   const env = opciones.env ?? process.env;
   const e = elegirToken({ env, ...resto });
-  if (e.resultado !== "sin-renovar" || !sinRenovarYaDicho) registrar(lineaCredencial(e));
-  if (e.resultado === "sin-renovar") sinRenovarYaDicho = true;
-  const envHijo = e.token ? { ...env, GH_TOKEN: e.token } : env;
-  return ejecutar("gh", args, { ...opciones, env: envHijo });
+  const linea = lineaCredencial(e);
+  if (!lineasDichas.has(linea)) {
+    lineasDichas.add(linea);
+    registrar(linea);
+  }
+  let envHijo = env;
+  if (e.token) envHijo = { ...env, GH_TOKEN: e.token };
+  else if (!e.token && !env.GH_TOKEN && env.GITHUB_ACTIONS !== "true") envHijo = { ...env, GH_TOKEN: TOKEN_CENTINELA }; // falla cerrado (#673)
+  return ejecutar(buscarGh(), args, { ...opciones, env: envHijo });
 }
 
-/** Para los tests: olvida que ya se dijo `sin-renovar`. */
+/** Para los tests: olvida lo ya dicho. */
 export const _reiniciarAvisos = () => {
-  sinRenovarYaDicho = false;
+  lineasDichas.clear();
 };

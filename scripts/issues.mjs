@@ -47,7 +47,6 @@
  * scripts/lib/issues.mjs; el procedimiento, en la skill `issues`.
  */
 import { execFileSync } from "node:child_process";
-import { ghConRenovacion } from "./lib/ghConRenovacion.mjs";
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -61,21 +60,15 @@ import {
 import { analizarCasos } from "../.claude/hooks/casos.mjs";
 import { informeFichas } from "./lib/fondos.mjs";
 import { diaMadrid } from "./lib/hora.mjs";
-import { TTL_MIN, borrarCacheGh, conCache, registrarGh } from "./lib/cuotaGh.mjs";
+import { TTL_MIN, borrarCacheGh, conCache, ghSync } from "./lib/cuotaGh.mjs";
 import { construirZonas, informeZonas, leerRegistroAvisos } from "./lib/zonas.mjs";
 import { escribirZonas } from "../.claude/hooks/zonas.mjs";
 import { dirFabrica } from "../.claude/hooks/eventos.mjs";
 import { cruce, leerInventario, marcasHuerfanas, leerMarcas, lineaParecida, lineasDeLleva, parecidosEnGit, sinNumero, textoDeRama } from "./lib/lleva.mjs";
 
-// Cada llamada deja su línea `gh: caller=issues api=…` (scripts/lib/cuotaGh.mjs, #424).
-const gh = (...args) => {
-  registrarGh("issues", args);
-  return ghConRenovacion(args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 60_000 });
-};
-const ghCorto = (ms, ...args) => {
-  registrarGh("issues", args);
-  return ghConRenovacion(args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: ms });
-};
+// Cada llamada deja, DESPUÉS de hacerla, su línea `gh: caller=issues api=… puntos=… resultado=…` (scripts/lib/cuotaGh.mjs, #424, #724).
+const gh = (...args) => ghSync("issues", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 60_000 });
+const ghCorto = (ms, ...args) => ghSync("issues", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: ms });
 const motivo = (e) => String(e.stderr ?? e.message).trim().split("\n")[0];
 
 /** Los nodos de GitHub de todos los issues (una consulta por cada 100, ~106 puntos cada una). */

@@ -11,7 +11,6 @@
 // por `gh`. NO modifica ops/presupuestos.json: una propuesta la aplica una persona en
 // /revision-issues. El informe son agregados numéricos: ni mensajes, ni prompts, ni rutas.
 // Lógica y porqué de cada umbral: scripts/lib/fabrica.mjs; tests: scripts/fabrica.test.js.
-import { ghConRenovacion } from "./lib/ghConRenovacion.mjs";
 import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join, parse, relative, resolve } from "node:path";
@@ -23,7 +22,7 @@ import {
 import { avisosDeUso } from "./lib/tiposDeEncargo.mjs";
 import { dirFabrica } from "../.claude/hooks/eventos.mjs"; // una sola carpeta para el registro de eventos y los informes
 import { diaMadrid } from "./lib/hora.mjs";
-import { conCache, registrarGh } from "./lib/cuotaGh.mjs";
+import { conCache, ghSync } from "./lib/cuotaGh.mjs";
 import { CONSULTA_FONDOS, CONSULTA_TODOS, conEsperaDeLimite, datosGithub, fondosTruncados, paginas, unirNodos } from "./lib/fabricaGh.mjs";
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -63,10 +62,10 @@ function opcion(args, nombre) {
   return i >= 0 ? args[i + 1] : undefined;
 }
 
-// Cada llamada deja su línea `gh: caller=fabrica api=…` y espera si GitHub limita (#424).
+// Cada llamada deja su línea `gh: caller=fabrica api=…` (también cada reintento, con su `intento`) y espera si GitHub limita (#424, #724).
 const gh = (...args) => {
-  registrarGh("fabrica", args);
-  return conEsperaDeLimite(() => ghConRenovacion(args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 60_000, maxBuffer: 64 * 1024 * 1024 }), { aviso: (m) => console.error(m) });
+  let intento = 0;
+  return conEsperaDeLimite(() => ghSync("fabrica", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 60_000, maxBuffer: 64 * 1024 * 1024 }, { intento: ++intento }), { aviso: (m) => console.error(m) });
 };
 
 const TTL_CACHE_MIN = 10; // el informe es diario: repetirlo en 10 min no pide nada nuevo

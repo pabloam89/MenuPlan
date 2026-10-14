@@ -22,7 +22,7 @@
  * pedírselo a Pablo.
  */
 import { execFileSync } from "node:child_process";
-import { ghConRenovacion } from "./lib/ghConRenovacion.mjs";
+import { ghSync } from "./lib/cuotaGh.mjs";
 import { dirname } from "node:path";
 
 import { leerWorktrees } from "./retirar.mjs";
@@ -85,7 +85,7 @@ export function localesABorrar(locales) {
 
 function prsAbiertos(cwd) {
   const out = intenta(() =>
-    ghConRenovacion(["pr", "list", "--state", "open", "--limit", "200", "--json", "headRefName"], { cwd, encoding: "utf8", timeout: 30000 }),
+    ghSync("podar", ["pr", "list", "--state", "open", "--limit", "200", "--json", "headRefName"], { cwd, encoding: "utf8", timeout: 30000 }),
   );
   if (out === null) return null;
   return new Set(JSON.parse(out).map((p) => p.headRefName));
@@ -94,7 +94,7 @@ function prsAbiertos(cwd) {
 /** Ramas que han tenido algún PR, abierto, cerrado o fusionado. */
 function prsTodos(cwd) {
   const out = intenta(() =>
-    ghConRenovacion(["pr", "list", "--state", "all", "--limit", "1000", "--json", "headRefName"], { cwd, encoding: "utf8", timeout: 60000 }),
+    ghSync("podar", ["pr", "list", "--state", "all", "--limit", "1000", "--json", "headRefName"], { cwd, encoding: "utf8", timeout: 60000 }),
   );
   return out === null ? null : new Set(JSON.parse(out).map((p) => p.headRefName));
 }

@@ -1,5 +1,5 @@
 {
-  "$comentario": "Registro de entidades del proyecto (paso 1 de la normalización del lenguaje y los datos, #566; segunda versión, #652; principios en docs/entidades/N0-principios.md, mapa en docs/entidades/MAPA.md, tabla en docs/entidades/SUPER-TABLA.md: las dos se generan de este fichero con node scripts/mapa-entidades.mjs --escribir). Una entidad es una cosa con id estable y definición propia. Los nombres que lee una máquina van en inglés (decisión de Pablo del 11 oct 2026); lo que lee una persona, en castellano. La definición de cada entidad NO está aquí: vive en la ficha del glosario que nombra `term` (ops/glosario/terminos/), que guarda también la traducción (el `en` de la ficha es el id de la entidad). Cada entidad dice el nivel de sus piezas (`level`: meta, template o piece), el lado (`scope`: horizontal si sus piezas son de la factoría, vertical si son de un proyecto, both si hay de las dos; «puente» es el both y se calcula) y su `family`. `readers` es quién la lee hoy (ninguna entidad sin lector: las que no tienen están en la lista de excepciones de ops/entidades.test.js, que solo baja); `created_by`, quién crea sus piezas. `role_by_scope` dice qué significa una entidad both a cada lado. `registry` dice cómo vive hoy la entidad: with_registry (fichero propio con id y test), partial o without_registry (solo prosa o logs). Las relaciones se anotan una vez, desde quien guarda el campo, con su clase (is_a, part_of, parent_of o reference), su cardinalidad leída de from a to, y, si el padre es un fondo, su parent_kind (evidencia o remedio); `hangs_from` se lee de hijo a padre. `stored_as` es field, file, none (existe y ningún campo la guarda) o unaudited; `stored_in` es obligatorio con field y file y opcional con none y unaudited (nunca «ninguno» ni «sin auditar»). Una entidad que se quita se borra; el historial queda en git. Los sinónimos prohibidos no se copian: salen del glosario. Lo vigila ops/entidades.test.js.",
+  "$comentario": "Registro de entidades del proyecto (paso 1 de la normalización del lenguaje y los datos, #566; segunda versión, #652; principios en docs/entidades/N0-principios.md, mapa en docs/entidades/MAPA.md, tabla en docs/entidades/SUPER-TABLA.md: las dos se generan de este fichero con node scripts/mapa-entidades.mjs --escribir). Una entidad es una cosa con id estable y definición propia. Los nombres que lee una máquina van en inglés (decisión de Pablo del 11 oct 2026); lo que lee una persona, en castellano. La definición de cada entidad NO está aquí: vive en la ficha del glosario que nombra `term` (ops/glosario/terminos/), que guarda también la traducción (el `en` de la ficha es el id de la entidad). Cada entidad dice el nivel de sus piezas (`level`: meta, template o piece), el lado (`scope`: horizontal si la clase es de la factoría, vertical si sus piezas son siempre de un proyecto; solo uno, sin término medio: la clase es horizontal y sus ejemplares del proyecto viven en su registro, ops/proyectos/<id>/, decisión de Pablo del 14 oct 2026, #710) y su `family`. `readers` es quién la lee hoy (ninguna entidad sin lector: las que no tienen están en la lista de excepciones de ops/entidades.test.js, que solo baja); `created_by`, quién crea sus piezas. `registry` dice cómo vive hoy la entidad: with_registry (fichero propio con id y test), partial o without_registry (solo prosa o logs). Las relaciones se anotan una vez, desde quien guarda el campo, con su clase (is_a, part_of, parent_of o reference), su cardinalidad leída de from a to, y, si el padre es un fondo, su parent_kind (evidencia o remedio); `hangs_from` se lee de hijo a padre. `stored_as` es field, file, none (existe y ningún campo la guarda) o unaudited; `stored_in` es obligatorio con field y file y opcional con none y unaudited (nunca «ninguno» ni «sin auditar»). Una entidad que se quita se borra; el historial queda en git. Los sinónimos prohibidos no se copian: salen del glosario. Lo vigila ops/entidades.test.js.",
   "version": 3,
   "actualizado": "2026-10-13",
   "projects": [
@@ -103,7 +103,7 @@
     {
       "id": "environment",
       "name": "Entorno",
-      "scope": "both",
+      "scope": "horizontal",
       "level": "piece",
       "family": "delivery",
       "term": "entorno",
@@ -118,13 +118,12 @@
         "ops/planos.json",
         "scripts/apply-migration.mjs"
       ],
-      "role_by_scope": "Proceso: dónde corre y se prueba el código. Producto: dónde viven los datos de las casas, que son una sola base para todos.",
-      "note": "La palabra tiene hoy tres sentidos: los entornos de Vercel (local, preview, staging, producción), VIGIA_ENTORNO y los environments de GitHub, que no son sitios donde corre código sino puertas de secretos con política de ramas. Es parte de un proyecto, no de un proveedor. En HoMenu hay una sola base: staging y producción comparten datos."
+      "note": "La clase: un sitio donde corre o se prueba el código. La palabra tiene hoy tres sentidos: los entornos de Vercel (local, preview, staging, producción), VIGIA_ENTORNO y los environments de GitHub, que no son sitios donde corre código sino puertas de secretos con política de ramas. Es parte de un proyecto, no de un proveedor. Sus ejemplares de HoMenu son del proyecto y se anotan en ops/proyectos/homenu/."
     },
     {
       "id": "event",
       "name": "Evento",
-      "scope": "both",
+      "scope": "horizontal",
       "level": "piece",
       "family": "measure",
       "term": "evento",
@@ -139,13 +138,12 @@
         "ops/metricas.json",
         "scripts/lib/cumplimiento.mjs"
       ],
-      "role_by_scope": "Proceso: lo que registran los hooks y los scripts. Producto: lo que registra user_events.",
-      "note": "Seis formatos de registro hoy, y más de seis logs en total (ensayos.log, gasto.jsonl, pasadas.jsonl y 19 firmas de línea en metricas.json). Desde #568 eventos.jsonl lleva id, fuente y actor, pero actor solo reconoce a la App de sesiones: Pablo sale como null. Las otras firmas no llevan sesión ni actor. La fuente de las formas de línea es ops/metricas.json (lineas). nombre es polimórfico (skill o agente según el evento). Los tipos de evento que se registran como dato están en event_types: el id de un tipo que se escribe es el del log (EVENTOS), y no todo EVENTOS tiene que estar en event_types."
+      "note": "La clase: lo que registra un hook o un script. Las tablas de eventos del producto (user_events) son ejemplares del proyecto. Seis formatos de registro hoy, y más de seis logs en total (ensayos.log, gasto.jsonl, pasadas.jsonl y 19 firmas de línea en metricas.json). Desde #568 eventos.jsonl lleva id, fuente y actor, pero actor solo reconoce a la App de sesiones: Pablo sale como null. Las otras firmas no llevan sesión ni actor. La fuente de las formas de línea es ops/metricas.json (lineas). nombre es polimórfico (skill o agente según el evento). Los tipos de evento que se registran como dato están en event_types: el id de un tipo que se escribe es el del log (EVENTOS), y no todo EVENTOS tiene que estar en event_types."
     },
     {
       "id": "norm",
       "name": "Norma",
-      "scope": "both",
+      "scope": "horizontal",
       "level": "meta",
       "family": "rules",
       "term": "norma",
@@ -161,8 +159,7 @@
         "scripts/lib/estandaresAgentes.mjs",
         "docs/ops/NORMAS.md"
       ],
-      "role_by_scope": "Proceso: obligaciones del flujo, la escritura y la infra. Producto: obligaciones sobre el bot, los datos, el catálogo y la interfaz (82 de 183 normas, según el análisis).",
-      "note": "Hay tres colecciones de reglas con sujetos separados (normas, estándares de agente, obligaciones del flujo) que comparten 9 ids. Los sujetos de normas y estándares se cruzan con las entidades en ops/entidades-sujetos.json. Las normas de la forja son el tipo forge-norm (hasta F4, en ops/forja/criterios/). El campo donde de la norma dice dónde está escrita (un fichero de .claude/rules, un hook, CLAUDE.md o una skill). Desde #704 las horizontales viven en ops/normas.json y las verticales en el registro de su proyecto (ops/proyectos/<id>/normas.json, con su campo project); scripts/lib/normas.mjs (cargarNormas) lee los dos. Guarda fuerza (debe, no_debe, conviene) y veredicto (cuánto se hace cumplir) como dos campos distintos. Futuro encargo: unificar EJECUTORES (scripts/lib/normas.mjs) con los ids de ops/mecanismos.json, que hoy se escriben distinto (github_regla frente a regla_github).",
+      "note": "La clase: una obligación con su control. Las normas del producto son ejemplares del proyecto (82 de 183 según el análisis). Hay tres colecciones de reglas con sujetos separados (normas, estándares de agente, obligaciones del flujo) que comparten 9 ids. Los sujetos de normas y estándares se cruzan con las entidades en ops/entidades-sujetos.json. Las normas de la forja son el tipo forge-norm (hasta F4, en ops/forja/criterios/). El campo donde de la norma dice dónde está escrita (un fichero de .claude/rules, un hook, CLAUDE.md o una skill). Desde #704 las horizontales viven en ops/normas.json y las verticales en el registro de su proyecto (ops/proyectos/<id>/normas.json, con su campo project); scripts/lib/normas.mjs (cargarNormas) lee los dos. Guarda fuerza (debe, no_debe, conviene) y veredicto (cuánto se hace cumplir) como dos campos distintos. Futuro encargo: unificar EJECUTORES (scripts/lib/normas.mjs) con los ids de ops/mecanismos.json, que hoy se escriben distinto (github_regla frente a regla_github).",
       "types": [
         "forge-norm"
       ]
@@ -191,7 +188,7 @@
     {
       "id": "metric",
       "name": "Métrica",
-      "scope": "both",
+      "scope": "horizontal",
       "level": "piece",
       "family": "measure",
       "term": "métrica",
@@ -206,13 +203,12 @@
         "scripts/lib/cumplimiento.mjs",
         "ops/metricas.test.js"
       ],
-      "role_by_scope": "Proceso: cifra de cumplimiento del flujo. Producto: cifra de uso o de coste de una pieza.",
-      "note": "Hay dos registros con el mismo nombre: ops/metricas.json y metricas[] dentro de cada módulo de MODULOS.json. No se parte en dos entidades: la fusión o el reparto es decisión del N1 de Métrica."
+      "note": "La clase: una cifra con su pregunta. Las de uso o coste de una pieza del producto son ejemplares del proyecto. Hay dos registros con el mismo nombre: ops/metricas.json y metricas[] dentro de cada módulo de MODULOS.json. No se parte en dos entidades: la fusión o el reparto es decisión del N1 de Métrica."
     },
     {
       "id": "eval",
       "name": "Eval",
-      "scope": "both",
+      "scope": "horizontal",
       "level": "piece",
       "family": "measure",
       "term": "eval",
@@ -227,8 +223,7 @@
         "scripts/bot-evals.mjs",
         "scripts/skills-prueba.mjs"
       ],
-      "role_by_scope": "Proceso: la medida del antes y el después. Producto: lo que se mide es Lola.",
-      "note": "Dos familias sin id ni formato común: evals de Lola (scripts/) y evals de skills (casos.json, ops/skills-prueba). «Caso» significa cinco cosas distintas entre ellas. Partirlo en dos entidades queda como decisión abierta."
+      "note": "La clase: la medida del antes y el después. Los de Lola son ejemplares del proyecto. Dos familias sin id ni formato común: evals de Lola (scripts/) y evals de skills (casos.json, ops/skills-prueba). «Caso» significa cinco cosas distintas entre ellas. Partirlo en dos entidades queda como decisión abierta."
     },
     {
       "id": "agent",
@@ -455,7 +450,7 @@
     {
       "id": "migration",
       "name": "Migración",
-      "scope": "vertical",
+      "scope": "horizontal",
       "level": "piece",
       "family": "delivery",
       "term": "migración",
@@ -471,12 +466,12 @@
         "scripts/verificar-estado.mjs",
         "supabase/migrations.test.js"
       ],
-      "note": "Un fichero numerado que cambia la base de HoMenu (producción); pasa por un gateway y un juez. Los números 0003, 0006 y 0051 están repetidos (la 0080b es un índice en supabase/manual/, previsto en PRINCIPIOS §10). ESTADO.md es una copia escrita a mano de lo que dice la base."
+      "note": "La clase: un fichero numerado que cambia una base; pasa por un gateway y un juez. Los números 0003, 0006 y 0051 están repetidos (la 0080b es un índice en supabase/manual/, previsto en PRINCIPIOS §10). ESTADO.md es una copia escrita a mano de lo que dice la base. Las migraciones de HoMenu (producción) son ejemplares del proyecto."
     },
     {
       "id": "table",
       "name": "Tabla",
-      "scope": "vertical",
+      "scope": "horizontal",
       "level": "piece",
       "family": "data",
       "term": "tabla",
@@ -491,12 +486,12 @@
         "ops/modulos.test.js",
         "supabase/cableado.test.js"
       ],
-      "note": "MODULOS.json dice de qué módulo es cada tabla (tablas.<t>.dueno). La crea una migración y la custodia un módulo. Nombres y estructura: docs/datos/PRINCIPIOS.md. Distinguir «registrada» de «existente»: store_products está en MODULOS.json y no existe en la base (su migración, la 0021, está sin aplicar)."
+      "note": "La clase: una tabla de una base. Las de HoMenu son ejemplares del proyecto. MODULOS.json dice de qué módulo es cada tabla (tablas.<t>.dueno). La crea una migración y la custodia un módulo. Nombres y estructura: docs/datos/PRINCIPIOS.md. Distinguir «registrada» de «existente»: store_products está en MODULOS.json y no existe en la base (su migración, la 0021, está sin aplicar)."
     },
     {
       "id": "data-source",
       "name": "Fuente de datos",
-      "scope": "vertical",
+      "scope": "horizontal",
       "level": "piece",
       "family": "data",
       "term": "fuente de datos",
@@ -511,12 +506,12 @@
         "src/data/model.test.js",
         "ops/fuentes.test.js"
       ],
-      "note": "TABLAS tiene 40 ids. Su id no coincide con el de ninguna tabla ni módulo; solo 4 de las 40 listan sus tablas (campo tablas). No se funde con table: una fuente puede ser un JSON sin tabla."
+      "note": "La clase: el rol de una fuente de datos. Las de HoMenu son ejemplares del proyecto. TABLAS tiene 40 ids. Su id no coincide con el de ninguna tabla ni módulo; solo 4 de las 40 listan sus tablas (campo tablas). No se funde con table: una fuente puede ser un JSON sin tabla."
     },
     {
       "id": "module",
       "name": "Módulo",
-      "scope": "vertical",
+      "scope": "horizontal",
       "level": "piece",
       "family": "data",
       "term": "módulo",
@@ -530,12 +525,12 @@
       "readers": [
         "ops/modulos.test.js"
       ],
-      "note": "16 módulos y 23 valores distintos de dueño en las tablas: los otros 7 son submódulos (lola-turnos, despensa, gente…), que la propiedad de las tablas ya usa. Hoy el registro mezcla módulo y submódulo sin decirlo; partirlos en dos entidades o añadir un campo parent queda como decisión abierta. Tiene dueño y métricas."
+      "note": "La clase: un grupo de código y tablas con dueño. Los de HoMenu son ejemplares del proyecto. 16 módulos y 23 valores distintos de dueño en las tablas: los otros 7 son submódulos (lola-turnos, despensa, gente…), que la propiedad de las tablas ya usa. Hoy el registro mezcla módulo y submódulo sin decirlo; partirlos en dos entidades o añadir un campo parent queda como decisión abierta. Tiene dueño y métricas."
     },
     {
       "id": "vocabulary",
       "name": "Vocabulario",
-      "scope": "both",
+      "scope": "horizontal",
       "level": "piece",
       "family": "rules",
       "term": "vocabulario",
@@ -550,13 +545,12 @@
         "ops/vocabularios-vida.test.js",
         "scripts/lib/vocabulariosVida.mjs"
       ],
-      "role_by_scope": "Proceso: listas cerradas de ops y scripts/lib. Producto: las de src/lib/vocabularios.js, que además llevan CHECK en la base.",
-      "note": "102 vocabularios y 555 valores anclados (a 13 oct 2026; el test compara estas cifras con ops/vocabularios-vida.json). Hay constantes duplicadas (MESES en 4 sitios, dos ESTADOS_CRITERIO con valores distintos)."
+      "note": "La clase: una lista cerrada de valores. Las de src/lib/vocabularios.js, con CHECK en la base, son ejemplares del proyecto. 102 vocabularios y 554 valores anclados (a 13 oct 2026; el test compara estas cifras con ops/vocabularios-vida.json). Hay constantes duplicadas (MESES en 4 sitios, dos ESTADOS_CRITERIO con valores distintos)."
     },
     {
       "id": "principle",
       "name": "Principio",
-      "scope": "both",
+      "scope": "horizontal",
       "level": "meta",
       "family": "rules",
       "term": "principio",
@@ -573,8 +567,7 @@
         "ops/principios.test.js",
         "ops/uniones.test.js"
       ],
-      "role_by_scope": "Proceso: principios propios de la casa (ops/principios). Producto: los 40 principios de producto y los 15 de redacción, leídos de su catálogo.",
-      "note": "La lista única (#619): los propios en ops/principios/ y los de producto y redacción leídos de su catálogo (delegados). La norma cita su principio en el campo principio."
+      "note": "La clase: el porqué de una norma. Los de producto y redacción son ejemplares leídos de su catálogo. La lista única (#619): los propios en ops/principios/ y los de producto y redacción leídos de su catálogo (delegados). La norma cita su principio en el campo principio."
     },
     {
       "id": "source",
@@ -785,7 +778,7 @@
     {
       "id": "resource",
       "name": "Recurso",
-      "scope": "both",
+      "scope": "horizontal",
       "level": "template",
       "family": "access",
       "term": "recurso",
@@ -800,8 +793,7 @@
         "ops/recursos.test.js",
         "scripts/cumplimiento.mjs"
       ],
-      "role_by_scope": "Proceso: GitHub y 1Password. Producto: Supabase, Telegram y Vercel. Hetzner sirve a las dos cosas.",
-      "note": "Una entrada por clave, token, App, deploy key, bóveda, service account, proyecto de un servicio, servidor o cuenta, con servicio, tipo, dueño, fecha y caducidad. Clave, token, deploy key y bóveda son tipos suyos, no entidades aparte. Aún no guarda de qué proyecto es cada recurso (ver la relación resource belongs_to project, sin campo); el tipo proyecto de recursos.json es un proyecto de un servicio (Vercel, Supabase), no la entidad project.",
+      "note": "La clase: una clave, cuenta o servicio y su dueño. Los de Supabase, Telegram y Vercel son ejemplares del proyecto. Una entrada por clave, token, App, deploy key, bóveda, service account, proyecto de un servicio, servidor o cuenta, con servicio, tipo, dueño, fecha y caducidad. Clave, token, deploy key y bóveda son tipos suyos, no entidades aparte. Aún no guarda de qué proyecto es cada recurso (ver la relación resource belongs_to project, sin campo); el tipo proyecto de recursos.json es un proyecto de un servicio (Vercel, Supabase), no la entidad project.",
       "types": [
         "clave",
         "token",
@@ -817,7 +809,7 @@
     {
       "id": "control",
       "name": "Control",
-      "scope": "both",
+      "scope": "horizontal",
       "level": "piece",
       "family": "rules",
       "term": "control",
@@ -831,8 +823,7 @@
       "readers": [
         "ops/normas.test.js"
       ],
-      "role_by_scope": "Proceso: tests y scripts de ops/ y scripts/. Producto: tests de supabase/ y src/ que vigilan normas de datos y de interfaz.",
-      "note": "Lo que comprueba una norma (antes «comprobación»; renombrada el 13 oct 2026, #682): un fichero (test, script o workflow) o un juicio, guardado hoy en los campos de la norma control, control_tipo y los cinco ejes (control_procesador, control_fuerza, control_momento, control_que_mira, control_cobertura; test_del_juez si lo procesa un juez). Ninguna persona es procesador: código o juez. No tiene registro propio: un fichero puede vigilar varias normas y esa relación solo se ve con grep."
+      "note": "La clase: lo que comprueba una norma. Los tests de supabase/ y src/ que vigilan normas de datos e interfaz son ejemplares del proyecto. Lo que comprueba una norma (antes «comprobación»; renombrada el 13 oct 2026, #682): un fichero (test, script o workflow) o un juicio, guardado hoy en los campos de la norma control, control_tipo y los cinco ejes (control_procesador, control_fuerza, control_momento, control_que_mira, control_cobertura; test_del_juez si lo procesa un juez). Ninguna persona es procesador: código o juez. No tiene registro propio: un fichero puede vigilar varias normas y esa relación solo se ve con grep."
     },
     {
       "id": "standard",
@@ -900,7 +891,7 @@
     {
       "id": "workflow",
       "name": "Workflow",
-      "scope": "both",
+      "scope": "horizontal",
       "level": "piece",
       "family": "delivery",
       "term": "workflow",
@@ -915,8 +906,7 @@
         "ops/workflows.test.js",
         "ops/salud-despliegue.test.js"
       ],
-      "role_by_scope": "Proceso: fondos, planos, flujo semanal, tests, dependabot y agente de fallos. Producto: vigía de Lola, bot semanal, salud del despliegue, mercadona-sync e iOS (por el nombre de cada fichero).",
-      "note": "11 ficheros en .github/workflows (a 12 oct 2026, contados en git). workflows.test.js los vigila como YAML válido; no hay ficha por workflow con su disparador ni sus normas. Es un automatismo como el hook: reacciona sin persona."
+      "note": "11 ficheros en .github/workflows (a 12 oct 2026, contados en git). workflows.test.js los vigila como YAML válido; no hay ficha por workflow con su disparador ni sus normas. Es un automatismo como el hook: reacciona sin persona. Los workflows del producto (vigía de Lola, bot semanal, salud del despliegue) son ejemplares del proyecto."
     },
     {
       "id": "project",
@@ -941,7 +931,7 @@
     {
       "id": "repo",
       "name": "Repositorio",
-      "scope": "vertical",
+      "scope": "horizontal",
       "level": "piece",
       "family": "structure",
       "term": "repositorio",
@@ -956,12 +946,12 @@
         "ops/planos.json",
         "scripts/rulesets.mjs"
       ],
-      "note": "Dos: pabloam89/MenuPlan (público; contiene a la vez la factoría y HoMenu) y pabloam89/homenu-panel (privado). El repo no es el proyecto: el de HoMenu mezcla ambos mundos, así que su vínculo con el proyecto es parcial. Issue, PR, rama y workflow cuelgan de un repo; hoy el nombre está escrito a mano en planos.json, skills e INVENTARIO. Alcance vertical: cada repo sirve a un proyecto; que el de HoMenu contenga también la factoría es dónde está el fichero, no a quién sirve."
+      "note": "La clase: un repositorio. Dos ejemplares hoy: pabloam89/MenuPlan (público; contiene a la vez la factoría y HoMenu) y pabloam89/homenu-panel (privado). El repo no es el proyecto: el de HoMenu mezcla ambos mundos, así que su vínculo con el proyecto es parcial. Issue, PR, rama y workflow cuelgan de un repo; hoy el nombre está escrito a mano en planos.json, skills e INVENTARIO."
     },
     {
       "id": "design-system",
       "name": "Sistema de diseño",
-      "scope": "vertical",
+      "scope": "horizontal",
       "level": "piece",
       "family": "design",
       "term": "sistema de diseño",
@@ -978,7 +968,7 @@
         ".claude/skills/revision-de-diseno/SKILL.md",
         ".claude/agents/constructor.md"
       ],
-      "note": "La instancia de diseño de un proyecto: sus tokens, componentes y patrones y su documento. Dos instancias: HoMenu (DESIGN_SYSTEM.md y src/design/tokens.js) y el panel (por hacer según docs/diseno/ESTADO.md; Pablo da por hecha la instancia, no comprobada aquí). El nivel meta (los bloques A a Q y las normas L01 a L22 de docs/diseno/META-DISENO.md, en ops/diseno/bloques.json) es la base de la que sale; no tiene entidad propia."
+      "note": "La clase: la instancia de diseño de un proyecto: sus tokens, componentes y patrones y su documento. Dos instancias: HoMenu (DESIGN_SYSTEM.md y src/design/tokens.js) y el panel (por hacer según docs/diseno/ESTADO.md; Pablo da por hecha la instancia, no comprobada aquí). El nivel meta (los bloques A a Q y las normas L01 a L22 de docs/diseno/META-DISENO.md, en ops/diseno/bloques.json) es la base de la que sale; no tiene entidad propia."
     },
     {
       "id": "design-profile",
@@ -1004,7 +994,7 @@
     {
       "id": "token",
       "name": "Token de diseño",
-      "scope": "vertical",
+      "scope": "horizontal",
       "level": "piece",
       "family": "design",
       "term": "token de diseño",
@@ -1020,12 +1010,12 @@
         "src/design/contraste.js",
         "scripts/diseno/generar-tokens-css.mjs"
       ],
-      "note": "77 valores en HoMenu (según el comentario de src/design/tokens.js), en tres capas: primitivo, semántico y de componente. tokens.js es la fuente y tokens.css se genera. Distinto del token de acceso de un recurso."
+      "note": "La clase: un valor visual con nombre. 77 valores en HoMenu (según el comentario de src/design/tokens.js), en tres capas: primitivo, semántico y de componente. tokens.js es la fuente y tokens.css se genera. Distinto del token de acceso de un recurso."
     },
     {
       "id": "component",
       "name": "Componente de diseño",
-      "scope": "vertical",
+      "scope": "horizontal",
       "level": "piece",
       "family": "design",
       "term": "componente de diseño",
@@ -1040,12 +1030,12 @@
         ".claude/skills/revision-de-diseno/SKILL.md",
         ".claude/agents/constructor.md"
       ],
-      "note": "Hoy una receta por componente en la sección 6 de DESIGN_SYSTEM.md, sin ficha por componente ni capa de tokens de componente (docs/diseno/META-DISENO.md, estado de HoMenu)."
+      "note": "La clase: una pieza de interfaz reutilizable. Hoy una receta por componente en la sección 6 de DESIGN_SYSTEM.md, sin ficha por componente ni capa de tokens de componente (docs/diseno/META-DISENO.md, estado de HoMenu)."
     },
     {
       "id": "pattern",
       "name": "Patrón de diseño",
-      "scope": "vertical",
+      "scope": "horizontal",
       "level": "piece",
       "family": "design",
       "term": "patrón de diseño",
@@ -1060,7 +1050,7 @@
         ".claude/skills/revision-de-diseno/SKILL.md",
         ".claude/agents/constructor.md"
       ],
-      "note": "Cómo se combinan los componentes (tablas, hojas, avisos, formularios). Faltan vacío, error y sin conexión como patrón (docs/diseno/META-DISENO.md)."
+      "note": "La clase: cómo se combinan los componentes (tablas, hojas, avisos, formularios). Faltan vacío, error y sin conexión como patrón (docs/diseno/META-DISENO.md)."
     },
     {
       "id": "account",

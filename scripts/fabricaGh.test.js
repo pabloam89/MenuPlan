@@ -26,7 +26,7 @@ describe("las consultas de fabrica son ligeras", () => {
   it("fabrica.mjs usa esas consultas, cuenta sus llamadas y no la consulta entera de issues", () => {
     const src = readFileSync(join(raiz, "scripts", "fabrica.mjs"), "utf8");
     expect(src).not.toMatch(/\bCONSULTA\b/);
-    expect(src).toMatch(/registrarGh\("fabrica"/);
+    expect(src).toMatch(/ghSync\("fabrica"/);
     expect(src).toMatch(/conEsperaDeLimite/);
     expect(src).toMatch(/conCache\("fabrica-issues"/);
   });
