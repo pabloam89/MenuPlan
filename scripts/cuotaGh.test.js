@@ -5,7 +5,7 @@ import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, u
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { APIS_GH, CALLERS_GH, execFileGh, IDENTIDADES_GH, MEDIDAS_GH, RESULTADOS_GH, TOPE_VIEJO_MIN, TTL_MIN, apiDe, borrarCacheGh, conCache, contarLog, escribirCacheGh, ghSync, identidadDe, leerCacheGh, leerLineas, lineaGh, porHoras, puntosDe, registrarGh, rafagas, registrarTras, resumenDeHoras, sesionCorta } from "./lib/cuotaGh.mjs";
+import { APIS_GH, CALLERS_GH, IDENTIDADES_GH, MEDIDAS_GH, RESULTADOS_GH, TOPE_VIEJO_MIN, TTL_MIN, apiDe, borrarCacheGh, conCache, contarLog, escribirCacheGh, ghSync, identidadDe, leerCacheGh, leerLineas, lineaGh, porHoras, puntosDe, registrarGh, rafagas, registrarTras, resumenDeHoras, sesionCorta } from "./lib/cuotaGh.mjs";
 import { conReintentos, leerArgs, resumirChecks } from "./espera-ci.mjs";
 
 const raiz = join(import.meta.dirname, "..");
