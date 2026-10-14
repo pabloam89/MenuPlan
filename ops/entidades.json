@@ -1165,51 +1165,36 @@
   ],
   "event_types": [
     {
-      "id": "human_intervention",
+      "id": "intervencion_humana",
       "name": "Intervención humana",
       "of": "event",
       "fields": [
         {
-          "name": "reason",
-          "values": [
-            "gateway",
-            "permission",
-            "decision",
-            "tool_failure",
-            "clarification",
-            "manual_fix"
-          ]
+          "name": "motivo",
+          "vocabulary": "eventos.motivo_intervencion"
         },
         {
-          "name": "avoidable",
-          "values": [
-            "yes",
-            "no"
-          ]
+          "name": "evitable",
+          "vocabulary": "eventos.evitable"
         }
       ],
-      "avoidable_rule": "avoidable es no cuando reason es gateway (las 8 cosas que CLAUDE.md manda preguntar) y sí en el resto: lo decide la regla, no quien interviene",
-      "readers": [],
-      "note": "Propuesta de Pablo (decisión 5, #652): un tipo de evento, no una entidad. Hoy solo se parece permiso_pedido de la guardia (8 eventos en eventos.jsonl según el análisis de agentes); el resto de intervenciones no deja rastro y falta el hook que las cuente. Sin lector hasta entonces."
+      "readers": [
+        ".claude/hooks/eventos.mjs",
+        "ops/metricas.json",
+        "scripts/lib/fabrica.mjs"
+      ],
+      "note": "Un tipo de evento, no una entidad (decisión 5, #652). Se llama y se escribe como en el log (EVENTOS de .claude/hooks/eventos.mjs); el registro no copia los valores, dice de dónde salen: los ids de vocabulary son de ops/vocabularios-vida.json, cuya fuente es scripts/lib/eventosVocabulario.mjs. Si evitable es sí o no lo decide la regla (DEF_EVITABLE), no quien interviene."
     },
     {
       "id": "deployment",
       "name": "Despliegue",
       "of": "event",
-      "fields": [
-        {
-          "name": "outcome",
-          "values": [
-            "ready",
-            "failed",
-            "superseded"
-          ]
-        }
-      ],
+      "written": false,
+      "not_written_because": "Lo guarda Vercel, con el entorno y la rama; no se escribe como evento de la casa y no necesita registro propio",
       "readers": [
         "ops/salud-despliegue.test.js"
       ],
-      "note": "Un despliegue no es entidad (decisión 7, #652). Cuenta lo que Vercel ya guarda, con el entorno y la rama; no necesita registro propio. Sin escribir todavía como evento."
+      "note": "Un despliegue no es entidad (decisión 7, #652)."
     }
   ],
   "relations": [

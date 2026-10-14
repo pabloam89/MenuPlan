@@ -275,5 +275,5 @@ Lo que antes era una entidad o un hueco y es un tipo de `event`, con su motivo c
 
 | id | de | campos | quién lo lee |
 |---|---|---|---|
-| `human_intervention` | `event` | reason (gateway, permission, decision, tool_failure, clarification, manual_fix); avoidable (yes, no) | nadie |
-| `deployment` | `event` | outcome (ready, failed, superseded) | ops/salud-despliegue.test.js |
+| `intervencion_humana` | `event` | motivo (eventos.motivo_intervencion); evitable (eventos.evitable) | .claude/hooks/eventos.mjs, ops/metricas.json, scripts/lib/fabrica.mjs |
+| `deployment` | `event` | no se escribe: Lo guarda Vercel, con el entorno y la rama; no se escribe como evento de la casa y no necesita registro propio | ops/salud-despliegue.test.js |
