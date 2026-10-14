@@ -286,6 +286,7 @@ Cada término puede nombrar entre 0 y N entidades; la relación la fija su `clas
 | rol | rol_de | 10 | 5 |
 | acción | acción_sobre | 16 | 0 |
 | lugar | ubicación_de | 7 | 2 |
+| tipo | tipo_de | 240 (a 14 oct 2026, #776) | 0 |
 
 Test `ops/glosario-mapeo.test.js` (propuesto): la relación es la de la clase; la entidad existe; toda entidad no vertical tiene al menos un término; un artefacto sin entidad declara un motivo cerrado (`componente`, `salida`, `paso`, `meta`, `retirado`, `candidato`). El campo `term` de `entidades.json` queda como está. El registro ya no usa `axis`: usa `scope` (`horizontal`, `both`, `vertical`) y trae `family`, `level` y `status` (6 entidades retiradas); el mapeo lee `scope`.
 

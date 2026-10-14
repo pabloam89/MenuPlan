@@ -43,9 +43,9 @@
       "layouts": "Las que valen por cómo reparten el espacio, solo en web"
     },
     "diseno.plataforma_de_tipo": {
-      "mobile": "Solo en aplicaciones móviles: depende del gesto, de la cámara o de las convenciones del teléfono",
+      "app": "Solo en la aplicación (móvil o instalada): depende del gesto, de la cámara o de las convenciones del teléfono",
       "web": "Solo en la web de escritorio: nace de la pantalla grande o del puntero",
-      "both": "En móvil y en web"
+      "both": "En la aplicación y en la web: asunción de Pablo (14 oct 2026), un tipo vale en los dos lados salvo que sea imposible o absurdo en uno"
     },
     "diseno.tipo_elemento": {
       "accordion": "",

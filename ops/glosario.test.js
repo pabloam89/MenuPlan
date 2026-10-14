@@ -249,6 +249,9 @@ describe("autotest de relaciones y forma", () => {
 
   it("amplio de otra clase, un ciclo, y el mismo término como amplio y relacionado", () => {
     expect(conTermino("caso", (t, g) => { t.amplio = "fallo"; g.terminos.find((x) => x.termino === "fallo").estrecho = ["caso"]; }).join()).toMatch(/caso: amplio «fallo» es de clase estado/);
+    // Un tipo cuelga de su artefacto (#776); con otra clase como amplio sigue fallando.
+    expect(conTermino("pantalla de estado vacío", () => {}).join()).not.toMatch(/es de clase/);
+    expect(conTermino("pantalla de estado vacío", (t, g) => { g.terminos.find((x) => x.termino === "pantalla").clase = "estado"; }).join()).toMatch(/pantalla de estado vacío: amplio «pantalla» es de clase estado y este de tipo/);
     expect(conTermino("comprobar", (t) => { t.amplio = "verificar"; }).join()).toMatch(/ciclo en amplio/);
     expect(conTermino("revisor", (t, g) => { t.relacionado = ["juez"]; g.terminos.find((x) => x.termino === "juez").relacionado.push("revisor"); }).join()).toMatch(/«juez» es amplio o estrecho y también relacionado/);
     expect(conTermino("revisor", (t) => { t.amplio = ["juez"]; }).join()).toMatch(/amplio es un término, no una lista/);

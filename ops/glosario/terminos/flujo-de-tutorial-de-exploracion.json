@@ -3,15 +3,15 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
-  "definicion": "Un flujo que enseña a recorrer la aplicación mostrando cómo moverse entre sus secciones.",
+  "definicion": "Un flujo de usuario que enseña a recorrer la aplicación mostrando cómo moverse entre sus secciones.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
     "todas"
   ],
-  "amplio": "flujo",
+  "amplio": "flujo de usuario",
   "entidades": [
     {
-      "entidad": "pattern",
+      "entidad": "flow",
       "relacion": "tipo_de"
     }
   ],

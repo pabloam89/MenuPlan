@@ -1,17 +1,17 @@
 {
-  "termino": "flujo",
+  "termino": "flujo de usuario",
   "estado": "activo",
-  "clase": "tipo",
+  "clase": "artefacto",
   "dominio": "diseno",
-  "definicion": "Una secuencia de pantallas que lleva a la persona desde un punto de partida hasta un objetivo concreto, como entrar en su cuenta o pagar.",
+  "definicion": "Una secuencia de pantallas que lleva a la persona que usa un producto desde un punto de partida hasta un objetivo concreto, como entrar en su cuenta o pagar.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
     "todas"
   ],
   "entidades": [
     {
-      "entidad": "pattern",
-      "relacion": "tipo_de"
+      "entidad": "flow",
+      "relacion": "denota"
     }
   ],
   "estrecho": [
@@ -33,7 +33,7 @@
     "flujo de canje",
     "flujo de suscripción y mejora de plan",
     "flujo de transferencia de dinero",
-    "flujo de bloqueo",
+    "flujo de vetar personas",
     "flujo de llamada",
     "flujo de conversación",
     "flujo de comentar y responder",
@@ -62,7 +62,7 @@
     "flujo de filtrar y ordenar",
     "flujo de importar y exportar",
     "flujo de escuchar audio",
-    "flujo de registrar y seguir",
+    "flujo de anotar y medir",
     "flujo de marcar",
     "flujo de mover",
     "flujo de publicar",
@@ -86,5 +86,6 @@
     "flujo de encendido y apagado",
     "flujo de comprobación de identidad"
   ],
-  "en": "flow"
+  "en": "flow",
+  "nota": "No es el flujo de la factoría (el camino de un fallo desde que se detecta hasta que se mide, docs/ops/FLUJO.md y scripts/lib/flujo.mjs): aquel es del proceso de trabajo y este es de la interfaz que ve la persona usuaria. Por eso la cabeza se llama «flujo de usuario» y no «flujo»."
 }

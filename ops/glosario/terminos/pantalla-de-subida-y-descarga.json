@@ -11,7 +11,7 @@
   "amplio": "pantalla",
   "entidades": [
     {
-      "entidad": "pattern",
+      "entidad": "screen",
       "relacion": "tipo_de"
     }
   ],

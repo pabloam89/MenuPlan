@@ -3,15 +3,15 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
-  "definicion": "Un flujo que lleva a la persona a enlazar su cuenta con otro servicio o dispositivo.",
+  "definicion": "Un flujo de usuario que lleva a la persona a enlazar su cuenta con otro servicio o dispositivo.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
     "todas"
   ],
-  "amplio": "flujo",
+  "amplio": "flujo de usuario",
   "entidades": [
     {
-      "entidad": "pattern",
+      "entidad": "flow",
       "relacion": "tipo_de"
     }
   ],

@@ -3,15 +3,15 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
-  "definicion": "Un flujo que lleva a la persona a demostrar quién es con un código u otro medio.",
+  "definicion": "Un flujo de usuario que lleva a la persona a demostrar quién es con un código u otro medio.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
     "todas"
   ],
-  "amplio": "flujo",
+  "amplio": "flujo de usuario",
   "entidades": [
     {
-      "entidad": "pattern",
+      "entidad": "flow",
       "relacion": "tipo_de"
     }
   ],

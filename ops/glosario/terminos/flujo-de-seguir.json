@@ -3,17 +3,21 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
-  "definicion": "Un flujo que lleva a la persona a seguir a otra o suscribirse a un contenido.",
+  "definicion": "Un flujo de usuario que lleva a la persona a seguir a otra o suscribirse a un contenido.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
     "todas"
   ],
-  "amplio": "flujo",
+  "amplio": "flujo de usuario",
   "entidades": [
     {
-      "entidad": "pattern",
+      "entidad": "flow",
       "relacion": "tipo_de"
     }
   ],
-  "en": "following-and-subscribing"
+  "en": "following-and-subscribing",
+  "nota": "«Seguir» es follow: ir detrás de una persona o un contenido. Llevar la cuenta de datos propios es el «flujo de anotar y medir».",
+  "relacionado": [
+    "flujo de anotar y medir"
+  ]
 }

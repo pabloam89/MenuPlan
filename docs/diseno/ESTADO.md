@@ -526,10 +526,13 @@ scripts/diseno/             recorte, tarjetas, optimizado, iconos, logo
 
 Línea 1 del programa #774 (el diseño como pool de la factoría). Tres vocabularios
 cerrados en `ops/diseno/taxonomia.json`: **119 tipos de pantalla, 50 de elemento y
-70 de flujo** (antes: 0), con grupo, plataforma, perfil N2 y popularidad en la fecha de
+70 de flujo de usuario** (antes: 0), con grupo, plataforma y popularidad en la fecha de
 la captura. Cada tipo es un término del glosario (clase `tipo`, dominio `diseno`) cuyo
 `en` es su id, y el test `ops/diseno/taxonomia.test.js` vigila el vínculo en los dos
-sentidos. Las cifras salen de `npm run taxonomia`; lo que queda fuera y los límites de
+sentidos. Pantallas y flujos cuelgan de las entidades `screen` y `flow`; los elementos,
+de `component`. La plataforma usa `app`, `web` o `both`; `both` (226 tipos) es una
+asunción de Pablo, no una medida. El perfil no se asigna aquí y «en espera» (hoy los 239)
+se calcula. Las cifras salen de `npm run taxonomia`; lo que queda fuera y los límites de
 las capturas, de `fuera` y `limites` del mismo fichero. Siguen las líneas 2 a 4 del
 programa: bibliotecas por elemento, inventario de lo que hay y especificación por proyecto.
 

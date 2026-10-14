@@ -1,7 +1,7 @@
 {
   "termino": "pantalla",
   "estado": "activo",
-  "clase": "tipo",
+  "clase": "artefacto",
   "dominio": "diseno",
   "definicion": "Una vista completa de una aplicación, con un propósito único, que ocupa todo el espacio y la persona reconoce como un sitio donde está.",
   "sinonimos_prohibidos": [],
@@ -10,15 +10,15 @@
   ],
   "entidades": [
     {
-      "entidad": "pattern",
-      "relacion": "tipo_de"
+      "entidad": "screen",
+      "relacion": "denota"
     }
   ],
   "estrecho": [
     "pantalla de configuración inicial de cuenta",
     "pantalla de recorrido guiado",
     "pantalla de arranque",
-    "pantalla de registro",
+    "pantalla de alta de cuenta",
     "pantalla de verificación",
     "pantalla de bienvenida",
     "pantalla de baja de cuenta",
@@ -82,7 +82,7 @@
     "pantalla de historias",
     "pantalla de serie o película",
     "pantalla de añadir y crear",
-    "pantalla de bloqueo",
+    "pantalla de vetar personas",
     "pantalla de cancelación",
     "pantalla de borrado",
     "pantalla de dibujo y anotación",

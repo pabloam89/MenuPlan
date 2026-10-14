@@ -132,9 +132,9 @@ export const VOCABULARIOS = {
   "topes.codigo_wording": { fichero: "scripts/lib/topes.mjs", textos: conTexto(CODIGOS_WORDING) },
   // La taxonomía de diseño (#776): tipos de pantalla, de elemento y de flujo, con sus grupos y plataformas, en ops/diseno/taxonomia.json.
   // Un tipo no lleva definición aquí: la tiene su término del glosario (clase tipo), donde se vigila su redefinición.
-  "diseno.tipo_pantalla": { fichero: "scripts/lib/taxonomiaDiseno.mjs", textos: () => textosDeTiposDeDiseno(leerTaxonomia(RAIZ), "pantallas") },
-  "diseno.tipo_elemento": { fichero: "scripts/lib/taxonomiaDiseno.mjs", textos: () => textosDeTiposDeDiseno(leerTaxonomia(RAIZ), "elementos") },
-  "diseno.tipo_flujo": { fichero: "scripts/lib/taxonomiaDiseno.mjs", textos: () => textosDeTiposDeDiseno(leerTaxonomia(RAIZ), "flujos") },
+  "diseno.tipo_pantalla": { fichero: "scripts/lib/taxonomiaDiseno.mjs", textos: () => textosDeTiposDeDiseno(leerTaxonomia(RAIZ), "pantalla") },
+  "diseno.tipo_elemento": { fichero: "scripts/lib/taxonomiaDiseno.mjs", textos: () => textosDeTiposDeDiseno(leerTaxonomia(RAIZ), "elemento") },
+  "diseno.tipo_flujo": { fichero: "scripts/lib/taxonomiaDiseno.mjs", textos: () => textosDeTiposDeDiseno(leerTaxonomia(RAIZ), "flujo") },
   "diseno.grupo_pantalla": { fichero: "scripts/lib/taxonomiaDiseno.mjs", textos: () => textosDeGruposDeDiseno(leerTaxonomia(RAIZ), "pantalla") },
   "diseno.grupo_elemento": { fichero: "scripts/lib/taxonomiaDiseno.mjs", textos: () => textosDeGruposDeDiseno(leerTaxonomia(RAIZ), "elemento") },
   "diseno.grupo_flujo": { fichero: "scripts/lib/taxonomiaDiseno.mjs", textos: () => textosDeGruposDeDiseno(leerTaxonomia(RAIZ), "flujo") },

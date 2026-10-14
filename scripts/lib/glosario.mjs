@@ -316,7 +316,8 @@ export function problemasDeRelaciones(terminos) {
     if (!activo(t) && refs.length) p.push(`${id}: un retirado no lleva relaciones (van en su pasa_a)`);
     if (typeof t.amplio === "string" && vivo(t.amplio)) {
       const a = por.get(t.amplio);
-      if (a.clase !== t.clase) p.push(`${id}: amplio «${t.amplio}» es de clase ${a.clase} y este de ${t.clase}`);
+      // Un tipo cuelga de su artefacto (el «flujo de usuario» y sus tipos, #776): es la única mezcla de clases que vale.
+      if (a.clase !== t.clase && !(t.clase === "tipo" && a.clase === "artefacto")) p.push(`${id}: amplio «${t.amplio}» es de clase ${a.clase} y este de ${t.clase}`);
       if (!(a.estrecho ?? []).includes(id)) p.push(`${id}: amplio «${t.amplio}», pero ${t.amplio} no lo tiene en estrecho`);
     }
     for (const x of Array.isArray(t.estrecho) ? t.estrecho : []) if (vivo(x) && por.get(x).amplio !== id) p.push(`${id}: estrecho «${x}», pero el amplio de ${x} no es ${id}`);

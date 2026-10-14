@@ -8,12 +8,12 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { leerGlosario } from '../lib/glosario.mjs'
-import { PLATAFORMAS, VOCABULARIOS_DE_TIPOS, cifrasDeTaxonomia, leerPerfiles, leerTaxonomia, problemasDeTaxonomia } from '../lib/taxonomiaDiseno.mjs'
+import { PLATAFORMAS, VOCABULARIOS_DE_TIPOS, cifrasDeTaxonomia, leerSuperficies, leerTaxonomia, problemasDeTaxonomia } from '../lib/taxonomiaDiseno.mjs'
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const datos = leerTaxonomia(RAIZ)
 const cifras = cifrasDeTaxonomia(datos)
-const problemas = problemasDeTaxonomia(datos, leerGlosario(RAIZ), leerPerfiles(RAIZ))
+const problemas = problemasDeTaxonomia(datos, leerGlosario(RAIZ), leerSuperficies(RAIZ))
 
 if (process.argv.includes('--json')) {
   console.log(JSON.stringify({ ...cifras, problemas }, null, 2))
@@ -23,8 +23,9 @@ if (process.argv.includes('--json')) {
   for (const v of Object.keys(VOCABULARIOS_DE_TIPOS)) console.log(`vocabulario: ${v} tipos: ${cifras.por_vocabulario[v]}`)
   for (const p of PLATAFORMAS) {
     const x = cifras.por_plataforma[p]
-    console.log(`plataforma: ${p} tipos: ${x.total} pantallas: ${x.pantallas} elementos: ${x.elementos} flujos: ${x.flujos}`)
+    console.log(`plataforma: ${p} tipos: ${x.total} pantallas: ${x.pantalla} elementos: ${x.elemento} flujos: ${x.flujo}`)
   }
+  console.log(`en_espera: ${cifras.en_espera}`)
   console.log(`fuera: ${cifras.fuera}`)
   console.log(`problemas: ${problemas.length}`)
   for (const p of problemas) console.log(`  ${p}`)

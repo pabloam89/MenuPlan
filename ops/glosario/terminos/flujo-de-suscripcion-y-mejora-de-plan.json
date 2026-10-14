@@ -3,15 +3,15 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
-  "definicion": "Un flujo que lleva a la persona a contratar una suscripción o a pasar a un plan superior.",
+  "definicion": "Un flujo de usuario que lleva a la persona a contratar una suscripción o a pasar a un plan superior.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
     "todas"
   ],
-  "amplio": "flujo",
+  "amplio": "flujo de usuario",
   "entidades": [
     {
-      "entidad": "pattern",
+      "entidad": "flow",
       "relacion": "tipo_de"
     }
   ],
