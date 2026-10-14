@@ -5,10 +5,10 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, statSync, unlinkSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { NO_LANZADO, lanzar, main, resolverComando } from "./token-sesion.mjs";
-import { ADVERTENCIAS, APP_ID, BOT_ID, CACHES, ErrorTokenSesion, FICHAS_CLAVE, IDENTIDADES, MOTIVOS, aplicarIdentidad, avisoDeIdentidad, identidadDe, leerClaveDeBoveda, lineaIdentidad, entornoDeComando, lineasDeEntorno, motivoDeCanje, tokenConCache, tokenDeSesion } from "./lib/tokenSesion.mjs";
+import { ADVERTENCIAS, APP_ID, BOT_ID, CACHES, AUTOR_POR_DEFECTO, AYUDANTES, ErrorTokenSesion, FICHAS_CLAVE, IDENTIDADES, MODOS_ENTORNO, MOTIVOS, TOKEN_CENTINELA, aplicarIdentidad, avisoDeIdentidad, identidadDe, leerClaveDeBoveda, lineaIdentidad, entornoDeComando, lineaDePath, lineaDeToken, lineasDeEntorno, motivoDeCanje, rutaDeShimDesde, rutaParaGitBash, tokenConCache, tokenDeSesion } from "./lib/tokenSesion.mjs";
 import { MARGEN_MS, escribirCache, leerCache, permisosDelUsuario, principalesDeIcacls, protegerFichero, rutaDeCache } from "./lib/cacheTokenSesion.mjs";
 import { PERMISOS } from "./token-sesiones.mjs";
 import { medianaMsAsync, topeMs } from "./lib/medirTiempo.mjs";
@@ -108,11 +108,13 @@ describe("leerClaveDeBoveda", () => {
 
 describe("lineasDeEntorno", () => {
   const autor = { nombre: "homenu-sesiones[bot]", correo: "1+homenu-sesiones[bot]@users.noreply.github.com" };
-  it("pone el token, el ayudante de git que lee $GH_TOKEN y el autor y committer", () => {
+  it("pone el token, el ayudante de git que pide la credencial a gh en el momento y el autor y committer", () => {
     const t = lineasDeEntorno({ token: TOKEN, autor });
     expect(t).toContain(`export GH_TOKEN='${TOKEN}'`);
-    expect(t).toContain("password=$GH_TOKEN");
-    expect(t.split(TOKEN).length - 1).toBe(1); // el token aparece una sola vez: git lo lee del entorno
+    // El ayudante delega en `gh auth git-credential` (el gh del PATH renueva el token al usarse) y, sin GH_TOKEN, recibe el centinela
+    expect(t).toContain("'!f() { GH_TOKEN=\"${GH_TOKEN:-sin-token-de-sesion}\" gh auth git-credential \"$@\"; }; f'");
+    expect(t).not.toContain("echo password=");
+    expect(t.split(TOKEN).length - 1).toBe(1); // el token aparece una sola vez
     for (const k of ["GIT_AUTHOR_NAME", "GIT_AUTHOR_EMAIL", "GIT_COMMITTER_NAME", "GIT_COMMITTER_EMAIL"]) expect(t).toContain(`export ${k}=`);
   });
   it("acepta la forma larga de los tokens nuevos (390 caracteres con . y -, vista en vivo el 10 oct 2026)", () => {
@@ -124,6 +126,71 @@ describe("lineasDeEntorno", () => {
     expect(() => lineasDeEntorno({ token: TOKEN, autor: { ...autor, nombre: "a'; echo b; '" } })).toThrow();
     expect(() => lineasDeEntorno({ token: TOKEN, autor: { ...autor, correo: "a@evil.com" } })).toThrow();
   });
+  it("el parámetro `ayudante` elige el de git; `entorno` es el de antes (lee $GH_TOKEN) y un valor fuera del vocabulario no pasa", () => {
+    expect(AYUDANTES).toEqual(["gh-credential", "entorno"]);
+    expect(lineasDeEntorno({ token: TOKEN, autor, ayudante: "entorno" })).toContain("'!f() { echo username=x-access-token; echo password=$GH_TOKEN; }; f'");
+    expect(() => lineasDeEntorno({ token: TOKEN, autor, ayudante: "otro" })).toThrow(/vocabulario/);
+  });
+  it("el centinela pasa SOLO por el modo sin canje; un token sin forma sigue dando token-raro en el normal", () => {
+    expect(MODOS_ENTORNO).toEqual(["normal", "sin-canje"]);
+    const t = lineasDeEntorno({ token: TOKEN_CENTINELA, autor, modo: "sin-canje" });
+    expect(t).toContain("export GH_TOKEN='sin-token-de-sesion'");
+    expect(() => lineasDeEntorno({ token: TOKEN_CENTINELA, autor })).toThrow(expect.objectContaining({ motivo: "token-raro" }));
+    expect(() => lineasDeEntorno({ token: TOKEN, autor, modo: "sin-canje" })).toThrow(expect.objectContaining({ motivo: "token-raro" }));
+    expect(() => lineasDeEntorno({ token: "", autor, modo: "sin-canje" })).toThrow();
+    expect(() => lineasDeEntorno({ token: "malo", autor })).toThrow(expect.objectContaining({ motivo: "token-raro" }));
+    expect(() => lineasDeEntorno({ token: TOKEN, autor, modo: "otro" })).toThrow(/vocabulario/);
+  });
+  it("lineaDeToken solo escribe un token con forma", () => {
+    expect(lineaDeToken(TOKEN)).toBe(`export GH_TOKEN='${TOKEN}'
+`);
+    expect(() => lineaDeToken(TOKEN_CENTINELA)).toThrow(expect.objectContaining({ motivo: "token-raro" }));
+  });
+  it("los motivos nuevos están en el vocabulario único MOTIVOS", () => {
+    expect(MOTIVOS).toEqual(expect.arrayContaining(["fallo-reciente", "ruta-de-shim-rara"]));
+    expect(new Set(MOTIVOS).size).toBe(MOTIVOS.length);
+  });
+});
+
+describe("la línea de PATH del shim (#719)", () => {
+  it("convierte la ruta de Windows a la de Git Bash", () => {
+    expect(rutaParaGitBash(String.raw`C:\dev\MenuPlan-x\scripts\bin`)).toBe("/c/dev/MenuPlan-x/scripts/bin");
+    expect(rutaParaGitBash("/home/u/r/scripts/bin")).toBe("/home/u/r/scripts/bin");
+  });
+  it("la línea no lleva `:` final (añadiría el directorio actual) y conserva el PATH que hubiera", () => {
+    const { linea } = lineaDePath(String.raw`C:\dev\MenuPlan-x\scripts\bin`);
+    expect(linea).toBe("export PATH='/c/dev/MenuPlan-x/scripts/bin'${PATH:+:$PATH}\n");
+  });
+  it.each([
+    ["con espacios", String.raw`C:\dev\Mi carpeta\scripts\bin`],
+    ["con una comilla", String.raw`C:\dev\a'b\scripts\bin`],
+    ["con ..", "/c/dev/../x/scripts/bin"],
+    ["con .", "/c/dev/./x/scripts/bin"],
+    ["con $", "/c/dev/$HOME/scripts/bin"],
+    ["con punto y coma", "/c/dev/a;b/scripts/bin"],
+    ["relativa", "scripts/bin"],
+    ["otra carpeta final", "/c/dev/x/scripts/otra"],
+    ["vacía", ""],
+    ["sin ruta", undefined],
+  ])("una ruta rara (%s) no escribe la línea y deja el motivo del vocabulario", (_c, ruta) => {
+    const r = lineaDePath(ruta);
+    expect(r.linea).toBeUndefined();
+    expect(r.motivo).toBe("ruta-de-shim-rara");
+    expect(MOTIVOS).toContain(r.motivo);
+  });
+  it("la ruta sale de la ubicación del fichero que la pide, no del cwd", () => {
+    const antes = process.cwd();
+    const url = pathToFileURL(join(tmpdir(), "repo-x", ".claude", "hooks", "arranque.mjs")).href;
+    const esperada = join(tmpdir(), "repo-x", "scripts", "bin");
+    try {
+      process.chdir(tmpdir());
+      expect(rutaDeShimDesde(url)).toBe(esperada);
+      process.chdir(dirname(fileURLToPath(import.meta.url)));
+      expect(rutaDeShimDesde(url)).toBe(esperada);
+    } finally {
+      process.chdir(antes);
+    }
+  });
 });
 
 describe("entornoDeComando (que token-sesion -- git push no dependa del arranque)", () => {
@@ -134,7 +201,9 @@ describe("entornoDeComando (que token-sesion -- git push no dependa del arranque
     expect(e.GIT_CONFIG_COUNT).toBe("2");
     expect(e.GIT_CONFIG_KEY_0).toBe("credential.https://github.com.helper");
     expect(e.GIT_CONFIG_VALUE_0).toBe(""); // vacía el ayudante de la máquina
+    // El envoltorio conserva su ayudante: su hijo lleva un token recién canjeado y no depende del PATH
     expect(e.GIT_CONFIG_VALUE_1).toContain("password=$GH_TOKEN");
+    expect(e.GIT_CONFIG_VALUE_1).not.toContain("git-credential");
     expect(e.GIT_AUTHOR_NAME).toBe("homenu-sesiones[bot]");
   });
   it("respeta lo que ya hubiera: conserva el resto del entorno y añade detrás de su GIT_CONFIG_COUNT", () => {
@@ -235,12 +304,14 @@ describe("aplicarIdentidad (lo que hace el arranque)", () => {
     return { escrito, registrado, opciones: { ...base, ...extra } };
   };
 
-  it("canjea, escribe con un salto de línea delante y dice que la App responde", async () => {
+  it("escribe PRIMERO el centinela y lo demás, canjea, añade el token real DESPUÉS y dice que la App responde", async () => {
     const { escrito, registrado, opciones } = uso();
     const aviso = await aplicarIdentidad(opciones);
-    expect(escrito).toHaveLength(1);
+    expect(escrito).toHaveLength(2);
     expect(escrito[0][0]).toBe("/tmp/f");
-    expect(escrito[0][1].startsWith("\nexport GH_TOKEN=")).toBe(true);
+    expect(escrito[0][1].startsWith("\nexport GH_TOKEN='sin-token-de-sesion'")).toBe(true);
+    expect(escrito[0][1]).not.toContain(TOKEN);
+    expect(escrito[1][1]).toBe(`export GH_TOKEN='${TOKEN}'\n`);
     expect(aviso).toContain("identidad: app token: app");
     expect(registrado).toEqual([aviso.slice(aviso.indexOf("identidad-sesion"))]);
     expect(aviso).not.toContain(TOKEN);
@@ -251,11 +322,15 @@ describe("aplicarIdentidad (lo que hace el arranque)", () => {
     await aplicarIdentidad(opciones);
     expect(vistos).toEqual([TOKEN]);
     expect(escrito[0][1]).toContain("export GIT_CONFIG_COUNT=4");
+    expect(escrito[1][1]).not.toContain("GIT_CONFIG"); // el token real solo cambia el token
   });
-  it("si el canje falla: no escribe nada, avisa como Pablo con el motivo y sigue", async () => {
+  it("si el canje falla: ya dejó el centinela y el resto (nunca un token real), avisa con el motivo y sigue", async () => {
     const { escrito, opciones } = uso({ generar: async () => { throw new ErrorTokenSesion("sin-clave", "x"); }, identificar: async () => ({ status: 0, stdout: "pabloam89" }) });
     const aviso = await aplicarIdentidad(opciones);
-    expect(escrito).toEqual([]);
+    expect(escrito).toHaveLength(1);
+    expect(escrito[0][1]).toContain("export GH_TOKEN='sin-token-de-sesion'");
+    expect(escrito[0][1]).toContain("gh auth git-credential");
+    expect(escrito[0][1]).toContain(`export GIT_AUTHOR_EMAIL='${AUTOR_POR_DEFECTO.correo}'`);
     expect(aviso).toMatch(/^AVISO: .*pabloam89/);
     expect(aviso).toContain("identidad: pablo token: no motivo: sin-clave");
   });
@@ -278,12 +353,13 @@ describe("aplicarIdentidad (lo que hace el arranque)", () => {
     expect(ms).toBeLessThan(topeMs(15, { fijoMs: 50 }));
     expect(aviso).toContain("identidad: desconocida token: no motivo: red");
   });
-  it("un canje que termina DESPUÉS del tope no escribe el token ni añade una segunda línea contable", async () => {
+  it("un canje que termina DESPUÉS del tope no escribe el token real ni añade una segunda línea contable (lo previo sí está)", async () => {
     const { escrito, registrado, opciones } = uso({ tope: 20, generar: () => new Promise((ok) => setTimeout(() => ok({ token: TOKEN, autor, advertencias: [] }), 100)) });
     const aviso = await aplicarIdentidad(opciones);
     await new Promise((ok) => setTimeout(ok, 250));
     expect(aviso).toContain("identidad: desconocida token: no motivo: red");
-    expect(escrito).toEqual([]);
+    expect(escrito).toHaveLength(1); // solo lo previo al canje, con el centinela
+    expect(escrito.join("")).not.toContain(TOKEN);
     expect(registrado).toHaveLength(1);
   });
   it("lo mismo si es la comprobación de gh la que termina tarde", async () => {

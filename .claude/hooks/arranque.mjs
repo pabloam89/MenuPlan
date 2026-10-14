@@ -26,7 +26,7 @@ import { sinAplicar } from "./guardia.mjs";
 import { esSesionDeNube } from "./nube.mjs";
 import { avisoRamaPrincipal, avisoTrasAdelantar, estadoDelArbol, planAdelantar } from "./principal.mjs";
 import { avisoDeIndice, leerIndice } from "../../scripts/lib/buscarAntes.mjs";
-import { aplicarIdentidad } from "../../scripts/lib/tokenSesion.mjs";
+import { aplicarIdentidad, rutaDeShimDesde } from "../../scripts/lib/tokenSesion.mjs";
 import { avisoDeCupos } from "../../scripts/lib/cupos.mjs";
 import { enPrs, enStaging, enWorktrees, pedirPrs, resumen } from "./migraciones.mjs";
 import { activas, apuntar, dirSesiones, listar, normaRuta } from "./sesiones.mjs";
@@ -134,11 +134,14 @@ try {
 // Si no se puede, se dice por qué y se sigue con la identidad actual (plan B).
 // La identidad que sale (`identidad-sesion identidad: app|pablo|…`) se anota para esta sesión (#652): los demás
 // hooks no ven el entorno de Bash y, sin la marca, anotaban `actor: null` en 83 de 85 eventos.
+// El PATH con el `gh` que pide el token al usarse (#719): la carpeta sale de donde vive ESTE fichero
+// (import.meta.url), nunca del cwd ni de la carpeta de la tarea: una rama ajena traída ahí podría sustituir el shim.
 const identidad = aplicarIdentidad({
   registrar: (linea) => {
     console.error(linea);
     anotarActorDeLinea(dirFabrica(), entrada.session_id, linea); // nunca lanza
   },
+  rutaShim: rutaDeShimDesde(import.meta.url),
 });
 // Los cupos compartidos (GitHub y 1Password, #578): también en paralelo, con su caché de 5 min
 // y su tope de 4 s. Nunca lanza; callada si todo va por debajo del 80 %.
