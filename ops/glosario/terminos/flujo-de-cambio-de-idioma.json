@@ -1,0 +1,19 @@
+{
+  "termino": "flujo de cambio de idioma",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Un flujo que lleva a la persona a elegir el idioma de la aplicación.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "flujo",
+  "entidades": [
+    {
+      "entidad": "pattern",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "changing-language"
+}

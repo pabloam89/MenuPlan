@@ -1,0 +1,19 @@
+{
+  "termino": "pantalla de edición",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Una pantalla que permite cambiar los datos de algo que ya existe.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "pantalla",
+  "entidades": [
+    {
+      "entidad": "pattern",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "edit"
+}

@@ -1,0 +1,19 @@
+{
+  "termino": "flujo de subir y bajar archivos",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Un flujo que lleva a la persona a enviar un archivo a la aplicación o a bajarlo al dispositivo.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "flujo",
+  "entidades": [
+    {
+      "entidad": "pattern",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "uploading-and-downloading"
+}

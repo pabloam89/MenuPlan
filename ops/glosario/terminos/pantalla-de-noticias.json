@@ -1,0 +1,19 @@
+{
+  "termino": "pantalla de noticias",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Una pantalla que lista noticias por orden de actualidad.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "pantalla",
+  "entidades": [
+    {
+      "entidad": "pattern",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "news-feed"
+}

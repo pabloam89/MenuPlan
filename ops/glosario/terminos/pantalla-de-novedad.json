@@ -1,0 +1,19 @@
+{
+  "termino": "pantalla de novedad",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Una pantalla que presenta una función y explica qué aporta a quien la usa.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "pantalla",
+  "entidades": [
+    {
+      "entidad": "pattern",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "feature-info"
+}

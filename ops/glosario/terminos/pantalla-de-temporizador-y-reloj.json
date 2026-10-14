@@ -1,0 +1,19 @@
+{
+  "termino": "pantalla de temporizador y reloj",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Una pantalla que muestra la hora o cuenta un tiempo hacia atrás o hacia delante.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "pantalla",
+  "entidades": [
+    {
+      "entidad": "pattern",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "timer-and-clock"
+}

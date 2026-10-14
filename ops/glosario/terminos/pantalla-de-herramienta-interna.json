@@ -1,0 +1,19 @@
+{
+  "termino": "pantalla de herramienta interna",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Una pantalla que sirve para gestionar datos de un equipo y no la ven los clientes.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "pantalla",
+  "entidades": [
+    {
+      "entidad": "pattern",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "internal-tool"
+}

@@ -1,0 +1,19 @@
+{
+  "termino": "pantalla de configuración inicial de cuenta",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Una pantalla que recoge, tras el registro, los datos y ajustes que la cuenta necesita antes de usarse.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "pantalla",
+  "entidades": [
+    {
+      "entidad": "pattern",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "account-setup"
+}

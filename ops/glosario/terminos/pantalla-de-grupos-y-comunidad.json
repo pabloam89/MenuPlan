@@ -1,0 +1,19 @@
+{
+  "termino": "pantalla de grupos y comunidad",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Una pantalla que reúne los grupos o espacios que se comparten con otras personas.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "pantalla",
+  "entidades": [
+    {
+      "entidad": "pattern",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "groups-and-community"
+}

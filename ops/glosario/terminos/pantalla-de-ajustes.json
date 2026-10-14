@@ -1,0 +1,19 @@
+{
+  "termino": "pantalla de ajustes",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Una pantalla que agrupa las opciones con las que cada persona adapta la aplicación a su gusto.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "pantalla",
+  "entidades": [
+    {
+      "entidad": "pattern",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "settings-and-preferences"
+}

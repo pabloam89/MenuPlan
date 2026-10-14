@@ -1,0 +1,19 @@
+{
+  "termino": "pantalla de seguir y suscribirse",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Una pantalla que permite seguir a alguien o suscribirse a un contenido.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "pantalla",
+  "entidades": [
+    {
+      "entidad": "pattern",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "follow-and-subscribe"
+}

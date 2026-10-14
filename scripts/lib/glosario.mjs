@@ -42,6 +42,7 @@ export const CLASES = {
   rol: "Quién hace algo: una persona, una sesión, un agente o un vigilante",
   campo: "Una clave de una ficha o de un catálogo, con su significado",
   lugar: "Dónde vive algo: una carpeta, una rama, un entorno",
+  tipo: "Un valor de un vocabulario cerrado que clasifica las cosas de una entidad: un tipo de pantalla, de elemento o de flujo",
 };
 
 /** Valor de `aplica_a` que vale por todas las zonas. */
@@ -93,6 +94,7 @@ export const RELACION_POR_CLASE = {
   rol: "rol_de",
   accion: "accion_sobre",
   lugar: "ubicacion_de",
+  tipo: "tipo_de",
 };
 export const RELACIONES_ENTIDAD = {
   denota: "El término nombra una cosa que es esa entidad",
@@ -101,6 +103,7 @@ export const RELACIONES_ENTIDAD = {
   rol_de: "El término nombra el papel que esa entidad hace",
   accion_sobre: "El término nombra lo que se hace con esa entidad",
   ubicacion_de: "El término nombra el sitio donde esa entidad vive o corre",
+  tipo_de: "El término nombra un tipo que clasifica las cosas de esa entidad",
 };
 
 /**

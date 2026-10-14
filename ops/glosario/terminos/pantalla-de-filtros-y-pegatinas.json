@@ -1,0 +1,19 @@
+{
+  "termino": "pantalla de filtros y pegatinas",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Una pantalla que permite añadir efectos o pegatinas a una foto o a un vídeo.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "pantalla",
+  "entidades": [
+    {
+      "entidad": "pattern",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "filters-and-stickers"
+}

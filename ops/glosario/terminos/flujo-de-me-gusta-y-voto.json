@@ -1,0 +1,19 @@
+{
+  "termino": "flujo de me gusta y voto",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Un flujo que lleva a la persona a aprobar o votar un contenido.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "flujo",
+  "entidades": [
+    {
+      "entidad": "pattern",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "liking-and-upvoting"
+}

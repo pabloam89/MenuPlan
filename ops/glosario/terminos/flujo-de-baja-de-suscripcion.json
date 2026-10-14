@@ -1,0 +1,19 @@
+{
+  "termino": "flujo de baja de suscripción",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Un flujo que lleva a la persona a dejar de pagar una suscripción.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "flujo",
+  "entidades": [
+    {
+      "entidad": "pattern",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "canceling-subscription"
+}

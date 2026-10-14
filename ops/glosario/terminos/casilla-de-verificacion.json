@@ -1,0 +1,19 @@
+{
+  "termino": "casilla de verificación",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Un elemento de interfaz que marca o desmarca una opción independiente de las demás.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "elemento de interfaz",
+  "entidades": [
+    {
+      "entidad": "component",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "checkbox"
+}

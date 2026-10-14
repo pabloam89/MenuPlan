@@ -51,7 +51,7 @@ El script junta los controles de `scripts/lib/glosarioMapeo.mjs`,
 
 La relación con la entidad la fija la clase del término (`RELACION_POR_CLASE`): un
 artefacto `denota`, un campo es `campo_de`, un estado `valor_de`, un rol `rol_de`,
-una acción `accion_sobre` y un lugar `ubicacion_de`. Un artefacto sin entidad dice
+una acción `accion_sobre`, un lugar `ubicacion_de` y un tipo `tipo_de`. Un artefacto sin entidad dice
 por qué con un motivo cerrado (`MOTIVOS_SIN_ENTIDAD`). El invariante de dominios
 es uno: **un dominio solo añade o estrecha, nunca redefine uno de la base**; estrecha
 con `amplio` hacia la base. La pieza mala a propósito que da los seis códigos está

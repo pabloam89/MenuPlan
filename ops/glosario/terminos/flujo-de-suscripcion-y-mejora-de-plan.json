@@ -1,0 +1,19 @@
+{
+  "termino": "flujo de suscripción y mejora de plan",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Un flujo que lleva a la persona a contratar una suscripción o a pasar a un plan superior.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "flujo",
+  "entidades": [
+    {
+      "entidad": "pattern",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "subscribing-and-upgrading"
+}

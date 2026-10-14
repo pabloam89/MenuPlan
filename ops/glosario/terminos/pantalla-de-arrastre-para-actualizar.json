@@ -1,0 +1,19 @@
+{
+  "termino": "pantalla de arrastre para actualizar",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Una pantalla que se actualiza cuando la persona tira de ella hacia abajo con el dedo.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "pantalla",
+  "entidades": [
+    {
+      "entidad": "pattern",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "pull-to-refresh"
+}

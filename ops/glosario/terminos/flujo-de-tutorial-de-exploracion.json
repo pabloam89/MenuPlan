@@ -1,0 +1,19 @@
+{
+  "termino": "flujo de tutorial de exploración",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Un flujo que enseña a recorrer la aplicación mostrando cómo moverse entre sus secciones.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "flujo",
+  "entidades": [
+    {
+      "entidad": "pattern",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "browsing-tutorial"
+}

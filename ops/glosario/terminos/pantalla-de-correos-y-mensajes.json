@@ -1,0 +1,19 @@
+{
+  "termino": "pantalla de correos y mensajes",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Una pantalla que lista o muestra correos y mensajes recibidos o enviados.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "pantalla",
+  "entidades": [
+    {
+      "entidad": "pattern",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "emails-and-messages"
+}

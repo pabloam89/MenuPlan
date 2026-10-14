@@ -1,0 +1,19 @@
+{
+  "termino": "pantalla de diseño multicolumna",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Una pantalla que reparte su contenido en varias columnas a la vez, como lista y detalle.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "pantalla",
+  "entidades": [
+    {
+      "entidad": "pattern",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "multi-column-layout"
+}

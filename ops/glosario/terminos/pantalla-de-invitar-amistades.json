@@ -1,0 +1,19 @@
+{
+  "termino": "pantalla de invitar amistades",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Una pantalla que ofrece invitar a conocidos a usar la aplicación.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "pantalla",
+  "entidades": [
+    {
+      "entidad": "pattern",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "invite-and-refer-friends"
+}
