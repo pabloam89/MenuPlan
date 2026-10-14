@@ -41,7 +41,9 @@ if (iProy >= 0) {
   process.exit(0);
 }
 
-const pedido = args.find((a) => !a.startsWith("--") && a !== args[iProy + 1]);
+// Sin --proyecto, iProy es -1 y args[iProy + 1] sería args[0]: se excluye solo si hay --proyecto.
+const excluido = iProy >= 0 ? args[iProy + 1] : undefined;
+const pedido = args.find((a) => !a.startsWith("--") && a !== excluido);
 if (pedido) {
   const porId = datos.principios.find((p) => p.id === pedido);
   const lista = porId ? [porId] : datos.principios.filter((p) => p.area === pedido);
