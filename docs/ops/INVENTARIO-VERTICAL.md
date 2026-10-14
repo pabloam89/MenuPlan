@@ -40,7 +40,7 @@ Límites: «casa» y «bot» son castellano corriente en la factoría, así que 
 | agentes (.claude/agents/; por regla de Pablo, horizontales) | 8 | 5 | 0 | 3 |
 | specs (specs/*.md) | 17 | 0 | 17 | 0 |
 | documentos (docs/**/*.md y los .md de la raíz) | 31 | 21 | 9 | 1 |
-| tests (*.test.{js,jsx,mjs}) | 448 | 106 | 332 | 10 |
+| tests (*.test.{js,jsx,mjs}) | 449 | 107 | 332 | 10 |
 
 Principios, las cuatro filas juntas: 112 en total, 92 horizontales, 2 verticales y 18 en duda.
 
@@ -50,7 +50,7 @@ Principios, las cuatro filas juntas: 112 en total, 92 horizontales, 2 verticales
 - **Fuentes.** 125 externas (literatura) y 42 de la casa (una ruta del repo).
 - **Normas.** El registro vertical ya está separado (39). En el horizontal hay 46 que dudan (lista abajo). De las 166, 60 tienen como control «juicio» y 28 acaban en un fichero de zona producto. De las 39 verticales, 0 tienen su control en una carpeta de la factoría.
 - **Entidades y glosario.** Entidades retiradas (no cuentan): 0. El glosario no tiene lado propio: hoy se deduce de sus entidades; es el registro donde más falta el campo.
-- **Tests.** 118 tests viven en carpetas de la casa; 2 de ellos leen tres ficheros de HoMenu o más (sin contar `src/App.jsx`, el ejemplo de casi todos). 330 viven en carpetas de producto, coherentes con lo que vigilan.
+- **Tests.** 119 tests viven en carpetas de la casa; 2 de ellos leen tres ficheros de HoMenu o más (sin contar `src/App.jsx`, el ejemplo de casi todos). 330 viven en carpetas de producto, coherentes con lo que vigilan.
 
 ## Los dudosos, con su razón
 
