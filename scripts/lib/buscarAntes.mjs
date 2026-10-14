@@ -144,6 +144,7 @@ export function fichaDePr(p) {
 
 /** Los PR recientes, una sola consulta. */
 export const CONSULTA_PR_INDICE = `query {
+  rateLimit { cost }
   repository(owner: "pabloam89", name: "MenuPlan") {
     pullRequests(first: 60, orderBy: { field: UPDATED_AT, direction: DESC }) {
       nodes { number title state headRefName mergedAt body authorAssociation isCrossRepository author { login } }

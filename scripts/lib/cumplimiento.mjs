@@ -42,6 +42,7 @@ const tipoDe = (labels) => [...porGrupo(nombresDe(labels)).tipo][0] ?? null;
 
 /** Una página de issues de la API GraphQL con la forma que usa este fichero (con el cuerpo de los hijos). */
 export const CONSULTA_FLUJO = `query($cursor: String) {
+  rateLimit { cost }
   repository(owner: "pabloam89", name: "MenuPlan") {
     issues(first: 100, after: $cursor, states: [OPEN, CLOSED], orderBy: { field: CREATED_AT, direction: DESC }) {
       pageInfo { hasNextPage endCursor }

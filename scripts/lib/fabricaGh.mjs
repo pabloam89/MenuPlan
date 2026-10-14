@@ -14,12 +14,16 @@
  * Medido el 10 oct 2026: todos los issues (262), 1 punto por página de 100; los fondos
  * (22), 5 puntos por página de 10. Total ~18 puntos frente a ~321.
  */
+import { esLimite } from "./cuotaGh.mjs";
 import { leerIssue } from "./issues.mjs";
+
+export { esLimite };
 
 const ETIQUETAS = "labels(first: 10) { nodes { name } }";
 
 /** Número, estado y etiquetas de todos los issues. */
 export const CONSULTA_TODOS = `query($cursor: String) {
+  rateLimit { cost }
   repository(owner: "pabloam89", name: "MenuPlan") {
     issues(first: 100, after: $cursor, states: [OPEN, CLOSED]) {
       pageInfo { hasNextPage endCursor }
@@ -30,6 +34,7 @@ export const CONSULTA_TODOS = `query($cursor: String) {
 
 /** Los fondos con ficha, reaperturas e hijos. Páginas de 10: el coste sale de los `first:` pedidos. */
 export const CONSULTA_FONDOS = `query($cursor: String) {
+  rateLimit { cost }
   repository(owner: "pabloam89", name: "MenuPlan") {
     issues(first: 10, after: $cursor, states: [OPEN, CLOSED], labels: ["tipo:fondo"]) {
       pageInfo { hasNextPage endCursor }
@@ -86,8 +91,6 @@ export function fondosTruncados(fondos) {
 
 // ── Límite de GitHub ──────────────────────────────────────────────────────────
 
-/** ¿Es un error de límite de peticiones (cuota o límite secundario)? */
-export const esLimite = (e) => /rate limit|abuse/i.test(String(e?.stderr ?? e?.message ?? ""));
 
 /** Segundos que pide esperar el error (`retry-after: n` o «wait n seconds»), o null. */
 export function segundosDeEspera(e) {
