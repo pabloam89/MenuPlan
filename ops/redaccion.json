@@ -189,6 +189,12 @@
       "forma": "principio",
       "estado": "cumple",
       "clave_reglas": "principios"
+    },
+    {
+      "fichero": "ops/proyectos/homenu/principios/",
+      "forma": "principio",
+      "estado": "cumple",
+      "clave_reglas": "principios"
     }
   ]
 }

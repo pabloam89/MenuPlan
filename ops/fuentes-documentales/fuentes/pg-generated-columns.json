@@ -1,0 +1,10 @@
+{
+  "id": "pg-generated-columns",
+  "nombre": "PostgreSQL: columnas generadas (derivar en la base)",
+  "tipo": "externa",
+  "url": "https://www.postgresql.org/docs/current/ddl-generated-columns.html",
+  "uso": "principio",
+  "fecha_alta": "2026-10-14",
+  "revisada": "si",
+  "fecha_revision": "2026-10-14"
+}

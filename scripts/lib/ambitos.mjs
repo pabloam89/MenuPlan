@@ -29,6 +29,8 @@ export const AMBITOS = {
     rutas: [
       /^\.github\/(?!ISSUE_TEMPLATE\/)/, /^\.claude\/hooks\//, /^\.claude\/settings/, /^(vercel\.json|\.vercelignore|\.gitattributes|\.gitignore|\.env\.example)$/,
       /^ops\/(INVENTARIO\.md|recursos\.json|planos\.json|PLANOS\.md|env\.1password|copias\/)/,
+      /^scripts\/bin\/gh$/, // el `gh` de las sesiones, delante en el PATH (#719)
+      /^scripts\/(gh-shim\.mjs|lib\/(tokenSesion|cacheTokenSesion)\.mjs)$/, // el shim y su canje con caché (#719)
       /^scripts\/(tarea|retirar|podar|rulesets|token-sesiones?|llavero-op|boveda-sesiones|dependabot-auto|limpiar-worktrees|copias-[\w-]+)\.mjs$/,
     ],
   },
@@ -99,6 +101,13 @@ export const AMBITOS = {
     rutas: [/^ops\/entidades(-sujetos)?\.json$/, /^docs\/entidades\//],
   },
 };
+
+/**
+ * Los ámbitos que un proyecto puede no tener (#710): el bot es un paquete opcional. Un proyecto lo declara en `dominios` de su
+ * entrada de ops/entidades.json (`projects`); si lo declara, todas sus normas de ese ámbito llegan a los briefs de las tareas
+ * del ámbito (`--proyecto`); si no, no lleva ninguna ni se le sirve ninguna. Lo vigila ops/tareas-de-proyecto.test.js.
+ */
+export const DOMINIOS_OPCIONALES = ["bot"];
 
 /**
  * Quién construye en cada ámbito: `construye` de AMBITOS (un agente de .claude/agents/ o null si ninguno es dueño: entonces
