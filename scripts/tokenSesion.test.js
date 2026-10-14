@@ -161,6 +161,9 @@ describe("la línea de PATH del shim (#719)", () => {
     const { linea } = lineaDePath(String.raw`C:\dev\MenuPlan-x\scripts\bin`);
     expect(linea).toBe("export PATH='/c/dev/MenuPlan-x/scripts/bin'${PATH:+:$PATH}\n");
   });
+  it("también vale una ruta de Linux o de la nube (el CI no escribía la línea con `^/[a-z]/`)", () => {
+    expect(lineaDePath("/home/runner/work/menuplan/menuplan/scripts/bin").linea).toBe("export PATH='/home/runner/work/menuplan/menuplan/scripts/bin'${PATH:+:$PATH}\n");
+  });
   it.each([
     ["con espacios", String.raw`C:\dev\Mi carpeta\scripts\bin`],
     ["con una comilla", String.raw`C:\dev\a'b\scripts\bin`],

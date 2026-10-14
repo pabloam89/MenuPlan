@@ -319,7 +319,9 @@ export function rutaParaGitBash(ruta) {
   return m ? `/${m[1].toLowerCase()}/${m[2]}` : r;
 }
 
-const FORMA_RUTA_SHIM = /^\/[a-z](?:\/[A-Za-z0-9._-]+)+\/scripts\/bin$/;
+// Absoluta, tramos de [A-Za-z0-9._-] y acabada en scripts/bin. Vale la unidad de Git Bash (`/c/dev/…`) y la de Linux o la
+// nube (`/home/…`): el primer tramo no se limita a una letra (con `^/[a-z]/` el CI de Linux no escribía la línea).
+const FORMA_RUTA_SHIM = /^(?:\/[A-Za-z0-9._-]+)+\/scripts\/bin$/;
 
 /**
  * La línea de PATH que pone el shim delante, o { motivo: "ruta-de-shim-rara" } si la ruta no pasa la
