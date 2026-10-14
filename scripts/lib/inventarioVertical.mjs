@@ -34,8 +34,10 @@ const jsonsDe = (raiz, dir) => readdirSync(join(raiz, dir)).filter((f) => f.ends
 const PROYECTO = /\b(HoMenu|MenuPlan|Lola|homenu)\b/i;
 /** Servicios que usa el proyecto (no son la factoría): citarlos ata la pieza a este proyecto. Mayúsculas da igual. */
 const SERVICIOS = /\b(Vercel|Supabase|Telegram|WhatsApp|Gemini|Anthropic|Mercadona)\b|C:\\dev/i;
-export const nombraProyecto = (texto) => PROYECTO.test(texto);
-export const nombraServicio = (texto) => SERVICIOS.test(texto);
+/** Las direcciones web de las fuentes no cuentan: citar la documentación de un proveedor no ata la pieza a este proyecto. */
+export const sinUrls = (t) => String(t).replace(/https?:\/\/\S+/g, " ");
+export const nombraProyecto = (texto) => PROYECTO.test(sinUrls(texto));
+export const nombraServicio = (texto) => SERVICIOS.test(sinUrls(texto));
 /** Campos de un registro que son ids, rutas o enlaces y no prosa: no cuentan como texto. */
 export const NO_ES_PROSA = ["id", "control", "donde", "principio", "ambito", "lado", "project", "normas", "agente", "ruta", "url"];
 /** Todos los textos de un valor: cadenas sueltas, listas y objetos anidados (recursivo). */
@@ -170,7 +172,7 @@ export function calcular(raiz) {
     const textoT = `${t.termino} ${t.definicion}`;
     if (lado === "horizontal" && (nombraProyecto(textoT) || nombraServicio(textoT))) {
       lado = "duda";
-      razon = [nombraProyecto(textoT) && `la definición nombra el proyecto («${textoT.match(PROYECTO)[0]}»)`, nombraServicio(textoT) && `la definición nombra un servicio del proyecto («${textoT.match(SERVICIOS)[0]}»)`].filter(Boolean).join("; ");
+      razon = [nombraProyecto(textoT) && `la definición nombra el proyecto («${sinUrls(textoT).match(PROYECTO)[0]}»)`, nombraServicio(textoT) && `la definición nombra un servicio del proyecto («${sinUrls(textoT).match(SERVICIOS)[0]}»)`].filter(Boolean).join("; ");
     }
     if (lado === "vertical" && Object.hasOwn(decisiones.entidades_verticales_genericas, ligadas[0]?.id ?? "")) { lado = "duda"; razon = `su entidad ${ligadas[0].id} es un concepto general marcado vertical`; }
     return { id: t.termino, lado, razon };

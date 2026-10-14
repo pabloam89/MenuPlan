@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 import { cargarNormas, problemasDeProyectos } from "../scripts/lib/normas.mjs";
 import { calcular } from "../scripts/lib/inventarioVertical.mjs";
-import { RUTA_TECHOS, citasAVertical, fallosDeSubida, fallosDeTechos, leerDeclaradas, leerTechos, medir } from "../scripts/lib/vigilanteLados.mjs";
+import { RUTA_TECHOS, citasAVertical, declaracionesCaducadas, fallosDeSubida, fallosDeTechos, leerDeclaradas, leerTechos, medir } from "../scripts/lib/vigilanteLados.mjs";
 
 /**
  * El vigilante de lados (#710, programa #652, punto 7). Dos cosas, las dos con datos rotos probados abajo:
@@ -37,15 +37,21 @@ describe("ninguna horizontal cita una vertical, sobre el repo de hoy", () => {
 });
 
 // El mismo fichero en origin/staging, sin red; null si no se puede leer (rama sin la referencia o fichero nuevo).
-const techosDeStaging = () => {
+const ficheroDeStaging = () => {
   try {
-    return JSON.parse(execFileSync("git", ["show", `origin/staging:${RUTA_TECHOS}`], { cwd: RAIZ, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] })).techos;
+    return JSON.parse(execFileSync("git", ["show", `origin/staging:${RUTA_TECHOS}`], { cwd: RAIZ, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }));
   } catch { return null; }
 };
+const techosDeStaging = () => ficheroDeStaging()?.techos ?? null;
+const declaradasDeStaging = () => ficheroDeStaging()?.subida_declarada ?? {};
 
 describe("los techos solo bajan", () => {
   it("los techos no suben respecto a origin/staging (si se puede leer sin red)", () => {
-    expect(fallosDeSubida(leerTechos(RAIZ), techosDeStaging(), medir(RAIZ), leerDeclaradas(RAIZ))).toEqual([]);
+    expect(fallosDeSubida(leerTechos(RAIZ), techosDeStaging(), medir(RAIZ), leerDeclaradas(RAIZ), declaradasDeStaging())).toEqual([]);
+  });
+
+  it("las declaraciones nuevas de este PR no sobran: staging aún no alcanza su tope", () => {
+    expect(declaracionesCaducadas(leerDeclaradas(RAIZ), techosDeStaging(), declaradasDeStaging())).toEqual([]);
   });
 
   // En el CI la referencia se trae a propósito (tests.yml, «Traer staging para los trinquetes»): si falta, el trinquete
@@ -89,12 +95,12 @@ describe("con datos rotos (casos negativos)", () => {
     const st = { x: 2 };
     expect(fallosDeSubida({ x: 2, y: 4 }, st, { x: 2, y: 4 }).join()).toMatch(/«y»: clave nueva con techo 4, sube desde 0/);
     expect(fallosDeSubida({ x: 2, y: 0 }, st, { x: 2, y: 0 })).toEqual([]);
-    expect(fallosDeSubida({ x: 2, y: 5 }, st, { x: 2, y: 4 }, { y: { hasta: 5, razon: "una razón de al menos veinte letras" } }).join()).toMatch(/mayor que la medida 4/);
-    expect(fallosDeSubida({ x: 2, y: 4 }, st, { x: 2, y: 4 }, { y: { hasta: 4, razon: "una razón de al menos veinte letras" } })).toEqual([]);
+    expect(fallosDeSubida({ x: 2, y: 5 }, st, { x: 2, y: 4 }, { y: { hasta: 5, razon: "una razón de al menos veinte letras (#710)" } }).join()).toMatch(/mayor que la medida 4/);
+    expect(fallosDeSubida({ x: 2, y: 4 }, st, { x: 2, y: 4 }, { y: { hasta: 4, razon: "una razón de al menos veinte letras (#710)" } })).toEqual([]);
   });
 
   it("una subida declarada solo vale con razón, dentro de su tope y mientras staging esté por debajo", () => {
-    const razon = "el detector pasó a leer todo el texto";
+    const razon = "el detector pasó a leer todo el texto (#710)";
     expect(fallosDeSubida({ x: 6 }, { x: 4 }, null, { x: { hasta: 6, razon } })).toEqual([]);
     expect(fallosDeSubida({ x: 7 }, { x: 4 }, null, { x: { hasta: 6, razon } })).toHaveLength(1);
     expect(fallosDeSubida({ x: 6 }, { x: 4 }, null, { x: { hasta: 6, razon: "corta" } })).toHaveLength(1);
@@ -102,6 +108,29 @@ describe("con datos rotos (casos negativos)", () => {
     // ya fusionada: staging tiene el 6; subir a 7 no está declarado
     expect(fallosDeSubida({ x: 6 }, { x: 6 }, null, { x: { hasta: 6, razon } })).toEqual([]);
     expect(fallosDeSubida({ x: 7 }, { x: 6 }, null, { x: { hasta: 6, razon } })).toHaveLength(1);
+  });
+
+  it("una declaración que staging ya tenía no ampara una subida posterior (techo bajado a 40 y vuelto a subir a 46)", () => {
+    const d = { x: { hasta: 46, razon: "el detector pasó a leer todo el texto (#710)" } };
+    // staging: techo 40, con la declaración vieja todavía en el fichero; otro PR sube a 46 amparándose en ella
+    expect(fallosDeSubida({ x: 46 }, { x: 40 }, { x: 46 }, d, d)).toHaveLength(1);
+    // la misma declaración, pero añadida por este PR (staging no la tiene), sí vale
+    expect(fallosDeSubida({ x: 46 }, { x: 40 }, { x: 46 }, d, {})).toEqual([]);
+  });
+
+  it("una subida declarada sin issue, o con tope mayor que la medida, no vale (entrada de 20 letras colada al subir)", () => {
+    const sinIssue = { x: { hasta: 46, razon: "una razón de veinte letras" } };
+    expect(fallosDeSubida({ x: 46 }, { x: 40 }, { x: 46 }, sinIssue, {})).toHaveLength(1);
+    const holgura = { x: { hasta: 46, razon: "sube por el detector nuevo (#710)" } };
+    expect(fallosDeSubida({ x: 46 }, { x: 40 }, { x: 42 }, holgura, {})).toHaveLength(1);
+    expect(fallosDeSubida({ x: 42 }, { x: 40 }, { x: 42 }, { x: { ...holgura.x, hasta: 42 } }, {})).toEqual([]);
+  });
+
+  it("una declaración nueva con staging ya en su tope sobra; una vieja de staging no se juzga", () => {
+    const d = { x: { hasta: 46, razon: "sube por el detector nuevo (#710)" } };
+    expect(declaracionesCaducadas(d, { x: 46 }, {})).toHaveLength(1);
+    expect(declaracionesCaducadas(d, { x: 40 }, {})).toEqual([]);
+    expect(declaracionesCaducadas(d, { x: 46 }, d)).toEqual([]);
   });
 
   it("subir una cifra, bajarla sin bajar el techo, medir algo sin techo o dejar un techo huérfano fallan; igual, no", () => {

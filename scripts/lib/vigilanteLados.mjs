@@ -31,9 +31,6 @@ export function citasAVertical(datos) {
   };
 }
 
-/** Las direcciones web de las fuentes no cuentan: citar la documentación de un proveedor no ata la pieza a este proyecto. */
-const sinUrls = (t) => t.replace(/https?:\/\/\S+/g, " ");
-
 /**
  * Estándares de agentes: cuántas tareas y reglas nombran el proyecto o un servicio suyo, leyendo TODOS los campos de
  * prosa (tarea, no_hace, fuente, porque, nota, ejemplos…, también dentro de listas), sin distinguir mayúsculas.
@@ -47,7 +44,7 @@ export function citasDeEstandares(est) {
   const fuera = [...NO_ES_PROSA, "accion", "origen", "ambitos", "n2", "reglas", "sujeto", "fuerza"];
   const res = { proyecto: [], servicio: [] };
   const mirar = (pieza, donde) => {
-    const t = sinUrls(textoDe(pieza, fuera));
+    const t = textoDe(pieza, fuera);
     if (nombraProyecto(t)) res.proyecto.push(donde);
     if (nombraServicio(t)) res.servicio.push(donde);
   };
@@ -102,10 +99,12 @@ export const leerDeclaradas = (raiz) => leerJson(raiz, RUTA_TECHOS).subida_decla
  * Los techos no suben respecto a los de origin/staging (null si no se puede leer: no hay nada que comparar). Así un
  * fallo no se «arregla» subiendo el techo en el mismo PR. Una clave que staging no tiene cuenta como subida desde 0, y
  * no puede traer un techo mayor que su medida (si no, nace con holgura). La única excepción es una subida declarada
- * para esa clave (`subida_declarada` en el fichero de techos): con su razón y un tope `hasta`; vale solo mientras
- * staging esté por debajo, así que tras fusionarse deja de permitir nada (una vez).
+ * (`subida_declarada` en el fichero de techos) y solo si: (1) la declaración la añade este PR, es decir, staging NO la
+ * tenía ya (`declaradasStaging`): una declaración fusionada caduca y no ampara una subida posterior; (2) lleva razón
+ * que nombra un issue o PR (#n), de 20 letras o más; (3) su tope `hasta` no pasa de la medida actual (se sube porque
+ * la medida subió, no por holgura) y el techo no pasa de `hasta`. Que la razón sea cierta es control del juez.
  */
-export function fallosDeSubida(techos, deStaging, medidas = null, declaradas = {}) {
+export function fallosDeSubida(techos, deStaging, medidas = null, declaradas = {}, declaradasStaging = {}) {
   if (!deStaging) return [];
   const fallos = [];
   for (const [k, v] of Object.entries(techos)) {
@@ -113,10 +112,17 @@ export function fallosDeSubida(techos, deStaging, medidas = null, declaradas = {
     const base = deStaging[k] ?? 0;
     const d = declaradas[k];
     if (v > base) {
-      const permitida = d && typeof d.razon === "string" && d.razon.length >= 20 && Number.isInteger(d.hasta) && v <= d.hasta;
-      if (!permitida) fallos.push(nueva ? `«${k}»: clave nueva con techo ${v}, sube desde 0 sin subida declarada` : `«${k}»: el techo sube de ${base} a ${v}`);
+      const permitida = !!d && !Object.hasOwn(declaradasStaging ?? {}, k) && typeof d.razon === "string" && d.razon.length >= 20 && /#\d+/.test(d.razon)
+        && Number.isInteger(d.hasta) && v <= d.hasta && (!medidas || !(k in medidas) || d.hasta <= medidas[k]);
+      if (!permitida) fallos.push(nueva ? `«${k}»: clave nueva con techo ${v}, sube desde 0 sin subida declarada válida` : `«${k}»: el techo sube de ${base} a ${v} sin subida declarada válida (nueva en este PR, con #issue y tope ≤ la medida)`);
     }
     if (nueva && medidas && k in medidas && v > medidas[k]) fallos.push(`«${k}»: clave nueva con techo ${v} mayor que la medida ${medidas[k]}`);
   }
   return fallos;
+}
+
+/** Declaraciones nuevas de este PR (no estaban en staging) que no tienen sentido: staging ya alcanza su tope. */
+export function declaracionesCaducadas(declaradas, deStaging, declaradasStaging = {}) {
+  if (!deStaging) return [];
+  return Object.entries(declaradas).filter(([k, d]) => !Object.hasOwn(declaradasStaging ?? {}, k) && (deStaging[k] ?? 0) >= d.hasta).map(([k]) => `«${k}»: staging ya tiene ${deStaging[k] ?? 0}, la declaración sobra`);
 }
