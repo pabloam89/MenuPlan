@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { agentesDe } from "../../scripts/lib/agentes.mjs";
 import { VOCABULARIOS } from "../../scripts/lib/vocabulariosVida.mjs";
 import { PLAZO_COMPROBADO_DIAS } from "../../scripts/lib/skills.mjs";
-import { CLAVES_DE_VOCABULARIO, cifrasDeBibliotecas, caducidadDeFicha, candidatasDe, cumpleReact, leerBibliotecas, problemasDeBibliotecas } from "../../scripts/lib/bibliotecasDiseno.mjs";
+import { CLAVES_DE_VOCABULARIO, cifrasDeBibliotecas, caducidadDeFicha, candidatasDe, cumpleReact, leerBibliotecas, problemasDeBibliotecas, reactDePackage } from "../../scripts/lib/bibliotecasDiseno.mjs";
 import { leerTaxonomia } from "../../scripts/lib/taxonomiaDiseno.mjs";
 
 /**
@@ -35,9 +35,10 @@ describe("el pool de bibliotecas de hoy", () => {
     expect(problemas(DATOS), "Corrige ops/diseno/bibliotecas.json").toEqual([]);
   });
 
-  it("el alcance inicial son 18 elementos, 14 por recuento y 4 del panel, cada uno con candidata", () => {
+  it("el alcance inicial son 18 elementos, 13 por recuento, 1 elegido en el encargo y 4 del panel, cada uno con candidata", () => {
     expect(DATOS.alcance).toHaveLength(18);
-    expect(DATOS.alcance.filter((a) => a.origen === "mobbin-count")).toHaveLength(14);
+    expect(DATOS.alcance.filter((a) => a.origen === "mobbin-count")).toHaveLength(13);
+    expect(DATOS.alcance.filter((a) => a.origen === "encargo").map((a) => a.elemento).sort()).toEqual(["toast"]);
     expect(DATOS.alcance.filter((a) => a.origen === "panel").map((a) => a.elemento).sort()).toEqual(["combobox", "context-menu", "data-table", "side-navigation"]);
     for (const a of DATOS.alcance) expect(candidatasDe(DATOS, a.elemento).length, a.elemento).toBeGreaterThan(0);
   });
@@ -55,6 +56,10 @@ describe("el pool de bibliotecas de hoy", () => {
     const sh = ficha(DATOS, "shadcn-ui");
     expect([sh.importacion, sh.react.estado, sh.requisitos[0]]).toEqual(["unverified", "unverified", "unverified"]);
     expect(ficha(DATOS, "nucleo").licencia.spdx).toBe("unverified");
+    expect(ficha(DATOS, "nucleo").licencia.fuente).toBeNull();
+    expect(ficha(DATOS, "nucleo").cubre[0].acceso).toBe("unverified");
+    expect(ficha(DATOS, "shadcn-ui").rol).toBe("unverified");
+    expect(ficha(DATOS, "radix-ui").accesibilidad.wcag).toBe("unverified");
     for (const f of DATOS.bibliotecas.filter((x) => x.id !== "base-ui")) expect(f.peso.podable, f.id).toBe("unverified");
   });
 
@@ -64,22 +69,34 @@ describe("el pool de bibliotecas de hoy", () => {
     expect(candidatasDe(DATOS, "combobox").map((f) => f.id)).not.toContain("web-awesome");
   });
 
-  it("Vaul, Shoelace y Pico están retiradas, con motivo, y Shoelace apunta a su sucesora", () => {
+  it("Vaul, Shoelace y Pico están retiradas, con motivo, y solo Shoelace tiene sucesora, con su fuente", () => {
     for (const id of ["vaul", "shoelace", "pico-css"]) {
       expect(ficha(DATOS, id).vinculo, id).toBe("retired");
       expect(ficha(DATOS, id).retirada.motivo.length, id).toBeGreaterThan(15);
     }
     expect(ficha(DATOS, "shoelace").retirada.sucesora).toBe("web-awesome");
+    expect(ficha(DATOS, "shoelace").retirada.fuente_url).toMatch(/^https:/);
+    expect(ficha(DATOS, "vaul").retirada.sucesora).toBeNull();
+    expect(ficha(DATOS, "pico-css").retirada.sucesora).toBeNull();
   });
 
   it("los vocabularios están en el ciclo de vida", () => {
     for (const k of CLAVES_DE_VOCABULARIO) expect(Object.keys(VOCABULARIOS), k).toContain(`diseno.biblioteca_${k}`);
   });
 
-  it("el React de la base cabe en el rango declarado, y es null si no hay rango", () => {
-    expect(cumpleReact(ficha(DATOS, "mantine"), DATOS.base_react)).toBe(true);
-    expect(cumpleReact(ficha(DATOS, "konsta"), DATOS.base_react)).toBeNull();
-    expect(cumpleReact(ficha(DATOS, "daisyui"), DATOS.base_react)).toBeNull();
+  it("el pool no guarda la versión de React de ningún proyecto: sale de package.json al pintar la cifra", () => {
+    expect("base_react" in DATOS).toBe(false);
+    const react = reactDePackage(RAIZ);
+    expect(react).toMatch(/^\d+\.\d+$/);
+    expect(cifrasDeBibliotecas(DATOS, new Date(), react).react).toBe(react);
+    expect(cifrasDeBibliotecas(DATOS, new Date(), "16.8").react_compatibles).toBeGreaterThan(0);
+    expect(cifrasDeBibliotecas(DATOS, new Date(), "20.0").react_compatibles).toBeLessThan(cifrasDeBibliotecas(DATOS, new Date(), "19.2").react_compatibles);
+  });
+
+  it("el React dado cabe en el rango declarado, y es null si no hay rango", () => {
+    expect(cumpleReact(ficha(DATOS, "mantine"), "19.2")).toBe(true);
+    expect(cumpleReact(ficha(DATOS, "konsta"), "19.2")).toBeNull();
+    expect(cumpleReact(ficha(DATOS, "daisyui"), "19.2")).toBeNull();
     expect(cumpleReact({ react: { estado: "declared", desde: "16.8", hasta: "18" } }, "19.2")).toBe(false);
   });
 });
@@ -130,5 +147,13 @@ describe("autotest: cada regla falla con un dato roto a propósito", () => {
   it("un elemento del alcance con candidata y motivo", () => rompe((d) => { d.alcance[0].motivo_sin_candidata = "no hace falta ninguna candidata"; }, "lleva motivo_sin_candidata"));
   it("un vocabulario sin definición", () => rompe((d) => { d.vocabularios.rol.headless = ""; }, "sin definición"));
   it("una versión que no es x.y.z", () => rompe((d) => { ficha(d, "sonner").version = "dos"; }, "version"));
+  it("un valor de rol repetido en importacion", () => rompe((d) => { d.vocabularios.importacion["css-only"] = "Hojas de estilo"; }, "se repite en importacion"));
+  it("un valor de rol repetido en requisito", () => rompe((d) => { d.vocabularios.requisito["single-piece"] = "Una pieza suelta"; }, "se repite en requisito"));
+  it("una licencia unverified con fuente", () => rompe((d) => { ficha(d, "nucleo").licencia.fuente = "DOC"; }, "licencia sin comprobar no lleva fuente"));
+  it("un acceso free con licencia sin comprobar", () => rompe((d) => { ficha(d, "nucleo").cubre[0].acceso = "free"; }, "acceso free con licencia sin comprobar"));
+  it("una sucesora sin fuente", () => rompe((d) => { ficha(d, "shoelace").retirada.fuente_url = null; }, "sucesora sin URL"));
+  it("una fuente de sucesora sin sucesora", () => rompe((d) => { ficha(d, "vaul").retirada.fuente_url = "https://x.test/a"; }, "fuente_url sin sucesora"));
+  it("una versión de React de proyecto guardada en el pool", () => rompe((d) => { d.base_react = "19.2"; }, "base_react"));
+  it("un origen de alcance que el recuento no sostiene", () => rompe((d) => { d.alcance.find((a) => a.elemento === "toast").origen = "mobbin-count"; }, "fuera del top 15"));
   it("un requisito unverified mezclado", () => rompe((d) => { ficha(d, "sonner").requisitos = ["react", "unverified"]; }, "unverified va solo"));
 });

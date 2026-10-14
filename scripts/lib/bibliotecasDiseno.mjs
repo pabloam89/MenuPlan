@@ -22,6 +22,8 @@ export const CAMPOS_DE_FICHA = [
   "react", "requisitos", "movil", "accesibilidad", "cubre", "motivo_sin_cobertura", "alternativa", "retirada", "dueno", "comprobada",
 ];
 export const CAMPOS_DE_LICENCIA = ["spdx", "alcance", "permite", "fuente", "fuente_url"];
+export const CAMPOS_DE_RETIRADA = ["motivo", "sucesora", "fuente_url"];
+export const TOP_DE_RECUENTO = 15;
 export const CAMPOS_DE_ACCESIBILIDAD = ["aria", "teclado", "lectores", "wcag", "fuente_url"];
 export const CAMPOS_DE_COBERTURA = ["elemento", "base", "acceso", "fuente_url"];
 export const CAMPOS_DE_ALCANCE = ["elemento", "origen", "motivo_sin_candidata"];
@@ -38,6 +40,13 @@ const texto = (v, min = 1) => typeof v === "string" && v.trim().length >= min;
 const fechaValida = (v) => FECHA.test(v ?? "") && !Number.isNaN(Date.parse(`${v}T00:00:00Z`));
 
 export const leerBibliotecas = (raiz) => JSON.parse(readFileSync(join(raiz, RUTA_BIBLIOTECAS), "utf8"));
+
+/** La versión de React (x.y) que usa el proyecto de `raiz`, leída de su package.json en el momento de pintar la cifra; null si no usa React. */
+export function reactDePackage(raiz) {
+  const pkg = JSON.parse(readFileSync(join(raiz, "package.json"), "utf8"));
+  const m = /(\d+)\.(\d+)/.exec(pkg.dependencies?.react ?? pkg.devDependencies?.react ?? "");
+  return m ? `${m[1]}.${m[2]}` : null;
+}
 
 /** Los vocabularios cerrados del fichero con su texto, para ops/vocabularios-vida.json: `diseno.biblioteca_<clave>`. */
 export const textosDeBibliotecas = (datos, clave) => ({ ...(datos?.vocabularios?.[clave] ?? {}) });
@@ -56,11 +65,11 @@ export function caducidadDeFicha(ficha, hoy = new Date()) {
 const versionDeReact = (v) => (VERSION_REACT.test(v ?? "") ? v.split(".").map(Number) : null);
 const menorOIgual = (a, b) => a[0] < b[0] || (a[0] === b[0] && (a[1] ?? 0) <= (b[1] ?? 0));
 
-/** ¿Declara la ficha un rango de React que incluye la versión base? null si no declara rango. */
-export function cumpleReact(ficha, baseReact) {
+/** ¿Declara la ficha un rango de React que incluye la versión dada (la de un proyecto)? null si no declara rango. */
+export function cumpleReact(ficha, versionReact) {
   const r = ficha?.react;
   if (r?.estado !== "declared") return null;
-  const base = versionDeReact(baseReact);
+  const base = versionDeReact(versionReact);
   const desde = versionDeReact(r.desde);
   const hasta = r.hasta === null ? null : versionDeReact(r.hasta);
   if (!base || !desde) return null;
@@ -87,7 +96,9 @@ export function problemasDeBibliotecas(datos, taxonomia, agentes) {
   if (!fechaValida(datos?.lectura?.fecha)) p.push("lectura.fecha: falta o no es AAAA-MM-DD");
   if (!URL_HTTPS.test(datos?.lectura?.dossier ?? "")) p.push("lectura.dossier: falta la URL del dossier");
   for (const k of Object.keys(V.fuente_de_dato ?? {})) if (!texto(datos?.lectura?.fuentes?.[k], 5)) p.push(`lectura.fuentes.${k}: sin descripción`);
-  if (!versionDeReact(datos?.base_react)) p.push("base_react: falta o no es versión (19.2)");
+  if ("base_react" in (datos ?? {})) p.push("base_react: el pool no guarda la versión de React de ningún proyecto (se lee de package.json al pintar la cifra)");
+  // Un valor de rol dice qué piezas da; cómo se importa y qué exige tienen su campo: ninguno se repite (unverified es el «no sé» común).
+  for (const c of ["importacion", "requisito"]) for (const x of Object.keys(V.rol ?? {})) if (x !== "unverified" && x in (V[c] ?? {})) p.push(`vocabularios.rol.${x}: se repite en ${c}`);
   if (JSON.stringify(datos?.decide_el_proyecto) !== JSON.stringify(["envoltorio", "reglas de uso"])) p.push("decide_el_proyecto: deben ser envoltorio y reglas de uso");
 
   const fichas = datos?.bibliotecas ?? [];
@@ -110,7 +121,7 @@ export function problemasDeBibliotecas(datos, taxonomia, agentes) {
     if (Object.keys(l).some((c) => !CAMPOS_DE_LICENCIA.includes(c)) || CAMPOS_DE_LICENCIA.some((c) => !(c in l))) p.push(`${q}: licencia debe llevar exactamente ${CAMPOS_DE_LICENCIA.join(", ")}`);
     if (!texto(l.spdx)) p.push(`${q}: licencia.spdx vacío (unverified si no se leyó)`);
     if (!en("licencia_alcance", l.alcance)) p.push(`${q}: licencia.alcance «${l.alcance}» fuera del vocabulario`);
-    if (!en("fuente_de_dato", l.fuente)) p.push(`${q}: licencia.fuente «${l.fuente}» fuera del vocabulario`);
+    if (l.spdx === "unverified" ? l.fuente !== null : !en("fuente_de_dato", l.fuente)) p.push(l.spdx === "unverified" ? `${q}: licencia sin comprobar no lleva fuente (null)` : `${q}: licencia.fuente «${l.fuente}» fuera del vocabulario`);
     for (const c of ["comercial", "redistribuir"]) if (!en("declaracion", l.permite?.[c])) p.push(`${q}: licencia.permite.${c} fuera del vocabulario`);
     if (l.spdx === "unverified") {
       if (l.fuente_url !== null) p.push(`${q}: licencia sin comprobar no lleva URL (null)`);
@@ -153,7 +164,9 @@ export function problemasDeBibliotecas(datos, taxonomia, agentes) {
       if (!texto(f.retirada?.motivo, 15)) p.push(`${q}: retirada sin motivo`);
       const s = f.retirada?.sucesora;
       if (s !== null && s !== undefined && (s === f.id || !fichas.some((o) => o.id === s && o.vinculo !== "retired"))) p.push(`${q}: la sucesora «${s}» debe ser otra ficha no retirada, o null`);
-      if (!f.retirada || Object.keys(f.retirada).sort().join() !== "motivo,sucesora") p.push(`${q}: retirada lleva motivo y sucesora`);
+      if (!f.retirada || Object.keys(f.retirada).sort().join() !== [...CAMPOS_DE_RETIRADA].sort().join()) p.push(`${q}: retirada lleva ${CAMPOS_DE_RETIRADA.join(", ")}`);
+      else if (s) { if (!URL_HTTPS.test(f.retirada.fuente_url ?? "")) p.push(`${q}: sucesora sin URL de su fuente`); }
+      else if (f.retirada.fuente_url !== null) p.push(`${q}: retirada con fuente_url sin sucesora (null)`);
     } else if (f.retirada !== null) p.push(`${q}: solo una ficha retired lleva retirada`);
 
     // Cobertura: elementos de la taxonomía, con su base.
@@ -169,6 +182,7 @@ export function problemasDeBibliotecas(datos, taxonomia, agentes) {
       if (!en("acceso", c?.acceso)) p.push(`${qc}: acceso fuera del vocabulario`);
       if (c?.base === "checked" && !URL_HTTPS.test(c.fuente_url ?? "")) p.push(`${qc}: cobertura comprobada sin URL de su fuente`);
       if (c?.base === "judgement" && c.fuente_url !== null) p.push(`${qc}: un juicio no lleva fuente (null)`);
+      if (c?.acceso === "free" && l.spdx === "unverified") p.push(`${qc}: acceso free con licencia sin comprobar`);
     }
     if (f.cubre.length === 0 ? !texto(f.motivo_sin_cobertura, 10) : f.motivo_sin_cobertura !== null) p.push(`${q}: motivo_sin_cobertura va si y solo si cubre está vacío`);
 
@@ -188,6 +202,8 @@ export function problemasDeBibliotecas(datos, taxonomia, agentes) {
 
   // El alcance: cada elemento existe y tiene al menos una candidata con acceso libre, o un motivo escrito.
   const alc = datos?.alcance ?? [];
+  const ejemplos = (taxonomia?.elemento ?? []).filter((e) => e.grupo !== "imagery").map((e) => [e.id, e.ejemplos_mobile ?? 0]);
+  const puesto = new Map(ejemplos.map(([id, n]) => [id, 1 + ejemplos.filter(([, m]) => m > n).length]));
   if (!Array.isArray(alc) || alc.length === 0) p.push("alcance: no hay ningún elemento");
   const vistosAlc = new Set();
   for (const a of alc) {
@@ -197,6 +213,7 @@ export function problemasDeBibliotecas(datos, taxonomia, agentes) {
     if (vistosAlc.has(a?.elemento)) p.push(`${q}: repetido`);
     vistosAlc.add(a?.elemento);
     if (!en("origen_de_alcance", a?.origen)) p.push(`${q}: origen fuera del vocabulario`);
+    if (a?.origen === "mobbin-count" && !(puesto.get(a?.elemento) <= TOP_DE_RECUENTO)) p.push(`${q}: origen mobbin-count y el elemento está fuera del top ${TOP_DE_RECUENTO} del recuento de la taxonomía sin contar las imágenes (puesto ${puesto.get(a?.elemento) ?? "ninguno"}): origen encargo`);
     const candidatas = candidatasDe(datos, a?.elemento);
     if (candidatas.length === 0 && !texto(a?.motivo_sin_candidata, 10)) p.push(`${q}: sin ninguna candidata con acceso libre y sin motivo escrito`);
     if (candidatas.length > 0 && a?.motivo_sin_candidata !== null) p.push(`${q}: tiene candidata y lleva motivo_sin_candidata (null)`);
@@ -204,16 +221,16 @@ export function problemasDeBibliotecas(datos, taxonomia, agentes) {
   return p;
 }
 
-/** Las fichas candidatas (o en uso) que cubren un elemento sin pago: lo que de verdad se puede elegir. */
+/** Las fichas candidatas (o en uso) que cubren un elemento con acceso libre comprobado (ni de pago ni sin comprobar): lo que de verdad se puede elegir. */
 export function candidatasDe(datos, elemento) {
-  return (datos?.bibliotecas ?? []).filter((f) => f.vinculo !== "retired" && (f.cubre ?? []).some((c) => c.elemento === elemento && c.acceso !== "paid"));
+  return (datos?.bibliotecas ?? []).filter((f) => f.vinculo !== "retired" && (f.cubre ?? []).some((c) => c.elemento === elemento && c.acceso === "free"));
 }
 
 /**
  * Cifras para el informe: fichas por rol, por vínculo y por mantenimiento; por elemento del alcance, las candidatas y cuántas
  * lo cubren con fuente (`checked`) o por juicio; el stack que exigen; y las caducadas.
  */
-export function cifrasDeBibliotecas(datos, hoy = new Date()) {
+export function cifrasDeBibliotecas(datos, hoy = new Date(), react = null) {
   const fichas = datos?.bibliotecas ?? [];
   const cuenta = (clave, valores) => Object.fromEntries(Object.keys(valores ?? {}).map((v) => [v, fichas.filter((f) => f[clave] === v).length]));
   const V = datos?.vocabularios ?? {};
@@ -232,7 +249,8 @@ export function cifrasDeBibliotecas(datos, hoy = new Date()) {
     por_elemento,
     por_requisito,
     neutrales_de_framework: vivas.filter((f) => f.requisitos.every((r) => ["web-components", "css"].includes(r))).length,
-    react_compatibles: vivas.filter((f) => cumpleReact(f, datos?.base_react) === true).length,
+    react,
+    react_compatibles: react ? vivas.filter((f) => cumpleReact(f, react) === true).length : null,
     caducadas: fichas.filter((f) => caducidadDeFicha(f, hoy).estado !== "vigente").length,
   };
 }

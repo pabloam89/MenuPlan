@@ -52,7 +52,8 @@
       "unverified": "No se ha comprobado"
     },
     "diseno.biblioteca_origen_de_alcance": {
-      "mobbin-count": "Entre los elementos más comunes por el recuento de ejemplos de la fuente de la taxonomía",
+      "mobbin-count": "Entre los 15 elementos con más ejemplos en el recuento de la fuente de la taxonomía, sin contar el grupo de imagen",
+      "encargo": "Elegido en el encargo #780 entre los más comunes por el recuento, fuera de esos 15",
       "panel": "Lo necesita el panel de la factoría, el primer proyecto"
     },
     "diseno.biblioteca_react_estado": {
@@ -72,11 +73,10 @@
     "diseno.biblioteca_rol": {
       "headless": "Primitivas de comportamiento y accesibilidad sin estilo propio",
       "full-kit": "Kit completo de componentes con estilo propio",
-      "copied-source": "Componentes cuyo código se copia al repositorio en vez de importarse",
       "single-piece": "Una sola pieza concreta: tabla, cajón, toast, menú de comandos o carrusel",
       "css-only": "Clases o hojas de estilo, sin componentes",
-      "web-components": "Elementos web estándar, sin framework",
-      "icons": "Familia de iconos"
+      "icons": "Familia de iconos",
+      "unverified": "No se ha comprobado qué piezas da (el dossier no lo dice)"
     },
     "diseno.biblioteca_vinculo": {
       "in-use": "Ya está en uso en un proyecto",
