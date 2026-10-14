@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { JUECES, cifra, esFicheroDeJuez, faltasDeFichero, leerFichero, lineaDeCifra, medir, motivoFicheroSinNorma, promptCaso } from "./lib/testDelJuez.mjs";
+import { JUECES, MIN_POR_NORMA, PASADAS_SEGUIDAS, UMBRAL_MALOS, cifra, cumpleUmbralA, esFicheroDeJuez, faltasDeFichero, faltasDeHistoria, faltasDePasadas, hashDeCasos, juezDeRuta, leerFichero, leerPasadas, lineaDeCifra, medir, motivoFicheroSinNorma, motivoSinUmbral, normasSinPasada, promptCaso } from "./lib/testDelJuez.mjs";
 import { leerRegistro, motivoTestDelJuezMalo } from "./lib/normas.mjs";
 import { RAIZ } from "./lib/skills.mjs";
+import { execFileSync } from "node:child_process";
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 const registro = leerRegistro(RAIZ);
 const deJuez = registro.normas.filter((n) => n.control_procesador === "juez");
@@ -61,13 +65,139 @@ describe("el test del juez: la norma apunta a su fichero y el fichero tiene caso
   });
 
   it("una norma sin casos buenos y malos suyos no cuenta, aunque el fichero exista", () => {
-    const f = fichero([bueno, malo]);
+    const f = fichero([bueno, { ...bueno, id: "b2" }, malo, { ...malo, id: "m2" }]);
     expect(motivoFicheroSinNorma(f, bueno.norma)).toBeNull();
-    expect(motivoFicheroSinNorma(fichero([bueno]), bueno.norma)).toMatch(/1 caso bueno y 1 malo .*(hay 1 y 0)/);
+    // Un caso mínimo no vale (#698): ni 1+1, ni 3+1 (faltan malos), ni dos casos de cada tipo repartidos en otra norma.
+    expect(motivoFicheroSinNorma(fichero([bueno, malo]), bueno.norma)).toMatch(/2 casos buenos y 2 malos .*(hay 1 y 1)/);
+    expect(motivoFicheroSinNorma(fichero([bueno, { ...bueno, id: "b2" }, { ...bueno, id: "b3" }, malo]), bueno.norma)).toMatch(/hay 3 y 1/);
+    expect(MIN_POR_NORMA).toBeGreaterThanOrEqual(4);
+    expect(motivoFicheroSinNorma(fichero([bueno]), bueno.norma)).toMatch(/2 casos buenos y 2 malos .*(hay 1 y 0)/);
     expect(motivoFicheroSinNorma(f, "otra-norma")).toMatch(/hay 0 y 0/);
     const n = { ...deJuez[0], id: "test-visto-fallar", test_del_juez: "ops/test-del-juez/revisor.json" };
     expect(motivoTestDelJuezMalo(n, RAIZ)).toBeNull();
     expect(motivoTestDelJuezMalo({ ...n, id: "norma-sin-casos-zzz" }, RAIZ)).toMatch(/necesita al menos/);
+  });
+
+  it("cada norma que apunta tiene 4 o más casos suyos, con 2 o más de cada tipo (umbral A, #698)", () => {
+    for (const n of apuntan) {
+      const cs = leerFichero(juezDeRuta(n.test_del_juez), RAIZ).casos.filter((c) => c.norma === n.id);
+      expect(cs.length, n.id).toBeGreaterThanOrEqual(MIN_POR_NORMA);
+      expect(cs.filter((c) => c.tipo === "bueno").length, `${n.id} buenos`).toBeGreaterThanOrEqual(2);
+      expect(cs.filter((c) => c.tipo === "malo").length, `${n.id} malos`).toBeGreaterThanOrEqual(2);
+    }
+  });
+
+  it("el fichero de otro juez no vale como test de la norma, aunque tenga casos de ella", () => {
+    const dir = mkdtempSync(join(tmpdir(), "juez-"));
+    try {
+      mkdirSync(join(dir, "ops/test-del-juez"), { recursive: true });
+      const casos = ["b1", "b2"].map((id) => ({ ...bueno, id })).concat(["m1", "m2"].map((id) => ({ ...malo, id })));
+      writeFileSync(join(dir, "ops/test-del-juez/qa.json"), JSON.stringify({ juez: "revisor", version: 1, casos }));
+      const n = { ...deJuez[0], id: idsDeJuez[0], test_del_juez: "ops/test-del-juez/qa.json" };
+      expect(motivoTestDelJuezMalo(n, dir)).toMatch(/fichero de qa pero dice ser de «revisor»/);
+      writeFileSync(join(dir, "ops/test-del-juez/qa.json"), JSON.stringify({ juez: "qa", version: 1, casos }));
+      expect(motivoTestDelJuezMalo(n, dir)).toBeNull();
+    } finally { rmSync(dir, { recursive: true, force: true }); }
+  });
+});
+
+describe("el test del juez: el umbral A y las pasadas de pago (#698)", () => {
+  const buena = { juez: "revisor", fecha: "2026-10-14", casos: 24, buenos: 12, buenos_ok: 12, malos: 12, malos_ok: 10, sin_correr: 0, coste_usd: 0.2, casos_hash: "abcdef012345" };
+
+  it("el umbral es el que decidió Pablo: 80 % de los malos, todos los buenos, dos pasadas seguidas", () => {
+    expect([UMBRAL_MALOS, PASADAS_SEGUIDAS]).toEqual([0.8, 2]);
+  });
+
+  it("una pasada cumple con todos los buenos y 80 % de los malos; con datos rotos, no (visto fallar)", () => {
+    expect(cumpleUmbralA(buena)).toBe(true);
+    expect(cumpleUmbralA({ ...buena, malos_ok: 9 })).toBe(false); // 75 %
+    expect(cumpleUmbralA({ ...buena, buenos_ok: 11 })).toBe(false); // un bueno señalado de más
+    expect(cumpleUmbralA({ ...buena, sin_correr: 1 })).toBe(false); // se paró por el tope
+    expect(cumpleUmbralA({ ...buena, malos: 0, malos_ok: 0 })).toBe(false); // sin malos no mide nada
+    expect(cumpleUmbralA({ ...buena, buenos: 0, buenos_ok: 0 })).toBe(false);
+    expect(cumpleUmbralA({ ...buena, malos_ok: "10" })).toBe(false);
+    expect(cumpleUmbralA({ ...buena, malos_ok: undefined })).toBe(false);
+    expect(cumpleUmbralA(null)).toBe(false);
+  });
+
+  it("el juez solo cumple con dos pasadas seguidas buenas y sobre los casos de hoy", () => {
+    const sinUmbral = (j, ps, n, h = buena.casos_hash) => motivoSinUmbral(j, ps, n, h);
+    const mala = { ...buena, malos_ok: 5 };
+    expect(sinUmbral("revisor", [], 24)).toMatch(/ninguna pasada de pago registrada/);
+    expect(sinUmbral("revisor", [buena], 24)).toMatch(/solo 1 pasada/);
+    expect(sinUmbral("revisor", [buena, buena], 24)).toBeNull();
+    expect(sinUmbral("revisor", [mala, buena], 24)).toMatch(/no cumplen el umbral/);
+    expect(sinUmbral("revisor", [buena, mala, buena], 24)).toMatch(/no cumplen el umbral/); // no son seguidas
+    expect(sinUmbral("revisor", [mala, buena, buena], 24)).toBeNull(); // una mala vieja no cuenta
+    expect(sinUmbral("revisor", [buena, buena], 30)).toMatch(/otros casos/); // se ampliaron: hay que volver a medir
+    expect(sinUmbral("qa", [buena, buena], 24)).toMatch(/ninguna pasada de pago registrada de qa/); // las de otro juez no valen
+    // Editar un caso sin cambiar cuántos hay invalida las pasadas (M2): el hash de los casos cambia.
+    expect(sinUmbral("revisor", [buena, buena], 24, "ffffffffffff")).toMatch(/versión anterior de sus casos/);
+    expect(sinUmbral("revisor", [{ ...buena, casos_hash: undefined }, { ...buena, casos_hash: undefined }], 24)).toMatch(/versión anterior/);
+  });
+
+  it("el registro de pasadas tiene forma", () => {
+    expect(faltasDePasadas(leerPasadas(RAIZ))).toEqual([]);
+    expect(faltasDePasadas(null).join()).toMatch(/lista/);
+    expect(faltasDePasadas({ pasadas: [{ ...buena, fecha: "ayer" }] }).join()).toMatch(/fecha/);
+    expect(faltasDePasadas({ pasadas: [{ ...buena, juez: "otro" }] }).join()).toMatch(/juez/);
+    expect(faltasDePasadas({ pasadas: [{ ...buena, coste_usd: undefined }] }).join()).toMatch(/coste_usd/);
+    expect(faltasDePasadas({ pasadas: [{ ...buena, buenos: 1.5 }] }).join()).toMatch(/buenos/);
+  });
+
+  it("un registro forjado o incoherente falla (M1, visto fallar)", () => {
+    const f = (...ps) => faltasDePasadas({ pasadas: ps }).join(" | ");
+    expect(f({ ...buena }, { ...buena, fecha: "2026-10-15" })).toBe("");
+    // El forjado del revisor: casos 24, coste 0, repetido dos veces.
+    const forjada = { juez: "revisor", fecha: "2026-10-14", casos: 24, buenos: 12, buenos_ok: 12, malos: 12, malos_ok: 12, sin_correr: 0, coste_usd: 0, casos_hash: "abcdef012345" };
+    expect(f(forjada, forjada)).toMatch(/coste_usd/);
+    expect(f(forjada, forjada)).toMatch(/idéntica/);
+    expect(f({ ...buena }, { ...buena })).toMatch(/idéntica a pasadas\[0\]/);
+    expect(f({ ...buena, casos: 25 })).toMatch(/no es buenos \+ malos/);
+    expect(f({ ...buena, buenos_ok: 13 })).toMatch(/buenos_ok .* pasa de buenos/);
+    expect(f({ ...buena, malos_ok: 13 })).toMatch(/malos_ok .* pasa de malos/);
+    expect(f({ ...buena, coste_usd: -1 })).toMatch(/coste_usd/);
+    expect(f({ ...buena, casos_hash: undefined })).toMatch(/casos_hash/);
+  });
+
+  it("el registro solo crece por el final (M1): lo subido a staging no se edita ni se borra", () => {
+    const [a, b] = [{ ...buena }, { ...buena, fecha: "2026-10-15" }];
+    expect(faltasDeHistoria({ pasadas: [a] }, { pasadas: [a, b] })).toEqual([]);
+    expect(faltasDeHistoria({ pasadas: [] }, { pasadas: [a] })).toEqual([]);
+    expect(faltasDeHistoria({ pasadas: [a, b] }, { pasadas: [a] }).join()).toMatch(/solo se puede añadir al final/);
+    expect(faltasDeHistoria({ pasadas: [a] }, { pasadas: [{ ...a, malos_ok: 12 }, b] }).join()).toMatch(/pasadas\[0\]: distinta/);
+    expect(faltasDeHistoria({ pasadas: [a, b] }, { pasadas: [b, a] }).join()).toMatch(/distinta/);
+  });
+
+  it("el registro de este PR continúa el de origin/staging (si la referencia existe)", () => {
+    let previo;
+    try { previo = JSON.parse(execFileSync("git", ["show", "origin/staging:ops/test-del-juez/pasadas.json"], { cwd: RAIZ, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] })); } catch { return; }
+    expect(faltasDeHistoria(previo, leerPasadas(RAIZ))).toEqual([]);
+  });
+
+  it("una norma no cuenta como comprobada hasta que su juez tenga las pasadas registradas; el techo solo baja", () => {
+    const sin = normasSinPasada(registro.normas, RAIZ);
+    const techo = JSON.parse(readFileSync(join(RAIZ, "ops/normas-techos.json"), "utf8")).juez_sin_pasada_de_pago;
+    expect(sin.length, "Un juez con casos nuevos y sin pasada de pago aumenta la lista: que otra sesión lance `npm run test-del-juez -- <juez> --si`").toBeLessThanOrEqual(techo);
+    // Con pasadas que cumplen sobre los casos de hoy, el revisor deja de estar en la lista (recorrido entero con un directorio de mentira).
+    const dir = mkdtempSync(join(tmpdir(), "juez-"));
+    try {
+      mkdirSync(join(dir, "ops/test-del-juez"), { recursive: true });
+      const real = leerFichero("revisor", RAIZ);
+      writeFileSync(join(dir, "ops/test-del-juez/revisor.json"), JSON.stringify(real));
+      const n = deJuez.filter((x) => x.test_del_juez === "ops/test-del-juez/revisor.json");
+      expect(normasSinPasada(n, dir).length).toBe(n.length);
+      const p = { ...buena, casos: real.casos.length, casos_hash: hashDeCasos("revisor", dir) };
+      writeFileSync(join(dir, "ops/test-del-juez/pasadas.json"), JSON.stringify({ pasadas: [p, p] }));
+      expect(normasSinPasada(n, dir)).toEqual([]);
+      writeFileSync(join(dir, "ops/test-del-juez/pasadas.json"), JSON.stringify({ pasadas: [p, { ...p, malos_ok: 3 }] }));
+      expect(normasSinPasada(n, dir).length).toBe(n.length);
+      // Editar un caso (mismo número de casos) invalida las pasadas anteriores (M2).
+      writeFileSync(join(dir, "ops/test-del-juez/pasadas.json"), JSON.stringify({ pasadas: [p, p] }));
+      real.casos[0].diff += " ";
+      writeFileSync(join(dir, "ops/test-del-juez/revisor.json"), JSON.stringify(real));
+      expect(normasSinPasada(n, dir).length).toBe(n.length);
+    } finally { rmSync(dir, { recursive: true, force: true }); }
   });
 });
 
