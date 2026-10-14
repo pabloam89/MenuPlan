@@ -7,7 +7,7 @@
  * Todo vocabulario cerrado vive una vez, con su definición, en el JSON; las reglas de abajo son las que el test comprueba
  * sin lista de excepciones. La caducidad de `comprobada` (90 días, como las skills) se calcula (`caducidadDeFicha`) y se
  * cuenta en las cifras, pero no falla el test: el reloj no pone en rojo todos los PR (mismo criterio que las skills). La
- * fecha de lo que mide el refresco (scripts/lib/bibliotecasRefresco.mjs) va aparte, en `medida` (#814), y no la renueva.
+ * fecha del último cambio que aplicó el refresco (scripts/lib/bibliotecasRefresco.mjs) va aparte, en `medida` (#814), y no la renueva.
  *
  * Lo leen `ops/diseno/pool.test.js`, `scripts/diseno/bibliotecas.mjs` (las cifras) y `scripts/lib/vocabulariosVida.mjs`
  * (el ciclo de vida de cada vocabulario). Puro: sin red.
@@ -305,7 +305,8 @@ export function candidatasDe(datos, elemento) {
 /**
  * Cifras para el informe: fichas por rol, por vínculo y por mantenimiento; por elemento del alcance, las candidatas y cuántas
  * lo cubren con fuente (`checked`) o por juicio; el stack que exigen; las caducadas (por `comprobada`) y la última
- * fecha en que el refresco midió alguna ficha (`ultima_medida`, #814; null si nunca): dice si el refresco está corriendo.
+ * fecha del último cambio que aplicó el refresco a alguna ficha (`ultima_medida`, #814; null si nunca). No dice si el refresco
+ * está corriendo: una pasada sin cambios no la mueve; eso lo dirán las ejecuciones del workflow semanal.
  */
 export function cifrasDeBibliotecas(datos, hoy = new Date(), react = null) {
   const fichas = datos?.bibliotecas ?? [];
