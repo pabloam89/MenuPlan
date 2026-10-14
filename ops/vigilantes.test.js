@@ -110,6 +110,7 @@ const TABLA = [
   ["tests-de-tiempo", ".claude/hooks/x.test.js", "ops/testsDeTiempo.test.js"],
   ["errores-tragados-scripts", "scripts/lib/x.mjs", "scripts/sinErroresTragados.test.js"],
   ["errores-tragados-scripts", ".claude/hooks/x.mjs", "scripts/sinErroresTragados.test.js"],
+  ["carpeta-del-shim", "scripts/bin/gh", "scripts/ghShim.test.js"],
   ["errores-tragados-bot", "api/bot/x.js", "api/_bot/sinErroresTragados.test.js"],
   ["api-sin-credencial", "api/x.js", "api/sinCredencial.test.js"],
   ["api-sin-credencial", "ops/api-sin-credencial.json", "api/sinCredencial.test.js"],
