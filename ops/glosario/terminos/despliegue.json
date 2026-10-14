@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "ops",
+  "scope": "horizontal",
   "definicion": "Una versión del código publicada en un entorno, que sale de una rama o de un PR.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

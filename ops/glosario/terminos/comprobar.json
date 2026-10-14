@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "accion",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Contrastar una afirmación con una evidencia que otro puede repetir; lo que no se ha contrastado se dice «sin comprobar».",
   "sinonimos_prohibidos": [
     "chequear",

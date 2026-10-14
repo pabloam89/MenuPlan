@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Un elemento de interfaz que abre una lista de opciones al tocar un control y se cierra al elegir.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "ops",
+  "scope": "horizontal",
   "definicion": "Un issue tipo:fondo: la clase de fallo de la que cuelgan casos y encargos, con su ficha, su arreglo general y cómo se probará.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

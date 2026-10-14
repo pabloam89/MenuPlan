@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "accion",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Apuntar algo en un sitio que se puede contar: un fallo como caso en un issue, una línea estructurada en un log.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

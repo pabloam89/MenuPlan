@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "campo",
   "dominio": "ops",
+  "scope": "horizontal",
   "definicion": "Una explicación que dice por qué pasó un fallo, en tres piezas: mecanismo, condición y control ausente. Su tipo es la etiqueta causa:.",
   "sinonimos_prohibidos": [
     "causa raíz",

@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que hace preguntas a la persona y recoge sus respuestas.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

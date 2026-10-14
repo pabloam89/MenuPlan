@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Una obligación exigible del proceso que declara su ámbito, su acción, su fuerza y su control, y que se registra una sola vez en ops/normas.json.",
   "sinonimos_prohibidos": [
     "criterio de la forja",

@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "campo",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Un objetivo de la base que una norma sirve y que ordena qué gana cuando dos normas chocan; hay seis, de vocabulario cerrado.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

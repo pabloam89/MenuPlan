@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Un flujo de usuario que lleva a la persona a encender o apagar una función o un permiso del producto desde sus ajustes, a menudo con una explicación o una confirmación.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

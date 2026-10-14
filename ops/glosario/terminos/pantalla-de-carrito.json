@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que lista lo que se va a comprar antes de pagar.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

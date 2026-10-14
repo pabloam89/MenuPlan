@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "campo",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Una cláusula que dice cuándo se aplica una norma («cuando …» o «si …»); si falta, la norma se aplica siempre.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

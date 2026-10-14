@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "campo",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "La parte del trabajo a la que pertenece una norma o un principio, de un vocabulario cerrado de once valores.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Un elemento de interfaz fijo, normalmente abajo, que da acceso a las secciones principales de la aplicación.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que permite añadir, elegir o quitar los medios con los que se paga.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

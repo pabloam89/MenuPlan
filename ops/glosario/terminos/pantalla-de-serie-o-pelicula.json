@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que muestra la ficha de una serie o de una película.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

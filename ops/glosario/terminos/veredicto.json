@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "campo",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "El grado en que se hace cumplir una norma hoy, con un valor de VEREDICTOS de scripts/lib/escalas.mjs.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

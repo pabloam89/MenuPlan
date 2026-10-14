@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Un elemento de interfaz pequeño, sobre otro, que indica un número o un estado.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

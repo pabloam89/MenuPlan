@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que muestra o lee un código QR.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

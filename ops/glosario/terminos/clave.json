@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "ops",
+  "scope": "horizontal",
   "definicion": "Un valor secreto que da acceso a un servicio, con su ficha en una bóveda; su valor nunca se escribe en el repo.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

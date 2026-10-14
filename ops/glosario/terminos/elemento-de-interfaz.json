@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Un tipo abstracto de pieza de pantalla que la persona ve o toca y que tiene un papel propio, como el botón, la tarjeta o el icono, independiente de cualquier sistema de diseño.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

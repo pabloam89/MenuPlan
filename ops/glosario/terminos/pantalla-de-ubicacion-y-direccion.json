@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una pantalla que permite elegir, escribir o confirmar un lugar o una dirección.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

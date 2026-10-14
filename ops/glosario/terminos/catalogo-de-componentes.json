@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Una página de un proyecto que enseña cada componente de diseño con sus variantes y estados, sin añadir ninguna pieza propia.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

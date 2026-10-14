@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Un elemento de interfaz que entra desde un lado y se cierra al tocar fuera.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

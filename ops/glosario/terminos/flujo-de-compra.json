@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "tipo",
   "dominio": "diseno",
+  "scope": "horizontal",
   "definicion": "Un flujo de usuario que lleva a la persona desde elegir un producto hasta pagarlo.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

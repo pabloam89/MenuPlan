@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Una cosa concreta que cumple una forja: una skill, un agente o la tarea de un agente.",
   "sinonimos_prohibidos": [],
   "aplica_a": [

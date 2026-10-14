@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "artefacto",
   "dominio": "ops",
+  "scope": "horizontal",
   "definicion": "El cambio que corrige una clase de fallo; el general va en el fondo y sus partes en encargos.",
   "sinonimos_prohibidos": [
     "parche",

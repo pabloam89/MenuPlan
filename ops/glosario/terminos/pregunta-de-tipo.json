@@ -3,6 +3,7 @@
   "estado": "activo",
   "clase": "campo",
   "dominio": "base",
+  "scope": "horizontal",
   "definicion": "Una pregunta de sí o no sobre una skill (opera un proveedor, juzga un artefacto, encadena…) que, con las demás, fija su tipo.",
   "sinonimos_prohibidos": [],
   "aplica_a": [
