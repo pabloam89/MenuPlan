@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync, readdirSync } from "node:fs";
+import { readdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { esCatalogo, leerCatalogo } from "../scripts/lib/catalogos.mjs";
@@ -8,7 +8,7 @@ import {
   AVISO_ANTES_DIAS, ESTADOS_REVISION, PLAZO_REVISION_DIAS, TECHO_SIN_REVISAR, cifrasDeFuentes, estadoDeRevision, leerFuentes,
   ladoDeFuente, ladoObligado, mapaDeFuentes, problemasDeFuentes, problemasDeLado, resolverCitas, vistaParaEstandares,
 } from "../scripts/lib/fuentesDoc.mjs";
-import { clasificar, compilar, leerZonas } from "../scripts/lib/zonasProyecto.mjs";
+import { PROYECTOS_CON_NORMAS, clasificar, compilar, leerZonas } from "../scripts/lib/zonasProyecto.mjs";
 import { leerPool } from "../scripts/lib/pool.mjs";
 import { rutaPrincipiosDeProyecto } from "../scripts/lib/principios.mjs";
 
@@ -34,7 +34,7 @@ const citasDePool = Object.values(leerPool(RAIZ).agentes).flatMap((a) => a.pract
 const citadas = new Set([...citasDePrincipios.map((c) => c.f.fuente), ...reglas.map((r) => r.fuente), ...citasDePool]);
 const zonas = compilar(leerZonas(RAIZ));
 const zonaDe = (ruta) => clasificar(ruta, zonas).zona;
-const proyectos = JSON.parse(readFileSync(resolve(RAIZ, "ops/entidades.json"), "utf8")).projects.map((p) => p.id);
+const proyectos = PROYECTOS_CON_NORMAS;
 const falla = (cambia, trozo, opciones = {}) => {
   const c = clon();
   cambia(c);

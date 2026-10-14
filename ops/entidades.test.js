@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -10,6 +10,7 @@ import {
   SUBJECT_KINDS, VERBOS_DE_CLASE,
 } from "../scripts/lib/entidades.mjs";
 import { TIPOS as TIPOS_DE_RECURSO } from "../scripts/lib/recursos.mjs";
+import { DEF_PROYECTOS, PROYECTOS } from "../scripts/lib/zonasProyecto.mjs";
 import { VOCABULARIOS, valoresActuales } from "../scripts/lib/vocabulariosVida.mjs";
 import { EVENTOS, INTERVENCION_POR_AVISO, lineaDeEvento } from "../.claude/hooks/eventos.mjs";
 import { AVISOS } from "../.claude/hooks/avisos-guardia.mjs";
@@ -193,16 +194,27 @@ export function problemas(datos, { existe: hay, glosario = null, sinLector = SIN
     for (const t of glosario.terminos) for (const s of prohibidosDe(t)) canon.set(plano(s), t.termino);
     for (const e of ents) if (canon.has(plano(e.name ?? ""))) p.push(`${e.id}: el nombre «${e.name}» es un sinónimo que el glosario prohíbe (di «${canon.get(plano(e.name))}»)`);
   }
-  // Proyectos: las instancias de la entidad project.
+  // Proyectos: las instancias de la entidad project. Los ids son PROYECTOS (scripts/lib/zonasProyecto.mjs, la lista única, #748);
+  // aquí solo se guardan el nombre y los repos. `repos` vacío solo en `factoria` (no tiene repo propio) y ningún repo cuelga de dos.
   const proyectos = new Set();
+  const dueñoDeRepo = new Map();
   for (const pr of datos.projects ?? []) {
     if (!FORMA_ID.test(pr.id ?? "")) p.push(`proyecto ${pr.id}: id sin la forma kebab`);
     if (proyectos.has(pr.id)) p.push(`proyecto ${pr.id}: repetido`);
     proyectos.add(pr.id);
-    if (!Array.isArray(pr.repos) || pr.repos.length === 0 || !pr.repos.every((r) => /^[\w.-]+\/[\w.-]+$/.test(r))) p.push(`proyecto ${pr.id}: repos necesita nombres propietario/repo`);
+    if (!Array.isArray(pr.repos) || !pr.repos.every((r) => /^[\w.-]+\/[\w.-]+$/.test(r))) p.push(`proyecto ${pr.id}: repos necesita nombres propietario/repo`);
+    else {
+      if (pr.id === "factoria" && pr.repos.length > 0) p.push("proyecto factoria: sin repo propio (repos vacío); el repo cuelga de homenu");
+      if (pr.id !== "factoria" && pr.repos.length === 0) p.push(`proyecto ${pr.id}: repos vacío solo vale para factoria`);
+      for (const r of pr.repos) {
+        if (dueñoDeRepo.has(r)) p.push(`proyecto ${pr.id}: el repo ${r} ya cuelga de ${dueñoDeRepo.get(r)} (un repo, un proyecto)`);
+        else dueñoDeRepo.set(r, pr.id);
+      }
+    }
     if (typeof pr.name !== "string" || !pr.name.trim()) p.push(`proyecto ${pr.id}: name vacío`);
+    if ("note" in pr) p.push(`proyecto ${pr.id}: sin note (la descripción es DEF_PROYECTOS)`);
   }
-  if (proyectos.size < 2) p.push("proyectos: hoy hay dos (homenu y panel)");
+  if (JSON.stringify([...proyectos]) !== JSON.stringify(PROYECTOS)) p.push(`proyectos: los ids de projects son exactamente PROYECTOS (${PROYECTOS.join(", ")}), en ese orden`);
   // Tipos de evento.
   const tipos = new Set();
   for (const t of datos.event_types ?? []) {
@@ -343,8 +355,14 @@ describe("el registro de entidades", () => {
     expect(DATOS.entities.filter((e) => e.level !== "piece" && e.scope === "vertical")).toEqual([]);
   });
 
-  it("la contención es factoría > proyecto > entorno, con part_of; la factoría es la raíz implícita", () => {
-    expect(DATOS.projects.map((p) => p.id)).toEqual(["homenu", "panel"]);
+  it("la contención es factoría > proyecto > entorno, con part_of; la factoría es un valor de proyecto (PROYECTOS), no una entidad", () => {
+    expect(DATOS.projects.map((p) => p.id)).toEqual(PROYECTOS);
+    expect(DATOS.projects.every((p) => p.id in DEF_PROYECTOS)).toBe(true);
+    // la lista de proyectos no es una segunda fuente: ni la descripción ni «ausente = factoría» viven en el registro
+    expect(DATOS.projects.filter((p) => "note" in p)).toEqual([]);
+    expect(E("project").source_of_truth).toBe("scripts/lib/zonasProyecto.mjs");
+    expect(JSON.stringify([E("project"), ...DATOS.relations.filter((r) => r.to === "project")])).not.toMatch(/raíz implícita|sin project, cuelga/);
+    expect(DATOS.relations.find((r) => r.from === "resource" && r.to === "project")).toMatchObject({ stored_as: "field" });
     for (const id of ["environment", "repo", "resource", "design-system", "module"]) expect(hay(id, "belongs_to", "project"), id).toBe(true);
     expect(E("project").scope).toBe("horizontal");
     expect(DATOS.entities.find((e) => e.id === "factory")).toBeUndefined();
@@ -486,8 +504,10 @@ describe("el registro de entidades", () => {
     const anclados = JSON.parse(leer("ops/vocabularios-vida.json")).anclados;
     const nVoc = Object.keys(anclados).length;
     const nVal = Object.values(anclados).reduce((a, v) => a + (Array.isArray(v) ? v.length : Object.keys(v).length), 0);
-    expect(E("vocabulary").note, "Cambia las cifras de la nota de vocabulary").toContain(`${nVoc} vocabularios y ${nVal} valores anclados`);
-    expect(E("vocabulary").note).not.toMatch(/56 vocabularios/);
+    // La nota no lleva cifras (conflicto en cada fusión, #770); las vigila este test contra el JSON.
+    expect(E("vocabulary").note, "La cifra va en el test, no en la nota").not.toMatch(/\d+ vocabularios/);
+    expect(nVoc).toBeGreaterThan(100);
+    expect(nVal).toBeGreaterThan(500);
   });
 
   it("las fuentes citadas existen en git, con las mayúsculas exactas", () => {
@@ -687,8 +707,13 @@ describe("autotest: cada regla falla con datos malos", () => {
   });
 
   it("proyectos y tipos de evento mal formados", () => {
-    expect(con((d) => { d.projects.pop(); })).toMatch(/hoy hay dos/);
+    expect(con((d) => { d.projects.pop(); })).toMatch(/los ids de projects son exactamente PROYECTOS/);
+    expect(con((d) => { d.projects.push({ id: "otro", name: "Otro", repos: ["a/b"] }); })).toMatch(/los ids de projects son exactamente PROYECTOS/);
     expect(con((d) => { d.projects[0].repos = ["sin-barra"]; })).toMatch(/repos necesita nombres propietario\/repo/);
+    expect(con((d) => { d.projects[0].repos = []; })).toMatch(/proyecto homenu: repos vacío solo vale para factoria/);
+    expect(con((d) => { d.projects.find((x) => x.id === "factoria").repos = ["pabloam89/MenuPlan"]; })).toMatch(/proyecto factoria: sin repo propio/);
+    expect(con((d) => { d.projects.find((x) => x.id === "panel").repos.push(d.projects[0].repos[0]); })).toMatch(/el repo pabloam89\/MenuPlan ya cuelga de homenu/);
+    expect(con((d) => { d.projects[0].note = "otra copia"; })).toMatch(/sin note/);
     expect(con((d) => { d.event_types[0].of = "inventada"; })).toMatch(/of «inventada» no es una entidad activa/);
     expect(con((d) => { d.event_types[0].fields[0].values = ["uno", "dos"]; })).toMatch(/no copia valores/);
     expect(con((d) => { d.event_types[0].fields[0].vocabulary = "eventos.inventado"; })).toMatch(/vocabulary que sea una clave de VOCABULARIOS/);
@@ -796,5 +821,42 @@ describe("N0-principios.md habla de los niveles y de las capas con su palabra", 
   it("el autotest: el documento de antes del cambio falla", () => {
     const antes = "Hay cuatro niveles. Cada uno obedece al anterior.\nse declara puente (`role_in_axis`); scope: bridge";
     expect(problemasDeN0(antes).length).toBeGreaterThanOrEqual(4);
+  });
+});
+
+// La clase (#770): los ids de `projects[]` (ATRIBUTOS: nombre, repos, dominios) no son la lista de proyectos con normas, porque incluyen
+// `factoria`. Quien necesite los ids usa PROYECTOS o PROYECTOS_CON_NORMAS (scripts/lib/zonasProyecto.mjs); leer `projects` para ids
+// repite el filtro y aceptó `factoria` donde no debía (fuentes-documentales, principios-casa).
+describe("ids de proyecto: una sola lista", () => {
+  const LECTORES_DE_ATRIBUTOS = ["scripts/lib/normas.mjs"];
+  // Detecta la LECTURA de ids (`projects` ... `.map((p) => p.id)`, incluso con `?? []` en medio), no la forma exacta del código.
+  const PATRONES = [/\.projects\.map\(/, /\.projects\.find\(/, /projects\b[^;\n]*\.map\(\s*\(?\w+\)?\s*=>\s*\w+\.id\b/];
+  const ficheros = (dir) => readdirSync(join(RAIZ, dir), { withFileTypes: true }).flatMap((d) => {
+    const r = `${dir}/${d.name}`;
+    if (d.isDirectory()) return d.name === "node_modules" ? [] : ficheros(r);
+    return /\.(mjs|js)$/.test(d.name) ? [r] : [];
+  });
+  const infractores = (leer = (f) => readFileSync(join(RAIZ, f), "utf8")) =>
+    [...ficheros("scripts"), ...ficheros("ops")]
+      .filter((f) => f !== "ops/entidades.test.js" && !LECTORES_DE_ATRIBUTOS.includes(f))
+      .filter((f) => PATRONES.some((re) => re.test(leer(f))));
+
+  it("nadie lee los ids de projects[] fuera de la lista corta de lectores de atributos", () => {
+    expect(infractores(), "usa PROYECTOS o PROYECTOS_CON_NORMAS (zonasProyecto.mjs), o dominiosDeProyecto (normas.mjs)").toEqual([]);
+  });
+
+  it("autotest: el lector de ids de hoy en fuentes-documentales.test.js se pilla", () => {
+    const antes = 'const proyectos = JSON.parse(x).projects.map((p) => p.id);';
+    expect(infractores(() => antes).length).toBeGreaterThan(0);
+    expect(PATRONES.some((re) => re.test(antes))).toBe(true);
+  });
+
+  it("autotest: la línea de glosario.mjs de antes (con `?? []`) se pilla", () => {
+    expect(PATRONES.some((re) => re.test("const validos = new Set((registro.projects ?? []).map((p) => p.id));"))).toBe(true);
+  });
+
+  it("cada lector de atributos exento coincide con algún patrón (si no, sobra en la lista)", () => {
+    const sobran = LECTORES_DE_ATRIBUTOS.filter((f) => !PATRONES.some((re) => re.test(readFileSync(join(RAIZ, f), "utf8"))));
+    expect(sobran).toEqual([]);
   });
 });

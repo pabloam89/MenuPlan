@@ -51,7 +51,7 @@ export function conTareasDeProyecto(datos, registro) {
 export function problemasDeTareasDeProyecto(registro, id, { datos, normas, proyectos, dominios }) {
   const malos = [];
   const ruta = rutaTareasDeProyecto(id);
-  if (!proyectos.includes(id)) malos.push(`${ruta}: «${id}» no es un proyecto de ops/entidades.json (${proyectos.join(", ")})`);
+  if (!proyectos.includes(id)) malos.push(`${ruta}: «${id}» no es un proyecto con normas (${proyectos.join(", ")})`);
   if (registro?.project !== id) malos.push(`${ruta}: su «project» es «${registro?.project}» y la carpeta es «${id}»`);
   for (const k of Object.keys(registro ?? {})) if (!["$comentario", "version", "project", "agentes"].includes(k)) malos.push(`${ruta}: campo «${k}» no admitido`);
   const horizontales = new Set(tareasDe(datos).map((x) => `${x.agente}/${x.tarea.id}`));

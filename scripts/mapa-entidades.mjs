@@ -12,6 +12,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { DEF_PROYECTOS } from "./lib/zonasProyecto.mjs";
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -104,8 +105,8 @@ export function mapa(d = cargar()) {
   ]) {
     L.push(`## ${titulo}`, "", intro, "", tablaDeEntidades(a.filter((e) => e.scope === scope)), "");
   }
-  L.push("## Proyectos", "", "La factoría es la raíz implícita: una pieza sin proyecto cuelga de ella.", "", "| id | Nombre | Repositorios | Nota |", "|---|---|---|---|");
-  for (const p of d.projects) L.push(`| \`${p.id}\` | ${p.name} | ${p.repos.map((r) => `\`${r}\``).join(", ")} | ${celda(p.note)} |`);
+  L.push("## Proyectos", "", "Los ids son los de `PROYECTOS` (scripts/lib/zonasProyecto.mjs); `factoria` es un valor más, sin repositorio propio.", "", "| id | Nombre | Repositorios | Qué es |", "|---|---|---|---|");
+  for (const p of d.projects) L.push(`| \`${p.id}\` | ${p.name} | ${p.repos.map((r) => `\`${r}\``).join(", ")} | ${celda(DEF_PROYECTOS[p.id])} |`);
   L.push("");
   const estructurales = d.relations.filter((r) => r.class !== "reference");
   L.push("## Estructura: tipo de, parte de, hijo de", "", "Las flechas van de la pieza al todo, al tipo o al padre (el hijo apunta a su padre).", "", "```mermaid", "flowchart LR");

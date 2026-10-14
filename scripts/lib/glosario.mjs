@@ -30,6 +30,7 @@ import { join, relative, sep } from "node:path";
 
 import { CATALOGOS, esCatalogo, leerCatalogo } from "./catalogos.mjs";
 import { SCOPES } from "./entidades.mjs";
+import { PROYECTOS_CON_NORMAS } from "./zonasProyecto.mjs";
 
 /** Partidos, un fichero por término y por ruta (#505): la carpeta es la fuente, sin agregado. */
 export const RUTA_GLOSARIO = CATALOGOS.glosario.carpeta;
@@ -232,15 +233,15 @@ export function citasDeTerminoAEntidadVertical(terminos, entidades) {
 
 /**
  * El lado de cada término (#710, PR 7). `casa` y `proyecto`: los términos de cada carpeta (`leerCatalogo` de la casa y
- * `leerGlosarioDeProyecto`); `registro`: ops/entidades.json (con `projects`). Una cadena por problema:
+ * `leerGlosarioDeProyecto`); `registro`: ops/entidades.json (sus entidades). Una cadena por problema:
  *  1. los de la casa son horizontales y sin `project`; los del proyecto, verticales y con el `project` de su carpeta,
- *     que es un proyecto de ops/entidades.json;
+ *     que es un proyecto con normas (PROYECTOS_CON_NORMAS: `factoria` no tiene glosario vertical);
  *  2. un término horizontal no nombra una entidad vertical;
  *  3. un término vertical que nombra entidades nombra alguna vertical (si nombra solo horizontales, la clase es de la casa).
  */
 export function problemasDeLadosDelGlosario(casa, proyecto, registro) {
   const malos = [];
-  const validos = new Set((registro.projects ?? []).map((p) => p.id));
+  const validos = new Set(PROYECTOS_CON_NORMAS);
   for (const t of casa) {
     if (t.scope !== "horizontal") malos.push(`${t.termino}: está en ${RUTA_GLOSARIO} y su scope es «${t.scope}»; un término vertical va al glosario de su proyecto (${RUTA_PROYECTOS}/<id>/glosario/)`);
     if ("project" in t) malos.push(`${t.termino}: está en ${RUTA_GLOSARIO} y lleva project «${t.project}»: quítalo`);
