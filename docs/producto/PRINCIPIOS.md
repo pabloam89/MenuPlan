@@ -274,7 +274,7 @@ Que se entienda qué pasa y cómo seguir.
   - Fuentes: [F] https://www.nngroup.com/articles/ten-usability-heuristics/; [F] https://pair.withgoogle.com/chapter/errors-failing/.
 - `visibility-of-status` — **Estado visible.** Una acción lenta que enseña su estado evita que la persona la repita o la abandone.
   - Porqué: Sin estado, la persona repite la acción o abandona.
-  - Norma: `design-complete-states` — **Estados completos.** Cuando un componente es interactivo, cada componente de la interfaz DEBE definir reposo, foco, pulsado, activo, deshabilitado, cargando, error y vacío, y hover si hay puntero. Control: juicio (blanda).
+  - Norma: `design-complete-states` — **Estados completos.** Cuando un componente es interactivo, cada componente de la interfaz DEBE definir los estados que marca su plantilla de componente, como mínimo reposo, foco, pulsado y deshabilitado, y hover si hay puntero. Control: juicio (blanda).
   - Norma: `slow-action-shows-status` — **Estado visible.** Cuando una acción tarda o sigue en curso, el producto DEBE indicar su estado. Control: juicio (blanda).
   - Bueno: «Lola avisa de que el menú tarda un poco antes de ponerse a generarlo».
   - Malo: «La pantalla se queda quieta mientras se genera el menú».

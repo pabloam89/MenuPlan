@@ -1,8 +1,8 @@
 {
-  "_": "Las plantillas de componente (#842, programa #774): una por cada tipo del vocabulario `elemento` de ops/diseno/taxonomia.json (los 50: control 18, view 18, overlay 9, imagery 5), ni más ni menos. Es el nivel `template` de la entidad `component` (ops/entidades.json, entidad `component-template`, término «plantilla de componente»): dice cómo es cualquier componente de ese tipo, en campos de vocabulario cerrado que se pueden contar; la pieza concreta de un proyecto la rellena (la ficha del bloque D de docs/diseno/META-DISENO.md; la de HoMenu, #830) y pone los números con sus tokens. Cada plantilla: `elemento`; `categoria` (las «categorías de componente» de ops/diseno/bloques.json); `interaccion` (interactive, container o static); `anatomia` (cada parte del vocabulario `parte`, obligatoria u opcional); `forma` (atributos de `atributos_de_forma`, cada uno con los valores que admite este tipo, al menos dos, y el de por defecto); `visual` (una propiedad de `propiedades_visuales` sobre una parte de su anatomía, con un paso de su escala por rol: nunca un número, normas design-token-per-role y design-token-layers); `estados` (los «estados» de ops/diseno/bloques.json que cita la norma design-complete-states; un interactivo lleva reposo, foco, pulsado, deshabilitado y hover, un estático ninguno de interacción); `accesibilidad` (rol ARIA, nombre accesible, objetivo táctil y teclado; normas design-touch-target y design-visible-focus); y `fuentes` (sistema de referencia, alcance de la URL, la URL con la marca de la forja [F] o [S] de MARCAS_FUENTE de scripts/lib/regla.mjs, colgando de `raiz_de_sistema`, y `comprobada`: la fecha en que se leyó la página o `unverified`). Lo reutilizado no se copia: estados, categorías, variantes, tamaños, densidades y tipos de token viven en ops/diseno/bloques.json, y las marcas `unverified` y `not-applicable` en el vocabulario `marca` de ops/diseno/bibliotecas.json. Un atributo o una escala dice sus valores (`valores`, `pasos`) o el vocabulario que reutiliza (`valores_de`, `pasos_de`). Los ids son inglés kebab (#566); los nombres de campo, castellano. Lo lee scripts/lib/plantillasComponente.mjs; lo vigila ops/diseno/plantillas-componente.test.js; las cifras, node scripts/diseno/plantillas.mjs.",
+  "_": "Las plantillas de componente (#842, programa #774): una por cada tipo del vocabulario `elemento` de ops/diseno/taxonomia.json (los 50: control 18, view 18, overlay 9, imagery 5), ni más ni menos. Es el nivel `template` de la entidad `component` (ops/entidades.json, entidad `component-template`, término «plantilla de componente»): dice cómo es cualquier componente de ese tipo, en campos de vocabulario cerrado que se pueden contar; la pieza concreta de un proyecto la rellena (la ficha del bloque D de docs/diseno/META-DISENO.md; la de HoMenu, #830) y pone los números con sus tokens. Cada plantilla: `elemento`; `categoria` (las «categorías de componente» de ops/diseno/bloques.json); `interaccion` (interactive, container o static); `anatomia` (cada parte del vocabulario `parte`, obligatoria u opcional); `forma` (atributos de `atributos_de_forma`, cada uno con los valores que admite este tipo, al menos dos, y el de por defecto); `visual` (una propiedad de `propiedades_visuales` sobre una parte de su anatomía, con un paso de su escala por rol: nunca un número, normas design-token-per-role y design-token-layers); `estados` (los «estados» de ops/diseno/bloques.json que cita la norma design-complete-states; un interactivo lleva al menos los que marca la norma (los aplica ESTADOS_DE_INTERACTIVO de scripts/lib/plantillasComponente.mjs) y un estático ninguno de interacción); `accesibilidad` (rol ARIA, nombre accesible, objetivo táctil y teclado; normas design-touch-target y design-visible-focus); y `fuentes` (sistema de referencia, alcance de la URL, la URL con la marca de la forja [F] o [S] de MARCAS_FUENTE de scripts/lib/regla.mjs, colgando de `raiz_de_sistema`, y `comprobada`: la fecha en que se leyó la página o `unverified`). Lo reutilizado no se copia: estados, categorías, variantes, tamaños, densidades y tipos de token viven en ops/diseno/bloques.json, y las marcas `unverified` y `not-applicable` en el vocabulario `marca` de ops/diseno/bibliotecas.json; el sí/no de un atributo es el vocabulario `declaracion` del mismo fichero. Un sí/no nunca dice si la pieza tiene una parte: eso lo dice la parte opcional de su anatomía. Un atributo o una escala dice sus valores (`valores`, `pasos`) o el vocabulario que reutiliza (`valores_de`, `pasos_de`). Los ids son inglés kebab (#566); los nombres de campo, castellano. Lo lee scripts/lib/plantillasComponente.mjs; lo vigila ops/diseno/plantillas-componente.test.js; las cifras, node scripts/diseno/plantillas.mjs.",
   "lectura": {
     "fecha": "2026-10-14",
-    "base": "Primera versión escrita por el constructor con lo que sabe de Material 3, Carbon, Polaris, Apple HIG, Radix, shadcn/ui y la guía APG del W3C, sin leer las páginas (la sesión no tenía acceso a la web): toda fuente queda `unverified` hasta que alguien lea su página y ponga la fecha; donde no se conoce la página exacta, la URL es la raíz del sistema (alcance system)."
+    "base": "Primera versión escrita por el constructor con lo que sabe de Material 3, Carbon, Polaris, Apple HIG, Radix, shadcn/ui y la guía APG del W3C, sin leer las páginas (la sesión no tenía acceso a la web): toda fuente queda `unverified` hasta que alguien lea su página y ponga la fecha; donde no se conoce la página exacta, la URL es la raíz del sistema (alcance system). El 14 oct se comprobó con curl que cada URL responde: dos de Carbon daban 404 (combo-box pasó a la de dropdown, del que es variante; la de time-picker se quitó). Responder no es haber leído: siguen `unverified`."
   },
   "vocabularios": {
     "interaccion": {
@@ -85,10 +85,6 @@
       "symbol": "El símbolo gráfico de la marca",
       "wordmark": "El nombre de la marca escrito con su letra"
     },
-    "binario": {
-      "yes": "Sí: la pieza tiene esa capacidad o esa parte",
-      "no": "No: la pieza no la tiene"
-    },
     "rol_aria": {
       "button": "Un control que ejecuta una acción",
       "link": "Un control que lleva a otro sitio",
@@ -165,7 +161,7 @@
       "carbon": "Carbon, el sistema de diseño de IBM",
       "polaris": "Polaris, el sistema de diseño de Shopify",
       "apple-hig": "Las Human Interface Guidelines de Apple",
-      "radix": "Radix Primitives, componentes sin estilo con su accesibilidad",
+      "radix-ui": "Radix Primitives, componentes sin estilo con su accesibilidad",
       "shadcn-ui": "shadcn/ui, componentes sobre Radix para copiar al proyecto",
       "wai-aria-apg": "La guía de prácticas de ARIA del W3C (APG): roles y teclado de cada patrón"
     },
@@ -179,7 +175,7 @@
     "carbon": "https://carbondesignsystem.com/",
     "polaris": "https://polaris.shopify.com/",
     "apple-hig": "https://developer.apple.com/design/human-interface-guidelines/",
-    "radix": "https://www.radix-ui.com/primitives/docs/",
+    "radix-ui": "https://www.radix-ui.com/primitives/docs/",
     "shadcn-ui": "https://ui.shadcn.com/docs/",
     "wai-aria-apg": "https://www.w3.org/WAI/ARIA/apg/"
   },
@@ -265,12 +261,8 @@
         "info": "Información útil",
         "success": "Algo salió bien",
         "warning": "Algo pide atención",
-        "critical": "Algo falló o es grave"
+        "danger": "Algo falló o es grave"
       }
-    },
-    "dismissible": {
-      "que": "Si la persona puede cerrarlo",
-      "valores_de": "binario"
     },
     "modality": {
       "que": "Si bloquea la pantalla de detrás mientras está abierto",
@@ -301,7 +293,7 @@
         "secondary-click": "El botón secundario del ratón"
       }
     },
-    "duration": {
+    "display-duration": {
       "que": "Cuánto tiempo se queda a la vista",
       "valores": {
         "short": "Unos pocos segundos",
@@ -338,10 +330,6 @@
         "on-interaction": "Mientras se maneja",
         "always": "Siempre"
       }
-    },
-    "tick-marks": {
-      "que": "Si la guía enseña las marcas de cada paso",
-      "valores_de": "binario"
     },
     "value-count": {
       "que": "Cuántos valores elige: uno o un rango",
@@ -404,7 +392,7 @@
         "half": "Medios puntos"
       }
     },
-    "symbol": {
+    "rating-symbol": {
       "que": "Qué símbolo suma cada punto",
       "valores": {
         "star": "Una estrella",
@@ -414,7 +402,7 @@
     },
     "editable-value": {
       "que": "Si el valor se puede cambiar o solo se muestra",
-      "valores_de": "binario"
+      "valores_de": "declaracion"
     },
     "behaviour": {
       "que": "Qué pasa al tocar la pieza entera",
@@ -427,7 +415,7 @@
     },
     "scrollable": {
       "que": "Si se desplaza cuando no cabe",
-      "valores_de": "binario"
+      "valores_de": "declaracion"
     },
     "layout": {
       "que": "Cómo se reparten las piezas que se repiten",
@@ -442,7 +430,7 @@
     },
     "autoplay": {
       "que": "Si pasa de pieza solo",
-      "valores_de": "binario"
+      "valores_de": "declaracion"
     },
     "chip-kind": {
       "que": "Para qué sirve el chip",
@@ -499,11 +487,11 @@
     },
     "sortable": {
       "que": "Si las columnas ordenan al tocar su cabecera",
-      "valores_de": "binario"
+      "valores_de": "declaracion"
     },
     "sticky-header": {
       "que": "Si la cabecera se queda fija al desplazar",
-      "valores_de": "binario"
+      "valores_de": "declaracion"
     },
     "pagination-mode": {
       "que": "Cómo se reparten muchos datos",
@@ -537,10 +525,6 @@
         "partial-and-full": "A media altura y a pantalla completa"
       }
     },
-    "drag-handle": {
-      "que": "Si enseña un asa para arrastrar",
-      "valores_de": "binario"
-    },
     "sequence": {
       "que": "Si es un paso suelto o una serie",
       "valores": {
@@ -558,11 +542,7 @@
     },
     "nested": {
       "que": "Si tiene niveles dentro de niveles",
-      "valores_de": "binario"
-    },
-    "with-action": {
-      "que": "Si lleva una acción, como deshacer",
-      "valores_de": "binario"
+      "valores_de": "declaracion"
     },
     "tooltip-kind": {
       "que": "Cuánto contenido lleva",
@@ -578,10 +558,6 @@
         "initials": "Las iniciales",
         "icon": "Un icono genérico"
       }
-    },
-    "presence": {
-      "que": "Si enseña el estado de la persona, como conectada",
-      "valores_de": "binario"
     },
     "icon-style": {
       "que": "El estilo de trazo del icono",
@@ -632,10 +608,6 @@
         "contain": "Cabe entera y deja bandas"
       }
     },
-    "with-caption": {
-      "que": "Si lleva pie de foto",
-      "valores_de": "binario"
-    },
     "pin-content": {
       "que": "Qué lleva el marcador dentro",
       "valores": {
@@ -647,7 +619,7 @@
     },
     "collapsible": {
       "que": "Si se puede plegar para dejar solo los iconos",
-      "valores_de": "binario"
+      "valores_de": "declaracion"
     },
     "animation": {
       "que": "Cómo se mueve mientras espera",
@@ -667,19 +639,15 @@
     },
     "tri-state": {
       "que": "Si admite un tercer estado mixto, para grupos a medio marcar",
-      "valores_de": "binario"
-    },
-    "thumb-icon": {
-      "que": "Si el tirador lleva un icono dentro",
-      "valores_de": "binario"
+      "valores_de": "declaracion"
     },
     "free-input": {
       "que": "Si acepta un valor que no está en la lista",
-      "valores_de": "binario"
+      "valores_de": "declaracion"
     },
     "alpha": {
       "que": "Si deja elegir la transparencia",
-      "valores_de": "binario"
+      "valores_de": "declaracion"
     },
     "entry-motion": {
       "que": "Cómo entra en la pantalla",
@@ -691,7 +659,7 @@
     },
     "contained": {
       "que": "Si va dentro de un contenedor de color",
-      "valores_de": "binario"
+      "valores_de": "declaracion"
     }
   },
   "escalas": {
@@ -873,7 +841,7 @@
       "accesibilidad": {"rol_aria":["button","region"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","enter-activates","space-activates","arrow-navigation","home-end"]},
       "fuentes": [
         {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/accordion/usage/","comprobada":"unverified"},
-        {"sistema":"radix","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/accordion","comprobada":"unverified"},
+        {"sistema":"radix-ui","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/accordion","comprobada":"unverified"},
         {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/accordion/","comprobada":"unverified"}
       ]
     },
@@ -1082,7 +1050,7 @@
       ],
       "forma": [
         {"atributo":"precision","valores":["whole","half"],"por_defecto":"whole"},
-        {"atributo":"symbol","valores":["star","heart","emoji"],"por_defecto":"star"},
+        {"atributo":"rating-symbol","valores":["star","heart","emoji"],"por_defecto":"star"},
         {"atributo":"editable-value","valores":["yes","no"],"por_defecto":"yes"},
         {"atributo":"size","valores":["s","m","l"],"por_defecto":"m"}
       ],
@@ -1182,7 +1150,6 @@
       ],
       "forma": [
         {"atributo":"value-count","valores":["single","range"],"por_defecto":"single"},
-        {"atributo":"tick-marks","valores":["yes","no"],"por_defecto":"no"},
         {"atributo":"value-display","valores":["hidden","on-interaction","always"],"por_defecto":"on-interaction"},
         {"atributo":"orientation","valores":["horizontal","vertical"],"por_defecto":"horizontal"}
       ],
@@ -1200,7 +1167,7 @@
       "accesibilidad": {"rol_aria":["slider"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","arrow-navigation","home-end","page-keys"]},
       "fuentes": [
         {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/sliders/overview","comprobada":"unverified"},
-        {"sistema":"radix","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/slider","comprobada":"unverified"},
+        {"sistema":"radix-ui","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/slider","comprobada":"unverified"},
         {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/slider/","comprobada":"unverified"}
       ]
     },
@@ -1245,11 +1212,11 @@
       "anatomia": [
         {"parte":"track","obligacion":"required"},
         {"parte":"thumb","obligacion":"required"},
+        {"parte":"icon","obligacion":"optional"},
         {"parte":"label","obligacion":"optional"}
       ],
       "forma": [
-        {"atributo":"label-placement","valores":["start","end"],"por_defecto":"start"},
-        {"atributo":"thumb-icon","valores":["yes","no"],"por_defecto":"no"}
+        {"atributo":"label-placement","valores":["start","end"],"por_defecto":"start"}
       ],
       "visual": [
         {"propiedad":"radius","parte":"track","paso":"full"},
@@ -1257,7 +1224,7 @@
         {"propiedad":"radius","parte":"thumb","paso":"full"},
         {"propiedad":"fill","parte":"thumb","paso":"surface"},
         {"propiedad":"height","parte":"track","paso":"s"},
-        {"propiedad":"icon-size","parte":"thumb","paso":"s"},
+        {"propiedad":"icon-size","parte":"icon","paso":"s"},
         {"propiedad":"transition","parte":"thumb","paso":"fast"},
         {"propiedad":"gap","parte":"label","paso":"m"}
       ],
@@ -1298,7 +1265,7 @@
       "accesibilidad": {"rol_aria":["tablist","tab","tabpanel"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","arrow-navigation","home-end"]},
       "fuentes": [
         {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/tabs/overview","comprobada":"unverified"},
-        {"sistema":"radix","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/tabs","comprobada":"unverified"},
+        {"sistema":"radix-ui","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/tabs","comprobada":"unverified"},
         {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/tabs/","comprobada":"unverified"}
       ]
     },
@@ -1405,7 +1372,6 @@
       "accesibilidad": {"rol_aria":["group","spinbutton"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","arrow-navigation","home-end","escape-closes"]},
       "fuentes": [
         {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/time-pickers/overview","comprobada":"unverified"},
-        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/time-picker/usage/","comprobada":"unverified"},
         {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/pickers","comprobada":"unverified"}
       ]
     },
@@ -1442,7 +1408,7 @@
       "estados": ["reposo","hover","foco","pulsado","deshabilitado","activo","cargando","error","vacío"],
       "accesibilidad": {"rol_aria":["combobox","listbox","option"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","arrow-navigation","enter-activates","escape-closes","type-ahead","home-end"]},
       "fuentes": [
-        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/combo-box/usage/","comprobada":"unverified"},
+        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/dropdown/usage/","comprobada":"unverified"},
         {"sistema":"shadcn-ui","alcance_url":"page","fuente":"[F] https://ui.shadcn.com/docs/components/combobox","comprobada":"unverified"},
         {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/combobox/","comprobada":"unverified"}
       ]
@@ -1457,7 +1423,7 @@
       ],
       "forma": [
         {"atributo":"badge-content","valores":["dot","count","text"],"por_defecto":"count"},
-        {"atributo":"tone","valores":["neutral","info","success","warning","critical"],"por_defecto":"critical"}
+        {"atributo":"tone","valores":["neutral","info","success","warning","danger"],"por_defecto":"danger"}
       ],
       "visual": [
         {"propiedad":"radius","parte":"container","paso":"full"},
@@ -1488,8 +1454,7 @@
         {"parte":"close-action","obligacion":"optional"}
       ],
       "forma": [
-        {"atributo":"tone","valores":["neutral","info","success","warning","critical"],"por_defecto":"info"},
-        {"atributo":"dismissible","valores":["yes","no"],"por_defecto":"yes"},
+        {"atributo":"tone","valores":["neutral","info","success","warning","danger"],"por_defecto":"info"},
         {"atributo":"placement","valores":["top","inline"],"por_defecto":"top"}
       ],
       "visual": [
@@ -1630,7 +1595,7 @@
       "accesibilidad": {"rol_aria":["separator"],"nombre_accesible":"not-named","objetivo_tactil":"not-applicable","teclado":[]},
       "fuentes": [
         {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/divider/overview","comprobada":"unverified"},
-        {"sistema":"radix","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/separator","comprobada":"unverified"}
+        {"sistema":"radix-ui","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/separator","comprobada":"unverified"}
       ]
     },
     {
@@ -1708,7 +1673,7 @@
       "forma": [
         {"atributo":"pin-content","valores":["icon","label","avatar","count"],"por_defecto":"icon"},
         {"atributo":"size","valores":["s","m","l"],"por_defecto":"m"},
-        {"atributo":"tone","valores":["neutral","info","critical"],"por_defecto":"neutral"}
+        {"atributo":"tone","valores":["neutral","info","danger"],"por_defecto":"neutral"}
       ],
       "visual": [
         {"propiedad":"fill","parte":"marker","paso":"primary"},
@@ -1752,7 +1717,7 @@
       "fuentes": [
         {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/progress-indicators/overview","comprobada":"unverified"},
         {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/progress-bar/usage/","comprobada":"unverified"},
-        {"sistema":"radix","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/progress","comprobada":"unverified"}
+        {"sistema":"radix-ui","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/progress","comprobada":"unverified"}
       ]
     },
     {
@@ -1864,7 +1829,7 @@
         {"parte":"label","obligacion":"optional"}
       ],
       "forma": [
-        {"atributo":"tone","valores":["neutral","info","success","warning","critical"],"por_defecto":"success"},
+        {"atributo":"tone","valores":["neutral","info","success","warning","danger"],"por_defecto":"success"},
         {"atributo":"animation","valores":["pulse","none"],"por_defecto":"none"}
       ],
       "visual": [
@@ -2032,8 +1997,7 @@
       ],
       "forma": [
         {"atributo":"modality","valores":["modal","non-modal"],"por_defecto":"modal"},
-        {"atributo":"height-steps","valores":["partial","full","partial-and-full"],"por_defecto":"partial-and-full"},
-        {"atributo":"drag-handle","valores":["yes","no"],"por_defecto":"yes"}
+        {"atributo":"height-steps","valores":["partial","full","partial-and-full"],"por_defecto":"partial-and-full"}
       ],
       "visual": [
         {"propiedad":"radius","parte":"container","paso":"large"},
@@ -2070,8 +2034,7 @@
       ],
       "forma": [
         {"atributo":"sequence","valores":["single-step","multi-step"],"por_defecto":"multi-step"},
-        {"atributo":"placement","valores":["anchored","center"],"por_defecto":"anchored"},
-        {"atributo":"dismissible","valores":["yes","no"],"por_defecto":"yes"}
+        {"atributo":"placement","valores":["anchored","center"],"por_defecto":"anchored"}
       ],
       "visual": [
         {"propiedad":"fill","parte":"container","paso":"inverse"},
@@ -2104,7 +2067,6 @@
       ],
       "forma": [
         {"atributo":"purpose","valores":["inform","confirm","collect-input"],"por_defecto":"confirm"},
-        {"atributo":"dismissible","valores":["yes","no"],"por_defecto":"yes"},
         {"atributo":"size","valores":["s","m","l"],"por_defecto":"s"},
         {"atributo":"entry-motion","valores":["fade","scale"],"por_defecto":"fade"}
       ],
@@ -2191,7 +2153,7 @@
       "accesibilidad": {"rol_aria":["menu","menuitem"],"nombre_accesible":"labelled-by-trigger","objetivo_tactil":"inherited","teclado":["arrow-navigation","enter-activates","space-activates","escape-closes","home-end","type-ahead"]},
       "fuentes": [
         {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/menus/overview","comprobada":"unverified"},
-        {"sistema":"radix","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/dropdown-menu","comprobada":"unverified"},
+        {"sistema":"radix-ui","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/dropdown-menu","comprobada":"unverified"},
         {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/menu-button/","comprobada":"unverified"}
       ]
     },
@@ -2236,10 +2198,9 @@
         {"parte":"close-action","obligacion":"optional"}
       ],
       "forma": [
-        {"atributo":"duration","valores":["short","long","until-dismissed"],"por_defecto":"short"},
-        {"atributo":"tone","valores":["neutral","success","critical"],"por_defecto":"neutral"},
-        {"atributo":"placement","valores":["top","bottom"],"por_defecto":"bottom"},
-        {"atributo":"with-action","valores":["yes","no"],"por_defecto":"no"}
+        {"atributo":"display-duration","valores":["short","long","until-dismissed"],"por_defecto":"short"},
+        {"atributo":"tone","valores":["neutral","success","danger"],"por_defecto":"neutral"},
+        {"atributo":"placement","valores":["top","bottom"],"por_defecto":"bottom"}
       ],
       "visual": [
         {"propiedad":"fill","parte":"container","paso":"inverse"},
@@ -2286,7 +2247,7 @@
       "accesibilidad": {"rol_aria":["tooltip"],"nombre_accesible":"describes-trigger","objetivo_tactil":"not-applicable","teclado":["escape-closes"]},
       "fuentes": [
         {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/tooltips/overview","comprobada":"unverified"},
-        {"sistema":"radix","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/tooltip","comprobada":"unverified"},
+        {"sistema":"radix-ui","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/tooltip","comprobada":"unverified"},
         {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/tooltip/","comprobada":"unverified"}
       ]
     },
@@ -2319,7 +2280,7 @@
       "accesibilidad": {"rol_aria":["menu","menuitem"],"nombre_accesible":"aria-label","objetivo_tactil":"inherited","teclado":["menu-key-opens","arrow-navigation","enter-activates","escape-closes","type-ahead"]},
       "fuentes": [
         {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/context-menus","comprobada":"unverified"},
-        {"sistema":"radix","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/context-menu","comprobada":"unverified"}
+        {"sistema":"radix-ui","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/context-menu","comprobada":"unverified"}
       ]
     },
     {
@@ -2331,13 +2292,13 @@
         {"parte":"media","obligacion":"optional"},
         {"parte":"initials","obligacion":"optional"},
         {"parte":"icon","obligacion":"optional"},
-        {"parte":"badge","obligacion":"optional"}
+        {"parte":"badge","obligacion":"optional"},
+        {"parte":"status-indicator","obligacion":"optional"}
       ],
       "forma": [
         {"atributo":"avatar-content","valores":["media","initials","icon"],"por_defecto":"media"},
         {"atributo":"shape","valores":["circle","rounded","square"],"por_defecto":"circle"},
-        {"atributo":"size","valores":["xs","s","m","l","xl"],"por_defecto":"m"},
-        {"atributo":"presence","valores":["yes","no"],"por_defecto":"no"}
+        {"atributo":"size","valores":["xs","s","m","l","xl"],"por_defecto":"m"}
       ],
       "visual": [
         {"propiedad":"radius","parte":"container","paso":"full"},
@@ -2349,7 +2310,7 @@
       "estados": ["reposo","cargando"],
       "accesibilidad": {"rol_aria":["img"],"nombre_accesible":"alt-text","objetivo_tactil":"not-applicable","teclado":[]},
       "fuentes": [
-        {"sistema":"radix","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/avatar","comprobada":"unverified"},
+        {"sistema":"radix-ui","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/avatar","comprobada":"unverified"},
         {"sistema":"shadcn-ui","alcance_url":"page","fuente":"[F] https://ui.shadcn.com/docs/components/avatar","comprobada":"unverified"}
       ]
     },
@@ -2433,7 +2394,6 @@
       "forma": [
         {"atributo":"aspect-ratio","valores":["square","landscape","portrait","free"],"por_defecto":"landscape"},
         {"atributo":"fit","valores":["cover","contain"],"por_defecto":"cover"},
-        {"atributo":"with-caption","valores":["yes","no"],"por_defecto":"no"},
         {"atributo":"shape","valores":["rectangle","rounded"],"por_defecto":"rounded"}
       ],
       "visual": [

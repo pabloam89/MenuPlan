@@ -14,7 +14,7 @@
  *
  * Nada se copia: los estados, las categorías, las variantes, los tamaños, las densidades y los tipos de token salen de
  * ops/diseno/bloques.json (`DE_BLOQUES`); las dos marcas (`unverified`, `not-applicable`), del vocabulario `marca` de
- * ops/diseno/bibliotecas.json (#802); las marcas de fuente, de MARCAS_FUENTE de scripts/lib/regla.mjs; la plataforma de cada
+ * ops/diseno/bibliotecas.json (#802), y el sí/no de un atributo, de su vocabulario `declaracion`; las marcas de fuente, de MARCAS_FUENTE de scripts/lib/regla.mjs; la plataforma de cada
  * tipo, de la taxonomía. Los vocabularios propios viven una vez en el JSON, y el código lee exactamente los de
  * `VOCABULARIOS_DE_PLANTILLAS` (un vocabulario sin lector no entra, como en el pool). Cada valor de atributo, parte, rol ARIA,
  * nombre accesible, tecla y sistema de referencia lo usa al menos una plantilla.
@@ -33,36 +33,44 @@ export { NO_APLICA, SIN_COMPROBAR };
 
 /** Los vocabularios propios del fichero, por su clave: el test exige que el JSON no tenga ni más ni menos. */
 export const VOCABULARIOS_DE_PLANTILLAS = [
-  "interaccion", "obligacion_de_parte", "parte", "binario", "rol_aria", "nombre_accesible", "objetivo_tactil", "teclado",
+  "interaccion", "obligacion_de_parte", "parte", "rol_aria", "nombre_accesible", "objetivo_tactil", "teclado",
   "sistema_de_referencia", "alcance_de_url",
 ];
 /**
  * Lo que se reutiliza de `vocabularios` de ops/diseno/bloques.json, por el nombre que tiene allí. `categoria` y `estado` los
- * usa la plantilla; `variantes`, `tamaños` y `densidades` pueden ser los valores de un atributo (`valores_de`) o los pasos de
- * una escala (`pasos_de`); `tipo_de_token` es el tipo de cada propiedad visual.
+ * usa la plantilla y `tipo_de_token` es el tipo de cada propiedad visual (`DE_BLOQUES_FIJOS`); `variantes`, `tamaños` y
+ * `densidades` pueden ser los valores de un atributo (`valores_de`) o los pasos de una escala (`pasos_de`).
  */
-export const DE_BLOQUES = {
-  categoria: "categorías de componente",
-  estado: "estados",
-  tipo_de_token: "tipos de token",
-  variantes: "variantes",
-  tamaños: "tamaños",
-  densidades: "densidades",
-};
-/** Los vocabularios que un atributo de forma o una escala pueden reutilizar en vez de definir sus valores. */
-export const REUTILIZABLES = ["variantes", "tamaños", "densidades", "binario"];
+const DE_BLOQUES_FIJOS = { categoria: "categorías de componente", estado: "estados", tipo_de_token: "tipos de token" };
+const DE_BLOQUES_PARA_VALORES = { variantes: "variantes", tamaños: "tamaños", densidades: "densidades" };
+export const DE_BLOQUES = { ...DE_BLOQUES_FIJOS, ...DE_BLOQUES_PARA_VALORES };
+/** El sí/no de un atributo: el vocabulario `declaracion` del pool (ops/diseno/bibliotecas.json), no uno propio. Solo para atributos. */
+export const SI_NO_DEL_POOL = "declaracion";
+/** Los vocabularios que un atributo de forma puede reutilizar en vez de definir sus valores; una escala, solo los de bloques.json. */
+export const REUTILIZABLES = [...Object.keys(DE_BLOQUES_PARA_VALORES), SI_NO_DEL_POOL];
 export const CAMPOS_DE_PLANTILLA = ["elemento", "categoria", "interaccion", "anatomia", "forma", "visual", "estados", "accesibilidad", "fuentes"];
 export const CAMPOS_DE_ACCESIBILIDAD = ["rol_aria", "nombre_accesible", "objetivo_tactil", "teclado"];
 export const CAMPOS_DE_FUENTE = ["sistema", "alcance_url", "fuente", "comprobada"];
-/** Lo mínimo de un elemento interactivo (norma design-complete-states); `hover`, además, si su plataforma tiene puntero. */
+/**
+ * El mínimo de estados de un elemento interactivo; `hover`, además, si su plataforma tiene puntero. Cada plantilla marca los
+ * suyos y el componente los define (norma design-complete-states de ops/normas.json, que nombra este mínimo: el test comprueba
+ * que su exigencia los cita todos).
+ */
 export const ESTADOS_DE_INTERACTIVO = ["reposo", "foco", "pulsado", "deshabilitado"];
 export const ESTADO_DE_PUNTERO = "hover";
 /** Los estados que un elemento estático no puede tener: no recibe foco ni responde. */
 export const ESTADOS_SOLO_INTERACTIVOS = ["hover", "foco", "pulsado", "deshabilitado"];
 /** La interacción de teclado que hace de un elemento una parada del foco: obligatoria si es interactivo, prohibida si es estático. */
 export const PARADA_DE_FOCO = "tab-stop";
-/** Plataformas de la taxonomía sin puntero (solo app): ahí `hover` no se exige. */
+/** Plataformas de la taxonomía sin puntero (solo app): ahí `hover` no se exige. Cada id es de `plataformas` de la taxonomía. */
 export const SIN_PUNTERO = ["app"];
+/**
+ * El tono de un mensaje comparte ids con los roles de color: cada valor del atributo `tone` es un paso de la escala
+ * `color-role`, salvo `neutral`, que no pinta. Un solo nombre para «peligro»: `danger`.
+ */
+export const TONO = { atributo: "tone", escala: "color-role", sin_color: ["neutral"] };
+/** Prefijos con que un sí/no diría «tiene la parte X»: `with-caption` es la parte `caption`. */
+const PREFIJOS_DE_TENER = ["with-", "has-"];
 
 const FORMA_ID = /^[a-z]+(-[a-z]+)*$/;
 const FECHA = /^\d{4}-\d{2}-\d{2}$/;
@@ -77,24 +85,36 @@ export const leerPlantillas = (raiz) => JSON.parse(readFileSync(join(raiz, RUTA_
 /** Las claves de los vocabularios propios del fichero: salen de él, no se repiten a mano. */
 export const clavesDeVocabulario = (datos) => Object.keys(datos?.vocabularios ?? {});
 
-/** Los valores de un vocabulario reutilizable: de bloques.json, o el `binario` propio. */
-function valoresReutilizados(nombre, datos, bloques) {
-  if (nombre === "binario") return Object.keys(datos?.vocabularios?.binario ?? {});
-  return REUTILIZABLES.includes(nombre) ? bloques?.vocabularios?.[nombre] ?? [] : [];
+/** Los valores de un vocabulario reutilizable: de bloques.json, o el sí/no del pool. */
+function valoresReutilizados(nombre, bloques, pool) {
+  if (nombre === SI_NO_DEL_POOL) return Object.keys(pool?.vocabularios?.[SI_NO_DEL_POOL] ?? {});
+  return Object.hasOwn(DE_BLOQUES_PARA_VALORES, nombre) ? bloques?.vocabularios?.[nombre] ?? [] : [];
 }
 
-/** Los valores posibles de un atributo de forma: los suyos o los del vocabulario que reutiliza. */
-export function valoresDeAtributo(datos, bloques, id) {
+/** Los valores posibles de un atributo de forma: los suyos o los del vocabulario que reutiliza (`pool` da el sí/no). */
+export function valoresDeAtributo(datos, bloques, id, pool) {
   const a = datos?.atributos_de_forma?.[id];
   if (!a) return [];
-  return a.valores_de ? valoresReutilizados(a.valores_de, datos, bloques) : Object.keys(a.valores ?? {});
+  return a.valores_de ? valoresReutilizados(a.valores_de, bloques, pool) : Object.keys(a.valores ?? {});
 }
 
-/** Los pasos de una escala: los suyos o los del vocabulario que reutiliza. */
+/** Los pasos de una escala: los suyos o los de bloques.json que reutiliza. */
 export function pasosDeEscala(datos, bloques, id) {
   const e = datos?.escalas?.[id];
   if (!e) return [];
-  return e.pasos_de ? valoresReutilizados(e.pasos_de, datos, bloques) : Object.keys(e.pasos ?? {});
+  return e.pasos_de ? valoresReutilizados(e.pasos_de, bloques) : Object.keys(e.pasos ?? {});
+}
+
+/**
+ * Las partes que repite un atributo sí/no (lista vacía si ninguna). Por el nombre: sin `with-` o `has-`, es una parte del
+ * vocabulario; o, en la plantilla que lo usa, es o acaba en una de sus partes, o una de sus partes acaba en él (`thumb-icon`
+ * con la parte `icon`, `with-action` con `primary-action`). Lo que la pieza tiene lo dice la parte opcional, una vez.
+ */
+export function partesQueRepite(id, partesDelVocabulario, partesDeLaPlantilla = []) {
+  const n = PREFIJOS_DE_TENER.reduce((x, pre) => (x.startsWith(pre) ? x.slice(pre.length) : x), id);
+  const repite = new Set(partesDelVocabulario.includes(n) ? [n] : []);
+  for (const parte of partesDeLaPlantilla) if (parte === n || parte.endsWith(`-${n}`) || n.endsWith(`-${parte}`)) repite.add(parte);
+  return [...repite];
 }
 
 /** Textos de cada vocabulario para el ciclo de vida (ops/vocabularios-vida.json): `diseno.plantilla_<clave>`. */
@@ -127,6 +147,8 @@ export function problemasDePlantillas(datos, taxonomia, bloques, pool) {
   const marcas = Object.keys(pool?.vocabularios?.marca ?? {});
   if (!marcas.includes(SIN_COMPROBAR) || !marcas.includes(NO_APLICA)) p.push(`marca: ${SIN_COMPROBAR} y ${NO_APLICA} deben estar en el vocabulario marca de ops/diseno/bibliotecas.json`);
   for (const nombre of Object.values(DE_BLOQUES)) if (!Array.isArray(B[nombre]) || B[nombre].length === 0) p.push(`bloques.json: falta el vocabulario «${nombre}» que reutilizan las plantillas`);
+  if (Object.keys(pool?.vocabularios?.[SI_NO_DEL_POOL] ?? {}).length < 2) p.push(`${SI_NO_DEL_POOL}: el sí/no de los atributos es el vocabulario ${SI_NO_DEL_POOL} de ops/diseno/bibliotecas.json, y falta`);
+  for (const id of SIN_PUNTERO) if (!Object.hasOwn(taxonomia?.plataformas ?? {}, id)) p.push(`SIN_PUNTERO: «${id}» no es una plataforma de ops/diseno/taxonomia.json`);
 
   // Los vocabularios propios: los que lee el código, ni más ni menos, kebab y con definición, sin repetir una marca.
   const delCodigo = new Set(VOCABULARIOS_DE_PLANTILLAS);
@@ -157,8 +179,12 @@ export function problemasDePlantillas(datos, taxonomia, bloques, pool) {
     if (!texto(a?.que, 10)) p.push(`${q}: falta qué es (que)`);
     const extra = Object.keys(a ?? {}).filter((c) => !["que", "valores", "valores_de"].includes(c));
     if (extra.length) p.push(`${q}: campo desconocido (${extra.join(", ")})`);
-    if (("valores" in (a ?? {})) === ("valores_de" in (a ?? {}))) { p.push(`${q}: lleva valores o valores_de, uno de los dos`); continue; }
-    if (a.valores_de) { if (!REUTILIZABLES.includes(a.valores_de)) p.push(`${q}: valores_de «${a.valores_de}» no es uno de ${REUTILIZABLES.join(", ")}`); continue; }
+    if (Object.hasOwn(a ?? {}, "valores") === Object.hasOwn(a ?? {}, "valores_de")) { p.push(`${q}: lleva valores o valores_de, uno de los dos`); continue; }
+    if (a.valores_de) {
+      if (!REUTILIZABLES.includes(a.valores_de)) p.push(`${q}: valores_de «${a.valores_de}» no es uno de ${REUTILIZABLES.join(", ")}`);
+      if (a.valores_de === SI_NO_DEL_POOL) for (const x of partesQueRepite(id, Object.keys(V.parte ?? {}))) p.push(`${q}: un sí/no que repite la parte «${x}»; lo dice la parte opcional de la anatomía`);
+      continue;
+    }
     if (!esObjeto(a.valores) || Object.keys(a.valores).length < 2) p.push(`${q}: un atributo tiene al menos dos valores`);
     for (const [v, d] of Object.entries(a.valores ?? {})) {
       if (!FORMA_ID.test(v)) p.push(`${q}.${v}: el valor no es kebab en minúsculas`);
@@ -173,8 +199,8 @@ export function problemasDePlantillas(datos, taxonomia, bloques, pool) {
     const q = `escalas.${id}`;
     if (!FORMA_ID.test(id)) p.push(`${q}: el id no es kebab en minúsculas`);
     if (!texto(e?.que, 10)) p.push(`${q}: falta qué es (que)`);
-    if (("pasos" in (e ?? {})) === ("pasos_de" in (e ?? {}))) { p.push(`${q}: lleva pasos o pasos_de, uno de los dos`); continue; }
-    if (e.pasos_de) { if (!REUTILIZABLES.includes(e.pasos_de) || e.pasos_de === "binario") p.push(`${q}: pasos_de «${e.pasos_de}» no es un vocabulario de bloques.json reutilizable`); continue; }
+    if (Object.hasOwn(e ?? {}, "pasos") === Object.hasOwn(e ?? {}, "pasos_de")) { p.push(`${q}: lleva pasos o pasos_de, uno de los dos`); continue; }
+    if (e.pasos_de) { if (!Object.hasOwn(DE_BLOQUES_PARA_VALORES, e.pasos_de)) p.push(`${q}: pasos_de «${e.pasos_de}» no es un vocabulario de bloques.json reutilizable`); continue; }
     if (!esObjeto(e.pasos) || Object.keys(e.pasos).length < 2) p.push(`${q}: una escala tiene al menos dos pasos`);
     for (const [v, d] of Object.entries(e.pasos ?? {})) {
       if (!FORMA_ID.test(v)) p.push(`${q}.${v}: el paso no es kebab en minúsculas`);
@@ -186,10 +212,16 @@ export function problemasDePlantillas(datos, taxonomia, bloques, pool) {
     const q = `propiedades_visuales.${id}`;
     if (!FORMA_ID.test(id)) p.push(`${q}: el id no es kebab en minúsculas`);
     if (!texto(x?.que, 10)) p.push(`${q}: falta qué es (que)`);
-    if (!(x?.escala in escalas)) p.push(`${q}: escala «${x?.escala}» no está en escalas`);
+    if (!Object.hasOwn(escalas, x?.escala ?? "")) p.push(`${q}: escala «${x?.escala}» no está en escalas`);
     if (!deBloques("tipo_de_token", x?.tipo_de_token)) p.push(`${q}: tipo_de_token «${x?.tipo_de_token}» no es un tipo de token de ops/diseno/bloques.json`);
   }
   for (const id of Object.keys(escalas)) if (!Object.values(props).some((x) => x?.escala === id)) p.push(`escalas.${id}: ninguna propiedad visual la usa`);
+
+  // El tono comparte ids con los roles de color: un solo nombre para cada significado.
+  if (Object.hasOwn(atributos, TONO.atributo)) {
+    const roles = pasosDeEscala(datos, bloques, TONO.escala);
+    for (const v of valoresDeAtributo(datos, bloques, TONO.atributo, pool)) if (!TONO.sin_color.includes(v) && !roles.includes(v)) p.push(`atributos_de_forma.${TONO.atributo}.${v}: no es un paso de la escala ${TONO.escala}; el tono usa los ids de los roles de color`);
+  }
 
   // Las plantillas: una por elemento de la taxonomía, ni más ni menos.
   const plantillas = datos?.plantillas ?? [];
@@ -202,7 +234,7 @@ export function problemasDePlantillas(datos, taxonomia, bloques, pool) {
   for (const t of plantillas) {
     const q = `plantillas.${t?.elemento}`;
     const extra = Object.keys(t ?? {}).filter((c) => !CAMPOS_DE_PLANTILLA.includes(c));
-    const falta = CAMPOS_DE_PLANTILLA.filter((c) => !(c in (t ?? {})));
+    const falta = CAMPOS_DE_PLANTILLA.filter((c) => !Object.hasOwn(t ?? {}, c));
     if (extra.length) p.push(`${q}: campo desconocido (${extra.join(", ")})`);
     if (falta.length) { p.push(`${q}: falta ${falta.join(", ")}`); continue; }
     const tipo = tipos.get(t.elemento);
@@ -230,8 +262,9 @@ export function problemasDePlantillas(datos, taxonomia, bloques, pool) {
       for (const f of t.forma) {
         const qf = `${q}.forma.${f?.atributo}`;
         if (Object.keys(f ?? {}).sort().join() !== "atributo,por_defecto,valores") p.push(`${qf}: lleva atributo, valores y por_defecto`);
-        if (!(f?.atributo in atributos)) { p.push(`${qf}: no es un atributo de atributos_de_forma`); continue; }
-        const posibles = valoresDeAtributo(datos, bloques, f.atributo);
+        if (!Object.hasOwn(atributos, f?.atributo ?? "")) { p.push(`${qf}: no es un atributo de atributos_de_forma`); continue; }
+        const posibles = valoresDeAtributo(datos, bloques, f.atributo, pool);
+        if (atributos[f.atributo].valores_de === SI_NO_DEL_POOL) for (const x of partesQueRepite(f.atributo, [], partes)) p.push(`${qf}: un sí/no que repite la parte «${x}» de su anatomía; lo dice la parte opcional`);
         if (!Array.isArray(f.valores) || f.valores.length < 2) p.push(`${qf}: al menos dos valores`);
         for (const v of f.valores ?? []) if (!posibles.includes(v)) p.push(`${qf}: valor «${v}» fuera de los del atributo`);
         for (const v of repetidos(f.valores ?? [])) p.push(`${qf}: valor «${v}» repetido`);
@@ -246,14 +279,14 @@ export function problemasDePlantillas(datos, taxonomia, bloques, pool) {
       for (const v of t.visual) {
         const qv = `${q}.visual.${v?.propiedad}@${v?.parte}`;
         if (Object.keys(v ?? {}).sort().join() !== "parte,paso,propiedad") p.push(`${qv}: lleva propiedad, parte y paso`);
-        if (!(v?.propiedad in props)) { p.push(`${qv}: no es una propiedad de propiedades_visuales`); continue; }
+        if (!Object.hasOwn(props, v?.propiedad ?? "")) { p.push(`${qv}: no es una propiedad de propiedades_visuales`); continue; }
         if (!partes.includes(v.parte)) p.push(`${qv}: la parte no está en su anatomía`);
         if (typeof v.paso !== "string" || !pasosDeEscala(datos, bloques, props[v.propiedad].escala).includes(v.paso)) p.push(`${qv}: paso «${v.paso}» no es un paso de la escala ${props[v.propiedad].escala}`);
       }
       for (const x of repetidos(t.visual.map((v) => `${v?.propiedad}@${v?.parte}`))) p.push(`${q}.visual: «${x}» repetido`);
     }
 
-    // Estados: los de bloques.json; reglas de la norma design-complete-states según la interacción.
+    // Estados: los de bloques.json; el mínimo de la norma design-complete-states según la interacción.
     const estados = Array.isArray(t.estados) ? t.estados : [];
     if (!Array.isArray(t.estados) || !estados.includes("reposo")) p.push(`${q}: estados es una lista que incluye reposo`);
     for (const e of estados) if (!deBloques("estado", e)) p.push(`${q}: estado «${e}» no es un estado de ops/diseno/bloques.json`);
@@ -319,7 +352,6 @@ export function problemasDePlantillas(datos, taxonomia, bloques, pool) {
     teclado: usados((t) => t?.accesibilidad?.teclado ?? []),
     sistema_de_referencia: usados((t) => (t?.fuentes ?? []).map((f) => f?.sistema)),
     alcance_de_url: usados((t) => (t?.fuentes ?? []).map((f) => f?.alcance_url)),
-    binario: new Set(Object.entries(atributos).filter(([, a]) => a?.valores_de === "binario").length ? Object.keys(V.binario ?? {}) : []),
   };
   for (const [k, s] of Object.entries(uso)) for (const v of Object.keys(V[k] ?? {})) if (!s.has(v)) p.push(`vocabularios.${k}.${v}: ninguna plantilla lo usa`);
   const formaUsada = plantillas.flatMap((t) => t?.forma ?? []);
