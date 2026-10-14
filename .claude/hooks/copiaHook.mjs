@@ -9,8 +9,11 @@
  *
  * Todo es puro (recibe los textos): arranque.mjs lee los ficheros.
  */
+import { lstatSync } from "node:fs";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { basename, join } from "node:path";
+
+import { normaRuta } from "../../scripts/limpiar-worktrees.mjs";
 
 /** Dónde vive la copia de usuario del hook de limpieza. */
 export const rutaCopiaDelHook = (casa = homedir()) => join(casa, ".claude", "hooks", "limpiar-worktrees.mjs");
@@ -34,3 +37,53 @@ export function avisoDeCopia({ repo, copia, ruta = rutaCopiaDelHook() }) {
 
 /** `huerfanas: n` (campo: valor, para poder contarlo) cuando hay alguna; si no, null. */
 export const lineaDeHuerfanas = (n) => (n > 0 ? `huerfanas: ${n} (carpetas de worktree sin registro que la limpieza no ha podido borrar)` : null);
+
+/** ¿Tiene un `.git` que es una CARPETA? Un clon propio, no un worktree. */
+export function tieneGitDeCarpeta(dir) {
+  try {
+    return lstatSync(join(dir, ".git")).isDirectory();
+  } catch {
+    return false; // a propósito: sin .git, o ilegible, no es un clon
+  }
+}
+
+/**
+ * Las carpetas huérfanas: lo que el registro de la limpieza dice que sigue en
+ * disco sin ser worktree vivo, MÁS las hermanas `MenuPlan-*` que ni son worktree
+ * vivo ni están apuntadas (el punto ciego: una carpeta que git soltó sin que el
+ * registro llegara a anotarla). Una hermana con `.git` de carpeta es un clon
+ * propio (p. ej. MenuPlan-panel-lectura) y NO cuenta. Pura: recibe las rutas y
+ * lo que sabe del disco. Devuelve las rutas, sin repetir.
+ *
+ *   pendientes  entradas {dir} de claude-limpieza.json
+ *   hermanas    rutas de las carpetas `MenuPlan-*` junto al repo
+ *   vivos       Set de rutas normalizadas (worktreesVivos)
+ *   existe      (ruta) → boolean
+ *   esClon      (ruta) → boolean, ¿tiene un .git que es carpeta?
+ */
+export function carpetasHuerfanas({ pendientes = [], hermanas = [], vivos = new Set(), existe, esClon }) {
+  const vistas = new Map();
+  for (const p of pendientes) {
+    if (p?.dir && existe(p.dir) && !vivos.has(normaRuta(p.dir))) vistas.set(normaRuta(p.dir), p.dir);
+  }
+  for (const d of hermanas) {
+    if (/^MenuPlan-/i.test(basename(d)) && !vivos.has(normaRuta(d)) && !esClon(d)) vistas.set(normaRuta(d), d);
+  }
+  return [...vistas.values()];
+}
+
+/**
+ * Las líneas de aviso de la copia del hook para el arranque. En la nube no hay
+ * perfil de Pablo: devuelve []. La referencia es la de origin/staging (`deGit`);
+ * si git no la da, la del disco. Cualquier fallo de lectura se dice, no se calla.
+ */
+export function avisosDeCopiaEnArranque({ nube, deGit, rutaRepo, ruta, leer, existe }) {
+  if (nube) return [];
+  try {
+    const repo = deGit ?? (existe(rutaRepo) ? leer(rutaRepo) : null);
+    const aviso = avisoDeCopia({ repo, copia: existe(ruta) ? leer(ruta) : null, ruta });
+    return aviso ? [aviso] : [];
+  } catch (e) {
+    return [`limpieza-copia: no he podido compararla (${String(e?.message ?? e).split("\n")[0]}).`];
+  }
+}

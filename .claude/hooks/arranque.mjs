@@ -16,13 +16,13 @@
  * que se calla lleva su `a propósito:` (scripts/sinErroresTragados.test.js).
  */
 import { execFile, execFileSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
-import { basename, join } from "node:path";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { basename, dirname, join } from "node:path";
 
 import { ahoraEnMadrid } from "../../scripts/lib/hora.mjs";
 import { numeroDeRama } from "../../scripts/lib/lleva.mjs";
 import { avisosDeLimpieza, leerPendientes, worktreesVivos } from "../../scripts/limpiar-worktrees.mjs";
-import { avisoDeCopia, lineaDeHuerfanas, rutaCopiaDelHook } from "./copiaHook.mjs";
+import { avisosDeCopiaEnArranque, carpetasHuerfanas, lineaDeHuerfanas, rutaCopiaDelHook, tieneGitDeCarpeta } from "./copiaHook.mjs";
 import { sinAplicar } from "./guardia.mjs";
 import { esSesionDeNube } from "./nube.mjs";
 import { avisoRamaPrincipal, avisoTrasAdelantar, estadoDelArbol, planAdelantar } from "./principal.mjs";
@@ -124,10 +124,16 @@ try {
   // Sin la lista de worktrees no se avisa: podría mandar borrar uno vivo.
   const lista = git("worktree", "list", "--porcelain");
   if (comun && lista !== null) {
-    const huerfanas = avisosDeLimpieza(leerPendientes(comun), existsSync, worktreesVivos(lista));
+    const pendientes = leerPendientes(comun);
+    const vivos = worktreesVivos(lista);
+    const avisosLimpieza = avisosDeLimpieza(pendientes, existsSync, vivos);
+    // Las hermanas MenuPlan-* sin registro también cuentan (punto ciego del registro).
+    const padre = dirname(comun.replace(/[\\/]\.git$/, ""));
+    const hermanas = readdirSync(padre, { withFileTypes: true }).filter((d) => d.isDirectory() && /^MenuPlan-/i.test(d.name)).map((d) => join(padre, d.name));
+    const huerfanas = carpetasHuerfanas({ pendientes, hermanas, vivos, existe: existsSync, esClon: tieneGitDeCarpeta });
     const cuenta = lineaDeHuerfanas(huerfanas.length);
     if (cuenta) avisos.push(cuenta);
-    avisos.push(...huerfanas);
+    avisos.push(...avisosLimpieza);
   }
 } catch (e) {
   avisos.push(`Limpieza de carpetas: no he podido leer lo que dejó pendiente (${String(e?.message ?? e).split("\n")[0]}).`);
@@ -136,17 +142,16 @@ try {
 // ── La copia de usuario del hook de limpieza (#725, #198) ──────────────────
 // Se compara con la de origin/staging (la verdad), o con la del disco si git no
 // la da. En la nube no hay perfil de Pablo: no se mira.
-if (!esSesionDeNube(process.env, rama, raiz)) {
-  try {
-    const rutaRepo = join(raiz, "scripts", "limpiar-worktrees.mjs");
-    const repo = git("show", "origin/staging:scripts/limpiar-worktrees.mjs") ?? (existsSync(rutaRepo) ? readFileSync(rutaRepo, "utf8") : null);
-    const ruta = rutaCopiaDelHook();
-    const aviso = avisoDeCopia({ repo, copia: existsSync(ruta) ? readFileSync(ruta, "utf8") : null, ruta });
-    if (aviso) avisos.push(aviso);
-  } catch (e) {
-    avisos.push(`limpieza-copia: no he podido compararla (${String(e?.message ?? e).split("\n")[0]}).`);
-  }
-}
+avisos.push(
+  ...avisosDeCopiaEnArranque({
+    nube: esSesionDeNube(process.env, rama, raiz),
+    deGit: git("show", "origin/staging:scripts/limpiar-worktrees.mjs"),
+    rutaRepo: join(raiz, "scripts", "limpiar-worktrees.mjs"),
+    ruta: rutaCopiaDelHook(),
+    leer: (r) => readFileSync(r, "utf8"),
+    existe: existsSync,
+  }),
+);
 
 // Se lanza ya y se espera al final (es red y `op`), con un tope de tiempo propio
 // (`aplicarIdentidad`): el hook muere a los 30 s. Con la clave de la App legible,
