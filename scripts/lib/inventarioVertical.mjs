@@ -20,6 +20,7 @@ import { join } from "node:path";
 
 import { ficherosDeGit } from "../../ops/ficherosGit.js";
 import { cargarNormas } from "./normas.mjs";
+import { ladoDeFuente } from "./fuentesDoc.mjs";
 import { clasificar, compilar, leerZonas } from "./zonasProyecto.mjs";
 
 export const RUTA_DECISIONES = "ops/inventario-vertical.json";
@@ -114,28 +115,13 @@ export function calcular(raiz) {
   filas.push(contar("guía de redacción (delegado: ops/redaccion.json)", redaccion));
 
   // ---- 2. Fuentes ---------------------------------------------------------------------------------------------
-  const agentesDudosos = decisiones.agentes_dudosos;
-  const hostsProveedor = decisiones.fuentes_externas_de_proveedor.hosts;
+  // Cada fuente es de un lado: el campo `project` la hace vertical y sin él vale lo que obliga su ruta (agente o factoría:
+  // horizontal; producto: vertical). Una externa o una ruta de zona mixta sin `project` es horizontal. Ya no hay dudas (#710, PR 4).
   const fu = [...fuentes.values()].map((f) => {
-    if (f.tipo === "externa") {
-      let host = "";
-      try {
-        host = new URL(f.url).host;
-      } catch {
-        // a propósito: una URL rota no tira el inventario; sale como duda con su razón en el documento
-        return { id: f.id, lado: "duda", razon: `la dirección «${f.url}» no es una URL válida: no se puede ver de quién es el sitio` };
-      }
-      if (hostsProveedor.includes(host)) return { id: f.id, lado: "duda", razon: decisiones.fuentes_externas_de_proveedor.razon };
-      return { id: f.id, lado: "horizontal" };
-    }
-    const agente = f.ruta.match(/^\.claude\/agents\/([\w-]+)\.md$/)?.[1];
-    if (agente && Object.hasOwn(agentesDudosos, agente)) return { id: f.id, lado: "duda", razon: `es el agente ${agente}; los agentes son horizontales (regla de Pablo, 13 oct) pero este tiene trabajo de producto` };
-    const z = zonaDe(f.ruta);
-    const lado = porZona(z);
-    if (lado === "duda") return { id: f.id, lado, razon: `la ruta ${f.ruta} está en zona mixta` };
-    return { id: f.id, lado };
+    const lado = ladoDeFuente(f, zonaDe);
+    return { id: f.id, lado, sinMarcar: lado === "vertical" && !f.project };
   });
-  for (const f of fu) if (f.lado === "duda") duda("fuentes", f.id, f.razon);
+  const fuentesSinMarcar = fu.filter((f) => f.sinMarcar).length;
   filas.push(contar("fuentes documentales (ops/fuentes-documentales/)", fu));
   const externas = [...fuentes.values()].filter((f) => f.tipo === "externa").length;
   const notaFuentes = `${externas} externas (literatura) y ${fuentes.size - externas} de la casa (una ruta del repo).`;
@@ -202,6 +188,7 @@ export function calcular(raiz) {
   });
   const reglas = deZona(ficheros.filter((f) => /^\.claude\/rules\/[^/]+\.md$/.test(f)));
   const comandos = deZona(ficheros.filter((f) => /^\.claude\/commands\/[^/]+\.md$/.test(f)));
+  const agentesDudosos = decisiones.agentes_dudosos;
   const agentes = ficheros.filter((f) => /^\.claude\/agents\/[^/]+\.md$/.test(f)).map((r) => {
     const id = r.match(/agents\/([\w-]+)\.md$/)[1];
     return Object.hasOwn(agentesDudosos, id) ? { id: r, lado: "duda", razon: agentesDudosos[id] } : { id: r, lado: "horizontal", razon: "" };
@@ -249,6 +236,7 @@ export function calcular(raiz) {
     dudosos,
     cifras: {
       fuentesNota: notaFuentes,
+      fuentesSinMarcar,
       entidadesRetiradas: retiradas,
       normasDiseno: nDiseno,
       controlEnProducto,
@@ -343,7 +331,7 @@ export function documento(d, fecha) {
   L.push("| Capa | De dónde sale el lado |");
   L.push("|---|---|");
   L.push("| Principios | `ops/principios/`, `ops/principios-producto/` y `ops/redaccion.json`, con las fuentes de `ops/fuentes-documentales/` y las zonas de `ops/zonas.json`. Vertical: los de `ops/proyectos/<id>/principios/` (el campo `project`). Duda: sin fuente externa y su único origen está en un fichero de zona producto; o un principio de producto del área `conversational-ai` |");
-  L.push("| Fuentes | Externa: horizontal (salvo la documentación de Supabase y Vercel: duda). De la casa: la zona de su ruta (`ops/zonas.json`) |");
+  L.push("| Fuentes | El campo `project` la hace vertical. Sin él: la ruta de un agente o de zona factoría, horizontal; de zona producto, vertical (y debe llevarlo); zona mixta o externa, horizontal |");
   L.push("| Normas | El registro en que viven. Duda de una horizontal: su texto nombra HoMenu/Lola/MenuPlan, o su ámbito es `bot`/`product`/`catalog`, o su control o `donde` apunta a `api/`, `src/`, `supabase/`, `docs/datos/`, `docs/producto/`, `specs/` o `DESIGN_SYSTEM.md` (las " + cifras.normasDiseno + " de ámbito `diseno` no cuentan: Pablo decidió el 13 oct que son horizontales) |");
   L.push("| Entidades | Su campo `scope` (`horizontal` o `vertical`, uno solo: la clase es horizontal y sus ejemplares son del registro del proyecto); duda: un valor que no sea ninguno de los dos y las vertical que son un concepto general (lista a mano, hoy vacía) |");
   L.push("| Glosario | El `scope` de sus entidades; sin entidad, su dominio (`producto` vertical, `datos` duda); duda también si su definición nombra el proyecto, Vercel o Supabase |");

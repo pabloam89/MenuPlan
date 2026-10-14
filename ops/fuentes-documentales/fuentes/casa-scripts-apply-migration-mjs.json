@@ -4,6 +4,7 @@
   "tipo": "casa",
   "ruta": "scripts/apply-migration.mjs",
   "uso": "principio",
+  "project": "homenu",
   "fecha_alta": "2026-10-13",
   "revisada": "no",
   "fecha_revision": null

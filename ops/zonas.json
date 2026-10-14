@@ -37,7 +37,6 @@
   ],
   "patrones": [
     { "re": "^\\.claude/agents/(revisor|seguridad)\\.md$", "zona": "mixto" },
-    { "re": "^\\.claude/agents/(datos|diseno|lola|qa|evaluador|auditor-datos)\\.md$", "zona": "producto" },
     { "re": "^\\.claude/hooks/(guardia\\.mjs|guardia\\.test\\.js|dominios\\.mjs|migraciones\\.mjs)$", "zona": "mixto" },
     { "re": "^\\.claude/(settings\\.json|dominios-skills\\.json|dominios-skills\\.test\\.js)$", "zona": "mixto" },
     { "re": "^\\.claude/rules/tests\\.md$", "zona": "mixto" },
