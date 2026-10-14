@@ -1,0 +1,6 @@
+{
+  "name": "daisyui",
+  "version": "5.8.0",
+  "license": "GPL-3.0",
+  "repository": { "url": "git+https://github.com/saadeghi/daisyui.git" }
+}
