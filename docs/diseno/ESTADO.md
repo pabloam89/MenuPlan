@@ -577,6 +577,12 @@ Los 892 colores distintos (no los 660 hex de la auditoría del 9 oct) cuentan ta
 normaliza la regla. Lo más gordo sin token: el espacio 10 (450 usos, entre `esp-8` y `esp-12`), los radios 10 y 14 (114 y
 117) y el peso 600 (161). La elección de Pablo sobre esta vista no se guarda todavía: llega en otra tanda.
 
+Ronda 2 (qa y revisor): cada muestra de sombra va recortada a su caja y aislada; las dos sombras «velo» (`0 0 0 9999px`, del
+tour y del coach) se enseñan como velo dentro de su caja en vez de oscurecer la página. Las cifras por tipo pasan de tabla a
+tarjetas que se parten (a 375 y 420 px ya no hay desplazamiento lateral). Los tipos numéricos se ordenan por usos o por
+valor, con una línea sobre el umbral relativo. Las 136 versiones cuyo token no es el de su familia (122 de color) se marcan
+a la vista. `?tipo=sombra` abre un tipo directamente.
+
 ## Sin comprobar
 
 - Si los avatares sin referencia literal se usan de verdad (hay rutas

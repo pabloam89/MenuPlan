@@ -108,7 +108,11 @@ export function parsearColor(texto) {
   }
   m = t.match(/^rgba?\(([^)]*)\)$/)
   if (m) {
-    const partes = m[1].split(/[\s,/]+/).filter(Boolean).map(Number)
+    // La transparencia puede ir en tanto por uno (.5) o en porcentaje (50%).
+    const partes = m[1]
+      .split(/[\s,/]+/)
+      .filter(Boolean)
+      .map((p, i) => (i === 3 && p.endsWith('%') ? Number(p.slice(0, -1)) / 100 : Number(p)))
     if (partes.length < 3 || partes.some(Number.isNaN)) return null
     return { r: partes[0], g: partes[1], b: partes[2], a: partes.length > 3 ? partes[3] : 1 }
   }
@@ -156,7 +160,12 @@ const capas = (texto) => {
   return out
 }
 
-/** `boxShadow` → `{ firma, tamano, color }` de la primera capa, o null. */
+/**
+ * `boxShadow` → `{ firma, tamano, color, extension }`, o null. `tamano` y
+ * `color` son los de la primera capa; `extension` es la mayor extensión
+ * (cuarto número) de todas las capas: las de miles de px son un velo que tapa
+ * la pantalla, no una sombra.
+ */
 export function parsearSombra(texto) {
   const lista = capas(String(texto))
   if (!lista.length) return null
@@ -173,6 +182,7 @@ export function parsearSombra(texto) {
     firma: leidas.map((c) => `${c.inset ? 'i' : 'e'}${c.nums.length}`).join(','),
     tamano: Math.abs(p.nums[1]) + Math.abs(p.nums[2] ?? 0),
     color: p.color,
+    extension: Math.max(...leidas.map((c) => Math.abs(c.nums[3] ?? 0))),
   }
 }
 
@@ -222,6 +232,27 @@ export function distancia(tipo, a, b) {
   const n2 = Number(b)
   if (Number.isNaN(n1) || Number.isNaN(n2) || Math.sign(n1) !== Math.sign(n2)) return Infinity
   return relativa(n1, n2) / UMBRALES[tipo].umbral
+}
+
+// ── Orden y marcas para la página ────────────────────────────────────────────
+
+/** Los tipos que son un número y se pueden ordenar por valor. */
+export const ES_NUMERICO = Object.fromEntries(TIPOS.map((t) => [t, ['espaciado', 'tamano-letra', 'peso', 'radio', 'capa'].includes(t)]))
+
+/**
+ * Las familias por `usos` (como vienen de `agruparBase`) o por `valor` del
+ * representante, de menor a mayor, para ver la escala. Solo los tipos
+ * numéricos se ordenan por valor; los demás vuelven como vienen.
+ */
+export function ordenarFamilias(familias, tipo, criterio) {
+  if (criterio !== 'valor' || !ES_NUMERICO[tipo]) return familias
+  return [...familias].sort((x, y) => Number(x.representante) - Number(y.representante))
+}
+
+/** Las versiones de una familia cuyo token propuesto no es el de la familia (o no tienen). */
+export function versionesConOtroToken(familia) {
+  const propio = familia.token?.nombre ?? null
+  return familia.valores.filter((v) => (v.token?.nombre ?? null) !== propio)
 }
 
 // ── Agrupado ─────────────────────────────────────────────────────────────────

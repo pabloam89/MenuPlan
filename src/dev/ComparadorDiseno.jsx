@@ -18,10 +18,19 @@
  * dos filas.
  */
 
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import base from "../../lint-tokens-base.json";
 import { valoresPlanos } from "../design/tokens.js";
-import { TIPOS, UMBRALES, leerBase, agruparBase } from "../../scripts/lib/comparadorFundamentos.mjs";
+import {
+  TIPOS,
+  UMBRALES,
+  ES_NUMERICO,
+  leerBase,
+  agruparBase,
+  parsearSombra,
+  ordenarFamilias,
+  versionesConOtroToken,
+} from "../../scripts/lib/comparadorFundamentos.mjs";
 
 const NOMBRE = {
   color: "Colores",
@@ -36,6 +45,22 @@ const NOMBRE = {
 
 const FRASE = "Lentejas con chorizo";
 
+/**
+ * Una sombra con extensión de este tamaño o más no es una sombra: es un velo
+ * que tapa la pantalla alrededor de algo (el tour de bienvenida, el coach). Se
+ * enseña como velo dentro de su caja, sin pintar la sombra.
+ */
+const EXTENSION_VELO = 100;
+
+/** Las cifras de cada tipo, con su etiqueta, en el orden en que se leen. */
+const CIFRAS = [
+  ["distintos", "Valores distintos"],
+  ["familias", "Familias"],
+  ["sinToken", "Sin token cercano"],
+  ["usos", "Usos"],
+  ["tokens", "Tokens hoy"],
+];
+
 const S = {
   pagina: {
     minHeight: "100vh",
@@ -47,10 +72,21 @@ const S = {
   },
   titulo: { margin: 0, fontSize: "var(--tipo-paso-26)", fontWeight: "var(--tipo-peso-900)" },
   nota: { margin: "var(--esp-4) 0 var(--esp-16)", fontSize: "var(--tipo-paso-13)", color: "var(--color-tinta-suave)" },
-  tablaCaja: { overflowX: "auto", marginBottom: "var(--esp-16)" },
-  tabla: { borderCollapse: "collapse", fontSize: "var(--tipo-paso-13)", background: "var(--color-superficie)", borderRadius: "var(--radio-chico)" },
-  celda: { padding: "var(--esp-6) var(--esp-12)", borderBottom: "1px solid var(--color-linea-suave)", textAlign: "right", whiteSpace: "nowrap" },
-  celdaIzq: { padding: "var(--esp-6) var(--esp-12)", borderBottom: "1px solid var(--color-linea-suave)", textAlign: "left", whiteSpace: "nowrap" },
+  // Las cifras de los ocho tipos: una tarjeta pequeña por tipo, que se parten
+  // en filas (a 375 px una tabla de seis columnas se cortaba por la derecha).
+  cifrasRejilla: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "var(--esp-8)", marginBottom: "var(--esp-16)" },
+  cifrasTarjeta: {
+    background: "var(--color-superficie)",
+    border: "1px solid var(--color-linea)",
+    borderRadius: "var(--radio-chico)",
+    padding: "var(--esp-8) var(--esp-12)",
+    fontSize: "var(--tipo-paso-12)",
+    minWidth: 0,
+  },
+  cifrasTitulo: { margin: "0 0 var(--esp-4)", fontSize: "var(--tipo-paso-14)", fontWeight: "var(--tipo-peso-800)" },
+  cifrasLista: { margin: 0, display: "grid", gridTemplateColumns: "1fr auto", columnGap: "var(--esp-8)", rowGap: "var(--esp-2)" },
+  cifrasEtiqueta: { color: "var(--color-tinta-suave)" },
+  cifrasNumero: { margin: 0, textAlign: "right", fontWeight: "var(--tipo-peso-800)" },
   tipos: { display: "flex", flexWrap: "wrap", gap: "var(--esp-8)", marginBottom: "var(--esp-16)" },
   botonTipo: (sel) => ({
     minHeight: "var(--tam-tactil)",
@@ -69,6 +105,8 @@ const S = {
   tokenCaja: { display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "var(--esp-4)", fontSize: "var(--tipo-paso-12)" },
   rejilla: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "var(--esp-12)" },
   tarjeta: {
+    // Su propio contexto de apilamiento: nada de dentro se pinta encima de otra tarjeta.
+    isolation: "isolate",
     background: "var(--color-superficie)",
     border: "1px solid var(--color-linea)",
     borderRadius: "var(--radio-tarjeta)",
@@ -91,6 +129,19 @@ const S = {
   }),
   versiones: { display: "flex", flexWrap: "wrap", gap: "var(--esp-6)" },
   version: { display: "inline-flex", alignItems: "center", gap: "var(--esp-4)", fontSize: "var(--tipo-paso-11)", color: "var(--color-tinta-media)" },
+  // La versión que pasaría a otro token (o a ninguno) que el de su familia: se ve
+  // en móvil, donde no hay `title`.
+  versionOtra: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "var(--esp-4)",
+    fontSize: "var(--tipo-paso-11)",
+    color: "var(--color-aviso)",
+    background: "var(--color-aviso-fondo)",
+    borderRadius: "var(--radio-mini)",
+    padding: "0 var(--esp-4)",
+  },
+  ordenFila: { display: "flex", flexWrap: "wrap", alignItems: "center", gap: "var(--esp-8)", marginBottom: "var(--esp-12)", fontSize: "var(--tipo-paso-13)" },
   detalles: { fontSize: "var(--tipo-paso-12)", color: "var(--color-tinta-media)" },
   resumen: { cursor: "pointer", minHeight: "var(--tam-tactil)", display: "flex", alignItems: "center", fontWeight: "var(--tipo-peso-700)" },
   lista: { margin: 0, paddingLeft: "var(--esp-16)" },
@@ -122,8 +173,58 @@ function CurvaSvg({ valor, lado }) {
   );
 }
 
+/**
+ * La muestra de una sombra, recortada a su caja (`overflow: hidden`) y con su
+ * propio contexto de apilamiento (`isolation`): ninguna sombra puede pintar
+ * fuera de su tarjeta. Las de extensión enorme (velos que tapan la pantalla) se
+ * enseñan como velo dentro de la caja: el color del velo sobre la caja, con su
+ * nombre, sin pintar la sombra.
+ */
+function MuestraSombra({ valor, grande }) {
+  const lado = grande ? { width: 96, height: 56 } : { width: 22, height: 16 };
+  const caja = {
+    display: "block",
+    position: "relative",
+    overflow: "hidden",
+    isolation: "isolate",
+    padding: grande ? "var(--esp-16)" : "var(--esp-4)",
+    background: "var(--color-fondo-pantalla)",
+    borderRadius: "var(--radio-chico)",
+  };
+  const leida = parsearSombra(valor);
+  if (leida && leida.extension >= EXTENSION_VELO) {
+    const { r, g, b, a } = leida.color;
+    return (
+      <span style={caja} title={valor}>
+        <span style={{ position: "absolute", inset: 0, background: `rgba(${r},${g},${b},${a})` }} />
+        <span
+          style={{
+            ...lado,
+            position: "relative",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "var(--color-superficie)",
+            borderRadius: "var(--radio-chico)",
+            fontSize: grande ? "var(--tipo-paso-12)" : "var(--tipo-paso-10)",
+            fontWeight: "var(--tipo-peso-800)",
+            color: "var(--color-tinta-media)",
+          }}
+        >
+          velo
+        </span>
+      </span>
+    );
+  }
+  return (
+    <span style={caja}>
+      <span style={{ ...lado, display: "block", background: "var(--color-superficie)", borderRadius: "var(--radio-chico)", boxShadow: valor }} />
+    </span>
+  );
+}
+
 /** La muestra visual de un valor: es el dato, por eso lleva el valor tal cual. */
-function Muestra({ tipo, valor, grande = false }) {
+export function Muestra({ tipo, valor, grande = false }) {
   if (tipo === "color") return <MuestraColor valor={valor} grande={grande} />;
   if (tipo === "tamano-letra") {
     return <span style={{ fontSize: `${valor}px`, lineHeight: 1.2 }}>{grande ? FRASE : "Aa"}</span>;
@@ -135,14 +236,7 @@ function Muestra({ tipo, valor, grande = false }) {
     const lado = grande ? { width: 96, height: 56 } : { width: 22, height: 16 };
     return <span style={{ ...lado, display: "block", background: "var(--color-marca-fondo)", border: "2px solid var(--color-marca)", borderRadius: `${valor}px` }} />;
   }
-  if (tipo === "sombra") {
-    const lado = grande ? { width: 96, height: 56 } : { width: 22, height: 16 };
-    return (
-      <span style={{ display: "block", padding: grande ? "var(--esp-16)" : "var(--esp-4)", background: "var(--color-fondo-pantalla)", borderRadius: "var(--radio-chico)" }}>
-        <span style={{ ...lado, display: "block", background: "var(--color-superficie)", borderRadius: "var(--radio-chico)", boxShadow: valor }} />
-      </span>
-    );
-  }
+  if (tipo === "sombra") return <MuestraSombra valor={valor} grande={grande} />;
   if (tipo === "espaciado") {
     const n = Math.abs(Number(valor));
     return (
@@ -170,24 +264,39 @@ function ficherosDeFamilia(familia) {
 function TarjetaFamilia({ tipo, familia }) {
   const ficheros = ficherosDeFamilia(familia);
   const n = familia.valores.length;
+  const otras = new Set(versionesConOtroToken(familia));
   return (
-    <article style={S.tarjeta}>
+    <article style={S.tarjeta} data-representante={familia.representante}>
       <Muestra tipo={tipo} valor={familia.representante} grande />
       <div style={S.valor}>{familia.representante}</div>
       <div style={S.cifra}>
-        {familia.usos} usos · {n === 1 ? "1 versión" : `${n} versiones`} · {ficheros.length === 1 ? "1 fichero" : `${ficheros.length} ficheros`}
+        {familia.usos === 1 ? "1 uso" : `${familia.usos} usos`} · {n === 1 ? "1 versión" : `${n} versiones`} · {ficheros.length === 1 ? "1 fichero" : `${ficheros.length} ficheros`}
       </div>
       <span style={S.pasaA(Boolean(familia.token))}>
         {familia.token ? `Pasa a ${familia.token.nombre} (${familia.token.valor})` : "Sin token cercano"}
       </span>
+      {n > 1 && otras.size > 0 && (
+        <div style={S.cifra}>
+          {otras.size === 1 ? "1 versión pasa" : `${otras.size} versiones pasan`} a otro token o a ninguno (en ámbar).
+        </div>
+      )}
       {n > 1 && (
         <div style={S.versiones} aria-label="Versiones de la familia">
-          {familia.valores.map((v) => (
-            <span key={v.valor} style={S.version} title={v.token ? `pasa a ${v.token.nombre}` : "sin token cercano"}>
-              <Muestra tipo={tipo} valor={v.valor} />
-              {v.valor} ×{v.usos}
-            </span>
-          ))}
+          {familia.valores.map((v) => {
+            const otra = otras.has(v);
+            return (
+              <span
+                key={v.valor}
+                style={otra ? S.versionOtra : S.version}
+                data-otro-token={otra ? "si" : undefined}
+                title={v.token ? `pasa a ${v.token.nombre}` : "sin token cercano"}
+              >
+                <Muestra tipo={tipo} valor={v.valor} />
+                {v.valor} ×{v.usos}
+                {otra && ` → ${v.token ? v.token.nombre : "sin token"}`}
+              </span>
+            );
+          })}
         </div>
       )}
       <details style={S.detalles}>
@@ -204,10 +313,31 @@ function TarjetaFamilia({ tipo, familia }) {
   );
 }
 
-export default function ComparadorDiseno() {
+/**
+ * Una línea en llano de por qué un valor entre dos tokens puede quedar sin
+ * token cercano: el umbral es relativo. Solo para los tipos numéricos.
+ */
+function fraseUmbral(tipo) {
+  const pct = Math.round(UMBRALES[tipo].umbral * 100);
+  const general = `Un valor pasa a un token solo si se separa de él menos de un ${pct} %.`;
+  if (tipo === "tamano-letra") {
+    return `${general} Por eso 15 px queda sin token cercano aunque tenga paso-14 y paso-16 al lado: se separa un 7 % de cada uno.`;
+  }
+  return `${general} Por eso un valor a medio camino entre dos tokens puede quedar sin token cercano.`;
+}
+
+/** `?tipo=sombra` abre directamente ese tipo (para enlazar y capturar una pestaña). */
+function tipoDeLaUrl() {
+  if (typeof window === "undefined") return "color";
+  const t = new URLSearchParams(window.location.search).get("tipo");
+  return TIPOS.includes(t) ? t : "color";
+}
+
+export default function ComparadorDiseno({ tipoInicial = tipoDeLaUrl(), ordenInicial = "usos" }) {
   const datos = useMemo(() => agruparBase(leerBase(base), valoresPlanos()), []);
-  const [tipo, setTipo] = useState("color");
-  const { familias } = datos.porTipo[tipo];
+  const [tipo, setTipo] = useState(tipoInicial);
+  const [orden, setOrden] = useState(ordenInicial);
+  const familias = ordenarFamilias(datos.porTipo[tipo].familias, tipo, orden);
   const tokens = datos.tokens[tipo];
   const c = datos.cifras[tipo];
 
@@ -218,35 +348,21 @@ export default function ComparadorDiseno() {
         Lo que hay hoy en el código (lint-tokens-base.json), agrupado en familias de valores casi iguales y frente a los tokens de tokens.js.
       </p>
 
-      <div style={S.tablaCaja}>
-        <table style={S.tabla}>
-          <thead>
-            <tr>
-              <th style={S.celdaIzq}>Tipo</th>
-              <th style={S.celda}>Valores distintos</th>
-              <th style={S.celda}>Familias</th>
-              <th style={S.celda}>Sin token cercano</th>
-              <th style={S.celda}>Usos</th>
-              <th style={S.celda}>Tokens hoy</th>
-            </tr>
-          </thead>
-          <tbody>
-            {TIPOS.map((t) => {
-              const x = datos.cifras[t];
-              return (
-                <tr key={t}>
-                  <th style={S.celdaIzq} scope="row">{NOMBRE[t]}</th>
-                  <td style={S.celda}>{x.distintos}</td>
-                  <td style={S.celda}>{x.familias}</td>
-                  <td style={S.celda}>{x.sinToken}</td>
-                  <td style={S.celda}>{x.usos}</td>
-                  <td style={S.celda}>{x.tokens}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+      <section aria-label="Cifras por tipo" style={S.cifrasRejilla}>
+        {TIPOS.map((t) => (
+          <div key={t} style={S.cifrasTarjeta} data-cifras-tipo={t}>
+            <h2 style={S.cifrasTitulo}>{NOMBRE[t]}</h2>
+            <dl style={S.cifrasLista}>
+              {CIFRAS.map(([clave, etiqueta]) => (
+                <Fragment key={clave}>
+                  <dt style={S.cifrasEtiqueta}>{etiqueta}</dt>
+                  <dd style={S.cifrasNumero}>{datos.cifras[t][clave]}</dd>
+                </Fragment>
+              ))}
+            </dl>
+          </div>
+        ))}
+      </section>
 
       <nav style={S.tipos} aria-label="Tipo de valor">
         {TIPOS.map((t) => (
@@ -260,6 +376,7 @@ export default function ComparadorDiseno() {
       <p style={S.nota}>
         {c.distintos} valores en {c.familias} familias; {c.sinToken} sin token cercano. Se juntan por {UMBRALES[tipo].medida}
         {UMBRALES[tipo].umbral !== 1 ? ` (umbral ${UMBRALES[tipo].umbral})` : ""}: {UMBRALES[tipo].porque}.
+        {ES_NUMERICO[tipo] && ` ${fraseUmbral(tipo)}`}
       </p>
 
       <section aria-label={`Tokens de ${NOMBRE[tipo]} hoy`}>
@@ -274,6 +391,20 @@ export default function ComparadorDiseno() {
           ))}
         </div>
       </section>
+
+      {ES_NUMERICO[tipo] && (
+        <div style={S.ordenFila} role="group" aria-label="Orden de las familias">
+          <span>Ordenar:</span>
+          {[
+            ["usos", "Por usos"],
+            ["valor", "Por valor"],
+          ].map(([clave, etiqueta]) => (
+            <button key={clave} type="button" aria-pressed={orden === clave} onClick={() => setOrden(clave)} style={S.botonTipo(orden === clave)}>
+              {etiqueta}
+            </button>
+          ))}
+        </div>
+      )}
 
       <section aria-label={`Familias de ${NOMBRE[tipo]}`} style={S.rejilla}>
         {familias.map((f) => (

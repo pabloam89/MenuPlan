@@ -15,7 +15,11 @@ import {
   colorALab,
   deltaE,
   parsearColor,
+  parsearSombra,
   distancia,
+  ordenarFamilias,
+  versionesConOtroToken,
+  ES_NUMERICO,
 } from './comparadorFundamentos.mjs'
 
 const base = JSON.parse(readFileSync(fileURLToPath(new URL('../../lint-tokens-base.json', import.meta.url)), 'utf8'))
@@ -48,9 +52,22 @@ describe('color perceptual', () => {
     expect(parsearColor('rgba(20,47,29,.4)')).toMatchObject({ r: 20, g: 47, b: 29, a: 0.4 })
     expect(parsearColor('rgb(1, 2, 3)')).toMatchObject({ r: 1, g: 2, b: 3, a: 1 })
   })
+  it('lee la transparencia en porcentaje (sintaxis con barra o con comas)', () => {
+    expect(parsearColor('rgb(0 0 0 / 50%)')).toMatchObject({ r: 0, g: 0, b: 0, a: 0.5 })
+    expect(parsearColor('rgba(10, 20, 30, 25%)')).toMatchObject({ r: 10, g: 20, b: 30, a: 0.25 })
+    expect(parsearColor('rgb(0 0 0 / 0.5)')).toMatchObject({ a: 0.5 })
+  })
   it('el mismo color con otra transparencia no es el mismo', () => {
     expect(distancia('color', 'rgba(0,0,0,.2)', 'rgba(0,0,0,.5)')).toBeGreaterThan(1)
     expect(distancia('color', '#2d5a3d', '#2d5a3e')).toBeLessThan(1)
+  })
+})
+
+describe('sombras tipo velo', () => {
+  it('la extensión es la mayor de sus capas', () => {
+    expect(parsearSombra('0 0 0 9999px rgba(11,28,18,.66)').extension).toBe(9999)
+    expect(parsearSombra('0 2px 8px rgba(0,0,0,.1)').extension).toBe(0)
+    expect(parsearSombra('0 1px 2px rgba(0,0,0,.1), 0 0 0 3px #fff').extension).toBe(3)
   })
 })
 
@@ -145,6 +162,25 @@ describe('con la base real (lint-tokens-base.json)', () => {
         expect(v.token.distancia, `${t} ${fila.nombre}`).toBe(0)
       }
     }
+  })
+})
+
+describe('orden y versiones con otro token', () => {
+  const r = agruparBase(leerBase(base), filasTokens)
+  it('por valor, los tipos numéricos van de menor a mayor; por usos, como vienen', () => {
+    const fam = r.porTipo['tamano-letra'].familias
+    const porValor = ordenarFamilias(fam, 'tamano-letra', 'valor').map((f) => Number(f.representante))
+    expect(porValor).toEqual([...porValor].sort((a, b) => a - b))
+    expect(ordenarFamilias(fam, 'tamano-letra', 'usos')).toEqual(fam)
+    expect(ordenarFamilias(fam, 'color', 'valor')).toEqual(fam)
+    expect(ES_NUMERICO.color).toBe(false)
+    expect(ES_NUMERICO['tamano-letra']).toBe(true)
+  })
+  it('marca las versiones cuyo token no es el de su familia', () => {
+    const fam = { token: { nombre: 'paso-14' }, valores: [{ valor: '14', token: { nombre: 'paso-14' } }, { valor: '14.5', token: null }, { valor: '13.6', token: { nombre: 'paso-13' } }] }
+    expect(versionesConOtroToken(fam).map((v) => v.valor)).toEqual(['14.5', '13.6'])
+    const total = TIPOS.reduce((s, t) => s + r.porTipo[t].familias.reduce((n, f) => n + versionesConOtroToken(f).length, 0), 0)
+    expect(total).toBeGreaterThan(0)
   })
 })
 
