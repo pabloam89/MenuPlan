@@ -40,7 +40,7 @@ export const AVISO_ANTES_DIAS = 14;
  * Cuántas fuentes sin revisar admite el catálogo (a 13 oct 2026, al crearlo). SOLO BAJA: cada fuente que se
  * revisa baja el techo; una fuente nueva entra ya revisada, o el test falla.
  */
-export const TECHO_SIN_REVISAR = 105;
+export const TECHO_SIN_REVISAR = 98;
 
 const DIA_MS = 86_400_000;
 const ID = /^[a-z0-9]+(-[a-z0-9]+)*$/;
@@ -183,8 +183,8 @@ export function ladoObligado(f, zonaDe) {
 /**
  * Decisión (orquestador, 14 oct 2026, #710; reversible): las docs de proveedor (sb-functions, sb-migrations, sb-rls,
  * vercel-troubleshoot) son documentación que sirve a cualquiera, así que quedan horizontales y sin `project` aunque las
- * cite una pieza del proyecto. Si Pablo decide lo contrario, basta ponerles `project`. Menor, anotado: la skill de Vercel
- * de la casa (casa-claude-skills-vercel-skill-md) es vertical por su zona, mientras la doc de Vercel es horizontal.
+ * cite una pieza del proyecto. Si Pablo decide lo contrario, basta ponerles `project`. Menor, anotado: una skill de la casa
+ * (casa-claude-skills-<nombre>-skill-md) es vertical por su zona, mientras la doc de Vercel es horizontal.
  */
 /** El lado de una fuente: el campo `project` la hace vertical; sin él, vale lo obligado y, si nada obliga, horizontal. */
 export const ladoDeFuente = (f, zonaDe) => (f?.project ? "vertical" : ladoObligado(f, zonaDe) ?? "horizontal");

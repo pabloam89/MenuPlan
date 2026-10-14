@@ -2,6 +2,7 @@
   "id": "easy-correction-and-undo",
   "nombre": "Corregir y deshacer fácil",
   "area": "conversational-ai",
+  "dominio": "bot",
   "enunciado": "Poder corregir o deshacer con un gesto da a la persona el control de lo que el bot hace.",
   "porque": "El control y la libertad del usuario son una de las heurísticas básicas de usabilidad.",
   "ejemplo_bueno": "Tras cambiar un menú, un botón de deshacer lo devuelve a como estaba",

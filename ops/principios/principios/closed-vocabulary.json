@@ -6,8 +6,8 @@
   "porque": "Con texto libre cada uno escribe lo mismo de otra forma, y un valor reutilizado descuadra los recuentos viejos.",
   "fuentes": [
     {
-      "marca": "I",
-      "fuente": "casa-src-lib-vocabularios-js"
+      "marca": "F",
+      "fuente": "dbt-data-tests"
     }
   ],
   "detalle": [

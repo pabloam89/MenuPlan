@@ -5685,7 +5685,7 @@
       "veredicto": "blanda",
       "riesgo": "bajo",
       "issue": null,
-      "principio": "keep-context-no-reask",
+      "principio": "wcag-pour",
       "ambito": "diseno",
       "lado": "horizontal",
       "acciones": [

@@ -3,11 +3,11 @@
   "area": "infra",
   "nombre": "El plan se evalúa antes",
   "enunciado": "Cada cambio en la base o en la infraestructura se ensaya antes de aplicarlo, y lo aplica quien tiene permiso.",
-  "porque": "Solo hay una base y es producción, así que lo que se aplica sin ensayo se prueba sobre datos de familias.",
+  "porque": "Un cambio sin ensayo se prueba sobre los datos de verdad, y deshacer un error cuesta más que haberlo visto antes.",
   "fuentes": [
     {
-      "marca": "I",
-      "fuente": "casa-scripts-apply-migration-mjs"
+      "marca": "F",
+      "fuente": "terraform-plan"
     }
   ],
   "detalle": [

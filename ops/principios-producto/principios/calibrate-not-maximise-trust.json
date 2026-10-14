@@ -2,6 +2,7 @@
   "id": "calibrate-not-maximise-trust",
   "nombre": "Calibrar la confianza",
   "area": "conversational-ai",
+  "dominio": "bot",
   "enunciado": "La confianza útil es la calibrada, la que distingue lo estimado de lo confirmado.",
   "porque": "Señalar el posible error baja la confianza en ese dato, pero evita la sobreconfianza después.",
   "ejemplo_bueno": "Lola marca como estimadas las calorías y no marca así un alérgeno confirmado",

@@ -2,6 +2,7 @@
   "id": "keep-context-no-reask",
   "nombre": "No repetir preguntas",
   "area": "conversational-ai",
+  "dominio": "bot",
   "enunciado": "Un dato que la persona ya dio se recuerda en vez de pedirse otra vez.",
   "porque": "En los estudios de NN/g, los bots que repiten preguntas cansan a la gente.",
   "ejemplo_bueno": "Lola usa los comensales que ya constan en la ficha de la casa",
