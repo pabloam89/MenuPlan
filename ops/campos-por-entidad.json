@@ -1,0 +1,362 @@
+{
+  "$comentario": "Dónde mide npm run campos-por-entidad los campos de cada entidad de ops/entidades.json (#711, continúa #706). Una entidad declara sus fuentes de datos (ficheros: un JSON y el camino a sus registros, un directorio de JSON, las cabeceras de un directorio de .md o un export de JS; `grupo` junta en un solo recuento las fuentes que guardan lo mismo, p. ej. las normas de la factoría y las de un proyecto) y/o sus tablas de la base, o dice con sin_fuente por qué no se puede medir (vive en GitHub, en prosa o en constantes). Nada se mide si no se declara aquí: una entidad nueva sin entrada hace fallar ops/campos-por-entidad.test.js. Una tabla de la base va a una sola entidad; las de ops/MODULOS.json que ninguna entidad reclama no tienen entidad todavía (se derivan, no se listan aquí). El script no escribe nada. Lo lee scripts/campos-por-entidad.mjs.",
+  "version": 1,
+  "entidades": {
+    "session": {
+      "sin_fuente": "Vive en el arranque y los logs de cada sesión; no hay registro con campos"
+    },
+    "team-member": {
+      "sin_fuente": "Vive en la prosa de CLAUDE.md; no hay registro con campos"
+    },
+    "identity": {
+      "sin_fuente": "Son constantes de scripts/lib/tokenSesion.mjs, no un registro de campos"
+    },
+    "service": {
+      "sin_fuente": "Tabla en prosa de ops/INVENTARIO.md; sin lector de campos (ops/recursos.json es la parte con registro, en la entidad resource)"
+    },
+    "environment": {
+      "sin_fuente": "Tabla en prosa de ops/INVENTARIO.md; sin lector de campos"
+    },
+    "event": {
+      "sin_fuente": "Los tipos de evento viven en la base (user_events) y en vocabularios; eventos.jsonl es local"
+    },
+    "norm": {
+      "ficheros": [
+        {
+          "tipo": "json",
+          "ruta": "ops/normas.json",
+          "registros": "normas",
+          "grupo": "normas"
+        },
+        {
+          "tipo": "json",
+          "ruta": "ops/proyectos/homenu/normas.json",
+          "registros": "normas",
+          "grupo": "normas"
+        }
+      ]
+    },
+    "mechanism": {
+      "ficheros": [
+        {
+          "tipo": "json",
+          "ruta": "ops/mecanismos.json",
+          "registros": "mecanismos"
+        }
+      ]
+    },
+    "metric": {
+      "ficheros": [
+        {
+          "tipo": "json",
+          "ruta": "ops/metricas.json",
+          "registros": "metricas"
+        },
+        {
+          "tipo": "json",
+          "ruta": "ops/metricas.json",
+          "registros": "excepciones"
+        },
+        {
+          "tipo": "json",
+          "ruta": "ops/metricas.json",
+          "registros": "lineas"
+        }
+      ]
+    },
+    "eval": {
+      "ficheros": [
+        {
+          "tipo": "json",
+          "ruta": "scripts/bot-evals.json",
+          "registros": "casos"
+        }
+      ]
+    },
+    "agent": {
+      "ficheros": [
+        {
+          "tipo": "cabecera-md",
+          "directorio": ".claude/agents"
+        }
+      ]
+    },
+    "skill": {
+      "ficheros": [
+        {
+          "tipo": "cabecera-md",
+          "directorio": ".claude/skills",
+          "fichero": "SKILL.md"
+        }
+      ]
+    },
+    "hook": {
+      "sin_fuente": "Pares evento/matcher anidados en .claude/settings.json; sin registro plano de campos"
+    },
+    "issue": {
+      "sin_fuente": "Etiquetas, título y cuerpo en GitHub; el índice local no trae cuerpos"
+    },
+    "root-problem": {
+      "sin_fuente": "Ficha en el cuerpo del issue de GitHub (CAMPOS_FICHA en scripts/lib/fondos.mjs); el índice local no trae cuerpos"
+    },
+    "case": {
+      "sin_fuente": "Etiquetas y secciones del cuerpo del issue de GitHub"
+    },
+    "assignment": {
+      "sin_fuente": "Bloque «encargo» del cuerpo del issue de GitHub"
+    },
+    "decision": {
+      "sin_fuente": "Tabla en prosa de ops/DECISIONES.md y cuerpo de un issue"
+    },
+    "pull-request": {
+      "sin_fuente": "Líneas del cuerpo del PR en GitHub; sin registro"
+    },
+    "branch": {
+      "sin_fuente": "Es el propio nombre de la rama (prefijo/n-slug); sin registro"
+    },
+    "migration": {
+      "sin_fuente": "Ficheros SQL y prosa de supabase/ESTADO.md; sin registro con campos"
+    },
+    "table": {
+      "ficheros": [
+        {
+          "tipo": "json",
+          "ruta": "ops/MODULOS.json",
+          "registros": "tablas"
+        }
+      ]
+    },
+    "data-source": {
+      "ficheros": [
+        {
+          "tipo": "export-js",
+          "ruta": "src/data/model.js",
+          "export": "TABLAS"
+        }
+      ]
+    },
+    "module": {
+      "ficheros": [
+        {
+          "tipo": "json",
+          "ruta": "ops/MODULOS.json",
+          "registros": "modulos"
+        }
+      ]
+    },
+    "vocabulary": {
+      "sin_fuente": "Anclados en ops/vocabularios-vida.json con forma desigual (lista, partida o clave); se mide aparte"
+    },
+    "principle": {
+      "ficheros": [
+        {
+          "tipo": "json-directorio",
+          "directorio": "ops/principios/principios",
+          "grupo": "principios"
+        },
+        {
+          "tipo": "json-directorio",
+          "directorio": "ops/principios-producto/principios",
+          "grupo": "principios"
+        }
+      ]
+    },
+    "source": {
+      "ficheros": [
+        {
+          "tipo": "json-directorio",
+          "directorio": "ops/fuentes-documentales/fuentes"
+        }
+      ]
+    },
+    "resource": {
+      "ficheros": [
+        {
+          "tipo": "json",
+          "ruta": "ops/recursos.json",
+          "registros": "recursos"
+        }
+      ]
+    },
+    "control": {
+      "sin_fuente": "Son campos de la norma (control, control_tipo…); no tiene fila propia"
+    },
+    "standard": {
+      "ficheros": [
+        {
+          "tipo": "json",
+          "ruta": "ops/estandares-agentes.json",
+          "registros": "agentes.*.tareas.*.reglas"
+        }
+      ]
+    },
+    "agent-task": {
+      "ficheros": [
+        {
+          "tipo": "json",
+          "ruta": "ops/estandares-agentes.json",
+          "registros": "agentes.*.tareas"
+        }
+      ]
+    },
+    "plane": {
+      "ficheros": [
+        {
+          "tipo": "json",
+          "ruta": "ops/planos.json",
+          "registros": "planos"
+        }
+      ]
+    },
+    "workflow": {
+      "sin_fuente": "Ficheros YAML de .github/workflows; sin registro con campos"
+    },
+    "project": {
+      "ficheros": [
+        {
+          "tipo": "json",
+          "ruta": "ops/entidades.json",
+          "registros": "projects"
+        }
+      ]
+    },
+    "repo": {
+      "sin_fuente": "Se declara dentro de cada proyecto (repos); sin registro propio"
+    },
+    "design-system": {
+      "sin_fuente": "Valores estructurados en src/design/tokens.js; se cuentan en la entidad token"
+    },
+    "design-profile": {
+      "ficheros": [
+        {
+          "tipo": "json",
+          "ruta": "ops/diseno/bloques.json",
+          "registros": "bloques"
+        }
+      ]
+    },
+    "token": {
+      "sin_fuente": "Valores anidados de src/design/tokens.js; sin registro plano"
+    },
+    "component": {
+      "sin_fuente": "Primitivos de src/components/ui.jsx y prosa de DESIGN_SYSTEM.md"
+    },
+    "pattern": {
+      "sin_fuente": "Prosa de DESIGN_SYSTEM.md"
+    },
+    "assignment-type": {
+      "ficheros": [
+        {
+          "tipo": "json",
+          "ruta": "ops/tipos-de-encargo.json",
+          "registros": "tipos"
+        }
+      ]
+    },
+    "household": {
+      "tablas": [
+        "households",
+        "household_members",
+        "household_invites",
+        "household_state",
+        "household_favorites",
+        "household_recipe_discards"
+      ]
+    },
+    "person": {
+      "tablas": [
+        "persona",
+        "persona_alergia",
+        "persona_estado",
+        "persona_intolerancia",
+        "persona_perfil_salud"
+      ]
+    },
+    "group": {
+      "tablas": [
+        "grupo",
+        "grupo_persona"
+      ]
+    },
+    "account": {
+      "tablas": [
+        "user_profiles",
+        "user_state",
+        "blocked_users",
+        "apple_auth_tokens",
+        "social_profiles"
+      ]
+    },
+    "channel-identity": {
+      "tablas": [
+        "bot_identities",
+        "bot_link_tokens",
+        "bot_codigos"
+      ]
+    },
+    "chat": {
+      "tablas": [
+        "bot_chats"
+      ]
+    },
+    "lola-conversation": {
+      "tablas": [
+        "bot_messages",
+        "bot_cola",
+        "bot_deshacer",
+        "bot_entradas",
+        "bot_idempotencia",
+        "bot_usage",
+        "bot_candados",
+        "bot_reminders",
+        "bot_tareas"
+      ]
+    },
+    "recipe": {
+      "ficheros": [
+        {
+          "tipo": "json-directorio",
+          "directorio": "src/data/recipes"
+        }
+      ],
+      "tablas": [
+        "user_recipes",
+        "recipe_collections",
+        "recipe_folders",
+        "recipe_share_links",
+        "recipe_votes",
+        "user_recipe_deletions",
+        "cookings"
+      ]
+    },
+    "ingredient": {
+      "ficheros": [
+        {
+          "tipo": "json",
+          "ruta": "src/data/ingredients.json"
+        }
+      ]
+    },
+    "menu": {
+      "tablas": [
+        "user_menus",
+        "user_menu_recipes",
+        "shared_menus",
+        "menu_share_links"
+      ]
+    },
+    "menu-week": {
+      "tablas": [
+        "user_menu_weeks"
+      ]
+    },
+    "pantry": {
+      "tablas": [
+        "user_pantry"
+      ]
+    },
+    "shopping-list": {
+      "sin_fuente": "Prosa de specs/shopping-list.md; no se guarda como entidad propia"
+    }
+  }
+}
