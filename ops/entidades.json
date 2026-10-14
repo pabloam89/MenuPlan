@@ -548,7 +548,7 @@
         "ops/vocabularios-vida.test.js",
         "scripts/lib/vocabulariosVida.mjs"
       ],
-      "note": "La clase: una lista cerrada de valores. Las de src/lib/vocabularios.js, con CHECK en la base, son ejemplares del proyecto. 121 vocabularios y 865 valores anclados (a 14 oct 2026; el test compara estas cifras con ops/vocabularios-vida.json). Hay constantes duplicadas (MESES en 4 sitios, dos ESTADOS_CRITERIO con valores distintos)."
+      "note": "La clase: una lista cerrada de valores. Las de src/lib/vocabularios.js, con CHECK en la base, son ejemplares del proyecto. Hay constantes duplicadas (MESES en 4 sitios, dos ESTADOS_CRITERIO con valores distintos)."
     },
     {
       "id": "principle",
