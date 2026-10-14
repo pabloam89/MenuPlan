@@ -3,12 +3,12 @@
 Este documento es la ley de partida de todas las entidades de MenuPlan. Lo
 leen las forjas de cada entidad (la capa N1) antes de escribir nada. Vale
 para los tres ejes: **horizontal** (cómo trabajamos), **vertical** (el
-producto HoMenu) y **de los dos lados** (`scope: both`, lo que sirve a los dos). Cada eje solo
+producto HoMenu). Una entidad es de un lado y nada más: la clase es horizontal y sus ejemplares del proyecto viven en su registro (decisión de Pablo, 14 oct 2026, #710). Cada eje solo
 añade extensiones. Ningún eje tiene excepciones.
 
 La lista de entidades está en `ops/entidades.json` y su mapa en
 [MAPA.md](MAPA.md). Una **entidad** es una cosa con id estable y definición
-propia. Un **eje** es el bloque al que pertenece: horizontal, vertical o de los dos lados.
+propia. Un **eje** es el bloque al que pertenece: horizontal o vertical.
 
 ## Cómo se marca cada afirmación
 
@@ -48,8 +48,8 @@ Las capas no son los niveles de las entidades, ni los niveles de una skill, ni l
 
 Una extensión de eje es, por ejemplo, que una entidad vertical lleve
 `household_id` (la casa), o que una horizontal lleve su `dueno`. Cada
-extensión nombra el principio de N0 que desarrolla. Una entidad de los dos lados cumple las
-extensiones de los dos ejes a la vez.
+extensión nombra el principio de N0 que desarrolla. Una entidad es de un solo eje y cumple las
+extensiones de ese eje.
 
 Los N1, N2 y N3 no se escriben en este paso. Los sujetos de las normas y de
 los estándares de agente ya se cruzan con las entidades: cada uno es una
@@ -206,11 +206,11 @@ Principio: `closed-vocabulary` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el
 
 Principio: `axis-language-bridge` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
 
-**Desarrollo.** Cada eje usa su propio lenguaje dentro de su contexto. Una palabra que cruza de eje se declara de los dos lados (`scope: both`) en `ops/entidades.json`. Se define una sola vez, con su frase propia de cada lado (`role_by_scope`). Una palabra de los dos lados no cambia de significado según el eje. Si lo necesita, se parte en dos entidades con nombres distintos.
+**Desarrollo.** Cada eje usa su propio lenguaje dentro de su contexto. Una palabra que cruza de eje se define una sola vez, en la factoría (`scope: horizontal` en `ops/entidades.json`), y sus ejemplares del proyecto viven en el registro del proyecto (`ops/proyectos/<id>/`). `scope: both` y `role_by_scope` ya no existen. La palabra no cambia de significado según el eje. Si lo necesita, se parte en dos entidades con nombres distintos.
 
 **Por qué.** «Persona» ya era dos cosas y hoy son dos entidades (`team-member` y `person`). «Evento» es un registro de hooks y una tabla del producto. «Entorno» tiene tres sentidos (entornos de Vercel, `VIGIA_ENTORNO` y environments de GitHub), y hay una sola base de datos para todos. Hoy hay diez entidades de los dos lados: `environment`, `deployment`, `event`, `metric`, `eval`, `judge`, `migration`, `table`, `data-source` y `module`.
 
-**Cómo se comprueba.** `ops/entidades.test.js` exige que las entidades de los dos lados acordadas existan con ese alcance y que cada una diga su `role_by_scope`. Exige también que `MAPA.md` y el JSON coincidan en los dos sentidos. Cada N1 de una entidad de los dos lados trae su traducción a los dos ejes.
+**Cómo se comprueba.** `ops/entidades.test.js` rechaza una entidad con `scope: both`, sin `scope` o con `role_by_scope`. Exige también que `MAPA.md` y el JSON coincidan en los dos sentidos. El N1 de una entidad trae la traducción de sus ejemplares del proyecto.
 
 **Fuente.** [F] Domain-Driven Design (lenguaje ubicuo y contexto delimitado): la misma palabra puede significar cosas distintas en contextos distintos; el lenguaje se divide donde cambia y se conecta con correspondencias explícitas (a través de fuentes secundarias; el artículo original no se encontró). [S] Los tres ejes como contextos.
 
@@ -229,7 +229,7 @@ Todo cambio va por PR con el CI en verde. Como convención, sin control que la h
   - Fila en `ops/entidades.json` con `id`, `name`, `axis`, `term`, `source_of_truth`, `id_format`, `registry` y `status`, y al menos una relación.
   - `term` apunta a una ficha del glosario con `en` igual al id (solo una vertical puede no llevar `term`).
   - Fila y flecha en `docs/entidades/MAPA.md`, y la cifra «Hoy hay N entidades» al día.
-  - Si su nombre se usa en los dos ejes, está de los dos lados: es `scope: both` y lleva `role_by_scope`, con su frase de cada lado.
+  - Si su nombre se usa en los dos ejes, la clase es `scope: horizontal` y los ejemplares del proyecto van a su registro; no hay `both`.
 - **Añadir un tipo o un tipo específico (N2, N3).** No es una entidad: es un valor de un vocabulario cerrado de su entidad (principio 12). Anclarlo en `ops/vocabularios-vida.json` es lo correcto, pero hoy nada lo exige y el vocabulario de `recorded_in` aún no lo está. Si necesita campos propios, se estudia como entidad.
 - **Cambiar una definición.** Se cambia en el glosario, nunca en el JSON. Si cambia el significado, no se edita: se retira el término y nace otro (principio 11).
 - **Quitar o sustituir una entidad.** Se borra del registro, con sus relaciones y sus lectores; el historial queda en git (decisión de Pablo, 13 oct 2026, #706: las ocho retiradas del 12 oct, deployment, learning, judge, secret, vault, rule, criterion y verification, se quitaron así). Ya no hay `status: retired`, `replaced_by` ni `becomes`, ni ids fijados: `ops/entidades.test.js` falla si queda una entidad que no esté activa. El término del glosario que la nombraba pasa a nombrar la entidad que absorbe su significado, o dice su `sin_entidad`, y pierde su `en`. **Límite de hoy:** el test exige a cada entidad horizontal o de los dos lados un `term` activo con `en` igual a su id, y no deja repetirlo; quitar una entidad y crear otra para el mismo concepto obliga a cambiar a la vez el `en` del término o a tener dos términos, o falla.
@@ -268,7 +268,7 @@ las contó el 11 oct). Las de castellano no empiezan todas en la 0060:
 - **Persona.** `person` es la persona de la casa, como en la base. El equipo es `team-member`. El término del glosario «persona» sigue siendo el del equipo. Renombrarlo a «miembro del equipo» irá en un PR aparte. Mientras, las fichas «persona» y «persona de la casa» se relacionan en los dos sentidos y la nota de «persona» avisa.
 - **Tres «mecanismo».** Existen tres cosas con ese nombre: los ids de `ops/mecanismos.json`, `ficha.mecanismo` del fondo (texto libre con la causa) y el campo del aprendizaje (`test`, `guard`, `rule` o `skill`). Este último se renombró a `recorded_in` para que cada «mecanismo» signifique una sola cosa (principio 1).
 - **Identidad.** `identity` es horizontal. La cuenta de un canal de la casa es `channel-identity`, vertical.
-- **Tabla.** `table` es de los dos lados (`scope: both`): la crea una migración y la custodia un módulo. La fuente de datos no se cuelga de ellos, porque no comparten id.
+- **Tabla.** `table` es horizontal (la clase; sus ejemplares son del proyecto): la crea una migración y la custodia un módulo. La fuente de datos no se cuelga de ellos, porque no comparten id.
 
 ## Lo que este documento no resuelve
 

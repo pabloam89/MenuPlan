@@ -3,14 +3,14 @@
  * Entidad × tipo de campo (#711, continúa #706).
  *
  *   npm run campos-por-entidad                  las entidades HORIZONTALES (scope: horizontal)
- *   npm run campos-por-entidad -- --todas       las de todo `scope` (las `both` y las `vertical` también)
+ *   npm run campos-por-entidad -- --todas       las de todo `scope` (las `vertical` también)
  *   npm run campos-por-entidad -- --entidad norm,household   solo esas (gana a --todas)
  *   npm run campos-por-entidad -- --campos      además una línea por campo, con sus frecuencias
  *
  * Repite el recuento del comentario «Inventario de texto libre frente a campo cerrado, por
  * entidad» de #706: cada campo cae en uno de nueve tipos (TIPOS_CAMPO de
  * scripts/lib/camposPorEntidad.mjs). Por defecto cuenta solo lo horizontal (decisión de Pablo,
- * 13 oct 2026): lo que es de la factoría, no del producto. Las `both` (piezas de los dos lados)
+ * 13 oct 2026): lo que es de la factoría, no del producto. Las `vertical`
  * NO entran por defecto; `--todas` las cuenta para poder comparar con las cifras de #706.
  *
  * Fuentes: ops/entidades.json (qué entidades y su `scope`), ops/campos-por-entidad.json (dónde
@@ -52,8 +52,8 @@ if (soloEstas) {
 const alcance = soloEstas ? "elegidas" : todas ? "todas" : "horizontal";
 const medidas = entities.filter((e) => (soloEstas ? soloEstas.includes(e.id) : todas || e.scope === "horizontal"));
 const porScope = (s) => entities.filter((e) => e.scope === s).length;
-console.log(`campos_por_entidad: alcance=${alcance} entidades_medidas=${medidas.length} de=${entities.length} horizontal=${porScope("horizontal")} both=${porScope("both")} vertical=${porScope("vertical")}`);
-if (alcance === "horizontal") console.log(`campos_por_entidad_nota: solo scope=horizontal; las ${porScope("both")} both y las ${porScope("vertical")} vertical no entran (--todas las cuenta)`);
+console.log(`campos_por_entidad: alcance=${alcance} entidades_medidas=${medidas.length} de=${entities.length} horizontal=${porScope("horizontal")} vertical=${porScope("vertical")}`);
+if (alcance === "horizontal") console.log(`campos_por_entidad_nota: solo scope=horizontal; las ${porScope("vertical")} vertical no entran (--todas las cuenta)`);
 
 const lineasRepetidos = [];
 const lineasCampo = [];
