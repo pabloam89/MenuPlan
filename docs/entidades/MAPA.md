@@ -7,21 +7,21 @@ entidad no está aquí: vive en el glosario (`ops/glosario/terminos/`), en la fi
 
 Una **entidad** es una cosa con id estable y definición propia. Cada una dice tres cosas de sus piezas:
 
-- **alcance** (`scope`): `horizontal` si sus piezas son de la factoría (cómo trabajamos), `vertical` si cuelgan siempre de un proyecto
-  (el producto HoMenu hoy) y `both` si las hay de las dos clases, y cada pieza declara su proyecto o ninguno;
+- **alcance** (`scope`): `horizontal` si la clase es de la factoría (cómo trabajamos), `vertical` si sus piezas cuelgan siempre de un proyecto
+  (el producto HoMenu hoy). Solo uno: la clase es horizontal y sus ejemplares del proyecto viven en su registro (ops/proyectos/<id>/);
 - **nivel** (`level`): `meta` (lo que hace buena una pieza de la familia), `template` (la plantilla de la que salen) o `piece` (la pieza);
 - **familia** (`family`): para agrupar al leer; no es un eje.
 
-Estar «de los dos lados» no es un valor aparte: es el alcance `both`, y se calcula. Las relaciones llevan clase (`is_a`, `part_of`,
+No hay término medio (decisión de Pablo del 14 oct 2026, #710): una entidad es de un lado. Las relaciones llevan clase (`is_a`, `part_of`,
 `parent_of` o `reference`) y cardinalidad. La contención va de la factoría al proyecto y de este al entorno (`part_of`).
 Los ids van en inglés (decisión de Pablo del 11 oct 2026); los nombres y las notas, en castellano.
 
-Hoy hay 54 entidades activas: 22 horizontales, 22 verticales y 10 de los dos lados.
+Hoy hay 54 entidades activas: 41 horizontales y 13 verticales.
 Las relaciones son 93: is_a 5, parent_of 4, part_of 23, reference 61.
 
 ## Horizontales: la factoría
 
-Sus piezas no cuelgan de ningún proyecto.
+La clase vale para cualquier proyecto; sus ejemplares del proyecto viven en el registro del proyecto.
 
 | id | Nombre | Alcance | Nivel | Familia | Término del glosario | Fuente hoy | Registro |
 |---|---|---|---|---|---|---|---|
@@ -29,7 +29,12 @@ Sus piezas no cuelgan de ningún proyecto.
 | `team-member` | Miembro del equipo | horizontal | piece | access | persona | `CLAUDE.md` | without_registry |
 | `identity` | Identidad | horizontal | piece | access | identidad | `scripts/lib/tokenSesion.mjs` | partial |
 | `service` | Servicio | horizontal | piece | access | servicio | `ops/INVENTARIO.md` | without_registry |
+| `environment` | Entorno | horizontal | piece | delivery | entorno | `ops/INVENTARIO.md` | without_registry |
+| `event` | Evento | horizontal | piece | measure | evento | `.claude/hooks/eventos.mjs` | partial |
+| `norm` | Norma | horizontal | meta | rules | norma | `ops/normas.json` | with_registry |
 | `mechanism` | Mecanismo | horizontal | template | rules | mecanismo | `ops/mecanismos.json` | with_registry |
+| `metric` | Métrica | horizontal | piece | measure | métrica | `ops/metricas.json` | with_registry |
+| `eval` | Eval | horizontal | piece | measure | eval | `scripts/bot-evals.json` | partial |
 | `agent` | Agente | horizontal | piece | agents | agente | `.claude/agents` | with_registry |
 | `skill` | Skill | horizontal | piece | agents | skill | `.claude/skills` | with_registry |
 | `hook` | Hook | horizontal | piece | agents | hook | `.claude/settings.json` | partial |
@@ -40,12 +45,26 @@ Sus piezas no cuelgan de ningún proyecto.
 | `decision` | Decisión | horizontal | piece | work | decisión | `ops/DECISIONES.md` | partial |
 | `pull-request` | PR | horizontal | piece | work | pr | ninguna | without_registry |
 | `branch` | Rama | horizontal | piece | work | rama | ninguna | without_registry |
+| `migration` | Migración | horizontal | piece | delivery | migración | `supabase/ESTADO.md` | partial |
+| `table` | Tabla | horizontal | piece | data | tabla | `ops/MODULOS.json` | partial |
+| `data-source` | Fuente de datos | horizontal | piece | data | fuente de datos | `src/data/model.js` | with_registry |
+| `module` | Módulo | horizontal | piece | data | módulo | `ops/MODULOS.json` | with_registry |
+| `vocabulary` | Vocabulario | horizontal | piece | rules | vocabulario | `ops/vocabularios-vida.json` | partial |
+| `principle` | Principio | horizontal | meta | rules | principio | `ops/principios/_catalogo.json` | with_registry |
 | `source` | Fuente documental | horizontal | piece | rules | fuente documental | `ops/fuentes-documentales/_catalogo.json` | with_registry |
+| `resource` | Recurso | horizontal | template | access | recurso | `ops/recursos.json` | with_registry |
+| `control` | Control | horizontal | piece | rules | control | `ops/normas.json` | partial |
 | `standard` | Estándar | horizontal | piece | rules | estándar | `ops/estandares-agentes.json` | with_registry |
 | `plane` | Plano | horizontal | meta | measure | plano | `ops/planos.json` | with_registry |
 | `agent-task` | Tarea de agente | horizontal | piece | agents | tarea de agente | `ops/estandares-agentes.json` | with_registry |
+| `workflow` | Workflow | horizontal | piece | delivery | workflow | `.github/workflows` | partial |
 | `project` | Proyecto | horizontal | piece | structure | proyecto | `ops/entidades.json` | with_registry |
+| `repo` | Repositorio | horizontal | piece | structure | repositorio | `ops/entidades.json` | partial |
+| `design-system` | Sistema de diseño | horizontal | piece | design | sistema de diseño | `src/design/tokens.js` | partial |
 | `design-profile` | Perfil de diseño | horizontal | template | design | perfil de diseño | `ops/diseno/bloques.json` | with_registry |
+| `token` | Token de diseño | horizontal | piece | design | token de diseño | `src/design/tokens.js` | with_registry |
+| `component` | Componente de diseño | horizontal | piece | design | componente de diseño | `DESIGN_SYSTEM.md` | partial |
+| `pattern` | Patrón de diseño | horizontal | piece | design | patrón de diseño | `DESIGN_SYSTEM.md` | partial |
 | `assignment-type` | Tipo de encargo | horizontal | template | work | tipo de encargo | `ops/tipos-de-encargo.json` | with_registry |
 
 ## Verticales: el producto
@@ -54,10 +73,6 @@ Sus piezas cuelgan siempre de un proyecto. Las de la familia `home`, `food` y `l
 
 | id | Nombre | Alcance | Nivel | Familia | Término del glosario | Fuente hoy | Registro |
 |---|---|---|---|---|---|---|---|
-| `migration` | Migración | vertical | piece | delivery | migración | `supabase/ESTADO.md` | partial |
-| `table` | Tabla | vertical | piece | data | tabla | `ops/MODULOS.json` | partial |
-| `data-source` | Fuente de datos | vertical | piece | data | fuente de datos | `src/data/model.js` | with_registry |
-| `module` | Módulo | vertical | piece | data | módulo | `ops/MODULOS.json` | with_registry |
 | `household` | Casa | vertical | piece | home | — | `specs/modelo-datos.md` | partial |
 | `person` | Persona de la casa | vertical | piece | home | persona de la casa | `specs/modelo-datos.md` | partial |
 | `channel-identity` | Identidad de canal | vertical | piece | home | — | `ops/MODULOS.json` | partial |
@@ -67,45 +82,10 @@ Sus piezas cuelgan siempre de un proyecto. Las de la familia `home`, `food` y `l
 | `pantry` | Despensa | vertical | piece | food | — | `specs/modelo-datos.md` | partial |
 | `shopping-list` | Lista de la compra | vertical | piece | food | — | `specs/shopping-list.md` | partial |
 | `lola-conversation` | Conversación con Lola | vertical | piece | lola | — | `specs/plan-bot-mensajeria.md` | partial |
-| `repo` | Repositorio | vertical | piece | structure | repositorio | `ops/entidades.json` | partial |
-| `design-system` | Sistema de diseño | vertical | piece | design | sistema de diseño | `src/design/tokens.js` | partial |
-| `token` | Token de diseño | vertical | piece | design | token de diseño | `src/design/tokens.js` | with_registry |
-| `component` | Componente de diseño | vertical | piece | design | componente de diseño | `DESIGN_SYSTEM.md` | partial |
-| `pattern` | Patrón de diseño | vertical | piece | design | patrón de diseño | `DESIGN_SYSTEM.md` | partial |
 | `account` | Cuenta | vertical | piece | home | — | `ops/MODULOS.json` | partial |
 | `group` | Grupo | vertical | piece | home | — | `supabase/migrations/0079_personas_y_grupos.sql` | partial |
 | `menu-week` | Semana de menú | vertical | piece | food | — | `supabase/migrations/0005_multiweek_menus.sql` | partial |
 | `chat` | Chat | vertical | piece | lola | — | `supabase/migrations/0057_bot_cimientos.sql` | partial |
-
-## De los dos lados
-
-Sirven a la factoría y a un proyecto, y cada una dice qué es a cada lado. El alcance se decide por a quién sirve la pieza, no por dónde está el fichero: que todo viva hoy en el repo de HoMenu no hace a nadie both.
-
-| id | Nombre | Alcance | Nivel | Familia | Término del glosario | Fuente hoy | Registro |
-|---|---|---|---|---|---|---|---|
-| `environment` | Entorno | both | piece | delivery | entorno | `ops/INVENTARIO.md` | without_registry |
-| `event` | Evento | both | piece | measure | evento | `.claude/hooks/eventos.mjs` | partial |
-| `norm` | Norma | both | meta | rules | norma | `ops/normas.json` | with_registry |
-| `metric` | Métrica | both | piece | measure | métrica | `ops/metricas.json` | with_registry |
-| `eval` | Eval | both | piece | measure | eval | `scripts/bot-evals.json` | partial |
-| `vocabulary` | Vocabulario | both | piece | rules | vocabulario | `ops/vocabularios-vida.json` | partial |
-| `principle` | Principio | both | meta | rules | principio | `ops/principios/_catalogo.json` | with_registry |
-| `resource` | Recurso | both | template | access | recurso | `ops/recursos.json` | with_registry |
-| `control` | Control | both | piece | rules | control | `ops/normas.json` | partial |
-| `workflow` | Workflow | both | piece | delivery | workflow | `.github/workflows` | partial |
-
-Qué es cada una a cada lado:
-
-- **environment**: Proceso: dónde corre y se prueba el código. Producto: dónde viven los datos de las casas, que son una sola base para todos.
-- **event**: Proceso: lo que registran los hooks y los scripts. Producto: lo que registra user_events.
-- **norm**: Proceso: obligaciones del flujo, la escritura y la infra. Producto: obligaciones sobre el bot, los datos, el catálogo y la interfaz (82 de 183 normas, según el análisis).
-- **metric**: Proceso: cifra de cumplimiento del flujo. Producto: cifra de uso o de coste de una pieza.
-- **eval**: Proceso: la medida del antes y el después. Producto: lo que se mide es Lola.
-- **vocabulary**: Proceso: listas cerradas de ops y scripts/lib. Producto: las de src/lib/vocabularios.js, que además llevan CHECK en la base.
-- **principle**: Proceso: principios propios de la casa (ops/principios). Producto: los 40 principios de producto y los 15 de redacción, leídos de su catálogo.
-- **resource**: Proceso: GitHub y 1Password. Producto: Supabase, Telegram y Vercel. Hetzner sirve a las dos cosas.
-- **control**: Proceso: tests y scripts de ops/ y scripts/. Producto: tests de supabase/ y src/ que vigilan normas de datos y de interfaz.
-- **workflow**: Proceso: fondos, planos, flujo semanal, tests, dependabot y agente de fallos. Producto: vigía de Lola, bot semanal, salud del despliegue, mercadona-sync e iOS (por el nombre de cada fichero).
 
 ## Proyectos
 

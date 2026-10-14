@@ -223,6 +223,9 @@ describe("autotest de las redefiniciones (#481, revisión M1)", () => {
     expect(p({ desde: "hoy" })).toMatch(/desde que no es AAAA-MM-DD/);
     expect(p({ valor: "pausado" })).toMatch(/redefinición de un valor que no está vivo/);
     expect(p({ extra: 1 })).toMatch(/campo desconocido extra/);
+    // Un valor retirado conserva sus redefiniciones (el historial solo crece): no es «un valor que no está vivo».
+    const retirado = reg({ redefiniciones: [{ ...redef, valor: "pausado" }], retirados: [{ vocabulario: "x.estado", valor: "pausado", pasa_a: "abierto", desde: "2026-10-14" }] });
+    expect(problemasDeRetiros(retirado, act).join()).not.toMatch(/no está vivo/);
     expect(problemasDeRetiros(reg({ vocabularios_retirados: [{ vocabulario: "x.estado", desde: "2026-10-10", motivo: "Ya no se vigila este vocabulario" }] }), act).join()).toMatch(/está retirado y sigue en VOCABULARIOS/);
   });
 

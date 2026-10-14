@@ -231,7 +231,8 @@ export function problemasDeRetiros(registro, actuales) {
     for (const c of Object.keys(r)) if (!CAMPOS_REDEFINICION[tipo].includes(c)) p.push(`${id}: redefinición con campo desconocido ${c}`);
     if (!fecha(r.desde)) p.push(`${id}: redefinición con desde que no es AAAA-MM-DD`);
     if (String(r.motivo ?? "").trim().length < MIN_MOTIVO_RETIRO) p.push(`${id}: el motivo de la redefinición tiene que tener ${MIN_MOTIVO_RETIRO} caracteres o más`);
-    if (tipo === "valor" && !valoresDe(actuales[r.vocabulario]).includes(r.valor)) p.push(`${id}: redefinición de un valor que no está vivo`);
+    // Un valor retirado conserva sus redefiniciones (solo crecen, como el resto del historial); solo es error redefinir uno que ni vive ni se retiró.
+    if (tipo === "valor" && !valoresDe(actuales[r.vocabulario]).includes(r.valor) && !(registro.retirados ?? []).some((x) => x.vocabulario === r.vocabulario && x.valor === r.valor)) p.push(`${id}: redefinición de un valor que no está vivo`);
   }
   for (const r of registro.vocabularios_retirados ?? []) {
     for (const c of CAMPOS_VOCABULARIO_RETIRADO) if (!(c in r)) p.push(`vocabulario ${r.vocabulario}: retirado sin ${c}`);

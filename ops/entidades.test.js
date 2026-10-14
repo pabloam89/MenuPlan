@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import { leerGlosario, plano, prohibidosDe } from "../scripts/lib/glosario.mjs";
 import {
   CARDINALITIES, CREATORS, FAMILIES, ID_FORMATS, LEVELS, PARENT_KINDS, REGISTRIES, RELATION_CLASSES, RELATIONS, SCOPES, STATUSES, STORED_AS,
-  SUBJECT_KINDS, VERBOS_DE_CLASE, esPuente,
+  SUBJECT_KINDS, VERBOS_DE_CLASE,
 } from "../scripts/lib/entidades.mjs";
 import { TIPOS as TIPOS_DE_RECURSO } from "../scripts/lib/recursos.mjs";
 import { VOCABULARIOS, valoresActuales } from "../scripts/lib/vocabulariosVida.mjs";
@@ -70,12 +70,11 @@ export const CAMPOS_DE_EVENTO_SIN_LECTOR = {
 export const TOPE_CAMPOS_DE_EVENTO_SIN_LECTOR = 1;
 export const TOPE_SIN_LECTOR = 2;
 const REQUERIDOS = ["id", "name", "scope", "level", "family", "term", "source_of_truth", "id_format", "registry", "status", "created_by", "readers"];
-const OPCIONALES = ["role_by_scope", "note", "fields", "types"];
+const OPCIONALES = ["note", "fields", "types"];
 const CAMPOS_RELACION = ["from", "relation", "to", "class", "cardinality", "parent_kind", "stored_as", "stored_in"];
 const FORMA_ID = /^[a-z]+(-[a-z]+)*$/;
 const FORMA_ID_CAMPO = /^[a-z]+(_[a-z]+)*$/;
 const FORMA_TIPO = /^[a-z]+(-[a-z]+)*$/;
-const MAX_ROLE = 30;
 const aId = (s) => plano(s).replace(/\s+/g, "-");
 const G = leerGlosario(RAIZ);
 const termino = (g, t) => g.terminos.find((x) => x.termino === t && x.estado !== "retirado");
@@ -147,14 +146,16 @@ export function problemas(datos, { existe: hay, glosario = null, sinLector = SIN
     for (const c of REQUERIDOS) if (!(c in e)) p.push(`${q}: falta el campo ${c}`);
     if (typeof e.id !== "string" || !FORMA_ID.test(e.id)) p.push(`${q}: id sin la forma kebab en inglés (minúsculas ASCII y guiones)`);
     if (typeof e.name !== "string" || !e.name.trim()) p.push(`${q}: name vacío`);
-    if (!(e.scope in SCOPES)) p.push(`${q}: scope «${e.scope}» fuera del vocabulario`);
+    // Una entidad es de UN lado (Pablo, 14 oct 2026, #710): la clase es horizontal y sus ejemplares del proyecto van a su registro.
+    if (e.scope === "both") p.push(`${q}: scope «both» ya no existe: una entidad es de un lado (la clase es horizontal y sus ejemplares del proyecto van a ops/proyectos/<id>/)`);
+    else if (!(e.scope in SCOPES)) p.push(`${q}: scope «${e.scope}» fuera del vocabulario`);
     if (!(e.level in LEVELS)) p.push(`${q}: level «${e.level}» fuera del vocabulario`);
     if (!(e.family in FAMILIES)) p.push(`${q}: family «${e.family}» fuera del vocabulario`);
     if (!(e.registry in REGISTRIES)) p.push(`${q}: registry «${e.registry}» fuera del vocabulario`);
     if (!(e.id_format in ID_FORMATS)) p.push(`${q}: id_format «${e.id_format}» fuera del vocabulario`);
     if (!(e.status in STATUSES)) p.push(`${q}: status «${e.status}» fuera del vocabulario`);
     // Un meta o una plantilla no es de un proyecto: sería una extensión que cita su meta horizontal (N0, reglas 1 a 4).
-    if (e.level !== "piece" && e.scope === "vertical") p.push(`${q}: un ${e.level} no puede ser vertical (sería una extensión: di both y cita su meta horizontal)`);
+    if (e.level !== "piece" && e.scope === "vertical") p.push(`${q}: un ${e.level} no puede ser vertical (la clase es horizontal; el ejemplar del proyecto va a su registro y cita su meta horizontal)`);
     if (!Array.isArray(e.created_by) || e.created_by.length === 0 || new Set(e.created_by).size !== e.created_by.length || !e.created_by.every((c) => c in CREATORS)) p.push(`${q}: created_by necesita uno o más valores de CREATORS, sin repetir`);
     if (!Array.isArray(e.readers) || !e.readers.every((r) => typeof r === "string" && r.trim())) p.push(`${q}: readers tiene que ser una lista de textos`);
     else {
@@ -164,12 +165,6 @@ export function problemas(datos, { existe: hay, glosario = null, sinLector = SIN
     }
     // Una entidad que se quita se borra: no se conserva retirada (el historial queda en git).
     if (e.status === "retired") p.push(`${q}: una entidad retirada se borra del registro (el historial queda en git)`);
-    // both no es un cajón (hallazgo del revisor de #654): quien sirve a los dos lados dice qué es a cada uno.
-    if (e.scope === "both" && act && !("role_by_scope" in e)) p.push(`${q}: una entidad both dice su role_by_scope (qué es a cada lado); si no sirve a los dos, es horizontal o vertical`);
-    if ("role_by_scope" in e) {
-      if (e.scope !== "both") p.push(`${q}: role_by_scope solo va en una entidad both`);
-      if (typeof e.role_by_scope !== "string" || !e.role_by_scope.trim() || e.role_by_scope.split(/\s+/).length > MAX_ROLE) p.push(`${q}: role_by_scope vacío o de más de ${MAX_ROLE} palabras`);
-    }
     if ("types" in e) {
       if (!Array.isArray(e.types) || e.types.length === 0 || new Set(e.types).size !== e.types.length || !e.types.every((t) => FORMA_TIPO.test(t))) p.push(`${q}: types necesita ids kebab sin repetir`);
     }
@@ -329,24 +324,15 @@ describe("el registro de entidades", () => {
     for (const id of ["household", "person", "recipe", "ingredient", "menu", "pantry", "shopping-list", "lola-conversation", "account", "menu-week", "group", "chat"]) expect(E(id)?.scope, id).toBe("vertical");
   });
 
-  it("cada alcance tiene entidades y «puente» es el alcance both, calculado, no un valor", () => {
-    for (const s of Object.keys(SCOPES)) expect(DATOS.entities.filter((e) => e.status === "active" && e.scope === s).length, s).toBeGreaterThan(0);
-    expect(Object.keys(SCOPES)).toEqual(["horizontal", "vertical", "both"]);
+  it("cada entidad es de UN lado: horizontal o vertical; both ya no existe y la clase es horizontal", () => {
+    expect(Object.keys(SCOPES)).toEqual(["horizontal", "vertical"]);
     expect(Object.keys(SCOPES)).not.toContain("bridge");
-    expect(esPuente({ scope: "both" })).toBe(true);
-    expect(esPuente({ scope: "vertical" })).toBe(false);
-    // los antiguos puentes que siguen siéndolo
-    for (const id of ["environment", "event", "metric", "eval"]) expect(esPuente(E(id)), id).toBe(true);
-    // los que los datos mandaron al lado vertical (SUPER-TABLA, sección 9)
-    for (const id of ["migration", "table", "data-source", "module"]) expect(E(id).scope, id).toBe("vertical");
-  });
-
-  it("both no es un cajón: las 10 que quedan explican su doble lado, y las del proceso son horizontales", () => {
-    const both = DATOS.entities.filter((e) => e.status === "active" && e.scope === "both").map((e) => e.id).sort();
-    expect(both).toEqual(["control", "environment", "eval", "event", "metric", "norm", "principle", "resource", "vocabulary", "workflow"]);
-    for (const id of both) expect(E(id).role_by_scope, id).toMatch(/Proceso: .*Producto: |Proceso: .*Producto:/);
+    expect(Object.keys(SCOPES)).not.toContain("both");
+    for (const s of Object.keys(SCOPES)) expect(DATOS.entities.filter((e) => e.status === "active" && e.scope === s).length, s).toBeGreaterThan(0);
+    for (const e of DATOS.entities) { expect(["horizontal", "vertical"], e.id).toContain(e.scope); expect("role_by_scope" in e, e.id).toBe(false); }
+    // las 19 que estaban en duda (10 both y 9 verticales genéricas): la clase es horizontal
+    for (const id of ["environment", "event", "norm", "metric", "eval", "vocabulary", "principle", "resource", "control", "workflow", "migration", "table", "data-source", "module", "repo", "design-system", "token", "component", "pattern"]) expect(E(id).scope, id).toBe("horizontal");
     for (const id of ["issue", "case", "root-problem", "assignment", "decision", "pull-request", "branch", "agent", "agent-task", "skill", "standard", "service"]) expect(E(id).scope, id).toBe("horizontal");
-    expect(E("repo").scope).toBe("vertical");
   });
 
   it("la escala de nivel es una sola: meta, template y piece; los meta y las plantillas nunca son verticales", () => {
@@ -638,11 +624,12 @@ describe("autotest: cada regla falla con datos malos", () => {
     expect(con((d, e) => { e.term = null; })).toMatch(/solo una entidad vertical puede quedar sin term/);
   });
 
-  it("role_by_scope solo en las que son de los dos lados", () => {
-    expect(con((d, e) => { e.role_by_scope = "Algo."; })).toMatch(/role_by_scope solo va en una entidad both/);
-    expect(con((d) => { delete d.entities.find((x) => x.id === "norm").role_by_scope; })).toMatch(/norm: una entidad both dice su role_by_scope/);
-    expect(con((d) => { d.entities.find((x) => x.id === "issue").scope = "both"; })).toMatch(/issue: una entidad both dice su role_by_scope/);
-    expect(con((d) => { d.entities.find((x) => x.id === "event").role_by_scope = "palabra ".repeat(31); })).toMatch(/role_by_scope vacío o de más de 30 palabras/);
+  it("una entidad both o sin lado falla (el lado es uno solo)", () => {
+    expect(con((d) => { d.entities.find((x) => x.id === "issue").scope = "both"; })).toMatch(/issue: scope «both» ya no existe/);
+    expect(con((d) => { d.entities.find((x) => x.id === "norm").scope = "both"; })).toMatch(/norm: scope «both» ya no existe/);
+    expect(con((d) => { delete d.entities.find((x) => x.id === "event").scope; })).toMatch(/event: falta el campo scope/);
+    expect(con((d) => { d.entities.find((x) => x.id === "event").scope = null; })).toMatch(/event: scope «null» fuera del vocabulario/);
+    expect(con((d) => { d.entities.find((x) => x.id === "event").role_by_scope = "Proceso: x. Producto: y."; })).toMatch(/event: campo desconocido role_by_scope/);
   });
 
   it("relaciones a una entidad que no existe, retirada, a sí mismas o repetidas", () => {
@@ -785,7 +772,7 @@ describe("autotest de las vistas generadas", () => {
     const d = copia();
     d.entities.find((e) => e.id === "session").level = "meta";
     expect(bloque(d)).not.toBe(bloque(DATOS));
-    expect(bloque(DATOS)).toContain("| `token` | design | piece | vertical | no |");
+    expect(bloque(DATOS)).toContain("| `token` | design | piece | horizontal | agent |");
   });
 });
 
