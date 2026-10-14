@@ -42,7 +42,7 @@ describe("registro de preguntas del proyecto", () => {
 describe("la sección de CLAUDE.md sale del registro", () => {
   it("es la generada: se cambia el registro y `npm run preguntas -- --escribir`, nunca CLAUDE.md a mano", () => {
     expect(extraerSeccion(claude), "CLAUDE.md sin la sección").not.toBeNull();
-    expect(extraerSeccion(claude)).toBe(renderSeccion(datos, PROYECTO_POR_DEFECTO));
+    expect(extraerSeccion(claude), "Se cambia el registro y `npm run preguntas -- --escribir`, nunca CLAUDE.md a mano").toBe(renderSeccion(datos));
   });
 
   it("cada entrada sale una vez, bajo el rótulo de su tipo", () => {

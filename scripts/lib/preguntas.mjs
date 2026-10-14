@@ -59,15 +59,10 @@ export function problemasDePreguntas(datos, id, normas) {
 export const tituloSeccion = (datos) => `${PREFIJO_TITULO}${datos.pregunta_a}, y qué no`;
 
 /** El texto de la sección de CLAUDE.md, generado desde el registro. */
-export function renderSeccion(datos, id) {
-  const lineas = [
-    tituloSeccion(datos),
-    "",
-    // No empieza por «Generado desde»: esa cabecera marca un documento generado entero (ops/generados.test.js), y CLAUDE.md no lo es.
-    `<!-- Sección que sale de ${rutaPreguntas(id)} con \`npm run preguntas -- --escribir\`; ops/preguntas.test.js la compara, no se edita aquí. -->`,
-    "",
-    datos.criterio,
-  ];
+export function renderSeccion(datos) {
+  // Sin comentario de «generado» dentro: CLAUDE.md tiene tope de caracteres (ops/topes.json) y la cabecera «Generado
+  // desde» marca un documento generado entero (ops/generados.test.js). Quien la edite a mano, lo sabe por el test.
+  const lineas = [tituloSeccion(datos), "", datos.criterio];
   for (const [tipo, rotulo] of Object.entries(TIPOS_DE_ENTRADA)) {
     lineas.push("", rotulo, "");
     for (const e of datos.entradas.filter((x) => x.tipo === tipo)) lineas.push(`- ${e.texto}`);
@@ -93,10 +88,10 @@ export function conSeccion(md, seccion) {
 }
 
 /** Escribe la sección en CLAUDE.md. Devuelve true si cambió. */
-export function escribirSeccion(raiz, datos, id) {
+export function escribirSeccion(raiz, datos) {
   const ruta = join(raiz, RUTA_CLAUDE);
   const antes = readFileSync(ruta, "utf8");
-  const despues = conSeccion(antes, renderSeccion(datos, id));
+  const despues = conSeccion(antes, renderSeccion(datos));
   if (despues === null) throw new Error(`${RUTA_CLAUDE} no tiene la sección «${PREFIJO_TITULO}…»: no se inventa el sitio`);
   if (despues === antes.replace(/\r\n/g, "\n")) return false;
   writeFileSync(ruta, despues);

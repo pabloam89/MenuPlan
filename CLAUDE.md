@@ -221,8 +221,6 @@ ser verdad, con su control y su principio; el estándar de tarea cita normas.
 
 ## Qué se le pregunta a Pablo, y qué no
 
-<!-- Sección que sale de ops/proyectos/homenu/preguntas.json con `npm run preguntas -- --escribir`; ops/preguntas.test.js la compara, no se edita aquí. -->
-
 Pablo decidió el 8 oct de 2026 que solo se le pregunte lo **irreversible o lo que sale fuera**: cada pregunta de más le interrumpe, y casi siempre dice que sí. Preguntar algo de la segunda lista también es un fallo; se cuenta (#185).
 
 **Se pregunta y se espera el sí:**

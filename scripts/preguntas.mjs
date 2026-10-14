@@ -34,7 +34,7 @@ if (args.includes("--escribir")) {
     console.error(`CLAUDE.md es del proyecto «${PROYECTO_POR_DEFECTO}»: --escribir no va con --proyecto ${id}.`);
     process.exit(1);
   }
-  console.log(escribirSeccion(RAIZ, datos, id) ? "Sección de CLAUDE.md regenerada." : "CLAUDE.md ya estaba al día.");
+  console.log(escribirSeccion(RAIZ, datos) ? "Sección de CLAUDE.md regenerada." : "CLAUDE.md ya estaba al día.");
 } else if (args.includes("--json")) {
   console.log(JSON.stringify(datos.entradas, null, 2));
 } else {
