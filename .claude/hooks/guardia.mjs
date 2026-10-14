@@ -22,7 +22,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { AYUDA as AYUDA_CASOS, analizarCasos } from "./casos.mjs";
 import { AVISO_POR_CREDENCIAL, avisoDe } from "./avisos-guardia.mjs";
-import { credencialDeComando } from "./credenciales.mjs";
+import { credencialDeComando, sinEnvoltorio } from "./credenciales.mjs";
 import { cargarMapa, skillsDeComando, skillsDeFicheros, unirContinuaciones } from "./dominios.mjs";
 import { enStaging as enStagingTodas } from "./migraciones.mjs";
 import { esSesionDeNube, nubePosible } from "./nube.mjs";
@@ -305,7 +305,7 @@ export function carpetaDe(cmd, orden, cwd) {
 /** Git que cambia la carpeta: añadir, commitear, fusionar o cambiar de rama. */
 const GIT_QUE_ESCRIBE = /^git\s+(?:-C\s+(?:"[^"]+"|'[^']+'|\S+)\s+)?(add|commit|merge|rebase|cherry-pick|checkout|switch|reset|restore|revert|am|apply)\b/;
 /** `gh pr checkout` (y el alias `gh co`) cambia la rama igual que `git checkout` (#738, clase de #348). */
-const GH_QUE_CAMBIA_RAMA = /^gh\s+(?:(?:-R|--repo)\s+\S+\s+)?(?:pr\s+(?:checkout|co)|co)\b/;
+const GH_QUE_CAMBIA_RAMA = /^(?:node(?:\.exe)?\s+)?(?:\S*[\/])?(?:gh(?:\.exe)?|gh-shim\.mjs)\s+(?:(?:-R|--repo)\s+\S+\s+)?(?:pr\s+(?:checkout|co)|co)\b/;
 /**
  * Lo que sí vale en la principal: ponerla al día, volver a staging y deshacer lo PREPARADO
  * (`git reset` y `git reset -q`, exactos: sin --hard, --soft, --merge, rutas ni refs; no tocan
@@ -539,7 +539,7 @@ export function decidir(entrada, ctx) {
 
       // Una sesión, una carpeta: en la principal no se commitea ni se cambia de
       // rama (el 8 oct 2026 había tres sesiones trabajando a la vez en ella).
-      if (((GIT_QUE_ESCRIBE.test(o) && !GIT_DE_MANTENER.test(o)) || GH_QUE_CAMBIA_RAMA.test(o)) && ctx.esPrincipal(carpetaDe(cmd, o, entrada.cwd ?? ""))) {
+      if (((GIT_QUE_ESCRIBE.test(o) && !GIT_DE_MANTENER.test(o)) || GH_QUE_CAMBIA_RAMA.test(sinEnvoltorio(o))) && ctx.esPrincipal(carpetaDe(cmd, o, entrada.cwd ?? ""))) {
         return deny("carpeta-principal");
       }
 
