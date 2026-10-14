@@ -27,6 +27,7 @@ import { cargarMapa, skillsDeComando, skillsDeFicheros, unirContinuaciones } fro
 import { enStaging as enStagingTodas } from "./migraciones.mjs";
 import { esSesionDeNube, nubePosible } from "./nube.mjs";
 import { anotarSkill, dirSesiones, skillAnotada, tocar } from "./sesiones.mjs";
+import { esSuiteEntera } from "./suite.mjs";
 import { anotarVista, consultarZona, listaDeRamas } from "./zonas.mjs";
 
 // Cada «no» y cada pregunta es un aviso de avisos-guardia.mjs: id del aviso + datos de la acción.
@@ -376,6 +377,8 @@ export function contextoReal(raiz, entrada = {}, { dirReg: dirRegDado, env = pro
   const registro = () => (dirReg ??= dirSesiones(raiz) ?? null);
   const idSesion = entrada.session_id;
   return {
+    // En el CI la máquina es solo para los tests: allí la suite entera no se frena (#284).
+    enCI: Boolean(env.CI),
     // Zonas con dueño (#506): las otras ramas vivas que llevan este fichero, de la foto en caché.
     zonaAjena: (rutaAbs, rutaRel) => {
       try {
@@ -565,6 +568,10 @@ export function decidir(entrada, ctx) {
     // que Pablo cierre la sesión de gh y quite el manager de credenciales.
     const cred = credencialDeComando(cmd, { powershell: herramienta === "PowerShell" });
     if (cred) return deny(AVISO_POR_CREDENCIAL[cred]);
+    // #284 (caso #283): la suite entera en local, con varias sesiones a la vez, ahoga
+    // el PC de Pablo; la corre el CI de cada PR. Solo órdenes reales (suite.mjs), con
+    // la salida `MENUPLAN_SUITE_ENTERA=1` para cuando se toca algo transversal.
+    if (!ctx.enCI && esSuiteEntera(cmd)) return deny("suite-entera-en-local");
     for (const o of ordenes(cmd)) {
       for (const r of REGLAS_COMANDO) if (r.si(o)) return r.da(o);
 
