@@ -1,0 +1,19 @@
+{
+  "termino": "flujo de primeros pasos",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Un flujo de usuario que guía a una persona nueva por lo esencial para que empiece a sacar valor de la aplicación.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "flujo de usuario",
+  "entidades": [
+    {
+      "entidad": "flow",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "onboarding"
+}

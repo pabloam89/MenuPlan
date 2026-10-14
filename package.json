@@ -49,6 +49,7 @@
     "redaccion": "node scripts/redaccion.mjs",
     "topes": "node scripts/topes.mjs",
     "glosario": "node scripts/glosario.mjs",
+    "taxonomia": "node scripts/diseno/taxonomia.mjs",
     "principios": "node scripts/principios.mjs",
     "principios-casa": "node scripts/principios-casa.mjs",
     "higiene-skills": "node scripts/higiene-skills.mjs",

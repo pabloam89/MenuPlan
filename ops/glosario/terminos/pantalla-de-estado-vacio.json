@@ -1,0 +1,19 @@
+{
+  "termino": "pantalla de estado vacío",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Una pantalla que explica por qué no hay nada que mostrar todavía y cómo llenarla.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "pantalla",
+  "entidades": [
+    {
+      "entidad": "screen",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "empty-state"
+}

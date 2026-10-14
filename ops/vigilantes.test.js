@@ -163,6 +163,8 @@ const TABLA = [
   ["inventario-vertical", "scripts/lib/inventarioVertical.mjs", "ops/inventario-vertical.test.js"],
   ["vigilante-lados", "ops/techos-lados.json", "ops/vigilante-lados.test.js"],
   ["vigilante-lados", "scripts/lib/vigilanteLados.mjs", "ops/vigilante-lados.test.js"],
+  ["taxonomia-de-diseno", "ops/diseno/taxonomia.json", "ops/diseno/taxonomia.test.js"],
+  ["taxonomia-de-diseno", "scripts/lib/taxonomiaDiseno.mjs", "ops/diseno/taxonomia.test.js"],
 ];
 
 describe("tabla: ruta de ejemplo → vigilante que debe salir", () => {

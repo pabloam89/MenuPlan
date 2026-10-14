@@ -1,0 +1,20 @@
+{
+  "termino": "pantalla de vetar personas",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Una pantalla que permite vetar a una persona o a una cuenta para que no pueda interactuar con la propia.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "pantalla",
+  "entidades": [
+    {
+      "entidad": "screen",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "ban-and-block",
+  "nota": "Antes «pantalla de bloqueo»: se leía como el bloqueo del teléfono. Es vetar a otra persona."
+}

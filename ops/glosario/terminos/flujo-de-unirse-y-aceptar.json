@@ -1,0 +1,19 @@
+{
+  "termino": "flujo de unirse y aceptar",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Un flujo de usuario que lleva a la persona a entrar en un grupo o a aceptar una invitación.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "flujo de usuario",
+  "entidades": [
+    {
+      "entidad": "flow",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "joining-and-accepting"
+}

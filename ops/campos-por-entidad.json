@@ -244,6 +244,24 @@
     "pattern": {
       "sin_fuente": "Prosa de DESIGN_SYSTEM.md"
     },
+    "screen": {
+      "ficheros": [
+        {
+          "tipo": "json",
+          "ruta": "ops/diseno/taxonomia.json",
+          "registros": "pantalla"
+        }
+      ]
+    },
+    "flow": {
+      "ficheros": [
+        {
+          "tipo": "json",
+          "ruta": "ops/diseno/taxonomia.json",
+          "registros": "flujo"
+        }
+      ]
+    },
     "assignment-type": {
       "ficheros": [
         {

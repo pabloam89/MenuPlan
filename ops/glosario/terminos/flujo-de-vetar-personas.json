@@ -1,0 +1,20 @@
+{
+  "termino": "flujo de vetar personas",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Un flujo de usuario que lleva a la persona a vetar a otra persona o cuenta para que no pueda interactuar con la propia.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "flujo de usuario",
+  "entidades": [
+    {
+      "entidad": "flow",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "banning-and-blocking",
+  "nota": "Antes «flujo de bloqueo»: se leía como el bloqueo del teléfono. Es vetar a otra persona."
+}

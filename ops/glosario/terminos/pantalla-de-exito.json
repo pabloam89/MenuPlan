@@ -1,0 +1,19 @@
+{
+  "termino": "pantalla de éxito",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Una pantalla que confirma que una acción ha terminado bien y dice qué viene después.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "pantalla",
+  "entidades": [
+    {
+      "entidad": "screen",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "acknowledgement-and-success"
+}

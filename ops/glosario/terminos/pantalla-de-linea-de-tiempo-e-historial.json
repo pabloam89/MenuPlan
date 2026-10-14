@@ -1,0 +1,19 @@
+{
+  "termino": "pantalla de línea de tiempo e historial",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Una pantalla que muestra, por orden de fecha, lo que ha ocurrido.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "pantalla",
+  "entidades": [
+    {
+      "entidad": "screen",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "timeline-and-history"
+}

@@ -10,6 +10,13 @@
       "evidencia": "#557 (revisor: el cruce solo miraba nombres de agente); #640 (los tipos se unen al presupuesto)"
     },
     {
+      "id": "taxonomia-de-diseno",
+      "tests": ["ops/diseno/taxonomia.test.js"],
+      "mira": ["ops/diseno/taxonomia.json", "ops/diseno/bloques.json", "ops/glosario/terminos/*.json", "scripts/lib/taxonomiaDiseno.mjs", "scripts/lib/glosario.mjs", "docs/diseno/META-DISENO.md"],
+      "porque": "Los tres vocabularios de la taxonomía de diseño (tipos de pantalla, de elemento y de flujo) y el glosario se vinculan en los dos sentidos: cada tipo es el en de un término activo de clase tipo, y cada término de tipo tiene su fila; un término nuevo o retirado del glosario, o un perfil que cambia en bloques.json, rompe un test que está lejos de lo que tocas.",
+      "evidencia": "#776 (línea 1 de #774: el vínculo en los dos sentidos que pidió Pablo, como #744 y #750)"
+    },
+    {
       "id": "procesos-ocultos",
       "tests": ["ops/procesosOcultos.test.js"],
       "mira": [".claude/hooks/**/*.{js,mjs,cjs}", "scripts/lib/**/*.{js,mjs,cjs}"],
