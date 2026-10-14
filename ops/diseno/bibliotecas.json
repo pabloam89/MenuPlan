@@ -1,5 +1,5 @@
 {
-  "_": "El pool de bibliotecas de interfaz por elemento (#780, línea 2 del programa #774; esquema limpio en #788): una ficha por biblioteca de terceros que puede elegirse (`candidate`) o que está descartada (`retired`), con los campos del bloque Q de docs/diseno/META-DISENO.md más lo que añade esta línea (requisitos de stack, accesibilidad que declara, y qué elementos de la taxonomía cubre). Solo datos: no instala nada ni toca ninguna app; elegir una biblioteca es elegir tecnología y eso es de cada proyecto (línea 4). Los datos salen del dossier de investigación del comentario de #780 (lectura del 14 oct 2026); el peso en kB no se mide aquí: se mide al elegir, al construir el proyecto. Una sola marca para lo que no se ha comprobado: `unverified`, nunca relleno por intuición. Un valor aparte, `not-applicable`, dice que el dato no corresponde a esa biblioteca (react.estado de una biblioteca que no es de React; version y peso.dependencias de una que no se instala como paquete). `null` no es «no sé»: solo dice que algo no existe (sin URL de fuente, sin sucesora, sin tope de React, sin retirada) y va siempre con la regla que lo explica en el test. El pool no guarda hechos de un proyecto: que un proyecto use una biblioteca y cómo la importa (paquete con versión fijada o ficheros copiados al repositorio), el envoltorio y las reglas de uso son `decide_el_proyecto`, con los nombres que tienen en el bloque Q, y los decide cada proyecto en su especificación (línea 4). La madurez de una pieza (`propuesto` a `retirado`) es del ciclo de vida de bloques.json, no de este vínculo. Los ids de vocabulario son inglés kebab en minúsculas (#566); los nombres de campo, en castellano como en la taxonomía. Campos de la ficha: id, nombre, rol, vinculo, mantenimiento (con mantenimiento_fuente), ultimo_push (con ultimo_push_fuente), licencia (spdx, alcance, permite, y su fuente y URL; la fuente `github` o `npm` lleva una URL del patrón de lectura.patron_de_url), version, peso (dependencias y si se puede podar), react (peer declarado), requisitos (solo lo que exige del stack; la lista vacía es «no exige nada»), plataforma (vale_en con los valores de plataformas de ops/diseno/taxonomia.json, y su URL), accesibilidad (qué declara la documentación, con su URL), cubre (elementos de ops/diseno/taxonomia.json, cada uno con su base, su acceso y su fuente), motivo_sin_cobertura, alternativa (otras fichas del mismo oficio que cubren algo igual: JUICIO, no medida), retirada (motivo, sucesora y, si hay sucesora, la URL de su fuente), dueno y comprobada. `cubre.base` dice si la cobertura la comprobó una fuente (`checked`, con su URL) o es juicio por el nombre de la biblioteca (`judgement`): una cifra de cobertura por juicio no es una medida. Una biblioteca `unmaintained` o `archived` no puede ser candidata: pasa a `retired` con su motivo y su sucesora si la hay. Lo lee scripts/lib/bibliotecasDiseno.mjs; lo vigila ops/diseno/pool.test.js; las cifras, node scripts/diseno/bibliotecas.mjs. La versión de React de un proyecto no se guarda aquí: cada ficha lleva su rango y `node scripts/diseno/bibliotecas.mjs [--react x.y]` cuenta las compatibles con la de package.json al pintar la cifra.",
+  "_": "El pool de bibliotecas de interfaz por elemento (#780, línea 2 del programa #774; esquema limpio en #788): una ficha por biblioteca de terceros que puede elegirse (`candidate`) o que está descartada (`retired`), con los campos del bloque Q de docs/diseno/META-DISENO.md más lo que añade esta línea (requisitos de stack, accesibilidad que declara, y qué elementos de la taxonomía cubre). Solo datos: no instala nada ni toca ninguna app; elegir una biblioteca es elegir tecnología y eso es de cada proyecto (línea 4). Los datos salen del dossier de investigación del comentario de #780 (lectura del 14 oct 2026); el peso en kB no se mide aquí: se mide al elegir, al construir el proyecto. Las dos marcas viven una vez, con su definición, en el vocabulario `marca` (#802): `unverified` para lo que no se ha comprobado y `not-applicable` para el dato que no corresponde a esa biblioteca; ningún otro vocabulario las repite, y cada campo dice en el código cuál admite. `null` no es «no sé»: solo dice que algo no existe (sin URL de fuente, sin sucesora, sin tope de React, sin retirada) y va siempre con la regla que lo explica en el test. El pool no guarda hechos de un proyecto: que un proyecto use una biblioteca y cómo la importa (paquete con versión fijada o ficheros copiados al repositorio), el envoltorio y las reglas de uso son `decide_el_proyecto`, con los nombres que tienen en el bloque Q, y los decide cada proyecto en su especificación (línea 4). La madurez de una pieza (`propuesto` a `retirado`) es del ciclo de vida de bloques.json, no de este vínculo. Los ids de vocabulario son inglés kebab en minúsculas (#566); los nombres de campo, en castellano como en la taxonomía. Campos de la ficha: id, nombre, rol, vinculo, mantenimiento (con mantenimiento_fuente), ultimo_push (con ultimo_push_fuente), licencia (spdx, alcance, permite, y su fuente y URL; la fuente `github` o `npm` lleva una URL del patrón de lectura.patron_de_url), version, peso (dependencias y si se puede podar), react (peer declarado), requisitos (solo lo que exige del stack; la lista vacía es «no exige nada»), plataforma (vale_en con los valores de plataformas de ops/diseno/taxonomia.json, y su URL), accesibilidad (qué declara la documentación, con su URL), cubre (elementos de ops/diseno/taxonomia.json, cada uno con su base, su acceso y su fuente), motivo_sin_cobertura, alternativa (otras fichas del mismo oficio que cubren algo igual: JUICIO, no medida), retirada (motivo, sucesora y, si hay sucesora, la URL de su fuente), dueno y comprobada. `cubre.base` dice si la cobertura la comprobó una fuente (`checked`, con su URL) o es juicio por el nombre de la biblioteca (`judgement`): una cifra de cobertura por juicio no es una medida. Una biblioteca `unmaintained` o `archived` no puede ser candidata: pasa a `retired` con su motivo y su sucesora si la hay. Lo lee scripts/lib/bibliotecasDiseno.mjs; lo vigila ops/diseno/pool.test.js; las cifras, node scripts/diseno/bibliotecas.mjs. La versión de React de un proyecto no se guarda aquí: cada ficha lleva su rango y `node scripts/diseno/bibliotecas.mjs [--react x.y]` cuenta las compatibles con la de package.json al pintar la cifra.",
   "lectura": {
     "fecha": "2026-10-14",
     "dossier": "https://github.com/pabloam89/MenuPlan/issues/780#issuecomment-6165019619",
@@ -19,8 +19,7 @@
       "full-kit": "Kit completo de componentes con estilo propio",
       "single-piece": "Una sola pieza concreta: tabla, cajón, toast, menú de comandos o carrusel",
       "css-only": "Clases o hojas de estilo, sin componentes",
-      "icons": "Familia de iconos",
-      "unverified": "No se ha comprobado qué piezas da (el dossier no lo dice)"
+      "icons": "Familia de iconos"
     },
     "vinculo": {
       "candidate": "Puede elegirse para un proyecto",
@@ -31,8 +30,7 @@
       "slow": "Con actividad, pero más lenta",
       "idle": "Sin actividad en un año; no se ha comprobado si es abandono",
       "unmaintained": "Su propio README dice que no se mantiene",
-      "archived": "Archivada en GitHub",
-      "unverified": "No se ha comprobado"
+      "archived": "Archivada en GitHub"
     },
     "fuente_de_dato": {
       "github": "El repositorio en GitHub, por su API: licencia SPDX, archived, pushed_at y el README",
@@ -41,25 +39,20 @@
     },
     "licencia_alcance": {
       "package": "La licencia vale para todo el paquete",
-      "core-only": "La licencia vale solo para el núcleo; hay un nivel de pago aparte",
-      "unverified": "No se ha comprobado"
+      "core-only": "La licencia vale solo para el núcleo; hay un nivel de pago aparte"
     },
     "declaracion": {
       "yes": "La fuente lo declara",
-      "no": "La fuente dice que no",
-      "unverified": "No se ha comprobado"
+      "no": "La fuente dice que no"
     },
     "react_estado": {
       "declared": "El paquete declara una versión de React (desde, hasta)",
-      "undeclared": "El paquete no declara versión de React",
-      "not-applicable": "No es una biblioteca de React",
-      "unverified": "No se ha comprobado"
+      "undeclared": "El paquete no declara versión de React"
     },
     "requisito": {
       "react": "Necesita React",
       "tailwind": "Necesita Tailwind, o está pensada para él",
-      "emotion": "Necesita Emotion, una biblioteca de estilos que se suma a las dependencias",
-      "unverified": "No se ha comprobado qué exige"
+      "emotion": "Necesita Emotion, una biblioteca de estilos que se suma a las dependencias"
     },
     "base_de_cobertura": {
       "checked": "Una fuente dice que la biblioteca cubre ese elemento (lleva su URL)",
@@ -67,13 +60,16 @@
     },
     "acceso": {
       "free": "Sin coste en la licencia leída",
-      "paid": "De pago, por asiento y sin redistribuir",
-      "unverified": "No se ha comprobado"
+      "paid": "De pago, por asiento y sin redistribuir"
     },
     "origen_de_alcance": {
       "mobbin-count": "Entre los 15 elementos con más ejemplos en el recuento de la fuente de la taxonomía, sin contar el grupo de imagen",
       "encargo": "Elegido en el encargo entre los más comunes por el recuento, fuera de esos 15",
       "panel": "Lo necesita el panel de la factoría, el primer proyecto"
+    },
+    "marca": {
+      "unverified": "No se ha comprobado: la fuente no se leyó o no lo dice. Nunca se rellena por intuición",
+      "not-applicable": "El dato no corresponde a esta biblioteca: react.estado de una que no es de React; version y peso.dependencias de una que no se instala como paquete"
     }
   },
   "alcance": [
@@ -703,9 +699,9 @@
         "fuente": "github",
         "fuente_url": "https://api.github.com/repos/shadcn-ui/ui"
       },
-      "version": "not-applicable",
+      "version": "unverified",
       "peso": {
-        "dependencias": "not-applicable",
+        "dependencias": "unverified",
         "podable": "unverified"
       },
       "react": {
