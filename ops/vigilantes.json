@@ -67,6 +67,13 @@
       "amplio": true
     },
     {
+      "id": "carpeta-del-shim",
+      "tests": ["scripts/ghShim.test.js"],
+      "mira": ["scripts/bin/**", "scripts/gh-shim.mjs"],
+      "porque": "scripts/bin va delante en el PATH de las sesiones: solo puede contener el shim de gh, ejecutable en git; algo más lo taparía a otra orden.",
+      "evidencia": "#719"
+    },
+    {
       "id": "errores-tragados-bot",
       "tests": ["api/_bot/sinErroresTragados.test.js"],
       "mira": ["api/_bot/**/*.{js,mjs,cjs,jsx}", "api/bot/**/*.{js,mjs,cjs,jsx}"],
@@ -145,8 +152,8 @@
     },
     {
       "id": "glosario",
-      "tests": ["ops/glosario.test.js", "ops/glosario-dominios.test.js", "ops/glosario-mapeo.test.js", "scripts/higiene-vocabulario.test.js"],
-      "mira": ["scripts/lib/glosario*.mjs", "ops/entidades.json", "ops/glosario/**", "ops/glosario-excepciones/**", ".claude/skills/**/*.md", ".claude/PLANTILLA-*.md", ".claude/agents/*.md", ".claude/rules/*.md", "CLAUDE.md", "docs/ops/*.md", ".claude/commands/*.md", "ops/estandares-agentes.json", "ops/normas.json", "ops/proyectos/*/normas.json"],
+      "tests": ["ops/glosario.test.js", "ops/glosario-dominios.test.js", "ops/glosario-mapeo.test.js", "ops/glosario-conexion.test.js", "scripts/higiene-vocabulario.test.js"],
+      "mira": ["scripts/lib/glosario*.mjs", "scripts/lib/forja.mjs", "ops/forja/campos_ficha/*.json", "ops/entidades.json", "ops/glosario/**", "ops/glosario-excepciones/**", ".claude/skills/**/*.md", ".claude/PLANTILLA-*.md", ".claude/agents/*.md", ".claude/rules/*.md", "CLAUDE.md", "docs/ops/*.md", ".claude/commands/*.md", "ops/estandares-agentes.json", "ops/normas.json", "ops/proyectos/*/normas.json"],
       "porque": "Las zonas del glosario no usan un término prohibido ni lo definen dos veces."
     },
     {

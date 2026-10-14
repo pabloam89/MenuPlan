@@ -19,7 +19,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { leerCatalogo } from "./lib/catalogos.mjs";
 import { ficherosDe, leerGlosario, medir, patronDe, plano, prosaDeJson, prosaDeMarkdown } from "./lib/glosario.mjs";
 import { leerRegistro } from "./lib/normas.mjs";
-import { leerForja } from "./lib/forja.mjs";
+import { leerForja, vinculosDeCampos } from "./lib/forja.mjs";
 import { leerEstandares, normasPorConsulta, reglasDelCatalogo, tareasDe } from "./lib/estandaresAgentes.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -345,21 +345,14 @@ function seccionConexion() {
   linea("…con `term` que existe en el glosario (ya lo vigila ops/entidades.test.js)", ent.filter((e) => e.term && g.terminos.some((t) => t.termino === e.term && t.estado !== "retirado")).length);
   linea("…sin `term` (todas verticales)", ent.filter((e) => !e.term).map((e) => e.id).join(", "));
   const dir = join(RAIZ, "ops/forja/campos_ficha");
-  let campos = 0;
-  let conTermino = 0;
-  const sin = [];
-  for (const f of readdirSync(dir)) {
-    const ficha = JSON.parse(readFileSync(join(dir, f), "utf8")).valor;
-    for (const c of Object.keys(ficha.campos)) {
-      campos += 1;
-      if (nombres.has(sinTilde(c))) conTermino += 1;
-      else sin.push(`${f.replace(".json", "")}.${c}`);
-    }
-  }
-  linea("campos de las 5 fichas de la forja", campos);
-  linea("…cuyo nombre es ya un término activo del glosario", conTermino);
-  linea("…sin término del mismo nombre", sin.join(", "));
   const forja = leerForja(RAIZ);
+  // Desde #744 se mide el vínculo (la clave `termino` de cada campo), no que el nombre del campo se parezca a un término.
+  // El «6 de 45» anterior contaba los campos cuyo nombre coincidía con un término: medía otra cosa.
+  const v = vinculosDeCampos(forja, g.terminos);
+  linea("campos de las fichas de la forja", v.campos);
+  linea("…con vínculo: su `termino` es un término activo del glosario de clase campo", `${v.conVinculo} de ${v.campos}`);
+  linea("…sin vínculo (campo: motivo)", v.problemas.join("; ") || "ninguno");
+  linea("…(dato aparte, ya no es la medida) campos cuyo nombre coincide con un término", Object.values(forja.campos_ficha).flatMap((d) => Object.keys(d.campos)).filter((c) => nombres.has(sinTilde(c))).length);
   linea("artefactos de la forja (campos_ficha)", readdirSync(dir).length);
   linea("tipos de skill de la forja", (forja.tipos_skill ?? []).length);
 }

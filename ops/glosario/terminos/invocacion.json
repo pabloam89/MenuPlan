@@ -1,0 +1,15 @@
+{
+  "termino": "invocación",
+  "estado": "activo",
+  "clase": "campo",
+  "dominio": "base",
+  "definicion": "Una forma de vocabulario cerrado que dice cómo se carga una skill: por su descripción, por la guardia o precargada en un agente.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "libertad",
+    "skill"
+  ]
+}
