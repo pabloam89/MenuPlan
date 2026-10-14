@@ -1,0 +1,40 @@
+{
+  "_": "Los tests que pueden leer el CLAUDE.md del repo (#690, D3 de docs/ops/CLAUDE-MD-AFIRMACIONES.md). Un test que fija texto en CLAUDE.md obliga a dejar ahí una copia de lo que vive en otro registro, y CLAUDE.md es un índice corto: un test comprueba su fuente (la cabecera de los agentes, el mapa de skills, la norma, la skill), no la copia. Solo se quedan los punteros del índice. Lo vigila ops/claude-md-anclas.test.js: todo test que lee CLAUDE.md está aquí con su porqué, y toda fila sigue leyéndolo. Añadir una fila es una decisión que mira el revisor: ¿lo que fija es un puntero del índice o una copia? Dueño: gobierno.",
+  "anclas": [
+    {
+      "test": "ops/flujo.test.js",
+      "fija": "CLAUDE.md apunta a docs/ops/FLUJO.md y no copia las definiciones de cada respuesta del análisis",
+      "porque": "Puntero del índice (fila 115 de docs/ops/CLAUDE-MD-AFIRMACIONES.md, veredicto indice); lo que comprueba en negativo impide la copia"
+    },
+    {
+      "test": "ops/glosario.test.js",
+      "fija": "CLAUDE.md dice que las palabras de proceso salen de ops/glosario/",
+      "porque": "Puntero del índice («Pensar en datos», fila 84, veredicto indice)"
+    },
+    {
+      "test": "ops/principios.test.js",
+      "fija": "CLAUDE.md apunta a la lista única de principios y cada id que nombra existe",
+      "porque": "Puntero del índice («Pensar en datos», fila 84, veredicto indice)"
+    },
+    {
+      "test": "scripts/hora.test.js",
+      "fija": "CLAUDE.md nombra npm run hora y tiene la sección «Pensar en datos»",
+      "porque": "Puntero del índice (fila 84, veredicto indice); la hora es la trampa que más ha costado (#210)"
+    },
+    {
+      "test": ".claude/voz.test.js",
+      "fija": "La sección de voz de CLAUDE.md apunta a la skill estilo-de-respuesta, es corta y no copia sus reglas; trae inline la primera línea en negrita",
+      "porque": "Puntero del índice (fila 59, veredicto indice): la sesión sin --agent no trae la skill precargada. Quién habla con Pablo y la frase del informe ya no se fijan aquí (filas 58 y 60)"
+    },
+    {
+      "test": ".claude/plantillas-skill.test.js",
+      "fija": "Nada: solo comprueba que CLAUDE.md no diga respuestas_tipo (not.toContain)",
+      "porque": "Una comprobación negativa no obliga a copiar nada; impide una copia vieja"
+    },
+    {
+      "test": "ops/preguntas.test.js",
+      "fija": "La sección «Qué se le pregunta a Pablo, y qué no» de CLAUDE.md es la que sale de ops/proyectos/homenu/preguntas.json, y el orquestador no la copia",
+      "porque": "No fija una copia: compara la sección generada con su registro, que es la fuente única (#816; filas 86-101 de docs/ops/CLAUDE-MD-AFIRMACIONES.md, veredicto mover)"
+    }
+  ]
+}

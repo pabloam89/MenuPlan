@@ -42,6 +42,7 @@
     "buscar": "node scripts/buscar.mjs",
     "normas": "node scripts/normas.mjs",
     "planos": "node scripts/planos.mjs",
+    "preguntas": "node scripts/preguntas.mjs",
     "flujo": "node scripts/flujo.mjs",
     "voz": "node scripts/voz.mjs",
     "forja": "node scripts/forja.mjs",

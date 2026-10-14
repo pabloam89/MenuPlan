@@ -17,6 +17,13 @@
       "evidencia": "#642 (cableado duro, decidido por Pablo el 12 oct 2026)"
     },
     {
+      "id": "preguntas-del-proyecto",
+      "tests": ["ops/preguntas.test.js"],
+      "mira": ["ops/proyectos/*/preguntas.json", "ops/proyectos/*/normas.json", "ops/normas.json", "CLAUDE.md", ".claude/agents/orquestador.md", "scripts/lib/preguntas.mjs", "scripts/lib/zonasProyecto.mjs"],
+      "porque": "Qué se le pregunta al dueño del proyecto vive en un registro por proyecto: cada entrada cita una norma que debe existir, la sección de CLAUDE.md sale de él y el orquestador lo lee sin copiar la lista; borrar o renombrar una norma, editar CLAUDE.md a mano o copiar la lista en el orquestador rompe el vínculo.",
+      "evidencia": "#816, encargo de #690 (acuerdo con Pablo del 14 oct 2026: una sola fuente, como dato del proyecto)"
+    },
+    {
       "id": "taxonomia-de-diseno",
       "tests": ["ops/diseno/taxonomia.test.js"],
       "mira": ["ops/diseno/taxonomia.json", "ops/diseno/bloques.json", "ops/glosario/terminos/*.json", "scripts/lib/taxonomiaDiseno.mjs", "scripts/lib/glosario.mjs", "docs/diseno/META-DISENO.md"],
@@ -78,6 +85,13 @@
       "mira": ["**/*.test.{js,mjs,jsx}", "scripts/lib/medirTiempo.mjs"],
       "porque": "Todo test que compara una duración con un tope mide con scripts/lib/medirTiempo.mjs (mediana y tope de 20× sobre lo medido suelto) o lleva la marca `// tiempo: margen Nx medido AAAA-MM-DD`: un tope fijo sin margen da rojos falsos cuando varias sesiones corren tests a la vez.",
       "evidencia": "#499, #407, #307"
+    },
+    {
+      "id": "claude-md-anclas",
+      "tests": ["ops/claude-md-anclas.test.js"],
+      "mira": ["**/*.test.{js,mjs,jsx}", "ops/claude-md-anclas.json"],
+      "porque": "Ningún test lee CLAUDE.md para fijar en él una copia de lo que vive en otro registro, salvo los punteros del índice de ops/claude-md-anclas.json: un test nuevo que lo lea, en cualquier carpeta, rompe este vigilante lejos de lo que tocas.",
+      "evidencia": "#690 (D3 de docs/ops/CLAUDE-MD-AFIRMACIONES.md)"
     },
     {
       "id": "errores-tragados-scripts",

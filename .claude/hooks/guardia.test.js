@@ -52,6 +52,52 @@ describe("main es producción", () => {
   ])("deja pasar %s", (c) => expect(bash(c)).toBe(null));
 });
 
+describe("la foto de los issues solo la escribe su workflow (#326)", () => {
+  it.each([
+    "gh release upload foto-issues issues.json --clobber",
+    "node scripts/token-sesion.mjs -- gh release upload foto-issues /tmp/issues.json --clobber --repo pabloam89/MenuPlan",
+    "gh -R pabloam89/MenuPlan release delete foto-issues --yes",
+    "gh release delete-asset foto-issues issues.json",
+    'gh release edit "foto-issues" --latest',
+    "gh release create foto-issues x.json --prerelease",
+    "GH_PAGER= gh release upload foto-issues f.json",
+    "gh api -X DELETE repos/pabloam89/MenuPlan/releases/123",
+    "gh api --method PATCH repos/pabloam89/MenuPlan/releases/123 -f body=x",
+    "gh api repos/pabloam89/MenuPlan/releases -f tag_name=foto-issues",
+    "gh api -X POST https://uploads.github.com/repos/pabloam89/MenuPlan/releases/1/assets?name=issues.json --input f.json",
+    "gh api -X DELETE repos/pabloam89/MenuPlan/git/refs/tags/foto-issues",
+    "git push origin foto-issues",
+    "git push origin :refs/tags/foto-issues",
+    "git push --force origin +refs/tags/foto-issues",
+    "git push origin --delete foto-issues",
+    "node scripts/token-sesion.mjs -- git push origin HEAD:refs/tags/foto-issues",
+    "gh release --repo=pabloam89/MenuPlan upload foto-issues f.json --clobber",
+    "gh release -R pabloam89/MenuPlan upload foto-issues f.json",
+    "gh --repo=pabloam89/MenuPlan release delete foto-issues --yes",
+    "gh api repos/pabloam89/MenuPlan/git/refs -f ref=refs/tags/foto-issues -f sha=abc",
+  ])("deniega %s", (c) => expect(bash(c)).toBe("deny"));
+
+  it.each([
+    "gh release view foto-issues",
+    "gh release download foto-issues -p issues.json -D /tmp/x",
+    "node scripts/token-sesion.mjs -- gh release download foto-issues --pattern issues.json",
+    "gh api repos/pabloam89/MenuPlan/releases/tags/foto-issues",
+    "gh api -X GET repos/pabloam89/MenuPlan/releases -f per_page=5",
+    "git push -u origin ops/foto-issues",
+    "node scripts/token-sesion.mjs -- git push origin ops/foto-issues",
+    "gh release upload v1.2 notas.zip",
+    "curl -sSL https://github.com/pabloam89/MenuPlan/releases/download/foto-issues/issues.json",
+    // la URL de la foto citada en el cuerpo de un comentario no es escribir en la release
+    'gh api repos/pabloam89/MenuPlan/issues/5/comments -f body="mira https://github.com/pabloam89/MenuPlan/releases/download/foto-issues/issues.json"',
+    "gh release -R pabloam89/MenuPlan view foto-issues",
+  ])("deja pasar %s", (c) => expect(bash(c)).toBe(null));
+
+  it("el aviso dice cómo rehacerla sin tocarla", () => {
+    const r = decidir({ tool_name: "Bash", tool_input: { command: "gh release upload foto-issues f.json --clobber" } }, ctx());
+    expect(r.motivo ?? JSON.stringify(r)).toMatch(/gh workflow run foto-issues\.yml/);
+  });
+});
+
 describe("a staging solo por PR", () => {
   it.each(["git push origin staging", "git push origin HEAD:staging", "git push --force origin staging", "git push origin datos/x:staging"])(
     "deniega %s",

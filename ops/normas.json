@@ -2999,6 +2999,37 @@
       ]
     },
     {
+      "id": "foto-de-issues-solo-workflow",
+      "nombre": "Foto de issues solo automática",
+      "sujeto": "sesion",
+      "fuerza": "no_debe",
+      "exigencia": "subir, editar ni borrar la foto de los issues (release foto-issues o su tag): solo la escribe su workflow",
+      "nota": "Los scripts se fían de lo que trae, también del autor de cada comentario; una foto subida a mano o por un texto inyectado lo falsificaría (#326). Filtro de buena fe: la App puede escribir releases.",
+      "donde": [
+        ".claude/hooks/guardia.mjs"
+      ],
+      "ejecutor": "guardia",
+      "alcance": "solo_claude",
+      "ante_fallo": "abierto",
+      "control": ".claude/hooks/guardia.test.js",
+      "control_tipo": "test",
+      "control_procesador": "codigo",
+      "control_fuerza": "bloquea",
+      "control_momento": "editar",
+      "control_que_mira": "comportamiento",
+      "control_cobertura": "parcial",
+      "veredicto": "semidura",
+      "riesgo": "medio",
+      "issue": 326,
+      "principio": "untamperable-trail",
+      "ambito": "process",
+      "lado": "horizontal",
+      "concepto": "security",
+      "acciones": [
+        "operar"
+      ]
+    },
+    {
       "id": "migracion-numero-libre",
       "nombre": "Número de migración libre",
       "sujeto": "migracion",
