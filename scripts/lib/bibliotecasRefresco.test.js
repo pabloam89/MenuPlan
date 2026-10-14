@@ -3,7 +3,6 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { agentesDe } from "./agentes.mjs";
 import { leerBibliotecas, leerBloques, problemasDeBibliotecas } from "./bibliotecasDiseno.mjs";
 import { camposRefrescables, compararFicha, lineasDeInforme, medirGithub, medirNpm, origenesDe, rangoDeReact, refrescarPool, repoDeNpm } from "./bibliotecasRefresco.mjs";
 import { leerTaxonomia } from "./taxonomiaDiseno.mjs";
@@ -121,7 +120,7 @@ describe("refrescarPool", () => {
 
   it("el pool resultante sigue pasando el test del pool", async () => {
     const { datos } = await refrescarPool(pool, leer, HOY);
-    const problemas = problemasDeBibliotecas(datos, leerTaxonomia(RAIZ), Object.keys(agentesDe(RAIZ)), leerBloques(RAIZ));
+    const problemas = problemasDeBibliotecas(datos, leerTaxonomia(RAIZ), [...new Set(pool.bibliotecas.map((f) => f.dueno))], leerBloques(RAIZ));
     expect(problemas).toEqual([]);
   });
 
