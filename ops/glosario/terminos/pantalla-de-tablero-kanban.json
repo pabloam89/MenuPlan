@@ -1,0 +1,19 @@
+{
+  "termino": "pantalla de tablero kanban",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Una pantalla que ordena tareas en columnas según su estado y deja moverlas entre ellas.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "pantalla",
+  "entidades": [
+    {
+      "entidad": "screen",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "kanban-board"
+}

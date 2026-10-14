@@ -1,0 +1,19 @@
+{
+  "termino": "pantalla de inicio de sesión",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Una pantalla que pide las credenciales para entrar en una cuenta que ya existe.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "pantalla",
+  "entidades": [
+    {
+      "entidad": "screen",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "login"
+}

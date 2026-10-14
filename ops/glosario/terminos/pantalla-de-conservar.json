@@ -1,0 +1,19 @@
+{
+  "termino": "pantalla de conservar",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Una pantalla que permite conservar algo y elegir dónde queda.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "pantalla",
+  "entidades": [
+    {
+      "entidad": "screen",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "save"
+}

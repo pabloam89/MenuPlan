@@ -1,0 +1,19 @@
+{
+  "termino": "flujo de cambio de vista",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Un flujo de usuario que lleva a la persona a ver los mismos datos de otra forma, como lista o cuadrícula.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "flujo de usuario",
+  "entidades": [
+    {
+      "entidad": "flow",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "switching-view"
+}

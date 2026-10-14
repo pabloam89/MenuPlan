@@ -1,0 +1,19 @@
+{
+  "termino": "pantalla de dibujo y anotación",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Una pantalla que permite dibujar o escribir encima de una imagen o de un documento.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "pantalla",
+  "entidades": [
+    {
+      "entidad": "screen",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "draw-and-annotate"
+}

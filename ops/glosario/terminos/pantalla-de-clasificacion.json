@@ -1,0 +1,19 @@
+{
+  "termino": "pantalla de clasificación",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Una pantalla que ordena a las personas por puntos o por resultados.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "pantalla",
+  "entidades": [
+    {
+      "entidad": "screen",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "leaderboard"
+}

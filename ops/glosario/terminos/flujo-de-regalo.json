@@ -1,0 +1,19 @@
+{
+  "termino": "flujo de regalo",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Un flujo de usuario que lleva a la persona a enviar un regalo a otra.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "flujo de usuario",
+  "entidades": [
+    {
+      "entidad": "flow",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "gifting"
+}

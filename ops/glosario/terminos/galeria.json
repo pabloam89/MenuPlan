@@ -1,0 +1,19 @@
+{
+  "termino": "galería",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Un elemento de interfaz en cuadrícula o secuencia que muestra imágenes y las abre a mayor tamaño.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "elemento de interfaz",
+  "entidades": [
+    {
+      "entidad": "component",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "gallery"
+}

@@ -1,0 +1,19 @@
+{
+  "termino": "pantalla de perfil de otra persona o grupo",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Una pantalla que presenta a otra persona o a un grupo con su foto, su descripción y su actividad.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "pantalla",
+  "entidades": [
+    {
+      "entidad": "screen",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "user-or-group-profile"
+}

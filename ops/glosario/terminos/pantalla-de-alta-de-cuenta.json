@@ -1,0 +1,20 @@
+{
+  "termino": "pantalla de alta de cuenta",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Una pantalla que pide los datos necesarios para dar de alta una cuenta nueva.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "pantalla",
+  "entidades": [
+    {
+      "entidad": "screen",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "signup",
+  "nota": "Antes «pantalla de registro»: «registrar» ya significa apuntar algo en un sitio que se puede contar (ver «registrar»). Aquí es darse de alta."
+}

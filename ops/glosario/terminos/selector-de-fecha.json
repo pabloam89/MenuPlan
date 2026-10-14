@@ -1,0 +1,19 @@
+{
+  "termino": "selector de fecha",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Un elemento de interfaz que permite elegir un día en un calendario.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "elemento de interfaz",
+  "entidades": [
+    {
+      "entidad": "component",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "date-picker"
+}

@@ -1,0 +1,19 @@
+{
+  "termino": "cajón lateral",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Un elemento de interfaz que entra desde un lado y se cierra al tocar fuera.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "elemento de interfaz",
+  "entidades": [
+    {
+      "entidad": "component",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "drawer"
+}

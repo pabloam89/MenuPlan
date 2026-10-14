@@ -1,0 +1,23 @@
+{
+  "termino": "flujo de diario y evolución",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Un flujo de usuario que lleva a la persona a anotar datos propios y a ver su evolución con el tiempo.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "flujo de usuario",
+  "entidades": [
+    {
+      "entidad": "flow",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "logging-and-tracking",
+  "nota": "Antes «flujo de registrar y seguir»: «registrar» es apuntar en un sitio que se puede contar y «seguir» es follow, otra cosa.",
+  "relacionado": [
+    "flujo de seguir"
+  ]
+}

@@ -131,7 +131,7 @@ export const MAX_LETRAS_DE_MAS = 3;
  */
 export const FALSOS_PARIENTES = [
   ["principi", "principal"], ["constan", "constructor"], ["constan", "constata"], ["constan", "constatar"], ["guarda", "guardia"], ["guarda", "guardian"], ["contrat", "control"],
-  ["normaliz", "norma"], ["informac", "informe"],
+  ["normaliz", "norma"], ["informac", "informe"], ["ventan", "venta"], ["contrat", "contrasena"],
 ];
 
 /**

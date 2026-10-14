@@ -1,0 +1,19 @@
+{
+  "termino": "pantalla de sugerencias",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Una pantalla que propone elementos parecidos o recomendados a partir de lo que se está mirando.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "pantalla",
+  "entidades": [
+    {
+      "entidad": "screen",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "suggestions-and-similar-items"
+}

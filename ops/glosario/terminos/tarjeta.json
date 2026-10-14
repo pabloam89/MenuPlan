@@ -1,0 +1,19 @@
+{
+  "termino": "tarjeta",
+  "estado": "activo",
+  "clase": "tipo",
+  "dominio": "diseno",
+  "definicion": "Un elemento de interfaz con borde o sombra que agrupa la información de una sola cosa.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "elemento de interfaz",
+  "entidades": [
+    {
+      "entidad": "component",
+      "relacion": "tipo_de"
+    }
+  ],
+  "en": "card"
+}
