@@ -4,6 +4,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { ficherosDeGit } from "./ficherosGit.js";
 import { esVigilado } from "../scripts/lib/normas.mjs";
+import { clasificar, compilar, leerZonas } from "../scripts/lib/zonasProyecto.mjs";
 import { casa, detectarEnumeradores, elegir, faltasDeDatos, globARegex, indiceDeTests, leerVigilantes } from "../scripts/lib/vecinos.mjs";
 
 /**
@@ -23,6 +24,10 @@ const datos = leerVigilantes(RAIZ);
 const FICHEROS = ficherosDeGit(RAIZ);
 const indice = indiceDeTests(RAIZ, FICHEROS);
 const testsDe = (tocados) => elegir({ tocados, datos, indice }).tests.map((t) => t.test);
+// Un grupo es del proyecto si todos sus tests caen en la zona «producto» de ops/zonas.json: su tabla de ejemplos
+// vive en la zona del proyecto (src/vigilantesDelProyecto.test.js), porque nombra sus ficheros (#710, PR 6).
+const zonas = compilar(leerZonas(RAIZ));
+const delProyecto = (v) => v.tests.length > 0 && v.tests.every((t) => clasificar(t, zonas).zona === "producto");
 const A = (ruta) => ({ ruta, estado: "A" });
 const M = (ruta) => ({ ruta, estado: "M" });
 const D = (ruta) => ({ ruta, estado: "D" });
@@ -95,8 +100,6 @@ const TABLA = [
   ["fuentes-documentales", "ops/fuentes-documentales/fuentes/x.json", "ops/fuentes-documentales.test.js"],
   ["generados-sin-choque", "docs/ops/NUEVO.md", "ops/generados.test.js"],
   ["generados-sin-choque", ".gitattributes", "ops/generados.test.js"],
-  ["derivados-registrados", "src/design/tokens.css", "ops/derivados.test.js"],
-  ["derivados-registrados", "scripts/lib/derivados.mjs", "ops/derivados.test.js"],
   ["forja", "ops/forja/criterios/x.json", "ops/forja.test.js"],
   ["forja", "ops/forja/tipos_skill/x.json", "scripts/higiene-skills.test.js"],
   ["forja", "ops/forja/campos_ficha/x.json", "ops/forja-forma.test.js"],
@@ -108,12 +111,7 @@ const TABLA = [
   ["redaccion-de-reglas", "ops/glosario-excepciones/excepciones/x.json", "ops/redaccion.test.js"],
   ["tests-de-tiempo", "src/lib/x.test.js", "ops/testsDeTiempo.test.js"],
   ["tests-de-tiempo", ".claude/hooks/x.test.js", "ops/testsDeTiempo.test.js"],
-  ["errores-tragados-scripts", "scripts/lib/x.mjs", "scripts/sinErroresTragados.test.js"],
-  ["errores-tragados-scripts", ".claude/hooks/x.mjs", "scripts/sinErroresTragados.test.js"],
   ["carpeta-del-shim", "scripts/bin/gh", "scripts/ghShim.test.js"],
-  ["errores-tragados-bot", "api/bot/x.js", "api/_bot/sinErroresTragados.test.js"],
-  ["api-sin-credencial", "api/x.js", "api/sinCredencial.test.js"],
-  ["api-sin-credencial", "ops/api-sin-credencial.json", "api/sinCredencial.test.js"],
   ["scripts-sin-caminos-sueltos", "scripts/lib/x.mjs", "scripts/lib/env.test.js"],
   ["cuota-de-gh", "scripts/lib/x.mjs", "scripts/cuotaGh.test.js"],
   ["cuota-de-gh", "docs/ops/x.md", "scripts/cuotaGh.test.js"],
@@ -129,24 +127,11 @@ const TABLA = [
   ["glosario", "docs/ops/x.md", "ops/glosario.test.js"],
   ["entidades", "docs/entidades/MAPA.md", "ops/entidades.test.js"],
   ["redaccion-de-reglas", "ops/catalogo-nuevo.json", "ops/redaccion.test.js"],
-  ["fuentes-y-modulos", "src/lib/x.js", "ops/modulos.test.js"],
-  ["fuentes-y-modulos", "scripts/lib/x.mjs", "ops/fuentes.test.js"],
-  ["cableado", "api/_bot/x.js", "supabase/cableado.test.js"],
-  ["migraciones-sql", "supabase/migrations/9999_x.sql", "supabase/principios.test.js"],
-  ["migraciones-sql", "ops/columnas-texto.json", "supabase/columnasTexto.test.js"],
-  ["catalogo-de-recetas", "src/data/recipes/x.json", "src/data/model.test.js"],
-  ["fuentes-sin-invisibles", "src/lib/x.js", "src/data/fuentesLimpias.test.js"],
-  ["app-y-bot", "src/components/x.jsx", "src/components/coachAnchors.test.js"],
-  ["zonas-del-catalogo", "src/utils/x.js", "src/lib/barreras.test.js"],
-  ["cargadores-de-lib", "src/lib/x.js", "src/lib/cargadoresSinVacioEnError.test.js"],
-  ["bot-sin-listas-a-mano", "api/_bot/x.js", "src/lib/comidas.test.js"],
-  ["endpoints", "api/x.js", "api/_guard.test.js"],
   ["vigilantes", "scripts/x.test.js", "ops/vigilantes.test.js"],
   ["una-lista-de-tipos", "docs/x.md", ".claude/plantillas-skill.test.js"],
   ["metricas", "scripts/lib/x.mjs", "ops/metricas.test.js"],
   ["recursos-con-caducidad", "ops/recursos.json", "ops/recursos.test.js"],
   ["workflows-yaml", ".github/workflows/x.yml", "ops/workflows.test.js"],
-  ["una-escala-y-una-escalera", "ops/flujo.json", "ops/escalas.test.js"],
   ["tipos-de-encargo", "ops/tipos-de-encargo.json", "ops/tipos-de-encargo.test.js"],
   ["tipos-de-encargo", ".claude/agents/x.md", "ops/tipos-de-encargo.test.js"],
   ["principios-y-uniones", "ops/principios/principios/x.json", "ops/principios.test.js"],
@@ -163,15 +148,15 @@ const TABLA = [
   ["inventario-vertical", "scripts/lib/inventarioVertical.mjs", "ops/inventario-vertical.test.js"],
   ["vigilante-lados", "ops/techos-lados.json", "ops/vigilante-lados.test.js"],
   ["vigilante-lados", "scripts/lib/vigilanteLados.mjs", "ops/vigilante-lados.test.js"],
-  ["taxonomia-de-diseno", "ops/diseno/taxonomia.json", "ops/diseno/taxonomia.test.js"],
-  ["taxonomia-de-diseno", "scripts/lib/taxonomiaDiseno.mjs", "ops/diseno/taxonomia.test.js"],
-  ["pool-de-bibliotecas", "ops/diseno/bibliotecas.json", "ops/diseno/pool.test.js"],
-  ["pool-de-bibliotecas", "scripts/lib/bibliotecasDiseno.mjs", "ops/diseno/pool.test.js"],
 ];
 
 describe("tabla: ruta de ejemplo → vigilante que debe salir", () => {
-  it("todos los grupos tienen al menos una fila", () => {
-    expect(datos.vigilantes.map((v) => v.id).filter((id) => !TABLA.some((f) => f[0] === id))).toEqual([]);
+  it("todos los grupos de la casa tienen al menos una fila", () => {
+    expect(datos.vigilantes.filter((v) => !delProyecto(v)).map((v) => v.id).filter((id) => !TABLA.some((f) => f[0] === id))).toEqual([]);
+  });
+  it("ninguna fila es de un grupo del proyecto: esas filas viven en src/vigilantesDelProyecto.test.js", () => {
+    const delProy = new Set(datos.vigilantes.filter(delProyecto).map((v) => v.id));
+    expect(TABLA.filter((f) => delProy.has(f[0])).map((f) => f[0])).toEqual([]);
   });
   it.each(TABLA)("%s · %s → %s", (grupo, ruta, esperado) => {
     expect(datos.vigilantes.find((v) => v.id === grupo).tests, "la fila apunta a un test que no es de su grupo").toContain(esperado);
@@ -212,11 +197,6 @@ describe("`npm run vecinos` elige el vigilante de cada caso que cayó en el CI (
 
   it("borrar un fichero que otro cita también activa rutas.test.js", () => {
     expect(testsDe([D("scripts/lib/cualquiera.mjs")])).toContain(".claude/rutas.test.js");
-  });
-
-  it("una migración nueva se mide contra todas; una receta, contra el catálogo", () => {
-    expect(testsDe([A("supabase/migrations/9999_prueba.sql")])).toEqual(expect.arrayContaining(["supabase/migrations.test.js", "supabase/principios.test.js"]));
-    expect(testsDe([M("src/data/recipes/cualquiera.json")])).toContain("src/data/model.test.js");
   });
 
   it("el test propio del fichero siempre entra, y un test tocado se lanza a sí mismo", () => {
