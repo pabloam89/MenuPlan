@@ -16,7 +16,7 @@ import { UMBRALES_TAMANO } from "./lib/avisosPr.mjs";
 import { CONSTRUCTORES, JUECES } from "./lib/agentes.mjs";
 import { ACCIONES, leerEstandares, tareasDe } from "./lib/estandaresAgentes.mjs";
 import { CATALOGO, CAUSAS, MOTIVOS_COMPLEJIDAD } from "./lib/presupuestos.mjs";
-import { DATOS as DATOS_TIPOS, ESPECIALES, ROLES, ROL_DE_CABECERA, STEP_PURPOSES, SUBTYPES, TYPES, banderasDeRutas } from "./lib/tiposDeEncargo.mjs";
+import { DATOS as DATOS_TIPOS, ESPECIALES, ROLES, ROL_DE_CABECERA, STEP_PURPOSES, SUBTYPES, TYPES, banderasDeRutas, flagsDeRutasConBase } from "./lib/tiposDeEncargo.mjs";
 import { ACCIONES_DE_JUEZ_EXTRA, COMPARTIDOS_AL_FINAL, FORMAS, LITERALES, alcanceDe, briefDe, complejidadDe, dimensionar, formaDe, medidaDe, modulosDe, redimensionar, textoDe } from "./lib/dimensionado.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -265,10 +265,65 @@ describe("la forma depende del tipo", () => {
         expect(p.jueces, `${tipo} ${ruta}`).toContain(juez);
       }
     }
-    // Lo que no es de ninguna bandera no la activa (la plantilla de issues sí está en .github/, a propósito).
-    for (const ruta of ["scripts/podar.mjs", "src/screens/A.jsx", "supabase/INVENTADO.md", "api/inventado.js", "ops/normas.json", "scripts/rulesets.test.js", "x/.github/a.yml"]) {
+    // Lo que no es de ninguna bandera no la activa.
+    for (const ruta of ["scripts/podar.mjs", "src/screens/A.jsx", "supabase/INVENTADO.md", "api/inventado.js", "ops/normas.test.js", "scripts/rulesets.test.js", "x/.github/a.yml", "scripts/lib/dimensionadoPrInventado.mjs"]) {
       expect(banderasDeRutas([ruta]), ruta).toEqual([]);
     }
+  });
+  it("un renombrado se mira por sus dos rutas: sacar la guardia de .claude/hooks/ también pide a seguridad (#642)", () => {
+    expect(banderasDeRutas([{ ruta: "docs/guardia.mjs", origen: ".claude/hooks/guardia.mjs" }])).toEqual(["touches_secrets_or_permissions"]);
+    // Que el destino sea un test no lo exime: el origen no lo es.
+    expect(banderasDeRutas([{ ruta: ".claude/hooks/guardia.test.js", origen: ".claude/hooks/guardia.mjs" }])).toEqual(["touches_secrets_or_permissions"]);
+    expect(dim({ tipo: "improve", ficheros: [{ ruta: "docs/guardia.mjs", origen: ".claude/hooks/guardia.mjs", lines: 0 }] }).jueces).toContain("seguridad");
+  });
+  it("las rutas no distinguen mayúsculas: en Windows .claude/Settings.json es settings.json (#642)", () => {
+    for (const ruta of [".claude/Settings.json", ".GitHub/workflows/tests.yml", ".claude/Hooks/guardia.mjs", "API/_bot/x.js"]) expect(banderasDeRutas([ruta]).length, ruta).toBe(1);
+  });
+  it("el propio control pide a seguridad: su script, sus módulos, sus catálogos y las fichas de agentes (sus tools son permisos) (#642)", () => {
+    for (const ruta of [
+      "scripts/dimensionado-pr.mjs", "scripts/lib/dimensionadoPr.mjs", "scripts/lib/dimensionado.mjs", "scripts/lib/tiposDeEncargo.mjs",
+      "scripts/lib/excepciones.mjs", "scripts/lib/agentes.mjs", "scripts/lib/avisosPr.mjs", "ops/tipos-de-encargo.json", "ops/normas.json",
+      "ops/presupuestos.json", ".claude/agents/revisor.md",
+    ]) expect(banderasDeRutas([ruta]), ruta).toEqual(["touches_secrets_or_permissions"]);
+  });
+  it("sin seguridad de más: los tests, las plantillas de issues y la del PR no cambian lo que se ejecuta (#642)", () => {
+    for (const ruta of [".claude/hooks/guardia.test.js", "scripts/dimensionado-pr.test.js", "ops/tipos-de-encargo.test.js", ".github/ISSUE_TEMPLATE/2-fondo.yml", ".github/pull_request_template.md", ".claude/hooks/x.test.mjs"]) {
+      expect(banderasDeRutas([ruta]), ruta).toEqual([]);
+    }
+    // #782 (solo tests y ops; sin sus dos tests de src/, que no cambian nada aquí): sin seguridad.
+    const pr782 = [".claude/dominios-skills.test.js", ".claude/hooks/guardia.test.js", ".claude/rutas.test.js", "docs/ops/INVENTARIO-VERTICAL.md", "ops/normas.test.js", "ops/principios.test.js", "ops/techos-lados.json", "ops/uniones.test.js", "ops/vigilantes.json", "ops/vigilantes.test.js", "ops/vocabularios-vida.test.js", "ops/zonas.json", "scripts/avisos-pr.test.js", "scripts/consulta.test.js", "scripts/lib/principios.mjs", "scripts/mercadona-sync-workflow.test.js", "scripts/rulesets.test.js"];
+    expect(banderasDeRutas(pr782)).toEqual([]);
+    // #708 (skills, la plantilla de fondo y fondos.mjs): sin seguridad.
+    const pr708 = [".claude/skills/causa-raiz/SKILL.md", ".claude/skills/causa-raiz/casos.json", ".claude/skills/cierre-eficaz/SKILL.md", ".claude/skills/issues/SKILL.md", ".claude/skills/plan-de-arreglo/SKILL.md", ".github/ISSUE_TEMPLATE/2-fondo.yml", "docs/entidades/SUPER-TABLA.md", "docs/entidades/analisis/trabajo.md", "ops/entidades.json", "ops/entidades.test.js", "ops/estandares-agentes.json", "ops/estandares-agentes.test.js", "ops/vigilantes.test.js", "scripts/fondos.test.js", "scripts/lib/fondos.mjs", "scripts/lib/vecinos.mjs"];
+    expect(banderasDeRutas(pr708)).toEqual([]);
+    // #712: sus plantillas y sus tests ya no piden seguridad; sí la piden sus fichas de agentes y el dimensionador (el propio control).
+    const pr712Plantillas = [".github/ISSUE_TEMPLATE/2-fondo.yml", ".github/pull_request_template.md", ".claude/agentes.test.js", "scripts/dimensionar.test.js"];
+    expect(banderasDeRutas(pr712Plantillas)).toEqual([]);
+    expect(banderasDeRutas([...pr712Plantillas, ".claude/agents/constructor.md", "scripts/lib/dimensionado.mjs"])).toEqual(["touches_secrets_or_permissions"]);
+  });
+  it("una migración pide a seguridad solo si AÑADE permisos o RLS (sin contar comentarios); sin sus líneas, en la duda, sí (#642)", () => {
+    const mig = (anadidas) => banderasDeRutas([{ ruta: "supabase/migrations/0300_x.sql", anadidas }]);
+    expect(mig(["alter table public.recetas add column nota text;", "-- sin grant ni policy: comentario"])).toEqual([]);
+    for (const l of ["create policy leer on public.x for select using (true);", "grant select on public.x to authenticated;", "revoke all on public.x from anon;",
+      "create function f() returns void language sql security definer as $$ $$;", "alter role authenticator set x = 1;", "alter table public.x enable row level security;",
+      "alter table public.x DISABLE ROW LEVEL SECURITY;", "alter function f() owner to postgres;"]) expect(mig(["select 1;", l]), l).toEqual(["touches_rls"]);
+    expect(banderasDeRutas(["supabase/migrations/0300_x.sql"])).toEqual(["touches_rls"]);
+  });
+  it("con las banderas de la base, un PR no se quita su exigencia; sin base, manda la del PR (plan B) (#642)", () => {
+    const pr = structuredClone(DATOS_TIPOS.flags);
+    pr.touches_secrets_or_permissions.rutas = ["^nada/"];
+    pr.touches_secrets_or_permissions.judge = "qa";
+    const conBase = flagsDeRutasConBase(DATOS_TIPOS.flags, pr);
+    expect(conBase.deLaBase).toContain("touches_secrets_or_permissions");
+    expect(banderasDeRutas([".claude/hooks/guardia.mjs"], conBase.flags)).toEqual(["touches_secrets_or_permissions"]);
+    expect(dimensionar({ fuente: "diff", tipo: "fix", ficheros: [f(".claude/hooks/guardia.mjs", 3)] }, { ...deps, flagsRutas: conBase.flags }).jueces).toContain("seguridad");
+    const sinBase = flagsDeRutasConBase(null, pr);
+    expect(sinBase.deLaBase).toEqual([]);
+    expect(banderasDeRutas([".claude/hooks/guardia.mjs"], sinBase.flags)).toEqual([]);
+    // Una base anterior a #642 (sin rutas) deja la bandera al PR.
+    const vieja = structuredClone(DATOS_TIPOS.flags);
+    for (const b of Object.values(vieja)) delete b.rutas;
+    expect(banderasDeRutas([".claude/hooks/guardia.mjs"], flagsDeRutasConBase(vieja, DATOS_TIPOS.flags).flags)).toEqual(["touches_secrets_or_permissions"]);
   });
   it("create-planned empieza por el plan de la sesión", () => {
     const p = dim({ subtipo: "create-planned", ficheros: [f("src/screens/A.jsx", 5), f("api/_bot/x.js", 5), f("supabase/migrations/0001_x.sql", 5)] });

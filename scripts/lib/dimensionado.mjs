@@ -183,7 +183,10 @@ function repartir(propios) {
  * entrada: { fuente: "encargo"|"ficheros"|"diff", ficheros: [{ruta, lines}|ruta], subtipo?, tipo?, causa?, banderas?,
  *            numero?, titulo?, objetivo?, declarada?, hecho_cuando?, verificacion?, rama?, tarea? }
  * `tarea`: el id de la tarea del catálogo de estándares que cumple el constructor, si quien orquesta la conoce (manda sobre la deducida).
- * deps: { mapa } para probar con otro mapa de módulos. Lanza si el subtipo, el tipo, la causa o una bandera no existen.
+ * `ficheros` puede traer, de un diff, `origen` (renombrado) y `anadidas` (las líneas añadidas): las banderas de rutas las miran.
+ * deps: { mapa } para probar con otro mapa de módulos; { flagsRutas } las banderas con que se derivan las de rutas (el CI pasa
+ * las de la base del PR, flagsDeRutasConBase; por defecto, las del catálogo). Lanza si el subtipo, el tipo, la causa o una bandera
+ * declarada no existen.
  */
 export function dimensionar(entrada, deps = {}) {
   const mapa = deps.mapa ?? mapaDeModulos();
@@ -195,8 +198,10 @@ export function dimensionar(entrada, deps = {}) {
   const sub = subtipoDe(entrada);
 
   const ficheros = comoFicheros(entrada.ficheros);
-  // Las banderas: las declaradas más las que activan las rutas tocadas (#642), para que el CI las saque del diff.
-  const deRutas = banderasDeRutas(ficheros.map((x) => x.ruta));
+  // Las banderas: las declaradas más las que activan los ficheros tocados (#642), para que el CI las saque del diff. Se miran los
+  // ficheros tal cual llegan (con su `origen` y sus `anadidas`, que comoFicheros no guarda).
+  const flagsRutas = deps.flagsRutas ?? FLAGS;
+  const deRutas = banderasDeRutas((entrada.ficheros ?? []).map((x) => (typeof x === "string" ? norm(x) : { ...x, ruta: norm(x.ruta) })), flagsRutas);
   const banderas = unicos([...declaradas, ...deRutas]);
   const propios = ficheros.filter((x) => !esGenerado(x.ruta)).map((x) => x.ruta);
   const medida = medidaDe(ficheros);
@@ -276,7 +281,11 @@ export function dimensionar(entrada, deps = {}) {
   for (const j of juecesDeAmbitos(ambitos)) pideJuez(j, "es juez de la zona");
   for (const j of enc.judges_required) pideJuez(j, "lo exige la causa");
   // Una bandera activa trae a su juez en cualquier subtipo (#642): si no, elegir un tipo sin ese paso opcional lo esquivaría.
-  for (const b of banderas) pideJuez(FLAGS[b].judge, `lo pide la bandera ${b}`);
+  // El juez de una bandera de rutas sale de las mismas banderas que la activaron (en el CI, las de la base: un PR no se lo cambia).
+  for (const b of banderas) {
+    const juez = (deRutas.includes(b) ? flagsRutas[b] : FLAGS[b])?.judge;
+    if (juez) pideJuez(juez, `lo pide la bandera ${b}`);
+  }
   const todosLosJueces = () => unicos(fases.flatMap((_, i) => juecesFase(i)));
   const tareas = tareasDe(deps.estandares ?? leerEstandares(RAIZ));
   while (todosLosJueces().length < enc.judges_min) {

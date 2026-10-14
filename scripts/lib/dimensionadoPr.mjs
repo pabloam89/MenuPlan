@@ -13,11 +13,13 @@
  *
  * Cada norma deja su línea (`norma: <id> resultado: … pr: <n> detalle: …`, medicionNormas.mjs). Falla solo al PR
  * responsable: todo lo que mira es de su propio cuerpo y su propio diff. Transición (para no poner en rojo los PR ya
- * abiertos sin las líneas): un PR CREADO antes de FALLA_DESDE solo avisa (`warning`); desde ese día, falla. Una
+ * abiertos sin las líneas): un PR CREADO antes de FALLA_DESDE solo avisa (`warning`); desde ese día, falla, y desde FIN_TRANSICION
+ * (FALLA_DESDE + DIAS_DE_GRACIA, por la fecha del run) falla también el creado antes: ninguno queda exento para siempre. Una
  * excepción válida de la norma (`Excepción: <id> — <motivo> — hasta AAAA-MM-DD`, excepciones.mjs) la deja pasar (`exempt`),
  * salvo las normas con `admite_excepcion: false` (las tres de los jueces: nadie se exime de que le juzgue otro).
  * Los jueces exigidos incluyen los de las banderas que activan las rutas del diff (seguridad por .github/, hooks, settings…;
- * evaluador por el bot): las deriva el dimensionador (banderasDeRutas), nadie las declara.
+ * evaluador por el bot): las deriva el dimensionador (banderasDeRutas), nadie las declara, y con las banderas de la BASE del PR
+ * (`flagsRutas`, que el script lee con `git show HEAD^1:ops/tipos-de-encargo.json`): un PR no se quita su propia exigencia.
  * Exentos: los bots y los PR a `main` (el paso a producción es de Pablo y lleva lo que ya se juzgó en staging).
  * Puro: el cuerpo, los ficheros, las normas, la base y las fechas entran por argumento.
  */
@@ -30,6 +32,9 @@ import { ALL_SUBTYPES, TYPES } from "./tiposDeEncargo.mjs";
 
 /** El día (UTC, incluido) desde el que un PR creado ese día o después FALLA; los creados antes solo avisan. */
 export const FALLA_DESDE = "2026-10-17";
+/** Los días de gracia de un PR creado antes de FALLA_DESDE: desde FIN_TRANSICION (incluido, por la fecha del run) también falla. */
+export const DIAS_DE_GRACIA = 14;
+export const FIN_TRANSICION = new Date(Date.parse(`${FALLA_DESDE}T00:00:00Z`) + DIAS_DE_GRACIA * 86400000).toISOString().slice(0, 10);
 
 /** Las normas que mide este paso, en el orden en que salen sus líneas. */
 export const NORMAS_DEL_PASO = {
@@ -57,23 +62,28 @@ export function entradaDeTipo(valor) {
 /** ¿Deja el plan construir a la sesión? Sí si no hay constructores (audit) o si el reparto le da ficheros sin dueño. */
 export const sesionPermitida = (plan) => !plan.constructores.length || plan.constructores.some((c) => c.agente === SESION_EN_PLAN);
 
-/** Los ficheros del diff como los cuenta el dimensionador: { ruta, lines } (añadidas más quitadas). */
-export const ficherosDeDiff = (leidos) => leidos.map((f) => ({ ruta: f.ruta, lines: f.anadidas.length + f.quitadas.length }));
+/**
+ * Los ficheros del diff como los cuenta el dimensionador: { ruta, lines } (añadidas más quitadas), con lo que miran las banderas
+ * de rutas: `anadidas` (las líneas añadidas: una migración pide seguridad si añade permisos) y `origen` (la ruta de antes de un
+ * renombrado: sacar un fichero de su carpeta también la toca).
+ */
+export const ficherosDeDiff = (leidos) => leidos.map((f) => ({ ruta: f.ruta, lines: f.anadidas.length + f.quitadas.length, anadidas: f.anadidas, ...(f.origen ? { origen: f.origen } : {}) }));
 
 /**
  * Comprueba el PR. entrada: { cuerpo, autor, base (rama destino), ficheros: [{ruta, lines}] | null (sin diff), normas (de
- * ops/normas.json), hoy (AAAA-MM-DD), creado (fecha ISO de creación del PR o null) }; deps: { dimensionar } para probar.
+ * ops/normas.json), hoy (AAAA-MM-DD), creado (fecha ISO de creación del PR o null), flagsRutas (las banderas de la base del PR
+ * con que se derivan las de rutas; sin ellas, las del catálogo) }; deps: { dimensionar } para probar.
  * → { exento, transicion, medidas: [{ norma, resultado, detalle }], fallos: [texto], avisos: [texto], plan }
  * `fallos` hace salir con 1; `avisos` (lo mismo en transición) no.
  */
-export function comprobarDimensionado({ cuerpo = "", autor = "", base = "", ficheros = null, normas = [], hoy, creado = null }, deps = {}) {
+export function comprobarDimensionado({ cuerpo = "", autor = "", base = "", ficheros = null, normas = [], hoy, creado = null, flagsRutas = undefined }, deps = {}) {
   const medidas = [];
   const fallos = [];
   const avisos = [];
   if (BOTS.has(String(autor).toLowerCase())) return { exento: true, porque: "bot", transicion: false, medidas, fallos, avisos, plan: null };
   if (String(base).trim() === BASE_EXENTA) return { exento: true, porque: "main", transicion: false, medidas, fallos, avisos, plan: null };
   const dia = /^\d{4}-\d{2}-\d{2}/.exec(String(creado ?? ""))?.[0] ?? hoy;
-  const transicion = dia < FALLA_DESDE;
+  const transicion = dia < FALLA_DESDE && String(hoy) < FIN_TRANSICION;
   const excepciones = leerExcepciones(cuerpo, { normas, hoy });
 
   /** Anota una norma: cumple, o no cumple con su motivo (excepción → exempt; transición → warning; si no, fail). */
@@ -105,7 +115,7 @@ export function comprobarDimensionado({ cuerpo = "", autor = "", base = "", fich
   else if (noSonJueces.length) anota(NORMAS_DEL_PASO.tipoYJueces, false, `«Jueces:» nombra a ${noSonJueces.join(", ")}, que no es juez (${JUECES.join(", ")})`);
   else if (ficheros === null) sinMirar(NORMAS_DEL_PASO.tipoYJueces, "sin-diff");
   else {
-    plan = (deps.dimensionar ?? dimensionar)({ fuente: "diff", ficheros, ...tipo });
+    plan = (deps.dimensionar ?? dimensionar)({ fuente: "diff", ficheros, ...tipo }, flagsRutas ? { flagsRutas } : {});
     const faltan = plan.jueces.filter((j) => !l.jueces.includes(j));
     anota(NORMAS_DEL_PASO.tipoYJueces, !faltan.length, `el dimensionado de este diff con «Tipo: ${l.tipo}» exige ${plan.jueces.join(", ")} y «Jueces:» no nombra a ${faltan.join(", ")}`);
   }

@@ -45,6 +45,13 @@ describe("analizarTipoYJueces", () => {
     expect(r).toMatchObject({ valida: true, tipo: "create", jueces: ["revisor"], agentes: ["constructor"] });
     expect(ok('gh pr create --body "Casos: #1"', { enComando: true }).valida).toBe(false);
   });
+  it("en un comando, «tipo:» a mitad de una frase no es la línea «Tipo:» (sí tras la comilla o un \\n escrito)", () => {
+    const mitad = ok('gh pr create --body "Arregla el tipo: de la línea\nJueces: revisor"', { enComando: true });
+    expect(mitad.valida).toBe(false);
+    expect(mitad.motivo).toMatch(/Falta la línea «Tipo:»/);
+    expect(ok('gh pr create --body "Cambia el tipo: create y más\nTipo: fix\nJueces: revisor"', { enComando: true })).toMatchObject({ valida: true, tipo: "fix" });
+    expect(ok("gh pr create --body $'Agente: constructor\\nTipo: fix\\nJueces: revisor, qa'", { enComando: true })).toMatchObject({ valida: true, tipo: "fix", jueces: ["revisor", "qa"], agentes: ["constructor"] });
+  });
   it("una línea de Jueces enorme no vale", () => {
     expect(ok(`Tipo: fix\nJueces: ${"revisor, ".repeat(60)}`).motivo).toMatch(/demasiado larga/);
   });

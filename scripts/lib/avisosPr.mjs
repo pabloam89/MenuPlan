@@ -67,8 +67,9 @@ const RE_SALTADO = /\b(?:it|test|describe)\.(?:skip|only|todo|skipIf)\b|\bx(?:it
 const sinComillas = (r) => r.replace(/^"|"$/g, "").replace(/\t.*$/, "");
 
 /**
- * Lee un `git diff -U0` → [{ ruta, anadidas:[línea…], quitadas:[línea…] }]. Un fichero sin
- * líneas (binario, renombrado sin cambios) aparece con las listas vacías.
+ * Lee un `git diff -U0` → [{ ruta, anadidas:[línea…], quitadas:[línea…], origen? }]. Un fichero sin
+ * líneas (binario, renombrado sin cambios) aparece con las listas vacías. `origen`, solo en un renombrado
+ * o una copia: la ruta de antes (`rename from` / `copy from`, o la `---` si difiere).
  */
 export function leerDiff(texto) {
   const ficheros = [];
@@ -89,8 +90,13 @@ export function leerDiff(texto) {
       const r = sinComillas(linea.slice(4));
       // Fichero borrado: su ruta solo está en la línea `---`.
       if (r !== "/dev/null" && f.sinNuevo) f.ruta = r.replace(/^a\//, "");
+      else if (r !== "/dev/null" && r.replace(/^a\//, "") !== f.ruta) f.origen ??= r.replace(/^a\//, "");
     } else if (linea.startsWith("deleted file mode")) {
       f.sinNuevo = true;
+    } else if (!f.enCuerpo && /^(?:rename|copy) from /.test(linea)) {
+      // Renombrado o copia (#642): la ruta de antes también cuenta (`origen`). Sin ella, `git mv .claude/hooks/guardia.mjs
+      // docs/x.mjs` solo dejaría ver el destino y apagaría la guardia sin el juez que piden sus rutas.
+      f.origen = sinComillas(linea.replace(/^(?:rename|copy) from /, ""));
     } else if (linea.startsWith("+")) {
       f.anadidas.push(linea.slice(1));
     } else if (linea.startsWith("-")) {

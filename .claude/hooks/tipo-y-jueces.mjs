@@ -27,10 +27,14 @@ export const REGLAS = { forma: "forma", construyeYJuzga: "construye-y-juzga" };
 const NO_JUECES = new Set(["sesión", "sesion", "ninguno", "nadie"]);
 const LARGO_MAX = 300;
 
+// En un comando, la línea empieza al principio de una línea, tras la comilla que abre el --body o tras un `\n` escrito
+// (`--body $'…\nTipo: fix'`); NO tras un espacio cualquiera: «cambia el tipo: x» a mitad de una frase no es la línea «Tipo:».
 const etiqueta = (nombre, enComando) =>
-  enComando ? new RegExp(`(?:^|[\\s"'(])${nombre}[ \\t]*:[ \\t]*(.*)$`, "gim") : new RegExp(`^[ \\t>*-]*(?:\\*\\*)?${nombre}(?:\\*\\*)?[ \\t]*:(?:\\*\\*)?[ \\t]*(.*)$`, "gim");
+  enComando
+    ? new RegExp(`(?:^|["']|\\\\n)[ \\t>*-]*(?:\\*\\*)?${nombre}(?:\\*\\*)?[ \\t]*:(?:\\*\\*)?[ \\t]*(.*)$`, "gim")
+    : new RegExp(`^[ \\t>*-]*(?:\\*\\*)?${nombre}(?:\\*\\*)?[ \\t]*:(?:\\*\\*)?[ \\t]*(.*)$`, "gim");
 const valores = (texto, nombre, enComando) =>
-  [...limpiarCuerpo(texto).matchAll(etiqueta(nombre, enComando))].map((m) => (enComando ? m[1].replace(/["')]+\s*$/, "") : m[1]).trim());
+  [...limpiarCuerpo(texto).matchAll(etiqueta(nombre, enComando))].map((m) => (enComando ? m[1].split("\\n")[0].replace(/["')]+\s*$/, "") : m[1]).trim());
 const nombre = (x) => x.replace(/[`*]/g, "").trim().toLowerCase().replace(/^sesion$/, "sesión");
 
 /** Los nombres de las líneas «Agente:» del cuerpo, en minúsculas («sesion» pasa a «sesión»). La lee también fondos-pr.mjs. */

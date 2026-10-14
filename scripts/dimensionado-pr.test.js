@@ -1,7 +1,7 @@
 // Lo dimensionado, exigido en cada PR (#642, fondo #639; decisión #387): la comprobación del CI y la cadena entera,
 // de punta a punta, para cada tipo: tipo → dimensionado → jueces exigidos → CI → brief con estándar → hook de lanzamiento.
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -11,10 +11,10 @@ import { decidir } from "../.claude/hooks/guardia.mjs";
 import { decidirLanzamiento, leerEstandaresDe } from "../.claude/hooks/lanzamiento.mjs";
 import { JUECES } from "./lib/agentes.mjs";
 import { briefDe, dimensionar } from "./lib/dimensionado.mjs";
-import { DE_SESION, FALLA_DESDE, NORMAS_DEL_PASO, comprobarDimensionado, entradaDeTipo, ficherosDeDiff, sesionPermitida } from "./lib/dimensionadoPr.mjs";
+import { DE_SESION, FALLA_DESDE, FIN_TRANSICION, NORMAS_DEL_PASO, comprobarDimensionado, entradaDeTipo, ficherosDeDiff, sesionPermitida } from "./lib/dimensionadoPr.mjs";
 import { leerDiff } from "./lib/avisosPr.mjs";
 import { leerRegistro } from "./lib/normas.mjs";
-import { TYPES } from "./lib/tiposDeEncargo.mjs";
+import { DATOS as DATOS_TIPOS, TYPES, flagsDeRutasConBase } from "./lib/tiposDeEncargo.mjs";
 
 process.env.MENUPLAN_FABRICA_DIR = mkdtempSync(join(tmpdir(), "dimensionado-pr-eventos-"));
 process.env.MENUPLAN_BUSCAR_DIR = mkdtempSync(join(tmpdir(), "dimensionado-pr-buscar-"));
@@ -86,6 +86,15 @@ describe("comprobarDimensionado", () => {
     const justoAntes = new Date(Date.parse(`${FALLA_DESDE}T00:00:00Z`) - 1000).toISOString();
     expect(comprueba("Agente: constructor", [f("scripts/x.mjs")], justoAntes).transicion).toBe(true);
   });
+  it("la transición acaba también por la fecha del run: desde FIN_TRANSICION (FALLA_DESDE + 14 días) falla el PR creado antes", () => {
+    expect(FIN_TRANSICION).toBe("2026-10-31");
+    const viejo = (hoy) => comprueba("Agente: constructor", [f("scripts/x.mjs")], ANTES, { hoy });
+    const ultimoDia = new Date(Date.parse(`${FIN_TRANSICION}T00:00:00Z`) - 86400000).toISOString().slice(0, 10);
+    expect(viejo(ultimoDia).transicion).toBe(true);
+    expect(resultado(viejo(ultimoDia), NORMAS_DEL_PASO.tipoYJueces)).toBe("warning");
+    expect(viejo(FIN_TRANSICION).transicion).toBe(false);
+    expect(resultado(viejo(FIN_TRANSICION), NORMAS_DEL_PASO.tipoYJueces)).toBe("fail");
+  });
   it("una excepción válida de la norma que la admite deja pasar (exempt); una caducada no", () => {
     const exc = (hasta) => `\nExcepción: ${NORMAS_DEL_PASO.agente} — la sesión arregla a mano un fichero de un constructor — hasta ${hasta}`;
     const cuerpo = cuerpoDe({ agente: "sesión", tipo: "create", jueces: ["revisor"] });
@@ -142,9 +151,36 @@ describe("comprobarDimensionado", () => {
       expect([n.ejecutor, n.control], id).toEqual(["ci", "scripts/dimensionado-pr.test.js"]);
     }
   });
-  it("lee el diff como el CI (añadidas más quitadas)", () => {
+  it("lee el diff como el CI (añadidas más quitadas, y las añadidas para las banderas de contenido)", () => {
     const diff = "diff --git a/x.mjs b/x.mjs\n--- a/x.mjs\n+++ b/x.mjs\n@@ -1 +1,2 @@\n-a\n+b\n+c\n";
-    expect(ficherosDeDiff(leerDiff(diff))).toEqual([{ ruta: "x.mjs", lines: 3 }]);
+    expect(ficherosDeDiff(leerDiff(diff))).toEqual([{ ruta: "x.mjs", lines: 3, anadidas: ["b", "c"] }]);
+  });
+  it("un renombrado del diff guarda su ruta de antes, y sacar la guardia de .claude/hooks/ pide a seguridad (#642)", () => {
+    const puro = "diff --git a/.claude/hooks/guardia.mjs b/docs/guardia.mjs\nsimilarity index 100%\nrename from .claude/hooks/guardia.mjs\nrename to docs/guardia.mjs\n";
+    const conCambios = "diff --git a/.claude/hooks/guardia.mjs b/docs/guardia.mjs\nsimilarity index 90%\nrename from .claude/hooks/guardia.mjs\nrename to docs/guardia.mjs\n--- a/.claude/hooks/guardia.mjs\n+++ b/docs/guardia.mjs\n@@ -1 +1 @@\n-a\n+b\n";
+    const copia = "diff --git a/.claude/settings.json b/docs/settings.json\nsimilarity index 100%\ncopy from .claude/settings.json\ncopy to docs/settings.json\n";
+    for (const diff of [puro, conCambios]) {
+      const leidos = ficherosDeDiff(leerDiff(diff));
+      expect(leidos).toMatchObject([{ ruta: "docs/guardia.mjs", origen: ".claude/hooks/guardia.mjs" }]);
+      const r = comprueba(cuerpoDe({ agente: "constructor", tipo: "improve", jueces: ["revisor"] }), leidos);
+      expect(r.fallos.join(" ")).toMatch(/no nombra a [^(]*seguridad/);
+    }
+    expect(leerDiff(copia)[0]).toMatchObject({ ruta: "docs/settings.json", origen: ".claude/settings.json" });
+  });
+  it("una migración sin permisos no pide a seguridad; una que añade una política, sí (#642)", () => {
+    const mig = (linea) => ficherosDeDiff(leerDiff("diff --git a/supabase/migrations/0300_x.sql b/supabase/migrations/0300_x.sql\nnew file mode 100644\n--- /dev/null\n+++ b/supabase/migrations/0300_x.sql\n@@ -0,0 +1,2 @@\n+-- 0300: añade una columna\n+" + linea + "\n"));
+    const cuerpo = cuerpoDe({ agente: "constructor", tipo: "create", jueces: ["revisor", "auditor-datos"] });
+    expect(comprueba(cuerpo, mig("alter table public.x add column y text;")).plan.banderas_de_rutas).toEqual([]);
+    expect(comprueba(cuerpo, mig("create policy p on public.x for select using (true);")).fallos.join(" ")).toMatch(/no nombra a [^(]*seguridad/);
+  });
+  it("las banderas de rutas de la base mandan: un PR que se quita la ruta de los hooks en su JSON sigue pidiendo a seguridad (#642)", () => {
+    const pr = structuredClone(DATOS_TIPOS.flags);
+    pr.touches_secrets_or_permissions.rutas = ["^nada/"];
+    const cuerpo = cuerpoDe({ agente: "constructor", tipo: "fix", jueces: ["revisor"] });
+    const hook = [f(".claude/hooks/guardia.mjs")];
+    expect(comprueba(cuerpo, hook, DESPUES, { flagsRutas: flagsDeRutasConBase(DATOS_TIPOS.flags, pr).flags }).fallos.join(" ")).toMatch(/no nombra a [^(]*seguridad/);
+    // Plan B (sin base): manda el JSON del PR, y por eso el script lo avisa.
+    expect(comprueba(cuerpo, hook, DESPUES, { flagsRutas: flagsDeRutasConBase(null, pr).flags }).fallos).toEqual([]);
   });
 });
 
@@ -228,7 +264,7 @@ describe("un agente fuera del plan (#642)", () => {
 describe("el cableado de cada eslabón", () => {
   const tests = readFileSync(join(RAIZ, ".github", "workflows", "tests.yml"), "utf8");
   it("tests.yml lanza el paso en cada PR, con el cuerpo, el autor, el número, la fecha de creación y el diff, todo por entorno", () => {
-    const paso = /- name: Dimensionado del PR\n([\s\S]*?)(?=\n      - )/.exec(tests)?.[1] ?? "";
+    const paso = /- name: Dimensionado del PR\n([\s\S]*?)(?=\n {6}- )/.exec(tests)?.[1] ?? "";
     expect(paso).toMatch(/if: github\.event_name == 'pull_request'/);
     expect(paso).toMatch(/node scripts\/dimensionado-pr\.mjs "\$RUNNER_TEMP\/diff-del-pr\.txt"/);
     for (const v of ["PR_BODY", "PR_AUTOR", "PR_BASE", "PR_NUMBER", "PR_CREADO"]) expect(paso).toMatch(new RegExp(`${v}: \\$\\{\\{ github\\.event\\.pull_request\\.`));
@@ -249,5 +285,29 @@ describe("el cableado de cada eslabón", () => {
     expect(antes.status).toBe(0);
     expect(antes.stdout).toMatch(/resultado: warning/);
     expect(corre("Agente: constructor\nTipo: create\nJueces: revisor").status).toBe(0);
+  });
+  it("tests.yml lee las banderas de la base del PR (HEAD^1) y se las pasa al script por TIPOS_BASE", () => {
+    const paso = /- name: Dimensionado del PR\n([\s\S]*?)(?=\n {6}- )/.exec(tests)?.[1] ?? "";
+    expect(paso).toMatch(/git show HEAD\^1:ops\/tipos-de-encargo\.json > "\$RUNNER_TEMP\/tipos-de-la-base\.json"/);
+    expect(paso).toMatch(/TIPOS_BASE="\$RUNNER_TEMP\/tipos-de-la-base\.json" node scripts\/dimensionado-pr\.mjs/);
+    expect(tests).toMatch(/fetch-depth: 2/);
+  });
+  it("el script, con la base de TIPOS_BASE, deriva las banderas de ella; sin base, avisa y usa las del PR (plan B)", () => {
+    const dir = mkdtempSync(join(tmpdir(), "dimensionado-pr-base-"));
+    const diff = join(dir, "diff.txt");
+    writeFileSync(diff, "diff --git a/scripts/podar.mjs b/scripts/podar.mjs\n--- a/scripts/podar.mjs\n+++ b/scripts/podar.mjs\n@@ -1 +1 @@\n-a\n+b\n");
+    const base = structuredClone(DATOS_TIPOS);
+    base.flags.touches_secrets_or_permissions.rutas = ["^scripts/podar\\.mjs$"];
+    const rutaBase = join(dir, "tipos-de-la-base.json");
+    writeFileSync(rutaBase, JSON.stringify(base));
+    const corre = (TIPOS_BASE) => spawnSync(process.execPath, [join(RAIZ, "scripts", "dimensionado-pr.mjs"), diff], { encoding: "utf8", env: { ...process.env, PR_BODY: "Agente: constructor\nTipo: improve\nJueces: revisor", PR_AUTOR: "x", PR_NUMBER: "1", PR_CREADO: DESPUES, HOY, TIPOS_BASE } });
+    const conBase = corre(rutaBase);
+    expect(conBase.status).toBe(1);
+    expect(conBase.stdout).toMatch(/salen de la base del PR/);
+    expect(conBase.stdout).toMatch(/no nombra a [^(]*seguridad/);
+    const sinBase = corre(join(dir, "no-existe.json"));
+    expect(sinBase.status).toBe(0);
+    expect(sinBase.stdout).toMatch(/::warning title=Banderas de rutas del propio PR::/);
+    expect(sinBase.stdout).toMatch(/salen de este PR \(plan B\)/);
   });
 });

@@ -57,11 +57,14 @@ function leerIssue(n) {
   return { titulo: issue.title, ficha };
 }
 
-/** Los ficheros del diff de la rama frente a origin/staging, con sus líneas (añadidas más quitadas), como las cuenta el CI. */
+/**
+ * Los ficheros del diff de la rama frente a origin/staging, con sus líneas (añadidas más quitadas), como las cuenta el CI, y lo que
+ * miran las banderas de rutas como en el CI: las líneas añadidas y la ruta de antes de un renombrado (#642).
+ */
 function diffDeLaRama() {
   const git = (...a) => execFileSync("git", ["-C", RAIZ, ...a], { encoding: "utf8", windowsHide: true, maxBuffer: 256 * 1024 * 1024 });
   const rama = git("diff", "-U0", "origin/staging...HEAD");
-  const porRuta = new Map(leerDiff(rama).map((f) => [f.ruta, f.anadidas.length + f.quitadas.length]));
+  const porRuta = new Map(leerDiff(rama).map((f) => [f.ruta, { ruta: f.ruta, lines: f.anadidas.length + f.quitadas.length, anadidas: f.anadidas, ...(f.origen ? { origen: f.origen } : {}) }]));
   // Lo sin commitear y lo nuevo también es de la rama: se suma para que `--diff` antes del commit no salga vacío.
   const sucio = git("status", "--porcelain", "-uall").split(/\r?\n/).filter(Boolean).map((l) => l.slice(3).replace(/^"|"$/g, "").split(" -> ").at(-1));
   // `-uall` expande las carpetas sin seguimiento; de un fichero nuevo se cuentan sus líneas (todas son añadidas).
@@ -69,9 +72,9 @@ function diffDeLaRama() {
     if (porRuta.has(r)) continue;
     let lines = null;
     try { lines = readFileSync(join(RAIZ, r), "utf8").split("\n").length - 1; } catch { /* a propósito: un fichero borrado o ilegible se queda sin líneas y la medida lo marca como mínimo */ }
-    porRuta.set(r, lines);
+    porRuta.set(r, { ruta: r, lines });
   }
-  return [...porRuta].map(([ruta, lines]) => ({ ruta, lines }));
+  return [...porRuta.values()];
 }
 
 function main() {
