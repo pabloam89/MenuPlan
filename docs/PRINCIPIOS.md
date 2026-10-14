@@ -455,7 +455,7 @@ Lo trae el catálogo delegado `ops/redaccion.json`, con su detalle en `docs/ops/
 
 Cómo se nombra, se identifica y se registra cada cosa del proyecto.
 
-- `axis-language-bridge` — **Cada eje, su lenguaje.** Cada eje usa su lenguaje en su contexto, y una palabra que cruza de eje se declara puente una sola vez.
+- `axis-language-bridge` — **Cada eje, su lenguaje.** Cada eje usa su lenguaje en su contexto, y una palabra que cruza de eje se declara una sola vez como de los dos lados.
   - Porqué: La misma palabra con dos sentidos en dos ejes confunde justo donde los ejes se juntan.
   - Fuentes: [I] `ops/entidades.json`
   - Detalle: `docs/entidades/N0-principios.md#13-cada-eje-tiene-su-lenguaje-y-se-traduce-en-la-frontera`
