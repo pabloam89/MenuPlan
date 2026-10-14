@@ -35,7 +35,7 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { AMBITOS, ambitosDeFichero } from "./ambitos.mjs";
+import { AMBITOS, DOMINIOS_OPCIONALES, ambitosDeFichero } from "./ambitos.mjs";
 import { leerRegistro } from "./normas.mjs";
 import { textoDePrecedencia } from "./precedencia.mjs";
 import { CONTROL_JUICIO, fraseDeRegla, problemasDeRegla, problemasDeSujetos } from "./regla.mjs";
@@ -126,11 +126,14 @@ export function normasPorConsulta(normas, ambitos, accion, deConsulta = acciones
  * Las normas de una tarea: [{ norma, por }] sin repetir, con `por` = «consulta» (sus ámbitos × su
  * acción), «fichero» (el ámbito de un fichero tocado), «citada» (su lista `normas`) o «común <id>».
  * `normas`: la lista de normas (ops/normas.json y, si se pide, las de `proyecto`: ops/proyectos/<id>/normas.json). Sin `proyecto`, nada
- * vertical (#704): las de un proyecto solo llegan con `proyecto: "homenu"`, y solo las de su ámbito y su acción. Una norma citada que no existe sale con `norma: null`.
+ * vertical (#704): las de un proyecto solo llegan con `proyecto: "homenu"`, y solo las de su ámbito y su acción. `dominios` son los
+ * dominios opcionales que declara el proyecto (#710): una norma suya de un ámbito opcional solo llega si lo declara (null = no se filtra).
+ * Una norma citada que no existe sale con `norma: null`.
  */
-export function normasDeTarea(t, datos, normas, { ficheros = [], deConsulta = accionesDeConsulta, proyecto = null } = {}) {
+export function normasDeTarea(t, datos, normas, { ficheros = [], deConsulta = accionesDeConsulta, proyecto = null, dominios = null } = {}) {
   // Un estándar horizontal no lleva normas verticales (#704): solo las del proyecto en el que trabaja la tarea, por referencia.
-  normas = (normas ?? []).filter((n) => n.lado !== "vertical" || (proyecto !== null && n.project === proyecto));
+  const declara = (n) => dominios === null || !DOMINIOS_OPCIONALES.includes(n.ambito) || dominios.includes(n.ambito);
+  normas = (normas ?? []).filter((n) => n.lado !== "vertical" || (proyecto !== null && n.project === proyecto && declara(n)));
   const porId = new Map((normas ?? []).map((n) => [n.id, n]));
   const fuera = new Map();
   const pon = (n, por) => { if (n && !fuera.has(n.id)) fuera.set(n.id, { norma: n, por }); };
@@ -454,7 +457,7 @@ export function lineaDeNorma(n, sujetos, por) {
  * El estándar de una tarea en texto: lo que el brief de /orquestar pega para el agente. `registro`: ops/normas.json
  * leído ({ normas, sujetos }), para sus normas; `ficheros`, los tocados, que suman las normas de su ámbito.
  */
-export function textoDeTarea(nombre, idTarea, datos, registro = null, { ficheros = [], precedencia = null, proyecto = null } = {}) {
+export function textoDeTarea(nombre, idTarea, datos, registro = null, { ficheros = [], precedencia = null, proyecto = null, dominios = null } = {}) {
   const ag = datos.agentes[nombre];
   if (!ag) return null;
   const t = ag.tareas.find((x) => x.id === idTarea);
@@ -467,7 +470,7 @@ export function textoDeTarea(nombre, idTarea, datos, registro = null, { ficheros
     `Ámbitos: ${(t.ambitos ?? []).join(", ")}`,
   ];
   if (registro) {
-    const ns = normasDeTarea(t, datos, registro.normas, { ficheros, proyecto }).filter((x) => x.norma);
+    const ns = normasDeTarea(t, datos, registro.normas, { ficheros, proyecto, dominios }).filter((x) => x.norma);
     const extra = [...new Set(ficheros.flatMap(ambitosDeFichero))].filter((a) => !(t.ambitos ?? []).includes(a));
     const cabeza = `Normas que tocan (${ns.length}; por consulta ${(t.ambitos ?? []).join(", ")} × ${accionesDeConsulta(t.accion).join(" y ")}${extra.length ? `, y ${extra.join(", ")} por los ficheros` : ""}; cada una con su frase, su control y su principio):`;
     const delProyecto = ns.filter((x) => x.norma.lado === "vertical").length;
@@ -796,4 +799,18 @@ export function verticalesEnEstandares(datos, normas) {
   }
   for (const c of Object.values(datos?.comunes ?? {})) for (const id of c.normas ?? []) if (esVertical(id)) dentro.add(id);
   return [...dentro];
+}
+
+/**
+ * Las normas de un proyecto que llegan a alguna tarea con `--proyecto <id>` (su ámbito y su acción tal cual, sin la equivalencia
+ * construir ↔ juzgar), y las que no llegan a ninguna: { llegan: [ids], sinSalida: [ids] }. `datos` ya lleva las tareas del proyecto
+ * (conTareasDeProyecto, scripts/lib/tareasDeProyecto.mjs); `dominios`, los opcionales que declara (#710).
+ */
+export function verticalesPorProyecto(datos, normas, proyecto, dominios = null) {
+  const llegan = new Set();
+  for (const { tarea } of tareasDe(datos)) {
+    for (const x of normasDeTarea(tarea, datos, normas, { deConsulta: (a) => [a], proyecto, dominios })) if (x.norma?.project === proyecto) llegan.add(x.norma.id);
+  }
+  const suyas = (normas ?? []).filter((n) => n.project === proyecto).map((n) => n.id);
+  return { llegan: suyas.filter((id) => llegan.has(id)), sinSalida: suyas.filter((id) => !llegan.has(id)) };
 }

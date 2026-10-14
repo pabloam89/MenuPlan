@@ -1,0 +1,42 @@
+{
+  "$comentario": "Tareas que solo existen en HoMenu (#710, programa #652): las hace un agente del catálogo (ops/estandares-agentes.json) y su estándar son las normas de este proyecto que le llegan por su ámbito y su acción (ops/proyectos/homenu/normas.json), sin reglas propias. Solo se ven con `npm run estandar -- <agente> <tarea> --proyecto homenu`. Una tarea general no va aquí: vive en el agente y no nombra el proyecto. Lo lee scripts/lib/tareasDeProyecto.mjs y lo vigila ops/tareas-de-proyecto.test.js. Su texto es del tipo «norma» de ops/topes.json.",
+  "version": 1,
+  "project": "homenu",
+  "agentes": {
+    "constructor": {
+      "tareas": [
+        {
+          "id": "receta-y-ficha-del-catalogo",
+          "tarea": "Añadir o cambiar una receta, un ingrediente o su ficha de nutrición en el catálogo de git, con su foto, su vocabulario y su procedencia",
+          "accion": "construir",
+          "ambitos": ["catalog"],
+          "no_hace": [
+            "generar el menú ni tocar el solver",
+            "cambiar la forma de las tablas de la base",
+            "proponer una receta sin estrella"
+          ]
+        },
+        {
+          "id": "decidir-ficha-de-alimento",
+          "tarea": "Decidir qué ficha de composición, BEDCA o CIQUAL, usa un alimento cuyo foodId es nulo",
+          "accion": "decidir",
+          "ambitos": ["catalog"],
+          "no_hace": [
+            "decidir mirando una sola tabla",
+            "cambiar el catálogo de recetas"
+          ]
+        },
+        {
+          "id": "refrescar-productos-del-supermercado",
+          "tarea": "Refrescar los productos de Mercadona desde su fuente sin degradar el catálogo ya guardado",
+          "accion": "operar",
+          "ambitos": ["catalog"],
+          "no_hace": [
+            "guardar un catálogo recortado por debajo de su mínimo",
+            "comprar ni escribir a Mercadona en nombre de nadie"
+          ]
+        }
+      ]
+    }
+  }
+}
