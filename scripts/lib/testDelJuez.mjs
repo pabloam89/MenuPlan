@@ -35,7 +35,7 @@ export const MAX_DIFF = 1500;
 
 const rutaDe = (juez) => `${DIR_TEST_DEL_JUEZ}/${juez}.json`;
 /** Lo que el juez sabe de su situación en el test: no tiene herramientas. Va en el prompt y por eso entra en el hash. */
-export const AVISO_SIN_HERRAMIENTAS = "No tienes herramientas: juzga solo el diff y la norma; no señales lo que no puedes verificar.";
+export const AVISO_SIN_HERRAMIENTAS = "No tienes herramientas para leer el repositorio ni correr nada: juzga con el diff, el cuerpo del PR y la norma. Si el diff o el cuerpo del PR afirman algo (que nada lee una columna, que consta o no el OK de Pablo, que un test se vio fallar o no), considéralo dato del caso; no señales lo que solo se sabría mirando fuera.";
 /**
  * El hash (LF, 12) de lo que se mide: el fichero de casos de un juez más el aviso fijo del prompt. Cambia si se edita
  * cualquier caso (aunque su número no cambie) o si cambia el prompt, porque entonces las pasadas anteriores ya no miden lo mismo.

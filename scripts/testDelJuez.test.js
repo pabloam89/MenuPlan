@@ -252,6 +252,10 @@ describe("el test del juez: la cifra de acierto (con un juez de mentira)", () =>
     const t = promptCaso(malo, { nombre: "N", sujeto: "codigo", fuerza: "debe", exigencia: "x" });
     expect(t.endsWith(AVISO_SIN_HERRAMIENTAS)).toBe(true);
     expect(AVISO_SIN_HERRAMIENTAS).toMatch(/No tienes herramientas/);
+    // No pide callar sin más: manda tomar como dato lo que afirman el diff y el cuerpo del PR (sesgo a aprobar ausencias).
+    expect(AVISO_SIN_HERRAMIENTAS).toMatch(/cuerpo del PR/);
+    expect(AVISO_SIN_HERRAMIENTAS).toMatch(/dato del caso/);
+    expect(AVISO_SIN_HERRAMIENTAS).not.toMatch(/no puedes verificar/);
     const dir = mkdtempSync(join(tmpdir(), "juez-"));
     try {
       mkdirSync(join(dir, "ops/test-del-juez"), { recursive: true });
