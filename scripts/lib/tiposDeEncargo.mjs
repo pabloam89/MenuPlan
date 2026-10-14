@@ -41,45 +41,38 @@ export const ALL_SUBTYPES = DATOS.tipos;
 export const SUBTYPES = ALL_SUBTYPES.filter((s) => s.status === "active");
 /** Los alias retirados: ids de antes que se conservan solo para el panel, cada uno con su `replaced_by`. */
 export const ALIASES = ALL_SUBTYPES.filter((s) => s.status === "retired");
-/** Las banderas de una condición: { id: { si, what, judge, rutas?, excluye?, contenido? } }. */
+/** Las banderas de una condición: { id: { si, what, judge, rutas?, excluye? } }. */
 export const FLAGS = DATOS.flags;
 
 const normRuta = (r) => String(r ?? "").replace(/\\/g, "/").replace(/^\.\//, "");
-/** Una expresión de rutas o de contenido, sin distinguir mayúsculas (Windows no las distingue: `.claude/Settings.json` es el mismo fichero). */
+/** Una expresión de rutas, sin distinguir mayúsculas (Windows no las distingue: `.claude/Settings.json` es el mismo fichero). */
 const reDe = (re) => new RegExp(re, "i");
-/** Una línea de SQL sin su comentario `--`: que la cabecera de una migración nombre «grant» no la hace tocar permisos. */
-const sinComentarioSql = (l) => String(l).replace(/--.*$/, "");
 
 /**
  * Las banderas que se activan solas por los ficheros tocados (#642): las de FLAGS con `rutas` (expresiones regulares sobre
  * rutas del repo con barras normales, sin distinguir mayúsculas). Así el CI las deriva del diff y un PR no deja de pedir a
  * `seguridad` o al `evaluador` por callarse una bandera. En el orden de FLAGS, sin repetir. Una ruta activa la bandera si:
- *   - casa con una de sus `rutas` y con ninguna de su `excluye` (lo que no cambia lo que se ejecuta: tests, plantillas);
- *   - y, si la bandera lleva `contenido`, alguna línea AÑADIDA del fichero (sin comentarios `--`) casa con una. Si las líneas no se
- *     conocen (ficheros previstos, no un diff), cuenta como que sí: en la duda, el juez entra.
+ * casa con una de sus `rutas` y con ninguna de su `excluye` (lo que no cambia lo que se ejecuta: tests fuera de .github/, plantillas).
+ * Solo rutas, nunca el contenido de las líneas (#642): leer el SQL para decidir si una migración toca permisos se esquivaba con
+ * SQL dinámico, líneas partidas o una migración que git ve binaria; toda migración pide a seguridad.
  * De un renombrado o una copia se miran las DOS rutas (`origen` y `ruta`): sacar un fichero de su carpeta también lo toca.
- * ficheros: [ruta | { ruta, origen?, anadidas? }].
+ * ficheros: [ruta | { ruta, origen? }].
  */
 export function banderasDeRutas(ficheros, flags = FLAGS) {
-  const fs = (ficheros ?? []).map((x) => (typeof x === "string" ? { rutas: [normRuta(x)], anadidas: null } : {
-    rutas: [x?.ruta, x?.origen].filter(Boolean).map(normRuta),
-    anadidas: Array.isArray(x?.anadidas) ? x.anadidas : null,
-  }));
+  const fs = (ficheros ?? []).map((x) => (typeof x === "string" ? [normRuta(x)] : [x?.ruta, x?.origen].filter(Boolean).map(normRuta)));
   const activa = (b) => {
     const rutas = (b.rutas ?? []).map(reDe);
     if (!rutas.length) return false;
     const excluye = (b.excluye ?? []).map(reDe);
-    const contenido = (b.contenido ?? []).map(reDe);
-    return fs.some((x) => x.rutas.some((r) => rutas.some((re) => re.test(r)) && !excluye.some((re) => re.test(r)))
-      && (!contenido.length || x.anadidas === null || x.anadidas.some((l) => contenido.some((re) => re.test(sinComentarioSql(l))))));
+    return fs.some((rs) => rs.some((r) => rutas.some((re) => re.test(r)) && !excluye.some((re) => re.test(r))));
   };
   return Object.entries(flags).filter(([, b]) => activa(b)).map(([k]) => k);
 }
 
 /**
  * Las banderas con que se derivan las de rutas en el CI (#642): las de la BASE del PR, no las del propio PR, para que un PR no
- * se quite su propia exigencia cambiando ops/tipos-de-encargo.json. Por bandera: si la base la trae con `rutas`, manda la base
- * entera (rutas, excluye, contenido y juez); si no (base ilegible, o anterior a #642), la del PR. → { flags, deLaBase: [ids] }
+ * se quite su propia exigencia por error cambiando ops/tipos-de-encargo.json (control contra errores, no blindaje: el paso corre el código del PR). Por bandera: si la base la trae con `rutas`, manda la base
+ * entera (rutas, excluye y juez); si no (base ilegible, o anterior a #642), la del PR. → { flags, deLaBase: [ids] }
  */
 export function flagsDeRutasConBase(base, pr = FLAGS) {
   const flags = {};
@@ -377,10 +370,10 @@ export function problemas(d = DATOS, ctx = { agentes: AGENTES, especiales: d?.sp
         return false; // a propósito: una expresión que no compila es justo lo que se informa como problema
       }
     };
-    for (const campo of ["rutas", "excluye", "contenido"]) {
+    for (const campo of ["rutas", "excluye"]) {
       if (b[campo] !== undefined && (!Array.isArray(b[campo]) || !b[campo].length || !b[campo].every(reValida))) p.push(`bandera: ${k} lleva «${campo}» como lista de expresiones regulares válidas`);
     }
-    if ((b.excluye !== undefined || b.contenido !== undefined) && b.rutas === undefined) p.push(`bandera: ${k} lleva «excluye» o «contenido» sin «rutas»: solo afinan las rutas`);
+    if (b.excluye !== undefined && b.rutas === undefined) p.push(`bandera: ${k} lleva «excluye» sin «rutas»: solo afina las rutas`);
   }
   for (const sub of todos) {
     if (!/^[a-z]+(-[a-z]+)*$/.test(sub.id)) p.push(`id: ${sub.id} va en minúsculas con guiones`);

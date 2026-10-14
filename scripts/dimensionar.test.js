@@ -6,7 +6,7 @@
  * Los ficheros de los casos son inventados y el mapa de módulos también (deps.mapa): el test no depende de qué módulo
  * tenga hoy cada fichero real. El resto de datos (ámbitos, catálogo de tipos, presupuestos, estándares) es el de verdad.
  */
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -282,9 +282,30 @@ describe("la forma depende del tipo", () => {
   it("el propio control pide a seguridad: su script, sus módulos, sus catálogos y las fichas de agentes (sus tools son permisos) (#642)", () => {
     for (const ruta of [
       "scripts/dimensionado-pr.mjs", "scripts/lib/dimensionadoPr.mjs", "scripts/lib/dimensionado.mjs", "scripts/lib/tiposDeEncargo.mjs",
-      "scripts/lib/excepciones.mjs", "scripts/lib/agentes.mjs", "scripts/lib/avisosPr.mjs", "ops/tipos-de-encargo.json", "ops/normas.json",
+      "scripts/lib/excepciones.mjs", "scripts/lib/agentes.mjs", "scripts/lib/avisosPr.mjs", "ops/tipos-de-encargo.json",
       "ops/presupuestos.json", ".claude/agents/revisor.md",
     ]) expect(banderasDeRutas([ruta]), ruta).toEqual(["touches_secrets_or_permissions"]);
+  });
+  it("piden a seguridad el token de sesión, el limpiador de worktrees, los scripts del CI con GITHUB_TOKEN y los módulos del control (#642)", () => {
+    for (const ruta of [
+      "scripts/lib/tokenSesion.mjs", "scripts/limpiar-worktrees.mjs",
+      "scripts/casos-pr.mjs", "scripts/fondos-pr.mjs", "scripts/normas-pr.mjs", "scripts/avisos-pr.mjs", "scripts/runbook-pr.mjs", "scripts/cumplimiento.mjs",
+      "scripts/lib/ambitos.mjs", "scripts/lib/presupuestos.mjs", "scripts/lib/estandaresAgentes.mjs", "scripts/lib/normas.mjs", "scripts/lib/medicionNormas.mjs",
+      "scripts/lib/precedencia.mjs", "scripts/lib/usoSkills.mjs", "scripts/lib/zonasProyecto.mjs",
+    ]) {
+      expect(banderasDeRutas([ruta]), ruta).toEqual(["touches_secrets_or_permissions"]);
+      // Cada ruta es un fichero de verdad: una lista a mano que se queda vieja no protege nada.
+      expect(existsSync(join(RAIZ, ruta)), ruta).toBe(true);
+    }
+  });
+  it(".gitattributes pide a seguridad (puede volver binario cualquier diff y apagar los pasos que leen líneas), también en una subcarpeta (#642)", () => {
+    for (const ruta of [".gitattributes", "docs/.gitattributes"]) expect(banderasDeRutas([ruta]), ruta).toEqual(["touches_secrets_or_permissions"]);
+  });
+  it("retocar una norma (ops/normas.json) no pide a seguridad: si admite excepción lo lee el CI de la base (#642)", () => {
+    expect(banderasDeRutas(["ops/normas.json"])).toEqual([]);
+  });
+  it("un test DENTRO de .github/ sí pide a seguridad: la exclusión de tests vale solo fuera (#642)", () => {
+    for (const ruta of [".github/workflows/x.test.js", ".github/scripts/y.test.mjs"]) expect(banderasDeRutas([ruta]), ruta).toEqual(["touches_secrets_or_permissions"]);
   });
   it("sin seguridad de más: los tests, las plantillas de issues y la del PR no cambian lo que se ejecuta (#642)", () => {
     for (const ruta of [".claude/hooks/guardia.test.js", "scripts/dimensionado-pr.test.js", "ops/tipos-de-encargo.test.js", ".github/ISSUE_TEMPLATE/2-fondo.yml", ".github/pull_request_template.md", ".claude/hooks/x.test.mjs"]) {
@@ -301,13 +322,13 @@ describe("la forma depende del tipo", () => {
     expect(banderasDeRutas(pr712Plantillas)).toEqual([]);
     expect(banderasDeRutas([...pr712Plantillas, ".claude/agents/constructor.md", "scripts/lib/dimensionado.mjs"])).toEqual(["touches_secrets_or_permissions"]);
   });
-  it("una migración pide a seguridad solo si AÑADE permisos o RLS (sin contar comentarios); sin sus líneas, en la duda, sí (#642)", () => {
-    const mig = (anadidas) => banderasDeRutas([{ ruta: "supabase/migrations/0300_x.sql", anadidas }]);
-    expect(mig(["alter table public.recetas add column nota text;", "-- sin grant ni policy: comentario"])).toEqual([]);
-    for (const l of ["create policy leer on public.x for select using (true);", "grant select on public.x to authenticated;", "revoke all on public.x from anon;",
-      "create function f() returns void language sql security definer as $$ $$;", "alter role authenticator set x = 1;", "alter table public.x enable row level security;",
-      "alter table public.x DISABLE ROW LEVEL SECURITY;", "alter function f() owner to postgres;"]) expect(mig(["select 1;", l]), l).toEqual(["touches_rls"]);
-    expect(banderasDeRutas(["supabase/migrations/0300_x.sql"])).toEqual(["touches_rls"]);
+  it("toda migración pide a seguridad, diga lo que diga su SQL: una create view o un security_invoker también (#642)", () => {
+    for (const ruta of ["supabase/migrations/0300_x.sql", "supabase/migrations/0301_vista.sql"]) {
+      expect(banderasDeRutas([{ ruta, anadidas: ["create view public.v with (security_invoker = false) as select 1;"] }]), ruta).toEqual(["touches_rls"]);
+      expect(banderasDeRutas([{ ruta, anadidas: ["alter table public.x add column y text;"] }]), ruta).toEqual(["touches_rls"]);
+    }
+    // El catálogo ya no lleva `contenido`: ninguna bandera decide por las líneas.
+    for (const [k, b] of Object.entries(DATOS_TIPOS.flags)) expect(b.contenido, k).toBeUndefined();
   });
   it("con las banderas de la base, un PR no se quita su exigencia; sin base, manda la del PR (plan B) (#642)", () => {
     const pr = structuredClone(DATOS_TIPOS.flags);

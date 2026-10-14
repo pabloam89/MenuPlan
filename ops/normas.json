@@ -2484,7 +2484,7 @@
       "sujeto": "pr",
       "fuerza": "debe",
       "exigencia": "llevar Tipo: y, en Jueces:, los jueces que exige el dimensionado de su diff",
-      "nota": "Paso «Dimensionado del PR» de tests.yml; la guardia pide las dos líneas al abrirlo. Las rutas que piden jueces (banderas con rutas) se leen de la base del PR. Un PR creado antes del 2026-10-17 solo avisa hasta el 2026-10-31 (transición). Exentos: los bots y los PR a main (lo que llevan ya se juzgó en staging).",
+      "nota": "Paso «Dimensionado del PR» de tests.yml; la guardia pide las dos líneas al abrirlo. Las rutas que piden jueces y qué norma se exime salen de la base del PR (si no, falla cerrado). Control contra errores; el blindaje, pendiente de un workflow con el código de la base. Creado antes del 2026-10-17: avisa hasta el 2026-10-31. Exentos: bots, PR a main.",
       "donde": [
         "scripts/dimensionado-pr.mjs",
         ".github/workflows/tests.yml",

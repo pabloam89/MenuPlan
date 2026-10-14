@@ -11,7 +11,7 @@ import { decidir } from "../.claude/hooks/guardia.mjs";
 import { decidirLanzamiento, leerEstandaresDe } from "../.claude/hooks/lanzamiento.mjs";
 import { JUECES } from "./lib/agentes.mjs";
 import { briefDe, dimensionar } from "./lib/dimensionado.mjs";
-import { DE_SESION, FALLA_DESDE, FIN_TRANSICION, NORMAS_DEL_PASO, comprobarDimensionado, entradaDeTipo, ficherosDeDiff, sesionPermitida } from "./lib/dimensionadoPr.mjs";
+import { DE_SESION, FALLA_DESDE, FIN_TRANSICION, JUEZ_SIN_BASE, NORMAS_DEL_PASO, comprobarDimensionado, entradaDeTipo, ficherosDeDiff, sesionPermitida } from "./lib/dimensionadoPr.mjs";
 import { leerDiff } from "./lib/avisosPr.mjs";
 import { leerRegistro } from "./lib/normas.mjs";
 import { DATOS as DATOS_TIPOS, TYPES, flagsDeRutasConBase } from "./lib/tiposDeEncargo.mjs";
@@ -151,9 +151,9 @@ describe("comprobarDimensionado", () => {
       expect([n.ejecutor, n.control], id).toEqual(["ci", "scripts/dimensionado-pr.test.js"]);
     }
   });
-  it("lee el diff como el CI (añadidas más quitadas, y las añadidas para las banderas de contenido)", () => {
+  it("lee el diff como el CI (añadidas más quitadas), sin las líneas: ninguna bandera decide por el contenido", () => {
     const diff = "diff --git a/x.mjs b/x.mjs\n--- a/x.mjs\n+++ b/x.mjs\n@@ -1 +1,2 @@\n-a\n+b\n+c\n";
-    expect(ficherosDeDiff(leerDiff(diff))).toEqual([{ ruta: "x.mjs", lines: 3, anadidas: ["b", "c"] }]);
+    expect(ficherosDeDiff(leerDiff(diff))).toEqual([{ ruta: "x.mjs", lines: 3 }]);
   });
   it("un renombrado del diff guarda su ruta de antes, y sacar la guardia de .claude/hooks/ pide a seguridad (#642)", () => {
     const puro = "diff --git a/.claude/hooks/guardia.mjs b/docs/guardia.mjs\nsimilarity index 100%\nrename from .claude/hooks/guardia.mjs\nrename to docs/guardia.mjs\n";
@@ -167,11 +167,42 @@ describe("comprobarDimensionado", () => {
     }
     expect(leerDiff(copia)[0]).toMatchObject({ ruta: "docs/settings.json", origen: ".claude/settings.json" });
   });
-  it("una migración sin permisos no pide a seguridad; una que añade una política, sí (#642)", () => {
-    const mig = (linea) => ficherosDeDiff(leerDiff("diff --git a/supabase/migrations/0300_x.sql b/supabase/migrations/0300_x.sql\nnew file mode 100644\n--- /dev/null\n+++ b/supabase/migrations/0300_x.sql\n@@ -0,0 +1,2 @@\n+-- 0300: añade una columna\n+" + linea + "\n"));
+  it("toda migración pide a seguridad: una create view, un security_invoker, una columna o una migración binaria (#642)", () => {
+    const mig = (linea) => ficherosDeDiff(leerDiff("diff --git a/supabase/migrations/0300_x.sql b/supabase/migrations/0300_x.sql\nnew file mode 100644\n--- /dev/null\n+++ b/supabase/migrations/0300_x.sql\n@@ -0,0 +1,2 @@\n+-- 0300: una vista\n+" + linea + "\n"));
+    const binaria = ficherosDeDiff(leerDiff("diff --git a/supabase/migrations/0300_x.sql b/supabase/migrations/0300_x.sql\nnew file mode 100644\nBinary files /dev/null and b/supabase/migrations/0300_x.sql differ\n"));
     const cuerpo = cuerpoDe({ agente: "constructor", tipo: "create", jueces: ["revisor", "auditor-datos"] });
-    expect(comprueba(cuerpo, mig("alter table public.x add column y text;")).plan.banderas_de_rutas).toEqual([]);
-    expect(comprueba(cuerpo, mig("create policy p on public.x for select using (true);")).fallos.join(" ")).toMatch(/no nombra a [^(]*seguridad/);
+    for (const ficheros of [mig("create view public.v as select * from public.x;"), mig("alter view public.v set (security_invoker = false);"), mig("alter table public.x add column y text;"), binaria]) {
+      const r = comprueba(cuerpo, ficheros);
+      expect(r.plan.banderas_de_rutas).toEqual(["touches_rls"]);
+      expect(r.fallos.join(" ")).toMatch(/no nombra a [^(]*seguridad/);
+    }
+  });
+  it("falla cerrado: si las banderas de la base no se pueden leer, se exige además a seguridad (#642)", () => {
+    const cuerpo = cuerpoDe({ agente: "constructor", tipo: "improve", jueces: ["revisor"] });
+    const podar = [f("scripts/podar.mjs")];
+    expect(JUEZ_SIN_BASE).toBe("seguridad");
+    expect(comprueba(cuerpo, podar).fallos).toEqual([]);
+    const sinBase = comprueba(cuerpo, podar, DESPUES, { baseLegible: false });
+    expect(resultado(sinBase, NORMAS_DEL_PASO.tipoYJueces)).toBe("fail");
+    expect(sinBase.fallos.join(" ")).toMatch(/no nombra a seguridad/);
+    expect(comprueba(cuerpoDe({ agente: "constructor", tipo: "improve", jueces: ["revisor", "seguridad"] }), podar, DESPUES, { baseLegible: false }).fallos).toEqual([]);
+  });
+  it("si una norma admite excepción lo dice la BASE: un PR que pone admite_excepcion a true en su normas.json no se exime (#642)", () => {
+    const pantalla = [f("src/screens/Plan.jsx")];
+    const n = NORMAS_DEL_PASO.tipoYJueces;
+    const cuerpo = cuerpoDe({ agente: "constructor", tipo: "create", jueces: ["revisor"] }) + "\nExcepción: " + n + " — PR de emergencia sin tiempo de jueces — hasta 2026-10-25";
+    const delPr = NORMAS.map((x) => (x.id === n ? { ...x, admite_excepcion: true } : x));
+    const con = (extra) => resultado(comprobarDimensionado({ cuerpo, ficheros: pantalla, normas: delPr, hoy: HOY, creado: DESPUES, ...extra }), n);
+    // Con su propio normas.json el PR se eximiría: es el agujero que se cierra leyendo la base.
+    expect(con({})).toBe("exempt");
+    expect(con({ normasBase: NORMAS })).toBe("fail");
+    expect(con({ normasBase: null })).toBe("fail");
+    // La que la base sí deja eximir sigue exenta; sin base legible (null), ninguna.
+    const ag = NORMAS_DEL_PASO.agente;
+    const cuerpoAg = "Agente: sesión\nTipo: create\nJueces: revisor, qa\nExcepción: " + ag + " — la sesión arregla a mano un fichero de un constructor — hasta 2026-10-25";
+    const conAg = (normasBase) => resultado(comprobarDimensionado({ cuerpo: cuerpoAg, ficheros: pantalla, normas: NORMAS, hoy: HOY, creado: DESPUES, normasBase }), ag);
+    expect(conAg(NORMAS)).toBe("exempt");
+    expect(conAg(null)).toBe("fail");
   });
   it("las banderas de rutas de la base mandan: un PR que se quita la ruta de los hooks en su JSON sigue pidiendo a seguridad (#642)", () => {
     const pr = structuredClone(DATOS_TIPOS.flags);
@@ -286,10 +317,11 @@ describe("el cableado de cada eslabón", () => {
     expect(antes.stdout).toMatch(/resultado: warning/);
     expect(corre("Agente: constructor\nTipo: create\nJueces: revisor").status).toBe(0);
   });
-  it("tests.yml lee las banderas de la base del PR (HEAD^1) y se las pasa al script por TIPOS_BASE", () => {
+  it("tests.yml lee las banderas y las normas de la base del PR (HEAD^1) y se las pasa al script por TIPOS_BASE y NORMAS_BASE", () => {
     const paso = /- name: Dimensionado del PR\n([\s\S]*?)(?=\n {6}- )/.exec(tests)?.[1] ?? "";
     expect(paso).toMatch(/git show HEAD\^1:ops\/tipos-de-encargo\.json > "\$RUNNER_TEMP\/tipos-de-la-base\.json"/);
-    expect(paso).toMatch(/TIPOS_BASE="\$RUNNER_TEMP\/tipos-de-la-base\.json" node scripts\/dimensionado-pr\.mjs/);
+    expect(paso).toMatch(/git show HEAD\^1:ops\/normas\.json > "\$RUNNER_TEMP\/normas-de-la-base\.json"/);
+    expect(paso).toMatch(/TIPOS_BASE="\$RUNNER_TEMP\/tipos-de-la-base\.json" NORMAS_BASE="\$RUNNER_TEMP\/normas-de-la-base\.json" node scripts\/dimensionado-pr\.mjs/);
     expect(tests).toMatch(/fetch-depth: 2/);
   });
   it("el script, con la base de TIPOS_BASE, deriva las banderas de ella; sin base, avisa y usa las del PR (plan B)", () => {
@@ -306,7 +338,9 @@ describe("el cableado de cada eslabón", () => {
     expect(conBase.stdout).toMatch(/salen de la base del PR/);
     expect(conBase.stdout).toMatch(/no nombra a [^(]*seguridad/);
     const sinBase = corre(join(dir, "no-existe.json"));
-    expect(sinBase.status).toBe(0);
+    // Falla cerrado: sin base, además de avisar, se exige a seguridad (antes pasaba con revisor solo).
+    expect(sinBase.status).toBe(1);
+    expect(sinBase.stdout).toMatch(/no nombra a seguridad/);
     expect(sinBase.stdout).toMatch(/::warning title=Banderas de rutas del propio PR::/);
     expect(sinBase.stdout).toMatch(/salen de este PR \(plan B\)/);
   });

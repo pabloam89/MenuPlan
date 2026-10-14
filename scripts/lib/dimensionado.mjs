@@ -183,7 +183,7 @@ function repartir(propios) {
  * entrada: { fuente: "encargo"|"ficheros"|"diff", ficheros: [{ruta, lines}|ruta], subtipo?, tipo?, causa?, banderas?,
  *            numero?, titulo?, objetivo?, declarada?, hecho_cuando?, verificacion?, rama?, tarea? }
  * `tarea`: el id de la tarea del catálogo de estándares que cumple el constructor, si quien orquesta la conoce (manda sobre la deducida).
- * `ficheros` puede traer, de un diff, `origen` (renombrado) y `anadidas` (las líneas añadidas): las banderas de rutas las miran.
+ * `ficheros` puede traer, de un diff, `origen` (la ruta de antes de un renombrado): las banderas de rutas miran las dos.
  * deps: { mapa } para probar con otro mapa de módulos; { flagsRutas } las banderas con que se derivan las de rutas (el CI pasa
  * las de la base del PR, flagsDeRutasConBase; por defecto, las del catálogo). Lanza si el subtipo, el tipo, la causa o una bandera
  * declarada no existen.
@@ -199,7 +199,7 @@ export function dimensionar(entrada, deps = {}) {
 
   const ficheros = comoFicheros(entrada.ficheros);
   // Las banderas: las declaradas más las que activan los ficheros tocados (#642), para que el CI las saque del diff. Se miran los
-  // ficheros tal cual llegan (con su `origen` y sus `anadidas`, que comoFicheros no guarda).
+  // ficheros tal cual llegan (con su `origen`, que comoFicheros no guarda).
   const flagsRutas = deps.flagsRutas ?? FLAGS;
   const deRutas = banderasDeRutas((entrada.ficheros ?? []).map((x) => (typeof x === "string" ? norm(x) : { ...x, ruta: norm(x.ruta) })), flagsRutas);
   const banderas = unicos([...declaradas, ...deRutas]);
