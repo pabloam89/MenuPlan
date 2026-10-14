@@ -158,8 +158,8 @@ La base: tablas, migraciones, roles y cada dato que guarda.
   - Fuentes: [F] https://gdpr-info.eu/art-9-gdpr/
   - Detalle: `docs/datos/PRINCIPIOS.md#17-datos-de-salud`
 - `json-or-table` — **JSON o tabla.** Lo que se filtra, se referencia o editan varios va a una tabla, y lo que un solo escritor lee entero va a JSON.
-  - Porqué: Un JSON que se filtra en el servidor o que editan varios a la vez pierde datos y no se puede consultar.
-  - Fuentes: [F] https://www.postgresql.org/docs/current/datatype-json.html
+  - Porqué: Si lo editan varios a la vez se pisan, y sin estructura fija no se puede resumir ni filtrar bien.
+  - Fuentes: [S] https://www.postgresql.org/docs/current/datatype-json.html
   - Detalle: `docs/datos/PRINCIPIOS.md#5-json-o-tabla`
 - `normalised-tables` — **Tablas normalizadas.** Cada tabla nueva nace en tercera forma normal, con un valor por celda y referencias en vez de copias.
   - Porqué: Una copia de un nombre o un precio en otra tabla se queda vieja sin que nada lo avise.
