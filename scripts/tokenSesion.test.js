@@ -8,7 +8,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { NO_LANZADO, lanzar, main, resolverComando } from "./token-sesion.mjs";
-import { ADVERTENCIAS, APP_ID, BOT_ID, CACHES, AUTOR_POR_DEFECTO, AYUDANTES, ErrorTokenSesion, FICHAS_CLAVE, IDENTIDADES, MODOS_ENTORNO, MOTIVOS, TOKEN_CENTINELA, aplicarIdentidad, avisoDeIdentidad, identidadDe, leerClaveDeBoveda, lineaIdentidad, entornoDeComando, lineaDePath, lineaDeToken, lineasDeEntorno, motivoDeCanje, rutaDeShimDesde, rutaParaGitBash, tokenConCache, tokenDeSesion } from "./lib/tokenSesion.mjs";
+import { ADVERTENCIAS, APP_ID, BOT_ID, CACHES, AUTOR_POR_DEFECTO, AYUDANTES, ErrorTokenSesion, FICHAS_CLAVE, IDENTIDADES, MODOS_ENTORNO, MOTIVOS, TOKEN_CENTINELA, aplicarIdentidad, avisoDeIdentidad, identidadDe, leerClaveDeBoveda, lineaIdentidad, entornoDeComando, lineaDePath, lineaDeToken, lineasDeEntorno, motivoDeCanje, rutaDeShimDesde, rutaParaGitBash, tokenConCache, tokenDeSesion, destinoDeRemoto, normalizarDestino } from "./lib/tokenSesion.mjs";
 import { MARGEN_MS, escribirCache, leerCache, permisosDelUsuario, principalesDeIcacls, protegerFichero, rutaDeCache } from "./lib/cacheTokenSesion.mjs";
 import { PERMISOS, PERMISOS_SIN_WORKFLOWS } from "./token-sesiones.mjs";
 import { medianaMsAsync, topeMs } from "./lib/medirTiempo.mjs";
@@ -931,5 +931,104 @@ describe("token-sesion lanza el comando sin shell y nunca sale mudo (#720)", () 
     const sitios = readdirSync(carpetaScripts).filter((f) => f.endsWith(".mjs") && !/\.test\./.test(f) && patron.test(leer(f)));
     expect(sitios.filter((f) => !EXENTOS[f] && !/comando-no-lanzado/.test(leer(f)))).toEqual([]);
     for (const f of Object.keys(EXENTOS)) expect(sitios).toContain(f); // si un exento deja de cumplir el criterio, se quita de la lista
+  });
+});
+
+describe("token por dueño del repo de destino", () => {
+  const ORG = "factory-am89";
+  const MIN = 60_000;
+  const T0 = Date.now();
+  const accesoDe = (repo) => res(201, { token: TOKEN, expires_at: "2026-10-10T12:00:00Z", permissions: { ...PERMISOS }, repositories: [{ name: repo }] });
+  const leer = async () => privateKey;
+  it("sin destino pide el repo de la casa; con otro dueño pide /orgs/<org>/installation y limita el token a su repo", async () => {
+    const casa = githubFalso();
+    await tokenDeSesion({ fetch: casa.f, leerClave: leer });
+    expect(casa.llamadas[0].url).toMatch(/\/repos\/pabloam89\/MenuPlan\/installation$/);
+
+    const org = githubFalso({ acceso: accesoDe("Fabrica") });
+    await tokenDeSesion({ fetch: org.f, leerClave: leer, destino: { dueno: ORG, repo: "Fabrica" } });
+    expect(org.llamadas[0].url).toMatch(new RegExp(`/orgs/${ORG}/installation$`));
+    expect(org.llamadas.some((l) => l.url.includes("/repos/"))).toBe(false);
+    expect(JSON.parse(org.llamadas.find((l) => l.init.method === "POST").init.body).repositories).toEqual(["Fabrica"]);
+  });
+  it("si no es organización (404) prueba /users/<login>/installation", async () => {
+    const urls = [];
+    const falso = githubFalso({ acceso: accesoDe("MenuPlan") }).f;
+    const f = vi.fn(async (url, init = {}) => {
+      urls.push(url);
+      if (url.includes("/orgs/")) return res(404, {});
+      if (url.endsWith("/users/alguien/installation")) return res(200, { id: 77 });
+      return falso(url, init);
+    });
+    await tokenDeSesion({ fetch: f, leerClave: leer, destino: { dueno: "alguien" } });
+    expect(urls.filter((u) => u.endsWith("/installation"))).toEqual([expect.stringContaining("/orgs/alguien/"), expect.stringContaining("/users/alguien/")]);
+  });
+  it("otro dueño ignora el id de instalación fijo de la casa", async () => {
+    const { f, llamadas } = githubFalso({ acceso: accesoDe("MenuPlan") });
+    await tokenDeSesion({ fetch: f, leerClave: leer, destino: { dueno: ORG }, ids: () => ({ appId: APP_ID, installationId: 55 }) });
+    expect(llamadas[0].url).toContain(`/orgs/${ORG}/installation`);
+  });
+  it("normalizarDestino: el de la casa es null; una forma rara se rechaza", () => {
+    expect(normalizarDestino(null)).toBeNull();
+    expect(normalizarDestino({ dueno: "PabloAM89", repo: "MenuPlan" })).toBeNull();
+    expect(normalizarDestino({ dueno: ORG })).toEqual({ dueno: ORG, repo: "MenuPlan" });
+    for (const raro of [{ dueno: "a/b" }, { dueno: "..", repo: "x" }, { dueno: ORG, repo: ".." }, { dueno: ORG, repo: "a b" }, { dueno: "-x" }]) {
+      expect(() => normalizarDestino(raro)).toThrow(ErrorTokenSesion);
+    }
+  });
+  it("destinoDeRemoto lee https y ssh", () => {
+    expect(destinoDeRemoto("https://github.com/factory-am89/Fabrica.git")).toEqual({ dueno: ORG, repo: "Fabrica" });
+    expect(destinoDeRemoto("git@github.com:pabloam89/MenuPlan.git\n")).toEqual({ dueno: "pabloam89", repo: "MenuPlan" });
+    expect(destinoDeRemoto("https://example.com/a/b")).toBeNull();
+  });
+  it("la caché de otro dueño es otro fichero y no sirve el token de la casa", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "tokdueno-"));
+    try {
+      const ruta = join(dir, "token-sesion.json");
+      const generar = vi.fn(async ({ destino }) => ({ token: TOKEN, expiraEn: new Date(T0 + 60 * MIN).toISOString(), installationId: destino ? 88 : 77, autor: { nombre: "b", correo: "1+b@users.noreply.github.com" }, advertencias: [] }));
+      const o = { ids: () => ({ appId: APP_ID, installationId: null }), generar, reloj: () => T0, cache: { ruta, proteger: () => true, permisosBien: () => true, esperaBloqueoMs: 40, sondeoMs: 5 } };
+      await tokenConCache(o);
+      const dentro = await tokenConCache({ ...o, destino: { dueno: ORG, repo: "Fabrica" } });
+      expect(dentro.cache).toBe("no");
+      expect(generar.mock.calls[1][0].destino).toEqual({ dueno: ORG, repo: "Fabrica" });
+      expect(readdirSync(dir).filter((x) => x.endsWith(".json")).sort()).toEqual(["token-sesion-factory-am89--fabrica.json", "token-sesion.json"]);
+      expect((await tokenConCache({ ...o, destino: { dueno: ORG, repo: "Fabrica" } })).cache).toBe("si");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+  it("destinos que solo se distinguen por el guion tienen ficheros distintos", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "tokdueno-"));
+    try {
+      const generar = vi.fn(async ({ destino }) => ({ token: TOKEN, expiraEn: new Date(T0 + 60 * MIN).toISOString(), installationId: destino.dueno.length, autor: { nombre: "b", correo: "1+b@users.noreply.github.com" }, advertencias: [] }));
+      // Una ruta base sin .json también tiene que dar un fichero propio por destino
+      for (const nombre of ["token-sesion.json", "sin-extension"]) {
+        const ruta = join(dir, nombre);
+        const o = { ids: () => ({ appId: APP_ID, installationId: null }), generar, reloj: () => T0, cache: { ruta, proteger: () => true, permisosBien: () => true, esperaBloqueoMs: 40, sondeoMs: 5 } };
+        await tokenConCache({ ...o, destino: { dueno: "a", repo: "b-c" } });
+        const otro = await tokenConCache({ ...o, destino: { dueno: "a-b", repo: "c" } });
+        expect(otro.cache).toBe("no");
+      }
+      const ficheros = readdirSync(dir).sort();
+      expect(ficheros).toHaveLength(4);
+      expect(new Set(ficheros).size).toBe(4);
+      expect(ficheros).toContain("token-sesion-a--b-c.json");
+      expect(ficheros).toContain("token-sesion-a-b--c.json");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+  it("main: --dueño y --del-remoto pasan el destino y no imprimen el token", async () => {
+    const s = { log: vi.fn(), error: vi.fn() };
+    const generar = vi.fn(async () => ({ token: TOKEN, expiraEn: "x", autor: { nombre: "b" } }));
+    expect(await main(["--dueño", ORG, "--repo", "Fabrica", "--comprobar"], { generar, salida: s })).toBe(0);
+    expect(generar.mock.calls[0][0].destino).toEqual({ dueno: ORG, repo: "Fabrica" });
+    expect(await main(["--del-remoto", "--comprobar"], { generar, salida: s, remoto: () => "https://github.com/factory-am89/Fabrica.git" })).toBe(0);
+    expect(generar.mock.calls[1][0].destino).toEqual({ dueno: ORG, repo: "Fabrica" });
+    expect(await main(["--comprobar"], { generar, salida: s })).toBe(0);
+    expect(generar.mock.calls[2][0].destino).toBeUndefined();
+    expect(await main(["--dueño", "--comprobar"], { generar, salida: s })).toBe(2);
+    expect(await main(["--del-remoto", "--comprobar"], { generar, salida: s, remoto: () => "" })).toBe(1);
+    expect(JSON.stringify([s.log.mock.calls, s.error.mock.calls])).not.toContain(TOKEN);
   });
 });

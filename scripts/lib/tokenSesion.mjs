@@ -35,6 +35,29 @@ export { BOT_ID, BOT_LOGIN };
 export const LOGIN_PABLO = "pabloam89";
 const TOPE_MS = 6000;
 
+const FORMA_DUENO = /^[A-Za-z0-9][A-Za-z0-9-]{0,38}$/;
+const FORMA_REPO = /^(?!\.{1,2}$)[A-Za-z0-9._-]{1,100}$/;
+
+/**
+ * El repo de destino del token. `null` o el de la casa (pabloam89/MenuPlan) = comportamiento de siempre; otro
+ * dueño = la instalación de ese dueño (organización o usuario). Devuelve { dueno, repo } o null (el de la casa).
+ * Valida la forma porque el dueño y el repo acaban en una URL y en el nombre de la caché.
+ */
+export function normalizarDestino(destino) {
+  if (!destino || (!destino.dueno && !destino.repo)) return null;
+  const [duenoCasa, repoCasa] = REPO.split("/");
+  const dueno = String(destino.dueno ?? duenoCasa);
+  const repo = String(destino.repo ?? repoCasa);
+  if (!FORMA_DUENO.test(dueno) || !FORMA_REPO.test(repo)) throw new ErrorTokenSesion("sin-instalacion", "destino con forma rara");
+  return dueno.toLowerCase() === duenoCasa.toLowerCase() && repo === repoCasa ? null : { dueno, repo };
+}
+
+/** { dueno, repo } de una URL de remoto de GitHub (https o ssh), o null. */
+export function destinoDeRemoto(url) {
+  const m = /github\.com[:/]([A-Za-z0-9][A-Za-z0-9-]{0,38})\/([A-Za-z0-9._-]+?)(?:\.git)?\/?$/.exec(String(url ?? "").trim());
+  return m ? { dueno: m[1], repo: m[2] } : null;
+}
+
 /** Con qué identidad trabaja la sesión (vocabulario cerrado de la línea `identidad-sesion`). */
 export const IDENTIDADES = ["pablo", "app", "otra", "desconocida"];
 /** Avisos que no paran el token pero se dicen: la App con más permisos de los pedidos, etc. */
@@ -165,24 +188,31 @@ async function revisarInstalacion({ fetchFn, jwt, installationId }) {
  * Devuelve { token, expiraEn, autor: { nombre, correo }, advertencias, workflows } (`workflows`, de WORKFLOWS: si el
  * token trae «Workflows: escritura» o se pidió sin él porque la App aún no lo tiene, #422).
  */
-export async function tokenDeSesion({ fetch: fetchFn = globalThis.fetch, leerClave = leerClaveDeBoveda, ahora = Date.now(), ids = idsPorDefecto } = {}) {
+export async function tokenDeSesion({ fetch: fetchFn = globalThis.fetch, leerClave = leerClaveDeBoveda, ahora = Date.now(), ids = idsPorDefecto, destino = null } = {}) {
+  const otro = normalizarDestino(destino);
   const leida = await leerClave();
   const pem = String(leida && typeof leida === "object" ? leida.pem : leida ?? "");
   const advertencias = leida?.temporal ? ["clave-en-HoMenu"] : [];
   if (!/-----BEGIN [A-Z ]*PRIVATE KEY-----/.test(pem)) throw new ErrorTokenSesion("clave-ilegible", "la ficha no trae una clave privada");
-  const { appId, installationId: idFijo } = ids();
+  const { appId, installationId: fijo } = ids();
+  const idFijo = otro ? null : fijo; // el id de entorno es el de la instalación de la casa
   try {
     const jwt = firmarJwt({ appId, pem, ahora: Math.floor(ahora / 1000) });
     let installationId = idFijo;
     if (!installationId) {
+      // Otro dueño: organización y, si no existe como tal (404), usuario. Sin dueño: el repo de la casa.
+      const rutas = otro ? [`/orgs/${otro.dueno}/installation`, `/users/${otro.dueno}/installation`] : [`/repos/${REPO}/installation`];
       let r;
       try {
-        r = await fetchFn(`${API}/repos/${REPO}/installation`, { headers: cabeceras(jwt), signal: AbortSignal.timeout(TOPE_MS) });
+        for (const ruta of rutas) {
+          r = await fetchFn(`${API}${ruta}`, { headers: cabeceras(jwt), signal: AbortSignal.timeout(TOPE_MS) });
+          if (r.status !== 404) break;
+        }
       } catch {
         // a propósito: el motivo es «red»; el error de fetch no aporta más que la URL
         throw new ErrorTokenSesion("red", "GitHub no contesta");
       }
-      if (r.status === 404) throw new ErrorTokenSesion("sin-instalacion", "la App no está instalada en el repo");
+      if (r.status === 404) throw new ErrorTokenSesion("sin-instalacion", "la App no está instalada en ese dueño o repo");
       if (!r.ok) throw new ErrorTokenSesion("github-rechaza", `instalación: HTTP ${r.status}`);
       try {
         installationId = (await r.json())?.id;
@@ -195,7 +225,7 @@ export async function tokenDeSesion({ fetch: fetchFn = globalThis.fetch, leerCla
     const revision = await revisarInstalacion({ fetchFn, jwt, installationId });
     advertencias.push(...revision.advertencias);
     // Sin saber (null) se pide con workflows: si la App no lo tiene, GitHub da 422 y canjearToken pide sin él
-    const { token, expira, workflows } = await canjearToken({ jwt, installationId, fetchFn, conWorkflows: revision.conWorkflows !== false });
+    const { token, expira, workflows } = await canjearToken({ jwt, installationId, fetchFn, conWorkflows: revision.conWorkflows !== false, ...(otro ? { repo: otro.repo } : {}) });
     // Solo caracteres de un token de GitHub: va a un fichero que lee un shell
     if (!/^ghs_[A-Za-z0-9_.-]{20,}$/.test(token)) throw new ErrorTokenSesion("token-raro", "el token no tiene la forma esperada");
     return { token, expiraEn: expira || null, installationId, autor: await autorDeApp(fetchFn), advertencias, workflows };
@@ -225,8 +255,16 @@ async function autorDeApp(fetchFn) {
  * vivo (aunque le queden menos de MARGEN_MS), usa ese y lo advierte. `sinCache` fuerza el canje.
  * Devuelve lo mismo que `tokenDeSesion` más `cache: "si" | "no"`.
  */
-export async function tokenConCache({ sinCache = false, cache = {}, generar = tokenDeSesion, ids = idsPorDefecto, reloj = Date.now, hasta = Infinity, ...resto } = {}) {
-  const ruta = cache.ruta !== undefined ? cache.ruta : rutaDeCache();
+export async function tokenConCache({ sinCache = false, cache = {}, generar = tokenDeSesion, ids: idsEntrada = idsPorDefecto, reloj = Date.now, hasta = Infinity, destino = null, ...resto } = {}) {
+  const otro = normalizarDestino(destino);
+  // Otro dueño: su propia caché (el token es de su instalación y de su repo) y sin el id fijo de la casa
+  const ids = otro ? () => ({ ...idsEntrada(), installationId: null }) : idsEntrada;
+  const base = cache.ruta !== undefined ? cache.ruta : rutaDeCache();
+  // `--` entre dueño y repo: GitHub no admite guiones seguidos en un dueño, así que no hay dos destinos con el mismo nombre.
+  // El sufijo se añade al nombre base (no se sustituye `.json`), así todo destino tiene fichero propio.
+  const sufijo = otro ? `-${otro.dueno.toLowerCase()}--${otro.repo.toLowerCase()}` : "";
+  const ruta = otro && base ? base.replace(/\.json$/, "") + sufijo + ".json" : base;
+  if (otro) resto.destino = otro;
   // Sin un sitio válido para la caché (fuera del perfil o en OneDrive) se canjea como antes
   if (!ruta) return { ...(await generar({ ...resto, ids, ahora: reloj() })), cache: "no" };
   const fs = cache.fs ?? fsReal;

@@ -100,8 +100,8 @@ const PISTAS = {
   422: "GitHub rechaza la petición: ¿la App está instalada en el repo MenuPlan?",
 };
 
-/** Pide el token de instalación con `permisos` (PERMISOS por defecto). Devuelve { token, expira, concedido }. */
-export async function pedirToken({ jwt, installationId, fetchFn = fetch, permisos = PERMISOS }) {
+/** Pide el token de instalación con `permisos` (PERMISOS por defecto), limitado a `repo` (por defecto el de la casa). Devuelve { token, expira, concedido }. */
+export async function pedirToken({ jwt, installationId, fetchFn = fetch, permisos = PERMISOS, repo = REPO }) {
   if (!/^\d{1,12}$/.test(String(installationId ?? ""))) throw new ErrorToken("SESIONES_INSTALLATION_ID falta o no es un número");
   let r;
   try {
@@ -114,7 +114,7 @@ export async function pedirToken({ jwt, installationId, fetchFn = fetch, permiso
         "User-Agent": "menuplan-token-sesiones",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ repositories: [REPO], permissions: permisos }),
+      body: JSON.stringify({ repositories: [repo], permissions: permisos }),
       signal: AbortSignal.timeout(ESPERA_FETCH_MS),
     });
   } catch (e) {
@@ -142,7 +142,7 @@ export async function pedirToken({ jwt, installationId, fetchFn = fetch, permiso
   const mal = Object.entries(concedido).filter(([p, nivel]) => !(p in permisos) || !(nivel in NIVEL) || NIVEL[nivel] > NIVEL[permisos[p]]).map(([p]) => p);
   if (mal.length) throw new ErrorToken(`el token trae permisos que no pedí o de más nivel (${mal.join(", ")}): no lo imprimo; corrige los permisos de la App y relanza`);
   const repos = Array.isArray(datos.repositories) ? datos.repositories.map((x) => x?.name) : null;
-  if (!repos || repos.length !== 1 || repos[0] !== REPO) throw new ErrorToken(`el token no está limitado exactamente a ${REPO} (repositorios: ${repos ? repos.length : "ninguno indicado"}): no lo imprimo`);
+  if (!repos || repos.length !== 1 || repos[0] !== repo) throw new ErrorToken(`el token no está limitado exactamente a ${repo} (repositorios: ${repos ? repos.length : "ninguno indicado"}): no lo imprimo`);
   return { token: datos.token, expira: datos.expires_at ?? "", concedido };
 }
 
@@ -151,17 +151,17 @@ export async function pedirToken({ jwt, installationId, fetchFn = fetch, permiso
  * no tienen el permiso), otra vez sin él. `conWorkflows: false` se lo salta cuando ya se sabe que la App no lo tiene
  * (ahorra una llamada). Devuelve { token, expira, workflows } con `workflows` de WORKFLOWS, según lo CONCEDIDO.
  */
-export async function canjearToken({ jwt, installationId, fetchFn = fetch, conWorkflows = true }) {
+export async function canjearToken({ jwt, installationId, fetchFn = fetch, conWorkflows = true, repo = REPO }) {
   let r = null;
   if (conWorkflows) {
     try {
-      r = await pedirToken({ jwt, installationId, fetchFn, permisos: PERMISOS });
+      r = await pedirToken({ jwt, installationId, fetchFn, permisos: PERMISOS, repo });
     } catch (e) {
       // Solo el 422 es «permiso que no tiene»; lo demás (401, 404, red, permisos de más) se dice tal cual
       if (!(e instanceof ErrorToken) || e.status !== 422) throw e;
     }
   }
-  if (!r) r = await pedirToken({ jwt, installationId, fetchFn, permisos: PERMISOS_SIN_WORKFLOWS });
+  if (!r) r = await pedirToken({ jwt, installationId, fetchFn, permisos: PERMISOS_SIN_WORKFLOWS, repo });
   return { token: r.token, expira: r.expira, workflows: r.concedido.workflows === "write" ? "concedido" : "sin-conceder" };
 }
 
