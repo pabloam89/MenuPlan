@@ -48,7 +48,7 @@ export function normalizarDestino(destino) {
   const [duenoCasa, repoCasa] = REPO.split("/");
   if (destino.todos) {
     // Toda la organización: sin repo y nunca el dueño de la casa (ahí el alcance es el repo de siempre)
-    if (!destino.dueno || destino.repo !== undefined) throw new ErrorTokenSesion("sin-instalacion", "toda la organización pide dueño y no admite repo");
+    if (!destino.dueno || destino.repo != null) throw new ErrorTokenSesion("sin-instalacion", "toda la organización pide dueño y no admite repo");
     const d = String(destino.dueno);
     if (!FORMA_DUENO.test(d) || d.toLowerCase() === duenoCasa.toLowerCase()) throw new ErrorTokenSesion("sin-instalacion", "toda la organización no vale para ese dueño");
     return { dueno: d, repo: null, todos: true };
@@ -208,7 +208,8 @@ export async function tokenDeSesion({ fetch: fetchFn = globalThis.fetch, leerCla
     let installationId = idFijo;
     if (!installationId) {
       // Otro dueño: organización y, si no existe como tal (404), usuario. Sin dueño: el repo de la casa.
-      const rutas = otro ? [`/orgs/${otro.dueno}/installation`, `/users/${otro.dueno}/installation`] : [`/repos/${REPO}/installation`];
+      // Toda la organización: solo `/orgs` (sin repositories no se valida el alcance, así que no vale para una cuenta de usuario).
+      const rutas = otro ? (otro.todos ? [`/orgs/${otro.dueno}/installation`] : [`/orgs/${otro.dueno}/installation`, `/users/${otro.dueno}/installation`]) : [`/repos/${REPO}/installation`];
       let r;
       try {
         for (const ruta of rutas) {

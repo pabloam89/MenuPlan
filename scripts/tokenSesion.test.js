@@ -1031,6 +1031,19 @@ describe("token por dueño del repo de destino", () => {
     await tokenDeSesion({ fetch: uno.f, leerClave: leer, destino: { dueno: ORG, repo: "Fabrica" } });
     expect(JSON.parse(uno.llamadas.find((l) => l.init.method === "POST").init.body).repositories).toEqual(["Fabrica"]);
   });
+  it("toda la organización con tokenConCache y el generar REAL: el POST sale sin «repositories» (el destino ya normalizado se acepta)", async () => {
+    const acceso = res(201, { token: TOKEN, expires_at: "2026-10-10T12:00:00Z", permissions: { ...PERMISOS }, repository_selection: "all" });
+    const org = githubFalso({ acceso });
+    const t = await tokenConCache({ fetch: org.f, leerClave: leer, destino: { dueno: ORG, todos: true }, cache: { ruta: null }, ids: () => ({ appId: APP_ID, installationId: null }) });
+    expect(t.token).toBe(TOKEN);
+    const cuerpo = JSON.parse(org.llamadas.find((l) => l.init.method === "POST").init.body);
+    expect(cuerpo).not.toHaveProperty("repositories");
+  });
+  it("toda la organización no cae a /users/<login>/installation si /orgs da 404", async () => {
+    const org = githubFalso({ instalacion: res(404, {}) });
+    await expect(tokenDeSesion({ fetch: org.f, leerClave: leer, destino: { dueno: ORG, todos: true } })).rejects.toMatchObject({ motivo: "sin-instalacion" });
+    expect(org.llamadas.some((l) => /\/users\//.test(l.url) && /installation$/.test(l.url))).toBe(false);
+  });
   it("toda la organización sigue negando los permisos NEGADOS", async () => {
     const acceso = res(201, { token: TOKEN, expires_at: "2026-10-10T12:00:00Z", permissions: { ...PERMISOS, administration: "write" }, repository_selection: "all" });
     await expect(tokenDeSesion({ fetch: githubFalso({ acceso }).f, leerClave: leer, destino: { dueno: ORG, todos: true } })).rejects.toThrow(ErrorTokenSesion);
