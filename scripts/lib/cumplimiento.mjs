@@ -14,7 +14,7 @@
  * Qué no mide todavía: el registro local de la fábrica (#340) solo existe en el
  * PC de cada persona y el CI no lo ve; se lee aparte (`poda`, más abajo).
  */
-import { ESTADOS_CON_DIAGNOSTICO, ESTADOS_CON_PLAN, aprendizajeValido, esDeLaCasa, fichaObligatoria, leerEncargo, leerFicha } from "./fondos.mjs";
+import { ESTADOS_CON_DIAGNOSTICO, ESTADOS_CON_PLAN, aprendizajeValido, asociacionDe, autorDe, esDeLaCasaOSinDato, fichaObligatoria, leerEncargo, leerFicha } from "./fondos.mjs";
 import { porGrupo } from "./issues.mjs";
 import { CATALOGO, TOPE_RONDAS, presupuestoDe } from "./presupuestos.mjs";
 
@@ -48,10 +48,11 @@ export const CONSULTA_FLUJO = `query($cursor: String) {
       pageInfo { hasNextPage endCursor }
       nodes {
         number state stateReason createdAt closedAt body authorAssociation
+        author { __typename login ... on Bot { databaseId } }
         labels(first: 20) { nodes { name } }
         subIssues(first: 50) {
           pageInfo { hasNextPage }
-          nodes { number state stateReason createdAt body authorAssociation labels(first: 20) { nodes { name } } }
+          nodes { number state stateReason createdAt body authorAssociation author { __typename login ... on Bot { databaseId } } labels(first: 20) { nodes { name } } }
         }
       }
     }
@@ -66,7 +67,8 @@ export function desdeGraphql(n) {
     stateReason: x.stateReason ? String(x.stateReason).toUpperCase() : null,
     createdAt: x.createdAt ?? null,
     body: String(x.body ?? ""),
-    asociacion: x.authorAssociation ?? null,
+    asociacion: asociacionDe(x),
+    autor: autorDe(x),
     labels: (x.labels?.nodes ?? []).map((l) => ({ name: l.name })),
     tipo: tipoDe(x.labels?.nodes),
   });
@@ -78,8 +80,8 @@ const abierto = (i) => i.state === "OPEN";
 const sinArreglo = (i) => ["NOT_PLANNED", "DUPLICATE"].includes(i.stateReason ?? "");
 
 /** Solo los fondos de la casa (si no se sabe quién lo abrió, cuenta, como en el informe de fichas). */
-const fondosDe = (issues) => issues.filter((i) => tipoDe(i.labels) === "fondo" && (!i.asociacion || esDeLaCasa(i.asociacion)));
-const encargosDe = (f) => (f.hijos ?? []).filter((h) => h.tipo === "encargo" && (!h.asociacion || esDeLaCasa(h.asociacion)));
+const fondosDe = (issues) => issues.filter((i) => tipoDe(i.labels) === "fondo" && esDeLaCasaOSinDato(i));
+const encargosDe = (f) => (f.hijos ?? []).filter((h) => h.tipo === "encargo" && esDeLaCasaOSinDato(h));
 
 /** Los números de issue que dispara cada indicador (la lista, no el recuento). */
 export function hallazgos(issues, { hoy = new Date() } = {}) {
@@ -160,8 +162,7 @@ export const CONTRAPESOS = {
 export function medirContrapesos(issues, { hoy = new Date() } = {}) {
   if (!Array.isArray(issues)) return Object.keys(CONTRAPESOS).map((contrapeso) => ({ contrapeso, valor: null }));
   const desde = hoy.getTime() - VENTANA_CORTO_DIAS * 86_400_000;
-  const deLaCasa = (i) => !i.asociacion || esDeLaCasa(i.asociacion);
-  const puntual = (i) => deLaCasa(i) && tipoDe(i.labels) === "caso" && nombresDe(i.labels).includes("analisis:puntual") && i.createdAt && Date.parse(i.createdAt) >= desde;
+  const puntual = (i) => esDeLaCasaOSinDato(i) && tipoDe(i.labels) === "caso" && nombresDe(i.labels).includes("analisis:puntual") && i.createdAt && Date.parse(i.createdAt) >= desde;
   return [
     { contrapeso: "fondos_abiertos", valor: fondosDe(issues).filter(abierto).length },
     { contrapeso: "casos_puntuales_recientes", valor: issues.filter(puntual).length },

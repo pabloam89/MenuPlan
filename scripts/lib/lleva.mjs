@@ -75,8 +75,9 @@ export function leerMarcas(comentarios, { soloCasa = false } = {}) {
   const re = new RegExp(`<!-- ${MARCADOR} rama=(\\S+) carpeta=(\\S+) desde=(\\S+) -->`);
   return (comentarios ?? [])
     // Con `soloCasa` (lo que se enseña a las sesiones) un comentario cuenta solo si lo escribió alguien
-    // de la casa: cualquiera puede comentar en un issue público. Sin la asociación, no cuenta (#313).
-    .filter((c) => !soloCasa || esDeLaCasa(c?.authorAssociation))
+    // de la casa (`esDeLaCasa`: la asociación o el bot de las sesiones, #839): cualquiera puede comentar
+    // en un issue público. Sin dato, no cuenta (#313).
+    .filter((c) => !soloCasa || esDeLaCasa(c))
     .map((c) => re.exec(String(c.body ?? c)))
     .filter(Boolean)
     // Una rama o carpeta con formas raras (espacios invisibles, símbolos) no es una marca nuestra.

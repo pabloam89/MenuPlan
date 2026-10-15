@@ -150,6 +150,8 @@ const TABLA = [
   ["referencias-a-issues", "scripts/lib/nuevo.mjs", "scripts/referencias-issue.test.js"],
   ["referencias-a-issues", ".claude/hooks/guardia.mjs", "scripts/referencias-issue.test.js"],
   ["referencias-a-issues", "ops/entidades.json", "scripts/referencias-issue.test.js"],
+  ["de-la-casa", "scripts/lib/x.mjs", "scripts/esDeLaCasa.test.js"],
+  ["de-la-casa", ".github/workflows/x.yml", "scripts/esDeLaCasa.test.js"],
   ["preguntas-del-proyecto", "ops/proyectos/x/preguntas.json", "ops/preguntas.test.js"],
   ["preguntas-del-proyecto", "CLAUDE.md", "ops/preguntas.test.js"],
   ["preguntas-del-proyecto", "ops/normas.json", "ops/preguntas.test.js"],

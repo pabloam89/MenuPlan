@@ -28,9 +28,10 @@ import { FORMA_FECHA, MARGEN_MS, conBloqueo, escribirCache, leerCache, permisosD
 
 export const APP_ID = 5260552;
 export const REPO = "pabloam89/MenuPlan";
-export const BOT_LOGIN = "homenu-sesiones[bot]";
-/** Id del usuario bot (público, `GET /users/homenu-sesiones[bot]`): respaldo si la API no contesta. */
-export const BOT_ID = 340485937;
+// El login y el id del bot (BOT_ID: respaldo si la API no contesta) viven en una hoja sin imports, que también
+// lee el filtro de «de la casa» (fondos.mjs, #839) sin cargar child_process. Se vuelven a exportar desde aquí.
+import { BOT_ID, BOT_LOGIN } from "./identidadSesiones.mjs";
+export { BOT_ID, BOT_LOGIN };
 export const LOGIN_PABLO = "pabloam89";
 const TOPE_MS = 6000;
 

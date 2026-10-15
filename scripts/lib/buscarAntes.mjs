@@ -149,7 +149,7 @@ export const CONSULTA_PR_INDICE = `query {
   rateLimit { cost }
   repository(owner: "pabloam89", name: "MenuPlan") {
     pullRequests(first: 60, orderBy: { field: UPDATED_AT, direction: DESC }) {
-      nodes { number title state headRefName mergedAt body authorAssociation isCrossRepository author { login } }
+      nodes { number title state headRefName mergedAt body authorAssociation isCrossRepository author { __typename login ... on Bot { databaseId } } }
     }
   }
 }`;
@@ -165,12 +165,12 @@ export function construirIndice(issues, prs = [], ahora = new Date()) {
   };
 }
 
-/** Un issue lo abrió alguien de la casa (OWNER, MEMBER, COLLABORATOR). Sin dato, no. */
-export const issueDeLaCasa = (i) => esDeLaCasa(i?.asociacion);
+/** Un issue lo abrió alguien de la casa (`esDeLaCasa`: la asociación o el bot de las sesiones, #839). Sin dato, no. */
+export const issueDeLaCasa = (i) => esDeLaCasa(i);
 
 /** Un PR es de la casa: de dentro del repo (no de un fork) y de la casa o de dependabot. */
 export const prDeLaCasa = (p) => p?.isCrossRepository === false
-  && (esDeLaCasa(p.authorAssociation) || /^(?:app\/)?dependabot(?:\[bot\])?$/i.test(String(p.author?.login ?? "")));
+  && (esDeLaCasa(p) || /^(?:app\/)?dependabot(?:\[bot\])?$/i.test(String(p.author?.login ?? "")));
 
 // ── Leer y escribir ──────────────────────────────────────────────────────────
 
