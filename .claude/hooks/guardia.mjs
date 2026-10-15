@@ -20,7 +20,7 @@ import { tmpdir } from "node:os";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { AYUDA as AYUDA_CASOS, analizarCasos } from "./casos.mjs";
+import { AYUDA as AYUDA_CASOS, analizarCasos, limpiarCuerpo } from "./casos.mjs";
 import { AVISO_POR_CREDENCIAL, avisoDe } from "./avisos-guardia.mjs";
 import { credencialDeComando, sinEnvoltorio } from "./credenciales.mjs";
 import { cargarMapa, skillsDeComando, skillsDeFicheros, unirContinuaciones } from "./dominios.mjs";
@@ -90,8 +90,16 @@ export function rutaDeGhApi(o) {
   return "";
 }
 
+/** Variables de entorno delante (`GH_TOKEN=x gh …`), sin más. */
+const VARIABLES_DELANTE = /^(?:\w+=\S*\s+)*/;
+
+/** La orden de verdad: sin variables delante ni el envoltorio de la sesión (`A=1 node scripts/token-sesion.mjs -- GH_TOKEN=x gh …` → `gh …`). */
+export function ordenDeVerdad(orden) {
+  return sinEnvoltorio(String(orden).replace(VARIABLES_DELANTE, "")).replace(VARIABLES_DELANTE, "");
+}
+
 export function escribeLaFoto(orden) {
-  const o = sinEnvoltorio(orden).replace(/^(?:\w+=\S*\s+)*/, "");
+  const o = sinEnvoltorio(orden).replace(VARIABLES_DELANTE, "");
   const nombraTag = (t) => {
     const destino = t.replace(/^["']|["']$/g, "").split(":").pop().replace(/^\+/, "");
     return destino === "foto-issues" || destino === "refs/tags/foto-issues";
@@ -333,6 +341,24 @@ export function migracionCerrada(nombre, { enStaging, estadoMd, numeroEnStaging 
   return deny("migracion-aplicada", { nombre });
 }
 
+// ── Workflows con su juez ──────────────────────────────────────────────────
+
+/**
+ * Desde el 15 oct 2026 la App de las sesiones puede empujar `.github/workflows/` (decisión de Pablo, opción C
+ * de #422, caso #821): un workflow fusionado en staging corre con los secretos de sus environments, y ningún
+ * PR espera a una persona (#608). Contrapeso: una sesión no fusiona un PR que cambia un workflow si su cuerpo
+ * no nombra a `seguridad` en «Jueces:». Va en la guardia y no solo en el CI (#642) porque el CI corre el
+ * `tests.yml` del propio PR, que es justo lo que un PR de workflows puede cambiar; la guardia corre desde la
+ * carpeta de la sesión. Cuando entre `.claude/hooks/tipo-y-jueces.mjs` (#860), esta lectura pasa a ser la suya.
+ */
+export const RUTA_WORKFLOW = /^\.github\/workflows\//;
+
+/** ¿Nombra el cuerpo a `seguridad` en una línea «Jueces:»? Sin comentarios HTML ni bloques de código (limpiarCuerpo). */
+export function nombraASeguridad(cuerpo) {
+  const lineas = [...limpiarCuerpo(String(cuerpo ?? "")).matchAll(/^[ \t>*-]*(?:\*\*)?Jueces(?:\*\*)?[ \t]*:(?:\*\*)?[ \t]*(.*)$/gim)];
+  return lineas.some((m) => m[1].split(/\s*(?:,|;|\sy\s)\s*/).some((j) => j.replace(/[`*]/g, "").trim().split(/[\s—–(.]/)[0].toLowerCase() === "seguridad"));
+}
+
 // ── La carpeta principal ───────────────────────────────────────────────────
 
 /**
@@ -514,6 +540,20 @@ export function contextoReal(raiz, entrada = {}, { dirReg: dirRegDado, env = pro
         return null; // a propósito: null es «no se sabe» y decidir() lo convierte en pregunta (ask)
       }
     },
+    // Los workflows que cambia el PR (también el nombre de antes de un renombrado) y su cuerpo, por REST:
+    // la lista de ficheros de `gh pr view` se corta a los 100. null si no se puede saber.
+    workflowsDelPr: (numero) => {
+      try {
+        if (!/^\d+$/.test(String(numero ?? ""))) return null;
+        const opts = { windowsHide: true, cwd: raiz, encoding: "utf8", timeout: 15000 };
+        const cuerpo = execFileSync("gh", ["pr", "view", numero, "--json", "body", "-q", ".body"], opts);
+        const ficheros = execFileSync("gh", ["api", "--paginate", `repos/{owner}/{repo}/pulls/${numero}/files`, "-q", ".[] | .filename, (.previous_filename // empty)"], opts)
+          .split(/\r?\n/).map((f) => f.trim()).filter((f) => RUTA_WORKFLOW.test(f));
+        return { cuerpo, ficheros: [...new Set(ficheros)] };
+      } catch {
+        return null; // a propósito: null es «no se sabe» y decidir() lo convierte en pregunta (ask)
+      }
+    },
     // Ficheros que el PR cambia y que staging también ha cambiado desde que la
     // rama se separó, preguntado a GitHub (la rama puede no estar en local).
     // [] si no va atrasada o no se pisan; null si no se puede saber.
@@ -644,8 +684,13 @@ export function decidir(entrada, ctx) {
         continue;
       }
 
+      // Las reglas de `gh pr merge` miran la orden de verdad: sin el envoltorio de la sesión
+      // (`token-sesion.mjs -- gh …`, la única forma que la guardia admite en PowerShell) ni las
+      // variables delante (`GH_TOKEN=x gh …`), como `escribeLaFoto` (revisor del PR #864).
+      // Las demás reglas de gh de este bucle tienen el mismo hueco: #822.
+      const og = ordenDeVerdad(o);
       // gh -R/--repo … pr merge: la base no se puede leer de la rama actual.
-      if (/^gh\s+(?:-R|--repo)\b[\s\S]*\bpr\s+merge\b/.test(o)) {
+      if (/^gh\s+(?:-R|--repo)\b[\s\S]*\bpr\s+merge\b/.test(og)) {
         return deny("fusion-con-repo-ajeno");
       }
       // gh pr edit --base: cambiar la base de un PR a algo que no es staging lo
@@ -668,19 +713,25 @@ export function decidir(entrada, ctx) {
       // engañaba con un número en --subject, con '#231' o con el nombre de una
       // rama (re-juicio del PR #223); gh no admite un segundo PR.
       let merge = null;
-      if (/^gh\s+pr\s+merge\b/.test(o)) {
-        const tras = [...o.replace(/^gh\s+pr\s+merge\b/, "").matchAll(/"([^"]*)"|'([^']*)'|(\S+)/g)].map((m) => m[1] ?? m[2] ?? m[3]);
+      if (/^gh\s+pr\s+merge\b/.test(og)) {
+        const tras = [...og.replace(/^gh\s+pr\s+merge\b/, "").matchAll(/"([^"]*)"|'([^']*)'|(\S+)/g)].map((m) => m[1] ?? m[2] ?? m[3]);
         const pr = tras[0]?.match(/^(?:#?(\d+)|https:\/\/github\.com\/pabloam89\/MenuPlan\/pull\/(\d+)\/?)$/i);
         if (!pr) return deny("fusion-sin-numero");
-        merge = [o, pr[1] ?? pr[2]];
+        merge = [og, pr[1] ?? pr[2]];
       }
-      if (merge && /(?:^|\s)--auto\b/.test(o)) {
+      if (merge && /(?:^|\s)--auto\b/.test(og)) {
         return deny("fusion-auto");
       }
       if (merge) {
         const base = ctx.baseDelPr(merge[1]);
         if (base === null) return ask("fusion-base-ilegible");
         if (base !== "staging") return deny("fusion-fuera-de-staging", { base });
+        // #821: un PR que cambia un workflow entra con `seguridad` en «Jueces:» (ver RUTA_WORKFLOW).
+        const wf = ctx.workflowsDelPr(merge[1]);
+        if (wf === null) return ask("pr-workflows-sin-comprobar");
+        if (wf.ficheros.length && !nombraASeguridad(wf.cuerpo)) {
+          return deny("workflow-sin-seguridad", { lista: wf.ficheros.slice(0, 5).join(", "), pr: merge[1] });
+        }
         const choques = ctx.choquesDelPr(merge[1]);
         if (choques === null) return ask("pr-choques-sin-comprobar");
         if (choques.length) {
