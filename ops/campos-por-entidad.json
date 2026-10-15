@@ -235,6 +235,15 @@
         }
       ]
     },
+    "component-template": {
+      "ficheros": [
+        {
+          "tipo": "json",
+          "ruta": "ops/diseno/plantillas-componente.json",
+          "registros": "plantillas"
+        }
+      ]
+    },
     "token": {
       "sin_fuente": "Valores anidados de src/design/tokens.js; sin registro plano"
     },
