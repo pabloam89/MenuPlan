@@ -65,9 +65,7 @@ acaban sus encargos y el test de la clase está en verde.
 **La ficha del fondo** (#337; `scripts/lib/fondos.mjs`, workflow `fondos.yml`):
 el cuerpo de cada fondo lleva un bloque de código `fondo`, de líneas
 `clave: valor` (el formulario `2-fondo.yml` lo trae; lo vacío es «sin rellenar»;
-listas con coma e issues como `#n`, o `dueño/repo#n` si el issue vive en otro repo de
-`ops/entidades.json`, escrito exacto: un solo lector, `.claude/hooks/referenciaIssue.mjs`,
-#856; lo mismo en `Closes` y `Casos:`). Se lee a mano, con límites (30 líneas, 400
+listas con coma e issues como `#n`, o `dueño/repo#n` de un repo de `ops/entidades.json`, #856). Se lee a mano, con límites (30 líneas, 400
 caracteres por texto, 30 elementos por lista): el cuerpo de un issue lo escribe
 cualquiera. <!-- norma:fondo-con-ficha-y-controles -->
 
