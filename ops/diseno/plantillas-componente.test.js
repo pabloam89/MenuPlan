@@ -3,7 +3,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { leerBibliotecas, leerBloques } from "../../scripts/lib/bibliotecasDiseno.mjs";
-import { CLAVES_DE_VIDA, DE_BLOQUES, ESTADOS_DE_INTERACTIVO, ESTADO_DE_PUNTERO, NO_APLICA, SIN_COMPROBAR, SIN_PUNTERO, SI_NO_DEL_POOL, TONO, VOCABULARIOS_DE_PLANTILLAS, cifrasDePlantillas, clavesDeVocabulario, leerPlantillas, partesQueRepite, pasosDeEscala, problemasDePlantillas, textosDePlantillas, valoresDeAtributo } from "../../scripts/lib/plantillasComponente.mjs";
+import { CLAVES_DE_VIDA, DE_BLOQUES, ESTADOS_DE_INTERACTIVO, ESTADO_DE_PUNTERO, NO_APLICA, SIN_PUNTERO, SI_NO_DEL_POOL, TONO, VOCABULARIOS_DE_PLANTILLAS, cifrasDePlantillas, clavesDeVocabulario, estadosDeLaNorma, leerPlantillas, partesQueRepite, pasosDeEscala, problemasDePlantillas, textosDePlantillas, valoresDeAtributo } from "../../scripts/lib/plantillasComponente.mjs";
 import { leerRegistro as leerNormas } from "../../scripts/lib/normas.mjs";
 import { leerTaxonomia } from "../../scripts/lib/taxonomiaDiseno.mjs";
 import { VOCABULARIOS, leerRegistro } from "../../scripts/lib/vocabulariosVida.mjs";
@@ -14,14 +14,15 @@ import { VOCABULARIOS, leerRegistro } from "../../scripts/lib/vocabulariosVida.m
  *
  *  1. hay una plantilla por cada uno de los 50 elementos de la taxonomía, ni más ni menos, y ninguna es copia de otra
  *     (partes y atributos distintos);
- *  2. cada parte, atributo, valor, propiedad visual, paso, estado, rol ARIA, nombre accesible, tecla y sistema sale de un
+ *  2. cada parte, atributo, valor, propiedad visual, paso, estado, rol ARIA, nombre accesible y tecla sale de un
  *     vocabulario cerrado con definición; los reutilizados (estados, categorías, variantes, tamaños, densidades, tipos de
- *     token) vienen de ops/diseno/bloques.json y las marcas y el sí/no (`declaracion`), del pool, sin copiarse;
+ *     token) vienen de ops/diseno/bloques.json y la marca y el sí/no neutro (`declaracion`), del pool, sin copiarse;
  *  3. lo visual apunta a un paso de una escala por su rol, sobre una parte de su anatomía: nunca a un número; el tono usa
  *     los ids de los roles de color;
  *  4. un interactivo tiene el mínimo de estados de la norma design-complete-states (y hover si hay puntero), objetivo táctil
- *     y parada de foco; un estático no tiene estados de interacción, objetivo táctil ni parada de foco;
- *  5. cada fuente lleva sistema, URL marcada [F] o [S] bajo la raíz del sistema y su comprobación (fecha o unverified);
+ *     y parada de foco; un estático no tiene estados de interacción, objetivo táctil ni parada de foco; la lista de la norma
+ *     y la del código son la misma, en los dos sentidos;
+ *  5. sin fuentes ni enlaces de inspiración (decisión de Pablo, #850);
  *  6. ningún vocabulario ni valor propio sin lector, y los vocabularios están en el ciclo de vida;
  *  7. un atributo sí/no no repite una parte: si la pieza tiene algo, lo dice la parte opcional.
  *
@@ -65,15 +66,19 @@ describe("las plantillas de hoy", () => {
     expect(c.plantillas).toBe(c.elementos);
     expect(suma(c.por_interaccion)).toBe(c.plantillas);
     expect(suma(c.por_categoria)).toBe(c.plantillas);
-    expect(c.fuentes_comprobadas + c.fuentes_sin_comprobar).toBe(c.fuentes);
-    expect(suma(c.fuentes_por_sistema)).toBe(c.fuentes);
-    expect(suma(c.fuentes_por_alcance)).toBe(c.fuentes);
   });
 
-  it("lo que no se ha leído consta como unverified: la primera versión se escribió sin leer las páginas", () => {
-    const c = cifrasDePlantillas(DATOS, TAXONOMIA);
-    expect(c.fuentes_comprobadas).toBe(DATOS.plantillas.flatMap((t) => t.fuentes).filter((f) => f.comprobada !== SIN_COMPROBAR).length);
-    expect(DATOS.lectura.base).toMatch(/unverified/);
+  it("no llevan fuentes ni enlaces de inspiración (decisión de Pablo, #850)", () => {
+    for (const t of DATOS.plantillas) expect(Object.keys(t), t.elemento).not.toContain("fuentes");
+    expect(Object.keys(DATOS)).not.toContain("raiz_de_sistema");
+    expect(Object.keys(DATOS)).not.toContain("lectura");
+    expect(JSON.stringify(DATOS)).not.toMatch(/https?:\/\//);
+  });
+
+  it("el sí/no del pool es neutro: sus definiciones no dicen de dónde sale el dato, lo dice el campo que lo usa", () => {
+    const siNo = POOL.vocabularios[SI_NO_DEL_POOL];
+    expect(Object.keys(siNo)).toEqual(["yes", "no"]);
+    for (const d of Object.values(siNo)) expect(d).not.toMatch(/fuente|declara/i);
   });
 
   it("reutiliza los vocabularios de bloques.json y las marcas del pool, sin copiarlos", () => {
@@ -88,10 +93,20 @@ describe("las plantillas de hoy", () => {
     expect(valoresDeAtributo(DATOS, BLOQUES, "sortable", POOL)).toEqual(Object.keys(POOL.vocabularios[SI_NO_DEL_POOL]));
   });
 
-  it("la norma design-complete-states nombra la plantilla y el mínimo de estados que el código exige", () => {
+  it("la norma design-complete-states nombra la plantilla y el mismo mínimo de estados que el código exige, ni más ni menos", () => {
     const norma = leerNormas(RAIZ).normas.find((n) => n.id === "design-complete-states");
     expect(norma.exigencia).toMatch(/plantilla de componente/);
-    for (const e of [...ESTADOS_DE_INTERACTIVO, ESTADO_DE_PUNTERO]) expect(norma.exigencia, e).toMatch(new RegExp(`\\b${e}\\b`));
+    const deLaNorma = estadosDeLaNorma(norma.exigencia);
+    expect(deLaNorma, "la exigencia ya no dice «como mínimo …, y X con puntero»").not.toBeNull();
+    expect(deLaNorma.minimo).toEqual(ESTADOS_DE_INTERACTIVO);
+    expect(deLaNorma.puntero).toBe(ESTADO_DE_PUNTERO);
+  });
+
+  it("estadosDeLaNorma lee la lista en los dos sentidos: un estado de más o de menos en la norma se nota", () => {
+    expect(estadosDeLaNorma("definir x, como mínimo a, b y c, y h con puntero")).toEqual({ minimo: ["a", "b", "c"], puntero: "h" });
+    expect(estadosDeLaNorma("definir x, como mínimo a, b, c y d, y h con puntero").minimo).not.toEqual(["a", "b", "c"]);
+    expect(estadosDeLaNorma("definir x, como mínimo a y b, y h con puntero").minimo).not.toEqual(["a", "b", "c"]);
+    expect(estadosDeLaNorma("definir los estados de su plantilla")).toBeNull();
   });
 
   it("un solo nombre para cada significado: el tono usa los ids de los roles de color (peligro es danger)", () => {
@@ -99,8 +114,6 @@ describe("las plantillas de hoy", () => {
     expect(valoresDeAtributo(DATOS, BLOQUES, TONO.atributo)).toContain("danger");
     expect(roles).toContain("danger");
     expect(valoresDeAtributo(DATOS, BLOQUES, TONO.atributo)).not.toContain("critical");
-    expect(Object.keys(DATOS.vocabularios.sistema_de_referencia)).toContain("radix-ui");
-    expect(POOL.bibliotecas.map((b) => b.id)).toContain("radix-ui");
   });
 
   it("partesQueRepite reconoce un sí/no que es una parte", () => {
@@ -162,9 +175,16 @@ describe("autotest: cada regla falla con un dato roto a propósito", () => {
   it("un estático que es parada del foco", () => rompe((d) => { plantilla(d, "divider").accesibilidad.teclado.push("tab-stop"); }, "es estático y no es una parada del foco"));
   it("unos estados sin reposo", () => rompe((d) => { const t = plantilla(d, "divider"); t.estados = t.estados.filter((e) => e !== "reposo"); }, "estados es una lista que incluye reposo"));
   it("un estado repetido", () => rompe((d) => { plantilla(d, "divider").estados.push("reposo"); }, "estado «reposo» repetido"));
-  it("una comprobación anterior a la lectura", () => rompe((d) => { plantilla(d, "button").fuentes[0].comprobada = "2020-01-01"; }, "no anterior a la lectura"));
   it("un tono que no es un rol de color", () => rompe((d) => { d.atributos_de_forma.tone.valores.critical = "Algo falló o es grave"; plantilla(d, "banner").forma.find((f) => f.atributo === "tone").valores.push("critical"); }, "tone.critical: no es un paso de la escala color-role"));
-  it("un sí/no que es una parte del vocabulario", () => rompe((d) => { d.atributos_de_forma["with-caption"] = { que: "Si lleva pie de foto", valores_de: SI_NO_DEL_POOL }; plantilla(d, "photo").forma.push({ atributo: "with-caption", valores: ["yes", "no"], por_defecto: "no" }); }, "repite la parte «caption»"));
+  it("un sí/no que es una parte del vocabulario, en una plantilla que no tiene esa parte", () => {
+    // avatar no tiene caption: salta la regla del vocabulario y no la de la anatomía de la plantilla (#850).
+    const d = copia(DATOS);
+    expect(plantilla(d, "avatar").anatomia.map((a) => a.parte)).not.toContain("caption");
+    d.atributos_de_forma["with-caption"] = { que: "Si lleva pie de foto", valores_de: SI_NO_DEL_POOL };
+    plantilla(d, "avatar").forma.push({ atributo: "with-caption", valores: ["yes", "no"], por_defecto: "no" });
+    const p = problemas(d);
+    expect(p).toEqual(["atributos_de_forma.with-caption: un sí/no que repite la parte «caption»; lo dice la parte opcional de la anatomía"]);
+  });
   it("un sí/no que repite una parte de su plantilla", () => rompe((d) => { d.atributos_de_forma["thumb-icon"] = { que: "Si el tirador lleva un icono", valores_de: SI_NO_DEL_POOL }; plantilla(d, "switch").forma.push({ atributo: "thumb-icon", valores: ["yes", "no"], por_defecto: "no" }); }, "repite la parte «icon» de su anatomía"));
   it("un pool que pierde el sí/no", () => {
     const pool = copia(POOL);
@@ -180,13 +200,7 @@ describe("autotest: cada regla falla con un dato roto a propósito", () => {
   it("un contenedor sin objetivo táctil", () => rompe((d) => { plantilla(d, "dialog").accesibilidad.objetivo_tactil = NO_APLICA; }, "un contenedor tiene objetivo_tactil"));
   it("un rol ARIA fuera del vocabulario", () => rompe((d) => { plantilla(d, "button").accesibilidad.rol_aria = ["boton"]; }, "rol_aria «boton»"));
   it("una tecla fuera del vocabulario", () => rompe((d) => { plantilla(d, "button").accesibilidad.teclado.push("f13"); }, "teclado «f13»"));
-  it("una fuente sin marca de la forja", () => rompe((d) => { const f = plantilla(d, "button").fuentes[0]; f.fuente = f.fuente.slice(4); }, "fuente es «[F] https://…»"));
-  it("una fuente con la marca [I], que es de la casa", () => rompe((d) => { const f = plantilla(d, "button").fuentes[0]; f.fuente = `[I]${f.fuente.slice(3)}`; }, "fuente es «[F] https://…»"));
-  it("una fuente fuera de la raíz de su sistema", () => rompe((d) => { plantilla(d, "button").fuentes[0].fuente = "[F] https://x.test/a"; }, "no cuelga de la raíz"));
-  it("una fuente de página que es la raíz", () => rompe((d) => { const f = plantilla(d, "button").fuentes[0]; f.fuente = `[F] ${d.raiz_de_sistema[f.sistema]}`; f.alcance_url = "page"; }, "alcance page es una página"));
-  it("una fuente de sistema que es una página", () => rompe((d) => { plantilla(d, "button").fuentes.find((f) => f.alcance_url === "page").alcance_url = "system"; }, "alcance system es la raíz"));
-  it("una comprobación que no es fecha ni unverified", () => rompe((d) => { plantilla(d, "button").fuentes[0].comprobada = "ayer"; }, "comprobada es unverified"));
-  it("un sistema repetido en una plantilla", () => rompe((d) => { const t = plantilla(d, "button"); t.fuentes.push(copia(t.fuentes[0])); }, "repetido"));
+  it("una plantilla que vuelve a llevar fuentes", () => rompe((d) => { plantilla(d, "button").fuentes = [{ sistema: "material" }]; }, "campo desconocido (fuentes)"));
   it("un vocabulario que el código no lee", () => rompe((d) => { d.vocabularios.color = { rojo: "Un color cualquiera" }; }, "VOCABULARIOS_DE_PLANTILLAS"));
   it("un vocabulario que el código lee y falta", () => rompe((d) => { delete d.vocabularios.teclado; }, "vocabularios.teclado: falta"));
   it("un valor de vocabulario sin lector", () => rompe((d) => { d.vocabularios.rol_aria.marquee = "Un rol que ninguna plantilla usa"; }, "rol_aria.marquee: ninguna plantilla lo usa"));
