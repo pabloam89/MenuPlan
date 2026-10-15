@@ -82,8 +82,8 @@ const PISTAS = {
   422: "GitHub rechaza la petición: ¿la App está instalada en el repo MenuPlan?",
 };
 
-/** Pide el token de instalación. Devuelve { token, expira }. */
-export async function pedirToken({ jwt, installationId, fetchFn = fetch }) {
+/** Pide el token de instalación, limitado a `repo` (por defecto el de la casa). Devuelve { token, expira }. */
+export async function pedirToken({ jwt, installationId, fetchFn = fetch, repo = REPO }) {
   if (!/^\d{1,12}$/.test(String(installationId ?? ""))) throw new ErrorToken("SESIONES_INSTALLATION_ID falta o no es un número");
   let r;
   try {
@@ -96,7 +96,7 @@ export async function pedirToken({ jwt, installationId, fetchFn = fetch }) {
         "User-Agent": "menuplan-token-sesiones",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ repositories: [REPO], permissions: PERMISOS }),
+      body: JSON.stringify({ repositories: [repo], permissions: PERMISOS }),
       signal: AbortSignal.timeout(ESPERA_FETCH_MS),
     });
   } catch (e) {
@@ -121,7 +121,7 @@ export async function pedirToken({ jwt, installationId, fetchFn = fetch }) {
   const mal = Object.entries(concedido).filter(([p, nivel]) => !(p in PERMISOS) || !(nivel in NIVEL) || NIVEL[nivel] > NIVEL[PERMISOS[p]]).map(([p]) => p);
   if (mal.length) throw new ErrorToken(`el token trae permisos que no pedí o de más nivel (${mal.join(", ")}): no lo imprimo; corrige los permisos de la App y relanza`);
   const repos = Array.isArray(datos.repositories) ? datos.repositories.map((x) => x?.name) : null;
-  if (!repos || repos.length !== 1 || repos[0] !== REPO) throw new ErrorToken(`el token no está limitado exactamente a ${REPO} (repositorios: ${repos ? repos.length : "ninguno indicado"}): no lo imprimo`);
+  if (!repos || repos.length !== 1 || repos[0] !== repo) throw new ErrorToken(`el token no está limitado exactamente a ${repo} (repositorios: ${repos ? repos.length : "ninguno indicado"}): no lo imprimo`);
   return { token: datos.token, expira: datos.expires_at ?? "" };
 }
 

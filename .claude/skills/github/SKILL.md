@@ -70,6 +70,7 @@ que manda. `tests.yml` no usa ninguno.
 
 **Identidad de las sesiones (#329).** El arranque canjea la clave de la App `homenu-sesiones` por un token de 1 hora, guardado y reutilizado entre sesiones
 (Bash; en PowerShell, `node scripts/token-sesion.mjs -- <comando>`). La guardia niega quitar o vaciar el token, `git -c credential.…` y cambiar reglas del repo o aprobar PR (#447). El detalle, en `.claude/skills/github/referencias/app-sesiones.md`.
+**Repos de otro dueño** (p. ej. la organización `factory-am89`, donde la App también está instalada): `node scripts/token-sesion.mjs --dueño <login> [--repo <nombre>] -- <comando>`, o `--del-remoto` para sacarlo de `origin` de la carpeta. Pide `/orgs/<login>/installation` (y `/users/…` si no es organización), limita el token a ese repo y usa su propia caché. Sin la opción, el repo de la casa.
 
 Un secreto nuevo o rotado va a un environment con política de ramas, nunca al <!-- norma:secretos-de-repo -->
 repo; el alta entera, en la skill `alta-de-secreto`.
