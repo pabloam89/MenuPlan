@@ -23,8 +23,8 @@
       "judgement": "Juicio por el nombre de la biblioteca: no es una medida"
     },
     "diseno.biblioteca_declaracion": {
-      "yes": "La fuente lo declara",
-      "no": "La fuente dice que no"
+      "yes": "Sí: se cumple lo que pregunta el campo que lo usa",
+      "no": "No: no se cumple lo que pregunta el campo que lo usa"
     },
     "diseno.biblioteca_fuente_de_dato": {
       "github": "El repositorio en GitHub, por su API: licencia SPDX, archived, pushed_at y el README",
@@ -99,10 +99,6 @@
       "misc": "Las que la fuente deja sin grupo claro, y las que pertenecen a un modo o a un tipo de herramienta",
       "layouts": "Las que valen por cómo reparten el espacio, solo en web"
     },
-    "diseno.plantilla_alcance_de_url": {
-      "page": "La URL es la página del componente en ese sistema",
-      "system": "La URL es la raíz del sistema: no se conoce la página exacta del componente"
-    },
     "diseno.plantilla_atributo_de_forma": {
       "variant": "El énfasis visual de la pieza frente a sus vecinas",
       "size": "El tamaño de la pieza en la escala de tamaños del sistema",
@@ -166,8 +162,7 @@
       "tri-state": "Si admite un tercer estado mixto, para grupos a medio marcar",
       "free-input": "Si acepta un valor que no está en la lista",
       "alpha": "Si deja elegir la transparencia",
-      "entry-motion": "Cómo entra en la pantalla",
-      "contained": "Si va dentro de un contenedor de color"
+      "entry-motion": "Cómo entra en la pantalla"
     },
     "diseno.plantilla_escala": {
       "corner": "Lo redondeadas que son las esquinas",
@@ -377,15 +372,6 @@
       "article": "Una pieza de contenido que se entiende sola",
       "separator": "Una línea que separa contenido",
       "presentation": "Sin significado para el lector de pantalla: solo forma"
-    },
-    "diseno.plantilla_sistema_de_referencia": {
-      "material": "Material Design 3, el sistema de diseño de Google",
-      "carbon": "Carbon, el sistema de diseño de IBM",
-      "polaris": "Polaris, el sistema de diseño de Shopify",
-      "apple-hig": "Las Human Interface Guidelines de Apple",
-      "radix-ui": "Radix Primitives, componentes sin estilo con su accesibilidad",
-      "shadcn-ui": "shadcn/ui, componentes sobre Radix para copiar al proyecto",
-      "wai-aria-apg": "La guía de prácticas de ARIA del W3C (APG): roles y teclado de cada patrón"
     },
     "diseno.plantilla_teclado": {
       "tab-stop": "Se llega y se sale con Tab y Mayúsculas más Tab",
@@ -1917,6 +1903,13 @@
       "pasa_a": null,
       "desde": "2026-10-14",
       "motivo": "Una sola marca (#802): la de no aplica vive solo en diseno.biblioteca_marca, y react.estado la admite en el código"
+    },
+    {
+      "vocabulario": "diseno.plantilla_atributo_de_forma",
+      "valor": "contained",
+      "pasa_a": null,
+      "desde": "2026-10-15",
+      "motivo": "Repetía la parte opcional container del indicador de carga: si la pieza va dentro de un contenedor lo dice su anatomía, una vez (#850)"
     }
   ],
   "redefiniciones": [
@@ -2243,6 +2236,18 @@
       "valor": "encargo",
       "desde": "2026-10-14",
       "motivo": "Sin el número del encargo en la definición: el test comprueba que el elemento está fuera del top 15 del recuento, como mobbin-count comprueba que está dentro (#788)"
+    },
+    {
+      "vocabulario": "diseno.biblioteca_declaracion",
+      "valor": "yes",
+      "desde": "2026-10-15",
+      "motivo": "Sí/no neutro, uno solo para el pool y las plantillas (#850): el sentido lo da el campo; en el pool, que lo dice la fuente lo pone la URL de cada campo"
+    },
+    {
+      "vocabulario": "diseno.biblioteca_declaracion",
+      "valor": "no",
+      "desde": "2026-10-15",
+      "motivo": "Sí/no neutro, uno solo para el pool y las plantillas (#850): el sentido lo da el campo; en el pool, que lo dice la fuente lo pone la URL de cada campo"
     }
   ],
   "vocabularios_retirados": [
@@ -2265,6 +2270,16 @@
       "vocabulario": "diseno.biblioteca_importacion",
       "desde": "2026-10-14",
       "motivo": "Cómo se importa una biblioteca (paquete o ficheros copiados al repositorio) es un hecho de cada proyecto, no de la ficha: va en decide_el_proyecto, en su especificación (#788)"
+    },
+    {
+      "vocabulario": "diseno.plantilla_sistema_de_referencia",
+      "desde": "2026-10-15",
+      "motivo": "Las plantillas de componente no llevan fuentes (decisión de Pablo, #850): una plantilla es un molde de la casa y no una regla que se justifique con una fuente; sin enlace de inspiración"
+    },
+    {
+      "vocabulario": "diseno.plantilla_alcance_de_url",
+      "desde": "2026-10-15",
+      "motivo": "Las plantillas de componente no llevan fuentes (decisión de Pablo, #850): sin URL no hay alcance de URL que decir"
     }
   ]
 }

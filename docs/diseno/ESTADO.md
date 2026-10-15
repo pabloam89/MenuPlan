@@ -556,11 +556,12 @@ Lo que HoMenu usa hoy (Nucleo para los iconos, cómo se importa y qué cubre) vi
 El nivel de plantilla de la entidad `component` (entidad `component-template`): una plantilla por tipo de elemento de la
 taxonomía, en `ops/diseno/plantillas-componente.json`, con anatomía (partes obligatorias u opcionales), atributos de forma con su
 lista cerrada de valores, atributos visuales por rol (una propiedad de una parte que apunta a un paso de una escala, nunca a un
-número), estados, accesibilidad mínima (rol ARIA, nombre accesible, objetivo táctil, teclado) y fuente. Reutiliza los estados,
-categorías, variantes, tamaños, densidades y tipos de token de `ops/diseno/bloques.json`, y las marcas y el sí/no (`declaracion`)
-del pool. Los estados mínimos de un interactivo los marca la plantilla (norma `design-complete-states`: reposo, foco, pulsado y
-deshabilitado, y hover si hay puntero). Las 117 fuentes están `unverified`: se escribieron sin leer las páginas (el 14 oct se
-comprobó con curl que las URL existen, salvo dos de Carbon que se cambiaron o quitaron; existir no es haberlas leído). La pieza de HoMenu que rellena cada plantilla es #830. Cifras:
+número), estados y accesibilidad mínima (rol ARIA, nombre accesible, objetivo táctil, teclado). Reutiliza los estados,
+categorías, variantes, tamaños, densidades y tipos de token de `ops/diseno/bloques.json`, y la marca `not-applicable` y el sí/no
+neutro (`declaracion`: sí o no, el sentido lo da el atributo) del pool. Los estados mínimos de un interactivo los marca la
+plantilla (norma `design-complete-states`: reposo, foco, pulsado y deshabilitado, y hover si hay puntero; el test compara esa
+lista con el código en los dos sentidos). El 15 oct se quitaron las fuentes (decisión de Pablo, #850): una plantilla es un molde
+de la casa, no una regla que se justifique con una fuente. La pieza de HoMenu que rellena cada plantilla es #830. Cifras:
 `node scripts/diseno/plantillas.mjs`.
 
 ## Comparador, tanda 1: valores base agrupados (14 oct 2026, #825)

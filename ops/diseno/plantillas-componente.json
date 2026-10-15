@@ -1,9 +1,5 @@
 {
-  "_": "Las plantillas de componente (#842, programa #774): una por cada tipo del vocabulario `elemento` de ops/diseno/taxonomia.json (los 50: control 18, view 18, overlay 9, imagery 5), ni más ni menos. Es el nivel `template` de la entidad `component` (ops/entidades.json, entidad `component-template`, término «plantilla de componente»): dice cómo es cualquier componente de ese tipo, en campos de vocabulario cerrado que se pueden contar; la pieza concreta de un proyecto la rellena (la ficha del bloque D de docs/diseno/META-DISENO.md; la de HoMenu, #830) y pone los números con sus tokens. Cada plantilla: `elemento`; `categoria` (las «categorías de componente» de ops/diseno/bloques.json); `interaccion` (interactive, container o static); `anatomia` (cada parte del vocabulario `parte`, obligatoria u opcional); `forma` (atributos de `atributos_de_forma`, cada uno con los valores que admite este tipo, al menos dos, y el de por defecto); `visual` (una propiedad de `propiedades_visuales` sobre una parte de su anatomía, con un paso de su escala por rol: nunca un número, normas design-token-per-role y design-token-layers); `estados` (los «estados» de ops/diseno/bloques.json que cita la norma design-complete-states; un interactivo lleva al menos los que marca la norma (los aplica ESTADOS_DE_INTERACTIVO de scripts/lib/plantillasComponente.mjs) y un estático ninguno de interacción); `accesibilidad` (rol ARIA, nombre accesible, objetivo táctil y teclado; normas design-touch-target y design-visible-focus); y `fuentes` (sistema de referencia, alcance de la URL, la URL con la marca de la forja [F] o [S] de MARCAS_FUENTE de scripts/lib/regla.mjs, colgando de `raiz_de_sistema`, y `comprobada`: la fecha en que se leyó la página o `unverified`). Lo reutilizado no se copia: estados, categorías, variantes, tamaños, densidades y tipos de token viven en ops/diseno/bloques.json, y las marcas `unverified` y `not-applicable` en el vocabulario `marca` de ops/diseno/bibliotecas.json; el sí/no de un atributo es el vocabulario `declaracion` del mismo fichero. Un sí/no nunca dice si la pieza tiene una parte: eso lo dice la parte opcional de su anatomía. Un atributo o una escala dice sus valores (`valores`, `pasos`) o el vocabulario que reutiliza (`valores_de`, `pasos_de`). Los ids son inglés kebab (#566); los nombres de campo, castellano. Lo lee scripts/lib/plantillasComponente.mjs; lo vigila ops/diseno/plantillas-componente.test.js; las cifras, node scripts/diseno/plantillas.mjs.",
-  "lectura": {
-    "fecha": "2026-10-14",
-    "base": "Primera versión escrita por el constructor con lo que sabe de Material 3, Carbon, Polaris, Apple HIG, Radix, shadcn/ui y la guía APG del W3C, sin leer las páginas (la sesión no tenía acceso a la web): toda fuente queda `unverified` hasta que alguien lea su página y ponga la fecha; donde no se conoce la página exacta, la URL es la raíz del sistema (alcance system). El 14 oct se comprobó con curl que cada URL responde: dos de Carbon daban 404 (combo-box pasó a la de dropdown, del que es variante; la de time-picker se quitó). Responder no es haber leído: siguen `unverified`."
-  },
+  "_": "Las plantillas de componente (#842, programa #774): una por cada tipo del vocabulario `elemento` de ops/diseno/taxonomia.json (los 50: control 18, view 18, overlay 9, imagery 5), ni más ni menos. Es el nivel `template` de la entidad `component` (ops/entidades.json, entidad `component-template`, término «plantilla de componente»): dice cómo es cualquier componente de ese tipo, en campos de vocabulario cerrado que se pueden contar; la pieza concreta de un proyecto la rellena (la ficha del bloque D de docs/diseno/META-DISENO.md; la de HoMenu, #830) y pone los números con sus tokens. Cada plantilla: `elemento`; `categoria` (las «categorías de componente» de ops/diseno/bloques.json); `interaccion` (interactive, container o static); `anatomia` (cada parte del vocabulario `parte`, obligatoria u opcional); `forma` (atributos de `atributos_de_forma`, cada uno con los valores que admite este tipo, al menos dos, y el de por defecto); `visual` (una propiedad de `propiedades_visuales` sobre una parte de su anatomía, con un paso de su escala por rol: nunca un número, normas design-token-per-role y design-token-layers); `estados` (de los «estados» de ops/diseno/bloques.json; un interactivo lleva al menos el mínimo que nombra la norma design-complete-states, que es ESTADOS_DE_INTERACTIVO de scripts/lib/plantillasComponente.mjs, y hover si su plataforma tiene puntero; un estático, ninguno de interacción); y `accesibilidad` (rol ARIA, nombre accesible, objetivo táctil y teclado; normas design-touch-target y design-visible-focus). Sin fuentes ni enlaces de inspiración (decisión de Pablo, #850): la plantilla es un molde de la casa, no una regla que haya que justificar con una fuente. Lo reutilizado no se copia: estados, categorías, variantes, tamaños, densidades y tipos de token viven en ops/diseno/bloques.json, y la marca `not-applicable` en el vocabulario `marca` de ops/diseno/bibliotecas.json; el sí/no de un atributo es el vocabulario `declaracion` del mismo fichero, con definiciones neutras (sí o no; el sentido lo da el atributo). Un sí/no nunca dice si la pieza tiene una parte: eso lo dice la parte opcional de su anatomía. Un atributo o una escala dice sus valores (`valores`, `pasos`) o el vocabulario que reutiliza (`valores_de`, `pasos_de`). Los ids son inglés kebab (#566); los nombres de campo, castellano. Lo lee scripts/lib/plantillasComponente.mjs; lo vigila ops/diseno/plantillas-componente.test.js; las cifras, node scripts/diseno/plantillas.mjs.",
   "vocabularios": {
     "interaccion": {
       "interactive": "La persona lo acciona directamente: lo pulsa, escribe en él, lo arrastra o elige con él",
@@ -155,29 +151,7 @@
       "delete-removes": "Suprimir o Retroceso lo quitan",
       "focus-trap": "El foco se queda dentro mientras está abierto",
       "menu-key-opens": "Mayúsculas más F10 o la tecla de menú lo abren"
-    },
-    "sistema_de_referencia": {
-      "material": "Material Design 3, el sistema de diseño de Google",
-      "carbon": "Carbon, el sistema de diseño de IBM",
-      "polaris": "Polaris, el sistema de diseño de Shopify",
-      "apple-hig": "Las Human Interface Guidelines de Apple",
-      "radix-ui": "Radix Primitives, componentes sin estilo con su accesibilidad",
-      "shadcn-ui": "shadcn/ui, componentes sobre Radix para copiar al proyecto",
-      "wai-aria-apg": "La guía de prácticas de ARIA del W3C (APG): roles y teclado de cada patrón"
-    },
-    "alcance_de_url": {
-      "page": "La URL es la página del componente en ese sistema",
-      "system": "La URL es la raíz del sistema: no se conoce la página exacta del componente"
     }
-  },
-  "raiz_de_sistema": {
-    "material": "https://m3.material.io/",
-    "carbon": "https://carbondesignsystem.com/",
-    "polaris": "https://polaris.shopify.com/",
-    "apple-hig": "https://developer.apple.com/design/human-interface-guidelines/",
-    "radix-ui": "https://www.radix-ui.com/primitives/docs/",
-    "shadcn-ui": "https://ui.shadcn.com/docs/",
-    "wai-aria-apg": "https://www.w3.org/WAI/ARIA/apg/"
   },
   "atributos_de_forma": {
     "variant": {
@@ -656,10 +630,6 @@
         "fade": "Aparece fundiendo",
         "scale": "Crece desde el elemento que lo abre"
       }
-    },
-    "contained": {
-      "que": "Si va dentro de un contenedor de color",
-      "valores_de": "declaracion"
     }
   },
   "escalas": {
@@ -838,12 +808,7 @@
         {"propiedad":"transition","parte":"content-panel","paso":"medium"}
       ],
       "estados": ["reposo","hover","foco","pulsado","deshabilitado","activo"],
-      "accesibilidad": {"rol_aria":["button","region"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","enter-activates","space-activates","arrow-navigation","home-end"]},
-      "fuentes": [
-        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/accordion/usage/","comprobada":"unverified"},
-        {"sistema":"radix-ui","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/accordion","comprobada":"unverified"},
-        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/accordion/","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["button","region"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","enter-activates","space-activates","arrow-navigation","home-end"]}
     },
     {
       "elemento": "button",
@@ -873,12 +838,7 @@
         {"propiedad":"height","parte":"container","paso":"m"}
       ],
       "estados": ["reposo","hover","foco","pulsado","deshabilitado","cargando"],
-      "accesibilidad": {"rol_aria":["button"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","enter-activates","space-activates"]},
-      "fuentes": [
-        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/buttons/overview","comprobada":"unverified"},
-        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/button/usage/","comprobada":"unverified"},
-        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/button/","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["button"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","enter-activates","space-activates"]}
     },
     {
       "elemento": "checkbox",
@@ -903,12 +863,7 @@
         {"propiedad":"text-style","parte":"label","paso":"body"}
       ],
       "estados": ["reposo","hover","foco","pulsado","deshabilitado","activo","error"],
-      "accesibilidad": {"rol_aria":["checkbox"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","space-activates"]},
-      "fuentes": [
-        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/checkbox/overview","comprobada":"unverified"},
-        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/checkbox/usage/","comprobada":"unverified"},
-        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/checkbox/","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["checkbox"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","space-activates"]}
     },
     {
       "elemento": "color-picker",
@@ -938,11 +893,7 @@
         {"propiedad":"gap","parte":"container","paso":"s"}
       ],
       "estados": ["reposo","hover","foco","pulsado","deshabilitado"],
-      "accesibilidad": {"rol_aria":["group","slider","radio"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","arrow-navigation","home-end","page-keys"]},
-      "fuentes": [
-        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/color-wells","comprobada":"unverified"},
-        {"sistema":"polaris","alcance_url":"system","fuente":"[F] https://polaris.shopify.com/","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["group","slider","radio"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","arrow-navigation","home-end","page-keys"]}
     },
     {
       "elemento": "date-picker",
@@ -973,12 +924,7 @@
         {"propiedad":"layer","parte":"container","paso":"popup"}
       ],
       "estados": ["reposo","hover","foco","pulsado","deshabilitado","activo","error"],
-      "accesibilidad": {"rol_aria":["dialog","grid","button"],"nombre_accesible":"labelled-by-title","objetivo_tactil":"required","teclado":["tab-stop","enter-activates","arrow-navigation","home-end","page-keys","escape-closes"]},
-      "fuentes": [
-        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/date-pickers/overview","comprobada":"unverified"},
-        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/date-picker/usage/","comprobada":"unverified"},
-        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/examples/datepicker-dialog/","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["dialog","grid","button"],"nombre_accesible":"labelled-by-title","objetivo_tactil":"required","teclado":["tab-stop","enter-activates","arrow-navigation","home-end","page-keys","escape-closes"]}
     },
     {
       "elemento": "floating-action-button",
@@ -1004,11 +950,7 @@
         {"propiedad":"layer","parte":"container","paso":"floating"}
       ],
       "estados": ["reposo","hover","foco","pulsado","deshabilitado"],
-      "accesibilidad": {"rol_aria":["button"],"nombre_accesible":"aria-label","objetivo_tactil":"required","teclado":["tab-stop","enter-activates","space-activates"]},
-      "fuentes": [
-        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/floating-action-button/overview","comprobada":"unverified"},
-        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/button/","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["button"],"nombre_accesible":"aria-label","objetivo_tactil":"required","teclado":["tab-stop","enter-activates","space-activates"]}
     },
     {
       "elemento": "radio-button",
@@ -1032,12 +974,7 @@
         {"propiedad":"text-style","parte":"label","paso":"body"}
       ],
       "estados": ["reposo","hover","foco","pulsado","deshabilitado","activo","error"],
-      "accesibilidad": {"rol_aria":["radiogroup","radio"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","arrow-navigation","space-activates"]},
-      "fuentes": [
-        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/radio-button/overview","comprobada":"unverified"},
-        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/radio-button/usage/","comprobada":"unverified"},
-        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/radio/","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["radiogroup","radio"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","arrow-navigation","space-activates"]}
     },
     {
       "elemento": "rating-control",
@@ -1061,10 +998,7 @@
         {"propiedad":"text-style","parte":"value-label","paso":"caption"}
       ],
       "estados": ["reposo","hover","foco","pulsado","deshabilitado","activo"],
-      "accesibilidad": {"rol_aria":["radiogroup","radio"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","arrow-navigation","home-end"]},
-      "fuentes": [
-        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/radio/examples/radio-rating/","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["radiogroup","radio"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","arrow-navigation","home-end"]}
     },
     {
       "elemento": "search-bar",
@@ -1095,12 +1029,7 @@
         {"propiedad":"icon-size","parte":"leading-icon","paso":"s"}
       ],
       "estados": ["reposo","hover","foco","pulsado","deshabilitado","activo","cargando","vacío"],
-      "accesibilidad": {"rol_aria":["search","searchbox"],"nombre_accesible":"aria-label","objetivo_tactil":"required","teclado":["tab-stop","escape-closes"]},
-      "fuentes": [
-        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/search/overview","comprobada":"unverified"},
-        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/search/usage/","comprobada":"unverified"},
-        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/search-fields","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["search","searchbox"],"nombre_accesible":"aria-label","objetivo_tactil":"required","teclado":["tab-stop","escape-closes"]}
     },
     {
       "elemento": "segmented-control",
@@ -1129,12 +1058,7 @@
         {"propiedad":"padding","parte":"segment","paso":"s"}
       ],
       "estados": ["reposo","hover","foco","pulsado","deshabilitado","activo"],
-      "accesibilidad": {"rol_aria":["group","button"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","arrow-navigation","space-activates","enter-activates"]},
-      "fuentes": [
-        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/segmented-buttons/overview","comprobada":"unverified"},
-        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/content-switcher/usage/","comprobada":"unverified"},
-        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/segmented-controls","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["group","button"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","arrow-navigation","space-activates","enter-activates"]}
     },
     {
       "elemento": "slider",
@@ -1164,12 +1088,7 @@
         {"propiedad":"text-style","parte":"value-label","paso":"label"}
       ],
       "estados": ["reposo","hover","foco","pulsado","deshabilitado","activo"],
-      "accesibilidad": {"rol_aria":["slider"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","arrow-navigation","home-end","page-keys"]},
-      "fuentes": [
-        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/sliders/overview","comprobada":"unverified"},
-        {"sistema":"radix-ui","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/slider","comprobada":"unverified"},
-        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/slider/","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["slider"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","arrow-navigation","home-end","page-keys"]}
     },
     {
       "elemento": "stepper",
@@ -1198,12 +1117,7 @@
         {"propiedad":"gap","parte":"container","paso":"xs"}
       ],
       "estados": ["reposo","hover","foco","pulsado","deshabilitado","error"],
-      "accesibilidad": {"rol_aria":["spinbutton","button"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","arrow-navigation","home-end","page-keys"]},
-      "fuentes": [
-        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/number-input/usage/","comprobada":"unverified"},
-        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/steppers","comprobada":"unverified"},
-        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/spinbutton/","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["spinbutton","button"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","arrow-navigation","home-end","page-keys"]}
     },
     {
       "elemento": "switch",
@@ -1229,12 +1143,7 @@
         {"propiedad":"gap","parte":"label","paso":"m"}
       ],
       "estados": ["reposo","hover","foco","pulsado","deshabilitado","activo"],
-      "accesibilidad": {"rol_aria":["switch"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","space-activates","enter-activates"]},
-      "fuentes": [
-        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/switch/overview","comprobada":"unverified"},
-        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/toggle/usage/","comprobada":"unverified"},
-        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/switch/","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["switch"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","space-activates","enter-activates"]}
     },
     {
       "elemento": "tab",
@@ -1262,12 +1171,7 @@
         {"propiedad":"height","parte":"container","paso":"l"}
       ],
       "estados": ["reposo","hover","foco","pulsado","deshabilitado","activo"],
-      "accesibilidad": {"rol_aria":["tablist","tab","tabpanel"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","arrow-navigation","home-end"]},
-      "fuentes": [
-        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/tabs/overview","comprobada":"unverified"},
-        {"sistema":"radix-ui","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/tabs","comprobada":"unverified"},
-        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/tabs/","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["tablist","tab","tabpanel"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","arrow-navigation","home-end"]}
     },
     {
       "elemento": "text-field",
@@ -1302,12 +1206,7 @@
         {"propiedad":"height","parte":"container","paso":"m"}
       ],
       "estados": ["reposo","hover","foco","pulsado","deshabilitado","activo","error","vacío"],
-      "accesibilidad": {"rol_aria":["textbox"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop"]},
-      "fuentes": [
-        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/text-fields/overview","comprobada":"unverified"},
-        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/text-input/usage/","comprobada":"unverified"},
-        {"sistema":"shadcn-ui","alcance_url":"page","fuente":"[F] https://ui.shadcn.com/docs/components/input","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["textbox"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop"]}
     },
     {
       "elemento": "tile",
@@ -1336,10 +1235,7 @@
         {"propiedad":"icon-size","parte":"icon","paso":"m"}
       ],
       "estados": ["reposo","hover","foco","pulsado","deshabilitado","activo"],
-      "accesibilidad": {"rol_aria":["button","link","checkbox"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","enter-activates","space-activates"]},
-      "fuentes": [
-        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/tile/usage/","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["button","link","checkbox"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","enter-activates","space-activates"]}
     },
     {
       "elemento": "time-picker",
@@ -1369,11 +1265,7 @@
         {"propiedad":"layer","parte":"container","paso":"sheet"}
       ],
       "estados": ["reposo","hover","foco","pulsado","deshabilitado","activo","error"],
-      "accesibilidad": {"rol_aria":["group","spinbutton"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","arrow-navigation","home-end","escape-closes"]},
-      "fuentes": [
-        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/time-pickers/overview","comprobada":"unverified"},
-        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/pickers","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["group","spinbutton"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","arrow-navigation","home-end","escape-closes"]}
     },
     {
       "elemento": "combobox",
@@ -1406,12 +1298,7 @@
         {"propiedad":"height","parte":"container","paso":"m"}
       ],
       "estados": ["reposo","hover","foco","pulsado","deshabilitado","activo","cargando","error","vacío"],
-      "accesibilidad": {"rol_aria":["combobox","listbox","option"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","arrow-navigation","enter-activates","escape-closes","type-ahead","home-end"]},
-      "fuentes": [
-        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/dropdown/usage/","comprobada":"unverified"},
-        {"sistema":"shadcn-ui","alcance_url":"page","fuente":"[F] https://ui.shadcn.com/docs/components/combobox","comprobada":"unverified"},
-        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/combobox/","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["combobox","listbox","option"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","arrow-navigation","enter-activates","escape-closes","type-ahead","home-end"]}
     },
     {
       "elemento": "badge",
@@ -1434,11 +1321,7 @@
         {"propiedad":"height","parte":"container","paso":"xs"}
       ],
       "estados": ["reposo"],
-      "accesibilidad": {"rol_aria":["presentation"],"nombre_accesible":"parent-name","objetivo_tactil":"not-applicable","teclado":[]},
-      "fuentes": [
-        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/badges/overview","comprobada":"unverified"},
-        {"sistema":"shadcn-ui","alcance_url":"page","fuente":"[F] https://ui.shadcn.com/docs/components/badge","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["presentation"],"nombre_accesible":"parent-name","objetivo_tactil":"not-applicable","teclado":[]}
     },
     {
       "elemento": "banner",
@@ -1468,12 +1351,7 @@
         {"propiedad":"text-style","parte":"supporting-text","paso":"body"}
       ],
       "estados": ["reposo"],
-      "accesibilidad": {"rol_aria":["status","alert"],"nombre_accesible":"live-region","objetivo_tactil":"inherited","teclado":["tab-stop"]},
-      "fuentes": [
-        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/notification/usage/","comprobada":"unverified"},
-        {"sistema":"shadcn-ui","alcance_url":"page","fuente":"[F] https://ui.shadcn.com/docs/components/alert","comprobada":"unverified"},
-        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/alert/","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["status","alert"],"nombre_accesible":"live-region","objetivo_tactil":"inherited","teclado":["tab-stop"]}
     },
     {
       "elemento": "card",
@@ -1506,11 +1384,7 @@
         {"propiedad":"text-style","parte":"supporting-text","paso":"body"}
       ],
       "estados": ["reposo","hover","foco","pulsado","cargando"],
-      "accesibilidad": {"rol_aria":["article"],"nombre_accesible":"labelled-by-title","objetivo_tactil":"inherited","teclado":["tab-stop","enter-activates"]},
-      "fuentes": [
-        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/cards/overview","comprobada":"unverified"},
-        {"sistema":"shadcn-ui","alcance_url":"page","fuente":"[F] https://ui.shadcn.com/docs/components/card","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["article"],"nombre_accesible":"labelled-by-title","objetivo_tactil":"inherited","teclado":["tab-stop","enter-activates"]}
     },
     {
       "elemento": "carousel",
@@ -1536,12 +1410,7 @@
         {"propiedad":"transition","parte":"item","paso":"medium"}
       ],
       "estados": ["reposo","cargando","vacío"],
-      "accesibilidad": {"rol_aria":["region","group"],"nombre_accesible":"aria-label","objetivo_tactil":"inherited","teclado":["tab-stop","arrow-navigation"]},
-      "fuentes": [
-        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/carousel/overview","comprobada":"unverified"},
-        {"sistema":"shadcn-ui","alcance_url":"page","fuente":"[F] https://ui.shadcn.com/docs/components/carousel","comprobada":"unverified"},
-        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/carousel/","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["region","group"],"nombre_accesible":"aria-label","objetivo_tactil":"inherited","teclado":["tab-stop","arrow-navigation"]}
     },
     {
       "elemento": "chip",
@@ -1570,11 +1439,7 @@
         {"propiedad":"icon-size","parte":"leading-icon","paso":"xs"}
       ],
       "estados": ["reposo","hover","foco","pulsado","deshabilitado","activo"],
-      "accesibilidad": {"rol_aria":["button","checkbox"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","enter-activates","space-activates","delete-removes"]},
-      "fuentes": [
-        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/chips/overview","comprobada":"unverified"},
-        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/tag/usage/","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["button","checkbox"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","enter-activates","space-activates","delete-removes"]}
     },
     {
       "elemento": "divider",
@@ -1592,11 +1457,7 @@
         {"propiedad":"gap","parte":"divider","paso":"s"}
       ],
       "estados": ["reposo"],
-      "accesibilidad": {"rol_aria":["separator"],"nombre_accesible":"not-named","objetivo_tactil":"not-applicable","teclado":[]},
-      "fuentes": [
-        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/divider/overview","comprobada":"unverified"},
-        {"sistema":"radix-ui","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/separator","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["separator"],"nombre_accesible":"not-named","objetivo_tactil":"not-applicable","teclado":[]}
     },
     {
       "elemento": "gallery",
@@ -1622,10 +1483,7 @@
         {"propiedad":"fill","parte":"item","paso":"surface-raised"}
       ],
       "estados": ["reposo","cargando","vacío","error"],
-      "accesibilidad": {"rol_aria":["list","listitem"],"nombre_accesible":"aria-label","objetivo_tactil":"inherited","teclado":["tab-stop","arrow-navigation"]},
-      "fuentes": [
-        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/collections","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["list","listitem"],"nombre_accesible":"aria-label","objetivo_tactil":"inherited","teclado":["tab-stop","arrow-navigation"]}
     },
     {
       "elemento": "loading-indicator",
@@ -1639,8 +1497,7 @@
       ],
       "forma": [
         {"atributo":"progress-shape","valores":["linear","circular"],"por_defecto":"circular"},
-        {"atributo":"size","valores":["s","m","l"],"por_defecto":"m"},
-        {"atributo":"contained","valores":["yes","no"],"por_defecto":"no"}
+        {"atributo":"size","valores":["s","m","l"],"por_defecto":"m"}
       ],
       "visual": [
         {"propiedad":"fill","parte":"active-indicator","paso":"primary"},
@@ -1651,12 +1508,7 @@
         {"propiedad":"transition","parte":"active-indicator","paso":"slow"}
       ],
       "estados": ["reposo"],
-      "accesibilidad": {"rol_aria":["progressbar"],"nombre_accesible":"aria-label","objetivo_tactil":"not-applicable","teclado":[]},
-      "fuentes": [
-        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/loading-indicator/overview","comprobada":"unverified"},
-        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/loading/usage/","comprobada":"unverified"},
-        {"sistema":"shadcn-ui","alcance_url":"page","fuente":"[F] https://ui.shadcn.com/docs/components/spinner","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["progressbar"],"nombre_accesible":"aria-label","objetivo_tactil":"not-applicable","teclado":[]}
     },
     {
       "elemento": "map-pin",
@@ -1684,10 +1536,7 @@
         {"propiedad":"layer","parte":"marker","paso":"floating"}
       ],
       "estados": ["reposo","hover","foco","pulsado","deshabilitado","activo"],
-      "accesibilidad": {"rol_aria":["button"],"nombre_accesible":"aria-label","objetivo_tactil":"required","teclado":["tab-stop","enter-activates","arrow-navigation"]},
-      "fuentes": [
-        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/maps","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["button"],"nombre_accesible":"aria-label","objetivo_tactil":"required","teclado":["tab-stop","enter-activates","arrow-navigation"]}
     },
     {
       "elemento": "progress-indicator",
@@ -1713,12 +1562,7 @@
         {"propiedad":"transition","parte":"active-indicator","paso":"medium"}
       ],
       "estados": ["reposo","error"],
-      "accesibilidad": {"rol_aria":["progressbar"],"nombre_accesible":"visible-label","objetivo_tactil":"not-applicable","teclado":[]},
-      "fuentes": [
-        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/progress-indicators/overview","comprobada":"unverified"},
-        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/progress-bar/usage/","comprobada":"unverified"},
-        {"sistema":"radix-ui","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/progress","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["progressbar"],"nombre_accesible":"visible-label","objetivo_tactil":"not-applicable","teclado":[]}
     },
     {
       "elemento": "side-navigation",
@@ -1750,12 +1594,7 @@
         {"propiedad":"outline","parte":"divider","paso":"border"}
       ],
       "estados": ["reposo","hover","foco","pulsado","activo"],
-      "accesibilidad": {"rol_aria":["navigation","list"],"nombre_accesible":"aria-label","objetivo_tactil":"inherited","teclado":["tab-stop","enter-activates","arrow-navigation"]},
-      "fuentes": [
-        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/ui-shell-left-panel/usage/","comprobada":"unverified"},
-        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/sidebars","comprobada":"unverified"},
-        {"sistema":"shadcn-ui","alcance_url":"page","fuente":"[F] https://ui.shadcn.com/docs/components/sidebar","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["navigation","list"],"nombre_accesible":"aria-label","objetivo_tactil":"inherited","teclado":["tab-stop","enter-activates","arrow-navigation"]}
     },
     {
       "elemento": "skeleton",
@@ -1775,11 +1614,7 @@
         {"propiedad":"gap","parte":"placeholder-shape","paso":"s"}
       ],
       "estados": ["reposo"],
-      "accesibilidad": {"rol_aria":["presentation"],"nombre_accesible":"not-named","objetivo_tactil":"not-applicable","teclado":[]},
-      "fuentes": [
-        {"sistema":"shadcn-ui","alcance_url":"page","fuente":"[F] https://ui.shadcn.com/docs/components/skeleton","comprobada":"unverified"},
-        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/patterns/loading-pattern/","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["presentation"],"nombre_accesible":"not-named","objetivo_tactil":"not-applicable","teclado":[]}
     },
     {
       "elemento": "stacked-list",
@@ -1813,12 +1648,7 @@
         {"propiedad":"icon-size","parte":"avatar","paso":"l"}
       ],
       "estados": ["reposo","hover","foco","pulsado","activo","cargando","vacío"],
-      "accesibilidad": {"rol_aria":["list","listitem"],"nombre_accesible":"aria-label","objetivo_tactil":"inherited","teclado":["tab-stop","arrow-navigation","enter-activates"]},
-      "fuentes": [
-        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/lists/overview","comprobada":"unverified"},
-        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/structured-list/usage/","comprobada":"unverified"},
-        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/lists-and-tables","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["list","listitem"],"nombre_accesible":"aria-label","objetivo_tactil":"inherited","teclado":["tab-stop","arrow-navigation","enter-activates"]}
     },
     {
       "elemento": "status-dot",
@@ -1840,10 +1670,7 @@
         {"propiedad":"gap","parte":"label","paso":"xs"}
       ],
       "estados": ["reposo"],
-      "accesibilidad": {"rol_aria":["img"],"nombre_accesible":"aria-label","objetivo_tactil":"not-applicable","teclado":[]},
-      "fuentes": [
-        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/patterns/status-indicator-pattern/","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["img"],"nombre_accesible":"aria-label","objetivo_tactil":"not-applicable","teclado":[]}
     },
     {
       "elemento": "tab-bar",
@@ -1872,11 +1699,7 @@
         {"propiedad":"layer","parte":"container","paso":"navigation"}
       ],
       "estados": ["reposo","hover","foco","pulsado","activo"],
-      "accesibilidad": {"rol_aria":["navigation","link"],"nombre_accesible":"aria-label","objetivo_tactil":"inherited","teclado":["tab-stop","enter-activates"]},
-      "fuentes": [
-        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/navigation-bar/overview","comprobada":"unverified"},
-        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/tab-bars","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["navigation","link"],"nombre_accesible":"aria-label","objetivo_tactil":"inherited","teclado":["tab-stop","enter-activates"]}
     },
     {
       "elemento": "data-table",
@@ -1909,12 +1732,7 @@
         {"propiedad":"layer","parte":"column-header","paso":"sticky"}
       ],
       "estados": ["reposo","hover","foco","activo","cargando","vacío","error"],
-      "accesibilidad": {"rol_aria":["table","grid"],"nombre_accesible":"labelled-by-title","objetivo_tactil":"inherited","teclado":["tab-stop","arrow-navigation","home-end","page-keys","enter-activates"]},
-      "fuentes": [
-        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/data-table/usage/","comprobada":"unverified"},
-        {"sistema":"shadcn-ui","alcance_url":"page","fuente":"[F] https://ui.shadcn.com/docs/components/data-table","comprobada":"unverified"},
-        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/grid/","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["table","grid"],"nombre_accesible":"labelled-by-title","objetivo_tactil":"inherited","teclado":["tab-stop","arrow-navigation","home-end","page-keys","enter-activates"]}
     },
     {
       "elemento": "toolbar",
@@ -1942,12 +1760,7 @@
         {"propiedad":"layer","parte":"container","paso":"floating"}
       ],
       "estados": ["reposo"],
-      "accesibilidad": {"rol_aria":["toolbar"],"nombre_accesible":"aria-label","objetivo_tactil":"inherited","teclado":["tab-stop","arrow-navigation","home-end"]},
-      "fuentes": [
-        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/toolbars/overview","comprobada":"unverified"},
-        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/toolbars","comprobada":"unverified"},
-        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/toolbar/","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["toolbar"],"nombre_accesible":"aria-label","objetivo_tactil":"inherited","teclado":["tab-stop","arrow-navigation","home-end"]}
     },
     {
       "elemento": "top-navigation-bar",
@@ -1976,11 +1789,7 @@
         {"propiedad":"layer","parte":"container","paso":"navigation"}
       ],
       "estados": ["reposo"],
-      "accesibilidad": {"rol_aria":["banner","heading"],"nombre_accesible":"labelled-by-title","objetivo_tactil":"inherited","teclado":["tab-stop"]},
-      "fuentes": [
-        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/top-app-bar/overview","comprobada":"unverified"},
-        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/ui-shell-header/usage/","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["banner","heading"],"nombre_accesible":"labelled-by-title","objetivo_tactil":"inherited","teclado":["tab-stop"]}
     },
     {
       "elemento": "bottom-sheet",
@@ -2010,12 +1819,7 @@
         {"propiedad":"fill","parte":"drag-handle","paso":"border"}
       ],
       "estados": ["reposo","cargando","vacío"],
-      "accesibilidad": {"rol_aria":["dialog"],"nombre_accesible":"labelled-by-title","objetivo_tactil":"inherited","teclado":["tab-stop","escape-closes","focus-trap"]},
-      "fuentes": [
-        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/bottom-sheets/overview","comprobada":"unverified"},
-        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/sheets","comprobada":"unverified"},
-        {"sistema":"shadcn-ui","alcance_url":"page","fuente":"[F] https://ui.shadcn.com/docs/components/drawer","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["dialog"],"nombre_accesible":"labelled-by-title","objetivo_tactil":"inherited","teclado":["tab-stop","escape-closes","focus-trap"]}
     },
     {
       "elemento": "coach-marks",
@@ -2046,10 +1850,7 @@
         {"propiedad":"text-style","parte":"headline","paso":"label"}
       ],
       "estados": ["reposo"],
-      "accesibilidad": {"rol_aria":["dialog"],"nombre_accesible":"labelled-by-title","objetivo_tactil":"inherited","teclado":["tab-stop","escape-closes","focus-trap"]},
-      "fuentes": [
-        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["dialog"],"nombre_accesible":"labelled-by-title","objetivo_tactil":"inherited","teclado":["tab-stop","escape-closes","focus-trap"]}
     },
     {
       "elemento": "dialog",
@@ -2081,12 +1882,7 @@
         {"propiedad":"layer","parte":"container","paso":"sheet"}
       ],
       "estados": ["reposo","cargando","error"],
-      "accesibilidad": {"rol_aria":["dialog","alertdialog"],"nombre_accesible":"labelled-by-title","objetivo_tactil":"inherited","teclado":["tab-stop","escape-closes","focus-trap"]},
-      "fuentes": [
-        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/dialogs/overview","comprobada":"unverified"},
-        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/modal/usage/","comprobada":"unverified"},
-        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["dialog","alertdialog"],"nombre_accesible":"labelled-by-title","objetivo_tactil":"inherited","teclado":["tab-stop","escape-closes","focus-trap"]}
     },
     {
       "elemento": "drawer",
@@ -2115,11 +1911,7 @@
         {"propiedad":"transition","parte":"container","paso":"medium"}
       ],
       "estados": ["reposo"],
-      "accesibilidad": {"rol_aria":["dialog","navigation"],"nombre_accesible":"aria-label","objetivo_tactil":"inherited","teclado":["tab-stop","escape-closes","focus-trap","arrow-navigation"]},
-      "fuentes": [
-        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/navigation-drawer/overview","comprobada":"unverified"},
-        {"sistema":"shadcn-ui","alcance_url":"page","fuente":"[F] https://ui.shadcn.com/docs/components/sheet","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["dialog","navigation"],"nombre_accesible":"aria-label","objetivo_tactil":"inherited","teclado":["tab-stop","escape-closes","focus-trap","arrow-navigation"]}
     },
     {
       "elemento": "dropdown-menu",
@@ -2150,12 +1942,7 @@
         {"propiedad":"layer","parte":"container","paso":"popup"}
       ],
       "estados": ["reposo","hover","foco","pulsado","deshabilitado"],
-      "accesibilidad": {"rol_aria":["menu","menuitem"],"nombre_accesible":"labelled-by-trigger","objetivo_tactil":"inherited","teclado":["arrow-navigation","enter-activates","space-activates","escape-closes","home-end","type-ahead"]},
-      "fuentes": [
-        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/menus/overview","comprobada":"unverified"},
-        {"sistema":"radix-ui","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/dropdown-menu","comprobada":"unverified"},
-        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/menu-button/","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["menu","menuitem"],"nombre_accesible":"labelled-by-trigger","objetivo_tactil":"inherited","teclado":["arrow-navigation","enter-activates","space-activates","escape-closes","home-end","type-ahead"]}
     },
     {
       "elemento": "full-screen-overlay",
@@ -2180,11 +1967,7 @@
         {"propiedad":"transition","parte":"container","paso":"medium"}
       ],
       "estados": ["reposo","cargando","error"],
-      "accesibilidad": {"rol_aria":["dialog"],"nombre_accesible":"labelled-by-title","objetivo_tactil":"inherited","teclado":["tab-stop","escape-closes","focus-trap"]},
-      "fuentes": [
-        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/dialogs/overview","comprobada":"unverified"},
-        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/sheets","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["dialog"],"nombre_accesible":"labelled-by-title","objetivo_tactil":"inherited","teclado":["tab-stop","escape-closes","focus-trap"]}
     },
     {
       "elemento": "toast",
@@ -2212,12 +1995,7 @@
         {"propiedad":"layer","parte":"container","paso":"notification"}
       ],
       "estados": ["reposo"],
-      "accesibilidad": {"rol_aria":["status","alert"],"nombre_accesible":"live-region","objetivo_tactil":"inherited","teclado":["tab-stop","escape-closes"]},
-      "fuentes": [
-        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/snackbar/overview","comprobada":"unverified"},
-        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/notification/usage/","comprobada":"unverified"},
-        {"sistema":"shadcn-ui","alcance_url":"page","fuente":"[F] https://ui.shadcn.com/docs/components/sonner","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["status","alert"],"nombre_accesible":"live-region","objetivo_tactil":"inherited","teclado":["tab-stop","escape-closes"]}
     },
     {
       "elemento": "tooltip",
@@ -2244,12 +2022,7 @@
         {"propiedad":"layer","parte":"container","paso":"popup"}
       ],
       "estados": ["reposo"],
-      "accesibilidad": {"rol_aria":["tooltip"],"nombre_accesible":"describes-trigger","objetivo_tactil":"not-applicable","teclado":["escape-closes"]},
-      "fuentes": [
-        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/tooltips/overview","comprobada":"unverified"},
-        {"sistema":"radix-ui","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/tooltip","comprobada":"unverified"},
-        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/tooltip/","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["tooltip"],"nombre_accesible":"describes-trigger","objetivo_tactil":"not-applicable","teclado":["escape-closes"]}
     },
     {
       "elemento": "context-menu",
@@ -2277,11 +2050,7 @@
         {"propiedad":"layer","parte":"container","paso":"popup"}
       ],
       "estados": ["reposo","hover","foco","pulsado","deshabilitado"],
-      "accesibilidad": {"rol_aria":["menu","menuitem"],"nombre_accesible":"aria-label","objetivo_tactil":"inherited","teclado":["menu-key-opens","arrow-navigation","enter-activates","escape-closes","type-ahead"]},
-      "fuentes": [
-        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/context-menus","comprobada":"unverified"},
-        {"sistema":"radix-ui","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/context-menu","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["menu","menuitem"],"nombre_accesible":"aria-label","objetivo_tactil":"inherited","teclado":["menu-key-opens","arrow-navigation","enter-activates","escape-closes","type-ahead"]}
     },
     {
       "elemento": "avatar",
@@ -2308,11 +2077,7 @@
         {"propiedad":"outline","parte":"container","paso":"surface"}
       ],
       "estados": ["reposo","cargando"],
-      "accesibilidad": {"rol_aria":["img"],"nombre_accesible":"alt-text","objetivo_tactil":"not-applicable","teclado":[]},
-      "fuentes": [
-        {"sistema":"radix-ui","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/avatar","comprobada":"unverified"},
-        {"sistema":"shadcn-ui","alcance_url":"page","fuente":"[F] https://ui.shadcn.com/docs/components/avatar","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["img"],"nombre_accesible":"alt-text","objetivo_tactil":"not-applicable","teclado":[]}
     },
     {
       "elemento": "icon",
@@ -2330,11 +2095,7 @@
         {"propiedad":"content-color","parte":"glyph","paso":"text"}
       ],
       "estados": ["reposo"],
-      "accesibilidad": {"rol_aria":["img","presentation"],"nombre_accesible":"hidden-if-decorative","objetivo_tactil":"not-applicable","teclado":[]},
-      "fuentes": [
-        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/styles/icons/overview","comprobada":"unverified"},
-        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/icons","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["img","presentation"],"nombre_accesible":"hidden-if-decorative","objetivo_tactil":"not-applicable","teclado":[]}
     },
     {
       "elemento": "illustration",
@@ -2355,10 +2116,7 @@
         {"propiedad":"text-style","parte":"caption","paso":"body"}
       ],
       "estados": ["reposo"],
-      "accesibilidad": {"rol_aria":["img","presentation"],"nombre_accesible":"hidden-if-decorative","objetivo_tactil":"not-applicable","teclado":[]},
-      "fuentes": [
-        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/images","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["img","presentation"],"nombre_accesible":"hidden-if-decorative","objetivo_tactil":"not-applicable","teclado":[]}
     },
     {
       "elemento": "logo",
@@ -2378,10 +2136,7 @@
         {"propiedad":"gap","parte":"wordmark","paso":"s"}
       ],
       "estados": ["reposo"],
-      "accesibilidad": {"rol_aria":["img"],"nombre_accesible":"alt-text","objetivo_tactil":"not-applicable","teclado":[]},
-      "fuentes": [
-        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/branding","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["img"],"nombre_accesible":"alt-text","objetivo_tactil":"not-applicable","teclado":[]}
     },
     {
       "elemento": "photo",
@@ -2403,10 +2158,7 @@
         {"propiedad":"gap","parte":"caption","paso":"xs"}
       ],
       "estados": ["reposo","cargando","error"],
-      "accesibilidad": {"rol_aria":["img","figure"],"nombre_accesible":"alt-text","objetivo_tactil":"not-applicable","teclado":[]},
-      "fuentes": [
-        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/image-views","comprobada":"unverified"}
-      ]
+      "accesibilidad": {"rol_aria":["img","figure"],"nombre_accesible":"alt-text","objetivo_tactil":"not-applicable","teclado":[]}
     }
   ]
 }

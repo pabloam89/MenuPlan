@@ -100,6 +100,10 @@ const TABLA = [
   ["pool-de-bibliotecas", "ops/diseno/bloques.json", "ops/diseno/pool.test.js"],
   ["plantillas-de-componente", "ops/diseno/taxonomia.json", "ops/diseno/plantillas-componente.test.js"],
   ["plantillas-de-componente", "ops/diseno/bibliotecas.json", "ops/diseno/plantillas-componente.test.js"],
+  ["plantillas-de-componente", "ops/normas.json", "ops/diseno/plantillas-componente.test.js"],
+  // #849: la nota de una norma pasó del tope en el CI de #846 sin que vecinos lanzara topes.test.js.
+  ["topes-de-texto", "ops/normas.json", "ops/topes.test.js"],
+  ["topes-de-texto", ".claude/skills/x/SKILL.md", "ops/topes.test.js"],
   ["procesos-ocultos", "scripts/lib/x.mjs", "ops/procesosOcultos.test.js"],
   ["procesos-ocultos", ".claude/hooks/x.mjs", "ops/procesosOcultos.test.js"],
   ["catalogos-partidos", "ops/forja/criterios/x.json", "ops/catalogos.test.js"],
