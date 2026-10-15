@@ -21,9 +21,9 @@ import { appendFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { BOVEDA_PABLO, BOVEDA_SESIONES, entornoOp, leerEnv } from "./env.mjs";
-// El canje del token es de E1 (#327): permisos explícitos sin workflows, comprobados al
-// volver, y limitado a este repo. Aquí no se repite: se usa.
-import { API, ErrorToken, PERMISOS, firmarJwt, pedirToken, sinSecretos } from "../token-sesiones.mjs";
+// El canje del token es de E1 (#327): permisos explícitos (con workflows desde #422, y sin él si la App aún no lo
+// tiene), comprobados al volver, y limitado a este repo. Aquí no se repite: se usa.
+import { API, ErrorToken, PERMISOS, WORKFLOWS, canjearToken, firmarJwt, sinSecretos } from "../token-sesiones.mjs";
 import { FORMA_FECHA, MARGEN_MS, conBloqueo, escribirCache, leerCache, permisosDelUsuario, protegerFichero, rutaDeCache } from "./cacheTokenSesion.mjs";
 
 export const APP_ID = 5260552;
@@ -143,19 +143,27 @@ export function advertenciasDeInstalacion(detalle) {
   return fuera;
 }
 
+/**
+ * Las advertencias de la instalación y si ya tiene «Workflows» en escritura (#422): `true`, `false` o `null` si no
+ * se pudo mirar. Con `false` el canje pide directamente sin workflows (ahorra el 422).
+ */
 async function revisarInstalacion({ fetchFn, jwt, installationId }) {
   try {
     const r = await fetchFn(`${API}/app/installations/${installationId}`, { headers: cabeceras(jwt), signal: AbortSignal.timeout(TOPE_MS) });
-    return r.ok ? advertenciasDeInstalacion(await r.json()) : ["app-sin-comprobar"];
+    if (!r.ok) return { advertencias: ["app-sin-comprobar"], conWorkflows: null };
+    const detalle = await r.json();
+    const permisos = detalle?.permissions;
+    return { advertencias: advertenciasDeInstalacion(detalle), conWorkflows: permisos && typeof permisos === "object" ? permisos.workflows === "write" : null };
   } catch {
     // a propósito: no se pudo mirar; el token ya sale con permisos explícitos, así que solo se dice
-    return ["app-sin-comprobar"];
+    return { advertencias: ["app-sin-comprobar"], conWorkflows: null };
   }
 }
 
 /**
  * El token de instalación y el autor de los commits. Lanza ErrorTokenSesion.
- * Devuelve { token, expiraEn, autor: { nombre, correo }, advertencias }.
+ * Devuelve { token, expiraEn, autor: { nombre, correo }, advertencias, workflows } (`workflows`, de WORKFLOWS: si el
+ * token trae «Workflows: escritura» o se pidió sin él porque la App aún no lo tiene, #422).
  */
 export async function tokenDeSesion({ fetch: fetchFn = globalThis.fetch, leerClave = leerClaveDeBoveda, ahora = Date.now(), ids = idsPorDefecto } = {}) {
   const leida = await leerClave();
@@ -184,11 +192,13 @@ export async function tokenDeSesion({ fetch: fetchFn = globalThis.fetch, leerCla
       }
       if (!Number.isInteger(installationId)) throw new ErrorTokenSesion("sin-instalacion", "respuesta sin id de instalación");
     }
-    advertencias.push(...await revisarInstalacion({ fetchFn, jwt, installationId }));
-    const { token, expira } = await pedirToken({ jwt, installationId, fetchFn });
+    const revision = await revisarInstalacion({ fetchFn, jwt, installationId });
+    advertencias.push(...revision.advertencias);
+    // Sin saber (null) se pide con workflows: si la App no lo tiene, GitHub da 422 y canjearToken pide sin él
+    const { token, expira, workflows } = await canjearToken({ jwt, installationId, fetchFn, conWorkflows: revision.conWorkflows !== false });
     // Solo caracteres de un token de GitHub: va a un fichero que lee un shell
     if (!/^ghs_[A-Za-z0-9_.-]{20,}$/.test(token)) throw new ErrorTokenSesion("token-raro", "el token no tiene la forma esperada");
-    return { token, expiraEn: expira || null, installationId, autor: await autorDeApp(fetchFn), advertencias };
+    return { token, expiraEn: expira || null, installationId, autor: await autorDeApp(fetchFn), advertencias, workflows };
   } catch (e) {
     if (e instanceof ErrorTokenSesion) throw e;
     if (e instanceof ErrorToken) throw new ErrorTokenSesion(motivoDeCanje(e.message), sinSecretos(e.message, [pem.trim()]).slice(0, 200));
@@ -230,6 +240,7 @@ export async function tokenConCache({ sinCache = false, cache = {}, generar = to
     installationId: l.entrada.installationId,
     autor: { nombre: BOT_LOGIN, correo: `${BOT_ID}+${BOT_LOGIN}@users.noreply.github.com` },
     advertencias,
+    workflows: "sin-saber", // la caché no lo guarda; tras activar el permiso, `--sin-cache` lo canjea con él
     cache: "si",
   });
   if (!sinCache) {
@@ -451,6 +462,8 @@ export async function aplicarIdentidad({ env = process.env, escribir = appendFil
       if (vencido) return null;
       // Un `export` posterior gana al token de relleno
       escribir(env.CLAUDE_ENV_FILE, lineaDeToken(t.token));
+      // La línea contable de #422: cuántos arranques canjean sin «Workflows» (solo si se canjeó; la caché no lo sabe)
+      if (WORKFLOWS.includes(t.workflows) && t.workflows !== "sin-saber") registrar(`token-sesion workflows: ${t.workflows}`);
       entorno.GH_TOKEN = t.token;
       token = "app";
       cache = t.cache === "si" ? "si" : "no";

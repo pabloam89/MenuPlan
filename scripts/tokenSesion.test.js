@@ -10,7 +10,7 @@ import { afterAll, describe, expect, it, vi } from "vitest";
 import { NO_LANZADO, lanzar, main, resolverComando } from "./token-sesion.mjs";
 import { ADVERTENCIAS, APP_ID, BOT_ID, CACHES, AUTOR_POR_DEFECTO, AYUDANTES, ErrorTokenSesion, FICHAS_CLAVE, IDENTIDADES, MODOS_ENTORNO, MOTIVOS, TOKEN_CENTINELA, aplicarIdentidad, avisoDeIdentidad, identidadDe, leerClaveDeBoveda, lineaIdentidad, entornoDeComando, lineaDePath, lineaDeToken, lineasDeEntorno, motivoDeCanje, rutaDeShimDesde, rutaParaGitBash, tokenConCache, tokenDeSesion } from "./lib/tokenSesion.mjs";
 import { MARGEN_MS, escribirCache, leerCache, permisosDelUsuario, principalesDeIcacls, protegerFichero, rutaDeCache } from "./lib/cacheTokenSesion.mjs";
-import { PERMISOS } from "./token-sesiones.mjs";
+import { PERMISOS, PERMISOS_SIN_WORKFLOWS } from "./token-sesiones.mjs";
 import { medianaMsAsync, topeMs } from "./lib/medirTiempo.mjs";
 
 const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048, privateKeyEncoding: { type: "pkcs1", format: "pem" }, publicKeyEncoding: { type: "spki", format: "pem" } });
@@ -43,9 +43,44 @@ describe("tokenDeSesion", () => {
     expect(createVerify("RSA-SHA256").update(`${h}.${p}`).verify(createPublicKey(publicKey), Buffer.from(firma, "base64url"))).toBe(true);
     const pedido = JSON.parse(llamadas.find((l) => l.init.method === "POST").init.body);
     expect(pedido).toEqual({ repositories: ["MenuPlan"], permissions: PERMISOS });
-    expect(pedido.permissions.workflows).toBeUndefined();
+    expect(pedido.permissions.workflows).toBe("write");
     expect(llamadas.some((l) => l.url.includes("/app/installations/77/access_tokens"))).toBe(true);
     expect(t.advertencias).toEqual([]);
+    expect(t.workflows).toBe("concedido");
+  });
+
+  // #422: mientras Pablo no active «Workflows» en la App, el canje no se rompe
+  it("si la instalación dice que la App no tiene Workflows, pide sin él a la primera y lo dice", async () => {
+    const { workflows: _w, ...sinW } = PERMISOS;
+    const { f, llamadas } = githubFalso({
+      detalle: res(200, { permissions: sinW, repository_selection: "selected" }),
+      acceso: res(201, { token: TOKEN, expires_at: "2026-10-10T12:00:00Z", permissions: sinW, repositories: [{ name: "MenuPlan" }] }),
+    });
+    const t = await tokenDeSesion({ fetch: f, leerClave: async () => privateKey });
+    const pedidos = llamadas.filter((l) => l.init.method === "POST").map((l) => JSON.parse(l.init.body).permissions);
+    expect(pedidos).toEqual([PERMISOS_SIN_WORKFLOWS]);
+    expect(t.workflows).toBe("sin-conceder");
+    expect(t.advertencias).toEqual([]);
+  });
+
+  it("si no se pudo mirar la instalación, pide con Workflows y, ante el 422, otra vez sin él", async () => {
+    const { workflows: _w, ...sinW } = PERMISOS;
+    const pedidos = [];
+    const { f } = githubFalso({ detalle: res(500, {}) });
+    const g = async (url, init = {}) => {
+      if (url.includes("/access_tokens")) {
+        const p = JSON.parse(init.body).permissions;
+        pedidos.push(p);
+        return "workflows" in p
+          ? res(422, { message: "The permissions requested are not granted to this installation." })
+          : res(201, { token: TOKEN, expires_at: "2026-10-10T12:00:00Z", permissions: sinW, repositories: [{ name: "MenuPlan" }] });
+      }
+      return f(url, init);
+    };
+    const t = await tokenDeSesion({ fetch: g, leerClave: async () => privateKey });
+    expect(pedidos).toEqual([PERMISOS, PERMISOS_SIN_WORKFLOWS]);
+    expect(t.workflows).toBe("sin-conceder");
+    expect(t.advertencias).toEqual(["app-sin-comprobar"]);
   });
 
   it("si la API no da el id del bot, usa el conocido", async () => {
@@ -62,7 +97,8 @@ describe("tokenDeSesion", () => {
     ["GitHub rechaza el canje", { fetch: githubFalso({ acceso: res(403, {}) }).f }, "github-rechaza"],
     ["clave PEM que no es RSA válida", { leerClave: async () => CLAVE_ROTA }, "clave-ilegible"],
     ["token con forma rara", { fetch: githubFalso({ acceso: res(201, { token: "x; rm -rf /", permissions: { ...PERMISOS }, repositories: [{ name: "MenuPlan" }] }) }).f }, "token-raro"],
-    ["el token trae un permiso que no se pidió", { fetch: githubFalso({ acceso: res(201, { token: TOKEN, permissions: { ...PERMISOS, workflows: "write" }, repositories: [{ name: "MenuPlan" }] }) }).f }, "token-raro"],
+    ["el token trae un permiso que no se pidió", { fetch: githubFalso({ acceso: res(201, { token: TOKEN, permissions: { ...PERMISOS, packages: "read" }, repositories: [{ name: "MenuPlan" }] }) }).f }, "token-raro"],
+    ["el token trae un permiso negado", { fetch: githubFalso({ acceso: res(201, { token: TOKEN, permissions: { ...PERMISOS, environments: "read" }, repositories: [{ name: "MenuPlan" }] }) }).f }, "token-raro"],
     ["sin red", { fetch: async () => { throw new Error("ECONNRESET api.github.com"); } }, "red"],
   ])("falla cerrado: %s", async (_c, extra, motivo) => {
     const base = { fetch: githubFalso().f, leerClave: async () => privateKey };
@@ -318,6 +354,17 @@ describe("aplicarIdentidad (lo que hace el arranque)", () => {
     expect(aviso).toContain("identidad: app token: app");
     expect(registrado).toEqual([aviso.slice(aviso.indexOf("identidad-sesion"))]);
     expect(aviso).not.toContain(TOKEN);
+  });
+  it("si el canje dice si trae Workflows, deja su línea `token-sesion workflows:` antes de la de identidad (#422)", async () => {
+    for (const w of ["sin-conceder", "concedido"]) {
+      const { registrado, opciones } = uso({ generar: async () => ({ token: TOKEN, autor, advertencias: [], workflows: w }) });
+      const aviso = await aplicarIdentidad(opciones);
+      expect(registrado).toEqual([`token-sesion workflows: ${w}`, aviso.slice(aviso.indexOf("identidad-sesion"))]);
+    }
+    // De la caché no se sabe: no se deja línea
+    const r2 = uso({ generar: async () => ({ token: TOKEN, autor, advertencias: [], workflows: "sin-saber", cache: "si" }) });
+    const aviso = await aplicarIdentidad(r2.opciones);
+    expect(r2.registrado).toEqual([aviso.slice(aviso.indexOf("identidad-sesion"))]);
   });
   it("pasa GH_TOKEN a gh solo en la copia del entorno, y respeta GIT_CONFIG_COUNT previo", async () => {
     const vistos = [];
@@ -746,7 +793,7 @@ describe("caché del token entre sesiones", () => {
       const salida = { log: vi.fn(), error: vi.fn() };
       const generar = vi.fn(async () => ({ token: TOKEN, expiraEn: "x", autor, cache: "si", advertencias: [] }));
       expect(await main(["--comprobar"], { generar, salida })).toBe(0);
-      expect(salida.log.mock.calls[0][0]).toMatch(/ok expira: x autor: .* cache: si$/);
+      expect(salida.log.mock.calls[0][0]).toMatch(/ok expira: x autor: .* cache: si workflows: sin-saber$/);
       expect(JSON.stringify([salida.log.mock.calls, salida.error.mock.calls])).not.toContain(TOKEN);
       expect(generar).toHaveBeenLastCalledWith({ sinCache: false });
       await main(["--sin-cache", "--comprobar"], { generar, salida });
@@ -760,7 +807,10 @@ describe("caché del token entre sesiones", () => {
       const caso = { token: TOKEN, expiraEn: "x", autor, cache: "no", advertencias: ["cache-casi-caducada"] };
       const s2 = { log: vi.fn(), error: vi.fn() };
       await main(["--comprobar"], { generar: async () => caso, salida: s2 });
-      expect(s2.log.mock.calls[0][0]).toMatch(/cache: no$/);
+      expect(s2.log.mock.calls[0][0]).toMatch(/cache: no workflows: sin-saber$/);
+      const s3 = { log: vi.fn(), error: vi.fn() };
+      await main(["--comprobar"], { generar: async () => ({ ...caso, advertencias: [], workflows: "concedido" }), salida: s3 });
+      expect(s3.log.mock.calls[0][0]).toMatch(/cache: no workflows: concedido$/);
       expect(s2.error.mock.calls[0][0]).toMatch(/aviso.*caduca a las x \(UTC\)/);
     });
   });

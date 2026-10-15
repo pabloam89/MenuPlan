@@ -2,7 +2,7 @@ import { generateKeyPairSync, verify } from "node:crypto";
 import { Readable } from "node:stream";
 import { beforeAll, describe, expect, it } from "vitest";
 
-import { API, ErrorToken, MARGEN_IAT_S, VIDA_JWT_S, ejecutar, firmarJwt, pedirToken, sinSecretos } from "./token-sesiones.mjs";
+import { API, ErrorToken, MARGEN_IAT_S, NEGADOS, PERMISOS, PERMISOS_SIN_WORKFLOWS, VIDA_JWT_S, WORKFLOWS, canjearToken, ejecutar, firmarJwt, pedirToken, sinSecretos } from "./token-sesiones.mjs";
 
 // Una clave de prueba, generada aquí: ni es de la App ni sirve para nada fuera del test.
 let pem;
@@ -26,9 +26,26 @@ const entrada = (texto) => Readable.from([texto]);
 const CONCEDIDO = {
   token: TOKEN,
   expires_at: "2026-10-10T12:00:00Z",
-  permissions: { contents: "write", pull_requests: "write", issues: "write", actions: "read", checks: "read", metadata: "read" },
+  permissions: { contents: "write", pull_requests: "write", issues: "write", workflows: "write", actions: "read", checks: "read", metadata: "read" },
   repositories: [{ name: "MenuPlan" }],
 };
+/** Lo que concede GitHub cuando la App aún no tiene «Workflows» y se pide sin él (#422). */
+const { workflows: _w, ...SIN_WORKFLOWS } = CONCEDIDO.permissions;
+const CONCEDIDO_SIN_WORKFLOWS = { ...CONCEDIDO, permissions: SIN_WORKFLOWS };
+/** El 422 que da GitHub al pedir un permiso que la instalación no tiene (visto en vivo el 15 oct 2026). */
+const NO_CONCEDIDO = { message: "The permissions requested are not granted to this installation." };
+
+/** Un fetch que contesta según lo pedido: con workflows, `conW`; sin él, `sinW`. Cada uno, [estado, cuerpo]. */
+function fetchPorPermisos({ conW = [422, NO_CONCEDIDO], sinW = [201, CONCEDIDO_SIN_WORKFLOWS] } = {}) {
+  const llamadas = [];
+  const fn = async (url, init) => {
+    const pide = JSON.parse(init.body).permissions;
+    llamadas.push(pide);
+    const [estado, cuerpo] = "workflows" in pide ? conW : sinW;
+    return { ok: estado >= 200 && estado < 300, status: estado, json: async () => cuerpo };
+  };
+  return { fn, llamadas };
+}
 function fetchFalso(estado = 201, cuerpo = CONCEDIDO) {
   const llamadas = [];
   const fn = async (url, init) => {
@@ -83,7 +100,7 @@ describe("pedirToken", () => {
   it("POST a la instalación, con las cabeceras de GitHub y el token limitado al repo", async () => {
     const { fn, llamadas } = fetchFalso();
     const r = await pedirToken({ jwt: "jwt.de.prueba", installationId: "987654", fetchFn: fn });
-    expect(r).toEqual({ token: TOKEN, expira: "2026-10-10T12:00:00Z" });
+    expect(r).toEqual({ token: TOKEN, expira: "2026-10-10T12:00:00Z", concedido: CONCEDIDO.permissions });
     expect(llamadas).toHaveLength(1);
     const { url, init } = llamadas[0];
     expect(url).toBe(`${API}/app/installations/987654/access_tokens`);
@@ -92,9 +109,29 @@ describe("pedirToken", () => {
     expect(init.headers.Accept).toBe("application/vnd.github+json");
     expect(init.headers["X-GitHub-Api-Version"]).toBe("2022-11-28");
     expect(init.headers["User-Agent"]).toBeTruthy();
-    // Permisos explícitos: los seis del encargo y ni uno más (sin workflows).
+    // Permisos explícitos: los seis del encargo más workflows (#422) y ni uno más.
     expect(JSON.parse(init.body)).toEqual({ repositories: ["MenuPlan"], permissions: CONCEDIDO.permissions });
-    expect(Object.keys(JSON.parse(init.body).permissions)).not.toContain("workflows");
+    expect(JSON.parse(init.body).permissions.workflows).toBe("write");
+  });
+
+  it("lo pedido nunca lleva un permiso negado, y sin workflows es lo mismo menos workflows (#422)", () => {
+    expect(NEGADOS).toEqual(["administration", "secrets", "environments", "deployments"]);
+    for (const p of NEGADOS) {
+      expect(PERMISOS).not.toHaveProperty(p);
+      expect(PERMISOS_SIN_WORKFLOWS).not.toHaveProperty(p);
+    }
+    expect(PERMISOS.workflows).toBe("write");
+    const { workflows, ...resto } = PERMISOS;
+    expect(workflows).toBe("write");
+    expect(PERMISOS_SIN_WORKFLOWS).toEqual(resto);
+  });
+
+  it.each(NEGADOS)("un permiso negado (%s) descarta el token aunque se hubiera pedido por error", async (permiso) => {
+    const cuerpo = { ...CONCEDIDO, permissions: { ...CONCEDIDO.permissions, [permiso]: "read" } };
+    const e = await pedirToken({ jwt: "j", installationId: "1", fetchFn: fetchFalso(201, cuerpo).fn, permisos: { ...PERMISOS, [permiso]: "write" } }).catch((x) => x);
+    expect(e).toBeInstanceOf(ErrorToken);
+    expect(e.message).toMatch(new RegExp(`negados \\(${permiso}\\)`));
+    expect(e.message).not.toContain(TOKEN);
   });
 
   it("lo concedido puede ser un subconjunto de lo pedido y el token sale", async () => {
@@ -105,7 +142,7 @@ describe("pedirToken", () => {
   });
 
   // Lista blanca: cualquier permiso que no pedimos, sea el que sea, descarta el token.
-  it.each(["administration", "secrets", "environments", "deployments", "workflows", "packages", "pages"])(
+  it.each(["administration", "secrets", "environments", "deployments", "packages", "pages"])(
     "si GitHub concede «%s» (no pedido), el token se descarta y no se imprime",
     async (permiso) => {
       const cuerpo = { ...CONCEDIDO, permissions: { ...CONCEDIDO.permissions, [permiso]: permiso === "pages" ? "write" : "read" } };
@@ -275,5 +312,64 @@ describe("sinSecretos", () => {
   });
   it("ErrorToken es el único error que enseña su mensaje", () => {
     expect(new ErrorToken("x")).toBeInstanceOf(Error);
+  });
+});
+
+describe("canjearToken: con workflows y su plan B mientras la App no lo tenga (#422)", () => {
+  it("si la App ya lo tiene, una sola llamada con workflows y workflows: concedido", async () => {
+    const { fn, llamadas } = fetchPorPermisos({ conW: [201, CONCEDIDO] });
+    const r = await canjearToken({ jwt: "j", installationId: "1", fetchFn: fn });
+    expect(r).toEqual({ token: TOKEN, expira: CONCEDIDO.expires_at, workflows: "concedido" });
+    expect(llamadas).toEqual([PERMISOS]);
+  });
+
+  it("si GitHub da 422 (la App aún no lo tiene), pide otra vez sin workflows y el canje no se rompe", async () => {
+    const { fn, llamadas } = fetchPorPermisos();
+    const r = await canjearToken({ jwt: "j", installationId: "1", fetchFn: fn });
+    expect(r.token).toBe(TOKEN);
+    expect(r.workflows).toBe("sin-conceder");
+    expect(llamadas).toEqual([PERMISOS, PERMISOS_SIN_WORKFLOWS]);
+  });
+
+  it("con conWorkflows: false pide directamente sin workflows (una sola llamada)", async () => {
+    const { fn, llamadas } = fetchPorPermisos();
+    expect((await canjearToken({ jwt: "j", installationId: "1", fetchFn: fn, conWorkflows: false })).workflows).toBe("sin-conceder");
+    expect(llamadas).toEqual([PERMISOS_SIN_WORKFLOWS]);
+  });
+
+  it.each([[401, {}], [403, {}], [404, {}], [500, {}]])("otro fallo (%s) no se reintenta sin workflows: sale tal cual", async (estado, cuerpo) => {
+    const { fn, llamadas } = fetchPorPermisos({ conW: [estado, cuerpo] });
+    const e = await canjearToken({ jwt: "j", installationId: "1", fetchFn: fn }).catch((x) => x);
+    expect(e).toBeInstanceOf(ErrorToken);
+    expect(e.status).toBe(estado);
+    expect(llamadas).toHaveLength(1);
+  });
+
+  it("concedido con permisos de más en la primera respuesta: no se reintenta, se descarta", async () => {
+    const { fn, llamadas } = fetchPorPermisos({ conW: [201, { ...CONCEDIDO, permissions: { ...CONCEDIDO.permissions, secrets: "read" } }] });
+    await expect(canjearToken({ jwt: "j", installationId: "1", fetchFn: fn })).rejects.toThrow(/negados/);
+    expect(llamadas).toHaveLength(1);
+  });
+
+  it("el plan B sigue exigiendo el subconjunto: si sin workflows GitHub concede workflows, el token no sale", async () => {
+    const { fn } = fetchPorPermisos({ sinW: [201, CONCEDIDO] });
+    await expect(canjearToken({ jwt: "j", installationId: "1", fetchFn: fn })).rejects.toThrow(/workflows/);
+  });
+
+  it("si el 422 se repite sin workflows, el error sale con la pista de GitHub", async () => {
+    const { fn } = fetchPorPermisos({ sinW: [422, NO_CONCEDIDO] });
+    const e = await canjearToken({ jwt: "j", installationId: "1", fetchFn: fn }).catch((x) => x);
+    expect(e.status).toBe(422);
+    expect(e.message).toContain("422");
+  });
+
+  it("ejecutar deja la línea `workflows:` con un valor del vocabulario, en los dos casos", async () => {
+    const sin = await correr({ fetchFn: fetchPorPermisos().fn });
+    expect(sin.codigo).toBe(0);
+    expect(sin.out).toBe(`${TOKEN}\n`);
+    expect(sin.err).toMatch(/resultado: ok expira: \S+ workflows: sin-conceder\n$/);
+    const con = await correr({ fetchFn: fetchPorPermisos({ conW: [201, CONCEDIDO] }).fn });
+    expect(con.err).toMatch(/workflows: concedido\n$/);
+    expect(WORKFLOWS).toEqual(["concedido", "sin-conceder", "sin-saber"]);
   });
 });

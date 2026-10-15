@@ -11,7 +11,7 @@
  * ayudante de git y el autor de la App puestos, sin depender del arranque. Reutiliza
  * el token que guarda la caché por usuario (scripts/lib/cacheTokenSesion.mjs)
  * mientras falten más de 15 minutos; `--comprobar` dice si salió de la caché
- * (`cache: si`) o se canjeó (`cache: no`). El token y la clave no salen nunca por
+ * (`cache: si`) o se canjeó (`cache: no`) y si el token trae «Workflows» (`workflows:`, #422). El token y la clave no salen nunca por
  * pantalla ni a un fichero que no sea esa caché.
  */
 import { spawnSync } from "node:child_process";
@@ -20,6 +20,7 @@ import { constants } from "node:os";
 import { basename, dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { ErrorTokenSesion, entornoDeComando, tokenConCache } from "./lib/tokenSesion.mjs";
+import { WORKFLOWS } from "./token-sesiones.mjs";
 
 /** Código del propio envoltorio cuando no pudo lanzar el comando (el 1 es del comando). */
 export const NO_LANZADO = 127;
@@ -99,7 +100,7 @@ export async function main(argv, { generar = tokenConCache, correr = spawnSync, 
     salida.error(`token-sesion aviso: 1Password agotó el límite de lecturas; uso el token guardado, que caduca a las ${t.expiraEn ?? "?"} (UTC). Reintenta más tarde con --sin-cache.`);
   }
   if (comprobar) {
-    salida.log(`token-sesion resultado: ok expira: ${t.expiraEn ?? "?"} autor: ${t.autor.nombre} cache: ${t.cache === "si" ? "si" : "no"}`);
+    salida.log(`token-sesion resultado: ok expira: ${t.expiraEn ?? "?"} autor: ${t.autor.nombre} cache: ${t.cache === "si" ? "si" : "no"} workflows: ${WORKFLOWS.includes(t.workflows) ? t.workflows : "sin-saber"}`);
     return 0;
   }
   const [cmd, ...args] = argv.slice(corte + 1);

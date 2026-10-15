@@ -10,7 +10,7 @@ metadata:
   sintoma_a_causa: false
   elige_opciones: false
   dueno: constructor
-  comprobado: "2026-10-14"
+  comprobado: "2026-10-15"
   normas: [main-solo-por-pr-con-tests, staging-exige-tests, sin-push-forzado, deploy-key-unica, secretos-de-repo, push-protection, pr-al-dia-y-closes, pr-agente-y-closes-en-ci, linea-runbook, sesion-con-su-identidad]
 ---
 
@@ -68,7 +68,7 @@ Los secretos de Actions (`ANTHROPIC_API_KEY`, `OPS_DB_URL`, `CALLMEBOT_DESTINOS`
 los del vigía, los de iOS y la clave de la App `homenu-dependabot-merge`) y qué workflow usa cada uno están en `ops/INVENTARIO.md`, que es la tabla
 que manda. `tests.yml` no usa ninguno.
 
-**Identidad de las sesiones (#329).** El arranque canjea la clave de la App `homenu-sesiones` por un token de 1 hora, guardado y reutilizado entre sesiones
+**Identidad de las sesiones (#329).** El arranque canjea la clave de la App `homenu-sesiones` por un token de 1 hora (con «Workflows: escritura» desde #422, o sin él mientras la App no lo tenga: `workflows: sin-conceder`), guardado y reutilizado entre sesiones
 (Bash; en PowerShell, `node scripts/token-sesion.mjs -- <comando>`). La guardia niega quitar o vaciar el token, `git -c credential.…` y cambiar reglas del repo o aprobar PR (#447). El detalle, en `.claude/skills/github/referencias/app-sesiones.md`.
 
 Un secreto nuevo o rotado va a un environment con política de ramas, nunca al <!-- norma:secretos-de-repo -->
@@ -202,6 +202,8 @@ la visibilidad. Dependabot, secret scanning y push protection no tienen coste.
 - https://github.com/actions/checkout (`ssh-key`)
 
 Fechas que estaban repartidas por el cuerpo (#411): rama por defecto `staging` desde el 7 oct 2026; el ruleset «staging: tests obligatorios» se decidió el 9 oct 2026; las formas de excepción de antes de #621 («Tests relajados:», «Tamaño:», «Aprendizaje:») valen con aviso hasta el 15 nov 2026; `delete_branch_on_merge` rige desde el 8 oct 2026 (las ramas anteriores se quedaron).
+
+Comprobado el 2026-10-15 (#422): con la App real y sin «Workflows», pedir el token con `workflows: write` da 422 («The permissions requested are not granted to this installation») y el canje vuelve a pedir sin él (`token-sesion.mjs --sin-cache --comprobar` acaba en `workflows: sin-conceder`); sin comprobar: el canje con la App ya con Workflows, hasta que Pablo lo active.
 
 Comprobado el 2026-10-14 (#326): la foto de los issues en local con el token de la App contra el repo real: lectura completa de 414 issues (486 puntos, 1,85 MB), pasada incremental sin cambios (10 puntos), foto idéntica a una lectura nueva de la API (0 diferencias en los 414 nodos ni en `leerIssue`), `npm run issues` con la foto gastó 1 punto en vez de ~450, y la docs de GitHub dan 1.000 puntos/hora al `GITHUB_TOKEN` (el run 38611215358 midió luego 5.000, #844); y, tras pasarla a una release, que el asset se baja sin autenticar, que con `?c=` se sirve el nuevo al instante tras `--clobber` (a secas siguió el viejo) y que la release no avisa (prerelease, sin `latest`, 0 suscriptores); y en GitHub, los runs 38611215358 (desde cero: 464 puntos, `generar` 42 s) y 38634114068 (incremental: 40 puntos, `generar` 20 s, `publicar` 8 s); sin comprobar: la cadena que se relanza sola (#844), hasta que Pablo mueva el workflow.
 
