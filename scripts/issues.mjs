@@ -346,7 +346,7 @@ if (args.includes("--etiquetas")) {
   // Primero las líneas y después, de paso, el índice con lo ya leído: el arranque da 10 s en total y
   // una consulta lenta no puede costar el aviso de issues (ronda 2 de #384).
   arrancar({
-    // La foto de los issues que falta o tiene más de 1 h se dice en una línea (#326): sin ella cada lectura cuesta ~450 puntos.
+    // La foto de los issues que falta o tiene más de MAX_MIN_AVISO (20 min, #844) se dice en una línea (#326): sin ella cada lectura cuesta ~450 puntos.
     lineas: [...(minutosDeCacheVieja != null ? [`Issues (caché de hace ${minutosDeCacheVieja} min: GitHub no contesta o no hay cuota)`] : []), ...[lineaFoto(leerEstadoFoto())].filter(Boolean), ...avisoDeArranque(issues), ...lineasDeLleva(issues, ramasVivas())],
     imprimir: (l) => console.log(l),
     indexar: ({ restanteMs }) => indexar(issues, { reusarPrsMenosDeHoras: 1, restanteMs }),

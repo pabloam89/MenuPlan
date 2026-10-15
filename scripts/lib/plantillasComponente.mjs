@@ -9,15 +9,15 @@
  * (partes obligatorias u opcionales), `forma` (atributos con su lista cerrada de valores y el de por defecto), `visual`
  * (propiedades de una parte que apuntan a un paso de una escala por su rol, nunca a un número: normas design-token-per-role y
  * design-token-layers), `estados` (los de ops/diseno/bloques.json, que cita la norma design-complete-states), `accesibilidad`
- * (rol ARIA, nombre accesible, objetivo táctil y teclado: normas design-touch-target y design-visible-focus) y `fuentes`
- * (sistema de referencia, URL marcada como en la forja y fecha de comprobación, o `unverified`).
+ * (rol ARIA, nombre accesible, objetivo táctil y teclado: normas design-touch-target y design-visible-focus). Sin fuentes
+ * ni enlaces de inspiración (decisión de Pablo, #850): una plantilla es un molde de la casa, no una regla que se justifique.
  *
  * Nada se copia: los estados, las categorías, las variantes, los tamaños, las densidades y los tipos de token salen de
- * ops/diseno/bloques.json (`DE_BLOQUES`); las dos marcas (`unverified`, `not-applicable`), del vocabulario `marca` de
- * ops/diseno/bibliotecas.json (#802), y el sí/no de un atributo, de su vocabulario `declaracion`; las marcas de fuente, de MARCAS_FUENTE de scripts/lib/regla.mjs; la plataforma de cada
- * tipo, de la taxonomía. Los vocabularios propios viven una vez en el JSON, y el código lee exactamente los de
+ * ops/diseno/bloques.json (`DE_BLOQUES`); la marca `not-applicable`, del vocabulario `marca` de ops/diseno/bibliotecas.json
+ * (#802), y el sí/no de un atributo, de su vocabulario `declaracion` (definiciones neutras: el sentido lo da el atributo); la
+ * plataforma de cada tipo, de la taxonomía. Los vocabularios propios viven una vez en el JSON, y el código lee exactamente los de
  * `VOCABULARIOS_DE_PLANTILLAS` (un vocabulario sin lector no entra, como en el pool). Cada valor de atributo, parte, rol ARIA,
- * nombre accesible, tecla y sistema de referencia lo usa al menos una plantilla.
+ * nombre accesible y tecla lo usa al menos una plantilla.
  *
  * Lo leen `ops/diseno/plantillas-componente.test.js` (las reglas, con su autotest), `scripts/diseno/plantillas.mjs` (las
  * cifras) y `scripts/lib/vocabulariosVida.mjs` (el ciclo de vida de cada vocabulario, al pedir los textos). Puro: sin red.
@@ -25,16 +25,14 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { NO_APLICA, SIN_COMPROBAR } from "./bibliotecasDiseno.mjs";
-import { MARCAS_FUENTE } from "./regla.mjs";
+import { NO_APLICA } from "./bibliotecasDiseno.mjs";
 
 export const RUTA_PLANTILLAS = "ops/diseno/plantillas-componente.json";
-export { NO_APLICA, SIN_COMPROBAR };
+export { NO_APLICA };
 
 /** Los vocabularios propios del fichero, por su clave: el test exige que el JSON no tenga ni más ni menos. */
 export const VOCABULARIOS_DE_PLANTILLAS = [
   "interaccion", "obligacion_de_parte", "parte", "rol_aria", "nombre_accesible", "objetivo_tactil", "teclado",
-  "sistema_de_referencia", "alcance_de_url",
 ];
 /**
  * Lo que se reutiliza de `vocabularios` de ops/diseno/bloques.json, por el nombre que tiene allí. `categoria` y `estado` los
@@ -48,16 +46,23 @@ export const DE_BLOQUES = { ...DE_BLOQUES_FIJOS, ...DE_BLOQUES_PARA_VALORES };
 export const SI_NO_DEL_POOL = "declaracion";
 /** Los vocabularios que un atributo de forma puede reutilizar en vez de definir sus valores; una escala, solo los de bloques.json. */
 export const REUTILIZABLES = [...Object.keys(DE_BLOQUES_PARA_VALORES), SI_NO_DEL_POOL];
-export const CAMPOS_DE_PLANTILLA = ["elemento", "categoria", "interaccion", "anatomia", "forma", "visual", "estados", "accesibilidad", "fuentes"];
+export const CAMPOS_DE_PLANTILLA = ["elemento", "categoria", "interaccion", "anatomia", "forma", "visual", "estados", "accesibilidad"];
 export const CAMPOS_DE_ACCESIBILIDAD = ["rol_aria", "nombre_accesible", "objetivo_tactil", "teclado"];
-export const CAMPOS_DE_FUENTE = ["sistema", "alcance_url", "fuente", "comprobada"];
 /**
  * El mínimo de estados de un elemento interactivo; `hover`, además, si su plataforma tiene puntero. Cada plantilla marca los
- * suyos y el componente los define (norma design-complete-states de ops/normas.json, que nombra este mínimo: el test comprueba
- * que su exigencia los cita todos).
+ * suyos y el componente los define (norma design-complete-states de ops/normas.json, que nombra este mínimo: el test compara
+ * igual a igual la lista de su exigencia, leída con `estadosDeLaNorma`, y estas dos constantes).
  */
 export const ESTADOS_DE_INTERACTIVO = ["reposo", "foco", "pulsado", "deshabilitado"];
 export const ESTADO_DE_PUNTERO = "hover";
+/**
+ * Los estados que nombra la exigencia de la norma design-complete-states: la lista tras «como mínimo» y el de «…, y X con
+ * puntero». Devuelve { minimo, puntero }, o null si la exigencia ya no tiene esa forma (y el test lo dice).
+ */
+export function estadosDeLaNorma(exigencia) {
+  const m = /como mínimo (.+?), y (\S+) con puntero$/.exec(exigencia ?? "");
+  return m ? { minimo: m[1].split(/, | y /).map((x) => x.trim()), puntero: m[2] } : null;
+}
 /** Los estados que un elemento estático no puede tener: no recibe foco ni responde. */
 export const ESTADOS_SOLO_INTERACTIVOS = ["hover", "foco", "pulsado", "deshabilitado"];
 /** La interacción de teclado que hace de un elemento una parada del foco: obligatoria si es interactivo, prohibida si es estático. */
@@ -73,10 +78,7 @@ export const TONO = { atributo: "tone", escala: "color-role", sin_color: ["neutr
 const PREFIJOS_DE_TENER = ["with-", "has-"];
 
 const FORMA_ID = /^[a-z]+(-[a-z]+)*$/;
-const FECHA = /^\d{4}-\d{2}-\d{2}$/;
-const FUENTE = new RegExp(`^\\[(${Object.keys(MARCAS_FUENTE).filter((m) => m !== "I").join("|")})\\] (https://\\S+)$`);
 const texto = (v, min = 1) => typeof v === "string" && v.trim().length >= min;
-const fechaValida = (v) => FECHA.test(v ?? "") && !Number.isNaN(Date.parse(`${v}T00:00:00Z`));
 const esObjeto = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
 const repetidos = (lista) => lista.filter((x, i) => lista.indexOf(x) !== i);
 
@@ -134,7 +136,7 @@ export const firmaDe = (t) => JSON.stringify([[...(t?.anatomia ?? []).map((a) =>
 
 /**
  * Los problemas de las plantillas contra la taxonomía, los bloques y el pool (lista de textos; vacía si está bien).
- * `taxonomia`: ops/diseno/taxonomia.json; `bloques`: ops/diseno/bloques.json; `pool`: ops/diseno/bibliotecas.json (su `marca`).
+ * `taxonomia`: ops/diseno/taxonomia.json; `bloques`: ops/diseno/bloques.json; `pool`: ops/diseno/bibliotecas.json (su `marca` y su sí/no).
  */
 export function problemasDePlantillas(datos, taxonomia, bloques, pool) {
   const p = [];
@@ -143,9 +145,9 @@ export function problemasDePlantillas(datos, taxonomia, bloques, pool) {
   const en = (k, x) => Object.prototype.hasOwnProperty.call(V[k] ?? {}, x);
   const deBloques = (k, x) => (B[DE_BLOQUES[k]] ?? []).includes(x);
 
-  // Las marcas son las del pool, una vez (#802): si cambian allí, esto lo nota.
+  // La marca es la del pool, una vez (#802): si cambia allí, esto lo nota.
   const marcas = Object.keys(pool?.vocabularios?.marca ?? {});
-  if (!marcas.includes(SIN_COMPROBAR) || !marcas.includes(NO_APLICA)) p.push(`marca: ${SIN_COMPROBAR} y ${NO_APLICA} deben estar en el vocabulario marca de ops/diseno/bibliotecas.json`);
+  if (!marcas.includes(NO_APLICA)) p.push(`marca: ${NO_APLICA} debe estar en el vocabulario marca de ops/diseno/bibliotecas.json`);
   for (const nombre of Object.values(DE_BLOQUES)) if (!Array.isArray(B[nombre]) || B[nombre].length === 0) p.push(`bloques.json: falta el vocabulario «${nombre}» que reutilizan las plantillas`);
   if (Object.keys(pool?.vocabularios?.[SI_NO_DEL_POOL] ?? {}).length < 2) p.push(`${SI_NO_DEL_POOL}: el sí/no de los atributos es el vocabulario ${SI_NO_DEL_POOL} de ops/diseno/bibliotecas.json, y falta`);
   for (const id of SIN_PUNTERO) if (!Object.hasOwn(taxonomia?.plataformas ?? {}, id)) p.push(`SIN_PUNTERO: «${id}» no es una plataforma de ops/diseno/taxonomia.json`);
@@ -162,13 +164,6 @@ export function problemasDePlantillas(datos, taxonomia, bloques, pool) {
       if (marcas.includes(id)) p.push(`vocabularios.${k}.${id}: es una marca y vive solo en el vocabulario marca de ops/diseno/bibliotecas.json`);
     }
   }
-  if (!fechaValida(datos?.lectura?.fecha)) p.push("lectura.fecha: falta o no es AAAA-MM-DD");
-  if (!texto(datos?.lectura?.base, 20)) p.push("lectura.base: falta decir de dónde sale lo escrito y qué está sin comprobar");
-
-  // Raíz de cada sistema de referencia: una por sistema, https y terminada en /.
-  const raices = datos?.raiz_de_sistema ?? {};
-  for (const s of Object.keys(V.sistema_de_referencia ?? {})) if (!/^https:\/\/\S+\/$/.test(raices[s] ?? "")) p.push(`raiz_de_sistema.${s}: falta la URL raíz (https, acabada en /)`);
-  for (const s of Object.keys(raices)) if (!en("sistema_de_referencia", s)) p.push(`raiz_de_sistema.${s}: no es un sistema de sistema_de_referencia`);
 
   // Atributos de forma: id kebab, qué es, y sus valores propios o los de un vocabulario reutilizable (no los dos).
   const atributos = datos?.atributos_de_forma ?? {};
@@ -317,23 +312,6 @@ export function problemasDePlantillas(datos, taxonomia, bloques, pool) {
     for (const k of teclas) if (!en("teclado", k)) p.push(`${q}: teclado «${k}» fuera del vocabulario`);
     for (const k of repetidos(teclas)) p.push(`${q}: teclado «${k}» repetido`);
 
-    // Fuentes: al menos una; un sistema una vez; URL marcada [F] o [S] bajo la raíz del sistema; comprobada o unverified.
-    if (!Array.isArray(t.fuentes) || t.fuentes.length === 0) p.push(`${q}: fuentes es una lista no vacía`);
-    for (const f of t.fuentes ?? []) {
-      const qf = `${q}.fuentes.${f?.sistema}`;
-      if (Object.keys(f ?? {}).sort().join() !== [...CAMPOS_DE_FUENTE].sort().join()) p.push(`${qf}: lleva exactamente ${CAMPOS_DE_FUENTE.join(", ")}`);
-      if (!en("sistema_de_referencia", f?.sistema)) { p.push(`${qf}: sistema fuera del vocabulario`); continue; }
-      if (!en("alcance_de_url", f.alcance_url)) p.push(`${qf}: alcance_url «${f.alcance_url}» fuera del vocabulario`);
-      const m = FUENTE.exec(f.fuente ?? "");
-      if (!m) { p.push(`${qf}: fuente es «[F] https://…» o «[S] https://…» (MARCAS_FUENTE de scripts/lib/regla.mjs)`); continue; }
-      const raiz = raices[f.sistema] ?? "";
-      if (!m[2].startsWith(raiz)) p.push(`${qf}: la URL no cuelga de la raíz del sistema (${raiz})`);
-      if (f.alcance_url === "system" && m[2] !== raiz) p.push(`${qf}: alcance system es la raíz del sistema, sin página`);
-      if (f.alcance_url === "page" && m[2] === raiz) p.push(`${qf}: alcance page es una página, no la raíz del sistema`);
-      if (!(f.comprobada === SIN_COMPROBAR || (fechaValida(f.comprobada) && f.comprobada >= (datos?.lectura?.fecha ?? "9")))) p.push(`${qf}: comprobada es ${SIN_COMPROBAR} o una fecha AAAA-MM-DD no anterior a la lectura`);
-    }
-    for (const s of repetidos((t.fuentes ?? []).map((f) => f?.sistema))) p.push(`${q}.fuentes: sistema «${s}» repetido`);
-
     // Una plantilla copiada: misma firma (partes y atributos) que otra.
     const firma = firmaDe(t);
     if (firmas.has(firma)) p.push(`${q}: mismas partes y atributos que ${firmas.get(firma)}: es una plantilla copiada`);
@@ -350,8 +328,6 @@ export function problemasDePlantillas(datos, taxonomia, bloques, pool) {
     nombre_accesible: usados((t) => [t?.accesibilidad?.nombre_accesible]),
     objetivo_tactil: usados((t) => [t?.accesibilidad?.objetivo_tactil]),
     teclado: usados((t) => t?.accesibilidad?.teclado ?? []),
-    sistema_de_referencia: usados((t) => (t?.fuentes ?? []).map((f) => f?.sistema)),
-    alcance_de_url: usados((t) => (t?.fuentes ?? []).map((f) => f?.alcance_url)),
   };
   for (const [k, s] of Object.entries(uso)) for (const v of Object.keys(V[k] ?? {})) if (!s.has(v)) p.push(`vocabularios.${k}.${v}: ninguna plantilla lo usa`);
   const formaUsada = plantillas.flatMap((t) => t?.forma ?? []);
@@ -367,15 +343,12 @@ export function problemasDePlantillas(datos, taxonomia, bloques, pool) {
 
 /**
  * Cifras para el informe: plantillas frente a elementos de la taxonomía; por plantilla, sus partes (y cuántas obligatorias),
- * atributos de forma, propiedades visuales, estados y fuentes; plantillas por interacción y por categoría; fuentes por
- * sistema, por alcance de la URL y comprobadas frente a `unverified`; plantillas con alguna fuente comprobada; y las firmas
- * distintas (si es igual al total, ninguna plantilla es copia de otra).
+ * atributos de forma, propiedades visuales y estados; plantillas por interacción y por categoría; y las firmas distintas (si
+ * es igual al total, ninguna plantilla es copia de otra).
  */
 export function cifrasDePlantillas(datos, taxonomia) {
   const ts = datos?.plantillas ?? [];
-  const fuentes = ts.flatMap((t) => t.fuentes ?? []);
   const cuenta = (lista) => lista.reduce((o, k) => ({ ...o, [k]: (o[k] ?? 0) + 1 }), {});
-  const comprobada = (f) => f.comprobada !== SIN_COMPROBAR;
   return {
     plantillas: ts.length,
     elementos: (taxonomia?.elemento ?? []).length,
@@ -385,16 +358,9 @@ export function cifrasDePlantillas(datos, taxonomia) {
       atributos: (t.forma ?? []).length,
       visuales: (t.visual ?? []).length,
       estados: (t.estados ?? []).length,
-      fuentes: (t.fuentes ?? []).length,
     }])),
     por_interaccion: cuenta(ts.map((t) => t.interaccion)),
     por_categoria: cuenta(ts.map((t) => t.categoria)),
-    fuentes: fuentes.length,
-    fuentes_por_sistema: cuenta(fuentes.map((f) => f.sistema)),
-    fuentes_por_alcance: cuenta(fuentes.map((f) => f.alcance_url)),
-    fuentes_comprobadas: fuentes.filter(comprobada).length,
-    fuentes_sin_comprobar: fuentes.filter((f) => !comprobada(f)).length,
-    plantillas_con_fuente_comprobada: ts.filter((t) => (t.fuentes ?? []).some(comprobada)).length,
     firmas_distintas: new Set(ts.map(firmaDe)).size,
     atributos_de_forma: Object.keys(datos?.atributos_de_forma ?? {}).length,
     partes_del_vocabulario: Object.keys(datos?.vocabularios?.parte ?? {}).length,
