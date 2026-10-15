@@ -18,7 +18,8 @@ import { APIS_GH, lineaGh, registrarFoto, leerLineas } from "./lib/cuotaGh.mjs";
 
 // El workflow que escribe la foto (activo desde el 14 oct 2026, PR #824; skill github, foto-issues.md).
 // La App de las sesiones no puede empujar a .github/workflows/: un cambio espera en
-// ops/workflows-pendientes/ hasta que Pablo lo mueve (#844), y mientras tanto se prueba el pendiente.
+// ops/workflows-pendientes/ hasta que Pablo lo mueve, y mientras tanto se prueba el pendiente (#844; el de
+// la cadena lo movió Pablo en el PR #847: hoy se prueba el de .github/workflows/).
 const RUTA_PENDIENTE = new URL("../ops/workflows-pendientes/foto-issues.yml", import.meta.url);
 const RUTA_WORKFLOW = existsSync(RUTA_PENDIENTE) ? RUTA_PENDIENTE : new URL("../.github/workflows/foto-issues.yml", import.meta.url);
 const T0 = new Date("2026-10-14T12:00:00Z");
