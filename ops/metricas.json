@@ -17,6 +17,18 @@
   },
   "lineas": [
     {
+      "firma": "token-sesion workflows",
+      "emisores": ["scripts/lib/tokenSesion.mjs"],
+      "campos": {"workflows": "estado"},
+      "lectores": [{"tipo": "rutina", "ref": ".claude/skills/github/referencias/app-sesiones.md", "menciona": "token-sesion workflows"}]
+    },
+    {
+      "firma": "token-sesiones resultado: ok expira",
+      "emisores": ["scripts/token-sesiones.mjs"],
+      "campos": {"resultado": "estado", "expira": "texto", "workflows": "estado"},
+      "lectores": [{"tipo": "rutina", "ref": ".claude/skills/github/referencias/app-sesiones.md", "menciona": "token-sesiones resultado"}]
+    },
+    {
       "firma": "test-del-juez forma juez",
       "emisores": ["scripts/test-del-juez.mjs"],
       "campos": {"juez": "id", "casos": "derivado", "buenos": "derivado", "malos": "derivado", "normas": "derivado", "faltas": "derivado"},

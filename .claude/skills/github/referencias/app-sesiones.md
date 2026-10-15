@@ -13,13 +13,43 @@ pasos. Ningún valor pasa por la conversación ni por el repo.
 Los comandos de este runbook son de **Git Bash** (en PowerShell 5.1,
 `GH_TOKEN="$(…)" orden` no funciona).
 
-## Cambio respecto a #327: sin «Workflows»
+## «Workflows: escritura»: se quitó y vuelve (#327, #422)
 
-El encargo #327 pedía **Workflows: escritura**. Se quita tras la revisión de
-`seguridad` (10 oct 2026): con Workflows en escritura, la App puede empujar a una
-rama un workflow `on: push` que lea los secretos de repo, sin PR ni fusión. Los
-cambios en `.github/workflows/` los empuja Pablo, no la App. (Nota para el
-comentario del issue #327.)
+- **10 oct 2026, se quita.** El encargo #327 pedía **Workflows: escritura**; tras la
+  revisión de `seguridad`, la App se quedó sin él: con Workflows en escritura puede
+  empujar a una rama un workflow `on: push` que lea los secretos de repo, sin PR ni
+  fusión. Desde entonces los cambios en `.github/workflows/` los empujaba Pablo (#821:
+  nada lo avisaba antes del `git push`).
+- **15 oct 2026, vuelve: riesgo aceptado por Pablo** (decisión por escrito en #422,
+  comentario 6187525420). El riesgo que acepta es el que describe `seguridad` en el
+  comentario 6185570898: una PR fusionada por la App sin persona (#608) puede meter en
+  `staging` un workflow que lea los secretos de environment (entre ellos el token de
+  Vercel de cuenta completa), porque `tests` corre con el workflow de la propia PR. Mover
+  los secretos a environments limitados a `staging` cierra el ataque desde una rama
+  cualquiera, los tags y los forks, pero no este. Si un secreto se filtra, se rota
+  (skill `alta-de-secreto`). Se descartaron que Pablo siga empujando los workflows y
+  pedir su aprobación en las PR de rutas sensibles.
+- **El canje** (`scripts/token-sesiones.mjs`, `canjearToken`) pide `workflows: write`,
+  y la App lo tiene activo desde el 15 oct 2026 (#821, visto en `GET /app/installations`
+  y con `token-sesion.mjs --sin-cache --comprobar`, que acaba en `workflows: concedido`).
+  **El respaldo, si se le quita:** GitHub contesta **422** «The permissions requested are
+  not granted to this installation» (visto en vivo el 15 oct 2026, antes de activarlo) y
+  el canje pide otra vez sin él: el token sale igual, y los cambios de workflows vuelven a
+  `ops/workflows-pendientes/`. Si la instalación ya dice que no lo tiene, el arranque pide
+  sin él a la primera. Lo cuenta la pieza `workflows:`
+  (`concedido`, `sin-conceder`, o `sin-saber` si el token salió de la caché) en
+  `token-sesion.mjs --comprobar`, en la línea `token-sesion workflows: …` del arranque
+  y en la de `token-sesiones.mjs` (`token-sesiones resultado: ok expira: … workflows: …`).
+- **Lo que Pablo hizo en la web** el 15 oct 2026 (es un ajuste de GitHub y lo hace él;
+  se repite igual si alguna vez hay que devolverlo): Settings →
+  Developer settings → GitHub Apps → `homenu-sesiones` → **Permissions & events** →
+  Repository permissions → **Workflows: Read and write** → **Save changes**. Después,
+  la instalación pide aceptar el cambio: Settings → **Applications** (o la página de
+  la App → Install App → el engranaje de `pabloam89`) → **Review request** → **Accept
+  new permissions**. Hasta aceptarlo, el canje sigue saliendo `sin-conceder`.
+- **Comprobar**: `node scripts/token-sesion.mjs --sin-cache --comprobar` debe acabar
+  en `workflows: concedido` (sin `--sin-cache`, un token de la caché dice `sin-saber`
+  y puede ser de antes del cambio, hasta 1 hora).
 
 ## Prerrequisitos: DECISIONES PENDIENTES de Pablo (antes de crear la App)
 
@@ -78,7 +108,8 @@ GitHub → tu foto → **Settings** → abajo del todo **Developer settings** �
 | Actions | Read-only |
 | Checks | Read-only |
 | Metadata | Read-only (GitHub lo pone solo) |
-| **Workflows**, Administration, Secrets, Environments, Deployments | **No access** |
+| Workflows | Read and write (desde #422, 15 oct 2026; riesgo aceptado arriba) |
+| Administration, Secrets, Environments, Deployments | **No access** |
 
 Sin permisos de cuenta ni de organización, y sin eventos suscritos. **Create
 GitHub App**. En la página de la App, arriba, anota el **App ID** (un número; no
@@ -128,8 +159,8 @@ Debe salir `pabloam89/MenuPlan`. Con el mismo token (misma forma de pasarlo):
 | `gh api repos/pabloam89/MenuPlan/rulesets` | error 403 o 404 (Administration: ninguno) |
 
 El propio script se niega a imprimir un token si GitHub le concede `administration`,
-`secrets`, `environments`, `deployments` o `workflows`, o si no está limitado
-exactamente a `MenuPlan`. Si da 200 en alguna de las tres últimas llamadas, corrige
+`secrets`, `environments` o `deployments` (`NEGADOS`, a cualquier nivel), un permiso
+que no pidió o de más nivel, o si no está limitado exactamente a `MenuPlan`. Si da 200 en alguna de las tres últimas llamadas, corrige
 los permisos de la App antes de seguir (E3 no empieza hasta entonces). Para la
 guardia futura: el token solo debe capturarse con `$(…)`, y no imprimirse.
 
@@ -145,7 +176,8 @@ guardia futura: el token solo debe capturarse con `$(…)`, y no imprimirse.
   Alternativa si no: que el token lo pida un proceso fuera de las sesiones.
 - **Alcance.** Solo `pabloam89/MenuPlan`, con los permisos de arriba y el token
   pedido con permisos explícitos. No puede cambiar protecciones, secretos ni
-  environments, ni tocar `.github/workflows/`. `main` y `staging` no admiten push
+  environments. Desde #422 sí puede empujar cambios en `.github/workflows/` (riesgo
+  aceptado, arriba). `main` y `staging` no admiten push
   directo ni siquiera de administradores (skill `github`).
 - **`staging` no es una frontera de seguridad.** Con Contents y PR en escritura el
   bot puede fusionar en `staging` (con `tests` en verde) scripts que los crons
@@ -189,6 +221,8 @@ guardia futura: el token solo debe capturarse con `$(…)`, y no imprimirse.
   (PR #412, sin fusionar): si E2 los cambia, se cambian aquí y en el script.
 - Que los permisos del cuerpo de la petición (`permissions`) los acepte GitHub tal
   cual con estos seis: visto el 10 oct 2026 con la App real (`token-sesion.mjs --comprobar`, #329).
+  Con `workflows` y la App sin él: 422 y plan B sin él, visto el 15 oct 2026. Con la App
+  ya con Workflows: `workflows: concedido`, visto el 15 oct 2026 (#821).
 
 ## Cómo trabaja una sesión con la App (#329)
 

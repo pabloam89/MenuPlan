@@ -13,7 +13,10 @@
  *   un fichero (así no queda en el disco ni en la lista de procesos).
  * - El App ID y el Installation ID no son secretos: `SESIONES_APP_ID` y
  *   `SESIONES_INSTALLATION_ID`, del entorno o de `.env.local` (`leerEnv`).
- * - El token se pide con permisos explícitos (sin workflows) y se descarta, sin imprimirlo, si lo concedido no es un subconjunto exacto de lo pedido (permiso no pedido, nivel superior, o `permissions` ausente) o si no está limitado exactamente a MenuPlan. Timeout de 15 s al pedirlo y 30 s a la clave.
+ * - El token se pide con permisos explícitos (con `workflows: write` desde #422) y se descarta, sin imprimirlo, si lo concedido no es un subconjunto exacto de lo pedido (permiso no pedido, nivel superior, o `permissions` ausente), si trae alguno de NEGADOS o si no está limitado exactamente a MenuPlan. Timeout de 15 s al pedirlo y 30 s a la clave.
+ * - Si GitHub contesta 422 al pedir con `workflows` (la App o su instalación aún no lo tienen), se pide otra vez
+ *   sin él y la línea de stderr lo dice: `workflows: sin-conceder` (#422). Así el canje no se rompe mientras
+ *   Pablo no active el permiso.
  * - Capturarlo SIEMPRE con $(…): imprimido en una sesión queda en su transcripción en disco.
  * - Firma un JWT RS256 de 10 minutos con `node:crypto` (sin dependencias) y
  *   pide `POST /app/installations/{id}/access_tokens`, limitado al repo MenuPlan.
@@ -33,11 +36,21 @@ export const VIDA_JWT_S = 540;
 export const MARGEN_IAT_S = 60;
 const TOPE_CLAVE = 16_384;
 
-/** Lo que se pide, explícito: el token nace con esto y no con todo lo que la App tenga. Sin workflows. */
+/**
+ * Lo que se pide, explícito: el token nace con esto y no con todo lo que la App tenga. `workflows: write` vuelve por
+ * decisión de Pablo (#422, 15 oct 2026), que acepta el riesgo escrito por `seguridad`: una PR fusionada por la App
+ * sin persona (#608) puede meter en `staging` un workflow que lea los secretos de environment.
+ */
 export const PERMISOS = {
-  contents: "write", pull_requests: "write", issues: "write",
+  contents: "write", pull_requests: "write", issues: "write", workflows: "write",
   actions: "read", checks: "read", metadata: "read",
 };
+/** Lo que se pide mientras la App no tenga «Workflows» (GitHub contesta 422 si se pide un permiso que la instalación no tiene). */
+export const PERMISOS_SIN_WORKFLOWS = Object.fromEntries(Object.entries(PERMISOS).filter(([p]) => p !== "workflows"));
+/** Nunca se piden y, si GitHub los concede a cualquier nivel, el token no sale (además de la lista blanca). */
+export const NEGADOS = ["administration", "secrets", "environments", "deployments"];
+/** Vocabulario cerrado de la pieza `workflows:`: si el token lo trae, si se pidió sin él, o si salió de la caché y no se sabe. */
+export const WORKFLOWS = ["concedido", "sin-conceder", "sin-saber"];
 /** Orden de los niveles: lo concedido no puede pasar de lo pedido. Un nivel desconocido se descarta. */
 const NIVEL = { read: 1, write: 2, admin: 3 };
 export const ESPERA_FETCH_MS = 15_000;
@@ -45,8 +58,13 @@ export const ESPERA_STDIN_MS = 30_000;
 
 const b64url = (b) => Buffer.from(b).toString("base64url");
 
-/** Error con mensaje seguro para enseñar: nunca lleva secretos. */
-export class ErrorToken extends Error {}
+/** Error con mensaje seguro para enseñar: nunca lleva secretos. `status`: el código HTTP de GitHub, si lo hubo. */
+export class ErrorToken extends Error {
+  constructor(mensaje, status = null) {
+    super(mensaje);
+    this.status = status;
+  }
+}
 
 /** Quita de un texto cualquier cosa con forma de JWT, token de GitHub o PEM. */
 export function sinSecretos(texto, secretos = []) {
@@ -82,8 +100,8 @@ const PISTAS = {
   422: "GitHub rechaza la petición: ¿la App está instalada en el repo MenuPlan?",
 };
 
-/** Pide el token de instalación. Devuelve { token, expira }. */
-export async function pedirToken({ jwt, installationId, fetchFn = fetch }) {
+/** Pide el token de instalación con `permisos` (PERMISOS por defecto). Devuelve { token, expira, concedido }. */
+export async function pedirToken({ jwt, installationId, fetchFn = fetch, permisos = PERMISOS }) {
   if (!/^\d{1,12}$/.test(String(installationId ?? ""))) throw new ErrorToken("SESIONES_INSTALLATION_ID falta o no es un número");
   let r;
   try {
@@ -96,7 +114,7 @@ export async function pedirToken({ jwt, installationId, fetchFn = fetch }) {
         "User-Agent": "menuplan-token-sesiones",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ repositories: [REPO], permissions: PERMISOS }),
+      body: JSON.stringify({ repositories: [REPO], permissions: permisos }),
       signal: AbortSignal.timeout(ESPERA_FETCH_MS),
     });
   } catch (e) {
@@ -111,18 +129,40 @@ export async function pedirToken({ jwt, installationId, fetchFn = fetch }) {
   }
   if (!r.ok) {
     const api = sinSecretos(datos?.message, [jwt]).slice(0, 160);
-    throw new ErrorToken(`GitHub respondió ${r.status}${api ? ` («${api}»)` : ""}${PISTAS[r.status] ? `: ${PISTAS[r.status]}` : ""}`);
+    throw new ErrorToken(`GitHub respondió ${r.status}${api ? ` («${api}»)` : ""}${PISTAS[r.status] ? `: ${PISTAS[r.status]}` : ""}`, r.status);
   }
   if (typeof datos?.token !== "string" || !datos.token) throw new ErrorToken("GitHub respondió 2xx sin token");
   // Se comprueba lo que GitHub concedió, no lo que se pidió: si no cuadra, el token no sale.
   // Lista blanca: lo concedido es un subconjunto de lo pedido, sin ningún nivel superior.
   const concedido = datos.permissions;
   if (!concedido || typeof concedido !== "object" || Array.isArray(concedido)) throw new ErrorToken("la respuesta no dice qué permisos trae el token: no lo imprimo");
-  const mal = Object.entries(concedido).filter(([p, nivel]) => !(p in PERMISOS) || !(nivel in NIVEL) || NIVEL[nivel] > NIVEL[PERMISOS[p]]).map(([p]) => p);
+  // NEGADOS primero y aparte: aunque alguien los añadiera por error a lo pedido, el token no sale
+  const negados = Object.keys(concedido).filter((p) => NEGADOS.includes(p));
+  if (negados.length) throw new ErrorToken(`el token trae permisos negados (${negados.join(", ")}): no lo imprimo; quítaselos a la App y relanza`);
+  const mal = Object.entries(concedido).filter(([p, nivel]) => !(p in permisos) || !(nivel in NIVEL) || NIVEL[nivel] > NIVEL[permisos[p]]).map(([p]) => p);
   if (mal.length) throw new ErrorToken(`el token trae permisos que no pedí o de más nivel (${mal.join(", ")}): no lo imprimo; corrige los permisos de la App y relanza`);
   const repos = Array.isArray(datos.repositories) ? datos.repositories.map((x) => x?.name) : null;
   if (!repos || repos.length !== 1 || repos[0] !== REPO) throw new ErrorToken(`el token no está limitado exactamente a ${REPO} (repositorios: ${repos ? repos.length : "ninguno indicado"}): no lo imprimo`);
-  return { token: datos.token, expira: datos.expires_at ?? "" };
+  return { token: datos.token, expira: datos.expires_at ?? "", concedido };
+}
+
+/**
+ * El canje con su plan B (#422): pide con `workflows: write` y, si GitHub contesta 422 (la App o su instalación aún
+ * no tienen el permiso), otra vez sin él. `conWorkflows: false` se lo salta cuando ya se sabe que la App no lo tiene
+ * (ahorra una llamada). Devuelve { token, expira, workflows } con `workflows` de WORKFLOWS, según lo CONCEDIDO.
+ */
+export async function canjearToken({ jwt, installationId, fetchFn = fetch, conWorkflows = true }) {
+  let r = null;
+  if (conWorkflows) {
+    try {
+      r = await pedirToken({ jwt, installationId, fetchFn, permisos: PERMISOS });
+    } catch (e) {
+      // Solo el 422 es «permiso que no tiene»; lo demás (401, 404, red, permisos de más) se dice tal cual
+      if (!(e instanceof ErrorToken) || e.status !== 422) throw e;
+    }
+  }
+  if (!r) r = await pedirToken({ jwt, installationId, fetchFn, permisos: PERMISOS_SIN_WORKFLOWS });
+  return { token: r.token, expira: r.expira, workflows: r.concedido.workflows === "write" ? "concedido" : "sin-conceder" };
 }
 
 async function leerStdin(entrada = process.stdin, esperaMs = ESPERA_STDIN_MS) {
@@ -157,10 +197,10 @@ export async function ejecutar({ entrada, ids, fetchFn = fetch, ahora, salidaTTY
     pem = await leerStdin(entrada, esperaStdinMs);
     const { appId, installationId } = ids();
     const jwt = firmarJwt({ appId, pem, ahora });
-    const { token, expira } = await pedirToken({ jwt, installationId, fetchFn });
+    const { token, expira, workflows } = await canjearToken({ jwt, installationId, fetchFn });
     if (salidaTTY) errores("token-sesiones aviso: stdout es una terminal; el token quedará en pantalla y en la transcripción. Captúralo con $(…), nunca lo imprimas\n");
     salida(`${token}\n`);
-    errores(`token-sesiones resultado: ok expira: ${expira}\n`);
+    errores(`token-sesiones resultado: ok expira: ${expira} workflows: ${workflows}\n`);
     return 0;
   } catch (e) {
     const msg = e instanceof ErrorToken ? e.message : "fallo inesperado";
