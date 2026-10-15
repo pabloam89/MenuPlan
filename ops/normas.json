@@ -2962,7 +2962,7 @@
       "sujeto": "sesion",
       "fuerza": "no_debe",
       "exigencia": "fusionar un PR que cambia .github/workflows/ sin nombrar a seguridad en su línea Jueces",
-      "nota": "La App de las sesiones empuja workflows desde el 15 oct 2026 (decisión de Pablo, #422, caso #821). La guardia corre desde la carpeta de la sesión, no desde el PR; el CI corre el tests.yml del PR, que un PR de workflows puede cambiar. Mira la línea, no el juicio. Filtro de buena fe: la fusión desde la web no pasa por aquí.",
+      "nota": "La App de las sesiones empuja workflows desde el 15 oct 2026 (decisión de Pablo, #422, caso #821). Filtro de buena fe: corre la guardia de la carpeta, y en la rama del PR es la del PR, que puede quitarse la regla; lo cubren los jueces revisor y seguridad, porque toca .claude/. Mira la línea, no el juicio; la fusión desde la web no pasa por aquí.",
       "donde": [
         ".claude/hooks/guardia.mjs"
       ],

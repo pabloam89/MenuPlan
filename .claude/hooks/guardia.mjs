@@ -90,8 +90,16 @@ export function rutaDeGhApi(o) {
   return "";
 }
 
+/** Variables de entorno delante (`GH_TOKEN=x gh …`), sin más. */
+const VARIABLES_DELANTE = /^(?:\w+=\S*\s+)*/;
+
+/** La orden de verdad: sin variables delante ni el envoltorio de la sesión (`A=1 node scripts/token-sesion.mjs -- GH_TOKEN=x gh …` → `gh …`). */
+export function ordenDeVerdad(orden) {
+  return sinEnvoltorio(String(orden).replace(VARIABLES_DELANTE, "")).replace(VARIABLES_DELANTE, "");
+}
+
 export function escribeLaFoto(orden) {
-  const o = sinEnvoltorio(orden).replace(/^(?:\w+=\S*\s+)*/, "");
+  const o = sinEnvoltorio(orden).replace(VARIABLES_DELANTE, "");
   const nombraTag = (t) => {
     const destino = t.replace(/^["']|["']$/g, "").split(":").pop().replace(/^\+/, "");
     return destino === "foto-issues" || destino === "refs/tags/foto-issues";
@@ -348,7 +356,7 @@ export const RUTA_WORKFLOW = /^\.github\/workflows\//;
 /** ¿Nombra el cuerpo a `seguridad` en una línea «Jueces:»? Sin comentarios HTML ni bloques de código (limpiarCuerpo). */
 export function nombraASeguridad(cuerpo) {
   const lineas = [...limpiarCuerpo(String(cuerpo ?? "")).matchAll(/^[ \t>*-]*(?:\*\*)?Jueces(?:\*\*)?[ \t]*:(?:\*\*)?[ \t]*(.*)$/gim)];
-  return lineas.some((m) => m[1].split(/\s*(?:,|;|\sy\s)\s*/).some((j) => j.replace(/[`*]/g, "").trim().toLowerCase() === "seguridad"));
+  return lineas.some((m) => m[1].split(/\s*(?:,|;|\sy\s)\s*/).some((j) => j.replace(/[`*]/g, "").trim().split(/[\s—–(.]/)[0].toLowerCase() === "seguridad"));
 }
 
 // ── La carpeta principal ───────────────────────────────────────────────────
@@ -676,8 +684,13 @@ export function decidir(entrada, ctx) {
         continue;
       }
 
+      // Las reglas de `gh pr merge` miran la orden de verdad: sin el envoltorio de la sesión
+      // (`token-sesion.mjs -- gh …`, la única forma que la guardia admite en PowerShell) ni las
+      // variables delante (`GH_TOKEN=x gh …`), como `escribeLaFoto` (revisor del PR #864).
+      // Las demás reglas de gh de este bucle tienen el mismo hueco: #822.
+      const og = ordenDeVerdad(o);
       // gh -R/--repo … pr merge: la base no se puede leer de la rama actual.
-      if (/^gh\s+(?:-R|--repo)\b[\s\S]*\bpr\s+merge\b/.test(o)) {
+      if (/^gh\s+(?:-R|--repo)\b[\s\S]*\bpr\s+merge\b/.test(og)) {
         return deny("fusion-con-repo-ajeno");
       }
       // gh pr edit --base: cambiar la base de un PR a algo que no es staging lo
@@ -700,13 +713,13 @@ export function decidir(entrada, ctx) {
       // engañaba con un número en --subject, con '#231' o con el nombre de una
       // rama (re-juicio del PR #223); gh no admite un segundo PR.
       let merge = null;
-      if (/^gh\s+pr\s+merge\b/.test(o)) {
-        const tras = [...o.replace(/^gh\s+pr\s+merge\b/, "").matchAll(/"([^"]*)"|'([^']*)'|(\S+)/g)].map((m) => m[1] ?? m[2] ?? m[3]);
+      if (/^gh\s+pr\s+merge\b/.test(og)) {
+        const tras = [...og.replace(/^gh\s+pr\s+merge\b/, "").matchAll(/"([^"]*)"|'([^']*)'|(\S+)/g)].map((m) => m[1] ?? m[2] ?? m[3]);
         const pr = tras[0]?.match(/^(?:#?(\d+)|https:\/\/github\.com\/pabloam89\/MenuPlan\/pull\/(\d+)\/?)$/i);
         if (!pr) return deny("fusion-sin-numero");
-        merge = [o, pr[1] ?? pr[2]];
+        merge = [og, pr[1] ?? pr[2]];
       }
-      if (merge && /(?:^|\s)--auto\b/.test(o)) {
+      if (merge && /(?:^|\s)--auto\b/.test(og)) {
         return deny("fusion-auto");
       }
       if (merge) {
