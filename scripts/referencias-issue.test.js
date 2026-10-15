@@ -14,6 +14,7 @@ import { cierresDelPr } from "./fondos-pr.mjs";
 import { hijoDeRest, leerEncargo, leerFicha, validarFicha } from "./lib/fondos.mjs";
 import { numeroDeRama } from "./lib/lleva.mjs";
 import { reposDeProyectos } from "./lib/normas.mjs";
+import { leerRama } from "./tarea.mjs";
 import { escribirReferencia, leerCierres, leerReferencia, mismaReferencia, repoDeIssue } from "../.claude/hooks/referenciaIssue.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -90,6 +91,11 @@ describe("el lector único: leerReferencia, escribirReferencia, mismaReferencia,
     expect(repoDeIssue({ repository_url: `https://api.github.com/repos/${PANEL}` })).toBe(PANEL);
     expect(repoDeIssue({ repository_url: "https://evil.example/repos/a/b" })).toBeNull();
     expect(repoDeIssue({})).toBeNull();
+    expect(repoDeIssue({ repository_url: "https://api.github.com/repos/pabloam89/.." })).toBeNull();
+  });
+  // Nit de `seguridad` (#856): un nombre de repo que empieza por punto o lleva `..` no se lee ni por su forma.
+  it.each(["pabloam89/..#1", "pabloam89/.homenu#1", "pabloam89/homenu..panel#1"])("«%s» no es una referencia, ni solo por su forma", (t) => {
+    expect(leerReferencia(t, { ...REFS, soloForma: true }).error).toMatch(/no es una referencia/);
   });
   it("reposDeProyectos lee projects[].repos de ops/entidades.json: repo → proyecto", () => {
     expect(REFS.repos[PROPIO]).toBe("homenu");
@@ -132,6 +138,21 @@ describe("#301 y pabloam89/homenu-panel#301 son dos issues distintos", () => {
     expect(desactualizada(fondo("#301", PANEL))).toEqual([`casos colgados que no están en «casos»: ${PANEL}#301`]);
     expect(desactualizada(fondo(`${PANEL}#301`, PANEL))).toEqual([]);
   });
+  // Cada mensaje que nombra un hijo lo escribe con su repo (`escritas`), no como `#n` del repo propio (auditor-datos, #856).
+  it("los mensajes de «no aguantó», de la ventana y de reabrir nombran al hijo del panel con su repo", () => {
+    const hijo = hijoDeRest({ number: 301, state: "open", created_at: "2026-10-14T08:00:00Z", labels: [{ name: "tipo:caso" }, { name: "analisis:no-aguanto-roto" }], repository_url: `https://api.github.com/repos/${PANEL}` });
+    const fondo = (estado, extra = "", state = "OPEN") => ({
+      number: 900, state, createdAt: "2026-10-10T08:00:00Z", closedAt: state === "CLOSED" ? "2026-10-12T08:00:00Z" : undefined,
+      labels: [{ name: "tipo:fondo" }, { name: "causa:codigo" }], hijos: [hijo],
+      body: "```fondo\nestado: " + estado + "\ntipo_causa: codigo\nalcance: local\nseveridad: bajo\n" + extra + "\n```",
+    });
+    const mensajes = (f, subidos) => validarFicha(f, { refs: REFS, hoy: "2026-10-15", subidos }).hallazgos
+      .filter((h) => ["no-aguanto", "ventana"].includes(h.regla)).map((h) => h.mensaje);
+    expect(mensajes(fondo("abierto"))).toEqual([`${PANEL}#301 no aguantó: alcance local → modulo`]);
+    expect(mensajes(fondo("en-observacion", "ventana_desde: 2026-10-01\nventana_hasta: 2026-10-05"))).toContain(`la ventana venció el 2026-10-05 con ${PANEL}#301 sin listar en «casos»: se reabre`);
+    const cerrado = fondo("cerrado-eficaz", "aprendizaje: ninguno — prueba del mensaje de reabrir con un hijo del panel", "CLOSED");
+    expect(mensajes(cerrado, new Set([301]))).toEqual([`${PANEL}#301 prueba que el arreglo no aguantó: se reabre`]);
+  });
   it("la guardia deja la línea Casos: con dueño/repo#n por su forma; el repo y que sea un caso los mira el CI", () => {
     expect(guardiaDeja(`Closes #301\nCasos: ${PANEL}#4`)).toBe(null);
     expect(guardiaDeja("Closes #301\nCasos: otro/inventado#3")).toBe(null);
@@ -156,13 +177,23 @@ describe("una sola forma de Closes y una sola regla de rama → número", () => 
     }
     expect(leerCierres("<!-- Closes #5 -->\n```\nCloses #6\n```", REFS)).toEqual([]);
   });
-  it.each([["ops/271-quien-lleva", 271], ["datos/0087-indices", null], ["fix/2026-10-recetas", null], ["ops/123456-x", null]])(
+  // `datos/438-0096-aplicada` y `ux/500-2-columnas` son ramas que crea `npm run tarea -- <area>/<nombre> <n>` cuando el
+  // nombre empieza por cifra (hay tres así en la historia); el revisor vio que la regla de antes las perdía (#856).
+  it.each([
+    ["ops/271-quien-lleva", 271], ["datos/438-0096-aplicada", 438], ["ux/500-2-columnas", 500],
+    ["datos/0087-indices", null], ["fix/2026-10-recetas", null], ["fix/2026-12", null], ["ops/123456-x", null],
+  ])(
     "%s → %s, en la guardia y en el CI igual", (rama, n) => {
       expect(numeroDeRama(rama)).toBe(n);
       // La guardia pide el Closes solo si la rama tiene número.
       expect(guardiaDeja(CASOS_NINGUNO, rama)).toBe(n === null ? null : "deny");
     },
   );
+  it("toda rama que crea `npm run tarea` con su número da ese número", () => {
+    for (const [nombre, n] of [["datos/0096-aplicada", 438], ["ux/2-columnas", 500], ["ops/referencias-con-repo", 856], ["fix/2026-10-recetas", 901]]) {
+      expect(numeroDeRama(leerRama(nombre, String(n)).rama), nombre).toBe(n);
+    }
+  });
   it("LINEA_CASOS (la señal de pendientes.mjs) reconoce también dueño/repo#n", () => {
     expect(LINEA_CASOS.test(`Casos: ${PANEL}#4`)).toBe(true);
     expect(LINEA_CASOS.test("Casos: #4")).toBe(true);
@@ -178,15 +209,23 @@ const DUENOS = {
   casos: [".claude/hooks/casos.mjs"],
   rama: [".claude/hooks/referenciaIssue.mjs"],
   // mapa-entidades.mjs pinta el registro entero en docs/entidades/MAPA.md: lo enseña, no decide nada con él.
+  // Su hermano: «ids de proyecto: una sola lista» de ops/entidades.test.js vigila la lectura de los ids de projects[].
   repos: ["scripts/lib/normas.mjs", "scripts/mapa-entidades.mjs"],
 };
+// Cada forma se caza por lo que significa (una palabra de cierre seguida de sintaxis de expresión; un área y una barra
+// seguidas de un grupo que empieza por cifra), no por el texto exacto de una expresión de antes: el revisor de #856
+// vio pasar `closes?\s+#`, `(?:fixes|closes) #`, `^\w+\/(\d+)-` y `(?<n>\d+)`. El autotest de abajo las lleva, y
+// también el código de siempre que NO es la forma (`srv.close()`, `resolve(ruta)`, un mensaje con «Closes #193»).
 const FORMAS = {
-  // Una expresión con las palabras de cierre de GitHub (close[sd]?, (?:closes|fixes|resolves)…).
-  closes: /close\[sd\]|resolve\[sd\]|fix\(\?:?e\[sd\]\)|closes\|fixes|\(\?:close/i,
+  // Una palabra de cierre de GitHub (close, closes, fixed, resolves…) seguida de sintaxis de expresión: `[sd]`, `?`
+  // (no `?.`), una alternativa con otra palabra de cierre, `\s`, `e[sd]`, `(?:e[sd]` o `(e[sd]`; o un grupo que
+  // empieza por una (`(?:fixes|…`, pero no `(?:fix|feat)`, que son áreas de rama). `fixed[i]` tampoco salta.
+  closes: /(?:close|fix|resolve)(?:e?[sd])?(?::\??)?(?:\[[sd]+\]|\?(?!\.)|\|(?:close|fix|resolve)|\\s|(?:\((?:\?:)?)?e\[[sd])|\(\?:(?:close|fix|resolve)(?:e?[sd]|\[|\()/i,
   // La línea `Casos:` escrita como expresión: `Casos\s*:`, `Casos[ \t]*:`, `Casos(?:\*\*)?`.
   casos: /Casos(?:\\s\*|\[ \\t\]\*|\(\?:\\\*\\\*\)\?)/,
-  // Rama → número: `^[a-z]+\/(\d…)-`.
-  rama: /\[a-z\]\+\\?\/\(\[?(?:\\d|1-9)/,
+  // Rama → número: un área (`[a-z]+`, `\w+`, `[^/]+`), la barra y un grupo (también con nombre) que empieza por
+  // cifra; o `^(\d…)-` / `^(?<n>\d…)-` sobre el trozo de después de la barra.
+  rama: /(?:\[a-z\]\+|\\w\+|\[\^\\?\/\]\+)\)?\\?\/\((?:\?<\w+>)?\[?(?:\\d|1-9|0-9)|\^\((?:\?<\w+>)?(?:\\d|\[(?:1-9|0-9)\])[^)]*\)-/,
   // Lectura de projects[].repos.
   // (`p.repos`, `projects[0].repos`, `find(…).repos`; no el texto «projects[].repos» de un mensaje).
   repos: /(?:\w|\[\d+\]|\))\.repos\b/,
@@ -216,7 +255,28 @@ describe("barrido de scripts/ y .claude/hooks/: cada forma vive solo en su dueñ
     ["rama", String.raw`        const issue = rama?.match(/^[a-z]+\/(\d+)-/)?.[1];`],
     ["rama", String.raw`  const deRama = /^[a-z]+\/(\d{1,5})-[a-z]/.exec(String(rama))?.[1];`],
     ["repos", "const r = JSON.parse(readFileSync('ops/entidades.json')).projects[0].repos;"],
+    // Las variantes que el revisor vio escaparse de la versión de antes (#856).
+    ["closes", String.raw`  const cierra = /\bcloses?\s+#(\d+)/i;`],
+    ["closes", String.raw`  const cierra = /(?:fixes|closes) #(\d+)/gi;`],
+    ["closes", String.raw`  const cierra = /\bfixe[sd]:?\s+#(\d+)/i;`],
+    ["rama", String.raw`  const n = /^\w+\/(\d+)-/.exec(rama)?.[1];`],
+    ["rama", String.raw`  const n = /^[a-z]+\/(?<n>\d+)-/.exec(rama)?.groups.n;`],
+    ["rama", String.raw`  const n = rama.split("/")[1].match(/^(?<n>\d+)-/)?.groups.n;`],
+    ["rama", String.raw`  const n = /^[^/]+\/([1-9]\d*)-/.exec(rama)?.[1];`],
   ])("autotest: %s se pilla en «%s»", (forma, linea) => {
     expect(fuera(forma, () => linea, ["scripts/otro.mjs"])).toHaveLength(1);
+  });
+  // Y lo que no es la forma no salta: una forma que cace todo no vigila nada.
+  it.each([
+    ["closes", "  srv.close();"],
+    ["closes", "  const ruta = resolve(process.argv[1]);"],
+    ["closes", "  opciones.close?.();"],
+    ["closes", "  fallos.push(`pon «Closes #${n}» en el cuerpo del PR`);"],
+    ["closes", String.raw`  const tipo = /^(?:fix|feat|ops)\//.test(rama);`],
+    ["closes", "  const part = fixed[i] ?? assigned[i];"],
+    ["rama", String.raw`  const m = String(texto ?? "").match(/^([a-z]+)\/([a-z0-9][a-z0-9-]{1,40})$/);`],
+    ["rama", String.raw`  const m = /^(\d{4})_[a-z0-9_]+\.sql$/.exec(f);`],
+  ])("autotest: %s no salta en «%s»", (forma, linea) => {
+    expect(fuera(forma, () => linea, ["scripts/otro.mjs"])).toEqual([]);
   });
 });

@@ -219,16 +219,19 @@ describe("fondosCerrados: los Closes que son tipo:fondo (con la API de mentira)"
   it("deja solo los fondos", async () => {
     expect(await fondosCerrados({ cuerpo: "Closes #1\nCloses #2\nCloses #3", consultar })).toEqual({ fondosCerrados: ["#1"] });
   });
-  it("consulta cada Closes en su repo, y el de otro repo al que el token no llega solo se salta (#856)", async () => {
+  it("consulta cada Closes en su repo; el que da 404 (null) se salta y un 403 queda «sin comprobar» (#856)", async () => {
     const pedidas = [];
     const enSuRepo = async (n, repo) => {
       pedidas.push(`${repo}#${n}`);
-      if (repo === "pabloam89/homenu-panel" && n === 9) throw new ErrorDeApi("GET /issues/9: HTTP 404");
+      if (repo === "pabloam89/homenu-panel" && n === 9) return null;
       return repo === "pabloam89/homenu-panel" ? { number: n, labels: [{ name: "tipo:fondo" }] } : issues[n] ?? null;
     };
     const cuerpo = "Closes #2\nCloses pabloam89/homenu-panel#1\nCloses pabloam89/homenu-panel#9";
     expect(await fondosCerrados({ cuerpo, consultar: enSuRepo, repo: "pabloam89/MenuPlan" })).toEqual({ fondosCerrados: ["pabloam89/homenu-panel#1"] });
     expect(pedidas).toEqual(["pabloam89/MenuPlan#2", "pabloam89/homenu-panel#1", "pabloam89/homenu-panel#9"]);
+    // Esto solo avisa (el que falla es fondos-pr), pero un 403 del otro repo no se salta en silencio.
+    const limite = async () => { throw new ErrorDeApi("GET /issues/9: HTTP 403"); };
+    expect(await fondosCerrados({ cuerpo: "Closes pabloam89/homenu-panel#9", consultar: limite, repo: "pabloam89/MenuPlan" })).toEqual({ sinComprobar: "api_error" });
   });
   it("sin Closes no llama a la API ni pide token", async () => {
     expect(await fondosCerrados({ cuerpo: "nada" })).toEqual({ fondosCerrados: [] });

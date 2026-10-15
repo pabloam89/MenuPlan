@@ -14,7 +14,7 @@
  * La misma lógica la usan la guardia (al abrir el PR, solo la forma, sin red) y
  * el CI (`scripts/casos-pr.mjs`, además contra la API). Una sola fuente: la línea
  * `Casos:` solo se reconoce aquí (también `LINEA_CASOS`, la de pendientes.mjs), y
- * cada elemento se lee con `leerReferencia` (scripts/lib/referenciaIssue.mjs).
+ * cada elemento se lee con `leerReferencia` (.claude/hooks/referenciaIssue.mjs).
  */
 import { FUENTE_REFERENCIA, MAX_NUMERO, leerReferencia, limpiarCuerpo, mismaReferencia } from "./referenciaIssue.mjs";
 

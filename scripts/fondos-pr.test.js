@@ -51,14 +51,19 @@ describe("Closes de otro repo (#856)", () => {
     expect(soloPanel.ok).toBe(false);
     expect(soloPanel.motivo).toMatch(/la rama es del issue #51/);
   });
-  it("si el token no llega al otro repo (403 o 404), aviso y no fallo; un repo que no es de ops/entidades.json, fallo", async () => {
-    const consultar = async (n, repo) => {
-      if (repo === "pabloam89/homenu-panel" && n === 3) throw new ErrorDeApi("GET /issues/3: HTTP 403");
+  it("un 404 del otro repo FALLA (solo se podrá cerrar con acceso); un 403 es el error de la API; un repo que no es de ops/entidades.json, fallo", async () => {
+    const noLoVe = await comprobar({ cuerpo: `${AGENTE}Closes pabloam89/homenu-panel#4`, consultar: async () => null, consultarPadre: async () => null, refs: REFS });
+    expect(noLoVe.ok).toBe(false);
+    expect(noLoVe.api).toBeUndefined();
+    expect(noLoVe.motivo).toMatch(/«Closes pabloam89\/homenu-panel#4»: el CI no lo ha podido leer \(la API da 404[\s\S]*solo se podrá citar cuando el CI tenga acceso a ese repo/);
+    const limite = async (n, repo) => {
+      if (repo === "pabloam89/homenu-panel") throw new ErrorDeApi(`GET /issues/${n}: HTTP 403`);
       return null;
     };
-    const r = await comprobar({ cuerpo: `${AGENTE}Closes pabloam89/homenu-panel#3\nCloses pabloam89/homenu-panel#4`, consultar, consultarPadre: async () => null, refs: REFS });
-    expect(r.ok).toBe(true);
-    expect(r.accesos).toHaveLength(2);
+    const r = await comprobar({ cuerpo: `${AGENTE}Closes pabloam89/homenu-panel#3`, consultar: limite, consultarPadre: async () => null, refs: REFS });
+    expect(r.ok).toBe(false);
+    expect(r.api).toBe(true);
+    expect(r.motivo).toMatch(/No he podido consultar pabloam89\/homenu-panel#3 en la API de GitHub[\s\S]*relanza el check/);
     const ajeno = await comprobar({ cuerpo: `${AGENTE}Closes otro/inventado#3`, consultar: async () => { throw new Error("no debería llamarse"); }, consultarPadre: async () => null, refs: REFS });
     expect(ajeno.ok).toBe(false);
     expect(ajeno.motivo).toMatch(/no es un repo de ops\/entidades\.json/);

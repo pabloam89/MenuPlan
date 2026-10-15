@@ -41,16 +41,23 @@ export const REPO_LOCAL = "pabloam89/MenuPlan";
 /**
  * Número de issue de una rama (`ops/271-quien-lleva` → 271). La única regla de rama → número (#376, #856): la usan
  * la guardia, el CI (fondos-pr.mjs) y, por scripts/lib/lleva.mjs, el arranque, retirar, las zonas y los eventos.
- * Un cero delante es el número de una migración (`datos/0087-indices`), y más de cinco cifras o algo que no es una
- * letra tras el guion, una fecha (`fix/2026-10-recetas`): ninguno es un issue.
+ * Lo que va tras el guion da igual: `npm run tarea -- datos/0096-aplicada 438` crea `datos/438-0096-aplicada`, y
+ * `ux/500-2-columnas` es del #500 (tras el guion hace falta un nombre: `ops/337-` no es de nadie). No son de un issue: un cero delante (el número de una migración,
+ * `datos/0087-indices`), más de cinco cifras y una fecha `AAAA-MM` (`fix/2026-10-recetas`: un año 20xx y un mes de
+ * 01 a 12). Se arregla aquí y no exigiéndolo en `tarea` (#856): así valen también las ramas que ya existen.
  */
 export function numeroDeRama(rama) {
-  const m = /^[a-z]+\/([1-9]\d{0,4})-[a-z]/.exec(String(rama ?? ""));
+  const r = String(rama ?? "");
+  if (/^[a-z]+\/20\d{2}-(?:0[1-9]|1[0-2])(?:-|$)/.test(r)) return null;
+  const m = /^[a-z]+\/([1-9]\d{0,4})-[a-z0-9]/.exec(r);
   return m ? Number(m[1]) : null;
 }
 
-/** `dueño/repo` tal como lo escribe GitHub: dueño de hasta 39 caracteres, repo de hasta 100. */
-const FUENTE_REPO = String.raw`[A-Za-z0-9-]{1,39}\/[A-Za-z0-9._-]{1,100}`;
+/**
+ * `dueño/repo` tal como lo escribe GitHub: dueño de hasta 39 caracteres, repo de hasta 100. El nombre del repo no
+ * empieza por punto ni lleva `..`: así no hay un `dueño/..` que, pegado a una URL de la API, suba de carpeta.
+ */
+const FUENTE_REPO = String.raw`[A-Za-z0-9-]{1,39}\/(?!\.)(?:(?!\.\.)[A-Za-z0-9._-]){1,100}`;
 
 /**
  * La forma de una referencia en un texto, sin anclas ni grupos con nombre, para
@@ -94,7 +101,7 @@ export function mismaReferencia(a, b) {
 
 /** El `dueño/repo` de un issue de la API REST, de su `repository_url` (`https://api.github.com/repos/<dueño>/<repo>`). */
 export function repoDeIssue(issue) {
-  const m = /^https:\/\/api\.github\.com\/repos\/([A-Za-z0-9-]{1,39}\/[A-Za-z0-9._-]{1,100})$/.exec(String(issue?.repository_url ?? ""));
+  const m = new RegExp(String.raw`^https:\/\/api\.github\.com\/repos\/(${FUENTE_REPO})$`).exec(String(issue?.repository_url ?? ""));
   return m ? m[1] : null;
 }
 
@@ -135,7 +142,16 @@ export function leerCierres(texto, opciones) {
 }
 
 /**
- * ¿Es un issue de otro repo al que el token no llega? (403 o 404 de un repo que no es el propio): entonces se
- * avisa en vez de fallar (#856). Con el repo propio, todo sigue como siempre. Sin `e`, es un 404 (la API dio null).
+ * ¿Es una referencia a otro repo que el CI no ha podido leer? Solo un 404 (`issue` null: ghApi da null en un 404) de
+ * un repo que no es el propio: no existe o el token del workflow no llega a ese repo (privado), y desde el CI no se
+ * distingue. Un 403 (el límite de peticiones) o un 5xx no es esto: sigue el camino de error de la API («relanza»).
+ * Decisión del orquestador en #856, a petición de `seguridad`: una referencia que no se ha podido comprobar FALLA;
+ * si solo avisara, `Casos: dueño/repo#999999` pasaría el check sin que nadie mirase nada.
  */
-export const sinAccesoAOtroRepo = (ref, refs, e) => ref.repo !== refs.repoPropio && (!e || /HTTP 40[34]\b/.test(e.message ?? ""));
+export const sinAccesoAOtroRepo = (ref, refs, issue) => issue == null && ref.repo !== refs.repoPropio;
+
+/** Por qué falla una referencia de `sinAccesoAOtroRepo` (la línea `Casos:` y el `Closes` del CI dicen lo mismo). */
+export const SIN_ACCESO = "el CI no lo ha podido leer (la API da 404: no existe o el token del workflow no llega a ese repo). Una referencia a otro repo solo se podrá citar cuando el CI tenga acceso a ese repo";
+
+/** El fallo entero: la referencia ya validada (nunca el texto del autor), escrita con `escribirReferencia`, y su porqué. */
+export const motivoSinAcceso = (ref, repoPropio) => `${escribirReferencia(ref, repoPropio)}: ${SIN_ACCESO}`;

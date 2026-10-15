@@ -518,7 +518,7 @@ export function validarFicha(fondo, { existeEnStaging = () => false, hoy, subido
         alcance = subirAlcance(alcance);
         nuevosSubidos.add(h.number);
       }
-      aviso("no-aguanto", `${lista(nuevos.map((h) => h.number))} no aguantó: alcance ${limpio(f.alcance)} → ${alcance}`);
+      aviso("no-aguanto", `${escritas(nuevos)} no aguantó: alcance ${limpio(f.alcance)} → ${alcance}`);
       acciones.push({ tipo: "fijar", campos: { ...(alcance === undefined ? {} : { alcance }), estado: "reabierto" } });
     }
 
@@ -536,7 +536,7 @@ export function validarFicha(fondo, { existeEnStaging = () => false, hoy, subido
       if (yaDecidido && !nuevosCasos.length) {
         aviso("ventana", `la ventana venció el ${f.ventana_hasta}, pero hay un caso que no aguantó: no se cierra como eficaz`);
       } else if (nuevosCasos.length) {
-        aviso("ventana", `la ventana venció el ${f.ventana_hasta} con ${lista(nuevosCasos.map((h) => h.number))} sin listar en «casos»: se reabre`);
+        aviso("ventana", `la ventana venció el ${f.ventana_hasta} con ${escritas(nuevosCasos)} sin listar en «casos»: se reabre`);
         if (!acciones.some((a) => a.tipo === "fijar")) acciones.push({ tipo: "fijar", campos: { estado: "reabierto" } });
       } else if (hallazgos.some((h) => h.gravedad === "error")) {
         aviso("ventana", `la ventana venció el ${f.ventana_hasta} sin casos nuevos, pero la ficha tiene errores: no se cierra`);
@@ -560,7 +560,7 @@ export function validarFicha(fondo, { existeEnStaging = () => false, hoy, subido
     const reabre = casos.filter((h) => debeReabrir(h, fondo) && !(esNoAguanto(h) && subidos.has(h.number) && !posteriorAlCierre(h, fondo)));
     // Los `no-aguanto-*` ya contados (marca del comentario) no vuelven a reabrir cada vez que alguien cierra a mano.
     if (reabre.length && !acciones.some((a) => a.tipo === "reabrir")) {
-      aviso("no-aguanto", `${lista(reabre.map((h) => h.number))} prueba${reabre.length > 1 ? "n" : ""} que el arreglo no aguantó: se reabre`);
+      aviso("no-aguanto", `${escritas(reabre)} prueba${reabre.length > 1 ? "n" : ""} que el arreglo no aguantó: se reabre`);
       acciones.push({ tipo: "reabrir", porque: "no-aguanto" });
       // Se anotan como contados: sin esto, cada cierre a mano vuelve a reabrir (fondos sin ficha o con la ficha rota).
       for (const h of reabre.filter(esNoAguanto)) nuevosSubidos.add(h.number);

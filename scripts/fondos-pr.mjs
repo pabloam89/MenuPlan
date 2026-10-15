@@ -11,7 +11,8 @@
  *      o `sesión` (de ahí sale quién arregló qué, `npm run issues`).
  *   2. Si la rama es de un issue (`area/193-nombre`, numeroDeRama de lleva.mjs), el cuerpo lleva `Closes #193`.
  *   3. Cada `Closes #n` (o `Closes dueño/repo#n`, de un repo de ops/entidades.json, #856) es un issue de verdad,
- *      consultado EN SU REPO; si el token no llega a otro repo (403 o 404), queda un aviso, no un fallo. Y:
+ *      consultado EN SU REPO; si el CI no puede leer el de otro repo (404: no existe o el token no llega), FALLA:
+ *      solo se podrá cerrar cuando el CI tenga acceso a ese repo (un 403 es el error de la API de siempre). Y:
  *      - si es un ENCARGO colgado de un fondo, ese fondo tiene diagnóstico
  *        (mecanismo y causa_escape en su ficha): sin diagnóstico no hay encargos;
  *      - si es un FONDO, su ficha tiene aprendizaje: sin él no se cierra.
@@ -44,7 +45,7 @@ import { CAPAS_AGENTE, aprendizajeValido, fichaObligatoria, fondoDeRest, leerFic
 import { porGrupo } from "./lib/issues.mjs";
 import { numeroDeRama } from "./lib/lleva.mjs";
 import { leerRegistro, reposDeProyectos } from "./lib/normas.mjs";
-import { escribirReferencia, leerCierres, mismaReferencia, repoDeIssue, sinAccesoAOtroRepo } from "../.claude/hooks/referenciaIssue.mjs";
+import { escribirReferencia, leerCierres, mismaReferencia, SIN_ACCESO, repoDeIssue, sinAccesoAOtroRepo } from "../.claude/hooks/referenciaIssue.mjs";
 import { lineaDeNorma } from "./lib/medicionNormas.mjs";
 
 const BOTS = new Set(["dependabot[bot]", "github-actions[bot]"]);
@@ -66,7 +67,6 @@ export function agentesDelPr(cuerpo) {
 export function cierresDelPr(cuerpo, refs = referenciasLocales()) {
   return leerCierres(cuerpo, refs);
 }
-
 
 /** Los tipos de issue que pueden llevar una norma sin ejecutor: el trabajo que le dará uno o la decisión de dárselo. */
 export const TIPOS_QUE_LLEVAN = ["encargo", "decision"];
@@ -122,10 +122,10 @@ export async function comprobar({ cuerpo, autor = "", rama = "", consultar, cons
   const deLaRama = deRama === null ? null : { repo: refs.repoPropio, numero: deRama };
   if (deLaRama) mide("pr-closes-de-su-rama", cierres.some((c) => mismaReferencia(c, deLaRama)));
   if (deLaRama && !cierres.some((c) => mismaReferencia(c, deLaRama))) {
-    fallos.push(`la rama es del issue #${deRama}: pon «Closes #${deRama}» en el cuerpo del PR (una línea por issue) para que se cierre al fusionar y quede la traza`);
+    const r = escribirReferencia(deLaRama, refs.repoPropio);
+    fallos.push(`la rama es del issue ${r}: pon «Closes ${r}» en el cuerpo del PR (una línea por issue) para que se cierre al fusionar y quede la traza`);
   }
 
-  const avisosDeAcceso = [];
   for (const ref of cierres) {
     // Cómo se nombra en los mensajes: `#193` o `dueño/repo#193`, ya validado (nunca el texto del autor).
     const n = escribirReferencia(ref, refs.repoPropio);
@@ -136,18 +136,15 @@ export async function comprobar({ cuerpo, autor = "", rama = "", consultar, cons
       if (issue && tipoDe(issue) === "encargo") padre = await consultarPadre(ref.numero, ref.repo);
     } catch (e) {
       if (!(e instanceof ErrorDeApi)) throw e;
-      if (sinAccesoAOtroRepo(ref, refs, e)) {
-        avisosDeAcceso.push(`«Closes ${ref.repo}#${ref.numero}»: el token no llega a ese repo (${e.message}); no se ha podido comprobar`);
-        continue;
-      }
+      // Un 403 de otro repo (el límite de peticiones) va por aquí, como el del propio: solo el 404 es «sin acceso».
       const como = e.permisos
         ? `La API de GitHub rechaza el token del workflow (${e.message}) al leer ${n}: no es culpa del PR ni sirve relanzar. Revisa que tests.yml tenga «permissions: issues: read» y que el token no haya caducado.`
         : `No he podido consultar ${n} en la API de GitHub (${e.message}). No es culpa del PR: relanza el check.`;
       return { ok: false, api: true, motivo: como };
     }
-    if (!issue && sinAccesoAOtroRepo(ref, refs)) {
-      // Un 404 de otro repo puede ser que el token no lo ve (repo privado): se avisa, no se falla.
-      avisosDeAcceso.push(`«Closes ${ref.repo}#${ref.numero}»: no aparece con el token del workflow (no existe o el token no llega a ese repo); no se ha podido comprobar`);
+    if (sinAccesoAOtroRepo(ref, refs, issue)) {
+      // Un 404 de otro repo (no existe o el token no lo ve) FALLA: un Closes sin comprobar no prueba nada (#856).
+      fallos.push(`«Closes ${n}»: ${SIN_ACCESO}`);
       continue;
     }
     if (!issue) {
@@ -199,8 +196,8 @@ export async function comprobar({ cuerpo, autor = "", rama = "", consultar, cons
     return { ok: false, api: true, motivo: como };
   }
 
-  if (fallos.length) return { ok: false, motivo: `El PR no cumple: ${fallos.join("; ")}.`, avisos, accesos: avisosDeAcceso, medidas };
-  return { ok: true, avisos, accesos: avisosDeAcceso, medidas, motivo: `Agente: ${lineas.join(", ")}${cierres.length ? `; Closes ${cierres.map((c) => escribirReferencia(c, refs.repoPropio)).join(", ")}` : ""}.` };
+  if (fallos.length) return { ok: false, motivo: `El PR no cumple: ${fallos.join("; ")}.`, avisos, medidas };
+  return { ok: true, avisos, medidas, motivo: `Agente: ${lineas.join(", ")}${cierres.length ? `; Closes ${cierres.map((c) => escribirReferencia(c, refs.repoPropio)).join(", ")}` : ""}.` };
 }
 
 const esPrincipal = process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
@@ -231,8 +228,6 @@ if (esPrincipal) {
   });
   for (const m of r.medidas ?? []) console.log(lineaDeNorma(m.norma, m.resultado, { pr: PR_NUMBER }));
   for (const a of r.avisos ?? []) console.log(`::warning title=Norma sin ejecutor mal colgada::${a}. No es de este PR: lo arregla quien la toque o quien cierre ese issue.\nfondos-pr: regla=normas-sin-ejecutor resultado=warning detalle=${a.split(":")[0].replace("norma ", "")}`);
-  for (const a of r.accesos ?? []) console.log(`::warning title=Closes de otro repo sin comprobar::${a}.
-fondos-pr: regla=closes-otro-repo resultado=warning`);
   if (r.ok) {
     console.log(`Fondos: ok. ${r.motivo}`);
   } else {

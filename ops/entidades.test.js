@@ -827,6 +827,7 @@ describe("N0-principios.md habla de los niveles y de las capas con su palabra", 
 // La clase (#770): los ids de `projects[]` (ATRIBUTOS: nombre, repos, dominios) no son la lista de proyectos con normas, porque incluyen
 // `factoria`. Quien necesite los ids usa PROYECTOS o PROYECTOS_CON_NORMAS (scripts/lib/zonasProyecto.mjs); leer `projects` para ids
 // repite el filtro y aceptó `factoria` donde no debía (fuentes-documentales, principios-casa).
+// Su hermano: el barrido `repos` de scripts/referencias-issue.test.js vigila la lectura de `projects[].repos` (#856); este, la de los ids.
 describe("ids de proyecto: una sola lista", () => {
   const LECTORES_DE_ATRIBUTOS = ["scripts/lib/normas.mjs"];
   // Detecta la LECTURA de ids (`projects` ... `.map((p) => p.id)`, incluso con `?? []` en medio), no la forma exacta del código.

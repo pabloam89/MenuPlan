@@ -165,7 +165,7 @@ export function dominiosDeProyecto(raiz, id) {
 /**
  * Los repos de cada proyecto (`repos` de su entrada en ops/entidades.json) → `{ "dueño/repo": idDelProyecto }` (#856, #854).
  * El único lector de `projects[].repos`: de aquí salen los repos que admite una referencia `dueño/repo#n`
- * (scripts/lib/referenciaIssue.mjs). Que un repo no cuelgue de dos proyectos lo vigila ops/entidades.test.js.
+ * (.claude/hooks/referenciaIssue.mjs). Que un repo no cuelgue de dos proyectos lo vigila ops/entidades.test.js.
  */
 export function reposDeProyectos(raiz) {
   const sal = {};

@@ -34,7 +34,7 @@ describe("scripts/casos-pr.mjs: la línea «Casos:» en el CI (#185)", () => {
     expect(r.motivo).toMatch(/demasiado larga[\s\S]*lista de #n en una línea corta y los detalles en otra/);
   });
 
-  // #856: un caso de otro repo de ops/entidades.json se consulta EN SU REPO; si el token no llega, aviso y no fallo.
+  // #856: un caso de otro repo de ops/entidades.json se consulta EN SU REPO; si el CI no lo puede leer, falla.
   describe("casos de otro repo (#856)", () => {
     const REFS = { repoPropio: "pabloam89/MenuPlan", repos: { "pabloam89/MenuPlan": "homenu", "pabloam89/homenu-panel": "panel" } };
     it("cada referencia se pide en su repo, y #4 del panel no es el #4 propio", async () => {
@@ -51,18 +51,29 @@ describe("scripts/casos-pr.mjs: la línea «Casos:» en el CI (#185)", () => {
       expect(mal.motivo).toMatch(/#4 no es tipo:caso/);
       expect(mal.motivo).not.toMatch(/homenu-panel#4 no es/);
     });
-    it("si el token no llega al otro repo (403 o 404), avisa y no falla; con el propio, falla como siempre", async () => {
-      const sinAcceso = async (n, repo) => {
+    // El hueco que vio `seguridad`: con un aviso, `Casos: pabloam89/homenu-panel#999999` dejaba el check en verde.
+    it("un 404 del otro repo (no existe o el token no llega) FALLA y dice que solo se podrá citar con acceso", async () => {
+      const respuesta = (status) => ({ status, ok: status < 300, json: async () => CASO });
+      const fetchFn = async (url) => respuesta(url.includes("/homenu-panel/") ? 404 : 200);
+      const consultar = consultaReal({ token: "t", repo: "pabloam89/MenuPlan", fetchFn, espera: async () => {} });
+      const r = await comprobar({ cuerpo: "Casos: #5, pabloam89/homenu-panel#1", consultar, refs: REFS });
+      expect(r.ok).toBe(false);
+      expect(r.api).toBeUndefined();
+      expect(r.motivo).toMatch(/pabloam89\/homenu-panel#1: el CI no lo ha podido leer \(la API da 404[\s\S]*solo se podrá citar cuando el CI tenga acceso a ese repo/);
+      // El #n propio que no existe sigue diciendo lo de siempre.
+      const propio = await comprobar({ cuerpo: "Casos: #4", consultar: async () => null, refs: REFS });
+      expect(propio.ok).toBe(false);
+      expect(propio.motivo).toMatch(/#4 no existe/);
+    });
+    it("un 403 del otro repo (el límite de peticiones) no es «sin acceso»: es el error de la API, que se relanza", async () => {
+      const limite = async (n, repo) => {
         if (repo === "pabloam89/homenu-panel") throw new ErrorDeApi(`GET /issues/${n}: HTTP 403`);
         return CASO;
       };
-      const r = await comprobar({ cuerpo: "Casos: #5, pabloam89/homenu-panel#4", consultar: sinAcceso, refs: REFS });
-      expect(r.ok).toBe(true);
-      expect(r.avisos).toEqual([expect.stringMatching(/^pabloam89\/homenu-panel#4: el token no llega a ese repo/)]);
-      const noLoVe = await comprobar({ cuerpo: "Casos: pabloam89/homenu-panel#4", consultar: async () => null, refs: REFS });
-      expect(noLoVe.ok).toBe(true);
-      expect(noLoVe.avisos).toHaveLength(1);
-      expect((await comprobar({ cuerpo: "Casos: #4", consultar: async () => null, refs: REFS })).ok).toBe(false);
+      const r = await comprobar({ cuerpo: "Casos: #5, pabloam89/homenu-panel#4", consultar: limite, refs: REFS });
+      expect(r.ok).toBe(false);
+      expect(r.api).toBe(true);
+      expect(r.motivo).toMatch(/No he podido consultar pabloam89\/homenu-panel#4 en la API de GitHub \(GET \/issues\/4: HTTP 403\)[\s\S]*relanza el check/);
     });
     it("un repo que no está en ops/entidades.json (o con otras mayúsculas) falla sin llamar a la API", async () => {
       const nunca = async () => { throw new Error("no debería llamarse"); };

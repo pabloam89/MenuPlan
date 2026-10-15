@@ -23,12 +23,13 @@ import { BOTS, REGLAS, avisosDelPr, excepcionesDelPr, hoyUtc, leerDiff, lineaCon
 import { cierresDelPr, tipoDe } from "./fondos-pr.mjs";
 import { referenciasLocales } from "./lib/fondos.mjs";
 import { leerRegistro, reposDeProyectos } from "./lib/normas.mjs";
-import { escribirReferencia, sinAccesoAOtroRepo } from "../.claude/hooks/referenciaIssue.mjs";
+import { escribirReferencia } from "../.claude/hooks/referenciaIssue.mjs";
 
 /**
  * Los `Closes` del cuerpo que son tipo:fondo → { fondosCerrados: ["#n" | "dueño/repo#n"] } o { sinComprobar }.
- * Cada referencia se consulta en su repo (`consultar(n, repo)`); la de otro repo al que el token no llega (403 o 404)
- * se salta: esto solo avisa. `refs`: { repoPropio, repos }.
+ * Cada referencia se consulta en su repo (`consultar(n, repo)`); la que da 404 (null) no es un fondo y se salta: esto
+ * solo avisa, y el que falla por ella es fondos-pr.mjs (`sinAccesoAOtroRepo`). Un 403 de cualquier repo deja el aviso
+ * «sin comprobar», como un 5xx. `refs`: { repoPropio, repos }.
  */
 export async function fondosCerrados({ cuerpo, token, repo, consultar, refs = repo ? { ...referenciasLocales(), repoPropio: repo } : referenciasLocales() }) {
   const cierres = cierresDelPr(cuerpo, refs).filter((c) => !c.error);
@@ -38,13 +39,7 @@ export async function fondosCerrados({ cuerpo, token, repo, consultar, refs = re
   const fondos = [];
   try {
     for (const ref of cierres.slice(0, 10)) {
-      let issue;
-      try {
-        issue = await pide(ref.numero, ref.repo);
-      } catch (e) {
-        if (e instanceof ErrorDeApi && sinAccesoAOtroRepo(ref, refs, e)) continue;
-        throw e;
-      }
+      const issue = await pide(ref.numero, ref.repo);
       if (issue && !issue.pull_request && tipoDe(issue) === "fondo") fondos.push(escribirReferencia(ref, refs.repoPropio));
     }
   } catch (e) {
