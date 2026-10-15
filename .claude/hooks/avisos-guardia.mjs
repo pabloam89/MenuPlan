@@ -84,6 +84,18 @@ export const AVISOS = {
     porque: "desde que se abrió, staging ha cambiado sus mismos ficheros ({lista}) y el CI no los ha probado juntos",
     enSuLugar: "ponlo al día (`gh pr update-branch{pr}` o merge de origin/staging y push), espera el CI en verde y fusiona",
   },
+  "workflow-sin-seguridad": {
+    codigo: "workflow-con-juez-seguridad",
+    que: "Fusionar el PR {pr}, que cambia {lista}, sin `seguridad` en su línea «Jueces:»",
+    porque: "desde el 15 oct 2026 la App de las sesiones puede empujar workflows (#422, caso #821) y un workflow fusionado corre con los secretos de sus environments sin que lo mire una persona",
+    enSuLugar: "pásalo por el juez `seguridad`, añade `seguridad` a «Jueces:» en el cuerpo del PR (`gh pr edit {pr} --body-file <f>`) y fusiona",
+  },
+  "pr-workflows-sin-comprobar": {
+    codigo: "workflow-con-juez-seguridad",
+    que: "Fusionar este PR sin saber si cambia un workflow",
+    porque: "no he podido leer de GitHub sus ficheros ni su cuerpo, y un PR que cambia `.github/workflows/` necesita a `seguridad` en «Jueces:»",
+    enSuLugar: "míralo antes de fusionar (`gh pr view <n> --json files,body`)",
+  },
   "pr-choques-sin-comprobar": {
     codigo: "pr-al-dia-y-closes",
     que: "Fusionar este PR sin saber si staging ha tocado lo mismo",

@@ -151,6 +151,7 @@ export const INTERVENCION_POR_AVISO = {
   "rama-sin-comprobar": { motivo: "permiso", evitable: "si" },
   "fusion-base-ilegible": { motivo: "permiso", evitable: "si" },
   "pr-choques-sin-comprobar": { motivo: "permiso", evitable: "si" },
+  "pr-workflows-sin-comprobar": { motivo: "permiso", evitable: "si" },
   "entrada-ilegible": { motivo: "permiso", evitable: "si" },
 };
 

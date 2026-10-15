@@ -104,7 +104,7 @@ const problemas = (texto) => {
 
 describe("los workflows se pueden leer como YAML", () => {
   // Rutas desde la raíz: los de .github/workflows/ y los que esperan en ops/workflows-pendientes/
-  // a que Pablo los mueva (la App de las sesiones no puede empujar workflows, #844).
+  // a que Pablo los mueva (la vía de respaldo si la App de las sesiones no puede empujar workflows, #844, #821).
   const yamls = (dir) => (existsSync(dir) ? readdirSync(dir).filter((f) => /\.ya?ml$/.test(f)).map((f) => relative(RAIZ, join(dir, f)).replace(/\\/g, "/")) : []);
   const ficheros = [...yamls(DIR), ...yamls(PENDIENTES)];
   it("hay workflows que mirar", () => expect(ficheros.length).toBeGreaterThan(5));

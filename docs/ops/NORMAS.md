@@ -91,6 +91,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `token-de-sesion-no-se-imprime` | sesion | NO DEBE | **Token de sesión sin imprimir.** Cada sesión de Claude NO DEBE imprimir el token de la sesión. | guardia · semidura | test: `.claude/hooks/guardia.test.js` | `token-impreso` | `own-identity` | infra | horizontal | operar |
 | `issues-no-se-borran` | issue | NO DEBE | **Issues sin borrado.** Cada issue NO DEBE borrarse ni trasladarse, ni borrar sus etiquetas. | guardia · semidura | test: `.claude/hooks/guardia.test.js` | `borrar-issue` | `untamperable-trail` | process | horizontal | documentar |
 | `foto-de-issues-solo-workflow` | sesion | NO DEBE | **Foto de issues solo automática.** Cada sesión de Claude NO DEBE subir, editar ni borrar la foto de los issues (release foto-issues o su tag): solo la escribe su workflow. | guardia · semidura | test: `.claude/hooks/guardia.test.js` | `foto-de-issues` | `untamperable-trail` | process | horizontal | operar |
+| `workflow-con-juez-seguridad` | sesion | NO DEBE | **Workflow juzgado por seguridad.** Cada sesión de Claude NO DEBE fusionar un PR que cambia .github/workflows/ sin nombrar a seguridad en su línea Jueces. | guardia · semidura | test: `.claude/hooks/guardia.test.js` | `workflow-sin-seguridad`, `pr-workflows-sin-comprobar` | `builder-does-not-judge` | process | horizontal | operar |
 | `migracion-numero-libre` | migracion | NO DEBE | **Número de migración libre.** Cuando se crea, cada migración NO DEBE usar un número que staging ya usa. | guardia · semidura | test: `.claude/hooks/guardia.test.js` | `migracion-numero-ocupado` | `stable-unique-id` | data | horizontal | construir |
 | `build-valida-catalogo` | catalogo | DEBE | **Build valida el catálogo.** Cuando se hace el build, el catálogo de recetas y alimentos DEBE validarse con scripts/validate-catalog.mjs, el filtro que usa Vercel. | ci · semidura | script: `scripts/validate-catalog.mjs` | — | `test-is-the-contract` | catalog | horizontal | construir |
 | `sin-codigo-dinamico` | codigo | NO DEBE | **Sin código montado al vuelo.** El código del producto NO DEBE montar nombres en tiempo de ejecución ni usar eval, new Function o un import() con variable. | nada · blanda | juicio | — | `explicit-over-clever` | code | horizontal | construir, juzgar |
@@ -238,7 +239,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | staging | la rama staging | 1 |
 | pr | cada PR | 7 |
 | migracion | cada migración | 6 |
-| sesion | cada sesión de Claude | 19 |
+| sesion | cada sesión de Claude | 20 |
 | repo | el repositorio | 6 |
 | fondo | cada problema de fondo | 8 |
 | codigo | el código del producto | 7 |
@@ -290,7 +291,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | api | Las funciones de api/ y lo que protegen | 9 |
 | diseno | El diseño de la app: el sistema (tokens, primitivos, accesibilidad, estados) y los patrones y flujos (UX), con sus pantallas | 24 |
 | product | Qué hace bien HoMenu y Lola para las familias | 9 |
-| process | Cómo se trabaja: issues, fondos, PR, sesiones, agentes, jueces y cifras | 37 |
+| process | Cómo se trabaja: issues, fondos, PR, sesiones, agentes, jueces y cifras | 38 |
 | writing | Cómo se escribe una regla o un principio de la casa | 16 |
 | entities | Cómo se nombra, se identifica y se registra cada cosa del proyecto | 0 |
 
@@ -298,14 +299,14 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 
 | Lado | Qué es | Normas |
 |---|---|---|
-| horizontal | Trata de cómo trabaja la factoría o de cualquier proyecto: método, infraestructura, seguridad, código, diseño | 168 |
+| horizontal | Trata de cómo trabaja la factoría o de cualquier proyecto: método, infraestructura, seguridad, código, diseño | 169 |
 | vertical | Trata de la conducta del producto HoMenu o de Lola, no del trabajo de un agente | 40 |
 
 ## Cómo se comprueban
 
 | Tipo de control | Qué es | Normas |
 |---|---|---|
-| test | Un test del repo que falla en el CI | 103 |
+| test | Un test del repo que falla en el CI | 104 |
 | planos | Una condición de la medición semanal de ops/planos.json (con red, cada lunes) | 7 |
 | workflow | Un paso de un workflow de GitHub Actions que falla el check | 2 |
 | script | Un script del repo que comprueba y se lanza a mano o en el build | 8 |
@@ -317,35 +318,35 @@ Cada norma dice en cinco ejes cerrados cómo se controla (`control_procesador`, 
 
 | Procesador \ Fuerza | bloquea | avisa |
 |---|---|---|
-| codigo | 100 | 20 |
+| codigo | 101 | 20 |
 | juez | 0 | 88 |
 
 | control_procesador | Qué es | Normas |
 |---|---|---|
-| codigo | Un programa decide si se cumple: un test, un script, un workflow o el código en ejecución | 120 |
+| codigo | Un programa decide si se cumple: un test, un script, un workflow o el código en ejecución | 121 |
 | juez | Un agente juez lo decide leyendo el trabajo, con su motivo y pudiendo decir «no sé»; solo cuenta con su test del juez | 88 |
 
 | control_fuerza | Qué es | Normas |
 |---|---|---|
-| bloquea | Si no se cumple, lo detiene: el cambio o la acción no pasa | 100 |
+| bloquea | Si no se cumple, lo detiene: el cambio o la acción no pasa | 101 |
 | avisa | Si no se cumple, lo dice y deja pasar | 108 |
 
 | control_momento | Qué es | Normas |
 |---|---|---|
 | editar | Al editar un fichero o lanzar un comando (la guardia) | 31 |
-| pr | Al abrir o fusionar un PR (el CI o el juez de ese PR) | 173 |
+| pr | Al abrir o fusionar un PR (el CI o el juez de ese PR) | 174 |
 | periodico | En un pase programado o a mano, fuera de un PR | 4 |
 
 | control_que_mira | Qué es | Normas |
 |---|---|---|
 | forma | Cómo está escrito: estructura, vocabulario y formato | 54 |
-| contenido | Lo que dice, a juicio de quien lo lee | 88 |
+| contenido | Lo que dice, a juicio de quien lo lee | 89 |
 | comportamiento | Lo que hace el sistema al ejecutarse o al aplicarse | 66 |
 
 | control_cobertura | Qué es | Normas |
 |---|---|---|
 | total | Alcanza a cualquiera y a toda la norma | 70 |
-| parcial | Deja fuera a alguien o a una parte de la norma | 138 |
+| parcial | Deja fuera a alguien o a una parte de la norma | 139 |
 
 Normas de juez sin test del juez: 82 de 88. Normas con ejecutor «persona» (sin quitar todavía): 70.
 
@@ -361,6 +362,8 @@ Normas de juez sin test del juez: 82 de 88. Normas con ejecutor «persona» (sin
 | `rama-atrasada` | `pr-al-dia-y-closes` | Abrir el PR con la rama atrasada |
 | `rama-sin-comprobar` | `pr-al-dia-y-closes` | Abrir el PR sin saber si la rama tiene lo último de staging |
 | `pr-pisado-por-staging` | `pr-al-dia-y-closes` | Fusionar este PR sin ponerlo al día |
+| `workflow-sin-seguridad` | `workflow-con-juez-seguridad` | Fusionar el PR {pr}, que cambia {lista}, sin `seguridad` en su línea «Jueces:» |
+| `pr-workflows-sin-comprobar` | `workflow-con-juez-seguridad` | Fusionar este PR sin saber si cambia un workflow |
 | `pr-choques-sin-comprobar` | `pr-al-dia-y-closes` | Fusionar este PR sin saber si staging ha tocado lo mismo |
 | `fusion-con-repo-ajeno` | `main-solo-pablo` | Fusionar con `gh -R … pr merge` |
 | `fusion-sin-numero` | `guardia-vigila-cada-orden` | Fusionar sin el número del PR justo detrás de `merge` |
@@ -406,4 +409,4 @@ Normas de juez sin test del juez: 82 de 88. Normas con ejecutor «persona» (sin
 
 **Cada control que salta deja su línea** `norma: <id> resultado: ok|warning|fail|exempt|declared|unchecked pr: <n> detalle: …` (una sola sintaxis: los avisos del CI y «Fondos del PR» en el log del run; la guardia, en el registro local de eventos, con la `norma` que hace cumplir lo que bloquea). `declared` es una excepción válida de una norma que ningún control del CI consulta: queda anotada, pero no cuenta como incumplimiento medido. La unidad es el run de un PR; el lector cuenta una vez por PR, norma y resultado. `npm run normas -- --medir` las cuenta por norma y dice cuáles nunca saltan, cuáles no han dejado dato y cuáles se exceptúan siempre (desde 3 veces, sin un solo salto). Registrada en `ops/metricas.json`.
 
-Total: 208 normas (rota 2, semidura 73, dura 26, blanda 107) y 44 avisos de la guardia.
+Total: 209 normas (rota 2, semidura 74, dura 26, blanda 107) y 46 avisos de la guardia.
