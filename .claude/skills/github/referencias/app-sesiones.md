@@ -29,15 +29,19 @@ Los comandos de este runbook son de **Git Bash** (en PowerShell 5.1,
   cualquiera, los tags y los forks, pero no este. Si un secreto se filtra, se rota
   (skill `alta-de-secreto`). Se descartaron que Pablo siga empujando los workflows y
   pedir su aprobación en las PR de rutas sensibles.
-- **El canje** (`scripts/token-sesiones.mjs`, `canjearToken`) pide `workflows: write`.
-  Mientras la App o su instalación no lo tengan, GitHub contesta **422** «The permissions
-  requested are not granted to this installation» (visto en vivo el 15 oct 2026) y el
-  canje pide otra vez sin él: el token sale igual. Si la instalación ya dice que no lo
-  tiene, el arranque pide sin él a la primera. Lo cuenta la pieza `workflows:`
+- **El canje** (`scripts/token-sesiones.mjs`, `canjearToken`) pide `workflows: write`,
+  y la App lo tiene activo desde el 15 oct 2026 (#821, visto en `GET /app/installations`
+  y con `token-sesion.mjs --sin-cache --comprobar`, que acaba en `workflows: concedido`).
+  **El respaldo, si se le quita:** GitHub contesta **422** «The permissions requested are
+  not granted to this installation» (visto en vivo el 15 oct 2026, antes de activarlo) y
+  el canje pide otra vez sin él: el token sale igual, y los cambios de workflows vuelven a
+  `ops/workflows-pendientes/`. Si la instalación ya dice que no lo tiene, el arranque pide
+  sin él a la primera. Lo cuenta la pieza `workflows:`
   (`concedido`, `sin-conceder`, o `sin-saber` si el token salió de la caché) en
   `token-sesion.mjs --comprobar`, en la línea `token-sesion workflows: …` del arranque
   y en la de `token-sesiones.mjs` (`token-sesiones resultado: ok expira: … workflows: …`).
-- **Lo que Pablo hace en la web** (lo hace él: es un ajuste de GitHub): Settings →
+- **Lo que Pablo hizo en la web** el 15 oct 2026 (es un ajuste de GitHub y lo hace él;
+  se repite igual si alguna vez hay que devolverlo): Settings →
   Developer settings → GitHub Apps → `homenu-sesiones` → **Permissions & events** →
   Repository permissions → **Workflows: Read and write** → **Save changes**. Después,
   la instalación pide aceptar el cambio: Settings → **Applications** (o la página de
@@ -218,7 +222,7 @@ guardia futura: el token solo debe capturarse con `$(…)`, y no imprimirse.
 - Que los permisos del cuerpo de la petición (`permissions`) los acepte GitHub tal
   cual con estos seis: visto el 10 oct 2026 con la App real (`token-sesion.mjs --comprobar`, #329).
   Con `workflows` y la App sin él: 422 y plan B sin él, visto el 15 oct 2026. Con la App
-  ya con Workflows: sin comprobar hasta que Pablo lo active.
+  ya con Workflows: `workflows: concedido`, visto el 15 oct 2026 (#821).
 
 ## Cómo trabaja una sesión con la App (#329)
 
