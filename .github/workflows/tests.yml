@@ -161,6 +161,30 @@ jobs:
           PR_AUTOR: ${{ github.event.pull_request.user.login }}
           GITHUB_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+      # Lo dimensionado, exigido (#642, fondo #639; decisión #387 del 14 oct 2026: quien construye no juzga). Todo PR
+      # lleva «Tipo:» (un tipo o subtipo de ops/tipos-de-encargo.json) y «Jueces:» con los jueces que exige el
+      # dimensionado de SU diff (scripts/lib/dimensionado.mjs), ninguno el de «Agente:», y un «Agente:» que encaja con
+      # el tipo. Solo mira el cuerpo y el diff de este PR: falla solo al responsable. Transición: un PR CREADO antes
+      # de FALLA_DESDE (scripts/lib/dimensionadoPr.mjs) solo avisa, hasta FIN_TRANSICION, para no poner en rojo los que
+      # ya estaban abiertos. Excepción con la forma única. Una línea `norma: <id> resultado: …` por norma. Sin red ni
+      # npm ci; si el script se rompe por dentro, avisa y no falla (no pondría en rojo los PR de los demás). Las banderas
+      # de rutas (qué ficheros piden a seguridad o al evaluador) y qué normas admiten excepción se leen de la BASE del PR
+      # (HEAD^1, por el fetch-depth 2), no de los JSON del propio PR; si no se pueden leer, falla cerrado (se pide además a
+      # seguridad; ninguna norma del paso se exime). Es un control contra errores y olvidos: el blindaje frente a un PR que
+      # cambie el propio control queda para un workflow con el código de la base (pendiente), porque este paso corre el del PR.
+      - name: Dimensionado del PR
+        if: github.event_name == 'pull_request'
+        run: |
+          [ -s "$RUNNER_TEMP/diff-del-pr.txt" ] || git -c core.quotePath=false diff -U0 HEAD^1 HEAD > "$RUNNER_TEMP/diff-del-pr.txt" || rm -f "$RUNNER_TEMP/diff-del-pr.txt"
+          git show HEAD^1:ops/tipos-de-encargo.json > "$RUNNER_TEMP/tipos-de-la-base.json" || rm -f "$RUNNER_TEMP/tipos-de-la-base.json"
+          git show HEAD^1:ops/normas.json > "$RUNNER_TEMP/normas-de-la-base.json" || rm -f "$RUNNER_TEMP/normas-de-la-base.json"
+          TIPOS_BASE="$RUNNER_TEMP/tipos-de-la-base.json" NORMAS_BASE="$RUNNER_TEMP/normas-de-la-base.json" node scripts/dimensionado-pr.mjs "$RUNNER_TEMP/diff-del-pr.txt"
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_AUTOR: ${{ github.event.pull_request.user.login }}
+          PR_BASE: ${{ github.event.pull_request.base.ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_CREADO: ${{ github.event.pull_request.created_at }}
       - run: npm ci
       # Falla solo con errores de lint NUEVOS respecto a lint-base.json (ver
       # scripts/lint-base.mjs); los viejos se arreglan cuando se toca el fichero.
