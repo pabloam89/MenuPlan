@@ -29,6 +29,7 @@ import { esSesionDeNube, nubePosible } from "./nube.mjs";
 import { anotarSkill, dirSesiones, skillAnotada, tocar } from "./sesiones.mjs";
 import { esSuiteEntera } from "./suite.mjs";
 import { anotarVista, consultarZona, listaDeRamas } from "./zonas.mjs";
+import { REPO_LOCAL, leerCierres, mismaReferencia, numeroDeRama } from "./referenciaIssue.mjs";
 
 // Cada «no» y cada pregunta es un aviso de avisos-guardia.mjs: id del aviso + datos de la acción.
 // El mensaje sale de sus cuatro partes fijas y el `codigo` es el de su norma en ops/normas.json (#494).
@@ -614,13 +615,19 @@ export function decidir(entrada, ctx) {
         // quién lo arregló (8 oct 2026: ninguna rama vieja tenía issue).
         // `--head ops/x`, `--head "ops/x"` o `--head dueño:ops/x`.
         const rama = o.match(/(?:-H|--head)(?:\s+|=)["']?(?:[\w-]+:)?([^\s"']+)/)?.[1] ?? ctx.ramaDe(dir);
-        const issue = rama?.match(/^[a-z]+\/(\d+)-/)?.[1];
-        if (issue) {
+        // La regla única de rama → número (#376, #856): `datos/0087-indices` y `fix/2026-10-recetas` no son de un issue.
+        const issue = numeroDeRama(rama);
+        // Las referencias: el repo propio es el de esta copia. La guardia no lee ops/entidades.json (su grafo no sale
+        // de .claude/hooks): de un `dueño/repo#n` mira solo la forma, y el CI, que el repo sea de los de allí.
+        const refs = ctx.referencias ?? { repoPropio: REPO_LOCAL, soloForma: true };
+        if (issue !== null) {
           // `--body-file f`, `--body-file=f` o `-F f`, con rutas de Git Bash (`/c/…`, `/tmp/…`).
           const fichero = o.match(/(?:-F|--body-file)(?:\s+|=)(?:"([^"]+)"|'([^']+)'|(\S+))/);
           const cuerpo = fichero ? ctx.leer(windows(fichero[1] ?? fichero[2] ?? fichero[3]), dir) ?? "" : "";
           const texto = `${cmd}\n${cuerpo}`;
-          if (!new RegExp(String.raw`\b(close[sd]?|fix(e[sd])?|resolve[sd]?):?\s+#${issue}\b`, "i").test(texto)) {
+          // La forma única de `Closes` (leerCierres, la misma que el CI): `Closes #193` o `Closes <repo propio>#193`.
+          // Un `Closes` a otro repo no es el de la rama, y el número en otra línea que la palabra no cuenta.
+          if (!leerCierres(texto, refs).some((c) => mismaReferencia(c, { repo: refs.repoPropio, numero: issue }))) {
             return deny("pr-sin-closes", { issue });
           }
         }
@@ -629,7 +636,7 @@ export function decidir(entrada, ctx) {
         // (scripts/casos-pr.mjs) comprueba además que los #n son casos de verdad.
         const ficheroCasos = o.match(/(?:-F|--body-file)(?:\s+|=)(?:"([^"]+)"|'([^']+)'|(\S+))/);
         const cuerpoCasos = ficheroCasos ? ctx.leer(windows(ficheroCasos[1] ?? ficheroCasos[2] ?? ficheroCasos[3]), dir) ?? "" : "";
-        const casos = analizarCasos(`${cmd}\n${cuerpoCasos}`, { enComando: true });
+        const casos = analizarCasos(`${cmd}\n${cuerpoCasos}`, { enComando: true, ...refs });
         if (!casos.valida) return deny("pr-sin-casos", { motivo: casos.motivo, ayuda: AYUDA_CASOS });
         const atraso = ctx.atrasoLocal(dir);
         if (atraso === null) return ask("rama-sin-comprobar");

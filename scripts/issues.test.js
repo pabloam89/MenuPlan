@@ -311,7 +311,7 @@ describe("medida de la línea «Casos:» en los PR fusionados (#185)", () => {
         pr(null),
         pr("", "dependabot[bot]"),
       ],
-      analizarCasos,
+      (cuerpo) => analizarCasos(cuerpo, { repoPropio: "pabloam89/MenuPlan" }),
     );
     expect(m).toEqual({ total: 5, conCasos: 2, ninguno: 1, sinLinea: 2, casosCitados: 3 });
   });

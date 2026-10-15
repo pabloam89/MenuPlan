@@ -65,7 +65,9 @@ acaban sus encargos y el test de la clase está en verde.
 **La ficha del fondo** (#337; `scripts/lib/fondos.mjs`, workflow `fondos.yml`):
 el cuerpo de cada fondo lleva un bloque de código `fondo`, de líneas
 `clave: valor` (el formulario `2-fondo.yml` lo trae; lo vacío es «sin rellenar»;
-listas con coma e issues como `#n`). Se lee a mano, con límites (30 líneas, 400
+listas con coma e issues como `#n`, o `dueño/repo#n` si el issue vive en otro repo de
+`ops/entidades.json`, escrito exacto: un solo lector, `.claude/hooks/referenciaIssue.mjs`,
+#856; lo mismo en `Closes` y `Casos:`). Se lee a mano, con límites (30 líneas, 400
 caracteres por texto, 30 elementos por lista): el cuerpo de un issue lo escribe
 cualquiera. <!-- norma:fondo-con-ficha-y-controles -->
 
@@ -77,7 +79,7 @@ cualquiera. <!-- norma:fondo-con-ficha-y-controles -->
 | `severidad` | `alto`, `medio`, `bajo` (el riesgo de las normas) |
 | `capa_agente` | un agente de `.claude/agents/` o `sesión` |
 | `barrera` | un escalón de la escalera (`bloqueo`, `test_ci`, `script`, `skill`, `texto`) |
-| `casos`, `encargos` | `#n, #m` o `ninguno` |
+| `casos`, `encargos` | `#n, #m` (o `dueño/repo#n`) o `ninguno` |
 | `verificacion` | ruta de un FICHERO de `origin/staging` que vale para su barrera: un `*.test.js` para `test_ci`, un hook, workflow o migración para `bloqueo`, un script, una skill o un texto; una carpeta no vale |
 | `ventana_desde`, `ventana_hasta` | fechas AAAA-MM-DD de inicio y fin de la observación (90 días como mucho); los casos creados desde `ventana_desde` (a las 00:00 UTC de ese día) cuentan como nuevos, estén o no en `casos`: si el caso de origen es del mismo día de la fusión, pon el día siguiente |
 | `mecanismo`, `causa_escape`, `matiz`, `aprendizaje` | texto libre corto |

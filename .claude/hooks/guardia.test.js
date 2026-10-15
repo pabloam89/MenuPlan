@@ -533,6 +533,15 @@ describe("PR de una rama con issue: lleva su Closes (#206)", () => {
   it("--head manda sobre la rama de la carpeta", () =>
     expect(bash('gh pr create --head ops/7-x --body "Closes #193"', conIssue())).toBe("deny"));
   it("rama sin issue: no se pide", () => expect(bash(`gh pr create --body "x. ${CASOS}"`)).toBe(null));
+  // #856: la forma única de Closes (la del CI) y la regla única de rama → número (#376).
+  it("Closes con el repo propio escrito entero vale; a otro repo, no es el de la rama", () => {
+    expect(bash("gh pr create --body-file pr.md", conIssue({ leer: () => `Closes pabloam89/MenuPlan#193\n${CASOS}` }))).toBe(null);
+    expect(bash("gh pr create --body-file pr.md", conIssue({ leer: () => `Closes pabloam89/homenu-panel#193\n${CASOS}` }))).toBe("deny");
+  });
+  it("Closes con el número en otra línea no cuenta, como en el CI", () =>
+    expect(bash("gh pr create --body-file pr.md", conIssue({ leer: () => `Closes\n#193\n${CASOS}` }))).toBe("deny"));
+  it.each(["datos/0087-indices", "fix/2026-10-recetas"])("%s no es la rama de un issue: no pide Closes", (rama) =>
+    expect(bash(`gh pr create --body "x. ${CASOS}"`, ctx({ ramaDe: () => rama }))).toBe(null));
 });
 
 describe("gh pr create lleva la línea «Casos:» (#185)", () => {

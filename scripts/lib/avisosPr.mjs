@@ -199,13 +199,13 @@ const RE_LECCION_RUTA = [RE_TEST, /^\.claude\/hooks\//, /^\.claude\/skills\//, /
 export const dejaLeccion = (ruta) => RE_LECCION_RUTA.some((re) => re.test(ruta));
 
 /**
- * C12: un fondo cerrado sin aprendizaje. `fondosCerrados`: los `Closes #n` que son tipo:fondo
- * (lo calcula el script con la API); `null` si no se pudo mirar.
+ * C12: un fondo cerrado sin aprendizaje. `fondosCerrados`: los `Closes` que son tipo:fondo, ya escritos como
+ * referencia (`#n` o `dueño/repo#n`, #856; lo calcula el script con la API); `null` si no se pudo mirar.
  */
 export function evaluarC12({ ficheros, cuerpo = "", fondosCerrados, sinComprobar = null, hoy = hoyUtc() }) {
   if (sinComprobar) return r("c12", "unchecked", `reason=${sinComprobar}`);
   if (!fondosCerrados?.length) return r("c12", "ok", "closed_funds=0");
-  const lista = fondosCerrados.map((n) => `#${n}`).join(",");
+  const lista = fondosCerrados.join(",");
   const tocados = ficheros.filter((f) => dejaLeccion(f.ruta)).length;
   if (tocados > 0) return r("c12", "ok", `closed_funds=${lista} lesson_files=${tocados}`);
   const donde = excepcionAprendizaje(cuerpo, hoy);

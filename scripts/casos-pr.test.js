@@ -34,6 +34,46 @@ describe("scripts/casos-pr.mjs: la línea «Casos:» en el CI (#185)", () => {
     expect(r.motivo).toMatch(/demasiado larga[\s\S]*lista de #n en una línea corta y los detalles en otra/);
   });
 
+  // #856: un caso de otro repo de ops/entidades.json se consulta EN SU REPO; si el token no llega, aviso y no fallo.
+  describe("casos de otro repo (#856)", () => {
+    const REFS = { repoPropio: "pabloam89/MenuPlan", repos: { "pabloam89/MenuPlan": "homenu", "pabloam89/homenu-panel": "panel" } };
+    it("cada referencia se pide en su repo, y #4 del panel no es el #4 propio", async () => {
+      const pedidas = [];
+      const consultar = async (n, repo) => {
+        pedidas.push(`${repo}#${n}`);
+        return repo === "pabloam89/homenu-panel" ? CASO : issue(["tipo:encargo"]);
+      };
+      const r = await comprobar({ cuerpo: "Casos: pabloam89/homenu-panel#4", consultar, refs: REFS });
+      expect(r.ok).toBe(true);
+      expect(pedidas).toEqual(["pabloam89/homenu-panel#4"]);
+      const mal = await comprobar({ cuerpo: "Casos: #4, pabloam89/homenu-panel#4", consultar, refs: REFS });
+      expect(mal.ok).toBe(false);
+      expect(mal.motivo).toMatch(/#4 no es tipo:caso/);
+      expect(mal.motivo).not.toMatch(/homenu-panel#4 no es/);
+    });
+    it("si el token no llega al otro repo (403 o 404), avisa y no falla; con el propio, falla como siempre", async () => {
+      const sinAcceso = async (n, repo) => {
+        if (repo === "pabloam89/homenu-panel") throw new ErrorDeApi(`GET /issues/${n}: HTTP 403`);
+        return CASO;
+      };
+      const r = await comprobar({ cuerpo: "Casos: #5, pabloam89/homenu-panel#4", consultar: sinAcceso, refs: REFS });
+      expect(r.ok).toBe(true);
+      expect(r.avisos).toEqual([expect.stringMatching(/^pabloam89\/homenu-panel#4: el token no llega a ese repo/)]);
+      const noLoVe = await comprobar({ cuerpo: "Casos: pabloam89/homenu-panel#4", consultar: async () => null, refs: REFS });
+      expect(noLoVe.ok).toBe(true);
+      expect(noLoVe.avisos).toHaveLength(1);
+      expect((await comprobar({ cuerpo: "Casos: #4", consultar: async () => null, refs: REFS })).ok).toBe(false);
+    });
+    it("un repo que no está en ops/entidades.json (o con otras mayúsculas) falla sin llamar a la API", async () => {
+      const nunca = async () => { throw new Error("no debería llamarse"); };
+      for (const ref of ["otro/inventado#3", "PabloAM89/Homenu-Panel#4"]) {
+        const r = await comprobar({ cuerpo: `Casos: ${ref}`, consultar: nunca, refs: REFS });
+        expect(r.ok, ref).toBe(false);
+        expect(r.motivo).toMatch(/no es un repo de ops\/entidades\.json/);
+      }
+    });
+  });
+
   it("ninguno sin motivo, falla", async () => {
     expect((await comprobar({ cuerpo: "Casos: ninguno", consultar: consultaDe({}) })).ok).toBe(false);
   });

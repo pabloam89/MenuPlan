@@ -451,7 +451,7 @@ export function medirCasos(prs, analizar) {
     else if (a.ninguno) r.ninguno++;
     else {
       r.conCasos++;
-      r.casosCitados += a.numeros.length;
+      r.casosCitados += a.referencias.length;
     }
   }
   return r;

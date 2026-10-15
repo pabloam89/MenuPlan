@@ -28,6 +28,7 @@ import { ahoraEnMadrid } from "./hora.mjs";
 import { esDeLaCasa } from "./fondos.mjs";
 import { raices } from "./issues.mjs";
 import { RAMA_VALIDA } from "./textoExterno.mjs";
+import { numeroDeRama } from "../../.claude/hooks/referenciaIssue.mjs";
 
 /**
  * Horas sin commits a partir de las cuales una carpeta parece parada. Medido el
@@ -50,11 +51,9 @@ export const DIAS_MARCA_ANTIGUA = 3;
 /** Ramas que no son de nadie: no se cruzan con encargos ni cuentan como «sin número». */
 export const AJENAS = /^(main|staging|HEAD)$|^(dependabot|pr|rescate)\/|^ccr-/;
 
-/** Número de issue de una rama (`ops/271-quien-lleva` → 271). Un cero delante es el número de una migración, no un issue. */
-export function numeroDeRama(rama) {
-  const m = /^[a-z]+\/([1-9]\d*)-/.exec(String(rama ?? ""));
-  return m ? Number(m[1]) : null;
-}
+// Número de issue de una rama (`ops/271-quien-lleva` → 271): la regla única vive en el lector de referencias, que la guardia
+// puede cargar sin salir de .claude/hooks (#376, #856). Sigue saliendo de aquí para quien ya la importaba.
+export { numeroDeRama };
 
 // ── La marca ──────────────────────────────────────────────────────────────────
 

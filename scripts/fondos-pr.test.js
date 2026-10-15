@@ -31,9 +31,37 @@ describe("las líneas del cuerpo", () => {
     expect(agentesDelPr("Agente:").malas).toEqual([""]);
   });
   it("Closes: close, closes, closed, fix, resolves…, sin repetir y sin contar los comentarios de la plantilla", () => {
-    expect(cierresDelPr("Closes #5\nfixes #6\nResolved: #7\nCloses #5")).toEqual([5, 6, 7]);
+    expect(cierresDelPr("Closes #5\nfixes #6\nResolved: #7\nCloses #5")).toEqual([{ repo: "pabloam89/MenuPlan", numero: 5 }, { repo: "pabloam89/MenuPlan", numero: 6 }, { repo: "pabloam89/MenuPlan", numero: 7 }]);
     expect(cierresDelPr("<!-- «Closes #n» por cada encargo -->\nCloses #")).toEqual([]);
     expect(cierresDelPr("no cierra: ver #9 y PR #10")).toEqual([]);
+  });
+});
+
+describe("Closes de otro repo (#856)", () => {
+  const REFS = { repoPropio: "pabloam89/MenuPlan", repos: { "pabloam89/MenuPlan": "homenu", "pabloam89/homenu-panel": "panel" } };
+  const AGENTE = "Agente: constructor\n";
+  it("cada Closes se consulta en su repo, y el de la rama solo lo cumple el del repo propio", async () => {
+    const pedidas = [];
+    const consultar = async (n, repo) => { pedidas.push(`${repo}#${n}`); return { number: n, labels: etiquetas("tipo:caso") }; };
+    const r = await comprobar({ cuerpo: `${AGENTE}Closes #51\nCloses pabloam89/homenu-panel#51`, rama: "ops/51-algo", consultar, consultarPadre: async () => null, refs: REFS });
+    expect(r.ok).toBe(true);
+    expect(pedidas).toEqual(["pabloam89/MenuPlan#51", "pabloam89/homenu-panel#51"]);
+    expect(r.motivo).toMatch(/Closes #51, pabloam89\/homenu-panel#51/);
+    const soloPanel = await comprobar({ cuerpo: `${AGENTE}Closes pabloam89/homenu-panel#51`, rama: "ops/51-algo", consultar, consultarPadre: async () => null, refs: REFS });
+    expect(soloPanel.ok).toBe(false);
+    expect(soloPanel.motivo).toMatch(/la rama es del issue #51/);
+  });
+  it("si el token no llega al otro repo (403 o 404), aviso y no fallo; un repo que no es de ops/entidades.json, fallo", async () => {
+    const consultar = async (n, repo) => {
+      if (repo === "pabloam89/homenu-panel" && n === 3) throw new ErrorDeApi("GET /issues/3: HTTP 403");
+      return null;
+    };
+    const r = await comprobar({ cuerpo: `${AGENTE}Closes pabloam89/homenu-panel#3\nCloses pabloam89/homenu-panel#4`, consultar, consultarPadre: async () => null, refs: REFS });
+    expect(r.ok).toBe(true);
+    expect(r.accesos).toHaveLength(2);
+    const ajeno = await comprobar({ cuerpo: `${AGENTE}Closes otro/inventado#3`, consultar: async () => { throw new Error("no debería llamarse"); }, consultarPadre: async () => null, refs: REFS });
+    expect(ajeno.ok).toBe(false);
+    expect(ajeno.motivo).toMatch(/no es un repo de ops\/entidades\.json/);
   });
 });
 

@@ -163,6 +163,19 @@ export function dominiosDeProyecto(raiz, id) {
 }
 
 /**
+ * Los repos de cada proyecto (`repos` de su entrada en ops/entidades.json) → `{ "dueño/repo": idDelProyecto }` (#856, #854).
+ * El único lector de `projects[].repos`: de aquí salen los repos que admite una referencia `dueño/repo#n`
+ * (scripts/lib/referenciaIssue.mjs). Que un repo no cuelgue de dos proyectos lo vigila ops/entidades.test.js.
+ */
+export function reposDeProyectos(raiz) {
+  const sal = {};
+  for (const p of JSON.parse(readFileSync(join(raiz, "ops", "entidades.json"), "utf8")).projects ?? []) {
+    for (const r of p.repos ?? []) sal[r] = p.id;
+  }
+  return sal;
+}
+
+/**
  * Errores de los dominios opcionales (#710): un proyecto solo declara los de DOMINIOS_OPCIONALES, sin repetir, y una norma suya de
  * un ámbito opcional exige que el proyecto lo declare. `proyectos`: las entradas de `projects` de ops/entidades.json.
  */
