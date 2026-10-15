@@ -14,8 +14,8 @@
  * lee sigue usando `leerIssue(nodo)` sin cambiar nada. Una sola fuente de la forma: este
  * módulo escribe (`actualizarFoto`) y lee (`nodosDeFoto`), y el test los compara.
  *
- * Cómo se mantiene con poco gasto (el GITHUB_TOKEN del workflow tiene 1.000 puntos por hora y
- * repositorio). En cada pasada:
+ * Cómo se mantiene con poco gasto (el GITHUB_TOKEN del workflow tiene 5.000 puntos de GraphQL por
+ * hora y repositorio, medido en el run 38611215358 del 14 oct 2026; #844). En cada pasada:
  *   1. el listado ligero de todos los issues (id, número, updatedAt, id del padre): 1 punto por
  *      cada 100. Da los nuevos, los cambiados (updatedAt distinto), los que cambiaron de padre
  *      (colgar un issue NO mueve updatedAt de hijo ni padre: medido con #768 y #176) y los
@@ -52,15 +52,20 @@ export const FICHERO_FOTO = "issues.json";
 export const URL_FOTO = `https://github.com/${REPO}/releases/download/${TAG_FOTO}/${FICHERO_FOTO}`;
 /** Pasado este tiempo desde `generado_en`, la foto no se usa. */
 export const MAX_MIN_FOTO = 15;
-/** Pasado este tiempo (o sin foto), `situacion` y el arranque lo dicen en una línea: el workflow no la está renovando. */
-export const MAX_MIN_AVISO = 60;
+/**
+ * Pasado este tiempo (o sin foto), `situacion` y el arranque lo dicen en una línea: el workflow no la está
+ * renovando. La cadena la renueva cada ~10-11 min (#844), así que 20 min ya es una vuelta perdida.
+ */
+export const MAX_MIN_AVISO = 20;
+/** Cómo se rearranca la cadena si se cortó (lo dice el aviso). */
+export const REARRANCAR_FOTO = "«Run workflow» de «Foto de los issues» en la pestaña Actions, o `gh workflow run foto-issues.yml --ref staging`";
 /** Cuántos issues se refrescan por pasada aunque nadie los haya tocado (cura la deriva de los vecinos), si caben. */
 export const ROTACION = 8;
 /** Tope de ids por consulta (cuesta 1 punto por id). */
 export const IDS_POR_LLAMADA = 40;
 /** Issues por página del listado ligero (1 punto por página). */
 export const POR_PAGINA_LISTADO = 100;
-/** Puntos que se dejan sin gastar en cada pasada (el GITHUB_TOKEN tiene 1.000 por hora y repositorio). */
+/** Puntos que se dejan sin gastar en cada pasada (el GITHUB_TOKEN tiene 5.000 por hora y repositorio, medido). */
 export const RESERVA_PUNTOS = 100;
 /** Los campos de la foto: el escritor los pone todos y el lector exige todos. */
 export const CAMPOS_FOTO = ["version", "generado_en", "al_dia_desde", "completa", "total", "refrescados", "pendientes", "nodos"];
@@ -464,7 +469,7 @@ export function leerEstadoFoto({ dir = dirCuota() } = {}) {
 
 /**
  * Una línea si la foto falta, está a medias o tiene más de MAX_MIN_AVISO minutos; null si está bien
- * o nunca se miró. Entre 15 y 60 min no avisa: los cron de GitHub se retrasan y el lector ya va a la API.
+ * o nunca se miró. Entre 15 y 20 min no avisa: una pasada con cola puede llegar tarde y el lector ya va a la API.
  */
 export function lineaFoto(estado, { ahora = new Date() } = {}) {
   if (!estado) return null;
@@ -476,7 +481,7 @@ export function lineaFoto(estado, { ahora = new Date() } = {}) {
   const edadMin = ((Number.isNaN(mirada) ? ahora.getTime() : mirada) - Date.parse(estado.generado_en)) / 60_000;
   if (!(edadMin > MAX_MIN_AVISO)) return null;
   const hace = edadMin >= 120 ? `${Math.round(edadMin / 60)} h` : `${Math.round(edadMin)} min`;
-  return `Foto de los issues: de hace ${hace} (el workflow foto-issues.yml no la renueva); ${api}.`;
+  return `Foto de los issues: de hace ${hace} (el workflow foto-issues.yml no la renueva); ${api}. Rearrancarla: ${REARRANCAR_FOTO}.`;
 }
 
 /**

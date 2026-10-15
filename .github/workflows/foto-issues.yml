@@ -7,19 +7,35 @@
 # lo bajan de github.com/…/releases/download/: repo público, 0 puntos. Si falta, es de otra versión,
 # está a medias o tiene más de 15 minutos, vuelven a la API (scripts/lib/fotoIssues.mjs).
 #
-# - Gasta SU presupuesto: el GITHUB_TOKEN del workflow (1.000 puntos/hora y repositorio). Cada pasada:
-#   el listado ligero de todos los issues (1 punto por 100; ve también los cambios de padre y los
-#   borrados), los cambiados por id (1 punto por id), sus vecinos y una rotación de 8 si cabe. Lo que
-#   no cabe en el cupo (menos una reserva de 100) queda pendiente para la pasada siguiente.
-# - Solo por el reloj y a mano: NO por eventos de issues ni de comentarios (cualquiera puede comentar
-#   en un repo público y cada disparo gastaría del presupuesto). Con el cron cada 5 min, la cola de
-#   `concurrency` basta.
+# - Gasta SU presupuesto: el GITHUB_TOKEN del workflow, 5.000 puntos de GraphQL por hora y repositorio
+#   (medido en el run 38611215358 del 14 oct 2026: usados 464, restantes 4.536). Cada pasada: el listado
+#   ligero de todos los issues (1 punto por 100; ve también los cambios de padre y los borrados), los
+#   cambiados por id (1 punto por id), sus vecinos y una rotación de 8 si cabe: ~15 puntos sin cambios y
+#   40 con actividad (medido en el run 38634114068: 15 nuevos y 7 cambiados). Estimación, sin medir aún
+#   con la cadena: ~6 pasadas por hora, ~90-240 puntos por hora (2-5 % del cupo). Lo que no cabe en el
+#   cupo (menos una reserva de 100) queda pendiente para la pasada siguiente.
+# - Se relanza a sí misma (#844, caso #843, fondo #315): el reloj de GitHub entrega en este repo una pasada
+#   programada cada 3-11 h, no cada 5 min. Al acabar, el trabajo `relanzar` espera 9 min y lanza la pasada
+#   siguiente con `workflow_dispatch` y el GITHUB_TOKEN (la única forma en que ese token crea una pasada);
+#   si el lanzamiento falla, lo reintenta hasta 3 veces con 20 s entre uno y otro y, si no, sale en rojo.
+#   Cada ~10 min y no cada 5 por el uso aceptable de Actions: si GitHub cortara Actions al repo, caería
+#   también el CI `tests`. Estimación de una vuelta: 540 s de espera + ~30 s de trabajo + 5-70 s de cola
+#   = ~10-11 min (medido en el run 38634114068: generar 20 s, publicar 8 s, cola de hasta 71 s): ~6
+#   pasadas por hora, ~130 al día. La foto se renueva antes de llegar a los 15 min en que el lector deja
+#   de usarla (MAX_MIN_FOTO), con ~4 min de margen. El cron se queda de arranque de respaldo, cada 30 min.
+# - Pararla (Pablo; si GitHub avisa de abuso, se desactiva sin preguntar): «Disable workflow» en la
+#   pestaña Actions de la web o `gh workflow disable foto-issues.yml`. Cancelar una pasada solo la corta
+#   si se cancelan también las que esperan (la siguiente puede estar ya en cola). Se reanuda con
+#   «Enable workflow» o `gh workflow enable foto-issues.yml` y un `gh workflow run foto-issues.yml --ref staging`.
+# - Solo por el reloj y a mano (y su propio relanzamiento): NO por eventos de issues ni de comentarios
+#   (cualquiera puede comentar en un repo público y cada disparo gastaría del presupuesto).
 # - Una release y no una rama: el asset se reemplaza (`--clobber`) sin dejar historia (lo borrado
 #   desaparece de verdad) y no hay push que dispare a Vercel. Prerelease, sin «latest» y sin nadie que
 #   vigile el repo (subscribers_count 0, 14 oct 2026): no avisa a personas. Solo la escribe este
 #   workflow; la guardia niega a las sesiones tocar la release y su tag (`foto-de-issues-solo-workflow`).
-# - Permisos mínimos y en dos trabajos: `generar` lee los issues (`issues: read`, `contents: read`) y corre
-#   el código; `publicar` solo sube el fichero que le pasa `generar` (`contents: write`), sin checkout ni node.
+# - Permisos mínimos y en tres trabajos: `generar` lee los issues (`issues: read`, `contents: read`) y corre
+#   el código; `publicar` solo sube el fichero que le pasa `generar` (`contents: write`), sin checkout ni node;
+#   `relanzar` solo lanza la pasada siguiente (`actions: write`), sin checkout ni node.
 # - Solo se fía de un asset que subió este workflow (`github-actions[bot]`): si la foto anterior la subió
 #   otro (la App de las sesiones, una persona), empieza desde cero y la pasada la reemplaza. Lo mismo hace
 #   el lector (`SUBIDOR_FOTO` en scripts/lib/fotoIssues.mjs).
@@ -34,15 +50,22 @@ name: Foto de los issues
 
 on:
   schedule:
-    # Cada 5 minutos, fuera de las horas redondas (los cron de GitHub se atascan en ellas).
-    - cron: "3,8,13,18,23,28,33,38,43,48,53,58 * * * *"
+    # Respaldo: arranca la cadena si se cortó. Cada 30 min, fuera de las horas redondas (los cron de
+    # GitHub se atascan en ellas); en este repo llega cada 3-11 h (#843).
+    - cron: "17,47 * * * *"
   workflow_dispatch:
 
 permissions:
   contents: read
 
-# Una a la vez; si llega otra mientras corre una, GitHub guarda solo la última: es la cola que
-# queremos (la foto siguiente ya trae todo lo anterior).
+# Una a la vez; si llega otra mientras corre una, GitHub guarda solo la última pendiente y cancela la
+# anterior: es la cola que queremos (la foto siguiente ya trae todo lo anterior). Por eso la cadena no
+# se multiplica: como mucho una pasada corriendo y una esperando, y cada pasada que acaba lanza una sola.
+# `relanzar` forma parte de la pasada, así que la siguiente espera a que acabe.
+# Una sola cola para todas las ramas (sin la rama en el `group`): dos pasadas a la vez se pisarían el
+# asset. Por eso `relanzar` no mira `github.ref`: si alguien con escritura lanza una pasada desde otra rama
+# y GitHub cancela la que esperaba de staging, la de la otra rama relanza staging y la cadena sigue. Los
+# forks no pueden lanzar `workflow_dispatch` aquí (pide escritura) y no hay disparo por pull_request.
 concurrency:
   group: foto-issues
   cancel-in-progress: false
@@ -116,3 +139,35 @@ jobs:
           fi
           gh release upload "${TAG_FOTO}" salida/issues.json --repo "${REPO}" --clobber
           echo "foto-issues publicada: $(wc -c < salida/issues.json) bytes"
+
+  relanzar:
+    needs: publicar
+    # Corre aunque `generar` o `publicar` fallen (una pasada mala no rompe la cadena), pero NO si se
+    # canceló la pasada: cancelar corta la cadena (por eso `!cancelled()` y nunca `always()`). Solo en
+    # este repo (una copia no relanza). Lanza siempre sobre `staging`, venga de la rama que venga (ver
+    # `concurrency`).
+    if: ${{ !cancelled() && github.repository == 'pabloam89/MenuPlan' }}
+    runs-on: ubuntu-latest
+    # 540 s de espera + 2 reintentos de 20 s + los lanzamientos, con holgura
+    timeout-minutes: 12
+    permissions:
+      actions: write # lanzar la pasada siguiente (workflow_dispatch); nada más
+    steps:
+      - name: Esperar y lanzar la pasada siguiente
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          sleep 540
+          for intento in 1 2 3; do
+            if gh workflow run foto-issues.yml --repo "${REPO}" --ref staging; then
+              echo "foto-issues relanzada: si intento: ${intento}"
+              exit 0
+            fi
+            echo "foto-issues relanzada: fallo intento: ${intento}"
+            if [ "${intento}" -lt 3 ]; then
+              sleep 20
+            fi
+          done
+          echo "foto-issues relanzada: no intentos: 3"
+          exit 1
