@@ -17,6 +17,8 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
+import { LINEA_CASOS } from "./casos.mjs";
+
 /** Frases que dicen «esto queda por decidir o por hacer» (sin acentos). */
 const PENDIENTE = /decisiones (?:para pablo|pendientes)|quedan? pendientes?|lo dejo pendiente|te toca decidir|falta que decidas/i;
 /** Lo que dice que no queda nada: «ninguna», «sin pendientes», «no hay»… */
@@ -103,7 +105,6 @@ const ordenesDe = (cmd) => String(cmd).split(/&&|\|\||;|\||\n/).map((s) => s.tri
 const LANZA_TESTS = /^(?:\w+=\S+\s+)*(?:npx\s+vitest|npm\s+(?:run\s+)?test|vitest)\b/;
 const ES_ISSUES = /^(?:\w+=\S+\s+)*(?:npm\s+run\s+(?:--silent\s+)?issues|node\s+["']?(?:[A-Za-z]:)?(?:\.?[\\/])?(?:[\w.-]+[\\/])*scripts[\\/]issues\.mjs)(?![\w.-])/;
 const ES_PR = /^(?:\w+=\S+\s+)*gh\s+pr\s+(?:create|edit)\b/;
-const LINEA_CASOS = /\bCasos\s*:\s*(?:#\d|ninguno)/i;
 
 /** ¿Ejecuta este comando de Bash vitest o npm test? (no un grep que los nombre) */
 const lanzaTests = (cmd) => ordenesDe(cmd).some((o) => LANZA_TESTS.test(o));

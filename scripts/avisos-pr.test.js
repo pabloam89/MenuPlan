@@ -49,7 +49,7 @@ describe("la línea contable", () => {
     const todas = [
       ...avisosDelPr({ diff: "", autor: "dependabot[bot]" }),
       ...avisosDelPr({ diff: "", sinComprobar: "no_diff" }),
-      ...avisosDelPr({ diff: fichero("a.js", [], ["x"]), fondosCerrados: [1], sinComprobar: "api_error" }),
+      ...avisosDelPr({ diff: fichero("a.js", [], ["x"]), fondosCerrados: ["#1"], sinComprobar: "api_error" }),
     ];
     for (const a of todas) {
       expect(REGLAS).toContain(a.regla);
@@ -169,13 +169,13 @@ describe("C1: PR demasiado grande", () => {
 describe("C12: fondo cerrado sin aprendizaje", () => {
   const sinLeccion = ficheros(fichero("src/a.js", [], ["x"]), fichero("docs/a.md", [], ["x"]));
   it("avisa si cierra un fondo y no toca test, guardia ni skill", () => {
-    const r = evaluarC12({ ficheros: sinLeccion, fondosCerrados: [503] });
+    const r = evaluarC12({ ficheros: sinLeccion, fondosCerrados: ["#503"] });
     expect(r.resultado).toBe("warning");
     expect(r.detalle).toContain("closed_funds=#503 lesson_files=0");
   });
   it("no avisa si toca un test, la guardia o una skill", () => {
     for (const ruta of ["scripts/x.test.js", "src/a.test.jsx", "ops/y.test.mjs", ".claude/hooks/guardia.mjs", ".claude/skills/github/SKILL.md", ".claude/rules/tests.md"]) {
-      const r = evaluarC12({ ficheros: ficheros(fichero(ruta, [], ["x"])), fondosCerrados: [503] });
+      const r = evaluarC12({ ficheros: ficheros(fichero(ruta, [], ["x"])), fondosCerrados: ["#503"] });
       expect(r.resultado, ruta).toBe("ok");
     }
   });
@@ -183,12 +183,12 @@ describe("C12: fondo cerrado sin aprendizaje", () => {
     expect(evaluarC12({ ficheros: sinLeccion, fondosCerrados: [] }).resultado).toBe("ok");
   });
   it("la excepción única de lecciones-a-un-test lo silencia y queda dónde; la forma antigua vale en la transición", () => {
-    const r = evaluarC12({ ficheros: sinLeccion, fondosCerrados: [503], hoy: HOY, cuerpo: "Excepción: lecciones-a-un-test — skill issues, sección Lo que falló (PR #580) — hasta 2026-10-20" });
+    const r = evaluarC12({ ficheros: sinLeccion, fondosCerrados: ["#503"], hoy: HOY, cuerpo: "Excepción: lecciones-a-un-test — skill issues, sección Lo que falló (PR #580) — hasta 2026-10-20" });
     expect(r.resultado).toBe("exempt");
     expect(r.detalle).toContain("reason=skill issues");
-    const v = evaluarC12({ ficheros: sinLeccion, fondosCerrados: [503], hoy: HOY, cuerpo: "Aprendizaje: skill issues, sección Lo que falló (PR #580)" });
+    const v = evaluarC12({ ficheros: sinLeccion, fondosCerrados: ["#503"], hoy: HOY, cuerpo: "Aprendizaje: skill issues, sección Lo que falló (PR #580)" });
     expect(v.resultado).toBe("exempt");
-    expect(evaluarC12({ ficheros: sinLeccion, fondosCerrados: [503], hoy: "2026-11-16", cuerpo: "Aprendizaje: skill issues, sección Lo que falló (PR #580)" }).resultado).toBe("warning");
+    expect(evaluarC12({ ficheros: sinLeccion, fondosCerrados: ["#503"], hoy: "2026-11-16", cuerpo: "Aprendizaje: skill issues, sección Lo que falló (PR #580)" }).resultado).toBe("warning");
     expect(excepcionAprendizaje("Aprendizaje: x", HOY)).toBeNull();
   });
   it("si no se pudo mirar la API, sale unchecked y no un aviso", () => {
@@ -217,7 +217,21 @@ describe("fondosCerrados: los Closes que son tipo:fondo (con la API de mentira)"
   };
   const consultar = async (n) => issues[n] ?? null;
   it("deja solo los fondos", async () => {
-    expect(await fondosCerrados({ cuerpo: "Closes #1\nCloses #2\nCloses #3", consultar })).toEqual({ fondosCerrados: [1] });
+    expect(await fondosCerrados({ cuerpo: "Closes #1\nCloses #2\nCloses #3", consultar })).toEqual({ fondosCerrados: ["#1"] });
+  });
+  it("consulta cada Closes en su repo; el que da 404 (null) se salta y un 403 queda «sin comprobar» (#856)", async () => {
+    const pedidas = [];
+    const enSuRepo = async (n, repo) => {
+      pedidas.push(`${repo}#${n}`);
+      if (repo === "pabloam89/homenu-panel" && n === 9) return null;
+      return repo === "pabloam89/homenu-panel" ? { number: n, labels: [{ name: "tipo:fondo" }] } : issues[n] ?? null;
+    };
+    const cuerpo = "Closes #2\nCloses pabloam89/homenu-panel#1\nCloses pabloam89/homenu-panel#9";
+    expect(await fondosCerrados({ cuerpo, consultar: enSuRepo, repo: "pabloam89/MenuPlan" })).toEqual({ fondosCerrados: ["pabloam89/homenu-panel#1"] });
+    expect(pedidas).toEqual(["pabloam89/MenuPlan#2", "pabloam89/homenu-panel#1", "pabloam89/homenu-panel#9"]);
+    // Esto solo avisa (el que falla es fondos-pr), pero un 403 del otro repo no se salta en silencio.
+    const limite = async () => { throw new ErrorDeApi("GET /issues/9: HTTP 403"); };
+    expect(await fondosCerrados({ cuerpo: "Closes pabloam89/homenu-panel#9", consultar: limite, repo: "pabloam89/MenuPlan" })).toEqual({ sinComprobar: "api_error" });
   });
   it("sin Closes no llama a la API ni pide token", async () => {
     expect(await fondosCerrados({ cuerpo: "nada" })).toEqual({ fondosCerrados: [] });

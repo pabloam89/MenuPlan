@@ -98,7 +98,7 @@ describe("leerFicha", () => {
   it("lee una ficha buena: vocabulario, listas, fecha, ruta y texto", () => {
     const l = leerFicha(fichaDe({ casos: [10, 12], encargos: [51], verificacion: "scripts/fondos.test.js", ventana_hasta: "2026-11-01", barrera: "test_ci", aprendizaje: "Skill issues: sección de la ficha" }));
     expect(l.errores).toEqual([]);
-    expect(l.ficha).toMatchObject({ estado: "diagnosticado", casos: [10, 12], encargos: [51], verificacion: "scripts/fondos.test.js", ventana_hasta: "2026-11-01", barrera: "test_ci" });
+    expect(l.ficha).toMatchObject({ estado: "diagnosticado", casos: [{ repo: "pabloam89/MenuPlan", numero: 10 }, { repo: "pabloam89/MenuPlan", numero: 12 }], encargos: [{ repo: "pabloam89/MenuPlan", numero: 51 }], verificacion: "scripts/fondos.test.js", ventana_hasta: "2026-11-01", barrera: "test_ci" });
   });
 
   it("sin bloque no es un error de forma: simplemente no hay ficha", () => {

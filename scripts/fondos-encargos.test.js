@@ -35,7 +35,7 @@ describe("leerEncargo", () => {
     expect(r.presente).toBe(true);
     expect(r.errores).toEqual([]);
     expect(r.ficha.depende_de).toEqual([]);
-    expect(r.ficha.fondo).toEqual([50]);
+    expect(r.ficha.fondo).toEqual([{ repo: "pabloam89/MenuPlan", numero: 50 }]);
   });
   it("sin bloque: no presente; un bloque `fondo` no vale como encargo", () => {
     expect(leerEncargo("nada").presente).toBe(false);

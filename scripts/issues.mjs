@@ -58,7 +58,7 @@ import {
   CONSULTA_PR_INDICE, TIMEOUT_PRS_ARRANQUE_MS, arrancar, construirIndice, contarParecidosIgnorados, escribirIndice, leerIndice, lineaParecidosIgnorados, motivoCrearIgual, rutaIndice,
 } from "./lib/buscarAntes.mjs";
 import { analizarCasos } from "../.claude/hooks/casos.mjs";
-import { informeFichas } from "./lib/fondos.mjs";
+import { informeFichas, referenciasLocales } from "./lib/fondos.mjs";
 import { diaMadrid } from "./lib/hora.mjs";
 import { TTL_MIN, borrarCacheGh, conCache, ghSync } from "./lib/cuotaGh.mjs";
 import { MS_FOTO_ARRANQUE, fotoPermitida, leerEstadoFoto, lineaFoto, nodosDeLaFoto } from "./lib/fotoIssues.mjs";
@@ -447,7 +447,7 @@ if (args.includes("--etiquetas")) {
   // La línea «Casos:» de los últimos 50 PR fusionados (una consulta más).
   try {
     const prs = JSON.parse(gh("api", "graphql", "-f", `query=${CONSULTA_PR}`)).data.repository.pullRequests.nodes;
-    const m = medirCasos(prs, analizarCasos);
+    const m = medirCasos(prs, (cuerpo) => analizarCasos(cuerpo, referenciasLocales()));
     console.log(`Línea «Casos:» en los últimos ${m.total} PR fusionados: ${m.conCasos} con casos (${m.casosCitados} citados), ${m.ninguno} con «ninguno», ${m.sinLinea} sin la línea.
 `);
   } catch (e) {

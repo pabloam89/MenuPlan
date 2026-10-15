@@ -42,10 +42,12 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { dirCuota, registrarFoto } from "./cuotaGh.mjs";
 import { CAMPOS_ISSUE } from "./issues.mjs";
+import { REPO_LOCAL } from "../../.claude/hooks/referenciaIssue.mjs";
 
 /** Versión del formato. Si cambia la forma de la foto, sube: los lectores viejos vuelven a la API. */
 export const FOTO_VERSION = 3;
-export const REPO = "pabloam89/MenuPlan";
+/** El repo de los issues: el de esta copia (REPO_LOCAL, del lector de referencias, #856; #835 lo saca a la ficha del proyecto). */
+export const REPO = REPO_LOCAL;
 /** La release (y su tag) donde vive la foto. Solo la escribe el workflow: la guardia lo niega a las sesiones. */
 export const TAG_FOTO = "foto-issues";
 export const FICHERO_FOTO = "issues.json";

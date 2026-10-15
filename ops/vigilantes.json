@@ -10,6 +10,13 @@
       "evidencia": "#557 (revisor: el cruce solo miraba nombres de agente); #640 (los tipos se unen al presupuesto)"
     },
     {
+      "id": "referencias-a-issues",
+      "tests": ["scripts/referencias-issue.test.js"],
+      "mira": ["scripts/**/*.mjs", ".claude/hooks/*.mjs", "ops/entidades.json"],
+      "porque": "Toda referencia a un issue (ficha, bloque encargo, Closes del CI y de la guardia, línea Casos:) se lee con un solo lector que guarda { repo, numero }, y el test barre scripts/ y .claude/hooks/ para que ninguna otra expresión de Closes, de la línea Casos: o de rama → número nazca fuera de su dueño; un script nuevo que escriba la suya, o un repo que cambie en ops/entidades.json, rompe un test que está lejos de lo que tocas.",
+      "evidencia": "#856 (preventivo del fondo #855; regla de rama de #376)"
+    },
+    {
       "id": "de-la-casa",
       "tests": ["scripts/esDeLaCasa.test.js"],
       "mira": ["scripts/**/*.mjs", ".claude/hooks/*.mjs", ".github/workflows/*.yml"],

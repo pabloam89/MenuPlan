@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import { medianaMs, topeMs } from "../../scripts/lib/medirTiempo.mjs";
-import { analizarCasos } from "./casos.mjs";
+import { analizarCasos as analizar } from "./casos.mjs";
+
+// Las referencias se leen con el lector único (#856): `#n` es del repo donde vive el texto.
+const PROPIO = { repoPropio: "pabloam89/MenuPlan" };
+const analizarCasos = (cuerpo, opciones = {}) => {
+  const r = analizar(cuerpo, { ...PROPIO, ...opciones });
+  return r.referencias ? { ...r, numeros: r.referencias.map((x) => x.numero) } : r;
+};
 
 const MOTIVO = "solo mueve ficheros de sitio, no se ha visto ningún fallo";
 

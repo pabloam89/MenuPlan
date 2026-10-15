@@ -29,7 +29,8 @@ import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, renameSync
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 
-import { esDeLaCasa } from "./fondos.mjs";
+import { esDeLaCasa, referenciasLocales } from "./fondos.mjs";
+import { leerCierres } from "../../.claude/hooks/referenciaIssue.mjs";
 import { ficherosNombrados, porGrupo, raices } from "./issues.mjs";
 import { NOMBRE_SIMPLE, RAMA_SIMPLE, RAMA_VALIDA, limpiarTexto } from "./textoExterno.mjs";
 
@@ -138,7 +139,8 @@ export function fichaDePr(p) {
     resumen,
     claves: k,
     palabras: [...raices(`${p.title} ${resumen} ${k.join(" ")}`)],
-    cierra: [...cuerpo.matchAll(/\b(?:closes|fixes|resolves)\s+#(\d+)/gi)].map((m) => Number(m[1])),
+    // La forma única de `Closes` (#856). El índice es de un repo: solo cuenta lo que cierra en este (el traslado, #836, lo amplía).
+    cierra: leerCierres(cuerpo, referenciasLocales()).filter((c) => c.repo === referenciasLocales().repoPropio).map((c) => c.numero),
   };
 }
 

@@ -11,8 +11,8 @@
  *
  * Uso (lo lanza el CI): PR_BODY=… PR_AUTOR=… PR_NUMBER=… GITHUB_TOKEN=… GITHUB_REPOSITORY=… node scripts/avisos-pr.mjs <fichero-con-el-diff>
  * El diff es `git diff -U0` de la base del PR a su cabeza. El cuerpo va por entorno, nunca
- * interpolado en el YAML (inyección). Los `Closes #n` se leen con el mismo código que
- * «Fondos del PR» (scripts/fondos-pr.mjs).
+ * interpolado en el YAML (inyección). Los `Closes #n` (y `Closes dueño/repo#n`, #856) se leen con el mismo código
+ * que «Fondos del PR» (scripts/fondos-pr.mjs) y se consultan cada uno en su repo.
  */
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -21,19 +21,26 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { ErrorDeApi, pedir } from "./lib/ghApi.mjs";
 import { BOTS, REGLAS, avisosDelPr, excepcionesDelPr, hoyUtc, leerDiff, lineaContable, mensajeAviso } from "./lib/avisosPr.mjs";
 import { cierresDelPr, tipoDe } from "./fondos-pr.mjs";
-import { leerRegistro } from "./lib/normas.mjs";
+import { referenciasLocales } from "./lib/fondos.mjs";
+import { leerRegistro, reposDeProyectos } from "./lib/normas.mjs";
+import { escribirReferencia } from "../.claude/hooks/referenciaIssue.mjs";
 
-/** Los `Closes #n` del cuerpo que son tipo:fondo → { fondosCerrados } o { sinComprobar }. */
-export async function fondosCerrados({ cuerpo, token, repo, consultar }) {
-  const cierres = cierresDelPr(cuerpo);
+/**
+ * Los `Closes` del cuerpo que son tipo:fondo → { fondosCerrados: ["#n" | "dueño/repo#n"] } o { sinComprobar }.
+ * Cada referencia se consulta en su repo (`consultar(n, repo)`); la que da 404 (null) no es un fondo y se salta: esto
+ * solo avisa, y el que falla por ella es fondos-pr.mjs (`sinAccesoAOtroRepo`). Un 403 de cualquier repo deja el aviso
+ * «sin comprobar», como un 5xx. `refs`: { repoPropio, repos }.
+ */
+export async function fondosCerrados({ cuerpo, token, repo, consultar, refs = repo ? { ...referenciasLocales(), repoPropio: repo } : referenciasLocales() }) {
+  const cierres = cierresDelPr(cuerpo, refs).filter((c) => !c.error);
   if (!cierres.length) return { fondosCerrados: [] };
   if (!consultar && !token) return { sinComprobar: "no_token" };
-  const pide = consultar ?? ((n) => pedir({ token, repo, ruta: `/issues/${n}` }));
+  const pide = consultar ?? ((n, deRepo = refs.repoPropio) => pedir({ token, repo: deRepo, ruta: `/issues/${n}` }));
   const fondos = [];
   try {
-    for (const n of cierres.slice(0, 10)) {
-      const issue = await pide(n);
-      if (issue && !issue.pull_request && tipoDe(issue) === "fondo") fondos.push(n);
+    for (const ref of cierres.slice(0, 10)) {
+      const issue = await pide(ref.numero, ref.repo);
+      if (issue && !issue.pull_request && tipoDe(issue) === "fondo") fondos.push(escribirReferencia(ref, refs.repoPropio));
     }
   } catch (e) {
     if (!(e instanceof ErrorDeApi)) throw e;
@@ -54,7 +61,8 @@ if (esPrincipal) {
     const { PR_BODY = "", PR_AUTOR = "", PR_NUMBER = "", GITHUB_TOKEN = "", GITHUB_REPOSITORY = "" } = process.env;
     const ruta = process.argv[2];
     const hayDiff = Boolean(ruta) && existsSync(ruta);
-    const f = await fondosCerrados({ cuerpo: PR_BODY, token: GITHUB_TOKEN, repo: GITHUB_REPOSITORY || "pabloam89/MenuPlan" });
+    const repo = GITHUB_REPOSITORY || "pabloam89/MenuPlan";
+    const f = await fondosCerrados({ cuerpo: PR_BODY, token: GITHUB_TOKEN, repo, refs: { repoPropio: repo, repos: reposDeProyectos(RAIZ) } });
     const diff = hayDiff ? readFileSync(ruta, "utf8") : "";
     // HOY solo lo pone un test; en el CI es el día UTC del run.
     const hoy = /^\d{4}-\d{2}-\d{2}$/.test(process.env.HOY ?? "") ? process.env.HOY : hoyUtc();

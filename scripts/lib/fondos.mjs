@@ -19,12 +19,16 @@
  * Cada control tiene un nombre de regla («sin-diagnostico: …»): es lo que
  * cuentan los tests y lo que ve quien edita el issue.
  */
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { MAX_NUMERO, MIN_MOTIVO } from "../../.claude/hooks/casos.mjs";
 import { ESCALONES, etiquetaDeEscalon } from "./escalas.mjs";
+import { REPO_LOCAL, escribirReferencia, leerReferencia, mismaReferencia, repoDeIssue } from "../../.claude/hooks/referenciaIssue.mjs";
 import { ALCANCES_FALLO } from "./flujo.mjs";
 import { CAMPOS_ENCARGO, ENCARGO_N1_DESDE, ESCALONES_AUTOMATICOS, GRUPOS, MAX_ENCARGOS_POR_FONDO, TIPOS_ACCION, debeReabrir, faltas, porGrupo } from "./issues.mjs";
 import { CATALOGO as MECANISMOS } from "./mecanismos.mjs";
-import { RIESGOS } from "./normas.mjs";
+import { RIESGOS, reposDeProyectos } from "./normas.mjs";
 import { CATALOGO, COMPLEXITIES, TOPE_RONDAS, presupuestoDe } from "./presupuestos.mjs";
 import { AGENTES, JUECES } from "./agentes.mjs";
 import { ALL_SUBTYPES, MAX_NOTE, TYPES } from "./tiposDeEncargo.mjs";
@@ -227,20 +231,37 @@ function fechaValida(s) {
   return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s;
 }
 
-function leerValor(clave, def, valor) {
+let locales = null;
+/**
+ * Las opciones de leerReferencia de los scripts en local (#856): el repo propio es `REPO_LOCAL` (hasta que #835 lo
+ * saque a la ficha del proyecto) y los repos, los de ops/entidades.json (reposDeProyectos). En el CI se pasa
+ * GITHUB_REPOSITORY como repo propio. Se lee una vez por proceso.
+ */
+export function referenciasLocales() {
+  locales ??= { repoPropio: REPO_LOCAL, repos: reposDeProyectos(join(dirname(fileURLToPath(import.meta.url)), "..", "..")) };
+  return locales;
+}
+
+function leerValor(clave, def, valor, refs) {
   switch (def.tipo) {
     case "texto":
       return valor.length > MAX_TEXTO ? { error: `«${clave}» pasa de ${MAX_TEXTO} caracteres: resúmelo y deja el detalle en el cuerpo del issue` } : { valor };
     case "vocab":
       return def.valores.includes(valor) ? { valor } : { error: `«${clave}: ${limpio(valor)}» no es de la lista (${def.valores.join(", ")})` };
     case "lista": {
-      if (def.una && !/^#[0-9]{1,8}$/.test(valor)) return { error: `«${clave}» tiene que ser un solo «#n»` };
+      // Cada elemento, `#n` (de este repo) o `dueño/repo#n` (de un repo de ops/entidades.json), lo lee
+      // leerReferencia (#856): en memoria es siempre { repo, numero }, nunca un número suelto.
+      if (def.una && (valor.includes(",") || leerReferencia(valor, refs).error)) return { error: `«${clave}» tiene que ser un solo «#n» (o dueño/repo#n de un repo de ops/entidades.json)` };
       if (/^ninguno[s]?$/i.test(valor)) return { valor: [] };
       const trozos = valor.split(",").map((t) => t.trim());
       if (trozos.length > MAX_LISTA) return { error: `«${clave}» tiene más de ${MAX_LISTA} elementos` };
-      const malo = trozos.find((t) => !/^#\d{1,8}$/.test(t) || Number(t.slice(1)) > MAX_NUMERO || Number(t.slice(1)) < 1);
-      if (malo !== undefined) return { error: `«${clave}» tiene que ser «#n, #m» con números de issue (o «ninguno»); no vale «${limpio(malo, 12)}»` };
-      return { valor: [...new Set(trozos.map((t) => Number(t.slice(1))))] };
+      const leidas = [];
+      for (const t of trozos) {
+        const r = leerReferencia(t, refs);
+        if (r.error) return { error: `«${clave}» tiene que ser «#n, #m» con números de issue (o dueño/repo#n de un repo de ops/entidades.json, o «ninguno»); no vale «${limpio(t, 40)}»` };
+        if (!leidas.some((x) => mismaReferencia(x, r))) leidas.push(r);
+      }
+      return { valor: leidas };
     }
     case "ruta":
       return /^[A-Za-z0-9_./@-]{1,200}$/.test(valor) && !valor.includes("..") && !valor.startsWith("/") && !valor.endsWith("/")
@@ -261,8 +282,8 @@ function leerValor(clave, def, valor) {
  * `errores`: [{ regla: "ficha-bloque" | "ficha-vocabulario", mensaje }]. Nunca lanza.
  * Un valor vacío (`clave:`) es «sin rellenar», no un error: la plantilla trae todas las claves.
  */
-export function leerFicha(body) {
-  return leerBloque(body, "fondo", CAMPOS_FICHA, "ficha", CAMPOS_RETIRADOS);
+export function leerFicha(body, refs = referenciasLocales()) {
+  return leerBloque(body, "fondo", CAMPOS_FICHA, "ficha", CAMPOS_RETIRADOS, refs);
 }
 
 /**
@@ -270,7 +291,7 @@ export function leerFicha(body) {
  * siempre: la ficha del fondo y el bloque `encargo` comparten lector.
  * Reglas de error: `<prefijo>-bloque` y `<prefijo>-vocabulario`.
  */
-function leerBloque(body, nombre, campos, prefijo, retirados = []) {
+function leerBloque(body, nombre, campos, prefijo, retirados = [], refs = referenciasLocales()) {
   const lineas = lineasDe(body);
   const sitio = ubicarBloque(lineas, nombre);
   if (!sitio) return { presente: false, ficha: {}, errores: [] };
@@ -308,7 +329,7 @@ function leerBloque(body, nombre, campos, prefijo, retirados = []) {
     vistas.add(clave);
     const valor = crudo.trim();
     if (!valor) return;
-    const r = leerValor(clave, def, valor);
+    const r = leerValor(clave, def, valor, refs);
     if (r.error) {
       malo(`${prefijo}-vocabulario`, r.error);
       return;
@@ -367,6 +388,8 @@ export function hijoDeRest(h) {
     asociacion: asociacionDe(h),
     autor: autorDe(h),
     number: h.number,
+    // El repo del hijo (#856): la ficha lo compara con { repo, numero }, no solo con el número.
+    repo: repoDeIssue(h) ?? h.repo ?? null,
     state: String(h.state).toUpperCase(),
     createdAt: h.created_at ?? h.createdAt ?? null,
     labels: nombresDe(h.labels).map((name) => ({ name })),
@@ -436,15 +459,19 @@ export function fichaObligatoria(fondo) {
  * → { hallazgos:[{regla, gravedad:"error"|"aviso", mensaje}], acciones:[…], subidos:Set, ficha }
  *   Acciones: { tipo:"fijar", campos }, { tipo:"reabrir", porque }, { tipo:"cerrar", arreglo }.
  */
-export function validarFicha(fondo, { existeEnStaging = () => false, hoy, subidos = new Set(), presupuestos = CATALOGO } = {}) {
+export function validarFicha(fondo, { existeEnStaging = () => false, hoy, subidos = new Set(), presupuestos = CATALOGO, refs = referenciasLocales() } = {}) {
   const hallazgos = [];
   const acciones = [];
   const nuevosSubidos = new Set(subidos);
   const error = (regla, mensaje) => hallazgos.push({ regla, gravedad: "error", mensaje });
   const aviso = (regla, mensaje) => hallazgos.push({ regla, gravedad: "aviso", mensaje });
 
-  const lectura = leerFicha(fondo.body);
+  const lectura = leerFicha(fondo.body, refs);
   const f = lectura.ficha;
+  // Un hijo como referencia: sin repo (la forma de leerIssue), es del repo propio.
+  const refDe = (h) => ({ repo: h.repo ?? refs.repoPropio, numero: h.number });
+  const listado = (h, lis) => (lis ?? []).some((r) => mismaReferencia(r, refDe(h)));
+  const escritas = (hs) => hs.map((h) => escribirReferencia(refDe(h), refs.repoPropio)).join(", ");
   const g = porGrupo(nombresDe(fondo.labels));
   const hijos = fondo.hijos ?? [];
   const casos = hijos.filter((h) => h.tipo === "caso");
@@ -525,18 +552,17 @@ export function validarFicha(fondo, { existeEnStaging = () => false, hoy, subido
         alcance = subirAlcance(alcance);
         nuevosSubidos.add(h.number);
       }
-      aviso("no-aguanto", `${lista(nuevos.map((h) => h.number))} no aguantó: alcance ${limpio(f.alcance)} → ${alcance}`);
+      aviso("no-aguanto", `${escritas(nuevos)} no aguantó: alcance ${limpio(f.alcance)} → ${alcance}`);
       acciones.push({ tipo: "fijar", campos: { ...(alcance === undefined ? {} : { alcance }), estado: "reabierto" } });
     }
 
     // 8. La ventana de observación vencida: o limpia (se cierra) o con casos nuevos (se reabre).
     if (f.estado === "en-observacion" && f.ventana_hasta && hoy && f.ventana_hasta < hoy && !cerrado) {
-      const conocidos = new Set(f.casos ?? []);
       // Nuevo = no listado en «casos» O creado desde que empezó la ventana: la lista es editable y no puede esconder un caso.
       // `ventana_desde` es un DÍA (00:00 UTC) y vale el día de la fusión (N1, #381): un caso creado ese mismo día, aunque
       // sea el de origen, cuenta como nuevo. Por eso la skill `issues` pide ponerla el día siguiente al del caso de origen.
       const desde = f.ventana_desde ? Date.parse(`${f.ventana_desde}T00:00:00Z`) : null;
-      const nuevosCasos = casos.filter((h) => !conocidos.has(h.number) || (desde !== null && h.createdAt && Date.parse(h.createdAt) >= desde));
+      const nuevosCasos = casos.filter((h) => !listado(h, f.casos) || (desde !== null && h.createdAt && Date.parse(h.createdAt) >= desde));
       // N2 (#381): solo bloquea un no-aguanto de ESTA ventana. Uno anterior es el que motivó el arreglo nuevo, y ya
       // se contó (subió el alcance); si no, bloquearía el cierre eficaz para siempre.
       const delaVentana = (h) => desde === null || !h.createdAt || Date.parse(h.createdAt) >= desde;
@@ -544,7 +570,7 @@ export function validarFicha(fondo, { existeEnStaging = () => false, hoy, subido
       if (yaDecidido && !nuevosCasos.length) {
         aviso("ventana", `la ventana venció el ${f.ventana_hasta}, pero hay un caso que no aguantó: no se cierra como eficaz`);
       } else if (nuevosCasos.length) {
-        aviso("ventana", `la ventana venció el ${f.ventana_hasta} con ${lista(nuevosCasos.map((h) => h.number))} sin listar en «casos»: se reabre`);
+        aviso("ventana", `la ventana venció el ${f.ventana_hasta} con ${escritas(nuevosCasos)} sin listar en «casos»: se reabre`);
         if (!acciones.some((a) => a.tipo === "fijar")) acciones.push({ tipo: "fijar", campos: { estado: "reabierto" } });
       } else if (hallazgos.some((h) => h.gravedad === "error")) {
         aviso("ventana", `la ventana venció el ${f.ventana_hasta} sin casos nuevos, pero la ficha tiene errores: no se cierra`);
@@ -558,9 +584,9 @@ export function validarFicha(fondo, { existeEnStaging = () => false, hoy, subido
     }
 
     // 9. La ficha al día: casos y encargos que cuelgan y no están listados.
-    const sinListar = (hs, lis) => hs.filter((h) => !(lis ?? []).includes(h.number));
-    if (sinListar(casos, f.casos).length) aviso("ficha-desactualizada", `casos colgados que no están en «casos»: ${lista(sinListar(casos, f.casos).map((h) => h.number))}`);
-    if (sinListar(encargos, f.encargos).length) aviso("ficha-desactualizada", `encargos colgados que no están en «encargos»: ${lista(sinListar(encargos, f.encargos).map((h) => h.number))}`);
+    const sinListar = (hs, lis) => hs.filter((h) => !listado(h, lis));
+    if (sinListar(casos, f.casos).length) aviso("ficha-desactualizada", `casos colgados que no están en «casos»: ${escritas(sinListar(casos, f.casos))}`);
+    if (sinListar(encargos, f.encargos).length) aviso("ficha-desactualizada", `encargos colgados que no están en «encargos»: ${escritas(sinListar(encargos, f.encargos))}`);
   }
 
   // 10. Un fondo cerrado con un caso posterior (o ya analizado como «no aguantó») se reabre: debeReabrir() de siempre.
@@ -568,7 +594,7 @@ export function validarFicha(fondo, { existeEnStaging = () => false, hoy, subido
     const reabre = casos.filter((h) => debeReabrir(h, fondo) && !(esNoAguanto(h) && subidos.has(h.number) && !posteriorAlCierre(h, fondo)));
     // Los `no-aguanto-*` ya contados (marca del comentario) no vuelven a reabrir cada vez que alguien cierra a mano.
     if (reabre.length && !acciones.some((a) => a.tipo === "reabrir")) {
-      aviso("no-aguanto", `${lista(reabre.map((h) => h.number))} prueba${reabre.length > 1 ? "n" : ""} que el arreglo no aguantó: se reabre`);
+      aviso("no-aguanto", `${escritas(reabre)} prueba${reabre.length > 1 ? "n" : ""} que el arreglo no aguantó: se reabre`);
       acciones.push({ tipo: "reabrir", porque: "no-aguanto" });
       // Se anotan como contados: sin esto, cada cierre a mano vuelve a reabrir (fondos sin ficha o con la ficha rota).
       for (const h of reabre.filter(esNoAguanto)) nuevosSubidos.add(h.number);
@@ -595,9 +621,9 @@ const CLAVES_ENCARGO = CAMPOS_ENCARGO.map((c) => c.clave);
 const escalonDe = (id) => MECANISMOS.mecanismos.find((m) => m.id === id)?.escalon ?? null;
 
 /** Lee el bloque `encargo` de un cuerpo. → { presente, ficha, errores } (reglas encargo-bloque y encargo-vocabulario). */
-export function leerEncargo(body) {
+export function leerEncargo(body, refs = referenciasLocales()) {
   const campos = Object.fromEntries(CLAVES_ENCARGO.map((c) => [c, TIPOS_CAMPO_ENCARGO[c]]));
-  return leerBloque(body, "encargo", campos, "encargo");
+  return leerBloque(body, "encargo", campos, "encargo", [], refs);
 }
 
 /**

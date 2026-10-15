@@ -31,9 +31,42 @@ describe("las líneas del cuerpo", () => {
     expect(agentesDelPr("Agente:").malas).toEqual([""]);
   });
   it("Closes: close, closes, closed, fix, resolves…, sin repetir y sin contar los comentarios de la plantilla", () => {
-    expect(cierresDelPr("Closes #5\nfixes #6\nResolved: #7\nCloses #5")).toEqual([5, 6, 7]);
+    expect(cierresDelPr("Closes #5\nfixes #6\nResolved: #7\nCloses #5")).toEqual([{ repo: "pabloam89/MenuPlan", numero: 5 }, { repo: "pabloam89/MenuPlan", numero: 6 }, { repo: "pabloam89/MenuPlan", numero: 7 }]);
     expect(cierresDelPr("<!-- «Closes #n» por cada encargo -->\nCloses #")).toEqual([]);
     expect(cierresDelPr("no cierra: ver #9 y PR #10")).toEqual([]);
+  });
+});
+
+describe("Closes de otro repo (#856)", () => {
+  const REFS = { repoPropio: "pabloam89/MenuPlan", repos: { "pabloam89/MenuPlan": "homenu", "pabloam89/homenu-panel": "panel" } };
+  const AGENTE = "Agente: constructor\n";
+  it("cada Closes se consulta en su repo, y el de la rama solo lo cumple el del repo propio", async () => {
+    const pedidas = [];
+    const consultar = async (n, repo) => { pedidas.push(`${repo}#${n}`); return { number: n, labels: etiquetas("tipo:caso") }; };
+    const r = await comprobar({ cuerpo: `${AGENTE}Closes #51\nCloses pabloam89/homenu-panel#51`, rama: "ops/51-algo", consultar, consultarPadre: async () => null, refs: REFS });
+    expect(r.ok).toBe(true);
+    expect(pedidas).toEqual(["pabloam89/MenuPlan#51", "pabloam89/homenu-panel#51"]);
+    expect(r.motivo).toMatch(/Closes #51, pabloam89\/homenu-panel#51/);
+    const soloPanel = await comprobar({ cuerpo: `${AGENTE}Closes pabloam89/homenu-panel#51`, rama: "ops/51-algo", consultar, consultarPadre: async () => null, refs: REFS });
+    expect(soloPanel.ok).toBe(false);
+    expect(soloPanel.motivo).toMatch(/la rama es del issue #51/);
+  });
+  it("un 404 del otro repo FALLA (solo se podrá cerrar con acceso); un 403 es el error de la API; un repo que no es de ops/entidades.json, fallo", async () => {
+    const noLoVe = await comprobar({ cuerpo: `${AGENTE}Closes pabloam89/homenu-panel#4`, consultar: async () => null, consultarPadre: async () => null, refs: REFS });
+    expect(noLoVe.ok).toBe(false);
+    expect(noLoVe.api).toBeUndefined();
+    expect(noLoVe.motivo).toMatch(/«Closes pabloam89\/homenu-panel#4»: el CI no lo ha podido leer \(la API da 404[\s\S]*solo se podrá citar cuando el CI tenga acceso a ese repo/);
+    const limite = async (n, repo) => {
+      if (repo === "pabloam89/homenu-panel") throw new ErrorDeApi(`GET /issues/${n}: HTTP 403`);
+      return null;
+    };
+    const r = await comprobar({ cuerpo: `${AGENTE}Closes pabloam89/homenu-panel#3`, consultar: limite, consultarPadre: async () => null, refs: REFS });
+    expect(r.ok).toBe(false);
+    expect(r.api).toBe(true);
+    expect(r.motivo).toMatch(/No he podido consultar pabloam89\/homenu-panel#3 en la API de GitHub[\s\S]*relanza el check/);
+    const ajeno = await comprobar({ cuerpo: `${AGENTE}Closes otro/inventado#3`, consultar: async () => { throw new Error("no debería llamarse"); }, consultarPadre: async () => null, refs: REFS });
+    expect(ajeno.ok).toBe(false);
+    expect(ajeno.motivo).toMatch(/no es un repo de ops\/entidades\.json/);
   });
 });
 
