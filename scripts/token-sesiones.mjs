@@ -114,7 +114,8 @@ export async function pedirToken({ jwt, installationId, fetchFn = fetch, permiso
         "User-Agent": "menuplan-token-sesiones",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ repositories: [repo], permissions: permisos }),
+      // repo null = todos los repos de la instalación (solo para crear el primer repo de una organización)
+      body: JSON.stringify({ ...(repo === null ? {} : { repositories: [repo] }), permissions: permisos }),
       signal: AbortSignal.timeout(ESPERA_FETCH_MS),
     });
   } catch (e) {
@@ -142,7 +143,7 @@ export async function pedirToken({ jwt, installationId, fetchFn = fetch, permiso
   const mal = Object.entries(concedido).filter(([p, nivel]) => !(p in permisos) || !(nivel in NIVEL) || NIVEL[nivel] > NIVEL[permisos[p]]).map(([p]) => p);
   if (mal.length) throw new ErrorToken(`el token trae permisos que no pedí o de más nivel (${mal.join(", ")}): no lo imprimo; corrige los permisos de la App y relanza`);
   const repos = Array.isArray(datos.repositories) ? datos.repositories.map((x) => x?.name) : null;
-  if (!repos || repos.length !== 1 || repos[0] !== repo) throw new ErrorToken(`el token no está limitado exactamente a ${repo} (repositorios: ${repos ? repos.length : "ninguno indicado"}): no lo imprimo`);
+  if (repo !== null && (!repos || repos.length !== 1 || repos[0] !== repo)) throw new ErrorToken(`el token no está limitado exactamente a ${repo} (repositorios: ${repos ? repos.length : "ninguno indicado"}): no lo imprimo`);
   return { token: datos.token, expira: datos.expires_at ?? "", concedido };
 }
 
