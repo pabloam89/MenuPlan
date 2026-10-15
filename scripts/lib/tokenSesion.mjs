@@ -44,8 +44,15 @@ const FORMA_REPO = /^(?!\.{1,2}$)[A-Za-z0-9._-]{1,100}$/;
  * Valida la forma porque el dueño y el repo acaban en una URL y en el nombre de la caché.
  */
 export function normalizarDestino(destino) {
-  if (!destino || (!destino.dueno && !destino.repo)) return null;
+  if (!destino || (!destino.dueno && !destino.repo && !destino.todos)) return null;
   const [duenoCasa, repoCasa] = REPO.split("/");
+  if (destino.todos) {
+    // Toda la organización: sin repo y nunca el dueño de la casa (ahí el alcance es el repo de siempre)
+    if (!destino.dueno || destino.repo != null) throw new ErrorTokenSesion("sin-instalacion", "toda la organización pide dueño y no admite repo");
+    const d = String(destino.dueno);
+    if (!FORMA_DUENO.test(d) || d.toLowerCase() === duenoCasa.toLowerCase()) throw new ErrorTokenSesion("sin-instalacion", "toda la organización no vale para ese dueño");
+    return { dueno: d, repo: null, todos: true };
+  }
   const dueno = String(destino.dueno ?? duenoCasa);
   const repo = String(destino.repo ?? repoCasa);
   if (!FORMA_DUENO.test(dueno) || !FORMA_REPO.test(repo)) throw new ErrorTokenSesion("sin-instalacion", "destino con forma rara");
@@ -201,7 +208,8 @@ export async function tokenDeSesion({ fetch: fetchFn = globalThis.fetch, leerCla
     let installationId = idFijo;
     if (!installationId) {
       // Otro dueño: organización y, si no existe como tal (404), usuario. Sin dueño: el repo de la casa.
-      const rutas = otro ? [`/orgs/${otro.dueno}/installation`, `/users/${otro.dueno}/installation`] : [`/repos/${REPO}/installation`];
+      // Toda la organización: solo `/orgs` (sin repositories no se valida el alcance, así que no vale para una cuenta de usuario).
+      const rutas = otro ? (otro.todos ? [`/orgs/${otro.dueno}/installation`] : [`/orgs/${otro.dueno}/installation`, `/users/${otro.dueno}/installation`]) : [`/repos/${REPO}/installation`];
       let r;
       try {
         for (const ruta of rutas) {
@@ -225,7 +233,7 @@ export async function tokenDeSesion({ fetch: fetchFn = globalThis.fetch, leerCla
     const revision = await revisarInstalacion({ fetchFn, jwt, installationId });
     advertencias.push(...revision.advertencias);
     // Sin saber (null) se pide con workflows: si la App no lo tiene, GitHub da 422 y canjearToken pide sin él
-    const { token, expira, workflows } = await canjearToken({ jwt, installationId, fetchFn, conWorkflows: revision.conWorkflows !== false, ...(otro ? { repo: otro.repo } : {}) });
+    const { token, expira, workflows } = await canjearToken({ jwt, installationId, fetchFn, conWorkflows: revision.conWorkflows !== false, ...(otro ? { repo: otro.todos ? null : otro.repo } : {}) });
     // Solo caracteres de un token de GitHub: va a un fichero que lee un shell
     if (!/^ghs_[A-Za-z0-9_.-]{20,}$/.test(token)) throw new ErrorTokenSesion("token-raro", "el token no tiene la forma esperada");
     return { token, expiraEn: expira || null, installationId, autor: await autorDeApp(fetchFn), advertencias, workflows };
@@ -262,7 +270,8 @@ export async function tokenConCache({ sinCache = false, cache = {}, generar = to
   const base = cache.ruta !== undefined ? cache.ruta : rutaDeCache();
   // `--` entre dueño y repo: GitHub no admite guiones seguidos en un dueño, así que no hay dos destinos con el mismo nombre.
   // El sufijo se añade al nombre base (no se sustituye `.json`), así todo destino tiene fichero propio.
-  const sufijo = otro ? `-${otro.dueno.toLowerCase()}--${otro.repo.toLowerCase()}` : "";
+  // Toda la organización: `@todos` (un repo no puede llevar «@»), así no choca con un repo concreto.
+  const sufijo = otro ? `-${otro.dueno.toLowerCase()}--${otro.todos ? "@todos" : otro.repo.toLowerCase()}` : "";
   const ruta = otro && base ? base.replace(/\.json$/, "") + sufijo + ".json" : base;
   if (otro) resto.destino = otro;
   // Sin un sitio válido para la caché (fuera del perfil o en OneDrive) se canjea como antes

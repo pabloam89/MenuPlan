@@ -1018,6 +1018,68 @@ describe("token por dueño del repo de destino", () => {
       rmSync(dir, { recursive: true, force: true });
     }
   });
+  it("toda la organización: pide el token sin «repositories» y no es el comportamiento por defecto", async () => {
+    const acceso = res(201, { token: TOKEN, expires_at: "2026-10-10T12:00:00Z", permissions: { ...PERMISOS }, repository_selection: "all" });
+    const org = githubFalso({ acceso });
+    await tokenDeSesion({ fetch: org.f, leerClave: leer, destino: { dueno: ORG, todos: true } });
+    expect(org.llamadas[0].url).toMatch(new RegExp(`/orgs/${ORG}/installation$`));
+    const cuerpo = JSON.parse(org.llamadas.find((l) => l.init.method === "POST").init.body);
+    expect(cuerpo).not.toHaveProperty("repositories");
+    expect(cuerpo.permissions).toEqual(expect.objectContaining(PERMISOS));
+    // con un repo concreto, el token sigue limitado a ese repo
+    const uno = githubFalso({ acceso: accesoDe("Fabrica") });
+    await tokenDeSesion({ fetch: uno.f, leerClave: leer, destino: { dueno: ORG, repo: "Fabrica" } });
+    expect(JSON.parse(uno.llamadas.find((l) => l.init.method === "POST").init.body).repositories).toEqual(["Fabrica"]);
+  });
+  it("toda la organización con tokenConCache y el generar REAL: el POST sale sin «repositories» (el destino ya normalizado se acepta)", async () => {
+    const acceso = res(201, { token: TOKEN, expires_at: "2026-10-10T12:00:00Z", permissions: { ...PERMISOS }, repository_selection: "all" });
+    const org = githubFalso({ acceso });
+    const t = await tokenConCache({ fetch: org.f, leerClave: leer, destino: { dueno: ORG, todos: true }, cache: { ruta: null }, ids: () => ({ appId: APP_ID, installationId: null }) });
+    expect(t.token).toBe(TOKEN);
+    const cuerpo = JSON.parse(org.llamadas.find((l) => l.init.method === "POST").init.body);
+    expect(cuerpo).not.toHaveProperty("repositories");
+  });
+  it("toda la organización no cae a /users/<login>/installation si /orgs da 404", async () => {
+    const org = githubFalso({ instalacion: res(404, {}) });
+    await expect(tokenDeSesion({ fetch: org.f, leerClave: leer, destino: { dueno: ORG, todos: true } })).rejects.toMatchObject({ motivo: "sin-instalacion" });
+    expect(org.llamadas.some((l) => /\/users\//.test(l.url) && /installation$/.test(l.url))).toBe(false);
+  });
+  it("toda la organización sigue negando los permisos NEGADOS", async () => {
+    const acceso = res(201, { token: TOKEN, expires_at: "2026-10-10T12:00:00Z", permissions: { ...PERMISOS, administration: "write" }, repository_selection: "all" });
+    await expect(tokenDeSesion({ fetch: githubFalso({ acceso }).f, leerClave: leer, destino: { dueno: ORG, todos: true } })).rejects.toThrow(ErrorTokenSesion);
+  });
+  it("normalizarDestino: toda la organización pide dueño, no admite repo ni al dueño de la casa", () => {
+    expect(normalizarDestino({ dueno: ORG, todos: true })).toEqual({ dueno: ORG, repo: null, todos: true });
+    for (const malo of [{ todos: true }, { dueno: ORG, repo: "x", todos: true }, { dueno: "pabloam89", todos: true }, { dueno: "PabloAM89", todos: true }, { dueno: "a/b", todos: true }]) {
+      expect(() => normalizarDestino(malo)).toThrow(ErrorTokenSesion);
+    }
+  });
+  it("la caché de toda la organización no choca con la de un repo (ni con uno llamado «todos») ni con la de la casa", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "tokdueno-"));
+    try {
+      const generar = vi.fn(async () => ({ token: TOKEN, expiraEn: new Date(T0 + 60 * MIN).toISOString(), installationId: 88, autor: { nombre: "b", correo: "1+b@users.noreply.github.com" }, advertencias: [] }));
+      const o = { ids: () => ({ appId: APP_ID, installationId: null }), generar, reloj: () => T0, cache: { ruta: join(dir, "token-sesion.json"), proteger: () => true, permisosBien: () => true, esperaBloqueoMs: 40, sondeoMs: 5 } };
+      await tokenConCache(o);
+      for (const destino of [{ dueno: ORG, todos: true }, { dueno: ORG, repo: "todos" }, { dueno: ORG, repo: "Fabrica" }]) {
+        expect((await tokenConCache({ ...o, destino })).cache).toBe("no");
+      }
+      expect((await tokenConCache({ ...o, destino: { dueno: ORG, todos: true } })).cache).toBe("si");
+      expect(readdirSync(dir).filter((x) => x.endsWith(".json"))).toHaveLength(4);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+  it("main: --toda-la-organizacion falla sin --dueño, con --repo, con --del-remoto o con el dueño de la casa, y no imprime el token", async () => {
+    const s = { log: vi.fn(), error: vi.fn() };
+    const generar = vi.fn(async () => ({ token: TOKEN, expiraEn: "x", autor: { nombre: "b" } }));
+    expect(await main(["--dueño", ORG, "--toda-la-organizacion", "--comprobar"], { generar, salida: s })).toBe(0);
+    expect(generar.mock.calls[0][0].destino).toEqual({ dueno: ORG, todos: true });
+    for (const args of [["--toda-la-organizacion"], ["--dueño", ORG, "--repo", "x", "--toda-la-organizacion"], ["--dueño", "pabloam89", "--toda-la-organizacion"], ["--dueño", "--toda-la-organizacion"], ["--dueño", ORG, "--toda-la-organizacion", "--del-remoto"]]) {
+      expect(await main([...args, "--comprobar"], { generar, salida: s })).toBe(2);
+    }
+    expect(generar).toHaveBeenCalledTimes(1);
+    expect(JSON.stringify([s.log.mock.calls, s.error.mock.calls])).not.toContain(TOKEN);
+  });
   it("main: --dueño y --del-remoto pasan el destino y no imprimen el token", async () => {
     const s = { log: vi.fn(), error: vi.fn() };
     const generar = vi.fn(async () => ({ token: TOKEN, expiraEn: "x", autor: { nombre: "b" } }));

@@ -8,6 +8,9 @@
  *   … --dueño <login> [--repo <nombre>]         token de la instalación de otro dueño (organización o usuario)
  *   … --del-remoto                              lo mismo, sacado de `git remote get-url origin` de esta carpeta
  *
+ *   … --dueño <org> --toda-la-organizacion      token de TODOS los repos de esa instalación (para crear el primer repo,
+ *                                                que aún no existe); no vale con --repo ni con el dueño de la casa
+ *
  * Sin ninguna de las dos, el repo de la casa (pabloam89/MenuPlan). El arranque ya deja el token en el entorno de la sesión; esto sirve cuando
  * caduca (1 hora), cuando la sesión perdió ese entorno (p. ej. al continuar tras
  * compactar) o para probar la cadena entera. El comando sale con el token, el
@@ -22,7 +25,7 @@ import { existsSync } from "node:fs";
 import { constants } from "node:os";
 import { basename, dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
-import { ErrorTokenSesion, destinoDeRemoto, entornoDeComando, tokenConCache } from "./lib/tokenSesion.mjs";
+import { ErrorTokenSesion, LOGIN_PABLO, destinoDeRemoto, entornoDeComando, tokenConCache } from "./lib/tokenSesion.mjs";
 import { WORKFLOWS } from "./token-sesiones.mjs";
 
 /** Código del propio envoltorio cuando no pudo lanzar el comando (el 1 es del comando). */
@@ -100,13 +103,24 @@ export async function main(argv, { generar = tokenConCache, correr = spawnSync, 
   const comprobar = opciones.includes("--comprobar");
   const sinCache = opciones.includes("--sin-cache");
   if (!comprobar && corte < 0) {
-    salida.error("uso: node scripts/token-sesion.mjs [--sin-cache] [--dueño <login> [--repo <nombre>] | --del-remoto] --comprobar | … -- <comando…>");
+    salida.error("uso: node scripts/token-sesion.mjs [--sin-cache] [--dueño <login> [--repo <nombre> | --toda-la-organizacion] | --del-remoto] --comprobar | … -- <comando…>");
     return 2;
   }
   let destino = null;
   const dueno = valorDe(opciones, "--dueño", "--dueno");
   const repo = valorDe(opciones, "--repo");
-  if (dueno !== undefined || repo !== undefined) {
+  const todos = opciones.includes("--toda-la-organizacion");
+  if (todos) {
+    if (dueno === undefined || dueno.startsWith("--") || opciones.includes("--repo") || opciones.includes("--del-remoto")) {
+      salida.error("uso: --toda-la-organizacion pide --dueño <org> y no admite --repo ni --del-remoto");
+      return 2;
+    }
+    if (dueno.toLowerCase() === LOGIN_PABLO.toLowerCase()) {
+      salida.error("uso: --toda-la-organizacion no vale con el dueño de la casa");
+      return 2;
+    }
+    destino = { dueno, todos: true };
+  } else if (dueno !== undefined || repo !== undefined) {
     if (dueno === undefined || dueno.startsWith("--") || (repo !== undefined && repo.startsWith("--"))) {
       salida.error("uso: --dueño <login> [--repo <nombre>]");
       return 2;
