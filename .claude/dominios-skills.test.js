@@ -135,6 +135,8 @@ describe("qué ficheros piden la línea del PR", () => {
     ["scripts/apply-migration.mjs", "supabase"],
     [".github/workflows/tests.yml", "github"],
     [".github/pull_request_template.md", "github"],
+    // un workflow que espera a que Pablo lo mueva (la App no puede empujar a .github/workflows/, #844)
+    ["ops/workflows-pendientes/foto-issues.yml", "github"],
     ["scripts/issues.mjs", "issues"],
     ["scripts/lib/issues.mjs", "issues"],
     ["scripts/lib/lleva.mjs", "issues"],

@@ -28,6 +28,7 @@
       ],
       "rutas": [
         "^\\.github/(?!ISSUE_TEMPLATE/)",
+        "^ops/workflows-pendientes/",
         "^scripts/(?:podar|retirar|tarea|runbook-pr)\\.mjs$",
         "^scripts/bin/gh$",
         "^scripts/(?:gh-shim|lib/tokenSesion|lib/cacheTokenSesion)\\.mjs$",
