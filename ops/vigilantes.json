@@ -33,9 +33,16 @@
     {
       "id": "plantillas-de-componente",
       "tests": ["ops/diseno/plantillas-componente.test.js"],
-      "mira": ["ops/diseno/plantillas-componente.json", "ops/diseno/taxonomia.json", "ops/diseno/bloques.json", "ops/diseno/bibliotecas.json", "scripts/lib/plantillasComponente.mjs", "scripts/lib/bibliotecasDiseno.mjs", "scripts/lib/regla.mjs", "scripts/lib/vocabulariosVida.mjs", "ops/vocabularios-vida.json"],
-      "porque": "Hay una plantilla por cada tipo de elemento de la taxonomía y reutiliza los vocabularios de bloques.json, las marcas del pool y las marcas de fuente de regla.mjs: añadir o quitar un elemento, cambiar un estado, una variante o un tipo de token de bloques.json, o una marca, rompe un test que está lejos de lo que tocas.",
-      "evidencia": "#842 (plantillas de componente de los 50 tipos de elemento, programa #774)"
+      "mira": ["ops/diseno/plantillas-componente.json", "ops/diseno/taxonomia.json", "ops/diseno/bloques.json", "ops/diseno/bibliotecas.json", "scripts/lib/plantillasComponente.mjs", "scripts/lib/bibliotecasDiseno.mjs", "scripts/lib/normas.mjs", "ops/normas.json", "scripts/lib/vocabulariosVida.mjs", "ops/vocabularios-vida.json"],
+      "porque": "Hay una plantilla por cada tipo de elemento de la taxonomía y reutiliza los vocabularios de bloques.json y la marca y el sí/no del pool, y su mínimo de estados es el de la exigencia de la norma design-complete-states: añadir o quitar un elemento, cambiar un estado, una variante o un tipo de token de bloques.json, una marca o el sí/no del pool, o reescribir esa exigencia, rompe un test que está lejos de lo que tocas.",
+      "evidencia": "#842 (plantillas de componente de los 50 tipos de elemento, programa #774); #850 (sin fuentes; la norma y el código, en los dos sentidos)"
+    },
+    {
+      "id": "topes-de-texto",
+      "tests": ["ops/topes.test.js"],
+      "mira": ["ops/topes.json", "scripts/lib/topes.mjs", "ops/normas.json", "ops/proyectos/*/normas.json", "ops/proyectos/*/tareas.json", "ops/principios/**", "ops/pool/**", ".claude/skills/*/SKILL.md", "ops/estandares-agentes.json", "ops/forja/**", "ops/glosario/**", "CLAUDE.md"],
+      "porque": "ops/topes.test.js mide cada texto de LECTORES de scripts/lib/topes.mjs (normas, principios, prácticas, skills, tareas y reglas de los estándares, criterios de la forja, términos y CLAUDE.md) a través de sus módulos, sin citar sus rutas: alargar la nota de una norma o la descripción de una skill pasa del tope sin que la selección por citas lo lance.",
+      "evidencia": "#849 (la nota de design-complete-states pasó del tope en el CI de #846 y vecinos no lanzó el test); #850"
     },
     {
       "id": "procesos-ocultos",

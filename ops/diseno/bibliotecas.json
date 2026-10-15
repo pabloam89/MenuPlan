@@ -42,8 +42,8 @@
       "core-only": "La licencia vale solo para el núcleo; hay un nivel de pago aparte"
     },
     "declaracion": {
-      "yes": "La fuente lo declara",
-      "no": "La fuente dice que no"
+      "yes": "Sí: se cumple lo que pregunta el campo que lo usa",
+      "no": "No: no se cumple lo que pregunta el campo que lo usa"
     },
     "react_estado": {
       "declared": "El paquete declara una versión de React (desde, hasta)",
