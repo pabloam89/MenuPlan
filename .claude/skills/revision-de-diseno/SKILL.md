@@ -61,7 +61,7 @@ Vocabulario cerrado de hallazgos (el código es lo que se cuenta):
 | `pareja-sin-declarar` | texto y fondo nuevos que no están en `contraste.json` | L05 | aviso |
 | `objetivo-pequeno` | control interactivo con área menor que `tam-tactil` (40) | L06 | falta |
 | `color-unica-senal` | error, estado o selección que solo cambia de color | L08 | falta |
-| `estado-sin-definir` | componente interactivo sin alguno de los estados del vocabulario de `bloques.json` | L14 | aviso |
+| `estado-sin-definir` | componente interactivo sin alguno de los estados que marca su plantilla (`ops/diseno/plantillas-componente.json`) | L14 | aviso |
 | `componente-duplicado` | un primitivo nuevo que hace lo de uno de `src/components/ui.jsx` | L17 | falta |
 | `bloque-sin-declarar` | bloque que el perfil pide, sin contenido ni «no aplica» con motivo | N1 | falta |
 | `no-aplica-sin-motivo` | un «no aplica» sin su porqué | N1 | falta |
@@ -124,6 +124,7 @@ hallazgo con código, evidencia y arreglo, y cada norma con su estado dicho.
 
 ## Registro de cambios
 
+- **2026-10-15** · `estado-sin-definir` mira los estados que marca la plantilla del componente, como la norma `design-complete-states` desde #842 (#850).
 - **2026-10-13** · Las normas L01–L22 pasan a `ops/normas.json` con ámbito `diseno`; el contraste cita `design-contrast-aa`.
 - **2026-10-12** · Primera versión: doce códigos de hallazgo sobre las normas de N0 y los bloques de N1, con el contraste y los bloques medidos por test (#591, paso 6 del orden de META-DISENO.md).
 
