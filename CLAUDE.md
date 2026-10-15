@@ -82,8 +82,7 @@ en staging.
 2. `git status --short` y añade por nombre solo lo tuyo; si un fichero mezcla
    lo tuyo con lo de otro, dilo en el mensaje o déjalo fuera.
 3. En local, `npm run vecinos`: los tests de lo que tocas más los vigilantes de conjunto
-   que lo miran (los que recorren todos los scripts, skills o migraciones; lista en
-   `ops/vigilantes.json`). Elegir a mano con `npx vitest run <ficheros>` los deja fuera (#356).
+   que lo miran (lista en `ops/vigilantes.json`). Elegir a mano con `npx vitest run <ficheros>` los deja fuera (#356).
    La suite entera, el build y el lint con base los corre el CI del PR (gratis en
    repo público): espera su resultado con una consulta espaciada, sin sondear. La
    suite entera en local, con `MENUPLAN_SUITE_ENTERA=1` y solo si tocas algo transversal
@@ -91,9 +90,9 @@ en staging.
    cuenta la **lista** de errores, no el recuento.
 4. Un test nuevo se ve fallar una vez antes de creértelo (detalle en la regla
    `tests`).
-5. En el cuerpo del PR, `Closes #n` por cada encargo o problema de fondo que
-   cierra y una línea `Agente: <nombre>` (o `sesión`): de ahí sale quién
-   arregló qué y si aguantó.
+5. En el cuerpo del PR, `Closes #n` por cada encargo o fondo que cierra,
+   `Agente: <nombre>` (`sesión` solo en zona sin constructor dueño),
+   `Tipo:` y `Jueces:` (los de `npm run dimensionar -- --diff`, sin el `Agente`).
 
 ## Base de datos
 

@@ -112,6 +112,12 @@
         "hooks": [
           { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/skill-abierta.mjs\"", "timeout": 10 }
         ]
+      },
+      {
+        "matcher": "Agent|Task",
+        "hooks": [
+          { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/lanzamiento.mjs\"", "timeout": 10 }
+        ]
       }
     ]
   }

@@ -9,7 +9,15 @@ los casos conocidos. Si un fallo vuelve, no se abre otro fondo: se cuelga el
 caso del mismo (npm run issues -- --colgar) y el fondo se reabre.
 
 Agente (el CI la pide; el nombre solo, sin puntos ni adornos: «Agente: constructor»): el que lo construyó (constructor), o «sesión» si
-lo hizo la sesión principal sin agente.
+lo hizo la sesión principal sin agente. «sesión» solo vale donde no hay constructor dueño (audit, un subtipo que
+construye en la sesión, o ficheros de catalog, api, product o entities); si lo hay, el agente real (#642).
+
+Tipo y Jueces (obligatorias en TODO PR, #642; decisión #387: quien construye no juzga):
+  Tipo: create | fix | improve | operate | audit, o un subtipo de ops/tipos-de-encargo.json (operate-reversible…)
+  Jueces: los que exige el dimensionado de tu diff, separados por coma; ninguno puede ser el de «Agente:».
+  Cuáles: npm run dimensionar -- --diff --tipo <tipo>   (línea «jueces:»)
+La guardia pide las dos al abrir el PR y el CI (paso «Dimensionado del PR») comprueba los jueces exigidos. Un
+PR creado antes del 2026-10-17 solo avisa. La sesión puede fusionar su PR, pero solo con un juez distinto nombrado.
 
 Casos (obligatoria en TODO PR; la guardia y el CI la piden): los fallos del
 camino de este trabajo (un test rojo que no era tuyo, un dato falso que se
@@ -46,7 +54,11 @@ en la precedencia (docs/PRINCIPIOS.md) y la otra se deja como excepción.
 
 Closes #
 
-Agente: sesión
+Agente: 
+
+Tipo: 
+
+Jueces: 
 
 Casos:
 

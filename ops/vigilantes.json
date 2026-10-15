@@ -10,6 +10,13 @@
       "evidencia": "#557 (revisor: el cruce solo miraba nombres de agente); #640 (los tipos se unen al presupuesto)"
     },
     {
+      "id": "dimensionado-del-pr",
+      "tests": ["scripts/dimensionado-pr.test.js", ".claude/hooks/lanzamiento.test.js"],
+      "mira": ["ops/tipos-de-encargo.json", ".claude/agents/*.md", "ops/estandares-agentes.json", "ops/normas.json", "scripts/lib/tiposDeEncargo.mjs", "scripts/lib/dimensionado.mjs", "scripts/lib/dimensionadoPr.mjs", "scripts/lib/ambitos.mjs", "scripts/lib/agentes.mjs", ".claude/hooks/guardia.mjs", ".claude/hooks/tipo-y-jueces.mjs", ".claude/hooks/lanzamiento.mjs", ".claude/settings.json", ".github/workflows/tests.yml", ".github/pull_request_template.md"],
+      "porque": "La cadena de punta a punta de #642: un ejemplo por cada tipo, los jueces que exige el dimensionado, la guardia y el CI que piden Tipo y Jueces, el brief con estándar de cada agente y el hook que lo comprueba al lanzarlo. Un tipo, un agente o una tarea nuevos, o un paso del CI o un hook descolgados, la rompen lejos de lo que se toca.",
+      "evidencia": "#642 (cableado duro, decidido por Pablo el 12 oct 2026)"
+    },
+    {
       "id": "preguntas-del-proyecto",
       "tests": ["ops/preguntas.test.js"],
       "mira": ["ops/proyectos/*/preguntas.json", "ops/proyectos/*/normas.json", "ops/normas.json", "CLAUDE.md", ".claude/agents/orquestador.md", "scripts/lib/preguntas.mjs", "scripts/lib/zonasProyecto.mjs"],

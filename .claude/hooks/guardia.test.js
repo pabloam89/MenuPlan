@@ -506,8 +506,11 @@ describe("los issues se crean buscando antes (#204)", () => {
     expect(bash(c)).toBe(null));
 });
 
-// La línea «Casos:» (#185): todo PR nuevo la lleva. Aquí, la mínima válida.
-const CASOS = "Casos: ninguno — solo prueba la guardia, no ha habido ningún fallo";
+// Las líneas «Tipo:» y «Jueces:» (#642): todo PR nuevo las lleva. Aquí, las mínimas válidas.
+const DIM = "Tipo: create\nJueces: revisor";
+// La línea «Casos:» (#185): todo PR nuevo la lleva. Aquí, la mínima válida (con las de #642 detrás).
+const SOLO_CASOS = "Casos: ninguno — solo prueba la guardia, no ha habido ningún fallo";
+const CASOS = `${SOLO_CASOS}\n${DIM}`;
 
 describe("PR de una rama con issue: lleva su Closes (#206)", () => {
   const conIssue = (extra = {}) => ctx({ ramaDe: () => "ops/193-dependabot", ...extra });
@@ -554,14 +557,14 @@ describe("gh pr create lleva la línea «Casos:» (#185)", () => {
     expect(r.motivo).toMatch(/Casos: #n, #m/);
     expect(r.motivo).toMatch(/ninguno — /);
   });
-  it.each(['gh pr create --body "Casos: #301, #305"', `gh pr create --body "${CASOS}"`])("con ella, pasa: %s", (c) => expect(bash(c)).toBe(null));
+  it.each([`gh pr create --body "Casos: #301, #305\n${DIM}"`, `gh pr create --body "${CASOS}"`])("con ella, pasa: %s", (c) => expect(bash(c)).toBe(null));
   it("admite texto tras la lista (mismo criterio que el CI) pero no 21 números", () => {
-    expect(bash('gh pr create --body "Casos: #12 (el test rojo)"')).toBe(null);
+    expect(bash(`gh pr create --body "Casos: #12 (el test rojo)\n${DIM}"`)).toBe(null);
     const lista = Array.from({ length: 21 }, (_, i) => `#${i + 1}`).join(", ");
-    expect(bash(`gh pr create --body "Casos: ${lista}"`)).toBe("deny");
+    expect(bash(`gh pr create --body "Casos: ${lista}\n${DIM}"`)).toBe("deny");
   });
   it("la lee del --body-file", () => {
-    expect(bash("gh pr create --body-file pr.md", ctx({ leer: () => "Closes #1\nCasos: #301" }))).toBe(null);
+    expect(bash("gh pr create --body-file pr.md", ctx({ leer: () => `Closes #1\nCasos: #301\n${DIM}` }))).toBe(null);
     expect(bash("gh pr create --body-file pr.md", ctx({ leer: () => "Closes #1" }))).toBe("deny");
     expect(bash("gh pr create --body-file pr.md", ctx({ leer: () => null }))).toBe("deny");
   });
@@ -571,6 +574,24 @@ describe("gh pr create lleva la línea «Casos:» (#185)", () => {
   it("otros gh pr no la piden", () => {
     for (const c of ["gh pr view 3", "gh pr edit 3 --body x", "gh pr checks 3"]) expect(bash(c)).toBe(null);
   });
+});
+
+describe("gh pr create lleva «Tipo:» y «Jueces:» (#642, decisión #387)", () => {
+  it.each([
+    ["sin ninguna de las dos", `gh pr create --body "${SOLO_CASOS}"`, /Falta la línea «Tipo:»/],
+    ["sin Jueces", `gh pr create --body "${SOLO_CASOS}\nTipo: fix"`, /Falta la línea «Jueces:»/],
+    ["con la sesión de juez", `gh pr create --body "${SOLO_CASOS}\nTipo: fix\nJueces: sesión"`, /no es un juez/],
+    ["con el agente de juez", `gh pr create --body "${SOLO_CASOS}\nAgente: revisor\nTipo: audit\nJueces: revisor"`, /quien construye no juzga/],
+  ])("%s, no", (_, c, motivo) => {
+    const r = decidir({ tool_name: "Bash", tool_input: { command: c } }, ctx());
+    expect(r?.decision).toBe("deny");
+    expect(r.motivo).toMatch(motivo);
+    expect(r.motivo).toMatch(/pr-tipo-y-jueces-exigidos/);
+  });
+  it("con las dos, del --body-file, pasa", () =>
+    expect(bash("gh pr create --body-file pr.md", ctx({ leer: () => `Agente: constructor\n${SOLO_CASOS}\nTipo: operate\nJueces: seguridad, revisor` }))).toBe(null));
+  it("va después de «Casos:»: sin Casos, el motivo es Casos", () =>
+    expect(decidir({ tool_name: "Bash", tool_input: { command: "gh pr create" } }, ctx()).motivo).toMatch(/Casos/));
 });
 
 describe("gh pr create con la rama al día", () => {

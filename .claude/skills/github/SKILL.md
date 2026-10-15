@@ -1,6 +1,6 @@
 ---
 name: github
-description: Úsala cuando el CI de GitHub esté en rojo, un workflow o un cron de Actions falle o no arranque, haya que mirar los checks o los logs de un PR, una carpeta de trabajo desaparezca sola, o se toque la protección de ramas, Dependabot, el secret scanning o los secretos de Actions, o las líneas del PR (`Closes`, `Runbook:`, `Casos:`). No para: issues, casos y problemas de fondo (issues), despliegues (vercel) ni migraciones (agente constructor).
+description: Úsala cuando el CI de GitHub esté en rojo, un workflow o un cron de Actions falle o no arranque, haya que mirar los checks o los logs de un PR, una carpeta de trabajo desaparezca sola, o se toque la protección de ramas, Dependabot, el secret scanning o los secretos de Actions, o las líneas del PR (`Closes`, `Runbook:`, `Casos:`, `Tipo:`, `Jueces:`). No para: issues, casos y problemas de fondo (issues), despliegues (vercel) ni migraciones (agente constructor).
 metadata:
   tipo: servicio
   opera_proveedor: true
@@ -11,7 +11,7 @@ metadata:
   elige_opciones: false
   dueno: constructor
   comprobado: "2026-10-14"
-  normas: [main-solo-por-pr-con-tests, staging-exige-tests, sin-push-forzado, deploy-key-unica, secretos-de-repo, push-protection, pr-al-dia-y-closes, pr-agente-y-closes-en-ci, linea-runbook, sesion-con-su-identidad]
+  normas: [main-solo-por-pr-con-tests, staging-exige-tests, sin-push-forzado, deploy-key-unica, secretos-de-repo, push-protection, pr-al-dia-y-closes, pr-agente-y-closes-en-ci, pr-tipo-y-jueces-exigidos, linea-runbook, sesion-con-su-identidad]
 ---
 
 # GitHub
@@ -32,7 +32,7 @@ metadata:
 
 | Workflow | Cuándo | Qué hace |
 |---|---|---|
-| `tests.yml` | PR a `staging` o `main` (también al editar su cuerpo), push a `staging`, a mano | las líneas «Runbook:», «Casos:», «Agente:» y «Closes» del PR (esas dos, en el paso «Fondos del PR», que mira también que cada norma sin ejecutor cuelgue de un encargo o una decisión abiertos, #620), la higiene de las skills que toca el PR (paso «Higiene de las skills del PR», #341: una falta falla), los avisos del PR (paso «Avisos del PR», #576: tests relajados, PR grande y fondo cerrado sin aprendizaje; solo avisan, con UNA forma de excepción en el cuerpo, `Excepción: <id de norma> — <motivo> — hasta AAAA-MM-DD` (#621; una caducada o de una norma inexistente no cuenta y solo falla la de una norma dura que el PR toca; cada aviso deja además su línea `norma: <id> resultado: …`; las formas de antes siguen valiendo con aviso en la transición, ver «Fechas»), lint con línea base, tests y build. Es el check `tests` |
+| `tests.yml` | PR a `staging` o `main` (también al editar su cuerpo), push a `staging`, a mano | las líneas «Runbook:», «Casos:», «Agente:», «Closes», «Tipo:» y «Jueces:» del PR (las dos últimas, en el paso «Dimensionado del PR», #642; «Agente:» y «Closes», en el paso «Fondos del PR», que mira también que cada norma sin ejecutor cuelgue de un encargo o una decisión abiertos, #620), la higiene de las skills que toca el PR (paso «Higiene de las skills del PR», #341: una falta falla), los avisos del PR (paso «Avisos del PR», #576: tests relajados, PR grande y fondo cerrado sin aprendizaje; solo avisan, con UNA forma de excepción en el cuerpo, `Excepción: <id de norma> — <motivo> — hasta AAAA-MM-DD` (#621; una caducada o de una norma inexistente no cuenta y solo falla la de una norma dura que el PR toca; cada aviso deja además su línea `norma: <id> resultado: …`; las formas de antes siguen valiendo con aviso en la transición, ver «Fechas»), lint con línea base, tests y build. Es el check `tests` |
 | `fondos.yml` | eventos de issues (alta, edición, etiqueta, cierre, reapertura), cada día 06:35 UTC, a mano | los controles de la ficha del fondo (#337, skill `issues`): un comentario del bot con la marca `<!-- menuplan:fondo -->`, la etiqueta `control:ok` o `control:falla`, y reabrir, subir alcance o cerrar como `cerrado-eficaz`. `issues: write`, `contents: read` y `actions: read` (para comprobar el run de su comentario), acciones fijadas por SHA, solo issues de OWNER, MEMBER o COLLABORATOR, sin secretos ni `pull_request_target`; nada del issue entra en un `run:` |
 | `mercadona-sync.yml` | lunes 06:15 UTC, a mano (con `probar_push`, un commit vacío si no hay precios nuevos) | precios de Mercadona; commitea y **empuja a `staging` con la deploy key** (sin el secreto, con el token). Ese push sí lanza `tests` |
 | `agente-fallos.yml` | cada día 06:20 UTC, a mano | agente de fallos de generación (`.claude/routines/fallos-generacion.md`) |

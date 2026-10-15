@@ -10,7 +10,8 @@
  *             --objetivo "<texto>"   --rama <rama>   --tarea <id de la tarea del constructor>   --json   --brief <agente> [--fase n]   --briefs
  *
  * Por defecto imprime líneas `campo: valor`. `--json` imprime el plan entero. `--brief <agente>` imprime el brief de ese agente (las
- * nueve piezas de /orquestar, sección 4) y `--briefs` el de todos. Lógica en scripts/lib/dimensionado.mjs. Sale 1 si algo no existe
+ * nueve piezas de /orquestar, sección 4) y `--briefs` el de todos. Un agente que el plan no trae (un analista, un qa o un seguridad
+ * ad hoc) tiene brief con `--brief <agente> --tarea <una tarea suya>`. Lógica en scripts/lib/dimensionado.mjs. Sale 1 si algo no existe
  * (subtipo, tipo, causa, bandera o encargo) y dice cuáles hay; nunca inventa un plan.
  */
 import { execFileSync } from "node:child_process";
@@ -56,11 +57,14 @@ function leerIssue(n) {
   return { titulo: issue.title, ficha };
 }
 
-/** Los ficheros del diff de la rama frente a origin/staging, con sus líneas (añadidas más quitadas), como las cuenta el CI. */
+/**
+ * Los ficheros del diff de la rama frente a origin/staging, con sus líneas (añadidas más quitadas), como las cuenta el CI, y lo que
+ * miran las banderas de rutas como en el CI: las líneas añadidas y la ruta de antes de un renombrado (#642).
+ */
 function diffDeLaRama() {
   const git = (...a) => execFileSync("git", ["-C", RAIZ, ...a], { encoding: "utf8", windowsHide: true, maxBuffer: 256 * 1024 * 1024 });
   const rama = git("diff", "-U0", "origin/staging...HEAD");
-  const porRuta = new Map(leerDiff(rama).map((f) => [f.ruta, f.anadidas.length + f.quitadas.length]));
+  const porRuta = new Map(leerDiff(rama).map((f) => [f.ruta, { ruta: f.ruta, lines: f.anadidas.length + f.quitadas.length, anadidas: f.anadidas, ...(f.origen ? { origen: f.origen } : {}) }]));
   // Lo sin commitear y lo nuevo también es de la rama: se suma para que `--diff` antes del commit no salga vacío.
   const sucio = git("status", "--porcelain", "-uall").split(/\r?\n/).filter(Boolean).map((l) => l.slice(3).replace(/^"|"$/g, "").split(" -> ").at(-1));
   // `-uall` expande las carpetas sin seguimiento; de un fichero nuevo se cuentan sus líneas (todas son añadidas).
@@ -68,9 +72,9 @@ function diffDeLaRama() {
     if (porRuta.has(r)) continue;
     let lines = null;
     try { lines = readFileSync(join(RAIZ, r), "utf8").split("\n").length - 1; } catch { /* a propósito: un fichero borrado o ilegible se queda sin líneas y la medida lo marca como mínimo */ }
-    porRuta.set(r, lines);
+    porRuta.set(r, { ruta: r, lines });
   }
-  return [...porRuta].map(([ruta, lines]) => ({ ruta, lines }));
+  return [...porRuta.values()];
 }
 
 function main() {
@@ -101,7 +105,7 @@ function main() {
 
   if (o.brief || o.briefs) {
     const agentes = o.briefs ? [...new Set(plan.fases.flatMap((f) => f.agentes.map((a) => a.agente)))] : [o.brief];
-    console.log(agentes.map((a) => briefDe(plan, a, { fase: o.fase ? Number(o.fase) : undefined })).join("\n\n---\n\n"));
+    console.log(agentes.map((a) => briefDe(plan, a, { fase: o.fase ? Number(o.fase) : undefined, tarea: o.tarea ?? undefined })).join("\n\n---\n\n"));
   } else if (o.json) console.log(JSON.stringify({ ...plan, redimensionar: redim }, null, 2));
   else console.log(textoDe(plan, redim));
 }

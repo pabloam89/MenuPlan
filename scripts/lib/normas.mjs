@@ -136,7 +136,7 @@ export const CAMPOS = [
   "id", "nombre", "sujeto", "fuerza", "exigencia", "donde", "ejecutor", "alcance", "ante_fallo",
   "control", "control_tipo", "control_procesador", "control_fuerza", "control_momento", "control_que_mira", "control_cobertura", "veredicto", "riesgo", "issue", "principio", "ambito", "lado", "acciones",
 ];
-export const CAMPOS_OPCIONALES = ["condicion", "nota", "criterio_planos", "test_fallo", "desde", "concepto", "test_del_juez", "project"];
+export const CAMPOS_OPCIONALES = ["condicion", "nota", "criterio_planos", "test_fallo", "desde", "concepto", "test_del_juez", "project", "admite_excepcion"];
 
 export const RUTA_REGISTRO = "ops/normas.json";
 export const RUTA_MD = "docs/ops/NORMAS.md";
@@ -338,6 +338,8 @@ export function problemasDeForma(n, sujetos) {
   malos.push(...problemasDeControl(n, id));
   malos.push(...problemasDeEjes(n, id));
   if (n.issue !== null && !Number.isInteger(n.issue)) malos.push(`${id}: «issue» es un número o null`);
+  // Campo cerrado (#642): solo existe para decir que NO; por defecto toda norma admite su excepción con la forma única.
+  if ("admite_excepcion" in n && n.admite_excepcion !== false) malos.push(`${id}: «admite_excepcion» solo puede ser false (si admite, no se pone)`);
   // La unión con su principio (#619): que el principio exista lo mira ops/uniones.test.js, que lee la lista.
   if (typeof n.principio !== "string" || !ID_KEBAB.test(n.principio)) malos.push(`${id}: «principio» es el id de un principio de docs/PRINCIPIOS.md`);
   if (!(n.ambito in AMBITOS)) malos.push(`${id}: ambito «${n.ambito}» no está en el vocabulario (${Object.keys(AMBITOS).join(", ")})`);
@@ -481,6 +483,7 @@ export const GUARDIA_SIN_AVISO = {
   "estado-leido-antes-de-afirmar": "La hace cumplir pendientes.mjs, el hook de Stop: frena al terminar de responder si se afirma un estado sin leerlo antes",
   "fuera-de-onedrive": "La dice arranque.mjs al abrir la sesión: avisa una vez y no niega ninguna orden",
   "eventos-de-hooks-registrados": "No niega nada: es lo que hace cada hook al escribir su línea en el registro local (eventos.mjs)",
+  "brief-con-estandar": "La hace cumplir lanzamiento.mjs, un hook aparte sobre Agent|Task (#642): niega con su propio motivo, no con un aviso de la guardia",
 };
 
 /** Normas de ejecutor «guardia» sin aviso ni excepción, y excepciones que sobran (de una norma que ya no es de la guardia o ya tiene aviso). */
@@ -570,7 +573,7 @@ export function generarMd(registro, avisos) {
   for (const [id, a] of Object.entries(avisos)) L.push(`| \`${id}\` | \`${a.codigo}\` | ${celda(a.que)} |`);
   L.push(
     "", "## Excepciones, choques y medición (#621)", "",
-    `**Una sola forma de excepción.** En el cuerpo del PR, una línea por excepción: \`${FORMA}\`. Cuenta si la norma existe, el motivo es de verdad y la caducidad no ha pasado ni cae a más de ${MAX_DIAS} días; si no, avisa y no cuenta, y **falla** si la norma es \`dura\` y el PR toca uno de sus ficheros (\`donde\` o \`control\`). Una excepción solo exime de lo que un control del CI consulta (hoy, las tres normas de los avisos C1, C8 y C12); para cualquier otra queda anotada (\`declared\`) y medida, nada más, y la fecha de hoy es la UTC del run. Las formas de antes («Tests relajados: sí — …», «Tamaño: grande — …», «Aprendizaje: …») valen hasta el ${RETIRADA_FORMAS_ANTIGUAS}, avisan y están registradas como retiradas en \`ops/vocabularios-vida.json\`. El lector es \`scripts/lib/excepciones.mjs\`.`,
+    `**Una sola forma de excepción.** En el cuerpo del PR, una línea por excepción: \`${FORMA}\`. Cuenta si la norma existe, el motivo es de verdad y la caducidad no ha pasado ni cae a más de ${MAX_DIAS} días; si no, avisa y no cuenta, y **falla** si la norma es \`dura\` y el PR toca uno de sus ficheros (\`donde\` o \`control\`). Una excepción solo exime de lo que un control del CI consulta (hoy, las tres normas de los avisos C1, C8 y C12 y las del paso «Dimensionado del PR» que la admiten); para cualquier otra queda anotada (\`declared\`) y medida, nada más, y la fecha de hoy es la UTC del run. **Sin excepción posible** (\`admite_excepcion: false\`): ${normas.filter((n) => n.admite_excepcion === false).map((n) => `\`${n.id}\``).join(", ") || "ninguna"}; su excepción no cuenta (\`not_exceptable\`), porque que te juzgue otro no se exime. Las formas de antes («Tests relajados: sí — …», «Tamaño: grande — …», «Aprendizaje: …») valen hasta el ${RETIRADA_FORMAS_ANTIGUAS}, avisan y están registradas como retiradas en \`ops/vocabularios-vida.json\`. El lector es \`scripts/lib/excepciones.mjs\`.`,
     "",
     "**Cuando dos normas chocan** gana la que defiende el concepto de más arriba en la precedencia (" + ordenDePrecedencia() + "; tabla en `docs/PRINCIPIOS.md`, dato en `ops/principios/_catalogo.json`). Una norma defiende el concepto de su ámbito salvo que declare otro en su campo `concepto`; si las dos defienden el mismo, no se resuelve por precedencia y va a las decisiones pendientes. Quien cede lo deja dicho con una excepción de su norma. `npm run estandar -- <agente> <tarea>` imprime la tabla en el brief.",
     "",

@@ -21,6 +21,7 @@ import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { AYUDA as AYUDA_CASOS, analizarCasos } from "./casos.mjs";
+import { AYUDA as AYUDA_DIMENSIONADO, analizarTipoYJueces } from "./tipo-y-jueces.mjs";
 import { AVISO_POR_CREDENCIAL, avisoDe } from "./avisos-guardia.mjs";
 import { credencialDeComando, sinEnvoltorio } from "./credenciales.mjs";
 import { cargarMapa, skillsDeComando, skillsDeFicheros, unirContinuaciones } from "./dominios.mjs";
@@ -631,6 +632,10 @@ export function decidir(entrada, ctx) {
         const cuerpoCasos = ficheroCasos ? ctx.leer(windows(ficheroCasos[1] ?? ficheroCasos[2] ?? ficheroCasos[3]), dir) ?? "" : "";
         const casos = analizarCasos(`${cmd}\n${cuerpoCasos}`, { enComando: true });
         if (!casos.valida) return deny("pr-sin-casos", { motivo: casos.motivo, ayuda: AYUDA_CASOS });
+        // Las líneas «Tipo:» y «Jueces:» (#642, decisión #387): quien construye no juzga, y el PR lo dice. Solo la
+        // forma y que el «Agente:» no se nombre juez; los jueces que exige el diff los mira el CI (scripts/dimensionado-pr.mjs).
+        const dimensionado = analizarTipoYJueces(`${cmd}\n${cuerpoCasos}`, { enComando: true });
+        if (!dimensionado.valida) return deny("pr-sin-tipo-y-jueces", { motivo: dimensionado.motivo, ayuda: AYUDA_DIMENSIONADO });
         const atraso = ctx.atrasoLocal(dir);
         if (atraso === null) return ask("rama-sin-comprobar");
         if (atraso > 0) return deny("rama-atrasada", { atraso });

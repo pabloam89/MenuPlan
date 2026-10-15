@@ -65,7 +65,7 @@ export { ACTORES, EVITABLE, MOTIVOS_INTERVENCION };
 /** De qué iba la afirmación de un `estado_sin_leer` (#579); lo cruza el test con los temas de pendientes.mjs. */
 export const TEMAS_ESTADO = ["issues-pr", "despliegue", "base", "ci"];
 /** Quién escribe el evento: el hook que llama a `registrarEvento`. */
-export const FUENTES = ["guardia", "skill-abierta", "pendientes", "intervenciones"];
+export const FUENTES = ["guardia", "skill-abierta", "pendientes", "intervenciones", "lanzamiento"];
 /** La identidad de la App de sesiones. Las líneas de antes de #652 la anotaban así; hoy el actor es `app`. */
 export const ACTOR_APP = "homenu-sesiones[bot]";
 

@@ -27,7 +27,7 @@ import { PROYECTO_POR_DEFECTO } from "./zonasProyecto.mjs";
 import { leerEstandares, leerNormasEn, RAIZ_REPO, tareasDe, textoDeTarea } from "./estandaresAgentes.mjs";
 import { leerPrecedencia } from "./precedencia.mjs";
 import { ALCANCES, CATALOGO, CAUSAS, COMPLEXITIES, MOTIVOS_COMPLEJIDAD, presupuestoDe } from "./presupuestos.mjs";
-import { ALL_SUBTYPES, FLAGS, SUBTYPES, TYPES, encargoDe, rolDe } from "./tiposDeEncargo.mjs";
+import { ALL_SUBTYPES, FLAGS, ROLES, SUBTYPES, TYPES, banderasDeRutas, encargoDe, rolDe } from "./tiposDeEncargo.mjs";
 import { precargadasDe, skillsDelEncargo } from "./usoSkills.mjs";
 
 const RAIZ = RAIZ_REPO;
@@ -43,25 +43,32 @@ export const LITERALES = {
   acciones: ["diagnosticar", "juzgar", "medir", "construir", "operar"],
   finalidades: ["diagnose", "measure_before", "measure_after"],
   especiales: ["sesion", "constructor", "constructores"],
-  roles: ["builder", "judge", "planner", "measurer"],
+  // Los roles salen de su fuente (ROLES de tiposDeEncargo.mjs), no de una copia (deuda de #641, saldada en #642).
+  roles: ROLES,
   causa_defecto: "sin-comprobar",
   subtipo_defecto: "create-plain",
 };
 const [SESION, CONSTRUCTOR, CONSTRUCTORES_PLURAL] = LITERALES.especiales;
 const ES_CONSTRUCTOR_GENERICO = [CONSTRUCTOR, CONSTRUCTORES_PLURAL];
 
-/** Las formas de un tipo, derivadas de su `skeleton` en ops/tipos-de-encargo.json (nada por nombre de tipo). */
-export const FORMAS = ["solo-jueces-en-paralelo", "medir-antes-y-despues", "diagnosticar-primero", "construir-y-juzgar"];
+/** Las formas de un tipo, derivadas de su `skeleton` en ops/tipos-de-encargo.json (nada por nombre de tipo), por nombre y no por posición. */
+export const FORMAS = {
+  soloJueces: "solo-jueces-en-paralelo",
+  medir: "medir-antes-y-despues",
+  diagnosticar: "diagnosticar-primero",
+  construir: "construir-y-juzgar",
+};
 export function formaDe(skeleton) {
-  if (skeleton.judges_only_in_parallel) return FORMAS[0];
-  if (skeleton.measures_before_after) return FORMAS[1];
-  if (skeleton.roles[0] === "judge") return FORMAS[2];
-  return FORMAS[3];
+  if (skeleton.judges_only_in_parallel) return FORMAS.soloJueces;
+  if (skeleton.measures_before_after) return FORMAS.medir;
+  if (skeleton.roles[0] === "judge") return FORMAS.diagnosticar;
+  return FORMAS.construir;
 }
 
 const ORDEN_COMPLEJIDAD = Object.keys(COMPLEXITIES);
 const ORDEN_ALCANCE = ALCANCES;
-const ACCIONES_DE_JUEZ_EXTRA = ["juzgar", "medir", "diagnosticar"];  // subconjunto de LITERALES.acciones
+/** Las acciones de una tarea que hacen de un juez un candidato para completar el mínimo de jueces (subconjunto de LITERALES.acciones; lo vigila dimensionar.test.js). */
+export const ACCIONES_DE_JUEZ_EXTRA = ["juzgar", "medir", "diagnosticar"];
 
 const norm = (r) => String(r).replace(/\\/g, "/").replace(/^\.\//, "");
 const unicos = (xs) => [...new Set(xs)];
@@ -176,18 +183,26 @@ function repartir(propios) {
  * entrada: { fuente: "encargo"|"ficheros"|"diff", ficheros: [{ruta, lines}|ruta], subtipo?, tipo?, causa?, banderas?,
  *            numero?, titulo?, objetivo?, declarada?, hecho_cuando?, verificacion?, rama?, tarea? }
  * `tarea`: el id de la tarea del catálogo de estándares que cumple el constructor, si quien orquesta la conoce (manda sobre la deducida).
- * deps: { mapa } para probar con otro mapa de módulos. Lanza si el subtipo, el tipo, la causa o una bandera no existen.
+ * `ficheros` puede traer, de un diff, `origen` (la ruta de antes de un renombrado): las banderas de rutas miran las dos.
+ * deps: { mapa } para probar con otro mapa de módulos; { flagsRutas } las banderas con que se derivan las de rutas (el CI pasa
+ * las de la base del PR, flagsDeRutasConBase; por defecto, las del catálogo). Lanza si el subtipo, el tipo, la causa o una bandera
+ * declarada no existen.
  */
 export function dimensionar(entrada, deps = {}) {
   const mapa = deps.mapa ?? mapaDeModulos();
   const cfg = deps.cfg ?? CATALOGO.dimensionado;
   const causa = entrada.causa ?? LITERALES.causa_defecto;
   if (!CAUSAS.includes(causa)) throw new Error(`causa «${String(causa).slice(0, 40)}» desconocida; las hay: ${CAUSAS.join(", ")}`);
-  const banderas = entrada.banderas ?? [];
-  for (const b of banderas) if (!(b in FLAGS)) throw new Error(`bandera «${String(b).slice(0, 40)}» desconocida; las hay: ${Object.keys(FLAGS).join(", ")}`);
+  const declaradas = entrada.banderas ?? [];
+  for (const b of declaradas) if (!(b in FLAGS)) throw new Error(`bandera «${String(b).slice(0, 40)}» desconocida; las hay: ${Object.keys(FLAGS).join(", ")}`);
   const sub = subtipoDe(entrada);
 
   const ficheros = comoFicheros(entrada.ficheros);
+  // Las banderas: las declaradas más las que activan los ficheros tocados (#642), para que el CI las saque del diff. Se miran los
+  // ficheros tal cual llegan (con su `origen`, que comoFicheros no guarda).
+  const flagsRutas = deps.flagsRutas ?? FLAGS;
+  const deRutas = banderasDeRutas((entrada.ficheros ?? []).map((x) => (typeof x === "string" ? norm(x) : { ...x, ruta: norm(x.ruta) })), flagsRutas);
+  const banderas = unicos([...declaradas, ...deRutas]);
   const propios = ficheros.filter((x) => !esGenerado(x.ruta)).map((x) => x.ruta);
   const medida = medidaDe(ficheros);
   const { alcance, dominios, modulos, ambitos_modulo } = alcanceDe({ ficheros, mapa, cfg });
@@ -214,8 +229,9 @@ export function dimensionar(entrada, deps = {}) {
   const medidores = subDatos.measured_with ?? [];
   const fijos = enc.steps.flatMap((p) => p.agentes ?? []).filter((a) => rolDe(a) === "builder" && !ES_CONSTRUCTOR_GENERICO.includes(a) && !medidores.includes(a));
   if (fijos.length) constructores = unicos(fijos).map((agente) => ({ agente, ficheros: propios }));
-  else if (tipo === "operate") {
-    // Operar la casa lo hace el constructor entero, sea cual sea la zona de los ficheros.
+  else if (esqueleto.irreversible_needs_close) {
+    // Operar la casa (el tipo cuyo esqueleto cierra con una persona si es irreversible: hoy, operate) lo hace el constructor entero,
+    // sea cual sea la zona de los ficheros. Por la bandera del esqueleto, no por el nombre del tipo.
     const ambitos = unicos(propios.map((r) => constructorDeFichero(r)).filter((c) => c?.agente).map((c) => c.ambito));
     constructores = [{ agente: CONSTRUCTOR, ficheros: propios, ...(ambitos.length ? { ambitos } : {}) }];
   }
@@ -232,7 +248,7 @@ export function dimensionar(entrada, deps = {}) {
 
   // Los pasos del subtipo, con el diagnóstico siempre primero en un arreglo (el pipeline mínimo lo salta).
   let pasos = enc.steps;
-  if (forma === FORMAS[2] && !pasos.some((p) => p.purpose === LITERALES.finalidades[0])) pasos = [...subDatos.pasos.filter((p) => p.purpose === LITERALES.finalidades[0]), ...pasos];
+  if (forma === FORMAS.diagnosticar && !pasos.some((p) => p.purpose === LITERALES.finalidades[0])) pasos = [...subDatos.pasos.filter((p) => p.purpose === LITERALES.finalidades[0]), ...pasos];
 
   const fases = [];
   const condicionales = [];
@@ -264,6 +280,12 @@ export function dimensionar(entrada, deps = {}) {
   };
   for (const j of juecesDeAmbitos(ambitos)) pideJuez(j, "es juez de la zona");
   for (const j of enc.judges_required) pideJuez(j, "lo exige la causa");
+  // Una bandera activa trae a su juez en cualquier subtipo (#642): si no, elegir un tipo sin ese paso opcional lo esquivaría.
+  // El juez de una bandera de rutas sale de las mismas banderas que la activaron (en el CI, las de la base: un PR no se lo cambia).
+  for (const b of banderas) {
+    const juez = (deRutas.includes(b) ? flagsRutas[b] : FLAGS[b])?.judge;
+    if (juez) pideJuez(juez, `lo pide la bandera ${b}`);
+  }
   const todosLosJueces = () => unicos(fases.flatMap((_, i) => juecesFase(i)));
   const tareas = tareasDe(deps.estandares ?? leerEstandares(RAIZ));
   while (todosLosJueces().length < enc.judges_min) {
@@ -299,13 +321,15 @@ export function dimensionar(entrada, deps = {}) {
     ficheros: propios,
     forma,
     medicion: esqueleto.measures_before_after ? { kind: subDatos.measure_kind, counters: subDatos.counters ?? [] } : null,
-    diagnostico: forma === FORMAS[2] ? { quien: presu.diagnostica, hipotesis_max: presu.hipotesis_en_paralelo_max, es_no_es: presu.es_no_es } : null,
+    diagnostico: forma === FORMAS.diagnosticar ? { quien: presu.diagnostica, hipotesis_max: presu.hipotesis_en_paralelo_max, es_no_es: presu.es_no_es } : null,
     constructores,
     al_final: reparto.alFinal,
     jueces: unicos(fasesFinal.flatMap((x) => x.agentes.filter((a) => a.rol === "judge").map((a) => a.agente))),
     jueces_min: enc.judges_min,
     jueces_requeridos: enc.judges_required,
     condicionales,
+    banderas,
+    banderas_de_rutas: deRutas,
     fases: fasesFinal,
     cierre: enc.close_with,
     rondas_max: enc.fund_rondas_max,
@@ -421,17 +445,35 @@ export function tareaParaFase(plan, agente, fase, datos) {
 
 /**
  * El brief de un agente del plan (las nueve piezas de `/orquestar`, sección 4), como texto para pegar. `opciones.fase`: la fase del plan
- * (la primera en que aparece el agente, si no se da). Lanza si el agente no está en el plan.
+ * (la primera en que aparece el agente, si no se da).
+ *
+ * Fuera del plan (#642): un agente que el plan no trae (un `analista` que diagnostica, un `qa` o un `seguridad` sin bandera)
+ * también tiene brief si se da `opciones.tarea`, una tarea SUYA de ops/estandares-agentes.json: el mismo brief, con el rol de
+ * su cabecera y la fase «fuera del plan». Sin tarea, lanza y dice cómo pedirla (`--brief <agente> --tarea <tarea>`); el hook
+ * de lanzamiento no deja lanzarlo con un brief escrito a mano.
  */
 export function briefDe(plan, agente, opciones = {}, deps = depsReales()) {
   const fases = plan.fases.filter((f) => f.agentes.some((a) => a.agente === agente));
-  if (!fases.length) throw new Error(`${agente} no está en el plan (agentes: ${unicos(plan.fases.flatMap((f) => f.agentes.map((a) => a.agente))).join(", ")})`);
-  const fase = opciones.fase ? plan.fases.find((f) => f.n === opciones.fase && f.agentes.some((a) => a.agente === agente)) : fases[0];
-  if (!fase) throw new Error(`${agente} no interviene en la fase ${opciones.fase}`);
-  const rol = fase.agentes.find((a) => a.agente === agente).rol;
+  let fase;
+  let rol;
+  let tarea;
+  if (!fases.length) {
+    const enPlan = unicos(plan.fases.flatMap((f) => f.agentes.map((a) => a.agente))).join(", ");
+    const ag = deps.datos.agentes[agente];
+    if (!opciones.tarea) throw new Error(`${agente} no está en el plan (agentes: ${enPlan}). Para lanzarlo fuera del plan, da una tarea suya: --brief ${agente} --tarea <tarea>${ag ? ` (sus tareas son ${ag.tareas.map((t) => t.id).join(", ")})` : ""}`);
+    if (!ag) throw new Error(`${agente} no es un agente de .claude/agents/ con tareas en ops/estandares-agentes.json`);
+    if (!ag.tareas.some((t) => t.id === opciones.tarea)) throw new Error(`${agente} no tiene la tarea «${opciones.tarea}»; tiene: ${ag.tareas.map((t) => t.id).join(", ")}`);
+    rol = rolDe(agente) ?? "judge";
+    fase = { n: "fuera del plan", modo: "lo lanza quien orquesta", finalidad: null };
+    tarea = { id: opciones.tarea, aproximada: false };
+  } else {
+    fase = opciones.fase ? plan.fases.find((f) => f.n === opciones.fase && f.agentes.some((a) => a.agente === agente)) : fases[0];
+    if (!fase) throw new Error(`${agente} no interviene en la fase ${opciones.fase}`);
+    rol = fase.agentes.find((a) => a.agente === agente).rol;
+  }
   const suyos = plan.constructores.find((c) => c.agente === agente)?.ficheros;
   const alcance = rol === "builder" && suyos ? suyos : plan.ficheros;
-  const tarea = tareaParaFase(plan, agente, { rol, finalidad: fase.finalidad }, deps.datos);
+  tarea ??= tareaParaFase(plan, agente, { rol, finalidad: fase.finalidad }, deps.datos);
   const skills = skillsDelEncargo({ ficheros: alcance, comandos: [], mapa: deps.mapaSkills, precargadas: precargadasDe(RAIZ, agente) });
   const abrir = skills.filter((s) => !s.precargada).map((s) => s.skill);
   const estandar = tarea
@@ -440,13 +482,15 @@ export function briefDe(plan, agente, opciones = {}, deps = depsReales()) {
       textoDeTarea(agente, tarea.id, deps.datos, deps.registro, { ficheros: alcance, precedencia: deps.precedencia, proyecto: PROYECTO_POR_DEFECTO })].filter(Boolean).join("\n")
     : `ESTÁNDAR: ninguna tarea del catálogo para ${agente} en esta fase (${agente in deps.datos.agentes ? "ninguna de sus tareas es de la acción que toca" : "no es un agente de .claude/agents/"}); dilo en el informe`;
   const forma = {
-    "diagnosticar-primero": "primero se diagnostica (causa raíz y test que reproduce el fallo), después se arregla, y el juez repite",
-    "medir-antes-y-despues": `se mide antes y después (${plan.medicion?.kind ?? "medida"}${plan.medicion?.counters.length ? `: ${plan.medicion.counters.join(", ")}` : ""}) y la cifra va al informe`,
-    "solo-jueces-en-paralelo": "solo se mira, sin tocar nada, y los jueces trabajan a la vez",
-    "construir-y-juzgar": "construye el constructor y juzga uno distinto",
+    [FORMAS.diagnosticar]: "primero se diagnostica (causa raíz y test que reproduce el fallo), después se arregla, y el juez repite",
+    [FORMAS.medir]: `se mide antes y después (${plan.medicion?.kind ?? "medida"}${plan.medicion?.counters.length ? `: ${plan.medicion.counters.join(", ")}` : ""}) y la cifra va al informe`,
+    [FORMAS.soloJueces]: "solo se mira, sin tocar nada, y los jueces trabajan a la vez",
+    [FORMAS.construir]: "construye el constructor y juzga uno distinto",
   }[plan.forma];
   return [
-    `BRIEF DE ${agente} — rol: ${rol}, fase ${fase.n} de ${plan.fases.length} (${fase.modo})`,
+    fases.length
+      ? `BRIEF DE ${agente} — rol: ${rol}, fase ${fase.n} de ${plan.fases.length} (${fase.modo})`
+      : `BRIEF DE ${agente} — rol: ${rol}, fuera del plan (lo lanza quien orquesta; el plan tiene ${plan.fases.length} fases)`,
     `Rol: ${rol}`,
     `1. Objetivo: ${plan.objetivo ?? "(sin objetivo escrito: lo da quien orquesta)"}`,
     `2. Contexto: ${plan.numero ? `encargo #${plan.numero}; ` : ""}tipo ${plan.tipo}, subtipo ${plan.subtipo}, alcance ${plan.alcance}, complejidad ${plan.complejidad}; ${forma}. Fases: ${plan.fases.map((f) => `${f.n}=${f.agentes.map((a) => a.agente).join("+")}`).join(" → ")}`,

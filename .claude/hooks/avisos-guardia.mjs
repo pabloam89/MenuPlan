@@ -66,6 +66,12 @@ export const AVISOS = {
     porque: "{motivo}",
     enSuLugar: "{ayuda}; el CI lo vuelve a comprobar",
   },
+  "pr-sin-tipo-y-jueces": {
+    codigo: "pr-tipo-y-jueces-exigidos",
+    que: "Abrir el PR sin las líneas «Tipo:» y «Jueces:» válidas",
+    porque: "{motivo} Todo PR dice qué tipo de trabajo es y qué jueces, distintos de quien lo construyó, lo juzgan (#642, decisión #387)",
+    enSuLugar: "{ayuda}; el CI comprueba además los jueces que exige el dimensionado de su diff",
+  },
   "rama-atrasada": {
     codigo: "pr-al-dia-y-closes",
     que: "Abrir el PR con la rama atrasada",

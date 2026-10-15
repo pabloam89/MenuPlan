@@ -3,8 +3,9 @@
  *
  *     Excepción: <id de norma> — <motivo> — hasta AAAA-MM-DD
  *
- * Cuenta si la norma existe en ops/normas.json, el motivo es de verdad (MIN_MOTIVO) y la caducidad es una
- * fecha que no ha pasado ni cae más allá de MAX_DIAS. Si no, NO CUENTA y se dice por qué (`invalidas`).
+ * Cuenta si la norma existe en ops/normas.json, admite excepción (no lleva `admite_excepcion: false`), el motivo es
+ * de verdad (MIN_MOTIVO) y la caducidad es una fecha que no ha pasado ni cae más allá de MAX_DIAS. Si no, NO CUENTA y se
+ * dice por qué (`invalidas`). Las que no admiten excepción son las de los jueces (#642): que te juzgue otro no se exime.
  * Una excepción que no caduca es una norma que ya no existe, así que caducar es obligatorio.
  *
  * Las formas de antes de #621 (las de scripts/lib/avisosPr.mjs: «Tests relajados: sí — <motivo>»,
@@ -62,13 +63,15 @@ const dias = (iso) => Date.parse(`${iso}T00:00:00Z`) / 86_400_000;
 const fechaReal = (iso) => Number.isFinite(dias(iso)) && new Date(`${iso}T00:00:00Z`).toISOString().startsWith(iso);
 
 /**
- * Lee las excepciones de un cuerpo. `normas`: ids de ops/normas.json (o la lista de normas); `hoy`: AAAA-MM-DD.
+ * Lee las excepciones de un cuerpo. `normas`: ids de ops/normas.json (o la lista de normas: solo con los objetos se sabe
+ * cuáles no admiten excepción); `hoy`: AAAA-MM-DD.
  * → { validas: [{ norma, motivo, hasta, forma }], invalidas: [{ norma, motivo, razon, linea }], antiguas: [{ norma, motivo, id }], antiguasVencidas: [{ norma, id }] }
  * `razon` ∈ RAZONES (claves en inglés). Una antigua aceptada va en `validas` con forma «antigua» y `hasta: null`.
  */
 export function leerExcepciones(cuerpo, { normas = [], hoy }) {
   if (!fechaReal(hoy ?? "")) throw new Error("excepciones: «hoy» es AAAA-MM-DD");
   const ids = new Set(normas.map((n) => (typeof n === "string" ? n : n.id)));
+  const sinExcepcion = new Set(normas.filter((n) => typeof n === "object" && n?.admite_excepcion === false).map((n) => n.id));
   const fuera = { validas: [], invalidas: [], antiguas: [], antiguasVencidas: [] };
   for (const m of limpiarCuerpo(cuerpo).matchAll(INTENTO)) {
     const resto = m[1].trim();
@@ -78,6 +81,7 @@ export function leerExcepciones(cuerpo, { normas = [], hoy }) {
     const motivo = motivoLimpio(motivoCrudo);
     const mala = (razon) => fuera.invalidas.push({ norma, motivo, hasta, razon });
     if (!ids.has(norma)) mala("unknown_norm");
+    else if (sinExcepcion.has(norma)) mala("not_exceptable");
     else if (motivo.length < MIN_MOTIVO) mala("short_reason");
     else if (!fechaReal(hasta)) mala("bad_date");
     else if (dias(hasta) < dias(hoy)) mala("expired");
@@ -88,7 +92,7 @@ export function leerExcepciones(cuerpo, { normas = [], hoy }) {
   for (const f of FORMAS_ANTIGUAS) {
     for (const m of lineasDe(cuerpo, f.etiqueta, f.valor)) {
       const a = { norma: f.norma, motivo: motivoLimpio(m[1]), id: f.id };
-      if (vigentes && ids.has(f.norma)) { fuera.antiguas.push(a); fuera.validas.push({ ...a, hasta: null, forma: "antigua" }); } else fuera.antiguasVencidas.push({ norma: f.norma, id: f.id });
+      if (vigentes && ids.has(f.norma) && !sinExcepcion.has(f.norma)) { fuera.antiguas.push(a); fuera.validas.push({ ...a, hasta: null, forma: "antigua" }); } else fuera.antiguasVencidas.push({ norma: f.norma, id: f.id });
     }
   }
   return fuera;
@@ -98,6 +102,7 @@ export function leerExcepciones(cuerpo, { normas = [], hoy }) {
 export const RAZONES = {
   form: "no sigue la forma «" + FORMA + "»",
   unknown_norm: "la norma no existe en ops/normas.json",
+  not_exceptable: "la norma no admite excepción (admite_excepcion: false en ops/normas.json)",
   short_reason: `el motivo tiene menos de ${MIN_MOTIVO} caracteres`,
   bad_date: "la fecha no es un día real AAAA-MM-DD",
   expired: "la caducidad ya ha pasado",

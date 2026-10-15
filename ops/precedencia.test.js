@@ -123,8 +123,19 @@ describe("2. una sola forma de excepción", () => {
     expect(razon(linea("pr-acotado", "motivo bien largo", "2026-02-30"))).toEqual(["bad_date"]);
     expect(razon("Excepción: pr-acotado — motivo bien largo")).toEqual(["form"]);
     expect(razon("Excepción: pr-acotado")).toEqual(["form"]);
-    expect(Object.keys(RAZONES).sort()).toEqual(["bad_date", "expired", "form", "short_reason", "too_far", "unknown_norm"]);
+    expect(Object.keys(RAZONES).sort()).toEqual(["bad_date", "expired", "form", "not_exceptable", "short_reason", "too_far", "unknown_norm"]);
     expect(lee(linea("pr-acotado", "motivo bien largo", "2026-10-11")).validas).toEqual([]);
+  });
+  it("las normas de los jueces no admiten excepción: con la lista de normas, la suya no cuenta (not_exceptable, #642)", () => {
+    const sinExc = ["quien-construye-no-juzga", "fusiona-otro-que-el-constructor", "pr-tipo-y-jueces-exigidos"];
+    expect(normas.filter((n) => n.admite_excepcion === false).map((n) => n.id).sort()).toEqual([...sinExc].sort());
+    for (const id of sinExc) {
+      const l = leerExcepciones(linea(id, "me juzgo yo, que voy con prisa", "2026-10-20"), { normas, hoy: HOY });
+      expect(l.validas, id).toEqual([]);
+      expect(l.invalidas.map((i) => i.razon), id).toEqual(["not_exceptable"]);
+    }
+    // Una que sí admite sigue valiendo con la misma lista.
+    expect(leerExcepciones(linea("pr-acotado", "motivo bien largo", "2026-10-20"), { normas, hoy: HOY }).validas).toHaveLength(1);
   });
   it("la plantilla del PR, que va en un comentario, no cuenta", () => {
     expect(lee(`<!--\n${linea("pr-acotado", "motivo de la plantilla", "2026-10-20")}\n-->`).validas).toEqual([]);

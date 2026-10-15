@@ -157,7 +157,13 @@ Un subagente no ve esta conversación. **El brief sale de
 `--briefs`, el de todos): trae las nueve piezas de abajo, con la tarea del
 catálogo, las normas por ámbito × acción y por los ficheros, y la precedencia. No lo
 escribas a mano: añade solo lo que el comando no sabe (el objetivo con
-`--objetivo "…"` si no hay issue, y el resumen de los informes previos). Lo que lleva:
+`--objetivo "…"` si no hay issue, y el resumen de los informes previos). El hook
+`.claude/hooks/lanzamiento.mjs` (#642, norma `brief-con-estandar`) niega lanzar un agente de
+`.claude/agents/` con un brief sin la línea `ESTÁNDAR A CUMPLIR: <ese agente>/<tarea>` o sin
+el bloque `Normas que tocan (…)`. Un agente que el plan no trae (un `analista` que diagnostica,
+un `qa` o un `seguridad` ad hoc) saca el suyo con `--brief <agente> --tarea <una tarea suya>`.
+La salida es una línea `Excepción: brief-con-estandar — <motivo> — hasta AAAA-MM-DD` en el
+brief, propia y sin citar (con `>` delante no cuenta), que se cuenta. Lo que lleva:
 
 1. **Objetivo**: qué tiene que conseguir, en una o dos frases.
 2. **Contexto**: lo decidido hasta ahora y los informes previos que necesite
@@ -239,7 +245,12 @@ escribas a mano: añade solo lo que el comando no sabe (el objetivo con
    tiene que coger → `tipo:encargo`, colgando de su fondo si es parte de un
    arreglo. Detalle y comandos: skill `issues`. El chat se pierde
    al cerrar la sesión; el issue no. Y al revés: el PR lleva `Closes #n` de
-   los encargos o fondos que cierra y `Agente:` con el constructor.
+   los encargos o fondos que cierra y `Agente:` con el constructor, más
+   `Tipo:` (el tipo o subtipo del encargo) y `Jueces:` con los que da la línea
+   `jueces:` de `npm run dimensionar -- <n> --diff`, ninguno el del `Agente:` (#642,
+   decisión #387): la guardia las pide al abrir el PR y el CI (paso «Dimensionado del PR»)
+   comprueba que estén los jueces que exige el diff <!-- norma:pr-tipo-y-jueces-exigidos -->. Con un juez distinto nombrado, la
+   sesión puede fusionar su PR a staging.
    Si el encargo era arreglar un problema de fondo, el juez comprueba que el
    arreglo cubre la clase (un test que la vigila), no solo los casos conocidos.
 5. Termina con un resumen corto: qué se hizo, en qué rama o PR, qué se

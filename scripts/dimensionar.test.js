@@ -6,7 +6,7 @@
  * Los ficheros de los casos son inventados y el mapa de módulos también (deps.mapa): el test no depende de qué módulo
  * tenga hoy cada fichero real. El resto de datos (ámbitos, catálogo de tipos, presupuestos, estándares) es el de verdad.
  */
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -16,8 +16,8 @@ import { UMBRALES_TAMANO } from "./lib/avisosPr.mjs";
 import { CONSTRUCTORES, JUECES } from "./lib/agentes.mjs";
 import { ACCIONES, leerEstandares, tareasDe } from "./lib/estandaresAgentes.mjs";
 import { CATALOGO, CAUSAS, MOTIVOS_COMPLEJIDAD } from "./lib/presupuestos.mjs";
-import { ESPECIALES, STEP_PURPOSES, SUBTYPES, TYPES } from "./lib/tiposDeEncargo.mjs";
-import { COMPARTIDOS_AL_FINAL, FORMAS, LITERALES, alcanceDe, briefDe, complejidadDe, dimensionar, formaDe, medidaDe, modulosDe, redimensionar, textoDe } from "./lib/dimensionado.mjs";
+import { DATOS as DATOS_TIPOS, ESPECIALES, ROLES, ROL_DE_CABECERA, STEP_PURPOSES, SUBTYPES, TYPES, banderasDeRutas, flagsDeRutasConBase } from "./lib/tiposDeEncargo.mjs";
+import { ACCIONES_DE_JUEZ_EXTRA, COMPARTIDOS_AL_FINAL, FORMAS, LITERALES, alcanceDe, briefDe, complejidadDe, dimensionar, formaDe, medidaDe, modulosDe, redimensionar, textoDe } from "./lib/dimensionado.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
 const MAPA = {
@@ -153,7 +153,8 @@ describe("los agentes: constructor por ámbito, juez mínimo siempre y juez del 
     const original = AMBITOS.infra.jueces;
     AMBITOS.infra.jueces = [{ juez: "constructor", fuente: "agente:constructor" }];
     try {
-      const p = dim({ subtipo: "operate-reversible", ficheros: [f(".github/workflows/x.yml", 10)] });
+      // Una ruta de infraestructura que no activa ninguna bandera (las de .github/ traen a seguridad, #642).
+      const p = dim({ subtipo: "operate-reversible", ficheros: [f("scripts/podar.mjs", 10)] });
       expect(rolesDe(p, "builder")).toEqual(["constructor"]);
       expect(rolesDe(p, "judge")).toEqual(["revisor"]);
       expect(p.avisos.join("|")).toMatch(/constructor es juez de la zona pero construye/);
@@ -235,13 +236,115 @@ describe("la forma depende del tipo", () => {
     expect(dim({ subtipo: "operate-reversible", ficheros: [f(".github/workflows/x.yml", 10)] }).cierre).toBeNull();
   });
   it("una bandera hace entrar al juez condicional y sin ella solo se lista", () => {
-    const sin = dim({ subtipo: "operate-irreversible", ficheros: [f(".github/workflows/x.yml", 10)] });
+    const sin = dim({ subtipo: "operate-irreversible", ficheros: [f("scripts/podar.mjs", 10)] });
     expect(sin.jueces).not.toContain("seguridad");
     expect(sin.condicionales).toEqual(expect.arrayContaining([{ agente: "seguridad", si: "toca secretos o permisos", flag: "touches_secrets_or_permissions" }]));
-    const con = dim({ subtipo: "operate-irreversible", ficheros: [f(".github/workflows/x.yml", 10)], banderas: ["touches_secrets_or_permissions"] });
+    const con = dim({ subtipo: "operate-irreversible", ficheros: [f("scripts/podar.mjs", 10)], banderas: ["touches_secrets_or_permissions"] });
     expect(con.jueces).toContain("seguridad");
     expect(con.condicionales.map((c) => c.agente)).not.toContain("seguridad");
     expect(() => dim({ subtipo: "operate-reversible", ficheros: [], banderas: ["inventada"] })).toThrow(/bandera/);
+  });
+  it("las rutas tocadas activan su bandera sin declararla, y su juez entra en cualquier tipo (#642)", () => {
+    const casos = [
+      [".github/workflows/tests.yml", "touches_secrets_or_permissions", "seguridad"],
+      [".claude/settings.json", "touches_secrets_or_permissions", "seguridad"],
+      [".claude/settings.local.json", "touches_secrets_or_permissions", "seguridad"],
+      [".claude/hooks/guardia.mjs", "touches_secrets_or_permissions", "seguridad"],
+      ["scripts/rulesets.mjs", "touches_secrets_or_permissions", "seguridad"],
+      ["ops/env.1password", "touches_secrets_or_permissions", "seguridad"],
+      ["vercel.json", "touches_secrets_or_permissions", "seguridad"],
+      ["supabase/migrations/0200_x.sql", "touches_rls", "seguridad"],
+      ["api/_bot/inventado.js", "changes_bot", "evaluador"],
+      ["api/bot/inventado.js", "changes_bot", "evaluador"],
+    ];
+    for (const [ruta, bandera, juez] of casos) {
+      expect(banderasDeRutas([ruta]), ruta).toEqual([bandera]);
+      for (const tipo of Object.keys(TYPES)) {
+        const p = dim({ tipo, ficheros: [f(ruta, 10)] });
+        expect(p.banderas_de_rutas, `${tipo} ${ruta}`).toEqual([bandera]);
+        expect(p.jueces, `${tipo} ${ruta}`).toContain(juez);
+      }
+    }
+    // Lo que no es de ninguna bandera no la activa.
+    for (const ruta of ["scripts/podar.mjs", "src/screens/A.jsx", "supabase/INVENTADO.md", "api/inventado.js", "ops/normas.test.js", "scripts/rulesets.test.js", "x/.github/a.yml", "scripts/lib/dimensionadoPrInventado.mjs"]) {
+      expect(banderasDeRutas([ruta]), ruta).toEqual([]);
+    }
+  });
+  it("un renombrado se mira por sus dos rutas: sacar la guardia de .claude/hooks/ también pide a seguridad (#642)", () => {
+    expect(banderasDeRutas([{ ruta: "docs/guardia.mjs", origen: ".claude/hooks/guardia.mjs" }])).toEqual(["touches_secrets_or_permissions"]);
+    // Que el destino sea un test no lo exime: el origen no lo es.
+    expect(banderasDeRutas([{ ruta: ".claude/hooks/guardia.test.js", origen: ".claude/hooks/guardia.mjs" }])).toEqual(["touches_secrets_or_permissions"]);
+    expect(dim({ tipo: "improve", ficheros: [{ ruta: "docs/guardia.mjs", origen: ".claude/hooks/guardia.mjs", lines: 0 }] }).jueces).toContain("seguridad");
+  });
+  it("las rutas no distinguen mayúsculas: en Windows .claude/Settings.json es settings.json (#642)", () => {
+    for (const ruta of [".claude/Settings.json", ".GitHub/workflows/tests.yml", ".claude/Hooks/guardia.mjs", "API/_bot/x.js"]) expect(banderasDeRutas([ruta]).length, ruta).toBe(1);
+  });
+  it("el propio control pide a seguridad: su script, sus módulos, sus catálogos y las fichas de agentes (sus tools son permisos) (#642)", () => {
+    for (const ruta of [
+      "scripts/dimensionado-pr.mjs", "scripts/lib/dimensionadoPr.mjs", "scripts/lib/dimensionado.mjs", "scripts/lib/tiposDeEncargo.mjs",
+      "scripts/lib/excepciones.mjs", "scripts/lib/agentes.mjs", "scripts/lib/avisosPr.mjs", "ops/tipos-de-encargo.json",
+      "ops/presupuestos.json", ".claude/agents/revisor.md",
+    ]) expect(banderasDeRutas([ruta]), ruta).toEqual(["touches_secrets_or_permissions"]);
+  });
+  it("piden a seguridad el token de sesión, el limpiador de worktrees, los scripts del CI con GITHUB_TOKEN y los módulos del control (#642)", () => {
+    for (const ruta of [
+      "scripts/lib/tokenSesion.mjs", "scripts/limpiar-worktrees.mjs",
+      "scripts/casos-pr.mjs", "scripts/fondos-pr.mjs", "scripts/normas-pr.mjs", "scripts/avisos-pr.mjs", "scripts/runbook-pr.mjs", "scripts/cumplimiento.mjs",
+      "scripts/lib/ambitos.mjs", "scripts/lib/presupuestos.mjs", "scripts/lib/estandaresAgentes.mjs", "scripts/lib/normas.mjs", "scripts/lib/medicionNormas.mjs",
+      "scripts/lib/precedencia.mjs", "scripts/lib/usoSkills.mjs", "scripts/lib/zonasProyecto.mjs",
+    ]) {
+      expect(banderasDeRutas([ruta]), ruta).toEqual(["touches_secrets_or_permissions"]);
+      // Cada ruta es un fichero de verdad: una lista a mano que se queda vieja no protege nada.
+      expect(existsSync(join(RAIZ, ruta)), ruta).toBe(true);
+    }
+  });
+  it(".gitattributes pide a seguridad (puede volver binario cualquier diff y apagar los pasos que leen líneas), también en una subcarpeta (#642)", () => {
+    for (const ruta of [".gitattributes", "docs/.gitattributes"]) expect(banderasDeRutas([ruta]), ruta).toEqual(["touches_secrets_or_permissions"]);
+  });
+  it("retocar una norma (ops/normas.json) no pide a seguridad: si admite excepción lo lee el CI de la base (#642)", () => {
+    expect(banderasDeRutas(["ops/normas.json"])).toEqual([]);
+  });
+  it("un test DENTRO de .github/ sí pide a seguridad: la exclusión de tests vale solo fuera (#642)", () => {
+    for (const ruta of [".github/workflows/x.test.js", ".github/scripts/y.test.mjs"]) expect(banderasDeRutas([ruta]), ruta).toEqual(["touches_secrets_or_permissions"]);
+  });
+  it("sin seguridad de más: los tests, las plantillas de issues y la del PR no cambian lo que se ejecuta (#642)", () => {
+    for (const ruta of [".claude/hooks/guardia.test.js", "scripts/dimensionado-pr.test.js", "ops/tipos-de-encargo.test.js", ".github/ISSUE_TEMPLATE/2-fondo.yml", ".github/pull_request_template.md", ".claude/hooks/x.test.mjs"]) {
+      expect(banderasDeRutas([ruta]), ruta).toEqual([]);
+    }
+    // #782 (solo tests y ops; sin sus dos tests de src/, que no cambian nada aquí): sin seguridad.
+    const pr782 = [".claude/dominios-skills.test.js", ".claude/hooks/guardia.test.js", ".claude/rutas.test.js", "docs/ops/INVENTARIO-VERTICAL.md", "ops/normas.test.js", "ops/principios.test.js", "ops/techos-lados.json", "ops/uniones.test.js", "ops/vigilantes.json", "ops/vigilantes.test.js", "ops/vocabularios-vida.test.js", "ops/zonas.json", "scripts/avisos-pr.test.js", "scripts/consulta.test.js", "scripts/lib/principios.mjs", "scripts/mercadona-sync-workflow.test.js", "scripts/rulesets.test.js"];
+    expect(banderasDeRutas(pr782)).toEqual([]);
+    // #708 (skills, la plantilla de fondo y fondos.mjs): sin seguridad.
+    const pr708 = [".claude/skills/causa-raiz/SKILL.md", ".claude/skills/causa-raiz/casos.json", ".claude/skills/cierre-eficaz/SKILL.md", ".claude/skills/issues/SKILL.md", ".claude/skills/plan-de-arreglo/SKILL.md", ".github/ISSUE_TEMPLATE/2-fondo.yml", "docs/entidades/SUPER-TABLA.md", "docs/entidades/analisis/trabajo.md", "ops/entidades.json", "ops/entidades.test.js", "ops/estandares-agentes.json", "ops/estandares-agentes.test.js", "ops/vigilantes.test.js", "scripts/fondos.test.js", "scripts/lib/fondos.mjs", "scripts/lib/vecinos.mjs"];
+    expect(banderasDeRutas(pr708)).toEqual([]);
+    // #712: sus plantillas y sus tests ya no piden seguridad; sí la piden sus fichas de agentes y el dimensionador (el propio control).
+    const pr712Plantillas = [".github/ISSUE_TEMPLATE/2-fondo.yml", ".github/pull_request_template.md", ".claude/agentes.test.js", "scripts/dimensionar.test.js"];
+    expect(banderasDeRutas(pr712Plantillas)).toEqual([]);
+    expect(banderasDeRutas([...pr712Plantillas, ".claude/agents/constructor.md", "scripts/lib/dimensionado.mjs"])).toEqual(["touches_secrets_or_permissions"]);
+  });
+  it("toda migración pide a seguridad, diga lo que diga su SQL: una create view o un security_invoker también (#642)", () => {
+    for (const ruta of ["supabase/migrations/0300_x.sql", "supabase/migrations/0301_vista.sql"]) {
+      expect(banderasDeRutas([{ ruta, anadidas: ["create view public.v with (security_invoker = false) as select 1;"] }]), ruta).toEqual(["touches_rls"]);
+      expect(banderasDeRutas([{ ruta, anadidas: ["alter table public.x add column y text;"] }]), ruta).toEqual(["touches_rls"]);
+    }
+    // El catálogo ya no lleva `contenido`: ninguna bandera decide por las líneas.
+    for (const [k, b] of Object.entries(DATOS_TIPOS.flags)) expect(b.contenido, k).toBeUndefined();
+  });
+  it("con las banderas de la base, un PR no se quita su exigencia; sin base, manda la del PR (plan B) (#642)", () => {
+    const pr = structuredClone(DATOS_TIPOS.flags);
+    pr.touches_secrets_or_permissions.rutas = ["^nada/"];
+    pr.touches_secrets_or_permissions.judge = "qa";
+    const conBase = flagsDeRutasConBase(DATOS_TIPOS.flags, pr);
+    expect(conBase.deLaBase).toContain("touches_secrets_or_permissions");
+    expect(banderasDeRutas([".claude/hooks/guardia.mjs"], conBase.flags)).toEqual(["touches_secrets_or_permissions"]);
+    expect(dimensionar({ fuente: "diff", tipo: "fix", ficheros: [f(".claude/hooks/guardia.mjs", 3)] }, { ...deps, flagsRutas: conBase.flags }).jueces).toContain("seguridad");
+    const sinBase = flagsDeRutasConBase(null, pr);
+    expect(sinBase.deLaBase).toEqual([]);
+    expect(banderasDeRutas([".claude/hooks/guardia.mjs"], sinBase.flags)).toEqual([]);
+    // Una base anterior a #642 (sin rutas) deja la bandera al PR.
+    const vieja = structuredClone(DATOS_TIPOS.flags);
+    for (const b of Object.values(vieja)) delete b.rutas;
+    expect(banderasDeRutas([".claude/hooks/guardia.mjs"], flagsDeRutasConBase(vieja, DATOS_TIPOS.flags).flags)).toEqual(["touches_secrets_or_permissions"]);
   });
   it("create-planned empieza por el plan de la sesión", () => {
     const p = dim({ subtipo: "create-planned", ficheros: [f("src/screens/A.jsx", 5), f("api/_bot/x.js", 5), f("supabase/migrations/0001_x.sql", 5)] });
@@ -399,16 +502,36 @@ describe("las listas y vocabularios que usa el módulo salen de su fuente", () =
     for (const a of LITERALES.acciones) expect(ACCIONES, a).toContain(a);
     for (const x of LITERALES.finalidades) expect(Object.keys(STEP_PURPOSES), x).toContain(x);
     for (const x of LITERALES.especiales) expect(ESPECIALES, x).toContain(x);
-    for (const x of LITERALES.roles) expect(["builder", "judge", "planner", "measurer"], x).toContain(x);
+    // Los roles, contra su fuente y no contra una copia (deuda de #641): ROLES sale de la cabecera de los agentes y de special_roles.
+    expect(LITERALES.roles).toBe(ROLES);
+    for (const r of [...Object.values(ROL_DE_CABECERA), ...Object.values(DATOS_TIPOS.special_roles)]) expect(ROLES, r).toContain(r);
+    for (const t of Object.keys(TYPES)) for (const fase of dim({ tipo: t, ficheros: [f("scripts/x.mjs", 5)] }).fases) for (const a of fase.agentes) expect(ROLES, `${t}: ${a.agente}`).toContain(a.rol);
     expect(CAUSAS).toContain(LITERALES.causa_defecto);
     expect(SUBTYPES.map((x) => x.id)).toContain(LITERALES.subtipo_defecto);
   });
   it("las formas salen del esqueleto de cada tipo, sin mirar su nombre", () => {
-    expect(formaDe({ roles: ["judge"], judges_only_in_parallel: true })).toBe(FORMAS[0]);
-    expect(formaDe({ roles: ["builder", "judge"], measures_before_after: true })).toBe(FORMAS[1]);
-    expect(formaDe({ roles: ["judge", "builder", "judge"] })).toBe(FORMAS[2]);
-    expect(formaDe({ roles: ["builder", "judge"] })).toBe(FORMAS[3]);
-    for (const t of Object.values(TYPES)) expect(FORMAS).toContain(formaDe(t.skeleton));
+    expect(formaDe({ roles: ["judge"], judges_only_in_parallel: true })).toBe(FORMAS.soloJueces);
+    expect(formaDe({ roles: ["builder", "judge"], measures_before_after: true })).toBe(FORMAS.medir);
+    expect(formaDe({ roles: ["judge", "builder", "judge"] })).toBe(FORMAS.diagnosticar);
+    expect(formaDe({ roles: ["builder", "judge"] })).toBe(FORMAS.construir);
+    for (const t of Object.values(TYPES)) expect(Object.values(FORMAS)).toContain(formaDe(t.skeleton));
+    // Cada forma tiene su texto en el brief (por nombre, no por posición).
+    for (const t of Object.keys(TYPES)) expect(briefDe(dim({ tipo: t, ficheros: [f("scripts/x.mjs", 5)] }), "revisor"), t).not.toMatch(/; undefined\./);
+  });
+  it("ningún módulo del dimensionado compara por nombre de tipo: usan las banderas del esqueleto (deuda de #641)", () => {
+    for (const fichero of ["scripts/lib/tiposDeEncargo.mjs", "scripts/lib/dimensionado.mjs"]) {
+      const codigo = readFileSync(join(RAIZ, fichero), "utf8");
+      for (const t of Object.keys(TYPES)) expect(codigo, `${fichero}: «${t}»`).not.toMatch(new RegExp(`(?:===|!==)\\s*"${t}"|"${t}"\\s*(?:===|!==)`));
+    }
+  });
+  it("ACCIONES_DE_JUEZ_EXTRA: acciones del catálogo, de LITERALES, y cada una la tiene algún juez", () => {
+    const tareas = tareasDe(leerEstandares(RAIZ));
+    for (const a of ACCIONES_DE_JUEZ_EXTRA) {
+      expect(LITERALES.acciones, a).toContain(a);
+      expect(ACCIONES, a).toContain(a);
+      expect(tareas.some((t) => JUECES.includes(t.agente) && t.tarea.accion === a), a).toBe(true);
+    }
+    expect(ACCIONES_DE_JUEZ_EXTRA).not.toContain("construir");
   });
   it("los motivos de complejidad que da el módulo son todos del vocabulario cerrado", () => {
     const vistos = new Set([
