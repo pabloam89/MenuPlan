@@ -61,6 +61,7 @@ import { DEF_PROYECTOS, DEF_ZONAS } from "./zonasProyecto.mjs";
 import { TIPOS as TIPOS_DE_RECURSO } from "./recursos.mjs";
 import { CODIGOS_WORDING, leerTopes } from "./topes.mjs";
 import { VOCABULARIOS_DEL_POOL, leerBibliotecas, textosDeBibliotecas } from "./bibliotecasDiseno.mjs";
+import { CLAVES_DE_VIDA as CLAVES_DE_PLANTILLAS, leerPlantillas, textosDePlantillas } from "./plantillasComponente.mjs";
 import { leerTaxonomia, textosDeGruposDeDiseno, textosDePlataformasDeDiseno, textosDeTiposDeDiseno } from "./taxonomiaDiseno.mjs";
 
 export const RUTA_VOCABULARIOS = "ops/vocabularios-vida.json";
@@ -144,6 +145,9 @@ export const VOCABULARIOS = {
   // El pool de bibliotecas de interfaz (#780): los vocabularios cerrados de las fichas de ops/diseno/bibliotecas.json. Las claves
   // salen de la lista del código (el test del pool exige que sean las del JSON) y el JSON se lee al pedir los textos, no al importar (#802).
   ...Object.fromEntries(VOCABULARIOS_DEL_POOL.map((k) => [`diseno.biblioteca_${k}`, { fichero: "scripts/lib/bibliotecasDiseno.mjs", textos: () => textosDeBibliotecas(leerBibliotecas(RAIZ), k) }])),
+  // Las plantillas de componente (#842): los vocabularios propios de ops/diseno/plantillas-componente.json y los que viven en sus
+  // secciones (atributos de forma con sus valores, escalas con sus pasos y propiedades visuales). Se lee al pedir los textos.
+  ...Object.fromEntries(CLAVES_DE_PLANTILLAS.map((k) => [`diseno.plantilla_${k}`, { fichero: "scripts/lib/plantillasComponente.mjs", textos: () => textosDePlantillas(leerPlantillas(RAIZ), k) }])),
   // El registro de entidades (#566): sus valores van a ops/entidades.json y a ops/entidades-sujetos.json.
   // El eje (entidades.axis) se retiró entero el 12 oct 2026 y entidades.becomes el 13 (vocabularios_retirados).
   "entidades.scope": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(SCOPES) },

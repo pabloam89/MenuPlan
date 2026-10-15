@@ -1037,6 +1037,27 @@
       "note": "La clase: una pieza de interfaz reutilizable. Hoy una receta por componente en la sección 6 de DESIGN_SYSTEM.md, sin ficha por componente ni capa de tokens de componente (docs/diseno/META-DISENO.md, estado de HoMenu)."
     },
     {
+      "id": "component-template",
+      "name": "Plantilla de componente",
+      "scope": "horizontal",
+      "level": "template",
+      "family": "design",
+      "term": "plantilla de componente",
+      "source_of_truth": "ops/diseno/plantillas-componente.json",
+      "id_format": "kebab",
+      "registry": "with_registry",
+      "status": "active",
+      "created_by": [
+        "agent"
+      ],
+      "readers": [
+        "scripts/lib/plantillasComponente.mjs",
+        "ops/diseno/plantillas-componente.test.js",
+        "scripts/diseno/plantillas.mjs"
+      ],
+      "note": "Una por tipo del vocabulario elemento de ops/diseno/taxonomia.json (los 50, #842): anatomía, atributos de forma, atributos visuales por rol, estados, accesibilidad y fuente, en vocabularios cerrados. La pieza concreta de cada proyecto (component) la rellena con sus tokens; la ficha de HoMenu es #830."
+    },
+    {
       "id": "pattern",
       "name": "Patrón de diseño",
       "scope": "horizontal",
@@ -2010,6 +2031,33 @@
       "cardinality": "many_to_many",
       "stored_as": "none",
       "stored_in": "la ficha de componente que pide META-DISENO.md aún no existe"
+    },
+    {
+      "from": "component",
+      "relation": "comes_from",
+      "to": "component-template",
+      "class": "reference",
+      "cardinality": "many_to_one",
+      "stored_as": "none",
+      "stored_in": "la ficha de componente de cada proyecto dirá de qué elemento es; la de HoMenu, #830, aún no existe"
+    },
+    {
+      "from": "component-template",
+      "relation": "refers_to",
+      "to": "vocabulary",
+      "class": "reference",
+      "cardinality": "many_to_one",
+      "stored_as": "field",
+      "stored_in": "elemento de cada plantilla (el vocabulario elemento de ops/diseno/taxonomia.json)"
+    },
+    {
+      "from": "component-template",
+      "relation": "uses",
+      "to": "vocabulary",
+      "class": "reference",
+      "cardinality": "many_to_many",
+      "stored_as": "field",
+      "stored_in": "vocabularios, atributos_de_forma, escalas y propiedades_visuales de ops/diseno/plantillas-componente.json, y los de ops/diseno/bloques.json que reutiliza"
     },
     {
       "from": "pattern",

@@ -93,6 +93,7 @@ de recurso, y su historial queda en git. El resto de este documento, hasta la se
 | `design-profile` | design | template | horizontal | agent | `ops/diseno/bloques.json` (with_registry) | ops/diseno/bloques.test.js, .claude/skills/revision-de-diseno/SKILL.md, .claude/agents/constructor.md | — |
 | `token` | design | piece | horizontal | agent | `src/design/tokens.js` (with_registry) | src/design/tokens.test.js, src/design/contraste.js, scripts/diseno/generar-tokens-css.mjs | design-system |
 | `component` | design | piece | horizontal | agent | `DESIGN_SYSTEM.md` (partial) | scripts/lib/taxonomiaDiseno.mjs, .claude/skills/revision-de-diseno/SKILL.md, .claude/agents/constructor.md | design-system |
+| `component-template` | design | template | horizontal | agent | `ops/diseno/plantillas-componente.json` (with_registry) | scripts/lib/plantillasComponente.mjs, ops/diseno/plantillas-componente.test.js, scripts/diseno/plantillas.mjs | — |
 | `pattern` | design | piece | horizontal | agent | `DESIGN_SYSTEM.md` (partial) | .claude/skills/revision-de-diseno/SKILL.md, .claude/agents/constructor.md | design-system |
 | `screen` | design | piece | horizontal | agent | `ops/diseno/taxonomia.json` (with_registry) | scripts/lib/taxonomiaDiseno.mjs, ops/diseno/taxonomia.test.js | — |
 | `flow` | design | piece | horizontal | agent | `ops/diseno/taxonomia.json` (with_registry) | scripts/lib/taxonomiaDiseno.mjs, ops/diseno/taxonomia.test.js | — |
@@ -102,7 +103,7 @@ de recurso, y su historial queda en git. El resto de este documento, hasta la se
 | `chat` | lola | piece | vertical | automatic | `supabase/migrations/0057_bot_cimientos.sql` (partial) | api/_bot/enlace.js, api/_bot/turnos.js | household |
 | `assignment-type` | work | template | horizontal | agent | `ops/tipos-de-encargo.json` (with_registry) | scripts/lib/tiposDeEncargo.mjs, ops/tipos-de-encargo.test.js | — |
 
-Cifras: 56 entidades. Alcance: horizontal 43, vertical 13. Nivel: piece 49, meta 3, template 4. Familias: work 9, access 4, delivery 3, measure 4, rules 7, agents 4, data 3, home 5, food 6, lola 2, structure 2, design 7. Relaciones: 95 (is_a 5, parent_of 4, part_of 23, reference 63).
+Cifras: 57 entidades. Alcance: horizontal 44, vertical 13. Nivel: piece 49, meta 3, template 5. Familias: work 9, access 4, delivery 3, measure 4, rules 7, agents 4, data 3, home 5, food 6, lola 2, structure 2, design 8. Relaciones: 98 (is_a 5, parent_of 4, part_of 23, reference 66).
 <!-- super-tabla:fin -->
 
 ## 3. Reto 1: Fondo, Caso, Encargo, Decisión

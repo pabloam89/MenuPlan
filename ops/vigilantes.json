@@ -38,6 +38,13 @@
       "evidencia": "#780 (línea 2 de #774: el pool de bibliotecas por elemento)"
     },
     {
+      "id": "plantillas-de-componente",
+      "tests": ["ops/diseno/plantillas-componente.test.js"],
+      "mira": ["ops/diseno/plantillas-componente.json", "ops/diseno/taxonomia.json", "ops/diseno/bloques.json", "ops/diseno/bibliotecas.json", "scripts/lib/plantillasComponente.mjs", "scripts/lib/bibliotecasDiseno.mjs", "scripts/lib/regla.mjs", "scripts/lib/vocabulariosVida.mjs", "ops/vocabularios-vida.json"],
+      "porque": "Hay una plantilla por cada tipo de elemento de la taxonomía y reutiliza los vocabularios de bloques.json, las marcas del pool y las marcas de fuente de regla.mjs: añadir o quitar un elemento, cambiar un estado, una variante o un tipo de token de bloques.json, o una marca, rompe un test que está lejos de lo que tocas.",
+      "evidencia": "#842 (plantillas de componente de los 50 tipos de elemento, programa #774)"
+    },
+    {
       "id": "procesos-ocultos",
       "tests": ["ops/procesosOcultos.test.js"],
       "mira": [".claude/hooks/**/*.{js,mjs,cjs}", "scripts/lib/**/*.{js,mjs,cjs}"],

@@ -1,0 +1,2412 @@
+{
+  "_": "Las plantillas de componente (#842, programa #774): una por cada tipo del vocabulario `elemento` de ops/diseno/taxonomia.json (los 50: control 18, view 18, overlay 9, imagery 5), ni más ni menos. Es el nivel `template` de la entidad `component` (ops/entidades.json, entidad `component-template`, término «plantilla de componente»): dice cómo es cualquier componente de ese tipo, en campos de vocabulario cerrado que se pueden contar; la pieza concreta de un proyecto la rellena (la ficha del bloque D de docs/diseno/META-DISENO.md; la de HoMenu, #830) y pone los números con sus tokens. Cada plantilla: `elemento`; `categoria` (las «categorías de componente» de ops/diseno/bloques.json); `interaccion` (interactive, container o static); `anatomia` (cada parte del vocabulario `parte`, obligatoria u opcional); `forma` (atributos de `atributos_de_forma`, cada uno con los valores que admite este tipo, al menos dos, y el de por defecto); `visual` (una propiedad de `propiedades_visuales` sobre una parte de su anatomía, con un paso de su escala por rol: nunca un número, normas design-token-per-role y design-token-layers); `estados` (los «estados» de ops/diseno/bloques.json que cita la norma design-complete-states; un interactivo lleva al menos los que marca la norma (los aplica ESTADOS_DE_INTERACTIVO de scripts/lib/plantillasComponente.mjs) y un estático ninguno de interacción); `accesibilidad` (rol ARIA, nombre accesible, objetivo táctil y teclado; normas design-touch-target y design-visible-focus); y `fuentes` (sistema de referencia, alcance de la URL, la URL con la marca de la forja [F] o [S] de MARCAS_FUENTE de scripts/lib/regla.mjs, colgando de `raiz_de_sistema`, y `comprobada`: la fecha en que se leyó la página o `unverified`). Lo reutilizado no se copia: estados, categorías, variantes, tamaños, densidades y tipos de token viven en ops/diseno/bloques.json, y las marcas `unverified` y `not-applicable` en el vocabulario `marca` de ops/diseno/bibliotecas.json; el sí/no de un atributo es el vocabulario `declaracion` del mismo fichero. Un sí/no nunca dice si la pieza tiene una parte: eso lo dice la parte opcional de su anatomía. Un atributo o una escala dice sus valores (`valores`, `pasos`) o el vocabulario que reutiliza (`valores_de`, `pasos_de`). Los ids son inglés kebab (#566); los nombres de campo, castellano. Lo lee scripts/lib/plantillasComponente.mjs; lo vigila ops/diseno/plantillas-componente.test.js; las cifras, node scripts/diseno/plantillas.mjs.",
+  "lectura": {
+    "fecha": "2026-10-14",
+    "base": "Primera versión escrita por el constructor con lo que sabe de Material 3, Carbon, Polaris, Apple HIG, Radix, shadcn/ui y la guía APG del W3C, sin leer las páginas (la sesión no tenía acceso a la web): toda fuente queda `unverified` hasta que alguien lea su página y ponga la fecha; donde no se conoce la página exacta, la URL es la raíz del sistema (alcance system). El 14 oct se comprobó con curl que cada URL responde: dos de Carbon daban 404 (combo-box pasó a la de dropdown, del que es variante; la de time-picker se quitó). Responder no es haber leído: siguen `unverified`."
+  },
+  "vocabularios": {
+    "interaccion": {
+      "interactive": "La persona lo acciona directamente: lo pulsa, escribe en él, lo arrastra o elige con él",
+      "container": "No se acciona entero, pero contiene controles o contenido que sí, y ordena el foco entre ellos",
+      "static": "Solo se ve: no recibe el foco ni responde a la persona"
+    },
+    "obligacion_de_parte": {
+      "required": "Toda pieza de este tipo la lleva",
+      "optional": "La pieza puede llevarla o no, según su uso"
+    },
+    "parte": {
+      "container": "La superficie que agrupa las demás partes y les da forma, fondo y borde",
+      "label": "El texto corto que nombra la acción, la opción o el campo",
+      "headline": "El título del elemento",
+      "supporting-text": "El texto secundario que explica o completa el título",
+      "body": "El contenido principal, libre, del elemento",
+      "leading-icon": "Un icono delante del texto",
+      "trailing-icon": "Un icono detrás del texto: desplegar, quitar o ir",
+      "icon": "El icono único que da sentido al elemento",
+      "media": "Una imagen o un vídeo que forma parte del elemento",
+      "avatar": "La imagen pequeña de una persona o una entidad dentro del elemento",
+      "primary-action": "La acción principal que ofrece el elemento",
+      "secondary-action": "Una acción de menos peso que la principal",
+      "close-action": "El control que cierra o descarta el elemento",
+      "navigation-action": "El control que vuelve atrás o abre la navegación",
+      "overflow-action": "El control que abre las acciones que no caben",
+      "badge": "La insignia que se superpone para avisar de una cuenta o un estado",
+      "divider": "Una línea que separa grupos dentro del elemento",
+      "selection-indicator": "La marca de lo elegido o activo: la palomita, el punto o la barra bajo la pestaña",
+      "control-box": "La caja o el círculo que la persona marca",
+      "track": "La guía por la que se mueve o se llena el valor",
+      "active-indicator": "La parte llena de la guía que muestra el avance o el valor",
+      "thumb": "El tirador que la persona arrastra",
+      "value-label": "El texto que muestra el valor actual",
+      "tick-marks": "Las marcas de los pasos posibles sobre la guía",
+      "input-area": "La zona donde se escribe o aparece el valor elegido",
+      "placeholder": "El texto de ejemplo que se ve con el campo vacío",
+      "helper-text": "El texto de ayuda bajo el campo",
+      "error-text": "El mensaje que explica qué falla en el valor",
+      "character-counter": "La cuenta de caracteres frente al máximo",
+      "clear-action": "El control que vacía el valor",
+      "header": "La franja que encabeza una sección y, a veces, la abre o la cierra",
+      "expand-icon": "El icono que dice si la sección está abierta o cerrada",
+      "content-panel": "El contenido que se muestra u oculta",
+      "calendar-grid": "La rejilla de días de un mes",
+      "period-navigation": "Los controles para pasar al periodo anterior o al siguiente",
+      "clock-dial": "La esfera para elegir la hora y los minutos",
+      "period-selector": "El selector de mañana o tarde en el reloj de 12 horas",
+      "color-area": "La superficie donde se elige el tono, la saturación o el brillo",
+      "swatch": "Una muestra de color que se elige de una vez",
+      "value-field": "El campo donde se lee o se escribe el valor exacto",
+      "rating-item": "Cada símbolo, como una estrella, que suma un punto",
+      "increment-action": "El control que sube el valor un paso",
+      "decrement-action": "El control que baja el valor un paso",
+      "segment": "Cada opción de un grupo que se elige con un toque",
+      "navigation-item": "Cada destino de una navegación, con su icono y su etiqueta",
+      "item": "Cada pieza que se repite dentro del elemento: una diapositiva, una foto o una ficha",
+      "page-indicator": "Los puntos o la barra que dicen en qué pieza de una serie se está",
+      "caption": "El texto breve que acompaña a una imagen",
+      "row": "Una fila de una lista o de una tabla",
+      "metadata": "El dato breve al final de una fila: una hora, una cifra o un estado",
+      "column-header": "La cabecera de una columna, que a veces ordena",
+      "cell": "La celda que guarda el dato de una fila en una columna",
+      "pagination": "Los controles para moverse entre páginas de datos",
+      "scrim": "El velo que tapa la pantalla de detrás",
+      "drag-handle": "El asa que dice que se puede arrastrar para cambiar la altura o cerrar",
+      "pointer": "La flecha que señala el elemento al que se refiere",
+      "spotlight": "El hueco iluminado que resalta la parte de la pantalla que se explica",
+      "menu-item": "Cada opción de un menú",
+      "keyboard-shortcut": "El atajo de teclado de una opción, a su derecha",
+      "listbox": "La lista desplegada de opciones posibles",
+      "option": "Cada valor que se puede elegir de la lista",
+      "initials": "Las iniciales que sustituyen a la foto",
+      "status-indicator": "La marca de punto, color o forma que dice un estado",
+      "marker": "La forma de alfiler que señala un punto del mapa",
+      "placeholder-shape": "La forma neutra que ocupa el sitio del contenido mientras carga",
+      "glyph": "El dibujo vectorial del icono",
+      "artwork": "El dibujo de la ilustración",
+      "symbol": "El símbolo gráfico de la marca",
+      "wordmark": "El nombre de la marca escrito con su letra"
+    },
+    "rol_aria": {
+      "button": "Un control que ejecuta una acción",
+      "link": "Un control que lleva a otro sitio",
+      "checkbox": "Una opción que se marca o se desmarca",
+      "radio": "Una opción de un grupo en el que solo vale una",
+      "radiogroup": "El grupo de opciones de las que solo vale una",
+      "switch": "Un control de encendido y apagado",
+      "slider": "Un control que elige un valor dentro de un rango arrastrando",
+      "spinbutton": "Un campo numérico que sube y baja por pasos",
+      "textbox": "Un campo para escribir texto",
+      "searchbox": "Un campo para escribir una búsqueda",
+      "search": "La región de la página que contiene la búsqueda",
+      "combobox": "Un campo que abre una lista de opciones posibles",
+      "listbox": "Una lista de opciones de la que se elige",
+      "option": "Una opción dentro de una lista para elegir",
+      "tab": "Una pestaña que muestra su panel",
+      "tablist": "El grupo de pestañas",
+      "tabpanel": "El panel de contenido de una pestaña",
+      "dialog": "Una ventana sobre la página que pide atención",
+      "alertdialog": "Una ventana que interrumpe para pedir una respuesta urgente",
+      "menu": "Una lista de acciones u opciones que se abre desde un control",
+      "menuitem": "Una acción dentro de un menú",
+      "tooltip": "Un texto de ayuda que describe otro elemento",
+      "status": "Una región que anuncia un cambio sin interrumpir",
+      "alert": "Una región que anuncia algo importante en el momento",
+      "progressbar": "Un indicador del avance de una tarea",
+      "img": "Una imagen con su texto alternativo",
+      "figure": "Una imagen u otro contenido con su pie",
+      "list": "Una lista de elementos",
+      "listitem": "Un elemento de una lista",
+      "table": "Una tabla de datos que solo se lee",
+      "grid": "Una tabla o rejilla por la que se navega con las flechas",
+      "toolbar": "Un grupo de controles que se recorre con las flechas",
+      "navigation": "Una región con enlaces de navegación",
+      "banner": "La cabecera de la página o de la aplicación",
+      "heading": "Un título que ordena el contenido",
+      "group": "Un grupo de elementos relacionados",
+      "region": "Una sección con nombre propio que se puede encontrar",
+      "article": "Una pieza de contenido que se entiende sola",
+      "separator": "Una línea que separa contenido",
+      "presentation": "Sin significado para el lector de pantalla: solo forma"
+    },
+    "nombre_accesible": {
+      "visible-label": "El texto visible del propio elemento o su etiqueta asociada",
+      "aria-label": "Un nombre que no se ve, dado con aria-label, como el de un botón solo con icono",
+      "labelled-by-title": "Su título visible, enlazado con aria-labelledby",
+      "labelled-by-trigger": "El nombre del control que lo abre, enlazado con aria-labelledby",
+      "alt-text": "Un texto alternativo que describe la imagen",
+      "hidden-if-decorative": "Se oculta al lector si solo adorna; si informa, lleva su texto alternativo",
+      "parent-name": "No tiene nombre propio: su contenido se suma al del elemento al que acompaña",
+      "describes-trigger": "No se nombra: es la descripción del elemento que lo muestra, con aria-describedby",
+      "live-region": "Su texto lo lee el lector al aparecer, como región viva",
+      "not-named": "No necesita nombre: solo separa u ocupa sitio"
+    },
+    "objetivo_tactil": {
+      "required": "Necesita su propia área táctil mínima: 24 por 24 píxeles por WCAG 2.5.8, o la del proyecto si es mayor",
+      "inherited": "No la necesita entero: la pone cada control que contiene"
+    },
+    "teclado": {
+      "tab-stop": "Se llega y se sale con Tab y Mayúsculas más Tab",
+      "enter-activates": "Intro lo acciona",
+      "space-activates": "La barra espaciadora lo acciona o lo marca",
+      "arrow-navigation": "Las flechas mueven entre opciones o cambian el valor",
+      "home-end": "Inicio y Fin van al primero y al último, o al mínimo y al máximo",
+      "page-keys": "Re Pág y Av Pág cambian en saltos grandes",
+      "escape-closes": "Escape lo cierra y devuelve el foco a quien lo abrió",
+      "type-ahead": "Escribir una letra salta a la opción que empieza por ella",
+      "delete-removes": "Suprimir o Retroceso lo quitan",
+      "focus-trap": "El foco se queda dentro mientras está abierto",
+      "menu-key-opens": "Mayúsculas más F10 o la tecla de menú lo abren"
+    },
+    "sistema_de_referencia": {
+      "material": "Material Design 3, el sistema de diseño de Google",
+      "carbon": "Carbon, el sistema de diseño de IBM",
+      "polaris": "Polaris, el sistema de diseño de Shopify",
+      "apple-hig": "Las Human Interface Guidelines de Apple",
+      "radix-ui": "Radix Primitives, componentes sin estilo con su accesibilidad",
+      "shadcn-ui": "shadcn/ui, componentes sobre Radix para copiar al proyecto",
+      "wai-aria-apg": "La guía de prácticas de ARIA del W3C (APG): roles y teclado de cada patrón"
+    },
+    "alcance_de_url": {
+      "page": "La URL es la página del componente en ese sistema",
+      "system": "La URL es la raíz del sistema: no se conoce la página exacta del componente"
+    }
+  },
+  "raiz_de_sistema": {
+    "material": "https://m3.material.io/",
+    "carbon": "https://carbondesignsystem.com/",
+    "polaris": "https://polaris.shopify.com/",
+    "apple-hig": "https://developer.apple.com/design/human-interface-guidelines/",
+    "radix-ui": "https://www.radix-ui.com/primitives/docs/",
+    "shadcn-ui": "https://ui.shadcn.com/docs/",
+    "wai-aria-apg": "https://www.w3.org/WAI/ARIA/apg/"
+  },
+  "atributos_de_forma": {
+    "variant": {
+      "que": "El énfasis visual de la pieza frente a sus vecinas",
+      "valores_de": "variantes"
+    },
+    "size": {
+      "que": "El tamaño de la pieza en la escala de tamaños del sistema",
+      "valores_de": "tamaños"
+    },
+    "density": {
+      "que": "Cuánto aire hay dentro de la pieza y entre sus filas",
+      "valores_de": "densidades"
+    },
+    "icon-position": {
+      "que": "Dónde va el icono respecto al texto",
+      "valores": {
+        "leading": "Delante del texto",
+        "trailing": "Detrás del texto",
+        "top": "Encima del texto",
+        "icon-only": "Solo el icono, sin texto visible",
+        "none": "Sin icono"
+      }
+    },
+    "width": {
+      "que": "Cómo toma el ancho la pieza",
+      "valores": {
+        "hug-content": "Tan ancha como su contenido",
+        "fill-container": "Todo el ancho de su contenedor"
+      }
+    },
+    "shape": {
+      "que": "La forma del contorno de la pieza",
+      "valores": {
+        "rectangle": "Rectángulo de esquinas rectas",
+        "rounded": "Rectángulo de esquinas redondeadas",
+        "pill": "Extremos redondos del todo",
+        "circle": "Círculo",
+        "square": "Cuadrado"
+      }
+    },
+    "container-style": {
+      "que": "Cómo se dibuja el contenedor: relleno, borde, sombra o nada",
+      "valores": {
+        "filled": "Con fondo de color",
+        "outlined": "Con borde y sin fondo",
+        "underlined": "Solo con una línea debajo",
+        "elevated": "Con sombra que lo separa del fondo",
+        "plain": "Sin fondo, borde ni sombra"
+      }
+    },
+    "selection-mode": {
+      "que": "Cuántas opciones se pueden elegir a la vez",
+      "valores": {
+        "none": "No se elige nada: solo se acciona",
+        "single": "Una sola",
+        "multiple": "Varias"
+      }
+    },
+    "orientation": {
+      "que": "En qué dirección se colocan sus partes",
+      "valores": {
+        "horizontal": "En fila",
+        "vertical": "En columna"
+      }
+    },
+    "label-placement": {
+      "que": "Dónde va la etiqueta respecto al control",
+      "valores": {
+        "floating": "Dentro y sube al escribir",
+        "above": "Encima del control",
+        "start": "Delante del control",
+        "end": "Detrás del control",
+        "hidden": "No se ve; solo la oye el lector de pantalla"
+      }
+    },
+    "tone": {
+      "que": "El significado del mensaje o del estado, que nunca se da solo con color",
+      "valores": {
+        "neutral": "Sin carga: informa sin más",
+        "info": "Información útil",
+        "success": "Algo salió bien",
+        "warning": "Algo pide atención",
+        "danger": "Algo falló o es grave"
+      }
+    },
+    "modality": {
+      "que": "Si bloquea la pantalla de detrás mientras está abierto",
+      "valores": {
+        "modal": "Bloquea lo de detrás hasta cerrarse",
+        "non-modal": "Deja usar lo de detrás"
+      }
+    },
+    "placement": {
+      "que": "Dónde aparece respecto a la pantalla o al elemento que lo abre",
+      "valores": {
+        "top": "Arriba",
+        "bottom": "Abajo",
+        "start": "Al inicio del sentido de lectura",
+        "end": "Al final del sentido de lectura",
+        "center": "En el centro",
+        "anchored": "Pegado al elemento que lo abre o al que señala",
+        "floating": "Flotando sobre el contenido, separado de los bordes",
+        "inline": "Dentro del flujo del contenido, sin superponerse"
+      }
+    },
+    "trigger": {
+      "que": "Qué gesto lo hace aparecer",
+      "valores": {
+        "tap": "Tocar o pulsar un control",
+        "hover-or-focus": "Pasar el puntero o llevar el foco",
+        "long-press": "Mantener pulsado",
+        "secondary-click": "El botón secundario del ratón"
+      }
+    },
+    "display-duration": {
+      "que": "Cuánto tiempo se queda a la vista",
+      "valores": {
+        "short": "Unos pocos segundos",
+        "long": "Más tiempo, para leer con calma",
+        "until-dismissed": "Hasta que la persona lo cierra"
+      }
+    },
+    "badge-content": {
+      "que": "Qué muestra la insignia",
+      "valores": {
+        "dot": "Solo un punto",
+        "count": "Un número",
+        "text": "Una palabra corta"
+      }
+    },
+    "progress-mode": {
+      "que": "Si se conoce cuánto falta",
+      "valores": {
+        "determinate": "Se sabe el avance y se muestra",
+        "indeterminate": "No se sabe: solo dice que algo pasa"
+      }
+    },
+    "progress-shape": {
+      "que": "La forma del indicador de avance",
+      "valores": {
+        "linear": "Una barra",
+        "circular": "Un círculo"
+      }
+    },
+    "value-display": {
+      "que": "Cuándo se enseña el valor en texto",
+      "valores": {
+        "hidden": "Nunca",
+        "on-interaction": "Mientras se maneja",
+        "always": "Siempre"
+      }
+    },
+    "value-count": {
+      "que": "Cuántos valores elige: uno o un rango",
+      "valores": {
+        "single": "Un valor",
+        "range": "Un rango, con inicio y fin"
+      }
+    },
+    "input-type": {
+      "que": "Qué clase de dato se escribe, que decide el teclado y la validación",
+      "valores": {
+        "text": "Texto libre",
+        "email": "Un correo",
+        "password": "Una contraseña oculta",
+        "number": "Un número",
+        "phone": "Un teléfono",
+        "url": "Una dirección web",
+        "multiline": "Texto de varias líneas"
+      }
+    },
+    "presentation": {
+      "que": "Cómo se presenta lo que abre",
+      "valores": {
+        "inline": "Dentro de la página, siempre visible",
+        "dropdown": "En un desplegable pegado al control",
+        "modal": "En una ventana que bloquea lo de detrás",
+        "full-screen": "Ocupando toda la pantalla"
+      }
+    },
+    "hour-cycle": {
+      "que": "Cómo se cuentan las horas",
+      "valores": {
+        "twelve-hour": "De 1 a 12, con mañana y tarde",
+        "twenty-four-hour": "De 0 a 23",
+        "locale": "Lo que diga el idioma y la región de la persona"
+      }
+    },
+    "input-method": {
+      "que": "Cómo se introduce el valor",
+      "valores": {
+        "dial": "Con una esfera",
+        "keyboard-entry": "Escribiéndolo",
+        "wheel": "Girando unas ruedas",
+        "swatches": "Eligiendo una muestra",
+        "spectrum": "Eligiendo en una superficie continua",
+        "calendar": "Eligiendo en un calendario"
+      }
+    },
+    "expansion": {
+      "que": "Cuántas secciones pueden estar abiertas a la vez",
+      "valores": {
+        "single-open": "Una sola: abrir una cierra la otra",
+        "multiple-open": "Varias a la vez"
+      }
+    },
+    "precision": {
+      "que": "Con qué precisión se puntúa",
+      "valores": {
+        "whole": "Puntos enteros",
+        "half": "Medios puntos"
+      }
+    },
+    "rating-symbol": {
+      "que": "Qué símbolo suma cada punto",
+      "valores": {
+        "star": "Una estrella",
+        "heart": "Un corazón",
+        "emoji": "Una cara o un emoji"
+      }
+    },
+    "editable-value": {
+      "que": "Si el valor se puede cambiar o solo se muestra",
+      "valores_de": "declaracion"
+    },
+    "behaviour": {
+      "que": "Qué pasa al tocar la pieza entera",
+      "valores": {
+        "static": "Nada: solo muestra",
+        "clickable": "Lleva a otro sitio o ejecuta algo",
+        "selectable": "Se marca como elegida",
+        "expandable": "Se abre para enseñar más"
+      }
+    },
+    "scrollable": {
+      "que": "Si se desplaza cuando no cabe",
+      "valores_de": "declaracion"
+    },
+    "layout": {
+      "que": "Cómo se reparten las piezas que se repiten",
+      "valores": {
+        "hero": "Una pieza grande en primer plano y un trozo de la siguiente",
+        "multi-browse": "Varias piezas de distintos tamaños a la vista",
+        "uncontained": "Piezas del mismo tamaño que se salen del borde",
+        "grid": "Una rejilla de celdas iguales",
+        "masonry": "Columnas de alturas libres",
+        "list": "Una pieza por fila"
+      }
+    },
+    "autoplay": {
+      "que": "Si pasa de pieza solo",
+      "valores_de": "declaracion"
+    },
+    "chip-kind": {
+      "que": "Para qué sirve el chip",
+      "valores": {
+        "assist": "Propone una acción relacionada",
+        "filter": "Filtra un contenido",
+        "input": "Representa un dato que la persona metió",
+        "suggestion": "Sugiere una respuesta o una búsqueda"
+      }
+    },
+    "inset": {
+      "que": "Dónde empieza la línea respecto al borde",
+      "valores": {
+        "none": "De borde a borde",
+        "start": "Deja un margen al inicio",
+        "middle": "Deja margen a los dos lados"
+      }
+    },
+    "line-count": {
+      "que": "Cuántas líneas de texto tiene cada fila",
+      "valores": {
+        "one": "Una línea",
+        "two": "Dos líneas",
+        "three": "Tres líneas"
+      }
+    },
+    "leading-element": {
+      "que": "Qué va al inicio de cada fila",
+      "valores": {
+        "none": "Nada al inicio",
+        "icon": "Un icono",
+        "avatar": "Un avatar",
+        "media": "Una imagen pequeña",
+        "control": "Un control, como una casilla"
+      }
+    },
+    "trailing-element": {
+      "que": "Qué va al final de cada fila",
+      "valores": {
+        "none": "Nada al final",
+        "metadata": "Un dato breve",
+        "icon": "Un icono",
+        "action": "Una acción",
+        "control": "Un control, como un interruptor"
+      }
+    },
+    "label-visibility": {
+      "que": "Cuándo se ve la etiqueta de cada destino",
+      "valores": {
+        "always": "Siempre",
+        "selected-only": "Solo la del destino activo",
+        "never": "Nunca: solo iconos"
+      }
+    },
+    "sortable": {
+      "que": "Si las columnas ordenan al tocar su cabecera",
+      "valores_de": "declaracion"
+    },
+    "sticky-header": {
+      "que": "Si la cabecera se queda fija al desplazar",
+      "valores_de": "declaracion"
+    },
+    "pagination-mode": {
+      "que": "Cómo se reparten muchos datos",
+      "valores": {
+        "none": "Todo de una vez",
+        "pages": "En páginas numeradas",
+        "load-more": "Con un botón de cargar más",
+        "infinite": "Cargando al llegar al final"
+      }
+    },
+    "title-alignment": {
+      "que": "Dónde se alinea el título",
+      "valores": {
+        "start": "Al inicio",
+        "center": "En el centro"
+      }
+    },
+    "scroll-behaviour": {
+      "que": "Qué hace al desplazar el contenido",
+      "valores": {
+        "fixed": "Se queda igual",
+        "collapse": "Se encoge",
+        "hide-on-scroll": "Se esconde y vuelve al subir"
+      }
+    },
+    "height-steps": {
+      "que": "A qué alturas se detiene",
+      "valores": {
+        "partial": "Solo a media altura",
+        "full": "Solo a pantalla completa",
+        "partial-and-full": "A media altura y a pantalla completa"
+      }
+    },
+    "sequence": {
+      "que": "Si es un paso suelto o una serie",
+      "valores": {
+        "single-step": "Un solo paso",
+        "multi-step": "Varios pasos seguidos"
+      }
+    },
+    "purpose": {
+      "que": "Para qué se abre",
+      "valores": {
+        "inform": "Informar",
+        "confirm": "Pedir que se confirme una decisión",
+        "collect-input": "Pedir datos"
+      }
+    },
+    "nested": {
+      "que": "Si tiene niveles dentro de niveles",
+      "valores_de": "declaracion"
+    },
+    "tooltip-kind": {
+      "que": "Cuánto contenido lleva",
+      "valores": {
+        "plain": "Una línea de texto",
+        "rich": "Título, texto y, a veces, una acción"
+      }
+    },
+    "avatar-content": {
+      "que": "Qué enseña el avatar",
+      "valores": {
+        "media": "Una foto",
+        "initials": "Las iniciales",
+        "icon": "Un icono genérico"
+      }
+    },
+    "icon-style": {
+      "que": "El estilo de trazo del icono",
+      "valores": {
+        "outlined": "De línea",
+        "filled": "Relleno",
+        "two-tone": "De dos tonos"
+      }
+    },
+    "illustration-use": {
+      "que": "Dónde se usa la ilustración",
+      "valores": {
+        "empty-state": "En un estado vacío",
+        "onboarding": "En los primeros pasos",
+        "spot": "Pequeña, junto a un texto",
+        "hero": "Grande, presidiendo la pantalla"
+      }
+    },
+    "logo-form": {
+      "que": "Qué forma del logotipo se usa",
+      "valores": {
+        "symbol-only": "Solo el símbolo",
+        "wordmark-only": "Solo el nombre",
+        "combination": "Símbolo y nombre juntos"
+      }
+    },
+    "color-mode": {
+      "que": "Con qué color se pinta",
+      "valores": {
+        "full-color": "Con todos sus colores",
+        "monochrome": "De un solo color",
+        "inverse": "Claro sobre fondo oscuro"
+      }
+    },
+    "aspect-ratio": {
+      "que": "La proporción de la imagen",
+      "valores": {
+        "square": "Cuadrada",
+        "landscape": "Apaisada",
+        "portrait": "Vertical",
+        "free": "La de la imagen original"
+      }
+    },
+    "fit": {
+      "que": "Cómo se ajusta la imagen a su hueco",
+      "valores": {
+        "cover": "Llena el hueco y recorta lo que sobra",
+        "contain": "Cabe entera y deja bandas"
+      }
+    },
+    "pin-content": {
+      "que": "Qué lleva el marcador dentro",
+      "valores": {
+        "icon": "Un icono",
+        "label": "Un texto o un precio",
+        "avatar": "Un avatar",
+        "count": "Un número de puntos agrupados"
+      }
+    },
+    "collapsible": {
+      "que": "Si se puede plegar para dejar solo los iconos",
+      "valores_de": "declaracion"
+    },
+    "animation": {
+      "que": "Cómo se mueve mientras espera",
+      "valores": {
+        "pulse": "Late suavemente",
+        "shimmer": "Pasa un brillo",
+        "none": "Quieto"
+      }
+    },
+    "placeholder-shape": {
+      "que": "La forma que imita el contenido",
+      "valores": {
+        "text-line": "Una línea de texto",
+        "block": "Un bloque, como una imagen",
+        "circle": "Un círculo, como un avatar"
+      }
+    },
+    "tri-state": {
+      "que": "Si admite un tercer estado mixto, para grupos a medio marcar",
+      "valores_de": "declaracion"
+    },
+    "free-input": {
+      "que": "Si acepta un valor que no está en la lista",
+      "valores_de": "declaracion"
+    },
+    "alpha": {
+      "que": "Si deja elegir la transparencia",
+      "valores_de": "declaracion"
+    },
+    "entry-motion": {
+      "que": "Cómo entra en la pantalla",
+      "valores": {
+        "slide": "Se desliza desde un borde",
+        "fade": "Aparece fundiendo",
+        "scale": "Crece desde el elemento que lo abre"
+      }
+    },
+    "contained": {
+      "que": "Si va dentro de un contenedor de color",
+      "valores_de": "declaracion"
+    }
+  },
+  "escalas": {
+    "corner": {
+      "que": "Lo redondeadas que son las esquinas",
+      "pasos": {
+        "none": "Rectas",
+        "small": "Un poco",
+        "medium": "Bastante",
+        "large": "Mucho",
+        "full": "Del todo: píldora o círculo"
+      }
+    },
+    "elevation": {
+      "que": "Cuánto se separa del fondo con sombra",
+      "pasos": {
+        "none": "Sin sombra",
+        "low": "Apenas despegado",
+        "medium": "Flota sobre el contenido",
+        "high": "Muy por encima, como una ventana"
+      }
+    },
+    "spacing": {
+      "que": "Los pasos de espacio, dentro y entre partes",
+      "pasos": {
+        "none": "Sin espacio",
+        "xs": "Mínimo",
+        "s": "Pequeño",
+        "m": "Medio",
+        "l": "Grande",
+        "xl": "Muy grande"
+      }
+    },
+    "size": {
+      "que": "Los pasos de tamaño de iconos y alturas",
+      "pasos_de": "tamaños"
+    },
+    "color-role": {
+      "que": "El papel de un color, que cada proyecto traduce a su paleta",
+      "pasos": {
+        "surface": "La superficie normal",
+        "surface-raised": "Una superficie sobre otra",
+        "primary": "El color de la acción principal o de la marca",
+        "on-primary": "Lo que va encima del color principal",
+        "selected": "Lo elegido",
+        "danger": "Peligro o error",
+        "warning": "Aviso",
+        "success": "Éxito",
+        "info": "Información",
+        "text": "El texto de más contraste",
+        "text-muted": "El texto secundario",
+        "border": "Bordes y separadores",
+        "scrim": "El velo de detrás de una ventana",
+        "inverse": "Superficie oscura sobre fondo claro, o al revés"
+      }
+    },
+    "text-role": {
+      "que": "El papel de un texto en la jerarquía",
+      "pasos": {
+        "display": "Un número o un titular muy grande",
+        "title": "Un título",
+        "body": "El texto corrido",
+        "label": "Etiquetas de controles",
+        "caption": "Textos pequeños de apoyo"
+      }
+    },
+    "layer": {
+      "que": "El orden de apilado, de abajo arriba",
+      "pasos": {
+        "content": "El contenido normal",
+        "sticky": "Cabeceras fijas dentro del contenido",
+        "navigation": "Las barras de navegación",
+        "floating": "Lo que flota sobre el contenido",
+        "sheet": "Hojas y ventanas",
+        "notification": "Avisos efímeros, por encima de las hojas",
+        "popup": "Menús y globos sobre todo lo demás",
+        "tutorial": "Las guías, por encima de todo"
+      }
+    },
+    "duration": {
+      "que": "Cuánto dura un cambio animado",
+      "pasos": {
+        "fast": "Rápido, para cambios pequeños",
+        "medium": "Medio, para entrar y salir",
+        "slow": "Lento, para cambios grandes"
+      }
+    }
+  },
+  "propiedades_visuales": {
+    "radius": {
+      "que": "El redondeo de las esquinas de una parte",
+      "escala": "corner",
+      "tipo_de_token": "dimension"
+    },
+    "elevation": {
+      "que": "La sombra de una parte",
+      "escala": "elevation",
+      "tipo_de_token": "shadow"
+    },
+    "fill": {
+      "que": "El color de fondo de una parte",
+      "escala": "color-role",
+      "tipo_de_token": "color"
+    },
+    "content-color": {
+      "que": "El color del texto o del icono de una parte",
+      "escala": "color-role",
+      "tipo_de_token": "color"
+    },
+    "outline": {
+      "que": "El color del borde de una parte",
+      "escala": "color-role",
+      "tipo_de_token": "color"
+    },
+    "padding": {
+      "que": "El espacio entre el borde de una parte y su contenido",
+      "escala": "spacing",
+      "tipo_de_token": "dimension"
+    },
+    "gap": {
+      "que": "El espacio entre las piezas de dentro de una parte",
+      "escala": "spacing",
+      "tipo_de_token": "dimension"
+    },
+    "text-style": {
+      "que": "El estilo de texto de una parte por su papel",
+      "escala": "text-role",
+      "tipo_de_token": "typography"
+    },
+    "icon-size": {
+      "que": "El tamaño de un icono o de una imagen pequeña",
+      "escala": "size",
+      "tipo_de_token": "dimension"
+    },
+    "height": {
+      "que": "La altura de una parte",
+      "escala": "size",
+      "tipo_de_token": "dimension"
+    },
+    "layer": {
+      "que": "La capa en la que se pinta una parte",
+      "escala": "layer",
+      "tipo_de_token": "number"
+    },
+    "transition": {
+      "que": "La duración de la animación de una parte",
+      "escala": "duration",
+      "tipo_de_token": "duration"
+    }
+  },
+  "plantillas": [
+    {
+      "elemento": "accordion",
+      "categoria": "contenedor",
+      "interaccion": "interactive",
+      "anatomia": [
+        {"parte":"header","obligacion":"required"},
+        {"parte":"headline","obligacion":"required"},
+        {"parte":"expand-icon","obligacion":"required"},
+        {"parte":"content-panel","obligacion":"required"},
+        {"parte":"divider","obligacion":"optional"},
+        {"parte":"supporting-text","obligacion":"optional"},
+        {"parte":"leading-icon","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"expansion","valores":["single-open","multiple-open"],"por_defecto":"multiple-open"},
+        {"atributo":"icon-position","valores":["leading","trailing"],"por_defecto":"trailing"},
+        {"atributo":"container-style","valores":["plain","outlined","filled"],"por_defecto":"plain"}
+      ],
+      "visual": [
+        {"propiedad":"padding","parte":"header","paso":"m"},
+        {"propiedad":"text-style","parte":"headline","paso":"label"},
+        {"propiedad":"icon-size","parte":"expand-icon","paso":"s"},
+        {"propiedad":"padding","parte":"content-panel","paso":"m"},
+        {"propiedad":"outline","parte":"divider","paso":"border"},
+        {"propiedad":"transition","parte":"content-panel","paso":"medium"}
+      ],
+      "estados": ["reposo","hover","foco","pulsado","deshabilitado","activo"],
+      "accesibilidad": {"rol_aria":["button","region"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","enter-activates","space-activates","arrow-navigation","home-end"]},
+      "fuentes": [
+        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/accordion/usage/","comprobada":"unverified"},
+        {"sistema":"radix-ui","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/accordion","comprobada":"unverified"},
+        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/accordion/","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "button",
+      "categoria": "acción",
+      "interaccion": "interactive",
+      "anatomia": [
+        {"parte":"container","obligacion":"required"},
+        {"parte":"label","obligacion":"required"},
+        {"parte":"leading-icon","obligacion":"optional"},
+        {"parte":"trailing-icon","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"variant","valores":["primario","secundario","terciario","peligro","fantasma"],"por_defecto":"primario"},
+        {"atributo":"size","valores":["s","m","l"],"por_defecto":"m"},
+        {"atributo":"icon-position","valores":["leading","trailing","none"],"por_defecto":"none"},
+        {"atributo":"width","valores":["hug-content","fill-container"],"por_defecto":"hug-content"},
+        {"atributo":"shape","valores":["rounded","pill"],"por_defecto":"pill"}
+      ],
+      "visual": [
+        {"propiedad":"radius","parte":"container","paso":"full"},
+        {"propiedad":"fill","parte":"container","paso":"primary"},
+        {"propiedad":"content-color","parte":"label","paso":"on-primary"},
+        {"propiedad":"padding","parte":"container","paso":"m"},
+        {"propiedad":"gap","parte":"container","paso":"s"},
+        {"propiedad":"text-style","parte":"label","paso":"label"},
+        {"propiedad":"icon-size","parte":"leading-icon","paso":"s"},
+        {"propiedad":"height","parte":"container","paso":"m"}
+      ],
+      "estados": ["reposo","hover","foco","pulsado","deshabilitado","cargando"],
+      "accesibilidad": {"rol_aria":["button"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","enter-activates","space-activates"]},
+      "fuentes": [
+        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/buttons/overview","comprobada":"unverified"},
+        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/button/usage/","comprobada":"unverified"},
+        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/button/","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "checkbox",
+      "categoria": "selección",
+      "interaccion": "interactive",
+      "anatomia": [
+        {"parte":"control-box","obligacion":"required"},
+        {"parte":"selection-indicator","obligacion":"required"},
+        {"parte":"label","obligacion":"optional"},
+        {"parte":"error-text","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"label-placement","valores":["start","end"],"por_defecto":"end"},
+        {"atributo":"tri-state","valores":["yes","no"],"por_defecto":"no"}
+      ],
+      "visual": [
+        {"propiedad":"radius","parte":"control-box","paso":"small"},
+        {"propiedad":"outline","parte":"control-box","paso":"border"},
+        {"propiedad":"fill","parte":"selection-indicator","paso":"primary"},
+        {"propiedad":"icon-size","parte":"control-box","paso":"s"},
+        {"propiedad":"gap","parte":"label","paso":"s"},
+        {"propiedad":"text-style","parte":"label","paso":"body"}
+      ],
+      "estados": ["reposo","hover","foco","pulsado","deshabilitado","activo","error"],
+      "accesibilidad": {"rol_aria":["checkbox"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","space-activates"]},
+      "fuentes": [
+        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/checkbox/overview","comprobada":"unverified"},
+        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/checkbox/usage/","comprobada":"unverified"},
+        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/checkbox/","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "color-picker",
+      "categoria": "entrada",
+      "interaccion": "interactive",
+      "anatomia": [
+        {"parte":"container","obligacion":"required"},
+        {"parte":"color-area","obligacion":"optional"},
+        {"parte":"swatch","obligacion":"optional"},
+        {"parte":"track","obligacion":"optional"},
+        {"parte":"thumb","obligacion":"required"},
+        {"parte":"value-field","obligacion":"optional"},
+        {"parte":"selection-indicator","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"input-method","valores":["swatches","spectrum"],"por_defecto":"swatches"},
+        {"atributo":"presentation","valores":["inline","dropdown","modal"],"por_defecto":"dropdown"},
+        {"atributo":"alpha","valores":["yes","no"],"por_defecto":"no"}
+      ],
+      "visual": [
+        {"propiedad":"radius","parte":"container","paso":"medium"},
+        {"propiedad":"elevation","parte":"container","paso":"medium"},
+        {"propiedad":"radius","parte":"swatch","paso":"full"},
+        {"propiedad":"radius","parte":"thumb","paso":"full"},
+        {"propiedad":"outline","parte":"thumb","paso":"surface"},
+        {"propiedad":"padding","parte":"container","paso":"m"},
+        {"propiedad":"gap","parte":"container","paso":"s"}
+      ],
+      "estados": ["reposo","hover","foco","pulsado","deshabilitado"],
+      "accesibilidad": {"rol_aria":["group","slider","radio"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","arrow-navigation","home-end","page-keys"]},
+      "fuentes": [
+        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/color-wells","comprobada":"unverified"},
+        {"sistema":"polaris","alcance_url":"system","fuente":"[F] https://polaris.shopify.com/","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "date-picker",
+      "categoria": "entrada",
+      "interaccion": "interactive",
+      "anatomia": [
+        {"parte":"input-area","obligacion":"required"},
+        {"parte":"container","obligacion":"required"},
+        {"parte":"headline","obligacion":"optional"},
+        {"parte":"period-navigation","obligacion":"required"},
+        {"parte":"calendar-grid","obligacion":"required"},
+        {"parte":"selection-indicator","obligacion":"required"},
+        {"parte":"primary-action","obligacion":"optional"},
+        {"parte":"secondary-action","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"value-count","valores":["single","range"],"por_defecto":"single"},
+        {"atributo":"presentation","valores":["inline","dropdown","modal"],"por_defecto":"dropdown"},
+        {"atributo":"input-method","valores":["calendar","keyboard-entry"],"por_defecto":"calendar"}
+      ],
+      "visual": [
+        {"propiedad":"radius","parte":"container","paso":"large"},
+        {"propiedad":"elevation","parte":"container","paso":"medium"},
+        {"propiedad":"fill","parte":"selection-indicator","paso":"primary"},
+        {"propiedad":"text-style","parte":"headline","paso":"title"},
+        {"propiedad":"text-style","parte":"calendar-grid","paso":"body"},
+        {"propiedad":"padding","parte":"container","paso":"l"},
+        {"propiedad":"layer","parte":"container","paso":"popup"}
+      ],
+      "estados": ["reposo","hover","foco","pulsado","deshabilitado","activo","error"],
+      "accesibilidad": {"rol_aria":["dialog","grid","button"],"nombre_accesible":"labelled-by-title","objetivo_tactil":"required","teclado":["tab-stop","enter-activates","arrow-navigation","home-end","page-keys","escape-closes"]},
+      "fuentes": [
+        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/date-pickers/overview","comprobada":"unverified"},
+        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/date-picker/usage/","comprobada":"unverified"},
+        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/examples/datepicker-dialog/","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "floating-action-button",
+      "categoria": "acción",
+      "interaccion": "interactive",
+      "anatomia": [
+        {"parte":"container","obligacion":"required"},
+        {"parte":"icon","obligacion":"required"},
+        {"parte":"label","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"variant","valores":["primario","secundario","terciario"],"por_defecto":"primario"},
+        {"atributo":"size","valores":["s","m","l"],"por_defecto":"m"},
+        {"atributo":"icon-position","valores":["icon-only","leading"],"por_defecto":"icon-only"}
+      ],
+      "visual": [
+        {"propiedad":"radius","parte":"container","paso":"large"},
+        {"propiedad":"elevation","parte":"container","paso":"medium"},
+        {"propiedad":"fill","parte":"container","paso":"primary"},
+        {"propiedad":"content-color","parte":"icon","paso":"on-primary"},
+        {"propiedad":"icon-size","parte":"icon","paso":"m"},
+        {"propiedad":"height","parte":"container","paso":"l"},
+        {"propiedad":"layer","parte":"container","paso":"floating"}
+      ],
+      "estados": ["reposo","hover","foco","pulsado","deshabilitado"],
+      "accesibilidad": {"rol_aria":["button"],"nombre_accesible":"aria-label","objetivo_tactil":"required","teclado":["tab-stop","enter-activates","space-activates"]},
+      "fuentes": [
+        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/floating-action-button/overview","comprobada":"unverified"},
+        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/button/","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "radio-button",
+      "categoria": "selección",
+      "interaccion": "interactive",
+      "anatomia": [
+        {"parte":"control-box","obligacion":"required"},
+        {"parte":"selection-indicator","obligacion":"required"},
+        {"parte":"label","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"label-placement","valores":["start","end"],"por_defecto":"end"},
+        {"atributo":"orientation","valores":["horizontal","vertical"],"por_defecto":"vertical"}
+      ],
+      "visual": [
+        {"propiedad":"radius","parte":"control-box","paso":"full"},
+        {"propiedad":"outline","parte":"control-box","paso":"border"},
+        {"propiedad":"fill","parte":"selection-indicator","paso":"primary"},
+        {"propiedad":"icon-size","parte":"control-box","paso":"s"},
+        {"propiedad":"gap","parte":"label","paso":"s"},
+        {"propiedad":"text-style","parte":"label","paso":"body"}
+      ],
+      "estados": ["reposo","hover","foco","pulsado","deshabilitado","activo","error"],
+      "accesibilidad": {"rol_aria":["radiogroup","radio"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","arrow-navigation","space-activates"]},
+      "fuentes": [
+        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/radio-button/overview","comprobada":"unverified"},
+        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/radio-button/usage/","comprobada":"unverified"},
+        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/radio/","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "rating-control",
+      "categoria": "entrada",
+      "interaccion": "interactive",
+      "anatomia": [
+        {"parte":"rating-item","obligacion":"required"},
+        {"parte":"label","obligacion":"optional"},
+        {"parte":"value-label","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"precision","valores":["whole","half"],"por_defecto":"whole"},
+        {"atributo":"rating-symbol","valores":["star","heart","emoji"],"por_defecto":"star"},
+        {"atributo":"editable-value","valores":["yes","no"],"por_defecto":"yes"},
+        {"atributo":"size","valores":["s","m","l"],"por_defecto":"m"}
+      ],
+      "visual": [
+        {"propiedad":"icon-size","parte":"rating-item","paso":"m"},
+        {"propiedad":"content-color","parte":"rating-item","paso":"primary"},
+        {"propiedad":"gap","parte":"rating-item","paso":"xs"},
+        {"propiedad":"text-style","parte":"value-label","paso":"caption"}
+      ],
+      "estados": ["reposo","hover","foco","pulsado","deshabilitado","activo"],
+      "accesibilidad": {"rol_aria":["radiogroup","radio"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","arrow-navigation","home-end"]},
+      "fuentes": [
+        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/radio/examples/radio-rating/","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "search-bar",
+      "categoria": "entrada",
+      "interaccion": "interactive",
+      "anatomia": [
+        {"parte":"container","obligacion":"required"},
+        {"parte":"leading-icon","obligacion":"required"},
+        {"parte":"input-area","obligacion":"required"},
+        {"parte":"placeholder","obligacion":"optional"},
+        {"parte":"clear-action","obligacion":"optional"},
+        {"parte":"trailing-icon","obligacion":"optional"},
+        {"parte":"avatar","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"container-style","valores":["filled","outlined"],"por_defecto":"filled"},
+        {"atributo":"presentation","valores":["inline","dropdown","full-screen"],"por_defecto":"dropdown"},
+        {"atributo":"shape","valores":["rounded","pill"],"por_defecto":"pill"}
+      ],
+      "visual": [
+        {"propiedad":"radius","parte":"container","paso":"full"},
+        {"propiedad":"fill","parte":"container","paso":"surface-raised"},
+        {"propiedad":"content-color","parte":"placeholder","paso":"text-muted"},
+        {"propiedad":"padding","parte":"container","paso":"m"},
+        {"propiedad":"gap","parte":"container","paso":"s"},
+        {"propiedad":"text-style","parte":"input-area","paso":"body"},
+        {"propiedad":"height","parte":"container","paso":"m"},
+        {"propiedad":"icon-size","parte":"leading-icon","paso":"s"}
+      ],
+      "estados": ["reposo","hover","foco","pulsado","deshabilitado","activo","cargando","vacío"],
+      "accesibilidad": {"rol_aria":["search","searchbox"],"nombre_accesible":"aria-label","objetivo_tactil":"required","teclado":["tab-stop","escape-closes"]},
+      "fuentes": [
+        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/search/overview","comprobada":"unverified"},
+        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/search/usage/","comprobada":"unverified"},
+        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/search-fields","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "segmented-control",
+      "categoria": "selección",
+      "interaccion": "interactive",
+      "anatomia": [
+        {"parte":"container","obligacion":"required"},
+        {"parte":"segment","obligacion":"required"},
+        {"parte":"label","obligacion":"optional"},
+        {"parte":"leading-icon","obligacion":"optional"},
+        {"parte":"selection-indicator","obligacion":"required"},
+        {"parte":"divider","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"selection-mode","valores":["single","multiple"],"por_defecto":"single"},
+        {"atributo":"icon-position","valores":["leading","icon-only","none"],"por_defecto":"none"},
+        {"atributo":"size","valores":["s","m"],"por_defecto":"m"}
+      ],
+      "visual": [
+        {"propiedad":"radius","parte":"container","paso":"full"},
+        {"propiedad":"outline","parte":"container","paso":"border"},
+        {"propiedad":"fill","parte":"selection-indicator","paso":"selected"},
+        {"propiedad":"content-color","parte":"label","paso":"text"},
+        {"propiedad":"height","parte":"container","paso":"m"},
+        {"propiedad":"text-style","parte":"label","paso":"label"},
+        {"propiedad":"padding","parte":"segment","paso":"s"}
+      ],
+      "estados": ["reposo","hover","foco","pulsado","deshabilitado","activo"],
+      "accesibilidad": {"rol_aria":["group","button"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","arrow-navigation","space-activates","enter-activates"]},
+      "fuentes": [
+        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/segmented-buttons/overview","comprobada":"unverified"},
+        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/content-switcher/usage/","comprobada":"unverified"},
+        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/segmented-controls","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "slider",
+      "categoria": "entrada",
+      "interaccion": "interactive",
+      "anatomia": [
+        {"parte":"track","obligacion":"required"},
+        {"parte":"active-indicator","obligacion":"required"},
+        {"parte":"thumb","obligacion":"required"},
+        {"parte":"value-label","obligacion":"optional"},
+        {"parte":"tick-marks","obligacion":"optional"},
+        {"parte":"label","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"value-count","valores":["single","range"],"por_defecto":"single"},
+        {"atributo":"value-display","valores":["hidden","on-interaction","always"],"por_defecto":"on-interaction"},
+        {"atributo":"orientation","valores":["horizontal","vertical"],"por_defecto":"horizontal"}
+      ],
+      "visual": [
+        {"propiedad":"radius","parte":"track","paso":"full"},
+        {"propiedad":"fill","parte":"track","paso":"border"},
+        {"propiedad":"fill","parte":"active-indicator","paso":"primary"},
+        {"propiedad":"radius","parte":"thumb","paso":"full"},
+        {"propiedad":"fill","parte":"thumb","paso":"primary"},
+        {"propiedad":"height","parte":"track","paso":"xs"},
+        {"propiedad":"icon-size","parte":"thumb","paso":"s"},
+        {"propiedad":"text-style","parte":"value-label","paso":"label"}
+      ],
+      "estados": ["reposo","hover","foco","pulsado","deshabilitado","activo"],
+      "accesibilidad": {"rol_aria":["slider"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","arrow-navigation","home-end","page-keys"]},
+      "fuentes": [
+        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/sliders/overview","comprobada":"unverified"},
+        {"sistema":"radix-ui","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/slider","comprobada":"unverified"},
+        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/slider/","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "stepper",
+      "categoria": "entrada",
+      "interaccion": "interactive",
+      "anatomia": [
+        {"parte":"container","obligacion":"required"},
+        {"parte":"decrement-action","obligacion":"required"},
+        {"parte":"value-field","obligacion":"required"},
+        {"parte":"increment-action","obligacion":"required"},
+        {"parte":"label","obligacion":"optional"},
+        {"parte":"helper-text","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"editable-value","valores":["yes","no"],"por_defecto":"yes"},
+        {"atributo":"orientation","valores":["horizontal","vertical"],"por_defecto":"horizontal"},
+        {"atributo":"container-style","valores":["outlined","plain"],"por_defecto":"outlined"}
+      ],
+      "visual": [
+        {"propiedad":"radius","parte":"container","paso":"medium"},
+        {"propiedad":"outline","parte":"container","paso":"border"},
+        {"propiedad":"icon-size","parte":"increment-action","paso":"s"},
+        {"propiedad":"icon-size","parte":"decrement-action","paso":"s"},
+        {"propiedad":"text-style","parte":"value-field","paso":"body"},
+        {"propiedad":"height","parte":"container","paso":"m"},
+        {"propiedad":"gap","parte":"container","paso":"xs"}
+      ],
+      "estados": ["reposo","hover","foco","pulsado","deshabilitado","error"],
+      "accesibilidad": {"rol_aria":["spinbutton","button"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","arrow-navigation","home-end","page-keys"]},
+      "fuentes": [
+        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/number-input/usage/","comprobada":"unverified"},
+        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/steppers","comprobada":"unverified"},
+        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/spinbutton/","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "switch",
+      "categoria": "selección",
+      "interaccion": "interactive",
+      "anatomia": [
+        {"parte":"track","obligacion":"required"},
+        {"parte":"thumb","obligacion":"required"},
+        {"parte":"icon","obligacion":"optional"},
+        {"parte":"label","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"label-placement","valores":["start","end"],"por_defecto":"start"}
+      ],
+      "visual": [
+        {"propiedad":"radius","parte":"track","paso":"full"},
+        {"propiedad":"fill","parte":"track","paso":"border"},
+        {"propiedad":"radius","parte":"thumb","paso":"full"},
+        {"propiedad":"fill","parte":"thumb","paso":"surface"},
+        {"propiedad":"height","parte":"track","paso":"s"},
+        {"propiedad":"icon-size","parte":"icon","paso":"s"},
+        {"propiedad":"transition","parte":"thumb","paso":"fast"},
+        {"propiedad":"gap","parte":"label","paso":"m"}
+      ],
+      "estados": ["reposo","hover","foco","pulsado","deshabilitado","activo"],
+      "accesibilidad": {"rol_aria":["switch"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","space-activates","enter-activates"]},
+      "fuentes": [
+        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/switch/overview","comprobada":"unverified"},
+        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/toggle/usage/","comprobada":"unverified"},
+        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/switch/","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "tab",
+      "categoria": "navegación",
+      "interaccion": "interactive",
+      "anatomia": [
+        {"parte":"container","obligacion":"required"},
+        {"parte":"label","obligacion":"optional"},
+        {"parte":"leading-icon","obligacion":"optional"},
+        {"parte":"selection-indicator","obligacion":"required"},
+        {"parte":"badge","obligacion":"optional"},
+        {"parte":"content-panel","obligacion":"required"}
+      ],
+      "forma": [
+        {"atributo":"variant","valores":["primario","secundario"],"por_defecto":"primario"},
+        {"atributo":"icon-position","valores":["leading","top","icon-only","none"],"por_defecto":"none"},
+        {"atributo":"scrollable","valores":["yes","no"],"por_defecto":"no"}
+      ],
+      "visual": [
+        {"propiedad":"fill","parte":"selection-indicator","paso":"primary"},
+        {"propiedad":"height","parte":"selection-indicator","paso":"xs"},
+        {"propiedad":"content-color","parte":"label","paso":"text-muted"},
+        {"propiedad":"text-style","parte":"label","paso":"label"},
+        {"propiedad":"padding","parte":"container","paso":"m"},
+        {"propiedad":"height","parte":"container","paso":"l"}
+      ],
+      "estados": ["reposo","hover","foco","pulsado","deshabilitado","activo"],
+      "accesibilidad": {"rol_aria":["tablist","tab","tabpanel"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","arrow-navigation","home-end"]},
+      "fuentes": [
+        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/tabs/overview","comprobada":"unverified"},
+        {"sistema":"radix-ui","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/tabs","comprobada":"unverified"},
+        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/tabs/","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "text-field",
+      "categoria": "entrada",
+      "interaccion": "interactive",
+      "anatomia": [
+        {"parte":"container","obligacion":"required"},
+        {"parte":"label","obligacion":"required"},
+        {"parte":"input-area","obligacion":"required"},
+        {"parte":"placeholder","obligacion":"optional"},
+        {"parte":"leading-icon","obligacion":"optional"},
+        {"parte":"trailing-icon","obligacion":"optional"},
+        {"parte":"helper-text","obligacion":"optional"},
+        {"parte":"error-text","obligacion":"optional"},
+        {"parte":"character-counter","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"container-style","valores":["filled","outlined","underlined"],"por_defecto":"outlined"},
+        {"atributo":"input-type","valores":["text","email","password","number","phone","url","multiline"],"por_defecto":"text"},
+        {"atributo":"label-placement","valores":["floating","above","hidden"],"por_defecto":"above"},
+        {"atributo":"density","valores":["compacta","normal"],"por_defecto":"normal"}
+      ],
+      "visual": [
+        {"propiedad":"radius","parte":"container","paso":"small"},
+        {"propiedad":"outline","parte":"container","paso":"border"},
+        {"propiedad":"fill","parte":"container","paso":"surface"},
+        {"propiedad":"text-style","parte":"input-area","paso":"body"},
+        {"propiedad":"text-style","parte":"label","paso":"label"},
+        {"propiedad":"text-style","parte":"helper-text","paso":"caption"},
+        {"propiedad":"content-color","parte":"error-text","paso":"danger"},
+        {"propiedad":"padding","parte":"container","paso":"m"},
+        {"propiedad":"height","parte":"container","paso":"m"}
+      ],
+      "estados": ["reposo","hover","foco","pulsado","deshabilitado","activo","error","vacío"],
+      "accesibilidad": {"rol_aria":["textbox"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop"]},
+      "fuentes": [
+        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/text-fields/overview","comprobada":"unverified"},
+        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/text-input/usage/","comprobada":"unverified"},
+        {"sistema":"shadcn-ui","alcance_url":"page","fuente":"[F] https://ui.shadcn.com/docs/components/input","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "tile",
+      "categoria": "selección",
+      "interaccion": "interactive",
+      "anatomia": [
+        {"parte":"container","obligacion":"required"},
+        {"parte":"headline","obligacion":"required"},
+        {"parte":"supporting-text","obligacion":"optional"},
+        {"parte":"icon","obligacion":"optional"},
+        {"parte":"media","obligacion":"optional"},
+        {"parte":"selection-indicator","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"behaviour","valores":["clickable","selectable","expandable"],"por_defecto":"clickable"},
+        {"atributo":"container-style","valores":["filled","outlined","elevated"],"por_defecto":"filled"},
+        {"atributo":"orientation","valores":["horizontal","vertical"],"por_defecto":"vertical"}
+      ],
+      "visual": [
+        {"propiedad":"radius","parte":"container","paso":"medium"},
+        {"propiedad":"fill","parte":"container","paso":"surface-raised"},
+        {"propiedad":"outline","parte":"selection-indicator","paso":"selected"},
+        {"propiedad":"padding","parte":"container","paso":"m"},
+        {"propiedad":"gap","parte":"container","paso":"s"},
+        {"propiedad":"text-style","parte":"headline","paso":"label"},
+        {"propiedad":"icon-size","parte":"icon","paso":"m"}
+      ],
+      "estados": ["reposo","hover","foco","pulsado","deshabilitado","activo"],
+      "accesibilidad": {"rol_aria":["button","link","checkbox"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","enter-activates","space-activates"]},
+      "fuentes": [
+        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/tile/usage/","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "time-picker",
+      "categoria": "entrada",
+      "interaccion": "interactive",
+      "anatomia": [
+        {"parte":"container","obligacion":"required"},
+        {"parte":"input-area","obligacion":"required"},
+        {"parte":"clock-dial","obligacion":"optional"},
+        {"parte":"period-selector","obligacion":"optional"},
+        {"parte":"headline","obligacion":"optional"},
+        {"parte":"primary-action","obligacion":"optional"},
+        {"parte":"secondary-action","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"hour-cycle","valores":["twelve-hour","twenty-four-hour","locale"],"por_defecto":"locale"},
+        {"atributo":"input-method","valores":["dial","keyboard-entry","wheel"],"por_defecto":"keyboard-entry"},
+        {"atributo":"presentation","valores":["inline","dropdown","modal"],"por_defecto":"modal"}
+      ],
+      "visual": [
+        {"propiedad":"radius","parte":"container","paso":"large"},
+        {"propiedad":"elevation","parte":"container","paso":"high"},
+        {"propiedad":"fill","parte":"clock-dial","paso":"surface-raised"},
+        {"propiedad":"text-style","parte":"input-area","paso":"display"},
+        {"propiedad":"text-style","parte":"headline","paso":"label"},
+        {"propiedad":"padding","parte":"container","paso":"l"},
+        {"propiedad":"layer","parte":"container","paso":"sheet"}
+      ],
+      "estados": ["reposo","hover","foco","pulsado","deshabilitado","activo","error"],
+      "accesibilidad": {"rol_aria":["group","spinbutton"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","arrow-navigation","home-end","escape-closes"]},
+      "fuentes": [
+        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/time-pickers/overview","comprobada":"unverified"},
+        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/pickers","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "combobox",
+      "categoria": "entrada",
+      "interaccion": "interactive",
+      "anatomia": [
+        {"parte":"container","obligacion":"required"},
+        {"parte":"label","obligacion":"required"},
+        {"parte":"input-area","obligacion":"required"},
+        {"parte":"trailing-icon","obligacion":"required"},
+        {"parte":"listbox","obligacion":"required"},
+        {"parte":"option","obligacion":"required"},
+        {"parte":"helper-text","obligacion":"optional"},
+        {"parte":"error-text","obligacion":"optional"},
+        {"parte":"clear-action","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"selection-mode","valores":["single","multiple"],"por_defecto":"single"},
+        {"atributo":"free-input","valores":["yes","no"],"por_defecto":"no"},
+        {"atributo":"container-style","valores":["filled","outlined"],"por_defecto":"outlined"}
+      ],
+      "visual": [
+        {"propiedad":"radius","parte":"container","paso":"small"},
+        {"propiedad":"outline","parte":"container","paso":"border"},
+        {"propiedad":"elevation","parte":"listbox","paso":"medium"},
+        {"propiedad":"radius","parte":"listbox","paso":"small"},
+        {"propiedad":"text-style","parte":"option","paso":"body"},
+        {"propiedad":"padding","parte":"option","paso":"s"},
+        {"propiedad":"layer","parte":"listbox","paso":"popup"},
+        {"propiedad":"height","parte":"container","paso":"m"}
+      ],
+      "estados": ["reposo","hover","foco","pulsado","deshabilitado","activo","cargando","error","vacío"],
+      "accesibilidad": {"rol_aria":["combobox","listbox","option"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","arrow-navigation","enter-activates","escape-closes","type-ahead","home-end"]},
+      "fuentes": [
+        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/dropdown/usage/","comprobada":"unverified"},
+        {"sistema":"shadcn-ui","alcance_url":"page","fuente":"[F] https://ui.shadcn.com/docs/components/combobox","comprobada":"unverified"},
+        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/combobox/","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "badge",
+      "categoria": "feedback",
+      "interaccion": "static",
+      "anatomia": [
+        {"parte":"container","obligacion":"required"},
+        {"parte":"label","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"badge-content","valores":["dot","count","text"],"por_defecto":"count"},
+        {"atributo":"tone","valores":["neutral","info","success","warning","danger"],"por_defecto":"danger"}
+      ],
+      "visual": [
+        {"propiedad":"radius","parte":"container","paso":"full"},
+        {"propiedad":"fill","parte":"container","paso":"danger"},
+        {"propiedad":"content-color","parte":"label","paso":"on-primary"},
+        {"propiedad":"text-style","parte":"label","paso":"caption"},
+        {"propiedad":"padding","parte":"container","paso":"xs"},
+        {"propiedad":"height","parte":"container","paso":"xs"}
+      ],
+      "estados": ["reposo"],
+      "accesibilidad": {"rol_aria":["presentation"],"nombre_accesible":"parent-name","objetivo_tactil":"not-applicable","teclado":[]},
+      "fuentes": [
+        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/badges/overview","comprobada":"unverified"},
+        {"sistema":"shadcn-ui","alcance_url":"page","fuente":"[F] https://ui.shadcn.com/docs/components/badge","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "banner",
+      "categoria": "feedback",
+      "interaccion": "container",
+      "anatomia": [
+        {"parte":"container","obligacion":"required"},
+        {"parte":"icon","obligacion":"optional"},
+        {"parte":"headline","obligacion":"optional"},
+        {"parte":"supporting-text","obligacion":"required"},
+        {"parte":"primary-action","obligacion":"optional"},
+        {"parte":"secondary-action","obligacion":"optional"},
+        {"parte":"close-action","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"tone","valores":["neutral","info","success","warning","danger"],"por_defecto":"info"},
+        {"atributo":"placement","valores":["top","inline"],"por_defecto":"top"}
+      ],
+      "visual": [
+        {"propiedad":"radius","parte":"container","paso":"medium"},
+        {"propiedad":"fill","parte":"container","paso":"surface-raised"},
+        {"propiedad":"outline","parte":"container","paso":"border"},
+        {"propiedad":"content-color","parte":"icon","paso":"info"},
+        {"propiedad":"padding","parte":"container","paso":"m"},
+        {"propiedad":"gap","parte":"container","paso":"s"},
+        {"propiedad":"text-style","parte":"headline","paso":"label"},
+        {"propiedad":"text-style","parte":"supporting-text","paso":"body"}
+      ],
+      "estados": ["reposo"],
+      "accesibilidad": {"rol_aria":["status","alert"],"nombre_accesible":"live-region","objetivo_tactil":"inherited","teclado":["tab-stop"]},
+      "fuentes": [
+        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/notification/usage/","comprobada":"unverified"},
+        {"sistema":"shadcn-ui","alcance_url":"page","fuente":"[F] https://ui.shadcn.com/docs/components/alert","comprobada":"unverified"},
+        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/alert/","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "card",
+      "categoria": "contenedor",
+      "interaccion": "container",
+      "anatomia": [
+        {"parte":"container","obligacion":"required"},
+        {"parte":"media","obligacion":"optional"},
+        {"parte":"headline","obligacion":"required"},
+        {"parte":"supporting-text","obligacion":"optional"},
+        {"parte":"body","obligacion":"optional"},
+        {"parte":"primary-action","obligacion":"optional"},
+        {"parte":"secondary-action","obligacion":"optional"},
+        {"parte":"avatar","obligacion":"optional"},
+        {"parte":"divider","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"container-style","valores":["elevated","filled","outlined"],"por_defecto":"elevated"},
+        {"atributo":"behaviour","valores":["static","clickable","expandable"],"por_defecto":"static"},
+        {"atributo":"orientation","valores":["horizontal","vertical"],"por_defecto":"vertical"}
+      ],
+      "visual": [
+        {"propiedad":"radius","parte":"container","paso":"large"},
+        {"propiedad":"elevation","parte":"container","paso":"low"},
+        {"propiedad":"fill","parte":"container","paso":"surface"},
+        {"propiedad":"radius","parte":"media","paso":"large"},
+        {"propiedad":"padding","parte":"container","paso":"m"},
+        {"propiedad":"gap","parte":"container","paso":"s"},
+        {"propiedad":"text-style","parte":"headline","paso":"title"},
+        {"propiedad":"text-style","parte":"supporting-text","paso":"body"}
+      ],
+      "estados": ["reposo","hover","foco","pulsado","cargando"],
+      "accesibilidad": {"rol_aria":["article"],"nombre_accesible":"labelled-by-title","objetivo_tactil":"inherited","teclado":["tab-stop","enter-activates"]},
+      "fuentes": [
+        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/cards/overview","comprobada":"unverified"},
+        {"sistema":"shadcn-ui","alcance_url":"page","fuente":"[F] https://ui.shadcn.com/docs/components/card","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "carousel",
+      "categoria": "medios",
+      "interaccion": "container",
+      "anatomia": [
+        {"parte":"container","obligacion":"required"},
+        {"parte":"item","obligacion":"required"},
+        {"parte":"media","obligacion":"required"},
+        {"parte":"headline","obligacion":"optional"},
+        {"parte":"page-indicator","obligacion":"optional"},
+        {"parte":"period-navigation","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"layout","valores":["hero","multi-browse","uncontained"],"por_defecto":"multi-browse"},
+        {"atributo":"autoplay","valores":["yes","no"],"por_defecto":"no"}
+      ],
+      "visual": [
+        {"propiedad":"radius","parte":"item","paso":"large"},
+        {"propiedad":"gap","parte":"container","paso":"s"},
+        {"propiedad":"padding","parte":"container","paso":"m"},
+        {"propiedad":"fill","parte":"page-indicator","paso":"primary"},
+        {"propiedad":"transition","parte":"item","paso":"medium"}
+      ],
+      "estados": ["reposo","cargando","vacío"],
+      "accesibilidad": {"rol_aria":["region","group"],"nombre_accesible":"aria-label","objetivo_tactil":"inherited","teclado":["tab-stop","arrow-navigation"]},
+      "fuentes": [
+        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/carousel/overview","comprobada":"unverified"},
+        {"sistema":"shadcn-ui","alcance_url":"page","fuente":"[F] https://ui.shadcn.com/docs/components/carousel","comprobada":"unverified"},
+        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/carousel/","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "chip",
+      "categoria": "selección",
+      "interaccion": "interactive",
+      "anatomia": [
+        {"parte":"container","obligacion":"required"},
+        {"parte":"label","obligacion":"required"},
+        {"parte":"leading-icon","obligacion":"optional"},
+        {"parte":"trailing-icon","obligacion":"optional"},
+        {"parte":"avatar","obligacion":"optional"},
+        {"parte":"selection-indicator","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"chip-kind","valores":["assist","filter","input","suggestion"],"por_defecto":"filter"},
+        {"atributo":"container-style","valores":["outlined","elevated"],"por_defecto":"outlined"},
+        {"atributo":"icon-position","valores":["leading","none"],"por_defecto":"none"}
+      ],
+      "visual": [
+        {"propiedad":"radius","parte":"container","paso":"small"},
+        {"propiedad":"outline","parte":"container","paso":"border"},
+        {"propiedad":"fill","parte":"selection-indicator","paso":"selected"},
+        {"propiedad":"text-style","parte":"label","paso":"label"},
+        {"propiedad":"padding","parte":"container","paso":"s"},
+        {"propiedad":"height","parte":"container","paso":"s"},
+        {"propiedad":"icon-size","parte":"leading-icon","paso":"xs"}
+      ],
+      "estados": ["reposo","hover","foco","pulsado","deshabilitado","activo"],
+      "accesibilidad": {"rol_aria":["button","checkbox"],"nombre_accesible":"visible-label","objetivo_tactil":"required","teclado":["tab-stop","enter-activates","space-activates","delete-removes"]},
+      "fuentes": [
+        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/chips/overview","comprobada":"unverified"},
+        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/tag/usage/","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "divider",
+      "categoria": "estructura",
+      "interaccion": "static",
+      "anatomia": [
+        {"parte":"divider","obligacion":"required"}
+      ],
+      "forma": [
+        {"atributo":"orientation","valores":["horizontal","vertical"],"por_defecto":"horizontal"},
+        {"atributo":"inset","valores":["none","start","middle"],"por_defecto":"none"}
+      ],
+      "visual": [
+        {"propiedad":"outline","parte":"divider","paso":"border"},
+        {"propiedad":"gap","parte":"divider","paso":"s"}
+      ],
+      "estados": ["reposo"],
+      "accesibilidad": {"rol_aria":["separator"],"nombre_accesible":"not-named","objetivo_tactil":"not-applicable","teclado":[]},
+      "fuentes": [
+        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/divider/overview","comprobada":"unverified"},
+        {"sistema":"radix-ui","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/separator","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "gallery",
+      "categoria": "medios",
+      "interaccion": "container",
+      "anatomia": [
+        {"parte":"container","obligacion":"required"},
+        {"parte":"item","obligacion":"required"},
+        {"parte":"media","obligacion":"required"},
+        {"parte":"caption","obligacion":"optional"},
+        {"parte":"selection-indicator","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"layout","valores":["grid","masonry","list"],"por_defecto":"grid"},
+        {"atributo":"aspect-ratio","valores":["square","landscape","portrait","free"],"por_defecto":"square"},
+        {"atributo":"selection-mode","valores":["none","single","multiple"],"por_defecto":"none"}
+      ],
+      "visual": [
+        {"propiedad":"gap","parte":"container","paso":"xs"},
+        {"propiedad":"radius","parte":"media","paso":"small"},
+        {"propiedad":"padding","parte":"container","paso":"none"},
+        {"propiedad":"text-style","parte":"caption","paso":"caption"},
+        {"propiedad":"fill","parte":"item","paso":"surface-raised"}
+      ],
+      "estados": ["reposo","cargando","vacío","error"],
+      "accesibilidad": {"rol_aria":["list","listitem"],"nombre_accesible":"aria-label","objetivo_tactil":"inherited","teclado":["tab-stop","arrow-navigation"]},
+      "fuentes": [
+        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/collections","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "loading-indicator",
+      "categoria": "feedback",
+      "interaccion": "static",
+      "anatomia": [
+        {"parte":"active-indicator","obligacion":"required"},
+        {"parte":"track","obligacion":"optional"},
+        {"parte":"container","obligacion":"optional"},
+        {"parte":"label","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"progress-shape","valores":["linear","circular"],"por_defecto":"circular"},
+        {"atributo":"size","valores":["s","m","l"],"por_defecto":"m"},
+        {"atributo":"contained","valores":["yes","no"],"por_defecto":"no"}
+      ],
+      "visual": [
+        {"propiedad":"fill","parte":"active-indicator","paso":"primary"},
+        {"propiedad":"fill","parte":"track","paso":"border"},
+        {"propiedad":"icon-size","parte":"active-indicator","paso":"m"},
+        {"propiedad":"fill","parte":"container","paso":"surface-raised"},
+        {"propiedad":"radius","parte":"container","paso":"full"},
+        {"propiedad":"transition","parte":"active-indicator","paso":"slow"}
+      ],
+      "estados": ["reposo"],
+      "accesibilidad": {"rol_aria":["progressbar"],"nombre_accesible":"aria-label","objetivo_tactil":"not-applicable","teclado":[]},
+      "fuentes": [
+        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/loading-indicator/overview","comprobada":"unverified"},
+        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/loading/usage/","comprobada":"unverified"},
+        {"sistema":"shadcn-ui","alcance_url":"page","fuente":"[F] https://ui.shadcn.com/docs/components/spinner","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "map-pin",
+      "categoria": "datos",
+      "interaccion": "interactive",
+      "anatomia": [
+        {"parte":"marker","obligacion":"required"},
+        {"parte":"icon","obligacion":"optional"},
+        {"parte":"label","obligacion":"optional"},
+        {"parte":"avatar","obligacion":"optional"},
+        {"parte":"badge","obligacion":"optional"},
+        {"parte":"pointer","obligacion":"required"}
+      ],
+      "forma": [
+        {"atributo":"pin-content","valores":["icon","label","avatar","count"],"por_defecto":"icon"},
+        {"atributo":"size","valores":["s","m","l"],"por_defecto":"m"},
+        {"atributo":"tone","valores":["neutral","info","danger"],"por_defecto":"neutral"}
+      ],
+      "visual": [
+        {"propiedad":"fill","parte":"marker","paso":"primary"},
+        {"propiedad":"content-color","parte":"icon","paso":"on-primary"},
+        {"propiedad":"icon-size","parte":"icon","paso":"s"},
+        {"propiedad":"elevation","parte":"marker","paso":"low"},
+        {"propiedad":"text-style","parte":"label","paso":"label"},
+        {"propiedad":"layer","parte":"marker","paso":"floating"}
+      ],
+      "estados": ["reposo","hover","foco","pulsado","deshabilitado","activo"],
+      "accesibilidad": {"rol_aria":["button"],"nombre_accesible":"aria-label","objetivo_tactil":"required","teclado":["tab-stop","enter-activates","arrow-navigation"]},
+      "fuentes": [
+        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/maps","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "progress-indicator",
+      "categoria": "feedback",
+      "interaccion": "static",
+      "anatomia": [
+        {"parte":"track","obligacion":"required"},
+        {"parte":"active-indicator","obligacion":"required"},
+        {"parte":"value-label","obligacion":"optional"},
+        {"parte":"label","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"progress-shape","valores":["linear","circular"],"por_defecto":"linear"},
+        {"atributo":"progress-mode","valores":["determinate","indeterminate"],"por_defecto":"determinate"},
+        {"atributo":"value-display","valores":["hidden","always"],"por_defecto":"hidden"}
+      ],
+      "visual": [
+        {"propiedad":"fill","parte":"track","paso":"border"},
+        {"propiedad":"fill","parte":"active-indicator","paso":"primary"},
+        {"propiedad":"radius","parte":"track","paso":"full"},
+        {"propiedad":"height","parte":"track","paso":"xs"},
+        {"propiedad":"text-style","parte":"value-label","paso":"caption"},
+        {"propiedad":"transition","parte":"active-indicator","paso":"medium"}
+      ],
+      "estados": ["reposo","error"],
+      "accesibilidad": {"rol_aria":["progressbar"],"nombre_accesible":"visible-label","objetivo_tactil":"not-applicable","teclado":[]},
+      "fuentes": [
+        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/progress-indicators/overview","comprobada":"unverified"},
+        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/progress-bar/usage/","comprobada":"unverified"},
+        {"sistema":"radix-ui","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/progress","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "side-navigation",
+      "categoria": "navegación",
+      "interaccion": "container",
+      "anatomia": [
+        {"parte":"container","obligacion":"required"},
+        {"parte":"navigation-item","obligacion":"required"},
+        {"parte":"icon","obligacion":"optional"},
+        {"parte":"label","obligacion":"required"},
+        {"parte":"selection-indicator","obligacion":"required"},
+        {"parte":"headline","obligacion":"optional"},
+        {"parte":"badge","obligacion":"optional"},
+        {"parte":"divider","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"collapsible","valores":["yes","no"],"por_defecto":"yes"},
+        {"atributo":"nested","valores":["yes","no"],"por_defecto":"no"},
+        {"atributo":"label-visibility","valores":["always","never"],"por_defecto":"always"}
+      ],
+      "visual": [
+        {"propiedad":"fill","parte":"container","paso":"surface"},
+        {"propiedad":"fill","parte":"selection-indicator","paso":"selected"},
+        {"propiedad":"radius","parte":"selection-indicator","paso":"full"},
+        {"propiedad":"padding","parte":"container","paso":"s"},
+        {"propiedad":"gap","parte":"navigation-item","paso":"xs"},
+        {"propiedad":"text-style","parte":"label","paso":"label"},
+        {"propiedad":"icon-size","parte":"icon","paso":"s"},
+        {"propiedad":"outline","parte":"divider","paso":"border"}
+      ],
+      "estados": ["reposo","hover","foco","pulsado","activo"],
+      "accesibilidad": {"rol_aria":["navigation","list"],"nombre_accesible":"aria-label","objetivo_tactil":"inherited","teclado":["tab-stop","enter-activates","arrow-navigation"]},
+      "fuentes": [
+        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/ui-shell-left-panel/usage/","comprobada":"unverified"},
+        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/sidebars","comprobada":"unverified"},
+        {"sistema":"shadcn-ui","alcance_url":"page","fuente":"[F] https://ui.shadcn.com/docs/components/sidebar","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "skeleton",
+      "categoria": "feedback",
+      "interaccion": "static",
+      "anatomia": [
+        {"parte":"placeholder-shape","obligacion":"required"}
+      ],
+      "forma": [
+        {"atributo":"placeholder-shape","valores":["text-line","block","circle"],"por_defecto":"text-line"},
+        {"atributo":"animation","valores":["pulse","shimmer","none"],"por_defecto":"pulse"}
+      ],
+      "visual": [
+        {"propiedad":"fill","parte":"placeholder-shape","paso":"surface-raised"},
+        {"propiedad":"radius","parte":"placeholder-shape","paso":"small"},
+        {"propiedad":"transition","parte":"placeholder-shape","paso":"slow"},
+        {"propiedad":"gap","parte":"placeholder-shape","paso":"s"}
+      ],
+      "estados": ["reposo"],
+      "accesibilidad": {"rol_aria":["presentation"],"nombre_accesible":"not-named","objetivo_tactil":"not-applicable","teclado":[]},
+      "fuentes": [
+        {"sistema":"shadcn-ui","alcance_url":"page","fuente":"[F] https://ui.shadcn.com/docs/components/skeleton","comprobada":"unverified"},
+        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/patterns/loading-pattern/","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "stacked-list",
+      "categoria": "datos",
+      "interaccion": "container",
+      "anatomia": [
+        {"parte":"container","obligacion":"required"},
+        {"parte":"row","obligacion":"required"},
+        {"parte":"headline","obligacion":"required"},
+        {"parte":"supporting-text","obligacion":"optional"},
+        {"parte":"metadata","obligacion":"optional"},
+        {"parte":"leading-icon","obligacion":"optional"},
+        {"parte":"avatar","obligacion":"optional"},
+        {"parte":"trailing-icon","obligacion":"optional"},
+        {"parte":"divider","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"line-count","valores":["one","two","three"],"por_defecto":"two"},
+        {"atributo":"leading-element","valores":["none","icon","avatar","media","control"],"por_defecto":"none"},
+        {"atributo":"trailing-element","valores":["none","metadata","icon","action","control"],"por_defecto":"none"},
+        {"atributo":"density","valores":["compacta","normal","cómoda"],"por_defecto":"normal"},
+        {"atributo":"selection-mode","valores":["none","single","multiple"],"por_defecto":"none"}
+      ],
+      "visual": [
+        {"propiedad":"padding","parte":"row","paso":"m"},
+        {"propiedad":"gap","parte":"row","paso":"m"},
+        {"propiedad":"text-style","parte":"headline","paso":"body"},
+        {"propiedad":"text-style","parte":"supporting-text","paso":"caption"},
+        {"propiedad":"content-color","parte":"supporting-text","paso":"text-muted"},
+        {"propiedad":"outline","parte":"divider","paso":"border"},
+        {"propiedad":"icon-size","parte":"avatar","paso":"l"}
+      ],
+      "estados": ["reposo","hover","foco","pulsado","activo","cargando","vacío"],
+      "accesibilidad": {"rol_aria":["list","listitem"],"nombre_accesible":"aria-label","objetivo_tactil":"inherited","teclado":["tab-stop","arrow-navigation","enter-activates"]},
+      "fuentes": [
+        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/lists/overview","comprobada":"unverified"},
+        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/structured-list/usage/","comprobada":"unverified"},
+        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/lists-and-tables","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "status-dot",
+      "categoria": "feedback",
+      "interaccion": "static",
+      "anatomia": [
+        {"parte":"status-indicator","obligacion":"required"},
+        {"parte":"label","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"tone","valores":["neutral","info","success","warning","danger"],"por_defecto":"success"},
+        {"atributo":"animation","valores":["pulse","none"],"por_defecto":"none"}
+      ],
+      "visual": [
+        {"propiedad":"fill","parte":"status-indicator","paso":"success"},
+        {"propiedad":"radius","parte":"status-indicator","paso":"full"},
+        {"propiedad":"icon-size","parte":"status-indicator","paso":"xs"},
+        {"propiedad":"text-style","parte":"label","paso":"caption"},
+        {"propiedad":"gap","parte":"label","paso":"xs"}
+      ],
+      "estados": ["reposo"],
+      "accesibilidad": {"rol_aria":["img"],"nombre_accesible":"aria-label","objetivo_tactil":"not-applicable","teclado":[]},
+      "fuentes": [
+        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/patterns/status-indicator-pattern/","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "tab-bar",
+      "categoria": "navegación",
+      "interaccion": "container",
+      "anatomia": [
+        {"parte":"container","obligacion":"required"},
+        {"parte":"navigation-item","obligacion":"required"},
+        {"parte":"icon","obligacion":"required"},
+        {"parte":"label","obligacion":"optional"},
+        {"parte":"selection-indicator","obligacion":"required"},
+        {"parte":"badge","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"label-visibility","valores":["always","selected-only","never"],"por_defecto":"always"},
+        {"atributo":"scroll-behaviour","valores":["fixed","hide-on-scroll"],"por_defecto":"fixed"}
+      ],
+      "visual": [
+        {"propiedad":"fill","parte":"container","paso":"surface"},
+        {"propiedad":"elevation","parte":"container","paso":"low"},
+        {"propiedad":"fill","parte":"selection-indicator","paso":"selected"},
+        {"propiedad":"radius","parte":"selection-indicator","paso":"full"},
+        {"propiedad":"icon-size","parte":"icon","paso":"m"},
+        {"propiedad":"text-style","parte":"label","paso":"caption"},
+        {"propiedad":"height","parte":"container","paso":"l"},
+        {"propiedad":"layer","parte":"container","paso":"navigation"}
+      ],
+      "estados": ["reposo","hover","foco","pulsado","activo"],
+      "accesibilidad": {"rol_aria":["navigation","link"],"nombre_accesible":"aria-label","objetivo_tactil":"inherited","teclado":["tab-stop","enter-activates"]},
+      "fuentes": [
+        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/navigation-bar/overview","comprobada":"unverified"},
+        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/tab-bars","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "data-table",
+      "categoria": "datos",
+      "interaccion": "container",
+      "anatomia": [
+        {"parte":"container","obligacion":"required"},
+        {"parte":"column-header","obligacion":"required"},
+        {"parte":"row","obligacion":"required"},
+        {"parte":"cell","obligacion":"required"},
+        {"parte":"selection-indicator","obligacion":"optional"},
+        {"parte":"pagination","obligacion":"optional"},
+        {"parte":"headline","obligacion":"optional"},
+        {"parte":"divider","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"density","valores":["compacta","normal","cómoda"],"por_defecto":"normal"},
+        {"atributo":"sortable","valores":["yes","no"],"por_defecto":"yes"},
+        {"atributo":"selection-mode","valores":["none","single","multiple"],"por_defecto":"none"},
+        {"atributo":"sticky-header","valores":["yes","no"],"por_defecto":"yes"},
+        {"atributo":"pagination-mode","valores":["none","pages","load-more","infinite"],"por_defecto":"pages"}
+      ],
+      "visual": [
+        {"propiedad":"fill","parte":"column-header","paso":"surface-raised"},
+        {"propiedad":"text-style","parte":"column-header","paso":"label"},
+        {"propiedad":"text-style","parte":"cell","paso":"body"},
+        {"propiedad":"padding","parte":"cell","paso":"s"},
+        {"propiedad":"outline","parte":"divider","paso":"border"},
+        {"propiedad":"fill","parte":"selection-indicator","paso":"selected"},
+        {"propiedad":"layer","parte":"column-header","paso":"sticky"}
+      ],
+      "estados": ["reposo","hover","foco","activo","cargando","vacío","error"],
+      "accesibilidad": {"rol_aria":["table","grid"],"nombre_accesible":"labelled-by-title","objetivo_tactil":"inherited","teclado":["tab-stop","arrow-navigation","home-end","page-keys","enter-activates"]},
+      "fuentes": [
+        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/data-table/usage/","comprobada":"unverified"},
+        {"sistema":"shadcn-ui","alcance_url":"page","fuente":"[F] https://ui.shadcn.com/docs/components/data-table","comprobada":"unverified"},
+        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/grid/","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "toolbar",
+      "categoria": "acción",
+      "interaccion": "container",
+      "anatomia": [
+        {"parte":"container","obligacion":"required"},
+        {"parte":"primary-action","obligacion":"required"},
+        {"parte":"secondary-action","obligacion":"optional"},
+        {"parte":"overflow-action","obligacion":"optional"},
+        {"parte":"divider","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"orientation","valores":["horizontal","vertical"],"por_defecto":"horizontal"},
+        {"atributo":"placement","valores":["top","bottom","floating"],"por_defecto":"bottom"},
+        {"atributo":"container-style","valores":["plain","filled","elevated"],"por_defecto":"filled"}
+      ],
+      "visual": [
+        {"propiedad":"fill","parte":"container","paso":"surface-raised"},
+        {"propiedad":"radius","parte":"container","paso":"full"},
+        {"propiedad":"elevation","parte":"container","paso":"medium"},
+        {"propiedad":"padding","parte":"container","paso":"s"},
+        {"propiedad":"gap","parte":"container","paso":"xs"},
+        {"propiedad":"icon-size","parte":"primary-action","paso":"m"},
+        {"propiedad":"layer","parte":"container","paso":"floating"}
+      ],
+      "estados": ["reposo"],
+      "accesibilidad": {"rol_aria":["toolbar"],"nombre_accesible":"aria-label","objetivo_tactil":"inherited","teclado":["tab-stop","arrow-navigation","home-end"]},
+      "fuentes": [
+        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/toolbars/overview","comprobada":"unverified"},
+        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/toolbars","comprobada":"unverified"},
+        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/toolbar/","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "top-navigation-bar",
+      "categoria": "navegación",
+      "interaccion": "container",
+      "anatomia": [
+        {"parte":"container","obligacion":"required"},
+        {"parte":"headline","obligacion":"required"},
+        {"parte":"navigation-action","obligacion":"optional"},
+        {"parte":"secondary-action","obligacion":"optional"},
+        {"parte":"overflow-action","obligacion":"optional"},
+        {"parte":"avatar","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"size","valores":["s","m","l"],"por_defecto":"s"},
+        {"atributo":"title-alignment","valores":["start","center"],"por_defecto":"start"},
+        {"atributo":"scroll-behaviour","valores":["fixed","collapse","hide-on-scroll"],"por_defecto":"fixed"}
+      ],
+      "visual": [
+        {"propiedad":"fill","parte":"container","paso":"surface"},
+        {"propiedad":"text-style","parte":"headline","paso":"title"},
+        {"propiedad":"height","parte":"container","paso":"l"},
+        {"propiedad":"padding","parte":"container","paso":"s"},
+        {"propiedad":"icon-size","parte":"navigation-action","paso":"m"},
+        {"propiedad":"elevation","parte":"container","paso":"none"},
+        {"propiedad":"layer","parte":"container","paso":"navigation"}
+      ],
+      "estados": ["reposo"],
+      "accesibilidad": {"rol_aria":["banner","heading"],"nombre_accesible":"labelled-by-title","objetivo_tactil":"inherited","teclado":["tab-stop"]},
+      "fuentes": [
+        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/top-app-bar/overview","comprobada":"unverified"},
+        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/ui-shell-header/usage/","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "bottom-sheet",
+      "categoria": "contenedor",
+      "interaccion": "container",
+      "anatomia": [
+        {"parte":"container","obligacion":"required"},
+        {"parte":"scrim","obligacion":"optional"},
+        {"parte":"drag-handle","obligacion":"optional"},
+        {"parte":"headline","obligacion":"optional"},
+        {"parte":"body","obligacion":"required"},
+        {"parte":"close-action","obligacion":"optional"},
+        {"parte":"primary-action","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"modality","valores":["modal","non-modal"],"por_defecto":"modal"},
+        {"atributo":"height-steps","valores":["partial","full","partial-and-full"],"por_defecto":"partial-and-full"}
+      ],
+      "visual": [
+        {"propiedad":"radius","parte":"container","paso":"large"},
+        {"propiedad":"fill","parte":"container","paso":"surface"},
+        {"propiedad":"fill","parte":"scrim","paso":"scrim"},
+        {"propiedad":"elevation","parte":"container","paso":"high"},
+        {"propiedad":"padding","parte":"container","paso":"l"},
+        {"propiedad":"layer","parte":"container","paso":"sheet"},
+        {"propiedad":"transition","parte":"container","paso":"medium"},
+        {"propiedad":"fill","parte":"drag-handle","paso":"border"}
+      ],
+      "estados": ["reposo","cargando","vacío"],
+      "accesibilidad": {"rol_aria":["dialog"],"nombre_accesible":"labelled-by-title","objetivo_tactil":"inherited","teclado":["tab-stop","escape-closes","focus-trap"]},
+      "fuentes": [
+        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/bottom-sheets/overview","comprobada":"unverified"},
+        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/sheets","comprobada":"unverified"},
+        {"sistema":"shadcn-ui","alcance_url":"page","fuente":"[F] https://ui.shadcn.com/docs/components/drawer","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "coach-marks",
+      "categoria": "feedback",
+      "interaccion": "container",
+      "anatomia": [
+        {"parte":"container","obligacion":"required"},
+        {"parte":"spotlight","obligacion":"required"},
+        {"parte":"pointer","obligacion":"optional"},
+        {"parte":"headline","obligacion":"optional"},
+        {"parte":"body","obligacion":"required"},
+        {"parte":"primary-action","obligacion":"required"},
+        {"parte":"secondary-action","obligacion":"optional"},
+        {"parte":"page-indicator","obligacion":"optional"},
+        {"parte":"close-action","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"sequence","valores":["single-step","multi-step"],"por_defecto":"multi-step"},
+        {"atributo":"placement","valores":["anchored","center"],"por_defecto":"anchored"}
+      ],
+      "visual": [
+        {"propiedad":"fill","parte":"container","paso":"inverse"},
+        {"propiedad":"content-color","parte":"body","paso":"surface"},
+        {"propiedad":"radius","parte":"container","paso":"medium"},
+        {"propiedad":"padding","parte":"container","paso":"m"},
+        {"propiedad":"fill","parte":"spotlight","paso":"scrim"},
+        {"propiedad":"layer","parte":"container","paso":"tutorial"},
+        {"propiedad":"text-style","parte":"headline","paso":"label"}
+      ],
+      "estados": ["reposo"],
+      "accesibilidad": {"rol_aria":["dialog"],"nombre_accesible":"labelled-by-title","objetivo_tactil":"inherited","teclado":["tab-stop","escape-closes","focus-trap"]},
+      "fuentes": [
+        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "dialog",
+      "categoria": "contenedor",
+      "interaccion": "container",
+      "anatomia": [
+        {"parte":"container","obligacion":"required"},
+        {"parte":"scrim","obligacion":"required"},
+        {"parte":"headline","obligacion":"required"},
+        {"parte":"body","obligacion":"optional"},
+        {"parte":"primary-action","obligacion":"required"},
+        {"parte":"secondary-action","obligacion":"optional"},
+        {"parte":"icon","obligacion":"optional"},
+        {"parte":"close-action","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"purpose","valores":["inform","confirm","collect-input"],"por_defecto":"confirm"},
+        {"atributo":"size","valores":["s","m","l"],"por_defecto":"s"},
+        {"atributo":"entry-motion","valores":["fade","scale"],"por_defecto":"fade"}
+      ],
+      "visual": [
+        {"propiedad":"radius","parte":"container","paso":"large"},
+        {"propiedad":"fill","parte":"container","paso":"surface"},
+        {"propiedad":"fill","parte":"scrim","paso":"scrim"},
+        {"propiedad":"elevation","parte":"container","paso":"high"},
+        {"propiedad":"padding","parte":"container","paso":"l"},
+        {"propiedad":"gap","parte":"container","paso":"m"},
+        {"propiedad":"text-style","parte":"headline","paso":"title"},
+        {"propiedad":"layer","parte":"container","paso":"sheet"}
+      ],
+      "estados": ["reposo","cargando","error"],
+      "accesibilidad": {"rol_aria":["dialog","alertdialog"],"nombre_accesible":"labelled-by-title","objetivo_tactil":"inherited","teclado":["tab-stop","escape-closes","focus-trap"]},
+      "fuentes": [
+        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/dialogs/overview","comprobada":"unverified"},
+        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/modal/usage/","comprobada":"unverified"},
+        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "drawer",
+      "categoria": "navegación",
+      "interaccion": "container",
+      "anatomia": [
+        {"parte":"container","obligacion":"required"},
+        {"parte":"scrim","obligacion":"optional"},
+        {"parte":"headline","obligacion":"optional"},
+        {"parte":"navigation-item","obligacion":"required"},
+        {"parte":"selection-indicator","obligacion":"optional"},
+        {"parte":"close-action","obligacion":"optional"},
+        {"parte":"divider","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"placement","valores":["start","end"],"por_defecto":"start"},
+        {"atributo":"modality","valores":["modal","non-modal"],"por_defecto":"modal"}
+      ],
+      "visual": [
+        {"propiedad":"fill","parte":"container","paso":"surface"},
+        {"propiedad":"fill","parte":"scrim","paso":"scrim"},
+        {"propiedad":"radius","parte":"container","paso":"large"},
+        {"propiedad":"padding","parte":"container","paso":"m"},
+        {"propiedad":"elevation","parte":"container","paso":"high"},
+        {"propiedad":"layer","parte":"container","paso":"sheet"},
+        {"propiedad":"transition","parte":"container","paso":"medium"}
+      ],
+      "estados": ["reposo"],
+      "accesibilidad": {"rol_aria":["dialog","navigation"],"nombre_accesible":"aria-label","objetivo_tactil":"inherited","teclado":["tab-stop","escape-closes","focus-trap","arrow-navigation"]},
+      "fuentes": [
+        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/navigation-drawer/overview","comprobada":"unverified"},
+        {"sistema":"shadcn-ui","alcance_url":"page","fuente":"[F] https://ui.shadcn.com/docs/components/sheet","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "dropdown-menu",
+      "categoria": "acción",
+      "interaccion": "container",
+      "anatomia": [
+        {"parte":"container","obligacion":"required"},
+        {"parte":"menu-item","obligacion":"required"},
+        {"parte":"leading-icon","obligacion":"optional"},
+        {"parte":"trailing-icon","obligacion":"optional"},
+        {"parte":"keyboard-shortcut","obligacion":"optional"},
+        {"parte":"divider","obligacion":"optional"},
+        {"parte":"selection-indicator","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"selection-mode","valores":["none","single","multiple"],"por_defecto":"none"},
+        {"atributo":"nested","valores":["yes","no"],"por_defecto":"no"},
+        {"atributo":"density","valores":["compacta","normal"],"por_defecto":"normal"},
+        {"atributo":"trigger","valores":["tap","hover-or-focus"],"por_defecto":"tap"}
+      ],
+      "visual": [
+        {"propiedad":"radius","parte":"container","paso":"small"},
+        {"propiedad":"elevation","parte":"container","paso":"medium"},
+        {"propiedad":"fill","parte":"container","paso":"surface"},
+        {"propiedad":"padding","parte":"menu-item","paso":"s"},
+        {"propiedad":"text-style","parte":"menu-item","paso":"body"},
+        {"propiedad":"content-color","parte":"keyboard-shortcut","paso":"text-muted"},
+        {"propiedad":"layer","parte":"container","paso":"popup"}
+      ],
+      "estados": ["reposo","hover","foco","pulsado","deshabilitado"],
+      "accesibilidad": {"rol_aria":["menu","menuitem"],"nombre_accesible":"labelled-by-trigger","objetivo_tactil":"inherited","teclado":["arrow-navigation","enter-activates","space-activates","escape-closes","home-end","type-ahead"]},
+      "fuentes": [
+        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/menus/overview","comprobada":"unverified"},
+        {"sistema":"radix-ui","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/dropdown-menu","comprobada":"unverified"},
+        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/menu-button/","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "full-screen-overlay",
+      "categoria": "contenedor",
+      "interaccion": "container",
+      "anatomia": [
+        {"parte":"container","obligacion":"required"},
+        {"parte":"close-action","obligacion":"required"},
+        {"parte":"headline","obligacion":"optional"},
+        {"parte":"body","obligacion":"required"},
+        {"parte":"primary-action","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"purpose","valores":["inform","collect-input"],"por_defecto":"collect-input"},
+        {"atributo":"entry-motion","valores":["slide","fade"],"por_defecto":"slide"}
+      ],
+      "visual": [
+        {"propiedad":"fill","parte":"container","paso":"surface"},
+        {"propiedad":"padding","parte":"container","paso":"m"},
+        {"propiedad":"text-style","parte":"headline","paso":"title"},
+        {"propiedad":"layer","parte":"container","paso":"sheet"},
+        {"propiedad":"transition","parte":"container","paso":"medium"}
+      ],
+      "estados": ["reposo","cargando","error"],
+      "accesibilidad": {"rol_aria":["dialog"],"nombre_accesible":"labelled-by-title","objetivo_tactil":"inherited","teclado":["tab-stop","escape-closes","focus-trap"]},
+      "fuentes": [
+        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/dialogs/overview","comprobada":"unverified"},
+        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/sheets","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "toast",
+      "categoria": "feedback",
+      "interaccion": "container",
+      "anatomia": [
+        {"parte":"container","obligacion":"required"},
+        {"parte":"supporting-text","obligacion":"required"},
+        {"parte":"icon","obligacion":"optional"},
+        {"parte":"primary-action","obligacion":"optional"},
+        {"parte":"close-action","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"display-duration","valores":["short","long","until-dismissed"],"por_defecto":"short"},
+        {"atributo":"tone","valores":["neutral","success","danger"],"por_defecto":"neutral"},
+        {"atributo":"placement","valores":["top","bottom"],"por_defecto":"bottom"}
+      ],
+      "visual": [
+        {"propiedad":"fill","parte":"container","paso":"inverse"},
+        {"propiedad":"content-color","parte":"supporting-text","paso":"surface"},
+        {"propiedad":"radius","parte":"container","paso":"small"},
+        {"propiedad":"elevation","parte":"container","paso":"medium"},
+        {"propiedad":"padding","parte":"container","paso":"m"},
+        {"propiedad":"text-style","parte":"supporting-text","paso":"body"},
+        {"propiedad":"layer","parte":"container","paso":"notification"}
+      ],
+      "estados": ["reposo"],
+      "accesibilidad": {"rol_aria":["status","alert"],"nombre_accesible":"live-region","objetivo_tactil":"inherited","teclado":["tab-stop","escape-closes"]},
+      "fuentes": [
+        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/snackbar/overview","comprobada":"unverified"},
+        {"sistema":"carbon","alcance_url":"page","fuente":"[F] https://carbondesignsystem.com/components/notification/usage/","comprobada":"unverified"},
+        {"sistema":"shadcn-ui","alcance_url":"page","fuente":"[F] https://ui.shadcn.com/docs/components/sonner","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "tooltip",
+      "categoria": "feedback",
+      "interaccion": "static",
+      "anatomia": [
+        {"parte":"container","obligacion":"required"},
+        {"parte":"label","obligacion":"required"},
+        {"parte":"pointer","obligacion":"optional"},
+        {"parte":"headline","obligacion":"optional"},
+        {"parte":"primary-action","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"tooltip-kind","valores":["plain","rich"],"por_defecto":"plain"},
+        {"atributo":"trigger","valores":["hover-or-focus","long-press"],"por_defecto":"hover-or-focus"},
+        {"atributo":"placement","valores":["top","bottom","start","end"],"por_defecto":"top"}
+      ],
+      "visual": [
+        {"propiedad":"fill","parte":"container","paso":"inverse"},
+        {"propiedad":"content-color","parte":"label","paso":"surface"},
+        {"propiedad":"radius","parte":"container","paso":"small"},
+        {"propiedad":"padding","parte":"container","paso":"xs"},
+        {"propiedad":"text-style","parte":"label","paso":"caption"},
+        {"propiedad":"layer","parte":"container","paso":"popup"}
+      ],
+      "estados": ["reposo"],
+      "accesibilidad": {"rol_aria":["tooltip"],"nombre_accesible":"describes-trigger","objetivo_tactil":"not-applicable","teclado":["escape-closes"]},
+      "fuentes": [
+        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/components/tooltips/overview","comprobada":"unverified"},
+        {"sistema":"radix-ui","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/tooltip","comprobada":"unverified"},
+        {"sistema":"wai-aria-apg","alcance_url":"page","fuente":"[F] https://www.w3.org/WAI/ARIA/apg/patterns/tooltip/","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "context-menu",
+      "categoria": "acción",
+      "interaccion": "container",
+      "anatomia": [
+        {"parte":"container","obligacion":"required"},
+        {"parte":"menu-item","obligacion":"required"},
+        {"parte":"leading-icon","obligacion":"optional"},
+        {"parte":"keyboard-shortcut","obligacion":"optional"},
+        {"parte":"divider","obligacion":"optional"},
+        {"parte":"trailing-icon","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"trigger","valores":["secondary-click","long-press"],"por_defecto":"secondary-click"},
+        {"atributo":"nested","valores":["yes","no"],"por_defecto":"no"},
+        {"atributo":"density","valores":["compacta","normal"],"por_defecto":"compacta"}
+      ],
+      "visual": [
+        {"propiedad":"radius","parte":"container","paso":"small"},
+        {"propiedad":"elevation","parte":"container","paso":"medium"},
+        {"propiedad":"fill","parte":"container","paso":"surface"},
+        {"propiedad":"padding","parte":"menu-item","paso":"xs"},
+        {"propiedad":"text-style","parte":"menu-item","paso":"body"},
+        {"propiedad":"layer","parte":"container","paso":"popup"}
+      ],
+      "estados": ["reposo","hover","foco","pulsado","deshabilitado"],
+      "accesibilidad": {"rol_aria":["menu","menuitem"],"nombre_accesible":"aria-label","objetivo_tactil":"inherited","teclado":["menu-key-opens","arrow-navigation","enter-activates","escape-closes","type-ahead"]},
+      "fuentes": [
+        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/context-menus","comprobada":"unverified"},
+        {"sistema":"radix-ui","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/context-menu","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "avatar",
+      "categoria": "medios",
+      "interaccion": "static",
+      "anatomia": [
+        {"parte":"container","obligacion":"required"},
+        {"parte":"media","obligacion":"optional"},
+        {"parte":"initials","obligacion":"optional"},
+        {"parte":"icon","obligacion":"optional"},
+        {"parte":"badge","obligacion":"optional"},
+        {"parte":"status-indicator","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"avatar-content","valores":["media","initials","icon"],"por_defecto":"media"},
+        {"atributo":"shape","valores":["circle","rounded","square"],"por_defecto":"circle"},
+        {"atributo":"size","valores":["xs","s","m","l","xl"],"por_defecto":"m"}
+      ],
+      "visual": [
+        {"propiedad":"radius","parte":"container","paso":"full"},
+        {"propiedad":"fill","parte":"container","paso":"surface-raised"},
+        {"propiedad":"text-style","parte":"initials","paso":"label"},
+        {"propiedad":"icon-size","parte":"container","paso":"m"},
+        {"propiedad":"outline","parte":"container","paso":"surface"}
+      ],
+      "estados": ["reposo","cargando"],
+      "accesibilidad": {"rol_aria":["img"],"nombre_accesible":"alt-text","objetivo_tactil":"not-applicable","teclado":[]},
+      "fuentes": [
+        {"sistema":"radix-ui","alcance_url":"page","fuente":"[F] https://www.radix-ui.com/primitives/docs/components/avatar","comprobada":"unverified"},
+        {"sistema":"shadcn-ui","alcance_url":"page","fuente":"[F] https://ui.shadcn.com/docs/components/avatar","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "icon",
+      "categoria": "medios",
+      "interaccion": "static",
+      "anatomia": [
+        {"parte":"glyph","obligacion":"required"}
+      ],
+      "forma": [
+        {"atributo":"icon-style","valores":["outlined","filled","two-tone"],"por_defecto":"outlined"},
+        {"atributo":"size","valores":["xs","s","m","l"],"por_defecto":"m"}
+      ],
+      "visual": [
+        {"propiedad":"icon-size","parte":"glyph","paso":"m"},
+        {"propiedad":"content-color","parte":"glyph","paso":"text"}
+      ],
+      "estados": ["reposo"],
+      "accesibilidad": {"rol_aria":["img","presentation"],"nombre_accesible":"hidden-if-decorative","objetivo_tactil":"not-applicable","teclado":[]},
+      "fuentes": [
+        {"sistema":"material","alcance_url":"page","fuente":"[F] https://m3.material.io/styles/icons/overview","comprobada":"unverified"},
+        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/icons","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "illustration",
+      "categoria": "medios",
+      "interaccion": "static",
+      "anatomia": [
+        {"parte":"artwork","obligacion":"required"},
+        {"parte":"caption","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"illustration-use","valores":["empty-state","onboarding","spot","hero"],"por_defecto":"spot"},
+        {"atributo":"color-mode","valores":["full-color","monochrome"],"por_defecto":"full-color"},
+        {"atributo":"aspect-ratio","valores":["square","landscape","portrait"],"por_defecto":"square"}
+      ],
+      "visual": [
+        {"propiedad":"height","parte":"artwork","paso":"xl"},
+        {"propiedad":"gap","parte":"caption","paso":"s"},
+        {"propiedad":"text-style","parte":"caption","paso":"body"}
+      ],
+      "estados": ["reposo"],
+      "accesibilidad": {"rol_aria":["img","presentation"],"nombre_accesible":"hidden-if-decorative","objetivo_tactil":"not-applicable","teclado":[]},
+      "fuentes": [
+        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/images","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "logo",
+      "categoria": "medios",
+      "interaccion": "static",
+      "anatomia": [
+        {"parte":"symbol","obligacion":"required"},
+        {"parte":"wordmark","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"logo-form","valores":["symbol-only","wordmark-only","combination"],"por_defecto":"combination"},
+        {"atributo":"color-mode","valores":["full-color","monochrome","inverse"],"por_defecto":"full-color"},
+        {"atributo":"size","valores":["s","m","l"],"por_defecto":"m"}
+      ],
+      "visual": [
+        {"propiedad":"height","parte":"symbol","paso":"m"},
+        {"propiedad":"gap","parte":"wordmark","paso":"s"}
+      ],
+      "estados": ["reposo"],
+      "accesibilidad": {"rol_aria":["img"],"nombre_accesible":"alt-text","objetivo_tactil":"not-applicable","teclado":[]},
+      "fuentes": [
+        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/branding","comprobada":"unverified"}
+      ]
+    },
+    {
+      "elemento": "photo",
+      "categoria": "medios",
+      "interaccion": "static",
+      "anatomia": [
+        {"parte":"media","obligacion":"required"},
+        {"parte":"caption","obligacion":"optional"}
+      ],
+      "forma": [
+        {"atributo":"aspect-ratio","valores":["square","landscape","portrait","free"],"por_defecto":"landscape"},
+        {"atributo":"fit","valores":["cover","contain"],"por_defecto":"cover"},
+        {"atributo":"shape","valores":["rectangle","rounded"],"por_defecto":"rounded"}
+      ],
+      "visual": [
+        {"propiedad":"radius","parte":"media","paso":"medium"},
+        {"propiedad":"text-style","parte":"caption","paso":"caption"},
+        {"propiedad":"content-color","parte":"caption","paso":"text-muted"},
+        {"propiedad":"gap","parte":"caption","paso":"xs"}
+      ],
+      "estados": ["reposo","cargando","error"],
+      "accesibilidad": {"rol_aria":["img","figure"],"nombre_accesible":"alt-text","objetivo_tactil":"not-applicable","teclado":[]},
+      "fuentes": [
+        {"sistema":"apple-hig","alcance_url":"page","fuente":"[F] https://developer.apple.com/design/human-interface-guidelines/image-views","comprobada":"unverified"}
+      ]
+    }
+  ]
+}
