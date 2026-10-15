@@ -188,12 +188,12 @@ Consecuencia para el modelo: no hace falta mover ficheros para modelar la conten
 9. **No sé.** Si el sistema de diseño necesita ser proyecto propio; depende de si se reutiliza en otro producto (hoy no hay otro).
 
 ### app / identidad de máquina (candidato)
-1. **Qué es.** Las GitHub Apps `homenu-sesiones` (App ID 5260552; tokens de 1 h; contents, PRs e issues de escritura) y `homenu-dependabot-merge` (App ID 5250358; contents, PRs y workflows de escritura; fusiona los PR de actions) (INVENTARIO). Más service accounts de 1Password (2), la deploy key de Mercadona y el bot «HoMenu avisos».
+1. **Qué es.** Las GitHub Apps `homenu-sesiones` (App ID 5260552; tokens de 1 h; contents, PRs, issues y workflows de escritura, workflows desde el 15 oct 2026) y `homenu-dependabot-merge` (App ID 5250358; contents, PRs y workflows de escritura; fusiona los PR de actions) (INVENTARIO). Más service accounts de 1Password (2), la deploy key de Mercadona y el bot «HoMenu avisos».
 2. **Quién la lee.** `scripts/lib/tokenSesion.mjs` (la primera), `dependabot-auto.yml` (la segunda), recursos.json (4 filas: app y clave de cada una).
 3. **Nivel.** Pieza de `resource`.
 4. **Relaciones.** Es-un identity (subtipo). Cada App → su clave (1:1, campo en recursos por convención de id: `-clave`). Parte-de factoría.
 5. **Ciclo de vida.** Creada → instalada → clave rotada. Pablo.
-6. **Fuente y copias.** Permisos: panel de GitHub (fuente), INVENTARIO (copia en prosa «de diseño, sin recomprobar»). Dato que la sesiones App tiene Workflows quitado por revisión de `seguridad`.
+6. **Fuente y copias.** Permisos: panel de GitHub (fuente), INVENTARIO (copia en prosa «de diseño, sin recomprobar»). La App de sesiones tuvo Workflows quitado por revisión de `seguridad` (10 oct 2026) y lo recuperó por decisión de Pablo (#422, 15 oct 2026).
 7. **Crea y mantiene.** Human, irreducible.
 8. **Veredicto.** No es entidad; es un valor del tipo (`app`) de resource/identity. Lo decide que ya cabe en `resource` sin campos nuevos más allá de `capacidades`.
 9. **No sé.** Si los permisos reales coinciden con INVENTARIO; solo se ve con `gh api /app` o en el panel (Pablo).

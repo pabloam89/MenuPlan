@@ -2957,6 +2957,37 @@
       ]
     },
     {
+      "id": "workflow-con-juez-seguridad",
+      "nombre": "Workflow juzgado por seguridad",
+      "sujeto": "sesion",
+      "fuerza": "no_debe",
+      "exigencia": "fusionar un PR que cambia .github/workflows/ sin nombrar a seguridad en su línea Jueces",
+      "nota": "La App de las sesiones empuja workflows desde el 15 oct 2026 (decisión de Pablo, #422, caso #821). La guardia corre desde la carpeta de la sesión, no desde el PR; el CI corre el tests.yml del PR, que un PR de workflows puede cambiar. Mira la línea, no el juicio. Filtro de buena fe: la fusión desde la web no pasa por aquí.",
+      "donde": [
+        ".claude/hooks/guardia.mjs"
+      ],
+      "ejecutor": "guardia",
+      "alcance": "solo_claude",
+      "ante_fallo": "abierto",
+      "control": ".claude/hooks/guardia.test.js",
+      "control_tipo": "test",
+      "control_procesador": "codigo",
+      "control_fuerza": "bloquea",
+      "control_momento": "pr",
+      "control_que_mira": "contenido",
+      "control_cobertura": "parcial",
+      "veredicto": "semidura",
+      "riesgo": "alto",
+      "issue": 326,
+      "principio": "builder-does-not-judge",
+      "ambito": "process",
+      "lado": "horizontal",
+      "concepto": "security",
+      "acciones": [
+        "operar"
+      ]
+    },
+    {
       "id": "migracion-numero-libre",
       "nombre": "Número de migración libre",
       "sujeto": "migracion",

@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { carpetaDe, contextoReal, decidir, salidaDeGuardia } from "./guardia.mjs";
+import { carpetaDe, contextoReal, decidir, nombraASeguridad, salidaDeGuardia } from "./guardia.mjs";
 import { cargarMapa } from "./dominios.mjs";
 import { AVISOS_CREDENCIALES, credencialDeComando, sinTextos } from "./credenciales.mjs";
 import { AVISOS, AVISO_POR_CREDENCIAL } from "./avisos-guardia.mjs";
@@ -24,6 +24,7 @@ const ctx = (extra = {}) => ({
   baseDelPr: () => "staging",
   atrasoLocal: () => 0,
   choquesDelPr: () => [],
+  workflowsDelPr: () => ({ cuerpo: "", ficheros: [] }),
   esPrincipal: () => false,
   rutaEnPrincipal: () => false,
   ramaDe: () => "ops/x",
@@ -491,6 +492,31 @@ describe("gh pr merge", () => {
     expect(bash("gh pr merge 90", ctx({ baseDelPr: () => "main", choquesDelPr: () => ((mirado = true), []) }))).toBe("deny");
     expect(mirado).toBe(false);
   });
+});
+
+describe("un PR que cambia un workflow entra con seguridad en «Jueces:» (#821)", () => {
+  const conWf = (cuerpo, ficheros = [".github/workflows/tests.yml"]) => ctx({ workflowsDelPr: () => ({ cuerpo, ficheros }) });
+  it("sin seguridad en «Jueces:», no se fusiona", () => {
+    expect(bash("gh pr merge 90 --squash", conWf("Jueces: revisor\nAgente: constructor"))).toBe("deny");
+    expect(bash("gh pr merge 90 --squash", conWf("Agente: constructor"))).toBe("deny");
+    expect(decidir({ tool_name: "Bash", tool_input: { command: "gh pr merge 90" } }, conWf("Jueces: revisor")).motivo).toMatch(/tests\.yml/);
+  });
+  it("con seguridad en «Jueces:», pasa", () => {
+    expect(bash("gh pr merge 90 --squash", conWf("Tipo: operate\nJueces: revisor, seguridad\nAgente: constructor"))).toBe(null);
+    expect(bash("gh pr merge 90 --squash", conWf("**Jueces:** `seguridad`"))).toBe(null);
+  });
+  it("sin workflows en el diff no se mira «Jueces:»", () => expect(bash("gh pr merge 90", conWf("", []))).toBe(null));
+  it("sin poder leer el PR, pregunta", () => expect(bash("gh pr merge 90", ctx({ workflowsDelPr: () => null }))).toBe("ask"));
+  it("el nombre de seguridad dentro de otra palabra, de un comentario o de un bloque de código no cuenta", () => {
+    expect(nombraASeguridad("Jueces: revisor (no seguridad)")).toBe(false);
+    expect(nombraASeguridad("Jueces: inseguridad")).toBe(false);
+    expect(nombraASeguridad("<!-- Jueces: seguridad -->\nJueces: revisor")).toBe(false);
+    expect(nombraASeguridad("```\nJueces: seguridad\n```\nJueces: revisor")).toBe(false);
+    expect(nombraASeguridad("Los jueces: seguridad lo mira")).toBe(false);
+    expect(nombraASeguridad("Jueces: revisor y seguridad")).toBe(true);
+    expect(nombraASeguridad("- Jueces: Seguridad; revisor")).toBe(true);
+  });
+  it("el lector real no consulta GitHub con un número raro", () => expect(contextoReal(RAIZ).workflowsDelPr("90; rm")).toBe(null));
 });
 
 describe("los issues se crean buscando antes (#204)", () => {
