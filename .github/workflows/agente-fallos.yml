@@ -86,7 +86,7 @@ jobs:
           echo "hay_fallos=$([ "$fallos" -gt 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
 
       # Sin fallos no se arranca el agente: ese día no gasta nada de la clave.
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         if: steps.datos.outputs.hay_fallos == 'true'
         with:
           node-version: 22
