@@ -28,6 +28,7 @@ import { RIESGOS } from "./normas.mjs";
 import { CATALOGO, COMPLEXITIES, TOPE_RONDAS, presupuestoDe } from "./presupuestos.mjs";
 import { AGENTES, JUECES } from "./agentes.mjs";
 import { ALL_SUBTYPES, MAX_NOTE, TYPES } from "./tiposDeEncargo.mjs";
+import { BOT_ID } from "./identidadSesiones.mjs";
 
 // ── Vocabularios cerrados ─────────────────────────────────────────────────────
 
@@ -75,9 +76,41 @@ export const VERIFICACION_POR_BARRERA = {
   texto: /\.md$/,
 };
 
-/** Quién es «de la casa»: solo se actúa sobre issues suyos (el repo es público y cualquiera abre issues). */
+/**
+ * Quién es «de la casa»: solo se actúa sobre issues suyos (el repo es público y cualquiera abre issues).
+ * Dos vías y solo dos (#839, caso #838): la asociación del autor es una de estas, o el autor es el bot de
+ * la App de las sesiones (#329), reconocido por tipo `Bot` y su id numérico (`BOT_ID`, una sola fuente en
+ * identidadSesiones.mjs, que tokenSesion.mjs vuelve a exportar). GitHub da a la App la asociación CONTRIBUTOR y no se puede cambiar. Nunca por el login
+ * (se puede parecer), ni por el sufijo `[bot]`, ni por CONTRIBUTOR, ni por `performed_via_github_app`.
+ * El `if:` de .github/workflows/fondos.yml lleva el mismo id escrito: scripts/esDeLaCasa.test.js lo cruza.
+ */
 export const ASOCIACIONES_DE_LA_CASA = ["OWNER", "MEMBER", "COLLABORATOR"];
-export const esDeLaCasa = (asociacion) => ASOCIACIONES_DE_LA_CASA.includes(String(asociacion ?? "").toUpperCase());
+
+/** La asociación de un issue o comentario en cualquiera de sus formas (REST, GraphQL o la nuestra), o null. */
+export const asociacionDe = (x) => x?.author_association ?? x?.authorAssociation ?? x?.asociacion ?? null;
+
+/**
+ * El autor como `{ tipo, id }`, o null si no viene. Formas: la nuestra (`autor: { tipo, id }`), REST
+ * (`user: { type, id }`) y GraphQL (`author: { __typename, databaseId }`, pedido con `... on Bot { databaseId }`).
+ */
+export function autorDe(x) {
+  if (!x || typeof x !== "object") return null;
+  if (x.autor && typeof x.autor === "object") return { tipo: x.autor.tipo ?? null, id: x.autor.id ?? null };
+  if (x.user && typeof x.user === "object") return { tipo: x.user.type ?? null, id: x.user.id ?? null };
+  if (x.author && typeof x.author === "object") return { tipo: x.author.__typename ?? null, id: x.author.databaseId ?? null };
+  return null;
+}
+
+/** ¿Lo escribió la casa? Recibe el issue o el comentario entero; sin objeto o sin dato, no. */
+export function esDeLaCasa(x) {
+  if (!x || typeof x !== "object") return false;
+  if (ASOCIACIONES_DE_LA_CASA.includes(String(asociacionDe(x) ?? "").toUpperCase())) return true;
+  const a = autorDe(x);
+  return a?.tipo === "Bot" && a.id === BOT_ID;
+}
+
+/** Para los informes: si no se sabe quién lo abrió (ni asociación ni autor), cuenta; si se sabe, decide `esDeLaCasa`. */
+export const esDeLaCasaOSinDato = (x) => (!asociacionDe(x) && !autorDe(x)) || esDeLaCasa(x);
 /** Los fondos del propio plan #334: los primeros en pasar sus controles. */
 export const FONDOS_AUTOAPLICACION = [334];
 
@@ -331,7 +364,8 @@ export function hijoDeRest(h) {
   return {
     body: String(h.body ?? ""),
     stateReason: h.state_reason ? String(h.state_reason).toUpperCase() : (h.stateReason ?? null),
-    asociacion: h.author_association ?? h.asociacion ?? null,
+    asociacion: asociacionDe(h),
+    autor: autorDe(h),
     number: h.number,
     state: String(h.state).toUpperCase(),
     createdAt: h.created_at ?? h.createdAt ?? null,
@@ -582,7 +616,7 @@ export function validarEncargos(encargos, estado) {
   const sal = [];
   const dice = (regla, mensaje, gravedad) => sal.push({ regla, mensaje, ...(gravedad ? { gravedad } : {}) });
   // Solo cuentan los de la casa (si no se sabe quién lo abrió, cuenta, como en el informe de fichas).
-  const propios = encargos.filter((h) => !h.asociacion || esDeLaCasa(h.asociacion));
+  const propios = encargos.filter(esDeLaCasaOSinDato);
   for (const h of encargos.filter((x) => !propios.includes(x))) dice("encargo-de-fuera", `#${h.number}: encargo de fuera de la casa: no cuenta`, "aviso");
   // El plan vigente: los abiertos y los cerrados como completados que son preventivos automáticos.
   // Una segunda ronda de arreglo no hace caer el fondo por los encargos ya hechos.
@@ -698,7 +732,7 @@ const normaliza = (t) => String(t ?? "").toLowerCase().normalize("NFD").replace(
  */
 export function informeFichas(issues, { hoy } = {}) {
   // Solo los de la casa: el informe no cuenta lo que abre un desconocido (si no se sabe quién lo abrió, cuenta).
-  const fondos = issues.filter((i) => porGrupo(nombresDe(i.labels)).tipo.has("fondo") && (!i.asociacion || esDeLaCasa(i.asociacion)));
+  const fondos = issues.filter((i) => porGrupo(nombresDe(i.labels)).tipo.has("fondo") && esDeLaCasaOSinDato(i));
   const abiertos = fondos.filter((i) => String(i.state).toUpperCase() === "OPEN");
   const r = { sinFicha: [], sinDiagnostico: [], ventanaVencida: [], cerradosSinAprendizaje: [], cerradosConAprendizaje: 0, sinFichaObligatoria: [], autoaplicacion: [], matices: [], total: fondos.length, conFicha: 0 };
   const matices = new Map();

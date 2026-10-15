@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { CAMPOS_ENCARGO, ESCALONES_AUTOMATICOS, MAX_ENCARGOS_POR_FONDO, plantillaEncargo } from "./lib/issues.mjs";
 import { CATALOGO as MECANISMOS } from "./lib/mecanismos.mjs";
 import { TIPOS_CAMPO_ENCARGO, fondoDeRest, hijoDeRest, leerEncargo, validarEncargos, validarFicha } from "./lib/fondos.mjs";
+import { BOT_ID, BOT_LOGIN } from "./lib/tokenSesion.mjs";
 
 /**
  * El bloque `encargo` y las reglas del plan (#396; P06.2 y P06.4 de ops/flujo.json):
@@ -150,6 +151,15 @@ describe("ronda 2 de #396: constructor heredado, autores de fuera y plan vigente
     expect(reglas(r)).toEqual(["encargo-de-fuera"]);
     expect(r[0].gravedad).toBe("aviso");
     expect(validarEncargos([{ ...enc(1), asociacion: "OWNER" }], "plan")).toEqual([]);
+  });
+  it("un encargo del bot de las sesiones (#839) es de la casa: pasa sus controles en vez de avisar «de fuera»", () => {
+    const deLaApp = (n, user, quitar = []) => hijoDeRest({ ...enc(n, {}, quitar), state: "open", author_association: "CONTRIBUTOR", user });
+    const app = { login: BOT_LOGIN, type: "Bot", id: BOT_ID };
+    // Sin `juez`, el control salta; antes solo salía el aviso encargo-de-fuera (reproducido en #833).
+    expect(reglas(validarEncargos([deLaApp(1, app, ["juez"])], "plan"))).toEqual(["encargo-incompleto"]);
+    expect(validarEncargos([deLaApp(1, app)], "plan")).toEqual([]);
+    // Otro bot, aunque copie el login, sigue fuera.
+    expect(reglas(validarEncargos([deLaApp(1, { ...app, id: BOT_ID + 1 })], "plan"))).toEqual(["encargo-de-fuera"]);
   });
   it("hijoDeRest guarda la asociación del autor", () => {
     expect(hijoDeRest({ number: 1, state: "open", labels: [], author_association: "NONE" }).asociacion).toBe("NONE");

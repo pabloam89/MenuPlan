@@ -134,7 +134,7 @@ function bloqueRamas(r, ahora) {
 
 const esTipo = (x, tipo) => (x.labels ?? []).some((l) => l.name === `tipo:${tipo}`) || x.tipo === tipo;
 /** Solo lo que abrió la casa: si no se sabe quién lo abrió, no cuenta. */
-const deLaCasa = (i) => esDeLaCasa(i.asociacion);
+const deLaCasa = (i) => esDeLaCasa(i);
 
 function bloqueDecisiones(issues, ahora) {
   if (!issues.datos) return sinVer(issues);
@@ -215,7 +215,7 @@ export function leerTodosLosIssues(gh, maxPaginas = MAX_PAGINAS, nodosDeFoto = n
   const mapear = (n) => ({
     ...leerIssue(n),
     marcas: leerMarcas(n.comments?.nodes, { soloCasa: true }),
-    comentariosCasa: (n.comments?.nodes ?? []).filter((c) => esDeLaCasa(c?.authorAssociation)).map((c) => c.createdAt).filter(Boolean),
+    comentariosCasa: (n.comments?.nodes ?? []).filter((c) => esDeLaCasa(c)).map((c) => c.createdAt).filter(Boolean),
   });
   // La foto publicada (#326, 0 puntos de GraphQL) si sirve; si no, la API como siempre.
   const deFoto = nodosDeFoto?.();

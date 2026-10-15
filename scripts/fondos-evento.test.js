@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { MARCA, MARCA_HIJO, leerFicha } from "./lib/fondos.mjs";
 import { ErrorDeApi } from "./lib/ghApi.mjs";
 import { apiReal, ejecutar } from "./fondos-evento.mjs";
+import { BOT_ID, BOT_LOGIN } from "./lib/tokenSesion.mjs";
 
 // ── Un GitHub de mentira, en memoria ──────────────────────────────────────────
 
@@ -288,6 +289,24 @@ describe("entradas hostiles", () => {
 
 describe("ronda 2: solo issues de la casa", () => {
   const rest = (n, labels, asoc) => ({ number: n, labels: etiquetas(...labels), author_association: asoc, body: n === 50 ? bloque(OBS) : "", created_at: "2026-10-12T10:00:00Z" });
+  // #839 (caso #838): lo que abre una sesión lo firma el bot de la App, con asociación CONTRIBUTOR.
+  it("un caso que abrió el bot de las sesiones (CONTRIBUTOR, Bot con su id) se mira, y su fondo también", async () => {
+    const st = crearGithub({ issues: [rest(50, ["tipo:fondo"], "CONTRIBUTOR"), rest(71, ["tipo:caso", "analisis:abierto"], "CONTRIBUTOR")], padres: { 71: 50 }, hijos: { 50: [71] } });
+    for (const n of [50, 71]) st.issues.get(n).user = { login: BOT_LOGIN, type: "Bot", id: BOT_ID };
+    const r = await evento(st, "71", "opened");
+    expect(r.map((x) => x.issue)).toEqual([71, 50]);
+  });
+  it.each([
+    ["otro bot", { login: "github-actions[bot]", type: "Bot", id: 41898282 }],
+    ["un bot que copia el login", { login: BOT_LOGIN, type: "Bot", id: BOT_ID + 1 }],
+    ["un humano con el id del bot", { login: "alguien", type: "User", id: BOT_ID }],
+  ])("un fondo CONTRIBUTOR de %s no se mira", async (_, user) => {
+    const st = crearGithub({ issues: [rest(50, ["tipo:fondo", "causa:vigilante-hueco"], "CONTRIBUTOR")] });
+    st.issues.get(50).user = user;
+    expect(await evento(st, "50", "edited", "2026-10-30")).toEqual([]);
+    expect(await pasada(st, "2026-10-30")).toEqual([]);
+    expect(escrituras(st)).toEqual([]);
+  });
   it.each(["NONE", "CONTRIBUTOR", "FIRST_TIMER", undefined])("un fondo de author_association %s: ninguna acción, ningún comentario, ninguna etiqueta", async (asoc) => {
     const st = crearGithub({ issues: [rest(50, ["tipo:fondo", "causa:vigilante-hueco"], asoc)] });
     st.issues.get(50).author_association = asoc;

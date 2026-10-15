@@ -239,13 +239,14 @@ export function fondoDeFormulario(body) {
  * hijos sirve para refrescarlos por id, y `updatedAt` para saber, comparando con el listado ligero, cuáles hay que releer.
  */
 export const CAMPOS_ISSUE = `        id number title state createdAt updatedAt closedAt body authorAssociation
+        author { __typename login ... on Bot { databaseId } }
         labels(first: 20) { nodes { name } }
         assignees(first: 5) { nodes { login } }
         reaperturas: timelineItems(itemTypes: [REOPENED_EVENT], last: 1) { totalCount nodes { ... on ReopenedEvent { createdAt } } }
         closedByPullRequestsReferences(first: 5, includeClosedPrs: true) {
           nodes { number headRefName mergedAt body author { login } }
         }
-        comments(last: 10) { totalCount nodes { body authorAssociation createdAt } }
+        comments(last: 10) { totalCount nodes { body authorAssociation author { __typename login ... on Bot { databaseId } } createdAt } }
         parent { id number state labels(first: 20) { nodes { name } } }
         subIssues(first: 50) {
           nodes {
@@ -315,6 +316,9 @@ export function leerIssue(n) {
     closedAt: n.closedAt,
     body: n.body,
     asociacion: n.authorAssociation ?? null,
+    // El autor tal como lo da GraphQL (`__typename` y, si es un bot, `databaseId`): con la asociación, lo lee
+    // `esDeLaCasa` (fondos.mjs) para reconocer al bot de las sesiones por su id (#839).
+    author: n.author ?? null,
     labels: (n.labels?.nodes ?? []).map((l) => ({ name: l.name })),
     asignados: (n.assignees?.nodes ?? []).map((a) => a.login),
     // Fechas de los comentarios de personas o sesiones (no las marcas automáticas): el arranque las usa

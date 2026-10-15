@@ -52,7 +52,8 @@ jobs:
     # issue en el evento (el script vuelve a filtrar por author_association).
     if: >-
       github.event_name != 'issues' || (
-      contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association) &&
+      (contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association) ||
+      (github.event.issue.user.type == 'Bot' && github.event.issue.user.id == 340485937)) &&
       (contains(github.event.issue.labels.*.name, 'tipo:fondo') ||
       contains(github.event.issue.labels.*.name, 'tipo:caso') ||
       contains(github.event.issue.labels.*.name, 'tipo:encargo')))

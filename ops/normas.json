@@ -2323,7 +2323,7 @@
       "fuerza": "debe",
       "condicion": "cuando le cuelga un caso que no aguantó",
       "exigencia": "reabrirse y subir un nivel de alcance",
-      "nota": "Lo dispara cualquier evento de issues; colgar un hijo no lanza ningún workflow y lo ve el pase diario, hasta 24 h después. Solo actúa sobre issues de OWNER, MEMBER o COLLABORATOR.",
+      "nota": "Lo dispara cualquier evento de issues; colgar un hijo no lanza ningún workflow y lo ve el pase diario, hasta 24 h después. Solo actúa sobre issues de la casa (esDeLaCasa: OWNER, MEMBER, COLLABORATOR o el bot de las sesiones por su id, #839).",
       "donde": [
         "scripts/lib/fondos.mjs",
         ".github/workflows/fondos.yml"

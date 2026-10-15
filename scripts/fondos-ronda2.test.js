@@ -4,6 +4,7 @@ import {
   BARRERAS, MARCA, VERIFICACION_POR_BARRERA, comentario, esDeLaCasa, informeFichas, leerFicha, leerRun, leerSubidos, limpio, validarFicha,
 } from "./lib/fondos.mjs";
 import { ErrorDeApi, pedir } from "./lib/ghApi.mjs";
+import { BOT_ID, BOT_LOGIN } from "./lib/tokenSesion.mjs";
 
 // Ronda 2 de #337 (revisor y seguridad): cada arreglo con su test, visto fallar.
 
@@ -149,9 +150,14 @@ describe("el lector y el texto que se enseña", () => {
     expect(leerRun(`${MARCA}estado=ok -->`)).toBeNull();
     expect([...leerSubidos(c)]).toEqual([]);
   });
-  it("«de la casa» son el dueño, los miembros y los colaboradores; nadie más, ni sin dato", () => {
-    for (const a of ["OWNER", "MEMBER", "COLLABORATOR", "owner"]) expect(esDeLaCasa(a), a).toBe(true);
-    for (const a of ["NONE", "CONTRIBUTOR", "FIRST_TIME_CONTRIBUTOR", "MANNEQUIN", "", null, undefined]) expect(esDeLaCasa(a), String(a)).toBe(false);
+  it("«de la casa» son el dueño, los miembros, los colaboradores y el bot de las sesiones por su id; nadie más, ni sin dato", () => {
+    // Recibe el issue entero (#839): la asociación sola ya no basta para decidir.
+    const humano = (a) => ({ author_association: a, user: { login: "alguien", type: "User", id: 7 } });
+    for (const a of ["OWNER", "MEMBER", "COLLABORATOR", "owner"]) expect(esDeLaCasa(humano(a)), a).toBe(true);
+    // Un CONTRIBUTOR humano sigue fuera (#379); el bot de las sesiones (#838) entra por su id, no por su login.
+    for (const a of ["NONE", "CONTRIBUTOR", "FIRST_TIME_CONTRIBUTOR", "MANNEQUIN", "", null, undefined]) expect(esDeLaCasa(humano(a)), String(a)).toBe(false);
+    expect(esDeLaCasa({ author_association: "CONTRIBUTOR", user: { login: BOT_LOGIN, type: "Bot", id: BOT_ID } })).toBe(true);
+    expect(esDeLaCasa({ author_association: "CONTRIBUTOR", user: { login: BOT_LOGIN, type: "Bot", id: BOT_ID + 1 } })).toBe(false);
   });
 });
 

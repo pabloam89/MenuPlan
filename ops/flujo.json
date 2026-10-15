@@ -267,7 +267,7 @@
       ],
       "obligaciones": [
         { "id": "P09.1", "norma": "fondo-ventana-sin-casos", "ref": "scripts/lib/fondos.mjs", "contiene": "la ventana venció", "fase": ["#341"], "nota": "El pase diario del workflow fondos cierra como cerrado-eficaz solo si la ventana (90 días como mucho) vence sin casos listados fuera de «casos» ni creados desde «ventana_desde», y sin ningún no-aguanto; con ellos reabre. Un fondo cerrado a mano sin pasar por observación avisa (cierre-anticipado)" },
-        { "id": "P09.2", "norma": "fondo-reabre-al-no-aguantar", "ref": "scripts/lib/fondos.mjs", "contiene": "export function subirAlcance", "fase": ["#341"], "nota": "Se dispara por los eventos de issues (alta, edición, etiqueta, cierre o reapertura de un fondo, caso o encargo, venga de donde venga) y por el pase diario del workflow fondos. Colgar un hijo no lanza ningún evento: lo ve el pase diario, hasta 24 h después. El alcance sube una vez por caso (lo recuerda la marca del comentario). Solo actúa sobre issues de OWNER, MEMBER o COLLABORATOR" }
+        { "id": "P09.2", "norma": "fondo-reabre-al-no-aguantar", "ref": "scripts/lib/fondos.mjs", "contiene": "export function subirAlcance", "fase": ["#341"], "nota": "Se dispara por los eventos de issues (alta, edición, etiqueta, cierre o reapertura de un fondo, caso o encargo, venga de donde venga) y por el pase diario del workflow fondos. Colgar un hijo no lanza ningún evento: lo ve el pase diario, hasta 24 h después. El alcance sube una vez por caso (lo recuerda la marca del comentario). Solo actúa sobre issues de la casa (esDeLaCasa, #839)" }
       ]
     },
     {
