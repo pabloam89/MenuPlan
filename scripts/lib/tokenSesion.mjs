@@ -250,7 +250,10 @@ export async function tokenConCache({ sinCache = false, cache = {}, generar = to
   // Otro dueño: su propia caché (el token es de su instalación y de su repo) y sin el id fijo de la casa
   const ids = otro ? () => ({ ...idsEntrada(), installationId: null }) : idsEntrada;
   const base = cache.ruta !== undefined ? cache.ruta : rutaDeCache();
-  const ruta = otro && base ? base.replace(/\.json$/, `-${otro.dueno.toLowerCase()}-${otro.repo.toLowerCase()}.json`) : base;
+  // `--` entre dueño y repo: GitHub no admite guiones seguidos en un dueño, así que no hay dos destinos con el mismo nombre.
+  // El sufijo se añade al nombre base (no se sustituye `.json`), así todo destino tiene fichero propio.
+  const sufijo = otro ? `-${otro.dueno.toLowerCase()}--${otro.repo.toLowerCase()}` : "";
+  const ruta = otro && base ? base.replace(/\.json$/, "") + sufijo + ".json" : base;
   if (otro) resto.destino = otro;
   // Sin un sitio válido para la caché (fuera del perfil o en OneDrive) se canjea como antes
   if (!ruta) return { ...(await generar({ ...resto, ids, ahora: reloj() })), cache: "no" };

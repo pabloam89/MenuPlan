@@ -941,8 +941,29 @@ describe("token por dueño del repo de destino", () => {
       const dentro = await tokenConCache({ ...o, destino: { dueno: ORG, repo: "Fabrica" } });
       expect(dentro.cache).toBe("no");
       expect(generar.mock.calls[1][0].destino).toEqual({ dueno: ORG, repo: "Fabrica" });
-      expect(readdirSync(dir).filter((x) => x.endsWith(".json")).sort()).toEqual(["token-sesion-factory-am89-fabrica.json", "token-sesion.json"]);
+      expect(readdirSync(dir).filter((x) => x.endsWith(".json")).sort()).toEqual(["token-sesion-factory-am89--fabrica.json", "token-sesion.json"]);
       expect((await tokenConCache({ ...o, destino: { dueno: ORG, repo: "Fabrica" } })).cache).toBe("si");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+  it("destinos que solo se distinguen por el guion tienen ficheros distintos", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "tokdueno-"));
+    try {
+      const generar = vi.fn(async ({ destino }) => ({ token: TOKEN, expiraEn: new Date(T0 + 60 * MIN).toISOString(), installationId: destino.dueno.length, autor: { nombre: "b", correo: "1+b@users.noreply.github.com" }, advertencias: [] }));
+      // Una ruta base sin .json también tiene que dar un fichero propio por destino
+      for (const nombre of ["token-sesion.json", "sin-extension"]) {
+        const ruta = join(dir, nombre);
+        const o = { ids: () => ({ appId: APP_ID, installationId: null }), generar, reloj: () => T0, cache: { ruta, proteger: () => true, permisosBien: () => true, esperaBloqueoMs: 40, sondeoMs: 5 } };
+        await tokenConCache({ ...o, destino: { dueno: "a", repo: "b-c" } });
+        const otro = await tokenConCache({ ...o, destino: { dueno: "a-b", repo: "c" } });
+        expect(otro.cache).toBe("no");
+      }
+      const ficheros = readdirSync(dir).sort();
+      expect(ficheros).toHaveLength(4);
+      expect(new Set(ficheros).size).toBe(4);
+      expect(ficheros).toContain("token-sesion-a--b-c.json");
+      expect(ficheros).toContain("token-sesion-a-b--c.json");
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
