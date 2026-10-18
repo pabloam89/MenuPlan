@@ -76,7 +76,8 @@
           "grado": "usable",
           "motivo_grado": "api/delete-account.js con su test; la herencia de la casa está en la migración 0075 aplicada.",
           "ficheros": [
-            "api/delete-account.js"
+            "api/delete-account.js",
+            "src/lib/appleTokens.js"
           ],
           "tests": [
             "api/delete-account.test.js"
@@ -915,7 +916,8 @@
         "api/moderate-takedown.js",
         "api/report-alert.js",
         "api/_moderation.js",
-        "src/lib/socialFixtures.js"
+        "src/lib/socialFixtures.js",
+        "src/lib/moderation.js"
       ],
       "tests": [
         "src/lib/social.test.js",
@@ -1389,16 +1391,10 @@
     "apple_auth_tokens": {
       "dueno": "borrar-cuenta",
       "fichero_dueno": {
-        "app": null,
+        "app": "src/lib/appleTokens.js",
         "servidor": "api/delete-account.js"
       },
-      "nota": "Creada a mano en el panel, sin migración; la lee api/delete-account.js por REST directo (no por db.js, por eso cableado.json no la ve). api/delete-account.js la lee por fetch a /rest/v1/ (punto ciego de cableado.mjs).",
-      "sin_puerta": {
-        "app": {
-          "motivo": "no_la_usa",
-          "texto": "Ningún fichero de src/ la toca (el cliente no la escribe hoy)."
-        }
-      }
+      "nota": "La crea la migración 0099 (antes se creó a mano en el panel). La escribe la app (src/lib/appleTokens.js, upsert del refresh token de Apple al iniciar sesión) y la lee api/delete-account.js por fetch a /rest/v1/ (punto ciego de cableado.mjs) para revocar el token al borrar la cuenta."
     },
     "blocked_users": {
       "dueno": "gente",
@@ -2082,9 +2078,7 @@
       }
     }
   },
-  "tablas_fuera_de_migraciones": [
-    "apple_auth_tokens"
-  ],
+  "tablas_fuera_de_migraciones": [],
   "tablas_excepciones": [
     {
       "tabla": "user_recipe_discards",
@@ -2151,6 +2145,14 @@
       "motivo": "Interruptores y avisos transversales (FRONTAL_BOT, GENTE_ACTIVA, GUIAS_ACTIVAS): los leen casi todas las pantallas y no son de un módulo.",
       "ficheros": [
         "src/lib/frontalBot.js"
+      ]
+    },
+    {
+      "motivo": "Plomería de la app nativa iOS (Capacitor): URL de la API, login nativo y barra de estado. No es de ningún módulo.",
+      "ficheros": [
+        "src/lib/apiUrl.js",
+        "src/lib/nativeAuth.js",
+        "src/lib/statusBar.js"
       ]
     }
   ],

@@ -6,6 +6,7 @@
   "prefijos": [
     { "prefijo": "public/", "zona": "producto" },
     { "prefijo": "src/", "zona": "producto" },
+    { "prefijo": "ios/", "zona": "producto" },
     { "prefijo": "api/", "zona": "producto" },
     { "prefijo": "supabase/", "zona": "producto" },
     { "prefijo": "specs/", "zona": "producto" },
@@ -53,6 +54,7 @@
   ],
   "excepciones": {
     "CLAUDE.md": "mixto",
+    "capacitor.config.json": "producto",
     "package.json": "mixto",
     "package-lock.json": "mixto",
     "lint-base.json": "mixto",
