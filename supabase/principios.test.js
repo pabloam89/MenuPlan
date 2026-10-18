@@ -138,7 +138,7 @@ const apuntado = (texto, n) => new RegExp(String.raw`(?<![\w])${n}(?![\w])`).tes
  * la regla («on-delete: …»), que es lo que mira el autotest.
  */
 // Los únicos ficheros que pueden declarar un valor de enum ya existente (con marca e if not exists).
-export const ENUM_DECLARATIVO = new Set(["0098_enums_salsa.sql"]);
+export const ENUM_DECLARATIVO = new Set(["0098_enums_salsa.sql", "0101_report_comment_target.sql"]);
 
 export function revisar(fichero, sql, { pendientes, estado, enumDeclarativo = ENUM_DECLARATIVO }) {
   const v = [];

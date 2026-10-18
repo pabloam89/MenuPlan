@@ -27,11 +27,34 @@
 -- sin token), y el NOT NULL de abajo es la segunda barrera: un intento de
 -- guardar nada falla en vez de dejarnos sin credencial que revocar.
 
+-- ── Tabla viva: ya existe en producción (creada a mano) ─────────────────────
+-- Para la tabla viva, este fichero añade created_at (alter … add column if not
+-- exists: rellena now() en las filas que haya) y rehace sus dos políticas: toca
+-- RLS de algo que ya existía, así que la aplica Pablo con --pablo.
+--
+-- Consultas previas (solo lectura, para el ensayo):
+--   select to_regclass('public.apple_auth_tokens');
+--   select column_name from information_schema.columns where table_schema = 'public' and table_name = 'apple_auth_tokens';
+--   select polname from pg_policy where polrelid = 'public.apple_auth_tokens'::regclass;
+--
+-- Plan B: src/lib/appleTokens.js ignora el error del upsert (el login sigue);
+-- api/delete-account.js sigue borrando la cuenta si no hay token que revocar.
+-- Objeto testigo: la columna public.apple_auth_tokens.created_at.
+
+set lock_timeout = '5s';
+
 create table if not exists public.apple_auth_tokens (
   user_id uuid primary key references auth.users(id) on delete cascade,
   refresh_token text not null,
+  created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.apple_auth_tokens
+  add column if not exists created_at timestamptz not null default now();
+
+comment on table public.apple_auth_tokens is
+  'Refresh token de Apple de cada usuario, para revocarlo al borrar la cuenta. La escribe la app; solo la lee api/delete-account.js con service role.';
 
 alter table public.apple_auth_tokens enable row level security;
 
