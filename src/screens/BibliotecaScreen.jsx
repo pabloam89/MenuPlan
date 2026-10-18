@@ -3,6 +3,7 @@ import { BookOpen, Heart, NotebookPen, Plus, SlidersHorizontal } from "../compon
 import {
   BottomNav,
   bottomNavSpacer,
+  safeTop,
   EmptyIllustration,
   SegmentedTabBar,
   SegmentedTabButton,
@@ -64,6 +65,7 @@ export function BibliotecaScreen({
         <div
           style={{
             padding: "20px 18px 14px",
+            paddingTop: safeTop(20),
             maxWidth: 420,
             margin: "0 auto",
             width: "100%",

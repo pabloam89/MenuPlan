@@ -56,6 +56,7 @@ import {
   WizardSheet,
   WeekChips,
   bottomNavSpacer,
+  safeTop,
 } from "../components/ui.jsx";
 import { ShoppingCoachTour } from "../components/HomeCoachTour.jsx";
 import { ManualEntryModal, StorePicker, StoreBadge, SUPERMARKETS, appendManualSpend, appendReceiptSpend } from "./SpendPanel.jsx";
@@ -1236,7 +1237,7 @@ export function ShoppingScreen({
         onChange={(e) => handleReceiptPick(e.target.files?.[0])}
       />
 
-      <div style={{ background: HEADER_BAND, padding: "20px 16px 14px" }}>
+      <div style={{ background: HEADER_BAND, padding: "20px 16px 14px", paddingTop: safeTop(20) }}>
         <div
           style={{
             display: "flex",

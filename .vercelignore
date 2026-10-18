@@ -1,4 +1,6 @@
 output/
+# Proyecto nativo de iOS (Capacitor): solo se compila en un Mac, Vercel no lo necesita.
+ios/
 public/dishes/
 # scripts/ (not scripts) so the negation below can still re-include one file —
 # gitignore/vercelignore semantics don't let you un-ignore a file whose parent

@@ -2,7 +2,6 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import { ErrorBoundary } from './components/ErrorBoundary.jsx'
-import { InstallPwaBanner } from './components/InstallPwaBanner.jsx'
 import { PanelPlayground } from './dev/PanelPlayground.jsx'
 import './design/tokens.css'
 import './index.css'
@@ -21,6 +20,13 @@ registerSW({
     if (registro) window.setInterval(() => registro.update().catch(() => {}), 60 * 60 * 1000)
   },
 })
+
+// Apartar el contenido de la barra de estado y del indicador de inicio del
+// iPhone ya NO se hace aqui. Se hacia cambiando el viewport en caliente, y
+// llegaba tarde: este `import(...)` es asincrono, mientras que el `render()` de
+// abajo es sincrono, asi que la primera pantalla se pintaba con el viewport
+// viejo. Ahora `viewport-fit=cover` va fijo en index.html y el hueco lo aparta
+// el CSS de cada cabecera con safeTop() (ver ui.jsx).
 
 // A tab left open across a deploy still holds the OLD index.html, which
 // references hashed chunk filenames (e.g. MenusScreen-CiI8Z4up.js) that the
@@ -63,7 +69,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <ErrorBoundary>
       {COMPARADOR
         ? <React.Suspense fallback={null}><ComparadorDiseno /></React.Suspense>
-        : PANEL_SUELTO ? <PanelPlayground /> : <><App /><InstallPwaBanner /></>}
+        : PANEL_SUELTO ? <PanelPlayground /> : <App />}
     </ErrorBoundary>
   </React.StrictMode>,
 )

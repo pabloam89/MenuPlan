@@ -9,7 +9,7 @@ import {
   Info,
   ShieldCheck,
 } from "../components/icons.jsx";
-import { Avatar, BottomNav, bottomNavSpacer, GoogleButton } from "../components/ui.jsx";
+import { Avatar, BottomNav, bottomNavSpacer, safeTop, SignInOptions } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
 import { findAccountMember,
   resolveAccountMember, miembroDeCuentaId, conMiembroDeCuenta, memberAvatarColor, memberAvatarThumbSrc, migrateHomeRole, resolveMemberAge, userAvatarSrc } from "../lib/stages.js";
@@ -247,6 +247,7 @@ export function HomeProfileScreen({
   onNav,
   onBack,
   onSignIn,
+  onAppleSignIn,
   onSignOut,
   onReset,
   onDeleteAccount,
@@ -297,6 +298,7 @@ export function HomeProfileScreen({
 
       <div style={{
         padding: `20px 18px calc(${bottomNavSpacer()} + 18px)`,
+        paddingTop: safeTop(20),
         maxWidth: 420, margin: "0 auto", width: "100%", boxSizing: "border-box",
       }}>
 
@@ -430,7 +432,7 @@ export function HomeProfileScreen({
             <p style={{ margin: "0 0 14px", fontSize: 13, color: "#7a9485", lineHeight: 1.5 }}>
               Inicia sesión para sincronizar recetas, familia y preferencias.
             </p>
-            <GoogleButton onClick={onSignIn} />
+            <SignInOptions onGoogle={onSignIn} onApple={onAppleSignIn} />
           </Card>
         )}
 
@@ -499,6 +501,21 @@ export function HomeProfileScreen({
         >
           <ShieldCheck size={13} color="#7a9485" />
           <span style={{ fontSize: 12.5, color: "#7a9485", fontWeight: 700 }}>Política de privacidad</span>
+        </a>
+
+        {/* Términos de uso — App Store los exige en apps con contenido de
+            usuarios, y tienen que poder leerse sin tener cuenta. */}
+        <a
+          href="/terminos.html"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+            marginTop: 2, padding: "10px 0", textDecoration: "none",
+          }}
+        >
+          <ShieldCheck size={13} color="#7a9485" />
+          <span style={{ fontSize: 12.5, color: "#7a9485", fontWeight: 700 }}>Términos de uso</span>
         </a>
 
         {/* Version */}
