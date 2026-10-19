@@ -1,9 +1,0 @@
-{
-  "$comentario": "Los principios del proyecto HoMenu (#710, programa #652): los de lado «vertical», decisiones de producto que solo valen aquí (el modelo de datos de las familias, el catálogo revisado). Mismo esquema, mismos tipos de texto y mismos topes que ops/principios/ (id, area, nombre, enunciado, porque, fuentes y, si hay, detalle y origen), más `project` (un id de `projects` de ops/entidades.json, el de esta carpeta). Un fichero por principio en principios/ (#505). Los lee scripts/lib/principios.mjs (leerPrincipiosDeProyecto) junto a los horizontales; los vigila ops/principios.test.js: ningún principio horizontal lleva `project`, ninguno de aquí deja de llevarlo, y ninguna norma horizontal cita uno de estos. Un principio general nace en ops/principios/ con su fuente externa; aquí solo lo que es de HoMenu.",
-  "version": 1,
-  "project": "homenu",
-  "principios": {
-    "$partida": "lista",
-    "clave": "id"
-  }
-}

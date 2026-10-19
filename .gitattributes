@@ -11,25 +11,6 @@
 *.bat text eol=crlf
 *.cmd text eol=crlf
 
-# Lo generado y guardado en el repo (#551, fondo #504): dos ramas que añaden una entrada cada
-# una a un catálogo lo regeneran entero y chocaban. `generado` deja la versión de HEAD (su test
-# «está al día» dice si hay que regenerar: node scripts/generados.mjs --escribir); `json-claves`
-# fusiona el ancla clave a clave. Son drivers locales, con rutas absolutas: los instala `npm run tarea` (o
-# node scripts/generados.mjs --instalar); sin ellos, como GitHub, git fusiona como siempre.
-# La lista sale de GENERADOS en scripts/lib/generados.mjs; ops/generados.test.js las compara.
-docs/ops/FORJA.md merge=generado
-.claude/plantillas-skill/*.md merge=generado
-docs/ops/REDACCION.md merge=generado
-docs/ops/NORMAS.md merge=generado
-docs/ops/ESTANDARES.md merge=generado
-docs/ops/ENCARGO.md merge=generado
-docs/producto/PRINCIPIOS.md merge=generado
-docs/PRINCIPIOS.md merge=generado
-ops/forja-capas.json merge=json-claves
-ops/forja-campos.json merge=json-claves
-ops/forja-excepciones.json merge=json-claves
-ops/redaccion-pendientes.json merge=json-claves
-
 # Binarios: ni se tocan ni se diffean.
 *.png binary
 *.jpg binary

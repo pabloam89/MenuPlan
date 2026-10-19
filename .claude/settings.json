@@ -27,7 +27,6 @@
       "Bash(node scripts/verificar-estado.mjs *)",
       "Bash(node scripts/apply-migration.mjs *)",
       "Bash(node scripts/consulta.mjs *)",
-      "Bash(node scripts/issues.mjs *)",
       "Bash(gh issue view *)",
       "Bash(gh issue list *)",
       "Bash(gh issue comment *)",

@@ -1,9 +1,0 @@
-{
-  "id": "casa-plantilla-agente",
-  "nombre": "Fuente de la casa: plantilla de agente (juez y constructor, skills que abrió)",
-  "tipo": "casa",
-  "ruta": ".claude/PLANTILLA-AGENTE.md",
-  "fecha_alta": "2026-10-13",
-  "revisada": "no",
-  "fecha_revision": null
-}

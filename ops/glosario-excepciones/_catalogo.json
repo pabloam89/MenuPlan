@@ -1,6 +1,0 @@
-{
-  "$comentario": "Lo que ya incumplía el glosario (ops/glosario/) el 10 oct 2026, al nacer (#469): ruta → sinónimo prohibido → cuántas veces. SOLO BAJA: un sinónimo nuevo falla ops/glosario.test.js, y uno arreglado también hasta que se baja aquí su cifra (o se borra la línea). No se sube nada: se escribe el término canónico. npm run glosario -- --medir dice qué cambió.",
-  "excepciones": {
-    "$partida": "mapa"
-  }
-}
