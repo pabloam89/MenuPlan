@@ -66,20 +66,20 @@ describe("guardia-minima: lo que queda de la guardia (#878)", () => {
     expect(JSON.parse(ilegible.stdout).hookSpecificOutput.permissionDecision).toBe("ask");
   });
 
-  it("está enchufada en .claude/settings.json como PreToolUse de Bash y PowerShell, y no hay más", () => {
+  it("está enchufada en .claude/settings.json como PreToolUse de Bash, PowerShell y las ediciones, y no hay más", () => {
     const ajustes = JSON.parse(readFileSync(fileURLToPath(new URL("../settings.json", import.meta.url)), "utf8"));
     expect(Object.keys(ajustes.hooks).sort()).toEqual(["PreToolUse", "SessionStart"]);
     expect(ajustes.hooks.PreToolUse).toEqual([
-      { matcher: "Bash|PowerShell", hooks: [{ type: "command", command: 'node "${CLAUDE_PROJECT_DIR}/.claude/hooks/guardia-minima.mjs"', timeout: 20 }] },
+      { matcher: "Bash|PowerShell|Edit|Write|MultiEdit|NotebookEdit", hooks: [{ type: "command", command: 'node "${CLAUDE_PROJECT_DIR}/.claude/hooks/guardia-minima.mjs"', timeout: 20 }] },
     ]);
     expect(ajustes.agent).toBeUndefined();
   });
 
   it("no importa nada de la guardia grande (#878: se borra en los PR siguientes)", () => {
-    for (const f of ["guardia-minima.mjs", "credenciales.mjs", "identidad.mjs", "nube.mjs"]) {
+    for (const f of ["guardia-minima.mjs", "credenciales.mjs", "identidad.mjs", "nube.mjs", "fueraDelRepo.mjs"]) {
       const src = readFileSync(fileURLToPath(new URL(`./${f}`, import.meta.url)), "utf8");
       const imports = [...src.matchAll(/^import[^;]*?from\s+"([^"]+)"/gm)].map((m) => m[1]).filter((r) => r.startsWith("."));
-      expect(imports, f).toEqual(imports.filter((r) => ["./credenciales.mjs", "./nube.mjs", "../../scripts/lib/tokenSesion.mjs"].includes(r)));
+      expect(imports, f).toEqual(imports.filter((r) => ["./credenciales.mjs", "./nube.mjs", "./fueraDelRepo.mjs", "../../scripts/lib/tokenSesion.mjs"].includes(r)));
     }
   });
 });
