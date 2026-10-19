@@ -20,7 +20,9 @@
  * puede escaparse. La barrera de fondo de lo que está en GitHub es que la App de las sesiones
  * solo puede leer los repos de la Fábrica (comprobado el 19 oct 2026).
  */
+import { execFileSync } from "node:child_process";
 import { readdirSync } from "node:fs";
+import { basename, dirname } from "node:path";
 
 /** Las entradas de `C:\dev` que no son de MenuPlan, en minúsculas. Si no se puede leer, ninguna. */
 export function hermanasDeDisco(raiz = "C:/dev") {
@@ -31,9 +33,35 @@ export function hermanasDeDisco(raiz = "C:/dev") {
   }
 }
 
-/** `menuplan` y `menuplan-<tarea>` son de este repo. */
+// El nombre de la carpeta principal de este repo en este PC, si no se llama MenuPlan (Álvaro puede
+// tenerlo en `C:\dev\HoMenu`, 19 oct 2026). Lo fija la guardia al arrancar con raizPropiaDeGit.
+let raizPropia = null;
+
+/** Fija (o borra, con null) el nombre de la carpeta principal del repo en este PC. */
+export function fijarRaizPropia(nombre) {
+  raizPropia = nombre ? String(nombre).toLowerCase() : null;
+}
+
+/**
+ * El nombre de la carpeta principal del repo al que pertenece `dir` (también desde una carpeta
+ * de tarea: sale del directorio común de git), o null si git no contesta.
+ */
+export function raizPropiaDeGit(dir) {
+  try {
+    const comun = execFileSync("git", ["-C", dir, "rev-parse", "--path-format=absolute", "--git-common-dir"], {
+      encoding: "utf8", timeout: 5000, windowsHide: true, stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
+    return comun ? basename(dirname(comun)) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** `menuplan` y `menuplan-<tarea>` son de este repo, y también la carpeta principal y sus `-<tarea>`. */
 function esPropia(nombre) {
-  return /^menuplan(?:-|$)/i.test(nombre);
+  const n = String(nombre).toLowerCase();
+  if (/^menuplan(?:-|$)/.test(n)) return true;
+  return Boolean(raizPropia) && (n === raizPropia || n.startsWith(`${raizPropia}-`));
 }
 
 /** Lleva una ruta a la forma `c:/dev/x/...`: barras normales, minúsculas, `/c/` de Git Bash a `c:/`. */

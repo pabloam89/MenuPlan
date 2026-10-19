@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { decidir } from "./guardia-minima.mjs";
-import { ajenasEnOrden, carpetaAjena, fueraDelRepo } from "./fueraDelRepo.mjs";
+import { ajenasEnOrden, carpetaAjena, fijarRaizPropia, fueraDelRepo, raizPropiaDeGit } from "./fueraDelRepo.mjs";
 
 /**
  * Una sesión de MenuPlan no escribe fuera de C:\dev\MenuPlan y C:\dev\MenuPlan-* (Pablo, 19 oct
@@ -111,5 +111,39 @@ describe("enchufada en guardia-minima", () => {
   it("lo propio sigue pasando, y las credenciales se siguen frenando", () => {
     expect(decidir({ tool_name: "Edit", tool_input: { file_path: "C:\\dev\\MenuPlan-tarea\\a.js" } }, { hermanas: HERMANAS })).toBeNull();
     expect(decidir(bash("unset GH_TOKEN"), { hermanas: HERMANAS })).toMatchObject({ decision: "deny" });
+  });
+});
+
+describe("en el PC de Álvaro (19 oct 2026)", () => {
+  it("si su repo se llama de otra forma (C:\\dev\\HoMenu), esa carpeta y sus -<tarea> son propias", () => {
+    try {
+      fijarRaizPropia("HoMenu");
+      expect(carpetaAjena("C:\\dev\\HoMenu\\api\\_bot\\agente.js")).toBeNull();
+      expect(carpetaAjena("C:\\dev\\HoMenu-lola-alergias\\a.js")).toBeNull();
+      expect(niega({ tool_name: "Edit", tool_input: { file_path: "C:\\dev\\HoMenu-x\\api\\_bot\\agente.js" } })).toBeNull();
+      expect(niega(bash("git -C C:/dev/HoMenu worktree add -b bot/x C:/dev/HoMenu-x origin/staging"))).toBeNull();
+      // La Fábrica sigue siendo ajena, y un nombre que solo empieza igual también.
+      expect(carpetaAjena("C:\\dev\\fabrica\\a.js")).toBe("fabrica");
+      expect(carpetaAjena("C:\\dev\\HoMenuViejo\\a.js")).toBe("homenuviejo");
+    } finally {
+      fijarRaizPropia(null);
+    }
+    // Sin raíz fijada, otro nombre es ajeno: lo que pasaba antes del arreglo.
+    expect(carpetaAjena("C:\\dev\\HoMenu\\a.js")).toBe("homenu");
+  });
+
+  it("la raíz sale del directorio común de git, también desde una carpeta de tarea", () => {
+    const aqui = raizPropiaDeGit(process.cwd());
+    expect(typeof aqui).toBe("string");
+    expect(aqui.length).toBeGreaterThan(0);
+    expect(raizPropiaDeGit("C:/no/existe/de/verdad")).toBeNull();
+  });
+
+  it("la regla de PowerShell solo se aplica en el PC de Pablo", () => {
+    const push = { tool_name: "PowerShell", tool_input: { command: "git push -u origin bot/x" }, cwd: CWD };
+    expect(decidir(push, { hermanas: HERMANAS, pcDePablo: true })).toMatchObject({ decision: "deny", familia: "powershell" });
+    expect(decidir(push, { hermanas: HERMANAS, pcDePablo: false })).toBeNull();
+    // Lo demás de credenciales se sigue frenando en cualquier PC.
+    expect(decidir(bash("unset GH_TOKEN"), { hermanas: HERMANAS, pcDePablo: false })).toMatchObject({ decision: "deny", familia: "token" });
   });
 });

@@ -42,9 +42,9 @@ alimentos en JSON en git (`src/data/`). Escriben **Pablo** (`pabloam89`) y **Ál
 
 ## Identidad de las sesiones
 
-Al abrir sesión, `.claude/hooks/identidad.mjs` da a `gh` y `git` el token de la App **`homenu-sesiones`**: commits y PR salen a su nombre. No usa la cuenta de Pablo porque Pablo es administrador: con ella una sesión podría fusionar a `main` o cambiar las reglas del repo. En PowerShell, `node scripts/token-sesion.mjs -- <comando>`. `.claude/hooks/guardia-minima.mjs` niega volver a las credenciales de Pablo (quitar `GH_TOKEN`, `git -c credential.…`, aprobar PR…). Detalle: skill `github`.
+Al abrir sesión, `.claude/hooks/identidad.mjs` da a `gh` y `git` el token de la App **`homenu-sesiones`**: commits y PR salen a su nombre. No usa la cuenta de Pablo porque Pablo es administrador: con ella una sesión podría fusionar a `main` o cambiar las reglas del repo. En PowerShell, `node scripts/token-sesion.mjs -- <comando>` (en el PC de Pablo es obligatorio; en otro PC, `gh` y `git` van con la cuenta de quien está delante). `.claude/hooks/guardia-minima.mjs` niega volver a las credenciales de Pablo (quitar `GH_TOKEN`, `git -c credential.…`, aprobar PR…). Detalle: skill `github`.
 
-**Nada fuera de `C:\dev\MenuPlan*`.** En `C:\dev` viven también la Fábrica (`fabrica*`) y el panel (`homenu-panel*`). `guardia-minima.mjs` (con `fueraDelRepo.mjs`) niega escribir, borrar, entrar o ejecutar en esas carpetas; leerlas sí se puede. Lo que haya que cambiar ahí se hace desde una sesión abierta en esa carpeta.
+**Nada fuera de `C:\dev\MenuPlan*`** (o de la carpeta del repo y sus `-<tarea>`, si en ese PC se llama de otra forma). En `C:\dev` viven también la Fábrica (`fabrica*`) y el panel (`homenu-panel*`). `guardia-minima.mjs` (con `fueraDelRepo.mjs`) niega escribir, borrar, entrar o ejecutar en esas carpetas; leerlas sí se puede. Lo que haya que cambiar ahí se hace desde una sesión abierta en esa carpeta.
 
 ## Qué se le pregunta a Pablo
 
