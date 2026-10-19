@@ -256,7 +256,9 @@ describe("scripts que llaman a un modelo: tope y libro del mes (#297)", () => {
   const sinComentarios = (src) => src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
   // Cualquier camino a un modelo de pago: el SDK, la API directa, la clave, o los módulos de Lola que llaman.
   const MODELO = /(?:import|from)[^;\n]*["']@anthropic-ai\/sdk["']|import\(\s*["']@anthropic-ai\/sdk["']|api\.anthropic\.com|ANTHROPIC_API_KEY|api\/_bot\/(router|agente|significado|traducir|recetas|avisar)\b/;
-  const CON_TOPE = ["bot-evals.mjs", "router-evals.mjs", "skills-prueba.mjs", "test-del-juez.mjs"];
+  // Los que tienen que existir con su tope. Cualquier otro que llame a un modelo y no sea una
+  // excepción también tiene que pasar por el libro (abajo): la regla es la clase, no la lista (#878).
+  const CON_TOPE = ["bot-evals.mjs", "router-evals.mjs"];
   // Puntuales y manuales (los lanza una persona sobre un lote acotado, casi todos
   // con --dry-run), o de céntimos. No cuentan para el libro del mes: el tope
   // mensual NO los cubre, y esta lista es lo que dice cuáles son.
@@ -289,8 +291,7 @@ describe("scripts que llaman a un modelo: tope y libro del mes (#297)", () => {
   it("cada script con modelo de pago pasa por el libro del mes o está en las excepciones", () => {
     for (const f of new Set([...conIA.filter((x) => !SIN_TOPE_DE_EVALS[x]), ...CON_TOPE])) {
       const src = codigo(f);
-      expect(CON_TOPE, `${f} llama a un modelo sin topeDePasada ni excepción`).toContain(f);
-      expect(src, `${f}: sin topeDePasada`).toMatch(/topeDePasada\(/);
+      expect(src, `${f} llama a un modelo sin topeDePasada ni excepción`).toMatch(/topeDePasada\(/);
       expect(src, `${f}: no relee el libro antes de cada pago`).toMatch(/puedeGastar\(/);
       expect(src, `${f}: no apunta su gasto en el libro del mes`).toMatch(/apuntarOAvisar\(/);
     }

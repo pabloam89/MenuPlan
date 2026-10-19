@@ -444,13 +444,21 @@ describe("aplicarIdentidad (lo que hace el arranque)", () => {
   });
 });
 
-describe("arranque.mjs", () => {
-  it("sigue siendo JavaScript válido y usa aplicarIdentidad esperándola antes de imprimir", () => {
-    const ruta = fileURLToPath(new URL("../.claude/hooks/arranque.mjs", import.meta.url));
+// Desde #878 la identidad la pone `.claude/hooks/identidad.mjs` (lo que quedó del arranque).
+describe("identidad.mjs", () => {
+  const ruta = fileURLToPath(new URL("../.claude/hooks/identidad.mjs", import.meta.url));
+  it("sigue siendo JavaScript válido y espera a aplicarIdentidad antes de imprimir", () => {
     execFileSync(process.execPath, ["--check", ruta]);
     const src = readFileSync(ruta, "utf8");
-    expect(src).toMatch(/aplicarIdentidad\(/); // con o sin opciones (#652: registrar)
-    expect(src).toContain("avisos.push(await identidad)");
+    expect(src).toMatch(/const identidad = await aplicarIdentidad\(/);
+    expect(src).toMatch(/rutaShim: rutaDeShimDesde\(import\.meta\.url\)/);
+    expect(src).toMatch(/nube: esSesionDeNube\(process\.env, rama, raiz\)/);
+    expect(src.indexOf("await aplicarIdentidad(")).toBeLessThan(src.indexOf("process.stdout.write(`[identidad MenuPlan] ${identidad}"));
+  });
+  it("es el único SessionStart de .claude/settings.json", () => {
+    const ajustes = JSON.parse(readFileSync(fileURLToPath(new URL("../.claude/settings.json", import.meta.url)), "utf8"));
+    const comandos = (ajustes.hooks?.SessionStart ?? []).flatMap((g) => g.hooks.map((h) => h.command));
+    expect(comandos).toEqual(['node "${CLAUDE_PROJECT_DIR}/.claude/hooks/identidad.mjs"']);
   });
 });
 
