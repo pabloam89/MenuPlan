@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -32,6 +32,15 @@ describe("migraciones-pr: lo que daba la guardia, en el CI (#878)", () => {
 
   it("una aplicada tocada falla; una sin aplicar se puede editar", () => {
     expect(aplicadasTocadas(["0499_aplicada", "0500_ejemplo_libre"], ESTADO)).toEqual(["0499_aplicada"]);
+  });
+
+  it("lee el supabase/ESTADO.md de verdad: su fila «Sin aplicar» casa y cada migración que nombra existe", () => {
+    // Si cambia el formato de ESTADO.md, sinAplicar da null y el CI falla cerrado con rojos falsos: mejor verlo aquí.
+    const raiz = fileURLToPath(new URL("..", import.meta.url));
+    const real = sinAplicar(readFileSync(join(raiz, "supabase", "ESTADO.md"), "utf8"));
+    expect(real).not.toBe(null);
+    const ficheros = new Set(readdirSync(join(raiz, "supabase", "migrations")).filter((f) => f.endsWith(".sql")).map((f) => f.slice(0, -4)));
+    for (const n of real) expect(ficheros.has(n), n).toBe(true);
   });
 
   it("sin la línea «Sin aplicar», toda tocada cuenta como aplicada (falla cerrado)", () => {

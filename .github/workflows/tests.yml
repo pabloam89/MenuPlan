@@ -69,11 +69,13 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_BASE: ${{ github.event.pull_request.base.ref }}
-      # 2. Workflows (scripts/workflows-pr.mjs): si el PR toca .github/workflows/, su cuerpo
-      #    lleva «Jueces: …, seguridad» (sustituye a la regla workflow-sin-seguridad, #821).
-      #    El cuerpo va por entorno y nunca interpolado en el script: lo escribe cualquiera.
+      # 2. Workflows (scripts/workflows-pr.mjs): si el PR toca .github/workflows/ (o los scripts de
+      #    estas dos comprobaciones), su cuerpo lleva «Jueces: …, seguridad» (sustituye a la regla
+      #    workflow-sin-seguridad, #821). Solo en PR a staging: lo que sube a main ya pasó por aquí
+      #    al entrar en staging. El cuerpo va por entorno y nunca interpolado en el script: lo escribe
+      #    cualquiera. De buena fe: el PR puede cambiar este paso o el script (arreglo de fondo, #881).
       - name: Juez de seguridad si cambia un workflow
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && github.base_ref == 'staging'
         run: |
           git -c core.quotePath=false diff --name-only HEAD^1 HEAD > "$RUNNER_TEMP/ficheros-del-pr.txt"
           node scripts/workflows-pr.mjs "$RUNNER_TEMP/ficheros-del-pr.txt"

@@ -47,8 +47,23 @@ describe("workflows-pr: un PR que cambia un workflow lleva a seguridad en «Juec
   it("un juez pendiente no es un visto bueno", () => {
     expect(nombraASeguridad("Jueces: revisor, seguridad (pendiente)")).toBe(false);
     expect(nombraASeguridad("Jueces: seguridad — falta")).toBe(false);
-    expect(nombraASeguridad("Jueces: seguridad, sin juzgar")).toBe(true); // «sin juzgar» es otro juez en la lista: cuenta seguridad
     expect(nombraASeguridad("Jueces: seguridad sin juzgar")).toBe(false);
+  });
+
+  it("la nota se mira en toda la línea «Jueces:» y en plural: falla cerrado (juicio del revisor del PR #880)", () => {
+    expect(nombraASeguridad("Jueces: seguridad, sin juzgar")).toBe(false);
+    expect(nombraASeguridad("Jueces: revisor y seguridad (pendientes)")).toBe(false);
+    expect(nombraASeguridad("Jueces: revisor y seguridad, pendientes")).toBe(false);
+    expect(nombraASeguridad("Jueces: revisor, seguridad; faltan los dos")).toBe(false);
+    expect(nombraASeguridad("Jueces: revisor y seguridad — falta")).toBe(false);
+    // Otra línea «Jueces:» sin nota sí cuenta: cada línea se juzga entera, por su cuenta.
+    expect(nombraASeguridad("Jueces: seguridad (pendiente)\nJueces: revisor, seguridad")).toBe(true);
+  });
+
+  it("los scripts de estas dos comprobaciones también piden a seguridad (si no, el PR podría desactivarlas)", () => {
+    expect(workflowsDelPr(["scripts/workflows-pr.mjs", "scripts/migraciones-pr.mjs", "scripts/workflows-pr.test.js"])).toEqual(["scripts/workflows-pr.mjs", "scripts/migraciones-pr.mjs"]);
+    expect(decidirWorkflows({ rutas: ["scripts/workflows-pr.mjs"], cuerpo: "Jueces: revisor", autor: "homenu-sesiones[bot]" }).resultado).toBe("falla");
+    expect(decidirWorkflows({ rutas: ["scripts/migraciones-pr.mjs"], cuerpo: "Jueces: revisor, seguridad", autor: "homenu-sesiones[bot]" }).resultado).toBe("ok");
   });
 
   it("las formas de siempre cuentan", () => {

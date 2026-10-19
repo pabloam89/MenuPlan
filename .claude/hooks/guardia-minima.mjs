@@ -4,8 +4,9 @@
  *
  * PreToolUse de Bash y PowerShell (`.claude/settings.json`). Solo aplica `credencialDeComando`
  * (credenciales.mjs, #447): quitar o vaciar GH_TOKEN, cambiar de dónde saca git sus credenciales,
- * sacar las guardadas del PC, cambiar las reglas del repo, aprobar un PR, imprimir el token y, en
- * PowerShell, lanzar gh o git de red sin `node scripts/token-sesion.mjs --`.
+ * sacar las guardadas del PC, cambiar las reglas del repo, aprobar un PR, imprimir el token, en
+ * PowerShell lanzar gh o git de red sin `node scripts/token-sesion.mjs --`, y lanzar `op` o nombrar
+ * lo de 1Password que es solo de Pablo (familia `op`, la regla `op-de-pablo` de antes, #328).
  *
  * Por qué hace falta aunque se fuera la guardia grande (juicio del inventario v2 de #878, hallazgo B):
  * el token de la App solo lo carga Bash (CLAUDE_ENV_FILE). En PowerShell, `gh` usa el llavero del PC;

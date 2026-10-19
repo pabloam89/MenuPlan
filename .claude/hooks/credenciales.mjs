@@ -22,7 +22,10 @@
  *   6. en la herramienta PowerShell, `gh` y `git push|pull|fetch|clone|ls-remote`
  *      sin el envoltorio `node scripts/token-sesion.mjs --`: esa herramienta NO
  *      carga el token de la sesión (CLAUDE_ENV_FILE es de Bash), así que ahí la
- *      sesión va como Pablo en cuanto lanza gh o git por la red.
+ *      sesión va como Pablo en cuanto lanza gh o git por la red;
+ *   7. lanzar `op` (1Password) fuera de `npm run op -- …` o nombrar lo que es solo
+ *      de Pablo (`MENUPLAN_OP_PABLO`, la bóveda `HoMenu`…): la regla `op-de-pablo`
+ *      de la guardia grande, traída aquí en #878 (familia `op`, `opDeSesion`).
  *
  * ESTO ES UN FILTRO DE BUENA FE, no una barrera. Huecos que no se pueden cerrar
  * mirando el texto: una variable intermedia (`X=GH_TOKEN; unset $X`), un script
@@ -223,11 +226,53 @@ export function sinEnvoltorio(orden) {
 // Atajo: un trozo sin ninguna de estas palabras no puede disparar ninguna regla de arriba.
 const ALGO_QUE_MIRAR = /gh|git|env|unset|export|printenv|declare|cmdkey|vaultcmd|credential|rulesets|node|proc|Item|Variable|Environment|ri|si|del|rm|rd|gi|gc|ls|dir|cat|type|Write-|print/i;
 
-/** ¿Es `gh` o un `git` de red, sin el envoltorio de la sesión? (solo en PowerShell) */
+/**
+ * ¿Es `gh` o un `git` de red, sin el envoltorio de la sesión? (solo en PowerShell)
+ * También con la ruta entera, entre comillas o no: `& 'C:\Program Files\GitHub CLI\gh.exe' pr merge 1`
+ * o `C:/Program Files/GitHub CLI/gh.exe pr view 1` (juicio de seguridad del PR #880).
+ */
 function sinEnvoltorioEnPowerShell(orden) {
   const o = orden.replace(GH_ENVUELTO, "$1ENVUELTO");
-  return new RegExp(String.raw`${IZQ}(?:&\s*)?gh(?:\.exe)?(?:\s|$)`).test(o)
-    || new RegExp(String.raw`${IZQ}(?:&\s*)?git(?:\.exe)?\s+(?:-\S+\s+(?:\S+\s+)?){0,4}(?:push|pull|fetch|clone|ls-remote|remote\s+update)\b`).test(o);
+  return new RegExp(String.raw`(?:${IZQ}|[\\/])(?:&\s*)?gh(?:\.exe)?["']?(?:\s|$)`).test(o)
+    || new RegExp(String.raw`(?:${IZQ}|[\\/])(?:&\s*)?git(?:\.exe)?["']?\s+(?:-\S+\s+(?:\S+\s+)?){0,4}(?:push|pull|fetch|clone|ls-remote|remote\s+update)\b`).test(o);
+}
+
+// ── 1Password: lo que es solo de Pablo (#328) ─────────────────────────────
+// Hasta #878 era la regla `op-de-pablo` de guardia.mjs (`opDeSesion`); se trae tal cual al
+// desconectar la guardia grande (juicio de seguridad del PR #880, hallazgo 1): `scripts/lib/env.mjs`
+// tiene un interruptor solo de Pablo que va por la app de escritorio de 1Password, y sin esta regla
+// lo único entre una sesión y las claves de `HoMenu` es una ventana de aprobación que no dice qué
+// orden la pide. Filtro de buena fe (ACEPTADO en la ronda 3 de #328): quien parta el texto adrede se
+// lo salta; la barrera de fondo es que la integración de la CLI de 1Password esté apagada fuera de
+// las operaciones de Pablo.
+
+// El ejecutable `op`, con o sin ruta y `.exe`, y con o sin comillas.
+const OP_EXE = String.raw`(?:"[^"]*[\\/]op(?:\.exe)?"|'[^']*[\\/]op(?:\.exe)?'|["']?(?:[^\s"']*[\\/])?op(?:\.exe)?["']?)(?=\s|$)`;
+const OP_AL_PRINCIPIO = new RegExp(String.raw`^(?:\w+=\S*\s+)*(?:env\s+(?:-\S+\s+|\w+=\S*\s+)*)?(?:&\s*|call\s+)?` + OP_EXE, "i");
+const OP_ANIDADO = new RegExp(String.raw`(?:\$\(|\x60|!)\s*` + OP_EXE, "i");
+const OP_EN_SHELL = new RegExp(String.raw`\b(?:bash|sh|zsh|cmd|powershell|pwsh)(?:\.exe)?\b.*(?:\s-c|\s/c|\s-command)\b.*[\s"'&;]` + OP_EXE, "i");
+// `op` suelto seguido de un subcomando de la CLI: `timeout 10 op vault list`, `if op whoami`,
+// `node -e "…execSync('op read …')"`, `Start-Process op …`, `(op whoami)`… Un `npm run op -- read`
+// no casa: tras `op` va `--`, no un subcomando.
+const OP_SUELTO = /(?:^|[\s(;{&|"'\x60])op(?:\.exe)?\s+(?:read|run|inject|item|vault|whoami|signin|account|service-account|document|user|group|connect|plugin|ssh)\b/i;
+
+/** Separa `a && b; c | d` para mirar cada orden por su cuenta (como la guardia grande, sin quitar textos). */
+const ordenesOp = (cmd) => String(cmd).split(/&&|\|\||;|\n|\|/).map((s) => s.trim()).filter(Boolean);
+
+/**
+ * #328: ¿esta orden lanza `op` por la app o nombra lo que es solo de Pablo? Por orden: un commit,
+ * un grep o un comentario de gh que lo nombran no cuentan, salvo que lleven `$(`, comillas
+ * invertidas o `alias`.
+ */
+export function opDeSesion(o) {
+  if (/^(git|gh|grep|rg)\b/.test(o) && !/\$\(|\x60|\balias[.\s]/.test(o)) return false;
+  return OP_AL_PRINCIPIO.test(o) || OP_ANIDADO.test(o) || OP_EN_SHELL.test(o) || OP_SUELTO.test(o)
+    || /\b(MENUPLAN_OP_PABLO|OP_SIN_SERVICIO|OP_SERVICE_ACCOUNT_TOKEN)\b/.test(o)
+    || /op:\/\/[\s"']*homenu(?![-\w])/i.test(o)
+    || /--vault[=\s]+["']?homenu(?![-\w])/i.test(o)
+    || /op:\/\/["']?[a-z0-9]{26}\b/i.test(o)
+    || /--vault[=\s]+["']?[a-z0-9]{26}\b/i.test(o)
+    || /\bitem\s+(?:get|edit|share|delete)\s+["']?[a-z0-9]{26}\b/i.test(o);
 }
 
 /**
@@ -253,7 +298,8 @@ export function credencialDeSesion(orden, opc = {}) {
   }
   if (soloTexto) return null;
 
-  if (opc.powershell && !envuelta && sinEnvoltorioEnPowerShell(o)) return "powershell";
+  // También sobre el texto crudo: `normalizar` une `CLI\gh.exe` en `CLIgh.exe` y la ruta entre comillas se perdería.
+  if (opc.powershell && !envuelta && (sinEnvoltorioEnPowerShell(o) || sinEnvoltorioEnPowerShell(crudo.trim()))) return "powershell";
   if (QUITA_TOKEN.some((re) => re.test(o))) return "token";
   if (TOCA_IDENTIDAD_GIT.some((re) => re.test(o))) return "identidad";
   if (CREDENCIALES_GUARDADAS.some((re) => re.test(o))) return "guardadas";
@@ -395,11 +441,14 @@ export function credencialDeComando(cmd, { powershell = false } = {}) {
     const familia = credencialDeSesion(t.texto, { powershell, tuberia: t.tuberia, siguiente: t.siguiente });
     if (familia) return familia;
   }
+  // #328: como la regla op-de-pablo de la guardia grande, sobre la orden entera partida por órdenes.
+  // Atajo: toda rama de `opDeSesion` necesita «op», «--vault» o «item»; sin ninguno no se parte la orden.
+  if (/op|--vault|\bitem\s/i.test(cmd) && ordenesOp(cmd).some(opDeSesion)) return "op";
   return null;
 }
 
 /**
- * Los avisos, en llano y con el remedio, uno por familia de `credencialDeSesion` (las siete).
+ * Los avisos, en llano y con el remedio, uno por familia de `credencialDeComando` (las siete de `credencialDeSesion` y `op`).
  * Hasta #878 salían de avisos-guardia.mjs (cuatro partes fijas, #494); al desconectar la guardia
  * grande se copian aquí, con las mismas partes (qué, por qué, en su lugar y a quién pedírselo),
  * para que este fichero no importe nada.
@@ -413,4 +462,5 @@ export const AVISOS_CREDENCIALES = Object.freeze({
   aprobar: "Aprobar un PR desde una sesión. Por qué: aprobar un PR no es cometido de una sesión (#447, #608). En su lugar: deja el PR listo con el CI en verde. Pídeselo a: el juez revisor y el CI; Pablo solo fusiona a main.",
   imprimir: "Imprimir el token de la sesión, usarlo como argumento o nombrar la ruta de su caché o de session-env (también el directorio o con comodín). Por qué: lo dejaría en la conversación o en un texto público (#447, #715). En su lugar: para comprobar que existe, usa `node scripts/token-sesion.mjs --comprobar`, que dice si vale sin enseñarlo.",
   powershell: "Lanzar gh o git (push, pull, fetch, clone) desde PowerShell sin envoltorio. Por qué: en PowerShell la sesión no lleva el token de la App: gh y git irían con las credenciales de Pablo (#447). En su lugar: usa Bash, o envuélvelo: `node scripts/token-sesion.mjs -- <comando>`.",
+  op: "Leer 1Password fuera de `npm run op -- …`, o tocar lo que es de Pablo. Por qué: las sesiones leen solo con la cuenta de servicio de `HoMenu-sesiones`, y `op` a pelo, sin token, iría por la app y le sacaría una ventana a Pablo (#328). En su lugar: usa siempre `npm run op -- …`, sin `MENUPLAN_OP_PABLO`, sin tocar `OP_SERVICE_ACCOUNT_TOKEN` y sin `op://HoMenu`; si solo es texto de un commit, PR o issue, pásalo por fichero (`git commit -F`, `--body-file`). Pídeselo a: Pablo, desde su propia terminal, si hace falta algo de producción.",
 });

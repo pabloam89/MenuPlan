@@ -22,7 +22,8 @@ Las reglas de estructura de las tablas están en `docs/datos/PRINCIPIOS.md`
    Hasta E5 (#331) lo lanza **Pablo**, desde una PowerShell aparte con
    `$env:MENUPLAN_OP_PABLO="1"`, por la misma razón que el ensayo. Si además
    trae `CONTRAE` o toca RLS o permisos de lo que ya existía, añade `--pablo`
-   (la guardia se lo niega a las sesiones). Un caso no cuenta como permisos
+   (una sesión no puede: no tiene la URL de administrador, y la guardia
+   mínima le niega `MENUPLAN_OP_PABLO` y `op` fuera de `npm run op`). Un caso no cuenta como permisos
    de lo que ya existía (#440): quitar a `anon` la plantilla de tablas y
    secuencias nuevas, con `alter default privileges for role postgres in
    schema public revoke … on tables|sequences from anon` y nada más
@@ -34,7 +35,9 @@ Las reglas de estructura de las tablas están en `docs/datos/PRINCIPIOS.md`
 
 Además:
 
-- Una migración aplicada **no se edita nunca**: se escribe otra.
+- Una migración aplicada **no se edita nunca**: se escribe otra. Lo vigila el
+  CI del PR (paso «Migraciones del PR», `scripts/migraciones-pr.mjs`), que
+  también falla si una nueva repite el número de otro PR abierto.
 - **El código no puede depender de que la migración ya esté**: la rama se
   despliega antes de aplicarla. Plan B siempre.
 - Todo `when others` lleva un `raise` de nivel warning o superior (o que
