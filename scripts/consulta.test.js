@@ -60,19 +60,12 @@ describe("npm run consulta solo lee", () => {
     expect(fuente).toMatch(/client\.query\(\{ text: sql, values: \[\] \}\)/);
   });
 
-  it("los permisos dejan lanzarla sin preguntar, y la autorización está escrita", () => {
+  it("los permisos dejan lanzarla sin preguntar, y entra por el rol de solo lectura", () => {
     const settings = JSON.parse(readFileSync(new URL("../.claude/settings.json", import.meta.url), "utf8"));
     expect(settings.permissions.allow).toContain("Bash(npm run *)");
-    // La autorización vive en su norma (ops/normas.json, `rol-solo-lectura`, cumplida por
-    // scripts/lib/rolLectura.mjs) y en el runbook de la base; CLAUDE.md solo apunta y nada
-    // le obliga a copiarla (#690, D3).
-    const normas = JSON.parse(readFileSync(new URL("../ops/normas.json", import.meta.url), "utf8")).normas;
-    const norma = normas.find((n) => n.id === "rol-solo-lectura");
-    expect(norma, "ops/normas.json: rol-solo-lectura").toBeTruthy();
-    expect(norma.donde).toContain("scripts/lib/rolLectura.mjs");
+    // Lo que la hace segura sin preguntar: entra con el rol de solo lectura (lib/rolLectura.mjs).
+    // La norma y el runbook que lo decían se fueron con la Factoría antigua (#878).
     expect(readFileSync(new URL("./consulta.mjs", import.meta.url), "utf8")).toMatch(/from "\.\/lib\/rolLectura\.mjs"/);
-    const skill = readFileSync(new URL("../.claude/skills/supabase/SKILL.md", import.meta.url), "utf8");
-    expect(skill).toMatch(/`npm run consulta` entra con `SUPABASE_DB_URL_LECTURA`/);
   });
 });
 

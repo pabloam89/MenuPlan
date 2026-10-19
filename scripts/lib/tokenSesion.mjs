@@ -15,7 +15,6 @@
  * Cómo se usa y qué pasa a ser de Pablo: skills `github` y `1password`.
  */
 import { execFile } from "node:child_process";
-import { execFileGh } from "./cuotaGh.mjs";
 import * as fsReal from "node:fs";
 import { appendFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -446,7 +445,7 @@ export function avisoDeIdentidad({ identidad, token, motivo = "-", advertencias 
 /** `gh api user` con el entorno dado; devuelve { status, stdout, stderr }. */
 export function ghApiUser(env) {
   return new Promise((ok) => {
-    execFileGh("token-sesion", ["api", "user", "--jq", ".login"], { windowsHide: true, env, encoding: "utf8", timeout: 8000 }, (error, stdout, stderr) => ok({ status: error ? (error.code ?? 1) : 0, stdout, stderr }));
+    execFile("gh", ["api", "user", "--jq", ".login"], { windowsHide: true, env, encoding: "utf8", timeout: 8000 }, (error, stdout, stderr) => ok({ status: error ? (error.code ?? 1) : 0, stdout, stderr }));
   });
 }
 

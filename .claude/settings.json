@@ -1,6 +1,5 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "agent": "orquestador",
   "permissions": {
     "allow": [
       "Bash(git status *)",
@@ -57,60 +56,15 @@
     "SessionStart": [
       {
         "hooks": [
-          { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/arranque.mjs\"", "timeout": 30 }
-        ]
-      }
-    ],
-    "SessionEnd": [
-      {
-        "hooks": [
-          { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/fin.mjs\"", "timeout": 10 },
-          { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/intervenciones.mjs\"", "timeout": 10 }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write|MultiEdit|NotebookEdit",
-        "hooks": [
-          { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/avisos.mjs\"", "timeout": 20 }
-        ]
-      },
-      {
-        "matcher": "Bash|PowerShell|Read|Grep|Glob|Agent|Skill",
-        "hooks": [
-          { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/buscar-antes.mjs\"", "timeout": 10 }
-        ]
-      }
-    ],
-    "PostToolUseFailure": [
-      {
-        "matcher": "Bash|PowerShell|Read|Grep|Glob|Agent|Skill",
-        "hooks": [
-          { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/buscar-antes.mjs\"", "timeout": 10 }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/pendientes.mjs\"", "timeout": 10 },
-          { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/voz.mjs\"", "timeout": 10 },
-          { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/intervenciones.mjs\"", "timeout": 10 }
+          { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/identidad.mjs\"", "timeout": 30 }
         ]
       }
     ],
     "PreToolUse": [
       {
-        "matcher": "Bash|PowerShell|Edit|Write|MultiEdit|NotebookEdit",
+        "matcher": "Bash|PowerShell",
         "hooks": [
-          { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/guardia.mjs\"", "timeout": 20 }
-        ]
-      },
-      {
-        "matcher": "Skill|Read",
-        "hooks": [
-          { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/skill-abierta.mjs\"", "timeout": 10 }
+          { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/guardia-minima.mjs\"", "timeout": 20 }
         ]
       }
     ]

@@ -10,7 +10,7 @@ name: Tests
 on:
   pull_request:
     branches: [staging, main]
-    # edited: editar el cuerpo del PR (la línea «Runbook:») vuelve a lanzarlo.
+    # edited: editar el cuerpo del PR (la línea «Jueces:») vuelve a lanzarlo.
     types: [opened, synchronize, reopened, edited]
   push:
     branches: [staging]
@@ -18,8 +18,8 @@ on:
 
 permissions:
   contents: read
-  # Leer los issues que cita la línea «Casos:» del PR (scripts/casos-pr.mjs).
-  issues: read
+  # Listar los PR abiertos y sus ficheros (scripts/migraciones-pr.mjs): solo lectura.
+  pull-requests: read
 
 concurrency:
   group: tests-${{ github.ref }}
@@ -33,134 +33,12 @@ jobs:
       - uses: actions/checkout@v7
         with:
           # Dos commits: en un PR, HEAD es la fusión con la base y HEAD^1 la base;
-          # su diferencia son los ficheros del PR (para el paso del runbook).
+          # su diferencia son los ficheros del PR (para los dos pasos del final).
           fetch-depth: 2
-      # El trinquete de ops/forja.test.js compara con origin/staging (#458): un
-      # criterio no puede bajar de capa ni desaparecer de los dos ficheros a la
-      # vez. Con fetch-depth 2 esa referencia no existe y el test se saltaría.
-      - name: Traer staging para los trinquetes
-        run: git fetch --no-tags --depth=1 origin +refs/heads/staging:refs/remotes/origin/staging
       - uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: npm
-      # Cada PR que toca un dominio con skill (supabase, github, vercel,
-      # 1password, telegram…) dice en su cuerpo «Runbook: actualizado (skill X)»
-      # o «Runbook: sin novedades». La lógica está en scripts/runbook-pr.mjs y
-      # el mapa de dominios en .claude/dominios-skills.json; aquí solo se
-      # alimenta. Va dentro del job `tests` porque es el único check obligatorio
-      # en main. Solo en pull_request: el push a staging (cron de Mercadona) y
-      # el lanzamiento a mano no tienen cuerpo de PR. Dependabot y los bots
-      # quedan exentos dentro del script. Va antes de npm ci: no necesita nada.
-      - name: Runbook del PR
-        if: github.event_name == 'pull_request'
-        run: |
-          # Si no se puede listar, el paso no bloquea (lista vacía): un check
-          # obligatorio que falla por la infraestructura bloquearía todos los PR.
-          # core.quotePath=false: sin él git escapa los acentos y las eñes
-          # (entre comillas y en octal) y la ruta se escapa del mapa de dominios.
-          git -c core.quotePath=false diff --name-only HEAD^1 HEAD > "$RUNNER_TEMP/ficheros-del-pr.txt" || {
-            echo "::warning::No he podido listar los ficheros del PR; no se comprueba el runbook."
-            : > "$RUNNER_TEMP/ficheros-del-pr.txt"
-          }
-          node scripts/runbook-pr.mjs "$RUNNER_TEMP/ficheros-del-pr.txt"
-        env:
-          # Por entorno y nunca interpolado en el script: el cuerpo lo escribe
-          # cualquiera y se ejecutaría como shell.
-          PR_BODY: ${{ github.event.pull_request.body }}
-          PR_AUTOR: ${{ github.event.pull_request.user.login }}
-          PR_RAMA: ${{ github.event.pull_request.head.ref }}
-      # Si el PR toca una skill (.claude/skills/<s>/) cuya fecha de comprobado
-      # pasa de 90 días, falla: quien la toca la vuelve a comprobar (#336). No
-      # va en npm test porque el reloj pondría en rojo todos los PR, también los
-      # que no tocan ninguna skill. Usa la lista del paso anterior; sin npm ci.
-      - name: Skills del PR
-        if: github.event_name == 'pull_request'
-        run: node scripts/skills-pr.mjs "$RUNNER_TEMP/ficheros-del-pr.txt"
-      # Si el PR toca una skill, su higiene (faltas = falla: lo que el nivel 1 negaría
-      # sin su lista de excepciones, más rutas y comandos muertos) y el ensayo
-      # GRATIS de su nivel 2 (valida los casos; no llama a ningún modelo: el de pago
-      # lo lanza una persona). Mismo script que el informe semanal (#341). Usa la
-      # lista del paso del runbook; sin npm ci.
-      - name: Higiene de las skills del PR
-        if: github.event_name == 'pull_request'
-        run: node scripts/cumplimiento.mjs --skills-pr "$RUNNER_TEMP/ficheros-del-pr.txt"
-      # Cada PR dice qué casos deja registrados (`Casos: #n, #m`) o por qué no hay
-      # (`Casos: ninguno — <motivo>`), y cada #n tiene que ser un issue tipo:caso
-      # con su analisis: (#185, «Cuando algo falla» de CLAUDE.md). Si la API de
-      # GitHub no responde, falla con la causa: relanza el check. Sin npm ci:
-      # no necesita dependencias.
-      - name: Casos del PR
-        if: github.event_name == 'pull_request'
-        run: node scripts/casos-pr.mjs
-        env:
-          PR_BODY: ${{ github.event.pull_request.body }}
-          PR_AUTOR: ${{ github.event.pull_request.user.login }}
-          GITHUB_TOKEN: ${{ github.token }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-      # El PR y su problema de fondo (#337): lleva «Agente: <nombre>»; si la rama
-      # es de un issue, su «Closes #n»; y cada issue que cierra es de verdad: un
-      # encargo cuyo fondo tiene diagnóstico (mecanismo y causa de escape), o un
-      # fondo con aprendizaje. Mismo patrón que «Casos del PR»: si la API no
-      # responde, falla con la causa (relanza el check); los bots, exentos.
-      # Además mira que cada norma sin ejecutor cuelgue de un encargo o una decisión abiertos
-      # (#620): falla solo el PR que toca ops/normas.json o cierra ese issue; para los demás
-      # sale un aviso (`fondos-pr: regla=normas-sin-ejecutor resultado=warning`).
-      - name: Fondos del PR
-        if: github.event_name == 'pull_request'
-        run: node scripts/fondos-pr.mjs
-        env:
-          PR_BODY: ${{ github.event.pull_request.body }}
-          PR_AUTOR: ${{ github.event.pull_request.user.login }}
-          PR_RAMA: ${{ github.event.pull_request.head.ref }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          GITHUB_TOKEN: ${{ github.token }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-      # Las frases normativas nuevas (#296): cada «nunca», «siempre», «tope»…
-      # que el PR AÑADE en CLAUDE.md, .claude/, PRINCIPIOS u ops/*.md cita su
-      # norma (<!-- norma:<id> -->) o el cuerpo dice «Normas: sin novedades —
-      # <motivo>». Solo lo añadido: borrar o renombrar no cuenta. La lógica,
-      # en scripts/normas-pr.mjs; los bots, exentos dentro.
-      - name: Normas del PR
-        if: github.event_name == 'pull_request'
-        run: |
-          git -c core.quotePath=false diff -U0 HEAD^1 HEAD > "$RUNNER_TEMP/diff-del-pr.txt" || {
-            echo "::warning::No he podido sacar el diff del PR; no se comprueban las normas."
-            : > "$RUNNER_TEMP/diff-del-pr.txt"
-          }
-          node scripts/normas-pr.mjs "$RUNNER_TEMP/diff-del-pr.txt"
-        env:
-          PR_BODY: ${{ github.event.pull_request.body }}
-          PR_AUTOR: ${{ github.event.pull_request.user.login }}
-      # Tres avisos, SOLO AVISOS (#576; nunca fallan el job: romperían los PR de las demás
-      # sesiones): C8 tests relajados (aserciones quitadas, .skip/.only/.todo, un umbral que sube),
-      # C1 PR demasiado grande (líneas, ficheros o áreas, sin contar lo generado) y C12 un PR que
-      # cierra un fondo sin tocar un test, la guardia ni una skill. Cada uno deja la línea de su norma,
-      # `norma: <id> resultado: ok|warning|exempt|declared|unchecked pr: <n> detalle: …` (#621; sustituye a la
-      # `avisos-pr: regla=…` de antes y es la misma de «Fondos del PR»), que se cuenta con
-      # `gh run view <run> --log > f.txt` y `npm run normas -- --medir --log f.txt` (la unidad es el run de un
-      # PR; el lector cuenta una vez por PR, norma y resultado).
-      # La excepción se declara en el cuerpo del PR con UNA forma (#621):
-      # «Excepción: <id de norma> — <motivo> — hasta AAAA-MM-DD» (las de antes, «Tests relajados: sí — …»,
-      # «Tamaño: grande — …» y «Aprendizaje: …», valen con aviso hasta el 2026-11-15). Una excepción
-      # vencida o de una norma que no existe no cuenta; este paso solo FALLA si es de una norma dura que
-      # el PR toca. De aviso a fallo (las tres reglas): cuando una lleve 30 PR seguidos con menos del 10 % de avisos
-      # falsos (los que acaban en la línea de excepción por un motivo trivial), su
-      # `resultado: warning` pasa a salir con código 1 en scripts/avisos-pr.mjs (detalle en la
-      # cabecera de scripts/lib/avisosPr.mjs). Usa el diff del paso anterior; sin npm ci. El
-      # cuerpo va por entorno, nunca en el script. La API solo se lee para saber si un `Closes`
-      # es un fondo: si no responde, C12 sale `unchecked` y no avisa.
-      - name: Avisos del PR
-        if: github.event_name == 'pull_request'
-        run: |
-          [ -s "$RUNNER_TEMP/diff-del-pr.txt" ] || git -c core.quotePath=false diff -U0 HEAD^1 HEAD > "$RUNNER_TEMP/diff-del-pr.txt" || rm -f "$RUNNER_TEMP/diff-del-pr.txt"
-          node scripts/avisos-pr.mjs "$RUNNER_TEMP/diff-del-pr.txt"
-        env:
-          PR_BODY: ${{ github.event.pull_request.body }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          PR_AUTOR: ${{ github.event.pull_request.user.login }}
-          GITHUB_TOKEN: ${{ github.token }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
       - run: npm ci
       # Falla solo con errores de lint NUEVOS respecto a lint-base.json (ver
       # scripts/lint-base.mjs); los viejos se arreglan cuando se toca el fichero.
@@ -172,3 +50,33 @@ jobs:
           TZ: Europe/Madrid
       - name: Build
         run: npm run build
+      # Las dos protecciones que daba la guardia de las sesiones hasta #878. Van al final,
+      # dentro de este job (el único check obligatorio), para que se vea antes si los tests
+      # y la build pasan. Solo en pull_request: el push a staging no tiene PR.
+      #
+      # 1. Migraciones (scripts/migraciones-pr.mjs): una aplicada no se toca, y ninguna nueva
+      #    usa el número que ya lleva otro PR abierto a la misma base.
+      - name: Migraciones del PR
+        if: github.event_name == 'pull_request'
+        run: |
+          # core.quotePath=false: sin él git escapa los acentos y la ruta no casa.
+          git -c core.quotePath=false diff --name-status -M HEAD^1 HEAD > "$RUNNER_TEMP/estado-del-pr.txt"
+          # El ESTADO.md de la base, no el del PR: un PR no puede darse permiso a sí mismo.
+          git show HEAD^1:supabase/ESTADO.md > "$RUNNER_TEMP/estado-base.md" || : > "$RUNNER_TEMP/estado-base.md"
+          node scripts/migraciones-pr.mjs "$RUNNER_TEMP/estado-del-pr.txt" "$RUNNER_TEMP/estado-base.md"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_BASE: ${{ github.event.pull_request.base.ref }}
+      # 2. Workflows (scripts/workflows-pr.mjs): si el PR toca .github/workflows/, su cuerpo
+      #    lleva «Jueces: …, seguridad» (sustituye a la regla workflow-sin-seguridad, #821).
+      #    El cuerpo va por entorno y nunca interpolado en el script: lo escribe cualquiera.
+      - name: Juez de seguridad si cambia un workflow
+        if: github.event_name == 'pull_request'
+        run: |
+          git -c core.quotePath=false diff --name-only HEAD^1 HEAD > "$RUNNER_TEMP/ficheros-del-pr.txt"
+          node scripts/workflows-pr.mjs "$RUNNER_TEMP/ficheros-del-pr.txt"
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_AUTOR: ${{ github.event.pull_request.user.login }}
