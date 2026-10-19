@@ -14,16 +14,25 @@
  * sobre un PR a main iría como administrador y el ruleset la dejaría. La familia `powershell` lo
  * frena. Es un filtro de buena fe: la barrera de fondo es el `gh auth logout` de Pablo.
  *
+ * Además (fueraDelRepo.mjs, 19 oct 2026): no escribir fuera de C:\dev\MenuPlan y C:\dev\MenuPlan-*,
+ * con Bash, PowerShell, Edit, Write o NotebookEdit.
+ *
  * Sin entrada legible no puede mirar: pregunta (ni deja pasar en silencio ni niega).
  */
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
 import { AVISOS_CREDENCIALES, credencialDeComando } from "./credenciales.mjs";
+import { AVISO_FUERA, fueraDelRepo, hermanasDeDisco } from "./fueraDelRepo.mjs";
 
-/** Pura: { decision: "deny", motivo, familia } o null. */
-export function decidir(entrada) {
+/**
+ * Pura salvo `hermanas` (por defecto, las entradas de C:\dev que no son de MenuPlan):
+ * { decision: "deny", motivo, familia } o null.
+ */
+export function decidir(entrada, { hermanas } = {}) {
   const herramienta = entrada?.tool_name;
+  const ajena = fueraDelRepo(entrada, { hermanas: hermanas ?? hermanasDeDisco() });
+  if (ajena) return { decision: "deny", motivo: AVISO_FUERA(ajena), familia: "fuera-del-repo" };
   if (herramienta !== "Bash" && herramienta !== "PowerShell") return null;
   const cmd = String(entrada?.tool_input?.command ?? "");
   const familia = credencialDeComando(cmd, { powershell: herramienta === "PowerShell" });
