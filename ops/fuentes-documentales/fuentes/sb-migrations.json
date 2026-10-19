@@ -1,9 +1,0 @@
-{
-  "id": "sb-migrations",
-  "nombre": "Supabase: Database Migrations",
-  "tipo": "externa",
-  "url": "https://supabase.com/docs/guides/deployment/database-migrations",
-  "fecha_alta": "2026-10-13",
-  "revisada": "no",
-  "fecha_revision": null
-}

@@ -1,9 +1,0 @@
-{
-  "id": "pg-set-transaction",
-  "nombre": "PostgreSQL: SET TRANSACTION (READ ONLY)",
-  "tipo": "externa",
-  "url": "https://www.postgresql.org/docs/current/sql-set-transaction.html",
-  "fecha_alta": "2026-10-13",
-  "revisada": "no",
-  "fecha_revision": null
-}
