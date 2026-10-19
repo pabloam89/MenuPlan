@@ -14,7 +14,8 @@ import { medianaMs, topeMs } from "../../scripts/lib/medirTiempo.mjs";
  */
 const FAMILIAS = ["token", "identidad", "guardadas", "reglas", "aprobar", "imprimir", "powershell", "op"];
 // La firma de antes (entrada, ctx): el contexto ya no hace falta, pero así los casos no cambian.
-const decidir = (entrada) => decidirMinima(entrada);
+// En el PC de Pablo, donde se aplican todas las familias (la `powershell` solo ahí, 19 oct 2026).
+const decidir = (entrada) => decidirMinima(entrada, { pcDePablo: true });
 const ctx = () => ({});
 const bash = (command) => decidir({ tool_name: "Bash", tool_input: { command } })?.decision ?? null;
 const HOOK = fileURLToPath(new URL("./guardia-minima.mjs", import.meta.url));
@@ -55,9 +56,10 @@ describe("guardia-minima: lo que queda de la guardia (#878)", () => {
 
   it("como hook: niega con el formato de PreToolUse, calla si no hay nada y pregunta si no lee la entrada", () => {
     const corre = (entrada) => spawnSync(process.execPath, [HOOK], { input: entrada, encoding: "utf8", windowsHide: true });
-    const niega = corre(JSON.stringify({ tool_name: "PowerShell", tool_input: { command: "gh pr merge 12" } }));
+    // Una familia que no depende del PC (la `powershell` solo se aplica en el de Pablo, y el CI no lo es).
+    const niega = corre(JSON.stringify({ tool_name: "Bash", tool_input: { command: "unset GH_TOKEN" } }));
     expect(niega.status).toBe(0);
-    expect(JSON.parse(niega.stdout)).toEqual(salida({ decision: "deny", motivo: AVISOS_CREDENCIALES.powershell }));
+    expect(JSON.parse(niega.stdout)).toEqual(salida({ decision: "deny", motivo: AVISOS_CREDENCIALES.token }));
     expect(JSON.parse(niega.stdout).hookSpecificOutput.permissionDecision).toBe("deny");
     const calla = corre(JSON.stringify({ tool_name: "Bash", tool_input: { command: "git status" } }));
     expect(calla.status).toBe(0);
