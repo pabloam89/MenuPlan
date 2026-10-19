@@ -34,12 +34,11 @@ Los comandos de este runbook son de **Git Bash** (en PowerShell 5.1,
   y con `token-sesion.mjs --sin-cache --comprobar`, que acaba en `workflows: concedido`).
   **El respaldo, si se le quita:** GitHub contesta **422** «The permissions requested are
   not granted to this installation» (visto en vivo el 15 oct 2026, antes de activarlo) y
-  el canje pide otra vez sin él: el token sale igual, y los cambios de workflows vuelven a
-  `ops/workflows-pendientes/`. Si la instalación ya dice que no lo tiene, el arranque pide
-  sin él a la primera. Lo cuenta la pieza `workflows:`
+  el canje pide otra vez sin él: el token sale igual, y los cambios de workflows vuelve a
+  empujarlos Pablo. Si la instalación ya dice que no lo tiene, el canje pide sin él a la
+  primera. Lo cuenta la pieza `workflows:`
   (`concedido`, `sin-conceder`, o `sin-saber` si el token salió de la caché) en
-  `token-sesion.mjs --comprobar`, en la línea `token-sesion workflows: …` del arranque
-  y en la de `token-sesiones.mjs` (`token-sesiones resultado: ok expira: … workflows: …`).
+  `token-sesion.mjs --comprobar`, y en la de `token-sesiones.mjs` (`token-sesiones resultado: ok expira: … workflows: …`).
 - **Lo que Pablo hizo en la web** el 15 oct 2026 (es un ajuste de GitHub y lo hace él;
   se repite igual si alguna vez hay que devolverlo): Settings →
   Developer settings → GitHub Apps → `homenu-sesiones` → **Permissions & events** →
@@ -185,9 +184,9 @@ guardia futura: el token solo debe capturarse con `$(…)`, y no imprimirse.
   `MERCADONA_DEPLOY_KEY`). Desde `staging` también se llega a escribir workflows (el
   token de la App de Dependabot lleva Workflows) y a producción (el `VERCEL_TOKEN` es de
   cuenta entera). Pablo lo acepta. Desde #608 no hay revisión de dueño de código ni
-  aprobación humana en ningún PR a `staging`: lo que lo frena es el juez `revisor` (de
-  proceso, GitHub no lo hace cumplir) y `tests`. Un check «Juez:» en el PR queda como
-  encargo (#612), contra el olvido y no contra el abuso.
+  aprobación humana en ningún PR a `staging`: lo que lo frena es que otro lo revise (de
+  proceso, GitHub no lo hace cumplir) y `tests`; si cambia un workflow, el CI pide
+  «Jueces: …, seguridad» en el cuerpo (#878), contra el olvido y no contra el abuso.
 - **Si se filtra el `.pem` o el token (revocación completa), en este orden:**
   1. App → **Private keys** → **Delete** **todas** las claves que pudieran estar
      expuestas (tras una rotación conviven dos): no basta borrar «la filtrada».
@@ -226,7 +225,7 @@ guardia futura: el token solo debe capturarse con `$(…)`, y no imprimirse.
 
 ## Cómo trabaja una sesión con la App (#329)
 
-El arranque canjea la clave (`scripts/lib/tokenSesion.mjs`, sobre `token-sesiones.mjs`) por un token de 1 hora
+Al abrir sesión, `.claude/hooks/identidad.mjs` canjea la clave (`scripts/lib/tokenSesion.mjs`, sobre `token-sesiones.mjs`) por un token de 1 hora
 en `CLAUDE_ENV_FILE`, que carga Bash: `GH_TOKEN`, un ayudante de `git push` y el autor `homenu-sesiones[bot]`.
 En PowerShell, `node scripts/token-sesion.mjs -- <comando>`, que sirve también con el token caducado
 (`-- gh …`, `-- git push`). Sin clave legible avisa (a los 13 s). Desde el 13 oct 2026 Pablo no tiene sesión de `gh` ni
@@ -248,7 +247,6 @@ mientras falten más de 15 minutos para que caduque (`scripts/lib/cacheTokenSesi
 | Dos arranques a la vez | bloqueo de creación exclusiva (`token-sesion.json.lock`, hasta 6 s y dentro del presupuesto de 13 s del arranque; uno huérfano de más de 20 s se quita) y escritura atómica (temporal y `rename`). Quien espera y no ve token no canjea en paralelo: motivo `bloqueo-ocupado` y plan B con AVISO; solo si el bloqueo no se puede crear (permisos) se canjea sin él |
 | Límite de 1Password | el motivo es `limite-de-1password` (no `sin-clave`) y no se prueba la otra bóveda. Si hay token guardado que aún no caducó, se usa con la advertencia `cache-casi-caducada`; si no, plan B (avisar y seguir como Pablo) |
 | Ver y forzar | `node scripts/token-sesion.mjs --comprobar` dice `cache: si` o `cache: no` sin imprimir el token; `--sin-cache` (antes de `--`) fuerza el canje |
-| Contable | la línea del arranque acaba en `cache: si` o `cache: no` |
 
 **Cortar a todas las sesiones de golpe** (token revocado o filtrado): revoca el token y borra `token-sesion.json`. Un token revocado se sigue sirviendo desde la caché hasta que caduca; `node scripts/token-sesion.mjs --sin-cache --comprobar` lo cambia por uno nuevo. Borrar el fichero solo cuesta un canje. La caché no recuerda las advertencias del canje
 (permisos de la App de más, clave en `HoMenu`); se ven al canjear o con `--sin-cache`.
@@ -262,21 +260,21 @@ arranque pone **delante en el PATH** `scripts/bin` (solo contiene `gh`, ejecutab
 
 | Qué | Cómo |
 |---|---|
-| Ruta del shim | sale de `import.meta.url` de `arranque.mjs`, nunca del cwd. Ojo: el hook corre desde `${CLAUDE_PROJECT_DIR}`, que es la carpeta de la tarea, así que una rama ajena traída ahí podría sustituir el shim. **Deuda:** sacar el shim a una copia fuera de la carpeta de la tarea es un encargo del fondo #715. Regex anclada; si no pasa, no se escribe la línea del PATH, se registra `entorno-sesion path: omitido motivo: ruta-de-shim-rara` y el resto se escribe igual |
-| Orden del arranque | (en la nube con su propio `GH_TOKEN` no se escribe el `GH_TOKEN` inválido de relleno: taparía el suyo) antes del canje: PATH, ayudante de git, autor y `GH_TOKEN='sin-token-de-sesion'` (inválido y nunca vacío: `gh` da 401 claro y no cae al llavero); después, si el canje llega, el `GH_TOKEN` real (un `export` posterior gana) |
+| Ruta del shim | sale de `import.meta.url` de `identidad.mjs`, nunca del cwd. Ojo: el hook corre desde `${CLAUDE_PROJECT_DIR}`, que es la carpeta de la tarea, así que una rama ajena traída ahí podría sustituir el shim. **Deuda:** sacar el shim a una copia fuera de la carpeta de la tarea es un encargo del fondo #715. Regex anclada; si no pasa, no se escribe la línea del PATH, se registra `entorno-sesion path: omitido motivo: ruta-de-shim-rara` y el resto se escribe igual |
+| Orden al abrir sesión | (en la nube con su propio `GH_TOKEN` no se escribe el `GH_TOKEN` inválido de relleno: taparía el suyo) antes del canje: PATH, ayudante de git, autor y `GH_TOKEN='sin-token-de-sesion'` (inválido y nunca vacío: `gh` da 401 claro y no cae al llavero); después, si el canje llega, el `GH_TOKEN` real (un `export` posterior gana) |
 | Ayudante de `git push` | `!f() { GH_TOKEN="${GH_TOKEN:-sin-token-de-sesion}" gh auth git-credential "$@"; }; f`: pasa por el shim y recibe un token fresco. `node scripts/token-sesion.mjs -- <comando>` conserva el suyo (su hijo lleva un token recién canjeado) |
 | Fallo | `gh-shim resultado: fallo motivo: <MOTIVOS>` por stderr, sin token; un éxito no escribe nada. Tope de 10 s; tras un canje fallido, 30 s sin reintentar (`fallo-reciente`, fichero `token-sesion.json.fallo.json` con solo instante y motivo) |
 | Se niega | el shim niega más formas de pedir el token o de cambiar la sesión (subcomandos de `auth`, `alias set/import`, `extension install`; código 2, sin lanzar `gh`); `auth git-credential` y lo demás pasan |
 | Argumentos | literales y sin shell (`spawnSync`, aprendizaje de #720); nunca un `gh.cmd` |
 | No cubre | un script de Node que llama a `execFile("gh")` sin shell (en Windows toma el `gh.exe` real, E3 #731), PowerShell, los hooks que lanza Claude Code y un comando de más de una hora. En Linux o en la nube un `execFile("gh")` SÍ resolvería al shim: `scripts/rulesets.mjs` (`gh auth token`, de Pablo) quedaría negado allí |
-| Un alias | el shim niega crear alias y extensiones dentro de la sesión; los que ya hubiera en la config del `gh` real no se miran (E4, #738, es la guardia) |
+| Un alias | el shim niega crear alias y extensiones dentro de la sesión; los que ya hubiera en la config del `gh` real no se miran (E4, #738) |
 
-## Lo que la guardia niega a una sesión (#447)
+## Lo que `guardia-minima.mjs` niega a una sesión (#447)
 
 Sin esto, la sesión volvería a ser administradora en cuanto quitara el token y
 `gh` y `git` tiraran de las credenciales de Pablo. La regla vive en
-`.claude/hooks/credenciales.mjs` y se llama desde `guardia.mjs`, con su test en
-`.claude/hooks/guardia.test.js`. Mira cada orden por separado (también dentro de
+`.claude/hooks/credenciales.mjs` y se llama desde `guardia-minima.mjs` (el único
+`PreToolUse` de Bash y PowerShell tras #878), con su test en `.claude/hooks/credenciales.test.js`. Mira cada orden por separado (también dentro de
 `bash -c`, un subshell, `&&`, `;` o una tubería) y no el texto de un commit, un
 cuerpo de PR o un heredoc que las nombre. Niega:
 
@@ -294,9 +292,9 @@ cuerpo de PR o un heredoc que las nombre. Niega:
 
 **PowerShell.** Esa herramienta no carga el token de la sesión (el archivo de entorno
 es de Bash), así que ahí `gh` y `git` de red irían con las credenciales de Pablo sin
-quitar nada. El payload del hook dice qué herramienta es y la guardia lo usa: en
+quitar nada. El payload del hook dice qué herramienta es y la regla lo usa: en
 PowerShell se pide Bash o el envoltorio. Las órdenes que lanzan `gh` por dentro
-(`npm run issues`, `npm run tarea`) no se pueden ver: usa Bash.
+(un script de `npm run`) no se pueden ver: usa Bash.
 
 Se mira cada orden por separado (también tras un `&` suelto) y se normalizan las
 comillas vacías, las barras y las continuaciones de línea. Una consulta de GraphQL
@@ -333,21 +331,9 @@ sus credenciales vuelven a estar ahí hasta que cierre otra vez.
 
 ## Lo que la sesión no debe poder hacer (#333)
 
-`npm run detector-identidades` prueba, con el token que de verdad tiene una sesión, lo que tiene que
-fallar: crear un ruleset, proteger `main` y escribir un secreto de Actions (cuerpo vacío: con el
-permiso, GitHub contestaría 422 y no cambiaría nada), ver las invitaciones del repo (solo lectura,
-mismo permiso de administración que invitar) y, con la cuenta de servicio, listar las bóvedas (debe
-ver solo `HoMenu-sesiones`). Antes lee el repo con ese token: si no da 200, no prueba nada.
-Cada sonda sale `bien` (un 403 «Resource not accessible by integration»), `mal` (2xx o 422) o
-`sin-comprobar` (sin red, 401, 404, límite de uso o error de GitHub: no cuenta como bien). Salida 0
-solo si todas dan `bien`; 1 si alguna da `mal` (es un caso y se cuelga del fondo #326); 2 si alguna
-quedó sin comprobar.
-
-Lo que NO prueba: que la App en GitHub no haya ganado permisos. El token de sesión va recortado a
-`PERMISOS`, así que dice «no» tenga la App lo que tenga; eso lo avisa el arranque con
-«permisos-de-mas». Es la primera mitad de E7: falta la parte de las reglas de E4 y el entorno de E5,
-y correrlo cada semana (el workflow semanal no lleva credenciales de sesión; hasta entonces las
-líneas del detector las lee quien lo corra).
+El detector que lo probaba con el token real de una sesión (`detector-identidades`) se
+fue con #878. A mano, con el token de la sesión, crear un ruleset o escribir un secreto de
+Actions debe dar 403 «Resource not accessible by integration».
 
 Fuentes: https://docs.github.com/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-json-web-token-jwt-for-a-github-app
 y https://docs.github.com/rest/apps/apps#create-an-installation-access-token-for-an-app

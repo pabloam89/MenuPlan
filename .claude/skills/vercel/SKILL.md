@@ -1,6 +1,6 @@
 ---
 name: vercel
-description: Úsala con un despliegue de Vercel — preview de un PR, staging o producción —, uno que sale Blocked, en rojo o no arranca, para leer logs, ver, bajar, listar o tocar las variables de entorno (también las de producción, que la guardia niega bajar), subir a Blob, o al preguntar por un cron, un dominio o qué hay desplegado. No para: el CI de GitHub (github), la base de datos (supabase) ni dar de alta o rotar una clave (alta-de-secreto).
+description: Úsala con un despliegue de Vercel — preview de un PR, staging o producción —, uno que sale Blocked, en rojo o no arranca, para leer logs, ver, bajar, listar o tocar las variables de entorno (también las de producción, que no se bajan), subir a Blob, o al preguntar por un cron, un dominio o qué hay desplegado. No para: el CI de GitHub (github), la base de datos (supabase) ni dar de alta o rotar una clave (alta-de-secreto).
 metadata:
   tipo: servicio
   opera_proveedor: true
@@ -9,9 +9,8 @@ metadata:
   pasos_fijos: false
   sintoma_a_causa: false
   elige_opciones: false
-  dueno: constructor
-  comprobado: "2026-10-08"
-  normas: [produccion-solo-desde-main, variables-production-solo-pablo, vuelta-atras-probada]
+  dueno: pablo
+  comprobado: "2026-10-19"
 ---
 
 # Vercel
@@ -58,9 +57,10 @@ Aquí no se repiten. Una sola rareza que conviene saber:
 El acceso a Vercel desde Claude es el conector de claude.ai (equipo y proyecto de
 arriba). La CLI `vercel` sí está instalada en el PC de Pablo (npm global), pero
 **sin sesión**: Pablo entra con `! npx vercel login` cuando la necesita y sale
-al terminar. La guardia niega a las sesiones bajar o listar las variables de
-Production (`vercel env pull|ls … production`, `vercel pull --environment=production`):
-llevan la clave de administrador de la base y el token del bot (#332).
+al terminar. Ninguna sesión baja ni lista las variables de Production
+(`vercel env pull|ls … production`, `vercel pull --environment=production`): llevan la
+clave de administrador de la base y el token del bot (#332). Desde #878 no lo niega
+ninguna guardia: la barrera es que la CLI no tiene sesión.
 
 ## Operaciones habituales
 
@@ -103,7 +103,7 @@ está vacío; lo hace Pablo, issue 589).
   una protección de Vercel: saldría `protegido`).
 - **2026-09-22 · staging roto por un build que en local pasaba.** Causa: se
   verificó con `vite build`, y el `prebuild` de Vercel cazó un `no-undef`.
-  Arreglo: la guardia niega `vite build` a secas.
+  Arreglo: se verifica con `npm run build` (con su `prebuild`), nunca con `vite build` a secas.
 - **2026-10-01 · los vectores no funcionan en una preview.** Causa: la clave del
   gateway no está en Preview (ver «Claves y accesos»); no es un fallo. Arreglo:
   ninguno; el buscador cae a rasgos + Haiku.
@@ -143,8 +143,7 @@ está vacío; lo hace Pablo, issue 589).
   quedó en el AppData de Windows (carpeta com.vercel.cli); cualquier sesión podía
   bajarse las variables de Production (lo vio el juez `seguridad`, #332).
   Arreglo: `vercel logout` el 10 oct (comprobado: el fichero de sesión ya no existe y
-  `whoami` da «Logged out») y la regla de la guardia que niega
-  `vercel env pull|ls … production`, con su test en `guardia.test.js`.
+  `whoami` da «Logged out»). La regla de la guardia que además lo negaba se fue con #878.
 
 ## Qué requiere el OK de Pablo
 

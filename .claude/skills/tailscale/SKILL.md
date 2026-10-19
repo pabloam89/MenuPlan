@@ -9,9 +9,8 @@ metadata:
   pasos_fijos: false
   sintoma_a_causa: false
   elige_opciones: false
-  dueno: constructor
-  comprobado: "2026-10-08"
-  normas: [ajustes-servicios-ok-pablo]
+  dueno: pablo
+  comprobado: "2026-10-19"
 ---
 
 # Tailscale
