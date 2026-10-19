@@ -10,9 +10,8 @@ metadata:
   sintoma_a_causa: false
   elige_opciones: false
   porque_tipo: "opera_proveedor es false: da de alta claves de GitHub, Vercel, Anthropic, Telegram o Supabase, así que no hay un proveedor único que operar; lo que la define son los pasos fijos con comprobación"
-  dueno: constructor
-  comprobado: 2026-10-10
-  normas: [secretos-ok-pablo, secretos-en-environments, secretos-de-repo, caducidad-token-vercel, caducidad-clave-anthropic-evals, recurso-con-dueno-y-caducidad]
+  dueno: pablo
+  comprobado: "2026-10-19"
 ---
 
 # Alta de un secreto
@@ -41,7 +40,7 @@ No es para:
 ## Método
 
 Cada paso, con lo que sale. Los comandos con «(Pablo)» los lanza él con `!`:
-crear, rotar o cambiar un secreto es siempre suyo. <!-- norma:secretos-ok-pablo -->
+crear, rotar o cambiar un secreto es siempre suyo.
 
 1. **Una clave, un uso.** Decide quién la usa (un workflow, el despliegue, un
    script del PC, el servidor) y no reutilices la de otro uso: si se filtra o
@@ -72,8 +71,8 @@ crear, rotar o cambiar un secreto es siempre suyo. <!-- norma:secretos-ok-pablo 
    salto de línea, y ni `gh secret set` ni `vercel env add` dicen en su ayuda
    que lo recorten: se recorta con `tr -d '\r\n'` en la tubería. Un documento
    de varias líneas (un `.pem`) no se recorta y va con `op document get`.
-   - **GitHub**: siempre en un **environment con política de ramas** (solo <!-- norma:secretos-en-environments -->
-     `staging`), nunca secreto de repo. <!-- norma:secretos-de-repo --> El environment se crea antes, a mano
+   - **GitHub**: siempre en un **environment con política de ramas** (solo
+     `staging`), nunca secreto de repo. El environment se crea antes, a mano
      (Pablo; si el workflow lo nombra sin existir, GitHub lo crea sin
      política: skill `github`). Luego
      `node scripts/op.mjs item get "<Ficha>" --vault HoMenu --fields label=<CAMPO> --reveal | tr -d '\r\n' | gh secret set <NOMBRE> --env <environment>`.
@@ -118,8 +117,8 @@ crear, rotar o cambiar un secreto es siempre suyo. <!-- norma:secretos-ok-pablo 
 | Servicio | Dónde | Ámbito | Caducidad |
 |---|---|---|---|
 | GitHub | primero el `GITHUB_TOKEN` del workflow con `permissions:` mínimos; si no basta, una GitHub App propia (como `homenu-dependabot-merge`) o un token *fine-grained* de un solo repo | solo `pabloam89/MenuPlan` y solo los permisos que pide la API | token: 90 días; clave de App y deploy key no caducan, se rotan (skill `github`) |
-| Vercel | Account Settings → Tokens | **«Full Account»** si lo usa la CLI (`vercel logs`, `vercel env`): con ámbito de equipo la CLI dice «User not found» (skill `vercel`) | 90 días, fecha en el inventario y rotación antes <!-- norma:caducidad-token-vercel --> |
-| Anthropic | Console → API keys, en el workspace del uso, con límite de gasto del workspace | no hay permisos por clave: el límite lo pone el workspace | la de las evals, al año <!-- norma:caducidad-clave-anthropic-evals --> (#297; sin comprobar en la consola); si la consola no deja ponerla, se dice en el inventario y se revisa cada 90 días |
+| Vercel | Account Settings → Tokens | **«Full Account»** si lo usa la CLI (`vercel logs`, `vercel env`): con ámbito de equipo la CLI dice «User not found» (skill `vercel`) | 90 días, fecha en el inventario y rotación antes |
+| Anthropic | Console → API keys, en el workspace del uso, con límite de gasto del workspace | no hay permisos por clave: el límite lo pone el workspace | la de las evals, al año (#297; sin comprobar en la consola); si la consola no deja ponerla, se dice en el inventario y se revisa cada 90 días |
 | Telegram | @BotFather: `/newbot` da el token; `/revoke` lo rota | el bot entero | no caduca |
 | Supabase | un rol propio con lo justo (`scripts/clave-*.mjs`); la clave de servicio salta la RLS y solo la usa el despliegue | `select` en lo que lee, nada más | la del rol se rota archivando la ficha y relanzando su script (skill `supabase`) |
 | Un secreto nuestro (`CANARIO_SECRET`, `BOT_CRON_SECRET`) | lo genera un script en memoria (`crypto.randomBytes(32)`) y lo pasa por stdin a la ficha | abre un solo endpoint | se rota si sale de su sitio |
@@ -128,8 +127,7 @@ crear, rotar o cambiar un secreto es siempre suyo. <!-- norma:secretos-ok-pablo 
 
 - **Abre las skills del camino**: `1password` (fichas, service account, la
   app de escritorio para escribir) y la del destino (`github`, `vercel`,
-  `hetzner`). La guardia pide abrirlas antes de `op item`, `gh secret`,
-  `vercel env` o `ssh` al panel.
+  `hetzner`).
 - **Mira si ya existe**: `ops/INVENTARIO.md` y
   `node scripts/op.mjs item list --vault HoMenu` (solo títulos). Si ya hay
   ficha para ese servicio y uso, es una rotación, no un alta.
@@ -161,8 +159,7 @@ crear, rotar o cambiar un secreto es siempre suyo. <!-- norma:secretos-ok-pablo 
 
 ### Lista de comprobación
 
-La cita `ops/mecanismos.json` (`entorno_aprobador` y `permisos_identidad`). Cada
-clave nueva o rotada, antes de dar el alta por hecha:
+Cada clave nueva o rotada, antes de dar el alta por hecha:
 
 - [ ] Un solo uso, y su ficha es de ese servicio y ese uso.
 - [ ] Nombre de ficha sin tildes ni signos; campo con el nombre de la variable.
@@ -178,8 +175,6 @@ clave nueva o rotada, antes de dar el alta por hecha:
 - [ ] Si es rotación: la vieja revocada después de comprobar la nueva.
 
 ## Qué requiere el OK de Pablo
-
-<!-- norma:secretos-ok-pablo -->
 
 - Crear, rotar, retirar o cambiar cualquier clave, ficha o variable de
   entorno, en el servicio, en 1Password, en GitHub, en Vercel o en el servidor.

@@ -29,13 +29,13 @@ esperando a Pablo, que no quiere ser el cuello de botella.
 
 - Lo que **hace cumplir GitHub**: `tests` en verde en `staging` y en `main`, y que a
   `main` solo fusione Pablo.
-- Lo que **es de proceso**: el juez `revisor` («quien construye no juzga») y el
-  `Runbook:`, `Casos:` y `Agente:` del PR, que comprueba el CI. Nada impide fusionar a
-  `staging` un cambio de `.claude/`, `.github/`, los hooks o un script con secretos sin
-  que lo haya mirado el juez. Un check «Juez:» en el cuerpo del PR (#612) queda como
-  encargo, no construido; sería contra el olvido, no contra el abuso (quien quiera
-  saltárselo escribe la línea sin haber pasado por el juez).
-- Una sesión con la App `homenu-sesiones` sigue sin poder aprobar un PR (la guardia lo
+- Lo que **es de proceso**: que otro revise el cambio («quien construye no juzga»).
+  Desde #878 el CI solo pide una línea en el PR: «Jueces: …, seguridad» si toca
+  `.github/workflows/` o los scripts de sus dos comprobaciones (`scripts/workflows-pr.mjs`),
+  y es de buena fe (quien quiera saltárselo escribe la línea sin haber pasado por el juez).
+  Nada impide fusionar a `staging` un cambio de `.claude/`, los hooks o un script con
+  secretos sin que lo haya mirado nadie.
+- Una sesión con la App `homenu-sesiones` sigue sin poder aprobar un PR (`guardia-minima.mjs` lo
   niega, #447) ni cambiar reglas del repo.
 
 ## Pasos de Pablo

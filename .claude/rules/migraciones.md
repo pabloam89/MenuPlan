@@ -9,21 +9,22 @@ Solo hay una base y es producción: cada migración es un cambio en producción.
 Las reglas de estructura de las tablas están en `docs/datos/PRINCIPIOS.md`
 (con test); esto es el procedimiento.
 
-1. **Número**: el «siguiente libre» que da el arranque de la sesión (cuenta
-   staging, los otros worktrees y los PR abiertos). Vuelve a mirarlo justo
-   antes del PR. `supabase/migrations.test.js` vigila los repetidos.
+1. **Número**: el siguiente al último de `origin/staging` (tras `git fetch`);
+   mira también los PR abiertos (`gh pr list`). El CI del PR falla si otro PR
+   abierto ya usa ese número, y `supabase/migrations.test.js` vigila los repetidos.
 2. **Ensayo**: `node scripts/apply-migration.mjs <nombre>` (hace ROLLBACK).
    Necesita la URL de administrador (`SUPABASE_DB_URL`), que las sesiones no
    tienen desde #328 (solo `SUPABASE_DB_URL_LECTURA`): hasta E5 (#331) lo
    lanza Pablo; la sesión le deja el comando listo.
-3. **Juez y aplicar**: el juez `auditor-datos` la revisa y su veredicto va a
-   la cabecera (`-- AUDITADA: auditor-datos AAAA-MM-DD OK`). Con eso, en
+3. **Revisión y aplicar**: la revisa alguien que no la escribió (modelo de
+   datos, duplicados y cableado) y su veredicto va a la cabecera, con la forma que
+   pide el script (`-- AUDITADA: auditor-datos AAAA-MM-DD OK`). Con eso, en
    staging y con un ensayo de menos de una hora, el script deja lanzar `--si`.
    Hasta E5 (#331) lo lanza **Pablo**, desde una PowerShell aparte con
    `$env:MENUPLAN_OP_PABLO="1"`, por la misma razón que el ensayo. Si además
    trae `CONTRAE` o toca RLS o permisos de lo que ya existía, añade `--pablo`
-   (una sesión no puede: no tiene la URL de administrador, y la guardia
-   mínima le niega `MENUPLAN_OP_PABLO` y `op` fuera de `npm run op`). Un caso no cuenta como permisos
+   (una sesión no puede: no tiene la URL de administrador, y
+   `guardia-minima.mjs` le niega `MENUPLAN_OP_PABLO` y `op` fuera de `npm run op`). Un caso no cuenta como permisos
    de lo que ya existía (#440): quitar a `anon` la plantilla de tablas y
    secuencias nuevas, con `alter default privileges for role postgres in
    schema public revoke … on tables|sequences from anon` y nada más
@@ -56,5 +57,5 @@ Además:
 - Dónde vive un dato: lo curado, en JSON en git; lo que escriben los usuarios,
   en SQL; los dos solo si uno se genera del otro.
 - Cambios de modelo: primero el modelo (entidades, `on delete`, ciclo de vida,
-  invariantes) y luego el código. Lo lleva el `constructor` y lo juzga `auditor-datos`.
+  invariantes) y luego el código; lo revisa alguien que no lo diseñó.
 - Una tabla, un módulo dueño: `node scripts/cableado.mjs` da el mapa.

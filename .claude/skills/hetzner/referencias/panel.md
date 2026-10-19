@@ -2,7 +2,9 @@
 
 Lo que corre en el servidor `HoMenu-Panel` desde el 10 oct 2026. El código vive en su
 propio repo privado, `pabloam89/homenu-panel` (en el PC, `C:\dev\homenu-panel`); MenuPlan
-solo lo nombra.
+solo lo nombra. Desde #878 (19 oct 2026) la Factoría vive en `factory-am89/fabrica`: lo que
+el panel leía de MenuPlan (glosario, estándares, agentes, fondos, `npm run fabrica`) ya no
+está aquí, y esta página describe el panel tal como estaba antes.
 
 ## Qué es y dónde
 

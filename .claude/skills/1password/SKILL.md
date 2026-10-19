@@ -9,9 +9,8 @@ metadata:
   pasos_fijos: false
   sintoma_a_causa: false
   elige_opciones: false
-  dueno: constructor
-  comprobado: "2026-10-11"
-  normas: [claves-de-pablo-solo-pablo, secretos-ok-pablo]
+  dueno: pablo
+  comprobado: "2026-10-19"
 ---
 
 # 1Password
@@ -33,8 +32,8 @@ metadata:
     service account no la ve.
   - **`Shared`** («Compartida»): de la familia, no del proyecto.
 - **`.env.local` guarda direcciones, no claves.** La plantilla es
-  `ops/env.1password`. `npm run tarea` copia el `.env.local` de la carpeta
-  principal, así que cada worktree hereda las direcciones.
+  `ops/env.1password`. Al abrir una carpeta de trabajo se copia el `.env.local` de la
+  carpeta principal (CLAUDE.md), así que cada worktree hereda las direcciones.
 - **Quién las resuelve**: `scripts/lib/env.mjs` (`leerEnv`, `cargarEnv`) en los
   scripts y `vite.config.js` en la app. En los tests no se resuelven: corren
   sin claves, como en el CI.
@@ -44,7 +43,7 @@ metadata:
   scripts, `MENUPLAN_OP_PABLO=1` hace que `env.mjs` y `npm run op` vayan por
   la app. **Sin token y sin esa variable, `env.mjs` falla cerrado** (#328): no
   cae solo a la app.
-- **La guardia** niega a las sesiones `MENUPLAN_OP_PABLO`, tocar
+- **`guardia-minima.mjs`** niega a las sesiones `MENUPLAN_OP_PABLO`, tocar
   `OP_SERVICE_ACCOUNT_TOKEN` (`env -u`, `unset`…) y cualquier dirección
   `op://HoMenu/` en una orden (#328). Pablo lo lanza con `!`, que no pasa por ella.
 - **Plan B entre bóvedas** (`env.mjs`, `enOtraBoveda`): una dirección de
@@ -119,7 +118,7 @@ conversación. Se pasa por tubería (stdin) entre dos procesos.
 ### Bóveda de sesiones (#328): pasos de Pablo, en orden
 
 Los pasos de Pablo, en orden (qué pasa por la app de escritorio y qué no, y qué
-hace la guardia), están en `.claude/skills/1password/referencias/boveda-sesiones.md`:
+niega `guardia-minima.mjs`), están en `.claude/skills/1password/referencias/boveda-sesiones.md`:
 ábrelo antes de crear la bóveda o la service account.
 
 ## Lo que falló y por qué

@@ -1,6 +1,6 @@
 ---
 name: github
-description: Úsala cuando el CI de GitHub esté en rojo, un workflow o un cron de Actions falle o no arranque, haya que mirar los checks o los logs de un PR, una carpeta de trabajo desaparezca sola, o se toque la protección de ramas, Dependabot, el secret scanning o los secretos de Actions, o las líneas del PR (`Closes`, `Runbook:`, `Casos:`). No para: issues, casos y problemas de fondo (issues), despliegues (vercel) ni migraciones (agente constructor).
+description: Úsala cuando el CI de GitHub esté en rojo, un workflow o un cron de Actions falle o no arranque, haya que mirar los checks o los logs de un PR, una carpeta de trabajo desaparezca sola, la identidad de las sesiones (la App `homenu-sesiones`), o se toque la protección de ramas, Dependabot, el secret scanning o los secretos de Actions. No para: despliegues (vercel) ni migraciones (regla migraciones).
 metadata:
   tipo: servicio
   opera_proveedor: true
@@ -9,9 +9,8 @@ metadata:
   pasos_fijos: false
   sintoma_a_causa: false
   elige_opciones: false
-  dueno: constructor
+  dueno: pablo
   comprobado: "2026-10-19"
-  normas: [main-solo-por-pr-con-tests, staging-exige-tests, sin-push-forzado, deploy-key-unica, secretos-de-repo, push-protection, pr-al-dia-y-closes, pr-agente-y-closes-en-ci, linea-runbook, sesion-con-su-identidad]
 ---
 
 # GitHub
@@ -32,7 +31,7 @@ metadata:
 
 | Workflow | Cuándo | Qué hace |
 |---|---|---|
-| `tests.yml` | PR a `staging` o `main` (también al editar su cuerpo), push a `staging`, a mano | lint con línea base, tests y build; y, solo en PR, dos pasos al final que sustituyen a reglas de la guardia (#878): «Migraciones del PR» (`scripts/migraciones-pr.mjs`: una migración aplicada según el `ESTADO.md` de la base no se toca, y una nueva no repite el número de otro PR abierto; lista los PR con el `GITHUB_TOKEN`, `pull-requests: read`) y «Juez de seguridad si cambia un workflow» (`scripts/workflows-pr.mjs`, solo en PR a `staging`: si el PR toca `.github/workflows/`, `scripts/workflows-pr.mjs` o `scripts/migraciones-pr.mjs`, el cuerpo lleva «Jueces: …, seguridad» y esa línea no dice «pendiente(s)», «falta(n)», «sin» ni «no»; Dependabot exento; de buena fe: el PR puede cambiar su propia comprobación, el arreglo es #881). Es el check `tests`. Las líneas «Runbook:», «Casos:», «Agente:» y «Closes» ya no las mira el CI (#878) |
+| `tests.yml` | PR a `staging` o `main` (también al editar su cuerpo), push a `staging`, a mano | lint con línea base, tests y build; y, solo en PR, dos pasos al final que sustituyen a reglas de la guardia (#878): «Migraciones del PR» (`scripts/migraciones-pr.mjs`: una migración aplicada según el `ESTADO.md` de la base no se toca, y una nueva no repite el número de otro PR abierto; lista los PR con el `GITHUB_TOKEN`, `pull-requests: read`) y «Juez de seguridad si cambia un workflow» (`scripts/workflows-pr.mjs`, solo en PR a `staging`: si el PR toca `.github/workflows/`, `scripts/workflows-pr.mjs` o `scripts/migraciones-pr.mjs`, el cuerpo lleva «Jueces: …, seguridad» y esa línea no dice «pendiente(s)», «falta(n)», «sin» ni «no»; Dependabot exento; de buena fe: el PR puede cambiar su propia comprobación, el arreglo es #881). Es el check `tests`. Ninguna otra línea del cuerpo del PR la mira el CI (#878) |
 | `mercadona-sync.yml` | lunes 06:15 UTC, a mano (con `probar_push`, un commit vacío si no hay precios nuevos) | precios de Mercadona; commitea y **empuja a `staging` con la deploy key** (sin el secreto, con el token). Ese push sí lanza `tests` |
 | `bot-semanal.yml` | lunes 06:40 UTC, a mano | informe semanal de Lola |
 | `vigia-lola.yml` | cada 15 min (`4,19,34,49`), a mano | el vigía de Lola (#267): fallos `bot_fallo` de los logs de Vercel, el canario y los avisos al grupo de Telegram «HoMenu avisos». Su estado va en la caché de Actions (`vigia-estado-*`); borrarla solo cuesta un aviso repetido. Sin `VERCEL_TOKEN` ni `CANARIO_SECRET` se salta. Sus secretos y variables, en el environment `vigia` (solo `staging`) |
@@ -44,18 +43,13 @@ metadata:
 - **Seguridad** (desde el 8 oct): secret scanning con push protection, alertas
   de Dependabot y PRs de seguridad automáticos. Versiones: `.github/dependabot.yml`, semanal, contra `staging`, tope de 3 PRs,
   cooldown de 5 días (no afecta a los de seguridad) y grupos `-menores`, `-mayores` y `npm-cero` (las 0.x directas: `CERO` del script; un PR suelto de una de ellas también espera) (#193).
-- **Carpetas de trabajo** (worktrees): `npm run tarea` las crea y `npm run
-  retirar` las cierra. Un hook personal de Pablo (`~/.claude/hooks/limpiar-worktrees.mjs`)
-  borra solo las que ve **fusionadas y limpias**, tras cada `gh pr merge` y al
-  abrir cualquier sesión. `--zona <fichero>` reserva lo que la tarea aún no ha
-  tocado (`branch.<rama>.zona` de git, se va con la rama) y la guardia avisa a
-  otra rama que lo edite (#506). El primer push de la rama es `git push -u
-  origin <rama>`: deja el upstream con su nombre, que es lo que mira el hook
-  de limpieza para saber que la rama se subió.
-- **Lo generado al traer staging** (#551): `tarea` instala dos drivers de fusión
-  (`generado` y `json-claves`); qué hacen, qué línea dejan y qué toca tras fusionar,
-  en `.claude/skills/github/referencias/generados.md`.
-- **Las skills, por obligación** (#164; mapa `.claude/dominios-skills.json`): la puerta de lectura de la guardia, lo que avisa de más y las líneas «Runbook:», «Casos:», «Closes #n» y «Agente:» del PR, en `.claude/skills/github/referencias/skills-por-obligacion.md`.
+- **Carpetas de trabajo** (worktrees): se abren a mano desde `origin/staging` con
+  `git worktree add -b <rama> C:/dev/MenuPlan-<tema> origin/staging`, se copia el
+  `.env.local` de la carpeta principal y `npm ci` (CLAUDE.md). Un hook personal de
+  Pablo (`~/.claude/hooks/limpiar-worktrees.mjs`) borra solo las que ve **subidas,
+  fusionadas y limpias**, tras cada `gh pr merge` y al abrir cualquier sesión. El
+  primer push de la rama es `git push -u origin <rama>`: deja el upstream con su
+  nombre, que es lo que mira el hook para saber que la rama se subió.
 
 ## Claves y accesos
 
@@ -63,11 +57,11 @@ Los secretos de Actions (`ANTHROPIC_API_KEY`, `OPS_DB_URL`, `CALLMEBOT_DESTINOS`
 los del vigía, los de iOS y la clave de la App `homenu-dependabot-merge`) y qué workflow usa cada uno están en `ops/INVENTARIO.md`, que es la tabla
 que manda. `tests.yml` no usa ninguno.
 
-**Identidad de las sesiones (#329).** El arranque canjea la clave de la App `homenu-sesiones` por un token de 1 hora (con «Workflows: escritura», activo en la App por #422 y #821; si se le quita, sale sin él: `workflows: sin-conceder`), guardado y reutilizado entre sesiones
-(Bash; en PowerShell, `node scripts/token-sesion.mjs -- <comando>`). La guardia niega quitar o vaciar el token, `git -c credential.…` y cambiar reglas del repo o aprobar PR (#447). El detalle, en `.claude/skills/github/referencias/app-sesiones.md`.
+**Identidad de las sesiones (#329).** Al abrir sesión, `.claude/hooks/identidad.mjs` canjea la clave de la App `homenu-sesiones` por un token de 1 hora (con «Workflows: escritura», activo en la App por #422 y #821; si se le quita, sale sin él: `workflows: sin-conceder`), guardado y reutilizado entre sesiones
+(Bash; en PowerShell, `node scripts/token-sesion.mjs -- <comando>`). `.claude/hooks/guardia-minima.mjs` niega quitar o vaciar el token, `git -c credential.…` y cambiar reglas del repo o aprobar PR (#447). El detalle, en `.claude/skills/github/referencias/app-sesiones.md`.
 **Repos de otro dueño** (p. ej. la organización `factory-am89`, donde la App también está instalada): `node scripts/token-sesion.mjs --dueño <login> [--repo <nombre>] -- <comando>`, o `--del-remoto` para sacarlo de `origin` de la carpeta. Pide `/orgs/<login>/installation` (y `/users/…` si no es organización), limita el token a ese repo y usa su propia caché. Sin la opción, el repo de la casa.
 
-Un secreto nuevo o rotado va a un environment con política de ramas, nunca al <!-- norma:secretos-de-repo -->
+Un secreto nuevo o rotado va a un environment con política de ramas, nunca al
 repo; el alta entera, en la skill `alta-de-secreto`.
 
 ## Operaciones habituales
@@ -77,12 +71,12 @@ repo; el alta entera, en la skill `alta-de-secreto`.
 | PRs abiertos | `gh pr list` | una línea por PR con su rama |
 | Estado de un PR | `gh pr view <n>` | título, rama, estado y descripción |
 | Checks de un PR | `gh pr checks <n>` | `tests` en `pass` (o `fail` con enlace al run) |
-| Esperar a que acaben (REST, gasta poca cuota; #424) | `npm run espera-ci -- <n>` (una llamada cada 60 s) | una línea `ci pr: n estado: ok`, `falla` o `pendiente`; sale 0 si pasa, 1 si falla o se acaba el tiempo, 3 si no pudo preguntar (no es un CI en rojo) |
+| Esperar a que acaben | `gh pr checks <n>` de vez en cuando (sin `--watch`: gasta cuota GraphQL) | todos en `pass` |
 | Últimos runs | `gh run list --workflow tests.yml --limit 5` | cinco filas con su estado |
 | Solo el log de lo que falló | `gh run view <run-id> --log-failed` | el error: si es lint, fichero, regla y mensaje; si es test, su nombre |
 | Relanzar lo que falló | `gh run rerun <run-id> --failed` | el run vuelve a `in_progress` |
 | Lanzar a mano un workflow | `gh workflow run tests.yml --ref <rama>` | `Created workflow_dispatch event` |
-| Fusionar un PR a `staging` | `gh pr merge <n> --merge` | `Merged`; la guardia vigila que no sea a `main` |
+| Fusionar un PR a `staging` | `gh pr merge <n> --merge` | `Merged`; a `main` GitHub solo deja fusionar a Pablo |
 | Reglas que aplican a `staging` | `gh api repos/pabloam89/MenuPlan/rules/branches/staging` | un `required_status_checks` con `tests` (más los de la protección clásica); `node scripts/rulesets.mjs` (solo lee) compara `main` y `staging` con lo deseado |
 | Deploy keys del repo | `gh repo deploy-key list` | una, «mercadona-sync: cron, push a staging», `read-write` |
 | Environment del cron | `gh api repos/pabloam89/MenuPlan/environments/mercadona-sync/deployment-branch-policies -q '.branch_policies[].name'` y `gh secret list --env mercadona-sync` | `staging` y `MERCADONA_DEPLOY_KEY`. Si un workflow nombra un environment que no existe, GitHub lo crea **sin política**: se crea antes a mano |
@@ -90,38 +84,22 @@ repo; el alta entera, en la skill `alta-de-secreto`.
 | Rotar la clave de la App `homenu-dependabot-merge` (OK) | Settings → Developer settings → GitHub Apps → la App → «Generate a private key» (baja un `.pem`); ese `.pem` sustituye al Documento `HoMenu/GitHub App dependabot-merge` de 1Password; `env -u OP_SERVICE_ACCOUNT_TOKEN op document get "GitHub App dependabot-merge" --vault HoMenu \| gh secret set DEPENDABOT_APP_KEY --env dependabot-auto`; `gh workflow run dependabot-auto.yml --ref staging`; y solo si sale `clave-app: si`, borrar la vieja en la App y el `.pem` del disco | el log dice `clave-app: si`; en la App queda una sola clave |
 | Crear la App de las sesiones `homenu-sesiones` (OK; Pablo, #327), pedir su token, revocarla | pasos, comprobación y revocación en `.claude/skills/github/referencias/app-sesiones.md`; el token: `node scripts/op.mjs document get "GitHub App homenu-sesiones" --vault HoMenu-sesiones \| node scripts/token-sesiones.mjs` | el token de 1 hora por la salida estándar, para `GH_TOKEN`; no sale en pantalla |
 | Ver la seguridad del repo | `gh api repos/pabloam89/MenuPlan -q .security_and_analysis` | secret scanning y push protection en `enabled` |
-| Ramas fusionadas que se borrarían (ensayo) | `npm run podar` | la lista, sin borrar nada |
-| Borrarlas (OK) | `npm run podar -- --si` | GitHub y locales con `-d`; lo no fusionado sale como «decide Pablo» |
 | ¿Está en staging? | `git fetch origin` y mirar `origin/staging`, nunca el upstream de tu rama | el commit o la ausencia |
 | CI en rojo: reproducir un test | `npx vitest run <fichero>` | el mismo fallo que en el CI |
-| Probar a mano la línea «Runbook:» | `git diff --name-only origin/staging... > $TEMP/f.txt` y `PR_BODY="$(gh pr view <n> --json body -q .body)" node scripts/runbook-pr.mjs $TEMP/f.txt` | `Runbook: ok`, o `FALLA` con la línea a poner (se arregla con `gh pr edit <n> --body-file <f>`) |
 
 - **Ramas viejas:** GitHub borra la rama al fusionar el PR
   (`delete_branch_on_merge`), pero las de antes del cambio (día en «Fechas» de Fuentes y comprobación) se quedaron.
-  `scripts/podar.mjs` borra solo las fusionadas enteras en `origin/staging`,
-  sin PR abierto, de hace más de 1 día y sin worktree.
+  Borrarlas es de Pablo (`git push origin --delete <rama>`), solo si ya están en `origin/staging`.
 
 ## Lo que falló y por qué
 
-- **2026-10-15 · las ramas que cambiaban un workflow se quedaban en local esperando a Pablo (#821, fondo #326).** Causa: la App de las sesiones no tenía «Workflows» (se le quitó el 10 oct por la revisión de `seguridad`) y GitHub rechaza su push entero; los movía Pablo (PR #824 y #847). Arreglo: Pablo decidió devolvérselo en escritura (opción C de #422, riesgo aceptado por escrito) y lo activó en la App; cambiar un workflow ya no pide su OK y la sesión lo empuja en su rama. Contrapeso: la guardia no deja a una sesión fusionar un PR que cambia `.github/workflows/` sin `seguridad` en «Jueces:» (norma `workflow-con-juez-seguridad`, `.claude/hooks/guardia.test.js`, visto fallar sin la regla); es un filtro de buena fe, como el CI: la guardia que corre es la de la carpeta, y en la rama del PR es la del PR, que puede quitarse la regla igual que puede cambiar su `tests.yml`; lo cubren los jueces `revisor` y `seguridad`, porque toca `.claude/`. Mira la orden de verdad, también envuelta en `token-sesion.mjs --` o con `GH_TOKEN=x` delante (revisor del PR #864). Si la App pierde el permiso, la vía de respaldo es `ops/workflows-pendientes/`.
-- **2026-10-14 · el workflow `fondos` y los lectores de la casa dejaban fuera todo lo que firma la App de las sesiones (#839, caso #838, fondo #326).** Causa: GitHub da a `homenu-sesiones[bot]` la asociación `CONTRIBUTOR`, y el filtro de #379 solo miraba la asociación: los runs salían `skipped` y 8 fondos, 23 casos y 80 encargos de la App iban sin control. Arreglo: un solo `esDeLaCasa(issue)` en `scripts/lib/fondos.mjs` que recibe el issue o comentario entero y añade, a OWNER/MEMBER/COLLABORATOR, el autor de tipo `Bot` con el id de `scripts/lib/identidadSesiones.mjs` (hoja sin imports; `tokenSesion.mjs` la reexporta). En GraphQL se pide `author { __typename login ... on Bot { databaseId } }`. El `if:` de `fondos.yml` lleva el id escrito y `scripts/esDeLaCasa.test.js` lo cruza, niega que un lector pase la asociación sola y que otro bot o un humano con el login parecido entren (visto fallar: 7 de 10 con el código anterior). El login, el sufijo `[bot]` y `performed_via_github_app` no cuentan: cualquiera puede imitarlos.
-- **2026-10-14 · la foto de los issues tenía 111 min y las lecturas volvían a la API: 0 pasadas por `schedule` en 2 h 45 con un cron de cada 5 min (#844, caso #843, fondo #315).** Causa: en este repo el planificador de GitHub entrega una pasada programada cada 3-11 h sea cual sea el cron (medido en #843 con otros tres workflows), y el diseño suponía minutos sin medirlo. Arreglo: el workflow se relanza a sí mismo (trabajo `relanzar`: `sleep 540`, cada ~10 min y no 5 por el uso aceptable de Actions, y `gh workflow run` con el `GITHUB_TOKEN` en hasta 3 intentos; `!cancelled()` y no `always()`; una sola cola para todas las ramas) y el cron queda de respaldo; detalle y cómo pararla en `.claude/skills/github/referencias/foto-issues.md`, «La cadena». El aviso de foto vieja baja de 60 a 20 min y dice cómo rearrancarla. Tests en `scripts/fotoIssues.test.js` (espera, reintentos, foto fresca y aviso) y `ops/workflows.test.js` (pendiente ya movido), vistos fallar con el workflow anterior y cambiando `!cancelled()` por `always()`, la concurrencia o la espera. Sin comprobar: la cadena en GitHub (tras moverlo Pablo) y si un cron fusionado por la App se registra (hipótesis H2 de #843).
-- **2026-10-14 · cada lectura completa de los issues costaba ~450 puntos de la App y la hora de más gasto llegó a 6.108 (#326, medición #724).** Causa: medida, no supuesta; GraphQL cobra ~1,08 puntos por issue pedido (414 issues: 486 por lectura de `scripts/issues.mjs`, 535 la de `situacion`), así que el coste crece con el total y 12-14 lecturas a la hora agotan los 5.000. Arreglo: la foto publicada (`foto-issues.yml`, asset de la release `foto-issues`; la primera versión, en una rama, se cambió en la revisión del PR #808 porque una rama guarda historia y dispara a Vercel) que leen los scripts por `releases/download`; con ella `npm run issues` gasta 1 punto (el de `Casos:`) y la REST de los cambios desde la foto. Tests en `scripts/fotoIssues.test.js` (escritor y lector, versión y campos, limpieza, workflow), vistos fallar quitando las comprobaciones de versión, de edad y de vecinos. Detalle y cómo quitarla: `.claude/skills/github/referencias/foto-issues.md`. Lecciones de la revisión (#808): colgar un issue no mueve `updatedAt` (cada pasada compara el padre en un listado ligero de 1 punto por 100); un id borrado hace salir a `gh` con 1 y la respuesta en stdout (se lee y se quita); la lectura completa no cabría en 1.000 puntos/hora hacia ~850 issues (el cupo medido luego es de 5.000, #844) (se reparte entre pasadas con `pendientes`). Tests vistos fallar quitando cada una. Comprobado en GitHub: el run 38611215358 (desde cero, 464 puntos) y el 38634114068 (incremental, 40 puntos). Sin comprobar: cuántos puntos por hora bajan en una semana (`npm run cuota -- --horas`).
-- **2026-10-14 · `gh` y `git push` daban 401 pasada la hora del token del arranque (#719, caso #716, fondo #715).** Causa: el entorno de Bash se fija una vez al arrancar (`CLAUDE_ENV_FILE` solo existe en el hook de arranque), así que el `GH_TOKEN` y el ayudante de git leían un token que caduca. Arreglo: `scripts/bin/gh` (shim, delante en el PATH desde el arranque) pide el token a la caché al usarse, y el ayudante de git es `gh auth git-credential`, que pasa por él; el arranque escribe PATH, ayudante, autor y un `GH_TOKEN` inválido de relleno ANTES del canje. Tests en `scripts/ghShim.test.js`, `.claude/hooks/arranque.test.js` y `scripts/tokenSesion.test.js`, vistos fallar con el código anterior (28 casos, más la suite del shim que ni cargaba). Detalle en `.claude/skills/github/referencias/app-sesiones.md`. Sin cubrir: los scripts de Node con `execFile("gh")` (E3, #731) y la guardia (E4, #738). Deuda: el shim vive en la carpeta de la tarea (el hook corre desde `${CLAUDE_PROJECT_DIR}`), no fuera de ella; sacarlo a una copia fuera es un encargo del fondo #715.
+- **2026-10-15 · las ramas que cambiaban un workflow se quedaban en local esperando a Pablo (#821, fondo #326).** Causa: la App de las sesiones no tenía «Workflows» (se le quitó el 10 oct por la revisión de seguridad) y GitHub rechaza su push entero; los movía Pablo (PR #824 y #847). Arreglo: Pablo decidió devolvérselo en escritura (opción C de #422, riesgo aceptado por escrito) y lo activó en la App. Contrapeso: desde #878, el paso «Juez de seguridad si cambia un workflow» de `tests.yml` (`scripts/workflows-pr.mjs`) pide «Jueces: …, seguridad» en el cuerpo del PR; es de buena fe, porque el PR puede cambiar su propio `tests.yml` (#881). Si la App pierde el permiso, los workflows vuelve a empujarlos Pablo.
+- **2026-10-14 · `gh` y `git push` daban 401 pasada la hora del token del arranque (#719, caso #716, fondo #715).** Causa: el entorno de Bash se fija una vez al arrancar (`CLAUDE_ENV_FILE` solo existe en el hook de arranque), así que el `GH_TOKEN` y el ayudante de git leían un token que caduca. Arreglo: `scripts/bin/gh` (shim, delante en el PATH desde el arranque) pide el token a la caché al usarse, y el ayudante de git es `gh auth git-credential`, que pasa por él; el arranque escribe PATH, ayudante, autor y un `GH_TOKEN` inválido de relleno ANTES del canje. Tests en `scripts/ghShim.test.js` y `scripts/tokenSesion.test.js`, vistos fallar con el código anterior (28 casos, más la suite del shim que ni cargaba). Detalle en `.claude/skills/github/referencias/app-sesiones.md`. Sin cubrir: los scripts de Node con `execFile("gh")` (E3, #731). Deuda: el shim vive en la carpeta de la tarea (el hook corre desde `${CLAUDE_PROJECT_DIR}`), no fuera de ella; sacarlo a una copia fuera es un encargo del fondo #715.
 - **2026-10-13 · `node scripts/token-sesion.mjs -- npm run …` no hacía nada y salía con 1 sin decir por qué (#720, caso #718, fondo #715).** Causa: `npm` en Windows es un `.cmd` y, sin shell, Node 24 da `EINVAL` en `spawnSync`; el envoltorio convertía el `status: null` en 1 y descartaba el error. Con `shell: true` no se arregla: cmd.exe sustituiría `%GH_TOKEN%` en los argumentos. Arreglo: `npm` y `npx` se lanzan con `process.execPath` y el JS de la propia CLI de npm (de `npm_execpath` o junto a node), sin shell; otro `.cmd` o `.bat` se rechaza; si no se puede lanzar, sale con 127 y `token-sesion resultado: fallo motivo: comando-no-lanzado (<código>)`; un hijo muerto por señal sale con 128 + señal y `comando-muerto-por-senal`. Tests en `scripts/tokenSesion.test.js` (vistos fallar con el código anterior, 9 de 9), con el barrido de envoltorios y su comando.
-- **2026-10-11 · tres workflows publicaban en el primer issue que devolvía `in:title` (#450).** Causa: `agente-fallos.yml`, `bot-semanal.yml` y `planos-semanal.yml` buscaban su issue solo por título; la búsqueda es difusa y el repo público, así que un issue ajeno con ese título se llevaba el informe y la mención. Arreglo: como `flujo-semanal.yml`, `--author "app/github-actions"` y `select(.title==…)` en el `--jq`, y la regla de `ops/workflows.test.js` que lo pide a toda búsqueda de issue de un `run:` (vista fallar con los de staging). Antes: 3 de 4 workflows sin autor; después, 0.
+- **2026-10-11 · tres workflows publicaban en el primer issue que devolvía `in:title` (#450).** Causa: `agente-fallos.yml`, `bot-semanal.yml` y `planos-semanal.yml` buscaban su issue solo por título; la búsqueda es difusa y el repo público, así que un issue ajeno con ese título se llevaba el informe y la mención. Arreglo: `--author "app/github-actions"` y `select(.title==…)` en el `--jq`, y la regla de `ops/workflows.test.js` que lo pide a toda búsqueda de issue de un `run:` (vista fallar con los de staging). Antes: 3 de 4 workflows sin autor; después, 0.
 - **2026-10-10 · `flujo-semanal.yml` dejó de ser YAML y cada run salía en rojo a los 0 s (#480).** Causa: dos `printf '\n…'` del cambio de #341 llevaban saltos de línea de verdad en vez de `\n`, que sacaban líneas del bloque `run: |`; los tests del workflow lo leían como texto. Arreglo: los `printf` con `\n` y `ops/workflows.test.js`, que lee todos los workflows con el parser `yaml` (visto fallar con el de staging). No aguantó la primera vez, por la otra cara: al reponer las continuaciones `\` del paso Publicar con un script, quedaron `\n` escritos tal cual en una sola línea; el YAML era válido, pero bash pasaba una «n» suelta a cada `gh` y, dentro de un `if !`, el paso salía en verde sin informe (#526). Arreglo: una orden por línea, editada a mano, y la regla del test que niega un `\n` fuera de comillas en un `run:`. Un workflow se edita con Edit, no con un script que reescribe el fichero. Ojo también: en `name:` un ` #` empieza un comentario y corta el nombre.
-- **2026-10-10 · la cuota GraphQL de Pablo llegó a 0 dos veces (#424, fondo #326).** Causa: todas las sesiones gastaban el mismo token y cada arranque pedía ~320 puntos (`npm run issues`: 3 páginas de 106), más los `gh pr checks --watch` cada 30 s; el contador REST de `gh api rate_limit` seguía con 4.656 libres, así que parecía que quedaba cuota. Arreglo: caché de 15 min (arranque) y 10 (listado) en `scripts/lib/cuotaGh.mjs`, `npm run espera-ci` por REST, línea `gh: caller=… api=…` por llamada y techos en `scripts/cuotaGh.test.js`, visto fallar. Cifras y cómo medir, en `.claude/skills/github/referencias/cuota-graphql.md`; la verdad sobre GraphQL la da `gh api graphql -f query='{ rateLimit { remaining resetAt } }'`.
+- **2026-10-10 · la cuota GraphQL de Pablo llegó a 0 dos veces (#424, fondo #326).** Causa: todas las sesiones gastaban el mismo token, cada arranque leía todos los issues por GraphQL y los `gh pr checks --watch` preguntaban cada 30 s; el contador REST de `gh api rate_limit` seguía con miles libres, así que parecía que quedaba cuota. Lección que sigue: la verdad sobre GraphQL la da `gh api graphql -f query='{ rateLimit { remaining resetAt } }'`, y para esperar al CI, consultas espaciadas.
 - **2026-10-10 · el token de instalación real (390 caracteres, con `.` y `-`) no pasaba la forma escrita de memoria (#329).** Causa: se validó sin ver uno real. Arreglo: `[A-Za-z0-9_.-]`, con test; visto en vivo.
-- **2026-10-09 · `Closes #n` y `Agente:` solo los comprobaba la guardia, y la guardia
-  solo ve a las sesiones de Claude (#337).** Causa: el CI miraba `Runbook:` y
-  `Casos:` y nada más; un PR abierto desde la web o por otra vía no los llevaba y
-  `npm run issues` perdía quién arregló qué. Arreglo: `scripts/fondos-pr.mjs`
-  (paso «Fondos del PR»), con `scripts/fondos-pr.test.js`, visto fallar sin cada
-  regla. Sin comprobar: un PR real con el paso nuevo.
-- **2026-10-09 · 7 PR de una sesión arreglaron fallos sin registrar ningún caso (#185).**
-  Causa: la norma era solo texto. Arreglo: la línea `Casos:` del PR (guardia + CI) y el
-  freno de `pendientes.mjs`; tests en `casos.test.js` y `casos-pr.test.js`. Antes: 0 de 7.
 - **2026-10-09 · exigir `tests` en `staging` con la protección clásica: 404
   «Required status checks not enabled».** Causa: el PATCH a
   `branches/staging/protection/required_status_checks` solo edita checks que ya
@@ -146,15 +124,10 @@ repo; el alta entera, en la skill `alta-de-secreto`.
   `limpiar-worktrees.mjs` da por «fusionada» cualquier rama que sea ancestro de
   `origin/staging`, y una rama nueva sin commits lo es. Se ejecuta al abrir
   *cualquier* sesión, así que otra sesión arrancando se la lleva por delante.
-  Arreglo: `npm run tarea` hace ahora un commit vacío (`tarea: arranca <rama>`)
-  nada más crear la rama, antes de copiar el entorno y de instalar nada, y
-  `retirar` no lo cuenta como trabajo sin subir (test en `scripts/tarea.test.js`).
-  Para una carpeta anterior, a mano: `git commit --allow-empty -m "tarea: arranca
-  <rama>"`. El hook ya solo borra ramas subidas con su nombre (`git push -u`) y
-  luego fusionadas (`scripts/limpiar-worktrees.test.js`); su copia está en
-  `~/.claude/hooks/` de cada PC y se actualiza a mano desde `scripts/`. Los restos
-  huérfanos los borra Pablo, tras mirar que `node_modules` no es una unión y
-  parar el `npm ci` vivo (`taskkill /T` sobre su `tarea.mjs`).
+  Arreglo: el hook ya solo borra ramas subidas con su nombre (`git push -u`) y
+  luego fusionadas; su copia está en `~/.claude/hooks/` de cada PC y se actualiza
+  a mano. Los restos huérfanos los borra Pablo, tras mirar que `node_modules` no
+  es una unión y parar el `npm ci` vivo.
 - **2026-10 · el PR que abre el token de Actions no lanza `tests.yml`.** Causa:
   un PR abierto con `GITHUB_TOKEN` no dispara otros workflows. Arreglo: lanzarlo
   a mano con `gh workflow run tests.yml --ref <rama>`. La documentación de
@@ -166,9 +139,9 @@ repo; el alta entera, en la skill `alta-de-secreto`.
   Dependabot. Causa: la red, no el comando. Arreglo: reintentar; si un `gh` pasa
   de 60 s sin responder, se corta con `timeout 60 gh …` y se repite.
 - **2026-10 · `git worktree remove` falla en Windows con «Filename too long».**
-  Causa: rutas largas dentro de `node_modules`. Arreglo: las carpetas se cierran
-  con `npm run retirar -- <nombre>`, o se le da a Pablo el comando para que lo
-  lance él con `!`.
+  Causa: rutas largas dentro de `node_modules`. Arreglo: las cierra el hook de
+  limpieza (`node C:\Users\pablo\.claude\hooks\limpiar-worktrees.mjs --si`), o se
+  le da a Pablo el comando para que lo lance él con `!`.
 
 ## Qué requiere el OK de Pablo
 
@@ -197,16 +170,10 @@ la visibilidad. Dependabot, secret scanning y push protection no tienen coste.
 - https://docs.github.com/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow
 - https://github.com/actions/checkout (`ssh-key`)
 
-Fechas que estaban repartidas por el cuerpo (#411): rama por defecto `staging` desde el 7 oct 2026; el ruleset «staging: tests obligatorios» se decidió el 9 oct 2026; las formas de excepción de antes de #621 («Tests relajados:», «Tamaño:», «Aprendizaje:») valen con aviso hasta el 15 nov 2026; `delete_branch_on_merge` rige desde el 8 oct 2026 (las ramas anteriores se quedaron).
+Fechas que estaban repartidas por el cuerpo (#411): rama por defecto `staging` desde el 7 oct 2026; el ruleset «staging: tests obligatorios» se decidió el 9 oct 2026; `delete_branch_on_merge` rige desde el 8 oct 2026 (las ramas anteriores se quedaron).
 
-Comprobado el 2026-10-14 (#326): la foto de los issues en local con el token de la App contra el repo real: lectura completa de 414 issues (486 puntos, 1,85 MB), pasada incremental sin cambios (10 puntos), foto idéntica a una lectura nueva de la API (0 diferencias en los 414 nodos ni en `leerIssue`), `npm run issues` con la foto gastó 1 punto en vez de ~450, y la docs de GitHub dan 1.000 puntos/hora al `GITHUB_TOKEN` (el run 38611215358 midió luego 5.000, #844); y, tras pasarla a una release, que el asset se baja sin autenticar, que con `?c=` se sirve el nuevo al instante tras `--clobber` (a secas siguió el viejo) y que la release no avisa (prerelease, sin `latest`, 0 suscriptores); y en GitHub, los runs 38611215358 (desde cero: 464 puntos, `generar` 42 s) y 38634114068 (incremental: 40 puntos, `generar` 20 s, `publicar` 8 s); sin comprobar: la cadena que se relanza sola (#844), hasta que Pablo mueva el workflow.
+Comprobado el 2026-10-15 (#422, #821): `GET /app/installations` con el JWT de la App da `contents`, `issues`, `pull_requests` y `workflows` de escritura y `actions`, `checks` y `metadata` de lectura, solo en los repos elegidos; el canje con `workflows: write` (#863) acaba en `workflows: concedido` (`token-sesion.mjs --sin-cache --comprobar`) y sin advertencias, y con los permisos de antes (sin workflows) da `permisos-de-mas`. El respaldo, si se le quita el permiso, se vio antes de activarlo: pedir `workflows: write` da 422 («The permissions requested are not granted to this installation») y el canje vuelve a pedir sin él (`workflows: sin-conceder`). 
 
-Comprobado el 2026-10-11 (#551): los drivers `generado` y `json-claves` con git 2.52 en repos de prueba (`ops/generados.test.js`, visto fallar sin las líneas de `.gitattributes`); sin comprobar: una fusión real entre dos PR ni `gh pr update-branch` con un generado desfasado.
+Comprobado el 2026-10-19 (#878): que `tests.yml` solo mira en el cuerpo del PR la línea «Jueces:» de `scripts/workflows-pr.mjs`, leyendo el workflow y los dos scripts; que `npm run tarea`, `retirar`, `podar` y `espera-ci` ya no están en `package.json`.
 
-Comprobado el 2026-10-15 (#422, #821): `GET /app/installations` con el JWT de la App da `contents`, `issues`, `pull_requests` y `workflows` de escritura y `actions`, `checks` y `metadata` de lectura, solo en los repos elegidos; el canje con `workflows: write` (#863) acaba en `workflows: concedido` (`token-sesion.mjs --sin-cache --comprobar`) y sin advertencias, y con los permisos de antes (sin workflows) da `permisos-de-mas`. El respaldo, si se le quita el permiso, se vio antes de activarlo: pedir `workflows: write` da 422 («The permissions requested are not granted to this installation») y el canje vuelve a pedir sin él (`workflows: sin-conceder`). La regla de la guardia de los workflows, con sus tests (vistos fallar sin ella); sin comprobar: un `gh pr merge` real negado por ella.
-
-Comprobado el 2026-10-10 (#341): `cumplimiento.mjs` contra la API real de issues y con tests (cada indicador visto fallar); sin comprobar: `flujo-semanal.yml` y el paso «Higiene de las skills del PR» en GitHub de verdad.
-
-Comprobado el 2026-10-09: la línea «Casos:» (#185), con tests y datos sintéticos en local, sin probarla aún en un PR real de GitHub ni la API desde el runner.
-
-Comprobado el 2026-10-09: en #193, `dependabot-auto.yml` pasa `actionlint` 1.7.12; en ensayo contra el repo, #169 sale `grupo-manual` y #288 (en `/dish-gallery`) `ficheros-fuera`, y los cerrados #165 y #167 salen menores con commits limpios; en la documentación de GitHub, que `cooldown` solo afecta a las de versión y que el primer grupo que nombra una dependencia se la queda; el ruleset 24770007 de `staging` activo, exige `tests` y no pide la rama al día. Sin comprobar: si un `workflow_run` tras un run de Dependabot ve los secretos del environment (la documentación no lo aclara; por eso la pasada de cada 3 h), una fusión real, que Dependabot obedezca un `@dependabot rebase` de `github-actions[bot]`. Comprobado el 2026-10-09: el formato del bypass por deploy key (`actor_id` null) en la REST de rulesets; que `actions/checkout` v7 con `ssh-key` vacío usa HTTPS y el token (su `url-helper`), aunque el cron ya no lo usa así; que hoy hay 0 rulesets y 0 deploy keys, y que el check de `main` es `tests` de la app 15368. Sin comprobar: el ruleset y la deploy key creados de verdad, y que el push de la key lance `tests` (lo dirá la prueba con `probar_push`). Comprobado el 2026-10-08: la comprobación del runbook y la puerta de lectura, con sus tests y a mano en local (sin probarlas aún en un PR real de GitHub ni con el campo `agent_type` de un subagente de verdad); la causa del borrado de carpetas, leyendo el hook y comprobando que la rama no tenía commits propios; el resto viene de la versión anterior, reordenado sin cambiar los hechos. Con el hook en modo ensayo, una carpeta con commit propio no sale como borrable. Sin probar: el borrado real con una carpeta que tenga ese commit inicial, al abrir otra sesión.
+Comprobado el 2026-10-09: en #193, `dependabot-auto.yml` pasa `actionlint` 1.7.12; en ensayo contra el repo, #169 sale `grupo-manual` y #288 (en `/dish-gallery`) `ficheros-fuera`, y los cerrados #165 y #167 salen menores con commits limpios; en la documentación de GitHub, que `cooldown` solo afecta a las de versión y que el primer grupo que nombra una dependencia se la queda; el ruleset 24770007 de `staging` activo, exige `tests` y no pide la rama al día. Sin comprobar: si un `workflow_run` tras un run de Dependabot ve los secretos del environment (la documentación no lo aclara; por eso la pasada de cada 3 h), una fusión real, que Dependabot obedezca un `@dependabot rebase` de `github-actions[bot]`. Comprobado el 2026-10-09: el formato del bypass por deploy key (`actor_id` null) en la REST de rulesets; que `actions/checkout` v7 con `ssh-key` vacío usa HTTPS y el token (su `url-helper`), aunque el cron ya no lo usa así; que hoy hay 0 rulesets y 0 deploy keys, y que el check de `main` es `tests` de la app 15368. Sin comprobar: el ruleset y la deploy key creados de verdad, y que el push de la key lance `tests` (lo dirá la prueba con `probar_push`). Comprobado el 2026-10-08: la causa del borrado de carpetas, leyendo el hook y comprobando que la rama no tenía commits propios; el resto viene de la versión anterior, reordenado sin cambiar los hechos. Con el hook en modo ensayo, una carpeta con commit propio no sale como borrable. Sin probar: el borrado real con una carpeta que tenga ese commit inicial, al abrir otra sesión.

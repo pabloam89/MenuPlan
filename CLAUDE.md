@@ -1,309 +1,69 @@
-# MenuPlan — reglas para cualquier sesión
+# MenuPlan — lo que vale para toda sesión
 
-Lo que vale siempre, para toda sesión. Lo de cada zona salta solo al tocarla
-(`.claude/rules/`); el detalle de cada dominio, en `specs/INDEX.md`. Si una
-regla choca con un hook, el hook manda.
+## Qué es y dónde vive
 
-## Qué es
+HoMenu / MenuPlan: menús semanales para familias. **Lola**, el bot de mensajería
+(Telegram hoy; `api/_bot/`, `api/bot/`), es el producto hacia el que vamos; **la app**
+React + Vite (`src/`, PWA con funciones en `api/`) es el respaldo. Catálogo de recetas y
+alimentos en JSON en git (`src/data/`). Escriben **Pablo** (`pabloam89`) y **Álvaro**
+(`algbarc`, `algbarc-design`), a menudo con varias sesiones a la vez.
 
-HoMenu / MenuPlan: menús semanales para familias. **Lola**, el bot de
-mensajería (Telegram hoy, WhatsApp después; `api/_bot/`, `api/bot/`), es el
-producto hacia el que vamos; **la app** React + Vite (`src/`), PWA con
-funciones en `api/`, es el respaldo. Datos en Supabase (Postgres + Auth +
-RLS); catálogo de recetas y alimentos en JSON en git (`src/data/`).
+- Repo: `github.com/pabloam89/MenuPlan`, **público** (nada sensible en issues ni PR). Copia de Pablo en `C:\dev\MenuPlan`, nunca en OneDrive.
+- Hosting: Vercel, equipo «menuplan», proyecto `homenu`. Base: Supabase `mdzwbrworucnummibxrq`.
+- Servicios, cuentas y dónde está cada clave (nunca su valor): `ops/INVENTARIO.md`; decisiones de operación, `ops/DECISIONES.md`.
+- Claves en local: 1Password (skill `1password`); `.env.local` guarda direcciones `op://`, no claves.
+- Migraciones: `supabase/ESTADO.md` y `supabase/PENDIENTES.md`; cómo es una tabla, `docs/datos/PRINCIPIOS.md`.
+- UI: `DESIGN_SYSTEM.md` y `src/design/tokens.js`. Producto: `docs/producto/PRINCIPIOS.md`; specs, `specs/INDEX.md`.
+- La Factoría (agentes, normas, glosario, panel) ya no vive aquí: está en `factory-am89/fabrica` (`C:\dev\fabrica`).
 
-## Equipo
+## Ramas, carpetas y PR
 
-- **Pablo** (`pabloam89`) y **Álvaro** (`algbarc`, `algbarc-design`) escriben
-  en el repo, a menudo con varias sesiones a la vez. **Manu**, socio, sin
-  acceso al repo a propósito.
-- Pablo no es informático: decisiones técnicas en llano, recomendación primero.
-
-## Dónde vive cada cosa
-
-| Qué | Dónde |
-|---|---|
-| Repositorio (el único de verdad) | `github.com/pabloam89/MenuPlan`, **público** |
-| Copia de trabajo de Pablo | `C:\dev\MenuPlan`; worktrees en `C:\dev\MenuPlan-<tarea>` |
-| Hosting | Vercel, equipo «menuplan», proyecto `homenu` (antes «Monicos MenuPlan» y `menu-plan`) |
-| Base de datos | Supabase `mdzwbrworucnummibxrq`, **una sola: producción**. Cuelga del equipo de Vercel (Marketplace) |
-| Servicios, cuentas y dónde está cada clave | `ops/INVENTARIO.md` (nunca valores) |
-| Las claves en local | 1Password: las sesiones, bóveda `HoMenu-sesiones`; lo de producción, solo `HoMenu` (Pablo). `.env.local` guarda direcciones `op://` (plantilla `ops/env.1password`), no claves. Skill `1password` |
-| Estado real de las migraciones | `supabase/ESTADO.md`; NOT VALID por validar en `supabase/PENDIENTES.md` |
-| Cómo deben ser las tablas | `docs/datos/PRINCIPIOS.md` (con test desde la 0087) |
-| Reglas de UI | `DESIGN_SYSTEM.md`; valores en `src/design/tokens.js`; estado y plan en `docs/diseno/ESTADO.md` |
-| Decisiones de operación y hoja de ruta | `ops/DECISIONES.md`, `ops/PLANOS.md` |
-| Principios de la casa (el porqué de cada norma) | `docs/PRINCIPIOS.md`, generado de `ops/principios/` |
-
-`pabloartinano/MenuPlan` y OneDrive son restos de antes del 7 oct: un error.
-
-## Ramas y flujo
-
-- **`staging`** es la rama por defecto y la que despliega Vercel en staging.
-  Todo sale de `origin/staging` y vuelve por **PR con el CI en verde**
-  (`tests.yml`: lint con línea base, tests y build). Ese PR lo puede fusionar
-  la propia sesión.
-- **`main` es producción.** Ninguna sesión sube ni fusiona a `main`; solo
-  cuando Pablo lo pide, con el método que se decida con él.
-- **Ningún PR a `staging` espera la aprobación de una persona** (decisión de Pablo,
-  11 oct 2026, #608; sin revisión de dueño de código ni `CODEOWNERS`). El control que
-  queda: el check `tests` en verde (lo hace cumplir GitHub) y el juez `revisor`
-  (quien construye no juzga; de proceso, GitHub no lo hace cumplir). Un PR que toca
-  `.claude/`, `.github/`, `CLAUDE.md`, los hooks o lo que corre con secretos debe pasar por
-  su juez antes de fusionarse; nada lo impide si no pasa. A `main` solo fusiona Pablo, desde el botón del PR.
-  Los rulesets se aplican con `scripts/rulesets.mjs` (Pablo); detalle en la skill `github`.
-- Una rama por tarea, prefijo de área y nombre en castellano: `bot/`, `datos/`,
-  `ux/`, `fix/`, `feat/`, `ops/`, `motor/`. Las de la nube empujan solo a la
-  suya. «¿Está en staging?» se mira en `origin/staging` tras `git fetch`.
-
-## Una sesión, una tarea
-
-**Una sesión = una carpeta = una rama = una tarea.**
-`npm run tarea -- datos/descartes` abre `C:\dev\MenuPlan-descartes` (rama
-desde `origin/staging`, `.env.local`, flags de staging, dependencias y
-puerto); `npm run retirar -- descartes` la cierra solo si no se pierde nada.
-Si la tarea es de un issue, su número detrás (`… datos/descartes 193`): la
-rama queda `datos/193-descartes` y el PR lleva `Closes #193`.
-En la carpeta principal (`C:\dev\MenuPlan`) no se trabaja: la guardia no deja
-editar, commitear ni cambiar de rama en ella. Nada de borrar worktrees a mano;
-si el arranque avisa de otra sesión en tu carpeta, no trabajes ahí. App en local: localhost y la IP de la wifi, nada más
-(el login con Google solo vuelve al puerto 5176). Primer push: `git push -u
-origin <rama>`. **Al fusionar tu PR:** `npm run retirar -- <tarea>` en la misma
-sesión (la rama de GitHub la borra GitHub sola). Ramas viejas ya fusionadas:
-`npm run podar` (ensayo) y `npm run podar -- --si`; nunca toca lo que no está
-en staging.
-
-## Antes del PR (lo que no vigila la guardia)
-
-1. Fusiona `origin/staging` en tu rama y resuelve: hay sesiones en paralelo.
-   La guardia no deja abrir un PR con la rama atrasada, ni fusionarlo si
-   staging ha cambiado sus mismos ficheros desde entonces: en ese caso,
-   `gh pr update-branch <n>` (en un comando aparte) y espera el CI.
-2. `git status --short` y añade por nombre solo lo tuyo; si un fichero mezcla
-   lo tuyo con lo de otro, dilo en el mensaje o déjalo fuera.
-3. En local, `npm run vecinos`: los tests de lo que tocas más los vigilantes de conjunto
-   que lo miran (los que recorren todos los scripts, skills o migraciones; lista en
-   `ops/vigilantes.json`). Elegir a mano con `npx vitest run <ficheros>` los deja fuera (#356).
-   La suite entera, el build y el lint con base los corre el CI del PR (gratis en
-   repo público): espera su resultado con una consulta espaciada, sin sondear. La
-   suite entera en local, con `MENUPLAN_SUITE_ENTERA=1` y solo si tocas algo transversal
-   (`package.json`, `vite.config.js`, `scripts/lib/`, hooks) y a solas. El lint
-   cuenta la **lista** de errores, no el recuento.
-4. Un test nuevo se ve fallar una vez antes de creértelo (detalle en la regla
-   `tests`).
-5. En el cuerpo del PR, `Closes #n` por cada encargo o problema de fondo que
-   cierra y una línea `Agente: <nombre>` (o `sesión`): de ahí sale quién
-   arregló qué y si aguantó.
+- **`staging`** es la rama por defecto y la que despliega Vercel en staging. Todo sale de `origin/staging` y vuelve por **PR con el CI en verde** (check `tests`: lint con línea base, tests y build). Ese PR lo fusiona la propia sesión; nadie espera la aprobación de una persona.
+- **`main` es producción** y solo la fusiona Pablo, desde el botón del PR. GitHub lo impone.
+- Una tarea = una carpeta = una rama, con prefijo de área (`bot/`, `datos/`, `ux/`, `fix/`, `feat/`, `ops/`, `motor/`). En `C:\dev\MenuPlan` no se trabaja. Para abrirla:
+  ```
+  git -C C:/dev/MenuPlan fetch origin
+  git -C C:/dev/MenuPlan worktree add -b bot/mi-tema C:/dev/MenuPlan-mi-tema origin/staging
+  cp C:/dev/MenuPlan/.env.local C:/dev/MenuPlan-mi-tema/ && cd C:/dev/MenuPlan-mi-tema && npm ci
+  ```
+  Primer push: `git push -u origin <rama>`. Un hook personal de Pablo borra solas las carpetas ya fusionadas y limpias. La app en local: `npm run dev -- --port 5176` (el login con Google solo vuelve a ese puerto).
+- Antes del PR, `git fetch origin && git merge origin/staging` y resuelve. Añade los ficheros por nombre (nada de `git add .`) y nada de `git stash`: es común a todas las carpetas.
+- Tests: en local, los de lo que tocas (`npx vitest run <ficheros>`); la suite entera la corre el CI.
+- En el cuerpo del PR, el CI solo exige una línea: si toca `.github/workflows/`, `scripts/workflows-pr.mjs` o `scripts/migraciones-pr.mjs`, `Jueces: …, seguridad` (sin «pendiente», «falta», «sin» ni «no»), tras una revisión de seguridad. `Closes #n` cierra el issue al fusionar, si lo hay.
 
 ## Base de datos
 
-**Solo hay una base y es la de producción**: staging, local y los scripts
-escriben en ella, y cada migración es un cambio en producción.
+**Solo hay una base y es producción**: staging, local y los scripts escriben en ella.
 
-- Aplicar migraciones (`--si`) lo lanza **Pablo**, desde una PowerShell aparte con `$env:MENUPLAN_OP_PABLO="1"`, hasta E5 (#331): las
-  sesiones no tienen la URL de administrador (#328) y leen con
-  `SUPABASE_DB_URL_LECTURA`. El script pide que esté en staging, un ensayo de
-  menos de una hora y el OK del juez `auditor-datos` en la cabecera; con
-  `CONTRAE`, o RLS o permisos de lo que ya existía, además `--pablo` (quitar a
-  `anon` la plantilla de tablas y secuencias nuevas de `public` no cuenta, #440; la 0096 sí, por su autoprueba con `truncate` y `execute`). Luego, ESTADO.md.
-- **El código no puede depender de que la migración ya esté**: la rama se
-  despliega antes de que alguien la aplique. Plan B siempre.
-- **Ningún campo ni tabla sin lector**, y cada dato en un solo sitio.
-- Una tabla, un módulo dueño: nada de columnas ni filtros PostgREST a mano
-  fuera de él (PRINCIPIOS §15).
+- Leer: `npm run consulta -- "<select>"` y `node scripts/verificar-estado.mjs` (solo lectura).
+- Una migración nueva: número siguiente al último de `origin/staging`; el CI falla si toca una ya aplicada o repite el número de otro PR abierto. El código **no puede depender de que la migración ya esté** (la rama se despliega antes): plan B siempre.
+- La aplica **Pablo**: las sesiones no tienen la URL de administrador. El ensayo (`node scripts/apply-migration.mjs <nombre>`) y el `--si` los lanza él desde una PowerShell aparte; la sesión le deja el comando. El script pide la migración en staging, un ensayo de menos de una hora y la línea `-- AUDITADA: auditor-datos AAAA-MM-DD OK` en la cabecera. Detalle en la regla `migraciones` y la skill `supabase`.
+- Ningún campo ni tabla sin lector, y cada dato en un solo sitio.
 
-El cómo, en la regla `migraciones`; cómo es una tabla, en `PRINCIPIOS.md`.
+## Identidad de las sesiones
 
-## Cómo se le habla a Pablo
+Al abrir sesión, `.claude/hooks/identidad.mjs` da a `gh` y `git` el token de la App **`homenu-sesiones`**: commits y PR salen a su nombre. No usa la cuenta de Pablo porque Pablo es administrador: con ella una sesión podría fusionar a `main` o cambiar las reglas del repo. En PowerShell, `node scripts/token-sesion.mjs -- <comando>`. `.claude/hooks/guardia-minima.mjs` niega volver a las credenciales de Pablo (quitar `GH_TOKEN`, `git -c credential.…`, aprobar PR…). Detalle: skill `github`.
 
-Pablo no es informático: toda sesión y todo agente le escribe con la misma forma,
-y el único que le habla es el agente `orquestador`. **La regla entera vive en una
-sola fuente: la skill `estilo-de-respuesta`.** Lo esencial, también sin `--agent`:
-la primera línea del mensaje es la idea raíz en **negrita**, una frase. Abre la skill
-`estilo-de-respuesta` antes de escribirle. De un
-informe de agente, solo el `RESUMEN` y las `DECISIONES PENDIENTES` siguen esta forma
-(`.claude/PLANTILLA-AGENTE.md`).
+## Qué se le pregunta a Pablo
 
-## Encargos
+Solo lo irreversible o lo que sale fuera; lo demás se hace y se cuenta.
 
-Clasifica lo que pide Pablo. Hasta lo trivial lleva un juez. Si es normal (un dominio)
-o grande (varios, o un refactor), propón **`/orquestar <encargo>`**, que elige
-el pipeline por tipo de encargo y saca de `npm run dimensionar` (tipo, alcance y complejidad) los agentes y el brief de cada uno. Regla fija:
-quien construye no juzga.
-
-## Agentes
-
-En `.claude/agents/`, con la estructura de `.claude/PLANTILLA-AGENTE.md`
-(vigilada por `.claude/agentes.test.js`). Un subagente no pregunta a mitad de
-trabajo: devuelve «Decisiones para Pablo».
-
-| Constructores | Jueces (sin Edit ni Write; no escribir por Bash es convención que vigila `revisor`) |
-|---|---|
-| `constructor`: uno solo para todo; el dominio lo da la tarea y abre sus skills al empezar: git, CI, permisos y secretos (`ops/`); esquema y migraciones; el bot; pantallas y assets | `revisor`: fallos reales en un diff |
-| `orquestador`: la sesión principal por defecto (`"agent"` en `.claude/settings.json`); habla con Pablo y reparte | `qa`: la app en el navegador (Chrome en local) |
-| `analista`: del fallo al plan; registra el caso, diagnostica y redacta los encargos en el issue. Constructor de documentos: lleva `Write` y no `Edit`, y no construye código | `evaluador`: evals de Lola antes y después |
-| | `seguridad`: RLS, endpoints, secretos, prompts |
-| | `auditor-datos`: normalización, duplicados y cableado |
-
-Cada cabecera dice a quién pasa trabajo (`traspasa_a`, vigilado por `.claude/agentes.test.js`).
-El diagnóstico y el plan del `analista` los juzga otro agente (`revisor`, y `auditor-datos` si el fondo es del modelo de datos).
-Cada agente lista sus tareas y el estándar de cada una (qué es hacerla bien,
-qué comprueba, qué no hace y su fuente) en `ops/estandares-agentes.json`; el
-brief de `/orquestar` lo trae con `npm run estandar -- <agente> <tarea>` y el
-`revisor` lo contrasta (#413).
-
-Aparcados en `.claude/agentes-aparcados/`: rendimiento y arquitecto.
+- **Se pregunta:** subir o fusionar a `main`; ensayar y aplicar migraciones (las lanza él); borrar o reescribir datos de familias, o cambiar RLS y permisos; borrar recursos de un servicio o ramas sin fusionar; crear, rotar o cambiar secretos; gastar dinero; escribir o publicar a personas; ampliar los permisos de `.claude/settings.json`.
+- **No se pregunta:** leer producción con los scripts de arriba; issues y etiquetas; fusionar a `staging` con el CI en verde; retirar carpetas y ramas ya fusionadas.
 
 ## Reglas por carpeta y skills
 
-Las reglas (`.claude/rules/`) saltan solas al leer o editar un fichero de su
-zona: `ui` (`src/**/*.jsx`), `migraciones` (`supabase/`), `lola`
-(`api/_bot/`, `api/bot/`), `catalogo` (`src/data/`, `src/utils/`, `src/lib/`,
-`api/_bot/`), `tests` (`*.test.{js,jsx,mjs}`) y
-`api` (`api/*.js`). Las skills (`.claude/skills/`) son runbooks que se abren
-por su nombre: `1password`, `alta-de-secreto`, `vercel`, `supabase`, `github`, `issues`,
-`telegram`, `hetzner` y `tailscale` (el `constructor` las abre según el dominio de la tarea; el mapa `.claude/dominios-skills.json`); y
-las de oficio, cómo se piensa un fallo: `causa-raiz` (diagnosticar) y
-`plan-de-arreglo` (partir el arreglo en encargos) y `cierre-eficaz` (evaluar con la cifra antes y después si aguantó); las meta `forja-de-skills`
-(crear, probar y podar), `higiene-de-skills` e `higiene-de-vocabulario` (revisar lo ya escrito);
-y `estilo-de-respuesta` (cómo se escribe a Pablo: idea raíz en
-negrita, cuatro ideas y tres opciones); y la de conocimiento `principios-de-producto`
-(los principios con fuente para decidir sobre el producto, en `docs/producto/PRINCIPIOS.md`); y la de revisión `revision-de-diseno` (repasar un sistema de diseño o una pantalla contra las normas y los bloques de `docs/diseno/META-DISENO.md`, la carga `diseno`). Todas siguen
-`.claude/PLANTILLA-SKILL.md`, que vigila `.claude/skills.test.js`: un tipo de
-los siete de `ops/forja/`, el que dan sus respuestas, con su molde generado en
-`.claude/plantillas-skill/` (salvo `forja-de-skills`, la pieza meta de nivel 0, sin tipo), dueño, fecha
-de comprobación que caduca a los 90 días, un `SKILL.md` corto con el detalle en
-capas y sus casos de prueba en `casos.json`; `npm run skills-prueba -- <skill>`
-mide, con tokens, si ayuda. Un proveedor nuevo estrena su runbook con su
-primera lección, no antes.
-
-## Vocabulario del catálogo
-
-"Antiguo" y "nuevo" no se usan para el catálogo (#249). Los roles de una fuente
-(`ingesta`, `fuente_de_verdad`, `derivado`, `copia_retirada`), **Recetario** y
-**Reserva** se definen una vez, en `specs/INDEX.md`. Cada fuente, con su estado
-y su fecha, está en `src/data/model.js` (`TABLAS`, vigilado por `ops/fuentes.test.js`).
+- Reglas (`.claude/rules/`), saltan al leer o editar su zona: `lola` (`api/_bot/`, `api/bot/`), `catalogo` (`src/data/`, `src/utils/`, `src/lib/`), `ui` (`src/**/*.jsx`), `api` (`api/*.js`), `migraciones` (`supabase/`) y `tests`.
+- Skills (`.claude/skills/`), runbooks de cada servicio: `1password`, `alta-de-secreto`, `github`, `hetzner`, `supabase`, `tailscale`, `telegram` y `vercel`.
 
 ## Código
 
-- UTF-8 sin BOM, comentarios en castellano, saltos de línea LF. Edita con
-  Edit/Write.
-- Regex sobre nombres de alimento: `\b` por defecto (detalle en la regla
-  `catalogo`).
-- Modelos: **Gemini para imágenes, Anthropic para texto.** Mira qué genera un
-  script, no qué proveedor trae escrito.
-- No cambies de rama en una carpeta con cambios sin commitear.
-- **La hora es la de Madrid y sale de `npm run hora`** (o del arranque), nunca
-  de `date`: en Git Bash `TZ=Europe/Madrid date` da UTC sin avisar (#210).
-  Una hora límite que se le da a Pablo la calcula el script que la impone.
+UTF-8 sin BOM, saltos LF, comentarios en castellano. Gemini para imágenes, Anthropic para texto. **La hora es la de Madrid y sale de `npm run hora`**, nunca de `date` (en Git Bash da UTC sin avisar).
 
 ## Pensar en datos
 
-Lo que se repite se diseña para poder contarse, y corregir es ver qué falla en
-qué hueco, no releer un texto continuo. Estos principios, con su porqué, su
-fuente y las normas que los hacen cumplir, viven en la lista única de
-principios de la casa, `docs/PRINCIPIOS.md` (generada de `ops/principios/`;
-uno, con sus normas: `npm run principios-casa -- <id>`). Tres capas que no se
-repiten: el principio dice por qué; la norma (`ops/normas.json`), lo que debe
-ser verdad, con su control y su principio; el estándar de tarea cita normas.
+Lo que se repite, en vocabulario cerrado (CHECK + constante JS + test) para poder contarlo; la clase del problema y no el caso; y la cifra antes y después de cada arreglo.
 
-- Discreto primero (`discrete-first`) y vocabulario cerrado (`closed-vocabulary`).
-- Una palabra, un significado (`one-word-one-meaning`): las palabras de proceso
-  salen de `ops/glosario/` (`npm run glosario`).
-- Ninguna cifra sin pregunta ni objetivo sola (`no-number-without-question`), y
-  la cifra antes y después (`number-before-and-after`).
-- Cada cosa que pasa deja una línea `campo: valor` (`log-what-happens`).
-- La clase, no el caso (`class-not-case`).
-- El mecanismo más alto de la escalera (`highest-mechanism`).
-- Tres capas de comprobación (`three-check-layers`) y un juez distinto y
-  calibrado (`calibrated-distinct-judge`).
-- De arriba abajo (`top-down`).
+## Cómo se le habla a Pablo
 
-## Qué se le pregunta a Pablo, y qué no
-
-Pablo decidió el 8 oct de 2026 que solo se le pregunte lo **irreversible o lo que sale fuera**: cada pregunta de más le interrumpe, y casi siempre dice que sí. Preguntar algo de la segunda lista también es un fallo; se cuenta (#185).
-
-**Se pregunta y se espera el sí:**
-
-- Subir o fusionar a `main` (producción).
-- Borrar o reescribir datos de familias, o cambiar RLS y permisos de lo que ya existe (`--pablo`, `CONTRAE`).
-- Ensayar y aplicar migraciones: hasta E5 (#331) lo lanza Pablo; la sesión le deja el comando.
-- Borrar recursos de un servicio (una base, un proyecto, un bucket) o ramas que no están fusionadas.
-- Crear, rotar o cambiar secretos y variables de entorno.
-- Gastar dinero: un plan de pago, una compra, evals de pago que no tocan.
-- Escribir a personas o publicar algo en su nombre.
-- Ampliar los permisos de `.claude/settings.json` (la sesión pregunta en el chat antes de abrir el PR y el juez lo marca; la guardia ya no pregunta al editar).
-- Reescribir historia de una rama que no es tuya.
-
-**Autorizado de forma permanente** (se hace y se cuenta en el resumen):
-
-- Leer producción en solo lectura con los scripts del repo: `npm run consulta -- "<select>"`, `verificar-estado`.
-- Issues y etiquetas: crearlos, clasificarlos, colgarlos, cerrarlos con su PR, y `npm run issues -- --etiquetas`.
-- Cambiar hooks, guardia, reglas, skills y agentes, siempre por PR con su juez y el CI en verde. Fusionar a staging es de la propia sesión, también si toca `.claude/` (#608: ningún PR espera la aprobación de una persona).
-- Ajustes del repo que no tocan permisos ni producción: etiquetas, plantillas, la descripción de un PR.
-- Poner al día la carpeta principal (`git pull --ff-only`) y las copias de hooks de usuario que salen del repo (#198).
-- Retirar carpetas y ramas ya fusionadas (`npm run retirar`, `npm run podar`).
-
-## Lo que hace cumplir esto
-
-- **`arranque.mjs`** al abrir sesión: carpeta, rama, sesiones activas, números
-  de migración cogidos, migraciones sin aplicar, issues que esperan y con qué
-  identidad de GitHub trabajas: la App `homenu-sesiones` (commits y PR salen a su
-  nombre, sin administración) y no Pablo; si la clave no se lee, avisa y sigue
-  como Pablo (#329, skill `github`). Cambiar reglas del repo o los ajustes es de Pablo.
-- **`guardia.mjs`** antes de cada comando o edición: niega push a `main` o
-  directo a staging, `git stash`, `git add .`, `vite build` a secas,
-  `Set-Content`, tocar una migración aplicada (también por terminal), crear
-  una con un número que staging ya usa, SQL a mano contra producción y
-  `apply-migration --pablo` (solo de Pablo), abrir un PR con la rama
-  atrasada, sin `Casos:`, o sin `Closes` si la rama es de un issue, fusionarlo si staging
-  pisó sus ficheros, trabajar en la carpeta principal, volver a las credenciales de Pablo (quitar o vaciar `GH_TOKEN`, `git -c credential.…`,
-  `GIT_AUTHOR_*`), cambiar reglas del repo por terminal (`rulesets.mjs --escribir`, `gh api`
-  que escribe en rulesets, protección, secretos o environments), `gh pr review --approve` (#447;
-  es un filtro: la barrera de fondo es el `gh auth logout` de Pablo) y `gh issue create` a
-  pelo (se crea con `npm run issues -- --nuevo`, que busca los parecidos);
-  pregunta
-  antes de un push forzado y de escribir por
-  terminal lo que lee Lola; y avisa, sin bloquear, al editar un fichero que otra
-  rama viva ya cambió o reservó (`npm run tarea -- … --zona <fichero>`; quién
-  lleva qué: `npm run issues -- --zonas`, #506). Cada regla,
-  con su porqué y su test en `.claude/hooks/guardia.test.js`.
-- **`avisos.mjs`** tras editar un fichero: los issues abiertos que lo nombran.
-  **`pendientes.mjs`** al terminar de responder: frena una vez si dejas
-  decisiones o pendientes sin ningún issue, o fallos sin ningún caso (#185).
-  Las decisiones se asignan a Pablo.
-- **GitHub**: `main` solo por PR con `tests`; secret scanning y Dependabot.
-- **Las skills, por obligación** (`.claude/dominios-skills.json`): la primera
-  vez que una sesión lanza un comando de riesgo de un dominio con skill
-  (`apply-migration`, `telegram-webhook.mjs set`, `vercel env`, `op item`, `ssh` al
-  panel…), la guardia le pide abrir antes la skill; y el CI (`tests`) exige en
-  cada PR que toca un dominio la línea «Runbook: actualizado (skill X)» o
-  «Runbook: sin novedades». El `revisor` comprueba que un fallo arreglado dejó
-  su lección en un test, la guardia o la skill.
-- Las reglas por carpeta solo saltan con Read, Write o Edit, no por terminal:
-  lo crítico va en la guardia.
-- **Cuando algo falla, la lección va a un test o a la guardia; si no se puede,
-  a una regla o una skill; a la memoria, nunca.**
-
-## Cuando algo falla: hasta el problema de fondo
-
-Ningún fallo se cierra como suelto. Se arregla el caso si urge y se analiza
-de qué **problema de fondo** es síntoma (`tipo:fondo`). El caso acaba en una
-respuesta de `analisis:` —nuevo, abierto, no aguantó o puntual— y se cuelga de
-su fondo; el arreglo se hace en el fondo, no en el caso: uno o varios encargos
-colgando de él, y se cierra cuando acaban y un test cubre la clase. **Esto no
-depende de acordarse**: todo PR lleva `Casos: #n, #m` o `Casos: ninguno — <por
-qué>` (la guardia no deja abrirlo sin ella y el CI comprueba que son casos de
-verdad), y al terminar `pendientes.mjs` frena una vez si hubo fallos y no
-registraste nada.
-
-- **El camino completo** (detectar, registrar, triaje, diagnosticar, fondo,
-  plan, ejecutar, verificar, observar, cerrar, aprender, medir), qué obligación
-  tiene cada paso y **qué la hace cumplir de verdad**: `docs/ops/FLUJO.md`.
-  `npm run flujo` da el resumen y dice qué pasos siguen blandos.
-- **Las definiciones** de cada respuesta del análisis, de las causas y de las
-  etiquetas: `scripts/lib/issues.mjs`, su única fuente. No se copian aquí.
-- Decisiones pendientes y trabajo por coger, también como issues, no en el chat
-  ni en mensajes entre sesiones. `npm run issues` lo cuenta y `--colgar` cuelga;
-  el cómo, en la skill `issues`; el repaso del conjunto, cada semana con
-  `/revision-issues`. El repo es público: nada sensible en un issue.
+Pablo no es informático. Primera línea: **la idea raíz, en negrita**, una frase. Cuatro ideas como mucho, en llano; un término técnico, explicado en media frase. Si es una decisión, tres opciones con la recomendada primero.
