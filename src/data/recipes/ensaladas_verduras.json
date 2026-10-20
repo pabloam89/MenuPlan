@@ -10367,7 +10367,7 @@
     "category": "ensaladas_verduras",
     "mainProtein": "legumbre",
     "mealRole": [
-      "segundo",
+      "primero",
       "plato_unico"
     ],
     "type": "completo",
@@ -20479,7 +20479,7 @@
     "category": "ensaladas_verduras",
     "mainProtein": "none",
     "mealRole": [
-      "segundo",
+      "primero",
       "plato_unico"
     ],
     "type": "completo",
@@ -20753,8 +20753,7 @@
     "category": "ensaladas_verduras",
     "mainProtein": "none",
     "mealRole": [
-      "segundo",
-      "plato_unico"
+      "primero"
     ],
     "type": "completo",
     "requiredAppliance": "horno",

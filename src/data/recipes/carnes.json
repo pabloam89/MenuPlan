@@ -29899,8 +29899,7 @@
     "category": "carnes",
     "mainProtein": "none",
     "mealRole": [
-      "segundo",
-      "plato_unico"
+      "primero"
     ],
     "type": "completo",
     "requiredAppliance": "horno",
