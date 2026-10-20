@@ -32,6 +32,9 @@ const DECORACION = /^[\s*_`>#|•·\-\p{Extended_Pictographic}️‍]+/u;
 const ETIQUETA = /^veredicto[\s*_`]*[:\-–—|]\s*(.*)$/iu;
 const ultimaLinea = (texto) => String(texto ?? "").split(/\r?\n/).map((l) => l.replace(DECORACION, "").trim()).filter(Boolean).at(-1) ?? "";
 
+/** La línea que repite el encargo («pasa | no pasa | no sé», «elige una»), no una respuesta. */
+export const esPlantilla = (linea) => /pasa\s*[|/]\s*no\s+pasa|elige\s+una/i.test(String(linea ?? ""));
+
 /** pasa | no_pasa | no_se | sin_veredicto, a partir del informe del juez. */
 export function veredictoDe(texto) {
   const valor = ETIQUETA.exec(ultimaLinea(texto))?.[1].replace(DECORACION, "").replace(/^[«"“']+/, "").toLowerCase();
@@ -81,6 +84,7 @@ export function apunteDe(ev) {
     texto = textoDe(r);
   }
   if (!agente || !JUECES.includes(agente)) return null;
+  if (esPlantilla(ultimaLinea(texto))) return null; // el eco del encargo no es un informe: no se apunta (ni «no pasa» ni ilegible)
   return { agente, veredicto: veredictoDe(texto), resumen: ultimaLinea(texto).slice(0, 160), ...(agentId ? { agent_id: agentId } : {}) };
 }
 
@@ -128,4 +132,19 @@ export function cuadro(filas) {
 /** Lo que impide cerrar: falta el juez, no ha informado, informó sin veredicto legible o dijo que no pasa. «no sé» avisa, no bloquea. */
 export function bloqueantes(filas) {
   return filas.filter((f) => f.bloquea);
+}
+
+const EDITA = new Set(["Edit", "Write", "MultiEdit", "NotebookEdit"]);
+
+/**
+ * ¿Cambió algo ESTA sesión? transcript: objetos de la transcripción (jsonl); mtimes: ms de los ficheros cambiados.
+ * Sí si usó una herramienta que edita, o si un fichero cambiado se tocó después de que empezara (p. ej. por terminal).
+ * null si la transcripción no dice cuándo empezó: entonces no se sabe y el cierre exige como siempre.
+ */
+export function sesionCambio({ transcript, mtimes }) {
+  const inicio = transcript.map((l) => Date.parse(l?.timestamp)).find((t) => Number.isFinite(t));
+  if (inicio === undefined) return null;
+  const usos = transcript.flatMap((l) => (Array.isArray(l?.message?.content) ? l.message.content : []));
+  if (usos.some((c) => c?.type === "tool_use" && EDITA.has(c.name))) return true;
+  return mtimes.some((m) => m >= inicio);
 }

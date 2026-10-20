@@ -65,3 +65,15 @@ export function mtime(cwd, rel) {
     return 0; // a propósito: un fichero borrado no cuenta como edición
   }
 }
+
+/** Las líneas de la transcripción de la sesión (jsonl); [] si no se puede leer. */
+export function leerTranscript(ruta) {
+  if (!ruta || !existsSync(ruta)) return [];
+  return readFileSync(ruta, "utf8").split("\n").filter(Boolean).flatMap((l) => {
+    try {
+      return [JSON.parse(l)];
+    } catch {
+      return []; // a propósito: una línea rota no decide nada
+    }
+  });
+}

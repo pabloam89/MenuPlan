@@ -1,10 +1,11 @@
 /**
  * Stop: la sesión no se cierra si falta un juez de los que tocan, si dijo «no pasa» o si informó sin acabar en una línea Veredicto.
+ * Solo cuentan los jueces apuntados por ESTA sesión (session_id).
  * Una sola vez por cierre (stop_hook_active): si vuelve a fallar, avisa y deja cerrar,
  * para no atrapar la sesión. FACTORIA_ALVARO_OFF=1 lo apaga (y se dice).
  */
-import { bloqueantes, cuadro, evaluar, juecesRequeridos } from "../lib/reglas.mjs";
-import { ficherosCambiados, leer, mtime } from "../lib/registro.mjs";
+import { bloqueantes, cuadro, evaluar, juecesRequeridos, sesionCambio } from "../lib/reglas.mjs";
+import { ficherosCambiados, leer, leerTranscript, mtime } from "../lib/registro.mjs";
 
 let entrada = {};
 try {
@@ -23,11 +24,14 @@ if (process.env.FACTORIA_ALVARO_OFF === "1") {
 }
 
 const cwd = entrada.cwd || process.cwd();
-const requeridos = juecesRequeridos(ficherosCambiados(cwd));
+const cambiados = ficherosCambiados(cwd);
+const requeridos = juecesRequeridos(cambiados);
 if (!Object.keys(requeridos).length) process.exit(0);
+// Una sesión que no editó nada ni vio cambiar ningún fichero no tiene nada que juzgar (aunque la rama traiga cambios de otra).
+if (sesionCambio({ transcript: leerTranscript(entrada.transcript_path), mtimes: cambiados.map((f) => mtime(cwd, f)) }) === false) process.exit(0);
 
 const ultimaEdicion = Object.fromEntries(Object.entries(requeridos).map(([j, fs]) => [j, Math.max(...fs.map((f) => mtime(cwd, f)))]));
-const filas = evaluar({ requeridos, entradas: leer(cwd), ultimaEdicion });
+const filas = evaluar({ requeridos, entradas: leer(cwd).filter((e) => !entrada.session_id || e.sesion === entrada.session_id), ultimaEdicion });
 const faltan = bloqueantes(filas);
 
 if (faltan.length && !entrada.stop_hook_active) {

@@ -18,6 +18,10 @@ evaluador. Un juez solo vale si fue **lanzado después** del último cambio (lo 
 al arrancar, no el de cuando llegó su informe): el momento del juicio es el del apunte «lanzado» con el mismo
 `agent_id`; sin `agent_id`, el del propio apunte.
 
+## Solo lo de esta sesión
+
+El cierre solo cuenta los apuntes de jueces con el `session_id` de la sesión que se cierra (el registro sigue siendo por rama). Si la transcripción (`transcript_path`) muestra que la sesión no usó Edit, Write, MultiEdit ni NotebookEdit y ningún fichero cambiado se tocó después de su arranque, no exige jueces aunque la rama traiga cambios de otra sesión. Una línea que repite el encargo («pasa | no pasa», «elige una») no se apunta como informe.
+
 ## El veredicto: última línea, estricta, y lo ilegible bloquea
 
 El veredicto es la **última línea no vacía** del informe del juez, tras quitarle solo la decoración (espacios,

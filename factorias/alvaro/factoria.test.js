@@ -235,6 +235,9 @@ describe("los hooks de punta a punta (prueba de fallo)", () => {
     const r = JSON.parse(correr("arranque.mjs", {}).stdout);
     expect(r.systemMessage).toMatch(/Factoría de Álvaro activa/);
     expect(r.hookSpecificOutput.additionalContext).toMatch(/ÚLTIMA línea del informe, solo una de las tres opciones/);
+    expect(r.hookSpecificOutput.additionalContext).toMatch(/TODAS sus objeciones en una sola pasada/);
+    expect(r.hookSpecificOutput.additionalContext).toMatch(/solo verifica esas objeciones/);
+    expect(r.hookSpecificOutput.additionalContext).toMatch(/los sitios a tocar y qué mirará el juez/);
   });
   it("sin cambios que juzgar, deja cerrar sin decir nada", () => {
     expect(correr("cierre.mjs", {}).stdout).toBe("");
@@ -322,7 +325,6 @@ describe("los hooks de punta a punta (prueba de fallo)", () => {
   });
   it.each([
     ["sin etiqueta y con «sin bloqueantes»", "Hecho. Todo en orden, sin bloqueantes."],
-    ["con la línea del encargo", "Termina con «Veredicto: pasa | no pasa | no sé» (elige una)."],
     ["con la etiqueta que no es la última línea", "Veredicto: pasa\nGracias."],
   ])("informe %s: bloquea con el mensaje del informe ilegible, nunca con el de «lanzado»", (_n, texto) => {
     for (const conLanzado of [false, true]) {
@@ -359,5 +361,78 @@ describe("los hooks de punta a punta (prueba de fallo)", () => {
   it("FACTORIA_ALVARO_OFF=1 lo apaga y lo dice", () => {
     tocarPantalla();
     expect(JSON.parse(correr("cierre.mjs", {}, { FACTORIA_ALVARO_OFF: "1" }).stdout).systemMessage).toMatch(/APAGADA/);
+  });
+});
+
+// 20 oct 2026: una sesión sin cambios se vio bloqueada por apuntes de OTRA sesión y por la plantilla del encargo.
+describe("el cierre solo mira lo de ESTA sesión", () => {
+  let repo;
+  let reg;
+  const correr = (hook, entrada, extra = {}) =>
+    spawnSync("node", [join(aqui, "hooks", hook)], { input: JSON.stringify({ cwd: repo, ...entrada }), encoding: "utf8", env: { ...process.env, FACTORIA_ALVARO_DIR: reg, ...extra } });
+  const git = (...a) => execFileSync("git", a, { cwd: repo, stdio: "ignore" });
+  const transcript = (lineas) => {
+    const f = join(reg, "transcript.jsonl");
+    writeFileSync(f, lineas.map((l) => JSON.stringify(l)).join("\n") + "\n");
+    return f;
+  };
+  const conEdit = (ts) => [{ type: "user", timestamp: new Date(ts).toISOString() }, { type: "assistant", timestamp: new Date(ts).toISOString(), message: { content: [{ type: "tool_use", name: "Edit", input: {} }] } }];
+  const sinEdit = (ts) => [{ type: "user", timestamp: new Date(ts).toISOString() }, { type: "assistant", timestamp: new Date(ts).toISOString(), message: { content: [{ type: "tool_use", name: "Bash", input: { command: "git status" } }] } }];
+
+  beforeEach(() => {
+    repo = mkdtempSync(join(tmpdir(), "fa-repo-"));
+    reg = mkdtempSync(join(tmpdir(), "fa-reg-"));
+    git("init", "-q", "-b", "prueba");
+    git("config", "user.email", "t@t");
+    git("config", "user.name", "t");
+    writeFileSync(join(repo, "README.md"), "x");
+    git("add", ".");
+    git("commit", "-qm", "base");
+    git("update-ref", "refs/remotes/origin/staging", "HEAD");
+    mkdirSync(join(repo, "scripts"), { recursive: true });
+    writeFileSync(join(repo, "scripts", "x.mjs"), "export default 1"); // cambio de una sesión anterior
+  });
+  afterEach(() => {
+    rmSync(repo, { recursive: true, force: true });
+    rmSync(reg, { recursive: true, force: true });
+  });
+
+  it("(a) un «no pasa» apuntado por OTRA sesión no cuenta en esta", () => {
+    correr("registro.mjs", { session_id: "otra", tool_name: "Agent", tool_input: { subagent_type: "revisor" }, tool_response: { content: [{ type: "text", text: "Veredicto: no pasa" }] } });
+    correr("registro.mjs", { session_id: "esta", tool_name: "Agent", tool_input: { subagent_type: "revisor" }, tool_response: { content: [{ type: "text", text: "Veredicto: pasa" }] } });
+    const r = JSON.parse(correr("cierre.mjs", { session_id: "esta" }).stdout);
+    expect(r.decision).toBeUndefined();
+    expect(r.systemMessage).toMatch(/revisor +✅/);
+  });
+  it("(b) la plantilla del encargo no se apunta como veredicto (ni «no pasa» ni ilegible)", () => {
+    expect(apunteDe({ hook_event_name: "SubagentStop", agent_type: "revisor", last_assistant_message: "Acaba con «Veredicto: pasa | no pasa | no sé» (elige una)." })).toBeNull();
+    expect(apunteDe({ hook_event_name: "SubagentStop", agent_type: "revisor", last_assistant_message: "Veredicto: pasa | no pasa | no sé" })).toBeNull();
+  });
+  it("(c) una sesión que no editó nada ni cambió ficheros no exige jueces", () => {
+    const t = transcript(sinEdit(Date.now() + 60_000)); // la sesión empezó después del último cambio
+    expect(correr("cierre.mjs", { session_id: "esta", transcript_path: t }).stdout).toBe("");
+  });
+  it("(c) pero si la sesión usó Edit/Write, sí los exige", () => {
+    const t = transcript(conEdit(Date.now() + 60_000));
+    expect(JSON.parse(correr("cierre.mjs", { session_id: "esta", transcript_path: t }).stdout).decision).toBe("block");
+  });
+  it("(c) y si un fichero cambió durante la sesión (p. ej. por terminal), también", () => {
+    const t = transcript(sinEdit(Date.now() - 60_000));
+    expect(JSON.parse(correr("cierre.mjs", { session_id: "esta", transcript_path: t }).stdout).decision).toBe("block");
+  });
+  it("(d) tras un veredicto válido, solo vuelve a exigir si hay cambios después", () => {
+    const t = transcript(conEdit(Date.now() - 60_000));
+    correr("registro.mjs", { session_id: "esta", tool_name: "Agent", tool_input: { subagent_type: "revisor" }, tool_response: { content: [{ type: "text", text: "Veredicto: pasa" }] } });
+    expect(JSON.parse(correr("cierre.mjs", { session_id: "esta", transcript_path: t }).stdout).decision).toBeUndefined();
+    const espera = Date.now() + 30;
+    while (Date.now() < espera);
+    writeFileSync(join(repo, "scripts", "x.mjs"), "export default 2");
+    expect(JSON.parse(correr("cierre.mjs", { session_id: "esta", transcript_path: t }).stdout).decision).toBe("block");
+  });
+  it("(e) un veredicto ilegible se informa como «ilegible», nunca como «no pasa»", () => {
+    correr("registro.mjs", { session_id: "esta", tool_name: "Agent", tool_input: { subagent_type: "revisor" }, tool_response: { content: [{ type: "text", text: "Hecho, sin bloqueantes." }] } });
+    const r = JSON.parse(correr("cierre.mjs", { session_id: "esta" }).stdout);
+    expect(r.reason).toMatch(/ilegible|no acaba en una línea Veredicto/);
+    expect(r.reason).not.toMatch(/dice que no pasa/);
   });
 });
