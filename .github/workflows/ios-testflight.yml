@@ -48,6 +48,12 @@ on:
         required: false
         default: ""
 
+# Permisos mínimos del GITHUB_TOKEN: ningún paso escribe en el repo, sube
+# artefactos ni crea etiquetas; solo hace checkout. Los secretos de firma son
+# aparte (los de Actions, no el token).
+permissions:
+  contents: read
+
 concurrency:
   group: ios-testflight
   cancel-in-progress: false
@@ -231,11 +237,15 @@ jobs:
 
       - name: Resumen
         if: always()
+        # `notas` es texto libre de quien lanza el workflow: va por una variable
+        # de entorno y no dentro del script, para que no pueda inyectar comandos.
+        env:
+          NOTAS: ${{ inputs.notas }}
         run: |
           {
             echo "### Build $BUILD_NUMBER"
             echo ""
-            echo "${{ inputs.notas }}"
+            echo "$NOTAS"
             echo ""
             echo "Tarda unos minutos en aparecer en TestFlight mientras Apple la procesa."
           } >> "$GITHUB_STEP_SUMMARY"
