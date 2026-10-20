@@ -487,6 +487,8 @@ export function bottomNavSpacer() {
  *
  * @param {number} px El padding de diseño, el que tendria sin barra de estado.
  */
+// Helper de estilo, no un componente: sale de aquí para que 19 pantallas no cambien su import.
+// eslint-disable-next-line react-refresh/only-export-components
 export function safeTop(px) {
   return `calc(${px}px + env(safe-area-inset-top, 0px))`;
 }
