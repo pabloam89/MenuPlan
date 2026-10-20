@@ -76,6 +76,7 @@ import {
 import { visualForRecipe, paletteForRecipe } from "../assets/dishes/dishVisuals.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { resolveRecipeAllergens, EU_ALLERGENS } from "../lib/allergens.js";
+import { apiUrl } from "../lib/apiUrl.js";
 import { adaptationsNeededFor, allergensAfterAdaptation } from "../lib/substitutions.js";
 import { matchingHealthProfiles } from "../lib/healthProfileMatch.js";
 import { migrateFixedDishes } from "../lib/fixedDishes.js";
@@ -129,7 +130,7 @@ import { normalizePantryInput } from "../utils/normalizePantryInput.js";
 import { membersOfGroup, isBabyMenuGroup, adhocReasonLabel } from "../lib/groups.js";
 import { eatersForSlot } from "../lib/slotEaters.js";
 import { summarizeMenuRestrictionConflicts } from "../utils/menuConflicts.js";
-import { Avatar, BottomNav, Chip, EmptyIllustration, GroupAvatarStack, GroupScopePicker, WeekRangeBadge, WizardSheet, bottomNavSpacer, groupAvatarFaces, APP_SHELL_MAX_WIDTH } from "../components/ui.jsx";
+import { Avatar, BottomNav, Chip, EmptyIllustration, GroupAvatarStack, GroupScopePicker, WeekRangeBadge, WizardSheet, bottomNavSpacer, safeTop, groupAvatarFaces, APP_SHELL_MAX_WIDTH } from "../components/ui.jsx";
 import { CommentThread } from "../components/CommentThread.jsx";
 import { ShareMenuSheet } from "../components/ShareMenuSheet.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
@@ -5919,7 +5920,8 @@ export const MenuScreen = memo(function MenuScreen({
         }
       `}</style>
       {/* ── Top header: title + actions ── */}
-      <div style={{ background: "var(--pz-fondo-suave, #e9f4ed)", padding: "20px 20px 14px" }}>
+      <div style={{ background: "var(--pz-fondo-suave, #e9f4ed)", padding: "20px 20px 14px", paddingTop: safeTop(20) }}>
+
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span
@@ -6059,7 +6061,7 @@ export const MenuScreen = memo(function MenuScreen({
                   animation: "sidebarIn .3s cubic-bezier(.4,0,.2,1) both",
                 }}
               >
-                <div style={{ background: "#e9f4ed", padding: "18px 16px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                <div style={{ background: "#e9f4ed", padding: "18px 16px 14px", paddingTop: safeTop(18), display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
                     <span
                       style={{
@@ -7672,7 +7674,7 @@ export function DishDetail({
       }
 
       try {
-        const r = await fetch("/api/recipe-steps", {
+        const r = await fetch(apiUrl("/api/recipe-steps"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

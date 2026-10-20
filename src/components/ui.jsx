@@ -1,4 +1,5 @@
 import { FRONTAL_BOT } from "../lib/frontalBot.js";
+import { isNativeApp } from "../lib/apiUrl.js";
 import { useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { BookOpen, Calendar, ChevronDown, ClipboardList, CookingPot, Home, ShoppingCart, Sparkles, UserCircle, Users, X } from "./icons.jsx";
@@ -465,6 +466,34 @@ export function bottomNavSpacer() {
   return `calc(${BOTTOM_NAV_HEIGHT}px + env(safe-area-inset-bottom, 0px))`;
 }
 
+/**
+ * El padding de arriba de una cabecera de pantalla, ya con el hueco de la barra
+ * de estado sumado.
+ *
+ * La app se dibuja de borde a borde (`viewport-fit=cover` en index.html, y la
+ * barra de estado en modo overlay en capacitor.config.json), asi que la primera
+ * franja de cada pantalla queda DEBAJO del reloj. Eso es lo que queremos
+ * visualmente — la banda de color sube hasta el borde en vez de dejar una tira
+ * blanca — pero obliga a apartar el contenido, o los botones de la esquina
+ * acaban bajo el reloj y no se pueden pulsar.
+ *
+ * Se hace con `env()` y no con un numero por dispositivo a proposito: el hueco
+ * no es el mismo en un SE (sin notch), en un mini (pantalla pequeña pero notch
+ * igual de grande) o en uno con Dynamic Island, y es iOS quien sabe cuanto mide
+ * en cada uno. Asi no hay lista de modelos que mantener, y un iPhone que salga
+ * mañana tambien sale bien.
+ *
+ * En la web de escritorio y en Safari con su barra de direcciones el inset vale
+ * 0, y queda exactamente el padding que se pide.
+ *
+ * @param {number} px El padding de diseño, el que tendria sin barra de estado.
+ */
+// Helper de estilo, no un componente: sale de aquí para que 19 pantallas no cambien su import.
+// eslint-disable-next-line react-refresh/only-export-components
+export function safeTop(px) {
+  return `calc(${px}px + env(safe-area-inset-top, 0px))`;
+}
+
 // One single bar everywhere in the app — it used to swap its 4-5 items
 // depending on a "home"/"menu" context prop, which meant the tabs under your
 // thumb silently changed screen to screen (a real source of "me pierdo" —
@@ -693,7 +722,39 @@ function GoogleGlyph({ size = 18 }) {
   );
 }
 
-export function GoogleButton({ onClick, label = "Continuar con Google", variant = "light" }) {
+function AppleGlyph({ size = 18, color = "#fff" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" style={{ flexShrink: 0 }}>
+      <path
+        fill={color}
+        d="M16.36 12.78c-.03-2.7 2.2-3.99 2.3-4.05-1.25-1.83-3.2-2.08-3.9-2.11-1.66-.17-3.24.98-4.08.98-.84 0-2.14-.96-3.52-.93-1.81.03-3.48 1.05-4.41 2.67-1.88 3.26-.48 8.08 1.35 10.72.9 1.29 1.97 2.74 3.38 2.69 1.36-.06 1.87-.88 3.51-.88 1.64 0 2.1.88 3.53.85 1.46-.03 2.38-1.32 3.27-2.62 1.03-1.5 1.45-2.95 1.48-3.03-.03-.01-2.84-1.09-2.87-4.32zM13.7 4.9c.74-.9 1.24-2.15 1.1-3.4-1.07.04-2.36.71-3.13 1.61-.69.79-1.29 2.06-1.13 3.28 1.19.09 2.41-.6 3.16-1.49z"
+      />
+    </svg>
+  );
+}
+
+/**
+ * El botón de entrar con un proveedor. Google y Apple comparten cuerpo porque
+ * comparten los dos comportamientos que importan: el estado "Redirigiendo…"
+ * mientras se abre el navegador del sistema, y un error que se lee bajo el
+ * botón en vez de perderse en la consola.
+ *
+ * Apple exige que su botón no se vea menos que el resto (Guideline 4.8), así
+ * que la única diferencia entre los dos es el color y el glifo, nunca el
+ * tamaño ni el peso.
+ */
+function OAuthButton({
+  onClick,
+  label,
+  glyph,
+  variant,
+  background,
+  color,
+  border,
+  spinnerTrack,
+  spinnerArc,
+  failMessage,
+}) {
   const dark = variant === "dark";
   const [pressed, setPressed] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -705,10 +766,11 @@ export function GoogleButton({ onClick, label = "Continuar con Google", variant 
     setError(null);
     let failure = null;
     try {
-      // signInWithGoogle reports failures by *returning* { error } rather than
-      // throwing, so catching a rejection only covers half the cases. Missing
-      // Supabase env vars in a deploy hit the returned-error path, which used
-      // to leave the button spinning "Redirigiendo…" forever with no clue why.
+      // Los signIn del hook avisan de los fallos *devolviendo* { error }, no
+      // lanzando, así que capturar el rechazo solo cubre la mitad de los
+      // casos. Faltar las env de Supabase en un deploy cae por la rama del
+      // error devuelto, que antes dejaba el botón girando "Redirigiendo…"
+      // para siempre y sin pista de por qué.
       const result = await onClick?.();
       failure = result?.error ?? null;
     } catch (err) {
@@ -716,7 +778,7 @@ export function GoogleButton({ onClick, label = "Continuar con Google", variant 
     }
     if (failure) {
       setLoading(false);
-      setError(failure.message || "No se pudo conectar con Google.");
+      setError(failure.message || failMessage);
     }
     // On success the page redirects — no need to reset loading
   };
@@ -740,9 +802,9 @@ export function GoogleButton({ onClick, label = "Continuar con Google", variant 
         gap: 10,
         padding: "15px 20px",
         borderRadius: 999,
-        border: dark ? "1.5px solid rgba(255,255,255,.25)" : "1.5px solid #dbe5de",
-        background: "#fff",
-        color: "#1a3a24",
+        border,
+        background,
+        color,
         fontSize: 15,
         fontWeight: 800,
         cursor: loading ? "default" : "pointer",
@@ -762,11 +824,11 @@ export function GoogleButton({ onClick, label = "Continuar con Google", variant 
           style={{ flexShrink: 0 }}
           aria-hidden="true"
         >
-          <circle cx="9" cy="9" r="7" fill="none" stroke="#dbe5de" strokeWidth="2.5" />
-          <path d="M9 2 A7 7 0 0 1 16 9" fill="none" stroke="#2d5a3d" strokeWidth="2.5" strokeLinecap="round" />
+          <circle cx="9" cy="9" r="7" fill="none" stroke={spinnerTrack} strokeWidth="2.5" />
+          <path d="M9 2 A7 7 0 0 1 16 9" fill="none" stroke={spinnerArc} strokeWidth="2.5" strokeLinecap="round" />
         </svg>
       ) : (
-        <GoogleGlyph size={18} />
+        glyph
       )}
       {loading ? "Redirigiendo…" : label}
     </button>
@@ -795,6 +857,84 @@ export function GoogleButton({ onClick, label = "Continuar con Google", variant 
       </p>
     )}
     </>
+  );
+}
+
+export function GoogleButton({ onClick, label = "Continuar con Google", variant = "light" }) {
+  return (
+    <OAuthButton
+      onClick={onClick}
+      label={label}
+      variant={variant}
+      glyph={<GoogleGlyph size={18} />}
+      background="#fff"
+      color="#1a3a24"
+      border={variant === "dark" ? "1.5px solid rgba(255,255,255,.25)" : "1.5px solid #dbe5de"}
+      spinnerTrack="#dbe5de"
+      spinnerArc="#2d5a3d"
+      failMessage="No se pudo conectar con Google."
+    />
+  );
+}
+
+export function AppleButton({ onClick, label = "Continuar con Apple", variant = "light" }) {
+  return (
+    <OAuthButton
+      onClick={onClick}
+      label={label}
+      variant={variant}
+      glyph={<AppleGlyph size={18} />}
+      background="#000"
+      color="#fff"
+      border="1.5px solid #000"
+      spinnerTrack="rgba(255,255,255,.35)"
+      spinnerArc="#fff"
+      failMessage="No se pudo conectar con Apple."
+    />
+  );
+}
+
+/**
+ * Las formas de entrar, juntas y con el mismo peso.
+ *
+ * En la app de iOS van siempre las dos: ofrecer Google a solas es rechazo de
+ * App Store por la Guideline 4.8. Por eso existe este componente y no se pinta
+ * `GoogleButton` suelto en ninguna pantalla.
+ *
+ * Apple solo se ofrece en la app nativa (`conApple`, por defecto `isNativeApp`):
+ * la 4.8 es de iOS, y en la web el proveedor Apple puede no estar habilitado
+ * en Supabase (ni el Services ID en el portal de Apple), con lo que el botón
+ * llevaría a un error. Se abrirá en la web cuando Pablo confirme que Apple
+ * está habilitado (issue #890).
+ */
+export function SignInOptions({ onGoogle, onApple, variant = "light", conApple = isNativeApp }) {
+  const dark = variant === "dark";
+  return (
+    <div style={{ display: "grid", gap: 10 }}>
+      {conApple && <AppleButton onClick={onApple} variant={variant} />}
+      <GoogleButton onClick={onGoogle} variant={variant} />
+      {/* La aceptación de los términos vive aquí y no en cada pantalla porque
+          aquí es donde nace la cuenta, y porque App Store exige, en apps con
+          contenido de usuarios, que el usuario acepte unas condiciones con
+          tolerancia cero antes de poder publicar. Al estar dentro de este
+          componente aparece sola en las siete pantallas que ofrecen entrar. */}
+      <p style={{
+        margin: "2px 4px 0",
+        fontSize: 11.5,
+        lineHeight: 1.45,
+        textAlign: "center",
+        fontWeight: 600,
+        color: dark ? "rgba(255,255,255,.85)" : "#7a9485",
+        ...(dark ? { textShadow: "0 1px 6px rgba(0,0,0,.6)" } : null),
+      }}>
+        Al continuar aceptas los{" "}
+        <a href="/terminos.html" target="_blank" rel="noopener noreferrer"
+           style={{ color: "inherit", fontWeight: 800 }}>términos de uso</a>
+        {" "}y la{" "}
+        <a href="/privacidad.html" target="_blank" rel="noopener noreferrer"
+           style={{ color: "inherit", fontWeight: 800 }}>política de privacidad</a>.
+      </p>
+    </div>
   );
 }
 

@@ -137,8 +137,9 @@ const apuntado = (texto, n) => new RegExp(String.raw`(?<![\w])${n}(?![\w])`).tes
  * Las violaciones de una migración ≥ 0087. Cada una empieza por el nombre de
  * la regla («on-delete: …»), que es lo que mira el autotest.
  */
-// Los únicos ficheros que pueden declarar un valor de enum ya existente (con marca e if not exists).
-export const ENUM_DECLARATIVO = new Set(["0098_enums_salsa.sql"]);
+// Los únicos ficheros que pueden declarar un valor de enum ya existente (con marca e if not exists):
+// hoy la 0098 (salsas, #366) y la 0101 (comment_target). Lo cuenta docs/datos/PRINCIPIOS.md §4.
+export const ENUM_DECLARATIVO = new Set(["0098_enums_salsa.sql", "0101_report_comment_target.sql"]);
 
 export function revisar(fichero, sql, { pendientes, estado, enumDeclarativo = ENUM_DECLARATIVO }) {
   const v = [];

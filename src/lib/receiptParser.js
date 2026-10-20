@@ -1,4 +1,5 @@
 import { FAST_MODEL } from "./aiModels.js";
+import { apiUrl } from "./apiUrl.js";
 import { imageFileToVisionPayload } from "./visionImage.js";
 
 function extractJson(text) {
@@ -14,7 +15,7 @@ function extractJson(text) {
 }
 
 async function postVisionGenerate(body, { signal, failLabel } = {}) {
-  const response = await fetch("/api/generate", {
+  const response = await fetch(apiUrl("/api/generate"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),

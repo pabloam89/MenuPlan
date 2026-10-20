@@ -1,0 +1,11 @@
+{
+  "appId": "com.homenu.app",
+  "appName": "HoMenu",
+  "webDir": "dist",
+  "plugins": {
+    "StatusBar": {
+      "overlaysWebView": true,
+      "style": "LIGHT"
+    }
+  }
+}

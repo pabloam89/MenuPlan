@@ -21,8 +21,9 @@ import {
 import {
   BottomNav,
   Avatar,
-  GoogleButton,
+  SignInOptions,
   bottomNavSpacer,
+  safeTop,
 } from "../components/ui.jsx";
 import { memberAvatarColor, memberAvatarThumbSrc, stageLabel, migrateHomeRole } from "../lib/stages.js";
 import { computeStreak } from "../lib/menuStats.js";
@@ -189,6 +190,7 @@ export function SettingsScreen({
   onOpenDashboard,
   onEditPreferences,
   onSignIn,
+  onAppleSignIn,
   onReset,
 }) {
   const g = googleInfo(user);
@@ -213,6 +215,7 @@ export function SettingsScreen({
       <div
         style={{
           padding: "20px 16px 0",
+          paddingTop: safeTop(20),
           paddingBottom: `calc(${bottomNavSpacer()} + 12px)`,
         }}
       >
@@ -284,7 +287,7 @@ export function SettingsScreen({
             <p style={{ margin: "0 0 14px", fontSize: 13, color: "#7a8a7f", lineHeight: 1.5 }}>
               Inicia sesión para sincronizar tu familia y tus menús en todos tus dispositivos.
             </p>
-            <GoogleButton onClick={onSignIn} />
+            <SignInOptions onGoogle={onSignIn} onApple={onAppleSignIn} />
           </div>
         )}
 
@@ -375,6 +378,7 @@ export function AccountScreen({
   onEditMembers,
   onEditPreferences,
   onSignIn,
+  onAppleSignIn,
   onSignOut,
   onToast,
 }) {
@@ -477,6 +481,7 @@ export function AccountScreen({
       <div
         style={{
           padding: "16px 16px 0",
+          paddingTop: safeTop(16),
           paddingBottom: `calc(${bottomNavSpacer()} + 12px)`,
         }}
       >
@@ -547,7 +552,7 @@ export function AccountScreen({
             <p style={{ margin: "0 0 12px", fontSize: 14, color: "#7a8a7f", lineHeight: 1.5 }}>
               Inicia sesión para guardar tu perfil y tus menús.
             </p>
-            <GoogleButton onClick={onSignIn} />
+            <SignInOptions onGoogle={onSignIn} onApple={onAppleSignIn} />
           </Card>
         )}
 
@@ -810,6 +815,32 @@ export function AccountScreen({
               }}
             >
               <ShieldCheck size={16} /> Política de privacidad
+            </a>
+            <a
+              href="/terminos.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                width: "100%",
+                marginTop: 8,
+                padding: "14px",
+                borderRadius: 14,
+                border: "1.5px solid #e3e8e4",
+                background: "#fff",
+                color: INK,
+                fontSize: 14,
+                fontWeight: 800,
+                cursor: "pointer",
+                fontFamily: "inherit",
+                textDecoration: "none",
+                boxSizing: "border-box",
+              }}
+            >
+              <ShieldCheck size={16} /> Términos de uso
             </a>
             <button
               type="button"

@@ -56,3 +56,38 @@ describe("aviso de alta hecha en la app", () => {
     expect(t.enviados).toHaveLength(0);
   });
 });
+
+// La app iOS (Capacitor) sirve la web desde capacitor://localhost: sus llamadas a /api son
+// cross-origin. Sin cors() el POST/GET nunca sale (el preflight OPTIONS no se contesta).
+describe("enlace desde la app nativa (CORS)", () => {
+  function conOrigen(method, origin, authorization = "Bearer bueno") {
+    const cabeceras = {};
+    const res = {
+      code: 0, terminado: false, cabeceras,
+      setHeader: (k, v) => { cabeceras[k] = v; },
+      status: (c) => { res.code = c; return res; },
+      end: () => { res.terminado = true; return res; },
+      json: (j) => { res.cuerpo = j; return res; },
+    };
+    return handler({ method, headers: { origin, authorization }, body: {} }, res).then(() => res);
+  }
+
+  it("el preflight OPTIONS desde capacitor://localhost se contesta 204 sin mirar la sesión", async () => {
+    const res = await conOrigen("OPTIONS", "capacitor://localhost", "");
+    expect(res.code).toBe(204);
+    expect(res.terminado).toBe(true);
+    expect(res.cabeceras["Access-Control-Allow-Origin"]).toBe("capacitor://localhost");
+    expect(res.cuerpo).toBeUndefined();
+  });
+
+  it("el GET de «¿estoy conectado?» lleva el Allow-Origin de la app", async () => {
+    const res = await conOrigen("GET", "capacitor://localhost");
+    expect(res.cabeceras["Access-Control-Allow-Origin"]).toBe("capacitor://localhost");
+    expect(res.cuerpo).toEqual({ conectado: false });
+  });
+
+  it("desde otro origen no se añade ninguna cabecera", async () => {
+    const res = await conOrigen("GET", "https://evil.example");
+    expect(res.cabeceras["Access-Control-Allow-Origin"]).toBeUndefined();
+  });
+});

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { X, ChefHat, ChevronRight, MessageSquarePlus, ArrowLeftRight } from "./icons.jsx";
-import { Avatar } from "./ui.jsx";
+import { Avatar, safeTop } from "./ui.jsx";
+import { useStatusBarSobreFondo } from "../lib/statusBar.js";
 import { sealText, sealPos, sealColor } from "../lib/cookings.js";
 import { relativeTime } from "../lib/socialUi.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
@@ -50,6 +51,10 @@ export function CookingStory({ group, profile, profiles = {}, onClose, onOpenRec
   const stageRef = useRef(null);
   const items = group?.items ?? [];
   const c = items[idx];
+
+  // Ocupa la pantalla entera sobre casi negro, con el reloj justo encima de la
+  // franja de arriba: en oscuro no se leeria.
+  useStatusBarSobreFondo("oscuro");
 
   /**
    * Cambiar de cocinada devuelve el comparador a cero. Va aqui y no en un
@@ -250,6 +255,12 @@ const backdrop = {
   position: "fixed", inset: 0, zIndex: 95, background: "#121814",
   display: "flex", flexDirection: "column", alignItems: "center",
   animation: "mp-overlay-in .18s ease",
+  // El hueco del reloj se aparta AQUI, y no en cada control: `stage` es el
+  // flex:1 de dentro, asi que las barras de progreso y la fila del nombre (que
+  // van absolutas contra el) bajan solas. Queda la franja #121814 arriba, que
+  // es justo como se ve una historia a pantalla completa.
+  paddingTop: safeTop(0),
+  boxSizing: "border-box",
 };
 const stage = { position: "relative", flex: 1, width: "100%", maxWidth: 420, overflow: "hidden", touchAction: "none" };
 const photoStyle = { width: "100%", height: "100%", objectFit: "cover", display: "block", userSelect: "none" };

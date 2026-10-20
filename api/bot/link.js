@@ -14,6 +14,7 @@
  */
 
 import { codigoBot } from "../../src/lib/ids.js";
+import { cors } from "../_guard.js";
 import { select, insert, usuarioDeToken, eq } from "../_bot/db.js";
 import { nombreDelBot, enviar } from "../_bot/telegram.js";
 import { recordar } from "../_bot/rapido.js";
@@ -26,6 +27,9 @@ export const AVISO_ALTA = "¡Listo, ya os tengo! 🙌 ¿Os preparo el menú de l
 export const BOTON_ALTA = { texto: "🍽️ Prepáralo ya", dato: "t:Prepárame ya el menú de esta semana" };
 
 export default async function handler(req, res) {
+  // La app iOS (Capacitor) llama desde capacitor://localhost: sin CORS el
+  // navegador de la app ni envía el POST. Responde al preflight OPTIONS.
+  if (cors(req, res)) return;
   if (req.method !== "POST" && req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
 
   const accessToken = (req.headers.authorization ?? "").replace(/^Bearer\s+/i, "").trim();

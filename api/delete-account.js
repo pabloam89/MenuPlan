@@ -40,7 +40,7 @@ async function fetchWithTimeout(url, options) {
 // Apple obliga a revocar el token de las cuentas creadas con "Iniciar sesión
 // con Apple" cuando el usuario borra la cuenta — misma guía que obliga al
 // borrado en sí. El refresh token lo copia el cliente en apple_auth_tokens al
-// iniciar sesión, porque Supabase no lo persiste (ver la migración 0053).
+// iniciar sesión, porque Supabase no lo persiste (ver la migración 0099).
 //
 // El secreto de cliente de Apple no es una cadena fija: es un JWT ES256
 // firmado con la clave .p8, válido cinco minutos, que hay que fabricar en cada
