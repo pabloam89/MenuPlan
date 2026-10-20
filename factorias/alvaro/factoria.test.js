@@ -28,57 +28,87 @@ describe("qué jueces tocan según los ficheros", () => {
   });
 });
 
-describe("veredicto del juez", () => {
+// El veredicto es la ÚLTIMA línea no vacía del informe, estricta: «Veredicto», un separador y la respuesta.
+// Una forma que no cumple no se interpreta: sale sin_veredicto y el cierre la bloquea (fallar en alto).
+const CUERPO = "Revisé 12 ficheros. Sin bloqueantes en seguridad, 0 bloqueantes en RLS.\n\n";
+// [forma, plantilla ({r} = la respuesta, {R} con mayúscula), ¿la lee la regla estricta?]
+const FORMAS = [
+  ["encabezado y respuesta en la línea de abajo", "## Veredicto\n{r}", false],
+  ["encabezado y respuesta en negrita", "## Veredicto\n\n**{R}**", false],
+  ["raya larga", "Veredicto — {r}", true],
+  ["numerada", "1. Veredicto: {r}", false],
+  ["Veredicto final", "**Veredicto final:** {r}", false],
+  ["Mi veredicto", "Mi veredicto: {r}", false],
+  ["Veredicto (revisor)", "Veredicto (revisor): {r}", false],
+  ["Veredicto global", "**Veredicto global:** {r}", false],
+  ["línea entera entre comillas invertidas", "`Veredicto: {r}`", true],
+  ["emoji delante", "✅ Veredicto: {r}", true],
+  ["emoji y negrita", "🔴 **Veredicto:** {r}", true],
+  ["encabezado con emoji", "## ❌ Veredicto: {r}", true],
+];
+const informe = (plantilla, r) => CUERPO + plantilla.replaceAll("{r}", r).replaceAll("{R}", r[0].toUpperCase() + r.slice(1));
+const FORMAS_Y_RESPUESTAS = FORMAS.flatMap(([forma, plantilla, legible]) => [
+  [forma, "no pasa", plantilla, legible ? "no_pasa" : "sin_veredicto"],
+  [forma, "pasa", plantilla, legible ? "pasa" : "sin_veredicto"],
+]);
+
+describe("veredicto del juez: última línea estricta", () => {
+  it.each(FORMAS_Y_RESPUESTAS)("%s, «%s» → lo que dice la regla", (_f, r, plantilla, esperado) => expect(veredictoDe(informe(plantilla, r))).toBe(esperado));
+
   it.each([
+    // lo válido
     ["Veredicto: pasa", "pasa"],
-    ["**Veredicto:** aprobado con 3 nit", "pasa"],
-    ["Veredicto: no pasa, hay un bloqueante", "no_pasa"],
+    ["Veredicto: no pasa", "no_pasa"],
     ["Veredicto: no sé, falta el caso", "no_se"],
-    ["12 ficheros leídos, 0 bloqueantes", "pasa"],
-    ["Todo parece bien", "sin_veredicto"],
-    // la línea del encargo, con las tres opciones, NO es un veredicto
-    ["Termina con «Veredicto: pasa | no pasa | no sé» (elige una).", "sin_veredicto"],
-    ["Veredicto: pasa | no pasa | no sé", "sin_veredicto"],
-    // si el informe cita el encargo y luego da el suyo, vale el suyo (el último con una sola opción)
-    ["Veredicto: pasa | no pasa | no sé (elige una)\n\nVeredicto: no pasa, hay un bloqueante", "no_pasa"],
-    // BLOQUEANTE 1: una sola opción con «|» en la explicación o en una tabla sigue siendo un veredicto
-    ["Veredicto: no pasa | 2 bloqueantes", "no_pasa"],
-    ["**Veredicto:** no pasa | ver B1 y B2", "no_pasa"],
+    ["Veredicto: no se", "no_se"],
     ["| Veredicto | no pasa |", "no_pasa"],
     ["| Veredicto | pasa |", "pasa"],
-    // varias opciones (aunque falte alguna): es el encargo
-    ["Veredicto: pasa | no pasa", "sin_veredicto"],
-    ["Veredicto: no pasa | no sé", "sin_veredicto"],
-    // MEDIO 4a: manda la ÚLTIMA línea que EMPIEZA por «Veredicto:»; una cita en medio de una frase no cuenta
-    ["Veredicto: no pasa\n…el brief pedía «Veredicto: pasa»", "no_pasa"],
-    ["Veredicto: pasa\nY recuerda que Veredicto: no pasa si hay bloqueantes", "pasa"],
-    ["Veredicto: pasa\n\n> Veredicto: no pasa", "no_pasa"],
-    // MEDIO 4b: «0 bloqueantes» con \b delante
-    ["Hallazgos: 20 bloqueantes", "sin_veredicto"],
-    ["Hallazgos: 10 bloqueantes y 2 medios", "sin_veredicto"],
-    ["Hallazgos: 0 bloqueantes y 2 medios", "pasa"],
-    // RONDA 3: decide el PRIMER token; «no se» (el verbo) no es la opción «no sé»
-    ["Veredicto: no pasa (B1: no se guarda el estado)\nSin bloqueantes en seguridad.", "no_pasa"],
+    ["- Veredicto: pasa", "pasa"],
+    ["> Veredicto: no pasa", "no_pasa"],
+    ["**Veredicto: no pasa**", "no_pasa"],
+    ["Veredicto: pasa ✅", "pasa"],
+    ["Veredicto: ✅ pasa", "pasa"],
+    ["Veredicto: PASA", "pasa"],
+    // el resto de la línea se ignora
+    ["Veredicto: no pasa | 2 bloqueantes", "no_pasa"],
+    ["Veredicto: no pasa (B1: no se guarda el estado)", "no_pasa"],
     ["Veredicto: no pasa, la ruta no se cubre con ningún test", "no_pasa"],
-    ["Veredicto: no pasa. El caso del carrito vacío no se contempla", "no_pasa"],
     ["Veredicto: no pasa. No sé si el caso X es realista, pero B1 rompe", "no_pasa"],
-    ["Veredicto: no pasa, B1 rompe o no sé si X", "no_pasa"],
-    ["Veredicto: no se", "no_se"],
-    ["Veredicto: no se, falta el caso", "no_se"],
-    ["Veredicto: no se guarda nada\nSin bloqueantes.", "sin_veredicto"], // línea de Veredicto ambigua: no se cae al respaldo
-    ["Veredicto: pendiente de B1\n0 bloqueantes", "sin_veredicto"],
-    ["Veredicto: no pasa\nVeredicto: ver arriba", "no_pasa"], // una línea ilegible no pisa a una legible
-    // el encargo, con otros separadores
+    ["Veredicto: pasa con reservas, pero B1 rompe", "pasa"],
+    // la última línea manda, también sobre una anterior legible
+    ["Veredicto: pasa con reservas\nVeredicto: ⚠️ no pasa", "no_pasa"],
+    ["Veredicto: no pasa\nVeredicto: pasa", "pasa"],
+    ["Veredicto: no pasa\nVeredicto: ver arriba", "sin_veredicto"],
+    ["Veredicto: pasa\nY algo más después", "sin_veredicto"],
+    ["Veredicto: pasa\n\n---\n```\n", "pasa"], // solo decoración detrás
+    // «no se» sin tilde solo si es todo el valor
+    ["Veredicto: no se guarda nada", "sin_veredicto"],
+    ["Veredicto: no se, falta el caso", "sin_veredicto"],
+    // el encargo, con cualquier separador o puntuación, no es un veredicto
+    ["Veredicto: pasa | no pasa | no sé", "sin_veredicto"],
     ["Veredicto: pasa / no pasa / no sé", "sin_veredicto"],
     ["Veredicto: pasa o no pasa", "sin_veredicto"],
+    ["Veredicto: pasa, no pasa o no sé", "sin_veredicto"],
+    ["Veredicto: «pasa», «no pasa» o «no sé»", "sin_veredicto"],
     ["Veredicto: **pasa** | **no pasa** | **no sé** (elige una)", "sin_veredicto"],
-    ["Veredicto: ❌ no pasa\nSin bloqueantes en seguridad.", "no_pasa"],
-    ["Veredicto: ✅ pasa", "pasa"],
+    ["Veredicto: no pasa | pasa", "sin_veredicto"],
+    ["Termina con «Veredicto: pasa | no pasa | no sé» (elige una).", "sin_veredicto"],
+    ["Veredicto: pasa | no pasa | no sé (elige una)\n\nVeredicto: no pasa, hay un bloqueante", "no_pasa"],
+    // sin sinónimos ni respaldo por «bloqueantes»: lo que no es una respuesta no se interpreta
+    ["Veredicto: aprobado con 3 nit", "sin_veredicto"],
+    ["Veredicto: bloqueado", "sin_veredicto"],
+    ["Veredicto: pendiente de B1\n0 bloqueantes", "sin_veredicto"],
+    ["12 ficheros leídos, 0 bloqueantes", "sin_veredicto"],
+    ["Sin bloqueantes. Todo parece bien", "sin_veredicto"],
+    ["Hallazgos: 20 bloqueantes", "sin_veredicto"],
+    ["", "sin_veredicto"],
+    [null, "sin_veredicto"],
+    [undefined, "sin_veredicto"],
     // CRLF
     ["Veredicto: pasa\r\n", "pasa"],
-    ["Veredicto: no pasa\r\nB1", "no_pasa"],
-    ["Veredicto: pasa | no pasa | no sé\r\nVeredicto: no pasa\r\n", "no_pasa"],
-  ])("%s → %s", (texto, esperado) => expect(veredictoDe(texto)).toBe(esperado));
+    ["Veredicto: no pasa\r\n\r\n  \r\n", "no_pasa"],
+    ["B1 rompe\r\nVeredicto: no pasa", "no_pasa"],
+  ])("%j → %s", (texto, esperado) => expect(veredictoDe(texto)).toBe(esperado));
 });
 
 describe("qué apunta cada evento (apunteDe)", () => {
@@ -202,19 +232,27 @@ describe("evaluar: el momento del juicio es el del lanzamiento", () => {
     });
     expect(filas[0].estado).toBe("ok");
   });
-  it("MEDIO 3: un «sin veredicto» posterior no sustituye al «lanzado»: sigue lanzado y bloquea", () => {
+  it("un informe sin línea de veredicto tras el «lanzado» NO deja el estado en «lanzado»: es ilegible y bloquea", () => {
     const filas = evaluar({
       requeridos: req,
       entradas: [{ ts: 300, agente: "revisor", veredicto: "lanzado", agent_id: "a1" }, { ts: 310, agente: "revisor", veredicto: "sin_veredicto", resumen: "Hecho.", agent_id: "a1" }],
       ultimaEdicion: { revisor: 200 },
     });
-    expect(filas[0].estado).toBe("lanzado");
+    expect(filas[0].estado).toBe("ilegible");
     expect(bloqueantes(filas)).toHaveLength(1);
   });
-  it("un «sin veredicto» sin lanzamiento previo sigue siendo dudoso (avisa, no bloquea)", () => {
+  it("un informe sin veredicto, sin lanzamiento previo, también es ilegible y bloquea", () => {
     const filas = evaluar({ requeridos: req, entradas: [{ ts: 300, agente: "revisor", veredicto: "sin_veredicto" }], ultimaEdicion: { revisor: 200 } });
-    expect(filas[0].estado).toBe("dudoso");
-    expect(bloqueantes(filas)).toHaveLength(0);
+    expect(filas[0].estado).toBe("ilegible");
+    expect(bloqueantes(filas)).toHaveLength(1);
+  });
+  it("un «sin veredicto» posterior a un «pasa» (el SubagentStop tras un SubagentHandback) no lo pisa", () => {
+    const filas = evaluar({
+      requeridos: req,
+      entradas: [{ ts: 300, agente: "revisor", veredicto: "lanzado", agent_id: "a1" }, { ts: 310, agente: "revisor", veredicto: "pasa", agent_id: "a1" }, { ts: 320, agente: "revisor", veredicto: "sin_veredicto", agent_id: "a1" }],
+      ultimaEdicion: { revisor: 200 },
+    });
+    expect(filas[0].estado).toBe("ok");
   });
 });
 
@@ -246,8 +284,10 @@ describe("los hooks de punta a punta (prueba de fallo)", () => {
     writeFileSync(join(repo, "src", "App.jsx"), "export default 1");
   };
 
-  it("el arranque dice que está activa", () => {
-    expect(JSON.parse(correr("arranque.mjs", {}).stdout).systemMessage).toMatch(/Factoría de Álvaro activa/);
+  it("el arranque dice que está activa y pide el veredicto en la última línea", () => {
+    const r = JSON.parse(correr("arranque.mjs", {}).stdout);
+    expect(r.systemMessage).toMatch(/Factoría de Álvaro activa/);
+    expect(r.hookSpecificOutput.additionalContext).toMatch(/ÚLTIMA línea del informe, solo una de las tres opciones/);
   });
   it("sin cambios que juzgar, deja cerrar sin decir nada", () => {
     expect(correr("cierre.mjs", {}).stdout).toBe("");
@@ -316,26 +356,57 @@ describe("los hooks de punta a punta (prueba de fallo)", () => {
     expect(r.decision).toBe("block");
     expect(r.reason).toMatch(/lanza el agente revisor/);
   });
-  // RONDA 3: el verbo «no se» y el «no sé» de la opción no se confunden; punta a punta, con y sin «lanzado» previo
-  it.each([
-    ["a", "Veredicto: no pasa (B1: no se guarda el estado)\nSin bloqueantes en seguridad."],
-    ["b", "Veredicto: no pasa, la ruta no se cubre con ningún test"],
-    ["c", "Veredicto: no pasa. El caso del carrito vacío no se contempla"],
-    ["d", "Veredicto: no pasa. No sé si el caso X es realista, pero B1 rompe"],
-    ["CRLF", "Veredicto: no pasa\r\nB1 rompe\r\n"],
-  ])("caso %s: un «no pasa» con «no se» en el texto bloquea el cierre como no_pasa", (_, informe) => {
+
+  // La clase entera: un informe cuyo último renglón no se lee bloquea, con o sin «lanzado» previo.
+  // Repo temporal con un scripts/x.mjs sin juzgar.
+  const informar = (texto, conLanzado) => {
+    rmSync(reg, { recursive: true, force: true });
+    mkdirSync(join(repo, "scripts"), { recursive: true });
+    writeFileSync(join(repo, "scripts", "x.mjs"), "export default 1");
+    if (conLanzado) correr("registro.mjs", lanzamiento("revisor"));
+    correr("registro.mjs", conLanzado
+      ? { hook_event_name: "SubagentStop", agent_id: "agente-sintetico-1", agent_type: "revisor", last_assistant_message: texto }
+      : { tool_name: "Agent", tool_input: { subagent_type: "revisor" }, tool_response: { content: [{ type: "text", text: texto }] } });
+    return JSON.parse(correr("cierre.mjs", {}).stdout);
+  };
+  const DICE_NO_PASA = /revisor dice que no pasa/;
+  const ILEGIBLE = /el informe del juez no acaba en una línea Veredicto: pasa \| no pasa \| no sé: pídele que lo repita en la última línea/;
+  it.each(FORMAS)("forma «%s» con «no pasa» real: bloquea el cierre, con y sin «lanzado» previo", (_f, plantilla, legible) => {
     for (const conLanzado of [false, true]) {
-      rmSync(reg, { recursive: true, force: true });
-      mkdirSync(join(repo, "scripts"), { recursive: true });
-      writeFileSync(join(repo, "scripts", "x.mjs"), "export default 1");
-      if (conLanzado) correr("registro.mjs", lanzamiento("revisor"));
-      correr("registro.mjs", conLanzado
-        ? { hook_event_name: "SubagentStop", agent_id: "agente-sintetico-1", agent_type: "revisor", last_assistant_message: informe }
-        : { tool_name: "Agent", tool_input: { subagent_type: "revisor" }, tool_response: { content: [{ type: "text", text: informe }] } });
-      const r = JSON.parse(correr("cierre.mjs", {}).stdout);
+      const r = informar(informe(plantilla, "no pasa"), conLanzado);
       expect([conLanzado, r.decision]).toEqual([conLanzado, "block"]);
-      expect([conLanzado, r.reason]).toEqual([conLanzado, expect.stringMatching(/revisor dice que no pasa/)]);
+      expect([conLanzado, r.reason]).toEqual([conLanzado, expect.stringMatching(legible ? DICE_NO_PASA : ILEGIBLE)]);
     }
+  });
+  it.each(FORMAS)("forma «%s» con «pasa» real: deja cerrar solo si la regla estricta la lee", (_f, plantilla, legible) => {
+    for (const conLanzado of [false, true]) {
+      const r = informar(informe(plantilla, "pasa"), conLanzado);
+      expect([conLanzado, r.decision]).toEqual([conLanzado, legible ? undefined : "block"]);
+      if (!legible) expect(r.reason).toMatch(ILEGIBLE);
+    }
+  });
+  it.each([
+    ["sin etiqueta y con «sin bloqueantes»", "Hecho. Todo en orden, sin bloqueantes."],
+    ["con la línea del encargo", "Termina con «Veredicto: pasa | no pasa | no sé» (elige una)."],
+    ["con la etiqueta que no es la última línea", "Veredicto: pasa\nGracias."],
+  ])("informe %s: bloquea con el mensaje del informe ilegible, nunca con el de «lanzado»", (_n, texto) => {
+    for (const conLanzado of [false, true]) {
+      const r = informar(texto, conLanzado);
+      expect([conLanzado, r.decision]).toEqual([conLanzado, "block"]);
+      expect(r.reason).toMatch(ILEGIBLE);
+      expect(r.reason).not.toMatch(/lanzado, sin informe/);
+    }
+  });
+  it("«no sé» sigue sin bloquear (decisión documentada)", () => {
+    const r = informar("Veredicto: no sé, falta el caso", false);
+    expect(r.decision).toBeUndefined();
+    expect(r.systemMessage).toMatch(/no sé/);
+  });
+  it("un informe ilegible bloquea una vez; en el segundo intento (stop_hook_active) deja salir", () => {
+    informar("Hecho.", false);
+    const r = JSON.parse(correr("cierre.mjs", { stop_hook_active: true }).stdout);
+    expect(r.decision).toBeUndefined();
+    expect(r.systemMessage).toMatch(/segundo aviso/);
   });
   it("NIT: una entrada JSON «null» sale limpia (sin excepción) en registro y cierre", () => {
     for (const hook of ["registro.mjs", "cierre.mjs"]) {

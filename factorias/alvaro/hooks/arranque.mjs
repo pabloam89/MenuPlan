@@ -15,6 +15,6 @@ process.stdout.write(JSON.stringify({
   systemMessage: `Factoría de Álvaro activa · rama ${ramaDe(cwd)} · jueces: revisor, qa (pantallas), evaluador (Lola)`,
   hookSpecificOutput: {
     hookEventName: "SessionStart",
-    additionalContext: "[factoría de Álvaro] Al terminar, la sesión no se cierra sin los jueces que toquen según los ficheros cambiados: lánzalos con el agente que corresponda (revisor, qa, evaluador) y que cada uno acabe con «Veredicto: pasa | no pasa | no sé».",
+    additionalContext: "[factoría de Álvaro] Al terminar, la sesión no se cierra sin los jueces que toquen según los ficheros cambiados: lánzalos con el agente que corresponda (revisor, qa, evaluador) y que cada uno acabe su informe con «Veredicto: pasa | no pasa | no sé»: ÚLTIMA línea del informe, solo una de las tres opciones (si no, el cierre se bloquea).",
   },
 }));

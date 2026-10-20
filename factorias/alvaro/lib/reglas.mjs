@@ -25,38 +25,21 @@ export function juecesRequeridos(ficheros) {
 
 const JUECES = ["revisor", "qa", "evaluador"];
 
-// Una línea EMPIEZA por «Veredicto»: admite delante espacios, citas (>), viñetas, negrita, almohadillas o la barra
-// de una tabla; detrás, un separador («:», «-», «–» o la barra de la tabla). Una cita en mitad de una frase no cuenta.
-const EMPIEZA_POR_VEREDICTO = /^[\s>*_#|\-–]*veredicto[\s*_]*[:\-–|][\s*_|]*(.*)$/i;
+// El veredicto es la ÚLTIMA línea no vacía del informe, sin decoración (espacios, * _ ` > # | viñetas, emojis, \r),
+// y debe ser «Veredicto», un separador (: - – — |) y la respuesta. Cualquier otra cosa es sin_veredicto: no se interpreta
+// texto libre. El resto de la línea se ignora, salvo que traiga «pasa» y «no pasa» a la vez: eso es el eco del encargo.
+const DECORACION = /^[\s*_`>#|•·\-\p{Extended_Pictographic}️‍]+/u;
+const ETIQUETA = /^veredicto[\s*_`]*[:\-–—|]\s*(.*)$/iu;
+const ultimaLinea = (texto) => String(texto ?? "").split(/\r?\n/).map((l) => l.replace(DECORACION, "").trim()).filter(Boolean).at(-1) ?? "";
 
-// La respuesta la da el PRIMER token del valor. «no sé» solo con tilde; sin ella («no se guarda…», el verbo) solo si es
-// todo el valor: «no se» y puntuación o fin de línea. Una línea de Veredicto sin respuesta legible es sin_veredicto.
-const RESPUESTAS = [
-  ["no_se", /^no\s+(?:sé(?![a-z])|se\s*(?:[.,;:!?)]|$))/],
-  ["no_pasa", /^(?:no\s+pasa|❌|bloque|rechaz|suspend)/],
-  ["pasa", /^(?:pasa|aprob|conforme|ok\b|✅)/],
-];
-const limpia = (v) => v.trim().toLowerCase().replace(/^[\s*_«"']+/, "");
-const respuesta = (v) => RESPUESTAS.find(([, r]) => r.test(limpia(v)))?.[0];
-// El encargo ofrece al menos dos respuestas SOLAS («pasa | no pasa | no sé»); una explicación detrás de una no lo es.
-const SOLA = /^(?:pasa|no\s+pasa|no\s+s[eé])\s*(?:\(.*\))?[^\p{L}]*$/u;
-const esEncargo = (v) => v.split(/[|/]|\so\s/).filter((p) => SOLA.test(limpia(p))).length >= 2;
-const lineas = (t) => String(t ?? "").split(/\r?\n/);
-
-/** La ÚLTIMA línea que empieza por «Veredicto» con respuesta legible (si ninguna, la última), sin las del encargo: { linea, r } o null. */
-function lineaVeredicto(texto) {
-  const ls = lineas(texto).flatMap((linea) => {
-    const v = EMPIEZA_POR_VEREDICTO.exec(linea)?.[1];
-    return v !== undefined && !esEncargo(v) ? [{ linea: linea.trim(), r: respuesta(v) }] : [];
-  });
-  return ls.findLast((l) => l.r) ?? ls.at(-1) ?? null;
-}
-
-/** pasa | no_pasa | no_se | sin_veredicto, a partir del texto del juez. */
+/** pasa | no_pasa | no_se | sin_veredicto, a partir del informe del juez. */
 export function veredictoDe(texto) {
-  const m = lineaVeredicto(texto);
-  if (m) return m.r ?? "sin_veredicto";
-  return /sin\s+bloqueantes|\b0\s+bloqueantes|ning[uú]n\s+bloqueante/i.test(String(texto ?? "")) ? "pasa" : "sin_veredicto";
+  const valor = ETIQUETA.exec(ultimaLinea(texto))?.[1].replace(DECORACION, "").replace(/^[«"“']+/, "").toLowerCase();
+  if (valor === undefined) return "sin_veredicto";
+  if (/\bno\s+pasa\b/.test(valor) && /\bpasa\b/.test(valor.replace(/\bno\s+pasa\b/g, ""))) return "sin_veredicto"; // eco del encargo
+  if (/^no\s+pasa(?!\p{L})/u.test(valor)) return "no_pasa";
+  if (/^pasa(?!\p{L})/u.test(valor)) return "pasa";
+  return /^no\s+sé(?!\p{L})/u.test(valor) || /^no\s+se[\s.!*_`]*$/.test(valor) ? "no_se" : "sin_veredicto";
 }
 
 const textoDe = (r) => {
@@ -98,9 +81,7 @@ export function apunteDe(ev) {
     texto = textoDe(r);
   }
   if (!agente || !JUECES.includes(agente)) return null;
-  texto = String(texto ?? "");
-  const linea = lineaVeredicto(texto)?.linea ?? lineas(texto).find((l) => l.trim()) ?? "";
-  return { agente, veredicto: veredictoDe(texto), resumen: linea.trim().slice(0, 160), ...(agentId ? { agent_id: agentId } : {}) };
+  return { agente, veredicto: veredictoDe(texto), resumen: ultimaLinea(texto).slice(0, 160), ...(agentId ? { agent_id: agentId } : {}) };
 }
 
 const CONCLUYENTE = new Set(["pasa", "no_pasa", "no_se"]);
@@ -112,9 +93,8 @@ const CONCLUYENTE = new Set(["pasa", "no_pasa", "no_se"]);
  * que vio al arrancar, no el que había cuando llegó su informe. Si el apunte trae `agent_id` y hay un
  * «lanzado» del mismo juez y el mismo id, el momento del juicio es el de ese lanzamiento; si no, el del apunte.
  * De sus apuntes, un «no pasa» domina a cualquier «pasa» (misma versión del código: ningún cambio entre ambos);
- * si no hay «no pasa», manda el último concluyente (pasa, no sé). Mientras no haya
- * ninguno y exista un «lanzado», el estado sigue siendo «lanzado» (un «sin veredicto» de SubagentStop
- * no lo sustituye); solo «sin veredicto» y nunca lanzado es «dudoso».
+ * si no hay «no pasa», manda el último concluyente (pasa, no sé). Sin concluyente, un informe sin veredicto
+ * legible (sin_veredicto) manda sobre el «lanzado»: el juez ya informó, y mal. Solo un «lanzado» sin informe es «lanzado».
  */
 export function evaluar({ requeridos, entradas, ultimaEdicion }) {
   const filas = [];
@@ -124,23 +104,28 @@ export function evaluar({ requeridos, entradas, ultimaEdicion }) {
     const momento = (e) => (e.agent_id ? delJuez.find((l) => l.veredicto === "lanzado" && l.agent_id === e.agent_id)?.ts : undefined) ?? e.ts;
     const suyas = delJuez.filter((e) => momento(e) >= desde);
     const conc = suyas.filter((e) => CONCLUYENTE.has(e.veredicto));
-    const ultima = conc.findLast((e) => e.veredicto === "no_pasa") ?? conc.at(-1) ?? (suyas.some((e) => e.veredicto === "lanzado") ? undefined : suyas.at(-1));
-    if (!ultima && suyas.length) filas.push({ juez, estado: "lanzado", nota: "lanzado, sin informe: espera a que acabe" });
-    else if (!ultima) filas.push({ juez, estado: "falta", nota: "no ha corrido tras el último cambio" });
-    else if (ultima.veredicto === "no_pasa") filas.push({ juez, estado: "no_pasa", nota: ultima.resumen ?? "" });
-    else if (ultima.veredicto === "pasa") filas.push({ juez, estado: "ok", nota: ultima.resumen ?? "" });
-    else filas.push({ juez, estado: "dudoso", nota: ultima.veredicto === "no_se" ? "el juez dice «no sé»" : "sin veredicto en formato claro" });
+    const ultima = conc.findLast((e) => e.veredicto === "no_pasa") ?? conc.at(-1) ?? suyas.findLast((e) => e.veredicto === "sin_veredicto") ?? suyas.at(-1);
+    const e = ESTADO[ultima ? ultima.veredicto : "falta"] ?? ESTADO.sin_veredicto;
+    filas.push({ juez, ...e, nota: e.nota ?? ultima.resumen ?? "" });
   }
   return filas;
 }
 
-const ICONO = { ok: "✅", falta: "❌", lanzado: "⏳", no_pasa: "❌", dudoso: "⚠️" };
+// El estado de cada veredicto: icono, nota fija (si la hay) y si impide cerrar. «no sé» avisa y no bloquea (decisión documentada).
+const ESTADO = {
+  falta: { estado: "falta", icono: "❌", bloquea: true, nota: "no ha corrido tras el último cambio" },
+  pasa: { estado: "ok", icono: "✅" },
+  no_pasa: { estado: "no_pasa", icono: "❌", bloquea: true },
+  no_se: { estado: "dudoso", icono: "⚠️", nota: "el juez dice «no sé»" },
+  sin_veredicto: { estado: "ilegible", icono: "❌", bloquea: true, nota: "el informe no acaba en una línea Veredicto" },
+  lanzado: { estado: "lanzado", icono: "⏳", bloquea: true, nota: "lanzado, sin informe: espera a que acabe" },
+};
 
 export function cuadro(filas) {
-  return ["Factoría de Álvaro", ...filas.map((f) => `${f.juez.padEnd(10)} ${ICONO[f.estado]} ${f.nota}`.trimEnd())].join("\n");
+  return ["Factoría de Álvaro", ...filas.map((f) => `${f.juez.padEnd(10)} ${f.icono} ${f.nota}`.trimEnd())].join("\n");
 }
 
-/** Lo que impide cerrar: falta el juez, no ha informado o dijo que no pasa. Lo dudoso avisa, no bloquea. */
+/** Lo que impide cerrar: falta el juez, no ha informado, informó sin veredicto legible o dijo que no pasa. «no sé» avisa, no bloquea. */
 export function bloqueantes(filas) {
-  return filas.filter((f) => f.estado === "falta" || f.estado === "lanzado" || f.estado === "no_pasa");
+  return filas.filter((f) => f.bloquea);
 }

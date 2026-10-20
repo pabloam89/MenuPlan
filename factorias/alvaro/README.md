@@ -9,15 +9,30 @@ nada sensible; el registro vive fuera, en `~/.claude/factoria-alvaro/`.
 |---|---|---|
 | `hooks/arranque.mjs` | SessionStart | Dice «Factoría de Álvaro activa». Si no la ves, no está funcionando |
 | `hooks/registro.mjs` | SubagentStop, PostToolUse de `SubagentHandback` y de `Agent` | Apunta qué juez corrió y su veredicto, por rama. El informe del juez sale de `last_assistant_message` (SubagentStop) o de `tool_input.message` (SubagentHandback); el aviso de un juez lanzado en segundo plano (`async_launched`) solo apunta «lanzado». Cada apunte lleva el `agent_id` del evento (SubagentStop y SubagentHandback lo traen como `agent_id`; la respuesta del lanzamiento, como `agentId`). El script tiene 20 líneas, con su cabecera; la lógica está en `apunteDe` y se prueba aparte |
-| `hooks/cierre.mjs` | Stop | Mira los ficheros cambiados contra `origin/staging`; si falta un juez o dijo «no pasa», bloquea el cierre (una vez) y enseña el cuadro |
+| `hooks/cierre.mjs` | Stop | Mira los ficheros cambiados contra `origin/staging`; si falta un juez, dijo «no pasa» o informó sin acabar en una línea `Veredicto:` legible, bloquea el cierre (una vez) y enseña el cuadro |
 
 Qué juez toca (`lib/reglas.mjs`): `qa` si cambia una pantalla de `src/`;
 `evaluador` si cambia Lola (`api/_bot/`, `api/bot/`, `api/_prompts.js`);
 `revisor` si cambia cualquier código (también `factorias/`: editar estos hooks pide revisor). Un juez «lanzado» que aún no ha informado bloquea el cierre igual que uno que falta («lanzado, sin informe»). Los tests y snapshots no piden
 evaluador. Un juez solo vale si fue **lanzado después** del último cambio (lo que juzga es el código que vio
 al arrancar, no el de cuando llegó su informe): el momento del juicio es el del apunte «lanzado» con el mismo
-`agent_id`; sin `agent_id`, el del propio apunte. Mientras no haya un veredicto concluyente (pasa, no pasa,
-no sé), un juez lanzado sigue «lanzado» y bloquea, aunque llegue un informe sin línea `Veredicto:`.
+`agent_id`; sin `agent_id`, el del propio apunte.
+
+## El veredicto: última línea, estricta, y lo ilegible bloquea
+
+El veredicto es la **última línea no vacía** del informe del juez, tras quitarle solo la decoración (espacios,
+`*`, `_`, `` ` ``, `>`, `#`, `|`, viñetas `-`/`•`, emojis como ✅❌⚠️🔴, `\r`). Esa línea tiene que empezar por
+`Veredicto`, un separador (`:`, `-`, `–`, `—` o `|`) y, como primera palabra, `pasa`, `no pasa` o `no sé`
+(«no se» sin tilde solo si es todo el valor). El resto de la línea (reservas, motivos, «, pero B1 rompe») se
+ignora, salvo que traiga a la vez un «pasa» suelto y un «no pasa»: eso es el eco del encargo y no vale.
+
+**Cualquier otra cosa es `sin_veredicto` y no se interpreta**: ni «sin bloqueantes», ni «aprobado», ni
+«Veredicto final:», ni «1. Veredicto:», ni una respuesta en la línea de debajo del encabezado. Un juez que
+informó así **bloquea el cierre** con «el informe del juez no acaba en una línea Veredicto: pasa | no pasa |
+no sé: pídele que lo repita en la última línea» (fallar en alto: un error se ve; nunca se cambia por un valor
+por defecto). «no sé» sigue sin bloquear (solo avisa); un «lanzado» sin informe bloquea con su propio mensaje.
+Si un juez tiene un informe ilegible y otro anterior o posterior legible sobre la misma versión del código,
+manda el legible; entre legibles, un «no pasa» domina a cualquier «pasa».
 
 ## Activar
 
@@ -30,9 +45,20 @@ Pegar el contenido de `settings.snippet.json` en `~/.claude/settings.json`
 1. Al abrir una sesión sale «Factoría de Álvaro activa».
 2. Prueba de fallo: toca una pantalla y di «ya está». La sesión tiene que
    pedir `qa` y `revisor`. Si te deja cerrar, está rota.
-3. Apagar: `FACTORIA_ALVARO_OFF=1` (el cierre lo dice).
-
 `npx vitest run factorias` lo comprueba solo, con una prueba de fallo incluida.
+
+## Cómo se sale de un bloqueo
+
+El cierre bloquea **una vez** por intento. Salidas, de la más limpia a la más bruta:
+
+1. Hacer lo que pide el mensaje: lanzar el juez que falta, o pedirle al que informó mal que repita el
+   informe acabando en `Veredicto: pasa | no pasa | no sé` (ÚLTIMA línea, solo una de las tres opciones).
+2. Si un juez dijo «no pasa» y es un falso «no pasa» (el «no pasa» domina para siempre sobre la misma
+   versión del código): **tocar o editar un fichero que exige ese juez** invalida el apunte (el juez solo vale
+   si se lanzó después de la última edición) y se relanza.
+3. Segundo intento de cerrar: con `stop_hook_active` el cierre avisa («segundo aviso») y deja salir.
+4. Borrar el registro de la rama: `~/.claude/factoria-alvaro/<rama>.jsonl` (con `/` cambiado por `_`).
+5. Apagarlo: `FACTORIA_ALVARO_OFF=1`. Es una variable de entorno: **exige reiniciar la sesión** (y el cierre lo dice).
 
 ## Sin comprobar
 
@@ -56,15 +82,13 @@ Pegar el contenido de `settings.snippet.json` en `~/.claude/settings.json`
 - `SubagentStop` para agentes lanzados en segundo plano, y el campo `isAsync` de la respuesta de `Agent`,
   están sin comprobar: la documentación oficial no los documenta. Si `isAsync` no llega, el
   `status: "async_launched"` es la otra señal; si tampoco, el aviso se leería como informe en primer plano
-  (sin línea `Veredicto:` válida sale «sin veredicto», que no bloquea).
-- El veredicto se lee del texto del juez: la ÚLTIMA línea que EMPIEZA por `Veredicto:` (admite negrita,
-  cita o barra de tabla delante) y decide su PRIMER token («pasa», «no pasa», «no sé»). Una línea que ofrece
-  dos o más de esas respuestas solas, separadas por `|`, `/` u «o», es el encargo y no cuenta. «no sé» solo
-  vale con tilde; sin ella («no se guarda…») solo si es todo el valor. Si hay línea de `Veredicto` pero su
-  primer token no es una respuesta, sale «sin veredicto» y NO se mira «sin bloqueantes». Con varios jueces
-  del mismo tipo sobre la misma versión, un «no pasa» domina a cualquier «pasa». Una cita en mitad de una
-  frase se ignora; los agentes de Pablo no tienen ese formato escrito, así que hoy un juez sin
-  esa línea sale como «⚠️ sin veredicto claro» y no bloquea.
+  (sin línea `Veredicto:` en la última línea sale «sin veredicto» y bloquea con el mensaje del informe ilegible).
+- Los agentes de Pablo no tienen escrito el formato `Veredicto:` en su última línea: hasta que lo tengan, un juez
+  que lo olvide bloqueará el cierre y habrá que pedirle que repita (la línea de arranque ya se lo pide a la sesión).
+  Es el coste de no interpretar texto libre; no se arregla con heurísticas.
+- El informe de `Agent` en primer plano (`PostToolUse`) puede traer líneas añadidas tras el texto del juez
+  (identificador, uso). No se ha visto en real. Si las trae, ese apunte sale «sin veredicto»; no estorba mientras
+  el `SubagentStop` del mismo juez traiga su última línea limpia (un veredicto legible gana a uno ilegible).
 - La comprobación en el CI del PR (que el PR lleve el cuadro) no existe: tocaría
   `.github/`, que pide juez y es de Pablo.
 - La regla de `api/_prompts.js` no tiene test propio (los tests no pueden

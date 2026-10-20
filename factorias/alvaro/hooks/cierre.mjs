@@ -1,5 +1,5 @@
 /**
- * Stop: la sesión no se cierra si falta un juez de los que tocan, o si dijo «no pasa».
+ * Stop: la sesión no se cierra si falta un juez de los que tocan, si dijo «no pasa» o si informó sin acabar en una línea Veredicto.
  * Una sola vez por cierre (stop_hook_active): si vuelve a fallar, avisa y deja cerrar,
  * para no atrapar la sesión. FACTORIA_ALVARO_OFF=1 lo apaga (y se dice).
  */
@@ -31,9 +31,13 @@ const filas = evaluar({ requeridos, entradas: leer(cwd), ultimaEdicion });
 const faltan = bloqueantes(filas);
 
 if (faltan.length && !entrada.stop_hook_active) {
-  const que = faltan
-    .map((f) => (f.estado === "falta" ? `lanza el agente ${f.juez} (${requeridos[f.juez].length} fichero(s) suyos cambiaron)` : f.estado === "lanzado" ? `${f.juez} está lanzado, sin informe: espera a que acabe y dé su veredicto` : `${f.juez} dice que no pasa: arregla y vuelve a lanzarlo`))
-    .join("; ");
+  const pide = {
+    falta: (f) => `lanza el agente ${f.juez} (${requeridos[f.juez].length} fichero(s) suyos cambiaron)`,
+    lanzado: (f) => `${f.juez} está lanzado, sin informe: espera a que acabe y dé su veredicto`,
+    ilegible: (f) => `${f.juez}: el informe del juez no acaba en una línea Veredicto: pasa | no pasa | no sé: pídele que lo repita en la última línea`,
+    no_pasa: (f) => `${f.juez} dice que no pasa: arregla y vuelve a lanzarlo`,
+  };
+  const que = faltan.map((f) => pide[f.estado](f)).join("; ");
   salida({ decision: "block", reason: `[factoría de Álvaro] No cierres todavía: ${que}.\n${cuadro(filas)}` });
 } else {
   salida({ systemMessage: cuadro(filas) + (faltan.length ? "\n(se deja cerrar con jueces pendientes: segundo aviso)" : "") });
