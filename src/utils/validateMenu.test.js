@@ -2152,3 +2152,59 @@ describe("legumbres en cena, por formato", () => {
     expect(enCena([cena(undefined, { name: "Potaje sin clasificar" })])).toContain("legumbres_en_cena");
   });
 });
+
+describe("segundo_sin_proteina_principal (#894): el segundo lleva carne, pescado, marisco o huevo", () => {
+  const catalogo = Object.fromEntries(
+    fs.readdirSync(path.join(path.dirname(fileURLToPath(import.meta.url)), "../data/recipes"))
+      .filter((f) => f.endsWith(".json"))
+      .flatMap((f) => {
+        const a = JSON.parse(fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), "../data/recipes", f), "utf-8"));
+        return Array.isArray(a) ? a : (a.recipes ?? []);
+      })
+      .map((r) => [r.id, r]),
+  );
+  const comida = (primeroId, segundoId) => {
+    const pool = [catalogo[primeroId], catalogo[segundoId]];
+    const asign = [
+      { slotId: "lun_comida_1", recipeId: primeroId },
+      { slotId: "lun_comida_2", recipeId: segundoId },
+    ];
+    const ctx = [
+      slot("lun_comida_1", { mealType: "comida", position: "1" }),
+      slot("lun_comida_2", { mealType: "comida", position: "2" }),
+    ];
+    return validateMenu(asign, pool, ctx).violations.filter((v) => v.rule === "segundo_sin_proteina_principal");
+  };
+
+  it("el caso de #892: arroz con tomate + ensalada de lentejas falla en el segundo", () => {
+    expect(catalogo.pasta_arroces_003).toBeTruthy();
+    expect(catalogo.ensaladas_verduras_064).toBeTruthy();
+    expect(comida("pasta_arroces_003", "ensaladas_verduras_064").map((v) => v.slotId)).toEqual(["lun_comida_2"]);
+  });
+
+  it("cuenta extraProteins: garbanzos con atún (080) y portobello con cerdo (104) pasan", () => {
+    expect(comida("pasta_arroces_003", "ensaladas_verduras_080")).toEqual([]);
+    expect(comida("pasta_arroces_003", "ensaladas_verduras_104")).toEqual([]);
+  });
+
+  it("no mira el primero ni un plato único", () => {
+    const r = recipe({ id: "crema", mainProtein: "none", mealRole: ["primero", "plato_unico"] });
+    const { violations } = validateMenu([{ slotId: "lun_comida", recipeId: "crema" }], [r], [slot("lun_comida", { mealType: "comida" })]);
+    expect(violations.filter((v) => v.rule === "segundo_sin_proteina_principal")).toEqual([]);
+  });
+
+  it("applyFallback lo arregla con un segundo que sí lleva proteína", () => {
+    const pool = [catalogo.pasta_arroces_003, catalogo.ensaladas_verduras_064, catalogo.ensaladas_verduras_080];
+    const asign = [
+      { slotId: "lun_comida_1", recipeId: "pasta_arroces_003" },
+      { slotId: "lun_comida_2", recipeId: "ensaladas_verduras_064" },
+    ];
+    const ctx = [
+      slot("lun_comida_1", { mealType: "comida", position: "1" }),
+      slot("lun_comida_2", { mealType: "comida", position: "2" }),
+    ];
+    const { violations } = validateMenu(asign, pool, ctx);
+    const arreglado = applyFallback(asign, violations, pool, ctx);
+    expect(arreglado.find((a) => a.slotId === "lun_comida_2").recipeId).toBe("ensaladas_verduras_080");
+  });
+});

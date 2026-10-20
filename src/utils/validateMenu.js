@@ -221,6 +221,11 @@ function proteinGroupsOf(recipe) {
   return groups;
 }
 
+// Los grupos (de PROTEIN_GROUP_BY_MAIN_PROTEIN) que cuentan como proteína
+// principal de un segundo: carne, pescado (marisco incluido) y huevo. La
+// legumbre no (regla `segundo_sin_proteina_principal`).
+const GRUPOS_DE_PROTEINA_PRINCIPAL = new Set(["carne", "pescado", "huevos"]);
+
 // Raw protein VALUES a dish carries (mainProtein + extraProteins), UNGROUPED —
 // unlike proteinGroupsOf, "pollo" and "cerdo" stay distinct here. Used by rule
 // 3 (proteina_consecutiva), which deliberately allows switching between
@@ -656,6 +661,21 @@ export const UNARIAS = [
       const violados = (h.activeHealthProfiles ?? []).filter((id) => !HEALTH_PROFILE_BADGE[id].matches(flags));
       return `"${r.name}" no cumple el/los perfil(es) de salud activos: ${violados.join(", ")}`;
     },
+  },
+  {
+    // El segundo de una franja de dos platos lleva la proteína principal
+    // (#894, fondo #891). Vivía solo en el prompt del planificador («ESTRUCTURA
+    // DE UN DÍA»): el solver no la conocía y salía arroz con tomate + ensalada
+    // de lentejas. Cuenta `extraProteins` (garbanzos con atún, portobello con
+    // cerdo), por eso va por `proteinGroupsOf` y no por `mainProtein`.
+    //
+    // RELAJABLE y fuera de la poda del solver, como el perfil de salud: una
+    // casa vegana no tiene ningún segundo que la cumpla, y podada no podría
+    // relajarse y se quedaría sin segundos (ver REGLAS_RELAJABLES en solver.js).
+    rule: "segundo_sin_proteina_principal",
+    cumple: (r, h) => !(h.position === "2" || h.position === "segundo")
+      || [...proteinGroupsOf(r)].some((g) => GRUPOS_DE_PROTEINA_PRINCIPAL.has(g)),
+    mensaje: (r) => `"${r.name}" va de segundo y no lleva carne, pescado, marisco ni huevo`,
   },
 ];
 
@@ -1279,6 +1299,10 @@ export function validateMenu(
     UNARIA_POR_REGLA.health_profile_conflict, slotAssignments, poolById, contextBySlot, unariaExtra,
   ));
 
+  violations.push(...evaluarUnaria(
+    UNARIA_POR_REGLA.segundo_sin_proteina_principal, slotAssignments, poolById, contextBySlot, unariaExtra,
+  ));
+
   // 11. Weekly frequency CAPS (config.freqs) — soft, correctable MAXIMUMS for
   // how many times each food-group key (carne/pescado/legumbres/huevos/
   // pasta_arroz/verdura) may appear across the week. The configured number is
@@ -1469,6 +1493,8 @@ export const GUARD_FOR_RULE = {
   base_pedida_insuficiente: null,
   // Dura, como el tiempo y el táper: se comprueba en la parte que no se relaja.
   excluido_en_hueco: null,
+  // El sustituto tiene que cumplirla: se comprueba en la parte que no se relaja.
+  segundo_sin_proteina_principal: null,
 };
 
 /**
@@ -1962,6 +1988,9 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       // that's actually about health profiles — never reject an otherwise-fine
       // replacement for a legumbres_en_cena/tupper/etc. violation just because
       // it also happens to be non-compliant with an unrelated active profile.
+      if (v.rule === "segundo_sin_proteina_principal"
+        && !UNARIA_POR_REGLA.segundo_sin_proteina_principal.cumple(r, huecoDe(slot.slotId, ctx ?? {}))) return false;
+
       if (v.rule === "health_profile_conflict") {
         const profileIds = Array.from(new Set(activeHealthProfiles ?? [])).filter((id) =>
           CORRECTABLE_HEALTH_PROFILES.has(id),
