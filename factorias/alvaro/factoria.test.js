@@ -57,6 +57,27 @@ describe("veredicto del juez", () => {
     ["Hallazgos: 20 bloqueantes", "sin_veredicto"],
     ["Hallazgos: 10 bloqueantes y 2 medios", "sin_veredicto"],
     ["Hallazgos: 0 bloqueantes y 2 medios", "pasa"],
+    // RONDA 3: decide el PRIMER token; «no se» (el verbo) no es la opción «no sé»
+    ["Veredicto: no pasa (B1: no se guarda el estado)\nSin bloqueantes en seguridad.", "no_pasa"],
+    ["Veredicto: no pasa, la ruta no se cubre con ningún test", "no_pasa"],
+    ["Veredicto: no pasa. El caso del carrito vacío no se contempla", "no_pasa"],
+    ["Veredicto: no pasa. No sé si el caso X es realista, pero B1 rompe", "no_pasa"],
+    ["Veredicto: no pasa, B1 rompe o no sé si X", "no_pasa"],
+    ["Veredicto: no se", "no_se"],
+    ["Veredicto: no se, falta el caso", "no_se"],
+    ["Veredicto: no se guarda nada\nSin bloqueantes.", "sin_veredicto"], // línea de Veredicto ambigua: no se cae al respaldo
+    ["Veredicto: pendiente de B1\n0 bloqueantes", "sin_veredicto"],
+    ["Veredicto: no pasa\nVeredicto: ver arriba", "no_pasa"], // una línea ilegible no pisa a una legible
+    // el encargo, con otros separadores
+    ["Veredicto: pasa / no pasa / no sé", "sin_veredicto"],
+    ["Veredicto: pasa o no pasa", "sin_veredicto"],
+    ["Veredicto: **pasa** | **no pasa** | **no sé** (elige una)", "sin_veredicto"],
+    ["Veredicto: ❌ no pasa\nSin bloqueantes en seguridad.", "no_pasa"],
+    ["Veredicto: ✅ pasa", "pasa"],
+    // CRLF
+    ["Veredicto: pasa\r\n", "pasa"],
+    ["Veredicto: no pasa\r\nB1", "no_pasa"],
+    ["Veredicto: pasa | no pasa | no sé\r\nVeredicto: no pasa\r\n", "no_pasa"],
   ])("%s → %s", (texto, esperado) => expect(veredictoDe(texto)).toBe(esperado));
 });
 
@@ -70,6 +91,10 @@ describe("qué apunta cada evento (apunteDe)", () => {
   it("un juez lanzado en segundo plano queda «lanzado», no «pasa»", () => {
     const a = apunteDe(lanzado);
     expect(a.agente).toBe("revisor");
+    expect(a.veredicto).toBe("lanzado");
+  });
+  it.each([["solo status", { status: "async_launched", agentId: "a" }], ["solo isAsync", { isAsync: true, agentId: "a" }]])("el aviso de segundo plano se reconoce con %s", (_, tool_response) => {
+    const a = apunteDe({ hook_event_name: "PostToolUse", tool_name: "Agent", tool_input: { subagent_type: "revisor" }, tool_response: { ...tool_response, prompt: "Veredicto: pasa" } });
     expect(a.veredicto).toBe("lanzado");
   });
   it("un juez en primer plano con texto se lee como siempre", () => {
@@ -126,6 +151,20 @@ describe("evaluar", () => {
       ultimaEdicion: { revisor: 200 },
     });
     expect(filas[0].estado).toBe("ok");
+  });
+});
+
+describe("evaluar: dos jueces del mismo tipo sobre la misma versión", () => {
+  const ev = (entradas) => evaluar({ requeridos: { revisor: ["src/a.js"] }, entradas, ultimaEdicion: { revisor: 200 } })[0].estado;
+  it("«no pasa» domina a un «pasa» posterior", () => {
+    expect(ev([{ ts: 400, agente: "revisor", veredicto: "no_pasa", agent_id: "a1" }, { ts: 500, agente: "revisor", veredicto: "pasa", agent_id: "a2" }])).toBe("no_pasa");
+  });
+  it("y a uno anterior; sin «no pasa», manda el último", () => {
+    expect(ev([{ ts: 300, agente: "revisor", veredicto: "pasa" }, { ts: 400, agente: "revisor", veredicto: "no_pasa" }])).toBe("no_pasa");
+    expect(ev([{ ts: 300, agente: "revisor", veredicto: "no_se" }, { ts: 400, agente: "revisor", veredicto: "pasa" }])).toBe("ok");
+  });
+  it("un «no pasa» de ANTES de la última edición ya no cuenta", () => {
+    expect(ev([{ ts: 100, agente: "revisor", veredicto: "no_pasa" }, { ts: 300, agente: "revisor", veredicto: "pasa" }])).toBe("ok");
   });
 });
 
@@ -276,6 +315,27 @@ describe("los hooks de punta a punta (prueba de fallo)", () => {
     const r = JSON.parse(correr("cierre.mjs", {}).stdout);
     expect(r.decision).toBe("block");
     expect(r.reason).toMatch(/lanza el agente revisor/);
+  });
+  // RONDA 3: el verbo «no se» y el «no sé» de la opción no se confunden; punta a punta, con y sin «lanzado» previo
+  it.each([
+    ["a", "Veredicto: no pasa (B1: no se guarda el estado)\nSin bloqueantes en seguridad."],
+    ["b", "Veredicto: no pasa, la ruta no se cubre con ningún test"],
+    ["c", "Veredicto: no pasa. El caso del carrito vacío no se contempla"],
+    ["d", "Veredicto: no pasa. No sé si el caso X es realista, pero B1 rompe"],
+    ["CRLF", "Veredicto: no pasa\r\nB1 rompe\r\n"],
+  ])("caso %s: un «no pasa» con «no se» en el texto bloquea el cierre como no_pasa", (_, informe) => {
+    for (const conLanzado of [false, true]) {
+      rmSync(reg, { recursive: true, force: true });
+      mkdirSync(join(repo, "scripts"), { recursive: true });
+      writeFileSync(join(repo, "scripts", "x.mjs"), "export default 1");
+      if (conLanzado) correr("registro.mjs", lanzamiento("revisor"));
+      correr("registro.mjs", conLanzado
+        ? { hook_event_name: "SubagentStop", agent_id: "agente-sintetico-1", agent_type: "revisor", last_assistant_message: informe }
+        : { tool_name: "Agent", tool_input: { subagent_type: "revisor" }, tool_response: { content: [{ type: "text", text: informe }] } });
+      const r = JSON.parse(correr("cierre.mjs", {}).stdout);
+      expect([conLanzado, r.decision]).toEqual([conLanzado, "block"]);
+      expect([conLanzado, r.reason]).toEqual([conLanzado, expect.stringMatching(/revisor dice que no pasa/)]);
+    }
   });
   it("NIT: una entrada JSON «null» sale limpia (sin excepción) en registro y cierre", () => {
     for (const hook of ["registro.mjs", "cierre.mjs"]) {

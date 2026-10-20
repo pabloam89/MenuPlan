@@ -29,42 +29,34 @@ const JUECES = ["revisor", "qa", "evaluador"];
 // de una tabla; detrás, un separador («:», «-», «–» o la barra de la tabla). Una cita en mitad de una frase no cuenta.
 const EMPIEZA_POR_VEREDICTO = /^[\s>*_#|\-–]*veredicto[\s*_]*[:\-–|][\s*_|]*(.*)$/i;
 
-/** Cuántas de las tres respuestas posibles ofrece un texto (≥2: es el encargo, no un informe). */
-function opcionesOfrecidas(v) {
-  const noPasa = /\bno\s+pasa\b/.test(v);
-  const noSe = /\bno\s+s[eé](?![a-z])/.test(v);
-  const pasa = /(^|[^a-z])(?<!no\s)pasa(?![a-z])/.test(v);
-  return [pasa, noPasa, noSe].filter(Boolean).length;
-}
+// La respuesta la da el PRIMER token del valor. «no sé» solo con tilde; sin ella («no se guarda…», el verbo) solo si es
+// todo el valor: «no se» y puntuación o fin de línea. Una línea de Veredicto sin respuesta legible es sin_veredicto.
+const RESPUESTAS = [
+  ["no_se", /^no\s+(?:sé(?![a-z])|se\s*(?:[.,;:!?)]|$))/],
+  ["no_pasa", /^(?:no\s+pasa|❌|bloque|rechaz|suspend)/],
+  ["pasa", /^(?:pasa|aprob|conforme|ok\b|✅)/],
+];
+const limpia = (v) => v.trim().toLowerCase().replace(/^[\s*_«"']+/, "");
+const respuesta = (v) => RESPUESTAS.find(([, r]) => r.test(limpia(v)))?.[0];
+// El encargo ofrece al menos dos respuestas SOLAS («pasa | no pasa | no sé»); una explicación detrás de una no lo es.
+const SOLA = /^(?:pasa|no\s+pasa|no\s+s[eé])\s*(?:\(.*\))?[^\p{L}]*$/u;
+const esEncargo = (v) => v.split(/[|/]|\so\s/).filter((p) => SOLA.test(limpia(p))).length >= 2;
+const lineas = (t) => String(t ?? "").split(/\r?\n/);
 
-/**
- * La ÚLTIMA línea que empieza por «Veredicto» y da UNA respuesta: { linea, valor } o null.
- * Una línea con varias opciones («pasa | no pasa | no sé») es el encargo, no el informe: no cuenta;
- * una con una sola («no pasa | 2 bloqueantes») sí, aunque lleve «|».
- */
+/** La ÚLTIMA línea que empieza por «Veredicto» con respuesta legible (si ninguna, la última), sin las del encargo: { linea, r } o null. */
 function lineaVeredicto(texto) {
-  const validas = String(texto ?? "")
-    .split("\n")
-    .flatMap((linea) => {
-      const m = EMPIEZA_POR_VEREDICTO.exec(linea);
-      const valor = m?.[1].toLowerCase().replace(/^[\s*_«"']+/, "");
-      return m && opcionesOfrecidas(valor) < 2 ? [{ linea: linea.trim(), valor }] : [];
-    });
-  return validas.at(-1) ?? null;
+  const ls = lineas(texto).flatMap((linea) => {
+    const v = EMPIEZA_POR_VEREDICTO.exec(linea)?.[1];
+    return v !== undefined && !esEncargo(v) ? [{ linea: linea.trim(), r: respuesta(v) }] : [];
+  });
+  return ls.findLast((l) => l.r) ?? ls.at(-1) ?? null;
 }
 
 /** pasa | no_pasa | no_se | sin_veredicto, a partir del texto del juez. */
 export function veredictoDe(texto) {
-  const t = String(texto ?? "").toLowerCase();
-  const m = lineaVeredicto(t);
-  if (m) {
-    const v = m.valor;
-    if (/^no\s+s[eé](?![a-z])/.test(v)) return "no_se";
-    if (/^(no\s+pasa|bloque|rechaz|suspend)/.test(v)) return "no_pasa";
-    if (/^(pasa|aprob|conforme|ok\b|✅)/.test(v)) return "pasa";
-  }
-  if (/sin\s+bloqueantes|\b0\s+bloqueantes|ning[uú]n\s+bloqueante/.test(t)) return "pasa";
-  return "sin_veredicto";
+  const m = lineaVeredicto(texto);
+  if (m) return m.r ?? "sin_veredicto";
+  return /sin\s+bloqueantes|\b0\s+bloqueantes|ning[uú]n\s+bloqueante/i.test(String(texto ?? "")) ? "pasa" : "sin_veredicto";
 }
 
 const textoDe = (r) => {
@@ -107,7 +99,7 @@ export function apunteDe(ev) {
   }
   if (!agente || !JUECES.includes(agente)) return null;
   texto = String(texto ?? "");
-  const linea = lineaVeredicto(texto)?.linea ?? texto.split("\n").find((l) => l.trim()) ?? "";
+  const linea = lineaVeredicto(texto)?.linea ?? lineas(texto).find((l) => l.trim()) ?? "";
   return { agente, veredicto: veredictoDe(texto), resumen: linea.trim().slice(0, 160), ...(agentId ? { agent_id: agentId } : {}) };
 }
 
@@ -119,7 +111,8 @@ const CONCLUYENTE = new Set(["pasa", "no_pasa", "no_se"]);
  * Un juez vale si fue LANZADO después de la última edición que lo exige: lo que juzga es el código
  * que vio al arrancar, no el que había cuando llegó su informe. Si el apunte trae `agent_id` y hay un
  * «lanzado» del mismo juez y el mismo id, el momento del juicio es el de ese lanzamiento; si no, el del apunte.
- * De sus apuntes, manda el último con veredicto concluyente (pasa, no pasa, no sé). Mientras no haya
+ * De sus apuntes, un «no pasa» domina a cualquier «pasa» (misma versión del código: ningún cambio entre ambos);
+ * si no hay «no pasa», manda el último concluyente (pasa, no sé). Mientras no haya
  * ninguno y exista un «lanzado», el estado sigue siendo «lanzado» (un «sin veredicto» de SubagentStop
  * no lo sustituye); solo «sin veredicto» y nunca lanzado es «dudoso».
  */
@@ -130,7 +123,8 @@ export function evaluar({ requeridos, entradas, ultimaEdicion }) {
     const delJuez = entradas.filter((e) => e.agente === juez);
     const momento = (e) => (e.agent_id ? delJuez.find((l) => l.veredicto === "lanzado" && l.agent_id === e.agent_id)?.ts : undefined) ?? e.ts;
     const suyas = delJuez.filter((e) => momento(e) >= desde);
-    const ultima = suyas.filter((e) => CONCLUYENTE.has(e.veredicto)).at(-1) ?? (suyas.some((e) => e.veredicto === "lanzado") ? undefined : suyas.at(-1));
+    const conc = suyas.filter((e) => CONCLUYENTE.has(e.veredicto));
+    const ultima = conc.findLast((e) => e.veredicto === "no_pasa") ?? conc.at(-1) ?? (suyas.some((e) => e.veredicto === "lanzado") ? undefined : suyas.at(-1));
     if (!ultima && suyas.length) filas.push({ juez, estado: "lanzado", nota: "lanzado, sin informe: espera a que acabe" });
     else if (!ultima) filas.push({ juez, estado: "falta", nota: "no ha corrido tras el último cambio" });
     else if (ultima.veredicto === "no_pasa") filas.push({ juez, estado: "no_pasa", nota: ultima.resumen ?? "" });

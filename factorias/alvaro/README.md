@@ -47,17 +47,23 @@ Pegar el contenido de `settings.snippet.json` en `~/.claude/settings.json`
 - Un juez de segundo plano no tiene más «hook de fin» documentado que `SubagentStop`. Si el
   subagente entrega su informe por `SubagentHandback`, `last_assistant_message` NO es el informe
   (lo dice la documentación): por eso se escuchan los dos.
-- `SubagentHandback` solo existe desde la v2.1.271 de Claude Code y en modo auto. Fuera de él (versiones
-  anteriores, otros modos) esa herramienta no se llama y el informe del subagente viaja en
+- `SubagentHandback`: la documentación dice que Claude Code la proporciona en modo auto (desde la v2.1.271); no
+  dice que solo exista ahí. Donde no se llame, el informe del subagente viaja en
   `last_assistant_message` de `SubagentStop`: cubierto, pero con el mismo aviso de que no se ha visto en real.
+- NO está documentado que `agentId` (la respuesta de `Agent`) y `agent_id` (`SubagentStop` y `SubagentHandback`)
+  sean el mismo identificador. Si no coinciden, la corrección del momento del juicio (contar desde el lanzamiento)
+  queda inerte, en silencio: el informe cuenta desde el instante en que llega, como antes.
 - `SubagentStop` para agentes lanzados en segundo plano, y el campo `isAsync` de la respuesta de `Agent`,
   están sin comprobar: la documentación oficial no los documenta. Si `isAsync` no llega, el
   `status: "async_launched"` es la otra señal; si tampoco, el aviso se leería como informe en primer plano
   (sin línea `Veredicto:` válida sale «sin veredicto», que no bloquea).
 - El veredicto se lee del texto del juez: la ÚLTIMA línea que EMPIEZA por `Veredicto:` (admite negrita,
-  cita o barra de tabla delante) y ofrece una sola respuesta (una línea con dos o más de «pasa», «no pasa»,
-  «no sé» es el encargo, no cuenta); una cita en mitad de una frase se ignora;
-  los agentes de Pablo no tienen ese formato escrito, así que hoy un juez sin
+  cita o barra de tabla delante) y decide su PRIMER token («pasa», «no pasa», «no sé»). Una línea que ofrece
+  dos o más de esas respuestas solas, separadas por `|`, `/` u «o», es el encargo y no cuenta. «no sé» solo
+  vale con tilde; sin ella («no se guarda…») solo si es todo el valor. Si hay línea de `Veredicto` pero su
+  primer token no es una respuesta, sale «sin veredicto» y NO se mira «sin bloqueantes». Con varios jueces
+  del mismo tipo sobre la misma versión, un «no pasa» domina a cualquier «pasa». Una cita en mitad de una
+  frase se ignora; los agentes de Pablo no tienen ese formato escrito, así que hoy un juez sin
   esa línea sale como «⚠️ sin veredicto claro» y no bloquea.
 - La comprobación en el CI del PR (que el PR lleve el cuadro) no existe: tocaría
   `.github/`, que pide juez y es de Pablo.
