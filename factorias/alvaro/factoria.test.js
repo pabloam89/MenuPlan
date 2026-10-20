@@ -1,5 +1,5 @@
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, renameSync, rmSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -427,6 +427,29 @@ describe("el cierre solo mira lo de ESTA sesión", () => {
     const espera = Date.now() + 30;
     while (Date.now() < espera);
     writeFileSync(join(repo, "scripts", "x.mjs"), "export default 2");
+    expect(JSON.parse(correr("cierre.mjs", { session_id: "esta", transcript_path: t }).stdout).decision).toBe("block");
+  });
+  const enStaging = () => {
+    git("add", ".");
+    git("commit", "-qm", "staging");
+    git("update-ref", "refs/remotes/origin/staging", "HEAD");
+    const viejo = new Date(Date.now() - 3_600_000);
+    utimesSync(join(repo, "scripts", "x.mjs"), viejo, viejo);
+    const espera = Date.now() + 30;
+    while (Date.now() < espera);
+    const t = transcript(sinEdit(Date.now()));
+    const espera2 = Date.now() + 30;
+    while (Date.now() < espera2);
+    return t;
+  };
+  it("(f) borrar por Bash un fichero durante la sesión cuenta como cambio y bloquea", () => {
+    const t = enStaging();
+    rmSync(join(repo, "scripts", "x.mjs"));
+    expect(JSON.parse(correr("cierre.mjs", { session_id: "esta", transcript_path: t }).stdout).decision).toBe("block");
+  });
+  it("(f) renombrar por Bash (conserva el mtime) durante la sesión cuenta como cambio y bloquea", () => {
+    const t = enStaging();
+    renameSync(join(repo, "scripts", "x.mjs"), join(repo, "scripts", "y.mjs"));
     expect(JSON.parse(correr("cierre.mjs", { session_id: "esta", transcript_path: t }).stdout).decision).toBe("block");
   });
   it("(e) un veredicto ilegible se informa como «ilegible», nunca como «no pasa»", () => {

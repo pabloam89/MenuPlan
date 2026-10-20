@@ -1,8 +1,8 @@
 /**
  * registro.mjs — dónde se apunta qué jueces han corrido, por rama.
  * Vive fuera del repo (el repo es público): ~/.claude/factoria-alvaro/.
- * Por rama y no por sesión: una rama sigue entre sesiones, y un juez que ya
- * corrió después del último cambio vale aunque la sesión sea otra.
+ * El cierre filtra los apuntes por session_id: solo cuentan los jueces de esta
+ * sesión, y una sesión reanudada con otro id vuelve a pedir juez.
  */
 import { appendFileSync, existsSync, mkdirSync, readFileSync, statSync } from "node:fs";
 import { execFileSync } from "node:child_process";
@@ -60,9 +60,10 @@ export function ficherosCambiados(cwd) {
 
 export function mtime(cwd, rel) {
   try {
-    return statSync(join(cwd, rel)).mtimeMs;
+    const st = statSync(join(cwd, rel));
+    return Math.max(st.mtimeMs, st.ctimeMs); // un mv o git mv conserva el mtime pero cambia el ctime
   } catch {
-    return 0; // a propósito: un fichero borrado no cuenta como edición
+    return 0; // el fichero ya no existe: sesionCambio lo cuenta como cambio (borrado)
   }
 }
 

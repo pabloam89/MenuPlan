@@ -138,7 +138,8 @@ const EDITA = new Set(["Edit", "Write", "MultiEdit", "NotebookEdit"]);
 
 /**
  * ¿Cambió algo ESTA sesión? transcript: objetos de la transcripción (jsonl); mtimes: ms de los ficheros cambiados.
- * Sí si usó una herramienta que edita, o si un fichero cambiado se tocó después de que empezara (p. ej. por terminal).
+ * Sí si usó una herramienta que edita, o si un fichero cambiado se tocó después de que empezara (p. ej. por terminal),
+ * o si ya no existe (mtime 0: borrado con rm o git rm).
  * null si la transcripción no dice cuándo empezó: entonces no se sabe y el cierre exige como siempre.
  */
 export function sesionCambio({ transcript, mtimes }) {
@@ -146,5 +147,6 @@ export function sesionCambio({ transcript, mtimes }) {
   if (inicio === undefined) return null;
   const usos = transcript.flatMap((l) => (Array.isArray(l?.message?.content) ? l.message.content : []));
   if (usos.some((c) => c?.type === "tool_use" && EDITA.has(c.name))) return true;
-  return mtimes.some((m) => m >= inicio);
+  // mtime 0: el fichero cambiado ya no existe (borrado por terminal); eso también es un cambio.
+  return mtimes.some((m) => m === 0 || m >= inicio);
 }
