@@ -19,6 +19,7 @@
     { "prefijo": "docs/medios.md", "zona": "producto" },
     { "prefijo": "ops/principios-producto/", "zona": "producto" },
     { "prefijo": "ops/copias/", "zona": "producto" },
+    { "prefijo": "factorias/", "zona": "factoria" },
     { "prefijo": "ops/", "zona": "factoria" },
     { "prefijo": "docs/", "zona": "factoria" },
     { "prefijo": ".claude/", "zona": "factoria" },
