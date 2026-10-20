@@ -1,4 +1,5 @@
 import { FRONTAL_BOT } from "../lib/frontalBot.js";
+import { isNativeApp } from "../lib/apiUrl.js";
 import { useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { BookOpen, Calendar, ChevronDown, ClipboardList, CookingPot, Home, ShoppingCart, Sparkles, UserCircle, Users, X } from "./icons.jsx";
@@ -894,17 +895,23 @@ export function AppleButton({ onClick, label = "Continuar con Apple", variant = 
 }
 
 /**
- * Las dos formas de entrar, juntas y con el mismo peso.
+ * Las formas de entrar, juntas y con el mismo peso.
  *
- * Van siempre las dos: ofrecer Google a solas en iOS es rechazo de App Store
- * por la Guideline 4.8. Por eso existe este componente y no se pinta
+ * En la app de iOS van siempre las dos: ofrecer Google a solas es rechazo de
+ * App Store por la Guideline 4.8. Por eso existe este componente y no se pinta
  * `GoogleButton` suelto en ninguna pantalla.
+ *
+ * Apple solo se ofrece en la app nativa (`conApple`, por defecto `isNativeApp`):
+ * la 4.8 es de iOS, y en la web el proveedor Apple puede no estar habilitado
+ * en Supabase (ni el Services ID en el portal de Apple), con lo que el botón
+ * llevaría a un error. Se abrirá en la web cuando Pablo confirme que Apple
+ * está habilitado (issue #890).
  */
-export function SignInOptions({ onGoogle, onApple, variant = "light" }) {
+export function SignInOptions({ onGoogle, onApple, variant = "light", conApple = isNativeApp }) {
   const dark = variant === "dark";
   return (
     <div style={{ display: "grid", gap: 10 }}>
-      <AppleButton onClick={onApple} variant={variant} />
+      {conApple && <AppleButton onClick={onApple} variant={variant} />}
       <GoogleButton onClick={onGoogle} variant={variant} />
       {/* La aceptación de los términos vive aquí y no en cada pantalla porque
           aquí es donde nace la cuenta, y porque App Store exige, en apps con
