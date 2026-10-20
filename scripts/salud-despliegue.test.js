@@ -157,14 +157,15 @@ describe("protegido es «sin comprobar», no «sin salud»", () => {
     expect(lineas(await evaluar(env(), { fetchFn: login(), ...rapido })).at(-1)).toMatch(/resultado: sin_comprobar /);
   });
 
-  it("el script: un fallo sale 1, escribe el aviso, la línea de norma fail y salud=fallo", () => {
+  it("el script: un fallo sale 1, escribe el aviso, su línea final y salud=fallo", () => {
     const dir = mkdtempSync(join(tmpdir(), "salud-"));
     const r = spawnSync(process.execPath, [join(import.meta.dirname, "salud-despliegue.mjs"), "--issue", join(dir, "a.md")], {
       env: { PATH: process.env.PATH, DESPLIEGUE_URL: "https://evil.example.com", DESPLIEGUE_ESTADO: "success", DESPLIEGUE_REF: "staging", GITHUB_OUTPUT: join(dir, "o.txt") },
       encoding: "utf8", windowsHide: true,
     });
     expect(r.status).toBe(1);
-    expect(r.stdout).toContain("norma: vuelta-atras-probada resultado: fail");
+    expect(r.stdout).toContain("salud-despliegue resultado: fallo ref: staging");
+    expect(r.stdout).not.toContain("norma: "); // la línea de la norma se fue con las normas (#878)
     expect(readFileSync(join(dir, "o.txt"), "utf8")).toBe("salud=fallo\n");
     expect(readFileSync(join(dir, "a.md"), "utf8")).toContain("url_ilegible");
   });

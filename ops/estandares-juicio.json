@@ -1,4 +1,0 @@
-{
-  "$comentario": "Ancla de reglas de ops/estandares-agentes.json con control «juicio» (#527): el recuento ha de ser igual y SOLO BAJA. ops/estandares-agentes.test.js falla si hay más, si hay menos (se baja con npm run estandar -- --escribir) o si el ancla sube respecto a origin/staging.",
-  "juicio_maximo": 140
-}

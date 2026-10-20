@@ -1,8 +1,0 @@
-{
-  "clave": ".claude/commands/orquestar.md",
-  "valor": {
-    "subagente": 2,
-    "worktree": 3,
-    "worktrees": 1
-  }
-}

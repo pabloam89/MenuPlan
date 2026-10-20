@@ -1,9 +1,0 @@
-{
-  "id": "owasp-asvs",
-  "nombre": "OWASP Application Security Verification Standard",
-  "tipo": "externa",
-  "url": "https://owasp.org/www-project-application-security-verification-standard/",
-  "fecha_alta": "2026-10-13",
-  "revisada": "no",
-  "fecha_revision": null
-}

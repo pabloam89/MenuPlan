@@ -9,9 +9,8 @@ metadata:
   pasos_fijos: false
   sintoma_a_causa: false
   elige_opciones: false
-  dueno: constructor
-  comprobado: "2026-10-09"
-  normas: [copia-nocturna-base, copias-solo-con-su-rol, copia-restaurada-ensayada]
+  dueno: pablo
+  comprobado: "2026-10-19"
 ---
 
 # Hetzner (servidor propio)
@@ -44,7 +43,7 @@ metadata:
   - Una línea por copia en `copias.log` y el journal (`copia-base … resultado:
     ok|fallo motivo: <paso> … aviso: ok|fallo|sin-canal`); vocabulario en
     `scripts/lib/copias.mjs`, cruzado por test con el script.
-  - Solo con `copia_lectura` (0095, #273; nunca `consulta_lectura`) <!-- norma:copias-solo-con-su-rol -->: con otro
+  - Solo con `copia_lectura` (0095, #273; nunca `consulta_lectura`): con otro
     usuario o si puede escribir, para por `config`; sin las dos vistas de
     `copia`, por `auth`; con menos de 100 KB o la mitad de la última, `incompleta`.
 - **Pendiente:**
@@ -150,15 +149,6 @@ Instalar las copias de la base (OK; lo lanza Pablo con `!`), su ensayo de restau
 - **2026-10-08 · ventana de «Git for Windows» al conectar.** Causa: la `ssh` de
   Git Bash no habla con el agente de 1Password. Arreglo: la `ssh` de Windows
   (detalle en la skill `1password`).
-- **2026-10-08 · la guardia niega `create table` y `drop` aunque sean sobre el
-  Postgres del panel.** Causa: la regla de «SQL contra producción» mira el texto
-  y no distingue entre Supabase y esta base. Arreglo: la guardia deja pasar un
-  `psql` que va dentro de `docker compose exec` (o `docker exec`) sin URL ni host
-  en su tramo, y sigue negando cualquier otro; con test en
-  `.claude/hooks/guardia.test.js`. No ve el SQL que va dentro de un fichero. La
-  guardia que corre es la de la **carpeta principal** (`C:\dev\MenuPlan`): hasta
-  que esa carpeta se adelanta con `git merge --ff-only origin/staging`, la regla
-  nueva no vale aunque ya esté fusionada.
 - **2026-10-08 · SSH aceptaba contraseñas** (`passwordauthentication yes`).
   Causa: es el valor por defecto de Ubuntu. Arreglo: el fichero
   `/etc/ssh/sshd_config.d/10-solo-llaves.conf`, validado con `sshd -t` y aplicado

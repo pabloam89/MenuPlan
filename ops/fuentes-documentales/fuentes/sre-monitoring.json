@@ -1,9 +1,0 @@
-{
-  "id": "sre-monitoring",
-  "nombre": "Google SRE Book: Monitoring Distributed Systems",
-  "tipo": "externa",
-  "url": "https://sre.google/sre-book/monitoring-distributed-systems/",
-  "fecha_alta": "2026-10-13",
-  "revisada": "no",
-  "fecha_revision": null
-}

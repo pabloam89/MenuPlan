@@ -47,10 +47,23 @@ const PANEL_SUELTO =
   import.meta.env.DEV &&
   new URLSearchParams(window.location.search).get('panel') === '1'
 
+// Comparador de diseño (#825): ?comparador=1, solo en dev. Va con un import
+// diferido dentro de la rama de dev: en el build de producción
+// `import.meta.env.DEV` es false, la rama se cae y ni la página ni el dato que
+// lee (lint-tokens-base.json) llegan al bundle.
+const ComparadorDiseno = import.meta.env.DEV
+  ? React.lazy(() => import('./dev/ComparadorDiseno.jsx'))
+  : null
+const COMPARADOR =
+  ComparadorDiseno &&
+  new URLSearchParams(window.location.search).get('comparador') === '1'
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ErrorBoundary>
-      {PANEL_SUELTO ? <PanelPlayground /> : <><App /><InstallPwaBanner /></>}
+      {COMPARADOR
+        ? <React.Suspense fallback={null}><ComparadorDiseno /></React.Suspense>
+        : PANEL_SUELTO ? <PanelPlayground /> : <><App /><InstallPwaBanner /></>}
     </ErrorBoundary>
   </React.StrictMode>,
 )

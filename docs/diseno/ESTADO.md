@@ -551,6 +551,51 @@ e Ionic). Constan así porque «móvil sí» no dice en cuál de las plataformas
 
 Lo que HoMenu usa hoy (Nucleo para los iconos, cómo se importa y qué cubre) vive en un solo sitio: `DESIGN_SYSTEM.md` §5.
 
+## Plantillas de componente: los 50 tipos de elemento (14 oct 2026, #842)
+
+El nivel de plantilla de la entidad `component` (entidad `component-template`): una plantilla por tipo de elemento de la
+taxonomía, en `ops/diseno/plantillas-componente.json`, con anatomía (partes obligatorias u opcionales), atributos de forma con su
+lista cerrada de valores, atributos visuales por rol (una propiedad de una parte que apunta a un paso de una escala, nunca a un
+número), estados y accesibilidad mínima (rol ARIA, nombre accesible, objetivo táctil, teclado). Reutiliza los estados,
+categorías, variantes, tamaños, densidades y tipos de token de `ops/diseno/bloques.json`, y la marca `not-applicable` y el sí/no
+neutro (`declaracion`: sí o no, el sentido lo da el atributo) del pool. Los estados mínimos de un interactivo los marca la
+plantilla (norma `design-complete-states`: reposo, foco, pulsado y deshabilitado, y hover si hay puntero; el test compara esa
+lista con el código en los dos sentidos). El 15 oct se quitaron las fuentes (decisión de Pablo, #850): una plantilla es un molde
+de la casa, no una regla que se justifique con una fuente. La pieza de HoMenu que rellena cada plantilla es #830. Cifras:
+`node scripts/diseno/plantillas.mjs`.
+
+## Comparador, tanda 1: valores base agrupados (14 oct 2026, #825)
+
+Línea 3 de #774, primer paso (valores base → piezas → pantallas → flujos). `scripts/lib/comparadorFundamentos.mjs`
+agrupa `lint-tokens-base.json` por tipo: cada valor con sus usos y ficheros, los casi iguales en **familias** (por líder: el
+más usado abre familia y los demás entran en la del representante más cercano dentro del umbral) y, para cada valor, el
+token de `src/design/tokens.js` más cercano como «pasa a», o «sin token» si ninguno queda dentro. Umbrales declarados en
+`UMBRALES` del módulo: color ΔE76 en Lab con la transparencia ×100, ≤ 5; números por diferencia relativa (espacio y radio
+12 %, letra 5 %, peso 7 %, capa 10 %); sombras por capas, tamaño y color; duraciones 15 % y curvas 0,15. Lo vigila
+`scripts/lib/comparadorFundamentos.test.js` (toda entrada de la base cae en una sola familia y cada token es su propio
+más cercano). La vista: `?comparador=1` en desarrollo (`src/dev/ComparadorDiseno.jsx`); no entra en el build de producción.
+
+| Tipo | Valores distintos | Usos | Familias | Sin token cercano (valores / usos) | Tokens hoy |
+|---|---:|---:|---:|---:|---:|
+| color | 892 | 4.581 | 379 | 588 / 1.411 | 25 |
+| espaciado | 49 | 3.650 | 31 | 32 / 1.305 | 9 |
+| tamano-letra | 30 | 1.289 | 22 | 14 / 160 | 8 |
+| peso | 7 | 1.175 | 6 | 3 / 171 | 3 |
+| radio | 22 | 1.187 | 15 | 9 / 345 | 7 |
+| sombra | 205 | 307 | 99 | 188 / 262 | 4 |
+| capa | 45 | 144 | 21 | 21 / 74 | 8 |
+| movimiento | 53 | 460 | 28 | 39 / 154 | 4 |
+
+Los 892 colores distintos (no los 660 hex de la auditoría del 9 oct) cuentan también los `rgba()`, con la forma que
+normaliza la regla. Lo más gordo sin token: el espacio 10 (450 usos, entre `esp-8` y `esp-12`), los radios 10 y 14 (114 y
+117) y el peso 600 (161). La elección de Pablo sobre esta vista no se guarda todavía: llega en otra tanda.
+
+Ronda 2 (qa y revisor): cada muestra de sombra va recortada a su caja y aislada; las dos sombras «velo» (`0 0 0 9999px`, del
+tour y del coach) se enseñan como velo dentro de su caja en vez de oscurecer la página. Las cifras por tipo pasan de tabla a
+tarjetas que se parten (a 375 y 420 px ya no hay desplazamiento lateral). Los tipos numéricos se ordenan por usos o por
+valor, con una línea sobre el umbral relativo. Las 136 versiones cuyo token no es el de su familia (122 de color) se marcan
+a la vista. `?tipo=sombra` abre un tipo directamente.
+
 ## Sin comprobar
 
 - Si los avatares sin referencia literal se usan de verdad (hay rutas

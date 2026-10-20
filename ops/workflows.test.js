@@ -7,13 +7,14 @@
 //
 // Lo que decide es un parser de verdad (`yaml`, devDependency). La heurística de los bloques
 // solo sirve para explicar el fallo más típico (una línea que se sale de un `run: |`).
-import { readdirSync, readFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { join, relative, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { parseDocument } from "yaml";
 
 const RAIZ = resolve(import.meta.dirname, "..");
 const DIR = join(RAIZ, ".github", "workflows");
+const PENDIENTES = join(RAIZ, "ops", "workflows-pendientes");
 
 /** Los errores del parser: [«línea N: código»]. */
 function erroresYaml(texto) {
@@ -102,11 +103,23 @@ const problemas = (texto) => {
 };
 
 describe("los workflows se pueden leer como YAML", () => {
-  const ficheros = readdirSync(DIR).filter((f) => /\.ya?ml$/.test(f));
-  it("hay workflows que mirar", () => expect(ficheros.length).toBeGreaterThan(5));
+  // Rutas desde la raíz: los de .github/workflows/ y los que esperan en ops/workflows-pendientes/
+  // a que Pablo los mueva (la vía de respaldo si la App de las sesiones no puede empujar workflows, #844, #821).
+  const yamls = (dir) => (existsSync(dir) ? readdirSync(dir).filter((f) => /\.ya?ml$/.test(f)).map((f) => relative(RAIZ, join(dir, f)).replace(/\\/g, "/")) : []);
+  const ficheros = [...yamls(DIR), ...yamls(PENDIENTES)];
+  // Desde #878 quedan 7 (se fueron los 5 de la Factoría antigua): el suelo solo dice que el bucle mira algo.
+  it("hay workflows que mirar", () => expect(ficheros.length).toBeGreaterThanOrEqual(1));
+  it("un pendiente ya movido no se queda: si está igual en .github/workflows/, se borra (#844)", () => {
+    const movidos = yamls(PENDIENTES).filter((p) => {
+      const destino = join(DIR, p.split("/").pop());
+      const leer = (f) => readFileSync(f, "utf8").replace(/\r\n/g, "\n").trimEnd();
+      return existsSync(destino) && leer(join(RAIZ, p)) === leer(destino);
+    });
+    expect(movidos, "ya movido: borra el pendiente (los tests del workflow leerían el de ops/ y no el activo)").toEqual([]);
+  });
   for (const f of ficheros) {
     it(`${f}: YAML válido, con jobs y cada paso con run o uses`, () => {
-      const texto = readFileSync(join(DIR, f), "utf8");
+      const texto = readFileSync(join(RAIZ, f), "utf8");
       expect(problemas(texto), "Un \\n escrito como salto de línea de verdad saca la línea del bloque; un «: » en un valor sin comillas lo rompe").toEqual([]);
       const wf = parseDocument(texto).toJS();
       expect(Object.keys(wf.jobs ?? {}).length, "sin jobs").toBeGreaterThan(0);
@@ -115,25 +128,26 @@ describe("los workflows se pueden leer como YAML", () => {
       }
     });
     it(`${f}: ningún «\\n» suelto fuera de comillas en un run (bash lo lee como la letra «n»)`, () => {
-      const wf = parseDocument(readFileSync(join(DIR, f), "utf8")).toJS() ?? {};
+      const wf = parseDocument(readFileSync(join(RAIZ, f), "utf8")).toJS() ?? {};
       const malos = Object.entries(wf.jobs ?? {}).flatMap(([j, job]) => (job.steps ?? []).flatMap((p, k) => nSueltas(p.run ?? "").map((m) => `${j} paso ${k + 1}: ${m}`)));
       expect(malos, "Una orden por línea, o un «\\» de verdad al final de la línea; un «\\n» escrito tal cual es un argumento «n»").toEqual([]);
     });
   }
   it("cada workflow que busca un issue lo filtra por el autor del bot y por el título exacto (#450)", () => {
     const malos = ficheros.flatMap((f) => {
-      const wf = parseDocument(readFileSync(join(DIR, f), "utf8")).toJS() ?? {};
+      const wf = parseDocument(readFileSync(join(RAIZ, f), "utf8")).toJS() ?? {};
       return Object.entries(wf.jobs ?? {}).flatMap(([j, job]) =>
         (job.steps ?? []).flatMap((p, k) => busquedasDeIssue(p.run ?? "").flatMap((orden) => faltasDeBusqueda(orden).map((m) => `${f} ${j} paso ${k + 1}: ${m}`))));
     });
-    expect(malos, "Copia la búsqueda de flujo-semanal.yml: --author \"app/github-actions\" y --jq \"map(select(.title==\\\"$titulo\\\"))[0].number // empty\"").toEqual([]);
+    expect(malos, "Copia la búsqueda de bot-semanal.yml: --author \"app/github-actions\" y --jq \"map(select(.title==\\\"$titulo\\\"))[0].number // empty\"").toEqual([]);
   });
   it("hay workflows que buscan su issue (si no, la regla anterior no mira nada)", () => {
     const con = ficheros.filter((f) => {
-      const wf = parseDocument(readFileSync(join(DIR, f), "utf8")).toJS() ?? {};
+      const wf = parseDocument(readFileSync(join(RAIZ, f), "utf8")).toJS() ?? {};
       return Object.values(wf.jobs ?? {}).some((job) => (job.steps ?? []).some((p) => busquedasDeIssue(p.run ?? "").length > 0));
     });
-    expect(con.length).toBeGreaterThanOrEqual(4);
+    // bot-semanal y salud-despliegue (#878: los otros tres eran de la Factoría antigua).
+    expect(con.length).toBeGreaterThanOrEqual(2);
   });
   it("la regla de la búsqueda de issue distingue autor y título exacto", () => {
     const soloTitulo = 'issue=$(gh issue list --repo "$R" --state open \\\n  --search "\\"$titulo\\" in:title" --json number --jq \'.[0].number // empty\')';

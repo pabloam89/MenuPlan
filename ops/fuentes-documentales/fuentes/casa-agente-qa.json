@@ -1,9 +1,0 @@
-{
-  "id": "casa-agente-qa",
-  "nombre": "Fuente de la casa: agente qa (severidad y método)",
-  "tipo": "casa",
-  "ruta": ".claude/agents/qa.md",
-  "fecha_alta": "2026-10-13",
-  "revisada": "no",
-  "fecha_revision": null
-}

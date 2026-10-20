@@ -14,8 +14,8 @@ paths:
   lleva `id`, `tipo`, `dominio`, `origen` y, si habla de días, `dependeDeFecha`
   (`scripts/lib/evals.mjs`). Las
   evals tienen un tope mensual duro (`PRESUPUESTO_MENSUAL_EUR`, en ese mismo
-  módulo y en ningún otro sitio; los tres scripts de evals (bot-evals,
-  router-evals, skills-prueba) apuntan su gasto en `~/.menuplan-evals/gasto.jsonl`,
+  módulo y en ningún otro sitio; los scripts de evals (bot-evals y
+  router-evals) apuntan su gasto en `~/.menuplan-evals/gasto.jsonl`,
   de esta máquina (no suma la de otra persona ni la consola), y releen el libro
   antes de cada pago; los demás scripts con modelo figuran en `evals.test.js`
   como excepciones, sin límite mensual) y cada pasada su límite propio; lo ya

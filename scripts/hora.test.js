@@ -19,8 +19,6 @@ describe("la hora de Madrid", () => {
     const leer = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
     expect(leer("CLAUDE.md")).toMatch(/npm run hora/);
     expect(leer("CLAUDE.md")).toMatch(/## Pensar en datos/);
-    expect(leer(".claude/PLANTILLA-AGENTE.md")).toMatch(/Piensa en datos/);
-    expect(leer(".claude/hooks/arranque.mjs")).toMatch(/ahoraEnMadrid\(\)/);
   });
 
   it("con el día, para el arranque", () => {

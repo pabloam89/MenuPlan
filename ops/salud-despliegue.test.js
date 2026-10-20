@@ -89,12 +89,6 @@ describe("la puerta de salud tras desplegar (#589)", () => {
     expect(existsSync(join(RAIZ, "scripts/salud-despliegue.mjs"))).toBe(true);
   });
 
-  it("la norma vuelta-atras-probada tiene a este test como control", () => {
-    const n = JSON.parse(readFileSync(join(RAIZ, "ops/normas.json"), "utf8")).normas.find((x) => x.id === "vuelta-atras-probada");
-    expect(n?.control).toBe("ops/salud-despliegue.test.js");
-    expect(n?.control_tipo).toBe("test");
-  });
-
   it("la regla ve cada falta (visto fallar con workflows rotos)", () => {
     const bueno = texto();
     const rotos = {

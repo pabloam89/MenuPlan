@@ -1,6 +1,6 @@
 ---
 name: supabase
-description: Úsala para operar la base de datos de MenuPlan en Supabase: una consulta a producción, «¿está aplicada?», pg_cron y los crons del bot, el login y Auth (Google), copias o backup (lo que llevan; el cómo, hetzner), o cuando algo de la base no cuadra con el repo. No para: escribir una migración (regla migraciones y agente constructor) ni el Postgres del panel en Hetzner (hetzner).
+description: Úsala para operar la base de datos de MenuPlan en Supabase: una consulta a producción, «¿está aplicada?», pg_cron y los crons del bot, el login y Auth (Google), copias o backup (lo que llevan; el cómo, hetzner), o cuando algo de la base no cuadra con el repo. No para: escribir una migración (regla migraciones) ni el Postgres del panel en Hetzner (hetzner).
 metadata:
   tipo: servicio
   opera_proveedor: true
@@ -9,9 +9,8 @@ metadata:
   pasos_fijos: false
   sintoma_a_causa: false
   elige_opciones: false
-  dueno: constructor
-  comprobado: "2026-10-09"
-  normas: [aplicar-migracion-con-permiso, migracion-pablo-solo-pablo, sin-sql-a-mano, rol-solo-lectura, ensayo-no-cambia-nada]
+  dueno: pablo
+  comprobado: "2026-10-19"
 ---
 
 # Supabase
@@ -34,8 +33,8 @@ metadata:
   cuenta (`menuplan-staging`, `supabase-coffee-flame`) están suspendidos.
 - **Qué da**: Postgres, Auth (login con Google) y RLS. El código depende de
   las tres, por eso irse de Supabase no es un cambio de proveedor sin más.
-- **Escribir migraciones** no es de esta skill: `.claude/rules/migraciones.md`,
-  `docs/datos/PRINCIPIOS.md` y el agente `constructor`.
+- **Escribir migraciones** no es de esta skill: `.claude/rules/migraciones.md`
+  y `docs/datos/PRINCIPIOS.md`.
 - **Copias: propias, no de Supabase.** Decidido (#156; día en «Fechas» de Fuentes y comprobación): una copia
   cifrada cada noche en el servidor de Hetzner (encargo #247). Cómo se hace, se
   instala, se ensaya y se restaura: skill `hetzner`. Lo que lleva y lo que no:
@@ -98,7 +97,7 @@ tenga la URL puede usar `net.http_*`, objetos grandes o bloqueos consultivos
 |---|---|---|
 | ¿Está aplicada la 00XX? | `node scripts/verificar-estado.mjs --solo 00XX` (sin argumentos, todas; `--detalle` enseña cada testigo) | cada migración con su testigo; avisa de lo que no cuadra con `supabase/ESTADO.md`. Solo lectura, sin preguntar |
 | Ensayar una migración (Pablo hasta E5, #331: pide `SUPABASE_DB_URL`, que las sesiones no tienen desde #328) | `node scripts/apply-migration.mjs <nombre>` (sin `--si`) | ejecuta y hace ROLLBACK |
-| Aplicar una migración (Pablo hasta E5, #331, desde una PowerShell aparte con `$env:MENUPLAN_OP_PABLO="1"`; la sesión le deja el comando) | `node scripts/apply-migration.mjs <nombre> --si` | exige estar en staging, un ensayo de menos de una hora y el OK de `auditor-datos` en la cabecera <!-- norma:aplicar-migracion-con-permiso --> |
+| Aplicar una migración (Pablo hasta E5, #331, desde una PowerShell aparte con `$env:MENUPLAN_OP_PABLO="1"`; la sesión le deja el comando) | `node scripts/apply-migration.mjs <nombre> --si` | exige estar en staging, un ensayo de menos de una hora y el OK de `auditor-datos` en la cabecera |
 | Consulta a producción | como `scripts/verificar-estado.mjs`: `set session characteristics as transaction read only`, `begin read only`, solo `select`, `rollback` | filas o recuentos; aunque se colara un `update`, Postgres lo rechaza |
 | ¿Qué plan y qué copias tiene? | En el navegador: Vercel → Storage → «MenuPlan» → **Open in Supabase** → Database → Backups (pestañas «Scheduled backups» y «Point in time»). Sin sesión de Supabase propia, esa es la única entrada | el plan, y o la lista de copias o el aviso «Free Plan does not include project backups». Salió ese aviso (día en «Fechas» de Fuentes y comprobación) |
 | Borrar tablas o vistas (primer drop, #303) | los pasos de abajo; la migración la lanza Pablo con `--pablo` | `verificar-estado --solo 00XX` con los testigos negativos «está» (el objeto ya falta de la base) |
@@ -121,8 +120,8 @@ tenga la URL puede usar `net.http_*`, objetos grandes o bloqueos consultivos
      borra, y `ops/lecturasRetiradas.test.js` sigue vigilando que nadie la lea.
   5. Orden: PR fusionado en staging, ensayo (vale una hora), Pablo la lanza,
      `verificar-estado --solo`, y `supabase/ESTADO.md`.
-  6. Número: el contiguo a staging; el «siguiente libre» del arranque suma uno al número
-     más alto de los PR abiertos y deja huecos que `migrations.test.js` rechaza (#369).
+  6. Número: el contiguo a staging; `migrations.test.js` rechaza huecos (#369) y el paso
+     «Migraciones del PR» del CI, un número que ya lleva otro PR abierto.
 - **El registro de verdad es `supabase/ESTADO.md`**, no la tabla de
   migraciones de Supabase (`supabase_migrations.schema_migrations`), que solo
   tiene 12 filas: casi todo se aplicó a mano.
@@ -174,10 +173,10 @@ tenga la URL puede usar `net.http_*`, objetos grandes o bloqueos consultivos
 ## Qué requiere el OK de Pablo
 
 - Aplicar (`--si`) lo deja el script si ve la migración en staging, un ensayo
-  de menos de una hora y el OK de `auditor-datos` en la cabecera; hasta E5
+  de menos de una hora y la línea `-- AUDITADA: auditor-datos AAAA-MM-DD OK` en la cabecera; hasta E5
   (#331) lo lanza Pablo, porque las sesiones no tienen la URL de administrador
   (#328). Con `CONTRAE`, o RLS o permisos de lo que ya existía, además
-  `--pablo`. El SQL a mano que escribe, siempre negado. <!-- norma:sin-sql-a-mano -->
+  `--pablo`. SQL a mano contra producción, nunca.
 - Cambiar ajustes del panel: Auth, proveedores, URLs de retorno, plan, crons
   fuera de `scripts/bot-cron.mjs`.
 - Subir de plan (Pro) o dar de alta cualquier gasto de Supabase.
@@ -202,7 +201,7 @@ segundos a las 02:40 UTC. Lo que se descartó, por si hace falta más:
 
 Otros límites del Free que muerden: 500 MB de base (hoy pesa 65 MB) y que los
 proyectos sin actividad se suspenden (los dos de pruebas lo están). La base de las
-familias es la única activa. Plano 8 de `ops/PLANOS.md`.
+familias es la única activa.
 
 ## Fuentes y comprobación
 

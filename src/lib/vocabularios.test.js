@@ -19,7 +19,6 @@ import { fileURLToPath } from "node:url";
 import * as V from "./vocabularios.js";
 import { checksDeLista, checksNoReconocidos, problemasDeParidad } from "../../scripts/lib/checksVocabulario.mjs";
 import { leerSinAplicar } from "../../scripts/verificar-estado.mjs";
-import { admitidosEnLaBase, leerRegistro } from "../../scripts/lib/vocabulariosVida.mjs";
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -92,13 +91,15 @@ function migraciones({ aplicadas = false } = {}) {
     .map((f) => ({ fichero: f, sql: readFileSync(new URL(f, dir), "utf8") }));
 }
 
-/** El mapa de columnas con vivos y retirados, para problemasDeParidad. */
-function mapaDeParidad(registro) {
+/**
+ * El mapa de columnas con vivos y retirados, para problemasDeParidad. Los retirados salen de
+ * RETIRADOS (src/lib/vocabularios.js), su única fuente desde #878.
+ */
+function mapaDeParidad() {
   return Object.fromEntries(Object.entries(COLUMNA_A_VOCABULARIO).map(([col, { lista, valores, patrones = [] }]) => {
     if (valores) return [col, { vivos: valores, retirados: [], patrones }];
-    const a = admitidosEnLaBase(registro, lista);
-    if (!a) throw new Error(`${col}: no existe la lista ${lista} en VOCABULARIOS`);
-    return [col, { ...a, patrones }];
+    if (!VOCABULARIOS[lista]) throw new Error(`${col}: no existe la lista ${lista} en VOCABULARIOS`);
+    return [col, { vivos: [...VOCABULARIOS[lista]], retirados: Object.keys(RETIRADOS[lista] ?? {}), patrones }];
   }));
 }
 
@@ -131,7 +132,7 @@ describe("vocabularios: una lista, un sitio", () => {
 
   it("el CHECK de lista vigente de cada columna admite exactamente su lista: los vivos y los retirados", () => {
     // Vivo = lo de las migraciones aplicadas; las sin aplicar solo cuentan para decirlo en el mensaje.
-    expect(problemasDeParidad(checksDeLista(migraciones({ aplicadas: true })), mapaDeParidad(leerRegistro(RAIZ)), SIN_LISTA, checksDeLista(migraciones()))).toEqual([]);
+    expect(problemasDeParidad(checksDeLista(migraciones({ aplicadas: true })), mapaDeParidad(), SIN_LISTA, checksDeLista(migraciones()))).toEqual([]);
   });
 
   it("todo CHECK con literales e in/any/<@ que no es de lista está en NO_ES_LISTA con su motivo", () => {
@@ -154,16 +155,6 @@ describe("vocabularios: una lista, un sitio", () => {
   });
 });
 
-/** Los retirados del producto en el registro, con la forma de RETIRADOS: { nombre: { valor: pasa_a } }. */
-function retiradosDelRegistro(registro) {
-  const out = {};
-  for (const r of registro.retirados ?? []) {
-    if (!r.vocabulario.startsWith("producto.")) continue;
-    (out[r.vocabulario.slice("producto.".length)] ??= {})[r.valor] = r.pasa_a;
-  }
-  return out;
-}
-
 /** Los .js/.jsx/.mjs de src/ y api/ que no son tests, con su texto. */
 function codigo() {
   const out = [];
@@ -183,10 +174,6 @@ const ENVASES_SIN_CARTON = ENVASES.filter((v) => v !== "carton");
 const CARTON_A_BRICK = { envases: { carton: "brick" } };
 
 describe("un valor retirado no vuelve a escribirse (#539)", () => {
-  it("RETIRADOS es exactamente la proyección de ops/vocabularios-vida.json (producto.*)", () => {
-    expect(RETIRADOS, "Al retirar un valor del producto, apúntalo también en RETIRADOS de src/lib/vocabularios.js").toStrictEqual(retiradosDelRegistro(leerRegistro(RAIZ)));
-  });
-
   it("paraEscribir: vivo tal cual, retirado a su sucesor, sin sucesor se quita con su línea, desconocido lanza", () => {
     const avisos = [];
     const { paraEscribir, listaParaEscribir } = crearEscritor({ ...VOCABULARIOS, envases: ENVASES_SIN_CARTON }, { envases: { carton: "brick", tetra: null } }, (n, v) => avisos.push([n, v]));
