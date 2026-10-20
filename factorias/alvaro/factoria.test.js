@@ -20,6 +20,9 @@ describe("qué jueces tocan según los ficheros", () => {
   it("un test o un snapshot de Lola no pide evaluador, pero sí revisor", () => {
     expect(Object.keys(juecesRequeridos(["api/_bot/zz-ejemplo.test.js", "api/_bot/__snapshots__/zz-ejemplo.test.js.snap"]))).toEqual(["revisor"]);
   });
+  it("editar estos mismos hooks pide revisor", () => {
+    expect(Object.keys(juecesRequeridos(["factorias/alvaro/hooks/registro.mjs"]))).toEqual(["revisor"]);
+  });
   it("docs y datos sueltos no piden nada", () => {
     expect(juecesRequeridos(["docs/ops/NORMAS.md", "ops/normas.json", "README.md"])).toEqual({});
   });
@@ -38,6 +41,22 @@ describe("veredicto del juez", () => {
     ["Veredicto: pasa | no pasa | no sé", "sin_veredicto"],
     // si el informe cita el encargo y luego da el suyo, vale el suyo (el último con una sola opción)
     ["Veredicto: pasa | no pasa | no sé (elige una)\n\nVeredicto: no pasa, hay un bloqueante", "no_pasa"],
+    // BLOQUEANTE 1: una sola opción con «|» en la explicación o en una tabla sigue siendo un veredicto
+    ["Veredicto: no pasa | 2 bloqueantes", "no_pasa"],
+    ["**Veredicto:** no pasa | ver B1 y B2", "no_pasa"],
+    ["| Veredicto | no pasa |", "no_pasa"],
+    ["| Veredicto | pasa |", "pasa"],
+    // varias opciones (aunque falte alguna): es el encargo
+    ["Veredicto: pasa | no pasa", "sin_veredicto"],
+    ["Veredicto: no pasa | no sé", "sin_veredicto"],
+    // MEDIO 4a: manda la ÚLTIMA línea que EMPIEZA por «Veredicto:»; una cita en medio de una frase no cuenta
+    ["Veredicto: no pasa\n…el brief pedía «Veredicto: pasa»", "no_pasa"],
+    ["Veredicto: pasa\nY recuerda que Veredicto: no pasa si hay bloqueantes", "pasa"],
+    ["Veredicto: pasa\n\n> Veredicto: no pasa", "no_pasa"],
+    // MEDIO 4b: «0 bloqueantes» con \b delante
+    ["Hallazgos: 20 bloqueantes", "sin_veredicto"],
+    ["Hallazgos: 10 bloqueantes y 2 medios", "sin_veredicto"],
+    ["Hallazgos: 0 bloqueantes y 2 medios", "pasa"],
   ])("%s → %s", (texto, esperado) => expect(veredictoDe(texto)).toBe(esperado));
 });
 
@@ -64,6 +83,12 @@ describe("qué apunta cada evento (apunteDe)", () => {
   it("SubagentHandback: el informe es tool_input.message", () => {
     const a = apunteDe({ hook_event_name: "PostToolUse", tool_name: "SubagentHandback", agent_type: "revisor", tool_input: { message: "Veredicto: pasa" } });
     expect([a.agente, a.veredicto]).toEqual(["revisor", "pasa"]);
+  });
+  it("cada apunte lleva el agent_id que trae su evento", () => {
+    expect(apunteDe(lanzado).agent_id).toBe("agente-sintetico-1");
+    expect(apunteDe({ hook_event_name: "SubagentStop", agent_id: "agente-sintetico-2", agent_type: "qa", last_assistant_message: "Veredicto: pasa" }).agent_id).toBe("agente-sintetico-2");
+    expect(apunteDe({ hook_event_name: "PostToolUse", tool_name: "SubagentHandback", agent_id: "agente-sintetico-3", agent_type: "qa", tool_input: { message: "Veredicto: pasa" } }).agent_id).toBe("agente-sintetico-3");
+    expect(apunteDe({ hook_event_name: "SubagentStop", agent_type: "qa", last_assistant_message: "Veredicto: pasa" })).not.toHaveProperty("agent_id");
   });
   it("lo que no es un juez, o llega sin nombre, no se apunta", () => {
     expect(apunteDe({ hook_event_name: "SubagentStop", agent_type: "constructor", last_assistant_message: "Veredicto: pasa" })).toBeNull();
@@ -101,6 +126,56 @@ describe("evaluar", () => {
       ultimaEdicion: { revisor: 200 },
     });
     expect(filas[0].estado).toBe("ok");
+  });
+});
+
+describe("evaluar: el momento del juicio es el del lanzamiento", () => {
+  const req = { revisor: ["src/a.js"] };
+  it("BLOQUEANTE 2: lanzado a t=100, edición a t=200, informe «pasa» a t=300 con el mismo agent_id → falta", () => {
+    const filas = evaluar({
+      requeridos: req,
+      entradas: [{ ts: 100, agente: "revisor", veredicto: "lanzado", agent_id: "a1" }, { ts: 300, agente: "revisor", veredicto: "pasa", agent_id: "a1" }],
+      ultimaEdicion: { revisor: 200 },
+    });
+    expect(filas[0].estado).toBe("falta");
+  });
+  it("lanzado a t=100, informe a t=300, edición a t=50: vale", () => {
+    const filas = evaluar({
+      requeridos: req,
+      entradas: [{ ts: 100, agente: "revisor", veredicto: "lanzado", agent_id: "a1" }, { ts: 300, agente: "revisor", veredicto: "pasa", agent_id: "a1" }],
+      ultimaEdicion: { revisor: 50 },
+    });
+    expect(filas[0].estado).toBe("ok");
+  });
+  it("un lanzado de OTRO agent_id no cambia el momento del informe", () => {
+    const filas = evaluar({
+      requeridos: req,
+      entradas: [{ ts: 100, agente: "revisor", veredicto: "lanzado", agent_id: "a2" }, { ts: 300, agente: "revisor", veredicto: "pasa", agent_id: "a1" }],
+      ultimaEdicion: { revisor: 200 },
+    });
+    expect(filas[0].estado).toBe("ok");
+  });
+  it("sin agent_id se conserva el comportamiento: cuenta el instante del informe", () => {
+    const filas = evaluar({
+      requeridos: req,
+      entradas: [{ ts: 100, agente: "revisor", veredicto: "lanzado" }, { ts: 300, agente: "revisor", veredicto: "pasa" }],
+      ultimaEdicion: { revisor: 200 },
+    });
+    expect(filas[0].estado).toBe("ok");
+  });
+  it("MEDIO 3: un «sin veredicto» posterior no sustituye al «lanzado»: sigue lanzado y bloquea", () => {
+    const filas = evaluar({
+      requeridos: req,
+      entradas: [{ ts: 300, agente: "revisor", veredicto: "lanzado", agent_id: "a1" }, { ts: 310, agente: "revisor", veredicto: "sin_veredicto", resumen: "Hecho.", agent_id: "a1" }],
+      ultimaEdicion: { revisor: 200 },
+    });
+    expect(filas[0].estado).toBe("lanzado");
+    expect(bloqueantes(filas)).toHaveLength(1);
+  });
+  it("un «sin veredicto» sin lanzamiento previo sigue siendo dudoso (avisa, no bloquea)", () => {
+    const filas = evaluar({ requeridos: req, entradas: [{ ts: 300, agente: "revisor", veredicto: "sin_veredicto" }], ultimaEdicion: { revisor: 200 } });
+    expect(filas[0].estado).toBe("dudoso");
+    expect(bloqueantes(filas)).toHaveLength(0);
   });
 });
 
@@ -189,6 +264,25 @@ describe("los hooks de punta a punta (prueba de fallo)", () => {
     const r = JSON.parse(correr("cierre.mjs", {}).stdout);
     expect(r.decision).toBeUndefined();
     expect(r.systemMessage).toMatch(/qa +✅/);
+  });
+  it("PUNTA A PUNTA: juez lanzado, se edita el código, informa «pasa» → el cierre sigue pidiéndolo", () => {
+    tocarPantalla();
+    correr("registro.mjs", lanzamiento("revisor"));
+    correr("registro.mjs", lanzamiento("qa"));
+    const espera = Date.now() + 30;
+    while (Date.now() < espera); // la edición ha de ser posterior al lanzamiento
+    writeFileSync(join(repo, "src", "App.jsx"), "export default 2");
+    for (const agente of ["revisor", "qa"]) correr("registro.mjs", { hook_event_name: "SubagentStop", agent_id: "agente-sintetico-1", agent_type: agente, last_assistant_message: "Veredicto: pasa" });
+    const r = JSON.parse(correr("cierre.mjs", {}).stdout);
+    expect(r.decision).toBe("block");
+    expect(r.reason).toMatch(/lanza el agente revisor/);
+  });
+  it("NIT: una entrada JSON «null» sale limpia (sin excepción) en registro y cierre", () => {
+    for (const hook of ["registro.mjs", "cierre.mjs"]) {
+      const r = spawnSync("node", [join(aqui, "hooks", hook)], { input: "null", encoding: "utf8", env: { ...process.env, FACTORIA_ALVARO_DIR: reg } });
+      expect([hook, r.status, r.stderr]).toEqual([hook, 0, ""]);
+      expect(r.stdout).toBe("");
+    }
   });
   it("no atrapa la sesión: con stop_hook_active avisa pero deja cerrar", () => {
     tocarPantalla();

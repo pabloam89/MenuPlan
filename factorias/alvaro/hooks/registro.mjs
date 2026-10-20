@@ -11,6 +11,7 @@ try {
   let crudo = "";
   for await (const t of process.stdin) crudo += t;
   entrada = JSON.parse(crudo);
+  if (entrada === null || typeof entrada !== "object") throw new Error("entrada no es un objeto");
 } catch {
   process.exit(0); // a propósito: sin entrada legible no hay nada que apuntar, y no se rompe la sesión
 }
