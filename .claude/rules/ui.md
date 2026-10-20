@@ -33,4 +33,4 @@ paths:
   (`src/components/DishActionBar.jsx`, el `DeckTile` de `src/screens/Menu.jsx`,
   la balda, las ilustraciones de `public/ingredients`) y copia sus números;
   las `@keyframes` de `src/index.css` se transcriben, no se sustituyen.
-- Un cambio visible lo prueba el juez `qa` en el navegador antes del PR.
+- Un cambio visible se prueba en el navegador, a 375 y 420 px de ancho, antes del PR.

@@ -5,7 +5,7 @@ PowerShell aparte, fuera de Claude Code**, con la integración de la CLI
 encendida solo mientras dura (App → Ajustes → Desarrollador → «Integrar con
 1Password CLI»). Un `!` dentro de Claude Code cuelga del mismo proceso que el
 Bash de las sesiones y podría compartir la aprobación. Las sesiones no pueden
-lanzar `op` ni `opPorLaApp`: la guardia lo niega. Una ventana de aprobación que
+lanzar `op` ni `opPorLaApp`: `guardia-minima.mjs` lo niega. Una ventana de aprobación que
 no has lanzado tú: no la apruebes.
 
 1. App de 1Password → **Nueva bóveda** → `HoMenu-sesiones` (con guion).
@@ -13,7 +13,7 @@ no has lanzado tú: no la apruebes.
    (ensayo, no abre la app) y `$env:MENUPLAN_OP_PABLO = "1"; node scripts/boveda-sesiones.mjs --si`:
    8 fichas, una línea `COINCIDEN` cada una.
 3. **Mover** (no copiar) la clave de la App de E1 (#327) a `HoMenu-sesiones`,
-   Documento `GitHub App homenu-sesiones`: el arranque la lee ahí (hoy, de `HoMenu`, «GitHub App Sesiones»; #329).
+   Documento `GitHub App homenu-sesiones`: `identidad.mjs` la lee ahí al abrir sesión (hoy, de `HoMenu`, «GitHub App Sesiones»; #329).
 4. Fusionar el PR de #328 y poner al día la carpeta principal:
    `git fetch origin; git merge --ff-only origin/staging`.
 5. PowerShell aparte, en `C:\dev\MenuPlan`:
@@ -22,10 +22,10 @@ no has lanzado tú: no la apruebes.
 7. En la misma sentada, en 1Password.com → Developer → Service accounts: anular «MenuPlan PC Pablo».
 8. **Los `.env.local` viejos no se tocan**: el plan B resuelve sus direcciones
    desde `HoMenu-sesiones` (línea `env-boveda … respaldo`); las carpetas nuevas
-   salen con la plantilla nueva (`npm run tarea`), sin perder puerto ni flags.
+   salen con la plantilla nueva (`ops/env.1password`).
 9. **Apagar «Integrar con 1Password CLI»** al terminar, y encenderla solo
    mientras Pablo use `MENUPLAN_OP_PABLO`. Encendida, una sesión podría pedir
-   ventanas iguales a las suyas: esa es la barrera real; la guardia es un
+   ventanas iguales a las suyas: esa es la barrera real; `guardia-minima.mjs` es un
    filtro de buena fe.
 
 Desde el paso 5 las sesiones no leen la URL de administrador:

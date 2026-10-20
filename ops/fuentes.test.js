@@ -17,7 +17,6 @@ import { ESTADOS_FUENTE, ROLES_FUENTE, TABLAS, esFechaIso, fuentesVencidas } fro
  */
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const leer = (ruta) => readFileSync(join(RAIZ, ruta), "utf8");
-const mapa = JSON.parse(leer("ops/MODULOS.json"));
 const porId = new Map(TABLAS.map((f) => [f.id, f]));
 const HOY = isoDeCasa();
 /** Lo que git ve (versionado + nuevo, sin lo ignorado): lo generado por el build no cuenta. */
@@ -201,35 +200,5 @@ describe("fuentes: una tabla borrada lo dice, y lo dice la migración que la bor
   });
 });
 
-describe("fuentes: las tablas copia no tienen lector vivo y las sin lector son copia", () => {
-  const copias = new Set(TABLAS.filter((f) => f.rol === "copia_retirada").flatMap((f) => f.tablas));
-
-  it("una tabla copia_retirada con módulo dueño no tiene puerta (ni app ni servidor)", () => {
-    const malos = [];
-    for (const t of copias) {
-      const info = mapa.tablas?.[t];
-      if (!info) continue;
-      const conPuerta = ["app", "servidor"].filter((lado) => info.fichero_dueno?.[lado]);
-      if (conPuerta.length) malos.push(`${t}: el módulo ${info.dueno} le da puerta ${conPuerta.join(" y ")}, pero es copia_retirada`);
-    }
-    expect(malos, "Una copia retirada no tiene lectores. Si alguien la lee, no es una copia retirada: decídelo con ops/lecturasRetiradas.test.js (issue #251).").toEqual([]);
-  });
-
-  it("toda tabla que ops/MODULOS.json declara en_desuso es una copia_retirada del registro", () => {
-    const malos = [];
-    for (const [t, info] of Object.entries(mapa.tablas)) {
-      const enDesuso = ["app", "servidor"].some((l) => info.sin_puerta?.[l]?.motivo === "en_desuso");
-      if (enDesuso && !copias.has(t)) malos.push(`${t}: en_desuso en ops/MODULOS.json pero sin entrada copia_retirada en src/data/model.js`);
-    }
-    expect(malos, "Una tabla sin lector es una copia retirada: regístrala en TABLAS (src/data/model.js) con su sustituto.").toEqual([]);
-  });
-
-  it("toda copia_retirada que tiene dueño en ops/MODULOS.json figura allí como en_desuso", () => {
-    const malos = [];
-    for (const t of copias) {
-      const info = mapa.tablas?.[t];
-      if (info && !["app", "servidor"].every((l) => info.sin_puerta?.[l]?.motivo === "en_desuso")) malos.push(`${t}: copia_retirada pero ops/MODULOS.json no dice en_desuso en sus dos lados`);
-    }
-    expect(malos, "Un solo hecho, un solo motivo: pon `en_desuso` en los dos lados de sin_puerta.").toEqual([]);
-  });
-});
+// Las tres comprobaciones del mapa de módulos (ops/MODULOS.json: copia retirada sin puerta y
+// en_desuso en los dos sentidos) se fueron con ese mapa, que era de la Factoría antigua (#878).

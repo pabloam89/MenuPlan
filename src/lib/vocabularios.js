@@ -197,7 +197,7 @@ export const AMBITOS_MODULO = ["app", "lola", "compartido"];
 /** Si una métrica de uso ya se mide hoy o sería posible medirla. */
 export const ESTADOS_METRICA = ["medida", "posible"];
 
-/** Por qué una tabla no tiene puerta (fichero único) en un lado, app o servidor (definiciones en ops/MODULOS.json). */
+/** Por qué una tabla no tiene puerta (fichero único) en un lado, app o servidor: no la usa, la toca por RPC o por trigger, la tocan fuera de su dueño o está en desuso. */
 export const MOTIVOS_SIN_PUERTA = ["no_la_usa", "por_rpc", "por_trigger", "fuera_del_dueno", "en_desuso"];
 
 /**
@@ -265,10 +265,9 @@ export const vocabulario = (nombre) => VOCABULARIOS[nombre] ?? null;
 
 /**
  * Los valores retirados de cada vocabulario, con su sucesor: { nombre: { valor: pasa_a } }
- * (pasa_a null: retirado sin sucesor). La fuente es `retirados` de
- * ops/vocabularios-vida.json (los `producto.<nombre>`); esto es su proyección para la app y
- * el bot, que no cargan ops/. src/lib/vocabularios.test.js exige que cuadren exactamente:
- * al retirar un valor se apunta en los dos sitios (#539).
+ * (pasa_a null: retirado sin sucesor). Es la única fuente desde #878 (antes era la proyección
+ * de ops/vocabularios-vida.json): al retirar un valor se apunta aquí, y el test de paridad de
+ * src/lib/vocabularios.test.js exige que el CHECK de su columna lo siga admitiendo (#539).
  */
 export const RETIRADOS = Object.freeze({});
 

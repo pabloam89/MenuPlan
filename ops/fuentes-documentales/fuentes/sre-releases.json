@@ -1,9 +1,0 @@
-{
-  "id": "sre-releases",
-  "nombre": "Google SRE Book: Release Engineering",
-  "tipo": "externa",
-  "url": "https://sre.google/sre-book/release-engineering/",
-  "fecha_alta": "2026-10-13",
-  "revisada": "no",
-  "fecha_revision": null
-}

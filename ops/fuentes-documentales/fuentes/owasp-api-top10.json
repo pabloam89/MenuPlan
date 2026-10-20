@@ -1,9 +1,0 @@
-{
-  "id": "owasp-api-top10",
-  "nombre": "OWASP API Security Top 10 (2023)",
-  "tipo": "externa",
-  "url": "https://owasp.org/API-Security/editions/2023/en/0x11-t10/",
-  "fecha_alta": "2026-10-13",
-  "revisada": "no",
-  "fecha_revision": null
-}

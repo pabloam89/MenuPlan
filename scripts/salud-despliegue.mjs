@@ -32,13 +32,12 @@
  * aviso; y, si existe GITHUB_OUTPUT, `salud=ok|fallo|sin_comprobar` para los pasos siguientes.
  * Sale 0 si todo va bien y 1 si no. Excepción: si lo único que falla es `protegido` (una
  * protección de Vercel tapa la respuesta), NO se sabe si el despliegue está sano: es
- * `sin_comprobar`, sale 0 con un `::warning::` y la línea de norma `unchecked`, y no abre
+ * `sin_comprobar`, sale 0 con un `::warning::`, y no abre
  * ni comenta ningún issue (un login permanente no puede dar un rojo en cada despliegue).
  */
 import { appendFileSync, writeFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 
-import { lineaDeNorma } from "./lib/medicionNormas.mjs";
 
 /** Los motivos de fallo, vocabulario cerrado (los lee el informe y el test). */
 export const MOTIVOS_SALUD = {
@@ -186,8 +185,6 @@ async function main() {
   const r = await evaluar(process.env);
   const v = veredicto(r);
   for (const l of lineas(r)) console.log(l);
-  const norma = { ok: "ok", fallo: "fail", sin_comprobar: "unchecked" }[v];
-  console.log(lineaDeNorma("vuelta-atras-probada", norma, { detalle: `salud tras desplegar ${r.ref}` }));
   if (v === "sin_comprobar") console.log("::warning title=Salud del despliegue sin comprobar::Una protección de Vercel tapa la respuesta; no se sabe si el despliegue está sano (#589)");
   if (v === "fallo" && ruta) writeFileSync(ruta, informe(r));
   if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `salud=${v}\n`);

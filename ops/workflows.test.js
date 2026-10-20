@@ -107,7 +107,8 @@ describe("los workflows se pueden leer como YAML", () => {
   // a que Pablo los mueva (la vía de respaldo si la App de las sesiones no puede empujar workflows, #844, #821).
   const yamls = (dir) => (existsSync(dir) ? readdirSync(dir).filter((f) => /\.ya?ml$/.test(f)).map((f) => relative(RAIZ, join(dir, f)).replace(/\\/g, "/")) : []);
   const ficheros = [...yamls(DIR), ...yamls(PENDIENTES)];
-  it("hay workflows que mirar", () => expect(ficheros.length).toBeGreaterThan(5));
+  // Desde #878 quedan 7 (se fueron los 5 de la Factoría antigua): el suelo solo dice que el bucle mira algo.
+  it("hay workflows que mirar", () => expect(ficheros.length).toBeGreaterThanOrEqual(1));
   it("un pendiente ya movido no se queda: si está igual en .github/workflows/, se borra (#844)", () => {
     const movidos = yamls(PENDIENTES).filter((p) => {
       const destino = join(DIR, p.split("/").pop());
@@ -138,14 +139,15 @@ describe("los workflows se pueden leer como YAML", () => {
       return Object.entries(wf.jobs ?? {}).flatMap(([j, job]) =>
         (job.steps ?? []).flatMap((p, k) => busquedasDeIssue(p.run ?? "").flatMap((orden) => faltasDeBusqueda(orden).map((m) => `${f} ${j} paso ${k + 1}: ${m}`))));
     });
-    expect(malos, "Copia la búsqueda de flujo-semanal.yml: --author \"app/github-actions\" y --jq \"map(select(.title==\\\"$titulo\\\"))[0].number // empty\"").toEqual([]);
+    expect(malos, "Copia la búsqueda de bot-semanal.yml: --author \"app/github-actions\" y --jq \"map(select(.title==\\\"$titulo\\\"))[0].number // empty\"").toEqual([]);
   });
   it("hay workflows que buscan su issue (si no, la regla anterior no mira nada)", () => {
     const con = ficheros.filter((f) => {
       const wf = parseDocument(readFileSync(join(RAIZ, f), "utf8")).toJS() ?? {};
       return Object.values(wf.jobs ?? {}).some((job) => (job.steps ?? []).some((p) => busquedasDeIssue(p.run ?? "").length > 0));
     });
-    expect(con.length).toBeGreaterThanOrEqual(4);
+    // bot-semanal y salud-despliegue (#878: los otros tres eran de la Factoría antigua).
+    expect(con.length).toBeGreaterThanOrEqual(2);
   });
   it("la regla de la búsqueda de issue distingue autor y título exacto", () => {
     const soloTitulo = 'issue=$(gh issue list --repo "$R" --state open \\\n  --search "\\"$titulo\\" in:title" --json number --jq \'.[0].number // empty\')';
