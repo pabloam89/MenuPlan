@@ -18,7 +18,8 @@ import {
   Avatar,
   BottomNav,
   bottomNavSpacer,
-  GoogleButton,
+  safeTop,
+  SignInOptions,
   SegmentedTabBar,
   SegmentedTabButton,
 } from "../components/ui.jsx";
@@ -441,6 +442,7 @@ export function UserStatsScreen({
   onBack,
   onOpenBiblioteca,
   onSignIn,
+  onAppleSignIn,
 }) {
   const [tab, setTab] = useState("resumen");
   const g = googleInfo(user);
@@ -482,6 +484,7 @@ export function UserStatsScreen({
         <div
           style={{
             padding: "20px 18px 14px",
+            paddingTop: safeTop(20),
             maxWidth: 420,
             margin: "0 auto",
             width: "100%",
@@ -573,7 +576,7 @@ export function UserStatsScreen({
             <p style={{ margin: "0 0 10px", fontSize: 13.5, lineHeight: 1.45, color: INK }}>
               Inicia sesión para ver tus estadísticas y preparar tu perfil social.
             </p>
-            <GoogleButton onClick={onSignIn} />
+            <SignInOptions onGoogle={onSignIn} onApple={onAppleSignIn} />
           </div>
         ) : (
           <>

@@ -17,7 +17,7 @@
  */
 
 import { seguirCon } from "../_bot/avisar.js";
-import { rateLimit } from "../_guard.js";
+import { cors, rateLimit } from "../_guard.js";
 import { config, select, eq } from "../_bot/db.js";
 import { gastarCodigo } from "../_bot/enlace.js";
 import { tokenHashDe, emailSintetico, cuentaNacidaAqui } from "../_bot/cuentas.js";
@@ -25,6 +25,8 @@ import { cuentaYChat, esDeOtraCuenta } from "../_bot/altaTelegram.js";
 import { verificarLogin } from "../_bot/loginTelegram.js";
 
 export default async function handler(req, res) {
+  // La app iOS (Capacitor) llama desde capacitor://localhost: CORS y preflight.
+  if (cors(req, res)) return;
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
   const { ok } = await rateLimit(req, { bucket: "bot-entrar", limit: 20, windowSec: 600 });
   if (!ok) return res.status(429).json({ error: "Demasiados intentos. Espera unos minutos." });

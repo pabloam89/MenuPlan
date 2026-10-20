@@ -1,6 +1,7 @@
 import { z } from "zod";
 import Papa from "papaparse";
 import { PARSER_MODEL } from "./aiModels.js";
+import { apiUrl } from "./apiUrl.js";
 import { catalogMatchesForFixedDish } from "./fixedDishes.js";
 
 // ---------------------------------------------------------------------------
@@ -78,7 +79,7 @@ async function callClaude(messages, { task } = {}) {
     messages,
   };
 
-  const response = await fetch("/api/generate", {
+  const response = await fetch(apiUrl("/api/generate"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),

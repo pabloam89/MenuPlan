@@ -21,6 +21,10 @@
       "class": "identifier",
       "reason": "Email de una persona"
     },
+    "apple_auth_tokens.refresh_token": {
+      "class": "identifier",
+      "reason": "Credencial de Apple (refresh token) para revocar al borrar la cuenta; secreto, nadie la lee desde el cliente"
+    },
     "bot_candados.chat_id": {
       "class": "identifier",
       "reason": "Id de chat del canal de mensajería, lo da Telegram o WhatsApp"

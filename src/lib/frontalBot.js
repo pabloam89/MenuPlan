@@ -12,6 +12,7 @@
 
 import { supabase } from "./supabase.js";
 import { payloadStart } from "./pedidoLola.js";
+import { apiUrl } from "./apiUrl.js";
 
 export const FRONTAL_BOT = true;
 
@@ -57,7 +58,7 @@ export async function abrirLola(pedido = null) {
   try {
     const token = (await supabase?.auth.getSession())?.data?.session?.access_token;
     if (token) {
-      const res = await fetch("/api/bot/link", { method: "POST", headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(apiUrl("/api/bot/link"), { method: "POST", headers: { Authorization: `Bearer ${token}` } });
       const body = await res.json().catch(() => ({}));
       if (res.ok && body.privado) {
         window.location.href = pedido ? `${body.privado}-${pedido}` : body.privado;
@@ -79,7 +80,7 @@ export async function avisarAltaALola() {
   try {
     const token = (await supabase?.auth.getSession())?.data?.session?.access_token;
     if (!token) return;
-    await fetch("/api/bot/link", {
+    await fetch(apiUrl("/api/bot/link"), {
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify({ aviso: "alta" }),
@@ -97,7 +98,7 @@ export async function lolaConectada() {
   try {
     const token = (await supabase?.auth.getSession())?.data?.session?.access_token;
     if (!token) return null;
-    const res = await fetch("/api/bot/link", { headers: { Authorization: `Bearer ${token}` } });
+    const res = await fetch(apiUrl("/api/bot/link"), { headers: { Authorization: `Bearer ${token}` } });
     if (!res.ok) return null;
     return (await res.json()).conectado === true;
   } catch {

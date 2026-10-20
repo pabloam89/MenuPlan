@@ -3,6 +3,7 @@ import { supabase } from "../lib/supabase.js";
 import { clearState } from "../lib/storage.js";
 import { cuentaDeLaCopia, olvidarCopia } from "../lib/useAuth.js";
 import { sacarLlaveDeLola } from "../lib/llaveLola.js";
+import { apiUrl } from "../lib/apiUrl.js";
 
 // Entrar desde un botón de Lola, ya dentro, sin email ni Google
 // (specs/plan-bot-mensajeria.md). La llave (lib/llaveLola.js) es:
@@ -29,7 +30,7 @@ export default function BotEnlace({ showToast, onFallo }) {
     (async () => {
       const conSesion = (await supabase.auth.getSession())?.data?.session?.user?.id ?? null;
       try {
-        const res = await fetch("/api/bot/entrar", {
+        const res = await fetch(apiUrl("/api/bot/entrar"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(llave),

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useStatusBarSobreFondo } from "../lib/statusBar.js";
 
 export const GENERATING_PHRASES = [
   "Calculando variedad para toda la semana…",
@@ -14,6 +15,10 @@ export const GENERATING_PHRASES = [
 export function GeneratingScreen() {
   const [phraseIdx, setPhraseIdx] = useState(0);
   const [visible, setVisible] = useState(true);
+
+  // Pantalla a sangre y en verde muy oscuro: la hora tiene que ir en blanco o
+  // no se ve, porque el reloj se pinta justo encima.
+  useStatusBarSobreFondo("oscuro");
 
   useEffect(() => {
     const id = setInterval(() => {

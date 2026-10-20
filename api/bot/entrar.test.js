@@ -8,7 +8,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const t = vi.hoisted(() => ({ codigos: {}, viejos: [], deOtra: false, nacida: null }));
 
-vi.mock("../_guard.js", () => ({ rateLimit: vi.fn(async () => ({ ok: true })) }));
+// El `cors` es el de verdad (lo que se prueba es que el endpoint lo llame); el límite de ritmo, no.
+vi.mock("../_guard.js", async (original) => ({ ...(await original()), rateLimit: vi.fn(async () => ({ ok: true })) }));
 vi.mock("../_bot/db.js", () => ({
   config: () => ({ url: "https://base", headers: {} }),
   select: vi.fn(async () => t.viejos),
@@ -113,5 +114,41 @@ describe("entrar con el botón de login de Telegram", () => {
   it("Telegram sin cuenta: 404 y a Lola", async () => {
     const res = await llama({ telegram: firmado({ id: "7", auth_date: ahora() }) });
     expect(res.code).toBe(404);
+  });
+});
+
+// La app iOS (Capacitor) sirve la web desde capacitor://localhost: sus llamadas a /api son
+// cross-origin. Sin cors() el POST nunca sale (el preflight OPTIONS no se contesta).
+describe("entrar desde la app nativa (CORS)", () => {
+  function conOrigen(method, origin) {
+    const cabeceras = {};
+    const res = {
+      code: 0, terminado: false, cabeceras,
+      setHeader: (k, v) => { cabeceras[k] = v; },
+      status: (c) => { res.code = c; return res; },
+      end: () => { res.terminado = true; return res; },
+      json: (j) => { res.cuerpo = j; return res; },
+    };
+    return handler({ method, headers: { origin }, body: { codigo: "C" } }, res).then(() => res);
+  }
+
+  it("el preflight OPTIONS desde capacitor://localhost se contesta 204 sin tocar nada", async () => {
+    const res = await conOrigen("OPTIONS", "capacitor://localhost");
+    expect(res.code).toBe(204);
+    expect(res.terminado).toBe(true);
+    expect(res.cabeceras["Access-Control-Allow-Origin"]).toBe("capacitor://localhost");
+    expect(res.cuerpo).toBeUndefined();
+  });
+
+  it("el POST real lleva el Allow-Origin de la app", async () => {
+    t.codigos["entrar:C"] = { codigo: "C", tipo: "entrar", external_id: "7", user_id: "u7" };
+    const res = await conOrigen("POST", "capacitor://localhost");
+    expect(res.cabeceras["Access-Control-Allow-Origin"]).toBe("capacitor://localhost");
+    expect(res.cuerpo).toEqual({ token_hash: "hash-tg7@bot", user_id: "u7" });
+  });
+
+  it("desde otro origen no se añade ninguna cabecera", async () => {
+    const res = await conOrigen("POST", "https://evil.example");
+    expect(res.cabeceras["Access-Control-Allow-Origin"]).toBeUndefined();
   });
 });

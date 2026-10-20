@@ -2,6 +2,9 @@
   "app_feedback": [
     "src/lib/feedback.js"
   ],
+  "apple_auth_tokens": [
+    "src/lib/appleTokens.js"
+  ],
   "blocked_users": [
     "api/_bot/compartir.js",
     "src/lib/social.js"

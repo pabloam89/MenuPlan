@@ -12,7 +12,14 @@
          el margen seguro vale 0 y nada lo compensaba). -->
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="HoMenu" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- `viewport-fit=cover` va aqui, fijo, y no se toca en tiempo de ejecucion:
+         es lo unico que hace que los `env(safe-area-inset-*)` dejen de valer 0.
+         En la app iOS (Capacitor) la web se dibuja de borde a borde y es el CSS
+         de cada cabecera, con safeTop() (ui.jsx), el que aparta el contenido del
+         reloj y del indicador de inicio con el hueco REAL de cada iPhone. En el
+         navegador, y en la PWA con la barra «default», los insets valen 0 y no
+         cambia nada. Sin maximum-scale ni user-scalable=no: el zoom se deja. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet" />

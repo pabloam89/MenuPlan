@@ -1,7 +1,7 @@
 import { FRONTAL_BOT, GUIAS_ACTIVAS, GENTE_ACTIVA, abrirLola, avisarAltaALola } from "./lib/frontalBot.js";
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { LogOut, RotateCcw, AlertTriangle, Trash2, Check, Play, Eraser, X } from "./components/icons.jsx";
-import { BottomNav, APP_SHELL_MAX_WIDTH, GoogleButton, GhostPillButton } from "./components/ui.jsx";
+import { BottomNav, APP_SHELL_MAX_WIDTH, SignInOptions, GhostPillButton } from "./components/ui.jsx";
 import {
   OnboardingMembers,
   OnboardingRestrictions,
@@ -59,6 +59,7 @@ const MenuPeek = lazy(() => import("./screens/FeedScreen.jsx").then(m => ({ defa
 import { generateMenuWithAI, pickCatalogReplacement, catalogToFrontendRecipe, activeDiscardIds, createPlannerStats } from "./lib/aiPlanner.js";
 import { sugerenciasDeHueco } from "./lib/sugerenciasDeHueco.js";
 import { resolvePlannerModel, resolvePlannerFormat } from "./lib/aiModels.js";
+import { apiUrl } from "./lib/apiUrl.js";
 import { findMenuRestrictionConflicts } from "./utils/menuConflicts.js";
 import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
 // Wizard generativo (experimento local, rama wizard/generativo). Todo lo suyo
@@ -207,6 +208,7 @@ import { normalizePantryInput } from "./utils/normalizePantryInput.js";
 import { basesDeReceta } from "./lib/bases.js";
 import { findMatchingPantryItem } from "./lib/shoppingBuilder.js";
 import { applyConsumption, consumeFromPantry, restoreToPantry, pantryConsumeMode } from "./lib/cookPantry.js";
+import { useStatusBarSobreFondo } from "./lib/statusBar.js";
 import {
   normalizeDeltaBucketMap,
   makeDeltaBucket,
@@ -1250,7 +1252,7 @@ export default function App() {
   }, [persisted]);
   const [aiRecipes, setAiRecipes] = useState(persisted?.aiRecipes ?? []);
 
-  const { user, session, loading: authLoading, signInWithGoogle, signOut } = useAuth();
+  const { user, session, loading: authLoading, signInWithGoogle, signInWithApple, signOut } = useAuth();
   const {
     households,
     activeHousehold,
@@ -5536,7 +5538,7 @@ export default function App() {
   const doDeleteAccount = useCallback(async () => {
     if (user?.id && session?.access_token) {
       try {
-        const res = await fetch("/api/delete-account", {
+        const res = await fetch(apiUrl("/api/delete-account"), {
           method: "POST",
           headers: { Authorization: `Bearer ${session.access_token}` },
         });
@@ -5995,6 +5997,7 @@ export default function App() {
             onResume={() => fwd(() => setScreen("dashboard"))}
             isAuthed={Boolean(user)}
             onGoogle={signInWithGoogle}
+            onApple={signInWithApple}
             abriendoCasa={abriendoCasa}
           />
         )}
@@ -6207,6 +6210,7 @@ export default function App() {
                   if (user) toggleMenuFavoriteRemote(user.id, menuId, nextFavorite, casaActivaRef.current);
                 }}
                 onSignIn={signInWithGoogle}
+                onAppleSignIn={signInWithApple}
                 onOpenHistory={openHistoryMenu}
                 onDeleteHistory={householdReadOnly ? undefined : deleteHistoryMenu}
               />
@@ -6299,6 +6303,7 @@ export default function App() {
                 onOpenDashboard={goToDashboard}
                 onEditPreferences={() => openEditPreferences("settings")}
                 onSignIn={signInWithGoogle}
+                onAppleSignIn={signInWithApple}
                 onReset={handleReset}
               />
             </Suspense>
@@ -6322,6 +6327,7 @@ export default function App() {
                 onEditMembers={() => goToOnboardingStep(1)}
                 onEditPreferences={() => openEditPreferences("account")}
                 onSignIn={signInWithGoogle}
+                onAppleSignIn={signInWithApple}
                 onSignOut={signOut}
                 onToast={showToast}
               />
@@ -6509,6 +6515,7 @@ export default function App() {
                 onRenameHousehold={renameHousehold}
                 onAdvanceSetup={advanceSetupStatus}
                 onSignIn={signInWithGoogle}
+                onAppleSignIn={signInWithApple}
                 onToast={showToast}
                 showCoach={(GUIAS_ACTIVAS || FORCE_TOUR) && Boolean(user) && !householdsCoachSeen}
                 onCoachClose={markHouseholdsCoachSeen}
@@ -6533,6 +6540,7 @@ export default function App() {
                 onBack={() => back(() => setScreen("households"))}
                 onOpenBiblioteca={() => fwd(() => setScreen("biblioteca"))}
                 onSignIn={signInWithGoogle}
+                onAppleSignIn={signInWithApple}
               />
             </Suspense>
           </div>
@@ -6596,6 +6604,7 @@ export default function App() {
                 onNav={handleNav}
                 onBack={() => back(() => setScreen("dashboard"))}
                 onSignIn={signInWithGoogle}
+                onAppleSignIn={signInWithApple}
                 onSignOut={signOut}
                 onReset={handleSoftReset}
                 onDeleteAccount={handleDeleteAccount}
@@ -7208,8 +7217,12 @@ function FlipCaseLetter({ upper, lower, active, activeColor, inactiveColor, dela
   );
 }
 
-function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, abriendoCasa = false }) {
+function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple, abriendoCasa = false }) {
   const handleEnter = () => (hasSaved ? onResume() : onNext());
+
+  // El vídeo de bienvenida ocupa la pantalla entera sobre negro verdoso, y el
+  // reloj cae encima: en oscuro desapareceria.
+  useStatusBarSobreFondo("oscuro");
 
   // El wordmark alterna entre las dos lecturas de las mismas 6 letras
   // (H-o-m-e-n-u): "HoMenu" (Tu menú) y "HomeNu" (como en casa). El verde
@@ -7437,7 +7450,7 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, abriendo
                 Habla con Lola en Telegram
               </GhostPillButton>
             )}
-            <GoogleButton onClick={onGoogle} variant="dark" />
+            <SignInOptions onGoogle={onGoogle} onApple={onApple} variant="dark" />
             <GhostPillButton onClick={handleEnter} tone="light">
               Entrar sin cuenta
             </GhostPillButton>
