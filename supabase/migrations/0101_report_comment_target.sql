@@ -1,4 +1,5 @@
 -- ═══ Reportar un comentario tambien tiene que poder guardarse ══════════════
+-- AUDITADA: auditor-datos 2026-10-20 OK
 --
 -- content_reports.target_type reutiliza el enum `comment_target`, que nacio en
 -- 0027 para decir sobre QUE se comenta: una receta o un menu. Al reutilizarlo

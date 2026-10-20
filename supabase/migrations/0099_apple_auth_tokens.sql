@@ -1,4 +1,5 @@
 -- ═══ El token que Apple obliga a revocar al borrar la cuenta ═══════════════
+-- AUDITADA: auditor-datos 2026-10-20 OK
 --
 -- Desde que la app ofrece "Iniciar sesión con Apple", borrar la cuenta ya no
 -- es solo borrar la fila de auth.users: Apple exige además revocar el token

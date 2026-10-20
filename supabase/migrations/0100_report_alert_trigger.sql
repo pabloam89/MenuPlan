@@ -1,4 +1,5 @@
 -- ═══ Que un reporte avise a alguien ════════════════════════════════════════
+-- AUDITADA: auditor-datos 2026-10-20 OK
 --
 -- La Guideline 1.2 de App Store no se conforma con que exista un boton de
 -- reportar: pide actuar sobre lo reportado en un plazo razonable. Hasta ahora
