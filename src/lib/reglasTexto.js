@@ -3,18 +3,19 @@
  * ficha de la casa del bot (api/_bot/ficha.js), que no puede cargar el motor
  * entero en cada mensaje. Antes vivía en reglas.js, que arrastra el catálogo.
  */
+import { DIAS } from "./vocabularios.js";
+
 const ETIQUETA_EFECTO = {
   excluir: "sin",
   presente: "come",
   sesgo: "ajusta",
 };
 
-const DIAS_ORDEN = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
 
 /** «24 oct» para ese día de la semana que empieza el lunes `lunes` (ISO); null si no se puede. */
 function fechaDelDia(lunes, dia) {
-  const i = DIAS_ORDEN.indexOf(String(dia).normalize("NFC"));
+  const i = DIAS.indexOf(String(dia).normalize("NFC"));
   if (i < 0 || !/^\d{4}-\d{2}-\d{2}$/.test(String(lunes))) return null;
   const d = new Date(Date.parse(`${lunes}T12:00:00Z`) + i * 86400000);
   return `${d.getUTCDate()} ${MESES[d.getUTCMonth()]}`;
