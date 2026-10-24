@@ -23,6 +23,7 @@ import {
   applyFallback,
   carbTypeFromText,
   getCarbType,
+  chocaConAlguno,
   basesAlcanzables,
   splitAchievableFreqs,
   slotAcceptsRole,
@@ -3017,7 +3018,7 @@ function breakProteinClusters(slotAssignments, { data, ctx, poolById, filteredPo
       for (const g of gs) if (soft.has(g)) return false;
       return true;
     };
-    const carbOk = (r) => { const c = getCarbType(r); return !(c && dayCarbs.has(c)); };
+    const carbOk = (r) => !chocaConAlguno(getCarbType(r), dayCarbs);
     const freqOk = (r) => {
       const g = proteinGroupOf(r);
       if (!g) return true;
@@ -3302,8 +3303,7 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
       const schoolSafe = candidates.filter((r) => {
         const proteinGroup = proteinGroupOf(r);
         if (proteinGroup && schoolProteinsToAvoid.has(proteinGroup)) return false;
-        const carb = getCarbType(r);
-        if (carb && schoolCarbsToAvoid.has(carb)) return false;
+        if (chocaConAlguno(getCarbType(r), schoolCarbsToAvoid)) return false;
         if (avoidSchoolVeg && dominantComponentOf(r) === "verdura") return false;
         return true;
       });
@@ -3395,8 +3395,7 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   }
   if (basesDelDia.size > 0) {
     const sinRepetir = candidates.filter((r) => {
-      const c = getCarbType(r);
-      return !(c && basesDelDia.has(c));
+      return !chocaConAlguno(getCarbType(r), basesDelDia);
     });
     if (sinRepetir.length > 0) candidates = sinRepetir;
   }
