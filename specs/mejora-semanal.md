@@ -94,7 +94,8 @@ Campos de medida de `bot_route` y quién los lee (`scripts/lib/bot-semana.mjs`,
 
 | Campo | Qué es | Lector |
 |---|---|---|
-| `espera_cola_ms` | ms que el mensaje esperó en la cola de su chat antes de que empezara su turno | `latencia.esperaColaP50Ms/P95Ms` |
+| `espera_cola_ms` | ms que el mensaje de texto esperó en la cola de su chat antes de que empezara su turno (incluye la ráfaga de 1 s) | `latencia.esperaColaP50Ms/P95Ms` |
+| `espera_candado_ms` | ms que una foto o un PDF esperó el candado del chat (sin la ráfaga) | `latencia.esperaCandadoP50Ms/P95Ms` |
 | `motor_frio` | ms del primer import de `core.mjs` si cayó dentro del turno (ausente si no) | `uso.motorFrioN`, `latencia.motorFrioP50Ms` |
 | `lola.herramientas_reloj_ms` | ms de reloj que esperó el turno por sus herramientas (lecturas a la vez, escrituras en fila: no se suman) | `latencia.herramientasP50Ms` y `modeloP50Ms` (en filas viejas, la suma) |
 | `lola_cancelada_uso` | tokens ya pagados de la llamada de Lola cortada (entrada exacta, salida parcial); ausente si se cortó antes de recibir nada | `coste.canceladas` (medidas / estimadas) |

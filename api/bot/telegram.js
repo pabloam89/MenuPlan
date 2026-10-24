@@ -36,7 +36,7 @@ import { transcribir } from "../_bot/voz.js";
 import { adjuntoDe } from "../_bot/adjuntos.js";
 import { enTurno, aSolas, juntar } from "../_bot/turnos.js";
 import { clasificar, vaPorLaRapida, permitidoEn } from "../_bot/router.js";
-import { esCorreccion } from "../_bot/senales.js";
+import { esCorreccionRuta, esCorreccionMedida } from "../_bot/senales.js";
 import { SIN_ENRUTADOR, motorFrioDesde, relojDeHerramientas } from "../_bot/medidaTurno.js";
 import { viaRapida, eleccionDe, aplicarEleccion, contextoDe } from "../_bot/turno.js";
 import { comidaElegida, quiereApuntar } from "../_bot/plato.js";
@@ -343,7 +343,7 @@ async function atender(msg, base, host = "") {
       base, chatId, householdId: chat.household_id, from: msg.from, esGrupo, adjunto,
       texto: pie || (adjunto.tipo === "document" ? "(te mando este PDF)" : "(te mando esta foto)"),
       responderA: esGrupo ? msg.message_id : undefined,
-    }, { desdeMs: desdeAdjunto, esperaColaMs: esperaMs }), atenderCola({ chatId, householdId: chat.household_id, esGrupo, base }),
+    }, { desdeMs: desdeAdjunto, esperaCandadoMs: esperaMs }), atenderCola({ chatId, householdId: chat.household_id, esGrupo, base }),
     () => enviar(chatId, "Estoy terminando otra cosa en este chat. Mándamela otra vez en un momento, porfa.", {
       responderA: esGrupo ? msg.message_id : undefined,
     }));
@@ -525,7 +525,7 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   // fue la pregunta con aviso, este mensaje puede ser la respuesta (o no
   // serlo). Eso solo lo sabe Lola al leerlo: nada de vía rápida este turno.
   const avisoPendiente = preguntoConAviso(ultima?.texto);
-  const rapida = (d) => vaPorLaRapida(d, { ...chatDe, texto, corrige: esCorreccion(texto, ultima?.texto), ultima: ultima?.texto ?? null }) && !avisoPendiente;
+  const rapida = (d) => vaPorLaRapida(d, { ...chatDe, texto, corrige: esCorreccionRuta(texto, ultima?.texto), ultima: ultima?.texto ?? null }) && !avisoPendiente;
   // Lo que tarda el turno en estar listo para arrancar al enrutador y a Lola
   // (bot_route contexto_ms): es tiempo que suma al primer texto de todos.
   const contextoMs = Date.now() - t0;
@@ -583,7 +583,7 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
 
   if (sombra) {
     decisionP.then((d) => apuntarRuta(householdId, {
-      sombra: true, modo: d.modo, confianza: d.confianza, rapida: vaPorLaRapida(d, { ...chatDe, texto, corrige: esCorreccion(texto, ultima?.texto), ultima: ultima?.texto ?? null }), ms: d.ms, error: d.error,
+      sombra: true, modo: d.modo, confianza: d.confianza, rapida: vaPorLaRapida(d, { ...chatDe, texto, corrige: esCorreccionRuta(texto, ultima?.texto), ultima: ultima?.texto ?? null }), ms: d.ms, error: d.error,
       texto: String(texto).slice(0, 120), datos: d.datos, chat: String(chatId), esGrupo: Boolean(esGrupo), variosAutores: Boolean(variosAutores),
     }));
     // El turno de verdad (el que ve la persona) lo contesta Lola: se mide aparte.
@@ -613,7 +613,7 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   // acababa de decir Lola, los datos sacados y el chat, para ver qué vino después.
   // `corrige` (api/_bot/senales.js) se apunta ya, sin texto: así sigue
   // midiéndose cuando la retención borre la frase (scripts/bot-semanal.mjs).
-  const paraEvals = { texto: String(texto).slice(0, 200), ultima: ultima?.texto ? String(ultima.texto).slice(0, 300) : null, anterior: ultima?.anteriorDelUsuario ?? null, datos: d.datos, chat: String(chatId), esGrupo, variosAutores, corrige: esCorreccion(texto, ultima?.texto), ...cola };
+  const paraEvals = { texto: String(texto).slice(0, 200), ultima: ultima?.texto ? String(ultima.texto).slice(0, 300) : null, anterior: ultima?.anteriorDelUsuario ?? null, datos: d.datos, chat: String(chatId), esGrupo, variosAutores, corrige: esCorreccionMedida(texto, ultima?.texto), ...cola };
   if (rapida(d) && !(await limiteP)) {
     // Lo que tarda también por la vía rápida (generar: 3-5 s de motor, medido
     // el 3 oct 2026) avisa igual que con Lola: la frase sale al decidir el
@@ -698,15 +698,16 @@ const frioDe = (t0) => { const f = motorFrioDesde(t0); return f == null ? {} : {
  * apunta igual que soloLola, con su origen en `sin_enrutador`.
  * @param {string} origen  uno de SIN_ENRUTADOR
  * @param {object} args  lo de conversar()
- * @param {{ desdeMs?: number, esperaColaMs?: number|null }} [o]  desde cuándo cuenta, y lo que esperó el chat
+ * @param {{ desdeMs?: number, esperaCandadoMs?: number|null }} [o]  desde cuándo cuenta, y lo que esperó el candado del chat
+ *   (espera_candado_ms: solo el candado; no es la espera_cola_ms de los mensajes de texto, que incluye la ráfaga de 1 s)
  */
-async function conversarMedido(origen, args, { desdeMs = Date.now(), esperaColaMs = null } = {}) {
+async function conversarMedido(origen, args, { desdeMs = Date.now(), esperaCandadoMs = null } = {}) {
   const medir = {};
   await conversar({ ...args, medir });
   return apuntarRuta(args.householdId, {
     chat: String(args.chatId), esGrupo: Boolean(args.esGrupo), variosAutores: false,
     modo: "lola", rapida: false, sin_enrutador: origen, ms: Date.now() - desdeMs,
-    ...(esperaColaMs == null ? {} : { espera_cola_ms: esperaColaMs }),
+    ...(esperaCandadoMs == null ? {} : { espera_candado_ms: esperaCandadoMs }),
     ...medida(medir, {}, desdeMs),
   });
 }

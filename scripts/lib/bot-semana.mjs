@@ -8,7 +8,7 @@
  * texto (local, .env.local) que sin él (la vista ops.bot_events del workflow).
  */
 
-import { esCorreccion } from "../../api/_bot/senales.js";
+import { esCorreccionMedida } from "../../api/_bot/senales.js";
 import { ORIGEN_PESADO } from "../../api/_bot/medidaTurno.js";
 
 // USD por millón de tokens: REVISARLOS contra la tarifa publicada de
@@ -73,7 +73,7 @@ export function corregidos(eventos) {
   for (const [i, e] of turnos.entries()) {
     const sig = turnos.slice(i + 1).find((x) => x.m.chat === e.m.chat);
     if (!sig || Date.parse(sig.created_at) - Date.parse(e.created_at) > VENTANA_MS) continue;
-    const corrige = sig.m.modo === "deshacer" || (sig.m.corrige ?? esCorreccion(sig.m.texto, sig.m.ultima));
+    const corrige = sig.m.modo === "deshacer" || (sig.m.corrige ?? esCorreccionMedida(sig.m.texto, sig.m.ultima));
     if (corrige) out.add(e);
   }
   return out;
@@ -123,8 +123,9 @@ export function medir(eventos, objetivos = {}) {
   // lo que queda hasta `ms`.
   const conLlamadas = deTexto.filter((e) => e.m.lola && Array.isArray(e.m.lola.llamadas) && e.m.lola.llamadas.length);
   const llamadas = conLlamadas.flatMap((e) => e.m.lola.llamadas);
-  // Cuántas de esas filas traen el tiempo de reloj de las herramientas (el resto, la suma).
-  const conReloj = conLlamadas.filter((e) => e.m.lola.herramientas_reloj_ms != null).length;
+  // De los turnos que llamaron a alguna herramienta, cuántos traen el tiempo de reloj (el resto, la suma).
+  const conHerramientas = conLlamadas.filter((e) => (e.m.lola.herramientas ?? []).length > 0);
+  const conReloj = conHerramientas.filter((e) => e.m.lola.herramientas_reloj_ms != null).length;
   // Lo que cada turno esperó en la cola de su chat, y el import del motor en frío.
   const esperasCola = turnos.map((e) => e.m.espera_cola_ms);
   const motorFrio = turnos.map((e) => e.m.motor_frio).filter(Number.isFinite);
@@ -162,6 +163,10 @@ export function medir(eventos, objetivos = {}) {
       // (bot_route espera_cola_ms): un PDF o un turno largo delante lo dejan en silencio.
       esperaColaP50Ms: pct(esperasCola, 50),
       esperaColaP95Ms: pct(esperasCola, 95),
+      // La de las fotos y los PDF es otra cosa: solo el candado del chat, sin la ráfaga de 1 s
+      // (bot_route espera_candado_ms). No se mezcla con la de arriba.
+      esperaCandadoP50Ms: pct(turnos.map((e) => e.m.espera_candado_ms), 50),
+      esperaCandadoP95Ms: pct(turnos.map((e) => e.m.espera_candado_ms), 95),
       // El primer import del motor en frío, cuando cae dentro de un turno (bot_route motor_frio).
       motorFrioP50Ms: pct(motorFrio, 50),
       enrutadorP50Ms: pct(turnos.map((e) => e.m.router_ms), 50),
@@ -172,7 +177,7 @@ export function medir(eventos, objetivos = {}) {
       // De reloj desde #910; en las filas viejas, la suma (herramientasMs). `herramientasRelojN`: cuántas ya son de reloj.
       herramientasP50Ms: pct(conLlamadas.map((e) => herramientasMs(e.m.lola)), 50),
       herramientasRelojN: conReloj,
-      herramientasN: conLlamadas.length,
+      herramientasN: conHerramientas.length,
       restoP50Ms: pct(conLlamadas.map((e) => Math.max(0, e.m.ms - suma(e.m.lola.llamadas.map(([ms]) => ms)))), 50),
       tokensSalidaPorLlamadaP50: pct(llamadas.map(([, out]) => out), 50),
       primerTrozoP50Ms: pct(llamadas.map(([, , t]) => t), 50),
@@ -329,17 +334,20 @@ export function informe({ actual, anterior, objetivos, huecos = null, lugares = 
   l.push("");
   l.push(`- Primer texto p50: vía rápida ${fmt(actual.latencia.primerTextoRapidaP50Ms, "ms")}, Lola ${fmt(actual.latencia.primerTextoLolaP50Ms, "ms")} · enrutador p50 ${fmt(actual.latencia.enrutadorP50Ms, "ms")} · arranque del turno p50 ${fmt(actual.latencia.contextoP50Ms, "ms")}`);
   if (actual.latencia.modeloP50Ms != null) {
-    const reloj = actual.latencia.herramientasRelojN >= actual.latencia.herramientasN ? "de reloj" : `de reloj en ${actual.latencia.herramientasRelojN} de ${actual.latencia.herramientasN} turnos, el resto sumadas`;
-    l.push(`- Dónde se va el tiempo de Lola (p50 por turno): modelo ${fmt(actual.latencia.modeloP50Ms, "ms")} · herramientas ${fmt(actual.latencia.herramientasP50Ms, "ms")} (${reloj}) · resto ${fmt(actual.latencia.restoP50Ms, "ms")} · ${fmt(actual.latencia.tokensSalidaPorLlamadaP50)} tokens de salida por llamada · primer trozo de texto a ${fmt(actual.latencia.primerTrozoP50Ms, "ms")} de empezar la llamada`);
+    const { herramientasRelojN: nReloj, herramientasN: nHerr } = actual.latencia;
+    const reloj = !nHerr ? "" : nReloj >= nHerr ? " (de reloj)" : ` (de reloj en ${nReloj} de ${nHerr} turnos con herramientas, el resto sumadas)`;
+    l.push(`- Dónde se va el tiempo de Lola (p50 por turno): modelo ${fmt(actual.latencia.modeloP50Ms, "ms")} · herramientas ${fmt(actual.latencia.herramientasP50Ms, "ms")}${reloj} · resto ${fmt(actual.latencia.restoP50Ms, "ms")} · ${fmt(actual.latencia.tokensSalidaPorLlamadaP50)} tokens de salida por llamada · primer trozo de texto a ${fmt(actual.latencia.primerTrozoP50Ms, "ms")} de empezar la llamada`);
   }
   l.push(`- Lola: ${fmt(actual.calidad.vueltasMedia)} llamadas al modelo por turno · supervisor frenó ${actual.calidad.supervisor} · fallos de herramienta ${actual.calidad.fallosHerramienta} · errores ${actual.calidad.errores}`);
   l.push(`- Búsqueda de recetas: ${actual.busqueda.n} búsquedas · vacías ${fmt(actual.busqueda.vaciasPct, "%")} · parecido p10 ${fmt(actual.busqueda.parecidoP10)} / p50 ${fmt(actual.busqueda.parecidoP50)}${objetivos.busquedaParecidoMinimo == null ? " (sin umbral de «floja» todavía: se fija mirando esta distribución)" : ""}`);
   l.push(`- Coste total: ${fmt(actual.coste.totalUsd, "$")}`);
+  l.push("- «Turnos corregidos» usa desde #910 el criterio estrecho (esCorreccionMedida); las filas anteriores traen el corrige del criterio viejo, más amplio: la serie se parte ahí, no comparar tal cual con semanas anteriores.");
   const c = actual.coste.canceladas;
   if (c?.n) l.push(`- Lola especulativa cancelada (ganó la vía rápida): ${fmt(actual.uso.canceladasPct, "%")} de los turnos · ${c.medidas} con uso medido, ${c.estimadas} estimados · ${fmt(c.usd, "$")} (${fmt(c.usd / c.n, "$")} cada una)`);
   const origenes = Object.entries(actual.uso.porOrigen ?? {}).filter(([o]) => o !== "enrutador").sort((a, b) => b[1] - a[1]);
   if (origenes.length) l.push(`- Turnos sin pasar por el enrutador: ${origenes.map(([o, n]) => `${o} ${n}`).join(" · ")}${actual.latencia.adjuntosYAltasP95Ms != null ? ` · alta, fotos y PDF (aparte de los p95 de arriba): p50 ${fmt(actual.latencia.adjuntosYAltasP50Ms, "ms")}, p95 ${fmt(actual.latencia.adjuntosYAltasP95Ms, "ms")}` : ""}`);
-  if (actual.latencia.esperaColaP50Ms != null) l.push(`- Espera en la cola del chat antes de empezar el turno: p50 ${fmt(actual.latencia.esperaColaP50Ms, "ms")} · p95 ${fmt(actual.latencia.esperaColaP95Ms, "ms")}`);
+  if (actual.latencia.esperaCandadoP50Ms != null) l.push(`- Espera de fotos y PDF por el candado del chat (sin la ráfaga de 1 s): p50 ${fmt(actual.latencia.esperaCandadoP50Ms, "ms")} · p95 ${fmt(actual.latencia.esperaCandadoP95Ms, "ms")}`);
+  if (actual.latencia.esperaColaP50Ms != null) l.push(`- Espera de los mensajes de texto en la cola del chat (incluye la ráfaga de 1 s): p50 ${fmt(actual.latencia.esperaColaP50Ms, "ms")} · p95 ${fmt(actual.latencia.esperaColaP95Ms, "ms")}`);
   if (actual.uso.motorFrioN) l.push(`- Motor en frío (import de core.mjs dentro del turno): ${actual.uso.motorFrioN} turnos · p50 ${fmt(actual.latencia.motorFrioP50Ms, "ms")}`);
   l.push("");
   l.push("</details>");

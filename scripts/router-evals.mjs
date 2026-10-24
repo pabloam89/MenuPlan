@@ -30,7 +30,7 @@ try {
 
 cargarEnv(["ANTHROPIC_API_KEY"]);
 const { clasificar, vaPorLaRapida, MODELO_ROUTER } = await import("../api/_bot/router.js");
-const { esCorreccion } = await import("../api/_bot/senales.js");
+const { esCorreccionRuta } = await import("../api/_bot/senales.js");
 const { casos } = JSON.parse(fs.readFileSync(new URL("./router-evals.json", import.meta.url), "utf8"));
 
 const normal = (s) => String(s ?? "").normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
@@ -63,7 +63,7 @@ fuera: for (const c of casos) {
     for (const k of Object.keys(t)) tokens[k] += t[k];
     tiempos.push(d.ms);
     // Los casos de chat de grupo llevan esGrupo (y variosAutores si se juntan mensajes de varias personas).
-    const rapida = vaPorLaRapida(d, { esGrupo: Boolean(c.esGrupo), variosAutores: Boolean(c.variosAutores), texto: c.texto, corrige: esCorreccion(c.texto, c.ultima), ultima: c.ultima ?? null });
+    const rapida = vaPorLaRapida(d, { esGrupo: Boolean(c.esGrupo), variosAutores: Boolean(c.variosAutores), texto: c.texto, corrige: esCorreccionRuta(c.texto, c.ultima), ultima: c.ultima ?? null });
     const fallos = [];
     // «modo» puede dar alternativas («lola|cambiar»): en algunos casos lo que importa es la ruta, no el modo.
     if (!c.modo.split("|").includes(d.modo)) fallos.push(`modo ${d.modo} (esperado ${c.modo})`);

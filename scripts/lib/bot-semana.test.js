@@ -127,7 +127,24 @@ describe("medir: las herramientas, de reloj y no sumadas (#910)", () => {
     expect(herramientasMs(vieja.m.lola)).toBe(6000);
     expect(modeloMs(vieja.m.lola)).toBe(2000);
     const md = informe({ actual: m, anterior: null, objetivos: {}, desde: "2026-10-05", hasta: "2026-10-11" });
-    expect(md).toMatch(/de reloj en 1 de 2 turnos, el resto sumadas/);
+    expect(md).toMatch(/de reloj en 1 de 2 turnos con herramientas, el resto sumadas/);
+  });
+
+  it("si ningún turno llamó a herramientas, el informe no habla de reloj ni de sumas", () => {
+    const sin = ruta(0, { rapida: false, ms: 3000, lola: lola(2500, { herramientas: [], llamadas: [[2500, 100, 800]] }) });
+    const m = medir([sin]);
+    expect(m.latencia.herramientasN).toBe(0);
+    const md = informe({ actual: m, anterior: null, objetivos: {}, desde: "2026-10-05", hasta: "2026-10-11" });
+    expect(md).toMatch(/Dónde se va el tiempo de Lola/);
+    expect(md).not.toMatch(/de reloj|sumadas/);
+  });
+
+  it("un turno sin herramientas no cuenta como «sin reloj» si los demás sí lo traen", () => {
+    const sin = ruta(0, { rapida: false, ms: 3000, lola: lola(2500, { herramientas: [], llamadas: [[2500, 100, 800]] }) });
+    const con = ruta(1, { rapida: false, ms: 6000, lola: lola(5500, { herramientas: enFila, herramientas_reloj_ms: 2000, llamadas }) });
+    const md = informe({ actual: medir([sin, con]), anterior: null, objetivos: {}, desde: "2026-10-05", hasta: "2026-10-11" });
+    expect(md).toContain("(de reloj)");
+    expect(md).not.toMatch(/sumadas/);
   });
 
   it("nunca sale un tiempo de modelo negativo", () => {
@@ -174,7 +191,7 @@ describe("medir: la Lola especulativa cancelada (#910)", () => {
 
 describe("medir: el alta, las fotos y los PDF, la cola y el motor en frío (#910)", () => {
   const texto = ruta(0, { rapida: false, ms: 6000, primer_ms: 2000, lola_cancelada: false, lola: lola(5500) });
-  const pdf = ruta(1, { rapida: false, ms: 23000, primer_ms: 22000, lola_cancelada: false, sin_enrutador: "pdf", espera_cola_ms: 4000, lola: lola(22000) });
+  const pdf = ruta(1, { rapida: false, ms: 23000, primer_ms: 22000, lola_cancelada: false, sin_enrutador: "pdf", espera_candado_ms: 4000, lola: lola(22000) });
   const foto = ruta(2, { rapida: false, ms: 9000, primer_ms: 8000, lola_cancelada: false, sin_enrutador: "foto", lola: lola(8000) });
   const alta = ruta(3, { rapida: false, ms: 15000, primer_ms: 5000, lola_cancelada: false, sin_enrutador: "alta", motor_frio: 1800, lola: lola(14000) });
   const detras = ruta(4, { rapida: false, ms: 7000, primer_ms: 2500, lola_cancelada: false, espera_cola_ms: 21000, lola: lola(6500) });
@@ -198,22 +215,29 @@ describe("medir: el alta, las fotos y los PDF, la cola y el motor en frío (#910
     expect(corregidos([pdf, corregido]).has(pdf)).toBe(true);
   });
 
-  it("la espera en la cola y el motor en frío", () => {
+  it("la espera en la cola (texto) y la del candado (foto y PDF) no se mezclan; y el motor en frío", () => {
     const m = medir(todos);
     expect(m.latencia.esperaColaP95Ms).toBe(21000);
+    expect(m.latencia.esperaCandadoP95Ms).toBe(4000);
     expect(m.uso.motorFrioN).toBe(1);
     expect(m.latencia.motorFrioP50Ms).toBe(1800);
   });
 
+  it("el informe avisa de que «corregidos» parte la serie en #910", () => {
+    const md = informe({ actual: medir([texto]), anterior: null, objetivos: {}, desde: "2026-10-05", hasta: "2026-10-11" });
+    expect(md).toMatch(/criterio estrecho.*filas anteriores.*criterio viejo.*la serie se parte/);
+  });
+
   it("sin nada de esto, el informe no añade líneas", () => {
     const md = informe({ actual: medir([texto]), anterior: null, objetivos: {}, desde: "2026-10-05", hasta: "2026-10-11" });
-    expect(md).not.toMatch(/sin pasar por el enrutador|Espera en la cola|Motor en frío/);
+    expect(md).not.toMatch(/sin pasar por el enrutador|Espera de|Motor en frío/);
   });
 
   it("con ello, el informe lo cuenta, y los PDF lentos no cuentan como «lentos»", () => {
     const md = informe({ actual: medir(todos), anterior: null, objetivos: {}, desde: "2026-10-05", hasta: "2026-10-11" });
     expect(md).toMatch(/Turnos sin pasar por el enrutador: pdf 1 · foto 1 · alta 1/);
-    expect(md).toMatch(/Espera en la cola del chat.*p95 21\.0 s/);
+    expect(md).toMatch(/Espera de los mensajes de texto en la cola del chat.*p95 21\.0 s/);
+    expect(md).toMatch(/Espera de fotos y PDF por el candado.*p95 4\.0 s/);
     expect(md).toMatch(/Motor en frío.*1 turnos/);
     const huecos = huecosDeLola(todos.map((e) => ({ ...e, m: { ...e.m, texto: "x" } })), { turnoLolaP95Ms: 10000 });
     expect(huecos.some((h) => h.motivos.includes("lenta"))).toBe(false);

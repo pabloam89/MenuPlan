@@ -30,7 +30,7 @@ vi.mock("../_bot/embudo.js", () => ({
 }));
 vi.mock("../_bot/router.js", () => ({
   clasificar: vi.fn(async () => ({ modo: "consulta", confianza: 0.95, datos: {}, ms: 5, uso: {} })),
-  vaPorLaRapida: () => true, permitidoEn: () => true,
+  vaPorLaRapida: vi.fn(() => true), permitidoEn: () => true,
 }));
 vi.mock("../_bot/turno.js", () => ({ viaRapida: vi.fn(async () => ({ texto: "Hoy: tortilla" })), eleccionDe: () => null, aplicarEleccion: vi.fn(), contextoDe: vi.fn(async () => ({})) }));
 vi.mock("../_bot/uso.js", () => ({ fueraDeLimite: vi.fn(async () => null), contarUso: vi.fn(async () => 1) }));
@@ -60,6 +60,7 @@ vi.mock("../_bot/cuentas.js", () => ({ enviarAcceso: vi.fn(), verificarCodigoEma
 
 const { default: handler } = await import("./telegram.js");
 const { responder } = await import("../_bot/agente.js");
+const { vaPorLaRapida } = await import("../_bot/router.js");
 const { adjuntoDe } = await import("../_bot/adjuntos.js");
 const { cargaMedida, olvidarCargaDelMotor } = await import("../_bot/medidaTurno.js");
 
@@ -94,12 +95,13 @@ describe("cada tipo de turno de Lola deja su bot_route", () => {
     expect(JSON.stringify(t.rutas[0])).not.toContain("somos cuatro");
   });
 
-  it("una foto, con lo que esperó a que el chat quedara libre", async () => {
+  it("una foto, con lo que esperó el candado del chat (campo aparte de la cola de texto)", async () => {
     conCasa();
     adjuntoDe.mockResolvedValueOnce({ tipo: "image", mediaType: "image/jpeg", base64: "x" });
     await manda({ photo: [{ file_id: "f" }] });
     expect(t.rutas).toHaveLength(1);
-    expect(t.rutas[0]).toMatchObject({ sin_enrutador: "foto", modo: "lola", rapida: false, chat: "7", espera_cola_ms: 4321 });
+    expect(t.rutas[0]).toMatchObject({ sin_enrutador: "foto", modo: "lola", rapida: false, chat: "7", espera_candado_ms: 4321 });
+    expect(t.rutas[0]).not.toHaveProperty("espera_cola_ms");
   });
 
   it("un PDF", async () => {
@@ -107,7 +109,7 @@ describe("cada tipo de turno de Lola deja su bot_route", () => {
     adjuntoDe.mockResolvedValueOnce({ tipo: "document", mediaType: "application/pdf", base64: "x" });
     await manda({ document: { file_id: "d", mime_type: "application/pdf" } });
     expect(t.rutas).toHaveLength(1);
-    expect(t.rutas[0]).toMatchObject({ sin_enrutador: "pdf", espera_cola_ms: 4321 });
+    expect(t.rutas[0]).toMatchObject({ sin_enrutador: "pdf", espera_candado_ms: 4321 });
   });
 
   it("la foto que no se pudo abrir no es un turno de Lola: no hay bot_route", async () => {
@@ -181,5 +183,18 @@ describe("la llamada de Lola que se cancela", () => {
     await manda({ text: "¿qué cenamos?" });
     expect(t.rutas[0]).toMatchObject({ lola_cancelada: true });
     expect(t.rutas[0]).not.toHaveProperty("lola_cancelada_uso");
+  });
+});
+
+describe("la ruta y la medida usan criterios distintos de «corrige» (#910)", () => {
+  it("«No quiero…» sigue contando como corrección para la RUTA (va a Lola) pero no para la MEDIDA", async () => {
+    process.env.BOT_ROUTER = "on";
+    t.tablas = { bot_chats: [{ household_id: "h" }], bot_messages: [{ role: "assistant", content: { texto: "Hecho: menú de la semana del 26." } }] };
+    await manda({ text: "No quiero más de dos ensaladas, genérame la semana" });
+    // Lo que decide la ruta: el criterio amplio de siempre.
+    expect(vaPorLaRapida.mock.calls[0][1].corrige).toBe(true);
+    // Lo que se guarda para contar: el estrecho.
+    const guardada = t.rutas.find((r) => "corrige" in r);
+    expect(guardada.corrige).toBe(false);
   });
 });
