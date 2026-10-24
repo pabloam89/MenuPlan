@@ -17,7 +17,7 @@ import fs from "node:fs";
 import { leerEnv } from "./lib/env.mjs";
 import { conexionDeConsulta } from "./lib/rolLectura.mjs";
 import { exec } from "node:child_process";
-import { medir, semaforo, corregidos, pct, porLugar, lugarDe } from "./lib/bot-semana.mjs";
+import { medir, semaforo, corregidos, pct, porLugar, lugarDe, modeloMs } from "./lib/bot-semana.mjs";
 
 const arg = (k) => process.argv.find((a) => a === `--${k}` || a.startsWith(`--${k}=`));
 const valor = (k) => arg(k)?.split("=")[1];
@@ -69,10 +69,10 @@ const turnos = evs.filter((e) => e.event === "bot_route" && !e.m.sombra).map((e)
   total: e.m.ms ?? null,
   router: e.m.router_ms ?? null,
   vueltas: e.m.lola?.vueltas ?? null,
-  // Tiempo del modelo (sus llamadas menos las herramientas) y tokens de salida.
+  // Tiempo del modelo (sus llamadas menos las herramientas, de reloj) y tokens de salida.
   modelo: Array.isArray(e.m.lola?.llamadas)
     ? {
-      ms: Math.max(0, e.m.lola.llamadas.reduce((a, [ms]) => a + ms, 0) - (e.m.lola.herramientas ?? []).reduce((a, [, ms]) => a + ms, 0)),
+      ms: modeloMs(e.m.lola),
       tokens: e.m.lola.llamadas.reduce((a, [, out]) => a + out, 0),
     }
     : null,
