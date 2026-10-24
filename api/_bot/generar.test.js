@@ -203,3 +203,44 @@ describe("generar: rehacer la semana en curso (#907)", () => {
     }
   });
 });
+
+describe("generar: la respuesta dice qué semana es (#915)", () => {
+  // Sábado 24 oct 2026: la del 26 ya tiene menú, «la siguiente» es la del 2 nov.
+  const conSemanaDel26 = () => cargarCasa.mockResolvedValue({ ...structuredClone(casaVieja), semanas: [{ weekStart: "2026-10-26", weekEnd: "2026-11-01", startDayIdx: 0, plan: {} }] });
+  const motorConSemanas = () => motor.mockResolvedValue({
+    ...m,
+    computeWeekRange: (offset) => (offset === 2
+      ? { startISO: "2026-11-02", endISO: "2026-11-08", activeDays: ["Lun"] }
+      : { startISO: "2026-10-26", endISO: "2026-11-01", activeDays: ["Lun"] }),
+  });
+
+  it("«la siguiente» elegida por el código (la primera libre) nombra la semana en palabras", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-10-24T10:00:00Z"));
+    try {
+      conSemanaDel26();
+      motorConSemanas();
+      conCasa.mockResolvedValue({ ok: true });
+      const texto = await generarMenu("h1", "siguiente", [], {});
+      expect(texto).toContain("semana del 2 al 8 de noviembre");
+      expect(texto).toContain("la primera semana sin menú");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("una semana pedida por fecha también la nombra, sin decir «la primera libre»", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-10-24T10:00:00Z"));
+    try {
+      conSemanaDel26();
+      motorConSemanas();
+      conCasa.mockResolvedValue({ ok: true });
+      const texto = await generarMenu("h1", "siguiente", [], {}, { desde: "2026-11-04" });
+      expect(texto).toContain("semana del 2 al 8 de noviembre");
+      expect(texto).not.toContain("primera semana sin menú");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
