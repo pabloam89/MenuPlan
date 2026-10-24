@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": [
+      { "hooks": [{ "type": "command", "command": "[ -f \"$CLAUDE_PROJECT_DIR/factorias/alvaro/hooks/arranque.mjs\" ] && node \"$CLAUDE_PROJECT_DIR/factorias/alvaro/hooks/arranque.mjs\" || true" }] }
+    ],
+    "PostToolUse": [
+      { "matcher": "Agent|SubagentHandback", "hooks": [{ "type": "command", "command": "[ -f \"$CLAUDE_PROJECT_DIR/factorias/alvaro/hooks/registro.mjs\" ] && node \"$CLAUDE_PROJECT_DIR/factorias/alvaro/hooks/registro.mjs\" || true" }] }
+    ],
+    "SubagentStop": [
+      { "matcher": "revisor|qa|evaluador", "hooks": [{ "type": "command", "command": "[ -f \"$CLAUDE_PROJECT_DIR/factorias/alvaro/hooks/registro.mjs\" ] && node \"$CLAUDE_PROJECT_DIR/factorias/alvaro/hooks/registro.mjs\" || true" }] }
+    ],
+    "Stop": [
+      { "hooks": [{ "type": "command", "command": "[ -f \"$CLAUDE_PROJECT_DIR/factorias/alvaro/hooks/cierre.mjs\" ] && node \"$CLAUDE_PROJECT_DIR/factorias/alvaro/hooks/cierre.mjs\" || true" }] }
+    ]
+  }
+}
