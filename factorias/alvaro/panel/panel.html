@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel de la factoría</title>
+<style>
+  :root {
+    --fondo: #f6f6f3; --tarjeta: #ffffff; --texto: #1d1d1b; --suave: #5f5f58; --linea: #dcdcd4;
+    --ok: #1f7a3d; --ok-fondo: #e3f3e8; --mal: #b3261e; --mal-fondo: #fbe4e1; --aviso: #8a5a00; --aviso-fondo: #fdf0d2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --fondo: #151513; --tarjeta: #1f1f1c; --texto: #ecece6; --suave: #a3a39a; --linea: #3a3a35;
+      --ok: #6fd18c; --ok-fondo: #173322; --mal: #ff8a80; --mal-fondo: #3d1b18; --aviso: #f2c25b; --aviso-fondo: #3a2e10;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fondo); color: var(--texto); font: 16px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 1100px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 1.4rem; margin: 0 0 4px; }
+  h2 { font-size: 1.15rem; margin: 0 0 8px; }
+  h3 { font-size: 1rem; margin: 16px 0 6px; }
+  section { background: var(--tarjeta); border: 1px solid var(--linea); border-radius: 10px; padding: 14px 16px; margin: 14px 0; }
+  p, li { margin: 4px 0; }
+  .suave { color: var(--suave); font-size: .88rem; }
+  .franja { border-radius: 8px; padding: 10px 12px; margin: 8px 0; border: 1px solid; font-weight: 500; }
+  .franja.mal { background: var(--mal-fondo); color: var(--mal); border-color: var(--mal); }
+  .franja.ok { background: var(--ok-fondo); color: var(--ok); border-color: var(--ok); }
+  .franja.aviso { background: var(--aviso-fondo); color: var(--aviso); border-color: var(--aviso); }
+  .franja ul { margin: 6px 0 0; padding-left: 20px; font-weight: 400; overflow-wrap: anywhere; }
+  .tabla { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--linea); vertical-align: top; }
+  th { color: var(--suave); font-weight: 600; white-space: nowrap; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tr.resaltada td { background: var(--mal-fondo); color: var(--mal); font-weight: 600; }
+  td.neg { color: var(--aviso); }
+  td ul { margin: 0; padding-left: 18px; }
+  code { font-family: ui-monospace, Consolas, monospace; font-size: .85em; overflow-wrap: anywhere; }
+  .cifras { display: flex; flex-wrap: wrap; gap: 6px 24px; margin: 6px 0; }
+  .cifras div b { display: block; font-size: 1.2rem; font-variant-numeric: tabular-nums; }
+  .vacio { color: var(--suave); font-style: italic; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Panel de la factoría</h1>
+  <p class="suave">Solo lee tus ficheros de Claude Code. No manda nada fuera del PC. Se refresca solo cada 5 s.</p>
+  <div id="app"><p class="vacio">Cargando…</p></div>
+</main>
+<script>
+"use strict";
+// Todo lo que viene de los datos entra como texto (append de cadenas), nunca como HTML: lo que se ve no puede ejecutar nada.
+const app = document.getElementById("app");
+
+function el(tag, clase, ...hijos) {
+  const e = document.createElement(tag);
+  if (clase) e.className = clase;
+  for (const h of hijos) if (h !== null && h !== undefined && h !== false) e.append(h);
+  return e;
+}
+const nf = new Intl.NumberFormat("es-ES");
+const fNum = (n) => (n === null || n === undefined ? "sin dato" : nf.format(n));
+function fMs(ms) {
+  if (ms === null || ms === undefined) return "sin dato";
+  const signo = ms < 0 ? "−" : "";
+  const a = Math.abs(ms);
+  if (a < 1000) return `${signo}${Math.round(a)} ms`;
+  if (a < 60000) return `${signo}${(a / 1000).toFixed(1).replace(".", ",")} s`;
+  const m = Math.floor(a / 60000);
+  const s = Math.round((a % 60000) / 1000);
+  return `${signo}${m} min ${String(s).padStart(2, "0")} s`;
+}
+function fFecha(iso) {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleString("es-ES", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}
+function hace(iso) {
+  if (!iso) return "";
+  const s = Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 1000));
+  if (s < 90) return `hace ${s} s`;
+  if (s < 5400) return `hace ${Math.round(s / 60)} min`;
+  if (s < 129600) return `hace ${Math.round(s / 3600)} h`;
+  return `hace ${Math.round(s / 86400)} días`;
+}
+const fUSD = (n) => (n === null || n === undefined ? "sin dato" : "$" + n.toFixed(2));
+
+// cols: [{ t: título, n: numérica, v: (fila) => texto o nodo, c: (fila) => clase extra }]
+function tabla(cols, filas, { resaltar } = {}) {
+  if (!filas.length) return el("p", "vacio", "Sin datos en esta ventana.");
+  const cab = el("tr", "", ...cols.map((c) => el("th", c.n ? "n" : "", c.t)));
+  const cuerpo = filas.map((f) => el("tr", resaltar && resaltar(f) ? "resaltada" : "", ...cols.map((c) => el("td", [c.n ? "n" : "", c.c ? c.c(f) : ""].join(" ").trim(), c.v(f)))));
+  return el("div", "tabla", el("table", "", el("thead", "", cab), el("tbody", "", ...cuerpo)));
+}
+const cifra = (etiqueta, valor) => el("div", "", el("b", "", String(valor)), el("span", "suave", etiqueta));
+const franja = (clase, titulo, lista) => el("div", "franja " + clase, titulo, lista && lista.length ? el("ul", "", ...lista.map((x) => el("li", "", x))) : null);
+
+function pintarEstado(d) {
+  const e = d.estado;
+  const s = el("section", "", el("h2", "", "Estado"));
+  if (d.errores.length) s.append(franja("mal", "No se pudo leer algo (no se ha sustituido por ceros):", d.errores.map((x) => `${x.fichero} — ${x.motivo}`)));
+  const c = e.copia;
+  if (c.ok === true) s.append(franja("ok", "Copia instalada = repo (hooks y lib idénticos por hash)."));
+  else if (c.ok === false) {
+    const l = [];
+    if (c.difieren.length) l.push("Distintos: " + c.difieren.join(", "));
+    if (c.faltanInstalada.length) l.push("Faltan en la copia instalada: " + c.faltanInstalada.join(", "));
+    if (c.sobranInstalada.length) l.push("Sobran en la copia instalada: " + c.sobranInstalada.join(", "));
+    s.append(franja("mal", "Copia instalada ≠ repo: los veredictos del registro pueden ser falsos.", l));
+  } else s.append(franja("aviso", "No se pudo comparar la copia instalada con el repo (mira los errores de arriba)."));
+  const ra = e.registroAntiguo;
+  if (ra.aviso) {
+    const l = [];
+    if (ra.sinAgentId) l.push(`${ra.sinAgentId} de ${ra.apuntes} apuntes sin agent_id (versión vieja del hook)`);
+    if (ra.noJueces) l.push(`${ra.noJueces} apuntes de agentes que no son jueces (la versión vieja también apunta a constructores)`);
+    if (c.ok === false) l.push("la copia instalada no es la del repo");
+    s.append(franja("aviso", "Datos del registro de jueces poco fiables: los antiguos pueden traer veredictos falsos.", l));
+  }
+  if (!e.declaradosLeidos) s.append(franja("aviso", "No se pudo leer ~/.claude/settings.json: no se puede decir qué hooks deberían activarse."));
+  s.append(el("div", "cifras", cifra("último evento visto" + (e.ultimoEvento ? " (" + hace(e.ultimoEvento) + ")" : ""), fFecha(e.ultimoEvento)), cifra(`sesiones en los últimos ${d.dias} días`, e.sesiones), cifra("líneas rotas saltadas", e.lineasRotas)));
+  s.append(el("p", "suave", `Lectura: ${fMs(d.lecturaMs)}; ${d.ficheros.releidos} de ${d.ficheros.total} ficheros releídos (el resto, de la memoria); el panel pesa ${d.proceso.rssMB} MB. Generado ${fFecha(d.generado)}.`));
+  return s;
+}
+
+function pintarHooks(d) {
+  const s = el("section", "", el("h2", "", `Qué se activa y qué no (últimos ${d.dias} días)`));
+  s.append(
+    tabla(
+      [
+        { t: "Evento", v: (h) => h.evento },
+        { t: "Hook", v: (h) => el("span", "", h.nombre, h.ruta ? el("br") : null, h.ruta ? el("code", "suave", h.ruta) : null) },
+        { t: "Veces", n: true, v: (h) => fNum(h.veces) },
+        { t: "Última", v: (h) => fFecha(h.ultima) },
+        { t: "Media", n: true, v: (h) => fMs(h.mediaMs) },
+        { t: "Máx.", n: true, v: (h) => fMs(h.maxMs) },
+        { t: "Bloqueos", n: true, v: (h) => fNum(h.bloqueos) },
+        { t: "Nota", v: (h) => (h.noVisto ? "NO VISTO (declarado, 0 activaciones)" : h.declarado ? "" : "no está en ~/.claude/settings.json (¿del proyecto?)") },
+      ],
+      d.hooks,
+      { resaltar: (h) => h.noVisto },
+    ),
+  );
+  s.append(el("p", "suave", "Solo se ven los hooks que Claude Code deja anotados en la transcripción: el resumen de cierre de turno (Stop) y los avisos de «hook correcto» de los demás eventos. Un hook «no visto» puede no haberse activado o no haber dejado huella: SIN COMPROBAR cuál de las dos."));
+  return s;
+}
+
+function pintarTiempos(d) {
+  const s = el("section", "", el("h2", "", "Tiempos"));
+  s.append(el("h3", "", "Por sesión (las 15 últimas)"));
+  s.append(
+    tabla(
+      [
+        { t: "Sesión", v: (t) => el("code", "", t.sesion) },
+        { t: "Rama", v: (t) => t.rama ?? "—" },
+        { t: "Carpeta", v: (t) => t.carpeta ?? "—" },
+        { t: "Último", v: (t) => fFecha(t.ultimo) },
+        { t: "Total", n: true, v: (t) => fMs(t.totalMs) },
+        { t: "API", n: true, v: (t) => fMs(t.apiMs) },
+        { t: "Herramientas", n: true, v: (t) => fMs(t.herramientasMs) },
+        { t: "Hooks", n: true, v: (t) => fMs(t.hooksMs) },
+        { t: "Espera de persona/otros (cálculo)", n: true, v: (t) => fMs(t.esperaMs), c: (t) => (t.esperaMs !== null && t.esperaMs < 0 ? "neg" : "") },
+      ],
+      d.tiempos,
+    ),
+  );
+  s.append(el("p", "suave", "Total, API y herramientas: «según Claude Code» (son totales acumulados de toda la sesión, no solo de la ventana). Hooks: suma de lo que dejan anotado. Espera = total − API − herramientas: es un cálculo, no una medida, y puede salir negativo (en ámbar) porque esos tiempos se solapan. «sin dato» = esa sesión no tiene registro de coste."));
+  s.append(el("h3", "", "Jueces: tiempo desde «lanzado» hasta el informe"));
+  const j = d.jueces;
+  if (!j.tiempos.length) s.append(el("p", "vacio", "Sin ningún juez con agent_id y las dos anotaciones (lanzado e informe) en esta ventana."));
+  else {
+    s.append(tabla([{ t: "Juez", v: (x) => x.agente }, { t: "Informes", n: true, v: (x) => fNum(x.n) }, { t: "Media", n: true, v: (x) => fMs(x.mediaMs) }, { t: "Máx.", n: true, v: (x) => fMs(x.maxMs) }], j.porAgente));
+    s.append(tabla([{ t: "Cuándo", v: (x) => fFecha(x.ts) }, { t: "Rama", v: (x) => x.rama }, { t: "Juez", v: (x) => x.agente }, { t: "Veredicto", v: (x) => x.veredicto }, { t: "Tardó", n: true, v: (x) => fMs(x.ms) }], j.tiempos));
+  }
+  return s;
+}
+
+function pintarIneficiencias(d) {
+  const i = d.ineficiencias;
+  const s = el("section", "", el("h2", "", "Ineficiencias"));
+  s.append(el("h3", "", "a) Bloqueos de hooks"));
+  s.append(el("p", "", `Bloqueos con hook identificado: ${i.bloqueos.reduce((n, b) => n + b.n, 0)}. Errores anotados en los resúmenes de cierre: ${i.cierres.errores} (en ${i.cierres.resumenesConError} cierres; ${i.cierres.impidieronContinuar} impidieron continuar). Las dos cuentas miran el mismo hecho desde dos anotaciones y no tienen por qué coincidir.`));
+  s.append(
+    tabla(
+      [
+        { t: "Evento", v: (b) => b.evento },
+        { t: "Hook", v: (b) => b.nombre },
+        { t: "Bloqueos", n: true, v: (b) => fNum(b.n) },
+        { t: "Los 3 motivos más repetidos (primeros 80 caracteres)", v: (b) => el("ul", "", ...b.motivos.map((m) => el("li", "", `${m.n} × ${m.texto}`))) },
+      ],
+      i.bloqueos,
+    ),
+  );
+  s.append(el("h3", "", "b) Jueces relanzados (misma rama y agente, más de un informe distinto)"));
+  s.append(tabla([{ t: "Rama", v: (r) => r.rama }, { t: "Juez", v: (r) => r.agente }, { t: "Informes", n: true, v: (r) => fNum(r.informes) }, { t: "Nota", v: (r) => (r.sinAgentId ? `${r.sinAgentId} sin agent_id: pueden ser dobles apuntes del mismo informe` : "") }], i.relanzados));
+  s.append(el("h3", "", "c) Coste y tokens"));
+  s.append(el("p", "suave", `Coste «según Claude Code», suma de las sesiones de la ventana: ${fUSD(i.costes.total)} (totales de sesión, que pueden incluir días anteriores a la ventana).`));
+  s.append(tabla([{ t: "Sesión", v: (c) => el("code", "", c.sesion) }, { t: "Rama", v: (c) => c.rama ?? "—" }, { t: "Carpeta", v: (c) => c.carpeta ?? "—" }, { t: "Coste", n: true, v: (c) => fUSD(c.costeUSD) }], i.costes.sesiones));
+  s.append(el("p", "suave", "Tokens por modelo (mensajes del asistente de la ventana, contados una vez por respuesta):"));
+  s.append(tabla([{ t: "Modelo", v: (t) => t.modelo }, { t: "Mensajes", n: true, v: (t) => fNum(t.mensajes) }, { t: "Entrada", n: true, v: (t) => fNum(t.entrada) }, { t: "Salida", n: true, v: (t) => fNum(t.salida) }, { t: "Caché leída", n: true, v: (t) => fNum(t.cacheLeida) }, { t: "Caché creada", n: true, v: (t) => fNum(t.cacheCreada) }], i.tokens));
+  s.append(el("h3", "", "d) Subagentes lanzados"));
+  s.append(tabla([{ t: "Tipo (herramienta Agent)", v: (a) => a.tipo ?? "sin tipo indicado" }, { t: "Veces", n: true, v: (a) => fNum(a.n) }], i.subagentes));
+  s.append(el("p", "suave", `Mensajes del asistente que vienen de subagentes (sidechain): ${fNum(i.mensajesSubagente)}.`));
+  return s;
+}
+
+function pintarPie() {
+  const lista = [
+    "Qué hooks se activaron de verdad: solo ve los que Claude Code deja anotados. Los de eventos distintos de cierre de turno, y un hook que no escribe nada, pueden no aparecer aunque se activen (SIN COMPROBAR).",
+    "Los hooks del proyecto (.claude/settings.json del repo donde corre cada sesión) NO se leen: solo los de ~/.claude/settings.json. Los que salen «no está en ~/.claude/settings.json» sí se han visto activarse.",
+    "El registro de jueces del PC lo escribe una versión vieja del hook que también apunta a constructores y lee veredictos falsos: los datos antiguos no son fiables, y este panel no puede separar los buenos de los malos.",
+    "Tiempos y coste vienen de Claude Code y son totales de la sesión entera. «Espera de persona/otros» es un cálculo; no distingue si esperó una persona, la red u otra cosa.",
+    "Las transcripciones de subagentes que Claude Code guarde en subcarpetas no se leen (SIN COMPROBAR que existan); sí cuentan las que vienen dentro del fichero de la sesión.",
+    "No dice si un juez tenía razón ni si el código quedó bien: solo cuántas veces se activó, cuánto tardó y cuánto costó.",
+    "Esta página no se ha comprobado en un navegador.",
+  ];
+  return el("section", "", el("h2", "", "Qué NO sabe este panel"), el("ul", "", ...lista.map((x) => el("li", "", x))));
+}
+
+function pintar(d) {
+  app.replaceChildren(pintarEstado(d), pintarHooks(d), pintarTiempos(d), pintarIneficiencias(d), pintarPie());
+}
+function pintarFallo(msg, extra) {
+  const f = franja("mal", msg, extra ? [extra] : null);
+  const previo = document.getElementById("fallo");
+  if (previo) previo.remove();
+  f.id = "fallo";
+  app.prepend(f);
+}
+
+async function cargar() {
+  try {
+    const r = await fetch("/datos.json", { cache: "no-store" });
+    const d = await r.json();
+    if (!r.ok || !d.estado) {
+      pintarFallo("El panel no pudo calcular los datos.", (d.errores || []).map((x) => `${x.fichero} — ${x.motivo}`).join(" | ") || "HTTP " + r.status);
+    } else pintar(d);
+  } catch (e) {
+    pintarFallo("No llega al panel local (¿se ha parado servir.mjs?). Lo que ves es lo último que se pudo leer.", String(e && e.message ? e.message : e));
+  }
+}
+(function bucle() {
+  const sigue = () => setTimeout(bucle, 5000);
+  if (document.hidden) return sigue();
+  cargar().then(sigue, sigue);
+})();
+document.addEventListener("visibilitychange", () => { if (!document.hidden) cargar(); });
+</script>
+</body>
+</html>
