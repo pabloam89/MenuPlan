@@ -177,11 +177,20 @@ comprobaron paso a paso y están anotadas como excepción.
    lentejas de primero y garbanzos de segundo pasan el filtro. `filterRecipes.js:549`
    arrastra la misma lista incompleta en un comentario.
 
-   Se deja **deliberadamente sin corregir**: arreglarlo cambia qué menús genera
+   Se dejó **deliberadamente sin corregir**: arreglarlo cambia qué menús genera
    el motor para todo el mundo (empezaría a rechazar combinaciones que hoy
    acepta), y eso es una decisión de producto, no una consecuencia colateral de
    haber cerrado el campo a enum. Es exactamente el patrón de duplicación
    código↔prompt que `INDEX.md` ya documenta como transversal.
+
+   **DECIDIDA (Álvaro, 20 oct 2026; #891, construida en #896).** Un plato con
+   `mainProtein: "legumbre"` y `carbs_g > protein_g` cuenta como hidrato
+   `"legumbre"` (`getCarbType`), y choca con arroz, pasta, patatas y otra
+   legumbre según `chocanHidratos` (`src/utils/validateMenu.js`), la única
+   comparación de hidratos del motor. Manda `mainProtein`, no `mainBase`: la
+   base de batch cooking `bases_004` (`mainProtein: none`) sigue sin hidrato.
+   El cruce va en su propia regla, `guarnicion_legumbre`, relajable: si no hay
+   ningún plato que la cumpla, el solver la salta antes que dejar un hueco.
 
 ## 8. Decisiones y lecciones (15 sep 2026)
 

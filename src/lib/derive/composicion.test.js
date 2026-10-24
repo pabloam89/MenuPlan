@@ -148,7 +148,12 @@ describe("acuerdo con la curación humana", () => {
   });
 
   it("hidrato, sobre el catálogo entero", () => {
-    const m = medirAcuerdo(recipeCatalog, "hidrato", (r) => getCarbType(r) ?? null);
+    // La legumbre-hidrato de #896 no es curación del ingrediente base: es una
+    // regla del motor sobre los gramos del plato (`mainProtein` legumbre y
+    // carbs_g > protein_g). Este vector mide el hidrato de los ingredientes,
+    // así que esos platos se comparan como antes de la regla, sin hidrato.
+    const curado = (r) => { const c = getCarbType(r); return c && c !== "legumbre" ? c : null; };
+    const m = medirAcuerdo(recipeCatalog, "hidrato", curado);
     expect(m.total).toBeGreaterThan(400);
     expect(m.acuerdo, `${m.ok}/${m.total}`).toBeGreaterThanOrEqual(0.99);
   });

@@ -186,8 +186,19 @@ const MAIN_BASES = [
  *       la incoherencia de que el boniato declarado y el no declarado
  *       contaran distinto.
  *
- *   legumbre → null      La legumbre en este catálogo es el eje de PROTEÍNA,
- *       no el de hidrato.
+ *   legumbre → null      DECISIÓN NUEVA (Álvaro, 20 oct 2026; #891, #896):
+ *       la legumbre SÍ es hidrato cuando el plato tiene `mainProtein:
+ *       "legumbre"` y `carbs_g > protein_g` (100 de los 101 platos de
+ *       legumbre). Eso lo decide `getCarbType` ANTES de mirar esta tabla, y
+ *       devuelve `"legumbre"`; `chocanHidratos` dice con qué choca. Este `null`
+ *       queda solo para lo que la regla deja fuera: la base de batch cooking
+ *       `bases_004` (`mainProtein: none`), que no va a un hueco de comida. Lo
+ *       que sigue es la historia de por qué fue `null` antes de la decisión;
+ *       el enforcement cruzado falso que describe venía del acompañamiento
+ *       (patata, pan, fideos), y la regla nueva mira los gramos del plato.
+ *
+ *       Antes: la legumbre en este catálogo era el eje de PROTEÍNA, no el de
+ *       hidrato.
  *
  *       Quién impide de verdad repetir legumbre el mismo día es la REGLA 13
  *       (`dos_cuchara_mismo_dia`, utils/validateMenu.js), vía `isPlatoCuchara`,
@@ -208,11 +219,8 @@ const MAIN_BASES = [
  *       (bases_004, la mejor tanda que hay — una olla de garbanzos son 55 min
  *       pasen dos raciones o doce) sin tocar la restricción real.
  *
- *       NOTA DE ALCANCE: esto NO resuelve la decisión aparcada en
- *       specs/batch-cooking.md §7.4, donde `api/_prompts.js:24` enumera las
- *       bases sin `legumbre` ni `boniato`. Aquella sigue sin tocarse, y sigue
- *       siendo del dueño del producto: corregirla cambia qué menús genera el
- *       motor para todo el mundo.
+ *       La decisión aparcada en specs/batch-cooking.md §7.4 quedó DECIDIDA
+ *       el 20 oct 2026 (ver arriba y #896).
  */
 const CARB_TYPE_BY_BASE = {
   arroz: "arroz",
