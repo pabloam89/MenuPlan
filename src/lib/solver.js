@@ -386,7 +386,10 @@ export function resolverMenu(slots, pool, {
     const prote = (r.mainProtein && r.mainProtein !== "none")
       || (r.extraProteins ?? []).length > 0
       || [...entrega].some((f) => PROTE.has(f));
-    const base = !!getCarbType(r) || r.category === "legumbres" || r.mainProtein === "legumbre";
+    // La legumbre-hidrato ya la reconoce getCarbType (#896): suma eje de
+    // proteína y de base a la vez, que es lo buscado. `category` sigue para
+    // los dos guisos de legumbre fuera de la regla (legumbres_064 y 065).
+    const base = !!getCarbType(r) || r.category === "legumbres";
     const verdura = entrega.has("verdura") || r.category === "ensaladas_verduras";
     const ejes = (prote ? 1 : 0) + (base ? 1 : 0) + (verdura ? 1 : 0);
 
@@ -689,6 +692,16 @@ export function resolverMenu(slots, pool, {
     };
     if (relajar) rellenar(relajadaValida);
     for (const a of asignadas) if (!estrictos.has(a.slotId)) relajados.push(a.slotId);
+    // Una regla relajable entre DOS platos (`guarnicion_legumbre`, #896) culpa
+    // al segundo del par, que puede ser un hueco puesto en la pasada estricta
+    // y no el que se relajó. Ese hueco también va como relajado: si no, la
+    // revalidación de después lo "repararía" o lo contaría como violación.
+    if (relajados.length > 0) {
+      const { violations } = validateMenu(asignadas, pool, contexto, [], {}, basesPedidas);
+      for (const v of violations) {
+        if (REGLAS_RELAJABLES.has(v.rule) && !relajados.includes(v.slotId)) relajados.push(v.slotId);
+      }
+    }
 
     mejor = [...asignadas];
     sinCombinacion = vacios().map((s) => s.slotId);
@@ -728,6 +741,9 @@ export const REGLAS_RELAJABLES = new Set([
   "health_profile_conflict",
   "freq_max_exceeded",
   "segundo_sin_proteina_principal",
+  // #896: la legumbre-hidrato con arroz, pasta o patatas el mismo día. Solo
+  // ese cruce; dos arroces (`guarnicion_repetida`) siguen siendo duros.
+  "guarnicion_legumbre",
 ]);
 
 /**
