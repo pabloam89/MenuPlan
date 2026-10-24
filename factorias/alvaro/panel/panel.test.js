@@ -10,7 +10,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { agregar, compararCopias, leerDeclarados, nombreCorto, normalizarComando, nuevoResumen, parsearRegistro, procesarLinea } from "./lib/leer.mjs";
+import { FUENTES, agregar, compararCopias, leerDeclarados, nombreCorto, normalizarComando, nuevoResumen, parsearRegistro, procesarLinea } from "./lib/leer.mjs";
 import { crearRecolector, crearServidor } from "./servir.mjs";
 
 const SERVIR = join(dirname(fileURLToPath(import.meta.url)), "servir.mjs");
@@ -32,6 +32,7 @@ const cierre = (extra) => ({ type: "system", subtype: "stop_hook_summary", uuid:
 const ev = (s, ms = 1000) => ({ type: "mode", timestamp: iso(AHORA - ms), ...base({ sessionId: s }) });
 const asist = (s, n = 1) => Array.from({ length: n }, (_, i) => ({ type: "assistant", uuid: s + i + Math.random(), timestamp: iso(AHORA - 1000), ...base({ sessionId: s }), message: { id: s + Math.random(), model: "m", usage: {}, content: [] } }));
 const foto = (s, c, extra = {}) => ({ type: "cost-state", sessionId: s, totalCostUSD: c, totalDuration: 10000, totalAPIDuration: 3000, totalToolDuration: 2000, ...extra });
+const e = (extra) => ({ ts: AHORA - 5000, sesion: "x", agente: "revisor", veredicto: "pasa", resumen: MARCADOR, ...extra });
 const copiaOk = { ok: true, difieren: [], faltanInstalada: [], sobranInstalada: [] };
 const entradaBase = (extra = {}) => ({ ahora: AHORA, dias: 7, ficheros: [], registros: [], declarados: [], copia: copiaOk, home: "/h", errores: [], ...extra });
 
@@ -160,24 +161,66 @@ function navegador(datos) {
   const est = { datos, seleccion: false, tics: [] };
   const win = { scrollY: 0, scrollTo() {}, getSelection: () => ({ isCollapsed: !est.seleccion, anchorNode: {} }) };
   const doc = { getElementById: (id) => (id === "app" ? app : aviso), createElement: (t) => new Nodo(t), hidden: false, addEventListener() {}, querySelectorAll: (s) => app.querySelectorAll(s) };
-  const fetchFalso = async () => ({ ok: true, status: 200, json: async () => est.datos });
+  const fetchFalso = async () => {
+    if (est.cae) throw new TypeError("Failed to fetch");
+    return { ok: true, status: 200, json: async () => est.datos };
+  };
   const script = /<script>([\s\S]*)<\/script>/.exec(readFileSync(join(dirname(fileURLToPath(import.meta.url)), "panel.html"), "utf8"))[1];
   new Function("document", "window", "fetch", "setTimeout", "setInterval", "AbortSignal", script)(doc, win, fetchFalso, (f) => pend.push(f), (f) => est.tics.push(f), AbortSignal);
   const pausa = () => new Promise((r) => setImmediate(r));
   const ciclo = async (cambia = {}) => { Object.assign(est.datos, cambia); (pend.shift() ?? (() => {}))(); await pausa(); await pausa(); };
   return { app, aviso, est, ciclo, listo: pausa().then(pausa) };
 }
-const datosPagina = (errores = [], extra = []) => ({
-  generado: iso(AHORA), dias: 7, lecturaMs: 5, ficheros: { total: 3 }, proceso: { rssMB: 80, heapMB: 20 },
-  ...agregar(entradaBase({ errores, ficheros: [{ ruta: "f", mtimeMs: AHORA, resumen: resumenDe(...asist("sp"), foto("sp", 3), ev("sh"), ev("sh", 3 * 3600e3), foto("sh", 1, { totalDuration: 7320000 }), { type: "attachment", uuid: "bq", timestamp: iso(AHORA), ...base(), attachment: { type: "hook_blocking_error", hookEvent: "Stop", blockingError: { command: "node c.mjs", blockingError: "falta qa" } } }, ...extra) }] })),
+// Entrada a propósito rica: un hook de Stop declarado sin huella, otro de PostToolUse, sesiones con foto de coste y sin ella,
+// jueces relanzados, un subagente y bloqueos. Con errores de lectura (uno por fuente) sirve para todas las pruebas.
+const entradaRica = (errores = []) =>
+  entradaBase({
+    errores,
+    declarados: [{ evento: "Stop", comando: "node c.mjs" }, { evento: "Stop", comando: "node mudo.mjs" }, { evento: "PostToolUse", comando: "node registro.mjs" }],
+    registros: [{ rama: "r", rotas: 0, entradas: [e({ agent_id: "a1", veredicto: "lanzado", ts: AHORA - 9000 }), e({ agent_id: "a1" }), e({ agent_id: "a2" })] }],
+    ficheros: [{ ruta: "f", mtimeMs: AHORA, resumen: resumenDe(...asist("sp"), foto("sp", 3), ...asist("sq"), ev("sh"), ev("sh", 3 * 3600e3), foto("sh", 1, { totalDuration: 7320000 }), cierre({ hookInfos: [{ command: "node c.mjs", durationMs: 7 }] }), { type: "attachment", uuid: "bq", timestamp: iso(AHORA), ...base(), attachment: { type: "hook_blocking_error", hookEvent: "Stop", blockingError: { command: "node c.mjs", blockingError: "falta qa" } } }, { type: "assistant", uuid: "ag", timestamp: iso(AHORA), ...base(), message: { id: "mag", model: "m", usage: { output_tokens: 1 }, content: [{ type: "tool_use", id: "tag", name: "Agent", input: { subagent_type: "revisor" } }] } }) }],
+  });
+const datosPagina = (errores = []) => ({ generado: iso(AHORA), dias: 7, lecturaMs: 5, proceso: { rssMB: 80, heapMB: 20 }, ...agregar(entradaRica(errores)) });
+const falla = (...fuentes) => fuentes.map((fuente) => ({ fuente, fichero: "x", motivo: "EACCES" }));
+
+// ---- LA PRUEBA QUE CIERRA LA CLASE «un cero que no es cero»: de qué fuente depende cada hoja del JSON ----
+// Las propias del panel van con []. Una hoja sin clasificar hace fallar el test: un campo nuevo obliga a decidir (y a enmascarar).
+const DEP = [
+  [/^\.(generado|dias|lecturaMs)$|^\.proceso\.|^\.errores/, []],
+  [/^\.hooks\[\]\.(declarado|sinHuella|rojo)$/, ["settings", "transcripciones"]],
+  [/^\.(ficheros|hooks|tiempos)|^\.estado\.(ultimoEvento|sesiones|lineasRotas)$|^\.ineficiencias\.(bloqueos|costes|tokens|subagentes|mensajesSubagente)/, ["transcripciones"]],
+  [/^\.estado\.copia/, ["copia"]],
+  [/^\.(estado\.registroAntiguo|jueces|ineficiencias\.relanzados)/, ["registro"]],
+];
+const hojas = (v, p = "") => (v === null || typeof v !== "object" || !Object.keys(v).length ? [[p, v]] : Object.entries(v).flatMap(([k, x]) => hojas(x, p + (Array.isArray(v) ? "[]" : "." + k))));
+const deDe = (p) => {
+  const fila = DEP.find(([re]) => re.test(p));
+  if (!fila) throw new Error("hoja sin clasificar en DEP: " + p);
+  return fila[1];
+};
+const ESCENARIOS = [...FUENTES.map((f) => [[f]]), [FUENTES]]; // cada fuente por separado y todas a la vez
+const comprobar = (datos, caidas) => {
+  for (const [p, v] of hojas(datos)) if (deDe(p).some((f) => caidas.includes(f))) expect([p, v]).toEqual([p, null]);
+  if (!caidas.includes("settings") && !caidas.includes("transcripciones")) expect(datos.hooks.some((h) => h.rojo === true)).toBe(true);
+  if (caidas.length === 1 && caidas[0] === "settings") expect([datos.tiempos, datos.ineficiencias.costes]).not.toContain(null); // un fallo de settings no mata costes ni tiempos
+};
+
+describe("errores por fuente: lo derivado de una fuente caída sale null (en los datos, no en la página)", () => {
+  const sano = agregar(entradaRica());
+  it("el fixture es rico y toda hoja está clasificada", () => {
+    comprobar(sano, []);
+    const h = sano.hooks;
+    expect([h.some((x) => x.rojo === true), h.some((x) => x.sinHuella === true && x.rojo === false), sano.tiempos.some((t) => t.costeUSD === null), sano.tiempos.some((t) => t.costeUSD !== null), sano.ineficiencias.relanzados.length > 0, sano.ineficiencias.subagentes.length > 0, sano.ineficiencias.bloqueos.length > 0, sano.jueces.tiempos.length > 0, sano.estado.copia.ok === true, sano.estado.registroAntiguo.apuntes > 0]).toEqual(Array(10).fill(true));
+  });
+  it.each(ESCENARIOS)("función pura, fuentes caídas %j", (caidas) => comprobar(agregar(entradaRica(falla(...caidas))), caidas));
 });
 
 describe("la página", () => {
   const html = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "panel.html"), "utf8");
   const cifras = (app) => app.todos((h) => h.tag === "b" || (h.tag === "td" && h.className.split(" ").includes("n"))).map((h) => h.texto.trim());
 
-  it("con un error de lectura TODA cifra derivada sale «sin dato» (también en las frases) y las tablas vacías lo dicen", async () => {
-    const n = navegador(datosPagina([{ fichero: "x", motivo: "EACCES" }]));
+  it("la página solo pinta lo que le dan: con todas las fuentes caídas todo sale «sin dato» (también las frases) y las tablas lo dicen", async () => {
+    const n = navegador(datosPagina(falla(...FUENTES)));
     await n.listo;
     expect(new Set(cifras(n.app))).toEqual(new Set(["sin dato"]));
     const frases = n.app.todos((h) => h.tag === "p").map((h) => h.texto).filter((t) => /Bloqueos con hook|Coste mínimo|sidechain/.test(t));
@@ -185,6 +228,25 @@ describe("la página", () => {
     for (const f of frases) expect(f).toContain("sin dato");
     expect(n.app.texto).toContain("No se pudo leer (ver franja roja)");
     expect(n.app.texto).not.toContain("Sin datos en esta ventana");
+  });
+
+  it("con settings ilegible la Nota de los hooks no afirma nada falso, y los tiempos siguen", async () => {
+    const n = navegador(datosPagina(falla("settings")));
+    await n.listo;
+    const celdas = n.app.todos((h) => h.tag === "td").map((h) => h.texto);
+    expect(celdas.filter((t) => /Stop debería|no está en|sin huella/.test(t))).toEqual([]); // la Nota de ningún hook afirma nada
+    expect(celdas).toContain("sin dato");
+    expect(cifras(n.app)).toContain("2 h 2 min");
+  });
+
+  it("si el servidor cae, la franja lo dice en castellano y los datos viejos se quedan", async () => {
+    const n = navegador(datosPagina());
+    await n.listo;
+    n.est.cae = true;
+    await n.ciclo();
+    expect(n.aviso.texto).toMatch(/No llega al panel local.*el navegador no pudo conectar/);
+    expect(n.aviso.texto).not.toContain("Failed to fetch");
+    expect(n.app.texto).toContain("2 h 2 min");
   });
 
   it("sin errores salen las cifras (las horas como «2 h 2 min») y no se repinta si no cambió nada", async () => {
@@ -231,23 +293,17 @@ describe("copia instalada contra el repo", () => {
 describe("tiempos", () => {
   it("una sesión sin cost-state da null, no 0", () => {
     const d = agregar(entradaBase({ ficheros: [{ ruta: "f", mtimeMs: AHORA, resumen: resumenDe(ev("s3")) }] }));
-    expect(d.tiempos[0]).toMatchObject({ totalMs: null, apiMs: null, costeUSD: null });
+    expect(d.tiempos[0]).toMatchObject({ totalMs: null, apiMs: null, costeUSD: null, hooksMs: null });
   });
 
-  it("una foto con coste 0 en una sesión con mensajes es «sin dato», nunca $0", () => {
-    const r = resumenDe(...asist("s5"), foto("s5", 0), ev("s6"), foto("s6", 0));
+  it("coste 0 con mensajes es «sin dato», nunca $0; y se marca la sesión con mensajes posteriores a su foto", () => {
+    const r = resumenDe(...asist("s5"), foto("s5", 0), ev("s6"), foto("s6", 0), ...asist("s7"), foto("s7", 1), ...asist("s7", 2), ...asist("s8"), foto("s8", 1));
     const d = agregar(entradaBase({ ficheros: [{ ruta: "f", mtimeMs: AHORA, resumen: r }] }));
-    expect(d.tiempos.find((t) => t.sesion === "s5")).toMatchObject({ costeUSD: null, totalMs: null });
-    expect(d.tiempos.find((t) => t.sesion === "s6").costeUSD).toBe(0); // sin mensajes del asistente no hay contradicción: se deja
-    expect(d.ineficiencias.costes.sesiones.map((c) => c.sesion)).not.toContain("s5");
-  });
-
-  it("se marca la sesión con mensajes posteriores a su última foto", () => {
-    const r = resumenDe(...asist("s7"), foto("s7", 1), ...asist("s7", 2), ...asist("s8"), foto("s8", 1));
-    const d = agregar(entradaBase({ ficheros: [{ ruta: "f", mtimeMs: AHORA, resumen: r }] }));
-    expect(d.tiempos.find((t) => t.sesion === "s7")).toMatchObject({ fotoAtrasada: true });
-    expect(d.tiempos.find((t) => t.sesion === "s8")).toMatchObject({ fotoAtrasada: false });
-    expect(d.ineficiencias.costes.sesiones.find((c) => c.sesion === "s7").fotoAtrasada).toBe(true);
+    const t = (x) => d.tiempos.find((f) => f.sesion === x);
+    expect(t("s5")).toMatchObject({ costeUSD: null, totalMs: null });
+    expect(t("s6").costeUSD).toBe(0); // sin mensajes del asistente no hay contradicción: se deja
+    expect([t("s7").fotoAtrasada, t("s8").fotoAtrasada]).toEqual([true, false]);
+    expect(d.ineficiencias.costes.sesiones.map((c) => [c.sesion, c.fotoAtrasada]).filter(([x]) => x === "s7" || x === "s5")).toEqual([["s7", true]]);
   });
 
   const dosFicheros = (a, b) => [{ ruta: "1", mtimeMs: AHORA - 1000, resumen: resumenDe(...a) }, { ruta: "2", mtimeMs: AHORA, resumen: resumenDe(...b) }];
@@ -262,11 +318,11 @@ describe("tiempos", () => {
     expect(d.tiempos[0].costeUSD).toBe(5);
   });
 
-  it("una foto más larga que la vida observada de la sesión es «sin dato» (no cuadra con la transcripción)", () => {
+  it("una foto más larga que la vida observada anula SOLO el total («total no fiable»); coste, API y herramientas se quedan", () => {
     const d = agregar(entradaBase({ ficheros: [{ ruta: "f", mtimeMs: AHORA, resumen: resumenDe(ev("se"), ev("se", 328000), foto("se", 9, { totalDuration: 3 * 3600e3 }), ev("sf"), ev("sf", 328000), foto("sf", 2, { totalDuration: 400000 })) }] }));
-    expect(d.tiempos.find((t) => t.sesion === "se")).toMatchObject({ costeUSD: null, totalMs: null, apiMs: null, noCuadra: true });
+    expect(d.tiempos.find((t) => t.sesion === "se")).toMatchObject({ costeUSD: 9, totalMs: null, apiMs: 3000, herramientasMs: 2000, noCuadra: true });
     expect(d.tiempos.find((t) => t.sesion === "sf")).toMatchObject({ costeUSD: 2, totalMs: 400000, noCuadra: false });
-    expect(d.ineficiencias.costes.sesiones.map((c) => c.sesion)).toEqual(["sf"]);
+    expect(d.ineficiencias.costes.sesiones.map((c) => c.sesion)).toEqual(["se", "sf"]);
   });
 
   it("solo salen las 15 últimas sesiones, la más reciente primero", () => {
@@ -284,8 +340,6 @@ describe("tiempos", () => {
 });
 
 describe("registro de jueces", () => {
-  const e = (extra) => ({ ts: AHORA - 5000, sesion: "x", agente: "revisor", veredicto: "pasa", resumen: MARCADOR, ...extra });
-
   it("parsearRegistro salta y cuenta las líneas rotas", () => {
     expect(parsearRegistro(JSON.stringify(e()) + "\n{roto\n\n")).toMatchObject({ rotas: 1, entradas: [expect.any(Object)] });
   });
@@ -323,7 +377,7 @@ function montar() {
   home = join(dir, "home");
   alvaro = join(dir, "repo", "factorias", "alvaro");
   for (const b of [alvaro, join(home, ".claude", "factoria")]) for (const f of ["hooks/c.mjs", "lib/r.mjs"]) escribir(join(b, f), "x = 1\n");
-  escribir(join(home, ".claude", "settings.json"), JSON.stringify({ permissions: { allow: [MARCADOR] }, hooks: { Stop: [{ hooks: [{ type: "command", command: 'node "$HOME/.claude/factoria/hooks/c.mjs"' }] }] } }));
+  escribir(join(home, ".claude", "settings.json"), JSON.stringify({ permissions: { allow: [MARCADOR] }, hooks: { Stop: [{ hooks: [{ type: "command", command: 'node "$HOME/.claude/factoria/hooks/c.mjs"' }, { type: "command", command: 'node "$HOME/.claude/factoria/hooks/mudo.mjs"' }] }], PostToolUse: [{ hooks: [{ type: "command", command: 'node "$HOME/.claude/factoria/hooks/registro.mjs"' }] }] } }));
   const t = Date.now();
   const sesion = [
     { type: "user", uuid: "u1", timestamp: iso(t - 5000), ...base(), message: { role: "user", content: "hola " + MARCADOR } },
@@ -335,7 +389,8 @@ function montar() {
     { type: "cost-state", sessionId: "ses-aaaa1111", totalCostUSD: 1.5, totalDuration: 9000, totalAPIDuration: 4000, totalToolDuration: 1000 },
   ];
   escribir(fSesion(), sesion.map(L).join("") + "{línea rota\n");
-  escribir(join(home, ".claude", "factoria-alvaro", "ops_zz.jsonl"), L({ ts: t - 3000, sesion: "x", agente: "revisor", veredicto: "pasa", agent_id: "a1", resumen: MARCADOR }));
+  escribir(join(home, ".claude", "projects", "p1", "ses-bbbb2222.jsonl"), L({ type: "assistant", uuid: "b1", timestamp: iso(t - 60000), ...base({ sessionId: "ses-bbbb2222" }), message: { id: "mb", model: "m", usage: {}, content: [] } })); // sin foto de coste
+  escribir(join(home, ".claude", "factoria-alvaro", "ops_zz.jsonl"), [e({ ts: t - 3500, agent_id: "a1", veredicto: "lanzado" }), e({ ts: t - 3000, agent_id: "a1" }), e({ ts: t - 2500, agent_id: "a2" })].map(L).join(""));
 }
 
 const pedir = (puerto, { metodo = "GET", ruta = "/datos.json", host } = {}) =>
@@ -373,7 +428,7 @@ describe("servidor y lectura real", () => {
     expect(r.estado).toBe(200);
     const d = JSON.parse(r.cuerpo);
     expect(d.errores).toEqual([]);
-    expect(d.estado).toMatchObject({ sesiones: 1, lineasRotas: 1, copia: { ok: true } });
+    expect(d.estado).toMatchObject({ sesiones: 2, lineasRotas: 1, copia: { ok: true } });
     expect(d.tiempos[0]).toMatchObject({ totalMs: 9000, apiMs: 4000, herramientasMs: 1000, costeUSD: 1.5 });
     expect(d.ineficiencias.subagentes).toEqual([{ tipo: PERMITIDO, n: 1 }]);
     expect(d.hooks.find((h) => h.nombre === "c.mjs")).toMatchObject({ veces: 1, bloqueos: 1, declarado: true });
@@ -443,7 +498,7 @@ describe("servidor y lectura real", () => {
       escribir(f, L({ type: "mode", ...base({ sessionId: n }), timestamp: iso(Date.now() - dias * DIA) }));
       utimesSync(f, new Date(Date.now() - dias * DIA), new Date(Date.now() - dias * DIA));
     }
-    for (const [extra, dias, total] of [[{}, 7, 2], [{ PANEL_DIAS: "1" }, 1, 1], [{ PANEL_DIAS: "20" }, 20, 3]]) {
+    for (const [extra, dias, total] of [[{}, 7, 3], [{ PANEL_DIAS: "1" }, 1, 2], [{ PANEL_DIAS: "20" }, 20, 4]]) {
       const h = await lanzar(extra);
       await h.esperar();
       const d = JSON.parse((await pedir(h.puerto)).cuerpo);
@@ -486,16 +541,32 @@ describe("servidor y lectura real", () => {
   });
 
 
-  it("un fichero ilegible produce un error visible con su nombre y motivo, no un 0", async () => {
-    const p = await arrancar({
-      crearLector: (ruta, opc) => {
-        if (ruta === fSesion()) throw Object.assign(new Error("EACCES: permiso denegado"), { code: "EACCES" });
-        return createReadStream(ruta, opc);
-      },
-    });
-    const d = JSON.parse((await pedir(p)).cuerpo);
-    expect(d.errores).toEqual([expect.objectContaining({ fichero: expect.stringContaining("ses-aaaa1111.jsonl"), motivo: expect.stringContaining("EACCES") })]);
-    expect(d.tiempos).toEqual([]);
+  // Los mismos escenarios con /datos.json del servidor real y un HOME sintético con cada fuente rota de verdad.
+  const romper = (caidas) => {
+    const extra = {};
+    if (caidas.includes("transcripciones")) {
+      extra.crearLector = (ruta, o) => {
+        if (ruta === fSesion()) throw Object.assign(new Error("EACCES"), { code: "EACCES" });
+        return createReadStream(ruta, o);
+      };
+    }
+    if (caidas.includes("settings")) escribir(join(home, ".claude", "settings.json"), "{roto");
+    if (caidas.includes("copia")) rmSync(join(alvaro, "hooks"), { recursive: true });
+    if (caidas.includes("registro")) {
+      rmSync(join(home, ".claude", "factoria-alvaro"), { recursive: true });
+      escribir(join(home, ".claude", "factoria-alvaro"), "esto no es una carpeta");
+    }
+    return extra;
+  };
+  it("el servidor real sano: todas las hojas clasificadas y con datos", async () => {
+    comprobar(JSON.parse((await pedir(await arrancar())).cuerpo), []);
+  });
+  it.each(ESCENARIOS)("servidor real, fuentes caídas %j", async (caidas) => {
+    const d = JSON.parse((await pedir(await arrancar(romper(caidas)))).cuerpo);
+    expect(d.errores.map((x) => x.fuente).sort()).toEqual([...caidas].sort()); // cada error lleva su fuente (vocabulario cerrado)
+    expect(d.errores.every((x) => x.fichero && x.motivo)).toBe(true); // y se ve qué fichero y por qué
+    if (caidas.includes("transcripciones")) expect([d.errores[0].fichero, d.errores[0].motivo]).toEqual([expect.stringContaining("ses-aaaa1111.jsonl"), expect.stringContaining("EACCES")]);
+    comprobar(d, caidas);
   });
 
   it("settings.json roto o falta de la copia instalada se muestran como error y como bandera roja", async () => {
@@ -532,7 +603,7 @@ describe("servidor y lectura real", () => {
     await rec.recoger(Date.now());
     const n1 = lecturas.length;
     utimesSync(fSesion(), new Date(Date.now() - 30 * DIA), new Date(Date.now() - 30 * DIA));
-    expect((await rec.recoger(Date.now())).ficheros.total).toBe(0);
+    expect((await rec.recoger(Date.now())).ficheros.total).toBe(1); // queda el otro fichero
     utimesSync(fSesion(), fijo, fijo);
     await rec.recoger(Date.now());
     expect(lecturas.length).toBe(n1 + 1);

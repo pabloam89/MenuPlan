@@ -15,7 +15,7 @@ import { dirname, join } from "node:path";
 import { createInterface } from "node:readline";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { agregar, compararCopias, leerDeclarados, nuevoResumen, parsearRegistro, procesarLinea } from "./lib/leer.mjs";
+import { FUENTES, agregar, compararCopias, leerDeclarados, nuevoResumen, parsearRegistro, procesarLinea } from "./lib/leer.mjs";
 
 const aqui = dirname(fileURLToPath(import.meta.url));
 const HOST = "127.0.0.1";
@@ -48,7 +48,6 @@ export function crearRecolector(cfg = {}) {
   const dirRegistro = cfg.dirRegistro ?? join(claude, "factoria-alvaro");
   const crearLector = cfg.crearLector ?? createReadStream;
   const cacheTr = new Map(); // ruta → { mtimeMs, size, valor }
-  const cacheReg = new Map();
   let enCurso = null;
 
   // Un fichero solo se vuelve a leer, entero, si cambió su fecha o su tamaño.
@@ -74,7 +73,7 @@ export function crearRecolector(cfg = {}) {
     return r;
   }
 
-  async function transcripciones(corte, errores, contador) {
+  async function transcripciones(corte, errores) {
     const raiz = join(claude, "projects");
     const sal = [];
     const vistos = new Set();
@@ -98,7 +97,6 @@ export function crearRecolector(cfg = {}) {
         try {
           const st = await stat(ruta);
           if (st.mtimeMs < corte) continue;
-          contador.total++;
           vistos.add(ruta);
           sal.push({ ruta, mtimeMs: st.mtimeMs, resumen: await cacheado(cacheTr, ruta, st, leerTranscripcion) });
         } catch (e) {
@@ -118,20 +116,16 @@ export function crearRecolector(cfg = {}) {
       if (e.code !== "ENOENT") errores.push({ fichero: dirRegistro, motivo: motivo(e) });
       return []; // sin carpeta de registro todavía: no es un fallo
     }
-    const sal = [];
-    const vistos = new Set();
+    const sal = []; // el registro son unos KB: se lee entero cada vez, sin caché
     for (const n of nombres.filter((x) => x.endsWith(".jsonl"))) {
       const ruta = join(dirRegistro, n);
       try {
-        const st = await stat(ruta);
-        if (st.mtimeMs < corte) continue;
-        vistos.add(ruta);
-        sal.push({ rama: n.replace(/\.jsonl$/, ""), ...(await cacheado(cacheReg, ruta, st, async (r) => parsearRegistro(await readFile(r, "utf8")))) });
+        if ((await stat(ruta)).mtimeMs < corte) continue;
+        sal.push({ rama: n.replace(/\.jsonl$/, ""), ...parsearRegistro(await readFile(ruta, "utf8")) });
       } catch (e) {
         errores.push({ fichero: ruta, motivo: motivo(e) });
       }
     }
-    purgar(cacheReg, vistos);
     return sal;
   }
 
@@ -163,15 +157,16 @@ export function crearRecolector(cfg = {}) {
 
   async function hacer(ahora) {
     const t0 = Date.now();
-    const errores = [];
-    const contador = { total: 0 };
-    const ficheros = await transcripciones(ahora - dias * 864e5, errores, contador);
-    const regs = await registros(ahora - dias * 864e5, errores);
-    const decl = await declarados(errores);
-    const cp = await copia(errores);
+    // Los errores se recogen por fuente: agregar() deja null lo derivado de cada fuente caída
+    const [eT, eS, eC, eR] = FUENTES.map(() => []);
+    const ficheros = await transcripciones(ahora - dias * 864e5, eT);
+    const regs = await registros(ahora - dias * 864e5, eR);
+    const decl = await declarados(eS);
+    const cp = await copia(eC);
+    const errores = [eT, eS, eC, eR].flatMap((lista, i) => lista.map((x) => ({ fuente: FUENTES[i], ...x })));
     const datos = agregar({ ahora, dias, ficheros, registros: regs, declarados: decl, copia: cp, home, errores });
     const mem = process.memoryUsage();
-    return { generado: new Date(ahora).toISOString(), dias, lecturaMs: Date.now() - t0, ficheros: { total: contador.total }, proceso: { rssMB: Math.round(mem.rss / 1048576), heapMB: Math.round(mem.heapUsed / 1048576) }, ...datos };
+    return { generado: new Date(ahora).toISOString(), dias, lecturaMs: Date.now() - t0, proceso: { rssMB: Math.round(mem.rss / 1048576), heapMB: Math.round(mem.heapUsed / 1048576) }, ...datos };
   }
 
   // Dos peticiones a la vez comparten una sola lectura

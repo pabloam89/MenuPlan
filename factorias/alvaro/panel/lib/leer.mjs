@@ -9,6 +9,8 @@
 
 export const MAX_MOTIVO = 80;
 export const SESIONES_VISIBLES = 15;
+// Las fuentes de lectura: vocabulario cerrado. Cada error de lectura dice de cuál es.
+export const FUENTES = ["transcripciones", "settings", "copia", "registro"];
 // Lo que una foto de coste puede pasarse de la vida observada de su sesión antes de tratarla como «no cuadra»
 const MARGEN_FOTO_MS = 600000;
 // Los jueces de la factoría (los mismos de factorias/alvaro/lib/reglas.mjs: allí no se exporta la lista).
@@ -174,10 +176,14 @@ const top = (cuenta, n) => [...cuenta].sort((a, b) => b[1] - a[1]).slice(0, n);
 /**
  * Las cifras de la página. ficheros: [{ ruta, mtimeMs, resumen }] ya limitados a la ventana por fecha
  * de modificación; aquí se filtran además los eventos por su propia hora.
- * declarados: null si no se pudo leer settings.json (entonces no se juzga «no visto»).
+ * Errores por fuente: cada error lleva su `fuente` (FUENTES). Todo valor derivado de una fuente caída sale null, aquí y no en la
+ * página (que solo pinta lo que le dan): transcripciones → todo lo visto en ellas; settings → lo declarado, sinHuella y rojo;
+ * copia → la comparación; registro → los jueces.
  */
 export function agregar({ ahora, dias, ficheros, registros, declarados, copia, home, errores }) {
   const corte = ahora - dias * 864e5;
+  const [T, S, C, R] = FUENTES.map((f) => errores.some((x) => x.fuente === f)); // cuáles han caído
+  const de = (cae, valor) => (cae ? null : valor);
   const dentro = (ts) => ts === null || ts >= corte;
   const orden = [...ficheros].sort((a, b) => a.mtimeMs - b.mtimeMs);
   const rs = orden.map((f) => f.resumen);
@@ -221,7 +227,7 @@ export function agregar({ ahora, dias, ficheros, registros, declarados, copia, h
     }
     return filas.get(k);
   };
-  for (const d of declarados ?? []) fila(d.evento, d.comando).declarado = true;
+  for (const d of S ? [] : declarados ?? []) fila(d.evento, d.comando).declarado = true;
   for (const e of hookEv) {
     const f = fila(e.evento, e.comando);
     f.veces++;
@@ -230,30 +236,33 @@ export function agregar({ ahora, dias, ficheros, registros, declarados, copia, h
   }
   for (const e of bloqueoEv) fila(e.evento, e.comando).bloqueos++;
   const hooks = [...filas.values()]
-    .map((f) => ({ evento: f.evento, nombre: f.nombre, ruta: f.ruta, declarado: f.declarado, veces: f.veces, ultima: iso(f.ultimaMs), mediaMs: media(f.ms), maxMs: f.ms.length ? Math.max(...f.ms) : null, bloqueos: f.bloqueos, sinHuella: declarados !== null && f.declarado && f.veces === 0 }))
-    // en rojo solo los de Stop: los demás eventos casi no dejan huella en la transcripción, y «sin huella» no es «no se activó»
-    .map((h) => ({ ...h, rojo: h.sinHuella && h.evento === "Stop" }))
+    .map((f) => {
+      const sinHuella = de(S, f.declarado && f.veces === 0);
+      // en rojo solo los de Stop: los demás eventos casi no dejan huella en la transcripción, y «sin huella» no es «no se activó»
+      return { evento: f.evento, nombre: f.nombre, ruta: f.ruta, declarado: de(S, f.declarado), veces: f.veces, ultima: iso(f.ultimaMs), mediaMs: media(f.ms), maxMs: f.ms.length ? Math.max(...f.ms) : null, bloqueos: f.bloqueos, sinHuella, rojo: sinHuella && f.evento === "Stop" }; // null si sinHuella es null
+    })
     .sort((a, b) => Number(b.rojo) - Number(a.rojo) || Number(b.sinHuella) - Number(a.sinHuella) || b.veces - a.veces || a.nombre.localeCompare(b.nombre));
 
   // ---- Tiempos ----
   const hooksMsDe = new Map();
   for (const e of hookEv) if (e.sesion && e.ms !== null) hooksMsDe.set(e.sesion, (hooksMsDe.get(e.sesion) ?? 0) + e.ms);
   // cost-state es una foto: con coste 0 en una sesión con mensajes está vacía (sin dato, nunca «$0»), y si dura más
-  // que la vida observada de la sesión no cuadra con la transcripción (sin dato). `tras` cuenta los mensajes posteriores
+  // que la vida observada de la sesión su total no es fiable. `tras` cuenta los mensajes posteriores
   // a la foto, también los de otros ficheros de la misma sesión.
   const porCoste = (id) => {
     const c = costes.get(id);
     const s = sesiones.get(id);
     if (!c || (c.costeUSD === 0 && s.asist > 0)) return null;
-    if (c.totalMs !== null && s.minTs !== null && c.totalMs > s.maxTs - s.minTs + MARGEN_FOTO_MS) return { noCuadra: true };
-    return { ...c, tras: c.tras + s.asist - c.asistEnSuFichero };
+    const foto = { ...c, tras: c.tras + s.asist - c.asistEnSuFichero };
+    // Si su duración no cuadra con la transcripción, solo el total deja de ser fiable (el coste no depende del tiempo ocioso)
+    return c.totalMs !== null && s.minTs !== null && c.totalMs > s.maxTs - s.minTs + MARGEN_FOTO_MS ? { ...foto, totalMs: null, noCuadra: true } : foto;
   };
   const tiempos = [...enVentana]
     .sort((a, b) => b[1].maxTs - a[1].maxTs)
     .slice(0, SESIONES_VISIBLES)
     .map(([id, s]) => {
       const c = porCoste(id);
-      return { sesion: id.slice(0, 8), rama: s.rama, carpeta: s.carpeta, ultimo: iso(s.maxTs), totalMs: c?.totalMs ?? null, apiMs: c?.apiMs ?? null, herramientasMs: c?.herramientasMs ?? null, hooksMs: hooksMsDe.get(id) ?? 0, costeUSD: c?.costeUSD ?? null, fotoAtrasada: (c?.tras ?? 0) > 0, noCuadra: c?.noCuadra === true };
+      return { sesion: id.slice(0, 8), rama: s.rama, carpeta: s.carpeta, ultimo: iso(s.maxTs), totalMs: c?.totalMs ?? null, apiMs: c?.apiMs ?? null, herramientasMs: c?.herramientasMs ?? null, hooksMs: hooksMsDe.get(id) ?? null, costeUSD: c?.costeUSD ?? null, fotoAtrasada: (c?.tras ?? 0) > 0, noCuadra: c?.noCuadra === true };
     });
 
   // ---- Registro de jueces ----
@@ -263,7 +272,7 @@ export function agregar({ ahora, dias, ficheros, registros, declarados, copia, h
   }
   const sinAgentId = entradas.filter((e) => !e.agent_id).length;
   const noJueces = entradas.filter((e) => !JUECES.includes(e.agente)).length;
-  const registroAntiguo = { aviso: copia.ok === false || sinAgentId > 0 || noJueces > 0, sinAgentId, noJueces, apuntes: entradas.length };
+  const registroAntiguo = { aviso: sinAgentId > 0 || noJueces > 0, sinAgentId, noJueces, apuntes: entradas.length };
 
   const informes = new Map(); // rama|agente → { claves, sinId }
   for (const e of entradas) {
@@ -313,28 +322,26 @@ export function agregar({ ahora, dias, ficheros, registros, declarados, copia, h
     .filter((c) => c.costeUSD !== null)
     .sort((a, b) => b.costeUSD - a.costeUSD);
 
-  const ultimo = enVentana.reduce((m, [, s]) => Math.max(m, s.maxTs), -Infinity);
+  const ultimo = enVentana.reduce((m, [, x]) => Math.max(m, x.maxTs), -Infinity);
   return {
     estado: {
-      ultimoEvento: Number.isFinite(ultimo) ? iso(ultimo) : null,
-      sesiones: enVentana.length,
-      lineasRotas: rs.reduce((n, r) => n + r.rotas, 0),
-      copia,
-      registroAntiguo,
-      declaradosLeidos: declarados !== null,
+      ultimoEvento: de(T, Number.isFinite(ultimo) ? iso(ultimo) : null),
+      sesiones: de(T, enVentana.length),
+      lineasRotas: de(T, rs.reduce((n, r) => n + r.rotas, 0)),
+      copia: de(C, copia),
+      registroAntiguo: de(R, registroAntiguo),
     },
-    hooks,
-    tiempos,
-    jueces: {
-      tiempos: juicioLista.slice(0, 20).map((j) => ({ rama: j.rama, agente: j.agente, veredicto: j.veredicto, ms: j.ms, ts: iso(j.ts) })),
-    },
+    ficheros: { total: de(T, ficheros.length) },
+    hooks: de(T, hooks),
+    tiempos: de(T, tiempos),
+    jueces: { tiempos: de(R, juicioLista.slice(0, 20).map((j) => ({ rama: j.rama, agente: j.agente, veredicto: j.veredicto, ms: j.ms, ts: iso(j.ts) }))) },
     ineficiencias: {
-      bloqueos,
-      relanzados,
-      costes: { total: costePorSesion.reduce((n, c) => n + c.costeUSD, 0), sesiones: costePorSesion.slice(0, SESIONES_VISIBLES) },
-      tokens: [...tokens.values()].sort((a, b) => b.mensajes - a.mensajes),
-      subagentes: [...subagentes].map(([tipo, n]) => ({ tipo, n })).sort((a, b) => b.n - a.n),
-      mensajesSubagente: msgs.filter((m) => m.lado).length,
+      bloqueos: de(T, bloqueos),
+      relanzados: de(R, relanzados),
+      costes: de(T, { total: costePorSesion.reduce((n, c) => n + c.costeUSD, 0), sesiones: costePorSesion.slice(0, SESIONES_VISIBLES) }),
+      tokens: de(T, [...tokens.values()].sort((a, b) => b.mensajes - a.mensajes)),
+      subagentes: de(T, [...subagentes].map(([tipo, n]) => ({ tipo, n })).sort((a, b) => b.n - a.n)),
+      mensajesSubagente: de(T, msgs.filter((m) => m.lado).length),
     },
     errores,
   };
