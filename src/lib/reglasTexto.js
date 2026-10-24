@@ -9,6 +9,17 @@ const ETIQUETA_EFECTO = {
   sesgo: "ajusta",
 };
 
+const DIAS_ORDEN = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+
+/** «24 oct» para ese día de la semana que empieza el lunes `lunes` (ISO); null si no se puede. */
+function fechaDelDia(lunes, dia) {
+  const i = DIAS_ORDEN.indexOf(String(dia).normalize("NFC"));
+  if (i < 0 || !/^\d{4}-\d{2}-\d{2}$/.test(String(lunes))) return null;
+  const d = new Date(Date.parse(`${lunes}T12:00:00Z`) + i * 86400000);
+  return `${d.getUTCDate()} ${MESES[d.getUTCMonth()]}`;
+}
+
 /**
  * La regla en cristiano, para el recibo de la UI. Se compone de los datos, no
  * de un texto guardado: así renombrar a alguien renombra su regla sola.
@@ -48,9 +59,14 @@ export function describirRegla(regla, data) {
 
   const donde = (() => {
     const partes = [];
-    if (regla.ambito?.dias) partes.push(`los ${regla.ambito.dias.join(", ")}`);
-    if (regla.ambito?.comidas) partes.push(`en ${regla.ambito.comidas.join(" y ").toLowerCase()}`);
-    if (regla.ambito?.semanas) partes.push(regla.ambito.semanas.length === 1 ? "solo esa semana" : "solo esas semanas");
+    const { dias, comidas, semanas } = regla.ambito ?? {};
+    // Una regla de una sola semana dice CUÁL (#911): «solo esa semana» sin
+    // fecha no se puede leer más tarde, y Lola situó a unas invitadas de hoy
+    // «el sábado de la semana pasada». Con un solo día, la fecha de ese día.
+    const unDia = semanas?.length === 1 && dias?.length === 1 ? fechaDelDia(semanas[0], dias[0]) : null;
+    if (dias) partes.push(unDia ? `el ${dias[0]} ${unDia}` : `los ${dias.join(", ")}`);
+    if (comidas) partes.push(`en ${comidas.join(" y ").toLowerCase()}`);
+    if (semanas && !unDia) partes.push(semanas.length === 1 ? `solo la semana del ${fechaDelDia(semanas[0], "Lun") ?? semanas[0]}` : "solo esas semanas");
     return partes.join(" ");
   })();
 

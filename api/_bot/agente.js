@@ -1207,17 +1207,29 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
 // Como viñeta («• ✅ Cambiar un plato», al contar lo que sabe hacer) no es
 // decir que guardó: «hola, ¿qué sabes hacer?» pasaba por el aviso y una
 // segunda llamada al modelo (staging, 2 oct 2026: 8,2 s para un saludo).
-const DICE_QUE_GUARDO = /(^|\n)\s*✅|\bapuntad[oa]s?\b|\blo he (apuntado|puesto|cambiado|guardado|quitado|añadido|anotado)\b|(^|[.!¡]\s*)hecho\b/i;
+const DICE_QUE_GUARDO = /(^|\n)\s*✅|\bapuntad[oa]s?\b|\blo he (apuntado|puesto|cambiado|guardado|quitado|añadido|anotado|arreglado|solucionado|corregido|hecho|dejado|actualizado)\b|(^|[.!¡]\s*)hecho\b/i;
+// «Ya está arreglado» sin haber tocado nada (#911: ante la queja de que un
+// arroz con tomate llevaba ensalada de lentejas de segundo, Lola solo propuso
+// tres primeros y empezó con «Ya está arreglado»). Es la misma mentira que
+// «✅ Apuntado»: se corrige con el mismo aviso y la misma vuelta. «Listo» y
+// compañía solo cuentan como frase entera («¡Listo!»), no «listo para cenar».
+const DICE_QUE_ARREGLO = /\bya est[aá] (arreglad[oa]|cambiad[oa]|solucionad[oa]|corregid[oa]|hecho|listo)\b|\bqueda (arreglad|cambiad|solucionad|corregid)[oa]\b|\bya lo (cambi[eé]|puse|arregl[eé]|solucion[eé]|corregí|hice)(?![a-záéíóúñ])|(^|[.!¡\n]\s*)(listo|arreglad[oa]|cambiad[oa]|solucionad[oa])\s*([.!]|$)/i;
 // «No tenéis ninguna alergia apuntada» es leer lo que hay, no decir que guardó:
 // saltaba el aviso y costaba otra vuelta de ~3 s en cada consulta (#229). Se
 // quita el «apuntad…» que va detrás de una negación en la misma frase, salvo
 // que sea «he apuntado» y el «no» no vaya con él («No olvides que te he
-// apuntado leche» sí dice que guardó; «No te he apuntado nada», no).
-const APUNTADO_NEGADO = /\b(no|ningun[oa]?|nada|nadie)\b[^.,;:!?\n]{0,40}?\bapuntad[oa]s?\b/gi;
-const HE_APUNTADO = /\b(he|hemos|ha|han|has|habeis|habéis)\s+apuntad/i;
-const NO_HE_APUNTADO = /^no\s+(\S+\s+)?(he|hemos|ha|han|has|habeis|habéis)\s+apuntad/i;
+// apuntado leche» sí dice que guardó; «No te he apuntado nada», no). Igual con
+// «Nada está cambiado aún» (lo que dice proponer_platos): es leer, no arreglar.
+const APUNTADO_NEGADO = /\b(no|ningun[oa]?|nada|nadie)\b[^.,;:!?\n]{0,40}?\b(apuntad|arreglad|cambiad|solucionad|corregid|hech)[oa]s?\b/gi;
+const HE_APUNTADO = /\b(he|hemos|ha|han|has|habeis|habéis)\s+(apuntad|arreglad|cambiad|solucionad|corregid|hech)/i;
+const NO_HE_APUNTADO = /^no\s+(\S+\s+)?(he|hemos|ha|han|has|habeis|habéis)\s+(apuntad|arreglad|cambiad|solucionad|corregid|hech)/i;
 const sinNegados = (texto) => texto.replace(APUNTADO_NEGADO, (m) => (HE_APUNTADO.test(m) && !NO_HE_APUNTADO.test(m) ? m : ""));
-export const diceQueGuardo = (texto) => DICE_QUE_GUARDO.test(sinNegados(String(texto ?? "")));
+// Una pregunta («¿Ya está arreglado?», «¿Quieres que lo deje hecho?») no afirma nada.
+const sinPreguntas = (texto) => texto.replace(/¿[^?]*\?/g, "");
+export const diceQueGuardo = (texto) => {
+  const t = sinNegados(sinPreguntas(String(texto ?? "")));
+  return DICE_QUE_GUARDO.test(t) || DICE_QUE_ARREGLO.test(t);
+};
 // Las herramientas que tardan (BOT_AVISO_LENTO, on | off; por defecto on):
 // mientras corren, la persona ve al momento una frase de Lola en el mensaje
 // que se va escribiendo, y lo que Lola escriba después la sustituye en ese
@@ -1232,7 +1244,7 @@ export const diceQueGuardo = (texto) => DICE_QUE_GUARDO.test(sinNegados(String(t
 // volver a mandar (se ve un parpadeo), para una búsqueda que con fotos suele
 // tardar menos de medio segundo. AVISO_LENTO se saca de las fichas, abajo.
 const avisoLento = () => process.env.BOT_AVISO_LENTO !== "off";
-const AVISO_SIN_GUARDAR = "[Aviso del sistema, no lo ha escrito la persona] En tu respuesta dices que lo has apuntado, guardado o hecho, pero en este turno no se ha guardado nada: o no has llamado a ninguna herramienta que guarde, o la que llamaste no pudo guardar. Si había que guardarlo y no lo intentaste, llama ahora a la herramienta que toca y luego contesta. Si lo intentaste y no se pudo, dilo tal cual y ofrece intentarlo otra vez. Si no había nada que guardar, contesta otra vez sin decir que está hecho. Contesta a la persona directamente, sin mencionar este aviso.";
+const AVISO_SIN_GUARDAR = "[Aviso del sistema, no lo ha escrito la persona] En tu respuesta dices que lo has apuntado, guardado, cambiado, arreglado o hecho, pero en este turno no se ha guardado nada: o no has llamado a ninguna herramienta que guarde, o la que llamaste no pudo guardar. Si había que guardarlo y no lo intentaste, llama ahora a la herramienta que toca y luego contesta. Si lo intentaste y no se pudo, dilo tal cual y ofrece intentarlo otra vez. Si no había nada que guardar, contesta otra vez sin decir que está hecho. Contesta a la persona directamente, sin mencionar este aviso.";
 
 /**
  * @param {string|null} [pista]  la pista del enrutador (pista.js textoPista):
