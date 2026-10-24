@@ -512,7 +512,7 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   // fue la pregunta con aviso, este mensaje puede ser la respuesta (o no
   // serlo). Eso solo lo sabe Lola al leerlo: nada de vía rápida este turno.
   const avisoPendiente = preguntoConAviso(ultima?.texto);
-  const rapida = (d) => vaPorLaRapida(d, chatDe) && !avisoPendiente;
+  const rapida = (d) => vaPorLaRapida(d, { ...chatDe, texto, corrige: esCorreccion(texto, ultima?.texto) }) && !avisoPendiente;
   // Lo que tarda el turno en estar listo para arrancar al enrutador y a Lola
   // (bot_route contexto_ms): es tiempo que suma al primer texto de todos.
   const contextoMs = Date.now() - t0;

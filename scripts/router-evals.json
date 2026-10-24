@@ -679,6 +679,23 @@
       "texto": "hoy cenamos con amigos y una de las personas está embarazada",
       "modo": "lola",
       "rapida": false
+    },
+    {
+      "texto": "Hagamos el menú de la semana que viene hazme todas las preguntas que necesites para hacerlo",
+      "modo": "lola",
+      "rapida": false
+    },
+    {
+      "texto": "No, no, te estoy diciendo que me generes la semana a partir del 2 de noviembre",
+      "ultima": "🎉 <b>¡Menú listo!</b> Del <b>26 de octubre al 1 de noviembre</b>.",
+      "modo": "lola",
+      "rapida": false
+    },
+    {
+      "texto": "Genérame la siguiente semana",
+      "ultima": "🎉 <b>¡Menú listo!</b> Del <b>26 de octubre al 1 de noviembre</b>.",
+      "modo": "lola",
+      "rapida": false
     }
   ]
 }

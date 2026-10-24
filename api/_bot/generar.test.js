@@ -166,3 +166,14 @@ describe("colocarPedidos", () => {
     expect(pick.mock.calls[0][2].hoy).toBe(isoDeCasa());
   });
 });
+
+describe("generar: la semana pedida (#905)", () => {
+  it("una semana que ya tiene menú no se rehace sin rehacer: avisa y no escribe nada", async () => {
+    cargarCasa.mockResolvedValue({ ...structuredClone(casaVieja), semanas: [{ weekStart: "2000-01-01", weekEnd: "2099-01-01", startDayIdx: 0, plan: {} }] });
+    const out = {};
+    const texto = await generarMenu("h1", "esta", [], out);
+    expect(texto).toMatch(/YA HAY MENÚ/);
+    expect(out.ok).toBe(false);
+    expect(insert).not.toHaveBeenCalled();
+  });
+});

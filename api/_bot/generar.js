@@ -15,7 +15,8 @@
  * tampoco.
  *
  * Diferencia con la app, a propósito: una sola semana por petición («esta»
- * desde hoy, o «la que viene»).
+ * desde hoy, la primera libre a partir de la que viene, o la de una fecha).
+ * Qué semana es y si ya tiene menú lo decide semanaPedida.js (#905, #907).
  */
 
 // Las fechas de la semana (computeWeekRange) se calculan en hora local: en el
@@ -29,13 +30,13 @@ import { motor, describirMenu, masParecida, normal, prepararRecetas, DIA_LARGO }
 import { propiasDe } from "./propias.js";
 import { registrar, rastro, EMBUDO } from "./embudo.js";
 import { RASTRO } from "../../src/lib/rastro.js";
-import { hoyDeCasa, isoDeCasa, DIAS_FINDE } from "../../src/lib/dias.js";
+import { isoDeCasa, DIAS, DIAS_FINDE } from "../../src/lib/dias.js";
+import { resolverSemana, conservarDiasPrevios } from "./semanaPedida.js";
 import { conRecordatorioDeSilencio } from "../../src/lib/alergiasBase.js";
 import { apuntarRecordatorio } from "./silencio.js";
 import { listaParaEscribir } from "../../src/lib/vocabularios.js";
 
 const hoyISO = () => isoDeCasa();
-const indiceHoy = () => hoyDeCasa().indice;
 
 /**
  * @param {"esta" | "siguiente"} cual
@@ -159,9 +160,16 @@ async function borrarMenu(householdId, menuId) {
   await borrar("user_menus", `household_id=${eq(householdId)}&id=${eq(menuId)}&is_active=eq.false`);
 }
 
-export async function generarMenu(householdId, cual = "esta", fijos = [], out = null) {
+export async function generarMenu(householdId, cual = "esta", fijos = [], out = null, { desde = null, rehacer = false } = {}) {
   const casa = await cargarCasa(householdId);
   if (!casa) return "Esta casa todavía no tiene datos en la nube.";
+  // Qué semana, antes de gastar motor: una que ya tiene menú no se rehace en
+  // silencio (#905) y rehacer la de hoy no toca hoy ni lo pasado (#907).
+  const pedida = resolverSemana({ cual, desde, rehacer, semanas: casa.menu ? casa.semanas : [], hoy: hoyISO() });
+  if (pedida.aviso) {
+    if (out) Object.assign(out, { ok: false, aviso: pedida.aviso });
+    return pedida.aviso;
+  }
   const m = await motor();
   // Las recetas propias de la casa, registradas para resolver los pedidos.
   if (fijos.length) await prepararRecetas(casa).catch(fallaCon("generar_recetas_propias"));
@@ -182,19 +190,22 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   const vivas = (casa.semanas ?? []).filter((w) => w.weekEnd >= hoyISO());
   // Si otra semana del menú se queda, sus huecos van con los ids de ahora: no
   // se reagrupa (se hará cuando se rehaga esa).
-  const quedaOtra = cual === "siguiente" ? vivas.some((w) => w.weekStart <= hoyISO()) : vivas.some((w) => w.weekStart > hoyISO());
+  const quedaOtra = pedida.offset > 0 ? vivas.some((w) => w.weekStart <= hoyISO()) : vivas.some((w) => w.weekStart > hoyISO()) || Boolean(pedida.existente);
   if (!modeloElegido && soloPorEdades && !quedaOtra) groups = [];
   const modelo = working.menuModel ?? "same";
   // Rehechos, heredan el id de los de antes por su papel (Adultos → Familia).
   if (miembros.length && (!groups.length || !conGente(groups))) groups = m.groupsFromModel(miembros, modelo, working.groups ?? []);
   if (!groups.length || !conGente(groups)) return "Antes de generar necesito saber quién come en casa: añade al menos una persona.";
 
-  // «Esta semana» empieza hoy (no tiene sentido planificar el lunes pasado);
-  // «la siguiente», el lunes que viene y entera.
-  const offset = cual === "siguiente" ? 1 : 0;
-  const startDayIdx = offset === 0 ? Math.max(0, indiceHoy()) : 0;
+  // «Esta semana» empieza hoy (no tiene sentido planificar el lunes pasado),
+  // o mañana si se rehace; las demás, desde su lunes y enteras.
+  const { offset, startDayIdx } = pedida;
   const days = m.explicitDaysForOffset(working, offset);
-  const { startISO, endISO, activeDays } = m.computeWeekRange(offset, startDayIdx, days);
+  const { startISO: inicioGenerado, endISO, activeDays } = m.computeWeekRange(offset, startDayIdx, days);
+  // Rehaciendo la semana en curso, se guarda entera desde donde empezaba: lo
+  // de hoy y lo pasado vuelve del plan viejo (conservarDiasPrevios, abajo).
+  const previa = offset === 0 && pedida.existente ? pedida.existente : null;
+  const startISO = previa ? m.computeWeekRange(0, previa.startDayIdx ?? 0, days).startISO : inicioGenerado;
   const varietyPref = ["strict", "moderate", "relaxed"].includes(working.menuVarietyPref) ? working.menuVarietyPref : "strict";
 
   const { weekData, crossWeek, weekSchedule } = m.prepararSemana(working, {
@@ -209,6 +220,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
 
   const { plan, recipes } = await m.generateMenuWithAI(weekData, { pantryIngredients, pantryMode, crossWeek });
   m.registerRecipes(recipes);
+  const conservados = previa ? conservarDiasPrevios(plan, previa.plan, startDayIdx, DIAS) : [];
   // Lo pedido que el motor no haya dejado, antes de la compra (que sale del plan).
   if (pedidos.length) colocarPedidos(m, { schedule: {}, ...working, groups }, plan, recipes, pedidos, activeDays);
   const sh = m.buildShoppingList(plan, groups, m.getDayMeals(weekData), despensa);
@@ -217,7 +229,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   const aMano = (casa.semana?.shopping?.items ?? casa.state?.shopping?.items ?? []).filter((it) => it.manual && !it.have);
   const shopping = { items: [...sh.byCategory.flatMap((c) => c.items), ...(sh.pantryItems ?? []), ...aMano] };
 
-  const week = { offset, startDayIdx, days, startISO, endISO, plan, shopping, schedule: weekSchedule };
+  const week = { offset, startDayIdx: previa ? previa.startDayIdx ?? 0 : startDayIdx, days, startISO, endISO, plan, shopping, schedule: weekSchedule };
   const menu = { id: m.createMenuId(), createdAt: Date.now(), isFavorite: false, isActive: true, activatedAt: null, varietyPref, weeks: { [startISO]: week } };
 
   // Como saveMenu: primero el menú INACTIVO con sus semanas y recetas; solo
@@ -240,7 +252,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
     ? (await select("user_menu_weeks", `household_id=${eq(householdId)}&menu_id=${eq(casa.menu.id)}`, COLUMNAS_SEMANA))
       .filter((w) => seQuedan.some((s) => s.weekStart === w.week_start))
     : [];
-  const recetasQueSeQuedan = semanasQueSeQuedan.length
+  const recetasQueSeQuedan = semanasQueSeQuedan.length || conservados.length
     ? await select("user_menu_recipes", `household_id=${eq(householdId)}&menu_id=${eq(casa.menu.id)}`, "recipe_id,recipe_snapshot")
     : [];
 
