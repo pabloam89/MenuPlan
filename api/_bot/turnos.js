@@ -71,8 +71,11 @@ export async function enTurno(chatId, item, atender) {
  * esté libre, responde, y deja atendido lo que se haya acumulado detrás.
  * Si tras la espera el chat sigue ocupado, no responde a la vez que el otro
  * turno ni toca su candado: avisa con `alOcupar`.
+ * `atender` recibe `{ esperaMs }`: lo que esperó a que el chat quedara libre
+ * (bot_route espera_cola_ms: un turno largo delante lo deja en silencio).
  */
 export async function aSolas(chatId, atender, drenar, alOcupar = async () => {}) {
+  const desde = Date.now();
   let mio = await tomarCandado(chatId);
   for (let i = 0; i < 60 && !mio; i++) {
     await dormir(1000);
@@ -80,7 +83,7 @@ export async function aSolas(chatId, atender, drenar, alOcupar = async () => {})
   }
   if (!mio) return alOcupar();
   try {
-    await atender();
+    await atender({ esperaMs: Date.now() - desde });
     for (let vuelta = 0; vuelta < MAX_VUELTAS; vuelta++) {
       const items = await sacarCola(chatId);
       if (!items.length) break;

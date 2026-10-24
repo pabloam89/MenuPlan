@@ -9,6 +9,7 @@
  */
 
 import { esCorreccion } from "../../api/_bot/senales.js";
+import { ORIGEN_PESADO } from "../../api/_bot/medidaTurno.js";
 
 // USD por millón de tokens: REVISARLOS contra la tarifa publicada de
 // Anthropic. Se aplican al leer, no al apuntar.
@@ -28,6 +29,32 @@ export function pct(xs, p) {
 }
 
 const tanto = (n, de) => (de ? (100 * n) / de : null);
+const suma = (xs) => xs.reduce((a, x) => a + (Number(x) || 0), 0);
+
+/**
+ * Lo que esperó el turno por las herramientas de Lola. Desde #910 el bot
+ * apunta el tiempo de reloj (`lola.herramientas_reloj_ms`: las lecturas a la
+ * vez y las escrituras en fila no se suman). Las filas anteriores solo traen
+ * lo que duró cada una, y sumarlas cuenta de más en cuanto hay escrituras en
+ * fila (la que espera su turno lleva dentro la espera de las anteriores, desde
+ * ac4bdcc3, 2 oct 2026): para ellas la suma es una cota por arriba.
+ */
+export const herramientasMs = (lola) => lola.herramientas_reloj_ms ?? suma((lola.herramientas ?? []).map(([, ms]) => ms));
+/** Lo que tardaron las llamadas al modelo: el tiempo de sus llamadas menos las herramientas que corren entre ellas. */
+export const modeloMs = (lola) => Math.max(0, suma((lola.llamadas ?? []).map(([ms]) => ms)) - herramientasMs(lola));
+
+/**
+ * Lo que costó la llamada de Lola que se canceló (ganó la vía rápida), en USD.
+ * Con el uso real si el turno lo trae (`lola.uso`: acabó antes de cortarla;
+ * `lola_cancelada_uso`: lo que llevaba pagado al cortarla) y, si no, la
+ * estimación con la mediana de la primera llamada de los turnos que sí acabaron.
+ * @returns {{ usd: number, estimado: boolean }}
+ */
+export function costeDeCancelada(m, estimada) {
+  if (m.lola?.uso) return { usd: usd(m.lola.uso, precioDe(m.lola.modelo)), estimado: false };
+  if (m.lola_cancelada_uso) return { usd: usd(m.lola_cancelada_uso, PRECIOS.sonnet), estimado: false };
+  return { usd: usd(estimada, PRECIOS.sonnet), estimado: true };
+}
 // Lo siguiente del mismo chat, en menos de esto, cuenta como reacción al turno.
 const VENTANA_MS = 3 * 60_000;
 
@@ -61,6 +88,11 @@ export function medir(eventos, objetivos = {}) {
   const turnos = turnosDe(eventos);
   const rapidas = turnos.filter((e) => e.m.rapida);
   const deLola = turnos.filter((e) => !e.m.rapida);
+  // El alta, las fotos y los PDF (bot_route sin_enrutador, desde #910) son
+  // trabajo distinto de un mensaje de texto: se miden aparte para no mezclar un
+  // PDF de 20 s con los p95 de los turnos de texto, que es lo que tiene objetivo.
+  const pesados = deLola.filter((e) => ORIGEN_PESADO.has(e.m.sin_enrutador));
+  const deTexto = deLola.filter((e) => !ORIGEN_PESADO.has(e.m.sin_enrutador));
   const conLola = deLola.filter((e) => e.m.lola);
   const contar = (ev) => eventos.filter((e) => e.event === ev).length;
   const corr = corregidos(eventos);
@@ -72,21 +104,33 @@ export function medir(eventos, objetivos = {}) {
   const estimada = { in: med("in"), cr: med("cr"), cw: med("cw"), out: 0 };
   const conMedida = turnos.filter((e) => "lola_cancelada" in e.m);
   let coste = 0;
+  // Las canceladas, aparte: cuántas, con qué uso (medido al cortar o estimado) y cuánto.
+  const canceladas = { n: 0, medidas: 0, estimadas: 0, usd: 0 };
   for (const { m } of conMedida) {
     coste += usd(m.router_uso, PRECIOS.haiku);
-    if (m.lola?.uso) coste += usd(m.lola.uso, precioDe(m.lola.modelo));
-    else if (m.lola_cancelada) coste += usd(estimada, PRECIOS.sonnet);
+    if (m.lola_cancelada) {
+      const c = costeDeCancelada(m, estimada);
+      coste += c.usd;
+      canceladas.n++;
+      canceladas[c.estimado ? "estimadas" : "medidas"]++;
+      canceladas.usd += c.usd;
+    } else if (m.lola?.uso) coste += usd(m.lola.uso, precioDe(m.lola.modelo));
   }
 
   // Dónde se va el tiempo de Lola (lola.llamadas, desde el 3 oct 2026): el
   // modelo es lo que tardan sus llamadas menos las herramientas que corren
   // entre ellas; el resto del turno (enrutador, cargar la casa, Telegram) es
   // lo que queda hasta `ms`.
-  const conLlamadas = conLola.filter((e) => Array.isArray(e.m.lola.llamadas) && e.m.lola.llamadas.length);
-  const suma = (xs) => xs.reduce((a, x) => a + (Number(x) || 0), 0);
-  const herrMs = (e) => suma((e.m.lola.herramientas ?? []).map(([, ms]) => ms));
-  const modeloMs = (e) => Math.max(0, suma(e.m.lola.llamadas.map(([ms]) => ms)) - herrMs(e));
+  const conLlamadas = deTexto.filter((e) => e.m.lola && Array.isArray(e.m.lola.llamadas) && e.m.lola.llamadas.length);
   const llamadas = conLlamadas.flatMap((e) => e.m.lola.llamadas);
+  // Cuántas de esas filas traen el tiempo de reloj de las herramientas (el resto, la suma).
+  const conReloj = conLlamadas.filter((e) => e.m.lola.herramientas_reloj_ms != null).length;
+  // Lo que cada turno esperó en la cola de su chat, y el import del motor en frío.
+  const esperasCola = turnos.map((e) => e.m.espera_cola_ms);
+  const motorFrio = turnos.map((e) => e.m.motor_frio).filter(Number.isFinite);
+  // De dónde vino cada turno: el enrutador, o el motivo por el que Lola contestó sin él.
+  const porOrigen = {};
+  for (const e of turnos) { const o = e.m.sin_enrutador ?? "enrutador"; porOrigen[o] = (porOrigen[o] ?? 0) + 1; }
 
   const busquedas = eventos.filter((e) => e.event === "bot_busqueda");
   const porVector = busquedas.filter((e) => e.m.via === "vectores" && Number.isFinite(e.m.parecido));
@@ -98,19 +142,37 @@ export function medir(eventos, objetivos = {}) {
       turnos: turnos.length,
       rapidaPct: tanto(rapidas.length, turnos.length),
       chats: new Set(turnos.map((e) => e.m.chat).filter(Boolean)).size || null,
+      // Lector: «Más detalle» del informe. Cuántos turnos por origen (bot_route sin_enrutador).
+      porOrigen,
+      // Lola cancelada porque ganó la vía rápida: % de los turnos y, en coste.canceladas, cuánto cuesta.
+      canceladasPct: tanto(canceladas.n, turnos.length),
+      // Turnos en que un import del motor (core.mjs, ~10 MB) cayó dentro del turno.
+      motorFrioN: motorFrio.length,
     },
     latencia: {
       primerTextoRapidaP50Ms: pct(rapidas.map((e) => e.m.primer_ms ?? e.m.ms), 50),
       primerTextoRapidaP95Ms: pct(rapidas.map((e) => e.m.primer_ms ?? e.m.ms), 95),
-      primerTextoLolaP50Ms: pct(deLola.map((e) => e.m.primer_ms), 50),
-      primerTextoLolaP95Ms: pct(deLola.map((e) => e.m.primer_ms), 95),
-      turnoLolaP95Ms: pct(deLola.map((e) => e.m.ms), 95),
+      primerTextoLolaP50Ms: pct(deTexto.map((e) => e.m.primer_ms), 50),
+      primerTextoLolaP95Ms: pct(deTexto.map((e) => e.m.primer_ms), 95),
+      turnoLolaP95Ms: pct(deTexto.map((e) => e.m.ms), 95),
+      // El alta, las fotos y los PDF, aparte (lector: «Más detalle»).
+      adjuntosYAltasP50Ms: pct(pesados.map((e) => e.m.ms), 50),
+      adjuntosYAltasP95Ms: pct(pesados.map((e) => e.m.ms), 95),
+      // Lo que el mensaje esperó en la cola de su chat antes de que empezara su turno
+      // (bot_route espera_cola_ms): un PDF o un turno largo delante lo dejan en silencio.
+      esperaColaP50Ms: pct(esperasCola, 50),
+      esperaColaP95Ms: pct(esperasCola, 95),
+      // El primer import del motor en frío, cuando cae dentro de un turno (bot_route motor_frio).
+      motorFrioP50Ms: pct(motorFrio, 50),
       enrutadorP50Ms: pct(turnos.map((e) => e.m.router_ms), 50),
       // Lo que tarda el turno en poder arrancar al enrutador y a Lola.
       contextoP50Ms: pct(turnos.map((e) => e.m.contexto_ms), 50),
       // Desglose de los turnos de Lola (null hasta que haya turnos con llamadas).
-      modeloP50Ms: pct(conLlamadas.map(modeloMs), 50),
-      herramientasP50Ms: pct(conLlamadas.map(herrMs), 50),
+      modeloP50Ms: pct(conLlamadas.map((e) => modeloMs(e.m.lola)), 50),
+      // De reloj desde #910; en las filas viejas, la suma (herramientasMs). `herramientasRelojN`: cuántas ya son de reloj.
+      herramientasP50Ms: pct(conLlamadas.map((e) => herramientasMs(e.m.lola)), 50),
+      herramientasRelojN: conReloj,
+      herramientasN: conLlamadas.length,
       restoP50Ms: pct(conLlamadas.map((e) => Math.max(0, e.m.ms - suma(e.m.lola.llamadas.map(([ms]) => ms)))), 50),
       tokensSalidaPorLlamadaP50: pct(llamadas.map(([, out]) => out), 50),
       primerTrozoP50Ms: pct(llamadas.map(([, , t]) => t), 50),
@@ -138,6 +200,8 @@ export function medir(eventos, objetivos = {}) {
     coste: {
       totalUsd: coste,
       porTurnoUsd: conMedida.length ? coste / conMedida.length : null,
+      // La Lola especulativa cortada: n, con uso medido al cortar o acabado, con uso estimado, y su coste.
+      canceladas,
     },
   };
 }
@@ -265,11 +329,18 @@ export function informe({ actual, anterior, objetivos, huecos = null, lugares = 
   l.push("");
   l.push(`- Primer texto p50: vía rápida ${fmt(actual.latencia.primerTextoRapidaP50Ms, "ms")}, Lola ${fmt(actual.latencia.primerTextoLolaP50Ms, "ms")} · enrutador p50 ${fmt(actual.latencia.enrutadorP50Ms, "ms")} · arranque del turno p50 ${fmt(actual.latencia.contextoP50Ms, "ms")}`);
   if (actual.latencia.modeloP50Ms != null) {
-    l.push(`- Dónde se va el tiempo de Lola (p50 por turno): modelo ${fmt(actual.latencia.modeloP50Ms, "ms")} · herramientas ${fmt(actual.latencia.herramientasP50Ms, "ms")} · resto ${fmt(actual.latencia.restoP50Ms, "ms")} · ${fmt(actual.latencia.tokensSalidaPorLlamadaP50)} tokens de salida por llamada · primer trozo de texto a ${fmt(actual.latencia.primerTrozoP50Ms, "ms")} de empezar la llamada`);
+    const reloj = actual.latencia.herramientasRelojN >= actual.latencia.herramientasN ? "de reloj" : `de reloj en ${actual.latencia.herramientasRelojN} de ${actual.latencia.herramientasN} turnos, el resto sumadas`;
+    l.push(`- Dónde se va el tiempo de Lola (p50 por turno): modelo ${fmt(actual.latencia.modeloP50Ms, "ms")} · herramientas ${fmt(actual.latencia.herramientasP50Ms, "ms")} (${reloj}) · resto ${fmt(actual.latencia.restoP50Ms, "ms")} · ${fmt(actual.latencia.tokensSalidaPorLlamadaP50)} tokens de salida por llamada · primer trozo de texto a ${fmt(actual.latencia.primerTrozoP50Ms, "ms")} de empezar la llamada`);
   }
   l.push(`- Lola: ${fmt(actual.calidad.vueltasMedia)} llamadas al modelo por turno · supervisor frenó ${actual.calidad.supervisor} · fallos de herramienta ${actual.calidad.fallosHerramienta} · errores ${actual.calidad.errores}`);
   l.push(`- Búsqueda de recetas: ${actual.busqueda.n} búsquedas · vacías ${fmt(actual.busqueda.vaciasPct, "%")} · parecido p10 ${fmt(actual.busqueda.parecidoP10)} / p50 ${fmt(actual.busqueda.parecidoP50)}${objetivos.busquedaParecidoMinimo == null ? " (sin umbral de «floja» todavía: se fija mirando esta distribución)" : ""}`);
   l.push(`- Coste total: ${fmt(actual.coste.totalUsd, "$")}`);
+  const c = actual.coste.canceladas;
+  if (c?.n) l.push(`- Lola especulativa cancelada (ganó la vía rápida): ${fmt(actual.uso.canceladasPct, "%")} de los turnos · ${c.medidas} con uso medido, ${c.estimadas} estimados · ${fmt(c.usd, "$")} (${fmt(c.usd / c.n, "$")} cada una)`);
+  const origenes = Object.entries(actual.uso.porOrigen ?? {}).filter(([o]) => o !== "enrutador").sort((a, b) => b[1] - a[1]);
+  if (origenes.length) l.push(`- Turnos sin pasar por el enrutador: ${origenes.map(([o, n]) => `${o} ${n}`).join(" · ")}${actual.latencia.adjuntosYAltasP95Ms != null ? ` · alta, fotos y PDF (aparte de los p95 de arriba): p50 ${fmt(actual.latencia.adjuntosYAltasP50Ms, "ms")}, p95 ${fmt(actual.latencia.adjuntosYAltasP95Ms, "ms")}` : ""}`);
+  if (actual.latencia.esperaColaP50Ms != null) l.push(`- Espera en la cola del chat antes de empezar el turno: p50 ${fmt(actual.latencia.esperaColaP50Ms, "ms")} · p95 ${fmt(actual.latencia.esperaColaP95Ms, "ms")}`);
+  if (actual.uso.motorFrioN) l.push(`- Motor en frío (import de core.mjs dentro del turno): ${actual.uso.motorFrioN} turnos · p50 ${fmt(actual.latencia.motorFrioP50Ms, "ms")}`);
   l.push("");
   l.push("</details>");
   if (huecos) {
@@ -301,7 +372,7 @@ export function huecosDeLola(eventos, objetivos = {}, { sinTexto = false } = {})
   for (const e of eventos) {
     if (e.event === "bot_route" && !e.m?.sombra && !e.m?.rapida) {
       if (corr.has(e)) anadir(e, "corregida");
-      if (Number.isFinite(lento) && e.m.ms > lento) anadir(e, "lenta", { ms: e.m.ms, herramientas: e.m.lola?.herramientas ?? null });
+      if (Number.isFinite(lento) && e.m.ms > lento && !ORIGEN_PESADO.has(e.m.sin_enrutador)) anadir(e, "lenta", { ms: e.m.ms, herramientas: e.m.lola?.herramientas ?? null });
       if (e.m.lola?.planB) anadir(e, "plan B");
     }
     if (e.event === "bot_not_understood") anadir(e, "no entiende");

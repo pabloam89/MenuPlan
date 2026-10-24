@@ -20,6 +20,7 @@ import { select, insert, eq } from "./db.js";
 import { conCasa, cargarCasa, hoyISO } from "./casa.js";
 import { propiasDe } from "./propias.js";
 import { rastro } from "./embudo.js";
+import { cargaMedida } from "./medidaTurno.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, COMIDAS, comidaDe } from "../../src/lib/comidas.js";
 import { DIAS, DIA_LARGO_MINUSCULAS as DIA_LARGO, diaDeISO, hoyDeCasa } from "../../src/lib/dias.js";
 import { RASTRO, MOTIVO_CAMBIO, idBase } from "../../src/lib/rastro.js";
@@ -36,7 +37,8 @@ let motorCargado = null;
 let recetasDeSerie = null;
 export const motor = async () => {
   if (!motorCargado) {
-    const m = await import("./core.mjs");
+    // El primer import se mide (bot_route motor_frio, medidaTurno.js).
+    const m = await cargaMedida(() => import("./core.mjs"));
     recetasDeSerie ??= new Set(Object.keys(m.RECIPES_BY_ID));
     motorCargado = m;
   }

@@ -85,6 +85,20 @@ supone: se cuenta aparte como «sin dato». Los turnos que contesta Lola sin
 pasar por el enrutador (apagado, en sombra o en inglés) también se apuntan,
 con `sin_enrutador`.
 
+Desde #910 dejan `bot_route` también el alta, las fotos, los PDF y «ponla en mi
+menú» tras una receta compartida (`sin_enrutador`: `alta`, `foto`, `pdf`,
+`compartido`; vocabulario en `SIN_ENRUTADOR`, `api/_bot/medidaTurno.js`). El
+alta, las fotos y los PDF se miden aparte de los p95 de los turnos de texto.
+Campos de medida de `bot_route` y quién los lee (`scripts/lib/bot-semana.mjs`,
+«Más detalle» del informe):
+
+| Campo | Qué es | Lector |
+|---|---|---|
+| `espera_cola_ms` | ms que el mensaje esperó en la cola de su chat antes de que empezara su turno | `latencia.esperaColaP50Ms/P95Ms` |
+| `motor_frio` | ms del primer import de `core.mjs` si cayó dentro del turno (ausente si no) | `uso.motorFrioN`, `latencia.motorFrioP50Ms` |
+| `lola.herramientas_reloj_ms` | ms de reloj que esperó el turno por sus herramientas (lecturas a la vez, escrituras en fila: no se suman) | `latencia.herramientasP50Ms` y `modeloP50Ms` (en filas viejas, la suma) |
+| `lola_cancelada_uso` | tokens ya pagados de la llamada de Lola cortada (entrada exacta, salida parcial); ausente si se cortó antes de recibir nada | `coste.canceladas` (medidas / estimadas) |
+
 ## Límites
 
 - El repo es público: el informe solo lleva números; las frases reales solo

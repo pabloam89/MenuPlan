@@ -15,7 +15,10 @@ vi.mock("@anthropic-ai/sdk", () => {
     const oyentes = [];
     return {
       on: (ev, f) => { if (ev === "text") oyentes.push(f); },
+      // Lo que lleva contado el stream a medias (message_start trae la entrada entera).
+      currentMessage: { usage: m.usage },
       finalMessage: async () => {
+        if (m.cortar) throw Object.assign(new Error("cortado"), { name: "APIUserAbortError" });
         for (const b of m.content) if (b.type === "text") for (const f of oyentes) f(b.text);
         return m;
       },
@@ -30,6 +33,7 @@ vi.mock("@anthropic-ai/sdk", () => {
 });
 
 const { ejecutar } = await import("./agente.js");
+const { usoParcialDe } = await import("./medidaTurno.js");
 const msg = (texto) => ({ content: texto ? [{ type: "text", text: texto }] : [{ type: "tool_use", id: "t1", name: "ver_menu", input: {} }], usage: { input_tokens: 1, output_tokens: 1 } });
 
 describe("unaVuelta: progreso y pista", () => {
@@ -78,5 +82,31 @@ describe("unaVuelta: progreso y pista", () => {
     // La primera llamada solo pidió una herramienta: sin texto. La segunda, sí.
     expect(r.llamadas[0][2]).toBeNull();
     expect(r.llamadas[1][2]).toBeGreaterThanOrEqual(0);
+  });
+
+  it("si se corta a media vuelta, en progreso queda lo ya pagado: la vuelta acabada y la entrada de la cortada", async () => {
+    const uso = (i, o, cr, cw) => ({ input_tokens: i, output_tokens: o, cache_read_input_tokens: cr, cache_creation_input_tokens: cw });
+    guion.mensajes = [
+      { ...msg(null), usage: uso(10, 50, 30000, 0) },
+      { ...msg("Listo."), cortar: true, usage: uso(4, 2, 31000, 120) },
+    ];
+    const progreso = { vueltas: 0, herramientas: 0, texto: false };
+    await expect(ejecutar({ entrada: "hola", tools: [], modelos: ["claude-sonnet-5"], progreso, alEscribir: () => {} })).rejects.toThrow("cortado");
+    expect(usoParcialDe(progreso)).toEqual({ in: 14, out: 52, cr: 61000, cw: 120 });
+  });
+
+  it("acabada la vuelta, la que ya sumó no se cuenta dos veces", async () => {
+    guion.mensajes = [{ ...msg("Hola."), usage: { input_tokens: 7, output_tokens: 3 } }];
+    const progreso = { vueltas: 0, herramientas: 0, texto: false };
+    await ejecutar({ entrada: "hola", tools: [], modelos: ["claude-sonnet-5"], progreso, alEscribir: () => {} });
+    expect(usoParcialDe(progreso)).toEqual({ in: 7, out: 3, cr: 0, cw: 0 });
+  });
+
+  it("cada herramienta apunta cuándo empezó (para medir el reloj, no la suma)", async () => {
+    guion.mensajes = [msg("Listo.")];
+    const tool = { name: "ver_menu", run: async () => "ok" };
+    const r = await ejecutar({ entrada: "x", tools: [tool], modelos: ["m"], vuelta: async (x) => { await x.tools[0].run({}); return { dicho: "ok", uso: {} }; } });
+    expect(r.herramientas[0].t0).toBeGreaterThan(0);
+    expect(r.herramientas[0].t0 + r.herramientas[0].ms).toBeLessThanOrEqual(Date.now());
   });
 });
