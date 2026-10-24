@@ -9,6 +9,8 @@
 
 export const MAX_MOTIVO = 80;
 export const SESIONES_VISIBLES = 15;
+// Lo que una foto de coste puede pasarse de la vida observada de su sesión antes de tratarla como «no cuadra»
+const MARGEN_FOTO_MS = 600000;
 // Los jueces de la factoría (los mismos de factorias/alvaro/lib/reglas.mjs: allí no se exporta la lista).
 const JUECES = ["revisor", "qa", "evaluador"];
 
@@ -21,15 +23,13 @@ const limpio = (v) => String(v).replace(/[^\w.:-]/g, "_").slice(0, 40);
 /** Acumulador de UN fichero de transcripción. */
 export function nuevoResumen() {
   return {
-    lineas: 0,
     rotas: 0,
     hooks: new Map(), // clave → { ts, sesion, evento, comando, ms }
     bloqueos: new Map(), // uuid → { ts, sesion, evento, comando, texto }
-    cierres: new Map(), // uuid → { ts, sesion, errores, impidio }
     msgs: new Map(), // message.id → { ts, sesion, modelo, lado, entrada, salida, cacheLeida, cacheCreada }
     agentes: new Map(), // id del tool_use → { ts, sesion, tipo }
     costes: new Map(), // sesión → su ÚLTIMA foto cost-state { costeUSD, totalMs, apiMs, herramientasMs, tras: líneas del asistente posteriores }
-    sesiones: new Map(), // sesión → { maxTs, rama, carpeta, asist: líneas del asistente }
+    sesiones: new Map(), // sesión → { minTs, maxTs, rama, carpeta, asist: líneas del asistente }
   };
 }
 
@@ -47,13 +47,15 @@ export function procesarLinea(r, linea) {
     r.rotas++;
     return;
   }
-  r.lineas++;
   const sesion = texto(o.sessionId);
   const ts = Date.parse(o.timestamp);
   const tsOk = Number.isFinite(ts) ? ts : null;
   if (sesion) {
-    const m = r.sesiones.get(sesion) ?? { maxTs: null, rama: null, carpeta: null, asist: 0 };
-    if (tsOk !== null) m.maxTs = m.maxTs === null ? tsOk : Math.max(m.maxTs, tsOk);
+    const m = r.sesiones.get(sesion) ?? { minTs: null, maxTs: null, rama: null, carpeta: null, asist: 0 };
+    if (tsOk !== null) {
+      m.minTs = Math.min(m.minTs ?? tsOk, tsOk);
+      m.maxTs = Math.max(m.maxTs ?? tsOk, tsOk);
+    }
     if (texto(o.gitBranch)) m.rama = o.gitBranch;
     if (texto(o.cwd)) m.carpeta = o.cwd.replace(/[\\/]+$/, "").split(/[\\/]/).pop();
     r.sesiones.set(sesion, m);
@@ -80,9 +82,8 @@ export function procesarLinea(r, linea) {
       }
     }
   } else if (o.type === "system" && o.subtype === "stop_hook_summary") {
-    const clave = texto(o.uuid) ?? `${tsOk}#${r.cierres.size}`;
+    const clave = texto(o.uuid) ?? `${tsOk}#${r.hooks.size}`;
     (Array.isArray(o.hookInfos) ? o.hookInfos : []).forEach((h, i) => r.hooks.set(`${clave}#${i}`, { ts: tsOk, sesion, evento: "Stop", comando: texto(h?.command), ms: num(h?.durationMs) }));
-    r.cierres.set(clave, { ts: tsOk, sesion, errores: Array.isArray(o.hookErrors) ? o.hookErrors.length : 0, impidio: o.preventedContinuation === true });
   } else if (o.type === "attachment" && o.attachment && typeof o.attachment === "object") {
     const a = o.attachment;
     const clave = texto(o.uuid) ?? `${tsOk}#${r.hooks.size + r.bloqueos.size}`;
@@ -190,6 +191,7 @@ export function agregar({ ahora, dias, ficheros, registros, declarados, copia, h
       if (!s) sesiones.set(id, { ...m });
       else {
         s.asist += m.asist;
+        s.minTs = Math.min(s.minTs ?? m.minTs, m.minTs ?? s.minTs);
         const nuevaMax = m.maxTs !== null && (s.maxTs === null || m.maxTs >= s.maxTs);
         s.maxTs = Math.max(s.maxTs ?? -Infinity, m.maxTs ?? -Infinity);
         if (nuevaMax) {
@@ -198,13 +200,13 @@ export function agregar({ ahora, dias, ficheros, registros, declarados, copia, h
         }
       }
     }
-    for (const [id, c] of r.costes) costes.set(id, c); // el fichero más reciente manda
+    // De varias fotos de una misma sesión, la de mayor coste (el coste es un mínimo, nunca baja)
+    for (const [id, c] of r.costes) if (!costes.has(id) || (c.costeUSD ?? -1) >= (costes.get(id).costeUSD ?? -1)) costes.set(id, { ...c, asistEnSuFichero: r.sesiones.get(id)?.asist ?? 0 });
   }
   const enVentana = [...sesiones].filter(([, s]) => s.maxTs !== null && s.maxTs >= corte);
 
   const hookEv = [...unir(rs.map((r) => r.hooks)).values()].filter((e) => dentro(e.ts));
   const bloqueoEv = [...unir(rs.map((r) => r.bloqueos)).values()].filter((e) => dentro(e.ts));
-  const cierreEv = [...unir(rs.map((r) => r.cierres)).values()].filter((e) => dentro(e.ts));
   const msgs = [...unir(rs.map((r) => r.msgs)).values()].filter((e) => dentro(e.ts));
   const agentes = [...unir(rs.map((r) => r.agentes)).values()].filter((e) => dentro(e.ts));
 
@@ -236,31 +238,32 @@ export function agregar({ ahora, dias, ficheros, registros, declarados, copia, h
   // ---- Tiempos ----
   const hooksMsDe = new Map();
   for (const e of hookEv) if (e.sesion && e.ms !== null) hooksMsDe.set(e.sesion, (hooksMsDe.get(e.sesion) ?? 0) + e.ms);
-  // Una foto con coste 0 en una sesión con mensajes del asistente es una foto vacía: sin dato, nunca «$0».
+  // cost-state es una foto: con coste 0 en una sesión con mensajes está vacía (sin dato, nunca «$0»), y si dura más
+  // que la vida observada de la sesión no cuadra con la transcripción (sin dato). `tras` cuenta los mensajes posteriores
+  // a la foto, también los de otros ficheros de la misma sesión.
   const porCoste = (id) => {
-    const c = costes.get(id) ?? null;
-    return c && c.costeUSD === 0 && sesiones.get(id).asist > 0 ? null : c;
+    const c = costes.get(id);
+    const s = sesiones.get(id);
+    if (!c || (c.costeUSD === 0 && s.asist > 0)) return null;
+    if (c.totalMs !== null && s.minTs !== null && c.totalMs > s.maxTs - s.minTs + MARGEN_FOTO_MS) return { noCuadra: true };
+    return { ...c, tras: c.tras + s.asist - c.asistEnSuFichero };
   };
-  // Cálculo, no medida: solo si hay API y herramientas medidas (con 0 la foto es de antes de que hubiera nada)
-  const resta = (c) => (c && c.totalMs !== null && c.apiMs > 0 && c.herramientasMs > 0 ? c.totalMs - c.apiMs - c.herramientasMs : null);
   const tiempos = [...enVentana]
     .sort((a, b) => b[1].maxTs - a[1].maxTs)
     .slice(0, SESIONES_VISIBLES)
     .map(([id, s]) => {
       const c = porCoste(id);
-      return { sesion: id.slice(0, 8), rama: s.rama, carpeta: s.carpeta, ultimo: iso(s.maxTs), totalMs: c?.totalMs ?? null, apiMs: c?.apiMs ?? null, herramientasMs: c?.herramientasMs ?? null, hooksMs: hooksMsDe.get(id) ?? 0, esperaMs: resta(c), costeUSD: c?.costeUSD ?? null, fotoAtrasada: (c?.tras ?? 0) > 0 };
+      return { sesion: id.slice(0, 8), rama: s.rama, carpeta: s.carpeta, ultimo: iso(s.maxTs), totalMs: c?.totalMs ?? null, apiMs: c?.apiMs ?? null, herramientasMs: c?.herramientasMs ?? null, hooksMs: hooksMsDe.get(id) ?? 0, costeUSD: c?.costeUSD ?? null, fotoAtrasada: (c?.tras ?? 0) > 0, noCuadra: c?.noCuadra === true };
     });
 
   // ---- Registro de jueces ----
   const entradas = [];
-  let registroRotas = 0;
   for (const reg of registros) {
-    registroRotas += reg.rotas;
     for (const e of reg.entradas) if (Number.isFinite(e.ts) && e.ts >= corte) entradas.push({ ...e, rama: reg.rama });
   }
   const sinAgentId = entradas.filter((e) => !e.agent_id).length;
   const noJueces = entradas.filter((e) => !JUECES.includes(e.agente)).length;
-  const registroAntiguo = { aviso: copia.ok === false || sinAgentId > 0 || noJueces > 0, sinAgentId, noJueces, apuntes: entradas.length, lineasRotas: registroRotas };
+  const registroAntiguo = { aviso: copia.ok === false || sinAgentId > 0 || noJueces > 0, sinAgentId, noJueces, apuntes: entradas.length };
 
   const informes = new Map(); // rama|agente → { claves, sinId }
   for (const e of entradas) {
@@ -281,8 +284,6 @@ export function agregar({ ahora, dias, ficheros, registros, declarados, copia, h
     if (e.veredicto !== "lanzado" && e.agent_id && t0 !== undefined && e.ts >= t0) juicios.set(`${e.rama}|${e.agent_id}`, { rama: e.rama, agente: e.agente, veredicto: e.veredicto, ms: e.ts - t0, ts: e.ts });
   }
   const juicioLista = [...juicios.values()].sort((a, b) => b.ts - a.ts);
-  const porAgente = new Map();
-  for (const j of juicioLista) porAgente.set(j.agente, [...(porAgente.get(j.agente) ?? []), j.ms]);
 
   // ---- Ineficiencias ----
   const bloqueoPor = new Map();
@@ -326,11 +327,9 @@ export function agregar({ ahora, dias, ficheros, registros, declarados, copia, h
     tiempos,
     jueces: {
       tiempos: juicioLista.slice(0, 20).map((j) => ({ rama: j.rama, agente: j.agente, veredicto: j.veredicto, ms: j.ms, ts: iso(j.ts) })),
-      porAgente: [...porAgente].map(([agente, ms]) => ({ agente, n: ms.length, mediaMs: media(ms), maxMs: Math.max(...ms) })),
     },
     ineficiencias: {
       bloqueos,
-      cierres: { resumenesConError: cierreEv.filter((c) => c.errores > 0).length, errores: cierreEv.reduce((n, c) => n + c.errores, 0), impidieronContinuar: cierreEv.filter((c) => c.impidio).length },
       relanzados,
       costes: { total: costePorSesion.reduce((n, c) => n + c.costeUSD, 0), sesiones: costePorSesion.slice(0, SESIONES_VISIBLES) },
       tokens: [...tokens.values()].sort((a, b) => b.mensajes - a.mensajes),

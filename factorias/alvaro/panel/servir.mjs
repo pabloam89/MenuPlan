@@ -4,8 +4,7 @@
  *   node factorias/alvaro/panel/servir.mjs        → http://127.0.0.1:5177
  *
  * SOLO LEE: no escribe nada (ni en ~/.claude ni en el repo ni en disco: el estado vive en memoria),
- * no hace peticiones hacia fuera, escucha solo en 127.0.0.1 y solo responde a GET.
- * Variables: PANEL_PUERTO (5177), PANEL_DIAS (7: ventana de días), FACTORIA_ALVARO_DIR (el registro de jueces).
+ * no hace peticiones hacia fuera, escucha solo en 127.0.0.1 y solo responde a GET. Variables: ver el README.
  */
 import { createHash } from "node:crypto";
 import { createReadStream, readFileSync } from "node:fs";
@@ -21,9 +20,14 @@ import { agregar, compararCopias, leerDeclarados, nuevoResumen, parsearRegistro,
 const aqui = dirname(fileURLToPath(import.meta.url));
 const HOST = "127.0.0.1";
 
-// El mensaje de Node ya empieza por el código (ENOENT: …): no se repite.
+// El mensaje de Node ya empieza por el código (ENOENT: …): no se repite. Un JSON roto no enseña su texto
+// (el mensaje de Node cita trozos del fichero, que puede ser privado): solo la posición del error, si la hay.
 const motivo = (e) => {
   const m = String(e?.message ?? e);
+  if (e instanceof SyntaxError) {
+    const pos = /position (\d+)/.exec(m)?.[1];
+    return "JSON roto" + (pos ? ` cerca de la posición ${pos}` : "");
+  }
   return e?.code && !m.includes(e.code) ? `${e.code}: ${m}` : m;
 };
 
@@ -50,12 +54,12 @@ export function crearRecolector(cfg = {}) {
   // Un fichero solo se vuelve a leer, entero, si cambió su fecha o su tamaño.
   async function cacheado(cache, ruta, st, leer) {
     const c = cache.get(ruta);
-    if (c && c.mtimeMs === st.mtimeMs && c.size === st.size) return { valor: c.valor, leido: false };
+    if (c && c.mtimeMs === st.mtimeMs && c.size === st.size) return c.valor;
     cfg.alLeer?.(ruta);
     try {
       const valor = await leer(ruta);
       cache.set(ruta, { mtimeMs: st.mtimeMs, size: st.size, valor });
-      return { valor, leido: true };
+      return valor;
     } catch (e) {
       cache.delete(ruta); // un fallo no deja una lectura a medias en la caché
       throw e;
@@ -96,9 +100,7 @@ export function crearRecolector(cfg = {}) {
           if (st.mtimeMs < corte) continue;
           contador.total++;
           vistos.add(ruta);
-          const { valor, leido } = await cacheado(cacheTr, ruta, st, leerTranscripcion);
-          if (leido) contador.releidos++;
-          sal.push({ ruta, mtimeMs: st.mtimeMs, resumen: valor });
+          sal.push({ ruta, mtimeMs: st.mtimeMs, resumen: await cacheado(cacheTr, ruta, st, leerTranscripcion) });
         } catch (e) {
           errores.push({ fichero: ruta, motivo: motivo(e) });
         }
@@ -124,8 +126,7 @@ export function crearRecolector(cfg = {}) {
         const st = await stat(ruta);
         if (st.mtimeMs < corte) continue;
         vistos.add(ruta);
-        const { valor } = await cacheado(cacheReg, ruta, st, async (r) => parsearRegistro(await readFile(r, "utf8")));
-        sal.push({ rama: n.replace(/\.jsonl$/, ""), ...valor });
+        sal.push({ rama: n.replace(/\.jsonl$/, ""), ...(await cacheado(cacheReg, ruta, st, async (r) => parsearRegistro(await readFile(r, "utf8")))) });
       } catch (e) {
         errores.push({ fichero: ruta, motivo: motivo(e) });
       }
@@ -163,14 +164,14 @@ export function crearRecolector(cfg = {}) {
   async function hacer(ahora) {
     const t0 = Date.now();
     const errores = [];
-    const contador = { total: 0, releidos: 0 };
+    const contador = { total: 0 };
     const ficheros = await transcripciones(ahora - dias * 864e5, errores, contador);
     const regs = await registros(ahora - dias * 864e5, errores);
     const decl = await declarados(errores);
     const cp = await copia(errores);
     const datos = agregar({ ahora, dias, ficheros, registros: regs, declarados: decl, copia: cp, home, errores });
     const mem = process.memoryUsage();
-    return { generado: new Date(ahora).toISOString(), dias, lecturaMs: Date.now() - t0, ficheros: { total: contador.total, releidos: contador.releidos, enCache: contador.total - contador.releidos }, proceso: { rssMB: Math.round(mem.rss / 1048576), heapMB: Math.round(mem.heapUsed / 1048576) }, ...datos };
+    return { generado: new Date(ahora).toISOString(), dias, lecturaMs: Date.now() - t0, ficheros: { total: contador.total }, proceso: { rssMB: Math.round(mem.rss / 1048576), heapMB: Math.round(mem.heapUsed / 1048576) }, ...datos };
   }
 
   // Dos peticiones a la vez comparten una sola lectura

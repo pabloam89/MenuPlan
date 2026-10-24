@@ -29,25 +29,22 @@ const resumenDe = (...objs) => {
 
 let contador = 0;
 const cierre = (extra) => ({ type: "system", subtype: "stop_hook_summary", uuid: "u-" + ++contador, timestamp: iso(AHORA - 1000), ...base(), ...extra });
+const ev = (s, ms = 1000) => ({ type: "mode", timestamp: iso(AHORA - ms), ...base({ sessionId: s }) });
+const asist = (s, n = 1) => Array.from({ length: n }, (_, i) => ({ type: "assistant", uuid: s + i + Math.random(), timestamp: iso(AHORA - 1000), ...base({ sessionId: s }), message: { id: s + Math.random(), model: "m", usage: {}, content: [] } }));
+const foto = (s, c, extra = {}) => ({ type: "cost-state", sessionId: s, totalCostUSD: c, totalDuration: 10000, totalAPIDuration: 3000, totalToolDuration: 2000, ...extra });
 const copiaOk = { ok: true, difieren: [], faltanInstalada: [], sobranInstalada: [] };
 const entradaBase = (extra = {}) => ({ ahora: AHORA, dias: 7, ficheros: [], registros: [], declarados: [], copia: copiaOk, home: "/h", errores: [], ...extra });
 
 describe("parseo de líneas de transcripción", () => {
   it("un resumen de cierre cuenta una activación por hook, con su duración", () => {
-    const r = resumenDe(cierre({ hookCount: 2, hookInfos: [{ command: 'node "$HOME/.claude/factoria/hooks/cierre.mjs"', durationMs: 120 }, { command: "callback", durationMs: 5 }], hookErrors: ["motivo"], preventedContinuation: true }));
+    const r = resumenDe(cierre({ hookInfos: [{ command: 'node "$HOME/.claude/factoria/hooks/cierre.mjs"', durationMs: 120 }, { command: "callback", durationMs: 5 }] }));
     expect([...r.hooks.values()].map((h) => [h.evento, h.ms])).toEqual([["Stop", 120], ["Stop", 5]]);
-    expect([...r.cierres.values()][0]).toMatchObject({ errores: 1, impidio: true });
   });
 
   it("hook_success de otro evento cuenta; el de Stop no (ya está en el resumen: no se cuenta dos veces)", () => {
     const att = (hookEvent) => ({ type: "attachment", uuid: "a-" + hookEvent, timestamp: iso(AHORA), ...base(), attachment: { type: "hook_success", hookEvent, hookName: hookEvent, command: "node x.mjs", durationMs: 40 } });
     const r = resumenDe(att("PostToolUse"), att("Stop"));
     expect([...r.hooks.values()].map((h) => h.evento)).toEqual(["PostToolUse"]);
-  });
-
-  it("hook_blocking_error se guarda con su comando y su texto", () => {
-    const r = resumenDe({ type: "attachment", uuid: "b1", timestamp: iso(AHORA), ...base(), attachment: { type: "hook_blocking_error", hookEvent: "Stop", blockingError: { command: "node cierre.mjs", blockingError: "falta qa" } } });
-    expect([...r.bloqueos.values()]).toEqual([expect.objectContaining({ evento: "Stop", comando: "node cierre.mjs", texto: "falta qa" })]);
   });
 
   it("cost-state: gana el último de la sesión", () => {
@@ -64,26 +61,21 @@ describe("parseo de líneas de transcripción", () => {
     expect(r.msgs.get("m2").lado).toBe(true);
   });
 
-  it("tool_use Agent cuenta por tipo (también un tipo con nombre raro y los sin tipo); otras herramientas no", () => {
-    const tu = (id, name, input) => ({ type: "tool_use", id, name, input });
-    const r = resumenDe({ type: "assistant", uuid: "q", timestamp: iso(AHORA), ...base(), message: { id: "m", model: "m", usage: {}, content: [tu("t1", "Agent", { subagent_type: "revisor" }), tu("t2", "Agent", { subagent_type: "constructor" }), tu("t3", "Agent", {}), tu("t4", "Bash", { command: "ls" })] } });
-    expect([...r.agentes.values()].map((a) => a.tipo)).toEqual(["revisor", "constructor", null]);
-    const d = agregar(entradaBase({ ficheros: [{ ruta: "f", mtimeMs: AHORA, resumen: r }] }));
-    expect(d.ineficiencias.subagentes).toEqual(expect.arrayContaining([{ tipo: "constructor", n: 1 }, { tipo: null, n: 1 }]));
-  });
-
   it("el modelo y el tipo de subagente salen recortados a 40 caracteres admitidos; los modelos sintéticos no salen", () => {
-    const largo = "m".repeat(60) + '<img src=x onerror="1">';
-    const a = (id, model, tipo) => ({ type: "assistant", uuid: id, timestamp: iso(AHORA), ...base(), message: { id, model, usage: { output_tokens: 1 }, content: [{ type: "tool_use", id: "t" + id, name: "Agent", input: { subagent_type: tipo } }] } });
-    const d = agregar(entradaBase({ ficheros: [{ ruta: "f", mtimeMs: AHORA, resumen: resumenDe(a("1", largo, largo), a("2", "<synthetic>", "revisor")) }] }));
-    expect(d.ineficiencias.tokens.map((t) => t.modelo)).toEqual([expect.stringMatching(/^[\w.:-]{1,40}$/)]);
-    expect(d.ineficiencias.subagentes.map((t) => t.tipo).sort()).toEqual([expect.stringMatching(/^[\w.:-]{1,40}$/), "revisor"].sort());
+    const largo = '<img src=x onerror="1">' + "m".repeat(60);
+    const a = (id, model, tipo) => ({ type: "assistant", uuid: id, timestamp: iso(AHORA), ...base(), message: { id, model, usage: { output_tokens: 1 }, content: [{ type: "tool_use", id: "t" + id, name: "Agent", input: { subagent_type: tipo } }, { type: "tool_use", id: "x" + id, name: "Bash", input: { subagent_type: "no-cuenta" } }] } });
+    const d = agregar(entradaBase({ ficheros: [{ ruta: "f", mtimeMs: AHORA, resumen: resumenDe(a("1", largo, largo), a("2", "<synthetic>", "revisor"), a("3", "m", "constructor"), a("4", "m", undefined)) }] }));
+    const modelos = d.ineficiencias.tokens.map((t) => t.modelo);
+    expect(modelos).toHaveLength(2); // el sintético no sale
+    expect(modelos.every((m) => /^[\w.:-]{1,40}$/.test(m))).toBe(true);
+    // «constructor» no rompe la cuenta, el sin tipo es null y solo cuenta la herramienta Agent
+    expect(d.ineficiencias.subagentes).toEqual(expect.arrayContaining([{ tipo: "constructor", n: 1 }, { tipo: "revisor", n: 1 }, { tipo: null, n: 1 }]));
+    expect(d.ineficiencias.subagentes.every((t) => t.tipo === null || /^[\w.:-]{1,40}$/.test(t.tipo))).toBe(true);
   });
 
   it("una línea rota o que no es un objeto se salta y se cuenta; una vacía ni cuenta", () => {
     const r = resumenDe("{no es json", "[1,2]", "42", "", JSON.stringify({ type: "mode", ...base() }));
     expect(r.rotas).toBe(3);
-    expect(r.lineas).toBe(1);
   });
 });
 
@@ -122,7 +114,6 @@ describe("ventana de días, hooks declarados y vistos", () => {
 
   it("normaliza $HOME, ${CLAUDE_PROJECT_DIR} y barras para comparar", () => {
     expect(normalizarComando('node "${HOME}/.claude/x.mjs"', "C:\\Users\\yo")).toBe(normalizarComando('node "C:/Users/yo/.claude/x.mjs"', "C:\\Users\\yo"));
-    expect(normalizarComando("node $CLAUDE_PROJECT_DIR/a.mjs", "/h")).toBe(normalizarComando("node ${CLAUDE_PROJECT_DIR}/a.mjs", "/h"));
     expect(nombreCorto(normalizarComando('node "$HOME/.claude/factoria/hooks/cierre.mjs"', "/h"))).toBe("cierre.mjs");
     expect(nombreCorto("callback")).toMatch(/callback/);
   });
@@ -148,50 +139,105 @@ describe("ventana de días, hooks declarados y vistos", () => {
   });
 });
 
+// Navegador simulado: lo justo para ejecutar el script de la página y mirar lo que pinta.
+class Nodo {
+  constructor(tag) {
+    Object.assign(this, { tag, hijos: [], className: "", dataset: {}, scrollLeft: 0, reemplazos: 0, classList: { add() {}, remove() {} } });
+  }
+  append(...xs) { this.hijos.push(...xs.map((x) => (x instanceof Nodo ? x : String(x)))); }
+  replaceChildren(...xs) { this.reemplazos++; this.hijos = []; this.append(...xs); }
+  set textContent(v) { this.hijos = [String(v)]; }
+  contains() { return true; }
+  focus() {}
+  todos(f) { return this.hijos.flatMap((h) => (h instanceof Nodo ? [...(f(h) ? [h] : []), ...h.todos(f)] : [])); }
+  querySelectorAll(sel) { return this.todos((h) => (sel === ".tabla" ? h.className === "tabla" : h.dataset.ts !== undefined)); }
+  get texto() { return this.hijos.map((h) => (h instanceof Nodo ? h.texto : h)).join(" "); }
+}
+function navegador(datos) {
+  const app = new Nodo("div");
+  const aviso = new Nodo("div");
+  const pend = [];
+  const est = { datos, seleccion: false, tics: [] };
+  const win = { scrollY: 0, scrollTo() {}, getSelection: () => ({ isCollapsed: !est.seleccion, anchorNode: {} }) };
+  const doc = { getElementById: (id) => (id === "app" ? app : aviso), createElement: (t) => new Nodo(t), hidden: false, addEventListener() {}, querySelectorAll: (s) => app.querySelectorAll(s) };
+  const fetchFalso = async () => ({ ok: true, status: 200, json: async () => est.datos });
+  const script = /<script>([\s\S]*)<\/script>/.exec(readFileSync(join(dirname(fileURLToPath(import.meta.url)), "panel.html"), "utf8"))[1];
+  new Function("document", "window", "fetch", "setTimeout", "setInterval", "AbortSignal", script)(doc, win, fetchFalso, (f) => pend.push(f), (f) => est.tics.push(f), AbortSignal);
+  const pausa = () => new Promise((r) => setImmediate(r));
+  const ciclo = async (cambia = {}) => { Object.assign(est.datos, cambia); (pend.shift() ?? (() => {}))(); await pausa(); await pausa(); };
+  return { app, aviso, est, ciclo, listo: pausa().then(pausa) };
+}
+const datosPagina = (errores = [], extra = []) => ({
+  generado: iso(AHORA), dias: 7, lecturaMs: 5, ficheros: { total: 3 }, proceso: { rssMB: 80, heapMB: 20 },
+  ...agregar(entradaBase({ errores, ficheros: [{ ruta: "f", mtimeMs: AHORA, resumen: resumenDe(...asist("sp"), foto("sp", 3), ev("sh"), ev("sh", 3 * 3600e3), foto("sh", 1, { totalDuration: 7320000 }), { type: "attachment", uuid: "bq", timestamp: iso(AHORA), ...base(), attachment: { type: "hook_blocking_error", hookEvent: "Stop", blockingError: { command: "node c.mjs", blockingError: "falta qa" } } }, ...extra) }] })),
+});
+
 describe("la página", () => {
   const html = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "panel.html"), "utf8");
-  it("no usa recursos externos ni innerHTML, y su script es sintácticamente válido", () => {
+  const cifras = (app) => app.todos((h) => h.tag === "b" || (h.tag === "td" && h.className.split(" ").includes("n"))).map((h) => h.texto.trim());
+
+  it("con un error de lectura TODA cifra derivada sale «sin dato» (también en las frases) y las tablas vacías lo dicen", async () => {
+    const n = navegador(datosPagina([{ fichero: "x", motivo: "EACCES" }]));
+    await n.listo;
+    expect(new Set(cifras(n.app))).toEqual(new Set(["sin dato"]));
+    const frases = n.app.todos((h) => h.tag === "p").map((h) => h.texto).filter((t) => /Bloqueos con hook|Coste mínimo|sidechain/.test(t));
+    expect(frases).toHaveLength(3);
+    for (const f of frases) expect(f).toContain("sin dato");
+    expect(n.app.texto).toContain("No se pudo leer (ver franja roja)");
+    expect(n.app.texto).not.toContain("Sin datos en esta ventana");
+  });
+
+  it("sin errores salen las cifras (las horas como «2 h 2 min») y no se repinta si no cambió nada", async () => {
+    const n = navegador(datosPagina());
+    await n.listo;
+    expect(cifras(n.app)).toContain("2 h 2 min");
+    expect(n.app.texto).not.toContain("sin dato (");
+    await n.ciclo({ lecturaMs: 9, generado: iso(AHORA + 5000) }); // solo cambia lo volátil
+    expect(n.app.reemplazos).toBe(1);
+    await n.ciclo({ estado: { ...n.est.datos.estado, sesiones: 99 } });
+    expect(n.app.reemplazos).toBe(2);
+    n.est.tics[0](); // el contador «hace N s» sigue corriendo
+    expect(n.app.querySelectorAll("[data-ts]")[0].texto).toMatch(/^hace \d+ (s|min|h|días)$/);
+  });
+
+  it("con texto seleccionado espera, pero tras 6 ciclos repinta igualmente", async () => {
+    const n = navegador(datosPagina());
+    await n.listo;
+    n.est.seleccion = true;
+    for (let i = 1; i <= 5; i++) await n.ciclo({ estado: { ...n.est.datos.estado, sesiones: 50 + i } });
+    expect(n.app.reemplazos).toBe(1);
+    await n.ciclo({ estado: { ...n.est.datos.estado, sesiones: 60 } });
+    expect(n.app.reemplazos).toBe(2);
+  });
+
+  it("no usa recursos externos ni HTML en crudo, y respeta el tema oscuro", () => {
     expect(html).not.toMatch(/https?:\/\//i);
     expect(html).not.toMatch(/innerHTML|outerHTML|insertAdjacentHTML|document\.write|eval\(/);
     expect(html).toMatch(/prefers-color-scheme: dark/);
-    const script = /<script>([\s\S]*)<\/script>/.exec(html)[1];
-    expect(() => new Function(script)).not.toThrow();
   });
 });
 
 describe("copia instalada contra el repo", () => {
   const h = (s) => createHash("sha256").update(s).digest("hex");
-  it("igual", () => expect(compararCopias({ "hooks/a.mjs": h("1") }, { "hooks/a.mjs": h("1") })).toMatchObject({ ok: true, difieren: [] }));
-  it("distinto", () => expect(compararCopias({ "hooks/a.mjs": h("1") }, { "hooks/a.mjs": h("2") })).toMatchObject({ ok: false, difieren: ["hooks/a.mjs"] }));
-  it("falta en la instalada, o sobra", () => {
-    const c = compararCopias({ "hooks/a.mjs": h("1") }, { "hooks/a.mjs": h("1"), "lib/b.mjs": h("2") });
-    expect(c).toMatchObject({ ok: false, faltanInstalada: ["lib/b.mjs"] });
+  it("igual, distinto, falta en la instalada o sobra", () => {
+    const a = { "hooks/a.mjs": h("1") };
+    expect(compararCopias(a, a)).toMatchObject({ ok: true, difieren: [] });
+    expect(compararCopias(a, { "hooks/a.mjs": h("2") })).toMatchObject({ ok: false, difieren: ["hooks/a.mjs"] });
+    expect(compararCopias(a, { ...a, "lib/b.mjs": h("2") })).toMatchObject({ ok: false, faltanInstalada: ["lib/b.mjs"] });
     expect(compararCopias({ "x.mjs": h("1") }, {})).toMatchObject({ ok: false, sobranInstalada: ["x.mjs"] });
   });
 });
 
 describe("tiempos", () => {
-  const ev = (s) => ({ type: "mode", timestamp: iso(AHORA - 1000), ...base({ sessionId: s }) });
-
-  it("espera = total − API − herramientas, y puede salir negativa (se muestra tal cual)", () => {
-    const r = resumenDe(ev("s1"), ev("s2"), { type: "cost-state", sessionId: "s1", totalCostUSD: 2, totalDuration: 10000, totalAPIDuration: 3000, totalToolDuration: 2000 }, { type: "cost-state", sessionId: "s2", totalCostUSD: 1, totalDuration: 1000, totalAPIDuration: 900, totalToolDuration: 500 });
-    const d = agregar(entradaBase({ ficheros: [{ ruta: "f", mtimeMs: AHORA, resumen: r }] }));
-    expect(d.tiempos.find((t) => t.sesion.startsWith("s1")).esperaMs).toBe(5000);
-    expect(d.tiempos.find((t) => t.sesion.startsWith("s2")).esperaMs).toBe(-400);
-  });
-
   it("una sesión sin cost-state da null, no 0", () => {
     const d = agregar(entradaBase({ ficheros: [{ ruta: "f", mtimeMs: AHORA, resumen: resumenDe(ev("s3")) }] }));
-    expect(d.tiempos[0]).toMatchObject({ totalMs: null, apiMs: null, esperaMs: null, costeUSD: null });
+    expect(d.tiempos[0]).toMatchObject({ totalMs: null, apiMs: null, costeUSD: null });
   });
-
-  const asist = (s, n = 1) => Array.from({ length: n }, (_, i) => ({ type: "assistant", uuid: s + i + Math.random(), timestamp: iso(AHORA - 1000), ...base({ sessionId: s }), message: { id: s + Math.random(), model: "m", usage: {}, content: [] } }));
-  const foto = (s, c, extra = {}) => ({ type: "cost-state", sessionId: s, totalCostUSD: c, totalDuration: 10000, totalAPIDuration: 3000, totalToolDuration: 2000, ...extra });
 
   it("una foto con coste 0 en una sesión con mensajes es «sin dato», nunca $0", () => {
     const r = resumenDe(...asist("s5"), foto("s5", 0), ev("s6"), foto("s6", 0));
     const d = agregar(entradaBase({ ficheros: [{ ruta: "f", mtimeMs: AHORA, resumen: r }] }));
-    expect(d.tiempos.find((t) => t.sesion === "s5")).toMatchObject({ costeUSD: null, totalMs: null, esperaMs: null });
+    expect(d.tiempos.find((t) => t.sesion === "s5")).toMatchObject({ costeUSD: null, totalMs: null });
     expect(d.tiempos.find((t) => t.sesion === "s6").costeUSD).toBe(0); // sin mensajes del asistente no hay contradicción: se deja
     expect(d.ineficiencias.costes.sesiones.map((c) => c.sesion)).not.toContain("s5");
   });
@@ -204,10 +250,23 @@ describe("tiempos", () => {
     expect(d.ineficiencias.costes.sesiones.find((c) => c.sesion === "s7").fotoAtrasada).toBe(true);
   });
 
-  it("la espera solo se calcula si API y herramientas son mayores que 0", () => {
-    const r = resumenDe(ev("s9"), foto("s9", 1, { totalAPIDuration: 0 }), ev("sa"), foto("sa", 1, { totalToolDuration: 0 }));
-    const d = agregar(entradaBase({ ficheros: [{ ruta: "f", mtimeMs: AHORA, resumen: r }] }));
-    expect(d.tiempos.map((t) => t.esperaMs)).toEqual([null, null]);
+  const dosFicheros = (a, b) => [{ ruta: "1", mtimeMs: AHORA - 1000, resumen: resumenDe(...a) }, { ruta: "2", mtimeMs: AHORA, resumen: resumenDe(...b) }];
+
+  it("la foto atrasada también cuenta los mensajes de otros ficheros de la misma sesión", () => {
+    const d = agregar(entradaBase({ ficheros: dosFicheros([...asist("sc"), foto("sc", 5)], asist("sc", 100)) }));
+    expect(d.tiempos[0]).toMatchObject({ costeUSD: 5, fotoAtrasada: true });
+  });
+
+  it("entre varios ficheros de una sesión manda el mayor coste, no el del fichero más reciente", () => {
+    const d = agregar(entradaBase({ ficheros: dosFicheros([...asist("sd"), foto("sd", 5)], [...asist("sd"), foto("sd", 1)]) }));
+    expect(d.tiempos[0].costeUSD).toBe(5);
+  });
+
+  it("una foto más larga que la vida observada de la sesión es «sin dato» (no cuadra con la transcripción)", () => {
+    const d = agregar(entradaBase({ ficheros: [{ ruta: "f", mtimeMs: AHORA, resumen: resumenDe(ev("se"), ev("se", 328000), foto("se", 9, { totalDuration: 3 * 3600e3 }), ev("sf"), ev("sf", 328000), foto("sf", 2, { totalDuration: 400000 })) }] }));
+    expect(d.tiempos.find((t) => t.sesion === "se")).toMatchObject({ costeUSD: null, totalMs: null, apiMs: null, noCuadra: true });
+    expect(d.tiempos.find((t) => t.sesion === "sf")).toMatchObject({ costeUSD: 2, totalMs: 400000, noCuadra: false });
+    expect(d.ineficiencias.costes.sesiones.map((c) => c.sesion)).toEqual(["sf"]);
   });
 
   it("solo salen las 15 últimas sesiones, la más reciente primero", () => {
@@ -248,11 +307,6 @@ describe("registro de jueces", () => {
     const d = agregar(entradaBase({ registros: [{ rama: "r", rotas: 0, entradas: [e({ agente: "constructor" }), e()] }] }));
     expect(d.estado.registroAntiguo).toMatchObject({ sinAgentId: 2, noJueces: 1, aviso: true });
   });
-
-  it("el resumen del juez no sale en los datos", () => {
-    const d = agregar(entradaBase({ registros: [{ rama: "r", rotas: 0, entradas: [e()] }] }));
-    expect(JSON.stringify(d)).not.toContain(MARCADOR);
-  });
 });
 
 // ---- Servidor y lectura de ficheros de verdad, sobre un «home» sintético ----
@@ -268,10 +322,7 @@ const fSesion = () => join(home, ".claude", "projects", "p1", "ses-aaaa1111.json
 function montar() {
   home = join(dir, "home");
   alvaro = join(dir, "repo", "factorias", "alvaro");
-  escribir(join(alvaro, "hooks", "c.mjs"), "x = 1\n");
-  escribir(join(alvaro, "lib", "r.mjs"), "x = 1\n");
-  escribir(join(home, ".claude", "factoria", "hooks", "c.mjs"), "x = 1\n");
-  escribir(join(home, ".claude", "factoria", "lib", "r.mjs"), "x = 1\n");
+  for (const b of [alvaro, join(home, ".claude", "factoria")]) for (const f of ["hooks/c.mjs", "lib/r.mjs"]) escribir(join(b, f), "x = 1\n");
   escribir(join(home, ".claude", "settings.json"), JSON.stringify({ permissions: { allow: [MARCADOR] }, hooks: { Stop: [{ hooks: [{ type: "command", command: 'node "$HOME/.claude/factoria/hooks/c.mjs"' }] }] } }));
   const t = Date.now();
   const sesion = [
@@ -323,7 +374,7 @@ describe("servidor y lectura real", () => {
     const d = JSON.parse(r.cuerpo);
     expect(d.errores).toEqual([]);
     expect(d.estado).toMatchObject({ sesiones: 1, lineasRotas: 1, copia: { ok: true } });
-    expect(d.tiempos[0]).toMatchObject({ totalMs: 9000, apiMs: 4000, herramientasMs: 1000, esperaMs: 4000, costeUSD: 1.5 });
+    expect(d.tiempos[0]).toMatchObject({ totalMs: 9000, apiMs: 4000, herramientasMs: 1000, costeUSD: 1.5 });
     expect(d.ineficiencias.subagentes).toEqual([{ tipo: PERMITIDO, n: 1 }]);
     expect(d.hooks.find((h) => h.nombre === "c.mjs")).toMatchObject({ veces: 1, bloqueos: 1, declarado: true });
     // El marcador solo habría podido colarse por el hookError o el blockingError, que se cortan a 80 caracteres.
@@ -415,7 +466,7 @@ describe("servidor y lectura real", () => {
     expect(h.hijo.exitCode).toBeNull();
   });
 
-  it("sirve la página en / y solo existen / y /datos.json; con cabeceras de seguridad (CSP, nosniff, no-store)", async () => {
+  it("sirve la página y /datos.json con cabeceras de seguridad; solo GET (405), solo Host local (403), nada más (404)", async () => {
     const p = await arrancar();
     const r = await pedir(p, { ruta: "/" });
     expect(r.estado).toBe(200);
@@ -426,22 +477,14 @@ describe("servidor y lectura real", () => {
       expect([h["x-content-type-options"], h["cache-control"]]).toEqual(["nosniff", "no-store"]);
     }
     expect((await pedir(p, { ruta: "/otra" })).estado).toBe(404);
-  });
-
-  it("solo acepta GET (POST, PUT y DELETE dan 405)", async () => {
-    const p = await arrancar();
     for (const metodo of ["POST", "PUT", "DELETE"]) {
-      const r = await pedir(p, { metodo });
-      expect(r.estado).toBe(405);
-      expect(r.cabeceras.allow).toBe("GET");
+      const m = await pedir(p, { metodo });
+      expect([m.estado, m.cabeceras.allow]).toEqual([405, "GET"]);
     }
-  });
-
-  it("rechaza un Host de fuera (defensa contra DNS rebinding)", async () => {
-    const p = await arrancar();
-    expect((await pedir(p, { host: "evil.example:" + p })).estado).toBe(403);
+    expect((await pedir(p, { host: "evil.example:" + p })).estado).toBe(403); // DNS rebinding
     expect((await pedir(p, { host: "localhost:" + p })).estado).toBe(200);
   });
+
 
   it("un fichero ilegible produce un error visible con su nombre y motivo, no un 0", async () => {
     const p = await arrancar({
@@ -456,10 +499,12 @@ describe("servidor y lectura real", () => {
   });
 
   it("settings.json roto o falta de la copia instalada se muestran como error y como bandera roja", async () => {
-    escribir(join(home, ".claude", "settings.json"), "{roto");
+    escribir(join(home, ".claude", "settings.json"), '{"k": ' + MARCADOR + " roto");
     rmSync(join(home, ".claude", "factoria", "lib", "r.mjs"));
-    const d = JSON.parse((await pedir(await arrancar())).cuerpo);
-    expect(d.errores.some((e) => e.fichero.includes("settings.json"))).toBe(true);
+    const r = await pedir(await arrancar());
+    const d = JSON.parse(r.cuerpo);
+    expect(d.errores.find((e) => e.fichero.includes("settings.json")).motivo).toMatch(/^JSON roto( cerca de la posición \d+)?$/);
+    expect(r.cuerpo).not.toContain(MARCADOR); // el texto de un settings roto puede traer secretos: ni una letra
     expect(d.estado.copia).toMatchObject({ ok: false, faltanInstalada: ["lib/r.mjs"] });
   });
 
@@ -487,17 +532,9 @@ describe("servidor y lectura real", () => {
     await rec.recoger(Date.now());
     const n1 = lecturas.length;
     utimesSync(fSesion(), new Date(Date.now() - 30 * DIA), new Date(Date.now() - 30 * DIA));
-    await rec.recoger(Date.now());
+    expect((await rec.recoger(Date.now())).ficheros.total).toBe(0);
     utimesSync(fSesion(), fijo, fijo);
     await rec.recoger(Date.now());
     expect(lecturas.length).toBe(n1 + 1);
-  });
-
-  it("solo mira ficheros modificados dentro de la ventana de días", async () => {
-    const viejo = new Date(Date.now() - 30 * DIA);
-    utimesSync(fSesion(), viejo, viejo);
-    const d = JSON.parse((await pedir(await arrancar())).cuerpo);
-    expect(d.estado.sesiones).toBe(0);
-    expect(d.ficheros.total).toBe(0);
   });
 });
