@@ -12,13 +12,14 @@
  * Puro: sin base ni motor, para probarlo.
  */
 
-import { indiceDeISO } from "../../src/lib/dias.js";
+import { indiceDeISO, isoDeCasa } from "../../src/lib/dias.js";
 
 export const TOPE_SEMANAS = 8;
 
 const DIA_MS = 86400000;
 const aFecha = (iso) => new Date(`${iso}T12:00:00Z`);
-const aISO = (f) => f.toISOString().slice(0, 10);
+// A mediodía UTC la fecha de Madrid es la misma: se pasa por isoDeCasa, sin calcularla a mano.
+const aISO = (f) => isoDeCasa({ ahora: f });
 export const sumarDias = (iso, n) => aISO(new Date(aFecha(iso).getTime() + n * DIA_MS));
 export const lunesDe = (iso) => sumarDias(iso, -indiceDeISO(iso));
 const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
