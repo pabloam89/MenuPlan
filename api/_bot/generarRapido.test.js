@@ -38,3 +38,32 @@ describe("generar: matices afinados (#905)", () => {
     expect(vaPorLaRapida(d({ semana: "siguiente" }), { texto: "Genérame la siguiente semana", ultima: "🎉 <b>¡Menú listo!</b> Del <b>26 de octubre al 1 de noviembre</b>." })).toBe(false);
   });
 });
+
+describe("generar: fechas sin dígito, a Lola (#915)", () => {
+  const rapida = (texto) => vaPorLaRapida(d({ semana: "siguiente" }), { texto });
+  it("un mes, una cuenta de semanas o días, «tras la próxima», un número de semana", () => {
+    for (const texto of [
+      "hazme el menú para noviembre",
+      "hazme el menú de la semana de noviembre",
+      "genérame el menú de dentro de dos semanas",
+      "hazme el menú de aquí a quince días",
+      "hazme el menú de la semana tras la próxima",
+      "genérame la semana después de la que viene",
+      "hazme la semana siguiente a la próxima",
+      "hazme el menú de la semana 45",
+      "hazme el menú para el mes que viene",
+      "genera la semana del 9/11",
+      "hazme el menú para Navidad",
+    ]) expect(rapida(texto), texto).toBe(false);
+  });
+  it("lo ya logrado sigue por la rápida", () => {
+    for (const texto of [
+      "hazme el menú de la semana que viene",
+      "genera el menú de esta semana",
+      "hazme un menú de 5 cenas para la semana que viene",
+      "somos 5, genera el menú de esta semana",
+      "hazme el menú de la semana que viene, no me preguntes nada",
+      "dame el menú de la próxima semana",
+    ]) expect(rapida(texto), texto).toBe(true);
+  });
+});

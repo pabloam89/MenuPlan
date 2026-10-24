@@ -216,13 +216,28 @@ export function permitidoEn(modo, { esGrupo = false, variosAutores = false, pape
 // en las reglas del enrutador: la vía rápida rehízo la semana equivocada.
 const MESES = "enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre|ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic";
 const FECHA = new RegExp(`\\d{1,2}\\s*(de\\s+)?(${MESES})\\b|\\b(el|del|d[ií]a)\\s+\\d{1,2}\\b|a partir d|dentro de|\\b(lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado|domingo)\\b`, "i");
+// Fechas sin dígito (#915): un mes («para noviembre»), semanas o días en plural
+// («dentro de dos semanas», «de aquí a quince días»), «la semana tras la
+// próxima», «el mes que viene», una semana por su número («la semana 45») o una
+// fiesta. «La semana que viene» y «esta semana» a secas NO entran, ni «5 cenas»
+// ni «somos 5»: solo lo que apunta a otra semana distinta de esas dos.
+const MES_ENTERO = "enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre";
+const FECHA_SIN_DIGITO = new RegExp([
+  `\\b(${MES_ENTERO})\\b`,
+  "\\b(semanas|d[ií]as|quincena|mes|meses)\\b",
+  "\\bde aqu[ií] a\\b",
+  "\\b(tras|despu[eé]s de|luego de|pasada|siguiente a|posterior a)\\s+(la|las|el|esa|esta)\\b",
+  "\\bsemana\\s+(n[uú]m\\w*\\s+|n[º°.]\\s*)?\\d",
+  "\\b\\d{1,2}\\s*[/.-]\\s*\\d{1,2}\\b",
+  "\\b(navidad(es)?|semana santa|pascua|vacaciones|puente)\\b",
+].join("|"), "i");
 const PIDE_PREGUNTAS = /pregunt/i;
 const SIN_PREGUNTAS = /\b(no|sin|ni)\s+(me\s+)?(hagas\s+|hace\s+falta\s+|hacer\s+)?(m[aá]s\s+)?pregunt/i;
 // Justo después de generar, «la siguiente» u «otra» puede ser la de después
 // de esa: lo decide Lola (#905: «genérame la siguiente» rehízo la del 26).
 const RECIEN_GENERADO = /Men[uú] listo/i;
 export const generarConMatices = ({ texto = "", corrige = false, ultima = null }) =>
-  corrige || FECHA.test(texto) || (PIDE_PREGUNTAS.test(texto) && !SIN_PREGUNTAS.test(texto)) || RECIEN_GENERADO.test(String(ultima ?? ""));
+  corrige || FECHA.test(texto) || FECHA_SIN_DIGITO.test(texto) || (PIDE_PREGUNTAS.test(texto) && !SIN_PREGUNTAS.test(texto)) || RECIEN_GENERADO.test(String(ultima ?? ""));
 
 export function vaPorLaRapida(d, { esGrupo = false, variosAutores = false, papel = "owner", texto = "", corrige = false, ultima = null } = {}) {
   const p = d ? POLITICA[d.modo] : null;

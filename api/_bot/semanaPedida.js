@@ -25,6 +25,11 @@ export const lunesDe = (iso) => sumarDias(iso, -indiceDeISO(iso));
 const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
 export const fechaCorta = (iso) => `${Number(iso.slice(8, 10))} ${MESES[Number(iso.slice(5, 7)) - 1]}`;
 
+const MESES_LARGOS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+const diaYMes = (iso) => `${Number(iso.slice(8, 10))} de ${MESES_LARGOS[Number(iso.slice(5, 7)) - 1]}`;
+/** «1 al 4 de octubre», «28 de septiembre al 4 de octubre». Pura, para el test. */
+export const rangoDeFechas = (a, b) => (a.slice(0, 7) === b.slice(0, 7) ? `${Number(a.slice(8, 10))} al ${diaYMes(b)}` : `${diaYMes(a)} al ${diaYMes(b)}`);
+
 /** La semana del menú (de las que no han pasado) que cae entre ese lunes y su domingo. */
 export function semanaConMenu(semanas, lunes, hoy) {
   const domingo = sumarDias(lunes, 6);
