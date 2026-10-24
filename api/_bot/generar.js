@@ -220,7 +220,6 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
 
   const { plan, recipes } = await m.generateMenuWithAI(weekData, { pantryIngredients, pantryMode, crossWeek });
   m.registerRecipes(recipes);
-  const conservados = previa ? conservarDiasPrevios(plan, previa.plan, startDayIdx, DIAS) : [];
   // Lo pedido que el motor no haya dejado, antes de la compra (que sale del plan).
   if (pedidos.length) colocarPedidos(m, { schedule: {}, ...working, groups }, plan, recipes, pedidos, activeDays);
   const sh = m.buildShoppingList(plan, groups, m.getDayMeals(weekData), despensa);
@@ -228,6 +227,9 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   // pasa a la lista nueva: generar un menú no puede borrarlo.
   const aMano = (casa.semana?.shopping?.items ?? casa.state?.shopping?.items ?? []).filter((it) => it.manual && !it.have);
   const shopping = { items: [...sh.byCategory.flatMap((c) => c.items), ...(sh.pantryItems ?? []), ...aMano] };
+  // Rehaciendo la semana en curso, hoy y lo pasado vuelven del plan viejo
+  // DESPUÉS de la compra: lo de días que ya pasaron no se vuelve a comprar.
+  const conservados = previa ? conservarDiasPrevios(plan, previa.plan, startDayIdx, DIAS) : [];
 
   const week = { offset, startDayIdx: previa ? previa.startDayIdx ?? 0 : startDayIdx, days, startISO, endISO, plan, shopping, schedule: weekSchedule };
   const menu = { id: m.createMenuId(), createdAt: Date.now(), isFavorite: false, isActive: true, activatedAt: null, varietyPref, weeks: { [startISO]: week } };
