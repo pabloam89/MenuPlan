@@ -15,8 +15,10 @@ const JUECES = ["revisor", "qa", "evaluador"];
 const num = (v) => (typeof v === "number" && Number.isFinite(v) ? v : null);
 const num0 = (v) => num(v) ?? 0;
 const texto = (v) => (typeof v === "string" ? v : null);
+// Modelo y tipo de subagente salen a la página: solo caracteres de un nombre y 40 como mucho.
+const limpio = (v) => String(v).replace(/[^\w.:-]/g, "_").slice(0, 40);
 
-/** Acumulador de UN fichero de transcripción (se puede seguir alimentando si el fichero crece). */
+/** Acumulador de UN fichero de transcripción. */
 export function nuevoResumen() {
   return {
     lineas: 0,
@@ -26,8 +28,8 @@ export function nuevoResumen() {
     cierres: new Map(), // uuid → { ts, sesion, errores, impidio }
     msgs: new Map(), // message.id → { ts, sesion, modelo, lado, entrada, salida, cacheLeida, cacheCreada }
     agentes: new Map(), // id del tool_use → { ts, sesion, tipo }
-    costes: new Map(), // sesión → { costeUSD, totalMs, apiMs, herramientasMs }
-    sesiones: new Map(), // sesión → { minTs, maxTs, rama, carpeta }
+    costes: new Map(), // sesión → su ÚLTIMA foto cost-state { costeUSD, totalMs, apiMs, herramientasMs, tras: líneas del asistente posteriores }
+    sesiones: new Map(), // sesión → { maxTs, rama, carpeta, asist: líneas del asistente }
   };
 }
 
@@ -50,11 +52,8 @@ export function procesarLinea(r, linea) {
   const ts = Date.parse(o.timestamp);
   const tsOk = Number.isFinite(ts) ? ts : null;
   if (sesion) {
-    const m = r.sesiones.get(sesion) ?? { minTs: null, maxTs: null, rama: null, carpeta: null };
-    if (tsOk !== null) {
-      m.minTs = m.minTs === null ? tsOk : Math.min(m.minTs, tsOk);
-      m.maxTs = m.maxTs === null ? tsOk : Math.max(m.maxTs, tsOk);
-    }
+    const m = r.sesiones.get(sesion) ?? { maxTs: null, rama: null, carpeta: null, asist: 0 };
+    if (tsOk !== null) m.maxTs = m.maxTs === null ? tsOk : Math.max(m.maxTs, tsOk);
     if (texto(o.gitBranch)) m.rama = o.gitBranch;
     if (texto(o.cwd)) m.carpeta = o.cwd.replace(/[\\/]+$/, "").split(/[\\/]/).pop();
     r.sesiones.set(sesion, m);
@@ -62,18 +61,22 @@ export function procesarLinea(r, linea) {
 
   if (o.type === "assistant") {
     const msg = o.message ?? {};
+    if (sesion) {
+      r.sesiones.get(sesion).asist++;
+      if (r.costes.has(sesion)) r.costes.get(sesion).tras++; // la foto de coste ya no es lo último de la sesión
+    }
     const id = texto(msg.id) ?? texto(o.uuid);
     if (id) {
       // la misma respuesta se repite en varias líneas: se cuenta una vez, con lo mayor de cada cifra
       const u = msg.usage ?? {};
       const previo = r.msgs.get(id);
-      const nuevo = { ts: tsOk, sesion, modelo: texto(msg.model) ?? "(sin modelo)", lado: o.isSidechain === true, entrada: num0(u.input_tokens), salida: num0(u.output_tokens), cacheLeida: num0(u.cache_read_input_tokens), cacheCreada: num0(u.cache_creation_input_tokens) };
+      const nuevo = { ts: tsOk, sesion, modelo: msg.model === "<synthetic>" ? null : limpio(texto(msg.model) ?? "(sin modelo)"), lado: o.isSidechain === true, entrada: num0(u.input_tokens), salida: num0(u.output_tokens), cacheLeida: num0(u.cache_read_input_tokens), cacheCreada: num0(u.cache_creation_input_tokens) };
       if (previo) for (const k of ["entrada", "salida", "cacheLeida", "cacheCreada"]) nuevo[k] = Math.max(nuevo[k], previo[k]);
       r.msgs.set(id, nuevo);
     }
     if (Array.isArray(msg.content)) {
       for (const b of msg.content) {
-        if (b && b.type === "tool_use" && b.name === "Agent") r.agentes.set(texto(b.id) ?? `${o.uuid}#${r.agentes.size}`, { ts: tsOk, sesion, tipo: texto(b.input?.subagent_type) });
+        if (b && b.type === "tool_use" && b.name === "Agent") r.agentes.set(texto(b.id) ?? `${o.uuid}#${r.agentes.size}`, { ts: tsOk, sesion, tipo: texto(b.input?.subagent_type) === null ? null : limpio(b.input.subagent_type) });
       }
     }
   } else if (o.type === "system" && o.subtype === "stop_hook_summary") {
@@ -90,8 +93,8 @@ export function procesarLinea(r, linea) {
       r.bloqueos.set(clave, { ts: tsOk, sesion, evento: texto(a.hookEvent) ?? "(sin evento)", comando: texto(e.command), texto: texto(e.blockingError) ?? "(sin texto)" });
     }
   } else if (o.type === "cost-state" && sesion) {
-    // totales acumulados de la sesión: manda el último
-    r.costes.set(sesion, { costeUSD: num(o.totalCostUSD), totalMs: num(o.totalDuration), apiMs: num(o.totalAPIDuration), herramientasMs: num(o.totalToolDuration) });
+    // Una foto esporádica de Claude Code (no un contador final): manda la última, y se anota si luego hubo más mensajes
+    r.costes.set(sesion, { costeUSD: num(o.totalCostUSD), totalMs: num(o.totalDuration), apiMs: num(o.totalAPIDuration), herramientasMs: num(o.totalToolDuration), tras: 0 });
   }
 }
 
@@ -186,6 +189,7 @@ export function agregar({ ahora, dias, ficheros, registros, declarados, copia, h
       const s = sesiones.get(id);
       if (!s) sesiones.set(id, { ...m });
       else {
+        s.asist += m.asist;
         const nuevaMax = m.maxTs !== null && (s.maxTs === null || m.maxTs >= s.maxTs);
         s.maxTs = Math.max(s.maxTs ?? -Infinity, m.maxTs ?? -Infinity);
         if (nuevaMax) {
@@ -224,20 +228,27 @@ export function agregar({ ahora, dias, ficheros, registros, declarados, copia, h
   }
   for (const e of bloqueoEv) fila(e.evento, e.comando).bloqueos++;
   const hooks = [...filas.values()]
-    .map((f) => ({ evento: f.evento, nombre: f.nombre, ruta: f.ruta, declarado: f.declarado, veces: f.veces, ultima: iso(f.ultimaMs), mediaMs: media(f.ms), maxMs: f.ms.length ? Math.max(...f.ms) : null, bloqueos: f.bloqueos, noVisto: declarados !== null && f.declarado && f.veces === 0 }))
-    .sort((a, b) => Number(b.noVisto) - Number(a.noVisto) || b.veces - a.veces || a.nombre.localeCompare(b.nombre));
+    .map((f) => ({ evento: f.evento, nombre: f.nombre, ruta: f.ruta, declarado: f.declarado, veces: f.veces, ultima: iso(f.ultimaMs), mediaMs: media(f.ms), maxMs: f.ms.length ? Math.max(...f.ms) : null, bloqueos: f.bloqueos, sinHuella: declarados !== null && f.declarado && f.veces === 0 }))
+    // en rojo solo los de Stop: los demás eventos casi no dejan huella en la transcripción, y «sin huella» no es «no se activó»
+    .map((h) => ({ ...h, rojo: h.sinHuella && h.evento === "Stop" }))
+    .sort((a, b) => Number(b.rojo) - Number(a.rojo) || Number(b.sinHuella) - Number(a.sinHuella) || b.veces - a.veces || a.nombre.localeCompare(b.nombre));
 
   // ---- Tiempos ----
   const hooksMsDe = new Map();
   for (const e of hookEv) if (e.sesion && e.ms !== null) hooksMsDe.set(e.sesion, (hooksMsDe.get(e.sesion) ?? 0) + e.ms);
-  const porCoste = (id) => costes.get(id) ?? null;
-  const resta = (c) => (c && c.totalMs !== null && c.apiMs !== null && c.herramientasMs !== null ? c.totalMs - c.apiMs - c.herramientasMs : null);
+  // Una foto con coste 0 en una sesión con mensajes del asistente es una foto vacía: sin dato, nunca «$0».
+  const porCoste = (id) => {
+    const c = costes.get(id) ?? null;
+    return c && c.costeUSD === 0 && sesiones.get(id).asist > 0 ? null : c;
+  };
+  // Cálculo, no medida: solo si hay API y herramientas medidas (con 0 la foto es de antes de que hubiera nada)
+  const resta = (c) => (c && c.totalMs !== null && c.apiMs > 0 && c.herramientasMs > 0 ? c.totalMs - c.apiMs - c.herramientasMs : null);
   const tiempos = [...enVentana]
     .sort((a, b) => b[1].maxTs - a[1].maxTs)
     .slice(0, SESIONES_VISIBLES)
     .map(([id, s]) => {
       const c = porCoste(id);
-      return { sesion: id.slice(0, 8), rama: s.rama, carpeta: s.carpeta, ultimo: iso(s.maxTs), totalMs: c?.totalMs ?? null, apiMs: c?.apiMs ?? null, herramientasMs: c?.herramientasMs ?? null, hooksMs: hooksMsDe.get(id) ?? 0, esperaMs: resta(c), costeUSD: c?.costeUSD ?? null };
+      return { sesion: id.slice(0, 8), rama: s.rama, carpeta: s.carpeta, ultimo: iso(s.maxTs), totalMs: c?.totalMs ?? null, apiMs: c?.apiMs ?? null, herramientasMs: c?.herramientasMs ?? null, hooksMs: hooksMsDe.get(id) ?? 0, esperaMs: resta(c), costeUSD: c?.costeUSD ?? null, fotoAtrasada: (c?.tras ?? 0) > 0 };
     });
 
   // ---- Registro de jueces ----
@@ -287,6 +298,7 @@ export function agregar({ ahora, dias, ficheros, registros, declarados, copia, h
 
   const tokens = new Map();
   for (const m of msgs) {
+    if (m.modelo === null) continue; // los modelos sintéticos son ruido
     const t = tokens.get(m.modelo) ?? { modelo: m.modelo, mensajes: 0, entrada: 0, salida: 0, cacheLeida: 0, cacheCreada: 0 };
     t.mensajes++;
     for (const k of ["entrada", "salida", "cacheLeida", "cacheCreada"]) t[k] += m[k];
@@ -296,7 +308,7 @@ export function agregar({ ahora, dias, ficheros, registros, declarados, copia, h
   for (const a of agentes) subagentes.set(a.tipo, (subagentes.get(a.tipo) ?? 0) + 1);
 
   const costePorSesion = enVentana
-    .map(([id, s]) => ({ sesion: id.slice(0, 8), rama: s.rama, carpeta: s.carpeta, costeUSD: porCoste(id)?.costeUSD ?? null }))
+    .map(([id, s]) => ({ sesion: id.slice(0, 8), rama: s.rama, carpeta: s.carpeta, costeUSD: porCoste(id)?.costeUSD ?? null, fotoAtrasada: (porCoste(id)?.tras ?? 0) > 0 }))
     .filter((c) => c.costeUSD !== null)
     .sort((a, b) => b.costeUSD - a.costeUSD);
 

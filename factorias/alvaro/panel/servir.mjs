@@ -13,6 +13,7 @@ import { readdir, readFile, stat } from "node:fs/promises";
 import { createServer } from "node:http";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
+import { createInterface } from "node:readline";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { agregar, compararCopias, leerDeclarados, nuevoResumen, parsearRegistro, procesarLinea } from "./lib/leer.mjs";
@@ -20,30 +21,16 @@ import { agregar, compararCopias, leerDeclarados, nuevoResumen, parsearRegistro,
 const aqui = dirname(fileURLToPath(import.meta.url));
 const HOST = "127.0.0.1";
 
-const motivo = (e) => (e && e.code ? `${e.code}: ${e.message}` : String(e?.message ?? e));
-
-/** Lee un fichero por líneas completas desde un byte; devuelve hasta dónde llegó (la última línea sin salto de línea se deja). */
-async function leerLineas(ruta, desde, alLinea, crearLector) {
-  let resto = Buffer.alloc(0);
-  let consumido = desde;
-  for await (const trozo of crearLector(ruta, { start: desde, highWaterMark: 1 << 20 })) {
-    const buf = resto.length ? Buffer.concat([resto, trozo]) : trozo;
-    let ini = 0;
-    for (let i = buf.indexOf(10, ini); i !== -1; i = buf.indexOf(10, ini)) {
-      alLinea(buf.toString("utf8", ini, i));
-      ini = i + 1;
-    }
-    consumido += ini;
-    resto = buf.subarray(ini);
-  }
-  return consumido;
-}
+// El mensaje de Node ya empieza por el código (ENOENT: …): no se repite.
+const motivo = (e) => {
+  const m = String(e?.message ?? e);
+  return e?.code && !m.includes(e.code) ? `${e.code}: ${m}` : m;
+};
 
 async function hashes(dir, prefijo) {
   const sal = {};
   for (const f of await readdir(dir)) {
-    const st = await stat(join(dir, f));
-    if (st.isFile()) sal[`${prefijo}/${f}`] = createHash("sha256").update(await readFile(join(dir, f))).digest("hex");
+    if ((await stat(join(dir, f))).isFile()) sal[`${prefijo}/${f}`] = createHash("sha256").update(await readFile(join(dir, f))).digest("hex");
   }
   return sal;
 }
@@ -56,33 +43,37 @@ export function crearRecolector(cfg = {}) {
   const claude = join(home, ".claude");
   const dirRegistro = cfg.dirRegistro ?? join(claude, "factoria-alvaro");
   const crearLector = cfg.crearLector ?? createReadStream;
-  const cacheTranscripciones = new Map(); // ruta → { mtimeMs, size, bytes, resumen }
-  const cacheRegistros = new Map(); // ruta → { mtimeMs, size, registro }
+  const cacheTr = new Map(); // ruta → { mtimeMs, size, valor }
+  const cacheReg = new Map();
   let enCurso = null;
 
-  async function transcripcion(ruta, st, errores, contador) {
-    const c = cacheTranscripciones.get(ruta);
-    if (c && c.mtimeMs === st.mtimeMs && c.size === st.size) return c.resumen;
-    // Un fichero que solo creció (las transcripciones solo añaden líneas) se sigue leyendo desde donde se quedó.
-    const sigue = c && st.size > c.size;
-    const resumen = sigue ? c.resumen : nuevoResumen();
-    const desde = sigue ? c.bytes : 0;
+  // Un fichero solo se vuelve a leer, entero, si cambió su fecha o su tamaño.
+  async function cacheado(cache, ruta, st, leer) {
+    const c = cache.get(ruta);
+    if (c && c.mtimeMs === st.mtimeMs && c.size === st.size) return { valor: c.valor, leido: false };
+    cfg.alLeer?.(ruta);
     try {
-      cfg.alLeer?.(ruta, desde);
-      contador.releidos++;
-      const bytes = await leerLineas(ruta, desde, (l) => procesarLinea(resumen, l), crearLector);
-      cacheTranscripciones.set(ruta, { mtimeMs: st.mtimeMs, size: st.size, bytes, resumen });
-      return resumen;
+      const valor = await leer(ruta);
+      cache.set(ruta, { mtimeMs: st.mtimeMs, size: st.size, valor });
+      return { valor, leido: true };
     } catch (e) {
-      cacheTranscripciones.delete(ruta); // a medias: la próxima vez se lee entero
-      errores.push({ fichero: ruta, motivo: motivo(e) });
-      return null;
+      cache.delete(ruta); // un fallo no deja una lectura a medias en la caché
+      throw e;
     }
+  }
+  // Lo que ya no está en la ventana (o desapareció) se olvida
+  const purgar = (cache, vistos) => cache.forEach((_, k) => vistos.has(k) || cache.delete(k));
+
+  async function leerTranscripcion(ruta) {
+    const r = nuevoResumen();
+    for await (const l of createInterface({ input: crearLector(ruta), crlfDelay: Infinity })) procesarLinea(r, l);
+    return r;
   }
 
   async function transcripciones(corte, errores, contador) {
     const raiz = join(claude, "projects");
     const sal = [];
+    const vistos = new Set();
     let carpetas;
     try {
       carpetas = await readdir(raiz);
@@ -104,13 +95,16 @@ export function crearRecolector(cfg = {}) {
           const st = await stat(ruta);
           if (st.mtimeMs < corte) continue;
           contador.total++;
-          const resumen = await transcripcion(ruta, st, errores, contador);
-          if (resumen) sal.push({ ruta, mtimeMs: st.mtimeMs, resumen });
+          vistos.add(ruta);
+          const { valor, leido } = await cacheado(cacheTr, ruta, st, leerTranscripcion);
+          if (leido) contador.releidos++;
+          sal.push({ ruta, mtimeMs: st.mtimeMs, resumen: valor });
         } catch (e) {
           errores.push({ fichero: ruta, motivo: motivo(e) });
         }
       }
     }
+    purgar(cacheTr, vistos);
     return sal;
   }
 
@@ -123,21 +117,20 @@ export function crearRecolector(cfg = {}) {
       return []; // sin carpeta de registro todavía: no es un fallo
     }
     const sal = [];
+    const vistos = new Set();
     for (const n of nombres.filter((x) => x.endsWith(".jsonl"))) {
       const ruta = join(dirRegistro, n);
       try {
         const st = await stat(ruta);
         if (st.mtimeMs < corte) continue;
-        let c = cacheRegistros.get(ruta);
-        if (!c || c.mtimeMs !== st.mtimeMs || c.size !== st.size) {
-          c = { mtimeMs: st.mtimeMs, size: st.size, registro: parsearRegistro(await readFile(ruta, "utf8")) };
-          cacheRegistros.set(ruta, c);
-        }
-        sal.push({ rama: n.replace(/\.jsonl$/, ""), ...c.registro });
+        vistos.add(ruta);
+        const { valor } = await cacheado(cacheReg, ruta, st, async (r) => parsearRegistro(await readFile(r, "utf8")));
+        sal.push({ rama: n.replace(/\.jsonl$/, ""), ...valor });
       } catch (e) {
         errores.push({ fichero: ruta, motivo: motivo(e) });
       }
     }
+    purgar(cacheReg, vistos);
     return sal;
   }
 
@@ -203,7 +196,7 @@ export function crearServidor(cfg = {}) {
     // Un Host de fuera (DNS rebinding: una web que apunta su nombre a 127.0.0.1) no puede leer el panel.
     if (!HOST_VALIDO.test(req.headers.host ?? "")) return fin(403, "text/plain; charset=utf-8", "Host no permitido");
     if (req.method !== "GET") return fin(405, "text/plain; charset=utf-8", "Solo GET", { Allow: "GET" });
-    const ruta = new URL(req.url, "http://panel.local").pathname;
+    const ruta = req.url.split("?")[0]; // sin new URL: «GET //» o una URL rota no pueden lanzar
     try {
       if (ruta === "/" || ruta === "/index.html") return fin(200, "text/html; charset=utf-8", readFileSync(join(aqui, "panel.html")));
       if (ruta === "/datos.json") return fin(200, "application/json; charset=utf-8", JSON.stringify(await rec.recoger()));

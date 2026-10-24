@@ -1,7 +1,7 @@
 // Tests del panel local de la factoría. Todo es SINTÉTICO: ninguna transcripción real, y un
 // marcador secreto sembrado en el contenido de los mensajes que NUNCA debe salir por /datos.json.
 import { createHash } from "node:crypto";
-import { appendFileSync, createReadStream, mkdirSync, readFileSync, mkdtempSync, rmSync, utimesSync, writeFileSync } from "node:fs";
+import { appendFileSync, createReadStream, mkdirSync, mkdtempSync, readFileSync, rmSync, utimesSync, writeFileSync } from "node:fs";
 import { spawn } from "node:child_process";
 import { createServer, request } from "node:http";
 import { connect } from "node:net";
@@ -14,12 +14,13 @@ import { agregar, compararCopias, leerDeclarados, nombreCorto, normalizarComando
 import { crearRecolector, crearServidor } from "./servir.mjs";
 
 const SERVIR = join(dirname(fileURLToPath(import.meta.url)), "servir.mjs");
-const MARCADOR = "SECRETO-PANEL-7f3a9c";
+const MARCADOR = "SECRETO-PANEL-7f3a9c"; // contenido de mensajes: no puede salir nunca
+const PERMITIDO = "PERMITIDO-PANEL-51d2e8"; // en cwd, rama, modelo y tipo de subagente: sale solo por esos campos, declarados en el README
 const DIA = 864e5;
 const AHORA = Date.parse("2026-10-24T10:00:00Z");
 const iso = (ms) => new Date(ms).toISOString();
 const L = (o) => JSON.stringify(o) + "\n";
-const base = (extra = {}) => ({ sessionId: "ses-aaaa1111", cwd: "/zz/carpeta-zz", gitBranch: "ops/zz", isSidechain: false, ...extra });
+const base = (extra = {}) => ({ sessionId: "ses-aaaa1111", cwd: "/zz/" + PERMITIDO, gitBranch: "ops/" + PERMITIDO, isSidechain: false, ...extra });
 const resumenDe = (...objs) => {
   const r = nuevoResumen();
   for (const o of objs) procesarLinea(r, typeof o === "string" ? o : JSON.stringify(o));
@@ -71,6 +72,14 @@ describe("parseo de líneas de transcripción", () => {
     expect(d.ineficiencias.subagentes).toEqual(expect.arrayContaining([{ tipo: "constructor", n: 1 }, { tipo: null, n: 1 }]));
   });
 
+  it("el modelo y el tipo de subagente salen recortados a 40 caracteres admitidos; los modelos sintéticos no salen", () => {
+    const largo = "m".repeat(60) + '<img src=x onerror="1">';
+    const a = (id, model, tipo) => ({ type: "assistant", uuid: id, timestamp: iso(AHORA), ...base(), message: { id, model, usage: { output_tokens: 1 }, content: [{ type: "tool_use", id: "t" + id, name: "Agent", input: { subagent_type: tipo } }] } });
+    const d = agregar(entradaBase({ ficheros: [{ ruta: "f", mtimeMs: AHORA, resumen: resumenDe(a("1", largo, largo), a("2", "<synthetic>", "revisor")) }] }));
+    expect(d.ineficiencias.tokens.map((t) => t.modelo)).toEqual([expect.stringMatching(/^[\w.:-]{1,40}$/)]);
+    expect(d.ineficiencias.subagentes.map((t) => t.tipo).sort()).toEqual([expect.stringMatching(/^[\w.:-]{1,40}$/), "revisor"].sort());
+  });
+
   it("una línea rota o que no es un objeto se salta y se cuenta; una vacía ni cuenta", () => {
     const r = resumenDe("{no es json", "[1,2]", "42", "", JSON.stringify({ type: "mode", ...base() }));
     expect(r.rotas).toBe(3);
@@ -96,17 +105,19 @@ describe("ventana de días, hooks declarados y vistos", () => {
     expect(d.hooks[0].veces).toBe(1);
   });
 
-  it("un hook declarado sin activaciones sale «no visto»; uno visto sin declarar, no", () => {
+  it("un hook declarado sin activaciones sale «sin huella»; en rojo solo si es de Stop (los demás eventos casi no dejan huella)", () => {
     const r = resumenDe(hookEn(AHORA, 'node "$HOME/.claude/factoria/hooks/cierre.mjs"'), hookEn(AHORA, 'node "${CLAUDE_PROJECT_DIR}/.claude/hooks/otro.mjs"'));
     const declarados = [
       { evento: "Stop", comando: 'node "$HOME/.claude/factoria/hooks/cierre.mjs"' },
       { evento: "PostToolUse", comando: 'node "$HOME/.claude/factoria/hooks/registro.mjs"' },
+      { evento: "Stop", comando: 'node "$HOME/.claude/factoria/hooks/mudo.mjs"' },
     ];
     const d = agregar(entradaBase({ declarados, ficheros: [{ ruta: "f", mtimeMs: AHORA, resumen: r }] }));
     const fila = (n) => d.hooks.find((h) => h.nombre === n);
-    expect(fila("cierre.mjs")).toMatchObject({ declarado: true, veces: 1, noVisto: false });
-    expect(fila("registro.mjs")).toMatchObject({ declarado: true, veces: 0, noVisto: true });
-    expect(fila("otro.mjs")).toMatchObject({ declarado: false, veces: 1, noVisto: false });
+    expect(fila("cierre.mjs")).toMatchObject({ declarado: true, veces: 1, sinHuella: false, rojo: false });
+    expect(fila("registro.mjs")).toMatchObject({ declarado: true, veces: 0, sinHuella: true, rojo: false });
+    expect(fila("mudo.mjs")).toMatchObject({ declarado: true, veces: 0, sinHuella: true, rojo: true });
+    expect(fila("otro.mjs")).toMatchObject({ declarado: false, veces: 1, sinHuella: false, rojo: false });
   });
 
   it("normaliza $HOME, ${CLAUDE_PROJECT_DIR} y barras para comparar", () => {
@@ -172,6 +183,31 @@ describe("tiempos", () => {
   it("una sesión sin cost-state da null, no 0", () => {
     const d = agregar(entradaBase({ ficheros: [{ ruta: "f", mtimeMs: AHORA, resumen: resumenDe(ev("s3")) }] }));
     expect(d.tiempos[0]).toMatchObject({ totalMs: null, apiMs: null, esperaMs: null, costeUSD: null });
+  });
+
+  const asist = (s, n = 1) => Array.from({ length: n }, (_, i) => ({ type: "assistant", uuid: s + i + Math.random(), timestamp: iso(AHORA - 1000), ...base({ sessionId: s }), message: { id: s + Math.random(), model: "m", usage: {}, content: [] } }));
+  const foto = (s, c, extra = {}) => ({ type: "cost-state", sessionId: s, totalCostUSD: c, totalDuration: 10000, totalAPIDuration: 3000, totalToolDuration: 2000, ...extra });
+
+  it("una foto con coste 0 en una sesión con mensajes es «sin dato», nunca $0", () => {
+    const r = resumenDe(...asist("s5"), foto("s5", 0), ev("s6"), foto("s6", 0));
+    const d = agregar(entradaBase({ ficheros: [{ ruta: "f", mtimeMs: AHORA, resumen: r }] }));
+    expect(d.tiempos.find((t) => t.sesion === "s5")).toMatchObject({ costeUSD: null, totalMs: null, esperaMs: null });
+    expect(d.tiempos.find((t) => t.sesion === "s6").costeUSD).toBe(0); // sin mensajes del asistente no hay contradicción: se deja
+    expect(d.ineficiencias.costes.sesiones.map((c) => c.sesion)).not.toContain("s5");
+  });
+
+  it("se marca la sesión con mensajes posteriores a su última foto", () => {
+    const r = resumenDe(...asist("s7"), foto("s7", 1), ...asist("s7", 2), ...asist("s8"), foto("s8", 1));
+    const d = agregar(entradaBase({ ficheros: [{ ruta: "f", mtimeMs: AHORA, resumen: r }] }));
+    expect(d.tiempos.find((t) => t.sesion === "s7")).toMatchObject({ fotoAtrasada: true });
+    expect(d.tiempos.find((t) => t.sesion === "s8")).toMatchObject({ fotoAtrasada: false });
+    expect(d.ineficiencias.costes.sesiones.find((c) => c.sesion === "s7").fotoAtrasada).toBe(true);
+  });
+
+  it("la espera solo se calcula si API y herramientas son mayores que 0", () => {
+    const r = resumenDe(ev("s9"), foto("s9", 1, { totalAPIDuration: 0 }), ev("sa"), foto("sa", 1, { totalToolDuration: 0 }));
+    const d = agregar(entradaBase({ ficheros: [{ ruta: "f", mtimeMs: AHORA, resumen: r }] }));
+    expect(d.tiempos.map((t) => t.esperaMs)).toEqual([null, null]);
   });
 
   it("solo salen las 15 últimas sesiones, la más reciente primero", () => {
@@ -240,7 +276,7 @@ function montar() {
   const t = Date.now();
   const sesion = [
     { type: "user", uuid: "u1", timestamp: iso(t - 5000), ...base(), message: { role: "user", content: "hola " + MARCADOR } },
-    { type: "assistant", uuid: "u2", timestamp: iso(t - 4000), ...base(), message: { id: "m1", model: "modelo-zz", usage: { input_tokens: 7, output_tokens: 3 }, content: [{ type: "text", text: MARCADOR }, { type: "thinking", thinking: MARCADOR }, { type: "tool_use", id: "t1", name: "Bash", input: { command: "echo " + MARCADOR } }, { type: "tool_use", id: "t2", name: "Agent", input: { subagent_type: "revisor", prompt: MARCADOR } }] } },
+    { type: "assistant", uuid: "u2", timestamp: iso(t - 4000), ...base(), message: { id: "m1", model: PERMITIDO, usage: { input_tokens: 7, output_tokens: 3 }, content: [{ type: "text", text: MARCADOR }, { type: "thinking", thinking: MARCADOR }, { type: "tool_use", id: "t1", name: "Bash", input: { command: "echo " + MARCADOR } }, { type: "tool_use", id: "t2", name: "Agent", input: { subagent_type: PERMITIDO, prompt: MARCADOR } }] } },
     { type: "ai-title", aiTitle: MARCADOR, sessionId: "ses-aaaa1111" },
     { type: "attachment", uuid: "u3", timestamp: iso(t - 3000), ...base(), attachment: { type: "hook_success", hookEvent: "SessionStart", command: "node arranque.mjs", durationMs: 12, stdout: MARCADOR, content: MARCADOR } },
     { type: "attachment", uuid: "u4", timestamp: iso(t - 2000), ...base(), attachment: { type: "hook_blocking_error", hookEvent: "Stop", blockingError: { command: 'node "$HOME/.claude/factoria/hooks/c.mjs"', blockingError: "x".repeat(80) + MARCADOR } } },
@@ -269,6 +305,7 @@ describe("servidor y lectura real", () => {
     montar();
   });
   afterEach(async () => {
+    for (const h of hijos.splice(0)) h.kill();
     if (srv) await new Promise((r) => srv.close(r));
     srv = null;
     rmSync(dir, { recursive: true, force: true });
@@ -287,60 +324,112 @@ describe("servidor y lectura real", () => {
     expect(d.errores).toEqual([]);
     expect(d.estado).toMatchObject({ sesiones: 1, lineasRotas: 1, copia: { ok: true } });
     expect(d.tiempos[0]).toMatchObject({ totalMs: 9000, apiMs: 4000, herramientasMs: 1000, esperaMs: 4000, costeUSD: 1.5 });
-    expect(d.ineficiencias.subagentes).toEqual([{ tipo: "revisor", n: 1 }]);
+    expect(d.ineficiencias.subagentes).toEqual([{ tipo: PERMITIDO, n: 1 }]);
     expect(d.hooks.find((h) => h.nombre === "c.mjs")).toMatchObject({ veces: 1, bloqueos: 1, declarado: true });
     // El marcador solo habría podido colarse por el hookError o el blockingError, que se cortan a 80 caracteres.
     expect(r.cuerpo).not.toContain(MARCADOR);
     expect(r.cuerpo).not.toContain("hola");
+    // el otro marcador sale, pero solo por los campos permitidos y declarados
+    const rutas = (v, p = "") => (typeof v === "string" ? (v.includes(PERMITIDO) ? [p] : []) : v && typeof v === "object" ? Object.entries(v).flatMap(([k, x]) => rutas(x, p + (/^\d+$/.test(k) ? "[]" : "." + k))) : []);
+    expect([...new Set(rutas(d))].sort()).toEqual([".ineficiencias.costes.sesiones[].carpeta", ".ineficiencias.costes.sesiones[].rama", ".ineficiencias.subagentes[].tipo", ".ineficiencias.tokens[].modelo", ".tiempos[].carpeta", ".tiempos[].rama"]);
   });
 
-  it("el programa de verdad escucha solo en el bucle local (no en la red del PC) y sale con error si el puerto es inválido", async () => {
-    const libre = await new Promise((ok) => {
+
+  it("el texto de un error de lectura no repite el código (ENOENT: ENOENT: …)", async () => {
+    rmSync(join(home, ".claude", "projects"), { recursive: true });
+    const d = JSON.parse((await pedir(await arrancar())).cuerpo);
+    expect(d.errores).toHaveLength(1);
+    expect(d.errores[0].motivo).toMatch(/^ENOENT: /);
+    expect(d.errores[0].motivo).not.toMatch(/ENOENT: ENOENT/);
+  });
+
+  const hijos = [];
+  const lanzar = async (extra = {}) => {
+    const puerto = await new Promise((ok) => {
       const t = createServer().listen(0, "127.0.0.1", () => {
         const p = t.address().port;
         t.close(() => ok(p));
       });
     });
-    const env = { ...process.env, HOME: home, USERPROFILE: home, PANEL_PUERTO: String(libre) };
-    const hijo = spawn(process.execPath, [SERVIR], { env, stdio: ["ignore", "pipe", "pipe"] });
-    try {
-      await new Promise((ok, ko) => {
-        hijo.stdout.on("data", (d) => String(d).includes("http://127.0.0.1:" + libre) && ok());
-        hijo.on("exit", (c) => ko(new Error("salió con " + c)));
+    const env = { ...process.env, HOME: home, USERPROFILE: home };
+    delete env.PANEL_DIAS;
+    Object.assign(env, { PANEL_PUERTO: String(puerto) }, extra);
+    const hijo = spawn(process.execPath, [SERVIR], { env, stdio: ["ignore", "pipe", "ignore"] });
+    hijos.push(hijo);
+    const salida = new Promise((ok) => hijo.on("exit", ok));
+    const esperar = () =>
+      new Promise((ok, ko) => {
+        hijo.stdout.on("data", (d) => String(d).includes(":" + puerto) && ok());
+        salida.then((c) => ko(new Error("salió con " + c)));
         setTimeout(() => ko(new Error("no arrancó")), 8000);
       });
-      expect((await pedir(libre)).estado).toBe(200);
-      const externa = Object.values(networkInterfaces()).flat().find((i) => i && i.family === "IPv4" && !i.internal);
-      if (externa) {
-        const codigo = await new Promise((ok) => {
-          const c = connect({ host: externa.address, port: libre }, () => {
-            c.destroy();
-            ok("conectó");
-          });
-          c.on("error", (e) => ok(e.code));
-        });
-        expect(codigo).toBe("ECONNREFUSED");
-      }
-    } finally {
-      hijo.removeAllListeners("exit");
-      hijo.kill();
-    }
-    const malo = spawn(process.execPath, [SERVIR], { env: { ...env, PANEL_PUERTO: "70000" }, stdio: "ignore" });
-    expect(await new Promise((ok) => malo.on("exit", ok))).toBe(1);
+    return { puerto, hijo, salida, esperar };
+  };
+
+  // Sin IPv4 externa no hay nada que probar: se ve como «omitido» (no pasa en silencio).
+  const externa = Object.values(networkInterfaces()).flat().find((i) => i && i.family === "IPv4" && !i.internal);
+  it.skipIf(!externa)("el programa escucha solo en el bucle local: por la IP de la red del PC la conexión se rechaza", async () => {
+    const h = await lanzar();
+    await h.esperar();
+    expect((await pedir(h.puerto)).estado).toBe(200);
+    const codigo = await new Promise((ok) => {
+      const c = connect({ host: externa.address, port: h.puerto }, () => {
+        c.destroy();
+        ok("conectó");
+      });
+      c.on("error", (e) => ok(e.code));
+    });
+    expect(codigo).toBe("ECONNREFUSED");
   });
 
-  it("sirve la página en / y solo existen / y /datos.json", async () => {
+  it.each([["PANEL_PUERTO", "70000"], ["PANEL_DIAS", "0"], ["PANEL_DIAS", "abc"]])("sale con error (código 1) si %s=%s no vale", async (k, v) => {
+    expect(await (await lanzar({ [k]: v })).salida).toBe(1);
+  });
+
+  it("la ventana es de 7 días por defecto y PANEL_DIAS la cambia", async () => {
+    for (const [n, dias] of [["tres.jsonl", 3], ["diez.jsonl", 10]]) {
+      const f = join(home, ".claude", "projects", "p2", n);
+      escribir(f, L({ type: "mode", ...base({ sessionId: n }), timestamp: iso(Date.now() - dias * DIA) }));
+      utimesSync(f, new Date(Date.now() - dias * DIA), new Date(Date.now() - dias * DIA));
+    }
+    for (const [extra, dias, total] of [[{}, 7, 2], [{ PANEL_DIAS: "1" }, 1, 1], [{ PANEL_DIAS: "20" }, 20, 3]]) {
+      const h = await lanzar(extra);
+      await h.esperar();
+      const d = JSON.parse((await pedir(h.puerto)).cuerpo);
+      expect([d.dias, d.ficheros.total]).toEqual([dias, total]);
+    }
+  });
+
+  it("peticiones raras (GET //, URL rota) no tumban el servidor", async () => {
+    const h = await lanzar();
+    await h.esperar();
+    for (const linea of ["GET // HTTP/1.1", "GET http://[ HTTP/1.1", "GET /%zz HTTP/1.1"]) {
+      await new Promise((ok) => {
+        const c = connect({ host: "127.0.0.1", port: h.puerto }, () => c.write(`${linea}\r\nHost: 127.0.0.1:${h.puerto}\r\nConnection: close\r\n\r\n`));
+        c.on("data", () => {});
+        c.on("close", ok);
+        c.on("error", ok);
+      });
+    }
+    expect((await pedir(h.puerto)).estado).toBe(200);
+    expect(h.hijo.exitCode).toBeNull();
+  });
+
+  it("sirve la página en / y solo existen / y /datos.json; con cabeceras de seguridad (CSP, nosniff, no-store)", async () => {
     const p = await arrancar();
     const r = await pedir(p, { ruta: "/" });
     expect(r.estado).toBe(200);
     expect(r.cabeceras["content-type"]).toMatch(/text\/html/);
     expect(r.cuerpo).toMatch(/datos\.json/);
+    for (const h of [r.cabeceras, (await pedir(p)).cabeceras]) {
+      expect(h["content-security-policy"]).toMatch(/default-src 'none'.*connect-src 'self'/);
+      expect([h["x-content-type-options"], h["cache-control"]]).toEqual(["nosniff", "no-store"]);
+    }
     expect((await pedir(p, { ruta: "/otra" })).estado).toBe(404);
   });
 
-  it("escucha solo en 127.0.0.1 y solo acepta GET (POST, PUT y DELETE dan 405)", async () => {
+  it("solo acepta GET (POST, PUT y DELETE dan 405)", async () => {
     const p = await arrancar();
-    expect(srv.address().address).toBe("127.0.0.1");
     for (const metodo of ["POST", "PUT", "DELETE"]) {
       const r = await pedir(p, { metodo });
       expect(r.estado).toBe(405);
@@ -374,23 +463,34 @@ describe("servidor y lectura real", () => {
     expect(d.estado.copia).toMatchObject({ ok: false, faltanInstalada: ["lib/r.mjs"] });
   });
 
-  it("no relee lo que no cambió y solo lee lo nuevo de lo que creció", async () => {
+  it("relee el fichero entero cuando cambia y no toca lo que no cambió", async () => {
     const lecturas = [];
-    const rec = crearRecolector({ home, repoAlvaro: alvaro, dias: 7, alLeer: (ruta, desde) => lecturas.push([ruta.split(/[\\/]/).pop(), desde]) });
+    const rec = crearRecolector({ home, repoAlvaro: alvaro, dias: 7, alLeer: (ruta) => lecturas.push(ruta) });
     const d1 = await rec.recoger(Date.now());
     const n1 = lecturas.length;
     expect(n1).toBeGreaterThan(0);
     const d2 = await rec.recoger(Date.now());
     expect(lecturas.length).toBe(n1);
     expect(d2.estado.lineasRotas).toBe(d1.estado.lineasRotas);
-    // crece: se lee desde donde se quedó y se suma, sin duplicar lo anterior
     appendFileSync(fSesion(), L({ type: "cost-state", sessionId: "ses-aaaa1111", totalCostUSD: 4, totalDuration: 20000, totalAPIDuration: 4000, totalToolDuration: 1000 }));
     const d3 = await rec.recoger(Date.now());
-    const ultima = lecturas.at(-1);
-    expect(ultima[0]).toBe("ses-aaaa1111.jsonl");
-    expect(ultima[1]).toBeGreaterThan(0);
+    expect(lecturas.length).toBe(n1 + 1);
     expect(d3.tiempos[0].costeUSD).toBe(4);
-    expect(d3.estado.lineasRotas).toBe(1);
+    expect(d3.estado.lineasRotas).toBe(1); // sin duplicar lo ya leído
+  });
+
+  it("la caché olvida un fichero que sale de la ventana: si vuelve igual, se relee", async () => {
+    const lecturas = [];
+    const fijo = new Date(Math.floor(Date.now() / 1000) * 1000 - 3600e3); // segundos enteros: la misma fecha exacta al volver
+    utimesSync(fSesion(), fijo, fijo);
+    const rec = crearRecolector({ home, repoAlvaro: alvaro, dias: 7, alLeer: (ruta) => lecturas.push(ruta) });
+    await rec.recoger(Date.now());
+    const n1 = lecturas.length;
+    utimesSync(fSesion(), new Date(Date.now() - 30 * DIA), new Date(Date.now() - 30 * DIA));
+    await rec.recoger(Date.now());
+    utimesSync(fSesion(), fijo, fijo);
+    await rec.recoger(Date.now());
+    expect(lecturas.length).toBe(n1 + 1);
   });
 
   it("solo mira ficheros modificados dentro de la ventana de días", async () => {
