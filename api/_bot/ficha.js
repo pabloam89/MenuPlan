@@ -122,6 +122,12 @@ export function preguntasPendientes(data = {}, calladas = new Set()) {
 // Solo la edad que se sabe (etapaDe da null sin ella): poner 30 a quien no la
 // tiene sería afirmar en la ficha algo que nadie ha dicho.
 const edadDe = (m) => etapaDe(m).edad;
+/** ¿Una regla acotada a semanas (`ambito.semanas`, lunes ISO) cuyas semanas ya acabaron? */
+export function semanasAcabadas(regla, hoy) {
+  const semanas = regla?.ambito?.semanas;
+  if (!Array.isArray(semanas) || !semanas.length) return false;
+  return semanas.every((lunes) => sumarDias(lunes, 6) < hoy);
+}
 /**
  * Las reglas de un solo día que acabaron en los últimos 3 días (lo que la
  * charla aún recuerda), en una línea por día: «sáb 3: fuera toda la casa
@@ -315,7 +321,9 @@ function cocinaBloque(data, hoy) {
   const rechazados = rechazadosDe(data.notepad).sort((a, b) => String(a.fecha).localeCompare(String(b.fecha))).slice(-2);
   if (rechazados.length) lineas.push(`- No volver a suponer: ${rechazados.map((r) => texto([r.path, { valor: r.valor }])).join("; ")}.`);
   // Las reglas de siempre («En casa sin carne los Lun»); las que caducan van en AHORA.
-  const fijas = (data.reglas ?? []).filter((r) => !r?.vigencia?.hasta);
+  // Las de una semana (invitados) no llevan «hasta»: pasada su semana no son
+  // ni de siempre ni de ahora, y Lola las leía como vivas (#911).
+  const fijas = (data.reglas ?? []).filter((r) => !r?.vigencia?.hasta && !semanasAcabadas(r, hoy));
   if (fijas.length) lineas.push(`- Reglas: ${fijas.slice(0, 3).map((r) => describirRegla(r, data)).join("; ")}${fijas.length > 3 ? `; +${fijas.length - 3} (ver_ajustes)` : ""}.`);
   // Los de la casa, de la libreta, con la fecha de hoy y con su ámbito
   // («cebolla (niños)», lib/vetos.js); los de cada persona ya salen en CASA.

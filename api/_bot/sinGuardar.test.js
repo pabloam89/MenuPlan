@@ -60,6 +60,32 @@ describe("lo que suena a «ya está guardado»", () => {
   });
 });
 
+describe("lo que suena a «ya está arreglado» (#911)", () => {
+  it("la frase de producción del 20 oct y sus variantes", () => {
+    expect(diceQueGuardo("Ya está arreglado. Te propongo tres primeros para el viernes:")).toBe(true);
+    expect(diceQueGuardo("Ya está cambiado, el viernes cenáis tortilla.")).toBe(true);
+    expect(diceQueGuardo("Perfecto, ya está hecho.")).toBe(true);
+    expect(diceQueGuardo("Queda arreglado el viernes.")).toBe(true);
+    expect(diceQueGuardo("Ya lo he arreglado: el primero es ahora crema de puerros.")).toBe(true);
+    expect(diceQueGuardo("Ya lo cambié por una crema.")).toBe(true);
+    expect(diceQueGuardo("¡Listo!")).toBe(true);
+    expect(diceQueGuardo("Vale. Arreglado.")).toBe(true);
+  });
+
+  it("lo que solo informa, pregunta o niega, no", () => {
+    expect(diceQueGuardo("¿Ya está arreglado o prefieres otro primero?")).toBe(false);
+    expect(diceQueGuardo("Todavía no está arreglado: ¿cuál de estos tres te pongo?")).toBe(false);
+    expect(diceQueGuardo("Nada está cambiado aún: para poner una, dime cuál.")).toBe(false);
+    expect(diceQueGuardo("No he cambiado nada todavía.")).toBe(false);
+    expect(diceQueGuardo("Aún no lo he arreglado, ¿cuál prefieres?")).toBe(false);
+    expect(diceQueGuardo("¿Quieres que lo deje hecho para el viernes?")).toBe(false);
+    // «listo» y «hecho» como adjetivos de otra cosa.
+    expect(diceQueGuardo("Estoy listo para proponerte opciones, dime el día.")).toBe(false);
+    expect(diceQueGuardo("Cuando esté listo el arroz, lo sacas del fuego.")).toBe(false);
+    expect(diceQueGuardo("Te propongo tres primeros para el viernes:")).toBe(false);
+  });
+});
+
 describe("ejecutar: si lo dice y no guardó, otra vuelta", () => {
   it("«✅ Apuntado» sin herramienta: repite con el aviso, y vale la segunda respuesta", async () => {
     const { vuelta, llamadas } = guion([
@@ -108,6 +134,29 @@ describe("ejecutar: si lo dice y no guardó, otra vuelta", () => {
     const r = await ejecutar({ entrada: "nada de coliflor", tools: [ajustarGustos], modelos: ["m"], vuelta });
     expect(r.corregido).toBe(true);
     expect(r.sigueSinGuardar).toBe(true);
+  });
+
+  it("«Ya está arreglado» tras solo proponer opciones: repite con el aviso (#911)", async () => {
+    const proponer = { name: "proponer_platos", run: async () => "Opciones: 1. Crema de puerros 2. Tortilla 3. Merluza. Nada está cambiado aún." };
+    const { vuelta, llamadas } = guion([
+      { dice: "Ya está arreglado. Te propongo tres primeros para el viernes.", llama: ["proponer_platos"] },
+      { dice: "Te propongo tres primeros para el viernes: crema de puerros, tortilla o merluza. ¿Cuál te pongo?" },
+    ]);
+    // proponer_platos es de solo lectura: en producción no cuenta como guardado.
+    const r = await ejecutar({ entrada: "No pega el arroz con tomate con ensalada de lentejas", tools: [proponer], modelos: ["m"], vuelta, guardados: () => 0 });
+    expect(llamadas).toHaveLength(2);
+    expect(llamadas[1].entrada).toMatch(/cambiado, arreglado o hecho/);
+    expect(r.corregido).toBe(true);
+    expect(r.sigueSinGuardar).toBe(false);
+    expect(r.dicho).not.toMatch(/ya est[aá] arreglado/i);
+  });
+
+  it("si de verdad cambió el plato, «ya está cambiado» no se toca (#911)", async () => {
+    const cambiar = { name: "cambiar_plato", run: async () => "Cambiado." };
+    const { vuelta, llamadas } = guion([{ dice: "Ya está cambiado: el viernes, crema de puerros.", llama: ["cambiar_plato"] }]);
+    const r = await ejecutar({ entrada: "cambia el primero del viernes por crema de puerros", tools: [cambiar], modelos: ["m"], vuelta, guardados: () => 1 });
+    expect(llamadas).toHaveLength(1);
+    expect(r.corregido).toBeUndefined();
   });
 
   it("una respuesta que solo informa no se toca", async () => {

@@ -174,6 +174,14 @@ const contiene = (args, esperado) => Object.entries(esperado).every(([k, v]) => 
   return dado.includes(normal(v));
 });
 
+// El primer viernes desde hoy (hoy incluido), «Viernes 30 oct (2026-10-30)».
+const viernesDesde = (hoy) => {
+  const d = new Date(`${hoy}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + ((5 - d.getUTCDay() + 7) % 7));
+  const iso = d.toISOString().slice(0, 10);
+  return `Viernes ${corta(iso)} (${iso})`;
+};
+
 const filtro = normal(ARGV.find((a) => !a.startsWith("--")) ?? "");
 const elegidos = casosDelNivel(casos, NIVEL).filter((c) => !filtro || normal(c.nombre).includes(filtro) || c.id.includes(filtro));
 // `"papel"` en un caso (owner | editor | viewer | ajeno; por defecto titular)
@@ -261,7 +269,11 @@ async function intentar(caso) {
     // Lola recibe la ficha de la casa en cada mensaje (api/_bot/ficha.js): sin
     // ella, las pruebas medían a una Lola que no sabe nada de la familia.
     // `"ficha": null` en un caso la quita; `"ficha": {…}` pone otra.
-    const ficha = conQuienEscribe(caso.ficha === undefined ? FICHA : caso.ficha, caso.papel ?? "owner", caso.idioma ?? null);
+    // `"alDia": ["- {viernes}: …"]`: líneas que se añaden al menú de la ficha de
+    // hoy; {viernes} es el primer viernes desde hoy, con su fecha (así el caso
+    // no se contradice con el día en que corre).
+    const base = caso.alDia ? { ...FICHA, delDia: [FICHA.delDia, ...caso.alDia.map((l) => l.replace("{viernes}", viernesDesde(HOY_MADRID)))].join("\n") } : FICHA;
+    const ficha = conQuienEscribe(caso.ficha === undefined ? base : caso.ficha, caso.papel ?? "owner", caso.idioma ?? null);
     const pista = caso.pista ? textoPista(caso.pista.decision, caso.pista.adelanto) : null;
     // `pendientes`: las tareas abiertas que el código adjuntaría (api/_bot/pendientes.js).
     // `tareas`: las de la tabla bot_tareas, como las monta el turno real.
