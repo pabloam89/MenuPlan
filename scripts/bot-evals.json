@@ -1214,6 +1214,71 @@
       "texto": "Rehacer"
     },
     {
+      "id": "rehacer-semana-sin-pisar-hoy",
+      "tipo": "multiturno",
+      "dominio": "menu",
+      "origen": "fallo_produccion",
+      "dependeDeFecha": true,
+      "nombre": "rehacer tras un ajuste para la semana que viene: rehace esa, no la de hoy (#907)",
+      "historia": [
+        {
+          "role": "user",
+          "content": "para la semana que viene nada de coliflor"
+        },
+        {
+          "role": "assistant",
+          "content": "✅ Apuntado: nada de coliflor. Lo tendré en cuenta en el próximo menú.\n\n[[Rehacer la del 26 oct]]"
+        }
+      ],
+      "entrada": "Rehacer la del 26 oct",
+      "llama": [
+        "generar_menu"
+      ],
+      "args": {
+        "generar_menu": {
+          "rehacer": true
+        }
+      },
+      "noLlamaCon": {
+        "generar_menu": {
+          "semana": "esta"
+        }
+      },
+      "nucleo": true
+    },
+    {
+      "id": "rehacer-con-aviso-reintenta-con-rehacer",
+      "tipo": "multiturno",
+      "dominio": "menu",
+      "origen": "fallo_produccion",
+      "dependeDeFecha": true,
+      "nombre": "rehacer: si la herramienta avisa de que ya hay menú y ya pidieron rehacer, repite con rehacer: true (#907)",
+      "historia": [
+        {
+          "role": "user",
+          "content": "a partir de ahora nada de coliflor"
+        },
+        {
+          "role": "assistant",
+          "content": "✅ Apuntado: nada de coliflor. Lo tendré en cuenta en el próximo menú.\n\n[[Rehacer la del 26 oct]]"
+        }
+      ],
+      "entrada": "sí, rehaz la semana del 26 de octubre",
+      "llama": [
+        "generar_menu"
+      ],
+      "args": {
+        "generar_menu": {
+          "rehacer": true
+        }
+      },
+      "noLlamaCon": {
+        "generar_menu": {
+          "semana": "esta"
+        }
+      }
+    },
+    {
       "id": "alta-con-quien-come-y-alergias",
       "tipo": "multiturno",
       "dominio": "alta",
@@ -1270,7 +1335,6 @@
       "tipo": "herramienta",
       "dominio": "menu",
       "origen": "fallo_produccion",
-      "nucleo": true,
       "dependeDeFecha": true,
       "nombre": "ver un día entero: ver_menu (sale pintado)",
       "entrada": "¿qué hay mañana?",

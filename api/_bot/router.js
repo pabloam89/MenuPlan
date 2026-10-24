@@ -211,7 +211,20 @@ export function permitidoEn(modo, { esGrupo = false, variosAutores = false, pape
   return !(p.condicionGrupo === "una_persona" && variosAutores);
 }
 
-export function vaPorLaRapida(d, { esGrupo = false, variosAutores = false, papel = "owner" } = {}) {
+// Generar por la vía rápida solo entiende «esta» o «la que viene»: con una
+// fecha, «pregúntame» o una corrección, Lola (#905, #907). En código y no solo
+// en las reglas del enrutador: la vía rápida rehízo la semana equivocada.
+const MESES = "enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre|ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic";
+const FECHA = new RegExp(`\\d{1,2}\\s*(de\\s+)?(${MESES})\\b|\\b(el|del|d[ií]a)\\s+\\d{1,2}\\b|a partir d|dentro de|\\b(lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado|domingo)\\b`, "i");
+const PIDE_PREGUNTAS = /pregunt/i;
+const SIN_PREGUNTAS = /\b(no|sin|ni)\s+(me\s+)?(hagas\s+|hace\s+falta\s+|hacer\s+)?(m[aá]s\s+)?pregunt/i;
+// Justo después de generar, «la siguiente» u «otra» puede ser la de después
+// de esa: lo decide Lola (#905: «genérame la siguiente» rehízo la del 26).
+const RECIEN_GENERADO = /Men[uú] listo/i;
+export const generarConMatices = ({ texto = "", corrige = false, ultima = null }) =>
+  corrige || FECHA.test(texto) || (PIDE_PREGUNTAS.test(texto) && !SIN_PREGUNTAS.test(texto)) || RECIEN_GENERADO.test(String(ultima ?? ""));
+
+export function vaPorLaRapida(d, { esGrupo = false, variosAutores = false, papel = "owner", texto = "", corrige = false, ultima = null } = {}) {
   const p = d ? POLITICA[d.modo] : null;
   const x = d?.datos ?? {};
   // Un cambio sin comida no escribe nada todavía: primero pregunta «¿comida o
@@ -240,6 +253,7 @@ export function vaPorLaRapida(d, { esGrupo = false, variosAutores = false, papel
   if (d.modo === "compra_anadir" || d.modo === "compra_marcar") return (x.productos ?? []).length > 0;
   // Con platos pedidos, Lola: cuenta dónde han caído y qué no ha cabido. No
   // depende de la confianza, que con estas frases baila entre 0,85 y 0,95.
+  if (d.modo === "generar" && generarConMatices({ texto: String(texto), corrige, ultima })) return false;
   if (d.modo === "generar") return Boolean(x.semana) && !(Array.isArray(x.fijos) ? x.fijos.length : String(x.fijos ?? "").trim());
   return true; // recomendar (todo opcional) y deshacer
 }

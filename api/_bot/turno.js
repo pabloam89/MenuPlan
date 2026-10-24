@@ -160,6 +160,7 @@ export async function tachar(householdId, x, autor = null) {
 export async function generar(householdId, x) {
   const out = {};
   await generarMenu(householdId, x.semana ?? "esta", x.fijos ?? [], out);
+  // Ya había menú en esa semana (out.aviso): no se ha tocado; lo pregunta Lola.
   if (!out.ok) return null;
   // Las líneas de dondeQuedaron (generar.js) están escritas para Lola: la
   // instrucción del final se cambia por lo que se le diría a la persona.

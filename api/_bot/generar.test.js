@@ -166,3 +166,40 @@ describe("colocarPedidos", () => {
     expect(pick.mock.calls[0][2].hoy).toBe(isoDeCasa());
   });
 });
+
+describe("generar: la semana pedida (#905)", () => {
+  it("una semana que ya tiene menú no se rehace sin rehacer: avisa y no escribe nada", async () => {
+    cargarCasa.mockResolvedValue({ ...structuredClone(casaVieja), semanas: [{ weekStart: "2000-01-01", weekEnd: "2099-01-01", startDayIdx: 0, plan: {} }] });
+    const out = {};
+    const texto = await generarMenu("h1", "esta", [], out);
+    expect(texto).toMatch(/YA HAY MENÚ/);
+    expect(out.ok).toBe(false);
+    expect(insert).not.toHaveBeenCalled();
+  });
+});
+
+describe("generar: rehacer la semana en curso (#907)", () => {
+  it("la compra sale solo de lo rehecho: hoy y lo pasado vuelven al plan pero no a la compra", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-10-22T10:00:00Z")); // jueves
+    try {
+      const viejo = { g1: { "Lun-Comida": { recipeId: "viejo-lunes" }, "Jue-Cena": { recipeId: "viejo-hoy" }, "Vie-Cena": { recipeId: "viejo-vie" } } };
+      cargarCasa.mockResolvedValue({ ...structuredClone(casaVieja), semanas: [{ weekStart: "2026-10-19", weekEnd: "2026-10-25", startDayIdx: 0, plan: viejo }] });
+      const nuevo = { g1: { "Vie-Cena": { recipeId: "nuevo-vie" } } };
+      let enLaCompra = null;
+      motor.mockResolvedValue({
+        ...m,
+        generateMenuWithAI: async () => ({ plan: nuevo, recipes: [] }),
+        buildShoppingList: (p) => { enLaCompra = Object.keys(p.g1); return { byCategory: [], pantryItems: [] }; },
+      });
+      conCasa.mockResolvedValue({ ok: true });
+      const out = {};
+      await generarMenu("h1", "esta", [], out, { rehacer: true });
+      expect(out.ok).toBe(true);
+      expect(enLaCompra).toEqual(["Vie-Cena"]);
+      expect(nuevo.g1).toMatchObject({ "Lun-Comida": { recipeId: "viejo-lunes" }, "Jue-Cena": { recipeId: "viejo-hoy" }, "Vie-Cena": { recipeId: "nuevo-vie" } });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
