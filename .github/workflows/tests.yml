@@ -35,7 +35,7 @@ jobs:
           # Dos commits: en un PR, HEAD es la fusión con la base y HEAD^1 la base;
           # su diferencia son los ficheros del PR (para los dos pasos del final).
           fetch-depth: 2
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
