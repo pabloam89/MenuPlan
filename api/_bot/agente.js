@@ -26,6 +26,8 @@ import {
 } from "./menu.js";
 import { ESQUEMA_RASGOS, ESQUEMA_EJES, ESQUEMA_PERFIL } from "./esquemas.js";
 import { generarMenu } from "./generar.js";
+import { esBotonRehacer, desdeDelBoton } from "./semanaPedida.js";
+import { isoDeCasa } from "../../src/lib/dias.js";
 import { avisoVispera } from "./vispera.js";
 import { registrar, EMBUDO, duenoDe } from "./embudo.js";
 import {
@@ -630,7 +632,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
       inputSchema: obj({
         semana: { type: "string", enum: ["esta", "siguiente"] },
         desde: { type: "string", description: "AAAA-MM-DD: genera la semana de esa fecha (manda sobre semana)." },
-        rehacer: { type: "boolean", description: "Solo si piden rehacer una semana que ya tiene menú." },
+        rehacer: { type: "boolean", description: "true si piden rehacer una semana que ya tiene menú, o al pulsar [[Rehacer la del …]]: entonces desde = ese lunes y rehacer: true, los dos." },
         fijos: {
           type: "array", maxItems: 7,
           items: obj({
@@ -645,7 +647,9 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
         // este mismo turno ya salga con todo el catálogo.
         await silencioDelTurno(chat);
         const out = {};
-        const texto = await generarMenu(householdId, semana, fijos ?? [], out, { desde: desde ?? null, rehacer: Boolean(rehacer) });
+        // Pulsado «Rehacer la del 26 oct», esa semana y rehacer, diga lo que diga el modelo (#907).
+        const delBoton = esBotonRehacer(chat.texto) ? desdeDelBoton(chat.texto, isoDeCasa()) : null;
+        const texto = await generarMenu(householdId, semana, fijos ?? [], out, { desde: delBoton ?? desde ?? null, rehacer: Boolean(rehacer) || Boolean(delBoton) });
         if (out.ok) pintarTambien(chat, filtrosTrasGenerar(out));
         if (out.recordarSilencio) chat.recordarSilencio = true;
         return out.recordarSilencio ? `${texto}\n${NOTA_RECORDATORIO}` : texto;

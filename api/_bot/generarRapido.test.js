@@ -23,3 +23,18 @@ describe("generar por la vía rápida", () => {
     expect(vaPorLaRapida(d({ semana: "siguiente" }), { texto: "que me hagas la semana que viene", corrige: true })).toBe(false);
   });
 });
+
+describe("generar: matices afinados (#905)", () => {
+  it("un número que no es fecha, o «no me preguntes», sigue por la rápida", () => {
+    expect(vaPorLaRapida(d({ semana: "siguiente" }), { texto: "hazme un menú de 5 cenas para la semana que viene" })).toBe(true);
+    expect(vaPorLaRapida(d({ semana: "esta" }), { texto: "somos 5, genera el menú de esta semana" })).toBe(true);
+    expect(vaPorLaRapida(d({ semana: "siguiente" }), { texto: "hazme el menú de la semana que viene, no me preguntes nada" })).toBe(true);
+  });
+  it("una fecha con mes o con «el/del», a Lola", () => {
+    expect(vaPorLaRapida(d({ semana: "siguiente" }), { texto: "genera la del 9" })).toBe(false);
+    expect(vaPorLaRapida(d({ semana: "siguiente" }), { texto: "el menú de la semana del 2 de noviembre" })).toBe(false);
+  });
+  it("justo después de un menú recién generado, a Lola", () => {
+    expect(vaPorLaRapida(d({ semana: "siguiente" }), { texto: "Genérame la siguiente semana", ultima: "🎉 <b>¡Menú listo!</b> Del <b>26 de octubre al 1 de noviembre</b>." })).toBe(false);
+  });
+});

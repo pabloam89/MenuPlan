@@ -56,3 +56,23 @@ describe("conservarDiasPrevios", () => {
     expect(plan.g2).toBeUndefined();
   });
 });
+
+describe("botón de rehacer (#907)", () => {
+  it("nombra la que viene si tiene menú; si no, la de ahora; un domingo sin la siguiente, nada", async () => {
+    const { botonRehacer, esBotonRehacer } = await import("./semanaPedida.js");
+    expect(botonRehacer([estaSemana, del26], hoy)).toBe("Rehacer la del 26 oct");
+    expect(botonRehacer([estaSemana], hoy)).toBe("Rehacer la del 19 oct");
+    expect(botonRehacer([estaSemana], "2026-10-25")).toBeNull();
+    expect(esBotonRehacer("Rehacer la del 26 oct")).toBe(true);
+    expect(esBotonRehacer("rehazme el menú")).toBe(false);
+  });
+});
+
+describe("desdeDelBoton", () => {
+  it("el lunes que nombra el botón, en el año que toca", async () => {
+    const { desdeDelBoton } = await import("./semanaPedida.js");
+    expect(desdeDelBoton("Rehacer la del 26 oct", hoy)).toBe("2026-10-26");
+    expect(desdeDelBoton("Rehacer la del 4 ene", "2026-12-30")).toBe("2027-01-04");
+    expect(desdeDelBoton("rehazlo", hoy)).toBeNull();
+  });
+});

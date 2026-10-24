@@ -1280,7 +1280,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
     },
     "rehacer": {
      "type": "boolean",
-     "description": "Solo si piden rehacer una semana que ya tiene menú."
+     "description": "true si piden rehacer una semana que ya tiene menú, o al pulsar [[Rehacer la del …]]: entonces desde = ese lunes y rehacer: true, los dos."
     },
     "fijos": {
      "type": "array",

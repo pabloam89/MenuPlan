@@ -85,3 +85,34 @@ export function conservarDiasPrevios(plan, viejo, desdeIdx, DIAS) {
   }
   return conservadas;
 }
+
+/**
+ * La etiqueta exacta del botón que ofrece rehacer tras un ajuste (#907), para
+ * que Lola no tenga que calcular lunes: la semana que viene si ya tiene menú
+ * y, si no, la de ahora mientras quede algo que no sea hoy. Null si no hay
+ * nada que rehacer.
+ */
+export function botonRehacer(semanas, hoy) {
+  const lunesHoy = lunesDe(hoy);
+  if (semanaConMenu(semanas, sumarDias(lunesHoy, 7), hoy)) return `Rehacer la del ${fechaCorta(sumarDias(lunesHoy, 7))}`;
+  if (semanaConMenu(semanas, lunesHoy, hoy) && indiceDeISO(hoy) < 6) return `Rehacer la del ${fechaCorta(lunesHoy)}`;
+  return null;
+}
+
+/** ¿Es el texto del botón de botonRehacer? Entonces se rehace, lo diga o no el modelo. */
+export const esBotonRehacer = (texto) => /^\s*rehacer la del \d{1,2} [a-z]{3}\s*$/i.test(String(texto ?? ""));
+
+/**
+ * El lunes que nombra el botón («Rehacer la del 26 oct» → 2026-10-26), o
+ * null. Pulsado el botón, la semana y el rehacer salen de aquí y no del
+ * modelo: en las evals, a veces pedía «siguiente» y eso es la primera libre.
+ */
+export function desdeDelBoton(texto, hoy) {
+  const m = String(texto ?? "").match(/^\s*rehacer la del (\d{1,2}) ([a-z]{3})\s*$/i);
+  const mes = m ? MESES.indexOf(m[2].toLowerCase()) : -1;
+  if (mes < 0) return null;
+  let anio = Number(hoy.slice(0, 4));
+  const iso = (a) => `${a}-${String(mes + 1).padStart(2, "0")}-${String(Number(m[1])).padStart(2, "0")}`;
+  if (iso(anio) < sumarDias(hoy, -180)) anio += 1;
+  return iso(anio);
+}

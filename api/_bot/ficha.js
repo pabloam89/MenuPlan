@@ -37,6 +37,7 @@ import { DIAS, DIA_LARGO_MINUSCULAS, DIA_LETRA, diaDeISO, isoDeCasa } from "../.
 import { select, eq } from "./db.js";
 import { propiasDe } from "./propias.js";
 import { alergiasPorSilencio } from "../../src/lib/alergiasBase.js";
+import { botonRehacer } from "./semanaPedida.js";
 
 const DIA_CORTO = Object.fromEntries(DIAS.map((d) => [d, d.toLowerCase()]));
 const DIA_LARGO = DIA_LARGO_MINUSCULAS;
@@ -385,6 +386,9 @@ function delDiaBloque(casa, extras, hoy) {
     const enManana = casaManana.semana ? platosDelDia(casaManana, diaDeFecha(manana), nombre) : "";
     if (enHoy) lineas.push(`- Hoy: ${enHoy}.`);
     if (enManana) lineas.push(`- Mañana: ${enManana}.`);
+    // La etiqueta exacta del botón de rehacer tras un ajuste (#907).
+    const boton = botonRehacer(vivas, hoy);
+    if (boton) lineas.push(`- Botón tras un ajuste: [[${boton}]]`);
   }
   if (extras.nevera?.length) lineas.push(`- Hecho y guardado: ${extras.nevera.slice(0, 3).join("; ")}.`);
   if (extras.avisos?.length) lineas.push("AVISOS", ...extras.avisos.slice(0, 2).map((a) => `- ${a}`));
