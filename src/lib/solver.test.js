@@ -329,3 +329,34 @@ describe("la cena de dos platos", () => {
     expect(ctx.slots.every((s) => s.mealType !== "cena" || !s.position)).toBe(true);
   });
 });
+
+describe("segundo_sin_proteina_principal es relajable (#894): sin proteína animal no se pierden huecos", () => {
+  const segundos = (ctx) => ctx.slots.filter((s) => s.position === "2" || s.position === "segundo").map((s) => s.slotId);
+  const casos = {
+    "casa vegana": casa({ members: [{ id: "m1", age: 38, intolerances: ["vegano"] }, { id: "m2", age: 40, intolerances: ["vegano"] }] }),
+    "casa vegetariana alérgica al huevo": casa({
+      mealStructureCena: "primero_segundo",
+      members: [
+        { id: "m1", age: 38, intolerances: ["vegetariano"], allergies: ["huevos"] },
+        { id: "m2", age: 40, intolerances: ["vegetariano"] },
+      ],
+    }),
+  };
+  const VACIOS_ANTES = { "casa vegana": 7, "casa vegetariana alérgica al huevo": 9 };
+  for (const [nombre, data] of Object.entries(casos)) {
+    it(`${nombre}: no deja más huecos vacíos que antes, y los que no llevan proteína salen como relajados`, () => {
+      const { asignaciones, relajados, ctx, pool } = resolverPara(data, { conReintentos: true, semilla: 1 });
+      const ids = segundos(ctx);
+      expect(ids.length).toBeGreaterThan(0);
+      // Sin más huecos vacíos que antes de la regla. Medido el 20 oct 2026
+      // con la regla anulada (cumple siempre): la vegana deja 7 (sus segundos
+      // de comida: no hay ningún segundo en su pool) y la vegetariana sin
+      // huevo, 9. Con la regla, los mismos. Con la regla sin relajar, la
+      // vegetariana dejaba 16: eso es lo que este tope pilla.
+      expect(ctx.slots.length - asignaciones.length).toBeLessThanOrEqual(VACIOS_ANTES[nombre]);
+      const { violations } = validateMenu(asignaciones, pool, ctx.slots, [], {}, {});
+      const sinProteina = violations.filter((v) => v.rule === "segundo_sin_proteina_principal").map((v) => v.slotId);
+      expect(sinProteina.filter((id) => !relajados.includes(id))).toEqual([]);
+    }, 60000);
+  }
+});

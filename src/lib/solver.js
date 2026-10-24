@@ -115,7 +115,7 @@ const IGNORAR_EN_PARCIAL = new Set([
  * gastados en candidatos que iban a rebotar. Con la tabla, el dominio ya no
  * los trae.
  *
- * ── Las tres que NO se podan, y por qué no es deuda ───────────────────────
+ * ── Las que NO se podan, y por qué no es deuda ────────────────────────────
  *
  * `school_protein_conflict`, `school_carb_conflict` y `health_profile_conflict`
  * son unarias y no están aquí. Medido: estrecharían de verdad —el perfil
@@ -134,7 +134,12 @@ const IGNORAR_EN_PARCIAL = new Set([
  *   ganarían son nodos — y esta búsqueda no está limitada por nodos: de 300 a
  *   2.500 salen los mismos huecos y las mismas semanas (ver los dos topes).
  *
- * Una no se poda porque se relaja y las otras dos porque no compran nada.
+ *   `segundo_sin_proteina_principal` (#894) tampoco se poda, por lo mismo que
+ *   el perfil: es RELAJABLE. Una casa vegana no tiene ningún segundo con
+ *   carne, pescado ni huevo; podada, se quedaría sin segundos en vez de
+ *   relajarla.
+ *
+ * Dos no se podan porque se relajan y las otras dos porque no compran nada.
  *
  * Exportada aparte del solver porque vale por sí sola: es lo que necesita la
  * pantalla de ajuste para decir "el martes no hay ningún segundo de 15 minutos,
@@ -678,7 +683,9 @@ export function resolverMenu(slots, pool, {
     const estrictos = new Set(asignadas.map((a) => a.slotId));
     const relajadaValida = () => {
       const { violations } = validateMenu(asignadas, pool, contexto, [], {}, basesPedidas);
-      return !violations.some((v) => !IGNORAR_EN_PARCIAL.has(v.rule));
+      // Perfiles y topes ya no entran (los [] y {} de arriba); el resto de
+      // REGLAS_RELAJABLES (el segundo con proteína, #894) se ignora aquí.
+      return !violations.some((v) => !IGNORAR_EN_PARCIAL.has(v.rule) && !REGLAS_RELAJABLES.has(v.rule));
     };
     if (relajar) rellenar(relajadaValida);
     for (const a of asignadas) if (!estrictos.has(a.slotId)) relajados.push(a.slotId);
@@ -696,7 +703,7 @@ export function resolverMenu(slots, pool, {
     // Huecos con candidatos, pero ninguno compatible con el resto de la semana
     // ni siquiera relajando REGLAS_RELAJABLES.
     sinCombinacion,
-    // Huecos colocados saltándose el tope semanal o el perfil de salud.
+    // Huecos colocados saltándose una de REGLAS_RELAJABLES (tope, perfil, segundo sin proteína).
     relajados,
     // Cocina → platos que la casa pidió y no han cabido.
     cocinasSinSitio: Object.fromEntries(
@@ -713,8 +720,15 @@ export function resolverMenu(slots, pool, {
  * Las reglas que la fase 3 puede saltarse para no dejar un hueco vacío. Son
  * exactamente las que el prompt del planner llama orientación. La
  * revalidación de generateGroupMenu las ignora en los huecos `relajados`.
+ * `segundo_sin_proteina_principal` (#894): el prompt pide proteína en el
+ * segundo, pero una casa vegana no tiene ninguno; antes un segundo sin ella
+ * que un hueco vacío.
  */
-export const REGLAS_RELAJABLES = new Set(["health_profile_conflict", "freq_max_exceeded"]);
+export const REGLAS_RELAJABLES = new Set([
+  "health_profile_conflict",
+  "freq_max_exceeded",
+  "segundo_sin_proteina_principal",
+]);
 
 /**
  * El solver con REINTENTOS (1 oct 2026).
