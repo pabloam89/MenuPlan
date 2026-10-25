@@ -6,6 +6,7 @@
  */
 import { describe, it, expect } from "vitest";
 import { vaPorLaRapida } from "./router.js";
+import { esCorreccionRuta } from "./senales.js";
 
 const d = (datos) => ({ modo: "generar", confianza: 0.95, datos });
 
@@ -65,5 +66,19 @@ describe("generar: fechas sin dígito, a Lola (#915)", () => {
       "hazme el menú de la semana que viene, no me preguntes nada",
       "dame el menú de la próxima semana",
     ]) expect(rapida(texto), texto).toBe(true);
+
+// #910: el criterio de la RUTA (qué turno va a Lola) es el amplio de siempre; el estrecho de
+// senales.js (esCorreccionMedida) es solo para contar. Un PR de medición no cambia la ruta.
+describe("generar con una restricción dicha en la frase: a Lola (la ruta usa el criterio amplio)", () => {
+  const ultima = "Hecho: menú de la semana del 26.";
+  const ruta = (texto) => vaPorLaRapida(d({ semana: "siguiente" }), { texto, ultima, corrige: esCorreccionRuta(texto, ultima) });
+  it("«No quiero más de dos ensaladas, genérame la semana», a Lola", () => {
+    expect(ruta("No quiero más de dos ensaladas, genérame la semana")).toBe(false);
+  });
+  it("«No quiero pescado, hazme el menú de esta semana», a Lola", () => {
+    expect(ruta("No quiero pescado, hazme el menú de esta semana")).toBe(false);
+  });
+  it("sin «no» delante, la misma petición sigue por la rápida", () => {
+    expect(ruta("genérame la semana")).toBe(true);
   });
 });

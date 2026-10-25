@@ -40,4 +40,24 @@ describe("aSolas: una foto espera su turno y nunca suelta un candado ajeno", () 
     expect(atender).toHaveBeenCalledTimes(1);
     expect(llamadas.filter((n) => n === "bot_soltar_candado")).toHaveLength(1);
   });
+
+  it("dice cuánto esperó a que el chat quedara libre (bot_route espera_cola_ms)", async () => {
+    libre = false;
+    const atender = vi.fn(async () => {});
+    const p = aSolas("c1", atender, vi.fn(), vi.fn());
+    await vi.advanceTimersByTimeAsync(3000);
+    libre = true;
+    await vi.advanceTimersByTimeAsync(1100);
+    await p;
+    // Con relojes falsos el tiempo es exacto: 3 intentos de 1 s sin candado, y el cuarto lo toma.
+    expect(atender).toHaveBeenCalledWith({ esperaMs: 4000 });
+  });
+
+  it("con el chat libre, la espera es casi nula", async () => {
+    const atender = vi.fn(async () => {});
+    const p = aSolas("c1", atender, vi.fn(), vi.fn());
+    await vi.advanceTimersByTimeAsync(10);
+    await p;
+    expect(atender.mock.calls[0][0].esperaMs).toBeLessThan(1000);
+  });
 });
