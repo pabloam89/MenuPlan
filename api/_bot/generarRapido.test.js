@@ -66,6 +66,8 @@ describe("generar: fechas sin dígito, a Lola (#915)", () => {
       "hazme el menú de la semana que viene, no me preguntes nada",
       "dame el menú de la próxima semana",
     ]) expect(rapida(texto), texto).toBe(true);
+  });
+});
 
 // #910: el criterio de la RUTA (qué turno va a Lola) es el amplio de siempre; el estrecho de
 // senales.js (esCorreccionMedida) es solo para contar. Un PR de medición no cambia la ruta.
