@@ -143,24 +143,47 @@ describe("ventana de días, hooks declarados y vistos", () => {
 // Navegador simulado: lo justo para ejecutar el script de la página y mirar lo que pinta.
 class Nodo {
   constructor(tag) {
-    Object.assign(this, { tag, hijos: [], className: "", dataset: {}, scrollLeft: 0, reemplazos: 0, classList: { add() {}, remove() {} } });
+    Object.assign(this, { tag, hijos: [], padre: null, className: "", dataset: {}, attrs: {}, scrollLeft: 0, reemplazos: 0, inserciones: 0, classList: { add() {}, remove() {} } });
   }
-  append(...xs) { this.hijos.push(...xs.map((x) => (x instanceof Nodo ? x : String(x)))); }
-  replaceChildren(...xs) { this.reemplazos++; this.hijos = []; this.append(...xs); }
+  adoptar(x) {
+    if (!(x instanceof Nodo)) return String(x);
+    x.remove();
+    x.padre = this;
+    return x;
+  }
+  append(...xs) { this.hijos.push(...xs.map((x) => this.adoptar(x))); }
+  replaceChildren(...xs) { this.reemplazos++; this.hijos.forEach((h) => h instanceof Nodo && (h.padre = null)); this.hijos = []; this.append(...xs); }
+  insertBefore(n, ref) {
+    n.remove();
+    n.padre = this;
+    this.hijos.splice(ref ? this.hijos.indexOf(ref) : this.hijos.length, 0, n);
+    this.inserciones++;
+    return n;
+  }
+  remove() { if (this.padre) { this.padre.hijos.splice(this.padre.hijos.indexOf(this), 1); this.padre = null; } }
+  get firstChild() { return this.hijos[0] ?? null; }
+  get nextSibling() { return this.padre ? this.padre.hijos[this.padre.hijos.indexOf(this) + 1] ?? null : null; }
+  setAttribute(k, v) { this.attrs[k] = String(v); }
+  getBoundingClientRect() { return { top: this.arriba ?? 0 }; }
+  get offsetHeight() { return this.hijos.filter((h) => h instanceof Nodo && h.tag === "li").length * 30; } // cada fila mide 30
   set textContent(v) { this.hijos = [String(v)]; }
   contains() { return true; }
   focus() {}
   todos(f) { return this.hijos.flatMap((h) => (h instanceof Nodo ? [...(f(h) ? [h] : []), ...h.todos(f)] : [])); }
-  querySelectorAll(sel) { return this.todos((h) => (sel === ".tabla" ? h.className === "tabla" : h.dataset.ts !== undefined)); }
+  querySelectorAll(sel) {
+    const f = { ".tabla": (h) => h.className === "tabla", "[data-ts]": (h) => h.dataset.ts !== undefined, "[data-desde]": (h) => h.dataset.desde !== undefined }[sel];
+    return this.todos(f);
+  }
   get texto() { return this.hijos.map((h) => (h instanceof Nodo ? h.texto : h)).join(" "); }
 }
 function navegador(datos) {
   const app = new Nodo("div");
   const aviso = new Nodo("div");
+  const vivo = new Nodo("span");
   const pend = [];
-  const est = { datos, seleccion: false, tics: [] };
-  const win = { scrollY: 0, scrollTo() {}, getSelection: () => ({ isCollapsed: !est.seleccion, anchorNode: {} }) };
-  const doc = { getElementById: (id) => (id === "app" ? app : aviso), createElement: (t) => new Nodo(t), hidden: false, addEventListener() {}, querySelectorAll: (s) => app.querySelectorAll(s) };
+  const est = { datos, seleccion: false, tics: [], saltos: [] };
+  const win = { scrollY: 0, scrollTo(x, y) { win.scrollY = y; est.saltos.push(y); }, getSelection: () => ({ isCollapsed: !est.seleccion, anchorNode: {} }) };
+  const doc = { getElementById: (id) => ({ app, aviso, vivo })[id], createElement: (t) => new Nodo(t), hidden: false, addEventListener() {}, querySelectorAll: (s) => [...app.querySelectorAll(s), ...vivo.querySelectorAll(s)] };
   const fetchFalso = async () => {
     if (est.cae) throw new TypeError("Failed to fetch");
     return { ok: true, status: 200, json: async () => est.datos };
@@ -169,7 +192,9 @@ function navegador(datos) {
   new Function("document", "window", "fetch", "setTimeout", "setInterval", "AbortSignal", script)(doc, win, fetchFalso, (f) => pend.push(f), (f) => est.tics.push(f), AbortSignal);
   const pausa = () => new Promise((r) => setImmediate(r));
   const ciclo = async (cambia = {}) => { Object.assign(est.datos, cambia); (pend.shift() ?? (() => {}))(); await pausa(); await pausa(); };
-  return { app, aviso, est, ciclo, listo: pausa().then(pausa) };
+  // las zonas fijas de la página, de arriba abajo: semáforo, en directo, rondas, resto
+  const zona = (i) => app.hijos[i];
+  return { app, aviso, vivo, win, est, ciclo, zona, listo: pausa().then(pausa) };
 }
 // Entrada a propósito rica: un hook de Stop declarado sin huella, otro de PostToolUse, sesiones con foto de coste y sin ella,
 // jueces relanzados, un subagente y bloqueos. Con errores de lectura (uno por fuente) sirve para todas las pruebas.
@@ -291,9 +316,9 @@ describe("la página", () => {
     expect(n.app.texto).not.toContain("sin dato (");
     expect(n.app.texto).not.toContain("No se puede saber qué hooks están declarados");
     await n.ciclo({ lecturaMs: 9, generado: iso(AHORA + 5000) }); // solo cambia lo volátil
-    expect(n.app.reemplazos).toBe(1);
+    expect(n.zona(3).reemplazos).toBe(1);
     await n.ciclo({ estado: { ...n.est.datos.estado, sesiones: 99 } });
-    expect(n.app.reemplazos).toBe(2);
+    expect(n.zona(3).reemplazos).toBe(2);
     n.est.tics[0](); // el contador «hace N s» sigue corriendo
     expect(n.app.querySelectorAll("[data-ts]")[0].texto).toMatch(/^hace \d+ (s|min|h|días)$/);
   });
@@ -303,15 +328,322 @@ describe("la página", () => {
     await n.listo;
     n.est.seleccion = true;
     for (let i = 1; i <= 5; i++) await n.ciclo({ estado: { ...n.est.datos.estado, sesiones: 50 + i } });
-    expect(n.app.reemplazos).toBe(1);
+    expect(n.zona(3).reemplazos).toBe(1);
     await n.ciclo({ estado: { ...n.est.datos.estado, sesiones: 60 } });
-    expect(n.app.reemplazos).toBe(2);
+    expect(n.zona(3).reemplazos).toBe(2);
   });
 
   it("no usa recursos externos ni HTML en crudo, y respeta el tema oscuro", () => {
     expect(html).not.toMatch(/https?:\/\//i);
     expect(html).not.toMatch(/innerHTML|outerHTML|insertAdjacentHTML|document\.write|eval\(/);
     expect(html).toMatch(/prefers-color-scheme: dark/);
+  });
+});
+
+// ---- v1: la página (semáforo, En directo, Rondas por tarea) con el navegador simulado ----
+describe("la página v1 · semáforo, En directo y rondas", () => {
+  const html = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "panel.html"), "utf8");
+  const T0 = Date.parse("2026-10-24T10:03:09Z"); // 12:03:09 en Madrid
+  const evt = (extra) => ({ hora: iso(T0), tipo: "agente_lanzado", agente: "constructor", hook: null, veredicto: null, agentId: null, duracionMs: null, sesion: "ses-aaaa", ...extra });
+  const conEventos = (eventos, extra = {}) => ({ ...datosPagina(), eventos, ...extra });
+  const norm = (n) => n.texto.replace(/\s+/g, " ").trim();
+  const filas = (n) => n.zona(1).todos((h) => h.tag === "li");
+  const lamparas = (n) => n.zona(0).todos((h) => h.className.startsWith("lampara"));
+
+  it("orden de arriba abajo: semáforo, en directo, rondas por tarea y, debajo, lo de la v0", async () => {
+    const n = navegador(datosPagina());
+    await n.listo;
+    expect(n.app.hijos).toHaveLength(4);
+    expect(n.zona(0).className).toContain("semaforo");
+    expect(n.zona(1).texto).toContain("En directo");
+    expect(n.zona(2).texto).toContain("Rondas por tarea");
+    expect(n.zona(3).texto.indexOf("Estado")).toBeLessThan(n.zona(3).texto.indexOf("Qué se activa"));
+  });
+
+  it("semáforo: tres lámparas con texto, forma y color; el nivel viene del servidor", async () => {
+    const d = conEventos([]);
+    d.semaforo = { hooksVivos: { nivel: "ok", ultimo: iso(Date.now() - 3 * MIN), copiaOk: true }, bloqueosHoy: { nivel: "aviso", total: 4, identificados: 3 }, rondasAbiertas: { nivel: "aviso", n: 2 } };
+    const n = navegador(d);
+    await n.listo;
+    const l = lamparas(n);
+    expect(l.map((x) => x.className)).toEqual(["lampara ok", "lampara aviso", "lampara aviso"]);
+    const textos = l.map(norm);
+    expect(textos[0]).toMatch(/Hooks vivos.*bien.*último evento hace \d+ (s|min).*copia = repo/);
+    expect(textos[1]).toMatch(/Bloqueos hoy.*atención.*4 bloqueos.*3 con hook identificado/);
+    expect(textos[2]).toMatch(/Rondas abiertas.*atención.*2 jueces sin informe/);
+    expect(new Set(l.map((x) => x.todos((h) => h.className === "forma")[0].texto.trim())).size).toBe(2); // la forma distingue los niveles, no solo el color
+    // cero rondas abiertas: verde y lo dice
+    const n2 = navegador({ ...d, semaforo: { ...d.semaforo, rondasAbiertas: { nivel: "ok", n: 0 } } });
+    await n2.listo;
+    expect(norm(lamparas(n2)[2])).toMatch(/bien.*ninguna/);
+  });
+
+  it("semáforo: copia distinta del repo se dice con letras; un nivel rojo tiene su forma", async () => {
+    const d = conEventos([]);
+    d.semaforo = { hooksVivos: { nivel: "mal", ultimo: iso(Date.now() - 3 * MIN), copiaOk: false }, bloqueosHoy: { nivel: "ok", total: 0, identificados: 0 }, rondasAbiertas: { nivel: "ok", n: 0 } };
+    const n = navegador(d);
+    await n.listo;
+    expect(norm(lamparas(n)[0])).toMatch(/mal.*copia ≠ repo/);
+    expect(norm(lamparas(n)[1])).toMatch(/0 bloqueos/);
+  });
+
+  it("semáforo: la lámpara de una fuente caída dice «sin dato» en gris, nunca verde, y las demás siguen", async () => {
+    const cae = (fuente) => navegador(datosPagina(falla(fuente)));
+    const pinta = async (fuente) => { const n = cae(fuente); await n.listo; return lamparas(n); };
+    const t = await pinta("transcripciones");
+    expect(t.map((x) => x.className)).toEqual(["lampara gris", "lampara gris", expect.stringMatching(/^lampara (ok|aviso)$/)]);
+    expect(norm(t[0])).toContain("sin dato");
+    const r = await pinta("registro");
+    expect(r.map((x) => x.className)).toEqual([expect.stringMatching(/^lampara (ok|aviso|mal)$/), expect.stringMatching(/^lampara (ok|aviso)$/), "lampara gris"]);
+    const c = await pinta("copia");
+    expect(c[0].className).toBe("lampara gris");
+    expect(c[1].className).not.toBe("lampara gris");
+    expect((await pinta("settings")).some((x) => x.className === "lampara gris")).toBe(false); // settings no mueve el semáforo
+    for (const x of [...t, ...r, ...c]) if (x.className === "lampara gris") expect(norm(x)).toMatch(/sin dato/);
+  });
+
+  it("En directo: la hora de Madrid, la forma y el texto del tipo, el detalle; lo más nuevo arriba", async () => {
+    const n = navegador(conEventos([
+      evt({ hora: iso(T0 + 4000), tipo: "hook_bloqueo", agente: null, hook: "cierre.mjs" }),
+      evt({ hora: iso(T0 + 2000), tipo: "turno_terminado", agente: null, duracionMs: 1500 }),
+      evt(),
+    ]));
+    await n.listo;
+    const f = filas(n).map(norm);
+    expect(f).toHaveLength(3);
+    expect(f[0]).toMatch(/^12:03:13 ■ Hook bloqueó cierre\.mjs/);
+    expect(f[1]).toMatch(/^12:03:11 ● Turno terminado .*1,5 s/);
+    expect(f[2]).toMatch(/^12:03:09 ▶ Agente lanzado constructor/);
+    expect(n.zona(1).texto).not.toContain("Sin actividad");
+  });
+
+  it("En directo: un hook sin identificar, un agente sin tipo y un turno sin duración no inventan nada", async () => {
+    const n = navegador(conEventos([evt({ hora: iso(T0 + 3000), tipo: "hook_bloqueo", agente: null, hook: null }), evt({ hora: iso(T0 + 2000), agente: null }), evt({ hora: iso(T0 + 1000), tipo: "turno_terminado", agente: null })]));
+    await n.listo;
+    const f = filas(n).map(norm);
+    expect(f[0]).toContain("hook sin identificar");
+    expect(f[1]).toContain("tipo sin indicar");
+    expect(f[2]).toContain("sin duración");
+  });
+
+  const lanzado = (extra) => evt({ tipo: "juez_lanzado", agente: "revisor", agentId: "a1", ...extra });
+  const informo = (extra) => evt({ hora: iso(T0 + 60000), tipo: "juez_informo", agente: "revisor", agentId: "a1", veredicto: "no_pasa", duracionMs: 60000, ...extra });
+
+  it("En directo: un juez en marcha enseña un temporizador que sigue contando cada segundo", async () => {
+    const hace = Date.now() - 65000;
+    const n = navegador(conEventos([lanzado({ hora: iso(hace) })]));
+    await n.listo;
+    const crono = n.zona(1).querySelectorAll("[data-desde]");
+    expect(crono).toHaveLength(1);
+    expect(crono[0].texto).toMatch(/^1 min 0\d s$/);
+    expect(norm(filas(n)[0])).toContain("en marcha");
+    crono[0].dataset.desde = iso(Date.now() - 130000); // pasa el tiempo
+    n.est.tics[0]();
+    expect(crono[0].texto).toMatch(/^2 min 1\d s$/);
+  });
+
+  it("En directo: el informe se enlaza con su lanzamiento (mismo agent_id): tardó N s, y el temporizador desaparece", async () => {
+    const n = navegador(conEventos([informo(), lanzado()]));
+    await n.listo;
+    const [i, l] = filas(n).map(norm);
+    expect(i).toMatch(/^12:04:09 ✖ Juez informó revisor.*no pasa.*tardó 1 min 00 s.*lanzado a las 12:03:09/);
+    expect(l).toMatch(/^12:03:09 ◆ Juez lanzado revisor.*informó a las 12:04:09.*tardó 1 min 00 s/);
+    expect(n.zona(1).querySelectorAll("[data-desde]")).toHaveLength(0);
+    expect(filas(n).every((f) => f.className.includes("enlazada"))).toBe(true);
+  });
+
+  it("En directo: cada veredicto tiene su forma y su palabra (pasa, no pasa, no sé, ilegible)", async () => {
+    const v = (veredicto, ms) => informo({ hora: iso(T0 + ms), veredicto, agentId: "z" + ms });
+    const n = navegador(conEventos([v("pasa", 4000), v("no_pasa", 3000), v("no_se", 2000), v("sin_veredicto", 1000)]));
+    await n.listo;
+    const f = filas(n).map(norm);
+    expect(f[0]).toMatch(/✔.*pasa/);
+    expect(f[1]).toMatch(/✖.*no pasa/);
+    expect(f[2]).toMatch(/\?.*no sé/);
+    expect(f[3]).toMatch(/⚠.*ilegible/);
+    expect(filas(n).map((x) => x.className)).toEqual(expect.arrayContaining([expect.stringContaining("ok"), expect.stringContaining("mal"), expect.stringContaining("aviso"), expect.stringContaining("gris")]));
+  });
+
+  it("En directo: un informe sin agent_id o sin su lanzamiento no afirma una duración", async () => {
+    const n = navegador(conEventos([informo({ agentId: null, duracionMs: null }), informo({ agentId: "otro", duracionMs: null, hora: iso(T0 + 1000) })]));
+    await n.listo;
+    const f = filas(n).map(norm);
+    expect(f[0]).toMatch(/sin agent_id/);
+    expect(f[0]).not.toMatch(/tardó/);
+    expect(f[1]).toMatch(/duración: sin dato/);
+  });
+
+  it("«Sin actividad en los últimos 30 min» (lista vacía) no es lo mismo que «sin dato en directo» (fuente caída)", async () => {
+    const vacio = navegador(conEventos([]));
+    await vacio.listo;
+    expect(vacio.zona(1).texto).toContain("Sin actividad en los últimos 30 min");
+    expect(vacio.zona(1).texto).not.toContain("sin dato");
+    expect(filas(vacio)).toHaveLength(0);
+    for (const fuente of ["transcripciones", "registro"]) {
+      const roto = navegador(datosPagina(falla(fuente)));
+      await roto.listo;
+      expect(roto.zona(1).texto).toContain("Sin dato en directo");
+      expect(roto.zona(1).texto).not.toContain("Sin actividad");
+      expect(filas(roto)).toHaveLength(0);
+    }
+  });
+
+  it("con settings o copia caídos, En directo sigue enseñando sus filas", async () => {
+    for (const fuente of ["settings", "copia"]) {
+      const n = navegador({ ...datosPagina(falla(fuente)), eventos: [evt()] });
+      await n.listo;
+      expect(filas(n)).toHaveLength(1);
+    }
+  });
+
+  it("filas nuevas: entran por arriba SIN repintar lo demás (las filas viejas son las mismas, y las otras zonas no se tocan)", async () => {
+    const n = navegador(conEventos([evt()]));
+    await n.listo;
+    const vieja = filas(n)[0];
+    const antes = [n.zona(0).reemplazos, n.zona(2).reemplazos, n.zona(3).reemplazos];
+    await n.ciclo({ eventos: [evt({ hora: iso(T0 + 5000), tipo: "turno_terminado", agente: null }), evt()] });
+    const f = filas(n);
+    expect(f).toHaveLength(2);
+    expect(f[1]).toBe(vieja); // el mismo nodo: no se ha vuelto a crear
+    expect(norm(f[0])).toContain("Turno terminado");
+    expect([n.zona(0).reemplazos, n.zona(2).reemplazos, n.zona(3).reemplazos]).toEqual(antes);
+    expect(n.zona(1).todos((h) => h.tag === "ul")[0].reemplazos).toBe(0);
+    // y otra vez sin cambios: no se toca nada
+    const ins = n.zona(1).todos((h) => h.tag === "ul")[0].inserciones;
+    await n.ciclo({ generado: iso(T0 + 9999) });
+    expect(n.zona(1).todos((h) => h.tag === "ul")[0].inserciones).toBe(ins);
+  });
+
+  it("las filas que salen de la ventana se quitan, y las demás se quedan", async () => {
+    const a = evt({ hora: iso(T0 + 1000), agente: "a" });
+    const b = evt({ hora: iso(T0), agente: "b" });
+    const n = navegador(conEventos([a, b]));
+    await n.listo;
+    const fa = filas(n)[0];
+    await n.ciclo({ eventos: [a] });
+    expect(filas(n)).toHaveLength(1);
+    expect(filas(n)[0]).toBe(fa);
+  });
+
+  it("una fila que cambia de contenido (el juez lanzado recibe su informe) se rehace sola, sin tocar las demás", async () => {
+    const otra = evt({ hora: iso(T0 + 1000), agente: "otra" });
+    const n = navegador(conEventos([otra, lanzado()]));
+    await n.listo;
+    expect(n.zona(1).querySelectorAll("[data-desde]")).toHaveLength(1);
+    const fOtra = filas(n)[0];
+    await n.ciclo({ eventos: [informo(), otra, lanzado()] });
+    expect(n.zona(1).querySelectorAll("[data-desde]")).toHaveLength(0);
+    expect(filas(n)).toHaveLength(3);
+    expect(filas(n)[1]).toBe(fOtra);
+  });
+
+  it("si el usuario mira más abajo, una fila nueva no mueve lo que lee: el scroll se compensa con la altura que ganó la lista", async () => {
+    const n = navegador(conEventos([evt()]));
+    await n.listo;
+    n.zona(1).todos((h) => h.tag === "ul")[0].arriba = 100; // la lista empieza a 100 px del borde de la página
+    n.win.scrollY = 500; // y el usuario está más abajo
+    n.est.saltos.length = 0;
+    await n.ciclo({ eventos: [evt({ hora: iso(T0 + 5000), tipo: "turno_terminado", agente: null }), evt()] });
+    expect(n.win.scrollY).toBe(530); // +30: lo que mide la fila nueva
+    // arriba del todo no se toca el scroll
+    const m = navegador(conEventos([evt()]));
+    await m.listo;
+    m.est.saltos.length = 0;
+    await m.ciclo({ eventos: [evt({ hora: iso(T0 + 5000), tipo: "turno_terminado", agente: null }), evt()] });
+    expect(m.win.scrollY).toBe(0);
+  });
+
+  const rama = (extra = {}) => ({ rama: "feat_ejemplo", rondas: 3, tiempoMs: 245000, ultimo: iso(T0), masMarcas: 0, marcas: [
+    { agente: "revisor", veredicto: "pasa", ms: 100000, abierta: false, fiable: true, ts: iso(T0) },
+    { agente: "qa", veredicto: "no_pasa", ms: 45000, abierta: false, fiable: true, ts: iso(T0 + 1000) },
+    { agente: "evaluador", veredicto: "no_se", ms: null, abierta: false, fiable: false, ts: iso(T0 + 2000) },
+    { agente: "revisor", veredicto: "sin_veredicto", ms: 100000, abierta: false, fiable: true, ts: iso(T0 + 3000) },
+    { agente: "revisor", veredicto: "lanzado", ms: null, abierta: true, fiable: true, ts: iso(Date.now() - 20000) },
+    { agente: "qa", veredicto: "lanzado", ms: null, abierta: false, fiable: true, ts: iso(T0 - 9 * 3600e3) },
+  ], ...extra });
+  const marcas = (n) => n.zona(2).todos((h) => h.className.startsWith("marca "));
+
+  it("rondas por tarea: una fila por rama con una marca por informe (forma, juez y «tardó N s»), total de rondas y tiempo en jueces", async () => {
+    const n = navegador({ ...datosPagina(), ramas: [rama()] });
+    await n.listo;
+    const z = norm(n.zona(2));
+    expect(z).toContain("feat_ejemplo");
+    expect(z).toMatch(/3 rondas/);
+    expect(z).toMatch(/4 min 05 s/);
+    expect(z).toContain("no sé a qué PR pertenece");
+    const m = marcas(n);
+    expect(m).toHaveLength(6);
+    expect(m.map((x) => x.todos((h) => h.className === "forma")[0].texto.trim())).toEqual(["✔", "✖", "?", "⚠", "…", "…"]);
+    expect(m[0].title).toMatch(/revisor.*pasa.*tardó 1 min 40 s/);
+    expect(m[1].title).toMatch(/qa.*no pasa.*tardó 45,0 s/);
+    expect(m[0].todos((h) => h.className === "sr")[0].texto).toMatch(/revisor.*pasa.*tardó 1 min 40 s/); // texto accesible, no solo el title
+    expect(m.map((x) => x.className.split(" ")[1])).toEqual(["ok", "mal", "aviso", "gris", "aviso", "gris"]);
+  });
+
+  it("rondas: el lanzado sin informe cuenta con temporizador; si ya no corre, dice que no tiene informe y no cuenta", async () => {
+    const n = navegador({ ...datosPagina(), ramas: [rama()] });
+    await n.listo;
+    const m = marcas(n);
+    expect(n.zona(2).querySelectorAll("[data-desde]")).toHaveLength(1);
+    expect(m[4].texto).toMatch(/\d+ s/);
+    expect(m[5].title).toMatch(/sin informe/);
+    expect(m[5].todos((h) => h.dataset.desde !== undefined)).toHaveLength(0);
+  });
+
+  it("rondas: los apuntes antiguos sin agent_id se marcan «dato antiguo, no fiable» y no afirman duración", async () => {
+    const n = navegador({ ...datosPagina(), ramas: [rama()] });
+    await n.listo;
+    const m = marcas(n)[2];
+    expect(m.title).toMatch(/dato antiguo, no fiable/);
+    expect(m.title).not.toMatch(/tardó/);
+    expect(m.className).toContain("antigua");
+    expect(norm(n.zona(2))).toMatch(/1 marca de dato antiguo, no fiable/);
+  });
+
+  it("rondas: sin duración medible el tiempo dice «sin dato»; más marcas de las que caben se dice; sin ramas, lo dice; fuente caída, «No se pudo leer»", async () => {
+    const a = navegador({ ...datosPagina(), ramas: [rama({ tiempoMs: null, masMarcas: 7 })] });
+    await a.listo;
+    expect(norm(a.zona(2))).toMatch(/sin dato/);
+    expect(norm(a.zona(2))).toMatch(/7 marcas más antiguas/);
+    const b = navegador({ ...datosPagina(), ramas: [] });
+    await b.listo;
+    expect(b.zona(2).texto).toMatch(/Sin rondas de jueces en los últimos 7 días/);
+    const c = navegador(datosPagina(falla("registro")));
+    await c.listo;
+    expect(c.zona(2).texto).toContain("No se pudo leer");
+    expect(marcas(c)).toHaveLength(0);
+    expect(c.zona(2).texto).not.toMatch(/Sin rondas/);
+  });
+
+  it("legible a 375 px: lo nuevo son listas apiladas, sin tablas anchas", async () => {
+    const n = navegador({ ...datosPagina(), ramas: [rama()], eventos: [evt()] });
+    await n.listo;
+    for (const i of [0, 1, 2]) expect(n.zona(i).todos((h) => h.tag === "table" || h.className === "tabla")).toHaveLength(0);
+    expect(html).toMatch(/@media \(max-width: 480px\)/);
+    expect(html).toMatch(/prefers-color-scheme: dark/);
+  });
+
+  it("indicador «en vivo · actualizado hace N s»; si el servidor cae pasa a «sin conexión» y los datos se quedan", async () => {
+    const n = navegador(datosPagina());
+    await n.listo;
+    expect(norm(n.vivo)).toMatch(/^● en vivo · actualizado hace \d+ s$/);
+    expect(n.vivo.className).toContain("ok");
+    n.est.cae = true;
+    await n.ciclo();
+    expect(norm(n.vivo)).toMatch(/^■ sin conexión · último dato hace/);
+    expect(n.vivo.className).toContain("mal");
+    expect(n.aviso.texto).toMatch(/No llega al panel local/);
+    n.est.cae = false;
+    await n.ciclo();
+    expect(norm(n.vivo)).toMatch(/en vivo/);
+    expect(n.vivo.className).not.toContain("mal");
+  });
+
+  it("el texto de los datos entra como texto: un nombre de agente con HTML no se interpreta", async () => {
+    const n = navegador(conEventos([evt({ agente: "<img src=x onerror=1>" })]));
+    await n.listo;
+    expect(norm(filas(n)[0])).toContain("<img src=x onerror=1>");
+    expect(filas(n)[0].todos((h) => h.tag === "img")).toHaveLength(0);
   });
 });
 
