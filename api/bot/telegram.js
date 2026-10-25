@@ -616,8 +616,7 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
     let reloj;
     const dTemprana = await Promise.race([decisionP, new Promise((r) => { reloj = setTimeout(r, ESPERA_MAX_MS, null); })]);
     clearTimeout(reloj);
-    if (dTemprana && rapida(dTemprana)) medir.lolaEvitada = predicha;
-    else arrancarLola();
+    if (!(dTemprana && rapida(dTemprana))) arrancarLola();
   } else arrancarLola();
 
   const d = await decisionP;
@@ -644,6 +643,8 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
     // Sin plantilla el turno pasa a Lola, que escribe en su propio mensaje.
     if (!r) await vivoRapida?.quitarAviso();
     if (r) {
+      // Solo se apunta como evitada si Lola de verdad no se llamó (#909).
+      if (!lola && predicha) medir.lolaEvitada = predicha;
       abrir(false);
       ctrl.abort();
       // La plantilla sale YA, sin esperar a que Lola acabe de cancelarse: con

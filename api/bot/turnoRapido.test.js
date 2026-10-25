@@ -290,6 +290,15 @@ describe("Lola especulativa solo si no se predice la vía rápida (#909)", () =>
     expect(t.rutas[0].lola_evitada).toBeUndefined();
   });
 
+  it("predicha y rápida, pero la vía rápida no da plantilla: Lola se llama y no consta como evitada", async () => {
+    t.decision = { modo: "generar", confianza: 0.95 };
+    viaRapida.mockImplementationOnce(async () => null);
+    responder.mockImplementationOnce(async () => ({ texto: "Menú listo", fotos: [] }));
+    await pedirSemana();
+    expect(responder).toHaveBeenCalledTimes(1);
+    expect(t.rutas[0].lola_evitada).toBeUndefined();
+  });
+
   it("sin señal, Lola arranca en paralelo y se cancela como siempre", async () => {
     await pedir();
     expect(responder).toHaveBeenCalledTimes(1);
