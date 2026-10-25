@@ -2983,8 +2983,7 @@
         "ver_menu",
         "cambiar_plato",
         "generar_menu"
-      ],
-      "maxLlamadas": 1
+      ]
     },
     {
       "id": "ajuste-no-mas-de-dos-ensaladas",
