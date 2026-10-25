@@ -31,7 +31,7 @@ import { propiasDe } from "./propias.js";
 import { registrar, rastro, EMBUDO } from "./embudo.js";
 import { RASTRO } from "../../src/lib/rastro.js";
 import { isoDeCasa, DIAS, DIAS_FINDE } from "../../src/lib/dias.js";
-import { resolverSemana, conservarDiasPrevios } from "./semanaPedida.js";
+import { resolverSemana, conservarDiasPrevios, rangoDeFechas } from "./semanaPedida.js";
 import { conRecordatorioDeSilencio } from "../../src/lib/alergiasBase.js";
 import { apuntarRecordatorio } from "./silencio.js";
 import { listaParaEscribir } from "../../src/lib/vocabularios.js";
@@ -347,10 +347,13 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
     colocados: pedidos.map((p) => claveDelPedido(p.fijo, plan, activeDays)).filter(Boolean),
   });
   await rastro(householdId, RASTRO.MENU_GENERADO, { menuId: menu.id, weekStart: startISO, weekEnd: endISO, slots: platos, pedidos: pedidos.length });
-  return `Menú nuevo generado y activado: del ${startISO} al ${endISO}, ${platos} huecos con plato${avisos ? ` (${avisos} avisos del motor: huecos que no encajaban del todo)` : ""}.`
+  // Qué semana ha salido, en palabras (#915): también cuando la eligió el código
+  // por «la siguiente» (la primera sin menú), que puede no ser la que ella esperaba.
+  const libre = cual === "siguiente" && !desde ? " (la primera semana sin menú)" : "";
+  return `Menú nuevo generado y activado: semana del ${rangoDeFechas(startISO, endISO)}${libre} (${startISO} al ${endISO}), ${platos} huecos con plato${avisos ? ` (${avisos} avisos del motor: huecos que no encajaban del todo)` : ""}.`
     + (conservadas.length ? ` Se conserva tal cual la semana ${conservadas.join(" y ")}.` : "")
     + (pedidos.length ? `\nLo que pidieron, ya puesto (no hace falta cambiar_plato):\n${dondeQuedaron(pedidos, plan, activeDays).join("\n")}` : "")
     + (semana
-      ? `\n\nLa semana SALE PINTADA debajo de tu mensaje, con lo pedido destacado: NO la escribas ni llames a ver_menu; di en una o dos frases qué has hecho y dónde ha quedado lo que pidieron. Para que lo sepas (no lo copies):\n${semana}`
-      : " La semana la ven con el botón que sale solo: resume en 3-4 líneas qué has hecho.");
+      ? `\n\nLa semana SALE PINTADA debajo de tu mensaje, con lo pedido destacado: NO la escribas ni llames a ver_menu; di en una o dos frases qué semana es (la del rango de arriba) y dónde ha quedado lo que pidieron. Para que lo sepas (no lo copies):\n${semana}`
+      : " La semana la ven con el botón que sale solo: resume en 3-4 líneas qué has hecho, diciendo qué semana es.");
 }

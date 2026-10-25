@@ -21,7 +21,7 @@ const { casos } = JSON.parse(readFileSync(new URL("scripts/bot-evals.json", RAIZ
 describe("bot-evals.json: cada caso con id, tipo, dominio y origen de la lista", () => {
   it("ningún error de etiquetas", () => expect(erroresDeCasos(casos)).toEqual([]));
 
-  it("el núcleo N1 son 12 de seguridad y 12 del resto", () => {
+  it("el núcleo N1 son 12 de seguridad y 13 del resto (#915: ver-un-dia-entero, un fallo de producción, vuelve junto al caso de rehacer que entró en #914)", () => {
     const n1 = casosDelNivel(casos, "pr");
     expect(n1.filter(esDeSeguridad).length).toBe(NUCLEO.seguridad);
     expect(n1.filter((c) => !esDeSeguridad(c)).length).toBe(NUCLEO.resto);
