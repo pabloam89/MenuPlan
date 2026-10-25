@@ -5,6 +5,20 @@ const t = (min) => new Date(Date.UTC(2026, 9, 5, 10, min)).toISOString();
 const ruta = (min, m) => ({ created_at: t(min), event: "bot_route", m: { chat: "1", ...m } });
 const lola = (ms, extra = {}) => ({ modelo: "claude-sonnet-5", planB: false, vueltas: 2, ms, uso: { in: 1000, out: 200, cr: 5000, cw: 0 }, primera: { in: 1000, cr: 5000, cw: 0 }, herramientas: [], ...extra });
 
+describe("tarifa de caché escrita (#909)", () => {
+  const millon = { in: 0, out: 0, cr: 0, cw: 1e6 };
+  it("a 1 h (Lola) cuesta 2× la entrada; a 5 min (enrutador), 1,25×", () => {
+    for (const f of Object.values(PRECIOS)) {
+      expect(usd(millon, f)).toBeCloseTo(2 * f.in, 10);
+      expect(usd(millon, f, { ttl: "5m" })).toBeCloseTo(1.25 * f.in, 10);
+    }
+  });
+  it("el coste de un turno de Lola cuenta la caché escrita a 1 h", () => {
+    const m = { lola: { modelo: "claude-sonnet-5", uso: { in: 0, out: 0, cr: 0, cw: 1e6 } } };
+    expect(costeDeCancelada(m, null).usd).toBeCloseTo(2 * PRECIOS.sonnet.in, 10);
+  });
+});
+
 describe("pct", () => {
   it("ignora lo que no es número", () => {
     expect(pct([3, null, 1, 2, undefined], 50)).toBe(2);

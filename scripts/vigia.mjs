@@ -38,6 +38,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { dirname } from "node:path";
 import { pathToFileURL } from "node:url";
+import { costeUsd as costeUsdBase } from "./lib/evals.mjs";
 import { fallosDe, paginar, tandaDeVercel } from "./bot-fallos.mjs";
 import { VIGIA, minutosALeer } from "../src/lib/vigia.js";
 import { MOTIVOS_FALLO, SITIOS_FALLO, TIPOS_AVISO_VIGIA, CHEQUEOS_CANARIO, MOTIVOS_CANARIO } from "../src/lib/vocabularios.js";
@@ -510,11 +511,10 @@ export async function llamarCanario(nivel, { url, secreto, pedir = fetch, config
   }
 }
 
-/** Lo que costó un turno, en dólares, con las tarifas de Anthropic de hoy (las mismas que scripts/bot-evals.mjs). */
+/** Lo que costó un turno de Lola, en dólares: las tarifas únicas de scripts/lib/evals.mjs (caché escrita a 1 h). */
 export function costeUsd(u, modelo = "") {
-  const p = /haiku/.test(modelo) ? [1, 5, 0.1, 1.25] : /opus/.test(modelo) ? [5, 25, 0.5, 6.25] : [3, 15, 0.3, 3.75];
   const n = (k) => Number(u?.[k]) || 0;
-  return (n("in") * p[0] + n("out") * p[1] + n("cr") * p[2] + n("cw") * p[3]) / 1e6;
+  return costeUsdBase({ input_tokens: n("in"), output_tokens: n("out"), cache_read_input_tokens: n("cr"), cache_creation_input_tokens: n("cw") }, modelo);
 }
 
 /**
