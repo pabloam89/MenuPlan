@@ -62,6 +62,7 @@ import { herramientaPermitida } from "../../src/lib/papeles.js";
 import { ENUMS as ENUMS_TAREAS } from "../../src/lib/registroTareas.js";
 import { tareasV2 } from "./idempotencia.js";
 import { apuntarSilencio, conRecordatorio, NOTA_RECORDATORIO } from "./silencio.js";
+import { usoParcialDe } from "./medidaTurno.js";
 
 /**
  * Las alergias por silencio del turno (silencio.js): con lo último que dijo
@@ -1119,7 +1120,8 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   } catch (err) {
     // Ya había cambiado algo en la casa cuando el modelo se cayó: repetir el
     // turno lo haría dos veces. Se dice que está hecho y dónde verlo.
-    if (!err?.aMedias) throw err;
+    // Cancelada o caída: lo ya pagado viaja en el error (telegram.js lo apunta).
+    if (!err?.aMedias) throw err instanceof Error ? Object.assign(err, { usoParcial: usoParcialDe(progreso) }) : err;
     console.error("[agente] a medias", err?.message);
     // a propósito: el evento vale más sin dueño que perdido
     await registrar(FALLO_A_MEDIAS, { userId: await duenoDe(householdId).catch(seguirCon("agente_dueno", null)), extra: { error: `a medias: ${String(err?.message ?? err).slice(0, 250)}`, esGrupo: Boolean(esGrupo) } });
@@ -1283,7 +1285,7 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
       const aviso = typeof avisoDe === "function" ? avisoDe(a[0]) : avisoDe;
       if (aviso && enPantalla.trim().length < 20) { escribir(aviso, { aviso: true }); avisos.push(t.name); }
       const t0 = Date.now();
-      try { return await t.run(...a); } finally { herramientas.push({ n: t.name, ms: Date.now() - t0 }); enPantalla = ""; }
+      try { return await t.run(...a); } finally { herramientas.push({ n: t.name, ms: Date.now() - t0, t0 }); enPantalla = ""; }
     },
   }));
   let ultimoError = null;
@@ -1400,7 +1402,11 @@ async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal
   // 15-20; el resto, el modelo pensando y escribiendo, sin forma de verlo.
   const llamadas = [];
   let desde = Date.now();
+  // Si se corta a media vuelta (la vía rápida ganó), lo ya pagado queda en
+  // progreso para bot_route lola_cancelada_uso (medidaTurno.js usoParcialDe).
+  if (progreso) progreso.uso = uso;
   for await (const vuelta of runner) {
+    if (progreso) progreso.enCurso = vuelta;
     let mensaje = vuelta;
     let primerTrozo = null;
     if (alEscribir) {
@@ -1425,6 +1431,7 @@ async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal
     if (progreso) progreso.vueltas++;
     if (!primera) primera = { input_tokens: mensaje.usage?.input_tokens ?? 0, cache_read_input_tokens: mensaje.usage?.cache_read_input_tokens ?? 0, cache_creation_input_tokens: mensaje.usage?.cache_creation_input_tokens ?? 0 };
     for (const k of Object.keys(uso)) uso[k] += mensaje.usage?.[k] ?? 0;
+    if (progreso) progreso.enCurso = null;
   }
 
   const dicho = (final?.content ?? []).filter((b) => b.type === "text").map((b) => b.text).join("\n").trim()
