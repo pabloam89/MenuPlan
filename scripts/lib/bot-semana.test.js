@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { medir, semaforo, informe, huecosDeLola, contarHuecos, corregidos, pct, lugarDe, porLugar, medirPorLugar } from "./bot-semana.mjs";
+import { medir, semaforo, informe, huecosDeLola, contarHuecos, corregidos, pct, lugarDe, porLugar, medirPorLugar, herramientasMs, modeloMs, costeDeCancelada, PRECIOS, usd } from "./bot-semana.mjs";
 
 const t = (min) => new Date(Date.UTC(2026, 9, 5, 10, min)).toISOString();
 const ruta = (min, m) => ({ created_at: t(min), event: "bot_route", m: { chat: "1", ...m } });
@@ -102,6 +102,145 @@ describe("medir: dónde se va el tiempo de Lola", () => {
 
   it("sin llamadas apuntadas (turnos de antes del 3 oct), sin desglose", () => {
     expect(medir([ruta(0, { rapida: false, ms: 5000, lola: lola(4000) })]).latencia.modeloP50Ms).toBeNull();
+  });
+});
+
+describe("medir: las herramientas, de reloj y no sumadas (#910)", () => {
+  // Cinco escrituras de una casa en fila (desde ac4bdcc3): cada una lleva dentro la espera de las anteriores.
+  const enFila = [["fuera_de_casa", 400], ["fuera_de_casa", 800], ["fuera_de_casa", 1200], ["fuera_de_casa", 1600], ["fuera_de_casa", 2000]];
+  const llamadas = [[1500, 200, 900], [3500, 300, 3000]];
+
+  it("con el reloj apuntado, las herramientas son lo que esperó el turno, no la suma", () => {
+    const turno = ruta(0, { rapida: false, ms: 6000, lola: lola(5500, { herramientas: enFila, herramientas_reloj_ms: 2000, llamadas }) });
+    const m = medir([turno]).latencia;
+    expect(m.herramientasP50Ms).toBe(2000); // la suma daría 6000
+    expect(m.modeloP50Ms).toBe(3000); // 5000 de llamadas menos 2000 de herramientas (con la suma, 0)
+    expect(m.herramientasRelojN).toBe(1);
+  });
+
+  it("una fila anterior a #910 no trae el reloj: se usa la suma, y el informe dice cuántas son de reloj", () => {
+    const vieja = ruta(0, { rapida: false, ms: 8000, lola: lola(7500, { herramientas: enFila, llamadas: [[2000, 200, 900], [6000, 300, 3000]] }) });
+    const nueva = ruta(1, { rapida: false, ms: 6000, lola: lola(5500, { herramientas: enFila, herramientas_reloj_ms: 2000, llamadas }) });
+    const m = medir([vieja, nueva]);
+    expect(m.latencia.herramientasRelojN).toBe(1);
+    expect(m.latencia.herramientasN).toBe(2);
+    expect(herramientasMs(vieja.m.lola)).toBe(6000);
+    expect(modeloMs(vieja.m.lola)).toBe(2000);
+    const md = informe({ actual: m, anterior: null, objetivos: {}, desde: "2026-10-05", hasta: "2026-10-11" });
+    expect(md).toMatch(/de reloj en 1 de 2 turnos con herramientas, el resto sumadas/);
+  });
+
+  it("si ningún turno llamó a herramientas, el informe no habla de reloj ni de sumas", () => {
+    const sin = ruta(0, { rapida: false, ms: 3000, lola: lola(2500, { herramientas: [], llamadas: [[2500, 100, 800]] }) });
+    const m = medir([sin]);
+    expect(m.latencia.herramientasN).toBe(0);
+    const md = informe({ actual: m, anterior: null, objetivos: {}, desde: "2026-10-05", hasta: "2026-10-11" });
+    expect(md).toMatch(/Dónde se va el tiempo de Lola/);
+    expect(md).not.toMatch(/de reloj|sumadas/);
+  });
+
+  it("un turno sin herramientas no cuenta como «sin reloj» si los demás sí lo traen", () => {
+    const sin = ruta(0, { rapida: false, ms: 3000, lola: lola(2500, { herramientas: [], llamadas: [[2500, 100, 800]] }) });
+    const con = ruta(1, { rapida: false, ms: 6000, lola: lola(5500, { herramientas: enFila, herramientas_reloj_ms: 2000, llamadas }) });
+    const md = informe({ actual: medir([sin, con]), anterior: null, objetivos: {}, desde: "2026-10-05", hasta: "2026-10-11" });
+    expect(md).toContain("(de reloj)");
+    expect(md).not.toMatch(/sumadas/);
+  });
+
+  it("nunca sale un tiempo de modelo negativo", () => {
+    expect(modeloMs({ herramientas: [["a", 9000]], llamadas: [[1000, 1, null]] })).toBe(0);
+  });
+});
+
+describe("medir: la Lola especulativa cancelada (#910)", () => {
+  const acabada = ruta(0, { rapida: false, ms: 5000, lola_cancelada: false, lola: lola(4500) });
+  const estimada = ruta(1, { rapida: true, ms: 900, primer_ms: 800, lola_cancelada: true });
+  const medida = ruta(2, { rapida: true, ms: 900, primer_ms: 800, lola_cancelada: true, lola_cancelada_uso: { in: 14, out: 52, cr: 61000, cw: 120 } });
+
+  it("cuenta cuántas son, cuáles con el uso medido al cortar y cuáles estimadas", () => {
+    const c = medir([acabada, estimada, medida]).coste.canceladas;
+    expect(c).toMatchObject({ n: 2, medidas: 1, estimadas: 1 });
+    expect(c.usd).toBeGreaterThan(0);
+    expect(medir([acabada, estimada, medida]).uso.canceladasPct).toBeCloseTo((100 * 2) / 3);
+  });
+
+  it("el uso medido se paga con la tarifa de Sonnet, y el estimado con la mediana de la primera llamada", () => {
+    const med = costeDeCancelada(medida.m, { in: 1000, cr: 5000, cw: 0, out: 0 });
+    expect(med.estimado).toBe(false);
+    expect(med.usd).toBeCloseTo(usd({ in: 14, out: 52, cr: 61000, cw: 120 }, PRECIOS.sonnet), 10);
+    const est = costeDeCancelada(estimada.m, { in: 1000, cr: 5000, cw: 0, out: 0 });
+    expect(est.estimado).toBe(true);
+    expect(est.usd).toBeCloseTo(usd({ in: 1000, cr: 5000, cw: 0, out: 0 }, PRECIOS.sonnet), 10);
+  });
+
+  it("si la cancelada llegó a acabar (trae lola.uso), cuenta ese uso y no es estimada", () => {
+    const acabadaYCortada = ruta(3, { rapida: true, ms: 900, lola_cancelada: true, lola: lola(800) });
+    expect(costeDeCancelada(acabadaYCortada.m, { in: 1, cr: 1, cw: 1, out: 0 }).estimado).toBe(false);
+  });
+
+  it("el coste total no cambia por el reparto: es la suma de lo de cada turno", () => {
+    const solo = medir([acabada, medida]).coste;
+    expect(solo.totalUsd).toBeCloseTo(usd(acabada.m.lola.uso, PRECIOS.sonnet) + solo.canceladas.usd, 10);
+  });
+
+  it("el informe lo cuenta, sin texto de nadie", () => {
+    const md = informe({ actual: medir([acabada, estimada, medida]), anterior: null, objetivos: {}, desde: "2026-10-05", hasta: "2026-10-11" });
+    expect(md).toMatch(/Lola especulativa cancelada.*1 con uso medido, 1 estimados/);
+  });
+});
+
+describe("medir: el alta, las fotos y los PDF, la cola y el motor en frío (#910)", () => {
+  const texto = ruta(0, { rapida: false, ms: 6000, primer_ms: 2000, lola_cancelada: false, lola: lola(5500) });
+  const pdf = ruta(1, { rapida: false, ms: 23000, primer_ms: 22000, lola_cancelada: false, sin_enrutador: "pdf", espera_candado_ms: 4000, lola: lola(22000) });
+  const foto = ruta(2, { rapida: false, ms: 9000, primer_ms: 8000, lola_cancelada: false, sin_enrutador: "foto", lola: lola(8000) });
+  const alta = ruta(3, { rapida: false, ms: 15000, primer_ms: 5000, lola_cancelada: false, sin_enrutador: "alta", motor_frio: 1800, lola: lola(14000) });
+  const detras = ruta(4, { rapida: false, ms: 7000, primer_ms: 2500, lola_cancelada: false, espera_cola_ms: 21000, lola: lola(6500) });
+  const todos = [texto, pdf, foto, alta, detras];
+
+  it("cuenta de dónde viene cada turno", () => {
+    expect(medir(todos).uso.porOrigen).toEqual({ enrutador: 2, pdf: 1, foto: 1, alta: 1 });
+    expect(medir(todos).uso.turnos).toBe(5);
+  });
+
+  it("un PDF de 23 s no sube el p95 de los turnos de texto: va aparte", () => {
+    const m = medir(todos).latencia;
+    expect(m.turnoLolaP95Ms).toBe(7000);
+    expect(m.adjuntosYAltasP95Ms).toBe(23000);
+    expect(m.adjuntosYAltasP50Ms).toBe(15000);
+  });
+
+  it("pero cuenta en el coste y en los corregidos: es un turno de Lola", () => {
+    expect(medir(todos).coste.porTurnoUsd).toBeGreaterThan(0);
+    const corregido = ruta(2, { corrige: true });
+    expect(corregidos([pdf, corregido]).has(pdf)).toBe(true);
+  });
+
+  it("la espera en la cola (texto) y la del candado (foto y PDF) no se mezclan; y el motor en frío", () => {
+    const m = medir(todos);
+    expect(m.latencia.esperaColaP95Ms).toBe(21000);
+    expect(m.latencia.esperaCandadoP95Ms).toBe(4000);
+    expect(m.uso.motorFrioN).toBe(1);
+    expect(m.latencia.motorFrioP50Ms).toBe(1800);
+  });
+
+  it("el informe avisa de que «corregidos» parte la serie en #910", () => {
+    const md = informe({ actual: medir([texto]), anterior: null, objetivos: {}, desde: "2026-10-05", hasta: "2026-10-11" });
+    expect(md).toMatch(/criterio estrecho.*filas anteriores.*criterio viejo.*la serie se parte/);
+  });
+
+  it("sin nada de esto, el informe no añade líneas", () => {
+    const md = informe({ actual: medir([texto]), anterior: null, objetivos: {}, desde: "2026-10-05", hasta: "2026-10-11" });
+    expect(md).not.toMatch(/sin pasar por el enrutador|Espera de|Motor en frío/);
+  });
+
+  it("con ello, el informe lo cuenta, y los PDF lentos no cuentan como «lentos»", () => {
+    const md = informe({ actual: medir(todos), anterior: null, objetivos: {}, desde: "2026-10-05", hasta: "2026-10-11" });
+    expect(md).toMatch(/Turnos sin pasar por el enrutador: pdf 1 · foto 1 · alta 1/);
+    expect(md).toMatch(/Espera de los mensajes de texto en la cola del chat.*p95 21\.0 s/);
+    expect(md).toMatch(/Espera de fotos y PDF por el candado.*p95 4\.0 s/);
+    expect(md).toMatch(/Motor en frío.*1 turnos/);
+    const huecos = huecosDeLola(todos.map((e) => ({ ...e, m: { ...e.m, texto: "x" } })), { turnoLolaP95Ms: 10000 });
+    expect(huecos.some((h) => h.motivos.includes("lenta"))).toBe(false);
   });
 });
 
