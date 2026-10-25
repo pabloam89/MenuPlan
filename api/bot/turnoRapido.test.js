@@ -57,7 +57,7 @@ vi.mock("../_bot/casa.js", () => ({ hoyISO: () => "2026-10-02", cargarCasa: vi.f
 vi.mock("../_bot/borrar.js", () => ({ puedeBorrar: vi.fn(), borrarCuenta: vi.fn(), limpiarPantalla: vi.fn() }));
 vi.mock("../_bot/cuentas.js", () => ({ enviarAcceso: vi.fn(), verificarCodigoEmail: vi.fn(), crearCuentaTelegram: vi.fn(), cuentaNacidaAqui: vi.fn() }));
 
-const { turno, avisoDelModo, AVISO_ESPERA } = await import("./telegram.js");
+const { turno, avisoDelModo, AVISO_ESPERA, pareceEscritura } = await import("./telegram.js");
 const { responder } = await import("../_bot/agente.js");
 const { viaRapida } = await import("../_bot/turno.js");
 const { editar, llamar } = await import("../_bot/telegram.js");
@@ -267,5 +267,29 @@ describe("el aviso por tiempo: Lola tarda y no hay nada en pantalla", () => {
     responder.mockImplementationOnce(async () => { await espera(100); return { texto: "Aquí tienes la lista.", fotos: [] }; });
     await pedirVarias();
     expect(t.orden.some((x) => x.includes(AVISO_ESPERA))).toBe(false);
+  });
+});
+
+describe("aviso inmediato en turnos de Lola que escriben (#908)", () => {
+  it("pareceEscritura: apuntar si, preguntar no", () => {
+    expect(pareceEscritura("apunta que no comemos pescado los lunes")).toBe(true);
+    expect(pareceEscritura("nadie más tiene alergias")).toBe(true);
+    expect(pareceEscritura("Somos cuatro, dos adultos y dos niños")).toBe(true);
+    expect(pareceEscritura("¿apunto a tu suegra?")).toBe(false);
+    expect(pareceEscritura("hola, ¿qué tal?")).toBe(false);
+    expect(pareceEscritura("")).toBe(false);
+  });
+
+  it("avisoDelModo: lola que escribe y modos de escritura avisan al momento; lo demás no", () => {
+    expect(avisoDelModo({ modo: "lola", confianza: 0.5 }, "añade a mi suegra de comensal")).toBe(AVISO_ESPERA);
+    expect(avisoDelModo({ modo: "cambiar", confianza: 0.5 }, "cambia la cena")).toBe(AVISO_ESPERA);
+    expect(avisoDelModo({ modo: "lola", confianza: 0.9 }, "¿por qué hay lentejas hoy?")).toBeNull();
+    expect(avisoDelModo({ modo: "consulta", confianza: 0.9 }, "apunta leche")).toBeNull();
+    expect(avisoDelModo({ modo: "generar", confianza: 0.85 }, "prepárame el menú")).not.toBe(AVISO_ESPERA);
+  });
+
+  it("con BOT_AVISO_LENTO=off no avisa", () => {
+    process.env.BOT_AVISO_LENTO = "off";
+    try { expect(avisoDelModo({ modo: "lola", confianza: 0.5 }, "apunta leche")).toBeNull(); } finally { delete process.env.BOT_AVISO_LENTO; }
   });
 });

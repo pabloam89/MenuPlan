@@ -603,7 +603,7 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   // El aviso de lo que va a tardar, en cuanto el enrutador sabe qué se pide y
   // no cuando Lola llega a llamar a la herramienta (ver avisoDelModo).
   // a propósito: el aviso es adorno
-  const aviso = decisionP.then((d) => (rapida(d) ? null : avisoDelModo(d))).catch(seguirCon("aviso_del_modo", null));
+  const aviso = decisionP.then((d) => (rapida(d) ? null : avisoDelModo(d, texto))).catch(seguirCon("aviso_del_modo", null));
   const lola = conversar({ base, chatId, householdId, esGrupo, texto, oido, from, desde, responderA, puerta, signal: ctrl.signal, medir, pista, aviso });
 
   const d = await decisionP;
@@ -738,12 +738,28 @@ const CONFIANZA_PARA_AVISAR = 0.7;
  * @param {{ modo?: string, confianza?: number }} d  la decisión del enrutador
  * @returns {string | null}
  */
-export function avisoDelModo(d) {
+export function avisoDelModo(d, texto = "") {
   if (process.env.BOT_AVISO_LENTO === "off") return null;
+  // Un turno de Lola que ESCRIBE (apuntar una alergia, un comensal, un gusto)
+  // da al menos dos vueltas al modelo: 11-16 s en el chat (semana del 19 al 24
+  // oct, #908). El aviso genérico sale con la decisión del enrutador (~1,2 s),
+  // sin esperar a los 3 s de AVISO_ESPERA, y solo donde seguro tarda.
+  if (d && (MODOS_QUE_ESCRIBEN.has(d.modo) || (d.modo === "lola" && pareceEscritura(texto)))) return AVISO_ESPERA;
   if (!(Number(d?.confianza) >= CONFIANZA_PARA_AVISAR)) return null;
   const frase = AVISO_LENTO[HERRAMIENTA_LENTA_DEL_MODO[d?.modo]];
   return typeof frase === "string" ? frase : null;
 }
+
+// Modos que escriben y llegan a Lola (los demás saldrían por la vía rápida).
+const MODOS_QUE_ESCRIBEN = new Set(["cambiar", "ausencia", "deshacer", "compra_anadir", "compra_marcar"]);
+// «Apunta…», «nadie más tiene alergias», «somos…»: lo que Lola va a guardar.
+// Una pregunta («¿…?») no cuenta. Si falla por exceso, la respuesta sustituye
+// el aviso en el mismo mensaje; si falla por defecto, sale a los 3 s como antes.
+const ESCRITURA = /\b(apunt[ao]|anota|a[ñn]ad[eií]\w*|agrega|quita|borra|elimina|cambia|guarda|actualiza|(nadie|ning[uú]n[oa]?)\s+m[aá]s|somos|a partir de ahora|ya no (como|comemos|come)|(es|son) al[eé]rgic\w*|tiene[n]? (alergia|intolerancia))\b/i;
+export const pareceEscritura = (texto) => {
+  const t = String(texto ?? "").trim();
+  return t.length > 0 && !t.startsWith("¿") && ESCRITURA.test(t);
+};
 
 // El aviso por tiempo: si a los 3 s Lola no ha puesto nada en pantalla, sale
 // esta frase, y lo que escriba después la sustituye en el mismo mensaje. Es

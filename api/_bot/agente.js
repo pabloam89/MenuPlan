@@ -92,6 +92,20 @@ function silencioDelTurno(chat, respuestaDeLola = null) {
 // se queda sonnet-5/medium. Lo que tarda es el número de llamadas, no cada una.
 export const MODELO = process.env.BOT_MODELO || "claude-sonnet-5";
 const EFFORT = ["low", "medium", "high"].includes(process.env.BOT_EFFORT) ? process.env.BOT_EFFORT : "medium";
+
+// Un ajuste sencillo de la casa («no quiero más de dos ensaladas», «apunta que
+// no comemos pescado los lunes», «añade a mi suegra de comensal») corre con
+// effort low: medido el 25 oct 2026 (n=5 por frase, sonnet-5), la primera
+// llamada pasa de mediana 5,7 a 4,1 s y de 480 a 310 tokens de salida (en
+// producción llegó a 8-11 s y 670-1085 tokens, casi todo razonamiento). Solo
+// frases cortas, de una cosa y sin tocar el menú: ahí sigue medium. Pura.
+const AJUSTE = /\b(apunt[ao]|anota|a[ñn]ad[eií]\w*|(nadie|ning[uú]n[oa]?)\s+m[aá]s|no (quiero|queremos|comemos|come|como|le gusta|les gusta|me gusta|nos gusta)|al[eé]rgic\w*|alergia|intolerancia)\b/i;
+const TOCA_EL_MENU = /\b(platos?|cenas?|comidas?|recetas?|cambi\w*|quit\w*|pon\w*|gener\w+|reh[aá]z\w*)\b|men[uú]|[?¿]/i;
+export const esAjusteSencillo = (texto) => {
+  const t = String(texto ?? "").trim();
+  return t.length > 0 && t.length <= 110 && AJUSTE.test(t) && !TOCA_EL_MENU.test(t);
+};
+const esfuerzoDe = (entrada) => (!process.env.BOT_EFFORT && process.env.BOT_EFFORT_AJUSTES !== "off" && esAjusteSencillo(entrada) ? "low" : EFFORT);
 // Plan B: si el modelo de Lola no contesta (saturado, caído o colgado), el
 // turno se repite con este otro, de otra familia (cuando uno va saturado el
 // otro no suele ir). Opus y no Haiku, medido con scripts/bot-evals.mjs
@@ -767,7 +781,7 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
     }),
     herramienta({ lector: true, soloLectura: true, pantalla: null }, {
       name: "proponer_platos",
-      description: "Recetas del catálogo que encajan en un hueco del menú (respetan alergias, gustos, tiempo y lo que ya hay en la semana), SIN cambiar nada. Para recomendar o dar a elegir; con parecido_a, las más parecidas a un plato que piden por su nombre. En la comida hay primero y segundo; «cual» dice cuál.",
+      description: "Recetas del catálogo que encajan en un hueco del menú (respetan alergias, gustos, tiempo y lo que ya hay en la semana), SIN cambiar nada. Para recomendar o dar a elegir; con parecido_a, las más parecidas a un plato que piden por su nombre. En la comida hay primero y segundo; «cual» dice cuál. NO hace falta ver_menu antes: ya cuenta con lo que hay en la semana y la ficha trae el menú de hoy y mañana; mirarlo primero es una vuelta más al modelo (3-4 s en el chat).",
       inputSchema: {
         type: "object",
         properties: {
@@ -1380,7 +1394,7 @@ async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal
     max_tokens: 4000,
     max_iterations: 8,
     // Haiku no tiene «effort» (si se pone de reserva con BOT_MODELO_RESERVA): va sin él.
-    ...(/haiku/.test(modelo) ? {} : { output_config: { effort: EFFORT } }),
+    ...(/haiku/.test(modelo) ? {} : { output_config: { effort: esfuerzoDe(entrada) } }),
     system: [
       { type: "text", text: SISTEMA, cache_control: CACHE_FIJA },
       // La ficha, en dos bloques con su caché: el estable casi no cambia y el
