@@ -36,6 +36,7 @@ import { transcribir } from "../_bot/voz.js";
 import { adjuntoDe } from "../_bot/adjuntos.js";
 import { enTurno, aSolas, juntar } from "../_bot/turnos.js";
 import { clasificar, vaPorLaRapida, permitidoEn } from "../_bot/router.js";
+import { prediceRapida, ESPERA_MAX_MS } from "../_bot/prediceRapida.js";
 import { esCorreccionRuta, esCorreccionMedida } from "../_bot/senales.js";
 import { SIN_ENRUTADOR, motorFrioDesde, relojDeHerramientas } from "../_bot/medidaTurno.js";
 import { viaRapida, eleccionDe, aplicarEleccion, contextoDe } from "../_bot/turno.js";
@@ -604,7 +605,19 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   // no cuando Lola llega a llamar a la herramienta (ver avisoDelModo).
   // a propósito: el aviso es adorno
   const aviso = decisionP.then((d) => (rapida(d) ? null : avisoDelModo(d, texto))).catch(seguirCon("aviso_del_modo", null));
-  const lola = conversar({ base, chatId, householdId, esGrupo, texto, oido, from, desde, responderA, puerta, signal: ctrl.signal, medir, pista, aviso });
+  let lola = null;
+  const arrancarLola = () => (lola ??= conversar({ base, chatId, householdId, esGrupo, texto, oido, from, desde, responderA, puerta, signal: ctrl.signal, medir, pista, aviso }));
+  // #909: si una señal barata ya predice la vía rápida (api/_bot/prediceRapida.js),
+  // Lola no arranca hasta saber qué decide el enrutador: si es rápida, ni se
+  // llama (la especulativa cancelada costaba ~0,015 $). Si la señal falla, el
+  // turno de Lola arranca tarde (el tope es ESPERA_MAX_MS).
+  const predicha = prediceRapida(texto, ultima?.texto);
+  if (predicha) {
+    let reloj;
+    const dTemprana = await Promise.race([decisionP, new Promise((r) => { reloj = setTimeout(r, ESPERA_MAX_MS, null); })]);
+    clearTimeout(reloj);
+    if (!(dTemprana && rapida(dTemprana))) arrancarLola();
+  } else arrancarLola();
 
   const d = await decisionP;
   marca(`enrutador (${d.modo} ${d.confianza}, ${d.ms} ms)`);
@@ -630,6 +643,8 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
     // Sin plantilla el turno pasa a Lola, que escribe en su propio mensaje.
     if (!r) await vivoRapida?.quitarAviso();
     if (r) {
+      // Solo se apunta como evitada si Lola de verdad no se llamó (#909).
+      if (!lola && predicha) medir.lolaEvitada = predicha;
       abrir(false);
       ctrl.abort();
       // La plantilla sale YA, sin esperar a que Lola acabe de cancelarse: con
@@ -637,7 +652,7 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
       // estaba en medio de una lectura (una búsqueda, hasta 1,5 s) esa espera
       // se la comía quien solo preguntó «¿qué cenamos?». Se la espera después,
       // para su medida y para no soltar el turno con ella viva.
-      const lolaCancelada = lola.catch(fallaCon("lola_cancelada"));
+      const lolaCancelada = (lola ?? Promise.resolve()).catch(fallaCon("lola_cancelada"));
       await entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r, vivo: vivoRapida });
       // Si el aviso llegó a salir, eso fue lo primero que se vio (como con Lola).
       const avisado = Boolean(vivoRapida?.id());
@@ -650,7 +665,7 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   abrir(true);
   // Con el tiempo total del turno de Lola (hasta su respuesta entregada): sin
   // él no había forma de saber cuánto tarda de verdad lo que no es vía rápida.
-  await lola.catch(fallaCon("lola"));
+  await arrancarLola().catch(fallaCon("lola"));
   return apuntarRuta(householdId, { ...paraEvals, modo: d.modo, confianza: d.confianza, rapida: false, ms: Date.now() - t0, router_ms: d.ms, contexto_ms: contextoMs, error: d.error, ...medida(medir, d, t0) });
 }
 
@@ -668,6 +683,8 @@ function medida(medir, d, t0, primer = null) {
     ...(medir.espera ? { espera_ms: medir.espera - t0 } : {}),
     router_uso: d.uso ? { in: d.uso.input_tokens ?? 0, out: d.uso.output_tokens ?? 0, cr: d.uso.cache_read_input_tokens ?? 0, cw: d.uso.cache_creation_input_tokens ?? 0 } : null,
     lola_cancelada: !!medir.cancelada,
+    // #909: Lola ni llegó a llamarse porque se predijo la vía rápida (y acertó).
+    ...(medir.lolaEvitada ? { lola_evitada: medir.lolaEvitada } : {}),
     // Lo que se había pagado de esa llamada al cortarla (entrada exacta, salida
     // parcial). Sin esto, bot-semana.mjs la estima y lo dice.
     ...(medir.canceladaUso ? { lola_cancelada_uso: medir.canceladaUso } : {}),
@@ -738,13 +755,14 @@ const CONFIANZA_PARA_AVISAR = 0.7;
  * @param {{ modo?: string, confianza?: number }} d  la decisión del enrutador
  * @returns {string | null}
  */
-export function avisoDelModo(d, texto = "") {
+export function avisoDelModo(d, texto = null) {
   if (process.env.BOT_AVISO_LENTO === "off") return null;
   // Un turno de Lola que ESCRIBE (apuntar una alergia, un comensal, un gusto)
   // da al menos dos vueltas al modelo: 11-16 s en el chat (semana del 19 al 24
   // oct, #908). El aviso genérico sale con la decisión del enrutador (~1,2 s),
-  // sin esperar a los 3 s de AVISO_ESPERA, y solo donde seguro tarda.
-  if (d && (MODOS_QUE_ESCRIBEN.has(d.modo) || (d.modo === "lola" && pareceEscritura(texto)))) return AVISO_ESPERA;
+  // sin esperar a los 3 s de AVISO_ESPERA, y solo donde seguro tarda. Solo si se
+  // pasa el texto: la vía rápida (que no escribe con Lola) llama sin él.
+  if (d && texto !== null && (MODOS_QUE_ESCRIBEN.has(d.modo) || (d.modo === "lola" && pareceEscritura(texto)))) return AVISO_ESPERA;
   if (!(Number(d?.confianza) >= CONFIANZA_PARA_AVISAR)) return null;
   const frase = AVISO_LENTO[HERRAMIENTA_LENTA_DEL_MODO[d?.modo]];
   return typeof frase === "string" ? frase : null;

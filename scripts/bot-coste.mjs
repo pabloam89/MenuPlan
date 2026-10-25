@@ -12,8 +12,12 @@
 import pg from "pg";
 import { leerEnv } from "./lib/env.mjs";
 import { conexionDeConsulta } from "./lib/rolLectura.mjs";
+import { PRECIOS } from "./lib/evals.mjs";
 
-const PRECIO = { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 }; // USD / 1M tokens
+// USD / 1M tokens, de PRECIOS (scripts/lib/evals.mjs, el único sitio). bot_usage no separa
+// 5 min de 1 h; Lola escribe casi todo a 1 h (CACHE_FIJA), así que se cobra a 1 h (#909).
+const [pIn, pOut, pRead, , pWrite1h] = PRECIOS.sonnet;
+const PRECIO = { input: pIn, output: pOut, cacheRead: pRead, cacheWrite: pWrite1h };
 
 const dbUrl = conexionDeConsulta(leerEnv).url;
 

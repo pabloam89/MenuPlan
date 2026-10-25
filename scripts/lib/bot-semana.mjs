@@ -10,16 +10,28 @@
 
 import { esCorreccionMedida } from "../../api/_bot/senales.js";
 import { ORIGEN_PESADO } from "../../api/_bot/medidaTurno.js";
+import { PRECIOS as PRECIOS_BASE } from "./evals.mjs";
 
-// USD por millón de tokens: REVISARLOS contra la tarifa publicada de
-// Anthropic. Se aplican al leer, no al apuntar.
-export const PRECIOS = {
-  haiku: { in: 1, out: 5, cr: 0.1, cw: 1.25 },
-  sonnet: { in: 3, out: 15, cr: 0.3, cw: 3.75 },
-  opus: { in: 5, out: 25, cr: 0.5, cw: 6.25 },
-};
+// USD por millón de tokens. Los precios viven en UN sitio (PRECIOS de
+// scripts/lib/evals.mjs); aquí solo se reordenan por nombre. Escribir caché
+// cuesta 1,25× la entrada a 5 min y 2× a 1 h (#909: antes todo iba a 1,25× y
+// el coste de Lola salía ~0,002 $/turno corto). Lola escribe casi todo a 1 h
+// (CACHE_FIJA), el enrutador a 5 min. Se aplican al leer, no al apuntar.
+export const PRECIOS = Object.fromEntries(
+  Object.entries(PRECIOS_BASE).map(([k, [i, o, cr, cw, cw1h]]) => [k, { in: i, out: o, cr, cw, cw1h }]),
+);
 export const precioDe = (modelo = "") => PRECIOS[Object.keys(PRECIOS).find((k) => String(modelo).includes(k)) ?? "sonnet"];
-export const usd = (u, p) => (u ? ((u.in ?? 0) * p.in + (u.out ?? 0) * p.out + (u.cr ?? 0) * p.cr + (u.cw ?? 0) * p.cw) / 1e6 : 0);
+/** Coste de un uso {in,out,cr,cw}. `ttl`: «1h» (Lola, por defecto) o «5m» (enrutador). */
+export const usd = (u, p, { ttl = "1h" } = {}) =>
+  u ? ((u.in ?? 0) * p.in + (u.out ?? 0) * p.out + (u.cr ?? 0) * p.cr + (u.cw ?? 0) * (ttl === "5m" ? p.cw : p.cw1h)) / 1e6 : 0;
+
+/**
+ * Salto de método (25 oct 2026, #909): la tarifa de escribir caché a 1 h es 2× la
+ * entrada, no 1,25× (https://platform.claude.com/docs/en/build-with-claude/prompt-caching).
+ * Los precios se aplican al leer, así que el coste por turno de semanas anteriores
+ * también sube ~0,002 $ sin que Lola haya empeorado.
+ */
+export const NOTA_METODO_COSTE = "_Coste: desde el 25 oct 2026 la caché escrita a 1 h se cobra a 2× (antes 1,25×); el coste por turno sube ~0,002 $ también en semanas pasadas, sin que Lola haya cambiado (#909)._";
 
 /** Percentil p (0-100) de los números finitos de xs; null si no hay ninguno. */
 export function pct(xs, p) {
@@ -107,7 +119,7 @@ export function medir(eventos, objetivos = {}) {
   // Las canceladas, aparte: cuántas, con qué uso (medido al cortar o estimado) y cuánto.
   const canceladas = { n: 0, medidas: 0, estimadas: 0, usd: 0 };
   for (const { m } of conMedida) {
-    coste += usd(m.router_uso, PRECIOS.haiku);
+    coste += usd(m.router_uso, PRECIOS.haiku, { ttl: "5m" });
     if (m.lola_cancelada) {
       const c = costeDeCancelada(m, estimada);
       coste += c.usd;
@@ -294,6 +306,8 @@ export function informe({ actual, anterior, objetivos, huecos = null, lugares = 
   const icono = (ok) => (ok === true ? "✅" : ok === false ? "❌" : "⚪");
   const l = [];
   l.push(`## Lola — semana del ${desde} al ${hasta}`);
+  l.push("");
+  l.push(NOTA_METODO_COSTE);
   l.push("");
   l.push(`${actual.uso.turnos} turnos${actual.uso.chats ? ` en ${actual.uso.chats} chats` : ""} · ${fmt(actual.uso.rapidaPct, "%")} por la vía rápida${anterior ? ` · semana anterior: ${anterior.uso.turnos} turnos` : ""}`);
   l.push("");

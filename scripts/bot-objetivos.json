@@ -1,5 +1,5 @@
 {
-  "_nota": "Los objetivos de Lola que mira el informe semanal (scripts/bot-semanal.mjs). PROPUESTA inicial de Álvaro y Claude, 2 oct 2026, con el primer texto de Lola en 2 s y el turno en 10 s por decisión de Álvaro; sin datos reales detrás: se ajustan tras las 2 primeras semanas de informe. null = sin objetivo (se mide, pero no hay semáforo). Tiempos en ms, porcentajes de 0 a 100, coste en USD.",
+  "_nota": "Los objetivos de Lola que mira el informe semanal (scripts/bot-semanal.mjs). PROPUESTA inicial de Álvaro y Claude, 2 oct 2026, con el primer texto de Lola en 2 s y el turno en 10 s por decisión de Álvaro; sin datos reales detrás: se ajustan tras las 2 primeras semanas de informe. null = sin objetivo (se mide, pero no hay semáforo). Desde el 25 oct 2026 el coste por turno se calcula con la caché escrita a 1 h a 2× (antes 1,25×, #909): sube ~0,002 $ por turno también en lo ya medido, sin que Lola haya empeorado; el objetivo no se ha movido. Tiempos en ms, porcentajes de 0 a 100, coste en USD.",
   "primerTextoRapidaP95Ms": 2500,
   "primerTextoLolaP95Ms": 2000,
   "turnoLolaP95Ms": 10000,
