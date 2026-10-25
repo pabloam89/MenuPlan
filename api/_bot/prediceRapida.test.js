@@ -7,7 +7,7 @@ describe("prediceRapida (#909)", () => {
   });
   it("una frase corta tras una lista de opciones se predice rápida", () => {
     expect(prediceRapida("Revuelto de jamón y queso", "👉 Para el segundo del viernes:\n\n• Chuletón")).toBe("opciones");
-    expect(prediceRapida("Mmm prefiero pasta la verdad, dame opciones", "👉 Para la comida de hoy")).toBe("opciones");
+    expect(prediceRapida("Mmm prefiero pasta la verdad, dame opciones", "👉 Para la comida de hoy")).toBe(null); // larga: es de Lola (esperar costaría 1-1,9 s)
   });
   it("lo que lleva condiciones, preguntas o es largo es de Lola", () => {
     expect(prediceRapida("Reházme la semana que viene entera teniendo en cuenta lo que te acabo de decir", "🎉 ¡Menú listo!")).toBe(null);
