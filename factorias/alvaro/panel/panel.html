@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel de la factoría</title>
+<style>
+  :root {
+    --fondo: #f6f6f3; --tarjeta: #ffffff; --texto: #1d1d1b; --suave: #5f5f58; --linea: #dcdcd4;
+    --ok: #1f7a3d; --ok-fondo: #e3f3e8; --mal: #b3261e; --mal-fondo: #fbe4e1; --aviso: #8a5a00; --aviso-fondo: #fdf0d2; --sombra: rgba(0,0,0,.3);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --fondo: #151513; --tarjeta: #1f1f1c; --texto: #ecece6; --suave: #a3a39a; --linea: #3a3a35;
+      --ok: #6fd18c; --ok-fondo: #173322; --mal: #ff8a80; --mal-fondo: #3d1b18; --aviso: #f2c25b; --aviso-fondo: #3a2e10; --sombra: rgba(255,255,255,.4);
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fondo); color: var(--texto); font: 16px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 1100px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 1.4rem; margin: 0 0 4px; }
+  h2 { font-size: 1.15rem; margin: 0 0 8px; }
+  h3 { font-size: 1rem; margin: 16px 0 6px; }
+  section { background: var(--tarjeta); border: 1px solid var(--linea); border-radius: 10px; padding: 14px 16px; margin: 14px 0; }
+  p, li { margin: 4px 0; }
+  .suave { color: var(--suave); font-size: .88rem; }
+  .franja { border-radius: 8px; padding: 10px 12px; margin: 8px 0; border: 1px solid; font-weight: 500; }
+  .franja.mal { background: var(--mal-fondo); color: var(--mal); border-color: var(--mal); }
+  .franja.ok { background: var(--ok-fondo); color: var(--ok); border-color: var(--ok); }
+  .franja.aviso { background: var(--aviso-fondo); color: var(--aviso); border-color: var(--aviso); }
+  .franja ul { margin: 6px 0 0; padding-left: 20px; font-weight: 400; overflow-wrap: anywhere; }
+  /* sombras en el borde que tenga más tabla por deslizar (truco de fondos local/scroll) */
+  .tabla { overflow-x: auto; background: linear-gradient(to right, var(--tarjeta) 30%, transparent) left / 40px 100% no-repeat local, linear-gradient(to left, var(--tarjeta) 30%, transparent) right / 40px 100% no-repeat local, radial-gradient(farthest-side at 0 50%, var(--sombra), transparent) left / 12px 100% no-repeat scroll, radial-gradient(farthest-side at 100% 50%, var(--sombra), transparent) right / 12px 100% no-repeat scroll; }
+  #aviso { position: sticky; top: 0; z-index: 5; }
+  #app.viejo { opacity: .7; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--linea); vertical-align: top; }
+  th { color: var(--suave); font-weight: 600; white-space: nowrap; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tr.resaltada td { background: var(--mal-fondo); color: var(--mal); font-weight: 600; }
+  td ul { margin: 0; padding-left: 18px; }
+  code { font-family: ui-monospace, Consolas, monospace; font-size: .85em; overflow-wrap: anywhere; }
+  .cifras { display: flex; flex-wrap: wrap; gap: 6px 24px; margin: 6px 0; }
+  .cifras div b { display: block; font-size: 1.2rem; font-variant-numeric: tabular-nums; }
+  .vacio { color: var(--suave); font-style: italic; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Panel de la factoría</h1>
+  <p class="suave">Solo lee tus ficheros de Claude Code. No manda nada fuera del PC. Se refresca solo cada 5 s.</p>
+  <div id="aviso"></div>
+  <div id="app"><p class="vacio">Cargando…</p></div>
+</main>
+<script>
+"use strict";
+// Todo lo que viene de los datos entra como texto (append de cadenas), nunca como HTML: lo que se ve no puede ejecutar nada.
+const app = document.getElementById("app");
+const aviso = document.getElementById("aviso");
+
+function el(tag, clase, ...hijos) {
+  const e = document.createElement(tag);
+  if (clase) e.className = clase;
+  for (const h of hijos) if (h !== null && h !== undefined && h !== false) e.append(h);
+  return e;
+}
+const nf = new Intl.NumberFormat("es-ES");
+// La página solo pinta lo que le dan: lo que no se pudo leer llega null desde el servidor y aquí sale «sin dato».
+const SD = "sin dato";
+const fNum = (n) => (n == null ? SD : nf.format(n));
+function msTexto(ms) {
+  if (ms < 1000) return `${Math.round(ms)} ms`;
+  if (ms < 60000) return `${(ms / 1000).toFixed(1).replace(".", ",")} s`;
+  if (ms < 3600000) return `${Math.floor(ms / 60000)} min ${String(Math.round((ms % 60000) / 1000)).padStart(2, "0")} s`;
+  return `${Math.floor(ms / 3600000)} h ${Math.floor((ms % 3600000) / 60000)} min`;
+}
+const fMs = (ms) => (ms == null ? SD : msTexto(ms));
+const fechaTexto = (iso) => new Date(iso).toLocaleString("es-ES", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", second: "2-digit" });
+const fFecha = (iso) => (iso ? fechaTexto(iso) : SD);
+function hace(iso) {
+  if (!iso) return "";
+  const s = Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 1000));
+  if (s < 90) return `hace ${s} s`;
+  if (s < 5400) return `hace ${Math.round(s / 60)} min`;
+  if (s < 129600) return `hace ${Math.round(s / 3600)} h`;
+  return `hace ${Math.round(s / 86400)} días`;
+}
+const haceEl = (iso) => {
+  const e = el("span", "", hace(iso));
+  e.dataset.ts = iso;
+  return e;
+};
+const fUSD = (n) => (n == null ? SD : "$" + n.toFixed(2));
+
+// cols: [{ t: título, n: numérica, v: (fila) => texto o nodo }]
+function tabla(cols, filas, { resaltar } = {}) {
+  if (filas === null) return el("p", "vacio", "No se pudo leer (ver franja roja).");
+  if (!filas.length) return el("p", "vacio", "Sin datos en esta ventana.");
+  const cab = el("tr", "", ...cols.map((c) => el("th", c.n ? "n" : "", c.t)));
+  const cuerpo = filas.map((f) => el("tr", resaltar && resaltar(f) ? "resaltada" : "", ...cols.map((c) => el("td", c.n ? "n" : "", c.v(f)))));
+  const caja = el("div", "tabla", el("table", "", el("thead", "", cab), el("tbody", "", ...cuerpo)));
+  caja.tabIndex = 0; // se puede desplazar con el teclado
+  return caja;
+}
+const cifra = (valor, ...etiqueta) => el("div", "", el("b", "", String(valor)), el("span", "suave", ...etiqueta));
+const franja = (clase, titulo, lista) => el("div", "franja " + clase, titulo, lista && lista.length ? el("ul", "", ...lista.map((x) => el("li", "", x))) : null);
+
+let lineaLectura = null;
+const textoLectura = (d) => `Lectura: ${msTexto(d.lecturaMs)}${d.ficheros.total === null ? "" : ` de ${d.ficheros.total} ficheros (los que no cambiaron salen de la memoria)`}; el panel pesa ${d.proceso.rssMB} MB. Generado ${fechaTexto(d.generado)}.`;
+
+function pintarEstado(d) {
+  const e = d.estado;
+  const s = el("section", "", el("h2", "", "Estado"));
+  if (d.errores.length) s.append(franja("mal", "No se pudo leer algo: lo que depende de ello sale como «sin dato», no como 0.", d.errores.map((x) => `${x.fuente}: ${x.fichero} — ${x.motivo}`)));
+  const c = e.copia;
+  if (c === null) s.append(franja("aviso", "No se pudo comparar la copia instalada con el repo (mira los errores de arriba)."));
+  else if (c.ok) s.append(franja("ok", "Copia instalada = repo (hooks y lib idénticos por hash)."));
+  else {
+    const l = [];
+    if (c.difieren.length) l.push("Distintos: " + c.difieren.join(", "));
+    if (c.faltanInstalada.length) l.push("Faltan en la copia instalada: " + c.faltanInstalada.join(", "));
+    if (c.sobranInstalada.length) l.push("Sobran en la copia instalada: " + c.sobranInstalada.join(", "));
+    s.append(franja("mal", "Copia instalada ≠ repo: los veredictos del registro pueden ser falsos.", l));
+  }
+  const ra = e.registroAntiguo;
+  if (ra?.aviso) {
+    const l = [];
+    if (ra.sinAgentId) l.push(`${ra.sinAgentId} de ${ra.apuntes} apuntes sin agent_id (versión vieja del hook)`);
+    if (ra.noJueces) l.push(`${ra.noJueces} apuntes de agentes que no son jueces (la versión vieja también apunta a constructores)`);
+    s.append(franja("aviso", "Datos del registro de jueces poco fiables: los antiguos pueden traer veredictos falsos.", l));
+  }
+  s.append(el("div", "cifras", cifra(fFecha(e.ultimoEvento), "último evento visto", ...(e.ultimoEvento ? [" (", haceEl(e.ultimoEvento), ")"] : [])), cifra(fNum(e.sesiones), `sesiones en los últimos ${d.dias} días`), cifra(fNum(e.lineasRotas), "líneas rotas saltadas")));
+  lineaLectura = el("p", "suave", textoLectura(d));
+  s.append(lineaLectura);
+  return s;
+}
+
+function pintarHooks(d) {
+  const s = el("section", "", el("h2", "", `Qué se activa y qué no (últimos ${d.dias} días)`));
+  s.append(
+    tabla(
+      [
+        { t: "Evento", v: (h) => h.evento },
+        { t: "Hook", v: (h) => el("span", "", h.nombre, h.ruta ? el("br") : null, h.ruta ? el("code", "suave", h.ruta) : null) },
+        { t: "Veces", n: true, v: (h) => fNum(h.veces) },
+        { t: "Última", v: (h) => (h.veces === 0 ? "—" : fFecha(h.ultima)) },
+        { t: "Media", n: true, v: (h) => (h.veces === 0 ? "—" : fMs(h.mediaMs)) },
+        { t: "Máx.", n: true, v: (h) => (h.veces === 0 ? "—" : fMs(h.maxMs)) },
+        { t: "Bloqueos", n: true, v: (h) => fNum(h.bloqueos) },
+        { t: "Nota", v: (h) => (h.declarado === null ? SD : h.rojo ? "Stop debería anotarse siempre: 0 activaciones vistas" : h.sinHuella ? "sin huella visible (declarado, 0 activaciones vistas)" : h.declarado ? "" : "no está en ~/.claude/settings.json (¿del proyecto?)") },
+      ],
+      d.hooks,
+      { resaltar: (h) => h.rojo },
+    ),
+  );
+  if (d.hooks?.some((h) => h.declarado === null)) s.append(el("p", "suave", "No se puede saber qué hooks están declarados porque settings.json no se pudo leer."));
+  s.append(el("p", "suave", "Solo se ven los hooks que Claude Code deja anotados en la transcripción: el resumen de cierre de turno (Stop) y los avisos de «hook correcto» de los demás eventos. «Sin huella visible» no quiere decir que no se activara: solo se ve lo que Claude Code anota, y fuera de Stop casi no anota nada. Solo se pone en rojo en Stop, cuyo resumen sí se anota siempre."));
+  return s;
+}
+
+function totalTexto(t) {
+  if (!t.noCuadra) return fMs(t.totalMs) + (t.fotoAtrasada ? " *" : "");
+  const x = el("span", "", "total no fiable");
+  x.title = "La duración de la foto de Claude Code supera la vida observada de la sesión";
+  return x;
+}
+
+function pintarTiempos(d) {
+  const s = el("section", "", el("h2", "", "Tiempos"));
+  s.append(el("h3", "", "Por sesión (las 15 últimas)"));
+  s.append(
+    tabla(
+      [
+        { t: "Sesión", v: (t) => el("code", "", t.sesion) },
+        { t: "Rama", v: (t) => t.rama ?? "—" },
+        { t: "Carpeta", v: (t) => t.carpeta ?? "—" },
+        { t: "Último", v: (t) => fFecha(t.ultimo) },
+        { t: "Total (última foto)", n: true, v: totalTexto },
+        { t: "API", n: true, v: (t) => fMs(t.apiMs) },
+        { t: "Herramientas", n: true, v: (t) => fMs(t.herramientasMs) },
+        { t: "Hooks", n: true, v: (t) => fMs(t.hooksMs) },
+      ],
+      d.tiempos,
+    ),
+  );
+  s.append(el("p", "suave", "Total, API, herramientas y coste salen de cost-state: una FOTO esporádica de Claude Code, no un contador final. Hay sesiones sin ninguna, con coste 0 (sin dato), con una foto más larga que la propia sesión (el total sale «total no fiable»; el coste y el resto se conservan) y con la última foto a mitad de sesión (*: hubo mensajes después). Son cifras mínimas, de la sesión entera y no solo de la ventana. Hooks: suma de lo que dejan anotado."));
+  s.append(el("h3", "", "Jueces: tiempo desde «lanzado» hasta el informe"));
+  const j = d.jueces;
+  if (j.tiempos?.length === 0) s.append(el("p", "vacio", "Sin ningún juez con agent_id y las dos anotaciones (lanzado e informe) en esta ventana."));
+  else s.append(tabla([{ t: "Cuándo", v: (x) => fFecha(x.ts) }, { t: "Rama", v: (x) => x.rama }, { t: "Juez", v: (x) => x.agente }, { t: "Veredicto", v: (x) => x.veredicto }, { t: "Tardó", n: true, v: (x) => fMs(x.ms) }], j.tiempos));
+  return s;
+}
+
+function pintarIneficiencias(d) {
+  const i = d.ineficiencias;
+  const s = el("section", "", el("h2", "", "Ineficiencias"));
+  s.append(el("h3", "", "a) Bloqueos de hooks"));
+  s.append(el("p", "", `Bloqueos con hook identificado: ${fNum(i.bloqueos?.reduce((n, b) => n + b.n, 0))}.`));
+  s.append(
+    tabla(
+      [
+        { t: "Evento", v: (b) => b.evento },
+        { t: "Hook", v: (b) => b.nombre },
+        { t: "Bloqueos", n: true, v: (b) => fNum(b.n) },
+        { t: "Los 3 motivos más repetidos (primeros 80 caracteres)", v: (b) => el("ul", "", ...b.motivos.map((m) => el("li", "", `${m.n} × ${m.texto}`))) },
+      ],
+      i.bloqueos,
+    ),
+  );
+  s.append(el("p", "suave", "De cada hook solo se listan sus 3 motivos más repetidos, no todos: la suma puede quedarse por debajo de sus bloqueos."));
+  s.append(el("h3", "", "b) Jueces relanzados (misma rama y agente, más de un informe distinto)"));
+  s.append(tabla([{ t: "Rama", v: (r) => r.rama }, { t: "Juez", v: (r) => r.agente }, { t: "Informes", n: true, v: (r) => fNum(r.informes) }, { t: "Nota", v: (r) => (r.sinAgentId ? `${r.sinAgentId} sin agent_id: pueden ser dobles apuntes del mismo informe` : "") }], i.relanzados));
+  s.append(el("h3", "", "c) Coste y tokens"));
+  s.append(el("p", "suave", `Coste mínimo (última foto de Claude Code, no un contador final), suma de las sesiones con dato de la ventana: ${fUSD(i.costes?.total)}. Las marcadas con * tuvieron mensajes después de su foto.`));
+  s.append(tabla([{ t: "Sesión", v: (c) => el("code", "", c.sesion) }, { t: "Rama", v: (c) => c.rama ?? "—" }, { t: "Carpeta", v: (c) => c.carpeta ?? "—" }, { t: "Coste (mínimo)", n: true, v: (c) => fUSD(c.costeUSD) + (c.fotoAtrasada ? " *" : "") }], i.costes?.sesiones ?? null));
+  s.append(el("p", "suave", "Tokens por modelo (mensajes del asistente de la ventana, contados una vez por respuesta):"));
+  s.append(tabla([{ t: "Modelo", v: (t) => t.modelo }, { t: "Mensajes", n: true, v: (t) => fNum(t.mensajes) }, { t: "Entrada", n: true, v: (t) => fNum(t.entrada) }, { t: "Salida", n: true, v: (t) => fNum(t.salida) }, { t: "Caché leída", n: true, v: (t) => fNum(t.cacheLeida) }, { t: "Caché creada", n: true, v: (t) => fNum(t.cacheCreada) }], i.tokens));
+  s.append(el("h3", "", "d) Subagentes lanzados"));
+  s.append(tabla([{ t: "Tipo (herramienta Agent)", v: (a) => a.tipo ?? "sin tipo indicado" }, { t: "Veces", n: true, v: (a) => fNum(a.n) }], i.subagentes));
+  s.append(el("p", "suave", `Mensajes del asistente que vienen de subagentes (sidechain): ${fNum(i.mensajesSubagente)}.`));
+  return s;
+}
+
+function pintarPie() {
+  const lista = [
+    "Los hooks del proyecto (.claude/settings.json del repo donde corre cada sesión) NO se leen: solo los de ~/.claude/settings.json. Los que salen «no está en ~/.claude/settings.json» sí se han visto activarse.",
+    "El registro de jueces del PC lo escribe una versión vieja del hook que también apunta a constructores y lee veredictos falsos: los datos antiguos no son fiables, y este panel no puede separar los buenos de los malos.",
+    "Las transcripciones de subagentes que Claude Code guarde en subcarpetas no se leen (SIN COMPROBAR que existan); sí cuentan las que vienen dentro del fichero de la sesión.",
+    "No dice si un juez tenía razón ni si el código quedó bien: solo cuántas veces se activó, cuánto tardó y cuánto costó.",
+  ];
+  return el("section", "", el("h2", "", "Qué NO sabe este panel"), el("ul", "", ...lista.map((x) => el("li", "", x))));
+}
+
+function pintar(d) {
+  // Conserva el desplazamiento de la página y de cada tabla, y qué tabla tenía el foco del teclado.
+  const cajas = [...app.querySelectorAll(".tabla")];
+  const izq = cajas.map((c) => c.scrollLeft);
+  const foco = cajas.indexOf(document.activeElement);
+  const y = window.scrollY;
+  app.replaceChildren(pintarEstado(d), pintarHooks(d), pintarTiempos(d), pintarIneficiencias(d), pintarPie());
+  const nuevas = [...app.querySelectorAll(".tabla")];
+  if (nuevas.length === izq.length) nuevas.forEach((c, i) => (c.scrollLeft = izq[i]));
+  if (foco >= 0 && nuevas[foco]) nuevas[foco].focus({ preventScroll: true });
+  window.scrollTo(0, y);
+}
+// Solo se repinta si cambió algo de verdad; lo que cambia siempre (hora, tiempos de lectura, memoria) se actualiza en su sitio.
+let claveAnterior = null;
+let saltados = 0;
+function mostrar(d) {
+  const { generado, lecturaMs, proceso, ficheros, ...resto } = d; // lo volátil queda fuera de la comparación
+  const clave = JSON.stringify(resto);
+  if (clave === claveAnterior) {
+    if (lineaLectura) lineaLectura.textContent = textoLectura(d);
+    return;
+  }
+  const sel = window.getSelection();
+  // está seleccionando texto: se espera a que acabe, pero como mucho 6 ciclos (30 s)
+  if (sel && !sel.isCollapsed && app.contains(sel.anchorNode) && ++saltados < 6) return;
+  saltados = 0;
+  claveAnterior = clave;
+  pintar(d);
+}
+function pintarFallo(msg, extra) {
+  aviso.replaceChildren(franja("mal", msg, extra ? [extra] : null));
+  app.classList.add("viejo"); // los datos que quedan son viejos: se atenúan mientras dure la caída
+}
+
+async function cargar() {
+  try {
+    const r = await fetch("/datos.json", { cache: "no-store", signal: AbortSignal.timeout(8000) });
+    const d = await r.json();
+    if (!r.ok || !d.estado) {
+      pintarFallo("El panel no pudo calcular los datos.", (d.errores || []).map((x) => `${x.fichero} — ${x.motivo}`).join(" | ") || "HTTP " + r.status);
+    } else {
+      aviso.replaceChildren();
+      app.classList.remove("viejo");
+      mostrar(d);
+    }
+  } catch (e) {
+    pintarFallo("No llega al panel local (¿se ha parado servir.mjs?). Lo que ves es lo último que se pudo leer.", e && e.name === "TimeoutError" ? "no respondió en 8 s" : "el navegador no pudo conectar");
+  }
+}
+(function bucle() {
+  const sigue = () => setTimeout(bucle, 5000);
+  if (document.hidden) return sigue();
+  cargar().then(sigue, sigue);
+})();
+document.addEventListener("visibilitychange", () => { if (!document.hidden) cargar(); });
+// «hace N s» sigue contando en el navegador aunque no lleguen datos nuevos
+setInterval(() => document.querySelectorAll("[data-ts]").forEach((n) => (n.textContent = hace(n.dataset.ts))), 1000);
+</script>
+</body>
+</html>
