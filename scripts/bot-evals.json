@@ -2959,7 +2959,10 @@
       "alDia": [
         "- {viernes}: comida primero Arroz con tomate frito + segundo Ensalada de lentejas; cena tortilla de calabacín."
       ],
-      "sinTexto": "ya est[aá] (arreglad|hech|cambiad|list)"
+      "llamaAlguna": [
+        "proponer_platos"
+      ],
+      "sinTexto": "ya est[aá] (arreglad|hech|cambiad|list)|list[oa]!|queda (arreglad|cambiad)|ya lo cambi"
     }
   ]
 }

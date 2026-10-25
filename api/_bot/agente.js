@@ -1064,7 +1064,7 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   chat.nombresAntes = (data.members ?? []).map((m) => m.name).filter(Boolean);
   // La ficha de la casa (api/_bot/ficha.js): lo que Lola ya sabe sin preguntar.
   const ficha = casa ? conQuienEscribe(montarFicha(deLaFicha.casa, extras), chat.papel, chat.idioma) : null;
-  let dicho, uso, corregido, medida, sigueSinGuardar = false;
+  let dicho, uso, corregido, medida, promesa, sigueSinGuardar = false;
   const tLola = Date.now();
   // La pista del enrutador (api/_bot/pista.js). `progreso` lo rellena Lola
   // según avanza: con él se sabe si aún se la puede cortar sin tirar nada.
@@ -1110,6 +1110,7 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
       alCortar: (ms) => { medidaPista = { ...medidaPista, cortada_ms: ms }; },
     }));
     sigueSinGuardar = Boolean(r.sigueSinGuardar);
+    promesa = r.promesa;
     // Acabado el turno: sin ninguna herramienta en todo él, la pista se aceptó.
     adelanto.alAcabar(r.herramientas?.length ?? 0);
     // La llamada cortada no trae su uso (se paga igual): se estima con lo que
@@ -1133,7 +1134,7 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   if (corregido) {
     // `sigue`: ni con el aviso guardó. Sin él, se corrigió en la segunda vuelta.
     // a propósito: el evento vale más sin dueño que perdido
-    await registrar(FALLO_SIN_GUARDAR, { userId: await duenoDe(householdId).catch(seguirCon("agente_dueno", null)), extra: { texto: String(texto).slice(0, 200), sigue: sigueSinGuardar, esGrupo: Boolean(esGrupo) } });
+    await registrar(FALLO_SIN_GUARDAR, { userId: await duenoDe(householdId).catch(seguirCon("agente_dueno", null)), extra: { texto: String(texto).slice(0, 200), tipo: promesa ?? "guardado", sigue: sigueSinGuardar, esGrupo: Boolean(esGrupo) } });
   }
   if (/no (te )?(he )?entend|no s[eé] a qu[eé] te refieres/i.test(dicho)) {
     // a propósito: el evento vale más sin dueño que perdido
@@ -1209,25 +1210,32 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
 // Como viñeta («• ✅ Cambiar un plato», al contar lo que sabe hacer) no es
 // decir que guardó: «hola, ¿qué sabes hacer?» pasaba por el aviso y una
 // segunda llamada al modelo (staging, 2 oct 2026: 8,2 s para un saludo).
-const DICE_QUE_GUARDO = /(^|\n)\s*✅|\bapuntad[oa]s?\b|\blo he (apuntado|puesto|cambiado|guardado|quitado|añadido|anotado|arreglado|solucionado|corregido|hecho|dejado|actualizado)\b|(^|[.!¡]\s*)hecho\b/i;
+const DICE_QUE_GUARDO = /(^|\n)\s*✅|\bapuntad[oa]s?\b|\blo he (apuntado|puesto|cambiado|guardado|quitado|añadido|anotado|arreglado|solucionado|corregido|dejado|actualizado)\b|(^|[.!¡]\s*)hecho\b/i;
 // «Ya está arreglado» sin haber tocado nada (#911: ante la queja de que un
 // arroz con tomate llevaba ensalada de lentejas de segundo, Lola solo propuso
 // tres primeros y empezó con «Ya está arreglado»). Es la misma mentira que
-// «✅ Apuntado»: se corrige con el mismo aviso y la misma vuelta. «Listo» y
-// compañía solo cuentan como frase entera («¡Listo!»), no «listo para cenar».
-const DICE_QUE_ARREGLO = /\bya est[aá] (arreglad[oa]|cambiad[oa]|solucionad[oa]|corregid[oa]|hecho|listo)\b|\bqueda (arreglad|cambiad|solucionad|corregid)[oa]\b|\bya lo (cambi[eé]|puse|arregl[eé]|solucion[eé]|corregí|hice)(?![a-záéíóúñ])|(^|[.!¡\n]\s*)(listo|arreglad[oa]|cambiad[oa]|solucionad[oa])\s*([.!]|$)/i;
+// «✅ Apuntado»: se corrige con el mismo aviso y la misma vuelta. Solo lo que
+// describe esa queja: «hecho» y «listo» sueltos no, que también son cocina
+// («el arroz ya está listo») y lectura («el menú ya está hecho»). Con
+// «cuando…», «si…» o «en cuanto…» delante, «queda cambiado» es futuro.
+const DICE_QUE_ARREGLO = /\bya est[aá] (arreglad|cambiad|solucionad|corregid)[oa]\b|(?<!\b(?:cuando|si|en cuanto)\b[^.!?\n]*)\bqueda (arreglad|cambiad|solucionad|corregid)[oa]\b|\bya lo (cambi[eé]|arregl[eé]|corregí)(?![a-záéíóúñ])/i;
 // «No tenéis ninguna alergia apuntada» es leer lo que hay, no decir que guardó:
 // saltaba el aviso y costaba otra vuelta de ~3 s en cada consulta (#229). Se
 // quita el «apuntad…» que va detrás de una negación en la misma frase, salvo
 // que sea «he apuntado» y el «no» no vaya con él («No olvides que te he
 // apuntado leche» sí dice que guardó; «No te he apuntado nada», no). Igual con
 // «Nada está cambiado aún» (lo que dice proponer_platos): es leer, no arreglar.
-const APUNTADO_NEGADO = /\b(no|ningun[oa]?|nada|nadie)\b[^.,;:!?\n]{0,40}?\b(apuntad|arreglad|cambiad|solucionad|corregid|hech)[oa]s?\b/gi;
-const HE_APUNTADO = /\b(he|hemos|ha|han|has|habeis|habéis)\s+(apuntad|arreglad|cambiad|solucionad|corregid|hech)/i;
-const NO_HE_APUNTADO = /^no\s+(\S+\s+)?(he|hemos|ha|han|has|habeis|habéis)\s+(apuntad|arreglad|cambiad|solucionad|corregid|hech)/i;
+const APUNTADO_NEGADO = /\b(no|ningun[oa]?|nada|nadie)\b[^.,;:!?\n]{0,40}?\b(apuntad|arreglad|cambiad|solucionad|corregid|hech|dejad|actualizad)[oa]s?\b/gi;
+const HE_APUNTADO = /\b(he|hemos|ha|han|has|habeis|habéis)\s+(apuntad|arreglad|cambiad|solucionad|corregid|hech|dejad|actualizad)/i;
+const NO_HE_APUNTADO = /^no\s+(\S+\s+)?(he|hemos|ha|han|has|habeis|habéis)\s+(apuntad|arreglad|cambiad|solucionad|corregid|hech|dejad|actualizad)/i;
 const sinNegados = (texto) => texto.replace(APUNTADO_NEGADO, (m) => (HE_APUNTADO.test(m) && !NO_HE_APUNTADO.test(m) ? m : ""));
 // Una pregunta («¿Ya está arreglado?», «¿Quieres que lo deje hecho?») no afirma nada.
 const sinPreguntas = (texto) => texto.replace(/¿[^?]*\?/g, "");
+/** De qué es la promesa sin hecho (bot_claimed_unsaved.tipo): «guardado» (apuntado, ✅…) o «arreglado» (#911). */
+export const tipoDePromesa = (texto) => {
+  const t = sinNegados(sinPreguntas(String(texto ?? "")));
+  return DICE_QUE_GUARDO.test(t) ? "guardado" : DICE_QUE_ARREGLO.test(t) ? "arreglado" : null;
+};
 export const diceQueGuardo = (texto) => {
   const t = sinNegados(sinPreguntas(String(texto ?? "")));
   return DICE_QUE_GUARDO.test(t) || DICE_QUE_ARREGLO.test(t);
@@ -1314,7 +1322,7 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
         // Si tras el aviso sigue sin guardar y diciendo que sí, ya no es un
         // susto corregido: es un fallo de verdad (scripts/bot-semanal.mjs).
         const sigueSinGuardar = (guardados ? guardados() : escrituras) === 0 && diceQueGuardo(otra.dicho);
-        r = { dicho: otra.dicho, uso, corregido: true, sigueSinGuardar, vueltas: (r.vueltas ?? 0) + (otra.vueltas ?? 0), primera: r.primera, llamadas: [...(r.llamadas ?? []), ...(otra.llamadas ?? [])] };
+        r = { dicho: otra.dicho, uso, corregido: true, sigueSinGuardar, promesa: tipoDePromesa(r.dicho), vueltas: (r.vueltas ?? 0) + (otra.vueltas ?? 0), primera: r.primera, llamadas: [...(r.llamadas ?? []), ...(otra.llamadas ?? [])] };
       }
       if (i > 0) console.warn(`[agente] plan B: contestó ${modelo}`);
       return { ...r, modelo, herramientas, planB: i > 0, avisos };

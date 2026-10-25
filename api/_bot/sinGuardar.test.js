@@ -7,7 +7,7 @@ import { describe, it, expect } from "vitest";
 
 process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
 process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
-const { ejecutar, diceQueGuardo } = await import("./agente.js");
+const { ejecutar, diceQueGuardo, tipoDePromesa } = await import("./agente.js");
 
 const ajustarGustos = { name: "ajustar_gustos", run: async () => "Guardado." };
 const verMenu = { name: "ver_menu", run: async () => "Lunes: lentejas." };
@@ -64,12 +64,12 @@ describe("lo que suena a «ya está arreglado» (#911)", () => {
   it("la frase de producción del 20 oct y sus variantes", () => {
     expect(diceQueGuardo("Ya está arreglado. Te propongo tres primeros para el viernes:")).toBe(true);
     expect(diceQueGuardo("Ya está cambiado, el viernes cenáis tortilla.")).toBe(true);
-    expect(diceQueGuardo("Perfecto, ya está hecho.")).toBe(true);
+    expect(diceQueGuardo("Ya está solucionado, el viernes cenáis tortilla.")).toBe(true);
     expect(diceQueGuardo("Queda arreglado el viernes.")).toBe(true);
     expect(diceQueGuardo("Ya lo he arreglado: el primero es ahora crema de puerros.")).toBe(true);
     expect(diceQueGuardo("Ya lo cambié por una crema.")).toBe(true);
-    expect(diceQueGuardo("¡Listo!")).toBe(true);
-    expect(diceQueGuardo("Vale. Arreglado.")).toBe(true);
+    expect(diceQueGuardo("Ya lo corregí: el viernes, crema.")).toBe(true);
+    expect(diceQueGuardo("Vale. Queda cambiado el viernes.")).toBe(true);
   });
 
   it("lo que solo informa, pregunta o niega, no", () => {
@@ -83,6 +83,19 @@ describe("lo que suena a «ya está arreglado» (#911)", () => {
     expect(diceQueGuardo("Estoy listo para proponerte opciones, dime el día.")).toBe(false);
     expect(diceQueGuardo("Cuando esté listo el arroz, lo sacas del fuego.")).toBe(false);
     expect(diceQueGuardo("Te propongo tres primeros para el viernes:")).toBe(false);
+  });
+
+  it("«hecho» y «listo» de lectura o de cocina, el condicional y las negaciones con «dejado/actualizado», no (revisión de #917)", () => {
+    expect(diceQueGuardo("El menú ya está listo, ¿lo ves?")).toBe(false);
+    expect(diceQueGuardo("El menú de la semana que viene ya está hecho: lunes, lentejas.")).toBe(false);
+    expect(diceQueGuardo("Dale 10 minutos más y ya está hecho.")).toBe(false);
+    expect(diceQueGuardo("El arroz ya está listo.")).toBe(false);
+    expect(diceQueGuardo("¡Listo! Te pongo los botones para compartir.")).toBe(false);
+    expect(diceQueGuardo("Listo. Aquí tienes la receta, ¿la guardo?")).toBe(false);
+    expect(diceQueGuardo("Cuando elijas, queda cambiado el viernes.")).toBe(false);
+    expect(diceQueGuardo("Si me dices cuál, queda arreglado.")).toBe(false);
+    expect(diceQueGuardo("Aún no lo he dejado puesto.")).toBe(false);
+    expect(diceQueGuardo("Todavía no lo he actualizado.")).toBe(false);
   });
 });
 
@@ -163,5 +176,13 @@ describe("ejecutar: si lo dice y no guardó, otra vuelta", () => {
     const { vuelta, llamadas } = guion([{ dice: "Esta noche, tortilla de patatas." }]);
     await ejecutar({ entrada: "¿qué cenamos?", tools: [verMenu], modelos: ["m"], vuelta });
     expect(llamadas).toHaveLength(1);
+  });
+});
+
+describe("el motivo de la promesa sin hecho (bot_claimed_unsaved.tipo)", () => {
+  it("guardado (apuntado, ✅) o arreglado (#911); lo demás, nada", () => {
+    expect(tipoDePromesa("✅ Apuntado: nada de coliflor.")).toBe("guardado");
+    expect(tipoDePromesa("Ya está arreglado. Te propongo tres primeros.")).toBe("arreglado");
+    expect(tipoDePromesa("Te propongo tres primeros.")).toBeNull();
   });
 });
