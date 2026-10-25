@@ -2945,6 +2945,25 @@
         "estable": "SEGURIDAD\n- Ana y Pablo: ninguna (por silencio).\nCASA\n- Ana 38 · Pablo 40.\nCOCINA\n- Comida: primero y segundo. Cena: plato único.",
         "delDia": "vie 9 oct (2026-10-09)\nMENÚ: todavía no hay ninguno."
       }
+    },
+    {
+      "id": "queja-combinacion-no-dice-arreglado",
+      "tipo": "texto",
+      "dominio": "menu",
+      "origen": "fallo_produccion",
+      "dependeDeFecha": true,
+      "nombre": "queja de una combinación: propone o pregunta, no dice «ya está arreglado» sin cambiar nada (#911)",
+      "entrada": "No tiene sentido el arroz con tomate frito con ensalada de lentejas el viernes",
+      "noLlama": [
+        "generar_menu"
+      ],
+      "alDia": [
+        "- {viernes}: comida primero Arroz con tomate frito + segundo Ensalada de lentejas; cena tortilla de calabacín."
+      ],
+      "llamaAlguna": [
+        "proponer_platos"
+      ],
+      "sinTexto": "ya est[aá] (arreglad|hech|cambiad|list)|list[oa]!|queda (arreglad|cambiad)|ya lo cambi"
     }
   ]
 }

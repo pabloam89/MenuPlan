@@ -174,6 +174,24 @@ const contiene = (args, esperado) => Object.entries(esperado).every(([k, v]) => 
   return dado.includes(normal(v));
 });
 
+// La ficha de hoy con líneas de menú de un viernes (`"alDia": ["- {viernes}: …"]`).
+// Entre semana es el viernes de esta semana; si ya pasó (sábado, domingo), el de
+// la siguiente, y la cabecera cuenta esa semana también. Si el viernes es hoy o
+// mañana, quita «Hoy:»/«Mañana:» de la ficha para no contradecirse.
+function fichaConViernes(lineas) {
+  const hoy = HOY_MADRID;
+  let viernes = sumarDias(lunesDe(hoy), 4);
+  let delDia = FICHA.delDia;
+  if (viernes < hoy) {
+    viernes = sumarDias(viernes, 7);
+    delDia = delDia.replace("(no hay semana siguiente)", `y ${rangoDeLaSemana(sumarDias(hoy, 7))}`);
+  }
+  const quitar = viernes === hoy ? "- Hoy:" : viernes === sumarDias(hoy, 1) ? "- Mañana:" : null;
+  const etiqueta = `Viernes ${corta(viernes)} (${viernes})`;
+  const resto = delDia.split("\n").filter((l) => !quitar || !l.startsWith(quitar));
+  return { ...FICHA, delDia: [...resto, ...lineas.map((l) => l.replace("{viernes}", etiqueta))].join("\n") };
+}
+
 const filtro = normal(ARGV.find((a) => !a.startsWith("--")) ?? "");
 const elegidos = casosDelNivel(casos, NIVEL).filter((c) => !filtro || normal(c.nombre).includes(filtro) || c.id.includes(filtro));
 // `"papel"` en un caso (owner | editor | viewer | ajeno; por defecto titular)
@@ -261,7 +279,9 @@ async function intentar(caso) {
     // Lola recibe la ficha de la casa en cada mensaje (api/_bot/ficha.js): sin
     // ella, las pruebas medían a una Lola que no sabe nada de la familia.
     // `"ficha": null` en un caso la quita; `"ficha": {…}` pone otra.
-    const ficha = conQuienEscribe(caso.ficha === undefined ? FICHA : caso.ficha, caso.papel ?? "owner", caso.idioma ?? null);
+    // `"alDia"`: líneas que se añaden al menú de la ficha de hoy (fichaConViernes).
+    const base = caso.alDia ? fichaConViernes(caso.alDia) : FICHA;
+    const ficha = conQuienEscribe(caso.ficha === undefined ? base : caso.ficha, caso.papel ?? "owner", caso.idioma ?? null);
     const pista = caso.pista ? textoPista(caso.pista.decision, caso.pista.adelanto) : null;
     // `pendientes`: las tareas abiertas que el código adjuntaría (api/_bot/pendientes.js).
     // `tareas`: las de la tabla bot_tareas, como las monta el turno real.

@@ -72,7 +72,7 @@ describe("unaVuelta: progreso y pista", () => {
   });
 
   it("apunta cada llamada al modelo: ms, tokens de salida y primer trozo de texto", async () => {
-    guion.mensajes = [msg(null), msg("Listo.")];
+    guion.mensajes = [msg(null), msg("El sábado, lentejas.")];
     const r = await ejecutar({ entrada: "¿qué hay el sábado?", tools: [], modelos: ["claude-sonnet-5"], alEscribir: () => {} });
     expect(r.llamadas).toHaveLength(2);
     for (const [ms, out] of r.llamadas) {
