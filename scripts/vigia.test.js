@@ -213,8 +213,9 @@ describe("vigía: lo de fuera", () => {
     const r = await llamarCanario("modelo", { url: "https://x/api/bot/canario", secreto: "s", pedir });
     expect(r.chequeos).toEqual([{ chequeo: "modelo", ok: false, motivo: "lento" }, { chequeo: "base", ok: false, motivo: "otro" }]);
     expect(r.tokens).toBe(21100);
-    expect(r.usd).toBeGreaterThan(0.07);
-    expect(r.usd).toBeLessThan(0.1);
+    // caché escrita a 1 h (2× la entrada): 1000·3 + 100·15 + 20000·6 = 0,1245 $ (#909)
+    expect(r.usd).toBeGreaterThan(0.12);
+    expect(r.usd).toBeLessThan(0.13);
   });
 
   it("si el canario no contesta, falla el chequeo «canario» con su motivo", async () => {

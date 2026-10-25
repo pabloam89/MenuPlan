@@ -77,7 +77,7 @@ let canceladas = 0;
 let nCanceladas = 0;
 let nEstimadas = 0;
 for (const m of turnos) {
-  router += usd(m.router_uso, PRECIOS.haiku);
+  router += usd(m.router_uso, PRECIOS.haiku, { ttl: "5m" });
   if (m.lola?.uso && !m.lola_cancelada) lola += usd(m.lola.uso, precioDe(m.lola.modelo));
   if (m.lola_cancelada) { const c = costeDeCancelada(m, estimadaCancelada); nCanceladas++; canceladas += c.usd; if (c.estimado) nEstimadas++; }
 }
