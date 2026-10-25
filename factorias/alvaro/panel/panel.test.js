@@ -185,12 +185,22 @@ const falla = (...fuentes) => fuentes.map((fuente) => ({ fuente, fichero: "x", m
 
 // ---- LA PRUEBA QUE CIERRA LA CLASE «un cero que no es cero»: de qué fuente depende cada hoja del JSON ----
 // Las propias del panel van con []. Una hoja sin clasificar hace fallar el test: un campo nuevo obliga a decidir (y a enmascarar).
+// Cada fila es una lista CERRADA de hojas, anclada con $: un campo nuevo dentro de hooks[], tiempos[]… no hereda nada, falla.
+const g = (ruta, campos) => new RegExp("^" + ruta.replace(/\./g, "\\.") + (campos ? "(\\[\\]\\.(" + campos + "))?" : "") + "$");
 const DEP = [
   [/^\.(generado|dias|lecturaMs)$|^\.proceso\.|^\.errores/, []],
   [/^\.hooks\[\]\.(declarado|sinHuella|rojo)$/, ["settings", "transcripciones"]],
-  [/^\.(ficheros|hooks|tiempos)|^\.estado\.(ultimoEvento|sesiones|lineasRotas)$|^\.ineficiencias\.(bloqueos|costes|tokens|subagentes|mensajesSubagente)/, ["transcripciones"]],
-  [/^\.estado\.copia/, ["copia"]],
-  [/^\.(estado\.registroAntiguo|jueces|ineficiencias\.relanzados)/, ["registro"]],
+  [g(".hooks", "evento|nombre|ruta|veces|ultima|mediaMs|maxMs|bloqueos"), ["transcripciones"]],
+  [g(".tiempos", "sesion|rama|carpeta|ultimo|totalMs|apiMs|herramientasMs|hooksMs|costeUSD|fotoAtrasada|noCuadra"), ["transcripciones"]],
+  [/^\.(ficheros\.total|estado\.(ultimoEvento|sesiones|lineasRotas)|ineficiencias\.mensajesSubagente)$/, ["transcripciones"]],
+  [/^\.ineficiencias\.bloqueos(\[\]\.(evento|nombre|n|motivos(\[\]\.(texto|n))?))?$/, ["transcripciones"]],
+  [/^\.ineficiencias\.costes(\.total|\.sesiones(\[\]\.(sesion|rama|carpeta|costeUSD|fotoAtrasada))?)?$/, ["transcripciones"]],
+  [g(".ineficiencias.tokens", "modelo|mensajes|entrada|salida|cacheLeida|cacheCreada"), ["transcripciones"]],
+  [g(".ineficiencias.subagentes", "tipo|n"), ["transcripciones"]],
+  [/^\.estado\.copia(\.(ok|difieren|faltanInstalada|sobranInstalada)(\[\])?)?$/, ["copia"]],
+  [/^\.estado\.registroAntiguo(\.(aviso|sinAgentId|noJueces|apuntes))?$/, ["registro"]],
+  [g(".jueces.tiempos", "rama|agente|veredicto|ms|ts"), ["registro"]],
+  [g(".ineficiencias.relanzados", "rama|agente|informes|sinAgentId"), ["registro"]],
 ];
 const hojas = (v, p = "") => (v === null || typeof v !== "object" || !Object.keys(v).length ? [[p, v]] : Object.entries(v).flatMap(([k, x]) => hojas(x, p + (Array.isArray(v) ? "[]" : "." + k))));
 const deDe = (p) => {
@@ -209,6 +219,7 @@ describe("errores por fuente: lo derivado de una fuente caída sale null (en los
   const sano = agregar(entradaRica());
   it("el fixture es rico y toda hoja está clasificada", () => {
     comprobar(sano, []);
+    expect(hojas(sano).filter(([p]) => !deDe(p).length).map(([p]) => p)).toEqual([".errores"]); // la lista blanca no se amplía en silencio
     const h = sano.hooks;
     expect([h.some((x) => x.rojo === true), h.some((x) => x.sinHuella === true && x.rojo === false), sano.tiempos.some((t) => t.costeUSD === null), sano.tiempos.some((t) => t.costeUSD !== null), sano.ineficiencias.relanzados.length > 0, sano.ineficiencias.subagentes.length > 0, sano.ineficiencias.bloqueos.length > 0, sano.jueces.tiempos.length > 0, sano.estado.copia.ok === true, sano.estado.registroAntiguo.apuntes > 0]).toEqual(Array(10).fill(true));
   });
@@ -227,6 +238,11 @@ describe("la página", () => {
     expect(frases).toHaveLength(3);
     for (const f of frases) expect(f).toContain("sin dato");
     expect(n.app.texto).toContain("No se pudo leer (ver franja roja)");
+    const lectura = n.app.todos((h) => h.tag === "p").map((h) => h.texto).find((t) => t.startsWith("Lectura:"));
+    expect(lectura).not.toMatch(/ficheros/); // sin total no hay «de 0 ficheros» ni «de null ficheros»
+    const franjas = n.app.todos((h) => h.className.startsWith("franja ")).map((h) => [h.className, h.texto]);
+    expect(franjas.filter(([c, t]) => c === "franja aviso" && t.includes("No se pudo comparar la copia"))).toHaveLength(1);
+    expect(franjas.filter(([c, t]) => c === "franja ok" && t.includes("Copia"))).toEqual([]); // copia null no puede salir verde
     expect(n.app.texto).not.toContain("Sin datos en esta ventana");
   });
 
@@ -236,7 +252,18 @@ describe("la página", () => {
     const celdas = n.app.todos((h) => h.tag === "td").map((h) => h.texto);
     expect(celdas.filter((t) => /Stop debería|no está en|sin huella/.test(t))).toEqual([]); // la Nota de ningún hook afirma nada
     expect(celdas).toContain("sin dato");
+    expect(n.app.texto).toContain("No se puede saber qué hooks están declarados porque settings.json no se pudo leer");
     expect(cifras(n.app)).toContain("2 h 2 min");
+  });
+
+  it("la celda «total no fiable» sale con su explicación en el title", async () => {
+    const datos = datosPagina();
+    datos.tiempos[0].noCuadra = true;
+    const n = navegador(datos);
+    await n.listo;
+    const celdas = n.app.todos((h) => h.tag === "span" && h.texto === "total no fiable");
+    expect(celdas).toHaveLength(1);
+    expect(celdas[0].title).toMatch(/vida observada/);
   });
 
   it("si el servidor cae, la franja lo dice en castellano y los datos viejos se quedan", async () => {
@@ -254,6 +281,7 @@ describe("la página", () => {
     await n.listo;
     expect(cifras(n.app)).toContain("2 h 2 min");
     expect(n.app.texto).not.toContain("sin dato (");
+    expect(n.app.texto).not.toContain("No se puede saber qué hooks están declarados");
     await n.ciclo({ lecturaMs: 9, generado: iso(AHORA + 5000) }); // solo cambia lo volátil
     expect(n.app.reemplazos).toBe(1);
     await n.ciclo({ estado: { ...n.est.datos.estado, sesiones: 99 } });

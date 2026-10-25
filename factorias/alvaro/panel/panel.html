@@ -153,6 +153,7 @@ function pintarHooks(d) {
       { resaltar: (h) => h.rojo },
     ),
   );
+  if (d.hooks?.some((h) => h.declarado === null)) s.append(el("p", "suave", "No se puede saber qué hooks están declarados porque settings.json no se pudo leer."));
   s.append(el("p", "suave", "Solo se ven los hooks que Claude Code deja anotados en la transcripción: el resumen de cierre de turno (Stop) y los avisos de «hook correcto» de los demás eventos. «Sin huella visible» no quiere decir que no se activara: solo se ve lo que Claude Code anota, y fuera de Stop casi no anota nada. Solo se pone en rojo en Stop, cuyo resumen sí se anota siempre."));
   return s;
 }
