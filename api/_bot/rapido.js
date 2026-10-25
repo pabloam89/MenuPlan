@@ -17,15 +17,14 @@ import { cargarCasa, hoyISO } from "./casa.js";
 import { describirCompra } from "./menu.js";
 import { pintarMenuEntero } from "./pintar.js";
 import { fechasDe, diaDeFecha } from "./cuando.js";
+import { rangoDeFechas } from "./semanaPedida.js";
 import { CANAL, paraEscribir } from "../../src/lib/vocabularios.js";
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 const mayus = (s) => (s ? s[0].toUpperCase() + s.slice(1) : s);
-const diaYMes = (iso) => `${Number(iso.slice(8, 10))} de ${MESES[Number(iso.slice(5, 7)) - 1]}`;
 
-/** «1 al 4 de octubre», «28 de septiembre al 4 de octubre». Pura, para el test. */
-export const rangoDeFechas = (a, b) => (a.slice(0, 7) === b.slice(0, 7) ? `${Number(a.slice(8, 10))} al ${diaYMes(b)}` : `${diaYMes(a)} al ${diaYMes(b)}`);
+// Pura y sin dependencias (semanaPedida.js): generar.js también la usa.
+export { rangoDeFechas };
 
 /**
  * Cualquier trozo del menú, pintado con pintarMenu (api/_bot/pintar.js): unos

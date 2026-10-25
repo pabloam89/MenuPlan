@@ -696,6 +696,36 @@
       "ultima": "🎉 <b>¡Menú listo!</b> Del <b>26 de octubre al 1 de noviembre</b>.",
       "modo": "lola|generar",
       "rapida": false
+    },
+    {
+      "texto": "hazme el menú para noviembre",
+      "modo": "lola|generar",
+      "rapida": false
+    },
+    {
+      "texto": "genérame el menú de dentro de dos semanas",
+      "modo": "lola|generar",
+      "rapida": false
+    },
+    {
+      "texto": "genérame la semana tras la próxima",
+      "modo": "lola|generar",
+      "rapida": false
+    },
+    {
+      "texto": "hazme el menú de la semana de noviembre",
+      "modo": "lola|generar",
+      "rapida": false
+    },
+    {
+      "texto": "hazme el menú de aquí a quince días",
+      "modo": "lola|generar",
+      "rapida": false
+    },
+    {
+      "texto": "genérame la semana 45",
+      "modo": "lola|generar",
+      "rapida": false
     }
   ]
 }

@@ -1335,6 +1335,7 @@
       "tipo": "herramienta",
       "dominio": "menu",
       "origen": "fallo_produccion",
+      "nucleo": true,
       "dependeDeFecha": true,
       "nombre": "ver un día entero: ver_menu (sale pintado)",
       "entrada": "¿qué hay mañana?",
