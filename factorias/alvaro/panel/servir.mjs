@@ -15,10 +15,12 @@ import { dirname, join } from "node:path";
 import { createInterface } from "node:readline";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { FUENTES, agregar, compararCopias, leerDeclarados, nuevoResumen, parsearRegistro, procesarLinea } from "./lib/leer.mjs";
+import { FUENTES, VENTANA_DIRECTO_MS, agregar, compararCopias, leerDeclarados, nuevoResumen, parsearRegistro, procesarLinea } from "./lib/leer.mjs";
 
 const aqui = dirname(fileURLToPath(import.meta.url));
 const HOST = "127.0.0.1";
+// «En directo»: de una transcripción con cambios recientes se lee primero el final, de este tamaño, y se amplía hacia atrás solo si hace falta
+const PASO_COLA = 256 * 1024;
 
 // El mensaje de Node ya empieza por el código (ENOENT: …): no se repite. Un JSON roto no enseña su texto
 // (el mensaje de Node cita trozos del fichero, que puede ser privado): solo la posición del error, si la hay.
@@ -39,7 +41,7 @@ async function hashes(dir, prefijo) {
   return sal;
 }
 
-/** cfg: { home, repoAlvaro, dias, dirRegistro, crearLector, alLeer } (todo opcional). */
+/** cfg: { home, repoAlvaro, dias, dirRegistro, crearLector, alLeer, alLeerDirecto } (todo opcional). */
 export function crearRecolector(cfg = {}) {
   const home = cfg.home ?? homedir();
   const repoAlvaro = cfg.repoAlvaro ?? join(aqui, "..");
@@ -48,6 +50,7 @@ export function crearRecolector(cfg = {}) {
   const dirRegistro = cfg.dirRegistro ?? join(claude, "factoria-alvaro");
   const crearLector = cfg.crearLector ?? createReadStream;
   const cacheTr = new Map(); // ruta → { mtimeMs, size, valor }
+  const cacheDirecto = new Map(); // ruta → { pos: hasta dónde se ha leído (siempre al final de una línea completa), r: resumen solo con lo reciente }
   let enCurso = null;
 
   // Un fichero solo se vuelve a leer, entero, si cambió su fecha o su tamaño.
@@ -73,16 +76,84 @@ export function crearRecolector(cfg = {}) {
     return r;
   }
 
-  async function transcripciones(corte, errores) {
+  // Lee [desde, hasta) de un fichero. El tramo nunca se lee con el lector de la lectura entera: así se ve cuánto cuesta «En directo».
+  async function leerTramo(ruta, desde, hasta) {
+    const trozos = [];
+    for await (const t of crearLector(ruta, { start: desde, end: hasta - 1 })) trozos.push(t);
+    const buf = Buffer.concat(trozos);
+    cfg.alLeerDirecto?.(ruta, buf.length);
+    return buf;
+  }
+
+  // El final del fichero, ampliado hacia atrás hasta que su primera línea completa sea anterior a la ventana (o se llegue al principio).
+  // Devuelve { desde, buf }: buf empieza en el byte `desde`, que puede ser mitad de una línea.
+  async function colaReciente(ruta, size, corteTs) {
+    let desde = size;
+    let buf = Buffer.alloc(0);
+    while (desde > 0) {
+      const nuevo = Math.max(0, desde - Math.max(PASO_COLA, buf.length)); // el tramo se duplica en cada vuelta
+      buf = Buffer.concat([await leerTramo(ruta, nuevo, desde), buf]);
+      desde = nuevo;
+      if (desde === 0) break;
+      const ini = buf.indexOf(0x0a) + 1; // la primera línea puede estar cortada: se salta
+      if (ini === 0) continue;
+      for (const m of buf.toString("utf8", ini).matchAll(/"timestamp":"([^"]+)"/g)) {
+        const ts = Date.parse(m[1]);
+        if (Number.isFinite(ts)) {
+          if (ts < corteTs) return { desde, buf };
+          break; // la primera línea con hora ya es de dentro de la ventana: hay que ir más atrás
+        }
+      }
+    }
+    return { desde, buf };
+  }
+
+  // Los sucesos recientes de UNA transcripción. Lectura inicial: solo el final. Después: solo los bytes añadidos desde la última vez.
+  async function directo(ruta, st, ahora) {
+    const corte = ahora - VENTANA_DIRECTO_MS;
+    let c = cacheDirecto.get(ruta);
+    if (c && st.size < c.pos) c = undefined; // el fichero se ha reescrito más corto: se empieza de cero
+    try {
+      if (!c) {
+        c = { pos: 0, r: nuevoResumen() };
+        const { desde, buf } = await colaReciente(ruta, st.size, corte);
+        alimentar(c, buf, desde, desde > 0);
+      } else if (st.size > c.pos) {
+        alimentar(c, await leerTramo(ruta, c.pos, st.size), c.pos, false);
+      }
+    } catch (e) {
+      cacheDirecto.delete(ruta); // un fallo no deja una lectura a medias
+      throw e;
+    }
+    cacheDirecto.set(ruta, c);
+    return c.r;
+  }
+
+  // Procesa las líneas COMPLETAS de buf (que empieza en el byte `desde`); la última, si no acabó, se deja para la próxima vez.
+  function alimentar(c, buf, desde, saltarPrimera) {
+    const fin = buf.lastIndexOf(0x0a);
+    const ini = saltarPrimera ? buf.indexOf(0x0a) + 1 : 0;
+    if (fin >= 0 && ini <= fin) for (const l of buf.toString("utf8", ini, fin).split("\n")) procesarLinea(c.r, l);
+    c.pos = fin < 0 ? desde : desde + fin + 1; // sin ninguna línea entera, la próxima vez se empieza donde se empezó
+  }
+
+  // Lo que ya salió de la ventana se olvida: el resumen de un fichero activo no crece sin fin
+  function podar(r, corte) {
+    for (const m of [r.hooks, r.bloqueos, r.msgs, r.agentes, r.cierres]) for (const [k, v] of m) if (!(v.ts >= corte)) m.delete(k);
+  }
+
+  async function transcripciones(corte, errores, ahora) {
     const raiz = join(claude, "projects");
     const sal = [];
+    const directos = [];
     const vistos = new Set();
+    const vistosDirecto = new Set();
     let carpetas;
     try {
       carpetas = await readdir(raiz);
     } catch (e) {
       errores.push({ fichero: raiz, motivo: motivo(e) });
-      return sal;
+      return { ficheros: sal, directos };
     }
     for (const carpeta of carpetas) {
       let nombres;
@@ -99,13 +170,19 @@ export function crearRecolector(cfg = {}) {
           if (st.mtimeMs < corte) continue;
           vistos.add(ruta);
           sal.push({ ruta, mtimeMs: st.mtimeMs, resumen: await cacheado(cacheTr, ruta, st, leerTranscripcion) });
+          if (st.mtimeMs >= ahora - VENTANA_DIRECTO_MS) {
+            vistosDirecto.add(ruta);
+            directos.push(await directo(ruta, st, ahora));
+          }
         } catch (e) {
           errores.push({ fichero: ruta, motivo: motivo(e) });
         }
       }
     }
     purgar(cacheTr, vistos);
-    return sal;
+    purgar(cacheDirecto, vistosDirecto);
+    for (const { r } of cacheDirecto.values()) podar(r, ahora - VENTANA_DIRECTO_MS);
+    return { ficheros: sal, directos };
   }
 
   async function registros(corte, errores) {
@@ -159,12 +236,12 @@ export function crearRecolector(cfg = {}) {
     const t0 = Date.now();
     // Los errores se recogen por fuente: agregar() deja null lo derivado de cada fuente caída
     const [eT, eS, eC, eR] = FUENTES.map(() => []);
-    const ficheros = await transcripciones(ahora - dias * 864e5, eT);
+    const { ficheros, directos } = await transcripciones(ahora - dias * 864e5, eT, ahora);
     const regs = await registros(ahora - dias * 864e5, eR);
     const decl = await declarados(eS);
     const cp = await copia(eC);
     const errores = [eT, eS, eC, eR].flatMap((lista, i) => lista.map((x) => ({ fuente: FUENTES[i], ...x })));
-    const datos = agregar({ ahora, dias, ficheros, registros: regs, declarados: decl, copia: cp, home, errores });
+    const datos = agregar({ ahora, dias, ficheros, directo: directos, registros: regs, declarados: decl, copia: cp, home, errores });
     const mem = process.memoryUsage();
     return { generado: new Date(ahora).toISOString(), dias, lecturaMs: Date.now() - t0, proceso: { rssMB: Math.round(mem.rss / 1048576), heapMB: Math.round(mem.heapUsed / 1048576) }, ...datos };
   }

@@ -1,7 +1,7 @@
 // Tests del panel local de la factoría. Todo es SINTÉTICO: ninguna transcripción real, y un
 // marcador secreto sembrado en el contenido de los mensajes que NUNCA debe salir por /datos.json.
 import { createHash } from "node:crypto";
-import { appendFileSync, createReadStream, mkdirSync, mkdtempSync, readFileSync, rmSync, utimesSync, writeFileSync } from "node:fs";
+import { appendFileSync, createReadStream, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, utimesSync, writeFileSync } from "node:fs";
 import { spawn } from "node:child_process";
 import { createServer, request } from "node:http";
 import { connect } from "node:net";
@@ -10,7 +10,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { FUENTES, agregar, compararCopias, leerDeclarados, nombreCorto, normalizarComando, nuevoResumen, parsearRegistro, procesarLinea } from "./lib/leer.mjs";
+import { FUENTES, MAX_EVENTOS, MAX_MARCAS, MAX_RAMAS, RONDA_ABIERTA_MAX_MS, TIPOS_EVENTO, UMBRALES_HOOKS_VIVOS, VENTANA_DIRECTO_MS, agregar, compararCopias, inicioDiaMadrid, leerDeclarados, nombreCorto, normalizarComando, nuevoResumen, parsearRegistro, procesarLinea, unirBloqueos } from "./lib/leer.mjs";
 import { crearRecolector, crearServidor } from "./servir.mjs";
 
 const SERVIR = join(dirname(fileURLToPath(import.meta.url)), "servir.mjs");
@@ -178,7 +178,7 @@ const entradaRica = (errores = []) =>
     errores,
     declarados: [{ evento: "Stop", comando: "node c.mjs" }, { evento: "Stop", comando: "node mudo.mjs" }, { evento: "PostToolUse", comando: "node registro.mjs" }],
     registros: [{ rama: "r", rotas: 0, entradas: [e({ agent_id: "a1", veredicto: "lanzado", ts: AHORA - 9000 }), e({ agent_id: "a1" }), e({ agent_id: "a2" })] }],
-    ficheros: [{ ruta: "f", mtimeMs: AHORA, resumen: resumenDe(...asist("sp"), foto("sp", 3), ...asist("sq"), ev("sh"), ev("sh", 3 * 3600e3), foto("sh", 1, { totalDuration: 7320000 }), cierre({ hookInfos: [{ command: "node c.mjs", durationMs: 7 }] }), { type: "attachment", uuid: "bq", timestamp: iso(AHORA), ...base(), attachment: { type: "hook_blocking_error", hookEvent: "Stop", blockingError: { command: "node c.mjs", blockingError: "falta qa" } } }, { type: "assistant", uuid: "ag", timestamp: iso(AHORA), ...base(), message: { id: "mag", model: "m", usage: { output_tokens: 1 }, content: [{ type: "tool_use", id: "tag", name: "Agent", input: { subagent_type: "revisor" } }] } }) }],
+    ficheros: [{ ruta: "f", mtimeMs: AHORA, resumen: resumenDe(...asist("sp"), foto("sp", 3), ...asist("sq"), ev("sh"), ev("sh", 3 * 3600e3), foto("sh", 1, { totalDuration: 7320000 }), cierre({ hookInfos: [{ command: "node c.mjs", durationMs: 7 }] }), { type: "attachment", uuid: "bq", timestamp: iso(AHORA), ...base(), attachment: { type: "hook_blocking_error", hookEvent: "Stop", blockingError: { command: "node c.mjs", blockingError: "falta qa" } } }, { type: "assistant", uuid: "ag", timestamp: iso(AHORA), ...base(), message: { id: "mag", model: "m", usage: { output_tokens: 1 }, content: [{ type: "tool_use", id: "tag", name: "Agent", input: { subagent_type: "revisor" } }, { type: "tool_use", id: "tag2", name: "Agent", input: { subagent_type: "constructor" } }] } }) }],
   });
 const datosPagina = (errores = []) => ({ generado: iso(AHORA), dias: 7, lecturaMs: 5, proceso: { rssMB: 80, heapMB: 20 }, ...agregar(entradaRica(errores)) });
 const falla = (...fuentes) => fuentes.map((fuente) => ({ fuente, fichero: "x", motivo: "EACCES" }));
@@ -188,7 +188,7 @@ const falla = (...fuentes) => fuentes.map((fuente) => ({ fuente, fichero: "x", m
 // Cada fila es una lista CERRADA de hojas, anclada con $: un campo nuevo dentro de hooks[], tiempos[]… no hereda nada, falla.
 const g = (ruta, campos) => new RegExp("^" + ruta.replace(/\./g, "\\.") + (campos ? "(\\[\\]\\.(" + campos + "))?" : "") + "$");
 const DEP = [
-  [/^\.(generado|dias|lecturaMs)$|^\.proceso\.|^\.errores/, []],
+  [/^\.(generado|dias|lecturaMs|directoMin)$|^\.proceso\.|^\.errores/, []],
   [/^\.hooks\[\]\.(declarado|sinHuella|rojo)$/, ["settings", "transcripciones"]],
   [g(".hooks", "evento|nombre|ruta|veces|ultima|mediaMs|maxMs|bloqueos"), ["transcripciones"]],
   [g(".tiempos", "sesion|rama|carpeta|ultimo|totalMs|apiMs|herramientasMs|hooksMs|costeUSD|fotoAtrasada|noCuadra"), ["transcripciones"]],
@@ -201,6 +201,12 @@ const DEP = [
   [/^\.estado\.registroAntiguo(\.(aviso|sinAgentId|noJueces|apuntes))?$/, ["registro"]],
   [g(".jueces.tiempos", "rama|agente|veredicto|ms|ts"), ["registro"]],
   [g(".ineficiencias.relanzados", "rama|agente|informes|sinAgentId"), ["registro"]],
+  // v1: En directo mezcla transcripciones (agentes, bloqueos, cierres) y registro (jueces): cae si cae cualquiera de las dos
+  [g(".eventos", "hora|tipo|agente|hook|veredicto|agentId|duracionMs|sesion"), ["transcripciones", "registro"]],
+  [g(".ramas", "rama|rondas|tiempoMs|ultimo|masMarcas|marcas(\\[\\]\\.(agente|veredicto|ms|ts|abierta|fiable))?"), ["registro"]],
+  [/^\.semaforo\.hooksVivos(\.(nivel|ultimo|copiaOk))?$/, ["transcripciones", "copia"]],
+  [/^\.semaforo\.bloqueosHoy(\.(nivel|total|identificados))?$/, ["transcripciones"]],
+  [/^\.semaforo\.rondasAbiertas(\.(nivel|n))?$/, ["registro"]],
 ];
 const hojas = (v, p = "") => (v === null || typeof v !== "object" || !Object.keys(v).length ? [[p, v]] : Object.entries(v).flatMap(([k, x]) => hojas(x, p + (Array.isArray(v) ? "[]" : "." + k))));
 const deDe = (p) => {
@@ -219,7 +225,9 @@ describe("errores por fuente: lo derivado de una fuente caída sale null (en los
   const sano = agregar(entradaRica());
   it("el fixture es rico y toda hoja está clasificada", () => {
     comprobar(sano, []);
-    expect(hojas(sano).filter(([p]) => !deDe(p).length).map(([p]) => p)).toEqual([".errores"]); // la lista blanca no se amplía en silencio
+    expect(hojas(sano).filter(([p]) => !deDe(p).length).map(([p]) => p)).toEqual([".directoMin", ".errores"]); // la lista blanca no se amplía en silencio
+    expect(new Set(sano.eventos.map((x) => x.tipo))).toEqual(new Set(TIPOS_EVENTO)); // «En directo» con un suceso de cada tipo, para que el test de fuentes caídas mida algo
+    expect([sano.ramas.length > 0, sano.ramas[0].marcas.length > 0, sano.semaforo.hooksVivos !== null, sano.semaforo.bloqueosHoy.total > 0, sano.semaforo.rondasAbiertas !== null]).toEqual(Array(5).fill(true));
     const h = sano.hooks;
     expect([h.some((x) => x.rojo === true), h.some((x) => x.sinHuella === true && x.rojo === false), sano.tiempos.some((t) => t.costeUSD === null), sano.tiempos.some((t) => t.costeUSD !== null), sano.ineficiencias.relanzados.length > 0, sano.ineficiencias.subagentes.length > 0, sano.ineficiencias.bloqueos.length > 0, sano.jueces.tiempos.length > 0, sano.estado.copia.ok === true, sano.estado.registroAntiguo.apuntes > 0]).toEqual(Array(10).fill(true));
   });
@@ -391,6 +399,213 @@ describe("registro de jueces", () => {
   });
 });
 
+// ---- v1: «En directo», semáforo y rondas por tarea (todo sintético; el marcador va en description, prompt, mensajes y resultados) ----
+const MIN = 60e3;
+const lanza = (t, tipo, extra = {}) => ({ type: "assistant", uuid: "ag-" + ++contador, timestamp: iso(t), ...base(), message: { id: "mg-" + contador, model: "m", usage: {}, content: [{ type: "text", text: MARCADOR }, { type: "tool_use", id: "ta-" + contador, name: "Agent", input: { subagent_type: tipo, description: MARCADOR, prompt: MARCADOR } }, { type: "tool_result", content: MARCADOR }] }, ...extra });
+const bloquea = (t, comando, extra = {}) => ({ type: "attachment", uuid: "bl-" + ++contador, timestamp: iso(t), ...base(), attachment: { type: "hook_blocking_error", hookEvent: "Stop", blockingError: { command: comando, blockingError: MARCADOR } }, ...extra });
+const cierreN = (t, n, ms = [30]) => cierre({ timestamp: iso(t), hookInfos: ms.map((d) => ({ command: "node cierre.mjs", durationMs: d })), hookErrors: Array(n).fill(MARCADOR) });
+const conFicheros = (...objs) => ({ ficheros: [{ ruta: "f", mtimeMs: AHORA, resumen: resumenDe(...objs) }] });
+const filas = (d) => d.eventos.map((x) => [x.tipo, x.agente, x.hook, x.veredicto, x.duracionMs]);
+
+describe("v1 · la hora de Madrid y los bloqueos sin contar dos veces", () => {
+  it("inicioDiaMadrid: la medianoche de Madrid, también el día que cambia la hora", () => {
+    expect(iso(inicioDiaMadrid(AHORA))).toBe("2026-10-23T22:00:00.000Z"); // 12:00 de Madrid (+2)
+    expect(iso(inicioDiaMadrid(Date.parse("2026-12-10T12:00:00Z")))).toBe("2026-12-09T23:00:00.000Z"); // invierno (+1)
+    expect(iso(inicioDiaMadrid(Date.parse("2026-10-25T12:00:00Z")))).toBe("2026-10-24T22:00:00.000Z"); // día de 25 h: la medianoche era aún +2
+    expect(iso(inicioDiaMadrid(Date.parse("2026-03-29T12:00:00Z")))).toBe("2026-03-28T23:00:00.000Z"); // día de 23 h
+    expect(iso(inicioDiaMadrid(Date.parse("2026-10-23T22:00:00Z")))).toBe("2026-10-23T22:00:00.000Z"); // justo en la medianoche
+    expect(iso(inicioDiaMadrid(Date.parse("2026-10-23T21:59:59.999Z")))).toBe("2026-10-22T22:00:00.000Z");
+  });
+
+  const adj = (ts, comando, sesion = "s") => ({ ts, sesion, comando });
+  const cie = (ts, errores, sesion = "s") => ({ ts, sesion, errores });
+  it("un cierre con error y su adjunto (misma sesión, mismos segundos) son UN bloqueo", () => {
+    expect(unirBloqueos([adj(1000, "a.mjs")], [cie(1000, 1)])).toEqual([adj(1000, "a.mjs")]);
+    expect(unirBloqueos([adj(1000, "a.mjs"), adj(1000, "b.mjs")], [cie(1000, 1)])).toHaveLength(2); // dos hooks, un solo error en el cierre
+  });
+  it("los errores del cierre que ningún adjunto cubre salen como bloqueos sin hook identificado", () => {
+    expect(unirBloqueos([adj(1000, "a.mjs")], [cie(1000, 3)])).toEqual([adj(1000, "a.mjs"), adj(1000, null), adj(1000, null)]);
+    expect(unirBloqueos([], [cie(1000, 1)])).toEqual([adj(1000, null)]);
+  });
+  it("no se emparejan con un adjunto de otra sesión ni a más de 5 s, ni dos cierres con el mismo adjunto; un cierre sin errores no cuenta", () => {
+    expect(unirBloqueos([adj(1000, "a.mjs", "otra")], [cie(1000, 1)])).toHaveLength(2);
+    expect(unirBloqueos([adj(1000, "a.mjs")], [cie(1000 + 6000, 1)])).toHaveLength(2);
+    expect(unirBloqueos([adj(1000, "a.mjs")], [cie(1000, 1), cie(2000, 1)])).toHaveLength(2);
+    expect(unirBloqueos([adj(1000, "a.mjs")], [cie(1000, 0)])).toEqual([adj(1000, "a.mjs")]);
+  });
+  it("un bloqueo sin hora no se puede situar: se descarta", () => {
+    expect(unirBloqueos([adj(null, "a.mjs")], [cie(null, 1)])).toEqual([]);
+  });
+});
+
+describe("v1 · En directo: sucesos de las transcripciones", () => {
+  it("agente lanzado: solo el tipo; description, prompt, mensajes y resultados no salen", () => {
+    const d = agregar(entradaBase(conFicheros(lanza(AHORA - MIN, "constructor"))));
+    expect(d.eventos).toEqual([{ hora: iso(AHORA - MIN), tipo: "agente_lanzado", agente: "constructor", hook: null, veredicto: null, agentId: null, duracionMs: null, sesion: "ses-aaaa" }]);
+    expect(JSON.stringify(d)).not.toContain(MARCADOR);
+  });
+  it("un tipo de agente con caracteres raros sale limpio y de 40 como mucho; un agente sin tipo sale con agente null", () => {
+    const d = agregar(entradaBase(conFicheros(lanza(AHORA - 2 * MIN, '<img src=x onerror="1">' + "m".repeat(60)), lanza(AHORA - MIN, undefined))));
+    expect(d.eventos.every((x) => x.agente === null || /^[\w.:-]{1,40}$/.test(x.agente))).toBe(true);
+    expect(d.eventos.map((x) => x.agente === null)).toEqual([true, false]);
+  });
+  it("los jueces lanzados NO salen como «agente lanzado» (salen del registro como «juez lanzado»)", () => {
+    const d = agregar(entradaBase(conFicheros(lanza(AHORA - MIN, "revisor"), lanza(AHORA - MIN, "qa"), lanza(AHORA - MIN, "evaluador"), lanza(AHORA - MIN, "Explore"))));
+    expect(filas(d)).toEqual([["agente_lanzado", "Explore", null, null, null]]);
+  });
+  it("hook bloqueó: el nombre del hook sin ruta; el cierre con error y el adjunto del mismo instante dan UNA fila, y ese cierre no es «turno terminado»", () => {
+    const d = agregar(entradaBase(conFicheros(bloquea(AHORA - MIN, 'node "$HOME/.claude/factoria/hooks/cierre.mjs"'), cierreN(AHORA - MIN, 1))));
+    expect(filas(d)).toEqual([["hook_bloqueo", null, "cierre.mjs", null, null]]);
+    expect(JSON.stringify([d.eventos, d.semaforo])).not.toContain(MARCADOR); // los motivos de la tabla de la v0 salen cortados a 80 caracteres, por diseño: aquí no hay motivo
+    expect(JSON.stringify(d.eventos)).not.toContain(".claude/factoria");
+  });
+  it("hook bloqueó sin adjunto: sale con hook null (no se sabe cuál)", () => {
+    expect(filas(agregar(entradaBase(conFicheros(cierreN(AHORA - MIN, 2)))))).toEqual([["hook_bloqueo", null, null, null, null], ["hook_bloqueo", null, null, null, null]]);
+  });
+  it("turno terminado: un cierre sin errores, con la suma de la duración de sus hooks", () => {
+    const d = agregar(entradaBase(conFicheros(cierreN(AHORA - MIN, 0, [30, 12, null]))));
+    expect(filas(d)).toEqual([["turno_terminado", null, null, null, 42]]);
+    expect(filas(agregar(entradaBase(conFicheros(cierre({ timestamp: iso(AHORA - MIN) })))))).toEqual([["turno_terminado", null, null, null, null]]); // sin duraciones no se inventa un 0
+  });
+  it("solo los últimos 30 minutos, el más nuevo primero, y el mismo suceso en dos ficheros (sesión reanudada) sale una vez", () => {
+    expect(VENTANA_DIRECTO_MS).toBe(30 * MIN);
+    const a = lanza(AHORA - 29 * MIN, "constructor");
+    const b = lanza(AHORA - 31 * MIN, "viejo");
+    const c = lanza(AHORA - 5 * MIN, "reciente");
+    const d = agregar(entradaBase({ ficheros: [{ ruta: "1", mtimeMs: AHORA, resumen: resumenDe(a, b, c) }, { ruta: "2", mtimeMs: AHORA, resumen: resumenDe(a) }] }));
+    expect(d.eventos.map((x) => x.agente)).toEqual(["reciente", "constructor"]);
+    expect(d.directoMin).toBe(30);
+  });
+  it("la lista se corta en MAX_EVENTOS quedándose con los más nuevos", () => {
+    const lineas = Array.from({ length: MAX_EVENTOS + 5 }, (_, i) => lanza(AHORA - 1000 - i * 10, "a" + i));
+    const d = agregar(entradaBase(conFicheros(...lineas)));
+    expect(d.eventos).toHaveLength(MAX_EVENTOS);
+    expect(d.eventos[0].agente).toBe("a0");
+  });
+});
+
+describe("v1 · En directo: sucesos del registro de jueces", () => {
+  const reg = (...entradas) => entradaBase({ registros: [{ rama: "r", rotas: 0, entradas }] });
+  it("juez lanzado y juez informó con su veredicto y lo que tardó (mismo agent_id); el resumen no sale", () => {
+    const d = agregar(reg(e({ agente: "revisor", veredicto: "lanzado", agent_id: "a1", ts: AHORA - 100e3 }), e({ agent_id: "a1", ts: AHORA - 40e3, veredicto: "no_pasa" })));
+    expect(d.eventos).toEqual([
+      { hora: iso(AHORA - 40e3), tipo: "juez_informo", agente: "revisor", hook: null, veredicto: "no_pasa", agentId: "a1", duracionMs: 60e3, sesion: "x" },
+      { hora: iso(AHORA - 100e3), tipo: "juez_lanzado", agente: "revisor", hook: null, veredicto: null, agentId: "a1", duracionMs: null, sesion: "x" },
+    ]);
+    expect(JSON.stringify(d)).not.toContain(MARCADOR);
+  });
+  it("el informe de un juez lanzado hace más de 30 min también da su duración", () => {
+    const d = agregar(reg(e({ veredicto: "lanzado", agent_id: "a1", ts: AHORA - 40 * MIN }), e({ agent_id: "a1", ts: AHORA - 29 * MIN })));
+    expect(filas(d)).toEqual([["juez_informo", "revisor", null, "pasa", 11 * MIN]]);
+  });
+  it("un veredicto fuera del vocabulario sale como «sin_veredicto»; los agentes que no son jueces y los apuntes viejos no salen", () => {
+    const d = agregar(reg(e({ veredicto: "<b>inventado</b>", agent_id: "a3", ts: AHORA - 3e3 }), e({ agente: "constructor", ts: AHORA - 5e3 }), e({ ts: AHORA - 40 * MIN, agent_id: "viejo" }), e({ veredicto: "no_se", agent_id: "a5", ts: AHORA - 4e3 })));
+    expect(filas(d)).toEqual([["juez_informo", "revisor", null, "sin_veredicto", null], ["juez_informo", "revisor", null, "no_se", null]]);
+  });
+  it("sin agent_id no hay enlace ni duración (dato antiguo)", () => {
+    const d = agregar(reg(e({ veredicto: "lanzado", ts: AHORA - 9e3 }), e({ ts: AHORA - 3e3 })));
+    expect(d.eventos.map((x) => [x.tipo, x.agentId, x.duracionMs])).toEqual([["juez_informo", null, null], ["juez_lanzado", null, null]]);
+  });
+  it("mezcla transcripciones y registro, ordenado por hora", () => {
+    const d = agregar(entradaBase({ ...conFicheros(lanza(AHORA - 30e3, "constructor")), registros: [{ rama: "r", rotas: 0, entradas: [e({ veredicto: "lanzado", agent_id: "a1", ts: AHORA - 20e3 }), e({ agent_id: "a9", ts: AHORA - 45e3 })] }] }));
+    expect(d.eventos.map((x) => x.tipo)).toEqual(["juez_lanzado", "agente_lanzado", "juez_informo"]);
+  });
+  it("la lista de tipos es cerrada y la entrada rica los trae todos", () => {
+    const d = agregar(entradaRica());
+    expect(d.eventos.length).toBeGreaterThan(0);
+    expect(new Set(d.eventos.map((x) => x.tipo))).toEqual(new Set(TIPOS_EVENTO));
+  });
+});
+
+describe("v1 · semáforo", () => {
+  const conUltimo = (haceMs, extra = {}) => entradaBase({ ...conFicheros(ev("sx", haceMs)), ...extra });
+  it("hooks vivos: verde < 10 min, ámbar < 60 min, rojo más; la copia distinta lo pone rojo", () => {
+    expect(UMBRALES_HOOKS_VIVOS.okMs).toBe(10 * MIN);
+    expect(UMBRALES_HOOKS_VIVOS.avisoMs).toBe(60 * MIN);
+    const nivel = (ms, extra) => agregar(conUltimo(ms, extra)).semaforo.hooksVivos;
+    expect(nivel(9 * MIN)).toEqual({ nivel: "ok", ultimo: iso(AHORA - 9 * MIN), copiaOk: true });
+    expect(nivel(11 * MIN).nivel).toBe("aviso");
+    expect(nivel(59 * MIN).nivel).toBe("aviso");
+    expect(nivel(61 * MIN).nivel).toBe("mal");
+    expect(nivel(1000, { copia: { ...copiaOk, ok: false } })).toMatchObject({ nivel: "mal", copiaOk: false });
+    expect(agregar(entradaBase()).semaforo.hooksVivos).toEqual({ nivel: "mal", ultimo: null, copiaOk: true }); // ningún evento visto: rojo, no verde
+  });
+  it("bloqueos hoy: desde la medianoche de Madrid, con cuántos tienen hook identificado", () => {
+    const medianoche = inicioDiaMadrid(AHORA);
+    const d = agregar(entradaBase(conFicheros(bloquea(medianoche - 1000, "ayer.mjs"), bloquea(medianoche + 1000, "hoy.mjs"), bloquea(AHORA - 1000, null), cierreN(AHORA - 3 * MIN, 1), cierreN(AHORA - 4 * MIN, 0))));
+    expect(d.semaforo.bloqueosHoy).toEqual({ nivel: "aviso", total: 3, identificados: 1 });
+    expect(agregar(entradaBase(conFicheros(bloquea(medianoche - 1000, "ayer.mjs")))).semaforo.bloqueosHoy).toEqual({ nivel: "ok", total: 0, identificados: 0 });
+  });
+  it("bloqueos hoy cuenta una vez el bloqueo visto por el adjunto y por el cierre", () => {
+    const d = agregar(entradaBase(conFicheros(bloquea(AHORA - MIN, "a.mjs"), cierreN(AHORA - MIN, 1))));
+    expect(d.semaforo.bloqueosHoy).toMatchObject({ total: 1, identificados: 1 });
+  });
+  it("rondas abiertas: jueces lanzados sin informe (mismo agent_id); verde si 0", () => {
+    const rondas = (...entradas) => agregar(entradaBase({ registros: [{ rama: "r", rotas: 0, entradas }] })).semaforo.rondasAbiertas;
+    expect(rondas()).toEqual({ nivel: "ok", n: 0 });
+    expect(rondas(e({ veredicto: "lanzado", agent_id: "a1", ts: AHORA - MIN }))).toEqual({ nivel: "aviso", n: 1 });
+    expect(rondas(e({ veredicto: "lanzado", agent_id: "a1", ts: AHORA - MIN }), e({ agent_id: "a1" }))).toEqual({ nivel: "ok", n: 0 });
+    expect(rondas(e({ veredicto: "lanzado", agent_id: "a1", ts: AHORA - MIN }), e({ agent_id: "otro" }))).toEqual({ nivel: "aviso", n: 1 }); // otro id: no lo cierra
+    expect(rondas(e({ veredicto: "lanzado", agent_id: "a1", ts: AHORA - MIN }), e({ agent_id: "a1", veredicto: "sin_veredicto" }))).toEqual({ nivel: "ok", n: 0 }); // informó, aunque ilegible
+    expect(rondas(e({ agente: "constructor", veredicto: "lanzado", agent_id: "c1", ts: AHORA - MIN }))).toEqual({ nivel: "ok", n: 0 }); // no es un juez
+  });
+  it("un lanzado sin informe de hace más de RONDA_ABIERTA_MAX_MS ya no cuenta como abierto", () => {
+    const lanzado = (ts) => agregar(entradaBase({ registros: [{ rama: "r", rotas: 0, entradas: [e({ veredicto: "lanzado", agent_id: "a1", ts })] }] }));
+    expect(lanzado(AHORA - RONDA_ABIERTA_MAX_MS + 1000).semaforo.rondasAbiertas.n).toBe(1);
+    expect(lanzado(AHORA - RONDA_ABIERTA_MAX_MS - 1000).semaforo.rondasAbiertas.n).toBe(0);
+  });
+});
+
+describe("v1 · rondas por tarea (agrupadas por rama)", () => {
+  const rama = (nombre, entradas) => ({ rama: nombre, rotas: 0, entradas });
+  const ronda = (id, lanzadoHace, informeHace, extra = {}, agente = "revisor") => [e({ agente, veredicto: "lanzado", agent_id: id, ts: AHORA - lanzadoHace }), e({ agente, agent_id: id, ts: AHORA - informeHace, ...extra })];
+  const ramas = (...rs) => agregar(entradaBase({ registros: rs })).ramas;
+
+  it("una marca por informe, en orden, con el juez, el veredicto y cuánto tardó; el total de rondas y el tiempo acumulado", () => {
+    const [r] = ramas(rama("feat_a", [...ronda("a1", 900e3, 800e3), ...ronda("a2", 700e3, 600e3, { veredicto: "no_pasa" }, "qa"), ...ronda("a3", 500e3, 440e3, { veredicto: "no_se" }), e({ agent_id: "a4", veredicto: "sin_veredicto", ts: AHORA - 100e3 })]));
+    expect(r).toMatchObject({ rama: "feat_a", rondas: 4, tiempoMs: 100e3 + 100e3 + 60e3, masMarcas: 0 });
+    expect(r.marcas.map((m) => [m.agente, m.veredicto, m.ms, m.abierta, m.fiable])).toEqual([["revisor", "pasa", 100e3, false, true], ["qa", "no_pasa", 100e3, false, true], ["revisor", "no_se", 60e3, false, true], ["revisor", "sin_veredicto", null, false, true]]);
+    expect(JSON.stringify(r)).not.toContain(MARCADOR);
+  });
+  it("un lanzado sin informe es una marca abierta (no cuenta como ronda); pasado el límite, abierta=false", () => {
+    const [r] = ramas(rama("r", [...ronda("a1", 900e3, 800e3), e({ veredicto: "lanzado", agent_id: "a2", ts: AHORA - 30e3 }), e({ veredicto: "lanzado", agent_id: "a3", ts: AHORA - RONDA_ABIERTA_MAX_MS - 5000 })]));
+    expect(r.rondas).toBe(1);
+    expect(r.marcas.map((m) => [m.veredicto, m.abierta])).toEqual([["lanzado", false], ["pasa", false], ["lanzado", true]]);
+  });
+  it("apuntes antiguos sin agent_id: marca «no fiable» y sin duración; los agentes que no son jueces no son marcas", () => {
+    const [r] = ramas(rama("r", [e({ ts: AHORA - 9e3 }), e({ agente: "constructor", ts: AHORA - 8e3, agent_id: "c1" }), ...ronda("a1", 7000, 6000)]));
+    expect(r.marcas.map((m) => [m.fiable, m.ms])).toEqual([[false, null], [true, 1000]]);
+    expect(r.rondas).toBe(2);
+    expect(r.tiempoMs).toBe(1000);
+  });
+  it("sin ninguna duración medible el tiempo acumulado es null (no 0)", () => {
+    expect(ramas(rama("r", [e()]))[0].tiempoMs).toBeNull();
+  });
+  it("un mismo agent_id con dos apuntes cuenta una ronda (manda el último)", () => {
+    const [r] = ramas(rama("r", [...ronda("a1", 9000, 8000, { veredicto: "no_pasa" }), e({ agent_id: "a1", ts: AHORA - 7000 })]));
+    expect(r.rondas).toBe(1);
+    expect(r.marcas[0].veredicto).toBe("pasa");
+  });
+  it("las MAX_RAMAS más recientes, la más reciente primero; una rama solo de constructores no sale", () => {
+    const lista = Array.from({ length: MAX_RAMAS + 3 }, (_, i) => rama("rama-" + i, ronda("id" + i, 900e3 + i * 1000, 800e3 + i * 1000)));
+    lista.push(rama("solo-constructor", [e({ agente: "constructor", agent_id: "c1", ts: AHORA - 1000 })]));
+    const rs = ramas(...lista);
+    expect(rs).toHaveLength(MAX_RAMAS);
+    expect(rs.map((r) => r.rama)).toEqual(Array.from({ length: MAX_RAMAS }, (_, i) => "rama-" + i));
+  });
+  it("muchas marcas: salen las MAX_MARCAS más nuevas, y las demás se cuentan en masMarcas; rondas y tiempo siguen siendo el total", () => {
+    const n = MAX_MARCAS + 5;
+    const todas = Array.from({ length: n }, (_, i) => ronda("i" + i, 100e3 + (n - i) * 1000, 90e3 + (n - i) * 1000)).flat();
+    const [r] = ramas(rama("r", todas));
+    expect(r.marcas).toHaveLength(MAX_MARCAS);
+    expect([r.masMarcas, r.rondas, r.tiempoMs]).toEqual([5, n, n * 10e3]);
+  });
+  it("los jueces abiertos del semáforo cuentan en TODAS las ramas, no solo en las que se enseñan", () => {
+    const lista = Array.from({ length: MAX_RAMAS + 3 }, (_, i) => rama("rama-" + i, [e({ veredicto: "lanzado", agent_id: "id" + i, ts: AHORA - 1000 - i })]));
+    expect(agregar(entradaBase({ registros: lista })).semaforo.rondasAbiertas.n).toBe(MAX_RAMAS + 3);
+  });
+});
+
 // ---- Servidor y lectura de ficheros de verdad, sobre un «home» sintético ----
 let dir;
 let home;
@@ -465,7 +680,7 @@ describe("servidor y lectura real", () => {
     expect(r.cuerpo).not.toContain("hola");
     // el otro marcador sale, pero solo por los campos permitidos y declarados
     const rutas = (v, p = "") => (typeof v === "string" ? (v.includes(PERMITIDO) ? [p] : []) : v && typeof v === "object" ? Object.entries(v).flatMap(([k, x]) => rutas(x, p + (/^\d+$/.test(k) ? "[]" : "." + k))) : []);
-    expect([...new Set(rutas(d))].sort()).toEqual([".ineficiencias.costes.sesiones[].carpeta", ".ineficiencias.costes.sesiones[].rama", ".ineficiencias.subagentes[].tipo", ".ineficiencias.tokens[].modelo", ".tiempos[].carpeta", ".tiempos[].rama"]);
+    expect([...new Set(rutas(d))].sort()).toEqual([".eventos[].agente", ".ineficiencias.costes.sesiones[].carpeta", ".ineficiencias.costes.sesiones[].rama", ".ineficiencias.subagentes[].tipo", ".ineficiencias.tokens[].modelo", ".tiempos[].carpeta", ".tiempos[].rama"]);
   });
 
 
@@ -568,6 +783,101 @@ describe("servidor y lectura real", () => {
     expect((await pedir(p, { host: "localhost:" + p })).estado).toBe(200);
   });
 
+
+  // ---- v1: «En directo» lee solo el tramo reciente de cada transcripción y, después, solo lo que se añade ----
+  const evTipos = (d) => d.eventos.map((x) => x.tipo).sort();
+  const propios = (lecturas) => lecturas.filter(([r]) => r === fSesion());
+  const lineaAgente = (tipo, t = Date.now()) => L({ type: "assistant", uuid: "n-" + tipo, timestamp: iso(t), ...base(), message: { id: "mn-" + tipo, model: "m", usage: {}, content: [{ type: "tool_use", id: "tn-" + tipo, name: "Agent", input: { subagent_type: tipo, prompt: MARCADOR } }] } });
+
+  it("En directo con ficheros reales: agente, UN bloqueo (adjunto y cierre del mismo instante), juez lanzado y dos informes; sin contenido", async () => {
+    const r = await pedir(await arrancar());
+    const d = JSON.parse(r.cuerpo);
+    expect(d.errores).toEqual([]);
+    expect(evTipos(d)).toEqual(["agente_lanzado", "hook_bloqueo", "juez_informo", "juez_informo", "juez_lanzado"]);
+    expect(d.eventos.find((x) => x.tipo === "hook_bloqueo")).toMatchObject({ hook: "c.mjs", sesion: "ses-aaaa" });
+    expect(d.eventos.find((x) => x.tipo === "juez_informo" && x.agentId === "a1")).toMatchObject({ duracionMs: 500, veredicto: "pasa" });
+    expect(JSON.stringify(d.eventos)).not.toContain(MARCADOR);
+    expect(d.semaforo.bloqueosHoy).toMatchObject({ total: 1, identificados: 1 });
+  });
+
+  it("En directo: la primera lectura de un fichero pequeño lo lee entero; sin cambios no lee nada; al crecer, solo lo añadido", async () => {
+    const lecturas = [];
+    const rec = crearRecolector({ home, repoAlvaro: alvaro, dias: 7, alLeerDirecto: (ruta, bytes) => lecturas.push([ruta, bytes]) });
+    const d1 = await rec.recoger(Date.now());
+    expect(propios(lecturas)).toEqual([[fSesion(), statSync(fSesion()).size]]);
+    await rec.recoger(Date.now());
+    expect(propios(lecturas)).toHaveLength(1); // nada que leer
+    const nueva = lineaAgente("reciente");
+    appendFileSync(fSesion(), nueva);
+    const d3 = await rec.recoger(Date.now());
+    expect(propios(lecturas)[1][1]).toBe(Buffer.byteLength(nueva)); // solo la línea nueva
+    expect(d3.eventos.filter((x) => x.agente === "reciente")).toHaveLength(1);
+    expect(d3.eventos).toHaveLength(d1.eventos.length + 1); // y no se duplica lo anterior
+  });
+
+  it("En directo: una línea a medio escribir no se interpreta hasta que termina, y no rompe nada", async () => {
+    const rec = crearRecolector({ home, repoAlvaro: alvaro, dias: 7 });
+    const d1 = await rec.recoger(Date.now());
+    const linea = lineaAgente("partida");
+    appendFileSync(fSesion(), linea.slice(0, 40));
+    const d2 = await rec.recoger(Date.now());
+    expect(d2.eventos).toHaveLength(d1.eventos.length);
+    expect(d2.errores).toEqual([]);
+    appendFileSync(fSesion(), linea.slice(40));
+    const d3 = await rec.recoger(Date.now());
+    expect(d3.eventos.filter((x) => x.agente === "partida")).toHaveLength(1);
+  });
+
+  it("En directo: de un fichero enorme lee solo el final (lo reciente), no todo", async () => {
+    const t = Date.now();
+    const viejo = (i) => L({ type: "mode", timestamp: iso(t - 3 * 3600e3 + i), ...base({ sessionId: "ses-grande1" }), relleno: "x".repeat(1000) });
+    const f = join(home, ".claude", "projects", "p3", "ses-grande1.jsonl");
+    escribir(f, Array.from({ length: 3000 }, (_, i) => viejo(i)).join("") + lineaAgente("grande", t - 1000).replace("ses-aaaa1111", "ses-grande1"));
+    const lecturas = [];
+    const d = await crearRecolector({ home, repoAlvaro: alvaro, dias: 7, alLeerDirecto: (ruta, bytes) => lecturas.push([ruta, bytes]) }).recoger(Date.now());
+    const tam = statSync(f).size;
+    expect(tam).toBeGreaterThan(3e6);
+    const leido = lecturas.filter(([r]) => r === f).reduce((n, [, b]) => n + b, 0);
+    expect(leido).toBeGreaterThan(0); // (que no sea un cero porque nadie leyó)
+    expect(leido).toBeLessThan(tam / 5); // solo el final (el paso es de 256 KB), no los 3 MB
+    expect(d.eventos.filter((x) => x.agente === "grande")).toHaveLength(1);
+  });
+
+  it("En directo: una transcripción sin tocar en 30 min no se mira (solo la lectura entera, con caché, de la v0)", async () => {
+    const hace2h = new Date(Date.now() - 2 * 3600e3);
+    utimesSync(fSesion(), hace2h, hace2h);
+    const lecturas = [];
+    const d = await crearRecolector({ home, repoAlvaro: alvaro, dias: 7, alLeerDirecto: (ruta, bytes) => lecturas.push([ruta, bytes]) }).recoger(Date.now());
+    expect(propios(lecturas)).toEqual([]);
+    expect(d.eventos.map((x) => x.agente)).not.toContain(PERMITIDO);
+    expect(d.estado.sesiones).toBe(2); // y la v0 sigue viendo la sesión
+  });
+
+  it("En directo: con el paso del tiempo los sucesos salen de la ventana, y la lista vacía es [] (sin actividad), no null (sin dato)", async () => {
+    const rec = crearRecolector({ home, repoAlvaro: alvaro, dias: 7 });
+    expect((await rec.recoger(Date.now())).eventos.length).toBeGreaterThan(0);
+    const mas = await rec.recoger(Date.now() + 31 * 60e3);
+    expect(mas.eventos).toEqual([]);
+    expect(mas.errores).toEqual([]);
+  });
+
+  it("En directo: un fichero reescrito más corto se vuelve a leer desde el principio, sin duplicar", async () => {
+    const rec = crearRecolector({ home, repoAlvaro: alvaro, dias: 7 });
+    await rec.recoger(Date.now());
+    writeFileSync(fSesion(), lineaAgente("tras-reescribir"));
+    const d = await rec.recoger(Date.now());
+    expect(d.eventos.filter((x) => x.tipo === "agente_lanzado").map((x) => x.agente)).toEqual(["tras-reescribir"]);
+  });
+
+  it("En directo: si falla la lectura del tramo reciente, es un error de transcripciones y eventos sale null", async () => {
+    const crearLector = (ruta, o) => {
+      if (ruta === fSesion() && o?.start !== undefined) throw Object.assign(new Error("EACCES"), { code: "EACCES" });
+      return createReadStream(ruta, o);
+    };
+    const d = await crearRecolector({ home, repoAlvaro: alvaro, dias: 7, crearLector }).recoger(Date.now());
+    expect(d.errores.map((x) => x.fuente)).toEqual(["transcripciones"]);
+    expect([d.eventos, d.hooks, d.semaforo.bloqueosHoy]).toEqual([null, null, null]);
+  });
 
   // Los mismos escenarios con /datos.json del servidor real y un HOME sintético con cada fuente rota de verdad.
   const romper = (caidas) => {

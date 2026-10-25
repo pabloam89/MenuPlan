@@ -16,6 +16,20 @@ const MARGEN_FOTO_MS = 600000;
 // Los jueces de la factoría (los mismos de factorias/alvaro/lib/reglas.mjs: allí no se exporta la lista).
 const JUECES = ["revisor", "qa", "evaluador"];
 
+// ---- v1: En directo, semáforo y rondas. Todos los umbrales y vocabularios cerrados, en un solo sitio ----
+export const VENTANA_DIRECTO_MS = 30 * 60000; // «En directo» enseña los últimos 30 minutos
+export const MAX_EVENTOS = 300; // tope de filas de «En directo» (se quedan las más nuevas)
+export const TIPOS_EVENTO = ["agente_lanzado", "juez_lanzado", "juez_informo", "hook_bloqueo", "turno_terminado"];
+// Lo que un juez puede decir (los de reglas.mjs). Cualquier otra cosa que traiga el registro sale como sin_veredicto: no se pinta texto libre.
+export const VEREDICTOS = ["pasa", "no_pasa", "no_se", "sin_veredicto"];
+export const UMBRALES_HOOKS_VIVOS = { okMs: 10 * 60000, avisoMs: 60 * 60000 }; // verde por debajo de okMs, ámbar por debajo de avisoMs, rojo más
+// Un juez «lanzado» sin informe de hace más que esto ya no se da por «en marcha» (se perdió o se cortó): no cuenta como ronda abierta.
+export const RONDA_ABIERTA_MAX_MS = 2 * 3600e3;
+export const MAX_RAMAS = 12;
+export const MAX_MARCAS = 40; // marcas por rama que se enseñan (las más nuevas); el total de rondas sigue siendo el real
+// El cierre con error y el adjunto del mismo bloqueo se anotan en el mismo instante; esto es lo que se tolera de diferencia
+const VENTANA_PAREJA_BLOQUEO_MS = 5000;
+
 const num = (v) => (typeof v === "number" && Number.isFinite(v) ? v : null);
 const num0 = (v) => num(v) ?? 0;
 const texto = (v) => (typeof v === "string" ? v : null);
@@ -28,6 +42,7 @@ export function nuevoResumen() {
     rotas: 0,
     hooks: new Map(), // clave → { ts, sesion, evento, comando, ms }
     bloqueos: new Map(), // uuid → { ts, sesion, evento, comando, texto }
+    cierres: new Map(), // uuid del resumen de cierre → { ts, sesion, ms: suma de la duración de sus hooks (null si ninguna), errores: cuántos hookErrors trae }
     msgs: new Map(), // message.id → { ts, sesion, modelo, lado, entrada, salida, cacheLeida, cacheCreada }
     agentes: new Map(), // id del tool_use → { ts, sesion, tipo }
     costes: new Map(), // sesión → su ÚLTIMA foto cost-state { costeUSD, totalMs, apiMs, herramientasMs, tras: líneas del asistente posteriores }
@@ -85,7 +100,11 @@ export function procesarLinea(r, linea) {
     }
   } else if (o.type === "system" && o.subtype === "stop_hook_summary") {
     const clave = texto(o.uuid) ?? `${tsOk}#${r.hooks.size}`;
-    (Array.isArray(o.hookInfos) ? o.hookInfos : []).forEach((h, i) => r.hooks.set(`${clave}#${i}`, { ts: tsOk, sesion, evento: "Stop", comando: texto(h?.command), ms: num(h?.durationMs) }));
+    const infos = Array.isArray(o.hookInfos) ? o.hookInfos : [];
+    infos.forEach((h, i) => r.hooks.set(`${clave}#${i}`, { ts: tsOk, sesion, evento: "Stop", comando: texto(h?.command), ms: num(h?.durationMs) }));
+    // Del cierre solo se guarda cuántos errores trae, nunca su texto
+    const duraciones = infos.map((h) => num(h?.durationMs)).filter((x) => x !== null);
+    r.cierres.set(clave, { ts: tsOk, sesion, ms: duraciones.length ? duraciones.reduce((a, b) => a + b, 0) : null, errores: Array.isArray(o.hookErrors) ? o.hookErrors.length : 0 });
   } else if (o.type === "attachment" && o.attachment && typeof o.attachment === "object") {
     const a = o.attachment;
     const clave = texto(o.uuid) ?? `${tsOk}#${r.hooks.size + r.bloqueos.size}`;
@@ -164,6 +183,122 @@ export function compararCopias(instalado, repo) {
   return { ok: !difieren.length && !faltanInstalada.length && !sobranInstalada.length, difieren, faltanInstalada, sobranInstalada };
 }
 
+// ---- La hora de Madrid ----
+const RELOJ_MADRID = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Madrid", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" });
+// Cuánto adelanta Madrid a UTC en ese instante (1 h en invierno, 2 h en verano)
+const desfaseMadrid = (ms) => {
+  const p = Object.fromEntries(RELOJ_MADRID.formatToParts(ms).map((x) => [x.type, Number(x.value)]));
+  return Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second) - Math.floor(ms / 1000) * 1000;
+};
+/** Las 00:00 de Madrid del día de `ms`, como instante. El desfase se mide en la propia medianoche: el día que cambia la hora dura 23 o 25 h. */
+export function inicioDiaMadrid(ms) {
+  const desfase = desfaseMadrid(ms);
+  const pared = new Date(ms + desfase); // el reloj de pared de Madrid, leído como si fuera UTC
+  const medianocheDePared = Date.UTC(pared.getUTCFullYear(), pared.getUTCMonth(), pared.getUTCDate());
+  return medianocheDePared - desfaseMadrid(medianocheDePared - desfase);
+}
+
+/**
+ * Los bloqueos de hooks vistos por dos vías sin contarlos dos veces: el adjunto hook_blocking_error (trae el hook)
+ * y el resumen de cierre con hookErrors (no dice cuál). Se anotan en el mismo instante: un cierre con errores
+ * absorbe los adjuntos de su misma sesión a menos de 5 s (cada adjunto, de un solo cierre), y los errores que
+ * ningún adjunto cubre salen como bloqueos con hook null. adjuntos: [{ts,sesion,comando}], cierres: [{ts,sesion,errores}].
+ */
+export function unirBloqueos(adjuntos, cierres) {
+  const validos = adjuntos.filter((a) => a.ts !== null && a.ts !== undefined);
+  const usados = new Set();
+  const sueltos = [];
+  for (const c of cierres.filter((x) => x.errores > 0 && x.ts !== null && x.ts !== undefined).sort((a, b) => a.ts - b.ts)) {
+    let cubiertos = 0;
+    validos.forEach((a, i) => {
+      if (!usados.has(i) && a.sesion === c.sesion && Math.abs(a.ts - c.ts) <= VENTANA_PAREJA_BLOQUEO_MS) {
+        usados.add(i);
+        cubiertos++;
+      }
+    });
+    for (let k = cubiertos; k < c.errores; k++) sueltos.push({ ts: c.ts, sesion: c.sesion, comando: null });
+  }
+  return [...validos, ...sueltos].sort((a, b) => a.ts - b.ts);
+}
+
+const veredictoCerrado = (v) => (VEREDICTOS.includes(v) ? v : "sin_veredicto");
+const sesionCorta = (s) => (s === null || s === undefined ? null : limpio(s).slice(0, 8));
+
+/**
+ * «En directo»: los sucesos de los últimos 30 min, el más nuevo primero. Campos cerrados; ni descripciones, ni prompts,
+ * ni mensajes, ni el resumen del registro: solo tipo de agente, nombre del hook, veredicto de la lista cerrada, ids y duraciones.
+ * directos: resúmenes de transcripción (con eso basta lo reciente); entradas: apuntes del registro [{..., rama}].
+ */
+function construirEventos({ ahora, directos, entradas, home }) {
+  const desde = ahora - VENTANA_DIRECTO_MS;
+  const dentro = (ts) => ts !== null && ts !== undefined && ts >= desde;
+  const sal = [];
+  const poner = (ts, tipo, o = {}) => sal.push({ ts, hora: iso(ts), tipo, agente: o.agente ?? null, hook: o.hook ?? null, veredicto: o.veredicto ?? null, agentId: o.agentId ?? null, duracionMs: o.duracionMs ?? null, sesion: sesionCorta(o.sesion) });
+
+  // Los jueces salen del registro («juez lanzado»), no de aquí: así no hay dos filas por el mismo lanzamiento
+  for (const a of unir(directos.map((r) => r.agentes)).values()) if (dentro(a.ts) && !JUECES.includes(a.tipo)) poner(a.ts, "agente_lanzado", { agente: a.tipo, sesion: a.sesion });
+  const cierres = [...unir(directos.map((r) => r.cierres)).values()];
+  const adjuntos = [...unir(directos.map((r) => r.bloqueos)).values()].map((b) => ({ ts: b.ts, sesion: b.sesion, comando: b.comando }));
+  for (const b of unirBloqueos(adjuntos, cierres)) if (dentro(b.ts)) poner(b.ts, "hook_bloqueo", { hook: b.comando === null ? null : nombreCorto(normalizarComando(b.comando, home)), sesion: b.sesion });
+  // Un cierre con errores es un bloqueo (el turno sigue), no un turno terminado
+  for (const c of cierres) if (c.errores === 0 && dentro(c.ts)) poner(c.ts, "turno_terminado", { duracionMs: c.ms, sesion: c.sesion });
+
+  const lanzados = new Map(); // rama|agent_id → ts del primer «lanzado»
+  for (const e of entradas) if (e.veredicto === "lanzado" && e.agent_id && !lanzados.has(`${e.rama}|${e.agent_id}`)) lanzados.set(`${e.rama}|${e.agent_id}`, e.ts);
+  for (const e of entradas) {
+    if (!JUECES.includes(e.agente) || !dentro(e.ts)) continue; // el registro viejo también apunta a constructores
+    const id = e.agent_id ? limpio(e.agent_id) : null;
+    if (e.veredicto === "lanzado") poner(e.ts, "juez_lanzado", { agente: limpio(e.agente), agentId: id, sesion: e.sesion });
+    else {
+      const t0 = e.agent_id ? lanzados.get(`${e.rama}|${e.agent_id}`) : undefined;
+      poner(e.ts, "juez_informo", { agente: limpio(e.agente), agentId: id, veredicto: veredictoCerrado(e.veredicto), duracionMs: t0 !== undefined && e.ts >= t0 ? e.ts - t0 : null, sesion: e.sesion });
+    }
+  }
+  return sal
+    .sort((a, b) => b.ts - a.ts)
+    .slice(0, MAX_EVENTOS)
+    .map(({ ts: _ts, ...resto }) => resto);
+}
+
+/**
+ * Rondas por rama: una marca por informe concluyente de juez (y una por «lanzado» sin informe), en orden. Una ronda es un
+ * informe de juez en esa rama; no se sabe a qué PR pertenece. Devuelve TODAS las ramas con algún juez (el semáforo cuenta en todas).
+ */
+function construirRamas({ ahora, entradas }) {
+  const porRama = new Map();
+  for (const e of entradas) porRama.set(e.rama, [...(porRama.get(e.rama) ?? []), e]);
+  const sal = [];
+  for (const [rama, es] of porRama) {
+    const lanzados = new Map(); // agent_id → { ts, agente }
+    for (const e of es) if (e.veredicto === "lanzado" && JUECES.includes(e.agente) && e.agent_id && !lanzados.has(e.agent_id)) lanzados.set(e.agent_id, { ts: e.ts, agente: e.agente });
+    const informes = new Map(); // agent_id → marca (si un id tiene varios apuntes, manda el último)
+    const sinId = [];
+    for (const e of es) {
+      if (e.veredicto === "lanzado" || !JUECES.includes(e.agente)) continue;
+      const t0 = e.agent_id ? lanzados.get(e.agent_id)?.ts : undefined;
+      const marca = { ts: e.ts, agente: limpio(e.agente), veredicto: veredictoCerrado(e.veredicto), ms: t0 !== undefined && e.ts >= t0 ? e.ts - t0 : null, abierta: false, fiable: Boolean(e.agent_id) };
+      if (e.agent_id) informes.set(e.agent_id, marca);
+      else sinId.push(marca);
+    }
+    const abiertas = [...lanzados].filter(([id]) => !informes.has(id)).map(([, l]) => ({ ts: l.ts, agente: limpio(l.agente), veredicto: "lanzado", ms: null, abierta: ahora - l.ts <= RONDA_ABIERTA_MAX_MS, fiable: true }));
+    const concluyentes = [...informes.values(), ...sinId];
+    if (!concluyentes.length && !abiertas.length) continue;
+    const marcas = [...concluyentes, ...abiertas].sort((a, b) => a.ts - b.ts);
+    const medidos = concluyentes.filter((m) => m.ms !== null);
+    sal.push({
+      ultimoMs: marcas.at(-1).ts,
+      abiertas: abiertas.filter((m) => m.abierta).length,
+      rama: limpio(rama),
+      rondas: concluyentes.length,
+      tiempoMs: medidos.length ? medidos.reduce((n, m) => n + m.ms, 0) : null,
+      ultimo: iso(marcas.at(-1).ts),
+      masMarcas: Math.max(0, marcas.length - MAX_MARCAS),
+      marcas: marcas.slice(-MAX_MARCAS).map(({ ts, ...resto }) => ({ ...resto, ts: iso(ts) })),
+    });
+  }
+  return sal.sort((a, b) => b.ultimoMs - a.ultimoMs);
+}
+
 const iso = (ms) => (ms === null || ms === undefined ? null : new Date(ms).toISOString());
 const media = (xs) => (xs.length ? Math.round(xs.reduce((a, b) => a + b, 0) / xs.length) : null);
 const unir = (mapas) => {
@@ -178,9 +313,10 @@ const top = (cuenta, n) => [...cuenta].sort((a, b) => b[1] - a[1]).slice(0, n);
  * de modificación; aquí se filtran además los eventos por su propia hora.
  * Errores por fuente: cada error lleva su `fuente` (FUENTES). Todo valor derivado de una fuente caída sale null, aquí y no en la
  * página (que solo pinta lo que le dan): transcripciones → todo lo visto en ellas; settings → lo declarado, sinHuella y rojo;
- * copia → la comparación; registro → los jueces.
+ * copia → la comparación; registro → los jueces. «En directo» (eventos) depende de transcripciones y de registro; el semáforo,
+ * de las fuentes de cada lámpara. directo: resúmenes con lo reciente (por defecto, los mismos de ficheros).
  */
-export function agregar({ ahora, dias, ficheros, registros, declarados, copia, home, errores }) {
+export function agregar({ ahora, dias, ficheros, directo, registros, declarados, copia, home, errores }) {
   const corte = ahora - dias * 864e5;
   const [T, S, C, R] = FUENTES.map((f) => errores.some((x) => x.fuente === f)); // cuáles han caído
   const de = (cae, valor) => (cae ? null : valor);
@@ -323,7 +459,30 @@ export function agregar({ ahora, dias, ficheros, registros, declarados, copia, h
     .sort((a, b) => b.costeUSD - a.costeUSD);
 
   const ultimo = enVentana.reduce((m, [, x]) => Math.max(m, x.maxTs), -Infinity);
+
+  // ---- v1: En directo, rondas por tarea y semáforo ----
+  const eventos = construirEventos({ ahora, directos: directo ?? rs, entradas, home });
+  const todasRamas = construirRamas({ ahora, entradas });
+  const abiertas = todasRamas.reduce((n, x) => n + x.abiertas, 0); // en todas las ramas, no solo en las que se enseñan
+  const ramas = todasRamas.slice(0, MAX_RAMAS).map(({ ultimoMs: _u, abiertas: _a, ...resto }) => resto);
+  const desdeMedianoche = inicioDiaMadrid(ahora);
+  const bloqueosHoy = unirBloqueos(
+    [...unir(rs.map((r) => r.bloqueos)).values()].map((b) => ({ ts: b.ts, sesion: b.sesion, comando: b.comando })),
+    [...unir(rs.map((r) => r.cierres)).values()],
+  ).filter((b) => b.ts >= desdeMedianoche);
+  const edad = Number.isFinite(ultimo) ? ahora - ultimo : Infinity;
+  const nivelHooks = copia.ok === false ? "mal" : edad < UMBRALES_HOOKS_VIVOS.okMs ? "ok" : edad < UMBRALES_HOOKS_VIVOS.avisoMs ? "aviso" : "mal";
+  const semaforo = {
+    hooksVivos: de(T || C, { nivel: nivelHooks, ultimo: Number.isFinite(ultimo) ? iso(ultimo) : null, copiaOk: copia.ok }),
+    bloqueosHoy: de(T, { nivel: bloqueosHoy.length ? "aviso" : "ok", total: bloqueosHoy.length, identificados: bloqueosHoy.filter((b) => b.comando !== null).length }),
+    rondasAbiertas: de(R, { nivel: abiertas ? "aviso" : "ok", n: abiertas }),
+  };
+
   return {
+    directoMin: VENTANA_DIRECTO_MS / 60000,
+    semaforo,
+    eventos: de(T || R, eventos),
+    ramas: de(R, ramas),
     estado: {
       ultimoEvento: de(T, Number.isFinite(ultimo) ? iso(ultimo) : null),
       sesiones: de(T, enVentana.length),
