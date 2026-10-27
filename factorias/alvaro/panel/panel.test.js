@@ -1264,18 +1264,20 @@ describe("v1 · coste estimado", () => {
     expect(() => validarPrecios({ ...PRECIOS, modelos: { x: { ...PRECIOS.modelos["m-a"], entrada: Number.NaN } } })).toThrow(/entrada/);
   });
 
-  it("el precios.json de verdad tiene la forma esperada, cita su fuente y su fecha, y relaciones de precio sensatas", () => {
+  it("el precios.json de verdad: forma esperada, fuente y fechas, y los múltiplos de la tabla oficial (lectura de caché 0,05× la entrada en Opus 5.5 y Sonnet 5.5, 0,1× en el resto; escritura 1,25× a 5 min y 2× a 1 h)", () => {
     const real = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), "precios.json"), "utf8"));
     expect(() => validarPrecios(real)).not.toThrow();
     expect(real.fuente).toMatch(/^https:\/\/platform\.claude\.com\//);
     expect(real.fecha).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-    const con = Object.values(real.modelos).filter(Boolean);
-    expect(con.length).toBeGreaterThan(3);
-    for (const p of con) {
-      expect(p.salida).toBeGreaterThan(p.entrada); // salida más cara que entrada
-      expect(p.lecturaCache).toBeLessThan(p.entrada); // leer caché es más barato que leer entrada
-      expect(p.escrituraCache5m).toBeGreaterThan(p.entrada); // escribir caché cuesta más
-      expect(p.escrituraCache1h).toBeGreaterThan(p.escrituraCache5m); // y la de 1 h, más que la de 5 min
+    expect(real.verificado).toMatch(/^\d{4}-\d{2}-\d{2}$/); // la última vez que alguien comparó las filas con la página oficial
+    const con = Object.entries(real.modelos).filter(([, p]) => p);
+    expect(con.map(([n]) => n).sort()).toEqual(["claude-haiku-4-5-20251001", "claude-opus-4-6", "claude-opus-5", "claude-opus-5-5", "claude-sonnet-5", "claude-sonnet-5-5"]);
+    for (const [nombre, p] of con) {
+      const lectura = ["claude-opus-5-5", "claude-sonnet-5-5"].includes(nombre) ? 0.05 : 0.1;
+      expect([nombre, p.lecturaCache]).toEqual([nombre, expect.closeTo(lectura * p.entrada, 9)]);
+      expect([nombre, p.escrituraCache5m]).toEqual([nombre, expect.closeTo(1.25 * p.entrada, 9)]);
+      expect([nombre, p.escrituraCache1h]).toEqual([nombre, expect.closeTo(2 * p.entrada, 9)]);
+      expect(p.salida).toBeGreaterThan(p.entrada); // la salida es más cara que la entrada
     }
   });
 
