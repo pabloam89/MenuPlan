@@ -38,7 +38,7 @@ const num = (v) => (typeof v === "number" && Number.isFinite(v) ? v : null);
 const num0 = (v) => num(v) ?? 0;
 const texto = (v) => (typeof v === "string" ? v : null);
 // Modelo y tipo de subagente salen a la página: solo caracteres de un nombre y 40 como mucho.
-const limpio = (v) => String(v).replace(/[^\w.:-]/g, "_").slice(0, 40);
+export const limpio = (v) => String(v).replace(/[^\w.:-]/g, "_").slice(0, 40);
 
 /** Acumulador de UN fichero de transcripción. */
 export function nuevoResumen() {
@@ -343,7 +343,7 @@ const porcentaje = (parte, total) => Math.round((parte / total) * 1000) / 10;
  * Devuelve { coste (null si cae transcripciones), costeAgente(agentId) → { tokens, costeUSD, tokensSinPrecio } | null }.
  */
 function construirCoste({ corte, rs, sesiones, subagentes, precios, T, P }) {
-  const precioDe = (modelo) => precios?.modelos?.[modelo] ?? null;
+  const precioDe = (modelo) => (precios && Object.hasOwn(precios.modelos, modelo) ? precios.modelos[modelo] : null); // «constructor» o «toString» no son precios
   const costeMsg = (m) => {
     const p = precioDe(m.modelo);
     if (!p) return null;
@@ -412,8 +412,8 @@ function construirCoste({ corte, rs, sesiones, subagentes, precios, T, P }) {
         repartoCoste: P ? null : reparto((c) => (c.conPrecio ? c.usd : null)),
         total: cerrarGrupo(grupos.total),
         porDia: [...grupos.dia.values()].sort((a, b) => a.dia.localeCompare(b.dia)).map((g) => ({ dia: g.dia, ...cerrarGrupo(g) })),
-        porSesion: recientes(grupos.sesion, SESIONES_VISIBLES).map((g) => ({ sesion: g.sesion, rama: g.rama, ultimo: iso(g.total.ultimo), ...pct(g).c, pctJueces: pct(g).pctJueces })),
-        porRama: recientes(grupos.rama, MAX_RAMAS).map((g) => ({ rama: g.rama, ultimo: iso(g.total.ultimo), ...pct(g).c, pctJueces: pct(g).pctJueces })),
+        porSesion: recientes(grupos.sesion, SESIONES_VISIBLES).map((g) => ({ sesion: g.sesion, rama: g.rama === null ? null : limpio(g.rama), ultimo: iso(g.total.ultimo), ...pct(g).c, pctJueces: pct(g).pctJueces })),
+        porRama: recientes(grupos.rama, MAX_RAMAS).map((g) => ({ rama: g.rama === null ? null : limpio(g.rama), ultimo: iso(g.total.ultimo), ...pct(g).c, pctJueces: pct(g).pctJueces })),
       };
   const costeAgente = (id) => (T || !id || !porAgente.has(id) ? null : cerrar(porAgente.get(id)));
   return { coste, costeAgente };

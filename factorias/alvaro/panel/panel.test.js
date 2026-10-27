@@ -780,6 +780,18 @@ describe("la página v1 · coste estimado", () => {
     expect(norm(nodos(n, "table")[0])).toMatch(/2,0 M.*sin precio/); // los tokens salen aunque no haya precio
   });
 
+  it("el % de jueces de una fila con modelos sin precio es un mínimo: «≥ N %», no un número exacto", async () => {
+    const parcial = { ...costeFalso().porSesion[0], total: cubo(6e6, 10, 2e6), pctJueces: 20 };
+    const n = con(costeFalso({ porSesion: [parcial], porRama: [{ ...parcial, sesion: undefined }] }));
+    await n.listo;
+    const tablas = nodos(n, "table").map(norm);
+    expect(tablas[1]).toMatch(/≥ 20 %/);
+    expect(tablas[2]).toMatch(/≥ 20 %/);
+    const exacto = con(costeFalso());
+    await exacto.listo;
+    expect(norm(nodos(exacto, "table")[1])).not.toMatch(/≥/);
+  });
+
   it("si precios.json no se pudo leer: los tokens salen, el coste dice «sin precio» y no se dibuja ninguna barra", async () => {
     const n = navegador(datosPagina(falla("precios")));
     await n.listo;
@@ -1194,6 +1206,20 @@ describe("v1 · coste estimado", () => {
     expect(mezcla.modelosSinPrecio).toEqual(["m-sin", "otro-modelo"]);
   });
 
+  it("un modelo que se llama como una propiedad de Object («constructor», «toString») es un modelo sin precio, no un NaN", () => {
+    for (const nombre of ["constructor", "toString", "__proto__", "hasOwnProperty"]) {
+      const c = coste({ subagentes: [subDe("a1", "revisor", uso("m1", nombre, U))] });
+      expect(c.total.jueces).toEqual({ tokens: TOK_U, costeUSD: null, tokensSinPrecio: TOK_U });
+    }
+  });
+
+  it("la rama de porSesion y porRama sale limpia (letras, cifras y .:_-) y de 40 como mucho", () => {
+    const larga = "feat/" + "x".repeat(60) + '<img src=x onerror="1">';
+    const linea = { type: "mode", timestamp: iso(AHORA - 1000), ...base({ sessionId: padre, gitBranch: larga }) };
+    const c = agregar(entradaBase({ ...conFicheros(linea), subagentes: [subDe("a1", "revisor", uso("m1", "m-a", U))] })).coste;
+    for (const rama of [c.porSesion[0].rama, c.porRama[0].rama]) expect(rama).toMatch(/^[\w.:-]{1,40}$/);
+  });
+
   it("los modelos sintéticos no cuentan", () => {
     expect(coste({ subagentes: [subDe("a1", "revisor", uso("m1", "<synthetic>", U))] }).total.total.tokens).toBe(0);
   });
@@ -1516,6 +1542,20 @@ describe("servidor y lectura real", () => {
     expect(leido).toBeGreaterThan(0); // (que no sea un cero porque nadie leyó)
     expect(leido).toBeLessThan(tam / 5); // solo el final (el paso es de 256 KB), no los 3 MB
     expect(d.eventos.filter((x) => x.agente === "grande")).toHaveLength(1);
+  });
+
+  it("En directo: si no encuentra una línea anterior a la ventana, no lee hacia atrás más del tope (maxCola), pero sigue dando los sucesos del final", async () => {
+    const t = Date.now();
+    const reciente = (i) => L({ type: "mode", timestamp: iso(t - 5000 + i), ...base({ sessionId: "ses-grande2" }), relleno: "x".repeat(1000) });
+    const f = join(home, ".claude", "projects", "p3", "ses-grande2.jsonl");
+    escribir(f, Array.from({ length: 3000 }, (_, i) => reciente(i)).join("") + lineaAgente("final", t - 1000));
+    const lecturas = [];
+    const d = await crearRecolector({ home, repoAlvaro: alvaro, dias: 7, maxCola: 512 * 1024, rutaPrecios: join(dir, "precios.json"), alLeerDirecto: (ruta, bytes) => lecturas.push([ruta, bytes]) }).recoger(Date.now());
+    const leido = lecturas.filter(([r]) => r === f).reduce((n, [, b]) => n + b, 0);
+    expect(statSync(f).size).toBeGreaterThan(3e6);
+    expect(leido).toBeGreaterThan(0);
+    expect(leido).toBeLessThanOrEqual(2 * 512 * 1024); // el tope, no los 3 MB
+    expect(d.eventos.filter((x) => x.agente === "final")).toHaveLength(1);
   });
 
   it("En directo: una transcripción sin tocar en 30 min no se mira (solo la lectura entera, con caché, de la v0)", async () => {

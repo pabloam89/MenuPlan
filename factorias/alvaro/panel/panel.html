@@ -490,7 +490,7 @@ function pintarCoste(d) {
   sal.push(c.precios && c.porDia.some((x) => x.total.costeUSD !== null) ? el("div", "", el("div", "leyenda", ...CATEGORIAS.map(([k, nombre]) => el("span", "", el("span", "sw sw-" + k), nombre))), grafico(c.porDia)) : el("p", "vacio", "No se dibuja el gráfico: sin precios no hay coste que comparar (la tabla trae los tokens)."));
   const cols = [{ t: "Día", v: (x) => fDia(x.dia) }, ...CATEGORIAS.map(([k, nombre]) => ({ t: nombre, v: (x) => textoCubo(x[k]) })), { t: "Total", v: (x) => textoCubo(x.total) }];
   sal.push(tablaCon("Coste estimado por día", cols, c.porDia));
-  const dato = [{ t: "Tokens", n: true, v: (x) => fTok(x.total.tokens) }, { t: "Coste estimado", n: true, v: (x) => (x.total.costeUSD === null ? "sin precio" : textoCoste(x.total)) }, { t: "% jueces", n: true, v: (x) => fPct(x.pctJueces) }];
+  const dato = [{ t: "Tokens", n: true, v: (x) => fTok(x.total.tokens) }, { t: "Coste estimado", n: true, v: (x) => (x.total.costeUSD === null ? "sin precio" : textoCoste(x.total)) }, { t: "% jueces", n: true, v: (x) => (x.pctJueces == null ? fPct(null) : (x.total.tokensSinPrecio > 0 ? "≥ " : "") + fPct(x.pctJueces)) }]; // con modelos sin precio es un mínimo
   sal.push(tablaCon(`Por sesión (las ${c.porSesion.length} últimas)`, [{ t: "Sesión", v: (x) => el("code", "", x.sesion) }, { t: "Rama", v: (x) => x.rama ?? "—" }, ...dato], c.porSesion));
   sal.push(tablaCon("Por rama (la de la sesión padre)", [{ t: "Rama", v: (x) => x.rama ?? "—" }, ...dato], c.porRama));
   sal.push(el("p", "suave", "Cuenta los mensajes del asistente una vez (por id), de la sesión principal y de cada subagente (ficheros subagents/). Un mensaje de un modelo sin precio da sus tokens y «sin precio». No usa el coste de las fotos (cost-state)."));

@@ -15,12 +15,14 @@ import { dirname, join } from "node:path";
 import { createInterface } from "node:readline";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { FUENTES, VENTANA_DIRECTO_MS, agregar, compararCopias, leerDeclarados, nuevoResumen, parsearRegistro, procesarLinea, validarPrecios } from "./lib/leer.mjs";
+import { FUENTES, VENTANA_DIRECTO_MS, agregar, compararCopias, leerDeclarados, limpio, nuevoResumen, parsearRegistro, procesarLinea, validarPrecios } from "./lib/leer.mjs";
 
 const aqui = dirname(fileURLToPath(import.meta.url));
 const HOST = "127.0.0.1";
 // «En directo»: de una transcripción con cambios recientes se lee primero el final, de este tamaño, y se amplía hacia atrás solo si hace falta
 const PASO_COLA = 256 * 1024;
+// ...y sin pasar de este tope hacia atrás aunque no encuentre una línea anterior a la ventana (no se lee un fichero entero)
+const MAX_COLA = 8 * 1024 * 1024;
 
 // El mensaje de Node ya empieza por el código (ENOENT: …): no se repite. Un JSON roto no enseña su texto
 // (el mensaje de Node cita trozos del fichero, que puede ser privado): solo la posición del error, si la hay.
@@ -33,8 +35,6 @@ const motivo = (e) => {
   return e?.code && !m.includes(e.code) ? `${e.code}: ${m}` : m;
 };
 
-const limpioTipo = (v) => String(v).replace(/[^\w.:-]/g, "_").slice(0, 40);
-
 async function hashes(dir, prefijo) {
   const sal = {};
   for (const f of await readdir(dir)) {
@@ -43,7 +43,7 @@ async function hashes(dir, prefijo) {
   return sal;
 }
 
-/** cfg: { home, repoAlvaro, dias, dirRegistro, rutaPrecios, crearLector, alLeer, alLeerDirecto } (todo opcional). */
+/** cfg: { home, repoAlvaro, dias, dirRegistro, rutaPrecios, maxCola, crearLector, alLeer, alLeerDirecto } (todo opcional). */
 export function crearRecolector(cfg = {}) {
   const home = cfg.home ?? homedir();
   const repoAlvaro = cfg.repoAlvaro ?? join(aqui, "..");
@@ -52,6 +52,7 @@ export function crearRecolector(cfg = {}) {
   const dirRegistro = cfg.dirRegistro ?? join(claude, "factoria-alvaro");
   const rutaPrecios = cfg.rutaPrecios ?? join(aqui, "precios.json");
   const crearLector = cfg.crearLector ?? createReadStream;
+  const maxCola = cfg.maxCola ?? MAX_COLA;
   const cacheTr = new Map(); // ruta → { mtimeMs, size, valor }
   const cacheSub = new Map(); // ruta del agent-<id>.jsonl → { mtimeMs, size, valor: { resumen, tipo } }
   const cacheDirecto = new Map(); // ruta → { pos: hasta dónde se ha leído (siempre al final de una línea completa), r: resumen solo con lo reciente }
@@ -94,8 +95,8 @@ export function crearRecolector(cfg = {}) {
   async function colaReciente(ruta, size, corteTs) {
     let desde = size;
     let buf = Buffer.alloc(0);
-    while (desde > 0) {
-      const nuevo = Math.max(0, desde - Math.max(PASO_COLA, buf.length)); // el tramo se duplica en cada vuelta
+    while (desde > 0 && buf.length < maxCola) {
+      const nuevo = Math.max(0, desde - Math.min(Math.max(PASO_COLA, buf.length), maxCola - buf.length)); // el tramo se duplica en cada vuelta, hasta el tope
       buf = Buffer.concat([await leerTramo(ruta, nuevo, desde), buf]);
       desde = nuevo;
       if (desde === 0) break;
@@ -197,7 +198,7 @@ export function crearRecolector(cfg = {}) {
     let tipo = null;
     try {
       const meta = JSON.parse(await readFile(ruta.replace(/\.jsonl$/, ".meta.json"), "utf8"));
-      tipo = typeof meta?.agentType === "string" ? limpioTipo(meta.agentType) : null; // description, prompt y lo demás: ni se guardan
+      tipo = typeof meta?.agentType === "string" ? limpio(meta.agentType) : null; // description, prompt y lo demás: ni se guardan
     } catch (e) {
       if (e.code !== "ENOENT") throw e; // sin meta: tipo desconocido; un meta roto sí es un error
     }
@@ -239,7 +240,7 @@ export function crearRecolector(cfg = {}) {
             if (st.mtimeMs < corte) continue;
             vistos.add(ruta);
             const { resumen, tipo } = await cacheado(cacheSub, ruta, st, leerSubagente);
-            sal.push({ ruta, agentId: limpioTipo(id), sesionPadre: sesion.name, tipo, resumen });
+            sal.push({ ruta, agentId: limpio(id), sesionPadre: sesion.name, tipo, resumen });
           } catch (e) {
             errores.push({ fichero: ruta, motivo: motivo(e) });
           }
