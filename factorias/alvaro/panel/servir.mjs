@@ -15,7 +15,7 @@ import { dirname, join } from "node:path";
 import { createInterface } from "node:readline";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { FUENTES, VENTANA_DIRECTO_MS, agregar, compararCopias, leerDeclarados, nuevoResumen, parsearRegistro, procesarLinea } from "./lib/leer.mjs";
+import { FUENTES, VENTANA_DIRECTO_MS, agregar, compararCopias, leerDeclarados, nuevoResumen, parsearRegistro, procesarLinea, validarPrecios } from "./lib/leer.mjs";
 
 const aqui = dirname(fileURLToPath(import.meta.url));
 const HOST = "127.0.0.1";
@@ -33,6 +33,8 @@ const motivo = (e) => {
   return e?.code && !m.includes(e.code) ? `${e.code}: ${m}` : m;
 };
 
+const limpioTipo = (v) => String(v).replace(/[^\w.:-]/g, "_").slice(0, 40);
+
 async function hashes(dir, prefijo) {
   const sal = {};
   for (const f of await readdir(dir)) {
@@ -41,15 +43,17 @@ async function hashes(dir, prefijo) {
   return sal;
 }
 
-/** cfg: { home, repoAlvaro, dias, dirRegistro, crearLector, alLeer, alLeerDirecto } (todo opcional). */
+/** cfg: { home, repoAlvaro, dias, dirRegistro, rutaPrecios, crearLector, alLeer, alLeerDirecto } (todo opcional). */
 export function crearRecolector(cfg = {}) {
   const home = cfg.home ?? homedir();
   const repoAlvaro = cfg.repoAlvaro ?? join(aqui, "..");
   const dias = cfg.dias ?? 7;
   const claude = join(home, ".claude");
   const dirRegistro = cfg.dirRegistro ?? join(claude, "factoria-alvaro");
+  const rutaPrecios = cfg.rutaPrecios ?? join(aqui, "precios.json");
   const crearLector = cfg.crearLector ?? createReadStream;
   const cacheTr = new Map(); // ruta → { mtimeMs, size, valor }
+  const cacheSub = new Map(); // ruta del agent-<id>.jsonl → { mtimeMs, size, valor: { resumen, tipo } }
   const cacheDirecto = new Map(); // ruta → { pos: hasta dónde se ha leído (siempre al final de una línea completa), r: resumen solo con lo reciente }
   let enCurso = null;
 
@@ -185,6 +189,76 @@ export function crearRecolector(cfg = {}) {
     return { ficheros: sal, directos };
   }
 
+  // Los subagentes: <proyecto>/<sesion>/subagents/agent-<id>.jsonl (+ agent-<id>.meta.json, de donde SOLO se toma agentType).
+  // Solo importan las líneas con «usage» (las del asistente): el resto, que es casi todo el peso, ni se interpreta.
+  async function leerSubagente(ruta) {
+    const r = nuevoResumen();
+    for await (const l of createInterface({ input: crearLector(ruta), crlfDelay: Infinity })) if (l.includes('"usage"')) procesarLinea(r, l);
+    let tipo = null;
+    try {
+      const meta = JSON.parse(await readFile(ruta.replace(/\.jsonl$/, ".meta.json"), "utf8"));
+      tipo = typeof meta?.agentType === "string" ? limpioTipo(meta.agentType) : null; // description, prompt y lo demás: ni se guardan
+    } catch (e) {
+      if (e.code !== "ENOENT") throw e; // sin meta: tipo desconocido; un meta roto sí es un error
+    }
+    return { resumen: r, tipo };
+  }
+
+  async function subagentes(corte, errores) {
+    const raiz = join(claude, "projects");
+    const sal = [];
+    const vistos = new Set();
+    let proyectos;
+    try {
+      proyectos = await readdir(raiz);
+    } catch {
+      return sal; // ya lo cuenta transcripciones()
+    }
+    for (const proyecto of proyectos) {
+      let entradas;
+      try {
+        entradas = await readdir(join(raiz, proyecto), { withFileTypes: true });
+      } catch {
+        continue;
+      }
+      for (const sesion of entradas.filter((x) => x.isDirectory())) {
+        const carpeta = join(raiz, proyecto, sesion.name, "subagents");
+        let nombres;
+        try {
+          nombres = await readdir(carpeta);
+        } catch (e) {
+          if (e.code !== "ENOENT" && e.code !== "ENOTDIR") errores.push({ fichero: carpeta, motivo: motivo(e) });
+          continue;
+        }
+        for (const n of nombres) {
+          const id = /^agent-(.+)\.jsonl$/.exec(n)?.[1];
+          if (!id) continue;
+          const ruta = join(carpeta, n);
+          try {
+            const st = await stat(ruta);
+            if (st.mtimeMs < corte) continue;
+            vistos.add(ruta);
+            const { resumen, tipo } = await cacheado(cacheSub, ruta, st, leerSubagente);
+            sal.push({ ruta, agentId: limpioTipo(id), sesionPadre: sesion.name, tipo, resumen });
+          } catch (e) {
+            errores.push({ fichero: ruta, motivo: motivo(e) });
+          }
+        }
+      }
+    }
+    purgar(cacheSub, vistos);
+    return sal;
+  }
+
+  async function precios(errores) {
+    try {
+      return validarPrecios(JSON.parse(await readFile(rutaPrecios, "utf8")));
+    } catch (e) {
+      errores.push({ fichero: rutaPrecios, motivo: motivo(e) });
+      return null;
+    }
+  }
+
   async function registros(corte, errores) {
     let nombres;
     try {
@@ -235,13 +309,15 @@ export function crearRecolector(cfg = {}) {
   async function hacer(ahora) {
     const t0 = Date.now();
     // Los errores se recogen por fuente: agregar() deja null lo derivado de cada fuente caída
-    const [eT, eS, eC, eR] = FUENTES.map(() => []);
+    const [eT, eS, eC, eR, eP] = FUENTES.map(() => []);
     const { ficheros, directos } = await transcripciones(ahora - dias * 864e5, eT, ahora);
+    const subs = await subagentes(ahora - dias * 864e5, eT);
     const regs = await registros(ahora - dias * 864e5, eR);
+    const tarifas = await precios(eP);
     const decl = await declarados(eS);
     const cp = await copia(eC);
-    const errores = [eT, eS, eC, eR].flatMap((lista, i) => lista.map((x) => ({ fuente: FUENTES[i], ...x })));
-    const datos = agregar({ ahora, dias, ficheros, directo: directos, registros: regs, declarados: decl, copia: cp, home, errores });
+    const errores = [eT, eS, eC, eR, eP].flatMap((lista, i) => lista.map((x) => ({ fuente: FUENTES[i], ...x })));
+    const datos = agregar({ ahora, dias, ficheros, directo: directos, subagentes: subs, precios: tarifas, registros: regs, declarados: decl, copia: cp, home, errores });
     const mem = process.memoryUsage();
     return { generado: new Date(ahora).toISOString(), dias, lecturaMs: Date.now() - t0, proceso: { rssMB: Math.round(mem.rss / 1048576), heapMB: Math.round(mem.heapUsed / 1048576) }, ...datos };
   }

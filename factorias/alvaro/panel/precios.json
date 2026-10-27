@@ -1,0 +1,15 @@
+{
+  "fecha": "2026-10-25",
+  "fuente": "https://platform.claude.com/docs/en/about-claude/pricing",
+  "unidad": "USD por millon de tokens. Los nombres de modelo son los ids de la API (verificados en https://platform.claude.com/docs/en/models/overview y /about-claude/models/model-ids-and-versions).",
+  "nota": "Un modelo con valor null (o que no esta aqui) sale como «sin precio»: edita este fichero. Escritura de cache: se usa la tarifa de 1 h para los tokens que el uso marca como ephemeral_1h y la de 5 min para el resto. Claude Haiku 5.5 tiene precio doble segun el prompt (hasta/mas de 100.000 tokens) y no se usa en esta maquina: va sin precio a proposito.",
+  "modelos": {
+    "claude-opus-5-5": { "entrada": 4, "salida": 20, "lecturaCache": 0.2, "escrituraCache5m": 5, "escrituraCache1h": 8 },
+    "claude-opus-5": { "entrada": 5, "salida": 25, "lecturaCache": 0.5, "escrituraCache5m": 6.25, "escrituraCache1h": 10 },
+    "claude-opus-4-6": { "entrada": 5, "salida": 25, "lecturaCache": 0.5, "escrituraCache5m": 6.25, "escrituraCache1h": 10 },
+    "claude-sonnet-5-5": { "entrada": 2, "salida": 10, "lecturaCache": 0.1, "escrituraCache5m": 2.5, "escrituraCache1h": 4 },
+    "claude-sonnet-5": { "entrada": 2, "salida": 10, "lecturaCache": 0.2, "escrituraCache5m": 2.5, "escrituraCache1h": 4 },
+    "claude-haiku-4-5-20251001": { "entrada": 1, "salida": 5, "lecturaCache": 0.1, "escrituraCache5m": 1.25, "escrituraCache1h": 2 },
+    "claude-haiku-5-5": null
+  }
+}

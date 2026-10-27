@@ -958,6 +958,7 @@ describe("v1 · rondas por tarea (agrupadas por rama)", () => {
   });
 });
 
+const r9 = (x) => Math.round(x * 1e9) / 1e9; // el mismo redondeo que el servidor, para comparar sin ruido de coma flotante
 // ---- v1: tokens y coste ESTIMADO (a precio de API) por día, categoría, sesión, rama y ronda de juez ----
 describe("v1 · coste estimado", () => {
   const padre = "ses-padre01";
@@ -965,7 +966,7 @@ describe("v1 · coste estimado", () => {
   const uso = (id, modelo, u, extra = {}) => ({ type: "assistant", uuid: "u-" + id, timestamp: iso(AHORA - 1000), ...base({ sessionId: padre, gitBranch: "rama-padre" }), isSidechain: true, message: { id, model: modelo, usage: u, content: [{ type: "text", text: MARCADOR }] }, ...extra });
   const subDe = (agentId, tipo, ...lineas) => ({ ruta: "s-" + agentId, agentId, sesionPadre: padre, tipo, resumen: resumenDe(...lineas) });
   const U = { input_tokens: 1000, output_tokens: 2000, cache_read_input_tokens: 10000, cache_creation_input_tokens: 4000, cache_creation: { ephemeral_5m_input_tokens: 3000, ephemeral_1h_input_tokens: 1000 } };
-  const COSTE_U = (1000 * 3 + 2000 * 15 + 10000 * 0.3 + 3000 * 3.75 + 1000 * 6) / 1e6; // con los precios de prueba
+  const COSTE_U = r9((1000 * 3 + 2000 * 15 + 10000 * 0.3 + 3000 * 3.75 + 1000 * 6) / 1e6); // con los precios de prueba
   const TOK_U = 1000 + 2000 + 10000 + 4000;
   const coste = (extra) => agregar(entradaBase({ ...conFicheros(lineaPadre()), ...extra })).coste;
 
@@ -1052,6 +1053,21 @@ describe("v1 · coste estimado", () => {
     expect(() => validarPrecios({ ...PRECIOS, modelos: { x: null } })).not.toThrow(); // null = sin precio, a propósito
   });
 
+  it("el precios.json de verdad tiene la forma esperada, cita su fuente y su fecha, y relaciones de precio sensatas", () => {
+    const real = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), "precios.json"), "utf8"));
+    expect(() => validarPrecios(real)).not.toThrow();
+    expect(real.fuente).toMatch(/^https:\/\/platform\.claude\.com\//);
+    expect(real.fecha).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    const con = Object.values(real.modelos).filter(Boolean);
+    expect(con.length).toBeGreaterThan(3);
+    for (const p of con) {
+      expect(p.salida).toBeGreaterThan(p.entrada); // salida más cara que entrada
+      expect(p.lecturaCache).toBeLessThan(p.entrada); // leer caché es más barato que leer entrada
+      expect(p.escrituraCache5m).toBeGreaterThan(p.entrada); // escribir caché cuesta más
+      expect(p.escrituraCache1h).toBeGreaterThan(p.escrituraCache5m); // y la de 1 h, más que la de 5 min
+    }
+  });
+
   it("sin contenido: ni el texto de los mensajes ni nada salvo cifras y nombres cerrados", () => {
     const c = coste({ subagentes: [subDe("a1", "revisor", uso("m1", "m-a", U))] });
     expect(JSON.stringify(c)).not.toContain(MARCADOR);
@@ -1063,14 +1079,14 @@ describe("v1 · coste por ronda de juez (unión por agent_id)", () => {
   const uso = (id, u, t = AHORA - 1000) => ({ type: "assistant", uuid: "u-" + id, timestamp: iso(t), ...base({ sessionId: padre }), isSidechain: true, message: { id, model: "m-a", usage: u, content: [] } });
   const sub = (agentId, ...lineas) => ({ ruta: "s-" + agentId, agentId, sesionPadre: padre, tipo: "revisor", resumen: resumenDe(...lineas) });
   const U1 = { input_tokens: 1000, output_tokens: 1000, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 };
-  const C1 = (1000 * 3 + 1000 * 15) / 1e6;
+  const C1 = r9((1000 * 3 + 1000 * 15) / 1e6);
   const registro = (...entradas) => [{ rama: "r", rotas: 0, entradas }];
   const rondas = (subagentes, ...entradas) => agregar(entradaBase({ registros: registro(...entradas), subagentes })).ramas[0];
 
   it("cada informe lleva los tokens y el coste de SU juez (el del mismo agent_id); la rama suma", () => {
     const r = rondas([sub("a1", uso("m1", U1)), sub("a2", uso("m2", U1), uso("m3", U1))], e({ agent_id: "a1" }), e({ agent_id: "a2", ts: AHORA - 4000 }));
-    expect(r.marcas.map((m) => [m.tokens, m.costeUSD, m.tokensSinPrecio])).toEqual([[2000, C1, 0], [4000, 2 * C1, 0]]);
-    expect(r).toMatchObject({ tokens: 6000, costeUSD: 3 * C1, tokensSinPrecio: 0, rondasConCoste: 2 });
+    expect(r.marcas.map((m) => [m.tokens, m.costeUSD, m.tokensSinPrecio])).toEqual([[2000, C1, 0], [4000, r9(2 * C1), 0]]);
+    expect(r).toMatchObject({ tokens: 6000, costeUSD: r9(3 * C1), tokensSinPrecio: 0, rondasConCoste: 2 });
   });
 
   it("un juez sin transcripción, o un apunte sin agent_id (dato antiguo), es «sin dato» (null), nunca 0; la rama dice a cuántas rondas llega el coste", () => {
