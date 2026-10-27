@@ -1728,7 +1728,7 @@
       "tipo": "texto",
       "dominio": "faq",
       "origen": "escrito",
-      "nombre": "faq: cuánto cuesta → gratis con 100 mensajes",
+      "nombre": "faq: cuánto cuesta → gratis con 50 mensajes",
       "entrada": "¿cuánto cuesta esto?",
       "noLlama": [
         "generar_menu",
@@ -1737,7 +1737,7 @@
         "ajustar_cocina",
         "anadir_compra"
       ],
-      "texto": "100"
+      "texto": "50"
     },
     {
       "id": "faq-meter-a-la-pareja",
@@ -1921,7 +1921,7 @@
       "tipo": "texto",
       "dominio": "faq",
       "origen": "escrito",
-      "nombre": "faq: pasarse de los 100 → la app sigue, y vuelve el mes siguiente",
+      "nombre": "faq: pasarse del tope → la app sigue, y vuelve el mes siguiente",
       "entrada": "¿y qué pasa si me paso de los mensajes gratis?",
       "noLlama": [
         "generar_menu",

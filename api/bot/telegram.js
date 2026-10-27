@@ -42,7 +42,7 @@ import { SIN_ENRUTADOR, motorFrioDesde, relojDeHerramientas } from "../_bot/medi
 import { viaRapida, eleccionDe, aplicarEleccion, contextoDe } from "../_bot/turno.js";
 import { comidaElegida, quiereApuntar } from "../_bot/plato.js";
 import { ahoraEnMadrid } from "../_bot/recordatorios.js";
-import { fueraDeLimite, contarUso } from "../_bot/uso.js";
+import { fueraDeLimite, contarUso, avisoDeLimite } from "../_bot/uso.js";
 import {
   enlacesReceta, enlacesSemana, botonesCompartir, resolverInvitacion,
   recetaEnTexto, semanaEnTexto, copiarReceta, cuentasDeQuien,
@@ -658,7 +658,12 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
       const avisado = Boolean(vivoRapida?.id());
       const primer = avisado ? avisadoMs : Date.now() - t0;
       await lolaCancelada;
-      await contarUso(householdId, d.uso ?? {}).catch(fallaCon("uso"));
+      const llevados = await contarUso(householdId, d.uso ?? {}).catch(fallaCon("uso"));
+      // El aviso de los que quedan va en la respuesta de Lola (agente.js); si
+      // el mensaje que lo toca entra por aquí, sale aparte o no saldría nunca.
+      const aviso = avisoDeLimite(householdId, llevados);
+      // a propósito: el aviso es un extra; sin él, la plantilla ya salió
+      if (aviso) await enviar(chatId, aviso.trim(), { responderA }).catch(seguirCon("aviso_limite"));
       return apuntarRuta(householdId, { ...paraEvals, modo: d.modo, confianza: d.confianza, rapida: true, ms: Date.now() - t0, router_ms: d.ms, contexto_ms: contextoMs, ...(avisado ? { aviso: HERRAMIENTA_LENTA_DEL_MODO[d.modo] } : {}), ...medida(medir, d, t0, primer) });
     }
   }
