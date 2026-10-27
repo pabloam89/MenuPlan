@@ -234,7 +234,7 @@ const DEP = [
   // v1: En directo mezcla transcripciones (agentes, bloqueos, cierres) y registro (jueces): cae si cae cualquiera de las dos
   [g(".eventos", "hora|tipo|agente|hook|veredicto|agentId|duracionMs|sesion"), ["transcripciones", "registro"]],
   // v1 coste: los tokens salen de las transcripciones; el coste, de las transcripciones y de los precios; por ronda, además, del registro
-  [/^\.coste$/, ["transcripciones"]],
+  [/^\.coste$/, ["transcripciones", "subagentes"]], // el coste suma lo de las transcripciones y lo de los subagentes: si cae una, no se sabe qué faltó
   [/^\.coste\.precios(\.(fecha|fuente))?$/, ["precios"]],
   [/^\.coste\.lineasRotas$/, ["transcripciones"]],
   [/^\.coste\.modelosSinPrecio(\[\])?$/, ["transcripciones", "precios"]],
@@ -244,8 +244,8 @@ const DEP = [
   [/^\.coste\.(total|(porDia|porSesion|porRama)\[\])\.(jueces|otros|principal|total)\.(costeUSD|tokensSinPrecio)$/, ["transcripciones", "precios"]],
   [/^\.coste\.(porSesion|porRama)\[\]\.pctJueces$/, ["transcripciones", "precios"]],
   [/^\.coste\.(porDia|porSesion|porRama)(\[\]\.(dia|sesion|rama|ultimo))?$/, ["transcripciones"]],
-  [/^\.ramas\[\]\.(tokens|rondasConCoste)$|^\.ramas\[\]\.marcas\[\]\.tokens$/, ["registro", "transcripciones"]],
-  [/^\.ramas\[\]\.(costeUSD|tokensSinPrecio)$|^\.ramas\[\]\.marcas\[\]\.(costeUSD|tokensSinPrecio)$/, ["registro", "transcripciones", "precios"]],
+  [/^\.ramas\[\]\.(tokens|rondasConCoste)$|^\.ramas\[\]\.marcas\[\]\.tokens$/, ["registro", "transcripciones", "subagentes"]],
+  [/^\.ramas\[\]\.(costeUSD|tokensSinPrecio)$|^\.ramas\[\]\.marcas\[\]\.(costeUSD|tokensSinPrecio)$/, ["registro", "transcripciones", "subagentes", "precios"]],
   [g(".ramas", "rama|rondas|tiempoMs|ultimo|masMarcas|marcas(\\[\\]\\.(agente|veredicto|ms|ts|abierta|fiable))?"), ["registro"]],
   [/^\.semaforo\.hooksVivos(\.(nivel|ultimo|copiaOk))?$/, ["transcripciones", "copia"]],
   [/^\.semaforo\.bloqueosHoy(\.(nivel|total|identificados))?$/, ["transcripciones"]],
@@ -418,6 +418,7 @@ describe("la página v1 · semáforo, En directo y rondas", () => {
     expect(c[0].className).toBe("lampara gris");
     expect(c[1].className).not.toBe("lampara gris");
     expect((await pinta("settings")).some((x) => x.className === "lampara gris")).toBe(false); // settings no mueve el semáforo
+    expect((await pinta("subagentes")).some((x) => x.className === "lampara gris")).toBe(false); // los subagentes solo mueven el coste
     for (const x of [...t, ...r, ...c]) if (x.className === "lampara gris") expect(norm(x)).toMatch(/sin dato/);
   });
 
@@ -801,12 +802,14 @@ describe("la página v1 · coste estimado", () => {
     expect(zc(n).texto).not.toContain("estimación a precio de API (precios del");
   });
 
-  it("si las transcripciones no se pudieron leer: «No se pudo leer», sin gráfico ni tablas, ni un cero", async () => {
-    const n = navegador(datosPagina(falla("transcripciones")));
-    await n.listo;
-    expect(zc(n).texto).toContain("No se pudo leer");
-    expect(nodos(n, "svg")).toHaveLength(0);
-    expect(nodos(n, "table")).toHaveLength(0);
+  it("si las transcripciones o los subagentes no se pudieron leer: «No se pudo leer», sin gráfico ni tablas, ni un cero", async () => {
+    for (const fuente of ["transcripciones", "subagentes"]) {
+      const n = navegador(datosPagina(falla(fuente)));
+      await n.listo;
+      expect(zc(n).texto).toContain("No se pudo leer");
+      expect(nodos(n, "svg")).toHaveLength(0);
+      expect(nodos(n, "table")).toHaveLength(0);
+    }
   });
 
   it("sin nada que contar en la ventana lo dice, no dibuja un gráfico vacío", async () => {
@@ -1637,13 +1640,25 @@ describe("servidor y lectura real", () => {
     expect(d.coste.lineasRotas).toBe(1);
   });
 
-  it("subagentes: un meta ilegible es un error de transcripciones (coste null), sin enseñar su texto", async () => {
+  it("subagentes: un meta ilegible NO es un error: el tipo queda «desconocido» (otros) y el coste sigue; su texto no sale", async () => {
     escribir(metaSub("a1"), "{roto " + MARCADOR);
     const r = await pedir(await arrancar());
     const d = JSON.parse(r.cuerpo);
-    expect(d.errores.map((x) => x.fuente)).toEqual(["transcripciones"]);
-    expect(d.coste).toBeNull();
+    expect(d.errores).toEqual([]);
+    expect(tokensDe(d).slice(0, 2)).toEqual([0, 2 * TOK_SUB]); // a1 ya no es juez: sin tipo
     expect(r.cuerpo).not.toContain(MARCADOR);
+  });
+
+  it("subagentes: si un fichero de subagente no se puede leer, es un error de la fuente «subagentes»: cae el coste (y el de las rondas) y NADA más (hooks, tiempos, En directo y semáforo siguen)", async () => {
+    const crearLector = (ruta, o) => {
+      if (ruta === rutaSub("a1")) throw Object.assign(new Error("EACCES"), { code: "EACCES" });
+      return createReadStream(ruta, o);
+    };
+    const d = await crearRecolector({ home, repoAlvaro: alvaro, dias: 7, rutaPrecios: join(dir, "precios.json"), crearLector }).recoger(Date.now());
+    expect(d.errores.map((x) => x.fuente)).toEqual(["subagentes"]);
+    expect(d.coste).toBeNull();
+    expect(d.ramas[0].marcas.map((m) => m.tokens)).toEqual([null, null]);
+    expect([d.hooks, d.tiempos, d.eventos, d.semaforo.hooksVivos, d.semaforo.bloqueosHoy, d.semaforo.rondasAbiertas, d.ramas].every((x) => x !== null)).toBe(true);
   });
 
   it("precios.json ilegible o ausente es un error de la fuente «precios»: los tokens siguen y el coste es null (sin precio), no 0", async () => {
@@ -1660,9 +1675,10 @@ describe("servidor y lectura real", () => {
   // Los mismos escenarios con /datos.json del servidor real y un HOME sintético con cada fuente rota de verdad.
   const romper = (caidas) => {
     const extra = {};
-    if (caidas.includes("transcripciones")) {
+    if (caidas.includes("transcripciones") || caidas.includes("subagentes")) {
       extra.crearLector = (ruta, o) => {
-        if (ruta === fSesion()) throw Object.assign(new Error("EACCES"), { code: "EACCES" });
+        if (caidas.includes("transcripciones") && ruta === fSesion()) throw Object.assign(new Error("EACCES"), { code: "EACCES" });
+        if (caidas.includes("subagentes") && ruta === rutaSub("a1")) throw Object.assign(new Error("EACCES"), { code: "EACCES" });
         return createReadStream(ruta, o);
       };
     }

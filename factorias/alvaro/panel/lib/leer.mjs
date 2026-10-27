@@ -10,7 +10,7 @@
 export const MAX_MOTIVO = 80;
 export const SESIONES_VISIBLES = 15;
 // Las fuentes de lectura: vocabulario cerrado. Cada error de lectura dice de cuál es.
-export const FUENTES = ["transcripciones", "settings", "copia", "registro", "precios"];
+export const FUENTES = ["transcripciones", "settings", "copia", "registro", "precios", "subagentes"];
 // Lo que una foto de coste puede pasarse de la vida observada de su sesión antes de tratarla como «no cuadra»
 const MARGEN_FOTO_MS = 600000;
 // Los jueces de la factoría (los mismos de factorias/alvaro/lib/reglas.mjs: allí no se exporta la lista).
@@ -429,7 +429,7 @@ function construirCoste({ corte, rs, sesiones, subagentes, precios, T, P }) {
  */
 export function agregar({ ahora, dias, ficheros, directo, subagentes = [], precios = null, registros, declarados, copia, home, errores }) {
   const corte = ahora - dias * 864e5;
-  const [T, S, C, R, P] = FUENTES.map((f) => errores.some((x) => x.fuente === f)); // cuáles han caído
+  const [T, S, C, R, P, B] = FUENTES.map((f) => errores.some((x) => x.fuente === f)); // cuáles han caído
   const de = (cae, valor) => (cae ? null : valor);
   const dentro = (ts) => ts === null || ts >= corte;
   const orden = [...ficheros].sort((a, b) => a.mtimeMs - b.mtimeMs);
@@ -565,11 +565,11 @@ export function agregar({ ahora, dias, ficheros, directo, subagentes = [], preci
   const ultimo = enVentana.reduce((m, [, x]) => Math.max(m, x.maxTs), -Infinity);
 
   // ---- v1: coste ESTIMADO a precio de API (nunca el totalCostUSD de las fotos) ----
-  const { coste, costeAgente } = construirCoste({ corte, rs, sesiones, subagentes, precios, T, P });
+  const { coste, costeAgente } = construirCoste({ corte, rs, sesiones, subagentes, precios, T: T || B, P }); // el coste suma lo de transcripciones y subagentes
 
   // ---- v1: En directo, rondas por tarea y semáforo ----
   const eventos = construirEventos({ ahora, directos: directo ?? rs, entradas, home });
-  const todasRamas = construirRamas({ ahora, entradas, costeAgente, T, P });
+  const todasRamas = construirRamas({ ahora, entradas, costeAgente, T: T || B, P });
   const abiertas = todasRamas.reduce((n, x) => n + x.abiertas, 0); // en todas las ramas, no solo en las que se enseñan
   const ramas = todasRamas.slice(0, MAX_RAMAS).map(({ ultimoMs: _u, abiertas: _a, ...resto }) => resto);
   const desdeMedianoche = inicioDiaMadrid(ahora);

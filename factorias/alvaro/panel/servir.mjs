@@ -195,12 +195,12 @@ export function crearRecolector(cfg = {}) {
   async function leerSubagente(ruta) {
     const r = nuevoResumen();
     for await (const l of createInterface({ input: crearLector(ruta), crlfDelay: Infinity })) if (l.includes('"usage"')) procesarLinea(r, l);
-    let tipo = null;
+    let tipo = null; // sin meta, o con un meta ilegible: tipo desconocido (no un error)
     try {
       const meta = JSON.parse(await readFile(ruta.replace(/\.jsonl$/, ".meta.json"), "utf8"));
       tipo = typeof meta?.agentType === "string" ? limpio(meta.agentType) : null; // description, prompt y lo demás: ni se guardan
-    } catch (e) {
-      if (e.code !== "ENOENT") throw e; // sin meta: tipo desconocido; un meta roto sí es un error
+    } catch {
+      /* tipo desconocido */
     }
     return { resumen: r, tipo };
   }
@@ -310,14 +310,14 @@ export function crearRecolector(cfg = {}) {
   async function hacer(ahora) {
     const t0 = Date.now();
     // Los errores se recogen por fuente: agregar() deja null lo derivado de cada fuente caída
-    const [eT, eS, eC, eR, eP] = FUENTES.map(() => []);
+    const [eT, eS, eC, eR, eP, eB] = FUENTES.map(() => []);
     const { ficheros, directos } = await transcripciones(ahora - dias * 864e5, eT, ahora);
-    const subs = await subagentes(ahora - dias * 864e5, eT);
+    const subs = await subagentes(ahora - dias * 864e5, eB);
     const regs = await registros(ahora - dias * 864e5, eR);
     const tarifas = await precios(eP);
     const decl = await declarados(eS);
     const cp = await copia(eC);
-    const errores = [eT, eS, eC, eR, eP].flatMap((lista, i) => lista.map((x) => ({ fuente: FUENTES[i], ...x })));
+    const errores = [eT, eS, eC, eR, eP, eB].flatMap((lista, i) => lista.map((x) => ({ fuente: FUENTES[i], ...x })));
     const datos = agregar({ ahora, dias, ficheros, directo: directos, subagentes: subs, precios: tarifas, registros: regs, declarados: decl, copia: cp, home, errores });
     const mem = process.memoryUsage();
     return { generado: new Date(ahora).toISOString(), dias, lecturaMs: Date.now() - t0, proceso: { rssMB: Math.round(mem.rss / 1048576), heapMB: Math.round(mem.heapUsed / 1048576) }, ...datos };
