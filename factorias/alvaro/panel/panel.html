@@ -252,11 +252,21 @@ function pintarIneficiencias(d) {
   return s;
 }
 
-function pintarPie() {
+// Qué proyectos entran en TODO lo que enseña el panel (el filtro lo aplica el servidor y solo cuenta cuántas carpetas hay)
+function textoProyectos(d) {
+  const p = d.proyectos;
+  if (p === null) return "Proyectos: sin dato.";
+  if (p.filtro === "todos") return `Todos los proyectos de ~/.claude/projects (${fNum(p.incluidos)} incluidos).`;
+  return `Solo proyectos cuyo nombre contiene ${p.filtro.split(", ").map((q) => `"${q}"`).join(" o ")} (${fNum(p.incluidos)} incluidos, ${fNum(p.excluidos)} excluidos).`;
+}
+
+function pintarPie(d) {
   const lista = [
     "Los hooks del proyecto (.claude/settings.json del repo donde corre cada sesión) NO se leen: solo los de ~/.claude/settings.json. Los que salen «no está en ~/.claude/settings.json» sí se han visto activarse.",
     "El registro de jueces del PC lo escribe una versión vieja del hook que también apunta a constructores y lee veredictos falsos: los datos antiguos no son fiables, y este panel no puede separar los buenos de los malos.",
-    "Las transcripciones de subagentes que Claude Code guarde en subcarpetas no se leen (SIN COMPROBAR que existan); sí cuentan las que vienen dentro del fichero de la sesión.",
+    textoProyectos(d),
+    "Los subagentes se leen de subagents/ (un fichero por subagente; del meta solo su tipo) y solo para el coste estimado. Las tablas de tokens por modelo y de subagentes lanzados cuentan solo las transcripciones principales.",
+    "«Juez» no es lo mismo en todo el panel: el registro de jueces y las rondas conocen tres (revisor, qa, evaluador); el coste cuenta cinco (también seguridad y auditor-datos).",
     "No dice si un juez tenía razón ni si el código quedó bien: solo cuántas veces se activó, cuánto tardó y cuánto costó.",
   ];
   return el("section", "", el("h2", "", "Qué NO sabe este panel"), el("ul", "", ...lista.map((x) => el("li", "", x))));
@@ -476,7 +486,7 @@ function tablaCon(titulo, cols, filas) {
 
 function pintarCoste(d) {
   const c = d.coste;
-  const sal = [el("h2", "", "Coste estimado: jueces, constructores y sesión principal")];
+  const sal = [el("h2", "", "Coste estimado: jueces, constructores y sesión principal"), el("p", "suave", textoProyectos(d))];
   if (c === null) return [...sal, el("p", "vacio", "No se pudo leer (ver franja roja).")];
   sal.push(franja("aviso", c.precios ? `Coste = estimación a precio de API (precios del ${c.precios.fecha}, fuente ${c.precios.fuente}).` : "Coste = estimación a precio de API, pero sin precios: precios.json no se pudo leer. Salen los tokens y el coste dice «sin precio».", [AVISO_PLAN]));
   if (!c.porDia.length) return [...sal, el("p", "vacio", `Sin consumo en los últimos ${d.dias} días.`)];
@@ -514,7 +524,7 @@ function pintarResto(d) {
   const izq = cajas.map((c) => c.scrollLeft);
   const foco = cajas.indexOf(document.activeElement);
   const y = window.scrollY;
-  zonas.resto.replaceChildren(pintarEstado(d), pintarHooks(d), pintarTiempos(d), pintarIneficiencias(d), pintarPie());
+  zonas.resto.replaceChildren(pintarEstado(d), pintarHooks(d), pintarTiempos(d), pintarIneficiencias(d), pintarPie(d));
   const nuevas = [...zonas.resto.querySelectorAll(".tabla")];
   if (nuevas.length === izq.length) nuevas.forEach((c, i) => (c.scrollLeft = izq[i]));
   if (foco >= 0 && nuevas[foco]) nuevas[foco].focus({ preventScroll: true });
@@ -536,7 +546,7 @@ function mostrar(d) {
   if (!zonas.sem) crearZonas();
   actualizarDirecto(d); // la lista de En directo es incremental: nunca espera
   if (vivoTs === null || !vivo.className.includes("ok") || vivoTs !== generado) marcarVivo(true, generado);
-  const nuevas = { sem: JSON.stringify([semaforo, d.directoMin]), ron: JSON.stringify([ramas, d.dias]), cos: JSON.stringify([coste, d.dias]), resto: JSON.stringify(resto) };
+  const nuevas = { sem: JSON.stringify([semaforo, d.directoMin]), ron: JSON.stringify([ramas, d.dias]), cos: JSON.stringify([coste, d.dias, d.proyectos]), resto: JSON.stringify(resto) };
   const cambian = Object.keys(nuevas).filter((k) => nuevas[k] !== claves[k]);
   if (!cambian.length) {
     if (lineaLectura) lineaLectura.textContent = textoLectura(d);

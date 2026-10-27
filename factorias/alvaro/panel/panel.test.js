@@ -13,6 +13,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { FUENTES, MAX_EVENTOS, MAX_MARCAS, MAX_RAMAS, RONDA_ABIERTA_MAX_MS, TIPOS_EVENTO, UMBRALES_HOOKS_VIVOS, VENTANA_DIRECTO_MS, agregar, compararCopias, inicioDiaMadrid, leerDeclarados, nombreCorto, normalizarComando, nuevoResumen, parsearRegistro, procesarLinea, unirBloqueos, validarPrecios } from "./lib/leer.mjs";
 import { crearRecolector, crearServidor } from "./servir.mjs";
 
+const EXCLUIDO = "SECRETO-CARPETA-3c8f"; // nombre de una carpeta de otro proyecto: no puede salir nunca
 const SERVIR = join(dirname(fileURLToPath(import.meta.url)), "servir.mjs");
 const MARCADOR = "SECRETO-PANEL-7f3a9c"; // contenido de mensajes: no puede salir nunca
 const PERMITIDO = "PERMITIDO-PANEL-51d2e8"; // en cwd, rama, modelo y tipo de subagente: sale solo por esos campos, declarados en el README
@@ -36,7 +37,7 @@ const e = (extra) => ({ ts: AHORA - 5000, sesion: "x", agente: "revisor", veredi
 const copiaOk = { ok: true, difieren: [], faltanInstalada: [], sobranInstalada: [] };
 // Precios de PRUEBA (no son los reales): USD por millón de tokens. m-sin existe y no tiene precio (null) a propósito.
 const PRECIOS = { fecha: "2026-01-01", fuente: "https://ejemplo.invalid/precios", modelos: { "m-a": { entrada: 3, salida: 15, lecturaCache: 0.3, escrituraCache5m: 3.75, escrituraCache1h: 6 }, "m-sin": null } };
-const entradaBase = (extra = {}) => ({ ahora: AHORA, dias: 7, ficheros: [], subagentes: [], precios: PRECIOS, registros: [], declarados: [], copia: copiaOk, home: "/h", errores: [], ...extra });
+const entradaBase = (extra = {}) => ({ ahora: AHORA, dias: 7, ficheros: [], subagentes: [], precios: PRECIOS, proyectos: { filtro: "menuplan", incluidos: 2, excluidos: 1 }, registros: [], declarados: [], copia: copiaOk, home: "/h", errores: [], ...extra });
 
 describe("parseo de líneas de transcripción", () => {
   it("un resumen de cierre cuenta una activación por hook, con su duración", () => {
@@ -234,6 +235,7 @@ const DEP = [
   // v1: En directo mezcla transcripciones (agentes, bloqueos, cierres) y registro (jueces): cae si cae cualquiera de las dos
   [g(".eventos", "hora|tipo|agente|hook|veredicto|agentId|duracionMs|sesion"), ["transcripciones", "registro"]],
   // v1 coste: los tokens salen de las transcripciones; el coste, de las transcripciones y de los precios; por ronda, además, del registro
+  [/^\.proyectos(\.(filtro|incluidos|excluidos))?$/, ["transcripciones"]], // qué carpetas de proyecto se miran: sale del listado de ~/.claude/projects
   [/^\.coste$/, ["transcripciones", "subagentes"]], // el coste suma lo de las transcripciones y lo de los subagentes: si cae una, no se sabe qué faltó
   [/^\.coste\.precios(\.(fecha|fuente))?$/, ["precios"]],
   [/^\.coste\.lineasRotas$/, ["transcripciones"]],
@@ -834,6 +836,24 @@ describe("la página v1 · coste estimado", () => {
     expect(norm(n.zona(2))).toMatch(/coste ≈ \$0,45 .*mínimo.* 2 de 3 rondas/);
   });
 
+  it("declara qué proyectos entran: en la cabecera del coste y en el pie, con cuántos incluidos y excluidos, y sin nombres de carpeta", async () => {
+    const n = navegador({ ...datosPagina(), coste: costeFalso(), proyectos: { filtro: "menuplan", incluidos: 4, excluidos: 3 } });
+    await n.listo;
+    const frase = 'Solo proyectos cuyo nombre contiene "menuplan" (4 incluidos, 3 excluidos)';
+    expect(norm(zc(n))).toContain(frase);
+    expect(norm(n.zona(4))).toContain(frase);
+    const varios = navegador({ ...datosPagina(), proyectos: { filtro: "menuplan, athx", incluidos: 5, excluidos: 0 } });
+    await varios.listo;
+    expect(norm(varios.zona(4))).toContain('contiene "menuplan" o "athx" (5 incluidos, 0 excluidos)');
+    const todos = navegador({ ...datosPagina(), proyectos: { filtro: "todos", incluidos: 6, excluidos: 0 } });
+    await todos.listo;
+    expect(norm(todos.zona(4))).toContain("Todos los proyectos de ~/.claude/projects (6 incluidos)");
+    const roto = navegador(datosPagina(falla("transcripciones")));
+    await roto.listo;
+    expect(norm(roto.zona(4))).toMatch(/Proyectos: sin dato/);
+    expect(norm(roto.zona(4))).not.toContain("incluidos");
+  });
+
   it("tema claro y oscuro: las categorías del gráfico tienen su color en los dos", () => {
     expect((html.match(/--c-jueces:/g) ?? []).length).toBe(2);
     expect((html.match(/--c-otros:/g) ?? []).length).toBe(2);
@@ -1312,7 +1332,7 @@ const escribir = (ruta, texto) => {
   mkdirSync(join(ruta, ".."), { recursive: true });
   writeFileSync(ruta, texto);
 };
-const fSesion = () => join(home, ".claude", "projects", "p1", "ses-aaaa1111.jsonl");
+const fSesion = () => join(home, ".claude", "projects", "c--zz-MenuPlan-p1", "ses-aaaa1111.jsonl");
 
 function montar() {
   home = join(dir, "home");
@@ -1330,13 +1350,17 @@ function montar() {
     { type: "cost-state", sessionId: "ses-aaaa1111", totalCostUSD: 1.5, totalDuration: 9000, totalAPIDuration: 4000, totalToolDuration: 1000 },
   ];
   escribir(fSesion(), sesion.map(L).join("") + "{línea rota\n");
-  escribir(join(home, ".claude", "projects", "p1", "ses-bbbb2222.jsonl"), L({ type: "assistant", uuid: "b1", timestamp: iso(t - 60000), ...base({ sessionId: "ses-bbbb2222" }), message: { id: "mb", model: "m", usage: {}, content: [] } })); // sin foto de coste
-  const carpetaSub = join(home, ".claude", "projects", "p1", "ses-aaaa1111", "subagents");
+  escribir(join(home, ".claude", "projects", "c--zz-MenuPlan-p1", "ses-bbbb2222.jsonl"), L({ type: "assistant", uuid: "b1", timestamp: iso(t - 60000), ...base({ sessionId: "ses-bbbb2222" }), message: { id: "mb", model: "m", usage: {}, content: [] } })); // sin foto de coste
+  const carpetaSub = join(home, ".claude", "projects", "c--zz-MenuPlan-p1", "ses-aaaa1111", "subagents");
   const usoDe = (id) => L({ type: "assistant", uuid: "us-" + id, timestamp: iso(t - 2000), ...base(), isSidechain: true, message: { id: "ms-" + id, model: "m-a", usage: { input_tokens: 1000, output_tokens: 1000 }, content: [{ type: "text", text: MARCADOR }] } });
   escribir(join(carpetaSub, "agent-a1.jsonl"), usoDe("a1"));
   escribir(join(carpetaSub, "agent-a1.meta.json"), JSON.stringify({ agentType: "revisor", description: MARCADOR, prompt: MARCADOR }));
   escribir(join(carpetaSub, "agent-q1.jsonl"), usoDe("q1")); // sin meta: tipo desconocido
   escribir(join(dir, "precios.json"), JSON.stringify(PRECIOS));
+  const ajeno = join(home, ".claude", "projects", "c--zz-ATHX-" + EXCLUIDO);
+  escribir(join(ajeno, "ses-ajena001.jsonl"), L({ type: "assistant", uuid: "aj1", timestamp: iso(t - 3000), ...base({ sessionId: "ses-ajena001", gitBranch: "rama-ajena" }), message: { id: "maj", model: "m-a", usage: { input_tokens: 5000, output_tokens: 5000 }, content: [{ type: "tool_use", id: "taj", name: "Agent", input: { subagent_type: "ajeno" } }] } }));
+  escribir(join(ajeno, "ses-ajena001", "subagents", "agent-x1.jsonl"), usoDe("x1"));
+  escribir(join(ajeno, "ses-ajena001", "subagents", "agent-x1.meta.json"), JSON.stringify({ agentType: "revisor" }));
   escribir(join(home, ".claude", "factoria-alvaro", "ops_zz.jsonl"), [e({ ts: t - 3500, agent_id: "a1", veredicto: "lanzado" }), e({ ts: t - 3000, agent_id: "a1" }), e({ ts: t - 2500, agent_id: "a2" })].map(L).join(""));
 }
 
@@ -1376,6 +1400,8 @@ describe("servidor y lectura real", () => {
     const d = JSON.parse(r.cuerpo);
     expect(d.errores).toEqual([]);
     expect(d.estado).toMatchObject({ sesiones: 2, lineasRotas: 1, copia: { ok: true } });
+    expect(d.proyectos).toEqual({ filtro: "menuplan", incluidos: 1, excluidos: 1 });
+    expect(r.cuerpo).not.toContain(EXCLUIDO);
     expect(d.tiempos[0]).toMatchObject({ totalMs: 9000, apiMs: 4000, herramientasMs: 1000 });
     expect(d.ineficiencias.subagentes).toEqual([{ tipo: PERMITIDO, n: 1 }]);
     expect(d.hooks.find((h) => h.nombre === "c.mjs")).toMatchObject({ veces: 1, bloqueos: 1, declarado: true });
@@ -1441,7 +1467,7 @@ describe("servidor y lectura real", () => {
 
   it("la ventana es de 7 días por defecto y PANEL_DIAS la cambia", async () => {
     for (const [n, dias] of [["tres.jsonl", 3], ["diez.jsonl", 10]]) {
-      const f = join(home, ".claude", "projects", "p2", n);
+      const f = join(home, ".claude", "projects", "c--zz-MenuPlan-p2", n);
       escribir(f, L({ type: "mode", ...base({ sessionId: n }), timestamp: iso(Date.now() - dias * DIA) }));
       utimesSync(f, new Date(Date.now() - dias * DIA), new Date(Date.now() - dias * DIA));
     }
@@ -1535,7 +1561,7 @@ describe("servidor y lectura real", () => {
   it("En directo: de un fichero enorme lee solo el final (lo reciente), no todo", async () => {
     const t = Date.now();
     const viejo = (i) => L({ type: "mode", timestamp: iso(t - 3 * 3600e3 + i), ...base({ sessionId: "ses-grande1" }), relleno: "x".repeat(1000) });
-    const f = join(home, ".claude", "projects", "p3", "ses-grande1.jsonl");
+    const f = join(home, ".claude", "projects", "c--zz-MenuPlan-p3", "ses-grande1.jsonl");
     escribir(f, Array.from({ length: 3000 }, (_, i) => viejo(i)).join("") + lineaAgente("grande", t - 1000).replace("ses-aaaa1111", "ses-grande1"));
     const lecturas = [];
     const d = await crearRecolector({ home, repoAlvaro: alvaro, dias: 7, alLeerDirecto: (ruta, bytes) => lecturas.push([ruta, bytes]) }).recoger(Date.now());
@@ -1550,7 +1576,7 @@ describe("servidor y lectura real", () => {
   it("En directo: si no encuentra una línea anterior a la ventana, no lee hacia atrás más del tope (maxCola), pero sigue dando los sucesos del final", async () => {
     const t = Date.now();
     const reciente = (i) => L({ type: "mode", timestamp: iso(t - 5000 + i), ...base({ sessionId: "ses-grande2" }), relleno: "x".repeat(1000) });
-    const f = join(home, ".claude", "projects", "p3", "ses-grande2.jsonl");
+    const f = join(home, ".claude", "projects", "c--zz-MenuPlan-p3", "ses-grande2.jsonl");
     escribir(f, Array.from({ length: 3000 }, (_, i) => reciente(i)).join("") + lineaAgente("final", t - 1000));
     const lecturas = [];
     const d = await crearRecolector({ home, repoAlvaro: alvaro, dias: 7, maxCola: 512 * 1024, rutaPrecios: join(dir, "precios.json"), alLeerDirecto: (ruta, bytes) => lecturas.push([ruta, bytes]) }).recoger(Date.now());
@@ -1598,8 +1624,8 @@ describe("servidor y lectura real", () => {
   });
 
   // ---- v1: los subagentes (projects/<proyecto>/<sesion>/subagents/agent-<id>.jsonl + .meta.json) ----
-  const rutaSub = (id) => join(home, ".claude", "projects", "p1", "ses-aaaa1111", "subagents", `agent-${id}.jsonl`);
-  const metaSub = (id) => join(home, ".claude", "projects", "p1", "ses-aaaa1111", "subagents", `agent-${id}.meta.json`);
+  const rutaSub = (id) => join(home, ".claude", "projects", "c--zz-MenuPlan-p1", "ses-aaaa1111", "subagents", `agent-${id}.jsonl`);
+  const metaSub = (id) => join(home, ".claude", "projects", "c--zz-MenuPlan-p1", "ses-aaaa1111", "subagents", `agent-${id}.meta.json`);
   const usoSub = (id, extra = {}) => L({ type: "assistant", uuid: "us-" + id, timestamp: iso(Date.now() - 2000), ...base(), isSidechain: true, message: { id: "ms-" + id, model: "m-a", usage: { input_tokens: 1000, output_tokens: 1000 }, content: [{ type: "text", text: MARCADOR }] }, ...extra });
   const TOK_SUB = 2000;
   const tokensDe = (d) => [d.coste.total.jueces.tokens, d.coste.total.otros.tokens, d.coste.total.principal.tokens];
@@ -1633,7 +1659,7 @@ describe("servidor y lectura real", () => {
     const viejo = new Date(Date.now() - 20 * DIA);
     utimesSync(rutaSub("q1"), viejo, viejo);
     appendFileSync(rutaSub("a1"), '{"usage": roto\n');
-    escribir(join(home, ".claude", "projects", "p1", "ses-aaaa1111", "subagents", "otro.jsonl"), usoSub("ignorado"));
+    escribir(join(home, ".claude", "projects", "c--zz-MenuPlan-p1", "ses-aaaa1111", "subagents", "otro.jsonl"), usoSub("ignorado"));
     const d = JSON.parse((await pedir(await arrancar())).cuerpo);
     expect(d.errores).toEqual([]);
     expect(tokensDe(d).slice(0, 2)).toEqual([TOK_SUB, 0]);
@@ -1670,6 +1696,48 @@ describe("servidor y lectura real", () => {
       expect(d.coste.total.jueces.costeUSD).toBeNull();
       expect(d.coste.precios).toBeNull();
     }
+  });
+
+  // ---- v1: solo los proyectos de MenuPlan (filtro PROYECTOS) ----
+  const carpetaProyecto = (nombre) => join(home, ".claude", "projects", nombre);
+  const sesionesDe = (d) => d.estado.sesiones;
+
+  it("por defecto solo cuentan las carpetas de proyecto cuyo nombre contiene «menuplan» (sin mirar mayúsculas), en TODAS las lecturas; el nombre de las excluidas no sale", async () => {
+    escribir(join(carpetaProyecto("C--Users-alvar-UsersalvarMENUPLAN"), "ses-mayus0001.jsonl"), L({ type: "mode", timestamp: iso(Date.now() - 1000), ...base({ sessionId: "ses-mayus0001" }) }));
+    const r = await pedir(await arrancar());
+    const d = JSON.parse(r.cuerpo);
+    expect(d.errores).toEqual([]);
+    expect(sesionesDe(d)).toBe(3); // p1 (2 sesiones) + la de MAYÚSCULAS; la del otro proyecto no
+    expect(d.proyectos).toEqual({ filtro: "menuplan", incluidos: 2, excluidos: 1 });
+    expect(r.cuerpo).not.toContain(EXCLUIDO);
+    expect(r.cuerpo).not.toContain("rama-ajena");
+    expect(d.ineficiencias.subagentes.map((x) => x.tipo)).not.toContain("ajeno"); // hooks, tiempos, subagentes lanzados…
+    expect(d.eventos.map((x) => x.agente)).not.toContain("ajeno"); // …En directo…
+    expect(d.coste.total.jueces.tokens).toBe(TOK_SUB); // …y coste de subagentes: el juez del otro proyecto no cuenta
+    expect(d.coste.porRama.map((x) => x.rama)).not.toContain("rama-ajena");
+  });
+
+  it("PROYECTOS=todos desactiva el filtro (y lo dice); una lista de varios filtros, separados por comas, vale cualquiera", async () => {
+    const todos = JSON.parse((await pedir(await arrancar({ proyectos: "todos" }))).cuerpo);
+    expect(todos.proyectos).toEqual({ filtro: "todos", incluidos: 2, excluidos: 0 });
+    expect(sesionesDe(todos)).toBe(3);
+    expect(todos.coste.total.jueces.tokens).toBe(2 * TOK_SUB);
+    expect(JSON.stringify(todos)).not.toContain(EXCLUIDO);
+    const lista = await crearRecolector({ home, repoAlvaro: alvaro, dias: 7, rutaPrecios: join(dir, "precios.json"), proyectos: " menuplan , ATHX" }).recoger(Date.now());
+    expect(lista.proyectos).toEqual({ filtro: "menuplan, athx", incluidos: 2, excluidos: 0 });
+    const ninguno = await crearRecolector({ home, repoAlvaro: alvaro, dias: 7, rutaPrecios: join(dir, "precios.json"), proyectos: "no-existe" }).recoger(Date.now());
+    expect(ninguno.proyectos).toEqual({ filtro: "no-existe", incluidos: 0, excluidos: 2 });
+    expect(ninguno.errores).toEqual([]);
+    expect(sesionesDe(ninguno)).toBe(0);
+  });
+
+  it("la variable PANEL_PROYECTOS llega al programa", async () => {
+    const h = await lanzar({ PANEL_PROYECTOS: "todos" });
+    await h.esperar();
+    expect(JSON.parse((await pedir(h.puerto)).cuerpo).proyectos.filtro).toBe("todos");
+    const g = await lanzar();
+    await g.esperar();
+    expect(JSON.parse((await pedir(g.puerto)).cuerpo).proyectos.filtro).toBe("menuplan");
   });
 
   // Los mismos escenarios con /datos.json del servidor real y un HOME sintético con cada fuente rota de verdad.

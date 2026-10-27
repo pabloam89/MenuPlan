@@ -427,7 +427,7 @@ function construirCoste({ corte, rs, sesiones, subagentes, precios, T, P }) {
  * copia → la comparación; registro → los jueces. «En directo» (eventos) depende de transcripciones y de registro; el semáforo,
  * de las fuentes de cada lámpara. directo: resúmenes con lo reciente (por defecto, los mismos de ficheros).
  */
-export function agregar({ ahora, dias, ficheros, directo, subagentes = [], precios = null, registros, declarados, copia, home, errores }) {
+export function agregar({ ahora, dias, ficheros, directo, subagentes = [], precios = null, proyectos = null, registros, declarados, copia, home, errores }) {
   const corte = ahora - dias * 864e5;
   const [T, S, C, R, P, B] = FUENTES.map((f) => errores.some((x) => x.fuente === f)); // cuáles han caído
   const de = (cae, valor) => (cae ? null : valor);
@@ -587,6 +587,7 @@ export function agregar({ ahora, dias, ficheros, directo, subagentes = [], preci
 
   return {
     directoMin: VENTANA_DIRECTO_MS / 60000,
+    proyectos: de(T, proyectos), // qué carpetas de proyecto entran (el filtro y cuántas), nunca sus nombres
     semaforo,
     eventos: de(T || R, eventos),
     ramas: de(R, ramas),

@@ -19,6 +19,15 @@ import { FUENTES, VENTANA_DIRECTO_MS, agregar, compararCopias, leerDeclarados, l
 
 const aqui = dirname(fileURLToPath(import.meta.url));
 const HOST = "127.0.0.1";
+// Qué carpetas de ~/.claude/projects se miran: las que contienen alguno de estos textos (sin mirar mayúsculas). Es la factoría de MenuPlan:
+// el coste de «¿compensa tanto juez?» no puede mezclar otros proyectos. PANEL_PROYECTOS=a,b lo cambia y «todos» lo desactiva.
+export const PROYECTOS = ["menuplan"];
+export function filtroDe(texto) {
+  const t = String(texto ?? "").trim().toLowerCase();
+  if (t === "todos") return null;
+  const lista = t.split(",").map((x) => x.trim()).filter(Boolean);
+  return lista.length ? lista : PROYECTOS;
+}
 // «En directo»: de una transcripción con cambios recientes se lee primero el final, de este tamaño, y se amplía hacia atrás solo si hace falta
 const PASO_COLA = 256 * 1024;
 // ...y sin pasar de este tope hacia atrás aunque no encuentre una línea anterior a la ventana (no se lee un fichero entero)
@@ -43,7 +52,7 @@ async function hashes(dir, prefijo) {
   return sal;
 }
 
-/** cfg: { home, repoAlvaro, dias, dirRegistro, rutaPrecios, maxCola, crearLector, alLeer, alLeerDirecto } (todo opcional). */
+/** cfg: { home, repoAlvaro, dias, dirRegistro, rutaPrecios, proyectos, maxCola, crearLector, alLeer, alLeerDirecto } (todo opcional). */
 export function crearRecolector(cfg = {}) {
   const home = cfg.home ?? homedir();
   const repoAlvaro = cfg.repoAlvaro ?? join(aqui, "..");
@@ -53,6 +62,7 @@ export function crearRecolector(cfg = {}) {
   const rutaPrecios = cfg.rutaPrecios ?? join(aqui, "precios.json");
   const crearLector = cfg.crearLector ?? createReadStream;
   const maxCola = cfg.maxCola ?? MAX_COLA;
+  const filtro = filtroDe(cfg.proyectos);
   const cacheTr = new Map(); // ruta → { mtimeMs, size, valor }
   const cacheSub = new Map(); // ruta del agent-<id>.jsonl → { mtimeMs, size, valor: { resumen, tipo } }
   const cacheDirecto = new Map(); // ruta → { pos: hasta dónde se ha leído (siempre al final de una línea completa), r: resumen solo con lo reciente }
@@ -147,19 +157,28 @@ export function crearRecolector(cfg = {}) {
     for (const m of [r.hooks, r.bloqueos, r.msgs, r.agentes, r.cierres]) for (const [k, v] of m) if (!(v.ts >= corte)) m.delete(k);
   }
 
-  async function transcripciones(corte, errores, ahora) {
+  // El ÚNICO sitio donde se listan las carpetas de proyecto y se aplica el filtro: todas las lecturas parten de aquí.
+  // Del resto de proyectos solo se cuenta cuántos hay: sus nombres no salen.
+  async function proyectos(errores) {
+    const raiz = join(claude, "projects");
+    const texto = filtro ? filtro.join(", ") : "todos";
+    let todas;
+    try {
+      todas = (await readdir(raiz, { withFileTypes: true })).filter((x) => x.isDirectory()).map((x) => x.name);
+    } catch (e) {
+      errores.push({ fichero: raiz, motivo: motivo(e) });
+      return { carpetas: [], resumen: { filtro: texto, incluidos: 0, excluidos: 0 } };
+    }
+    const dentro = todas.filter((n) => !filtro || filtro.some((f) => n.toLowerCase().includes(f)));
+    return { carpetas: dentro, resumen: { filtro: texto, incluidos: dentro.length, excluidos: todas.length - dentro.length } };
+  }
+
+  async function transcripciones(corte, errores, ahora, carpetas) {
     const raiz = join(claude, "projects");
     const sal = [];
     const directos = [];
     const vistos = new Set();
     const vistosDirecto = new Set();
-    let carpetas;
-    try {
-      carpetas = await readdir(raiz);
-    } catch (e) {
-      errores.push({ fichero: raiz, motivo: motivo(e) });
-      return { ficheros: sal, directos };
-    }
     for (const carpeta of carpetas) {
       let nombres;
       try {
@@ -205,17 +224,11 @@ export function crearRecolector(cfg = {}) {
     return { resumen: r, tipo };
   }
 
-  async function subagentes(corte, errores) {
+  async function subagentes(corte, errores, carpetas) {
     const raiz = join(claude, "projects");
     const sal = [];
     const vistos = new Set();
-    let proyectos;
-    try {
-      proyectos = await readdir(raiz);
-    } catch {
-      return sal; // ya lo cuenta transcripciones()
-    }
-    for (const proyecto of proyectos) {
+    for (const proyecto of carpetas) {
       let entradas;
       try {
         entradas = await readdir(join(raiz, proyecto), { withFileTypes: true });
@@ -311,14 +324,15 @@ export function crearRecolector(cfg = {}) {
     const t0 = Date.now();
     // Los errores se recogen por fuente: agregar() deja null lo derivado de cada fuente caída
     const [eT, eS, eC, eR, eP, eB] = FUENTES.map(() => []);
-    const { ficheros, directos } = await transcripciones(ahora - dias * 864e5, eT, ahora);
-    const subs = await subagentes(ahora - dias * 864e5, eB);
+    const proy = await proyectos(eT);
+    const { ficheros, directos } = await transcripciones(ahora - dias * 864e5, eT, ahora, proy.carpetas);
+    const subs = await subagentes(ahora - dias * 864e5, eB, proy.carpetas);
     const regs = await registros(ahora - dias * 864e5, eR);
     const tarifas = await precios(eP);
     const decl = await declarados(eS);
     const cp = await copia(eC);
     const errores = [eT, eS, eC, eR, eP, eB].flatMap((lista, i) => lista.map((x) => ({ fuente: FUENTES[i], ...x })));
-    const datos = agregar({ ahora, dias, ficheros, directo: directos, subagentes: subs, precios: tarifas, registros: regs, declarados: decl, copia: cp, home, errores });
+    const datos = agregar({ ahora, dias, ficheros, directo: directos, subagentes: subs, precios: tarifas, proyectos: proy.resumen, registros: regs, declarados: decl, copia: cp, home, errores });
     const mem = process.memoryUsage();
     return { generado: new Date(ahora).toISOString(), dias, lecturaMs: Date.now() - t0, proceso: { rssMB: Math.round(mem.rss / 1048576), heapMB: Math.round(mem.heapUsed / 1048576) }, ...datos };
   }
@@ -364,7 +378,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     console.error("PANEL_PUERTO tiene que ser un puerto (1-65535) y PANEL_DIAS un número de días mayor que 0.");
     process.exit(1);
   }
-  const srv = crearServidor({ dias, dirRegistro: process.env.FACTORIA_ALVARO_DIR || undefined });
+  const srv = crearServidor({ dias, dirRegistro: process.env.FACTORIA_ALVARO_DIR || undefined, proyectos: process.env.PANEL_PROYECTOS });
   srv.on("error", (e) => {
     console.error(e.code === "EADDRINUSE" ? `El puerto ${puerto} está ocupado: prueba con PANEL_PUERTO=<otro>.` : `No se pudo arrancar: ${e.message}`);
     process.exit(1);
