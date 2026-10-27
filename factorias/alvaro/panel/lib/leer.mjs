@@ -49,7 +49,7 @@ export function nuevoResumen() {
     cierres: new Map(), // uuid del resumen de cierre → { ts, sesion, ms: suma de la duración de sus hooks (null si ninguna), errores: cuántos hookErrors trae }
     msgs: new Map(), // message.id → { ts, sesion, modelo, lado, entrada, salida, cacheLeida, cacheCreada }
     agentes: new Map(), // id del tool_use → { ts, sesion, tipo }
-    costes: new Map(), // sesión → su ÚLTIMA foto cost-state { costeUSD, totalMs, apiMs, herramientasMs, tras: líneas del asistente posteriores }
+    costes: new Map(), // sesión → su ÚLTIMA foto cost-state { costeUSD (solo para saber si la foto está vacía y cuál es la más completa; no se enseña), totalMs, apiMs, herramientasMs }
     sesiones: new Map(), // sesión → { minTs, maxTs, rama, carpeta, asist: líneas del asistente }
   };
 }
@@ -86,7 +86,6 @@ export function procesarLinea(r, linea) {
     const msg = o.message ?? {};
     if (sesion) {
       r.sesiones.get(sesion).asist++;
-      if (r.costes.has(sesion)) r.costes.get(sesion).tras++; // la foto de coste ya no es lo último de la sesión
     }
     const id = texto(msg.id) ?? texto(o.uuid);
     if (id) {
@@ -120,7 +119,7 @@ export function procesarLinea(r, linea) {
     }
   } else if (o.type === "cost-state" && sesion) {
     // Una foto esporádica de Claude Code (no un contador final): manda la última, y se anota si luego hubo más mensajes
-    r.costes.set(sesion, { costeUSD: num(o.totalCostUSD), totalMs: num(o.totalDuration), apiMs: num(o.totalAPIDuration), herramientasMs: num(o.totalToolDuration), tras: 0 });
+    r.costes.set(sesion, { costeUSD: num(o.totalCostUSD), totalMs: num(o.totalDuration), apiMs: num(o.totalAPIDuration), herramientasMs: num(o.totalToolDuration) });
   }
 }
 
@@ -454,8 +453,8 @@ export function agregar({ ahora, dias, ficheros, directo, subagentes = [], preci
         }
       }
     }
-    // De varias fotos de una misma sesión, la de mayor coste (el coste es un mínimo, nunca baja)
-    for (const [id, c] of r.costes) if (!costes.has(id) || (c.costeUSD ?? -1) >= (costes.get(id).costeUSD ?? -1)) costes.set(id, { ...c, asistEnSuFichero: r.sesiones.get(id)?.asist ?? 0 });
+    // De varias fotos de una misma sesión, la más completa (la de mayor coste interno: nunca baja)
+    for (const [id, c] of r.costes) if (!costes.has(id) || (c.costeUSD ?? -1) >= (costes.get(id).costeUSD ?? -1)) costes.set(id, c);
   }
   const enVentana = [...sesiones].filter(([, s]) => s.maxTs !== null && s.maxTs >= corte);
 
@@ -494,23 +493,21 @@ export function agregar({ ahora, dias, ficheros, directo, subagentes = [], preci
   // ---- Tiempos ----
   const hooksMsDe = new Map();
   for (const e of hookEv) if (e.sesion && e.ms !== null) hooksMsDe.set(e.sesion, (hooksMsDe.get(e.sesion) ?? 0) + e.ms);
-  // cost-state es una foto: con coste 0 en una sesión con mensajes está vacía (sin dato, nunca «$0»), y si dura más
-  // que la vida observada de la sesión su total no es fiable. `tras` cuenta los mensajes posteriores
-  // a la foto, también los de otros ficheros de la misma sesión.
-  const porCoste = (id) => {
+  // cost-state es una foto: con coste 0 en una sesión con mensajes está vacía (sin dato), y si dura más
+  // que la vida observada de la sesión su total no es fiable. El coste de la foto ya no se enseña (el coste es el estimado desde tokens).
+  const fotoDe = (id) => {
     const c = costes.get(id);
     const s = sesiones.get(id);
     if (!c || (c.costeUSD === 0 && s.asist > 0)) return null;
-    const foto = { ...c, tras: c.tras + s.asist - c.asistEnSuFichero };
-    // Si su duración no cuadra con la transcripción, solo el total deja de ser fiable (el coste no depende del tiempo ocioso)
-    return c.totalMs !== null && s.minTs !== null && c.totalMs > s.maxTs - s.minTs + MARGEN_FOTO_MS ? { ...foto, totalMs: null, noCuadra: true } : foto;
+    // Si su duración no cuadra con la transcripción, solo el total deja de ser fiable
+    return c.totalMs !== null && s.minTs !== null && c.totalMs > s.maxTs - s.minTs + MARGEN_FOTO_MS ? { ...c, totalMs: null, noCuadra: true } : c;
   };
   const tiempos = [...enVentana]
     .sort((a, b) => b[1].maxTs - a[1].maxTs)
     .slice(0, SESIONES_VISIBLES)
     .map(([id, s]) => {
-      const c = porCoste(id);
-      return { sesion: id.slice(0, 8), rama: s.rama, carpeta: s.carpeta, ultimo: iso(s.maxTs), totalMs: c?.totalMs ?? null, apiMs: c?.apiMs ?? null, herramientasMs: c?.herramientasMs ?? null, hooksMs: hooksMsDe.get(id) ?? null, costeUSD: c?.costeUSD ?? null, fotoAtrasada: (c?.tras ?? 0) > 0, noCuadra: c?.noCuadra === true };
+      const c = fotoDe(id);
+      return { sesion: id.slice(0, 8), rama: s.rama, carpeta: s.carpeta, ultimo: iso(s.maxTs), totalMs: c?.totalMs ?? null, apiMs: c?.apiMs ?? null, herramientasMs: c?.herramientasMs ?? null, hooksMs: hooksMsDe.get(id) ?? null, noCuadra: c?.noCuadra === true };
     });
 
   // ---- Registro de jueces ----
@@ -565,11 +562,6 @@ export function agregar({ ahora, dias, ficheros, directo, subagentes = [], preci
   const lanzadosPorTipo = new Map();
   for (const a of agentes) lanzadosPorTipo.set(a.tipo, (lanzadosPorTipo.get(a.tipo) ?? 0) + 1);
 
-  const costePorSesion = enVentana
-    .map(([id, s]) => ({ sesion: id.slice(0, 8), rama: s.rama, carpeta: s.carpeta, costeUSD: porCoste(id)?.costeUSD ?? null, fotoAtrasada: (porCoste(id)?.tras ?? 0) > 0 }))
-    .filter((c) => c.costeUSD !== null)
-    .sort((a, b) => b.costeUSD - a.costeUSD);
-
   const ultimo = enVentana.reduce((m, [, x]) => Math.max(m, x.maxTs), -Infinity);
 
   // ---- v1: coste ESTIMADO a precio de API (nunca el totalCostUSD de las fotos) ----
@@ -613,7 +605,6 @@ export function agregar({ ahora, dias, ficheros, directo, subagentes = [], preci
     ineficiencias: {
       bloqueos: de(T, bloqueos),
       relanzados: de(R, relanzados),
-      costes: de(T, { total: costePorSesion.reduce((n, c) => n + c.costeUSD, 0), sesiones: costePorSesion.slice(0, SESIONES_VISIBLES) }),
       tokens: de(T, [...tokens.values()].sort((a, b) => b.mensajes - a.mensajes)),
       subagentes: de(T, [...lanzadosPorTipo].map(([tipo, n]) => ({ tipo, n })).sort((a, b) => b.n - a.n)),
       mensajesSubagente: de(T, msgs.filter((m) => m.lado).length),

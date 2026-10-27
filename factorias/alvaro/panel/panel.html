@@ -124,7 +124,6 @@ const haceEl = (iso) => {
   e.dataset.ts = iso;
   return e;
 };
-const fUSD = (n) => (n == null ? SD : "$" + n.toFixed(2));
 
 // cols: [{ t: título, n: numérica, v: (fila) => texto o nodo }]
 function tabla(cols, filas, { resaltar } = {}) {
@@ -193,7 +192,7 @@ function pintarHooks(d) {
 }
 
 function totalTexto(t) {
-  if (!t.noCuadra) return fMs(t.totalMs) + (t.fotoAtrasada ? " *" : "");
+  if (!t.noCuadra) return fMs(t.totalMs);
   const x = el("span", "", "total no fiable");
   x.title = "La duración de la foto de Claude Code supera la vida observada de la sesión";
   return x;
@@ -217,7 +216,7 @@ function pintarTiempos(d) {
       d.tiempos,
     ),
   );
-  s.append(el("p", "suave", "Total, API, herramientas y coste salen de cost-state: una FOTO esporádica de Claude Code, no un contador final. Hay sesiones sin ninguna, con coste 0 (sin dato), con una foto más larga que la propia sesión (el total sale «total no fiable»; el coste y el resto se conservan) y con la última foto a mitad de sesión (*: hubo mensajes después). Son cifras mínimas, de la sesión entera y no solo de la ventana. Hooks: suma de lo que dejan anotado."));
+  s.append(el("p", "suave", "Total, API y herramientas salen de cost-state: una FOTO esporádica de Claude Code, no un contador final. Hay sesiones sin ninguna, con la foto vacía (sin dato) y con una foto más larga que la propia sesión (el total sale «total no fiable»; el resto se conserva). Son cifras mínimas, de la sesión entera y no solo de la ventana. Hooks: suma de lo que dejan anotado. El coste está más abajo, estimado desde los tokens."));
   s.append(el("h3", "", "Jueces: tiempo desde «lanzado» hasta el informe"));
   const j = d.jueces;
   if (j.tiempos?.length === 0) s.append(el("p", "vacio", "Sin ningún juez con agent_id y las dos anotaciones (lanzado e informe) en esta ventana."));
@@ -244,9 +243,7 @@ function pintarIneficiencias(d) {
   s.append(el("p", "suave", "De cada hook solo se listan sus 3 motivos más repetidos, no todos: la suma puede quedarse por debajo de sus bloqueos."));
   s.append(el("h3", "", "b) Jueces relanzados (misma rama y agente, más de un informe distinto)"));
   s.append(tabla([{ t: "Rama", v: (r) => r.rama }, { t: "Juez", v: (r) => r.agente }, { t: "Informes", n: true, v: (r) => fNum(r.informes) }, { t: "Nota", v: (r) => (r.sinAgentId ? `${r.sinAgentId} sin agent_id: pueden ser dobles apuntes del mismo informe` : "") }], i.relanzados));
-  s.append(el("h3", "", "c) Coste y tokens"));
-  s.append(el("p", "suave", `Coste mínimo (última foto de Claude Code, no un contador final), suma de las sesiones con dato de la ventana: ${fUSD(i.costes?.total)}. Las marcadas con * tuvieron mensajes después de su foto.`));
-  s.append(tabla([{ t: "Sesión", v: (c) => el("code", "", c.sesion) }, { t: "Rama", v: (c) => c.rama ?? "—" }, { t: "Carpeta", v: (c) => c.carpeta ?? "—" }, { t: "Coste (mínimo)", n: true, v: (c) => fUSD(c.costeUSD) + (c.fotoAtrasada ? " *" : "") }], i.costes?.sesiones ?? null));
+  s.append(el("h3", "", "c) Tokens por modelo"));
   s.append(el("p", "suave", "Tokens por modelo (mensajes del asistente de la ventana, contados una vez por respuesta):"));
   s.append(tabla([{ t: "Modelo", v: (t) => t.modelo }, { t: "Mensajes", n: true, v: (t) => fNum(t.mensajes) }, { t: "Entrada", n: true, v: (t) => fNum(t.entrada) }, { t: "Salida", n: true, v: (t) => fNum(t.salida) }, { t: "Caché leída", n: true, v: (t) => fNum(t.cacheLeida) }, { t: "Caché creada", n: true, v: (t) => fNum(t.cacheCreada) }], i.tokens));
   s.append(el("h3", "", "d) Subagentes lanzados"));

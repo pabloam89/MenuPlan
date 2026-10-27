@@ -222,10 +222,9 @@ const DEP = [
   [/^\.(generado|dias|lecturaMs|directoMin)$|^\.proceso\.|^\.errores/, []],
   [/^\.hooks\[\]\.(declarado|sinHuella|rojo)$/, ["settings", "transcripciones"]],
   [g(".hooks", "evento|nombre|ruta|veces|ultima|mediaMs|maxMs|bloqueos"), ["transcripciones"]],
-  [g(".tiempos", "sesion|rama|carpeta|ultimo|totalMs|apiMs|herramientasMs|hooksMs|costeUSD|fotoAtrasada|noCuadra"), ["transcripciones"]],
+  [g(".tiempos", "sesion|rama|carpeta|ultimo|totalMs|apiMs|herramientasMs|hooksMs|noCuadra"), ["transcripciones"]],
   [/^\.(ficheros\.total|estado\.(ultimoEvento|sesiones|lineasRotas)|ineficiencias\.mensajesSubagente)$/, ["transcripciones"]],
   [/^\.ineficiencias\.bloqueos(\[\]\.(evento|nombre|n|motivos(\[\]\.(texto|n))?))?$/, ["transcripciones"]],
-  [/^\.ineficiencias\.costes(\.total|\.sesiones(\[\]\.(sesion|rama|carpeta|costeUSD|fotoAtrasada))?)?$/, ["transcripciones"]],
   [g(".ineficiencias.tokens", "modelo|mensajes|entrada|salida|cacheLeida|cacheCreada"), ["transcripciones"]],
   [g(".ineficiencias.subagentes", "tipo|n"), ["transcripciones"]],
   [/^\.estado\.copia(\.(ok|difieren|faltanInstalada|sobranInstalada)(\[\])?)?$/, ["copia"]],
@@ -262,7 +261,7 @@ const ESCENARIOS = [...FUENTES.map((f) => [[f]]), [FUENTES]]; // cada fuente por
 const comprobar = (datos, caidas) => {
   for (const [p, v] of hojas(datos)) if (deDe(p).some((f) => caidas.includes(f))) expect([p, v]).toEqual([p, null]);
   if (!caidas.includes("settings") && !caidas.includes("transcripciones")) expect(datos.hooks.some((h) => h.rojo === true)).toBe(true);
-  if (caidas.length === 1 && caidas[0] === "settings") expect([datos.tiempos, datos.ineficiencias.costes]).not.toContain(null); // un fallo de settings no mata costes ni tiempos
+  if (caidas.length === 1 && caidas[0] === "settings") expect([datos.tiempos, datos.coste]).not.toContain(null); // un fallo de settings no mata costes ni tiempos
 };
 
 describe("errores por fuente: lo derivado de una fuente caída sale null (en los datos, no en la página)", () => {
@@ -274,7 +273,7 @@ describe("errores por fuente: lo derivado de una fuente caída sale null (en los
     expect([sano.coste.porDia.length > 1, sano.coste.porSesion.length > 0, sano.coste.porRama.length > 0, sano.coste.modelosSinPrecio.length > 0, sano.coste.repartoCoste !== null, sano.coste.total.jueces.costeUSD > 0, sano.ramas[0].marcas.some((m) => m.tokens !== null), sano.ramas[0].marcas.some((m) => m.tokens === null)]).toEqual(Array(8).fill(true)); // el coste del fixture trae de todo
     expect([sano.ramas.length > 0, sano.ramas[0].marcas.length > 0, sano.semaforo.hooksVivos !== null, sano.semaforo.bloqueosHoy.total > 0, sano.semaforo.rondasAbiertas !== null]).toEqual(Array(5).fill(true));
     const h = sano.hooks;
-    expect([h.some((x) => x.rojo === true), h.some((x) => x.sinHuella === true && x.rojo === false), sano.tiempos.some((t) => t.costeUSD === null), sano.tiempos.some((t) => t.costeUSD !== null), sano.ineficiencias.relanzados.length > 0, sano.ineficiencias.subagentes.length > 0, sano.ineficiencias.bloqueos.length > 0, sano.jueces.tiempos.length > 0, sano.estado.copia.ok === true, sano.estado.registroAntiguo.apuntes > 0]).toEqual(Array(10).fill(true));
+    expect([h.some((x) => x.rojo === true), h.some((x) => x.sinHuella === true && x.rojo === false), sano.tiempos.some((t) => t.totalMs === null), sano.tiempos.some((t) => t.totalMs !== null), sano.ineficiencias.relanzados.length > 0, sano.ineficiencias.subagentes.length > 0, sano.ineficiencias.bloqueos.length > 0, sano.jueces.tiempos.length > 0, sano.estado.copia.ok === true, sano.estado.registroAntiguo.apuntes > 0]).toEqual(Array(10).fill(true));
   });
   it.each(ESCENARIOS)("función pura, fuentes caídas %j", (caidas) => comprobar(agregar(entradaRica(falla(...caidas))), caidas));
 });
@@ -287,8 +286,8 @@ describe("la página", () => {
     const n = navegador(datosPagina(falla(...FUENTES)));
     await n.listo;
     expect(new Set(cifras(n.app))).toEqual(new Set(["sin dato"]));
-    const frases = n.app.todos((h) => h.tag === "p").map((h) => h.texto).filter((t) => /Bloqueos con hook|Coste mínimo|sidechain/.test(t));
-    expect(frases).toHaveLength(3);
+    const frases = n.app.todos((h) => h.tag === "p").map((h) => h.texto).filter((t) => /Bloqueos con hook|sidechain/.test(t));
+    expect(frases).toHaveLength(2);
     for (const f of frases) expect(f).toContain("sin dato");
     expect(n.app.texto).toContain("No se pudo leer (ver franja roja)");
     const lectura = n.app.todos((h) => h.tag === "p").map((h) => h.texto).find((t) => t.startsWith("Lectura:"));
@@ -841,36 +840,37 @@ describe("copia instalada contra el repo", () => {
 describe("tiempos", () => {
   it("una sesión sin cost-state da null, no 0", () => {
     const d = agregar(entradaBase({ ficheros: [{ ruta: "f", mtimeMs: AHORA, resumen: resumenDe(ev("s3")) }] }));
-    expect(d.tiempos[0]).toMatchObject({ totalMs: null, apiMs: null, costeUSD: null, hooksMs: null });
+    expect(d.tiempos[0]).toMatchObject({ totalMs: null, apiMs: null, hooksMs: null });
   });
 
-  it("coste 0 con mensajes es «sin dato», nunca $0; y se marca la sesión con mensajes posteriores a su foto", () => {
-    const r = resumenDe(...asist("s5"), foto("s5", 0), ev("s6"), foto("s6", 0), ...asist("s7"), foto("s7", 1), ...asist("s7", 2), ...asist("s8"), foto("s8", 1));
+  it("una foto con coste 0 en una sesión con mensajes está vacía: sus tiempos son «sin dato», nunca 0 (el coste de la foto ya no se enseña)", () => {
+    const r = resumenDe(...asist("s5"), foto("s5", 0), ev("s6"), foto("s6", 0), ...asist("s7"), foto("s7", 1));
     const d = agregar(entradaBase({ ficheros: [{ ruta: "f", mtimeMs: AHORA, resumen: r }] }));
     const t = (x) => d.tiempos.find((f) => f.sesion === x);
-    expect(t("s5")).toMatchObject({ costeUSD: null, totalMs: null });
-    expect(t("s6").costeUSD).toBe(0); // sin mensajes del asistente no hay contradicción: se deja
-    expect([t("s7").fotoAtrasada, t("s8").fotoAtrasada]).toEqual([true, false]);
-    expect(d.ineficiencias.costes.sesiones.map((c) => [c.sesion, c.fotoAtrasada]).filter(([x]) => x === "s7" || x === "s5")).toEqual([["s7", true]]);
+    expect(t("s5")).toMatchObject({ totalMs: null, apiMs: null });
+    expect(t("s6").totalMs).toBe(10000); // sin mensajes del asistente no hay contradicción: se deja
+    expect(t("s7").totalMs).toBe(10000);
+  });
+
+  it("el coste por foto (cost-state) ya no sale: ni tiempos[].costeUSD, ni fotoAtrasada, ni ineficiencias.costes; el coste que se ve es el estimado desde tokens", () => {
+    const d = agregar(entradaRica());
+    expect(Object.keys(d.tiempos[0])).not.toEqual(expect.arrayContaining(["costeUSD"]));
+    expect(d.tiempos.every((x) => !("costeUSD" in x) && !("fotoAtrasada" in x))).toBe(true);
+    expect("costes" in d.ineficiencias).toBe(false);
+    expect(d.coste).not.toBeNull();
   });
 
   const dosFicheros = (a, b) => [{ ruta: "1", mtimeMs: AHORA - 1000, resumen: resumenDe(...a) }, { ruta: "2", mtimeMs: AHORA, resumen: resumenDe(...b) }];
 
-  it("la foto atrasada también cuenta los mensajes de otros ficheros de la misma sesión", () => {
-    const d = agregar(entradaBase({ ficheros: dosFicheros([...asist("sc"), foto("sc", 5)], asist("sc", 100)) }));
-    expect(d.tiempos[0]).toMatchObject({ costeUSD: 5, fotoAtrasada: true });
+  it("entre varios ficheros de una sesión manda la foto más completa (la de mayor coste interno), no la del fichero más reciente", () => {
+    const d = agregar(entradaBase({ ficheros: dosFicheros([...asist("sd"), foto("sd", 5, { totalDuration: 50000 })], [...asist("sd"), foto("sd", 1)]) }));
+    expect(d.tiempos[0].totalMs).toBe(50000);
   });
 
-  it("entre varios ficheros de una sesión manda el mayor coste, no el del fichero más reciente", () => {
-    const d = agregar(entradaBase({ ficheros: dosFicheros([...asist("sd"), foto("sd", 5)], [...asist("sd"), foto("sd", 1)]) }));
-    expect(d.tiempos[0].costeUSD).toBe(5);
-  });
-
-  it("una foto más larga que la vida observada anula SOLO el total («total no fiable»); coste, API y herramientas se quedan", () => {
+  it("una foto más larga que la vida observada anula SOLO el total («total no fiable»); API y herramientas se quedan", () => {
     const d = agregar(entradaBase({ ficheros: [{ ruta: "f", mtimeMs: AHORA, resumen: resumenDe(ev("se"), ev("se", 328000), foto("se", 9, { totalDuration: 3 * 3600e3 }), ev("sf"), ev("sf", 328000), foto("sf", 2, { totalDuration: 400000 })) }] }));
-    expect(d.tiempos.find((t) => t.sesion === "se")).toMatchObject({ costeUSD: 9, totalMs: null, apiMs: 3000, herramientasMs: 2000, noCuadra: true });
-    expect(d.tiempos.find((t) => t.sesion === "sf")).toMatchObject({ costeUSD: 2, totalMs: 400000, noCuadra: false });
-    expect(d.ineficiencias.costes.sesiones.map((c) => c.sesion)).toEqual(["se", "sf"]);
+    expect(d.tiempos.find((t) => t.sesion === "se")).toMatchObject({ totalMs: null, apiMs: 3000, herramientasMs: 2000, noCuadra: true });
+    expect(d.tiempos.find((t) => t.sesion === "sf")).toMatchObject({ totalMs: 400000, noCuadra: false });
   });
 
   it("solo salen las 15 últimas sesiones, la más reciente primero", () => {
@@ -1347,7 +1347,7 @@ describe("servidor y lectura real", () => {
     const d = JSON.parse(r.cuerpo);
     expect(d.errores).toEqual([]);
     expect(d.estado).toMatchObject({ sesiones: 2, lineasRotas: 1, copia: { ok: true } });
-    expect(d.tiempos[0]).toMatchObject({ totalMs: 9000, apiMs: 4000, herramientasMs: 1000, costeUSD: 1.5 });
+    expect(d.tiempos[0]).toMatchObject({ totalMs: 9000, apiMs: 4000, herramientasMs: 1000 });
     expect(d.ineficiencias.subagentes).toEqual([{ tipo: PERMITIDO, n: 1 }]);
     expect(d.hooks.find((h) => h.nombre === "c.mjs")).toMatchObject({ veces: 1, bloqueos: 1, declarado: true });
     // El marcador solo habría podido colarse por el hookError o el blockingError, que se cortan a 80 caracteres.
@@ -1355,7 +1355,7 @@ describe("servidor y lectura real", () => {
     expect(r.cuerpo).not.toContain("hola");
     // el otro marcador sale, pero solo por los campos permitidos y declarados
     const rutas = (v, p = "") => (typeof v === "string" ? (v.includes(PERMITIDO) ? [p] : []) : v && typeof v === "object" ? Object.entries(v).flatMap(([k, x]) => rutas(x, p + (/^\d+$/.test(k) ? "[]" : "." + k))) : []);
-    expect([...new Set(rutas(d))].sort()).toEqual([".coste.modelosSinPrecio[]", ".coste.porRama[].rama", ".coste.porSesion[].rama", ".eventos[].agente", ".ineficiencias.costes.sesiones[].carpeta", ".ineficiencias.costes.sesiones[].rama", ".ineficiencias.subagentes[].tipo", ".ineficiencias.tokens[].modelo", ".tiempos[].carpeta", ".tiempos[].rama"]);
+    expect([...new Set(rutas(d))].sort()).toEqual([".coste.modelosSinPrecio[]", ".coste.porRama[].rama", ".coste.porSesion[].rama", ".eventos[].agente", ".ineficiencias.subagentes[].tipo", ".ineficiencias.tokens[].modelo", ".tiempos[].carpeta", ".tiempos[].rama"]);
   });
 
 
@@ -1668,7 +1668,7 @@ describe("servidor y lectura real", () => {
     appendFileSync(fSesion(), L({ type: "cost-state", sessionId: "ses-aaaa1111", totalCostUSD: 4, totalDuration: 20000, totalAPIDuration: 4000, totalToolDuration: 1000 }));
     const d3 = await rec.recoger(Date.now());
     expect(lecturas.length).toBe(n1 + 1);
-    expect(d3.tiempos[0].costeUSD).toBe(4);
+    expect(d3.tiempos[0].totalMs).toBe(20000);
     expect(d3.estado.lineasRotas).toBe(1); // sin duplicar lo ya leído
   });
 
