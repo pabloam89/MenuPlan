@@ -1211,6 +1211,8 @@ describe("v1 · coste estimado", () => {
     expect(() => validarPrecios({ ...PRECIOS, modelos: { x: { entrada: 1 } } })).toThrow(/x/);
     expect(() => validarPrecios({ ...PRECIOS, modelos: { x: { ...PRECIOS.modelos["m-a"], salida: "3" } } })).toThrow(/salida/);
     expect(() => validarPrecios({ ...PRECIOS, modelos: { x: null } })).not.toThrow(); // null = sin precio, a propósito
+    expect(() => validarPrecios({ ...PRECIOS, modelos: { x: { ...PRECIOS.modelos["m-a"], entrada: -3 } } })).toThrow(/entrada/); // un precio negativo no es un precio
+    expect(() => validarPrecios({ ...PRECIOS, modelos: { x: { ...PRECIOS.modelos["m-a"], entrada: Number.NaN } } })).toThrow(/entrada/);
   });
 
   it("el precios.json de verdad tiene la forma esperada, cita su fuente y su fecha, y relaciones de precio sensatas", () => {
