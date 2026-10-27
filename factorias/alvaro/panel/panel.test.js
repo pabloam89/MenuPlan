@@ -231,7 +231,6 @@ const DEP = [
   [g(".ineficiencias.subagentes", "tipo|n"), ["transcripciones"]],
   [/^\.estado\.copia(\.(ok|difieren|faltanInstalada|sobranInstalada)(\[\])?)?$/, ["copia"]],
   [/^\.estado\.registroAntiguo(\.(aviso|sinAgentId|noJueces|apuntes))?$/, ["registro"]],
-  [g(".jueces.tiempos", "rama|agente|veredicto|ms|ts"), ["registro"]],
   [g(".ineficiencias.relanzados", "rama|agente|informes|sinAgentId"), ["registro"]],
   // v1: En directo mezcla transcripciones (agentes, bloqueos, cierres) y registro (jueces): cae si cae cualquiera de las dos
   [g(".eventos", "hora|tipo|agente|hook|veredicto|agentId|duracionMs|sesion"), ["transcripciones", "registro"]],
@@ -280,7 +279,7 @@ describe("errores por fuente: lo derivado de una fuente caída sale null (en los
     expect([sano.coste.porDia.length > 1, sano.coste.porSesion.length > 0, sano.coste.porRama.length > 0, sano.coste.modelosSinPrecio.length > 0, sano.coste.repartoCoste !== null, sano.coste.total.jueces.costeUSD > 0, sano.ramas[0].marcas.some((m) => m.tokens !== null), sano.ramas[0].marcas.some((m) => m.tokens === null)]).toEqual(Array(8).fill(true)); // el coste del fixture trae de todo
     expect([sano.ramas.length > 0, sano.ramas[0].marcas.length > 0, sano.semaforo.hooksVivos !== null, sano.semaforo.bloqueosHoy.total > 0, sano.semaforo.rondasAbiertas !== null]).toEqual(Array(5).fill(true));
     const h = sano.hooks;
-    expect([h.some((x) => x.rojo === true), h.some((x) => x.sinHuella === true && x.rojo === false), sano.tiempos.some((t) => t.totalMs === null), sano.tiempos.some((t) => t.totalMs !== null), sano.ineficiencias.relanzados.length > 0, sano.ineficiencias.subagentes.length > 0, sano.ineficiencias.bloqueos.length > 0, sano.jueces.tiempos.length > 0, sano.estado.copia.ok === true, sano.estado.registroAntiguo.apuntes > 0]).toEqual(Array(10).fill(true));
+    expect([h.some((x) => x.rojo === true), h.some((x) => x.sinHuella === true && x.rojo === false), sano.tiempos.some((t) => t.totalMs === null), sano.tiempos.some((t) => t.totalMs !== null), sano.ineficiencias.relanzados.length > 0, sano.ineficiencias.subagentes.length > 0, sano.ineficiencias.bloqueos.length > 0, sano.estado.copia.ok === true, sano.estado.registroAntiguo.apuntes > 0]).toEqual(Array(9).fill(true));
   });
   it.each(ESCENARIOS)("función pura, fuentes caídas %j", (caidas) => comprobar(agregar(entradaRica(falla(...caidas))), caidas));
 });
@@ -958,7 +957,7 @@ describe("la página v1 · coste estimado", () => {
     expect(norm(roto.zona(4))).not.toContain("incluidos");
   });
 
-  it("coste: primer día «parcial», «Total» sin «mínimo» repetido, «la última» en singular, y los textos del gráfico de 12 px", async () => {
+  it("coste: primer día «parcial», «Total» sin «mínimo» repetido, «la última» en singular, y el asterisco del gráfico", async () => {
     const c = costeFalso({ porDia: [{ ...dia("2026-10-23", 1, 3, 2), parcial: true }, dia("2026-10-24", 2, 5, 3)], modelosSinPrecio: ["x"], total: { jueces: cubo(1e6, 2), otros: cubo(2e6, 8, 1e6), principal: cubo(3e6, 3), total: cubo(6e6, 13, 1e6) } });
     const n = con(c);
     await n.listo;
@@ -968,7 +967,6 @@ describe("la página v1 · coste estimado", () => {
     expect(norm(zc(n)).match(/mínimo/g).length).toBeLessThanOrEqual(3); // la frase del total, sin «(mínimo) — mínimo»
     expect(norm(zc(n))).not.toMatch(/\(mínimo\) — mínimo/);
     expect(norm(zc(n))).toContain("Por sesión (la última)");
-    expect(html).toMatch(/\.grafico text \{[^}]*font-size: 12px/);
   });
 
   it("coste: «N subagentes sin tipo: el % de jueces es un mínimo» junto al reparto", async () => {
@@ -978,6 +976,16 @@ describe("la página v1 · coste estimado", () => {
     const sin = con(costeFalso({ subagentesSinTipo: 0 }));
     await sin.listo;
     expect(norm(zc(sin))).not.toContain("sin tipo");
+  });
+
+  it("el texto del gráfico mide ≥ 12 px EFECTIVOS a 375 px (el SVG se escala al ancho de su tarjeta) y la etiqueta de valor más larga cabe sin pisarse", () => {
+    const fuente = Number(/\.grafico text \{[^}]*font-size: (\d+)px/.exec(html)[1]);
+    const [, etq, ancho, , caja] = /const ETQ = (\d+), ANCHO = (\d+), ALTO = (\d+), ancho = (\d+)/.exec(html).map(Number);
+    const tarjeta = 375 - 2 * 10 - 2 * 12 - 2; // a 375 px: padding de main (10), de la sección (12) y borde (1)
+    expect((fuente * tarjeta) / caja).toBeGreaterThanOrEqual(12);
+    const ancha = "$128,88 (mín.)".length * 0.56 * fuente; // estimación generosa del ancho de la etiqueta más larga
+    expect(etq + ancho + 4 + ancha).toBeLessThanOrEqual(caja);
+    expect(Math.max("23 oct*".length * 0.56 * fuente, 0)).toBeLessThanOrEqual(etq); // y la etiqueta del día cabe en su columna
   });
 
   it("tema claro y oscuro: las categorías del gráfico tienen su color en los dos", () => {
@@ -1061,9 +1069,12 @@ describe("registro de jueces", () => {
     expect(c.ineficiencias.relanzados).toEqual([]);
   });
 
-  it("tiempo entre «lanzado» e informe con el mismo agent_id", () => {
-    const d = agregar(entradaBase({ registros: [{ rama: "r", rotas: 0, entradas: [e({ ts: AHORA - 100000, agent_id: "a1", veredicto: "lanzado" }), e({ ts: AHORA - 40000, agent_id: "a1" })] }] }));
-    expect(d.jueces.tiempos).toEqual([expect.objectContaining({ agente: "revisor", ms: 60000 })]);
+  it("la tabla «Jueces: tiempo desde lanzado hasta el informe» ya no existe (Rondas por tarea da el tiempo de cada ronda y el total): ni dato ni tabla", async () => {
+    const d = agregar(entradaRica());
+    expect("jueces" in d).toBe(false);
+    const n = navegador(datosPagina());
+    await n.listo;
+    expect(n.app.texto).not.toContain("Jueces: tiempo desde");
   });
 
   it("apuntes sin agent_id o de agentes que no son jueces avisan de registro antiguo", () => {

@@ -70,7 +70,7 @@
   .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .reparto { font-weight: 700; font-size: 1.05rem; }
   .grafico svg { width: 100%; max-width: 560px; height: auto; display: block; }
-  .grafico text { fill: var(--texto); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .grafico text { fill: var(--texto); font-size: 14px; font-variant-numeric: tabular-nums; }
   .leyenda { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 8px 0; }
   .sw { display: inline-block; width: 18px; height: 12px; margin-right: 6px; vertical-align: -1px; border: 1px solid var(--linea); }
   .sw-jueces { background: repeating-linear-gradient(45deg, var(--c-jueces) 0 3px, var(--tarjeta) 3px 5px); }
@@ -217,10 +217,6 @@ function pintarTiempos(d) {
     ),
   );
   s.append(el("p", "suave", "Total, API y herramientas salen de cost-state: una FOTO esporádica de Claude Code, no un contador final. Hay sesiones sin ninguna, con la foto vacía (sin dato) y con una foto más larga que la propia sesión (el total sale «total no fiable»; el resto se conserva). Son cifras mínimas, de la sesión entera y no solo de la ventana. Hooks: suma de lo que dejan anotado. El coste está más abajo, estimado desde los tokens."));
-  s.append(el("h3", "", "Jueces: tiempo desde «lanzado» hasta el informe"));
-  const j = d.jueces;
-  if (j.tiempos?.length === 0) s.append(el("p", "vacio", "Sin ningún juez con agent_id y las dos anotaciones (lanzado e informe) en esta ventana."));
-  else s.append(tabla([{ t: "Cuándo", v: (x) => fFecha(x.ts) }, { t: "Rama", v: (x) => x.rama }, { t: "Juez", v: (x) => x.agente }, { t: "Veredicto", v: (x) => x.veredicto }, { t: "Tardó", n: true, v: (x) => fMs(x.ms) }], j.tiempos));
   return s;
 }
 
@@ -469,7 +465,7 @@ function svgEl(tag, attrs = {}, ...hijos) {
 }
 // Barras horizontales apiladas por día (legibles a 375 px): cada categoría tiene color Y patrón, y cada día su etiqueta de valor
 function grafico(dias) {
-  const ETQ = 50, ANCHO = 214, ALTO = 26, ancho = 360;
+  const ETQ = 58, ANCHO = 180, ALTO = 26, ancho = 360;
   const max = Math.max(...dias.map((d) => d.total.costeUSD ?? 0), 1e-9);
   const trazo = { x1: 0, y1: 0, x2: 0, y2: 6, style: "stroke:var(--tarjeta);stroke-width:2.2" };
   const formas = { jueces: () => svgEl("line", trazo), otros: () => svgEl("circle", { cx: 3, cy: 3, r: 1.3, style: "fill:var(--tarjeta)" }), principal: () => svgEl("line", { x1: 0, y1: 3, x2: 6, y2: 3, style: "stroke:var(--tarjeta);stroke-width:1.2" }) };

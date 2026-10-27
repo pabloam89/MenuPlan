@@ -6,7 +6,7 @@ Una página para tomar decisiones sobre cómo funciona la factoría. De arriba a
 2. **En directo**: los últimos 30 minutos, lo más nuevo arriba (agente lanzado, juez lanzado, juez informó, hook bloqueó, turno terminado). Los jueces en marcha llevan un temporizador que sigue contando en el navegador; el informe se enlaza con su lanzamiento por `agent_id` («tardó N s»). Las filas nuevas se insertan sin repintar las demás y sin mover el scroll.
 3. **Rondas por tarea**: por rama, una marca por informe de juez (✔ pasa, ✖ no pasa, ? no sé, ⚠ ilegible, … lanzado sin informe), con el tiempo y el coste de esa ronda.
 4. **Coste estimado**: tokens y coste **a precio de API** por día (gráfico de barras apiladas en SVG con tabla alternativa), por categoría (jueces / constructores y otros / sesión principal), por sesión y por rama, y el reparto en %.
-5. Lo de la v0: hooks, tiempos, ineficiencias.
+5. Lo de la v0: hooks, tiempos, ineficiencias. (La tabla «Jueces: tiempo desde lanzado hasta el informe» se quitó: Rondas por tarea da el tiempo de cada ronda y el total.)
 
 Sin dependencias: Node y un HTML.
 

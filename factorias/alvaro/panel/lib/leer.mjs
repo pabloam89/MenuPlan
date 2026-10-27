@@ -542,15 +542,6 @@ export function agregar({ ahora, dias, ficheros, directo, subagentes = [], preci
   }
   const relanzados = [...informes.values()].filter((g) => g.claves.size > 1).map((g) => ({ rama: g.rama, agente: g.agente, informes: g.claves.size, sinAgentId: g.sinAgentId })).sort((a, b) => b.informes - a.informes);
 
-  const lanzados = new Map();
-  for (const e of entradas) if (e.veredicto === "lanzado" && e.agent_id && !lanzados.has(`${e.rama}|${e.agent_id}`)) lanzados.set(`${e.rama}|${e.agent_id}`, e.ts);
-  const juicios = new Map();
-  for (const e of entradas) {
-    const t0 = lanzados.get(`${e.rama}|${e.agent_id}`);
-    if (e.veredicto !== "lanzado" && e.agent_id && t0 !== undefined && e.ts >= t0) juicios.set(`${e.rama}|${e.agent_id}`, { rama: e.rama, agente: e.agente, veredicto: e.veredicto, ms: e.ts - t0, ts: e.ts });
-  }
-  const juicioLista = [...juicios.values()].sort((a, b) => b.ts - a.ts);
-
   // ---- Ineficiencias ----
   const bloqueoPor = new Map();
   for (const e of bloqueoEv) {
@@ -617,7 +608,6 @@ export function agregar({ ahora, dias, ficheros, directo, subagentes = [], preci
     ficheros: { total: de(T, ficheros.length) },
     hooks: de(T, hooks),
     tiempos: de(T, tiempos),
-    jueces: { tiempos: de(R, juicioLista.slice(0, 20).map((j) => ({ rama: j.rama, agente: j.agente, veredicto: j.veredicto, ms: j.ms, ts: iso(j.ts) }))) },
     ineficiencias: {
       bloqueos: de(T, bloqueos),
       relanzados: de(R, relanzados),
