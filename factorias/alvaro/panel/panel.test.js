@@ -1572,7 +1572,8 @@ describe("servidor y lectura real", () => {
     expect(r.cabeceras["content-type"]).toMatch(/text\/html/);
     expect(r.cuerpo).toMatch(/datos\.json/);
     for (const h of [r.cabeceras, (await pedir(p)).cabeceras]) {
-      expect(h["content-security-policy"]).toMatch(/default-src 'none'.*connect-src 'self'/);
+      expect(h["content-security-policy"]).toMatch(/default-src 'none'.*connect-src 'self'.*frame-ancestors 'none'/);
+      expect(h["x-frame-options"]).toBe("DENY"); // la página no se puede meter en un marco de otra web
       expect([h["x-content-type-options"], h["cache-control"]]).toEqual(["nosniff", "no-store"]);
     }
     expect((await pedir(p, { ruta: "/otra" })).estado).toBe(404);
@@ -1809,6 +1810,65 @@ describe("servidor y lectura real", () => {
     const g = await lanzar();
     await g.esperar();
     expect(JSON.parse((await pedir(g.puerto)).cuerpo).proyectos.filtro).toBe("menuplan");
+  });
+
+  // ---- ronda de cierre: lo que el servidor distingue y lo que no pierde en silencio ----
+  it("rondas: con la fuente de transcripciones o de subagentes caída de verdad, el coste de cada rama llega null y rondasConCoste null (distinto de «sin transcripción de juez», que es 0)", async () => {
+    const roturas = {
+      "directorio x.jsonl": () => mkdirSync(join(carpetaProyecto("c--zz-MenuPlan-p1"), "x.jsonl")),
+      "projects ausente": () => rmSync(join(home, ".claude", "projects"), { recursive: true }),
+      "subagente que es un directorio": () => mkdirSync(join(carpetaProyecto("c--zz-MenuPlan-p1"), "ses-aaaa1111", "subagents", "agent-z9.jsonl")),
+    };
+    for (const [nombre, rompe] of Object.entries(roturas)) {
+      rompe();
+      const d = await crearRecolector({ home, repoAlvaro: alvaro, dias: 7, rutaPrecios: join(dir, "precios.json") }).recoger(Date.now());
+      expect([nombre, d.errores.length > 0, d.ramas.length > 0 && d.ramas.every((x) => x.rondasConCoste === null && x.tokens === null)]).toEqual([nombre, true, true]);
+      rmSync(dir, { recursive: true, force: true });
+      dir = mkdtempSync(join(tmpdir(), "panel-"));
+      montar();
+    }
+    const sano = await crearRecolector({ home, repoAlvaro: alvaro, dias: 7, rutaPrecios: join(dir, "precios.json") }).recoger(Date.now());
+    expect(sano.ramas[0].rondasConCoste).toBe(1); // y sin averías sí hay dato
+  });
+
+  it("subagentes: un «subagents» que no es una carpeta (ENOTDIR) es un error de la fuente «subagentes», no un silencio; y los subagentes sin meta se cuentan sin tipo", async () => {
+    escribir(join(carpetaProyecto("c--zz-MenuPlan-p1"), "ses-otra", "subagents"), "esto es un fichero");
+    const d = await crearRecolector({ home, repoAlvaro: alvaro, dias: 7, rutaPrecios: join(dir, "precios.json") }).recoger(Date.now());
+    expect(d.errores.map((x) => x.fuente)).toEqual(["subagentes"]);
+    rmSync(join(carpetaProyecto("c--zz-MenuPlan-p1"), "ses-otra"), { recursive: true });
+    const ok = JSON.parse((await pedir(await arrancar())).cuerpo);
+    expect(ok.errores).toEqual([]);
+    expect(ok.coste.subagentesSinTipo).toBe(1); // agent-q1: sin meta
+  });
+
+  it("En directo: un fichero reemplazado por otro MÁS GRANDE se relee desde el principio (sin líneas perdidas ni filas fantasma)", async () => {
+    const rec = crearRecolector({ home, repoAlvaro: alvaro, dias: 7, rutaPrecios: join(dir, "precios.json") });
+    const d1 = await rec.recoger(Date.now());
+    expect(d1.eventos.map((x) => x.agente)).toContain(PERMITIDO);
+    rmSync(fSesion());
+    await new Promise((ok) => setTimeout(ok, 30));
+    const grande = (i) => L({ type: "mode", timestamp: iso(Date.now() - 5000 + i), ...base(), relleno: "x".repeat(2000) });
+    escribir(fSesion(), grande(0) + grande(1) + lineaAgente("reemplazo"));
+    expect(statSync(fSesion()).size).toBeGreaterThan(4000);
+    const d2 = await rec.recoger(Date.now());
+    expect(d2.eventos.filter((x) => x.agente === "reemplazo")).toHaveLength(1);
+    expect(d2.eventos.map((x) => x.agente)).not.toContain(PERMITIDO); // el agente del fichero viejo ya no existe
+  });
+
+  it("En directo: colaCortada avisa cuando la lectura hacia atrás se cortó en su tope, y es false si encontró el principio de la ventana", async () => {
+    const t = Date.now();
+    const f = join(home, ".claude", "projects", "c--zz-MenuPlan-p3", "ses-grande3.jsonl");
+    escribir(f, Array.from({ length: 1500 }, (_, i) => L({ type: "mode", timestamp: iso(t - 5000 + i), ...base({ sessionId: "ses-grande3" }), relleno: "x".repeat(1000) })).join(""));
+    const base3 = { home, repoAlvaro: alvaro, dias: 7, rutaPrecios: join(dir, "precios.json") };
+    expect((await crearRecolector({ ...base3, maxCola: 256 * 1024 }).recoger(Date.now())).colaCortada).toBe(true);
+    expect((await crearRecolector(base3).recoger(Date.now())).colaCortada).toBe(false);
+  });
+
+  it("sin carpeta de registro, «Rondas abiertas» es gris «sin registro todavía» (y no es un error)", async () => {
+    rmSync(join(home, ".claude", "factoria-alvaro"), { recursive: true });
+    const d = await crearRecolector({ home, repoAlvaro: alvaro, dias: 7, rutaPrecios: join(dir, "precios.json") }).recoger(Date.now());
+    expect(d.errores).toEqual([]);
+    expect(d.semaforo.rondasAbiertas).toEqual({ nivel: "gris", n: null });
   });
 
   // Los mismos escenarios con /datos.json del servidor real y un HOME sintético con cada fuente rota de verdad.

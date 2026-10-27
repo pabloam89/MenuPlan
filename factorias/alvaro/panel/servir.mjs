@@ -120,18 +120,20 @@ export function crearRecolector(cfg = {}) {
         }
       }
     }
-    return { desde, buf };
+    return { desde, buf, cortada: desde > 0 }; // se paró en el tope sin ver el principio de la ventana
   }
 
   // Los sucesos recientes de UNA transcripción. Lectura inicial: solo el final. Después: solo los bytes añadidos desde la última vez.
   async function directo(ruta, st, ahora) {
     const corte = ahora - VENTANA_DIRECTO_MS;
     let c = cacheDirecto.get(ruta);
-    if (c && st.size < c.pos) c = undefined; // el fichero se ha reescrito más corto: se empieza de cero
+    // un fichero reescrito más corto, o sustituido por otro (otro inodo o fecha de creación), se lee de cero
+    if (c && (st.size < c.pos || c.ino !== st.ino || c.birth !== st.birthtimeMs)) c = undefined;
     try {
       if (!c) {
-        c = { pos: 0, r: nuevoResumen() };
-        const { desde, buf } = await colaReciente(ruta, st.size, corte);
+        c = { pos: 0, ino: st.ino, birth: st.birthtimeMs, r: nuevoResumen() };
+        const { desde, buf, cortada } = await colaReciente(ruta, st.size, corte);
+        c.r.colaCortada = cortada;
         alimentar(c, buf, desde, desde > 0);
       } else if (st.size > c.pos) {
         alimentar(c, await leerTramo(ruta, c.pos, st.size), c.pos, false);
@@ -241,7 +243,7 @@ export function crearRecolector(cfg = {}) {
         try {
           nombres = await readdir(carpeta);
         } catch (e) {
-          if (e.code !== "ENOENT" && e.code !== "ENOTDIR") errores.push({ fichero: carpeta, motivo: motivo(e) });
+          if (e.code !== "ENOENT") errores.push({ fichero: carpeta, motivo: motivo(e) }); // sin subagents/ no es un fallo; que subagents/ no se pueda leer, sí
           continue;
         }
         for (const n of nombres) {
@@ -279,7 +281,7 @@ export function crearRecolector(cfg = {}) {
       nombres = await readdir(dirRegistro);
     } catch (e) {
       if (e.code !== "ENOENT") errores.push({ fichero: dirRegistro, motivo: motivo(e) });
-      return []; // sin carpeta de registro todavía: no es un fallo
+      return e.code === "ENOENT" ? null : []; // sin carpeta de registro todavía: no es un fallo, pero tampoco un «0 rondas»
     }
     const sal = []; // el registro son unos KB: se lee entero cada vez, sin caché
     for (const n of nombres.filter((x) => x.endsWith(".jsonl"))) {
@@ -332,7 +334,7 @@ export function crearRecolector(cfg = {}) {
     const decl = await declarados(eS);
     const cp = await copia(eC);
     const errores = [eT, eS, eC, eR, eP, eB].flatMap((lista, i) => lista.map((x) => ({ fuente: FUENTES[i], ...x })));
-    const datos = agregar({ ahora, dias, ficheros, directo: directos, subagentes: subs, precios: tarifas, proyectos: proy.resumen, registros: regs, declarados: decl, copia: cp, home, errores });
+    const datos = agregar({ ahora, dias, ficheros, directo: directos, subagentes: subs, precios: tarifas, proyectos: proy.resumen, registros: regs ?? [], sinRegistro: regs === null, declarados: decl, copia: cp, home, errores });
     const mem = process.memoryUsage();
     return { generado: new Date(ahora).toISOString(), dias, lecturaMs: Date.now() - t0, proceso: { rssMB: Math.round(mem.rss / 1048576), heapMB: Math.round(mem.heapUsed / 1048576) }, ...datos };
   }
@@ -350,7 +352,8 @@ export function crearServidor(cfg = {}) {
     "Cache-Control": "no-store",
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "no-referrer",
-    "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'self'",
+    "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'",
+    "X-Frame-Options": "DENY",
   });
   return createServer(async (req, res) => {
     const fin = (estado, tipo, cuerpo, extra = {}) => {
