@@ -185,7 +185,7 @@ function navegador(datos) {
   const pend = [];
   const est = { datos, seleccion: false, tics: [], saltos: [] };
   const win = { scrollY: 0, scrollTo(x, y) { win.scrollY = y; est.saltos.push(y); }, getSelection: () => ({ isCollapsed: !est.seleccion, anchorNode: {} }) };
-  const doc = { getElementById: (id) => ({ app, aviso, vivo })[id], createElement: (t) => new Nodo(t), hidden: false, addEventListener() {}, querySelectorAll: (s) => [...app.querySelectorAll(s), ...vivo.querySelectorAll(s)] };
+  const doc = { getElementById: (id) => ({ app, aviso, vivo })[id], createElement: (t) => new Nodo(t), createElementNS: (_ns, t) => new Nodo(t), hidden: false, addEventListener() {}, querySelectorAll: (s) => [...app.querySelectorAll(s), ...vivo.querySelectorAll(s)] };
   const fetchFalso = async () => {
     if (est.cae) throw new TypeError("Failed to fetch");
     return { ok: true, status: 200, json: async () => est.datos };
@@ -336,9 +336,9 @@ describe("la página", () => {
     expect(n.app.texto).not.toContain("sin dato (");
     expect(n.app.texto).not.toContain("No se puede saber qué hooks están declarados");
     await n.ciclo({ lecturaMs: 9, generado: iso(AHORA + 5000) }); // solo cambia lo volátil
-    expect(n.zona(3).reemplazos).toBe(1);
+    expect(n.zona(4).reemplazos).toBe(1);
     await n.ciclo({ estado: { ...n.est.datos.estado, sesiones: 99 } });
-    expect(n.zona(3).reemplazos).toBe(2);
+    expect(n.zona(4).reemplazos).toBe(2);
     n.est.tics[0](); // el contador «hace N s» sigue corriendo
     expect(n.app.querySelectorAll("[data-ts]")[0].texto).toMatch(/^hace \d+ (s|min|h|días)$/);
   });
@@ -348,9 +348,9 @@ describe("la página", () => {
     await n.listo;
     n.est.seleccion = true;
     for (let i = 1; i <= 5; i++) await n.ciclo({ estado: { ...n.est.datos.estado, sesiones: 50 + i } });
-    expect(n.zona(3).reemplazos).toBe(1);
+    expect(n.zona(4).reemplazos).toBe(1);
     await n.ciclo({ estado: { ...n.est.datos.estado, sesiones: 60 } });
-    expect(n.zona(3).reemplazos).toBe(2);
+    expect(n.zona(4).reemplazos).toBe(2);
   });
 
   it("no usa recursos externos ni HTML en crudo, y respeta el tema oscuro", () => {
@@ -373,11 +373,11 @@ describe("la página v1 · semáforo, En directo y rondas", () => {
   it("orden de arriba abajo: semáforo, en directo, rondas por tarea y, debajo, lo de la v0", async () => {
     const n = navegador(datosPagina());
     await n.listo;
-    expect(n.app.hijos).toHaveLength(4);
+    expect(n.app.hijos).toHaveLength(5);
     expect(n.zona(0).className).toContain("semaforo");
     expect(n.zona(1).texto).toContain("En directo");
     expect(n.zona(2).texto).toContain("Rondas por tarea");
-    expect(n.zona(3).texto.indexOf("Estado")).toBeLessThan(n.zona(3).texto.indexOf("Qué se activa"));
+    expect(n.zona(4).texto.indexOf("Estado")).toBeLessThan(n.zona(4).texto.indexOf("Qué se activa"));
   });
 
   it("semáforo: tres lámparas con texto, forma y color; el nivel viene del servidor", async () => {
@@ -520,13 +520,13 @@ describe("la página v1 · semáforo, En directo y rondas", () => {
     const n = navegador(conEventos([evt()]));
     await n.listo;
     const vieja = filas(n)[0];
-    const antes = [n.zona(0).reemplazos, n.zona(2).reemplazos, n.zona(3).reemplazos];
+    const antes = [n.zona(0).reemplazos, n.zona(2).reemplazos, n.zona(4).reemplazos];
     await n.ciclo({ eventos: [evt({ hora: iso(T0 + 5000), tipo: "turno_terminado", agente: null }), evt()] });
     const f = filas(n);
     expect(f).toHaveLength(2);
     expect(f[1]).toBe(vieja); // el mismo nodo: no se ha vuelto a crear
     expect(norm(f[0])).toContain("Turno terminado");
-    expect([n.zona(0).reemplazos, n.zona(2).reemplazos, n.zona(3).reemplazos]).toEqual(antes);
+    expect([n.zona(0).reemplazos, n.zona(2).reemplazos, n.zona(4).reemplazos]).toEqual(antes);
     expect(n.zona(1).todos((h) => h.tag === "ul")[0].reemplazos).toBe(0);
     // y otra vez sin cambios: no se toca nada
     const ins = n.zona(1).todos((h) => h.tag === "ul")[0].inserciones;
@@ -664,6 +664,166 @@ describe("la página v1 · semáforo, En directo y rondas", () => {
     await n.listo;
     expect(norm(filas(n)[0])).toContain("<img src=x onerror=1>");
     expect(filas(n)[0].todos((h) => h.tag === "img")).toHaveLength(0);
+  });
+});
+
+// ---- v1: la página del coste (gráfico de barras apiladas por día + tablas) ----
+describe("la página v1 · coste estimado", () => {
+  const html = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "panel.html"), "utf8");
+  const AVISO = "Si usas un plan con límite de sesión (no pagas por token), esto no es tu factura: mide el consumo relativo (qué parte se va en jueces).";
+  const norm = (n) => n.texto.replace(/\s+/g, " ").trim();
+  const cubo = (tokens, costeUSD, tokensSinPrecio = 0) => ({ tokens, costeUSD, tokensSinPrecio });
+  const dia = (d, j, o, p) => ({ dia: d, jueces: cubo(1e6, j), otros: cubo(2e6, o), principal: cubo(3e6, p), total: cubo(6e6, j + o + p) });
+  const costeFalso = (extra = {}) => ({
+    precios: { fecha: "2026-10-25", fuente: "https://ejemplo.invalid/precios" }, lineasRotas: 0, modelosSinPrecio: [],
+    repartoTokens: { jueces: 16.7, otros: 33.3, principal: 50 }, repartoCoste: { jueces: 17, otros: 46.5, principal: 36.5 },
+    total: { jueces: cubo(2e6, 3), otros: cubo(4e6, 8), principal: cubo(6e6, 5), total: cubo(12e6, 16) },
+    porDia: [dia("2026-10-23", 1, 3, 2), dia("2026-10-24", 2, 5, 3)],
+    porSesion: [{ sesion: "ses-aaaa", rama: "feat_x", ultimo: iso(AHORA), jueces: cubo(1e6, 2), otros: cubo(2e6, 5), principal: cubo(3e6, 3), total: cubo(6e6, 10), pctJueces: 20 }],
+    porRama: [{ rama: "feat_x", ultimo: iso(AHORA), jueces: cubo(1e6, 2), otros: cubo(2e6, 5), principal: cubo(3e6, 3), total: cubo(6e6, 10), pctJueces: 20 }],
+    ...extra,
+  });
+  const con = (coste) => navegador({ ...datosPagina(), coste });
+  const zc = (n) => n.zona(3);
+
+  it("va después de «Rondas por tarea» y antes de las tablas de la v0", async () => {
+    const n = con(costeFalso());
+    await n.listo;
+    expect(n.app.hijos).toHaveLength(5);
+    expect(n.zona(2).texto).toContain("Rondas por tarea");
+    expect(zc(n).texto).toContain("Coste estimado");
+    expect(n.zona(4).texto).toContain("Estado");
+  });
+
+  it("dice SIEMPRE que es una estimación a precio de API, con la fecha y la fuente de los precios, y la advertencia del plan con límite", async () => {
+    const n = con(costeFalso());
+    await n.listo;
+    const t = norm(zc(n));
+    expect(t).toContain("estimación a precio de API");
+    expect(t).toContain("precios del 2026-10-25");
+    expect(t).toContain("https://ejemplo.invalid/precios");
+    expect(t).toContain(AVISO);
+  });
+
+  it("el reparto en %: jueces, constructores y otros, sesión principal (por coste, y los tokens al lado)", async () => {
+    const n = con(costeFalso());
+    await n.listo;
+    const t = norm(zc(n));
+    expect(t).toMatch(/Jueces 17 %/);
+    expect(t).toMatch(/Constructores y otros 46,5 %/);
+    expect(t).toMatch(/Sesión principal 36,5 %/);
+    expect(t).toMatch(/por tokens.*16,7 %.*33,3 %.*50 %/);
+  });
+
+  const nodos = (n, tag) => zc(n).todos((h) => h.tag === tag);
+
+  it("gráfico SVG de barras apiladas por día: un segmento por categoría y día, con título, etiqueta de valor, patrones y leyenda (no solo color)", async () => {
+    const n = con(costeFalso());
+    await n.listo;
+    const [svg] = nodos(n, "svg");
+    expect(svg.attrs.role).toBe("img");
+    expect(svg.attrs["aria-label"]).toMatch(/Coste estimado por día/);
+    const segmentos = nodos(n, "rect").filter((r) => r.attrs["data-categoria"]);
+    expect(segmentos).toHaveLength(6);
+    expect(new Set(segmentos.map((s) => s.attrs["data-categoria"]))).toEqual(new Set(["jueces", "otros", "principal"]));
+    expect(segmentos.every((s) => /^url\(#patron-|^var\(/.test(s.attrs.fill))).toBe(true);
+    expect(nodos(n, "pattern").map((p) => p.attrs.id).sort()).toEqual(["patron-jueces", "patron-otros", "patron-principal"]);
+    const etiquetas = nodos(n, "text").map((x) => norm(x));
+    expect(etiquetas).toEqual(expect.arrayContaining([expect.stringMatching(/\$6,00/), expect.stringMatching(/\$10,00/)])); // totales por día
+    expect(norm(zc(n))).toMatch(/Jueces.*Constructores y otros.*Sesión principal/); // leyenda
+    expect(nodos(n, "title").length).toBeGreaterThanOrEqual(6);
+  });
+
+  it("las barras guardan proporción: el día que cuesta el doble mide el doble", async () => {
+    const c = costeFalso({ porDia: [dia("2026-10-23", 1, 1, 1), dia("2026-10-24", 2, 2, 2)] });
+    const n = con(c);
+    await n.listo;
+    const ancho = (d) => nodos(n, "rect").filter((r) => r.attrs["data-dia"] === d && r.attrs["data-categoria"]).reduce((s, r) => s + Number(r.attrs.width), 0);
+    expect(ancho("2026-10-24") / ancho("2026-10-23")).toBeCloseTo(2, 5);
+  });
+
+  it("tabla alternativa bajo el gráfico: una fila por día con el coste y los tokens de cada categoría", async () => {
+    const n = con(costeFalso());
+    await n.listo;
+    const tabla = nodos(n, "table")[0];
+    const t = norm(tabla);
+    expect(t).toContain("Coste estimado por día");
+    expect(t).toMatch(/23 oct.*\$1,00.*\$3,00.*\$2,00.*\$6,00/);
+    expect(t).toMatch(/24 oct.*\$2,00.*\$5,00.*\$3,00.*\$10,00/);
+    expect(t).toMatch(/1,0 M/); // tokens
+    expect(tabla.todos((h) => h.tag === "caption")).toHaveLength(1);
+  });
+
+  it("tablas por sesión y por rama con tokens, coste estimado y % de jueces", async () => {
+    const n = con(costeFalso());
+    await n.listo;
+    const tablas = nodos(n, "table").map(norm);
+    expect(tablas).toHaveLength(3);
+    expect(tablas[1]).toMatch(/Sesión.*Rama.*Tokens.*Coste estimado.*% jueces/);
+    expect(tablas[1]).toMatch(/ses-aaaa.*feat_x.*6,0 M.*\$10,00.*20 %/);
+    expect(tablas[2]).toMatch(/Rama.*% jueces/);
+    expect(tablas[2]).toMatch(/feat_x.*\$10,00.*20 %/);
+  });
+
+  it("un modelo sin precio: esa fila dice «sin precio», los tokens salen, el total dice «mínimo» y se listan los modelos para editar precios.json", async () => {
+    const c = costeFalso({
+      modelosSinPrecio: ["claude-futuro-9"],
+      porDia: [{ ...dia("2026-10-24", 2, 5, 3), otros: cubo(2e6, null, 2e6), total: cubo(6e6, 5, 2e6) }],
+      total: { jueces: cubo(1e6, 2), otros: cubo(2e6, null, 2e6), principal: cubo(3e6, 3), total: cubo(6e6, 5, 2e6) },
+    });
+    const n = con(c);
+    await n.listo;
+    const t = norm(zc(n));
+    expect(t).toContain("sin precio");
+    expect(t).toContain("mínimo (modelos sin precio no incluidos)");
+    expect(t).toContain("claude-futuro-9");
+    expect(t).toContain("edita precios.json");
+    expect(norm(nodos(n, "table")[0])).toMatch(/2,0 M.*sin precio/); // los tokens salen aunque no haya precio
+  });
+
+  it("si precios.json no se pudo leer: los tokens salen, el coste dice «sin precio» y no se dibuja ninguna barra", async () => {
+    const n = navegador(datosPagina(falla("precios")));
+    await n.listo;
+    expect(zc(n).texto).toContain("sin precio");
+    expect(nodos(n, "rect").filter((r) => r.attrs["data-categoria"])).toHaveLength(0);
+    expect(norm(nodos(n, "table")[0])).toMatch(/M|k|\d/); // hay tokens
+    expect(zc(n).texto).not.toContain("estimación a precio de API (precios del");
+  });
+
+  it("si las transcripciones no se pudieron leer: «No se pudo leer», sin gráfico ni tablas, ni un cero", async () => {
+    const n = navegador(datosPagina(falla("transcripciones")));
+    await n.listo;
+    expect(zc(n).texto).toContain("No se pudo leer");
+    expect(nodos(n, "svg")).toHaveLength(0);
+    expect(nodos(n, "table")).toHaveLength(0);
+  });
+
+  it("sin nada que contar en la ventana lo dice, no dibuja un gráfico vacío", async () => {
+    const n = con(costeFalso({ porDia: [], porSesion: [], porRama: [], repartoCoste: null, repartoTokens: null, total: { jueces: cubo(0, 0), otros: cubo(0, 0), principal: cubo(0, 0), total: cubo(0, 0) } }));
+    await n.listo;
+    expect(zc(n).texto).toContain("Sin consumo en los últimos 7 días");
+    expect(nodos(n, "svg")).toHaveLength(0);
+  });
+
+  it("rondas por tarea: cada marca y cada rama traen los tokens y el coste estimado de su juez, o «sin dato»", async () => {
+    const marcas = [
+      { agente: "revisor", veredicto: "pasa", ms: 100000, abierta: false, fiable: true, ts: iso(AHORA), tokens: 5.9e6, costeUSD: 0.45, tokensSinPrecio: 0 },
+      { agente: "qa", veredicto: "no_pasa", ms: 45000, abierta: false, fiable: true, ts: iso(AHORA + 1000), tokens: null, costeUSD: null, tokensSinPrecio: null },
+      { agente: "qa", veredicto: "pasa", ms: 45000, abierta: false, fiable: true, ts: iso(AHORA + 2000), tokens: 1e6, costeUSD: null, tokensSinPrecio: 1e6 },
+    ];
+    const n = navegador({ ...datosPagina(), ramas: [{ rama: "feat_x", rondas: 3, tiempoMs: 1000, ultimo: iso(AHORA), masMarcas: 0, tokens: 6.9e6, costeUSD: 0.45, tokensSinPrecio: 1e6, rondasConCoste: 2, marcas }] });
+    await n.listo;
+    const m = n.zona(2).todos((h) => h.className.startsWith("marca "));
+    expect(m[0].title).toMatch(/5,9 M tokens.*≈ \$0,45/);
+    expect(m[1].title).toMatch(/coste: sin dato/);
+    expect(m[2].title).toMatch(/1,0 M tokens.*sin precio/);
+    expect(norm(n.zona(2))).toMatch(/coste ≈ \$0,45 .*mínimo.* 2 de 3 rondas/);
+  });
+
+  it("tema claro y oscuro: las categorías del gráfico tienen su color en los dos", () => {
+    expect((html.match(/--c-jueces:/g) ?? []).length).toBe(2);
+    expect((html.match(/--c-otros:/g) ?? []).length).toBe(2);
+    expect((html.match(/--c-principal:/g) ?? []).length).toBe(2);
   });
 });
 

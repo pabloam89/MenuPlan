@@ -7,12 +7,12 @@
 <style>
   :root {
     --fondo: #f6f6f3; --tarjeta: #ffffff; --texto: #1d1d1b; --suave: #5f5f58; --linea: #dcdcd4;
-    --ok: #1f7a3d; --ok-fondo: #e3f3e8; --mal: #b3261e; --mal-fondo: #fbe4e1; --aviso: #8a5a00; --aviso-fondo: #fdf0d2; --gris: #5f5f58; --gris-fondo: #ecece6; --sombra: rgba(0,0,0,.3);
+    --ok: #1f7a3d; --ok-fondo: #e3f3e8; --mal: #b3261e; --mal-fondo: #fbe4e1; --aviso: #8a5a00; --aviso-fondo: #fdf0d2; --gris: #5f5f58; --gris-fondo: #ecece6; --c-jueces: #1a56b8; --c-otros: #a14a00; --c-principal: #4b5563; --sombra: rgba(0,0,0,.3);
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --fondo: #151513; --tarjeta: #1f1f1c; --texto: #ecece6; --suave: #a3a39a; --linea: #3a3a35;
-      --ok: #6fd18c; --ok-fondo: #173322; --mal: #ff8a80; --mal-fondo: #3d1b18; --aviso: #f2c25b; --aviso-fondo: #3a2e10; --gris: #a3a39a; --gris-fondo: #2b2b27; --sombra: rgba(255,255,255,.4);
+      --ok: #6fd18c; --ok-fondo: #173322; --mal: #ff8a80; --mal-fondo: #3d1b18; --aviso: #f2c25b; --aviso-fondo: #3a2e10; --gris: #a3a39a; --gris-fondo: #2b2b27; --c-jueces: #6cb6ff; --c-otros: #f0a35e; --c-principal: #b6bcc6; --sombra: rgba(255,255,255,.4);
     }
   }
   * { box-sizing: border-box; }
@@ -67,6 +67,15 @@
   .marca { border: 1px solid currentColor; border-radius: 6px; padding: 1px 6px; display: inline-flex; gap: 4px; align-items: baseline; min-width: 2em; justify-content: center; }
   .marca.antigua { border-style: dashed; opacity: .75; }
   .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .reparto { font-weight: 700; font-size: 1.05rem; }
+  .grafico svg { width: 100%; max-width: 560px; height: auto; display: block; }
+  .grafico text { fill: var(--texto); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .leyenda { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 8px 0; }
+  .sw { display: inline-block; width: 18px; height: 12px; margin-right: 6px; vertical-align: -1px; border: 1px solid var(--linea); }
+  .sw-jueces { background: repeating-linear-gradient(45deg, var(--c-jueces) 0 3px, var(--tarjeta) 3px 5px); }
+  .sw-otros { background: radial-gradient(var(--tarjeta) 1.3px, var(--c-otros) 1.4px) 0 0 / 6px 6px; }
+  .sw-principal { background: repeating-linear-gradient(0deg, var(--c-principal) 0 3px, var(--tarjeta) 3px 4px); }
+  caption { text-align: left; padding: 4px 0; }
   @media (max-width: 480px) { main { padding: 10px; } section { padding: 10px 12px; } .fila .detalle { flex-basis: 100%; } }
 </style>
 </head>
@@ -379,6 +388,8 @@ function actualizarDirecto(d) {
   if (delta !== 0 && arriba < 0) window.scrollTo(0, window.scrollY + delta);
 }
 
+// el coste de la ronda: de la transcripción del juez con ese agent_id; sin transcripción es «sin dato», nunca 0
+const costeMarca = (m) => (m.tokens == null ? "coste: sin dato" : m.costeUSD == null ? `${fTok(m.tokens)} tokens · sin precio` : `${fTok(m.tokens)} tokens · ≈ ${fUsd(m.costeUSD)}${m.tokensSinPrecio > 0 ? " (mínimo)" : ""}`);
 function marca(m) {
   let forma, color, texto;
   if (m.veredicto === "lanzado") {
@@ -386,7 +397,7 @@ function marca(m) {
   } else {
     const v = VEREDICTO[m.veredicto] ?? VEREDICTO.sin_veredicto;
     [forma, color] = [v[0], v[1]];
-    texto = v[2] + (m.ms != null ? ` · tardó ${msTexto(m.ms)}` : m.fiable ? " · duración: sin dato" : "");
+    texto = v[2] + (m.ms != null ? ` · tardó ${msTexto(m.ms)}` : m.fiable ? " · duración: sin dato" : "") + ` · ${costeMarca(m)}`;
   }
   const completo = `${m.agente} · ${texto}${m.fiable ? "" : " · dato antiguo, no fiable"}`;
   const e = el("span", `marca ${color}${m.fiable ? "" : " antigua"}`, el("span", "forma", forma), m.veredicto === "lanzado" && m.abierta ? crono(m.ts) : null, el("span", "sr", completo));
@@ -409,6 +420,7 @@ function pintarRondas(d) {
           "rama",
           el("div", "rama-cab", el("code", "", r.rama), el("span", "rama-tot", `${fNum(r.rondas)} ${r.rondas === 1 ? "ronda" : "rondas"} · ${fMs(r.tiempoMs)} en jueces`)),
           el("div", "marcas", ...r.marcas.map(marca)),
+          el("p", "suave", r.tokens == null ? "Jueces de esta rama: coste: sin dato (ninguna ronda con transcripción de juez)." : `Jueces de esta rama: ${r.costeUSD == null ? "coste: sin precio" : `coste ≈ ${fUsd(r.costeUSD)}${r.tokensSinPrecio > 0 ? " (mínimo: modelos sin precio no incluidos)" : ""}`} · ${fTok(r.tokens)} tokens · en ${fNum(r.rondasConCoste)} de ${fNum(r.rondas)} rondas.`),
           r.masMarcas ? el("p", "suave", `${r.masMarcas} marcas más antiguas no se enseñan (el total de rondas las cuenta).`) : null,
           antiguas ? el("p", "suave", `${antiguas} ${antiguas === 1 ? "marca" : "marcas"} de dato antiguo, no fiable (sin agent_id: la versión vieja del hook).`) : null,
         );
@@ -417,14 +429,86 @@ function pintarRondas(d) {
   ];
 }
 
+// ---- v1: coste estimado (a precio de API). Nada se calcula aquí: precios, sumas, % y «sin precio» (null) vienen del servidor ----
+const AVISO_PLAN = "Si usas un plan con límite de sesión (no pagas por token), esto no es tu factura: mide el consumo relativo (qué parte se va en jueces).";
+const CATEGORIAS = [["jueces", "Jueces"], ["otros", "Constructores y otros"], ["principal", "Sesión principal"]];
+const SVGNS = "http:" + "//www.w3.org/2000/svg"; // el espacio de nombres de SVG: un identificador, no una petición
+const fTok = (n) => (n == null ? SD : n >= 1e6 ? `${(n / 1e6).toFixed(1).replace(".", ",")} M` : n >= 1e3 ? `${(n / 1e3).toFixed(1).replace(".", ",")} k` : String(n));
+const fUsd = (n) => (n == null ? SD : n > 0 && n < 0.01 ? "<$0,01" : "$" + n.toFixed(2).replace(".", ","));
+const fDia = (dia) => new Date(dia + "T12:00:00Z").toLocaleDateString("es-ES", { day: "numeric", month: "short", timeZone: "UTC" });
+const fPct = (n) => (n == null ? "sin precio" : `${nf.format(n)} %`);
+// el coste de un cubo { tokens, costeUSD, tokensSinPrecio }: sin precio nunca se pinta como $0, y con modelos sin precio es un mínimo
+const textoCoste = (b) => (b.costeUSD === null ? "sin precio" : fUsd(b.costeUSD) + (b.tokensSinPrecio > 0 ? " (mínimo)" : ""));
+const textoCubo = (b) => (b == null ? SD : b.tokens === 0 ? "—" : `${fTok(b.tokens)} · ${textoCoste(b)}`);
+
+function svgEl(tag, attrs = {}, ...hijos) {
+  const e = document.createElementNS(SVGNS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  for (const h of hijos) if (h !== null && h !== undefined) e.append(h);
+  return e;
+}
+// Barras horizontales apiladas por día (legibles a 375 px): cada categoría tiene color Y patrón, y cada día su etiqueta de valor
+function grafico(dias) {
+  const ETQ = 50, ANCHO = 214, ALTO = 26, ancho = 360;
+  const max = Math.max(...dias.map((d) => d.total.costeUSD ?? 0), 1e-9);
+  const trazo = { x1: 0, y1: 0, x2: 0, y2: 6, style: "stroke:var(--tarjeta);stroke-width:2.2" };
+  const formas = { jueces: () => svgEl("line", trazo), otros: () => svgEl("circle", { cx: 3, cy: 3, r: 1.3, style: "fill:var(--tarjeta)" }), principal: () => svgEl("line", { x1: 0, y1: 3, x2: 6, y2: 3, style: "stroke:var(--tarjeta);stroke-width:1.2" }) };
+  const patron = (id) => svgEl("pattern", { id: "patron-" + id, width: 6, height: 6, patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" }, svgEl("rect", { width: 6, height: 6, style: `fill:var(--c-${id})` }), formas[id]());
+  const filas = dias.flatMap((d, i) => {
+    const y = i * ALTO + 2;
+    let x = ETQ;
+    const segs = d.total.costeUSD === null ? [] : CATEGORIAS.filter(([k]) => d[k].costeUSD > 0).map(([k, nombre]) => {
+      const w = (d[k].costeUSD / max) * ANCHO;
+      const r = svgEl("rect", { x, y: y + 3, width: w, height: ALTO - 8, fill: `url(#patron-${k})`, "data-categoria": k, "data-dia": d.dia }, svgEl("title", {}, `${nombre} · ${fDia(d.dia)} · ${textoCoste(d[k])} · ${fTok(d[k].tokens)} tokens`));
+      x += w;
+      return r;
+    });
+    return [svgEl("text", { x: 0, y: y + 15 }, fDia(d.dia)), ...segs, svgEl("text", { x: x + 4, y: y + 15 }, d.total.costeUSD === null ? "sin precio" : fUsd(d.total.costeUSD) + (d.total.tokensSinPrecio > 0 ? " (mín.)" : ""))];
+  });
+  const e = svgEl("svg", { viewBox: `0 0 ${ancho} ${dias.length * ALTO + 4}`, role: "img", "aria-label": "Coste estimado por día, barras apiladas: jueces, constructores y otros, sesión principal. La tabla de debajo trae los mismos números." }, svgEl("defs", {}, patron("jueces"), patron("otros"), patron("principal")), ...filas);
+  return el("div", "grafico", e);
+}
+
+function tablaCon(titulo, cols, filas) {
+  const cab = el("tr", "", ...cols.map((c) => el("th", c.n ? "n" : "", c.t)));
+  const cuerpo = filas.map((f) => el("tr", "", ...cols.map((c) => el("td", c.n ? "n" : "", c.v(f)))));
+  const caja = el("div", "tabla", el("table", "", el("caption", "suave", titulo), el("thead", "", cab), el("tbody", "", ...cuerpo)));
+  caja.tabIndex = 0; // se puede desplazar con el teclado
+  return caja;
+}
+
+function pintarCoste(d) {
+  const c = d.coste;
+  const sal = [el("h2", "", "Coste estimado: jueces, constructores y sesión principal")];
+  if (c === null) return [...sal, el("p", "vacio", "No se pudo leer (ver franja roja).")];
+  sal.push(franja("aviso", c.precios ? `Coste = estimación a precio de API (precios del ${c.precios.fecha}, fuente ${c.precios.fuente}).` : "Coste = estimación a precio de API, pero sin precios: precios.json no se pudo leer. Salen los tokens y el coste dice «sin precio».", [AVISO_PLAN]));
+  if (!c.porDia.length) return [...sal, el("p", "vacio", `Sin consumo en los últimos ${d.dias} días.`)];
+  const rc = c.repartoCoste;
+  const rt = c.repartoTokens;
+  sal.push(el("div", "cifras", ...CATEGORIAS.map(([k, nombre]) => el("div", "reparto", `${nombre} ${rc ? fPct(rc[k]) : "sin precio"}`))));
+  sal.push(el("p", "suave", `Reparto del coste estimado. Reparto por tokens: ${rt ? CATEGORIAS.map(([k, nombre]) => `${nombre} ${fPct(rt[k])}`).join(" · ") : SD}.`));
+  const minimo = c.total.total.tokensSinPrecio > 0 || Boolean(c.modelosSinPrecio?.length);
+  sal.push(el("p", "", `Total de los últimos ${d.dias} días: ${textoCubo(c.total.total)}${minimo && c.total.total.costeUSD !== null ? " — mínimo (modelos sin precio no incluidos)" : ""}.`));
+  if (c.modelosSinPrecio?.length) sal.push(el("p", "suave", `Modelos sin precio (edita precios.json): ${c.modelosSinPrecio.join(", ")}.`));
+  sal.push(c.precios && c.porDia.some((x) => x.total.costeUSD !== null) ? el("div", "", el("div", "leyenda", ...CATEGORIAS.map(([k, nombre]) => el("span", "", el("span", "sw sw-" + k), nombre))), grafico(c.porDia)) : el("p", "vacio", "No se dibuja el gráfico: sin precios no hay coste que comparar (la tabla trae los tokens)."));
+  const cols = [{ t: "Día", v: (x) => fDia(x.dia) }, ...CATEGORIAS.map(([k, nombre]) => ({ t: nombre, v: (x) => textoCubo(x[k]) })), { t: "Total", v: (x) => textoCubo(x.total) }];
+  sal.push(tablaCon("Coste estimado por día", cols, c.porDia));
+  const dato = [{ t: "Tokens", n: true, v: (x) => fTok(x.total.tokens) }, { t: "Coste estimado", n: true, v: (x) => (x.total.costeUSD === null ? "sin precio" : textoCoste(x.total)) }, { t: "% jueces", n: true, v: (x) => fPct(x.pctJueces) }];
+  sal.push(tablaCon(`Por sesión (las ${c.porSesion.length} últimas)`, [{ t: "Sesión", v: (x) => el("code", "", x.sesion) }, { t: "Rama", v: (x) => x.rama ?? "—" }, ...dato], c.porSesion));
+  sal.push(tablaCon("Por rama (la de la sesión padre)", [{ t: "Rama", v: (x) => x.rama ?? "—" }, ...dato], c.porRama));
+  sal.push(el("p", "suave", "Cuenta los mensajes del asistente una vez (por id), de la sesión principal y de cada subagente (ficheros subagents/). Un mensaje de un modelo sin precio da sus tokens y «sin precio». No usa el coste de las fotos (cost-state)."));
+  return sal;
+}
+
 // ---- Zonas fijas: se crean una vez y cada una se repinta solo si cambió lo suyo ----
 const zonas = {};
 function crearZonas() {
   zonas.sem = el("section", "semaforo");
   zonas.dir = crearDirecto();
   zonas.ron = el("section", "");
+  zonas.cos = el("section", "");
   zonas.resto = el("div", "");
-  app.replaceChildren(zonas.sem, zonas.dir.nodo, zonas.ron, zonas.resto);
+  app.replaceChildren(zonas.sem, zonas.dir.nodo, zonas.ron, zonas.cos, zonas.resto);
 }
 
 function pintarResto(d) {
@@ -440,7 +524,7 @@ function pintarResto(d) {
   window.scrollTo(0, y);
 }
 // Solo se repinta lo que cambió de verdad; lo que cambia siempre (hora, tiempos de lectura, memoria) se actualiza en su sitio.
-const claves = { sem: null, ron: null, resto: null };
+const claves = { sem: null, ron: null, cos: null, resto: null };
 let saltados = 0;
 const vivo = document.getElementById("vivo");
 let vivoTs = null;
@@ -451,11 +535,11 @@ function marcarVivo(ok, generado) {
   vivo.replaceChildren(el("span", "forma", forma), ok ? "en vivo · actualizado" : "sin conexión · último dato", vivoTs ? haceEl(vivoTs) : "");
 }
 function mostrar(d) {
-  const { generado, lecturaMs, proceso, ficheros, semaforo, eventos, ramas, ...resto } = d; // lo volátil queda fuera de la comparación
+  const { generado, lecturaMs, proceso, ficheros, semaforo, eventos, ramas, coste, ...resto } = d; // lo volátil queda fuera de la comparación
   if (!zonas.sem) crearZonas();
   actualizarDirecto(d); // la lista de En directo es incremental: nunca espera
   if (vivoTs === null || !vivo.className.includes("ok") || vivoTs !== generado) marcarVivo(true, generado);
-  const nuevas = { sem: JSON.stringify([semaforo, d.directoMin]), ron: JSON.stringify([ramas, d.dias]), resto: JSON.stringify(resto) };
+  const nuevas = { sem: JSON.stringify([semaforo, d.directoMin]), ron: JSON.stringify([ramas, d.dias]), cos: JSON.stringify([coste, d.dias]), resto: JSON.stringify(resto) };
   const cambian = Object.keys(nuevas).filter((k) => nuevas[k] !== claves[k]);
   if (!cambian.length) {
     if (lineaLectura) lineaLectura.textContent = textoLectura(d);
@@ -468,6 +552,7 @@ function mostrar(d) {
   for (const k of cambian) claves[k] = nuevas[k];
   if (cambian.includes("sem")) zonas.sem.replaceChildren(...pintarSemaforo(d));
   if (cambian.includes("ron")) zonas.ron.replaceChildren(...pintarRondas(d));
+  if (cambian.includes("cos")) zonas.cos.replaceChildren(...pintarCoste(d));
   if (cambian.includes("resto")) pintarResto(d);
 }
 function pintarFallo(msg, extra) {
