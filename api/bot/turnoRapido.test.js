@@ -38,7 +38,7 @@ vi.mock("../_bot/router.js", () => ({
 vi.mock("../_bot/turno.js", () => ({
   viaRapida: vi.fn(async () => ({ texto: "Hoy: tortilla" })), eleccionDe: () => null, aplicarEleccion: vi.fn(), contextoDe: vi.fn(async () => ({})),
 }));
-vi.mock("../_bot/uso.js", () => ({ fueraDeLimite: vi.fn(async () => t.limite), contarUso: vi.fn(async () => 1) }));
+vi.mock("../_bot/uso.js", () => ({ fueraDeLimite: vi.fn(async () => t.limite), contarUso: vi.fn(async () => 1), avisoDeLimite: vi.fn(() => "") }));
 vi.mock("../_bot/papel.js", () => ({ papelDeQuien: vi.fn(async () => ({ papel: "titular", userId: "u" })), idiomaDe: vi.fn(async () => t.idioma) }));
 vi.mock("../_bot/rapido.js", () => ({ respuestaHoy: vi.fn(), respuestaSemana: vi.fn(), respuestaCompra: vi.fn(), recordar: vi.fn(async () => { t.orden.push("recordar"); }) }));
 vi.mock("../_bot/pintar.js", () => ({ pintarMenuEntero: vi.fn() }));
@@ -61,6 +61,7 @@ const { turno, avisoDelModo, AVISO_ESPERA } = await import("./telegram.js");
 const { responder } = await import("../_bot/agente.js");
 const { viaRapida } = await import("../_bot/turno.js");
 const { editar, llamar } = await import("../_bot/telegram.js");
+const { avisoDeLimite } = await import("../_bot/uso.js");
 const pedir = () => turno({ chatId: 1, householdId: "h", esGrupo: false, base: "https://x", texto: "¿qué cenamos?", from: { id: 7, first_name: "Ana" }, responderA: 9 });
 
 beforeEach(() => { t.orden.length = 0; t.rutas.length = 0; t.limite = null; t.idioma = "es"; t.rapida = true; t.decision = { modo: "consulta", confianza: 0.95 }; vi.clearAllMocks(); });
@@ -81,6 +82,20 @@ describe("turno por la vía rápida", () => {
     expect(ruta.contexto_ms).toBeGreaterThanOrEqual(0);
     expect(ruta.lola_cancelada).toBe(true);
     expect(ruta).toMatchObject({ esGrupo: false, variosAutores: false, chat: "1" });
+  });
+
+  it("si este mensaje toca el aviso de los que quedan, sale aparte tras la plantilla", async () => {
+    avisoDeLimite.mockReturnValueOnce("\n\n<i>Te quedan 10 mensajes conmigo este mes. El 1 de diciembre se reinicia.</i>");
+    await pedir();
+    const plantilla = t.orden.findIndex((x) => x.includes("Hoy: tortilla"));
+    const aviso = t.orden.findIndex((x) => x.includes("Te quedan 10 mensajes"));
+    expect(plantilla).toBeGreaterThanOrEqual(0);
+    expect(aviso).toBeGreaterThan(plantilla);
+  });
+
+  it("sin aviso que dar, la vía rápida no manda nada más", async () => {
+    await pedir();
+    expect(t.orden.filter((x) => x.startsWith("enviar:"))).toHaveLength(1);
   });
 
   it("en un grupo, el turno se apunta como de grupo", async () => {
