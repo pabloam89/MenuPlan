@@ -532,7 +532,7 @@ function marcarVivo(ok, generado) {
   if (generado) vivoTs = generado;
   const forma = ok ? "●" : "■";
   vivo.className = "vivo " + (ok ? "ok" : "mal");
-  vivo.replaceChildren(el("span", "forma", forma), ok ? "en vivo · actualizado" : "sin conexión · último dato", vivoTs ? haceEl(vivoTs) : "");
+  vivo.replaceChildren(el("span", "forma", forma), ok ? " en vivo · actualizado " : " sin conexión · último dato ", vivoTs ? haceEl(vivoTs) : "");
 }
 function mostrar(d) {
   const { generado, lecturaMs, proceso, ficheros, semaforo, eventos, ramas, coste, ...resto } = d; // lo volátil queda fuera de la comparación
