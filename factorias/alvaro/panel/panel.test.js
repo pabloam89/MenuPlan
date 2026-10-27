@@ -497,7 +497,7 @@ describe("la página v1 · semáforo, En directo y rondas", () => {
     const f = filas(n).map(norm);
     expect(f[0]).toMatch(/sin agent_id/);
     expect(f[0]).not.toMatch(/tardó/);
-    expect(f[1]).toMatch(/duración: sin dato/);
+    expect(f[1]).toMatch(/sin emparejar con su lanzamiento/);
   });
 
   it("«Sin actividad en los últimos 30 min» (lista vacía) no es lo mismo que «sin dato en directo» (fuente caída)", async () => {
@@ -666,6 +666,105 @@ describe("la página v1 · semáforo, En directo y rondas", () => {
     expect(n.vivo.className).not.toContain("mal");
   });
 
+  it("RONDAS: con la fuente caída dice «sin dato (fuente caída, ver franja roja)»; sin transcripción de juez dice eso, y nunca afirma una ausencia que no sabe", async () => {
+    for (const fuente of ["transcripciones", "subagentes"]) {
+      const n = navegador(datosPagina(falla(fuente)));
+      await n.listo;
+      expect(norm(n.zona(2))).toContain("sin dato (fuente caída, ver franja roja)");
+      expect(norm(n.zona(2))).not.toMatch(/sin transcripción de juez/);
+    }
+    const sano = navegador({ ...datosPagina(), ramas: [{ rama: "r", rondas: 1, tiempoMs: null, ultimo: iso(T0), masMarcas: 0, tokens: null, costeUSD: null, tokensSinPrecio: null, rondasConCoste: 0, marcas: [] }] });
+    await sano.listo;
+    expect(norm(sano.zona(2))).toContain("sin transcripción de juez en ninguna de sus rondas");
+    expect(norm(sano.zona(2))).not.toContain("fuente caída");
+  });
+
+  it("hooks vivos inactivo: forma ◌ y texto «inactivo», ni ámbar ni rojo; «Rondas abiertas» sin registro: gris «sin registro todavía»", async () => {
+    const d = conEventos([]);
+    d.semaforo = { hooksVivos: { nivel: "inactivo", ultimo: iso(Date.now() - 3 * 3600e3), copiaOk: true }, bloqueosHoy: { nivel: "ok", total: 0, identificados: 0 }, rondasAbiertas: { nivel: "gris", n: null } };
+    const n = navegador(d);
+    await n.listo;
+    const l = lamparas(n);
+    expect(l.map((x) => x.className)).toEqual(["lampara inactivo", "lampara ok", "lampara gris"]);
+    expect(norm(l[0])).toMatch(/inactivo.*último evento hace 3 h/);
+    expect(l[0].todos((h) => h.className === "forma")[0].texto.trim()).toBe("◌");
+    expect(norm(l[2])).toContain("sin registro todavía");
+  });
+
+  it("la franja de errores de lectura es lo PRIMERO que se ve (arriba del semáforo), no enterrada en «Estado»", async () => {
+    const n = navegador(datosPagina(falla("registro")));
+    await n.listo;
+    expect(n.zona(0).hijos[0].className).toContain("franja mal");
+    expect(norm(n.zona(0).hijos[0])).toContain("No se pudo leer algo");
+    expect(norm(n.zona(4))).not.toContain("No se pudo leer algo"); // y no se repite abajo
+    const sana = navegador(datosPagina());
+    await sana.listo;
+    expect(sana.zona(0).hijos[0].className).toBe("luces");
+  });
+
+  it("En directo avisa de lo recortado: «N sucesos más antiguos no mostrados» y la cola cortada en su tope", async () => {
+    const n = navegador(conEventos([evt()], { eventosOmitidos: 12, colaCortada: true }));
+    await n.listo;
+    expect(norm(n.zona(1))).toContain("Hay 12 sucesos más antiguos no mostrados");
+    expect(norm(n.zona(1))).toContain("se cortó en su tope");
+    const m = navegador(conEventos([evt()], { eventosOmitidos: 0, colaCortada: false }));
+    await m.listo;
+    expect(norm(m.zona(1))).not.toMatch(/más antiguos|se cortó/);
+  });
+
+  it("rondas: «N ramas más» cuando no caben todas", async () => {
+    const n = navegador({ ...datosPagina(), ramas: [rama()], masRamas: 4 });
+    await n.listo;
+    expect(norm(n.zona(2))).toContain("4 ramas más no se enseñan");
+  });
+
+  it("rondas: cada marca enseña, a la vista y sin ratón, el juez, el tiempo y el coste (y el cronómetro de una abierta, una sola vez)", async () => {
+    const m = [
+      { agente: "revisor", veredicto: "pasa", ms: 40000, abierta: false, fiable: true, ts: iso(T0), tokens: 1e6, costeUSD: 0.45, tokensSinPrecio: 0 },
+      { agente: "evaluador", veredicto: "no_pasa", ms: null, abierta: false, fiable: true, ts: iso(T0 + 1000), tokens: null, costeUSD: null, tokensSinPrecio: null },
+      { agente: "qa", veredicto: "lanzado", ms: null, abierta: true, fiable: true, ts: iso(Date.now() - 20000), tokens: null, costeUSD: null, tokensSinPrecio: null },
+    ];
+    const n = navegador({ ...datosPagina(), ramas: [{ ...rama(), marcas: m }] });
+    await n.listo;
+    const minis = n.zona(2).todos((h) => h.className === "mini").map(norm);
+    expect(minis[0]).toMatch(/rev.*40,0 s.*\$0,45/);
+    expect(minis[1]).toMatch(/eval.*sin dato/);
+    expect(minis[2]).toMatch(/qa.*\d+ s/);
+    expect(n.zona(2).querySelectorAll("[data-desde]")).toHaveLength(1);
+  });
+
+  it("pantalla: la URL de la fuente no desborda a 375 px, el cronómetro no cambia de ancho, y el atenuado de la caída sigue legible (≥ 4,5:1 calculado en claro y oscuro)", () => {
+    expect(html).toMatch(/\.franja \{[^}]*overflow-wrap: anywhere/);
+    expect(html).toMatch(/\.crono \{[^}]*white-space: nowrap[^}]*min-width/);
+    const lum = (hex) => hex.slice(1).match(/../g).map((h) => parseInt(h, 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)).reduce((s, v, i) => s + v * [0.2126, 0.7152, 0.0722][i], 0);
+    const mezcla = (fg, bg, a) => "#" + [1, 3, 5].map((i) => Math.round(parseInt(fg.slice(i, i + 2), 16) * a + parseInt(bg.slice(i, i + 2), 16) * (1 - a)).toString(16).padStart(2, "0")).join("");
+    const op = Number(/#app\.viejo \{ opacity: ([.\d]+)/.exec(html)[1]);
+    const bloques = [...html.matchAll(/--fondo: (#\w+); --tarjeta: (#\w+); --texto: #\w+; --suave: (#\w+);/g)];
+    expect(bloques).toHaveLength(2); // claro y oscuro
+    for (const [, fondo, tarjeta, suave] of bloques) {
+      const [a, b] = [lum(mezcla(suave, fondo, op)), lum(mezcla(tarjeta, fondo, op))].sort((x, y) => y - x);
+      expect((a + 0.05) / (b + 0.05)).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
+  it("cuando hay texto seleccionado la pantalla se pausa y lo dice; y con «sin conexión» los cronómetros se quedan quietos", async () => {
+    const n = navegador({ ...conEventos([lanzado({ hora: iso(Date.now() - 65000) })]), generado: iso(Date.now() - 2000) });
+    await n.listo;
+    n.est.seleccion = true;
+    await n.ciclo({ estado: { ...n.est.datos.estado, sesiones: 77 } });
+    expect(norm(n.vivo)).toContain("pausado mientras hay texto seleccionado");
+    n.est.seleccion = false;
+    await n.ciclo({ estado: { ...n.est.datos.estado, sesiones: 78 } });
+    expect(norm(n.vivo)).not.toContain("pausado");
+    n.est.cae = true;
+    await n.ciclo();
+    const crono = n.zona(1).querySelectorAll("[data-desde]")[0];
+    const antes = crono.texto;
+    crono.dataset.desde = iso(Date.now() - 600000);
+    n.est.tics[0]();
+    expect(crono.texto).toBe(antes); // sin conexión no se sigue contando como si nada
+  });
+
   it("el texto de los datos entra como texto: un nombre de agente con HTML no se interpreta", async () => {
     const n = navegador(conEventos([evt({ agente: "<img src=x onerror=1>" })]));
     await n.listo;
@@ -755,8 +854,8 @@ describe("la página v1 · coste estimado", () => {
     const tabla = nodos(n, "table")[0];
     const t = norm(tabla);
     expect(t).toContain("Coste estimado por día");
-    expect(t).toMatch(/23 oct.*\$1,00.*\$3,00.*\$2,00.*\$6,00/);
-    expect(t).toMatch(/24 oct.*\$2,00.*\$5,00.*\$3,00.*\$10,00/);
+    expect(t).toMatch(/23 oct.*\$6,00.*\$1,00.*\$3,00.*\$2,00/); // «Total» es la primera columna tras el día: a 375 px es lo que se ve sin deslizar
+    expect(t).toMatch(/24 oct.*\$10,00.*\$2,00.*\$5,00.*\$3,00/);
     expect(t).toMatch(/1,0 M/); // tokens
     expect(tabla.todos((h) => h.tag === "caption")).toHaveLength(1);
   });
@@ -766,10 +865,10 @@ describe("la página v1 · coste estimado", () => {
     await n.listo;
     const tablas = nodos(n, "table").map(norm);
     expect(tablas).toHaveLength(3);
-    expect(tablas[1]).toMatch(/Sesión.*Rama.*Tokens.*Coste estimado.*% jueces/);
-    expect(tablas[1]).toMatch(/ses-aaaa.*feat_x.*6,0 M.*\$10,00.*20 %/);
+    expect(tablas[1]).toMatch(/Sesión.*% jueces.*Coste estimado.*Tokens.*Rama/); // lo que decide va primero
+    expect(tablas[1]).toMatch(/ses-aaaa.*20 %.*\$10,00.*6,0 M.*feat_x/);
     expect(tablas[2]).toMatch(/Rama.*% jueces/);
-    expect(tablas[2]).toMatch(/feat_x.*\$10,00.*20 %/);
+    expect(tablas[2]).toMatch(/feat_x.*20 %.*\$10,00/);
   });
 
   it("un modelo sin precio: esa fila dice «sin precio», los tokens salen, el total dice «mínimo» y se listan los modelos para editar precios.json", async () => {
@@ -857,6 +956,28 @@ describe("la página v1 · coste estimado", () => {
     await roto.listo;
     expect(norm(roto.zona(4))).toMatch(/Proyectos: sin dato/);
     expect(norm(roto.zona(4))).not.toContain("incluidos");
+  });
+
+  it("coste: primer día «parcial», «Total» sin «mínimo» repetido, «la última» en singular, y los textos del gráfico de 12 px", async () => {
+    const c = costeFalso({ porDia: [{ ...dia("2026-10-23", 1, 3, 2), parcial: true }, dia("2026-10-24", 2, 5, 3)], modelosSinPrecio: ["x"], total: { jueces: cubo(1e6, 2), otros: cubo(2e6, 8, 1e6), principal: cubo(3e6, 3), total: cubo(6e6, 13, 1e6) } });
+    const n = con(c);
+    await n.listo;
+    expect(norm(nodos(n, "table")[0])).toContain("23 oct (parcial)");
+    expect(nodos(n, "text").map(norm)).toEqual(expect.arrayContaining(["23 oct*"]));
+    expect(norm(zc(n))).toContain("primer día es parcial");
+    expect(norm(zc(n)).match(/mínimo/g).length).toBeLessThanOrEqual(3); // la frase del total, sin «(mínimo) — mínimo»
+    expect(norm(zc(n))).not.toMatch(/\(mínimo\) — mínimo/);
+    expect(norm(zc(n))).toContain("Por sesión (la última)");
+    expect(html).toMatch(/\.grafico text \{[^}]*font-size: 12px/);
+  });
+
+  it("coste: «N subagentes sin tipo: el % de jueces es un mínimo» junto al reparto", async () => {
+    const n = con(costeFalso({ subagentesSinTipo: 3 }));
+    await n.listo;
+    expect(norm(zc(n))).toContain("3 subagentes sin tipo: el % de jueces es un mínimo");
+    const sin = con(costeFalso({ subagentesSinTipo: 0 }));
+    await sin.listo;
+    expect(norm(zc(sin))).not.toContain("sin tipo");
   });
 
   it("tema claro y oscuro: las categorías del gráfico tienen su color en los dos", () => {

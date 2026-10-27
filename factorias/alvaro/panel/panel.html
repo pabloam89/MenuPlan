@@ -24,7 +24,7 @@
   section { background: var(--tarjeta); border: 1px solid var(--linea); border-radius: 10px; padding: 14px 16px; margin: 14px 0; }
   p, li { margin: 4px 0; }
   .suave { color: var(--suave); font-size: .88rem; }
-  .franja { border-radius: 8px; padding: 10px 12px; margin: 8px 0; border: 1px solid; font-weight: 500; }
+  .franja { border-radius: 8px; padding: 10px 12px; margin: 8px 0; border: 1px solid; font-weight: 500; overflow-wrap: anywhere; }
   .franja.mal { background: var(--mal-fondo); color: var(--mal); border-color: var(--mal); }
   .franja.ok { background: var(--ok-fondo); color: var(--ok); border-color: var(--ok); }
   .franja.aviso { background: var(--aviso-fondo); color: var(--aviso); border-color: var(--aviso); }
@@ -32,7 +32,7 @@
   /* sombras en el borde que tenga más tabla por deslizar (truco de fondos local/scroll) */
   .tabla { overflow-x: auto; background: linear-gradient(to right, var(--tarjeta) 30%, transparent) left / 40px 100% no-repeat local, linear-gradient(to left, var(--tarjeta) 30%, transparent) right / 40px 100% no-repeat local, radial-gradient(farthest-side at 0 50%, var(--sombra), transparent) left / 12px 100% no-repeat scroll, radial-gradient(farthest-side at 100% 50%, var(--sombra), transparent) right / 12px 100% no-repeat scroll; }
   #aviso { position: sticky; top: 0; z-index: 5; }
-  #app.viejo { opacity: .7; }
+  #app.viejo { opacity: .9; } /* con .9 el texto suave sigue a ≥ 4,5:1 en claro y oscuro (lo calcula un test) */
   table { border-collapse: collapse; width: 100%; font-size: .9rem; }
   th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--linea); vertical-align: top; }
   th { color: var(--suave); font-weight: 600; white-space: nowrap; }
@@ -46,30 +46,31 @@
   /* v1: lo nuevo son listas apiladas (nada de tablas anchas); el color siempre va con una forma y una palabra */
   main { overflow-anchor: none; } /* el scroll se compensa a mano al entrar filas por arriba */
   .vivo { white-space: nowrap; font-weight: 600; }
-  .ok { color: var(--ok); } .aviso { color: var(--aviso); } .mal { color: var(--mal); } .gris { color: var(--gris); } .suave { color: var(--suave); }
+  .ok { color: var(--ok); } .aviso { color: var(--aviso); } .mal { color: var(--mal); } .gris, .inactivo { color: var(--gris); } .suave { color: var(--suave); }
   .forma { display: inline-block; min-width: 1.2em; text-align: center; font-weight: 700; }
   .semaforo { padding: 10px 12px; }
   .luces { display: flex; flex-wrap: wrap; gap: 8px; }
   .lampara { flex: 1 1 220px; border: 1px solid; border-radius: 8px; padding: 8px 10px; display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: baseline; }
   .lampara.ok { background: var(--ok-fondo); border-color: var(--ok); } .lampara.aviso { background: var(--aviso-fondo); border-color: var(--aviso); }
-  .lampara.mal { background: var(--mal-fondo); border-color: var(--mal); } .lampara.gris { background: var(--gris-fondo); border-color: var(--gris); }
+  .lampara.mal { background: var(--mal-fondo); border-color: var(--mal); } .lampara.gris, .lampara.inactivo { background: var(--gris-fondo); border-color: var(--gris); }
   .lampara .titulo { font-weight: 700; } .lampara .estado { font-weight: 600; } .lampara .detalle { color: var(--texto); flex-basis: 100%; font-size: .9rem; }
   ul.directo, ul.ramas { list-style: none; margin: 6px 0 0; padding: 0; }
   .fila { display: flex; flex-wrap: wrap; gap: 0 8px; padding: 5px 6px; border-bottom: 1px solid var(--linea); border-left: 4px solid transparent; align-items: baseline; }
   .fila.enlazada { border-left-color: currentColor; background: var(--fondo); }
   .fila .hora { font-variant-numeric: tabular-nums; color: var(--suave); }
   .fila .tipo { font-weight: 600; } .fila .detalle { color: var(--texto); overflow-wrap: anywhere; flex: 1 1 14em; }
-  .crono { font-variant-numeric: tabular-nums; font-weight: 700; }
+  .crono { font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; display: inline-block; min-width: 5em; }
   .rama { padding: 8px 0; border-bottom: 1px solid var(--linea); }
   .rama-cab { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px; }
   .rama-tot { font-variant-numeric: tabular-nums; color: var(--suave); }
   .marcas { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
-  .marca { border: 1px solid currentColor; border-radius: 6px; padding: 1px 6px; display: inline-flex; gap: 4px; align-items: baseline; min-width: 2em; justify-content: center; }
+  .marca { border: 1px solid currentColor; border-radius: 6px; padding: 1px 6px; display: inline-flex; flex-direction: column; align-items: center; min-width: 2em; justify-content: center; }
+  .mini { font-size: .75rem; color: var(--texto); font-variant-numeric: tabular-nums; white-space: nowrap; }
   .marca.antigua { border-style: dashed; opacity: .75; }
   .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .reparto { font-weight: 700; font-size: 1.05rem; }
   .grafico svg { width: 100%; max-width: 560px; height: auto; display: block; }
-  .grafico text { fill: var(--texto); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .grafico text { fill: var(--texto); font-size: 12px; font-variant-numeric: tabular-nums; }
   .leyenda { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 8px 0; }
   .sw { display: inline-block; width: 18px; height: 12px; margin-right: 6px; vertical-align: -1px; border: 1px solid var(--linea); }
   .sw-jueces { background: repeating-linear-gradient(45deg, var(--c-jueces) 0 3px, var(--tarjeta) 3px 5px); }
@@ -144,7 +145,6 @@ const textoLectura = (d) => `Lectura: ${msTexto(d.lecturaMs)}${d.ficheros.total 
 function pintarEstado(d) {
   const e = d.estado;
   const s = el("section", "", el("h2", "", "Estado"));
-  if (d.errores.length) s.append(franja("mal", "No se pudo leer algo: lo que depende de ello sale como «sin dato», no como 0.", d.errores.map((x) => `${x.fuente}: ${x.fichero} — ${x.motivo}`)));
   const c = e.copia;
   if (c === null) s.append(franja("aviso", "No se pudo comparar la copia instalada con el repo (mira los errores de arriba)."));
   else if (c.ok) s.append(franja("ok", "Copia instalada = repo (hooks y lib idénticos por hash)."));
@@ -273,7 +273,7 @@ function pintarPie(d) {
 }
 
 // ---- v1: semáforo, En directo y rondas por tarea. Nada se calcula aquí: el nivel, las listas y el null de una fuente caída vienen del servidor ----
-const NIVEL = { ok: ["●", "bien"], aviso: ["▲", "atención"], mal: ["■", "mal"], gris: ["◌", "sin dato"] }; // la forma y la palabra, además del color
+const NIVEL = { ok: ["●", "bien"], aviso: ["▲", "atención"], mal: ["■", "mal"], gris: ["◌", "sin dato"], inactivo: ["◌", "inactivo"] }; // la forma y la palabra, además del color
 const VEREDICTO = { pasa: ["✔", "ok", "pasa"], no_pasa: ["✖", "mal", "no pasa"], no_se: ["?", "aviso", "no sé"], sin_veredicto: ["⚠", "gris", "ilegible"] };
 const horaMadrid = (() => {
   const f = new Intl.DateTimeFormat("es-ES", { timeZone: "Europe/Madrid", hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" });
@@ -291,7 +291,12 @@ function lampara(titulo, nivel, ...detalle) {
   const k = nivel ?? "gris"; // una lámpara sin dato nunca es verde
   return el("div", "lampara " + k, el("span", "forma", NIVEL[k][0]), el("span", "titulo", titulo), el("span", "estado", NIVEL[k][1]), nivel ? el("span", "detalle", ...detalle) : null);
 }
+// Lo primero que se ve: si algo no se pudo leer, la franja roja está aquí (y «ver franja roja» apunta a ella)
+const franjaErrores = (d) => (d.errores.length ? franja("mal", "No se pudo leer algo: lo que depende de ello sale como «sin dato», no como 0.", d.errores.map((x) => `${x.fuente}: ${x.fichero} — ${x.motivo}`)) : null);
 function pintarSemaforo(d) {
+  return [franjaErrores(d), ...luces(d)].filter(Boolean);
+}
+function luces(d) {
   const s = d.semaforo;
   const h = s.hooksVivos;
   const b = s.bloqueosHoy;
@@ -302,7 +307,7 @@ function pintarSemaforo(d) {
       "luces",
       lampara("Hooks vivos", h?.nivel, ...(h ? [h.ultimo ? ["último evento ", haceEl(h.ultimo)] : "ningún evento visto", ` · ${h.copiaOk ? "copia = repo" : "copia ≠ repo"}`].flat() : [])),
       lampara("Bloqueos hoy", b?.nivel, ...(b ? [`${b.total} ${b.total === 1 ? "bloqueo" : "bloqueos"} desde las 00:00 (${b.identificados} con hook identificado)`] : [])),
-      lampara("Rondas abiertas", r?.nivel, ...(r ? [r.n === 0 ? "ninguna" : `${r.n} ${r.n === 1 ? "juez" : "jueces"} sin informe`] : [])),
+      lampara("Rondas abiertas", r?.nivel, ...(r ? [r.n === null ? "sin registro todavía" : r.n === 0 ? "ninguna" : `${r.n} ${r.n === 1 ? "juez" : "jueces"} sin informe`] : [])),
     ),
   ];
 }
@@ -311,8 +316,9 @@ function pintarSemaforo(d) {
 function crearDirecto() {
   const msg = el("p", "vacio");
   const ul = el("ul", "directo");
-  const nodo = el("section", "", el("h2", "", "En directo"), el("p", "suave", "Hora de Madrid. Lo más nuevo, arriba. La forma y la palabra dicen qué pasó; el color solo ayuda."), msg, ul);
-  return { nodo, msg, ul, filas: new Map(), msgTexto: null };
+  const recorte = el("p", "suave");
+  const nodo = el("section", "", el("h2", "", "En directo"), el("p", "suave", "Hora de Madrid. Lo más nuevo, arriba. La forma y la palabra dicen qué pasó; el color solo ayuda."), msg, recorte, ul);
+  return { nodo, msg, recorte, ul, filas: new Map(), msgTexto: null, recorteTexto: null };
 }
 function filaDirecta(ev, informe, lanzado) {
   const enlazada = Boolean(informe || lanzado);
@@ -331,7 +337,7 @@ function filaDirecta(ev, informe, lanzado) {
     [forma, color, tipo] = [v[0], v[1], "Juez informó"];
     detalle = [`${ev.agente ?? "juez"} · ${v[2]}`];
     if (!ev.agentId) detalle.push(" · sin agent_id (dato antiguo)");
-    else if (ev.duracionMs == null) detalle.push(" · duración: sin dato");
+    else if (ev.duracionMs == null) detalle.push(" · sin emparejar con su lanzamiento");
     else detalle.push(` · tardó ${msTexto(ev.duracionMs)}`);
     if (lanzado) detalle.push(` · lanzado a las ${horaMadrid(lanzado.hora)}`);
   } else if (ev.tipo === "hook_bloqueo") {
@@ -350,6 +356,11 @@ function actualizarDirecto(d) {
   if (texto !== z.msgTexto) {
     z.msg.textContent = texto;
     z.msgTexto = texto;
+  }
+  const recorte = ev === null ? "" : [d.eventosOmitidos > 0 ? `Hay ${d.eventosOmitidos} sucesos más antiguos no mostrados (tope de la lista).` : "", d.colaCortada ? "La lectura del final de una transcripción se cortó en su tope: puede haber sucesos sin leer." : ""].filter(Boolean).join(" ");
+  if (recorte !== z.recorteTexto) {
+    z.recorte.textContent = recorte;
+    z.recorteTexto = recorte;
   }
   const lista = ev ?? [];
   // lo que une un juez lanzado con su informe (mismo agent_id)
@@ -397,6 +408,7 @@ function actualizarDirecto(d) {
 
 // el coste de la ronda: de la transcripción del juez con ese agent_id; sin transcripción es «sin dato», nunca 0
 const costeMarca = (m) => (m.tokens == null ? "coste: sin dato" : m.costeUSD == null ? `${fTok(m.tokens)} tokens · sin precio` : `${fTok(m.tokens)} tokens · ≈ ${fUsd(m.costeUSD)}${m.tokensSinPrecio > 0 ? " (mínimo)" : ""}`);
+const ABREV = { revisor: "rev", evaluador: "eval", qa: "qa", seguridad: "seg", "auditor-datos": "aud" };
 function marca(m) {
   let forma, color, texto;
   if (m.veredicto === "lanzado") {
@@ -404,10 +416,10 @@ function marca(m) {
   } else {
     const v = VEREDICTO[m.veredicto] ?? VEREDICTO.sin_veredicto;
     [forma, color] = [v[0], v[1]];
-    texto = v[2] + (m.ms != null ? ` · tardó ${msTexto(m.ms)}` : m.fiable ? " · duración: sin dato" : "") + ` · ${costeMarca(m)}`;
+    texto = v[2] + (m.ms != null ? ` · tardó ${msTexto(m.ms)}` : m.fiable ? " · sin emparejar con su lanzamiento" : "") + ` · ${costeMarca(m)}`;
   }
   const completo = `${m.agente} · ${texto}${m.fiable ? "" : " · dato antiguo, no fiable"}`;
-  const e = el("span", `marca ${color}${m.fiable ? "" : " antigua"}`, el("span", "forma", forma), m.veredicto === "lanzado" && m.abierta ? crono(m.ts) : null, el("span", "sr", completo));
+  const e = el("span", `marca ${color}${m.fiable ? "" : " antigua"}`, el("span", "forma", forma), el("span", "mini", ABREV[m.agente] ?? m.agente, " · ", m.veredicto === "lanzado" ? (m.abierta ? crono(m.ts) : "sin informe") : `${m.ms != null ? msTexto(m.ms) : "—"} · ${m.costeUSD != null ? fUsd(m.costeUSD) : m.tokens != null ? "sin precio" : "sin dato"}`), el("span", "sr", completo));
   e.title = completo;
   return e;
 }
@@ -427,12 +439,13 @@ function pintarRondas(d) {
           "rama",
           el("div", "rama-cab", el("code", "", r.rama), el("span", "rama-tot", `${fNum(r.rondas)} ${r.rondas === 1 ? "ronda" : "rondas"} · ${fMs(r.tiempoMs)} en jueces`)),
           el("div", "marcas", ...r.marcas.map(marca)),
-          el("p", "suave", r.tokens == null ? "Jueces de esta rama: coste: sin dato (ninguna ronda con transcripción de juez)." : `Jueces de esta rama: ${r.costeUSD == null ? "coste: sin precio" : `coste ≈ ${fUsd(r.costeUSD)}${r.tokensSinPrecio > 0 ? " (mínimo: modelos sin precio no incluidos)" : ""}`} · ${fTok(r.tokens)} tokens · en ${fNum(r.rondasConCoste)} de ${fNum(r.rondas)} rondas.`),
+          el("p", "suave", r.rondasConCoste == null ? "Jueces de esta rama: coste: sin dato (fuente caída, ver franja roja)." : r.tokens == null ? "Jueces de esta rama: coste: sin transcripción de juez en ninguna de sus rondas." : `Jueces de esta rama: ${r.costeUSD == null ? "coste: sin precio" : `coste ≈ ${fUsd(r.costeUSD)}${r.tokensSinPrecio > 0 ? " (mínimo: modelos sin precio no incluidos)" : ""}`} · ${fTok(r.tokens)} tokens · en ${fNum(r.rondasConCoste)} de ${fNum(r.rondas)} rondas.`),
           r.masMarcas ? el("p", "suave", `${r.masMarcas} marcas más antiguas no se enseñan (el total de rondas las cuenta).`) : null,
           antiguas ? el("p", "suave", `${antiguas} ${antiguas === 1 ? "marca" : "marcas"} de dato antiguo, no fiable (sin agent_id: la versión vieja del hook).`) : null,
         );
       }),
     ),
+    d.masRamas > 0 ? el("p", "suave", `${d.masRamas} ramas más no se enseñan (solo las ${d.ramas.length} más recientes).`) : null,
   ];
 }
 
@@ -470,7 +483,7 @@ function grafico(dias) {
       x += w;
       return r;
     });
-    return [svgEl("text", { x: 0, y: y + 15 }, fDia(d.dia)), ...segs, svgEl("text", { x: x + 4, y: y + 15 }, d.total.costeUSD === null ? "sin precio" : fUsd(d.total.costeUSD) + (d.total.tokensSinPrecio > 0 ? " (mín.)" : ""))];
+    return [svgEl("text", { x: 0, y: y + 15 }, fDia(d.dia) + (d.parcial ? "*" : "")), ...segs, svgEl("text", { x: x + 4, y: y + 15 }, d.total.costeUSD === null ? "sin precio" : fUsd(d.total.costeUSD) + (d.total.tokensSinPrecio > 0 ? " (mín.)" : ""))];
   });
   const e = svgEl("svg", { viewBox: `0 0 ${ancho} ${dias.length * ALTO + 4}`, role: "img", "aria-label": "Coste estimado por día, barras apiladas: jueces, constructores y otros, sesión principal. La tabla de debajo trae los mismos números." }, svgEl("defs", {}, patron("jueces"), patron("otros"), patron("principal")), ...filas);
   return el("div", "grafico", e);
@@ -493,16 +506,19 @@ function pintarCoste(d) {
   const rc = c.repartoCoste;
   const rt = c.repartoTokens;
   sal.push(el("div", "cifras", ...CATEGORIAS.map(([k, nombre]) => el("div", "reparto", `${nombre} ${rc ? fPct(rc[k]) : "sin precio"}`))));
+  if (c.subagentesSinTipo > 0) sal.push(el("p", "suave", `${c.subagentesSinTipo} ${c.subagentesSinTipo === 1 ? "subagente" : "subagentes"} sin tipo: el % de jueces es un mínimo.`));
   sal.push(el("p", "suave", `Reparto del coste estimado. Reparto por tokens: ${rt ? CATEGORIAS.map(([k, nombre]) => `${nombre} ${fPct(rt[k])}`).join(" · ") : SD}.`));
   const minimo = c.total.total.tokensSinPrecio > 0 || Boolean(c.modelosSinPrecio?.length);
-  sal.push(el("p", "", `Total de los últimos ${d.dias} días: ${textoCubo(c.total.total)}${minimo && c.total.total.costeUSD !== null ? " — mínimo (modelos sin precio no incluidos)" : ""}.`));
+  sal.push(el("p", "", `Total de los últimos ${d.dias} días: ${textoCubo(minimo && c.total.total.costeUSD !== null ? { ...c.total.total, tokensSinPrecio: 0 } : c.total.total)}${minimo && c.total.total.costeUSD !== null ? " — mínimo (modelos sin precio no incluidos)" : ""}.`));
   if (c.modelosSinPrecio?.length) sal.push(el("p", "suave", `Modelos sin precio (edita precios.json): ${c.modelosSinPrecio.join(", ")}.`));
   sal.push(c.precios && c.porDia.some((x) => x.total.costeUSD !== null) ? el("div", "", el("div", "leyenda", ...CATEGORIAS.map(([k, nombre]) => el("span", "", el("span", "sw sw-" + k), nombre))), grafico(c.porDia)) : el("p", "vacio", "No se dibuja el gráfico: sin precios no hay coste que comparar (la tabla trae los tokens)."));
-  const cols = [{ t: "Día", v: (x) => fDia(x.dia) }, ...CATEGORIAS.map(([k, nombre]) => ({ t: nombre, v: (x) => textoCubo(x[k]) })), { t: "Total", v: (x) => textoCubo(x.total) }];
+  const cols = [{ t: "Día", v: (x) => fDia(x.dia) + (x.parcial ? " (parcial)" : "") }, { t: "Total", v: (x) => textoCubo(x.total) }, ...CATEGORIAS.map(([k, nombre]) => ({ t: nombre, v: (x) => textoCubo(x[k]) }))]; // «Total» justo tras el día: a 375 px es lo que se ve sin deslizar
   sal.push(tablaCon("Coste estimado por día", cols, c.porDia));
-  const dato = [{ t: "Tokens", n: true, v: (x) => fTok(x.total.tokens) }, { t: "Coste estimado", n: true, v: (x) => (x.total.costeUSD === null ? "sin precio" : textoCoste(x.total)) }, { t: "% jueces", n: true, v: (x) => (x.pctJueces == null ? fPct(null) : (x.total.tokensSinPrecio > 0 ? "≥ " : "") + fPct(x.pctJueces)) }]; // con modelos sin precio es un mínimo
-  sal.push(tablaCon(`Por sesión (las ${c.porSesion.length} últimas)`, [{ t: "Sesión", v: (x) => el("code", "", x.sesion) }, { t: "Rama", v: (x) => x.rama ?? "—" }, ...dato], c.porSesion));
-  sal.push(tablaCon("Por rama (la de la sesión padre)", [{ t: "Rama", v: (x) => x.rama ?? "—" }, ...dato], c.porRama));
+  if (c.porDia.some((x) => x.parcial)) sal.push(el("p", "suave", "* El primer día es parcial: la ventana empieza a media jornada."));
+  const dato = [{ t: "Coste estimado", n: true, v: (x) => (x.total.costeUSD === null ? "sin precio" : textoCoste(x.total)) }, { t: "Tokens", n: true, v: (x) => fTok(x.total.tokens) }];
+  const pct = { t: "% jueces", n: true, v: (x) => (x.pctJueces == null ? fPct(null) : (x.total.tokensSinPrecio > 0 ? "≥ " : "") + fPct(x.pctJueces)) }; // con modelos sin precio es un mínimo
+  sal.push(tablaCon(`Por sesión (${c.porSesion.length === 1 ? "la última" : `las ${c.porSesion.length} últimas`})`, [{ t: "Sesión", v: (x) => el("code", "", x.sesion) }, pct, ...dato, { t: "Rama", v: (x) => x.rama ?? "—" }], c.porSesion));
+  sal.push(tablaCon("Por rama (la de la sesión padre)", [{ t: "Rama", v: (x) => x.rama ?? "—" }, pct, ...dato], c.porRama));
   sal.push(el("p", "suave", "Cuenta los mensajes del asistente una vez (por id), de la sesión principal y de cada subagente (ficheros subagents/). Un mensaje de un modelo sin precio da sus tokens y «sin precio». No usa el coste de las fotos (cost-state)."));
   return sal;
 }
@@ -535,18 +551,19 @@ const claves = { sem: null, ron: null, cos: null, resto: null };
 let saltados = 0;
 const vivo = document.getElementById("vivo");
 let vivoTs = null;
+let pausado = false; // hay texto seleccionado: la pantalla espera (y lo dice)
 function marcarVivo(ok, generado) {
   if (generado) vivoTs = generado;
   const forma = ok ? "●" : "■";
   vivo.className = "vivo " + (ok ? "ok" : "mal");
-  vivo.replaceChildren(el("span", "forma", forma), ok ? " en vivo · actualizado " : " sin conexión · último dato ", vivoTs ? haceEl(vivoTs) : "");
+  vivo.replaceChildren(el("span", "forma", forma), ok ? " en vivo · actualizado " : " sin conexión · último dato ", vivoTs ? haceEl(vivoTs) : "", pausado ? " · pausado mientras hay texto seleccionado" : "");
 }
 function mostrar(d) {
   const { generado, lecturaMs, proceso, ficheros, semaforo, eventos, ramas, coste, ...resto } = d; // lo volátil queda fuera de la comparación
   if (!zonas.sem) crearZonas();
   actualizarDirecto(d); // la lista de En directo es incremental: nunca espera
   if (vivoTs === null || !vivo.className.includes("ok") || vivoTs !== generado) marcarVivo(true, generado);
-  const nuevas = { sem: JSON.stringify([semaforo, d.directoMin]), ron: JSON.stringify([ramas, d.dias]), cos: JSON.stringify([coste, d.dias, d.proyectos]), resto: JSON.stringify(resto) };
+  const nuevas = { sem: JSON.stringify([semaforo, d.directoMin, d.errores]), ron: JSON.stringify([ramas, d.dias]), cos: JSON.stringify([coste, d.dias, d.proyectos]), resto: JSON.stringify(resto) };
   const cambian = Object.keys(nuevas).filter((k) => nuevas[k] !== claves[k]);
   if (!cambian.length) {
     if (lineaLectura) lineaLectura.textContent = textoLectura(d);
@@ -554,11 +571,21 @@ function mostrar(d) {
   }
   const sel = window.getSelection();
   // está seleccionando texto: se espera a que acabe, pero como mucho 6 ciclos (30 s)
-  if (sel && !sel.isCollapsed && app.contains(sel.anchorNode) && ++saltados < 6) return;
+  if (sel && !sel.isCollapsed && app.contains(sel.anchorNode) && ++saltados < 6) {
+    if (!pausado) {
+      pausado = true;
+      marcarVivo(true);
+    }
+    return;
+  }
+  if (pausado) {
+    pausado = false;
+    marcarVivo(true);
+  }
   saltados = 0;
   for (const k of cambian) claves[k] = nuevas[k];
   if (cambian.includes("sem")) zonas.sem.replaceChildren(...pintarSemaforo(d));
-  if (cambian.includes("ron")) zonas.ron.replaceChildren(...pintarRondas(d));
+  if (cambian.includes("ron")) zonas.ron.replaceChildren(...pintarRondas(d).filter(Boolean));
   if (cambian.includes("cos")) zonas.cos.replaceChildren(...pintarCoste(d));
   if (cambian.includes("resto")) pintarResto(d);
 }
@@ -592,7 +619,7 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden) carg
 // «hace N s» y los temporizadores de los jueces en marcha siguen contando en el navegador aunque no lleguen datos nuevos
 setInterval(() => {
   document.querySelectorAll("[data-ts]").forEach((n) => (n.textContent = hace(n.dataset.ts)));
-  document.querySelectorAll("[data-desde]").forEach((n) => (n.textContent = hasta(n.dataset.desde)));
+  if (!vivo.className.includes("mal")) document.querySelectorAll("[data-desde]").forEach((n) => (n.textContent = hasta(n.dataset.desde))); // sin conexión no se cuenta como si nada
 }, 1000);
 </script>
 </body>
