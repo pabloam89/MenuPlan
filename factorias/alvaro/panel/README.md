@@ -42,6 +42,18 @@ y la página lo dice en la cabecera del coste y en el pie.
   Un test recorre el JSON hoja a hoja con cada fuente caída; cada hoja está clasificada por fuente en una lista cerrada, así que un campo nuevo dentro de un grupo ya conocido o en uno nuevo hace fallar el test («hoja sin clasificar») hasta que se clasifique y se enmascare.
   «Sin actividad en los últimos 30 min» (lista vacía) no es lo mismo que «sin dato en directo» (fuente caída).
 
+## Qué decide cada cosa (reglas que se pueden discutir)
+
+- **Hooks vivos**: verde con actividad en los últimos 10 min. **La inactividad no es un fallo**: sale «inactivo» (◌, neutro), nunca ámbar ni rojo. Rojo solo si la copia instalada no es la del repo; gris «sin dato» si una fuente falló.
+- **Rondas**: cada juez deja varios apuntes con el mismo `agent_id`; manda la misma regla que el hook de cierre (`reglas.mjs`, `evaluar`): un «no pasa» domina, si no el último concluyente, y «ilegible» solo si no hay ninguno. Un test compara las dos implementaciones.
+- **Emparejar** un lanzado con su informe solo si pasaron 2 h como mucho (`RONDA_ABIERTA_MAX_MS`, inclusive); si no, el informe sale «sin emparejar con su lanzamiento» y no suma al tiempo en jueces.
+- **Rondas abiertas** sin carpeta de registro: gris «sin registro todavía», no un verde de «0».
+- **Lo recortado se dice**: «Hay N sucesos más antiguos no mostrados» (tope de la lista), «se cortó en su tope» (lectura del final de una transcripción, 8 MB), «N ramas más», «primer día parcial».
+- **Un fichero sustituido** (otro inodo o fecha de creación) por otro más grande se relee desde el principio.
+- **Subagentes sin tipo** (sin meta, meta roto o sin `agentType`) se cuentan junto al reparto: «N subagentes sin tipo: el % de jueces es un mínimo». Que `subagents/` no se pueda leer (también si es un fichero) es un error de la fuente `subagentes`.
+- La franja roja de errores de lectura es lo primero que se ve. Con texto seleccionado la pantalla se pausa y lo dice; sin conexión, los cronómetros no siguen contando.
+- Cabeceras: `frame-ancestors 'none'` y `X-Frame-Options: DENY`.
+
 ## De dónde salen los datos
 
 - `~/.claude/projects/<proyecto>/*.jsonl`: las transcripciones principales (cada una se cachea por fecha y tamaño: si cambia se relee entera).
@@ -65,7 +77,7 @@ y la página lo dice en la cabecera del coste y en el pie.
 - **`cost-state` es una foto esporádica de Claude Code, no un contador final**: hay sesiones sin ninguna y con la foto vacía (sale «sin dato»). Si su duración supera la vida observada de la sesión + 10 min, el total sale «total no fiable» (la API y las herramientas se conservan). Los tiempos son mínimos.
   **No se sabe** qué cuenta exactamente `totalDuration` ni si una sesión reanudada hereda la duración.
 - **Navegador:** la v1 solo se ha visto en un Edge sin interfaz (captura a 375 px y a 1100 px, con datos reales); **no** en móvil físico, Safari ni Firefox, y sin comprobar a ojo el modo oscuro ni el scroll real con filas nuevas. La lógica JS tiene test con un navegador simulado; el aspecto, la franja fija, las sombras de desplazamiento y el atenuado no tienen test automático.
-- **Primera lectura en frío**: con el filtro por defecto (53 ficheros de subagentes, 51 MB esta semana) tarda ~0,4 s; con `PANEL_PROYECTOS=todos` (71 ficheros, 320 MB) ~1,2 s; después, con caché, decenas de ms.
+- **Primera lectura en frío**: con el filtro por defecto (48 ficheros de subagentes, 48 MB esta semana) tarda ~0,3 s; con `PANEL_PROYECTOS=todos` (66 ficheros, 317 MB) ~1,3 s; después, con caché, decenas de ms.
 - **Retraso real de las transcripciones**: no se sabe cuánto tarda Claude Code en escribir cada línea; «En directo» enseña lo que ya está escrito.
 - Que un cierre con `hookErrors` es siempre un bloqueo (no un error no bloqueante) es una suposición: en los datos de esta máquina cada uno iba con su adjunto `hook_blocking_error`.
 - Un juez «lanzado» sin informe de hace más de 2 h ya no cuenta como ronda abierta (constante `RONDA_ABIERTA_MAX_MS`): es una decisión mía, no una medida.
