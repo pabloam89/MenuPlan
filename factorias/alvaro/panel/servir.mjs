@@ -15,10 +15,23 @@ import { dirname, join } from "node:path";
 import { createInterface } from "node:readline";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { FUENTES, agregar, compararCopias, leerDeclarados, nuevoResumen, parsearRegistro, procesarLinea } from "./lib/leer.mjs";
+import { FUENTES, VENTANA_DIRECTO_MS, agregar, compararCopias, leerDeclarados, limpio, nuevoResumen, parsearRegistro, procesarLinea, validarPrecios } from "./lib/leer.mjs";
 
 const aqui = dirname(fileURLToPath(import.meta.url));
 const HOST = "127.0.0.1";
+// Qué carpetas de ~/.claude/projects se miran: las que contienen alguno de estos textos (sin mirar mayúsculas). Es la factoría de MenuPlan:
+// el coste de «¿compensa tanto juez?» no puede mezclar otros proyectos. PANEL_PROYECTOS=a,b lo cambia y «todos» lo desactiva.
+export const PROYECTOS = ["menuplan"];
+export function filtroDe(texto) {
+  const t = String(texto ?? "").trim().toLowerCase();
+  if (t === "todos") return null;
+  const lista = t.split(",").map((x) => x.trim()).filter(Boolean);
+  return lista.length ? lista : PROYECTOS;
+}
+// «En directo»: de una transcripción con cambios recientes se lee primero el final, de este tamaño, y se amplía hacia atrás solo si hace falta
+const PASO_COLA = 256 * 1024;
+// ...y sin pasar de este tope hacia atrás aunque no encuentre una línea anterior a la ventana (no se lee un fichero entero)
+const MAX_COLA = 8 * 1024 * 1024;
 
 // El mensaje de Node ya empieza por el código (ENOENT: …): no se repite. Un JSON roto no enseña su texto
 // (el mensaje de Node cita trozos del fichero, que puede ser privado): solo la posición del error, si la hay.
@@ -39,15 +52,20 @@ async function hashes(dir, prefijo) {
   return sal;
 }
 
-/** cfg: { home, repoAlvaro, dias, dirRegistro, crearLector, alLeer } (todo opcional). */
+/** cfg: { home, repoAlvaro, dias, dirRegistro, rutaPrecios, proyectos, maxCola, crearLector, alLeer, alLeerDirecto } (todo opcional). */
 export function crearRecolector(cfg = {}) {
   const home = cfg.home ?? homedir();
   const repoAlvaro = cfg.repoAlvaro ?? join(aqui, "..");
   const dias = cfg.dias ?? 7;
   const claude = join(home, ".claude");
   const dirRegistro = cfg.dirRegistro ?? join(claude, "factoria-alvaro");
+  const rutaPrecios = cfg.rutaPrecios ?? join(aqui, "precios.json");
   const crearLector = cfg.crearLector ?? createReadStream;
+  const maxCola = cfg.maxCola ?? MAX_COLA;
+  const filtro = filtroDe(cfg.proyectos);
   const cacheTr = new Map(); // ruta → { mtimeMs, size, valor }
+  const cacheSub = new Map(); // ruta del agent-<id>.jsonl → { mtimeMs, size, valor: { resumen, tipo } }
+  const cacheDirecto = new Map(); // ruta → { pos: hasta dónde se ha leído (siempre al final de una línea completa), r: resumen solo con lo reciente }
   let enCurso = null;
 
   // Un fichero solo se vuelve a leer, entero, si cambió su fecha o su tamaño.
@@ -73,17 +91,96 @@ export function crearRecolector(cfg = {}) {
     return r;
   }
 
-  async function transcripciones(corte, errores) {
-    const raiz = join(claude, "projects");
-    const sal = [];
-    const vistos = new Set();
-    let carpetas;
+  // Lee [desde, hasta) de un fichero. El tramo nunca se lee con el lector de la lectura entera: así se ve cuánto cuesta «En directo».
+  async function leerTramo(ruta, desde, hasta) {
+    const trozos = [];
+    for await (const t of crearLector(ruta, { start: desde, end: hasta - 1 })) trozos.push(t);
+    const buf = Buffer.concat(trozos);
+    cfg.alLeerDirecto?.(ruta, buf.length);
+    return buf;
+  }
+
+  // El final del fichero, ampliado hacia atrás hasta que su primera línea completa sea anterior a la ventana (o se llegue al principio).
+  // Devuelve { desde, buf }: buf empieza en el byte `desde`, que puede ser mitad de una línea.
+  async function colaReciente(ruta, size, corteTs) {
+    let desde = size;
+    let buf = Buffer.alloc(0);
+    while (desde > 0 && buf.length < maxCola) {
+      const nuevo = Math.max(0, desde - Math.min(Math.max(PASO_COLA, buf.length), maxCola - buf.length)); // el tramo se duplica en cada vuelta, hasta el tope
+      buf = Buffer.concat([await leerTramo(ruta, nuevo, desde), buf]);
+      desde = nuevo;
+      if (desde === 0) break;
+      const ini = buf.indexOf(0x0a) + 1; // la primera línea puede estar cortada: se salta
+      if (ini === 0) continue;
+      for (const m of buf.toString("utf8", ini).matchAll(/"timestamp":"([^"]+)"/g)) {
+        const ts = Date.parse(m[1]);
+        if (Number.isFinite(ts)) {
+          if (ts < corteTs) return { desde, buf };
+          break; // la primera línea con hora ya es de dentro de la ventana: hay que ir más atrás
+        }
+      }
+    }
+    return { desde, buf, cortada: desde > 0 }; // se paró en el tope sin ver el principio de la ventana
+  }
+
+  // Los sucesos recientes de UNA transcripción. Lectura inicial: solo el final. Después: solo los bytes añadidos desde la última vez.
+  async function directo(ruta, st, ahora) {
+    const corte = ahora - VENTANA_DIRECTO_MS;
+    let c = cacheDirecto.get(ruta);
+    // un fichero reescrito más corto, o sustituido por otro (otro inodo o fecha de creación), se lee de cero
+    if (c && (st.size < c.pos || c.ino !== st.ino || c.birth !== st.birthtimeMs)) c = undefined;
     try {
-      carpetas = await readdir(raiz);
+      if (!c) {
+        c = { pos: 0, ino: st.ino, birth: st.birthtimeMs, r: nuevoResumen() };
+        const { desde, buf, cortada } = await colaReciente(ruta, st.size, corte);
+        c.r.colaCortada = cortada;
+        alimentar(c, buf, desde, desde > 0);
+      } else if (st.size > c.pos) {
+        alimentar(c, await leerTramo(ruta, c.pos, st.size), c.pos, false);
+      }
+    } catch (e) {
+      cacheDirecto.delete(ruta); // un fallo no deja una lectura a medias
+      throw e;
+    }
+    cacheDirecto.set(ruta, c);
+    return c.r;
+  }
+
+  // Procesa las líneas COMPLETAS de buf (que empieza en el byte `desde`); la última, si no acabó, se deja para la próxima vez.
+  function alimentar(c, buf, desde, saltarPrimera) {
+    const fin = buf.lastIndexOf(0x0a);
+    const ini = saltarPrimera ? buf.indexOf(0x0a) + 1 : 0;
+    if (fin >= 0 && ini <= fin) for (const l of buf.toString("utf8", ini, fin).split("\n")) procesarLinea(c.r, l);
+    c.pos = fin < 0 ? desde : desde + fin + 1; // sin ninguna línea entera, la próxima vez se empieza donde se empezó
+  }
+
+  // Lo que ya salió de la ventana se olvida: el resumen de un fichero activo no crece sin fin
+  function podar(r, corte) {
+    for (const m of [r.hooks, r.bloqueos, r.msgs, r.agentes, r.cierres]) for (const [k, v] of m) if (!(v.ts >= corte)) m.delete(k);
+  }
+
+  // El ÚNICO sitio donde se listan las carpetas de proyecto y se aplica el filtro: todas las lecturas parten de aquí.
+  // Del resto de proyectos solo se cuenta cuántos hay: sus nombres no salen.
+  async function proyectos(errores) {
+    const raiz = join(claude, "projects");
+    const texto = filtro ? filtro.join(", ") : "todos";
+    let todas;
+    try {
+      todas = (await readdir(raiz, { withFileTypes: true })).filter((x) => x.isDirectory()).map((x) => x.name);
     } catch (e) {
       errores.push({ fichero: raiz, motivo: motivo(e) });
-      return sal;
+      return { carpetas: [], resumen: { filtro: texto, incluidos: 0, excluidos: 0 } };
     }
+    const dentro = todas.filter((n) => !filtro || filtro.some((f) => n.toLowerCase().includes(f)));
+    return { carpetas: dentro, resumen: { filtro: texto, incluidos: dentro.length, excluidos: todas.length - dentro.length } };
+  }
+
+  async function transcripciones(corte, errores, ahora, carpetas) {
+    const raiz = join(claude, "projects");
+    const sal = [];
+    const directos = [];
+    const vistos = new Set();
+    const vistosDirecto = new Set();
     for (const carpeta of carpetas) {
       let nombres;
       try {
@@ -99,13 +196,83 @@ export function crearRecolector(cfg = {}) {
           if (st.mtimeMs < corte) continue;
           vistos.add(ruta);
           sal.push({ ruta, mtimeMs: st.mtimeMs, resumen: await cacheado(cacheTr, ruta, st, leerTranscripcion) });
+          if (st.mtimeMs >= ahora - VENTANA_DIRECTO_MS) {
+            vistosDirecto.add(ruta);
+            directos.push(await directo(ruta, st, ahora));
+          }
         } catch (e) {
           errores.push({ fichero: ruta, motivo: motivo(e) });
         }
       }
     }
     purgar(cacheTr, vistos);
+    purgar(cacheDirecto, vistosDirecto);
+    for (const { r } of cacheDirecto.values()) podar(r, ahora - VENTANA_DIRECTO_MS);
+    return { ficheros: sal, directos };
+  }
+
+  // Los subagentes: <proyecto>/<sesion>/subagents/agent-<id>.jsonl (+ agent-<id>.meta.json, de donde SOLO se toma agentType).
+  // Solo importan las líneas con «usage» (las del asistente): el resto, que es casi todo el peso, ni se interpreta.
+  async function leerSubagente(ruta) {
+    const r = nuevoResumen();
+    for await (const l of createInterface({ input: crearLector(ruta), crlfDelay: Infinity })) if (l.includes('"usage"')) procesarLinea(r, l);
+    let tipo = null; // sin meta, o con un meta ilegible: tipo desconocido (no un error)
+    try {
+      const meta = JSON.parse(await readFile(ruta.replace(/\.jsonl$/, ".meta.json"), "utf8"));
+      tipo = typeof meta?.agentType === "string" ? limpio(meta.agentType) : null; // description, prompt y lo demás: ni se guardan
+    } catch {
+      /* tipo desconocido */
+    }
+    return { resumen: r, tipo };
+  }
+
+  async function subagentes(corte, errores, carpetas) {
+    const raiz = join(claude, "projects");
+    const sal = [];
+    const vistos = new Set();
+    for (const proyecto of carpetas) {
+      let entradas;
+      try {
+        entradas = await readdir(join(raiz, proyecto), { withFileTypes: true });
+      } catch {
+        continue;
+      }
+      for (const sesion of entradas.filter((x) => x.isDirectory())) {
+        const carpeta = join(raiz, proyecto, sesion.name, "subagents");
+        let nombres;
+        try {
+          nombres = await readdir(carpeta);
+        } catch (e) {
+          if (e.code !== "ENOENT") errores.push({ fichero: carpeta, motivo: motivo(e) }); // sin subagents/ no es un fallo; que subagents/ no se pueda leer, sí
+          continue;
+        }
+        for (const n of nombres) {
+          const id = /^agent-(.+)\.jsonl$/.exec(n)?.[1];
+          if (!id) continue;
+          const ruta = join(carpeta, n);
+          try {
+            const st = await stat(ruta);
+            if (st.mtimeMs < corte) continue;
+            vistos.add(ruta);
+            const { resumen, tipo } = await cacheado(cacheSub, ruta, st, leerSubagente);
+            sal.push({ ruta, agentId: limpio(id), sesionPadre: sesion.name, tipo, resumen });
+          } catch (e) {
+            errores.push({ fichero: ruta, motivo: motivo(e) });
+          }
+        }
+      }
+    }
+    purgar(cacheSub, vistos);
     return sal;
+  }
+
+  async function precios(errores) {
+    try {
+      return validarPrecios(JSON.parse(await readFile(rutaPrecios, "utf8")));
+    } catch (e) {
+      errores.push({ fichero: rutaPrecios, motivo: motivo(e) });
+      return null;
+    }
   }
 
   async function registros(corte, errores) {
@@ -114,7 +281,7 @@ export function crearRecolector(cfg = {}) {
       nombres = await readdir(dirRegistro);
     } catch (e) {
       if (e.code !== "ENOENT") errores.push({ fichero: dirRegistro, motivo: motivo(e) });
-      return []; // sin carpeta de registro todavía: no es un fallo
+      return e.code === "ENOENT" ? null : []; // sin carpeta de registro todavía: no es un fallo, pero tampoco un «0 rondas»
     }
     const sal = []; // el registro son unos KB: se lee entero cada vez, sin caché
     for (const n of nombres.filter((x) => x.endsWith(".jsonl"))) {
@@ -158,13 +325,16 @@ export function crearRecolector(cfg = {}) {
   async function hacer(ahora) {
     const t0 = Date.now();
     // Los errores se recogen por fuente: agregar() deja null lo derivado de cada fuente caída
-    const [eT, eS, eC, eR] = FUENTES.map(() => []);
-    const ficheros = await transcripciones(ahora - dias * 864e5, eT);
+    const [eT, eS, eC, eR, eP, eB] = FUENTES.map(() => []);
+    const proy = await proyectos(eT);
+    const { ficheros, directos } = await transcripciones(ahora - dias * 864e5, eT, ahora, proy.carpetas);
+    const subs = await subagentes(ahora - dias * 864e5, eB, proy.carpetas);
     const regs = await registros(ahora - dias * 864e5, eR);
+    const tarifas = await precios(eP);
     const decl = await declarados(eS);
     const cp = await copia(eC);
-    const errores = [eT, eS, eC, eR].flatMap((lista, i) => lista.map((x) => ({ fuente: FUENTES[i], ...x })));
-    const datos = agregar({ ahora, dias, ficheros, registros: regs, declarados: decl, copia: cp, home, errores });
+    const errores = [eT, eS, eC, eR, eP, eB].flatMap((lista, i) => lista.map((x) => ({ fuente: FUENTES[i], ...x })));
+    const datos = agregar({ ahora, dias, ficheros, directo: directos, subagentes: subs, precios: tarifas, proyectos: proy.resumen, registros: regs ?? [], sinRegistro: regs === null, declarados: decl, copia: cp, home, errores });
     const mem = process.memoryUsage();
     return { generado: new Date(ahora).toISOString(), dias, lecturaMs: Date.now() - t0, proceso: { rssMB: Math.round(mem.rss / 1048576), heapMB: Math.round(mem.heapUsed / 1048576) }, ...datos };
   }
@@ -182,7 +352,8 @@ export function crearServidor(cfg = {}) {
     "Cache-Control": "no-store",
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "no-referrer",
-    "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'self'",
+    "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'",
+    "X-Frame-Options": "DENY",
   });
   return createServer(async (req, res) => {
     const fin = (estado, tipo, cuerpo, extra = {}) => {
@@ -210,7 +381,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     console.error("PANEL_PUERTO tiene que ser un puerto (1-65535) y PANEL_DIAS un número de días mayor que 0.");
     process.exit(1);
   }
-  const srv = crearServidor({ dias, dirRegistro: process.env.FACTORIA_ALVARO_DIR || undefined });
+  const srv = crearServidor({ dias, dirRegistro: process.env.FACTORIA_ALVARO_DIR || undefined, proyectos: process.env.PANEL_PROYECTOS });
   srv.on("error", (e) => {
     console.error(e.code === "EADDRINUSE" ? `El puerto ${puerto} está ocupado: prueba con PANEL_PUERTO=<otro>.` : `No se pudo arrancar: ${e.message}`);
     process.exit(1);

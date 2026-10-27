@@ -7,12 +7,12 @@
 <style>
   :root {
     --fondo: #f6f6f3; --tarjeta: #ffffff; --texto: #1d1d1b; --suave: #5f5f58; --linea: #dcdcd4;
-    --ok: #1f7a3d; --ok-fondo: #e3f3e8; --mal: #b3261e; --mal-fondo: #fbe4e1; --aviso: #8a5a00; --aviso-fondo: #fdf0d2; --sombra: rgba(0,0,0,.3);
+    --ok: #1f7a3d; --ok-fondo: #e3f3e8; --mal: #b3261e; --mal-fondo: #fbe4e1; --aviso: #8a5a00; --aviso-fondo: #fdf0d2; --gris: #5f5f58; --gris-fondo: #ecece6; --c-jueces: #1a56b8; --c-otros: #a14a00; --c-principal: #4b5563; --sombra: rgba(0,0,0,.3);
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --fondo: #151513; --tarjeta: #1f1f1c; --texto: #ecece6; --suave: #a3a39a; --linea: #3a3a35;
-      --ok: #6fd18c; --ok-fondo: #173322; --mal: #ff8a80; --mal-fondo: #3d1b18; --aviso: #f2c25b; --aviso-fondo: #3a2e10; --sombra: rgba(255,255,255,.4);
+      --ok: #6fd18c; --ok-fondo: #173322; --mal: #ff8a80; --mal-fondo: #3d1b18; --aviso: #f2c25b; --aviso-fondo: #3a2e10; --gris: #a3a39a; --gris-fondo: #2b2b27; --c-jueces: #6cb6ff; --c-otros: #f0a35e; --c-principal: #b6bcc6; --sombra: rgba(255,255,255,.4);
     }
   }
   * { box-sizing: border-box; }
@@ -24,7 +24,7 @@
   section { background: var(--tarjeta); border: 1px solid var(--linea); border-radius: 10px; padding: 14px 16px; margin: 14px 0; }
   p, li { margin: 4px 0; }
   .suave { color: var(--suave); font-size: .88rem; }
-  .franja { border-radius: 8px; padding: 10px 12px; margin: 8px 0; border: 1px solid; font-weight: 500; }
+  .franja { border-radius: 8px; padding: 10px 12px; margin: 8px 0; border: 1px solid; font-weight: 500; overflow-wrap: anywhere; }
   .franja.mal { background: var(--mal-fondo); color: var(--mal); border-color: var(--mal); }
   .franja.ok { background: var(--ok-fondo); color: var(--ok); border-color: var(--ok); }
   .franja.aviso { background: var(--aviso-fondo); color: var(--aviso); border-color: var(--aviso); }
@@ -32,7 +32,7 @@
   /* sombras en el borde que tenga más tabla por deslizar (truco de fondos local/scroll) */
   .tabla { overflow-x: auto; background: linear-gradient(to right, var(--tarjeta) 30%, transparent) left / 40px 100% no-repeat local, linear-gradient(to left, var(--tarjeta) 30%, transparent) right / 40px 100% no-repeat local, radial-gradient(farthest-side at 0 50%, var(--sombra), transparent) left / 12px 100% no-repeat scroll, radial-gradient(farthest-side at 100% 50%, var(--sombra), transparent) right / 12px 100% no-repeat scroll; }
   #aviso { position: sticky; top: 0; z-index: 5; }
-  #app.viejo { opacity: .7; }
+  #app.viejo { opacity: .9; } /* con .9 el texto suave sigue a ≥ 4,5:1 en claro y oscuro (lo calcula un test) */
   table { border-collapse: collapse; width: 100%; font-size: .9rem; }
   th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--linea); vertical-align: top; }
   th { color: var(--suave); font-weight: 600; white-space: nowrap; }
@@ -43,12 +43,47 @@
   .cifras { display: flex; flex-wrap: wrap; gap: 6px 24px; margin: 6px 0; }
   .cifras div b { display: block; font-size: 1.2rem; font-variant-numeric: tabular-nums; }
   .vacio { color: var(--suave); font-style: italic; }
+  /* v1: lo nuevo son listas apiladas (nada de tablas anchas); el color siempre va con una forma y una palabra */
+  main { overflow-anchor: none; } /* el scroll se compensa a mano al entrar filas por arriba */
+  .vivo { white-space: nowrap; font-weight: 600; }
+  .ok { color: var(--ok); } .aviso { color: var(--aviso); } .mal { color: var(--mal); } .gris, .inactivo { color: var(--gris); } .suave { color: var(--suave); }
+  .forma { display: inline-block; min-width: 1.2em; text-align: center; font-weight: 700; }
+  .semaforo { padding: 10px 12px; }
+  .luces { display: flex; flex-wrap: wrap; gap: 8px; }
+  .lampara { flex: 1 1 220px; border: 1px solid; border-radius: 8px; padding: 8px 10px; display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: baseline; }
+  .lampara.ok { background: var(--ok-fondo); border-color: var(--ok); } .lampara.aviso { background: var(--aviso-fondo); border-color: var(--aviso); }
+  .lampara.mal { background: var(--mal-fondo); border-color: var(--mal); } .lampara.gris, .lampara.inactivo { background: var(--gris-fondo); border-color: var(--gris); }
+  .lampara .titulo { font-weight: 700; } .lampara .estado { font-weight: 600; } .lampara .detalle { color: var(--texto); flex-basis: 100%; font-size: .9rem; }
+  ul.directo, ul.ramas { list-style: none; margin: 6px 0 0; padding: 0; }
+  .fila { display: flex; flex-wrap: wrap; gap: 0 8px; padding: 5px 6px; border-bottom: 1px solid var(--linea); border-left: 4px solid transparent; align-items: baseline; }
+  .fila.enlazada { border-left-color: currentColor; background: var(--fondo); }
+  .fila .hora { font-variant-numeric: tabular-nums; color: var(--suave); }
+  .fila .tipo { font-weight: 600; } .fila .detalle { color: var(--texto); overflow-wrap: anywhere; flex: 1 1 14em; }
+  .crono { font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; display: inline-block; min-width: 5em; }
+  .rama { padding: 8px 0; border-bottom: 1px solid var(--linea); }
+  .rama-cab { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px; }
+  .rama-tot { font-variant-numeric: tabular-nums; color: var(--suave); }
+  .marcas { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  .marca { border: 1px solid currentColor; border-radius: 6px; padding: 1px 6px; display: inline-flex; flex-direction: column; align-items: center; min-width: 2em; justify-content: center; }
+  .mini { font-size: .75rem; color: var(--texto); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .marca.antigua { border-style: dashed; opacity: .75; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .reparto { font-weight: 700; font-size: 1.05rem; }
+  .grafico svg { width: 100%; max-width: 560px; height: auto; display: block; }
+  .grafico text { fill: var(--texto); font-size: 14px; font-variant-numeric: tabular-nums; }
+  .leyenda { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 8px 0; }
+  .sw { display: inline-block; width: 18px; height: 12px; margin-right: 6px; vertical-align: -1px; border: 1px solid var(--linea); }
+  .sw-jueces { background: repeating-linear-gradient(45deg, var(--c-jueces) 0 3px, var(--tarjeta) 3px 5px); }
+  .sw-otros { background: radial-gradient(var(--tarjeta) 1.3px, var(--c-otros) 1.4px) 0 0 / 6px 6px; }
+  .sw-principal { background: repeating-linear-gradient(0deg, var(--c-principal) 0 3px, var(--tarjeta) 3px 4px); }
+  caption { text-align: left; padding: 4px 0; }
+  @media (max-width: 480px) { main { padding: 10px; } section { padding: 10px 12px; } .fila .detalle { flex-basis: 100%; } }
 </style>
 </head>
 <body>
 <main>
   <h1>Panel de la factoría</h1>
-  <p class="suave">Solo lee tus ficheros de Claude Code. No manda nada fuera del PC. Se refresca solo cada 5 s.</p>
+  <p class="suave">Solo lee tus ficheros de Claude Code. No manda nada fuera del PC. Se refresca solo cada 5 s. <span id="vivo" class="vivo"></span></p>
   <div id="aviso"></div>
   <div id="app"><p class="vacio">Cargando…</p></div>
 </main>
@@ -90,7 +125,6 @@ const haceEl = (iso) => {
   e.dataset.ts = iso;
   return e;
 };
-const fUSD = (n) => (n == null ? SD : "$" + n.toFixed(2));
 
 // cols: [{ t: título, n: numérica, v: (fila) => texto o nodo }]
 function tabla(cols, filas, { resaltar } = {}) {
@@ -111,7 +145,6 @@ const textoLectura = (d) => `Lectura: ${msTexto(d.lecturaMs)}${d.ficheros.total 
 function pintarEstado(d) {
   const e = d.estado;
   const s = el("section", "", el("h2", "", "Estado"));
-  if (d.errores.length) s.append(franja("mal", "No se pudo leer algo: lo que depende de ello sale como «sin dato», no como 0.", d.errores.map((x) => `${x.fuente}: ${x.fichero} — ${x.motivo}`)));
   const c = e.copia;
   if (c === null) s.append(franja("aviso", "No se pudo comparar la copia instalada con el repo (mira los errores de arriba)."));
   else if (c.ok) s.append(franja("ok", "Copia instalada = repo (hooks y lib idénticos por hash)."));
@@ -159,7 +192,7 @@ function pintarHooks(d) {
 }
 
 function totalTexto(t) {
-  if (!t.noCuadra) return fMs(t.totalMs) + (t.fotoAtrasada ? " *" : "");
+  if (!t.noCuadra) return fMs(t.totalMs);
   const x = el("span", "", "total no fiable");
   x.title = "La duración de la foto de Claude Code supera la vida observada de la sesión";
   return x;
@@ -183,11 +216,7 @@ function pintarTiempos(d) {
       d.tiempos,
     ),
   );
-  s.append(el("p", "suave", "Total, API, herramientas y coste salen de cost-state: una FOTO esporádica de Claude Code, no un contador final. Hay sesiones sin ninguna, con coste 0 (sin dato), con una foto más larga que la propia sesión (el total sale «total no fiable»; el coste y el resto se conservan) y con la última foto a mitad de sesión (*: hubo mensajes después). Son cifras mínimas, de la sesión entera y no solo de la ventana. Hooks: suma de lo que dejan anotado."));
-  s.append(el("h3", "", "Jueces: tiempo desde «lanzado» hasta el informe"));
-  const j = d.jueces;
-  if (j.tiempos?.length === 0) s.append(el("p", "vacio", "Sin ningún juez con agent_id y las dos anotaciones (lanzado e informe) en esta ventana."));
-  else s.append(tabla([{ t: "Cuándo", v: (x) => fFecha(x.ts) }, { t: "Rama", v: (x) => x.rama }, { t: "Juez", v: (x) => x.agente }, { t: "Veredicto", v: (x) => x.veredicto }, { t: "Tardó", n: true, v: (x) => fMs(x.ms) }], j.tiempos));
+  s.append(el("p", "suave", "Total, API y herramientas salen de cost-state: una FOTO esporádica de Claude Code, no un contador final. Hay sesiones sin ninguna, con la foto vacía (sin dato) y con una foto más larga que la propia sesión (el total sale «total no fiable»; el resto se conserva). Son cifras mínimas, de la sesión entera y no solo de la ventana. Hooks: suma de lo que dejan anotado. El coste está más abajo, estimado desde los tokens."));
   return s;
 }
 
@@ -210,9 +239,7 @@ function pintarIneficiencias(d) {
   s.append(el("p", "suave", "De cada hook solo se listan sus 3 motivos más repetidos, no todos: la suma puede quedarse por debajo de sus bloqueos."));
   s.append(el("h3", "", "b) Jueces relanzados (misma rama y agente, más de un informe distinto)"));
   s.append(tabla([{ t: "Rama", v: (r) => r.rama }, { t: "Juez", v: (r) => r.agente }, { t: "Informes", n: true, v: (r) => fNum(r.informes) }, { t: "Nota", v: (r) => (r.sinAgentId ? `${r.sinAgentId} sin agent_id: pueden ser dobles apuntes del mismo informe` : "") }], i.relanzados));
-  s.append(el("h3", "", "c) Coste y tokens"));
-  s.append(el("p", "suave", `Coste mínimo (última foto de Claude Code, no un contador final), suma de las sesiones con dato de la ventana: ${fUSD(i.costes?.total)}. Las marcadas con * tuvieron mensajes después de su foto.`));
-  s.append(tabla([{ t: "Sesión", v: (c) => el("code", "", c.sesion) }, { t: "Rama", v: (c) => c.rama ?? "—" }, { t: "Carpeta", v: (c) => c.carpeta ?? "—" }, { t: "Coste (mínimo)", n: true, v: (c) => fUSD(c.costeUSD) + (c.fotoAtrasada ? " *" : "") }], i.costes?.sesiones ?? null));
+  s.append(el("h3", "", "c) Tokens por modelo"));
   s.append(el("p", "suave", "Tokens por modelo (mensajes del asistente de la ventana, contados una vez por respuesta):"));
   s.append(tabla([{ t: "Modelo", v: (t) => t.modelo }, { t: "Mensajes", n: true, v: (t) => fNum(t.mensajes) }, { t: "Entrada", n: true, v: (t) => fNum(t.entrada) }, { t: "Salida", n: true, v: (t) => fNum(t.salida) }, { t: "Caché leída", n: true, v: (t) => fNum(t.cacheLeida) }, { t: "Caché creada", n: true, v: (t) => fNum(t.cacheCreada) }], i.tokens));
   s.append(el("h3", "", "d) Subagentes lanzados"));
@@ -221,48 +248,347 @@ function pintarIneficiencias(d) {
   return s;
 }
 
-function pintarPie() {
+// Qué proyectos entran en TODO lo que enseña el panel (el filtro lo aplica el servidor y solo cuenta cuántas carpetas hay)
+function textoProyectos(d) {
+  const p = d.proyectos;
+  if (p === null) return "Proyectos: sin dato.";
+  if (p.filtro === "todos") return `Todos los proyectos de ~/.claude/projects (${fNum(p.incluidos)} incluidos).`;
+  return `Solo proyectos cuyo nombre contiene ${p.filtro.split(", ").map((q) => `"${q}"`).join(" o ")} (${fNum(p.incluidos)} incluidos, ${fNum(p.excluidos)} excluidos).`;
+}
+
+function pintarPie(d) {
   const lista = [
     "Los hooks del proyecto (.claude/settings.json del repo donde corre cada sesión) NO se leen: solo los de ~/.claude/settings.json. Los que salen «no está en ~/.claude/settings.json» sí se han visto activarse.",
     "El registro de jueces del PC lo escribe una versión vieja del hook que también apunta a constructores y lee veredictos falsos: los datos antiguos no son fiables, y este panel no puede separar los buenos de los malos.",
-    "Las transcripciones de subagentes que Claude Code guarde en subcarpetas no se leen (SIN COMPROBAR que existan); sí cuentan las que vienen dentro del fichero de la sesión.",
+    textoProyectos(d),
+    "Los subagentes se leen de subagents/ (un fichero por subagente; del meta solo su tipo) y solo para el coste estimado. Las tablas de tokens por modelo y de subagentes lanzados cuentan solo las transcripciones principales.",
+    "«Juez» no es lo mismo en todo el panel: el registro de jueces y las rondas conocen tres (revisor, qa, evaluador); el coste cuenta cinco (también seguridad y auditor-datos).",
     "No dice si un juez tenía razón ni si el código quedó bien: solo cuántas veces se activó, cuánto tardó y cuánto costó.",
   ];
   return el("section", "", el("h2", "", "Qué NO sabe este panel"), el("ul", "", ...lista.map((x) => el("li", "", x))));
 }
 
-function pintar(d) {
+// ---- v1: semáforo, En directo y rondas por tarea. Nada se calcula aquí: el nivel, las listas y el null de una fuente caída vienen del servidor ----
+const NIVEL = { ok: ["●", "bien"], aviso: ["▲", "atención"], mal: ["■", "mal"], gris: ["◌", "sin dato"], inactivo: ["◌", "inactivo"] }; // la forma y la palabra, además del color
+const VEREDICTO = { pasa: ["✔", "ok", "pasa"], no_pasa: ["✖", "mal", "no pasa"], no_se: ["?", "aviso", "no sé"], sin_veredicto: ["⚠", "gris", "ilegible"] };
+const horaMadrid = (() => {
+  const f = new Intl.DateTimeFormat("es-ES", { timeZone: "Europe/Madrid", hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" });
+  return (iso) => f.format(Date.parse(iso));
+})();
+const hasta = (iso) => msTexto(Math.max(0, Date.now() - Date.parse(iso)));
+// Un temporizador: el servidor da la hora de lanzamiento y el navegador sigue contando cada segundo
+const crono = (iso) => {
+  const e = el("span", "crono", hasta(iso));
+  e.dataset.desde = iso;
+  return e;
+};
+
+function lampara(titulo, nivel, ...detalle) {
+  const k = nivel ?? "gris"; // una lámpara sin dato nunca es verde
+  return el("div", "lampara " + k, el("span", "forma", NIVEL[k][0]), el("span", "titulo", titulo), el("span", "estado", NIVEL[k][1]), nivel ? el("span", "detalle", ...detalle) : null);
+}
+// Lo primero que se ve: si algo no se pudo leer, la franja roja está aquí (y «ver franja roja» apunta a ella)
+const franjaErrores = (d) => (d.errores.length ? franja("mal", "No se pudo leer algo: lo que depende de ello sale como «sin dato», no como 0.", d.errores.map((x) => `${x.fuente}: ${x.fichero} — ${x.motivo}`)) : null);
+function pintarSemaforo(d) {
+  return [franjaErrores(d), ...luces(d)].filter(Boolean);
+}
+function luces(d) {
+  const s = d.semaforo;
+  const h = s.hooksVivos;
+  const b = s.bloqueosHoy;
+  const r = s.rondasAbiertas;
+  return [
+    el(
+      "div",
+      "luces",
+      lampara("Hooks vivos", h?.nivel, ...(h ? [h.ultimo ? ["último evento ", haceEl(h.ultimo)] : "ningún evento visto", ` · ${h.copiaOk ? "copia = repo" : "copia ≠ repo"}`].flat() : [])),
+      lampara("Bloqueos hoy", b?.nivel, ...(b ? [`${b.total} ${b.total === 1 ? "bloqueo" : "bloqueos"} desde las 00:00 (${b.identificados} con hook identificado)`] : [])),
+      lampara("Rondas abiertas", r?.nivel, ...(r ? [r.n === null ? "sin registro todavía" : r.n === 0 ? "ninguna" : `${r.n} ${r.n === 1 ? "juez" : "jueces"} sin informe`] : [])),
+    ),
+  ];
+}
+
+// La lista de «En directo» vive entre repintados: las filas nuevas se insertan arriba y las demás no se tocan
+function crearDirecto() {
+  const msg = el("p", "vacio");
+  const ul = el("ul", "directo");
+  const recorte = el("p", "suave");
+  const nodo = el("section", "", el("h2", "", "En directo"), el("p", "suave", "Hora de Madrid. Lo más nuevo, arriba. La forma y la palabra dicen qué pasó; el color solo ayuda."), msg, recorte, ul);
+  return { nodo, msg, recorte, ul, filas: new Map(), msgTexto: null, recorteTexto: null };
+}
+function filaDirecta(ev, informe, lanzado) {
+  const enlazada = Boolean(informe || lanzado);
+  let forma, color, tipo, detalle;
+  if (ev.tipo === "agente_lanzado") {
+    [forma, color, tipo] = ["▶", "suave", "Agente lanzado"];
+    detalle = [ev.agente ?? "(tipo sin indicar)"];
+  } else if (ev.tipo === "juez_lanzado") {
+    [forma, color, tipo] = ["◆", informe ? VEREDICTO[informe.veredicto]?.[1] ?? "gris" : "aviso", "Juez lanzado"];
+    detalle = [ev.agente ?? "juez"];
+    if (informe) detalle.push(` · informó a las ${horaMadrid(informe.hora)} · tardó ${fMs(informe.duracionMs)}`);
+    else if (ev.agentId) detalle.push(" · en marcha: ", crono(ev.hora));
+    else detalle.push(" · sin agent_id (dato antiguo): no se puede seguir");
+  } else if (ev.tipo === "juez_informo") {
+    const v = VEREDICTO[ev.veredicto] ?? VEREDICTO.sin_veredicto;
+    [forma, color, tipo] = [v[0], v[1], "Juez informó"];
+    detalle = [`${ev.agente ?? "juez"} · ${v[2]}`];
+    if (!ev.agentId) detalle.push(" · sin agent_id (dato antiguo)");
+    else if (ev.duracionMs == null) detalle.push(" · sin emparejar con su lanzamiento");
+    else detalle.push(` · tardó ${msTexto(ev.duracionMs)}`);
+    if (lanzado) detalle.push(` · lanzado a las ${horaMadrid(lanzado.hora)}`);
+  } else if (ev.tipo === "hook_bloqueo") {
+    [forma, color, tipo] = ["■", "mal", "Hook bloqueó"];
+    detalle = [ev.hook ?? "hook sin identificar"];
+  } else {
+    [forma, color, tipo] = ["●", "suave", "Turno terminado"];
+    detalle = [`hooks de cierre: ${ev.duracionMs == null ? "sin duración" : msTexto(ev.duracionMs)}`];
+  }
+  return el("li", `fila ${color}${enlazada ? " enlazada" : ""}`, el("span", "hora", horaMadrid(ev.hora)), el("span", "forma", forma), el("span", "tipo", tipo), el("span", "detalle", ...detalle, ` · sesión ${ev.sesion ?? "?"}`));
+}
+function actualizarDirecto(d) {
+  const z = zonas.dir;
+  const ev = d.eventos;
+  const texto = ev === null ? "Sin dato en directo (ver franja roja)." : ev.length === 0 ? `Sin actividad en los últimos ${d.directoMin} min.` : "";
+  if (texto !== z.msgTexto) {
+    z.msg.textContent = texto;
+    z.msgTexto = texto;
+  }
+  const recorte = ev === null ? "" : [d.eventosOmitidos > 0 ? `Hay ${d.eventosOmitidos} sucesos más antiguos no mostrados (tope de la lista).` : "", d.colaCortada ? "La lectura del final de una transcripción se cortó en su tope: puede haber sucesos sin leer." : ""].filter(Boolean).join(" ");
+  if (recorte !== z.recorteTexto) {
+    z.recorte.textContent = recorte;
+    z.recorteTexto = recorte;
+  }
+  const lista = ev ?? [];
+  // lo que une un juez lanzado con su informe (mismo agent_id)
+  const informes = new Map(lista.filter((x) => x.tipo === "juez_informo" && x.agentId).map((x) => [x.agentId, x]));
+  const lanzados = new Map(lista.filter((x) => x.tipo === "juez_lanzado" && x.agentId).map((x) => [x.agentId, x]));
+  const vistas = new Map();
+  const deseadas = lista.map((x) => {
+    const base = JSON.stringify(x);
+    const n = vistas.get(base) ?? 0;
+    vistas.set(base, n + 1);
+    const informe = x.tipo === "juez_lanzado" ? informes.get(x.agentId) : null;
+    const lanzado = x.tipo === "juez_informo" ? lanzados.get(x.agentId) : null;
+    return { x, clave: `${base}#${n}`, firma: JSON.stringify([informe, lanzado]), informe, lanzado };
+  });
+  const antes = z.ul.offsetHeight;
+  const arriba = z.ul.getBoundingClientRect().top;
+  let ref = z.ul.firstChild;
+  const nuevas = new Map();
+  for (const f of deseadas) {
+    const previa = z.filas.get(f.clave);
+    if (previa && previa.firma === f.firma) {
+      if (previa.li === ref) ref = ref.nextSibling;
+      else z.ul.insertBefore(previa.li, ref);
+      nuevas.set(f.clave, previa);
+      continue;
+    }
+    if (previa) {
+      if (previa.li === ref) ref = ref.nextSibling;
+      previa.li.remove();
+    }
+    const li = filaDirecta(f.x, f.informe, f.lanzado);
+    z.ul.insertBefore(li, ref);
+    nuevas.set(f.clave, { li, firma: f.firma });
+  }
+  while (ref) {
+    const sig = ref.nextSibling;
+    ref.remove();
+    ref = sig;
+  }
+  z.filas = nuevas;
+  // Si el usuario mira más abajo, lo que ganó la lista por arriba no le mueve el texto que lee
+  const delta = z.ul.offsetHeight - antes;
+  if (delta !== 0 && arriba < 0) window.scrollTo(0, window.scrollY + delta);
+}
+
+// el coste de la ronda: de la transcripción del juez con ese agent_id; sin transcripción es «sin dato», nunca 0
+const costeMarca = (m) => (m.tokens == null ? "coste: sin dato" : m.costeUSD == null ? `${fTok(m.tokens)} tokens · sin precio` : `${fTok(m.tokens)} tokens · ≈ ${fUsd(m.costeUSD)}${m.tokensSinPrecio > 0 ? " (mínimo)" : ""}`);
+const ABREV = { revisor: "rev", evaluador: "eval", qa: "qa", seguridad: "seg", "auditor-datos": "aud" };
+function marca(m) {
+  let forma, color, texto;
+  if (m.veredicto === "lanzado") {
+    [forma, color, texto] = ["…", m.abierta ? "aviso" : "gris", m.abierta ? "lanzado, en marcha" : "lanzado, sin informe (ya no corre)"];
+  } else {
+    const v = VEREDICTO[m.veredicto] ?? VEREDICTO.sin_veredicto;
+    [forma, color] = [v[0], v[1]];
+    texto = v[2] + (m.ms != null ? ` · tardó ${msTexto(m.ms)}` : m.fiable ? " · sin emparejar con su lanzamiento" : "") + ` · ${costeMarca(m)}`;
+  }
+  const completo = `${m.agente} · ${texto}${m.fiable ? "" : " · dato antiguo, no fiable"}`;
+  const e = el("span", `marca ${color}${m.fiable ? "" : " antigua"}`, el("span", "forma", forma), el("span", "mini", ABREV[m.agente] ?? m.agente, " · ", m.veredicto === "lanzado" ? (m.abierta ? crono(m.ts) : "sin informe") : `${m.ms != null ? msTexto(m.ms) : "—"} · ${m.costeUSD != null ? fUsd(m.costeUSD) : m.tokens != null ? "sin precio" : "sin dato"}`), el("span", "sr", completo));
+  e.title = completo;
+  return e;
+}
+function pintarRondas(d) {
+  const sal = [el("h2", "", "Rondas por tarea"), el("p", "suave", "Una ronda = un informe de juez en esa rama; no sé a qué PR pertenece. Cada marca es un informe: ✔ pasa · ✖ no pasa · ? no sé · ⚠ ilegible · … lanzado sin informe.")];
+  if (d.ramas === null) return [...sal, el("p", "vacio", "No se pudo leer (ver franja roja).")];
+  if (!d.ramas.length) return [...sal, el("p", "vacio", `Sin rondas de jueces en los últimos ${d.dias} días.`)];
+  return [
+    ...sal,
+    el(
+      "ul",
+      "ramas",
+      ...d.ramas.map((r) => {
+        const antiguas = r.marcas.filter((m) => !m.fiable).length;
+        return el(
+          "li",
+          "rama",
+          el("div", "rama-cab", el("code", "", r.rama), el("span", "rama-tot", `${fNum(r.rondas)} ${r.rondas === 1 ? "ronda" : "rondas"} · ${fMs(r.tiempoMs)} en jueces`)),
+          el("div", "marcas", ...r.marcas.map(marca)),
+          el("p", "suave", r.rondasConCoste == null ? "Jueces de esta rama: coste: sin dato (fuente caída, ver franja roja)." : r.tokens == null ? "Jueces de esta rama: coste: sin transcripción de juez en ninguna de sus rondas." : `Jueces de esta rama: ${r.costeUSD == null ? "coste: sin precio" : `coste ≈ ${fUsd(r.costeUSD)}${r.tokensSinPrecio > 0 ? " (mínimo: modelos sin precio no incluidos)" : ""}`} · ${fTok(r.tokens)} tokens · en ${fNum(r.rondasConCoste)} de ${fNum(r.rondas)} rondas.`),
+          r.masMarcas ? el("p", "suave", `${r.masMarcas} marcas más antiguas no se enseñan (el total de rondas las cuenta).`) : null,
+          antiguas ? el("p", "suave", `${antiguas} ${antiguas === 1 ? "marca" : "marcas"} de dato antiguo, no fiable (sin agent_id: la versión vieja del hook).`) : null,
+        );
+      }),
+    ),
+    d.masRamas > 0 ? el("p", "suave", `${d.masRamas} ramas más no se enseñan (solo las ${d.ramas.length} más recientes).`) : null,
+  ];
+}
+
+// ---- v1: coste estimado (a precio de API). Nada se calcula aquí: precios, sumas, % y «sin precio» (null) vienen del servidor ----
+const AVISO_PLAN = "Si usas un plan con límite de sesión (no pagas por token), esto no es tu factura: mide el consumo relativo (qué parte se va en jueces).";
+const CATEGORIAS = [["jueces", "Jueces"], ["otros", "Constructores y otros"], ["principal", "Sesión principal"]];
+const SVGNS = "http:" + "//www.w3.org/2000/svg"; // el espacio de nombres de SVG: un identificador, no una petición
+const fTok = (n) => (n == null ? SD : n >= 1e6 ? `${(n / 1e6).toFixed(1).replace(".", ",")} M` : n >= 1e3 ? `${(n / 1e3).toFixed(1).replace(".", ",")} k` : String(n));
+const fUsd = (n) => (n == null ? SD : n > 0 && n < 0.01 ? "<$0,01" : "$" + n.toFixed(2).replace(".", ","));
+const fDia = (dia) => new Date(dia + "T12:00:00Z").toLocaleDateString("es-ES", { day: "numeric", month: "short", timeZone: "UTC" });
+const fPct = (n) => (n == null ? "sin precio" : `${nf.format(n)} %`);
+// el coste de un cubo { tokens, costeUSD, tokensSinPrecio }: sin precio nunca se pinta como $0, y con modelos sin precio es un mínimo
+const textoCoste = (b) => (b.costeUSD === null ? "sin precio" : fUsd(b.costeUSD) + (b.tokensSinPrecio > 0 ? " (mínimo)" : ""));
+const textoCubo = (b) => (b == null ? SD : b.tokens === 0 ? "—" : `${fTok(b.tokens)} · ${textoCoste(b)}`);
+
+function svgEl(tag, attrs = {}, ...hijos) {
+  const e = document.createElementNS(SVGNS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  for (const h of hijos) if (h !== null && h !== undefined) e.append(h);
+  return e;
+}
+// Barras horizontales apiladas por día (legibles a 375 px): cada categoría tiene color Y patrón, y cada día su etiqueta de valor
+function grafico(dias) {
+  const ETQ = 58, ANCHO = 180, ALTO = 26, ancho = 360;
+  const max = Math.max(...dias.map((d) => d.total.costeUSD ?? 0), 1e-9);
+  const trazo = { x1: 0, y1: 0, x2: 0, y2: 6, style: "stroke:var(--tarjeta);stroke-width:2.2" };
+  const formas = { jueces: () => svgEl("line", trazo), otros: () => svgEl("circle", { cx: 3, cy: 3, r: 1.3, style: "fill:var(--tarjeta)" }), principal: () => svgEl("line", { x1: 0, y1: 3, x2: 6, y2: 3, style: "stroke:var(--tarjeta);stroke-width:1.2" }) };
+  const patron = (id) => svgEl("pattern", { id: "patron-" + id, width: 6, height: 6, patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" }, svgEl("rect", { width: 6, height: 6, style: `fill:var(--c-${id})` }), formas[id]());
+  const filas = dias.flatMap((d, i) => {
+    const y = i * ALTO + 2;
+    let x = ETQ;
+    const segs = d.total.costeUSD === null ? [] : CATEGORIAS.filter(([k]) => d[k].costeUSD > 0).map(([k, nombre]) => {
+      const w = (d[k].costeUSD / max) * ANCHO;
+      const r = svgEl("rect", { x, y: y + 3, width: w, height: ALTO - 8, fill: `url(#patron-${k})`, "data-categoria": k, "data-dia": d.dia }, svgEl("title", {}, `${nombre} · ${fDia(d.dia)} · ${textoCoste(d[k])} · ${fTok(d[k].tokens)} tokens`));
+      x += w;
+      return r;
+    });
+    return [svgEl("text", { x: 0, y: y + 15 }, fDia(d.dia) + (d.parcial ? "*" : "")), ...segs, svgEl("text", { x: x + 4, y: y + 15 }, d.total.costeUSD === null ? "sin precio" : fUsd(d.total.costeUSD) + (d.total.tokensSinPrecio > 0 ? " (mín.)" : ""))];
+  });
+  const e = svgEl("svg", { viewBox: `0 0 ${ancho} ${dias.length * ALTO + 4}`, role: "img", "aria-label": "Coste estimado por día, barras apiladas: jueces, constructores y otros, sesión principal. La tabla de debajo trae los mismos números." }, svgEl("defs", {}, patron("jueces"), patron("otros"), patron("principal")), ...filas);
+  return el("div", "grafico", e);
+}
+
+function tablaCon(titulo, cols, filas) {
+  const cab = el("tr", "", ...cols.map((c) => el("th", c.n ? "n" : "", c.t)));
+  const cuerpo = filas.map((f) => el("tr", "", ...cols.map((c) => el("td", c.n ? "n" : "", c.v(f)))));
+  const caja = el("div", "tabla", el("table", "", el("caption", "suave", titulo), el("thead", "", cab), el("tbody", "", ...cuerpo)));
+  caja.tabIndex = 0; // se puede desplazar con el teclado
+  return caja;
+}
+
+function pintarCoste(d) {
+  const c = d.coste;
+  const sal = [el("h2", "", "Coste estimado: jueces, constructores y sesión principal"), el("p", "suave", textoProyectos(d))];
+  if (c === null) return [...sal, el("p", "vacio", "No se pudo leer (ver franja roja).")];
+  sal.push(franja("aviso", c.precios ? `Coste = estimación a precio de API (precios del ${c.precios.fecha}, fuente ${c.precios.fuente}).` : "Coste = estimación a precio de API, pero sin precios: precios.json no se pudo leer. Salen los tokens y el coste dice «sin precio».", [AVISO_PLAN]));
+  if (!c.porDia.length) return [...sal, el("p", "vacio", `Sin consumo en los últimos ${d.dias} días.`)];
+  const rc = c.repartoCoste;
+  const rt = c.repartoTokens;
+  sal.push(el("div", "cifras", ...CATEGORIAS.map(([k, nombre]) => el("div", "reparto", `${nombre} ${rc ? fPct(rc[k]) : "sin precio"}`))));
+  if (c.subagentesSinTipo > 0) sal.push(el("p", "suave", `${c.subagentesSinTipo} ${c.subagentesSinTipo === 1 ? "subagente" : "subagentes"} sin tipo: el % de jueces es un mínimo.`));
+  sal.push(el("p", "suave", `Reparto del coste estimado. Reparto por tokens: ${rt ? CATEGORIAS.map(([k, nombre]) => `${nombre} ${fPct(rt[k])}`).join(" · ") : SD}.`));
+  const minimo = c.total.total.tokensSinPrecio > 0 || Boolean(c.modelosSinPrecio?.length);
+  sal.push(el("p", "", `Total de los últimos ${d.dias} días: ${textoCubo(minimo && c.total.total.costeUSD !== null ? { ...c.total.total, tokensSinPrecio: 0 } : c.total.total)}${minimo && c.total.total.costeUSD !== null ? " — mínimo (modelos sin precio no incluidos)" : ""}.`));
+  if (c.modelosSinPrecio?.length) sal.push(el("p", "suave", `Modelos sin precio (edita precios.json): ${c.modelosSinPrecio.join(", ")}.`));
+  sal.push(c.precios && c.porDia.some((x) => x.total.costeUSD !== null) ? el("div", "", el("div", "leyenda", ...CATEGORIAS.map(([k, nombre]) => el("span", "", el("span", "sw sw-" + k), nombre))), grafico(c.porDia)) : el("p", "vacio", "No se dibuja el gráfico: sin precios no hay coste que comparar (la tabla trae los tokens)."));
+  const cols = [{ t: "Día", v: (x) => fDia(x.dia) + (x.parcial ? " (parcial)" : "") }, { t: "Total", v: (x) => textoCubo(x.total) }, ...CATEGORIAS.map(([k, nombre]) => ({ t: nombre, v: (x) => textoCubo(x[k]) }))]; // «Total» justo tras el día: a 375 px es lo que se ve sin deslizar
+  sal.push(tablaCon("Coste estimado por día", cols, c.porDia));
+  if (c.porDia.some((x) => x.parcial)) sal.push(el("p", "suave", "* El primer día es parcial: la ventana empieza a media jornada."));
+  const dato = [{ t: "Coste estimado", n: true, v: (x) => (x.total.costeUSD === null ? "sin precio" : textoCoste(x.total)) }, { t: "Tokens", n: true, v: (x) => fTok(x.total.tokens) }];
+  const pct = { t: "% jueces", n: true, v: (x) => (x.pctJueces == null ? fPct(null) : (x.total.tokensSinPrecio > 0 ? "≥ " : "") + fPct(x.pctJueces)) }; // con modelos sin precio es un mínimo
+  sal.push(tablaCon(`Por sesión (${c.porSesion.length === 1 ? "la última" : `las ${c.porSesion.length} últimas`})`, [{ t: "Sesión", v: (x) => el("code", "", x.sesion) }, pct, ...dato, { t: "Rama", v: (x) => x.rama ?? "—" }], c.porSesion));
+  sal.push(tablaCon("Por rama (la de la sesión padre)", [{ t: "Rama", v: (x) => x.rama ?? "—" }, pct, ...dato], c.porRama));
+  sal.push(el("p", "suave", "Cuenta los mensajes del asistente una vez (por id), de la sesión principal y de cada subagente (ficheros subagents/). Un mensaje de un modelo sin precio da sus tokens y «sin precio». No usa el coste de las fotos (cost-state)."));
+  return sal;
+}
+
+// ---- Zonas fijas: se crean una vez y cada una se repinta solo si cambió lo suyo ----
+const zonas = {};
+function crearZonas() {
+  zonas.sem = el("section", "semaforo");
+  zonas.dir = crearDirecto();
+  zonas.ron = el("section", "");
+  zonas.cos = el("section", "");
+  zonas.resto = el("div", "");
+  app.replaceChildren(zonas.sem, zonas.dir.nodo, zonas.ron, zonas.cos, zonas.resto);
+}
+
+function pintarResto(d) {
   // Conserva el desplazamiento de la página y de cada tabla, y qué tabla tenía el foco del teclado.
-  const cajas = [...app.querySelectorAll(".tabla")];
+  const cajas = [...zonas.resto.querySelectorAll(".tabla")];
   const izq = cajas.map((c) => c.scrollLeft);
   const foco = cajas.indexOf(document.activeElement);
   const y = window.scrollY;
-  app.replaceChildren(pintarEstado(d), pintarHooks(d), pintarTiempos(d), pintarIneficiencias(d), pintarPie());
-  const nuevas = [...app.querySelectorAll(".tabla")];
+  zonas.resto.replaceChildren(pintarEstado(d), pintarHooks(d), pintarTiempos(d), pintarIneficiencias(d), pintarPie(d));
+  const nuevas = [...zonas.resto.querySelectorAll(".tabla")];
   if (nuevas.length === izq.length) nuevas.forEach((c, i) => (c.scrollLeft = izq[i]));
   if (foco >= 0 && nuevas[foco]) nuevas[foco].focus({ preventScroll: true });
   window.scrollTo(0, y);
 }
-// Solo se repinta si cambió algo de verdad; lo que cambia siempre (hora, tiempos de lectura, memoria) se actualiza en su sitio.
-let claveAnterior = null;
+// Solo se repinta lo que cambió de verdad; lo que cambia siempre (hora, tiempos de lectura, memoria) se actualiza en su sitio.
+const claves = { sem: null, ron: null, cos: null, resto: null };
 let saltados = 0;
+const vivo = document.getElementById("vivo");
+let vivoTs = null;
+let pausado = false; // hay texto seleccionado: la pantalla espera (y lo dice)
+function marcarVivo(ok, generado) {
+  if (generado) vivoTs = generado;
+  const forma = ok ? "●" : "■";
+  vivo.className = "vivo " + (ok ? "ok" : "mal");
+  vivo.replaceChildren(el("span", "forma", forma), ok ? " en vivo · actualizado " : " sin conexión · último dato ", vivoTs ? haceEl(vivoTs) : "", pausado ? " · pausado mientras hay texto seleccionado" : "");
+}
 function mostrar(d) {
-  const { generado, lecturaMs, proceso, ficheros, ...resto } = d; // lo volátil queda fuera de la comparación
-  const clave = JSON.stringify(resto);
-  if (clave === claveAnterior) {
+  const { generado, lecturaMs, proceso, ficheros, semaforo, eventos, ramas, coste, ...resto } = d; // lo volátil queda fuera de la comparación
+  if (!zonas.sem) crearZonas();
+  actualizarDirecto(d); // la lista de En directo es incremental: nunca espera
+  if (vivoTs === null || !vivo.className.includes("ok") || vivoTs !== generado) marcarVivo(true, generado);
+  const nuevas = { sem: JSON.stringify([semaforo, d.directoMin, d.errores]), ron: JSON.stringify([ramas, d.dias]), cos: JSON.stringify([coste, d.dias, d.proyectos]), resto: JSON.stringify(resto) };
+  const cambian = Object.keys(nuevas).filter((k) => nuevas[k] !== claves[k]);
+  if (!cambian.length) {
     if (lineaLectura) lineaLectura.textContent = textoLectura(d);
     return;
   }
   const sel = window.getSelection();
   // está seleccionando texto: se espera a que acabe, pero como mucho 6 ciclos (30 s)
-  if (sel && !sel.isCollapsed && app.contains(sel.anchorNode) && ++saltados < 6) return;
+  if (sel && !sel.isCollapsed && app.contains(sel.anchorNode) && ++saltados < 6) {
+    if (!pausado) {
+      pausado = true;
+      marcarVivo(true);
+    }
+    return;
+  }
+  if (pausado) {
+    pausado = false;
+    marcarVivo(true);
+  }
   saltados = 0;
-  claveAnterior = clave;
-  pintar(d);
+  for (const k of cambian) claves[k] = nuevas[k];
+  if (cambian.includes("sem")) zonas.sem.replaceChildren(...pintarSemaforo(d));
+  if (cambian.includes("ron")) zonas.ron.replaceChildren(...pintarRondas(d).filter(Boolean));
+  if (cambian.includes("cos")) zonas.cos.replaceChildren(...pintarCoste(d));
+  if (cambian.includes("resto")) pintarResto(d);
 }
 function pintarFallo(msg, extra) {
   aviso.replaceChildren(franja("mal", msg, extra ? [extra] : null));
   app.classList.add("viejo"); // los datos que quedan son viejos: se atenúan mientras dure la caída
+  marcarVivo(false);
 }
 
 async function cargar() {
@@ -286,8 +612,11 @@ async function cargar() {
   cargar().then(sigue, sigue);
 })();
 document.addEventListener("visibilitychange", () => { if (!document.hidden) cargar(); });
-// «hace N s» sigue contando en el navegador aunque no lleguen datos nuevos
-setInterval(() => document.querySelectorAll("[data-ts]").forEach((n) => (n.textContent = hace(n.dataset.ts))), 1000);
+// «hace N s» y los temporizadores de los jueces en marcha siguen contando en el navegador aunque no lleguen datos nuevos
+setInterval(() => {
+  document.querySelectorAll("[data-ts]").forEach((n) => (n.textContent = hace(n.dataset.ts)));
+  if (!vivo.className.includes("mal")) document.querySelectorAll("[data-desde]").forEach((n) => (n.textContent = hasta(n.dataset.desde))); // sin conexión no se cuenta como si nada
+}, 1000);
 </script>
 </body>
 </html>
