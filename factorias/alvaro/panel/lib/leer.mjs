@@ -22,7 +22,7 @@ export const MAX_EVENTOS = 300; // tope de filas de «En directo» (se quedan la
 export const TIPOS_EVENTO = ["agente_lanzado", "juez_lanzado", "juez_informo", "hook_bloqueo", "turno_terminado"];
 // Lo que un juez puede decir (los de reglas.mjs). Cualquier otra cosa que traiga el registro sale como sin_veredicto: no se pinta texto libre.
 export const VEREDICTOS = ["pasa", "no_pasa", "no_se", "sin_veredicto"];
-export const UMBRALES_HOOKS_VIVOS = { okMs: 10 * 60000, avisoMs: 60 * 60000 }; // verde por debajo de okMs, ámbar por debajo de avisoMs, rojo más
+export const UMBRALES_HOOKS_VIVOS = { okMs: 10 * 60000 }; // verde con actividad más reciente que esto; si no, «inactivo» (no es un fallo: rojo solo por copia distinta del repo)
 // Un juez «lanzado» sin informe de hace más que esto ya no se da por «en marcha» (se perdió o se cortó): no cuenta como ronda abierta.
 export const RONDA_ABIERTA_MAX_MS = 2 * 3600e3;
 export const MAX_RAMAS = 12;
@@ -241,6 +241,16 @@ export function unirBloqueos(adjuntos, cierres) {
 }
 
 const veredictoCerrado = (v) => (VEREDICTOS.includes(v) ? v : "sin_veredicto");
+// Un juez deja varios apuntes con el mismo agent_id (concluyente y sin veredicto): manda la misma regla que reglas.mjs (evaluar):
+// un «no pasa» domina; si no, el último concluyente (pasa, no sé); sin concluyente, el último sin veredicto. Un test compara las dos.
+const CONCLUYENTES = new Set(["pasa", "no_pasa", "no_se"]);
+const elegir = (as) => {
+  const v = (x) => veredictoCerrado(x.veredicto);
+  const c = as.filter((x) => CONCLUYENTES.has(v(x)));
+  return c.findLast((x) => v(x) === "no_pasa") ?? c.at(-1) ?? as.at(-1);
+};
+// Lanzado e informe solo se emparejan si pasaron RONDA_ABIERTA_MAX_MS como mucho (si no, son de otra ronda o de otro día)
+const emparejar = (t0, ts) => (t0 !== undefined && ts >= t0 && ts - t0 <= RONDA_ABIERTA_MAX_MS ? ts - t0 : null);
 const sesionCorta = (s) => (s === null || s === undefined ? null : limpio(s).slice(0, 8));
 
 /**
@@ -264,19 +274,20 @@ function construirEventos({ ahora, directos, entradas, home }) {
 
   const lanzados = new Map(); // rama|agent_id → ts del primer «lanzado»
   for (const e of entradas) if (e.veredicto === "lanzado" && e.agent_id && !lanzados.has(`${e.rama}|${e.agent_id}`)) lanzados.set(`${e.rama}|${e.agent_id}`, e.ts);
+  const grupos = new Map();
+  for (const e of entradas) if (JUECES.includes(e.agente) && e.veredicto !== "lanzado" && e.agent_id) grupos.set(`${e.rama}|${e.agent_id}`, [...(grupos.get(`${e.rama}|${e.agent_id}`) ?? []), e]);
+  const elegidos = new Set([...grupos.values()].map(elegir));
   for (const e of entradas) {
     if (!JUECES.includes(e.agente) || !dentro(e.ts)) continue; // el registro viejo también apunta a constructores
     const id = e.agent_id ? limpio(e.agent_id) : null;
     if (e.veredicto === "lanzado") poner(e.ts, "juez_lanzado", { agente: limpio(e.agente), agentId: id, sesion: e.sesion });
-    else {
+    else if (!e.agent_id || elegidos.has(e)) {
       const t0 = e.agent_id ? lanzados.get(`${e.rama}|${e.agent_id}`) : undefined;
-      poner(e.ts, "juez_informo", { agente: limpio(e.agente), agentId: id, veredicto: veredictoCerrado(e.veredicto), duracionMs: t0 !== undefined && e.ts >= t0 ? e.ts - t0 : null, sesion: e.sesion });
+      poner(e.ts, "juez_informo", { agente: limpio(e.agente), agentId: id, veredicto: veredictoCerrado(e.veredicto), duracionMs: emparejar(t0, e.ts), sesion: e.sesion });
     }
   }
-  return sal
-    .sort((a, b) => b.ts - a.ts)
-    .slice(0, MAX_EVENTOS)
-    .map(({ ts: _ts, ...resto }) => resto);
+  sal.sort((a, b) => b.ts - a.ts);
+  return { lista: sal.slice(0, MAX_EVENTOS).map(({ ts: _ts, ...resto }) => resto), omitidos: Math.max(0, sal.length - MAX_EVENTOS) };
 }
 
 /**
@@ -290,17 +301,17 @@ function construirRamas({ ahora, entradas, costeAgente, T, P }) {
   for (const [rama, es] of porRama) {
     const lanzados = new Map(); // agent_id → { ts, agente }
     for (const e of es) if (e.veredicto === "lanzado" && JUECES.includes(e.agente) && e.agent_id && !lanzados.has(e.agent_id)) lanzados.set(e.agent_id, { ts: e.ts, agente: e.agente });
-    const informes = new Map(); // agent_id → marca (si un id tiene varios apuntes, manda el último)
+    const apuntes = new Map(); // agent_id → todos sus apuntes de informe (cada juez deja varios)
     const sinId = [];
     for (const e of es) {
       if (e.veredicto === "lanzado" || !JUECES.includes(e.agente)) continue;
-      const t0 = e.agent_id ? lanzados.get(e.agent_id)?.ts : undefined;
-      const marca = { ts: e.ts, agente: limpio(e.agente), veredicto: veredictoCerrado(e.veredicto), ms: t0 !== undefined && e.ts >= t0 ? e.ts - t0 : null, abierta: false, fiable: Boolean(e.agent_id), ...(costeAgente(e.agent_id ? limpio(e.agent_id) : null) ?? { tokens: null, costeUSD: null, tokensSinPrecio: null }) };
-      if (e.agent_id) informes.set(e.agent_id, marca);
-      else sinId.push(marca);
+      if (e.agent_id) apuntes.set(e.agent_id, [...(apuntes.get(e.agent_id) ?? []), e]);
+      else sinId.push(e);
     }
+    const marcaDe = (e) => ({ ts: e.ts, agente: limpio(e.agente), veredicto: veredictoCerrado(e.veredicto), ms: emparejar(e.agent_id ? lanzados.get(e.agent_id)?.ts : undefined, e.ts), abierta: false, fiable: Boolean(e.agent_id), ...(costeAgente(e.agent_id ? limpio(e.agent_id) : null) ?? { tokens: null, costeUSD: null, tokensSinPrecio: null }) });
+    const informes = new Map([...apuntes].map(([id, as]) => [id, marcaDe(elegir(as))]));
     const abiertas = [...lanzados].filter(([id]) => !informes.has(id)).map(([, l]) => ({ ts: l.ts, agente: limpio(l.agente), veredicto: "lanzado", ms: null, abierta: ahora - l.ts <= RONDA_ABIERTA_MAX_MS, fiable: true, tokens: null, costeUSD: null, tokensSinPrecio: null }));
-    const concluyentes = [...informes.values(), ...sinId];
+    const concluyentes = [...informes.values(), ...sinId.map(marcaDe)];
     if (!concluyentes.length && !abiertas.length) continue;
     const marcas = [...concluyentes, ...abiertas].sort((a, b) => a.ts - b.ts);
     const medidos = concluyentes.filter((m) => m.ms !== null);
@@ -408,10 +419,11 @@ function construirCoste({ corte, rs, sesiones, subagentes, precios, T, P }) {
         precios: P || !precios ? null : { fecha: precios.fecha, fuente: precios.fuente },
         lineasRotas: subagentes.reduce((n, s) => n + s.resumen.rotas, 0),
         modelosSinPrecio: P ? null : [...sinPrecio].sort(),
+        subagentesSinTipo: subagentes.filter((s) => s.tipo === null).length, // su meta falta, está roto o no trae agentType: el % de jueces es un mínimo
         repartoTokens: reparto((c) => c.tokens),
         repartoCoste: P ? null : reparto((c) => (c.conPrecio ? c.usd : null)),
         total: cerrarGrupo(grupos.total),
-        porDia: [...grupos.dia.values()].sort((a, b) => a.dia.localeCompare(b.dia)).map((g) => ({ dia: g.dia, ...cerrarGrupo(g) })),
+        porDia: [...grupos.dia.values()].sort((a, b) => a.dia.localeCompare(b.dia)).map((g) => ({ dia: g.dia, parcial: g.dia === diaMadrid(corte), ...cerrarGrupo(g) })), // el primer día de la ventana empieza a media jornada
         porSesion: recientes(grupos.sesion, SESIONES_VISIBLES).map((g) => ({ sesion: g.sesion, rama: g.rama === null ? null : limpio(g.rama), ultimo: iso(g.total.ultimo), ...pct(g).c, pctJueces: pct(g).pctJueces })),
         porRama: recientes(grupos.rama, MAX_RAMAS).map((g) => ({ rama: g.rama === null ? null : limpio(g.rama), ultimo: iso(g.total.ultimo), ...pct(g).c, pctJueces: pct(g).pctJueces })),
       };
@@ -427,7 +439,7 @@ function construirCoste({ corte, rs, sesiones, subagentes, precios, T, P }) {
  * copia → la comparación; registro → los jueces. «En directo» (eventos) depende de transcripciones y de registro; el semáforo,
  * de las fuentes de cada lámpara. directo: resúmenes con lo reciente (por defecto, los mismos de ficheros).
  */
-export function agregar({ ahora, dias, ficheros, directo, subagentes = [], precios = null, proyectos = null, registros, declarados, copia, home, errores }) {
+export function agregar({ ahora, dias, ficheros, directo, subagentes = [], precios = null, proyectos = null, sinRegistro = false, registros, declarados, copia, home, errores }) {
   const corte = ahora - dias * 864e5;
   const [T, S, C, R, P, B] = FUENTES.map((f) => errores.some((x) => x.fuente === f)); // cuáles han caído
   const de = (cae, valor) => (cae ? null : valor);
@@ -568,7 +580,7 @@ export function agregar({ ahora, dias, ficheros, directo, subagentes = [], preci
   const { coste, costeAgente } = construirCoste({ corte, rs, sesiones, subagentes, precios, T: T || B, P }); // el coste suma lo de transcripciones y subagentes
 
   // ---- v1: En directo, rondas por tarea y semáforo ----
-  const eventos = construirEventos({ ahora, directos: directo ?? rs, entradas, home });
+  const { lista: eventos, omitidos } = construirEventos({ ahora, directos: directo ?? rs, entradas, home });
   const todasRamas = construirRamas({ ahora, entradas, costeAgente, T: T || B, P });
   const abiertas = todasRamas.reduce((n, x) => n + x.abiertas, 0); // en todas las ramas, no solo en las que se enseñan
   const ramas = todasRamas.slice(0, MAX_RAMAS).map(({ ultimoMs: _u, abiertas: _a, ...resto }) => resto);
@@ -578,11 +590,11 @@ export function agregar({ ahora, dias, ficheros, directo, subagentes = [], preci
     [...unir(rs.map((r) => r.cierres)).values()],
   ).filter((b) => b.ts >= desdeMedianoche);
   const edad = Number.isFinite(ultimo) ? ahora - ultimo : Infinity;
-  const nivelHooks = copia.ok === false ? "mal" : edad < UMBRALES_HOOKS_VIVOS.okMs ? "ok" : edad < UMBRALES_HOOKS_VIVOS.avisoMs ? "aviso" : "mal";
+  const nivelHooks = copia.ok === false ? "mal" : edad < UMBRALES_HOOKS_VIVOS.okMs ? "ok" : "inactivo"; // la inactividad no es un fallo
   const semaforo = {
     hooksVivos: de(T || C, { nivel: nivelHooks, ultimo: Number.isFinite(ultimo) ? iso(ultimo) : null, copiaOk: copia.ok }),
     bloqueosHoy: de(T, { nivel: bloqueosHoy.length ? "aviso" : "ok", total: bloqueosHoy.length, identificados: bloqueosHoy.filter((b) => b.comando !== null).length }),
-    rondasAbiertas: de(R, { nivel: abiertas ? "aviso" : "ok", n: abiertas }),
+    rondasAbiertas: de(R, sinRegistro ? { nivel: "gris", n: null } : { nivel: abiertas ? "aviso" : "ok", n: abiertas }),
   };
 
   return {
@@ -590,6 +602,9 @@ export function agregar({ ahora, dias, ficheros, directo, subagentes = [], preci
     proyectos: de(T, proyectos), // qué carpetas de proyecto entran (el filtro y cuántas), nunca sus nombres
     semaforo,
     eventos: de(T || R, eventos),
+    eventosOmitidos: de(T || R, omitidos), // cuántos recortó el tope de MAX_EVENTOS
+    colaCortada: de(T, (directo ?? rs).some((r) => r.colaCortada === true)), // la lectura del final de algún fichero se cortó en su tope
+    masRamas: de(R, Math.max(0, todasRamas.length - MAX_RAMAS)),
     ramas: de(R, ramas),
     coste,
     estado: {
