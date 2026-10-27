@@ -540,7 +540,7 @@ describe("la página v1 · semáforo, En directo y rondas", () => {
   it("si el usuario mira más abajo, una fila nueva no mueve lo que lee: el scroll se compensa con la altura que ganó la lista", async () => {
     const n = navegador(conEventos([evt()]));
     await n.listo;
-    n.zona(1).todos((h) => h.tag === "ul")[0].arriba = 100; // la lista empieza a 100 px del borde de la página
+    n.zona(1).todos((h) => h.tag === "ul")[0].arriba = -400; // el borde de arriba de la lista queda 400 px por encima de la ventana
     n.win.scrollY = 500; // y el usuario está más abajo
     n.est.saltos.length = 0;
     await n.ciclo({ eventos: [evt({ hora: iso(T0 + 5000), tipo: "turno_terminado", agente: null }), evt()] });
@@ -624,7 +624,7 @@ describe("la página v1 · semáforo, En directo y rondas", () => {
   });
 
   it("indicador «en vivo · actualizado hace N s»; si el servidor cae pasa a «sin conexión» y los datos se quedan", async () => {
-    const n = navegador(datosPagina());
+    const n = navegador({ ...datosPagina(), generado: iso(Date.now() - 2000) });
     await n.listo;
     expect(norm(n.vivo)).toMatch(/^● en vivo · actualizado hace \d+ s$/);
     expect(n.vivo.className).toContain("ok");

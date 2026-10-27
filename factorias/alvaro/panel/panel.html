@@ -7,12 +7,12 @@
 <style>
   :root {
     --fondo: #f6f6f3; --tarjeta: #ffffff; --texto: #1d1d1b; --suave: #5f5f58; --linea: #dcdcd4;
-    --ok: #1f7a3d; --ok-fondo: #e3f3e8; --mal: #b3261e; --mal-fondo: #fbe4e1; --aviso: #8a5a00; --aviso-fondo: #fdf0d2; --sombra: rgba(0,0,0,.3);
+    --ok: #1f7a3d; --ok-fondo: #e3f3e8; --mal: #b3261e; --mal-fondo: #fbe4e1; --aviso: #8a5a00; --aviso-fondo: #fdf0d2; --gris: #5f5f58; --gris-fondo: #ecece6; --sombra: rgba(0,0,0,.3);
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --fondo: #151513; --tarjeta: #1f1f1c; --texto: #ecece6; --suave: #a3a39a; --linea: #3a3a35;
-      --ok: #6fd18c; --ok-fondo: #173322; --mal: #ff8a80; --mal-fondo: #3d1b18; --aviso: #f2c25b; --aviso-fondo: #3a2e10; --sombra: rgba(255,255,255,.4);
+      --ok: #6fd18c; --ok-fondo: #173322; --mal: #ff8a80; --mal-fondo: #3d1b18; --aviso: #f2c25b; --aviso-fondo: #3a2e10; --gris: #a3a39a; --gris-fondo: #2b2b27; --sombra: rgba(255,255,255,.4);
     }
   }
   * { box-sizing: border-box; }
@@ -43,12 +43,37 @@
   .cifras { display: flex; flex-wrap: wrap; gap: 6px 24px; margin: 6px 0; }
   .cifras div b { display: block; font-size: 1.2rem; font-variant-numeric: tabular-nums; }
   .vacio { color: var(--suave); font-style: italic; }
+  /* v1: lo nuevo son listas apiladas (nada de tablas anchas); el color siempre va con una forma y una palabra */
+  main { overflow-anchor: none; } /* el scroll se compensa a mano al entrar filas por arriba */
+  .vivo { white-space: nowrap; font-weight: 600; }
+  .ok { color: var(--ok); } .aviso { color: var(--aviso); } .mal { color: var(--mal); } .gris { color: var(--gris); } .suave { color: var(--suave); }
+  .forma { display: inline-block; min-width: 1.2em; text-align: center; font-weight: 700; }
+  .semaforo { padding: 10px 12px; }
+  .luces { display: flex; flex-wrap: wrap; gap: 8px; }
+  .lampara { flex: 1 1 220px; border: 1px solid; border-radius: 8px; padding: 8px 10px; display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: baseline; }
+  .lampara.ok { background: var(--ok-fondo); border-color: var(--ok); } .lampara.aviso { background: var(--aviso-fondo); border-color: var(--aviso); }
+  .lampara.mal { background: var(--mal-fondo); border-color: var(--mal); } .lampara.gris { background: var(--gris-fondo); border-color: var(--gris); }
+  .lampara .titulo { font-weight: 700; } .lampara .estado { font-weight: 600; } .lampara .detalle { color: var(--texto); flex-basis: 100%; font-size: .9rem; }
+  ul.directo, ul.ramas { list-style: none; margin: 6px 0 0; padding: 0; }
+  .fila { display: flex; flex-wrap: wrap; gap: 0 8px; padding: 5px 6px; border-bottom: 1px solid var(--linea); border-left: 4px solid transparent; align-items: baseline; }
+  .fila.enlazada { border-left-color: currentColor; background: var(--fondo); }
+  .fila .hora { font-variant-numeric: tabular-nums; color: var(--suave); }
+  .fila .tipo { font-weight: 600; } .fila .detalle { color: var(--texto); overflow-wrap: anywhere; flex: 1 1 14em; }
+  .crono { font-variant-numeric: tabular-nums; font-weight: 700; }
+  .rama { padding: 8px 0; border-bottom: 1px solid var(--linea); }
+  .rama-cab { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px; }
+  .rama-tot { font-variant-numeric: tabular-nums; color: var(--suave); }
+  .marcas { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  .marca { border: 1px solid currentColor; border-radius: 6px; padding: 1px 6px; display: inline-flex; gap: 4px; align-items: baseline; min-width: 2em; justify-content: center; }
+  .marca.antigua { border-style: dashed; opacity: .75; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  @media (max-width: 480px) { main { padding: 10px; } section { padding: 10px 12px; } .fila .detalle { flex-basis: 100%; } }
 </style>
 </head>
 <body>
 <main>
   <h1>Panel de la factoría</h1>
-  <p class="suave">Solo lee tus ficheros de Claude Code. No manda nada fuera del PC. Se refresca solo cada 5 s.</p>
+  <p class="suave">Solo lee tus ficheros de Claude Code. No manda nada fuera del PC. Se refresca solo cada 5 s. <span id="vivo" class="vivo"></span></p>
   <div id="aviso"></div>
   <div id="app"><p class="vacio">Cargando…</p></div>
 </main>
@@ -231,25 +256,208 @@ function pintarPie() {
   return el("section", "", el("h2", "", "Qué NO sabe este panel"), el("ul", "", ...lista.map((x) => el("li", "", x))));
 }
 
-function pintar(d) {
+// ---- v1: semáforo, En directo y rondas por tarea. Nada se calcula aquí: el nivel, las listas y el null de una fuente caída vienen del servidor ----
+const NIVEL = { ok: ["●", "bien"], aviso: ["▲", "atención"], mal: ["■", "mal"], gris: ["◌", "sin dato"] }; // la forma y la palabra, además del color
+const VEREDICTO = { pasa: ["✔", "ok", "pasa"], no_pasa: ["✖", "mal", "no pasa"], no_se: ["?", "aviso", "no sé"], sin_veredicto: ["⚠", "gris", "ilegible"] };
+const horaMadrid = (() => {
+  const f = new Intl.DateTimeFormat("es-ES", { timeZone: "Europe/Madrid", hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" });
+  return (iso) => f.format(Date.parse(iso));
+})();
+const hasta = (iso) => msTexto(Math.max(0, Date.now() - Date.parse(iso)));
+// Un temporizador: el servidor da la hora de lanzamiento y el navegador sigue contando cada segundo
+const crono = (iso) => {
+  const e = el("span", "crono", hasta(iso));
+  e.dataset.desde = iso;
+  return e;
+};
+
+function lampara(titulo, nivel, ...detalle) {
+  const k = nivel ?? "gris"; // una lámpara sin dato nunca es verde
+  return el("div", "lampara " + k, el("span", "forma", NIVEL[k][0]), el("span", "titulo", titulo), el("span", "estado", NIVEL[k][1]), nivel ? el("span", "detalle", ...detalle) : null);
+}
+function pintarSemaforo(d) {
+  const s = d.semaforo;
+  const h = s.hooksVivos;
+  const b = s.bloqueosHoy;
+  const r = s.rondasAbiertas;
+  return [
+    el(
+      "div",
+      "luces",
+      lampara("Hooks vivos", h?.nivel, ...(h ? [h.ultimo ? ["último evento ", haceEl(h.ultimo)] : "ningún evento visto", ` · ${h.copiaOk ? "copia = repo" : "copia ≠ repo"}`].flat() : [])),
+      lampara("Bloqueos hoy", b?.nivel, ...(b ? [`${b.total} ${b.total === 1 ? "bloqueo" : "bloqueos"} desde las 00:00 (${b.identificados} con hook identificado)`] : [])),
+      lampara("Rondas abiertas", r?.nivel, ...(r ? [r.n === 0 ? "ninguna" : `${r.n} ${r.n === 1 ? "juez" : "jueces"} sin informe`] : [])),
+    ),
+  ];
+}
+
+// La lista de «En directo» vive entre repintados: las filas nuevas se insertan arriba y las demás no se tocan
+function crearDirecto() {
+  const msg = el("p", "vacio");
+  const ul = el("ul", "directo");
+  const nodo = el("section", "", el("h2", "", "En directo"), el("p", "suave", "Hora de Madrid. Lo más nuevo, arriba. La forma y la palabra dicen qué pasó; el color solo ayuda."), msg, ul);
+  return { nodo, msg, ul, filas: new Map(), msgTexto: null };
+}
+function filaDirecta(ev, informe, lanzado) {
+  const enlazada = Boolean(informe || lanzado);
+  let forma, color, tipo, detalle;
+  if (ev.tipo === "agente_lanzado") {
+    [forma, color, tipo] = ["▶", "suave", "Agente lanzado"];
+    detalle = [ev.agente ?? "(tipo sin indicar)"];
+  } else if (ev.tipo === "juez_lanzado") {
+    [forma, color, tipo] = ["◆", informe ? VEREDICTO[informe.veredicto]?.[1] ?? "gris" : "aviso", "Juez lanzado"];
+    detalle = [ev.agente ?? "juez"];
+    if (informe) detalle.push(` · informó a las ${horaMadrid(informe.hora)} · tardó ${fMs(informe.duracionMs)}`);
+    else if (ev.agentId) detalle.push(" · en marcha: ", crono(ev.hora));
+    else detalle.push(" · sin agent_id (dato antiguo): no se puede seguir");
+  } else if (ev.tipo === "juez_informo") {
+    const v = VEREDICTO[ev.veredicto] ?? VEREDICTO.sin_veredicto;
+    [forma, color, tipo] = [v[0], v[1], "Juez informó"];
+    detalle = [`${ev.agente ?? "juez"} · ${v[2]}`];
+    if (!ev.agentId) detalle.push(" · sin agent_id (dato antiguo)");
+    else if (ev.duracionMs == null) detalle.push(" · duración: sin dato");
+    else detalle.push(` · tardó ${msTexto(ev.duracionMs)}`);
+    if (lanzado) detalle.push(` · lanzado a las ${horaMadrid(lanzado.hora)}`);
+  } else if (ev.tipo === "hook_bloqueo") {
+    [forma, color, tipo] = ["■", "mal", "Hook bloqueó"];
+    detalle = [ev.hook ?? "hook sin identificar"];
+  } else {
+    [forma, color, tipo] = ["●", "suave", "Turno terminado"];
+    detalle = [`hooks de cierre: ${ev.duracionMs == null ? "sin duración" : msTexto(ev.duracionMs)}`];
+  }
+  return el("li", `fila ${color}${enlazada ? " enlazada" : ""}`, el("span", "hora", horaMadrid(ev.hora)), el("span", "forma", forma), el("span", "tipo", tipo), el("span", "detalle", ...detalle, ` · sesión ${ev.sesion ?? "?"}`));
+}
+function actualizarDirecto(d) {
+  const z = zonas.dir;
+  const ev = d.eventos;
+  const texto = ev === null ? "Sin dato en directo (ver franja roja)." : ev.length === 0 ? `Sin actividad en los últimos ${d.directoMin} min.` : "";
+  if (texto !== z.msgTexto) {
+    z.msg.textContent = texto;
+    z.msgTexto = texto;
+  }
+  const lista = ev ?? [];
+  // lo que une un juez lanzado con su informe (mismo agent_id)
+  const informes = new Map(lista.filter((x) => x.tipo === "juez_informo" && x.agentId).map((x) => [x.agentId, x]));
+  const lanzados = new Map(lista.filter((x) => x.tipo === "juez_lanzado" && x.agentId).map((x) => [x.agentId, x]));
+  const vistas = new Map();
+  const deseadas = lista.map((x) => {
+    const base = JSON.stringify(x);
+    const n = vistas.get(base) ?? 0;
+    vistas.set(base, n + 1);
+    const informe = x.tipo === "juez_lanzado" ? informes.get(x.agentId) : null;
+    const lanzado = x.tipo === "juez_informo" ? lanzados.get(x.agentId) : null;
+    return { x, clave: `${base}#${n}`, firma: JSON.stringify([informe, lanzado]), informe, lanzado };
+  });
+  const antes = z.ul.offsetHeight;
+  const arriba = z.ul.getBoundingClientRect().top;
+  let ref = z.ul.firstChild;
+  const nuevas = new Map();
+  for (const f of deseadas) {
+    const previa = z.filas.get(f.clave);
+    if (previa && previa.firma === f.firma) {
+      if (previa.li === ref) ref = ref.nextSibling;
+      else z.ul.insertBefore(previa.li, ref);
+      nuevas.set(f.clave, previa);
+      continue;
+    }
+    if (previa) {
+      if (previa.li === ref) ref = ref.nextSibling;
+      previa.li.remove();
+    }
+    const li = filaDirecta(f.x, f.informe, f.lanzado);
+    z.ul.insertBefore(li, ref);
+    nuevas.set(f.clave, { li, firma: f.firma });
+  }
+  while (ref) {
+    const sig = ref.nextSibling;
+    ref.remove();
+    ref = sig;
+  }
+  z.filas = nuevas;
+  // Si el usuario mira más abajo, lo que ganó la lista por arriba no le mueve el texto que lee
+  const delta = z.ul.offsetHeight - antes;
+  if (delta !== 0 && arriba < 0) window.scrollTo(0, window.scrollY + delta);
+}
+
+function marca(m) {
+  let forma, color, texto;
+  if (m.veredicto === "lanzado") {
+    [forma, color, texto] = ["…", m.abierta ? "aviso" : "gris", m.abierta ? "lanzado, en marcha" : "lanzado, sin informe (ya no corre)"];
+  } else {
+    const v = VEREDICTO[m.veredicto] ?? VEREDICTO.sin_veredicto;
+    [forma, color] = [v[0], v[1]];
+    texto = v[2] + (m.ms != null ? ` · tardó ${msTexto(m.ms)}` : m.fiable ? " · duración: sin dato" : "");
+  }
+  const completo = `${m.agente} · ${texto}${m.fiable ? "" : " · dato antiguo, no fiable"}`;
+  const e = el("span", `marca ${color}${m.fiable ? "" : " antigua"}`, el("span", "forma", forma), m.veredicto === "lanzado" && m.abierta ? crono(m.ts) : null, el("span", "sr", completo));
+  e.title = completo;
+  return e;
+}
+function pintarRondas(d) {
+  const sal = [el("h2", "", "Rondas por tarea"), el("p", "suave", "Una ronda = un informe de juez en esa rama; no sé a qué PR pertenece. Cada marca es un informe: ✔ pasa · ✖ no pasa · ? no sé · ⚠ ilegible · … lanzado sin informe.")];
+  if (d.ramas === null) return [...sal, el("p", "vacio", "No se pudo leer (ver franja roja).")];
+  if (!d.ramas.length) return [...sal, el("p", "vacio", `Sin rondas de jueces en los últimos ${d.dias} días.`)];
+  return [
+    ...sal,
+    el(
+      "ul",
+      "ramas",
+      ...d.ramas.map((r) => {
+        const antiguas = r.marcas.filter((m) => !m.fiable).length;
+        return el(
+          "li",
+          "rama",
+          el("div", "rama-cab", el("code", "", r.rama), el("span", "rama-tot", `${fNum(r.rondas)} ${r.rondas === 1 ? "ronda" : "rondas"} · ${fMs(r.tiempoMs)} en jueces`)),
+          el("div", "marcas", ...r.marcas.map(marca)),
+          r.masMarcas ? el("p", "suave", `${r.masMarcas} marcas más antiguas no se enseñan (el total de rondas las cuenta).`) : null,
+          antiguas ? el("p", "suave", `${antiguas} ${antiguas === 1 ? "marca" : "marcas"} de dato antiguo, no fiable (sin agent_id: la versión vieja del hook).`) : null,
+        );
+      }),
+    ),
+  ];
+}
+
+// ---- Zonas fijas: se crean una vez y cada una se repinta solo si cambió lo suyo ----
+const zonas = {};
+function crearZonas() {
+  zonas.sem = el("section", "semaforo");
+  zonas.dir = crearDirecto();
+  zonas.ron = el("section", "");
+  zonas.resto = el("div", "");
+  app.replaceChildren(zonas.sem, zonas.dir.nodo, zonas.ron, zonas.resto);
+}
+
+function pintarResto(d) {
   // Conserva el desplazamiento de la página y de cada tabla, y qué tabla tenía el foco del teclado.
-  const cajas = [...app.querySelectorAll(".tabla")];
+  const cajas = [...zonas.resto.querySelectorAll(".tabla")];
   const izq = cajas.map((c) => c.scrollLeft);
   const foco = cajas.indexOf(document.activeElement);
   const y = window.scrollY;
-  app.replaceChildren(pintarEstado(d), pintarHooks(d), pintarTiempos(d), pintarIneficiencias(d), pintarPie());
-  const nuevas = [...app.querySelectorAll(".tabla")];
+  zonas.resto.replaceChildren(pintarEstado(d), pintarHooks(d), pintarTiempos(d), pintarIneficiencias(d), pintarPie());
+  const nuevas = [...zonas.resto.querySelectorAll(".tabla")];
   if (nuevas.length === izq.length) nuevas.forEach((c, i) => (c.scrollLeft = izq[i]));
   if (foco >= 0 && nuevas[foco]) nuevas[foco].focus({ preventScroll: true });
   window.scrollTo(0, y);
 }
-// Solo se repinta si cambió algo de verdad; lo que cambia siempre (hora, tiempos de lectura, memoria) se actualiza en su sitio.
-let claveAnterior = null;
+// Solo se repinta lo que cambió de verdad; lo que cambia siempre (hora, tiempos de lectura, memoria) se actualiza en su sitio.
+const claves = { sem: null, ron: null, resto: null };
 let saltados = 0;
+const vivo = document.getElementById("vivo");
+let vivoTs = null;
+function marcarVivo(ok, generado) {
+  if (generado) vivoTs = generado;
+  const forma = ok ? "●" : "■";
+  vivo.className = "vivo " + (ok ? "ok" : "mal");
+  vivo.replaceChildren(el("span", "forma", forma), ok ? "en vivo · actualizado" : "sin conexión · último dato", vivoTs ? haceEl(vivoTs) : "");
+}
 function mostrar(d) {
-  const { generado, lecturaMs, proceso, ficheros, ...resto } = d; // lo volátil queda fuera de la comparación
-  const clave = JSON.stringify(resto);
-  if (clave === claveAnterior) {
+  const { generado, lecturaMs, proceso, ficheros, semaforo, eventos, ramas, ...resto } = d; // lo volátil queda fuera de la comparación
+  if (!zonas.sem) crearZonas();
+  actualizarDirecto(d); // la lista de En directo es incremental: nunca espera
+  if (vivoTs === null || !vivo.className.includes("ok") || vivoTs !== generado) marcarVivo(true, generado);
+  const nuevas = { sem: JSON.stringify([semaforo, d.directoMin]), ron: JSON.stringify([ramas, d.dias]), resto: JSON.stringify(resto) };
+  const cambian = Object.keys(nuevas).filter((k) => nuevas[k] !== claves[k]);
+  if (!cambian.length) {
     if (lineaLectura) lineaLectura.textContent = textoLectura(d);
     return;
   }
@@ -257,12 +465,15 @@ function mostrar(d) {
   // está seleccionando texto: se espera a que acabe, pero como mucho 6 ciclos (30 s)
   if (sel && !sel.isCollapsed && app.contains(sel.anchorNode) && ++saltados < 6) return;
   saltados = 0;
-  claveAnterior = clave;
-  pintar(d);
+  for (const k of cambian) claves[k] = nuevas[k];
+  if (cambian.includes("sem")) zonas.sem.replaceChildren(...pintarSemaforo(d));
+  if (cambian.includes("ron")) zonas.ron.replaceChildren(...pintarRondas(d));
+  if (cambian.includes("resto")) pintarResto(d);
 }
 function pintarFallo(msg, extra) {
   aviso.replaceChildren(franja("mal", msg, extra ? [extra] : null));
   app.classList.add("viejo"); // los datos que quedan son viejos: se atenúan mientras dure la caída
+  marcarVivo(false);
 }
 
 async function cargar() {
@@ -286,8 +497,11 @@ async function cargar() {
   cargar().then(sigue, sigue);
 })();
 document.addEventListener("visibilitychange", () => { if (!document.hidden) cargar(); });
-// «hace N s» sigue contando en el navegador aunque no lleguen datos nuevos
-setInterval(() => document.querySelectorAll("[data-ts]").forEach((n) => (n.textContent = hace(n.dataset.ts))), 1000);
+// «hace N s» y los temporizadores de los jueces en marcha siguen contando en el navegador aunque no lleguen datos nuevos
+setInterval(() => {
+  document.querySelectorAll("[data-ts]").forEach((n) => (n.textContent = hace(n.dataset.ts)));
+  document.querySelectorAll("[data-desde]").forEach((n) => (n.textContent = hasta(n.dataset.desde)));
+}, 1000);
 </script>
 </body>
 </html>
