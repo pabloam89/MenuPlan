@@ -10,7 +10,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { FUENTES, MAX_EVENTOS, MAX_MARCAS, MAX_RAMAS, RONDA_ABIERTA_MAX_MS, TIPOS_EVENTO, UMBRALES_HOOKS_VIVOS, VENTANA_DIRECTO_MS, agregar, compararCopias, inicioDiaMadrid, leerDeclarados, nombreCorto, normalizarComando, nuevoResumen, parsearRegistro, procesarLinea, unirBloqueos } from "./lib/leer.mjs";
+import { FUENTES, MAX_EVENTOS, MAX_MARCAS, MAX_RAMAS, RONDA_ABIERTA_MAX_MS, TIPOS_EVENTO, UMBRALES_HOOKS_VIVOS, VENTANA_DIRECTO_MS, agregar, compararCopias, inicioDiaMadrid, leerDeclarados, nombreCorto, normalizarComando, nuevoResumen, parsearRegistro, procesarLinea, unirBloqueos, validarPrecios } from "./lib/leer.mjs";
 import { crearRecolector, crearServidor } from "./servir.mjs";
 
 const SERVIR = join(dirname(fileURLToPath(import.meta.url)), "servir.mjs");
@@ -34,7 +34,9 @@ const asist = (s, n = 1) => Array.from({ length: n }, (_, i) => ({ type: "assist
 const foto = (s, c, extra = {}) => ({ type: "cost-state", sessionId: s, totalCostUSD: c, totalDuration: 10000, totalAPIDuration: 3000, totalToolDuration: 2000, ...extra });
 const e = (extra) => ({ ts: AHORA - 5000, sesion: "x", agente: "revisor", veredicto: "pasa", resumen: MARCADOR, ...extra });
 const copiaOk = { ok: true, difieren: [], faltanInstalada: [], sobranInstalada: [] };
-const entradaBase = (extra = {}) => ({ ahora: AHORA, dias: 7, ficheros: [], registros: [], declarados: [], copia: copiaOk, home: "/h", errores: [], ...extra });
+// Precios de PRUEBA (no son los reales): USD por millón de tokens. m-sin existe y no tiene precio (null) a propósito.
+const PRECIOS = { fecha: "2026-01-01", fuente: "https://ejemplo.invalid/precios", modelos: { "m-a": { entrada: 3, salida: 15, lecturaCache: 0.3, escrituraCache5m: 3.75, escrituraCache1h: 6 }, "m-sin": null } };
+const entradaBase = (extra = {}) => ({ ahora: AHORA, dias: 7, ficheros: [], subagentes: [], precios: PRECIOS, registros: [], declarados: [], copia: copiaOk, home: "/h", errores: [], ...extra });
 
 describe("parseo de líneas de transcripción", () => {
   it("un resumen de cierre cuenta una activación por hook, con su duración", () => {
@@ -201,6 +203,10 @@ function navegador(datos) {
 const entradaRica = (errores = []) =>
   entradaBase({
     errores,
+    subagentes: [
+      { ruta: "s1", agentId: "a1", sesionPadre: "sp", tipo: "revisor", resumen: resumenDe({ type: "assistant", uuid: "us1", timestamp: iso(AHORA - 3000), ...base({ sessionId: "sp" }), isSidechain: true, message: { id: "msub1", model: "m-a", usage: { input_tokens: 1000, output_tokens: 1000 }, content: [] } }) },
+      { ruta: "s2", agentId: "c1", sesionPadre: "sp", tipo: "constructor", resumen: resumenDe({ type: "assistant", uuid: "us2", timestamp: iso(AHORA - 3 * DIA), ...base({ sessionId: "sp" }), isSidechain: true, message: { id: "msub2", model: "m-sin", usage: { input_tokens: 10, output_tokens: 10 }, content: [] } }) },
+    ],
     declarados: [{ evento: "Stop", comando: "node c.mjs" }, { evento: "Stop", comando: "node mudo.mjs" }, { evento: "PostToolUse", comando: "node registro.mjs" }],
     registros: [{ rama: "r", rotas: 0, entradas: [e({ agent_id: "a1", veredicto: "lanzado", ts: AHORA - 9000 }), e({ agent_id: "a1" }), e({ agent_id: "a2" })] }],
     ficheros: [{ ruta: "f", mtimeMs: AHORA, resumen: resumenDe(...asist("sp"), foto("sp", 3), ...asist("sq"), ev("sh"), ev("sh", 3 * 3600e3), foto("sh", 1, { totalDuration: 7320000 }), cierre({ hookInfos: [{ command: "node c.mjs", durationMs: 7 }] }), { type: "attachment", uuid: "bq", timestamp: iso(AHORA), ...base(), attachment: { type: "hook_blocking_error", hookEvent: "Stop", blockingError: { command: "node c.mjs", blockingError: "falta qa" } } }, { type: "assistant", uuid: "ag", timestamp: iso(AHORA), ...base(), message: { id: "mag", model: "m", usage: { output_tokens: 1 }, content: [{ type: "tool_use", id: "tag", name: "Agent", input: { subagent_type: "revisor" } }, { type: "tool_use", id: "tag2", name: "Agent", input: { subagent_type: "constructor" } }] } }) }],
@@ -228,6 +234,19 @@ const DEP = [
   [g(".ineficiencias.relanzados", "rama|agente|informes|sinAgentId"), ["registro"]],
   // v1: En directo mezcla transcripciones (agentes, bloqueos, cierres) y registro (jueces): cae si cae cualquiera de las dos
   [g(".eventos", "hora|tipo|agente|hook|veredicto|agentId|duracionMs|sesion"), ["transcripciones", "registro"]],
+  // v1 coste: los tokens salen de las transcripciones; el coste, de las transcripciones y de los precios; por ronda, además, del registro
+  [/^\.coste$/, ["transcripciones"]],
+  [/^\.coste\.precios(\.(fecha|fuente))?$/, ["precios"]],
+  [/^\.coste\.lineasRotas$/, ["transcripciones"]],
+  [/^\.coste\.modelosSinPrecio(\[\])?$/, ["transcripciones", "precios"]],
+  [/^\.coste\.repartoTokens(\.(jueces|otros|principal))?$/, ["transcripciones"]],
+  [/^\.coste\.repartoCoste(\.(jueces|otros|principal))?$/, ["transcripciones", "precios"]],
+  [/^\.coste\.(total|(porDia|porSesion|porRama)\[\])\.(jueces|otros|principal|total)\.tokens$/, ["transcripciones"]],
+  [/^\.coste\.(total|(porDia|porSesion|porRama)\[\])\.(jueces|otros|principal|total)\.(costeUSD|tokensSinPrecio)$/, ["transcripciones", "precios"]],
+  [/^\.coste\.(porSesion|porRama)\[\]\.pctJueces$/, ["transcripciones", "precios"]],
+  [/^\.coste\.(porDia|porSesion|porRama)(\[\]\.(dia|sesion|rama|ultimo))?$/, ["transcripciones"]],
+  [/^\.ramas\[\]\.(tokens|rondasConCoste)$|^\.ramas\[\]\.marcas\[\]\.tokens$/, ["registro", "transcripciones"]],
+  [/^\.ramas\[\]\.(costeUSD|tokensSinPrecio)$|^\.ramas\[\]\.marcas\[\]\.(costeUSD|tokensSinPrecio)$/, ["registro", "transcripciones", "precios"]],
   [g(".ramas", "rama|rondas|tiempoMs|ultimo|masMarcas|marcas(\\[\\]\\.(agente|veredicto|ms|ts|abierta|fiable))?"), ["registro"]],
   [/^\.semaforo\.hooksVivos(\.(nivel|ultimo|copiaOk))?$/, ["transcripciones", "copia"]],
   [/^\.semaforo\.bloqueosHoy(\.(nivel|total|identificados))?$/, ["transcripciones"]],
@@ -252,6 +271,7 @@ describe("errores por fuente: lo derivado de una fuente caída sale null (en los
     comprobar(sano, []);
     expect(hojas(sano).filter(([p]) => !deDe(p).length).map(([p]) => p)).toEqual([".directoMin", ".errores"]); // la lista blanca no se amplía en silencio
     expect(new Set(sano.eventos.map((x) => x.tipo))).toEqual(new Set(TIPOS_EVENTO)); // «En directo» con un suceso de cada tipo, para que el test de fuentes caídas mida algo
+    expect([sano.coste.porDia.length > 1, sano.coste.porSesion.length > 0, sano.coste.porRama.length > 0, sano.coste.modelosSinPrecio.length > 0, sano.coste.repartoCoste !== null, sano.coste.total.jueces.costeUSD > 0, sano.ramas[0].marcas.some((m) => m.tokens !== null), sano.ramas[0].marcas.some((m) => m.tokens === null)]).toEqual(Array(8).fill(true)); // el coste del fixture trae de todo
     expect([sano.ramas.length > 0, sano.ramas[0].marcas.length > 0, sano.semaforo.hooksVivos !== null, sano.semaforo.bloqueosHoy.total > 0, sano.semaforo.rondasAbiertas !== null]).toEqual(Array(5).fill(true));
     const h = sano.hooks;
     expect([h.some((x) => x.rojo === true), h.some((x) => x.sinHuella === true && x.rojo === false), sano.tiempos.some((t) => t.costeUSD === null), sano.tiempos.some((t) => t.costeUSD !== null), sano.ineficiencias.relanzados.length > 0, sano.ineficiencias.subagentes.length > 0, sano.ineficiencias.bloqueos.length > 0, sano.jueces.tiempos.length > 0, sano.estado.copia.ok === true, sano.estado.registroAntiguo.apuntes > 0]).toEqual(Array(10).fill(true));
@@ -938,6 +958,145 @@ describe("v1 · rondas por tarea (agrupadas por rama)", () => {
   });
 });
 
+// ---- v1: tokens y coste ESTIMADO (a precio de API) por día, categoría, sesión, rama y ronda de juez ----
+describe("v1 · coste estimado", () => {
+  const padre = "ses-padre01";
+  const lineaPadre = () => ({ type: "mode", timestamp: iso(AHORA - 1000), ...base({ sessionId: padre, gitBranch: "rama-padre" }) });
+  const uso = (id, modelo, u, extra = {}) => ({ type: "assistant", uuid: "u-" + id, timestamp: iso(AHORA - 1000), ...base({ sessionId: padre, gitBranch: "rama-padre" }), isSidechain: true, message: { id, model: modelo, usage: u, content: [{ type: "text", text: MARCADOR }] }, ...extra });
+  const subDe = (agentId, tipo, ...lineas) => ({ ruta: "s-" + agentId, agentId, sesionPadre: padre, tipo, resumen: resumenDe(...lineas) });
+  const U = { input_tokens: 1000, output_tokens: 2000, cache_read_input_tokens: 10000, cache_creation_input_tokens: 4000, cache_creation: { ephemeral_5m_input_tokens: 3000, ephemeral_1h_input_tokens: 1000 } };
+  const COSTE_U = (1000 * 3 + 2000 * 15 + 10000 * 0.3 + 3000 * 3.75 + 1000 * 6) / 1e6; // con los precios de prueba
+  const TOK_U = 1000 + 2000 + 10000 + 4000;
+  const coste = (extra) => agregar(entradaBase({ ...conFicheros(lineaPadre()), ...extra })).coste;
+
+  it("el coste sale exacto: entrada, salida, lectura de caché y escritura de caché a 5 min y a 1 h, cada una a su tarifa", () => {
+    const c = coste({ subagentes: [subDe("a1", "revisor", uso("m1", "m-a", U))] });
+    expect(c.total.jueces).toEqual({ tokens: TOK_U, costeUSD: COSTE_U, tokensSinPrecio: 0 });
+    expect(COSTE_U).toBeCloseTo(0.05325, 9);
+  });
+
+  it("si el uso no separa la escritura de caché, todo va a la tarifa de 5 min", () => {
+    const sinSplit = { ...U, cache_creation: undefined };
+    const c = coste({ subagentes: [subDe("a1", "revisor", uso("m1", "m-a", sinSplit))] });
+    expect(c.total.jueces.costeUSD).toBeCloseTo((1000 * 3 + 2000 * 15 + 10000 * 0.3 + 4000 * 3.75) / 1e6, 9);
+  });
+
+  it("un mensaje repetido (misma message.id, en una línea repetida o en dos ficheros) cuenta una vez, con lo mayor de cada cifra", () => {
+    const a = uso("m1", "m-a", { ...U, output_tokens: 10 });
+    const b = uso("m1", "m-a", U);
+    const c = coste({ subagentes: [subDe("a1", "revisor", a, b), subDe("a2", "revisor", b)] });
+    expect(c.total.jueces.tokens).toBe(TOK_U);
+  });
+
+  it("el mismo mensaje en la transcripción principal y en la del subagente cuenta una vez (el del subagente, que sabe su tipo)", () => {
+    const m = uso("m1", "m-a", U);
+    const d = agregar(entradaBase({ ...conFicheros(lineaPadre(), m), subagentes: [subDe("a1", "revisor", m)] })).coste;
+    expect(d.total.jueces.tokens).toBe(TOK_U);
+    expect(d.total.principal.tokens).toBe(0);
+  });
+
+  it("categorías: jueces = revisor, qa, evaluador, seguridad, auditor-datos; el resto de subagentes, otros; las transcripciones principales, principal", () => {
+    const una = (id, tipo) => subDe(id, tipo, uso("m-" + id, "m-a", U));
+    const tipos = ["revisor", "qa", "evaluador", "seguridad", "auditor-datos", "constructor", "general-purpose", "Explore", null];
+    const c = coste({ subagentes: tipos.map((t, i) => una("x" + i, t)), ...conFicheros(lineaPadre(), { ...uso("mp", "m-a", U), isSidechain: false }) });
+    expect(c.total.jueces.tokens).toBe(5 * TOK_U);
+    expect(c.total.otros.tokens).toBe(4 * TOK_U);
+    expect(c.total.principal.tokens).toBe(TOK_U);
+    expect(c.total.total.tokens).toBe(10 * TOK_U);
+    expect(c.repartoTokens).toEqual({ jueces: 50, otros: 40, principal: 10 });
+    expect(c.repartoCoste).toEqual({ jueces: 50, otros: 40, principal: 10 });
+  });
+
+  it("por día de Madrid: las 00:30 de Madrid son del día siguiente en UTC; y lo de fuera de la ventana de días no cuenta", () => {
+    const en = (id, t) => uso(id, "m-a", U, { timestamp: iso(t) });
+    const c = coste({ subagentes: [subDe("a1", "revisor", en("d1", Date.parse("2026-10-23T22:30:00Z")), en("d2", Date.parse("2026-10-23T21:30:00Z")), en("d3", AHORA - 8 * DIA))] });
+    expect(c.porDia.map((x) => [x.dia, x.jueces.tokens])).toEqual([["2026-10-23", TOK_U], ["2026-10-24", TOK_U]]);
+    expect(c.total.jueces.tokens).toBe(2 * TOK_U);
+  });
+
+  it("por sesión (id corto, con la rama de la sesión PADRE) y por rama, con el % de jueces; una fila por sesión aunque haya varios subagentes", () => {
+    const c = coste({ subagentes: [subDe("a1", "revisor", uso("m1", "m-a", U)), subDe("a2", "constructor", uso("m2", "m-a", U), uso("m3", "m-a", U))] });
+    expect(c.porSesion).toHaveLength(1);
+    expect(c.porSesion[0]).toMatchObject({ sesion: "ses-padr", rama: "rama-padre", pctJueces: 33.3 });
+    expect(c.porSesion[0].total.tokens).toBe(3 * TOK_U);
+    expect(c.porRama).toEqual([expect.objectContaining({ rama: "rama-padre", pctJueces: 33.3 })]);
+  });
+
+  it("un modelo sin precio: los tokens salen, el coste de esa parte «sin precio» (null) y el total solo suma lo que tiene precio", () => {
+    const sin = subDe("a1", "revisor", uso("m1", "m-sin", U));
+    const c = coste({ subagentes: [sin] });
+    expect(c.total.jueces).toEqual({ tokens: TOK_U, costeUSD: null, tokensSinPrecio: TOK_U });
+    expect(c.modelosSinPrecio).toEqual(["m-sin"]);
+    expect(c.repartoCoste).toBeNull();
+    const mezcla = coste({ subagentes: [sin, subDe("a2", "revisor", uso("m2", "m-a", U)), subDe("a3", "revisor", uso("m3", "otro-modelo", U))] });
+    expect(mezcla.total.jueces).toEqual({ tokens: 3 * TOK_U, costeUSD: COSTE_U, tokensSinPrecio: 2 * TOK_U });
+    expect(mezcla.modelosSinPrecio).toEqual(["m-sin", "otro-modelo"]);
+  });
+
+  it("los modelos sintéticos no cuentan", () => {
+    expect(coste({ subagentes: [subDe("a1", "revisor", uso("m1", "<synthetic>", U))] }).total.total.tokens).toBe(0);
+  });
+
+  it("precios: fecha y fuente salen con el coste; sin precios.json (null) todo es «sin precio»", () => {
+    expect(coste({}).precios).toEqual({ fecha: PRECIOS.fecha, fuente: PRECIOS.fuente });
+    const c = coste({ precios: null, subagentes: [subDe("a1", "revisor", uso("m1", "m-a", U))] });
+    expect(c.total.jueces.costeUSD).toBeNull();
+    expect(c.precios).toBeNull();
+  });
+
+  it("validarPrecios: forma esperada; un precio que falta o no es número es un error, no un cero", () => {
+    expect(() => validarPrecios(PRECIOS)).not.toThrow();
+    expect(() => validarPrecios({ ...PRECIOS, fecha: undefined })).toThrow(/fecha/);
+    expect(() => validarPrecios({ ...PRECIOS, modelos: { x: { entrada: 1 } } })).toThrow(/x/);
+    expect(() => validarPrecios({ ...PRECIOS, modelos: { x: { ...PRECIOS.modelos["m-a"], salida: "3" } } })).toThrow(/salida/);
+    expect(() => validarPrecios({ ...PRECIOS, modelos: { x: null } })).not.toThrow(); // null = sin precio, a propósito
+  });
+
+  it("sin contenido: ni el texto de los mensajes ni nada salvo cifras y nombres cerrados", () => {
+    const c = coste({ subagentes: [subDe("a1", "revisor", uso("m1", "m-a", U))] });
+    expect(JSON.stringify(c)).not.toContain(MARCADOR);
+  });
+});
+
+describe("v1 · coste por ronda de juez (unión por agent_id)", () => {
+  const padre = "ses-padre01";
+  const uso = (id, u, t = AHORA - 1000) => ({ type: "assistant", uuid: "u-" + id, timestamp: iso(t), ...base({ sessionId: padre }), isSidechain: true, message: { id, model: "m-a", usage: u, content: [] } });
+  const sub = (agentId, ...lineas) => ({ ruta: "s-" + agentId, agentId, sesionPadre: padre, tipo: "revisor", resumen: resumenDe(...lineas) });
+  const U1 = { input_tokens: 1000, output_tokens: 1000, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 };
+  const C1 = (1000 * 3 + 1000 * 15) / 1e6;
+  const registro = (...entradas) => [{ rama: "r", rotas: 0, entradas }];
+  const rondas = (subagentes, ...entradas) => agregar(entradaBase({ registros: registro(...entradas), subagentes })).ramas[0];
+
+  it("cada informe lleva los tokens y el coste de SU juez (el del mismo agent_id); la rama suma", () => {
+    const r = rondas([sub("a1", uso("m1", U1)), sub("a2", uso("m2", U1), uso("m3", U1))], e({ agent_id: "a1" }), e({ agent_id: "a2", ts: AHORA - 4000 }));
+    expect(r.marcas.map((m) => [m.tokens, m.costeUSD, m.tokensSinPrecio])).toEqual([[2000, C1, 0], [4000, 2 * C1, 0]]);
+    expect(r).toMatchObject({ tokens: 6000, costeUSD: 3 * C1, tokensSinPrecio: 0, rondasConCoste: 2 });
+  });
+
+  it("un juez sin transcripción, o un apunte sin agent_id (dato antiguo), es «sin dato» (null), nunca 0; la rama dice a cuántas rondas llega el coste", () => {
+    const r = rondas([sub("a1", uso("m1", U1))], e({ agent_id: "a1", ts: AHORA - 5000 }), e({ agent_id: "huerfano", ts: AHORA - 4000 }), e({ ts: AHORA - 3000 }));
+    expect(r.marcas.map((m) => m.tokens)).toEqual([2000, null, null]);
+    expect(r.marcas.map((m) => m.costeUSD)).toEqual([C1, null, null]);
+    expect(r).toMatchObject({ tokens: 2000, costeUSD: C1, rondasConCoste: 1, rondas: 3 });
+    const nada = rondas([], e({ agent_id: "a1" }));
+    expect(nada).toMatchObject({ tokens: null, costeUSD: null, tokensSinPrecio: null, rondasConCoste: 0 });
+  });
+
+  it("un juez con modelo sin precio da tokens y coste null en su marca", () => {
+    const x = { ...sub("a1", uso("m1", U1)) };
+    x.resumen.msgs.get("m1").modelo = "sin-precio";
+    const r = rondas([x], e({ agent_id: "a1" }));
+    expect(r.marcas[0]).toMatchObject({ tokens: 2000, costeUSD: null, tokensSinPrecio: 2000 });
+    expect(r).toMatchObject({ tokens: 2000, costeUSD: null, tokensSinPrecio: 2000 });
+  });
+
+  it("un lanzado sin informe no lleva coste (aún no hay ronda)", () => {
+    const r = rondas([sub("a1", uso("m1", U1))], e({ veredicto: "lanzado", agent_id: "a1", ts: AHORA - 5000 }));
+    expect(r.marcas[0]).toMatchObject({ veredicto: "lanzado", tokens: null, costeUSD: null });
+    expect(r.rondasConCoste).toBe(0);
+  });
+});
+
 // ---- Servidor y lectura de ficheros de verdad, sobre un «home» sintético ----
 let dir;
 let home;
@@ -965,6 +1124,12 @@ function montar() {
   ];
   escribir(fSesion(), sesion.map(L).join("") + "{línea rota\n");
   escribir(join(home, ".claude", "projects", "p1", "ses-bbbb2222.jsonl"), L({ type: "assistant", uuid: "b1", timestamp: iso(t - 60000), ...base({ sessionId: "ses-bbbb2222" }), message: { id: "mb", model: "m", usage: {}, content: [] } })); // sin foto de coste
+  const carpetaSub = join(home, ".claude", "projects", "p1", "ses-aaaa1111", "subagents");
+  const usoDe = (id) => L({ type: "assistant", uuid: "us-" + id, timestamp: iso(t - 2000), ...base(), isSidechain: true, message: { id: "ms-" + id, model: "m-a", usage: { input_tokens: 1000, output_tokens: 1000 }, content: [{ type: "text", text: MARCADOR }] } });
+  escribir(join(carpetaSub, "agent-a1.jsonl"), usoDe("a1"));
+  escribir(join(carpetaSub, "agent-a1.meta.json"), JSON.stringify({ agentType: "revisor", description: MARCADOR, prompt: MARCADOR }));
+  escribir(join(carpetaSub, "agent-q1.jsonl"), usoDe("q1")); // sin meta: tipo desconocido
+  escribir(join(dir, "precios.json"), JSON.stringify(PRECIOS));
   escribir(join(home, ".claude", "factoria-alvaro", "ops_zz.jsonl"), [e({ ts: t - 3500, agent_id: "a1", veredicto: "lanzado" }), e({ ts: t - 3000, agent_id: "a1" }), e({ ts: t - 2500, agent_id: "a2" })].map(L).join(""));
 }
 
@@ -992,7 +1157,7 @@ describe("servidor y lectura real", () => {
     rmSync(dir, { recursive: true, force: true });
   });
   const arrancar = async (extra = {}) => {
-    srv = crearServidor({ home, repoAlvaro: alvaro, dias: 7, ...extra });
+    srv = crearServidor({ home, repoAlvaro: alvaro, dias: 7, rutaPrecios: join(dir, "precios.json"), ...extra });
     await new Promise((r) => srv.listen(0, "127.0.0.1", r));
     return srv.address().port;
   };
@@ -1012,7 +1177,7 @@ describe("servidor y lectura real", () => {
     expect(r.cuerpo).not.toContain("hola");
     // el otro marcador sale, pero solo por los campos permitidos y declarados
     const rutas = (v, p = "") => (typeof v === "string" ? (v.includes(PERMITIDO) ? [p] : []) : v && typeof v === "object" ? Object.entries(v).flatMap(([k, x]) => rutas(x, p + (/^\d+$/.test(k) ? "[]" : "." + k))) : []);
-    expect([...new Set(rutas(d))].sort()).toEqual([".eventos[].agente", ".ineficiencias.costes.sesiones[].carpeta", ".ineficiencias.costes.sesiones[].rama", ".ineficiencias.subagentes[].tipo", ".ineficiencias.tokens[].modelo", ".tiempos[].carpeta", ".tiempos[].rama"]);
+    expect([...new Set(rutas(d))].sort()).toEqual([".coste.modelosSinPrecio[]", ".coste.porRama[].rama", ".coste.porSesion[].rama", ".eventos[].agente", ".ineficiencias.costes.sesiones[].carpeta", ".ineficiencias.costes.sesiones[].rama", ".ineficiencias.subagentes[].tipo", ".ineficiencias.tokens[].modelo", ".tiempos[].carpeta", ".tiempos[].rama"]);
   });
 
 
@@ -1211,6 +1376,69 @@ describe("servidor y lectura real", () => {
     expect([d.eventos, d.hooks, d.semaforo.bloqueosHoy]).toEqual([null, null, null]);
   });
 
+  // ---- v1: los subagentes (projects/<proyecto>/<sesion>/subagents/agent-<id>.jsonl + .meta.json) ----
+  const rutaSub = (id) => join(home, ".claude", "projects", "p1", "ses-aaaa1111", "subagents", `agent-${id}.jsonl`);
+  const metaSub = (id) => join(home, ".claude", "projects", "p1", "ses-aaaa1111", "subagents", `agent-${id}.meta.json`);
+  const usoSub = (id, extra = {}) => L({ type: "assistant", uuid: "us-" + id, timestamp: iso(Date.now() - 2000), ...base(), isSidechain: true, message: { id: "ms-" + id, model: "m-a", usage: { input_tokens: 1000, output_tokens: 1000 }, content: [{ type: "text", text: MARCADOR }] }, ...extra });
+  const TOK_SUB = 2000;
+  const tokensDe = (d) => [d.coste.total.jueces.tokens, d.coste.total.otros.tokens, d.coste.total.principal.tokens];
+
+  it("lee los subagentes: el tipo sale del meta (solo agentType: description y prompt no salen), sin meta es «otros», y une cada juez con su ronda por agent_id", async () => {
+    const r = await pedir(await arrancar());
+    const d = JSON.parse(r.cuerpo);
+    expect(d.errores).toEqual([]);
+    expect(tokensDe(d)).toEqual([TOK_SUB, TOK_SUB, 7 + 3]);
+    expect(d.coste.total.jueces.costeUSD).toBeCloseTo((1000 * 3 + 1000 * 15) / 1e6, 9);
+    expect(d.ramas[0].rama).toBe("ops_zz");
+    expect(d.ramas[0].marcas.map((m) => m.tokens)).toEqual([TOK_SUB, null]); // a1 tiene transcripción; a2, no: sin dato
+    expect(r.cuerpo).not.toContain(MARCADOR);
+  });
+
+  it("subagentes: caché por fecha y tamaño (no se relee lo que no cambió) y se relee entero lo que crece", async () => {
+    const lecturas = [];
+    const rec = crearRecolector({ home, repoAlvaro: alvaro, dias: 7, rutaPrecios: join(dir, "precios.json"), alLeer: (ruta) => lecturas.push(ruta) });
+    await rec.recoger(Date.now());
+    const propias = () => lecturas.filter((x) => x.includes("subagents")).length;
+    expect(propias()).toBe(2);
+    await rec.recoger(Date.now());
+    expect(propias()).toBe(2);
+    appendFileSync(rutaSub("a1"), usoSub("otra"));
+    const d = await rec.recoger(Date.now());
+    expect(propias()).toBe(3);
+    expect(d.coste.total.jueces.tokens).toBe(2 * TOK_SUB);
+  });
+
+  it("subagentes: fuera de la ventana de días no se leen; las líneas rotas se cuentan y no tumban; lo que no es agent-*.jsonl se ignora", async () => {
+    const viejo = new Date(Date.now() - 20 * DIA);
+    utimesSync(rutaSub("q1"), viejo, viejo);
+    appendFileSync(rutaSub("a1"), '{"usage": roto\n');
+    escribir(join(home, ".claude", "projects", "p1", "ses-aaaa1111", "subagents", "otro.jsonl"), usoSub("ignorado"));
+    const d = JSON.parse((await pedir(await arrancar())).cuerpo);
+    expect(d.errores).toEqual([]);
+    expect(tokensDe(d).slice(0, 2)).toEqual([TOK_SUB, 0]);
+    expect(d.coste.lineasRotas).toBe(1);
+  });
+
+  it("subagentes: un meta ilegible es un error de transcripciones (coste null), sin enseñar su texto", async () => {
+    escribir(metaSub("a1"), "{roto " + MARCADOR);
+    const r = await pedir(await arrancar());
+    const d = JSON.parse(r.cuerpo);
+    expect(d.errores.map((x) => x.fuente)).toEqual(["transcripciones"]);
+    expect(d.coste).toBeNull();
+    expect(r.cuerpo).not.toContain(MARCADOR);
+  });
+
+  it("precios.json ilegible o ausente es un error de la fuente «precios»: los tokens siguen y el coste es null (sin precio), no 0", async () => {
+    for (const rotura of [() => escribir(join(dir, "precios.json"), "{roto"), () => rmSync(join(dir, "precios.json")), () => escribir(join(dir, "precios.json"), JSON.stringify({ fecha: "x" }))]) {
+      rotura();
+      const d = await crearRecolector({ home, repoAlvaro: alvaro, dias: 7, rutaPrecios: join(dir, "precios.json") }).recoger(Date.now());
+      expect(d.errores.map((x) => x.fuente)).toEqual(["precios"]);
+      expect(d.coste.total.jueces.tokens).toBe(TOK_SUB);
+      expect(d.coste.total.jueces.costeUSD).toBeNull();
+      expect(d.coste.precios).toBeNull();
+    }
+  });
+
   // Los mismos escenarios con /datos.json del servidor real y un HOME sintético con cada fuente rota de verdad.
   const romper = (caidas) => {
     const extra = {};
@@ -1220,6 +1448,7 @@ describe("servidor y lectura real", () => {
         return createReadStream(ruta, o);
       };
     }
+    if (caidas.includes("precios")) escribir(join(dir, "precios.json"), "{roto");
     if (caidas.includes("settings")) escribir(join(home, ".claude", "settings.json"), "{roto");
     if (caidas.includes("copia")) rmSync(join(alvaro, "hooks"), { recursive: true });
     if (caidas.includes("registro")) {
