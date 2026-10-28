@@ -1088,6 +1088,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                           onChange={(e) => updateMemberName(editing.id, e.target.value)}
                           placeholder="Nombre"
                           autoFocus={!isEdit}
+                          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); closePopup(); } }}
                           style={{ flex: 1, minWidth: 0, height: 34, padding: "0 10px", borderRadius: 9, border: "1.5px solid #ddd", fontSize: 13, outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
                         />
                         {isEdit ? (
