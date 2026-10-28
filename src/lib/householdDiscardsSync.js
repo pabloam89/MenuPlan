@@ -1,4 +1,5 @@
 import { supabase } from "./supabase.js";
+import { descartesDeFilas } from "./recetasDeLaCasa.js";
 
 // Descartes de recetas en la nube: `household_recipe_discards` (0017), una
 // fila por (casa, receta). Leen todos los miembros; escriben titular y
@@ -24,18 +25,7 @@ export async function loadHouseholdDiscards(householdId) {
     console.warn("[householdDiscardsSync] load failed", error.message);
     return { data: null, error };
   }
-  const now = Date.now();
-  const forever = [];
-  const cooldownUntil = {};
-  for (const row of data ?? []) {
-    if (row.is_permanent) {
-      forever.push(row.recipe_id);
-    } else if (row.cooldown_until) {
-      const ts = new Date(row.cooldown_until).getTime();
-      if (ts > now) cooldownUntil[row.recipe_id] = ts;
-    }
-  }
-  return { data: { forever, cooldownUntil }, error: null };
+  return { data: descartesDeFilas(data), error: null };
 }
 
 /**

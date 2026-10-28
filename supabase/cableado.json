@@ -75,6 +75,7 @@
     "src/lib/cookingsSync.js"
   ],
   "household_favorites": [
+    "api/_bot/casa.js",
     "src/lib/householdFavoritesSync.js"
   ],
   "household_members": [
@@ -83,6 +84,7 @@
     "api/bot/telegram.js"
   ],
   "household_recipe_discards": [
+    "api/_bot/casa.js",
     "src/lib/householdDiscardsSync.js"
   ],
   "household_state": [

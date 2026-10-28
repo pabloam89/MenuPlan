@@ -26,6 +26,7 @@ process.env.TZ = "Europe/Madrid";
 import { fallaCon } from "./avisar.js";
 import { select, insert, borrar, eq } from "./db.js";
 import { cargarCasa, conCasa } from "./casa.js";
+import { datosDelMotor } from "../../src/lib/recetasDeLaCasa.js";
 import { motor, describirMenu, masParecida, normal, prepararRecetas, DIA_LARGO } from "./menu.js";
 import { propiasDe } from "./propias.js";
 import { registrar, rastro, EMBUDO } from "./embudo.js";
@@ -175,7 +176,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   if (fijos.length) await prepararRecetas(casa).catch(fallaCon("generar_recetas_propias"));
 
   // Las propias de user_recipes, no las del JSON: la app las quita de ahí.
-  const base = m.resolveModeData({ ...(casa.state?.data ?? {}), userRecipes: propiasDe(casa) });
+  const base = m.resolveModeData({ ...datosDelMotor(casa), userRecipes: propiasDe(casa) });
   const pedidos = platosPedidos(m, casa, fijos);
   const working = pedidos.length ? { ...base, fixedDishes: [...(base.fixedDishes ?? []), ...pedidos.map((p) => p.fijo)] } : base;
   const miembros = working.members ?? [];
