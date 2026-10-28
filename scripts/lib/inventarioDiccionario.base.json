@@ -1,7 +1,7 @@
 {
   "nota": "Cifras del inventario del diccionario (#939) el 28 oct 2026. Solo bajan: si arreglas un fallo, baja su cifra aquí; si sube, el test falla. npm run diccionario:inventario dice cuáles son.",
-  "discrepancia": 1,
-  "campo_sin_eje": 27,
-  "eje_sin_campo": 1,
+  "discrepancia": 0,
+  "campo_sin_eje": 0,
+  "eje_sin_campo": 0,
   "copia_literal": 0
 }

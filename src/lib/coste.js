@@ -23,6 +23,9 @@
 
 import recipeCoste from "../data/derived/recipeCoste.json" with { type: "json" };
 import { costeDeReceta } from "./derive/coste.js";
+import { NIVELES_COSTE } from "./costeNiveles.js";
+
+export { NIVELES_COSTE };
 
 // Nivel (solo con cobertura suficiente; si no, null: un coste a medias engaña):
 // económico < 1 € · medio · caro > 2,5 € por ración. Umbrales cerca de los

@@ -25,6 +25,7 @@
  * aquí; tabla catálogo solo si el valor lleva atributos con lector.
  */
 import { KITCHEN_TOOL_IDS } from "./electrodomesticos.js";
+import { COMIDAS_PLANIFICABLES } from "./comidas.js";
 
 /** Días de la semana tal como se guardan (claves del plan, active_days de 0086). En NFC. */
 export const DIAS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
@@ -65,7 +66,8 @@ export const IDIOMA = porNombre(IDIOMAS);
 // sin tildes) es un paso aparte, con alias, nunca reescribiendo lo guardado.
 
 /** Comidas del día (claves del plan «Lun-Comida», meals). */
-export const COMIDAS = ["Desayuno", "Comida", "Merienda", "Cena", "Postre"];
+// Las que el motor planifica (el aperitivo aún no): salen de comidas.js (#939).
+export const COMIDAS = COMIDAS_PLANIFICABLES;
 
 /** Cómo se sirve una comida. ficha.js traduce plato_unico/unico, que no existen en producción. */
 export const ESTRUCTURA_PLATOS = ["primero_segundo", "1_plato"];
