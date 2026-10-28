@@ -1117,9 +1117,10 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                         )}
                       </div>
 
-                      {/* Avatar strip — exactamente 3 caben a la vez y el resto
-                          pide scroll a la derecha. El fade de la derecha
-                          indica que hay más avatares. */}
+                      {/* Avatar strip — con 3 o menos caben justos; con más se ven
+                          tres y medio, y ese medio avatar asomando es lo que dice
+                          que hay más a la derecha (sin flecha ni degradado, que se
+                          quedaban al llegar al final). */}
                       {keys.length > 0 && (
                         <div style={{ position: "relative" }}>
                           <div style={{ display: "flex", gap: 10, overflowX: "auto", padding: "4px 0", scrollSnapType: "x proximity", scrollbarWidth: "none" }}>
@@ -1131,7 +1132,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                                 type="button"
                                 onClick={() => updateMemberAvatar(editing.id, k)}
                                 style={{
-                                    flex: "0 0 calc((100% - 20px) / 3)", aspectRatio: "1",
+                                    flex: keys.length > 3 ? "0 0 calc((100% - 30px) / 3.5)" : "0 0 calc((100% - 20px) / 3)", aspectRatio: "1",
                                     scrollSnapAlign: "start",
                                     padding: 0, cursor: "pointer",
                                   borderRadius: 999, overflow: "hidden",
@@ -1147,14 +1148,6 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                             );
                           })}
                           </div>
-                          {/* Fade de la derecha — solo si hay más de 3 avatares */}
-                          {keys.length > 3 && (
-                            <div style={{
-                              position: "absolute", top: 0, right: 0, bottom: 0,
-                              width: 32, pointerEvents: "none",
-                              background: "linear-gradient(90deg, transparent, rgba(255,255,255,.95))",
-                            }} />
-                          )}
                         </div>
                       )}
                     </div>
