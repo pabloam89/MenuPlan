@@ -103,7 +103,7 @@ export const CAPACIDADES = Object.freeze([
   c("modelo_menu", "decir quién come con quién (un menú o varios)", "menu", "cambiar", "grupo", { app: app("asistente", ASISTENTE), datos: ["menuModel", "groups"] }),
   c("semanas", "elegir para cuándo es el menú: días y semanas", "menu", "cambiar", "menu", { lola: ["ajustar_semana"], app: app("asistente", ASISTENTE), datos: ["menuWeekOffsets", "menuWeekDays", "menuVarietyPref"] }),
   c("extras", "elegir desayunos, meriendas y postres", "menu", "cambiar", "casa", { lola: ["ajustar_extras"], app: app("asistente", ASISTENTE), datos: ["extraMeals", "meals"] }),
-  c("menu_peques", "decir si los peques comen lo mismo que los mayores", "menu", "cambiar", "grupo", { lola: ["ajustar_menu_peques"], app: app("mandos"), datos: ["kidDinnerConfig"] }),
+  c("menu_peques", "decir cómo comen los peques: cena, mediodía, finde y qué no repiten del cole", "menu", "cambiar", "grupo", { lola: ["ajustar_menu_peques"], app: app("mandos"), datos: ["kidDinnerConfig"] }),
   c("cuanto_de_cada", "decir cuánto de cada cosa (carne, pescado, legumbre…)", "menu", "cambiar", "casa", { lola: ["ajustar_gustos"], app: app("mandos"), datos: ["notepad", "freqs"] }),
   c("gustos", "decir lo que gusta y lo que no, para siempre o unos días", "menu", "cambiar", "casa", { lola: ["ajustar_gustos"], datos: ["notepad"] }),
   c("cocinas", "pedir cocinas de fuera (italiana, mexicana…)", "menu", "cambiar", "casa", { lola: ["ajustar_gustos"], app: app("mandos"), datos: ["notepad"] }),
@@ -158,7 +158,7 @@ export const CAPACIDADES = Object.freeze([
   c("anadir_despensa", "apuntar comida en casa (a mano, por foto o por ticket)", "despensa", "anadir", "despensa", { lola: ["anadir_despensa"], app: app("en_casa", EN_CASA_LECTURA), aProposito: DESPENSA_DESDE_COMPRA }),
   c("cambiar_despensa", "cambiar la cantidad o el sitio de algo en casa", "despensa", "cambiar", "despensa", { app: app("en_casa", EN_CASA_LECTURA), aProposito: DESPENSA_DESDE_COMPRA }),
   c("cuando_gastado", "decidir cuándo se da algo por gastado", "despensa", "cambiar", "despensa", { app: app("compra"), datos: ["pantryPrefs"] }),
-  c("aprovechar_casa", "decir si el menú aprovecha lo que hay en casa", "despensa", "cambiar", "despensa", { app: app("asistente", ASISTENTE), datos: ["pantryMode"] }),
+  c("aprovechar_casa", "decir si el menú aprovecha lo que hay en casa", "despensa", "cambiar", "despensa", { lola: ["ajustar_uso_despensa"], app: app("asistente", ASISTENTE), datos: ["pantryMode"] }),
 
   // ── La charla con Lola ──
   c("tareas", "apuntar, corregir o cerrar algo pendiente", "casa", "recordar", "charla", { lola: ["anotar_tarea", "editar_tarea", "cerrar_tarea"], aProposito: "es la memoria de la charla" }),
