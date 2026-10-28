@@ -10,6 +10,7 @@
 
 import { NUTRIENTES } from "../../src/data/nutrientes.js";
 import { PERFILES, IDS_PERFILES } from "../../src/lib/derive/perfiles.js";
+import { MAIN_BASES } from "../../src/data/recipeSchema.js";
 
 // El nombre que entiende el modelo para cada nutriente del registro. Los ejes
 // salen del registro (src/data/nutrientes.js); esto solo los nombra. Uno nuevo
@@ -99,3 +100,41 @@ export const ESQUEMA_PERFIL = {
   enum: IDS_PERFILES,
   description: `Opcional: un perfil del plato entero, varios nutrientes a la vez. ${IDS_PERFILES.map((id) => `${id} = ${PERFILES[id].etiqueta}`).join("; ")}. «Más completo», «que tenga de todo», «un compendio de proteína, grasa e hidratos» → equilibrado. Solo para el plato principal.`,
 };
+
+// ── El tipo de plato que piden («prefiero pasta», «algo de pescado») ────────
+// Vocabulario cerrado, sacado del catálogo (src/data/recipeSchema.js): la base
+// (`mainBase`) y la carpeta (`category`) de las recetas de comida y cena.
+// «otra» es el plan B: piden un tipo que no está en la lista y la vía rápida
+// no sabría filtrarlo, así que contesta Lola (router.js vaPorLaRapida, #930).
+export const OTRA = "otra";
+export const BASES_PEDIBLES = MAIN_BASES;
+export const CATEGORIAS_PEDIBLES = ["carnes", "pescados", "huevos", "legumbres", "pasta_arroces", "sopas_cremas", "ensaladas_verduras"];
+
+export const ESQUEMA_BASE = {
+  type: "string",
+  enum: [...BASES_PEDIBLES, OTRA],
+  description: "Opcional: la base del plato si la piden («prefiero pasta», «algo con arroz», «unas patatas»). legumbre = lentejas, garbanzos, alubias. Si piden una base que no está en la lista (pan, polenta…), otra.",
+};
+
+export const ESQUEMA_CATEGORIA = {
+  type: "string",
+  enum: [...CATEGORIAS_PEDIBLES, OTRA],
+  description: "Opcional: el tipo de plato si lo piden («algo de pescado», «una carne», «huevos», «una sopa», «una ensalada»). pasta_arroces = pasta o arroz; sopas_cremas = sopa, crema o puré; ensaladas_verduras = ensalada o verdura. Si piden un tipo que no está en la lista (pizza, hamburguesa, un postre…), otra.",
+};
+
+/**
+ * Deja solo las recetas del tipo pedido. Sin base ni categoría, la lista tal
+ * cual. Con «otra» no filtra: esa petición no debería llegar aquí (va a Lola).
+ * Pura.
+ * @param {Array<{ mainBase?: string, category?: string }>} lista
+ * @param {{ base?: string|null, categoria?: string|null }} tipo
+ */
+export function delTipo(lista, { base = null, categoria = null } = {}) {
+  const b = BASES_PEDIBLES.includes(base) ? base : null;
+  const c = CATEGORIAS_PEDIBLES.includes(categoria) ? categoria : null;
+  if (!b && !c) return lista;
+  return lista.filter((r) => (!b || r?.mainBase === b) && (!c || r?.category === c));
+}
+
+/** ¿Piden un tipo de plato? */
+export const pideTipo = ({ base = null, categoria = null } = {}) => Boolean(base || categoria);

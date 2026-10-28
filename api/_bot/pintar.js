@@ -11,7 +11,8 @@
  *   platos    "primero" | "principal"; sin ellos, el principal y el primero si lo hay
  *   grupo     para quién (un grupo de menú: «el bebé», «los peques», «Leo»); sin
  *             él, toda la casa, con los grupos en cursiva solo si comen distinto
- *   destacar  [{ fecha, comida }]: lo que se acaba de poner o pedir. Va en
+ *   destacar  [{ fecha, comida, receta? }]: lo que se acaba de poner o pedir
+ *             (con receta, solo la línea que la lleva). Va en
  *             negrita y con ✨ detrás («🍽️ Lentejas + <b>Salmón al horno</b> ✨»):
  *             se ve sin tener que leer, y la negrita sola no basta porque el
  *             día ya va en negrita.
@@ -73,7 +74,9 @@ export function filtrosTrasGenerar(out) {
 /** Tras cambiar un plato: ese día, con el hueco cambiado destacado. */
 export function filtrosTrasCambiar(out) {
   if (!out?.cambiado || !out?.fecha) return null;
-  return { dias: [out.fecha], destacar: [{ fecha: out.fecha, comida: out.franja }] };
+  // Con el plato nuevo: si en esa comida cada grupo come una cosa, la ✨ va
+  // solo en la línea del que cambió (#933).
+  return { dias: [out.fecha], destacar: [{ fecha: out.fecha, comida: out.franja, receta: out.despues ?? null }] };
 }
 
 /** Quita el HTML: lo pintado, en texto, para que Lola razone con ello (sin copiarlo). */
@@ -124,7 +127,7 @@ export function pintarMenu(casa, { dias = [], comidas = null, platos = null, gru
   const aPintar = pedidas.filter((c) => deLaCasa.includes(c));
   const receta = recetasDe(casa, otras);
   const miembros = data.members ?? [];
-  const destacado = (fecha, c) => destacar.some((d) => (d.fecha ?? fecha) === fecha && d.comida === c);
+  const destacado = (fecha, c, texto = "") => destacar.some((d) => (d.fecha ?? fecha) === fecha && d.comida === c && (!d.receta || texto.includes(esc(d.receta))));
   let faltan = 0;
   const lineasAvisos = noPlanificadas.map((c) => {
     const cat = delCatalogo(c);
@@ -183,7 +186,7 @@ export function pintarMenu(casa, { dias = [], comidas = null, platos = null, gru
         return { g, texto: nombres.join(" + ") };
       }).filter(Boolean);
       if (!porGrupo.length) continue;
-      const marca = (t) => (destacado(fecha, c) ? `<b>${t}</b> ✨` : t);
+      const marca = (t) => (destacado(fecha, c, t) ? `<b>${t}</b> ✨` : t);
       // Los grupos que comen lo mismo, en una línea («Isa y Pablo: …»).
       const porPlato = new Map();
       for (const x of porGrupo) porPlato.set(x.texto, [...(porPlato.get(x.texto) ?? []), x.g]);

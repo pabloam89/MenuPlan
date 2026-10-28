@@ -82,6 +82,14 @@ describe("pintarMenu", () => {
     expect(r.texto).toBe("🫒 Los aperitivos todavía no los preparo.");
   });
 
+  // #933: se cambió la comida de los mayores y la ✨ salía también en la del bebé.
+  it("con la receta cambiada, la ✨ va solo en la línea del grupo que la come", () => {
+    const r = pintarMenu(casa, { dias: ["2026-10-03"], destacar: [{ fecha: "2026-10-03", comida: "Comida", receta: "Pollo al horno" }] });
+    expect(r.texto).toContain("🍽️ <i>Pablo, Isa y Leo:</i> <b>Crema de calabaza + Pollo al horno</b> ✨");
+    expect(r.texto).toContain("🍽️ <i>Cova:</i> Puré de verduras");
+    expect(r.texto).not.toContain("Puré de verduras</b> ✨");
+  });
+
   it("lo destacado va en negrita con ✨", () => {
     const r = pintarMenu(casa, { dias: ["2026-10-04"], destacar: [{ fecha: "2026-10-04", comida: "Cena" }], grupo: "Familia" });
     expect(r.texto).toContain("🌙 <b>Salmón al horno</b> ✨");
