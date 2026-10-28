@@ -21,6 +21,7 @@
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, IDS_PLATOS, COMIDAS as CATALOGO, comidasEnTexto } from "../../src/lib/comidas.js";
 import { CUANDOS } from "./cuando.js";
 import { ESQUEMA_RASGOS, ESQUEMA_EJES, ESQUEMA_PERFIL, ESQUEMA_BASE, ESQUEMA_CATEGORIA, OTRA } from "./esquemas.js";
+import { resolver, GRUPO_VALORES } from "../../src/lib/diccionario.js";
 import Anthropic from "@anthropic-ai/sdk";
 
 export const MODELO_ROUTER = process.env.BOT_ROUTER_MODELO || "claude-haiku-4-5-20251001";
@@ -275,6 +276,27 @@ export function datosSinLeer(modo, datos = {}) {
   return Object.keys(datos).filter((k) => !SIEMPRE.has(k) && !lee.has(k) && !vacio(datos[k]));
 }
 
+// #930, la clase y no el caso: una proteína, una base o un grupo que el
+// diccionario reconoce en el mensaje y el formulario no recoge. La vía rápida
+// no lo honraría («pasta» se perdía, «merluza» saldría como cualquier pescado):
+// se lo queda Lola. La carpeta solo cubre los grupos que son una carpeta, y
+// ninguna cubre una proteína concreta.
+const ELIGE_PLATO = new Set(["recomendar", "cambiar"]);
+const CARPETA_DEL_GRUPO = { carne: "carnes", pescado: "pescados", huevo: "huevos", legumbre: "legumbres", pasta: "pasta_arroces", arroz: "pasta_arroces" };
+
+/** Lo que se pide en el texto y los datos no recogen: [{ rasgo, valor, forma }]. */
+export function pedidoSinRecoger(texto, datos = {}) {
+  if (!texto || datos.receta) return [];
+  return resolver(texto).filter(({ rasgo, valor }) => {
+    if (rasgo === "basePrincipal") return datos.base !== valor;
+    // Una proteína concreta («merluza», «pollo»): el formulario no tiene dónde ponerla.
+    if (rasgo === "proteinaPrincipal") return true;
+    if (rasgo !== "grupo") return false;
+    if (datos.base && (GRUPO_VALORES[valor]?.basePrincipal ?? []).includes(datos.base)) return false;
+    return !(datos.categoria && CARPETA_DEL_GRUPO[valor] === datos.categoria);
+  });
+}
+
 // Una corrección en lo que ESCRIBE u ofrece opciones: Lola lee lo que se dijo
 // antes. Repetir la plantilla es lo que pasó con «pero si te he dicho pasta».
 const LEE_LA_CORRECCION = new Set(["recomendar", "cambiar", "generar", "ausencia"]);
@@ -287,6 +309,7 @@ export function vaPorLaRapida(d, { esGrupo = false, variosAutores = false, papel
   if (x.sobra || x.base === OTRA || x.categoria === OTRA) return false;
   if (d && datosSinLeer(d.modo, x).length) return false;
   if (corrige && LEE_LA_CORRECCION.has(d?.modo)) return false;
+  if (ELIGE_PLATO.has(d?.modo) && pedidoSinRecoger(texto, x).length) return false;
   // Un cambio sin comida no escribe nada todavía: primero pregunta «¿comida o
   // cena?». Hasta la respuesta es una lectura, y se le pide lo que a una.
   const preguntaPrimero = (d?.modo === "cambiar" || d?.modo === "ausencia") && !x.comida;

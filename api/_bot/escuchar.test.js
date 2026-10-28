@@ -9,7 +9,7 @@ vi.mock("./menu.js", async (original) => ({
   proponerPlatos: vi.fn(async () => {}),
 }));
 
-const { ESQUEMA, POLITICA, LEE, vaPorLaRapida, datosSinLeer } = await import("./router.js");
+const { ESQUEMA, POLITICA, LEE, vaPorLaRapida, datosSinLeer, pedidoSinRecoger } = await import("./router.js");
 const { BASES_PEDIBLES, CATEGORIAS_PEDIBLES, OTRA, delTipo } = await import("./esquemas.js");
 const { recomendar, repiteLaPropuesta } = await import("./turno.js");
 const { proponerPlatos } = await import("./menu.js");
@@ -80,6 +80,21 @@ describe("la vía rápida no contesta si se pierde algo de lo pedido", () => {
   });
   it("cambiar el jueves de la semana que viene: cambiar no lee la semana, así que Lola", () => {
     expect(vaPorLaRapida({ modo: "cambiar", confianza: 0.95, datos: { dia: "jueves", comida: "Cena", cualquiera: true, semana: "siguiente" } })).toBe(false);
+  });
+  // La clase (#939, fase 3): lo que el diccionario reconoce en el texto y el
+  // formulario no recoge. El primer caso es el turno real de #930.
+  it("«prefiero pasta» sin base en los datos: el diccionario lo ve y va a Lola", () => {
+    const d = recomendarCon({ dia: "hoy", comida: "Comida", rasgos: { textura: "tenedor" } });
+    const texto = "Mmm prefiero pasta la verdad, dame opciones";
+    expect(pedidoSinRecoger(texto, d.datos).map((x) => x.valor)).toContain("pasta");
+    expect(vaPorLaRapida(d, { texto })).toBe(false);
+    expect(vaPorLaRapida({ ...d, datos: { ...d.datos, base: "pasta" } }, { texto })).toBe(true);
+  });
+  it("una proteína concreta no la recoge la carpeta; el grupo genérico, sí", () => {
+    const d = recomendarCon({ dia: "hoy", categoria: "pescados" });
+    expect(vaPorLaRapida(d, { texto: "algo con merluza" })).toBe(false);
+    expect(vaPorLaRapida(d, { texto: "algo de pescado" })).toBe(true);
+    expect(vaPorLaRapida(recomendarCon({ dia: "hoy" }), { texto: "unos fusilli" })).toBe(false);
   });
   it("lo de siempre sigue por la rápida", () => {
     expect(vaPorLaRapida(recomendarCon({ dia: "hoy", comida: "Cena", estilo: "ligero" }))).toBe(true);
