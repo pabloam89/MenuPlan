@@ -61,8 +61,16 @@ describe("esCorreccionRuta: el criterio amplio de siempre, intacto", () => {
     expect(esCorreccionRuta("No quiero pescado, hazme el menú de esta semana", "Hecho: menú de la semana del 26.")).toBe(true);
   });
 
-  it("lo que solo detecta la medida (reházme, te estoy diciendo sin «no» delante) no cambia la ruta", () => {
+  it("«reházme» solo lo detecta la medida: no cambia la ruta", () => {
     expect(esCorreccionRuta("Reházme la semana que viene entera", "Hecho: menú de la semana del 26.")).toBe(false);
-    expect(esCorreccionRuta("Te estoy diciendo que es el jueves", "Hecho: puesto pollo el miércoles.")).toBe(false);
+  });
+
+  // #930: «pero si te he dicho pasta» repitió las mismas tres opciones por la
+  // vía rápida. Insistir en lo dicho, en cualquier punto de la frase, va a Lola.
+  it("insistir en lo que ya dijo es corrección para la ruta, esté donde esté en la frase", () => {
+    expect(esCorreccionRuta("Pero si te he dicho pasta broder", "👉 Para la comida de hoy te encajan: … ¿Cuál te pongo?")).toBe(true);
+    expect(esCorreccionRuta("Te estoy diciendo que es el jueves", "Hecho: puesto pollo el miércoles.")).toBe(true);
+    expect(esCorreccionRuta("ya te dije que sin cebolla", "¿Cuál te pongo?")).toBe(true);
+    expect(esCorreccionRuta("¿Qué me recomiendas para cenar?", "Hecho.")).toBe(false);
   });
 });

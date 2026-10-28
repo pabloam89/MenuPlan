@@ -4,8 +4,8 @@
  * /menu, /compra). Salen del menú guardado en menos de un segundo, con el
  * mismo formato que usa Lola (api/_bot/conocimiento.md).
  *
- * Si no hay nada claro que enseñar (sin menú, o un menú de una semana que ya
- * pasó), devuelven null y la pregunta sigue su camino normal hacia Lola, que
+ * Sin menú para lo pedido, lo dicen ellas mismas (sinMenuPara, #931). Si no
+ * hay casa, devuelven null y la pregunta sigue hacia Lola, que
  * sabe explicarlo y ofrecer generar.
  *
  * Se guardan en la memoria de la charla como cualquier turno, para que un
@@ -16,7 +16,9 @@ import { insert } from "./db.js";
 import { cargarCasa, hoyISO } from "./casa.js";
 import { describirCompra } from "./menu.js";
 import { pintarMenuEntero } from "./pintar.js";
-import { fechasDe, diaDeFecha } from "./cuando.js";
+import { fechasDe, diaDeFecha, sumarDias, indiceDia } from "./cuando.js";
+import { estadoDelMenu } from "./estadoMenu.js";
+import { fechaLarga } from "./memoria.js";
 import { rangoDeFechas } from "./semanaPedida.js";
 import { CANAL, paraEscribir } from "../../src/lib/vocabularios.js";
 
@@ -28,9 +30,9 @@ export { rangoDeFechas };
 
 /**
  * Cualquier trozo del menú, pintado con pintarMenu (api/_bot/pintar.js): unos
- * días, unas comidas, unos platos, para alguien. Null si no hay nada que
- * enseñar (ningún día con menú y nada que decir): entonces contesta Lola y
- * ofrece generarlo.
+ * días, unas comidas, unos platos, para alguien. Si esos días no tienen menú,
+ * lo dice sin modelo (sinMenuPara): antes pasaba a Lola, que contestaba con lo
+ * que recordaba de la charla (#931).
  * @param {{ dias: string[], comidas?: string[], platos?: string[], grupo?: string }} filtros
  */
 export async function respuestaMenu(householdId, filtros) {
@@ -38,14 +40,42 @@ export async function respuestaMenu(householdId, filtros) {
   if (!casa || !filtros?.dias?.length) return null;
   const r = await pintarMenuEntero(casa, filtros);
   if (r.sinGrupo) return { texto: r.texto, fotos: [] };
-  if (!r.conMenu && !r.noPlanificadas.length) return null;
   const hoy = hoyISO();
+  if (!r.conMenu && !r.noPlanificadas.length) return sinMenuPara(casa.semanas ?? [], filtros.dias, hoy);
   const uno = filtros.dias.length === 1 ? filtros.dias[0] : null;
   return {
     texto: r.texto,
     fotos: r.fotos,
     ir: uno ? (uno === hoy ? "hoy" : `dia:${diaDeFecha(uno)}`) : "semana",
   };
+}
+
+/**
+ * «No hay menú» para esos días, con lo que dice estadoMenu.js: cuándo acabó el
+ * último o cuándo empieza el siguiente, y el botón para generarlo si es de
+ * esta semana o de la que viene. Sin botón a la app: no hay nada que ver
+ * (#935). Pura.
+ * @param {Array<{ weekStart: string, weekEnd: string }>} semanas
+ * @param {string[]} dias  AAAA-MM-DD, los pedidos
+ * @param {string} hoy
+ */
+export function sinMenuPara(semanas, dias, hoy) {
+  const primero = [...dias].sort()[0];
+  const ultimo = [...dias].sort().at(-1);
+  const e = estadoDelMenu(semanas, primero);
+  const cuando = dias.length > 1 ? `Del ${rangoDeFechas(primero, ultimo)}` : primero === hoy ? "Para hoy" : `Para el ${fechaLarga(primero)}`;
+  const motivo = e.estado === "despues" ? ` El menú empieza el ${fechaLarga(e.proximoDia)}.`
+    : e.estado === "ya_paso" ? ` El último que teníais acababa el ${fechaLarga(e.ultimoDia)}.`
+    : " Todavía no tenéis ninguno.";
+  // Solo se ofrece la semana que el motor sabe generar: esta o la que viene.
+  const domingo = sumarDias(hoy, 6 - indiceDia(hoy));
+  const cual = e.estado === "despues" ? null : primero <= domingo ? "esta semana" : primero <= sumarDias(domingo, 7) ? "la semana que viene" : null;
+  const oferta = cual ? `
+
+¿Te preparo el menú de ${cual}?
+[[Prepárame el menú de ${cual}]]
+[[Ahora no]]` : "";
+  return { texto: `${cuando} no hay menú.${motivo}${oferta}`, fotos: [], ir: null, sinMenu: e.estado };
 }
 
 /** 🍽️ Hoy: lo de hoy con fotos. */
@@ -66,7 +96,11 @@ export async function respuestaSemana(householdId) {
   const esta = fechasDe({ cuando: "esta_semana" }, hoy);
   const siguiente = fechasDe({ cuando: "semana_que_viene" }, hoy);
   if (esta.length === 1) return respuestaMenu(householdId, { dias: [...esta, ...siguiente] });
-  return (await respuestaMenu(householdId, { dias: esta })) ?? respuestaMenu(householdId, { dias: siguiente });
+  // Sin menú de aquí al domingo, la que viene; si tampoco, el «no hay» de esta.
+  const deEsta = await respuestaMenu(householdId, { dias: esta });
+  if (deEsta && !deEsta.sinMenu) return deEsta;
+  const deLaQueViene = await respuestaMenu(householdId, { dias: siguiente });
+  return deLaQueViene && !deLaQueViene.sinMenu ? deLaQueViene : deEsta ?? deLaQueViene;
 }
 
 // Un icono por sección de la lista (las categorías de la app: «Verduras y

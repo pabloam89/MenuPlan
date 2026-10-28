@@ -253,11 +253,12 @@ export async function herramientas(chat) {
         // `escribio`: si llegó a la base alguna escritura (db.js), no solo si se
         // intentó. Una herramienta que contesta «no he podido guardarlo» no
         // cuenta como guardado, ni lleva botón a la app.
+        chat.nadaQueVer = false;
         const { r, escribio } = await contandoEscrituras(() => t.run(args, llamada));
         if (escribio) chat.guardados = (chat.guardados ?? 0) + 1;
         if (t.name === "generar_menu") tocado.semanas.add(args.semana ?? "esta");
         if (t.name === "cambiar_plato" && args.dia) tocado.dias.add(diaDe(args.dia) ?? String(args.dia).toLowerCase());
-        const ir = SOLO_LECTURA.has(t.name) || escribio ? pantallaDe(t.name, args) : null;
+        const ir = (SOLO_LECTURA.has(t.name) && !chat.nadaQueVer) || escribio ? pantallaDe(t.name, args) : null;
         if (ir) chat.ir = ir;
         return r;
       } catch (e) {
@@ -717,7 +718,8 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
         const filtros = { dias, comidas: comidas ?? null, platos: platos ?? null, grupo: para ?? null };
         const p = await pintarMenuEntero(casa, filtros);
         if (p.sinGrupo) return `${sinEtiquetas(p.texto)} Pregunta de quién hablan.`;
-        if (!p.conMenu && !p.noPlanificadas.length) return `No hay menú para esos días (${dias[0]}${dias.length > 1 ? ` a ${dias.at(-1)}` : ""}). ${rangosDelMenu(casa)} Si lo quieren, generar_menu.`;
+        // Sin menú, la pantalla de la app saldría vacía: sin botón (#935).
+        if (!p.conMenu && !p.noPlanificadas.length) { chat.nadaQueVer = true; return `No hay menú para esos días (${dias[0]}${dias.length > 1 ? ` a ${dias.at(-1)}` : ""}). ${rangosDelMenu(casa)} Si lo quieren, generar_menu.`; }
         pintarTambien(chat, filtros);
         if (dias.length === 1 && fotos) for (const f of p.fotos) if (!fotos.some((x) => x.url === f.url)) fotos.push(f);
         return `Sale pintado debajo de tu mensaje (NO lo copies; como mucho una frase). Para que lo sepas:\n${sinEtiquetas(p.texto)}`;

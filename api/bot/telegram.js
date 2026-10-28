@@ -39,7 +39,8 @@ import { clasificar, vaPorLaRapida, permitidoEn } from "../_bot/router.js";
 import { prediceRapida, ESPERA_MAX_MS } from "../_bot/prediceRapida.js";
 import { esCorreccionRuta, esCorreccionMedida } from "../_bot/senales.js";
 import { SIN_ENRUTADOR, motorFrioDesde, relojDeHerramientas } from "../_bot/medidaTurno.js";
-import { viaRapida, eleccionDe, aplicarEleccion, contextoDe } from "../_bot/turno.js";
+import { viaRapida, eleccionDe, aplicarEleccion, contextoDe, repiteLaPropuesta } from "../_bot/turno.js";
+import { fotosVistas, fotosSinRepetir } from "../_bot/fotosVistas.js";
 import { comidaElegida, quiereApuntar } from "../_bot/plato.js";
 import { ahoraEnMadrid } from "../_bot/recordatorios.js";
 import { fueraDeLimite, contarUso } from "../_bot/uso.js";
@@ -449,7 +450,7 @@ const RUTA = "bot_route";
 async function ultimaDeLola(chatId) {
   // Pregunta y respuesta comparten created_at: el id desempata (memoria.js).
   // Sin la última, el turno sigue sin ella (sin aclaraciones ni elecciones), pero es un fallo.
-  const filas = await select("bot_messages", `channel=eq.telegram&chat_id=${eq(chatId)}&order=created_at.desc,id.desc&limit=2`, "role,content").catch(fallaCon("ultima_de_lola", []));
+  const filas = await select("bot_messages", `channel=eq.telegram&chat_id=${eq(chatId)}&order=created_at.desc,id.desc&limit=2`, "role,content,created_at").catch(fallaCon("ultima_de_lola", []));
   const f = filas.find((x) => x.role === "assistant");
   // Tras un /nueva (marcador de corte) no hay «último» que valga.
   if (!f || filas[0]?.content?.corte) return null;
@@ -464,6 +465,8 @@ async function ultimaDeLola(chatId) {
   return {
     texto,
     propuesta: f.content?.propuesta ?? null,
+    // Las fotos que acaba de mandar: no se repiten (#932).
+    fotosVistas: fotosVistas(f),
     anteriorDelUsuario: antes && pregunto ? String(antes.content?.texto ?? "").slice(0, 300) : null,
   };
 }
@@ -551,7 +554,7 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
       const r = await viaRapida({ modo: prop.modo, datos: { ...prop.datos, comida } }, householdId, { autor }).catch(fallaCon("aclarar_via_rapida", null));
       marca("aclaración aplicada");
       if (r) {
-        await entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r });
+        await entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r, yaVistas: ultima?.fotosVistas ?? [] });
         return apuntarRuta(householdId, { modo: `aclarar:${prop.modo}`, rapida: true, ms: Date.now() - t0, ...donde, ...frioDe(t0) });
       }
     }
@@ -560,7 +563,7 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
     // Sin plantilla el turno pasa a Lola, pero escribe en la compra: que se vea.
     const r = await viaRapida({ modo: "compra_anadir", datos: { productos: prop.productos ?? [] } }, householdId, { autor }).catch(fallaCon("apuntar_falta_via_rapida", null));
     if (r) {
-      await entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r });
+      await entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r, yaVistas: ultima?.fotosVistas ?? [] });
       return apuntarRuta(householdId, { modo: "apuntar_falta", rapida: true, ms: Date.now() - t0, ...donde, ...frioDe(t0) });
     }
   }
@@ -573,7 +576,7 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
       const r = await aplicarEleccion(eleccion, ultima.propuesta, householdId).catch(fallaCon("eleccion_via_rapida", null));
       marca("elección aplicada");
       if (r) {
-        await entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r });
+        await entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r, yaVistas: ultima?.fotosVistas ?? [] });
         marca("entregado");
         return apuntarRuta(householdId, { modo: "eleccion", rapida: true, ms: Date.now() - t0, ...donde, ...frioDe(t0) });
       }
@@ -637,7 +640,9 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
 ` : "" }) : null;
     const avisadoMs = vivoRapida ? Date.now() - t0 : null;
     vivoRapida?.escribir(fraseRapida, { aviso: true });
-    const r = await viaRapida(d, householdId, { autor }).catch((e) => { console.error("[router] vía rápida", e?.message); return null; });
+    const hecha = await viaRapida(d, householdId, { autor }).catch((e) => { console.error("[router] vía rápida", e?.message); return null; });
+    // Las mismas opciones que acaba de dar: no ha entendido lo que piden. Lola (#930).
+    const r = repiteLaPropuesta(hecha?.propuesta, ultima?.propuesta) ? null : hecha;
     marca("vía rápida hecha");
     await vivoRapida?.parar();
     // Sin plantilla el turno pasa a Lola, que escribe en su propio mensaje.
@@ -653,7 +658,7 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
       // se la comía quien solo preguntó «¿qué cenamos?». Se la espera después,
       // para su medida y para no soltar el turno con ella viva.
       const lolaCancelada = (lola ?? Promise.resolve()).catch(fallaCon("lola_cancelada"));
-      await entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r, vivo: vivoRapida });
+      await entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r, vivo: vivoRapida, yaVistas: ultima?.fotosVistas ?? [] });
       // Si el aviso llegó a salir, eso fue lo primero que se vio (como con Lola).
       const avisado = Boolean(vivoRapida?.id());
       const primer = avisado ? avisadoMs : Date.now() - t0;
@@ -730,11 +735,14 @@ async function conversarMedido(origen, args, { desdeMs = Date.now(), esperaCanda
 }
 
 /** Entrega una respuesta de la vía rápida y la deja en la memoria de la charla. */
-async function entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r, vivo = null }) {
-  await entregar({ chatId, householdId, esGrupo, base, from, responderA, oido, r: { compartir: null, deshacible: false, ...r }, vivo });
+async function entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r, vivo = null, yaVistas = [] }) {
+  const enviadas = [];
+  await entregar({ chatId, householdId, esGrupo, base, from, responderA, oido, r: { compartir: null, deshacible: false, ...r }, vivo, yaVistas, enviadas });
+  // Las vistas siguen contando: elegir una de las tres no reenvía su foto.
+  const fotos = [...new Set([...yaVistas, ...enviadas])];
   await recordar({
     chatId, householdId, pregunta: texto, respuesta: r.texto, autor: esGrupo ? nombreDe(from) : null,
-    extra: r.propuesta ? { propuesta: r.propuesta, via: "rapida" } : { via: "rapida" },
+    extra: { ...(r.propuesta ? { propuesta: r.propuesta } : {}), via: "rapida", ...(fotos.length ? { fotos } : {}) },
   });
 }
 
@@ -866,7 +874,9 @@ async function conversar({ chatId, householdId, texto, from, desde = null, esGru
  * lo que contesta Lola que para las respuestas directas (api/_bot/rapido.js).
  * Si el texto ya se estaba escribiendo en vivo, se termina ese mismo mensaje.
  */
-export async function entregar({ chatId, householdId, esGrupo, base, from, responderA, oido = null, r, vivo = null }) {
+// `yaVistas`: urls que el chat acaba de recibir (fotosVistas.js); `enviadas`, si
+// llega, se rellena con las que salen ahora.
+export async function entregar({ chatId, householdId, esGrupo, base, from, responderA, oido = null, r, vivo = null, yaVistas = [], enviadas = null }) {
   const { cuerpo: frase, botones: propiosCrudos } = sacarBotones(r.texto);
   // Lo que se ha generado, cambiado o pedido ver, pintado debajo de la frase
   // (api/_bot/pintar.js): el modelo nunca escribe la lista de platos.
@@ -915,13 +925,14 @@ export async function entregar({ chatId, householdId, esGrupo, base, from, respo
   // Si en pantalla solo quedó un aviso de espera y hay fotos, fuera el aviso:
   // así el álbum sale antes del texto, como en un mensaje nuevo.
   // Si el álbum ya salió (con el propio aviso), no se borra ni se repite.
-  if (vivo?.provisional() && !vivo.fotosEnviadas() && fotosDelTurno(r.fotos).length) await vivo.quitarAviso();
+  const fotos = fotosSinRepetir(fotosDelTurno(r.fotos), yaVistas);
+  enviadas?.push(...fotos.map((f) => f.url));
+  if (vivo?.provisional() && !vivo.fotosEnviadas() && fotos.length) await vivo.quitarAviso();
   if (vivo?.id()) {
     // Ya estaba en pantalla escribiéndose: se completa ahí, con su formato y
     // sus botones. (Las fotos, si las había, salieron antes que el texto.)
     return editar(chatId, vivo.id(), eco + cuerpo, { botones: botones.length ? botones : undefined });
   }
-  const fotos = fotosDelTurno(r.fotos);
   if (fotos.length) await enviarFotos(chatId, fotos, { responderA });
   return enviar(chatId, eco + cuerpo, { responderA, botones: botones.length ? botones : undefined, ...(esGrupo ? {} : { teclado: TECLADO }) });
 }

@@ -40,10 +40,15 @@ const eraPregunta = (ultima) => PREGUNTA.test(String(ultima ?? "").replace(/<[^>
  * @param {string} texto  lo que escribe la persona
  * @param {string|null} [ultima]  lo último que dijo Lola en el chat
  */
+// Insiste en algo que ya dijo, en cualquier punto de la frase: «pero si te he
+// dicho pasta», «ya te dije que sin cebolla» (#930: la vía rápida repitió las
+// mismas tres opciones). Solo para la ruta: ante la duda, Lola.
+const INSISTE = /\b(te (lo )?(he dicho|estoy diciendo|acabo de decir|dije)|ya te (lo )?dije|te digo que)\b/i;
+
 export function esCorreccionRuta(texto, ultima = null) {
   const t = limpio(texto);
   if (!t) return false;
-  if (EXPLICITA.test(t)) return true;
+  if (EXPLICITA.test(t) || INSISTE.test(t)) return true;
   if (!NEGATIVA_AMPLIA.test(t)) return false;
   return !eraPregunta(ultima);
 }

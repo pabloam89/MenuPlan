@@ -38,6 +38,7 @@ import { select, eq } from "./db.js";
 import { propiasDe } from "./propias.js";
 import { alergiasPorSilencio } from "../../src/lib/alergiasBase.js";
 import { botonRehacer } from "./semanaPedida.js";
+import { estadoDelMenu, lineaEstadoMenu } from "./estadoMenu.js";
 
 const DIA_CORTO = Object.fromEntries(DIAS.map((d) => [d, d.toLowerCase()]));
 const DIA_LARGO = DIA_LARGO_MINUSCULAS;
@@ -370,7 +371,9 @@ function platosDelDia(casa, dia, nombre) {
 
 function delDiaBloque(casa, extras, hoy) {
   const data = casa.state?.data ?? {};
-  const lineas = [cabeceraDia(hoy)];
+  // Justo debajo del día, el estado del menú en campos cerrados (estadoMenu.js):
+  // la vía rápida contesta con lo mismo (#931).
+  const lineas = [cabeceraDia(hoy), lineaEstadoMenu(estadoDelMenu(casa.semanas ?? [], hoy))];
   // AHORA: las reglas que caducan (invitados, temporales) y siguen vivas. Las
   // de siempre van en COCINA, que no cambia cada día.
   const vigentes = (data.reglas ?? []).filter((r) => r?.vigencia?.hasta && r.vigencia.hasta >= hoy);
