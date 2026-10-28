@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { STEP_KINDS, STEP_PARTS } from "../lib/recipeSteps.js";
 import { UNITS } from "./ingredientSchema.js";
+import { HEALTH_FLAGS } from "../lib/healthFlags.js";
 
 // Canonical taxonomy for the recipe catalog. Adding a new category/protein/etc
 // requires updating this file — that's the point: it forces a conscious
@@ -277,12 +278,8 @@ const ALLERGENS = [
 // ingrediente es lo que se mide); aquí solo se importan.
 
 // Coarse dietary signals for the "menú más cuidado" profiles. Optional and
-// usually derived at load time (lib/healthFlags.js), but a recipe may declare
-// them explicitly too.
-const HEALTH_FLAGS = [
-  "frito", "embutido", "alto_sodio", "picante", "acido",
-  "azucar_anadido", "rico_hierro",
-];
+// usually derived at load time: the vocabulary lives in lib/healthFlags.js,
+// which derives them, but a recipe may declare them explicitly too.
 
 const IngredientSchema = z.object({
   name: z.string().min(1),

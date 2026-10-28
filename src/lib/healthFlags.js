@@ -8,10 +8,16 @@
 // These are coarse signals, not medical claims: a missing flag is not a promise.
 
 import { recipeHaystack } from "./recipeText.js";
-import { HEALTH_FLAGS } from "../data/recipeSchema.js";
 
-// El vocabulario vive en el esquema de la receta (#939).
-export { HEALTH_FLAGS };
+export const HEALTH_FLAGS = [
+  "frito",
+  "embutido",
+  "alto_sodio",
+  "picante",
+  "acido",
+  "azucar_anadido",
+  "rico_hierro",
+];
 
 const PATTERNS = {
   frito: /\b(frito|frita|rebozad|empanad|bunuelo|croqueta|tempura|fritura|churro|a la romana|a la andaluza|san ?jacobo|escalope|flamenqu|milanesa|varita|nugget|bravas|padron|palitos de merluza|palitos de pescado|huevos rotos)/,
