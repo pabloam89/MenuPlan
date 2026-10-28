@@ -959,6 +959,94 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
  },
  {
   "type": "custom",
+  "name": "ajustar_extras",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "desayuno": {
+     "type": "string",
+     "enum": [
+      "off",
+      "variado",
+      "findes",
+      "igual"
+     ]
+    },
+    "merienda": {
+     "type": "string",
+     "enum": [
+      "off",
+      "semana",
+      "laborables"
+     ]
+    },
+    "postre": {
+     "type": "string",
+     "enum": [
+      "off",
+      "comida",
+      "cena",
+      "ambas"
+     ]
+    },
+    "postreTipo": {
+     "type": "string",
+     "enum": [
+      "inmediato",
+      "cazo",
+      "horno"
+     ]
+    },
+    "postreInmediato": {
+     "type": "string",
+     "enum": [
+      "fruta",
+      "yogur",
+      "mix"
+     ]
+    }
+   },
+   "required": [],
+   "additionalProperties": false
+  },
+  "description": "Desayuno, merienda y postre, que van aparte de comida y cena. desayuno: off (sin desayuno), variado (uno distinto cada día), findes (el mismo entre semana y otro el finde), igual (siempre el mismo). merienda (solo para los niños): off, semana (los 7 días), laborables (de lunes a viernes). postre: off, comida, cena, ambas; postreTipo: inmediato (sin cocinar), cazo (cremas), horno (horneados); postreInmediato, si es sin cocinar: fruta, yogur, mix (alterna). Pasa solo lo que cambien."
+ },
+ {
+  "type": "custom",
+  "name": "ajustar_semana",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "semana": {
+     "type": "string",
+     "enum": [
+      "esta",
+      "siguiente"
+     ]
+    },
+    "dias": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "lunes…domingo, «entre semana» o «finde»: los días que SÍ entran."
+    },
+    "variedad": {
+     "type": "string",
+     "enum": [
+      "strict",
+      "moderate",
+      "relaxed"
+     ]
+    }
+   },
+   "required": [],
+   "additionalProperties": false
+  },
+  "description": "Qué días entran en el menú de una semana concreta («esta semana solo hasta el jueves», «la que viene de lunes a viernes»), y cuánto se pueden repetir platos entre semanas: variedad strict (nada de ninguna semana anterior), moderate (nada de la semana anterior), relaxed (se pueden repetir). Para «nunca el finde» de siempre, ajustar_horario con donde = off. Después, generar_menu para esa semana si quieren el menú ya."
+ },
+ {
+  "type": "custom",
   "name": "pedir_tanda",
   "input_schema": {
    "type": "object",
