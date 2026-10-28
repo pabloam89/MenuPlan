@@ -1086,6 +1086,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                           onChange={(e) => updateMemberName(editing.id, e.target.value)}
                           placeholder="Nombre"
                           autoFocus={!isEdit}
+                          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); closePopup(); } }}
                           style={{ flex: 1, minWidth: 0, height: 34, padding: "0 10px", borderRadius: 9, border: "1.5px solid #ddd", fontSize: 13, outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
                         />
                         {isEdit ? (
@@ -1115,7 +1116,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                       </div>
 
                       {/* Avatar strip — exactamente 3 caben a la vez y el resto
-                          pide scroll a la derecha. El fade + chevron de la derecha
+                          pide scroll a la derecha. El fade de la derecha
                           indica que hay más avatares. */}
                       {keys.length > 0 && (
                         <div style={{ position: "relative" }}>
@@ -1144,17 +1145,13 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                             );
                           })}
                           </div>
-                          {/* Fade + chevron hint — only when there are more than 3 avatars */}
+                          {/* Fade de la derecha — solo si hay más de 3 avatares */}
                           {keys.length > 3 && (
                             <div style={{
                               position: "absolute", top: 0, right: 0, bottom: 0,
                               width: 32, pointerEvents: "none",
                               background: "linear-gradient(90deg, transparent, rgba(255,255,255,.95))",
-                              display: "flex", alignItems: "center", justifyContent: "flex-end",
-                              paddingRight: 2,
-                            }}>
-                              <ChevronRight size={14} color="#9ab0a1" strokeWidth={2.5} />
-                            </div>
+                            }} />
                           )}
                         </div>
                       )}
