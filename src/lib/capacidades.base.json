@@ -1,5 +1,5 @@
 {
   "nota": "Huecos de sincronía app-Lola (#939) el 28 oct 2026: capacidades con un lado vacío sin motivo, y las que no se pueden hacer en ninguno. Solo bajan. npm run capacidades dice cuáles son.",
   "huecos": 35,
-  "apagadas": 8
+  "apagadas": 7
 }

@@ -38,8 +38,11 @@ export function resolveModeData(data) {
   };
   return {
     ...data,
-    // Solo comidas y cenas: sin desayuno, merienda ni postre.
-    extraMeals: { desayuno: "off", merienda: "off", postre: "off", postreTipo: "inmediato", postreInmediato: "mix" },
+    // Desayuno, merienda y postre YA NO se apagan aquí (28 oct 2026, #939): el
+    // modo básico simplifica lo que no has contestado, no lo que has pedido
+    // (como cookLevelManual y manualSlotType, abajo). Una casa nueva los trae
+    // apagados (extras.js), y Lola los enciende si se lo piden. Ese día
+    // ninguna casa en básico tenía uno encendido, así que no cambió ningún menú.
     // Sin cenas rápidas.
     slotType: cleanedSlotType,
     // Nivel de cocina normal... salvo que lo hayas elegido tu desde la fila de
@@ -62,8 +65,9 @@ export function resolveModeData(data) {
     // Ahora el modo de despensa es de quien lo elige, no del modo básico, y
     // manda igual sobre ingredientes y sobre platos hechos: quien sube algo
     // quiere que entre en el menú, y lo que se gradúa es cuánto pesa.
-    // Multisemana: cosas distintas cada semana (sin repetir platos).
-    menuVarietyPref: "strict",
+    // La variedad entre semanas tampoco se fuerza ya: «strict» es el valor de
+    // una casa nueva y Lola la cambia si se lo piden (mismo día y misma cuenta:
+    // todas las casas en básico la tenían en «strict»).
     // Estilo de comida: equilibrado, sin diferenciar por grupo.
     mealStyleByGroup: {},
     // Estructura de plato única para todos (la global elegida en «¿Qué comidas

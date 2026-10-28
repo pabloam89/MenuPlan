@@ -33,9 +33,10 @@ import { registrar, EMBUDO, duenoDe } from "./embudo.js";
 import {
   describirAjustes, ajustarGustos, ajustarCocina, ajustarHorario, anadirInvitado,
   anadirComensal, quitarComensal, ajustarAlergias, ajustarSalud, INTOLERANCIAS, ESTADOS, dominiosDeGustos, ajustarPersona, ajustarMenuPeques,
-  descartarSupuesto, pedirTanda, ajustarCompra, PRESUPUESTO,
+  descartarSupuesto, pedirTanda, ajustarCompra, PRESUPUESTO, ajustarExtras, ajustarSemana, VARIEDADES,
 } from "./ajustes.js";
 import { SUPERMERCADOS } from "../../src/lib/supermercados.js";
+import { EXTRAS } from "../../src/lib/extras.js";
 import {
   crearRecordatorio, verRecordatorios, cancelarRecordatorio, ahoraEnMadrid,
 } from "./recordatorios.js";
@@ -549,6 +550,28 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
         sinPresupuesto: { type: "boolean" },
       }),
       run: (args) => ajustarCompra(householdId, args),
+    }),
+    herramienta({ lector: false, soloLectura: false, pantalla: null }, {
+      name: "ajustar_extras",
+      description: "Desayuno, merienda y postre, que van aparte de comida y cena. desayuno: off (sin desayuno), variado (uno distinto cada día), findes (el mismo entre semana y otro el finde), igual (siempre el mismo). merienda (solo para los niños): off, semana (los 7 días), laborables (de lunes a viernes). postre: off, comida, cena, ambas; postreTipo: inmediato (sin cocinar), cazo (cremas), horno (horneados); postreInmediato, si es sin cocinar: fruta, yogur, mix (alterna). Pasa solo lo que cambien.",
+      inputSchema: obj({
+        desayuno: { type: "string", enum: EXTRAS.desayuno },
+        merienda: { type: "string", enum: EXTRAS.merienda },
+        postre: { type: "string", enum: EXTRAS.postre },
+        postreTipo: { type: "string", enum: EXTRAS.postreTipo },
+        postreInmediato: { type: "string", enum: EXTRAS.postreInmediato },
+      }),
+      run: (args) => ajustarExtras(householdId, args),
+    }),
+    herramienta({ lector: false, soloLectura: false, pantalla: null }, {
+      name: "ajustar_semana",
+      description: "Qué días entran en el menú de una semana concreta («esta semana solo hasta el jueves», «la que viene de lunes a viernes»), y cuánto se pueden repetir platos entre semanas: variedad strict (nada de ninguna semana anterior), moderate (nada de la semana anterior), relaxed (se pueden repetir). Para «nunca el finde» de siempre, ajustar_horario con donde = off. Después, generar_menu para esa semana si quieren el menú ya.",
+      inputSchema: obj({
+        semana: { type: "string", enum: ["esta", "siguiente"] },
+        dias: { type: "array", items: { type: "string" }, description: "lunes…domingo, «entre semana» o «finde»: los días que SÍ entran." },
+        variedad: { type: "string", enum: VARIEDADES },
+      }),
+      run: (args) => ajustarSemana(householdId, args),
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "pedir_tanda",

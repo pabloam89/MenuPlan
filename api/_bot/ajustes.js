@@ -26,6 +26,8 @@ import { etapaDe, esMenor } from "../../src/lib/stages.js";
 import { indiceDeFechaUTC, isoDeCasa } from "../../src/lib/dias.js";
 import { ETAPA_BEBE } from "../../src/lib/vocabularios.js";
 import { supermercadoDe, CON_PRECIOS } from "../../src/lib/supermercados.js";
+import { EXTRAS, conExtras } from "../../src/lib/extras.js";
+import { aplicarDiasDeSemana, diasDeSemana } from "../../src/lib/semanaDias.js";
 
 const hoyISO = () => isoDeCasa();
 // Del catálogo de comidas (src/lib/comidas.js).
@@ -287,6 +289,73 @@ export async function ajustarCocina(householdId, { estructura, esfuerzo, tiempo,
   });
 }
 
+// ── Lo del asistente de la app que Lola no tenía ────────────────────────────
+
+/** «lunes», «entre semana», «finde» → días guardados (Lun…Dom). Vacío = todos. */
+export function diasDichos(dias) {
+  return [...new Set((dias?.length ? dias : DIAS)
+    .map((d) => (/^(entre ?semana|laborables)$/.test(normal(d)) ? DIAS.slice(0, 5) : /^(finde|fin de semana)$/.test(normal(d)) ? DIAS.slice(5) : [diaDe(d)]))
+    .flat()
+    .filter(Boolean))];
+}
+
+const DICHO_EXTRA = {
+  desayuno: { off: "sin desayuno", variado: "desayuno variado", findes: "desayuno igual entre semana y otro el finde", igual: "siempre el mismo desayuno" },
+  merienda: { off: "sin merienda", semana: "merienda toda la semana", laborables: "merienda de lunes a viernes" },
+  postre: { off: "sin postre", comida: "postre en la comida", cena: "postre en la cena", ambas: "postre en comida y cena" },
+  postreTipo: { inmediato: "postres sin cocinar", cazo: "postres de cremas", horno: "postres horneados" },
+  postreInmediato: { fruta: "de fruta", yogur: "de yogur", mix: "fruta o yogur, alternando" },
+};
+
+/**
+ * Desayuno, merienda y postre (data.extraMeals), como el asistente de la app.
+ * La merienda solo se planifica si hay niños: se dice. Pura, para el test.
+ */
+export function aplicarExtras(data, cambios = {}) {
+  const validos = Object.fromEntries(Object.entries(cambios).filter(([k, v]) => EXTRAS[k]?.includes(v)));
+  if (!Object.keys(validos).length) return { texto: "No había nada que cambiar." };
+  const d = { ...data, extraMeals: conExtras(data?.extraMeals, validos) };
+  const hechos = Object.entries(validos).map(([k, v]) => DICHO_EXTRA[k][v]);
+  const sinNinos = validos.merienda && validos.merienda !== "off" && !(data?.members ?? []).some(esMenor);
+  return { data: d, texto: `Guardado (${hechos.join("; ")}). Se aplicará al generar el próximo menú.${sinNinos ? " Ojo: la merienda solo se planifica para los niños, y en la casa no hay ninguno." : ""}` };
+}
+
+export async function ajustarExtras(householdId, cambios) {
+  return conData(householdId, (data) => aplicarExtras(data, cambios));
+}
+
+export const VARIEDADES = ["strict", "moderate", "relaxed"];
+const DICHA_VARIEDAD = { strict: "sin repetir platos de ninguna semana anterior", moderate: "sin repetir los de la semana anterior", relaxed: "se pueden repetir platos" };
+
+/**
+ * Qué días entran en el menú de una semana y cuánto se repiten los platos
+ * entre semanas, como el paso «para cuándo» del asistente. Los días van por
+ * semana (semanaDias.js: `menuWeekDays` y sus dos derivados); para «nunca el
+ * finde» de siempre está ajustar_horario. Pura, para el test.
+ */
+export function aplicarSemana(data, { semana = "esta", dias, variedad } = {}, { hoyIdx } = {}) {
+  let d = data ?? {};
+  const hechos = [];
+  if (Array.isArray(dias) && dias.length) {
+    const offset = semana === "siguiente" ? 1 : 0;
+    const ds = DIAS.filter((x) => diasDichos(dias).includes(x));
+    const antes = diasDeSemana(d, offset, hoyIdx);
+    d = aplicarDiasDeSemana(d, offset, ds, hoyIdx === undefined ? {} : { todayIdx: hoyIdx });
+    if (d === data && ds.length) return { texto: "No puedo dejar el menú sin ningún día." };
+    if (JSON.stringify(antes) !== JSON.stringify(ds)) hechos.push(`${semana === "siguiente" ? "la semana que viene" : "esta semana"}: ${ds.map((x) => DIA_LARGO[x] ?? x).join(", ")}`);
+  }
+  if (VARIEDADES.includes(variedad)) {
+    d = { ...d, menuVarietyPref: variedad };
+    hechos.push(DICHA_VARIEDAD[variedad]);
+  }
+  if (!hechos.length) return { texto: "No había nada que cambiar." };
+  return { data: d, texto: `Guardado (${hechos.join("; ")}). Se aplicará al generar ese menú.` };
+}
+
+export async function ajustarSemana(householdId, args) {
+  return conData(householdId, (data) => aplicarSemana(data, args));
+}
+
 // ── Compra: el súper y el presupuesto ───────────────────────────────────────
 
 /**
@@ -360,7 +429,7 @@ export async function ajustarHorario(householdId, { personas, dias, comidas, don
       ? ` ${adultosAlCole.map((x) => x.name).join(", ")} no ${adultosAlCole.length > 1 ? "van" : "va"} al cole: no se ha tocado su horario. Si a mediodía no ${adultosAlCole.length > 1 ? "comen" : "come"} en casa, pregunta si es fuera o con táper.`
       : "";
     if (adultosAlCole.length && !sel.size) return { texto: `No he cambiado nada.${avisoCole}` };
-    const ds = (dias?.length ? dias : DIAS).map((d) => (/^(entre ?semana|laborables)$/.test(normal(d)) ? DIAS.slice(0, 5) : /^(finde|fin de semana)$/.test(normal(d)) ? DIAS.slice(5) : [diaDe(d)])).flat().filter(Boolean);
+    const ds = diasDichos(dias);
     const cs = (comidas?.length ? comidas : COMIDAS_PRINCIPALES).map((c) => COMIDAS.find((x) => normal(x) === normal(c))).filter(Boolean);
     if (!sel.size || !ds.length || !cs.length) return { texto: `No sé a quién o cuándo aplicarlo${noEncontradas.length ? ` (no conozco a ${noEncontradas.join(", ")})` : ""}.` };
     const schedule = { ...(data.schedule ?? {}) };
