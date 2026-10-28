@@ -3,7 +3,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { FALLOS, ERRORES, DEUDA, inventario } from "./inventarioFicha.mjs";
-import { ENTIDADES, TEMAS, ESTADOS, TIPOS, DATOS_CASA, DATOS_PERSONA } from "../../src/lib/registroFicha.js";
+import { ENTIDADES, TEMAS, ESTADOS, TIPOS, MODULOS, MODULO_DEL_TEMA, moduloDe, DATOS_CASA, DATOS_PERSONA } from "../../src/lib/registroFicha.js";
 import { REGISTRO_CAMPOS } from "../../src/lib/registroCampos.js";
 import { CAMPOS } from "../../src/lib/notepadFields.js";
 
@@ -22,6 +22,11 @@ describe("registro de la ficha (#939, fase 4)", () => {
       expect(ESTADOS, `${k}.estado`).toContain(d.estado);
       expect(TIPOS, `${k}.tipo`).toContain(d.tipo);
     }
+  });
+
+  it("cada dato es de una parte encendida del producto, y cada tema tiene la suya", () => {
+    expect(Object.keys(MODULO_DEL_TEMA).sort()).toEqual([...TEMAS].sort());
+    for (const [k, d] of todos) expect(MODULOS, `${k}.modulo`).toContain(moduloDe(d));
   });
 
   it("copia y legado dicen de dónde vienen o por qué siguen", () => {

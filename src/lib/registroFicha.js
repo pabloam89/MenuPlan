@@ -91,9 +91,28 @@ export const ESTADOS = ["activo", "copia", "legado", "interfaz"];
 export const TIPOS = ["enum", "lista_enum", "int", "decimal", "bool", "fecha", "ref", "texto", "objeto", "mapa", "lista"];
 export const SIN_TABULAR = ["objeto", "mapa", "lista"];
 
+/**
+ * Las partes del producto (Pablo, 28 oct 2026): menú, recetas, compra (con
+ * los precios), despensa y menú del cole, encima de la casa (quién es quién y
+ * su salud), que las sirve a todas. Lo demás (Gente y las estadísticas) está
+ * apagado: no guarda nada en data, así que aquí no tiene datos. En las partes
+ * encendidas la app y Lola leen y escriben la misma fuente: el inventario
+ * cuenta lo que solo nombra una de las dos (`lola_no_lo_ve`, `app_no_lo_ve`).
+ */
+export const MODULOS = ["casa", "menu", "cole", "recetas", "compra", "despensa"];
+
+/** De qué parte es cada tema; un dato puede decir otra con `modulo`. */
+export const MODULO_DEL_TEMA = Object.freeze({
+  quien: "casa", salud: "casa", cuenta: "casa",
+  horario: "menu", agenda: "menu", gustos: "menu", cocina: "menu", menus: "menu",
+  despensa: "despensa", compra: "compra", recetas: "recetas",
+});
+
+export const moduloDe = (d) => d.modulo ?? MODULO_DEL_TEMA[d.tema];
+
 const dato = (d) => ({
   entidad: "casa", tema: null, estado: "activo", tipo: null, vocabulario: null,
-  campo: null, libreta: null, otros: null, de: null, motivo: null, vive: "data",
+  campo: null, libreta: null, otros: null, de: null, motivo: null, vive: "data", modulo: null,
   ...d,
 });
 
@@ -134,9 +153,9 @@ export const DATOS_CASA = Object.freeze({
   menuWeekDays: dato({ tema: "horario", tipo: "mapa" }),
   menuScheduleSameForAllWeeks: dato({ tema: "horario", tipo: "bool" }),
   menuWeekOverrides: dato({ tema: "horario", tipo: "mapa" }),
-  kidDinnerConfig: dato({ entidad: "grupo", tema: "horario", tipo: "objeto" }),
-  kidDinnerMatchesAdultLunch: dato({ entidad: "grupo", tema: "horario", tipo: "bool", estado: "copia", de: "kidDinnerConfig", motivo: "el motor del espejo lo lee; la verdad es kidDinnerConfig (kidsMenu.js)" }),
-  schoolMenus: dato({ tema: "horario", tipo: "objeto", motivo: "el menú del cole, común y por niño" }),
+  kidDinnerConfig: dato({ entidad: "grupo", tema: "horario", modulo: "cole", tipo: "objeto" }),
+  kidDinnerMatchesAdultLunch: dato({ entidad: "grupo", tema: "horario", modulo: "cole", tipo: "bool", estado: "copia", de: "kidDinnerConfig", motivo: "el motor del espejo lo lee; la verdad es kidDinnerConfig (kidsMenu.js)" }),
+  schoolMenus: dato({ tema: "horario", modulo: "cole", tipo: "objeto", motivo: "el menú del cole, común y por niño" }),
 
   // ── Agenda: lo que tiene fecha o nombre propio ──
   reglas: dato({ entidad: "regla", tema: "agenda", tipo: "lista" }),
