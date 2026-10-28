@@ -37,10 +37,11 @@ export const FUENTES = {
   ficha: "src/lib/registroCampos.js",
   comidas: "src/lib/comidas.js",
   nutrientes: "src/data/nutrientes.js",
+  familias: "src/lib/notepadFields.js",
 };
 
 /** Quién manda en un concepto, de más a menos: la primera fuente que lo tiene. */
-export const DUENO = ["receta", "comidas", "nutrientes", "vocabularios", "ficha", "ejes", "pedible", "clasificador"];
+export const DUENO = ["receta", "comidas", "nutrientes", "vocabularios", "ficha", "ejes", "pedible", "clasificador", "familias"];
 
 // Vocabularios de vocabularios.js que son del sistema, no de la comida.
 const DE_SISTEMA = new Set([
@@ -54,13 +55,21 @@ const CONTROL_CLASIFICADOR = new Set(["modo", "varias", "confianza", "sobra", "q
 // Mismo concepto con otro nombre: clave normalizada → concepto. Solo las que
 // se ven hoy; una nueva sale como concepto aparte y se ve en el informe.
 const ALIAS = {
-  etapa_bebe: "etapaBebe", etapabebe: "etapaBebe",
+  // La etapa de la persona (cremas, mixto, sólidos) no es la de la receta
+  // (cremas, sólidos): «mixto» abre las dos (src/lib/babyStage.js).
+  etapa_bebe: "etapaBebePersona", etapabebe: "etapaBebe",
   categoria: "category", base: "mainBase", mainbase: "mainBase", proteina: "mainProtein",
   ids_comidas: "comidas", comida: "comidas", comidas: "comidas",
-  dias: "dias", dia: "dias",
+  // «hoy», «el lunes»: cómo se pide un día; el día guardado es «Lun» (src/lib/dias.js).
+  dias: "dias", dia: "diaPedido",
   aparatos: "equipamiento", requiredappliance: "equipamiento",
   estructura_platos: "mealStructure",
 };
+
+/** Tablas «forma de pedir → niveles guardados», y el campo cuyos niveles agrupan. */
+const AGRUPA = { PICANTE_PEDIDO: "picante" };
+// En lo pedible, esos campos son la forma de pedir, no el nivel.
+for (const campo of Object.values(AGRUPA)) ALIAS[`rasgos.${campo}`] = `${campo}Pedido`;
 
 const norm = (s) => String(s ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 const conceptoDe = (clave) => ALIAS[norm(clave)] ?? clave;
@@ -102,7 +111,7 @@ function enumsDeEsquema(props, prefijo = "") {
 export function apariciones(m) {
   const out = [];
   const poner = (fuente, clave, tipo, valores, extra = {}) =>
-    out.push({ fuente, clave, concepto: conceptoDe(extra.concepto ?? clave), tipo, valores: [...valores], ...extra });
+    out.push({ fuente, clave, tipo, valores: [...valores], ...extra, concepto: conceptoDe(extra.concepto ?? clave) });
 
   // 1. La receta: cada campo cerrado del esquema de zod.
   const forma = m.receta.RecipeSchema?.shape ?? {};
@@ -114,9 +123,18 @@ export function apariciones(m) {
   for (const e of m.ejes.EJES ?? []) {
     poner("ejes", e.id, e.tipo, Array.isArray(e.vocabulario) ? e.vocabulario : [], { concepto: e.campo || e.id, eje: e, campo: e.campo ?? null });
   }
+  // 2b. Las formas de pedir que agrupan niveles guardados (PICANTE_PEDIDO):
+  // son su propio concepto, y si no cubren todos los niveles, discrepan.
+  for (const [nombre, campo] of Object.entries(AGRUPA)) {
+    const tabla = m.receta[nombre];
+    if (!tabla) continue;
+    const cubiertos = new Set(Object.values(tabla).flat());
+    const nivel = out.find((a) => a.fuente === "receta" && a.clave === campo);
+    poner("receta", nombre, "enum", Object.keys(tabla), { concepto: `${campo}Pedido`, agrupa: campo, sinCubrir: (nivel?.valores ?? []).filter((v) => !cubiertos.has(v)) });
+  }
   // 3. Lo que se puede pedir de un plato.
   for (const { clave, valores } of enumsDeEsquema({ rasgos: m.pedible.ESQUEMA_RASGOS })) {
-    poner("pedible", clave, "enum", valores, { concepto: clave.split(".").pop() });
+    poner("pedible", clave, "enum", valores, { concepto: ALIAS[clave] ?? clave.split(".").pop() });
   }
   if (m.pedible.ESQUEMA_BASE) poner("pedible", "base", "enum", m.pedible.ESQUEMA_BASE.enum.filter((v) => v !== m.pedible.OTRA));
   if (m.pedible.ESQUEMA_CATEGORIA) poner("pedible", "categoria", "enum", m.pedible.ESQUEMA_CATEGORIA.enum.filter((v) => v !== m.pedible.OTRA));
@@ -133,10 +151,12 @@ export function apariciones(m) {
   // 6. La ficha de la casa y la persona: el campo y el nombre del vocabulario que usa.
   for (const [k, c] of Object.entries(m.ficha.REGISTRO_CAMPOS ?? {})) {
     const voc = c.vocabulario ? m.vocabularios.VOCABULARIOS?.[c.vocabulario] ?? null : null;
-    poner("ficha", k, c.tipo, voc ?? [], { vocabulario: c.vocabulario ?? null, sinLista: Boolean(c.vocabulario && !voc) });
+    poner("ficha", k, c.tipo, voc ?? [], { concepto: c.vocabulario ?? k, vocabulario: c.vocabulario ?? null, sinLista: Boolean(c.vocabulario && !voc) });
   }
   // 7. Las comidas del día.
   if (m.comidas.IDS_COMIDAS) poner("comidas", "ids_comidas", "enum", m.comidas.IDS_COMIDAS);
+  // 9. Las familias del reparto semanal (las claves de freqs).
+  if (m.familias?.FAMILIAS) poner("familias", "familias", "enum", m.familias.FAMILIAS);
   // 8. Los nutrientes: un concepto, sus campos por ración.
   if (m.nutrientes.NUTRIENTES) poner("nutrientes", "nutrientes", "numerico", Object.values(m.nutrientes.NUTRIENTES).map((n) => n.porRacion));
   return out;
@@ -154,6 +174,9 @@ export function inventario(aps) {
 
   const fallos = [];
   const recortes = [];
+  for (const a of dominio.filter((x) => x.sinCubrir?.length)) {
+    fallos.push({ fallo: "discrepancia", concepto: a.concepto, dueno: `receta.${a.agrupa}`, copia: `receta.${a.clave}`, sobran: [], faltan: a.sinCubrir, detalle: `receta.${a.clave} no cubre ${a.sinCubrir.join(", ")}` });
+  }
   // Cada aparición contra el dueño de su concepto (solo listas con valores).
   for (const [concepto, lista] of porConcepto) {
     const conValores = lista.filter((a) => a.valores.length && ["enum", "tags"].includes(a.tipo))
@@ -172,7 +195,7 @@ export function inventario(aps) {
   // nutrientes no cuentan: su registro es nutrientes.js.
   const camposEje = new Set(aps.filter((a) => a.fuente === "ejes" && a.campo).map((a) => String(a.campo).split(/[.[]/)[0]));
   const deNutrientes = new Set(aps.filter((a) => a.fuente === "nutrientes").flatMap((a) => a.valores));
-  for (const a of dominio.filter((x) => x.fuente === "receta")) {
+  for (const a of dominio.filter((x) => x.fuente === "receta" && !x.agrupa)) {
     if (!camposEje.has(a.clave) && !deNutrientes.has(a.clave)) fallos.push({ fallo: "campo_sin_eje", concepto: a.concepto, detalle: `receta.${a.clave} (${a.tipo})` });
   }
   // Ejes que dicen vivir en un campo de la receta que no existe.
@@ -191,13 +214,16 @@ export function inventario(aps) {
 }
 
 /**
- * Copias literales: un vocabulario del dominio (de la receta, 3+ valores)
- * escrito a mano, entre comillas y seguidos, en un fichero de código que no es
- * el suyo. Tests y datos JSON no cuentan.
+ * Copias literales: un vocabulario del dominio (3+ valores) escrito entero a
+ * mano en un fichero que no es su dueño. Cuenta toda lista entre corchetes,
+ * solo de textos entre comillas, que contenga todos sus valores, en cualquier
+ * orden. Un subconjunto (los valores que usa una regla) no es copia. Tests y
+ * JSON no cuentan; las listas de la base (CHECK) se comprueban en su test.
  * @param {string} raiz  carpeta del repo
  */
 export function copiasLiterales(aps, raiz, carpetas = ["src", "api", "scripts"]) {
-  const vocab = aps.filter((a) => a.fuente === "receta" && ["enum", "tags"].includes(a.tipo) && a.valores.length >= 3);
+  const vocab = aps.filter((a) => ["receta", "vocabularios", "comidas", "familias"].includes(a.fuente) && !a.sistema
+    && ["enum", "tags"].includes(a.tipo) && a.valores.length >= 3);
   const ficheros = [];
   const recorrer = (dir) => {
     for (const n of readdirSync(dir)) {
@@ -208,17 +234,49 @@ export function copiasLiterales(aps, raiz, carpetas = ["src", "api", "scripts"])
     }
   };
   for (const c of carpetas) recorrer(join(raiz, c));
-  const dueno = join(raiz, FUENTES.receta);
   const out = [];
   for (const f of ficheros) {
-    if (f === dueno) continue;
-    const texto = readFileSync(f, "utf8");
+    const rel = relative(raiz, f).replace(/\\/g, "/");
+    const listas = listasLiterales(readFileSync(f, "utf8"));
     for (const a of vocab) {
-      // Tres valores seguidos entre comillas, en el orden del dueño.
-      const [x, y, z] = a.valores;
-      const re = new RegExp(`["']${x}["']\\s*,\\s*["']${y}["']\\s*,\\s*["']${z}["']`);
-      if (re.test(texto)) out.push({ fallo: "copia_literal", concepto: a.concepto, detalle: `${relative(raiz, f).replace(/\\/g, "/")} copia receta.${a.clave}` });
+      if (rel === (DUENO_DE[`${a.fuente}.${a.clave}`] ?? FUENTES[a.fuente])) continue;
+      if (listas.some((l) => esCopia(l, a.valores))) {
+        out.push({ fallo: "copia_literal", concepto: a.concepto, detalle: `${rel} copia ${a.fuente}.${a.clave}` });
+      }
     }
+  }
+  return out;
+}
+
+// Lo que una copia puede añadir sin dejar de ser copia: el plan B de una
+// pregunta cerrada. Otro valor de más ya es otro concepto (aporte = familias + patata).
+const DE_RESERVA = new Set(["otra", "otro", "ninguna", "ninguno", "no_lo_dice", "cualquiera"]);
+
+/** ¿La lista tiene todos los valores del vocabulario y, de más, solo los de reserva? */
+export const esCopia = (lista, valores) =>
+  valores.every((v) => lista.has(String(v))) && [...lista].every((v) => valores.includes(v) || DE_RESERVA.has(v));
+
+/** Vocabularios que su fuente importa de otro fichero: ese otro es el dueño. */
+const DUENO_DE = {
+  "vocabularios.aparatos": "src/lib/electrodomesticos.js",
+  "receta.healthFlags": "src/lib/healthFlags.js",
+};
+
+/**
+ * Las listas entre corchetes hechas solo de textos entre comillas. No cuentan
+ * un orden pasado a enOrden() (los valores salen del dueño) ni una lista con
+ * repetidos (son pesos de un sorteo, no un vocabulario).
+ */
+export function listasLiterales(texto) {
+  const out = [];
+  for (const m of texto.matchAll(/\[([^[\]]*)\]/g)) {
+    const dentro = m[1];
+    if (!/^\s*(["'][^"'\n]*["']\s*,?\s*)+$/.test(dentro)) continue;
+    if (/enOrden\([^()]*,\s*$/.test(texto.slice(Math.max(0, m.index - 80), m.index))) continue;
+    const valores = [...dentro.matchAll(/["']([^"'\n]*)["']/g)].map((x) => x[1]);
+    const set = new Set(valores);
+    if (set.size < valores.length) continue;
+    out.push(set);
   }
   return out;
 }

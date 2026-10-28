@@ -91,7 +91,9 @@ import {
 } from "../components/ui.jsx";
 import { MAX_MENU_WEEKS, weekEntry } from "../lib/menuArchive.js";
 import { applyFreqWithinBudget } from "../lib/freqBudget.js";
-import { FAMILIA_LABELS } from "../lib/notepadFields.js";
+import { FAMILIA_LABELS, FAMILIAS_EN_PANTALLA } from "../lib/notepadFields.js";
+import { DONDE_COME } from "../lib/vocabularios.js";
+import { enOrden } from "../lib/enOrden.js";
 import { getWeekDatesByMenuWeek, calendarDayNumber, formatWeekRangeLabel, mondayISOForOffset, todayDayIdx } from "../lib/weekCalendar.js";
 import { NOMBRES_DIA, LETRAS_DIA, indiceDeFecha } from "../lib/dias.js";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
@@ -5455,7 +5457,7 @@ function ScheduleCell({ value, states, onClick, size = 14 }) {
   );
 }
 
-const STATE_ORDER = ["casa", "tupper", "cole", "fuera", "off"];
+const STATE_ORDER = enOrden(DONDE_COME, ["casa", "tupper", "cole", "fuera"]);
 
 function MixedDots({ states }) {
   // Sort by canonical order so identical states cluster together visually.
@@ -7448,7 +7450,7 @@ const FOOD_META = {
   verdura: { label: "Verdura", Icon: Salad, color: "#3f8f5b" },
 };
 
-const FOOD_ORDER = ["carne", "pescado", "pasta_arroz", "legumbres", "huevos", "verdura"];
+const FOOD_ORDER = FAMILIAS_EN_PANTALLA;
 
 // Ilustraciones de categoría (mismo set Midjourney que el resto de la app).
 // Se usan para componer el mosaico de cada estilo de comida.

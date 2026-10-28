@@ -26,6 +26,7 @@ import { GoogleGenAI } from "@google/genai";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { DIFFICULTIES } from "../src/data/recipeSchema.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const RECIPES_DIR = join(__dirname, "../src/data/recipes");
@@ -84,7 +85,6 @@ function getOptEarly(f) {
 
 // ---- Vocabulary ----
 const APPLIANCES = ["airfryer", "horno", "thermomix", "vaporera", "olla_express", "microondas"];
-const DIFFICULTIES = ["facil", "normal", "elaborada"];
 
 // Default catalog files (skip guarniciones + bebes unless explicitly targeted)
 const DEFAULT_FILES = [

@@ -16,10 +16,11 @@ import * as vocabularios from "../src/lib/vocabularios.js";
 import * as ficha from "../src/lib/registroCampos.js";
 import * as comidas from "../src/lib/comidas.js";
 import * as nutrientes from "../src/data/nutrientes.js";
+import * as familias from "../src/lib/notepadFields.js";
 import { apariciones, inventario, copiasLiterales, cifras } from "./lib/inventarioDiccionario.mjs";
 
 const raiz = join(dirname(fileURLToPath(import.meta.url)), "..");
-const aps = apariciones({ receta, ejes, pedible, clasificador, vocabularios, ficha, comidas, nutrientes });
+const aps = apariciones({ receta, ejes, pedible, clasificador, vocabularios, ficha, comidas, nutrientes, familias });
 const inv = inventario(aps);
 const fallos = [...inv.fallos, ...copiasLiterales(aps, raiz)];
 

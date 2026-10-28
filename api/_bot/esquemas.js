@@ -10,7 +10,7 @@
 
 import { NUTRIENTES } from "../../src/data/nutrientes.js";
 import { PERFILES, IDS_PERFILES } from "../../src/lib/derive/perfiles.js";
-import { MAIN_BASES } from "../../src/data/recipeSchema.js";
+import { CONNOTACIONES, MAIN_BASES, PICANTE_PEDIDO, SABORES, TEXTURAS } from "../../src/data/recipeSchema.js";
 
 // El nombre que entiende el modelo para cada nutriente del registro. Los ejes
 // salen del registro (src/data/nutrientes.js); esto solo los nombra. Uno nuevo
@@ -69,10 +69,10 @@ export const ESQUEMA_RASGOS = {
   type: "object",
   description: "Opcional: lo que piden del plato, tal cual lo dicen. «Reconfortante», «de cuchara», «que no pique», «barato», «fresquito»… Solo los que digan.",
   properties: {
-    connotacion: { type: "string", enum: ["reconfortante", "fresco", "casero", "festivo"] },
-    textura: { type: "string", enum: ["cuchara", "tenedor", "mano"], description: "cuchara = sopas, cremas, guisos; mano = para picar o bocadillo." },
-    picante: { type: "string", enum: ["sin", "con"], description: "sin = que no pique; con = que pique." },
-    sabor: { type: "string", enum: ["suave", "intenso", "especiado", "dulce", "acido", "ahumado"] },
+    connotacion: { type: "string", enum: CONNOTACIONES },
+    textura: { type: "string", enum: TEXTURAS, description: "cuchara = sopas, cremas, guisos; mano = para picar o bocadillo." },
+    picante: { type: "string", enum: Object.keys(PICANTE_PEDIDO), description: "sin = que no pique; con = que pique." },
+    sabor: { type: "string", enum: SABORES },
     coste: { type: "string", enum: ["economico", "medio", "caro"], description: "economico = barato (menos de 1 € por ración)." },
     calorias: { type: "string", enum: ["ligero", "medio", "contundente"], description: "Para «algo contundente»; para «ligero» usa estilo." },
   },
