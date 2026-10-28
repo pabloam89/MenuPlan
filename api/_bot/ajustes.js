@@ -356,6 +356,26 @@ export async function ajustarSemana(householdId, args) {
   return conData(householdId, (data) => aplicarSemana(data, args));
 }
 
+/** Cómo usa el menú lo que hay en casa, las dos opciones del asistente de la app. */
+export const MODOS_DESPENSA = { strict: "solo con lo de casa, sin comprar salvo que un hueco no salga de otra forma", only: "sobre todo lo de casa, y se compra lo que falte" };
+
+/**
+ * El paso «¿aprovechamos lo de casa?» del asistente (OnboardingPantryMode),
+ * con las mismas tres claves: el modo, que se eligió a propósito, y el
+ * booleano viejo que va a la par. Pura, para el test.
+ */
+export function aplicarModoDespensa(data, modo) {
+  if (!MODOS_DESPENSA[modo]) return { texto: `modo tiene que ser ${Object.keys(MODOS_DESPENSA).join(" o ")}.` };
+  return {
+    data: { ...data, pantryMode: modo, pantryModeSet: true, useHomeStock: true },
+    texto: `Guardado: el menú se hará ${MODOS_DESPENSA[modo]}. Se aplicará al generar el próximo menú.`,
+  };
+}
+
+export async function ajustarModoDespensa(householdId, { modo }) {
+  return conData(householdId, (data) => aplicarModoDespensa(data, modo));
+}
+
 // ── Compra: el súper y el presupuesto ───────────────────────────────────────
 
 /**
@@ -531,19 +551,28 @@ export async function pedirTanda(householdId, { bases = [], platos = [], minutos
   });
 }
 
-export async function ajustarMenuPeques(householdId, { cena }) {
+/** Lo que los peques no pueden repetir del comedor en la cena (kidsMenu.js, `avoid`). */
+export const NO_REPETIR = { proteina: "protein", hidratos: "carbs", verdura: "veg" };
+const LADO = { igual: "together", aparte: "own" };
+
+export async function ajustarMenuPeques(householdId, { cena, mediodia, finde, noRepetir }) {
   return conData(householdId, (data, m) => {
     const kids = m.kidMembers(data.members ?? []);
     if (!kids.length) return { texto: "En esta casa no hay niños: todos comen lo mismo." };
-    if (!["igual", "aparte", "lo_del_mediodia"].includes(cena)) return { texto: "cena tiene que ser igual, aparte o lo_del_mediodia." };
+    if (cena !== undefined && !["igual", "aparte", "lo_del_mediodia"].includes(cena)) return { texto: "cena tiene que ser igual, aparte o lo_del_mediodia." };
+    if (cena === undefined && !LADO[mediodia] && !LADO[finde] && !Array.isArray(noRepetir)) return { texto: "No había nada que cambiar." };
     const cfg = m.normalizeKidDinnerConfig(data.kidDinnerConfig);
     const byMember = { ...cfg.byMember };
     for (const k of kids) {
       const base = byMember[k.id] ?? { ...m.KID_DINNER_DEFAULTS, safeFoods: [], avoid: { ...m.KID_DINNER_AVOID_DEFAULTS } };
+      // Lo que no se dice se queda como estaba: antes cada llamada devolvía el
+      // mediodía y el finde a «con la familia».
       byMember[k.id] = {
-        ...base, weekdayLunch: "together", weekend: "together",
-        dinner: cena === "aparte" ? "different" : "sameDinner",
-        reuseColeDinner: cena === "lo_del_mediodia",
+        ...base,
+        ...(LADO[mediodia] ? { weekdayLunch: LADO[mediodia] } : {}),
+        ...(LADO[finde] ? { weekend: LADO[finde] } : {}),
+        ...(cena !== undefined ? { dinner: cena === "aparte" ? "different" : "sameDinner", reuseColeDinner: cena === "lo_del_mediodia" } : {}),
+        ...(Array.isArray(noRepetir) ? { avoid: Object.fromEntries(Object.entries(NO_REPETIR).map(([dicho, campo]) => [campo, noRepetir.includes(dicho)])) } : {}),
       };
     }
     const next = { ...data, kidDinnerConfig: { byMember } };
@@ -559,8 +588,13 @@ export async function ajustarMenuPeques(householdId, { cena }) {
       const viejos = data.groups ?? [];
       next.groups = m.migrateGroupsForBabies(members, m.groupsFromModel(members, modelo, viejos), modelo);
     }
-    const dicho = { igual: "los peques comen lo mismo que vosotros", aparte: "los peques cenan aparte, sin repetir lo del cole", lo_del_mediodia: "los días de cole, los peques cenan lo que comisteis a mediodía" }[cena];
-    return { data: next, texto: `Apuntado: ${dicho}. Cuenta en el próximo menú (este no se rehace solo).` };
+    const dichos = [
+      cena !== undefined && { igual: "los peques cenan lo mismo que vosotros", aparte: "los peques cenan aparte, sin repetir lo del cole", lo_del_mediodia: "los días de cole, los peques cenan lo que comisteis a mediodía" }[cena],
+      LADO[mediodia] && (mediodia === "aparte" ? "a mediodía, cuando comen en casa, algo suyo" : "a mediodía comen con vosotros"),
+      LADO[finde] && (finde === "aparte" ? "el finde, algo suyo" : "el finde comen con vosotros"),
+      Array.isArray(noRepetir) && (noRepetir.length ? `en la cena no repiten del comedor: ${noRepetir.join(", ")}` : "en la cena pueden repetir lo del comedor"),
+    ].filter(Boolean);
+    return { data: next, texto: `Apuntado: ${dichos.join("; ")}. Cuenta en el próximo menú (este no se rehace solo).` };
   });
 }
 

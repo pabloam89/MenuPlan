@@ -34,6 +34,7 @@ import {
   describirAjustes, ajustarGustos, ajustarCocina, ajustarHorario, anadirInvitado,
   anadirComensal, quitarComensal, ajustarAlergias, ajustarSalud, INTOLERANCIAS, ESTADOS, dominiosDeGustos, ajustarPersona, ajustarMenuPeques,
   descartarSupuesto, pedirTanda, ajustarCompra, PRESUPUESTO, ajustarExtras, ajustarSemana, VARIEDADES,
+  NO_REPETIR, ajustarModoDespensa, MODOS_DESPENSA,
 } from "./ajustes.js";
 import { SUPERMERCADOS } from "../../src/lib/supermercados.js";
 import { EXTRAS } from "../../src/lib/extras.js";
@@ -574,6 +575,12 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
       run: (args) => ajustarSemana(householdId, args),
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: null }, {
+      name: "ajustar_uso_despensa",
+      description: "Cuánto aprovecha el menú lo que hay en casa (la despensa). modo: strict (solo con lo de casa, sin comprar salvo que un hueco no salga de otra forma) u only (sobre todo lo de casa, y se compra lo que falte). Lo que hay se apunta con anadir_despensa.",
+      inputSchema: obj({ modo: { type: "string", enum: Object.keys(MODOS_DESPENSA) } }, ["modo"]),
+      run: (args) => ajustarModoDespensa(householdId, args),
+    }),
+    herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "pedir_tanda",
       description: "Batch cooking (día de hacer tuppers; a la familia nunca le digas «tanda»), como la pantalla de bases de la app. bases: lo que se deja hecho para usar en varios platos (claves: arroz, pasta, patatas, boniato, legumbre, quinoa, cuscus, sofrito, caldo, salsa_tomate, verdura_asada, pesto, bechamel, patatas_asadas, bolonesa), con veces = platos de la semana que lo usan (2-5; 0 lo quita). platos: platos que se dejan hechos o a medias (claves: croquetas-crudas, bunuelos-masa, falafel-crudo, empanadillas-cerradas, empanada-montada, lasana-montada, ravioli-cortados, quiche-sin-hornear, pastel-al-horno, huevos-rellenos, carne-empanada, verduras-rellenas, gazpacho, caldo-casero, crema, sopa), veces 1-4. minutos: el rato de manos que hay para la sesión (30-240). dia: el día en que se cocina (lunes…domingo). ninguna=true: deja de cocinar en tanda. Si una clave no vale, te devuelvo la lista buena: corrígela, no se lo preguntes a la familia.",
       inputSchema: obj({
@@ -626,8 +633,13 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "ajustar_menu_peques",
-      description: "Si los peques comen lo mismo que los mayores o no. Por defecto, toda la casa come lo mismo (el bebé, aparte): úsala solo si lo dicen. igual = lo mismo que la familia; aparte = cenan algo suyo (sin repetir lo del cole); lo_del_mediodia = los días de cole cenan lo que la familia comió a mediodía. Cuenta en el próximo menú.",
-      inputSchema: obj({ cena: { type: "string", enum: ["igual", "aparte", "lo_del_mediodia"] } }, ["cena"]),
+      description: "Cómo comen los peques, si no es lo mismo que los mayores. Por defecto, toda la casa come lo mismo (el bebé, aparte): úsala solo si lo dicen, y pasa solo lo que cambien. cena: igual (lo mismo que la familia), aparte (algo suyo, sin repetir lo del cole), lo_del_mediodia (los días de cole cenan lo que la familia comió a mediodía). mediodia (los días que comen en casa) y finde: igual o aparte. noRepetir: con cena aparte, qué no repite la cena del comedor (proteina, hidratos, verdura; vacío = puede repetir). Cuenta en el próximo menú.",
+      inputSchema: obj({
+        cena: { type: "string", enum: ["igual", "aparte", "lo_del_mediodia"] },
+        mediodia: { type: "string", enum: ["igual", "aparte"] },
+        finde: { type: "string", enum: ["igual", "aparte"] },
+        noRepetir: { type: "array", items: { type: "string", enum: Object.keys(NO_REPETIR) } },
+      }),
       run: (args) => ajustarMenuPeques(householdId, args),
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: null }, {

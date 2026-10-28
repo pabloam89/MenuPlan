@@ -1047,6 +1047,27 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
  },
  {
   "type": "custom",
+  "name": "ajustar_uso_despensa",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "modo": {
+     "type": "string",
+     "enum": [
+      "strict",
+      "only"
+     ]
+    }
+   },
+   "required": [
+    "modo"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Cuánto aprovecha el menú lo que hay en casa (la despensa). modo: strict (solo con lo de casa, sin comprar salvo que un hueco no salga de otra forma) u only (sobre todo lo de casa, y se compra lo que falte). Lo que hay se apunta con anadir_despensa."
+ },
+ {
+  "type": "custom",
   "name": "pedir_tanda",
   "input_schema": {
    "type": "object",
@@ -1260,14 +1281,37 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
       "aparte",
       "lo_del_mediodia"
      ]
+    },
+    "mediodia": {
+     "type": "string",
+     "enum": [
+      "igual",
+      "aparte"
+     ]
+    },
+    "finde": {
+     "type": "string",
+     "enum": [
+      "igual",
+      "aparte"
+     ]
+    },
+    "noRepetir": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "enum": [
+       "proteina",
+       "hidratos",
+       "verdura"
+      ]
+     }
     }
    },
-   "required": [
-    "cena"
-   ],
+   "required": [],
    "additionalProperties": false
   },
-  "description": "Si los peques comen lo mismo que los mayores o no. Por defecto, toda la casa come lo mismo (el bebé, aparte): úsala solo si lo dicen. igual = lo mismo que la familia; aparte = cenan algo suyo (sin repetir lo del cole); lo_del_mediodia = los días de cole cenan lo que la familia comió a mediodía. Cuenta en el próximo menú."
+  "description": "Cómo comen los peques, si no es lo mismo que los mayores. Por defecto, toda la casa come lo mismo (el bebé, aparte): úsala solo si lo dicen, y pasa solo lo que cambien. cena: igual (lo mismo que la familia), aparte (algo suyo, sin repetir lo del cole), lo_del_mediodia (los días de cole cenan lo que la familia comió a mediodía). mediodia (los días que comen en casa) y finde: igual o aparte. noRepetir: con cena aparte, qué no repite la cena del comedor (proteina, hidratos, verdura; vacío = puede repetir). Cuenta en el próximo menú."
  },
  {
   "type": "custom",
