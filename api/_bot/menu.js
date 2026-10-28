@@ -20,12 +20,14 @@ import { select, insert, eq } from "./db.js";
 import { conCasa, cargarCasa, hoyISO } from "./casa.js";
 import { propiasDe } from "./propias.js";
 import { rastro } from "./embudo.js";
+import { cargaMedida } from "./medidaTurno.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, COMIDAS, comidaDe } from "../../src/lib/comidas.js";
+import { PICANTE_PEDIDO } from "../../src/data/recipeSchema.js";
 import { DIAS, DIA_LARGO_MINUSCULAS as DIA_LARGO, diaDeISO, hoyDeCasa } from "../../src/lib/dias.js";
 import { RASTRO, MOTIVO_CAMBIO, idBase } from "../../src/lib/rastro.js";
 import { restriccionesDeFuera, conQuienViene, describirDeFuera } from "./deFuera.js";
 import { EJE_POR_ID, puedeResponder } from "../../src/data/axisRegistry.js";
-import { EJES } from "./esquemas.js";
+import { EJES, delTipo, pideTipo } from "./esquemas.js";
 import { PERFILES, ordenarPorPerfil } from "../../src/lib/derive/perfiles.js";
 import { etapaDe } from "../../src/lib/stages.js";
 import { vetosDePersona } from "../../src/lib/vetos.js";
@@ -36,7 +38,8 @@ let motorCargado = null;
 let recetasDeSerie = null;
 export const motor = async () => {
   if (!motorCargado) {
-    const m = await import("./core.mjs");
+    // El primer import se mide (bot_route motor_frio, medidaTurno.js).
+    const m = await cargaMedida(() => import("./core.mjs"));
     recetasDeSerie ??= new Set(Object.keys(m.RECIPES_BY_ID));
     motorCargado = m;
   }
@@ -592,7 +595,7 @@ const POOL_PARA_APROXIMAR = 400;
  *   `dia` tal cual lo dicen («hoy», «jueves»); `parecidoA`, un plato que
  *   piden por su nombre: las opciones salen ordenadas por parecido.
  */
-export async function proponerPlatos(householdId, { dia: diaDicho = null, semana, franja: franjaDicha = null, grupo: grupoDicho = null, para = null, cual = "principal", n = 3, parecidoA = null, estilo = null, rasgos = null, ejes = null, perfil = null, deFuera = null }, fotos = null, out = null) {
+export async function proponerPlatos(householdId, { dia: diaDicho = null, semana, franja: franjaDicha = null, grupo: grupoDicho = null, para = null, cual = "principal", n = 3, parecidoA = null, estilo = null, rasgos = null, ejes = null, perfil = null, deFuera = null, tipo = null }, fotos = null, out = null) {
   const cargada = await cargarCasa(householdId);
   // Lo que no pueden comer los invitados: lo filtra el motor (api/_bot/deFuera.js).
   const rf = restriccionesDeFuera(deFuera);
@@ -610,19 +613,21 @@ export async function proponerPlatos(householdId, { dia: diaDicho = null, semana
   // Sin menú para ese día, ideas igualmente: recomendar una cena no puede
   // obligar a generar la semana entera (pasó: «¿te genero el menú?» para una
   // cena de hoy).
-  if (rd.error) return ideasSinMenu(cargada, { diaPedido, franja, grupo: grupoDicho, para, cual, n, estilo, rasgos, ejes, perfil }, fotos, out);
+  if (rd.error) return ideasSinMenu(cargada, { diaPedido, franja, grupo: grupoDicho, para, cual, n, estilo, rasgos, ejes, perfil, tipo }, fotos, out);
   const { casa, dia, fecha } = rd;
   const h = huecoDe(casa, { dia, franja, grupo, cual });
-  if (h.error) return ideasSinMenu(cargada, { diaPedido, franja, grupo: grupoDicho, para, cual, n, estilo, rasgos, ejes, perfil }, fotos, out);
+  if (h.error) return ideasSinMenu(cargada, { diaPedido, franja, grupo: grupoDicho, para, cual, n, estilo, rasgos, ejes, perfil, tipo }, fotos, out);
   const m = await prepararRecetas(casa);
   const res = m.pickCatalogReplacement(conQuienViene(casa.state?.data ?? {}, [h.g.id], rf), casa.semana.plan, {
-    hoy: hoyISO(), groupId: h.g.id, day: dia, meal: franja, course: h.course, candidatos: parecidoA ? POOL_PARA_APROXIMAR : POOL_PARA_VARIAR, pedido: !!parecidoA,
+    hoy: hoyISO(), groupId: h.g.id, day: dia, meal: franja, course: h.course, candidatos: parecidoA || pideTipo(tipo ?? {}) ? POOL_PARA_APROXIMAR : POOL_PARA_VARIAR, pedido: !!parecidoA,
   });
   // Rasgos, ejes y perfil filtran ANTES de ordenar y variar: variadas() elige
   // entre lo que ya cumple, no al revés.
   const actual = m.RECIPES_BY_ID[h.course === "first" ? h.hueco.firstRecipeId : h.hueco.recipeId];
   const nut = await prepararNutricion();
-  const filtro = filtrarCandidatas(res?.candidatos ?? [], { rasgos, ejes, perfil, cual: h.course === "first" ? "primero" : "principal" }, baseDelHueco(m, h.hueco, h.course, nut), nut);
+  // El tipo pedido («prefiero pasta») filtra primero, sobre el pool grande: si
+  // no queda ninguna, no hay opciones y la vía rápida pasa a Lola (#930).
+  const filtro = filtrarCandidatas(delTipo(res?.candidatos ?? [], tipo ?? {}), { rasgos, ejes, perfil, cual: h.course === "first" ? "primero" : "principal" }, baseDelHueco(m, h.hueco, h.course, nut), nut);
   const aviso = filtro.aviso;
   let lista = parecidoA ? res?.candidatos ?? [] : variadas(ordenParaVariar(filtro.lista, { ordenado: filtro.ordenado, estilo, n }), n);
   if (parecidoA) {
@@ -809,8 +814,7 @@ export function conRasgos(lista, rasgos) {
   const pruebas = [
     r.connotacion && ((x) => (x.connotacion ?? []).includes(r.connotacion)),
     r.textura && ((x) => x.textura === r.textura),
-    r.picante === "sin" && ((x) => x.picante === "no"),
-    r.picante === "con" && ((x) => x.picante === "suave" || x.picante === "picante"),
+    PICANTE_PEDIDO[r.picante] && ((x) => PICANTE_PEDIDO[r.picante].includes(x.picante)),
     r.sabor && ((x) => (x.sabor ?? []).includes(r.sabor)),
     r.coste && ((x) => x.costeNivel === r.coste),
     r.calorias && ((x) => x.caloriasNivel === r.calorias),
@@ -1029,7 +1033,7 @@ export function variadas(lista, n) {
  * Sin `grupo`, una tanda por grupo que come (los mayores y el bebé no comen lo
  * mismo): pie de foto «1. …» numerado seguido entre grupos, como la lista.
  */
-export async function ideasSinMenu(casa, { diaPedido, franja, grupo, para = null, cual, n, estilo = null, rasgos = null, ejes = null, perfil = null, deFuera: deFueraDicho = null }, fotos, out = null) {
+export async function ideasSinMenu(casa, { diaPedido, franja, grupo, para = null, cual, n, estilo = null, rasgos = null, ejes = null, perfil = null, deFuera: deFueraDicho = null, tipo = null }, fotos, out = null) {
   const deFuera = restriccionesDeFuera(deFueraDicho);
   const m = await prepararRecetas(casa);
   // `schedule` puede faltar en una casa recién creada desde el chat, y el motor
@@ -1048,9 +1052,9 @@ export async function ideasSinMenu(casa, { diaPedido, franja, grupo, para = null
   let num = 0;
   for (const g of elegidos) {
     const plan = { [g.id]: { [clave]: { recipeId: null, firstRecipeId: conPrimero ? "_" : null, eaters: m.membersOfGroup(g, data.members ?? []).length || 2 } } };
-    const res = m.pickCatalogReplacement(conQuienViene(data, [g.id], deFuera), plan, { hoy: hoyISO(), groupId: g.id, day: dia, meal: franja, course: cual === "primero" ? "first" : "main", candidatos: POOL_PARA_VARIAR });
+    const res = m.pickCatalogReplacement(conQuienViene(data, [g.id], deFuera), plan, { hoy: hoyISO(), groupId: g.id, day: dia, meal: franja, course: cual === "primero" ? "first" : "main", candidatos: pideTipo(tipo ?? {}) ? POOL_PARA_APROXIMAR : POOL_PARA_VARIAR });
     const nut = await prepararNutricion();
-    const filtro = filtrarCandidatas(res?.candidatos ?? [], { rasgos, ejes, perfil, cual }, null, nut);
+    const filtro = filtrarCandidatas(delTipo(res?.candidatos ?? [], tipo ?? {}), { rasgos, ejes, perfil, cual }, null, nut);
     if (filtro.aviso) bloques.push(filtro.aviso);
     const lista = variadas(ordenParaVariar(filtro.lista, { ordenado: filtro.ordenado, estilo, n }), n);
     if (!lista.length) continue;

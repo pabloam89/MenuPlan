@@ -60,8 +60,8 @@ export function erroresDeCasos(casos) {
  */
 export const NIVELES = ["pr", "completo", "seguridad"];
 
-/** Cuántos tiene el núcleo N1, por mitades: de seguridad y del resto (lo de más tráfico). */
-export const NUCLEO = { seguridad: 12, resto: 12 };
+/** Cuántos tiene el núcleo N1: de seguridad y del resto (lo de más tráfico). */
+export const NUCLEO = { seguridad: 12, resto: 13 };
 
 /** k por defecto de cada nivel. En `seguridad`, las alergias y la salud van con K_ALERGIAS. */
 export const K_POR_NIVEL = { pr: 1, completo: 1, seguridad: 3 };

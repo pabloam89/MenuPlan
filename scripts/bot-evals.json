@@ -1214,6 +1214,71 @@
       "texto": "Rehacer"
     },
     {
+      "id": "rehacer-semana-sin-pisar-hoy",
+      "tipo": "multiturno",
+      "dominio": "menu",
+      "origen": "fallo_produccion",
+      "dependeDeFecha": true,
+      "nombre": "rehacer tras un ajuste para la semana que viene: rehace esa, no la de hoy (#907)",
+      "historia": [
+        {
+          "role": "user",
+          "content": "para la semana que viene nada de coliflor"
+        },
+        {
+          "role": "assistant",
+          "content": "✅ Apuntado: nada de coliflor. Lo tendré en cuenta en el próximo menú.\n\n[[Rehacer la del 26 oct]]"
+        }
+      ],
+      "entrada": "Rehacer la del 26 oct",
+      "llama": [
+        "generar_menu"
+      ],
+      "args": {
+        "generar_menu": {
+          "rehacer": true
+        }
+      },
+      "noLlamaCon": {
+        "generar_menu": {
+          "semana": "esta"
+        }
+      },
+      "nucleo": true
+    },
+    {
+      "id": "rehacer-con-aviso-reintenta-con-rehacer",
+      "tipo": "multiturno",
+      "dominio": "menu",
+      "origen": "fallo_produccion",
+      "dependeDeFecha": true,
+      "nombre": "rehacer: si la herramienta avisa de que ya hay menú y ya pidieron rehacer, repite con rehacer: true (#907)",
+      "historia": [
+        {
+          "role": "user",
+          "content": "a partir de ahora nada de coliflor"
+        },
+        {
+          "role": "assistant",
+          "content": "✅ Apuntado: nada de coliflor. Lo tendré en cuenta en el próximo menú.\n\n[[Rehacer la del 26 oct]]"
+        }
+      ],
+      "entrada": "sí, rehaz la semana del 26 de octubre",
+      "llama": [
+        "generar_menu"
+      ],
+      "args": {
+        "generar_menu": {
+          "rehacer": true
+        }
+      },
+      "noLlamaCon": {
+        "generar_menu": {
+          "semana": "esta"
+        }
+      }
+    },
+    {
       "id": "alta-con-quien-come-y-alergias",
       "tipo": "multiturno",
       "dominio": "alta",
@@ -2880,6 +2945,25 @@
         "estable": "SEGURIDAD\n- Ana y Pablo: ninguna (por silencio).\nCASA\n- Ana 38 · Pablo 40.\nCOCINA\n- Comida: primero y segundo. Cena: plato único.",
         "delDia": "vie 9 oct (2026-10-09)\nMENÚ: todavía no hay ninguno."
       }
+    },
+    {
+      "id": "queja-combinacion-no-dice-arreglado",
+      "tipo": "texto",
+      "dominio": "menu",
+      "origen": "fallo_produccion",
+      "dependeDeFecha": true,
+      "nombre": "queja de una combinación: propone o pregunta, no dice «ya está arreglado» sin cambiar nada (#911)",
+      "entrada": "No tiene sentido el arroz con tomate frito con ensalada de lentejas el viernes",
+      "noLlama": [
+        "generar_menu"
+      ],
+      "alDia": [
+        "- {viernes}: comida primero Arroz con tomate frito + segundo Ensalada de lentejas; cena tortilla de calabacín."
+      ],
+      "llamaAlguna": [
+        "proponer_platos"
+      ],
+      "sinTexto": "ya est[aá] (arreglad|hech|cambiad|list)|list[oa]!|queda (arreglad|cambiad)|ya lo cambi"
     }
   ]
 }

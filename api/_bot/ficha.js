@@ -37,6 +37,8 @@ import { DIAS, DIA_LARGO_MINUSCULAS, DIA_LETRA, diaDeISO, isoDeCasa } from "../.
 import { select, eq } from "./db.js";
 import { propiasDe } from "./propias.js";
 import { alergiasPorSilencio } from "../../src/lib/alergiasBase.js";
+import { botonRehacer } from "./semanaPedida.js";
+import { estadoDelMenu, lineaEstadoMenu } from "./estadoMenu.js";
 
 const DIA_CORTO = Object.fromEntries(DIAS.map((d) => [d, d.toLowerCase()]));
 const DIA_LARGO = DIA_LARGO_MINUSCULAS;
@@ -121,6 +123,12 @@ export function preguntasPendientes(data = {}, calladas = new Set()) {
 // Solo la edad que se sabe (etapaDe da null sin ella): poner 30 a quien no la
 // tiene sería afirmar en la ficha algo que nadie ha dicho.
 const edadDe = (m) => etapaDe(m).edad;
+/** ¿Una regla acotada a semanas (`ambito.semanas`, lunes ISO) cuyas semanas ya acabaron? */
+export function semanasAcabadas(regla, hoy) {
+  const semanas = regla?.ambito?.semanas;
+  if (!Array.isArray(semanas) || !semanas.length) return false;
+  return semanas.every((lunes) => sumarDias(lunes, 6) < hoy);
+}
 /**
  * Las reglas de un solo día que acabaron en los últimos 3 días (lo que la
  * charla aún recuerda), en una línea por día: «sáb 3: fuera toda la casa
@@ -314,7 +322,9 @@ function cocinaBloque(data, hoy) {
   const rechazados = rechazadosDe(data.notepad).sort((a, b) => String(a.fecha).localeCompare(String(b.fecha))).slice(-2);
   if (rechazados.length) lineas.push(`- No volver a suponer: ${rechazados.map((r) => texto([r.path, { valor: r.valor }])).join("; ")}.`);
   // Las reglas de siempre («En casa sin carne los Lun»); las que caducan van en AHORA.
-  const fijas = (data.reglas ?? []).filter((r) => !r?.vigencia?.hasta);
+  // Las de una semana (invitados) no llevan «hasta»: pasada su semana no son
+  // ni de siempre ni de ahora, y Lola las leía como vivas (#911).
+  const fijas = (data.reglas ?? []).filter((r) => !r?.vigencia?.hasta && !semanasAcabadas(r, hoy));
   if (fijas.length) lineas.push(`- Reglas: ${fijas.slice(0, 3).map((r) => describirRegla(r, data)).join("; ")}${fijas.length > 3 ? `; +${fijas.length - 3} (ver_ajustes)` : ""}.`);
   // Los de la casa, de la libreta, con la fecha de hoy y con su ámbito
   // («cebolla (niños)», lib/vetos.js); los de cada persona ya salen en CASA.
@@ -361,7 +371,9 @@ function platosDelDia(casa, dia, nombre) {
 
 function delDiaBloque(casa, extras, hoy) {
   const data = casa.state?.data ?? {};
-  const lineas = [cabeceraDia(hoy)];
+  // Justo debajo del día, el estado del menú en campos cerrados (estadoMenu.js):
+  // la vía rápida contesta con lo mismo (#931).
+  const lineas = [cabeceraDia(hoy), lineaEstadoMenu(estadoDelMenu(casa.semanas ?? [], hoy))];
   // AHORA: las reglas que caducan (invitados, temporales) y siguen vivas. Las
   // de siempre van en COCINA, que no cambia cada día.
   const vigentes = (data.reglas ?? []).filter((r) => r?.vigencia?.hasta && r.vigencia.hasta >= hoy);
@@ -385,6 +397,9 @@ function delDiaBloque(casa, extras, hoy) {
     const enManana = casaManana.semana ? platosDelDia(casaManana, diaDeFecha(manana), nombre) : "";
     if (enHoy) lineas.push(`- Hoy: ${enHoy}.`);
     if (enManana) lineas.push(`- Mañana: ${enManana}.`);
+    // La etiqueta exacta del botón de rehacer tras un ajuste (#907).
+    const boton = botonRehacer(vivas, hoy);
+    if (boton) lineas.push(`- Botón tras un ajuste: [[${boton}]]`);
   }
   if (extras.nevera?.length) lineas.push(`- Hecho y guardado: ${extras.nevera.slice(0, 3).join("; ")}.`);
   if (extras.avisos?.length) lineas.push("AVISOS", ...extras.avisos.slice(0, 2).map((a) => `- ${a}`));

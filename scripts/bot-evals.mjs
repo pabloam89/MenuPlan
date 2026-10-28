@@ -2,7 +2,7 @@
  * Pruebas de conversación de Lola: ¿llama a la herramienta que toca?
  *
  *   node scripts/bot-evals.mjs                     → todos los casos (nivel completo), ~3,5 $
- *   node scripts/bot-evals.mjs --nivel=pr          → el núcleo N1 (24 casos), ~0,6-0,8 $
+ *   node scripts/bot-evals.mjs --nivel=pr          → el núcleo N1 (25 casos), ~0,6-0,8 $
  *   node scripts/bot-evals.mjs --nivel=seguridad   → los 32 de seguridad; alergias y salud k=5, el resto k=3; un fallo bloquea, ~3,2-3,4 $
  *   node scripts/bot-evals.mjs alergia             → los que contengan «alergia» en el nombre o el id
  *   node scripts/bot-evals.mjs --reserva           → con el modelo del plan B (agente.js MODELO_RESERVA)
@@ -83,6 +83,7 @@ const { supervisar } = await import("../api/_bot/supervisor.js");
 // La pista del enrutador (BOT_PISTA), con el mismo texto que en Telegram: un
 // caso con "pista" { decision, adelanto } mide si Lola la usa sin fiarse de más.
 const { textoPista } = await import("../api/_bot/pista.js");
+const { botonRehacer, lunesDe, sumarDias } = await import("../api/_bot/semanaPedida.js");
 // Un solo modelo por pasada: sin esto, un fallo de la API caería al plan B en
 // silencio y la medida mezclaría dos modelos.
 const RESERVA = ARGV.includes("--reserva");
@@ -119,6 +120,8 @@ const fichaDel = (hoy) => ({
     cabeceraDe(hoy), `MENÚ ${rangoDeLaSemana(hoy)} (no hay semana siguiente)`,
     "- Hoy: crema de calabaza + pollo al horno con patatas; cena tortilla de calabacín.",
     "- Mañana: lentejas estofadas; cena merluza a la plancha con ensalada.",
+    // Como ficha.js: la etiqueta exacta del botón de rehacer (#907).
+    ...(() => { const b = botonRehacer([{ weekStart: lunesDe(hoy), weekEnd: sumarDias(lunesDe(hoy), 6) }], hoy); return b ? [`- Botón tras un ajuste: [[${b}]]`] : []; })(),
   ].join("\n"),
 });
 const FICHA = fichaDel(hoyEnMadrid());
@@ -132,9 +135,11 @@ const RESPUESTAS = {
   // La semana ENTERA, como describirMenu: con solo tres días el modelo iba a
   // ver_menu a buscar el resto, y eso medía un fallo de la prueba, no de Lola.
   // El pollo al horno ya está (martes): pedido el salmón, basta un cambio.
-  generar_menu: (a) => `Menú nuevo generado y activado: del ${a.semana === "siguiente" ? "2026-10-05 al 2026-10-11" : "2026-09-30 al 2026-10-04"}, 14 huecos con plato.`
+  // Como generarMenu (semanaPedida.js): una fecha cuya semana ya tiene menú
+  // no se rehace sin rehacer: true; avisa y no toca nada.
+  generar_menu: (a) => (a.desde && !a.rehacer ? `YA HAY MENÚ en la semana del ${a.desde}: NO lo he rehecho ni he cambiado nada. Pregunta si quieren rehacer esa (generar_menu con rehacer: true).` : `Menú nuevo generado y activado: del ${a.semana === "siguiente" ? "2026-10-05 al 2026-10-11" : "2026-09-30 al 2026-10-04"}, 14 huecos con plato.`
     + ((a.fijos ?? []).length ? `\nLo que pidieron, ya puesto (no hace falta cambiar_plato):\n${a.fijos.map((f, i) => `«${f.nombre}» → ${f.nombre} (${["lunes", "martes", "jueves"][i % 3]}, ${String(f.comida ?? "comida").toLowerCase()})`).join("\n")}` : "")
-    + `\n\nAsí queda (no hace falta ver_menu):\nSemana del 5 oct al 11 oct.\n\nlunes:\n  Comida: primero Crema de calabaza; segundo Merluza en salsa verde\n  Cena: Tortilla francesa con ensalada\nmartes:\n  Comida: Lentejas estofadas\n  Cena: Pollo al horno con patatas\nmiércoles:\n  Comida: Arroz con verduras\n  Cena: Sopa de fideos\njueves:\n  Comida: primero Ensalada mixta; segundo Albóndigas en salsa\n  Cena: Revuelto de setas\nviernes:\n  Comida: Paella de verduras\n  Cena: Pizza casera de jamón y queso\nsábado:\n  Comida: Garbanzos con espinacas\n  Cena: Hamburguesa de ternera\ndomingo:\n  Comida: Lasaña de carne\n  Cena: Crema de puerros`,
+    + `\n\nAsí queda (no hace falta ver_menu):\nSemana del 5 oct al 11 oct.\n\nlunes:\n  Comida: primero Crema de calabaza; segundo Merluza en salsa verde\n  Cena: Tortilla francesa con ensalada\nmartes:\n  Comida: Lentejas estofadas\n  Cena: Pollo al horno con patatas\nmiércoles:\n  Comida: Arroz con verduras\n  Cena: Sopa de fideos\njueves:\n  Comida: primero Ensalada mixta; segundo Albóndigas en salsa\n  Cena: Revuelto de setas\nviernes:\n  Comida: Paella de verduras\n  Cena: Pizza casera de jamón y queso\nsábado:\n  Comida: Garbanzos con espinacas\n  Cena: Hamburguesa de ternera\ndomingo:\n  Comida: Lasaña de carne\n  Cena: Crema de puerros`),
   cambiar_plato: (a) => `Cambiado (${a.dia ?? "?"}, ${a.comida ?? "?"}): Tortilla francesa con ensalada → ${a.receta ?? "Merluza en salsa verde"}.\n\nAsí queda ese día (es lo guardado, no hace falta ver_menu):\nSemana del 5 oct al 11 oct.\n\n${a.dia ?? "lunes"}:\n  Comida: primero Crema de calabaza; segundo Merluza en salsa verde\n  ${a.comida ?? "Cena"}: ${a.receta ?? "Merluza en salsa verde"}`,
   buscar_recetas: "40 receta(s) en Sólidos de bebé. Las primeras 6:\n1. Albóndigas de pavo y manzana al horno (30 min)\n2. Albóndigas de salmón y patata (35 min)\n3. Bastones de boniato al horno (30 min)\n4. Tortitas de avena y plátano (15 min)\n5. Croquetas de brócoli (40 min)\n6. Palitos de calabacín rebozados (25 min)\nHay 34 más: se pueden pedir o verlas todas en la app.",
   preparar_receta: "Receta preparada, SIN guardar todavía. Enséñasela y pregunta si la guardo:\nNombre: Tortilla de patatas de la abuela\nRaciones: 4; tiempo: 35 min; dificultad: normal\nCuándo: cena\nAlérgenos: huevos\nIngredientes: huevos 6 ud; patatas 600 g; cebolla 1 ud; aceite de oliva 150 ml; sal\nPasos: 8\nFoto: sin foto; visibilidad: solo para la casa",
@@ -168,6 +173,24 @@ const contiene = (args, esperado) => Object.entries(esperado).every(([k, v]) => 
   if ((k === "dia" || k === "dias") && normal(v) === DIA_DE_HOY && (dado.includes("hoy") || dado.includes(HOY_MADRID))) return true;
   return dado.includes(normal(v));
 });
+
+// La ficha de hoy con líneas de menú de un viernes (`"alDia": ["- {viernes}: …"]`).
+// Entre semana es el viernes de esta semana; si ya pasó (sábado, domingo), el de
+// la siguiente, y la cabecera cuenta esa semana también. Si el viernes es hoy o
+// mañana, quita «Hoy:»/«Mañana:» de la ficha para no contradecirse.
+function fichaConViernes(lineas) {
+  const hoy = HOY_MADRID;
+  let viernes = sumarDias(lunesDe(hoy), 4);
+  let delDia = FICHA.delDia;
+  if (viernes < hoy) {
+    viernes = sumarDias(viernes, 7);
+    delDia = delDia.replace("(no hay semana siguiente)", `y ${rangoDeLaSemana(sumarDias(hoy, 7))}`);
+  }
+  const quitar = viernes === hoy ? "- Hoy:" : viernes === sumarDias(hoy, 1) ? "- Mañana:" : null;
+  const etiqueta = `Viernes ${corta(viernes)} (${viernes})`;
+  const resto = delDia.split("\n").filter((l) => !quitar || !l.startsWith(quitar));
+  return { ...FICHA, delDia: [...resto, ...lineas.map((l) => l.replace("{viernes}", etiqueta))].join("\n") };
+}
 
 const filtro = normal(ARGV.find((a) => !a.startsWith("--")) ?? "");
 const elegidos = casosDelNivel(casos, NIVEL).filter((c) => !filtro || normal(c.nombre).includes(filtro) || c.id.includes(filtro));
@@ -256,7 +279,9 @@ async function intentar(caso) {
     // Lola recibe la ficha de la casa en cada mensaje (api/_bot/ficha.js): sin
     // ella, las pruebas medían a una Lola que no sabe nada de la familia.
     // `"ficha": null` en un caso la quita; `"ficha": {…}` pone otra.
-    const ficha = conQuienEscribe(caso.ficha === undefined ? FICHA : caso.ficha, caso.papel ?? "owner", caso.idioma ?? null);
+    // `"alDia"`: líneas que se añaden al menú de la ficha de hoy (fichaConViernes).
+    const base = caso.alDia ? fichaConViernes(caso.alDia) : FICHA;
+    const ficha = conQuienEscribe(caso.ficha === undefined ? base : caso.ficha, caso.papel ?? "owner", caso.idioma ?? null);
     const pista = caso.pista ? textoPista(caso.pista.decision, caso.pista.adelanto) : null;
     // `pendientes`: las tareas abiertas que el código adjuntaría (api/_bot/pendientes.js).
     // `tareas`: las de la tabla bot_tareas, como las monta el turno real.

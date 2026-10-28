@@ -21,6 +21,7 @@ import { generarMenu } from "./generar.js";
 import { conRecordatorio } from "./silencio.js";
 import { respuestaCompra, respuestaMenu, rangoDeFechas } from "./rapido.js";
 import { fechasDe } from "./cuando.js";
+import { pideTipo } from "./esquemas.js";
 import { filtrosTrasGenerar, filtrosTrasCambiar } from "./pintar.js";
 import { rastro } from "./embudo.js";
 import { verReceta, calorias, queFalta, verDespensaRapido, huecoSinComida, preguntaComida } from "./plato.js";
@@ -31,7 +32,8 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").
 // Icono y artículo de cada comida, del catálogo (src/lib/comidas.js).
 import { articuloDe } from "../../src/lib/comidas.js";
 import { isoDeCasa } from "../../src/lib/dias.js";
-const MAX_BOTON = 38;
+// Dos botones por fila: más largo, Telegram lo corta a media palabra (#934).
+const MAX_BOTON = 32;
 
 /** «la cena de hoy», «la comida del jueves» */
 function huecoEnTexto({ franja, dia, fecha }) {
@@ -42,7 +44,32 @@ function huecoEnTexto({ franja, dia, fecha }) {
 
 const mayusculaInicial = (s) => (s ? s[0].toUpperCase() + s.slice(1) : s);
 
-const boton = (nombre) => (nombre.length > MAX_BOTON ? `${nombre.slice(0, MAX_BOTON - 1).trim()}…` : nombre);
+// Palabras que no pueden cerrar un botón («Ensalada templada de…»).
+const COLGANTES = new Set(["de", "del", "con", "y", "e", "a", "al", "en", "la", "el", "los", "las", "sin", "o", "u"]);
+
+/**
+ * El nombre corto del botón de una receta: por palabras enteras, hasta
+ * MAX_BOTON letras, sin acabar en «de», «con», «y» ni coma. Sigue siendo el
+ * principio del nombre, que es lo que reconoce eleccionDe. Pura.
+ */
+export function boton(nombre) {
+  const n = String(nombre ?? "").trim();
+  if (n.length <= MAX_BOTON) return n;
+  const palabras = [];
+  for (const p of n.split(/\s+/)) {
+    if ([...palabras, p].join(" ").length > MAX_BOTON) break;
+    palabras.push(p);
+  }
+  while (palabras.length > 1 && COLGANTES.has(normal(palabras.at(-1).replace(/[,.;:]+$/, "")))) palabras.pop();
+  const corto = palabras.join(" ").replace(/[,.;:]+$/, "");
+  return corto || n.slice(0, MAX_BOTON);
+}
+
+/** Los botones de unas opciones: cortos, y enteros si dos se quedarían iguales. Pura. */
+export function botonesDe(nombres) {
+  const cortos = nombres.map(boton);
+  return cortos.map((c, i) => (cortos.indexOf(c) !== cortos.lastIndexOf(c) ? nombres[i] : c));
+}
 
 function lineaOpcion(r, estilo) {
   const extra = [
@@ -77,8 +104,9 @@ export async function recomendar(householdId, x) {
   const out = {};
   const fotos = [];
   await proponerPlatos(householdId, {
-    dia: x.dia ?? null, franja: x.comida ?? null, para: x.para ?? null, cual: x.cual ?? "principal",
+    dia: x.dia ?? null, semana: x.semana, franja: x.comida ?? null, para: x.para ?? null, cual: x.cual ?? "principal",
     n: 3, estilo: x.estilo ?? null, rasgos: x.rasgos ?? null, ejes: x.ejes ?? null, perfil: x.perfil ?? null,
+    tipo: pideTipo(x) ? { base: x.base ?? null, categoria: x.categoria ?? null } : null,
   }, fotos, out);
   const bloques = (out.bloques ?? []).filter((b) => b.opciones?.length);
   if (!bloques.length) return null; // sin opciones: que lo explique Lola
@@ -90,7 +118,7 @@ export async function recomendar(householdId, x) {
   const opciones = bloques.flatMap((b) => b.opciones);
   const aviso = (out.aviso || bloques.some((b) => b.aviso)) ? "\n\n<i>No había ninguna que cumpliera todo lo que pides: estas son las que más se acercan.</i>" : "";
   const pregunta = out.conMenu ? "¿Cuál te pongo?" : "¿Te paso la receta de alguna?";
-  const botones = [...opciones.slice(0, 3).map((r) => `[[${boton(r.name)}]]`), ...(out.conMenu ? ["[[Elige tú]]"] : [])].join("\n");
+  const botones = [...botonesDe(opciones.slice(0, 3).map((r) => r.name)).map((b) => `[[${b}]]`), ...(out.conMenu ? ["[[Elige tú]]"] : [])].join("\n");
   return {
     texto: `${cabecera}\n\n${cuerpo}${aviso}\n\n${pregunta}\n${botones}`,
     fotos,
@@ -160,6 +188,7 @@ export async function tachar(householdId, x, autor = null) {
 export async function generar(householdId, x) {
   const out = {};
   await generarMenu(householdId, x.semana ?? "esta", x.fijos ?? [], out);
+  // Ya había menú en esa semana (out.aviso): no se ha tocado; lo pregunta Lola.
   if (!out.ok) return null;
   // Las líneas de dondeQuedaron (generar.js) están escritas para Lola: la
   // instrucción del final se cambia por lo que se le diría a la persona.
@@ -240,6 +269,17 @@ export async function viaRapida(decision, householdId, { autor = null } = {}) {
     case "deshacer": return deshacerRapido(householdId);
     default: return null;
   }
+}
+
+/**
+ * ¿La vía rápida va a ofrecer las mismas opciones que Lola acaba de dar? Si
+ * piden otra cosa y sale lo mismo, no ha entendido: que conteste Lola (#930,
+ * «pero si te he dicho pasta» trajo las mismas tres). Mismas recetas en
+ * cualquier orden. Pura.
+ */
+export function repiteLaPropuesta(nueva, anterior) {
+  const ids = (p) => (p?.opciones ?? []).map((o) => o.id).filter(Boolean).sort().join("|");
+  return Boolean(ids(nueva)) && ids(nueva) === ids(anterior);
 }
 
 // ── Paso 0: el estado de la conversación ────────────────────────────────────

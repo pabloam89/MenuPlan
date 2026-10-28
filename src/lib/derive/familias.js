@@ -41,9 +41,10 @@
  */
 
 import { composicionDe } from "./composicion.js";
+import { FAMILIAS } from "../notepadFields.js";
 
-/** Las seis claves de `freqs`. No hay más y no se inventan aquí. */
-export const FAMILIAS = ["carne", "pescado", "legumbres", "huevos", "pasta_arroz", "verdura"];
+/** Las seis claves de `freqs`: viven en notepadFields.js, con sus etiquetas. */
+export { FAMILIAS };
 
 /**
  * Nodo del vector → familia.

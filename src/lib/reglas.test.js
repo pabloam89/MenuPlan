@@ -762,7 +762,13 @@ describe("el recibo que lee el usuario", () => {
 
   it("concuerda: varios invitados «comen», toda la casa fuera un solo día", () => {
     const dos = reglaDeInvitado({ dia: "Vie", comida: "Cena", n: 2, semanaISO: "2026-10-05", hoy: HOY });
-    expect(describirRegla(dos, CASA())).toBe("2 invitados comen en casa los Vie en cena solo esa semana");
+    // #911: «solo esa semana» no decía cuál, y Lola situó a unas invitadas de hoy
+    // en el sábado de la semana pasada. Con un solo día sale su fecha.
+    expect(describirRegla(dos, CASA())).toBe("2 invitados comen en casa el Vie 9 oct en cena");
+    const finde = nuevaRegla({ sujeto: { tipo: "invitado", n: 2 }, ambito: { dias: ["Sáb", "Dom"], semanas: ["2026-10-19"] }, efecto: { tipo: "presente", valor: "casa" }, hoy: HOY });
+    expect(describirRegla(finde, CASA())).toBe("2 invitados comen en casa los Sáb, Dom solo la semana del 19 oct");
+    const sab = reglaDeInvitado({ dia: "Sáb", comida: "Cena", n: 2, semanaISO: "2026-10-24", hoy: HOY });
+    expect(describirRegla(sab, CASA())).toBe("2 invitados comen en casa el Sáb 24 oct en cena");
     const uno = reglaDeInvitado({ dia: "Vie", comida: "Cena", n: 1, hoy: HOY });
     expect(describirRegla(uno, CASA())).toMatch(/^Un invitado come en casa/);
     const fuera = nuevaRegla({

@@ -112,6 +112,18 @@ describe("la ficha de la casa", () => {
     expect(f.estable + f.delDia).not.toMatch(/pescado/);
   });
 
+  it("invitados de una semana: con su fecha mientras dura la semana, y fuera de las reglas cuando pasó (#911)", () => {
+    const sabado = nuevaRegla({ sujeto: { tipo: "invitado", n: 2 }, ambito: { dias: ["Sáb"], comidas: ["Cena"], semanas: ["2026-10-19"] }, efecto: { tipo: "presente", valor: "casa" }, hoy: "2026-10-20" });
+    const dentro = montarFicha(casaDe({ members: MIEMBROS, reglas: [sabado] }), {}, "2026-10-24");
+    expect(dentro.estable).toMatch(/2 invitados comen en casa el Sáb 24 oct en cena/);
+    expect(dentro.estable).not.toMatch(/esa semana/);
+    // Pasada su semana ya no es una regla viva: Lola no la cuenta como de siempre.
+    const despues = montarFicha(casaDe({ members: MIEMBROS, reglas: [sabado] }), {}, "2026-10-26");
+    expect(despues.estable).not.toMatch(/invitados/);
+    // El último día de su semana todavía vale.
+    expect(montarFicha(casaDe({ members: MIEMBROS, reglas: [sabado] }), {}, "2026-10-25").estable).toMatch(/invitados/);
+  });
+
   it("la tanda pedida, en COCINA: qué, cuántas, el día y las manos; sin tanda, nada", () => {
     const data = { members: MIEMBROS, tanda: { sofrito: 3, arroz: 2, pasta: 0, salsa_tomate: 1 }, tandaPlatos: { "croquetas-crudas": 2 }, diaTanda: "Dom", tandaMinutos: 90 };
     const f = montarFicha(casaDe(data), {}, "2026-10-01");

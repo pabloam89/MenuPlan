@@ -20,7 +20,8 @@
 
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, IDS_PLATOS, COMIDAS as CATALOGO, comidasEnTexto } from "../../src/lib/comidas.js";
 import { CUANDOS } from "./cuando.js";
-import { ESQUEMA_RASGOS, ESQUEMA_EJES, ESQUEMA_PERFIL } from "./esquemas.js";
+import { ESQUEMA_RASGOS, ESQUEMA_EJES, ESQUEMA_PERFIL, ESQUEMA_BASE, ESQUEMA_CATEGORIA, OTRA } from "./esquemas.js";
+import { resolver, GRUPO_VALORES } from "../../src/lib/diccionario.js";
 import Anthropic from "@anthropic-ai/sdk";
 
 export const MODELO_ROUTER = process.env.BOT_ROUTER_MODELO || "claude-haiku-4-5-20251001";
@@ -60,6 +61,9 @@ export const ESQUEMA = {
     rasgos: ESQUEMA_RASGOS,
     ejes: ESQUEMA_EJES,
     perfil: ESQUEMA_PERFIL,
+    base: { ...ESQUEMA_BASE, description: `Solo en recomendar. ${ESQUEMA_BASE.description}` },
+    categoria: { ...ESQUEMA_CATEGORIA, description: `Solo en recomendar. ${ESQUEMA_CATEGORIA.description}` },
+    sobra: { type: "boolean", description: "true si el mensaje pide algo que NO cabe en ningún otro campo: un ingrediente concreto, «sin cebolla», «como el de mi madre», «que no sea lo de ayer», una fecha concreta… Ante la duda, true." },
     receta: { type: "string", description: "cambiar: el plato que quieren poner, si lo nombran (ahora o en su mensaje anterior)." },
     plato: { type: "string", description: "receta, calorias o falta: el plato del que preguntan por su NOMBRE, si lo nombran («la tortilla», «las lentejas»). Si lo dicen por su hueco («la cena de hoy»), va en dia y comida." },
     cualquiera: { type: "boolean", description: "cambiar sin receta: true solo si piden otra cosa cualquiera («cámbiala», «otra cosa», «la que sea»)." },
@@ -78,7 +82,7 @@ export const ESQUEMA = {
 export const REGLAS = `Eres el enrutador de Lola, la cocinera de casa de una app de menús familiares (HoMenu). No contestas al usuario: solo clasificas su mensaje y sacas los datos. Elige UN modo:
 
 - consulta: quiere VER algo ya guardado. que=compra («¿qué falta por comprar?», «la lista»), o que=menu con cuando: hoy («¿qué comemos hoy?», «¿qué hay de cena?»), manana, pasado_manana, dia + el día («¿qué hay el jueves?»), finde («¿qué cenamos este finde?»), finde_que_viene, esta_semana («pásame el menú»), semana_que_viene («el menú de la semana que viene»), rango + dia + hasta («de lunes a miércoles»). Si dicen comidas, en comidas («solo cenas», «¿qué desayunamos?», «las meriendas»); si dicen platos, en platos («los primeros»); si es para alguien, en para («los niños» = ninos, «el bebé» = bebe, o el nombre).
-- recomendar: pide ideas u opciones para UN hueco, sin cambiar nada todavía («¿qué me recomiendas para cenar?», «ideas para la comida del jueves», «algo ligero para esta noche», «¿qué le hago de cenar al bebé?», «¿qué le preparo a Leo?»). «Qué le hago / qué le preparo» es pedir ideas; «qué hay / qué toca / qué comemos» es consulta. Saca día, comida, para quién y rasgos solo si los dice ESTE mensaje o se deducen sin duda de él («con mi mujer», «para nosotros» = mayores; los niños = ninos; el bebé solo si lo nombran; una persona por su nombre, tal cual). «Para quién» no se arrastra de mensajes anteriores: si ahora no lo dice, va vacío. «Ligero» y «rápido» van en estilo. «Reconfortante», «de cuchara», «que no pique», «barato», «fresquito», «contundente» van en rasgos. «Más carbos», «más hidratos», «más proteína», «menos sal», «más hierro», «algo que llene» van en ejes (cada uno con cual y dirección; varios si piden varios). «Más completo», «equilibrado», «que tenga de todo», «para antes/después de entrenar», «alto en proteína», «bajo en sal» van en perfil. Ejes y perfil, también en cambiar.
+- recomendar: pide ideas u opciones para UN hueco, sin cambiar nada todavía («¿qué me recomiendas para cenar?», «ideas para la comida del jueves», «algo ligero para esta noche», «¿qué le hago de cenar al bebé?», «¿qué le preparo a Leo?»). «Qué le hago / qué le preparo» es pedir ideas; «qué hay / qué toca / qué comemos» es consulta. Saca día, comida, para quién y rasgos solo si los dice ESTE mensaje o se deducen sin duda de él («con mi mujer», «para nosotros» = mayores; los niños = ninos; el bebé solo si lo nombran; una persona por su nombre, tal cual). «Para quién» no se arrastra de mensajes anteriores: si ahora no lo dice, va vacío. «Ligero» y «rápido» van en estilo. «Reconfortante», «de cuchara», «que no pique», «barato», «fresquito», «contundente» van en rasgos. «Más carbos», «más hidratos», «más proteína», «menos sal», «más hierro», «algo que llene» van en ejes (cada uno con cual y dirección; varios si piden varios). «Más completo», «equilibrado», «que tenga de todo», «para antes/después de entrenar», «alto en proteína», «bajo en sal» van en perfil. Ejes y perfil, también en cambiar. «Prefiero pasta», «algo con arroz», «unas patatas» van en base; «algo de pescado», «una carne», «una sopa» van en categoria. Lo que pide del plato y no cabe en ningún campo (un ingrediente, «sin cebolla», «como el de ayer»): sobra = true, en cualquier modo.
 - cambiar: quiere cambiar YA un plato concreto del menú y dice qué día («cambia la cena del jueves», «pon lentejas el martes a mediodía», «el viernes cenamos pizza, cámbialo», «¿podemos hacer pizza casera el viernes?»). La comida (Comida o Cena) si la dice; si solo dice el día, déjala vacía: se pregunta después. receta = el plato nuevo si lo nombra, ahora o en su mensaje anterior (dijo «pizza congelada» y ahora contesta «el viernes de cena» → receta = pizza congelada), o un tipo de plato («la carne», «algo de pescado»). Si solo lo describen por sus nutrientes («algo con más carbos», «algo más completo»), receta va vacía y eso va en ejes o perfil. cualquiera = true solo si pide otra cosa sin importarle cuál («cámbiala por lo que sea», «otra cosa cualquiera»). Si no dice ni el día, es lola. Si es algo que se repite («los viernes», «todos los lunes», «siempre»), no es un cambio de una vez: es lola. Mover un plato de un día a otro («pon el arroz el domingo en vez del sábado») es lola. Si pregunta POR QUÉ se puso algo («¿xk tortilla esta noche?»), es lola.
 - compra_anadir: apuntar comida o bebida en la lista («apunta leche y pan», «añade aceite»). Si algo de lo que apuntan no es comida ni bebida (pilas, velas, detergente, una cita), es lola. compra_marcar: tachar lo comprado («ya tengo los huevos», «compré la leche»).
 - generar: pide un menú nuevo para esta semana o la que viene. Si nombra platos que quiere esa semana, en fijos.
@@ -211,9 +215,101 @@ export function permitidoEn(modo, { esGrupo = false, variosAutores = false, pape
   return !(p.condicionGrupo === "una_persona" && variosAutores);
 }
 
-export function vaPorLaRapida(d, { esGrupo = false, variosAutores = false, papel = "owner" } = {}) {
+// Generar por la vía rápida solo entiende «esta» o «la que viene»: con una
+// fecha, «pregúntame» o una corrección, Lola (#905, #907). En código y no solo
+// en las reglas del enrutador: la vía rápida rehízo la semana equivocada.
+const MESES = "enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre|ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic";
+const FECHA = new RegExp(`\\d{1,2}\\s*(de\\s+)?(${MESES})\\b|\\b(el|del|d[ií]a)\\s+\\d{1,2}\\b|a partir d|dentro de|\\b(lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado|domingo)\\b`, "i");
+// Fechas sin dígito (#915): un mes («para noviembre»), semanas o días en plural
+// («dentro de dos semanas», «de aquí a quince días»), «la semana tras la
+// próxima», «el mes que viene», una semana por su número («la semana 45») o una
+// fiesta. «La semana que viene» y «esta semana» a secas NO entran, ni «5 cenas»
+// ni «somos 5»: solo lo que apunta a otra semana distinta de esas dos.
+const MES_ENTERO = "enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre";
+const FECHA_SIN_DIGITO = new RegExp([
+  `\\b(${MES_ENTERO})\\b`,
+  "\\b(semanas|d[ií]as|quincena|mes|meses)\\b",
+  "\\bde aqu[ií] a\\b",
+  "\\b(tras|despu[eé]s de|luego de|pasada|siguiente a|posterior a)\\s+(la|las|el|esa|esta)\\b",
+  "\\bsemana\\s+(n[uú]m\\w*\\s+|n[º°.]\\s*)?\\d",
+  "\\b\\d{1,2}\\s*[/.-]\\s*\\d{1,2}\\b",
+  "\\b(navidad(es)?|semana santa|pascua|vacaciones|puente)\\b",
+].join("|"), "i");
+const PIDE_PREGUNTAS = /pregunt/i;
+const SIN_PREGUNTAS = /\b(no|sin|ni)\s+(me\s+)?(hagas\s+|hace\s+falta\s+|hacer\s+)?(m[aá]s\s+)?pregunt/i;
+// Justo después de generar, «la siguiente» u «otra» puede ser la de después
+// de esa: lo decide Lola (#905: «genérame la siguiente» rehízo la del 26).
+const RECIEN_GENERADO = /Men[uú] listo/i;
+export const generarConMatices = ({ texto = "", corrige = false, ultima = null }) =>
+  corrige || FECHA.test(texto) || FECHA_SIN_DIGITO.test(texto) || (PIDE_PREGUNTAS.test(texto) && !SIN_PREGUNTAS.test(texto)) || RECIEN_GENERADO.test(String(ultima ?? ""));
+
+/**
+ * Los datos que LEE la vía rápida de cada modo (api/_bot/turno.js viaRapida y
+ * api/_bot/plato.js). Si el enrutador saca algo que el modo no lee, la vía
+ * rápida contestaría como si no lo hubieran pedido: «prefiero pasta» salió
+ * judías, y «pero si te he dicho pasta» (receta en un recomendar) las mismas
+ * tres otra vez (#930). Es la clase de #905 («a partir del 2 de noviembre» en
+ * generar): un dato que se pierde. Ante uno así, Lola. El test cuadra esta
+ * tabla con el esquema.
+ */
+export const LEE = {
+  consulta: ["que", "cuando", "dia", "hasta", "semana", "comidas", "platos", "para"],
+  recomendar: ["dia", "semana", "comida", "para", "cual", "estilo", "rasgos", "ejes", "perfil", "base", "categoria"],
+  cambiar: ["dia", "comida", "para", "cual", "receta", "cualquiera", "rasgos", "ejes", "perfil"],
+  receta: ["plato", "dia", "semana", "comida", "cual", "para"],
+  calorias: ["plato", "dia", "semana", "comida", "cual", "para"],
+  falta: ["plato", "dia", "semana", "comida", "cual", "para"],
+  despensa: [],
+  ausencia: ["dia", "comida", "para"],
+  compra_anadir: ["productos"],
+  compra_marcar: ["productos"],
+  generar: ["semana", "fijos"],
+  deshacer: [],
+};
+// Lo que acompaña a cualquier modo y no es un dato de la petición.
+const SIEMPRE = new Set(["varias", "sobra"]);
+const vacio = (v) => v == null || v === false || v === "" || (Array.isArray(v) && !v.length) || (typeof v === "object" && !Array.isArray(v) && !Object.keys(v).length);
+
+/** Los datos que el enrutador ha sacado y la vía rápida de ese modo no lee. Pura. */
+export function datosSinLeer(modo, datos = {}) {
+  const lee = new Set(LEE[modo] ?? []);
+  return Object.keys(datos).filter((k) => !SIEMPRE.has(k) && !lee.has(k) && !vacio(datos[k]));
+}
+
+// #930, la clase y no el caso: una proteína, una base o un grupo que el
+// diccionario reconoce en el mensaje y el formulario no recoge. La vía rápida
+// no lo honraría («pasta» se perdía, «merluza» saldría como cualquier pescado):
+// se lo queda Lola. La carpeta solo cubre los grupos que son una carpeta, y
+// ninguna cubre una proteína concreta.
+const ELIGE_PLATO = new Set(["recomendar", "cambiar"]);
+const CARPETA_DEL_GRUPO = { carne: "carnes", pescado: "pescados", huevo: "huevos", legumbre: "legumbres", pasta: "pasta_arroces", arroz: "pasta_arroces", verdura: "ensaladas_verduras" };
+
+/** Lo que se pide en el texto y los datos no recogen: [{ rasgo, valor, forma }]. */
+export function pedidoSinRecoger(texto, datos = {}) {
+  if (!texto || datos.receta) return [];
+  return resolver(texto).filter(({ rasgo, valor }) => {
+    if (rasgo === "basePrincipal") return datos.base !== valor;
+    // Una proteína concreta («merluza», «pollo»): el formulario no tiene dónde ponerla.
+    if (rasgo === "proteinaPrincipal" || rasgo === "alimento") return true;
+    if (rasgo !== "grupo") return false;
+    if (datos.base && (GRUPO_VALORES[valor]?.basePrincipal ?? []).includes(datos.base)) return false;
+    return !(datos.categoria && CARPETA_DEL_GRUPO[valor] === datos.categoria);
+  });
+}
+
+// Una corrección en lo que ESCRIBE u ofrece opciones: Lola lee lo que se dijo
+// antes. Repetir la plantilla es lo que pasó con «pero si te he dicho pasta».
+const LEE_LA_CORRECCION = new Set(["recomendar", "cambiar", "generar", "ausencia"]);
+
+export function vaPorLaRapida(d, { esGrupo = false, variosAutores = false, papel = "owner", texto = "", corrige = false, ultima = null } = {}) {
   const p = d ? POLITICA[d.modo] : null;
   const x = d?.datos ?? {};
+  // Lo que no cabe en el esquema («sin cebolla», «como el de ayer»), un tipo
+  // de plato fuera de la lista («otra») o un dato que este modo no lee: Lola.
+  if (x.sobra || x.base === OTRA || x.categoria === OTRA) return false;
+  if (d && datosSinLeer(d.modo, x).length) return false;
+  if (corrige && LEE_LA_CORRECCION.has(d?.modo)) return false;
+  if (ELIGE_PLATO.has(d?.modo) && pedidoSinRecoger(texto, x).length) return false;
   // Un cambio sin comida no escribe nada todavía: primero pregunta «¿comida o
   // cena?». Hasta la respuesta es una lectura, y se le pide lo que a una.
   const preguntaPrimero = (d?.modo === "cambiar" || d?.modo === "ausencia") && !x.comida;
@@ -240,6 +336,7 @@ export function vaPorLaRapida(d, { esGrupo = false, variosAutores = false, papel
   if (d.modo === "compra_anadir" || d.modo === "compra_marcar") return (x.productos ?? []).length > 0;
   // Con platos pedidos, Lola: cuenta dónde han caído y qué no ha cabido. No
   // depende de la confianza, que con estas frases baila entre 0,85 y 0,95.
+  if (d.modo === "generar" && generarConMatices({ texto: String(texto), corrige: false, ultima })) return false;
   if (d.modo === "generar") return Boolean(x.semana) && !(Array.isArray(x.fijos) ? x.fijos.length : String(x.fijos ?? "").trim());
   return true; // recomendar (todo opcional) y deshacer
 }

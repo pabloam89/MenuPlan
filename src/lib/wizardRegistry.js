@@ -38,6 +38,8 @@
  */
 
 import { estadoDe, valorDe } from "./notepad.js";
+import { KITCHEN_TOOL_IDS } from "./electrodomesticos.js";
+import { enOrden } from "./enOrden.js";
 import { COOK_LEVELS, COOK_TIME_DEFAULTS, cookLevelForMinutes, cookLevelMinutes } from "./cookTime.js";
 import { rutaDeReparto } from "./reparto.js";
 import { KID_DINNER_DEFAULTS, kidMembers, normalizeKidDinnerConfig } from "./kidsMenu.js";
@@ -579,7 +581,7 @@ export const PREGUNTAS = [
     // El vocabulario de APPLIANCES de Onboarding.jsx, que es lo que
     // filterRecipes cruza contra `requiredAppliance`. Inventar uno nuevo aquí
     // lo dejaría sin consumidor.
-    opciones: ["Airfryer", "Horno", "Microondas", "Thermomix", "Olla rápida", "Vaporera"],
+    opciones: enOrden(KITCHEN_TOOL_IDS, ["Airfryer", "Horno", "Microondas", "Thermomix"]),
     requiere: [],
     activa: null,
     refina: null,

@@ -679,6 +679,53 @@
       "texto": "hoy cenamos con amigos y una de las personas está embarazada",
       "modo": "lola",
       "rapida": false
+    },
+    {
+      "texto": "Hagamos el menú de la semana que viene hazme todas las preguntas que necesites para hacerlo",
+      "modo": "lola|generar",
+      "rapida": false
+    },
+    {
+      "texto": "No, no, te estoy diciendo que me generes la semana a partir del 2 de noviembre",
+      "ultima": "🎉 <b>¡Menú listo!</b> Del <b>26 de octubre al 1 de noviembre</b>.",
+      "modo": "lola|generar",
+      "rapida": false
+    },
+    {
+      "texto": "Genérame la siguiente semana",
+      "ultima": "🎉 <b>¡Menú listo!</b> Del <b>26 de octubre al 1 de noviembre</b>.",
+      "modo": "lola|generar",
+      "rapida": false
+    },
+    {
+      "texto": "hazme el menú para noviembre",
+      "modo": "lola|generar",
+      "rapida": false
+    },
+    {
+      "texto": "genérame el menú de dentro de dos semanas",
+      "modo": "lola|generar",
+      "rapida": false
+    },
+    {
+      "texto": "genérame la semana tras la próxima",
+      "modo": "lola|generar",
+      "rapida": false
+    },
+    {
+      "texto": "hazme el menú de la semana de noviembre",
+      "modo": "lola|generar",
+      "rapida": false
+    },
+    {
+      "texto": "hazme el menú de aquí a quince días",
+      "modo": "lola|generar",
+      "rapida": false
+    },
+    {
+      "texto": "genérame la semana 45",
+      "modo": "lola|generar",
+      "rapida": false
     }
   ]
 }

@@ -14,6 +14,8 @@ import {
   escalabilidadDe, robustezDe, perecibilidadDe, conLasManosDe,
 } from "../lib/derive/ejesDePlato.js";
 import { IDS_PERFILES, puntuar } from "../lib/derive/perfiles.js";
+import { aporteDe } from "../lib/aporte.js";
+import { nivelCalorias } from "../lib/caloriasNivel.js";
 
 const RAIZ = fileURLToPath(new URL("./recipes", import.meta.url));
 const recipeCoste = JSON.parse(readFileSync(fileURLToPath(new URL("./derived/recipeCoste.json", import.meta.url)), "utf8"));
@@ -27,6 +29,8 @@ const recetas = readdirSync(RAIZ)
  * Solo los que tienen `campo`. Los silenciosos sin campo valen 0 por
  * definición y no hay nada que contar.
  */
+const tiene = (v) => v != null && !(Array.isArray(v) && v.length === 0);
+
 const MEDIDORES = {
   // El eje 1 no vive en ningún campo: se calcula. Así que su cobertura se mide
   // CORRIENDO el cálculo, que es lo único que la sostiene. Antes declaraba 1.0
@@ -89,6 +93,38 @@ const MEDIDORES = {
     .map((k) => alimentos.filter((a) => a.nutricion?.[k] != null).length / alimentos.length)),
   // El 50 se mide corriendo `puntuar`: de cuántas recetas se puede afirmar al
   // menos un perfil sin que le falte ningún dato.
+  // 51-77 (#939): los campos cerrados de la receta. Se cuentan igual que
+  // el inventario del diccionario: con valor, y una lista con algo dentro.
+  categoria: () => recetas.filter((r) => tiene(r.category)).length / recetas.length,
+  proteinaPrincipal: () => recetas.filter((r) => tiene(r.mainProtein)).length / recetas.length,
+  proteinasExtra: () => recetas.filter((r) => tiene(r.extraProteins)).length / recetas.length,
+  basePrincipal: () => recetas.filter((r) => tiene(r.mainBase)).length / recetas.length,
+  modoBase: () => recetas.filter((r) => tiene(r.baseMode)).length / recetas.length,
+  minutosFijos: () => recetas.filter((r) => tiene(r.minutosFijos)).length / recetas.length,
+  minutosPorRacion: () => recetas.filter((r) => tiene(r.minutosPorRacion)).length / recetas.length,
+  capacidadMaxima: () => recetas.filter((r) => tiene(r.capacidadMax)).length / recetas.length,
+  ocasion: () => recetas.filter((r) => tiene(r.occasion)).length / recetas.length,
+  favoritoNinos: () => recetas.filter((r) => tiene(r.kidFavourite)).length / recetas.length,
+  picante: () => recetas.filter((r) => tiene(r.picante)).length / recetas.length,
+  saborDominante: () => recetas.filter((r) => tiene(r.sabor)).length / recetas.length,
+  llevaSalsa: () => recetas.filter((r) => tiene(r.llevaSalsa)).length / recetas.length,
+  etapaBebe: () => recetas.filter((r) => tiene(r.etapaBebe)).length / recetas.length,
+  guarnicionPosible: () => recetas.filter((r) => tiene(r.canBeGarnish)).length / recetas.length,
+  compatibilidadSalsa: () => recetas.filter((r) => tiene(r.sauceCompat)).length / recetas.length,
+  papelEnComida: () => recetas.filter((r) => tiene(r.mealRole)).length / recetas.length,
+  tipoPlato: () => recetas.filter((r) => tiene(r.type)).length / recetas.length,
+  tiempoTotal: () => recetas.filter((r) => tiene(r.time)).length / recetas.length,
+  dificultad: () => recetas.filter((r) => tiene(r.difficulty)).length / recetas.length,
+  temporada: () => recetas.filter((r) => tiene(r.season)).length / recetas.length,
+  racionesBase: () => recetas.filter((r) => tiene(r.baseServings)).length / recetas.length,
+  aptoNinos: () => recetas.filter((r) => tiene(r.kidFriendly)).length / recetas.length,
+  alergenos: () => recetas.filter((r) => tiene(r.allergens)).length / recetas.length,
+  esfuerzoPostre: () => recetas.filter((r) => tiene(r.effort)).length / recetas.length,
+  tipoPostre: () => recetas.filter((r) => tiene(r.dessertKind)).length / recetas.length,
+  // El aporte se DERIVA de los gramos; el campo es solo el override.
+  aporte: () => recetas.filter((r) => aporteDe(r).size > 0).length / recetas.length,
+  // El 78 se añade al cargar: se mide corriendo el mismo cálculo.
+  calorias: () => recetas.filter((r) => nivelCalorias(r) != null).length / recetas.length,
   perfilNutricional: () => recetas.filter((r) => IDS_PERFILES.some(
     (id) => puntuar(id, r, { leer: (p, c) => p?.[c] ?? null, completitud: completitudDe }).sinDato.length === 0,
   )).length / recetas.length,
@@ -247,6 +283,8 @@ describe("el registro de ejes", () => {
     textura: "textura", connotacion: "connotacion", coste: "costeNivel",
     densidadNutricional: "densidadDe", carga: "cargaDe",
     completitud: "completitudDe", perfilNutricional: "ordenarPorPerfil",
+    categoria: "category", proteinaPrincipal: "mainProtein", proteinasExtra: "extraProteins", basePrincipal: "mainBase", modoBase: "baseMode", minutosFijos: "minutosFijos", minutosPorRacion: "minutosPorRacion", capacidadMaxima: "capacidadMax", ocasion: "occasion", favoritoNinos: "kidFavourite", picante: "picante", saborDominante: "sabor", llevaSalsa: "llevaSalsa", etapaBebe: "etapaBebe", guarnicionPosible: "canBeGarnish", compatibilidadSalsa: "sauceCompat", papelEnComida: "mealRole", tipoPlato: "type", tiempoTotal: "time", dificultad: "difficulty", temporada: "season", racionesBase: "baseServings", aptoNinos: "kidFriendly", alergenos: "allergens", esfuerzoPostre: "effort", tipoPostre: "dessertKind",
+    aporte: "aporteDe", calorias: "caloriasNivel",
   };
 
   it("cada consumidor declarado nombra de verdad el campo del eje", () => {

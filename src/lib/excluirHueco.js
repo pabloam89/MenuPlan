@@ -22,13 +22,14 @@
 
 import { GRUPOS } from "./rasgosBusqueda.js";
 import { platoVetado } from "./vetos.js";
+import { TECNICAS } from "../data/recipeSchema.js";
 
 /** ¿Es un valor que se sabe aplicar? Para validar antes de guardar una regla. */
 export function itemValido(item) {
   const s = String(item ?? "").trim();
   if (!s) return false;
   if (s.startsWith("grupo:")) return Boolean(GRUPOS[s.slice(6)]);
-  if (s.startsWith("tecnica:")) return ["horno", "plancha", "sarten", "olla", "crudo"].includes(s.slice(8));
+  if (s.startsWith("tecnica:")) return TECNICAS.includes(s.slice(8));
   return !s.includes(":");
 }
 

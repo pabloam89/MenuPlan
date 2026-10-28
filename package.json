@@ -13,9 +13,13 @@
     "preview": "vite preview",
     "pretest": "node scripts/validate-catalog.mjs",
     "test": "vitest run",
+    "diccionario": "node scripts/diccionario.mjs",
+    "diccionario:inventario": "node scripts/diccionario-inventario.mjs",
+    "ficha:inventario": "node scripts/ficha-inventario.mjs",
     "check:tdz": "eslint src api scripts --config eslint.tdz.config.js",
     "check:catalog": "node scripts/validate-catalog.mjs",
     "build:derived": "vite-node scripts/build-derived.mjs",
+    "build:sinonimos": "node scripts/build-sinonimos.mjs",
     "check:derived": "vite-node scripts/build-derived.mjs --check",
     "audit:catalog": "vite-node scripts/audit-catalog.mjs",
     "audit:ingredients": "node scripts/build-ingredient-catalog.mjs",
@@ -73,9 +77,9 @@
     "pg": "^8.23.0",
     "remotion": "^4.0.520",
     "sharp": "^0.35.5",
-    "vite": "^8.0.1",
+    "vite": "^8.3.5",
     "vite-plugin-pwa": "^1.3.0",
-    "vitest": "^4.1.11",
+    "vitest": "^4.1.12",
     "yaml": "^2.9.1"
   }
 }

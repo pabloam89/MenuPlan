@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { DIFFICULTIES, MAIN_PROTEINS, SEASONS } from "../data/recipeSchema.js";
+import { enOrden } from "./enOrden.js";
 import { NUTRIENTES, CAMPOS_SECUNDARIOS } from "../data/nutrientes.js";
 import * as ids from "./ids.js";
 import { USOS_RECETA } from "./vocabularios.js";
@@ -546,7 +548,7 @@ function normalizeMainProtein(value, ingredientNames = []) {
   return value;
 }
 
-const SEASON_IDS = ["all", "verano", "invierno"];
+const SEASON_IDS = SEASONS;
 
 function normalizeSeason(value) {
   if (SEASON_IDS.includes(value)) return value;
@@ -583,7 +585,7 @@ function normalizeCategory(value) {
   return value;
 }
 
-const DIFFICULTY_IDS = ["facil", "normal", "elaborada"];
+const DIFFICULTY_IDS = DIFFICULTIES;
 function normalizeDifficulty(value) {
   if (DIFFICULTY_IDS.includes(value)) return value;
   const text = normalizeName(value);
@@ -683,10 +685,11 @@ export const UserRecipeDraftSchema = z.object({
     "ensaladas_verduras", "sopas_cremas", "platos_unicos", "cenas_rapidas",
     "guarniciones",
   ]),
-  mainProtein: z.enum([
+  // El orden lo lee el modelo (de las carnes al «none»); los valores, del catálogo.
+  mainProtein: z.enum(enOrden(MAIN_PROTEINS, [
     "pollo", "pavo", "pato", "cerdo", "ternera", "cordero", "caza",
-    "pescado_blanco", "pescado_azul", "marisco", "huevo", "legumbre", "none",
-  ]),
+    "pescado_blanco", "pescado_azul", "marisco", "huevo", "legumbre",
+  ])),
   mealRole: z.array(z.enum(["primero", "segundo", "plato_unico", "cena", "guarnicion", "merienda", "postre"])).min(1),
   // How the dish can be served — multi-select. `type` (below) is derived from
   // this and kept in sync for backward compatibility with the rest of the app.
@@ -702,7 +705,7 @@ export const UserRecipeDraftSchema = z.object({
   // Coerced: fast/cheap models occasionally quote numbers ("30" instead of 30)
   // — tolerate that instead of failing the whole draft over formatting.
   time: z.coerce.number().positive(),
-  difficulty: z.enum(["facil", "normal", "elaborada"]),
+  difficulty: z.enum(DIFFICULTIES),
   kcal: z.coerce.number().nonnegative(),
   protein_g: z.coerce.number().nonnegative(),
   carbs_g: z.coerce.number().nonnegative(),
@@ -728,7 +731,7 @@ export const UserRecipeDraftSchema = z.object({
   kidFriendly: z.boolean(),
   tupperFriendly: z.boolean(),
   allergens: z.array(z.enum(Object.keys(EU_ALLERGENS))),
-  season: z.enum(["all", "verano", "invierno"]),
+  season: z.enum(SEASONS),
   ingredients: z.array(IngredientSchema).min(1),
   steps: z.array(z.string().min(1)).min(1),
   // Paso a paso estructurado, mismo formato que el catálogo. Opcional: si el

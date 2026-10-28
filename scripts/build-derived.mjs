@@ -126,6 +126,7 @@ const ingredientesRaw = readFileSync(join(ROOT, "src", "data", "ingredients.json
 const FICHEROS_DEL_OPERADOR = [
   "src/lib/ingredients.js",
   "src/lib/derive/composicion.js",
+  "src/lib/derive/ejesTaxonomia.js",
   "src/lib/derive/masaServida.js",
   "src/lib/derive/estadoDeFicha.js",
   "src/lib/derive/factorRetencion.js",

@@ -21,7 +21,7 @@ const { casos } = JSON.parse(readFileSync(new URL("scripts/bot-evals.json", RAIZ
 describe("bot-evals.json: cada caso con id, tipo, dominio y origen de la lista", () => {
   it("ningún error de etiquetas", () => expect(erroresDeCasos(casos)).toEqual([]));
 
-  it("el núcleo N1 son 12 de seguridad y 12 del resto", () => {
+  it("el núcleo N1 son 12 de seguridad y 13 del resto (#915: ver-un-dia-entero, un fallo de producción, vuelve junto al caso de rehacer que entró en #914)", () => {
     const n1 = casosDelNivel(casos, "pr");
     expect(n1.filter(esDeSeguridad).length).toBe(NUCLEO.seguridad);
     expect(n1.filter((c) => !esDeSeguridad(c)).length).toBe(NUCLEO.resto);
@@ -278,8 +278,10 @@ describe("scripts que llaman a un modelo: tope y libro del mes (#297)", () => {
   const dir = fileURLToPath(new URL("scripts/", RAIZ));
   const codigo = (f) => sinComentarios(readFileSync(join(dir, f), "utf8"));
   const todos = readdirSync(dir).filter((f) => /\.mjs$/.test(f) && !/\.test\./.test(f));
-  // Nombran la clave en una lista (de qué fichas copiar), pero no llaman a ningún modelo.
-  const SOLO_NOMBRA_LA_CLAVE = ["boveda-sesiones.mjs"];
+  // Nombran la clave en una lista (de qué fichas copiar) o importan un módulo de
+  // Lola solo para leer sus constantes (el formulario del enrutador), pero no
+  // llaman a ningún modelo.
+  const SOLO_NOMBRA_LA_CLAVE = ["boveda-sesiones.mjs", "diccionario-inventario.mjs"];
   const conIA = todos.filter((f) => !SOLO_NOMBRA_LA_CLAVE.includes(f) && MODELO.test(codigo(f)));
 
   it("el detector no se deja engañar por un comentario ni se le escapa un import de Lola", () => {

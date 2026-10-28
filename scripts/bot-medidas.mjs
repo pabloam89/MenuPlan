@@ -17,7 +17,7 @@
 import pg from "pg";
 import { leerEnv } from "./lib/env.mjs";
 import { conexionDeConsulta } from "./lib/rolLectura.mjs";
-import { PRECIOS, precioDe, usd, pct } from "./lib/bot-semana.mjs";
+import { PRECIOS, precioDe, usd, pct, costeDeCancelada } from "./lib/bot-semana.mjs";
 
 const dias = Number(process.argv[2] ?? 7);
 const dbUrl = conexionDeConsulta(leerEnv).url;
@@ -45,6 +45,10 @@ console.log(linea("Algo en pantalla, Lola", deLola.map((m) => Math.min(m.primer_
 console.log(linea("Turno entero, Lola", deLola.map((m) => m.ms)));
 console.log(linea("Enrutador", turnos.map((m) => m.router_ms)));
 console.log(linea("Lola (modelo + herramientas)", deLola.map((m) => m.lola?.ms)));
+// Desde #910: lo que esperó en la cola de su chat, las herramientas de reloj y el import del motor en frío.
+console.log(linea("Espera en la cola del chat", turnos.map((m) => m.espera_cola_ms)));
+console.log(linea("Herramientas (reloj)", deLola.map((m) => m.lola?.herramientas_reloj_ms)));
+console.log(linea("Motor en frío (core.mjs)", turnos.map((m) => m.motor_frio)));
 
 const conLola = deLola.filter((m) => m.lola);
 if (conLola.length) {
@@ -62,8 +66,8 @@ if (conLola.length) {
   }
 }
 
-// Coste. Lo cancelado no trae uso (se corta antes de acabar): se estima con la
-// mediana de lo que entra en la primera llamada de Lola en los turnos que sí acabaron.
+// Coste. Lo cancelado trae el uso que llevaba pagado al cortarlo (lola_cancelada_uso, desde #910)
+// y, si no, se estima con la mediana de lo que entra en la primera llamada de Lola en los turnos que sí acabaron.
 const primeras = conLola.map((m) => m.lola.primera).filter(Boolean);
 const mediana = (k) => pct(primeras.map((p) => p[k] ?? 0), 50) ?? 0;
 const estimadaCancelada = { in: mediana("in"), cr: mediana("cr"), cw: mediana("cw"), out: 0 };
@@ -71,15 +75,16 @@ let router = 0;
 let lola = 0;
 let canceladas = 0;
 let nCanceladas = 0;
+let nEstimadas = 0;
 for (const m of turnos) {
-  router += usd(m.router_uso, PRECIOS.haiku);
+  router += usd(m.router_uso, PRECIOS.haiku, { ttl: "5m" });
   if (m.lola?.uso && !m.lola_cancelada) lola += usd(m.lola.uso, precioDe(m.lola.modelo));
-  if (m.lola_cancelada) { nCanceladas++; canceladas += m.lola?.uso ? usd(m.lola.uso, precioDe(m.lola.modelo)) : usd(estimadaCancelada, PRECIOS.sonnet); }
+  if (m.lola_cancelada) { const c = costeDeCancelada(m, estimadaCancelada); nCanceladas++; canceladas += c.usd; if (c.estimado) nEstimadas++; }
 }
 const total = router + lola + canceladas;
 const conMedida = turnos.filter((m) => "lola_cancelada" in m).length;
 console.log(`\nCoste (de los ${conMedida} turnos con medida; precios por revisar en el script)`);
 console.log(`  enrutador (Haiku)       $${router.toFixed(4)}`);
 console.log(`  Lola                    $${lola.toFixed(4)}`);
-console.log(`  Lola cancelada (estim.) $${canceladas.toFixed(4)}   (${nCanceladas} turnos)`);
+console.log(`  Lola cancelada          $${canceladas.toFixed(4)}   (${nCanceladas} turnos, ${nEstimadas} con uso estimado)`);
 console.log(`  total                   $${total.toFixed(4)}   → $${(total / Math.max(1, conMedida)).toFixed(4)} por turno, $${(total / dias).toFixed(3)} al día`);

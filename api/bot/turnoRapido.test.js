@@ -36,7 +36,7 @@ vi.mock("../_bot/router.js", () => ({
   vaPorLaRapida: () => t.rapida, permitidoEn: () => true,
 }));
 vi.mock("../_bot/turno.js", () => ({
-  viaRapida: vi.fn(async () => ({ texto: "Hoy: tortilla" })), eleccionDe: () => null, aplicarEleccion: vi.fn(), contextoDe: vi.fn(async () => ({})),
+  viaRapida: vi.fn(async () => ({ texto: "Hoy: tortilla" })), eleccionDe: () => null, repiteLaPropuesta: () => false, aplicarEleccion: vi.fn(), contextoDe: vi.fn(async () => ({})),
 }));
 vi.mock("../_bot/uso.js", () => ({ fueraDeLimite: vi.fn(async () => t.limite), contarUso: vi.fn(async () => 1) }));
 vi.mock("../_bot/papel.js", () => ({ papelDeQuien: vi.fn(async () => ({ papel: "titular", userId: "u" })), idiomaDe: vi.fn(async () => t.idioma) }));
@@ -267,5 +267,41 @@ describe("el aviso por tiempo: Lola tarda y no hay nada en pantalla", () => {
     responder.mockImplementationOnce(async () => { await espera(100); return { texto: "Aquí tienes la lista.", fotos: [] }; });
     await pedirVarias();
     expect(t.orden.some((x) => x.includes(AVISO_ESPERA))).toBe(false);
+  });
+});
+
+describe("Lola especulativa solo si no se predice la vía rápida (#909)", () => {
+  const pedirSemana = () => turno({ chatId: 1, householdId: "h", esGrupo: false, base: "https://x", texto: "Genérame la siguiente semana", from: { id: 7, first_name: "Ana" }, responderA: 9 });
+
+  it("predicha y confirmada por el enrutador: Lola ni se llama", async () => {
+    t.decision = { modo: "generar", confianza: 0.95 };
+    await pedirSemana();
+    expect(viaRapida).toHaveBeenCalledTimes(1);
+    expect(responder).not.toHaveBeenCalled();
+    expect(t.rutas[0]).toMatchObject({ rapida: true, lola_cancelada: false, lola_evitada: "generar" });
+  });
+
+  it("predicha pero el enrutador dice Lola: Lola arranca igual, tarde", async () => {
+    t.rapida = false;
+    responder.mockImplementationOnce(async () => ({ texto: "Menú listo", fotos: [] }));
+    await pedirSemana();
+    expect(viaRapida).not.toHaveBeenCalled();
+    expect(responder).toHaveBeenCalledTimes(1);
+    expect(t.rutas[0].lola_evitada).toBeUndefined();
+  });
+
+  it("predicha y rápida, pero la vía rápida no da plantilla: Lola se llama y no consta como evitada", async () => {
+    t.decision = { modo: "generar", confianza: 0.95 };
+    viaRapida.mockImplementationOnce(async () => null);
+    responder.mockImplementationOnce(async () => ({ texto: "Menú listo", fotos: [] }));
+    await pedirSemana();
+    expect(responder).toHaveBeenCalledTimes(1);
+    expect(t.rutas[0].lola_evitada).toBeUndefined();
+  });
+
+  it("sin señal, Lola arranca en paralelo y se cancela como siempre", async () => {
+    await pedir();
+    expect(responder).toHaveBeenCalledTimes(1);
+    expect(t.rutas[0]).toMatchObject({ lola_cancelada: true });
   });
 });

@@ -26,6 +26,8 @@ import {
 } from "./menu.js";
 import { ESQUEMA_RASGOS, ESQUEMA_EJES, ESQUEMA_PERFIL } from "./esquemas.js";
 import { generarMenu } from "./generar.js";
+import { esBotonRehacer, desdeDelBoton } from "./semanaPedida.js";
+import { isoDeCasa } from "../../src/lib/dias.js";
 import { avisoVispera } from "./vispera.js";
 import { registrar, EMBUDO, duenoDe } from "./embudo.js";
 import {
@@ -48,7 +50,8 @@ import { pintarMenuEntero, filtrosTrasGenerar, filtrosTrasCambiar, sinEtiquetas 
 import { fechasDe, CUANDOS } from "./cuando.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, IDS_PLATOS } from "../../src/lib/comidas.js";
 import { KITCHEN_TOOL_IDS } from "../../src/lib/electrodomesticos.js";
-import { NIVEL_COCINA, RITMO_COCINA, ETAPA_BEBE, DONDE_COME, CANAL, paraEscribir } from "../../src/lib/vocabularios.js";
+import { NIVEL_COCINA, RITMO_COCINA, ETAPA_BEBE, DONDE_COME, CANAL, APARATOS, paraEscribir } from "../../src/lib/vocabularios.js";
+import { enOrden } from "../../src/lib/enOrden.js";
 import { ESQUEMA_DE_FUERA } from "./deFuera.js";
 import { verDespensa, anadirDespensa } from "./despensa.js";
 import { guardarMenuCole, verMenuCole } from "./cole.js";
@@ -60,6 +63,7 @@ import { herramientaPermitida } from "../../src/lib/papeles.js";
 import { ENUMS as ENUMS_TAREAS } from "../../src/lib/registroTareas.js";
 import { tareasV2 } from "./idempotencia.js";
 import { apuntarSilencio, conRecordatorio, NOTA_RECORDATORIO } from "./silencio.js";
+import { usoParcialDe } from "./medidaTurno.js";
 
 /**
  * Las alergias por silencio del turno (silencio.js): con lo último que dijo
@@ -250,11 +254,12 @@ export async function herramientas(chat) {
         // `escribio`: si llegó a la base alguna escritura (db.js), no solo si se
         // intentó. Una herramienta que contesta «no he podido guardarlo» no
         // cuenta como guardado, ni lleva botón a la app.
+        chat.nadaQueVer = false;
         const { r, escribio } = await contandoEscrituras(() => t.run(args, llamada));
         if (escribio) chat.guardados = (chat.guardados ?? 0) + 1;
         if (t.name === "generar_menu") tocado.semanas.add(args.semana ?? "esta");
         if (t.name === "cambiar_plato" && args.dia) tocado.dias.add(diaDe(args.dia) ?? String(args.dia).toLowerCase());
-        const ir = SOLO_LECTURA.has(t.name) || escribio ? pantallaDe(t.name, args) : null;
+        const ir = (SOLO_LECTURA.has(t.name) && !chat.nadaQueVer) || escribio ? pantallaDe(t.name, args) : null;
         if (ir) chat.ir = ir;
         return r;
       } catch (e) {
@@ -528,7 +533,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
         estructura: { type: "string", enum: ["primero_segundo", "1_plato"] },
         esfuerzo: { type: "string", enum: NIVEL_COCINA },
         tiempo: { type: "string", enum: RITMO_COCINA },
-        trastos: { type: "array", items: { type: "string", enum: ["Airfryer", "Horno", "Microondas", "Thermomix", "Olla rápida", "Vaporera"] } },
+        trastos: { type: "array", items: { type: "string", enum: enOrden(APARATOS, ["Airfryer", "Horno", "Microondas", "Thermomix"]) } },
         comidas: { type: "array", items: { type: "string", enum: COMIDAS_PRINCIPALES }, description: "Qué comidas se planifican." },
         etapaBebe: { type: "string", enum: ETAPA_BEBE, description: "Qué come el bebé: cremas (solo purés), mixto (de todo) o solidos (ya come sólidos). Apúntalo en cuanto lo digan («ya come sólidos»), antes de proponerle nada." },
       }),
@@ -626,9 +631,11 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: "semana", avisoLento: "Voy, te preparo el menú, dame unos segundos" }, {
       name: "generar_menu",
-      description: "Genera un menú NUEVO con el motor de HoMenu (respeta toda la configuración) y lo deja activo: «esta» semana desde hoy o la «siguiente» entera. Tarda unos segundos. fijos: los platos que piden por su nombre para esa semana («un día salmón al horno», «otro pollo con patatas»); se ponen al generar, una vez cada uno, con la receta exacta o la más parecida. Con fijos NO hace falta cambiar_plato después. Solo si piden generar o rehacer, o si no hay menú: una pregunta sobre lo ya generado («¿y las recetas?», «¿y la compra?», «¿y el domingo?») se contesta con ver_receta, ver_compra o ver_menu y NUNCA regenera, porque rehacerlo cambia los platos que ya han visto.",
+      description: "Genera un menú NUEVO con el motor de HoMenu (respeta toda la configuración) y lo deja activo: «esta» semana desde hoy, la «siguiente» (la primera semana SIN menú a partir del lunes que viene) o, con desde, la semana de esa fecha («a partir del 2 de noviembre» → desde 2026-11-02). Una semana que ya tiene menú NO se rehace sin rehacer: true, que solo va cuando piden rehacer esa semana («rehaz», «cambia el menú de…», el botón «Rehacer la del…»); si no, la herramienta avisa sin tocar nada y tú preguntas. Rehacer la semana en curso empieza mañana: hoy y lo pasado no cambian. Tarda unos segundos. fijos: los platos que piden por su nombre para esa semana («un día salmón al horno», «otro pollo con patatas»); se ponen al generar, una vez cada uno, con la receta exacta o la más parecida. Con fijos NO hace falta cambiar_plato después. Solo si piden generar o rehacer, o si no hay menú: una pregunta sobre lo ya generado («¿y las recetas?», «¿y la compra?», «¿y el domingo?») se contesta con ver_receta, ver_compra o ver_menu y NUNCA regenera, porque rehacerlo cambia los platos que ya han visto.",
       inputSchema: obj({
         semana: { type: "string", enum: ["esta", "siguiente"] },
+        desde: { type: "string", description: "AAAA-MM-DD: genera la semana de esa fecha (manda sobre semana)." },
+        rehacer: { type: "boolean", description: "true si piden rehacer una semana que ya tiene menú, o al pulsar [[Rehacer la del …]]: entonces desde = ese lunes y rehacer: true, los dos." },
         fijos: {
           type: "array", maxItems: 7,
           items: obj({
@@ -637,13 +644,15 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
           }, ["nombre"]),
         },
       }, ["semana"]),
-      run: async ({ semana, fijos }) => {
+      run: async ({ semana, fijos, desde, rehacer }) => {
         // La semana generada sale pintada debajo del mensaje de Lola (entregar()).
         // Alergias por silencio (#229): antes de generar, para que el menú de
         // este mismo turno ya salga con todo el catálogo.
         await silencioDelTurno(chat);
         const out = {};
-        const texto = await generarMenu(householdId, semana, fijos ?? [], out);
+        // Pulsado «Rehacer la del 26 oct», esa semana y rehacer, diga lo que diga el modelo (#907).
+        const delBoton = esBotonRehacer(chat.texto) ? desdeDelBoton(chat.texto, isoDeCasa()) : null;
+        const texto = await generarMenu(householdId, semana, fijos ?? [], out, { desde: delBoton ?? desde ?? null, rehacer: Boolean(rehacer) || Boolean(delBoton) });
         if (out.ok) pintarTambien(chat, filtrosTrasGenerar(out));
         if (out.recordarSilencio) chat.recordarSilencio = true;
         return out.recordarSilencio ? `${texto}\n${NOTA_RECORDATORIO}` : texto;
@@ -710,7 +719,8 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
         const filtros = { dias, comidas: comidas ?? null, platos: platos ?? null, grupo: para ?? null };
         const p = await pintarMenuEntero(casa, filtros);
         if (p.sinGrupo) return `${sinEtiquetas(p.texto)} Pregunta de quién hablan.`;
-        if (!p.conMenu && !p.noPlanificadas.length) return `No hay menú para esos días (${dias[0]}${dias.length > 1 ? ` a ${dias.at(-1)}` : ""}). ${rangosDelMenu(casa)} Si lo quieren, generar_menu.`;
+        // Sin menú, la pantalla de la app saldría vacía: sin botón (#935).
+        if (!p.conMenu && !p.noPlanificadas.length) { chat.nadaQueVer = true; return `No hay menú para esos días (${dias[0]}${dias.length > 1 ? ` a ${dias.at(-1)}` : ""}). ${rangosDelMenu(casa)} Si lo quieren, generar_menu.`; }
         pintarTambien(chat, filtros);
         if (dias.length === 1 && fotos) for (const f of p.fotos) if (!fotos.some((x) => x.url === f.url)) fotos.push(f);
         return `Sale pintado debajo de tu mensaje (NO lo copies; como mucho una frase). Para que lo sepas:\n${sinEtiquetas(p.texto)}`;
@@ -1057,7 +1067,7 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   chat.nombresAntes = (data.members ?? []).map((m) => m.name).filter(Boolean);
   // La ficha de la casa (api/_bot/ficha.js): lo que Lola ya sabe sin preguntar.
   const ficha = casa ? conQuienEscribe(montarFicha(deLaFicha.casa, extras), chat.papel, chat.idioma) : null;
-  let dicho, uso, corregido, medida, sigueSinGuardar = false;
+  let dicho, uso, corregido, medida, promesa, sigueSinGuardar = false;
   const tLola = Date.now();
   // La pista del enrutador (api/_bot/pista.js). `progreso` lo rellena Lola
   // según avanza: con él se sabe si aún se la puede cortar sin tirar nada.
@@ -1103,6 +1113,7 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
       alCortar: (ms) => { medidaPista = { ...medidaPista, cortada_ms: ms }; },
     }));
     sigueSinGuardar = Boolean(r.sigueSinGuardar);
+    promesa = r.promesa;
     // Acabado el turno: sin ninguna herramienta en todo él, la pista se aceptó.
     adelanto.alAcabar(r.herramientas?.length ?? 0);
     // La llamada cortada no trae su uso (se paga igual): se estima con lo que
@@ -1113,7 +1124,8 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   } catch (err) {
     // Ya había cambiado algo en la casa cuando el modelo se cayó: repetir el
     // turno lo haría dos veces. Se dice que está hecho y dónde verlo.
-    if (!err?.aMedias) throw err;
+    // Cancelada o caída: lo ya pagado viaja en el error (telegram.js lo apunta).
+    if (!err?.aMedias) throw err instanceof Error ? Object.assign(err, { usoParcial: usoParcialDe(progreso) }) : err;
     console.error("[agente] a medias", err?.message);
     // a propósito: el evento vale más sin dueño que perdido
     await registrar(FALLO_A_MEDIAS, { userId: await duenoDe(householdId).catch(seguirCon("agente_dueno", null)), extra: { error: `a medias: ${String(err?.message ?? err).slice(0, 250)}`, esGrupo: Boolean(esGrupo) } });
@@ -1125,7 +1137,7 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   if (corregido) {
     // `sigue`: ni con el aviso guardó. Sin él, se corrigió en la segunda vuelta.
     // a propósito: el evento vale más sin dueño que perdido
-    await registrar(FALLO_SIN_GUARDAR, { userId: await duenoDe(householdId).catch(seguirCon("agente_dueno", null)), extra: { texto: String(texto).slice(0, 200), sigue: sigueSinGuardar, esGrupo: Boolean(esGrupo) } });
+    await registrar(FALLO_SIN_GUARDAR, { userId: await duenoDe(householdId).catch(seguirCon("agente_dueno", null)), extra: { texto: String(texto).slice(0, 200), tipo: promesa ?? "guardado", sigue: sigueSinGuardar, esGrupo: Boolean(esGrupo) } });
   }
   if (/no (te )?(he )?entend|no s[eé] a qu[eé] te refieres/i.test(dicho)) {
     // a propósito: el evento vale más sin dueño que perdido
@@ -1201,17 +1213,36 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
 // Como viñeta («• ✅ Cambiar un plato», al contar lo que sabe hacer) no es
 // decir que guardó: «hola, ¿qué sabes hacer?» pasaba por el aviso y una
 // segunda llamada al modelo (staging, 2 oct 2026: 8,2 s para un saludo).
-const DICE_QUE_GUARDO = /(^|\n)\s*✅|\bapuntad[oa]s?\b|\blo he (apuntado|puesto|cambiado|guardado|quitado|añadido|anotado)\b|(^|[.!¡]\s*)hecho\b/i;
+const DICE_QUE_GUARDO = /(^|\n)\s*✅|\bapuntad[oa]s?\b|\blo he (apuntado|puesto|cambiado|guardado|quitado|añadido|anotado|arreglado|solucionado|corregido|dejado|actualizado)\b|(^|[.!¡]\s*)hecho\b/i;
+// «Ya está arreglado» sin haber tocado nada (#911: ante la queja de que un
+// arroz con tomate llevaba ensalada de lentejas de segundo, Lola solo propuso
+// tres primeros y empezó con «Ya está arreglado»). Es la misma mentira que
+// «✅ Apuntado»: se corrige con el mismo aviso y la misma vuelta. Solo lo que
+// describe esa queja: «hecho» y «listo» sueltos no, que también son cocina
+// («el arroz ya está listo») y lectura («el menú ya está hecho»). Con
+// «cuando…», «si…» o «en cuanto…» delante, «queda cambiado» es futuro.
+const DICE_QUE_ARREGLO = /\bya est[aá] (arreglad|cambiad|solucionad|corregid)[oa]\b|(?<!\b(?:cuando|si|en cuanto)\b[^.!?\n]*)\bqueda (arreglad|cambiad|solucionad|corregid)[oa]\b|\bya lo (cambi[eé]|arregl[eé]|corregí)(?![a-záéíóúñ])/i;
 // «No tenéis ninguna alergia apuntada» es leer lo que hay, no decir que guardó:
 // saltaba el aviso y costaba otra vuelta de ~3 s en cada consulta (#229). Se
 // quita el «apuntad…» que va detrás de una negación en la misma frase, salvo
 // que sea «he apuntado» y el «no» no vaya con él («No olvides que te he
-// apuntado leche» sí dice que guardó; «No te he apuntado nada», no).
-const APUNTADO_NEGADO = /\b(no|ningun[oa]?|nada|nadie)\b[^.,;:!?\n]{0,40}?\bapuntad[oa]s?\b/gi;
-const HE_APUNTADO = /\b(he|hemos|ha|han|has|habeis|habéis)\s+apuntad/i;
-const NO_HE_APUNTADO = /^no\s+(\S+\s+)?(he|hemos|ha|han|has|habeis|habéis)\s+apuntad/i;
+// apuntado leche» sí dice que guardó; «No te he apuntado nada», no). Igual con
+// «Nada está cambiado aún» (lo que dice proponer_platos): es leer, no arreglar.
+const APUNTADO_NEGADO = /\b(no|ningun[oa]?|nada|nadie)\b[^.,;:!?\n]{0,40}?\b(apuntad|arreglad|cambiad|solucionad|corregid|hech|dejad|actualizad)[oa]s?\b/gi;
+const HE_APUNTADO = /\b(he|hemos|ha|han|has|habeis|habéis)\s+(apuntad|arreglad|cambiad|solucionad|corregid|hech|dejad|actualizad)/i;
+const NO_HE_APUNTADO = /^no\s+(\S+\s+)?(he|hemos|ha|han|has|habeis|habéis)\s+(apuntad|arreglad|cambiad|solucionad|corregid|hech|dejad|actualizad)/i;
 const sinNegados = (texto) => texto.replace(APUNTADO_NEGADO, (m) => (HE_APUNTADO.test(m) && !NO_HE_APUNTADO.test(m) ? m : ""));
-export const diceQueGuardo = (texto) => DICE_QUE_GUARDO.test(sinNegados(String(texto ?? "")));
+// Una pregunta («¿Ya está arreglado?», «¿Quieres que lo deje hecho?») no afirma nada.
+const sinPreguntas = (texto) => texto.replace(/¿[^?]*\?/g, "");
+/** De qué es la promesa sin hecho (bot_claimed_unsaved.tipo): «guardado» (apuntado, ✅…) o «arreglado» (#911). */
+export const tipoDePromesa = (texto) => {
+  const t = sinNegados(sinPreguntas(String(texto ?? "")));
+  return DICE_QUE_GUARDO.test(t) ? "guardado" : DICE_QUE_ARREGLO.test(t) ? "arreglado" : null;
+};
+export const diceQueGuardo = (texto) => {
+  const t = sinNegados(sinPreguntas(String(texto ?? "")));
+  return DICE_QUE_GUARDO.test(t) || DICE_QUE_ARREGLO.test(t);
+};
 // Las herramientas que tardan (BOT_AVISO_LENTO, on | off; por defecto on):
 // mientras corren, la persona ve al momento una frase de Lola en el mensaje
 // que se va escribiendo, y lo que Lola escriba después la sustituye en ese
@@ -1226,7 +1257,7 @@ export const diceQueGuardo = (texto) => DICE_QUE_GUARDO.test(sinNegados(String(t
 // volver a mandar (se ve un parpadeo), para una búsqueda que con fotos suele
 // tardar menos de medio segundo. AVISO_LENTO se saca de las fichas, abajo.
 const avisoLento = () => process.env.BOT_AVISO_LENTO !== "off";
-const AVISO_SIN_GUARDAR = "[Aviso del sistema, no lo ha escrito la persona] En tu respuesta dices que lo has apuntado, guardado o hecho, pero en este turno no se ha guardado nada: o no has llamado a ninguna herramienta que guarde, o la que llamaste no pudo guardar. Si había que guardarlo y no lo intentaste, llama ahora a la herramienta que toca y luego contesta. Si lo intentaste y no se pudo, dilo tal cual y ofrece intentarlo otra vez. Si no había nada que guardar, contesta otra vez sin decir que está hecho. Contesta a la persona directamente, sin mencionar este aviso.";
+const AVISO_SIN_GUARDAR = "[Aviso del sistema, no lo ha escrito la persona] En tu respuesta dices que lo has apuntado, guardado, cambiado, arreglado o hecho, pero en este turno no se ha guardado nada: o no has llamado a ninguna herramienta que guarde, o la que llamaste no pudo guardar. Si había que guardarlo y no lo intentaste, llama ahora a la herramienta que toca y luego contesta. Si lo intentaste y no se pudo, dilo tal cual y ofrece intentarlo otra vez. Si no había nada que guardar, contesta otra vez sin decir que está hecho. Contesta a la persona directamente, sin mencionar este aviso.";
 
 /**
  * @param {string|null} [pista]  la pista del enrutador (pista.js textoPista):
@@ -1265,7 +1296,7 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
       const aviso = typeof avisoDe === "function" ? avisoDe(a[0]) : avisoDe;
       if (aviso && enPantalla.trim().length < 20) { escribir(aviso, { aviso: true }); avisos.push(t.name); }
       const t0 = Date.now();
-      try { return await t.run(...a); } finally { herramientas.push({ n: t.name, ms: Date.now() - t0 }); enPantalla = ""; }
+      try { return await t.run(...a); } finally { herramientas.push({ n: t.name, ms: Date.now() - t0, t0 }); enPantalla = ""; }
     },
   }));
   let ultimoError = null;
@@ -1294,7 +1325,7 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
         // Si tras el aviso sigue sin guardar y diciendo que sí, ya no es un
         // susto corregido: es un fallo de verdad (scripts/bot-semanal.mjs).
         const sigueSinGuardar = (guardados ? guardados() : escrituras) === 0 && diceQueGuardo(otra.dicho);
-        r = { dicho: otra.dicho, uso, corregido: true, sigueSinGuardar, vueltas: (r.vueltas ?? 0) + (otra.vueltas ?? 0), primera: r.primera, llamadas: [...(r.llamadas ?? []), ...(otra.llamadas ?? [])] };
+        r = { dicho: otra.dicho, uso, corregido: true, sigueSinGuardar, promesa: tipoDePromesa(r.dicho), vueltas: (r.vueltas ?? 0) + (otra.vueltas ?? 0), primera: r.primera, llamadas: [...(r.llamadas ?? []), ...(otra.llamadas ?? [])] };
       }
       if (i > 0) console.warn(`[agente] plan B: contestó ${modelo}`);
       return { ...r, modelo, herramientas, planB: i > 0, avisos };
@@ -1382,7 +1413,11 @@ async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal
   // 15-20; el resto, el modelo pensando y escribiendo, sin forma de verlo.
   const llamadas = [];
   let desde = Date.now();
+  // Si se corta a media vuelta (la vía rápida ganó), lo ya pagado queda en
+  // progreso para bot_route lola_cancelada_uso (medidaTurno.js usoParcialDe).
+  if (progreso) progreso.uso = uso;
   for await (const vuelta of runner) {
+    if (progreso) progreso.enCurso = vuelta;
     let mensaje = vuelta;
     let primerTrozo = null;
     if (alEscribir) {
@@ -1407,6 +1442,7 @@ async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal
     if (progreso) progreso.vueltas++;
     if (!primera) primera = { input_tokens: mensaje.usage?.input_tokens ?? 0, cache_read_input_tokens: mensaje.usage?.cache_read_input_tokens ?? 0, cache_creation_input_tokens: mensaje.usage?.cache_creation_input_tokens ?? 0 };
     for (const k of Object.keys(uso)) uso[k] += mensaje.usage?.[k] ?? 0;
+    if (progreso) progreso.enCurso = null;
   }
 
   const dicho = (final?.content ?? []).filter((b) => b.type === "text").map((b) => b.text).join("\n").trim()

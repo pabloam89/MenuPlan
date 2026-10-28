@@ -12,7 +12,10 @@ import {
   splitAchievableFreqs,
   slotAcceptsRole,
   GUARD_FOR_RULE,
+  chocanHidratos,
+  NO_REPETIR,
 } from "./validateMenu.js";
+import { resolverMenu, REGLAS_RELAJABLES } from "../lib/solver.js";
 import { CARB_TYPE_BY_BASE, MAIN_BASES } from "../data/recipeSchema.js";
 
 function recipe(overrides) {
@@ -2150,5 +2153,166 @@ describe("legumbres en cena, por formato", () => {
     // Abstenerse aquí es conservar el comportamiento, no relajarlo: son 41 de
     // las 102 y nadie ha dicho todavía qué son.
     expect(enCena([cena(undefined, { name: "Potaje sin clasificar" })])).toContain("legumbres_en_cena");
+  });
+});
+
+describe("segundo_sin_proteina_principal (#894): el segundo lleva carne, pescado, marisco o huevo", () => {
+  const catalogo = Object.fromEntries(
+    fs.readdirSync(path.join(path.dirname(fileURLToPath(import.meta.url)), "../data/recipes"))
+      .filter((f) => f.endsWith(".json"))
+      .flatMap((f) => {
+        const a = JSON.parse(fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), "../data/recipes", f), "utf-8"));
+        return Array.isArray(a) ? a : (a.recipes ?? []);
+      })
+      .map((r) => [r.id, r]),
+  );
+  const comida = (primeroId, segundoId) => {
+    const pool = [catalogo[primeroId], catalogo[segundoId]];
+    const asign = [
+      { slotId: "lun_comida_1", recipeId: primeroId },
+      { slotId: "lun_comida_2", recipeId: segundoId },
+    ];
+    const ctx = [
+      slot("lun_comida_1", { mealType: "comida", position: "1" }),
+      slot("lun_comida_2", { mealType: "comida", position: "2" }),
+    ];
+    return validateMenu(asign, pool, ctx).violations.filter((v) => v.rule === "segundo_sin_proteina_principal");
+  };
+
+  it("el caso de #892: arroz con tomate + ensalada de lentejas falla en el segundo", () => {
+    expect(catalogo.pasta_arroces_003).toBeTruthy();
+    expect(catalogo.ensaladas_verduras_064).toBeTruthy();
+    expect(comida("pasta_arroces_003", "ensaladas_verduras_064").map((v) => v.slotId)).toEqual(["lun_comida_2"]);
+  });
+
+  it("cuenta extraProteins: garbanzos con atún (080) y portobello con cerdo (104) pasan", () => {
+    expect(comida("pasta_arroces_003", "ensaladas_verduras_080")).toEqual([]);
+    expect(comida("pasta_arroces_003", "ensaladas_verduras_104")).toEqual([]);
+  });
+
+  it("no mira el primero ni un plato único", () => {
+    const r = recipe({ id: "crema", mainProtein: "none", mealRole: ["primero", "plato_unico"] });
+    const { violations } = validateMenu([{ slotId: "lun_comida", recipeId: "crema" }], [r], [slot("lun_comida", { mealType: "comida" })]);
+    expect(violations.filter((v) => v.rule === "segundo_sin_proteina_principal")).toEqual([]);
+  });
+
+  it("applyFallback lo arregla con un segundo que sí lleva proteína", () => {
+    const pool = [catalogo.pasta_arroces_003, catalogo.ensaladas_verduras_064, catalogo.ensaladas_verduras_080];
+    const asign = [
+      { slotId: "lun_comida_1", recipeId: "pasta_arroces_003" },
+      { slotId: "lun_comida_2", recipeId: "ensaladas_verduras_064" },
+    ];
+    const ctx = [
+      slot("lun_comida_1", { mealType: "comida", position: "1" }),
+      slot("lun_comida_2", { mealType: "comida", position: "2" }),
+    ];
+    const { violations } = validateMenu(asign, pool, ctx);
+    const arreglado = applyFallback(asign, violations, pool, ctx);
+    expect(arreglado.find((a) => a.slotId === "lun_comida_2").recipeId).toBe("ensaladas_verduras_080");
+  });
+});
+
+describe("la legumbre con más hidrato que proteína cuenta como hidrato (#896)", () => {
+  const dir = path.join(path.dirname(fileURLToPath(import.meta.url)), "../data/recipes");
+  const todas = fs.readdirSync(dir)
+    .filter((f) => f.endsWith(".json"))
+    .flatMap((f) => {
+      const a = JSON.parse(fs.readFileSync(path.join(dir, f), "utf-8"));
+      return Array.isArray(a) ? a : (a.recipes ?? []);
+    });
+  const catalogo = Object.fromEntries(todas.map((r) => [r.id, r]));
+  const franja = () => [
+    slot("lun_comida_1", { mealType: "comida", position: "1" }),
+    slot("lun_comida_2", { mealType: "comida", position: "2" }),
+  ];
+  const comida = (primeroId, segundoId) => {
+    const pool = [catalogo[primeroId], catalogo[segundoId]];
+    const asign = [
+      { slotId: "lun_comida_1", recipeId: primeroId },
+      { slotId: "lun_comida_2", recipeId: segundoId },
+    ];
+    return validateMenu(asign, pool, franja()).violations.map((v) => v.rule);
+  };
+
+  it("arroz + garbanzos con atún: marcado", () => {
+    expect(getCarbType(catalogo.ensaladas_verduras_080)).toBe("legumbre");
+    expect(comida("pasta_arroces_003", "ensaladas_verduras_080")).toContain("guarnicion_legumbre");
+  });
+
+  it("pasta + lentejas: marcado", () => {
+    expect(comida("ensaladas_verduras_081", "legumbres_001")).toContain("guarnicion_legumbre");
+  });
+
+  it("dos arroces siguen marcados como guarnicion_repetida, que no se relaja; arroz + pasta, como hoy, no chocan", () => {
+    // El encargo pedía «arroz + pasta sigue marcado»: hoy no lo está (la regla
+    // compara tipos iguales) y este cambio no lo toca. Lo que sí debe seguir
+    // igual es el choque entre dos hidratos del mismo tipo, sin relajarse.
+    expect(chocanHidratos("arroz", "pasta")).toBe(false);
+    expect(chocanHidratos("arroz", "arroz")).toBe(true);
+    const r = comida("pasta_arroces_003", "pescados_087");
+    expect(r).toContain("guarnicion_repetida");
+    expect(r).not.toContain("guarnicion_legumbre");
+    expect(comida("pasta_arroces_003", "ensaladas_verduras_081")).not.toContain("guarnicion_repetida");
+    expect(REGLAS_RELAJABLES.has("guarnicion_repetida")).toBe(false);
+  });
+
+  it("sin candidato, el cruce legumbre–hidrato se relaja y queda como violación leve", () => {
+    expect(REGLAS_RELAJABLES.has("guarnicion_legumbre")).toBe(true);
+    // Una comida de lentejas (ensaladas_verduras_064) y una cena que solo
+    // puede ser de hidrato (carnes_151): sin otro candidato, el solver la
+    // coloca y la devuelve como relajada en vez de dejar el hueco vacío.
+    const pool = [catalogo.ensaladas_verduras_064, catalogo.carnes_151];
+    const huecos = [slot("lun_comida", { mealType: "comida" }), slot("lun_cena", { mealType: "cena" })];
+    const asign = [{ slotId: "lun_comida", recipeId: "ensaladas_verduras_064" }, { slotId: "lun_cena", recipeId: "carnes_151" }];
+    expect(validateMenu(asign, pool, huecos).violations.map((v) => v.rule)).toEqual(["guarnicion_legumbre"]);
+    const res = resolverMenu(huecos, pool, { relajar: true });
+    expect(res.asignaciones).toHaveLength(2);
+    // El hueco al que la regla culpa (el segundo del día) va como relajado,
+    // aunque el que se colocó relajando fuera el otro.
+    expect(res.relajados).toContain("lun_cena");
+  });
+
+  it("solo la regla decide: los platos de legumbre con más hidrato que proteína, y bases_004 sigue sin hidrato", () => {
+    const leg = todas.filter((r) => r.mainProtein === "legumbre");
+    const hidrato = leg.filter((r) => r.carbs_g > r.protein_g);
+    expect(hidrato.length).toBe(100);
+    expect(leg.filter((r) => getCarbType(r) === "legumbre").length).toBe(hidrato.length);
+    expect(getCarbType(catalogo.bases_004)).toBeNull();
+    // La ropa vieja de cocido lleva más proteína que hidrato: fuera de la regla.
+    expect(getCarbType(catalogo.legumbres_065)).not.toBe("legumbre");
+  });
+
+  it("chocanHidratos: la legumbre choca con arroz, pasta, patatas y consigo; no con pan ni quinoa", () => {
+    for (const c of ["arroz", "pasta", "patatas", "legumbre"]) {
+      expect(chocanHidratos("legumbre", c)).toBe(true);
+      expect(chocanHidratos(c, "legumbre")).toBe(true);
+    }
+    expect(chocanHidratos("legumbre", "pan")).toBe(false);
+    expect(chocanHidratos("legumbre", "quinoa")).toBe(false);
+    expect(chocanHidratos(null, "arroz")).toBe(false);
+  });
+
+  it("recorrido: toda comparación de hidratos pasa por chocanHidratos", () => {
+    const raiz = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
+    const ficheros = ["utils/validateMenu.js", "lib/aiPlanner.js", "lib/fixedDishes.js", "utils/reglasNoRepetir.js"];
+    // Un valor de hidrato (la variable `carb`/`c` que sale de getCarbType, o
+    // los conjuntos de hidratos) preguntado por igualdad, `.has` o `.includes`.
+    const comparaHidrato = /\b(carb|c)\s*(===|!==)|\.(has|includes)\((carb|c)\)|(schoolCarbsToAvoid|dayCarbs\w*|basesDelDia)\??\.(has|includes)\(/;
+    const malas = [];
+    for (const f of ficheros) {
+      fs.readFileSync(path.join(raiz, f), "utf-8").split("\n").forEach((l, i) => {
+        const codigo = l.replace(/\/\/.*$/, "");
+        if (comparaHidrato.test(codigo) && /carb|basesDelDia/i.test(codigo) && !codigo.includes("chocanHidratos")) malas.push(`${f}:${i + 1}: ${l.trim()}`);
+      });
+    }
+    expect(malas).toEqual([]);
+    const reglas = Object.fromEntries(NO_REPETIR.map((r) => [r.rule, r]));
+    expect(typeof reglas.guarnicion_repetida.comparador).toBe("function");
+    expect(typeof reglas.guarnicion_legumbre.comparador).toBe("function");
+    expect(typeof reglas.guarnicion_cena_consecutiva.comparador).toBe("function");
+    // Las de proteína y la de familia de plato siguen con la igualdad de `compartido`.
+    for (const id of ["proteina_repetida_en_comida", "mismo_plato_seguido", "proteina_consecutiva", "proteina_repetida_en_dia"]) {
+      expect(reglas[id].comparador).toBeUndefined();
+    }
   });
 });

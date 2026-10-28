@@ -20,9 +20,10 @@
 
 import { familiasDe } from "./menuRecuento.js";
 import { DIA_LARGO_MINUSCULAS } from "./dias.js";
+import { FAMILIAS } from "./notepadFields.js";
 
 export const OPS = ["poner", "cambiar", "rellenar", "vaciar", "mover"];
-export const FAMILIAS = ["carne", "pescado", "legumbres", "huevos", "pasta_arroz", "verdura"];
+export { FAMILIAS };
 const MAX_OPS = 21;
 
 const NOMBRE_DIA = DIA_LARGO_MINUSCULAS;

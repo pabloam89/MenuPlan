@@ -1,0 +1,549 @@
+{
+ "nota": "Formas de decir cada rasgo que se pide, escritas a mano (#939, fase 3). Sin tildes y en minúscula. Las de proteína y base salen además del árbol de alimentos (derived/sinonimosTaxonomia.json); las aprendidas, de sinonimosAprendidos.json. El diccionario (src/lib/diccionario.js) las junta. Para añadir una: npm run diccionario -- buscar <frase> y, si no sale, aquí.",
+ "rasgos": [
+  {
+   "rasgo": "grupo",
+   "valor": "pescado_azul",
+   "formas": [
+    "pescados azules",
+    "pescado azul"
+   ]
+  },
+  {
+   "rasgo": "grupo",
+   "valor": "marisco",
+   "formas": [
+    "marisco",
+    "mariscos",
+    "gambas",
+    "gamba",
+    "langostinos",
+    "langostino",
+    "mejillones",
+    "almejas",
+    "almeja",
+    "calamares",
+    "calamar",
+    "sepia",
+    "pulpo"
+   ]
+  },
+  {
+   "rasgo": "grupo",
+   "valor": "pescado",
+   "formas": [
+    "pescados",
+    "pescado",
+    "pescaito",
+    "merluza",
+    "bacalao",
+    "salmon",
+    "atun",
+    "dorada",
+    "lubina",
+    "sardinas",
+    "sardina"
+   ]
+  },
+  {
+   "rasgo": "grupo",
+   "valor": "carne_roja",
+   "formas": [
+    "carnes rojas",
+    "carne roja",
+    "ternera",
+    "vacuno",
+    "buey",
+    "cordero",
+    "solomillo",
+    "entrecot",
+    "chuleton"
+   ]
+  },
+  {
+   "rasgo": "grupo",
+   "valor": "pollo",
+   "formas": [
+    "pollo",
+    "pechugas",
+    "pechuga",
+    "muslos de pollo",
+    "muslo de pollo"
+   ]
+  },
+  {
+   "rasgo": "grupo",
+   "valor": "carne",
+   "formas": [
+    "carnes",
+    "carne",
+    "filete",
+    "cerdo",
+    "lomo",
+    "jamon",
+    "chorizo",
+    "embutido",
+    "salchichas",
+    "salchicha",
+    "pavo",
+    "pollo",
+    "ternera",
+    "cordero"
+   ]
+  },
+  {
+   "rasgo": "grupo",
+   "valor": "huevo",
+   "formas": [
+    "huevos",
+    "huevo",
+    "tortillas",
+    "tortilla",
+    "revuelto"
+   ]
+  },
+  {
+   "rasgo": "grupo",
+   "valor": "legumbre",
+   "formas": [
+    "legumbres",
+    "legumbre",
+    "lentejas",
+    "lenteja",
+    "garbanzos",
+    "garbanzo",
+    "alubias",
+    "alubia",
+    "judias blancas",
+    "fabes",
+    "potaje"
+   ]
+  },
+  {
+   "rasgo": "grupo",
+   "valor": "pasta",
+   "formas": [
+    "pasta",
+    "macarrones",
+    "espaguetis",
+    "spaghetti",
+    "tallarines",
+    "lasana",
+    "fideos"
+   ]
+  },
+  {
+   "rasgo": "grupo",
+   "valor": "arroz",
+   "formas": [
+    "arroz",
+    "arrocito",
+    "risotto",
+    "paella"
+   ]
+  },
+  {
+   "rasgo": "grupo",
+   "valor": "verdura",
+   "formas": [
+    "verdura",
+    "verduras",
+    "verdurita",
+    "verduritas",
+    "hortalizas",
+    "vegetales"
+   ]
+  },
+  {
+   "rasgo": "grupo",
+   "valor": "lacteo",
+   "formas": [
+    "lacteo",
+    "lacteos"
+   ]
+  },
+  {
+   "rasgo": "grupo",
+   "valor": "seta",
+   "formas": [
+    "seta",
+    "setas",
+    "hongos",
+    "champinones"
+   ]
+  },
+  {
+   "rasgo": "grupo",
+   "valor": "fruta",
+   "formas": [
+    "fruta",
+    "frutas",
+    "frutita"
+   ]
+  },
+  {
+   "rasgo": "grupo",
+   "valor": "frutos_secos",
+   "formas": [
+    "frutos secos",
+    "fruto seco"
+   ]
+  },
+  {
+   "rasgo": "tecnica",
+   "valor": "horno",
+   "formas": [
+    "al horno",
+    "horneado",
+    "horneada",
+    "hornear",
+    "horno"
+   ]
+  },
+  {
+   "rasgo": "tecnica",
+   "valor": "plancha",
+   "formas": [
+    "plancha",
+    "planchita"
+   ]
+  },
+  {
+   "rasgo": "tecnica",
+   "valor": "sarten",
+   "formas": [
+    "fritos",
+    "frito",
+    "fritas",
+    "frita",
+    "frituras",
+    "fritura",
+    "sarten",
+    "rebozados",
+    "rebozado",
+    "rebozadas",
+    "rebozada"
+   ]
+  },
+  {
+   "rasgo": "tecnica",
+   "valor": "olla",
+   "formas": [
+    "guisos",
+    "guiso",
+    "guisado",
+    "guisito",
+    "estofados",
+    "estofado",
+    "olla",
+    "puchero"
+   ]
+  },
+  {
+   "rasgo": "tecnica",
+   "valor": "crudo",
+   "formas": [
+    "crudos",
+    "crudo",
+    "crudas",
+    "cruda",
+    "sin cocinar"
+   ]
+  },
+  {
+   "rasgo": "connotacion",
+   "valor": "casero",
+   "formas": [
+    "abuela",
+    "de siempre",
+    "toda la vida",
+    "de pequeno",
+    "de pequena",
+    "como en casa",
+    "casero",
+    "casera",
+    "tradicional",
+    "de mi madre",
+    "de las de antes"
+   ]
+  },
+  {
+   "rasgo": "connotacion",
+   "valor": "reconfortante",
+   "formas": [
+    "pachucho",
+    "pachucha",
+    "resfriado",
+    "resfriada",
+    "reconfortante",
+    "malito",
+    "malita",
+    "reconforte"
+   ]
+  },
+  {
+   "rasgo": "connotacion",
+   "valor": "festivo",
+   "formas": [
+    "restaurante",
+    "impresionar",
+    "suegros",
+    "invitados",
+    "especial",
+    "celebrar",
+    "celebracion",
+    "cumpleanos",
+    "domingo",
+    "fiesta",
+    "lucirme",
+    "quedar bien"
+   ]
+  },
+  {
+   "rasgo": "connotacion",
+   "valor": "fresco",
+   "formas": [
+    "fresquito",
+    "fresquita",
+    "fresco",
+    "fresca",
+    "refrescante",
+    "verano",
+    "calor"
+   ]
+  },
+  {
+   "rasgo": "textura",
+   "valor": "cuchara",
+   "formas": [
+    "cuchara",
+    "potaje",
+    "puchero",
+    "cocido",
+    "caldo",
+    "caldito",
+    "sopa",
+    "guiso",
+    "guisito"
+   ]
+  },
+  {
+   "rasgo": "textura",
+   "valor": "mano",
+   "formas": [
+    "picoteo",
+    "picotear",
+    "de picar",
+    "para picar",
+    "bocaditos",
+    "bocadito",
+    "aperitivos",
+    "aperitivo",
+    "futbol",
+    "con las manos"
+   ]
+  },
+  {
+   "rasgo": "picante",
+   "valor": "con",
+   "formas": [
+    "picante",
+    "picantito",
+    "picantita",
+    "que pique",
+    "guindilla",
+    "enchilado",
+    "enchilada"
+   ]
+  },
+  {
+   "rasgo": "sabor",
+   "valor": "especiado",
+   "formas": [
+    "especias",
+    "especiado",
+    "especiada",
+    "exotico",
+    "exotica",
+    "curry",
+    "oriental",
+    "indio",
+    "india",
+    "mexicano",
+    "mexicana"
+   ]
+  },
+  {
+   "rasgo": "sabor",
+   "valor": "ahumado",
+   "formas": [
+    "ahumados",
+    "ahumado",
+    "ahumadas",
+    "ahumada"
+   ]
+  },
+  {
+   "rasgo": "sabor",
+   "valor": "dulce",
+   "formas": [
+    "dulces",
+    "dulce",
+    "dulcecito",
+    "dulcecita",
+    "goloso",
+    "golosa"
+   ]
+  },
+  {
+   "rasgo": "sabor",
+   "valor": "intenso",
+   "formas": [
+    "intenso",
+    "intensa",
+    "sabroso",
+    "sabrosa",
+    "potente"
+   ]
+  },
+  {
+   "rasgo": "sabor",
+   "valor": "suave",
+   "formas": [
+    "suave",
+    "suavecito",
+    "suavecita"
+   ]
+  },
+  {
+   "rasgo": "calorias",
+   "valor": "ligero",
+   "formas": [
+    "ligeritos",
+    "ligerito",
+    "ligeritas",
+    "ligerita",
+    "ligeros",
+    "ligero",
+    "ligeras",
+    "ligera",
+    "light",
+    "dieta",
+    "me pase",
+    "poco calorico",
+    "sano",
+    "saludable"
+   ]
+  },
+  {
+   "rasgo": "calorias",
+   "valor": "contundente",
+   "formas": [
+    "contundente",
+    "que llene",
+    "llenar",
+    "entrenar",
+    "entreno",
+    "con hambre",
+    "mucha hambre"
+   ]
+  },
+  {
+   "rasgo": "coste",
+   "valor": "economico",
+   "formas": [
+    "baratos",
+    "barato",
+    "baratas",
+    "barata",
+    "baratito",
+    "baratita",
+    "economico",
+    "economica",
+    "fin de mes",
+    "ajustado",
+    "ajustada"
+   ]
+  },
+  {
+   "rasgo": "dificultad",
+   "valor": "facil",
+   "formas": [
+    "sin complicarse",
+    "sin complicaciones",
+    "facil",
+    "facilito",
+    "facilita",
+    "sencillo",
+    "sencilla"
+   ]
+  },
+  {
+   "rasgo": "taper",
+   "valor": true,
+   "formas": [
+    "taper",
+    "tupper",
+    "tuper",
+    "al trabajo",
+    "a la oficina"
+   ]
+  },
+  {
+   "rasgo": "ninos",
+   "valor": true,
+   "formas": [
+    "ninos",
+    "ninas",
+    "nino",
+    "nina",
+    "peques",
+    "peque",
+    "crios",
+    "chavales",
+    "hijos",
+    "hijo"
+   ]
+  },
+  {
+   "rasgo": "congelar",
+   "valor": true,
+   "formas": [
+    "congelar",
+    "congelado",
+    "hacer de mas",
+    "para varios dias"
+   ]
+  },
+  {
+   "rasgo": "hierro",
+   "valor": true,
+   "formas": [
+    "hierro"
+   ]
+  },
+  {
+   "rasgo": "alimento",
+   "valor": "queso",
+   "formas": [
+    "feta",
+    "parmesano",
+    "manchego",
+    "queso de cabra",
+    "rulo de cabra",
+    "cheddar",
+    "gouda",
+    "emmental",
+    "roquefort",
+    "gorgonzola",
+    "brie",
+    "camembert",
+    "idiazabal",
+    "torta del casar",
+    "queso azul",
+    "queso fresco",
+    "queso rallado"
+   ]
+  }
+ ]
+}

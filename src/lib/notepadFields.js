@@ -32,6 +32,7 @@
 import basesCatalog from "../data/recipes/bases.json" with { type: "json" };
 import { COCINAS, MAIN_BASES, TECNICAS } from "../data/recipeSchema.js";
 import { CLAVES_PLATO } from "./tandaFamiliasDefs.js";
+import { enOrden } from "./enOrden.js";
 
 /**
  * El dominio del eje `base`: las féculas más TODA base del catálogo que no lo
@@ -65,6 +66,9 @@ export const SERVICIOS = ["ambos", "comida", "cena"];
  * distinguen por aquí — eso lo resuelve el grupo `base`, que mira `mainBase`.
  */
 export const FAMILIAS = ["carne", "pescado", "legumbres", "pasta_arroz", "huevos", "verdura"];
+
+/** Las familias en el orden en que se pintan (reparto del asistente y su control). */
+export const FAMILIAS_EN_PANTALLA = enOrden(FAMILIAS, ["carne", "pescado", "pasta_arroz", "legumbres", "huevos"]);
 
 /**
  * Etiqueta visible de cada familia. Vive junto a FAMILIAS porque es SU
