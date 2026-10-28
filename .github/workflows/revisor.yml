@@ -1,0 +1,27 @@
+name: revisor
+
+# Llama al juez reutilizable de la Fábrica (factory-am89/fabrica), fijado a un sha de su main: subirlo es
+# un cambio de este fichero y pasa por PR. Corre con pull_request_target: ejecuta la versión de este
+# fichero que está en staging, no la del PR. Los secretos (CLAUDE_CODE_OAUTH_TOKEN, REVISOR_CLIENT_ID y
+# REVISOR_APP_KEY) viven en el environment `revisor` de este repo. Solo PR a staging.
+on:
+  pull_request_target:
+    branches: [staging]
+    types: [opened, synchronize, reopened, ready_for_review, edited]
+
+permissions:
+  contents: read
+  pull-requests: read
+  checks: read
+
+jobs:
+  revisor:
+    uses: factory-am89/fabrica/.github/workflows/revisor.yml@92254d179e206699a7c9ad0909e67b257d79c670
+    with:
+      # Bots de HoMenu que pueden despertar al juez, además de los que ya trae la Fábrica.
+      bots: homenu-sesiones,homenu-dependabot-merge
+      # Slug de la App revisora propia de HoMenu (paso 4 de PASOS-PABLO.md). Confirmar al crearla.
+      revisor-app-slug: homenu-revisor
+    # Como la plantilla de la Fábrica: los tres secretos (por nombre) los resuelve el trabajo llamado en el
+    # environment `revisor`; pasarlos uno a uno aquí solo vería los del repo, no los del environment.
+    secrets: inherit
