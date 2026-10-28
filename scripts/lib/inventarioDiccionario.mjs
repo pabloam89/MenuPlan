@@ -62,7 +62,9 @@ const ALIAS = {
   ids_comidas: "comidas", comida: "comidas", comidas: "comidas",
   // «hoy», «el lunes»: cómo se pide un día; el día guardado es «Lun» (src/lib/dias.js).
   dias: "dias", dia: "diaPedido",
-  aparatos: "equipamiento", requiredappliance: "equipamiento",
+  // Los aparatos que declara la casa («Horno») no son los que exige la receta
+  // («horno», «gofrera»): src/data/aparatos.test.js vigila que cuadren.
+  aparatos: "aparatosDeCasa", requiredappliance: "equipamiento",
   estructura_platos: "mealStructure",
 };
 
@@ -119,6 +121,8 @@ export function apariciones(m) {
     const t = tipoZod(z);
     poner("receta", k, t.tipo, t.valores);
   }
+  // Los campos que se añaden al cargar (coste, calorías) también son de la receta.
+  for (const k of Object.keys(m.receta.CAMPOS_AL_CARGAR ?? {})) poner("receta", k, "abierto", [], { alCargar: true });
   // 2. El registro de ejes: el vocabulario que declara cada eje.
   for (const e of m.ejes.EJES ?? []) {
     poner("ejes", e.id, e.tipo, Array.isArray(e.vocabulario) ? e.vocabulario : [], { concepto: e.campo || e.id, eje: e, campo: e.campo ?? null });

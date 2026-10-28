@@ -3,6 +3,7 @@ import { z } from "zod";
 import { STEP_KINDS, STEP_PARTS } from "../lib/recipeSteps.js";
 import { UNITS } from "./ingredientSchema.js";
 import { HEALTH_FLAGS } from "../lib/healthFlags.js";
+import { APARATOS_DE_RECETA } from "../lib/electrodomesticos.js";
 
 // Canonical taxonomy for the recipe catalog. Adding a new category/protein/etc
 // requires updating this file — that's the point: it forces a conscious
@@ -644,7 +645,9 @@ export const RecipeSchema = z
     // overlaps with (e.g. "Pollo al horno con patatas"). Populated manually
     // after reviewing scripts/detect-duplicate-dishes.mjs output.
     baseDishId: z.string().optional(),
-    requiredAppliance: z.string().optional(),
+    // Lista cerrada (#939): un valor fuera de ella no da error en filterRecipes,
+    // hace desaparecer la receta en silencio.
+    requiredAppliance: z.enum(APARATOS_DE_RECETA).optional(),
     time: z.number().positive(),
     // `time` se cocina para `baseServings` comensales. Algunas recetas
     // escalan de verdad con el nº de comensales (pelar/cortar más patatas
@@ -1040,6 +1043,17 @@ export function effectiveRecipeTime(recipe, eaters) {
 }
 
 export { CONNOTACIONES, TEXTURAS, PICANTES, PICANTE_PEDIDO, SABORES };
+
+/**
+ * Campos que la receta NO trae en el JSON y se le añaden al cargar
+ * (recipeCatalog.js), con quién los calcula. Son parte de la receta tal como
+ * la ven el motor y Lola; el registro de ejes y el inventario los cuentan.
+ */
+export const CAMPOS_AL_CARGAR = {
+  costeNivel: "src/data/derived/recipeCoste.json (lib/coste.js)",
+  costeRacion: "src/data/derived/recipeCoste.json (lib/coste.js)",
+  caloriasNivel: "src/lib/caloriasNivel.js",
+};
 export { ALLERGENS, APORTES, BASE_MODES, CATEGORIES, DESSERT_KINDS, DIFFICULTIES, EFFORTS, ETAPAS_BEBE_RECETA, FORMATOS, HEALTH_FLAGS, MEAL_ROLES, OCCASIONS, SEASONS, TEMPERATURAS, TYPES };
 export { CARB_TYPE_BY_BASE, COCINAS, DEPRECATED_CATEGORIES, MAIN_BASES, MAIN_INGREDIENTS, MAIN_PROTEINS, PROTEIN_GROUP_BY_MAIN_PROTEIN, SAUCE_COMPAT_TAGS, TECNICAS };
 
