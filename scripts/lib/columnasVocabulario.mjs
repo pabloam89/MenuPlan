@@ -44,6 +44,7 @@ export const COLUMNAS_VOCABULARIO = Object.freeze({
   "sobre.origen": { lista: "origen_dato", comun: true },
   "sobre.canal": { lista: "canales_dato", comun: true },
   // `ref_tipo` es también la clave de su lista en VOCABULARIOS: común, para no confundir la una con la otra.
+  "receta_descartes.alcance": { lista: "alcances_descarte" },
   "sobre.ref_tipo": { lista: "ref_tipo", comun: true },
 });
 
