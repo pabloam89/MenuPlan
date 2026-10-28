@@ -8,7 +8,7 @@ import { parseDocument } from "yaml";
  * Fábrica (factory-am89/fabrica) y le pasa lo que ese juez exige. Esta prueba fija lo que no
  * puede cambiar sin que se note: que llama a un sha y no a una rama (una rama movería el juez
  * sin que nadie lo revise), que solo corre para PR a staging, que pasa el slug de la App
- * revisora propia y que los secretos (CLAUDE_CODE_OAUTH_TOKEN, REVISOR_CLIENT_ID, REVISOR_APP_KEY) los hereda del environment `revisor`.
+ * revisora propia y que pasa por nombre exactamente los tres secretos que el juez usa (CLAUDE_CODE_OAUTH_TOKEN, REVISOR_CLIENT_ID, REVISOR_APP_KEY), nunca `secrets: inherit`.
  */
 const RAIZ = resolve(import.meta.dirname, "..");
 const FICHERO = join(RAIZ, ".github", "workflows", "revisor.yml");
@@ -29,6 +29,7 @@ describe("revisor.yml llama al juez de la Fábrica", () => {
   it("tiene un solo trabajo, que llama al workflow reutilizable de la Fábrica fijado a un sha", () => {
     expect(Object.keys(wf().jobs ?? {})).toHaveLength(1);
     expect(trabajo().uses).toMatch(/^factory-am89\/fabrica\/\.github\/workflows\/revisor\.yml@[0-9a-f]{40}$/);
+    expect(trabajo().uses).toMatch(/@51d3b8e66b3af7286fc66c1e519fa840f29bb79e$/);
     expect(trabajo().steps, "un trabajo que llama no tiene pasos").toBeUndefined();
   });
 
@@ -39,9 +40,12 @@ describe("revisor.yml llama al juez de la Fábrica", () => {
     expect(Object.keys(con).sort()).toEqual(["bots", "revisor-app-slug"]);
   });
 
-  it("hereda los secretos (los resuelve el environment `revisor` del juez) y no escribe ninguno", () => {
-    expect(trabajo().secrets).toBe("inherit");
-    expect(leer()).not.toMatch(/\$\{\{\s*secrets\./);
+  it("pasa por nombre exactamente los tres secretos del juez, nunca inherit, y no escribe ninguno", () => {
+    const secretos = trabajo().secrets;
+    expect(secretos, "secrets: inherit entregaría todos los secretos del repo a otro repo").not.toBe("inherit");
+    expect(Object.keys(secretos ?? {}).sort()).toEqual(["CLAUDE_CODE_OAUTH_TOKEN", "REVISOR_APP_KEY", "REVISOR_CLIENT_ID"]);
+    for (const [nombre, valor] of Object.entries(secretos ?? {})) expect(valor).toBe("${{ secrets." + nombre + " }}");
+    expect(leer()).not.toMatch(/inherit/);
   });
 
   it("da solo lectura: un workflow llamado no puede subir los permisos del llamador", () => {
