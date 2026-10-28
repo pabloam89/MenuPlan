@@ -1,0 +1,9 @@
+{
+  "nota": "Deuda de la ficha de la casa (#939, fase 4) el 28 oct 2026. Solo baja: si arreglas un dato, baja su cifra aquí; si sube, el test falla. npm run ficha:inventario dice cuáles son.",
+  "sin_declarar": 26,
+  "enum_sin_vocabulario": 8,
+  "copia": 10,
+  "legado": 11,
+  "lola_no_lo_ve": 32,
+  "sin_tabular": 54
+}
