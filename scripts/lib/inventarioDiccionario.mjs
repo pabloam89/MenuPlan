@@ -257,7 +257,10 @@ export const esCopia = (lista, valores) =>
   valores.every((v) => lista.has(String(v))) && [...lista].every((v) => valores.includes(v) || DE_RESERVA.has(v));
 
 /** Vocabularios que su fuente importa de otro fichero: ese otro es el dueño. */
-const DUENO_DE = { "vocabularios.aparatos": "src/lib/electrodomesticos.js" };
+const DUENO_DE = {
+  "vocabularios.aparatos": "src/lib/electrodomesticos.js",
+  "receta.healthFlags": "src/lib/healthFlags.js",
+};
 
 /**
  * Las listas entre corchetes hechas solo de textos entre comillas. No cuentan
