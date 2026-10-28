@@ -41,6 +41,13 @@ if (process.argv.includes("--json")) {
 } else {
   const casa = inv.filas.filter((f) => f.id.startsWith("casa.")).length;
   console.log(`Datos registrados: ${inv.filas.length} (casa ${casa}, persona ${inv.filas.length - casa})${guardadas ? `; en la base: casa ${guardadas.casa.size}, persona ${guardadas.persona.size}` : ""}.`);
+  // La sincronía por parte del producto: cuántos hechos activos ve cada lado.
+  console.log("\nPor parte (hechos activos en data: los ve la app · los ve Lola · los ven los dos):");
+  const activos = inv.filas.filter((f) => f.estado === "activo" && f.vive === "data");
+  for (const m of [...new Set(activos.map((f) => f.modulo))]) {
+    const de = activos.filter((f) => f.modulo === m);
+    console.log(`  ${m.padEnd(9)} ${de.length} datos · app ${de.filter((f) => f.app).length} · Lola ${de.filter((f) => f.lola).length} · los dos ${de.filter((f) => f.app && f.lola).length}`);
+  }
   console.log("\nErrores del registro (deben ser 0):", JSON.stringify(Object.fromEntries(ERRORES.map((f) => [f, inv.cifras[f]]))));
   for (const f of ERRORES) for (const x of inv.fallos[f]) console.log(`  [${f}] ${x}`);
   console.log("\nDeuda del modelo (solo baja):", JSON.stringify(Object.fromEntries(DEUDA.map((f) => [f, inv.cifras[f]]))));

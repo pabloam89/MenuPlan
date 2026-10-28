@@ -20,7 +20,10 @@
  *   enum_sin_vocabulario  un enum o lista_enum sin su lista en vocabularios.js
  *   copia                 un dato que se deriva de otro y se guarda aparte
  *   legado                un dato sustituido que sigue guardado
- *   lola_no_lo_ve         un hecho activo de la casa que Lola (api/) no nombra
+ *   lola_no_lo_ve         un hecho activo de la casa que Lola (api/) no nombra:
+ *                         no puede contarlo ni cambiarlo al hablar
+ *   app_no_lo_ve          un hecho activo que ninguna pantalla de la app nombra
+ *                         (src/screens, src/components, App.jsx)
  *   sin_tabular           un objeto, mapa o lista abierta (no se puede contar)
  *
  * Los tres primeros son errores del registro y deben ser 0. Los demás son
@@ -31,7 +34,7 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 
-export const FALLOS = ["sin_registro", "sin_lector", "de_roto", "sin_declarar", "enum_sin_vocabulario", "copia", "legado", "lola_no_lo_ve", "sin_tabular"];
+export const FALLOS = ["sin_registro", "sin_lector", "de_roto", "sin_declarar", "enum_sin_vocabulario", "copia", "legado", "lola_no_lo_ve", "app_no_lo_ve", "sin_tabular"];
 export const ERRORES = FALLOS.slice(0, 3);
 export const DEUDA = FALLOS.slice(3);
 
@@ -76,7 +79,7 @@ const nombra = (k) => new RegExp(String.raw`(\.|\?\.|\[["'])${k}\b|\b${k}\s*[:=]
  */
 export async function inventario(raiz, { guardadas = null } = {}) {
   const url = (f) => new URL(`file:///${join(raiz, f).replaceAll("\\", "/")}`).href;
-  const { DATOS_CASA, DATOS_PERSONA, TIPOS, SIN_TABULAR } = await import(url("src/lib/registroFicha.js"));
+  const { DATOS_CASA, DATOS_PERSONA, TIPOS, SIN_TABULAR, moduloDe } = await import(url("src/lib/registroFicha.js"));
   const { VOCABULARIOS } = await import(url("src/lib/vocabularios.js"));
   const { CAMPOS_CON_COLUMNA } = await import(url("src/lib/personasTabla.js"));
 
@@ -100,6 +103,7 @@ export async function inventario(raiz, { guardadas = null } = {}) {
       const re = nombra(k);
       const lectores = codigo.filter(([, t]) => re.test(t)).map(([f]) => f);
       const lola = lectores.filter((f) => f.startsWith("api/"));
+      const enApp = lectores.filter((f) => /^src\/(screens|components)\/|^src\/App\.jsx$/.test(f));
       if (enData && d.estado === "activo" && lectores.length === 0) fallos.sin_lector.push(id);
       for (const ref of [d.de, d.otros].filter(Boolean)) {
         // «members.x» es un dato de la persona; lo demás, de su ámbito o de la casa.
@@ -110,8 +114,9 @@ export async function inventario(raiz, { guardadas = null } = {}) {
       if (d.estado === "copia") fallos.copia.push(`${id} ← ${d.de}`);
       if (d.estado === "legado") fallos.legado.push(id);
       if (enData && d.estado === "activo" && lola.length === 0) fallos.lola_no_lo_ve.push(id);
+      if (enData && d.estado === "activo" && enApp.length === 0) fallos.app_no_lo_ve.push(id);
       if (SIN_TABULAR.includes(d.tipo) && d.estado !== "legado") fallos.sin_tabular.push(id);
-      filas.push({ id, ...d, lectores: lectores.length, lola: lola.length });
+      filas.push({ id, ...d, modulo: moduloDe(d), lectores: lectores.length, lola: lola.length, app: enApp.length });
     }
   }
   const cifras = Object.fromEntries(FALLOS.map((f) => [f, fallos[f].length]));
