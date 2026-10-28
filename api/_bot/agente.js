@@ -50,7 +50,8 @@ import { pintarMenuEntero, filtrosTrasGenerar, filtrosTrasCambiar, sinEtiquetas 
 import { fechasDe, CUANDOS } from "./cuando.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, IDS_PLATOS } from "../../src/lib/comidas.js";
 import { KITCHEN_TOOL_IDS } from "../../src/lib/electrodomesticos.js";
-import { NIVEL_COCINA, RITMO_COCINA, ETAPA_BEBE, DONDE_COME, CANAL, paraEscribir } from "../../src/lib/vocabularios.js";
+import { NIVEL_COCINA, RITMO_COCINA, ETAPA_BEBE, DONDE_COME, CANAL, APARATOS, paraEscribir } from "../../src/lib/vocabularios.js";
+import { enOrden } from "../../src/lib/enOrden.js";
 import { ESQUEMA_DE_FUERA } from "./deFuera.js";
 import { verDespensa, anadirDespensa } from "./despensa.js";
 import { guardarMenuCole, verMenuCole } from "./cole.js";
@@ -532,7 +533,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
         estructura: { type: "string", enum: ["primero_segundo", "1_plato"] },
         esfuerzo: { type: "string", enum: NIVEL_COCINA },
         tiempo: { type: "string", enum: RITMO_COCINA },
-        trastos: { type: "array", items: { type: "string", enum: ["Airfryer", "Horno", "Microondas", "Thermomix", "Olla rápida", "Vaporera"] } },
+        trastos: { type: "array", items: { type: "string", enum: enOrden(APARATOS, ["Airfryer", "Horno", "Microondas", "Thermomix"]) } },
         comidas: { type: "array", items: { type: "string", enum: COMIDAS_PRINCIPALES }, description: "Qué comidas se planifican." },
         etapaBebe: { type: "string", enum: ETAPA_BEBE, description: "Qué come el bebé: cremas (solo purés), mixto (de todo) o solidos (ya come sólidos). Apúntalo en cuanto lo digan («ya come sólidos»), antes de proponerle nada." },
       }),

@@ -25,6 +25,8 @@
  * es «niños».
  */
 
+import { PICANTE_PEDIDO } from "../data/recipeSchema.js";
+
 export const sinTildes = (s) => String(s ?? "").toLowerCase().normalize("NFD").replace(/\p{M}/gu, "");
 
 const ingredientes = (r) => sinTildes((r.ingredients ?? []).map((i) => i?.name ?? "").join(" | "));
@@ -115,7 +117,7 @@ export function cumple(r, { campo, valor }) {
     case "textura": return r.textura === valor;
     case "temperatura": return r.temperatura === valor;
     case "tecnica": return r.tecnica === valor;
-    case "picante": return valor === "con" ? !!r.picante && r.picante !== "no" : r.picante === "no";
+    case "picante": return (PICANTE_PEDIDO[valor] ?? []).includes(r.picante);
     case "sabor": return (r.sabor ?? []).includes(valor);
     case "calorias": return r.caloriasNivel === valor;
     case "coste": return r.costeNivel === valor;

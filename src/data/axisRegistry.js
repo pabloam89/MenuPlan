@@ -67,6 +67,9 @@
  * el catálogo, y el test los vuelve a contar para que no se queden viejos.
  */
 
+// Los vocabularios se importan de su dueño, nunca se copian (#939).
+import { CONNOTACIONES, FORMATOS, TECNICAS, TEMPERATURAS, TEXTURAS } from "./recipeSchema.js";
+
 /** @typedef {"enum"|"jerarquico"|"tags"|"numerico"|"booleano"|"derivado"} TipoEje */
 /** @typedef {"activo"|"silencioso"|"sin_lector"|"sin_datos"} EstadoEje */
 
@@ -142,21 +145,21 @@ export const EJES = [
     n: 6, id: "formato", nombre: "Formato",
     ambito: AMBITO.RECETA, tipo: "enum", estado: "sin_lector",
     campo: "formato",
-    vocabulario: ["ensalada", "sopa", "cremoso", "guiso", "plato_seco"],
+    vocabulario: FORMATOS,
     consumidores: [], cobertura: 0.725,
     nota: "Disfrazado en `category`. Es ORTOGONAL a todo lo demás: hay ensaladas de pasta y ensaladas de legumbre. Entre nueve legumbres conviven «Lentejas con verduras» (guiso caliente) y «Ensalada de garbanzos con chorizo» (fría) con la MISMA firma en todos los ejes existentes: les separan formato y temperatura. — VOCABULARIO REHECHO antes de poblarlo, y ese orden importa: el primero (ensalada · guiso · sopa · plato_seco · montaje · masa · bol) se probó contra 31 recetas reales y dio 52 % de encaje único, con 4 sin ningún valor posible y 11 con dos. Cometía el pecado de `category` — mezclaba hidratación (guiso/sopa/seco) con estructura (masa/montaje) y con recipiente (bol) —, así que `masa` y `montaje` salen a ejes propios (46 y 47: la empanada es masa sin montaje, el pan tumaca montaje sin masa, la lasaña las dos), `bol` se cae por ser dónde se sirve y no cómo se hace, y entra `cremoso`, que faltaba para las 65 recetas que empiezan por «Puré» o «Crema». `salsa` no entra: la tiene ya el eje 45. Y el ámbito pasa a PARTE, que es lo que resuelve «Lomo a la plancha CON ENSALADA» — principal seco, guarnición ensalada — y era el mismo error que el eje 45 existe para arreglar, cometido aquí. — POBLADO el 22 sep por derive/formato.js: 749 de 1.033, y se ABSTIENE en 284. La abstención no es pereza: 172 de esas son recetas de olla sin señal en el nombre, y en olla conviven «Brócoli al vapor» y «Ternera guisada» sin nada que las separe. El valor escrito es el de la receta ENTERA, que es el de su parte principal; cuando el eje 45 suba del 17 % pasará a calcularse por parte de verdad. — ÁMBITO CORREGIDO A RECETA el 22 sep, y es una rectificación: se declaró PARTE porque es lo que el eje DEBERÍA ser, pero `formato` no existe en ninguno de los 12.105 pasos de `stepsRich` —solo hay text, kind, minutes, part, base y during—, así que era exactamente el error que el eje 46 explica haber evitado, cometido aquí por querer adelantar el futuro. El ámbito describe dónde vive el dato, no dónde nos gustaría que viviera. Vuelve a PARTE el día que haya un `stepsRich[].formato` de verdad.",
   },
   {
     n: 7, id: "temperatura", nombre: "Temperatura de servicio",
     ambito: AMBITO.RECETA, tipo: "enum", estado: "sin_lector",
-    campo: "temperatura", vocabulario: ["caliente", "templado", "frio"],
+    campo: "temperatura", vocabulario: TEMPERATURAS,
     consumidores: [], cobertura: 0.887,
     nota: "Poblado el 22 sep 2026 por derive/formato.js: 916 de 1.033. La técnica lo da casi entero —lo que se cocina se sirve caliente— y el nombre manda sobre ella, porque un escabeche se cocina y se come frío. Se abstiene en las 117 sin técnica. Queda SIN_LECTOR a propósito: el dato está y todavía no lo lee nadie, y el registro lo dice en vez de dejar que se pudra en silencio. Su primer lector natural es filterRecipes, para poder pedir «algo frío».",
   },
   {
     n: 8, id: "textura", nombre: "Textura",
     ambito: AMBITO.RECETA, tipo: "enum", estado: "activo",
-    campo: "textura", vocabulario: ["cuchara", "tenedor", "mano"],
+    campo: "textura", vocabulario: TEXTURAS,
     consumidores: ["menu.js"], cobertura: 0.723,
     nota: "Cómo se come: cuchara, tenedor, mano. Todo el Recetario Estrella (30 sep 2026, scripts/recetas-atributos-blandos.mjs: dos pasadas y un juez). La lee el bot al recomendar («de cuchara»). Antes solo implícita en `etapaBebe`.",
   },
@@ -191,7 +194,7 @@ export const EJES = [
   {
     n: 13, id: "connotacion", nombre: "Connotación emocional",
     ambito: AMBITO.RECETA, tipo: "tags", estado: "activo",
-    campo: "connotacion", vocabulario: ["reconfortante", "fresco", "casero", "festivo"],
+    campo: "connotacion", vocabulario: CONNOTACIONES,
     consumidores: ["menu.js"], cobertura: 0.716,
     nota: "Responde a «algo reconfortante», que es una petición real. Todo el Recetario Estrella desde el 30 sep 2026 (scripts/recetas-atributos-blandos.mjs); la lee el bot al recomendar.",
   },
@@ -254,7 +257,7 @@ export const EJES = [
   {
     n: 23, id: "tecnica", nombre: "Técnica",
     ambito: AMBITO.RECETA, tipo: "enum", estado: "activo",
-    campo: "tecnica", vocabulario: ["olla", "sarten", "horno", "plancha", "crudo"],
+    campo: "tecnica", vocabulario: TECNICAS,
     consumidores: ["sesgos", "menuRecuento", "notepad", "panelParser"], cobertura: 0.883,
     nota: "Le FALTA `fritura`, está al 0 % en guarniciones y tiene valores falsos. 121 recetas sin técnica.",
   },

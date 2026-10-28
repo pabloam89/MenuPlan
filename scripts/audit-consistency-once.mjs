@@ -6,6 +6,7 @@
 import { readFileSync, readdirSync } from "fs";
 import { join, dirname, basename } from "path";
 import { fileURLToPath } from "url";
+import { ALLERGENS, DIFFICULTIES } from "../src/data/recipeSchema.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const RECIPES_DIR = join(__dirname, "..", "src", "data", "recipes");
@@ -13,11 +14,8 @@ const RECIPES_DIR = join(__dirname, "..", "src", "data", "recipes");
 const VALID_APPLIANCES = new Set([
   "airfryer", "horno", "thermomix", "vaporera", "olla_express", "microondas",
 ]);
-const VALID_DIFFICULTIES = new Set(["elaborada", "facil", "normal"]);
-const VALID_ALLERGENS = new Set([
-  "frutos_secos", "gluten", "huevo", "lactosa", "marisco", "moluscos",
-  "pescado", "sesamo", "cacahuetes", "soja", "apio", "mostaza", "sulfitos", "altramuces",
-]);
+const VALID_DIFFICULTIES = new Set(DIFFICULTIES);
+const VALID_ALLERGENS = new Set(ALLERGENS);
 const OFF_MENU_CATEGORIES = new Set(["desayunos", "meriendas", "postres", "bebes"]);
 const OFF_MENU_ROLES = new Set(["desayuno", "merienda", "postre"]);
 

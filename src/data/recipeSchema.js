@@ -94,6 +94,9 @@ const TECNICAS = ["horno", "plancha", "sarten", "olla", "crudo"];
 const CONNOTACIONES = ["reconfortante", "fresco", "casero", "festivo"];
 const TEXTURAS = ["cuchara", "tenedor", "mano"];
 const PICANTES = ["no", "suave", "picante"];
+// Cómo se pide: «que no pique» o «que pique». Cada forma de pedirlo agrupa
+// niveles guardados; entre las dos los cubren todos (lo comprueba su test).
+const PICANTE_PEDIDO = { sin: ["no"], con: ["suave", "picante"] };
 const SABORES = ["suave", "intenso", "especiado", "dulce", "acido", "ahumado"];
 
 const COCINAS = [
@@ -243,9 +246,21 @@ const MEAL_ROLES = [
   "base",
 ];
 
-const DIFFICULTIES = ["elaborada", "facil", "normal"];
+const DIFFICULTIES = ["facil", "normal", "elaborada"];
 
-const SEASONS = ["all", "invierno", "verano"];
+// Lo que aporta el plato al reparto semanal (override de lib/aporte.js).
+const APORTES = ["carne", "pescado", "legumbres", "huevos", "pasta_arroz", "patata", "verdura"];
+const BASE_MODES = ["aparte", "dentro"];
+const OCCASIONS = ["diario", "especial"];
+const FORMATOS = ["ensalada", "sopa", "cremoso", "guiso", "plato_seco"];
+const TEMPERATURAS = ["caliente", "templado", "frio"];
+// La textura del plato para el bebé. La etapa de la persona (vocabularios.js
+// ETAPAS_BEBE) añade «mixto»: come de las dos.
+const ETAPAS_BEBE_RECETA = ["cremas", "solidos"];
+const EFFORTS = ["inmediato", "cazo", "horno"];
+const DESSERT_KINDS = ["fruta", "yogur"];
+
+const SEASONS = ["all", "verano", "invierno"];
 
 // The 14 UE allergens. The first 8 are the historical catalog vocabulary
 // (marisco = crustáceos, huevo = huevos, lactosa = leche, frutos_secos =
@@ -387,9 +402,7 @@ export const RecipeSchema = z
     // llega disuelto en salsa). Este campo es el override a mano para cuando la
     // derivación se equivoque, igual que `mainBase` manda sobre el regex en
     // `getCarbType`. Escribirlo apaga la derivación entera para esa receta.
-    aporte: z.array(z.enum([
-      "carne", "pescado", "legumbres", "huevos", "pasta_arroz", "patata", "verdura",
-    ])).optional(),
+    aporte: z.array(z.enum(APORTES)).optional(),
     // ¿La base se cocina APARTE del plato, o DENTRO de él?
     //
     // Es la distinción que hace posible el batch cooking y la única que
@@ -408,7 +421,7 @@ export const RecipeSchema = z
     // receta de base. Ausente = sin decidir todavía, que NO es lo mismo que
     // "dentro": el generador de sesiones ignora lo que no está marcado en vez
     // de suponer (ver lib/bases.js).
-    baseMode: z.enum(["aparte", "dentro"]).optional(),
+    baseMode: z.enum(BASE_MODES).optional(),
     // ── Preparaciones batcheables que NO son fécula ────────────────────────
     // `mainBase` responde "¿qué hidrato lleva este plato?" y alimenta carbType
     // y las reglas de variedad. El sofrito no es un hidrato, y un plato puede
@@ -481,7 +494,7 @@ export const RecipeSchema = z
     // Se marca a MANO, como `estrella` y `montaje`: no se puede derivar de
     // precio (no está en el catálogo), ni de tiempo (las navajas son 10 min),
     // ni de dificultad (son fáciles). Ausente = plato de diario.
-    occasion: z.enum(["diario", "especial"]).optional(),
+    occasion: z.enum(OCCASIONS).optional(),
     // ¿Es de los que un niño PIDE? `kidFriendly` dice lo que PUEDE comer, y
     // por eso está al 88% del catálogo: como filtro no distingue nada. Esto es
     // lo otro — los míticos (filetes empanados, macarrones con tomate,
@@ -534,8 +547,8 @@ export const RecipeSchema = z
     // puede decidir —284 recetas sin formato, casi todas de olla, donde
     // conviven el vapor y el estofado sin nada que los separe—, y por eso van
     // opcionales: el hueco es una respuesta y tiene que poder existir.
-    formato: z.enum(["ensalada", "sopa", "cremoso", "guiso", "plato_seco"]).optional(),
-    temperatura: z.enum(["caliente", "templado", "frio"]).optional(),
+    formato: z.enum(FORMATOS).optional(),
+    temperatura: z.enum(TEMPERATURAS).optional(),
     // El plato TRAE salsa escrita dentro. No es `sauceId` —que fija UNA salsa
     // concreta a mano y no lo usa nadie— sino "esto es un plato de salsa".
     //
@@ -592,7 +605,7 @@ export const RecipeSchema = z
     // encierra al grupo bebé en su propia categoría.
     //
     // Ausente = "cremas", que es lo que eran las 19 originales.
-    etapaBebe: z.enum(["cremas", "solidos"]).optional(),
+    etapaBebe: z.enum(ETAPAS_BEBE_RECETA).optional(),
     // "Cena rápida" de verdad: se MONTA con cosas ya listas (sándwich, tostas,
     // tabla, ensalada de asamblaje). Sustituye a category "cenas_rapidas".
     //
@@ -754,9 +767,9 @@ export const RecipeSchema = z
     productAliases: z.array(z.string().min(1)).optional(),
     // Off-menu postre effort. Optional so comida/cena recipes stay untouched.
     // inmediato = yogur/fruta; cazo = arroz con leche/natillas; horno = flan/tarta.
-    effort: z.enum(["inmediato", "cazo", "horno"]).optional(),
+    effort: z.enum(EFFORTS).optional(),
     // Only for effort "inmediato": the fruta vs yogur micro-toggle.
-    dessertKind: z.enum(["fruta", "yogur"]).optional(),
+    dessertKind: z.enum(DESSERT_KINDS).optional(),
   })
   .superRefine((recipe, ctx) => {
     const { type, mealRole, id } = recipe;
@@ -1029,7 +1042,8 @@ export function effectiveRecipeTime(recipe, eaters) {
   return recipe.time * (1 + 0.12 * extra);
 }
 
-export { CONNOTACIONES, TEXTURAS, PICANTES, SABORES };
+export { CONNOTACIONES, TEXTURAS, PICANTES, PICANTE_PEDIDO, SABORES };
+export { ALLERGENS, APORTES, BASE_MODES, CATEGORIES, DESSERT_KINDS, DIFFICULTIES, EFFORTS, ETAPAS_BEBE_RECETA, FORMATOS, HEALTH_FLAGS, MEAL_ROLES, OCCASIONS, SEASONS, TEMPERATURAS, TYPES };
 export { CARB_TYPE_BY_BASE, COCINAS, DEPRECATED_CATEGORIES, MAIN_BASES, MAIN_INGREDIENTS, MAIN_PROTEINS, PROTEIN_GROUP_BY_MAIN_PROTEIN, SAUCE_COMPAT_TAGS, TECNICAS };
 
 /**

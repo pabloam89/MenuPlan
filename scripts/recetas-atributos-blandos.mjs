@@ -27,6 +27,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { leerEnv } from "./lib/env.mjs";
+import { CONNOTACIONES, OCCASIONS, PICANTES, SABORES, TEXTURAS } from "../src/data/recipeSchema.js";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const OUT = path.join(ROOT, "output");
@@ -37,11 +38,11 @@ const LOTE = 15;
 const CONCURRENCIA = Number(process.env.CONCURRENCIA ?? 3);
 
 export const VOCAB = {
-  connotacion: ["reconfortante", "fresco", "casero", "festivo"],
-  textura: ["cuchara", "tenedor", "mano"],
-  picante: ["no", "suave", "picante"],
-  sabor: ["suave", "intenso", "especiado", "dulce", "acido", "ahumado"],
-  occasion: ["diario", "especial"],
+  connotacion: CONNOTACIONES,
+  textura: TEXTURAS,
+  picante: PICANTES,
+  sabor: SABORES,
+  occasion: OCCASIONS,
 };
 const LISTAS = ["connotacion", "sabor"];
 const CAMPOS = ["connotacion", "textura", "picante", "sabor", "occasion", "kidFavourite"];

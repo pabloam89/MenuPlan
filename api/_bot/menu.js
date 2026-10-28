@@ -22,6 +22,7 @@ import { propiasDe } from "./propias.js";
 import { rastro } from "./embudo.js";
 import { cargaMedida } from "./medidaTurno.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, COMIDAS, comidaDe } from "../../src/lib/comidas.js";
+import { PICANTE_PEDIDO } from "../../src/data/recipeSchema.js";
 import { DIAS, DIA_LARGO_MINUSCULAS as DIA_LARGO, diaDeISO, hoyDeCasa } from "../../src/lib/dias.js";
 import { RASTRO, MOTIVO_CAMBIO, idBase } from "../../src/lib/rastro.js";
 import { restriccionesDeFuera, conQuienViene, describirDeFuera } from "./deFuera.js";
@@ -813,8 +814,7 @@ export function conRasgos(lista, rasgos) {
   const pruebas = [
     r.connotacion && ((x) => (x.connotacion ?? []).includes(r.connotacion)),
     r.textura && ((x) => x.textura === r.textura),
-    r.picante === "sin" && ((x) => x.picante === "no"),
-    r.picante === "con" && ((x) => x.picante === "suave" || x.picante === "picante"),
+    PICANTE_PEDIDO[r.picante] && ((x) => PICANTE_PEDIDO[r.picante].includes(x.picante)),
     r.sabor && ((x) => (x.sabor ?? []).includes(r.sabor)),
     r.coste && ((x) => x.costeNivel === r.coste),
     r.calorias && ((x) => x.caloriasNivel === r.calorias),
