@@ -520,6 +520,14 @@
     "user_recipes.steps": {
       "class": "free_text",
       "reason": "Mensaje, nota o descripción que escribe la persona"
+    },
+    "receta_descartes.anon_id": {
+      "class": "identifier",
+      "reason": "Id aleatorio por navegador del invitado, el mismo de /api/track; sin FK porque es de fuera"
+    },
+    "receta_descartes.receta_id": {
+      "class": "identifier",
+      "reason": "Id de receta del catálogo del bundle (src/data), sin FK: el catálogo vive en git"
     }
   }
 }
