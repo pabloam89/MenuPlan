@@ -6,7 +6,7 @@ import ingredientes from "../data/ingredients.json";
 import alimentoPorIngrediente from "../data/alimentoPorIngrediente.json";
 import aprendidos from "../data/sinonimosAprendidos.json";
 import {
-  CONNOTACIONES, DIFFICULTIES, MAIN_BASES, MAIN_PROTEINS, PICANTE_PEDIDO, SABORES, TECNICAS, TEXTURAS,
+  CONNOTACIONES, DIFFICULTIES, MAIN_BASES, MAIN_INGREDIENTS, MAIN_PROTEINS, PICANTE_PEDIDO, SABORES, TECNICAS, TEXTURAS,
 } from "../data/recipeSchema.js";
 import { EJE_POR_ID } from "../data/axisRegistry.js";
 import { NIVELES_COSTE } from "./costeNiveles.js";
@@ -32,6 +32,9 @@ const VALORES = {
   coste: NIVELES_COSTE,
   dificultad: DIFFICULTIES,
   taper: [true], ninos: [true], congelar: [true], hierro: [true],
+  gruposSecundarios: MAIN_INGREDIENTS,
+  // Los alimentos concretos son los del árbol: lo escrito a mano no inventa ninguno.
+  alimento: derivado.filter((x) => x.eje === "alimento").map((x) => x.valor),
 };
 
 describe("el diccionario (#939, fase 3)", () => {
@@ -86,6 +89,18 @@ describe("el diccionario (#939, fase 3)", () => {
     expect(resolver("algo bonito para los invitados").some((r) => r.rasgo === "grupo")).toBe(false);
     expect(resolver("con salsa de soja").some((r) => r.valor === "legumbre")).toBe(false);
     expect(Object.values(NO_SON_FORMAS).every((m) => typeof m === "string" && m.length > 5)).toBe(true);
+  });
+
+  it("verduras, lácteos y demás: el grupo y el alimento concreto, sin pisarse", () => {
+    const r = (frase) => resolver(frase).map((x) => `${x.rasgo}=${x.valor}`);
+    expect(r("algo con verdura")).toContain("grupo=verdura");
+    expect(r("una ensalada con feta")).toContain("alimento=queso");
+    expect(r("unos guisantes")).toContain("alimento=guisante");
+    // «sin ajo» es el ajo, no la verdura entera: el grupo no toma formas del árbol.
+    expect(r("sin ajo")).not.toContain("grupo=verdura");
+    const de = new Map();
+    for (const e of entradas().filter((x) => x.rasgo === "alimento")) for (const f of e.formas.keys()) de.set(f, [...(de.get(f) ?? []), e.valor]);
+    expect([...de].filter(([, vs]) => vs.length > 1)).toEqual([]);
   });
 
   it("lo aprendido trae rasgo, valor, forma, quién y cuándo", () => {

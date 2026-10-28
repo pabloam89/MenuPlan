@@ -69,7 +69,7 @@
 
 // Los vocabularios se importan de su dueño, nunca se copian (#939).
 import {
-  ALLERGENS, APORTES, BASE_MODES, CATEGORIES, CONNOTACIONES, DESSERT_KINDS, DIFFICULTIES, EFFORTS, ETAPAS_BEBE_RECETA, FORMATOS, MAIN_BASES, MAIN_PROTEINS, MEAL_ROLES, OCCASIONS, PICANTES, SABORES, SAUCE_COMPAT_TAGS, SEASONS, TECNICAS, TEMPERATURAS, TEXTURAS, TYPES,
+  ALLERGENS, APORTES, BASE_MODES, CATEGORIES, CONNOTACIONES, DESSERT_KINDS, DIFFICULTIES, EFFORTS, ETAPAS_BEBE_RECETA, FORMATOS, MAIN_BASES, MAIN_INGREDIENTS, MAIN_PROTEINS, MEAL_ROLES, OCCASIONS, PICANTES, SABORES, SAUCE_COMPAT_TAGS, SEASONS, TECNICAS, TEMPERATURAS, TEXTURAS, TYPES,
 } from "./recipeSchema.js";
 import { APARATOS_DE_RECETA } from "../lib/electrodomesticos.js";
 import { NIVELES_COSTE } from "../lib/costeNiveles.js";
@@ -429,10 +429,10 @@ export const EJES = [
   },
   {
     n: 48, id: "gruposSecundarios", nombre: "Grupos de alimento secundarios (verdura, lácteo, fruta, frutos secos, seta, encurtido)",
-    ambito: AMBITO.RECETA, tipo: "tags", estado: "sin_lector",
-    campo: "mainIngredients", vocabulario: null,
-    consumidores: [], cobertura: 0.644,
-    nota: "EL PEOR CASO DEL CATÁLOGO, y estaba sin declarar. `mainIngredients` tiene 665 recetas rellenas, enum en el esquema, columna en Supabase y sincronización… y CERO lectores: el único sitio del código donde aparece la palabra fuera del esquema y del sync es una variable local del mismo nombre en `recipes.js`, que no tiene nada que ver. Es `mainBase` con el doble de cobertura y sin el consuelo de estar documentado. Se declara aquí para que deje de ser invisible: o alguien lo lee, o se borra — la regla del documento es que todo campo declara su consumidor y si no tiene, se va.",
+    ambito: AMBITO.RECETA, tipo: "tags", estado: "activo",
+    campo: "mainIngredients", vocabulario: MAIN_INGREDIENTS,
+    consumidores: ["rasgosBusqueda"], cobertura: 0.644,
+    nota: "EL PEOR CASO DEL CATÁLOGO, y estaba sin declarar. `mainIngredients` tiene 665 recetas rellenas, enum en el esquema, columna en Supabase y sincronización… y CERO lectores: el único sitio del código donde aparece la palabra fuera del esquema y del sync es una variable local del mismo nombre en `recipes.js`, que no tiene nada que ver. Es `mainBase` con el doble de cobertura y sin el consuelo de estar documentado. Se declara aquí para que deje de ser invisible: o alguien lo lee, o se borra — la regla del documento es que todo campo declara su consumidor y si no tiene, se va. LECTOR desde el 28 oct 2026 (#939): el buscador (rasgosBusqueda.js), para «algo con verdura», «sin lácteos», «con setas».",
   },
 
   // ── Lo que salió de la auditoría de estrella (49) ────────────────────────

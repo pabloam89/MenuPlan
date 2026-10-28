@@ -1,5 +1,845 @@
 [
  {
+  "eje": "alimento",
+  "valor": "acai",
+  "formas": [
+   "acai",
+   "acais"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "acelga",
+  "formas": [
+   "acelga",
+   "acelgas"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "aguacate",
+  "formas": [
+   "aguacate",
+   "aguacates"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "ajete",
+  "formas": [
+   "ajete",
+   "ajetes",
+   "ajetes tiernos"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "aji",
+  "formas": [
+   "aji",
+   "aji amarillo",
+   "ajis"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "ajo",
+  "formas": [
+   "ajo",
+   "ajo en polvo",
+   "ajo negro",
+   "ajos",
+   "cabeza de ajos"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "alcachofa",
+  "formas": [
+   "alcachofa",
+   "alcachofas",
+   "corazones de alcachofa"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "alcaparra",
+  "formas": [
+   "alcaparra",
+   "alcaparras"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "almendra",
+  "formas": [
+   "almendra",
+   "almendra molida",
+   "almendra tostada",
+   "almendras",
+   "almendras crudas",
+   "almendras laminadas",
+   "almendras tostadas"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "apio",
+  "formas": [
+   "apio",
+   "apio crudo",
+   "apios"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "apionabo",
+  "formas": [
+   "apionabo",
+   "apionabos"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "arandano",
+  "formas": [
+   "arandano",
+   "arandanos"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "avellana",
+  "formas": [
+   "avellana",
+   "avellana tostada",
+   "avellanas",
+   "avellanas tostadas",
+   "hazelnut grilled"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "berenjena",
+  "formas": [
+   "berenjena",
+   "berenjenas"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "boniato",
+  "formas": [
+   "boniato",
+   "boniato crudo",
+   "boniatos"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "brocoli",
+  "formas": [
+   "brocoli",
+   "brocolis"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "cacahuete",
+  "formas": [
+   "cacahuete",
+   "cacahuetes",
+   "cacahuetes tostados",
+   "mantequilla de cacahuete",
+   "peanut grilled salted"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "calabacin",
+  "formas": [
+   "calabacin",
+   "calabacines"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "calabaza",
+  "formas": [
+   "calabaza",
+   "calabaza cruda",
+   "calabazas"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "canonigo",
+  "formas": [
+   "canonigo",
+   "canonigos"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "castaña",
+  "formas": [
+   "castana",
+   "castanas",
+   "castanas cocidas"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "cebolla",
+  "formas": [
+   "cebolla",
+   "cebolla dulce",
+   "cebolla morada",
+   "cebolla roja",
+   "cebollas"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "cebolleta",
+  "formas": [
+   "cebolleta",
+   "cebolletas"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "chalota",
+  "formas": [
+   "chalota",
+   "chalotas"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "chile",
+  "formas": [
+   "chile",
+   "chile fresco",
+   "chile jalapeno",
+   "chiles"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "ciruela",
+  "formas": [
+   "ciruela",
+   "ciruelas",
+   "ciruelas pasas"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "coco",
+  "formas": [
+   "coco",
+   "coco rallado",
+   "cocos",
+   "leche de coco"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "col",
+  "formas": [
+   "col",
+   "col china",
+   "col kale",
+   "coles",
+   "coles de bruselas"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "coliflor",
+  "formas": [
+   "coliflor",
+   "coliflor entera",
+   "coliflores"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "endivia",
+  "formas": [
+   "endivia",
+   "endivias"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "esparrago",
+  "formas": [
+   "esparrago",
+   "esparragos",
+   "esparragos trigueros",
+   "esparragos verdes"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "espinaca",
+  "formas": [
+   "espinaca",
+   "espinaca fresca",
+   "espinacas",
+   "espinacas baby",
+   "espinacas frescas"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "fresa",
+  "formas": [
+   "fresa",
+   "fresas"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "granada",
+  "formas": [
+   "granada",
+   "granada arilos",
+   "granadas"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "grelo",
+  "formas": [
+   "grelo",
+   "grelos"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "guindilla",
+  "formas": [
+   "cayena",
+   "cayena molida",
+   "cayenas",
+   "copos de guindilla",
+   "guindilla",
+   "guindilla en copos",
+   "guindilla fresca",
+   "guindilla roja",
+   "guindilla seca",
+   "guindillas"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "guisante",
+  "formas": [
+   "guisante",
+   "guisantes",
+   "guisantes cocidos",
+   "guisantes congelados"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "higo",
+  "formas": [
+   "higo",
+   "higos",
+   "higos frescos"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "hinojo",
+  "formas": [
+   "hinojo",
+   "hinojos"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "jengibre",
+  "formas": [
+   "jengibre",
+   "jengibre fresco",
+   "jengibre fresco rallado",
+   "jengibres"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "judia",
+  "formas": [
+   "judia",
+   "judia verde",
+   "judia verde plana",
+   "judias",
+   "judias verdes"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "kefir",
+  "formas": [
+   "kefir",
+   "kefires"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "leche",
+  "formas": [
+   "leche",
+   "leche condensada",
+   "leche entera",
+   "leches",
+   "milk whole uht",
+   "suero de leche"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "lechuga",
+  "formas": [
+   "lechuga",
+   "lechuga romana",
+   "lechuga variada",
+   "lechugas",
+   "lechugas variadas"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "lima",
+  "formas": [
+   "lima",
+   "lima zumo",
+   "limas"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "limon",
+  "formas": [
+   "limon",
+   "limones",
+   "ralladura de limon"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "lombarda",
+  "formas": [
+   "lombarda",
+   "lombardas"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "maiz",
+  "formas": [
+   "maiz",
+   "maiz cocido",
+   "maiz dulce",
+   "maiz dulce cocido",
+   "maiz tostado",
+   "maizes"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "mango",
+  "formas": [
+   "mango",
+   "mango congelado",
+   "mango crudo",
+   "mango maduro",
+   "mangos"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "mantequilla",
+  "formas": [
+   "mantequilla",
+   "mantequillas"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "manzana",
+  "formas": [
+   "manzana",
+   "manzana acida",
+   "manzana golden",
+   "manzana reineta",
+   "manzana verde",
+   "manzanas"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "melocoton",
+  "formas": [
+   "melocoton",
+   "melocotones"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "melon",
+  "formas": [
+   "melon",
+   "melones"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "nabo",
+  "formas": [
+   "nabo",
+   "nabo pelado crudo",
+   "nabos"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "naranja",
+  "formas": [
+   "naranja",
+   "naranjas",
+   "ralladura de naranja"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "nata",
+  "formas": [
+   "nata",
+   "nata liquida",
+   "nata para cocinar",
+   "nata para montar",
+   "natas"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "nuece",
+  "formas": [
+   "nuece",
+   "nueces",
+   "nuez",
+   "nuezes"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "pasa",
+  "formas": [
+   "pasa",
+   "pasas",
+   "raisin",
+   "raisines",
+   "uvas pasas"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "patata",
+  "formas": [
+   "patata",
+   "patata baby",
+   "patata cruda",
+   "patata grande",
+   "patatas"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "pepinillo",
+  "formas": [
+   "pepinillo",
+   "pepinillos",
+   "pepinillos en rodajas",
+   "pepinillos en vinagre",
+   "pepinillos encurtidos"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "pepino",
+  "formas": [
+   "pepino",
+   "pepinos"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "pera",
+  "formas": [
+   "pera",
+   "peras"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "pimiento",
+  "formas": [
+   "nora hidratada",
+   "paprika",
+   "paprikas",
+   "pimiento",
+   "pimiento amarillo",
+   "pimiento choricero",
+   "pimiento choricero nora",
+   "pimiento choricero pulpa",
+   "pimiento de padron",
+   "pimiento morron",
+   "pimiento rojo",
+   "pimiento rojo asado",
+   "pimiento rojo crudo",
+   "pimiento verde",
+   "pimiento verde italiano",
+   "pimientos",
+   "pimientos choriceros",
+   "pimientos del piquillo",
+   "pimientos rojos"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "piñon",
+  "formas": [
+   "pinon",
+   "pinones"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "pistacho",
+  "formas": [
+   "pistacho",
+   "pistacho pelado",
+   "pistachos",
+   "pistachos pelados"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "platano",
+  "formas": [
+   "platano",
+   "platano congelado",
+   "platano macho",
+   "platanos"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "pomelo",
+  "formas": [
+   "pomelo",
+   "pomelos"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "puerro",
+  "formas": [
+   "puerro",
+   "puerros"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "queso",
+  "formas": [
+   "burrata",
+   "burratas",
+   "cheese cream",
+   "feta cheese pdo",
+   "mascarpone",
+   "mascarpones",
+   "mozzarella",
+   "mozzarella bocconcini",
+   "mozzarella fresca",
+   "mozzarella rallada",
+   "mozzarellas",
+   "parmesano",
+   "parmesano en virutas",
+   "parmesano rallado",
+   "parmesanos",
+   "quesito",
+   "quesito en porciones",
+   "quesitos",
+   "queso",
+   "queso azul",
+   "queso brie",
+   "queso cheddar lonchas",
+   "queso crema",
+   "queso curado",
+   "queso curado rallado",
+   "queso de cabra",
+   "queso emmental",
+   "queso en lonchas",
+   "queso en porciones",
+   "queso feta",
+   "queso fresco",
+   "queso fresco cabra",
+   "queso gruyere",
+   "queso gruyere rallado",
+   "queso mozzarella",
+   "queso mozzarella rallado",
+   "queso parmesano",
+   "queso parmesano rallado",
+   "queso pecorino",
+   "queso rallado",
+   "queso rallado curado",
+   "queso roquefort",
+   "queso semicurado generico",
+   "quesos",
+   "requeson",
+   "requesones",
+   "ricotta",
+   "ricotta cheese",
+   "ricotta salada",
+   "ricottas"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "remolacha",
+  "formas": [
+   "remolacha",
+   "remolacha cocida",
+   "remolacha en conserva",
+   "remolachas"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "repollo",
+  "formas": [
+   "repollo",
+   "repollo morado",
+   "repollos"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "rucula",
+  "formas": [
+   "rucula",
+   "ruculas"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "sandia",
+  "formas": [
+   "sandia",
+   "sandias"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "sesamo",
+  "formas": [
+   "semillas de sesamo",
+   "sesame oil",
+   "sesamo",
+   "sesamo semilla",
+   "sesamo tostado",
+   "sesamos"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "seta",
+  "formas": [
+   "boletu",
+   "boletus",
+   "boletus secos",
+   "champinon",
+   "champinon grande",
+   "champinones",
+   "champinones enteros",
+   "champinones portobello",
+   "seta",
+   "setas",
+   "setas champinones portobello",
+   "setas silvestres variadas",
+   "setas variadas",
+   "trufa",
+   "trufa cruda",
+   "trufa negra",
+   "trufa negra fresca",
+   "trufas"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "tahini",
+  "formas": [
+   "tahini",
+   "tahinis"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "tomate",
+  "formas": [
+   "tomate",
+   "tomate cherry",
+   "tomate concentrado",
+   "tomate frito",
+   "tomate maduro",
+   "tomate natural",
+   "tomate raf",
+   "tomate rallado",
+   "tomate triturado",
+   "tomates",
+   "tomates cherry",
+   "tomates grandes",
+   "tomato pulp canned"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "uva",
+  "formas": [
+   "uva",
+   "uvas"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "yogur",
+  "formas": [
+   "yogur",
+   "yogur de sabores",
+   "yogur enriquecido natural",
+   "yogur griego",
+   "yogur griego natural",
+   "yogur natural",
+   "yogures"
+  ]
+ },
+ {
+  "eje": "alimento",
+  "valor": "zanahoria",
+  "formas": [
+   "zanahoria",
+   "zanahoria cruda",
+   "zanahorias"
+  ]
+ },
+ {
   "eje": "basePrincipal",
   "valor": "arroz",
   "formas": [

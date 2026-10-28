@@ -46,6 +46,7 @@ export const NO_SON_FORMAS = {
   miso: "«sopa de miso» no es pedir legumbre",
   "miso blanco": "«sopa de miso» no es pedir legumbre",
   manteca: "una grasa, no una proteína que se pida",
+  "guindilla picante": "es a la vez ají y guindilla: con «guindilla» basta",
 };
 
 // Una forma para reconocer lo que dice la gente: corta (hasta tres palabras),
@@ -71,8 +72,17 @@ function baseDe(t) {
 
 /**
  * @param {{ alimentos: object[], ingredientes: object[], alimentoPorIngrediente: Record<string,string> }} fuentes
- * @returns {{ eje: "proteinaPrincipal"|"basePrincipal", valor: string, formas: string[] }[]}
+ * @returns {{ eje: "proteinaPrincipal"|"basePrincipal"|"alimento", valor: string, formas: string[] }[]}
  */
+/**
+ * Las clases del árbol cuyo alimento concreto se puede pedir o quitar
+ * («con queso», «sin cebolla»). La proteína y la base van por su eje; el resto
+ * (especias, compuestos, sal) no se pide así.
+ */
+export const CLASES_DE_ALIMENTO = ["hortaliza", "lacteo", "hongo", "fruta", "fruto_seco"];
+// Subclases que se piden como un solo alimento: «sin queso» quita también la mozzarella.
+const SUBCLASE_COMO_ALIMENTO = { queso: "queso", seta: "seta" };
+
 export function formasDeTaxonomia({ alimentos, ingredientes, alimentoPorIngrediente }) {
   const ingPorAlimento = new Map();
   for (const ing of ingredientes) {
@@ -104,6 +114,8 @@ export function formasDeTaxonomia({ alimentos, ingredientes, alimentoPorIngredie
     if (MAIN_PROTEINS.includes(p)) poner("proteinaPrincipal", p, nombres);
     const b = baseDe(t);
     if (b) poner("basePrincipal", b, nombres);
+    // Sin especie no hay alimento que pedir («aceite», «hojas verdes»).
+    if (CLASES_DE_ALIMENTO.includes(t?.clase) && t.especie) poner("alimento", SUBCLASE_COMO_ALIMENTO[t.subclase] ?? t.especie, nombres);
   }
   return [...porEntrada.entries()]
     .map(([k, set]) => { const [eje, valor] = k.split("|"); return { eje, valor, formas: [...set].sort() }; })
