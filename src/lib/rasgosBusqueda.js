@@ -26,6 +26,7 @@
  */
 
 import { PICANTE_PEDIDO } from "../data/recipeSchema.js";
+import { entradas, patron, valoresDe, MAS_CONCRETO } from "./diccionario.js";
 
 export const sinTildes = (s) => String(s ?? "").toLowerCase().normalize("NFD").replace(/\p{M}/gu, "");
 
@@ -37,78 +38,53 @@ const CARNE_PROT = new Set(["ternera", "cerdo", "pato", "caza", "pollo", "pavo",
 const PESCADO_PROT = new Set(["pescado_azul", "pescado_blanco", "marisco"]);
 export const GRUPOS = {
   pescado_azul: {
-    dice: /\bpescados? azul(es)?\b/,
+    dice: patron("grupo", "pescado_azul"),
     es: (r) => r.mainProtein === "pescado_azul" || llevaIng(r, /\b(sardinas?|salmon|caballa|atun|boquerones?|bonito|jurel|anchoas?|trucha)\b/),
   },
   marisco: {
-    dice: /\b(marisco|mariscos|gambas?|langostinos?|mejillones?|almejas?|calamar(es)?|sepia|pulpo)\b/,
+    dice: patron("grupo", "marisco"),
     es: (r) => r.mainProtein === "marisco" || llevaIng(r, /\b(gambas?|langostinos?|mejillones?|almejas?|calamar(es)?|sepia|pulpo|chipirones?)\b/),
   },
   pescado: {
-    dice: /\b(pescados?|pescaito|merluza|bacalao|salmon|atun|dorada|lubina|sardinas?)\b/,
+    dice: patron("grupo", "pescado"),
     es: (r) => PESCADO_PROT.has(r.mainProtein) || r.category === "pescados"
       || llevaIng(r, /\b(merluza|bacalao|salmon|atun|dorada|lubina|sardinas?|boquerones?|caballa|bonito|rape|gall[oa]|pescado|gambas?|langostinos?|mejillones?|calamar(es)?)\b/),
   },
   carne_roja: {
-    dice: /\bcarnes? roja?s?\b|\b(ternera|vacuno|buey|cordero|solomillo|entrecot|chuleton)\b/,
+    dice: patron("grupo", "carne_roja"),
     es: (r) => ["ternera", "cordero", "caza"].includes(r.mainProtein) || llevaIng(r, /\b(ternera|vacuno|buey|cordero|solomillo|entrecot|chuleton)\b/),
   },
   pollo: {
-    dice: /\b(pollo|pechugas?|muslos? de pollo)\b/,
+    dice: patron("grupo", "pollo"),
     es: (r) => r.mainProtein === "pollo" || llevaIng(r, /\bpollo\b/),
   },
   carne: {
-    dice: /\b(carnes?|filete|cerdo|lomo|jamon|chorizo|embutido|salchichas?|pavo|pollo|ternera|cordero)\b/,
+    dice: patron("grupo", "carne"),
     es: (r) => CARNE_PROT.has(r.mainProtein) || r.category === "carnes"
       || llevaIng(r, /\b(pollo|ternera|cerdo|lomo|jamon|chorizo|bacon|beicon|panceta|pavo|cordero|carne|salchichas?|morcilla|butifarra|solomillo)\b/),
   },
   huevo: {
-    dice: /\b(huevos?|tortillas?|revuelto)\b/,
+    dice: patron("grupo", "huevo"),
     es: (r) => r.mainProtein === "huevo" || r.category === "huevos" || llevaIng(r, /\bhuevos?\b/),
   },
   legumbre: {
-    dice: /\b(legumbres?|lentejas?|garbanzos?|alubias?|judias blancas|fabes|potaje)\b/,
+    dice: patron("grupo", "legumbre"),
     es: (r) => r.mainProtein === "legumbre" || r.category === "legumbres" || r.mainBase === "legumbre",
   },
-  pasta: { dice: /\b(pasta|macarrones|espaguetis|spaghetti|tallarines|lasana|fideos)\b/, es: (r) => r.mainBase === "pasta" },
-  arroz: { dice: /\b(arroz|arrocito|risotto|paella)\b/, es: (r) => r.mainBase === "arroz" },
+  pasta: { dice: patron("grupo", "pasta"), es: (r) => r.mainBase === "pasta" },
+  arroz: { dice: patron("grupo", "arroz"), es: (r) => r.mainBase === "arroz" },
 };
-// Al pedir, el grupo más concreto gana: «pescado azul» no es además «pescado».
-const MAS_CONCRETO = { pescado_azul: ["pescado"], carne_roja: ["carne"], pollo: ["carne"], marisco: ["pescado"] };
 
 // ── Técnicas (duras al pedir, excluibles) ────────────────────────────────
-const TECNICAS = {
-  horno: /\b(al horno|horneado|horneada|hornear|horno)\b/,
-  plancha: /\b(plancha|planchita)\b/,
-  sarten: /\b(fritos?|fritas?|frituras?|sarten|rebozados?|rebozadas?)\b/,
-  olla: /\b(guisos?|guisado|guisito|estofados?|olla|puchero)\b/,
-  crudo: /\b(crudos?|crudas?|sin cocinar)\b/,
-};
+// Las formas viven en el diccionario (src/data/sinonimos.json, #939).
+const TECNICAS = Object.fromEntries(valoresDe("tecnica").map((t) => [t, patron("tecnica", t)]));
 
 // ── Blandos: [campo, valor, expresión] ────────────────────────────────────
 const FRIO_TIEMPO = /\b(para el|con este|con el|contra el|con tanto|que hace) frio\b|\binvierno\b|\bcalentit[oa]\b/;
-const BLANDOS = [
-  ["connotacion", "casero", /\b(abuela|de siempre|toda la vida|de pequen[oa]|como en casa|caser[oa]|tradicional|de mi madre|de las de antes)\b/],
-  ["connotacion", "reconfortante", /\b(pachuch[oa]|resfriad[oa]|reconfortante|malit[oa]|reconforte)\b/],
-  ["connotacion", "festivo", /\b(restaurante|impresionar|suegros|invitados|especial|celebrar|celebracion|cumpleanos|domingo|fiesta|lucirme|quedar bien)\b/],
-  ["connotacion", "fresco", /\b(fresquit[oa]|fresc[oa]|refrescante|verano|calor)\b/],
-  ["textura", "cuchara", /\b(cuchara|potaje|puchero|cocido|caldo|caldito|sopa|guiso|guisito)\b/],
-  ["textura", "mano", /\b(picoteo|picotear|de picar|para picar|bocaditos?|aperitivos?|futbol|con las manos)\b/],
-  ["picante", "con", /\b(picante|picantit[oa]|que pique|guindilla|enchilad[oa])\b/],
-  ["sabor", "especiado", /\b(especias|especiad[oa]|exotic[oa]|curry|oriental|indi[oa]|mexican[oa])\b/],
-  ["sabor", "ahumado", /\bahumad[oa]s?\b/],
-  ["sabor", "dulce", /\b(dulces?|dulcecit[oa]|golos[oa])\b/],
-  ["sabor", "intenso", /\b(intens[oa]|sabros[oa]|potente)\b/],
-  ["sabor", "suave", /\b(suave|suavecit[oa])\b/],
-  ["calorias", "ligero", /\b(ligeri?t?[oa]s?|light|dieta|me pase|poco calorico|sano|saludable)\b/],
-  ["calorias", "contundente", /\b(contundente|que llene|llenar|entrenar|entreno|con hambre|mucha hambre)\b/],
-  ["coste", "economico", /\b(barat[oa]s?|baratit[oa]|economic[oa]|fin de mes|ajustad[oa])\b/],
-  ["dificultad", "facil", /\b(sin complicarse|sin complicaciones|facil|facilit[oa]|sencill[oa])\b/],
-  ["taper", true, /\b(taper|tupper|tuper|al trabajo|a la oficina)\b/],
-  ["ninos", true, /\b(ninos|ninas|nino|nina|peques?|crios|chavales|hijos?)\b/],
-  ["congelar", true, /\b(congelar|congelado|hacer de mas|para varios dias)\b/],
-  ["hierro", true, /\bhierro\b/],
-];
+// Las formas viven en el diccionario (src/data/sinonimos.json, #939), en el
+// mismo orden de antes: ese orden decide el de los rasgos que salen.
+const NO_SON_BLANDOS = new Set(["grupo", "tecnica", "proteinaPrincipal", "basePrincipal"]);
+const BLANDOS = entradas().filter((e) => !NO_SON_BLANDOS.has(e.rasgo)).map((e) => [e.rasgo, e.valor, patron(e.rasgo, e.valor)]);
 
 /** ¿Cumple la receta un rasgo blando o duro? Un dato que falta: no cumple. */
 export function cumple(r, { campo, valor }) {

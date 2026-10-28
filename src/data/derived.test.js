@@ -30,6 +30,7 @@ describe("las tablas derivadas", () => {
   const FICHEROS_DEL_OPERADOR = [
     "../lib/ingredients.js",
     "../lib/derive/composicion.js",
+    "../lib/derive/ejesTaxonomia.js",
     "../lib/derive/masaServida.js",
     "../lib/derive/estadoDeFicha.js",
     "../lib/derive/factorRetencion.js",
