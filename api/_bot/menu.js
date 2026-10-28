@@ -18,6 +18,7 @@
 import { fallaCon } from "./avisar.js";
 import { select, insert, eq } from "./db.js";
 import { conCasa, cargarCasa, hoyISO } from "./casa.js";
+import { datosDelMotor } from "../../src/lib/recetasDeLaCasa.js";
 import { propiasDe } from "./propias.js";
 import { rastro } from "./embudo.js";
 import { cargaMedida } from "./medidaTurno.js";
@@ -618,7 +619,7 @@ export async function proponerPlatos(householdId, { dia: diaDicho = null, semana
   const h = huecoDe(casa, { dia, franja, grupo, cual });
   if (h.error) return ideasSinMenu(cargada, { diaPedido, franja, grupo: grupoDicho, para, cual, n, estilo, rasgos, ejes, perfil, tipo }, fotos, out);
   const m = await prepararRecetas(casa);
-  const res = m.pickCatalogReplacement(conQuienViene(casa.state?.data ?? {}, [h.g.id], rf), casa.semana.plan, {
+  const res = m.pickCatalogReplacement(conQuienViene(datosDelMotor(casa), [h.g.id], rf), casa.semana.plan, {
     hoy: hoyISO(), groupId: h.g.id, day: dia, meal: franja, course: h.course, candidatos: parecidoA || pideTipo(tipo ?? {}) ? POOL_PARA_APROXIMAR : POOL_PARA_VARIAR, pedido: !!parecidoA,
   });
   // Rasgos, ejes y perfil filtran ANTES de ordenar y variar: variadas() elige
@@ -1038,7 +1039,7 @@ export async function ideasSinMenu(casa, { diaPedido, franja, grupo, para = null
   const m = await prepararRecetas(casa);
   // `schedule` puede faltar en una casa recién creada desde el chat, y el motor
   // lo lee sin mirar: sin horario apuntado, todos comen en casa.
-  const data = { schedule: {}, ...(casa.state?.data ?? {}) };
+  const data = { schedule: {}, ...datosDelMotor(casa) };
   const conGente = (data.groups ?? []).filter((g) => m.membersOfGroup(g, data.members ?? []).length > 0);
   const porPara = para ? grupoPara(conGente, data.members ?? [], para) : null;
   const elegidos = grupo ? conGente.filter((g) => normal(g.label) === normal(grupo)) : porPara ? [porPara] : conGente;
@@ -1103,7 +1104,7 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
     const data = casa.state?.data ?? {};
     // Para ELEGIR plato, con quien viene de fuera sentado en todos los grupos
     // de esa comida; la compra y lo guardado, con la casa tal cual.
-    const paraElegir = conQuienViene(data, gs.map((x) => x.id), rf);
+    const paraElegir = conQuienViene(datosDelMotor(casa), gs.map((x) => x.id), rf);
 
     let forcedRecipe = null;
     let aproximada = false;

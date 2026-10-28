@@ -17,6 +17,7 @@ import { select, insert, update, rpc, eq } from "./db.js";
 import { recetasPropiasDeCasa } from "./propias.js";
 import { menuActivoDe } from "../../src/lib/menuActivo.js";
 import { isoDeCasa } from "../../src/lib/dias.js";
+import { favoritasDeFilas, votosDeFavoritas, descartesDeFilas } from "../../src/lib/recetasDeLaCasa.js";
 
 // En hora de España: a las 00:30 del jueves, «hoy» es jueves, no el miércoles de UTC.
 export const hoyISO = () => isoDeCasa();
@@ -63,6 +64,24 @@ export async function cargarCasa(householdId, { fresca = false } = {}) {
   return structuredClone(await casa);
 }
 
+/**
+ * Las favoritas y los «No me gusta» de la casa, de sus tablas: household_state
+ * no los guarda y la app los carga aparte, así que sin esto los menús de Lola
+ * no los veían (#939). Si la lectura falla, null: el motor sigue como antes.
+ */
+async function recetasDeLaCasa(householdId) {
+  try {
+    const [favoritas, descartes] = await Promise.all([
+      select("household_favorites", `household_id=${eq(householdId)}`, "recipe_id,scope"),
+      select("household_recipe_discards", `household_id=${eq(householdId)}`, "recipe_id,is_permanent,cooldown_until"),
+    ]);
+    return { recipeVotes: votosDeFavoritas(favoritasDeFilas(favoritas)), discards: descartesDeFilas(descartes) };
+  } catch (e) {
+    console.error("[casa] recetas de la casa", e?.message);
+    return null;
+  }
+}
+
 async function leerCasa(householdId) {
   // El dueño, a la vez que la casa: hace falta para sus recetas propias.
   const [[fila], [hogar]] = await Promise.all([
@@ -74,13 +93,14 @@ async function leerCasa(householdId) {
   ]);
   if (!fila) return null;
 
-  const [activos, recetasPropias] = await Promise.all([
+  const [activos, recetasPropias, deLaCasa] = await Promise.all([
     select(
       "user_menus",
       `household_id=${eq(householdId)}&is_active=eq.true&order=updated_at.desc&limit=5`,
       "id,user_id,is_active,updated_at",
     ),
     recetasPropiasDeCasa(householdId, hogar?.owner_user_id ?? null, fila.state?.data?.userRecipes),
+    recetasDeLaCasa(householdId),
   ]);
   // El mismo lector que la app (menuActivo.js): si hubiera dos activos, los
   // dos eligen el de updated_at más reciente.
@@ -111,6 +131,7 @@ async function leerCasa(householdId) {
     state: fila.state ?? {},
     // Fuera de `state`: no se escriben de vuelta en household_state (propias.js).
     recetasPropias,
+    deLaCasa,
     menu: menu ? { id: menu.id, userId: menu.user_id } : null,
     semana,
     semanas,

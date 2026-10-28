@@ -1,5 +1,6 @@
 import { supabase } from "./supabase.js";
 import { favScopeOf, isFavorite, voteOf } from "./recipeVotes.js";
+import { scopeToColumn, favoritasDeFilas, votosDeFavoritas } from "./recetasDeLaCasa.js";
 
 /**
  * Household favorites for menu generation (see household_favorites table).
@@ -22,30 +23,11 @@ export async function loadHouseholdFavorites(householdId) {
     console.warn("[householdFavoritesSync] load failed", error.message);
     return { data: null, error };
   }
-  /** @type {Record<string, { scope?: string|null }>} */
-  const out = {};
-  for (const row of data ?? []) {
-    out[row.recipe_id] = { scope: row.scope ?? null };
-  }
-  return { data: out, error: null };
+  return { data: favoritasDeFilas(data), error: null };
 }
 
-// household_favorites.scope es texto, no text[] como recipe_votes.scope: null
-// es «todos» y una lista de grupos va separada por comas (así la copió 0018).
-// La app trabaja con "all" | string[] (favScopeOf), y aquí se traduce.
-
-/** "all" | string[] | null → valor de la columna (null = todos). */
-function scopeToColumn(favScope) {
-  return Array.isArray(favScope) && favScope.length ? favScope.join(",") : null;
-}
-
-/** Valor de la columna → "all" | string[]. */
-function columnToScope(scope) {
-  const grupos = typeof scope === "string"
-    ? scope.split(",").map((s) => s.trim()).filter(Boolean)
-    : [];
-  return grupos.length ? grupos : "all";
-}
+// La traducción del ámbito (texto con comas ↔ "all" | string[]) vive en
+// recetasDeLaCasa.js: la usa también Lola.
 
 /**
  * @param {string} householdId
@@ -95,12 +77,5 @@ export async function deleteHouseholdFavorite(householdId, recipeId) {
  * @returns {Record<string, { v?: 'up'|'down', fav: 'all'|string[] }>}
  */
 export function householdFavoritesToVotes(favorites, personal = {}) {
-  const out = {};
-  for (const [recipeId, meta] of Object.entries(favorites ?? {})) {
-    out[recipeId] = {
-      v: voteOf(personal?.[recipeId]) ?? undefined,
-      fav: columnToScope(meta?.scope),
-    };
-  }
-  return out;
+  return votosDeFavoritas(favorites, personal, voteOf);
 }
