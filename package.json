@@ -13,6 +13,7 @@
     "preview": "vite preview",
     "pretest": "node scripts/validate-catalog.mjs",
     "test": "vitest run",
+    "diccionario:inventario": "node scripts/diccionario-inventario.mjs",
     "check:tdz": "eslint src api scripts --config eslint.tdz.config.js",
     "check:catalog": "node scripts/validate-catalog.mjs",
     "build:derived": "vite-node scripts/build-derived.mjs",

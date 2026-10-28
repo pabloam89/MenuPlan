@@ -278,8 +278,10 @@ describe("scripts que llaman a un modelo: tope y libro del mes (#297)", () => {
   const dir = fileURLToPath(new URL("scripts/", RAIZ));
   const codigo = (f) => sinComentarios(readFileSync(join(dir, f), "utf8"));
   const todos = readdirSync(dir).filter((f) => /\.mjs$/.test(f) && !/\.test\./.test(f));
-  // Nombran la clave en una lista (de qué fichas copiar), pero no llaman a ningún modelo.
-  const SOLO_NOMBRA_LA_CLAVE = ["boveda-sesiones.mjs"];
+  // Nombran la clave en una lista (de qué fichas copiar) o importan un módulo de
+  // Lola solo para leer sus constantes (el formulario del enrutador), pero no
+  // llaman a ningún modelo.
+  const SOLO_NOMBRA_LA_CLAVE = ["boveda-sesiones.mjs", "diccionario-inventario.mjs"];
   const conIA = todos.filter((f) => !SOLO_NOMBRA_LA_CLAVE.includes(f) && MODELO.test(codigo(f)));
 
   it("el detector no se deja engañar por un comentario ni se le escapa un import de Lola", () => {
