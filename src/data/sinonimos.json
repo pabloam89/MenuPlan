@@ -143,6 +143,53 @@
    ]
   },
   {
+   "rasgo": "grupo",
+   "valor": "verdura",
+   "formas": [
+    "verdura",
+    "verduras",
+    "verdurita",
+    "verduritas",
+    "hortalizas",
+    "vegetales"
+   ]
+  },
+  {
+   "rasgo": "grupo",
+   "valor": "lacteo",
+   "formas": [
+    "lacteo",
+    "lacteos"
+   ]
+  },
+  {
+   "rasgo": "grupo",
+   "valor": "seta",
+   "formas": [
+    "seta",
+    "setas",
+    "hongos",
+    "champinones"
+   ]
+  },
+  {
+   "rasgo": "grupo",
+   "valor": "fruta",
+   "formas": [
+    "fruta",
+    "frutas",
+    "frutita"
+   ]
+  },
+  {
+   "rasgo": "grupo",
+   "valor": "frutos_secos",
+   "formas": [
+    "frutos secos",
+    "fruto seco"
+   ]
+  },
+  {
    "rasgo": "tecnica",
    "valor": "horno",
    "formas": [
@@ -473,6 +520,29 @@
    "valor": true,
    "formas": [
     "hierro"
+   ]
+  },
+  {
+   "rasgo": "alimento",
+   "valor": "queso",
+   "formas": [
+    "feta",
+    "parmesano",
+    "manchego",
+    "queso de cabra",
+    "rulo de cabra",
+    "cheddar",
+    "gouda",
+    "emmental",
+    "roquefort",
+    "gorgonzola",
+    "brie",
+    "camembert",
+    "idiazabal",
+    "torta del casar",
+    "queso azul",
+    "queso fresco",
+    "queso rallado"
    ]
   }
  ]

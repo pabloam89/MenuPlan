@@ -53,7 +53,8 @@ describe("rasgosDeFrase", () => {
     expect(rasgosDeFrase("algo para los niños").negacion).toBe(false);
     expect(campos(rasgosDeFrase("algo para los niños").blandos)).toContain("ninos:true");
     expect(campos(rasgosDeFrase("algo de picar para el fútbol").blandos)).toEqual(["textura:mano"]);
-    expect(campos(rasgosDeFrase("algo con repollo").blandos)).toEqual([]);
+    // No es pollo; desde #939 sí es el alimento repollo.
+    expect(campos(rasgosDeFrase("algo con repollo").blandos)).toEqual(["alimento:repollo"]);
   });
 
   it("el grupo concreto tapa al general", () => {

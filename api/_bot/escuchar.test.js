@@ -95,6 +95,8 @@ describe("la vía rápida no contesta si se pierde algo de lo pedido", () => {
     expect(vaPorLaRapida(d, { texto: "algo con merluza" })).toBe(false);
     expect(vaPorLaRapida(d, { texto: "algo de pescado" })).toBe(true);
     expect(vaPorLaRapida(recomendarCon({ dia: "hoy" }), { texto: "unos fusilli" })).toBe(false);
+    expect(vaPorLaRapida(recomendarCon({ dia: "hoy" }), { texto: "algo con queso" })).toBe(false);
+    expect(vaPorLaRapida(recomendarCon({ dia: "hoy", categoria: "ensaladas_verduras" }), { texto: "algo de verdura" })).toBe(true);
   });
   it("lo de siempre sigue por la rápida", () => {
     expect(vaPorLaRapida(recomendarCon({ dia: "hoy", comida: "Cena", estilo: "ligero" }))).toBe(true);

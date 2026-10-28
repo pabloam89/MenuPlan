@@ -47,6 +47,8 @@ export const EJE_DEL_RASGO = {
   ninos: "aptoNinos",
   congelar: "congelabilidad",
   hierro: "sabor",
+  // Un ingrediente concreto: se lee en la composición del plato (eje 1).
+  alimento: "composicion",
 };
 
 /** Cada grupo que se pide y los valores de la receta que abarca, por eje. */
@@ -61,6 +63,14 @@ export const GRUPO_VALORES = {
   legumbre: { proteinaPrincipal: ["legumbre"], basePrincipal: ["legumbre"] },
   pasta: { basePrincipal: ["pasta"] },
   arroz: { basePrincipal: ["arroz"] },
+  // Los grupos secundarios (eje 48, `mainIngredients`): solo sus formas a mano.
+  // Las del árbol no, a propósito: «sin verdura» no puede quitar todo lo que
+  // lleva ajo o cebolla. Lo concreto va por el rasgo `alimento`.
+  verdura: { gruposSecundarios: ["verdura"] },
+  lacteo: { gruposSecundarios: ["lacteo"] },
+  seta: { gruposSecundarios: ["seta"] },
+  fruta: { gruposSecundarios: ["fruta"] },
+  frutos_secos: { gruposSecundarios: ["frutos_secos"] },
 };
 
 /**

@@ -282,7 +282,7 @@ export function datosSinLeer(modo, datos = {}) {
 // se lo queda Lola. La carpeta solo cubre los grupos que son una carpeta, y
 // ninguna cubre una proteína concreta.
 const ELIGE_PLATO = new Set(["recomendar", "cambiar"]);
-const CARPETA_DEL_GRUPO = { carne: "carnes", pescado: "pescados", huevo: "huevos", legumbre: "legumbres", pasta: "pasta_arroces", arroz: "pasta_arroces" };
+const CARPETA_DEL_GRUPO = { carne: "carnes", pescado: "pescados", huevo: "huevos", legumbre: "legumbres", pasta: "pasta_arroces", arroz: "pasta_arroces", verdura: "ensaladas_verduras" };
 
 /** Lo que se pide en el texto y los datos no recogen: [{ rasgo, valor, forma }]. */
 export function pedidoSinRecoger(texto, datos = {}) {
@@ -290,7 +290,7 @@ export function pedidoSinRecoger(texto, datos = {}) {
   return resolver(texto).filter(({ rasgo, valor }) => {
     if (rasgo === "basePrincipal") return datos.base !== valor;
     // Una proteína concreta («merluza», «pollo»): el formulario no tiene dónde ponerla.
-    if (rasgo === "proteinaPrincipal") return true;
+    if (rasgo === "proteinaPrincipal" || rasgo === "alimento") return true;
     if (rasgo !== "grupo") return false;
     if (datos.base && (GRUPO_VALORES[valor]?.basePrincipal ?? []).includes(datos.base)) return false;
     return !(datos.categoria && CARPETA_DEL_GRUPO[valor] === datos.categoria);

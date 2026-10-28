@@ -26,7 +26,7 @@
  */
 
 import { PICANTE_PEDIDO } from "../data/recipeSchema.js";
-import { entradas, patron, valoresDe, MAS_CONCRETO } from "./diccionario.js";
+import { entradas, patron, valoresDe, MAS_CONCRETO, GRUPO_VALORES } from "./diccionario.js";
 
 export const sinTildes = (s) => String(s ?? "").toLowerCase().normalize("NFD").replace(/\p{M}/gu, "");
 
@@ -73,7 +73,16 @@ export const GRUPOS = {
   },
   pasta: { dice: patron("grupo", "pasta"), es: (r) => r.mainBase === "pasta" },
   arroz: { dice: patron("grupo", "arroz"), es: (r) => r.mainBase === "arroz" },
+  // Los grupos secundarios se miran en `mainIngredients` (curado), no en los
+  // ingredientes: «sin verdura» no puede quitar lo que lleva ajo.
+  ...Object.fromEntries(Object.entries(GRUPO_VALORES)
+    .filter(([, porEje]) => porEje.gruposSecundarios)
+    .map(([g, { gruposSecundarios: vs }]) => [g, { dice: patron("grupo", g), es: (r) => vs.some((v) => (r.mainIngredients ?? []).includes(v)) }])),
 };
+
+// ── Alimentos concretos («con queso», «sin cebolla»): en los ingredientes ──
+const ALIMENTOS = valoresDe("alimento");
+const llevaAlimento = (r, valor) => llevaIng(r, patron("alimento", valor));
 
 // ── Técnicas (duras al pedir, excluibles) ────────────────────────────────
 // Las formas viven en el diccionario (src/data/sinonimos.json, #939).
@@ -83,7 +92,7 @@ const TECNICAS = Object.fromEntries(valoresDe("tecnica").map((t) => [t, patron("
 const FRIO_TIEMPO = /\b(para el|con este|con el|contra el|con tanto|que hace) frio\b|\binvierno\b|\bcalentit[oa]\b/;
 // Las formas viven en el diccionario (src/data/sinonimos.json, #939), en el
 // mismo orden de antes: ese orden decide el de los rasgos que salen.
-const NO_SON_BLANDOS = new Set(["grupo", "tecnica", "proteinaPrincipal", "basePrincipal"]);
+const NO_SON_BLANDOS = new Set(["grupo", "tecnica", "proteinaPrincipal", "basePrincipal", "alimento"]);
 const BLANDOS = entradas().filter((e) => !NO_SON_BLANDOS.has(e.rasgo)).map((e) => [e.rasgo, e.valor, patron(e.rasgo, e.valor)]);
 
 /** ¿Cumple la receta un rasgo blando o duro? Un dato que falta: no cumple. */
@@ -103,6 +112,7 @@ export function cumple(r, { campo, valor }) {
     case "congelar": return !!r.freezable;
     case "hierro": return (r.healthFlags ?? []).includes("rico_hierro");
     case "grupo": return !!GRUPOS[valor]?.es(r);
+    case "alimento": return llevaAlimento(r, valor);
     case "maxMinutos": return !!r.time && r.time <= valor;
     case "rol": return (r.mealRole ?? []).includes(valor);
     default: return false;
@@ -112,6 +122,7 @@ export function cumple(r, { campo, valor }) {
 /** ¿La deja fuera una exclusión? Un dato que falta: pasa. */
 export function excluye(r, { tipo, valor }) {
   if (tipo === "grupo") return !!GRUPOS[valor]?.es(r);
+  if (tipo === "alimento") return llevaAlimento(r, valor);
   if (tipo === "tecnica") return r.tecnica === valor;
   if (tipo === "picante") return !!r.picante && r.picante !== "no";
   return false;
@@ -124,15 +135,19 @@ const NO_NIEGAN = /\b(sin complicarse|sin complicaciones|sin prisas?|sin mas|ni 
 const DISPARADOR = /\b(no|sin|ni|nada de|evitar|tampoco)\b/;
 // Palabras de relleno dentro del alcance de una negación: si solo quedan
 // estas tras resolver, la negación está resuelta.
-const RELLENO = new Set("ni no sin me te nos le les apetece apetecen quiero queremos quiere lleve lleven tenga tengan sea sean pique haya hay usar encender encendemos el la los las lo un una unos unas de del que hoy otra vez mas mucho mucha muy tanto tanta nada nadie para por con y o a al este esta esto ya algo comer comida cena cenar plato".split(" "));
+const RELLENO = new Set("favor porfa gracias ni no sin me te nos le les apetece apetecen quiero queremos quiere lleve lleven tenga tengan sea sean pique haya hay usar encender encendemos el la los las lo un una unos unas de del que hoy otra vez mas mucho mucha muy tanto tanta nada nadie para por con y o a al este esta esto ya algo comer comida cena cenar plato".split(" "));
 
 function resolverAlcance(alcance) {
   const excluir = [];
   let resto = ` ${alcance} `;
   const quita = (re) => { resto = resto.replace(new RegExp(re.source, "g"), " "); };
   // Lo más concreto primero, para no dejar «azul» suelto.
-  for (const g of ["pescado_azul", "carne_roja", "marisco", "pollo", "pescado", "carne", "huevo", "legumbre", "pasta", "arroz"]) {
+  for (const g of ["pescado_azul", "carne_roja", "marisco", "pollo", "pescado", "carne", "huevo", "legumbre", "pasta", "arroz", "verdura", "lacteo", "seta", "fruta", "frutos_secos"]) {
     if (GRUPOS[g].dice.test(resto)) { excluir.push({ tipo: "grupo", valor: g }); quita(GRUPOS[g].dice); }
+  }
+  for (const a of ALIMENTOS) {
+    const re = patron("alimento", a);
+    if (re.test(resto)) { excluir.push({ tipo: "alimento", valor: a }); quita(re); }
   }
   for (const [t, re] of Object.entries(TECNICAS)) {
     if (re.test(resto)) { excluir.push({ tipo: "tecnica", valor: t }); quita(re); }
@@ -189,6 +204,7 @@ export function rasgosDeFrase(frase) {
     const tapado = Object.entries(MAS_CONCRETO).some(([fino, gruesos]) => gruesos.includes(g) && grupos.includes(fino));
     if (!tapado) pon(blandos, "grupo", g);
   }
+  for (const a of ALIMENTOS) if (patron("alimento", a).test(positivo)) pon(blandos, "alimento", a);
   for (const [tec, expr] of Object.entries(TECNICAS)) if (expr.test(positivo)) pon(duros, "tecnica", tec);
   const min = positivo.match(/\b(\d{1,3})\s*(min|minutos)\b/);
   if (min) pon(duros, "maxMinutos", Number(min[1]));
