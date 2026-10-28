@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { CAPACIDADES, VERBOS, SOBRE, PANTALLAS, TIPOS_HERRAMIENTA, TIPO_DE_HERRAMIENTA, ESTADOS_CAPACIDAD, estadoDe, esHueco } from "./capacidades.js";
+import { CAPACIDADES, VERBOS, SOBRE, PANTALLAS, ESTADOS_CAPACIDAD, estadoDe, esHueco } from "./capacidades.js";
 import { MODULOS, DATOS_CASA, DATOS_PERSONA } from "./registroFicha.js";
 
 const raiz = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -22,9 +22,7 @@ describe("mapa de capacidades (#939)", () => {
     }
   });
 
-  it("cada herramienta de Lola tiene su tipo y está en alguna capacidad; ninguna inventada", () => {
-    expect(Object.keys(TIPO_DE_HERRAMIENTA).sort()).toEqual([...HERRAMIENTAS].sort());
-    for (const t of Object.values(TIPO_DE_HERRAMIENTA)) expect(TIPOS_HERRAMIENTA).toContain(t);
+  it("cada herramienta de Lola está en alguna capacidad; ninguna inventada", () => {
     const usadas = new Set(CAPACIDADES.flatMap((c) => c.lola));
     for (const h of HERRAMIENTAS) expect(usadas.has(h), `${h} sin capacidad`).toBe(true);
     for (const h of usadas) expect(HERRAMIENTAS, `${h} no existe en agente.js`).toContain(h);

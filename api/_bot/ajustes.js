@@ -25,6 +25,7 @@ import * as ids from "../../src/lib/ids.js";
 import { etapaDe, esMenor } from "../../src/lib/stages.js";
 import { indiceDeFechaUTC, isoDeCasa } from "../../src/lib/dias.js";
 import { ETAPA_BEBE } from "../../src/lib/vocabularios.js";
+import { supermercadoDe, CON_PRECIOS } from "../../src/lib/supermercados.js";
 
 const hoyISO = () => isoDeCasa();
 // Del catálogo de comidas (src/lib/comidas.js).
@@ -284,6 +285,43 @@ export async function ajustarCocina(householdId, { estructura, esfuerzo, tiempo,
     if (!hechos.length) return { texto: "No había nada que cambiar." };
     return { data: d, texto: `Guardado (${hechos.join("; ")}). Se aplicará al generar el próximo menú.` };
   });
+}
+
+// ── Compra: el súper y el presupuesto ───────────────────────────────────────
+
+/**
+ * Dónde compra la casa y cuánto quiere gastar. Se pregunta en Lola (Pablo,
+ * 28 oct 2026); la app lo enseña: con Mercadona, la lista de la compra lleva
+ * su chapa y el precio de cada cosa (Shopping.jsx). Un súper que no está en la
+ * lista se guarda como lo dicen (la vía «otro»). Pura, para el test.
+ */
+export function aplicarCompra(data, { supermercados, presupuesto, sinPresupuesto = false } = {}) {
+  let d = data ?? {};
+  const hechos = [];
+  if (Array.isArray(supermercados)) {
+    const lista = [...new Set(supermercados.map((s) => supermercadoDe(s) ?? String(s ?? "").trim()).filter(Boolean))];
+    if (lista.length) {
+      d = { ...d, supermarkets: lista };
+      const conPrecios = lista.filter((s) => CON_PRECIOS.includes(s));
+      hechos.push(`súper: ${lista.join(", ")}${conPrecios.length ? ` (en la app verás los precios de ${conPrecios.join(", ")} en la lista de la compra)` : ""}`);
+    }
+  }
+  if (sinPresupuesto) {
+    d = { ...d, hasBudget: false };
+    hechos.push("sin presupuesto");
+  } else if (Number.isFinite(presupuesto) && presupuesto >= PRESUPUESTO[0] && presupuesto <= PRESUPUESTO[1]) {
+    d = { ...d, hasBudget: true, budget: Math.round(presupuesto) };
+    hechos.push(`presupuesto: ${Math.round(presupuesto)} €/semana`);
+  }
+  if (!hechos.length) return { texto: "No había nada que cambiar." };
+  return { data: d, texto: `Guardado (${hechos.join("; ")}).` };
+}
+
+/** Un presupuesto semanal creíble, en euros. */
+export const PRESUPUESTO = [10, 1000];
+
+export async function ajustarCompra(householdId, args) {
+  return conData(householdId, (data) => aplicarCompra(data, args));
 }
 
 // ── Horario: quién come dónde ───────────────────────────────────────────────

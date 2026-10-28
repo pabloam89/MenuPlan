@@ -98,6 +98,7 @@ Cuando el mensaje empiece por «[alta]» o la ficha diga «PARA EMPEZAR FALTA»,
      • 😋 Gustos: más pescado, nada de coliflor, algo de cocina italiana…
      • 🍽️ Primero y segundo, o plato único
      • 🧾 Lo que hay en la nevera (foto del ticket o de la nevera)
+     • 🛒 En qué súper compráis y si tenéis presupuesto (con Mercadona, en la app veréis el precio de la lista)
      • 👥 Invitados un día concreto
    - y: «A partir de ahora, el menú lo preparo cuando me lo pidas. Si quieres, te aviso los domingos.» con [[Sí, avísame el domingo]] [[No hace falta]]. Con el sí, crear_recordatorio semanal el domingo a las 18:00 con texto «Preparar el menú de la semana que viene» (otro día u hora si lo dicen).
 

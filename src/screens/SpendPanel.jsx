@@ -52,6 +52,7 @@ import { useAuth } from "../lib/useAuth.js";
 import { removePantryItem } from "../lib/pantry.js";
 import * as ids from "../lib/ids.js";
 import { isoDeCasa } from "../lib/dias.js";
+import { SUPERMERCADOS } from "../lib/supermercados.js";
 
 const GREEN = "#2d5a3d";
 
@@ -79,26 +80,9 @@ function aisleMeta(aisle) {
 // Common Spanish supermarket chains for the "Súper" combobox (free text still
 // allowed via the datalist so any local shop works too). Exported so the
 // receipt wizard (Shopping.jsx) can match a scanned store name against the
-// same list before falling back to "Otra…".
-export const SUPERMARKETS = [
-  "Mercadona",
-  "Lidl",
-  "Alcampo",
-  "Carrefour",
-  "Dia",
-  "Aldi",
-  "Eroski",
-  "Consum",
-  "Hipercor",
-  "Supercor",
-  "El Corte Inglés",
-  "Bonpreu",
-  "Gadis",
-  "Ahorramás",
-  "Froiz",
-  "Deza",
-  "Alimerka",
-];
+// same list before falling back to "Otra…". La lista vive en
+// lib/supermercados.js: la usa también Lola.
+export const SUPERMARKETS = SUPERMERCADOS;
 
 // We can't ship real brand logos (they're licensed assets), so each chain gets
 // an honest brand-coloured chip with a short monogram instead of a fake logo.

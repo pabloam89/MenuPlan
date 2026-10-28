@@ -332,6 +332,7 @@ function cocinaBloque(data, hoy) {
   if (nunca.length) lineas.push(`- Nunca: ${nunca.slice(0, 6).join(", ")}${nunca.length > 6 ? `, +${nunca.length - 6}` : ""}.`);
   const fijos = (data.fixedDishes ?? []).map((f) => f?.name ?? f?.nombre ?? f?.recipeName).filter(Boolean);
   if (fijos.length) lineas.push(`- Fijos: ${fijos.slice(0, 4).join(", ")}.`);
+  if (data.supermarkets?.length) lineas.push(`- Súper: ${data.supermarkets.join(", ")}.`);
   if (data.hasBudget && data.budget) lineas.push(`- Presupuesto: ${data.budget} €/semana.`);
   return lineas;
 }
