@@ -16,6 +16,7 @@
     "diccionario": "node scripts/diccionario.mjs",
     "diccionario:inventario": "node scripts/diccionario-inventario.mjs",
     "ficha:inventario": "node scripts/ficha-inventario.mjs",
+    "capacidades": "node scripts/capacidades.mjs",
     "check:tdz": "eslint src api scripts --config eslint.tdz.config.js",
     "check:catalog": "node scripts/validate-catalog.mjs",
     "build:derived": "vite-node scripts/build-derived.mjs",
