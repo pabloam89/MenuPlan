@@ -9,7 +9,8 @@
  *  - verbo (VERBOS) y sobre (la entidad de registroFicha.js ENTIDADES, o
  *    "charla" para lo que es de la conversación con Lola).
  *  - lola: las herramientas de api/_bot/agente.js que lo hacen ([] si
- *    ninguna). Su tipo vive una vez, en TIPO_DE_HERRAMIENTA.
+ *    ninguna). Si leen o escriben lo dice su propia ficha en agente.js
+ *    (`soloLectura`): aquí no se repite.
  *  - app: { pantalla (PANTALLAS), apagada?: motivo } o null. `apagada` es que
  *    el código está pero no se llega (el frontal del bot, un interruptor).
  *  - datos: claves de registroFicha.js (las de la persona, «members.x»).
@@ -28,24 +29,6 @@
 export const VERBOS = ["ver", "anadir", "cambiar", "quitar", "marcar", "generar", "guardar", "compartir", "recordar", "deshacer", "conectar"];
 export const SOBRE = ["casa", "persona", "grupo", "regla", "menu", "despensa", "compra", "receta", "charla"];
 export const ESTADOS_CAPACIDAD = ["los_dos", "solo_app", "solo_lola", "apagada"];
-
-/** Las herramientas de Lola por lo que hacen: leer la casa, escribirla, o llevar la charla. */
-export const TIPOS_HERRAMIENTA = ["lee", "escribe", "charla"];
-export const TIPO_DE_HERRAMIENTA = Object.freeze({
-  ver_casa: "lee", ver_ajustes: "lee", ver_menu: "lee", ver_receta: "lee", ver_compra: "lee",
-  ver_despensa: "lee", ver_menu_cole: "lee", buscar_recetas: "lee", proponer_platos: "lee",
-  anadir_comensal: "escribe", quitar_comensal: "escribe", ajustar_persona: "escribe",
-  ajustar_alergias: "escribe", ajustar_salud: "escribe", ajustar_gustos: "escribe",
-  descartar_supuesto: "escribe", ajustar_cocina: "escribe", pedir_tanda: "escribe",
-  ajustar_horario: "escribe", fuera_de_casa: "escribe", anadir_invitado: "escribe",
-  ajustar_menu_peques: "escribe", generar_menu: "escribe", cambiar_plato: "escribe",
-  marcar_compra: "escribe", anadir_compra: "escribe", anadir_despensa: "escribe",
-  guardar_menu_cole: "escribe", apartar_foto_plato: "escribe", preparar_receta: "escribe",
-  guardar_receta: "escribe", deshacer: "escribe",
-  compartir: "charla", anotar_tarea: "charla", cerrar_tarea: "charla", editar_tarea: "charla",
-  empezar_de_nuevo: "charla", crear_recordatorio: "charla", aviso_vispera: "charla",
-  ver_recordatorios: "charla", cancelar_recordatorio: "charla",
-});
 
 /** Las pantallas de la app, con su fichero (el test comprueba que existe). */
 export const PANTALLAS = Object.freeze({
@@ -73,6 +56,10 @@ export const PANTALLAS = Object.freeze({
 const ASISTENTE = "el asistente de Inicio no sale con FRONTAL_BOT (Dashboard.jsx)";
 const SIN_ENTRADA = "ningún botón lleva aquí";
 const EN_CASA_LECTURA = "En casa va dentro de Compra en solo lectura";
+// Decisiones de Pablo del 28 oct 2026.
+const DESPENSA_DESDE_COMPRA = "en la app, la despensa cambia solo desde la lista de la compra (Pablo, 28 oct 2026)";
+const SE_PREGUNTA_EN_LOLA = "se pregunta en Lola; la app lo enseña en la lista de la compra (Pablo, 28 oct 2026)";
+const SIN_TICKETS = "tickets y gasto, mejor no (Pablo, 28 oct 2026)";
 
 const app = (pantalla, apagada = null) => ({ pantalla, ...(apagada ? { apagada } : {}) });
 const c = (id, accion, parte, verbo, sobre, o = {}) => ({
@@ -160,16 +147,16 @@ export const CAPACIDADES = Object.freeze([
   c("anadir_compra", "añadir a la lista algo que no sale del menú", "compra", "anadir", "compra", { lola: ["anadir_compra"] }),
   c("cantidad_compra", "cambiar la cantidad de un producto o quitarlo de la lista", "compra", "cambiar", "compra", { app: app("compra") }),
   c("compartir_compra", "mandar la lista a otra persona", "compra", "compartir", "compra", { app: app("compra") }),
-  c("elegir_super", "elegir el súper", "compra", "cambiar", "compra", { app: app("asistente", ASISTENTE), datos: ["supermarkets"] }),
-  c("presupuesto", "poner un presupuesto", "compra", "cambiar", "compra", { app: app("asistente", ASISTENTE), datos: ["hasBudget", "budget"] }),
+  c("elegir_super", "elegir el súper", "compra", "cambiar", "compra", { lola: ["ajustar_compra"], app: app("asistente", ASISTENTE), datos: ["supermarkets"], aProposito: SE_PREGUNTA_EN_LOLA }),
+  c("presupuesto", "poner un presupuesto", "compra", "cambiar", "compra", { lola: ["ajustar_compra"], app: app("asistente", ASISTENTE), datos: ["hasBudget", "budget"], aProposito: SE_PREGUNTA_EN_LOLA }),
   c("precio_estimado", "ver lo que costará la compra en el súper", "compra", "ver", "compra", { app: app("compra"), datos: ["priceObs"] }),
-  c("tickets", "subir un ticket o apuntar un gasto", "compra", "anadir", "compra", { app: app("tickets", SIN_ENTRADA), datos: ["receipts", "priceObs", "priceAliases"] }),
-  c("gasto", "ver lo gastado y los tickets", "compra", "ver", "compra", { app: app("estadisticas", SIN_ENTRADA), datos: ["receipts"] }),
+  c("tickets", "subir un ticket o apuntar un gasto", "compra", "anadir", "compra", { app: app("tickets", SIN_ENTRADA), datos: ["receipts", "priceObs", "priceAliases"], aProposito: SIN_TICKETS }),
+  c("gasto", "ver lo gastado y los tickets", "compra", "ver", "compra", { app: app("estadisticas", SIN_ENTRADA), datos: ["receipts"], aProposito: SIN_TICKETS }),
 
   // ── Despensa ──
   c("ver_despensa", "ver lo que hay en casa", "despensa", "ver", "despensa", { lola: ["ver_despensa"], app: app("en_casa") }),
-  c("anadir_despensa", "apuntar comida en casa (a mano, por foto o por ticket)", "despensa", "anadir", "despensa", { lola: ["anadir_despensa"], app: app("en_casa", EN_CASA_LECTURA) }),
-  c("cambiar_despensa", "cambiar la cantidad o el sitio de algo en casa", "despensa", "cambiar", "despensa", { app: app("en_casa", EN_CASA_LECTURA) }),
+  c("anadir_despensa", "apuntar comida en casa (a mano, por foto o por ticket)", "despensa", "anadir", "despensa", { lola: ["anadir_despensa"], app: app("en_casa", EN_CASA_LECTURA), aProposito: DESPENSA_DESDE_COMPRA }),
+  c("cambiar_despensa", "cambiar la cantidad o el sitio de algo en casa", "despensa", "cambiar", "despensa", { app: app("en_casa", EN_CASA_LECTURA), aProposito: DESPENSA_DESDE_COMPRA }),
   c("cuando_gastado", "decidir cuándo se da algo por gastado", "despensa", "cambiar", "despensa", { app: app("compra"), datos: ["pantryPrefs"] }),
   c("aprovechar_casa", "decir si el menú aprovecha lo que hay en casa", "despensa", "cambiar", "despensa", { app: app("asistente", ASISTENTE), datos: ["pantryMode"] }),
 

@@ -931,6 +931,34 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
  },
  {
   "type": "custom",
+  "name": "ajustar_compra",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "supermercados": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "Los habituales: Mercadona, Lidl, Alcampo, Carrefour, Dia, Aldi, Eroski, Consum, Hipercor, Supercor, El Corte Inglés, Bonpreu, Gadis, Ahorramás, Froiz, Deza, Alimerka."
+    },
+    "presupuesto": {
+     "type": "number",
+     "minimum": 10,
+     "maximum": 1000,
+     "description": "Euros por semana."
+    },
+    "sinPresupuesto": {
+     "type": "boolean"
+    }
+   },
+   "required": [],
+   "additionalProperties": false
+  },
+  "description": "Dónde hace la compra la casa y cuánto quiere gastar. supermercados: la lista completa de donde compran (Mercadona, Lidl, Carrefour…; si es otro, como lo digan). Con Mercadona, en la app la lista de la compra enseña el precio de cada cosa. presupuesto: euros por semana; sinPresupuesto=true si dicen que no tienen."
+ },
+ {
+  "type": "custom",
   "name": "pedir_tanda",
   "input_schema": {
    "type": "object",

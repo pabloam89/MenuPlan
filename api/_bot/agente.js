@@ -33,8 +33,9 @@ import { registrar, EMBUDO, duenoDe } from "./embudo.js";
 import {
   describirAjustes, ajustarGustos, ajustarCocina, ajustarHorario, anadirInvitado,
   anadirComensal, quitarComensal, ajustarAlergias, ajustarSalud, INTOLERANCIAS, ESTADOS, dominiosDeGustos, ajustarPersona, ajustarMenuPeques,
-  descartarSupuesto, pedirTanda,
+  descartarSupuesto, pedirTanda, ajustarCompra, PRESUPUESTO,
 } from "./ajustes.js";
+import { SUPERMERCADOS } from "../../src/lib/supermercados.js";
 import {
   crearRecordatorio, verRecordatorios, cancelarRecordatorio, ahoraEnMadrid,
 } from "./recordatorios.js";
@@ -538,6 +539,16 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
         etapaBebe: { type: "string", enum: ETAPA_BEBE, description: "Qué come el bebé: cremas (solo purés), mixto (de todo) o solidos (ya come sólidos). Apúntalo en cuanto lo digan («ya come sólidos»), antes de proponerle nada." },
       }),
       run: (args) => ajustarCocina(householdId, args),
+    }),
+    herramienta({ lector: false, soloLectura: false, pantalla: "compra" }, {
+      name: "ajustar_compra",
+      description: "Dónde hace la compra la casa y cuánto quiere gastar. supermercados: la lista completa de donde compran (Mercadona, Lidl, Carrefour…; si es otro, como lo digan). Con Mercadona, en la app la lista de la compra enseña el precio de cada cosa. presupuesto: euros por semana; sinPresupuesto=true si dicen que no tienen.",
+      inputSchema: obj({
+        supermercados: { type: "array", items: { type: "string" }, description: `Los habituales: ${SUPERMERCADOS.join(", ")}.` },
+        presupuesto: { type: "number", minimum: PRESUPUESTO[0], maximum: PRESUPUESTO[1], description: "Euros por semana." },
+        sinPresupuesto: { type: "boolean" },
+      }),
+      run: (args) => ajustarCompra(householdId, args),
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "pedir_tanda",
