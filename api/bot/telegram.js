@@ -149,7 +149,6 @@ async function atender(msg, base, host = "") {
   const chatId = String(msg.chat.id);
   const esGrupo = esGrupoDe(msg.chat);
   let texto = (msg.text ?? "").trim();
-  let oidoDeGrupo = null; // si una nota de voz del grupo ya se transcribió para saber si era para Lola
 
   // En un grupo: al entrar, se presenta; y solo contesta cuando le hablan a
   // ella (un comando, una mención, una respuesta a un mensaje suyo, o un
@@ -159,24 +158,12 @@ async function atender(msg, base, host = "") {
     const yo = (await nombreDelBot().catch(fallaCon("grupo_nombre_del_bot", ""))).toLowerCase();
     if (msg.new_chat_members?.some((m) => m.is_bot && m.username?.toLowerCase() === yo)) return saludoGrupo(chatId);
     if (!meHablan(msg, yo)) {
-      // Una nota de voz no lleva texto ni pie: sin escucharla no hay forma de
-      // saber si empieza por «Lola». Se transcribe solo para decidir esto; si
-      // no es para ella, se tira tal cual (nadie contesta ni queda rastro).
-      const audio = !msg.caption && (msg.voice ?? msg.audio);
-      if (!audio) return;
-      const [paraOir] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
-      // Sin casa vinculada, o con la casa ya pasada de su límite del mes, no
-      // se paga una transcripción para algo que no va a contestar.
-      if (!paraOir?.household_id) return;
-      // a propósito: sin poder leer el uso, mejor contestar que bloquear (como el turno)
-      if (await fueraDeLimite(paraOir.household_id).catch(seguirCon("limite", null))) return;
-      // a propósito: «escribiendo…» es adorno
-      llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(seguirCon("escribiendo"));
-      // a propósito: solo es para saber si le hablan; sin oírla, no contesta
-      oidoDeGrupo = await transcribir(audio, { householdId: paraOir?.household_id }).catch(seguirCon("grupo_voz", null));
-      if (!oidoDeGrupo?.texto || !NOMBRADA.test(oidoDeGrupo.texto.trim())) return;
-      // `texto` sigue vacío a propósito: lo de más abajo («Notas de voz») la
-      // trata como la nota de voz que es, con su «oído: …», reutilizando esto.
+      // Una nota de voz del grupo que no es respuesta a Lola NO se escucha
+      // (#958). Antes se mandaba a Groq cada audio del grupo solo para ver si
+      // empezaba por «Lola»: audio de terceros, a veces de niños, que salía de
+      // casa para nada (y sin contar en bot_usage ni en el límite). En grupo,
+      // para hablarle con un audio, se responde a un mensaje suyo.
+      return;
     } else {
       texto = texto.replace(SIN_NOMBRE, "").trim() || texto;
     }
@@ -297,19 +284,13 @@ async function atender(msg, base, host = "") {
   const audio = msg.voice ?? msg.audio;
   if (!texto && audio) {
     // Pasada del límite del mes, no se transcribe: se contesta el aviso del
-    // límite sin pagar Groq (el de grupo ya lo miró antes de oír).
-    if (!oidoDeGrupo) {
-      // a propósito: sin poder leer el uso, mejor contestar que bloquear (como el turno)
-      const fuera = await fueraDeLimite(chat.household_id).catch(seguirCon("limite", null));
-      if (fuera) return enviar(chatId, fuera, { responderA: esGrupo ? msg.message_id : undefined });
-    }
-    // La del filtro de grupo ya se transcribió para saber si era para ella:
-    // no se vuelve a pagar Groq por el mismo audio.
-    const t = oidoDeGrupo ?? await (async () => {
-      // a propósito: «escribiendo…» es adorno
-      llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(seguirCon("escribiendo"));
-      return transcribir(audio, { householdId: chat.household_id }).catch((e) => ({ error: e?.message })); // a propósito: el error se apunta abajo ([voz])
-    })();
+    // límite sin pagar Groq.
+    // a propósito: sin poder leer el uso, mejor contestar que bloquear (como el turno)
+    const fuera = await fueraDeLimite(chat.household_id).catch(seguirCon("limite", null));
+    if (fuera) return enviar(chatId, fuera, { responderA: esGrupo ? msg.message_id : undefined });
+    // a propósito: «escribiendo…» es adorno
+    llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(seguirCon("escribiendo"));
+    const t = await transcribir(audio, { householdId: chat.household_id }).catch((e) => ({ error: e?.message })); // a propósito: el error se apunta abajo ([voz])
     if (t.error) {
       // Sin esto, «no he podido entender el audio» no dejaba rastro de por qué.
       console.error("[voz]", t.error, { segundos: audio.duration, tipo: audio.mime_type });
@@ -1231,7 +1212,7 @@ async function saludoGrupo(chatId) {
   const [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
   return enviar(chatId, [
     "¡Hola, familia! Soy <b>Lola</b> 👩‍🍳, la que os prepara el menú y la compra.",
-    "Para hablarme aquí, empezad el mensaje con <b>Lola</b>: «Lola, ¿qué cenamos hoy?» o «Lola, apunta leche».",
+    "Para hablarme aquí, empezad el mensaje con <b>Lola</b>: «Lola, ¿qué cenamos hoy?» o «Lola, apunta leche». Los audios, mandádmelos respondiendo a un mensaje mío: los demás audios del grupo no los escucho.",
     chat ? "" : "Aún no sé de qué casa sois: quien use HoMenu, que me escriba aquí «Lola, conecta el grupo» y lo conecto a su casa.",
   ].filter(Boolean).join("\n\n"), chat ? {} : { botones: await botonAlPrivado() });
 }
