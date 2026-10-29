@@ -5,6 +5,10 @@
 import { describe, it, expect, vi } from "vitest";
 import { montarFicha } from "./ficha.js";
 
+// El reloj, fijo: «hoy» es el jueves 29 de octubre de 2026 en Madrid.
+vi.useFakeTimers({ toFake: ["Date"] });
+vi.setSystemTime(new Date("2026-10-29T10:00:00Z"));
+
 let guardada = null;
 let base = null;
 const MIEMBROS = [
@@ -113,7 +117,14 @@ describe("anadir_invitado: la fecha y su semana", () => {
     await anadirInvitado("h", { dia: "el viernes", comida: "Cena", semana: "siguiente", nombre: "Ana" });
     const r = datos().reglas.at(-1);
     expect(r.dia).toBe("Vie");
-    expect(r.semanaISO > "2026-10-26").toBe(true);
+    expect(r.semanaISO).toBe("2026-11-02");
+  });
+  it("«el 15» es el domingo 15 de noviembre, en su semana", async () => {
+    limpio();
+    await anadirInvitado("h", { dia: "el 15", comida: "Comida" });
+    const r = datos().reglas.at(-1);
+    expect(r.dia).toBe("Dom");
+    expect(r.semanaISO).toBe("2026-11-09");
   });
 });
 
