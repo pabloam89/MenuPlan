@@ -19,6 +19,7 @@ import {
   marcaDespertar,
   MOTIVOS,
   pasada,
+  REVISOR_APP,
   revisarFicheros,
   saltoDe,
   soloCambiaUses,
@@ -38,7 +39,7 @@ const commitBot = (msg = "") => ({
 });
 const verde = { id: 2, name: "tests", app: { slug: "github-actions" }, head_sha: SHA, status: "completed", conclusion: "success" };
 // El check `revisor` lo publica la App revisora propia de HoMenu (no un github-actions cualquiera).
-const revisorVerde = { id: 5, name: "revisor", app: { slug: "homenu-revisor" }, head_sha: SHA, status: "completed", conclusion: "success" };
+const revisorVerde = { id: 5, name: "revisor", app: { slug: REVISOR_APP }, head_sha: SHA, status: "completed", conclusion: "success" };
 const npm = [{ filename: "package.json", patch: "x" }, { filename: "package-lock.json", patch: "x" }];
 
 // Un parche real de Dependabot en un workflow fijado por SHA.
@@ -405,6 +406,14 @@ describe("dependabot-auto: workflows con environment del repo", () => {
     const vigia = { filename: ".github/workflows/vigia-lola.yml", patch: PARCHE_USES };
     expect(revisarFicheros([...actions, vigia], [vigia.filename]).motivo).toBe("toca-workflow-con-environment");
     expect(revisarFicheros(actions, [vigia.filename]).motivo).toBe(null);
+  });
+});
+
+describe("dependabot-auto: la App revisora es la de revisor.yml", () => {
+  it("REVISOR_APP (el slug que cuenta como `revisor`) es el `revisor-app-slug` de revisor.yml; el valor vive en un solo sitio", () => {
+    const revisor = readFileSync(new URL("../.github/workflows/revisor.yml", import.meta.url), "utf8");
+    const slugs = [...revisor.replace(/\s#.*$/gm, "").matchAll(/^\s*revisor-app-slug:\s*(\S+)\s*$/gm)].map((m) => m[1]);
+    expect(slugs).toEqual([REVISOR_APP]);
   });
 });
 
