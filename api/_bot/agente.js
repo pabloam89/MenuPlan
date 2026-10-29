@@ -656,7 +656,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "anadir_invitado",
-      description: "Alguien de fuera viene a comer o cenar un día concreto (se suma a las raciones y a la compra de esa semana, y caduca solo).",
+      description: "Alguien de fuera viene a comer o cenar un día concreto. Cuenta al generar el menú de esa semana (raciones y compra) y caduca solo; si esa semana ya tiene menú, no lo cambia: dilo y ofrece rehacer ese día.",
       inputSchema: obj({
         dia: { type: "string", description: "Como lo digan: hoy, mañana, el jueves, el 15, 15 de noviembre o AAAA-MM-DD. «El jueves de la semana que viene»: dia jueves y semana siguiente." }, comida: { type: "string", enum: IDS_COMIDAS },
         n: { type: "integer", minimum: 1, maximum: 20 }, nombre: { type: "string" },
