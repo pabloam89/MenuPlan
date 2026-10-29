@@ -2,7 +2,7 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { deflateSync } from "node:zlib";
 
 vi.mock("./telegram.js", () => ({ llamar: vi.fn(async () => ({ file_path: "f.pdf" })) }));
-const { adjuntoDe, paginasDePdf, porQueNoAdjunto, ERROR_ADJUNTO, MAX_PAGINAS_PDF } = await import("./adjuntos.js");
+const { adjuntoDe, adjuntoDelAlta, paginasDePdf, porQueNoAdjunto, ERROR_ADJUNTO, MAX_PAGINAS_PDF } = await import("./adjuntos.js");
 
 // Un PDF mínimo con n páginas, a la vista o dentro de un «object stream» comprimido.
 function pdf(n, { comprimido = false } = {}) {
@@ -86,5 +86,25 @@ describe("lo que se le dice a la persona", () => {
     const frases = Object.values(ERROR_ADJUNTO).map(porQueNoAdjunto);
     expect(new Set(frases.slice(0, 3)).size).toBe(3);
     expect(porQueNoAdjunto("otra cosa")).toMatch(/No he podido abrirla/);
+  });
+});
+
+describe("en el alta, un adjunto que no se lee se dice (#958, C5)", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it("un PDF largo en el primer mensaje: el alta sigue con el pie y se dice por qué", async () => {
+    conDescarga(pdf(240, { comprimido: true }));
+    const alta = adjuntoDelAlta(await adjuntoDe(unPdf), " menú del cole ");
+    expect(alta).toEqual({ adjunto: null, texto: "menú del cole", error: "paginas", aviso: porQueNoAdjunto("paginas", 240) });
+  });
+
+  it("si bajarlo falló (adjuntoDe lanzó y queda null), también se dice", () => {
+    expect(adjuntoDelAlta(null, "")).toEqual({ adjunto: null, texto: null, error: "descarga", aviso: porQueNoAdjunto("descarga") });
+  });
+
+  it("uno que se lee va con su pie, o con «(te mando esta foto)» si no trae", () => {
+    const a = { tipo: "image", mediaType: "image/jpeg", base64: "x" };
+    expect(adjuntoDelAlta(a, "")).toEqual({ adjunto: a, texto: "(te mando esta foto)", aviso: null, error: null });
+    expect(adjuntoDelAlta(a, "la cena").texto).toBe("la cena");
   });
 });

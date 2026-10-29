@@ -38,6 +38,21 @@ export function porQueNoAdjunto(error, paginas = null) {
   return "No he podido abrirla. ¿Me la mandas otra vez?";
 }
 
+/**
+ * El adjunto del primer mensaje de alguien (el alta): si se lee, va con su pie
+ * de foto; si no, el alta sigue con el pie y a la persona se le dice por qué
+ * (#958, C5: antes el error se perdía sin log ni mensaje).
+ * @param {object|null} a  lo que dio adjuntoDe (null si falló al bajarlo)
+ * @param {string} [pie]  el caption del mensaje
+ * @returns {{ adjunto: object|null, texto: string|null, aviso: string|null, error: string|null }}
+ */
+export function adjuntoDelAlta(a, pie) {
+  const texto = (pie ?? "").trim() || null;
+  if (a && !a.error) return { adjunto: a, texto: texto ?? "(te mando esta foto)", aviso: null, error: null };
+  const error = a?.error ?? ERROR_ADJUNTO.DESCARGA;
+  return { adjunto: null, texto, aviso: porQueNoAdjunto(error, a?.paginas), error };
+}
+
 /** @returns {Promise<null | { tipo: "image"|"document", mediaType: string, base64: string } | { error: string, paginas?: number|null }>} */
 export async function adjuntoDe(msg) {
   let fileId;

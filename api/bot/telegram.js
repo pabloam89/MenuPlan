@@ -34,7 +34,7 @@ import { registrar, rastro, EMBUDO, duenoDe } from "../_bot/embudo.js";
 import { RASTRO } from "../../src/lib/rastro.js";
 import { pintarMenuEntero } from "../_bot/pintar.js";
 import { transcribir } from "../_bot/voz.js";
-import { adjuntoDe, porQueNoAdjunto } from "../_bot/adjuntos.js";
+import { adjuntoDe, porQueNoAdjunto, adjuntoDelAlta } from "../_bot/adjuntos.js";
 import { enTurno, aSolas, drenar, juntar } from "../_bot/turnos.js";
 import { conPlazo } from "../_bot/plazo.js";
 import { clasificar, vaPorLaRapida, permitidoEn } from "../_bot/router.js";
@@ -1651,8 +1651,14 @@ async function crearCuenta(from, chatId, primero = {}) {
     if (!t.error) { texto = t.texto; oido = t.texto; }
     else console.error("[voz]", t.error);
   } else if (m?.photo || m?.document) {
-    const a = await adjuntoDe(m).catch(fallaCon("alta_adjunto", null));
-    if (a && !a.error) { adjunto = a; texto = (m.caption ?? "").trim() || "(te mando esta foto)"; }
+    const alta = adjuntoDelAlta(await adjuntoDe(m).catch(fallaCon("alta_adjunto", null)), m.caption);
+    adjunto = alta.adjunto;
+    texto = alta.texto ?? texto;
+    if (alta.aviso) {
+      // Lo que no se pudo leer, al log y a la persona; el alta sigue (#958, C5).
+      console.warn(JSON.stringify({ evento: "adjunto_no_leido", donde: "alta", error: alta.error }));
+      await enviar(chatId, alta.aviso).catch(fallaCon("alta_adjunto"));
+    }
   }
   return conversarMedido(SIN_ENRUTADOR.ALTA, {
     chatId, householdId: cuenta.householdId, from, esGrupo: false, oido, adjunto, base: primero.base ?? null,
