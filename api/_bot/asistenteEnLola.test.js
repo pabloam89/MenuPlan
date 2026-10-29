@@ -1,7 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { aplicarExtras, aplicarSemana, diasDichos } from "./ajustes.js";
+import { aplicarExtras, aplicarSemana } from "./ajustes.js";
+import { diasDeLaSemana } from "./interprete.js";
+
+const diasDichos = (dias) => diasDeLaSemana(dias).dias;
 import { EXTRAS } from "../../src/lib/extras.js";
+import { ESTADO } from "./resultado.js";
 import { resolveModeData } from "../../src/lib/prepararGeneracion.js";
 
 // Lo que el asistente de la app pregunta y Lola no podía decir (#939):
@@ -51,6 +55,27 @@ describe("ajustar_semana", () => {
     expect(dias).toContainEqual(["Lun", "Mar", "Mié", "Jue", "Vie"]);
     expect(r.data.menuWeekOffsets).toContain(1);
     expect(r.texto).toMatch(/la semana que viene: lunes/);
+  });
+
+  // #958: con ningún día entendido contestaba «Guardado (esta semana: )».
+  it("un día que no se entiende no se tira callado: nada guardado, y dicho", () => {
+    const r = aplicarSemana({ menuWeekOffsets: [0] }, { dias: ["el puente"] }, { hoyIdx: 0 });
+    expect(r.data).toBeUndefined();
+    expect(r.texto).not.toMatch(/Guardado/);
+    expect(r.resultado.estado).toBe(ESTADO.NADA);
+    expect(r.resultado.sinHacer).toEqual([{ que: "el puente", motivo: "no sé qué días son: que los diga uno a uno" }]);
+  });
+
+  it("con un día sin entender no deja la semana a medias", () => {
+    const r = aplicarSemana({ menuWeekOffsets: [0] }, { dias: ["lunes", "el puente"] }, { hoyIdx: 0 });
+    expect(r.data).toBeUndefined();
+    expect(r.resultado.sinHacer.map((s) => s.que)).toEqual(["el puente", "lunes"]);
+  });
+
+  it("lo guardado sale en el recibo", () => {
+    const r = aplicarSemana({ menuWeekOffsets: [0] }, { semana: "siguiente", dias: ["entre semana"] }, { hoyIdx: 0 });
+    expect(r.resultado.estado).toBe(ESTADO.HECHO);
+    expect(r.resultado.hecho).toEqual(["la semana que viene: lunes, martes, miércoles, jueves, viernes"]);
   });
 
   it("la variedad, de su lista", () => {
