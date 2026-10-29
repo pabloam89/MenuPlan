@@ -11,25 +11,30 @@
  * invisibles. Quien lo use lo cita y dice de dónde viene (citaDeFuera).
  */
 
-// Control, saltos, ancho cero y marcas de dirección (se usan para esconder texto).
-const RANGOS_INVISIBLES = [[0x00, 0x1f], [0x7f, 0x9f], [0x200b, 0x200f], [0x2028, 0x202e], [0x2060, 0x2064], [0x2066, 0x2069], [0xfeff, 0xfeff]];
-// Por código y no escritos en la regex: un U+2028 literal en el fuente rompe la línea.
-const INVISIBLES = new RegExp(`[${RANGOS_INVISIBLES.map(([a, b]) => `${String.fromCharCode(a)}-${String.fromCharCode(b)}`).join("")}]`, "g");
-// Lo que serviría para cerrar la cita o fingir formato: comillas, corchetes, etiquetas.
-const DE_FORMATO = /[[\]<>{}«»"“”`\\|]/g;
+// Control (saltos incluidos), ancho cero y marcas de dirección (se usan para
+// esconder texto), y los corchetes y etiquetas con que fingir un aviso del
+// sistema o un [[botón]]. Los invisibles, por código: un U+2028 literal en el
+// fuente rompe la línea.
+const RANGOS_INVISIBLES = [[0x200b, 0x200f], [0x2028, 0x202e], [0x2060, 0x2064], [0x2066, 0x2069], [0xfeff, 0xfeff]];
+const rangos = RANGOS_INVISIBLES.map(([a, b]) => String.fromCharCode(a) + "-" + String.fromCharCode(b)).join("");
+const INVISIBLES_Y_MARCAS = new RegExp("[\\p{Cc}" + rangos + "\\[\\]<>]", "gu");
+// Además, para un dato citado: comillas y llaves con que cerrar la cita.
+const DE_CITA = /[{}«»"“”`\\|]/g;
 
 export const MAX_DATO = 80;
 
-/** El texto ajeno, limpio y en una línea corta. */
+/**
+ * Lo mínimo para cualquier texto que no es nuestro y entra en lo que lee Lola
+ * (el dato citado de aquí, y la pista del enrutador en pista.js): una línea,
+ * corta, sin invisibles ni corchetes. Una sola regla para los dos (#958).
+ */
+export function enUnaLinea(texto, max) {
+  return String(texto ?? "").replace(INVISIBLES_Y_MARCAS, " ").replace(/\s+/g, " ").trim().slice(0, max).trim();
+}
+
+/** El texto ajeno, limpio y en una línea corta, sin nada con que cerrar la cita. */
 export function comoDato(texto, max = MAX_DATO) {
-  return String(texto ?? "")
-    .normalize("NFKC")
-    .replace(INVISIBLES, " ")
-    .replace(DE_FORMATO, "")
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, max)
-    .trim();
+  return enUnaLinea(String(texto ?? "").normalize("NFKC").replace(DE_CITA, ""), max);
 }
 
 /**
