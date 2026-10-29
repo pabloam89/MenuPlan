@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 
 // Solo las piezas puras: el resto del módulo toca la base de datos.
 vi.mock("./db.js", () => ({ select: vi.fn(), insert: vi.fn(), eq: (v) => `eq.${v}`, config: vi.fn() }));
-vi.mock("./casa.js", () => ({ cargarCasa: vi.fn(), conCasa: vi.fn() }));
+vi.mock("./casa.js", () => ({ cargarCasa: vi.fn(), conCasa: vi.fn(), olvidarCasa: vi.fn() }));
 vi.mock("./embudo.js", () => ({ duenoDe: vi.fn() }));
 vi.mock("./menu.js", () => ({
   motor: vi.fn(),
@@ -74,6 +74,27 @@ describe("guardar_receta no dice «guardada» sin guardar", () => {
     expect(texto).toMatch(/^NO GUARDADA/);
     expect(texto).not.toMatch(/Guardada en el recetario/);
     expect(insert).not.toHaveBeenCalled();
+  });
+});
+
+// #958: la receta propia vive en user_recipes. Antes se copiaba además en
+// data.userRecipes de la casa (que la app quita en cada guardado): dos sitios.
+describe("guardarRecetaPropia: a user_recipes y a ningún sitio más", () => {
+  it("escribe su fila y no toca el JSON de la casa", async () => {
+    const { select, insert } = await import("./db.js");
+    const { conCasa } = await import("./casa.js");
+    const { motor } = await import("./menu.js");
+    const { guardarRecetaPropia } = await import("./recetas.js");
+    insert.mockClear();
+    conCasa.mockClear();
+    conCasa.mockResolvedValue({ ok: true });
+    select.mockResolvedValueOnce([]);
+    motor.mockResolvedValueOnce({ recipeToRow: (r, dueno) => ({ id: r.id, owner_id: dueno, name: r.name }) });
+    const r = await guardarRecetaPropia("h1", { id: "user_pisto", name: "Pisto de la casa", owner: { id: "u1" } });
+    expect(r).toEqual({ ok: true, enRecetario: true });
+    expect(insert).toHaveBeenCalledWith("user_recipes", [{ id: "user_pisto", owner_id: "u1", name: "Pisto de la casa" }], { upsert: true });
+    expect(conCasa).not.toHaveBeenCalled();
+    conCasa.mockReset();
   });
 });
 

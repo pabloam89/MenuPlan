@@ -19,6 +19,7 @@
  */
 
 import { select, insert, update, eq } from "./db.js";
+import { resultado } from "./resultado.js";
 import { registrar } from "./embudo.js";
 import { crearRecordatorio } from "./recordatorios.js";
 import { resolverPersona, preguntaDeEstado, palabrasDe, estadoDeCampo, temaDe } from "./estadoCasa.js";
@@ -27,6 +28,7 @@ import {
   noEsComida, preguntaProhibida,
 } from "../../src/lib/registroTareas.js";
 import { unaVez, tareasV2 } from "./idempotencia.js";
+import { esDuplicado } from "./entradas.js";
 import { CANAL, paraEscribir } from "../../src/lib/vocabularios.js";
 
 export const LIMITE_ABIERTAS = 8;
@@ -61,7 +63,6 @@ const cierre = (estado, ahora) => ({ status: estado, closed_at: ahora, updated_a
 /** De qué va, para el evento: con v2, el campo; sin v2, el tema de siempre. */
 const temaDelEvento = (campo) => (tareasV2() ? { campo: campo ?? null } : { tema: sobreDeCampo(campo) });
 
-const esDuplicado = (e) => /\b409\b|23505|duplicate key/i.test(String(e?.message ?? e));
 const esTope = (e) => /tope de tareas abiertas|P0001/i.test(String(e?.message ?? e));
 // PostgREST contesta 409 también a una FK rota: se mira antes que esDuplicado.
 const esPersonaSinCopiar = (e) => /bot_tareas_persona_fk/i.test(String(e?.message ?? e));
@@ -476,11 +477,16 @@ async function editar(ctx, abiertas, referencia, cambios = {}, data = {}, ahora 
     if (tareasV2() && "para_member" in parche) parche.persona_id = parche.para_member;
   }
   parche.updated_at = ahora.toISOString();
+  let filas;
   try {
-    await conPersona((p) => update("bot_tareas", `id=${eq(t.id)}&household_id=${eq(ctx.householdId)}&${filtroVivas()}`, p), parche);
+    filas = await conPersona((p) => update("bot_tareas", `id=${eq(t.id)}&household_id=${eq(ctx.householdId)}&${filtroVivas()}`, p), parche);
   } catch (e) {
     if (esDuplicado(e)) return "Ya hay otra igual apuntada: no la he cambiado. Dilo así y pregunta si quiere cerrar una de las dos.";
     throw e;
   }
-  return "Cambiado.";
+  // Sin fila cambiada no hay «Cambiado» (#958): la tarea se cerró entretanto
+  // (otro chat, la app) y el PATCH no tocó nada.
+  if (!filas?.length) return resultado({ accion: "tarea", sinHacer: [{ que: t.texto, motivo: "ya estaba cerrada" }] });
+  const dicho = [parche.texto && `«${parche.texto}»`, parche.vence && `para el ${parche.vence}`, "para_member" in parche && "otra persona", "asignado_member" in parche && "otro encargado"].filter(Boolean).join(", ");
+  return resultado({ accion: "tarea", hecho: [`${t.texto}${dicho ? ` → ${dicho}` : ""}`] });
 }

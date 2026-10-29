@@ -17,11 +17,9 @@
  */
 
 import { DIAS, indiceDeISO, diaDeISO } from "../../src/lib/dias.js";
-import { diaDeSemana, fechaDe, sumarDias } from "./interprete.js";
+import { diaDeSemana, fechaDe, sumarDias, normal } from "./interprete.js";
 
 export const CUANDOS = ["hoy", "manana", "pasado_manana", "dia", "finde", "finde_que_viene", "esta_semana", "semana_que_viene", "rango"];
-
-const normal = (s) => String(s ?? "").normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().trim();
 
 export { sumarDias };
 /** 0 = lunes … 6 = domingo */

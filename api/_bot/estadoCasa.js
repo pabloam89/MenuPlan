@@ -6,11 +6,12 @@
  */
 
 import { alergiasRevisadas, esBebe } from "./ficha.js";
-import { buscarPersona, personaNombradaEn } from "./interprete.js";
+import { buscarPersona, personaNombradaEn, normal } from "./interprete.js";
 import { ETAPAS_BEBE } from "../../src/lib/babyStage.js";
 import { claveDeTarea, campoDeClave, personaDeClave, TIPO_DE_KIND } from "../../src/lib/registroTareas.js";
 
-export const normalizar = (s) => String(s ?? "").toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "").replace(/\s+/g, " ").trim();
+// La misma normalización que el intérprete: una sola copia (#967, C8).
+export const normalizar = normal;
 
 const idDe = (m) => String(m?.id ?? m?.name ?? "");
 

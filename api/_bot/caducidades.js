@@ -21,6 +21,7 @@
  */
 
 import { select, insert, update, eq } from "./db.js";
+import { esDuplicado } from "./entradas.js";
 import { claveDeTarea } from "../../src/lib/registroTareas.js";
 import { INTOLERANCE_RULES } from "../../src/lib/intolerances.js";
 import { isoDeCasa } from "../../src/lib/dias.js";
@@ -165,7 +166,7 @@ async function barrerEstados({ ahoraMs, hoy }) {
         abiertas++;
       } catch (e) {
         // El índice único (casa, clave) para una pasada solapada: no es un fallo.
-        if (!/\b409\b|23505|duplicate key/i.test(String(e?.message))) throw e;
+        if (!esDuplicado(e)) throw e;
       }
     }
   }

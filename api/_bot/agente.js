@@ -52,10 +52,12 @@ import { claveDePregunta, estadoDeClave } from "./estadoCasa.js";
 import { pintarMenuEntero, filtrosTrasGenerar, filtrosTrasCambiar, sinEtiquetas } from "./pintar.js";
 import { fechasDe, CUANDOS } from "./cuando.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, IDS_PLATOS } from "../../src/lib/comidas.js";
-import { KITCHEN_TOOL_IDS } from "../../src/lib/electrodomesticos.js";
-import { NIVEL_COCINA, RITMO_COCINA, ETAPA_BEBE, DONDE_COME, CANAL, APARATOS, paraEscribir } from "../../src/lib/vocabularios.js";
+import { KITCHEN_TOOL_IDS, APARATOS_EN_ORDEN } from "../../src/lib/electrodomesticos.js";
+import { NIVEL_COCINA, RITMO_COCINA, ETAPA_BEBE, DONDE_COME, CANAL, paraEscribir } from "../../src/lib/vocabularios.js";
 import { ETAPA_BEBE_INFO } from "../../src/lib/babyStage.js";
-import { enOrden } from "../../src/lib/enOrden.js";
+// Los aparatos, en el orden de la app: la lista vive en electrodomesticos.js y la
+// lee también el mando de trastos del panel; aquí no se copia (#967, C8 y C14).
+const TRASTOS = [...APARATOS_EN_ORDEN];
 import { ESQUEMA_DE_FUERA } from "./deFuera.js";
 import { verDespensa, anadirDespensa } from "./despensa.js";
 import { guardarMenuCole, verMenuCole } from "./cole.js";
@@ -68,7 +70,8 @@ import { ENUMS as ENUMS_TAREAS } from "../../src/lib/registroTareas.js";
 import { tareasV2 } from "./idempotencia.js";
 import { apuntarSilencio, conRecordatorio, NOTA_RECORDATORIO } from "./silencio.js";
 import { usoParcialDe } from "./medidaTurno.js";
-import { operacion, claveDeEscritura, tipoDeHerramienta, YA_ESCRITA } from "./operacion.js";
+import { esResultado, paraElModelo, conRecibo, recibo, cuentaComoGuardado } from "./resultado.js";
+import { operacion, claveDeEscritura, tipoDeHerramienta, YA_ESCRITA, SIN_COMPROBAR } from "./operacion.js";
 import { primeraVez, yaVista } from "./entradas.js";
 
 const yaEscrita = (clave) => yaVista(CANAL.TELEGRAM, clave);
@@ -263,7 +266,12 @@ export async function herramientas(chat) {
       // en el intento fallido no se repite.
       const op = SOLO_LECTURA.has(t.name) ? null : operacion();
       const clave = op ? claveDeEscritura(t.name, args) : null;
-      if (op?.reintento && clave && (await yaEscrita(clave))) return YA_ESCRITA;
+      if (op?.reintento && clave) {
+        const vista = await yaEscrita(clave);
+        // Sin poder mirarlo, un reintento no escribe a ciegas: se haría dos veces.
+        if (vista === SIN_LEER) return SIN_COMPROBAR;
+        if (vista) return YA_ESCRITA;
+      }
       const casaAntes = op?.guardadosCasa ?? 0;
       if (op) op.herramienta = t.name;
       try {
@@ -272,7 +280,11 @@ export async function herramientas(chat) {
         // cuenta como guardado, ni lleva botón a la app.
         chat.nadaQueVer = false;
         const { r, escribio } = await contandoEscrituras(() => t.run(args, llamada));
-        if (escribio) chat.guardados = (chat.guardados ?? 0) + 1;
+        // Un RESULTADO (resultado.js, #958): lo hecho y lo que no, con forma
+        // fija. El recibo que ve la familia sale de aquí, no del texto de Lola,
+        // y un resultado sin nada hecho no cuenta como guardado.
+        if (cuentaComoGuardado(escribio, r)) chat.guardados = (chat.guardados ?? 0) + 1;
+        if (esResultado(r)) (chat.resultados ??= []).push(r);
         if (op && escribio) {
           if (clave) await primeraVez(CANAL.TELEGRAM, clave);
           // Escribió sin pasar por la casa (despensa, tareas…): se apunta de
@@ -283,7 +295,7 @@ export async function herramientas(chat) {
         if (t.name === "cambiar_plato" && args.dia) tocado.dias.add(diaDe(args.dia) ?? String(args.dia).toLowerCase());
         const ir = (SOLO_LECTURA.has(t.name) && !chat.nadaQueVer) || escribio ? pantallaDe(t.name, args) : null;
         if (ir) chat.ir = ir;
-        return r;
+        return esResultado(r) ? paraElModelo(r) : r;
       } catch (e) {
         // a propósito: el evento vale más sin dueño que perdido
         await registrar(FALLO_HERRAMIENTA, { userId: await duenoDe(chat.householdId).catch(seguirCon("agente_dueno", null)), extra: { herramienta: t.name, error: String(e?.message ?? e).slice(0, 300), esGrupo: Boolean(chat.esGrupo) } });
@@ -528,7 +540,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "ajustar_gustos",
-      description: `Gustos de la casa, como el panel de la app. Cada ajuste: campo, valor, op (mas|menos|nunca), n opcional (veces/semana, 0-7, solo freqs), ambito (todos|ninos|adultos|bebes), servicio (ambos|comida|cena). Campos y valores válidos: ${gustos}. «Nada de X» es favoritos/excluidos con op=nunca. dicho=true SOLO si es una instrucción o una norma de la casa («en casa no comemos cerdo», «pon más pescado», «nada de fritos»). Un comentario u opinión es dicho=false aunque hable de gustos («a los peques no les va mucho el pescado», «el cerdo nos sienta regular», «son de poco comer»): eso solo inclina el menú, no excluye nada y caduca; se apunta sin preguntar. Un antojo de hoy («hoy no me apetece») no es un gusto: no lo apuntes. Con algo supuesto, habla de ello como impresión, no como hecho. desde/hasta (AAAA-MM-DD) para lo que tiene fecha («este mes», «a partir del lunes»). dias y salvoDias para lo que vale solo algunos días («los lunes, sin carne» → dias [Lun]; «entre semana, nada de fritos» → dias [Lun..Vie]; «sin pescado en la cena salvo los viernes» → servicio cena, salvoDias [Vie]): por días solo se puede QUITAR (op=nunca: un ingrediente, carne, pescado, legumbres, huevos, pasta_arroz o una técnica) y solo como norma dicha.`,
+      description: `Gustos de la casa, como el panel de la app. Cada ajuste: campo, valor, op (mas|menos|nunca), n opcional (veces/semana, 0-7, solo freqs; solo si dijo un número exacto), cantidad opcional (solo freqs: lo que dijo, literal, si es «menos de dos», «como mucho tres», «al menos una»…; el número lo saca el código, no tú), ambito (todos|ninos|adultos|bebes), servicio (ambos|comida|cena). Campos y valores válidos: ${gustos}. «Nada de X» es favoritos/excluidos con op=nunca. dicho=true SOLO si es una instrucción o una norma de la casa («en casa no comemos cerdo», «pon más pescado», «nada de fritos»). Un comentario u opinión es dicho=false aunque hable de gustos («a los peques no les va mucho el pescado», «el cerdo nos sienta regular», «son de poco comer»): eso solo inclina el menú, no excluye nada y caduca; se apunta sin preguntar. Un antojo de hoy («hoy no me apetece») no es un gusto: no lo apuntes. Con algo supuesto, habla de ello como impresión, no como hecho. desde/hasta (AAAA-MM-DD) para lo que tiene fecha («este mes», «a partir del lunes»). dias y salvoDias para lo que vale solo algunos días («los lunes, sin carne» → dias [Lun]; «entre semana, nada de fritos» → dias [Lun..Vie]; «sin pescado en la cena salvo los viernes» → servicio cena, salvoDias [Vie]): por días solo se puede QUITAR (op=nunca: un ingrediente, carne, pescado, legumbres, huevos, pasta_arroz o una técnica) y solo como norma dicha.`,
       inputSchema: obj({
         ajustes: {
           type: "array", minItems: 1, maxItems: 8,
@@ -536,6 +548,8 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
             campo: { type: "string" }, valor: { type: "string" },
             op: { type: "string", enum: ["mas", "menos", "nunca"] },
             n: { type: "integer", minimum: 0, maximum: 7 },
+            // La cantidad dicha, literal: la lee cantidadDe del intérprete (#958).
+            cantidad: { type: "string", description: "Solo freqs: «menos de dos», «como mucho tres», «al menos una vez»…" },
             ambito: { type: "string", enum: ["todos", "ninos", "adultos", "bebes"] },
             servicio: { type: "string", enum: ["ambos", "comida", "cena"] },
           }, ["campo", "valor", "op"]),
@@ -561,14 +575,14 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "ajustar_cocina",
-      description: "Cómo se cocina en casa: estructura de la comida (primero_segundo = primero y segundo; 1_plato = plato único), esfuerzo (basic/normal/pro), tiempo por día (con_prisa/normal/con_tiempo/depende) y aparatos (Airfryer, Horno, Microondas, Thermomix, Olla rápida, Vaporera). «Tenemos airfryer» es trastosMas [Airfryer]; «ya no tenemos horno», trastosMenos [Horno]: los demás se quedan. trastos (la lista entera) SOLO cuando dicen todo lo que tienen, porque sustituye. Cocinar en tanda va por pedir_tanda.",
+      description: `Cómo se cocina en casa: estructura de la comida (primero_segundo = primero y segundo; 1_plato = plato único), esfuerzo (basic/normal/pro), tiempo por día (con_prisa/normal/con_tiempo/depende) y aparatos (${TRASTOS.join(", ")}). «Tenemos airfryer» es trastosMas [Airfryer]; «ya no tenemos horno», trastosMenos [Horno]: los demás se quedan. trastos (la lista entera) SOLO cuando dicen todo lo que tienen, porque sustituye. Cocinar en tanda va por pedir_tanda.`,
       inputSchema: obj({
         estructura: { type: "string", enum: ["primero_segundo", "1_plato"] },
         esfuerzo: { type: "string", enum: NIVEL_COCINA },
         tiempo: { type: "string", enum: RITMO_COCINA },
-        trastos: { type: "array", items: { type: "string", enum: enOrden(APARATOS, ["Airfryer", "Horno", "Microondas", "Thermomix"]) }, description: "La lista ENTERA: sustituye a la guardada." },
-        trastosMas: { type: "array", items: { type: "string", enum: enOrden(APARATOS, ["Airfryer", "Horno", "Microondas", "Thermomix"]) }, description: "Aparatos que se añaden." },
-        trastosMenos: { type: "array", items: { type: "string", enum: enOrden(APARATOS, ["Airfryer", "Horno", "Microondas", "Thermomix"]) }, description: "Aparatos que ya no tienen." },
+        trastos: { type: "array", items: { type: "string", enum: TRASTOS }, description: "La lista ENTERA: sustituye a la guardada." },
+        trastosMas: { type: "array", items: { type: "string", enum: TRASTOS }, description: "Aparatos que se añaden." },
+        trastosMenos: { type: "array", items: { type: "string", enum: TRASTOS }, description: "Aparatos que ya no tienen." },
         comidas: { type: "array", items: { type: "string", enum: COMIDAS_PRINCIPALES }, description: "Qué comidas se planifican." },
         etapaBebe: { type: "string", enum: ETAPA_BEBE, description: `Qué come el bebé: ${ETAPA_BEBE.map((e) => `${e} (${ETAPA_BEBE_INFO[e].label.toLowerCase()}: ${ETAPA_BEBE_INFO[e].desc.toLowerCase()})`).join(", ")}. «Come de todo» o «ya come de todo» es solidos; «un poco de cada» o «purés y algún trozo», mixto. Apúntalo en cuanto lo digan, antes de proponerle nada.` },
       }),
@@ -1107,7 +1121,8 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   // solo existe en el turno en que llega (apartar_foto_plato, preparar_receta).
   // `pintar`: qué trozo del menú sale pintado debajo del mensaje (pintar.js).
   // `llamadas`: las herramientas que Lola pide en el turno, en orden (silencio.js).
-  const chat = { channel, chatId: String(chatId), householdId, autor, adjunto, texto, fotos: [], ir: null, compartir: null, pintar: null, puerta, esGrupo: Boolean(esGrupo), papel: undefined, llamadas: [], pedidas: [] };
+  // `resultados`: lo que devuelven con forma fija las herramientas que escriben (resultado.js): de ahí sale el recibo.
+  const chat = { channel, chatId: String(chatId), householdId, autor, adjunto, texto, fotos: [], ir: null, compartir: null, pintar: null, puerta, esGrupo: Boolean(esGrupo), papel: undefined, llamadas: [], pedidas: [], resultados: [] };
   // El papel de quien escribe, en cada turno (no se guarda: quitar a alguien
   // vale para el mensaje siguiente). Las herramientas se filtran con él.
   const conPapel = papelDeQuien({ householdId, chatId, esGrupo: Boolean(esGrupo), desde, channel })
@@ -1184,7 +1199,7 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   const adelanto = adelantoDelTurno(chat);
   const conAdelanto = adelanto.servir(tools);
   let medidaPista = null;
-  const limpiarTurno = () => { chat.fotos.length = 0; chat.ir = null; chat.compartir = null; chat.pintar = null; };
+  const limpiarTurno = () => { chat.fotos.length = 0; chat.ir = null; chat.compartir = null; chat.pintar = null; chat.resultados.length = 0; };
   const lanzar = (d, leido, sig, { reinicio }) => {
     if (reinicio) limpiarTurno();
     adelanto.usar(leido);
@@ -1226,7 +1241,11 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
     // leyó la primera llamada que sí acabó, que es casi lo mismo.
     if (medidaPista?.reinicio && r.primera) medidaPista.cortada_tokens = (r.primera.input_tokens ?? 0) + (r.primera.cache_read_input_tokens ?? 0) + (r.primera.cache_creation_input_tokens ?? 0);
     // La medida del turno de Lola, para bot_route (api/bot/telegram.js).
-    medida = { modelo: r.modelo, planB: r.planB, vueltas: r.vueltas, primera: r.primera, llamadas: r.llamadas ?? null, uso, herramientas: r.herramientas, corregido: !!corregido, ms: Date.now() - tLola, pista: medidaPista, aviso: r.avisos?.[0] ?? null };
+    medida = { modelo: r.modelo, planB: r.planB, vueltas: r.vueltas, primera: r.primera, llamadas: r.llamadas ?? null, uso, herramientas: r.herramientas, corregido: !!corregido, ms: Date.now() - tLola, pista: medidaPista, aviso: r.avisos?.[0] ?? null,
+      // #958: lo que de verdad se guardó en el turno, para medir lo dicho
+      // contra lo hecho (scripts/bot-dice-sin-hacer.mjs): cuántas herramientas
+      // guardaron y, por cada resultado, [acción, hechas, sin hacer].
+      guardados: chat.guardados ?? 0, recibo: chat.resultados.map((x) => [x.accion, x.hecho.length, x.sinHacer.length]) };
   } catch (err) {
     // Ya había cambiado algo en la casa cuando el modelo se cayó: repetir el
     // turno lo haría dos veces. Se dice que está hecho y dónde verlo.
@@ -1235,8 +1254,10 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
     console.error("[agente] a medias", err?.message);
     // a propósito: el evento vale más sin dueño que perdido
     await registrar(FALLO_A_MEDIAS, { userId: await duenoDe(householdId).catch(seguirCon("agente_dueno", null)), extra: { error: `a medias: ${String(err?.message ?? err).slice(0, 250)}`, esGrupo: Boolean(esGrupo) } });
+    // Lo que sí se sabe que quedó hecho va en el recibo, de los datos (#958).
+    const hecho = recibo(chat.resultados);
     return {
-      texto: "😵‍💫 Me he quedado a medias: puede que ya haya cambiado algo y no te lo he podido contar.\n\nMíralo en la app con el botón antes de pedírmelo otra vez, así no se hace dos veces.",
+      texto: `${hecho ? `${hecho}\n\n` : ""}😵‍💫 Me he quedado a medias: puede que ya haya cambiado algo y no te lo he podido contar.\n\nMíralo en la app con el botón antes de pedírmelo otra vez, así no se hace dos veces.`,
       fotos: chat.fotos, deshacible: false, ir: chat.ir ?? "semana", compartir: null,
     };
   }
@@ -1267,7 +1288,11 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   ).catch((e) => console.error("[agente] promover", e?.message));
   // El recordatorio del primer menú por silencio lo pone el código, no el
   // modelo (generar_menu lo marca en chat.recordarSilencio): sale una vez.
-  const respuesta = conRecordatorio(visible, chat.recordarSilencio, chat.idioma ?? "es") + avisoDeLimite(householdId, llevados);
+  // El recibo (resultado.js, #958): lo hecho y lo que no, pintado por el
+  // código encima del mensaje de Lola. Y si ni con el aviso dejó de decir que
+  // guardó sin guardar nada, la familia lo ve dicho: antes le llegaba la
+  // promesa falsa tal cual (bot_claimed_unsaved con sigue = true).
+  const respuesta = conRecibo(conRecordatorio(visible, chat.recordarSilencio, chat.idioma ?? "es"), chat.resultados, { sinGuardar: sigueSinGuardar }) + avisoDeLimite(householdId, llevados);
 
   // Guardar la charla no tiene por qué retrasar la respuesta: va en
   // `guardado`, y quien entrega lo espera DESPUÉS de enviar y antes de soltar
@@ -1319,7 +1344,27 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
 // Como viñeta («• ✅ Cambiar un plato», al contar lo que sabe hacer) no es
 // decir que guardó: «hola, ¿qué sabes hacer?» pasaba por el aviso y una
 // segunda llamada al modelo (staging, 2 oct 2026: 8,2 s para un saludo).
-const DICE_QUE_GUARDO = /(^|\n)\s*✅|\bapuntad[oa]s?\b|\blo he (apuntado|puesto|cambiado|guardado|quitado|añadido|anotado|arreglado|solucionado|corregido|dejado|actualizado)\b|(^|[.!¡]\s*)hecho\b/i;
+//
+// #958: se escapaban «He cambiado…», «Te he añadido…», «He borrado…» y «Ya
+// está: …». Ahora cuenta cualquier «he/hemos + participio de guardar», con o
+// sin pronombre delante. «Puesto» y «dejado» solo con «lo» delante («lo he
+// puesto el jueves»): a secas también son leer («te he puesto los botones»).
+// Los participios y los auxiliares, cada uno en una sola lista que leen
+// también la negación de abajo.
+const DE_GUARDAR = ["apuntad", "cambiad", "guardad", "quitad", "añadid", "borrad", "anotad", "arreglad", "solucionad", "corregid", "actualizad", "eliminad", "tachad", "marcad", "sumad", "cancelad", "programad", "metid"];
+const SOLO_CON_LO = ["puest", "dejad"];
+// Lola habla en primera persona («he», «hemos»); la negación mira también las demás.
+const AUX_DE_LOLA = ["he", "hemos"];
+const AUXILIARES = [...AUX_DE_LOLA, "ha", "han", "has", "habeis", "habéis"].join("|");
+const DICE_QUE_GUARDO = new RegExp([
+  "(^|\\n)\\s*✅",
+  "\\bapuntad[oa]s?\\b",
+  `\\b(${AUX_DE_LOLA.join("|")})\\s+(${DE_GUARDAR.join("|")})[oa]s?\\b`,
+  `\\blo he (${SOLO_CON_LO.join("|")})[oa]s?\\b`,
+  "(^|[.!¡]\\s*)hecho\\b",
+  // «Ya está: …» o «¡Ya está!» al empezar la frase; «el arroz ya está» no.
+  "(^|\\n|[.!¡?]\\s*)ya est[aá]\\s*[:!.]",
+].join("|"), "i");
 // «Ya está arreglado» sin haber tocado nada (#911: ante la queja de que un
 // arroz con tomate llevaba ensalada de lentejas de segundo, Lola solo propuso
 // tres primeros y empezó con «Ya está arreglado»). Es la misma mentira que
@@ -1334,9 +1379,16 @@ const DICE_QUE_ARREGLO = /\bya est[aá] (arreglad|cambiad|solucionad|corregid)[o
 // que sea «he apuntado» y el «no» no vaya con él («No olvides que te he
 // apuntado leche» sí dice que guardó; «No te he apuntado nada», no). Igual con
 // «Nada está cambiado aún» (lo que dice proponer_platos): es leer, no arreglar.
-const APUNTADO_NEGADO = /\b(no|ningun[oa]?|nada|nadie)\b[^.,;:!?\n]{0,40}?\b(apuntad|arreglad|cambiad|solucionad|corregid|hech|dejad|actualizad)[oa]s?\b/gi;
-const HE_APUNTADO = /\b(he|hemos|ha|han|has|habeis|habéis)\s+(apuntad|arreglad|cambiad|solucionad|corregid|hech|dejad|actualizad)/i;
-const NO_HE_APUNTADO = /^no\s+(\S+\s+)?(he|hemos|ha|han|has|habeis|habéis)\s+(apuntad|arreglad|cambiad|solucionad|corregid|hech|dejad|actualizad)/i;
+// #958: la negación lee los mismos participios que DICE_QUE_GUARDO (con su
+// lista vieja, más corta, «No he borrado nada» habría contado como guardado),
+// y entre «no» y el «he» deja hasta dos pronombres («No te lo he quitado»),
+// no dos palabras cualesquiera: «No olvides que he apuntado leche» sí dice
+// que guardó.
+const NEGABLES = [...DE_GUARDAR, ...SOLO_CON_LO, "hech"].join("|");
+const APUNTADO_NEGADO = new RegExp(`\\b(no|ningun[oa]?|nada|nadie)\\b[^.,;:!?\\n]{0,40}?\\b(${NEGABLES})[oa]s?\\b`, "gi");
+const HE_APUNTADO = new RegExp(`\\b(${AUXILIARES})\\s+(${NEGABLES})`, "i");
+const PRONOMBRES = "me|te|se|nos|os|lo|la|los|las|le|les";
+const NO_HE_APUNTADO = new RegExp(`^no\\s+((${PRONOMBRES})\\s+){0,2}(${AUXILIARES})\\s+(${NEGABLES})`, "i");
 const sinNegados = (texto) => texto.replace(APUNTADO_NEGADO, (m) => (HE_APUNTADO.test(m) && !NO_HE_APUNTADO.test(m) ? m : ""));
 // Una pregunta («¿Ya está arreglado?», «¿Quieres que lo deje hecho?») no afirma nada.
 const sinPreguntas = (texto) => texto.replace(/¿[^?]*\?/g, "");
@@ -1345,10 +1397,7 @@ export const tipoDePromesa = (texto) => {
   const t = sinNegados(sinPreguntas(String(texto ?? "")));
   return DICE_QUE_GUARDO.test(t) ? "guardado" : DICE_QUE_ARREGLO.test(t) ? "arreglado" : null;
 };
-export const diceQueGuardo = (texto) => {
-  const t = sinNegados(sinPreguntas(String(texto ?? "")));
-  return DICE_QUE_GUARDO.test(t) || DICE_QUE_ARREGLO.test(t);
-};
+export const diceQueGuardo = (texto) => tipoDePromesa(texto) !== null;
 // Las herramientas que tardan (BOT_AVISO_LENTO, on | off; por defecto on):
 // mientras corren, la persona ve al momento una frase de Lola en el mensaje
 // que se va escribiendo, y lo que Lola escriba después la sustituye en ese

@@ -23,6 +23,7 @@
 
 import { seguirCon, fallaCon, SIN_LEER } from "../_bot/avisar.js";
 import { noPude } from "../_bot/noPude.js";
+import { esNoEsAsi } from "../_bot/botones.js";
 import crypto from "node:crypto";
 import { waitUntil } from "@vercel/functions";
 import { select, insert, update, eq } from "../_bot/db.js";
@@ -133,7 +134,10 @@ const SIN_NOMBRE = /^lola[\s,:;.!¡¿-]*/i;
 export function meHablan(msg, yo) {
   const pie = (msg.text ?? msg.caption ?? "").trim();
   const bot = String(yo ?? "").toLowerCase();
-  return /^\/\w+/.test(pie)
+  // Un comando suelto («/menu») es para todos los bots del grupo; uno con
+  // destinatario («/menu@OtroBot»), solo para ese (#958: antes se lo quedaba Lola).
+  const comando = pie.match(/^\/\w+(?:@(\w+))?/);
+  return Boolean(comando && (!comando[1] || comando[1].toLowerCase() === bot))
     || Boolean(bot && pie.toLowerCase().includes(`@${bot}`))
     || Boolean(msg.reply_to_message?.from?.is_bot && msg.reply_to_message.from.username?.toLowerCase() === bot)
     || NOMBRADA.test(pie);
@@ -146,7 +150,6 @@ async function atender(msg, base, host = "") {
   const chatId = String(msg.chat.id);
   const esGrupo = esGrupoDe(msg.chat);
   let texto = (msg.text ?? "").trim();
-  let oidoDeGrupo = null; // si una nota de voz del grupo ya se transcribió para saber si era para Lola
 
   // En un grupo: al entrar, se presenta; y solo contesta cuando le hablan a
   // ella (un comando, una mención, una respuesta a un mensaje suyo, o un
@@ -156,24 +159,12 @@ async function atender(msg, base, host = "") {
     const yo = (await nombreDelBot().catch(fallaCon("grupo_nombre_del_bot", ""))).toLowerCase();
     if (msg.new_chat_members?.some((m) => m.is_bot && m.username?.toLowerCase() === yo)) return saludoGrupo(chatId);
     if (!meHablan(msg, yo)) {
-      // Una nota de voz no lleva texto ni pie: sin escucharla no hay forma de
-      // saber si empieza por «Lola». Se transcribe solo para decidir esto; si
-      // no es para ella, se tira tal cual (nadie contesta ni queda rastro).
-      const audio = !msg.caption && (msg.voice ?? msg.audio);
-      if (!audio) return;
-      const [paraOir] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
-      // Sin casa vinculada, o con la casa ya pasada de su límite del mes, no
-      // se paga una transcripción para algo que no va a contestar.
-      if (!paraOir?.household_id) return;
-      // a propósito: sin poder leer el uso, mejor contestar que bloquear (como el turno)
-      if (await fueraDeLimite(paraOir.household_id).catch(seguirCon("limite", null))) return;
-      // a propósito: «escribiendo…» es adorno
-      llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(seguirCon("escribiendo"));
-      // a propósito: solo es para saber si le hablan; sin oírla, no contesta
-      oidoDeGrupo = await transcribir(audio, { householdId: paraOir?.household_id }).catch(seguirCon("grupo_voz", null));
-      if (!oidoDeGrupo?.texto || !NOMBRADA.test(oidoDeGrupo.texto.trim())) return;
-      // `texto` sigue vacío a propósito: lo de más abajo («Notas de voz») la
-      // trata como la nota de voz que es, con su «oído: …», reutilizando esto.
+      // Una nota de voz del grupo que no es respuesta a Lola NO se escucha
+      // (#958). Antes se mandaba a Groq cada audio del grupo solo para ver si
+      // empezaba por «Lola»: audio de terceros, a veces de niños, que salía de
+      // casa para nada (y sin contar en bot_usage ni en el límite). En grupo,
+      // para hablarle con un audio, se responde a un mensaje suyo.
+      return;
     } else {
       texto = texto.replace(SIN_NOMBRE, "").trim() || texto;
     }
@@ -294,19 +285,13 @@ async function atender(msg, base, host = "") {
   const audio = msg.voice ?? msg.audio;
   if (!texto && audio) {
     // Pasada del límite del mes, no se transcribe: se contesta el aviso del
-    // límite sin pagar Groq (el de grupo ya lo miró antes de oír).
-    if (!oidoDeGrupo) {
-      // a propósito: sin poder leer el uso, mejor contestar que bloquear (como el turno)
-      const fuera = await fueraDeLimite(chat.household_id).catch(seguirCon("limite", null));
-      if (fuera) return enviar(chatId, fuera, { responderA: esGrupo ? msg.message_id : undefined });
-    }
-    // La del filtro de grupo ya se transcribió para saber si era para ella:
-    // no se vuelve a pagar Groq por el mismo audio.
-    const t = oidoDeGrupo ?? await (async () => {
-      // a propósito: «escribiendo…» es adorno
-      llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(seguirCon("escribiendo"));
-      return transcribir(audio, { householdId: chat.household_id }).catch((e) => ({ error: e?.message })); // a propósito: el error se apunta abajo ([voz])
-    })();
+    // límite sin pagar Groq.
+    // a propósito: sin poder leer el uso, mejor contestar que bloquear (como el turno)
+    const fuera = await fueraDeLimite(chat.household_id).catch(seguirCon("limite", null));
+    if (fuera) return enviar(chatId, fuera, { responderA: esGrupo ? msg.message_id : undefined });
+    // a propósito: «escribiendo…» es adorno
+    llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(seguirCon("escribiendo"));
+    const t = await transcribir(audio, { householdId: chat.household_id }).catch((e) => ({ error: e?.message })); // a propósito: el error se apunta abajo ([voz])
     if (t.error) {
       // Sin esto, «no he podido entender el audio» no dejaba rastro de por qué.
       console.error("[voz]", t.error, { segundos: audio.duration, tipo: audio.mime_type });
@@ -450,15 +435,18 @@ export const FALLO_TRAS_ESCRIBIR = "Uy, algo ha fallado a medias: parte de lo qu
  * reintento. «Deshaz» toca solo lo de esa persona, y una escritura repetida
  * por [[Reintentar]] no se hace dos veces. Si el turno falla después de
  * escribir algo (la entrega, la vía rápida…), no se pide «escríbemelo otra
- * vez»: se dice que hay algo guardado.
+ * vez»: se dice que hay algo guardado, y el fallo queda apuntado como fallo
+ * de verdad (fallaCon, con su sitio en SITIOS_FALLO). No se relanza: el bucle
+ * de la cola (turnos.js enTurno) se cortaría y lo que llegó durante el turno
+ * se quedaría sin atender.
  */
-async function conAutor({ chatId, from, mid = null, reintento = false, responderA }, fn) {
+export async function conAutor({ chatId, from, mid = null, reintento = false, responderA }, fn) {
   return conOperacion({ chat: chatId, persona: from?.id ?? null, mid, reintento }, async () => {
     try {
       return await fn();
     } catch (err) {
       if (!(operacion()?.escrituras > 0)) throw err;
-      console.error("[bot/telegram] falló tras escribir", err?.message);
+      fallaCon("turno_tras_escribir")(err);
       // a propósito: si ni el aviso sale, ya no hay más que hacer
       await enviar(chatId, FALLO_TRAS_ESCRIBIR, { responderA }).catch(seguirCon("fallo_tras_escribir"));
     }
@@ -733,7 +721,7 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
  * precio se aplica al leerlo (scripts/bot-medidas.mjs), así un cambio de
  * tarifa no obliga a reescribir nada.
  */
-function medida(medir, d, t0, primer = null) {
+export function medida(medir, d, t0, primer = null) {
   const l = medir.lola;
   return {
     primer_ms: primer ?? (medir.primerTexto ? medir.primerTexto - t0 : null),
@@ -760,6 +748,9 @@ function medida(medir, d, t0, primer = null) {
       pista: l.pista ?? null,
       // BOT_AVISO_LENTO: la herramienta lenta cuyo aviso salió (primer_ms es entonces el del aviso).
       aviso: l.aviso ?? null,
+      // #958: lo guardado de verdad y el recibo, para medir lo dicho contra lo hecho (scripts/bot-dice-sin-hacer.mjs).
+      guardados: l.guardados ?? null,
+      recibo: l.recibo ?? null,
     } : null,
   };
 }
@@ -1225,7 +1216,7 @@ async function saludoGrupo(chatId) {
   const [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
   return enviar(chatId, [
     "¡Hola, familia! Soy <b>Lola</b> 👩‍🍳, la que os prepara el menú y la compra.",
-    "Para hablarme aquí, empezad el mensaje con <b>Lola</b>: «Lola, ¿qué cenamos hoy?» o «Lola, apunta leche».",
+    "Para hablarme aquí, empezad el mensaje con <b>Lola</b>: «Lola, ¿qué cenamos hoy?» o «Lola, apunta leche». Los audios, mandádmelos respondiendo a un mensaje mío: los demás audios del grupo no los escucho.",
     chat ? "" : "Aún no sé de qué casa sois: quien use HoMenu, que me escriba aquí «Lola, conecta el grupo» y lo conecto a su casa.",
   ].filter(Boolean).join("\n\n"), chat ? {} : { botones: await botonAlPrivado() });
 }
@@ -1362,10 +1353,11 @@ function sacarBotones(texto) {
 // [[No es así]] tras apuntar algo (una alergia, quién come) es deshacer lo
 // que se acaba de guardar: va directo al deshacer de la casa (casa.js), sin
 // que el modelo tenga que entender un «no es así» suelto.
+// En castellano o en inglés («That's not right»): botones.js (#958).
 const DESHACER = "Deshaz lo último que has cambiado";
-const ES_DESHACER = /^(no es as[ií]|no es correcto|no,? as[ií] no|me he equivocado)$/i;
-function datoDeBoton(o) {
-  return ES_DESHACER.test(o.trim()) ? `t:${DESHACER}` : `t:${o}`;
+/** Lo que manda un botón al pulsarlo (exportada para el test). */
+export function datoDeBoton(o) {
+  return esNoEsAsi(o) ? `t:${DESHACER}` : `t:${o}`;
 }
 
 // Empieza por lo que ofrece, no por la cuenta: quien escribe «somos cuatro»

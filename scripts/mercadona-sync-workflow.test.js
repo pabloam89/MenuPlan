@@ -17,7 +17,8 @@ describe("mercadona-sync.yml limita lo que empuja la deploy key (#330)", () => {
   it("antes de escribir la key comprueba commits y ficheros contra origin/staging", () => {
     const control = wf.indexOf("origin/staging..HEAD");
     const clave = wf.indexOf('printf \'%s\\n\' "$DEPLOY_KEY"');
-    const pushToken = wf.indexOf("          git push\n");
+    // El plan B sin deploy key empuja con el token de Actions, ahora con la URL a la vista.
+    const pushToken = wf.indexOf('git push "https://x-access-token:${GH_TOKEN}@github.com');
     expect(control).toBeGreaterThan(0);
     expect(control).toBeLessThan(clave);
     expect(control).toBeLessThan(pushToken);

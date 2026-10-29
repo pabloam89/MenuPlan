@@ -35,8 +35,8 @@ export function conOperacion(op, fn) {
     reintento: Boolean(op?.reintento),
     // Escrituras en tablas de la casa (db.js); las de registro no cuentan.
     escrituras: 0,
-    // Fotos para deshacer y guardados de la casa hechos (casa.js).
-    fotos: 0,
+    // Guardados de la casa hechos (casa.js): si una herramienta escribió sin
+    // pasar por la casa, agente.js apunta la operación para deshacer.
     guardadosCasa: 0,
     // La herramienta que corre ahora (agente.js), y lo que hay que deshacer
     // además de la casa si se deshace su foto (p. ej. la fila de una receta).
@@ -62,14 +62,21 @@ export function deshacerTambien(paso) {
 }
 
 /**
- * Las tablas que NO son lo de la casa: registros, colas, candados, contadores
- * y claves de una vez. Escribir en ellas no es «haber hecho algo» que pueda
- * repetirse ni deshacerse.
+ * Los registros: memoria del chat, eventos, fotos para deshacer y claves de
+ * una vez. db.js no los cuenta como «guardó» de una herramienta, y en solo
+ * lectura (el canario) los calla. Vive aquí y db.js la importa: una sola lista.
+ */
+export const SOLO_REGISTRO = new Set(["bot_messages", "user_events", "bot_route", "bot_deshacer", "bot_entradas"]);
+
+/**
+ * Las tablas que NO son lo de la casa: los registros, y además colas,
+ * candados, contadores y códigos. Escribir en ellas no es «haber hecho algo»
+ * que pueda repetirse ni deshacerse. Sale de SOLO_REGISTRO, no se copia (#958).
  */
 export const NO_ES_DE_LA_CASA = new Set([
-  "bot_messages", "user_events", "bot_route", "bot_deshacer", "bot_entradas", "bot_idempotencia",
-  "bot_cola", "bot_tomar_candado", "bot_soltar_candado", "bot_contar_uso", "content_translations",
-  "bot_link_tokens", "bot_codigos", "ficha_casa",
+  ...SOLO_REGISTRO,
+  "bot_idempotencia", "bot_cola", "bot_tomar_candado", "bot_soltar_candado", "bot_contar_uso",
+  "content_translations", "bot_link_tokens", "bot_codigos", "ficha_casa",
 ]);
 
 /** db.js avisa de cada escritura que llegó a la base. */
@@ -144,3 +151,6 @@ export function claveDeEscritura(nombre, args) {
 
 /** Lo que contesta una escritura que ya se hizo en el intento anterior del mismo mensaje. */
 export const YA_ESCRITA = "Eso ya quedó hecho en el intento anterior de este mismo mensaje: no lo he repetido. Cuéntalo como hecho.";
+
+/** Lo que contesta un reintento cuando no se ha podido mirar si ya se hizo: no escribe a ciegas. */
+export const SIN_COMPROBAR = "NO HECHO: no he podido comprobar si esto ya quedó hecho en el intento anterior, y no lo repito a ciegas (se haría dos veces). Dile que mire cómo ha quedado y que lo pida otra vez si falta.";

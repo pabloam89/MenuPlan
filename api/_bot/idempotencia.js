@@ -18,10 +18,10 @@
 
 import { seguirCon, fallaCon } from "./avisar.js";
 import { select, insert, update, borrar, eq } from "./db.js";
+import { esDuplicado } from "./entradas.js";
+import { esResultado, paraElModelo } from "./resultado.js";
 
 export const tareasV2 = () => /^(1|true|si|sí|on)$/i.test(String(process.env.BOT_TAREAS_V2 ?? "").trim());
-
-const esDuplicado = (e) => /\b409\b|23505|duplicate key/i.test(String(e?.message ?? e));
 
 export const YA_HECHO = "Eso ya estaba hecho (la misma orden llegó dos veces): no lo he repetido.";
 
@@ -51,6 +51,9 @@ export async function unaVez({ householdId, clave, rpc }, correr) {
   }
   // Lo que contestó, para devolverlo igual si se repite. Se purga a los 7 días.
   // a propósito: sin el resultado guardado, el repetido contesta YA_HECHO.
-  await update("bot_idempotencia", filtro, { resultado: { texto: typeof r === "string" ? r : JSON.stringify(r) } }).catch(seguirCon("idempotencia_guardar_resultado"));
+  // Un RESULTADO (resultado.js, #958) se guarda como lo lee el modelo: el
+  // repetido le contesta lo mismo, con su orden, y no un JSON suelto.
+  const texto = typeof r === "string" ? r : esResultado(r) ? paraElModelo(r) : JSON.stringify(r);
+  await update("bot_idempotencia", filtro, { resultado: { texto } }).catch(seguirCon("idempotencia_guardar_resultado"));
   return r;
 }
