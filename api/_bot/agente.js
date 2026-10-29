@@ -1326,7 +1326,23 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
 // Como viñeta («• ✅ Cambiar un plato», al contar lo que sabe hacer) no es
 // decir que guardó: «hola, ¿qué sabes hacer?» pasaba por el aviso y una
 // segunda llamada al modelo (staging, 2 oct 2026: 8,2 s para un saludo).
-const DICE_QUE_GUARDO = /(^|\n)\s*✅|\bapuntad[oa]s?\b|\blo he (apuntado|puesto|cambiado|guardado|quitado|añadido|anotado|arreglado|solucionado|corregido|dejado|actualizado)\b|(^|[.!¡]\s*)hecho\b/i;
+//
+// #958: se escapaban «He cambiado…», «Te he añadido…», «He borrado…» y «Ya
+// está: …». Ahora cuenta cualquier «he/hemos + participio de guardar», con o
+// sin pronombre delante. «Puesto», «dejado» y «hecho» solo con «lo» delante
+// («lo he puesto el jueves»): a secas también son leer o cocinar («te he
+// puesto los botones», «he hecho una lista»). Los participios, en una lista
+// (DE_GUARDAR) que leen también la negación de abajo.
+const DE_GUARDAR = ["apuntad", "cambiad", "guardad", "quitad", "añadid", "anadid", "borrad", "anotad", "arreglad", "solucionad", "corregid", "actualizad", "eliminad", "tachad", "marcad", "sumad", "cancelad", "programad", "metid"];
+const DICE_QUE_GUARDO = new RegExp([
+  "(^|\\n)\\s*✅",
+  "\\bapuntad[oa]s?\\b",
+  "\\blo he (apuntado|puesto|cambiado|guardado|quitado|añadido|anotado|arreglado|solucionado|corregido|dejado|actualizado)\\b",
+  `\\b(he|hemos)\\s+(${DE_GUARDAR.join("|")})[oa]s?\\b`,
+  "(^|[.!¡]\\s*)hecho\\b",
+  // «Ya está: …» o «¡Ya está!» al empezar la frase; «el arroz ya está» no.
+  "(^|\\n|[.!¡?]\\s*)ya est[aá]\\s*[:!.]",
+].join("|"), "i");
 // «Ya está arreglado» sin haber tocado nada (#911: ante la queja de que un
 // arroz con tomate llevaba ensalada de lentejas de segundo, Lola solo propuso
 // tres primeros y empezó con «Ya está arreglado»). Es la misma mentira que
@@ -1341,9 +1357,13 @@ const DICE_QUE_ARREGLO = /\bya est[aá] (arreglad|cambiad|solucionad|corregid)[o
 // que sea «he apuntado» y el «no» no vaya con él («No olvides que te he
 // apuntado leche» sí dice que guardó; «No te he apuntado nada», no). Igual con
 // «Nada está cambiado aún» (lo que dice proponer_platos): es leer, no arreglar.
-const APUNTADO_NEGADO = /\b(no|ningun[oa]?|nada|nadie)\b[^.,;:!?\n]{0,40}?\b(apuntad|arreglad|cambiad|solucionad|corregid|hech|dejad|actualizad)[oa]s?\b/gi;
-const HE_APUNTADO = /\b(he|hemos|ha|han|has|habeis|habéis)\s+(apuntad|arreglad|cambiad|solucionad|corregid|hech|dejad|actualizad)/i;
-const NO_HE_APUNTADO = /^no\s+(\S+\s+)?(he|hemos|ha|han|has|habeis|habéis)\s+(apuntad|arreglad|cambiad|solucionad|corregid|hech|dejad|actualizad)/i;
+// #958: la negación lee los mismos participios que DICE_QUE_GUARDO (con su
+// lista vieja, más corta, «No he borrado nada» habría contado como guardado),
+// y deja hasta dos palabras entre «no» y el «he» («No te lo he quitado»).
+const NEGABLES = [...DE_GUARDAR, "hech", "dejad", "puest"].join("|");
+const APUNTADO_NEGADO = new RegExp(`\\b(no|ningun[oa]?|nada|nadie)\\b[^.,;:!?\\n]{0,40}?\\b(${NEGABLES})[oa]s?\\b`, "gi");
+const HE_APUNTADO = new RegExp(`\\b(he|hemos|ha|han|has|habeis|habéis)\\s+(${NEGABLES})`, "i");
+const NO_HE_APUNTADO = new RegExp(`^no\\s+(\\S+\\s+)?(\\S+\\s+)?(he|hemos|ha|han|has|habeis|habéis)\\s+(${NEGABLES})`, "i");
 const sinNegados = (texto) => texto.replace(APUNTADO_NEGADO, (m) => (HE_APUNTADO.test(m) && !NO_HE_APUNTADO.test(m) ? m : ""));
 // Una pregunta («¿Ya está arreglado?», «¿Quieres que lo deje hecho?») no afirma nada.
 const sinPreguntas = (texto) => texto.replace(/¿[^?]*\?/g, "");
@@ -1352,10 +1372,7 @@ export const tipoDePromesa = (texto) => {
   const t = sinNegados(sinPreguntas(String(texto ?? "")));
   return DICE_QUE_GUARDO.test(t) ? "guardado" : DICE_QUE_ARREGLO.test(t) ? "arreglado" : null;
 };
-export const diceQueGuardo = (texto) => {
-  const t = sinNegados(sinPreguntas(String(texto ?? "")));
-  return DICE_QUE_GUARDO.test(t) || DICE_QUE_ARREGLO.test(t);
-};
+export const diceQueGuardo = (texto) => tipoDePromesa(texto) !== null;
 // Las herramientas que tardan (BOT_AVISO_LENTO, on | off; por defecto on):
 // mientras corren, la persona ve al momento una frase de Lola en el mensaje
 // que se va escribiendo, y lo que Lola escriba después la sustituye en ese
