@@ -141,12 +141,12 @@ export const MOTIVOS_FALLO = [
  */
 export const SITIOS_FALLO = [
   // api/_bot/agente.js
-  "agente_casa", "agente_dueno", "agente_idioma", "agente_papel", "agente_segunda_semana",
+  "agente_casa", "agente_dueno", "agente_idioma", "agente_papel", "agente_segunda_semana", "apuntar_operacion",
   // api/bot/telegram.js
   "aclarar_via_rapida", "alta_adjunto", "apuntar_falta_via_rapida", "aviso_de_espera",
   "aviso_del_enrutador", "aviso_del_modo", "borrarcuenta_identidad", "borrarcuenta_nacida_aqui",
   "bot_telegram_aviso", "boton_nacida_aqui", "boton_quitar", "boton_responder",
-  "eleccion_via_rapida", "entregar_casa", "entregar_pintar", "escribiendo", "fallo_dueno",
+  "eleccion_via_rapida", "entregar_casa", "entregar_pintar", "escribiendo", "fallo_dueno", "fallo_tras_escribir",
   "grupo_casa", "grupo_nombre_del_bot", "grupo_voz", "idioma", "invitacion",
   "invitacion_cuentas", "lola", "lola_cancelada", "limite", "papel", "reconocer", "ruta",
   "ruta_dueno", "ultima_de_lola", "uso", "vivo_borrar_aviso", "vivo_editar", "vivo_enviar",
@@ -158,7 +158,7 @@ export const SITIOS_FALLO = [
   "generar_describir", "generar_despensa", "generar_recetas_propias", "generar_semanas_anteriores",
   "idempotencia_guardar_resultado", "idempotencia_soltar_la_llave", "invitacion_unirse",
   "menu_describir", "menu_foto_de_la_receta", "pintar_recetas", "pista_adelanto",
-  "recetas_busqueda", "recetas_subir_foto", "recordatorios_reclamar", "recordatorios_soltar", "silencio_apuntar", "silencio_cerrar", "telegram_json",
+  "receta_ya_estaba", "recetas_busqueda", "recetas_subir_foto", "recordatorios_reclamar", "recordatorios_soltar", "silencio_apuntar", "silencio_cerrar", "telegram_json",
   "traducir_memoria", "turno_casa", "turnos_soltar_candado", "uso_limite", "vispera_casa",
   "voz_json",
 ];

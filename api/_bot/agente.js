@@ -17,7 +17,7 @@ import fs from "node:fs";
 import Anthropic from "@anthropic-ai/sdk";
 import { betaTool } from "@anthropic-ai/sdk/helpers/beta/json-schema";
 import { select, insert, eq, contandoEscrituras } from "./db.js";
-import { cargarCasa, deshacer, hoyISO } from "./casa.js";
+import { cargarCasa, deshacer, hoyISO, apuntarOperacion } from "./casa.js";
 import {
   describirCasa, describirReceta, describirCompra,
   marcarCompra, anadirCompra, cambiarPlato, proponerPlatos, diaDe, franjaDe,
@@ -68,6 +68,10 @@ import { ENUMS as ENUMS_TAREAS } from "../../src/lib/registroTareas.js";
 import { tareasV2 } from "./idempotencia.js";
 import { apuntarSilencio, conRecordatorio, NOTA_RECORDATORIO } from "./silencio.js";
 import { usoParcialDe } from "./medidaTurno.js";
+import { operacion, claveDeEscritura, tipoDeHerramienta, YA_ESCRITA } from "./operacion.js";
+import { primeraVez, yaVista } from "./entradas.js";
+
+const yaEscrita = (clave) => yaVista(CANAL.TELEGRAM, clave);
 
 /**
  * Las alergias por silencio del turno (silencio.js): con lo último que dijo
@@ -254,6 +258,14 @@ export async function herramientas(chat) {
       if (t.name === "ver_menu" && yaLoTiene(args)) {
         return "Eso ya lo tienes: es lo que te devolvieron generar_menu o cambiar_plato en este turno, y es lo guardado. Además sale pintado debajo de tu mensaje: no lo escribas; di en una o dos frases qué has hecho.";
       }
+      // Cada escritura con su intención (#958): la del mensaje del que sale.
+      // Un [[Reintentar]] conserva el mensaje, así que lo que ya se escribió
+      // en el intento fallido no se repite.
+      const op = SOLO_LECTURA.has(t.name) ? null : operacion();
+      const clave = op ? claveDeEscritura(t.name, args) : null;
+      if (op?.reintento && clave && (await yaEscrita(clave))) return YA_ESCRITA;
+      const casaAntes = op?.guardadosCasa ?? 0;
+      if (op) op.herramienta = t.name;
       try {
         // `escribio`: si llegó a la base alguna escritura (db.js), no solo si se
         // intentó. Una herramienta que contesta «no he podido guardarlo» no
@@ -261,6 +273,12 @@ export async function herramientas(chat) {
         chat.nadaQueVer = false;
         const { r, escribio } = await contandoEscrituras(() => t.run(args, llamada));
         if (escribio) chat.guardados = (chat.guardados ?? 0) + 1;
+        if (op && escribio) {
+          if (clave) await primeraVez(CANAL.TELEGRAM, clave);
+          // Escribió sin pasar por la casa (despensa, tareas…): se apunta de
+          // quién es, para que «deshaz» no restaure una foto más vieja.
+          if (op.guardadosCasa === casaAntes && t.name !== "deshacer") await apuntarOperacion(chat.householdId, tipoDeHerramienta(t.name)).catch(seguirCon("apuntar_operacion"));
+        }
         if (t.name === "generar_menu") tocado.semanas.add(args.semana ?? "esta");
         if (t.name === "cambiar_plato" && args.dia) tocado.dias.add(diaDe(args.dia) ?? String(args.dia).toLowerCase());
         const ir = (SOLO_LECTURA.has(t.name) && !chat.nadaQueVer) || escribio ? pantallaDe(t.name, args) : null;
@@ -270,6 +288,8 @@ export async function herramientas(chat) {
         // a propósito: el evento vale más sin dueño que perdido
         await registrar(FALLO_HERRAMIENTA, { userId: await duenoDe(chat.householdId).catch(seguirCon("agente_dueno", null)), extra: { herramienta: t.name, error: String(e?.message ?? e).slice(0, 300), esGrupo: Boolean(chat.esGrupo) } });
         throw e;
+      } finally {
+        if (op) { op.herramienta = null; op.tambien = []; }
       }
   }
 }
@@ -375,8 +395,9 @@ function herramientasDeFotos(householdId) {
           }, ["nombre"]),
         },
         origen: { type: "string", enum: ["foto", "texto"] },
+        otra_vez: { type: "boolean", description: "Solo si dicen que es OTRA compra igual a la que acabas de apuntar: la misma lista dos veces seguidas no se suma dos veces." },
       }, ["items", "origen"]),
-      run: ({ items, origen }) => anadirDespensa(householdId, items, origen),
+      run: ({ items, origen, otra_vez }) => anadirDespensa(householdId, items, origen, { otraVez: otra_vez === true }),
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "guardar_menu_cole",
@@ -685,7 +706,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "deshacer",
-      description: "Deshace TU último cambio en la casa (un plato cambiado, la compra, un ajuste o un menú generado: vuelve el anterior). Un solo nivel. No deshace lo que otra persona haya hecho en la app.",
+      description: "Deshace el último cambio que hiciste por QUIEN LO PIDE, en este chat (un plato cambiado, la compra, un ajuste, una receta guardada o un menú generado: vuelve el anterior). Un solo nivel. No deshace lo de otra persona ni lo hecho en la app. Si lo último suyo no se puede deshacer (despensa, tareas, recordatorios), lo dice y no toca nada: cuéntalo tal cual.",
       inputSchema: obj({}),
       run: () => deshacer(householdId, { freno: (ahora, antes) => frenoDeshacer(ahora, antes, chat.texto, chat.anterior) }),
     }),
@@ -1419,7 +1440,9 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
       // Cancelado desde fuera (el turno era de la vía rápida): nada que hacer.
       if (signal?.aborted) throw err;
       const agotado = plazo.aborted;
-      if (!agotado && !esCaida(err)) throw err;
+      // Un error que no es caída también puede llegar DESPUÉS de escribir: se
+      // marca «a medias» igual, o [[Reintentar]] repetiría la escritura (#958).
+      if (!agotado && !esCaida(err)) throw escrituras > 0 ? Object.assign(err, { aMedias: true }) : err;
       console.error(`[agente] ${modelo} no contesta (${agotado ? "plazo agotado" : err?.status ?? err?.constructor?.name}): ${String(err?.message).slice(0, 120)}`);
       if (escrituras > 0) throw Object.assign(err, { aMedias: true, caida: true });
       Object.assign(err, { caida: true });
