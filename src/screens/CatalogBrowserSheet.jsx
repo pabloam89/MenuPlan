@@ -51,6 +51,7 @@ import {
 } from "../components/icons.jsx";
 import { recipeCatalog, recipeCatalogById } from "../data/recipeCatalog.js";
 import { loadRecipeStats } from "../lib/social.js";
+import { esRecetaDelTitular } from "../lib/userRecipesFila.js";
 import { isMontaje } from "../data/recipeSchema.js";
 import { isCompatibleWith } from "../lib/substitutions.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
@@ -1504,8 +1505,9 @@ export function CatalogBrowserSheet({
                 scopeGroups={scopeGroups}
                 onOpenScopePicker={() => setScopeFor(r)}
                 onChangeVisibility={onChangeVisibility}
-                onDelete={onDeleteRecipe && r.source === "user" ? () => onDeleteRecipe(r.id) : undefined}
-                onEdit={onEditRecipe && r.source === "user" ? () => onEditRecipe(r) : undefined}
+                // Las del titular que ve un cotitular, sin borrar ni editar (#958).
+                onDelete={onDeleteRecipe && r.source === "user" && !esRecetaDelTitular(r) ? () => onDeleteRecipe(r.id) : undefined}
+                onEdit={onEditRecipe && r.source === "user" && !esRecetaDelTitular(r) ? () => onEditRecipe(r) : undefined}
                 ownView={ownRecipesView || viewingMine}
                 onCombine={onBrowseGarnishCombo && r.type === "principal" && r.source !== "user" ? () => setCombineFor(r) : undefined}
                 animDelay={i < 12 ? i * 18 : 0}

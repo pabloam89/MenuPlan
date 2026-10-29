@@ -15,6 +15,7 @@ import { recipeCatalog } from "../data/recipeCatalog.js";
 import { lowerFirst } from "./dishNaming.js";
 import { KITCHEN_TOOL_IDS } from "./electrodomesticos.js";
 import guarnicionesData from "../data/recipes/guarniciones.json" with { type: "json" };
+import { esRecetaDelTitular } from "./userRecipesFila.js";
 
 /** Los nombres por ración de los 24 micronutrientes (src/data/nutrientes.js). */
 const MICRONUTRIENTES_RACION = CAMPOS_SECUNDARIOS.filter(
@@ -291,7 +292,8 @@ export function isCopiedRecipe(recipe) {
  * @param {object[]} userRecipes @param {{ id?: string } | null} user
  */
 export function filterMyLibraryRecipes(userRecipes, user) {
-  return (userRecipes ?? []).filter((r) => isOwnCreatedRecipe(r, user) || isCopiedRecipe(r));
+  // Y las del titular que ve un cotitular (#958, 0104): son de la casa, de solo lectura.
+  return (userRecipes ?? []).filter((r) => isOwnCreatedRecipe(r, user) || isCopiedRecipe(r) || esRecetaDelTitular(r));
 }
 
 /**
