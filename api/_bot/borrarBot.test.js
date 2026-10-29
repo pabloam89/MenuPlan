@@ -137,7 +137,7 @@ describe("borrarCuenta es reanudable (#958): la identidad no se borra antes que 
     expect(pasos).not.toContain("bot_identities");
   });
 
-  it("la limpieza de la app tampoco las borra si se le pide (delete-account.js)", async () => {
+  it("borrarLoDelBot con conIdentidades: false borra lo demás y deja las identidades", async () => {
     await borrarLoDelBot("u1", { conIdentidades: false });
     expect(pasos).not.toContain("bot_identities");
     expect(pasos).toContain("bot_chats");
