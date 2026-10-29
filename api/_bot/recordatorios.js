@@ -11,6 +11,7 @@
 import { fallaCon } from "./avisar.js";
 import { select, insert, update, eq } from "./db.js";
 import { paraEscribir } from "../../src/lib/vocabularios.js";
+import { isoDeCasa } from "../../src/lib/dias.js";
 
 const ZONA = "Europe/Madrid";
 const MAX_PENDIENTES = 10;
@@ -142,7 +143,8 @@ export async function enviarPendientes(mandar, ahoraMs = Date.now()) {
 function masDias(iso, n) {
   const d = new Date(`${iso}T12:00:00Z`);
   d.setUTCDate(d.getUTCDate() + n);
-  return d.toISOString().slice(0, 10);
+  // Las 12:00 UTC leídas en UTC: el mismo día del calendario.
+  return isoDeCasa({ ahora: d, zona: "UTC" });
 }
 
 /**

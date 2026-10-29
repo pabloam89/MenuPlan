@@ -37,7 +37,7 @@ describe("recordatorios cuando algo falla", () => {
     update.mockImplementationOnce(async (t, filtro) => { orden.push(`quitar ${filtro}`); return [{ id: 1 }]; });
     const texto = await avisoVispera({ chatId: "1", channel: "telegram", householdId: "h" }, { activar: true, hora: "21:00" });
     expect(texto).toMatch(/^Hecho/);
-    expect(orden).toEqual(["crear", "quitar id=in.(1)&status=eq.pending"]);
+    expect(orden).toEqual(["crear", "quitar chat_id=eq.1&status=eq.pending&tipo=eq.vispera&id=in.(1)"]);
   });
 
   it("si crear falla, el de antes se queda", async () => {

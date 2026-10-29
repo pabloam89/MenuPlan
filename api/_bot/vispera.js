@@ -129,6 +129,6 @@ export async function avisoVispera(chat, { activar = true, hora = "20:30" } = {}
   // fallaba (tope de pendientes, la base) se quedaba sin ninguno (#958).
   const r = await crearRecordatorio(chat, { texto: VISPERA, cuando: `${d.toISOString().slice(0, 10)}T${hora}`, repite: "diario", tipo: TIPO_VISPERA });
   if (!/^Recordatorio creado/.test(r)) return r;
-  if (ya.length) await update("bot_reminders", `id=in.(${ya.map((x) => Number(x.id)).join(",")})&status=eq.pending`, { status: "cancelled" });
+  if (ya.length) await update("bot_reminders", `${enChat}&id=in.(${ya.map((x) => Number(x.id)).join(",")})`, { status: "cancelled" });
   return `Hecho: cada noche a las ${hora} miro el menú de mañana y, si hay algo que preparar (remojo, sacar algo del congelador, tu día de batch cooking), te aviso. Si no hay nada, no te escribo.`;
 }

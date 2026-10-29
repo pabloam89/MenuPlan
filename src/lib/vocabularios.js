@@ -158,7 +158,7 @@ export const SITIOS_FALLO = [
   "generar_describir", "generar_despensa", "generar_recetas_propias",
   "idempotencia_guardar_resultado", "idempotencia_soltar_la_llave", "invitacion_unirse",
   "menu_describir", "menu_foto_de_la_receta", "pintar_recetas", "pista_adelanto",
-  "recetas_busqueda", "recetas_subir_foto", "recordatorios_reclamar", "silencio_apuntar", "silencio_cerrar", "telegram_json",
+  "recetas_busqueda", "recetas_subir_foto", "recordatorios_reclamar", "recordatorios_soltar", "silencio_apuntar", "silencio_cerrar", "telegram_json",
   "traducir_memoria", "turno_casa", "turnos_soltar_candado", "uso_limite", "vispera_casa",
   "voz_json",
 ];
