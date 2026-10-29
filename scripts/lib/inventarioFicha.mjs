@@ -71,6 +71,51 @@ function ficheros(raiz, dir) {
   return out.map((p) => relative(raiz, p).replaceAll("\\", "/"));
 }
 
+// Los nombres con que el código de Lola (api/_bot) tiene en la mano el `data` de
+// una casa: `{ ...data, clave }`, `{ ...d, clave }` (ajustes.js va pasando
+// `d`), `{ ...casa.state.data, clave }`. Cada clave que se escribe así es una
+// clave guardada, aunque INITIAL_DATA no la traiga.
+const SPREAD_DE_DATA = /\{\s*\.\.\.(?:data|d|datos|dataNueva|(?:\w+\.)?state\.data)\s*,/g;
+
+/**
+ * Las claves de primer nivel que el texto escribe en un `data` de casa con
+ * `{ ...data, clave: valor, otra }` (#958: diaTanda se escribía y se leía y el
+ * inventario no la veía, porque solo miraba INITIAL_DATA y la base). Un lector
+ * sencillo: cuenta llaves, corchetes y paréntesis, y se salta cadenas y
+ * plantillas, para quedarse con lo que está justo dentro del objeto.
+ */
+export function clavesEscritas(texto) {
+  const claves = new Set();
+  for (const m of texto.matchAll(SPREAD_DE_DATA)) {
+    let nivel = 0;
+    let trozo = "";
+    const trozos = [];
+    for (let i = m.index + m[0].length; i < texto.length; i++) {
+      const c = texto[i];
+      if (c === "'" || c === '"' || c === "`") {
+        // Hasta la comilla que la cierra (en una plantilla, sin mirar dentro de ${}).
+        let j = i + 1;
+        while (j < texto.length && texto[j] !== c) j += texto[j] === "\\" ? 2 : 1;
+        trozo += "0";
+        i = j;
+        continue;
+      }
+      if ("{[(".includes(c)) nivel++;
+      if ("}])".includes(c)) {
+        if (nivel === 0) { trozos.push(trozo); break; }
+        nivel--;
+      }
+      if (c === "," && nivel === 0) { trozos.push(trozo); trozo = ""; continue; }
+      if (nivel === 0) trozo += c;
+    }
+    for (const t of trozos) {
+      const k = t.trim().match(/^(\w+)\s*(?::|$)/)?.[1];
+      if (k) claves.add(k);
+    }
+  }
+  return claves;
+}
+
 const nombra = (k) => new RegExp(String.raw`(\.|\?\.|\[["'])${k}\b|\b${k}\s*[:=]|\{[^}]*\b${k}\b[^}]*\}\s*=`);
 
 /**
@@ -88,11 +133,13 @@ export async function inventario(raiz, { guardadas = null } = {}) {
   const codigo = [...ficheros(raiz, "src"), ...ficheros(raiz, "api")]
     .filter((f) => !NO_LEEN.has(f))
     .map((f) => [f, f === "src/App.jsx" ? appSinDefectos(app) : readFileSync(join(raiz, f), "utf8")]);
+  // Lo que escribe Lola en data (api/_bot), además de lo declarado y lo guardado.
+  const escritas = { casa: new Set(codigo.filter(([f]) => f.startsWith("api/_bot/")).flatMap(([, t]) => [...clavesEscritas(t)])), persona: new Set() };
 
   const fallos = Object.fromEntries(FALLOS.map((f) => [f, []]));
   const filas = [];
   for (const [ambito, registro] of [["casa", DATOS_CASA], ["persona", DATOS_PERSONA]]) {
-    const conocidas = new Set([...declaradas[ambito], ...(guardadas?.[ambito] ?? [])]);
+    const conocidas = new Set([...declaradas[ambito], ...escritas[ambito], ...(guardadas?.[ambito] ?? [])]);
     for (const k of conocidas) if (!registro[k]) fallos.sin_registro.push(`${ambito}.${k}`);
     for (const [k, d] of Object.entries(registro)) {
       const id = `${ambito}.${k}`;

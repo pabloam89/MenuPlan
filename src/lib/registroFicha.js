@@ -186,6 +186,7 @@ export const DATOS_CASA = Object.freeze({
   tanda: dato({ tema: "cocina", tipo: "mapa", libreta: "tanda" }),
   tandaPlatos: dato({ tema: "cocina", tipo: "mapa", libreta: "tandaPlatos" }),
   tandaMinutos: dato({ tema: "cocina", tipo: "int" }),
+  diaTanda: dato({ tema: "cocina", tipo: "enum", vocabulario: "dias", motivo: "el día en que se cocina la tanda; sin él, el domingo" }),
   garnishRepeat: dato({ tema: "cocina", tipo: "enum", estado: "legado", motivo: "el motor ya no lo lee (aiPlanner.js); la app solo lo sanea" }),
 
   // ── Despensa ──
