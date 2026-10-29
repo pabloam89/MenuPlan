@@ -483,9 +483,8 @@ export function resolverMenu(slots, pool, {
   // en proporción a las líneas que le faltan: 3 € con el 75 % de las líneas
   // cuentan como 4 €. Sin ningún precio, y si el tope está por debajo de la
   // mediana del pool (el presupuesto aprieta), lleva el castigo entero: lo
-  // desconocido no puede ganar a lo que se sabe barato. Medido (#958): con
-  // medio castigo, a 80 € el solver cambiaba platos caros por platos sin
-  // precio completo (de 10 a 16 raciones así).
+  // desconocido no puede ganar a lo que se sabe barato; con menos castigo,
+  // el ahorro saldría de no saber el precio (#958).
   const PESO_PRESUPUESTO = 8e3;
   const precios = topeRacion > 0 ? new Map(pool.map((r) => [r.id, precioDePlato(r.id)])) : new Map();
   const conocidos = [...precios.values()].filter((p) => p?.completo).map((p) => p.porRacion).sort((a, b) => a - b);
