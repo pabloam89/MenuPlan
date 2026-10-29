@@ -22,6 +22,7 @@ import { select, insert, update, eq } from "./db.js";
 import { motor } from "./menu.js";
 import { duenoDe } from "./embudo.js";
 import { primeraVez, yaVista } from "./entradas.js";
+import { SIN_LEER } from "./avisar.js";
 import { huella } from "./operacion.js";
 import { CANAL } from "../../src/lib/vocabularios.js";
 
@@ -111,8 +112,15 @@ export async function anadirDespensa(householdId, items, origen = "texto", { otr
   const firma = huella(entradas.map((e) => [e.normalized, e.frozen, e.qty, e.unit]).sort());
   const tramo = Math.floor(Date.now() / VENTANA_REPETIDA_MS);
   const llave = (t) => `despensa:${householdId}:${firma}:${t}`;
-  if (!otraVez && ((await yaVista(CANAL.TELEGRAM, llave(tramo))) || (await yaVista(CANAL.TELEGRAM, llave(tramo - 1))))) {
-    return "Eso ya lo apunté hace un momento (la misma lista): NO lo he sumado otra vez. Si de verdad es otra compra igual, que lo digan y vuelve a llamar con otra_vez = true.";
+  if (!otraVez) {
+    const vistas = [await yaVista(CANAL.TELEGRAM, llave(tramo)), await yaVista(CANAL.TELEGRAM, llave(tramo - 1))];
+    if (vistas.includes(true)) {
+      return "Eso ya lo apunté hace un momento (la misma lista): NO lo he sumado otra vez. Si de verdad es otra compra igual, que lo digan y vuelve a llamar con otra_vez = true.";
+    }
+    // Sin poder mirarlo no se suma a ciegas: un doble «Sí» duplicaría el stock.
+    if (vistas.includes(SIN_LEER)) {
+      return "NO GUARDADO: no he podido comprobar si esta lista ya estaba apuntada, y no la sumo a ciegas. Que lo pidan otra vez en un momento.";
+    }
   }
 
   const claves = [...new Set(entradas.map((e) => e.normalized))];

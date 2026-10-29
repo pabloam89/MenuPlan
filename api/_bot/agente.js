@@ -68,7 +68,7 @@ import { ENUMS as ENUMS_TAREAS } from "../../src/lib/registroTareas.js";
 import { tareasV2 } from "./idempotencia.js";
 import { apuntarSilencio, conRecordatorio, NOTA_RECORDATORIO } from "./silencio.js";
 import { usoParcialDe } from "./medidaTurno.js";
-import { operacion, claveDeEscritura, tipoDeHerramienta, YA_ESCRITA } from "./operacion.js";
+import { operacion, claveDeEscritura, tipoDeHerramienta, YA_ESCRITA, SIN_COMPROBAR } from "./operacion.js";
 import { primeraVez, yaVista } from "./entradas.js";
 
 const yaEscrita = (clave) => yaVista(CANAL.TELEGRAM, clave);
@@ -263,7 +263,12 @@ export async function herramientas(chat) {
       // en el intento fallido no se repite.
       const op = SOLO_LECTURA.has(t.name) ? null : operacion();
       const clave = op ? claveDeEscritura(t.name, args) : null;
-      if (op?.reintento && clave && (await yaEscrita(clave))) return YA_ESCRITA;
+      if (op?.reintento && clave) {
+        const vista = await yaEscrita(clave);
+        // Sin poder mirarlo, un reintento no escribe a ciegas: se haría dos veces.
+        if (vista === SIN_LEER) return SIN_COMPROBAR;
+        if (vista) return YA_ESCRITA;
+      }
       const casaAntes = op?.guardadosCasa ?? 0;
       if (op) op.herramienta = t.name;
       try {

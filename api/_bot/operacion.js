@@ -144,3 +144,6 @@ export function claveDeEscritura(nombre, args) {
 
 /** Lo que contesta una escritura que ya se hizo en el intento anterior del mismo mensaje. */
 export const YA_ESCRITA = "Eso ya quedó hecho en el intento anterior de este mismo mensaje: no lo he repetido. Cuéntalo como hecho.";
+
+/** Lo que contesta un reintento cuando no se ha podido mirar si ya se hizo: no escribe a ciegas. */
+export const SIN_COMPROBAR = "NO HECHO: no he podido comprobar si esto ya quedó hecho en el intento anterior, y no lo repito a ciegas (se haría dos veces). Dile que mire cómo ha quedado y que lo pida otra vez si falta.";
