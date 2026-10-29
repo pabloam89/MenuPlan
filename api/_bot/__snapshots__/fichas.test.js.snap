@@ -1955,7 +1955,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    ],
    "additionalProperties": false
   },
-  "description": "Guarda el menú del comedor escolar (leído de una foto o PDF, o dictado). Por días de lunes a viernes con primero, segundo y postre; sinClase=true si ese día no hay cole. Varias semanas si el cole rota, empezando por la que toca la semana que se planifica. para: «todos» o el nombre de un niño si es solo suyo. Solo tras enseñar el resumen y que digan que sí."
+  "description": "Guarda el menú del comedor escolar (leído de una foto o PDF, o dictado). Por días de lunes a viernes con primero, segundo y postre; sinClase=true si ese día no hay cole. Solo lo que has leído de verdad: de un PDF o una foto de otro mensaje no queda nada, así que lo que no esté en tu resumen anterior ni en lo que han escrito no se guarda. Una semana con menos de 3 días no se guarda (pisaría la que hay). Varias semanas si el cole rota, empezando por la que toca la semana que se planifica. para: «todos» o el nombre de un niño si es solo suyo. Solo tras enseñar el resumen y que digan que sí."
  },
  {
   "type": "custom",

@@ -49,9 +49,13 @@ const huellaDeEstado = (d = {}) => JSON.stringify([d.etapaBebe ?? null, d.allerg
  * Va dentro de la herramienta, así que también dentro de la fila de escrituras
  * del turno. Si cerrar o abrir falla, el dato queda guardado: el turno
  * siguiente lo recoge (separarPorEstado y promoverPreguntas en agente.js).
+ * Si `cambiar` trae un `resultado` (resultado.js, #958), se devuelve ese en
+ * vez del texto: el recibo sale de lo guardado. Si la casa no se pudo
+ * guardar, el texto del error, nunca el resultado (diría que se hizo).
  */
 export async function conData(householdId, cambiar, ctx = null) {
   let texto = "";
+  let hecho = null;
   let guardado = null;
   let antes = null;
   let preguntas = [];
@@ -60,6 +64,7 @@ export async function conData(householdId, cambiar, ctx = null) {
     antes = casa.state?.data ?? {};
     const res = await cambiar(antes, m, casa);
     texto = res.texto;
+    hecho = res.resultado ?? null;
     guardado = res.data ?? null;
     preguntas = res.preguntas ?? [];
     if (!res.data) return null;
@@ -75,7 +80,7 @@ export async function conData(householdId, cambiar, ctx = null) {
   for (const p of guardado ? preguntas : []) {
     await abrirPreguntaDeEstado({ householdId, ...ctx }, p).catch((e) => console.error("[ajustes] abrir pregunta", e?.message));
   }
-  return texto;
+  return hecho ?? texto;
 }
 
 // Las personas por su nombre, con el intérprete (interprete.js, #958): exacto,

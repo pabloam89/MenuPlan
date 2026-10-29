@@ -60,7 +60,7 @@ import { ETAPA_BEBE_INFO } from "../../src/lib/babyStage.js";
 const TRASTOS = [...APARATOS_EN_ORDEN];
 import { ESQUEMA_DE_FUERA } from "./deFuera.js";
 import { verDespensa, anadirDespensa } from "./despensa.js";
-import { guardarMenuCole, verMenuCole } from "./cole.js";
+import { guardarMenuCole, verMenuCole, DIAS_MINIMOS_COLE } from "./cole.js";
 import { buscarRecetas, prepararReceta, guardarReceta, apartarFotoPlato, recetaPorNombre, CATEGORIAS } from "./recetas.js";
 import { conPista, textoPista, datosDePlantilla } from "./pista.js";
 import { verReceta, calorias as caloriasDePlato, queFalta } from "./plato.js";
@@ -204,7 +204,7 @@ function todasLasHerramientas(chat, gustos) {
     ...herramientasDeAjustes(chat.householdId, gustos, chat),
     ...herramientasDeRecordatorios(chat),
     ...herramientasDeTareas(chat),
-    ...herramientasDeFotos(chat.householdId),
+    ...herramientasDeFotos(chat.householdId, chat),
     ...herramientasDeRecetas(chat),
   ];
 }
@@ -383,7 +383,7 @@ function herramientasDeRecetas(chat) {
 
 // Despensa y menú del cole: se alimentan sobre todo de fotos (el ticket, la
 // nevera, el PDF del cole), que el modelo lee directamente.
-function herramientasDeFotos(householdId) {
+function herramientasDeFotos(householdId, chat = {}) {
   const obj = (properties, required = []) => ({ type: "object", properties, required, additionalProperties: false });
   const platos = obj({ primero: { type: "string" }, segundo: { type: "string" }, postre: { type: "string" }, sinClase: { type: "boolean" } });
   return [
@@ -413,7 +413,7 @@ function herramientasDeFotos(householdId) {
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "guardar_menu_cole",
-      description: "Guarda el menú del comedor escolar (leído de una foto o PDF, o dictado). Por días de lunes a viernes con primero, segundo y postre; sinClase=true si ese día no hay cole. Varias semanas si el cole rota, empezando por la que toca la semana que se planifica. para: «todos» o el nombre de un niño si es solo suyo. Solo tras enseñar el resumen y que digan que sí.",
+      description: `Guarda el menú del comedor escolar (leído de una foto o PDF, o dictado). Por días de lunes a viernes con primero, segundo y postre; sinClase=true si ese día no hay cole. Solo lo que has leído de verdad: de un PDF o una foto de otro mensaje no queda nada, así que lo que no esté en tu resumen anterior ni en lo que han escrito no se guarda. Una semana con menos de ${DIAS_MINIMOS_COLE} días no se guarda (pisaría la que hay). Varias semanas si el cole rota, empezando por la que toca la semana que se planifica. para: «todos» o el nombre de un niño si es solo suyo. Solo tras enseñar el resumen y que digan que sí.`,
       inputSchema: obj({
         semanas: {
           type: "array", minItems: 1, maxItems: 6,
@@ -421,7 +421,9 @@ function herramientasDeFotos(householdId) {
         },
         para: { type: "string" },
       }, ["semanas"]),
-      run: (args) => guardarMenuCole(householdId, args),
+      // Lo que está a la vista en este turno (#958): el adjunto, lo escrito y el
+      // resumen que Lola enseñó; lo que no esté ahí no se guarda.
+      run: (args) => guardarMenuCole(householdId, args, { adjunto: chat.adjunto ?? null, texto: chat.texto ?? "", anterior: chat.anterior ?? "" }),
     }),
     herramienta({ lector: true, soloLectura: true, pantalla: null }, {
       name: "ver_menu_cole",
