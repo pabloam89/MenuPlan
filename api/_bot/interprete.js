@@ -29,8 +29,10 @@
 import { DIAS, NOMBRES_DIA, DIAS_LABORABLES, DIAS_FINDE, indiceDeISO, diaDeISO, isoDeCasa, DIA_LARGO_MINUSCULAS } from "../../src/lib/dias.js";
 import { etapaDe, esMenor, esEtapaBebe, miembroDeCuentaId, findAccountMember } from "../../src/lib/stages.js";
 
-/** Sin tildes ni mayúsculas, con los espacios juntos. */
+/** Sin tildes ni mayúsculas, con los espacios juntos. La única copia en api/_bot (#967, C8). */
 export const normal = (s) => String(s ?? "").normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/\s+/g, " ").trim();
+/** Lo que escribe la gente, literal dentro de un regex. La única copia en api/_bot. */
+export const escapar = (w) => String(w).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 // ── Fechas: aritmética ──────────────────────────────────────────────────────
 
@@ -397,7 +399,6 @@ export function personasDe(data, dichos, quien = {}) {
 /** La primera persona de la casa nombrada (por su primer nombre) en un texto libre, o null. */
 export function personaNombradaEn(data, texto) {
   const t = normal(texto);
-  const escapar = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   return (data?.members ?? []).find((m) => m?.name && new RegExp(`\\b${escapar(normal(m.name).split(" ")[0])}\\b`).test(t)) ?? null;
 }
 

@@ -25,6 +25,8 @@ export const HUELLAS = {
   finde: /\b(finde|fin de semana|entre \?semana|entre semana|laborables)\b[^\n]*\/[a-z]*\.test\(/,
   mapaDias: /\blunes:\s*["']Lun|\bmiercoles:\s*["']Mi/,
   persona: /normal\w*\(\s*\w+\??\.name\s*\)\s*(===|\.startsWith|\.split)|\b(ninos\|hijos|todos["'],\s*["']todas)/,
+  // 5. Una copia de `normal` o de `escapar` (interprete.js las exporta), #967 C8.
+  copias: /\.normalize\(\s*["']NFD["']\s*\)|\[\.\*\+\?\^\$\{\}\(\)\|\[\\\]\\\\\]/,
 };
 
 function ficheros() {
@@ -59,6 +61,17 @@ const PERMITIDO = {
     "api/_bot/menu.js": 4,
     "api/_bot/plato.js": 1,
     "api/_bot/recetas.js": 1,
+  },
+  copias: {
+    // Copias de antes del intérprete, en ficheros que #958 no tocó. Solo bajan.
+    "api/_bot/ficha.js": 1,
+    "api/_bot/plato.js": 1,
+    "api/_bot/rapido.js": 1,
+    "api/_bot/recetas.js": 1,
+    "api/_bot/silencio.js": 1,
+    "api/_bot/supervisor.js": 2,
+    "api/_bot/vispera.js": 1,
+    "api/_bot/voz.js": 3,
   },
 };
 
