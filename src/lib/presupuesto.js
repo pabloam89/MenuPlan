@@ -4,10 +4,10 @@
 // (€ por semana). Se lee en lib/presupuestoCasa.js (leerPresupuesto), que
 // este módulo vuelve a exportar; aquí se hacen las cuentas.
 //
-// Lo que hará con él #958, en PRs seguidos y nada más:
-//  1. El solver prefiere platos cuyo € por ración cabe en el presupuesto. Es
-//     una preferencia: el reparto de la semana (pescado, legumbre…) sigue
-//     mandando por encima.
+// Lo que hace con él #958 (los puntos 2 y 3, en PRs seguidos), y nada más:
+//  1. El solver prefiere platos cuyo € por ración cabe en el presupuesto
+//     (topePorRacion). Es una preferencia: el reparto de la semana (pescado,
+//     legumbre…) sigue mandando por encima.
 //  2. Al acabar, la semana se estima (estimarSemana) y Lola y la app dicen si
 //     cabe, si no cabe o si no se puede saber (veredicto). Nunca en silencio.
 //  3. La lista de la compra de la app pone su total (envases enteros) al lado
@@ -48,11 +48,23 @@ export const PARTE_CONOCIDA_MINIMA = 0.8;
 export const COBERTURA_SUELO = 0.5;
 
 // El precio para ORDENAR y para el número alto de un plato incompleto: su
-// precio subido en proporción a las líneas que le faltan. El solver lo usará
-// para ordenar (punto 1 de arriba).
+// precio subido en proporción a las líneas que le faltan. El solver lo usa
+// para ordenar (lib/solver.js, PESO_PRESUPUESTO).
 export function precioAlto(p) {
   if (!p) return null;
   return p.completo ? p.porRacion : p.porRacion / Math.max(p.cobertura, COBERTURA_SUELO);
+}
+
+/**
+ * El tope de € por ración que el solver usa como preferencia: el presupuesto
+ * repartido entre las raciones de comida y cena de la semana. Las de
+ * desayunos, meriendas y postres no entran (no las elige el solver), así que
+ * el tope sale algo holgado; el veredicto de después sí cuenta todo el plan.
+ */
+export function topePorRacion(presupuesto, raciones) {
+  const p = positivo(presupuesto);
+  const r = positivo(raciones);
+  return p != null && r != null ? p / r : null;
 }
 
 const euros = (v) => Math.round(v * 100) / 100;
