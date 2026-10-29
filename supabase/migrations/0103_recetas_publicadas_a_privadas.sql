@@ -51,6 +51,9 @@
 --                   where h.owner_user_id = r.owner_id and m.user_id <> r.owner_id);
 --     -- 0
 --   Las otras cifras de arriba (auditor-datos, 29 oct 2026), con `r` = las publicadas:
+--   select count(distinct r.id) from public.user_recipes r
+--     join public.household_members m on m.user_id = r.owner_id and m.role = 'viewer'
+--    where r.visibility <> 'private';                                   -- 2
 --   select count(*) from public.recipe_share_links l join public.user_recipes r
 --     on r.id = l.recipe_id where r.visibility <> 'private';            -- 0
 --   select count(*) from public.cookings c join public.user_recipes r
