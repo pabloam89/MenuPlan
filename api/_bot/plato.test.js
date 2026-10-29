@@ -65,7 +65,9 @@ describe("política de las plantillas nuevas", () => {
     expect(vaPorLaRapida(d("receta", { plato: "tortilla" }))).toBe(true);
     expect(vaPorLaRapida(d("calorias", { dia: "hoy", comida: "Cena" }))).toBe(true);
     expect(vaPorLaRapida(d("falta", {}))).toBe(false);
-    expect(vaPorLaRapida(d("despensa", {}))).toBe(true);
+    // Ver lo que hay: una pregunta. Contar lo que hay es apuntar: Lola (#958).
+    expect(vaPorLaRapida(d("despensa", {}), { texto: "¿qué tengo en la despensa?" })).toBe(true);
+    expect(vaPorLaRapida(d("despensa", {}), { texto: "tengo leche y huevos en la nevera" })).toBe(false);
   });
   it("la ausencia escribe: pide 0,9; sin comida solo pregunta, y basta con 0,8", () => {
     expect(vaPorLaRapida(d("ausencia", { dia: "hoy", comida: "cena" }, 0.85))).toBe(false);

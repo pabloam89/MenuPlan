@@ -70,10 +70,35 @@ describe("guardar_receta no dice «guardada» sin guardar", () => {
     const { guardarReceta } = await import("./recetas.js");
     select.mockResolvedValueOnce([{ content: { receta: { id: "user_x", name: "Tortilla de la abuela" } } }]);
     duenoDe.mockResolvedValueOnce(null);
-    const texto = await guardarReceta("h1", { confirmado: true }, { channel: "telegram", chatId: "1" });
-    expect(texto).toMatch(/^NO GUARDADA/);
-    expect(texto).not.toMatch(/Guardada en el recetario/);
+    const r = await guardarReceta("h1", { confirmado: true }, { channel: "telegram", chatId: "1" });
+    expect(r.estado).toBe("nada");
+    expect(r.sinHacer[0].motivo).toMatch(/no se ha podido guardar/);
     expect(insert).not.toHaveBeenCalled();
+  });
+
+  it("si el último borrador no es la receta aprobada (el preparar falló), no guarda otra (#958)", async () => {
+    const { select, insert } = await import("./db.js");
+    const { guardarReceta } = await import("./recetas.js");
+    insert.mockClear();
+    select.mockResolvedValueOnce([{ content: { receta: { id: "user_x", name: "Tortilla de la abuela" } }, created_at: "2026-10-28T10:00:00Z" }]);
+    const r = await guardarReceta("h1", { confirmado: true, nombre: "Lentejas de mamá" }, { channel: "telegram", chatId: "1" });
+    expect(r.estado).toBe("nada");
+    expect(r.sinHacer[0].motivo).toMatch(/Tortilla de la abuela/);
+    expect(insert).not.toHaveBeenCalled();
+  });
+});
+
+describe("la foto apartada es de esta receta, no de la anterior (#958)", () => {
+  it("solo si se apartó después del último borrador", async () => {
+    const { fotoDeEstaReceta, esLaAprobada } = await import("./recetas.js");
+    const foto = { url: "https://x/f.jpg", creadaEn: "2026-10-28T10:00:00Z" };
+    expect(fotoDeEstaReceta(foto, { creadaEn: "2026-10-28T09:00:00Z" })).toBe("https://x/f.jpg");
+    expect(fotoDeEstaReceta(foto, { creadaEn: "2026-10-28T11:00:00Z" })).toBeNull();
+    expect(fotoDeEstaReceta(foto, null)).toBe("https://x/f.jpg");
+    expect(fotoDeEstaReceta(null, null)).toBeNull();
+    expect(esLaAprobada({ name: "Tortilla de calabacín" }, "la tortilla de calabacín")).toBe(true);
+    expect(esLaAprobada({ name: "Tortilla de calabacín" }, "lentejas")).toBe(false);
+    expect(esLaAprobada({ name: "Tortilla de calabacín" }, null)).toBe(true);
   });
 });
 

@@ -164,6 +164,27 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
  },
  {
   "type": "custom",
+  "name": "quitar_compra",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "productos": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "manuales": {
+     "type": "boolean",
+     "description": "true: quita todo lo añadido a mano."
+    }
+   },
+   "additionalProperties": false
+  },
+  "description": "Quita productos de la lista de la compra («quita el pan», «borra los yogures, que ya no hacen falta»). NO es marcarlos como comprados (eso es marcar_compra). manuales=true quita todo lo que se añadió a mano («borra lo que añadí», «vacía lo que apunté»). Lo que sale del menú vuelve si se rehace la compra al cambiar el menú: dilo si preguntan. Usa los nombres como salen en la lista."
+ },
+ {
+  "type": "custom",
   "name": "proponer_platos",
   "input_schema": {
    "type": "object",
@@ -721,7 +742,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    "required": [],
    "additionalProperties": false
   },
-  "description": "Cómo está configurada la casa: estructura de comidas, nivel de cocina, trastos, gustos anotados (con su estado: fijado/inferido/delegado), quién come fuera y reglas/invitados."
+  "description": "Cómo está configurada la casa: estructura de comidas, nivel de cocina, trastos, desayuno/merienda/postre, cómo se usa la despensa, cuánto se repiten platos, los días de cada semana, cómo comen los peques, gustos anotados (con su estado: fijado/inferido/delegado), quién come fuera y reglas/invitados."
  },
  {
   "type": "custom",
@@ -941,21 +962,12 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
       "type": "string"
      },
      "description": "Los habituales: Mercadona, Lidl, Alcampo, Carrefour, Dia, Aldi, Eroski, Consum, Hipercor, Supercor, El Corte Inglés, Bonpreu, Gadis, Ahorramás, Froiz, Deza, Alimerka."
-    },
-    "presupuesto": {
-     "type": "number",
-     "minimum": 10,
-     "maximum": 1000,
-     "description": "Euros por semana."
-    },
-    "sinPresupuesto": {
-     "type": "boolean"
     }
    },
    "required": [],
    "additionalProperties": false
   },
-  "description": "Dónde hace la compra la casa y cuánto quiere gastar. supermercados: la lista completa de donde compran (Mercadona, Lidl, Carrefour…; si es otro, como lo digan). Con Mercadona, en la app la lista de la compra enseña el precio de cada cosa. presupuesto: euros por semana; sinPresupuesto=true si dicen que no tienen."
+  "description": "Dónde hace la compra la casa. supermercados: la lista completa de donde compran (Mercadona, Lidl, Carrefour…; si es otro, como lo digan). Con Mercadona, en la app la lista de la compra enseña el precio de cada cosa. Cuánto quieren gastar no se guarda (nada lo usa todavía): si lo dicen, dilo así."
  },
  {
   "type": "custom",
@@ -1189,8 +1201,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
       "Comida",
       "Merienda",
       "Cena",
-      "Postre",
-      "Aperitivo"
+      "Postre"
      ]
     },
     "n": {
@@ -1215,7 +1226,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    ],
    "additionalProperties": false
   },
-  "description": "Alguien de fuera viene a comer o cenar un día concreto (se suma a las raciones y a la compra de esa semana, y caduca solo)."
+  "description": "Alguien de fuera viene a comer o cenar un día concreto: cuenta al GENERAR el menú de esa semana (raciones y compra) y caduca solo. Si esa semana ya tiene menú, la compra hecha no cambia: ofrece rehacerla. semana: solo si la dicen; sin ella, el próximo día con ese nombre."
  },
  {
   "type": "custom",
@@ -1708,7 +1719,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
     "items": {
      "type": "array",
      "minItems": 1,
-     "maxItems": 40,
+     "maxItems": 150,
      "items": {
       "type": "object",
       "properties": {
@@ -1752,7 +1763,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    ],
    "additionalProperties": false
   },
-  "description": "Apunta alimentos en la despensa (suma si ya estaban). Solo comida: nada de droguería ni bolsas. Nombres de alimento simples en español («pechuga de pollo», «tomate triturado»), sin marcas. Si viene de una foto, solo tras enseñar la lista y que digan que sí."
+  "description": "Apunta alimentos en la despensa (suma si ya estaban). Solo comida: nada de droguería ni bolsas. Nombres de alimento simples en español («pechuga de pollo», «tomate triturado»), sin marcas. Si viene de una foto, solo tras enseñar la lista y que digan que sí. Pásalo TODO en una llamada (varios tickets, también): lo que no quepa sale en el recibo como sin hacer."
  },
  {
   "type": "custom",
@@ -1885,7 +1896,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    ],
    "additionalProperties": false
   },
-  "description": "Guarda el menú del comedor escolar (leído de una foto o PDF, o dictado). Por días de lunes a viernes con primero, segundo y postre; sinClase=true si ese día no hay cole. Varias semanas si el cole rota, empezando por la que toca la semana que se planifica. para: «todos» o el nombre de un niño si es solo suyo. Solo tras enseñar el resumen y que digan que sí."
+  "description": "Guarda el menú del comedor escolar (leído de una foto o PDF, o dictado). Por días de lunes a viernes con primero, segundo y postre; sinClase=true si ese día no hay cole. Solo lo que has leído de verdad: de un PDF o una foto de otro mensaje no queda nada, así que lo que no esté en tu resumen anterior ni en lo que han escrito no se guarda. Una semana con menos de 3 días no se guarda (pisaría la que hay). Varias semanas si el cole rota, empezando por la que toca la semana que se planifica. para: «todos» o el nombre de un niño si es solo suyo. Solo tras enseñar el resumen y que digan que sí."
  },
  {
   "type": "custom",
@@ -2047,16 +2058,9 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
      "type": "string",
      "description": "Cómo se hace, con sus palabras (el modelo redacta los pasos a partir de aquí)."
     },
-    "visibilidad": {
-     "type": "string",
-     "enum": [
-      "privada",
-      "publica"
-     ]
-    },
     "usarFoto": {
      "type": "boolean",
-     "description": "true si hay foto del plato (en este mensaje o apartada con apartar_foto_plato)."
+     "description": "true si hay foto de ESTE plato (en este mensaje o apartada con apartar_foto_plato después de la última receta preparada)."
     }
    },
    "required": [
@@ -2065,7 +2069,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    ],
    "additionalProperties": false
   },
-  "description": "Estructura una receta propia (como el asistente de la app) y la deja lista SIN guardar, para enseñarla. Solo cuando ya tengas nombre e ingredientes con cantidades; lo demás tiene valor por defecto. cuando: en qué comidas se sirve (primero, segundo, plato_unico, cena, merienda, postre). paraNinos: si es apta para niños (omitir si no lo saben). visibilidad: privada (solo la casa) o publica (sale en Gente)."
+  "description": "Estructura una receta propia (como el asistente de la app) y la deja lista SIN guardar, para enseñarla. Solo cuando ya tengas nombre e ingredientes con cantidades; lo demás tiene valor por defecto. cuando: en qué comidas se sirve (primero, segundo, plato_unico, cena, merienda, postre). paraNinos: si es apta para niños (omitir si no lo saben). Las recetas son de la casa (solo las ve la casa)."
  },
  {
   "type": "custom",
@@ -2099,14 +2103,19 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    "properties": {
     "confirmado": {
      "type": "boolean"
+    },
+    "nombre": {
+     "type": "string",
+     "description": "El nombre de la receta del resumen que han aprobado."
     }
    },
    "required": [
-    "confirmado"
+    "confirmado",
+    "nombre"
    ],
    "additionalProperties": false
   },
-  "description": "Guarda la última receta preparada con preparar_receta en esta charla (la herramienta la tiene apartada: no hace falta volver a pedir ningún dato), en el recetario de la casa, y el motor ya puede ponerla en menús. Llámala en cuanto digan «Guardar» o «sí» al resumen, con confirmado = true."
+  "description": "Guarda la última receta preparada con preparar_receta en esta charla (la herramienta la tiene apartada: no hace falta volver a pedir ningún dato), en el recetario de la casa, y el motor ya puede ponerla en menús. Llámala en cuanto digan «Guardar» o «sí» al resumen, con confirmado = true y nombre = el de la receta que han aprobado (si el último preparar_receta falló, la apartada es otra y no se guarda)."
  }
 ]"
 `;

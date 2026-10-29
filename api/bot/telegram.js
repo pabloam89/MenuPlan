@@ -707,6 +707,9 @@ function medida(medir, d, t0, primer = null) {
       pista: l.pista ?? null,
       // BOT_AVISO_LENTO: la herramienta lenta cuyo aviso salió (primer_ms es entonces el del aviso).
       aviso: l.aviso ?? null,
+      // #958: lo guardado de verdad y el recibo, para medir lo dicho contra lo hecho.
+      guardados: l.guardados ?? null,
+      recibo: l.recibo ?? null,
     } : null,
   };
 }

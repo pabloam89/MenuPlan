@@ -60,6 +60,8 @@ const EN_CASA_LECTURA = "En casa va dentro de Compra en solo lectura";
 const DESPENSA_DESDE_COMPRA = "en la app, la despensa cambia solo desde la lista de la compra (Pablo, 28 oct 2026)";
 const SE_PREGUNTA_EN_LOLA = "se pregunta en Lola; la app lo enseña en la lista de la compra (Pablo, 28 oct 2026)";
 const SIN_TICKETS = "tickets y gasto, mejor no (Pablo, 28 oct 2026)";
+// #958: Lola lo preguntaba y lo guardaba, pero ni el menú ni la compra lo leen.
+const SIN_LECTOR_DE_PRESUPUESTO = "nada lo usa todavía (ni el menú ni la compra): Lola ya no lo pregunta (#958)";
 
 const app = (pantalla, apagada = null) => ({ pantalla, ...(apagada ? { apagada } : {}) });
 const c = (id, accion, parte, verbo, sobre, o = {}) => ({
@@ -145,10 +147,11 @@ export const CAPACIDADES = Object.freeze([
   c("ver_compra", "ver lo que falta por comprar", "compra", "ver", "compra", { lola: ["ver_compra"], app: app("compra") }),
   c("marcar_compra", "marcar algo como comprado, o devolverlo a pendiente", "compra", "marcar", "compra", { lola: ["marcar_compra"], app: app("compra") }),
   c("anadir_compra", "añadir a la lista algo que no sale del menú", "compra", "anadir", "compra", { lola: ["anadir_compra"] }),
-  c("cantidad_compra", "cambiar la cantidad de un producto o quitarlo de la lista", "compra", "cambiar", "compra", { app: app("compra") }),
+  c("cantidad_compra", "cambiar la cantidad de un producto", "compra", "cambiar", "compra", { app: app("compra") }),
+  c("quitar_compra", "quitar productos de la lista, o todo lo añadido a mano", "compra", "quitar", "compra", { lola: ["quitar_compra"], app: app("compra") }),
   c("compartir_compra", "mandar la lista a otra persona", "compra", "compartir", "compra", { app: app("compra") }),
   c("elegir_super", "elegir el súper", "compra", "cambiar", "compra", { lola: ["ajustar_compra"], app: app("asistente", ASISTENTE), datos: ["supermarkets"], aProposito: SE_PREGUNTA_EN_LOLA }),
-  c("presupuesto", "poner un presupuesto", "compra", "cambiar", "compra", { lola: ["ajustar_compra"], app: app("asistente", ASISTENTE), datos: ["hasBudget", "budget"], aProposito: SE_PREGUNTA_EN_LOLA }),
+  c("presupuesto", "poner un presupuesto", "compra", "cambiar", "compra", { app: app("asistente", ASISTENTE), datos: ["hasBudget", "budget"], aProposito: SIN_LECTOR_DE_PRESUPUESTO }),
   c("precio_estimado", "ver lo que costará la compra en el súper", "compra", "ver", "compra", { app: app("compra"), datos: ["priceObs"] }),
   c("tickets", "subir un ticket o apuntar un gasto", "compra", "anadir", "compra", { app: app("tickets", SIN_ENTRADA), datos: ["receipts", "priceObs", "priceAliases"], aProposito: SIN_TICKETS }),
   c("gasto", "ver lo gastado y los tickets", "compra", "ver", "compra", { app: app("estadisticas", SIN_ENTRADA), datos: ["receipts"], aProposito: SIN_TICKETS }),

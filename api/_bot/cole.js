@@ -11,7 +11,8 @@
 
 import { conData, personaPorNombre, noEncuentro } from "./ajustes.js";
 import { cargarCasa } from "./casa.js";
-import { motor } from "./menu.js";
+import { motor, normal } from "./menu.js";
+import { resultado } from "./resultado.js";
 
 const DIA = { lunes: "Lun", martes: "Mar", miercoles: "Mié", jueves: "Jue", viernes: "Vie" };
 const PLATO = { primero: "Primero", segundo: "Segundo", postre: "Postre" };
@@ -30,10 +31,67 @@ function aEntradas(semana) {
   return out;
 }
 
-export function guardarMenuCole(householdId, { semanas, para }) {
+// Una semana con menos días que esto no es un menú del cole leído: es un
+// trozo. Guardarla PISA la semana entera que hubiera (replaceSchoolWeeks).
+export const DIAS_MINIMOS_COLE = 3;
+
+const palabras = (s) => normal(s).split(/[^a-z0-9ñ]+/).filter((w) => w.length > 3);
+/** ¿Está el plato en lo que se ve? La mayoría de sus palabras, en el texto. */
+function seVe(plato, fuente) {
+  const ws = palabras(plato);
+  if (!ws.length) return true;
+  const hay = new Set(palabras(fuente));
+  return ws.filter((w) => hay.has(w) || hay.has(w.replace(/s$/, "")) || hay.has(`${w}s`)).length * 2 >= ws.length;
+}
+
+/**
+ * Lo que se puede guardar del menú del cole y lo que no. Lo leído de un PDF o
+ * de una foto solo existe en el turno en que llega: en el turno del «sí» ya no
+ * está, y la herramienta aceptaba cualquier cosa. Así se guardó un plato que
+ * no venía en el PDF (#958). Ahora cada plato tiene que estar a la vista: con
+ * el adjunto en este mismo mensaje, o escrito por la persona, o en el resumen
+ * que Lola enseñó justo antes. Y una semana con menos de DIAS_MINIMOS_COLE días
+ * no se guarda: pisaría la que había. Pura, para el test.
+ * @param {{ adjunto?: object|null, texto?: string, anterior?: string }} vista
+ */
+export function semanasDelCole(semanas, { adjunto = null, texto = "", anterior = "" } = {}) {
+  const fuente = `${texto ?? ""}\n${anterior ?? ""}`;
+  const buenas = [];
+  const sinHacer = [];
+  for (const [i, s] of (semanas ?? []).slice(0, 6).entries()) {
+    const n = (semanas?.length ?? 0) > 1 ? ` (semana ${i + 1})` : "";
+    const dias = { ...(s?.dias ?? {}) };
+    if (!adjunto) {
+      for (const [dia, platos] of Object.entries(dias)) {
+        if (!platos || platos.sinClase) continue;
+        const limpio = { ...platos };
+        for (const k of Object.keys(PLATO)) {
+          if (platos[k] && !seVe(platos[k], fuente)) {
+            sinHacer.push({ que: `${platos[k]}${n}`, motivo: "no está en lo que me han mandado ni en el resumen: el PDF o la foto solo se lee en el mensaje en que llega" });
+            delete limpio[k];
+          }
+        }
+        dias[dia] = limpio;
+      }
+    }
+    const cubiertos = Object.entries(dias).filter(([d, p]) => DIA[d] && p && (p.sinClase || Object.keys(PLATO).some((k) => String(p[k] ?? "").trim()))).length;
+    if (cubiertos < DIAS_MINIMOS_COLE) {
+      sinHacer.push({ que: `la semana${n}`, motivo: `solo trae ${cubiertos} de 5 días: así pisaría el menú del cole entero; que lo manden otra vez (foto o PDF) y lo leo` });
+      continue;
+    }
+    buenas.push({ dias });
+  }
+  return { semanas: buenas, sinHacer };
+}
+
+export function guardarMenuCole(householdId, { semanas, para }, vista = {}) {
   return conData(householdId, (data, m) => {
-    const weeksEntries = (semanas ?? []).map(aEntradas).filter((e) => Object.keys(e).length).slice(0, 6);
-    if (!weeksEntries.length) return { texto: "No he sacado ningún plato de ese menú: ¿me lo mandas más de cerca o en PDF?" };
+    const { semanas: buenas, sinHacer } = semanasDelCole(semanas, vista);
+    const weeksEntries = buenas.map(aEntradas).filter((e) => Object.keys(e).length).slice(0, 6);
+    if (!weeksEntries.length) {
+      const texto = "No he guardado nada del menú del cole: ¿me lo mandas otra vez (más de cerca o en PDF)?";
+      return { texto, resultado: resultado({ accion: "cole", sinHacer: sinHacer.length ? sinHacer : [{ que: "el menú del cole", motivo: "no he sacado ningún plato" }] }) };
+    }
     let scope = "shared";
     let kidId;
     if (para && !["todos", "todas", "los niños", "ninos"].includes(String(para).toLowerCase())) {
@@ -44,9 +102,15 @@ export function guardarMenuCole(householdId, { semanas, para }) {
     }
     const schoolMenus = m.replaceSchoolWeeks(data.schoolMenus, { scope, kidId, weeksEntries });
     const platos = weeksEntries.reduce((n, e) => n + Object.keys(e).length, 0);
+    const texto = `Menú del cole guardado${kidId ? ` para ${para}` : " para todos los que comen en el cole"}: ${weeksEntries.length} semana(s), ${platos} platos. Al generar, las cenas no repetirán lo del cole.`;
     return {
       data: { ...data, schoolMenus },
-      texto: `Menú del cole guardado${kidId ? ` para ${para}` : " para todos los que comen en el cole"}: ${weeksEntries.length} semana(s), ${platos} platos. Al generar, las cenas no repetirán lo del cole.`,
+      texto,
+      resultado: resultado({
+        accion: "cole", sinHacer,
+        hecho: [`${weeksEntries.length} semana${weeksEntries.length > 1 ? "s" : ""}, ${platos} platos${kidId ? ` para ${para}` : ""}`],
+        nota: "Al generar, las cenas no repetirán lo del cole.",
+      }),
     };
   });
 }

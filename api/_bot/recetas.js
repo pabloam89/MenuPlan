@@ -32,6 +32,7 @@ import { SYSTEM_PROMPTS } from "../_prompts.js";
 import { buscarHibrido, pasaRasgos } from "./buscador.js";
 import { rasgosDeFrase } from "../../src/lib/rasgosBusqueda.js";
 import { paraEscribir } from "../../src/lib/vocabularios.js";
+import { resultado } from "./resultado.js";
 
 // Las carpetas del recetario de la app (CATEGORY_META en CatalogBrowserSheet).
 // Los bebés van partidos por etapa, como allí.
@@ -180,9 +181,35 @@ async function ultimoApartado(chat, tipo) {
   const [fila] = await select(
     "bot_messages",
     `channel=${eq(chat.channel)}&chat_id=${eq(String(chat.chatId))}&content->>tipo=eq.${tipo}&created_at=gt.${desde}&order=created_at.desc&limit=1`,
-    "content",
+    "content,created_at",
   );
-  return fila?.content ?? null;
+  return fila?.content ? { ...fila.content, creadaEn: fila.created_at ?? null } : null;
+}
+
+/**
+ * La foto apartada vale para la receta que se prepara ahora solo si se apartó
+ * DESPUÉS del último borrador: una de antes era de otro plato (#958: sin foto
+ * en el mensaje, usarFoto cogía la que se apartó para otra receta). Pura.
+ */
+export function fotoDeEstaReceta(foto, borradorAnterior) {
+  if (!foto?.url) return null;
+  if (!borradorAnterior?.creadaEn || !foto.creadaEn) return foto.url;
+  return Date.parse(foto.creadaEn) > Date.parse(borradorAnterior.creadaEn) ? foto.url : null;
+}
+
+/**
+ * ¿Es el borrador la receta que han aprobado? Si el último preparar_receta
+ * falló, el borrador apartado es el de ANTES, y se guardaba otra receta (#958).
+ * Con el nombre que dicen haber aprobado, se compara: la mayoría de sus
+ * palabras tienen que estar en el del borrador. Pura.
+ */
+export function esLaAprobada(borrador, nombre) {
+  if (!nombre) return true;
+  const ws = (s) => normal(s).split(/[^a-z0-9ñ]+/).filter((w) => w.length > 2 && !VACIAS.has(w));
+  const pedidas = ws(nombre);
+  if (!pedidas.length) return true;
+  const hay = new Set(ws(borrador?.name));
+  return pedidas.filter((w) => hay.has(w) || hay.has(w.replace(/s$/, "")) || hay.has(`${w}s`)).length * 2 >= pedidas.length;
 }
 
 /**
@@ -273,18 +300,24 @@ export async function prepararReceta(householdId, datos, chat) {
   }
 
   // La foto del plato: la de este mismo mensaje o la que se apartó antes.
+  // Una apartada solo si es de después del último borrador (fotoDeEstaReceta).
   let foto = null;
   if (datos.usarFoto) {
-    foto = chat.adjunto?.tipo === "image"
-      ? await subirFoto(dueno, borrador.id, chat.adjunto).catch(fallaCon("recetas_subir_foto", null))
-      : (await ultimoApartado(chat, TIPO_FOTO))?.url ?? null;
+    if (chat.adjunto?.tipo === "image") {
+      foto = await subirFoto(dueno, borrador.id, chat.adjunto).catch(fallaCon("recetas_subir_foto", null));
+    } else {
+      const [apartada, anterior] = await Promise.all([ultimoApartado(chat, TIPO_FOTO), ultimoApartado(chat, TIPO_BORRADOR)]);
+      foto = fotoDeEstaReceta(apartada, anterior);
+    }
   }
+  // Siempre privada: Gente está apagada (GENTE_ACTIVA en src/lib/frontalBot.js),
+  // y prometer «sale en Gente» era prometer algo que no se ve (#958).
   const receta = m.recetaParaGuardar(borrador, {
     mealRole: entrada.mealRole,
     requiredAppliances: electro,
     photo: foto,
     owner: { id: dueno },
-    visibility: datos.visibilidad === "publica" ? "public" : "private",
+    visibility: "private",
   });
 
   await insert("bot_messages", [{
@@ -301,25 +334,28 @@ export async function prepararReceta(householdId, datos, chat) {
     `Alérgenos: ${(receta.allergens ?? []).join(", ") || "ninguno detectado"}`,
     `Ingredientes: ${receta.ingredients.map((i) => `${i.name}${i.amount ? ` ${i.amount} ${i.unit}` : ""}`).join("; ")}`,
     `Pasos: ${(receta.steps ?? []).length}`,
-    `Foto: ${foto ? "la del mensaje" : "sin foto"}; visibilidad: ${receta.visibility === "public" ? "publicada en Gente" : "solo para la casa"}`,
+    `Foto: ${foto ? "sí" : datos.usarFoto ? "sin foto (no hay ninguna de este plato: que la manden)" : "sin foto"}; solo para la casa`,
   ].join("\n");
 }
 
-/** Guarda el último borrador apartado en este chat. Solo con el «sí». */
-export async function guardarReceta(householdId, { confirmado }, chat) {
+/** Guarda el último borrador apartado en este chat. Solo con el «sí», y si es la receta que han aprobado. */
+export async function guardarReceta(householdId, { confirmado, nombre = null }, chat) {
   if (confirmado !== true) return "Las recetas no se guardan sin su «sí». Enséñale el resumen y pregunta.";
   const receta = (await ultimoApartado(chat, TIPO_BORRADOR))?.receta;
   if (!receta) return "No tengo ninguna receta preparada en esta charla: prepárala primero con preparar_receta.";
+  if (!esLaAprobada(receta, nombre)) {
+    return resultado({ accion: "receta", sinHacer: [{ que: nombre, motivo: `la última preparada es «${receta.name}», no esa: hay que prepararla otra vez` }] });
+  }
   const r = await guardarRecetaPropia(householdId, receta);
   // Sin dueño no llega ni al recetario: antes contestaba «Guardada en el
   // recetario, pero…» sin haber guardado nada.
-  if (!r.enRecetario) return `NO GUARDADA: la receta no se ha podido guardar (${r.error}). Sigue preparada: se puede volver a intentar.`;
+  if (!r.enRecetario) return resultado({ accion: "receta", sinHacer: [{ que: receta.name, motivo: `no se ha podido guardar (${r.error}); sigue preparada: se puede volver a intentar` }] });
   await rastro(householdId, RASTRO.RECETA_GUARDADA, {
     recipeId: receta.id ?? null, baseDishId: receta.baseDishId ?? receta.linkedCatalogId ?? null,
     origen: receta.baseDishId || receta.linkedCatalogId ? ORIGEN_RECETA.VARIANTE : ORIGEN_RECETA.CREADA_BOT,
   });
   if (!r.ok) return `Guardada en el recetario, pero no he podido apuntarla en la casa (${r.error}): saldrá en el menú cuando alguien abra la app.`;
-  return `Guardada: «${receta.name}». Ya está en el recetario y puede salir en los menús.`;
+  return resultado({ accion: "receta", hecho: [receta.name], nota: "Ya está en el recetario y puede salir en los menús." });
 }
 
 /**

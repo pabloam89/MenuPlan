@@ -21,6 +21,7 @@ import { conCasa, cargarCasa, hoyISO } from "./casa.js";
 import { datosDelMotor } from "../../src/lib/recetasDeLaCasa.js";
 import { propiasDe } from "./propias.js";
 import { rastro } from "./embudo.js";
+import { resultado as resultadoDeEscritura } from "./resultado.js";
 import { cargaMedida } from "./medidaTurno.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, COMIDAS, comidaDe } from "../../src/lib/comidas.js";
 import { PICANTE_PEDIDO } from "../../src/data/recipeSchema.js";
@@ -390,7 +391,8 @@ export async function describirReceta(casa, consulta) {
   if (!r) return `No encuentro ninguna receta que se llame así («${consulta}»).`;
   const ing = (r.ingredients ?? []).map((i) => `• ${i.name}${i.qty ? ` — ${i.qty}${i.unit ? ` ${i.unit}` : ""}` : ""}`);
   const pasos = (r.steps ?? []).map((p, i) => `${i + 1}. ${typeof p === "string" ? p : p?.text ?? ""}`);
-  const datos = [r.time ? `${r.time} min` : "", r.servings ? `${r.servings} raciones` : ""].filter(Boolean).join(", ");
+  // Las kcal por ración, que conocimiento.md promete en ver_receta (#958); sin el dato, nada.
+  const datos = [r.time ? `${r.time} min` : "", r.servings ? `${r.servings} raciones` : "", r.kcal > 0 ? `unas ${Math.round(r.kcal)} kcal por ración` : ""].filter(Boolean).join(", ");
   return [
     `${r.name}${datos ? ` (${datos})` : ""}`,
     ing.length ? `Ingredientes:\n${ing.join("\n")}` : "",
@@ -495,6 +497,49 @@ export async function anadirCompra(householdId, productos, out = null) {
   if (out) Object.assign(out, { ok: r.ok, anadidos: productos.map((p) => String(p).trim()).filter(Boolean) });
   if (!r.ok) return `No he podido guardar la lista: ${r.error}.`;
   return `Añadido a la compra: ${productos.join(", ")}.`;
+}
+
+/**
+ * Lo que queda de la lista al quitar productos (y, con `manuales`, todo lo
+ * añadido a mano). Un nombre con varios parecidos no quita nada: se pregunta.
+ * Pura, para el test.
+ */
+export function quitarDeLista(items, productos = [], { manuales = false } = {}) {
+  const quitar = new Set();
+  const noEncontrados = [];
+  const dudosos = [];
+  if (manuales) for (const it of items) if (it.manual) quitar.add(it);
+  for (const p of productos) {
+    const encontrados = buscarItems(items, p);
+    if (!encontrados.length) noEncontrados.push(String(p));
+    else if (encontrados.length > 1 && !encontrados.every((x) => normal(x.name) === normal(encontrados[0].name))) dudosos.push({ que: String(p), parecidos: encontrados.map((x) => x.name) });
+    else for (const x of encontrados) quitar.add(x);
+  }
+  return { items: items.filter((it) => !quitar.has(it)), quitados: [...new Set([...quitar].map((x) => x.name))], noEncontrados, dudosos };
+}
+
+/**
+ * Quitar de la lista de la compra («quita el pan», «borra lo que añadí»).
+ * Antes no había forma: Lola lo marcaba como comprado o decía que lo había
+ * quitado sin quitarlo (#958). Lo que sale del menú vuelve si se rehace la
+ * compra (al cambiar el menú); lo añadido a mano, no.
+ * @returns {Promise<object|string>} un RESULTADO (resultado.js)
+ */
+export async function quitarCompra(householdId, { productos = [], manuales = false } = {}) {
+  let hecho = null;
+  const r = await conCasa(householdId, (casa) => {
+    const lista = listaDe(casa);
+    hecho = quitarDeLista(lista.items ?? [], productos, { manuales });
+    if (!hecho.quitados.length) return null;
+    return guardarLista(casa, { ...lista, items: hecho.items });
+  });
+  if (!r.ok) return `No he podido guardar la lista: ${r.error}.`;
+  const sinHacer = [
+    ...(hecho?.noEncontrados ?? []).map((que) => ({ que, motivo: "no está en la lista" })),
+    ...(hecho?.dudosos ?? []).map((d) => ({ que: d.que, motivo: `hay varios parecidos (${d.parecidos.join(", ")}): ¿cuál?` })),
+  ];
+  if (manuales && !hecho?.quitados.length && !productos.length) sinHacer.push({ que: "lo añadido a mano", motivo: "no había nada añadido a mano" });
+  return resultadoDeEscritura({ accion: "compra_quitar", hecho: hecho?.quitados ?? [], sinHacer, nota: "Lo que sale del menú vuelve si se rehace la compra (al cambiar el menú)." });
 }
 
 /** El grupo y el hueco de un día y franja del menú activo, o por qué no hay. */
@@ -1115,8 +1160,11 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
       if (!forcedRecipe) {
         // No está tal cual: la más parecida de todo lo que encaja en el hueco.
         const grande = m.pickCatalogReplacement(paraElegir, casa.semana.plan, { hoy: hoyISO(), groupId: g.id, day: dia, meal: franja, course, candidatos: POOL_PARA_APROXIMAR, pedido: true });
-        forcedRecipe = masParecida(grande?.candidatos ?? [], receta);
-        aproximada = !!forcedRecipe;
+        // En el grupo grande puede estar justo la pedida: entonces no es
+        // aproximada (#958: se decía «la más parecida» con la receta exacta).
+        const exacta = candidataPorNombre(grande?.candidatos ?? [], receta);
+        forcedRecipe = exacta ?? masParecida(grande?.candidatos ?? [], receta);
+        aproximada = !!forcedRecipe && !exacta;
       }
       if (!forcedRecipe) { texto = `No hay nada parecido a «${receta}» que encaje en ese hueco (por alergias, tiempo o porque ya está en la semana). Pide opciones con proponer_platos.`; return null; }
     }

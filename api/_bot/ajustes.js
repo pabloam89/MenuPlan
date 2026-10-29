@@ -28,6 +28,7 @@ import { ETAPA_BEBE } from "../../src/lib/vocabularios.js";
 import { supermercadoDe, CON_PRECIOS } from "../../src/lib/supermercados.js";
 import { EXTRAS, conExtras } from "../../src/lib/extras.js";
 import { aplicarDiasDeSemana, diasDeSemana } from "../../src/lib/semanaDias.js";
+import { resultado } from "./resultado.js";
 
 const hoyISO = () => isoDeCasa();
 // Del catálogo de comidas (src/lib/comidas.js).
@@ -62,7 +63,9 @@ export async function conData(householdId, cambiar, ctx = null) {
     const m = await motor();
     antes = casa.state?.data ?? {};
     const res = await cambiar(antes, m, casa);
-    texto = res.texto;
+    // `resultado` (resultado.js, #958): lo hecho y lo que no, con forma fija.
+    // Si lo trae, es lo que se devuelve; `texto` queda para lo de siempre.
+    texto = res.resultado ?? res.texto;
     guardado = res.data ?? null;
     preguntas = res.preguntas ?? [];
     if (!res.data) return null;
@@ -124,12 +127,39 @@ export async function describirAjustes(casa) {
   const nombre = (id) => (d.members ?? []).find((p) => p.id === id)?.name ?? id;
   const horario = fuera.slice(0, 40).map(([k, v]) => { const [id, dia, comida] = k.split("|"); return `• ${nombre(id)}: ${DIA_LARGO[dia] ?? dia} ${comida} → ${v}`; });
   const reglas = (d.reglas ?? []).map((r) => `• ${m.describirRegla(r, d)}`);
+  const kids = m.kidMembers?.(d.members ?? []) ?? [];
+  const peques = kids.length && d.kidDinnerConfig ? m.normalizeKidDinnerConfig(d.kidDinnerConfig) : null;
   return [
     `Estructura de la comida: ${d.mealStructure ?? "(por defecto)"}\nNivel de cocina: ${d.cookLevel ?? "normal"}\nTrastos: ${(d.kitchenTools ?? []).join(", ") || "(sin decir)"}`,
+    otrosAjustes(d, { peques, nombre }),
     `Gustos en la libreta:\n${gustos.join("\n") || "(nada todavía: todo por defecto, menú equilibrado)"}`,
     `Quién NO come en casa (el resto, en casa):\n${horario.join("\n") || "(todos comen en casa siempre)"}${fuera.length > 40 ? `\n… y ${fuera.length - 40} más` : ""}`,
     `Reglas e invitados:\n${reglas.join("\n") || "(ninguna)"}`,
   ].join("\n\n");
+}
+
+const LADO_DICHO = { together: "con la familia", own: "algo suyo" };
+/**
+ * Lo demás que se puede pedir y no salía al preguntar «¿qué tengo puesto?»:
+ * desayuno, merienda y postre, cómo se usa la despensa, cuánto se repiten
+ * los platos, los días de cada semana y cómo comen los peques (#958: sin esto
+ * no se podía contestar con verdad «¿qué tengo de desayuno?»). Pura.
+ */
+export function otrosAjustes(d = {}, { peques = null, nombre = (id) => id } = {}) {
+  const ex = conExtras(d.extraMeals);
+  const lineas = [
+    `Desayuno: ${DICHO_EXTRA.desayuno[ex.desayuno] ?? ex.desayuno}. Merienda: ${DICHO_EXTRA.merienda[ex.merienda] ?? ex.merienda}. Postre: ${DICHO_EXTRA.postre[ex.postre] ?? ex.postre}${ex.postre !== "off" ? ` (${DICHO_EXTRA.postreTipo[ex.postreTipo] ?? ex.postreTipo}${ex.postreTipo === "inmediato" ? `, ${DICHO_EXTRA.postreInmediato[ex.postreInmediato] ?? ex.postreInmediato}` : ""})` : ""}.`,
+    `Lo de casa (despensa): ${d.pantryModeSet && MODOS_DESPENSA[d.pantryMode] ? `el menú se hace ${MODOS_DESPENSA[d.pantryMode]}` : "(sin decir: el menú no se ata a lo que hay)"}.`,
+    `Repetir platos entre semanas: ${DICHA_VARIEDAD[d.menuVarietyPref] ?? "(por defecto)"}.`,
+  ];
+  const semanas = Object.entries(d.menuWeekDays ?? {}).filter(([k, v]) => /^\d{4}-\d{2}-\d{2}$/.test(k) && Array.isArray(v)).sort(([a], [b]) => a.localeCompare(b));
+  if (semanas.length) lineas.push(`Días del menú por semana: ${semanas.map(([lunes, ds]) => `la del ${lunes}: ${ds.map((x) => DIA_LARGO[x] ?? x).join(", ")}`).join("; ")}.`);
+  for (const [id, c] of Object.entries(peques?.byMember ?? {})) {
+    const cena = c.reuseColeDinner ? "los días de cole, lo que comisteis a mediodía" : c.dinner === "different" ? "algo suyo" : "lo mismo que la familia";
+    const noRepite = Object.entries(NO_REPETIR).filter(([, campo]) => c.avoid?.[campo]).map(([dicho]) => dicho);
+    lineas.push(`${nombre(id)} (peque): cena ${cena}; a mediodía en casa, ${LADO_DICHO[c.weekdayLunch] ?? "con la familia"}; el finde, ${LADO_DICHO[c.weekend] ?? "con la familia"}${c.dinner === "different" ? `; en la cena no repite del cole: ${noRepite.join(", ") || "nada (puede repetir)"}` : ""}.`);
+  }
+  return `Otros ajustes:\n${lineas.join("\n")}`;
 }
 
 // ── Gustos: la libreta, como el panel de la app ─────────────────────────────
@@ -149,13 +179,19 @@ export async function ajustarGustos(householdId, ajustes, frase, { dicho = true,
   return conData(householdId, (data, m) => {
     const validos = [];
     const rechazados = [];
+    const sinVeces = [];
     for (const a of ajustes ?? []) {
       const ajuste = { ambito: "todos", servicio: "ambos", ...a };
       const campo = m.CAMPOS.find((c) => c.id === ajuste.campo);
       if (!campo || campo.panel === false || !m.valorValido(ajuste.campo, ajuste.valor)) rechazados.push(`${a.campo}:${a.valor}`);
+      // Veces por semana solo las lleva freqs (carne, pescado, verdura…). «No
+      // más de dos ensaladas» con favoritos acababa de FAVORITO (#958): un
+      // tope en un campo sin veces no se guarda a medias, se dice.
+      else if (a.n != null && a.op !== "nunca" && campo.proyecta !== "freqs") sinVeces.push(`${a.valor} (${a.n}/semana)`);
       else validos.push(ajuste);
     }
-    if (!validos.length) return { texto: `No he podido aplicar nada: ${rechazados.join(", ") || "sin ajustes"}.` };
+    const avisoVeces = sinVeces.length ? ` NO guardado: ${sinVeces.join(", ")}: ese campo no lleva veces por semana. Si es la verdura en general, campo freqs, valor verdura, con n; si no, dilo tal cual y no digas que está apuntado.` : "";
+    if (!validos.length) return { texto: `No he podido aplicar nada: ${[...rechazados, ...sinVeces].join(", ") || "sin ajustes"}.${avisoVeces}` };
     const libreta = m.normalizarLibreta(data.notepad);
     const fuente = dicho ? "dicho" : "supuesto";
     const { libreta: nueva } = m.aplicarAjustes(data, libreta, validos, { frase, fecha: hoyISO(), fuente, desde, hasta });
@@ -172,6 +208,7 @@ export async function ajustarGustos(householdId, ajustes, frase, { dicho = true,
         `Anotado${dicho ? "" : " como suposición (solo inclina el menú, no quita nada)"}: ${validos.filter((a) => !tapados.includes(a)).map((a) => `${a.op ?? "mas"} ${a.valor}${a.n != null ? ` (${a.n}/semana)` : ""}`).join(", ") || "nada"}${ventana}.`,
         tapados.length ? ` No lo he cambiado porque la familia ya dijo otra cosa: ${tapados.map((a) => a.valor).join(", ")}.` : "",
         rechazados.length ? ` No reconocido: ${rechazados.join(", ")}.` : "",
+        avisoVeces,
         " Se notará al generar el próximo menú.",
       ].join(""),
     };
@@ -291,12 +328,59 @@ export async function ajustarCocina(householdId, { estructura, esfuerzo, tiempo,
 
 // ── Lo del asistente de la app que Lola no tenía ────────────────────────────
 
+// Un día suelto, también en plural y con artículo («los sábados», «el finde»).
+const ENTRE_SEMANA = /^(entre ?semana|laborables|dias laborables|de diario|dias de diario|lunes a viernes)$/;
+const FINDE = /^(finde|findes|fin de semana|fines de semana|sabado y domingo)$/;
+const TODOS = /^(todos|todos los dias|toda la semana|cada dia|la semana entera|semana entera)$/;
+function unDia(t) {
+  return diaDe(t) ?? diaDe(t.replace(/s$/, "")) ?? null;
+}
+function diasDeUno(dicho) {
+  const t = normal(dicho).replace(/[.]+$/, "").replace(/^(todos\s+)?(el|los|las|este|esta|estos|cada)\s+/, "").trim();
+  if (!t) return null;
+  if (TODOS.test(t)) return [...DIAS];
+  if (ENTRE_SEMANA.test(t)) return DIAS.slice(0, 5);
+  if (FINDE.test(t)) return DIAS.slice(5);
+  // Un rango: «de lunes a jueves», «del martes al viernes», «lunes-jueves».
+  const rango = t.match(/^(?:de|del|desde)?\s*(?:el\s+)?(\S+)\s*(?:a|al|hasta|hasta el|-)\s*(?:el\s+)?(\S+)$/);
+  if (rango) {
+    const [a, b] = [unDia(rango[1]), unDia(rango[2])];
+    if (a && b) {
+      const i = DIAS.indexOf(a);
+      const j = DIAS.indexOf(b);
+      return i <= j ? DIAS.slice(i, j + 1) : [...DIAS.slice(i), ...DIAS.slice(0, j + 1)];
+    }
+  }
+  const uno = unDia(t);
+  if (uno) return [uno];
+  // Varios en una cadena: «lunes, martes y jueves».
+  const partes = t.split(/\s*(?:,|\by\b|\be\b)\s*/).filter(Boolean);
+  if (partes.length > 1) {
+    const cada = partes.map(diasDeUno);
+    if (cada.every(Boolean)) return cada.flat();
+  }
+  return null;
+}
+
+/**
+ * Lo que dijeron, en días guardados (Lun…Dom), y lo que no se entiende.
+ * «el finde», «fines de semana», «de lunes a jueves», «los sábados», «lunes,
+ * martes y jueves». Antes un día no reconocido se tiraba callado y
+ * ajustar_semana contestaba «Guardado (esta semana: )» (#958). Pura.
+ */
+export function leerDias(dias) {
+  const out = [];
+  const noEntendidos = [];
+  for (const d of dias ?? []) {
+    const ds = diasDeUno(d);
+    if (ds) out.push(...ds); else noEntendidos.push(String(d));
+  }
+  return { dias: [...new Set(out)], noEntendidos };
+}
+
 /** «lunes», «entre semana», «finde» → días guardados (Lun…Dom). Vacío = todos. */
 export function diasDichos(dias) {
-  return [...new Set((dias?.length ? dias : DIAS)
-    .map((d) => (/^(entre ?semana|laborables)$/.test(normal(d)) ? DIAS.slice(0, 5) : /^(finde|fin de semana)$/.test(normal(d)) ? DIAS.slice(5) : [diaDe(d)]))
-    .flat()
-    .filter(Boolean))];
+  return dias?.length ? leerDias(dias).dias : [...DIAS];
 }
 
 const DICHO_EXTRA = {
@@ -336,20 +420,30 @@ const DICHA_VARIEDAD = { strict: "sin repetir platos de ninguna semana anterior"
 export function aplicarSemana(data, { semana = "esta", dias, variedad } = {}, { hoyIdx } = {}) {
   let d = data ?? {};
   const hechos = [];
+  const sinHacer = [];
   if (Array.isArray(dias) && dias.length) {
     const offset = semana === "siguiente" ? 1 : 0;
-    const ds = DIAS.filter((x) => diasDichos(dias).includes(x));
-    const antes = diasDeSemana(d, offset, hoyIdx);
-    d = aplicarDiasDeSemana(d, offset, ds, hoyIdx === undefined ? {} : { todayIdx: hoyIdx });
-    if (d === data && ds.length) return { texto: "No puedo dejar el menú sin ningún día." };
-    if (JSON.stringify(antes) !== JSON.stringify(ds)) hechos.push(`${semana === "siguiente" ? "la semana que viene" : "esta semana"}: ${ds.map((x) => DIA_LARGO[x] ?? x).join(", ")}`);
+    const leidos = leerDias(dias);
+    for (const x of leidos.noEntendidos) sinHacer.push({ que: x, motivo: "no sé qué días son: que los diga uno a uno" });
+    const ds = DIAS.filter((x) => leidos.dias.includes(x));
+    // Nunca «Guardado» con nada dentro (#958): sin un día entendido, no se toca.
+    if (ds.length) {
+      const antes = diasDeSemana(d, offset, hoyIdx);
+      d = aplicarDiasDeSemana(d, offset, ds, hoyIdx === undefined ? {} : { todayIdx: hoyIdx });
+      if (d === data) return { texto: "No puedo dejar el menú sin ningún día." };
+      if (JSON.stringify(antes) !== JSON.stringify(ds)) hechos.push(`${semana === "siguiente" ? "la semana que viene" : "esta semana"}: ${ds.map((x) => DIA_LARGO[x] ?? x).join(", ")}`);
+    }
   }
   if (VARIEDADES.includes(variedad)) {
     d = { ...d, menuVarietyPref: variedad };
     hechos.push(DICHA_VARIEDAD[variedad]);
   }
-  if (!hechos.length) return { texto: "No había nada que cambiar." };
-  return { data: d, texto: `Guardado (${hechos.join("; ")}). Se aplicará al generar ese menú.` };
+  if (!hechos.length) {
+    if (sinHacer.length) return { texto: "No he cambiado nada.", resultado: resultado({ accion: "semana", sinHacer }) };
+    return { texto: "No había nada que cambiar." };
+  }
+  const texto = `Guardado (${hechos.join("; ")}). Se aplicará al generar ese menú.`;
+  return { data: d, texto, resultado: resultado({ accion: "semana", hecho: hechos, sinHacer, nota: "Se aplicará al generar ese menú." }) };
 }
 
 export async function ajustarSemana(householdId, args) {
@@ -376,15 +470,19 @@ export async function ajustarModoDespensa(householdId, { modo }) {
   return conData(householdId, (data) => aplicarModoDespensa(data, modo));
 }
 
-// ── Compra: el súper y el presupuesto ───────────────────────────────────────
+// ── Compra: el súper ────────────────────────────────────────────────────────
 
 /**
- * Dónde compra la casa y cuánto quiere gastar. Se pregunta en Lola (Pablo,
- * 28 oct 2026); la app lo enseña: con Mercadona, la lista de la compra lleva
- * su chapa y el precio de cada cosa (Shopping.jsx). Un súper que no está en la
- * lista se guarda como lo dicen (la vía «otro»). Pura, para el test.
+ * Dónde compra la casa. Se pregunta en Lola (Pablo, 28 oct 2026); la app lo
+ * enseña: con Mercadona, la lista de la compra lleva su chapa y el precio de
+ * cada cosa (Shopping.jsx). Un súper que no está en la lista se guarda como lo
+ * dicen (la vía «otro»). Pura, para el test.
+ *
+ * Sin presupuesto (#958): Lola lo preguntaba y lo guardaba (hasBudget,
+ * budget), pero nada lo leía para hacer el menú ni la compra. Un presupuesto
+ * que nadie usa es una promesa falsa; vuelve el día que algo lo lea.
  */
-export function aplicarCompra(data, { supermercados, presupuesto, sinPresupuesto = false } = {}) {
+export function aplicarCompra(data, { supermercados } = {}) {
   let d = data ?? {};
   const hechos = [];
   if (Array.isArray(supermercados)) {
@@ -395,19 +493,9 @@ export function aplicarCompra(data, { supermercados, presupuesto, sinPresupuesto
       hechos.push(`súper: ${lista.join(", ")}${conPrecios.length ? ` (en la app verás los precios de ${conPrecios.join(", ")} en la lista de la compra)` : ""}`);
     }
   }
-  if (sinPresupuesto) {
-    d = { ...d, hasBudget: false };
-    hechos.push("sin presupuesto");
-  } else if (Number.isFinite(presupuesto) && presupuesto >= PRESUPUESTO[0] && presupuesto <= PRESUPUESTO[1]) {
-    d = { ...d, hasBudget: true, budget: Math.round(presupuesto) };
-    hechos.push(`presupuesto: ${Math.round(presupuesto)} €/semana`);
-  }
   if (!hechos.length) return { texto: "No había nada que cambiar." };
   return { data: d, texto: `Guardado (${hechos.join("; ")}).` };
 }
-
-/** Un presupuesto semanal creíble, en euros. */
-export const PRESUPUESTO = [10, 1000];
 
 export async function ajustarCompra(householdId, args) {
   return conData(householdId, (data) => aplicarCompra(data, args));
@@ -467,17 +555,42 @@ export async function ajustarHorario(householdId, { personas, dias, comidas, don
 
 // ── Invitados puntuales: una regla que caduca sola ──────────────────────────
 
-export async function anadirInvitado(householdId, { dia, comida, n = 1, nombre, semana = "esta" }) {
+/**
+ * La semana de un invitado. Sin decirla, el PRÓXIMO día con ese nombre: un
+ * sábado, «el lunes» es el de la semana que viene. Antes era siempre «esta», y
+ * caía en un lunes ya pasado mientras la respuesta decía que contaba (#958).
+ * Con «esta» dicha y el día ya pasado, no se apunta: se dice. Pura.
+ * @returns {{ semana: "esta"|"siguiente", pasado: boolean }}
+ */
+export function semanaDelInvitado(dia, semana, hoyIdx) {
+  const i = DIAS.indexOf(dia);
+  if (semana === "siguiente") return { semana, pasado: false };
+  if (semana === "esta") return { semana, pasado: i < hoyIdx };
+  return { semana: i < hoyIdx ? "siguiente" : "esta", pasado: false };
+}
+
+export async function anadirInvitado(householdId, { dia, comida, n = 1, nombre, semana }) {
   return conData(householdId, (data, m) => {
     const d = diaDe(dia);
     const c = COMIDAS.find((x) => normal(x) === normal(comida));
-    if (!d || !c) return { texto: `No entiendo cuándo («${dia}», «${comida}»).` };
-    const regla = m.reglaDeInvitado({ dia: d, comida: c, n, nombre, semanaISO: lunesDe(semana), hoy: hoyISO() });
-    if (!regla) return { texto: "No he podido apuntar al invitado." };
+    if (!d || !c) {
+      const que = `${dia} (${comida})`;
+      return { texto: `No entiendo cuándo («${dia}», «${comida}»).`, resultado: resultado({ accion: "invitado", sinHacer: [{ que, motivo: c ? "no sé qué día es" : `no planifico esa comida (sí: ${COMIDAS.join(", ")})` }] }) };
+    }
+    const hoyIdx = indiceDeFechaUTC(new Date(`${hoyISO()}T12:00:00Z`));
+    const cual = semanaDelInvitado(d, semana, hoyIdx);
+    const que = `${nombre ? `${nombre}, ` : ""}${n} más el ${DIA_LARGO[d] ?? d} (${c})`;
+    if (cual.pasado) return { texto: "Ese día ya ha pasado esta semana.", resultado: resultado({ accion: "invitado", sinHacer: [{ que, motivo: "ese día ya ha pasado esta semana: ¿es el de la que viene?" }] }) };
+    const regla = m.reglaDeInvitado({ dia: d, comida: c, n, nombre, semanaISO: lunesDe(cual.semana), hoy: hoyISO() });
+    if (!regla) return { texto: "No he podido apuntar al invitado.", resultado: resultado({ accion: "invitado", sinHacer: [{ que, motivo: "no he podido apuntarlo" }] }) };
     const { reglas } = m.podarReglasVencidas([...(data.reglas ?? []), { ...regla, origen: "texto" }], hoyISO());
+    // La compra de un menú ya hecho no se rehace sola: se dice (la
+    // descripción de la herramienta prometía sumarlo a la compra hecha).
+    const nota = `Cuenta al generar el menú de ${cual.semana === "siguiente" ? "la semana que viene" : "esta semana"} (raciones y compra) y caduca solo. Si esa semana ya tiene menú, la compra hecha no cambia hasta rehacerlo.`;
     return {
       data: { ...data, reglas },
-      texto: `Apuntado: ${m.describirRegla(regla, data)}. Cuenta al generar el menú de esa semana (y caduca solo).`,
+      texto: `Apuntado: ${m.describirRegla(regla, data)}. ${nota}`,
+      resultado: resultado({ accion: "invitado", hecho: [`${m.describirRegla(regla, data)}${cual.semana === "siguiente" ? " (la semana que viene)" : ""}`], nota }),
     };
   });
 }

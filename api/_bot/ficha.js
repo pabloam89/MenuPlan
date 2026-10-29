@@ -39,6 +39,7 @@ import { propiasDe } from "./propias.js";
 import { alergiasPorSilencio } from "../../src/lib/alergiasBase.js";
 import { botonRehacer } from "./semanaPedida.js";
 import { estadoDelMenu, lineaEstadoMenu } from "./estadoMenu.js";
+import { conExtras } from "../../src/lib/extras.js";
 
 const DIA_CORTO = Object.fromEntries(DIAS.map((d) => [d, d.toLowerCase()]));
 const DIA_LARGO = DIA_LARGO_MINUSCULAS;
@@ -295,6 +296,11 @@ function cocinaBloque(data, hoy) {
   const tanda = tandaPedida(data);
   if (tanda) lineas.push(`- ${tanda}.`);
   if ((data.menuModel ?? "same") === "separate") lineas.push("- Los peques cenan aparte (ajustar_menu_peques).");
+  // Desayuno, merienda y postre, si hay alguno (#958: «¿qué tengo puesto de
+  // desayuno?» no tenía respuesta en la ficha). El detalle, en ver_ajustes.
+  const ex = data.extraMeals ? conExtras(data.extraMeals) : null;
+  const extras = ex ? [ex.desayuno !== "off" && `desayuno ${ex.desayuno}`, ex.merienda !== "off" && `merienda ${ex.merienda}`, ex.postre !== "off" && `postre ${ex.postre}`].filter(Boolean) : [];
+  if (extras.length) lineas.push(`- Extras: ${extras.join("; ")} (ver_ajustes).`);
   // La libreta: lo dicho y lo supuesto, separados (3 y 2 como mucho).
   const campos = Object.entries(data.notepad?.campos ?? {});
   const texto = ([ruta, c]) => {
@@ -333,7 +339,6 @@ function cocinaBloque(data, hoy) {
   const fijos = (data.fixedDishes ?? []).map((f) => f?.name ?? f?.nombre ?? f?.recipeName).filter(Boolean);
   if (fijos.length) lineas.push(`- Fijos: ${fijos.slice(0, 4).join(", ")}.`);
   if (data.supermarkets?.length) lineas.push(`- Súper: ${data.supermarkets.join(", ")}.`);
-  if (data.hasBudget && data.budget) lineas.push(`- Presupuesto: ${data.budget} €/semana.`);
   return lineas;
 }
 

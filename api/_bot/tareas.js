@@ -19,6 +19,7 @@
  */
 
 import { select, insert, update, eq } from "./db.js";
+import { resultado } from "./resultado.js";
 import { registrar } from "./embudo.js";
 import { crearRecordatorio } from "./recordatorios.js";
 import { resolverPersona, preguntaDeEstado, palabrasDe, estadoDeCampo, temaDe } from "./estadoCasa.js";
@@ -476,11 +477,16 @@ async function editar(ctx, abiertas, referencia, cambios = {}, data = {}, ahora 
     if (tareasV2() && "para_member" in parche) parche.persona_id = parche.para_member;
   }
   parche.updated_at = ahora.toISOString();
+  let filas;
   try {
-    await conPersona((p) => update("bot_tareas", `id=${eq(t.id)}&household_id=${eq(ctx.householdId)}&${filtroVivas()}`, p), parche);
+    filas = await conPersona((p) => update("bot_tareas", `id=${eq(t.id)}&household_id=${eq(ctx.householdId)}&${filtroVivas()}`, p), parche);
   } catch (e) {
     if (esDuplicado(e)) return "Ya hay otra igual apuntada: no la he cambiado. Dilo así y pregunta si quiere cerrar una de las dos.";
     throw e;
   }
-  return "Cambiado.";
+  // Sin fila cambiada no hay «Cambiado» (#958): la tarea se cerró entretanto
+  // (otro chat, la app) y el PATCH no tocó nada.
+  if (!filas?.length) return resultado({ accion: "tarea", sinHacer: [{ que: t.texto, motivo: "ya estaba cerrada" }] });
+  const dicho = [parche.texto && `«${parche.texto}»`, parche.vence && `para el ${parche.vence}`, "para_member" in parche && "otra persona", "asignado_member" in parche && "otro encargado"].filter(Boolean).join(", ");
+  return resultado({ accion: "tarea", hecho: [`${t.texto}${dicho ? ` → ${dicho}` : ""}`] });
 }

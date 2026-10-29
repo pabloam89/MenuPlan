@@ -20,10 +20,10 @@ describe("ajustar_compra: el súper y el presupuesto", () => {
     expect(r.texto).not.toMatch(/precios/);
   });
 
-  it("el presupuesto, por semana y en un rango creíble; «sin presupuesto» lo apaga", () => {
-    expect(aplicarCompra({}, { presupuesto: 120.4 }).data).toMatchObject({ hasBudget: true, budget: 120 });
-    expect(aplicarCompra({}, { presupuesto: 3 }).data).toBeUndefined();
-    expect(aplicarCompra({ hasBudget: true, budget: 80 }, { sinPresupuesto: true }).data).toMatchObject({ hasBudget: false });
+  // #958: nada leía el presupuesto; guardarlo era prometer algo que no se usa.
+  it("el presupuesto ya no se guarda: nadie lo lee", () => {
+    expect(aplicarCompra({}, { presupuesto: 120 }).data).toBeUndefined();
+    expect(aplicarCompra({}, { supermercados: ["Dia"], presupuesto: 120 }).data).not.toHaveProperty("budget");
   });
 
   it("no toca lo demás de la casa", () => {
