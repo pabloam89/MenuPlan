@@ -1,4 +1,4 @@
-import { DIAS_LABORABLES } from "./dias.js";
+import { DIAS_LABORABLES, indiceDeISO, isoDeCasa, semanasEntre, sumarDiasISO } from "./dias.js";
 
 export const SCHOOL_DAYS = DIAS_LABORABLES;
 export const SCHOOL_COURSES = ["Primero", "Segundo", "Postre"];
@@ -65,6 +65,28 @@ export function schoolWeekCount(sm) {
  * the index exceeds the number of stored weeks so a 4-week menú can rotate
  * through, e.g. 2 uploaded school weeks.
  */
+/**
+ * Qué semana del cole toca en la semana de `fechaISO`: las semanas guardadas
+ * rotan desde `lunesSemana1`, el lunes en que vale la primera (lo pone
+ * replaceSchoolWeeks al guardarlas). Sin ancla (menús del cole de antes), la
+ * primera, como siempre. Antes Lola usaba siempre la semana 1 (#958).
+ */
+export function indiceSemanaCole(sm, fechaISO) {
+  const ancla = sm?.lunesSemana1;
+  if (!ancla || !fechaISO || !/^\d{4}-\d{2}-\d{2}$/.test(ancla)) return 0;
+  return semanasEntre(ancla, fechaISO);
+}
+
+/**
+ * El lunes en que vale la primera semana de un menú del cole que se guarda
+ * `hoyISO`: el de esta semana, o el siguiente si ya es fin de semana (lo que
+ * se sube un domingo es para la que empieza).
+ */
+export function lunesParaCole(hoyISO) {
+  const i = indiceDeISO(hoyISO);
+  return sumarDiasISO(hoyISO, i >= 5 ? 7 - i : -i);
+}
+
 export function schoolMenusForWeekIndex(sm, idx = 0) {
   const weeks = normalizeSchoolMenus(sm).weeks;
   if (weeks.length === 0) return { shared: {}, byMember: {} };
@@ -81,7 +103,10 @@ export function schoolMenusForWeekIndex(sm, idx = 0) {
  *   scope === "shared"     → sets weeks[i].shared
  *   scope === "individual" → sets weeks[i].byMember[kidId]
  */
-export function replaceSchoolWeeks(sm, { scope, kidId, weeksEntries, weeksCatalogIds }) {
+// `hoy`: el día en que se guarda, para el ancla de la rotación (lunesSemana1,
+// ver indiceSemanaCole). La lista de semanas es nueva, así que el ancla se
+// vuelve a poner siempre: una vieja alinearía mal las semanas recién subidas.
+export function replaceSchoolWeeks(sm, { scope, kidId, weeksEntries, weeksCatalogIds, hoy = isoDeCasa() }) {
   const norm = normalizeSchoolMenus(sm);
   const list = Array.isArray(weeksEntries) ? weeksEntries : [];
   const catList = Array.isArray(weeksCatalogIds) ? weeksCatalogIds : [];
@@ -104,7 +129,7 @@ export function replaceSchoolWeeks(sm, { scope, kidId, weeksEntries, weeksCatalo
   const vacia = (w) => !Object.keys(w.shared).length && Object.values(w.byMember).every((e) => !Object.keys(e ?? {}).length);
   while (out.length > 1 && vacia(out[out.length - 1])) out.pop();
   const weeks = out.length ? out : [{ label: "Semana 1", shared: {}, byMember: {}, catalogIds: {} }];
-  return { ...norm, shared: weeks[0].shared, byMember: weeks[0].byMember, weeks };
+  return { ...norm, shared: weeks[0].shared, byMember: weeks[0].byMember, weeks, lunesSemana1: lunesParaCole(hoy) };
 }
 
 /** Set a single cell for a scope + week, adding empty weeks if needed. */

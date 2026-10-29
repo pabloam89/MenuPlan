@@ -12,6 +12,7 @@
  */
 
 import { nombreDia, diaDeFechaUTC, isoDeCasa } from "../../src/lib/dias.js";
+import { vigente, CADUCA } from "./caducidades.js";
 
 const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 
@@ -29,15 +30,21 @@ export const ORDEN = "created_at.desc,id.desc";
 /**
  * @param {Array<{id:number, role:string, content:object, created_at:string}>} filas  de más nueva a más vieja (ORDEN)
  * @param {string} hoy  AAAA-MM-DD en Madrid
- * @returns {{ historia: Array<{role:string, content:string}>, pendientes: Array }}
+ * @returns {{ historia: Array<{role:string, content:string}>, pendientes: Array, ultimaDeLolaAt: string|null }}
  */
-export function montarMemoria(filas = [], hoy) {
+export function montarMemoria(filas = [], hoy, ahoraMs = Date.now()) {
   const vivas = [...filas];
   // Solo lo posterior al último «empezar de nuevo».
   const corte = vivas.findIndex((f) => f.content?.corte);
   if (corte !== -1) vivas.length = corte;
   // Lo último que dijo Lola trae sus tareas abiertas (pendientes.js).
-  const pendientes = vivas.find((f) => f.role === "assistant")?.content?.pendientes ?? [];
+  // Pasada su vida (caducidades.js, #958) ya no se arrastran: un pedido de ayer
+  // no se cumple con lo que se diga hoy.
+  const deLola = vivas.find((f) => f.role === "assistant");
+  const pendientes = deLola && vigente(CADUCA.TAREAS_DEL_MENSAJE, deLola.created_at, ahoraMs) ? deLola.content?.pendientes ?? [] : [];
+  // Cuándo habló Lola por última vez: una pregunta de hace días ya no se
+  // contesta con el mensaje de hoy (alergias por silencio, silencio.js).
+  const ultimaDeLolaAt = vivas.find((f) => f.role === "assistant")?.created_at ?? null;
   const turnos = vivas.reverse()
     .map((f) => {
       const texto = String(f.content?.texto ?? "");
@@ -56,5 +63,5 @@ export function montarMemoria(filas = [], hoy) {
     else limpios.push(t);
   }
   if (limpios.length && limpios[limpios.length - 1].role === "user") limpios.pop();
-  return { historia: limpios, pendientes };
+  return { historia: limpios, pendientes, ultimaDeLolaAt };
 }

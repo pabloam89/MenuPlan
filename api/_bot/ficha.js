@@ -213,7 +213,10 @@ function seguridad(data) {
       ...(m.intolerances ?? []).map((id) => INTOLERANCE_RULES[id]?.label ?? id),
       ...(m.dietaryStates ?? []).map((id) => {
         const hasta = m.dietaryStatesMeta?.[id]?.hasta;
-        return `${(INTOLERANCE_RULES[id]?.label ?? id).toLowerCase()}${hasta ? ` hasta ${ddmm(hasta)}` : ", sin fecha"}`;
+        // Pasada la fecha no se quita sola (es salud): se dice, y el barrido
+        // abre la pregunta (caducidades.js, #958).
+        const pasada = hasta && hasta < isoDeCasa() ? " (ya pasó: pregunta si sigue)" : "";
+        return `${(INTOLERANCE_RULES[id]?.label ?? id).toLowerCase()}${hasta ? ` hasta ${ddmm(hasta)}${pasada}` : ", sin fecha"}`;
       }),
       ...(m.healthProfiles ?? []).map((p) => (typeof p === "string" ? p : p?.label ?? p?.id)).filter(Boolean),
     ];
