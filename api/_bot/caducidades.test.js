@@ -178,6 +178,20 @@ describe("estados de salud con fecha pasada", () => {
     expect(r[CADUCA.ESTADO_SALUD]).toEqual({ abiertas: 0, cerradas: 0, sinLeer: 1 });
     expect(db.update).not.toHaveBeenCalled();
   });
+
+  it("una casa sin chat no abre nada, pero tampoco cierra lo que ya estaba abierto (#974)", async () => {
+    db.select.mockReset(); db.insert.mockReset(); db.update.mockReset();
+    db.select.mockImplementation(async (tabla, filtro) => {
+      if (tabla === "household_state") return [{ household_id: "h1", members }];
+      if (tabla === "bot_chats") return [];
+      if (tabla === "bot_tareas" && filtro.includes("like")) return [{ id: "t9", household_id: "h1", clave: claveDeEstadoVencido("p1", "pregnancy", "2026-09-30") }];
+      return [];
+    });
+    const r = await barrer({ ahoraMs: Date.parse("2026-11-05T09:00:00Z") });
+    expect(r[CADUCA.ESTADO_SALUD]).toEqual({ abiertas: 0, cerradas: 0, sinLeer: 0 });
+    expect(db.insert).not.toHaveBeenCalled();
+    expect(db.update).not.toHaveBeenCalled();
+  });
 });
 
 describe("la cola sin dueño", () => {
