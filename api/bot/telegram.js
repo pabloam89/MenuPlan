@@ -42,7 +42,7 @@ import { pedidoCompartido } from "../_bot/comoDato.js";
 import { clasificar, vaPorLaRapida, permitidoEn } from "../_bot/router.js";
 import { prediceRapida, ESPERA_MAX_MS } from "../_bot/prediceRapida.js";
 import { esCorreccionRuta, esCorreccionMedida } from "../_bot/senales.js";
-import { SIN_ENRUTADOR, motorFrioDesde, relojDeHerramientas } from "../_bot/medidaTurno.js";
+import { SIN_ENRUTADOR, motorFrioDesde, relojDeHerramientas, sumarUsos } from "../_bot/medidaTurno.js";
 import { viaRapida, eleccionDe, aplicarEleccion, contextoDe, repiteLaPropuesta } from "../_bot/turno.js";
 import { fotosVistas, fotosSinRepetir } from "../_bot/fotosVistas.js";
 import { comidaElegida, quiereApuntar } from "../_bot/plato.js";
@@ -535,6 +535,10 @@ const MODO_ROUTER_GRUPOS = () => (["off", "on"].includes(process.env.BOT_ROUTER_
 const PISTA = () => process.env.BOT_PISTA === "on";
 const RUTA = "bot_route";
 
+// Lo que gastó el enrutador en el turno, para contarlo con lo de Lola (#958).
+// a propósito: sin decisión no hay uso que sumar; el turno sigue igual
+const usoDelEnrutador = (decisionP) => decisionP.then((d) => d?.uso ?? null, () => null);
+
 /** Lo último que dijo Lola en este chat (y su propuesta de opciones, si la hubo). */
 async function ultimaDeLola(chatId) {
   // Pregunta y respuesta comparten created_at: el id desempata (memoria.js).
@@ -576,9 +580,10 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   // sombra, o porque quien escribe eligió inglés) también se apuntan, con sus
   // tiempos y dónde ocurren: antes no dejaban bot_route y eran invisibles al
   // medir, justo los de los grupos con el enrutador apagado (3 oct 2026).
-  const soloLola = async (porQue, desdeMs = Date.now()) => {
+  // `usoExtra`: lo del enrutador si corrió en este turno (en sombra), que cuenta con lo de Lola (#958).
+  const soloLola = async (porQue, desdeMs = Date.now(), usoExtra = null) => {
     const medir = {};
-    await conversar({ base, chatId, householdId, esGrupo, texto, oido, from, desde, responderA, medir });
+    await conversar({ base, chatId, householdId, esGrupo, texto, oido, from, desde, responderA, medir, usoExtra });
     return apuntarRuta(householdId, {
       chat: String(chatId), esGrupo: Boolean(esGrupo), variosAutores: Boolean(variosAutores),
       modo: "lola", rapida: false, sin_enrutador: porQue, ms: Date.now() - desdeMs, ...cola, ...medida(medir, {}, desdeMs),
@@ -681,7 +686,7 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
       texto: String(texto).slice(0, 120), datos: d.datos, chat: String(chatId), esGrupo: Boolean(esGrupo), variosAutores: Boolean(variosAutores),
     }));
     // El turno de verdad (el que ve la persona) lo contesta Lola: se mide aparte.
-    return soloLola(SIN_ENRUTADOR.SOMBRA, t0);
+    return soloLola(SIN_ENRUTADOR.SOMBRA, t0, usoDelEnrutador(decisionP));
   }
 
   // on: Lola arranca ya, con la puerta cerrada.
@@ -699,7 +704,7 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   // a propósito: el aviso es adorno
   const aviso = decisionP.then((d) => (rapida(d) ? null : avisoDelModo(d))).catch(seguirCon("aviso_del_modo", null));
   let lola = null;
-  const arrancarLola = () => (lola ??= conversar({ base, chatId, householdId, esGrupo, texto, oido, from, desde, responderA, puerta, signal: ctrl.signal, medir, pista, aviso }));
+  const arrancarLola = () => (lola ??= conversar({ base, chatId, householdId, esGrupo, texto, oido, from, desde, responderA, puerta, signal: ctrl.signal, medir, pista, aviso, usoExtra: usoDelEnrutador(decisionP) }));
   // #909: si una señal barata ya predice la vía rápida (api/_bot/prediceRapida.js),
   // Lola no arranca hasta saber qué decide el enrutador: si es rápida, ni se
   // llama (la especulativa cancelada costaba ~0,015 $). Si la señal falla, el
@@ -753,7 +758,9 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
       const avisado = Boolean(vivoRapida?.id());
       const primer = avisado ? avisadoMs : Date.now() - t0;
       await lolaCancelada;
-      await contarUso(householdId, d.uso ?? {}).catch(fallaCon("uso"));
+      // Una vez por turno: el enrutador y lo que Lola llegó a gastar antes de
+      // cortarla (o entero, si acabó antes de saberse que no era suyo; #958).
+      await contarUso(householdId, sumarUsos(d.uso, medir.canceladaUso, medir.cancelada ? medir.lola?.uso : null)).catch(fallaCon("uso"));
       return apuntarRuta(householdId, { ...paraEvals, modo: d.modo, confianza: d.confianza, rapida: true, ms: Date.now() - t0, router_ms: d.ms, contexto_ms: contextoMs, ...(avisado ? { aviso: HERRAMIENTA_LENTA_DEL_MODO[d.modo] } : {}), ...medida(medir, d, t0, primer) });
     }
   }
@@ -873,7 +880,7 @@ export const AVISO_ESPERA = "Dame un momento, que lo miro";
 const esperaMs = () => (process.env.BOT_AVISO_LENTO === "off" ? null : Number(process.env.BOT_AVISO_ESPERA_MS) || 3000);
 
 /** Un turno con el agente, venga de un mensaje o de un botón pulsado. */
-async function conversar({ chatId, householdId, texto, from, desde = null, esGrupo, responderA, oido = null, adjunto = null, base = null, puerta = null, signal = null, medir = null, pista = null, aviso = null }) {
+async function conversar({ chatId, householdId, texto, from, desde = null, esGrupo, responderA, oido = null, adjunto = null, base = null, puerta = null, signal = null, medir = null, pista = null, aviso = null, usoExtra = null }) {
   // a propósito: «escribiendo…» es adorno
   await llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(seguirCon("escribiendo"));
   const eco = oido ? `🎙️ «${oido}»\n\n` : "";
@@ -923,7 +930,7 @@ async function conversar({ chatId, householdId, texto, from, desde = null, esGru
     const paraLola = !oido ? texto
       : texto.startsWith("[alta]") ? texto.replace("Mi primer mensaje:", "Mi primer mensaje (nota de voz):")
         : `[nota de voz] ${texto}`;
-    r = await responder({ chatId, householdId, texto: paraLola, autor: esGrupo ? nombreDe(from) : null, esGrupo, desde: desde ?? (from ? [idDePersona(from)].filter(Boolean) : []), adjunto, alEscribir, puerta, signal, pista }).finally(() => { contestado = true; clearTimeout(reloj); });
+    r = await responder({ chatId, householdId, texto: paraLola, autor: esGrupo ? nombreDe(from) : null, esGrupo, desde: desde ?? (from ? [idDePersona(from)].filter(Boolean) : []), adjunto, alEscribir, puerta, signal, pista, usoExtra }).finally(() => { contestado = true; clearTimeout(reloj); });
     if (puerta && !(await puerta)) { if (medir) { medir.cancelada = true; medir.lola = r?.medida ?? null; } return; } // el turno fue de la vía rápida
   } catch (err) {
     // Cancelada porque el turno era de la vía rápida: nada que decir.
