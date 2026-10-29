@@ -27,8 +27,9 @@ describe("un PDF largo no se lee entero (#958: se cobra por página)", () => {
   it("con más de MAX_PAGINAS_PDF páginas: no se lee, y se dice cuántas lee", async () => {
     conDescarga(pdf(240, { comprimido: true }));
     const r = await adjuntoDe(unPdf);
-    expect(r).toEqual({ error: ERROR_ADJUNTO.PAGINAS, paginas: 240 });
+    // Lo que importa: no llega al modelo (sin base64), no se paga.
     expect(r.base64).toBeUndefined();
+    expect(r).toEqual({ error: "paginas", paginas: 240 });
     expect(porQueNoAdjunto(r.error)).toContain(`${MAX_PAGINAS_PDF} páginas`);
   });
 
