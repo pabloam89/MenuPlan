@@ -26,7 +26,7 @@ import { INTOLERANCE_RULES } from "../../src/lib/intolerances.js";
 import { isoDeCasa } from "../../src/lib/dias.js";
 import { CANAL, paraEscribir } from "../../src/lib/vocabularios.js";
 import { avisarFallo } from "./avisar.js";
-import { DURACION_CANDADO_S } from "./turnos.js";
+import { DURACION_CANDADO_S } from "./candado.js";
 
 const MIN = 60000;
 const HORA = 60 * MIN;
