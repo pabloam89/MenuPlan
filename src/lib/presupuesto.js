@@ -29,7 +29,7 @@
 
 import { costeReceta } from "./coste.js";
 import { recetaEnGrupo } from "./ids.js";
-import { leerPresupuesto, positivo } from "./presupuestoCasa.js";
+import { leerPresupuesto, positivo, presupuestoSemanal } from "./presupuestoCasa.js";
 
 export { ESTADOS_PRESUPUESTO, leerPresupuesto, presupuestoSemanal } from "./presupuestoCasa.js";
 
@@ -154,6 +154,25 @@ export function veredicto(presupuesto, est) {
   if (est.huecosSinRaciones > 0) return "incierto";
   const conAlgo = (est.raciones - est.sinPrecio) / est.raciones;
   return est.eurosAlto <= presupuesto && conAlgo >= PARTE_CONOCIDA_MINIMA ? "cabe" : "incierto";
+}
+
+/**
+ * La lista de la compra frente al presupuesto (#958). `estimacion` es la de
+ * priceShoppingList (envases enteros de Mercadona): `total` suma solo las
+ * líneas con precio (`matched` de `count`), así que lo que falta se cuenta
+ * aparte y nunca como 0 €. El presupuesto es por semana: con varias semanas
+ * en la lista, se multiplica.
+ * @returns {{ presupuesto: number|null, total: number, sinPrecio: number, veredicto: "cabe"|"no_cabe"|"incierto"|null }|null}
+ *   null sin estimación; `presupuesto` y `veredicto` null si la casa no tiene.
+ */
+export function listaFrenteAPresupuesto(data, estimacion, semanas = 1) {
+  if (!estimacion) return null;
+  const semanal = presupuestoSemanal(data);
+  const presupuesto = semanal == null ? null : semanal * Math.max(1, semanas);
+  const total = Number(estimacion.total) || 0;
+  const sinPrecio = Math.max(0, (estimacion.count ?? 0) - (estimacion.matched ?? 0));
+  const v = presupuesto == null ? null : total > presupuesto ? "no_cabe" : sinPrecio > 0 ? "incierto" : "cabe";
+  return { presupuesto, total, sinPrecio, veredicto: v };
 }
 
 const fmt = (v) => `${Math.round(v)} €`;
