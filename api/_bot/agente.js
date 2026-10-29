@@ -70,7 +70,7 @@ import { ENUMS as ENUMS_TAREAS } from "../../src/lib/registroTareas.js";
 import { tareasV2 } from "./idempotencia.js";
 import { apuntarSilencio, conRecordatorio, NOTA_RECORDATORIO } from "./silencio.js";
 import { usoParcialDe } from "./medidaTurno.js";
-import { esResultado, paraElModelo, conRecibo, recibo, cuentaComoGuardado, diceQueGuardo, tipoDePromesa } from "./resultado.js";
+import { esResultado, paraElModelo, conRecibo, recibo, cuentaComoGuardado } from "./resultado.js";
 import { operacion, claveDeEscritura, tipoDeHerramienta, YA_ESCRITA } from "./operacion.js";
 import { primeraVez, yaVista } from "./entradas.js";
 
@@ -279,7 +279,7 @@ export async function herramientas(chat) {
         // fija. El recibo que ve la familia sale de aquí, no del texto de Lola,
         // y un resultado sin nada hecho no cuenta como guardado.
         if (cuentaComoGuardado(escribio, r)) chat.guardados = (chat.guardados ?? 0) + 1;
-        if (esResultado(r)) chat.resultados?.push(r);
+        if (esResultado(r)) (chat.resultados ??= []).push(r);
         if (op && escribio) {
           if (clave) await primeraVez(CANAL.TELEGRAM, clave);
           // Escribió sin pasar por la casa (despensa, tareas…): se apunta de
@@ -1234,11 +1234,7 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
     // leyó la primera llamada que sí acabó, que es casi lo mismo.
     if (medidaPista?.reinicio && r.primera) medidaPista.cortada_tokens = (r.primera.input_tokens ?? 0) + (r.primera.cache_read_input_tokens ?? 0) + (r.primera.cache_creation_input_tokens ?? 0);
     // La medida del turno de Lola, para bot_route (api/bot/telegram.js).
-    medida = { modelo: r.modelo, planB: r.planB, vueltas: r.vueltas, primera: r.primera, llamadas: r.llamadas ?? null, uso, herramientas: r.herramientas, corregido: !!corregido, ms: Date.now() - tLola, pista: medidaPista, aviso: r.avisos?.[0] ?? null,
-      // #958: lo que de verdad se guardó en el turno, para medir lo dicho
-      // contra lo hecho (scripts/bot-dice-sin-hacer.mjs): cuántas herramientas
-      // guardaron y, por cada resultado, [acción, hechas, sin hacer].
-      guardados: chat.guardados ?? 0, recibo: chat.resultados.map((x) => [x.accion, x.hecho.length, x.sinHacer.length]) };
+    medida = { modelo: r.modelo, planB: r.planB, vueltas: r.vueltas, primera: r.primera, llamadas: r.llamadas ?? null, uso, herramientas: r.herramientas, corregido: !!corregido, ms: Date.now() - tLola, pista: medidaPista, aviso: r.avisos?.[0] ?? null };
   } catch (err) {
     // Ya había cambiado algo en la casa cuando el modelo se cayó: repetir el
     // turno lo haría dos veces. Se dice que está hecho y dónde verlo.
@@ -1329,9 +1325,44 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
  * @param {{ estable: string, delDia: string } | null} [ficha]  la ficha de la
  *   casa (api/_bot/ficha.js); las pruebas pueden pasar una de mentira.
  */
-// El vigilante de «dice que lo guardó» vive en resultado.js (#958), con el
-// recibo: es la misma pregunta, ¿coincide lo dicho con lo hecho?
-export { diceQueGuardo, tipoDePromesa };
+// Lola a veces dice «✅ Apuntado» sin haber llamado a nada que guarde (1 de
+// cada 3 con «a partir de ahora nada de coliflor»). Las reglas lo frenan casi
+// siempre, pero no del todo: si lo dice y en el turno no hubo ninguna
+// escritura, se le avisa y repite la vuelta una vez.
+// ✅ solo al empezar una línea, que es como confirma Lola («✅ Apuntado…»).
+// Como viñeta («• ✅ Cambiar un plato», al contar lo que sabe hacer) no es
+// decir que guardó: «hola, ¿qué sabes hacer?» pasaba por el aviso y una
+// segunda llamada al modelo (staging, 2 oct 2026: 8,2 s para un saludo).
+const DICE_QUE_GUARDO = /(^|\n)\s*✅|\bapuntad[oa]s?\b|\blo he (apuntado|puesto|cambiado|guardado|quitado|añadido|anotado|arreglado|solucionado|corregido|dejado|actualizado)\b|(^|[.!¡]\s*)hecho\b/i;
+// «Ya está arreglado» sin haber tocado nada (#911: ante la queja de que un
+// arroz con tomate llevaba ensalada de lentejas de segundo, Lola solo propuso
+// tres primeros y empezó con «Ya está arreglado»). Es la misma mentira que
+// «✅ Apuntado»: se corrige con el mismo aviso y la misma vuelta. Solo lo que
+// describe esa queja: «hecho» y «listo» sueltos no, que también son cocina
+// («el arroz ya está listo») y lectura («el menú ya está hecho»). Con
+// «cuando…», «si…» o «en cuanto…» delante, «queda cambiado» es futuro.
+const DICE_QUE_ARREGLO = /\bya est[aá] (arreglad|cambiad|solucionad|corregid)[oa]\b|(?<!\b(?:cuando|si|en cuanto)\b[^.!?\n]*)\bqueda (arreglad|cambiad|solucionad|corregid)[oa]\b|\bya lo (cambi[eé]|arregl[eé]|corregí)(?![a-záéíóúñ])/i;
+// «No tenéis ninguna alergia apuntada» es leer lo que hay, no decir que guardó:
+// saltaba el aviso y costaba otra vuelta de ~3 s en cada consulta (#229). Se
+// quita el «apuntad…» que va detrás de una negación en la misma frase, salvo
+// que sea «he apuntado» y el «no» no vaya con él («No olvides que te he
+// apuntado leche» sí dice que guardó; «No te he apuntado nada», no). Igual con
+// «Nada está cambiado aún» (lo que dice proponer_platos): es leer, no arreglar.
+const APUNTADO_NEGADO = /\b(no|ningun[oa]?|nada|nadie)\b[^.,;:!?\n]{0,40}?\b(apuntad|arreglad|cambiad|solucionad|corregid|hech|dejad|actualizad)[oa]s?\b/gi;
+const HE_APUNTADO = /\b(he|hemos|ha|han|has|habeis|habéis)\s+(apuntad|arreglad|cambiad|solucionad|corregid|hech|dejad|actualizad)/i;
+const NO_HE_APUNTADO = /^no\s+(\S+\s+)?(he|hemos|ha|han|has|habeis|habéis)\s+(apuntad|arreglad|cambiad|solucionad|corregid|hech|dejad|actualizad)/i;
+const sinNegados = (texto) => texto.replace(APUNTADO_NEGADO, (m) => (HE_APUNTADO.test(m) && !NO_HE_APUNTADO.test(m) ? m : ""));
+// Una pregunta («¿Ya está arreglado?», «¿Quieres que lo deje hecho?») no afirma nada.
+const sinPreguntas = (texto) => texto.replace(/¿[^?]*\?/g, "");
+/** De qué es la promesa sin hecho (bot_claimed_unsaved.tipo): «guardado» (apuntado, ✅…) o «arreglado» (#911). */
+export const tipoDePromesa = (texto) => {
+  const t = sinNegados(sinPreguntas(String(texto ?? "")));
+  return DICE_QUE_GUARDO.test(t) ? "guardado" : DICE_QUE_ARREGLO.test(t) ? "arreglado" : null;
+};
+export const diceQueGuardo = (texto) => {
+  const t = sinNegados(sinPreguntas(String(texto ?? "")));
+  return DICE_QUE_GUARDO.test(t) || DICE_QUE_ARREGLO.test(t);
+};
 // Las herramientas que tardan (BOT_AVISO_LENTO, on | off; por defecto on):
 // mientras corren, la persona ve al momento una frase de Lola en el mensaje
 // que se va escribiendo, y lo que Lola escriba después la sustituye en ese
