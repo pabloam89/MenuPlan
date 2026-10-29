@@ -43,6 +43,14 @@ describe("la ficha de la casa", () => {
     expect(f.delDia).not.toMatch(/PENDIENTE/);
   });
 
+  it("el presupuesto se lee como en el motor: «mucho» no es una cifra y se dice (#958)", () => {
+    const con = (budget, hasBudget = true) => montarFicha(casaDe({ members: MIEMBROS, hasBudget, budget }), {}, "2026-10-01").estable;
+    expect(con(80)).toMatch(/- Presupuesto: 80 €\/semana\./);
+    expect(con("mucho")).toMatch(/- Presupuesto: activado, pero sin cifra/);
+    expect(con("mucho")).not.toMatch(/mucho €/);
+    expect(con(80, false)).not.toMatch(/Presupuesto/);
+  });
+
   it("no inventa edades: quien no la tiene sale sin número", () => {
     const f = montarFicha(casaDe({ members: [{ id: "a", name: "Ana", age: null }, { id: "b", name: "Bea", age: 40 }] }), {}, "2026-10-01");
     expect(f.estable).toMatch(/- Ana · Bea 40\./);

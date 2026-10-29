@@ -38,6 +38,7 @@ import { DIAS, DIA_LARGO_MINUSCULAS, DIA_LETRA, diaDeISO, isoDeCasa } from "../.
 import { select, eq } from "./db.js";
 import { propiasDe } from "./propias.js";
 import { alergiasPorSilencio } from "../../src/lib/alergiasBase.js";
+import { leerPresupuesto } from "../../src/lib/presupuestoCasa.js";
 import { botonRehacer } from "./semanaPedida.js";
 import { estadoDelMenu, lineaEstadoMenu } from "./estadoMenu.js";
 
@@ -339,7 +340,11 @@ function cocinaBloque(data, hoy) {
   const fijos = (data.fixedDishes ?? []).map((f) => f?.name ?? f?.nombre ?? f?.recipeName).filter(Boolean);
   if (fijos.length) lineas.push(`- Fijos: ${fijos.slice(0, 4).join(", ")}.`);
   if (data.supermarkets?.length) lineas.push(`- Súper: ${data.supermarkets.join(", ")}.`);
-  if (data.hasBudget && data.budget) lineas.push(`- Presupuesto: ${data.budget} €/semana.`);
+  // Leído como lo lee el motor (src/lib/presupuestoCasa.js, #958): «mucho» no
+  // es una cifra, y el interruptor puesto sin cifra se dice.
+  const presupuesto = leerPresupuesto(data);
+  if (presupuesto.estado === "activo") lineas.push(`- Presupuesto: ${presupuesto.euros} €/semana.`);
+  if (presupuesto.estado === "sin_cifra") lineas.push("- Presupuesto: activado, pero sin cifra (pregúntala).");
   return lineas;
 }
 
