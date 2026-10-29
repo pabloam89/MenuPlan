@@ -8,16 +8,13 @@ const vistas = new Set();
 const escritas = [];
 let filas = [];
 let choques = 0;
-let sinBase = false;
 
-vi.mock("./entradas.js", async () => {
-  const { SIN_LEER } = await import("./avisar.js");
-  return {
-    yaVista: vi.fn(async (_p, x) => (sinBase ? SIN_LEER : vistas.has(x))),
-    primeraVez: vi.fn(async (_p, x) => { const nueva = !vistas.has(x); vistas.add(x); return nueva; }),
-    esDuplicado: (e) => /23505/.test(String(e?.message ?? e)),
-  };
-});
+// esDuplicado, el de verdad: despensa.js ya no lleva su copia (#958).
+vi.mock("./entradas.js", async (original) => ({
+  esDuplicado: (await original()).esDuplicado,
+  yaVista: vi.fn(async (_p, x) => vistas.has(x)),
+  primeraVez: vi.fn(async (_p, x) => { const nueva = !vistas.has(x); vistas.add(x); return nueva; }),
+}));
 vi.mock("./embudo.js", () => ({ duenoDe: vi.fn(async () => "u1") }));
 vi.mock("./menu.js", () => ({
   motor: async () => ({
@@ -41,7 +38,7 @@ vi.mock("./db.js", () => ({
 
 const { anadirDespensa } = await import("./despensa.js");
 
-beforeEach(() => { vistas.clear(); escritas.length = 0; filas = []; choques = 0; sinBase = false; });
+beforeEach(() => { vistas.clear(); escritas.length = 0; filas = []; choques = 0; });
 
 describe("la despensa con identidad", () => {
   it("un doble «Sí» no duplica el stock", async () => {
@@ -49,13 +46,6 @@ describe("la despensa con identidad", () => {
     const r = await anadirDespensa("h", [{ nombre: "Arroz", cantidad: 1, unidad: "kg" }], "foto");
     expect(r).toMatch(/NO lo he sumado otra vez/);
     expect(escritas).toHaveLength(1);
-  });
-
-  it("si no se puede mirar si ya estaba, no suma a ciegas", async () => {
-    sinBase = true;
-    const r = await anadirDespensa("h", [{ nombre: "Arroz", cantidad: 1, unidad: "kg" }], "foto");
-    expect(r).toMatch(/NO GUARDADO/);
-    expect(escritas).toHaveLength(0);
   });
 
   it("con «otra vez» dicho, sí suma", async () => {

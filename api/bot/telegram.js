@@ -114,9 +114,6 @@ export default async function handler(req, res) {
       else if (upd.message) await atender(upd.message, base, host);
     } catch (err) {
       console.error("[bot/telegram]", err?.message);
-      // Falló después de escribir y ya se dijo (conAutor): pedir que lo
-      // escriban otra vez lo haría dos veces (#958).
-      if (err?.avisado) return;
       // a propósito: si ni el aviso sale, ya no hay más que hacer
       await enviar(chatId, "Uy, algo ha fallado. Escríbemelo otra vez en un momento, porfa.").catch(seguirCon("bot_telegram_aviso"));
     }
@@ -455,17 +452,15 @@ export const FALLO_TRAS_ESCRIBIR = "Uy, algo ha fallado a medias: parte de lo qu
  * escribir algo (la entrega, la vía rápida…), no se pide «escríbemelo otra
  * vez»: se dice que hay algo guardado.
  */
-export async function conAutor({ chatId, from, mid = null, reintento = false, responderA }, fn) {
+async function conAutor({ chatId, from, mid = null, reintento = false, responderA }, fn) {
   return conOperacion({ chat: chatId, persona: from?.id ?? null, mid, reintento }, async () => {
     try {
       return await fn();
     } catch (err) {
       if (!(operacion()?.escrituras > 0)) throw err;
+      console.error("[bot/telegram] falló tras escribir", err?.message);
       // a propósito: si ni el aviso sale, ya no hay más que hacer
       await enviar(chatId, FALLO_TRAS_ESCRIBIR, { responderA }).catch(seguirCon("fallo_tras_escribir"));
-      // El error sigue hacia arriba (no se traga): el webhook lo apunta, y
-      // `avisado` le dice que la persona ya tiene su aviso y no pida repetir.
-      throw Object.assign(err, { avisado: true });
     }
   });
 }

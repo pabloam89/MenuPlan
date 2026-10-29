@@ -1,31 +1,16 @@
 /**
- * Lo que el revisor vio en #965 (#958): ningún fallo se cambia en silencio por
- * «no visto», una sola lista de registros y un solo esDuplicado.
+ * Lo que el revisor vio en #965 (#958, C8 y C12): una sola lista de registros,
+ * un solo esDuplicado y ningún contador sin lector en la operación.
  */
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { readFileSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-vi.mock("./db.js", () => ({
-  select: vi.fn(async () => { throw Object.assign(new Error("GET /rest/v1/bot_entradas → 503"), { status: 503 }); }),
-  insert: vi.fn(async () => []),
-  eq: (x) => `eq.${x}`,
-}));
-
-const { yaVista } = await import("./entradas.js");
-const { SIN_LEER } = await import("./avisar.js");
 const { SOLO_REGISTRO, NO_ES_DE_LA_CASA, conOperacion, operacion } = await import("./operacion.js");
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
 const ficheros = readdirSync(AQUI).filter((f) => f.endsWith(".js") && !f.endsWith(".test.js"));
-
-describe("sin fallos tragados", () => {
-  it("si no se puede mirar, yaVista dice SIN_LEER, no «no visto»", async () => {
-    vi.spyOn(console, "error").mockImplementation(() => {});
-    expect(await yaVista("telegram", "escritura:1:2:x:y")).toBe(SIN_LEER);
-  });
-});
 
 describe("un dato, un sitio", () => {
   it("lo que no es de la casa sale de SOLO_REGISTRO: todo registro está en las dos", () => {

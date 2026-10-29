@@ -21,7 +21,7 @@
  * hace falta otra tabla ni volver a llamar al modelo al confirmar.
  */
 
-import { seguirCon, fallaCon, SIN_LEER } from "./avisar.js";
+import { seguirCon, fallaCon } from "./avisar.js";
 import { select, insert, eq, config } from "./db.js";
 import { cargarCasa, conCasa } from "./casa.js";
 import { motor, normal, prepararRecetas } from "./menu.js";
@@ -341,16 +341,13 @@ export async function guardarRecetaPropia(householdId, receta) {
   const m = await motor();
   const lista = { ...receta, owner: receta.owner ?? { id: dueno }, source: "user" };
   // ¿Es nueva? Solo una nueva se borra al deshacer: una que ya estaba y se ha
-  // sobrescrito no se puede devolver a como era desde aquí.
-  const previa = lista.id
-    ? await select("user_recipes", `id=${eq(lista.id)}&owner_id=${eq(dueno)}`, "id").catch(fallaCon("receta_ya_estaba", SIN_LEER))
-    : [{ id: null }];
+  // sobrescrito no se puede devolver a como era desde aquí. Si no se sabe,
+  // como si estuviera: mejor no borrar de más.
+  const yaEstaba = !lista.id || (await select("user_recipes", `id=${eq(lista.id)}&owner_id=${eq(dueno)}`, "id").catch(fallaCon("receta_ya_estaba", [{ id: lista.id }]))).length > 0;
   await insert("user_recipes", [m.recipeToRow(lista, dueno)], { upsert: true });
   // Deshacer el cambio de la casa que viene ahora quita también esta fila:
-  // antes la receta seguía en la app tras «Deshecho» (#958). Si no se pudo
-  // mirar si era nueva, no se borra a ciegas: deshacer avisa de que sigue.
-  if (previa === SIN_LEER) deshacerTambien({ tipo: TIPO_OPERACION.RECETA, id: lista.id, dueno, sinSaber: true });
-  else if (!previa.length) deshacerTambien({ tipo: TIPO_OPERACION.RECETA, id: lista.id, dueno });
+  // antes la receta seguía en la app tras «Deshecho» (#958).
+  if (!yaEstaba) deshacerTambien({ tipo: TIPO_OPERACION.RECETA, id: lista.id, dueno });
   const r = await conCasa(householdId, (casa) => {
     const data = casa.state?.data ?? {};
     const otras = (data.userRecipes ?? []).filter((x) => x.id !== lista.id);

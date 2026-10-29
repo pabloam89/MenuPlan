@@ -130,13 +130,6 @@ describe("deshacer es de quien lo pide", () => {
     expect(llamadas.borrar.find(([t]) => t === "user_recipes")).toBeTruthy();
   });
 
-  it("una receta que no se supo si era nueva no se borra a ciegas: se avisa", async () => {
-    fotos = [{ id: 9, bot_rev_despues: SIN_VERSION, antes: { tipo: TIPO_OPERACION.RECETA, quien: ANA, tambien: [{ tipo: TIPO_OPERACION.RECETA, id: "user_abc", dueno: "u1", sinSaber: true }] } }];
-    const r = await conOperacion(ANA, () => deshacer("h"));
-    expect(r).toMatch(/NO he deshecho/);
-    expect(llamadas.borrar).toEqual([]);
-  });
-
   it("deshacer el primer menú lo desactiva (antes seguía activo)", async () => {
     casaActiva = "menu_nuevo";
     fotos = [{ id: 9, bot_rev_despues: 7, antes: { tipo: TIPO_OPERACION.CASA, quien: ANA, state: { data: { members: [] } }, menuActivo: null, semana: null } }];

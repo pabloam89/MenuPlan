@@ -13,7 +13,6 @@
  */
 
 import { AsyncLocalStorage } from "node:async_hooks";
-import { fallaCon } from "./avisar.js";
 import { select, insert, update, rpc, eq } from "./db.js";
 import { operacion, quienEscribe, TIPO_OPERACION, QUE_FUE } from "./operacion.js";
 import { recetasPropiasDeCasa, quitarRecetaGuardada } from "./propias.js";
@@ -242,10 +241,13 @@ export function filtroDeQuien(quien) {
 async function deshacerPasos(pasos = []) {
   const fallidos = [];
   for (const p of pasos) {
-    // Una receta que no se supo si era nueva (sinSaber) no se borra a ciegas.
-    const quitable = p.tipo === TIPO_OPERACION.RECETA && p.id && p.dueno && !p.sinSaber;
-    const hecho = quitable && (await quitarRecetaGuardada(p.id, p.dueno).then(() => true).catch(fallaCon("deshacer_paso", false)));
-    if (!hecho) fallidos.push(p.tipo);
+    try {
+      if (p.tipo === TIPO_OPERACION.RECETA && p.id && p.dueno) await quitarRecetaGuardada(p.id, p.dueno);
+      else fallidos.push(p.tipo);
+    } catch (e) {
+      console.error("[casa] deshacer paso", p.tipo, e?.message);
+      fallidos.push(p.tipo);
+    }
   }
   return fallidos;
 }
@@ -314,9 +316,12 @@ export async function deshacer(householdId, { freno = null, quien = quienEscribe
   // (0069 solo activa), así que va justo después; si falla, se dice.
   const primerMenu = !antes.menuActivo && casa.menu?.id;
   if (primerMenu) {
-    const quitado = await update("user_menus", `household_id=${eq(householdId)}&id=${eq(casa.menu.id)}`, { is_active: false })
-      .then(() => true).catch(fallaCon("deshacer_primer_menu", false));
-    if (!quitado) return "He deshecho la casa, pero el menú nuevo sigue activo en la app: no he podido quitarlo. Bórralo desde Menús en la app.";
+    try {
+      await update("user_menus", `household_id=${eq(householdId)}&id=${eq(casa.menu.id)}`, { is_active: false });
+    } catch (e) {
+      console.error("[casa] deshacer: desactivar el primer menú", e?.message);
+      return "He deshecho la casa, pero el menú nuevo sigue activo en la app: no he podido quitarlo. Bórralo desde Menús en la app.";
+    }
     return `Deshecho: el menú nuevo ya no está activo (queda en el historial de la app).${aviso}`;
   }
   return (antes.menuActivo && antes.menuActivo !== casa.menu?.id
