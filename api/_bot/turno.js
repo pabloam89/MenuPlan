@@ -202,9 +202,11 @@ export async function generar(householdId, x) {
   const sinSitio = (out.pedidos ?? []).filter((l) => /no ha cabido/.test(l));
   const pedidos = sinSitio.length ? `\n\n${sinSitio.map((l) => `• ${esc(aPersona(l))}`).join("\n")}` : "";
   const destacados = (out.colocados ?? []).length ? " Lo que pediste va marcado con ✨." : "";
+  // Con presupuesto, si cabe o no, siempre (src/lib/presupuesto.js, #958).
+  const presupuesto = out.presupuesto ? `\n\n💶 ${esc(out.presupuesto)}` : "";
   return {
     // El primer menú con alergias por silencio lo recuerda una vez (#229).
-    texto: conRecordatorio(`🎉 <b>¡Menú listo!</b> Del <b>${rangoDeFechas(out.desde, out.hasta)}</b>.${destacados}${pedidos}`, out.recordarSilencio),
+    texto: conRecordatorio(`🎉 <b>¡Menú listo!</b> Del <b>${rangoDeFechas(out.desde, out.hasta)}</b>.${destacados}${pedidos}${presupuesto}`, out.recordarSilencio),
     fotos: [], deshacible: false, ir: "semana",
     pintar: filtrosTrasGenerar(out),
   };
