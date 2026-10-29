@@ -1297,7 +1297,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    ],
    "additionalProperties": false
   },
-  "description": "Alguien de fuera viene a comer o cenar un día concreto (se suma a las raciones y a la compra de esa semana, y caduca solo)."
+  "description": "Alguien de fuera viene a comer o cenar un día concreto. Cuenta al generar el menú de esa semana (raciones y compra) y caduca solo; si esa semana ya tiene menú, no lo cambia: dilo y ofrece rehacer ese día."
  },
  {
   "type": "custom",
@@ -2190,14 +2190,18 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    "properties": {
     "confirmado": {
      "type": "boolean"
+    },
+    "nombre": {
+     "type": "string"
     }
    },
    "required": [
-    "confirmado"
+    "confirmado",
+    "nombre"
    ],
    "additionalProperties": false
   },
-  "description": "Guarda la última receta preparada con preparar_receta en esta charla (la herramienta la tiene apartada: no hace falta volver a pedir ningún dato), en el recetario de la casa, y el motor ya puede ponerla en menús. Llámala en cuanto digan «Guardar» o «sí» al resumen, con confirmado = true."
+  "description": "Guarda la última receta preparada con preparar_receta en esta charla (la herramienta la tiene apartada: no hace falta volver a pedir ningún dato), en el recetario de la casa, y el motor ya puede ponerla en menús. Llámala en cuanto digan «Guardar» o «sí» al resumen, con confirmado = true y el nombre de la receta que han aprobado (si no es la última preparada, no se guarda)."
  }
 ]"
 `;

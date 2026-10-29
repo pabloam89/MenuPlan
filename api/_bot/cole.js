@@ -13,7 +13,7 @@
 import { conData, personaPorNombre, noEncuentro } from "./ajustes.js";
 import { cargarCasa } from "./casa.js";
 import { motor } from "./menu.js";
-import { diaDeSemana, grupoDePersonas, normal } from "./interprete.js";
+import { diaDeSemana, grupoDePersonas, seVeEn } from "./interprete.js";
 import { DIA_LARGO_MINUSCULAS, DIAS_LABORABLES } from "../../src/lib/dias.js";
 import { resultado } from "./resultado.js";
 
@@ -24,16 +24,6 @@ const PLATO = { primero: "Primero", segundo: "Segundo", postre: "Postre" };
 export const DIAS_MINIMOS_COLE = 3;
 // Las semanas que caben de una vez; el esquema de guardar_menu_cole (agente.js) lo importa.
 export const MAX_SEMANAS_COLE = 6;
-
-// ¿Está el plato a la vista? La mitad o más de sus palabras de 4 letras o más
-// (las cortas son «con», «de», «al»), en el texto; con o sin la -s del plural.
-const palabras = (s) => normal(s).split(/[^a-z0-9]+/).filter((w) => w.length >= 4);
-function seVe(plato, fuente) {
-  const ws = palabras(plato);
-  if (!ws.length) return true;
-  const hay = new Set(palabras(fuente));
-  return ws.filter((w) => hay.has(w) || hay.has(w.replace(/s$/, "")) || hay.has(`${w}s`)).length * 2 >= ws.length;
-}
 
 /**
  * Lo que se puede guardar del menú del cole y lo que no. Lo leído de un PDF o
@@ -57,7 +47,7 @@ function semanasDelCole(semanas, { adjunto = null, texto = "", anterior = "" } =
         if (!platos || platos.sinClase) continue;
         const limpio = { ...platos };
         for (const k of Object.keys(PLATO)) {
-          if (platos[k] && !seVe(platos[k], fuente)) {
+          if (platos[k] && !seVeEn(platos[k], fuente)) {
             sinHacer.push({ que: `${platos[k]}${n}`, motivo: "no está en lo que me han mandado ni en el resumen: el PDF o la foto solo se lee en el mensaje en que llega" });
             delete limpio[k];
           }
