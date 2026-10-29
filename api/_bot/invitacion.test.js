@@ -11,7 +11,8 @@ vi.mock("./db.js", () => ({
     if (tabla === "bot_identities") return (base.bot_identities ?? []).filter((i) => i.external_id === v("external_id"));
     if (tabla === "bot_chats") return (base.bot_chats ?? []).filter((c) => c.chat_id === v("chat_id"));
     if (tabla === "user_profiles") return (base.user_profiles ?? []).filter((p) => p.user_id === v("user_id"));
-    if (tabla === "households") return [{ name: "Casa Artiñano" }];
+    if (tabla === "household_invites") return (base.household_invites ?? []).filter((i) => i.token === v("token"));
+    if (tabla === "households") return filtro.startsWith("invite_token") ? [] : [{ name: "Casa Artiñano" }];
     return [];
   }),
 }));
@@ -23,7 +24,10 @@ const { unirsePorInvitacion, ES_INVITACION } = await import("./invitacion.js");
 const TOKEN = "0123456789abcdef0123456789abcdef";
 
 beforeEach(() => {
-  base = { bot_identities: [{ external_id: "10", user_id: "pareja" }], bot_chats: [], user_profiles: [] };
+  base = {
+    bot_identities: [{ external_id: "10", user_id: "pareja" }], bot_chats: [], user_profiles: [],
+    household_invites: [{ token: TOKEN, household_id: "casa", uses: 0, max_uses: 1, expires_at: new Date(Date.now() + 86400000).toISOString(), revoked_at: null }],
+  };
   creadas = [];
   rpcR = (f, { p_user_id }) => ({ householdId: "casa", role: "viewer", lang: null, user: p_user_id });
 });
@@ -88,6 +92,43 @@ describe("entrar con una invitación desde Telegram", () => {
   it("un bot o un admin anónimo no entra", async () => {
     const r = await unirsePorInvitacion({ from: { id: 1087968824, is_bot: true }, chatId: "g", token: TOKEN });
     expect(r.householdId).toBe(null);
+    expect(creadas).toEqual([]);
+  });
+});
+
+describe("lo que se mira ANTES de crear o gastar nada (#958)", () => {
+  it("una invitación inventada no crea ninguna cuenta (antes quedaba un usuario de auth huérfano)", async () => {
+    const llamadas = [];
+    rpcR = (f) => { llamadas.push(f); return null; };
+    const r = await unirsePorInvitacion({ from: { id: 77 }, chatId: "77", token: "f".repeat(32) });
+    expect(r.texto).toMatch(/ya no vale/);
+    expect(creadas).toEqual([]);
+    expect(llamadas).toEqual([]);
+  });
+
+  it("caducada en household_invites: tampoco crea nada", async () => {
+    base.household_invites[0].expires_at = new Date(Date.now() - 1000).toISOString();
+    const r = await unirsePorInvitacion({ from: { id: 77 }, chatId: "77", token: TOKEN });
+    expect(r.texto).toMatch(/ya no vale/);
+    expect(creadas).toEqual([]);
+  });
+
+  it("con su chat enlazado a otra casa por otra cuenta: no entra ni gasta la invitación (antes entraba y el chat no se enlazaba)", async () => {
+    base.bot_chats = [{ chat_id: "10", household_id: "otra", linked_by: "otro" }];
+    const llamadas = [];
+    rpcR = (f) => { llamadas.push(f); return { householdId: "casa", role: "viewer" }; };
+    const r = await unirsePorInvitacion({ from: { id: 10 }, chatId: "10", token: TOKEN });
+    expect(r.texto).toMatch(/ya está conectado a otra casa/);
+    expect(llamadas).toEqual([]);
+  });
+
+  it("un privado enlazado antes de las identidades entra con esa cuenta, no con una nueva", async () => {
+    base.bot_identities = [];
+    base.bot_chats = [{ chat_id: "55", household_id: "suya", linked_by: "vieja" }];
+    let quien = null;
+    rpcR = (f, { p_user_id }) => { quien = p_user_id; return { householdId: "casa", role: "viewer" }; };
+    await unirsePorInvitacion({ from: { id: 55 }, chatId: "55", token: TOKEN });
+    expect(quien).toBe("vieja");
     expect(creadas).toEqual([]);
   });
 });
