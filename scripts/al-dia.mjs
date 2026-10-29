@@ -19,6 +19,8 @@
 
 import { pathToFileURL } from "node:url";
 
+import { cliente } from "./dependabot-auto.mjs";
+
 export const BASE = "staging";
 
 // Vocabulario cerrado: lo que hace con cada PR y por qué (una línea por PR).
@@ -101,40 +103,9 @@ export async function pasada({ api, paginas, repo, si, log = console.log, avisar
   return { fallos, lineas };
 }
 
-// --- Red ------------------------------------------------------------------
-
-function cliente(token, repo) {
-  const base = `https://api.github.com/repos/${repo}`;
-  async function api(ruta, { method = "GET", body } = {}) {
-    const res = await fetch(`${base}${ruta}`, {
-      method,
-      headers: {
-        authorization: `Bearer ${token}`,
-        accept: "application/vnd.github+json",
-        "x-github-api-version": "2022-11-28",
-        ...(body ? { "content-type": "application/json" } : {}),
-      },
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    const texto = await res.text();
-    if (!res.ok) {
-      const err = new Error(`${method} ${ruta}: ${res.status} ${texto.slice(0, 300)}`);
-      err.status = res.status;
-      throw err;
-    }
-    return texto ? JSON.parse(texto) : null;
-  }
-  async function paginas(ruta) {
-    const todo = [];
-    for (let p = 1; p <= 30; p++) {
-      const r = await api(`${ruta}${ruta.includes("?") ? "&" : "?"}per_page=100&page=${p}`);
-      todo.push(...r);
-      if (r.length < 100) break;
-    }
-    return todo;
-  }
-  return { api, paginas };
-}
+// --- Red ---
+// El cliente de la API es el de scripts/dependabot-auto.mjs (una sola copia): mismas cabeceras,
+// mismo tope de páginas. El workflow saca los dos ficheros de staging.
 
 async function main() {
   const token = process.env.APP_TOKEN;

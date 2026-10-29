@@ -202,13 +202,17 @@ describe("al-dia.yml: no abre la puerta", () => {
     expect(sinComentarios).toMatch(/^ {4}environment: dependabot-auto$/m);
     expect(sinComentarios).toMatch(/^ {4}concurrency:\n {6}group: al-dia\n {6}cancel-in-progress: false/m);
   });
-  it("cada acción fijada por SHA y el checkout es de staging, sin credenciales y solo del script", () => {
+  it("cada acción fijada por SHA y el checkout es de staging, sin credenciales y solo de los dos scripts", () => {
     const usos = [...sinComentarios.matchAll(/uses:\s*(\S+)/g)].map((m) => m[1]);
     expect(usos).toHaveLength(2);
     for (const u of usos) expect(u).toMatch(/@[0-9a-f]{40}$/);
     expect(sinComentarios).toMatch(/ref: staging\n/);
     expect(sinComentarios).toMatch(/persist-credentials: false/);
-    expect(sinComentarios).toMatch(/sparse-checkout: scripts\/al-dia\.mjs\n/);
+    expect(sinComentarios).toMatch(/sparse-checkout: \|\n\s+scripts\/al-dia\.mjs\n\s+scripts\/dependabot-auto\.mjs\n\s+sparse-checkout-cone-mode: false/);
+    // y el script usa el cliente de la API de dependabot-auto, sin una segunda copia
+    const fuente = readFileSync(new URL("./al-dia.mjs", import.meta.url), "utf8");
+    expect(fuente).toMatch(/import \{ cliente \} from "\.\/dependabot-auto\.mjs";/);
+    expect(fuente).not.toMatch(/\bfetch\(/);
     expect(sinComentarios).not.toMatch(/github\.event\.(head_commit|pull_request)|github\.head_ref|refs\/pull/);
   });
 });

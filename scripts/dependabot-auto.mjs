@@ -304,7 +304,7 @@ export function linea({ pr, decision, motivo, tipo, ruta }) {
 
 // --- Red ------------------------------------------------------------------
 
-function cliente(token, repo) {
+export function cliente(token, repo) {
   const base = `https://api.github.com/repos/${repo}`;
   async function api(ruta, { method = "GET", body } = {}) {
     const res = await fetch(ruta.startsWith("http") ? ruta : `${base}${ruta}`, {

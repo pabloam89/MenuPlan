@@ -10,7 +10,8 @@
 # Seguridad:
 # - El disparador es `push` a staging: corre el workflow que ya está en staging,
 #   nunca el de un PR. Nada del PR se ejecuta: el script solo lo lee por la API.
-# - Saca de staging un solo fichero, scripts/al-dia.mjs, sin credenciales.
+# - Saca de staging dos ficheros, scripts/al-dia.mjs y scripts/dependabot-auto.mjs (del que importa el
+#   cliente de la API), sin credenciales.
 # - La clave de la App (environment dependabot-auto, solo staging) entra solo en
 #   el paso que saca el token, que dura una hora y no sale de este job.
 # - Ningún `secrets: inherit`; acciones fijadas por SHA; permisos mínimos.
@@ -35,12 +36,14 @@ jobs:
     permissions:
       contents: read # solo para sacar el script
     steps:
-      - name: Sacar el script de staging
+      - name: Sacar los scripts de staging
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: staging
           persist-credentials: false
-          sparse-checkout: scripts/al-dia.mjs
+          sparse-checkout: |
+            scripts/al-dia.mjs
+            scripts/dependabot-auto.mjs
           sparse-checkout-cone-mode: false
       - name: Token de la App
         id: app
