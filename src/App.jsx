@@ -71,6 +71,7 @@ import { FeedScreen } from "./screens/FeedScreen.jsx";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
 import { clearPreparedFromSlot } from "./lib/freezer.js";
 import { normalizeIngredientKey } from "./lib/ingredientCategories.js";
+import { conMarcas } from "./lib/compraIdentidad.js";
 import { getDayMeals, getMeals, ALL_DAY_MEALS, DAYS } from "./lib/planner.js";
 import {
   groupsFromModel,
@@ -103,6 +104,7 @@ import {
   toggleMenuFavorite,
   saveActivePlanAsFavorite,
   semanaVivaPorGuardar,
+  semanaPorOffset,
   collectMenuRecipeIds,
   pruneAiRecipes,
   pruneMenuHistory,
@@ -2371,19 +2373,7 @@ export default function App() {
         });
       }
       setShopping((prev) => {
-        const flags = Object.fromEntries(
-          prev.items.map((i) => [
-            normalizeIngredientKey(i.name, i.unit ?? "ud"),
-            { have: i.have, atHome: i.atHome },
-          ])
-        );
-        return {
-          items: firstWeekShopping.items.map((it) => ({
-            ...it,
-            have: flags[it.id]?.have ?? false,
-            atHome: flags[it.id]?.atHome ?? false,
-          })),
-        };
+        return { items: conMarcas(firstWeekShopping.items, prev.items) };
       });
       // plan._warnings still collects non-blocking issues from generation, but
       // we no longer surface their raw internal text as a toast — it read as a
@@ -3110,7 +3100,8 @@ export default function App() {
     setData((d) => {
       const m = d.menus?.[menuId];
       if (!m?.weeks) return d;
-      const entry = Object.entries(m.weeks).find(([, w]) => w?.offset === offset);
+      // Solo si el offset es de UNA semana (semanaPorOffset, #958).
+      const entry = semanaPorOffset(m.weeks, offset);
       if (!entry) return d;
       const [weekStart, wk] = entry;
       if (wk.shopping === shopping) return d;
@@ -4478,19 +4469,7 @@ export default function App() {
       setShopping((prevSh) => {
         // Se conservan las marcas de "ya lo tengo": tocar los comensales no
         // puede desmarcar media compra.
-        const flags = Object.fromEntries(
-          prevSh.items.map((i) => [
-            normalizeIngredientKey(i.name, i.unit ?? "ud"),
-            { have: i.have, atHome: i.atHome },
-          ]),
-        );
-        return {
-          items: [...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems].map((it) => ({
-            ...it,
-            have: flags[it.id]?.have ?? false,
-            atHome: flags[it.id]?.atHome ?? false,
-          })),
-        };
+        return { items: conMarcas([...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems], prevSh.items) };
       });
       return next;
     });
@@ -4562,19 +4541,7 @@ export default function App() {
       };
       const sh = buildShoppingList(next, groups, getDayMeals(data), pantryIngredients);
       setShopping((prev) => {
-        const flags = Object.fromEntries(
-          prev.items.map((i) => [
-            normalizeIngredientKey(i.name, i.unit ?? "ud"),
-            { have: i.have, atHome: i.atHome },
-          ])
-        );
-        return {
-          items: [...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems].map((it) => ({
-            ...it,
-            have: flags[it.id]?.have ?? false,
-            atHome: flags[it.id]?.atHome ?? false,
-          })),
-        };
+        return { items: conMarcas([...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems], prev.items) };
       });
       return next;
     });
@@ -4625,19 +4592,7 @@ export default function App() {
 
       const sh = buildShoppingList(next, groups, getDayMeals(data), pantryIngredients);
       setShopping((prev) => {
-        const flags = Object.fromEntries(
-          prev.items.map((i) => [
-            normalizeIngredientKey(i.name, i.unit ?? "ud"),
-            { have: i.have, atHome: i.atHome },
-          ])
-        );
-        return {
-          items: [...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems].map((it) => ({
-            ...it,
-            have: flags[it.id]?.have ?? false,
-            atHome: flags[it.id]?.atHome ?? false,
-          })),
-        };
+        return { items: conMarcas([...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems], prev.items) };
       });
       return next;
     });
@@ -4653,19 +4608,7 @@ export default function App() {
   const applyShoppingFor = useCallback((next, groups, pantryIngredients) => {
     const sh = buildShoppingList(next, groups, getDayMeals(data), pantryIngredients);
     setShopping((prev) => {
-      const flags = Object.fromEntries(
-        prev.items.map((i) => [
-          normalizeIngredientKey(i.name, i.unit ?? "ud"),
-          { have: i.have, atHome: i.atHome },
-        ]),
-      );
-      return {
-        items: [...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems].map((it) => ({
-          ...it,
-          have: flags[it.id]?.have ?? false,
-          atHome: flags[it.id]?.atHome ?? false,
-        })),
-      };
+      return { items: conMarcas([...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems], prev.items) };
     });
   }, [data]);
 

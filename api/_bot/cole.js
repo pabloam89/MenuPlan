@@ -5,8 +5,9 @@
  * los niños comieron en el cole (aiPlanner, getSchoolDish).
  *
  * Por días de la semana, no por fechas: Lun…Vie × Primero/Segundo/Postre. Si
- * el cole rota varias semanas, se guardan en orden y la primera es la que
- * vale para la semana que se planifica.
+ * el cole rota varias semanas, se guardan en orden: la primera vale para la
+ * semana en que se guardan (o la siguiente, si es fin de semana), y a partir
+ * de ahí rotan por fecha (`lunesSemana1`, indiceSemanaCole; #958).
  */
 
 import { conData, personaPorNombre, noEncuentro } from "./ajustes.js";
