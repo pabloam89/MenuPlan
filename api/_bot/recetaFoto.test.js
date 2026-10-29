@@ -43,6 +43,17 @@ const borradorGuardado = () => insertadas.find((f) => f.content?.tipo === "borra
 
 beforeEach(() => { apartados = {}; insertadas.length = 0; });
 
+// #958: con «publica» se guardaba para cualquiera sin cuenta y el resumen
+// decía «publicada en Gente», que está apagada. Como la app: siempre privada.
+describe("preparar_receta: la receta es solo de la casa", () => {
+  it("aunque pidan publicarla, queda privada y el resumen no habla de Gente", async () => {
+    const texto = await prepararReceta("h", { ...datos, usarFoto: false, visibilidad: "publica" }, chat);
+    expect(borradorGuardado().visibility).toBe("private");
+    expect(texto).toMatch(/solo para la casa/);
+    expect(texto).not.toMatch(/Gente/);
+  });
+});
+
 describe("preparar_receta con usarFoto y sin foto en el mensaje", () => {
   it("una foto apartada ANTES del último borrador era de otro plato: no va, y se dice", async () => {
     apartados = {
