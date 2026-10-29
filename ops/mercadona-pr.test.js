@@ -75,6 +75,12 @@ describe("mercadona-sync abre un PR con una App", () => {
     for (const s of ["## Evidence", "## Decisions", "## Not verified"]) expect(run).toContain(s);
   });
 
+  it("el plan B avisa siempre con ::warning:: antes de usar la deploy key o el token de Actions", () => {
+    const b = pasos().find((p) => /Plan B/.test(p.name ?? ""));
+    expect(b.run.split("\n")[0]).toMatch(/^echo "::warning::/);
+    expect(b.run.indexOf("::warning::")).toBeLessThan(b.run.indexOf("git push"));
+  });
+
   it("nunca hereda todos los secretos ni escribe ninguno", () => {
     expect(texto()).not.toMatch(/secrets:\s*inherit/);
     expect(texto()).not.toMatch(/BEGIN [A-Z ]*PRIVATE KEY/);

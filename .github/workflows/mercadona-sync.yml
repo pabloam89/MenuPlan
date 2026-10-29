@@ -224,6 +224,7 @@ jobs:
           # Para api.github.com/meta: sin token, 60 llamadas por hora y por IP.
           GH_TOKEN: ${{ github.token }}
         run: |
+          echo "::warning::Sin la clave de la App (DEPENDABOT_APP_KEY) y la variable DEPENDABOT_APP_ID en este environment: no abro PR, uso el plan B."
           if [ -z "$DEPLOY_KEY" ]; then
             echo "::warning::Sin clave de la App ni MERCADONA_DEPLOY_KEY: empujo con el token de Actions. Si staging ya exige tests, GitHub lo rechazará."
             git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/${GITHUB_REF_NAME}"
