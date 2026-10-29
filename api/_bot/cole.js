@@ -12,16 +12,17 @@
 import { conData, personaPorNombre, noEncuentro } from "./ajustes.js";
 import { cargarCasa } from "./casa.js";
 import { motor } from "./menu.js";
+import { diaDeSemana, grupoDePersonas } from "./interprete.js";
+import { DIA_LARGO_MINUSCULAS, DIAS_LABORABLES } from "../../src/lib/dias.js";
 
-const DIA = { lunes: "Lun", martes: "Mar", miercoles: "Mié", jueves: "Jue", viernes: "Vie" };
 const PLATO = { primero: "Primero", segundo: "Segundo", postre: "Postre" };
 
 /** [{ dias: { lunes: { primero, segundo, postre }, … } }] → entradas «Lun-Primero». */
 function aEntradas(semana) {
   const out = {};
   for (const [dia, platos] of Object.entries(semana?.dias ?? {})) {
-    const d = DIA[dia];
-    if (!d || !platos || platos.sinClase) continue;
+    const d = diaDeSemana(dia);
+    if (!DIAS_LABORABLES.includes(d) || !platos || platos.sinClase) continue;
     for (const [k, curso] of Object.entries(PLATO)) {
       const v = String(platos[k] ?? "").trim();
       if (v) out[`${d}-${curso}`] = v.slice(0, 120);
@@ -30,13 +31,30 @@ function aEntradas(semana) {
   return out;
 }
 
+/**
+ * Los días sin cole del menú: los que no hay clase en TODAS las semanas (un
+ * día fijo, como un miércoles de media jornada) y los que solo faltan en
+ * alguna (un festivo). Pura, para el test.
+ * @returns {{ siempre: string[], aVeces: string[] }}
+ */
+export function diasSinClase(semanas = []) {
+  const sin = (s) => new Set(Object.entries(s?.dias ?? {}).filter(([, p]) => p?.sinClase).map(([d]) => diaDeSemana(d)).filter(Boolean));
+  const porSemana = semanas.map(sin);
+  const todos = [...new Set(porSemana.flatMap((x) => [...x]))];
+  const siempre = todos.filter((d) => porSemana.length && porSemana.every((x) => x.has(d)));
+  return { siempre: DIAS_LABORABLES.filter((d) => siempre.includes(d)), aVeces: DIAS_LABORABLES.filter((d) => todos.includes(d) && !siempre.includes(d)) };
+}
+
 export function guardarMenuCole(householdId, { semanas, para }) {
   return conData(householdId, (data, m) => {
     const weeksEntries = (semanas ?? []).map(aEntradas).filter((e) => Object.keys(e).length).slice(0, 6);
     if (!weeksEntries.length) return { texto: "No he sacado ningún plato de ese menú: ¿me lo mandas más de cerca o en PDF?" };
     let scope = "shared";
     let kidId;
-    if (para && !["todos", "todas", "los niños", "ninos"].includes(String(para).toLowerCase())) {
+    // «todos», «niños», «los peques»… con el intérprete (#958: antes solo
+    // valían cuatro formas escritas a mano, y «los peques» no era nadie).
+    const grupo = para ? grupoDePersonas(para) : "todos";
+    if (grupo !== "todos" && grupo !== "ninos") {
       const x = personaPorNombre(data, para);
       if (!x) return { texto: noEncuentro(data, para) };
       scope = "individual";
@@ -44,9 +62,26 @@ export function guardarMenuCole(householdId, { semanas, para }) {
     }
     const schoolMenus = m.replaceSchoolWeeks(data.schoolMenus, { scope, kidId, weeksEntries });
     const platos = weeksEntries.reduce((n, e) => n + Object.keys(e).length, 0);
+    // Un día que nunca tiene cole (sinClase en todas las semanas) se enseña
+    // al horario: ese día comen en casa. Antes se saltaba, y el horario seguía
+    // diciendo «cole» (#958). Un día sin clase solo en alguna semana es un
+    // festivo: se pregunta, no se toca el horario de siempre.
+    const { siempre, aVeces } = diasSinClase(semanas ?? []);
+    const schedule = { ...(data.schedule ?? {}) };
+    const quienes = kidId ? [kidId] : (data.members ?? []).map((x) => x.id);
+    const liberados = [];
+    for (const d of siempre) for (const id of quienes) {
+      const k = m.slotKey(id, d, "Comida");
+      if (schedule[k] === "cole") { delete schedule[k]; liberados.push(d); }
+    }
+    const nombres = (lista) => [...new Set(lista)].map((d) => DIA_LARGO_MINUSCULAS[d]).join(", ");
+    const avisoSin = [
+      liberados.length ? ` Los ${nombres(liberados)} no hay cole: en el horario, ese día comen en casa.` : "",
+      aVeces.length ? ` Algún ${nombres(aVeces)} no hay clase (¿festivo?): pregunta qué día exacto, y si comen fuera o en casa, apúntalo con fuera_de_casa o déjalo.` : "",
+    ].join("");
     return {
-      data: { ...data, schoolMenus },
-      texto: `Menú del cole guardado${kidId ? ` para ${para}` : " para todos los que comen en el cole"}: ${weeksEntries.length} semana(s), ${platos} platos. Al generar, las cenas no repetirán lo del cole.`,
+      data: { ...data, schoolMenus, schedule },
+      texto: `Menú del cole guardado${kidId ? ` para ${para}` : " para todos los que comen en el cole"}: ${weeksEntries.length} semana(s), ${platos} platos. Al generar, las cenas no repetirán lo del cole.${avisoSin}`,
     };
   });
 }

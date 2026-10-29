@@ -746,7 +746,10 @@ function migrate(state) {
   // Se siembra "only". Reactiva la despensa en cuentas que estaban en "off"
   // sin haberlo elegido, y ese es el cambio que se busca: lo que ya compraste
   // deja de echarse a perder mientras el menú te manda a comprar otra cosa.
-  if (!["strict", "only", "prefer"].includes(d.pantryMode)) {
+  // Un "off" ELEGIDO (pantryModeSet, p. ej. «deja de usar lo de casa» a Lola,
+  // #958) se respeta: solo se reactiva el que nadie eligió.
+  const offElegido = d.pantryMode === "off" && d.pantryModeSet === true;
+  if (!offElegido && !["strict", "only", "prefer"].includes(d.pantryMode)) {
     d.pantryMode = "only";
   }
   d.useHomeStock = d.pantryMode !== "off";

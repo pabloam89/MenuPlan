@@ -6,23 +6,21 @@
  */
 
 import { alergiasRevisadas, esBebe } from "./ficha.js";
+import { buscarPersona, personaNombradaEn } from "./interprete.js";
 import { ETAPAS_BEBE } from "../../src/lib/babyStage.js";
 import { claveDeTarea, campoDeClave, personaDeClave, TIPO_DE_KIND } from "../../src/lib/registroTareas.js";
 
 export const normalizar = (s) => String(s ?? "").toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "").replace(/\s+/g, " ").trim();
 
-const escapar = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const idDe = (m) => String(m?.id ?? m?.name ?? "");
 
-/** Una persona de la casa por su nombre (o el principio, si es único). */
-export function resolverPersona(data = {}, nombre) {
-  const n = normalizar(nombre);
-  if (!n) return { persona: null };
-  const miembros = data.members ?? [];
-  const exactos = miembros.filter((m) => normalizar(m.name) === n);
-  const porNombre = exactos.length ? exactos : miembros.filter((m) => normalizar(m.name).split(" ")[0] === n.split(" ")[0]);
-  if (porNombre.length === 1) return { persona: { id: idDe(porNombre[0]), nombre: porNombre[0].name } };
-  if (porNombre.length > 1) return { error: `Hay más de una persona que se llama «${nombre}»: ¿cuál?` };
+/** Una persona de la casa por su nombre, con el intérprete (interprete.js, #958). */
+export function resolverPersona(data = {}, nombre, quien = {}) {
+  if (!normalizar(nombre)) return { persona: null };
+  const r = buscarPersona(data, nombre, quien);
+  if (r.persona) return { persona: { id: idDe(r.persona), nombre: r.persona.name } };
+  if (r.duda) return { error: r.duda };
+  if (r.candidatas.length > 1) return { error: `Hay más de una persona que se llama «${nombre}» (${r.candidatas.map((p) => p.name).join(", ")}): ¿cuál?` };
   return { error: `En la casa no hay nadie que se llame «${nombre}». ¿Quién es?` };
 }
 
@@ -48,7 +46,7 @@ export function preguntaDeEstado(texto, data = {}) {
   if (!campo) return null;
   const miembros = data.members ?? [];
   const t = normalizar(texto);
-  const nombrado = miembros.find((m) => m?.name && new RegExp(`\\b${escapar(normalizar(m.name).split(" ")[0])}\\b`).test(t));
+  const nombrado = personaNombradaEn(data, t);
   const candidatos = campo === "alergias"
     ? miembros.filter((m) => !alergiasRevisadas(data, m) && !(m.allergies ?? []).length)
     : miembros.filter(esBebe);

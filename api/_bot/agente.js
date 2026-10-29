@@ -54,6 +54,7 @@ import { fechasDe, CUANDOS } from "./cuando.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, IDS_PLATOS } from "../../src/lib/comidas.js";
 import { KITCHEN_TOOL_IDS } from "../../src/lib/electrodomesticos.js";
 import { NIVEL_COCINA, RITMO_COCINA, ETAPA_BEBE, DONDE_COME, CANAL, APARATOS, paraEscribir } from "../../src/lib/vocabularios.js";
+import { ETAPA_BEBE_INFO } from "../../src/lib/babyStage.js";
 import { enOrden } from "../../src/lib/enOrden.js";
 import { ESQUEMA_DE_FUERA } from "./deFuera.js";
 import { verDespensa, anadirDespensa } from "./despensa.js";
@@ -484,7 +485,15 @@ function herramientasDeRecordatorios(chat) {
   ];
 }
 
+/**
+ * Quién escribe, para que el intérprete resuelva «yo» por la persona que su
+ * cuenta marcó en la app (accountMemberIdByUser) y no por el nombre de
+ * Telegram (#958). Se lee al ejecutar: userId llega con el papel del turno.
+ */
+const quienDe = (chat) => ({ get userId() { return chat.userId ?? null; }, get autor() { return chat.autor ?? null; } });
+
 function herramientasDeAjustes(householdId, gustos, chat = {}) {
+  const quien = quienDe(chat);
   const obj = (properties, required = []) => ({ type: "object", properties, required, additionalProperties: false });
   return [
     herramienta({ lector: true, soloLectura: true, pantalla: null }, {
@@ -531,22 +540,26 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "ajustar_cocina",
-      description: "Cómo se cocina en casa: estructura de la comida (primero_segundo = primero y segundo; 1_plato = plato único), esfuerzo (basic/normal/pro), tiempo por día (con_prisa/normal/con_tiempo/depende) y trastos (lista completa de lo que hay: Airfryer, Horno, Microondas, Thermomix, Olla rápida, Vaporera). Cocinar en tanda va por pedir_tanda.",
+      description: "Cómo se cocina en casa: estructura de la comida (primero_segundo = primero y segundo; 1_plato = plato único), esfuerzo (basic/normal/pro), tiempo por día (con_prisa/normal/con_tiempo/depende) y aparatos (Airfryer, Horno, Microondas, Thermomix, Olla rápida, Vaporera). «Tenemos airfryer» es trastosMas [Airfryer]; «ya no tenemos horno», trastosMenos [Horno]: los demás se quedan. trastos (la lista entera) SOLO cuando dicen todo lo que tienen, porque sustituye. Cocinar en tanda va por pedir_tanda.",
       inputSchema: obj({
         estructura: { type: "string", enum: ["primero_segundo", "1_plato"] },
         esfuerzo: { type: "string", enum: NIVEL_COCINA },
         tiempo: { type: "string", enum: RITMO_COCINA },
-        trastos: { type: "array", items: { type: "string", enum: enOrden(APARATOS, ["Airfryer", "Horno", "Microondas", "Thermomix"]) } },
+        trastos: { type: "array", items: { type: "string", enum: enOrden(APARATOS, ["Airfryer", "Horno", "Microondas", "Thermomix"]) }, description: "La lista ENTERA: sustituye a la guardada." },
+        trastosMas: { type: "array", items: { type: "string", enum: enOrden(APARATOS, ["Airfryer", "Horno", "Microondas", "Thermomix"]) }, description: "Aparatos que se añaden." },
+        trastosMenos: { type: "array", items: { type: "string", enum: enOrden(APARATOS, ["Airfryer", "Horno", "Microondas", "Thermomix"]) }, description: "Aparatos que ya no tienen." },
         comidas: { type: "array", items: { type: "string", enum: COMIDAS_PRINCIPALES }, description: "Qué comidas se planifican." },
-        etapaBebe: { type: "string", enum: ETAPA_BEBE, description: "Qué come el bebé: cremas (solo purés), mixto (de todo) o solidos (ya come sólidos). Apúntalo en cuanto lo digan («ya come sólidos»), antes de proponerle nada." },
+        etapaBebe: { type: "string", enum: ETAPA_BEBE, description: `Qué come el bebé: ${ETAPA_BEBE.map((e) => `${e} (${ETAPA_BEBE_INFO[e].label.toLowerCase()}: ${ETAPA_BEBE_INFO[e].desc.toLowerCase()})`).join(", ")}. «Come de todo» o «ya come de todo» es solidos; «un poco de cada» o «purés y algún trozo», mixto. Apúntalo en cuanto lo digan, antes de proponerle nada.` },
       }),
       run: (args) => ajustarCocina(householdId, args),
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: "compra" }, {
       name: "ajustar_compra",
-      description: "Dónde hace la compra la casa y cuánto quiere gastar. supermercados: la lista completa de donde compran (Mercadona, Lidl, Carrefour…; si es otro, como lo digan). Con Mercadona, en la app la lista de la compra enseña el precio de cada cosa. presupuesto: euros por semana; sinPresupuesto=true si dicen que no tienen.",
+      description: "Dónde hace la compra la casa y cuánto quiere gastar. «También compramos en Lidl» es supermercadosMas [Lidl]; «ya no vamos al Dia», supermercadosMenos [Dia]: los demás se quedan. supermercados (la lista entera) SOLO cuando dicen todos los sitios donde compran, porque sustituye. Si es otro súper, como lo digan. Con Mercadona, en la app la lista de la compra enseña el precio de cada cosa. presupuesto: euros por semana; sinPresupuesto=true si dicen que no tienen.",
       inputSchema: obj({
-        supermercados: { type: "array", items: { type: "string" }, description: `Los habituales: ${SUPERMERCADOS.join(", ")}.` },
+        supermercados: { type: "array", items: { type: "string" }, description: `La lista ENTERA (sustituye). Los habituales: ${SUPERMERCADOS.join(", ")}.` },
+        supermercadosMas: { type: "array", items: { type: "string" }, description: "Súper que se añaden." },
+        supermercadosMenos: { type: "array", items: { type: "string" }, description: "Súper que dejan." },
         presupuesto: { type: "number", minimum: PRESUPUESTO[0], maximum: PRESUPUESTO[1], description: "Euros por semana." },
         sinPresupuesto: { type: "boolean" },
       }),
@@ -576,7 +589,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "ajustar_uso_despensa",
-      description: "Cuánto aprovecha el menú lo que hay en casa (la despensa). modo: strict (solo con lo de casa, sin comprar salvo que un hueco no salga de otra forma) u only (sobre todo lo de casa, y se compra lo que falte). Lo que hay se apunta con anadir_despensa.",
+      description: `Cuánto aprovecha el menú lo que hay en casa (la despensa). modo: ${Object.entries(MODOS_DESPENSA).map(([k, v]) => `${k} (${v})`).join("; ")}. «Deja de usar lo de casa» es off. Lo que hay se apunta con anadir_despensa.`,
       inputSchema: obj({ modo: { type: "string", enum: Object.keys(MODOS_DESPENSA) } }, ["modo"]),
       run: (args) => ajustarModoDespensa(householdId, args),
     }),
@@ -594,20 +607,20 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "ajustar_horario",
-      description: "Quién come dónde. personas: nombres, o «todos», «niños», «adultos». dias: lunes…domingo, «entre semana» o «finde» (vacío = todos). comidas: Desayuno/Comida/Merienda/Cena/Postre (vacío = Comida y Cena). donde: casa | tupper (se lleva comida de casa) | fuera | cole | off (esa comida no se hace).",
+      description: "El horario FIJO, lo que se repite TODAS las semanas: quién come dónde. personas: nombres, «yo», «todos», «niños», «los peques», «adultos». dias: lunes…domingo, «entre semana», «finde» o «de lunes a jueves» (vacío = todos). comidas: Desayuno/Comida/Merienda/Cena/Postre (vacío = Comida y Cena; con donde = cole, vacío = solo la Comida). donde: casa | tupper (se lleva comida de casa) | fuera | cole | off (esa comida no se hace). Un día suelto («el jueves no comemos», «este viernes cenamos fuera») NO es esto: es fuera_de_casa.",
       inputSchema: obj({
         personas: { type: "array", items: { type: "string" }, minItems: 1 },
         dias: { type: "array", items: { type: "string" } },
         comidas: { type: "array", items: { type: "string" } },
         donde: { type: "string", enum: DONDE_COME },
       }, ["personas", "donde"]),
-      run: (args) => ajustarHorario(householdId, args),
+      run: (args) => ajustarHorario(householdId, args, quien),
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "anadir_invitado",
       description: "Alguien de fuera viene a comer o cenar un día concreto (se suma a las raciones y a la compra de esa semana, y caduca solo).",
       inputSchema: obj({
-        dia: { type: "string" }, comida: { type: "string", enum: IDS_COMIDAS },
+        dia: { type: "string", description: "Como lo digan: hoy, mañana, el jueves, el 15, 15 de noviembre o AAAA-MM-DD. «El jueves de la semana que viene»: dia jueves y semana siguiente." }, comida: { type: "string", enum: IDS_COMIDAS },
         n: { type: "integer", minimum: 1, maximum: 20 }, nombre: { type: "string" },
         semana: { type: "string", enum: ["esta", "siguiente"] },
       }, ["dia", "comida"]),
@@ -621,15 +634,16 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "ajustar_persona",
-      description: "Una persona de la casa: corregir cómo se escribe su nombre (nuevoNombre, p. ej. un nombre mal oído en un audio), y peso (kg) y altura (cm), opcionales: con los dos, el motor ajusta su ración (cantidades de la compra y de las recetas). borrar=true quita peso y altura.",
+      description: "Una persona de la casa: corregir cómo se escribe su nombre (nuevoNombre, p. ej. un nombre mal oído en un audio), su edad en años (quien se dio de alta sin edad cuenta como adulto hasta que se ponga), y peso (kg) y altura (cm), opcionales: con los dos, el motor ajusta su ración (cantidades de la compra y de las recetas). borrar=true quita peso y altura. nombre puede ser «yo».",
       inputSchema: obj({
         nombre: { type: "string" },
         nuevoNombre: { type: "string" },
+        edad: { type: "integer", minimum: 0, maximum: 120 },
         pesoKg: { type: "number" },
         alturaCm: { type: "number" },
         borrar: { type: "boolean" },
       }, ["nombre"]),
-      run: (args) => ajustarPersona(householdId, args),
+      run: (args) => ajustarPersona(householdId, args, quien),
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "ajustar_menu_peques",
@@ -655,7 +669,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
         persona: { type: "string" }, alergenos: { type: "array", items: { type: "string" } },
         ninguna: { type: "boolean" }, quitar: { type: "boolean" }, confirmado: { type: "boolean" },
       }, ["confirmado"]),
-      run: (args) => ajustarAlergias(householdId, args),
+      run: (args) => ajustarAlergias(householdId, args, quien),
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "ajustar_salud",
@@ -667,7 +681,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
         hasta: { type: "string" },
         quitar: { type: "boolean" }, confirmado: { type: "boolean" },
       }, ["persona", "confirmado"]),
-      run: (args) => ajustarSalud(householdId, args),
+      run: (args) => ajustarSalud(householdId, args, quien),
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "deshacer",
@@ -729,6 +743,7 @@ function pintarTambien(chat, nuevo) {
 }
 
 function herramientasDeMenu(householdId, fotos = null, chat = {}) {
+  const quien = quienDe(chat);
   const conCasa = async (f) => {
     const casa = await cargarCasa(householdId);
     if (!casa) return "Esta casa todavía no tiene datos en la nube. Que entren una vez en la app de HoMenu.";
@@ -844,20 +859,21 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: "semana" }, {
       name: "fuera_de_casa",
-      description: "Días concretos en que alguien (o toda la casa) no come en casa: «hoy cenamos fuera», «el viernes Leo come con los abuelos», «Nat no está el finde». Solo esos días; lo que se repite cada semana es ajustar_horario. Una llamada apunta todos los días × todas las comidas que le pases: «no come el finde» es dias [finde] con comidas [Comida, Cena]. Si los días no llevan las mismas comidas («el finde entero y hoy solo la cena»), una llamada por cada combinación. Si en el menú ya hecho todo un grupo queda fuera, se quita ese plato y la compra se rehace (sale pintado debajo); si solo falta alguien, el plato se queda para los demás. quienes: nombres de la casa (vacío = toda la casa).",
+      description: "Días concretos en que alguien (o toda la casa) no come en casa, o esa comida no se hace: «hoy cenamos fuera», «el viernes Leo come con los abuelos», «Nat no está el finde», «el jueves comida no, que no tengo tiempo», «el 15 no comemos». Solo esos días; lo que se repite cada semana («los jueves comemos fuera») es ajustar_horario. Una llamada apunta todos los días × todas las comidas que le pases: «no come el finde» es dias [finde] con comidas [Comida, Cena]. Si los días no llevan las mismas comidas («el finde entero y hoy solo la cena»), una llamada por cada combinación. Si en el menú ya hecho todo un grupo queda fuera, se quita ese plato y la compra se rehace (sale pintado debajo); si solo falta alguien, el plato se queda para los demás. quienes: nombres de la casa (vacío = toda la casa).",
       inputSchema: {
         type: "object",
         properties: {
-          dias: { type: "array", items: { type: "string" }, minItems: 1, description: "cada uno: hoy, mañana, pasado mañana, el nombre del día o finde" },
+          dias: { type: "array", items: { type: "string" }, minItems: 1, description: "Como lo digan: hoy, mañana, pasado mañana, el jueves, el finde, el 15, 15 de noviembre, de lunes a miércoles o AAAA-MM-DD. Si dudas de qué día es, pregúntalo antes." },
+          semana: { type: "string", enum: ["esta", "siguiente"], description: "siguiente si dicen «de la semana que viene» («el viernes de la que viene»)." },
           comidas: { type: "array", items: { type: "string", enum: IDS_COMIDAS }, minItems: 1 },
-          quienes: { type: "array", items: { type: "string" } },
+          quienes: { type: "array", items: { type: "string" }, description: "Nombres de la casa, «yo» (quien escribe), «los niños»; vacío = toda la casa." },
           de_nuevo: { type: "boolean", description: "Solo si la herramienta te dijo que eso ya se guardó hace poco y la persona, AHORA, ha confirmado que lo quiere también para estos días." },
         },
         required: ["dias", "comidas"],
         additionalProperties: false,
       },
       run: async ({ de_nuevo, ...args }) => {
-        const r = await apuntarAusencia(householdId, { ...args, deNuevo: de_nuevo === true, autor: chat.autor ?? null });
+        const r = await apuntarAusencia(householdId, { ...args, deNuevo: de_nuevo === true, autor: chat.autor ?? null, userId: quien.userId });
         if (r.pintar) pintarTambien(chat, r.pintar);
         return r.texto;
       },
@@ -1020,13 +1036,13 @@ async function adelantar(plan, chat) {
 // Una línea en la ficha cuando quien escribe no gestiona la casa: así Lola
 // sabe qué ofrecer y qué remitir, en vez de descubrirlo al chocar.
 const QUIEN_ESCRIBE = {
-  viewer: "QUIEN ESCRIBE: lector de la casa. Puede consultarlo todo y tachar la compra; nada más, ni aquí ni en la app (no le mandes a la app a cambiar nada). Si pide cambiar otra cosa, dile con naturalidad que eso lo cambia quien gestiona la casa, sin hablar de permisos ni de lo que «puede» hacer.",
+  viewer: "QUIEN ESCRIBE: lector de la casa. Puede consultarlo todo y tachar la compra; por privado, además, sus recordatorios, el aviso de la víspera y empezar de nuevo su charla. Nada más, ni aquí ni en la app (no le mandes a la app a cambiar nada). Si pide cambiar otra cosa, dile con naturalidad que eso lo cambia quien gestiona la casa, sin hablar de permisos ni de lo que «puede» hacer.",
   ajeno: "QUIEN ESCRIBE: alguien del grupo sin cuenta enlazada a esta casa. Solo puedes contarle el menú, las recetas y la compra. Para apuntar o cambiar algo, que te escriba por privado y conecte su cuenta, o que se lo pida a quien gestiona la casa.",
 };
 // Y el idioma que eligió (0073): en inglés aunque escriba en español, y los
 // platos con su nombre traducido (los datos de la casa están en castellano).
 const IDIOMA = {
-  en: "IDIOMA: quien escribe eligió inglés. Contesta SIEMPRE en inglés, aunque escriba en español; los platos, ingredientes y pasos, traducidos al inglés.",
+  en: "IDIOMA: quien escribe eligió inglés. Contesta SIEMPRE en inglés, aunque escriba en español; ingredientes y pasos, traducidos. Pero dos cosas van TAL CUAL, en castellano: los botones [[…]] (el código los reconoce por su texto: «[[No es así]]», «[[Rehacer la del …]]») y el nombre de cada plato (búscalo y nómbralo como está guardado; si ayuda, la traducción entre paréntesis detrás).",
 };
 export function conQuienEscribe(ficha, papel, idioma = null) {
   if (!ficha) return ficha;
