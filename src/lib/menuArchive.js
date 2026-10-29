@@ -304,6 +304,8 @@ export function toggleMenuFavorite(menus, menuId) {
  */
 export function semanaPorOffset(weeks, offset) {
   const todas = Object.entries(weeks ?? {}).filter(([, w]) => w?.offset === offset);
+  // No en silencio (revisor de #966, C5): queda en la consola por qué no se guardó.
+  if (todas.length > 1) console.warn("[menu] semana sin guardar: el offset", offset, "es de varias semanas", todas.map(([lunes]) => lunes));
   return todas.length === 1 ? todas[0] : null;
 }
 
