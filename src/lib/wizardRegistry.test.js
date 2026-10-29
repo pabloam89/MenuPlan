@@ -429,7 +429,7 @@ describe("los tres estados de una tarjeta", () => {
   });
 
   it("salvo las alergias, donde suponer sería ponerle un criterio en la boca", () => {
-    const data = { members: [{ id: "m1" }], allergiesReviewed: true, allergies: ["gluten"] };
+    const data = { members: [{ id: "m1", allergies: ["gluten"], alergiasRevisadas: true }] };
     // Marcada `suposicion: false`: en cuanto se infiere, pide confirmación.
     expect(PREGUNTAS_POR_ID.alergias.suposicion).toBe(false);
     expect(estadoDePregunta(PREGUNTAS_POR_ID.alergias, libretaVacia(), data)).toBe("aclarado");
@@ -552,6 +552,17 @@ describe("bordes", () => {
     const data = { members: [{ id: "m1" }], allergiesReviewed: true, allergies: [] };
     expect(estadoDelCampo(PREGUNTAS_POR_ID.alergias, libretaVacia(), data)).toBe("fijado");
     expect(valorDePregunta(PREGUNTAS_POR_ID.alergias, libretaVacia(), data)).toEqual([]);
+  });
+
+  // #958: leía data.allergies, que ya no existe; las alergias son de cada persona.
+  it("las alergias salen de las personas, no de data.allergies", () => {
+    const data = { members: [{ id: "m1", allergies: ["gluten"], alergiasRevisadas: true }, { id: "m2", allergies: ["huevo", "gluten"], alergiasRevisadas: true }], allergies: [] };
+    expect(valorDePregunta(PREGUNTAS_POR_ID.alergias, libretaVacia(), data)).toEqual(["gluten", "huevo"]);
+  });
+
+  it("con alguien aún sin revisar, la pregunta sigue abierta", () => {
+    const data = { members: [{ id: "m1", allergies: [], alergiasRevisadas: true }, { id: "m2", alergiasRevisadas: false }] };
+    expect(estadoDelCampo(PREGUNTAS_POR_ID.alergias, libretaVacia(), data)).toBe("vacio");
   });
 });
 

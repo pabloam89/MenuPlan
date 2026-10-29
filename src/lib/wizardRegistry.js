@@ -38,6 +38,7 @@
  */
 
 import { estadoDe, valorDe } from "./notepad.js";
+import { alergiasRevisadas } from "./alergiasBase.js";
 import { APARATOS_EN_ORDEN } from "./electrodomesticos.js";
 import { COOK_LEVELS, COOK_TIME_DEFAULTS, cookLevelForMinutes, cookLevelMinutes } from "./cookTime.js";
 import { rutaDeReparto } from "./reparto.js";
@@ -174,7 +175,15 @@ export const PREGUNTAS = [
     // "Ninguna" es una respuesta, y por eso se lee el flag y no la lista: un
     // array vacío no distingue "no tenemos" de "no lo hemos mirado", y esa
     // diferencia es justo la que no se puede suponer.
-    lee: (data) => (data?.allergiesReviewed ? (data.allergies ?? []) : null),
+    // Las alergias viven en cada persona (members[].allergies, con su
+    // alergiasRevisadas); `data.allergies` es el dato de antes de que fueran
+    // por persona (#958). Contestado cuando todas están revisadas; el valor,
+    // las de toda la casa juntas.
+    lee: (data) => {
+      const personas = data?.members ?? [];
+      if (!personas.length || !personas.every((m) => alergiasRevisadas(data, m))) return null;
+      return [...new Set(personas.flatMap((m) => m.allergies ?? []))];
+    },
     requiere: ["members"],
     activa: null,
     refina: null,

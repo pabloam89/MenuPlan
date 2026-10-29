@@ -53,11 +53,12 @@ const { clasificar } = await import("../_bot/router.js");
 const res = () => { const r = { status: () => r, json: () => r, end: () => r }; return r; };
 const VOZ = { file_id: "f", duration: 4, mime_type: "audio/ogg" };
 
-async function voz({ grupo = false } = {}) {
+async function voz({ grupo = false, aLola = false } = {}) {
+  const respuesta = aLola ? { reply_to_message: { message_id: 0, from: { is_bot: true, username: "lola" } } } : {};
   await handler({
     method: "POST",
     headers: { "x-telegram-bot-api-secret-token": "secreto" },
-    body: { message: { message_id: 1, voice: VOZ, chat: { id: grupo ? -50 : 7, type: grupo ? "supergroup" : "private" }, from: { id: 7, first_name: "Ana" } } },
+    body: { message: { message_id: 1, voice: VOZ, chat: { id: grupo ? -50 : 7, type: grupo ? "supergroup" : "private" }, from: { id: 7, first_name: "Ana" }, ...respuesta } },
   }, res());
   await Promise.all(t.trabajo);
 }
@@ -78,13 +79,22 @@ describe("notas de voz: no se transcribe lo que no se va a contestar", () => {
   it("en un grupo con casa pasada de su límite del mes, no se transcribe", async () => {
     t.tablas.bot_chats = [{ household_id: "h1" }];
     t.limite = "Este mes ya hemos hablado 100 veces";
-    await voz({ grupo: true });
+    await voz({ grupo: true, aLola: true });
     expect(transcribir).not.toHaveBeenCalled();
   });
 
-  it("en un grupo con casa y dentro del límite, sí se escucha", async () => {
+  // #958: antes cada audio del grupo iba a Groq solo para ver si empezaba por
+  // «Lola»: audio de terceros (a veces de niños) que salía de casa para nada.
+  it("en un grupo con casa, un audio que no es respuesta a Lola NO se escucha ni se contesta", async () => {
     t.tablas.bot_chats = [{ household_id: "h1" }];
     await voz({ grupo: true });
+    expect(transcribir).not.toHaveBeenCalled();
+    expect(t.enviados).toEqual([]);
+  });
+
+  it("en un grupo con casa, un audio que responde a un mensaje de Lola sí se escucha", async () => {
+    t.tablas.bot_chats = [{ household_id: "h1" }];
+    await voz({ grupo: true, aLola: true });
     expect(transcribir).toHaveBeenCalledTimes(1);
   });
 

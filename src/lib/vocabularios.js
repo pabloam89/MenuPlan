@@ -147,7 +147,7 @@ export const SITIOS_FALLO = [
   "aviso_del_enrutador", "aviso_del_modo", "borrarcuenta_identidad", "borrarcuenta_nacida_aqui",
   "bot_telegram_aviso", "boton_nacida_aqui", "boton_quitar", "boton_responder",
   "eleccion_via_rapida", "entregar_casa", "entregar_pintar", "escribiendo", "fallo_dueno", "fallo_tras_escribir",
-  "grupo_casa", "grupo_nombre_del_bot", "grupo_voz", "idioma", "invitacion",
+  "grupo_casa", "grupo_nombre_del_bot", "idioma", "invitacion",
   "invitacion_cuentas", "lola", "lola_cancelada", "limite", "papel", "reconocer", "ruta",
   "ruta_dueno", "ultima_de_lola", "uso", "vivo_borrar_aviso", "vivo_editar", "vivo_enviar",
   // api/bot/entrar.js
