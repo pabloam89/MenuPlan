@@ -61,6 +61,20 @@ describe("la lista de lo que caduca", () => {
     expect(copias).toEqual([]);
   });
 
+  it("los papeles para personas no copian la cadencia del cron: apuntan a cadencia.js (#958)", async () => {
+    const { readFileSync } = await import("node:fs");
+    const leer = (f) => readFileSync(new URL(`../../${f}`, import.meta.url), "utf8");
+    // Los que hablan del job bot-recordatorios. Un párrafo (o una línea de
+    // los casos.json) que lo nombra no puede llevar «cada N min» a mano.
+    const papeles = [".claude/skills/supabase/SKILL.md", "supabase/ESTADO.md", "ops/INVENTARIO.md", ".claude/skills/vercel/casos.json", ".claude/skills/telegram/casos.json"];
+    const copias = papeles.flatMap((f) => leer(f).split(/\n\s*\n|\n(?=\s*")/)
+      .filter((p) => /recordatorios/i.test(p) && /cada \d+ min/i.test(p))
+      .map((p) => `${f}: ${p.trim().slice(0, 80)}`));
+    expect(copias).toEqual([]);
+    // Y los que describen el job dicen dónde vive la cifra.
+    for (const f of [".claude/skills/supabase/SKILL.md", "supabase/ESTADO.md", "ops/INVENTARIO.md"]) expect(leer(f), f).toContain("api/_bot/cadencia.js");
+  });
+
   it("y la comprobación salta con una lista mala (#964, C17)", () => {
     // Una cosa nueva de barrido sin función (lo que pasaría al añadir la dieta
     // blanda olvidando su barrido), y una función de algo que no es de barrido.
