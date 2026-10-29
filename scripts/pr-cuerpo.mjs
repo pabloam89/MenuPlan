@@ -13,7 +13,7 @@
  */
 import { execFileSync, spawnSync } from "node:child_process";
 import { readFileSync, rmSync, writeFileSync } from "node:fs";
-import { contrastar, cuerpo, esTest, fallosTragados, leerPlantilla, tamano } from "./lib/prCuerpo.mjs";
+import { contrastar, cuerpo, fallosTragados, leerPlantilla, tamano, testsDeVitest } from "./lib/prCuerpo.mjs";
 
 const git = (...a) => execFileSync("git", a, { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 }).trim();
 const arg = (n) => { const i = process.argv.indexOf(`--${n}`); return i > 0 ? process.argv[i + 1] : ""; };
@@ -63,6 +63,11 @@ function plantillaDeLaFabrica() {
 }
 
 const plantilla = plantillaDeLaFabrica();
+// Qué es un test, según vitest y su configuración: así entran también los .test.jsx.
+const lista = spawnSync("npx vitest list --filesOnly --json", { encoding: "utf8", shell: true, maxBuffer: 64 * 1024 * 1024 });
+if (lista.error || lista.status !== 0) throw new Error(`no se pudo listar los tests con vitest: ${lista.error?.message ?? lista.stderr.trim().slice(0, 300)}`, { cause: lista.error });
+const deVitest = testsDeVitest(lista.stdout, git("rev-parse", "--show-toplevel"));
+const esTest = (f) => deVitest.has(f);
 const base = git("merge-base", "HEAD", "origin/staging");
 const cambiados = lineas(git("diff", "--name-only", "--diff-filter=d", base, "HEAD"));
 const nuevos = lineas(git("diff", "--name-only", "--diff-filter=A", base, "HEAD")).filter(esTest);
@@ -78,7 +83,7 @@ const texto = cuerpo({
   ahora,
   antes,
   talla: tamano(git("diff", "--numstat", base, "HEAD")),
-  tragados: fallosTragados(git("diff", "-U0", base, "HEAD")),
+  tragados: fallosTragados(git("diff", "-U0", base, "HEAD"), esTest),
   refs: arg("refs"),
 });
 const salida = arg("salida");

@@ -22,8 +22,17 @@
 export const TOPE_LINEAS = 400;
 export const TOPE_FICHEROS = 12;
 
-/** Un fichero de test de este repo (vitest). */
-export const esTest = (f) => /\.test\.m?js$/.test(f);
+/**
+ * Qué es un test no se decide aquí: lo dice vitest (`vitest list --filesOnly
+ * --json`, con su `include` de vite.config.js). De su salida, las rutas
+ * relativas a la raíz del repo, con barras normales, como las da git.
+ */
+export function testsDeVitest(salida, raiz) {
+  const texto = String(salida ?? "");
+  const lista = JSON.parse(texto.slice(texto.indexOf("[")));
+  const base = String(raiz).replace(/\\/g, "/").replace(/\/?$/, "/");
+  return new Set(lista.map(({ file }) => String(file).replace(/\\/g, "/")).map((f) => (f.startsWith(base) ? f.slice(base.length) : f)));
+}
 
 const ANSI = /\x1b\[[0-9;]*m/g;
 const lineasLimpias = (s) => String(s ?? "").replace(ANSI, "").split("\n").map((l) => l.trim());
@@ -70,7 +79,7 @@ const TRAGA = [
   /catch\s*(\([^)]*\))?\s*\{\s*\}/,
   /\.catch\(\s*\(\s*\w*\s*\)\s*=>\s*(\{\s*\}|null|undefined|\[\]|\{\}|false|0|"")\s*\)/,
 ];
-export function fallosTragados(diff) {
+export function fallosTragados(diff, esTest = () => false) {
   const avisos = [];
   let fichero = null;
   for (const l of String(diff ?? "").split("\n")) {

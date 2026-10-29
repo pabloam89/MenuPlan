@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { resumenVitest, fallosTragados, tamano, cuerpo, esTest, primerError, leerPlantilla, contrastar, RELLENA, TOPE_LINEAS } from "./prCuerpo.mjs";
+import { resumenVitest, fallosTragados, tamano, cuerpo, testsDeVitest, primerError, leerPlantilla, contrastar, RELLENA, TOPE_LINEAS } from "./prCuerpo.mjs";
 
 // Una plantilla con las secciones de RELLENA (sacadas de ahí, no copiadas) y una
 // forma de decisión inventada: la de verdad se lee de la Fábrica al lanzar el script.
@@ -26,7 +26,7 @@ describe("prCuerpo: el cuerpo del PR que pide el revisor", () => {
     expect(avisos).toHaveLength(2);
     expect(avisos[0]).toMatch(/^api\/x\.js: /);
     // En un test, el catch vacío es el ejemplo de lo que se busca.
-    expect(fallosTragados("+++ b/api/x.test.js\n+  } catch {}")).toEqual([]);
+    expect(fallosTragados("+++ b/api/x.test.js\n+  } catch {}", (f) => f === "api/x.test.js")).toEqual([]);
   });
 
   it("dice por qué falla cuando el resumen no lo cuenta", () => {
@@ -40,10 +40,9 @@ describe("prCuerpo: el cuerpo del PR que pide el revisor", () => {
     expect(tamano("-\t-\timagen.png").lineas).toBe(0);
   });
 
-  it("reconoce los tests del repo", () => {
-    expect(esTest("api/_bot/x.test.js")).toBe(true);
-    expect(esTest("scripts/lib/x.test.mjs")).toBe(true);
-    expect(esTest("api/_bot/x.js")).toBe(false);
+  it("los tests son los que lista vitest, en rutas relativas como las de git", () => {
+    const salida = 'aviso suelto\n[{"file":"C:/repo/api/a.test.js"},{"file":"C:\\\\repo\\\\src\\\\B.test.jsx"}]';
+    expect([...testsDeVitest(salida, "C:\\repo")]).toEqual(["api/a.test.js", "src/B.test.jsx"]);
   });
 
   it("lee de la plantilla sus secciones y la forma de una decisión", () => {
