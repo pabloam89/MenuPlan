@@ -1,5 +1,16 @@
 import { describe, it, expect } from "vitest";
-import { meHablan, datoDeBoton } from "./telegram.js";
+import { meHablan, datoDeBoton, medida } from "./telegram.js";
+
+describe("bot_route guarda lo guardado de verdad y el recibo (#958)", () => {
+  it("lola.guardados y lola.recibo pasan tal cual; sin ellos, null", () => {
+    const con = medida({ lola: { herramientas: [], guardados: 2, recibo: [["despensa", 38, 28]] } }, {}, 0).lola;
+    expect(con).toMatchObject({ guardados: 2, recibo: [["despensa", 38, 28]] });
+    const sin = medida({ lola: { herramientas: [] } }, {}, 0).lola;
+    expect(sin).toMatchObject({ guardados: null, recibo: null });
+    // Cero es un dato (no se guardó nada), no «sin medida».
+    expect(medida({ lola: { herramientas: [], guardados: 0, recibo: [] } }, {}, 0).lola).toMatchObject({ guardados: 0, recibo: [] });
+  });
+});
 
 const YO = "homenuers_bot";
 describe("meHablan: en un grupo, ¿es para Lola?", () => {
