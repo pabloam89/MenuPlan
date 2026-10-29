@@ -12,7 +12,7 @@
  */
 
 import { fallaCon } from "./avisar.js";
-import { ELIGE_TU } from "./botones.js";
+import { BOTONES, esEligeTu } from "./botones.js";
 import { cargarCasa, deshacer, hoyISO } from "./casa.js";
 import { quitaProteccion } from "./supervisor.js";
 import {
@@ -122,7 +122,7 @@ export async function recomendar(householdId, x) {
   const opciones = bloques.flatMap((b) => b.opciones);
   const aviso = (out.aviso || bloques.some((b) => b.aviso)) ? "\n\n<i>No había ninguna que cumpliera todo lo que pides: estas son las que más se acercan.</i>" : "";
   const pregunta = out.conMenu ? "¿Cuál te pongo?" : "¿Te paso la receta de alguna?";
-  const botones = [...botonesDe(opciones.slice(0, 3).map((r) => r.name)).map((b) => `[[${b}]]`), ...(out.conMenu ? ["[[Elige tú]]"] : [])].join("\n");
+  const botones = [...botonesDe(opciones.slice(0, 3).map((r) => r.name)).map((b) => `[[${b}]]`), ...(out.conMenu ? [`[[${BOTONES.eligeTu.es}]]`] : [])].join("\n");
   return {
     texto: `${cabecera}\n\n${cuerpo}${aviso}\n\n${pregunta}\n${botones}`,
     fotos,
@@ -288,7 +288,7 @@ export function repiteLaPropuesta(nueva, anterior) {
 
 // ── Paso 0: el estado de la conversación ────────────────────────────────────
 
-// «Elige tú» en castellano o en inglés («You choose»): ELIGE_TU vive en botones.js (#958).
+// «Elige tú» en castellano o en inglés («You choose»): las formas viven en botones.js (#958).
 
 /**
  * ¿El mensaje elige una de las opciones que Lola acaba de dar? Por nombre (o
@@ -300,7 +300,7 @@ export function eleccionDe(texto, propuesta) {
   if (!propuesta?.opciones?.length) return null;
   const t = normal(String(texto).replace(/…$/, "").replace(/^(la|el|los|las|pon(me)?|quiero)\s+/i, ""));
   if (!t) return null;
-  if (ELIGE_TU.test(String(texto).trim())) return { eligeTu: true };
+  if (esEligeTu(texto)) return { eligeTu: true };
   const exacta = propuesta.opciones.find((o) => normal(o.nombre) === t);
   if (exacta) return { opcion: exacta };
   const porPrincipio = propuesta.opciones.filter((o) => normal(o.nombre).startsWith(t) && t.length >= 4);

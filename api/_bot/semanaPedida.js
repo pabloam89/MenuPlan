@@ -13,7 +13,7 @@
  */
 
 import { indiceDeISO, isoDeCasa, MESES_CORTOS } from "../../src/lib/dias.js";
-import { leerBotonRehacer } from "./botones.js";
+import { leerBotonRehacer, textoRehacer } from "./botones.js";
 
 export const TOPE_SEMANAS = 8;
 
@@ -100,8 +100,8 @@ export function conservarDiasPrevios(plan, viejo, desdeIdx, DIAS) {
  */
 export function botonRehacer(semanas, hoy) {
   const lunesHoy = lunesDe(hoy);
-  if (semanaConMenu(semanas, sumarDias(lunesHoy, 7), hoy)) return `Rehacer la del ${fechaCorta(sumarDias(lunesHoy, 7))}`;
-  if (semanaConMenu(semanas, lunesHoy, hoy) && indiceDeISO(hoy) < 6) return `Rehacer la del ${fechaCorta(lunesHoy)}`;
+  if (semanaConMenu(semanas, sumarDias(lunesHoy, 7), hoy)) return textoRehacer(sumarDias(lunesHoy, 7));
+  if (semanaConMenu(semanas, lunesHoy, hoy) && indiceDeISO(hoy) < 6) return textoRehacer(lunesHoy);
   return null;
 }
 
