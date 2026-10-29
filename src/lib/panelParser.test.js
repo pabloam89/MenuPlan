@@ -5,7 +5,7 @@ import {
 } from "./panelParser.js";
 import { libretaVacia, poner, valorDe, proyectar, estadoDe, porQue } from "./notepad.js";
 import { SYSTEM_PROMPTS } from "../../api/_prompts.js";
-import { CAMPOS, FAMILIAS } from "./notepadFields.js";
+import { CAMPOS, FAMILIAS, rutaDe } from "./notepadFields.js";
 
 const HOY = "2026-09-04";
 const ctx = { frase: "menos pescado", fecha: HOY };
@@ -149,6 +149,16 @@ describe("aplicar a la libreta", () => {
     expect(valorDe(n, "freqs.pasta_arroz")).toBe(7);
     const alto = aplicarAjuste(libretaVacia(), { campo: "freqs", valor: "pasta_arroz", op: "mas", n: 20 }, ctx);
     expect(valorDe(alto, "freqs.pasta_arroz")).toBeLessThanOrEqual(7);
+  });
+
+  // #958: «no más de dos ensaladas» (op menos, n 2) quedaba de FAVORITO.
+  it("«menos» o «no más de dos» de un ingrediente nunca lo hace favorito", () => {
+    const ruta = rutaDe("favoritos", "ensalada", "todos", "ambos");
+    const menos = aplicarAjuste(libretaVacia(), { campo: "favoritos", valor: "ensalada", op: "menos", n: 2 }, ctx);
+    expect(valorDe(menos, ruta, null)).not.toBe(true);
+    expect(proyectar(menos).favoritos).not.toContain("ensalada");
+    const mas = aplicarAjuste(libretaVacia(), { campo: "favoritos", valor: "ensalada", op: "mas" }, ctx);
+    expect(valorDe(mas, ruta, null)).toBe(true);
   });
 
   it("caso 72 · «menos pescado» con 0 no baja de 0", () => {
