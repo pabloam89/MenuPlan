@@ -1373,7 +1373,7 @@ function sacarBotones(texto) {
 const DESHACER = "Deshaz lo último que has cambiado";
 /** Lo que manda un botón al pulsarlo (exportada para el test). */
 export function datoDeBoton(o) {
-  return esNoEsAsi(o) ? `t:${DESHACER}` : `t:${o}`;
+  return /^(no es as[ií]|no es correcto|no,? as[ií] no|me he equivocado)$/i.test(o.trim()) ? `t:${DESHACER}` : `t:${o}`; // ROJO A PROPÓSITO
 }
 
 // Empieza por lo que ofrece, no por la cuenta: quien escribe «somos cuatro»

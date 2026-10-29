@@ -100,7 +100,7 @@ export function conservarDiasPrevios(plan, viejo, desdeIdx, DIAS) {
  */
 export function botonRehacer(semanas, hoy) {
   const lunesHoy = lunesDe(hoy);
-  if (semanaConMenu(semanas, sumarDias(lunesHoy, 7), hoy)) return textoRehacer(sumarDias(lunesHoy, 7));
+  if (semanaConMenu(semanas, sumarDias(lunesHoy, 7), hoy)) return `Rehacer la del ${fechaCorta(sumarDias(lunesHoy, 7)).replace(/ (\p{L})/u, (m, a) => ` ${a.toUpperCase()}`)}`; // ROJO A PROPÓSITO
   if (semanaConMenu(semanas, lunesHoy, hoy) && indiceDeISO(hoy) < 6) return textoRehacer(lunesHoy);
   return null;
 }
