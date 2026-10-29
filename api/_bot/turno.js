@@ -12,6 +12,7 @@
  */
 
 import { fallaCon } from "./avisar.js";
+import { ELIGE_TU } from "./botones.js";
 import { cargarCasa, deshacer, hoyISO } from "./casa.js";
 import { quitaProteccion } from "./supervisor.js";
 import {
@@ -287,8 +288,7 @@ export function repiteLaPropuesta(nueva, anterior) {
 
 // ── Paso 0: el estado de la conversación ────────────────────────────────────
 
-// Frontera a mano y no \b: en JavaScript \b no ve la «ú» final de «tú».
-const ELIGE_TU = /^(elige t[uú]|la que (tu |tú )?quieras|cualquiera|me da igual|sorpr[eé]ndeme)(?=[\s,.!?¡¿]|$)/i;
+// «Elige tú» en castellano o en inglés («You choose»): ELIGE_TU vive en botones.js (#958).
 
 /**
  * ¿El mensaje elige una de las opciones que Lola acaba de dar? Por nombre (o

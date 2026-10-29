@@ -13,6 +13,7 @@
  */
 
 import { indiceDeISO, isoDeCasa } from "../../src/lib/dias.js";
+import { leerBotonRehacer } from "./botones.js";
 
 export const TOPE_SEMANAS = 8;
 
@@ -105,8 +106,11 @@ export function botonRehacer(semanas, hoy) {
   return null;
 }
 
-/** ¿Es el texto del botón de botonRehacer? Entonces se rehace, lo diga o no el modelo. */
-export const esBotonRehacer = (texto) => /^\s*rehacer la del \d{1,2} [a-z]{3}\s*$/i.test(String(texto ?? ""));
+/**
+ * ¿Es el texto del botón de botonRehacer? Entonces se rehace, lo diga o no el
+ * modelo. En castellano o en inglés («Redo the week of 26 Oct», botones.js, #958).
+ */
+export const esBotonRehacer = (texto) => leerBotonRehacer(texto) != null;
 
 /**
  * El lunes que nombra el botón («Rehacer la del 26 oct» → 2026-10-26), o
@@ -114,11 +118,10 @@ export const esBotonRehacer = (texto) => /^\s*rehacer la del \d{1,2} [a-z]{3}\s*
  * modelo: en las evals, a veces pedía «siguiente» y eso es la primera libre.
  */
 export function desdeDelBoton(texto, hoy) {
-  const m = String(texto ?? "").match(/^\s*rehacer la del (\d{1,2}) ([a-z]{3})\s*$/i);
-  const mes = m ? MESES.indexOf(m[2].toLowerCase()) : -1;
-  if (mes < 0) return null;
+  const b = leerBotonRehacer(texto);
+  if (!b) return null;
   let anio = Number(hoy.slice(0, 4));
-  const iso = (a) => `${a}-${String(mes + 1).padStart(2, "0")}-${String(Number(m[1])).padStart(2, "0")}`;
+  const iso = (a) => `${a}-${String(b.mes + 1).padStart(2, "0")}-${String(b.dia).padStart(2, "0")}`;
   if (iso(anio) < sumarDias(hoy, -180)) anio += 1;
   return iso(anio);
 }

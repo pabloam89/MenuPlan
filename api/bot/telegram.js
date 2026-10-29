@@ -23,6 +23,7 @@
 
 import { seguirCon, fallaCon, SIN_LEER } from "../_bot/avisar.js";
 import { noPude } from "../_bot/noPude.js";
+import { esNoEsAsi } from "../_bot/botones.js";
 import crypto from "node:crypto";
 import { waitUntil } from "@vercel/functions";
 import { select, insert, update, eq } from "../_bot/db.js";
@@ -1362,10 +1363,10 @@ function sacarBotones(texto) {
 // [[No es así]] tras apuntar algo (una alergia, quién come) es deshacer lo
 // que se acaba de guardar: va directo al deshacer de la casa (casa.js), sin
 // que el modelo tenga que entender un «no es así» suelto.
+// En castellano o en inglés («That's not right»): botones.js (#958).
 const DESHACER = "Deshaz lo último que has cambiado";
-const ES_DESHACER = /^(no es as[ií]|no es correcto|no,? as[ií] no|me he equivocado)$/i;
 function datoDeBoton(o) {
-  return ES_DESHACER.test(o.trim()) ? `t:${DESHACER}` : `t:${o}`;
+  return esNoEsAsi(o) ? `t:${DESHACER}` : `t:${o}`;
 }
 
 // Empieza por lo que ofrece, no por la cuenta: quien escribe «somos cuatro»
