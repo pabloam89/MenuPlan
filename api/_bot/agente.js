@@ -70,6 +70,7 @@ import { ENUMS as ENUMS_TAREAS } from "../../src/lib/registroTareas.js";
 import { tareasV2 } from "./idempotencia.js";
 import { apuntarSilencio, conRecordatorio, NOTA_RECORDATORIO } from "./silencio.js";
 import { usoParcialDe } from "./medidaTurno.js";
+import { esResultado, paraElModelo, conRecibo, recibo, cuentaComoGuardado } from "./resultado.js";
 import { operacion, claveDeEscritura, tipoDeHerramienta, YA_ESCRITA, SIN_COMPROBAR } from "./operacion.js";
 import { primeraVez, yaVista } from "./entradas.js";
 
@@ -279,7 +280,11 @@ export async function herramientas(chat) {
         // cuenta como guardado, ni lleva botón a la app.
         chat.nadaQueVer = false;
         const { r, escribio } = await contandoEscrituras(() => t.run(args, llamada));
-        if (escribio) chat.guardados = (chat.guardados ?? 0) + 1;
+        // Un RESULTADO (resultado.js, #958): lo hecho y lo que no, con forma
+        // fija. El recibo que ve la familia sale de aquí, no del texto de Lola,
+        // y un resultado sin nada hecho no cuenta como guardado.
+        if (cuentaComoGuardado(escribio, r)) chat.guardados = (chat.guardados ?? 0) + 1;
+        if (esResultado(r)) (chat.resultados ??= []).push(r);
         if (op && escribio) {
           if (clave) await primeraVez(CANAL.TELEGRAM, clave);
           // Escribió sin pasar por la casa (despensa, tareas…): se apunta de
@@ -290,7 +295,7 @@ export async function herramientas(chat) {
         if (t.name === "cambiar_plato" && args.dia) tocado.dias.add(diaDe(args.dia) ?? String(args.dia).toLowerCase());
         const ir = (SOLO_LECTURA.has(t.name) && !chat.nadaQueVer) || escribio ? pantallaDe(t.name, args) : null;
         if (ir) chat.ir = ir;
-        return r;
+        return esResultado(r) ? paraElModelo(r) : r;
       } catch (e) {
         // a propósito: el evento vale más sin dueño que perdido
         await registrar(FALLO_HERRAMIENTA, { userId: await duenoDe(chat.householdId).catch(seguirCon("agente_dueno", null)), extra: { herramienta: t.name, error: String(e?.message ?? e).slice(0, 300), esGrupo: Boolean(chat.esGrupo) } });
@@ -535,7 +540,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "ajustar_gustos",
-      description: `Gustos de la casa, como el panel de la app. Cada ajuste: campo, valor, op (mas|menos|nunca), n opcional (veces/semana, 0-7, solo freqs), ambito (todos|ninos|adultos|bebes), servicio (ambos|comida|cena). Campos y valores válidos: ${gustos}. «Nada de X» es favoritos/excluidos con op=nunca. dicho=true SOLO si es una instrucción o una norma de la casa («en casa no comemos cerdo», «pon más pescado», «nada de fritos»). Un comentario u opinión es dicho=false aunque hable de gustos («a los peques no les va mucho el pescado», «el cerdo nos sienta regular», «son de poco comer»): eso solo inclina el menú, no excluye nada y caduca; se apunta sin preguntar. Un antojo de hoy («hoy no me apetece») no es un gusto: no lo apuntes. Con algo supuesto, habla de ello como impresión, no como hecho. desde/hasta (AAAA-MM-DD) para lo que tiene fecha («este mes», «a partir del lunes»). dias y salvoDias para lo que vale solo algunos días («los lunes, sin carne» → dias [Lun]; «entre semana, nada de fritos» → dias [Lun..Vie]; «sin pescado en la cena salvo los viernes» → servicio cena, salvoDias [Vie]): por días solo se puede QUITAR (op=nunca: un ingrediente, carne, pescado, legumbres, huevos, pasta_arroz o una técnica) y solo como norma dicha.`,
+      description: `Gustos de la casa, como el panel de la app. Cada ajuste: campo, valor, op (mas|menos|nunca), n opcional (veces/semana, 0-7, solo freqs; solo si dijo un número exacto), cantidad opcional (solo freqs: lo que dijo, literal, si es «menos de dos», «como mucho tres», «al menos una»…; el número lo saca el código, no tú), ambito (todos|ninos|adultos|bebes), servicio (ambos|comida|cena). Campos y valores válidos: ${gustos}. «Nada de X» es favoritos/excluidos con op=nunca. dicho=true SOLO si es una instrucción o una norma de la casa («en casa no comemos cerdo», «pon más pescado», «nada de fritos»). Un comentario u opinión es dicho=false aunque hable de gustos («a los peques no les va mucho el pescado», «el cerdo nos sienta regular», «son de poco comer»): eso solo inclina el menú, no excluye nada y caduca; se apunta sin preguntar. Un antojo de hoy («hoy no me apetece») no es un gusto: no lo apuntes. Con algo supuesto, habla de ello como impresión, no como hecho. desde/hasta (AAAA-MM-DD) para lo que tiene fecha («este mes», «a partir del lunes»). dias y salvoDias para lo que vale solo algunos días («los lunes, sin carne» → dias [Lun]; «entre semana, nada de fritos» → dias [Lun..Vie]; «sin pescado en la cena salvo los viernes» → servicio cena, salvoDias [Vie]): por días solo se puede QUITAR (op=nunca: un ingrediente, carne, pescado, legumbres, huevos, pasta_arroz o una técnica) y solo como norma dicha.`,
       inputSchema: obj({
         ajustes: {
           type: "array", minItems: 1, maxItems: 8,
@@ -543,6 +548,8 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
             campo: { type: "string" }, valor: { type: "string" },
             op: { type: "string", enum: ["mas", "menos", "nunca"] },
             n: { type: "integer", minimum: 0, maximum: 7 },
+            // La cantidad dicha, literal: la lee cantidadDe del intérprete (#958).
+            cantidad: { type: "string", description: "Solo freqs: «menos de dos», «como mucho tres», «al menos una vez»…" },
             ambito: { type: "string", enum: ["todos", "ninos", "adultos", "bebes"] },
             servicio: { type: "string", enum: ["ambos", "comida", "cena"] },
           }, ["campo", "valor", "op"]),
@@ -1114,7 +1121,8 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   // solo existe en el turno en que llega (apartar_foto_plato, preparar_receta).
   // `pintar`: qué trozo del menú sale pintado debajo del mensaje (pintar.js).
   // `llamadas`: las herramientas que Lola pide en el turno, en orden (silencio.js).
-  const chat = { channel, chatId: String(chatId), householdId, autor, adjunto, texto, fotos: [], ir: null, compartir: null, pintar: null, puerta, esGrupo: Boolean(esGrupo), papel: undefined, llamadas: [], pedidas: [] };
+  // `resultados`: lo que devuelven con forma fija las herramientas que escriben (resultado.js): de ahí sale el recibo.
+  const chat = { channel, chatId: String(chatId), householdId, autor, adjunto, texto, fotos: [], ir: null, compartir: null, pintar: null, puerta, esGrupo: Boolean(esGrupo), papel: undefined, llamadas: [], pedidas: [], resultados: [] };
   // El papel de quien escribe, en cada turno (no se guarda: quitar a alguien
   // vale para el mensaje siguiente). Las herramientas se filtran con él.
   const conPapel = papelDeQuien({ householdId, chatId, esGrupo: Boolean(esGrupo), desde, channel })
@@ -1191,7 +1199,7 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   const adelanto = adelantoDelTurno(chat);
   const conAdelanto = adelanto.servir(tools);
   let medidaPista = null;
-  const limpiarTurno = () => { chat.fotos.length = 0; chat.ir = null; chat.compartir = null; chat.pintar = null; };
+  const limpiarTurno = () => { chat.fotos.length = 0; chat.ir = null; chat.compartir = null; chat.pintar = null; chat.resultados.length = 0; };
   const lanzar = (d, leido, sig, { reinicio }) => {
     if (reinicio) limpiarTurno();
     adelanto.usar(leido);
@@ -1242,8 +1250,10 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
     console.error("[agente] a medias", err?.message);
     // a propósito: el evento vale más sin dueño que perdido
     await registrar(FALLO_A_MEDIAS, { userId: await duenoDe(householdId).catch(seguirCon("agente_dueno", null)), extra: { error: `a medias: ${String(err?.message ?? err).slice(0, 250)}`, esGrupo: Boolean(esGrupo) } });
+    // Lo que sí se sabe que quedó hecho va en el recibo, de los datos (#958).
+    const hecho = recibo(chat.resultados);
     return {
-      texto: "😵‍💫 Me he quedado a medias: puede que ya haya cambiado algo y no te lo he podido contar.\n\nMíralo en la app con el botón antes de pedírmelo otra vez, así no se hace dos veces.",
+      texto: `${hecho ? `${hecho}\n\n` : ""}😵‍💫 Me he quedado a medias: puede que ya haya cambiado algo y no te lo he podido contar.\n\nMíralo en la app con el botón antes de pedírmelo otra vez, así no se hace dos veces.`,
       fotos: chat.fotos, deshacible: false, ir: chat.ir ?? "semana", compartir: null,
     };
   }
@@ -1274,7 +1284,11 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   ).catch((e) => console.error("[agente] promover", e?.message));
   // El recordatorio del primer menú por silencio lo pone el código, no el
   // modelo (generar_menu lo marca en chat.recordarSilencio): sale una vez.
-  const respuesta = conRecordatorio(visible, chat.recordarSilencio, chat.idioma ?? "es") + avisoDeLimite(householdId, llevados);
+  // El recibo (resultado.js, #958): lo hecho y lo que no, pintado por el
+  // código encima del mensaje de Lola. Y si ni con el aviso dejó de decir que
+  // guardó sin guardar nada, la familia lo ve dicho: antes le llegaba la
+  // promesa falsa tal cual (bot_claimed_unsaved con sigue = true).
+  const respuesta = conRecibo(conRecordatorio(visible, chat.recordarSilencio, chat.idioma ?? "es"), chat.resultados, { sinGuardar: sigueSinGuardar }) + avisoDeLimite(householdId, llevados);
 
   // Guardar la charla no tiene por qué retrasar la respuesta: va en
   // `guardado`, y quien entrega lo espera DESPUÉS de enviar y antes de soltar
