@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  VEREDICTOS, ESTADOS_PRESUPUESTO, PARTE_CONOCIDA_MINIMA, leerPresupuesto, presupuestoSemanal,
+  VEREDICTOS, ESTADOS_PRESUPUESTO, PARTE_CONOCIDA_MINIMA, leerPresupuesto, presupuestoSemanal, topePorRacion,
   precioDePlato, precioAlto, estimarSemana, veredicto, frasePresupuesto, COBERTURA_SUELO,
 } from "./presupuesto.js";
 import recipeCoste from "../data/derived/recipeCoste.json" with { type: "json" };
@@ -23,6 +23,11 @@ describe("leerPresupuesto: la lectura de hasBudget y budget para enseñarlo o ha
   it("con él, el número", () => {
     expect(leerPresupuesto(casa(80))).toEqual({ estado: "activo", euros: 80 });
     expect(presupuestoSemanal(casa("95"))).toBe(95);
+  });
+  it("el tope por ración reparte el presupuesto entre las raciones; sin las dos cifras, no hay tope", () => {
+    expect(topePorRacion(84, 28)).toBe(3);
+    expect(topePorRacion(null, 28)).toBeNull();
+    expect(topePorRacion(84, 0)).toBeNull();
   });
   it("con el interruptor y sin cifra válida es «sin_cifra», no «sin»: no se calla", () => {
     for (const b of [0, -5, "mucho", null, undefined]) expect(leerPresupuesto(casa(b)).estado, String(b)).toBe("sin_cifra");
