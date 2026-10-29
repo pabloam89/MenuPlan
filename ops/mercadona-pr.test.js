@@ -70,7 +70,7 @@ describe("mercadona-sync abre un PR con una App", () => {
     expect(run).toContain("src/data/derived/recipeCoste.json");
   });
 
-  it("el cuerpo del PR lleva las secciones que pide el juez y no cuenta detalles de seguridad", () => {
+  it("el cuerpo del PR lleva las secciones que pide el juez", () => {
     const run = pasoCommit().run;
     for (const s of ["## Evidence", "## Decisions", "## Not verified"]) expect(run).toContain(s);
   });
