@@ -90,6 +90,7 @@ import {
   safeTop,
 } from "../components/ui.jsx";
 import { MAX_MENU_WEEKS, weekEntry } from "../lib/menuArchive.js";
+import { quitarPersona } from "../lib/quitarPersona.js";
 import { applyFreqWithinBudget } from "../lib/freqBudget.js";
 import { FAMILIA_LABELS, FAMILIAS_EN_PANTALLA } from "../lib/notepadFields.js";
 import { DONDE_COME } from "../lib/vocabularios.js";
@@ -764,7 +765,9 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
   const removeMember = (id) => {
     setRemovingIds((s) => new Set([...s, id]));
     setTimeout(() => {
-      setData((d) => ({ ...d, members: d.members.filter((m) => m.id !== id) }));
+      // Con todo lo suyo (grupos, horario, cole…), con la misma función que
+      // Lola (#958): antes aquí solo se quitaba de members.
+      setData((d) => quitarPersona(d, id));
       setRemovingIds((s) => { const n = new Set(s); n.delete(id); return n; });
     }, 260);
   };
