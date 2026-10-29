@@ -13,7 +13,7 @@
 
 import { select, rpc, eq } from "./db.js";
 import { crearCuentaTelegram } from "./cuentas.js";
-import { enlazarChat, idDePersona } from "./enlace.js";
+import { enlazarChat, idDePersona, chatOcupado } from "./enlace.js";
 import { avisarFallo, contesto, SIN_LEER } from "./avisar.js";
 import { noPude } from "./noPude.js";
 import { IDIOMA, IDIOMAS } from "../../src/lib/vocabularios.js";
@@ -40,9 +40,11 @@ const TEXTOS = {
 };
 
 /**
- * ¿Vale aún esta invitación, y a qué casa lleva? Las mismas reglas que _unirse
- * (0073): una de household_invites sin revocar, con usos y sin caducar, o el
- * enlace fijo de la casa (households.invite_token). null si no vale; SIN_LEER
+ * ¿Vale aún esta invitación, y a qué casa lleva? Las mismas reglas que
+ * `_unirse` en la base (su última versión: 0087): una de household_invites sin
+ * revocar, con usos y sin caducar, o el enlace fijo de la casa
+ * (households.invite_token). La copia en JS la vigila invitacion.test.js, que
+ * falla si la regla de la última migración cambia. null si no vale; SIN_LEER
  * si no se pudo mirar (#208: no se dice «caducada» sin saberlo).
  */
 export async function invitacionVigente(token, ahora = Date.now()) {
@@ -84,9 +86,7 @@ export async function unirsePorInvitacion({ from, chatId, token, nombre = null }
   // Sin identidad pero con su privado enlazado por una cuenta (chats de antes
   // de las identidades): es esa cuenta, no una nueva.
   let userId = ident?.user_id ?? (String(chatId) === yo ? chat?.linked_by ?? null : null);
-  if (chat && chat.household_id !== destino.householdId && chat.linked_by !== userId) {
-    return { texto: TEXTOS[lang].ocupado, householdId: null, lang };
-  }
+  if (chatOcupado(chat, destino.householdId, userId)) return { texto: TEXTOS[lang].ocupado, householdId: null, lang };
   let nacida = false;
   if (!userId) {
     const cuenta = await crearCuentaTelegram({ telegramId: from.id, nombre });

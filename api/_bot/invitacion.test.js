@@ -96,6 +96,21 @@ describe("entrar con una invitación desde Telegram", () => {
   });
 });
 
+// invitacionVigente copia en JS la regla de `_unirse` (SQL). Si la última
+// migración que la define cambia la regla, este test falla y avisa de que
+// la copia de invitacion.js hay que cambiarla también.
+describe("la regla de invitación vigente es la de la base", () => {
+  it("la última definición de _unirse rechaza por revocada, sin usos o caducada, y acepta el enlace fijo", async () => {
+    const { readdirSync, readFileSync } = await import("node:fs");
+    const dir = new URL("../../supabase/migrations/", import.meta.url);
+    const conUnirse = readdirSync(dir).filter((f) => f.endsWith(".sql")).sort()
+      .filter((f) => /function public\._unirse\b/.test(readFileSync(new URL(f, dir), "utf8")));
+    const sql = readFileSync(new URL(conUnirse.at(-1), dir), "utf8");
+    expect(sql).toMatch(/v_inv\.revoked_at is not null or v_inv\.uses >= v_inv\.max_uses or v_inv\.expires_at <= now\(\)/);
+    expect(sql).toMatch(/from public\.households where invite_token = trim\(p_token\)/);
+  });
+});
+
 describe("lo que se mira ANTES de crear o gastar nada (#958)", () => {
   it("una invitación inventada no crea ninguna cuenta (antes quedaba un usuario de auth huérfano)", async () => {
     const llamadas = [];
