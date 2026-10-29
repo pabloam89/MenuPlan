@@ -1378,9 +1378,11 @@ const DICE_QUE_ARREGLO = /\bya est[aá] (arreglad|cambiad|solucionad|corregid)[o
 // que guardó.
 const NEGABLES = [...DE_GUARDAR, "hech", "dejad", "puest"].join("|");
 const APUNTADO_NEGADO = new RegExp(`\\b(no|ningun[oa]?|nada|nadie)\\b[^.,;:!?\\n]{0,40}?\\b(${NEGABLES})[oa]s?\\b`, "gi");
-const HE_APUNTADO = new RegExp(`\\b(he|hemos|ha|han|has|habeis|habéis)\\s+(${NEGABLES})`, "i");
+// Los auxiliares de «he apuntado», en una lista que leen las dos expresiones.
+const AUXILIARES = "he|hemos|ha|han|has|habeis|habéis";
+const HE_APUNTADO = new RegExp(`\\b(${AUXILIARES})\\s+(${NEGABLES})`, "i");
 const PRONOMBRES = "me|te|se|nos|os|lo|la|los|las|le|les";
-const NO_HE_APUNTADO = new RegExp(`^no\\s+((${PRONOMBRES})\\s+){0,2}(he|hemos|ha|han|has|habeis|habéis)\\s+(${NEGABLES})`, "i");
+const NO_HE_APUNTADO = new RegExp(`^no\\s+((${PRONOMBRES})\\s+){0,2}(${AUXILIARES})\\s+(${NEGABLES})`, "i");
 const sinNegados = (texto) => texto.replace(APUNTADO_NEGADO, (m) => (HE_APUNTADO.test(m) && !NO_HE_APUNTADO.test(m) ? m : ""));
 // Una pregunta («¿Ya está arreglado?», «¿Quieres que lo deje hecho?») no afirma nada.
 const sinPreguntas = (texto) => texto.replace(/¿[^?]*\?/g, "");
