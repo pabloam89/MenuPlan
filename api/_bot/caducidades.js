@@ -106,15 +106,16 @@ export const PATRON_VENCIDO = claveDeTarea({ tipo: "falta_saber", personaId: "*"
 /**
  * Los estados de salud de la casa cuya fecha «hasta» ya pasó (hoy en Madrid).
  * Solo los que la persona sigue teniendo puestos. Una lista de personas que
- * no es una lista (sin personas es null o falta) se avisa: si no, esa casa no
- * se preguntaría nunca y nadie lo sabría.
- * @returns {{ personaId: string, nombre: string, estado: string, hasta: string, clave: string, texto: string }[]}
+ * no es una lista (sin personas es null o falta) se avisa y devuelve null,
+ * NO una lista vacía: «no he podido leerla» no es «no hay nada», y con una
+ * vacía el barrido cerraría las preguntas abiertas de esa casa (#974, C5).
+ * @returns {null | { personaId: string, nombre: string, estado: string, hasta: string, clave: string, texto: string }[]}
  */
 export function estadosVencidos(members = [], hoy = isoDeCasa()) {
   const out = [];
   if (members != null && !Array.isArray(members)) {
     avisarFallo("caducidades_personas_ilegibles", new Error(`members es ${typeof members}`), { grave: false });
-    return out;
+    return null;
   }
   for (const m of members ?? []) {
     if (!m?.id) continue;
@@ -136,16 +137,23 @@ export function estadosVencidos(members = [], hoy = isoDeCasa()) {
 async function barrerEstados({ ahoraMs, hoy }) {
   const casas = await select("household_state", "", "household_id,members:state->data->members");
   const vivas = new Set();
+  // Las casas que no se han podido leer: sus preguntas abiertas no se tocan.
+  const sinLeer = new Set();
   let abiertas = 0;
   for (const c of casas) {
     const vencidos = estadosVencidos(c.members, hoy);
+    if (vencidos === null) {
+      sinLeer.add(c.household_id);
+      continue;
+    }
     if (!vencidos.length) continue;
+    // Vivas antes de buscar el chat: sin chat no se abre nada, pero lo abierto sigue valiendo.
+    for (const v of vencidos) vivas.add(`${c.household_id}|${v.clave}`);
     const chats = await select("bot_chats", `household_id=${eq(c.household_id)}&order=created_at.asc`, "channel,chat_id,kind");
     // El privado antes que el grupo: es salud.
     const chat = chats.find((x) => x.kind === "private") ?? chats[0];
     if (!chat) continue;
     for (const v of vencidos) {
-      vivas.add(`${c.household_id}|${v.clave}`);
       // Una vez por estado y fecha: si ya se preguntó (abierta o cerrada), no se repite.
       const ya = await select("bot_tareas", `household_id=${eq(c.household_id)}&clave=${eq(v.clave)}&limit=1`, "id");
       if (ya.length) continue;
@@ -164,12 +172,12 @@ async function barrerEstados({ ahoraMs, hoy }) {
   }
   // Las que ya no hacen falta (la quitaron o le dieron fecha nueva): cerradas.
   const abiertasAntes = await select("bot_tareas", `clave=like.${encodeURIComponent(PATRON_VENCIDO)}&status=eq.abierta`, "id,household_id,clave");
-  const sobran = abiertasAntes.filter((t) => !vivas.has(`${t.household_id}|${t.clave}`));
+  const sobran = abiertasAntes.filter((t) => !sinLeer.has(t.household_id) && !vivas.has(`${t.household_id}|${t.clave}`));
   if (sobran.length) {
     const ahora = new Date(ahoraMs).toISOString();
     await update("bot_tareas", `id=in.(${sobran.map((t) => t.id).join(",")})&status=eq.abierta`, { status: "hecha", closed_at: ahora, updated_at: ahora });
   }
-  return { abiertas, cerradas: sobran.length };
+  return { abiertas, cerradas: sobran.length, sinLeer: sinLeer.size };
 }
 
 // ── La cola sin dueño ───────────────────────────────────────────────────────

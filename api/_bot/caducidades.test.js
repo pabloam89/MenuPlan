@@ -91,7 +91,8 @@ describe("estados de salud con fecha pasada", () => {
   it("una lista de personas que no es una lista se avisa, no se da por vacía (#964, C5)", () => {
     let v;
     const dichos = avisos(() => { v = estadosVencidos({ p1: members[0] }, "2026-11-05"); });
-    expect(v).toEqual([]);
+    // null, no []: «no he podido leerla» no es «no hay nadie».
+    expect(v).toBeNull();
     expect(dichos).toMatchObject([{ donde: "caducidades_personas_ilegibles" }]);
     // Sin personas (null) no es un fallo.
     expect(avisos(() => estadosVencidos(null, "2026-11-05"))).toEqual([]);
@@ -112,7 +113,7 @@ describe("estados de salud con fecha pasada", () => {
     });
     db.insert.mockResolvedValue([{}]);
     const r = await barrer({ ahoraMs: Date.parse("2026-11-05T09:01:00Z") });
-    expect(r[CADUCA.ESTADO_SALUD]).toEqual({ abiertas: 1, cerradas: 0 });
+    expect(r[CADUCA.ESTADO_SALUD]).toEqual({ abiertas: 1, cerradas: 0, sinLeer: 0 });
     const [tabla, [fila]] = db.insert.mock.calls[0];
     expect(tabla).toBe("bot_tareas");
     expect(fila).toMatchObject({ chat_id: "7", kind: "pregunta", clave: claveDeEstadoVencido("p1", "pregnancy", "2026-09-30") });
@@ -137,8 +138,27 @@ describe("estados de salud con fecha pasada", () => {
     });
     db.update.mockResolvedValue([{}]);
     const r = await barrer({ ahoraMs: Date.parse("2026-11-05T09:00:00Z") });
-    expect(r[CADUCA.ESTADO_SALUD]).toEqual({ abiertas: 0, cerradas: 1 });
+    expect(r[CADUCA.ESTADO_SALUD]).toEqual({ abiertas: 0, cerradas: 1, sinLeer: 0 });
     expect(db.update.mock.calls[0][2]).toMatchObject({ status: "hecha" });
+  });
+
+  it("si la casa no se puede leer, sus preguntas abiertas no se cierran (#974, C5)", async () => {
+    db.select.mockReset(); db.update.mockReset();
+    db.select.mockImplementation(async (tabla, filtro) => {
+      if (tabla === "household_state") return [{ household_id: "h1", members: { roto: true } }];
+      if (tabla === "bot_tareas" && filtro.includes("like")) return [{ id: "t9", household_id: "h1", clave: claveDeEstadoVencido("p1", "pregnancy", "2026-09-30") }];
+      return [];
+    });
+    let r;
+    // El aviso de la casa ilegible se mira en el test de estadosVencidos; aquí, callado.
+    const espia = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      r = await barrer({ ahoraMs: Date.parse("2026-11-05T09:00:00Z") });
+    } finally {
+      espia.mockRestore();
+    }
+    expect(r[CADUCA.ESTADO_SALUD]).toEqual({ abiertas: 0, cerradas: 0, sinLeer: 1 });
+    expect(db.update).not.toHaveBeenCalled();
   });
 });
 
