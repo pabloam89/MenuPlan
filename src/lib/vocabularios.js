@@ -141,7 +141,7 @@ export const MOTIVOS_FALLO = [
  */
 export const SITIOS_FALLO = [
   // api/_bot/agente.js
-  "agente_casa", "agente_dueno", "agente_idioma", "agente_papel", "agente_segunda_semana", "apuntar_operacion",
+  "agente_casa", "agente_dueno", "agente_idioma", "agente_papel", "agente_segunda_semana", "apuntar_operacion", "uso_enrutador",
   // api/bot/telegram.js
   "aclarar_via_rapida", "alta_adjunto", "apuntar_falta_via_rapida", "aviso_de_espera",
   "aviso_del_enrutador", "aviso_del_modo", "borrarcuenta_identidad", "borrarcuenta_nacida_aqui",

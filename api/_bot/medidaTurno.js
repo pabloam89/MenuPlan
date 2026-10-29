@@ -98,3 +98,21 @@ export function usoParcialDe(progreso) {
   const uso = { in: suma("input_tokens"), out: suma("output_tokens"), cr: suma("cache_read_input_tokens"), cw: suma("cache_creation_input_tokens") };
   return uso.in + uso.out + uso.cr + uso.cw > 0 ? uso : null;
 }
+
+// Las dos formas en que viaja el uso: la de la API («input_tokens»…) y la corta
+// de bot_route y de lo pagado al cortar una llamada («in», «out», «cr», «cw»).
+const CLAVES_USO = Object.freeze({ input_tokens: "in", output_tokens: "out", cache_read_input_tokens: "cr", cache_creation_input_tokens: "cw" });
+
+/**
+ * Suma usos de un mismo turno (Lola, el enrutador, lo pagado en intentos que
+ * fallaron), en la forma de la API, que es la que cuenta bot_usage (uso.js
+ * contarUso). Acepta las dos formas y nulos (#958).
+ */
+export function sumarUsos(...usos) {
+  const total = Object.fromEntries(Object.keys(CLAVES_USO).map((k) => [k, 0]));
+  for (const u of usos) {
+    if (!u) continue;
+    for (const [k, corta] of Object.entries(CLAVES_USO)) total[k] += Number(u[k] ?? u[corta]) || 0;
+  }
+  return total;
+}
