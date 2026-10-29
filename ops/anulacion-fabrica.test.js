@@ -63,6 +63,10 @@ describe("anulacion.yml llama a la anulación de la Fábrica", () => {
     expect(trabajo(F).with).toEqual({ "revisor-app-slug": "homenu-revisor" });
   });
 
+  it("el slug de la App revisora es el mismo que el de revisor.yml: dos Apps distintas nunca", () => {
+    expect(trabajo(F).with["revisor-app-slug"]).toBe(trabajo("revisor.yml").with["revisor-app-slug"]);
+  });
+
   it("pasa por nombre exactamente los dos secretos de la anulación, nunca inherit", () => {
     const secretos = trabajo(F).secrets;
     expect(secretos, "secrets: inherit entregaría todos los secretos del repo a otro repo").not.toBe("inherit");
