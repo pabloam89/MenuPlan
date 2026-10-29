@@ -27,6 +27,12 @@ export const DIAS_FINDE = Object.freeze(DIAS.slice(5));
 export const NOMBRES_DIA = Object.freeze(["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]);
 /** Una letra por día (el miércoles es la X), en el orden de DIAS. */
 export const LETRAS_DIA = Object.freeze(["L", "M", "X", "J", "V", "S", "D"]);
+/**
+ * Los meses en tres letras, de enero (0) a diciembre. El botón «Rehacer la del
+ * 26 oct» se escribe (semanaPedida.js) y se lee (botones.js) con esta misma
+ * lista: escritas a mano, una podía cambiar y la otra no (#958).
+ */
+export const MESES_CORTOS = Object.freeze(["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]);
 /** El día en los ids del motor («lun_comida_1»): minúsculas y sin tildes. */
 export const SLUGS_DIA = Object.freeze(DIAS.map((d) => d.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase()));
 

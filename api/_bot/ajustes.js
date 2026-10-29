@@ -29,6 +29,7 @@ import { isoDeCasa, diaDeISO } from "../../src/lib/dias.js";
 import { ETAPA_BEBE } from "../../src/lib/vocabularios.js";
 import { supermercadoDe, CON_PRECIOS } from "../../src/lib/supermercados.js";
 import { EXTRAS, conExtras } from "../../src/lib/extras.js";
+import { quitarPersona } from "../../src/lib/quitarPersona.js";
 import { aplicarDiasDeSemana, diasDeSemana } from "../../src/lib/semanaDias.js";
 
 const hoyISO = () => isoDeCasa();
@@ -691,10 +692,11 @@ export async function quitarComensal(householdId, { nombre }) {
   return conData(householdId, (data, m) => {
     const x = personaPorNombre(data, nombre);
     if (!x) return { texto: noEncuentro(data, nombre) };
-    const members = (data.members ?? []).filter((p) => p.id !== x.id);
-    if (!members.length) return { texto: "No puedo dejar la casa sin nadie." };
-    const schedule = Object.fromEntries(Object.entries(data.schedule ?? {}).filter(([k]) => !k.startsWith(`${x.id}|`)));
-    return { data: { ...conGrupos(m, data, members), schedule }, texto: `Quitado de la casa: ${x.name}.` };
+    // Con todo lo suyo, con la misma función que la app (#958): antes aquí solo
+    // se limpiaba schedule, y en la app solo members.
+    const sinElla = quitarPersona(data, x.id);
+    if (!sinElla.members.length) return { texto: "No puedo dejar la casa sin nadie." };
+    return { data: conGrupos(m, sinElla, sinElla.members), texto: `Quitado de la casa: ${x.name}.` };
   });
 }
 
