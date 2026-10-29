@@ -296,6 +296,17 @@ export function toggleMenuFavorite(menus, menuId) {
  * mirrored into the live `menuPlan`. Returns the new map plus the snapshotted
  * { weekStart, week } so callers can mirror it to the cloud. Pure.
  */
+/**
+ * La semana [lunes, semana] de un menú con ese `offset`, solo si es UNA. Con
+ * dos (menús de Lola de antes de #958, que copiaban el offset viejo de las
+ * semanas conservadas) no se sabe cuál se ve, y guardar en la primera pisaba
+ * lo que Lola acababa de generar: mejor no guardar que pisar la otra.
+ */
+export function semanaPorOffset(weeks, offset) {
+  const todas = Object.entries(weeks ?? {}).filter(([, w]) => w?.offset === offset);
+  return todas.length === 1 ? todas[0] : null;
+}
+
 export function saveActivePlanAsFavorite(menus, activeMenuId, livePlan, activeOffset) {
   const menu = menus?.[activeMenuId];
   if (!menu) return { menus, weekStart: null, week: null };
@@ -303,7 +314,7 @@ export function saveActivePlanAsFavorite(menus, activeMenuId, livePlan, activeOf
   let weekStart = null;
   let week = null;
   if (livePlan && Object.keys(livePlan).length > 0) {
-    const entry = Object.entries(weeks).find(([, w]) => w?.offset === activeOffset);
+    const entry = semanaPorOffset(weeks, activeOffset);
     if (entry) {
       weekStart = entry[0];
       week = { ...entry[1], plan: livePlan };
@@ -327,7 +338,7 @@ export function saveActivePlanAsFavorite(menus, activeMenuId, livePlan, activeOf
 export function semanaVivaPorGuardar(menus, activeMenuId, activeOffset, livePlan, liveShopping) {
   const menu = activeMenuId ? menus?.[activeMenuId] : null;
   if (!menu || !livePlan || Object.keys(livePlan).length === 0) return null;
-  const entry = Object.entries(menu.weeks ?? {}).find(([, w]) => w?.offset === activeOffset);
+  const entry = semanaPorOffset(menu.weeks, activeOffset);
   if (!entry) return null;
   const [weekStart, actual] = entry;
   // Sin plan, de la semana solo se cargó el rango (loadMenuWeekRanges: falló

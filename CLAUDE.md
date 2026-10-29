@@ -18,7 +18,7 @@ alimentos en JSON en git (`src/data/`). Escriben **Pablo** (`pabloam89`) y **Ál
 
 ## Ramas, carpetas y PR
 
-- **`staging`** es la rama por defecto y la que despliega Vercel en staging. Todo sale de `origin/staging` y vuelve por **PR con el CI en verde** (check `tests`: lint con línea base, tests y build). Ese PR lo fusiona la propia sesión; nadie espera la aprobación de una persona.
+- **`staging`** es la rama por defecto y la que despliega Vercel en staging. Todo sale de `origin/staging` y vuelve por **PR con el CI en verde** con dos checks en verde: `tests` (lint con línea base, tests y build) y `revisor` (el juez de la Fábrica, que pide evidencia en el cuerpo; estándar en `standards/code.md` de `factory-am89/fabrica`). Esa es la regla; GitHub la hará cumplir (ruleset y fusión automática) cuando Pablo termine los pasos de «Puente HoMenu» de `PASOS-PABLO.md` en la Fábrica. Hasta entonces `revisor` ya corre en cada PR a `staging` pero no bloquea: trátalo igual. Con la regla activa, la sesión abre el PR, lo deja al día con `staging`, arma `gh pr merge --auto --squash` y **lo fusiona GitHub**; la sesión no fusiona. Si `revisor` o `tests` dicen «no», se arregla en la misma rama (el motivo está en el log del job); no se discute el veredicto. La salida es el Approve de Pablo.
 - **`main` es producción** y solo la fusiona Pablo, desde el botón del PR. GitHub lo impone.
 - Una tarea = una carpeta = una rama, con prefijo de área (`bot/`, `datos/`, `ux/`, `fix/`, `feat/`, `ops/`, `motor/`). En `C:\dev\MenuPlan` no se trabaja. Para abrirla:
   ```
@@ -27,7 +27,7 @@ alimentos en JSON en git (`src/data/`). Escriben **Pablo** (`pabloam89`) y **Ál
   cp C:/dev/MenuPlan/.env.local C:/dev/MenuPlan-mi-tema/ && cd C:/dev/MenuPlan-mi-tema && npm ci
   ```
   Primer push: `git push -u origin <rama>`. Un hook personal de Pablo borra solas las carpetas ya fusionadas y limpias. La app en local: `npm run dev -- --port 5176` (el login con Google solo vuelve a ese puerto).
-- Antes del PR, `git fetch origin && git merge origin/staging` y resuelve. Añade los ficheros por nombre (nada de `git add .`) y nada de `git stash`: es común a todas las carpetas.
+- Antes del PR, y de cada push de arreglo, `git fetch origin && git merge origin/staging` y resuelve (el ruleset exigirá estar al día). Añade los ficheros por nombre (nada de `git add .`) y nada de `git stash`: es común a todas las carpetas.
 - Tests: en local, los de lo que tocas (`npx vitest run <ficheros>`); la suite entera la corre el CI.
 - En el cuerpo del PR, el CI solo exige una línea: si toca `.github/workflows/`, `scripts/workflows-pr.mjs` o `scripts/migraciones-pr.mjs`, `Jueces: …, seguridad` (sin «pendiente», «falta», «sin» ni «no»), tras una revisión de seguridad. `Closes #n` cierra el issue al fusionar, si lo hay.
 
