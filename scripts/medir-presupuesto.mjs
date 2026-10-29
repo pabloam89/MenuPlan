@@ -3,7 +3,7 @@
  * precios del catálogo estrella y, para una casa de dos adultos, el coste y
  * el tiempo de generar la semana sin presupuesto, con 80 € y con 50 €.
  *
- *   npm run medir:presupuesto            (dos semillas)
+ *   npm run medir:presupuesto            (dos vueltas; `-- 5` para cinco)
  *
  * Va por api/_bot/core.mjs (el motor del bot, con el solver), que este
  * script vuelve a empaquetar: Node a secas no carga src/.
@@ -31,7 +31,8 @@ const casa = (presupuesto) => m.resolveModeData({
   timeWeekday: 45, timeWeekend: 60, freqs: { legumbres: 2, verdura: 3, pescado: 2 }, allergiesReviewed: true,
   hasBudget: presupuesto != null, budget: presupuesto ?? 80,
 });
-const semillas = Number(process.argv[2]) || 2;
+const semillas = process.argv[2] == null ? 2 : Number(process.argv[2]);
+if (!Number.isInteger(semillas) || semillas < 1) throw new Error(`el número de vueltas tiene que ser un entero positivo, no «${process.argv[2]}»`);
 for (let s = 0; s < semillas; s++) {
   for (const presupuesto of [null, 80, 50]) {
     const data = casa(presupuesto);
