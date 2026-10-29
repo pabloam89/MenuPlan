@@ -19,6 +19,9 @@ describe("el vigilante ve las frases que se le escapaban", () => {
     "¡Ya está! Os he quitado el pescado.",
     "Os hemos marcado la leche como comprada.",
     "He eliminado la tarea del dentista.",
+    // Entre «no» y «he» hay palabras que no son pronombres: no es negarlo.
+    "No olvides que he apuntado leche.",
+    "Lo he puesto el jueves.",
   ])("«%s» dice que guardó", (frase) => {
     expect(diceQueGuardo(frase)).toBe(true);
     expect(tipoDePromesa(frase)).toBe("guardado");
@@ -31,6 +34,7 @@ describe("lo negado, preguntado, leído o de cocina sigue sin contar", () => {
     "No te he añadido nada.",
     "No he borrado nada.",
     "No te lo he quitado: sigue en la lista.",
+    "No lo he cambiado.",
     "¿Quieres que te lo cambie?",
     "El arroz ya está.",
     "Te he puesto los botones para mandarlo.",
