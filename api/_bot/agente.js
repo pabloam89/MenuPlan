@@ -20,7 +20,7 @@ import { select, insert, eq, contandoEscrituras } from "./db.js";
 import { cargarCasa, deshacer, hoyISO, apuntarOperacion } from "./casa.js";
 import {
   describirCasa, describirReceta, describirCompra,
-  marcarCompra, anadirCompra, cambiarPlato, proponerPlatos, diaDe, franjaDe,
+  marcarCompra, anadirCompra, quitarCompra, cambiarPlato, proponerPlatos, diaDe, franjaDe,
   rangosDelMenu,
   apuntarAusencia,
 } from "./menu.js";
@@ -864,6 +864,21 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
         additionalProperties: false,
       },
       run: ({ productos }) => anadirCompra(householdId, productos),
+    }),
+    // Quitar de la lista (#958): no había herramienta, y Lola lo marcaba como
+    // comprado o decía que lo había quitado sin quitarlo.
+    herramienta({ lector: false, soloLectura: false, pantalla: "compra" }, {
+      name: "quitar_compra",
+      description: "Quita productos de la lista de la compra («quita el pan», «borra los yogures, que ya no hacen falta»). NO es marcarlos como comprados (eso es marcar_compra). manuales=true quita todo lo que se añadió a mano («borra lo que añadí»). Lo que sale del menú vuelve si se rehace la compra al cambiar el menú: dilo si preguntan. Usa los nombres como salen en la lista.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          productos: { type: "array", items: { type: "string" } },
+          manuales: { type: "boolean", description: "true: quita todo lo añadido a mano." },
+        },
+        additionalProperties: false,
+      },
+      run: ({ productos, manuales }) => quitarCompra(householdId, { productos: productos ?? [], manuales: manuales === true }),
     }),
     herramienta({ lector: true, soloLectura: true, pantalla: null }, {
       name: "proponer_platos",
