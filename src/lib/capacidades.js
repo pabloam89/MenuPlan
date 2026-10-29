@@ -149,7 +149,10 @@ export const CAPACIDADES = Object.freeze([
   c("quitar_compra", "quitar productos de la lista, o todo lo añadido a mano", "compra", "quitar", "compra", { lola: ["quitar_compra"], app: app("compra") }),
   c("compartir_compra", "mandar la lista a otra persona", "compra", "compartir", "compra", { app: app("compra") }),
   c("elegir_super", "elegir el súper", "compra", "cambiar", "compra", { lola: ["ajustar_compra"], app: app("asistente", ASISTENTE), datos: ["supermarkets"], aProposito: SE_PREGUNTA_EN_LOLA }),
-  c("presupuesto", "poner un presupuesto", "compra", "cambiar", "compra", { lola: ["ajustar_compra"], app: app("asistente", ASISTENTE), datos: ["hasBudget", "budget"], aProposito: SE_PREGUNTA_EN_LOLA }),
+  // Qué hace (lib/presupuesto.js, #958): al generar, el solver prefiere lo que
+  // cabe y se dice si la semana cabe; la lista de Mercadona de la app pone el
+  // presupuesto al lado de su total.
+  c("presupuesto", "poner un presupuesto semanal: al generar, el menú prefiere lo que cabe y dice si cabe; en la app, la lista de Mercadona lo compara con su total", "compra", "cambiar", "compra", { lola: ["ajustar_compra"], app: app("asistente", ASISTENTE), datos: ["hasBudget", "budget"], aProposito: SE_PREGUNTA_EN_LOLA }),
   c("precio_estimado", "ver lo que costará la compra en el súper", "compra", "ver", "compra", { app: app("compra"), datos: ["priceObs"] }),
   c("tickets", "subir un ticket o apuntar un gasto", "compra", "anadir", "compra", { app: app("tickets", SIN_ENTRADA), datos: ["receipts", "priceObs", "priceAliases"], aProposito: SIN_TICKETS }),
   c("gasto", "ver lo gastado y los tickets", "compra", "ver", "compra", { app: app("estadisticas", SIN_ENTRADA), datos: ["receipts"], aProposito: SIN_TICKETS }),
