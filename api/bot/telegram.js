@@ -35,7 +35,8 @@ import { RASTRO } from "../../src/lib/rastro.js";
 import { pintarMenuEntero } from "../_bot/pintar.js";
 import { transcribir } from "../_bot/voz.js";
 import { adjuntoDe } from "../_bot/adjuntos.js";
-import { enTurno, aSolas, juntar } from "../_bot/turnos.js";
+import { enTurno, aSolas, drenar, juntar } from "../_bot/turnos.js";
+import { conPlazo } from "../_bot/plazo.js";
 import { citaDeFuera } from "../_bot/comoDato.js";
 import { clasificar, vaPorLaRapida, permitidoEn } from "../_bot/router.js";
 import { prediceRapida, ESPERA_MAX_MS } from "../_bot/prediceRapida.js";
@@ -92,6 +93,9 @@ const MIN_VINCULAR = 60; // lo que dura el enlace de acceso de Supabase
 const MIN_ENTRAR = 30;
 
 export default async function handler(req, res) {
+  // El reloj de esta invocación empieza aquí: maxDuration cuenta desde que
+  // llega la petición, waitUntil incluido (api/_bot/plazo.js, #958).
+  const inicio = Date.now();
   if (req.method !== "POST") return res.status(405).end();
   if (!secretoValido(req.headers["x-telegram-bot-api-secret-token"])) return res.status(401).end();
 
@@ -100,6 +104,13 @@ export default async function handler(req, res) {
   // Por dónde llega la petición: el webhook de staging está en su propio
   // dominio (homenu-staging…). Lo usa /borrarme para saber que no es prod.
   const host = String(req.headers["x-forwarded-host"] || req.headers.host || "");
+  // El relevo (#958): otra invocación de este mismo despliegue dejó trabajo en
+  // la cola de un chat porque no le daba tiempo. No es de Telegram (no trae
+  // update_id) y llega con el mismo secreto.
+  if (upd.relevo?.chat) {
+    waitUntil(conPlazo(inicio, () => relevar(String(upd.relevo.chat), base, host)).catch(fallaCon("relevo")));
+    return res.status(200).json({ ok: true });
+  }
   const chatId = upd.message?.chat?.id ?? upd.callback_query?.message?.chat?.id;
   // Siempre 200: si no, Telegram reintenta el mismo mensaje una y otra vez.
   if (chatId == null) return res.status(200).json({ ok: true });
@@ -107,7 +118,7 @@ export default async function handler(req, res) {
   // Se contesta a Telegram al momento y se trabaja después (waitUntil): el
   // agente puede tardar varios segundos entre modelo y herramientas, y si el
   // webhook no responde, Telegram reintenta y el mensaje se atendería dos veces.
-  waitUntil((async () => {
+  waitUntil(conPlazo(inicio, async () => {
     try {
       // Y aun así a veces llega dos veces (una cola, un corte de red): el mismo
       // update_id solo se atiende una (0088, entradas.js).
@@ -119,8 +130,34 @@ export default async function handler(req, res) {
       // a propósito: si ni el aviso sale, ya no hay más que hacer
       await enviar(chatId, "Uy, algo ha fallado. Escríbemelo otra vez en un momento, porfa.").catch(seguirCon("bot_telegram_aviso"));
     }
-  })());
+  }));
   return res.status(200).json({ ok: true });
+}
+
+/**
+ * Quien pasa el trabajo que sobra en la cola de un chat a otra invocación
+ * (turnos.js drenar, #958): una llamada a este mismo webhook, que empieza con
+ * su reloj a cero. Al host por el que llegó la petición, no a APP_URL: el
+ * relevo tiene que caer en este mismo despliegue (staging y producción
+ * comparten base, y cada uno tiene su secreto).
+ */
+export const relevo = (chatId, host) => async () => {
+  if (!host) return console.warn("[relevo] sin host: lo que sobra espera al siguiente mensaje del chat");
+  const r = await fetch(`https://${host}/api/bot/telegram`, {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-telegram-bot-api-secret-token": process.env.TELEGRAM_WEBHOOK_SECRET ?? "" },
+    body: JSON.stringify({ relevo: { chat: String(chatId) } }),
+    signal: AbortSignal.timeout(5000),
+  }).catch(fallaCon("relevo_llamar", null));
+  if (r && !r.ok) console.warn("[relevo] no lo ha cogido:", r.status);
+};
+
+/** El relevo, al llegar: atiende lo que quedó en la cola del chat. */
+async function relevar(chatId, base, host) {
+  const [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id,kind");
+  if (!chat?.household_id) return;
+  const esGrupo = chat.kind === "group";
+  return drenar(chatId, atenderCola({ chatId, householdId: chat.household_id, esGrupo, base }), { espera: 0, alSobrar: relevo(chatId, host) });
 }
 
 // Cómo se la nombra al empezar una frase: para saber si le hablan a ella
@@ -205,7 +242,7 @@ async function atender(msg, base, host = "") {
     const [enlazado] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
     if (!enlazado) return bienvenida(chatId, msg.from, base);
     return enTurno(chatId, itemDe(msg.from, frase ?? COMANDOS.start, { mid: msg.message_id }),
-      atenderCola({ chatId, householdId: enlazado.household_id, esGrupo: false, base }));
+      atenderCola({ chatId, householdId: enlazado.household_id, esGrupo: false, base }), { alSobrar: relevo(chatId, host) });
   }
   // `grupo`: el botón de un grupo sin casa abre el privado con esto. Con casa,
   // el enlace para meter a Lola en el grupo; sin ella, primero el alta.
@@ -307,7 +344,7 @@ async function atender(msg, base, host = "") {
     // como «oído: …» sí, tal cual se dijo, para que un error de oído se vea.
     const dicho = t.texto.replace(SIN_NOMBRE, "").trim() || t.texto;
     return enTurno(chatId, itemDe(msg.from, dicho, { oido: t.texto, responderA: esGrupo ? msg.message_id : undefined, mid: msg.message_id }),
-      atenderCola({ chatId, householdId: chat.household_id, esGrupo, base }));
+      atenderCola({ chatId, householdId: chat.household_id, esGrupo, base }), { alSobrar: relevo(chatId, host) });
   }
 
   // Fotos y PDFs (un ticket, la nevera, el menú del cole): los lee el modelo.
@@ -336,7 +373,7 @@ async function atender(msg, base, host = "") {
     }, { desdeMs: desdeAdjunto, esperaCandadoMs: esperaMs })), atenderCola({ chatId, householdId: chat.household_id, esGrupo, base }),
     () => enviar(chatId, "Estoy terminando otra cosa en este chat. Mándamela otra vez en un momento, porfa.", {
       responderA: esGrupo ? msg.message_id : undefined,
-    }));
+    }), { alSobrar: relevo(chatId, host) });
   }
 
   // Stickers, ubicaciones y demás: nada que hacer.
@@ -365,7 +402,7 @@ async function atender(msg, base, host = "") {
   // En un grupo le hablan como «@bot …»: la mención no es parte del mensaje.
   const limpio = COMANDOS[comando] ?? DEL_TECLADO[texto] ?? (texto.replace(/@\w+bot\b/gi, "").trim() || texto);
   return enTurno(chatId, itemDe(msg.from, limpio, { responderA: esGrupo ? msg.message_id : undefined, mid: msg.message_id }),
-    atenderCola({ chatId, householdId: chat.household_id, esGrupo, base }));
+    atenderCola({ chatId, householdId: chat.household_id, esGrupo, base }), { alSobrar: relevo(chatId, host) });
 }
 
 /**
@@ -1454,7 +1491,7 @@ async function pulsado(cq, base, host = "") {
     // reintento, la del mensaje original.
     const mid = re ? re.mid : `b${cq.message.message_id}`;
     return enTurno(chatId, itemDe(cq.from, re ? re.texto : cq.data.slice(2), { responderA: esGrupo ? cq.message.message_id : undefined, inmediato: true, mid, reintento: Boolean(re) }),
-      atenderCola({ chatId, householdId: chat.household_id, esGrupo, base }));
+      atenderCola({ chatId, householdId: chat.household_id, esGrupo, base }), { alSobrar: relevo(chatId, host) });
   }
 
   // Quien recibe una receta: guardársela o ponerla en su menú.
