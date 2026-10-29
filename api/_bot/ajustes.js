@@ -19,7 +19,7 @@
 import { COMIDAS_PLANIFICABLES, COMIDAS_PRINCIPALES } from "../../src/lib/comidas.js";
 import { conCasa } from "./casa.js";
 import { motor, normal, diaDe, DIAS, DIA_LARGO } from "./menu.js";
-import { buscarPersona, dudaDePersona, personasDe, diasDeLaSemana, fechaDe, lunesDe, grupoDePersonas, miembrosDeGrupo, cantidadDe, vecesDe } from "./interprete.js";
+import { buscarPersona, dudaDePersona, personasDe, diasDeLaSemana, fechaDe, lunesDe, grupoDePersonas, miembrosDeGrupo } from "./interprete.js";
 import { ETAPA_BEBE_INFO } from "../../src/lib/babyStage.js";
 import { registrar, EMBUDO, duenoDe, cimientosCompletos } from "./embudo.js";
 import { cerrarPorEstado, abrirPreguntaDeEstado } from "./tareas.js";
@@ -110,37 +110,13 @@ export async function describirAjustes(casa) {
 // ── Gustos: la libreta, como el panel de la app ─────────────────────────────
 
 /**
- * Las veces por semana dichas con palabras («menos de dos», «como mucho
- * tres», «al menos una vez»), con el intérprete y no con el modelo (#958):
- * `cantidad` (la frase literal) pasa a `n`. Solo en freqs, que es lo que tiene
- * veces. Una cantidad que no se entiende es una pregunta, no un número
- * inventado. Pura, para el test.
- * @returns {{ ajustes: object[] } | { duda: string }}
- */
-export function conCantidades(ajustes = []) {
-  const out = [];
-  for (const a of ajustes) {
-    const { cantidad, ...resto } = a;
-    if (cantidad == null || String(cantidad).trim() === "") { out.push(resto); continue; }
-    if (resto.campo !== "freqs") return { duda: `«${cantidad}» son veces por semana, y eso solo vale para la frecuencia de un tipo de plato (freqs).` };
-    const c = cantidadDe(cantidad);
-    if (!c) return { duda: `No entiendo cuántas veces es «${cantidad}». ¿Cuántas a la semana?` };
-    out.push({ ...resto, n: vecesDe(c) });
-  }
-  return { ajustes: out };
-}
-
-/**
  * @param {{ dicho?: boolean, desde?: string, hasta?: string }} [matiz]
  *   dicho=false: Lola lo supone (lo dijeron de pasada, o lo deduce). Entra en
  *   la libreta como «supuesto»: solo sesga el menú, nunca excluye, caduca a
  *   los 90 días y no pisa nada de lo que la familia haya dicho (notepad.js).
  *   desde/hasta (AAAA-MM-DD): «este mes», «a partir del lunes».
  */
-export async function ajustarGustos(householdId, ajustesDichos, frase, { dicho = true, desde, hasta, dias, salvoDias } = {}) {
-  const rc = conCantidades(ajustesDichos ?? []);
-  if (rc.duda) return rc.duda;
-  const { ajustes } = rc;
+export async function ajustarGustos(householdId, ajustes, frase, { dicho = true, desde, hasta, dias, salvoDias } = {}) {
   const fecha = /^\d{4}-\d{2}-\d{2}$/;
   if ((desde && !fecha.test(desde)) || (hasta && !fecha.test(hasta))) return "Las fechas van como AAAA-MM-DD.";
   if (desde && hasta && hasta < desde) return "La fecha de fin va antes que la de inicio: revísalas.";

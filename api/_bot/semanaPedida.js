@@ -12,7 +12,7 @@
  * Puro: sin base ni motor, para probarlo.
  */
 
-import { indiceDeISO, isoDeCasa } from "../../src/lib/dias.js";
+import { indiceDeISO, isoDeCasa, MESES_CORTOS } from "../../src/lib/dias.js";
 import { leerBotonRehacer } from "./botones.js";
 
 export const TOPE_SEMANAS = 8;
@@ -23,8 +23,7 @@ const aFecha = (iso) => new Date(`${iso}T12:00:00Z`);
 const aISO = (f) => isoDeCasa({ ahora: f });
 export const sumarDias = (iso, n) => aISO(new Date(aFecha(iso).getTime() + n * DIA_MS));
 export const lunesDe = (iso) => sumarDias(iso, -indiceDeISO(iso));
-const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
-export const fechaCorta = (iso) => `${Number(iso.slice(8, 10))} ${MESES[Number(iso.slice(5, 7)) - 1]}`;
+export const fechaCorta = (iso) => `${Number(iso.slice(8, 10))} ${MESES_CORTOS[Number(iso.slice(5, 7)) - 1]}`;
 
 const MESES_LARGOS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 const diaYMes = (iso) => `${Number(iso.slice(8, 10))} de ${MESES_LARGOS[Number(iso.slice(5, 7)) - 1]}`;
