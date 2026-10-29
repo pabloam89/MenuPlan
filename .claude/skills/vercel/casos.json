@@ -33,7 +33,7 @@
     },
     {
       "id": "frontera-cron-recordatorios",
-      "peticion": "El cron de recordatorios del bot no está saltando cada 5 minutos.",
+      "peticion": "El cron de recordatorios del bot no está saltando: no sale ningún recordatorio.",
       "skill": "supabase"
     },
     {

@@ -127,8 +127,12 @@ tenga la URL puede usar `net.http_*`, objetos grandes o bloqueos consultivos
   tiene 12 filas: casi todo se aplicó a mano.
 - Preferir el catálogo (`pg_catalog`, `information_schema`, `cron.job`) a las
   filas de usuarios; si hay que contar filas, contar, no imprimirlas.
-- **pg_cron:** `bot-recordatorios`, cada 5 minutos, hace POST a
-  `/api/bot/recordatorios` con `BOT_CRON_SECRET`; `bot-retencion`, a las 03:17,
+- **pg_cron:** `bot-recordatorios` hace POST a `/api/bot/recordatorios` con
+  `BOT_CRON_SECRET`, con la cadencia de `CADA_MINUTOS` en `api/_bot/cadencia.js`
+  (el único sitio de esa cifra: `scripts/bot-cron.mjs` programa el job con
+  ella). Cada pasada manda los recordatorios y hace el barrido de caducidades
+  (`api/_bot/caducidades.js`, #964/#974): no hay otro job para caducar.
+  `bot-retencion`, a las 03:17,
   purga lo viejo del bot (la 0065). Las extensiones las pone la 0062.
 - **Login (Auth)**: Google por OAuth (`src/lib/useAuth.js`, vuelve a
   `window.location.origin`). El proveedor se configura en Supabase → Auth →
