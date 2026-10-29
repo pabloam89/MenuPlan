@@ -41,16 +41,24 @@ describe("la lista de lo que caduca", () => {
     expect(barridosQueFaltan()).toEqual({ faltan: [], sobran: [] });
   });
 
-  it("la cadencia vive en un sitio: el programador y el endpoint la leen de cadencia.js (#974, C8/C14)", async () => {
-    const { readFileSync } = await import("node:fs");
-    const leer = (f) => readFileSync(new URL(f, import.meta.url), "utf8");
+  it("la cadencia vive en un sitio: quien la usa la lee de cadencia.js y nadie la copia (#974, C8/C14)", async () => {
+    const { readFileSync, readdirSync } = await import("node:fs");
+    const raiz = new URL("../../", import.meta.url);
+    const leer = (f) => readFileSync(new URL(f, raiz), "utf8");
     expect(HORARIO_CRON).toBe(`*/${CADA_MINUTOS} * * * *`);
-    // Ni el script que programa el job ni el endpoint escriben la cifra a mano.
-    for (const f of ["../../scripts/bot-cron.mjs", "../bot/recordatorios.js"]) {
+    // Los que la usan: el script que programa el job, el endpoint y la simulación del cron.
+    const usan = ["scripts/bot-cron.mjs", "api/bot/recordatorios.js", "api/_bot/recordatoriosHora.test.js"];
+    for (const f of usan) {
       const texto = leer(f);
-      expect(texto, f).toMatch(/from "\.\.\/(_bot|api\/_bot)\/cadencia\.js"/);
-      expect(texto, f).not.toMatch(/\*\/\d+ \* \* \* \*|\d+ \* 60000/);
+      expect(texto, f).toMatch(/from "\.\.?\/(_bot\/|api\/_bot\/)?cadencia\.js"|import\("\.\/cadencia\.js"\)/);
+      expect(texto, f).not.toMatch(/\d+ \* 60000/);
     }
+    // Y en todo el bot (y el script del job), ni la expresión de pg_cron ni «cada N min» a mano.
+    const delBot = ["api/_bot", "api/bot"].flatMap((d) => readdirSync(new URL(`${d}/`, raiz)).filter((n) => /\.m?js$/.test(n)).map((n) => `${d}/${n}`));
+    const copias = [...delBot, "scripts/bot-cron.mjs"]
+      .filter((f) => f !== "api/_bot/cadencia.js")
+      .filter((f) => /\*\/\d+ \* \* \* \*|cada \d+ min/i.test(leer(f)));
+    expect(copias).toEqual([]);
   });
 
   it("y la comprobación salta con una lista mala (#964, C17)", () => {

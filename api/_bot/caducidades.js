@@ -11,8 +11,8 @@
  * caducidades.test.js). Cada cosa dice quién la caduca:
  *   · «lectura»: quien la lee la ignora pasada su vida (vigente()). Es lo que
  *     vive dentro de un mensaje guardado y no merece una escritura.
- *   · «barrido»: la pasada del cron (barrer(), desde /api/bot/recordatorios
- *     cada 5 minutos) hace lo que diga su `efecto`.
+ *   · «barrido»: la pasada del cron (barrer(), desde /api/bot/recordatorios,
+ *     con la cadencia de cadencia.js) hace lo que diga su `efecto`.
  * Un tipo nuevo (la dieta blanda, #959) se añade aquí y, si es de barrido, con
  * su función en BARRIDOS: el test exige que cada una tenga la suya.
  *
