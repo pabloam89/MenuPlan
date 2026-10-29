@@ -133,7 +133,10 @@ const SIN_NOMBRE = /^lola[\s,:;.!¡¿-]*/i;
 export function meHablan(msg, yo) {
   const pie = (msg.text ?? msg.caption ?? "").trim();
   const bot = String(yo ?? "").toLowerCase();
-  return /^\/\w+/.test(pie)
+  // Un comando suelto («/menu») es para todos los bots del grupo; uno con
+  // destinatario («/menu@OtroBot»), solo para ese (#958: antes se lo quedaba Lola).
+  const comando = pie.match(/^\/\w+(?:@(\w+))?/);
+  return Boolean(comando && (!comando[1] || comando[1].toLowerCase() === bot))
     || Boolean(bot && pie.toLowerCase().includes(`@${bot}`))
     || Boolean(msg.reply_to_message?.from?.is_bot && msg.reply_to_message.from.username?.toLowerCase() === bot)
     || NOMBRADA.test(pie);
