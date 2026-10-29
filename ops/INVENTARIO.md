@@ -83,8 +83,10 @@ fichero de entorno de la sesión de Claude (`CLAUDE_ENV_FILE`, perfil de Windows
 
 `CRON_SECRET`, `BOT_CRON_SECRET`, `MODERATION_SECRET`: valores inventados por
 nosotros para que solo nuestros crons puedan llamar a ciertos endpoints. Viven
-en Vercel (y `BOT_CRON_SECRET` también en el job de `pg_cron`, ver
-`scripts/bot-cron.mjs`). `CANARIO_SECRET`: el del canario de Lola
+en Vercel (y `BOT_CRON_SECRET` también en el job de `pg_cron`
+`bot-recordatorios`, ver `scripts/bot-cron.mjs`; ese job manda los
+recordatorios y, en la misma pasada, hace el barrido de caducidades; su
+cadencia vive solo en `api/_bot/cadencia.js`). `CANARIO_SECRET`: el del canario de Lola
 (`api/bot/canario.js`), solo suyo, en Vercel y en el environment `vigia` de
 GitHub; no abre nada más (el de los crons manda recordatorios a familias).
 `BOT_CANARIO_CASA` (Vercel, opcional): el id de la casa de prueba del canario;
