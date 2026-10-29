@@ -70,7 +70,7 @@ import { herramientaPermitida } from "../../src/lib/papeles.js";
 import { ENUMS as ENUMS_TAREAS } from "../../src/lib/registroTareas.js";
 import { tareasV2 } from "./idempotencia.js";
 import { apuntarSilencio, conRecordatorio, NOTA_RECORDATORIO } from "./silencio.js";
-import { usoParcialDe } from "./medidaTurno.js";
+import { usoParcialDe, sumarUsos } from "./medidaTurno.js";
 import { esResultado, paraElModelo, conRecibo, recibo, cuentaComoGuardado } from "./resultado.js";
 import { operacion, claveDeEscritura, tipoDeHerramienta, YA_ESCRITA, SIN_COMPROBAR } from "./operacion.js";
 import { primeraVez, yaVista } from "./entradas.js";
@@ -1129,7 +1129,21 @@ export function sinSecciones(estable, quitar) {
  *   este turno (sin bots ni anónimos): de ahí sale su papel en la casa
  *   (papel.js). Sin ellos, como alguien sin cuenta: solo consulta.
  */
-export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId, texto, autor, esGrupo, desde = [], adjunto = null, alEscribir = null, puerta = null, signal = null, pista = null }) {
+export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId, texto, autor, esGrupo, desde = [], adjunto = null, alEscribir = null, puerta = null, signal = null, pista = null, usoExtra = null }) {
+  // Lo de este turno se cuenta en bot_usage UNA vez, aquí, con lo del enrutador
+  // (`usoExtra`, una promesa) y también si el turno falla (#958: antes solo
+  // contaba el turno de Lola que acababa bien, y el enrutador solo si ganaba
+  // la vía rápida). Si el turno resulta ser de la vía rápida, lo cuenta
+  // telegram.js (con lo que Lola llegó a gastar), y aquí no.
+  const contar = async (uso) => {
+    if (signal?.aborted) return 0;
+    // a propósito: la puerta (la decisión del enrutador) solo dice de quién es
+    // el turno; si falla, queda en el log y cuenta Lola, que es quien contestó
+    if (puerta && (await puerta.catch(seguirCon("uso_enrutador", true))) === false) return 0;
+    // a propósito: sin el uso del enrutador, se cuenta lo de Lola igual
+    const delEnrutador = await Promise.resolve(usoExtra).catch(seguirCon("uso_enrutador", null));
+    return contarUso(householdId, sumarUsos(uso, delEnrutador)).catch(fallaCon("uso", 0));
+  };
   // El canal se valida al entrar, antes de pagar el modelo: uno que no es de CANALES falla aquí
   // y no al guardar la memoria, con la respuesta ya pagada.
   const canal = paraEscribir("canales", channel);
@@ -1267,6 +1281,10 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
     // Ya había cambiado algo en la casa cuando el modelo se cayó: repetir el
     // turno lo haría dos veces. Se dice que está hecho y dónde verlo.
     // Cancelada o caída: lo ya pagado viaja en el error (telegram.js lo apunta).
+    // Y cuenta en bot_usage aunque el turno falle (#958): antes un turno caído
+    // (hasta 105 s de Sonnet y Opus) salía gratis. Uno cancelado no: ese es de
+    // la vía rápida, y lo cuenta telegram.js.
+    await contar(err?.usoPagado ?? usoParcialDe(progreso));
     if (!err?.aMedias) throw err instanceof Error ? Object.assign(err, { usoParcial: usoParcialDe(progreso) }) : err;
     console.error("[agente] a medias", err?.message);
     // a propósito: el evento vale más sin dueño que perdido
@@ -1288,7 +1306,7 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
     await registrar(FALLO_NO_ENTIENDE, { userId: await duenoDe(householdId).catch(seguirCon("agente_dueno", null)), extra: { texto: String(texto).slice(0, 200), esGrupo: Boolean(esGrupo) } });
   }
 
-  const llevados = await contarUso(householdId, uso).catch((e) => { console.error("[agente] uso", e?.message); return 0; });
+  const llevados = await contar(uso);
   const { visible, pendientes: pendientesNuevas } = tramitar(dicho, abiertas, texto, { claveDe: (falta) => claveDePregunta(falta, data) });
   // Lo que falta saber de la casa (alergias, cómo come el bebé) pasa a la tabla
   // aunque el modelo no lo anote: no depende de él.
@@ -1472,7 +1490,14 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
     },
   }));
   let ultimoError = null;
+  // Lo pagado en intentos que no acabaron (el principal que se cayó, la vuelta
+  // del aviso que falló): cuenta en bot_usage igual (#958). Viaja en el error
+  // (`usoPagado`) o se suma al uso de la respuesta.
+  let pagado = null;
+  const conPagado = (err) => (err && typeof err === "object" ? Object.assign(err, { usoPagado: pagado }) : err);
   for (const [i, modelo] of modelos.entries()) {
+    // La primera vuelta de este intento, si hubo que repetirla con el aviso.
+    let primeraVuelta = null;
     // El reloj de la invocación (plazo.js, #958): el plazo de la llamada no
     // pasa de lo que le queda a la función, y el de reserva no se prueba si
     // ya no le daría tiempo. Antes 55 + 50 s de modelo no cabían en lo que
@@ -1501,6 +1526,7 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
       // tiene que pasar por el aviso igual que si no lo hubiera intentado.
       if (!r.sinTexto && !guardo() && diceQueGuardo(r.dicho)) {
         console.warn("[agente] dijo que guardó sin guardar: otra vuelta");
+        primeraVuelta = r;
         // Lo que dijo queda en la historia (sin el adjunto, que ya leyó), y el aviso va como mensaje nuevo.
         // Con las llamadas que le queden del tope del turno (MAX_LLAMADAS_TURNO).
         const otra = await vuelta({
@@ -1508,7 +1534,7 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
           historia: [...historia, { role: "user", content: entrada }, { role: "assistant", content: r.dicho }],
           maxIteraciones: Math.max(1, MAX_LLAMADAS_TURNO - (r.vueltas ?? 0)),
         });
-        const uso = Object.fromEntries(Object.keys({ ...r.uso, ...otra.uso }).map((k) => [k, (r.uso?.[k] ?? 0) + (otra.uso?.[k] ?? 0)]));
+        const uso = sumarUsos(r.uso, otra.uso);
         const dichoOtra = otra.dicho || sinTextoDelModelo({ agotada: otra.agotada, guardo: guardo() });
         // Si tras el aviso sigue sin guardar y diciendo que sí, ya no es un
         // susto corregido: es un fallo de verdad (scripts/bot-semanal.mjs).
@@ -1516,21 +1542,22 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
         r = { dicho: dichoOtra, uso, corregido: true, sigueSinGuardar, promesa: tipoDePromesa(r.dicho), vueltas: (r.vueltas ?? 0) + (otra.vueltas ?? 0), primera: r.primera, llamadas: [...(r.llamadas ?? []), ...(otra.llamadas ?? [])] };
       }
       if (i > 0) console.warn(`[agente] plan B: contestó ${modelo}`);
-      return { ...r, modelo, herramientas, planB: i > 0, avisos };
+      return { ...r, uso: pagado ? sumarUsos(pagado, r.uso) : r.uso, modelo, herramientas, planB: i > 0, avisos };
     } catch (err) {
       ultimoError = err;
+      pagado = sumarUsos(pagado, primeraVuelta?.uso, usoParcialDe(progreso));
       // Cancelado desde fuera (el turno era de la vía rápida): nada que hacer.
-      if (signal?.aborted) throw err;
+      if (signal?.aborted) throw conPagado(err);
       const agotado = plazo.aborted;
       // Un error que no es caída también puede llegar DESPUÉS de escribir: se
       // marca «a medias» igual, o [[Reintentar]] repetiría la escritura (#958).
-      if (!agotado && !esCaida(err)) throw escrituras > 0 ? Object.assign(err, { aMedias: true }) : err;
+      if (!agotado && !esCaida(err)) throw conPagado(escrituras > 0 ? Object.assign(err, { aMedias: true }) : err);
       console.error(`[agente] ${modelo} no contesta (${agotado ? "plazo agotado" : err?.status ?? err?.constructor?.name}): ${String(err?.message).slice(0, 120)}`);
-      if (escrituras > 0) throw Object.assign(err, { aMedias: true, caida: true });
+      if (escrituras > 0) throw conPagado(Object.assign(err, { aMedias: true, caida: true }));
       Object.assign(err, { caida: true });
     }
   }
-  throw ultimoError;
+  throw conPagado(ultimoError);
 }
 
 // Lo que puede llamar Lola al modelo en un turno (#958). El runner para en

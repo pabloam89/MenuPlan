@@ -218,8 +218,10 @@ con ráfagas simuladas: una respuesta por ráfaga, nunca dos en paralelo.
 ## La 0062, aplicada el 30 sep 2026
 
 `0062_bot_cron` — extensiones `pg_cron` y `pg_net`. El job `bot-recordatorios`
-(cada 5 min, POST a /api/bot/recordatorios con `BOT_CRON_SECRET`) lo programa
-`scripts/bot-cron.mjs`, no la migración, porque lleva el secreto. Primera
+(POST a /api/bot/recordatorios con `BOT_CRON_SECRET`, con la cadencia de
+`api/_bot/cadencia.js`) lo programa `scripts/bot-cron.mjs`, no la migración,
+porque lleva el secreto. Desde #964/#974 la misma pasada hace también el
+barrido de caducidades. Primera
 pasada comprobada: 200 `{ok:true, enviados:0}`.
 
 ## La 0061, aplicada el 30 sep 2026

@@ -12,6 +12,7 @@
   "bot_chats": [
     "api/_bot/borrar.js",
     "api/_bot/caducidades.js",
+    "api/_bot/chats.js",
     "api/_bot/enlace.js",
     "api/_bot/invitacion.js",
     "api/_bot/papel.js",
@@ -39,6 +40,7 @@
   "bot_identities": [
     "api/_bot/altaTelegram.js",
     "api/_bot/borrar.js",
+    "api/_bot/chats.js",
     "api/_bot/compartir.js",
     "api/_bot/cuentas.js",
     "api/_bot/enlace.js",
@@ -53,17 +55,20 @@
   ],
   "bot_messages": [
     "api/_bot/agente.js",
+    "api/_bot/chats.js",
     "api/_bot/rapido.js",
     "api/_bot/recetas.js",
     "api/bot/telegram.js"
   ],
   "bot_reminders": [
+    "api/_bot/chats.js",
     "api/_bot/ficha.js",
     "api/_bot/recordatorios.js",
     "api/_bot/vispera.js"
   ],
   "bot_tareas": [
     "api/_bot/caducidades.js",
+    "api/_bot/chats.js",
     "api/_bot/tareas.js"
   ],
   "bot_usage": [
