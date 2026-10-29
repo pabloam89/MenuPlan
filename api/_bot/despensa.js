@@ -26,6 +26,7 @@ import { SIN_LEER } from "./avisar.js";
 import { huella } from "./operacion.js";
 import { CANAL } from "../../src/lib/vocabularios.js";
 import { resultado } from "./resultado.js";
+import { normal } from "./interprete.js";
 
 // Lo que cabe en una llamada; el esquema de anadir_despensa (agente.js) lo
 // importa. Seis tickets son ~70 cosas: con 40 se cortaba el resto sin decirlo
@@ -109,11 +110,23 @@ export async function anadirDespensa(householdId, items, origen = "texto", { otr
   const lista = todas.slice(0, MAX_POR_VEZ);
   const sobran = todas.slice(MAX_POR_VEZ).map((it) => ({ que: String(it.nombre).trim(), motivo: `caben ${MAX_POR_VEZ} de una vez: mándame el resto en otro mensaje` }));
 
+  // Si el nombre casa con VARIOS alimentos («patatas fritas»: ¿de bolsa o de
+  // sartén?), no se elige uno a ciegas: se guarda con el nombre tal cual lo
+  // escribieron y se dice la duda en el recibo (#958: dos tipos de patatas de
+  // bolsa acabaron sumadas al puré de patata, la primera candidata).
   const entradas = lista.map((it) => {
     const nombre = String(it.nombre).trim();
+    const propio = nombre.toLowerCase();
     const n = m.normalizePantryInput(nombre)[0];
-    const normalized = n?.ambiguous ? n.candidates[0].normalized : n?.normalized;
-    return { nombre, normalized: normalized || nombre.toLowerCase(), frozen: Boolean(it.congelado), ...aStock(it.cantidad, it.unidad) };
+    let normalized = n?.normalized;
+    let duda = null;
+    if (n?.ambiguous) {
+      // Una de las candidatas es justo lo escrito: esa. Si no, tal cual.
+      const igual = (n.candidates ?? []).find((c) => normal(String(c.normalized).replace(/_/g, " ")) === normal(nombre));
+      normalized = igual?.normalized ?? propio;
+      if (!igual) duda = (n.candidates ?? []).map((c) => c.label).filter(Boolean).slice(0, 3);
+    }
+    return { nombre, normalized: normalized || propio, frozen: Boolean(it.congelado), duda, ...aStock(it.cantidad, it.unidad) };
   });
 
   // La misma lista hace un momento: un doble «Sí» o un reintento. No suma
@@ -153,7 +166,8 @@ export async function anadirDespensa(householdId, items, origen = "texto", { otr
           ingredient_name: e.nombre, ingredient_normalized: e.normalized,
           qty: e.qty, unit: e.unit, frozen: e.frozen, location: e.frozen ? "congelador" : null,
           item_type: "ingredient", source: origen === "foto" ? "photo" : "manual",
-          ingredient_id: m.resolveIngredientId(e.nombre) ?? null,
+          // Con duda no se ata a un alimento del catálogo: sería elegir a ciegas.
+          ingredient_id: e.duda ? null : m.resolveIngredientId(e.nombre) ?? null,
         })));
         hechas.nuevas.push(...plan.nuevas);
       } catch (e) {
@@ -184,7 +198,7 @@ export async function anadirDespensa(householdId, items, origen = "texto", { otr
   const hecho = entradas.filter((e) => {
     const k = clave(e.normalized, e.frozen);
     return guardadas.has(k) && !sinSumar.has(`${k}|${e.nombre}`) && !pendientes.includes(e);
-  }).map((e) => e.nombre);
+  }).map((e) => (e.duda?.length ? `${e.nombre} (tal cual: podía ser ${e.duda.join(" o ")})` : e.nombre));
   return resultado({
     accion: "despensa", hecho, sinHacer,
     nota: `${hechas.nuevas.length} alimentos nuevos${hechas.sumadas.size ? ` y ${hechas.sumadas.size} sumados a lo que ya había` : ""}. La compra del próximo menú lo tiene en cuenta.`,
