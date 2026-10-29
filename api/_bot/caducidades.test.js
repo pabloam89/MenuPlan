@@ -13,8 +13,9 @@ const {
 } = await import("./caducidades.js");
 
 const H = 3600000;
-// La cadencia del cron la da quien lo llama (api/bot/recordatorios.js).
-const barrer = (o) => barrerReal({ cadaMs: 5 * 60000, ...o });
+// La cadencia del cron, de su único sitio (la misma que pasa api/bot/recordatorios.js).
+const { CADA_MS, HORARIO_CRON, CADA_MINUTOS } = await import("./cadencia.js");
+const barrer = (o) => barrerReal({ cadaMs: CADA_MS, ...o });
 
 /** Lo que avisarFallo escribe por consola, como objetos. */
 function avisos(fn) {
@@ -38,6 +39,18 @@ describe("la lista de lo que caduca", () => {
 
   it("lo de barrido tiene su función, y solo eso", () => {
     expect(barridosQueFaltan()).toEqual({ faltan: [], sobran: [] });
+  });
+
+  it("la cadencia vive en un sitio: el programador y el endpoint la leen de cadencia.js (#974, C8/C14)", async () => {
+    const { readFileSync } = await import("node:fs");
+    const leer = (f) => readFileSync(new URL(f, import.meta.url), "utf8");
+    expect(HORARIO_CRON).toBe(`*/${CADA_MINUTOS} * * * *`);
+    // Ni el script que programa el job ni el endpoint escriben la cifra a mano.
+    for (const f of ["../../scripts/bot-cron.mjs", "../bot/recordatorios.js"]) {
+      const texto = leer(f);
+      expect(texto, f).toMatch(/from "\.\.\/(_bot|api\/_bot)\/cadencia\.js"/);
+      expect(texto, f).not.toMatch(/\*\/\d+ \* \* \* \*|\d+ \* 60000/);
+    }
   });
 
   it("y la comprobación salta con una lista mala (#964, C17)", () => {

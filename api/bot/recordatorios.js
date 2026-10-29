@@ -13,10 +13,9 @@ import { VISPERA, TIPO_VISPERA, avisoDeVisperaDe } from "../_bot/vispera.js";
 import { rpc } from "../_bot/db.js";
 import { barrer } from "../_bot/caducidades.js";
 import { isoDeCasa } from "../../src/lib/dias.js";
-
-// Cada cuánto llama el cron a este endpoint: el job de pg_cron que lo programa
-// (supabase/ESTADO.md, «cada 5 min»). Si se cambia allí, se cambia aquí.
-export const CADA_MS = 5 * 60000;
+// Cada cuánto llama el cron a este endpoint: la misma cifra con la que lo
+// programa scripts/bot-cron.mjs.
+import { CADA_MS } from "../_bot/cadencia.js";
 
 function autorizado(cabecera) {
   const secreto = process.env.BOT_CRON_SECRET || process.env.CRON_SECRET;
