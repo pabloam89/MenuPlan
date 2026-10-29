@@ -447,6 +447,9 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
 
   const platos = Object.entries(plan).filter(([k]) => !k.startsWith("_")).reduce((n, [, h]) => n + Object.values(h ?? {}).filter((x) => x?.recipeId).length, 0);
   const avisos = (plan._warnings ?? []).length;
+  // El presupuesto (src/lib/presupuesto.js): si la casa lo tiene, se dice
+  // siempre si la semana cabe, no cabe o no se sabe. Nunca en silencio (#958).
+  const presupuesto = m.frasePresupuesto(working, m.estimarSemana(plan, { recetas: recipes }));
   const conservadas = semanasQueSeQuedan.map((w) => `del ${w.week_start} al ${w.week_end}`);
   // La semana generada va en la propia respuesta: sin ella, el modelo llamaba
   // a ver_menu justo después (y otra vez tras cada cambio), y un «hazme el
@@ -454,7 +457,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   const semana = await describirMenu({ ...casa, menu: null, semanas: null, semana: { plan, weekStart: startISO, weekEnd: endISO, activeDays, startDayIdx, shopping } }).catch(fallaCon("generar_describir", ""));
   // Para la vía rápida del enrutador (api/_bot/turno.js): lo generado, en datos.
   if (out) Object.assign(out, {
-    ok: true, desde: startISO, hasta: endISO, platos, avisos, conservadas, recordarSilencio,
+    ok: true, desde: startISO, hasta: endISO, platos, avisos, conservadas, recordarSilencio, presupuesto,
     pedidos: pedidos.length ? dondeQuedaron(pedidos, plan, activeDays) : [],
     // Dónde quedó cada plato pedido («Jue-Comida»), para destacarlo al pintar.
     colocados: pedidos.map((p) => claveDelPedido(p.fijo, plan, activeDays)).filter(Boolean),
@@ -466,6 +469,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   return `Menú nuevo generado y activado: semana del ${rangoDeFechas(startISO, endISO)}${libre} (${startISO} al ${endISO}), ${platos} huecos con plato${avisos ? ` (${avisos} avisos del motor: huecos que no encajaban del todo)` : ""}.`
     + (quitados.length ? `\nSIN PONER, por seguridad (chocan con una alergia, intolerancia o dieta de alguien de su grupo; dilo así): ${quitados.join("; ")}.` : "")
     + (conservadas.length ? ` Se conserva tal cual la semana ${conservadas.join(" y ")}.` : "")
+    + (presupuesto ? `\nPRESUPUESTO (dilo con estas cifras, sin redondear a favor): ${presupuesto}` : "")
     + (pedidos.length ? `\nLo que pidieron, ya puesto (no hace falta cambiar_plato):\n${dondeQuedaron(pedidos, plan, activeDays).join("\n")}` : "")
     + (semana
       ? `\n\nLa semana SALE PINTADA debajo de tu mensaje, con lo pedido destacado: NO la escribas ni llames a ver_menu; di en una o dos frases qué semana es (la del rango de arriba) y dónde ha quedado lo que pidieron. Para que lo sepas (no lo copies):\n${semana}`
