@@ -11,9 +11,12 @@ import {
   decidir,
   DECISIONES,
   dependenciasDe,
+  despertadoYa,
+  despertarConApp,
   ESTE_WORKFLOW,
   fusionarConApp,
   linea,
+  marcaDespertar,
   MOTIVOS,
   pasada,
   revisarFicheros,
@@ -34,6 +37,8 @@ const commitBot = (msg = "") => ({
   commit: { message: msg, verification: { verified: true, reason: "valid" } },
 });
 const verde = { id: 2, name: "tests", app: { slug: "github-actions" }, head_sha: SHA, status: "completed", conclusion: "success" };
+// El check `revisor` lo publica la App revisora propia de HoMenu (no un github-actions cualquiera).
+const revisorVerde = { id: 5, name: "revisor", app: { slug: "homenu-revisor" }, head_sha: SHA, status: "completed", conclusion: "success" };
 const npm = [{ filename: "package.json", patch: "x" }, { filename: "package-lock.json", patch: "x" }];
 
 // Un parche real de Dependabot en un workflow fijado por SHA.
@@ -63,6 +68,7 @@ function datos(extra = {}) {
     commits: [commitBot()],
     ficheros: npm,
     checks: [verde],
+    revisores: [revisorVerde],
     staging: { atrasado: false, ficheros: [], truncado: false },
     rebasePedido: false,
     ...resto,
@@ -235,6 +241,47 @@ describe("dependabot-auto: decidir", () => {
     expect(decidir(datos({ staging, rebasePedido: true })).motivo).toBe("rebase-ya-pedido");
     expect(decidir(datos({ staging: { atrasado: true, ficheros: [], truncado: true } })).decision).toBe("rebase");
   });
+  describe("el check revisor (la puerta de staging)", () => {
+    const sinRevisor = { revisores: [] };
+    it("tests en verde pero sin revisor: no fusiona, despierta al revisor", () => {
+      expect(decidir(datos(sinRevisor))).toMatchObject({ decision: "despertar", motivo: "-", tipo: "menor", ruta: "npm" });
+    });
+    it("el de actions, igual: despertar antes que fusionar", () => {
+      const pr = { title: "chore(ci): bump the actions-menores group with 1 update", body: "Updates `actions/checkout` from 7.0.0 to 7.1.0" };
+      expect(decidir(datos({ pr, ficheros: actions, ...sinRevisor })).decision).toBe("despertar");
+    });
+    it("revisor en verde de la App de HoMenu y de este SHA: fusiona", () =>
+      expect(decidir(datos({ revisores: [revisorVerde] })).decision).toBe("fusionado"));
+    it("revisor en curso: espera", () => {
+      const r = decidir(datos({ revisores: [{ ...revisorVerde, status: "in_progress", conclusion: null }] }));
+      expect(r).toMatchObject({ decision: "espera", motivo: "revisor-no-verde" });
+    });
+    it("revisor verde de OTRA App, o de otro SHA: no cuenta (despierta)", () => {
+      expect(decidir(datos({ revisores: [{ ...revisorVerde, app: { slug: "fabrica-revisor" } }] })).decision).toBe("despertar");
+      expect(decidir(datos({ revisores: [{ ...revisorVerde, head_sha: "b".repeat(40) }] })).decision).toBe("despertar");
+    });
+    it("el último revisor manda: un no posterior a un verde no fusiona", () => {
+      const rojo = { ...revisorVerde, id: 6, conclusion: "failure" };
+      expect(decidir(datos({ revisores: [revisorVerde, rojo] })).decision).not.toBe("fusionado");
+    });
+    it("ya despertado para este SHA y sigue sin verde: espera, no vuelve a tocar", () => {
+      const rojo = { ...revisorVerde, conclusion: "failure" };
+      const pr = { body: `Bumps x.\n\n${marcaDespertar(SHA)}` };
+      expect(decidir(datos({ pr, revisores: [rojo] }))).toMatchObject({ decision: "espera", motivo: "revisor-no-verde" });
+      expect(decidir(datos({ pr, ...sinRevisor }))).toMatchObject({ decision: "espera", motivo: "revisor-no-verde" });
+    });
+    it("una marca de otro SHA (el PR cambió) no cuenta", () => {
+      const pr = { body: marcaDespertar("b".repeat(40)) };
+      expect(decidir(datos({ pr, ...sinRevisor })).decision).toBe("despertar");
+      expect(despertadoYa(marcaDespertar(SHA), SHA)).toBe(true);
+      expect(despertadoYa("", SHA)).toBe(false);
+    });
+    it("el revisor se mira tras tests y tras el rebase", () => {
+      expect(decidir(datos({ checks: [], ...sinRevisor })).motivo).toBe("tests-no-verde");
+      const staging = { atrasado: true, ficheros: ["package-lock.json"], truncado: false };
+      expect(decidir(datos({ staging, ...sinRevisor })).decision).toBe("rebase");
+    });
+  });
   it("cada línea usa el vocabulario cerrado", () => {
     expect(linea({ pr: 165, ...decidir(datos()) })).toBe("dependabot-auto pr: 165 decision: fusionado motivo: - tipo: menor ruta: npm");
     const fuente = readFileSync(new URL("./dependabot-auto.mjs", import.meta.url), "utf8");
@@ -255,7 +302,7 @@ describe("dependabot-auto.yml: no abre la puerta al PR", () => {
     expect(jobPasada).toMatch(/^pasada:\n/);
     expect(jobApp).toMatch(/^fusionar-app:\n/);
     expect(jobApp).toMatch(/^ {4}needs: pasada$/m);
-    expect(jobApp).toMatch(/^ {4}if: needs\.pasada\.outputs\.app_pr != ''$/m);
+    expect(jobApp).toMatch(/^ {4}if: needs\.pasada\.outputs\.app_pr != '' \|\| needs\.pasada\.outputs\.despertar != ''$/m);
   });
   it("solo workflow_run de Tests, programado y a mano; nunca pull_request_target", () => {
     expect(sinComentarios).not.toMatch(/pull_request_target/);
@@ -296,10 +343,20 @@ describe("dependabot-auto.yml: no abre la puerta al PR", () => {
       "pull-requests: write",
       "workflows: write",
     ]);
+    // El token de la App entra en dos pasos, uno por orden: fusionar (actions) y despertar al revisor.
     const conToken = pasos(jobApp).filter((p) => p.includes("steps.app.outputs.token"));
-    expect(conToken).toHaveLength(1);
-    expect(conToken[0]).toMatch(/--fusionar-app/);
+    expect(conToken).toHaveLength(2);
+    expect(conToken.filter((p) => /--fusionar-app/.test(p))).toHaveLength(1);
+    expect(conToken.filter((p) => /--despertar-revisor/.test(p))).toHaveLength(1);
     expect([...sinComentarios.matchAll(/secrets\.(\w+)/g)].map((m) => m[1]).every((s) => s === "DEPENDABOT_APP_KEY")).toBe(true);
+  });
+  it("sin secreto nuevo para Dependabot ni secrets: inherit; la pasada pasa la lista de PR a despertar al segundo job", () => {
+    expect(sinComentarios).not.toMatch(/secrets:\s*inherit/);
+    expect(jobPasada).toMatch(/despertar: \$\{\{ steps\.pasada\.outputs\.despertar \}\}/);
+    const despertar = pasos(jobApp).filter((p) => /--despertar-revisor/.test(p));
+    expect(despertar).toHaveLength(1);
+    expect(despertar[0]).toMatch(/needs\.pasada\.outputs\.despertar != ''/);
+    expect(despertar[0]).toMatch(/APP_TOKEN: \$\{\{ steps\.app\.outputs\.token \}\}/);
   });
   it("concurrency dentro de cada job, no arriba (los runs que se saltan el job no cancelan la pasada que espera)", () => {
     expect(sinComentarios).not.toMatch(/^concurrency:/m);
@@ -406,7 +463,14 @@ describe("dependabot-auto: la pasada y la fusión con la App, con una API falsa"
       if (ruta.startsWith("/pulls?state=open")) return Object.values(prs).map((p) => p.pr);
       if ((m = /^\/pulls\/(\d+)\/commits$/.exec(ruta))) return [commitBot()];
       if ((m = /^\/pulls\/(\d+)\/files$/.exec(ruta))) return prs[m[1]].ficheros;
-      if (ruta.startsWith("/commits/")) return [{ ...verde, head_sha: /^\/commits\/(\w+)\//.exec(ruta)[1] }];
+      if (ruta.startsWith("/commits/")) {
+        const [, s] = /^\/commits\/(\w+)\//.exec(ruta);
+        if (ruta.includes("check_name=revisor")) {
+          const n = Object.keys(prs).find((k) => prs[k].pr.head.sha === s);
+          return prs[n].revisores ?? [{ ...revisorVerde, head_sha: s }];
+        }
+        return [{ ...verde, head_sha: s }];
+      }
       if (ruta.startsWith("/issues/")) return [];
       throw new Error(`ruta no prevista: ${ruta}`);
     };
@@ -475,5 +539,69 @@ describe("dependabot-auto: la pasada y la fusión con la App, con una API falsa"
     const l = await fusionarConApp({ ...f, repo: REPO, appToken: "t", clienteApp: () => ({ api: async (...a) => conApp.push(a) }), ...sinRuido }, 1, sha("1"));
     expect(l).toMatch(/ruta: npm/);
     expect(conApp).toEqual([]);
+  });
+
+  describe("despertar al revisor", () => {
+    // 1 (npm) y 3 (actions) sin check revisor; 2 pide rebase; 4 lo tiene en verde.
+    const sinRev = () => {
+      const m = mundo();
+      m[1].revisores = [];
+      m[3].revisores = [];
+      return m;
+    };
+    it("en ensayo no escribe ni deja salida", async () => {
+      const f = apiFalsa(sinRev());
+      const salidas = [];
+      const r = await pasada({ ...f, repo: REPO, si: false, salida: (k, v) => salidas.push([k, v]), ...sinRuido });
+      expect(f.escrito).toEqual([]);
+      expect(salidas).toEqual([]);
+      expect(r.lineas[0]).toMatch(/pr: 1 decision: espera motivo: ensayo .*haria: despertar/);
+    });
+    it("con --si no fusiona sin revisor (ni npm ni actions) y apunta a quién despertar, con su SHA", async () => {
+      const f = apiFalsa(sinRev());
+      const salidas = [];
+      const r = await pasada({ ...f, repo: REPO, si: true, salida: (k, v) => salidas.push([k, v]), ...sinRuido });
+      expect(f.escrito).toEqual([{ method: "POST", ruta: "/issues/2/comments", body: { body: "@dependabot rebase" } }]);
+      expect(r.lineas[0]).toMatch(/pr: 1 decision: despertar/);
+      expect(r.lineas[2]).toMatch(/pr: 3 decision: despertar/);
+      expect(salidas).toEqual([["app_pr", 4], ["app_sha", sha("4")], ["despertar", `1:${sha("1")},3:${sha("3")}`]]);
+    });
+    it("sin nadie a quien despertar, no deja salida `despertar`", async () => {
+      const salidas = [];
+      await pasada({ ...apiFalsa(mundo()), repo: REPO, si: true, salida: (k) => salidas.push(k), ...sinRuido });
+      expect(salidas).not.toContain("despertar");
+    });
+    it("despertar con la App: sin clave no hace nada y no falla", async () => {
+      const f = apiFalsa(sinRev());
+      const l = await despertarConApp({ ...f, repo: REPO, appToken: "", ...sinRuido }, [{ n: 1, sha: sha("1") }]);
+      expect(l[0]).toMatch(/motivo: sin-clave-app/);
+      expect(f.escrito).toEqual([]);
+    });
+    it("despertar con la App: edita el cuerpo del PR con la marca del SHA, con el token de la App", async () => {
+      const f = apiFalsa(sinRev());
+      const conApp = [];
+      const clienteApp = (token) => ({ api: async (ruta, o) => conApp.push({ token, ruta, ...o }) });
+      const l = await despertarConApp({ ...f, repo: REPO, appToken: "t", clienteApp, ...sinRuido }, [{ n: 1, sha: sha("1") }]);
+      expect(l[0]).toMatch(/pr: 1 decision: despertar/);
+      expect(conApp).toEqual([{ token: "t", ruta: "/pulls/1", method: "PATCH", body: { body: `\n\n${marcaDespertar(sha("1"))}` } }]);
+      expect(f.escrito).toEqual([]);
+    });
+    it("despertar con la App: si el SHA cambió, o ya está en verde, o ya se despertó, no toca", async () => {
+      const m = sinRev();
+      m[3].revisores = [{ ...revisorVerde, head_sha: sha("3") }];
+      m[4].pr = { ...m[4].pr, body: `${m[4].pr.body}\n\n${marcaDespertar(sha("4"))}` };
+      m[4].revisores = [];
+      const f = apiFalsa(m);
+      const conApp = [];
+      const clienteApp = () => ({ api: async (...a) => conApp.push(a) });
+      const l = await despertarConApp(
+        { ...f, repo: REPO, appToken: "t", clienteApp, ...sinRuido },
+        [{ n: 1, sha: sha("9") }, { n: 3, sha: sha("3") }, { n: 4, sha: sha("4") }],
+      );
+      expect(l[0]).toMatch(/pr: 1 decision: espera motivo: sha-cambiado/);
+      expect(l[1]).toMatch(/pr: 3 decision: fusionado/); // no es cosa de este paso: lo fusiona la pasada
+      expect(l[2]).toMatch(/pr: 4 decision: espera motivo: revisor-no-verde/);
+      expect(conApp).toEqual([]);
+    });
   });
 });

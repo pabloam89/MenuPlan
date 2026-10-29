@@ -1,5 +1,7 @@
-# Fusiona solos en staging los PR de Dependabot de parche o menor con `tests`
-# en verde; los de versión mayor se quedan para una sesión. Encargo #193.
+# Fusiona solos en staging los PR de Dependabot de parche o menor con `tests` y
+# `revisor` en verde; los de versión mayor se quedan para una sesión. Encargo #193.
+# El revisor no ve los secretos de un evento de Dependabot: el segundo job lo
+# despierta (una vez por head SHA) editando el cuerpo del PR con la App.
 #
 # Seguridad (workflow_run corre con permisos del repo, aunque lo lance un PR):
 # - NUNCA hace checkout del PR ni ejecuta nada suyo. Saca de staging (la rama
@@ -64,6 +66,7 @@ jobs:
     outputs:
       app_pr: ${{ steps.pasada.outputs.app_pr }}
       app_sha: ${{ steps.pasada.outputs.app_sha }}
+      despertar: ${{ steps.pasada.outputs.despertar }}
     steps:
       - name: Sacar el script de staging (no el PR)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -80,7 +83,7 @@ jobs:
 
   fusionar-app:
     needs: pasada
-    if: needs.pasada.outputs.app_pr != ''
+    if: needs.pasada.outputs.app_pr != '' || needs.pasada.outputs.despertar != ''
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: dependabot-auto
@@ -115,9 +118,21 @@ jobs:
           permission-pull-requests: write
           permission-workflows: write
       - name: Fusionar el de actions con la App
+        if: needs.pasada.outputs.app_pr != ''
         env:
           GITHUB_TOKEN: ${{ github.token }}
           APP_TOKEN: ${{ steps.app.outputs.token }}
           APP_PR: ${{ needs.pasada.outputs.app_pr }}
           APP_SHA: ${{ needs.pasada.outputs.app_sha }}
         run: node scripts/dependabot-auto.mjs --fusionar-app "$APP_PR" --sha "$APP_SHA"
+      # Despierta al revisor de los PR con `tests` en verde y sin `revisor`: edita
+      # su cuerpo con el token de la App, para que el evento lo lance la App y no
+      # Dependabot (que no ve los secretos del environment `revisor`). Es el mismo
+      # token y los mismos permisos de arriba: ningún secreto nuevo.
+      - name: Despertar al revisor con la App
+        if: needs.pasada.outputs.despertar != ''
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          APP_TOKEN: ${{ steps.app.outputs.token }}
+          DESPERTAR: ${{ needs.pasada.outputs.despertar }}
+        run: node scripts/dependabot-auto.mjs --despertar-revisor "$DESPERTAR"
