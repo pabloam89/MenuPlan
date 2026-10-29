@@ -62,8 +62,15 @@ const lista = (ids) => `in.(${ids.map((x) => `"${x}"`).join(",")})`;
  * eventos. Lo usan el borrado desde Telegram y el de la app
  * (api/delete-account.js), que antes dejaba todo esto huérfano.
  * Hay que llamarlo ANTES de borrar el usuario: después ya no se sabe qué casas eran suyas.
+ *
+ * `conIdentidades: false` deja las identidades de Telegram (#958): caen solas
+ * con el usuario (bot_identities.user_id on delete cascade). Si se borraban
+ * antes y luego fallaba el borrado del usuario, el siguiente mensaje de esa
+ * persona no la reconocía y le creaba otra cuenta y otra casa, y la vieja
+ * quedaba huérfana. Con la identidad viva, vuelve a su casa (reconocer, en
+ * api/bot/telegram.js) y puede pedir el borrado otra vez: es reanudable.
  */
-export async function borrarLoDelBot(userId, { chatIds = [], telegramId = null } = {}) {
+export async function borrarLoDelBot(userId, { chatIds = [], telegramId = null, conIdentidades = true } = {}) {
   const casas = userId ? (await select("households", `owner_user_id=${eq(userId)}`, "id")).map((h) => h.id) : [];
   const identidades = userId ? await select("bot_identities", `user_id=${eq(userId)}`, "external_id") : [];
   const externos = new Set([...(telegramId != null ? [String(telegramId)] : []), ...identidades.map((i) => String(i.external_id))]);
@@ -77,10 +84,10 @@ export async function borrarLoDelBot(userId, { chatIds = [], telegramId = null }
     for (const tabla of ["bot_messages", "bot_cola", "bot_candados", "bot_codigos", "bot_reminders", "bot_chats"]) borrados.push(borrarFilas(tabla, enChats));
   }
   if (externos.size) {
-    borrados.push(borrarFilas("bot_identities", `external_id=${lista([...externos])}`));
+    if (conIdentidades) borrados.push(borrarFilas("bot_identities", `external_id=${lista([...externos])}`));
     borrados.push(borrarFilas("bot_codigos", `external_id=${lista([...externos])}`));
   }
-  if (userId) borrados.push(borrarFilas("bot_identities", `user_id=${eq(userId)}`));
+  if (userId && conIdentidades) borrados.push(borrarFilas("bot_identities", `user_id=${eq(userId)}`));
   if (casas.length) for (const tabla of ["bot_deshacer", "bot_usage"]) borrados.push(borrarFilas(tabla, `household_id=${lista(casas)}`));
   if (userId) borrados.push(borrarFilas("user_events", `user_id=${eq(userId)}`));
   await Promise.all(borrados);
@@ -121,8 +128,10 @@ export async function borrarCuenta({ chatId, telegramId }) {
   }
 
   // Ya solo ve las casas que siguen siendo suyas: no borra lo del heredero.
-  const r = await borrarLoDelBot(userId, { chatIds: [chatId], telegramId });
-  // El último: con él cae todo lo demás.
+  // Sin las identidades: caen con el usuario, y si su borrado falla, siguen
+  // ahí para reconocer a la persona y que pueda reintentarlo (#958).
+  const r = await borrarLoDelBot(userId, { chatIds: [chatId], telegramId, conIdentidades: false });
+  // El último: con él cae todo lo demás, identidades incluidas.
   await borrarUsuario(userId);
   return { ok: true, casas: r.casas, lectores: p?.lectores ?? 0, pasadas: p?.pasadas ?? 0 };
 }

@@ -23,7 +23,7 @@
 
 import { seguirCon, fallaCon, SIN_LEER } from "./avisar.js";
 import { select, insert, eq, config } from "./db.js";
-import { cargarCasa, conCasa } from "./casa.js";
+import { cargarCasa, olvidarCasa } from "./casa.js";
 import { motor, normal, prepararRecetas } from "./menu.js";
 import { propiasDe } from "./propias.js";
 import { duenoDe, rastro, registrar } from "./embudo.js";
@@ -319,21 +319,22 @@ export async function guardarReceta(householdId, { confirmado }, chat) {
     recipeId: receta.id ?? null, baseDishId: receta.baseDishId ?? receta.linkedCatalogId ?? null,
     origen: receta.baseDishId || receta.linkedCatalogId ? ORIGEN_RECETA.VARIANTE : ORIGEN_RECETA.CREADA_BOT,
   });
-  if (!r.ok) return `Guardada en el recetario, pero no he podido apuntarla en la casa (${r.error}): saldrá en el menú cuando alguien abra la app.`;
   return `Guardada: «${receta.name}». Ya está en el recetario y puede salir en los menús.`;
 }
 
 /**
- * Guarda una receta ya hecha como propia de la casa: en `user_recipes` (donde
- * la lee la app, a nombre del dueño de la casa) y en `data.userRecipes` (para
- * que el motor ya pueda ponerla al generar desde el chat).
+ * Guarda una receta ya hecha como propia de la casa, en `user_recipes` (a
+ * nombre del dueño de la casa): de ahí la leen la app y también Lola y su
+ * motor (casa.js → propias.js, cada vez que carga la casa). Antes se copiaba
+ * además en `data.userRecipes`, que la app quita en cada guardado: dos sitios
+ * para un dato (#958). Ya no se escribe; se sigue leyendo de respaldo.
  *
  * La receta llega con la forma de la app (la de `recetaParaGuardar`). Quien
  * copia la de otra persona le pone antes id nuevo (`user_…`), `owner` y
  * `copiedFromRecipeId` / `copiedFromOwnerId`: aquí no se decide nada de eso.
  *
  * @returns {Promise<{ ok: boolean, enRecetario: boolean, error?: string }>}
- *   `enRecetario`: si llegó a `user_recipes` (aunque la casa no se apuntara).
+ *   `enRecetario`: si llegó a `user_recipes`.
  */
 export async function guardarRecetaPropia(householdId, receta) {
   const dueno = receta.owner?.id ?? (await duenoDe(householdId));
@@ -346,17 +347,16 @@ export async function guardarRecetaPropia(householdId, receta) {
     ? await select("user_recipes", `id=${eq(lista.id)}&owner_id=${eq(dueno)}`, "id").catch(fallaCon("receta_ya_estaba", SIN_LEER))
     : [{ id: null }];
   await insert("user_recipes", [m.recipeToRow(lista, dueno)], { upsert: true });
-  // Deshacer el cambio de la casa que viene ahora quita también esta fila:
-  // antes la receta seguía en la app tras «Deshecho» (#958). Si no se pudo
-  // mirar si era nueva, no se borra a ciegas: deshacer avisa de que sigue.
+  // «Deshaz» quita también esta fila (#958). Sin escritura en la casa, el
+  // paso va en el apunte de la operación (agente.js → apuntarOperacion), que
+  // casa.js deshace con quitarRecetaGuardada. Si no se pudo mirar si era
+  // nueva, no se borra a ciegas: deshacer avisa de que sigue.
   if (previa === SIN_LEER) deshacerTambien({ tipo: TIPO_OPERACION.RECETA, id: lista.id, dueno, sinSaber: true });
   else if (!previa.length) deshacerTambien({ tipo: TIPO_OPERACION.RECETA, id: lista.id, dueno });
-  const r = await conCasa(householdId, (casa) => {
-    const data = casa.state?.data ?? {};
-    const otras = (data.userRecipes ?? []).filter((x) => x.id !== lista.id);
-    return { state: { ...casa.state, data: { ...data, userRecipes: [...otras, lista] } } };
-  });
-  return r.ok ? { ok: true, enRecetario: true } : { ok: false, enRecetario: true, error: r.error };
+  // La casa recordada de hace unos segundos no la trae: que el siguiente
+  // turno (o el generar de este) la lea de la tabla.
+  olvidarCasa(householdId);
+  return { ok: true, enRecetario: true };
 }
 
 /**
