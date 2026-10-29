@@ -153,6 +153,34 @@ export function favoriteIdsForGroup(votes, group) {
 }
 
 /**
+ * Los votos personales sin sus favoritas: solo la nota (👍/👎). Las favoritas
+ * de una casa son las de household_favorites, también para el motor (#958):
+ * Lola solo ve esas (api/_bot/casa.js), y la app mezclaba además las favoritas
+ * PERSONALES de quien abría la app (recipe_votes), así que la misma casa
+ * generaba con favoritas distintas según quién generara. Ahora las dos igual
+ * (votosDeLaCasa).
+ */
+export function sinFavoritas(votes = {}) {
+  const out = {};
+  for (const [id, e] of Object.entries(votes ?? {})) {
+    const entry = makeEntry(voteOf(e), null);
+    if (entry != null) out[id] = entry;
+  }
+  return out;
+}
+
+/**
+ * Lo que la casa usa al generar en la app: con casa, las favoritas de la casa
+ * más la nota personal de cada receta; sin casa (sin cuenta), las personales,
+ * que entonces son las únicas.
+ * @param {object} personal  recipe_votes de quien abre la app
+ * @param {object|null} deLaCasa  household_favorites ya pasadas a votos (householdFavoritesToVotes); null sin casa
+ */
+export function votosDeLaCasa(personal = {}, deLaCasa = null) {
+  return deLaCasa ? mergeVotes(sinFavoritas(personal), deLaCasa) : personal;
+}
+
+/**
  * Merges cloud votes into local ones. Remote is authoritative for both the
  * rating and the favorite flag, but when the remote favorite scope is generic
  * ("all") and the local copy has a more specific one, the local scope is kept

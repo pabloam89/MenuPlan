@@ -142,6 +142,7 @@ import {
   favScopeOf,
   isRecipeFavorite,
   mergeVotes,
+  votosDeLaCasa,
   loadRecipeVotes,
   saveRecipeVote,
   deleteRecipeVote,
@@ -1518,9 +1519,15 @@ export default function App() {
       const mergedCollections = mergeCollections(localCollections, remoteCollections);
       const mergedFolders = mergeFolders(localFolders, remoteFolders);
       const personalVotes = mergeVotes(localVotes, remoteVotes);
-      const mergedVotes = mergeVotes(
+      // Con casa, sus favoritas son las de household_favorites y ninguna más,
+      // como en Lola (#958): antes se mezclaban las personales de quien abría
+      // la app, y la misma casa generaba distinto según quién generara. Si no
+      // se pudieron leer, las personales de siempre: no se vacían las
+      // favoritas por un corte, y el error ya queda en el log
+      // (householdFavoritesSync.js, loadHouseholdFavorites).
+      const mergedVotes = votosDeLaCasa(
         personalVotes,
-        householdFavoritesToVotes(remoteHouseholdFavs, personalVotes),
+        householdId && !cargaFavsCasa.error ? householdFavoritesToVotes(remoteHouseholdFavs, personalVotes) : null,
       );
       setPersonalRecipeVotes(personalVotes);
 
