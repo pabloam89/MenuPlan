@@ -152,7 +152,7 @@ function masDias(iso, n) {
  * no se repite. Se cuenta en DÍAS del calendario de Madrid, no en horas: antes
  * se sumaban 24 h en UTC y se volvía a leer el día, y en la noche del cambio de
  * hora de octubre uno de entre las 00:00 y las 00:59 caía en el mismo due_at y
- * se mandaba cada 5 minutos durante un día; en marzo se saltaba uno (#958).
+ * se mandaba en cada pasada del cron durante un día; en marzo se saltaba uno (#958).
  * Si estuvo parado, no se manda una vez por cada vuelta perdida. Pura.
  */
 export function siguienteVez(dueAt, repite, ahoraMs = Date.now()) {
