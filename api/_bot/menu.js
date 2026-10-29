@@ -384,7 +384,9 @@ export async function describirReceta(casa, consulta) {
   if (!r) return `No encuentro ninguna receta que se llame así («${consulta}»).`;
   const ing = (r.ingredients ?? []).map((i) => `• ${i.name}${i.qty ? ` — ${i.qty}${i.unit ? ` ${i.unit}` : ""}` : ""}`);
   const pasos = (r.steps ?? []).map((p, i) => `${i + 1}. ${typeof p === "string" ? p : p?.text ?? ""}`);
-  const datos = [r.time ? `${r.time} min` : "", r.servings ? `${r.servings} raciones` : ""].filter(Boolean).join(", ");
+  // Las kcal por ración, que conocimiento.md promete en ver_receta y no salían
+  // (#958); sin el dato, nada (como el atajo de calorías, plato.js).
+  const datos = [r.time ? `${r.time} min` : "", r.servings ? `${r.servings} raciones` : "", r.kcal > 0 ? `unas ${Math.round(r.kcal)} kcal por ración` : ""].filter(Boolean).join(", ");
   return [
     `${r.name}${datos ? ` (${datos})` : ""}`,
     ing.length ? `Ingredientes:\n${ing.join("\n")}` : "",
