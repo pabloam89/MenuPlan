@@ -73,6 +73,7 @@ import { clearPreparedFromSlot } from "./lib/freezer.js";
 import { normalizeIngredientKey } from "./lib/ingredientCategories.js";
 import { conMarcas } from "./lib/compraIdentidad.js";
 import { getDayMeals, getMeals, ALL_DAY_MEALS, DAYS } from "./lib/planner.js";
+import { estimarSemana, frasePresupuesto } from "./lib/presupuesto.js";
 import {
   groupsFromModel,
   gruposVigentes,
@@ -2421,8 +2422,11 @@ export default function App() {
       // we no longer surface their raw internal text as a toast — it read as a
       // confusing "toast rarísimo" on success. Always show the plain success
       // message; the warnings remain on the plan for anyone who needs them.
+      // Con presupuesto, en cambio, se dice si la primera semana cabe, no cabe
+      // o no se sabe: nunca en silencio (lib/presupuesto.js, #958).
+      const frasePres = frasePresupuesto(working, estimarSemana(firstWeekPlan, { recetas: weekResults[0]?.recipes ?? [] }));
       showToast(
-        user
+        frasePres ? `Menú generado. ${frasePres}` : user
           ? "Menú generado · actívalo con ⚡ cuando lo vayas a usar"
           : weekCount > 1
             ? `Menú generado (${weekCount} semanas)`
