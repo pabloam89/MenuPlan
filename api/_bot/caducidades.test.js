@@ -87,11 +87,8 @@ describe("vigente", () => {
   it("sin fecha, como antes", () => {
     expect(vigente(CADUCA.TAREAS_DEL_MENSAJE, null, ahora)).toBe(true);
   });
-  it("una fecha ilegible vale como antes, pero se avisa (#964, C5)", () => {
-    let r;
-    const dichos = avisos(() => { r = vigente(CADUCA.PROPUESTA, "ayer por la tarde", ahora); });
-    expect(r).toBe(true);
-    expect(dichos).toMatchObject([{ evento: "bot_fallo", donde: "caducidades_fecha_ilegible", grave: false }]);
+  it("una fecha ilegible lanza: ni vigente ni caducada por defecto (#974, C5)", () => {
+    expect(() => vigente(CADUCA.PROPUESTA, "ayer por la tarde", ahora)).toThrow(/fecha ilegible/);
   });
 });
 

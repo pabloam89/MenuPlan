@@ -78,19 +78,18 @@ export function barridosQueFaltan(cosas = COSAS_QUE_CADUCAN, barridos = BARRIDOS
 }
 
 /**
- * ¿Sigue valiendo algo de tipo `cosa` creado en `creadoAt`? Sin fecha, o con
- * una que no se puede leer, sí (filas viejas o de prueba: mejor como antes que
- * perder algo), pero la ilegible se avisa: no debería pasar y no se ve si no.
+ * ¿Sigue valiendo algo de tipo `cosa` creado en `creadoAt`? Sin fecha, sí
+ * (las filas de bot_messages siempre la traen; sin ella es un objeto de
+ * prueba). Con una que no se puede leer, LANZA (#974, C5): darla por vigente o por
+ * caducada sería inventarse la respuesta. created_at sale de la base, así
+ * que ilegible es un fallo de verdad y tiene que verse.
  */
 export function vigente(cosa, creadoAt, ahoraMs = Date.now()) {
   const def = COSAS_QUE_CADUCAN[cosa];
   if (!def) throw new Error(`no sé cómo caduca «${cosa}»`);
   if (!def.vidaMs || !creadoAt) return true;
   const t = Date.parse(creadoAt);
-  if (Number.isNaN(t)) {
-    avisarFallo("caducidades_fecha_ilegible", new Error(`${cosa}: fecha ilegible`), { grave: false });
-    return true;
-  }
+  if (Number.isNaN(t)) throw new Error(`caducidades: fecha ilegible en ${cosa} («${String(creadoAt).slice(0, 40)}»)`);
   return ahoraMs - t < def.vidaMs;
 }
 
