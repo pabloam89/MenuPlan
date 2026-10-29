@@ -1465,22 +1465,30 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
         // El principal sin reintentos: si falla, reintentar ES el de reserva.
         maxRetries: i === 0 && modelos.length > 1 ? 0 : 1,
       };
-      let r = await vuelta({ ...comun, historia, entrada, adjunto, pista });
+      let r = await vuelta({ ...comun, historia, entrada, adjunto, pista, maxIteraciones: MAX_LLAMADAS_VUELTA });
+      const guardo = () => (guardados ? guardados() : escrituras) > 0;
+      // Sin texto del modelo: lo que se dice lo pone el código, y no pasa por
+      // el aviso de «dijo que guardó» (#958: el «Hecho.» de relleno de una
+      // vuelta agotada disparaba otra vuelta entera, hasta ~32 llamadas).
+      if (!r.dicho) r = { ...r, dicho: sinTextoDelModelo({ agotada: r.agotada, guardo: guardo() }), sinTexto: true };
       // Lo que cuenta es lo GUARDADO: un fuera_de_casa que chocó y contestó
       // «no he podido guardarlo» no es un guardado, y un «✅ Apuntado» detrás
       // tiene que pasar por el aviso igual que si no lo hubiera intentado.
-      if ((guardados ? guardados() : escrituras) === 0 && diceQueGuardo(r.dicho)) {
+      if (!r.sinTexto && !guardo() && diceQueGuardo(r.dicho)) {
         console.warn("[agente] dijo que guardó sin guardar: otra vuelta");
         // Lo que dijo queda en la historia (sin el adjunto, que ya leyó), y el aviso va como mensaje nuevo.
+        // Con las llamadas que le queden del tope del turno (MAX_LLAMADAS_TURNO).
         const otra = await vuelta({
           ...comun, adjunto: null, entrada: AVISO_SIN_GUARDAR,
           historia: [...historia, { role: "user", content: entrada }, { role: "assistant", content: r.dicho }],
+          maxIteraciones: Math.max(1, MAX_LLAMADAS_TURNO - (r.vueltas ?? 0)),
         });
         const uso = Object.fromEntries(Object.keys({ ...r.uso, ...otra.uso }).map((k) => [k, (r.uso?.[k] ?? 0) + (otra.uso?.[k] ?? 0)]));
+        const dichoOtra = otra.dicho || sinTextoDelModelo({ agotada: otra.agotada, guardo: guardo() });
         // Si tras el aviso sigue sin guardar y diciendo que sí, ya no es un
         // susto corregido: es un fallo de verdad (scripts/bot-semanal.mjs).
-        const sigueSinGuardar = (guardados ? guardados() : escrituras) === 0 && diceQueGuardo(otra.dicho);
-        r = { dicho: otra.dicho, uso, corregido: true, sigueSinGuardar, promesa: tipoDePromesa(r.dicho), vueltas: (r.vueltas ?? 0) + (otra.vueltas ?? 0), primera: r.primera, llamadas: [...(r.llamadas ?? []), ...(otra.llamadas ?? [])] };
+        const sigueSinGuardar = !guardo() && Boolean(otra.dicho) && diceQueGuardo(otra.dicho);
+        r = { dicho: dichoOtra, uso, corregido: true, sigueSinGuardar, promesa: tipoDePromesa(r.dicho), vueltas: (r.vueltas ?? 0) + (otra.vueltas ?? 0), primera: r.primera, llamadas: [...(r.llamadas ?? []), ...(otra.llamadas ?? [])] };
       }
       if (i > 0) console.warn(`[agente] plan B: contestó ${modelo}`);
       return { ...r, modelo, herramientas, planB: i > 0, avisos };
@@ -1499,6 +1507,22 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
   }
   throw ultimoError;
 }
+
+// Lo que puede llamar Lola al modelo en un turno (#958). El runner para en
+// MAX_LLAMADAS_VUELTA; la vuelta del aviso «dijo que guardó» solo tiene lo que
+// quede hasta MAX_LLAMADAS_TURNO. Antes eran 8 + 8 por intento y modelo.
+export const MAX_LLAMADAS_VUELTA = 8;
+export const MAX_LLAMADAS_TURNO = 10;
+
+// Lo que se dice cuando el modelo no escribe nada. Ninguna de las tres frases
+// dice que guardó sin haber guardado.
+export const SIN_TEXTO = Object.freeze({
+  // El runner llegó al tope de llamadas pidiendo aún herramientas.
+  AGOTADA: "No he llegado a terminarlo: me he liado con tantos pasos. Si había que cambiar algo, míralo en la app antes de pedírmelo otra vez, por si ya está.",
+  HECHO: "Hecho.",
+  NADA: "No sé qué contestarte a eso 🙈 ¿Me lo dices de otra forma?",
+});
+export const sinTextoDelModelo = ({ agotada, guardo }) => (agotada ? SIN_TEXTO.AGOTADA : guardo ? SIN_TEXTO.HECHO : SIN_TEXTO.NADA);
 
 /**
  * ¿Es que el modelo no está (saturado, caído, colgado), y otro podría
@@ -1523,7 +1547,7 @@ export function esCaida(err) {
 // los puntos de 1 h vayan antes que los de 5 min.
 const CACHE_FIJA = { type: "ephemeral", ttl: "1h" };
 
-async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal, modelo, maxRetries, ficha = null, pista = null, progreso = null, alPedir = null }) {
+async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal, modelo, maxRetries, ficha = null, pista = null, progreso = null, alPedir = null, maxIteraciones = MAX_LLAMADAS_VUELTA }) {
   // Con cache_control en el último bloque: la segunda vuelta del turno (tras
   // una herramienta) y las siguientes leen de caché todo lo anterior —
   // instrucciones, historia y el mensaje— en vez de volver a procesarlo.
@@ -1538,7 +1562,7 @@ async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal
   const runner = anthropic().beta.messages.toolRunner({
     model: modelo,
     max_tokens: 4000,
-    max_iterations: 8,
+    max_iterations: maxIteraciones,
     // Haiku no tiene «effort» (si se pone de reserva con BOT_MODELO_RESERVA): va sin él.
     ...(/haiku/.test(modelo) ? {} : { output_config: { effort: EFFORT } }),
     system: [
@@ -1602,9 +1626,10 @@ async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal
     if (progreso) progreso.enCurso = null;
   }
 
-  const dicho = (final?.content ?? []).filter((b) => b.type === "text").map((b) => b.text).join("\n").trim()
-    || "Hecho.";
-  return { dicho, uso, vueltas, primera, llamadas };
+  // Sin texto, "": lo que se dice lo decide ejecutar (sinTextoDelModelo). `agotada`:
+  // el runner paró en el tope de llamadas con el modelo pidiendo aún herramientas.
+  const dicho = (final?.content ?? []).filter((b) => b.type === "text").map((b) => b.text).join("\n").trim();
+  return { dicho, uso, vueltas, primera, llamadas, agotada: final?.stop_reason === "tool_use" };
 }
 
 /** Vuelve a usarlo una semana o más después de enlazar: la señal de que se queda. */
