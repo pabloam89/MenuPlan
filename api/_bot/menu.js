@@ -21,6 +21,8 @@ import { conCasa, cargarCasa, hoyISO } from "./casa.js";
 import { datosDelMotor } from "../../src/lib/recetasDeLaCasa.js";
 import { propiasDe } from "./propias.js";
 import { rastro } from "./embudo.js";
+// Con otro nombre: en marcarCompra, `resultado` es una variable suya.
+import { resultado as resultadoDeEscritura } from "./resultado.js";
 import { cargaMedida } from "./medidaTurno.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, COMIDAS, comidaDe } from "../../src/lib/comidas.js";
 import { PICANTE_PEDIDO } from "../../src/data/recipeSchema.js";
@@ -489,6 +491,50 @@ export async function anadirCompra(householdId, productos, out = null) {
     hecho.devueltos.length ? `Estaba tachado y vuelve a la lista: ${hecho.devueltos.join(", ")}.` : "",
     hecho.yaEstaban.length ? `Ya estaba en la lista (no lo duplico): ${hecho.yaEstaban.join(", ")}.` : "",
   ].filter(Boolean).join("\n") || "No había nada que añadir.";
+}
+
+/**
+ * Lo que queda de la lista al quitar productos (y, con `manuales`, todo lo
+ * añadido a mano). Un nombre con varios parecidos distintos no quita nada: se
+ * pregunta. Pura.
+ */
+function quitarDeLista(items, productos = [], { manuales = false } = {}) {
+  const quitar = new Set();
+  const noEncontrados = [];
+  const dudosos = [];
+  if (manuales) for (const it of items) if (it.manual) quitar.add(it);
+  for (const p of productos) {
+    const encontrados = buscarItems(items, p);
+    if (!encontrados.length) noEncontrados.push(String(p));
+    else if (encontrados.length > 1 && !sonElMismo(encontrados)) dudosos.push({ que: String(p), parecidos: encontrados.map((x) => x.name) });
+    else for (const x of encontrados) quitar.add(x);
+  }
+  return { items: items.filter((it) => !quitar.has(it)), quitados: [...new Set([...quitar].map((x) => x.name))], noEncontrados, dudosos };
+}
+
+/**
+ * Quitar de la lista de la compra («quita el pan», «borra lo que añadí»).
+ * Antes no había herramienta: Lola lo marcaba como comprado o decía que lo
+ * había quitado sin quitarlo (#958). Lo que sale del menú vuelve si se rehace
+ * la compra (al cambiar el menú); lo añadido a mano, no.
+ * @returns {Promise<object|string>} un RESULTADO (resultado.js), o el texto del error al guardar
+ */
+export async function quitarCompra(householdId, { productos = [], manuales = false } = {}) {
+  let hecho = null;
+  let habiaManuales = false;
+  const r = await conCasa(householdId, (casa) => {
+    habiaManuales = (listaDe(casa).items ?? []).some((it) => it.manual);
+    hecho = quitarDeLista(listaDe(casa).items ?? [], productos, { manuales });
+    if (!hecho.quitados.length) return null;
+    return guardarLista(casa, { ...listaDe(casa), items: hecho.items });
+  });
+  if (!r.ok) return `No he podido guardar la lista: ${r.error}.`;
+  const sinHacer = [
+    ...hecho.noEncontrados.map((que) => ({ que, motivo: "no está en la lista" })),
+    ...hecho.dudosos.map((d) => ({ que: d.que, motivo: `hay varios parecidos (${d.parecidos.join(", ")}): ¿cuál?` })),
+  ];
+  if (manuales && !habiaManuales) sinHacer.push({ que: "lo añadido a mano", motivo: "no había nada añadido a mano" });
+  return resultadoDeEscritura({ accion: "compra_quitar", hecho: hecho.quitados, sinHacer, nota: "Lo que sale del menú vuelve si se rehace la compra (al cambiar el menú)." });
 }
 
 /** El grupo y el hueco de un día y franja del menú activo, o por qué no hay. */
