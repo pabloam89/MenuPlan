@@ -23,6 +23,10 @@
 //     trae; si no, cada «from A to B» con la misma mayor (en 0.x, la misma
 //     menor), o el grupo `*-menores`. Si alguna fuente dice mayor, gana mayor;
 //   - el último check `tests` de su head SHA, en verde;
+//   - el último check `revisor` de su head SHA, de la App homenu-revisor, en verde.
+//     Si falta (o terminó sin verde sin que se le haya despertado), decisión
+//     `despertar`: la pasada la apunta (salida `despertar`, "n:sha,...") y el
+//     segundo job edita el cuerpo del PR con la App, una vez por SHA;
 //   - al día con staging, o atrasado sin que staging haya tocado sus ficheros.
 //     Si los tocó, comenta `@dependabot rebase` (una vez por head SHA).
 // La fusión lleva el head SHA comprobado: si el PR cambia entre medias, GitHub
@@ -55,13 +59,16 @@ import { pathToFileURL } from "node:url";
 export const BOT = "dependabot[bot]";
 export const BASE = "staging";
 export const CHECK = "tests";
+// El check que exige el ruleset de staging, publicado por la App revisora propia de HoMenu.
+export const CHECK_REVISOR = "revisor";
+export const REVISOR_APP = "homenu-revisor";
 export const ESTE_WORKFLOW = ".github/workflows/dependabot-auto.yml";
 // Dependencias directas en 0.x: una «menor» puede romper. La misma lista va en
 // el grupo npm-cero de .github/dependabot.yml (lo vigila el test).
 export const CERO = ["@anthropic-ai/sdk", "eslint-plugin-react-refresh", "sharp"];
 
 // Vocabulario cerrado: lo que hace con cada PR y por qué.
-export const DECISIONES = ["fusionado", "para-app", "rebase", "espera", "error"];
+export const DECISIONES = ["fusionado", "para-app", "rebase", "despertar", "espera", "error"];
 export const MOTIVOS = [
   "-", // fusionado, apuntado para la App o rebase pedido, sin pega
   "autor", // no lo abrió dependabot[bot]
@@ -77,6 +84,7 @@ export const MOTIVOS = [
   "grupo-manual", // un grupo que no es -menores, o una dependencia de CERO: lo mira una sesión
   "version-desconocida", // no se ha podido leer de qué versión a cuál va
   "tests-no-verde", // el último `tests` de su head SHA no está en verde
+  "revisor-no-verde", // el check `revisor` de su head SHA no está en verde (en curso, en rojo, o ya se le despertó)
   "conflicto", // GitHub dice que no se puede fusionar (Dependabot lo rebasa solo)
   "mergeable-desconocido", // GitHub aún no ha calculado si se puede fusionar
   "rebase-ya-pedido", // ya se le pidió el rebase para este head SHA
@@ -256,13 +264,32 @@ export function dependenciasDe({ titulo = "", textos = [] } = {}) {
   return [...nombres];
 }
 
+// --- Despertar al revisor ---------------------------------------------------
+// Un PR de Dependabot no ve los secretos del environment `revisor` (los eventos
+// de Dependabot solo ven los suyos), así que el revisor no llega a juzgarlo. Se
+// le despierta editando el cuerpo del PR con el token de la App
+// `homenu-dependabot-merge`: `pull_request_target` (`edited`) corre entonces con
+// esa App como actor. La edición lleva una marca con el head SHA: sirve para
+// tocar una sola vez por SHA y no entrar en bucle si el revisor dice no.
+const RE_MARCA = /\n*<!-- despertar-revisor: [0-9a-f]{40} -->/g;
+export const marcaDespertar = (sha) => `<!-- despertar-revisor: ${sha} -->`;
+export const despertadoYa = (body, sha) => String(body ?? "").includes(marcaDespertar(sha));
+export const cuerpoDespertado = (body, sha) => `${String(body ?? "").replace(RE_MARCA, "")}\n\n${marcaDespertar(sha)}`;
+
+// El último check `revisor` de la App de HoMenu para este head SHA, o undefined.
+function ultimoRevisor(revisores, sha) {
+  return [...revisores]
+    .filter((c) => c.name === CHECK_REVISOR && c.app?.slug === REVISOR_APP && c.head_sha === sha)
+    .sort((a, b) => b.id - a.id)[0];
+}
+
 // --- La decisión, sin red ----------------------------------------------
 // datos: { repo, pr, commits, ficheros: [{ filename, patch }], checks,
 //          staging: { atrasado, ficheros, truncado }, rebasePedido, conEnvironment, conSecretos }
 // Devuelve { decision, motivo, tipo, ruta }. «fusionado» con ruta "actions"
 // quiere decir «fusionable con la App»: quien llama decide cómo.
 export function decidir(datos) {
-  const { repo, pr, commits, ficheros, checks, staging, rebasePedido, conEnvironment = [], conSecretos = [] } = datos;
+  const { repo, pr, commits, ficheros, checks, revisores = [], staging, rebasePedido, conEnvironment = [], conSecretos = [] } = datos;
   let ruta = null;
   const espera = (motivo, tipo = null) => ({ decision: "espera", motivo, tipo, ruta });
 
@@ -294,6 +321,16 @@ export function decidir(datos) {
   if (staging.atrasado && (staging.truncado || seSolapan(nombres, staging.ficheros))) {
     if (rebasePedido) return espera("rebase-ya-pedido", tipo);
     return { decision: "rebase", motivo: "-", tipo, ruta };
+  }
+
+  // Sin `revisor` en verde no se fusiona (staging lo exige). Sin check, o con uno
+  // ya terminado que no es verde, se despierta una vez por head SHA; en curso, o
+  // ya despertado, se espera.
+  const juez = ultimoRevisor(revisores, pr.head.sha);
+  if (!juez || juez.status !== "completed" || juez.conclusion !== "success") {
+    const terminadoOAusente = !juez || juez.status === "completed";
+    if (terminadoOAusente && !despertadoYa(pr.body, pr.head.sha)) return { decision: "despertar", motivo: "-", tipo, ruta };
+    return espera("revisor-no-verde", tipo);
   }
   return { decision: "fusionado", motivo: "-", tipo, ruta };
 }
@@ -374,6 +411,7 @@ async function leerPr({ api, paginas, esperar = dormir }, n) {
     if (usaSecretos(contenido)) conSecretos.push(filename);
   }
   const checks = await paginas(`/commits/${pr.head.sha}/check-runs?check_name=${CHECK}`, "check_runs");
+  const revisores = await paginas(`/commits/${pr.head.sha}/check-runs?check_name=${CHECK_REVISOR}`, "check_runs");
   const cmp = await api(`/compare/${pr.head.sha}...${BASE}`);
   const staging = {
     atrasado: cmp.ahead_by > 0,
@@ -385,7 +423,7 @@ async function leerPr({ api, paginas, esperar = dormir }, n) {
   const rebasePedido = comentarios.some(
     (c) => c.user?.login === "github-actions[bot]" && /^@dependabot rebase\b/.test(c.body ?? "") && c.created_at > ultimoCommit,
   );
-  return { pr, commits, ficheros, checks, staging, rebasePedido, conEnvironment, conSecretos };
+  return { pr, commits, ficheros, checks, revisores, staging, rebasePedido, conEnvironment, conSecretos };
 }
 
 // La pasada del primer job: no ve la clave de la App ni el environment. Fusiona
@@ -394,6 +432,7 @@ async function leerPr({ api, paginas, esperar = dormir }, n) {
 export async function pasada({ api, paginas, repo, si, salida = salidaGithub, log = console.log, esperar = dormir }) {
   let fallos = 0;
   let apuntado = null;
+  const despertar = [];
   const lineas = [];
   const decir = (l) => {
     lineas.push(l);
@@ -418,6 +457,7 @@ export async function pasada({ api, paginas, repo, si, salida = salidaGithub, lo
         await api(`/issues/${n}/comments`, { method: "POST", body: { body: "@dependabot rebase" } });
       }
       // apuntado también en ensayo, para que el segundo de actions salga app-ocupada igual
+      if (r.decision === "despertar") despertar.push(`${n}:${d.pr.head.sha}`); // lo hace el segundo job, con la App
       if (r.decision === "para-app" || r.haria === "para-app") apuntado = { n, sha: d.pr.head.sha };
       if (r.decision === "para-app") {
         salida("app_pr", n);
@@ -430,6 +470,7 @@ export async function pasada({ api, paginas, repo, si, salida = salidaGithub, lo
       console.error(`PR #${n}: ${e.message}`);
     }
   }
+  if (despertar.length > 0) salida("despertar", despertar.join(","));
   return { fallos, lineas };
 }
 
@@ -445,6 +486,36 @@ export async function fusionarConApp({ api, paginas, repo, appToken, clienteApp 
   if (r.decision !== "fusionado" || r.ruta !== "actions") return decir(linea({ pr: n, ...r }));
   await clienteApp(appToken, repo).api(`/pulls/${n}/merge`, { method: "PUT", body: { sha, merge_method: "merge" } });
   return decir(linea({ pr: n, ...r }));
+}
+
+// El segundo job, otra orden: despierta al revisor de cada PR apuntado ("n:sha")
+// editando su cuerpo con el token de la App. Lo vuelve a comprobar todo con el
+// token de lectura; solo toca si sigue en ese SHA y la decisión sigue siendo
+// despertar. Sin token, no falla: `sin-clave-app`. Devuelve las líneas.
+export async function despertarConApp({ api, paginas, repo, appToken, clienteApp = cliente, log = console.log, esperar = dormir }, pares) {
+  const lineas = [];
+  const decir = (l) => (log(l), lineas.push(l));
+  for (const { n, sha } of pares) {
+    if (!appToken) {
+      decir(linea({ pr: n, decision: "espera", motivo: "sin-clave-app", tipo: null, ruta: null }));
+      continue;
+    }
+    const d = await leerPr({ api, paginas, esperar }, n);
+    const r = decidir({ repo, ...d });
+    if (d.pr.head.sha !== sha) decir(linea({ pr: n, decision: "espera", motivo: "sha-cambiado", tipo: r.tipo, ruta: r.ruta }));
+    else if (r.decision !== "despertar") decir(linea({ pr: n, ...r }));
+    else {
+      await clienteApp(appToken, repo).api(`/pulls/${n}`, { method: "PATCH", body: { body: cuerpoDespertado(d.pr.body, sha) } });
+      decir(linea({ pr: n, ...r }));
+    }
+  }
+  return lineas;
+}
+
+// "n:sha,n:sha" -> [{ n, sha }]; null si algo no cuadra.
+export function parsearDespertar(texto) {
+  const pares = String(texto ?? "").split(",").map((p) => /^(\d+):([0-9a-f]{40})$/.exec(p));
+  return pares.length > 0 && pares.every(Boolean) ? pares.map((m) => ({ n: Number(m[1]), sha: m[2] })) : null;
 }
 
 async function main() {
@@ -466,6 +537,16 @@ async function main() {
       process.exit(2);
     }
     await fusionarConApp({ ...c, appToken: process.env.APP_TOKEN }, n, sha);
+    return;
+  }
+  const iDesp = args.indexOf("--despertar-revisor");
+  if (iDesp >= 0) {
+    const pares = parsearDespertar(args[iDesp + 1]);
+    if (!pares) {
+      console.error('Uso: --despertar-revisor "<n>:<sha de 40>[,<n>:<sha>...]"');
+      process.exit(2);
+    }
+    await despertarConApp({ ...c, appToken: process.env.APP_TOKEN }, pares);
     return;
   }
   if ((await pasada(c)).fallos > 0) process.exit(1);
