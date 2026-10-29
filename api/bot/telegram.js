@@ -36,6 +36,7 @@ import { pintarMenuEntero } from "../_bot/pintar.js";
 import { transcribir } from "../_bot/voz.js";
 import { adjuntoDe } from "../_bot/adjuntos.js";
 import { enTurno, aSolas, juntar } from "../_bot/turnos.js";
+import { citaDeFuera } from "../_bot/comoDato.js";
 import { clasificar, vaPorLaRapida, permitidoEn } from "../_bot/router.js";
 import { prediceRapida, ESPERA_MAX_MS } from "../_bot/prediceRapida.js";
 import { esCorreccionRuta, esCorreccionMedida } from "../_bot/senales.js";
@@ -1207,9 +1208,18 @@ async function usarCompartido(cq, chat, base) {
   }
   return conversarMedido(SIN_ENRUTADOR.COMPARTIDO, {
     chatId, householdId: chat.household_id, from: cq.from, esGrupo, base,
-    texto: `Quiero poner «${nombre}» en mi menú de esta semana. ¿En qué comida encaja mejor?`,
+    texto: pedidoCompartido(nombre),
   });
 }
+
+/**
+ * Lo que recibe Lola al pulsar «Ponerla en mi menú». El nombre lo escribió
+ * otra casa: va como dato citado, no dentro de la frase de la persona
+ * (comoDato.js, #958: inyección de instrucciones con las herramientas de
+ * escribir encendidas). Exportada para el test.
+ */
+export const pedidoCompartido = (nombre) =>
+  `Quiero poner en mi menú de esta semana la receta que me han pasado. ¿En qué comida encaja mejor?\n${citaDeFuera("el nombre de la receta", nombre)}`;
 
 /** Al entrar en un grupo: cómo se le habla, y cómo conectarlo si no lo está. */
 async function saludoGrupo(chatId) {
