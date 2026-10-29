@@ -471,6 +471,9 @@ const INITIAL_DATA = {
   // bases: mezclarlos convertía "más pasta" en dos platos obligatorios. Ver la
   // cabecera de `tanda` en lib/notepadFields.js.
   tanda: {},
+  // El día en que la casa cocina la tanda (DIAS: «Mié»); sin él, el domingo.
+  // Lo escribe Lola (ajustes.js, configurar_tanda) y lo leen el motor y el Menú.
+  diaTanda: null,
   cookLevel: "normal",
   cookSkills: [],
   // Cual de los miembros es la persona de la cuenta. Se marca a mano en Mi
