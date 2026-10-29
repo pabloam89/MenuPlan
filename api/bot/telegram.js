@@ -133,7 +133,10 @@ const SIN_NOMBRE = /^lola[\s,:;.!¡¿-]*/i;
 export function meHablan(msg, yo) {
   const pie = (msg.text ?? msg.caption ?? "").trim();
   const bot = String(yo ?? "").toLowerCase();
-  return /^\/\w+/.test(pie)
+  // Un comando suelto («/menu») es para todos los bots del grupo; uno con
+  // destinatario («/menu@OtroBot»), solo para ese (#958: antes se lo quedaba Lola).
+  const comando = pie.match(/^\/\w+(?:@(\w+))?/);
+  return Boolean(comando && (!comando[1] || comando[1].toLowerCase() === bot))
     || Boolean(bot && pie.toLowerCase().includes(`@${bot}`))
     || Boolean(msg.reply_to_message?.from?.is_bot && msg.reply_to_message.from.username?.toLowerCase() === bot)
     || NOMBRADA.test(pie);
@@ -450,15 +453,18 @@ export const FALLO_TRAS_ESCRIBIR = "Uy, algo ha fallado a medias: parte de lo qu
  * reintento. «Deshaz» toca solo lo de esa persona, y una escritura repetida
  * por [[Reintentar]] no se hace dos veces. Si el turno falla después de
  * escribir algo (la entrega, la vía rápida…), no se pide «escríbemelo otra
- * vez»: se dice que hay algo guardado.
+ * vez»: se dice que hay algo guardado, y el fallo queda apuntado como fallo
+ * de verdad (fallaCon, con su sitio en SITIOS_FALLO). No se relanza: el bucle
+ * de la cola (turnos.js enTurno) se cortaría y lo que llegó durante el turno
+ * se quedaría sin atender.
  */
-async function conAutor({ chatId, from, mid = null, reintento = false, responderA }, fn) {
+export async function conAutor({ chatId, from, mid = null, reintento = false, responderA }, fn) {
   return conOperacion({ chat: chatId, persona: from?.id ?? null, mid, reintento }, async () => {
     try {
       return await fn();
     } catch (err) {
       if (!(operacion()?.escrituras > 0)) throw err;
-      console.error("[bot/telegram] falló tras escribir", err?.message);
+      fallaCon("turno_tras_escribir")(err);
       // a propósito: si ni el aviso sale, ya no hay más que hacer
       await enviar(chatId, FALLO_TRAS_ESCRIBIR, { responderA }).catch(seguirCon("fallo_tras_escribir"));
     }

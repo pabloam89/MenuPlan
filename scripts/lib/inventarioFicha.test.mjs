@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { FALLOS, ERRORES, DEUDA, inventario } from "./inventarioFicha.mjs";
+import { FALLOS, ERRORES, DEUDA, inventario, clavesEscritas } from "./inventarioFicha.mjs";
 import { ENTIDADES, TEMAS, ESTADOS, TIPOS, MODULOS, MODULO_DEL_TEMA, moduloDe, DATOS_CASA, DATOS_PERSONA } from "../../src/lib/registroFicha.js";
 import { REGISTRO_CAMPOS } from "../../src/lib/registroCampos.js";
 import { CAMPOS } from "../../src/lib/notepadFields.js";
@@ -67,6 +67,11 @@ describe("inventario de la ficha", async () => {
   it("detecta una clave nueva sin registrar", async () => {
     const r = await inventario(raiz, { guardadas: { casa: new Set(["claveInventada"]), persona: new Set() } });
     expect(r.fallos.sin_registro).toEqual(["casa.claveInventada"]);
+  });
+
+  it("lee las claves que Lola escribe con un spread de data (#958, diaTanda)", () => {
+    const texto = "const d = { ...data, diaTanda: dia, tanda: { ...data.tanda, x: 1 } };\nreturn { ...casa.state.data, otra };";
+    expect([...clavesEscritas(texto)].sort()).toEqual(["diaTanda", "otra", "tanda"]);
   });
 
   it("la deuda del modelo solo baja", () => {

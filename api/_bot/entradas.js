@@ -12,6 +12,7 @@
  */
 
 import { insert, select, eq } from "./db.js";
+import { fallaCon, SIN_LEER } from "./avisar.js";
 import { paraEscribir } from "../../src/lib/vocabularios.js";
 
 /** ¿El error es que la fila ya estaba (clave única)? Uno solo para todo el bot (#958). */
@@ -37,16 +38,14 @@ export async function primeraVez(proveedor, xid) {
 
 /**
  * ¿Ya se apuntó esta entrada? Sin apuntarla. La usa un [[Reintentar]] para no
- * repetir una escritura del intento fallido (operacion.js claveDeEscritura).
- * Si la base falla, `false`: se escribe, como antes.
+ * repetir una escritura del intento fallido (operacion.js claveDeEscritura), y
+ * la despensa para no sumar dos veces la misma lista.
+ * @returns {Promise<boolean | typeof SIN_LEER>}  SIN_LEER si la base falla: quien
+ *   llama no escribe a ciegas (sería justo la escritura doble que se evita, #958).
  */
 export async function yaVista(proveedor, xid) {
   if (xid == null || String(xid).trim() === "") return false;
-  try {
-    const filas = await select("bot_entradas", `proveedor=${eq(paraEscribir("canales", proveedor))}&entrada_xid=${eq(String(xid).trim())}&limit=1`, "id");
-    return filas.length > 0;
-  } catch (e) {
-    console.warn("[bot/entradas] sin mirar repetidos:", String(e?.message ?? e).slice(0, 160));
-    return false;
-  }
+  return select("bot_entradas", `proveedor=${eq(paraEscribir("canales", proveedor))}&entrada_xid=${eq(String(xid).trim())}&limit=1`, "id")
+    .then((filas) => filas.length > 0)
+    .catch(fallaCon("entradas_ya_vista", SIN_LEER));
 }
