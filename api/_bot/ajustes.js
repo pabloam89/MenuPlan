@@ -697,6 +697,12 @@ export async function ajustarAlergias(householdId, { persona, alergenos, quitar 
       const uno = persona && !TODA_LA_CASA.test(normal(persona));
       const x = uno ? personaPorNombre(data, persona) : null;
       if (uno && !x) return { texto: noEncuentro(data, persona) };
+      // Quien ya tiene alergias apuntadas no pasa a «no tiene» de rebote (#958):
+      // antes se conservaban y Lola contestaba «no tiene alergias». Quitarlas
+      // es otra cosa, explícita: quitar=true con los alérgenos.
+      if ((x?.allergies ?? []).length) {
+        return { texto: `NO CAMBIADO: ${x.name} tiene apuntado ${x.allergies.join(", ")}. Si ya no es así, pregúntale cuál quitar y llama con quitar=true y esos alérgenos.` };
+      }
       const nuevo = m.marcarRevisadas(data, x ? [x.id] : null);
       const conAlguna = (data.members ?? []).some((p) => (p.allergies ?? []).length);
       return {

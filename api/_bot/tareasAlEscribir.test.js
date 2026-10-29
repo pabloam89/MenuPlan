@@ -78,6 +78,13 @@ describe("«ninguna» marca solo a quien se nombra", () => {
     expect(resuelta("alergias:pablo", (guardada ?? casaInicial()).state.data)).toBe(false);
   });
 
+  it("a quien ya tiene alergias no le dice «no tiene» ni se las quita (#958)", async () => {
+    guardada = { state: { data: { members: [{ id: "nat", name: "Nat", age: 35, allergies: ["Huevo"] }] } } };
+    const t = await ajustarAlergias("h", { persona: "Nat", ninguna: true, confirmado: true });
+    expect(t).toMatch(/NO CAMBIADO.*Huevo/);
+    expect(guardada.state.data.members[0].allergies).toEqual(["Huevo"]);
+  });
+
   it("«toda la casa» sí marca a todos", async () => {
     filas = [];
     await ajustarAlergias("h", { persona: "toda la casa", ninguna: true, confirmado: true });

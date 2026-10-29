@@ -77,7 +77,7 @@ import { usoParcialDe } from "./medidaTurno.js";
 function silencioDelTurno(chat, respuestaDeLola = null) {
   if (!chat?.householdId) return null;
   return apuntarSilencio({
-    householdId: chat.householdId, ultimaDeLola: chat.anterior, texto: chat.texto, papel: chat.papel,
+    householdId: chat.householdId, ultimaDeLola: chat.anterior, ultimaDeLolaAt: chat.anteriorAt ?? null, texto: chat.texto, papel: chat.papel,
     canal: chat.channel, userId: chat.userId ?? null, nombres: chat.nombresAntes ?? [], respuestaDeLola,
     // Las ya ejecutadas y las PEDIDAS en el bloque en curso: si el modelo pide
     // a la vez generar_menu y ajustar_alergias, generar no aplica el silencio
@@ -1021,7 +1021,7 @@ async function adelantar(plan, chat) {
 // sabe qué ofrecer y qué remitir, en vez de descubrirlo al chocar.
 const QUIEN_ESCRIBE = {
   viewer: "QUIEN ESCRIBE: lector de la casa. Puede consultarlo todo y tachar la compra; nada más, ni aquí ni en la app (no le mandes a la app a cambiar nada). Si pide cambiar otra cosa, dile con naturalidad que eso lo cambia quien gestiona la casa, sin hablar de permisos ni de lo que «puede» hacer.",
-  ajeno: "QUIEN ESCRIBE: alguien del grupo sin cuenta enlazada a esta casa. Solo puedes contarle el menú, las recetas y la compra. Para apuntar o cambiar algo, que te escriba por privado y conecte su cuenta, o que se lo pida a quien gestiona la casa.",
+  ajeno: "QUIEN ESCRIBE: alguien del grupo sin cuenta enlazada a esta casa. Solo puedes contarle el menú, las recetas y la compra; no ves la salud ni los datos de la familia, así que no hables de alergias, embarazos ni de quién es quién. Para apuntar o cambiar algo, que te escriba por privado y conecte su cuenta, o que se lo pida a quien gestiona la casa.",
 };
 // Y el idioma que eligió (0073): en inglés aunque escriba en español, y los
 // platos con su nombre traducido (los datos de la casa están en castellano).
@@ -1030,8 +1030,30 @@ const IDIOMA = {
 };
 export function conQuienEscribe(ficha, papel, idioma = null) {
   if (!ficha) return ficha;
+  // Alguien de fuera no recibe la salud ni la gente de la casa (#958): antes
+  // le llegaba la misma ficha y el único freno era una línea del prompt
+  // (papeles.js ya le quita ver_casa y ver_ajustes; faltaba esto). Sin papel,
+  // como de fuera: falla cerrado.
+  const deFuera = !papel || papel === "ajeno";
+  const base = deFuera ? { ...ficha, estable: sinSecciones(ficha.estable, SOLO_DE_LA_CASA) } : ficha;
   const lineas = [QUIEN_ESCRIBE[papel ?? "ajeno"], IDIOMA[idioma]].filter(Boolean);
-  return lineas.length ? { ...ficha, delDia: [ficha.delDia, ...lineas].join("\n") } : ficha;
+  return lineas.length ? { ...base, delDia: [base.delDia, ...lineas].join("\n") } : base;
+}
+
+/** Las secciones de la ficha que solo ve quien es de la casa: salud y personas. */
+const SOLO_DE_LA_CASA = ["SEGURIDAD", "CASA"];
+const CABECERAS = new Set(["SEGURIDAD", "CASA", "COCINA", "RECETARIO"]);
+
+/** La ficha estable sin esas secciones (cada una va de su cabecera a la siguiente). */
+export function sinSecciones(estable, quitar) {
+  if (!estable) return estable;
+  const fuera = new Set(quitar);
+  let dentro = false;
+  return String(estable).split("\n").filter((l) => {
+    const t = l.trim();
+    if (CABECERAS.has(t) || /^SEGURIDAD:/.test(t)) dentro = fuera.has(t.split(":")[0]);
+    return !dentro;
+  }).join("\n");
 }
 
 /**
@@ -1109,6 +1131,7 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   const entradaModelo = [bloqueDeTareas(tareasVivas, { data, chatId }), bloque, entrada].filter(Boolean).join("\n\n");
   // Lo último que dijo Lola: un «sí» contesta a eso (supervisor.js).
   chat.anterior = historia.findLast((m) => m.role === "assistant")?.content ?? "";
+  chat.anteriorAt = mem.ultimaDeLolaAt ?? null;
   // Para las alergias por silencio (silencio.js): quién había ANTES del turno.
   chat.nombresAntes = (data.members ?? []).map((m) => m.name).filter(Boolean);
   // La ficha de la casa (api/_bot/ficha.js): lo que Lola ya sabe sin preguntar.

@@ -20,6 +20,8 @@ const {
 const { alergiasParaMenu } = await import("../../src/lib/alergias.js");
 
 const PREGUNTA = `¿Alguien en casa tiene alguna alergia o intolerancia? ${AVISO_SILENCIO}`;
+// Lola acaba de preguntar: el silencio solo cuenta para la respuesta de ahora.
+const AHORA = new Date().toISOString();
 const casa = () => ({
   householdId: "h1",
   state: {
@@ -118,31 +120,37 @@ const SIN_SENAL = [
 describe("haySenal: ante la duda, no es silencio", () => {
   it.each(CON_SENAL)("«%s» → señal (no se marca)", (t) => {
     expect(haySenal(t, { nombres: NOMBRES })).toBe(true);
-    expect(decidirSilencio({ ultimaDeLola: PREGUNTA, texto: t, nombres: NOMBRES })).toBe(null);
+    expect(decidirSilencio({ ultimaDeLola: PREGUNTA, ultimaDeLolaAt: AHORA, texto: t, nombres: NOMBRES })).toBe(null);
   });
   it.each(SIN_SENAL)("«%s» tras el aviso, sin herramientas de salud → por_silencio", (t) => {
     expect(haySenal(t, { nombres: NOMBRES })).toBe(false);
-    expect(decidirSilencio({ ultimaDeLola: PREGUNTA, texto: t, nombres: NOMBRES })).toBe("por_silencio");
+    expect(decidirSilencio({ ultimaDeLola: PREGUNTA, ultimaDeLolaAt: AHORA, texto: t, nombres: NOMBRES })).toBe("por_silencio");
   });
 });
 
 describe("decidirSilencio", () => {
+  it("una pregunta de otro momento no se da por contestada (#958)", () => {
+    const hace3h = new Date(Date.now() - 3 * 3600 * 1000).toISOString();
+    expect(decidirSilencio({ ultimaDeLola: PREGUNTA, ultimaDeLolaAt: hace3h, texto: "Lola, apunta pan" })).toBe(null);
+    expect(decidirSilencio({ ultimaDeLola: PREGUNTA, texto: "hazme el menú" })).toBe(null);
+    expect(decidirSilencio({ ultimaDeLola: PREGUNTA, ultimaDeLolaAt: AHORA, texto: "hazme el menú" })).toBe("por_silencio");
+  });
   it("sin aviso previo, nunca", () => {
     expect(decidirSilencio({ ultimaDeLola: "¿Alguien tiene alguna alergia?", texto: "hazme el menú" })).toBe(null);
     expect(decidirSilencio({ ultimaDeLola: null, texto: "hazme el menú" })).toBe(null);
   });
   it("(c) si en el turno Lola llamó a una herramienta que contesta, no se marca", () => {
     for (const h of HERRAMIENTAS_QUE_CONTESTAN) {
-      expect(decidirSilencio({ ultimaDeLola: PREGUNTA, texto: "hazme el menú", llamadas: ["ver_menu", h] }), h).toBe(null);
+      expect(decidirSilencio({ ultimaDeLola: PREGUNTA, ultimaDeLolaAt: AHORA, texto: "hazme el menú", llamadas: ["ver_menu", h] }), h).toBe(null);
     }
   });
   it("con ajustar_gustos en el turno («Ana, aguacate y cítricos», «Ana, cebolla»), no se marca", () => {
     for (const texto of ["Ana, aguacate y cítricos", "Ana, cebolla"]) {
-      expect(decidirSilencio({ ultimaDeLola: PREGUNTA, texto, nombres: NOMBRES, llamadas: ["ajustar_gustos"] }), texto).toBe(null);
+      expect(decidirSilencio({ ultimaDeLola: PREGUNTA, ultimaDeLolaAt: AHORA, texto, nombres: NOMBRES, llamadas: ["ajustar_gustos"] }), texto).toBe(null);
     }
   });
   it("Lola aclara sin herramienta («¿Quieres decir que Leo es alérgico al huevo?»): no se marca", () => {
-    const base = { ultimaDeLola: PREGUNTA, texto: "hazme el menú", nombres: NOMBRES };
+    const base = { ultimaDeLola: PREGUNTA, ultimaDeLolaAt: AHORA, texto: "hazme el menú", nombres: NOMBRES };
     expect(decidirSilencio({ ...base, respuestaDeLola: "¿Quieres decir que Leo es alérgico al huevo?" })).toBe(null);
     // Habla del tema sin preguntar.
     expect(decidirSilencio({ ...base, respuestaDeLola: "Vale. Lo de las intolerancias lo vemos luego." })).toBe(null);
@@ -181,7 +189,7 @@ describe("destinatarios: solo por quien se preguntó", () => {
 
 describe("apuntarSilencio", () => {
   it("marca por_silencio a los preguntados y el menú deja de esquivar los 14", async () => {
-    const r = await apuntarSilencio({ householdId: "h1", ultimaDeLola: PREGUNTA, texto: "hazme el menú", papel: "owner" });
+    const r = await apuntarSilencio({ householdId: "h1", ultimaDeLola: PREGUNTA, ultimaDeLolaAt: AHORA, texto: "hazme el menú", papel: "owner" });
     expect(r).toEqual({ origen: "por_silencio", personas: 3 });
     const data = guardado.state.data;
     expect(data.members.map((m) => m.alergiasOrigen)).toEqual(["por_silencio", "por_silencio", "por_silencio"]);
@@ -191,13 +199,13 @@ describe("apuntarSilencio", () => {
   });
 
   it("(d) la pregunta era por Lucas: Ana y Pablo siguen sin revisar", async () => {
-    await apuntarSilencio({ householdId: "h1", ultimaDeLola: `¿Lucas tiene alguna alergia? ${AVISO_SILENCIO}`, texto: "hazme el menú", papel: "owner" });
+    await apuntarSilencio({ householdId: "h1", ultimaDeLolaAt: AHORA, ultimaDeLola: `¿Lucas tiene alguna alergia? ${AVISO_SILENCIO}`, texto: "hazme el menú", papel: "owner" });
     expect(guardado.state.data.members.map((m) => [m.id, m.alergiasRevisadas, m.alergiasOrigen ?? null]))
       .toEqual([["a", false, null], ["b", false, null], ["l", true, "por_silencio"]]);
   });
 
   it("deja una línea bot_alergias con el valor del vocabulario, sin datos de la familia", async () => {
-    await apuntarSilencio({ householdId: "h1", ultimaDeLola: PREGUNTA, texto: "hazme el menú", papel: "owner", canal: "telegram" });
+    await apuntarSilencio({ householdId: "h1", ultimaDeLola: PREGUNTA, ultimaDeLolaAt: AHORA, texto: "hazme el menú", papel: "owner", canal: "telegram" });
     expect(logs).toHaveLength(1);
     expect(JSON.parse(logs[0])).toEqual({ evento: "bot_alergias", accion: "apuntada", origen: "por_silencio", personas: 3, canal: "telegram" });
     expect(logs[0]).not.toMatch(/Ana|Pablo|Lucas|h1/);
@@ -205,9 +213,9 @@ describe("apuntarSilencio", () => {
 
   it("con señal, sin aviso o con una herramienta de salud en el turno, ni lee ni escribe", async () => {
     for (const x of [
-      { ultimaDeLola: PREGUNTA, texto: "no tolera el tomate" },
+      { ultimaDeLola: PREGUNTA, ultimaDeLolaAt: AHORA, texto: "no tolera el tomate" },
       { ultimaDeLola: "¿Alguna alergia?", texto: "hazme el menú" },
-      { ultimaDeLola: PREGUNTA, texto: "hazme el menú", llamadas: ["ajustar_alergias"] },
+      { ultimaDeLola: PREGUNTA, ultimaDeLolaAt: AHORA, texto: "hazme el menú", llamadas: ["ajustar_alergias"] },
     ]) expect(await apuntarSilencio({ householdId: "h1", papel: "owner", ...x })).toBe(null);
     expect(conCasa).not.toHaveBeenCalled();
     expect(logs).toEqual([]);
@@ -215,7 +223,7 @@ describe("apuntarSilencio", () => {
 
   it("un lector o alguien de fuera no cambia las alergias de la casa", async () => {
     for (const papel of ["viewer", "ajeno", undefined]) {
-      expect(await apuntarSilencio({ householdId: "h1", ultimaDeLola: PREGUNTA, texto: "hazme el menú", papel })).toBe(null);
+      expect(await apuntarSilencio({ householdId: "h1", ultimaDeLola: PREGUNTA, ultimaDeLolaAt: AHORA, texto: "hazme el menú", papel })).toBe(null);
     }
     expect(conCasa).not.toHaveBeenCalled();
   });
@@ -227,14 +235,14 @@ describe("apuntarSilencio", () => {
       const r = await cambiar(c);
       return r ? { ok: true } : { ok: true, sinCambios: true };
     });
-    expect(await apuntarSilencio({ householdId: "h1", ultimaDeLola: PREGUNTA, texto: "hazme el menú", papel: "owner" })).toBe(null);
+    expect(await apuntarSilencio({ householdId: "h1", ultimaDeLola: PREGUNTA, ultimaDeLolaAt: AHORA, texto: "hazme el menú", papel: "owner" })).toBe(null);
     expect(logs).toEqual([]);
   });
 
   it("si la base falla, sigue el turno (null) y no revienta", async () => {
     conCasa.mockRejectedValue(new Error("caída"));
     vi.spyOn(console, "error").mockImplementation(() => {});
-    expect(await apuntarSilencio({ householdId: "h1", ultimaDeLola: PREGUNTA, texto: "hazme el menú", papel: "owner" })).toBe(null);
+    expect(await apuntarSilencio({ householdId: "h1", ultimaDeLola: PREGUNTA, ultimaDeLolaAt: AHORA, texto: "hazme el menú", papel: "owner" })).toBe(null);
   });
 });
 

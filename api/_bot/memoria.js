@@ -29,7 +29,7 @@ export const ORDEN = "created_at.desc,id.desc";
 /**
  * @param {Array<{id:number, role:string, content:object, created_at:string}>} filas  de más nueva a más vieja (ORDEN)
  * @param {string} hoy  AAAA-MM-DD en Madrid
- * @returns {{ historia: Array<{role:string, content:string}>, pendientes: Array }}
+ * @returns {{ historia: Array<{role:string, content:string}>, pendientes: Array, ultimaDeLolaAt: string|null }}
  */
 export function montarMemoria(filas = [], hoy) {
   const vivas = [...filas];
@@ -38,6 +38,9 @@ export function montarMemoria(filas = [], hoy) {
   if (corte !== -1) vivas.length = corte;
   // Lo último que dijo Lola trae sus tareas abiertas (pendientes.js).
   const pendientes = vivas.find((f) => f.role === "assistant")?.content?.pendientes ?? [];
+  // Cuándo habló Lola por última vez: una pregunta de hace días ya no se
+  // contesta con el mensaje de hoy (alergias por silencio, silencio.js).
+  const ultimaDeLolaAt = vivas.find((f) => f.role === "assistant")?.created_at ?? null;
   const turnos = vivas.reverse()
     .map((f) => {
       const texto = String(f.content?.texto ?? "");
@@ -56,5 +59,5 @@ export function montarMemoria(filas = [], hoy) {
     else limpios.push(t);
   }
   if (limpios.length && limpios[limpios.length - 1].role === "user") limpios.pop();
-  return { historia: limpios, pendientes };
+  return { historia: limpios, pendientes, ultimaDeLolaAt };
 }
