@@ -22,32 +22,58 @@
 // (lib/listPricing.js). Por eso los dos números no coinciden y no deben.
 //
 // Lo que no tiene precio NO cuenta como 0 €. Un plato con todas sus líneas
-// con precio es «con precio»; si le falta alguna, «incompleto» (su número es
-// un mínimo); si no tiene fila, «sin precio». La suma es un MÍNIMO de la
-// semana: si ese mínimo ya pasa del presupuesto, no cabe seguro; si no lo
-// pasa pero hay mucho sin saber, el veredicto es «incierto», no «cabe».
+// con precio es «con precio»; si le falta alguna, «incompleto»; si no tiene
+// fila, «sin precio». De la semana salen dos números: el MÍNIMO (solo lo que
+// tiene precio) y el ALTO, donde a cada incompleto se le sube el precio en
+// proporción a las líneas que le faltan (3 € con el 75 % de las líneas son 4
+// €; con menos de la mitad, el doble). Si el mínimo ya pasa del presupuesto,
+// no cabe seguro. Solo se dice «cabe» si el alto cabe y casi todo tiene algo
+// de precio; si no, «incierto».
+//
+// Medido el 29 oct 2026 (npm run medir:presupuesto): de los 743 platos
+// estrella, 452 (60,8 %) tienen precio en todas sus líneas y 690 (92,9 %) en
+// el 80 % o más. Lo que más falta es menor (cebolleta, cebolla morada, aceite
+// de sésamo), por eso el alto se sube por líneas y no se da por perdido.
 
 import { costeReceta } from "./coste.js";
+import { recetaEnGrupo } from "./ids.js";
 
 // Vocabulario cerrado del veredicto (presupuesto.test.js).
 export const VEREDICTOS = Object.freeze(["cabe", "no_cabe", "incierto"]);
 
+// Cómo está el presupuesto de la casa. `sin_cifra`: el interruptor está
+// puesto pero `budget` no es un número positivo. No se aplica y SE DICE.
+export const ESTADOS_PRESUPUESTO = Object.freeze(["sin", "activo", "sin_cifra"]);
+
 // Para decir «cabe», al menos esta parte de las raciones de la semana tiene
-// que tener su precio entero. Por debajo, lo que falta podría ser lo caro.
+// que tener algún precio (completo o incompleto). Por debajo, lo que no tiene
+// ninguno podría ser lo caro.
 export const PARTE_CONOCIDA_MINIMA = 0.8;
 
-const num = (v) => (v != null && v !== "" && Number.isFinite(Number(v)) ? Number(v) : null);
+// El precio para ORDENAR y para el número alto de un plato incompleto: su
+// precio subido en proporción a las líneas que le faltan, como mucho el doble.
+// Lo usa también el solver (lib/solver.js).
+export function precioAlto(p) {
+  if (!p) return null;
+  return p.completo ? p.porRacion : p.porRacion / Math.max(p.cobertura, 0.5);
+}
+
+const positivo = (v) => (v != null && v !== "" && Number.isFinite(Number(v)) && Number(v) > 0 ? Number(v) : null);
 const euros = (v) => Math.round(v * 100) / 100;
 
 /**
- * El presupuesto de la casa en € por semana, o null si no hay.
  * @param {object} data household_state.data
- * @returns {number|null}
+ * @returns {{ estado: "sin"|"activo"|"sin_cifra", euros: number|null }}
  */
+export function leerPresupuesto(data) {
+  if (!data?.hasBudget) return { estado: "sin", euros: null };
+  const b = positivo(data.budget);
+  return b == null ? { estado: "sin_cifra", euros: null } : { estado: "activo", euros: b };
+}
+
+/** Los € por semana que se aplican, o null (sin presupuesto o sin cifra). */
 export function presupuestoSemanal(data) {
-  if (!data?.hasBudget) return null;
-  const b = num(data.budget);
-  return b != null && b > 0 ? b : null;
+  return leerPresupuesto(data).euros;
 }
 
 /**
@@ -57,23 +83,25 @@ export function presupuestoSemanal(data) {
  * el tope es algo generoso; el veredicto de después sí las cuenta todas.
  */
 export function topePorRacion(presupuesto, raciones) {
-  const p = num(presupuesto);
-  const r = num(raciones);
-  return p != null && p > 0 && r != null && r > 0 ? p / r : null;
+  const p = positivo(presupuesto);
+  const r = positivo(raciones);
+  return p != null && r != null ? p / r : null;
 }
 
 // «grupo__carnes_007» → «carnes_007»: el plan lleva el id con prefijo de grupo.
-const idDeCatalogo = (id) => (String(id).includes("__") ? String(id).split("__").slice(1).join("__") : String(id));
+const idDeCatalogo = (id) => recetaEnGrupo.leer(id).receta;
 
 /**
- * El € por ración de un plato del catálogo (modo granel) y si está completo.
- * @returns {{ porRacion: number, completo: boolean } | null} null: sin precio.
+ * El € por ración de un plato del catálogo (modo granel), con la parte de sus
+ * líneas que tiene precio.
+ * @returns {{ porRacion: number, cobertura: number, completo: boolean } | null} null: sin precio.
  */
 export function precioDePlato(recipeId) {
   if (!recipeId) return null;
   const c = costeReceta({ id: idDeCatalogo(recipeId) }, { modo: "granel" });
   if (!c || c.porRacion == null) return null;
-  return { porRacion: c.porRacion, completo: c.cobertura != null && c.cobertura >= 1 };
+  const cobertura = Number.isFinite(c.cobertura) ? c.cobertura : 0;
+  return { porRacion: c.porRacion, cobertura, completo: cobertura >= 1 };
 }
 
 /**
@@ -81,17 +109,23 @@ export function precioDePlato(recipeId) {
  * @param {object} plan `{ _warnings, [grupo]: { "Lun-Comida": hueco } }`
  * @param {{ recetas?: object[] }} [o] las recetas del menú, para ver si un
  *   plato lleva guarnición o salsa añadida (su precio no está en la tabla).
- * @returns {{ euros: number, raciones: number, conPrecio: number,
- *   incompletas: number, sinPrecio: number, platosSinPrecio: string[] }}
- *   Las tres cuentas son RACIONES. `euros` es un mínimo (ver arriba).
+ * @returns {{ euros: number, eurosAlto: number, raciones: number, conPrecio: number,
+ *   incompletas: number, sinPrecio: number, platosSinPrecio: string[],
+ *   huecosSinRaciones: number }}
+ *   Las tres cuentas son RACIONES. `euros` es el mínimo y `eurosAlto` el
+ *   alto (ver arriba); lo sin precio no entra en ninguno de los dos.
+ *   `huecosSinRaciones`: huecos con plato pero sin raciones ni comensales;
+ *   no se pueden sumar, y por eso el veredicto no dirá «cabe».
  */
 export function estimarSemana(plan, { recetas = [] } = {}) {
   const porId = new Map((recetas ?? []).filter((r) => r?.id).map((r) => [r.id, r]));
   let total = 0;
+  let alto = 0;
   let raciones = 0;
   let conPrecio = 0;
   let incompletas = 0;
   let sinPrecio = 0;
+  let huecosSinRaciones = 0;
   const platosSinPrecio = new Set();
   for (const [gid, huecos] of Object.entries(plan ?? {})) {
     if (gid.startsWith("_") || !huecos || typeof huecos !== "object") continue;
@@ -99,8 +133,11 @@ export function estimarSemana(plan, { recetas = [] } = {}) {
       if (!h || typeof h !== "object") continue;
       // Lo del congelador o la nevera ya está hecho y pagado.
       if (h.fromFreezer || h.fromFridge) continue;
-      const n = num(h.raciones) || num(h.eaters) || 0;
-      if (!(n > 0)) continue;
+      const n = positivo(h.raciones) ?? positivo(h.eaters);
+      if (n == null) {
+        if (h.recipeId || h.firstRecipeId) huecosSinRaciones++;
+        continue;
+      }
       for (const id of [h.firstRecipeId, h.recipeId]) {
         if (!id) continue;
         raciones += n;
@@ -113,12 +150,15 @@ export function estimarSemana(plan, { recetas = [] } = {}) {
           continue;
         }
         total += p.porRacion * n;
+        // Con guarnición o salsa añadida, lo añadido no está en la tabla: el
+        // alto lo cuenta como un plato al que le falta la mitad.
+        alto += (anadido ? precioAlto({ ...p, completo: false, cobertura: Math.min(p.cobertura, 0.5) }) : precioAlto(p)) * n;
         if (p.completo && !anadido) conPrecio += n;
         else incompletas += n;
       }
     }
   }
-  return { euros: euros(total), raciones, conPrecio, incompletas, sinPrecio, platosSinPrecio: [...platosSinPrecio] };
+  return { euros: euros(total), eurosAlto: euros(alto), raciones, conPrecio, incompletas, sinPrecio, platosSinPrecio: [...platosSinPrecio], huecosSinRaciones };
 }
 
 /**
@@ -130,24 +170,35 @@ export function veredicto(presupuesto, est) {
   if (presupuesto == null || !est || !(est.raciones > 0)) return null;
   // El mínimo ya se pasa: no cabe, falte lo que falte.
   if (est.euros > presupuesto) return "no_cabe";
-  return est.conPrecio / est.raciones >= PARTE_CONOCIDA_MINIMA ? "cabe" : "incierto";
+  if (est.huecosSinRaciones > 0) return "incierto";
+  const conAlgo = (est.raciones - est.sinPrecio) / est.raciones;
+  return est.eurosAlto <= presupuesto && conAlgo >= PARTE_CONOCIDA_MINIMA ? "cabe" : "incierto";
 }
 
 const fmt = (v) => `${Math.round(v)} €`;
 
 /**
- * La frase para la persona (Lola y la app la dicen tal cual). null si no hay
- * presupuesto o no hay platos.
+ * La frase para la persona (Lola y la app la dicen tal cual). Lee el
+ * presupuesto de `data` (leerPresupuesto). null si la casa no tiene
+ * presupuesto; con el interruptor puesto y sin cifra, lo dice.
  */
-export function frasePresupuesto(presupuesto, est) {
+export function frasePresupuesto(data, est) {
+  const { estado, euros: presupuesto } = leerPresupuesto(data);
+  if (estado === "sin") return null;
+  if (estado === "sin_cifra") return "El presupuesto está activado pero sin una cifra válida, así que no lo he tenido en cuenta: dime cuánto queréis gastar a la semana.";
   const v = veredicto(presupuesto, est);
-  if (!v) return null;
+  // Con presupuesto y sin un solo plato que contar, también se dice.
+  if (!v) return `Tenéis un presupuesto de ${fmt(presupuesto)}, pero en esta semana no hay platos que pueda contar.`;
   const sinSaber = est.raciones - est.conPrecio;
-  const parte = sinSaber > 0
-    ? ` (el ${Math.max(1, Math.round((sinSaber / est.raciones) * 100))} % de las raciones lleva algo sin precio)`
+  const parte = est.sinPrecio > 0
+    ? ` (el ${Math.max(1, Math.round((est.sinPrecio / est.raciones) * 100))} % de las raciones no tiene precio)`
     : "";
-  const base = `La comida de la semana sale por ${sinSaber > 0 ? "al menos" : "unos"} ${fmt(est.euros)} a precio de Mercadona por kilo${parte}`;
+  const huecos = est.huecosSinRaciones > 0 ? ` y ${est.huecosSinRaciones} comida(s) sin saber cuántos comen` : "";
+  const cuanto = Math.round(est.eurosAlto) > Math.round(est.euros)
+    ? `entre ${Math.round(est.euros)} y ${fmt(est.eurosAlto)}`
+    : `${sinSaber > 0 || est.sinPrecio > 0 || huecos ? "al menos" : "unos"} ${fmt(est.euros)}`;
+  const base = `La comida de la semana sale por ${cuanto} a precio de Mercadona por kilo${parte}${huecos}`;
   if (v === "no_cabe") return `${base}: no cabe en el presupuesto de ${fmt(presupuesto)}.`;
-  if (v === "incierto") return `${base}: con tanto sin precio no puedo asegurar que quepa en el presupuesto de ${fmt(presupuesto)}.`;
+  if (v === "incierto") return `${base}: con lo que falta no puedo asegurar que quepa en el presupuesto de ${fmt(presupuesto)}.`;
   return `${base}: cabe en el presupuesto de ${fmt(presupuesto)}.`;
 }

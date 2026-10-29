@@ -52,7 +52,7 @@ import { validateMenu, FREQ_KEY_MATCHERS, getCarbType, COMIDA_KCAL_SOFT_CAP, VEC
 import { recipeMatchesPreferType } from "../utils/filterRecipes.js";
 import { esAnadido, topeDe } from "./cocinaTopes.js";
 import { aporteDe } from "./aporte.js";
-import { precioDePlato } from "./presupuesto.js";
+import { precioDePlato, precioAlto } from "./presupuesto.js";
 
 /**
  * ¿Está encendido? Apagado por defecto: el motor de siempre no cambia hasta
@@ -473,15 +473,19 @@ export function resolverMenu(slots, pool, {
   const PESO_RECIENTE = 6e3;
 
   // El presupuesto de la casa (#958; Pablo, 29 oct 2026): un plato que se
-  // pasa del € por ración que cabe va detrás, tanto más cuanto más se pasa
-  // (el doble del tope o más, el castigo entero). Pesa 8.000: por debajo del
+  // pasa del € por ración que cabe va detrás, tanto más cuanto más se pasa.
+  // Pesa 8.000 como mucho: por debajo del
   // déficit, porque una semana sin pescado por ahorrar no es lo pedido, y por
   // encima de lo reciente, porque ahorrar pesa más que no repetir. Sin
   // presupuesto, o con uno holgado, no mueve nada: solo actúa cuando aprieta.
-  // Un plato sin precio completo no cuenta como gratis: su número es un
-  // mínimo, y si el tope está por debajo de la mediana del pool (el
-  // presupuesto aprieta) lleva medio castigo como poco, para que lo
-  // desconocido no gane a lo que se sabe barato.
+  // Un plato sin precio completo no cuenta como gratis. Para ORDENAR (no para
+  // el total que se dice, que es lib/presupuesto.js) su € por ración se sube
+  // en proporción a las líneas que le faltan: 3 € con el 75 % de las líneas
+  // cuentan como 4 €. Sin ningún precio, y si el tope está por debajo de la
+  // mediana del pool (el presupuesto aprieta), lleva el castigo entero: lo
+  // desconocido no puede ganar a lo que se sabe barato. Medido (#958): con
+  // medio castigo, a 80 € el solver cambiaba platos caros por platos sin
+  // precio completo (de 10 a 16 raciones así).
   const PESO_PRESUPUESTO = 8e3;
   const precios = topeRacion > 0 ? new Map(pool.map((r) => [r.id, precioDePlato(r.id)])) : new Map();
   const conocidos = [...precios.values()].filter((p) => p?.completo).map((p) => p.porRacion).sort((a, b) => a - b);
@@ -489,10 +493,13 @@ export function resolverMenu(slots, pool, {
   const costePresupuesto = (r) => {
     if (!(topeRacion > 0)) return 0;
     const p = precios.get(r.id) ?? precioDePlato(r.id);
-    const duda = aprieta ? 0.5 : 0;
-    if (!p) return duda;
-    const exceso = Math.max(0, Math.min(1, (p.porRacion - topeRacion) / topeRacion));
-    return p.completo ? exceso : Math.max(exceso, duda);
+    if (!p) return aprieta ? 1 : 0;
+    const estimado = precioAlto(p);
+    // e/(1+e): el doble del tope pesa 0,5, el cuádruple 0,75, y nunca llega a
+    // 1. Así lo caro conocido sigue ordenado entre sí y siempre por delante
+    // de lo desconocido, aunque el tope sea muy bajo.
+    const exceso = Math.max(0, (estimado - topeRacion) / topeRacion);
+    return exceso / (1 + exceso);
   };
 
   // ── La mitad que no cambia, ordenada UNA vez por hueco ────────────────────
