@@ -28,11 +28,6 @@
 // €; con menos de la mitad, el doble). Si el mínimo ya pasa del presupuesto,
 // no cabe seguro. Solo se dice «cabe» si el alto cabe y casi todo tiene algo
 // de precio; si no, «incierto».
-//
-// Medido el 29 oct 2026 con costeReceta sobre el catálogo: de los 743 platos
-// estrella, 452 (60,8 %) tienen precio en todas sus líneas y 690 (92,9 %) en
-// el 80 % o más. Lo que más falta es menor (cebolleta, cebolla morada, aceite
-// de sésamo), por eso el alto se sube por líneas y no se da por perdido.
 
 import { costeReceta } from "./coste.js";
 import { recetaEnGrupo } from "./ids.js";
@@ -49,12 +44,18 @@ export const ESTADOS_PRESUPUESTO = Object.freeze(["sin", "activo", "sin_cifra"])
 // ninguno podría ser lo caro.
 export const PARTE_CONOCIDA_MINIMA = 0.8;
 
+// La cobertura más baja con la que se sube un plato incompleto: con menos de
+// la mitad de sus líneas con precio, se cuenta como si tuviera la mitad (el
+// precio, como mucho, se dobla). También es la que se le da a un plato con
+// guarnición o salsa añadida, cuyo añadido no está en la tabla.
+export const COBERTURA_SUELO = 0.5;
+
 // El precio para ORDENAR y para el número alto de un plato incompleto: su
-// precio subido en proporción a las líneas que le faltan, como mucho el doble.
-// El solver lo usará para ordenar (punto 1 de arriba).
+// precio subido en proporción a las líneas que le faltan. El solver lo usará
+// para ordenar (punto 1 de arriba).
 export function precioAlto(p) {
   if (!p) return null;
-  return p.completo ? p.porRacion : p.porRacion / Math.max(p.cobertura, 0.5);
+  return p.completo ? p.porRacion : p.porRacion / Math.max(p.cobertura, COBERTURA_SUELO);
 }
 
 const positivo = (v) => (v != null && v !== "" && Number.isFinite(Number(v)) && Number(v) > 0 ? Number(v) : null);
@@ -151,7 +152,7 @@ export function estimarSemana(plan, { recetas = [] } = {}) {
         total += p.porRacion * n;
         // Con guarnición o salsa añadida, lo añadido no está en la tabla: el
         // alto lo cuenta como un plato al que le falta la mitad.
-        alto += (anadido ? precioAlto({ ...p, completo: false, cobertura: Math.min(p.cobertura, 0.5) }) : precioAlto(p)) * n;
+        alto += (anadido ? precioAlto({ ...p, completo: false, cobertura: Math.min(p.cobertura, COBERTURA_SUELO) }) : precioAlto(p)) * n;
         if (p.completo && !anadido) conPrecio += n;
         else incompletas += n;
       }

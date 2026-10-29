@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   VEREDICTOS, ESTADOS_PRESUPUESTO, PARTE_CONOCIDA_MINIMA, leerPresupuesto, presupuestoSemanal, topePorRacion,
-  precioDePlato, precioAlto, estimarSemana, veredicto, frasePresupuesto,
+  precioDePlato, precioAlto, estimarSemana, veredicto, frasePresupuesto, COBERTURA_SUELO,
 } from "./presupuesto.js";
 import recipeCoste from "../data/derived/recipeCoste.json" with { type: "json" };
 
@@ -45,7 +45,9 @@ describe("estimarSemana: lo que no tiene precio no cuenta como 0 €", () => {
   it("un plato al que le falta alguna línea cuenta, pero como incompleto, y el alto lo sube por lo que falta", () => {
     const est = estimarSemana(plan({ "Lun-Cena": { recipeId: INCOMPLETA, eaters: 3 } }));
     expect(est.euros).toBeCloseTo(fIncompleta.porRacion * 3, 2);
-    expect(est.eurosAlto).toBeCloseTo((fIncompleta.porRacion / Math.max(fIncompleta.cobertura, 0.5)) * 3, 1);
+    expect(est.eurosAlto).toBeCloseTo(precioAlto(precioDePlato(INCOMPLETA)) * 3, 1);
+    expect(est.eurosAlto).toBeGreaterThan(est.euros);
+    expect(COBERTURA_SUELO).toBe(0.5);
     expect(precioAlto({ porRacion: 3, cobertura: 0.75, completo: false })).toBe(4);
     expect(precioAlto({ porRacion: 3, cobertura: 0.2, completo: false })).toBe(6);
     expect(est).toMatchObject({ conPrecio: 0, incompletas: 3 });
