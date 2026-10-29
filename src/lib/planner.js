@@ -1,6 +1,7 @@
 import { membersOfGroup } from "./groups.js";
 import { DIAS, COMIDAS, DONDE_COME } from "./vocabularios.js";
 import { DIA_LARGO } from "./dias.js";
+import { estructuraDelGrupo, estructuraCenaDelGrupo } from "./estructuraPlatos.js";
 
 // La lista vive en vocabularios.js (fuente única); aquí con su nombre de siempre.
 export const DAYS = DIAS;
@@ -142,12 +143,10 @@ export function weeklySlotBudget(data, group = null) {
   const schedule = data?.schedule ?? {};
   const slotType = data?.slotType ?? {};
   const target = group ?? { memberIds: members.map((m) => m.id) };
-  const mealStructure =
-    data?.mealStructureByGroup?.[group?.id] ?? data?.mealStructure ?? "primero_segundo";
+  const mealStructure = estructuraDelGrupo(data, group?.id);
   // La cena tiene estructura propia (ver buildGroupContext): una cena de dos
   // platos son DOS huecos, igual que una comida.
-  const estructuraCena =
-    data?.mealStructureCenaByGroup?.[group?.id] ?? data?.mealStructureCena ?? "1_plato";
+  const estructuraCena = estructuraCenaDelGrupo(data, group?.id);
 
   let comidaDays = 0;
   let cenaDays = 0;

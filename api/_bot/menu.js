@@ -37,6 +37,7 @@ import { etapaDe } from "../../src/lib/stages.js";
 import { vetosDePersona } from "../../src/lib/vetos.js";
 import { alergiasPorSilencio } from "../../src/lib/alergiasBase.js";
 import { anadirArticulos, sonElMismo } from "../../src/lib/compraIdentidad.js";
+import { estructuraDelGrupo } from "../../src/lib/estructuraPlatos.js";
 
 let motorCargado = null;
 // Las recetas que trae el motor de serie (antes de registrar ninguna casa).
@@ -1085,13 +1086,14 @@ export async function ideasSinMenu(casa, { diaPedido, franja, grupo, para = null
   if (!elegidos.length) return grupo ? `No encuentro el grupo «${grupo}» en la casa.` : "La casa todavía no tiene a nadie apuntado.";
   const dia = diaDe(diaPedido) ?? hoy();
   const clave = `${dia}-${franja}`;
-  // Con primero y segundo, el hueco de la comida pide un segundo; sin él, plato único.
-  const conPrimero = franja === "Comida" && (cual === "primero" || data.mealStructure !== "1_plato");
+  // Con primero y segundo, el hueco de la comida pide un segundo; sin él, plato
+  // único. La de cada grupo, como el motor (estructuraPlatos.js, #958).
+  const conPrimero = (g) => franja === "Comida" && (cual === "primero" || estructuraDelGrupo(data, g.id) !== "1_plato");
   const detalle = (r) => detalleDe(r, estilo);
   const bloques = [];
   let num = 0;
   for (const g of elegidos) {
-    const plan = { [g.id]: { [clave]: { recipeId: null, firstRecipeId: conPrimero ? "_" : null, eaters: m.membersOfGroup(g, data.members ?? []).length || 2 } } };
+    const plan = { [g.id]: { [clave]: { recipeId: null, firstRecipeId: conPrimero(g) ? "_" : null, eaters: m.membersOfGroup(g, data.members ?? []).length || 2 } } };
     const res = m.pickCatalogReplacement(conQuienViene(data, [g.id], deFuera), plan, { hoy: hoyISO(), groupId: g.id, day: dia, meal: franja, course: cual === "primero" ? "first" : "main", candidatos: pideTipo(tipo ?? {}) ? POOL_PARA_APROXIMAR : POOL_PARA_VARIAR });
     const nut = await prepararNutricion();
     const filtro = filtrarCandidatas(delTipo(res?.candidatos ?? [], tipo ?? {}), { rasgos, ejes, perfil, cual }, null, nut);

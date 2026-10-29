@@ -31,6 +31,7 @@ import { supermercadoDe, CON_PRECIOS } from "../../src/lib/supermercados.js";
 import { EXTRAS, conExtras } from "../../src/lib/extras.js";
 import { quitarPersona } from "../../src/lib/quitarPersona.js";
 import { aplicarDiasDeSemana, diasDeSemana } from "../../src/lib/semanaDias.js";
+import { estructuraEfectiva } from "../../src/lib/estructuraPlatos.js";
 import { resultado } from "./resultado.js";
 
 const hoyISO = () => isoDeCasa();
@@ -106,8 +107,14 @@ export async function describirAjustes(casa) {
   const nombre = (id) => (d.members ?? []).find((p) => p.id === id)?.name ?? id;
   const horario = fuera.slice(0, 40).map(([k, v]) => { const [id, dia, comida] = k.split("|"); return `• ${nombre(id)}: ${DIA_LARGO[dia] ?? dia} ${comida} → ${v}`; });
   const reglas = (d.reglas ?? []).map((r) => `• ${m.describirRegla(r, d)}`);
+  // La que usa el motor, no solo la de la casa: con estructura por grupo
+  // (modo experto) manda la del grupo (estructuraPlatos.js, #958).
+  const efectiva = estructuraEfectiva(d);
+  const estructura = efectiva.porGrupo
+    ? efectiva.porGrupo.map((x) => `${x.grupo}: ${x.valor}`).join("; ")
+    : d.mealStructure ?? `${efectiva.casa} (por defecto)`;
   return [
-    `Estructura de la comida: ${d.mealStructure ?? "(por defecto)"}\nNivel de cocina: ${d.cookLevel ?? "normal"}\nTrastos: ${(d.kitchenTools ?? []).join(", ") || "(sin decir)"}`,
+    `Estructura de la comida: ${estructura}\nNivel de cocina: ${d.cookLevel ?? "normal"}\nTrastos: ${(d.kitchenTools ?? []).join(", ") || "(sin decir)"}`,
     `Gustos en la libreta:\n${gustos.join("\n") || "(nada todavía: todo por defecto, menú equilibrado)"}`,
     `Quién NO come en casa (el resto, en casa):\n${horario.join("\n") || "(todos comen en casa siempre)"}${fuera.length > 40 ? `\n… y ${fuera.length - 40} más` : ""}`,
     `Reglas e invitados:\n${reglas.join("\n") || "(ninguna)"}`,

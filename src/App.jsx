@@ -73,6 +73,7 @@ import { clearPreparedFromSlot } from "./lib/freezer.js";
 import { normalizeIngredientKey } from "./lib/ingredientCategories.js";
 import { conMarcas } from "./lib/compraIdentidad.js";
 import { getDayMeals, getMeals, ALL_DAY_MEALS, DAYS } from "./lib/planner.js";
+import { estructuraDelGrupo } from "./lib/estructuraPlatos.js";
 import {
   groupsFromModel,
   gruposVigentes,
@@ -2549,8 +2550,8 @@ export default function App() {
         // shape they picked for the family instead of defaulting to two.
         mealStructureByGroup: {
           ...(d.mealStructureByGroup ?? {}),
-          [adHoc.id]:
-            d.mealStructureByGroup?.[homeGroup?.id] ?? "primero_segundo",
+          // La que usa el motor para su grupo, también si es la de la casa (#958).
+          [adHoc.id]: estructuraDelGrupo(d, homeGroup?.id),
         },
       }));
     },

@@ -40,6 +40,7 @@ import { propiasDe } from "./propias.js";
 import { alergiasPorSilencio } from "../../src/lib/alergiasBase.js";
 import { botonRehacer } from "./semanaPedida.js";
 import { estadoDelMenu, lineaEstadoMenu } from "./estadoMenu.js";
+import { estructuraEfectiva } from "../../src/lib/estructuraPlatos.js";
 
 const DIA_CORTO = Object.fromEntries(DIAS.map((d) => [d, d.toLowerCase()]));
 const DIA_LARGO = DIA_LARGO_MINUSCULAS;
@@ -285,8 +286,13 @@ function cocinaBloque(data, hoy) {
   const lineas = [];
   const comidas = comidasDeLaCasa(data).map((id) => comidaDelCatalogo(id)?.nombre ?? id);
   const estructura = { primero_segundo: "primero y segundo", plato_unico: "plato único", unico: "plato único", "1_plato": "plato único" };
+  // La de la comida, la que usa el motor: con estructura por grupo, la de cada uno (#958).
+  const efectiva = estructuraEfectiva(data);
+  const deComida = efectiva.porGrupo
+    ? efectiva.porGrupo.map((x) => `${x.grupo} ${estructura[x.valor] ?? x.valor}`).join(", ")
+    : data.mealStructure ? (estructura[data.mealStructure] ?? data.mealStructure) : "";
   const est = [
-    comidasDeLaCasa(data).includes("Comida") && data.mealStructure ? `Comida: ${estructura[data.mealStructure] ?? data.mealStructure}` : "",
+    comidasDeLaCasa(data).includes("Comida") && deComida ? `Comida: ${deComida}` : "",
     comidasDeLaCasa(data).includes("Cena") && data.mealStructureCena ? `Cena: ${estructura[data.mealStructureCena] ?? data.mealStructureCena}` : "",
   ].filter(Boolean);
   lineas.push(`- Se planifican: ${lista(comidas)}${est.length ? `. ${est.join(". ")}` : ""}.`);
