@@ -21,7 +21,8 @@ vi.mock("../_bot/telegram.js", () => ({
   enviarFotos: vi.fn(), editar: vi.fn(), llamar: vi.fn(async () => ({})),
   escaparHtml: (s) => s, nombreDelBot: async () => "lola", TECLADO: {},
 }));
-vi.mock("../_bot/chats.js", () => ({ migrarChat: vi.fn(async () => ({ movidas: {} })), alSalirDelChat: vi.fn(async () => null) }));
+// esGrupoDe, la de verdad: la regla vive en chats.js y el webhook la lee de ahí.
+vi.mock("../_bot/chats.js", async (original) => ({ ...(await original()), migrarChat: vi.fn(async () => ({ movidas: {} })), alSalirDelChat: vi.fn(async () => null) }));
 vi.mock("../_bot/agente.js", () => ({ responder: vi.fn(), cortarCharla: vi.fn(), esCaida: () => false, AVISO_LENTO: {} }));
 vi.mock("../_bot/embudo.js", () => ({ registrar: vi.fn(), rastro: vi.fn(), EMBUDO: {}, duenoDe: vi.fn() }));
 vi.mock("../_bot/router.js", () => ({ clasificar: vi.fn(), vaPorLaRapida: () => false, permitidoEn: () => true }));
@@ -67,8 +68,22 @@ describe("lo que le pasa al chat llega a chats.js (#958)", () => {
   });
 
   it("si mover falla, no se le dice «algo ha fallado» al grupo: queda en el log", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
     migrarChat.mockRejectedValueOnce(new Error("base caída"));
     await llega({ message: { message_id: 1, chat: { id: -1, type: "group" }, migrate_to_chat_id: -100 } });
     expect(t.enviados).toEqual([]);
+    const lineas = log.mock.calls.map(([l]) => JSON.parse(l));
+    expect(lineas).toContainEqual(expect.objectContaining({ evento: "bot_fallo", donde: "chat_migrar", grave: true }));
+    log.mockRestore();
+  });
+
+  it("si la salida falla, también queda en el log, con su sitio", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    alSalirDelChat.mockRejectedValueOnce(new Error("base caída"));
+    await llega({ my_chat_member: { chat: { id: -1, type: "group" }, new_chat_member: { status: "kicked" } } });
+    expect(t.enviados).toEqual([]);
+    const lineas = log.mock.calls.map(([l]) => JSON.parse(l));
+    expect(lineas).toContainEqual(expect.objectContaining({ evento: "bot_fallo", donde: "chat_salida", grave: true }));
+    log.mockRestore();
   });
 });

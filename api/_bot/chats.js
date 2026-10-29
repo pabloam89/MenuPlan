@@ -30,6 +30,10 @@ export const TABLAS_DEL_CHAT = ["bot_chats", "bot_reminders", "bot_messages", "b
 // Los estados de `my_chat_member` en que Lola ya no está en el chat (API de Telegram).
 export const FUERA_DEL_CHAT = new Set(["kicked", "left"]);
 
+// Qué es un grupo para Lola, en un solo sitio (#958, C8): el webhook y la
+// salida del chat la leen de aquí.
+export const esGrupoDe = (chat) => chat?.type === "group" || chat?.type === "supergroup";
+
 const delChat = (chatId) => `channel=eq.${CANAL.TELEGRAM}&chat_id=${eq(String(chatId))}`;
 
 /**
@@ -59,7 +63,7 @@ export async function alSalirDelChat(cambio) {
   const estado = cambio?.new_chat_member?.status;
   if (!FUERA_DEL_CHAT.has(estado)) return null;
   const chatId = String(cambio.chat.id);
-  const esGrupo = cambio.chat.type === "group" || cambio.chat.type === "supergroup";
+  const esGrupo = esGrupoDe(cambio.chat);
   const cancelados = await update("bot_reminders", `${delChat(chatId)}&status=eq.pending`, { status: "cancelled" });
   let desenlazado = esGrupo;
   if (!esGrupo) {
