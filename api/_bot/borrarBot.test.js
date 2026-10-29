@@ -115,3 +115,31 @@ describe("borrarCuenta: solo la cuenta de quien pulsa", () => {
     expect(borradosAuth).toEqual(["u9"]);
   });
 });
+
+describe("borrarCuenta es reanudable (#958): la identidad no se borra antes que el usuario", () => {
+  const pasos = [];
+  let fetchAntes;
+  beforeEach(() => {
+    fetchAntes = globalThis.fetch;
+    vi.stubGlobal("fetch", vi.fn(async (url, opts) => {
+      if (opts?.method !== "DELETE") return new Response(null, { status: 204 });
+      const u = decodeURIComponent(String(url));
+      if (u.includes("/auth/v1/admin/users/")) { pasos.push("auth"); return new Response("boom", { status: 500 }); }
+      pasos.push(u.replace("https://base/rest/v1/", "").split("?")[0]);
+      return new Response(null, { status: 204 });
+    }));
+  });
+  afterEach(() => { vi.stubGlobal("fetch", fetchAntes); pasos.length = 0; });
+
+  it("si falla el borrado del usuario, su identidad de Telegram sigue: el siguiente mensaje no crea otra cuenta", async () => {
+    await expect(borrarCuenta({ chatId: "555", telegramId: 555 })).rejects.toThrow(/auth: 500/);
+    expect(pasos).toContain("auth");
+    expect(pasos).not.toContain("bot_identities");
+  });
+
+  it("la limpieza de la app tampoco las borra si se le pide (delete-account.js)", async () => {
+    await borrarLoDelBot("u1", { conIdentidades: false });
+    expect(pasos).not.toContain("bot_identities");
+    expect(pasos).toContain("bot_chats");
+  });
+});
