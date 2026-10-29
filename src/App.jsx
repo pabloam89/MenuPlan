@@ -188,7 +188,9 @@ import {
   loadPublicRecipe,
   loadRecipeFromLink,
   createRecipeShareToken,
+  loadRecetasDelTitular,
 } from "./lib/userRecipesSync.js";
+import { unirConLasDelTitular, esRecetaDelTitular } from "./lib/userRecipesFila.js";
 import { migrateFixedDishes } from "./lib/fixedDishes.js";
 import { filterOwnCreatedRecipes, filterMyLibraryRecipes } from "./lib/userRecipes.js";
 import { suggestHomeRole, migrateHomeRole, resolveAccountMember, miembroDeCuentaId, memberIllustratedAvatarSrc } from "./lib/stages.js";
@@ -1294,6 +1296,22 @@ export default function App() {
   const householdReadOnlyLabel =
     householdReadOnly && activeHousehold ? activeHousehold.name : null;
 
+  // Cotitular (editor) en la casa de otro: las recetas del titular, de solo
+  // lectura (#958, política de la 0104). Viven aquí y NO en data.userRecipes,
+  // para que nada intente subirlas a su nombre. Su carga va aparte de la de lo
+  // propio: si falla, lista vacía y lo suyo sigue igual.
+  const titularAjeno = activeHousehold && !esTitular(activeHousehold) && !householdReadOnly
+    ? activeHousehold.ownerUserId ?? null
+    : null;
+  const [recetasDelTitular, setRecetasDelTitular] = useState([]);
+  useEffect(() => {
+    setRecetasDelTitular([]);
+    if (!user?.id || !titularAjeno) return undefined;
+    let vigente = true;
+    loadRecetasDelTitular(titularAjeno).then((r) => { if (vigente) setRecetasDelTitular(r); });
+    return () => { vigente = false; };
+  }, [user?.id, titularAjeno]);
+
   const ownUserRecipes = useMemo(() => {
     if (householdReadOnly && activeHousehold?.ownerUserId) {
       return data.userRecipes ?? [];
@@ -1301,9 +1319,10 @@ export default function App() {
     // Tu recetario entero, copias de Gente incluidas: de aqui salen las fichas
     // que se registran para poder abrirlas y los platos que se ofrecen al
     // llenar un hueco del menu. Con el filtro estrecho, una receta copiada se
-    // guardaba pero no se podia ni ver ni usar.
-    return filterMyLibraryRecipes(data.userRecipes, user);
-  }, [data.userRecipes, user, householdReadOnly, activeHousehold?.ownerUserId]);
+    // guardaba pero no se podia ni ver ni usar. Si eres cotitular, detrás van
+    // las del titular (solo lectura).
+    return unirConLasDelTitular(filterMyLibraryRecipes(data.userRecipes, user), recetasDelTitular);
+  }, [data.userRecipes, user, householdReadOnly, activeHousehold?.ownerUserId, recetasDelTitular]);
 
   // User-created recipes must live in RECIPES_BY_ID for DishDetail — but in the
   // "frontend" shape (macros object, scaled ingredients), not the raw catalog
@@ -2016,6 +2035,8 @@ export default function App() {
 
   const handleDeleteRecipe = useCallback(async (recipeId) => {
     if (!recipeId) return;
+    // Una del titular no la borra el cotitular (#958): ni en la nube ni de aquí.
+    if (recetasDelTitular.some((r) => r.id === recipeId)) return;
     rememberDeletedRecipeId(recipeId);
 
     let nextData = null;
@@ -2039,7 +2060,7 @@ export default function App() {
       saveState({ screen, onbStep, data: nextData, menuPlan, shopping, aiRecipes });
     }
     showToast("Receta eliminada");
-  }, [user?.id, screen, onbStep, menuPlan, shopping, aiRecipes, showToast]);
+  }, [user?.id, screen, onbStep, menuPlan, shopping, aiRecipes, showToast, recetasDelTitular]);
 
   const regenerateMenu = useCallback(async (nextData) => {
     if (householdReadOnly) {
@@ -4377,6 +4398,8 @@ export default function App() {
   const handleUpdateUserRecipe = useCallback((updated) => {
     if (householdReadOnly) return;
     if (!updated?.id) return;
+    // Una receta del titular la ve el cotitular, pero solo la cambia su dueño (#958).
+    if (esRecetaDelTitular(updated)) { showToast("Esta receta es del titular de la casa: solo la puede cambiar quien la creó"); return; }
     setData((d) => ({
       ...d,
       userRecipes: (d.userRecipes ?? []).map((r) => (r.id === updated.id ? updated : r)),

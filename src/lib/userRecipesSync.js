@@ -1,6 +1,6 @@
 import { supabase } from "./supabase.js";
 import { uploadRecipePhoto, deleteRecipePhoto, isDataUrl } from "./recipePhotos.js";
-import { recipeToRow, rowToRecipe } from "./userRecipesFila.js";
+import { recipeToRow, rowToRecipe, esRecetaDelTitular, marcarDelTitular, subibles } from "./userRecipesFila.js";
 import { mergeUserRecipesAfterCloudLoad } from "./profileMerge.js";
 import { withoutDeletedRecipes } from "./deletedRecipeIds.js";
 import { recetaPropia } from "./ids.js";
@@ -39,6 +39,24 @@ export async function loadUserRecipes(userId) {
     return { data: null, error };
   }
   return { data: (data ?? []).map(rowToRecipe), error: null };
+}
+
+/**
+ * Las recetas del titular de la casa, para un cotitular (#958). Las deja leer
+ * la política de la 0104; sin ella, la RLS devuelve solo las publicadas
+ * (ninguna desde la 0103) y esto da una lista vacía: plan B. Van marcadas de
+ * solo lectura y nunca entran en `data.userRecipes`. Si la lectura falla, lista
+ * vacía y sigue: lo del titular no puede tumbar la carga de lo propio.
+ * @returns {Promise<object[]>}
+ */
+export async function loadRecetasDelTitular(titularId) {
+  try {
+    const { data } = await loadUserRecipes(titularId);
+    return marcarDelTitular(data ?? []);
+  } catch (e) {
+    console.warn("[userRecipes] recetas del titular", e?.message);
+    return [];
+  }
 }
 
 // ── Lápidas en la nube (user_recipe_deletions, 0094, #355) ──────────────
@@ -126,7 +144,7 @@ export async function subirRecetasSoloLocales({ userId, local, carga, cargaLapid
   // nueva o la borró otro dispositivo (#355): mejor no subir nada esta vez.
   if (cargaLapidas?.error) return 0;
   const enNube = new Set(carga.data.map((r) => r.id));
-  const soloLocales = (local ?? []).filter(
+  const soloLocales = subibles(local).filter(
     (r) => r.id && !enNube.has(r.id) && !deletedIds.has(r.id ?? r.name),
   );
   if (soloLocales.length) await upsertUserRecipes(userId, soloLocales);
@@ -206,6 +224,8 @@ export async function createRecipeShareToken(recipeId) {
 /** Inserts or updates a single recipe. */
 export async function upsertUserRecipe(userId, recipe) {
   if (!supabase || !userId || !recipe?.id) return;
+  // Una del titular que ve un cotitular no se sube nunca a su nombre (#958).
+  if (esRecetaDelTitular(recipe)) return;
   // La foto va a Storage y en la fila queda su URL. Se hace aqui, en el unico
   // sitio por el que pasan TODAS las escrituras, para que ninguna via -el
   // asistente, una edicion, una copia del feed- pueda volver a incrustar dos
@@ -222,8 +242,10 @@ export async function upsertUserRecipe(userId, recipe) {
 }
 
 /** Backfills several local-only recipes to the cloud (first login on device). */
-export async function upsertUserRecipes(userId, recipes) {
-  if (!supabase || !userId || !recipes?.length) return;
+export async function upsertUserRecipes(userId, todas) {
+  // Las del titular, fuera (#958): una sola rechazada tumbaría el upsert entero.
+  const recipes = subibles(todas);
+  if (!supabase || !userId || !recipes.length) return;
   // De una en una y no en paralelo: cada foto son un par de megas y disparar
   // diez subidas a la vez desde un movil es la mejor forma de que fallen.
   // Las filas, antes que las fotos (#539): un vocabulario que no se puede escribir lanza
