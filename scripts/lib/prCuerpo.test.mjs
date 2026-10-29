@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { resumenVitest, fallosTragados, tamano, cuerpo, esTest, primerError, TOPE_LINEAS } from "./prCuerpo.mjs";
+import { resumenVitest, fallosTragados, tamano, cuerpo, esTest, primerError, leerPlantilla, contrastar, RELLENA, TOPE_LINEAS } from "./prCuerpo.mjs";
+
+// Una plantilla con las secciones de RELLENA (sacadas de ahí, no copiadas) y una
+// forma de decisión inventada: la de verdad se lee de la Fábrica al lanzar el script.
+const PLANTILLA_MD = [
+  ...Object.values(RELLENA).flatMap((s) => [`## ${s}`, "", "<!-- … -->", ""]),
+  '<!-- Write "None", or one line per decision: "- forma <x> | de prueba" -->',
+].join("\n");
 
 describe("prCuerpo: el cuerpo del PR que pide el revisor", () => {
   it("saca las líneas de resumen de vitest, sin colores", () => {
@@ -39,13 +46,30 @@ describe("prCuerpo: el cuerpo del PR que pide el revisor", () => {
     expect(esTest("api/_bot/x.js")).toBe(false);
   });
 
-  it("el cuerpo lleva cada sección que mira el juez, y dice si el rojo antes no fue rojo", () => {
+  it("lee de la plantilla sus secciones y la forma de una decisión", () => {
+    const p = leerPlantilla(PLANTILLA_MD);
+    expect(p.secciones).toEqual(Object.values(RELLENA));
+    expect(p.forma).toBe("- forma <x> | de prueba");
+    expect(contrastar(p)).toEqual([]);
+  });
+
+  it("contrastar dice qué no cuadra si la plantilla cambia", () => {
+    const p = leerPlantilla(PLANTILLA_MD);
+    expect(contrastar({ ...p, secciones: [...p.secciones, "Nueva"] })).toEqual(["la plantilla trae «Nueva» y aquí no se rellena"]);
+    expect(contrastar({ ...p, secciones: p.secciones.slice(1) })).toEqual([`aquí se rellena «${RELLENA.que}» y la plantilla ya no la trae`]);
+    expect(contrastar({ ...p, forma: null })).toHaveLength(1);
+  });
+
+  it("el cuerpo sigue la plantilla, con la forma de decisión de ella, y dice si el rojo antes no fue rojo", () => {
     const base = {
+      plantilla: leerPlantilla(PLANTILLA_MD),
       ahora: { comando: "npx vitest run a.test.js", salida: "Tests  3 passed (3)", codigo: 0 },
       talla: { ficheros: 2, lineas: 40, grande: false },
     };
     const c = cuerpo({ ...base, antes: { comando: "npx vitest run a.test.js", salida: "Tests  2 failed (3)", codigo: 1 }, refs: "Refs #1" });
-    for (const s of ["## What changes", "## Evidence", "## Red before", "## Decisions", "## Not verified", "Refs #1"]) expect(c).toContain(s);
+    for (const s of Object.values(RELLENA)) expect(c).toContain(`## ${s}\n`);
+    expect(c).toContain("- forma <x> | de prueba");
+    expect(c).toContain("Refs #1");
     expect(c).toContain("código 1");
     expect(c).not.toContain("también pasan");
     expect(cuerpo({ ...base, antes: { comando: "x", salida: "Tests  3 passed (3)", codigo: 0 } })).toContain("también pasan");
