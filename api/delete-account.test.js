@@ -40,6 +40,15 @@ describe("Eliminar cuenta y la casa de quien la lleva contigo", () => {
     expect(orden.filter((x) => x !== "apple")).toEqual(["heredar", "bot", "borrar"]);
   });
 
+  // #958: las identidades de Telegram caen con el usuario (on delete cascade);
+  // si se borraban antes y luego fallaba el borrado, Lola creaba otra cuenta.
+  it("lo del bot se limpia sin las identidades de Telegram", async () => {
+    const { borrarLoDelBot } = await import("./_bot/borrar.js");
+    borrarLoDelBot.mockClear();
+    await handler(peticion(), respuesta());
+    expect(borrarLoDelBot).toHaveBeenCalledWith("u1", { conIdentidades: false });
+  });
+
   it("si no se puede pasar la casa, no se borra nada", async () => {
     prepara = () => new Response("boom", { status: 500 });
     const res = respuesta();

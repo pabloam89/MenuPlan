@@ -36,6 +36,7 @@
     "fallos": "node scripts/bot-fallos.mjs",
     "hora": "node scripts/hora.mjs",
     "consulta": "node scripts/consulta.mjs",
+    "pr:cuerpo": "node scripts/pr-cuerpo.mjs",
     "columnas-pocos-valores": "node scripts/columnas-pocos-valores.mjs",
     "verificar:estado": "node scripts/verificar-estado.mjs",
     "op": "node scripts/op.mjs",

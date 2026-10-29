@@ -29,6 +29,7 @@ alimentos en JSON en git (`src/data/`). Escriben **Pablo** (`pabloam89`) y **Ál
   Primer push: `git push -u origin <rama>`. Un hook personal de Pablo borra solas las carpetas ya fusionadas y limpias. La app en local: `npm run dev -- --port 5176` (el login con Google solo vuelve a ese puerto).
 - Antes del PR, y de cada push de arreglo, `git fetch origin && git merge origin/staging` y resuelve (el ruleset exigirá estar al día). Añade los ficheros por nombre (nada de `git add .`) y nada de `git stash`: es común a todas las carpetas.
 - Tests: en local, los de lo que tocas (`npx vitest run <ficheros>`); la suite entera la corre el CI.
+- El cuerpo del PR sale de `npm run pr:cuerpo -- --salida cuerpo.md`, con la rama commiteada: trae los tests tocados con su salida, el rojo antes de los nuevos, el tamaño y los fallos tragados, y deja con TODO lo que pide criterio (la idea, «Decisions», C8/C12/C14, «Not verified»), con las secciones de la plantilla de la Fábrica. Rellena los TODO; si avisa de que el PR es grande, pártelo antes de abrirlo.
 - En el cuerpo del PR, el CI solo exige una línea: si toca `.github/workflows/`, `scripts/workflows-pr.mjs` o `scripts/migraciones-pr.mjs`, `Jueces: …, seguridad` (sin «pendiente», «falta», «sin» ni «no»), tras una revisión de seguridad. `Closes #n` cierra el issue al fusionar, si lo hay.
 
 ## Base de datos

@@ -1241,7 +1241,11 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
     // leyó la primera llamada que sí acabó, que es casi lo mismo.
     if (medidaPista?.reinicio && r.primera) medidaPista.cortada_tokens = (r.primera.input_tokens ?? 0) + (r.primera.cache_read_input_tokens ?? 0) + (r.primera.cache_creation_input_tokens ?? 0);
     // La medida del turno de Lola, para bot_route (api/bot/telegram.js).
-    medida = { modelo: r.modelo, planB: r.planB, vueltas: r.vueltas, primera: r.primera, llamadas: r.llamadas ?? null, uso, herramientas: r.herramientas, corregido: !!corregido, ms: Date.now() - tLola, pista: medidaPista, aviso: r.avisos?.[0] ?? null };
+    medida = { modelo: r.modelo, planB: r.planB, vueltas: r.vueltas, primera: r.primera, llamadas: r.llamadas ?? null, uso, herramientas: r.herramientas, corregido: !!corregido, ms: Date.now() - tLola, pista: medidaPista, aviso: r.avisos?.[0] ?? null,
+      // #958: lo que de verdad se guardó en el turno, para medir lo dicho
+      // contra lo hecho (scripts/bot-dice-sin-hacer.mjs): cuántas herramientas
+      // guardaron y, por cada resultado, [acción, hechas, sin hacer].
+      guardados: chat.guardados ?? 0, recibo: chat.resultados.map((x) => [x.accion, x.hecho.length, x.sinHacer.length]) };
   } catch (err) {
     // Ya había cambiado algo en la casa cuando el modelo se cayó: repetir el
     // turno lo haría dos veces. Se dice que está hecho y dónde verlo.
@@ -1340,7 +1344,27 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
 // Como viñeta («• ✅ Cambiar un plato», al contar lo que sabe hacer) no es
 // decir que guardó: «hola, ¿qué sabes hacer?» pasaba por el aviso y una
 // segunda llamada al modelo (staging, 2 oct 2026: 8,2 s para un saludo).
-const DICE_QUE_GUARDO = /(^|\n)\s*✅|\bapuntad[oa]s?\b|\blo he (apuntado|puesto|cambiado|guardado|quitado|añadido|anotado|arreglado|solucionado|corregido|dejado|actualizado)\b|(^|[.!¡]\s*)hecho\b/i;
+//
+// #958: se escapaban «He cambiado…», «Te he añadido…», «He borrado…» y «Ya
+// está: …». Ahora cuenta cualquier «he/hemos + participio de guardar», con o
+// sin pronombre delante. «Puesto» y «dejado» solo con «lo» delante («lo he
+// puesto el jueves»): a secas también son leer («te he puesto los botones»).
+// Los participios y los auxiliares, cada uno en una sola lista que leen
+// también la negación de abajo.
+const DE_GUARDAR = ["apuntad", "cambiad", "guardad", "quitad", "añadid", "borrad", "anotad", "arreglad", "solucionad", "corregid", "actualizad", "eliminad", "tachad", "marcad", "sumad", "cancelad", "programad", "metid"];
+const SOLO_CON_LO = ["puest", "dejad"];
+// Lola habla en primera persona («he», «hemos»); la negación mira también las demás.
+const AUX_DE_LOLA = ["he", "hemos"];
+const AUXILIARES = [...AUX_DE_LOLA, "ha", "han", "has", "habeis", "habéis"].join("|");
+const DICE_QUE_GUARDO = new RegExp([
+  "(^|\\n)\\s*✅",
+  "\\bapuntad[oa]s?\\b",
+  `\\b(${AUX_DE_LOLA.join("|")})\\s+(${DE_GUARDAR.join("|")})[oa]s?\\b`,
+  `\\blo he (${SOLO_CON_LO.join("|")})[oa]s?\\b`,
+  "(^|[.!¡]\\s*)hecho\\b",
+  // «Ya está: …» o «¡Ya está!» al empezar la frase; «el arroz ya está» no.
+  "(^|\\n|[.!¡?]\\s*)ya est[aá]\\s*[:!.]",
+].join("|"), "i");
 // «Ya está arreglado» sin haber tocado nada (#911: ante la queja de que un
 // arroz con tomate llevaba ensalada de lentejas de segundo, Lola solo propuso
 // tres primeros y empezó con «Ya está arreglado»). Es la misma mentira que
@@ -1355,9 +1379,16 @@ const DICE_QUE_ARREGLO = /\bya est[aá] (arreglad|cambiad|solucionad|corregid)[o
 // que sea «he apuntado» y el «no» no vaya con él («No olvides que te he
 // apuntado leche» sí dice que guardó; «No te he apuntado nada», no). Igual con
 // «Nada está cambiado aún» (lo que dice proponer_platos): es leer, no arreglar.
-const APUNTADO_NEGADO = /\b(no|ningun[oa]?|nada|nadie)\b[^.,;:!?\n]{0,40}?\b(apuntad|arreglad|cambiad|solucionad|corregid|hech|dejad|actualizad)[oa]s?\b/gi;
-const HE_APUNTADO = /\b(he|hemos|ha|han|has|habeis|habéis)\s+(apuntad|arreglad|cambiad|solucionad|corregid|hech|dejad|actualizad)/i;
-const NO_HE_APUNTADO = /^no\s+(\S+\s+)?(he|hemos|ha|han|has|habeis|habéis)\s+(apuntad|arreglad|cambiad|solucionad|corregid|hech|dejad|actualizad)/i;
+// #958: la negación lee los mismos participios que DICE_QUE_GUARDO (con su
+// lista vieja, más corta, «No he borrado nada» habría contado como guardado),
+// y entre «no» y el «he» deja hasta dos pronombres («No te lo he quitado»),
+// no dos palabras cualesquiera: «No olvides que he apuntado leche» sí dice
+// que guardó.
+const NEGABLES = [...DE_GUARDAR, ...SOLO_CON_LO, "hech"].join("|");
+const APUNTADO_NEGADO = new RegExp(`\\b(no|ningun[oa]?|nada|nadie)\\b[^.,;:!?\\n]{0,40}?\\b(${NEGABLES})[oa]s?\\b`, "gi");
+const HE_APUNTADO = new RegExp(`\\b(${AUXILIARES})\\s+(${NEGABLES})`, "i");
+const PRONOMBRES = "me|te|se|nos|os|lo|la|los|las|le|les";
+const NO_HE_APUNTADO = new RegExp(`^no\\s+((${PRONOMBRES})\\s+){0,2}(${AUXILIARES})\\s+(${NEGABLES})`, "i");
 const sinNegados = (texto) => texto.replace(APUNTADO_NEGADO, (m) => (HE_APUNTADO.test(m) && !NO_HE_APUNTADO.test(m) ? m : ""));
 // Una pregunta («¿Ya está arreglado?», «¿Quieres que lo deje hecho?») no afirma nada.
 const sinPreguntas = (texto) => texto.replace(/¿[^?]*\?/g, "");
@@ -1366,10 +1397,7 @@ export const tipoDePromesa = (texto) => {
   const t = sinNegados(sinPreguntas(String(texto ?? "")));
   return DICE_QUE_GUARDO.test(t) ? "guardado" : DICE_QUE_ARREGLO.test(t) ? "arreglado" : null;
 };
-export const diceQueGuardo = (texto) => {
-  const t = sinNegados(sinPreguntas(String(texto ?? "")));
-  return DICE_QUE_GUARDO.test(t) || DICE_QUE_ARREGLO.test(t);
-};
+export const diceQueGuardo = (texto) => tipoDePromesa(texto) !== null;
 // Las herramientas que tardan (BOT_AVISO_LENTO, on | off; por defecto on):
 // mientras corren, la persona ve al momento una frase de Lola en el mensaje
 // que se va escribiendo, y lo que Lola escriba después la sustituye en ese

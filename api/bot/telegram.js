@@ -721,7 +721,7 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
  * precio se aplica al leerlo (scripts/bot-medidas.mjs), así un cambio de
  * tarifa no obliga a reescribir nada.
  */
-function medida(medir, d, t0, primer = null) {
+export function medida(medir, d, t0, primer = null) {
   const l = medir.lola;
   return {
     primer_ms: primer ?? (medir.primerTexto ? medir.primerTexto - t0 : null),
@@ -748,6 +748,9 @@ function medida(medir, d, t0, primer = null) {
       pista: l.pista ?? null,
       // BOT_AVISO_LENTO: la herramienta lenta cuyo aviso salió (primer_ms es entonces el del aviso).
       aviso: l.aviso ?? null,
+      // #958: lo guardado de verdad y el recibo, para medir lo dicho contra lo hecho (scripts/bot-dice-sin-hacer.mjs).
+      guardados: l.guardados ?? null,
+      recibo: l.recibo ?? null,
     } : null,
   };
 }

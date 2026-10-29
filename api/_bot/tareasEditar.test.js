@@ -48,8 +48,19 @@ describe("editar_tarea", () => {
 
   it("una fecha futura sí", async () => {
     filas = [seg("aaaa1111-x", "pan para el sábado")];
-    expect(await editarTarea(ctx, filas, "aaaa1111", { vence: "2026-10-10" }, data, AHORA)).toBe("Cambiado.");
+    const r = await editarTarea(ctx, filas, "aaaa1111", { vence: "2026-10-10" }, data, AHORA);
+    expect(r.estado).toBe("hecho");
+    expect(r.hecho[0]).toMatch(/para el 2026-10-10/);
     expect(filas[0].vence).toBe("2026-10-10");
+  });
+
+  it("si no cambia ninguna fila (se cerró entretanto), no dice «Cambiado» (#958)", async () => {
+    // La tarea está entre las abiertas del turno, pero en la base ya no.
+    const vista = [seg("aaaa1111-x", "pan para el sábado")];
+    filas = [{ ...vista[0], status: "hecha" }];
+    const r = await editarTarea(ctx, vista, "aaaa1111", { vence: "2026-10-10" }, data, AHORA);
+    expect(r.estado).toBe("nada");
+    expect(r.sinHacer[0].motivo).toMatch(/cerrada/);
   });
 
   it("cambiar el texto recalcula la clave", async () => {
