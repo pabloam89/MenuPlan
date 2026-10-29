@@ -21,7 +21,7 @@
 import { select, insert, update, eq } from "./db.js";
 import { motor } from "./menu.js";
 import { duenoDe } from "./embudo.js";
-import { primeraVez, yaVista } from "./entradas.js";
+import { primeraVez, yaVista, esDuplicado } from "./entradas.js";
 import { huella } from "./operacion.js";
 import { CANAL } from "../../src/lib/vocabularios.js";
 
@@ -84,7 +84,6 @@ export function planDespensa(entradas, existentes, convertir) {
 }
 
 const UNIDAD = { g: "gramos", ml: "mililitros", ud: "unidades" };
-const esDuplicado = (e) => /\b409\b|23505|duplicate key/i.test(String(e?.message ?? e));
 
 /**
  * @param {{ nombre: string, cantidad?: number, unidad?: string, congelado?: boolean }[]} items

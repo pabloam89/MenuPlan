@@ -27,6 +27,7 @@ import {
   noEsComida, preguntaProhibida,
 } from "../../src/lib/registroTareas.js";
 import { unaVez, tareasV2 } from "./idempotencia.js";
+import { esDuplicado } from "./entradas.js";
 import { CANAL, paraEscribir } from "../../src/lib/vocabularios.js";
 
 export const LIMITE_ABIERTAS = 8;
@@ -61,7 +62,6 @@ const cierre = (estado, ahora) => ({ status: estado, closed_at: ahora, updated_a
 /** De qué va, para el evento: con v2, el campo; sin v2, el tema de siempre. */
 const temaDelEvento = (campo) => (tareasV2() ? { campo: campo ?? null } : { tema: sobreDeCampo(campo) });
 
-const esDuplicado = (e) => /\b409\b|23505|duplicate key/i.test(String(e?.message ?? e));
 const esTope = (e) => /tope de tareas abiertas|P0001/i.test(String(e?.message ?? e));
 // PostgREST contesta 409 también a una FK rota: se mira antes que esDuplicado.
 const esPersonaSinCopiar = (e) => /bot_tareas_persona_fk/i.test(String(e?.message ?? e));

@@ -210,8 +210,6 @@ async function apuntarDeshacer(householdId, botRevDespues, antes) {
 }
 
 async function guardarFotoPrevia(casa, botRevDespues) {
-  const op = operacion();
-  if (op) op.fotos++;
   await apuntarDeshacer(casa.householdId, botRevDespues, {
     tipo: TIPO_OPERACION.CASA,
     state: casa.state,

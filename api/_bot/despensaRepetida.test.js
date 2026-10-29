@@ -9,7 +9,9 @@ const escritas = [];
 let filas = [];
 let choques = 0;
 
-vi.mock("./entradas.js", () => ({
+// esDuplicado, el de verdad: despensa.js ya no lleva su copia (#958).
+vi.mock("./entradas.js", async (original) => ({
+  esDuplicado: (await original()).esDuplicado,
   yaVista: vi.fn(async (_p, x) => vistas.has(x)),
   primeraVez: vi.fn(async (_p, x) => { const nueva = !vistas.has(x); vistas.add(x); return nueva; }),
 }));
