@@ -18,10 +18,9 @@
 
 import { seguirCon, fallaCon } from "./avisar.js";
 import { select, insert, update, borrar, eq } from "./db.js";
+import { esDuplicado } from "./entradas.js";
 
 export const tareasV2 = () => /^(1|true|si|sí|on)$/i.test(String(process.env.BOT_TAREAS_V2 ?? "").trim());
-
-const esDuplicado = (e) => /\b409\b|23505|duplicate key/i.test(String(e?.message ?? e));
 
 export const YA_HECHO = "Eso ya estaba hecho (la misma orden llegó dos veces): no lo he repetido.";
 

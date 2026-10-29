@@ -20,20 +20,24 @@
 # Y no lleva credenciales de Supabase a propósito: el repo es PÚBLICO, y el
 # script se salta ese paso solo cuando no están (mercadona-sync.mjs#42).
 #
-# ── Cómo empuja a staging ─────────────────────────────────────────────────
-# Desde el 9 oct 2026 staging exige el check `tests` (un ruleset de GitHub), y
-# el único que se lo salta es una deploy key: el token de Actions no puede ser
-# excepción en un repo personal (422 al intentarlo). Así que el push va con la
-# deploy key del secreto MERCADONA_DEPLOY_KEY. La key se escribe en disco solo
-# en el último paso, después de `npm ci` y de los scripts, para que nada de lo
-# instalado llegue a leerla. Si el secreto no existe, empuja con el token como
-# antes (plan B mientras no se cree la key; con el ruleset puesto, fallaría).
-# Un push con deploy key sí lanza `tests.yml` (el de GITHUB_TOKEN no).
+# ── Cómo llega a staging: un PR, no un push ───────────────────────────────
+# Abre un PR a staging con el token de la App homenu-dependabot-merge (puente
+# HoMenu, trozo 14; el token de Actions no lanzaría `tests` ni `revisor` sobre
+# su PR) y arma la fusión automática: lo fusiona GitHub cuando `tests` y
+# `revisor` estén en verde. Si el repo no permite la fusión automática, el job
+# falla en alto después de abrir el PR y lo dice. La clave de la App se pide en
+# un paso propio, tras `npm ci` y los scripts, para que nada de lo instalado
+# llegue a leerla.
 #
-# El secreto vive en el environment `mercadona-sync`, que solo admite la rama
+# Plan B hasta el paso 7 de PASOS-PABLO.md: sin esa clave en este environment,
+# empuja con la deploy key (MERCADONA_DEPLOY_KEY) como hasta ahora, para no
+# romper el job de cada lunes entre fusionar este cambio y que Pablo guarde la
+# clave. Cuando borre la deploy key, otro PR quita ese paso.
+#
+# Los secretos viven en el environment `mercadona-sync`, que solo admite la rama
 # staging: si fuera de repo, cualquier rama podría lanzar su propia versión de
-# este workflow (`gh workflow run --ref <rama>`) y empujar con la key a staging
-# saltándose el ruleset. Lanzado desde otra rama, el job ni arranca.
+# este workflow (`gh workflow run --ref <rama>`) y sacar la clave. Lanzado desde
+# otra rama, el job ni arranca.
 
 name: Sync catálogo Mercadona
 
@@ -45,12 +49,12 @@ on:
   workflow_dispatch: # para poder lanzarlo a mano desde la pestaña Actions
     inputs:
       probar_push:
-        description: "Si no hay precios nuevos, empuja un commit vacío para comprobar que el push a staging pasa"
+        description: "Si no hay precios nuevos, abre igualmente un PR con un commit vacío para comprobar el camino entero"
         type: boolean
         default: false
 
 # Solo lo justo para commitear el JSON. Sin esto, el token es de solo lectura.
-# (Con la deploy key, el token ya no escribe; se queda en write por el plan B.)
+# (Se queda en write solo por el plan B; el PR va con el token de la App.)
 permissions:
   contents: write
 
@@ -62,11 +66,17 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    # De aquí sale MERCADONA_DEPLOY_KEY; su política de ramas solo deja staging.
+    # De aquí salen las claves; su política de ramas solo deja staging.
     environment: mercadona-sync
+    env:
+      # Solo un sí o un no; el valor no sale de aquí. Sin clave de la App, cae el plan B.
+      HAY_CLAVE: ${{ secrets.DEPENDABOT_APP_KEY != '' && vars.DEPENDABOT_APP_ID != '' }}
 
     steps:
       - uses: actions/checkout@v7
+        with:
+          # Ningún paso hereda el token de Actions en git: cada push lleva el suyo, a la vista.
+          persist-credentials: false
 
       - uses: actions/setup-node@v6
         with:
@@ -113,11 +123,11 @@ jobs:
       - name: Recalcular el coste por ración
         run: node scripts/build-coste.mjs
 
+      # Abre el PR (puente HoMenu, trozo 14): sustituye al push directo con la deploy key.
+      # El commit se hace aquí, en local; el camino (PR o plan B) lo decide el paso siguiente.
       - name: Commitear si ha cambiado algo
+        id: commit
         env:
-          DEPLOY_KEY: ${{ secrets.MERCADONA_DEPLOY_KEY }}
-          # Para api.github.com/meta: sin token, 60 llamadas por hora y por IP.
-          GH_TOKEN: ${{ github.token }}
           # En el cron no hay inputs: queda vacío y no prueba nada.
           PROBAR_PUSH: ${{ inputs.probar_push }}
         run: |
@@ -126,33 +136,98 @@ jobs:
           if git diff --quiet -- public/store/mercadona.json; then
             if [ "$PROBAR_PUSH" != "true" ]; then
               echo "Sin cambios: los precios son los mismos que la semana pasada."
+              echo "hay=false" >> "$GITHUB_OUTPUT"
               exit 0
             fi
-            git commit --allow-empty -m "chore(mercadona): prueba de push a staging (sin precios nuevos)"
+            git commit --allow-empty -m "chore(mercadona): prueba de PR a staging (sin precios nuevos)"
           else
             N=$(node -p "require('./public/store/mercadona.json').productCount")
             git add public/store/mercadona.json src/data/derived/recipeCoste.json
             git commit -m "chore(mercadona): catálogo semanal — ${N} productos"
           fi
 
-          # Control antes de empujar (#330): la deploy key se salta el ruleset de staging,
-          # así que solo sale de aquí lo que este job debe cambiar: como mucho un commit
-          # y solo estos dos ficheros. Si no, falla sin tocar la key.
+          # Control antes de subir nada (#330): solo sale de aquí lo que este job debe cambiar:
+          # como mucho un commit y solo estos dos ficheros. Si no, falla antes de tocar ninguna clave.
           git fetch --no-tags --depth=1 origin staging
           if [ "$(git rev-list --count origin/staging..HEAD)" -gt 1 ]; then
-            echo "::error::Más de un commit por empujar; no empujo."
+            echo "::error::Más de un commit por subir; no subo."
             exit 1
           fi
           FUERA=$(git diff --name-only origin/staging..HEAD | grep -vxF -e public/store/mercadona.json -e src/data/derived/recipeCoste.json || true)
           if [ -n "$FUERA" ]; then
-            echo "::error::El commit toca ficheros que no son del catálogo; no empujo."
+            echo "::error::El commit toca ficheros que no son del catálogo; no subo."
             echo "$FUERA"
             exit 1
           fi
+          echo "hay=true" >> "$GITHUB_OUTPUT"
 
+      # El token de la App se pide aquí, tras `npm ci` y los scripts del repo, para que nada de lo
+      # instalado llegue a leerlo. App `homenu-dependabot-merge` (la misma que ya tiene el repo; no se
+      # amplía ningún permiso): solo contents y pull-requests, sin workflows. El secreto y la variable
+      # se guardan también en este environment (paso 7 de PASOS-PABLO.md).
+      - name: Token de la App
+        id: app
+        if: steps.commit.outputs.hay == 'true' && env.HAY_CLAVE == 'true'
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ vars.DEPENDABOT_APP_ID }}
+          private-key: ${{ secrets.DEPENDABOT_APP_KEY }}
+          owner: pabloam89
+          repositories: MenuPlan
+          permission-contents: write
+          permission-pull-requests: write
+
+      # Con el token de Actions el PR no lanzaría `tests` ni `revisor`; con el de la App sí.
+      - name: Abrir el PR y armar la fusión automática
+        if: steps.commit.outputs.hay == 'true' && env.HAY_CLAVE == 'true'
+        env:
+          APP_TOKEN: ${{ steps.app.outputs.token }}
+        run: |
+          set -euo pipefail
+          RAMA="datos/mercadona-semanal-${GITHUB_RUN_ID}"
+          git push "https://x-access-token:${APP_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/${RAMA}"
+
+          ANTES=$(git show origin/staging:public/store/mercadona.json | node -p 'JSON.parse(require("fs").readFileSync(0, "utf8")).productCount')
+          AHORA=$(node -p "require('./public/store/mercadona.json').productCount")
+          CUERPO="$RUNNER_TEMP/cuerpo-pr.md"
+          cat > "$CUERPO" <<EOF
+          ## Evidence
+          - Catálogo semanal de Mercadona: ${ANTES} -> ${AHORA} productos (\`node scripts/mercadona-sync.mjs\`; la comprobación de caída de más del 20 % pasó en este mismo run).
+          - Coste por ración recalculado con \`node scripts/build-coste.mjs\`.
+          - Solo toca \`public/store/mercadona.json\` y \`src/data/derived/recipeCoste.json\` (comprobado antes de subir la rama).
+          - Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+
+          ## Decisions
+          - Se abre un PR en vez de empujar a staging: lo juzgan \`tests\` y \`revisor\` como cualquier otro cambio.
+
+          ## Not verified
+          - Que los precios sean los reales de Mercadona: solo se comprueba el tamaño del catálogo.
+          EOF
+
+          PR=$(GH_TOKEN="$APP_TOKEN" gh pr create --base staging --head "$RAMA" --title "chore(mercadona): catálogo semanal — ${AHORA} productos" --body-file "$CUERPO")
+          echo "PR abierto: $PR"
+
+          PERMITE=$(GH_TOKEN="$APP_TOKEN" gh api "repos/${GITHUB_REPOSITORY}" --jq .allow_auto_merge)
+          if [ "$PERMITE" != "true" ]; then
+            echo "::error::El PR ${PR} está abierto, pero el repo no permite la fusión automática (Allow auto-merge): no la armo y nadie lo fusionará solo."
+            exit 1
+          fi
+          GH_TOKEN="$APP_TOKEN" gh pr merge --auto --squash "$PR"
+
+      # Plan B, solo hasta que Pablo guarde la clave de la App en este environment y borre la deploy
+      # key (paso 7 de PASOS-PABLO.md); entonces se quita este paso en otro PR. Sin clave de App,
+      # el job sigue como antes en vez de romperse.
+      - name: Plan B, empujar con la deploy key
+        if: steps.commit.outputs.hay == 'true' && env.HAY_CLAVE != 'true'
+        env:
+          DEPLOY_KEY: ${{ secrets.MERCADONA_DEPLOY_KEY }}
+          # Para api.github.com/meta: sin token, 60 llamadas por hora y por IP.
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "::warning::Sin la clave de la App (DEPENDABOT_APP_KEY) y la variable DEPENDABOT_APP_ID en este environment: no abro PR, uso el plan B."
           if [ -z "$DEPLOY_KEY" ]; then
-            echo "::warning::Sin el secreto MERCADONA_DEPLOY_KEY: empujo con el token de Actions. Si staging ya exige tests, GitHub lo rechazará."
-            git push
+            echo "::warning::Sin clave de la App ni MERCADONA_DEPLOY_KEY: empujo con el token de Actions. Si staging ya exige tests, GitHub lo rechazará."
+            git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/${GITHUB_REF_NAME}"
             exit 0
           fi
 

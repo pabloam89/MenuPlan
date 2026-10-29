@@ -9,7 +9,16 @@
  *
  * En español y con mayúscula, porque así están guardados ya en producción.
  */
+import { enOrden } from "./enOrden.js";
+
 export const KITCHEN_TOOL_IDS = ["Airfryer", "Horno", "Microondas", "Olla rápida", "Thermomix", "Vaporera"];
+
+/**
+ * Los mismos, en el orden en que se enseñan (los cuatro más comunes primero):
+ * el mando de trastos del panel (wizardRegistry.js) y el esquema de
+ * ajustar_cocina de Lola (agente.js) lo leen de aquí, no lo copian (#967, C8).
+ */
+export const APARATOS_EN_ORDEN = Object.freeze(enOrden(KITCHEN_TOOL_IDS, ["Airfryer", "Horno", "Microondas", "Thermomix"]));
 
 /**
  * Aparatos que una receta puede exigir y una casa no puede declarar. Es una

@@ -15,7 +15,8 @@ import { insert, select, eq } from "./db.js";
 import { fallaCon, SIN_LEER } from "./avisar.js";
 import { paraEscribir } from "../../src/lib/vocabularios.js";
 
-const esDuplicado = (e) => /\b409\b|23505|duplicate key/i.test(String(e?.message ?? e));
+/** ¿El error es que la fila ya estaba (clave única)? Uno solo para todo el bot (#958). */
+export const esDuplicado = (e) => /\b409\b|23505|duplicate key/i.test(String(e?.message ?? e));
 
 /**
  * ¿Es la primera vez que llega esta entrada? `true` = atiéndela; `false` = ya
