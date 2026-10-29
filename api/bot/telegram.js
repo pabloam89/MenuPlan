@@ -1371,7 +1371,8 @@ function sacarBotones(texto) {
 // que el modelo tenga que entender un «no es así» suelto.
 // En castellano o en inglés («That's not right»): botones.js (#958).
 const DESHACER = "Deshaz lo último que has cambiado";
-function datoDeBoton(o) {
+/** Lo que manda un botón al pulsarlo (exportada para el test). */
+export function datoDeBoton(o) {
   return esNoEsAsi(o) ? `t:${DESHACER}` : `t:${o}`;
 }
 
