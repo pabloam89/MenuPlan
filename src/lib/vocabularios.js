@@ -154,7 +154,7 @@ export const SITIOS_FALLO = [
   "bot_entrar",
   // el resto de api/_bot/
   "borrar_tanda", "compartir_llave", "cuentas_hogar", "cuentas_json", "cuentas_nacida_aqui",
-  "db_usuario", "embudo_dueno", "ficharpc_casa", "generar_borrar_menu_a_medias",
+  "db_usuario", "deshacer_paso", "deshacer_primer_menu", "embudo_dueno", "entradas_ya_vista", "ficharpc_casa", "generar_borrar_menu_a_medias",
   "generar_describir", "generar_despensa", "generar_recetas_propias", "generar_semanas_anteriores",
   "idempotencia_guardar_resultado", "idempotencia_soltar_la_llave", "invitacion_unirse",
   "menu_describir", "menu_foto_de_la_receta", "pintar_recetas", "pista_adelanto",
