@@ -70,9 +70,24 @@ describe("guardar_receta no dice «guardada» sin guardar", () => {
     const { guardarReceta } = await import("./recetas.js");
     select.mockResolvedValueOnce([{ content: { receta: { id: "user_x", name: "Tortilla de la abuela" } } }]);
     duenoDe.mockResolvedValueOnce(null);
-    const texto = await guardarReceta("h1", { confirmado: true }, { channel: "telegram", chatId: "1" });
-    expect(texto).toMatch(/^NO GUARDADA/);
-    expect(texto).not.toMatch(/Guardada en el recetario/);
+    const r = await guardarReceta("h1", { confirmado: true }, { channel: "telegram", chatId: "1" });
+    expect(r.estado).toBe("nada");
+    expect(r.sinHacer[0]).toMatchObject({ que: "Tortilla de la abuela", motivo: expect.stringMatching(/no se ha podido guardar/) });
+    expect(insert).not.toHaveBeenCalled();
+  });
+
+  // #958: si el último preparar_receta falló, el borrador apartado era el de
+  // antes, y se guardaba otra receta.
+  it("si lo aprobado no es la última preparada, no guarda nada y lo dice", async () => {
+    const { select, insert } = await import("./db.js");
+    const { duenoDe } = await import("./embudo.js");
+    const { guardarReceta } = await import("./recetas.js");
+    duenoDe.mockClear();
+    select.mockResolvedValueOnce([{ content: { receta: { id: "user_x", name: "Tortilla de la abuela" } } }]);
+    const r = await guardarReceta("h1", { confirmado: true, nombre: "Lentejas con chorizo" }, { channel: "telegram", chatId: "1" });
+    expect(r.estado).toBe("nada");
+    expect(r.sinHacer).toEqual([{ que: "Lentejas con chorizo", motivo: "la última preparada es «Tortilla de la abuela», no esa: hay que prepararla otra vez" }]);
+    expect(duenoDe).not.toHaveBeenCalled();
     expect(insert).not.toHaveBeenCalled();
   });
 });
