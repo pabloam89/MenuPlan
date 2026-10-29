@@ -9,6 +9,7 @@
  */
 
 import { fallaCon } from "./avisar.js";
+import { cabeUnTurno } from "./plazo.js";
 import { select, insert, update, rpc, eq } from "./db.js";
 import { CANAL, paraEscribir } from "../../src/lib/vocabularios.js";
 
@@ -43,16 +44,31 @@ const hayPendientes = async (chatId) =>
 
 /**
  * Encola el mensaje y, si nadie está respondiendo en este chat, responde a
- * todo lo pendiente.
+ * todo lo pendiente (drenar).
  * @param {(items: object[]) => Promise<void>} atender  un turno con lo acumulado
+ * @param {{ alSobrar?: () => Promise<void> }} [o]  si queda trabajo y no hay tiempo, quién lo releva
  */
-export async function enTurno(chatId, item, atender) {
+export async function enTurno(chatId, item, atender, { alSobrar = null } = {}) {
   await encolar(chatId, item);
+  return drenar(chatId, atender, { espera: item.inmediato ? 0 : ESPERA_RAFAGA_MS, alSobrar });
+}
+
+/**
+ * Atiende lo pendiente del chat si consigue su candado, mirando el reloj de la
+ * invocación (plazo.js, #958): no saca de la cola lo que no le da tiempo a
+ * contestar. Lo que sobra se queda en la cola, sin tomar, y `alSobrar` lo
+ * pasa a otra invocación (el relevo de api/bot/telegram.js). Antes se sacaba
+ * todo y, si la función moría, esos mensajes se perdían.
+ */
+export async function drenar(chatId, atender, { espera = ESPERA_RAFAGA_MS, alSobrar = null } = {}) {
   for (let intento = 0; intento < 2; intento++) {
+    if (!cabeUnTurno()) return alSobrar?.();
     if (!(await tomarCandado(chatId))) return;
+    let sinTiempo = false;
     try {
-      if (!item.inmediato) await dormir(ESPERA_RAFAGA_MS);
+      if (espera) await dormir(espera);
       for (let vuelta = 0; vuelta < MAX_VUELTAS; vuelta++) {
+        if (!cabeUnTurno()) { sinTiempo = true; break; }
         const items = await sacarCola(chatId);
         if (!items.length) break;
         await atender(items);
@@ -61,9 +77,13 @@ export async function enTurno(chatId, item, atender) {
       await soltarCandado(chatId);
     }
     // Algo pudo entrar justo entre la última mirada y soltar el candado: esa
-    // llamada no pudo tomarlo y se fue. Se atiende aquí.
+    // llamada no pudo tomarlo y se fue. Se atiende aquí, si da tiempo.
     if (!(await hayPendientes(chatId))) return;
+    if (sinTiempo) return alSobrar?.();
   }
+  // Dos intentos y sigue habiendo cola (mensajes que no paran de entrar, o más
+  // de MAX_VUELTAS seguidas): otra invocación, que empieza con el reloj a cero.
+  return alSobrar?.();
 }
 
 /**
@@ -74,7 +94,7 @@ export async function enTurno(chatId, item, atender) {
  * `atender` recibe `{ esperaMs }`: lo que esperó a que el chat quedara libre
  * (bot_route espera_cola_ms: un turno largo delante lo deja en silencio).
  */
-export async function aSolas(chatId, atender, drenar, alOcupar = async () => {}) {
+export async function aSolas(chatId, atender, drenarCola, alOcupar = async () => {}, { alSobrar = null } = {}) {
   const desde = Date.now();
   let mio = await tomarCandado(chatId);
   for (let i = 0; i < 60 && !mio; i++) {
@@ -85,13 +105,16 @@ export async function aSolas(chatId, atender, drenar, alOcupar = async () => {})
   try {
     await atender({ esperaMs: Date.now() - desde });
     for (let vuelta = 0; vuelta < MAX_VUELTAS; vuelta++) {
+      // Lo de detrás, solo si cabe en esta invocación (plazo.js, #958).
+      if (!cabeUnTurno()) break;
       const items = await sacarCola(chatId);
       if (!items.length) break;
-      await drenar(items);
+      await drenarCola(items);
     }
   } finally {
     await soltarCandado(chatId);
   }
+  if (await hayPendientes(chatId)) return alSobrar?.();
 }
 
 /**

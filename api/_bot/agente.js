@@ -42,6 +42,7 @@ import {
   crearRecordatorio, verRecordatorios, cancelarRecordatorio, ahoraEnMadrid,
 } from "./recordatorios.js";
 import { fueraDeLimite, contarUso, avisoDeLimite } from "./uso.js";
+import { quedaMs, plazoDeLlamada, RESERVA_MIN_MS } from "./plazo.js";
 import { supervisar, frenoDeshacer } from "./supervisor.js";
 import { montarFicha, extrasDeFicha } from "./ficha.js";
 import { fichaRpc, leerFichaCasa, tareasDeFicha, calladasDeFicha, conLaFicha, olvidarFicha } from "./fichaRpc.js";
@@ -1456,7 +1457,15 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
   }));
   let ultimoError = null;
   for (const [i, modelo] of modelos.entries()) {
-    const plazo = AbortSignal.timeout(i === 0 ? PLAZO_MS.principal : PLAZO_MS.reserva);
+    // El reloj de la invocación (plazo.js, #958): el plazo de la llamada no
+    // pasa de lo que le queda a la función, y el de reserva no se prueba si
+    // ya no le daría tiempo. Antes 55 + 50 s de modelo no cabían en lo que
+    // quedaba y Vercel mataba la función a medias.
+    if (i > 0 && quedaMs() < RESERVA_MIN_MS) {
+      console.error(`[agente] sin tiempo para el de reserva (${Math.round(quedaMs() / 1000)} s)`);
+      break;
+    }
+    const plazo = AbortSignal.timeout(plazoDeLlamada(i === 0 ? PLAZO_MS.principal : PLAZO_MS.reserva));
     try {
       if (i > 0) alReintentar?.();
       const comun = {
