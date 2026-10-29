@@ -8,10 +8,25 @@ const db = vi.hoisted(() => ({ select: vi.fn(), insert: vi.fn(), update: vi.fn()
 vi.mock("./db.js", () => ({ ...db, eq: (v) => `eq.${encodeURIComponent(v)}` }));
 
 const {
-  COSAS_QUE_CADUCAN, CADUCA, EFECTOS, QUIENES, BARRIDOS, vigente, estadosVencidos, avisoDeCola, barrer, claveDeEstadoVencido,
+  COSAS_QUE_CADUCAN, CADUCA, EFECTOS, QUIENES, BARRIDOS, vigente, estadosVencidos, avisoDeCola, claveDeEstadoVencido,
+  barridosQueFaltan, PATRON_VENCIDO, barrer: barrerReal,
 } = await import("./caducidades.js");
 
 const H = 3600000;
+// La cadencia del cron, de su único sitio (la misma que pasa api/bot/recordatorios.js).
+const { CADA_MS, HORARIO_CRON, CADA_MINUTOS } = await import("./cadencia.js");
+const barrer = (o) => barrerReal({ cadaMs: CADA_MS, ...o });
+
+/** Lo que avisarFallo escribe por consola, como objetos. */
+function avisos(fn) {
+  const espia = vi.spyOn(console, "warn").mockImplementation(() => {});
+  try {
+    fn();
+    return espia.mock.calls.map(([l]) => JSON.parse(l));
+  } finally {
+    espia.mockRestore();
+  }
+}
 
 describe("la lista de lo que caduca", () => {
   it("es cerrada: cada cosa con quién la caduca y qué pasa", () => {
@@ -23,8 +38,39 @@ describe("la lista de lo que caduca", () => {
   });
 
   it("lo de barrido tiene su función, y solo eso", () => {
-    const deBarrido = Object.entries(COSAS_QUE_CADUCAN).filter(([, d]) => d.quien === "barrido").map(([k]) => k).sort();
-    expect(Object.keys(BARRIDOS).sort()).toEqual(deBarrido);
+    expect(barridosQueFaltan()).toEqual({ faltan: [], sobran: [] });
+  });
+
+  it("la cadencia vive en un sitio: quien la usa la lee de cadencia.js y nadie la copia (#974, C8/C14)", async () => {
+    const { readFileSync, readdirSync } = await import("node:fs");
+    const raiz = new URL("../../", import.meta.url);
+    const leer = (f) => readFileSync(new URL(f, raiz), "utf8");
+    expect(HORARIO_CRON).toBe(`*/${CADA_MINUTOS} * * * *`);
+    // Los que la usan: el script que programa el job, el endpoint y la simulación del cron.
+    const usan = ["scripts/bot-cron.mjs", "api/bot/recordatorios.js", "api/_bot/recordatoriosHora.test.js"];
+    for (const f of usan) {
+      const texto = leer(f);
+      expect(texto, f).toMatch(/from "\.\.?\/(_bot\/|api\/_bot\/)?cadencia\.js"|import\("\.\/cadencia\.js"\)/);
+      expect(texto, f).not.toMatch(/\d+ \* 60000/);
+    }
+    // Y en todo el bot (y el script del job), ni la expresión de pg_cron ni «cada N min» a mano.
+    const delBot = ["api/_bot", "api/bot"].flatMap((d) => readdirSync(new URL(`${d}/`, raiz)).filter((n) => /\.m?js$/.test(n)).map((n) => `${d}/${n}`));
+    const copias = [...delBot, "scripts/bot-cron.mjs"]
+      .filter((f) => f !== "api/_bot/cadencia.js")
+      .filter((f) => /\*\/\d+ \* \* \* \*|cada \d+ min/i.test(leer(f)));
+    expect(copias).toEqual([]);
+  });
+
+  it("y la comprobación salta con una lista mala (#964, C17)", () => {
+    // Una cosa nueva de barrido sin función (lo que pasaría al añadir la dieta
+    // blanda olvidando su barrido), y una función de algo que no es de barrido.
+    const cosas = { ...COSAS_QUE_CADUCAN, dieta_nueva: { quien: "barrido", efecto: "preguntar", que: "prueba" } };
+    const barridos = { ...BARRIDOS, [CADUCA.PROPUESTA]: async () => ({}) };
+    expect(barridosQueFaltan(cosas, barridos)).toEqual({ faltan: ["dieta_nueva"], sobran: [CADUCA.PROPUESTA] });
+  });
+
+  it("el cron no se barre sin decir su cadencia", async () => {
+    await expect(barrerReal({ ahoraMs: Date.parse("2026-11-05T09:01:00Z") })).rejects.toThrow(/cadaMs/);
   });
 
   it("una cosa que no está en la lista no se caduca a ojo", () => {
@@ -41,6 +87,9 @@ describe("vigente", () => {
   it("sin fecha, como antes", () => {
     expect(vigente(CADUCA.TAREAS_DEL_MENSAJE, null, ahora)).toBe(true);
   });
+  it("una fecha ilegible lanza: ni vigente ni caducada por defecto (#974, C5)", () => {
+    expect(() => vigente(CADUCA.PROPUESTA, "ayer por la tarde", ahora)).toThrow(/fecha ilegible/);
+  });
 });
 
 describe("estados de salud con fecha pasada", () => {
@@ -54,7 +103,22 @@ describe("estados de salud con fecha pasada", () => {
     const v = estadosVencidos(members, "2026-11-05");
     expect(v.map((x) => [x.personaId, x.estado])).toEqual([["p1", "pregnancy"]]);
     expect(v[0].clave).toBe(claveDeEstadoVencido("p1", "pregnancy", "2026-09-30"));
-    expect(v[0].texto).toMatch(/30\/09/);
+    expect(v[0].texto).toMatch(/2026-09-30/);
+  });
+
+  it("una lista de personas que no es una lista se avisa, no se da por vacía (#964, C5)", () => {
+    let v;
+    const dichos = avisos(() => { v = estadosVencidos({ p1: members[0] }, "2026-11-05"); });
+    // null, no []: «no he podido leerla» no es «no hay nadie».
+    expect(v).toBeNull();
+    expect(dichos).toMatchObject([{ donde: "caducidades_personas_ilegibles" }]);
+    // Sin personas (null) no es un fallo.
+    expect(avisos(() => estadosVencidos(null, "2026-11-05"))).toEqual([]);
+  });
+
+  it("el patrón de las claves sale de la misma función que las claves (#964, C8)", () => {
+    const como = new RegExp(`^${PATRON_VENCIDO.split("*").map((t) => t.replace(/[.+?^${}()|[\]\\]/g, "\\$&")).join(".*")}$`);
+    expect(claveDeEstadoVencido("p1", "pregnancy", "2026-09-30")).toMatch(como);
   });
 
   it("el barrido abre la pregunta una sola vez y en el privado", async () => {
@@ -67,7 +131,7 @@ describe("estados de salud con fecha pasada", () => {
     });
     db.insert.mockResolvedValue([{}]);
     const r = await barrer({ ahoraMs: Date.parse("2026-11-05T09:01:00Z") });
-    expect(r[CADUCA.ESTADO_SALUD]).toEqual({ abiertas: 1, cerradas: 0 });
+    expect(r[CADUCA.ESTADO_SALUD]).toEqual({ abiertas: 1, cerradas: 0, sinLeer: 0 });
     const [tabla, [fila]] = db.insert.mock.calls[0];
     expect(tabla).toBe("bot_tareas");
     expect(fila).toMatchObject({ chat_id: "7", kind: "pregunta", clave: claveDeEstadoVencido("p1", "pregnancy", "2026-09-30") });
@@ -87,13 +151,46 @@ describe("estados de salud con fecha pasada", () => {
     db.select.mockReset(); db.update.mockReset();
     db.select.mockImplementation(async (tabla, filtro) => {
       if (tabla === "household_state") return [{ household_id: "h1", members: [] }];
-      if (tabla === "bot_tareas" && filtro.includes("like")) return [{ id: "t9", household_id: "h1", clave: "pregunta:p1:caduca-pregnancy-2026-09-30" }];
+      if (tabla === "bot_tareas" && filtro.includes("like")) return [{ id: "t9", household_id: "h1", clave: claveDeEstadoVencido("p1", "pregnancy", "2026-09-30") }];
       return [];
     });
     db.update.mockResolvedValue([{}]);
     const r = await barrer({ ahoraMs: Date.parse("2026-11-05T09:00:00Z") });
-    expect(r[CADUCA.ESTADO_SALUD]).toEqual({ abiertas: 0, cerradas: 1 });
+    expect(r[CADUCA.ESTADO_SALUD]).toEqual({ abiertas: 0, cerradas: 1, sinLeer: 0 });
     expect(db.update.mock.calls[0][2]).toMatchObject({ status: "hecha" });
+  });
+
+  it("si la casa no se puede leer, sus preguntas abiertas no se cierran (#974, C5)", async () => {
+    db.select.mockReset(); db.update.mockReset();
+    db.select.mockImplementation(async (tabla, filtro) => {
+      if (tabla === "household_state") return [{ household_id: "h1", members: { roto: true } }];
+      if (tabla === "bot_tareas" && filtro.includes("like")) return [{ id: "t9", household_id: "h1", clave: claveDeEstadoVencido("p1", "pregnancy", "2026-09-30") }];
+      return [];
+    });
+    let r;
+    // El aviso de la casa ilegible se mira en el test de estadosVencidos; aquí, callado.
+    const espia = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      r = await barrer({ ahoraMs: Date.parse("2026-11-05T09:00:00Z") });
+    } finally {
+      espia.mockRestore();
+    }
+    expect(r[CADUCA.ESTADO_SALUD]).toEqual({ abiertas: 0, cerradas: 0, sinLeer: 1 });
+    expect(db.update).not.toHaveBeenCalled();
+  });
+
+  it("una casa sin chat no abre nada, pero tampoco cierra lo que ya estaba abierto (#974)", async () => {
+    db.select.mockReset(); db.insert.mockReset(); db.update.mockReset();
+    db.select.mockImplementation(async (tabla, filtro) => {
+      if (tabla === "household_state") return [{ household_id: "h1", members }];
+      if (tabla === "bot_chats") return [];
+      if (tabla === "bot_tareas" && filtro.includes("like")) return [{ id: "t9", household_id: "h1", clave: claveDeEstadoVencido("p1", "pregnancy", "2026-09-30") }];
+      return [];
+    });
+    const r = await barrer({ ahoraMs: Date.parse("2026-11-05T09:00:00Z") });
+    expect(r[CADUCA.ESTADO_SALUD]).toEqual({ abiertas: 0, cerradas: 0, sinLeer: 0 });
+    expect(db.insert).not.toHaveBeenCalled();
+    expect(db.update).not.toHaveBeenCalled();
   });
 });
 
