@@ -11,8 +11,8 @@
  * caducidades.test.js). Cada cosa dice quién la caduca:
  *   · «lectura»: quien la lee la ignora pasada su vida (vigente()). Es lo que
  *     vive dentro de un mensaje guardado y no merece una escritura.
- *   · «barrido»: la pasada del cron (barrer(), desde /api/bot/recordatorios
- *     cada 5 minutos) hace lo que diga su `efecto`.
+ *   · «barrido»: la pasada del cron (barrer(), desde /api/bot/recordatorios,
+ *     con la cadencia de cadencia.js) hace lo que diga su `efecto`.
  * Un tipo nuevo (la dieta blanda, #959) se añade aquí y, si es de barrido, con
  * su función en BARRIDOS: el test exige que cada una tenga la suya.
  *
@@ -26,6 +26,8 @@ import { claveDeTarea } from "../../src/lib/registroTareas.js";
 import { INTOLERANCE_RULES } from "../../src/lib/intolerances.js";
 import { isoDeCasa } from "../../src/lib/dias.js";
 import { CANAL, paraEscribir } from "../../src/lib/vocabularios.js";
+import { avisarFallo } from "./avisar.js";
+import { DURACION_CANDADO_S } from "./candado.js";
 
 const MIN = 60000;
 const HORA = 60 * MIN;
@@ -58,21 +60,38 @@ export const COSAS_QUE_CADUCAN = {
   // noche siguiente ya es otra conversación.
   [CADUCA.PROPUESTA]: { quien: "lectura", efecto: "ignorar", vidaMs: 3 * HORA, que: "la pregunta o las opciones del último mensaje de Lola" },
   [CADUCA.TAREAS_DEL_MENSAJE]: { quien: "lectura", efecto: "ignorar", vidaMs: 12 * HORA, que: "lo que Lola dejó a medias en su último mensaje" },
-  // Más que el candado (150 s) y que un turno (120 s): si sigue sin tomar, el
-  // turno que lo tenía murió.
-  [CADUCA.COLA]: { quien: "barrido", efecto: "avisar", vidaMs: 10 * MIN, que: "un mensaje que se quedó sin contestar en la cola" },
+  // Cuatro veces el candado (turnos.js, que ya es más que un turno entero): si
+  // sigue sin tomar, el turno que lo tenía murió.
+  [CADUCA.COLA]: { quien: "barrido", efecto: "avisar", vidaMs: 4 * DURACION_CANDADO_S * 1000, que: "un mensaje que se quedó sin contestar en la cola" },
 };
 
 /**
- * Pura. ¿Sigue valiendo algo de tipo `cosa` creado en `creadoAt`? Sin fecha,
- * sí (filas viejas o de prueba: mejor como antes que perder algo).
+ * Pura. Las cosas de barrido que no tienen función en `barridos`, y las
+ * funciones que sobran (de algo que no es de barrido o no está en la lista).
+ * El test la usa con la lista de verdad y con una mala, para ver que salta.
+ */
+export function barridosQueFaltan(cosas = COSAS_QUE_CADUCAN, barridos = BARRIDOS) {
+  const deBarrido = Object.keys(cosas).filter((k) => cosas[k].quien === "barrido");
+  return {
+    faltan: deBarrido.filter((k) => typeof barridos[k] !== "function"),
+    sobran: Object.keys(barridos).filter((k) => !deBarrido.includes(k)),
+  };
+}
+
+/**
+ * ¿Sigue valiendo algo de tipo `cosa` creado en `creadoAt`? Sin fecha, sí
+ * (las filas de bot_messages siempre la traen; sin ella es un objeto de
+ * prueba). Con una que no se puede leer, LANZA (#974, C5): darla por vigente o por
+ * caducada sería inventarse la respuesta. created_at sale de la base, así
+ * que ilegible es un fallo de verdad y tiene que verse.
  */
 export function vigente(cosa, creadoAt, ahoraMs = Date.now()) {
   const def = COSAS_QUE_CADUCAN[cosa];
   if (!def) throw new Error(`no sé cómo caduca «${cosa}»`);
   if (!def.vidaMs || !creadoAt) return true;
   const t = Date.parse(creadoAt);
-  return Number.isNaN(t) || ahoraMs - t < def.vidaMs;
+  if (Number.isNaN(t)) throw new Error(`caducidades: fecha ilegible en ${cosa} («${String(creadoAt).slice(0, 40)}»)`);
+  return ahoraMs - t < def.vidaMs;
 }
 
 // ── Estados de salud con fecha ──────────────────────────────────────────────
@@ -81,16 +100,24 @@ export function vigente(cosa, creadoAt, ahoraMs = Date.now()) {
 export const claveDeEstadoVencido = (personaId, estado, hasta) =>
   claveDeTarea({ tipo: "falta_saber", personaId, palabras: ["caduca", estado, hasta] });
 
-const ddmm = (iso) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
+/** El patrón (PostgREST `like`) de todas las claves de claveDeEstadoVencido: sale de la misma función. */
+export const PATRON_VENCIDO = claveDeTarea({ tipo: "falta_saber", personaId: "*", palabras: ["caduca", "*"] });
 
 /**
- * Pura. Los estados de salud de la casa cuya fecha «hasta» ya pasó (hoy en
- * Madrid). Solo los que la persona sigue teniendo puestos.
- * @returns {{ personaId: string, nombre: string, estado: string, hasta: string, clave: string, texto: string }[]}
+ * Los estados de salud de la casa cuya fecha «hasta» ya pasó (hoy en Madrid).
+ * Solo los que la persona sigue teniendo puestos. Una lista de personas que
+ * no es una lista (sin personas es null o falta) se avisa y devuelve null,
+ * NO una lista vacía: «no he podido leerla» no es «no hay nada», y con una
+ * vacía el barrido cerraría las preguntas abiertas de esa casa (#974, C5).
+ * @returns {null | { personaId: string, nombre: string, estado: string, hasta: string, clave: string, texto: string }[]}
  */
 export function estadosVencidos(members = [], hoy = isoDeCasa()) {
   const out = [];
-  for (const m of Array.isArray(members) ? members : []) {
+  if (members != null && !Array.isArray(members)) {
+    avisarFallo("caducidades_personas_ilegibles", new Error(`members es ${typeof members}`), { grave: false });
+    return null;
+  }
+  for (const m of members ?? []) {
     if (!m?.id) continue;
     const meta = m.dietaryStatesMeta && typeof m.dietaryStatesMeta === "object" ? m.dietaryStatesMeta : {};
     for (const estado of m.dietaryStates ?? []) {
@@ -100,28 +127,33 @@ export function estadosVencidos(members = [], hoy = isoDeCasa()) {
       out.push({
         personaId: String(m.id), nombre: m.name ?? "", estado, hasta,
         clave: claveDeEstadoVencido(String(m.id), estado, hasta),
-        texto: `Preguntar si ${m.name ?? "esta persona"} sigue con ${etiqueta}: estaba apuntado hasta el ${ddmm(hasta)}. Si ya no, quitarlo con ajustar_salud (quitar); si sigue, ponerle fecha nueva. Mientras, el menú lo sigue teniendo en cuenta.`,
+        texto: `Preguntar si ${m.name ?? "esta persona"} sigue con ${etiqueta}: estaba apuntado hasta el ${hasta}. Si ya no, quitarlo con ajustar_salud (quitar); si sigue, ponerle fecha nueva. Mientras, el menú lo sigue teniendo en cuenta.`,
       });
     }
   }
   return out;
 }
 
-const PREFIJO_VENCIDO = "pregunta:*:caduca-*";
-
 async function barrerEstados({ ahoraMs, hoy }) {
   const casas = await select("household_state", "", "household_id,members:state->data->members");
   const vivas = new Set();
+  // Las casas que no se han podido leer: sus preguntas abiertas no se tocan.
+  const sinLeer = new Set();
   let abiertas = 0;
   for (const c of casas) {
     const vencidos = estadosVencidos(c.members, hoy);
+    if (vencidos === null) {
+      sinLeer.add(c.household_id);
+      continue;
+    }
     if (!vencidos.length) continue;
+    // Vivas antes de buscar el chat: sin chat no se abre nada, pero lo abierto sigue valiendo.
+    for (const v of vencidos) vivas.add(`${c.household_id}|${v.clave}`);
     const chats = await select("bot_chats", `household_id=${eq(c.household_id)}&order=created_at.asc`, "channel,chat_id,kind");
     // El privado antes que el grupo: es salud.
     const chat = chats.find((x) => x.kind === "private") ?? chats[0];
     if (!chat) continue;
     for (const v of vencidos) {
-      vivas.add(`${c.household_id}|${v.clave}`);
       // Una vez por estado y fecha: si ya se preguntó (abierta o cerrada), no se repite.
       const ya = await select("bot_tareas", `household_id=${eq(c.household_id)}&clave=${eq(v.clave)}&limit=1`, "id");
       if (ya.length) continue;
@@ -139,13 +171,13 @@ async function barrerEstados({ ahoraMs, hoy }) {
     }
   }
   // Las que ya no hacen falta (la quitaron o le dieron fecha nueva): cerradas.
-  const abiertasAntes = await select("bot_tareas", `clave=like.${encodeURIComponent(PREFIJO_VENCIDO)}&status=eq.abierta`, "id,household_id,clave");
-  const sobran = abiertasAntes.filter((t) => !vivas.has(`${t.household_id}|${t.clave}`));
+  const abiertasAntes = await select("bot_tareas", `clave=like.${encodeURIComponent(PATRON_VENCIDO)}&status=eq.abierta`, "id,household_id,clave");
+  const sobran = abiertasAntes.filter((t) => !sinLeer.has(t.household_id) && !vivas.has(`${t.household_id}|${t.clave}`));
   if (sobran.length) {
     const ahora = new Date(ahoraMs).toISOString();
     await update("bot_tareas", `id=in.(${sobran.map((t) => t.id).join(",")})&status=eq.abierta`, { status: "hecha", closed_at: ahora, updated_at: ahora });
   }
-  return { abiertas, cerradas: sobran.length };
+  return { abiertas, cerradas: sobran.length, sinLeer: sinLeer.size };
 }
 
 // ── La cola sin dueño ───────────────────────────────────────────────────────
@@ -197,20 +229,23 @@ export const BARRIDOS = {
   [CADUCA.COLA]: barrerCola,
 };
 
-// Lo que no hace falta mirar cada 5 minutos: una vez por hora basta.
+// Lo que no hace falta mirar en cada pasada: una vez por hora basta.
 const CADA = { [CADUCA.ESTADO_SALUD]: HORA, [CADUCA.COLA]: 0 };
 
 /**
  * La pasada del cron. Cada cosa por su cuenta: si una falla, las demás siguen.
- * @param {{ ahoraMs?: number, enviar?: (chatId: string, texto: string, opts?: object) => Promise<any> }} o
+ * `cadaMs`: cada cuánto llama el cron. Lo dice quien lo llama
+ * (api/bot/recordatorios.js), que es donde vive esa cifra.
+ * @param {{ ahoraMs?: number, cadaMs: number, enviar?: (chatId: string, texto: string, opts?: object) => Promise<any> }} o
  * @returns {Promise<Record<string, object>>} lo hecho por cada cosa (o su error)
  */
-export async function barrer({ ahoraMs = Date.now(), enviar = null } = {}) {
+export async function barrer({ ahoraMs = Date.now(), cadaMs, enviar = null } = {}) {
+  if (!(cadaMs > 0)) throw new Error("barrer necesita cadaMs: cada cuánto pasa el cron");
   const hoy = isoDeCasa({ ahora: new Date(ahoraMs) });
   const out = {};
   for (const [cosa, fn] of Object.entries(BARRIDOS)) {
-    // La pasada que cae en los primeros 5 minutos de la hora (el cron va cada 5).
-    if (CADA[cosa] && ahoraMs % CADA[cosa] >= 5 * MIN) continue;
+    // Solo la pasada que cae al empezar su intervalo (la primera de cada hora).
+    if (CADA[cosa] && ahoraMs % CADA[cosa] >= cadaMs) continue;
     try {
       out[cosa] = await fn({ ahoraMs, hoy, enviar });
     } catch (e) {
