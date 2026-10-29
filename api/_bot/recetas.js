@@ -244,7 +244,7 @@ async function subirFoto(dueno, recetaId, adjunto) {
  *
  * @param {object} datos  lo que el asistente de la app pregunta: nombre,
  *   raciones, minutos, electrodomestico, ingredientes [{nombre, cantidad,
- *   unidad}], cuando (roles), paraNinos, preparacion, visibilidad, usarFoto
+ *   unidad}], cuando (roles), paraNinos, preparacion, usarFoto
  * @param {{ channel: string, chatId: string, adjunto?: object }} chat
  */
 export async function prepararReceta(householdId, datos, chat) {
@@ -297,12 +297,15 @@ export async function prepararReceta(householdId, datos, chat) {
       foto = fotoDeEstaReceta(apartada, anterior);
     }
   }
+  // Siempre privada, como la que guarda la app (saveRecipe, RecipePlanner.jsx):
+  // Gente está apagada (GENTE_ACTIVA, src/lib/frontalBot.js), y «publicada en
+  // Gente» era publicar para cualquiera sin cuenta en un sitio que no se ve (#958).
   const receta = m.recetaParaGuardar(borrador, {
     mealRole: entrada.mealRole,
     requiredAppliances: electro,
     photo: foto,
     owner: { id: dueno },
-    visibility: datos.visibilidad === "publica" ? "public" : "private",
+    visibility: "private",
   });
 
   await insert("bot_messages", [{
@@ -319,7 +322,7 @@ export async function prepararReceta(householdId, datos, chat) {
     `Alérgenos: ${(receta.allergens ?? []).join(", ") || "ninguno detectado"}`,
     `Ingredientes: ${receta.ingredients.map((i) => `${i.name}${i.amount ? ` ${i.amount} ${i.unit}` : ""}`).join("; ")}`,
     `Pasos: ${(receta.steps ?? []).length}`,
-    `Foto: ${foto ? "sí" : datos.usarFoto ? "sin foto (no hay ninguna de este plato: que la manden)" : "sin foto"}; visibilidad: ${receta.visibility === "public" ? "publicada en Gente" : "solo para la casa"}`,
+    `Foto: ${foto ? "sí" : datos.usarFoto ? "sin foto (no hay ninguna de este plato: que la manden)" : "sin foto"}; solo para la casa`,
   ].join("\n");
 }
 

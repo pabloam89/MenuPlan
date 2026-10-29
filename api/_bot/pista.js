@@ -30,6 +30,7 @@
 
 import { seguirCon } from "./avisar.js";
 import { CUANDOS } from "./cuando.js";
+import { enUnaLinea } from "./comoDato.js";
 
 /** Por debajo, la decisión es demasiado dudosa para gastar en adelantarla. */
 export const UMBRAL_PISTA = 0.7;
@@ -125,9 +126,9 @@ export function textoPista(d, adelanto) {
 
 // Los datos del enrutador salen del texto de la persona («plato: …»): van en
 // una línea, cortos y sin corchetes, para que nadie pueda escribir dentro de
-// la pista algo que parezca otra instrucción del sistema.
-const saneado = (v, max = 60) => String(typeof v === "object" ? JSON.stringify(v) : v ?? "")
-  .replace(/[\p{Cc}[\]<>]/gu, " ").replace(/\s+/g, " ").trim().slice(0, max);
+// la pista algo que parezca otra instrucción del sistema. La regla, una sola
+// para todo texto ajeno que lee Lola: comoDato.js enUnaLinea (#958).
+const saneado = (v, max = 60) => enUnaLinea(typeof v === "object" ? JSON.stringify(v) : v, max);
 // Lo leído es nuestro (herramientas y plantillas), pero un menú o una despensa
 // enormes no van en la pista: si no cabe entero, no hay pista (conPista), que
 // decirle «no hace falta volver a pedirlo» con datos a medias la engañaría.
