@@ -14,7 +14,7 @@ vi.mock("./db.js", () => ({
   eq: (v) => `eq.${v}`,
 }));
 
-const { aSolas, drenar } = await import("./turnos.js");
+const { aSolas, enTurno } =await import("./turnos.js");
 const { update, select } = await import("./db.js");
 const { conPlazo } = await import("./plazo.js");
 
@@ -64,7 +64,7 @@ describe("aSolas: una foto espera su turno y nunca suelta un candado ajeno", () 
   });
 });
 
-describe("drenar mira el reloj de la invocación (#958)", () => {
+describe("enTurno mira el reloj de la invocación (#958)", () => {
   beforeEach(() => { llamadas.length = 0; update.mockReset(); update.mockResolvedValue([]); select.mockReset(); select.mockResolvedValue([]); });
   afterEach(() => { vi.restoreAllMocks(); libre = true; });
 
@@ -72,7 +72,7 @@ describe("drenar mira el reloj de la invocación (#958)", () => {
     const atender = vi.fn(async () => {});
     const alSobrar = vi.fn(async () => {});
     // La invocación empezó hace 100 s: quedan 8 s, menos que TURNO_MIN_MS.
-    await conPlazo(Date.now() - 100_000, () => drenar("c1", atender, { espera: 0, alSobrar }));
+    await conPlazo(Date.now() - 100_000, () => enTurno("c1", { texto: "x", inmediato: true }, atender, { alSobrar }));
     expect(update).not.toHaveBeenCalled();
     expect(atender).not.toHaveBeenCalled();
     expect(llamadas).not.toContain("bot_tomar_candado");
@@ -83,7 +83,7 @@ describe("drenar mira el reloj de la invocación (#958)", () => {
     update.mockResolvedValueOnce([{ id: 1, item: { texto: "hola" } }]);
     const atender = vi.fn(async () => {});
     const alSobrar = vi.fn(async () => {});
-    await conPlazo(Date.now(), () => drenar("c1", atender, { espera: 0, alSobrar }));
+    await conPlazo(Date.now(), () => enTurno("c1", { texto: "x", inmediato: true }, atender, { alSobrar }));
     expect(atender).toHaveBeenCalledWith([{ texto: "hola" }]);
     expect(alSobrar).not.toHaveBeenCalled();
     expect(llamadas.filter((n) => n === "bot_soltar_candado")).toHaveLength(1);
@@ -97,7 +97,7 @@ describe("drenar mira el reloj de la invocación (#958)", () => {
     // Cada turno tarda 80 s: tras el primero ya no cabe otro en los 120 s.
     const atender = vi.fn(async () => { ahora += 80_000; });
     const alSobrar = vi.fn(async () => {});
-    await conPlazo(Date.now(), () => drenar("c1", atender, { espera: 0, alSobrar }));
+    await conPlazo(Date.now(), () => enTurno("c1", { texto: "x", inmediato: true }, atender, { alSobrar }));
     expect(atender).toHaveBeenCalledTimes(1);
     expect(update).toHaveBeenCalledTimes(1);
     expect(llamadas.filter((n) => n === "bot_soltar_candado")).toHaveLength(1);
