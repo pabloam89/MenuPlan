@@ -36,6 +36,7 @@ import { resolverSemana, conservarDiasPrevios, rangoDeFechas } from "./semanaPed
 import { conRecordatorioDeSilencio } from "../../src/lib/alergiasBase.js";
 import { apuntarRecordatorio } from "./silencio.js";
 import { listaParaEscribir } from "../../src/lib/vocabularios.js";
+import { conMarcas, claveArticulo } from "../../src/lib/compraIdentidad.js";
 
 const hoyISO = () => isoDeCasa();
 
@@ -168,6 +169,27 @@ export function dondeQuedaron(pedidos, plan, activos = null) {
   });
 }
 
+/**
+ * La compra de la semana que se genera, con dueño único para cada artículo
+ * (#958, clases D y E):
+ *   · rehaciendo una semana, lo ya marcado («comprado», «en casa») de la que
+ *     se sustituye sigue marcado, por ingrediente y unidad (conMarcas);
+ *   · lo apuntado a mano y sin comprar pasa a la lista nueva SOLO si es la que
+ *     se va a ver (`ponerSemanaNueva`). Pidiendo la siguiente, la de hoy se
+ *     queda con lo suyo: antes salía en las dos listas y se compraba dos veces.
+ *     Si el motor ya pide lo mismo, no se repite.
+ * Pura. `casa` es la que se leyó (o la fresca, al guardar).
+ */
+export function compraDeLaSemanaNueva(generados, casa, { startISO, endISO, ponerSemanaNueva }) {
+  const sustituida = (casa?.menu ? casa.semanas ?? [] : []).find((w) => w.weekStart <= endISO && w.weekEnd >= startISO);
+  const items = conMarcas(generados, sustituida?.shopping?.items);
+  if (!ponerSemanaNueva) return items;
+  const yaPedidos = new Set(items.map((it) => claveArticulo(it.name)));
+  const aMano = (casa?.semana?.shopping?.items ?? casa?.state?.shopping?.items ?? [])
+    .filter((it) => it.manual && !it.have && !yaPedidos.has(claveArticulo(it.name)));
+  return [...items, ...aMano];
+}
+
 /** Borra un menú que no llegó a activarse, con sus semanas y recetas. */
 async function borrarMenu(householdId, menuId) {
   const f = `household_id=${eq(householdId)}&menu_id=${eq(menuId)}`;
@@ -242,10 +264,8 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   // alguien de su grupo llega a la base, lo haya puesto el motor o un atajo.
   const quitados = quitarLoQueChoca(m, { ...working, groups }, plan);
   const sh = m.buildShoppingList(plan, groups, m.getDayMeals(weekData), despensa);
-  // Lo apuntado a mano y sin comprar («apunta leche y pan», con o sin menú)
-  // pasa a la lista nueva: generar un menú no puede borrarlo.
-  const aMano = (casa.semana?.shopping?.items ?? casa.state?.shopping?.items ?? []).filter((it) => it.manual && !it.have);
-  const shopping = { items: [...sh.byCategory.flatMap((c) => c.items), ...(sh.pantryItems ?? []), ...aMano] };
+  const generados = [...sh.byCategory.flatMap((c) => c.items), ...(sh.pantryItems ?? [])];
+  let shopping = { items: generados };
   // Rehaciendo la semana en curso, hoy y lo pasado vuelven del plan viejo
   // DESPUÉS de la compra: lo de días que ya pasaron no se vuelve a comprar.
   const conservados = previa ? conservarDiasPrevios(plan, previa.plan, startDayIdx, DIAS) : [];
@@ -277,6 +297,12 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
     ? await select("user_menu_recipes", `household_id=${eq(householdId)}&menu_id=${eq(casa.menu.id)}`, "recipe_id,recipe_snapshot")
     : [];
 
+  // La lista que se ve pasa a ser la de la semana nueva salvo que se quede la
+  // de hoy (se ha pedido la siguiente): entonces lo apuntado a mano sigue
+  // siendo de la de hoy, y solo de ella (compraDeLaSemanaNueva).
+  const ponerSemanaNueva = !semanasQueSeQuedan.some((w) => w.week_start <= hoy && hoy <= w.week_end) || (startISO <= hoy && hoy <= endISO);
+  week.shopping = shopping = { items: compraDeLaSemanaNueva(generados, casa, { startISO, endISO, ponerSemanaNueva }) };
+
   try {
     await insert("user_menus", [m.menuToRow(menu, dueno, householdId)]);
     await insert("user_menu_weeks", [
@@ -303,7 +329,6 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   // Mientras el motor pensaba (segundos) pudo entrar otra escritura: cada
   // intento parte de la casa fresca y solo pone lo que trae esta generación,
   // así que lo apuntado a mano entre medias («apunta pan») no se pierde.
-  const ponerSemanaNueva = !semanasQueSeQuedan.some((w) => w.week_start <= hoy && hoy <= w.week_end) || (startISO <= hoy && hoy <= endISO);
   const deHoy = semanasQueSeQuedan.find((w) => w.week_start <= hoy && hoy <= w.week_end);
   let compraFinal = shopping;
   // Alergias por silencio (#229): el primer menú lo recuerda una vez. La marca
@@ -315,8 +340,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
     const d = silencio.data;
     const porId = new Map((fresca.state?.aiRecipes ?? []).map((x) => [x.id, x]));
     for (const x of recipes) porId.set(x.id, x);
-    const aManoAhora = (fresca.semana?.shopping?.items ?? fresca.state?.shopping?.items ?? []).filter((it) => it.manual && !it.have);
-    compraFinal = { items: [...shopping.items.filter((it) => !it.manual), ...aManoAhora] };
+    compraFinal = { items: compraDeLaSemanaNueva(generados, fresca, { startISO, endISO, ponerSemanaNueva }) };
     return {
       // La semana nueva del menú nuevo, con la compra a mano de ahora. La foto
       // para «deshaz» lleva esa misma semana: deshacer reactiva el menú de
