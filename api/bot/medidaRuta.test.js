@@ -38,7 +38,7 @@ vi.mock("../_bot/papel.js", () => ({ papelDeQuien: vi.fn(async () => ({ papel: "
 vi.mock("../_bot/rapido.js", () => ({ respuestaHoy: vi.fn(), respuestaSemana: vi.fn(), respuestaCompra: vi.fn(), recordar: vi.fn(async () => {}) }));
 vi.mock("../_bot/pintar.js", () => ({ pintarMenuEntero: vi.fn() }));
 vi.mock("../_bot/voz.js", () => ({ transcribir: vi.fn() }));
-vi.mock("../_bot/adjuntos.js", () => ({ adjuntoDe: vi.fn() }));
+vi.mock("../_bot/adjuntos.js", () => ({ adjuntoDe: vi.fn(), porQueNoAdjunto: () => "No puedo leerla." }));
 // La cola de verdad (juntar) con las dos puertas de entrada de mentira: sin base de datos, atienden al momento.
 vi.mock("../_bot/turnos.js", async (original) => ({
   ...(await original()),

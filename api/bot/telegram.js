@@ -34,7 +34,7 @@ import { registrar, rastro, EMBUDO, duenoDe } from "../_bot/embudo.js";
 import { RASTRO } from "../../src/lib/rastro.js";
 import { pintarMenuEntero } from "../_bot/pintar.js";
 import { transcribir } from "../_bot/voz.js";
-import { adjuntoDe } from "../_bot/adjuntos.js";
+import { adjuntoDe, porQueNoAdjunto } from "../_bot/adjuntos.js";
 import { enTurno, aSolas, drenar, juntar } from "../_bot/turnos.js";
 import { conPlazo } from "../_bot/plazo.js";
 import { clasificar, vaPorLaRapida, permitidoEn } from "../_bot/router.js";
@@ -357,10 +357,7 @@ async function atender(msg, base, host = "") {
     await llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(seguirCon("escribiendo"));
     const adjunto = await adjuntoDe(msg).catch((e) => { console.error("[adjunto]", e?.message); return { error: e?.message }; });
     if (!adjunto || adjunto.error) {
-      const porque = adjunto?.error === "tipo" ? "De ficheros solo entiendo fotos y PDFs."
-        : adjunto?.error === "grande" ? "Es demasiado grande: mándala como foto normal (no como archivo) o un PDF más ligero."
-          : "No he podido abrirla. ¿Me la mandas otra vez?";
-      return enviar(chatId, porque, { responderA: esGrupo ? msg.message_id : undefined });
+      return enviar(chatId, porQueNoAdjunto(adjunto?.error), { responderA: esGrupo ? msg.message_id : undefined });
     }
     const pie = (msg.caption ?? "").replace(/@\w+bot\b/gi, "").trim();
     // Una foto no se junta con otros mensajes (va entera al modelo): espera a
