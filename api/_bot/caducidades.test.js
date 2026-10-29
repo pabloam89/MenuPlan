@@ -8,10 +8,24 @@ const db = vi.hoisted(() => ({ select: vi.fn(), insert: vi.fn(), update: vi.fn()
 vi.mock("./db.js", () => ({ ...db, eq: (v) => `eq.${encodeURIComponent(v)}` }));
 
 const {
-  COSAS_QUE_CADUCAN, CADUCA, EFECTOS, QUIENES, BARRIDOS, vigente, estadosVencidos, avisoDeCola, barrer, claveDeEstadoVencido,
+  COSAS_QUE_CADUCAN, CADUCA, EFECTOS, QUIENES, BARRIDOS, vigente, estadosVencidos, avisoDeCola, claveDeEstadoVencido,
+  barridosQueFaltan, PATRON_VENCIDO, barrer: barrerReal,
 } = await import("./caducidades.js");
 
 const H = 3600000;
+// La cadencia del cron la da quien lo llama (api/bot/recordatorios.js).
+const barrer = (o) => barrerReal({ cadaMs: 5 * 60000, ...o });
+
+/** Lo que avisarFallo escribe por consola, como objetos. */
+function avisos(fn) {
+  const espia = vi.spyOn(console, "warn").mockImplementation(() => {});
+  try {
+    fn();
+    return espia.mock.calls.map(([l]) => JSON.parse(l));
+  } finally {
+    espia.mockRestore();
+  }
+}
 
 describe("la lista de lo que caduca", () => {
   it("es cerrada: cada cosa con quién la caduca y qué pasa", () => {
@@ -23,8 +37,19 @@ describe("la lista de lo que caduca", () => {
   });
 
   it("lo de barrido tiene su función, y solo eso", () => {
-    const deBarrido = Object.entries(COSAS_QUE_CADUCAN).filter(([, d]) => d.quien === "barrido").map(([k]) => k).sort();
-    expect(Object.keys(BARRIDOS).sort()).toEqual(deBarrido);
+    expect(barridosQueFaltan()).toEqual({ faltan: [], sobran: [] });
+  });
+
+  it("y la comprobación salta con una lista mala (#964, C17)", () => {
+    // Una cosa nueva de barrido sin función (lo que pasaría al añadir la dieta
+    // blanda olvidando su barrido), y una función de algo que no es de barrido.
+    const cosas = { ...COSAS_QUE_CADUCAN, dieta_nueva: { quien: "barrido", efecto: "preguntar", que: "prueba" } };
+    const barridos = { ...BARRIDOS, [CADUCA.PROPUESTA]: async () => ({}) };
+    expect(barridosQueFaltan(cosas, barridos)).toEqual({ faltan: ["dieta_nueva"], sobran: [CADUCA.PROPUESTA] });
+  });
+
+  it("el cron no se barre sin decir su cadencia", async () => {
+    await expect(barrerReal({ ahoraMs: Date.parse("2026-11-05T09:01:00Z") })).rejects.toThrow(/cadaMs/);
   });
 
   it("una cosa que no está en la lista no se caduca a ojo", () => {
@@ -41,6 +66,12 @@ describe("vigente", () => {
   it("sin fecha, como antes", () => {
     expect(vigente(CADUCA.TAREAS_DEL_MENSAJE, null, ahora)).toBe(true);
   });
+  it("una fecha ilegible vale como antes, pero se avisa (#964, C5)", () => {
+    let r;
+    const dichos = avisos(() => { r = vigente(CADUCA.PROPUESTA, "ayer por la tarde", ahora); });
+    expect(r).toBe(true);
+    expect(dichos).toMatchObject([{ evento: "bot_fallo", donde: "caducidades_fecha_ilegible", grave: false }]);
+  });
 });
 
 describe("estados de salud con fecha pasada", () => {
@@ -54,7 +85,21 @@ describe("estados de salud con fecha pasada", () => {
     const v = estadosVencidos(members, "2026-11-05");
     expect(v.map((x) => [x.personaId, x.estado])).toEqual([["p1", "pregnancy"]]);
     expect(v[0].clave).toBe(claveDeEstadoVencido("p1", "pregnancy", "2026-09-30"));
-    expect(v[0].texto).toMatch(/30\/09/);
+    expect(v[0].texto).toMatch(/2026-09-30/);
+  });
+
+  it("una lista de personas que no es una lista se avisa, no se da por vacía (#964, C5)", () => {
+    let v;
+    const dichos = avisos(() => { v = estadosVencidos({ p1: members[0] }, "2026-11-05"); });
+    expect(v).toEqual([]);
+    expect(dichos).toMatchObject([{ donde: "caducidades_personas_ilegibles" }]);
+    // Sin personas (null) no es un fallo.
+    expect(avisos(() => estadosVencidos(null, "2026-11-05"))).toEqual([]);
+  });
+
+  it("el patrón de las claves sale de la misma función que las claves (#964, C8)", () => {
+    const como = new RegExp(`^${PATRON_VENCIDO.split("*").map((t) => t.replace(/[.+?^${}()|[\]\\]/g, "\\$&")).join(".*")}$`);
+    expect(claveDeEstadoVencido("p1", "pregnancy", "2026-09-30")).toMatch(como);
   });
 
   it("el barrido abre la pregunta una sola vez y en el privado", async () => {
@@ -87,7 +132,7 @@ describe("estados de salud con fecha pasada", () => {
     db.select.mockReset(); db.update.mockReset();
     db.select.mockImplementation(async (tabla, filtro) => {
       if (tabla === "household_state") return [{ household_id: "h1", members: [] }];
-      if (tabla === "bot_tareas" && filtro.includes("like")) return [{ id: "t9", household_id: "h1", clave: "pregunta:p1:caduca-pregnancy-2026-09-30" }];
+      if (tabla === "bot_tareas" && filtro.includes("like")) return [{ id: "t9", household_id: "h1", clave: claveDeEstadoVencido("p1", "pregnancy", "2026-09-30") }];
       return [];
     });
     db.update.mockResolvedValue([{}]);

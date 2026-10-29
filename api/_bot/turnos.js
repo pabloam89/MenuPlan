@@ -16,7 +16,7 @@ import { CANAL, paraEscribir } from "../../src/lib/vocabularios.js";
 // ráfagas de texto («quiero cambiar la cena» · «la del jueves»); un botón
 // pulsado (item.inmediato) no espera nada: nadie pulsa dos a la vez.
 const ESPERA_RAFAGA_MS = 1000;
-const DURACION_CANDADO_S = 150; // más que maxDuration (120): caduca solo si la función muere
+export const DURACION_CANDADO_S = 150; // más que maxDuration (120): caduca solo si la función muere
 const MAX_VUELTAS = 4;
 
 const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
