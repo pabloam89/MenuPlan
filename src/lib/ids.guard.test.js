@@ -60,8 +60,9 @@ const FABRICAR = /Math\.random\(\)\s*\.toString\(|randomUUID\(|randomBytes\(|get
 // y con el porqué; algo nuevo aquí, mejor una clase nueva en ids.js.
 const PERMITIDO_FABRICAR = Object.freeze({
   // Un artículo a mano de la lista de la compra: `manual:<nombre>:<hora>`.
-  // Se reconoce por el `manual:` y el nombre; la hora solo desempata.
-  "api/_bot/menu.js": 1,
+  // Se reconoce por el `manual:` y el nombre; la hora solo desempata. Vive con
+  // la identidad de los artículos (#958), que es lo que de verdad los distingue.
+  "src/lib/compraIdentidad.js": 1,
   // El nombre del fichero de una foto en Storage, no un id de nada.
   "api/_bot/recetas.js": 1,
 });
