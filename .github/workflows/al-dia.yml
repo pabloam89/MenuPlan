@@ -1,0 +1,59 @@
+# Despertador «al día»: tras cada push a staging pone al día UN solo PR, el
+# abierto a staging más antiguo con la fusión automática armada y detrás de la
+# base (update-branch). Plan puente HoMenu, trozo 15.
+#
+# Por qué el token de la App homenu-dependabot-merge: lo que empuja el
+# GITHUB_TOKEN no lanza otros workflows, y el push de update-branch tiene que
+# lanzar `tests` y `revisor` en el PR. Es la misma App y la misma clave que usa
+# dependabot-auto.yml, con MENOS permisos que allí (sin workflows).
+#
+# Seguridad:
+# - El disparador es `push` a staging: corre el workflow que ya está en staging,
+#   nunca el de un PR. Nada del PR se ejecuta: el script solo lo lee por la API.
+# - Saca de staging un solo fichero, scripts/al-dia.mjs, sin credenciales.
+# - La clave de la App (environment dependabot-auto, solo staging) entra solo en
+#   el paso que saca el token, que dura una hora y no sale de este job.
+# - Ningún `secrets: inherit`; acciones fijadas por SHA; permisos mínimos.
+# - Un solo update-branch por push, y la concurrencia no deja dos a la vez.
+
+name: Al día
+
+on:
+  push:
+    branches: [staging]
+
+permissions: {}
+
+jobs:
+  al-dia:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: dependabot-auto
+    concurrency:
+      group: al-dia
+      cancel-in-progress: false
+    permissions:
+      contents: read # solo para sacar el script
+    steps:
+      - name: Sacar el script de staging
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: staging
+          persist-credentials: false
+          sparse-checkout: scripts/al-dia.mjs
+          sparse-checkout-cone-mode: false
+      - name: Token de la App
+        id: app
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ vars.DEPENDABOT_APP_ID }}
+          private-key: ${{ secrets.DEPENDABOT_APP_KEY }}
+          owner: pabloam89
+          repositories: MenuPlan
+          permission-contents: write
+          permission-pull-requests: write
+      - name: Poner al día el armado más antiguo que va detrás
+        env:
+          APP_TOKEN: ${{ steps.app.outputs.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node scripts/al-dia.mjs --si
