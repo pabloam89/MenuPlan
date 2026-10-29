@@ -37,6 +37,7 @@ import { transcribir } from "../_bot/voz.js";
 import { adjuntoDe } from "../_bot/adjuntos.js";
 import { enTurno, aSolas, drenar, juntar } from "../_bot/turnos.js";
 import { conPlazo } from "../_bot/plazo.js";
+import { migrarChat, alSalirDelChat } from "../_bot/chats.js";
 import { clasificar, vaPorLaRapida, permitidoEn } from "../_bot/router.js";
 import { prediceRapida, ESPERA_MAX_MS } from "../_bot/prediceRapida.js";
 import { esCorreccionRuta, esCorreccionMedida } from "../_bot/senales.js";
@@ -110,9 +111,15 @@ export default async function handler(req, res) {
     waitUntil(conPlazo(inicio, () => relevar(String(upd.relevo.chat), base, host)).catch(fallaCon("relevo")));
     return res.status(200).json({ ok: true });
   }
-  const chatId = upd.message?.chat?.id ?? upd.callback_query?.message?.chat?.id;
+  const chatId = upd.message?.chat?.id ?? upd.callback_query?.message?.chat?.id ?? upd.my_chat_member?.chat?.id;
   // Siempre 200: si no, Telegram reintenta el mismo mensaje una y otra vez.
   if (chatId == null) return res.status(200).json({ ok: true });
+  // La echaron del grupo o la bloquearon (api/_bot/chats.js, #958): nada que
+  // contestar, y un fallo no se le dice a un chat donde ya no está.
+  if (upd.my_chat_member) {
+    waitUntil(alSalirDelChat(upd.my_chat_member).catch(fallaCon("chat_salida")));
+    return res.status(200).json({ ok: true });
+  }
 
   // Se contesta a Telegram al momento y se trabaja después (waitUntil): el
   // agente puede tardar varios segundos entre modelo y herramientas, y si el
@@ -187,6 +194,11 @@ async function atender(msg, base, host = "") {
   const chatId = String(msg.chat.id);
   const esGrupo = esGrupoDe(msg.chat);
   let texto = (msg.text ?? "").trim();
+
+  // El grupo pasó a supergrupo y cambió de id (api/_bot/chats.js, #958): llegan
+  // dos avisos, uno en cada chat; cualquiera de los dos lo mueve todo, una vez.
+  if (msg.migrate_to_chat_id) return void await migrarChat(chatId, String(msg.migrate_to_chat_id)).catch(fallaCon("chat_migrar"));
+  if (msg.migrate_from_chat_id) return void await migrarChat(String(msg.migrate_from_chat_id), chatId).catch(fallaCon("chat_migrar"));
 
   // En un grupo: al entrar, se presenta; y solo contesta cuando le hablan a
   // ella (un comando, una mención, una respuesta a un mensaje suyo, o un
