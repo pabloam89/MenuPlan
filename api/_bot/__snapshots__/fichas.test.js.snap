@@ -1774,7 +1774,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
     "items": {
      "type": "array",
      "minItems": 1,
-     "maxItems": 40,
+     "maxItems": 150,
      "items": {
       "type": "object",
       "properties": {
@@ -1822,7 +1822,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    ],
    "additionalProperties": false
   },
-  "description": "Apunta alimentos en la despensa (suma si ya estaban). Solo comida: nada de droguería ni bolsas. Nombres de alimento simples en español («pechuga de pollo», «tomate triturado»), sin marcas. Si viene de una foto, solo tras enseñar la lista y que digan que sí."
+  "description": "Apunta alimentos en la despensa (suma si ya estaban). Solo comida: nada de droguería ni bolsas. Nombres de alimento simples en español («pechuga de pollo», «tomate triturado»), sin marcas. Si viene de una foto, solo tras enseñar la lista y que digan que sí. Pásalo TODO en una llamada (varios tickets también): lo que no quepa sale en el recibo como sin hacer."
  },
  {
   "type": "custom",
