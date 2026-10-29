@@ -1297,7 +1297,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    ],
    "additionalProperties": false
   },
-  "description": "Alguien de fuera viene a comer o cenar un día concreto (se suma a las raciones y a la compra de esa semana, y caduca solo)."
+  "description": "Alguien de fuera viene a comer o cenar un día concreto. Cuenta al generar el menú de esa semana (raciones y compra) y caduca solo; si esa semana ya tiene menú, no lo cambia: dilo y ofrece rehacer ese día."
  },
  {
   "type": "custom",
