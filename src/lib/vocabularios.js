@@ -145,7 +145,7 @@ export const SITIOS_FALLO = [
   // api/bot/telegram.js
   "aclarar_via_rapida", "alta_adjunto", "apuntar_falta_via_rapida", "aviso_de_espera",
   "aviso_del_enrutador", "aviso_del_modo", "borrarcuenta_identidad", "borrarcuenta_nacida_aqui",
-  "bot_telegram_aviso", "boton_nacida_aqui", "boton_quitar", "boton_responder",
+  "bot_telegram_aviso", "boton_nacida_aqui", "boton_quitar", "boton_responder", "chat_migrar", "chat_salida",
   "eleccion_via_rapida", "entregar_casa", "entregar_pintar", "escribiendo", "fallo_dueno", "fallo_tras_escribir",
   "grupo_casa", "grupo_nombre_del_bot", "idioma", "invitacion",
   "invitacion_cuentas", "lola", "lola_cancelada", "limite", "papel", "reconocer", "relevo", "relevo_llamar", "ruta",

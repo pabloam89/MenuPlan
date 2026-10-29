@@ -31,7 +31,8 @@ if (cmd === "set") {
   console.log(await llamar("setWebhook", {
     url,
     secret_token: secreto,
-    allowed_updates: ["message", "callback_query"],
+    // my_chat_member: la echan de un grupo o la bloquean (api/_bot/chats.js, #958).
+    allowed_updates: ["message", "callback_query", "my_chat_member"],
     drop_pending_updates: true,
   }));
 } else if (cmd === "delete") {
