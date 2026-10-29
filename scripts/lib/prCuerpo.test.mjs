@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { resumenVitest, fallosTragados, tamano, cuerpo, esTest, TOPE_LINEAS } from "./prCuerpo.mjs";
+import { resumenVitest, fallosTragados, tamano, cuerpo, esTest, primerError, TOPE_LINEAS } from "./prCuerpo.mjs";
 
 describe("prCuerpo: el cuerpo del PR que pide el revisor", () => {
   it("saca las líneas de resumen de vitest, sin colores", () => {
@@ -18,6 +18,13 @@ describe("prCuerpo: el cuerpo del PR que pide el revisor", () => {
     const avisos = fallosTragados(diff);
     expect(avisos).toHaveLength(2);
     expect(avisos[0]).toMatch(/^api\/x\.js: /);
+    // En un test, el catch vacío es el ejemplo de lo que se busca.
+    expect(fallosTragados("+++ b/api/x.test.js\n+  } catch {}")).toEqual([]);
+  });
+
+  it("dice por qué falla cuando el resumen no lo cuenta", () => {
+    expect(primerError("Test Files  1 failed (1)\nError: Cannot find module './prCuerpo.mjs'\n")).toBe("Error: Cannot find module './prCuerpo.mjs'");
+    expect(primerError("Tests  3 passed (3)")).toBe("");
   });
 
   it("mide el tamaño con numstat y avisa si no cabe en una sentada", () => {

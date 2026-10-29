@@ -21,7 +21,8 @@ const lineas = (s) => s.split("\n").filter(Boolean);
 
 function vitest(ficheros) {
   const comando = `npx vitest run ${ficheros.join(" ")} --maxWorkers=2`;
-  const r = spawnSync("npx", ["vitest", "run", ...ficheros, "--maxWorkers=2"], { encoding: "utf8", shell: true, maxBuffer: 64 * 1024 * 1024 });
+  // Una sola cadena con shell: npx es un .cmd en Windows. Los nombres salen de git, sin espacios en este repo.
+  const r = spawnSync(comando, { encoding: "utf8", shell: true, maxBuffer: 64 * 1024 * 1024 });
   if (r.error) throw new Error(`no se pudo lanzar vitest: ${r.error.message}`, { cause: r.error });
   return { comando, salida: `${r.stdout ?? ""}\n${r.stderr ?? ""}`, codigo: r.status ?? 1 };
 }
