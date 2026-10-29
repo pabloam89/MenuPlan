@@ -50,6 +50,24 @@
 --                    join public.households h on h.id = m.household_id
 --                   where h.owner_user_id = r.owner_id and m.user_id <> r.owner_id);
 --     -- 0
+--   Las otras cifras de arriba (auditor-datos, 29 oct 2026), con `r` = las publicadas:
+--   select count(*) from public.recipe_share_links l join public.user_recipes r
+--     on r.id = l.recipe_id where r.visibility <> 'private';            -- 0
+--   select count(*) from public.cookings c join public.user_recipes r
+--     on r.id = c.recipe_id where r.visibility <> 'private';            -- 0
+--   select count(*) from public.user_recipes c join public.user_recipes r
+--     on r.id = c.copied_from_recipe_id
+--    where r.visibility <> 'private' and c.owner_id <> r.owner_id;      -- 4
+--   select count(*) from public.household_favorites f join public.user_recipes r
+--     on r.id = f.recipe_id join public.households h on h.id = f.household_id
+--    where r.visibility <> 'private' and h.owner_user_id <> r.owner_id; -- 1
+--   select count(*) from public.recipe_votes v join public.user_recipes r
+--     on r.id = v.recipe_id
+--    where r.visibility <> 'private' and v.user_id <> r.owner_id;       -- 2
+--
+-- set lock_timeout = '5s': si una fila de user_recipes está bloqueada (alguien
+-- guardando su receta), la migración falla y se reintenta, en vez de dejar en
+-- cola las escrituras de la app y de Lola detrás de ella.
 --
 -- Idempotente: la segunda vez no encuentra ninguna publicada en la lista y no
 -- cambia nada. Aborta si aparece una publicada que no está en la lista (alguien
