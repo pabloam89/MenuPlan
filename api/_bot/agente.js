@@ -52,12 +52,12 @@ import { claveDePregunta, estadoDeClave } from "./estadoCasa.js";
 import { pintarMenuEntero, filtrosTrasGenerar, filtrosTrasCambiar, sinEtiquetas } from "./pintar.js";
 import { fechasDe, CUANDOS } from "./cuando.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, IDS_PLATOS } from "../../src/lib/comidas.js";
-import { KITCHEN_TOOL_IDS } from "../../src/lib/electrodomesticos.js";
-import { NIVEL_COCINA, RITMO_COCINA, ETAPA_BEBE, DONDE_COME, CANAL, APARATOS, paraEscribir } from "../../src/lib/vocabularios.js";
+import { KITCHEN_TOOL_IDS, APARATOS_EN_ORDEN } from "../../src/lib/electrodomesticos.js";
+import { NIVEL_COCINA, RITMO_COCINA, ETAPA_BEBE, DONDE_COME, CANAL, paraEscribir } from "../../src/lib/vocabularios.js";
 import { ETAPA_BEBE_INFO } from "../../src/lib/babyStage.js";
-import { enOrden } from "../../src/lib/enOrden.js";
-// Los aparatos, en el orden de la app: una sola lista para los tres campos (#967, C14).
-const TRASTOS = enOrden(APARATOS, ["Airfryer", "Horno", "Microondas", "Thermomix"]);
+// Los aparatos, en el orden de la app: la lista vive en electrodomesticos.js y la
+// lee también el mando de trastos del panel; aquí no se copia (#967, C8 y C14).
+const TRASTOS = [...APARATOS_EN_ORDEN];
 import { ESQUEMA_DE_FUERA } from "./deFuera.js";
 import { verDespensa, anadirDespensa } from "./despensa.js";
 import { guardarMenuCole, verMenuCole } from "./cole.js";
