@@ -15,6 +15,12 @@ describe("ajustar_gustos: la cantidad dicha con palabras", () => {
     expect(conCantidades([{ campo: "freqs", valor: "carne", op: "menos", cantidad: "un montón" }]).duda).toMatch(/Cuántas/);
     expect(conCantidades([{ campo: "excluidos", valor: "cerdo", op: "nunca", cantidad: "dos" }]).duda).toMatch(/freqs/);
   });
+  // #958: «no más de dos ensaladas» como favoritos con n 2 decía «(2/semana)»
+  // y el número no se guardaba en ningún sitio.
+  it("un n fuera de freqs es la misma pregunta, y no se guarda nada", () => {
+    expect(conCantidades([{ campo: "favoritos", valor: "ensalada", op: "menos", n: 2 }]).duda).toBe("«2 a la semana» son veces por semana, y eso solo vale para la frecuencia de un tipo de plato (freqs).");
+    expect(conCantidades([{ campo: "excluidos", valor: "cerdo", op: "nunca", n: 0 }]).ajustes).toHaveLength(1);
+  });
   it("sin cantidad, el ajuste pasa tal cual", () => {
     expect(conCantidades([{ campo: "freqs", valor: "carne", op: "menos", n: 2 }]).ajustes).toEqual([{ campo: "freqs", valor: "carne", op: "menos", n: 2 }]);
   });

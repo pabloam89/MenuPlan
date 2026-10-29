@@ -126,10 +126,17 @@ export async function describirAjustes(casa) {
  */
 export function conCantidades(ajustes = []) {
   const out = [];
+  const soloFreqs = (dicho) => ({ duda: `«${dicho}» son veces por semana, y eso solo vale para la frecuencia de un tipo de plato (freqs).` });
   for (const a of ajustes) {
     const { cantidad, ...resto } = a;
-    if (cantidad == null || String(cantidad).trim() === "") { out.push(resto); continue; }
-    if (resto.campo !== "freqs") return { duda: `«${cantidad}» son veces por semana, y eso solo vale para la frecuencia de un tipo de plato (freqs).` };
+    if (cantidad == null || String(cantidad).trim() === "") {
+      // Un `n` puesto por el modelo fuera de freqs se tiraba callado y el
+      // texto decía «menos ensalada (2/semana)» como apuntado (#958).
+      if (resto.n != null && resto.campo !== "freqs" && resto.op !== "nunca") return soloFreqs(`${resto.n} a la semana`);
+      out.push(resto);
+      continue;
+    }
+    if (resto.campo !== "freqs") return soloFreqs(cantidad);
     const c = cantidadDe(cantidad);
     if (!c) return { duda: `No entiendo cuántas veces es «${cantidad}». ¿Cuántas a la semana?` };
     out.push({ ...resto, n: vecesDe(c) });
