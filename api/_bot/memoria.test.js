@@ -53,9 +53,15 @@ describe("montarMemoria", () => {
       ...turno(1, VIERNES, "viejo", "viejo"),
     ];
     filas[0].content.pendientes = [{ id: "P1" }];
-    const { historia, pendientes } = montarMemoria(filas, "2026-10-04");
+    const { historia, pendientes } = montarMemoria(filas, "2026-10-04", Date.parse(DOMINGO) + 60000);
     expect(historia.map((t) => t.content)).toEqual(["nuevo", "vale"]);
     expect(pendientes).toEqual([{ id: "P1" }]);
+  });
+
+  it("las tareas de una respuesta de ayer ya no se arrastran (#958)", () => {
+    const filas = turno(5, DOMINGO, "nuevo", "vale");
+    filas[0].content.pendientes = [{ id: "P1" }];
+    expect(montarMemoria(filas, "2026-10-05", Date.parse(DOMINGO) + 24 * 3600000).pendientes).toEqual([]);
   });
 });
 

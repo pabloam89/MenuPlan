@@ -11,6 +11,7 @@
   ],
   "bot_chats": [
     "api/_bot/borrar.js",
+    "api/_bot/caducidades.js",
     "api/_bot/enlace.js",
     "api/_bot/papel.js",
     "api/bot/link.js",
@@ -22,6 +23,7 @@
     "api/bot/telegram.js"
   ],
   "bot_cola": [
+    "api/_bot/caducidades.js",
     "api/_bot/turnos.js"
   ],
   "bot_deshacer": [
@@ -60,6 +62,7 @@
     "api/_bot/vispera.js"
   ],
   "bot_tareas": [
+    "api/_bot/caducidades.js",
     "api/_bot/tareas.js"
   ],
   "bot_usage": [
@@ -88,6 +91,7 @@
     "src/lib/householdDiscardsSync.js"
   ],
   "household_state": [
+    "api/_bot/caducidades.js",
     "api/_bot/casa.js",
     "src/lib/householdState.js"
   ],
