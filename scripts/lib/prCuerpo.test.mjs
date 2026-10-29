@@ -63,11 +63,16 @@ describe("prCuerpo: el cuerpo del PR que pide el revisor", () => {
   it("el cuerpo sigue la plantilla, con la forma de decisión de ella, y dice si el rojo antes no fue rojo", () => {
     const base = {
       plantilla: leerPlantilla(PLANTILLA_MD),
+      origen: { head: "abc1234", base: "def5678", plantilla: "0123456" },
       ahora: { comando: "npx vitest run a.test.js", salida: "Tests  3 passed (3)", codigo: 0 },
       talla: { ficheros: 2, lineas: 40, grande: false },
     };
     const c = cuerpo({ ...base, antes: { comando: "npx vitest run a.test.js", salida: "Tests  2 failed (3)", codigo: 1 }, refs: "Refs #1" });
     for (const s of Object.values(RELLENA)) expect(c).toContain(`## ${s}\n`);
+    // Solo las secciones de la plantilla: lo medido va dentro de «Evidence».
+    expect(c.match(/^## /gm)).toHaveLength(Object.values(RELLENA).length);
+    expect(c).toContain("abc1234");
+    expect(c).toContain("Tamaño (C11), `git diff --numstat`: 2 ficheros, 40 líneas");
     expect(c).toContain("- forma <x> | de prueba");
     expect(c).toContain("Refs #1");
     expect(c).toContain("código 1");

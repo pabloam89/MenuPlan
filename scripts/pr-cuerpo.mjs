@@ -59,7 +59,7 @@ function plantillaDeLaFabrica() {
   const plantilla = leerPlantilla(r.stdout);
   const mal = contrastar(plantilla);
   if (mal.length) throw new Error(`la plantilla de la Fábrica no cuadra con scripts/lib/prCuerpo.mjs (RELLENA): ${mal.join("; ")}`);
-  return plantilla;
+  return { ...plantilla, sha };
 }
 
 const plantilla = plantillaDeLaFabrica();
@@ -73,6 +73,7 @@ const ahora = tocados.length ? vitest(tocados) : { comando: "(ningún test tocad
 const antes = rojoAntes(base, nuevos, fuentes);
 const texto = cuerpo({
   plantilla,
+  origen: { head: git("rev-parse", "--short", "HEAD"), base: git("rev-parse", "--short", base), plantilla: plantilla.sha.slice(0, 8) },
   titulo: arg("titulo"),
   ahora,
   antes,

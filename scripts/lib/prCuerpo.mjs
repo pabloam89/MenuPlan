@@ -8,7 +8,9 @@
  * plantilla de la Fábrica (factory-am89/fabrica, .github/pull_request_template.md,
  * en el sha que fija nuestro revisor.yml), que es la definición que lee el juez.
  * Aquí solo se dice qué va en cada una, y `contrastar` falla si la plantilla
- * trae una sección que no se rellena o si se rellena una que ya no existe.
+ * trae una sección que no se rellena o si se rellena una que ya no existe. Lo
+ * medido (tamaño, fallos tragados, de qué plantilla sale) va en «Evidence»: no
+ * hay secciones propias que el juez no conozca.
  *
  * Lo que se puede sacar de la máquina sale de aquí: los comandos y su salida
  * (C9), el rojo antes de los tests nuevos (C6, C17), el tamaño (C11) y los fallos
@@ -45,10 +47,9 @@ export function leerPlantilla(md) {
 /**
  * Qué rellena este script, por papel. Los nombres son los de la plantilla: si
  * cambian allí, `contrastar` lo dice en vez de dejar un cuerpo que el juez no
- * reconoce. «Checks» es nuestra, de más, y va al final.
+ * reconoce.
  */
 export const RELLENA = { que: "What changes", evidencia: "Evidence", rojo: "Red before", decisiones: "Decisions", sinComprobar: "Not verified" };
-const PROPIA = "Checks (C5, C8, C11, C12, C14)";
 
 /** Lo que no cuadra entre la plantilla y lo que se rellena; vacío si cuadra. */
 export function contrastar(plantilla) {
@@ -98,10 +99,15 @@ function textoRojo(antes) {
   return `Los tests nuevos con el código de antes (\`${antes.comando}\`) → código ${antes.codigo}\n${bloque(salida)}${igual}`;
 }
 
-function textoChecks(talla, tragados) {
+function textoMedido({ talla, tragados, origen }) {
   const grande = talla.grande ? ` ⚠️ pasa de ${TOPE_LINEAS} líneas o ${TOPE_FICHEROS} ficheros: pártelo` : "";
   const c5 = tragados.length ? `⚠️\n${tragados.map((t) => `  - ${t}`).join("\n")}` : "ninguno visto.";
-  return `- Tamaño (C11): ${talla.ficheros} ficheros, ${talla.lineas} líneas${grande}.\n- Fallos tragados en lo añadido (C5): ${c5}\n- TODO C8/C14: ninguna lista ni umbral copiado a mano en dos sitios, cada afirmación con su comando.\n- TODO C12: todo lo nuevo tiene lector y no hay ficheros ajenos al encargo.`;
+  return [
+    `Medido por \`npm run pr:cuerpo\` sobre ${origen.head} (frente a ${origen.base}), con la plantilla de factory-am89/fabrica@${origen.plantilla} (\`contrastar\`: sin diferencias):`,
+    `- Tamaño (C11), \`git diff --numstat\`: ${talla.ficheros} ficheros, ${talla.lineas} líneas añadidas y quitadas${grande}.`,
+    `- Fallos tragados en lo añadido (C5): ${c5}`,
+    "- TODO C8/C14 y C12, con su comando: nada copiado a mano en dos sitios; todo lo nuevo tiene lector y es del encargo.",
+  ].join("\n");
 }
 
 /**
@@ -109,10 +115,10 @@ function textoChecks(talla, tragados) {
  * `ahora` y `antes`: { comando, salida, codigo } de los tests tocados con el
  * cambio y de los nuevos sin él (antes = null si no hay tests nuevos).
  */
-export function cuerpo({ plantilla, titulo = "", ahora, antes = null, talla, tragados = [], refs = "" }) {
+export function cuerpo({ plantilla, origen, titulo = "", ahora, antes = null, talla, tragados = [], refs = "" }) {
   const contenido = {
     [RELLENA.que]: "TODO: una sola idea (C11). Si hay más de una, parte el PR.",
-    [RELLENA.evidencia]: `\`${ahora.comando}\` → código ${ahora.codigo}\n${bloque(resumenVitest(ahora.salida).join("\n"))}`,
+    [RELLENA.evidencia]: `\`${ahora.comando}\` → código ${ahora.codigo}\n${bloque(resumenVitest(ahora.salida).join("\n"))}\n\n${textoMedido({ talla, tragados, origen })}`,
     [RELLENA.rojo]: textoRojo(antes),
     [RELLENA.decisiones]: `TODO: «None», o una línea por decisión que el encargo no impone, con esta forma:\n${plantilla.forma}`,
     [RELLENA.sinComprobar]: "TODO: lo que no se ha probado, dicho tal cual (p. ej. «Evals: no se han corrido, a petición de Pablo»), o «Nothing».",
@@ -120,7 +126,6 @@ export function cuerpo({ plantilla, titulo = "", ahora, antes = null, talla, tra
   const partes = [
     ...(titulo ? [titulo] : []),
     ...plantilla.secciones.map((s) => `## ${s}\n${contenido[s]}`),
-    `## ${PROPIA}\n${textoChecks(talla, tragados)}`,
     ...(refs ? [refs] : []),
     "🤖 Generated with [Claude Code](https://claude.com/claude-code)",
   ];
