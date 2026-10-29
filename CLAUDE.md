@@ -18,7 +18,7 @@ alimentos en JSON en git (`src/data/`). Escriben **Pablo** (`pabloam89`) y **Ál
 
 ## Ramas, carpetas y PR
 
-- **`staging`** es la rama por defecto y la que despliega Vercel en staging. Todo sale de `origin/staging` y vuelve por **PR con el CI en verde** con dos checks en verde: `tests` (lint con línea base, tests y build) y `revisor` (el juez de la Fábrica, que pide evidencia en el cuerpo; estándar en `standards/code.md` de `factory-am89/fabrica`). Esa es la regla; GitHub la hará cumplir (ruleset y fusión automática) cuando Pablo termine los pasos de «Puente HoMenu» de `PASOS-PABLO.md` en la Fábrica. Hasta entonces `revisor` ya corre en cada PR a `staging` pero no bloquea: trátalo igual. Con la regla activa, la sesión abre el PR, lo deja al día con `staging`, arma `gh pr merge --auto --squash` y **lo fusiona GitHub**; la sesión no fusiona. Si `revisor` o `tests` dicen «no», se arregla en la misma rama (el motivo está en el log del job); no se discute el veredicto. La salida es el Approve de Pablo.
+- **`staging`** es la rama por defecto y la que despliega Vercel en staging. Todo sale de `origin/staging` y vuelve por **PR con el CI en verde** con dos checks en verde: `tests` (lint con línea base, tests y build) y `revisor` (el juez de la Fábrica, que pide evidencia en el cuerpo; estándar en `standards/code.md` de `factory-am89/fabrica`). Esa es la regla y la hace cumplir GitHub (ruleset y fusión automática): la sesión abre el PR, lo deja al día con `staging`, arma `gh pr merge --auto --squash` y **lo fusiona GitHub**; la sesión no fusiona. Si `revisor` o `tests` dicen «no», se arregla en la misma rama (el motivo está en el log del job); no se discute el veredicto. La salida es el Approve de Pablo.
 - **`main` es producción** y solo la fusiona Pablo, desde el botón del PR. GitHub lo impone.
 - Una tarea = una carpeta = una rama, con prefijo de área (`bot/`, `datos/`, `ux/`, `fix/`, `feat/`, `ops/`, `motor/`). En `C:\dev\MenuPlan` no se trabaja. Para abrirla:
   ```
@@ -52,7 +52,7 @@ Al abrir sesión, `.claude/hooks/identidad.mjs` da a `gh` y `git` el token de la
 Solo lo irreversible o lo que sale fuera; lo demás se hace y se cuenta.
 
 - **Se pregunta:** subir o fusionar a `main`; ensayar y aplicar migraciones (las lanza él); borrar o reescribir datos de familias, o cambiar RLS y permisos; borrar recursos de un servicio o ramas sin fusionar; crear, rotar o cambiar secretos; gastar dinero; escribir o publicar a personas; ampliar los permisos de `.claude/settings.json`.
-- **No se pregunta:** leer producción con los scripts de arriba; issues y etiquetas; fusionar a `staging` con el CI en verde; retirar carpetas y ramas ya fusionadas.
+- **No se pregunta:** leer producción con los scripts de arriba; issues y etiquetas; fusionar a `staging` (lo fusiona GitHub con `tests` y `revisor` en verde; a Pablo solo se le pide el Approve que anula un «no» injusto); retirar carpetas y ramas ya fusionadas.
 
 ## Reglas por carpeta y skills
 

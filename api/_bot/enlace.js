@@ -44,13 +44,19 @@ export function idDePersona(from) {
 // `lang` (el idioma de la app de Telegram) se sigue aceptando pero ya no se
 // guarda en bot_chats.lang: nadie lo leía. El idioma de Lola sale de
 // user_profiles.ui_lang (papel.js, idiomaDe).
+/**
+ * ¿Este chat (su fila de bot_chats, o nada) está ocupado para `userId` si lo
+ * quiere llevar a `householdId`? Un chat ya enlazado a OTRA casa solo lo puede
+ * mover quien lo enlazó: si no, cualquiera del grupo familiar se lo llevaría a
+ * su casa con su código. Una sola regla para enlazarChat y para la invitación,
+ * que la mira antes de unirse (invitacion.js, #958).
+ */
+export const chatOcupado = (actual, householdId, userId) =>
+  Boolean(actual && actual.household_id !== householdId && actual.linked_by !== userId);
+
 export async function enlazarChat({ channel = CANAL.TELEGRAM, chatId, kind, householdId, userId, externalId, nombre, identidad = null }) {
-  // Un chat ya enlazado a OTRA casa solo lo puede mover quien lo enlazó: si
-  // no, cualquiera del grupo familiar se lo llevaría a su casa con su código.
   const [actual] = await select("bot_chats", `channel=${eq(channel)}&chat_id=${eq(chatId)}`, "household_id,linked_by");
-  if (actual && actual.household_id !== householdId && actual.linked_by !== userId) {
-    return { ok: false, ocupado: true };
-  }
+  if (chatOcupado(actual, householdId, userId)) return { ok: false, ocupado: true };
 
   const estado = await apuntarIdentidad({ channel, kind, userId, externalId, nombre, identidad });
   await insert("bot_chats", [{
