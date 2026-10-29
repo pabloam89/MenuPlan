@@ -1241,7 +1241,11 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
     // leyó la primera llamada que sí acabó, que es casi lo mismo.
     if (medidaPista?.reinicio && r.primera) medidaPista.cortada_tokens = (r.primera.input_tokens ?? 0) + (r.primera.cache_read_input_tokens ?? 0) + (r.primera.cache_creation_input_tokens ?? 0);
     // La medida del turno de Lola, para bot_route (api/bot/telegram.js).
-    medida = { modelo: r.modelo, planB: r.planB, vueltas: r.vueltas, primera: r.primera, llamadas: r.llamadas ?? null, uso, herramientas: r.herramientas, corregido: !!corregido, ms: Date.now() - tLola, pista: medidaPista, aviso: r.avisos?.[0] ?? null };
+    medida = { modelo: r.modelo, planB: r.planB, vueltas: r.vueltas, primera: r.primera, llamadas: r.llamadas ?? null, uso, herramientas: r.herramientas, corregido: !!corregido, ms: Date.now() - tLola, pista: medidaPista, aviso: r.avisos?.[0] ?? null,
+      // #958: lo que de verdad se guardó en el turno, para medir lo dicho
+      // contra lo hecho (scripts/bot-dice-sin-hacer.mjs): cuántas herramientas
+      // guardaron y, por cada resultado, [acción, hechas, sin hacer].
+      guardados: chat.guardados ?? 0, recibo: chat.resultados.map((x) => [x.accion, x.hecho.length, x.sinHacer.length]) };
   } catch (err) {
     // Ya había cambiado algo en la casa cuando el modelo se cayó: repetir el
     // turno lo haría dos veces. Se dice que está hecho y dónde verlo.
