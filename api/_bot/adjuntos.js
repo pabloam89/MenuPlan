@@ -85,7 +85,10 @@ const PAGINA = /\/Type\s*\/Page(?![A-Za-z])/g;
  * Cuántas páginas tiene un PDF, sin librería: cada página es un objeto
  * `/Type /Page`. Desde PDF 1.5 los objetos pueden ir comprimidos dentro de
  * «object streams» (Flate): si a la vista no hay ninguno, se descomprimen los
- * streams y se cuentan dentro. null si no se encuentra ninguno.
+ * streams que dicen ser Flate (`/FlateDecode` en su diccionario) y se cuentan
+ * dentro; los demás (una imagen JPEG) no llevan páginas y se saltan.
+ * null si no se sabe: ninguna página encontrada, o un stream Flate que no se
+ * puede abrir (podría llevar páginas: contar sin él sería quedarse corto).
  * @param {Buffer} bytes
  */
 export function paginasDePdf(bytes) {
@@ -93,19 +96,26 @@ export function paginasDePdf(bytes) {
   const aLaVista = (crudo.match(PAGINA) ?? []).length;
   if (aLaVista) return aLaVista;
   let n = 0;
-  const inicio = /stream\r?\n/g;
+  // «stream» que no sea el final de «endstream».
+  const inicio = /(?<!end)stream\r?\n/g;
   let m;
   while ((m = inicio.exec(crudo))) {
     const ini = m.index + m[0].length;
     const fin = crudo.indexOf("endstream", ini);
-    if (fin < 0) break;
+    if (fin < 0) return null;
+    inicio.lastIndex = fin + "endstream".length;
+    // El diccionario del stream: desde el «obj» que lo abre.
+    const dicc = crudo.slice(crudo.lastIndexOf("obj", m.index), m.index);
+    if (!dicc.includes("/FlateDecode")) continue;
+    let dentro;
     try {
-      const dentro = inflateSync(bytes.subarray(ini, fin), { finishFlush: constants.Z_SYNC_FLUSH }).toString("latin1");
-      n += (dentro.match(PAGINA) ?? []).length;
-    } catch {
-      // a propósito: un stream que no es Flate (una imagen JPEG) no tiene páginas dentro; si no queda ninguna, null y cabeElPdf decide por tamaño
+      // Z_SYNC_FLUSH: acepta el final sin cerrar que deja el salto de línea antes de «endstream».
+      dentro = inflateSync(bytes.subarray(ini, fin), { finishFlush: constants.Z_SYNC_FLUSH }).toString("latin1");
+    } catch (e) {
+      console.warn("[adjunto] stream Flate ilegible: páginas sin contar", e?.message);
+      return null;
     }
-    inicio.lastIndex = fin;
+    n += (dentro.match(PAGINA) ?? []).length;
   }
   return n || null;
 }

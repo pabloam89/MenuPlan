@@ -56,6 +56,29 @@ describe("cuántas páginas tiene un PDF", () => {
   it("sin ninguna página reconocible, null", () => {
     expect(paginasDePdf(Buffer.from("no es un pdf"))).toBeNull();
   });
+
+  // Varios streams seguidos, como en un PDF de verdad: imágenes y varios object streams.
+  const stream = (num, dicc, datos) => Buffer.concat([Buffer.from(`${num} 0 obj << ${dicc} >>\nstream\n`, "latin1"), datos, Buffer.from("\nendstream\nendobj\n", "latin1")]);
+  const conPaginas = (n, desde) => deflateSync(Buffer.from(Array.from({ length: n }, (_, i) => `${desde + i} 0 obj << /Type /Page >> endobj`).join("\n"), "latin1"));
+  const varios = (...partes) => Buffer.concat([Buffer.from("%PDF-1.5\n", "latin1"), ...partes, Buffer.from("%%EOF", "latin1")]);
+
+  it("cuenta todos los object streams, también con una imagen entre medias (antes se saltaba uno de cada dos)", () => {
+    const bytes = varios(
+      stream(1, "/Type /ObjStm /Filter /FlateDecode", conPaginas(15, 10)),
+      stream(2, "/Type /XObject /Subtype /Image /Filter /DCTDecode", Buffer.from([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3])),
+      stream(3, "/Type /ObjStm /Filter /FlateDecode", conPaginas(15, 40)),
+      stream(4, "/Type /ObjStm /Filter /FlateDecode", conPaginas(15, 70)),
+    );
+    expect(paginasDePdf(bytes)).toBe(45);
+  });
+
+  it("un stream Flate que no se puede abrir: no se sabe (null), no se da por bueno lo contado", () => {
+    const bytes = varios(
+      stream(1, "/Type /ObjStm /Filter /FlateDecode", conPaginas(5, 10)),
+      stream(2, "/Type /ObjStm /Filter /FlateDecode", Buffer.from("esto no es zlib", "latin1")),
+    );
+    expect(paginasDePdf(bytes)).toBeNull();
+  });
 });
 
 describe("lo que se le dice a la persona", () => {
