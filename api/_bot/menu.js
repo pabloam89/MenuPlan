@@ -1135,6 +1135,13 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
       forcedRecipe = entre[Math.floor(Math.random() * entre.length)];
       if (pideEjes.pedidos.length && !base) notaEjes = " No había plato en ese hueco con el que comparar: he puesto una de las que más se ajustan a lo pedido. Dilo así.";
     }
+    // El plato pedido por su nombre pasa la misma puerta de seguridad que el
+    // motor (#958): si choca con alguien de este grupo, no se pone y se dice por qué.
+    if (forcedRecipe && m.chocaConElGrupo?.(forcedRecipe, paraElegir, g, franja)) {
+      const quien = (m.choquesDeReceta?.(forcedRecipe, { ...paraElegir, members: m.membersOfGroup(g, paraElegir.members ?? []) }) ?? []).filter((c) => !c.adapta);
+      texto = `NO CAMBIADO, por seguridad: «${forcedRecipe.name}» choca con ${quien.length ? quien.map((c) => `${c.etiqueta.toLowerCase()} (${c.quien.join(", ")})`).join(", ") : "una restricción de alguien de la casa"}. Ofrece otro plato.`;
+      return null;
+    }
     const elegido = m.pickCatalogReplacement(paraElegir, casa.semana.plan, { hoy: hoyISO(), groupId: g.id, day: dia, meal: franja, course, forcedRecipe });
     if (!elegido?.recipeId) { texto = "No he encontrado otro plato que encaje en ese hueco con vuestras preferencias."; return null; }
     const antes = m.RECIPES_BY_ID[course === "first" ? hueco.firstRecipeId : hueco.recipeId]?.name;

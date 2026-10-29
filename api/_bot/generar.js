@@ -142,6 +142,21 @@ export function colocarPedidos(m, data, plan, recipes, pedidos, activeDays) {
   return colocados;
 }
 
+/**
+ * Vacía los huecos del plan con un plato que choca con alguien de su grupo
+ * (m.choquesDelPlan) y dice cuáles. Muta `plan`. El hueco queda vacío y con
+ * aviso, como los que el motor deja vacíos a propósito: mejor un hueco sin
+ * plato que un plato que no se puede comer.
+ */
+export function quitarLoQueChoca(m, data, plan) {
+  const choques = m.choquesDelPlan?.(data, plan) ?? [];
+  for (const c of choques) {
+    const h = plan[c.groupId][c.clave];
+    plan[c.groupId][c.clave] = { ...h, [c.campo]: null, warnings: [...(h.warnings ?? []), `«${c.nombre}» quitado: choca con una restricción del grupo.`] };
+  }
+  return choques.map((c) => `${c.nombre} (${c.clave.replace("-", " ")})`);
+}
+
 /** Dónde ha quedado cada plato pedido en el plan, en palabras. */
 export function dondeQuedaron(pedidos, plan, activos = null) {
   return pedidos.map(({ pedido, aproximada, fijo }) => {
@@ -245,6 +260,9 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   m.registerRecipes(recipes);
   // Lo pedido que el motor no haya dejado, antes de la compra (que sale del plan).
   if (pedidos.length) colocarPedidos(m, { schedule: {}, ...working, groups }, plan, recipes, pedidos, activeDays);
+  // La última puerta antes de guardar (#958): ningún plato que choque con
+  // alguien de su grupo llega a la base, lo haya puesto el motor o un atajo.
+  const quitados = quitarLoQueChoca(m, { ...working, groups }, plan);
   const sh = m.buildShoppingList(plan, groups, m.getDayMeals(weekData), despensa);
   const generados = [...sh.byCategory.flatMap((c) => c.items), ...(sh.pantryItems ?? [])];
   let shopping = { items: generados };
@@ -376,6 +394,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   // por «la siguiente» (la primera sin menú), que puede no ser la que ella esperaba.
   const libre = cual === "siguiente" && !desde ? " (la primera semana sin menú)" : "";
   return `Menú nuevo generado y activado: semana del ${rangoDeFechas(startISO, endISO)}${libre} (${startISO} al ${endISO}), ${platos} huecos con plato${avisos ? ` (${avisos} avisos del motor: huecos que no encajaban del todo)` : ""}.`
+    + (quitados.length ? `\nSIN PONER, por seguridad (chocan con una alergia, intolerancia o dieta de alguien de su grupo; dilo así): ${quitados.join("; ")}.` : "")
     + (conservadas.length ? ` Se conserva tal cual la semana ${conservadas.join(" y ")}.` : "")
     + (pedidos.length ? `\nLo que pidieron, ya puesto (no hace falta cambiar_plato):\n${dondeQuedaron(pedidos, plan, activeDays).join("\n")}` : "")
     + (semana
