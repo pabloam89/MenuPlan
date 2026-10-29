@@ -119,6 +119,15 @@ describe("anadir_invitado: la fecha y su semana", () => {
     expect(r.dia).toBe("Vie");
     expect(r.semanaISO).toBe("2026-11-02");
   });
+  // #958: la herramienta prometía «se suma a la compra de esa semana» con el
+  // menú ya hecho, y la regla solo cuenta al generar.
+  it("el recibo dice lo apuntado y que un menú ya hecho no cambia solo", async () => {
+    limpio();
+    const r = await anadirInvitado("h", { dia: "el viernes", comida: "Cena", semana: "siguiente", nombre: "Ana" });
+    expect(r.estado).toBe("hecho");
+    expect(r.hecho).toEqual(["Ana el Vie (2026-11-06)"]);
+    expect(r.nota).toMatch(/ya tiene menú, ese plato y la compra no cambian hasta rehacerlo/);
+  });
   it("«el 15» es el domingo 15 de noviembre, en su semana", async () => {
     limpio();
     await anadirInvitado("h", { dia: "el 15", comida: "Comida" });
