@@ -125,11 +125,11 @@ const PERMITIDO_HOY = Object.freeze({
   // Claves de agrupación de tickets por día/semana (aritmética, no «hoy»).
   "src/lib/priceHistory.js": 2,
   // Aritmética de fechas a mediodía UTC (sumarDias, lunesDe, «hace 3 días»).
-  "api/_bot/ajustes.js": 1,
-  "api/_bot/cuando.js": 1,
+  // El intérprete (#958): sumarDias y comprobar que una fecha existe.
+  "api/_bot/interprete.js": 2,
   "api/_bot/ficha.js": 2,
-  // sumarDias, «hace 3 días» y la HORA de Madrid (no el día).
-  "api/_bot/menu.js": 3,
+  // «hace 3 días» y la HORA de Madrid (no el día).
+  "api/_bot/menu.js": 2,
   // Fecha + hora de Madrid para programar el aviso, y aritmética de fechas.
   "api/_bot/vispera.js": 3,
   // process.env.TZ para computeWeekRange del motor.

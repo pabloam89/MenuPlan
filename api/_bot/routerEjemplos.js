@@ -35,8 +35,8 @@ export const EJEMPLOS = {
   ],
   compra_anadir: [
     "apunta leche", "añade huevos y pan a la lista", "falta aceite", "pon yogures en la compra",
-    "apúntame dos kilos de naranjas", "necesito papel de cocina", "se acabó el café", "compra tomates",
-    "mete en la lista detergente y suavizante", "que no se me olvide el pan de molde", "añade fruta para los niños",
+    "apúntame dos kilos de naranjas", "se acabó el café", "compra tomates",
+    "que no se me olvide el pan de molde", "añade fruta para los niños",
     "pon cebollas, ajos y pimientos", "nos hemos quedado sin leche", "pimientos cebollas y ajo porfa q lo necesito para esta noche",
   ],
   compra_marcar: [
@@ -67,6 +67,8 @@ export const EJEMPLOS = {
     "mi hija es celíaca", "los jueves comemos fuera", "pon el arroz el domingo en vez del sábado",
     "añade a la compra lo de la receta del jueves", "¿puede comer marisco mi hijo con dermatitis?", "no quiero cocinar este finde",
     "¿por qué me pones tanto pescado?", "gracias Lola!! 😊",
+    // No es comida ni bebida: lo apunta Lola (router.js, compra_anadir), #958.
+    "necesito papel de cocina", "mete en la lista detergente y suavizante",
   ],
 };
 

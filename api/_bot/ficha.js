@@ -26,6 +26,7 @@
 import fs from "node:fs";
 import { etapaDe, esEtapaBebe } from "../../src/lib/stages.js";
 import { INTOLERANCE_RULES } from "../../src/lib/intolerances.js";
+import { ETAPA_BEBE_INFO } from "../../src/lib/babyStage.js";
 import { matizDe, vigente, rechazadosDe } from "../../src/lib/notepad.js";
 import { describirRegla } from "../../src/lib/reglasTexto.js";
 import { hayTandasPedidas, minutosDeTanda, enHoras } from "../../src/lib/cookTime.js";
@@ -212,7 +213,10 @@ function seguridad(data) {
       ...(m.intolerances ?? []).map((id) => INTOLERANCE_RULES[id]?.label ?? id),
       ...(m.dietaryStates ?? []).map((id) => {
         const hasta = m.dietaryStatesMeta?.[id]?.hasta;
-        return `${(INTOLERANCE_RULES[id]?.label ?? id).toLowerCase()}${hasta ? ` hasta ${ddmm(hasta)}` : ", sin fecha"}`;
+        // Pasada la fecha no se quita sola (es salud): se dice, y el barrido
+        // abre la pregunta (caducidades.js, #958).
+        const pasada = hasta && hasta < isoDeCasa() ? " (ya pasó: pregunta si sigue)" : "";
+        return `${(INTOLERANCE_RULES[id]?.label ?? id).toLowerCase()}${hasta ? ` hasta ${ddmm(hasta)}${pasada}` : ", sin fecha"}`;
       }),
       ...(m.healthProfiles ?? []).map((p) => (typeof p === "string" ? p : p?.label ?? p?.id)).filter(Boolean),
     ];
@@ -220,7 +224,9 @@ function seguridad(data) {
   }
   // El bebé y su etapa.
   for (const m of miembros.filter(esBebe)) {
-    const etapa = { cremas: "solo cremas y purés", mixto: "cremas y algo de sólido", solidos: "ya come sólidos" }[data.etapaBebe];
+    // La etiqueta de la app (babyStage.js): una sola definición de cada etapa (#958).
+    const info = ETAPA_BEBE_INFO[data.etapaBebe];
+    const etapa = info ? `${info.label.toLowerCase()} (${info.desc.toLowerCase()})` : null;
     const edad = edadDe(m);
     const meses = edad != null ? Math.round(edad * 12) : null;
     lineas.push(`- ${m.name}${meses != null && meses < 24 ? ` (${meses} m)` : ""}: bebé${etapa ? `, ${etapa}` : ""}.`);
@@ -439,13 +445,17 @@ export function montarFicha(casa, extras = {}, hoy = hoyMadrid()) {
     return { estable, delDia: delDia.join("\n") };
   };
   let f = pintar();
-  // Recorte: «no le gusta», MENÚ, COCINA, CASA, RECETARIO, AHORA. SEGURIDAD nunca.
+  // Recorte, de lo que menos falta a lo que más: «no le gusta», lo hecho en la
+  // nevera, COCINA, CASA, RECETARIO y, lo último, «Mañana». SEGURIDAD y «Hoy»
+  // nunca: el prompt manda contestar «¿qué cenamos?» con la ficha, y antes se
+  // caía el menú de hoy antes que la cocina (#958).
   const pasos = [
     () => { secciones.casa = secciones.casa.map((l) => l.replace(/ \(no le gusta: [^)]*\)/g, "")); },
-    () => { delDia = delDia.filter((l) => !/^- (Hoy|Mañana|Hecho)/.test(l)); },
+    () => { delDia = delDia.filter((l) => !/^- Hecho/.test(l)); },
     () => { secciones.cocina = secciones.cocina.slice(0, 2).concat(["- +más (ver_ajustes)"]); },
     () => { secciones.casa = secciones.casa.slice(0, 2); },
     () => { secciones.recetario = []; },
+    () => { delDia = delDia.filter((l) => !/^- Mañana/.test(l)); },
   ];
   for (const paso of pasos) {
     if (tokens(f.estable) + tokens(f.delDia) <= TOPE_TOKENS) break;

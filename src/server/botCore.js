@@ -8,7 +8,7 @@
 // Comprobado el 29 sep 2026 con una casa real: la semana entera sale en ~1,8 s
 // en Node, sin red, y la compra de esa semana, completa.
 
-export { generateMenuWithAI, pickCatalogReplacement } from "../lib/aiPlanner.js";
+export { generateMenuWithAI, pickCatalogReplacement, chocaConElGrupo, choquesDelPlan } from "../lib/aiPlanner.js";
 export { buildShoppingList } from "../lib/shoppingBuilder.js";
 export { registerRecipes, RECIPES_BY_ID } from "../data/recipes.js";
 export { DAYS, getDayMeals } from "../lib/planner.js";

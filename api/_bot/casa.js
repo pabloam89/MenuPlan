@@ -14,7 +14,8 @@
 
 import { AsyncLocalStorage } from "node:async_hooks";
 import { select, insert, update, rpc, eq } from "./db.js";
-import { recetasPropiasDeCasa } from "./propias.js";
+import { operacion, quienEscribe, TIPO_OPERACION, QUE_FUE } from "./operacion.js";
+import { recetasPropiasDeCasa, quitarRecetaGuardada } from "./propias.js";
 import { menuActivoDe } from "../../src/lib/menuActivo.js";
 import { isoDeCasa } from "../../src/lib/dias.js";
 import { favoritasDeFilas, votosDeFavoritas, descartesDeFilas } from "../../src/lib/recetasDeLaCasa.js";
@@ -169,6 +170,8 @@ export async function guardarCasa(casa, { state = null, semana = null, activar =
   recientes.delete(casa.householdId);
   if (r?.ok) {
     ultimaEscritura.set(casa.householdId, Date.now());
+    const op = operacion();
+    if (op) op.guardadosCasa++;
     if (!sinDeshacer) await guardarFotoPrevia(casa, Number(r.bot_rev)).catch((e) => console.error("[casa] deshacer", e?.message));
     return { ok: true, botRev: Number(r.bot_rev) };
   }
@@ -181,35 +184,104 @@ export async function guardarCasa(casa, { state = null, semana = null, activar =
 // la última, un solo nivel: basta para «uy, no», y más niveles obligarían a
 // saber qué cambios de la app hubo entre medias.
 
-const FOTOS_POR_CASA = 5;
+// Varias personas y chats por casa (#958): cada una tiene su «lo último».
+const FOTOS_POR_CASA = 10;
 
-async function guardarFotoPrevia(casa, botRevDespues) {
+// Las operaciones que no dejan foto de la casa (despensa, tareas…) se apuntan
+// con esta versión, que no es de nadie: un deshacer de antes de #958 (o el de
+// producción mientras no se suba) la ve, compara versiones y se niega («hubo
+// otros cambios»), en vez de restaurar nada.
+export const SIN_VERSION = -1;
+
+async function apuntarDeshacer(householdId, botRevDespues, antes) {
+  const op = operacion();
+  // Quién lo hizo y con qué herramienta: «deshaz» solo toca lo suyo.
+  const quien = quienEscribe();
+  const tambien = op?.tambien?.length ? op.tambien.splice(0) : [];
   await insert("bot_deshacer", [{
-    household_id: casa.householdId,
+    household_id: householdId,
     bot_rev_despues: botRevDespues,
-    antes: {
-      state: casa.state,
-      menuActivo: casa.menu?.id ?? null,
-      semana: casa.semana ? { menuId: casa.semana.menuId, weekStart: casa.semana.weekStart, plan: casa.semana.plan, shopping: casa.semana.shopping } : null,
-    },
+    descripcion: op?.herramienta ?? null,
+    antes: { ...antes, ...(quien ? { quien } : {}), ...(op?.herramienta ? { herramienta: op.herramienta } : {}), ...(tambien.length ? { tambien } : {}) },
   }]);
-  const viejas = await select("bot_deshacer", `household_id=${eq(casa.householdId)}&order=created_at.desc&offset=${FOTOS_POR_CASA}`, "id");
+  const viejas = await select("bot_deshacer", `household_id=${eq(householdId)}&order=created_at.desc&offset=${FOTOS_POR_CASA}`, "id");
   if (viejas.length) {
     const { url, headers } = (await import("./db.js")).config();
     await fetch(`${url}/rest/v1/bot_deshacer?id=in.(${viejas.map((v) => v.id).join(",")})`, { method: "DELETE", headers });
   }
 }
 
+async function guardarFotoPrevia(casa, botRevDespues) {
+  const op = operacion();
+  if (op) op.fotos++;
+  await apuntarDeshacer(casa.householdId, botRevDespues, {
+    tipo: TIPO_OPERACION.CASA,
+    state: casa.state,
+    menuActivo: casa.menu?.id ?? null,
+    semana: casa.semana ? { menuId: casa.semana.menuId, weekStart: casa.semana.weekStart, plan: casa.semana.plan, shopping: casa.semana.shopping } : null,
+  });
+}
+
 /**
- * Deshace la última escritura del bot en la casa.
+ * Una operación que escribió fuera de la casa (sin foto): se apunta para que
+ * «deshaz» sepa que fue lo último de esa persona. `tipo` de TIPO_OPERACION.
+ */
+export async function apuntarOperacion(householdId, tipo) {
+  await apuntarDeshacer(householdId, SIN_VERSION, { tipo });
+}
+
+/**
+ * El filtro de «lo último de quien lo pide»: su chat y, si se sabe, su
+ * persona. Las fotos de antes de #958 no llevan autor y no salen: no se sabe
+ * de quién son, y deshacer lo de otro es justo lo que había que evitar.
+ * Sin quién (fuera de un turno), toda la casa, como antes.
+ */
+export function filtroDeQuien(quien) {
+  if (!quien?.chat) return "";
+  return `&antes->quien->>chat=${eq(quien.chat)}${quien.persona ? `&antes->quien->>persona=${eq(quien.persona)}` : ""}`;
+}
+
+/** Lo que hay que deshacer además de la casa (`antes.tambien`). Devuelve lo que no se pudo. */
+async function deshacerPasos(pasos = []) {
+  const fallidos = [];
+  for (const p of pasos) {
+    try {
+      if (p.tipo === TIPO_OPERACION.RECETA && p.id && p.dueno) await quitarRecetaGuardada(p.id, p.dueno);
+      else fallidos.push(p.tipo);
+    } catch (e) {
+      console.error("[casa] deshacer paso", p.tipo, e?.message);
+      fallidos.push(p.tipo);
+    }
+  }
+  return fallidos;
+}
+
+/**
+ * Deshace la última escritura del bot de QUIEN LO PIDE (su chat y su persona,
+ * operacion.js), no la última de la casa (#958).
  * `freno(ahora, antes)` (el del supervisor, frenoDeshacer) decide si restaurar
  * quitaría protección sin confirmarlo; si devuelve texto, no se deshace nada.
  * Se inyecta para no importar el supervisor aquí (ciclo con menu.js).
  * @returns {Promise<string>} qué ha pasado, para el agente
  */
-export async function deshacer(householdId, { freno = null } = {}) {
-  const [foto] = await select("bot_deshacer", `household_id=${eq(householdId)}&usado_at=is.null&order=created_at.desc&limit=1`, "id,bot_rev_despues,antes,created_at");
-  if (!foto) return "No hay ningún cambio mío reciente que deshacer.";
+export async function deshacer(householdId, { freno = null, quien = quienEscribe() } = {}) {
+  const [foto] = await select("bot_deshacer", `household_id=${eq(householdId)}&usado_at=is.null${filtroDeQuien(quien)}&order=created_at.desc&limit=1`, "id,bot_rev_despues,antes,created_at");
+  if (!foto) return quien ? "No hay ningún cambio reciente tuyo que pueda deshacer (lo de otras personas, o de otro chat, no lo deshago)." : "No hay ningún cambio mío reciente que deshacer.";
+  const tipo = foto.antes?.tipo ?? TIPO_OPERACION.CASA;
+  // Lo último suyo no fue un cambio de la casa: no se restaura una foto más
+  // vieja (reactivaría el menú anterior diciendo «Deshecho»). Si lo que hizo
+  // se sabe deshacer (una receta guardada), se deshace; si no, se dice.
+  if (tipo !== TIPO_OPERACION.CASA) {
+    const pasos = foto.antes?.tambien ?? [];
+    if (pasos.length) {
+      const fallidos = await deshacerPasos(pasos);
+      if (!fallidos.length) {
+        await update("bot_deshacer", `id=eq.${foto.id}`, { usado_at: new Date().toISOString() });
+        return `Deshecho: ${QUE_FUE[tipo] ?? "lo último"} ya no está.`;
+      }
+    }
+    return `Lo último que me pediste fue ${QUE_FUE[tipo] ?? QUE_FUE[TIPO_OPERACION.OTRO]}, y eso no lo deshago yo sola. NO he deshecho nada. Dime qué quieres quitar o cambiar y lo hago.`;
+  }
   // De la base: deshacer compara versiones y lo recordado podría ser viejo.
   const casa = await cargarCasa(householdId, { fresca: true });
   if (!casa) return "Esta casa no tiene datos en la nube.";
@@ -239,9 +311,26 @@ export async function deshacer(householdId, { freno = null } = {}) {
   }, { sinDeshacer: true });
   if (!r.ok) return `No he podido deshacerlo: ${r.error ?? "se cruzó otro cambio"}.`;
   await update("bot_deshacer", `id=eq.${foto.id}`, { usado_at: new Date().toISOString() });
-  return antes.menuActivo && antes.menuActivo !== casa.menu?.id
+  // Lo que se escribió fuera de la casa con ese mismo cambio (la fila de una
+  // receta guardada): antes se quedaba y la receta seguía en la app (#958).
+  const fallidos = await deshacerPasos(antes.tambien ?? []);
+  const aviso = fallidos.length ? " Ojo: la receta sigue en el recetario, no he podido quitarla; bórrala desde la app." : "";
+  // El primer menú: antes no había otro que reactivar y el nuevo seguía activo
+  // (la app lo enseñaba). No hay RPC que desactive en la misma transacción
+  // (0069 solo activa), así que va justo después; si falla, se dice.
+  const primerMenu = !antes.menuActivo && casa.menu?.id;
+  if (primerMenu) {
+    try {
+      await update("user_menus", `household_id=${eq(householdId)}&id=${eq(casa.menu.id)}`, { is_active: false });
+    } catch (e) {
+      console.error("[casa] deshacer: desactivar el primer menú", e?.message);
+      return "He deshecho la casa, pero el menú nuevo sigue activo en la app: no he podido quitarlo. Bórralo desde Menús en la app.";
+    }
+    return `Deshecho: el menú nuevo ya no está activo (queda en el historial de la app).${aviso}`;
+  }
+  return (antes.menuActivo && antes.menuActivo !== casa.menu?.id
     ? "Deshecho: vuelve a estar activo el menú anterior (el nuevo queda en el historial)."
-    : "Deshecho: la casa está como antes de mi último cambio.";
+    : "Deshecho: la casa está como antes de mi último cambio.") + aviso;
 }
 
 /**

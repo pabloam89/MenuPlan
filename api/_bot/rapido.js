@@ -18,6 +18,7 @@ import { describirCompra } from "./menu.js";
 import { pintarMenuEntero } from "./pintar.js";
 import { fechasDe, diaDeFecha, sumarDias, indiceDia } from "./cuando.js";
 import { estadoDelMenu } from "./estadoMenu.js";
+import { fechasDe as interpretarFechas } from "./interprete.js";
 import { fechaLarga } from "./memoria.js";
 import { rangoDeFechas } from "./semanaPedida.js";
 import { CANAL, paraEscribir } from "../../src/lib/vocabularios.js";
@@ -85,8 +86,9 @@ export async function respuestaHoy(householdId) {
 
 /** Un día cualquiera («mañana», «el jueves»), por su fecha real, con fotos. */
 export async function respuestaDia(householdId, texto) {
-  const dias = fechasDe({ cuando: /^hoy$/i.test(String(texto).trim()) ? "hoy" : /^ma(ñ|n)ana$/i.test(String(texto).trim()) ? "manana" : "dia", dia: texto }, hoyISO());
-  return dias ? respuestaMenu(householdId, { dias }) : null;
+  // Con el intérprete: también «el 15» o «el viernes de la que viene» (#958).
+  const r = interpretarFechas(texto, { hoy: hoyISO() });
+  return r.fechas ? respuestaMenu(householdId, { dias: r.fechas }) : null;
 }
 
 /** 📅 Semana: de hoy al domingo (lo pasado ya no interesa). El domingo, o si

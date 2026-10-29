@@ -32,6 +32,7 @@ import { SYSTEM_PROMPTS } from "../_prompts.js";
 import { buscarHibrido, pasaRasgos } from "./buscador.js";
 import { rasgosDeFrase } from "../../src/lib/rasgosBusqueda.js";
 import { paraEscribir } from "../../src/lib/vocabularios.js";
+import { deshacerTambien, TIPO_OPERACION } from "./operacion.js";
 
 // Las carpetas del recetario de la app (CATEGORY_META en CatalogBrowserSheet).
 // Los bebés van partidos por etapa, como allí.
@@ -341,7 +342,15 @@ export async function guardarRecetaPropia(householdId, receta) {
   if (!dueno) return { ok: false, enRecetario: false, error: "casa sin dueño" };
   const m = await motor();
   const lista = { ...receta, owner: receta.owner ?? { id: dueno }, source: "user" };
+  // ¿Es nueva? Solo una nueva se borra al deshacer: una que ya estaba y se ha
+  // sobrescrito no se puede devolver a como era desde aquí. Si no se sabe,
+  // como si estuviera: mejor no borrar de más.
+  const yaEstaba = !lista.id || (await select("user_recipes", `id=${eq(lista.id)}&owner_id=${eq(dueno)}`, "id").catch(fallaCon("receta_ya_estaba", [{ id: lista.id }]))).length > 0;
   await insert("user_recipes", [m.recipeToRow(lista, dueno)], { upsert: true });
+  // «Deshaz» quita también esta fila. Sin escritura en la casa, el paso va
+  // en el apunte de la operación (agente.js → apuntarOperacion, tipo RECETA),
+  // que casa.js deshace con quitarRecetaGuardada (#958).
+  if (!yaEstaba) deshacerTambien({ tipo: TIPO_OPERACION.RECETA, id: lista.id, dueno });
   // La casa recordada de hace unos segundos no la trae: que el siguiente
   // turno (o el generar de este) la lea de la tabla.
   olvidarCasa(householdId);

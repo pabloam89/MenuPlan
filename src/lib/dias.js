@@ -55,6 +55,22 @@ export const diaDeFechaUTC = (fecha) => DIAS[indiceDeFechaUTC(fecha)];
 /** El día («Jue») de una fecha «AAAA-MM-DD». */
 export const diaDeISO = (iso) => DIAS[indiceDeISO(iso)];
 
+/** «AAAA-MM-DD» más `n` días (n puede ser negativo), en UTC a mediodía. */
+export function sumarDiasISO(iso, n) {
+  return new Date(Date.parse(`${iso}T12:00:00Z`) + n * 86400000).toISOString().slice(0, 10);
+}
+
+/**
+ * Semanas enteras del lunes de `desdeISO` al lunes de `hastaISO` (negativo si
+ * va antes). Es como se pasa de una fecha absoluta a un `offset` relativo a
+ * otro día (#958): el offset se calcula, nunca se copia. En UTC a mediodía:
+ * no lo mueve ni el huso ni el cambio de hora.
+ */
+export function semanasEntre(desdeISO, hastaISO) {
+  const lunes = (iso) => Date.parse(`${iso}T12:00:00Z`) - indiceDeISO(iso) * 86400000;
+  return Math.round((lunes(hastaISO) - lunes(desdeISO)) / (7 * 86400000));
+}
+
 // ── El hoy de la casa ───────────────────────────────────────────────────────
 
 /** La zona de la casa mientras no haya una guardada. */

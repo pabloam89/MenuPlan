@@ -16,28 +16,24 @@
  *                                  segundo, sin pasar de 7 días
  */
 
-import { NOMBRES_DIA, indiceDeISO, diaDeISO } from "../../src/lib/dias.js";
+import { DIAS, indiceDeISO, diaDeISO } from "../../src/lib/dias.js";
+import { diaDeSemana, fechaDe, sumarDias } from "./interprete.js";
 
 export const CUANDOS = ["hoy", "manana", "pasado_manana", "dia", "finde", "finde_que_viene", "esta_semana", "semana_que_viene", "rango"];
 
 const normal = (s) => String(s ?? "").normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().trim();
-const LARGOS = NOMBRES_DIA.map(normal);
 
-export const sumarDias = (iso, n) => { const d = new Date(`${iso}T12:00:00Z`); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+export { sumarDias };
 /** 0 = lunes … 6 = domingo */
 export const indiceDia = indiceDeISO;
 export const diaDeFecha = diaDeISO;
 
-/** «jueves», «el jueves», «Jue», «mañana» → índice 0-6 del día de la semana, o null. */
+/** «jueves», «el jueves», «Jue», «mañana» → índice 0-6 del día de la semana, o null. Con el intérprete (#958). */
 function indiceDeNombre(texto, hoy) {
-  const t = normal(texto).replace(/^(el|la|los|las)\s+/, "");
-  if (!t) return null;
-  if (t === "hoy") return indiceDia(hoy);
-  if (t === "manana") return indiceDia(sumarDias(hoy, 1));
-  if (t === "pasado manana") return indiceDia(sumarDias(hoy, 2));
-  // El nombre entero o su abreviatura de tres letras («mié»); «marzo» no es martes.
-  const i = LARGOS.findIndex((d) => d === t || (t.length === 3 && d.slice(0, 3) === t));
-  return i === -1 ? null : i;
+  const d = diaDeSemana(texto);
+  if (d) return DIAS.indexOf(d);
+  const r = fechaDe(texto, { hoy });
+  return r.fecha ? indiceDia(r.fecha) : null;
 }
 
 /** El próximo día con ese índice (hoy si es hoy). */

@@ -41,7 +41,8 @@ describe("ajustar_extras", () => {
 describe("ajustar_semana", () => {
   it("los días dichos, como en ajustar_horario", () => {
     expect(diasDichos(["entre semana"])).toEqual(["Lun", "Mar", "Mié", "Jue", "Vie"]);
-    expect(diasDichos(["finde", "lunes"])).toEqual(["Sáb", "Dom", "Lun"]);
+    // En el orden de la semana (el intérprete, #958).
+    expect(diasDichos(["finde", "lunes"])).toEqual(["Lun", "Sáb", "Dom"]);
   });
 
   it("deja la semana con esos días y recalcula lo que deriva de ellos", () => {

@@ -19,11 +19,13 @@
 import { COMIDAS_PLANIFICABLES, COMIDAS_PRINCIPALES } from "../../src/lib/comidas.js";
 import { conCasa } from "./casa.js";
 import { motor, normal, diaDe, DIAS, DIA_LARGO } from "./menu.js";
+import { buscarPersona, dudaDePersona, personasDe, diasDeLaSemana, fechaDe, lunesDe, grupoDePersonas, miembrosDeGrupo } from "./interprete.js";
+import { ETAPA_BEBE_INFO } from "../../src/lib/babyStage.js";
 import { registrar, EMBUDO, duenoDe, cimientosCompletos } from "./embudo.js";
 import { cerrarPorEstado, abrirPreguntaDeEstado } from "./tareas.js";
 import * as ids from "../../src/lib/ids.js";
 import { etapaDe, esMenor } from "../../src/lib/stages.js";
-import { indiceDeFechaUTC, isoDeCasa } from "../../src/lib/dias.js";
+import { isoDeCasa, diaDeISO } from "../../src/lib/dias.js";
 import { ETAPA_BEBE } from "../../src/lib/vocabularios.js";
 import { supermercadoDe, CON_PRECIOS } from "../../src/lib/supermercados.js";
 import { EXTRAS, conExtras } from "../../src/lib/extras.js";
@@ -35,12 +37,6 @@ const hoyISO = () => isoDeCasa();
 // Del catálogo de comidas (src/lib/comidas.js).
 const COMIDAS = COMIDAS_PLANIFICABLES;
 
-function lunesDe(cual) {
-  const hoy = new Date(`${hoyISO()}T12:00:00Z`);
-  const dia = indiceDeFechaUTC(hoy);
-  hoy.setUTCDate(hoy.getUTCDate() - dia + (cual === "siguiente" ? 7 : 0));
-  return hoy.toISOString().slice(0, 10);
-}
 
 // Lo que puede resolver una tarea de estado: quién hay, sus alergias y la etapa del bebé.
 const huellaDeEstado = (d = {}) => JSON.stringify([d.etapaBebe ?? null, d.allergiesReviewed ?? null,
@@ -83,34 +79,13 @@ export async function conData(householdId, cambiar, ctx = null) {
   return texto;
 }
 
-/**
- * La persona por su nombre: exacto, luego primer nombre exacto, luego prefijo
- * ÚNICO. Con varias candidatas no elige: devuelve las candidatas, porque
- * escribir alergias o borrar a la persona equivocada es peor que preguntar.
- */
-export function buscarPersona(data, nombre) {
-  const q = normal(nombre);
-  // Sin nombre no hay nadie: un startsWith("") casaría con el primero de la casa.
-  if (!q) return { persona: null, candidatas: [] };
-  const miembros = data.members ?? [];
-  const unica = (lista) => (lista.length === 1 ? { persona: lista[0], candidatas: [] } : lista.length > 1 ? { persona: null, candidatas: lista } : null);
-  return unica(miembros.filter((p) => normal(p.name) === q))
-    ?? unica(miembros.filter((p) => normal(p.name).split(/\s+/)[0] === q))
-    ?? unica(miembros.filter((p) => normal(p.name).startsWith(q)))
-    ?? { persona: null, candidatas: [] };
-}
-
-export const personaPorNombre = (data, nombre) => buscarPersona(data, nombre).persona;
-
+// Las personas por su nombre, con el intérprete (interprete.js, #958): exacto,
+// primer nombre, prefijo ÚNICO; con varias candidatas no elige, porque escribir
+// alergias o borrar a la persona equivocada es peor que preguntar.
+export { buscarPersona };
+export const personaPorNombre = (data, nombre, quien) => buscarPersona(data, nombre, quien).persona;
 /** Qué decir cuando `personaPorNombre` no da a nadie: no está, o hay varias. */
-export function noEncuentro(data, nombre) {
-  const { candidatas } = buscarPersona(data, nombre);
-  if (candidatas.length > 1) {
-    const nombres = candidatas.map((p) => p.name);
-    return `¿Te refieres a ${nombres.slice(0, -1).join(", ")} o a ${nombres.at(-1)}? No he cambiado nada: dime cuál.`;
-  }
-  return `No encuentro a ${nombre} en la casa.`;
-}
+export const noEncuentro = (data, nombre, quien) => dudaDePersona(data, nombre, quien);
 
 // ── Leer ────────────────────────────────────────────────────────────────────
 
@@ -276,7 +251,23 @@ export async function descartarSupuesto(householdId, { campo, valor, ambito = "t
 // seguían saliendo purés.
 const ETAPAS_BEBE = ETAPA_BEBE;
 
-export async function ajustarCocina(householdId, { estructura, esfuerzo, tiempo, tanda, trastos, comidas, etapaBebe }) {
+/**
+ * Una lista que se ajusta pieza a pieza: «tenemos airfryer» SUMA, «ya no
+ * tenemos horno» QUITA, y solo la lista entera (a propósito) sustituye. Antes
+ * trastos y supermercados solo sabían sustituir: «tenemos airfryer» borraba el
+ * horno y la Thermomix, y «también compramos en Lidl» perdía Mercadona (#958).
+ * Pura, para el test.
+ * @returns {string[] | null}  la lista nueva, o null si no se pidió nada
+ */
+export function listaAjustada(actual, { entera, mas, menos } = {}, igual = (a, b) => normal(a) === normal(b)) {
+  if (!Array.isArray(entera) && !mas?.length && !menos?.length) return null;
+  let lista = Array.isArray(entera) ? [...entera] : [...(actual ?? [])];
+  for (const x of mas ?? []) if (!lista.some((y) => igual(x, y))) lista.push(x);
+  lista = lista.filter((y) => !(menos ?? []).some((x) => igual(x, y)));
+  return lista;
+}
+
+export async function ajustarCocina(householdId, { estructura, esfuerzo, tiempo, tanda, trastos, trastosMas, trastosMenos, comidas, etapaBebe }) {
   return conData(householdId, (data, m) => {
     const R = m.PREGUNTAS_POR_ID;
     let d = data;
@@ -290,8 +281,12 @@ export async function ajustarCocina(householdId, { estructura, esfuerzo, tiempo,
     if (estructura) { d = R.estructura.escribe(d, estructura); hechos.push(`estructura: ${estructura}`); }
     if (esfuerzo) { d = R.esfuerzo.escribe(d, esfuerzo); hechos.push(`nivel: ${esfuerzo}`); }
     if (tiempo || tanda) { d = R.tiempo.escribe(d, { ...(tiempo ? { nivel: tiempo } : {}), ...(tanda ? { tanda } : {}) }); hechos.push(`tiempo: ${[tiempo, tanda].filter(Boolean).join(", ")}`); }
-    if (Array.isArray(trastos)) { d = R.trastos.escribe(d, trastos); hechos.push(`trastos: ${trastos.join(", ") || "ninguno"}`); }
-    if (ETAPAS_BEBE.includes(etapaBebe)) { d = { ...d, etapaBebe }; hechos.push(`bebé: ${{ cremas: "cremas y purés", mixto: "de todo", solidos: "ya sólidos" }[etapaBebe]}`); }
+    const nuevos = Array.isArray(trastos) || trastosMas?.length || trastosMenos?.length
+      ? listaAjustada(R.trastos.lee(d) ?? [], { entera: trastos, mas: trastosMas, menos: trastosMenos })
+      : null;
+    if (nuevos) { d = R.trastos.escribe(d, nuevos); hechos.push(`trastos: ${nuevos.join(", ") || "ninguno"}`); }
+    // La etiqueta de la etapa, la de la app (babyStage.js): una sola definición.
+    if (ETAPAS_BEBE.includes(etapaBebe)) { d = { ...d, etapaBebe }; hechos.push(`bebé: ${ETAPA_BEBE_INFO[etapaBebe].label.toLowerCase()}`); }
     if (!hechos.length) return { texto: "No había nada que cambiar." };
     return { data: d, texto: `Guardado (${hechos.join("; ")}). Se aplicará al generar el próximo menú.` };
   });
@@ -299,13 +294,8 @@ export async function ajustarCocina(householdId, { estructura, esfuerzo, tiempo,
 
 // ── Lo del asistente de la app que Lola no tenía ────────────────────────────
 
-/** «lunes», «entre semana», «finde» → días guardados (Lun…Dom). Vacío = todos. */
-export function diasDichos(dias) {
-  return [...new Set((dias?.length ? dias : DIAS)
-    .map((d) => (/^(entre ?semana|laborables)$/.test(normal(d)) ? DIAS.slice(0, 5) : /^(finde|fin de semana)$/.test(normal(d)) ? DIAS.slice(5) : [diaDe(d)]))
-    .flat()
-    .filter(Boolean))];
-}
+/** «lunes», «entre semana», «finde», «de lunes a jueves» → días guardados (Lun…Dom). Vacío = todos. */
+export const diasDichos = (dias) => diasDeLaSemana(dias).dias;
 
 const DICHO_EXTRA = {
   desayuno: { off: "sin desayuno", variado: "desayuno variado", findes: "desayuno igual entre semana y otro el finde", igual: "siempre el mismo desayuno" },
@@ -364,8 +354,18 @@ export async function ajustarSemana(householdId, args) {
   return conData(householdId, (data) => aplicarSemana(data, args));
 }
 
-/** Cómo usa el menú lo que hay en casa, las dos opciones del asistente de la app. */
-export const MODOS_DESPENSA = { strict: "solo con lo de casa, sin comprar salvo que un hueco no salga de otra forma", only: "sobre todo lo de casa, y se compra lo que falte" };
+/**
+ * Cómo usa el menú lo que hay en casa: los cuatro modos que entiende el motor
+ * (aiPlanner.js, generar.js). El asistente de la app ofrece strict y only;
+ * prefer y off siguen valiendo, y sin off «deja de usar lo de casa» no se
+ * podía hacer (#958).
+ */
+export const MODOS_DESPENSA = {
+  strict: "solo con lo de casa, sin comprar salvo que un hueco no salga de otra forma",
+  only: "sobre todo lo de casa, y se compra lo que falte",
+  prefer: "con lo de casa solo para desempatar entre platos",
+  off: "sin mirar lo de casa (la compra sigue descontando lo que tengas)",
+};
 
 /**
  * El paso «¿aprovechamos lo de casa?» del asistente (OnboardingPantryMode),
@@ -375,7 +375,8 @@ export const MODOS_DESPENSA = { strict: "solo con lo de casa, sin comprar salvo 
 export function aplicarModoDespensa(data, modo) {
   if (!MODOS_DESPENSA[modo]) return { texto: `modo tiene que ser ${Object.keys(MODOS_DESPENSA).join(" o ")}.` };
   return {
-    data: { ...data, pantryMode: modo, pantryModeSet: true, useHomeStock: true },
+    // useHomeStock va a la par, como en la app (OnboardingPantryMode): off ⇄ false.
+    data: { ...data, pantryMode: modo, pantryModeSet: true, useHomeStock: modo !== "off" },
     texto: `Guardado: el menú se hará ${MODOS_DESPENSA[modo]}. Se aplicará al generar el próximo menú.`,
   };
 }
@@ -392,12 +393,17 @@ export async function ajustarModoDespensa(householdId, { modo }) {
  * su chapa y el precio de cada cosa (Shopping.jsx). Un súper que no está en la
  * lista se guarda como lo dicen (la vía «otro»). Pura, para el test.
  */
-export function aplicarCompra(data, { supermercados, presupuesto, sinPresupuesto = false } = {}) {
+export function aplicarCompra(data, { supermercados, supermercadosMas, supermercadosMenos, presupuesto, sinPresupuesto = false } = {}) {
   let d = data ?? {};
   const hechos = [];
-  if (Array.isArray(supermercados)) {
-    const lista = [...new Set(supermercados.map((s) => supermercadoDe(s) ?? String(s ?? "").trim()).filter(Boolean))];
-    if (lista.length) {
+  const canon = (lista) => (Array.isArray(lista) ? lista.map((s) => supermercadoDe(s) ?? String(s ?? "").trim()).filter(Boolean) : lista);
+  const ajustada = listaAjustada(d.supermarkets ?? [], { entera: canon(supermercados), mas: canon(supermercadosMas), menos: canon(supermercadosMenos) });
+  if (ajustada) {
+    const lista = [...new Set(ajustada)];
+    if (!lista.length && (supermercadosMenos ?? []).length) {
+      d = { ...d, supermarkets: [] };
+      hechos.push("súper: ninguno apuntado");
+    } else if (lista.length) {
       d = { ...d, supermarkets: lista };
       const conPrecios = lista.filter((s) => CON_PRECIOS.includes(s));
       hechos.push(`súper: ${lista.join(", ")}${conPrecios.length ? ` (en la app verás los precios de ${conPrecios.join(", ")} en la lista de la compra)` : ""}`);
@@ -430,22 +436,19 @@ export async function ajustarCompra(householdId, args) {
  * un «Hijo/a» sin edad era niño y adulto a la vez. Pura, para el test.
  */
 export function personasDeEdad(miembros, cuales) {
-  return (miembros ?? []).filter((x) => esMenor(x) === (cuales === "ninos"));
+  return miembrosDeGrupo(miembros, cuales === "ninos" ? "ninos" : "adultos");
 }
 
-export async function ajustarHorario(householdId, { personas, dias, comidas, donde }) {
+export async function ajustarHorario(householdId, { personas, dias, comidas, donde }, quien = {}) {
   return conData(householdId, (data, m) => {
     if (!m.SLOT_VALUES.includes(donde)) return { texto: `«${donde}» no vale: casa, tupper, fuera, cole u off.` };
     const miembros = data.members ?? [];
-    const sel = new Set();
+    // Personas y grupos («los peques», «yo»), con el intérprete. Una dudosa
+    // («Nat» con Natalia y Natxo) para todo: el horario es de cada semana.
+    const rp = personasDe(data, personas?.length ? personas : ["todos"], quien);
+    if (rp.dudas.length) return { texto: `${rp.dudas.join(" ")} No he cambiado el horario.` };
+    const sel = new Set(rp.personas.map((x) => x.id));
     const noEncontradas = [];
-    for (const p of personas ?? ["todos"]) {
-      const q = normal(p);
-      if (q === "todos") miembros.forEach((x) => sel.add(x.id));
-      else if (/^(ninos|hijos|peques)$/.test(q)) personasDeEdad(miembros, "ninos").forEach((x) => sel.add(x.id));
-      else if (/^(adultos|padres|mayores)$/.test(q)) personasDeEdad(miembros, "adultos").forEach((x) => sel.add(x.id));
-      else { const x = personaPorNombre(data, p); x ? sel.add(x.id) : noEncontradas.push(p); }
-    }
     // Al cole solo van los menores. «Todos» + cole dejaba también a los adultos
     // sin comida entre semana: el motor no les planificaba nada a mediodía
     // (staging, 2 oct 2026: un adulto de 36 años con «cole» de lunes a viernes).
@@ -457,8 +460,14 @@ export async function ajustarHorario(householdId, { personas, dias, comidas, don
       ? ` ${adultosAlCole.map((x) => x.name).join(", ")} no ${adultosAlCole.length > 1 ? "van" : "va"} al cole: no se ha tocado su horario. Si a mediodía no ${adultosAlCole.length > 1 ? "comen" : "come"} en casa, pregunta si es fuera o con táper.`
       : "";
     if (adultosAlCole.length && !sel.size) return { texto: `No he cambiado nada.${avisoCole}` };
-    const ds = diasDichos(dias);
-    const cs = (comidas?.length ? comidas : COMIDAS_PRINCIPALES).map((c) => COMIDAS.find((x) => normal(x) === normal(c))).filter(Boolean);
+    const rd = diasDeLaSemana(dias);
+    if (rd.malos.length) return { texto: `No entiendo qué días son «${rd.malos.join("», «")}». No he cambiado el horario.` };
+    const ds = rd.dias;
+    // Sin comidas: comida y cena. Al cole, solo la comida: «comen en el cole
+    // de lunes a jueves» apuntaba también la cena en el cole y los niños se
+    // quedaban sin cena (#958).
+    const porDefecto = donde === "cole" ? ["Comida"] : COMIDAS_PRINCIPALES;
+    const cs = (comidas?.length ? comidas : porDefecto).map((c) => COMIDAS.find((x) => normal(x) === normal(c))).filter(Boolean);
     if (!sel.size || !ds.length || !cs.length) return { texto: `No sé a quién o cuándo aplicarlo${noEncontradas.length ? ` (no conozco a ${noEncontradas.join(", ")})` : ""}.` };
     const schedule = { ...(data.schedule ?? {}) };
     for (const id of sel) for (const d of ds) for (const c of cs) {
@@ -475,12 +484,15 @@ export async function ajustarHorario(householdId, { personas, dias, comidas, don
 
 // ── Invitados puntuales: una regla que caduca sola ──────────────────────────
 
-export async function anadirInvitado(householdId, { dia, comida, n = 1, nombre, semana = "esta" }) {
+export async function anadirInvitado(householdId, { dia, comida, n = 1, nombre, semana = null }) {
   return conData(householdId, (data, m) => {
-    const d = diaDe(dia);
+    // La fecha con el intérprete: «el 15», «el viernes de la que viene»; y
+    // la semana de la regla es la de esa fecha, no la de hoy (#958).
+    const rf = fechaDe(dia, { hoy: hoyISO(), semana });
     const c = COMIDAS.find((x) => normal(x) === normal(comida));
-    if (!d || !c) return { texto: `No entiendo cuándo («${dia}», «${comida}»).` };
-    const regla = m.reglaDeInvitado({ dia: d, comida: c, n, nombre, semanaISO: lunesDe(semana), hoy: hoyISO() });
+    if (rf.duda) return { texto: rf.duda };
+    if (!c) return { texto: `No entiendo qué comida es «${comida}».` };
+    const regla = m.reglaDeInvitado({ dia: diaDeISO(rf.fecha), comida: c, n, nombre, semanaISO: lunesDe(rf.fecha), hoy: hoyISO() });
     if (!regla) return { texto: "No he podido apuntar al invitado." };
     const { reglas } = m.podarReglasVencidas([...(data.reglas ?? []), { ...regla, origen: "texto" }], hoyISO());
     return {
@@ -632,10 +644,21 @@ export async function anadirComensal(householdId, { nombre, edad }, ctx = null) 
  * ser «1 adulto» y sale de su gasto estimado (src/lib/raciones.js). Se
  * guardan en el miembro como pesoKg y alturaCm; la app los conserva.
  */
-export async function ajustarPersona(householdId, { nombre, nuevoNombre, pesoKg, alturaCm, borrar = false }) {
+export async function ajustarPersona(householdId, { nombre, nuevoNombre, edad, pesoKg, alturaCm, borrar = false }, quien = {}) {
   return conData(householdId, (data, m) => {
-    const x = personaPorNombre(data, nombre);
-    if (!x) return { texto: noEncuentro(data, nombre) };
+    let x = personaPorNombre(data, nombre, quien);
+    if (!x) return { texto: noEncuentro(data, nombre, quien) };
+    // La edad, que antes no se podía poner después del alta: quien entraba sin
+    // edad quedaba como adulto para siempre (#958). La edad manda sobre el
+    // papel (etapaDe); los grupos se recalculan, como en el alta.
+    const conEdad = edad != null;
+    if (conEdad) {
+      const e = Number(edad);
+      if (!Number.isInteger(e) || e < 0 || e > 120) return { texto: "Esa edad no me cuadra: dímela en años." };
+      x = { ...x, age: e, useBirthDate: false, birthDate: "", ...(x.homeRole ? {} : { homeRole: m.suggestHomeRole(e) }) };
+    }
+    const conMiembros = (members) => (conEdad ? conGrupos(m, data, members) : { ...data, members });
+    const dichoEdad = conEdad ? ` Edad: ${x.age} años.` : "";
     // Un nombre mal oído en un audio («Iquer» → «Iker»): todo va por id, así
     // que basta con cambiar el nombre.
     const nuevo = String(nuevoNombre ?? "").trim();
@@ -644,9 +667,13 @@ export async function ajustarPersona(householdId, { nombre, nuevoNombre, pesoKg,
       const otro = (data.members ?? []).find((p) => p.id !== x.id && normal(p.name ?? "") === normal(nuevo));
       if (otro) return { texto: `Ya hay alguien llamado ${otro.name} en la casa.` };
       if (pesoKg == null && alturaCm == null && !borrar) {
-        const members = (data.members ?? []).map((p) => (p.id === x.id ? { ...p, name: nuevo } : p));
-        return { data: { ...data, members }, texto: `Corregido: ahora es ${nuevo}.` };
+        const members = (data.members ?? []).map((p) => (p.id === x.id ? { ...x, name: nuevo } : p));
+        return { data: conMiembros(members), texto: `Corregido: ahora es ${nuevo}.${dichoEdad}` };
       }
+    }
+    if (conEdad && pesoKg == null && alturaCm == null && !borrar) {
+      const members = (data.members ?? []).map((p) => (p.id === x.id ? x : p));
+      return { data: conMiembros(members), texto: `Anotado: ${x.name} tiene ${x.age} años. Se nota en el próximo menú que generes.` };
     }
     const peso = Number(pesoKg);
     const altura = Number(alturaCm);
@@ -662,8 +689,8 @@ export async function ajustarPersona(householdId, { nombre, nuevoNombre, pesoKg,
       ? ` Su ración: ${String(factor).replace(".", ",")} de adulto de referencia.`
       : borrar ? "" : " Con peso y altura calculo su ración; falta uno de los dos.";
     return {
-      data: { ...data, members },
-      texto: borrar ? `Borrados el peso y la altura de ${x.name}: vuelve a contar como una ración normal.` : `Anotado para ${x.name}.${racion} Se nota en el próximo menú que generes.`,
+      data: conMiembros(members),
+      texto: borrar ? `Borrados el peso y la altura de ${x.name}: vuelve a contar como una ración normal.${dichoEdad}` : `Anotado para ${x.name}.${dichoEdad}${racion} Se nota en el próximo menú que generes.`,
     };
   });
 }
@@ -682,9 +709,7 @@ export async function quitarComensal(householdId, { nombre }) {
 
 // ── Alergias: nunca sin confirmar ───────────────────────────────────────────
 
-const TODA_LA_CASA = /^(todos|todo el mundo|toda la familia|familia|la casa|toda la casa)$/;
-
-export async function ajustarAlergias(householdId, { persona, alergenos, quitar = false, ninguna = false, confirmado }) {
+export async function ajustarAlergias(householdId, { persona, alergenos, quitar = false, ninguna = false, confirmado }, quien = {}) {
   if (confirmado !== true) {
     return "Las alergias no se guardan sin confirmación explícita. Repite lo que vas a guardar y pregúntale si es correcto; solo con su «sí» llama otra vez con confirmado=true.";
   }
@@ -703,9 +728,15 @@ export async function ajustarAlergias(householdId, { persona, alergenos, quitar 
       if (!persona && m.pendientesDeAlergias(data).length > 1) {
         return { texto: "¿De quién? Dime la persona, o «toda la casa» si nadie tiene. No he guardado nada." };
       }
-      const uno = persona && !TODA_LA_CASA.test(normal(persona));
-      const x = uno ? personaPorNombre(data, persona) : null;
-      if (uno && !x) return { texto: noEncuentro(data, persona) };
+      const uno = persona && grupoDePersonas(persona) !== "todos";
+      const x = uno ? personaPorNombre(data, persona, quien) : null;
+      if (uno && !x) return { texto: noEncuentro(data, persona, quien) };
+      // Quien ya tiene alergias apuntadas no pasa a «no tiene» de rebote (#958):
+      // antes se conservaban y Lola contestaba «no tiene alergias». Quitarlas
+      // es otra cosa, explícita: quitar=true con los alérgenos.
+      if ((x?.allergies ?? []).length) {
+        return { texto: `NO CAMBIADO: ${x.name} tiene apuntado ${x.allergies.join(", ")}. Si ya no es así, pregúntale cuál quitar y llama con quitar=true y esos alérgenos.` };
+      }
       const nuevo = m.marcarRevisadas(data, x ? [x.id] : null);
       const conAlguna = (data.members ?? []).some((p) => (p.allergies ?? []).length);
       return {
@@ -719,9 +750,9 @@ export async function ajustarAlergias(householdId, { persona, alergenos, quitar 
   return conData(householdId, (data, m) => {
     // La regla es la de la app (src/lib/alergias.js): ids con sus alias
     // («frutos secos»), y se escribe la ETIQUETA, que es lo que guarda la app.
-    const toda = TODA_LA_CASA.test(normal(persona));
-    const x = toda ? null : personaPorNombre(data, persona);
-    if (!toda && !x) return { texto: noEncuentro(data, persona) };
+    const toda = grupoDePersonas(persona) === "todos";
+    const x = toda ? null : personaPorNombre(data, persona, quien);
+    if (!toda && !x) return { texto: noEncuentro(data, persona, quien) };
     const r = m.aplicarAlergias(data, { memberId: toda ? m.FAMILIA : x.id, ids: alergenos, quitar, confirmado: true });
     if (!r.escrito) {
       return { texto: `No reconozco ninguno como uno de los 14 alérgenos oficiales (${r.ignorados.join(", ") || "vacío"}). Los válidos: ${m.EU_ALLERGEN_IDS.join(", ")}.` };
@@ -746,7 +777,7 @@ const ETIQUETA_SALUD = { lactosa_fina: "intolerancia a la lactosa", fructosa: "i
  * los estados: la ficha lo enseña y Lola pregunta al pasar la fecha. Mientras
  * nadie lo quite, el estado sigue aplicando (de más es el lado seguro).
  */
-export async function ajustarSalud(householdId, { persona, intolerancias = [], estados = [], quitar = false, hasta, confirmado }) {
+export async function ajustarSalud(householdId, { persona, intolerancias = [], estados = [], quitar = false, hasta, confirmado }, quien = {}) {
   if (confirmado !== true) {
     return "No se guarda sin confirmación explícita. Repite lo que vas a guardar y pregúntale si es correcto; solo con su «sí» llama otra vez con confirmado=true.";
   }
@@ -755,8 +786,8 @@ export async function ajustarSalud(householdId, { persona, intolerancias = [], e
   if (!ints.length && !ests.length) return `No reconozco nada de eso. Intolerancias: ${INTOLERANCIAS.join(", ")}; estados: ${ESTADOS.join(", ")}. El gluten, la leche y el resto de alérgenos van con ajustar_alergias.`;
   if (hasta && !/^\d{4}-\d{2}-\d{2}$/.test(hasta)) return "La fecha «hasta» va en AAAA-MM-DD (la de hoy está en la primera línea del día de la ficha).";
   return conData(householdId, (data) => {
-    const x = personaPorNombre(data, persona);
-    if (!x) return { texto: noEncuentro(data, persona) };
+    const x = personaPorNombre(data, persona, quien);
+    if (!x) return { texto: noEncuentro(data, persona, quien) };
     const sin = (lista, quitar_) => (lista ?? []).filter((id) => !quitar_.includes(id));
     const meta = { ...(x.dietaryStatesMeta ?? {}) };
     for (const id of ests) {

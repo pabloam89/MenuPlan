@@ -11,6 +11,7 @@
 import { fallaCon } from "./avisar.js";
 import { select, insert, update, eq } from "./db.js";
 import { paraEscribir } from "../../src/lib/vocabularios.js";
+import { isoDeCasa } from "../../src/lib/dias.js";
 
 const ZONA = "Europe/Madrid";
 const MAX_PENDIENTES = 10;
@@ -97,22 +98,27 @@ export async function cancelarRecordatorio(chatId, id) {
   return r?.length ? `Cancelado: «${r[0].text}».` : "No encuentro ese recordatorio pendiente en este chat.";
 }
 
+// Un envío que falla se suelta para la pasada siguiente, salvo si Telegram dice
+// que no tiene arreglo (bot expulsado o bloqueado, chat que no existe) o si el
+// recordatorio ya lleva tanto vencido que llegaría a destiempo (#958).
+const REINTENTAR_HASTA_MS = 6 * 3600000;
+const sinArreglo = (e) => [400, 403].includes(Number(e?.status));
+
 /**
  * Manda los vencidos. Cada uno se «reclama» con una escritura condicionada a
- * su due_at, así dos pasadas solapadas no lo mandan dos veces.
+ * su due_at, así dos pasadas solapadas no lo mandan dos veces. Si el envío
+ * falla, se devuelve como estaba (condicionado a lo que escribió el reclamo):
+ * antes quedaba marcado como enviado y se perdía para siempre (#958).
  * @param {(r: object) => Promise<void>} mandar
  */
-export async function enviarPendientes(mandar) {
-  const ahora = new Date().toISOString();
+export async function enviarPendientes(mandar, ahoraMs = Date.now()) {
+  const ahora = new Date(ahoraMs).toISOString();
   const vencidos = await select("bot_reminders", `status=eq.pending&due_at=lte.${encodeURIComponent(ahora)}&order=due_at.asc&limit=50`, "*");
   let enviados = 0;
   for (const r of vencidos) {
-    const paso = r.repite === "diario" ? 86400000 : r.repite === "semanal" ? 7 * 86400000 : 0;
-    let siguiente = Date.parse(r.due_at) + paso;
-    // Si estuvo parado, no se manda una vez por cada vuelta perdida.
-    while (paso && siguiente <= Date.now()) siguiente += paso;
-    const cambios = paso
-      ? { due_at: madridMismaHora(r.due_at, siguiente).toISOString(), sent_at: ahora }
+    const siguiente = siguienteVez(r.due_at, r.repite, ahoraMs);
+    const cambios = siguiente
+      ? { due_at: siguiente.toISOString(), sent_at: ahora }
       : { status: "sent", sent_at: ahora };
     const reclamado = await update("bot_reminders", `id=${eq(r.id)}&status=eq.pending&due_at=eq.${encodeURIComponent(r.due_at)}`, cambios).catch(fallaCon("recordatorios_reclamar", []));
     if (!reclamado?.length) continue;
@@ -121,15 +127,47 @@ export async function enviarPendientes(mandar) {
       enviados++;
     } catch (e) {
       console.error("[recordatorios] envío", r.id, e?.message);
+      if (sinArreglo(e) || ahoraMs - Date.parse(r.due_at) > REINTENTAR_HASTA_MS) continue;
+      // Solo si nadie lo ha tocado desde el reclamo (cancelado entretanto, otra pasada).
+      const reclamo = siguiente
+        ? `id=${eq(r.id)}&status=eq.pending&due_at=eq.${encodeURIComponent(cambios.due_at)}`
+        : `id=${eq(r.id)}&status=eq.sent&sent_at=eq.${encodeURIComponent(ahora)}`;
+      await update("bot_reminders", reclamo, { status: "pending", due_at: r.due_at, sent_at: r.sent_at ?? null })
+        .catch(fallaCon("recordatorios_soltar", []));
     }
   }
   return enviados;
 }
 
-// Sumar 24 h o 7 días en UTC mueve la hora una al cruzar el cambio de hora:
-// «a las 19:00» tiene que seguir siendo a las 19:00 en España.
-function madridMismaHora(original, aprox) {
-  const h = partesEn(new Date(original));
-  const d = partesEn(new Date(aprox));
-  return madridAUtc(`${d.year}-${d.month}-${d.day}T${h.hour}:${h.minute}`) ?? new Date(aprox);
+/** «AAAA-MM-DD» + n días, en calendario (sin horas: no le afecta el cambio de hora). */
+function masDias(iso, n) {
+  const d = new Date(`${iso}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + n);
+  // Las 12:00 UTC leídas en UTC: el mismo día del calendario.
+  return isoDeCasa({ ahora: d, zona: "UTC" });
+}
+
+/**
+ * La siguiente vez de uno que se repite, a la misma hora de España, o null si
+ * no se repite. Se cuenta en DÍAS del calendario de Madrid, no en horas: antes
+ * se sumaban 24 h en UTC y se volvía a leer el día, y en la noche del cambio de
+ * hora de octubre uno de entre las 00:00 y las 00:59 caía en el mismo due_at y
+ * se mandaba cada 5 minutos durante un día; en marzo se saltaba uno (#958).
+ * Si estuvo parado, no se manda una vez por cada vuelta perdida. Pura.
+ */
+export function siguienteVez(dueAt, repite, ahoraMs = Date.now()) {
+  const dias = repite === "diario" ? 1 : repite === "semanal" ? 7 : 0;
+  if (!dias) return null;
+  const p = partesEn(new Date(dueAt));
+  const hora = `${p.hour}:${p.minute}`;
+  const antes = Date.parse(dueAt);
+  let dia = `${p.year}-${p.month}-${p.day}`;
+  for (let i = 0; i < 800; i++) {
+    dia = masDias(dia, dias);
+    const t = madridAUtc(`${dia}T${hora}`);
+    // Siempre hacia delante: una hora que no existe (las 02:30 del día del
+    // cambio de marzo) no puede devolver una fecha igual o anterior.
+    if (t && t.getTime() > antes && t.getTime() > ahoraMs) return t;
+  }
+  return null;
 }

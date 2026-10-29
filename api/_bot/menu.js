@@ -25,6 +25,7 @@ import { cargaMedida } from "./medidaTurno.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, COMIDAS, comidaDe } from "../../src/lib/comidas.js";
 import { PICANTE_PEDIDO } from "../../src/data/recipeSchema.js";
 import { DIAS, DIA_LARGO_MINUSCULAS as DIA_LARGO, diaDeISO, hoyDeCasa } from "../../src/lib/dias.js";
+import { diaDeSemana, fechaDe, fechasDeLista, fechaConMenu, sumarDias, lunesDe, lunesDeSemana, buscarPersona, personasDe, grupoDePersonas, esPareja } from "./interprete.js";
 import { RASTRO, MOTIVO_CAMBIO, idBase } from "../../src/lib/rastro.js";
 import { restriccionesDeFuera, conQuienViene, describirDeFuera } from "./deFuera.js";
 import { EJE_POR_ID, puedeResponder } from "../../src/data/axisRegistry.js";
@@ -34,6 +35,7 @@ import { etapaDe } from "../../src/lib/stages.js";
 import { vetosDePersona } from "../../src/lib/vetos.js";
 import { alergiasPorSilencio } from "../../src/lib/alergiasBase.js";
 import { estructuraDelGrupo } from "../../src/lib/estructuraPlatos.js";
+import { anadirArticulos, sonElMismo } from "../../src/lib/compraIdentidad.js";
 
 let motorCargado = null;
 // Las recetas que trae el motor de serie (antes de registrar ninguna casa).
@@ -104,17 +106,16 @@ export const normal = (s) => String(s ?? "").normalize("NFD").replace(/\p{Diacri
 /** Lo que escribe la gente, literal dentro de un regex. */
 const escapar = (w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-/** «martes», «mar», «Mar» → "Mar". */
+/**
+ * «martes», «mar», «hoy», «mañana», «el 15» → "Mar": solo el día de la
+ * semana (la pantalla, las claves del plan). La fecha concreta la da
+ * `resolverDia`. Las dos salen del intérprete (interprete.js, #958).
+ */
 export function diaDe(texto) {
-  // «el jueves», «jueves 8», «mié.»: sin artículo ni punto final.
-  const t = normal(texto).replace(/^el\s+/, "").replace(/\.$/, "");
-  if (!t) return null;
-  // La abreviatura entera («mar») o el nombre como palabra («martes», «martes 6»);
-  // antes bastaban las tres primeras letras, y «marzo» era martes.
-  for (const d of DIAS) if (normal(d) === t || new RegExp(`^${normal(DIA_LARGO[d])}(\\s|$)`).test(t)) return d;
-  if (t === "hoy") return hoy();
-  if (t === "manana") return DIAS[(DIAS.indexOf(hoy()) + 1) % 7];
-  return null;
+  const d = diaDeSemana(texto);
+  if (d) return d;
+  const r = fechaDe(texto, { hoy: hoyISO() });
+  return r.fecha ? diaDeFecha(r.fecha) : null;
 }
 
 /** El día de hoy en España, con las claves de la app. */
@@ -127,13 +128,7 @@ export function hoy() {
 // tener varias semanas y la activa puede no ser la de hoy. Así que «hoy» o
 // «el jueves» se resuelven a una FECHA, y la fecha a la semana que la tiene.
 
-const sumarDias = (iso, n) => {
-  const d = new Date(`${iso}T12:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + n);
-  return d.toISOString().slice(0, 10);
-};
 const diaDeFecha = diaDeISO;
-const lunesDe = (iso) => sumarDias(iso, -DIAS.indexOf(diaDeFecha(iso)));
 const semanaConFecha = (casa, iso) => (casa.semanas ?? []).find((w) => w.weekStart <= iso && iso <= w.weekEnd) ?? null;
 const fechaCorta = (iso) => `${DIA_LARGO[diaDeFecha(iso)]} ${Number(iso.slice(8, 10))}`;
 
@@ -144,29 +139,29 @@ export function rangosDelMenu(casa) {
 }
 
 /**
- * «hoy», «mañana», «jueves» (+ «esta»/«siguiente» si lo dicen) → la fecha y
- * la casa apuntando a la semana del menú que la contiene. Un día suelto sin
- * semana es el próximo que cae (hoy incluido) que tenga menú; si ninguno
- * tiene, el de esta semana.
+ * «hoy», «mañana», «jueves», «el 15» (+ «esta»/«siguiente» si lo dicen) → la
+ * fecha y la casa apuntando a la semana del menú que la contiene, con el
+ * intérprete (interprete.js).
+ *
+ * Para ESCRIBIR (`escribe`), un día suelto es el próximo que cae; si ese no
+ * tiene menú, nunca se cae al de esta semana que ya pasó: se pregunta (#958:
+ * «cambia el jueves» un viernes cambiaba el jueves de ayer). Para LEER, un día
+ * de esta semana que ya pasó sí vale («¿qué cenamos el martes?»), y la
+ * respuesta lleva la fecha.
  * @returns {{ dia: string, fecha: string, casa: object } | { error: string }}
  */
-export function resolverDia(casa, texto, semana = null) {
-  const t = normal(texto);
+export function resolverDia(casa, texto, semana = null, { escribe = false } = {}) {
   const hoy = hoyISO();
-  let fecha = null;
-  if (t === "hoy" || t === "esta noche") fecha = hoy;
-  else if (t === "manana") fecha = sumarDias(hoy, 1);
-  else if (t === "pasado manana") fecha = sumarDias(hoy, 2);
-  else {
-    const d = diaDe(texto);
-    if (!d) return { error: `No entiendo el día «${texto}».` };
+  const tiene = (f) => Boolean(semanaConFecha(casa, f));
+  const r = escribe
+    ? fechaConMenu(texto, tiene, { hoy, semana })
+    : fechaDe(texto, { hoy, semana: semana === "esta" ? null : semana });
+  if (r.duda) return { error: r.duda };
+  let fecha = r.fecha;
+  const d = escribe ? null : diaDeSemana(texto);
+  if (d && semana !== "siguiente") {
     const deEsta = sumarDias(lunesDe(hoy), DIAS.indexOf(d));
-    if (semana === "siguiente") fecha = sumarDias(deEsta, 7);
-    else if (semana === "esta") fecha = deEsta;
-    else {
-      const proxima = deEsta >= hoy ? deEsta : sumarDias(deEsta, 7);
-      fecha = [proxima, deEsta].find((f) => semanaConFecha(casa, f)) ?? proxima;
-    }
+    if (semana === "esta" || (!tiene(fecha) && tiene(deEsta))) fecha = deEsta;
   }
   const s = semanaConFecha(casa, fecha);
   if (!s) {
@@ -178,7 +173,7 @@ export function resolverDia(casa, texto, semana = null) {
 /** «esta» / «siguiente» → la casa apuntando a esa semana, o un error. */
 function casaDeSemana(casa, semana) {
   if (!semana) return { casa };
-  const lunes = sumarDias(lunesDe(hoyISO()), semana === "siguiente" ? 7 : 0);
+  const lunes = lunesDeSemana(semana, hoyISO());
   const s = (casa.semanas ?? []).find((w) => w.weekEnd >= lunes && w.weekStart <= sumarDias(lunes, 6));
   if (!s) return { error: `No hay menú para ${semana === "siguiente" ? "la semana que viene" : "esta semana"}. ${rangosDelMenu(casa)}` };
   return { casa: { ...casa, semana: s } };
@@ -438,9 +433,11 @@ export async function marcarCompra(householdId, productos, estado, out = null, {
     for (const p of productos) {
       const encontrados = buscarItems(items, p);
       if (!encontrados.length) resultado.noEncontrados.push(p);
-      else if (encontrados.length > 1) resultado.dudosos.push(`${p}: ${encontrados.map((x) => x.name).join(", ")}`);
+      // Varios con la misma identidad son una sola cosa: se tachan todos. Antes
+      // «leche, leche» preguntaba «¿cuál?» para siempre (#958).
+      else if (encontrados.length > 1 && !sonElMismo(encontrados)) resultado.dudosos.push(`${p}: ${encontrados.map((x) => x.name).join(", ")}`);
       else {
-        encontrados[0].have = estado === "comprado";
+        for (const it of encontrados) it.have = estado === "comprado";
         resultado.hechos.push(encontrados[0].name);
       }
     }
@@ -457,23 +454,23 @@ export async function marcarCompra(householdId, productos, estado, out = null, {
   ].filter(Boolean).join("\n") || "No había lista de la compra.";
 }
 
+// Lo que ya está en la lista no se duplica (compraIdentidad.js, #958): si
+// estaba pendiente se deja, y si estaba tachado o «en casa», vuelve a pedirse.
 export async function anadirCompra(householdId, productos, out = null) {
+  let hecho = { anadidos: [], yaEstaban: [], devueltos: [] };
   const r = await conCasa(householdId, (casa) => {
-    const items = [...(listaDe(casa).items ?? [])];
-    for (const p of productos) {
-      const name = String(p).trim();
-      if (!name) continue;
-      items.push({
-        id: `manual:${normal(name).replace(/\s+/g, "-")}:${Date.now().toString(36)}`,
-        name, category: "Otros", unit: "", qty: null, displayQty: "",
-        sources: [], have: false, atHome: false, manual: true, adapted: false,
-      });
-    }
-    return guardarLista(casa, { ...listaDe(casa), items });
+    hecho = anadirArticulos(listaDe(casa).items ?? [], productos);
+    if (!hecho.anadidos.length && !hecho.devueltos.length) return null;
+    return guardarLista(casa, { ...listaDe(casa), items: hecho.items });
   });
-  if (out) Object.assign(out, { ok: r.ok, anadidos: productos.map((p) => String(p).trim()).filter(Boolean) });
+  // `anadidos`: lo que queda en la lista tras pedirlo (nuevo, devuelto o que ya estaba).
+  if (out) Object.assign(out, { ok: r.ok, anadidos: [...hecho.anadidos, ...hecho.devueltos, ...hecho.yaEstaban], nuevos: hecho.anadidos, yaEstaban: hecho.yaEstaban, devueltos: hecho.devueltos });
   if (!r.ok) return `No he podido guardar la lista: ${r.error}.`;
-  return `Añadido a la compra: ${productos.join(", ")}.`;
+  return [
+    hecho.anadidos.length ? `Añadido a la compra: ${hecho.anadidos.join(", ")}.` : "",
+    hecho.devueltos.length ? `Estaba tachado y vuelve a la lista: ${hecho.devueltos.join(", ")}.` : "",
+    hecho.yaEstaban.length ? `Ya estaba en la lista (no lo duplico): ${hecho.yaEstaban.join(", ")}.` : "",
+  ].filter(Boolean).join("\n") || "No había nada que añadir.";
 }
 
 /** El grupo y el hueco de un día y franja del menú activo, o por qué no hay. */
@@ -718,14 +715,11 @@ export function papelEnElMenu(g, members = []) {
  * mujer», «para nosotros» son los mayores: una cena de pareja no puede traer
  * purés. Null si la casa no tiene ese grupo. Pura.
  */
-const SINONIMOS = [
-  [/^(el |la |los |las )?(bebes?|bebe|peque(ñ|n)?[oa]? de la casa)$/, "bebe"],
-  [/^(el |la |los |las )?(nin[oa]s?|peques|crios|hijos|chavales)$/, "ninos"],
-  [/^(el |la |los |las )?(mayores|adultos|padres|nosotros|mi mujer|mi marido|mi pareja)$/, "mayores"],
-];
+// Las palabras de grupo salen del intérprete (interprete.js, #958).
+const PAPEL_DE_GRUPO = { adultos: "mayores", ninos: "ninos", bebes: "bebe" };
 export function grupoPara(gs, members, para) {
   if (!para) return null;
-  const sinonimo = SINONIMOS.find(([re]) => re.test(normal(para)))?.[1];
+  const sinonimo = esPareja(para) ? "mayores" : PAPEL_DE_GRUPO[grupoDePersonas(para)];
   if (sinonimo) para = sinonimo;
   if (["mayores", "ninos", "bebe"].includes(para)) {
     // Con un solo menú para la familia, «los niños» comen en el de los
@@ -738,8 +732,8 @@ export function grupoPara(gs, members, para) {
   }
   // Una persona por su nombre («para Cova», «lo de Leo»): el grupo en el que
   // come. Si no está en ninguno, el de su tipo, con el mismo criterio de arriba.
-  const quien = normal(para);
-  const p = members.find((x) => normal(x.name) === quien) ?? members.find((x) => normal(x.name).split(/\s+/)[0] === quien.split(/\s+/)[0]);
+  // Con dos que empiezan igual no elige: sin grupo, quien llama lo dice.
+  const p = buscarPersona({ members }, para).persona;
   if (!p) return null;
   return gs.find((g) => (g.memberIds ?? []).includes(p.id))
     ?? gs.find((g) => papelEnElMenu(g, members) === (esBebe(p) ? "bebe" : esMayor(p) ? "mayores" : "ninos"))
@@ -1074,7 +1068,7 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
   // Lo que se ha cambiado, para el rastro (src/lib/rastro.js), una fila por grupo.
   const cambios = [];
   const r = await conCasa(householdId, async (cargada) => {
-    const rd = resolverDia(cargada, diaPedido, semana);
+    const rd = resolverDia(cargada, diaPedido, semana, { escribe: true });
     if (rd.error) { texto = rd.error; return null; }
     const { casa, dia, fecha } = rd;
     const h = huecoDe(casa, { dia, franja, grupo, cual });
@@ -1111,6 +1105,13 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
       const entre = candidatasParaCambiar(filtro, { perfil });
       forcedRecipe = entre[Math.floor(Math.random() * entre.length)];
       if (pideEjes.pedidos.length && !base) notaEjes = " No había plato en ese hueco con el que comparar: he puesto una de las que más se ajustan a lo pedido. Dilo así.";
+    }
+    // El plato pedido por su nombre pasa la misma puerta de seguridad que el
+    // motor (#958): si choca con alguien de este grupo, no se pone y se dice por qué.
+    if (forcedRecipe && m.chocaConElGrupo?.(forcedRecipe, paraElegir, g, franja)) {
+      const quien = (m.choquesDeReceta?.(forcedRecipe, { ...paraElegir, members: m.membersOfGroup(g, paraElegir.members ?? []) }) ?? []).filter((c) => !c.adapta);
+      texto = `NO CAMBIADO, por seguridad: «${forcedRecipe.name}» choca con ${quien.length ? quien.map((c) => `${c.etiqueta.toLowerCase()} (${c.quien.join(", ")})`).join(", ") : "una restricción de alguien de la casa"}. Ofrece otro plato.`;
+      return null;
     }
     const elegido = m.pickCatalogReplacement(paraElegir, casa.semana.plan, { hoy: hoyISO(), groupId: g.id, day: dia, meal: franja, course, forcedRecipe });
     if (!elegido?.recipeId) { texto = "No he encontrado otro plato que encaje en ese hueco con vuestras preferencias."; return null; }
@@ -1235,27 +1236,24 @@ export function repeticionReciente(existentes = [], nuevas = [], hoy) {
   return salida;
 }
 
-export async function apuntarAusencia(householdId, { dia, dias, comida, comidas, quienes = null, autor = null, deNuevo = false }) {
+/**
+ * «Hoy cenamos fuera», «el viernes de la semana que viene Leo no está», «el 15
+ * no comemos»: una regla de un día por persona, y el hueco vaciado si todo un
+ * grupo queda fuera. Los días y las personas, con el intérprete
+ * (interprete.js, #958): fechas concretas, `semana` para «de la que viene»,
+ * y una persona dudosa («Nat» con Natalia y Natxo) se pregunta.
+ * @param {{ userId?: string|null }} [x]  quién escribe, para «yo».
+ */
+export async function apuntarAusencia(householdId, { dia, dias, semana = null, comida, comidas, quienes = null, autor = null, userId = null, deNuevo = false }) {
   const pedidas = comidas?.length ? comidas : [comida];
   const lasComidas = [...new Set(pedidas.map((x) => comidaDe(x ?? "")))];
   if (!lasComidas.length || lasComidas.some((c) => !c)) return { texto: `¿Qué comida? («${pedidas.join(", ")}»)`, pintar: null, error: "comida" };
   const hoy = hoyISO();
-  const fechaDe = (texto) => {
-    const t = normal(texto ?? "");
-    if (!t || t === "hoy" || t === "esta noche") return hoy;
-    if (t === "manana") return sumarDias(hoy, 1);
-    if (t === "pasado manana") return sumarDias(hoy, 2);
-    const d = diaDe(texto);
-    if (!d) return null;
-    const deEsta = sumarDias(lunesDe(hoy), DIAS.indexOf(d));
-    return deEsta >= hoy ? deEsta : sumarDias(deEsta, 7);
-  };
-  // «el finde» son el sábado y el domingo que vienen (o este, si ya es finde).
-  const losDias = (dias?.length ? dias : [dia]).flatMap((x) => (/^(el )?(finde|fin de semana)$/.test(normal(x ?? "")) ? ["sábado", "domingo"] : [x]));
-  const fechas = losDias.map(fechaDe);
-  const malo = losDias.find((_, i) => !fechas[i]);
-  if (malo !== undefined) return { texto: `No entiendo el día «${malo}».`, pintar: null, error: "dia" };
-  const huecos = [...new Set(fechas)].sort().flatMap((fecha) => lasComidas.map((c) => ({ fecha, d: diaDeFecha(fecha), c })));
+  // Sin día, hoy («cenamos fuera»).
+  const losDias = (dias?.length ? dias : [dia]).map((x) => (x == null || String(x).trim() === "" ? "hoy" : x));
+  const rf = fechasDeLista(losDias, { hoy, semana });
+  if (rf.duda) return { texto: rf.duda, pintar: null, error: "dia" };
+  const huecos = rf.fechas.flatMap((fecha) => lasComidas.map((c) => ({ fecha, d: diaDeFecha(fecha), c })));
   const enSemana = (w) => huecos.some((h) => w.weekStart <= h.fecha && h.fecha <= w.weekEnd);
 
   let fallo = null;
@@ -1298,11 +1296,12 @@ export async function apuntarAusencia(householdId, { dia, dias, comida, comidas,
     const miembros = data.members ?? [];
     fuera = miembros;
     if (quienes?.length) {
-      const busca = (n) => miembros.find((p) => normal(p.name) === normal(n)) ?? miembros.find((p) => normal(p.name).startsWith(normal(n)));
-      const encontrados = quienes.map(busca);
-      const falta = quienes.filter((_, i) => !encontrados[i]);
-      if (falta.length) { quien = `No encuentro a ${falta.join(" ni a ")} en la casa.`; fallo = "quien"; return null; }
-      fuera = [...new Set(encontrados)];
+      // Con el intérprete: «Nat» con Natalia y Natxo se pregunta (antes cogía
+      // a la primera), «yo» es la persona de esta cuenta, «los peques» un grupo.
+      const r = personasDe(data, quienes, { userId, autor });
+      if (r.dudas.length) { quien = r.dudas.join(" "); fallo = "quien"; return null; }
+      if (!r.personas.length) { quien = "En la casa aún no hay nadie apuntado."; fallo = "quien"; return null; }
+      fuera = r.personas;
     }
     const todos = fuera.length === miembros.length;
     quien = todos ? "toda la casa" : fuera.map((p) => p.name).join(" y ");

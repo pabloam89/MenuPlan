@@ -21,10 +21,21 @@
  * fuera de `state`: así no se escribe de vuelta en household_state.
  */
 
-import { select } from "./db.js";
+import { select, insert, borrar, eq } from "./db.js";
 import { quienesLlevanLaCasa } from "./papel.js";
 import { rowToRecipe } from "../../src/lib/userRecipesFila.js";
 import { recetaPropia } from "../../src/lib/ids.js";
+
+/**
+ * Quita una receta propia que acaba de guardar Lola, al deshacerlo (#958).
+ * Como borrar_receta_propia (0094), que pide sesión y el bot no la tiene:
+ * primero la lápida y luego la fila. Sin la lápida, un móvil que ya la tenía
+ * la volvería a subir.
+ */
+export async function quitarRecetaGuardada(id, dueno) {
+  await insert("user_recipe_deletions", [{ owner_id: dueno, recipe_id: id }], { upsert: true });
+  await borrar("user_recipes", `id=${eq(id)}&owner_id=${eq(dueno)}`);
+}
 
 /** Las columnas que lee rowToRecipe, y ni una más. */
 const COLUMNAS = [

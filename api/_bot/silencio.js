@@ -160,13 +160,20 @@ function lolaSigueConElTema(respuesta) {
  * trae alguna señal. `respuestaDeLola` (al cerrar el turno; dentro de
  * generar_menu aún no la hay): si sigue con el tema o pregunta, tampoco.
  */
-export function decidirSilencio({ ultimaDeLola, texto, llamadas = [], nombres = [], respuestaDeLola = null }) {
+export function decidirSilencio({ ultimaDeLola, ultimaDeLolaAt = null, texto, llamadas = [], nombres = [], respuestaDeLola = null, ahora = Date.now() }) {
   if (!preguntoConAviso(ultimaDeLola)) return null;
+  // Lo de seguridad no se da por contestado con un mensaje de otro momento
+  // (#958): «si no me decís nada, entiendo que ninguna» vale para la respuesta
+  // de ahora, no para un «apunta pan» de dos días después. Sin hora, tampoco.
+  if (!ultimaDeLolaAt || ahora - Date.parse(ultimaDeLolaAt) > PLAZO_SILENCIO_MS) return null;
   if (llamadas.some((h) => HERRAMIENTAS_QUE_CONTESTAN.includes(h))) return null;
   if (haySenal(texto, { nombres })) return null;
   if (respuestaDeLola != null && lolaSigueConElTema(respuestaDeLola)) return null;
   return POR_SILENCIO;
 }
+
+/** Cuánto vale la pregunta de las alergias para darla por contestada callando. */
+export const PLAZO_SILENCIO_MS = 2 * 3600 * 1000;
 
 /** La línea de log contable, sin datos de la familia (ni casa, ni nombres). */
 export const lineaDeAlergias = ({ accion, origen, personas = null, canal = "telegram" }) =>
@@ -183,9 +190,9 @@ export const apuntarRecordatorio = (canal = "telegram") =>
  * Sin aviso, ni lee la base. Nunca tumba el turno: si falla, sin revisar.
  * @returns {Promise<{ origen: string, personas: number } | null>}
  */
-export async function apuntarSilencio({ householdId, ultimaDeLola, texto, papel, canal = "telegram", userId = null, llamadas = [], nombres = [], respuestaDeLola = null }) {
+export async function apuntarSilencio({ householdId, ultimaDeLola, ultimaDeLolaAt = null, texto, papel, canal = "telegram", userId = null, llamadas = [], nombres = [], respuestaDeLola = null }) {
   if (!householdId || !puede(papel, "editar_casa")) return null;
-  const origen = decidirSilencio({ ultimaDeLola, texto, llamadas, nombres, respuestaDeLola });
+  const origen = decidirSilencio({ ultimaDeLola, ultimaDeLolaAt, texto, llamadas, nombres, respuestaDeLola });
   if (!origen) return null;
   let ids = [];
   let nueva = null;

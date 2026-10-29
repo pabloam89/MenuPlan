@@ -43,6 +43,7 @@ import { viaRapida, eleccionDe, aplicarEleccion, contextoDe, repiteLaPropuesta }
 import { fotosVistas, fotosSinRepetir } from "../_bot/fotosVistas.js";
 import { comidaElegida, quiereApuntar } from "../_bot/plato.js";
 import { ahoraEnMadrid } from "../_bot/recordatorios.js";
+import { vigente, CADUCA } from "../_bot/caducidades.js";
 import { fueraDeLimite, contarUso } from "../_bot/uso.js";
 import {
   enlacesReceta, enlacesSemana, botonesCompartir, resolverInvitacion,
@@ -64,6 +65,7 @@ import { cuentaYChat as cuentaYChatDe } from "../_bot/altaTelegram.js";
 import { primeraVez } from "../_bot/entradas.js";
 import { preguntoConAviso } from "../_bot/silencio.js";
 import { CANAL } from "../../src/lib/vocabularios.js";
+import { conOperacion, operacion } from "../_bot/operacion.js";
 
 const EMAIL_RE = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]{2,}$/;
 
@@ -210,7 +212,7 @@ async function atender(msg, base, host = "") {
     }
     const [enlazado] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
     if (!enlazado) return bienvenida(chatId, msg.from, base);
-    return enTurno(chatId, itemDe(msg.from, frase ?? COMANDOS.start),
+    return enTurno(chatId, itemDe(msg.from, frase ?? COMANDOS.start, { mid: msg.message_id }),
       atenderCola({ chatId, householdId: enlazado.household_id, esGrupo: false, base }));
   }
   // `grupo`: el botón de un grupo sin casa abre el privado con esto. Con casa,
@@ -318,7 +320,7 @@ async function atender(msg, base, host = "") {
     // Lo que se le dice A ella no lleva su nombre delante; lo que se enseña
     // como «oído: …» sí, tal cual se dijo, para que un error de oído se vea.
     const dicho = t.texto.replace(SIN_NOMBRE, "").trim() || t.texto;
-    return enTurno(chatId, itemDe(msg.from, dicho, { oido: t.texto, responderA: esGrupo ? msg.message_id : undefined }),
+    return enTurno(chatId, itemDe(msg.from, dicho, { oido: t.texto, responderA: esGrupo ? msg.message_id : undefined, mid: msg.message_id }),
       atenderCola({ chatId, householdId: chat.household_id, esGrupo, base }));
   }
 
@@ -341,11 +343,11 @@ async function atender(msg, base, host = "") {
     const pie = (msg.caption ?? "").replace(/@\w+bot\b/gi, "").trim();
     // Una foto no se junta con otros mensajes (va entera al modelo): espera a
     // que el chat esté libre, y lo que llegue detrás va en el turno siguiente.
-    return aSolas(chatId, ({ esperaMs } = {}) => conversarMedido(adjunto.tipo === "document" ? SIN_ENRUTADOR.PDF : SIN_ENRUTADOR.FOTO, {
+    return aSolas(chatId, ({ esperaMs } = {}) => conAutor({ chatId, from: msg.from, mid: msg.message_id, responderA: esGrupo ? msg.message_id : undefined }, () => conversarMedido(adjunto.tipo === "document" ? SIN_ENRUTADOR.PDF : SIN_ENRUTADOR.FOTO, {
       base, chatId, householdId: chat.household_id, from: msg.from, esGrupo, adjunto,
       texto: pie || (adjunto.tipo === "document" ? "(te mando este PDF)" : "(te mando esta foto)"),
       responderA: esGrupo ? msg.message_id : undefined,
-    }, { desdeMs: desdeAdjunto, esperaCandadoMs: esperaMs }), atenderCola({ chatId, householdId: chat.household_id, esGrupo, base }),
+    }, { desdeMs: desdeAdjunto, esperaCandadoMs: esperaMs })), atenderCola({ chatId, householdId: chat.household_id, esGrupo, base }),
     () => enviar(chatId, "Estoy terminando otra cosa en este chat. Mándamela otra vez en un momento, porfa.", {
       responderA: esGrupo ? msg.message_id : undefined,
     }));
@@ -376,14 +378,18 @@ async function atender(msg, base, host = "") {
   }
   // En un grupo le hablan como «@bot …»: la mención no es parte del mensaje.
   const limpio = COMANDOS[comando] ?? DEL_TECLADO[texto] ?? (texto.replace(/@\w+bot\b/gi, "").trim() || texto);
-  return enTurno(chatId, itemDe(msg.from, limpio, { responderA: esGrupo ? msg.message_id : undefined }),
+  return enTurno(chatId, itemDe(msg.from, limpio, { responderA: esGrupo ? msg.message_id : undefined, mid: msg.message_id }),
     atenderCola({ chatId, householdId: chat.household_id, esGrupo, base }));
 }
 
-/** Un mensaje en la cola del chat (api/_bot/turnos.js): lo justo para responderlo. */
-function itemDe(from, texto, { oido = null, responderA, inmediato = false } = {}) {
+/**
+ * Un mensaje en la cola del chat (api/_bot/turnos.js): lo justo para responderlo.
+ * `mid`: de qué mensaje sale la intención (operacion.js); un [[Reintentar]]
+ * trae el del mensaje original, y `reintento` lo dice.
+ */
+function itemDe(from, texto, { oido = null, responderA, inmediato = false, mid = null, reintento = false } = {}) {
   return {
-    texto, oido, responderA, autor: nombreDe(from), inmediato,
+    texto, oido, responderA, autor: nombreDe(from), inmediato, mid: mid != null ? String(mid) : null, reintento,
     // Cuándo entró en la cola: de ahí sale bot_route espera_cola_ms (atenderCola).
     enCola: Date.now(),
     from: from ? { id: from.id, first_name: from.first_name, last_name: from.last_name, language_code: from.language_code } : null,
@@ -401,7 +407,7 @@ function atenderCola({ chatId, householdId, esGrupo, base }) {
     // Lo que esperó el mensaje más viejo desde que entró en la cola (la ráfaga
     // de 1 s, el turno anterior del chat, un PDF delante) hasta que arranca esto.
     const entradas = items.map((i) => i.enCola).filter(Number.isFinite);
-    await turno({
+    await conAutor({ chatId, from: variosAutores ? null : ultimo.from, mid: ultimo.mid, reintento: items.length === 1 && ultimo.reintento, responderA: ultimo.responderA }, () => turno({
       base, chatId, householdId, esGrupo, texto, oido,
       esperaColaMs: entradas.length ? Math.max(0, Date.now() - Math.min(...entradas)) : null,
       from: variosAutores ? null : ultimo.from,
@@ -409,8 +415,54 @@ function atenderCola({ chatId, householdId, esGrupo, base }) {
       desde: items.map((i) => idDePersona(i.from)).filter(Boolean),
       responderA: ultimo.responderA,
       variosAutores: Boolean(variosAutores),
-    });
+    }));
   };
+}
+
+/**
+ * El dato del botón [[Reintentar]]: `re:<mensaje>:<persona>:<texto>` (ids en
+ * base 36, para que quepa en los 64 bytes de Telegram). Lleva el mensaje del
+ * que salió el turno (la misma intención: lo ya escrito no se repite) y quién
+ * lo escribió (en un grupo solo esa persona lo reintenta: antes cualquiera
+ * mandaba como suyo el texto de otro). Con varias personas en el turno, o si
+ * no cabe, no hay botón. Pura, para el test.
+ */
+export function datoReintentar(texto, { mid = null, persona = null, variosAutores = false } = {}) {
+  if (variosAutores) return null;
+  const b36 = (x) => (x != null && /^\d+$/.test(String(x)) ? Number(x).toString(36) : "");
+  const d = `re:${b36(mid)}:${b36(persona)}:${texto}`;
+  return Buffer.byteLength(d) <= 64 ? d : null;
+}
+
+/** Lo contrario de datoReintentar, o null si el dato no es de un reintento. */
+export function leerReintentar(dato) {
+  const m = /^re:([0-9a-z]*):([0-9a-z]*):([\s\S]+)$/.exec(String(dato ?? ""));
+  if (!m) return null;
+  return { mid: m[1] ? String(parseInt(m[1], 36)) : null, persona: m[2] ? String(parseInt(m[2], 36)) : null, texto: m[3] };
+}
+
+/** Lo que se dice si algo falla DESPUÉS de haber escrito: no se pide repetir (#958). */
+export const FALLO_TRAS_ESCRIBIR = "Uy, algo ha fallado a medias: parte de lo que me has pedido ya está guardado. No lo repitas tal cual, que se haría dos veces: mira cómo ha quedado (/menu, /compra) y dime qué falta.";
+
+/**
+ * Un turno como operación con autor (api/_bot/operacion.js): quién escribe
+ * (su chat y, si es una sola persona, su id), de qué mensaje sale y si es un
+ * reintento. «Deshaz» toca solo lo de esa persona, y una escritura repetida
+ * por [[Reintentar]] no se hace dos veces. Si el turno falla después de
+ * escribir algo (la entrega, la vía rápida…), no se pide «escríbemelo otra
+ * vez»: se dice que hay algo guardado.
+ */
+async function conAutor({ chatId, from, mid = null, reintento = false, responderA }, fn) {
+  return conOperacion({ chat: chatId, persona: from?.id ?? null, mid, reintento }, async () => {
+    try {
+      return await fn();
+    } catch (err) {
+      if (!(operacion()?.escrituras > 0)) throw err;
+      console.error("[bot/telegram] falló tras escribir", err?.message);
+      // a propósito: si ni el aviso sale, ya no hay más que hacer
+      await enviar(chatId, FALLO_TRAS_ESCRIBIR, { responderA }).catch(seguirCon("fallo_tras_escribir"));
+    }
+  });
 }
 
 // ── El enrutador (api/_bot/router.js) ───────────────────────────────────────
@@ -464,7 +516,8 @@ async function ultimaDeLola(chatId) {
   const pregunto = /\?\s*(\[\[[^\]]*\]\]\s*)*$/.test(texto.trim());
   return {
     texto,
-    propuesta: f.content?.propuesta ?? null,
+    // Pasada su vida, la pregunta ya no espera respuesta (caducidades.js, #958).
+    propuesta: vigente(CADUCA.PROPUESTA, f.created_at) ? f.content?.propuesta ?? null : null,
     // Las fotos que acaba de mandar: no se repiten (#932).
     fotosVistas: fotosVistas(f),
     anteriorDelUsuario: antes && pregunto ? String(antes.content?.texto ?? "").slice(0, 300) : null,
@@ -845,14 +898,21 @@ async function conversar({ chatId, householdId, texto, from, desde = null, esGru
     console.error("[bot/telegram] agente", err?.message);
     // a propósito: el evento vale más sin dueño que perdido
     await registrar(FALLO, { userId: await duenoDe(householdId).catch(seguirCon("fallo_dueno", null)), extra: { error: String(err?.message ?? err).slice(0, 300) } });
-    const cabe = Buffer.byteLength(`t:${texto}`) <= 64;
+    // Si ya escribió algo, ni [[Reintentar]] ni «escríbemelo otra vez»: se
+    // haría dos veces (#958). Lo dice tal cual.
+    const aMedias = Boolean(err?.aMedias) || operacion()?.escrituras > 0;
+    // El botón lleva de qué mensaje sale y de quién es (datoReintentar): en un
+    // grupo solo lo usa quien lo escribió, y lo que ya se escribió no se repite.
+    const dato = aMedias ? null : datoReintentar(texto, { mid: operacion()?.mid, persona: from?.id ?? null, variosAutores: esGrupo && !from });
+    const cabe = Boolean(dato);
     // Si es que la IA no está (saturada o caída, y el plan B tampoco), se dice
     // lo que SÍ funciona: los botones de abajo salen del menú guardado, sin IA.
     const caida = esCaida(err);
-    const aviso = caida
-      ? `😵‍💫 Ahora mismo tengo la cabeza saturada y no puedo pensar bien.\n\nLo tuyo sigue ahí: <b>🍽️ Hoy</b>, <b>📅 Semana</b> y <b>🛒 Compra</b> funcionan igual (botones de abajo, o /hoy, /menu y /compra). ${cabe ? "Y esto, reinténtalo en un minuto:" : "Y esto, ¿me lo escribes otra vez en un minuto?"}`
-      : cabe ? "Uy, algo ha fallado. ¿Lo intento otra vez?" : "Uy, algo ha fallado. ¿Me lo escribes otra vez?";
-    const botones = cabe ? [[{ texto: "🔁 Reintentar", dato: `t:${texto}` }]] : undefined;
+    const aviso = aMedias ? FALLO_TRAS_ESCRIBIR
+      : caida
+        ? `😵‍💫 Ahora mismo tengo la cabeza saturada y no puedo pensar bien.\n\nLo tuyo sigue ahí: <b>🍽️ Hoy</b>, <b>📅 Semana</b> y <b>🛒 Compra</b> funcionan igual (botones de abajo, o /hoy, /menu y /compra). ${cabe ? "Y esto, reinténtalo en un minuto:" : "Y esto, ¿me lo escribes otra vez en un minuto?"}`
+        : cabe ? "Uy, algo ha fallado. ¿Lo intento otra vez?" : "Uy, algo ha fallado. ¿Me lo escribes otra vez?";
+    const botones = cabe ? [[{ texto: "🔁 Reintentar", dato }]] : undefined;
     await vivo.parar();
     // a propósito: si no se puede editar, el aviso sale en un mensaje nuevo
     if (vivo.id()) return editar(chatId, vivo.id(), aviso, { botones }).catch((e) => { console.warn("[fallo] editar el aviso, va nuevo:", e?.message); return enviar(chatId, aviso, { responderA, botones }); });
@@ -1355,6 +1415,22 @@ async function pulsado(cq, base, host = "") {
     await llamar("answerCallbackQuery", { callback_query_id: cq.id, text: "Solo puede conectarlo quien lo pidió." }).catch(seguirCon("boton_responder"));
     return;
   }
+  // [[Reintentar]] de otra persona: lo que se reintenta es SU mensaje (#958).
+  const re = leerReintentar(cq.data);
+  if (re?.persona && String(cq.from?.id) !== re.persona) {
+    // a propósito: contestar al toque es adorno (y caduca a los 15 min)
+    await llamar("answerCallbackQuery", { callback_query_id: cq.id, text: "Solo puede reintentarlo quien lo escribió." }).catch(seguirCon("boton_responder"));
+    return;
+  }
+  // Un botón del agente se atiende una vez por mensaje: un doble toque
+  // llegaba como dos pulsaciones (dos update_id) antes de que se quitaran los
+  // botones, y entraba dos veces en la cola (#958).
+  if ((cq.data?.startsWith("t:") || re) && cq.message?.message_id != null
+    && !(await primeraVez(CANAL.TELEGRAM, `boton:${chatId}:${cq.message.message_id}`))) {
+    // a propósito: contestar al toque es adorno
+    await llamar("answerCallbackQuery", { callback_query_id: cq.id }).catch(seguirCon("boton_responder"));
+    return;
+  }
   // a propósito: contestar al toque es adorno (y caduca a los 15 min)
   await llamar("answerCallbackQuery", { callback_query_id: cq.id }).catch(seguirCon("boton_responder"));
   // Un botón se usa una vez: se quitan los del mensaje pulsado para que no
@@ -1369,10 +1445,13 @@ async function pulsado(cq, base, host = "") {
   const [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
 
   // Un botón que puso el agente: cuenta como si se hubiera escrito (también en grupo).
-  if (cq.data?.startsWith("t:")) {
+  if (cq.data?.startsWith("t:") || re) {
     if (!chat) return bienvenida(chatId, cq.from, base);
     const esGrupo = esGrupoDe(cq.message.chat);
-    return enTurno(chatId, itemDe(cq.from, cq.data.slice(2), { responderA: esGrupo ? cq.message.message_id : undefined, inmediato: true }),
+    // La intención de un botón: el mensaje que lo llevaba; la de un
+    // reintento, la del mensaje original.
+    const mid = re ? re.mid : `b${cq.message.message_id}`;
+    return enTurno(chatId, itemDe(cq.from, re ? re.texto : cq.data.slice(2), { responderA: esGrupo ? cq.message.message_id : undefined, inmediato: true, mid, reintento: Boolean(re) }),
       atenderCola({ chatId, householdId: chat.household_id, esGrupo, base }));
   }
 
