@@ -317,9 +317,6 @@ export async function ajustarCocina(householdId, { estructura, esfuerzo, tiempo,
 
 // ── Lo del asistente de la app que Lola no tenía ────────────────────────────
 
-/** «lunes», «entre semana», «finde», «de lunes a jueves» → días guardados (Lun…Dom). Vacío = todos. */
-export const diasDichos = (dias) => diasDeLaSemana(dias).dias;
-
 const DICHO_EXTRA = {
   desayuno: { off: "sin desayuno", variado: "desayuno variado", findes: "desayuno igual entre semana y otro el finde", igual: "siempre el mismo desayuno" },
   merienda: { off: "sin merienda", semana: "merienda toda la semana", laborables: "merienda de lunes a viernes" },
@@ -357,20 +354,34 @@ const DICHA_VARIEDAD = { strict: "sin repetir platos de ninguna semana anterior"
 export function aplicarSemana(data, { semana = "esta", dias, variedad } = {}, { hoyIdx } = {}) {
   let d = data ?? {};
   const hechos = [];
+  const sinHacer = [];
   if (Array.isArray(dias) && dias.length) {
     const offset = semana === "siguiente" ? 1 : 0;
-    const ds = DIAS.filter((x) => diasDichos(dias).includes(x));
-    const antes = diasDeSemana(d, offset, hoyIdx);
-    d = aplicarDiasDeSemana(d, offset, ds, hoyIdx === undefined ? {} : { todayIdx: hoyIdx });
-    if (d === data && ds.length) return { texto: "No puedo dejar el menú sin ningún día." };
-    if (JSON.stringify(antes) !== JSON.stringify(ds)) hechos.push(`${semana === "siguiente" ? "la semana que viene" : "esta semana"}: ${ds.map((x) => DIA_LARGO[x] ?? x).join(", ")}`);
+    // Lo que el intérprete no entiende no se tira callado (#958): antes, con
+    // ningún día entendido, contestaba «Guardado (esta semana: )».
+    const { dias: ds, malos } = diasDeLaSemana(dias);
+    for (const x of malos) sinHacer.push({ que: x, motivo: "no sé qué días son: que los diga uno a uno" });
+    if (ds.length && !malos.length) {
+      const antes = diasDeSemana(d, offset, hoyIdx);
+      d = aplicarDiasDeSemana(d, offset, ds, hoyIdx === undefined ? {} : { todayIdx: hoyIdx });
+      if (d === data) return { texto: "No puedo dejar el menú sin ningún día." };
+      if (JSON.stringify(antes) !== JSON.stringify(ds)) hechos.push(`${semana === "siguiente" ? "la semana que viene" : "esta semana"}: ${ds.map((x) => DIA_LARGO[x] ?? x).join(", ")}`);
+    } else if (ds.length) {
+      // Con algún día sin entender no se guarda la semana a medias: quedaría
+      // sin el día que no se entendió y nadie lo sabría.
+      sinHacer.push({ que: ds.map((x) => DIA_LARGO[x] ?? x).join(", "), motivo: "no lo cambio a medias: falta el día que no entendí" });
+    }
   }
   if (VARIEDADES.includes(variedad)) {
     d = { ...d, menuVarietyPref: variedad };
     hechos.push(DICHA_VARIEDAD[variedad]);
   }
-  if (!hechos.length) return { texto: "No había nada que cambiar." };
-  return { data: d, texto: `Guardado (${hechos.join("; ")}). Se aplicará al generar ese menú.` };
+  if (!hechos.length) {
+    if (sinHacer.length) return { texto: "No he cambiado nada.", resultado: resultado({ accion: "semana", sinHacer }) };
+    return { texto: "No había nada que cambiar." };
+  }
+  const nota = "Se aplicará al generar ese menú.";
+  return { data: d, texto: `Guardado (${hechos.join("; ")}). ${nota}`, resultado: resultado({ accion: "semana", hecho: hechos, sinHacer, nota }) };
 }
 
 export async function ajustarSemana(householdId, args) {
