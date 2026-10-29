@@ -173,7 +173,7 @@ export async function guardarCasa(casa, { state = null, semana = null, activar =
     ultimaEscritura.set(casa.householdId, Date.now());
     const op = operacion();
     if (op) op.guardadosCasa++;
-    if (!sinDeshacer) await guardarFotoPrevia(casa, Number(r.bot_rev)).catch((e) => console.error("[casa] deshacer", e?.message));
+    if (!sinDeshacer) await guardarFotoPrevia(casa, Number(r.bot_rev)).catch(fallaCon("casa_deshacer"));
     return { ok: true, botRev: Number(r.bot_rev) };
   }
   if (r?.bot_rev != null) return { ok: false, conflicto: true, botRev: Number(r.bot_rev) };
@@ -202,7 +202,6 @@ async function apuntarDeshacer(householdId, botRevDespues, antes) {
   await insert("bot_deshacer", [{
     household_id: householdId,
     bot_rev_despues: botRevDespues,
-    descripcion: op?.herramienta ?? null,
     antes: { ...antes, ...(quien ? { quien } : {}), ...(op?.herramienta ? { herramienta: op.herramienta } : {}), ...(tambien.length ? { tambien } : {}) },
   }]);
   const viejas = await select("bot_deshacer", `household_id=${eq(householdId)}&order=created_at.desc&offset=${FOTOS_POR_CASA}`, "id");
