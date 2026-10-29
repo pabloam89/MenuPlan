@@ -51,7 +51,6 @@ import { tareasAbiertas, clavesCalladas, anotarTarea, cerrarTarea, editarTarea, 
 import { claveDePregunta, estadoDeClave } from "./estadoCasa.js";
 import { pintarMenuEntero, filtrosTrasGenerar, filtrosTrasCambiar, sinEtiquetas } from "./pintar.js";
 import { fechasDe, CUANDOS } from "./cuando.js";
-import { BOTONES } from "./botones.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, IDS_PLATOS } from "../../src/lib/comidas.js";
 import { KITCHEN_TOOL_IDS, APARATOS_EN_ORDEN } from "../../src/lib/electrodomesticos.js";
 import { NIVEL_COCINA, RITMO_COCINA, ETAPA_BEBE, DONDE_COME, CANAL, paraEscribir } from "../../src/lib/vocabularios.js";
@@ -1065,11 +1064,8 @@ const QUIEN_ESCRIBE = {
 };
 // Y el idioma que eligió (0073): en inglés aunque escriba en español, y los
 // platos con su nombre traducido (los datos de la casa están en castellano).
-// Los botones que el código reconoce en los dos idiomas salen de botones.js: el
-// texto que se le da a Lola y lo que el código entiende no pueden separarse (#958).
-const BOTONES_EN = Object.values(BOTONES).map((b) => `«[[${b.en}]]»`).join(", ");
 const IDIOMA = {
-  en: `IDIOMA: quien escribe eligió inglés. Contesta SIEMPRE en inglés, aunque escriba en español; ingredientes y pasos, traducidos. Estos botones van en inglés, con esta forma exacta (el código los reconoce así): ${BOTONES_EN}; en el de rehacer, con el día y el mes de esa semana. Cualquier otro botón [[…]] va TAL CUAL, en castellano. Y el nombre de cada plato, también tal cual: búscalo y nómbralo como está guardado; si ayuda, la traducción entre paréntesis detrás.`,
+  en: "IDIOMA: quien escribe eligió inglés. Contesta SIEMPRE en inglés, aunque escriba en español; ingredientes y pasos, traducidos. Pero dos cosas van TAL CUAL, en castellano: los botones [[…]] (el código los reconoce por su texto: «[[No es así]]», «[[Rehacer la del …]]») y el nombre de cada plato (búscalo y nómbralo como está guardado; si ayuda, la traducción entre paréntesis detrás).",
 };
 export function conQuienEscribe(ficha, papel, idioma = null) {
   if (!ficha) return ficha;

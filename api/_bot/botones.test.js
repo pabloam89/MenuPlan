@@ -51,6 +51,12 @@ describe("botones en castellano y en inglés", () => {
     expect(eleccionDe("elige tú, la que sea", propuesta)).toEqual({ eligeTu: true });
   });
 
+  it("la puntuación y los apóstrofos no cuentan («No es así.», «thats not right»)", () => {
+    expect(esNoEsAsi("No es así.")).toBe(true);
+    expect(esNoEsAsi("thats not right")).toBe(true);
+    expect(esNoEsAsi("No, así no")).toBe(true);
+  });
+
   it("lo que no es el botón no se confunde", () => {
     expect(esNoEsAsi("no es así de fácil")).toBe(false);
     expect(esNoEsAsi("That's right")).toBe(false);
