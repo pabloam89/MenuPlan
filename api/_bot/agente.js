@@ -20,7 +20,7 @@ import { select, insert, eq, contandoEscrituras } from "./db.js";
 import { cargarCasa, deshacer, hoyISO, apuntarOperacion } from "./casa.js";
 import {
   describirCasa, describirReceta, describirCompra,
-  marcarCompra, anadirCompra, cambiarPlato, proponerPlatos, diaDe, franjaDe,
+  marcarCompra, anadirCompra, quitarCompra, cambiarPlato, proponerPlatos, diaDe, franjaDe,
   rangosDelMenu,
   apuntarAusencia,
 } from "./menu.js";
@@ -42,6 +42,7 @@ import {
   crearRecordatorio, verRecordatorios, cancelarRecordatorio, ahoraEnMadrid,
 } from "./recordatorios.js";
 import { fueraDeLimite, contarUso, avisoDeLimite } from "./uso.js";
+import { quedaMs, plazoDeLlamada, RESERVA_MIN_MS } from "./plazo.js";
 import { supervisar, frenoDeshacer } from "./supervisor.js";
 import { montarFicha, extrasDeFicha } from "./ficha.js";
 import { fichaRpc, leerFichaCasa, tareasDeFicha, calladasDeFicha, conLaFicha, olvidarFicha } from "./fichaRpc.js";
@@ -864,6 +865,21 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
       },
       run: ({ productos }) => anadirCompra(householdId, productos),
     }),
+    // Quitar de la lista (#958): no había herramienta, y Lola lo marcaba como
+    // comprado o decía que lo había quitado sin quitarlo.
+    herramienta({ lector: false, soloLectura: false, pantalla: "compra" }, {
+      name: "quitar_compra",
+      description: "Quita productos de la lista de la compra («quita el pan», «borra los yogures, que ya no hacen falta»). NO es marcarlos como comprados (eso es marcar_compra). manuales=true quita todo lo que se añadió a mano («borra lo que añadí»). Lo que sale del menú vuelve si se rehace la compra al cambiar el menú: dilo si preguntan. Usa los nombres como salen en la lista.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          productos: { type: "array", items: { type: "string" } },
+          manuales: { type: "boolean", description: "true: quita todo lo añadido a mano." },
+        },
+        additionalProperties: false,
+      },
+      run: ({ productos, manuales }) => quitarCompra(householdId, { productos: productos ?? [], manuales: manuales === true }),
+    }),
     herramienta({ lector: true, soloLectura: true, pantalla: null }, {
       name: "proponer_platos",
       description: "Recetas del catálogo que encajan en un hueco del menú (respetan alergias, gustos, tiempo y lo que ya hay en la semana), SIN cambiar nada. Para recomendar o dar a elegir; con parecido_a, las más parecidas a un plato que piden por su nombre. En la comida hay primero y segundo; «cual» dice cuál.",
@@ -1456,7 +1472,15 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
   }));
   let ultimoError = null;
   for (const [i, modelo] of modelos.entries()) {
-    const plazo = AbortSignal.timeout(i === 0 ? PLAZO_MS.principal : PLAZO_MS.reserva);
+    // El reloj de la invocación (plazo.js, #958): el plazo de la llamada no
+    // pasa de lo que le queda a la función, y el de reserva no se prueba si
+    // ya no le daría tiempo. Antes 55 + 50 s de modelo no cabían en lo que
+    // quedaba y Vercel mataba la función a medias.
+    if (i > 0 && quedaMs() < RESERVA_MIN_MS) {
+      console.error(`[agente] sin tiempo para el de reserva (${Math.round(quedaMs() / 1000)} s)`);
+      break;
+    }
+    const plazo = AbortSignal.timeout(plazoDeLlamada(i === 0 ? PLAZO_MS.principal : PLAZO_MS.reserva));
     try {
       if (i > 0) alReintentar?.();
       const comun = {
