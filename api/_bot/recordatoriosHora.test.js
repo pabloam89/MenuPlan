@@ -8,14 +8,15 @@ const db = vi.hoisted(() => ({ select: vi.fn(), insert: vi.fn(), update: vi.fn()
 vi.mock("./db.js", () => ({ ...db, eq: (v) => `eq.${encodeURIComponent(v)}` }));
 
 const { siguienteVez, madridAUtc, enviarPendientes } = await import("./recordatorios.js");
+const { CADA_MS } = await import("./cadencia.js");
 
 const madrid = (d) => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid", dateStyle: "short", timeStyle: "short" }).format(d);
 
-/** Simula el cron cada 5 min durante `horas` y cuenta los envíos. */
+/** Simula el cron (cada CADA_MS, cadencia.js) durante `horas` y cuenta los envíos. */
 function simular(dueLocal, repite, desdeUtc, horas) {
   let due = madridAUtc(dueLocal).toISOString();
   const envios = [];
-  for (let t = Date.parse(desdeUtc); t < Date.parse(desdeUtc) + horas * 3600000; t += 5 * 60000) {
+  for (let t = Date.parse(desdeUtc); t < Date.parse(desdeUtc) + horas * 3600000; t += CADA_MS) {
     if (Date.parse(due) <= t) {
       envios.push(madrid(new Date(due)));
       due = siguienteVez(due, repite, t).toISOString();
@@ -25,7 +26,7 @@ function simular(dueLocal, repite, desdeUtc, horas) {
 }
 
 describe("siguienteVez", () => {
-  it("octubre (25-oct-2026): uno de las 00:30 sale una vez por noche, no cada 5 minutos", () => {
+  it("octubre (25-oct-2026): uno de las 00:30 sale una vez por noche, no en cada pasada del cron", () => {
     const envios = simular("2026-10-24T00:30", "diario", "2026-10-23T20:00:00Z", 72);
     expect(envios).toEqual(["2026-10-24 00:30", "2026-10-25 00:30", "2026-10-26 00:30"]);
   });

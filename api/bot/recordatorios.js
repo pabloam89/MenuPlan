@@ -13,6 +13,9 @@ import { VISPERA, TIPO_VISPERA, avisoDeVisperaDe } from "../_bot/vispera.js";
 import { rpc } from "../_bot/db.js";
 import { barrer } from "../_bot/caducidades.js";
 import { isoDeCasa } from "../../src/lib/dias.js";
+// Cada cuánto llama el cron a este endpoint: la misma cifra con la que lo
+// programa scripts/bot-cron.mjs.
+import { CADA_MS } from "../_bot/cadencia.js";
 
 function autorizado(cabecera) {
   const secreto = process.env.BOT_CRON_SECRET || process.env.CRON_SECRET;
@@ -49,6 +52,6 @@ export default async function handler(req, res) {
   const tareas = await rpc("bot_tareas_purgar", {}).catch((e) => { console.error("[tareas] purga", e?.message); return null; });
   // Lo que caduca (api/_bot/caducidades.js), en esta misma pasada: un solo
   // dueño para todo lo que vence, con su lista cerrada (#958).
-  const caducado = await barrer({ enviar }).catch((e) => { console.error("[caducidades]", e?.message); return null; });
+  const caducado = await barrer({ enviar, cadaMs: CADA_MS }).catch((e) => { console.error("[caducidades]", e?.message); return null; });
   return res.status(200).json({ ok: true, enviados, tareas, caducado });
 }

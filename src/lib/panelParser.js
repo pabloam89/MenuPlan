@@ -186,7 +186,11 @@ export function aplicarAjuste(notepad, ajuste, { frase, fecha, fuente, desde, ha
   } else if (campo.proyecta === "excluidos") {
     valor = ajuste.op === "nunca";
   } else if (campo.proyecta === "favoritos") {
-    valor = ajuste.op !== "nunca";
+    // Solo «más» lo hace favorito. Antes era `op !== "nunca"`, y «menos
+    // ensaladas» o «no más de dos ensaladas» (op menos, n 2) quedaba como
+    // FAVORITO: el menú sacaba 3-4 a la semana (#958). Un favorito es una
+    // lista, no lleva veces: «menos» solo lo quita de favoritos.
+    valor = ajuste.op === "mas";
   } else if (ajuste.campo === "cocina") {
     // `cocina` es una CUENTA por semana (0-5), no un sesgo -1/0/1: el usuario
     // no sube ni baja un "normal" de cocina peruana que no existe, pide un
