@@ -43,6 +43,7 @@ import { viaRapida, eleccionDe, aplicarEleccion, contextoDe, repiteLaPropuesta }
 import { fotosVistas, fotosSinRepetir } from "../_bot/fotosVistas.js";
 import { comidaElegida, quiereApuntar } from "../_bot/plato.js";
 import { ahoraEnMadrid } from "../_bot/recordatorios.js";
+import { vigente, CADUCA } from "../_bot/caducidades.js";
 import { fueraDeLimite, contarUso } from "../_bot/uso.js";
 import {
   enlacesReceta, enlacesSemana, botonesCompartir, resolverInvitacion,
@@ -464,7 +465,8 @@ async function ultimaDeLola(chatId) {
   const pregunto = /\?\s*(\[\[[^\]]*\]\]\s*)*$/.test(texto.trim());
   return {
     texto,
-    propuesta: f.content?.propuesta ?? null,
+    // Pasada su vida, la pregunta ya no espera respuesta (caducidades.js, #958).
+    propuesta: vigente(CADUCA.PROPUESTA, f.created_at) ? f.content?.propuesta ?? null : null,
     // Las fotos que acaba de mandar: no se repiten (#932).
     fotosVistas: fotosVistas(f),
     anteriorDelUsuario: antes && pregunto ? String(antes.content?.texto ?? "").slice(0, 300) : null,

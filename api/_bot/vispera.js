@@ -116,14 +116,19 @@ export async function avisoVispera(chat, { activar = true, hora = "20:30" } = {}
   const enChat = `chat_id=eq.${encodeURIComponent(String(chat.chatId))}&status=eq.pending&tipo=eq.${TIPO_VISPERA}`;
   const ya = await select("bot_reminders", enChat, "id");
   // Si quitar el de antes falla, lanza: mejor un error que dos avisos cada noche.
-  if (ya.length) await update("bot_reminders", enChat, { status: "cancelled" });
-  if (!activar) return ya.length ? "Quitado: ya no te aviso la víspera." : "No tenías el aviso de la víspera puesto.";
+  if (!activar) {
+    if (ya.length) await update("bot_reminders", enChat, { status: "cancelled" });
+    return ya.length ? "Quitado: ya no te aviso la víspera." : "No tenías el aviso de la víspera puesto.";
+  }
   // La próxima vez que toque esa hora en España: hoy si aún no ha pasado.
   const ahora = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date());
   const [hoy, horaAhora] = ahora.split(" ");
   const d = new Date(`${hoy}T12:00:00Z`);
   if (horaAhora >= hora) d.setUTCDate(d.getUTCDate() + 1);
+  // Primero el nuevo y luego fuera los de antes, por su id: al revés, si crear
+  // fallaba (tope de pendientes, la base) se quedaba sin ninguno (#958).
   const r = await crearRecordatorio(chat, { texto: VISPERA, cuando: `${d.toISOString().slice(0, 10)}T${hora}`, repite: "diario", tipo: TIPO_VISPERA });
   if (!/^Recordatorio creado/.test(r)) return r;
+  if (ya.length) await update("bot_reminders", `id=in.(${ya.map((x) => Number(x.id)).join(",")})&status=eq.pending`, { status: "cancelled" });
   return `Hecho: cada noche a las ${hora} miro el menú de mañana y, si hay algo que preparar (remojo, sacar algo del congelador, tu día de batch cooking), te aviso. Si no hay nada, no te escribo.`;
 }

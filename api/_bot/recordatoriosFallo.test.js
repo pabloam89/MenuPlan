@@ -28,4 +28,23 @@ describe("recordatorios cuando algo falla", () => {
     expect(texto).toMatch(/HH:MM/);
     expect(update).not.toHaveBeenCalled();
   });
+
+  it("al cambiar la hora, primero crea el nuevo y luego quita el de antes (#958)", async () => {
+    const { insert } = await import("./db.js");
+    update.mockClear();
+    const orden = [];
+    insert.mockImplementationOnce(async () => { orden.push("crear"); return [{}]; });
+    update.mockImplementationOnce(async (t, filtro) => { orden.push(`quitar ${filtro}`); return [{ id: 1 }]; });
+    const texto = await avisoVispera({ chatId: "1", channel: "telegram", householdId: "h" }, { activar: true, hora: "21:00" });
+    expect(texto).toMatch(/^Hecho/);
+    expect(orden).toEqual(["crear", "quitar id=in.(1)&status=eq.pending"]);
+  });
+
+  it("si crear falla, el de antes se queda", async () => {
+    const { insert } = await import("./db.js");
+    update.mockClear();
+    insert.mockRejectedValueOnce(new Error("POST → 500"));
+    await expect(avisoVispera({ chatId: "1", channel: "telegram", householdId: "h" }, { activar: true, hora: "21:00" })).rejects.toThrow();
+    expect(update).not.toHaveBeenCalled();
+  });
 });
