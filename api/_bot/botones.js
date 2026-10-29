@@ -30,13 +30,12 @@ const FORMAS = Object.freeze({
 const REHACER = Object.freeze({ es: "Rehacer la del", en: "Redo the week of" });
 const MESES = Object.freeze({
   es: MESES_CORTOS,
-  escrito: ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sept", "oct", "nov", "dic"], // ROJO A PROPÓSITO
   en: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
 });
 
 /** El texto del botón que rehace la semana de `iso` («Rehacer la del 26 oct»). */
 export const textoRehacer = (iso, lengua = "es") =>
-  `${REHACER[lengua]} ${Number(iso.slice(8, 10))} ${MESES[lengua === "es" ? "escrito" : lengua][Number(iso.slice(5, 7)) - 1]}`;
+  `${REHACER[lengua]} ${Number(iso.slice(8, 10))} ${MESES[lengua][Number(iso.slice(5, 7)) - 1]}`;
 
 /** Cada botón, con la forma que se escribe en cada idioma. */
 export const BOTONES = Object.freeze({
