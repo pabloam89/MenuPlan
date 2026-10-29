@@ -2138,13 +2138,6 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
      "type": "string",
      "description": "Cómo se hace, con sus palabras (el modelo redacta los pasos a partir de aquí)."
     },
-    "visibilidad": {
-     "type": "string",
-     "enum": [
-      "privada",
-      "publica"
-     ]
-    },
     "usarFoto": {
      "type": "boolean",
      "description": "true si hay foto del plato (en este mensaje o apartada con apartar_foto_plato)."
@@ -2156,7 +2149,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    ],
    "additionalProperties": false
   },
-  "description": "Estructura una receta propia (como el asistente de la app) y la deja lista SIN guardar, para enseñarla. Solo cuando ya tengas nombre e ingredientes con cantidades; lo demás tiene valor por defecto. cuando: en qué comidas se sirve (primero, segundo, plato_unico, cena, merienda, postre). paraNinos: si es apta para niños (omitir si no lo saben). visibilidad: privada (solo la casa) o publica (sale en Gente)."
+  "description": "Estructura una receta propia (como el asistente de la app) y la deja lista SIN guardar, para enseñarla. Solo cuando ya tengas nombre e ingredientes con cantidades; lo demás tiene valor por defecto. cuando: en qué comidas se sirve (primero, segundo, plato_unico, cena, merienda, postre). paraNinos: si es apta para niños (omitir si no lo saben). Se guarda solo para la casa."
  },
  {
   "type": "custom",

@@ -37,6 +37,7 @@ import { transcribir } from "../_bot/voz.js";
 import { adjuntoDe, porQueNoAdjunto, adjuntoDelAlta } from "../_bot/adjuntos.js";
 import { enTurno, aSolas, drenar, juntar } from "../_bot/turnos.js";
 import { conPlazo } from "../_bot/plazo.js";
+import { pedidoCompartido } from "../_bot/comoDato.js";
 import { clasificar, vaPorLaRapida, permitidoEn } from "../_bot/router.js";
 import { prediceRapida, ESPERA_MAX_MS } from "../_bot/prediceRapida.js";
 import { esCorreccionRuta, esCorreccionMedida } from "../_bot/senales.js";
@@ -1241,7 +1242,10 @@ async function usarCompartido(cq, chat, base) {
   }
   return conversarMedido(SIN_ENRUTADOR.COMPARTIDO, {
     chatId, householdId: chat.household_id, from: cq.from, esGrupo, base,
-    texto: `Quiero poner «${nombre}» en mi menú de esta semana. ¿En qué comida encaja mejor?`,
+    // El nombre lo escribió otra casa: va como dato citado, no dentro de la
+    // frase de la persona (comoDato.js, #958: inyección de instrucciones con
+    // las herramientas de escribir encendidas).
+    texto: pedidoCompartido(nombre),
   });
 }
 
