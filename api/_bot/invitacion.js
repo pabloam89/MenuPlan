@@ -13,8 +13,8 @@
 
 import { select, rpc, eq } from "./db.js";
 import { crearCuentaTelegram } from "./cuentas.js";
-import { enlazarChat, idDePersona } from "./enlace.js";
-import { avisarFallo, contesto } from "./avisar.js";
+import { enlazarChat, idDePersona, chatOcupado } from "./enlace.js";
+import { avisarFallo, contesto, SIN_LEER } from "./avisar.js";
 import { noPude } from "./noPude.js";
 import { IDIOMA, IDIOMAS } from "../../src/lib/vocabularios.js";
 
@@ -39,6 +39,26 @@ const TEXTOS = {
   },
 };
 
+/**
+ * ¿Vale aún esta invitación, y a qué casa lleva? Las mismas reglas que
+ * `_unirse` en la base (su última versión: 0087): una de household_invites sin
+ * revocar, con usos y sin caducar, o el enlace fijo de la casa
+ * (households.invite_token). La copia en JS la vigila invitacion.test.js, que
+ * falla si la regla de la última migración cambia. null si no vale; SIN_LEER
+ * si no se pudo mirar (#208: no se dice «caducada» sin saberlo).
+ */
+export async function invitacionVigente(token, ahora = Date.now()) {
+  try {
+    const [inv] = await select("household_invites", `token=${eq(token)}`, "household_id,revoked_at,uses,max_uses,expires_at");
+    if (inv) return !inv.revoked_at && inv.uses < inv.max_uses && Date.parse(inv.expires_at) > ahora ? { householdId: inv.household_id } : null;
+    const [casa] = await select("households", `invite_token=${eq(token)}`, "id");
+    return casa ? { householdId: casa.id } : null;
+  } catch (e) {
+    avisarFallo("invitacion_vigente", e, { grave: false });
+    return SIN_LEER;
+  }
+}
+
 const lenguaDe = (codigo) => (String(codigo ?? "").toLowerCase().startsWith(IDIOMA.EN) ? IDIOMA.EN : IDIOMA.ES);
 
 /**
@@ -50,8 +70,23 @@ export async function unirsePorInvitacion({ from, chatId, token, nombre = null }
   let lang = lenguaDe(from?.language_code);
   if (!yo) return { texto: TEXTOS[lang].caducada, householdId: null, lang };
 
+  // La invitación, mirada ANTES de crear nada (#958): un `/start inv_…`
+  // inventado o caducado dejaba un usuario de auth huérfano, creado para nada.
+  // Solo se lee: la que manda sigue siendo la base al unirse (bot_unirse_por_invitacion).
+  const destino = await invitacionVigente(token);
+  if (destino === SIN_LEER) return { texto: noPude("invitacion", lang), householdId: null, lang };
+  if (!destino) return { texto: TEXTOS[lang].caducada, householdId: null, lang };
+
   const [ident] = await select("bot_identities", `channel=eq.telegram&external_id=${eq(yo)}`, "user_id");
-  let userId = ident?.user_id ?? null;
+  // Este chat privado ya enlazado a otra casa por otra cuenta no se puede
+  // mover (enlazarChat diría «ocupado»). Antes se miraba DESPUÉS de unirse: la
+  // persona entraba en la casa y gastaba la invitación, pero su chat no quedaba
+  // enlazado a ella (#958). Ahora se mira antes, con la misma regla.
+  const [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(String(chatId))}`, "household_id,linked_by");
+  // Sin identidad pero con su privado enlazado por una cuenta (chats de antes
+  // de las identidades): es esa cuenta, no una nueva.
+  let userId = ident?.user_id ?? (String(chatId) === yo ? chat?.linked_by ?? null : null);
+  if (chatOcupado(chat, destino.householdId, userId)) return { texto: TEXTOS[lang].ocupado, householdId: null, lang };
   let nacida = false;
   if (!userId) {
     const cuenta = await crearCuentaTelegram({ telegramId: from.id, nombre });
