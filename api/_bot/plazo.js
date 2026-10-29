@@ -40,8 +40,8 @@ const reloj = new AsyncLocalStorage();
  * @param {number} inicioMs  cuándo empezó la invocación (Date.now() al entrar)
  * @param {() => Promise<any>} fn
  */
-export function conPlazo(inicioMs, fn, { duracionMs = DURACION_MAX_MS } = {}) {
-  return reloj.run({ hasta: inicioMs + duracionMs - MARGEN_MS }, fn);
+export function conPlazo(inicioMs, fn) {
+  return reloj.run({ hasta: inicioMs + DURACION_MAX_MS - MARGEN_MS }, fn);
 }
 
 /** Lo que le queda a esta invocación antes del margen final; Infinity fuera de una. */
