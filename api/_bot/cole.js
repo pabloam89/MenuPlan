@@ -40,10 +40,10 @@ function seVe(plato, fuente) {
  * no venía en el PDF (#958). Ahora cada plato tiene que estar a la vista: con
  * el adjunto en este mismo mensaje, o escrito por la persona, o en el resumen
  * que Lola enseñó justo antes. Y una semana con menos de DIAS_MINIMOS_COLE días
- * no se guarda: pisaría la que había. Pura, para el test.
+ * no se guarda: pisaría la que había. Pura; la prueba coleVista.test.js por guardarMenuCole.
  * @param {{ adjunto?: object|null, texto?: string, anterior?: string }} vista
  */
-export function semanasDelCole(semanas, { adjunto = null, texto = "", anterior = "" } = {}) {
+function semanasDelCole(semanas, { adjunto = null, texto = "", anterior = "" } = {}) {
   const fuente = `${texto ?? ""}\n${anterior ?? ""}`;
   const buenas = [];
   const sinHacer = [];
