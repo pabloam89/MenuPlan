@@ -21,8 +21,9 @@ describe("un dato, un sitio", () => {
     expect(readFileSync(join(AQUI, "db.js"), "utf8")).not.toMatch(/new Set\(\[\s*"bot_messages"/);
   });
 
-  it("esDuplicado se define una vez, en entradas.js", () => {
-    const definen = ficheros.filter((f) => /const esDuplicado\s*=/.test(readFileSync(join(AQUI, f), "utf8")));
+  it("la expresión de «ya estaba» (esDuplicado) vive en un solo fichero, entradas.js", () => {
+    // Por la expresión y no por el nombre: también cuenta una copia en línea.
+    const definen = ficheros.filter((f) => readFileSync(join(AQUI, f), "utf8").includes("23505|duplicate key"));
     expect(definen).toEqual(["entradas.js"]);
   });
 
