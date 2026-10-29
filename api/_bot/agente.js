@@ -375,9 +375,9 @@ function herramientasDeRecetas(chat) {
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: "recetas:mias" }, {
       name: "guardar_receta",
-      description: "Guarda la última receta preparada con preparar_receta en esta charla (la herramienta la tiene apartada: no hace falta volver a pedir ningún dato), en el recetario de la casa, y el motor ya puede ponerla en menús. Llámala en cuanto digan «Guardar» o «sí» al resumen, con confirmado = true.",
-      inputSchema: obj({ confirmado: { type: "boolean" } }, ["confirmado"]),
-      run: ({ confirmado }) => guardarReceta(householdId, { confirmado }, chat),
+      description: "Guarda la última receta preparada con preparar_receta en esta charla (la herramienta la tiene apartada: no hace falta volver a pedir ningún dato), en el recetario de la casa, y el motor ya puede ponerla en menús. Llámala en cuanto digan «Guardar» o «sí» al resumen, con confirmado = true y el nombre de la receta que han aprobado (si no es la última preparada, no se guarda).",
+      inputSchema: obj({ confirmado: { type: "boolean" }, nombre: { type: "string" } }, ["confirmado", "nombre"]),
+      run: ({ confirmado, nombre }) => guardarReceta(householdId, { confirmado, nombre }, chat),
     }),
   ];
 }
