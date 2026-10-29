@@ -59,7 +59,7 @@ import { ETAPA_BEBE_INFO } from "../../src/lib/babyStage.js";
 // lee también el mando de trastos del panel; aquí no se copia (#967, C8 y C14).
 const TRASTOS = [...APARATOS_EN_ORDEN];
 import { ESQUEMA_DE_FUERA } from "./deFuera.js";
-import { verDespensa, anadirDespensa } from "./despensa.js";
+import { verDespensa, anadirDespensa, MAX_POR_VEZ as MAX_DESPENSA } from "./despensa.js";
 import { guardarMenuCole, verMenuCole, DIAS_MINIMOS_COLE } from "./cole.js";
 import { buscarRecetas, prepararReceta, guardarReceta, apartarFotoPlato, recetaPorNombre, CATEGORIAS } from "./recetas.js";
 import { conPista, textoPista, datosDePlantilla } from "./pista.js";
@@ -395,10 +395,10 @@ function herramientasDeFotos(householdId, chat = {}) {
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "anadir_despensa",
-      description: "Apunta alimentos en la despensa (suma si ya estaban). Solo comida: nada de droguería ni bolsas. Nombres de alimento simples en español («pechuga de pollo», «tomate triturado»), sin marcas. Si viene de una foto, solo tras enseñar la lista y que digan que sí.",
+      description: "Apunta alimentos en la despensa (suma si ya estaban). Solo comida: nada de droguería ni bolsas. Nombres de alimento simples en español («pechuga de pollo», «tomate triturado»), sin marcas. Si viene de una foto, solo tras enseñar la lista y que digan que sí. Pásalo TODO en una llamada (varios tickets también): lo que no quepa sale en el recibo como sin hacer.",
       inputSchema: obj({
         items: {
-          type: "array", minItems: 1, maxItems: 40,
+          type: "array", minItems: 1, maxItems: MAX_DESPENSA,
           items: obj({
             nombre: { type: "string" },
             cantidad: { type: "number" },
