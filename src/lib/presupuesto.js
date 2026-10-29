@@ -2,17 +2,16 @@
 //
 // El dato vive en household_state.data: `hasBudget` (si hay tope) y `budget`
 // (€ por semana). Lo escriben el asistente de la app (Onboarding.jsx) y Lola
-// (ajustar_compra, api/_bot/ajustes.js). Lo LEE solo este módulo
-// (presupuestoSemanal): el motor, la respuesta de Lola, la ficha del bot y la
-// lista de la compra de la app pasan por aquí, para que no haya dos lecturas
-// que digan cosas distintas.
+// (ajustar_compra, api/_bot/ajustes.js). Para hacer cuentas con él se lee
+// aquí (leerPresupuesto), para que no haya dos lecturas que digan cosas
+// distintas. (La ficha del bot, api/_bot/ficha.js, solo enseña la cifra.)
 //
-// Qué hace el presupuesto, y nada más:
-//  1. El solver (lib/solver.js, `topeRacion`) prefiere platos cuyo € por
-//     ración cabe en el tope. Es una preferencia: el reparto de la semana
-//     (pescado, legumbre…) sigue mandando por encima.
-//  2. Al acabar, la semana se estima (estimarSemana) y se dice si cabe, si no
-//     cabe o si no se puede saber (veredicto). Nunca en silencio.
+// Lo que hará con él #958, en PRs seguidos y nada más:
+//  1. El solver prefiere platos cuyo € por ración cabe en el tope
+//     (topePorRacion). Es una preferencia: el reparto de la semana (pescado,
+//     legumbre…) sigue mandando por encima.
+//  2. Al acabar, la semana se estima (estimarSemana) y Lola y la app dicen si
+//     cabe, si no cabe o si no se puede saber (veredicto). Nunca en silencio.
 //  3. La lista de la compra de la app pone su total (envases enteros) al lado
 //     del presupuesto.
 //
@@ -30,7 +29,7 @@
 // no cabe seguro. Solo se dice «cabe» si el alto cabe y casi todo tiene algo
 // de precio; si no, «incierto».
 //
-// Medido el 29 oct 2026 (npm run medir:presupuesto): de los 743 platos
+// Medido el 29 oct 2026 con costeReceta sobre el catálogo: de los 743 platos
 // estrella, 452 (60,8 %) tienen precio en todas sus líneas y 690 (92,9 %) en
 // el 80 % o más. Lo que más falta es menor (cebolleta, cebolla morada, aceite
 // de sésamo), por eso el alto se sube por líneas y no se da por perdido.
@@ -52,7 +51,7 @@ export const PARTE_CONOCIDA_MINIMA = 0.8;
 
 // El precio para ORDENAR y para el número alto de un plato incompleto: su
 // precio subido en proporción a las líneas que le faltan, como mucho el doble.
-// Lo usa también el solver (lib/solver.js).
+// El solver lo usará para ordenar (punto 1 de arriba).
 export function precioAlto(p) {
   if (!p) return null;
   return p.completo ? p.porRacion : p.porRacion / Math.max(p.cobertura, 0.5);

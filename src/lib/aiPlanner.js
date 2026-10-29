@@ -9,7 +9,6 @@ import { DEFAULT_FREQS } from "./defaultFreqs.js";
 import { HOLGURA_TOPES, presupuestoDeTopes, repartoAFreqs, freqsAReparto } from "./reparto.js";
 import { esMenor, esNino } from "./stages.js";
 import { racionesDe } from "./raciones.js";
-import { presupuestoSemanal, topePorRacion } from "./presupuesto.js";
 import { getSchoolDish, hasAnySchoolDish } from "./schoolMenu.js";
 import { filterRecipes, filterGarnishes, decisionCatalog, filterOffMenuRecipes, recipeMatchesPreferType, recipeViolatesHardSafety } from "../utils/filterRecipes.js";
 import { esAnadido, topeDe } from "./cocinaTopes.js";
@@ -1390,7 +1389,7 @@ async function asignarConModelo({
  * dicen hasta dónde se puede llegar. Ver el comentario de resolverMenu.
  */
 function asignarConSolver({
-  group, ctx, filteredPool, achievableFreqs, basesDeLaSemana, data, stats, warnings, topeRacion = null,
+  group, ctx, filteredPool, achievableFreqs, basesDeLaSemana, data, stats, warnings,
 }) {
   const semilla = semillaDeGeneracion();
   // Con reintentos: otra semilla sale del callejón antes que la fase 3 (solver.js).
@@ -1408,8 +1407,6 @@ function asignarConSolver({
       // querías.
       recientes: recetasRecientes(data, { exentos: ctx.filterOpts.favoriteIds }),
       semilla,
-      // El presupuesto de la casa como preferencia (lib/presupuesto.js).
-      topeRacion,
     },
   );
   for (const [cocina, cuantos] of Object.entries(res.cocinasSinSitio)) {
@@ -1471,7 +1468,7 @@ function semillaDeGeneracion() {
   return (Date.now() % 1_000_000) >>> 0;
 }
 
-export async function generateGroupMenu(data, group, signal, pantryIngredients = [], crossWeek = null, plannerModel = DEFAULT_MODEL, pantryMode = "prefer", { stats = null, format = "json", topeRacion = null } = {}) {
+export async function generateGroupMenu(data, group, signal, pantryIngredients = [], crossWeek = null, plannerModel = DEFAULT_MODEL, pantryMode = "prefer", { stats = null, format = "json" } = {}) {
   const ctx = buildGroupContext(data, group);
   // Pantry is family-wide (not per-group), so it's merged into filterOpts
   // here rather than inside buildGroupContext.
@@ -1616,7 +1613,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   let slotsVacios = new Set();
   if (usarSolver) {
     const resuelto = asignarConSolver({
-      group, ctx, filteredPool, achievableFreqs, basesDeLaSemana, data, stats, warnings, topeRacion,
+      group, ctx, filteredPool, achievableFreqs, basesDeLaSemana, data, stats, warnings,
     });
     slotAssignments = resuelto.asignaciones;
     slotsRelajados = resuelto.relajados;
@@ -2309,14 +2306,6 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
   // rest. `groupCache` (a Map keyed by group id, owned by the caller) keeps the
   // groups that did come back, so retrying the whole generation later redoes
   // only the missing ones. Hydration below only reads these results.
-  // El presupuesto (lib/presupuesto.js) repartido entre las raciones de comida
-  // y cena de TODOS los grupos: es de la casa, no de cada menú. Solo lo usa el
-  // solver; el camino del modelo no lo ve (el veredicto de después, sí).
-  const presupuesto = presupuestoSemanal(data);
-  const topeRacion = presupuesto == null ? null : topePorRacion(
-    presupuesto,
-    activeGroups.reduce((n, g) => n + buildGroupContext(data, g).slots.reduce((s, x) => s + (Number(x.eaters) || 0), 0), 0),
-  );
   const runGroup = async (group) => {
     const cached = groupCache?.get(group.id);
     if (cached) {
@@ -2324,7 +2313,7 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
       return cached;
     }
     const run = () =>
-      generateGroupMenu(data, group, signal, pantryIngredients, crossWeek, plannerModel, pantryMode, { stats, format: plannerFormat, topeRacion });
+      generateGroupMenu(data, group, signal, pantryIngredients, crossWeek, plannerModel, pantryMode, { stats, format: plannerFormat });
     let result;
     try {
       result = await run();
