@@ -1,0 +1,25 @@
+name: anulacion
+
+# Llama a la anulación reutilizable de la Fábrica (factory-am89/fabrica), fijada a un sha de su main: subirlo
+# es un cambio de este fichero y pasa por PR. La regla (el Approve solo vale de Pablo, sobre la cabeza actual)
+# vive allí, no aquí. Corre con workflow_run tras senal-review.yml, siempre la versión de la rama por defecto.
+# Los dos secretos (REVISOR_CLIENT_ID y REVISOR_APP_KEY) viven en el environment `revisor` de este repo.
+on:
+  workflow_run:
+    workflows: [senal-review]
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  anular:
+    uses: factory-am89/fabrica/.github/workflows/anulacion.yml@60a7008c68629aedde441a9ee27e68f6b7e0c1b9
+    with:
+      # Slug de la App revisora propia de HoMenu: el juez solo cuenta los check `revisor` de esa App.
+      revisor-app-slug: homenu-revisor
+    # Solo los dos que la anulación declara, por nombre y nunca la forma que lo hereda todo (entregaría a un
+    # workflow de otro repo todos los secretos de este).
+    secrets:
+      REVISOR_CLIENT_ID: ${{ secrets.REVISOR_CLIENT_ID }}
+      REVISOR_APP_KEY: ${{ secrets.REVISOR_APP_KEY }}

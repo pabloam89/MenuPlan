@@ -10,7 +10,7 @@ import { HOLGURA_TOPES, presupuestoDeTopes, repartoAFreqs, freqsAReparto } from 
 import { esMenor, esNino } from "./stages.js";
 import { racionesDe } from "./raciones.js";
 import { getSchoolDish, hasAnySchoolDish } from "./schoolMenu.js";
-import { filterRecipes, filterGarnishes, decisionCatalog, filterOffMenuRecipes, recipeMatchesPreferType } from "../utils/filterRecipes.js";
+import { filterRecipes, filterGarnishes, decisionCatalog, filterOffMenuRecipes, recipeMatchesPreferType, recipeViolatesHardSafety } from "../utils/filterRecipes.js";
 import { esAnadido, topeDe } from "./cocinaTopes.js";
 import { ajustarCuota } from "./cuotaCocinas.js";
 import { favoriteIdsForGroup } from "./recipeVotes.js";
@@ -3142,6 +3142,53 @@ const POOL_DE_FRANJA = {
   Postre: "postres",
 };
 
+/**
+ * La puerta de seguridad (#958, raíz 2): ¿esta receta choca con alguien del
+ * grupo? Las MISMAS reglas duras que el pool del motor (recipeViolatesHardSafety:
+ * alergias y «puede contener», intolerancias que no se adaptan, dietas, alcohol
+ * con niños), sin la de bebé o no bebé, que no es de seguridad sino de qué
+ * grupo es. La usan el plato elegido a mano (forcedRecipe, abajo) y la
+ * revisión del plan antes de guardar (choquesDelPlan): un atajo ya no puede
+ * saltarse una alergia, venga de donde venga.
+ */
+export function chocaConElGrupo(receta, data, group, meal = "Comida", ctx = null) {
+  if (!receta || !group) return false;
+  const { filterOpts } = ctx ?? buildGroupContext(data, group);
+  return recipeViolatesHardSafety(receta, {
+    ...filterOpts,
+    isBabyGroup: receta.category === "bebes",
+    offMenu: Boolean(POOL_DE_FRANJA[String(meal)]),
+  });
+}
+
+/**
+ * Los platos de un plan que chocan con alguien de su grupo. Con `antes` (el
+ * plan que había), solo mira los huecos que cambian: un plato viejo no bloquea
+ * un cambio nuevo. Devuelve uno por plato: grupo, hueco, campo y receta.
+ */
+export function choquesDelPlan(data, plan, { antes = null } = {}) {
+  const choques = [];
+  const extra = new Map((data?.userRecipes ?? []).map((r) => [r.id, r]));
+  for (const group of data?.groups ?? []) {
+    const huecos = plan?.[group.id];
+    if (!huecos || !membersOfGroup(group, data.members ?? []).length) continue;
+    let ctx = null;
+    for (const [clave, h] of Object.entries(huecos)) {
+      const meal = clave.split("-").slice(1).join("-");
+      for (const campo of ["recipeId", "firstRecipeId"]) {
+        const id = h?.[campo];
+        if (!id || antes?.[group.id]?.[clave]?.[campo] === id) continue;
+        const base = stripGroupPrefix(id);
+        const receta = recipeCatalogById[base] ?? extra.get(base) ?? extra.get(id);
+        if (!receta) continue;
+        ctx ??= buildGroupContext(data, group);
+        if (chocaConElGrupo(receta, data, group, meal, ctx)) choques.push({ groupId: group.id, clave, campo, recipeId: id, nombre: receta.name });
+      }
+    }
+  }
+  return choques;
+}
+
 export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, course = "main", forcedRecipe = null, sameCategory = false, candidatos = 0, admiteMontaje = false, pedido = false, hoy = null }) {
   // Los vetos de la libreta se leen con fecha (lib/vetos.js): un cambio de
   // plato es HOY, salvo que quien llama diga otra cosa (el bot pasa la de
@@ -3204,7 +3251,10 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   let reusedDuplicate = false;
   if (forcedRecipe) {
     // Explicit user choice from the catalog: skip candidate scoring/diversity
-    // and place it directly (still scaled + garnish-paired below).
+    // and place it directly (still scaled + garnish-paired below). Lo que no
+    // se salta es la seguridad: un plato con un alérgeno de alguien del grupo
+    // no se coloca (antes Lola lo metía a la fuerza tras rechazarlo el motor).
+    if (chocaConElGrupo(forcedRecipe, data, group, meal, ctx)) return null;
     picked = forcedRecipe;
   } else {
   const currentRecipeId =

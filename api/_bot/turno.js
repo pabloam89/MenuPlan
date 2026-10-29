@@ -101,6 +101,9 @@ function enLista(icono, etiqueta, cosas) {
 // ── Recomendar ──────────────────────────────────────────────────────────────
 
 export async function recomendar(householdId, x) {
+  // Para el bebé, Lola: tiene que saber su etapa antes de proponer (purés o
+  // trozos; conocimiento.md), y la vía rápida no la pregunta (#958).
+  if (x.para === "bebe") return null;
   const out = {};
   const fotos = [];
   await proponerPlatos(householdId, {

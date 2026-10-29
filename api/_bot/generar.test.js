@@ -244,3 +244,30 @@ describe("generar: la respuesta dice qué semana es (#915)", () => {
     }
   });
 });
+
+describe("la compra de la semana nueva: cada artículo en una sola lista (#958)", () => {
+  it("pidiendo la siguiente, lo apuntado a mano se queda solo en la de hoy", async () => {
+    const { compraDeLaSemanaNueva } = await import("./generar.js");
+    const casa = { menu: { id: "m" }, semanas: [], semana: { shopping: { items: [{ name: "pan", manual: true }] } } };
+    const r = compraDeLaSemanaNueva([{ name: "huevos" }], casa, { startISO: "2026-11-02", endISO: "2026-11-08", ponerSemanaNueva: false });
+    expect(r.map((i) => i.name)).toEqual(["huevos"]);
+  });
+
+  it("si la nueva es la que se ve, lo apuntado a mano pasa, sin repetir lo que ya pide el motor", async () => {
+    const { compraDeLaSemanaNueva } = await import("./generar.js");
+    const casa = { menu: null, semanas: [], state: { shopping: { items: [{ name: "pan", manual: true }, { name: "Huevo", manual: true }, { name: "sal", manual: true, have: true }] } } };
+    const r = compraDeLaSemanaNueva([{ name: "huevos" }], casa, { startISO: "2026-10-26", endISO: "2026-11-01", ponerSemanaNueva: true });
+    expect(r.map((i) => i.name)).toEqual(["huevos", "pan"]);
+  });
+
+  it("rehaciendo una semana, lo comprado y lo de casa siguen marcados", async () => {
+    const { compraDeLaSemanaNueva } = await import("./generar.js");
+    const casa = {
+      menu: { id: "m" },
+      semanas: [{ weekStart: "2026-10-26", weekEnd: "2026-11-01", shopping: { items: [{ name: "Huevos", unit: "ud", have: true }, { name: "Arroz", unit: "g", atHome: true }] } }],
+      semana: null,
+    };
+    const r = compraDeLaSemanaNueva([{ name: "huevos", unit: "ud" }, { name: "arroz", unit: "g" }, { name: "pan", unit: "ud" }], casa, { startISO: "2026-10-29", endISO: "2026-11-01", ponerSemanaNueva: true });
+    expect(r.map((i) => [i.name, !!i.have, !!i.atHome])).toEqual([["huevos", true, false], ["arroz", false, true], ["pan", false, false]]);
+  });
+});
