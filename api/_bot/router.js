@@ -21,7 +21,7 @@
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, IDS_PLATOS, COMIDAS as CATALOGO, comidasEnTexto } from "../../src/lib/comidas.js";
 import { CUANDOS } from "./cuando.js";
 import { ESQUEMA_RASGOS, ESQUEMA_EJES, ESQUEMA_PERFIL, ESQUEMA_BASE, ESQUEMA_CATEGORIA, OTRA } from "./esquemas.js";
-import { resolver, GRUPO_VALORES } from "../../src/lib/diccionario.js";
+import { resolver, GRUPO_VALORES, sinTildes } from "../../src/lib/diccionario.js";
 import Anthropic from "@anthropic-ai/sdk";
 
 export const MODELO_ROUTER = process.env.BOT_ROUTER_MODELO || "claude-haiku-4-5-20251001";
@@ -90,7 +90,7 @@ export const REGLAS = `Eres el enrutador de Lola, la cocinera de casa de una app
 - receta: quiere ver CÓMO SE HACE un plato, entero («¿cómo se hace la tortilla del miércoles?», «pásame la receta de la cena de hoy»). El plato por su nombre en plato, o su hueco en dia y comida. Una pregunta concreta sobre el plato («¿lleva horno?», «¿se puede congelar?») es lola.
 - calorias: cuántas calorías tiene un plato («¿cuántas calorías tiene la cena de hoy?», «¿engorda mucho la lasaña?»). plato o dia y comida, como en receta. Si pregunta si le conviene por salud, es lola.
 - falta: qué le falta de la despensa para hacer un plato («¿qué me falta para las lentejas?», «¿tengo todo para la cena de mañana?»). plato o dia y comida.
-- despensa: ver lo que hay en la despensa, la nevera o el congelador («¿qué tengo en la despensa?», «¿qué queda en el congelador?»). La lista de la COMPRA es consulta con que=compra; tirarla, vaciarla o borrarla («tiras lista compra») es lola.
+- despensa: ver lo que hay en la despensa, la nevera o el congelador («¿qué tengo en la despensa?», «¿qué queda en el congelador?»). Contar lo que HAY para apuntarlo («tengo esto en la nevera: …», «me quedan tres huevos», «he comprado pollo y arroz») no es ver: es lola. La lista de la COMPRA es consulta con que=compra; tirarla, vaciarla o borrarla («tiras lista compra») es lola.
 - ausencia: alguien NO COME EN CASA una comida concreta, o no se cocina ese día («hoy cenamos fuera», «el jueves no como en casa», «q el jueves comida no xq no tengo tiempo, cámbialo»: eso NO es cambiar el plato). dia, comida y para quién (vacío = toda la casa). Si es todas las semanas («los jueves comemos fuera»), es lola. Si VIENE alguien de fuera («el miércoles viene mi suegra a cenar»), no es ausencia: es lola (invitados).
 - lola: TODO lo demás, y siempre que dudes: configurar la casa (quién come, horarios, gustos, trastos), alergias, peso o altura, recetas (crearla, buscarlas; VER cómo se hace una es receta), fotos, recordatorios, compartir, preguntas de cocina o de «por qué», saludos y charla, varias peticiones mezcladas, y cualquier respuesta a una pregunta de Lola que no sea elegir un plato o un día.
 
@@ -303,6 +303,19 @@ export function pedidoSinRecoger(texto, datos = {}) {
   });
 }
 
+// Una pregunta por lo que hay: con «?», o empezando como una pregunta (las
+// notas de voz llegan sin signos: «qué queda en el congelador»). Pura.
+// «Tengo esto en la nevera: …, ¿me lo apuntas?» lleva «?» y es apuntar: con
+// algo que cuenta lo que hay, solo vale si EMPIEZA como pregunta («¿tengo huevos?»).
+// Sobre el texto sin tildes: con «qué», \b no ve frontera tras la «é».
+const EMPIEZA_PREGUNTA = /^\s*(¿|(y\s+)?(que|cuant[oa]s?|cual(es)?|donde|me\s+dices|dime|ensename|ver|mira)\b)/i;
+const CUENTA_LO_QUE_HAY = /\b(tengo|tenemos|me\s+quedan?|nos\s+quedan?|he\s+comprado|hemos\s+comprado|compre|apunta(me)?|anade)\b/i;
+const esPreguntaDeDespensa = (texto) => {
+  const t = sinTildes(texto);
+  if (EMPIEZA_PREGUNTA.test(t)) return true;
+  return t.includes("?") && !CUENTA_LO_QUE_HAY.test(t);
+};
+
 // Una corrección en lo que ESCRIBE u ofrece opciones: Lola lee lo que se dijo
 // antes. Repetir la plantilla es lo que pasó con «pero si te he dicho pasta».
 const LEE_LA_CORRECCION = new Set(["recomendar", "cambiar", "generar", "ausencia"]);
@@ -337,6 +350,11 @@ export function vaPorLaRapida(d, { esGrupo = false, variosAutores = false, papel
   // Sin comida ya no va a Lola: la vía rápida la pregunta con botones (plato.js).
   if (d.modo === "cambiar") return Boolean(x.dia);
   if (d.modo === "receta" || d.modo === "calorias" || d.modo === "falta") return Boolean(x.plato || x.dia);
+  // La despensa por la vía rápida solo se LEE: lo que no es una pregunta
+  // («tengo esto en la nevera…», «me quedan 3 huevos», «he comprado pollo»)
+  // es apuntar, y se lo queda Lola (#958: ~40 cosas dichas por voz acabaron
+  // en «ver despensa» y no se guardó ninguna). En código, no solo en REGLAS.
+  if (d.modo === "despensa") return esPreguntaDeDespensa(texto);
   // «Cenamos fuera» sin día es hoy; sin comida, se pregunta.
   if (d.modo === "ausencia") return Boolean(x.dia || x.comida);
   if (d.modo === "compra_anadir" || d.modo === "compra_marcar") return (x.productos ?? []).length > 0;
