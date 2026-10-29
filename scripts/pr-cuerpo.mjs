@@ -22,7 +22,7 @@ const lineas = (s) => s.split("\n").filter(Boolean);
 function vitest(ficheros) {
   // Sin --maxWorkers: el tope vive en vite.config.js (maxWorkers), una sola vez.
   const comando = `npx vitest run ${ficheros.join(" ")}`;
-  // Una sola cadena con shell: npx es un .cmd en Windows. Los nombres salen de git, sin espacios en este repo.
+  // Una sola cadena con shell: npx es un .cmd en Windows. Solo se le pasan tests, y ningún test del repo lleva espacios en el nombre.
   const r = spawnSync(comando, { encoding: "utf8", shell: true, maxBuffer: 64 * 1024 * 1024 });
   if (r.error) throw new Error(`no se pudo lanzar vitest (comando-no-lanzado): ${r.error.message}`, { cause: r.error });
   if (r.status === null) throw new Error(`vitest no terminó: muerto por señal ${r.signal}`);
