@@ -20,7 +20,8 @@ const arg = (n) => { const i = process.argv.indexOf(`--${n}`); return i > 0 ? pr
 const lineas = (s) => s.split("\n").filter(Boolean);
 
 function vitest(ficheros) {
-  const comando = `npx vitest run ${ficheros.join(" ")} --maxWorkers=2`;
+  // Sin --maxWorkers: el tope vive en vite.config.js (maxWorkers), una sola vez.
+  const comando = `npx vitest run ${ficheros.join(" ")}`;
   // Una sola cadena con shell: npx es un .cmd en Windows. Los nombres salen de git, sin espacios en este repo.
   const r = spawnSync(comando, { encoding: "utf8", shell: true, maxBuffer: 64 * 1024 * 1024 });
   if (r.error) throw new Error(`no se pudo lanzar vitest (comando-no-lanzado): ${r.error.message}`, { cause: r.error });
