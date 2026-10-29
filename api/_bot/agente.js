@@ -52,10 +52,12 @@ import { claveDePregunta, estadoDeClave } from "./estadoCasa.js";
 import { pintarMenuEntero, filtrosTrasGenerar, filtrosTrasCambiar, sinEtiquetas } from "./pintar.js";
 import { fechasDe, CUANDOS } from "./cuando.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, IDS_PLATOS } from "../../src/lib/comidas.js";
-import { KITCHEN_TOOL_IDS } from "../../src/lib/electrodomesticos.js";
-import { NIVEL_COCINA, RITMO_COCINA, ETAPA_BEBE, DONDE_COME, CANAL, APARATOS, paraEscribir } from "../../src/lib/vocabularios.js";
+import { KITCHEN_TOOL_IDS, APARATOS_EN_ORDEN } from "../../src/lib/electrodomesticos.js";
+import { NIVEL_COCINA, RITMO_COCINA, ETAPA_BEBE, DONDE_COME, CANAL, paraEscribir } from "../../src/lib/vocabularios.js";
 import { ETAPA_BEBE_INFO } from "../../src/lib/babyStage.js";
-import { enOrden } from "../../src/lib/enOrden.js";
+// Los aparatos, en el orden de la app: la lista vive en electrodomesticos.js y la
+// lee también el mando de trastos del panel; aquí no se copia (#967, C8 y C14).
+const TRASTOS = [...APARATOS_EN_ORDEN];
 import { ESQUEMA_DE_FUERA } from "./deFuera.js";
 import { verDespensa, anadirDespensa } from "./despensa.js";
 import { guardarMenuCole, verMenuCole } from "./cole.js";
@@ -561,14 +563,14 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "ajustar_cocina",
-      description: "Cómo se cocina en casa: estructura de la comida (primero_segundo = primero y segundo; 1_plato = plato único), esfuerzo (basic/normal/pro), tiempo por día (con_prisa/normal/con_tiempo/depende) y aparatos (Airfryer, Horno, Microondas, Thermomix, Olla rápida, Vaporera). «Tenemos airfryer» es trastosMas [Airfryer]; «ya no tenemos horno», trastosMenos [Horno]: los demás se quedan. trastos (la lista entera) SOLO cuando dicen todo lo que tienen, porque sustituye. Cocinar en tanda va por pedir_tanda.",
+      description: `Cómo se cocina en casa: estructura de la comida (primero_segundo = primero y segundo; 1_plato = plato único), esfuerzo (basic/normal/pro), tiempo por día (con_prisa/normal/con_tiempo/depende) y aparatos (${TRASTOS.join(", ")}). «Tenemos airfryer» es trastosMas [Airfryer]; «ya no tenemos horno», trastosMenos [Horno]: los demás se quedan. trastos (la lista entera) SOLO cuando dicen todo lo que tienen, porque sustituye. Cocinar en tanda va por pedir_tanda.`,
       inputSchema: obj({
         estructura: { type: "string", enum: ["primero_segundo", "1_plato"] },
         esfuerzo: { type: "string", enum: NIVEL_COCINA },
         tiempo: { type: "string", enum: RITMO_COCINA },
-        trastos: { type: "array", items: { type: "string", enum: enOrden(APARATOS, ["Airfryer", "Horno", "Microondas", "Thermomix"]) }, description: "La lista ENTERA: sustituye a la guardada." },
-        trastosMas: { type: "array", items: { type: "string", enum: enOrden(APARATOS, ["Airfryer", "Horno", "Microondas", "Thermomix"]) }, description: "Aparatos que se añaden." },
-        trastosMenos: { type: "array", items: { type: "string", enum: enOrden(APARATOS, ["Airfryer", "Horno", "Microondas", "Thermomix"]) }, description: "Aparatos que ya no tienen." },
+        trastos: { type: "array", items: { type: "string", enum: TRASTOS }, description: "La lista ENTERA: sustituye a la guardada." },
+        trastosMas: { type: "array", items: { type: "string", enum: TRASTOS }, description: "Aparatos que se añaden." },
+        trastosMenos: { type: "array", items: { type: "string", enum: TRASTOS }, description: "Aparatos que ya no tienen." },
         comidas: { type: "array", items: { type: "string", enum: COMIDAS_PRINCIPALES }, description: "Qué comidas se planifican." },
         etapaBebe: { type: "string", enum: ETAPA_BEBE, description: `Qué come el bebé: ${ETAPA_BEBE.map((e) => `${e} (${ETAPA_BEBE_INFO[e].label.toLowerCase()}: ${ETAPA_BEBE_INFO[e].desc.toLowerCase()})`).join(", ")}. «Come de todo» o «ya come de todo» es solidos; «un poco de cada» o «purés y algún trozo», mixto. Apúntalo en cuanto lo digan, antes de proponerle nada.` },
       }),

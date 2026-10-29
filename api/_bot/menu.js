@@ -25,7 +25,7 @@ import { cargaMedida } from "./medidaTurno.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, COMIDAS, comidaDe } from "../../src/lib/comidas.js";
 import { PICANTE_PEDIDO } from "../../src/data/recipeSchema.js";
 import { DIAS, DIA_LARGO_MINUSCULAS as DIA_LARGO, diaDeISO, hoyDeCasa } from "../../src/lib/dias.js";
-import { diaDeSemana, fechaDe, fechasDeLista, fechaConMenu, sumarDias, lunesDe, lunesDeSemana, buscarPersona, personasDe, grupoDePersonas, esPareja } from "./interprete.js";
+import { diaDeSemana, fechaDe, fechasDeLista, fechaConMenu, sumarDias, lunesDe, lunesDeSemana, buscarPersona, personasDe, grupoDePersonas, esPareja, normal, escapar, fechaCorta } from "./interprete.js";
 import { RASTRO, MOTIVO_CAMBIO, idBase } from "../../src/lib/rastro.js";
 import { restriccionesDeFuera, conQuienViene, describirDeFuera } from "./deFuera.js";
 import { EJE_POR_ID, puedeResponder } from "../../src/data/axisRegistry.js";
@@ -99,11 +99,9 @@ export async function prepararNutricion() {
 // Las comidas salen del catálogo (src/lib/comidas.js): una sola lista.
 const FRANJAS = IDS_COMIDAS;
 
-/** Sin tildes ni mayúsculas, para comparar lo que escribe la gente. */
-export const normal = (s) => String(s ?? "").normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase().trim();
-
-/** Lo que escribe la gente, literal dentro de un regex. */
-const escapar = (w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+// `normal` (sin tildes ni mayúsculas) y `escapar` (literal dentro de un
+// regex) viven en el intérprete: una sola copia (#967, C8).
+export { normal };
 
 /**
  * «martes», «mar», «hoy», «mañana», «el 15» → "Mar": solo el día de la
@@ -129,7 +127,6 @@ export function hoy() {
 
 const diaDeFecha = diaDeISO;
 const semanaConFecha = (casa, iso) => (casa.semanas ?? []).find((w) => w.weekStart <= iso && iso <= w.weekEnd) ?? null;
-const fechaCorta = (iso) => `${DIA_LARGO[diaDeFecha(iso)]} ${Number(iso.slice(8, 10))}`;
 
 export function rangosDelMenu(casa) {
   const ss = casa.semanas ?? [];
