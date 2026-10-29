@@ -210,16 +210,20 @@ export function diasQueQuedan(dias, offset, startDayIdx) {
  * Las últimas semanas guardadas de la casa (de cualquier menú) hasta la que
  * se genera, una por lunes, de la más reciente a la más vieja: la memoria de
  * lib/recientes.js. Las semanas que se conservan están copiadas en varios
- * menús; cuenta una vez. Si la lectura falla, sin memoria (como antes).
+ * menús; cuenta una vez.
+ * Si la lectura falla, null y no []: «no sé qué hubo» no es «no hubo nada».
+ * Con [] la poda de aiRecipes borraba las recetas de esas semanas (revisor
+ * de #966, C5). Quien llama genera sin memoria y no poda.
  */
-async function semanasAnteriores(householdId, hastaISO) {
+export async function semanasAnteriores(householdId, hastaISO) {
   const filas = await select(
     "user_menu_weeks",
     `household_id=${eq(householdId)}&week_start=lte.${hastaISO}&order=week_start.desc&limit=${VENTANA_SEMANAS * 4}`,
     "week_start,plan",
-  ).catch(fallaCon("generar_semanas_anteriores", []));
+  ).catch(fallaCon("generar_semanas_anteriores", null));
+  if (!filas) return null;
   const porLunes = new Map();
-  for (const f of filas ?? []) if (f?.week_start && !porLunes.has(f.week_start)) porLunes.set(f.week_start, { startISO: f.week_start, plan: f.plan ?? {} });
+  for (const f of filas) if (f?.week_start && !porLunes.has(f.week_start)) porLunes.set(f.week_start, { startISO: f.week_start, plan: f.plan ?? {} });
   return [...porLunes.values()].slice(0, VENTANA_SEMANAS);
 }
 
@@ -302,7 +306,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   // sube a la casa: en Lola salía vacía y la semana siguiente podía repetir los
   // platos de esta. Se saca de las semanas guardadas (#958).
   const anteriores = await semanasAnteriores(householdId, startISO);
-  weekData.menus = { guardadas: { weeks: Object.fromEntries(anteriores.map((w) => [w.startISO, w])) } };
+  weekData.menus = { guardadas: { weeks: Object.fromEntries((anteriores ?? []).map((w) => [w.startISO, w])) } };
 
   const filasDespensa = await select("user_pantry", `household_id=${eq(householdId)}&order=created_at.asc`, m.COLUMNAS_DESPENSA).catch(fallaCon("generar_despensa", []));
   const despensa = filasDespensa.map(m.filaDeDespensa);
@@ -402,7 +406,10 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
     const d = silencio.data;
     const porId = new Map((fresca.state?.aiRecipes ?? []).map((x) => [x.id, x]));
     for (const x of recipes) porId.set(x.id, x);
-    const aiRecipes = recetasQueSiguen([...porId.values()], [plan, ...semanasQueSeQuedan.map((w) => w.plan), ...anteriores.map((w) => w.plan)], fresca);
+    // Sin saber qué semanas hubo (lectura fallida), no se poda: se guarda todo.
+    const aiRecipes = anteriores
+      ? recetasQueSiguen([...porId.values()], [plan, ...semanasQueSeQuedan.map((w) => w.plan), ...anteriores.map((w) => w.plan)], fresca)
+      : [...porId.values()];
     compraFinal = { items: compraDeLaSemanaNueva(generados, fresca, { startISO, endISO, ponerSemanaNueva }) };
     return {
       // La semana nueva del menú nuevo, con la compra a mano de ahora. La foto
