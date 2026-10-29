@@ -45,7 +45,7 @@ describe("prCuerpo: el cuerpo del PR que pide el revisor", () => {
       talla: { ficheros: 2, lineas: 40, grande: false },
     };
     const c = cuerpo({ ...base, antes: { comando: "npx vitest run a.test.js", salida: "Tests  2 failed (3)", codigo: 1 }, refs: "Refs #1" });
-    for (const s of ["## Comandos y salida (C9)", "## Red before (C6, C17)", "## Decisions (C15)", "## Comprobaciones", "## Sin comprobar", "Refs #1"]) expect(c).toContain(s);
+    for (const s of ["## What changes", "## Evidence", "## Red before", "## Decisions", "## Not verified", "Refs #1"]) expect(c).toContain(s);
     expect(c).toContain("código 1");
     expect(c).not.toContain("también pasan");
     expect(cuerpo({ ...base, antes: { comando: "x", salida: "Tests  3 passed (3)", codigo: 0 } })).toContain("también pasan");

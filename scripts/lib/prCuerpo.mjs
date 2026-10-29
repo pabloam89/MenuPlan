@@ -4,6 +4,11 @@
  * hacen falta tres vueltas. Puro (sin git ni procesos), para el test; lo que lee
  * del repo lo hace scripts/pr-cuerpo.mjs.
  *
+ * Las secciones son las de la plantilla de la Fábrica
+ * (factory-am89/fabrica, .github/pull_request_template.md), que es lo que lee el
+ * revisor; allí el cuerpo sale de `npm run evidence` (node --test), y aquí los
+ * tests son de vitest.
+ *
  * Lo que se puede sacar de la máquina sale de aquí: los comandos y su salida
  * (C9), el rojo antes de los tests nuevos (C6, C17), el tamaño (C11) y los fallos
  * tragados en lo añadido (C5). Lo demás es criterio (C8, C12, C14, C15) y queda
@@ -67,14 +72,14 @@ const bloque = (texto) => ["```", texto.trim() || "(sin salida)", "```"].join("\
  */
 export function cuerpo({ titulo = "", ahora, antes = null, talla, tragados = [], refs = "" }) {
   const partes = [
-    `${titulo ? `${titulo}\n\n` : ""}## Qué y por qué\nTODO: una sola idea (C11). Si hay más de una, parte el PR.`,
-    `## Comandos y salida (C9)\n\`${ahora.comando}\` → código ${ahora.codigo}\n${bloque(resumenVitest(ahora.salida).join("\n"))}`,
+    `${titulo ? `${titulo}\n\n` : ""}## What changes\nTODO: una sola idea (C11). Si hay más de una, parte el PR.`,
+    `## Evidence\n\`${ahora.comando}\` → código ${ahora.codigo}\n${bloque(resumenVitest(ahora.salida).join("\n"))}`,
     antes
-      ? `## Red before (C6, C17)\nLos tests nuevos con el código de antes (\`${antes.comando}\`) → código ${antes.codigo}\n${bloque([...resumenVitest(antes.salida), primerError(antes.salida)].filter(Boolean).join("\n") || antes.salida.slice(-600))}${antes.codigo === 0 ? "\n\n⚠️ Sin el cambio también pasan: el test no prueba la regla (C6)." : ""}`
-      : "## Red before (C6, C17)\nNo aplica: el PR no trae tests nuevos.",
-    "## Decisions (C15)\n- principio N | eligió: … | descartó: … | motivo: …\nTODO: cada decisión que el encargo no impone (umbrales, nombres, qué se deja fuera).",
-    `## Comprobaciones\n- Tamaño (C11): ${talla.ficheros} ficheros, ${talla.lineas} líneas${talla.grande ? ` ⚠️ pasa de ${TOPE_LINEAS} líneas o ${TOPE_FICHEROS} ficheros: pártelo` : ""}.\n- Fallos tragados en lo añadido (C5): ${tragados.length ? `⚠️\n${tragados.map((t) => `  - ${t}`).join("\n")}` : "ninguno visto."}\n- TODO C8/C14: ninguna lista ni umbral copiado a mano en dos sitios.\n- TODO C12: todo lo nuevo tiene lector y no hay ficheros ajenos al encargo.`,
-    "## Sin comprobar\nTODO: lo que no se ha probado, dicho tal cual (p. ej. «Evals: no se han corrido, a petición de Pablo»).",
+      ? `## Red before\nLos tests nuevos con el código de antes (\`${antes.comando}\`) → código ${antes.codigo}\n${bloque([...resumenVitest(antes.salida), primerError(antes.salida)].filter(Boolean).join("\n") || antes.salida.slice(-600))}${antes.codigo === 0 ? "\n\n⚠️ Sin el cambio también pasan: el test no prueba la regla (C6)." : ""}`
+      : "## Red before\nNo aplica: el PR no trae tests nuevos.",
+    "## Decisions\n- principio N | eligió: … | descartó: … | motivo: …\nTODO: cada decisión que el encargo no impone (umbrales, nombres, qué se deja fuera).",
+    `## Checks (C5, C8, C11, C12, C14)\n- Tamaño (C11): ${talla.ficheros} ficheros, ${talla.lineas} líneas${talla.grande ? ` ⚠️ pasa de ${TOPE_LINEAS} líneas o ${TOPE_FICHEROS} ficheros: pártelo` : ""}.\n- Fallos tragados en lo añadido (C5): ${tragados.length ? `⚠️\n${tragados.map((t) => `  - ${t}`).join("\n")}` : "ninguno visto."}\n- TODO C8/C14: ninguna lista ni umbral copiado a mano en dos sitios.\n- TODO C12: todo lo nuevo tiene lector y no hay ficheros ajenos al encargo.`,
+    "## Not verified\nTODO: lo que no se ha probado, dicho tal cual (p. ej. «Evals: no se han corrido, a petición de Pablo»).",
   ];
   if (refs) partes.push(refs);
   partes.push("🤖 Generated with [Claude Code](https://claude.com/claude-code)");
