@@ -31,7 +31,10 @@ import { motor, describirMenu, masParecida, normal, prepararRecetas, DIA_LARGO }
 import { propiasDe } from "./propias.js";
 import { registrar, rastro, EMBUDO } from "./embudo.js";
 import { RASTRO } from "../../src/lib/rastro.js";
-import { isoDeCasa, DIAS, DIAS_FINDE } from "../../src/lib/dias.js";
+import { isoDeCasa, DIAS, DIAS_FINDE, semanasEntre } from "../../src/lib/dias.js";
+import { collectMenuRecipeIds, pruneAiRecipes, planHasDishes } from "../../src/lib/menuArchive.js";
+import { indiceSemanaCole } from "../../src/lib/schoolMenu.js";
+import { VENTANA_SEMANAS } from "../../src/lib/recientes.js";
 import { resolverSemana, conservarDiasPrevios, rangoDeFechas } from "./semanaPedida.js";
 import { conRecordatorioDeSilencio } from "../../src/lib/alergiasBase.js";
 import { apuntarRecordatorio } from "./silencio.js";
@@ -190,6 +193,50 @@ export function compraDeLaSemanaNueva(generados, casa, { startISO, endISO, poner
   return [...items, ...aMano];
 }
 
+/**
+ * Los días elegidos a mano (`menuWeekDays`) que aún no han pasado. En la
+ * semana en curso solo cuentan desde `startDayIdx` (hoy, o mañana si se
+ * rehace): con los días elegidos, generar un miércoles metía el lunes y el
+ * martes, y la compra pedía sus ingredientes (#958). Si no queda ninguno, la
+ * semana va desde hoy como sin días elegidos (null).
+ */
+export function diasQueQuedan(dias, offset, startDayIdx) {
+  if (!dias?.length || offset !== 0) return dias ?? null;
+  const quedan = dias.filter((d) => DIAS.indexOf(d) >= startDayIdx);
+  return quedan.length ? quedan : null;
+}
+
+/**
+ * Las últimas semanas guardadas de la casa (de cualquier menú) hasta la que
+ * se genera, una por lunes, de la más reciente a la más vieja: la memoria de
+ * lib/recientes.js. Las semanas que se conservan están copiadas en varios
+ * menús; cuenta una vez. Si la lectura falla, sin memoria (como antes).
+ */
+async function semanasAnteriores(householdId, hastaISO) {
+  const filas = await select(
+    "user_menu_weeks",
+    `household_id=${eq(householdId)}&week_start=lte.${hastaISO}&order=week_start.desc&limit=${VENTANA_SEMANAS * 4}`,
+    "week_start,plan",
+  ).catch(fallaCon("generar_semanas_anteriores", []));
+  const porLunes = new Map();
+  for (const f of filas ?? []) if (f?.week_start && !porLunes.has(f.week_start)) porLunes.set(f.week_start, { startISO: f.week_start, plan: f.plan ?? {} });
+  return [...porLunes.values()].slice(0, VENTANA_SEMANAS);
+}
+
+/**
+ * Las recetas generadas (`state.aiRecipes`) que aún sirven: las de los planes
+ * que siguen a la vista (`planes`: la semana nueva, las que se quedan y las
+ * recientes, por si «deshaz» vuelve al menú de antes) y las favoritas. Como
+ * pruneAiRecipes en la app al generar. En las casas que solo usan Lola no lo
+ * podaba nadie y crecía sin fin (hasta 137 el 29 oct 2026). Lo de menús más
+ * viejos sigue en user_menu_recipes, que es de donde se lee su historial.
+ */
+export function recetasQueSiguen(aiRecipes, planes, casa) {
+  const semanas = Object.fromEntries((planes ?? []).map((plan, i) => [String(i), { plan }]));
+  const quedan = collectMenuRecipeIds({ vivas: { weeks: semanas } });
+  return pruneAiRecipes(aiRecipes, quedan, new Set(Object.keys(casa?.deLaCasa?.recipeVotes ?? {})));
+}
+
 /** Borra un menú que no llegó a activarse, con sus semanas y recetas. */
 async function borrarMenu(householdId, menuId) {
   const f = `household_id=${eq(householdId)}&menu_id=${eq(menuId)}`;
@@ -238,7 +285,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   // «Esta semana» empieza hoy (no tiene sentido planificar el lunes pasado),
   // o mañana si se rehace; las demás, desde su lunes y enteras.
   const { offset, startDayIdx } = pedida;
-  const days = m.explicitDaysForOffset(working, offset);
+  const days = diasQueQuedan(m.explicitDaysForOffset(working, offset), offset, startDayIdx);
   const { startISO: inicioGenerado, endISO, activeDays } = m.computeWeekRange(offset, startDayIdx, days);
   // Rehaciendo la semana en curso, se guarda entera desde donde empezaba: lo
   // de hoy y lo pasado vuelve del plan viejo (conservarDiasPrevios, abajo).
@@ -246,10 +293,16 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   const startISO = previa ? m.computeWeekRange(0, previa.startDayIdx ?? 0, days).startISO : inicioGenerado;
   const varietyPref = ["strict", "moderate", "relaxed"].includes(working.menuVarietyPref) ? working.menuVarietyPref : "strict";
 
+  // La semana del cole que toca por FECHA (indiceSemanaCole), no siempre la 1.
   const { weekData, crossWeek, weekSchedule } = m.prepararSemana(working, {
-    groups, offset, w: 0, startDayIdx, days, activeDays, startISO, endISO,
+    groups, offset, w: indiceSemanaCole(working.schoolMenus, startISO), startDayIdx, days, activeDays, startISO, endISO,
     weekOffsets: [offset], sameForAllWeeks: true, varietyPref, weekCount: 1, hoy: hoyISO(),
   });
+  // La memoria entre menús (lib/recientes.js) lee `data.menus`, que la app no
+  // sube a la casa: en Lola salía vacía y la semana siguiente podía repetir los
+  // platos de esta. Se saca de las semanas guardadas (#958).
+  const anteriores = await semanasAnteriores(householdId, startISO);
+  weekData.menus = { guardadas: { weeks: Object.fromEntries(anteriores.map((w) => [w.startISO, w])) } };
 
   const filasDespensa = await select("user_pantry", `household_id=${eq(householdId)}&order=created_at.asc`, m.COLUMNAS_DESPENSA).catch(fallaCon("generar_despensa", []));
   const despensa = filasDespensa.map(m.filaDeDespensa);
@@ -263,6 +316,12 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   // La última puerta antes de guardar (#958): ningún plato que choque con
   // alguien de su grupo llega a la base, lo haya puesto el motor o un atajo.
   const quitados = quitarLoQueChoca(m, { ...working, groups }, plan);
+  // Un plan sin ningún plato no se guarda ni se activa: dejaría la casa sin
+  // menú y diría «generado» (#958).
+  if (!planHasDishes(plan)) {
+    if (out) Object.assign(out, { ok: false, aviso: "plan_vacio" });
+    return "NO GUARDADO: el motor no ha podido poner ningún plato en esa semana (revisa los días elegidos y quién come). Sigue el menú de antes.";
+  }
   const sh = m.buildShoppingList(plan, groups, m.getDayMeals(weekData), despensa);
   const generados = [...sh.byCategory.flatMap((c) => c.items), ...(sh.pantryItems ?? [])];
   let shopping = { items: generados };
@@ -309,7 +368,10 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
       m.weekToRow(dueno, menu.id, startISO, week, householdId),
       // Con el dueño del menú nuevo: la semana pudo guardarla un cotitular, y
       // la FK (user_id, menu_id) → user_menus la rechazaría.
-      ...semanasQueSeQuedan.map((w) => ({ ...w, user_id: dueno, menu_id: menu.id, active_days: listaParaEscribir("dias", w.active_days) })),
+      // El offset se CALCULA desde hoy, como el de la nueva: copiado, era
+      // relativo al día en que se generó, podía repetir el de la nueva y la app
+      // (que identifica la semana por él) pisaba una con la otra (#958).
+      ...semanasQueSeQuedan.map((w) => ({ ...w, user_id: dueno, menu_id: menu.id, week_offset: semanasEntre(hoy, w.week_start), active_days: listaParaEscribir("dias", w.active_days) })),
     ]);
     const porReceta = new Map(recetasQueSeQuedan.map((f) => [f.recipe_id, f.recipe_snapshot]));
     for (const r of recipes) if (r?.id) porReceta.set(r.id, r);
@@ -340,6 +402,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
     const d = silencio.data;
     const porId = new Map((fresca.state?.aiRecipes ?? []).map((x) => [x.id, x]));
     for (const x of recipes) porId.set(x.id, x);
+    const aiRecipes = recetasQueSiguen([...porId.values()], [plan, ...semanasQueSeQuedan.map((w) => w.plan), ...anteriores.map((w) => w.plan)], fresca);
     compraFinal = { items: compraDeLaSemanaNueva(generados, fresca, { startISO, endISO, ponerSemanaNueva }) };
     return {
       // La semana nueva del menú nuevo, con la compra a mano de ahora. La foto
@@ -358,7 +421,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
         // (se ha pedido la siguiente), sigue siendo esa.
         menuPlan: ponerSemanaNueva ? plan : deHoy.plan,
         shopping: ponerSemanaNueva ? compraFinal : deHoy.shopping,
-        aiRecipes: [...porId.values()],
+        aiRecipes,
       },
     };
   });

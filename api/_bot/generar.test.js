@@ -271,3 +271,72 @@ describe("la compra de la semana nueva: cada artículo en una sola lista (#958)"
     expect(r.map((i) => [i.name, !!i.have, !!i.atHome])).toEqual([["huevos", true, false], ["arroz", false, true], ["pan", false, false]]);
   });
 });
+
+describe("semanas por fecha y memoria entre menús (#958)", () => {
+  it("las semanas que se quedan llevan el offset calculado desde hoy, nunca el copiado", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-10-29T10:00:00Z")); // jueves
+    try {
+      // La de la semana que viene se generó hace una semana: guardada como offset 2.
+      cargarCasa.mockResolvedValue({ ...structuredClone(casaVieja), semanas: [{ weekStart: "2026-11-02", weekEnd: "2026-11-08" }] });
+      select.mockImplementation(async (tabla) => {
+        if (tabla === "households") return [{ owner_user_id: "u1" }];
+        if (tabla === "user_menu_weeks") return [{ user_id: "u1", household_id: "h1", week_start: "2026-11-02", week_end: "2026-11-08", week_offset: 2, plan: {} }];
+        return [];
+      });
+      motor.mockResolvedValue({ ...m, computeWeekRange: () => ({ startISO: "2026-10-29", endISO: "2026-11-01", activeDays: ["Jue"] }) });
+      conCasa.mockResolvedValue({ ok: true });
+      await generarMenu("h1", "esta", [], {});
+      const semanas = insert.mock.calls.find(([t]) => t === "user_menu_weeks")[1];
+      expect(semanas.find((w) => w.week_start === "2026-11-02").week_offset).toBe(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("el motor recibe las semanas guardadas como memoria (lib/recientes.js)", async () => {
+    select.mockImplementation(async (tabla, filtro) => {
+      if (tabla === "households") return [{ owner_user_id: "u1" }];
+      if (tabla === "user_menu_weeks" && /week_start=lte/.test(filtro)) {
+        return [
+          { week_start: "2026-10-19", plan: { g1: { "Lun-Cena": { recipeId: "lentejas" } } } },
+          { week_start: "2026-10-19", plan: { g1: { "Lun-Cena": { recipeId: "copia" } } } },
+          { week_start: "2026-10-12", plan: {} },
+        ];
+      }
+      return [];
+    });
+    let recibido;
+    motor.mockResolvedValue({ ...m, generateMenuWithAI: async (wd) => { recibido = wd; return { plan, recipes: [] }; } });
+    conCasa.mockResolvedValue({ ok: true });
+    await generarMenu("h1", "esta", [], {});
+    const semanas = Object.values(recibido.menus.guardadas.weeks);
+    expect(semanas.map((w) => w.startISO)).toEqual(["2026-10-19", "2026-10-12"]);
+    expect(semanas[0].plan.g1["Lun-Cena"].recipeId).toBe("lentejas");
+  });
+
+  it("un plan sin platos no se guarda ni se activa", async () => {
+    motor.mockResolvedValue({ ...m, generateMenuWithAI: async () => ({ plan: { g1: {}, _warnings: ["nada"] }, recipes: [] }) });
+    const out = {};
+    const texto = await generarMenu("h1", "esta", [], out);
+    expect(texto).toMatch(/^NO GUARDADO/);
+    expect(out.ok).toBe(false);
+    expect(insert).not.toHaveBeenCalled();
+    expect(conCasa).not.toHaveBeenCalled();
+  });
+
+  it("los días elegidos de la semana en curso que ya pasaron no entran", async () => {
+    const { diasQueQuedan } = await import("./generar.js");
+    expect(diasQueQuedan(["Lun", "Mar", "Jue", "Sáb"], 0, 2)).toEqual(["Jue", "Sáb"]);
+    expect(diasQueQuedan(["Lun", "Mar"], 0, 2)).toBeNull();
+    expect(diasQueQuedan(["Lun", "Mar"], 1, 2)).toEqual(["Lun", "Mar"]);
+    expect(diasQueQuedan(null, 0, 2)).toBeNull();
+  });
+
+  it("aiRecipes se poda a lo que sigue a la vista y a las favoritas", async () => {
+    const { recetasQueSiguen } = await import("./generar.js");
+    const ai = [{ id: "a" }, { id: "b" }, { id: "c" }, { id: "fav" }];
+    const r = recetasQueSiguen(ai, [{ g1: { "Lun-Cena": { recipeId: "a" } } }, { g1: { "Mar-Comida": { firstRecipeId: "b" } } }], { deLaCasa: { recipeVotes: { fav: {} } } });
+    expect(r.map((x) => x.id)).toEqual(["a", "b", "fav"]);
+  });
+});

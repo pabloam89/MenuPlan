@@ -104,6 +104,7 @@ import {
   toggleMenuFavorite,
   saveActivePlanAsFavorite,
   semanaVivaPorGuardar,
+  semanaPorOffset,
   collectMenuRecipeIds,
   pruneAiRecipes,
   pruneMenuHistory,
@@ -3099,7 +3100,8 @@ export default function App() {
     setData((d) => {
       const m = d.menus?.[menuId];
       if (!m?.weeks) return d;
-      const entry = Object.entries(m.weeks).find(([, w]) => w?.offset === offset);
+      // Solo si el offset es de UNA semana (semanaPorOffset, #958).
+      const entry = semanaPorOffset(m.weeks, offset);
       if (!entry) return d;
       const [weekStart, wk] = entry;
       if (wk.shopping === shopping) return d;
