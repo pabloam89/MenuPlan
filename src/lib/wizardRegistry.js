@@ -40,6 +40,8 @@
 import { estadoDe, valorDe } from "./notepad.js";
 import { KITCHEN_TOOL_IDS } from "./electrodomesticos.js";
 import { enOrden } from "./enOrden.js";
+import { alergiasRevisadas } from "./alergiasBase.js";
+import { conEstructura } from "./estructuraPlatos.js";
 import { COOK_LEVELS, COOK_TIME_DEFAULTS, cookLevelForMinutes, cookLevelMinutes } from "./cookTime.js";
 import { rutaDeReparto } from "./reparto.js";
 import { KID_DINNER_DEFAULTS, kidMembers, normalizeKidDinnerConfig } from "./kidsMenu.js";
@@ -175,7 +177,15 @@ export const PREGUNTAS = [
     // "Ninguna" es una respuesta, y por eso se lee el flag y no la lista: un
     // array vacío no distingue "no tenemos" de "no lo hemos mirado", y esa
     // diferencia es justo la que no se puede suponer.
-    lee: (data) => (data?.allergiesReviewed ? (data.allergies ?? []) : null),
+    // Las alergias viven en cada persona (members[].allergies, con su
+    // alergiasRevisadas); `data.allergies` ya no existe y leerlo daba siempre
+    // «ninguna» (#958). Contestado cuando todas están revisadas; el valor,
+    // las de toda la casa juntas.
+    lee: (data) => {
+      const personas = data?.members ?? [];
+      if (!personas.length || !personas.every((m) => alergiasRevisadas(data, m))) return null;
+      return [...new Set(personas.flatMap((m) => m.allergies ?? []))];
+    },
     requiere: ["members"],
     activa: null,
     refina: null,
@@ -328,7 +338,10 @@ export const PREGUNTAS = [
     control: "cards-ab",
     fuente: "data",
     lee: (data) => data?.mealStructure ?? null,
-    escribe: (data, valor) => ({ ...data, mealStructure: valor }),
+    // Para toda la casa, también los grupos que tenían la suya: si no, en modo
+    // experto el cambio no se notaba (estructuraPlatos.js, #958). Lo usan la
+    // app y Lola (ajustes.js, ajustar_cocina).
+    escribe: (data, valor) => conEstructura(data, valor),
     // Los dos valores que el planner entiende de VERDAD. Ojo con "1_plato":
     // parece un histórico y no lo es — es el valor que compara aiPlanner.js
     // (`mealStructure === "1_plato"`). Ofrecer "unico" aquí dejaba el control

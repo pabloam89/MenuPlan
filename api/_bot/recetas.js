@@ -23,7 +23,7 @@
 
 import { seguirCon, fallaCon } from "./avisar.js";
 import { select, insert, eq, config } from "./db.js";
-import { cargarCasa, conCasa } from "./casa.js";
+import { cargarCasa, olvidarCasa } from "./casa.js";
 import { motor, normal, prepararRecetas } from "./menu.js";
 import { propiasDe } from "./propias.js";
 import { duenoDe, rastro, registrar } from "./embudo.js";
@@ -323,16 +323,18 @@ export async function guardarReceta(householdId, { confirmado }, chat) {
 }
 
 /**
- * Guarda una receta ya hecha como propia de la casa: en `user_recipes` (donde
- * la lee la app, a nombre del dueño de la casa) y en `data.userRecipes` (para
- * que el motor ya pueda ponerla al generar desde el chat).
+ * Guarda una receta ya hecha como propia de la casa, en `user_recipes`: de ahí
+ * la lee la app, y también Lola y su motor (casa.js → propias.js, cada vez que
+ * carga la casa). Antes se copiaba además en `data.userRecipes`, que la app
+ * quita en cada guardado: dos sitios para un dato (#958). Ya no se escribe; se
+ * sigue leyendo solo de respaldo, si la tabla no contesta (propias.js).
  *
  * La receta llega con la forma de la app (la de `recetaParaGuardar`). Quien
  * copia la de otra persona le pone antes id nuevo (`user_…`), `owner` y
  * `copiedFromRecipeId` / `copiedFromOwnerId`: aquí no se decide nada de eso.
  *
  * @returns {Promise<{ ok: boolean, enRecetario: boolean, error?: string }>}
- *   `enRecetario`: si llegó a `user_recipes` (aunque la casa no se apuntara).
+ *   `enRecetario`: si llegó a `user_recipes`.
  */
 export async function guardarRecetaPropia(householdId, receta) {
   const dueno = receta.owner?.id ?? (await duenoDe(householdId));
@@ -340,12 +342,10 @@ export async function guardarRecetaPropia(householdId, receta) {
   const m = await motor();
   const lista = { ...receta, owner: receta.owner ?? { id: dueno }, source: "user" };
   await insert("user_recipes", [m.recipeToRow(lista, dueno)], { upsert: true });
-  const r = await conCasa(householdId, (casa) => {
-    const data = casa.state?.data ?? {};
-    const otras = (data.userRecipes ?? []).filter((x) => x.id !== lista.id);
-    return { state: { ...casa.state, data: { ...data, userRecipes: [...otras, lista] } } };
-  });
-  return r.ok ? { ok: true, enRecetario: true } : { ok: false, enRecetario: true, error: r.error };
+  // La casa recordada de hace unos segundos no la trae: que el siguiente
+  // turno (o el generar de este) la lea de la tabla.
+  olvidarCasa(householdId);
+  return { ok: true, enRecetario: true };
 }
 
 /**

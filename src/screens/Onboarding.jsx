@@ -151,6 +151,8 @@ import { SCHOOL_DAYS, SCHOOL_COURSES, hasAnySchoolDish, householdHasSchoolMenu, 
 import { outStateFor, isHomeState, nextSlotState, resolveQuickActions } from "../lib/schedulePresets.js";
 import { importSchoolMenuFile, selectBestWeek } from "../lib/schoolMenuImport.js";
 import { SchoolMenuDeck } from "./SchoolMenuDeck.jsx";
+import { quitarPersona } from "../lib/quitarPersona.js";
+import { conEstadosDieta } from "../lib/estadosDieta.js";
 
 const MEAL_STRUCTURE_CARDS = [
   {
@@ -764,7 +766,9 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
   const removeMember = (id) => {
     setRemovingIds((s) => new Set([...s, id]));
     setTimeout(() => {
-      setData((d) => ({ ...d, members: d.members.filter((m) => m.id !== id) }));
+      // Con todo lo suyo (huecos, cena de los peques, cole, reglas, grupo…):
+      // la misma función que usa Lola (src/lib/quitarPersona.js, #958).
+      setData((d) => quitarPersona(d, id));
       setRemovingIds((s) => { const n = new Set(s); n.delete(id); return n; });
     }, 260);
   };
@@ -2307,8 +2311,9 @@ export function OnboardingRestrictions({
     toggleScopeMembership((m) => m.intolerances ?? [], (m, list) => ({ ...m, intolerances: list }), id, eq);
 
   const activeHasState = (id) => allScopeHave((m) => (m.dietaryStates ?? []).includes(id));
+  // Al desmarcar un estado se va también su meta (su `hasta`): estadosDieta.js, #958.
   const toggleDietaryState = (_target, id) =>
-    toggleScopeMembership((m) => m.dietaryStates ?? [], (m, list) => ({ ...m, dietaryStates: list }), id, eq);
+    toggleScopeMembership((m) => m.dietaryStates ?? [], (m, list) => conEstadosDieta(m, list), id, eq);
 
   const activeHasHealthProfile = (id) => allScopeHave((m) => (m.healthProfiles ?? []).includes(id));
   const toggleHealthProfile = (_target, id) =>

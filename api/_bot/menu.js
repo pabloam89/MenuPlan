@@ -33,6 +33,7 @@ import { PERFILES, ordenarPorPerfil } from "../../src/lib/derive/perfiles.js";
 import { etapaDe } from "../../src/lib/stages.js";
 import { vetosDePersona } from "../../src/lib/vetos.js";
 import { alergiasPorSilencio } from "../../src/lib/alergiasBase.js";
+import { estructuraDelGrupo } from "../../src/lib/estructuraPlatos.js";
 
 let motorCargado = null;
 // Las recetas que trae el motor de serie (antes de registrar ninguna casa).
@@ -212,36 +213,14 @@ export async function prepararRecetas(casa) {
     const fotos = filas.map((f) => f.recipe_snapshot).filter(Boolean);
     if (fotos.length) m.registerRecipes(fotos);
   }
-  repararGrupos(m, casa);
+  // Aquí había un repararGrupos que, para menús de antes del 30 sep 2026 con
+  // grupos que la casa no conocía, reescribía casa.state.data.groups EN ESTA
+  // LECTURA; y cambiar_plato, que guarda `{ ...casa.state }`, lo persistía sin
+  // decirlo (#958: un dato escrito desde un sitio que solo lee). Ya no hacía
+  // falta: generar.js guarda los grupos desde el 30 sep, conservan su id desde
+  // oct (conservarIds, lib/groups.js), y el 29 oct 2026 había 0 de 16 semanas
+  // vivas con grupos que su casa no conoce. prepararRecetas ya no toca la casa.
   return m;
-}
-
-/**
- * Las casas creadas desde el chat no guardaban sus grupos: generar los sacaba
- * del modelo (groupsFromModel) para el plan y no los escribía en la casa. El
- * plan tenía grupos que `data.groups` no conocía, y el motor, al buscar el
- * grupo de un hueco, no encontraba nada: proponer y cambiar un plato salían
- * vacíos («no hay otras recetas que encajen»), y el menú enseñaba «grupo 1».
- *
- * generar.js ya los guarda (30 sep 2026). Para las casas de antes se rehacen
- * aquí, en memoria: los mismos grupos del modelo, con los ids del plan por
- * orden (el plan los crea en ese mismo orden). Solo si cuadran en número.
- *
- * Desde oct 2026 los grupos conservan su id al rehacerse (conservarIds,
- * lib/groups.js), así que esto ya no hace falta para lo nuevo: solo para los
- * menús guardados antes. Quitarlo cuando no quede ninguna semana viva generada
- * antes del 30 sep 2026 con grupos que la casa no conoce.
- */
-function repararGrupos(m, casa) {
-  const data = casa.state?.data;
-  const plan = casa.semana?.plan;
-  if (!data || !plan || !(data.members ?? []).length) return;
-  const ids = Object.keys(plan).filter((k) => !k.startsWith("_"));
-  const conocidos = new Set((data.groups ?? []).map((g) => g?.id));
-  if (!ids.length || ids.every((id) => conocidos.has(id))) return;
-  const modelo = m.groupsFromModel(data.members, m.resolveModeData(data).menuModel);
-  if (modelo.length !== ids.length) return;
-  casa.state.data = { ...data, groups: ids.map((id, i) => ({ ...modelo[i], id })) };
 }
 
 /**
@@ -1046,13 +1025,14 @@ export async function ideasSinMenu(casa, { diaPedido, franja, grupo, para = null
   if (!elegidos.length) return grupo ? `No encuentro el grupo «${grupo}» en la casa.` : "La casa todavía no tiene a nadie apuntado.";
   const dia = diaDe(diaPedido) ?? hoy();
   const clave = `${dia}-${franja}`;
-  // Con primero y segundo, el hueco de la comida pide un segundo; sin él, plato único.
-  const conPrimero = franja === "Comida" && (cual === "primero" || data.mealStructure !== "1_plato");
+  // Con primero y segundo, el hueco de la comida pide un segundo; sin él, plato
+  // único. La de cada grupo, como el motor (estructuraPlatos.js, #958).
+  const conPrimero = (g) => franja === "Comida" && (cual === "primero" || estructuraDelGrupo(data, g.id) !== "1_plato");
   const detalle = (r) => detalleDe(r, estilo);
   const bloques = [];
   let num = 0;
   for (const g of elegidos) {
-    const plan = { [g.id]: { [clave]: { recipeId: null, firstRecipeId: conPrimero ? "_" : null, eaters: m.membersOfGroup(g, data.members ?? []).length || 2 } } };
+    const plan = { [g.id]: { [clave]: { recipeId: null, firstRecipeId: conPrimero(g) ? "_" : null, eaters: m.membersOfGroup(g, data.members ?? []).length || 2 } } };
     const res = m.pickCatalogReplacement(conQuienViene(data, [g.id], deFuera), plan, { hoy: hoyISO(), groupId: g.id, day: dia, meal: franja, course: cual === "primero" ? "first" : "main", candidatos: pideTipo(tipo ?? {}) ? POOL_PARA_APROXIMAR : POOL_PARA_VARIAR });
     const nut = await prepararNutricion();
     const filtro = filtrarCandidatas(delTipo(res?.candidatos ?? [], tipo ?? {}), { rasgos, ejes, perfil, cual }, null, nut);

@@ -186,6 +186,9 @@ export const DATOS_CASA = Object.freeze({
   tanda: dato({ tema: "cocina", tipo: "mapa", libreta: "tanda" }),
   tandaPlatos: dato({ tema: "cocina", tipo: "mapa", libreta: "tandaPlatos" }),
   tandaMinutos: dato({ tema: "cocina", tipo: "int" }),
+  // Faltaba (#958): Lola lo escribía y el motor lo leía, pero el inventario
+  // solo miraba INITIAL_DATA y la base. Ahora mira también lo que escribe api/_bot.
+  diaTanda: dato({ tema: "cocina", tipo: "enum", vocabulario: "dias", motivo: "el día en que se cocina la tanda; sin él, el domingo" }),
   garnishRepeat: dato({ tema: "cocina", tipo: "enum", estado: "legado", motivo: "el motor ya no lo lee (aiPlanner.js); la app solo lo sanea" }),
 
   // ── Despensa ──

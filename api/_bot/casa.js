@@ -54,6 +54,8 @@ export function enSemana(casa, weekStart) {
 // una escritura ajena, vuelve a leer de verdad.
 const RECIENTE_MS = 8000;
 const recientes = new Map();
+/** Lo recordado de la casa ya no vale: se escribió fuera de household_state (una receta en user_recipes). */
+export const olvidarCasa = (householdId) => { recientes.delete(householdId); };
 export async function cargarCasa(householdId, { fresca = false } = {}) {
   const r = recientes.get(householdId);
   // Siempre una copia: quien la reciba puede tocarla sin estropear la de los demás.

@@ -28,6 +28,8 @@ import { ETAPA_BEBE } from "../../src/lib/vocabularios.js";
 import { supermercadoDe, CON_PRECIOS } from "../../src/lib/supermercados.js";
 import { EXTRAS, conExtras } from "../../src/lib/extras.js";
 import { aplicarDiasDeSemana, diasDeSemana } from "../../src/lib/semanaDias.js";
+import { quitarPersona } from "../../src/lib/quitarPersona.js";
+import { estructuraEfectiva } from "../../src/lib/estructuraPlatos.js";
 
 const hoyISO = () => isoDeCasa();
 // Del catálogo de comidas (src/lib/comidas.js).
@@ -124,8 +126,14 @@ export async function describirAjustes(casa) {
   const nombre = (id) => (d.members ?? []).find((p) => p.id === id)?.name ?? id;
   const horario = fuera.slice(0, 40).map(([k, v]) => { const [id, dia, comida] = k.split("|"); return `• ${nombre(id)}: ${DIA_LARGO[dia] ?? dia} ${comida} → ${v}`; });
   const reglas = (d.reglas ?? []).map((r) => `• ${m.describirRegla(r, d)}`);
+  // La que usa el motor, no solo la de la casa: con estructura por grupo
+  // (modo experto) manda la del grupo (estructuraPlatos.js, #958).
+  const efectiva = estructuraEfectiva(d);
+  const estructura = efectiva.porGrupo
+    ? efectiva.porGrupo.map((x) => `${x.grupo}: ${x.valor}`).join("; ")
+    : d.mealStructure ?? `${efectiva.casa} (por defecto)`;
   return [
-    `Estructura de la comida: ${d.mealStructure ?? "(por defecto)"}\nNivel de cocina: ${d.cookLevel ?? "normal"}\nTrastos: ${(d.kitchenTools ?? []).join(", ") || "(sin decir)"}`,
+    `Estructura de la comida: ${estructura}\nNivel de cocina: ${d.cookLevel ?? "normal"}\nTrastos: ${(d.kitchenTools ?? []).join(", ") || "(sin decir)"}`,
     `Gustos en la libreta:\n${gustos.join("\n") || "(nada todavía: todo por defecto, menú equilibrado)"}`,
     `Quién NO come en casa (el resto, en casa):\n${horario.join("\n") || "(todos comen en casa siempre)"}${fuera.length > 40 ? `\n… y ${fuera.length - 40} más` : ""}`,
     `Reglas e invitados:\n${reglas.join("\n") || "(ninguna)"}`,
@@ -664,10 +672,11 @@ export async function quitarComensal(householdId, { nombre }) {
   return conData(householdId, (data, m) => {
     const x = personaPorNombre(data, nombre);
     if (!x) return { texto: noEncuentro(data, nombre) };
-    const members = (data.members ?? []).filter((p) => p.id !== x.id);
-    if (!members.length) return { texto: "No puedo dejar la casa sin nadie." };
-    const schedule = Object.fromEntries(Object.entries(data.schedule ?? {}).filter(([k]) => !k.startsWith(`${x.id}|`)));
-    return { data: { ...conGrupos(m, data, members), schedule }, texto: `Quitado de la casa: ${x.name}.` };
+    // Con todo lo suyo, con la misma función que la app (#958): antes aquí solo
+    // se limpiaba schedule, y en la app solo members.
+    const sinElla = quitarPersona(data, x.id);
+    if (!sinElla.members.length) return { texto: "No puedo dejar la casa sin nadie." };
+    return { data: conGrupos(m, sinElla, sinElla.members), texto: `Quitado de la casa: ${x.name}.` };
   });
 }
 

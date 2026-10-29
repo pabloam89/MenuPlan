@@ -93,6 +93,13 @@ export async function saveHouseholdState(householdId, state, botRev = null) {
   return { ok: true, botRev: data?.bot_rev == null ? botRev : Number(data.bot_rev) };
 }
 
+/**
+ * Sin versión, a propósito, y por qué no es un riesgo (#958): solo corre si la
+ * base NO tiene save_household_state (PGRST202), es decir, una base sin la
+ * 0057/0068, donde tampoco existe la columna bot_rev con la que condicionar.
+ * En la base de HoMenu la función existe (comprobado el 29 oct 2026), así que
+ * aquí no se llega; se queda para levantar la app contra una base vacía.
+ */
 async function upsertLegacy(householdId, state, botRev) {
   const { error } = await supabase.from("household_state").upsert(
     {

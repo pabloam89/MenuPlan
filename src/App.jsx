@@ -140,6 +140,7 @@ import {
   favScopeOf,
   isRecipeFavorite,
   mergeVotes,
+  votosDeLaCasa,
   loadRecipeVotes,
   saveRecipeVote,
   deleteRecipeVote,
@@ -469,6 +470,9 @@ const INITIAL_DATA = {
   // bases: mezclarlos convertía "más pasta" en dos platos obligatorios. Ver la
   // cabecera de `tanda` en lib/notepadFields.js.
   tanda: {},
+  // El día en que la casa cocina la tanda (DIAS: «Mié»); sin él, el domingo.
+  // Lo escribe Lola (ajustes.js, configurar_tanda) y lo leen el motor y el Menú.
+  diaTanda: null,
   cookLevel: "normal",
   cookSkills: [],
   // Cual de los miembros es la persona de la cuenta. Se marca a mano en Mi
@@ -1510,9 +1514,13 @@ export default function App() {
       const mergedCollections = mergeCollections(localCollections, remoteCollections);
       const mergedFolders = mergeFolders(localFolders, remoteFolders);
       const personalVotes = mergeVotes(localVotes, remoteVotes);
-      const mergedVotes = mergeVotes(
+      // Con casa, sus favoritas son las de household_favorites y ninguna más,
+      // como en Lola (#958): antes se mezclaban las personales de quien abría
+      // la app, y la misma casa generaba distinto según quién generara.
+      const mergedVotes = votosDeLaCasa(
         personalVotes,
-        householdFavoritesToVotes(remoteHouseholdFavs, personalVotes),
+        // Si no se pudieron leer, lo de antes (no se vacían las favoritas por un corte).
+        householdId && !cargaFavsCasa.error ? householdFavoritesToVotes(remoteHouseholdFavs, personalVotes) : null,
       );
       setPersonalRecipeVotes(personalVotes);
 
@@ -3524,13 +3532,22 @@ export default function App() {
       delete profile.recipeVotes;
       delete profile.discards;
       delete profile.menus;
-      await saveHouseholdState(result.householdId, {
-        data: profile,
-        menuPlan: {},
-        shopping: { items: [] },
-        aiRecipes: [],
-        onbStep: 0,
-      });
+      // Con versión (#958): antes se guardaba sin ella, y la casa que queda
+      // activa tras vaciar no tiene por qué ser una recién creada (puede ser
+      // otra en la que la persona ya estaba, con su familia y su menú). Solo se
+      // escribe la casa vacía si la que queda no tiene a nadie, y condicionada
+      // a la versión leída: si Lola u otro escribe entretanto, no se pisa.
+      const actual = await loadHouseholdState(result.householdId);
+      const yaTieneCasa = (actual?.state?.data?.members ?? []).length > 0;
+      if (!actual?.error && !yaTieneCasa) {
+        await saveHouseholdState(result.householdId, {
+          data: profile,
+          menuPlan: {},
+          shopping: { items: [] },
+          aiRecipes: [],
+          onbStep: 0,
+        }, actual?.botRev ?? null);
+      }
     }
 
     showToast("Hogar vaciado");
