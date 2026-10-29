@@ -25,8 +25,17 @@ import { primeraVez, yaVista, esDuplicado } from "./entradas.js";
 import { SIN_LEER } from "./avisar.js";
 import { huella } from "./operacion.js";
 import { CANAL } from "../../src/lib/vocabularios.js";
+import { resultado } from "./resultado.js";
 
-const MAX_POR_VEZ = 40;
+// Lo que cabe en una llamada; el esquema de anadir_despensa (agente.js) lo
+// importa. Seis tickets son ~70 cosas: con 40 se cortaba el resto sin decirlo
+// y Lola contestaba «todo apuntado» (#958). Lo que pase de aquí no se tira:
+// sale en el recibo como «sin hacer».
+export const MAX_POR_VEZ = 150;
+// Cuántos nombres van en cada consulta de lo que ya hay: con 150 claves en una
+// sola dirección la URL se haría de varios KB; 40 es lo que ya iba antes en
+// una consulta.
+export const TANDA_CONSULTA = 40;
 const INTENTOS = 3;
 // La misma lista en este rato es la misma orden repetida (un doble «Sí»).
 export const VENTANA_REPETIDA_MS = 10 * 60 * 1000;
@@ -95,8 +104,10 @@ export async function anadirDespensa(householdId, items, origen = "texto", { otr
   const dueno = await duenoDe(householdId);
   if (!dueno) return "No encuentro quién gestiona esta casa.";
   const m = await motor();
-  const lista = (items ?? []).filter((it) => String(it?.nombre ?? "").trim()).slice(0, MAX_POR_VEZ);
-  if (!lista.length) return "No hay nada que apuntar.";
+  const todas = (items ?? []).filter((it) => String(it?.nombre ?? "").trim());
+  if (!todas.length) return "No hay nada que apuntar.";
+  const lista = todas.slice(0, MAX_POR_VEZ);
+  const sobran = todas.slice(MAX_POR_VEZ).map((it) => ({ que: String(it.nombre).trim(), motivo: `caben ${MAX_POR_VEZ} de una vez: mándame el resto en otro mensaje` }));
 
   const entradas = lista.map((it) => {
     const nombre = String(it.nombre).trim();
@@ -123,11 +134,16 @@ export async function anadirDespensa(householdId, items, origen = "texto", { otr
   }
 
   const claves = [...new Set(entradas.map((e) => e.normalized))];
-  const filtro = `household_id=${eq(householdId)}&item_type=eq.ingredient&ingredient_normalized=in.(${claves.map((k) => `"${k.replace(/"/g, "")}"`).map(encodeURIComponent).join(",")})`;
+  const filtro = (trozo) => `household_id=${eq(householdId)}&item_type=eq.ingredient&ingredient_normalized=in.(${trozo.map((k) => `"${k.replace(/"/g, "")}"`).map(encodeURIComponent).join(",")})`;
+  const leerExistentes = async () => {
+    const filas = [];
+    for (let i = 0; i < claves.length; i += TANDA_CONSULTA) filas.push(...await select("user_pantry", filtro(claves.slice(i, i + TANDA_CONSULTA)), "id,ingredient_normalized,qty,unit,frozen"));
+    return filas;
+  };
   const hechas = { nuevas: [], sumadas: new Map(), sinSumar: [] };
   let pendientes = entradas;
   for (let i = 0; i < INTENTOS && pendientes.length; i++) {
-    const plan = planDespensa(pendientes, await select("user_pantry", filtro, "id,ingredient_normalized,qty,unit,frozen"), m.convertStockAmount);
+    const plan = planDespensa(pendientes, await leerExistentes(), m.convertStockAmount);
     // Lo que hay que repetir porque otra escritura se cruzó: se relee y se suma.
     const repetir = new Set();
     if (plan.nuevas.length) {
@@ -157,12 +173,20 @@ export async function anadirDespensa(householdId, items, origen = "texto", { otr
   }
   if (hechas.nuevas.length || hechas.sumadas.size) await primeraVez(CANAL.TELEGRAM, llave(tramo));
 
-  const total = hechas.nuevas.length + hechas.sumadas.size;
-  const sinApuntar = hechas.sinSumar.length
-    ? `\nSIN APUNTAR (no se pueden sumar unidades distintas): ${hechas.sinSumar.map((s) => `${s.nombre} (hay en ${UNIDAD[s.tiene] ?? s.tiene} y viene en ${UNIDAD[s.viene] ?? s.viene})`).join(", ")}. Díselo y pregunta la cantidad en la unidad que ya tiene.`
-    : "";
-  const cruzados = pendientes.length
-    ? `\nNO GUARDADO: ${pendientes.map((e) => e.nombre).join(", ")} (otros cambios en la despensa a la vez). Mira la despensa antes de volver a intentarlo, para no sumar dos veces.`
-    : "";
-  return `Despensa: ${hechas.nuevas.length} alimentos nuevos${hechas.sumadas.size ? ` y ${hechas.sumadas.size} sumados a lo que ya había` : ""} (${total} en total). La compra del próximo menú lo tiene en cuenta.${sinApuntar}${cruzados}`;
+  // El recibo (resultado.js, #958): cada cosa dicha, apuntada o no, con su porqué.
+  const guardadas = new Set([...hechas.nuevas.map((e) => clave(e.normalized, e.frozen)), ...[...hechas.sumadas.values()].map((f) => clave(f.ingredient_normalized, f.frozen))]);
+  const sinSumar = new Set(hechas.sinSumar.map((s) => `${s.k}|${s.nombre}`));
+  const sinHacer = [
+    ...hechas.sinSumar.map((s) => ({ que: s.nombre, motivo: `ya estaba en ${UNIDAD[s.tiene] ?? s.tiene} y viene en ${UNIDAD[s.viene] ?? s.viene}: dime cuánto en ${UNIDAD[s.tiene] ?? s.tiene}` })),
+    ...pendientes.map((e) => ({ que: e.nombre, motivo: "otros cambios en la despensa a la vez: mírala antes de repetirlo" })),
+    ...sobran,
+  ];
+  const hecho = entradas.filter((e) => {
+    const k = clave(e.normalized, e.frozen);
+    return guardadas.has(k) && !sinSumar.has(`${k}|${e.nombre}`) && !pendientes.includes(e);
+  }).map((e) => e.nombre);
+  return resultado({
+    accion: "despensa", hecho, sinHacer,
+    nota: `${hechas.nuevas.length} alimentos nuevos${hechas.sumadas.size ? ` y ${hechas.sumadas.size} sumados a lo que ya había` : ""}. La compra del próximo menú lo tiene en cuenta.`,
+  });
 }
