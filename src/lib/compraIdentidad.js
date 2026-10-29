@@ -59,12 +59,16 @@ export function anadirArticulos(items, nombres, sello = () => Date.now().toStrin
   return res;
 }
 
-const claveConUnidad = (it) => normalizeIngredientKey(it?.name ?? "", it?.unit || "ud");
+// La clave con la que la lista junta ingredientes: la de cada fila nueva es su
+// `id` (buildShoppingList lo hace así); la de una vieja, de su nombre y unidad.
+const claveConUnidad = (it) => normalizeIngredientKey(it?.name ?? "", it?.unit ?? "ud");
 
 /**
  * La lista `nuevos` con las marcas de `viejos` del mismo ingrediente y unidad:
- * rehacer la semana no puede desmarcar lo que ya se compró. Solo pasa lo
- * marcado (true); lo demás se queda como venga en la nueva.
+ * rehacer la semana, cambiar un plato o los comensales no puede desmarcar lo
+ * que ya se compró. Solo pasa lo marcado (true); lo demás se queda como venga
+ * en la nueva. La usan Lola (generar.js) y la app (App.jsx), que antes tenía
+ * cinco copias de esta regla.
  */
 export function conMarcas(nuevos, viejos) {
   const marcas = new Map();
@@ -76,7 +80,7 @@ export function conMarcas(nuevos, viejos) {
   }
   if (!marcas.size) return nuevos ?? [];
   return (nuevos ?? []).map((it) => {
-    const m = marcas.get(claveConUnidad(it));
+    const m = marcas.get(it?.id ?? claveConUnidad(it));
     return m ? { ...it, have: Boolean(it.have) || m.have, atHome: Boolean(it.atHome) || m.atHome } : it;
   });
 }
