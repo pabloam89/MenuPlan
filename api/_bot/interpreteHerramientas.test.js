@@ -129,18 +129,21 @@ describe("anadir_invitado: la fecha y su semana", () => {
 });
 
 describe("guardar_menu_cole (#958)", () => {
-  const sem = (sinMie) => ({ dias: { lunes: { primero: "Sopa", segundo: "Pollo" }, miercoles: sinMie ? { sinClase: true } : { primero: "Arroz" } } });
+  // Tres días como mínimo, y el PDF en este mensaje (cole.js, semanasDelCole).
+  const sem = (sinMie) => ({ dias: { lunes: { primero: "Sopa", segundo: "Pollo" }, miercoles: sinMie ? { sinClase: true } : { primero: "Arroz" }, viernes: { primero: "Lentejas" } } });
+  const conPdf = { adjunto: { tipo: "document" } };
   it("«los peques» es para todos, no una persona", async () => {
     limpio();
-    const t = await guardarMenuCole("h", { semanas: [sem(false)], para: "los peques" });
-    expect(t).toMatch(/para todos los que comen en el cole/);
+    const r = await guardarMenuCole("h", { semanas: [sem(false)], para: "los peques" }, conPdf);
+    expect(r.estado).toBe("hecho");
+    expect(r.hecho[0]).not.toMatch(/ para /);
   });
   it("un día que nunca tiene cole se enseña al horario; uno suelto se pregunta", async () => {
     limpio({ schedule: { "c|Mié|Comida": "cole", "c|Lun|Comida": "cole" } });
-    const t = await guardarMenuCole("h", { semanas: [sem(true), sem(true)], para: "todos" });
+    const r = await guardarMenuCole("h", { semanas: [sem(true), sem(true)], para: "todos" }, conPdf);
     expect(datos().schedule["c|Mié|Comida"]).toBeUndefined();
     expect(datos().schedule["c|Lun|Comida"]).toBe("cole");
-    expect(t).toMatch(/miércoles no hay cole/);
+    expect(r.nota).toMatch(/miércoles no hay cole/);
     expect(diasSinClase([sem(true), sem(false)])).toEqual({ siempre: [], aVeces: ["Mié"] });
   });
 });
