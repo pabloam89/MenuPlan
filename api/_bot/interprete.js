@@ -34,6 +34,20 @@ export const normal = (s) => String(s ?? "").normalize("NFD").replace(/\p{M}/gu,
 /** Lo que escribe la gente, literal dentro de un regex. La única copia en api/_bot. */
 export const escapar = (w) => String(w).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
+const palabrasLargas = (s) => normal(s).split(/[^a-z0-9]+/).filter((w) => w.length >= 4);
+/**
+ * ¿Se ve lo dicho en el texto? La mitad o más de sus palabras de 4 letras o
+ * más (las cortas son «con», «de», «al») están en él, con o sin la -s del
+ * plural. Sin palabras largas, sí. Lo usan el menú del cole (un plato, en lo
+ * que se mandó) y guardar_receta (el nombre aprobado, en el del borrador), #958.
+ */
+export function seVeEn(dicho, texto) {
+  const ws = palabrasLargas(dicho);
+  if (!ws.length) return true;
+  const hay = new Set(palabrasLargas(texto));
+  return ws.filter((w) => hay.has(w) || hay.has(w.replace(/s$/, "")) || hay.has(`${w}s`)).length * 2 >= ws.length;
+}
+
 // ── Fechas: aritmética ──────────────────────────────────────────────────────
 
 export const sumarDias = (iso, n) => {
