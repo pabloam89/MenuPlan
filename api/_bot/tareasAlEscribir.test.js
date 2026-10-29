@@ -131,6 +131,24 @@ describe("quitar a alguien descarta sus tareas, no las da por hechas", () => {
     expect(abierta("alergias:pablo")).toBe("descartada");
     expect(abierta("alergias:nat")).toBe("abierta");
   });
+
+  it("quitar a Pablo no deja nada suyo colgando en la casa (#958)", async () => {
+    guardada = { state: { data: {
+      ...casaInicial().state.data,
+      groups: [{ id: "familia", memberIds: ["nat", "pablo"] }],
+      schedule: { "nat|Lun|Comida": "casa", "pablo|Lun|Comida": "fuera" },
+      kidDinnerConfig: { byMember: { pablo: { modo: "aparte" } } },
+      accountMemberIdByUser: { u1: "nat", u2: "pablo" },
+      reglas: [{ id: "r1", sujeto: { tipo: "miembro", ref: "pablo" } }, { id: "r2", sujeto: { tipo: "casa" } }],
+    } } };
+    await quitarComensal("h", { nombre: "Pablo" });
+    const d = guardada.state.data;
+    expect(d.members.map((m) => m.id)).toEqual(["nat"]);
+    expect(d.schedule).toEqual({ "nat|Lun|Comida": "casa" });
+    expect(d.kidDinnerConfig.byMember).toEqual({});
+    expect(d.accountMemberIdByUser).toEqual({ u1: "nat" });
+    expect(d.reglas.map((r) => r.id)).toEqual(["r2"]);
+  });
 });
 
 describe("el alta abre la pregunta de alergias en código", () => {
