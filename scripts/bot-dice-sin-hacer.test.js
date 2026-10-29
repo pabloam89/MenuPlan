@@ -1,5 +1,16 @@
 import { describe, it, expect } from "vitest";
+import { readdirSync, readFileSync } from "node:fs";
 import { contar, leerDias, MODOS_QUE_ESCRIBEN, DIAS_GUARDADOS, VENTANA } from "./bot-dice-sin-hacer.mjs";
+
+// Los días que de verdad borra el cron de retención: la última migración que
+// programa «bot-retencion» (0065_bot_retencion, de momento). El SQL no puede
+// importar el JS, así que este test los compara (#958).
+const MIGRACIONES = new URL("../supabase/migrations/", import.meta.url);
+const diasDelCron = () => {
+  const vistos = readdirSync(MIGRACIONES).filter((f) => f.endsWith(".sql")).sort()
+    .flatMap((f) => [...readFileSync(new URL(f, MIGRACIONES), "utf8").matchAll(/cron\.schedule\('bot-retencion',[^)]*bot_purgar\((\d+)\)/g)].map((m) => Number(m[1])));
+  return vistos.at(-1);
+};
 
 process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
 process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
@@ -43,13 +54,18 @@ describe("bot-dice-sin-hacer: lo dicho contra lo hecho en el turno (#958)", () =
 });
 
 describe("--dias", () => {
+  it("DIAS_GUARDADOS es lo que borra el cron de retención de bot_messages", () => {
+    expect(diasDelCron()).toBeGreaterThan(0);
+    expect(DIAS_GUARDADOS).toBe(diasDelCron());
+  });
+
   it("sin --dias, lo que guarda bot_messages", () => {
     expect(leerDias(["node", "x"])).toBe(DIAS_GUARDADOS);
     expect(leerDias(["node", "x", "--dias", "7"])).toBe(7);
   });
 
-  it.each(["abc", "0", "-3", "2.5", "16"])("«--dias %s» es un error, no 15 en silencio", (v) => {
-    expect(() => leerDias(["node", "x", "--dias", v])).toThrow(/entero de 1 a 15/);
+  it.each(["abc", "0", "-3", "2.5", String(DIAS_GUARDADOS + 1)])("«--dias %s» es un error, no el valor por defecto en silencio", (v) => {
+    expect(() => leerDias(["node", "x", "--dias", v])).toThrow(new RegExp(`entero de 1 a ${DIAS_GUARDADOS}`));
   });
 
   it("«--dias» sin número es un error", () => {
