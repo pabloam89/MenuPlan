@@ -26,15 +26,19 @@ const MAX_PDF_SIN_CONTAR = 2 * 1024 * 1024;
 /** Por qué no se puede leer un adjunto (vocabulario cerrado; el texto, en porQueNoAdjunto). */
 export const ERROR_ADJUNTO = Object.freeze({ TIPO: "tipo", GRANDE: "grande", PAGINAS: "paginas", DESCARGA: "descarga" });
 
-/** Por qué no se puede leer una foto o un PDF, dicho a la persona. */
-export function porQueNoAdjunto(error) {
+/**
+ * Por qué no se puede leer una foto o un PDF, dicho a la persona.
+ * @param {string} error  de ERROR_ADJUNTO
+ * @param {number|null} [paginas]  las que tiene el PDF, si se contaron
+ */
+export function porQueNoAdjunto(error, paginas = null) {
   if (error === ERROR_ADJUNTO.TIPO) return "De ficheros solo entiendo fotos y PDFs.";
   if (error === ERROR_ADJUNTO.GRANDE) return "Es demasiado grande: mándala como foto normal (no como archivo) o un PDF más ligero.";
-  if (error === ERROR_ADJUNTO.PAGINAS) return `Ese PDF es muy largo: leo hasta ${MAX_PAGINAS_PDF} páginas. Mándame solo las que importan, o una foto de cada una.`;
+  if (error === ERROR_ADJUNTO.PAGINAS) return `Ese PDF es muy largo${paginas ? ` (${paginas} páginas)` : ""}: leo hasta ${MAX_PAGINAS_PDF}. Mándame solo las que importan, o una foto de cada una.`;
   return "No he podido abrirla. ¿Me la mandas otra vez?";
 }
 
-/** @returns {Promise<null | { tipo: "image"|"document", mediaType: string, base64: string, paginas?: number|null } | { error: string, paginas?: number|null }>} */
+/** @returns {Promise<null | { tipo: "image"|"document", mediaType: string, base64: string } | { error: string, paginas?: number|null }>} */
 export async function adjuntoDe(msg) {
   let fileId;
   let mediaType;
@@ -66,7 +70,7 @@ export async function adjuntoDe(msg) {
   if (mediaType === "application/pdf") {
     const paginas = paginasDePdf(bytes);
     if (!cabeElPdf(paginas, bytes.length)) return { error: ERROR_ADJUNTO.PAGINAS, paginas };
-    return { tipo: "document", mediaType, base64: bytes.toString("base64"), paginas };
+    return { tipo: "document", mediaType, base64: bytes.toString("base64") };
   }
   return { tipo: "image", mediaType, base64: bytes.toString("base64") };
 }

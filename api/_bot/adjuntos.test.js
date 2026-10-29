@@ -30,14 +30,13 @@ describe("un PDF largo no se lee entero (#958: se cobra por página)", () => {
     // Lo que importa: no llega al modelo (sin base64), no se paga.
     expect(r.base64).toBeUndefined();
     expect(r).toEqual({ error: "paginas", paginas: 240 });
-    expect(porQueNoAdjunto(r.error)).toContain(`${MAX_PAGINAS_PDF} páginas`);
+    expect(porQueNoAdjunto(r.error, r.paginas)).toBe(`Ese PDF es muy largo (240 páginas): leo hasta ${MAX_PAGINAS_PDF}. Mándame solo las que importan, o una foto de cada una.`);
   });
 
-  it("uno corto se lee como siempre, con sus páginas apuntadas", async () => {
+  it("uno corto se lee como siempre", async () => {
     conDescarga(pdf(3));
     const r = await adjuntoDe(unPdf);
-    expect(r).toMatchObject({ tipo: "document", mediaType: "application/pdf", paginas: 3 });
-    expect(r.base64.length).toBeGreaterThan(0);
+    expect(r).toEqual({ tipo: "document", mediaType: "application/pdf", base64: pdf(3).toString("base64") });
   });
 
   it("una foto no cuenta páginas", async () => {
