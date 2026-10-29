@@ -112,6 +112,14 @@ describe("con BOT_TAREAS_V2 encendido", () => {
     expect(await unaVez(orden, async () => "hecho")).toBe("hecho");
   });
 
+  it("un RESULTADO repetido contesta lo que leyó el modelo la primera vez, no un JSON suelto (#958)", async () => {
+    const { resultado, paraElModelo } = await import("./resultado.js");
+    const orden = { householdId: "casaA", clave: "toolu_8", rpc: "editar_tarea" };
+    const r = resultado({ accion: "tarea", hecho: ["pan → para el 2026-10-10"] });
+    expect(await unaVez(orden, async () => r)).toBe(r);
+    expect(await unaVez(orden, async () => { throw new Error("no debe correr"); })).toBe(paraElModelo(r));
+  });
+
   it("si la primera aún no guardó su respuesta, la repetida no escribe y lo dice", async () => {
     idem.push({ household_id: "casaA", clave: "toolu_7", rpc: "anotar_tarea", resultado: null });
     const r = await anotarTarea(ctx("casaA", "toolu_7"), seguimiento);
