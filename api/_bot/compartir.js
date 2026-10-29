@@ -23,7 +23,7 @@ import { COMIDAS_PRINCIPALES } from "../../src/lib/comidas.js";
 import * as ids from "../../src/lib/ids.js";
 import { menuActivoDe } from "../../src/lib/menuActivo.js";
 import { select, insert, update, eq } from "./db.js";
-import { cargarCasa, conCasa } from "./casa.js";
+import { cargarCasa, olvidarCasa } from "./casa.js";
 import { motor, prepararRecetas, grupos, DIAS, recetasDeCasa, deSerieDelMotor } from "./menu.js";
 import { duenoDe, duenoDeEstricto, rastro } from "./embudo.js";
 import { RASTRO, ORIGEN_RECETA } from "../../src/lib/rastro.js";
@@ -199,8 +199,9 @@ export async function resolverInvitacion(param, { usuarios = [] } = {}) {
 /**
  * «Guardar en mi recetario» una receta propia de otra persona: una copia a
  * nombre de quien la recibe, privada y firmada «de …» (copied_from_*, 0027),
- * en user_recipes (de donde la carga la app) y en la casa (de donde la usa el
- * motor al generar desde el chat).
+ * en user_recipes: de ahí la cargan la app y Lola (casa.js → propias.js). Ya
+ * no se copia en `data.userRecipes` (#958: dos sitios para un dato, y la app
+ * lo quitaba en cada guardado).
  */
 export async function copiarReceta(householdId, fila) {
   const dueno = await duenoDe(householdId);
@@ -211,14 +212,8 @@ export async function copiarReceta(householdId, fila) {
   // Las columnas de la copia las decide el dueño de la fila (userRecipesFila.js), no este módulo.
   const copia = filaCopiada(fila, { id: ids.recetaPropia.nuevo(), dueno });
   await insert("user_recipes", [copia]);
-  const m = await motor();
-  const receta = m.rowToRecipe(copia);
-  const r = await conCasa(householdId, (casa) => {
-    const data = casa.state?.data ?? {};
-    const propias = (data.userRecipes ?? []).filter((x) => x.id !== receta.id);
-    return { state: { ...casa.state, data: { ...data, userRecipes: [...propias, receta] } } };
-  });
-  if (!r.ok) console.error("[compartir] copiar en la casa", r.error);
+  // Para que «ponerla en mi menú», justo después, ya la vea.
+  olvidarCasa(householdId);
   await rastro(householdId, RASTRO.RECETA_GUARDADA, { recipeId: copia.id, origen: ORIGEN_RECETA.RECIBIDA_ENLACE, baseDishId: null, copiadaDe: fila.id });
   return { ok: true, nombre: copia.name };
 }
