@@ -21,6 +21,12 @@ describe("meHablan: en un grupo, ¿es para Lola?", () => {
   it("una foto con pie que empieza por Lola", () => {
     expect(meHablan({ caption: "Lola, el ticket de hoy", photo: [{}] }, YO)).toBe(true);
   });
+  it("un comando para OTRO bot del grupo no es para Lola (#958); uno suelto, sí", () => {
+    expect(meHablan({ text: "/menu@OtroBot" }, YO)).toBe(false);
+    expect(meHablan({ text: "/start@otro_bot abc" }, YO)).toBe(false);
+    expect(meHablan({ text: "/menu" }, YO)).toBe(true);
+    expect(meHablan({ text: "/menu@HOMENUERS_BOT" }, YO)).toBe(true);
+  });
 });
 
 describe("conLoginDeTelegram: el botón de login solo en el dominio de @BotFather", async () => {

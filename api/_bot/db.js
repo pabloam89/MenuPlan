@@ -9,16 +9,16 @@
 
 import { seguirCon } from "./avisar.js";
 import { AsyncLocalStorage } from "node:async_hooks";
-import { contarEnOperacion } from "./operacion.js";
+import { contarEnOperacion, SOLO_REGISTRO } from "./operacion.js";
 
 const TIMEOUT_MS = 8000;
 
 // ¿Ha llegado a la base alguna escritura mientras corría esto? Lo usa el
 // agente para saber si una herramienta GUARDÓ, no solo si lo intentó: así no
 // hay que llevar a mano qué herramienta escribe en qué tabla. Los registros
-// (memoria del chat, eventos, fotos para deshacer) no cuentan.
+// (memoria del chat, eventos, fotos para deshacer: SOLO_REGISTRO, en
+// operacion.js) no cuentan.
 const escrituras = new AsyncLocalStorage();
-const SOLO_REGISTRO = new Set(["bot_messages", "user_events", "bot_route", "bot_deshacer", "bot_entradas"]);
 export async function contandoEscrituras(correr) {
   const cuenta = { n: 0 };
   const r = await escrituras.run(cuenta, correr);
