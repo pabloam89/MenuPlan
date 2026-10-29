@@ -2422,16 +2422,15 @@ export default function App() {
       // we no longer surface their raw internal text as a toast — it read as a
       // confusing "toast rarísimo" on success. Always show the plain success
       // message; the warnings remain on the plan for anyone who needs them.
-      // Con presupuesto, en cambio, se dice si la primera semana cabe, no cabe
+      // Con presupuesto, además, se dice si la primera semana cabe, no cabe
       // o no se sabe: nunca en silencio (lib/presupuesto.js, #958).
       const frasePres = frasePresupuesto(working, estimarSemana(firstWeekPlan, { recetas: weekResults[0]?.recipes ?? [] }));
-      showToast(
-        frasePres ? `Menú generado. ${frasePres}` : user
-          ? "Menú generado · actívalo con ⚡ cuando lo vayas a usar"
-          : weekCount > 1
-            ? `Menú generado (${weekCount} semanas)`
-            : "Menú generado",
-      );
+      const generado = user
+        ? "Menú generado · actívalo con ⚡ cuando lo vayas a usar"
+        : weekCount > 1
+          ? `Menú generado (${weekCount} semanas)`
+          : "Menú generado";
+      showToast(frasePres ? `${generado}. ${frasePres}` : generado);
     } catch (err) {
       if (err?.name === "AbortError" || ctrl.signal.aborted) return;
       console.error("Error generating menu", err);
