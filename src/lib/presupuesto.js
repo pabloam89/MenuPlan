@@ -1,15 +1,13 @@
 // El presupuesto semanal de la casa, en UN sitio (#958; Pablo, 29 oct 2026).
 //
 // El dato vive en household_state.data: `hasBudget` (si hay tope) y `budget`
-// (€ por semana). Lo escriben el asistente de la app (Onboarding.jsx) y Lola
-// (ajustar_compra, api/_bot/ajustes.js). Para hacer cuentas con él se lee
-// aquí (leerPresupuesto), para que no haya dos lecturas que digan cosas
-// distintas. (La ficha del bot, api/_bot/ficha.js, solo enseña la cifra.)
+// (€ por semana). Se lee en lib/presupuestoCasa.js (leerPresupuesto), que
+// este módulo vuelve a exportar; aquí se hacen las cuentas.
 //
 // Lo que hará con él #958, en PRs seguidos y nada más:
-//  1. El solver prefiere platos cuyo € por ración cabe en el tope
-//     (topePorRacion). Es una preferencia: el reparto de la semana (pescado,
-//     legumbre…) sigue mandando por encima.
+//  1. El solver prefiere platos cuyo € por ración cabe en el presupuesto. Es
+//     una preferencia: el reparto de la semana (pescado, legumbre…) sigue
+//     mandando por encima.
 //  2. Al acabar, la semana se estima (estimarSemana) y Lola y la app dicen si
 //     cabe, si no cabe o si no se puede saber (veredicto). Nunca en silencio.
 //  3. La lista de la compra de la app pone su total (envases enteros) al lado
@@ -31,13 +29,12 @@
 
 import { costeReceta } from "./coste.js";
 import { recetaEnGrupo } from "./ids.js";
+import { leerPresupuesto, positivo } from "./presupuestoCasa.js";
+
+export { ESTADOS_PRESUPUESTO, leerPresupuesto, presupuestoSemanal } from "./presupuestoCasa.js";
 
 // Vocabulario cerrado del veredicto (presupuesto.test.js).
 export const VEREDICTOS = Object.freeze(["cabe", "no_cabe", "incierto"]);
-
-// Cómo está el presupuesto de la casa. `sin_cifra`: el interruptor está
-// puesto pero `budget` no es un número positivo. No se aplica y SE DICE.
-export const ESTADOS_PRESUPUESTO = Object.freeze(["sin", "activo", "sin_cifra"]);
 
 // Para decir «cabe», al menos esta parte de las raciones de la semana tiene
 // que tener algún precio (completo o incompleto). Por debajo, lo que no tiene
@@ -58,35 +55,7 @@ export function precioAlto(p) {
   return p.completo ? p.porRacion : p.porRacion / Math.max(p.cobertura, COBERTURA_SUELO);
 }
 
-const positivo = (v) => (v != null && v !== "" && Number.isFinite(Number(v)) && Number(v) > 0 ? Number(v) : null);
 const euros = (v) => Math.round(v * 100) / 100;
-
-/**
- * @param {object} data household_state.data
- * @returns {{ estado: "sin"|"activo"|"sin_cifra", euros: number|null }}
- */
-export function leerPresupuesto(data) {
-  if (!data?.hasBudget) return { estado: "sin", euros: null };
-  const b = positivo(data.budget);
-  return b == null ? { estado: "sin_cifra", euros: null } : { estado: "activo", euros: b };
-}
-
-/** Los € por semana que se aplican, o null (sin presupuesto o sin cifra). */
-export function presupuestoSemanal(data) {
-  return leerPresupuesto(data).euros;
-}
-
-/**
- * El tope de € por ración que el solver usa como preferencia: el presupuesto
- * repartido entre las raciones de comida y cena de la semana. Las raciones de
- * desayunos, meriendas y postres no entran (no los elige el solver), así que
- * el tope es algo generoso; el veredicto de después sí las cuenta todas.
- */
-export function topePorRacion(presupuesto, raciones) {
-  const p = positivo(presupuesto);
-  const r = positivo(raciones);
-  return p != null && r != null ? p / r : null;
-}
 
 // «grupo__carnes_007» → «carnes_007»: el plan lleva el id con prefijo de grupo.
 const idDeCatalogo = (id) => recetaEnGrupo.leer(id).receta;

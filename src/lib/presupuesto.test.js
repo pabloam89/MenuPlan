@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  VEREDICTOS, ESTADOS_PRESUPUESTO, PARTE_CONOCIDA_MINIMA, leerPresupuesto, presupuestoSemanal, topePorRacion,
+  VEREDICTOS, ESTADOS_PRESUPUESTO, PARTE_CONOCIDA_MINIMA, leerPresupuesto, presupuestoSemanal,
   precioDePlato, precioAlto, estimarSemana, veredicto, frasePresupuesto, COBERTURA_SUELO,
 } from "./presupuesto.js";
 import recipeCoste from "../data/derived/recipeCoste.json" with { type: "json" };
@@ -14,7 +14,7 @@ const [INCOMPLETA, fIncompleta] = filas.find(([, f]) => f.cobertura < 1);
 const plan = (huecos, gid = "g1") => ({ _warnings: ["x"], [gid]: huecos });
 const casa = (budget, hasBudget = true) => ({ hasBudget, budget });
 
-describe("leerPresupuesto: el único que lee hasBudget y budget", () => {
+describe("leerPresupuesto: la lectura de hasBudget y budget para enseñarlo o hacer cuentas", () => {
   it("sin el interruptor no hay presupuesto, aunque quede el número", () => {
     expect(leerPresupuesto({ hasBudget: false, budget: 80 })).toEqual({ estado: "sin", euros: null });
     expect(leerPresupuesto({ budget: 80 }).estado).toBe("sin");
@@ -28,11 +28,6 @@ describe("leerPresupuesto: el único que lee hasBudget y budget", () => {
     for (const b of [0, -5, "mucho", null, undefined]) expect(leerPresupuesto(casa(b)).estado, String(b)).toBe("sin_cifra");
     expect(presupuestoSemanal(casa("mucho"))).toBeNull();
     expect(ESTADOS_PRESUPUESTO).toEqual(["sin", "activo", "sin_cifra"]);
-  });
-  it("el tope por ración reparte el presupuesto entre las raciones", () => {
-    expect(topePorRacion(84, 28)).toBe(3);
-    expect(topePorRacion(null, 28)).toBeNull();
-    expect(topePorRacion(84, 0)).toBeNull();
   });
 });
 
