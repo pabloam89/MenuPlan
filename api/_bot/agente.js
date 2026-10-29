@@ -1137,11 +1137,12 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   // telegram.js (con lo que Lola llegó a gastar), y aquí no.
   const contar = async (uso) => {
     if (signal?.aborted) return 0;
-    // a propósito: la puerta solo dice de quién es el turno; si falla, cuenta Lola
-    if (puerta && (await puerta.catch(() => true)) === false) return 0;
+    // a propósito: la puerta (la decisión del enrutador) solo dice de quién es
+    // el turno; si falla, queda en el log y cuenta Lola, que es quien contestó
+    if (puerta && (await puerta.catch(seguirCon("uso_enrutador", true))) === false) return 0;
     // a propósito: sin el uso del enrutador, se cuenta lo de Lola igual
     const delEnrutador = await Promise.resolve(usoExtra).catch(seguirCon("uso_enrutador", null));
-    return contarUso(householdId, sumarUsos(uso, delEnrutador)).catch((e) => { console.error("[agente] uso", e?.message); return 0; });
+    return contarUso(householdId, sumarUsos(uso, delEnrutador)).catch(fallaCon("uso", 0));
   };
   // El canal se valida al entrar, antes de pagar el modelo: uno que no es de CANALES falla aquí
   // y no al guardar la memoria, con la respuesta ya pagada.
