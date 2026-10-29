@@ -13,6 +13,7 @@
     "api/_bot/borrar.js",
     "api/_bot/caducidades.js",
     "api/_bot/enlace.js",
+    "api/_bot/invitacion.js",
     "api/_bot/papel.js",
     "api/bot/link.js",
     "api/bot/telegram.js"
@@ -80,6 +81,9 @@
   "household_favorites": [
     "api/_bot/casa.js",
     "src/lib/householdFavoritesSync.js"
+  ],
+  "household_invites": [
+    "api/_bot/invitacion.js"
   ],
   "household_members": [
     "api/_bot/papel.js",
