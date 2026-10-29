@@ -217,7 +217,7 @@ export default async function handler(req, res) {
   // Sin las identidades de Telegram: caen con el usuario, y si su borrado
   // falla, Lola sigue reconociendo a la persona en vez de crearle otra cuenta (#958).
   await Promise.race([
-    borrarLoDelBot(userId),
+    borrarLoDelBot(userId, { conIdentidades: false }),
     new Promise((resolve) => setTimeout(resolve, 4000)),
   ]).catch((err) => console.error("[delete-account] limpieza del bot", err?.message));
 
