@@ -1,8 +1,13 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { readFileSync } from "node:fs";
-import { conPlazo, quedaMs, cabeUnTurno, plazoDeLlamada, DURACION_MAX_MS, MARGEN_MS, TURNO_MIN_MS } from "./plazo.js";
+import { conPlazo, quedaMs, cabeUnTurno, plazoDeLlamada, DURACION_MAX_MS, MARGEN_MS } from "./plazo.js";
+
+// Reloj fijo: el test no depende de lo que tarde la máquina (C7).
+const AHORA = 1_000_000;
 
 describe("el reloj de cada invocación (#958)", () => {
+  afterEach(() => vi.restoreAllMocks());
+
   it("DURACION_MAX_MS es el maxDuration del webhook en vercel.json", () => {
     const vercel = JSON.parse(readFileSync(new URL("../../vercel.json", import.meta.url), "utf8"));
     expect(vercel.functions["api/bot/telegram.js"].maxDuration * 1000).toBe(DURACION_MAX_MS);
@@ -14,25 +19,26 @@ describe("el reloj de cada invocación (#958)", () => {
     expect(plazoDeLlamada(55_000)).toBe(55_000);
   });
 
-  it("dentro, lo que queda descuenta el margen final y recorta el plazo del modelo", async () => {
-    await conPlazo(Date.now() - 100_000, async () => {
-      const queda = quedaMs();
-      expect(queda).toBeLessThanOrEqual(DURACION_MAX_MS - MARGEN_MS - 100_000);
-      expect(queda).toBeGreaterThan(DURACION_MAX_MS - MARGEN_MS - 100_000 - 1000);
-      expect(plazoDeLlamada(55_000)).toBeLessThanOrEqual(queda);
-      expect(cabeUnTurno()).toBe(false);
-    });
-    await conPlazo(Date.now(), async () => {
-      expect(quedaMs()).toBeGreaterThan(TURNO_MIN_MS);
+  it("recién empezada cabe un turno; a los 100 s ya no, y el plazo del modelo se recorta a lo que queda", async () => {
+    vi.spyOn(Date, "now").mockReturnValue(AHORA);
+    await conPlazo(AHORA, async () => {
+      expect(quedaMs()).toBe(DURACION_MAX_MS - MARGEN_MS);
       expect(cabeUnTurno()).toBe(true);
+      expect(plazoDeLlamada(55_000)).toBe(55_000);
+    });
+    await conPlazo(AHORA - 100_000, async () => {
+      expect(quedaMs()).toBe(DURACION_MAX_MS - MARGEN_MS - 100_000);
+      expect(cabeUnTurno()).toBe(false);
+      expect(plazoDeLlamada(55_000)).toBe(DURACION_MAX_MS - MARGEN_MS - 100_000);
     });
   });
 
   it("cada invocación lleva su reloj, aunque compartan proceso", async () => {
+    vi.spyOn(Date, "now").mockReturnValue(AHORA);
     const [a, b] = await Promise.all([
-      conPlazo(Date.now(), async () => quedaMs()),
-      conPlazo(Date.now() - 90_000, async () => quedaMs()),
+      conPlazo(AHORA, async () => quedaMs()),
+      conPlazo(AHORA - 90_000, async () => quedaMs()),
     ]);
-    expect(a - b).toBeGreaterThan(80_000);
+    expect(a - b).toBe(90_000);
   });
 });
