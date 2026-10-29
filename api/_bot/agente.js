@@ -1345,14 +1345,18 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
 // está: …». Ahora cuenta cualquier «he/hemos + participio de guardar», con o
 // sin pronombre delante. «Puesto» y «dejado» solo con «lo» delante («lo he
 // puesto el jueves»): a secas también son leer («te he puesto los botones»).
-// Los participios, en una sola lista (DE_GUARDAR) que leen también la
-// negación de abajo.
+// Los participios y los auxiliares, cada uno en una sola lista que leen
+// también la negación de abajo.
 const DE_GUARDAR = ["apuntad", "cambiad", "guardad", "quitad", "añadid", "borrad", "anotad", "arreglad", "solucionad", "corregid", "actualizad", "eliminad", "tachad", "marcad", "sumad", "cancelad", "programad", "metid"];
+const SOLO_CON_LO = ["puest", "dejad"];
+// Lola habla en primera persona («he», «hemos»); la negación mira también las demás.
+const AUX_DE_LOLA = ["he", "hemos"];
+const AUXILIARES = [...AUX_DE_LOLA, "ha", "han", "has", "habeis", "habéis"].join("|");
 const DICE_QUE_GUARDO = new RegExp([
   "(^|\\n)\\s*✅",
   "\\bapuntad[oa]s?\\b",
-  `\\b(he|hemos)\\s+(${DE_GUARDAR.join("|")})[oa]s?\\b`,
-  "\\blo he (puest|dejad)[oa]s?\\b",
+  `\\b(${AUX_DE_LOLA.join("|")})\\s+(${DE_GUARDAR.join("|")})[oa]s?\\b`,
+  `\\blo he (${SOLO_CON_LO.join("|")})[oa]s?\\b`,
   "(^|[.!¡]\\s*)hecho\\b",
   // «Ya está: …» o «¡Ya está!» al empezar la frase; «el arroz ya está» no.
   "(^|\\n|[.!¡?]\\s*)ya est[aá]\\s*[:!.]",
@@ -1376,10 +1380,8 @@ const DICE_QUE_ARREGLO = /\bya est[aá] (arreglad|cambiad|solucionad|corregid)[o
 // y entre «no» y el «he» deja hasta dos pronombres («No te lo he quitado»),
 // no dos palabras cualesquiera: «No olvides que he apuntado leche» sí dice
 // que guardó.
-const NEGABLES = [...DE_GUARDAR, "hech", "dejad", "puest"].join("|");
+const NEGABLES = [...DE_GUARDAR, ...SOLO_CON_LO, "hech"].join("|");
 const APUNTADO_NEGADO = new RegExp(`\\b(no|ningun[oa]?|nada|nadie)\\b[^.,;:!?\\n]{0,40}?\\b(${NEGABLES})[oa]s?\\b`, "gi");
-// Los auxiliares de «he apuntado», en una lista que leen las dos expresiones.
-const AUXILIARES = "he|hemos|ha|han|has|habeis|habéis";
 const HE_APUNTADO = new RegExp(`\\b(${AUXILIARES})\\s+(${NEGABLES})`, "i");
 const PRONOMBRES = "me|te|se|nos|os|lo|la|los|las|le|les";
 const NO_HE_APUNTADO = new RegExp(`^no\\s+((${PRONOMBRES})\\s+){0,2}(${AUXILIARES})\\s+(${NEGABLES})`, "i");
