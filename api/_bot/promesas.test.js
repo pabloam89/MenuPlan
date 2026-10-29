@@ -9,7 +9,7 @@
  */
 import { describe, it, expect, vi } from "vitest";
 import { readFileSync } from "node:fs";
-import { CAPACIDADES, estadoDe } from "../../src/lib/capacidades.js";
+import { CAPACIDADES } from "../../src/lib/capacidades.js";
 
 process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
 process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
@@ -43,9 +43,11 @@ const PROMESAS = [
   // Quitar de la lista sin marcarlo comprado es quitar_compra.
   { id: "quitar_de_la_lista", dice: /quitar_compra/, capacidad: "quitar_compra" },
 ];
+// Lola lo hace si la capacidad tiene herramienta suya (`lola`, el mismo dato
+// del que sale estadoDe) y esa herramienta existe de verdad (FICHAS).
 const enLola = (id) => {
   const c = CAPACIDADES.find((x) => x.id === id);
-  return Boolean(c) && ["los_dos", "solo_lola"].includes(estadoDe(c));
+  return Boolean(c) && c.lola.some((n) => FICHAS.has(n));
 };
 
 describe("lo que Lola promete existe (#958)", () => {
