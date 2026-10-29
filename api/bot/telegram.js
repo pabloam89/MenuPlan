@@ -34,9 +34,10 @@ import { registrar, rastro, EMBUDO, duenoDe } from "../_bot/embudo.js";
 import { RASTRO } from "../../src/lib/rastro.js";
 import { pintarMenuEntero } from "../_bot/pintar.js";
 import { transcribir } from "../_bot/voz.js";
-import { adjuntoDe } from "../_bot/adjuntos.js";
+import { adjuntoDe, porQueNoAdjunto, adjuntoDelAlta } from "../_bot/adjuntos.js";
 import { enTurno, aSolas, drenar, juntar } from "../_bot/turnos.js";
 import { conPlazo } from "../_bot/plazo.js";
+import { migrarChat, alSalirDelChat, esGrupoDe } from "../_bot/chats.js";
 import { pedidoCompartido } from "../_bot/comoDato.js";
 import { clasificar, vaPorLaRapida, permitidoEn } from "../_bot/router.js";
 import { prediceRapida, ESPERA_MAX_MS } from "../_bot/prediceRapida.js";
@@ -111,9 +112,18 @@ export default async function handler(req, res) {
     waitUntil(conPlazo(inicio, () => relevar(String(upd.relevo.chat), base, host)).catch(fallaCon("relevo")));
     return res.status(200).json({ ok: true });
   }
-  const chatId = upd.message?.chat?.id ?? upd.callback_query?.message?.chat?.id;
+  const chatId = upd.message?.chat?.id ?? upd.callback_query?.message?.chat?.id ?? upd.my_chat_member?.chat?.id;
   // Siempre 200: si no, Telegram reintenta el mismo mensaje una y otra vez.
   if (chatId == null) return res.status(200).json({ ok: true });
+  // La echaron del grupo o la bloquearon (api/_bot/chats.js, #958): nada que
+  // contestar, y un fallo no se le dice a un chat donde ya no está. Vuelve
+  // antes de `primeraVez` a propósito: alSalirDelChat es idempotente (cancelar
+  // lo cancelado y borrar lo borrado no cambian nada), así que un reintento de
+  // Telegram no necesita el deduplicado ni gastar su escritura.
+  if (upd.my_chat_member) {
+    waitUntil(alSalirDelChat(upd.my_chat_member).catch(fallaCon("chat_salida")));
+    return res.status(200).json({ ok: true });
+  }
 
   // Se contesta a Telegram al momento y se trabaja después (waitUntil): el
   // agente puede tardar varios segundos entre modelo y herramientas, y si el
@@ -182,12 +192,16 @@ export function meHablan(msg, yo) {
 }
 
 const nombreDe = (from) => [from?.first_name, from?.last_name].filter(Boolean).join(" ") || null;
-const esGrupoDe = (chat) => chat.type === "group" || chat.type === "supergroup";
 
 async function atender(msg, base, host = "") {
   const chatId = String(msg.chat.id);
   const esGrupo = esGrupoDe(msg.chat);
   let texto = (msg.text ?? "").trim();
+
+  // El grupo pasó a supergrupo y cambió de id (api/_bot/chats.js, #958): llegan
+  // dos avisos, uno en cada chat; cualquiera de los dos lo mueve todo, una vez.
+  if (msg.migrate_to_chat_id) return void await migrarChat(chatId, String(msg.migrate_to_chat_id)).catch(fallaCon("chat_migrar"));
+  if (msg.migrate_from_chat_id) return void await migrarChat(String(msg.migrate_from_chat_id), chatId).catch(fallaCon("chat_migrar"));
 
   // En un grupo: al entrar, se presenta; y solo contesta cuando le hablan a
   // ella (un comando, una mención, una respuesta a un mensaje suyo, o un
@@ -358,10 +372,7 @@ async function atender(msg, base, host = "") {
     await llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(seguirCon("escribiendo"));
     const adjunto = await adjuntoDe(msg).catch((e) => { console.error("[adjunto]", e?.message); return { error: e?.message }; });
     if (!adjunto || adjunto.error) {
-      const porque = adjunto?.error === "tipo" ? "De ficheros solo entiendo fotos y PDFs."
-        : adjunto?.error === "grande" ? "Es demasiado grande: mándala como foto normal (no como archivo) o un PDF más ligero."
-          : "No he podido abrirla. ¿Me la mandas otra vez?";
-      return enviar(chatId, porque, { responderA: esGrupo ? msg.message_id : undefined });
+      return enviar(chatId, porQueNoAdjunto(adjunto?.error, adjunto?.paginas), { responderA: esGrupo ? msg.message_id : undefined });
     }
     const pie = (msg.caption ?? "").replace(/@\w+bot\b/gi, "").trim();
     // Una foto no se junta con otros mensajes (va entera al modelo): espera a
@@ -1665,8 +1676,14 @@ async function crearCuenta(from, chatId, primero = {}) {
     if (!t.error) { texto = t.texto; oido = t.texto; }
     else console.error("[voz]", t.error);
   } else if (m?.photo || m?.document) {
-    const a = await adjuntoDe(m).catch(fallaCon("alta_adjunto", null));
-    if (a && !a.error) { adjunto = a; texto = (m.caption ?? "").trim() || "(te mando esta foto)"; }
+    const alta = adjuntoDelAlta(await adjuntoDe(m).catch(fallaCon("alta_adjunto", null)), m.caption);
+    adjunto = alta.adjunto;
+    texto = alta.texto ?? texto;
+    if (alta.aviso) {
+      // Lo que no se pudo leer, al log y a la persona; el alta sigue (#958, C5).
+      console.warn(JSON.stringify({ evento: "adjunto_no_leido", donde: "alta", error: alta.error }));
+      await enviar(chatId, alta.aviso).catch(fallaCon("alta_adjunto"));
+    }
   }
   return conversarMedido(SIN_ENRUTADOR.ALTA, {
     chatId, householdId: cuenta.householdId, from, esGrupo: false, oido, adjunto, base: primero.base ?? null,
