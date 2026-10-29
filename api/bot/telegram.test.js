@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { meHablan } from "./telegram.js";
+import { meHablan, datoDeBoton } from "./telegram.js";
 
 const YO = "homenuers_bot";
 describe("meHablan: en un grupo, ¿es para Lola?", () => {
@@ -38,5 +38,14 @@ describe("conLoginDeTelegram: el botón de login solo en el dominio de @BotFathe
     expect(conLoginDeTelegram("https://homenu.app")).toBe(false);
     expect(conLoginDeTelegram("https://homenu-git-rama.vercel.app")).toBe(false);
     expect(conLoginDeTelegram(null)).toBe(false);
+  });
+});
+
+// [[No es así]] pulsado es deshacer, también si Lola lo escribió en inglés (#958).
+describe("datoDeBoton: el botón de deshacer, en los dos idiomas", () => {
+  it("«No es así» y «That's not right» deshacen; otro botón va tal cual", () => {
+    expect(datoDeBoton("No es así")).toBe("t:Deshaz lo último que has cambiado");
+    expect(datoDeBoton("That's not right")).toBe("t:Deshaz lo último que has cambiado");
+    expect(datoDeBoton("Lentejas")).toBe("t:Lentejas");
   });
 });
