@@ -13,6 +13,7 @@ import { spawnSync } from "node:child_process";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const b = spawnSync(process.execPath, [path.join(ROOT, "scripts/build-bot-core.mjs")], { stdio: "inherit" });
+if (b.error) throw new Error(`no se pudo empaquetar el motor (comando-no-lanzado): ${b.error.message}`, { cause: b.error });
 if (b.status !== 0) process.exit(b.status ?? 1);
 const m = await import(`file:///${path.join(ROOT, "api/_bot/core.mjs").replace(/\\/g, "/")}`);
 
