@@ -60,7 +60,7 @@ import { ETAPA_BEBE_INFO } from "../../src/lib/babyStage.js";
 const TRASTOS = [...APARATOS_EN_ORDEN];
 import { ESQUEMA_DE_FUERA } from "./deFuera.js";
 import { verDespensa, anadirDespensa, MAX_POR_VEZ as MAX_DESPENSA } from "./despensa.js";
-import { guardarMenuCole, verMenuCole, DIAS_MINIMOS_COLE } from "./cole.js";
+import { guardarMenuCole, verMenuCole, DIAS_MINIMOS_COLE, MAX_SEMANAS_COLE } from "./cole.js";
 import { buscarRecetas, prepararReceta, guardarReceta, apartarFotoPlato, recetaPorNombre, CATEGORIAS } from "./recetas.js";
 import { conPista, textoPista, datosDePlantilla } from "./pista.js";
 import { verReceta, calorias as caloriasDePlato, queFalta } from "./plato.js";
@@ -416,7 +416,7 @@ function herramientasDeFotos(householdId, chat = {}) {
       description: `Guarda el menú del comedor escolar (leído de una foto o PDF, o dictado). Por días de lunes a viernes con primero, segundo y postre; sinClase=true si ese día no hay cole. Solo lo que has leído de verdad: de un PDF o una foto de otro mensaje no queda nada, así que lo que no esté en tu resumen anterior ni en lo que han escrito no se guarda. Una semana con menos de ${DIAS_MINIMOS_COLE} días no se guarda (pisaría la que hay). Varias semanas si el cole rota, empezando por la que toca la semana que se planifica. para: «todos» o el nombre de un niño si es solo suyo. Solo tras enseñar el resumen y que digan que sí.`,
       inputSchema: obj({
         semanas: {
-          type: "array", minItems: 1, maxItems: 6,
+          type: "array", minItems: 1, maxItems: MAX_SEMANAS_COLE,
           items: obj({ dias: obj({ lunes: platos, martes: platos, miercoles: platos, jueves: platos, viernes: platos }) }, ["dias"]),
         },
         para: { type: "string" },

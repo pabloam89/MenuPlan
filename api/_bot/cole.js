@@ -22,6 +22,8 @@ const PLATO = { primero: "Primero", segundo: "Segundo", postre: "Postre" };
 // Una semana con menos días que esto no es un menú del cole leído: es un
 // trozo. Guardarla PISA la semana entera que hubiera (replaceSchoolWeeks).
 export const DIAS_MINIMOS_COLE = 3;
+// Las semanas que caben de una vez; el esquema de guardar_menu_cole (agente.js) lo importa.
+export const MAX_SEMANAS_COLE = 6;
 
 // ¿Está el plato a la vista? La mitad o más de sus palabras de 4 letras o más
 // (las cortas son «con», «de», «al»), en el texto; con o sin la -s del plural.
@@ -47,7 +49,7 @@ function semanasDelCole(semanas, { adjunto = null, texto = "", anterior = "" } =
   const fuente = `${texto ?? ""}\n${anterior ?? ""}`;
   const buenas = [];
   const sinHacer = [];
-  for (const [i, s] of (semanas ?? []).slice(0, 6).entries()) {
+  for (const [i, s] of (semanas ?? []).slice(0, MAX_SEMANAS_COLE).entries()) {
     const n = (semanas?.length ?? 0) > 1 ? ` (semana ${i + 1})` : "";
     const dias = { ...(s?.dias ?? {}) };
     if (!adjunto) {
@@ -65,7 +67,7 @@ function semanasDelCole(semanas, { adjunto = null, texto = "", anterior = "" } =
     }
     const cubiertos = Object.entries(dias).filter(([d, p]) => DIAS_LABORABLES.includes(diaDeSemana(d)) && p && (p.sinClase || Object.keys(PLATO).some((k) => String(p[k] ?? "").trim()))).length;
     if (cubiertos < DIAS_MINIMOS_COLE) {
-      sinHacer.push({ que: `la semana${n}`, motivo: `solo trae ${cubiertos} de 5 días: así pisaría el menú del cole entero; que lo manden otra vez (foto o PDF) y lo leo` });
+      sinHacer.push({ que: `la semana${n}`, motivo: `solo trae ${cubiertos} de ${DIAS_LABORABLES.length} días: así pisaría el menú del cole entero; que lo manden otra vez (foto o PDF) y lo leo` });
       continue;
     }
     buenas.push({ dias });
@@ -105,7 +107,7 @@ export function diasSinClase(semanas = []) {
 export function guardarMenuCole(householdId, { semanas: pedidas, para }, vista = {}) {
   return conData(householdId, (data, m) => {
     const { semanas, sinHacer } = semanasDelCole(pedidas, vista);
-    const weeksEntries = semanas.map(aEntradas).filter((e) => Object.keys(e).length).slice(0, 6);
+    const weeksEntries = semanas.map(aEntradas).filter((e) => Object.keys(e).length).slice(0, MAX_SEMANAS_COLE);
     if (!weeksEntries.length) {
       const nada = sinHacer.length ? sinHacer : [{ que: "el menú del cole", motivo: "no he sacado ningún plato: mándamelo más de cerca o en PDF" }];
       return { texto: "No he guardado nada del menú del cole.", resultado: resultado({ accion: "cole", sinHacer: nada }) };
