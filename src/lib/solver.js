@@ -52,6 +52,7 @@ import { validateMenu, FREQ_KEY_MATCHERS, getCarbType, COMIDA_KCAL_SOFT_CAP, VEC
 import { recipeMatchesPreferType } from "../utils/filterRecipes.js";
 import { esAnadido, topeDe } from "./cocinaTopes.js";
 import { aporteDe } from "./aporte.js";
+import { precioDePlato } from "./presupuesto.js";
 
 /**
  * ¿Está encendido? Apagado por defecto: el motor de siempre no cambia hasta
@@ -246,6 +247,9 @@ export function familiasDe(r) {
 export function resolverMenu(slots, pool, {
   healthProfiles = [], freqs = {}, objetivo = null, basesPedidas = {}, cocinas = null,
   recientes = null, semilla = 1, maxNodos = 400, maxMs = 400,
+  // € por ración que cabe en el presupuesto de la casa (lib/presupuesto.js,
+  // topePorRacion), o null sin presupuesto. Ver PESO_PRESUPUESTO.
+  topeRacion = null,
   // false: la fase 3 rellena SOLO sin relajar (el pase estricto, que es el que
   // cierra muchas semanas limpias) y se salta el relajado. Lo usan los intentos
   // de resolverConReintentos: relajar se deja para el último.
@@ -468,6 +472,29 @@ export function resolverMenu(slots, pool, {
   // exactamente de donde venimos.
   const PESO_RECIENTE = 6e3;
 
+  // El presupuesto de la casa (#958; Pablo, 29 oct 2026): un plato que se
+  // pasa del € por ración que cabe va detrás, tanto más cuanto más se pasa
+  // (el doble del tope o más, el castigo entero). Pesa 8.000: por debajo del
+  // déficit, porque una semana sin pescado por ahorrar no es lo pedido, y por
+  // encima de lo reciente, porque ahorrar pesa más que no repetir. Sin
+  // presupuesto, o con uno holgado, no mueve nada: solo actúa cuando aprieta.
+  // Un plato sin precio completo no cuenta como gratis: su número es un
+  // mínimo, y si el tope está por debajo de la mediana del pool (el
+  // presupuesto aprieta) lleva medio castigo como poco, para que lo
+  // desconocido no gane a lo que se sabe barato.
+  const PESO_PRESUPUESTO = 8e3;
+  const precios = topeRacion > 0 ? new Map(pool.map((r) => [r.id, precioDePlato(r.id)])) : new Map();
+  const conocidos = [...precios.values()].filter((p) => p?.completo).map((p) => p.porRacion).sort((a, b) => a - b);
+  const aprieta = conocidos.length > 0 && topeRacion < conocidos[Math.floor(conocidos.length / 2)];
+  const costePresupuesto = (r) => {
+    if (!(topeRacion > 0)) return 0;
+    const p = precios.get(r.id) ?? precioDePlato(r.id);
+    const duda = aprieta ? 0.5 : 0;
+    if (!p) return duda;
+    const exceso = Math.max(0, Math.min(1, (p.porRacion - topeRacion) / topeRacion));
+    return p.completo ? exceso : Math.max(exceso, duda);
+  };
+
   // ── La mitad que no cambia, ordenada UNA vez por hueco ────────────────────
   // De los cinco términos, tres solo dependen del plato y del hueco
   // (completitud, tiempo, sesgo+ruido) y dos de lo que ya está puesto (lo que
@@ -484,6 +511,7 @@ export function resolverMenu(slots, pool, {
         r,
         clave: -(solo ? completitud(r) * 4e3 : 0)
           + (recientes?.get(r.id) ?? 0) * PESO_RECIENTE
+          + costePresupuesto(r) * PESO_PRESUPUESTO
           + costeTiempo(r, slot) * 1e3
           + indice.get(r.id) * 0.5
           + (hash(r.id + slot.slotId, semilla) % RUIDO),
