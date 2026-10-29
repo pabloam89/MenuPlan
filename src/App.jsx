@@ -1299,16 +1299,22 @@ export default function App() {
   // Cotitular (editor) en la casa de otro: las recetas del titular, de solo
   // lectura (#958, política de la 0104). Viven aquí y NO en data.userRecipes,
   // para que nada intente subirlas a su nombre. Su carga va aparte de la de lo
-  // propio: si falla, lista vacía y lo suyo sigue igual.
+  // propio: si falla, lo suyo sigue igual y se avisa (el aviso, junto a showToast).
   const titularAjeno = activeHousehold && !esTitular(activeHousehold) && !householdReadOnly
     ? activeHousehold.ownerUserId ?? null
     : null;
   const [recetasDelTitular, setRecetasDelTitular] = useState([]);
+  const [fallanRecetasDelTitular, setFallanRecetasDelTitular] = useState(false);
   useEffect(() => {
     setRecetasDelTitular([]);
+    setFallanRecetasDelTitular(false);
     if (!user?.id || !titularAjeno) return undefined;
     let vigente = true;
-    loadRecetasDelTitular(titularAjeno).then((r) => { if (vigente) setRecetasDelTitular(r); });
+    loadRecetasDelTitular(titularAjeno).then(({ data: recetas, error }) => {
+      if (!vigente) return;
+      setRecetasDelTitular(recetas ?? []);
+      setFallanRecetasDelTitular(Boolean(error));
+    });
     return () => { vigente = false; };
   }, [user?.id, titularAjeno]);
 
@@ -2015,6 +2021,12 @@ export default function App() {
     toastTimer.current = window.setTimeout(() => setToast(null), action ? 5000 : 3500);
   }, []);
 
+  // Las recetas del titular no se han podido leer (#958): no es lo mismo que
+  // «no tiene ninguna», así que se dice. Lo propio ya está cargado aparte.
+  useEffect(() => {
+    if (fallanRecetasDelTitular) showToast("No se han podido cargar las recetas del titular de la casa. Vuelve a abrirla para reintentarlo.");
+  }, [fallanRecetasDelTitular, showToast]);
+
   // Otro (Lola, otro dispositivo, otra persona de la casa) ha escrito: se
   // vuelve a hidratar adoptando la nube. Lo que se hubiera tocado aquí sin
   // llegar a subir se pierde a propósito: es el precio de que el cambio del
@@ -2036,7 +2048,10 @@ export default function App() {
   const handleDeleteRecipe = useCallback(async (recipeId) => {
     if (!recipeId) return;
     // Una del titular no la borra el cotitular (#958): ni en la nube ni de aquí.
-    if (recetasDelTitular.some((r) => r.id === recipeId)) return;
+    if (recetasDelTitular.some((r) => r.id === recipeId)) {
+      showToast("Esta receta es del titular de la casa: solo la puede borrar quien la creó");
+      return;
+    }
     rememberDeletedRecipeId(recipeId);
 
     let nextData = null;

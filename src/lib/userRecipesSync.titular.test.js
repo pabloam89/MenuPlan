@@ -43,17 +43,26 @@ beforeEach(() => {
 describe("recetas del titular para un cotitular", () => {
   it("se cargan marcadas de solo lectura", async () => {
     filasNube = [{ id: "user_t1", owner_id: "titular", name: "Lentejas del titular" }];
-    const r = await loadRecetasDelTitular("titular");
-    expect(r.map((x) => x.id)).toEqual(["user_t1"]);
-    expect(r.every(esRecetaDelTitular)).toBe(true);
+    const { data, error } = await loadRecetasDelTitular("titular");
+    expect(error).toBeNull();
+    expect(data.map((x) => x.id)).toEqual(["user_t1"]);
+    expect(data.every(esRecetaDelTitular)).toBe(true);
   });
 
-  it("si la lectura falla o tira, lista vacía y sigue (plan B: sin la 0104 la RLS no da ninguna)", async () => {
+  it("sin ninguna visible (plan B: sin la 0104 la RLS no da ninguna), lista vacía y sin error", async () => {
+    expect(await loadRecetasDelTitular("titular")).toEqual({ data: [], error: null });
+  });
+
+  it("si la lectura falla o lanza, lo dice (no es «no tiene ninguna») y no lanza", async () => {
     errorNube = { message: "503" };
-    expect(await loadRecetasDelTitular("titular")).toEqual([]);
+    const fallo = await loadRecetasDelTitular("titular");
+    expect(fallo.data).toBeNull();
+    expect(fallo.error).toBeTruthy();
     errorNube = null;
     lanzar = true;
-    expect(await loadRecetasDelTitular("titular")).toEqual([]);
+    const tiro = await loadRecetasDelTitular("titular");
+    expect(tiro.data).toBeNull();
+    expect(tiro.error).toBeTruthy();
   });
 
   it("no se suben nunca: ni al rellenar lo solo local, ni en bloque, ni una a una", async () => {

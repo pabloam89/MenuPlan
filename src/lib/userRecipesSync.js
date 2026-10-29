@@ -45,17 +45,22 @@ export async function loadUserRecipes(userId) {
  * Las recetas del titular de la casa, para un cotitular (#958). Las deja leer
  * la política de la 0104; sin ella, la RLS devuelve solo las publicadas
  * (ninguna desde la 0103) y esto da una lista vacía: plan B. Van marcadas de
- * solo lectura y nunca entran en `data.userRecipes`. Si la lectura falla, lista
- * vacía y sigue: lo del titular no puede tumbar la carga de lo propio.
- * @returns {Promise<object[]>}
+ * solo lectura y nunca entran en `data.userRecipes`.
+ *
+ * Como loadUserRecipes (#316), «no tiene ninguna» y «no se ha podido mirar» no
+ * son lo mismo: si la lectura falla o lanza, `data` es null y `error` lo dice,
+ * para que la app avise. Nunca lanza: lo del titular no puede tumbar la carga
+ * de lo propio, que va aparte.
+ * @returns {Promise<{ data: object[]|null, error: object|null }>}
  */
 export async function loadRecetasDelTitular(titularId) {
   try {
-    const { data } = await loadUserRecipes(titularId);
-    return marcarDelTitular(data ?? []);
+    const { data, error } = await loadUserRecipes(titularId);
+    if (error) return { data: null, error };
+    return { data: marcarDelTitular(data ?? []), error: null };
   } catch (e) {
     console.warn("[userRecipes] recetas del titular", e?.message);
-    return [];
+    return { data: null, error: e ?? new Error("sin respuesta") };
   }
 }
 
