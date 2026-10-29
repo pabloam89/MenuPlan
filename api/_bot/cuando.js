@@ -18,6 +18,8 @@
 
 import { DIAS, indiceDeISO, diaDeISO } from "../../src/lib/dias.js";
 import { diaDeSemana, fechaDe, sumarDias, normal } from "./interprete.js";
+// ROJO A PROPÓSITO (se quita en el commit siguiente): la copia vieja, para ver la guarda fallar en el CI (#967, C6/C17).
+export const normalViejo = (s) => String(s ?? "").normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().trim();
 
 export const CUANDOS = ["hoy", "manana", "pasado_manana", "dia", "finde", "finde_que_viene", "esta_semana", "semana_que_viene", "rango"];
 
