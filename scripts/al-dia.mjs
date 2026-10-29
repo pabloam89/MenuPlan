@@ -45,7 +45,11 @@ export function decidir({ detras }) {
   return detras > 0 ? { decision: "actualizado", motivo: "-" } : { decision: "espera", motivo: "al-dia" };
 }
 
+// Misma forma de línea que scripts/dependabot-auto.mjs (`linea`): una por PR, para contarlas. Una decisión
+// o un motivo fuera del vocabulario cerrado lanza, no se escribe.
 export function linea({ pr, decision, motivo }) {
+  if (!DECISIONES.includes(decision)) throw new Error(`al-dia: decisión fuera del vocabulario: ${decision}`);
+  if (!MOTIVOS.includes(motivo)) throw new Error(`al-dia: motivo fuera del vocabulario: ${motivo}`);
   return `al-dia pr: ${pr} decision: ${decision} motivo: ${motivo}`;
 }
 

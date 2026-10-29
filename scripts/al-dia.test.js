@@ -84,6 +84,32 @@ describe("al-dia: decidir", () => {
     }
     expect(linea({ pr: 7, decision: "actualizado", motivo: "-" })).toBe("al-dia pr: 7 decision: actualizado motivo: -");
   });
+  it("linea lanza con una decisión o un motivo fuera del vocabulario", () => {
+    expect(() => linea({ pr: 1, decision: "fusionado", motivo: "-" })).toThrow(/decisión fuera del vocabulario/);
+    expect(() => linea({ pr: 1, decision: "espera", motivo: "otro" })).toThrow(/motivo fuera del vocabulario/);
+  });
+  it("todas las líneas que escribe pasada (ensayo, 422, error de la API, al día) están en el vocabulario", async () => {
+    const lineas = [];
+    for (const [si, rechaza, detras, cae] of [
+      [false, {}, { 1: 1, 2: 1 }, {}],
+      [true, { 1: 422 }, { 1: 1, 2: 1 }, {}],
+      [true, { 1: 500 }, { 1: 1, 2: 1 }, {}],
+      [true, {}, { 1: 0, 2: 0 }, { 1: true }],
+    ]) {
+      const m = mundo({ abiertos: [pr(1, "2026-10-01T00:00:00Z"), pr(2, "2026-10-02T00:00:00Z")], detras, rechaza, cae });
+      lineas.push(...(await pasada({ ...m, repo: REPO, si, log: () => {}, avisar: () => {} })).lineas);
+    }
+    expect(lineas).toHaveLength(6);
+    for (const l of lineas) {
+      const [, decision, motivo] = /decision: (\S+) motivo: (\S+)/.exec(l);
+      expect(DECISIONES).toContain(decision);
+      expect(MOTIVOS).toContain(motivo);
+    }
+    // y cada valor del vocabulario se usa en alguna línea (si no, sobra)
+    const vistos = lineas.map((l) => /decision: (\S+) motivo: (\S+)/.exec(l).slice(1));
+    for (const d of DECISIONES) expect(vistos.some(([x]) => x === d)).toBe(true);
+    for (const mo of MOTIVOS.filter((x) => x !== "-")) expect(vistos.some(([, y]) => y === mo)).toBe(true);
+  });
 });
 
 describe("al-dia: pasada", () => {
