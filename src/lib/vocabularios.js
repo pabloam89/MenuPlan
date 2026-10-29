@@ -157,7 +157,7 @@ export const SITIOS_FALLO = [
   "caducidades_personas_ilegibles",
   "db_usuario", "deshacer_paso", "deshacer_primer_menu", "embudo_dueno", "entradas_ya_vista", "ficharpc_casa", "generar_borrar_menu_a_medias",
   "generar_describir", "generar_despensa", "generar_recetas_propias", "generar_semanas_anteriores",
-  "idempotencia_guardar_resultado", "idempotencia_soltar_la_llave", "invitacion_unirse",
+  "idempotencia_guardar_resultado", "idempotencia_soltar_la_llave", "invitacion_unirse", "invitacion_vigente",
   "menu_describir", "menu_foto_de_la_receta", "pintar_recetas", "pista_adelanto",
   "receta_ya_estaba", "recetas_busqueda", "recetas_subir_foto", "recordatorios_reclamar", "recordatorios_soltar", "silencio_apuntar", "silencio_cerrar", "telegram_json",
   "traducir_memoria", "turno_casa", "turno_tras_escribir", "turnos_soltar_candado", "uso_limite", "vispera_casa",
