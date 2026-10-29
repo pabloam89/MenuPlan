@@ -21,7 +21,7 @@
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, IDS_PLATOS, COMIDAS as CATALOGO, comidasEnTexto } from "../../src/lib/comidas.js";
 import { CUANDOS } from "./cuando.js";
 import { ESQUEMA_RASGOS, ESQUEMA_EJES, ESQUEMA_PERFIL, ESQUEMA_BASE, ESQUEMA_CATEGORIA, OTRA } from "./esquemas.js";
-import { resolver, GRUPO_VALORES } from "../../src/lib/diccionario.js";
+import { resolver, GRUPO_VALORES, sinTildes } from "../../src/lib/diccionario.js";
 import Anthropic from "@anthropic-ai/sdk";
 
 export const MODELO_ROUTER = process.env.BOT_ROUTER_MODELO || "claude-haiku-4-5-20251001";
@@ -310,8 +310,8 @@ export function pedidoSinRecoger(texto, datos = {}) {
 // Sobre el texto sin tildes: con «qué», \b no ve frontera tras la «é».
 const EMPIEZA_PREGUNTA = /^\s*(¿|(y\s+)?(que|cuant[oa]s?|cual(es)?|donde|me\s+dices|dime|ensename|ver|mira)\b)/i;
 const CUENTA_LO_QUE_HAY = /\b(tengo|tenemos|me\s+quedan?|nos\s+quedan?|he\s+comprado|hemos\s+comprado|compre|apunta(me)?|anade)\b/i;
-export const esPreguntaDeDespensa = (texto) => {
-  const t = String(texto ?? "").normalize("NFD").replace(/\p{Diacritic}/gu, "");
+const esPreguntaDeDespensa = (texto) => {
+  const t = sinTildes(texto);
   if (EMPIEZA_PREGUNTA.test(t)) return true;
   return t.includes("?") && !CUENTA_LO_QUE_HAY.test(t);
 };
