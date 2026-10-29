@@ -333,7 +333,7 @@ function herramientasDeRecetas(chat) {
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: null, avisoLento: "Dame un momento, que te paso la receta a limpio" }, {
       name: "preparar_receta",
-      description: "Estructura una receta propia (como el asistente de la app) y la deja lista SIN guardar, para enseñarla. Solo cuando ya tengas nombre e ingredientes con cantidades; lo demás tiene valor por defecto. cuando: en qué comidas se sirve (primero, segundo, plato_unico, cena, merienda, postre). paraNinos: si es apta para niños (omitir si no lo saben). visibilidad: privada (solo la casa) o publica (sale en Gente).",
+      description: "Estructura una receta propia (como el asistente de la app) y la deja lista SIN guardar, para enseñarla. Solo cuando ya tengas nombre e ingredientes con cantidades; lo demás tiene valor por defecto. cuando: en qué comidas se sirve (primero, segundo, plato_unico, cena, merienda, postre). paraNinos: si es apta para niños (omitir si no lo saben). Se guarda solo para la casa.",
       inputSchema: obj({
         nombre: { type: "string" },
         raciones: { type: "integer", minimum: 1, maximum: 20 },
@@ -350,7 +350,6 @@ function herramientasDeRecetas(chat) {
         cuando: { type: "array", items: { type: "string", enum: ["primero", "segundo", "plato_unico", "cena", "merienda", "postre"] } },
         paraNinos: { type: "boolean" },
         preparacion: { type: "string", description: "Cómo se hace, con sus palabras (el modelo redacta los pasos a partir de aquí)." },
-        visibilidad: { type: "string", enum: ["privada", "publica"] },
         usarFoto: { type: "boolean", description: "true si hay foto del plato (en este mensaje o apartada con apartar_foto_plato)." },
       }, ["nombre", "ingredientes"]),
       run: (datos) => prepararReceta(householdId, datos, chat),
