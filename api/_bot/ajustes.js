@@ -31,6 +31,7 @@ import { supermercadoDe, CON_PRECIOS } from "../../src/lib/supermercados.js";
 import { EXTRAS, conExtras } from "../../src/lib/extras.js";
 import { quitarPersona } from "../../src/lib/quitarPersona.js";
 import { aplicarDiasDeSemana, diasDeSemana } from "../../src/lib/semanaDias.js";
+import { resultado } from "./resultado.js";
 
 const hoyISO = () => isoDeCasa();
 // Del catálogo de comidas (src/lib/comidas.js).
@@ -515,11 +516,17 @@ export async function anadirInvitado(householdId, { dia, comida, n = 1, nombre, 
     if (rf.duda) return { texto: rf.duda };
     if (!c) return { texto: `No entiendo qué comida es «${comida}».` };
     const regla = m.reglaDeInvitado({ dia: diaDeISO(rf.fecha), comida: c, n, nombre, semanaISO: lunesDe(rf.fecha), hoy: hoyISO() });
-    if (!regla) return { texto: "No he podido apuntar al invitado." };
+    const que = `${nombre ? `${nombre}, ` : ""}${n} más el ${rf.fecha} (${c})`;
+    if (!regla) return { texto: "No he podido apuntar al invitado.", resultado: resultado({ accion: "invitado", sinHacer: [{ que, motivo: "no he podido apuntarlo" }] }) };
     const { reglas } = m.podarReglasVencidas([...(data.reglas ?? []), { ...regla, origen: "texto" }], hoyISO());
+    // La regla solo cuenta al generar (App.jsx sí rehace raciones y compra al
+    // tocar el «+» de un plato; Lola no). La herramienta prometía «se suma a la
+    // compra de esa semana» con el menú ya hecho, y no se sumaba (#958).
+    const nota = "Cuenta al generar el menú de esa semana (raciones y compra) y caduca solo. Si esa semana ya tiene menú, ese plato y la compra no cambian hasta rehacerlo.";
     return {
       data: { ...data, reglas },
-      texto: `Apuntado: ${m.describirRegla(regla, data)}. Cuenta al generar el menú de esa semana (y caduca solo).`,
+      texto: `Apuntado: ${m.describirRegla(regla, data)}. ${nota}`,
+      resultado: resultado({ accion: "invitado", hecho: [`${m.describirRegla(regla, data)} (${rf.fecha})`], nota }),
     };
   });
 }
