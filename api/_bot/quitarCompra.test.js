@@ -25,6 +25,7 @@ vi.mock("./casa.js", async (original) => ({
 const { herramientas } = await import("./agente.js");
 const quitar = async (args) => {
   const t = (await herramientas({ householdId: "h1", chatId: "1", channel: "telegram", fotos: [], papel: "owner", resultados: [] })).find((x) => x.name === "quitar_compra");
+  expect(t, "Lola tiene la herramienta quitar_compra").toBeDefined();
   return t.run(args, { toolUse: { id: `t-${Math.random()}` } });
 };
 const datos = (r) => JSON.parse(r.split("\n")[0].slice("RESULTADO ".length));
