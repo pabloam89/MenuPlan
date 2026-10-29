@@ -11,7 +11,7 @@
  * un mensaje perdido.
  */
 
-import { insert } from "./db.js";
+import { insert, select, eq } from "./db.js";
 import { paraEscribir } from "../../src/lib/vocabularios.js";
 
 const esDuplicado = (e) => /\b409\b|23505|duplicate key/i.test(String(e?.message ?? e));
@@ -31,5 +31,21 @@ export async function primeraVez(proveedor, xid) {
     if (esDuplicado(e)) return false;
     console.warn("[bot/entradas] sin comprobar repetidos:", String(e?.message ?? e).slice(0, 160));
     return true;
+  }
+}
+
+/**
+ * ¿Ya se apuntó esta entrada? Sin apuntarla. La usa un [[Reintentar]] para no
+ * repetir una escritura del intento fallido (operacion.js claveDeEscritura).
+ * Si la base falla, `false`: se escribe, como antes.
+ */
+export async function yaVista(proveedor, xid) {
+  if (xid == null || String(xid).trim() === "") return false;
+  try {
+    const filas = await select("bot_entradas", `proveedor=${eq(paraEscribir("canales", proveedor))}&entrada_xid=${eq(String(xid).trim())}&limit=1`, "id");
+    return filas.length > 0;
+  } catch (e) {
+    console.warn("[bot/entradas] sin mirar repetidos:", String(e?.message ?? e).slice(0, 160));
+    return false;
   }
 }

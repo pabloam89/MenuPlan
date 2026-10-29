@@ -9,6 +9,7 @@
 
 import { seguirCon } from "./avisar.js";
 import { AsyncLocalStorage } from "node:async_hooks";
+import { contarEnOperacion } from "./operacion.js";
 
 const TIMEOUT_MS = 8000;
 
@@ -17,16 +18,19 @@ const TIMEOUT_MS = 8000;
 // hay que llevar a mano qué herramienta escribe en qué tabla. Los registros
 // (memoria del chat, eventos, fotos para deshacer) no cuentan.
 const escrituras = new AsyncLocalStorage();
-const SOLO_REGISTRO = new Set(["bot_messages", "user_events", "bot_route", "bot_deshacer"]);
+const SOLO_REGISTRO = new Set(["bot_messages", "user_events", "bot_route", "bot_deshacer", "bot_entradas"]);
 export async function contandoEscrituras(correr) {
   const cuenta = { n: 0 };
   const r = await escrituras.run(cuenta, correr);
   return { r, escribio: cuenta.n > 0 };
 }
 function contarEscritura(ruta) {
+  const tabla = ruta.split("?")[0].replace(/^\/rest\/v1\/(rpc\/)?/, "");
+  // Y en la operación del turno (operacion.js): si algo falla después, se
+  // sabe que ya se escribió y no se pide repetirlo (#958).
+  contarEnOperacion(tabla);
   const cuenta = escrituras.getStore();
   if (!cuenta) return;
-  const tabla = ruta.split("?")[0].replace(/^\/rest\/v1\/(rpc\/)?/, "");
   if (!SOLO_REGISTRO.has(tabla)) cuenta.n++;
 }
 

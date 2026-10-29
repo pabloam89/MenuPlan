@@ -32,6 +32,7 @@ import { SYSTEM_PROMPTS } from "../_prompts.js";
 import { buscarHibrido, pasaRasgos } from "./buscador.js";
 import { rasgosDeFrase } from "../../src/lib/rasgosBusqueda.js";
 import { paraEscribir } from "../../src/lib/vocabularios.js";
+import { deshacerTambien, TIPO_OPERACION } from "./operacion.js";
 
 // Las carpetas del recetario de la app (CATEGORY_META en CatalogBrowserSheet).
 // Los bebés van partidos por etapa, como allí.
@@ -339,7 +340,14 @@ export async function guardarRecetaPropia(householdId, receta) {
   if (!dueno) return { ok: false, enRecetario: false, error: "casa sin dueño" };
   const m = await motor();
   const lista = { ...receta, owner: receta.owner ?? { id: dueno }, source: "user" };
+  // ¿Es nueva? Solo una nueva se borra al deshacer: una que ya estaba y se ha
+  // sobrescrito no se puede devolver a como era desde aquí. Si no se sabe,
+  // como si estuviera: mejor no borrar de más.
+  const yaEstaba = !lista.id || (await select("user_recipes", `id=${eq(lista.id)}&owner_id=${eq(dueno)}`, "id").catch(fallaCon("receta_ya_estaba", [{ id: lista.id }]))).length > 0;
   await insert("user_recipes", [m.recipeToRow(lista, dueno)], { upsert: true });
+  // Deshacer el cambio de la casa que viene ahora quita también esta fila:
+  // antes la receta seguía en la app tras «Deshecho» (#958).
+  if (!yaEstaba) deshacerTambien({ tipo: TIPO_OPERACION.RECETA, id: lista.id, dueno });
   const r = await conCasa(householdId, (casa) => {
     const data = casa.state?.data ?? {};
     const otras = (data.userRecipes ?? []).filter((x) => x.id !== lista.id);
