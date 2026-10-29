@@ -33,6 +33,7 @@ import { PERFILES, ordenarPorPerfil } from "../../src/lib/derive/perfiles.js";
 import { etapaDe } from "../../src/lib/stages.js";
 import { vetosDePersona } from "../../src/lib/vetos.js";
 import { alergiasPorSilencio } from "../../src/lib/alergiasBase.js";
+import { anadirArticulos, sonElMismo } from "../../src/lib/compraIdentidad.js";
 
 let motorCargado = null;
 // Las recetas que trae el motor de serie (antes de registrar ninguna casa).
@@ -459,9 +460,11 @@ export async function marcarCompra(householdId, productos, estado, out = null, {
     for (const p of productos) {
       const encontrados = buscarItems(items, p);
       if (!encontrados.length) resultado.noEncontrados.push(p);
-      else if (encontrados.length > 1) resultado.dudosos.push(`${p}: ${encontrados.map((x) => x.name).join(", ")}`);
+      // Varios con la misma identidad son una sola cosa: se tachan todos. Antes
+      // «leche, leche» preguntaba «¿cuál?» para siempre (#958).
+      else if (encontrados.length > 1 && !sonElMismo(encontrados)) resultado.dudosos.push(`${p}: ${encontrados.map((x) => x.name).join(", ")}`);
       else {
-        encontrados[0].have = estado === "comprado";
+        for (const it of encontrados) it.have = estado === "comprado";
         resultado.hechos.push(encontrados[0].name);
       }
     }
@@ -478,23 +481,23 @@ export async function marcarCompra(householdId, productos, estado, out = null, {
   ].filter(Boolean).join("\n") || "No había lista de la compra.";
 }
 
+// Lo que ya está en la lista no se duplica (compraIdentidad.js, #958): si
+// estaba pendiente se deja, y si estaba tachado o «en casa», vuelve a pedirse.
 export async function anadirCompra(householdId, productos, out = null) {
+  let hecho = { anadidos: [], yaEstaban: [], devueltos: [] };
   const r = await conCasa(householdId, (casa) => {
-    const items = [...(listaDe(casa).items ?? [])];
-    for (const p of productos) {
-      const name = String(p).trim();
-      if (!name) continue;
-      items.push({
-        id: `manual:${normal(name).replace(/\s+/g, "-")}:${Date.now().toString(36)}`,
-        name, category: "Otros", unit: "", qty: null, displayQty: "",
-        sources: [], have: false, atHome: false, manual: true, adapted: false,
-      });
-    }
-    return guardarLista(casa, { ...listaDe(casa), items });
+    hecho = anadirArticulos(listaDe(casa).items ?? [], productos);
+    if (!hecho.anadidos.length && !hecho.devueltos.length) return null;
+    return guardarLista(casa, { ...listaDe(casa), items: hecho.items });
   });
-  if (out) Object.assign(out, { ok: r.ok, anadidos: productos.map((p) => String(p).trim()).filter(Boolean) });
+  // `anadidos`: lo que queda en la lista tras pedirlo (nuevo, devuelto o que ya estaba).
+  if (out) Object.assign(out, { ok: r.ok, anadidos: [...hecho.anadidos, ...hecho.devueltos, ...hecho.yaEstaban], nuevos: hecho.anadidos, yaEstaban: hecho.yaEstaban, devueltos: hecho.devueltos });
   if (!r.ok) return `No he podido guardar la lista: ${r.error}.`;
-  return `Añadido a la compra: ${productos.join(", ")}.`;
+  return [
+    hecho.anadidos.length ? `Añadido a la compra: ${hecho.anadidos.join(", ")}.` : "",
+    hecho.devueltos.length ? `Estaba tachado y vuelve a la lista: ${hecho.devueltos.join(", ")}.` : "",
+    hecho.yaEstaban.length ? `Ya estaba en la lista (no lo duplico): ${hecho.yaEstaban.join(", ")}.` : "",
+  ].filter(Boolean).join("\n") || "No había nada que añadir.";
 }
 
 /** El grupo y el hueco de un día y franja del menú activo, o por qué no hay. */
