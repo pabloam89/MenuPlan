@@ -2964,6 +2964,43 @@
         "proponer_platos"
       ],
       "sinTexto": "ya est[aá] (arreglad|hech|cambiad|list)|list[oa]!|queda (arreglad|cambiad)|ya lo cambi"
+    },
+    {
+      "id": "propone-tras-queja-sin-ver-menu",
+      "tipo": "herramienta",
+      "dominio": "menu",
+      "origen": "fallo_produccion",
+      "dependeDeFecha": true,
+      "nombre": "#908: quejas de un plato del viernes y pide otras opciones: propone, sin mirar antes el menú",
+      "alDia": [
+        "- {viernes}: comida primero Arroz con tomate frito + segundo Ensalada de lentejas; cena tortilla de calabacín."
+      ],
+      "entrada": "No tiene mucho sentido el arroz con tomate frito y la ensalada de lentejas el viernes a mediodía, ¿qué otras opciones hay?",
+      "llama": [
+        "proponer_platos"
+      ],
+      "noLlama": [
+        "ver_menu",
+        "cambiar_plato",
+        "generar_menu"
+      ]
+    },
+    {
+      "id": "ajuste-no-mas-de-dos-ensaladas",
+      "tipo": "herramienta",
+      "dominio": "ficha",
+      "origen": "fallo_produccion",
+      "dependeDeFecha": true,
+      "nombre": "#908: «no más de dos ensaladas a la semana»: lo apunta en una llamada, sin regenerar ni mirar",
+      "entrada": "No quiero más de dos ensaladas a la semana",
+      "llama": [
+        "ajustar_gustos"
+      ],
+      "noLlama": [
+        "generar_menu",
+        "ver_menu"
+      ],
+      "maxLlamadas": 1
     }
   ]
 }
