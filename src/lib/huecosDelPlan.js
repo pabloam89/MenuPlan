@@ -6,48 +6,45 @@
  * huecos vacíos (#1029). Aquí se calcula el invariante de completitud:
  *
  *   hueco esperado = grupo con gente × día activo × comida que se cocina
- *                    (modeForGroupSlot) × platos de su estructura
+ *                    (modeForGroupSlot) × platos de su hueco (platosDelHueco)
  *
  * y se compara con el plan guardado. Puro y sin red: lo usa generar.js al
  * acabar (el texto a Lola y la vía rápida).
- *
- * Cuántos platos lleva cada hueco sigue la misma regla que buildGroupContext
- * (aiPlanner.js): la estructura se lee de estructuraPlatos.js (una sola
- * lectura, #958) y el tipo del día (`unico`, `rapida`) de data.slotType.
  */
 import { getMeals, modeForGroupSlot } from "./planner.js";
 import { isBabyMenuGroup, membersOfGroup, tipoDeGrupo } from "./groups.js";
 import { kidsSlotAction } from "./kidsMenu.js";
-import { estructuraDelGrupo, estructuraCenaDelGrupo, ESTRUCTURA_POR_DEFECTO, ESTRUCTURA_CENA_POR_DEFECTO } from "./estructuraPlatos.js";
+import { estructuraDelGrupo, estructuraCenaDelGrupo, platosDelHueco } from "./estructuraPlatos.js";
 import { DIAS, COMIDAS, DIA_LARGO_MINUSCULAS } from "./dias.js";
 
-/** Los platos de un hueco, vocabulario cerrado: el primero y el principal. */
+/** Los platos de un hueco en el plan guardado, vocabulario cerrado: el primero y el principal. */
 export const PLATOS_DEL_HUECO = Object.freeze(["primero", "principal"]);
 
 /** Cómo se dice cada plato cuando se nombra un hueco a medias. */
 const ORDINAL = Object.freeze({ primero: "1º", principal: "2º" });
 
-// Los dos valores de la estructura (vocabularios.js, ESTRUCTURA_PLATOS): el de
-// dos platos es el defecto de la comida y el de uno, el defecto de la cena.
-const DOS_PLATOS = ESTRUCTURA_POR_DEFECTO;
-const UN_PLATO = ESTRUCTURA_CENA_POR_DEFECTO;
+/**
+ * De las posiciones del motor (platosDelHueco: «primero», «segundo»,
+ * «plato_unico») a los campos del plan guardado: el primero va a
+ * `firstRecipeId`; el segundo y el plato único, a `recipeId` (principal).
+ */
+const platoDelPlan = (posicion) => (posicion === "primero" ? "primero" : "principal");
 
 /**
- * Cuántos platos lleva un hueco según la estructura del grupo y el tipo de
- * ese día (plato único, rápida). Misma regla que buildGroupContext.
+ * Los platos que el plan debe tener en un hueco. Un hueco de niños que copia
+ * el de los adultos (kidsSlotAction ≠ generate) no lo genera el motor: lo
+ * rellena después el bloque de copia de generateMenuWithAI, siempre con
+ * `recipeId`, con lo que tengan los adultos. Por eso se le exige el principal.
  */
-function platosDelHueco(data, group, day, meal, { esBebe, copiaDeAdultos }) {
-  // El bebé come un solo plato (puré); un hueco que copia el de los adultos
-  // lleva lo que tengan ellos, así que lo que se exige aquí es que haya algo.
-  if (esBebe || copiaDeAdultos) return ["principal"];
-  const slotTypeSel = data.slotType?.[`${day}|${meal}`];
-  if (meal === "Comida") {
-    const unPlato = slotTypeSel === "unico" || slotTypeSel === "rapida" || estructuraDelGrupo(data, group.id) === UN_PLATO;
-    return unPlato ? ["principal"] : [...PLATOS_DEL_HUECO];
-  }
-  // Una cena rápida nunca se parte, como en el motor.
-  const dosPlatos = estructuraCenaDelGrupo(data, group.id) === DOS_PLATOS && slotTypeSel !== "rapida";
-  return dosPlatos ? [...PLATOS_DEL_HUECO] : ["principal"];
+function platosEsperadosDelHueco(data, group, dia, comida, { esBebe, copiaDeAdultos }) {
+  if (copiaDeAdultos) return ["principal"];
+  return platosDelHueco({
+    comida,
+    estructura: estructuraDelGrupo(data, group.id),
+    estructuraCena: estructuraCenaDelGrupo(data, group.id),
+    slotType: data.slotType?.[`${dia}|${comida}`],
+    esBebe,
+  }).map(platoDelPlan);
 }
 
 /**
@@ -70,7 +67,7 @@ export function huecosEsperados(data, { activeDays } = {}) {
       for (const comida of meals) {
         if (!modeForGroupSlot(group, members, schedule, dia, comida).cook) continue;
         const copiaDeAdultos = esDeNinos && kidsSlotAction(data, dia, comida) !== "generate";
-        const platos = platosDelHueco(data, group, dia, comida, { esBebe, copiaDeAdultos });
+        const platos = platosEsperadosDelHueco(data, group, dia, comida, { esBebe, copiaDeAdultos });
         // `de`: cuántos platos lleva el hueco entero, para decir «(2º)» solo
         // cuando falta uno de dos.
         for (const plato of platos) out.push({ grupo: group.id, dia, comida, plato, de: platos.length });
