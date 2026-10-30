@@ -11,6 +11,7 @@
  * contesta «Vale.».
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { REGISTRO_CAMPOS } from "../../src/lib/registroCampos.js";
 
 const CASA = "11111111-1111-1111-1111-111111111111";
 const YO = "22222222-2222-2222-2222-222222222222";
@@ -94,6 +95,30 @@ function fichaCasa0097({ p_casa, p_usuario = null, p_canal = null, p_max_tareas 
     tareas,
     callados,
   };
+}
+
+/**
+ * ficha_casa v2 (0107) de mentira: lo de la v1 y, en vez de «datos», «fichas» con cada campo de
+ * registro_campo por sujeto. Como la base hoy, sin ningún sobre salvo los de `sobres`: todo vacío, y
+ * «faltan» trae las alergias de TODAS las personas (la columna, alergias_revisadas, ya no cuenta).
+ */
+function fichaCasa0107(args, { personas = PERSONAS(), sobres = [] } = {}) {
+  const { datos: _, faltan: __, ...v1 } = fichaCasa0097(args, personas);
+  const sobreDe = (campo, id) => sobres.find((s) => s.campo === campo && (s.sujeto.id ?? null) === id);
+  const fichas = {};
+  for (const [campo, r] of Object.entries(REGISTRO_CAMPOS)) {
+    const sujetos = r.por === "persona" ? personas.map((p) => ({ tipo: "persona", id: p.id })) : [{ tipo: "casa", id: null }];
+    for (const sujeto of sujetos) {
+      const s = sobreDe(campo, sujeto.id);
+      (fichas[r.ficha] ??= []).push(s ?? { campo, sujeto, estado: "vacio", valor: null, origen: null, bloqueado: false, peso: null, confirmado_el: null, caduca_at: null, cambiado_at: null, dicho_por: null, canal: null, operacion_id: null });
+    }
+  }
+  const faltan = [
+    ...personas.filter((p) => !sobreDe("alergias", p.id))
+      .map((p) => ({ campo: "alergias", sujeto: { tipo: "persona", id: p.id }, politica: "una_vez", aplica: "todos", seguridad: true, minimo_para_generar: true, peso_menu: 90 })),
+    { campo: "etapaBebe", sujeto: { tipo: "casa", id: null }, politica: "antes_de_usarlo", aplica: "bebe", seguridad: true, minimo_para_generar: false, peso_menu: null },
+  ];
+  return { ...v1, v: 2, fichas, faltan };
 }
 
 let filas = [];
@@ -273,6 +298,50 @@ describe("con BOT_FICHA_RPC encendido, ficha y tareas de ficha_casa en una ida",
     expect(selectsDeTareas()).toEqual([]);
     expect(t.ficha).toEqual(antes.ficha);
     expect(logDe(/\[fichaRpc\].*contrato desconocido/)).toBe(false);
+  });
+
+  it("con la v2 de verdad, «faltan» trae las alergias de todos y Lola no repregunta lo ya dicho: ficha y tareas, como del JSON", async () => {
+    const antes = await apagado();
+    encender();
+    rpcFicha = (args) => fichaCasa0107(args);
+    // Lo que trae la v2 sin sobres: las cinco personas, también Pablo y Marta, que ya lo dijeron.
+    expect(fichaCasa0107({ p_casa: CASA }).faltan.filter((f) => f.campo === "alergias").map((f) => f.sujeto.id)).toEqual(["l", "leo", "m", "p", "v"]);
+    const t = await turno();
+    expect(t.ficha).toEqual(antes.ficha);
+    expect(t.ficha[0]).toMatch(/Pablo y Marta: ninguna/);
+    expect(t.ficha[1]).toMatch(/PENDIENTE\n- ¿Vega tiene alguna alergia o intolerancia\?$/);
+    expect(t.entrada).toBe(antes.entrada.replace("; se pidió en otro chat", ""));
+    expect(logDe(/\[fichaRpc\]/)).toBe(false);
+  });
+
+  it("con la v1 (0107 sin aplicar): se lee como siempre, y queda en el log que falta el estado de cada dato", async () => {
+    const antes = await apagado();
+    encender();
+    const t = await turno();
+    expect(t.ficha).toEqual(antes.ficha);
+    expect(logDe(/\[fichaRpc\] ficha_casa v=1 .*sin el estado de cada dato/)).toBe(true);
+  });
+
+  it("una v2 con un estado fuera del vocabulario: del JSON, y queda en el log", async () => {
+    const antes = await apagado();
+    encender();
+    rpcFicha = (args) => fichaCasa0107(args, { sobres: [{ campo: "colegio", sujeto: { tipo: "persona", id: "l" }, estado: "caducado", valor: null, origen: null }] });
+    const t = await turno();
+    expect(t).toEqual(antes);
+    expect(selectsDeTareas().length).toBeGreaterThan(0);
+    expect(logDe(/\[fichaRpc\] contrato desconocido.*caducado.*ESTADOS_DATO/)).toBe(true);
+  });
+
+  it("lo que solo vive en el sobre entra en la ficha con su marca, y no cambia lo que se pregunta", async () => {
+    encender();
+    const sujeto = { tipo: "persona", id: "l" };
+    rpcFicha = (args) => fichaCasa0107(args, { sobres: [
+      { campo: "colegio", sujeto, estado: "dicho", valor: "El Pilar", origen: "dicho", bloqueado: false },
+      { campo: "patronSemanas", sujeto, estado: "aprendido", valor: "alternas", origen: "visto", bloqueado: false },
+    ] });
+    const t = await turno();
+    expect(t.ficha[0]).toMatch(/\n- Dicho: colegio \(Lucas\): El Pilar\.\n- Supuesto: patronSemanas \(Lucas\): alternas\./);
+    expect(t.ficha[1]).toMatch(/PENDIENTE\n- ¿Vega tiene alguna alergia o intolerancia\?$/);
   });
 
   it("si las tablas no dicen lo mismo que el JSON en lo de seguridad, manda el JSON (lo que filtra el motor)", async () => {

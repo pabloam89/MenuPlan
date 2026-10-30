@@ -91,6 +91,23 @@ describe("la ficha de la casa", () => {
     expect(f.estable).not.toMatch(/carne/);
   });
 
+  it("lo que solo vive en el sobre (ficha_casa v2) va detrás de la libreta, con su marca y el nombre de la persona", () => {
+    const campos = { "freqs.pescado": { valor: 3, origen: "texto" } };
+    const marcasDeEstado = [
+      { marca: "dicho", campo: "colegio", personaId: "l", valor: "El Pilar" },
+      { marca: "supuesto", campo: "patronSemanas", personaId: "l", valor: "alternas" },
+      // De la casa (sin persona): sin nombre.
+      { marca: "dicho", campo: "sexo", personaId: null, valor: "mujer" },
+    ];
+    const casa = { ...casaDe({ members: MIEMBROS, notepad: { v: 1, campos } }), marcasDeEstado };
+    const f = montarFicha(casa, {}, "2026-10-01");
+    expect(f.estable).toMatch(/\n- Dicho: [^\n]*pescado \(3\); colegio \(Lucas\): El Pilar; sexo: mujer\.\n/);
+    expect(f.estable).toMatch(/\n- Supuesto: patronSemanas \(Lucas\): alternas\.$/);
+    // Sin marcas (v1 o sin sobres), la ficha es la de siempre.
+    const sin = montarFicha(casaDe({ members: MIEMBROS, notepad: { v: 1, campos } }), {}, "2026-10-01");
+    expect(f.estable.replace("; colegio (Lucas): El Pilar; sexo: mujer", "").replace(/\n- Supuesto: [^\n]*/, "")).toBe(sin.estable);
+  });
+
   it("lo rechazado no sale como apunte, y sí como «no volver a suponer»", () => {
     const campos = {
       "favoritos.lentejas": { valor: undefined, fuente: "supuesto", rechazos: [{ valor: true, fecha: "2026-09-28" }] },
