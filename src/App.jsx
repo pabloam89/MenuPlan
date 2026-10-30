@@ -6349,7 +6349,9 @@ export default function App() {
                 onOpenAccount={() => fwd(() => setScreen("profile"))}
                 onViewMenu={goToMenuFromDashboard}
                 onGenerateMenu={householdReadOnly ? undefined : handleGenerateMenu}
-                onRegenerate={householdReadOnly ? undefined : handleRegenerate}
+                // Se va a Menú antes de generar, como el wizard: el progreso y
+                // los errores de regenerateMenu se pintan allí, no en Inicio.
+                onRegenerate={householdReadOnly ? undefined : () => { goToMenuFromDashboard(); handleRegenerate(); }}
                 // Ausente = la card no se pinta. La pizarra sigue apagada en
                 // producción (ver pizarraActiva), así que Inicio conserva su
                 // único CTA hasta que se decida abrirla.
