@@ -22,7 +22,7 @@ import { alergiasRevisadas, marcarRevisadas } from "./alergiasBase.js";
 // Lo que no necesita el catálogo vive en alergiasBase.js (el bot lo usa sin
 // cargar el motor); aquí se reexporta para que la app siga importando de aquí.
 export {
-  pareceAlergia, alergiasRevisadas, alergiasPorSilencio, marcarRevisadas, marcarPorSilencio, conRecordatorioDeSilencio,
+  pareceAlergia, alergiasRevisadas, alergiasPorSilencio, marcarRevisadas, marcarPorSilencio, conRecordatorioDeSilencio, pendientesDeAlergias,
 } from "./alergiasBase.js";
 
 /** Aplicar a todos los de la casa. Mismo valor que usa la ficha de la app. */
@@ -90,11 +90,6 @@ export function alergiasParaMenu(data, m) {
   const propias = m?.allergies ?? [];
   if (alergiasRevisadas(data, m)) return propias;
   return [...new Set([...propias, ...EU_ALLERGEN_IDS.map((id) => EU_ALLERGENS[id].label)])];
-}
-
-/** Los de la casa a los que nadie ha preguntado todavía por alergias. */
-export function pendientesDeAlergias(data) {
-  return (data?.members ?? []).filter((m) => !alergiasRevisadas(data, m));
 }
 
 /** Añade a alguien a la casa SIN revisar: hasta que se pregunte por él, la casa tampoco lo está. */

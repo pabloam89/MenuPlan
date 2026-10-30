@@ -41,7 +41,8 @@ const m = {
 
 const casaVieja = {
   householdId: "h1", botRev: 3,
-  state: { data: { members: [{ id: "p1" }], groups: [{ id: "g1", label: "Todos" }] }, shopping: { items: [] } },
+  // Con las alergias revisadas: sin eso no se genera (trozo 2 de #1037, abajo).
+  state: { data: { members: [{ id: "p1", name: "Ana", alergiasRevisadas: true }], groups: [{ id: "g1", label: "Todos" }] }, shopping: { items: [] } },
   menu: { id: "menu-viejo" }, semanas: [], semana: null,
 };
 
@@ -401,5 +402,34 @@ describe("generar: un hueco vacío no se calla (#1029)", () => {
     expect(out).toMatchObject({ ok: false, aviso: "plan_vacio" });
     expect(texto).toMatch(/^NO GUARDADO/);
     expect(insert).not.toHaveBeenCalled();
+  });
+});
+
+describe("mínimos para generar (trozo 2 de #1037, decisión B): sin alergias dichas no se genera, se pregunta", () => {
+  const conPersonas = (members) => cargarCasa.mockResolvedValue({
+    ...structuredClone(casaVieja), state: { ...casaVieja.state, data: { ...casaVieja.state.data, members } },
+  });
+
+  it("con alguien sin revisar: ni motor ni guardado, y dice a quién hay que preguntar", async () => {
+    conPersonas([{ id: "p1", name: "Ana", alergiasRevisadas: true }, { id: "p2", name: "Leo" }]);
+    const generateMenuWithAI = vi.fn(m.generateMenuWithAI);
+    motor.mockResolvedValue({ ...m, generateMenuWithAI });
+    const out = {};
+    const texto = await generarMenu("h1", "esta", [], out);
+    expect(out).toMatchObject({ ok: false, aviso: "faltan_minimos", faltan: [{ minimo: "alergias", personas: ["Leo"] }] });
+    expect(generateMenuWithAI).not.toHaveBeenCalled();
+    expect(insert).not.toHaveBeenCalled();
+    expect(texto).toMatch(/^NO GENERADO/);
+    expect(texto).toMatch(/Leo/);
+    expect(texto).toMatch(/alergia/i);
+  });
+
+  it("revisados todos (dicho o por silencio), se genera", async () => {
+    conPersonas([{ id: "p1", name: "Ana", alergiasRevisadas: true }, { id: "p2", name: "Leo", alergiasRevisadas: true }]);
+    conCasa.mockResolvedValue({ ok: true });
+    const out = {};
+    await generarMenu("h1", "esta", [], out);
+    expect(out.ok).toBe(true);
+    expect(out.aviso).toBeUndefined();
   });
 });

@@ -34,6 +34,7 @@ import { RASTRO } from "../../src/lib/rastro.js";
 import { isoDeCasa, DIAS, DIAS_FINDE, semanasEntre } from "../../src/lib/dias.js";
 import { collectMenuRecipeIds, pruneAiRecipes, planHasDishes } from "../../src/lib/menuArchive.js";
 import { huecosEsperados, huecosVacios, describirHuecos } from "../../src/lib/huecosDelPlan.js";
+import { minimosQueFaltan, MINIMO } from "../../src/lib/minimosParaGenerar.js";
 import { indiceSemanaCole } from "../../src/lib/schoolMenu.js";
 import { VENTANA_SEMANAS } from "../../src/lib/recientes.js";
 import { resolverSemana, conservarDiasPrevios, rangoDeFechas } from "./semanaPedida.js";
@@ -250,6 +251,17 @@ async function borrarMenu(householdId, menuId) {
   await borrar("user_menus", `household_id=${eq(householdId)}&id=${eq(menuId)}&is_active=eq.false`);
 }
 
+/** Lo que se le dice a Lola cuando falta un mínimo: qué preguntar, a quién, y que vuelva a generar después. */
+export function preguntaPorMinimos(faltan) {
+  const lista = (xs) => (xs.length > 1 ? `${xs.slice(0, -1).join(", ")} y ${xs.at(-1)}` : xs[0]);
+  const alergias = faltan.find((f) => f.minimo === MINIMO.alergias);
+  if (alergias) {
+    const varios = alergias.personas.length > 1;
+    return `NO GENERADO: de ${lista(alergias.personas)} aún no sé si ${varios ? "tienen" : "tiene"} alguna alergia o intolerancia. Pregúntalo antes, una sola vez y con el aviso de «Seguridad», sin generar; cuando contesten (o sigan con lo suyo), vuelve a llamar a generar_menu.`;
+  }
+  return `NO GENERADO: falta ${lista(faltan.map((f) => f.minimo))}.`;
+}
+
 export async function generarMenu(householdId, cual = "esta", fijos = [], out = null, { desde = null, rehacer = false } = {}) {
   const casa = await cargarCasa(householdId);
   if (!casa) return "Esta casa todavía no tiene datos en la nube.";
@@ -286,6 +298,15 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   // Rehechos, heredan el id de los de antes por su papel (Adultos → Familia).
   if (miembros.length && (!groups.length || !conGente(groups))) groups = m.groupsFromModel(miembros, modelo, working.groups ?? []);
   if (!groups.length || !conGente(groups)) return "Antes de generar necesito saber quién come en casa: añade al menos una persona.";
+  // Sin saber las alergias de alguien no se genera: se pregunta antes (trozo 2
+  // de #1037, decidido por Pablo el 30 oct 2026; revierte #107). Esquivar los
+  // 14 alérgenos dejaba 27 recetas y la semana con huecos (#1029). El silencio
+  // tras el aviso ya cuenta como revisado (silencioDelTurno corre antes).
+  const faltan = minimosQueFaltan(working);
+  if (faltan.length) {
+    if (out) Object.assign(out, { ok: false, aviso: "faltan_minimos", faltan });
+    return preguntaPorMinimos(faltan);
+  }
 
   // «Esta semana» empieza hoy (no tiene sentido planificar el lunes pasado),
   // o mañana si se rehace; las demás, desde su lunes y enteras.
