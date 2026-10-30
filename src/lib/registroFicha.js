@@ -62,11 +62,15 @@
  *    marcas, historiales y legados).
  *  - choque (CHOQUES): si dos escrituras chocan, el último gana, el más
  *    restrictivo (salud) o se suman (señales).
+ *  - eje: el eje de src/data/axisRegistry.js que expresa el dato (trozo 24);
+ *    hoy, los de la libreta (DATOS_PREFERENCIA), para que el trozo 14 los
+ *    pase a filas de `preferencia` sin traducir a mano.
  *
  * Los lectores no se escriben aquí: los busca el inventario en el código, para
  * que no se queden viejos.
  */
-import { ESCRITOR, CHOQUE, CLASE } from "./vocabularios.js";
+import { ESCRITOR, CHOQUE, CLASE, FICHA } from "./vocabularios.js";
+import { CAMPOS as CAMPOS_LIBRETA } from "./notepadFields.js";
 
 /** Las entidades de la ficha, con los campos de la forja (Fábrica, entities.json: REQUIRED_FIELDS). */
 export const ENTIDADES = Object.freeze({
@@ -112,6 +116,24 @@ export const ENTIDADES = Object.freeze({
     readers: ["src/lib/priceHistory.js", "src/screens/Shopping.jsx"],
     nota: "Súper, presupuesto, precios y tickets.",
   },
+  preferencia: {
+    id: "preference", name: "Preferencia", scope: "vertical", term: "preferencia",
+    source_of_truth: "src/lib/registroFicha.js",
+    readers: ["src/lib/notepad.js", "src/lib/libretaEnData.js"],
+    nota: "Todo lo que condiciona el menú (antes «gusto»): quién, nivel, eje, medida, operador, valor y fuerza. Hoy es la libreta (DATOS_PREFERENCIA); la tabla preferencia nace en la 0107 (plan, trozo 14).",
+  },
+  plan_preferencias: {
+    id: "preference-set", name: "Conjunto de preferencias", scope: "vertical", term: "conjunto de preferencias",
+    source_of_truth: "specs/plan-fichas-con-estado.md",
+    readers: [],
+    nota: "Un plan de nutrición, una dieta temporal, «semana ligera»: nombre, desde, hasta, activo. No es el plan de trabajo de la Fábrica. Sin lector hasta la 0107 (trozo 14).",
+  },
+  operacion: {
+    id: "operation", name: "Operación", scope: "vertical", term: "operación",
+    source_of_truth: "specs/arquitectura-objetivo.md",
+    readers: ["api/_bot/casa.js", "api/_bot/idempotencia.js"],
+    nota: "Todo cambio, venga de Lola o de la app: autor, canal, ref, acción, pedido, hecho, sin hacer, estado, inversa e idempotencia. Hoy lo cubren a medias bot_deshacer (casa.js) y bot_idempotencia; la tabla operacion nace en la 0105 (trozo 7).",
+  },
   receta: {
     id: "own-recipe", name: "Receta de la casa", scope: "vertical", term: "receta",
     source_of_truth: "src/lib/userRecipesSync.js",
@@ -137,7 +159,7 @@ export const APLICA = ["todos", "bebe"];
  * casa/trato) y no están: sus datos declaran la suya.
  */
 export const FICHA_DEL_TEMA = Object.freeze({
-  salud: "persona", horario: "rutina", agenda: "regla", gustos: "gusto",
+  salud: "persona", horario: "rutina", agenda: "regla", gustos: FICHA.PREFERENCIA,
   despensa: "despensa", compra: "compra", menus: "semana", recetas: "receta",
 });
 
@@ -169,7 +191,7 @@ const dato = (d) => {
     campo: null, libreta: null, otros: null, de: null, funcion: null, motivo: null, vive: "data", modulo: null,
     ficha: FICHA_DEL_TEMA[d.tema] ?? null, defecto: null, suposicion: true, minimo_para_generar: false,
     caduca_dias: null, peso_menu: null, politica: null, seguridad: false, aplica: "todos", columna: null, minimo: null, maximo: null,
-    escribe: clase === CLASE.HECHO && estado === "activo" ? ESCRITOR.FAMILIA : ESCRITOR.SISTEMA, choque: CHOQUE.ULTIMO_GANA,
+    escribe: clase === CLASE.HECHO && estado === "activo" ? ESCRITOR.FAMILIA : ESCRITOR.SISTEMA, choque: CHOQUE.ULTIMO_GANA, eje: null,
     ...d,
   };
 };
@@ -202,13 +224,13 @@ export const DATOS_CASA = Object.freeze({
   allergiesReviewed: dato({ entidad: "persona", ...salud, tipo: "bool", ...derivado("members.alergiasRevisadas", "src/lib/alergiasBase.js:marcarRevisadas"), motivo: "resumen: todas las personas revisadas (alergiasBase.js)" }),
   alergiasSilencioRecordado: dato({ entidad: "persona", tema: "salud", tipo: "bool", ...delSistema, motivo: "si ya se le recordó a la casa que las alergias van por silencio (alergiasBase.js escribe true)" }),
   etapaBebe: dato({ ...salud, tipo: "enum", vocabulario: "etapa_bebe", campo: "etapaBebe", politica: "antes_de_usarlo", seguridad: true, aplica: "bebe", caduca_dias: 21 }),
-  goals: dato({ tema: "salud", ficha: "gusto", tipo: "lista_enum", motivo: "ids de goalDefs; objetivos como «más legumbres» son gustos con postura" }),
-  goalDefs: dato({ tema: "salud", ficha: "gusto", tipo: "lista", motivo: "el catálogo de objetivos de la casa, con los suyos propios" }),
-  goalsByGroup: dato({ entidad: "grupo", tema: "salud", ficha: "gusto", tipo: "mapa" }),
-  goalsManualByGroup: dato({ entidad: "grupo", tema: "salud", ficha: "gusto", tipo: "mapa", ...marca("goalsByGroup"), motivo: "si el usuario tocó a mano los objetivos del grupo" }),
-  // El objetivo de calorías es un objetivo del menú, como goals: ficha Gusto (la ficha Persona lleva peso y altura).
-  kcal: dato({ tema: "salud", ficha: "gusto", tipo: "int", defecto: 2000 }),
-  kcalByGroup: dato({ entidad: "grupo", tema: "salud", ficha: "gusto", tipo: "mapa" }),
+  goals: dato({ tema: "salud", ficha: FICHA.PREFERENCIA, tipo: "lista_enum", motivo: "ids de goalDefs; objetivos como «más legumbres» son preferencias" }),
+  goalDefs: dato({ tema: "salud", ficha: FICHA.PREFERENCIA, tipo: "lista", motivo: "el catálogo de objetivos de la casa, con los suyos propios" }),
+  goalsByGroup: dato({ entidad: "grupo", tema: "salud", ficha: FICHA.PREFERENCIA, tipo: "mapa" }),
+  goalsManualByGroup: dato({ entidad: "grupo", tema: "salud", ficha: FICHA.PREFERENCIA, tipo: "mapa", ...marca("goalsByGroup"), motivo: "si el usuario tocó a mano los objetivos del grupo" }),
+  // El objetivo de calorías es un objetivo del menú, como goals: ficha Preferencia (la ficha Persona lleva peso y altura).
+  kcal: dato({ tema: "salud", ficha: FICHA.PREFERENCIA, tipo: "int", defecto: 2000 }),
+  kcalByGroup: dato({ entidad: "grupo", tema: "salud", ficha: FICHA.PREFERENCIA, tipo: "mapa" }),
 
   // ── Horario: qué comidas, cuándo y dónde ──
   meals: dato({ tema: "horario", tipo: "lista_enum", vocabulario: "comidas", defecto: ["Comida", "Cena"], peso_menu: 85 }),
@@ -338,6 +360,16 @@ export const DATOS_PERSONA = Object.freeze(Object.fromEntries(Object.entries({
   patronSemanas: dato({ tema: "quien", tipo: "enum", vocabulario: "patron_semanas", campo: "patronSemanas", politica: "nunca", vive: "tabla:sobre", motivo: "custodia: semanas alternas" }),
   // Lo de la persona que no es salud ni gusto (quién es, avatar, color) es de su ficha.
 }).map(([k, v]) => [k, { ...v, entidad: "persona", ficha: v.ficha ?? "persona" }])));
+
+/**
+ * Los campos de la libreta (notepadFields.js) como datos de la ficha Preferencia: viven en
+ * data.notepad (dato `notepad`), los escriben la familia y el sistema, y cada uno apunta al eje
+ * que expresa (`eje`, o null con su `sinEje` en la libreta). Son la lista que el trozo 14
+ * convierte en filas de `preferencia`.
+ */
+export const DATOS_PREFERENCIA = Object.freeze(Object.fromEntries(CAMPOS_LIBRETA.map((c) => [c.id, dato({
+  entidad: "preferencia", tema: "gustos", tipo: "mapa", libreta: c.id, eje: c.eje, escribe: ESCRITOR.AMBOS, motivo: "vive en data.notepad",
+})])));
 
 /**
  * El dato de una clave tal como la escriben capacidades.js, wizardRegistry.js y
