@@ -133,6 +133,14 @@ export const POSTURAS = ["siempre", "mas", "menos", "nunca"];
 export const CHOQUES = ["ultimo_gana", "mas_restrictivo", "suma"];
 export const CHOQUE = porNombre(CHOQUES);
 
+/**
+ * La clase de un dato del registro (plan, «Las cuatro clases de dato», trozo 6): hecho (lo que la casa
+ * dice o la app ve), derivado (se calcula de otros; `funcion` dice con qué), marca (estado de una
+ * interfaz, no de la casa) o historial (solo se añade, con poda). Cada clase se guarda de una forma.
+ */
+export const CLASES_DATO = ["hecho", "derivado", "marca", "historial"];
+export const CLASE = porNombre(CLASES_DATO);
+
 /** Sexo de una persona: campo nuevo de la ficha v18, solo para calorías y nunca se pregunta. */
 export const SEXO = ["mujer", "hombre", "sin_dato"];
 
@@ -275,6 +283,7 @@ export const VOCABULARIOS = Object.freeze({
   escritores: ESCRITORES,
   postura: POSTURAS,
   choque: CHOQUES,
+  clase_dato: CLASES_DATO,
   alcances_descarte: ALCANCES_DESCARTE,
   canales_dato: CANALES_DATO,
   sexo: SEXO,

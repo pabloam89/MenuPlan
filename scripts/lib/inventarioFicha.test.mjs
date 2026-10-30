@@ -6,6 +6,7 @@ import { FALLOS, ERRORES, DEUDA, inventario, clavesEscritas } from "./inventario
 import { ENTIDADES, TEMAS, ESTADOS, TIPOS, MODULOS, MODULO_DEL_TEMA, moduloDe, DATOS_CASA, DATOS_PERSONA } from "../../src/lib/registroFicha.js";
 import { REGISTRO_CAMPOS } from "../../src/lib/registroCampos.js";
 import { CAMPOS } from "../../src/lib/notepadFields.js";
+import { CLASES_DATO, CLASE, FICHAS } from "../../src/lib/vocabularios.js";
 
 const aqui = dirname(fileURLToPath(import.meta.url));
 const raiz = join(aqui, "..", "..");
@@ -29,9 +30,9 @@ describe("registro de la ficha (#939, fase 4)", () => {
     for (const [k, d] of todos) expect(MODULOS, `${k}.modulo`).toContain(moduloDe(d));
   });
 
-  it("copia y legado dicen de dónde vienen o por qué siguen", () => {
+  it("un derivado dice de qué sale; un legado, qué lo sustituye o por qué sigue", () => {
     for (const [k, d] of todos) {
-      if (d.estado === "copia") expect(d.de, `${k}: una copia dice de qué`).toBeTruthy();
+      if (d.clase === CLASE.DERIVADO) expect(d.de, `${k}: un derivado dice de qué`).toBeTruthy();
       if (d.estado === "legado") expect(d.de || d.motivo, `${k}: un legado dice qué lo sustituye o por qué sigue`).toBeTruthy();
     }
   });
@@ -64,9 +65,28 @@ describe("inventario de la ficha", async () => {
     for (const f of ERRORES) expect(inv.fallos[f], f).toEqual([]);
   });
 
-  it("un dato activo sin ficha es un error del registro, no deuda", () => {
-    expect(ERRORES).toContain("sin_ficha");
-    expect(DEUDA).not.toContain("sin_ficha");
+  it("un dato sin ficha o con la función rota es un error del registro, no deuda", () => {
+    for (const f of ["sin_ficha", "funcion_rota"]) {
+      expect(ERRORES).toContain(f);
+      expect(DEUDA).not.toContain(f);
+    }
+  });
+
+  it("cuenta los datos por clase y por ficha, y las cuentas suman todos los datos", () => {
+    expect(Object.keys(inv.porClase)).toEqual(CLASES_DATO);
+    expect(Object.keys(inv.porFicha)).toEqual(FICHAS);
+    const suma = (o) => Object.values(o).reduce((a, b) => a + b, 0);
+    expect(suma(inv.porClase)).toBe(inv.filas.length);
+    expect(suma(inv.porFicha)).toBe(inv.filas.length);
+    for (const clase of CLASES_DATO) expect(inv.porClase[clase], `ningún dato es ${clase}`).toBeGreaterThan(0);
+  });
+
+  it("lola_no_lo_ve y app_no_lo_ve solo cuentan hechos: una marca o un historial no tienen por qué verse en los dos lados", () => {
+    const clase = Object.fromEntries(inv.filas.map((f) => [f.id, f.clase]));
+    for (const f of ["lola_no_lo_ve", "app_no_lo_ve"]) {
+      expect(inv.fallos[f].length).toBeGreaterThan(0);
+      for (const id of inv.fallos[f]) expect(clase[id], `${f}: ${id}`).toBe(CLASE.HECHO);
+    }
   });
 
   // Una pasada del inventario lee todo src/ y api/ (tarda con la máquina cargada): los casos malos van en una.
@@ -75,10 +95,10 @@ describe("inventario de la ficha", async () => {
       ...DATOS_CASA,
       menuModel: { ...DATOS_CASA.menuModel, ficha: null, defecto: "separate" }, // INITIAL_DATA siembra "same"
       meals: { ...DATOS_CASA.meals, defecto: ["Comida"] }, // una lista se compara entera
-      menuWeek: { ...DATOS_CASA.menuWeek, ficha: null }, // una copia sin ficha no cuenta: solo los hechos activos
+      menuWeek: { ...DATOS_CASA.menuWeek, ficha: null }, // una copia sin ficha también cuenta: todo dato tiene ficha (trozo 6)
     };
     const r = await inventario(raiz, { registro: { casa, persona: DATOS_PERSONA } });
-    expect(r.fallos.sin_ficha).toEqual(["casa.menuModel"]);
+    expect(r.fallos.sin_ficha).toEqual(["casa.menuModel", "casa.menuWeek"]);
     expect(r.fallos.defecto_distinto).toEqual([
       'casa.menuModel: registro "separate" ≠ INITIAL_DATA "same"',
       'casa.meals: registro ["Comida"] ≠ INITIAL_DATA ["Comida","Cena"]',
@@ -90,8 +110,31 @@ describe("inventario de la ficha", async () => {
     await expect(inventario(raiz, { registro: { casa, persona: DATOS_PERSONA } })).rejects.toThrow(/casa\.kcal: choque «el_mas_alto»/);
   }, 120_000);
 
+  it("una clase fuera de su lista tampoco, ni un derivado en data declarado activo (la copia sale de la clase)", async () => {
+    const conClase = { ...DATOS_CASA, kcal: { ...DATOS_CASA.kcal, clase: "opinion" } };
+    await expect(inventario(raiz, { registro: { casa: conClase, persona: DATOS_PERSONA } })).rejects.toThrow(/casa\.kcal: clase «opinion»/);
+    const incoherente = { ...DATOS_CASA, menuWeek: { ...DATOS_CASA.menuWeek, estado: "activo" } };
+    await expect(inventario(raiz, { registro: { casa: incoherente, persona: DATOS_PERSONA } })).rejects.toThrow(/casa\.menuWeek: derivado en data con estado «activo»/);
+  }, 240_000);
+
+  it("dispara sin_declarar (hecho con defecto sin sembrar, derivado sin función), funcion_rota y en_resto con datos mal declarados", async () => {
+    const casa = {
+      ...DATOS_CASA,
+      tandaMinutos: { ...DATOS_CASA.tandaMinutos, defecto: 20 }, // un hecho con defecto que INITIAL_DATA no trae
+      cocinas: { ...DATOS_CASA.cocinas, funcion: null },
+      menuWeek: { ...DATOS_CASA.menuWeek, funcion: "src/lib/semanaDias.js:noExiste" },
+      cookedDishes: { ...DATOS_CASA.cookedDishes, funcion: "src/lib/noExiste.js:f" }, // fichero que no está
+    };
+    const persona = { ...DATOS_PERSONA, apodo: { ...DATOS_PERSONA.name } }; // una clave de la persona sin columna
+    const r = await inventario(raiz, { registro: { casa, persona } });
+    // etapaBebe, hecho sin defecto fuera de INITIAL_DATA, nace cuando se dice: no cuenta.
+    expect(r.fallos.sin_declarar).toEqual(["casa.cocinas: derivado sin función", "casa.tandaMinutos: defecto 20 que INITIAL_DATA no siembra", "casa.useHomeStock: derivado sin función"]);
+    expect(r.fallos.funcion_rota).toEqual(["casa.menuWeek → src/lib/semanaDias.js:noExiste", "casa.cookedDishes → src/lib/noExiste.js:f"]);
+    expect(r.fallos.en_resto).toEqual(["persona.dislikes", "persona.apodo"]);
+  }, 120_000);
+
   it("las filas llevan las columnas del eje", () => {
-    for (const col of ["ficha", "defecto", "suposicion", "minimo_para_generar", "caduca_dias", "peso_menu", "escribe", "choque"]) {
+    for (const col of ["clase", "funcion", "ficha", "defecto", "suposicion", "minimo_para_generar", "caduca_dias", "peso_menu", "escribe", "choque"]) {
       expect(inv.filas.every((f) => col in f), col).toBe(true);
     }
   });

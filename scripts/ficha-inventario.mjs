@@ -11,6 +11,7 @@
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { inventario, ERRORES, DEUDA } from "./lib/inventarioFicha.mjs";
+import { CLASE } from "../src/lib/vocabularios.js";
 
 const raiz = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -41,9 +42,12 @@ if (process.argv.includes("--json")) {
 } else {
   const casa = inv.filas.filter((f) => f.id.startsWith("casa.")).length;
   console.log(`Datos registrados: ${inv.filas.length} (casa ${casa}, persona ${inv.filas.length - casa})${guardadas ? `; en la base: casa ${guardadas.casa.size}, persona ${guardadas.persona.size}` : ""}.`);
+  // El mapa: cuántos datos de cada clase y de cada ficha (plan fichas con estado, trozo 6).
+  const linea = (o) => Object.entries(o).filter(([, n]) => n > 0).map(([k, n]) => `${k} ${n}`).join(" · ");
+  console.log(`\nPor clase: ${linea(inv.porClase)}.\nPor ficha: ${linea(inv.porFicha)}.`);
   // La sincronía por parte del producto: cuántos hechos activos ve cada lado.
   console.log("\nPor parte (hechos activos en data: los ve la app · los ve Lola · los ven los dos):");
-  const activos = inv.filas.filter((f) => f.estado === "activo" && f.vive === "data");
+  const activos = inv.filas.filter((f) => f.clase === CLASE.HECHO && f.estado === "activo" && f.vive === "data");
   for (const m of [...new Set(activos.map((f) => f.modulo))]) {
     const de = activos.filter((f) => f.modulo === m);
     console.log(`  ${m.padEnd(9)} ${de.length} datos · app ${de.filter((f) => f.app).length} · Lola ${de.filter((f) => f.lola).length} · los dos ${de.filter((f) => f.app && f.lola).length}`);
