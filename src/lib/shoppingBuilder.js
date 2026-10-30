@@ -223,24 +223,9 @@ function formatQty(qty, unit) {
  *     byDay:       [{ day, items: [...] }],
  *     total:       number,
  *   }
- *
- * @param {{ dias?: string[] }} [opciones]
- *   `dias`: los días que entran en la compra («Vie», «Sáb», «Dom»…). Un plan
- *   generado desde el 30 oct 2026 solo trae huecos de los días de su semana, así
- *   que no hace falta; sirve para una semana guardada ANTES, que llevaba huecos
- *   de lunes a jueves aunque empezara en viernes (#1029), y para no comprar lo
- *   de esos días. Sin él, o vacío, todos los días del plan, como siempre. Un
- *   nombre que no sea un día («vie», «Viernes») es un error de quien llama y
- *   se lanza: una compra vacía en silencio sería peor que el fallo.
  */
-export function buildShoppingList(menuPlan, groups, meals = MEALS, pantryIngredients = [], { dias = null } = {}) {
+export function buildShoppingList(menuPlan, groups, meals = MEALS, pantryIngredients = []) {
   const groupById = Object.fromEntries(groups.map((g) => [g.id, g]));
-  const desconocidos = Array.isArray(dias) ? dias.filter((d) => !DAYS.includes(d)) : [];
-  if (desconocidos.length > 0) {
-    throw new TypeError(`buildShoppingList: días desconocidos en \`dias\`: ${desconocidos.join(", ")}`);
-  }
-  const diasDeCompra =
-    Array.isArray(dias) && dias.length > 0 ? DAYS.filter((d) => dias.includes(d)) : DAYS;
   const unidadesPorIngrediente = unidadesPorIngredienteDelPlan(menuPlan, groupById, meals);
   /** @type {Record<string, {id:string,name:string,category:string,unit:string,qty:number,price:number,sources:Array<{day:string,meal:string,group:string,recipeName:string}>}>} */
   const aggregate = {};
@@ -250,7 +235,7 @@ export function buildShoppingList(menuPlan, groups, meals = MEALS, pantryIngredi
   for (const [groupId, slots] of Object.entries(menuPlan)) {
     const group = groupById[groupId];
     if (!group) continue;
-    for (const day of diasDeCompra) {
+    for (const day of DAYS) {
       for (const meal of meals) {
         const slot = slots[`${day}-${meal}`];
         if (!slot) continue;
