@@ -44,6 +44,7 @@ import { conEstructura } from "./estructuraPlatos.js";
 import { COOK_LEVELS, COOK_TIME_DEFAULTS, cookLevelForMinutes, cookLevelMinutes } from "./cookTime.js";
 import { rutaDeReparto } from "./reparto.js";
 import { KID_DINNER_DEFAULTS, kidMembers, normalizeKidDinnerConfig } from "./kidsMenu.js";
+import { datoDe } from "./registroFicha.js";
 
 /** Los ocho controles. Un control nuevo es trabajo; una fila nueva no. */
 export const CONTROLES = [
@@ -90,15 +91,19 @@ export const TEMAS = [
 /**
  * El registro.
  *
+ * Una pregunta es la vista de un DATO del registro de la ficha
+ * (registroFicha.js): `dato` es su clave («members.allergies» para los de la
+ * persona). De ahí salen dos cosas que antes llevaba cada fila: el orden del
+ * recorrido (`peso_menu`: cuánto cambia el menú, de más a menos) y si el
+ * sistema puede suponer la respuesta (`suposicion`). Lo que no se puede suponer
+ * va a "necesita aclaración" en cuanto se infiere, nunca a "aclarado"; hoy
+ * solo las alergias, y es a propósito.
+ *
  * Columnas de dependencia, con el significado que fija el motor:
  *   requiere  sin lo otro la pregunta no tiene sentido
  *   activa    aparece sola cuando un dato la hace relevante
  *   refina    ajuste fino de algo más grueso
  *   anula     contestarla deja otra sin sentido
- *
- * `suposicion: false` marca las preguntas donde el sistema NO puede inventarse
- * la respuesta: van a "necesita aclaración" en cuanto se infieren, nunca a
- * "aclarado". Hoy solo las alergias, y es a propósito.
  *
  * ── Las columnas de la fila de controles ──────────────────────────────────
  * `enControles` saca la fila al panel de botones que vive sobre el menú.
@@ -132,6 +137,7 @@ export const PREGUNTAS = [
   // ── Cimientos ───────────────────────────────────────────────────────────
   {
     id: "cole",
+    dato: "schoolMenus",
     tema: "calendario",
     label: "¿Coméis del comedor del cole?",
     control: "cards-ab",
@@ -150,10 +156,10 @@ export const PREGUNTAS = [
     anula: [],
     delegable: false,
     parser: false,
-    orden: 5,
   },
   {
     id: "members",
+    dato: "members",
     tema: "cimientos",
     label: "¿Quiénes coméis en casa?",
     control: "por-persona",
@@ -165,10 +171,10 @@ export const PREGUNTAS = [
     anula: [],
     delegable: false,
     parser: false,
-    orden: 10,
   },
   {
     id: "alergias",
+    dato: "members.allergies",
     tema: "cimientos",
     label: "¿Alergias o intolerancias?",
     control: "chips",
@@ -191,15 +197,15 @@ export const PREGUNTAS = [
     anula: [],
     delegable: false,
     // Nunca se da por buena una alergia inferida del texto: se pinta para que
-    // la confirmes. Es la única fila con `suposicion: false`, y el motivo es
-    // que el fallo peligroso no es no entenderte — es entenderte, decir "vale,
-    // te lo quito", y que te quedes creyendo que estás cubierto.
-    suposicion: false,
+    // la confirmes. Lo dice el registro (`suposicion: false` en el dato
+    // members.allergies), y el motivo es que el fallo peligroso no es no
+    // entenderte — es entenderte, decir "vale, te lo quito", y que te quedes
+    // creyendo que estás cubierto.
     parser: false,
-    orden: 20,
   },
   {
     id: "comidas",
+    dato: "meals",
     tema: "cimientos",
     label: "¿Qué comidas planificamos?",
     control: "chips",
@@ -211,12 +217,12 @@ export const PREGUNTAS = [
     anula: [],
     delegable: true,
     parser: false,
-    orden: 30,
   },
 
   // ── Gustos ──────────────────────────────────────────────────────────────
   {
     id: "ninos",
+    dato: "kidDinnerConfig",
     tema: "cimientos",
     label: "¿Cómo comen los niños?",
     corto: "Niños",
@@ -285,10 +291,10 @@ export const PREGUNTAS = [
     delegable: true,
     parser: false,
     enControles: true,
-    orden: 35,
   },
   {
     id: "reparto",
+    dato: "reparto",
     tema: "gustos",
     label: "¿Cuánto de cada cosa?",
     corto: "Reparto",
@@ -306,10 +312,10 @@ export const PREGUNTAS = [
     delegable: true,
     parser: true,
     enControles: true,
-    orden: 40,
   },
   {
     id: "cocina",
+    dato: "cocinas",
     tema: "gustos",
     label: "¿Añadimos algo de fuera?",
     corto: "Cocina",
@@ -325,10 +331,10 @@ export const PREGUNTAS = [
     delegable: true,
     parser: true,
     enControles: true,
-    orden: 50,
   },
   {
     id: "estructura",
+    dato: "mealStructure",
     tema: "gustos",
     label: "¿Uno o dos platos?",
     corto: "Platos",
@@ -366,10 +372,10 @@ export const PREGUNTAS = [
     delegable: true,
     parser: false,
     enControles: true,
-    orden: 60,
   },
   {
     id: "tecnica",
+    dato: "sesgos",
     tema: "gustos",
     label: "¿Cómo os gustan hechos?",
     corto: "Cómo",
@@ -405,12 +411,12 @@ export const PREGUNTAS = [
     delegable: true,
     parser: true,
     enControles: false,
-    orden: 70,
   },
 
   // ── Tiempo y maña ───────────────────────────────────────────────────────
   {
     id: "tiempo",
+    dato: "cookTime",
     tema: "tiempo",
     label: "¿Cuánto tiempo tienes para cocinar?",
     corto: "Tiempo",
@@ -494,10 +500,10 @@ export const PREGUNTAS = [
     delegable: true,
     parser: false,
     enControles: true,
-    orden: 80,
   },
   {
     id: "esfuerzo",
+    dato: "cookLevel",
     tema: "tiempo",
     label: "¿Qué tal se te da cocinar?",
     corto: "Esfuerzo",
@@ -549,12 +555,12 @@ export const PREGUNTAS = [
     delegable: true,
     parser: false,
     enControles: true,
-    orden: 90,
   },
 
   // ── Cocina y compra ─────────────────────────────────────────────────────
   {
     id: "trastos",
+    dato: "kitchenTools",
     tema: "cocina",
     label: "¿Qué tenéis en la cocina?",
     corto: "Trastos",
@@ -601,10 +607,10 @@ export const PREGUNTAS = [
     delegable: true,
     parser: false,
     enControles: true,
-    orden: 100,
   },
   {
     id: "presupuesto",
+    dato: "budget",
     tema: "compra",
     label: "¿Cuánto quieres gastar?",
     control: "slider",
@@ -616,10 +622,10 @@ export const PREGUNTAS = [
     anula: [],
     delegable: true,
     parser: false,
-    orden: 110,
   },
   {
     id: "despensa",
+    dato: "pantryMode",
     tema: "compra",
     label: "¿Aprovechamos lo que ya hay en casa?",
     control: "cards-ab",
@@ -631,15 +637,32 @@ export const PREGUNTAS = [
     anula: [],
     delegable: true,
     parser: false,
-    orden: 120,
   },
 ];
 
 export const PREGUNTAS_POR_ID = Object.fromEntries(PREGUNTAS.map((p) => [p.id, p]));
 
-/** El registro ordenado. El `orden` deja hueco entre filas a propósito. */
+/** El dato del registro de la ficha del que la pregunta es vista. Sin él, la pregunta no existe. */
+function datoDePregunta(pregunta) {
+  const d = datoDe(pregunta?.dato);
+  if (!d) throw new Error(`la pregunta «${pregunta?.id}» apunta a «${pregunta?.dato}», que no está en el registro de la ficha`);
+  return d;
+}
+
+/**
+ * El registro ordenado: de más a menos `peso_menu` de su dato. Dos preguntas
+ * con el mismo peso no tienen orden, y un dato sin pesar tampoco: se dice.
+ */
 export function registroOrdenado(registro = PREGUNTAS) {
-  return [...registro].sort((a, b) => a.orden - b.orden);
+  const peso = new Map(registro.map((p) => {
+    const w = datoDePregunta(p).peso_menu;
+    if (w === null) throw new Error(`«${p.dato}» no tiene peso_menu en el registro: la pregunta «${p.id}» no se puede ordenar`);
+    return [p.id, w];
+  }));
+  if (new Set(peso.values()).size !== peso.size) {
+    throw new Error(`dos preguntas con el mismo peso_menu: ${[...peso].map(([id, w]) => `${id}=${w}`).join(", ")}`);
+  }
+  return [...registro].sort((a, b) => peso.get(b.id) - peso.get(a.id));
 }
 
 /**
@@ -781,8 +804,8 @@ export function estadoDePregunta(pregunta, notepad, data, dudas = []) {
   if (estado === "fijado" || estado === "delegado") return "aclarado";
 
   // Inferido: aclarado CON la suposición a la vista, salvo donde suponer sería
-  // ponerle al usuario un criterio en la boca (hoy, solo las alergias).
-  return pregunta.suposicion === false ? "aclaracion" : "aclarado";
+  // ponerle al usuario un criterio en la boca (el registro lo dice: hoy, la salud).
+  return datoDePregunta(pregunta).suposicion ? "aclarado" : "aclaracion";
 }
 
 /** Las preguntas que hoy tienen sentido, en orden. Ni anuladas ni inactivas. */
