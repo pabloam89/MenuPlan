@@ -132,6 +132,7 @@ describe("0106: el registro manda, y sus literales salen de vocabularios.js", ()
     const estados = [...rpc.matchAll(/v_estado (?::=|<>|=) ('\w+')|v_estado not in \(([^)]*)\)|then ('\w+') else v_estado/g)].flatMap((m) => literales(m[1] ?? m[2] ?? m[3]));
     expect(estados.length).toBeGreaterThan(2);
     for (const e of estados) expect(ESTADOS_OPERACION, e).toContain(e);
+    expect(rpc).toMatch(/\(r\.choque = 'mas_restrictivo' and r\.tipo <> 'lista_enum'\) or \(r\.choque = 'suma' and r\.tipo not in \('int', 'decimal'\)\) then\s+raise exception/);
     const reglas = [...rpc.matchAll(/r\.choque = '(\w+)'/g)].map((m) => m[1]);
     expect(ordenado(reglas)).toEqual(ordenado(CHOQUES.filter((c) => c !== CHOQUE.ULTIMO_GANA)));
   });

@@ -162,14 +162,14 @@ begin
     if v_habia then
       -- Choque con lo que había, solo si había valor y el nuevo también lo trae.
       if v_antes.valor is not null and v_valor is not null then
-        if r.choque = 'mas_restrictivo' and r.tipo = 'lista_enum' and v_antes.updated_at > now() - c_mismo_rato then
+        -- Una regla que no vale para el tipo del campo es un registro mal hecho: falla, no pasa a «el último gana».
+        if (r.choque = 'mas_restrictivo' and r.tipo <> 'lista_enum') or (r.choque = 'suma' and r.tipo not in ('int', 'decimal')) then
+          raise exception 'aplicar_operacion: la regla % no vale para % (tipo %, registro_campo)', r.choque, r.id, r.tipo using errcode = '22023';
+        elsif r.choque = 'mas_restrictivo' and v_antes.updated_at > now() - c_mismo_rato then
           select coalesce(jsonb_agg(distinct e order by e), '[]'::jsonb) into v_valor
             from (select jsonb_array_elements(v_antes.valor) as e union select jsonb_array_elements(v_valor)) x;
           v_choques := v_choques || jsonb_build_array(jsonb_build_object('campo', r.id, 'persona_id', v_persona, 'regla', r.choque));
         elsif r.choque = 'suma' then
-          if r.tipo not in ('int', 'decimal') then
-            raise exception 'aplicar_operacion: % suma y no es numérico (registro_campo)', r.id using errcode = '22023';
-          end if;
           v_valor := to_jsonb((v_antes.valor #>> '{}')::numeric + (v_valor #>> '{}')::numeric);
           v_choques := v_choques || jsonb_build_array(jsonb_build_object('campo', r.id, 'persona_id', v_persona, 'regla', r.choque));
         end if;
@@ -281,7 +281,6 @@ begin
     if v_r->>'estado' <> 'rechazada' or not v_r->'sin_hacer' @> '[{"motivo": "tiene_columna"}, {"motivo": "no_se_supone"}]' then
       raise exception '0106 autoprueba: una alergia dicha no esperó a escribir_persona o una supuesta no se rechazó: %', v_r;
     end if;
-
     -- Alguien con sesión que no es de la casa: operacion es solo del servidor (0105), y la RPC también.
     perform set_config('request.jwt.claims', json_build_object('sub', v_fuera, 'role', 'authenticated')::text, true);
     perform set_config('role', 'authenticated', true);
