@@ -170,7 +170,7 @@ export const MOTIVOS_FALLO = [
 const sinTildesMin = (s) => String(s).normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase().trim();
 
 /** La forma cerrada de un valor: texto sin tildes ni mayúsculas, listas de valores simples ordenadas (días × comidas son un conjunto). Misma forma, misma operación. */
-export function formaCerrada(v) {
+function formaCerrada(v) {
   if (typeof v === "string") return sinTildesMin(v);
   if (Array.isArray(v)) {
     const f = v.map(formaCerrada);

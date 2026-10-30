@@ -8,7 +8,7 @@ import { describe, expect, it } from "vitest";
 
 import { CANALES_DATO, ORIGEN_DATO } from "../../src/lib/vocabularios.js";
 import {
-  CAMPOS_FILA, MOTIVOS_FALLO, SALIDA, cifrasDePasada, erroresDeCasos, formaCerrada, memoriaDeOperacion, operacionExacta, parametrosExactos,
+  CAMPOS_FILA, MOTIVOS_FALLO, SALIDA, cifrasDePasada, erroresDeCasos, memoriaDeOperacion, operacionExacta, parametrosExactos,
 } from "./evals.mjs";
 
 const RAIZ = new URL("../../", import.meta.url);
@@ -65,8 +65,7 @@ describe("operacionExacta: la acción se llamó con exactamente esos parámetros
     expect(parametrosExactos({ comidas: ["Comida"] }, { comidas: ["Comida", "Cena"] })).toBe(false);
   });
   it("tildes y mayúsculas no cambian la operación; un valor distinto sí", () => {
-    expect(formaCerrada("Brócoli ")).toBe("brocoli");
-    expect(parametrosExactos({ receta: "Brócoli" }, { receta: "brocoli" })).toBe(true);
+    expect(parametrosExactos({ receta: "Brócoli " }, { receta: "brocoli" })).toBe(true);
     expect(parametrosExactos({ receta: "brocoli al horno" }, { receta: "brocoli" })).toBe(false);
     expect(parametrosExactos({ n: 2 }, { n: 2 })).toBe(true);
     expect(parametrosExactos({ n: "2" }, { n: 2 })).toBe(false);
