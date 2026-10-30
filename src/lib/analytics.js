@@ -67,7 +67,7 @@ const ANON_ID_KEY = "mp_anon_id";
 let guestQueue = [];
 let anonId = null;
 
-function getAnonId() {
+export function getAnonId() {
   if (anonId) return anonId;
   try {
     anonId = localStorage.getItem(ANON_ID_KEY);

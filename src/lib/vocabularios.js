@@ -110,6 +110,7 @@ export const CANALES_DATO = ["app", ...CANALES, "sistema"];
  * suelto, un día o la semana. Tirar uno suelto es una señal más fuerte que tirar veinte.
  */
 export const ALCANCES_DESCARTE = ["plato", "dia", "menu"];
+export const ALCANCE_DESCARTE = porNombre(ALCANCES_DESCARTE);
 
 /** A qué se refiere un «sobre» o un cambio: qué lo originó. */
 export const REF_TIPO = ["menu", "mensaje", "pantalla", "senal"];
