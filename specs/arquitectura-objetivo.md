@@ -86,7 +86,7 @@ Todo cambio (de Lola, de la app, de un cron) es una operación. Las herramientas
 | Aplicar | en una transacción, con clave de idempotencia (`mid` del mensaje o id de la pantalla), regla de choque por dato | `escribirDato` (trozo 8, por hacer), `api/_bot/idempotencia.js`, `bot_rev` |
 | Apuntar | fila en `operacion`: id, casa, autor (cuenta y persona), canal, `ref` (mensaje, pantalla, tarea, cron), accion, pedido, hecho, sin_hacer con motivo, estado, `pedida_at`, `ejecutada_at`, `deshecha_at`, inversa | `api/_bot/operacion.js` (en memoria del turno), `api/_bot/resultado.js`, `bot_deshacer` |
 | Contar | la confirmación se pinta desde hecho/sin_hacer; el modelo puede adornar, no afirmar | `resultado.js` en 5 ficheros de herramientas; **no** en `menu.js` ni `generar.js` |
-| Deshacer | aplica la inversa de **tus** operaciones, en orden | `bot_deshacer` (foto de la casa) |
+| Deshacer | aplica la inversa de **tus** operaciones, en orden | `bot_deshacer` (foto de la casa, ya por autor: `api/_bot/casa.js:258`) |
 
 Dónde corre: en el servidor, una sola implementación (`src/lib/operaciones/` compartido, llamado desde `api/` para Lola y para la app), y la escritura final en una RPC de Postgres que escribe filas, sobre, operación y sube la versión en la misma transacción. La app no escribe tablas directamente (la puerta de seguridad no puede vivir en el cliente).
 
@@ -143,7 +143,7 @@ Challenge: con muchas preferencias blandas el solver puede volverse lento o dar 
 
 ### [7] Tareas: la iniciativa de Lola
 
-Entidad completa (detalle en `specs/repaso-huecos-modelo.md`, H3): tipo (`falta_saber`, `espera`, `decision`, `seguimiento`, `recordatorio`, `objetivo`), origen enlazado (dato, hueco, señal, mensaje, caducidad), para quién y canal, prioridad desde `peso_menu`, cuándo (vence, vuelve, ventana, no molestar desde Trato, intentos), qué bloquea, cómo se cierra (y qué operación la cerró), fechas. Un solo barrido programado (pg_cron) para todo lo que caduca. Absorbe `bot_reminders` y las aclaraciones pendientes (`plato.js`: hoy no caducan).
+Entidad completa (detalle en `specs/repaso-huecos-modelo.md`, H3): tipo (`falta_saber`, `espera`, `decision`, `seguimiento`, `recordatorio`, `objetivo`), origen enlazado (dato, hueco, señal, mensaje, caducidad), para quién y canal, prioridad desde `peso_menu`, cuándo (vence, vuelve, ventana, no molestar desde Trato, intentos), qué bloquea, cómo se cierra (y qué operación la cerró), fechas. Un solo barrido programado (pg_cron) para todo lo que caduca. Absorbe `bot_reminders`; las aclaraciones pendientes ya caducan a las 3 h (`api/_bot/caducidades.js`, `CADUCA.PROPUESTA`) y ese barrido es el que se amplía.
 
 Cifras: preguntas hasta el primer menú; tareas caducadas sin respuesta; tiempo hasta cerrar.
 
@@ -195,7 +195,7 @@ Cifras: preguntas hasta el primer menú; tareas caducadas sin respuesta; tiempo 
 | 0 (trozos 1-4, hechos) | nada |
 | 1 (5-6, 23) | el registro pasa a cuatro listas enlazadas; nuevo trozo **5b**: los esquemas de las herramientas de Lola salen del registro |
 | 2 (7-9, migración 0105) | **la 0105 crea también `operacion`** y `escribir_dato` es una operación de tipo dato; `sobre.ref` → `operacion_id`. Nuevo trozo **8b**: la tubería en el servidor; resultado obligatorio en todas las herramientas que escriben (empezando por `menu.js` y `generar.js`) |
-| nuevo 2c | Lola: cancelar y rehacer turno sin escrituras, espera adaptativa, aclaraciones con caducidad, deshacer por autor desde `operacion`. No depende de fichas; puede ir en paralelo |
+| nuevo 2c | Lola: cancelar y rehacer turno sin escrituras y espera adaptativa (las aclaraciones ya caducan y deshacer ya es por autor). No depende de fichas; puede ir en paralelo |
 | 3 (10-11) | igual; las escrituras de persona y salud pasan por la tubería |
 | 4 (12-13) | igual; las reglas «presente» van a Rutina; presupuesto y puerta de cocinas pasan a Preferencia en el tramo 5 |
 | 5 (14-15, migración 0107) | **la 0107 crea `preferencia` (y `plan` como conjunto) en vez de `gusto`**; nuevos trozos: entrada del motor, ejes compilados, preferencias en el solver con cumplimiento, paridad de las 24 reglas |
@@ -204,7 +204,7 @@ Cifras: preguntas hasta el primer menú; tareas caducadas sin respuesta; tiempo 
 | 8 (21-22) | igual |
 | transversal, desde ya | banco de frases; prueba de punta a punta de la app; panel de cifras; test de cascadas |
 
-Orden: 1 (+5b) → 2 (+operación, 8b) en paralelo con 2c y el banco de frases → 3 → 4 → 5 (preferencia y motor) → 6 (tareas) → 7 → 8.
+Numeración final en el plan: trozos 24-38 (`specs/plan-fichas-con-estado.md`). Orden: 1 (+5b) → 2 (+operación, 8b) en paralelo con 2c y el banco de frases → 3 → 4 → 5 (preferencia y motor) → 6 (tareas) → 7 → 8.
 
 ## Choques: prioridad, contradicciones y cuándo preguntar
 
