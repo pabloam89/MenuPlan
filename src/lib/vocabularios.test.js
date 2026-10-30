@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { VOCABULARIOS, vocabulario, TIPOS_GRUPO, RETIRADOS, ENVASES, CANAL, IDIOMA, CANALES, IDIOMAS, ESCRITOR, ESCRITORES, CHOQUE, CHOQUES, CLASE, CLASES_DATO, crearEscritor, FueraDeVocabulario } from "./vocabularios.js";
+import { VOCABULARIOS, vocabulario, TIPOS_GRUPO, RETIRADOS, ENVASES, CANAL, IDIOMA, CANALES, IDIOMAS, ESCRITOR, ESCRITORES, CHOQUE, CHOQUES, CLASE, CLASES_DATO, AGREGABLE, AGREGABLES, UNIDAD_EJE, UNIDADES_EJE, crearEscritor, FueraDeVocabulario } from "./vocabularios.js";
 import { REGISTRO_CAMPOS, TIPOS_CAMPO, POLITICAS, POR, APLICA, CAMPOS_PREGUNTABLES, VOCABULARIOS_PENDIENTES } from "./registroCampos.js";
 
 // Enums cuya lista aún no existe: deuda a la vista, que solo puede bajar.
@@ -156,6 +156,10 @@ describe("vocabularios: una lista, un sitio", () => {
 
   it("las listas del eje de la ficha (plan fichas con estado, trozo 5) existen", () => {
     for (const nombre of ["postura", "choque", "fichas", "escritores", "clase_dato"]) expect(vocabulario(nombre), nombre).not.toBe(null);
+  });
+
+  it("las del registro de ejes (trozo 24): cómo se junta un eje y su unidad", () => {
+    for (const nombre of ["agregables", "unidades_eje"]) expect(vocabulario(nombre), nombre).not.toBe(null);
   });
 });
 
@@ -382,15 +386,13 @@ describe("un valor retirado no vuelve a escribirse (#539)", () => {
     }
   });
 
-  it("todo CANAL.X, IDIOMA.X, ESCRITOR.X, CHOQUE.X y CLASE.X del código existe (sale de su lista: un retirado desaparece)", () => {
+  it("todo mapa por nombre del código (CANAL.X, CLASE.X, AGREGABLE.X…) existe: sale de su lista y un retirado desaparece", () => {
     const porNombre = (lista) => Object.fromEntries(lista.map((c) => [c.toUpperCase(), c]));
-    expect(CANAL).toEqual(porNombre(CANALES));
-    expect(IDIOMA).toEqual(porNombre(IDIOMAS));
-    expect(ESCRITOR).toEqual(porNombre(ESCRITORES));
-    expect(CHOQUE).toEqual(porNombre(CHOQUES));
-    expect(CLASE).toEqual(porNombre(CLASES_DATO));
-    const mapas = { CANAL, IDIOMA, ESCRITOR, CHOQUE, CLASE };
-    const usados = codigo().flatMap(({ fichero, texto }) => [...sinComentarios(texto).matchAll(/\b(CANAL|IDIOMA|ESCRITOR|CHOQUE|CLASE)\.([A-Z_]+)\b/g)].map((m) => [fichero, m[1], m[2]]));
+    const listas = { CANAL: CANALES, IDIOMA: IDIOMAS, ESCRITOR: ESCRITORES, CHOQUE: CHOQUES, CLASE: CLASES_DATO, AGREGABLE: AGREGABLES, UNIDAD_EJE: UNIDADES_EJE };
+    const mapas = { CANAL, IDIOMA, ESCRITOR, CHOQUE, CLASE, AGREGABLE, UNIDAD_EJE };
+    for (const [m, lista] of Object.entries(listas)) expect(mapas[m], m).toEqual(porNombre(lista));
+    const patron = new RegExp(String.raw`\b(${Object.keys(mapas).join("|")})\.([A-Z_]+)\b`, "g");
+    const usados = codigo().flatMap(({ fichero, texto }) => [...sinComentarios(texto).matchAll(patron)].map((m) => [fichero, m[1], m[2]]));
     for (const mapa of Object.keys(mapas)) expect(usados.some(([, m]) => m === mapa), `nadie usa ${mapa}.X`).toBe(true);
     expect(usados.filter(([, mapa, nombre]) => !mapas[mapa][nombre]).map((u) => u.join(" "))).toEqual([]);
   });

@@ -15,9 +15,12 @@ import {
 } from "../lib/derive/ejesDePlato.js";
 import { IDS_PERFILES, puntuar } from "../lib/derive/perfiles.js";
 import { aporteDe } from "../lib/aporte.js";
+import { NUTRIENTES } from "./nutrientes.js";
+import { AGREGABLE, AGREGABLES } from "../lib/vocabularios.js";
 import { nivelCalorias } from "../lib/caloriasNivel.js";
 
 const RAIZ = fileURLToPath(new URL("./recipes", import.meta.url));
+const recipeNutrition = JSON.parse(readFileSync(fileURLToPath(new URL("./derived/recipeNutrition.json", import.meta.url)), "utf8"));
 const recipeCoste = JSON.parse(readFileSync(fileURLToPath(new URL("./derived/recipeCoste.json", import.meta.url)), "utf8"));
 const recetas = readdirSync(RAIZ)
   .filter((f) => f.endsWith(".json"))
@@ -128,6 +131,11 @@ const MEDIDORES = {
   perfilNutricional: () => recetas.filter((r) => IDS_PERFILES.some(
     (id) => puntuar(id, r, { leer: (p, c) => p?.[c] ?? null, completitud: completitudDe }).sinDato.length === 0,
   )).length / recetas.length,
+  // Los nutrientes por ración (trozo 24): recetas del derivado con número.
+  ...Object.fromEntries(Object.values(NUTRIENTES).map(({ porRacion: k }) => [k, () => {
+    const filas = Object.values(recipeNutrition);
+    return filas.filter((n) => Number.isFinite(n[k])).length / filas.length;
+  }])),
 };
 
 describe("el registro de ejes", () => {
@@ -285,6 +293,7 @@ describe("el registro de ejes", () => {
     completitud: "completitudDe", perfilNutricional: "ordenarPorPerfil",
     categoria: "category", proteinaPrincipal: "mainProtein", proteinasExtra: "extraProteins", basePrincipal: "mainBase", modoBase: "baseMode", minutosFijos: "minutosFijos", minutosPorRacion: "minutosPorRacion", capacidadMaxima: "capacidadMax", ocasion: "occasion", favoritoNinos: "kidFavourite", picante: "picante", saborDominante: "sabor", llevaSalsa: "llevaSalsa", etapaBebe: "etapaBebe", guarnicionPosible: "canBeGarnish", compatibilidadSalsa: "sauceCompat", papelEnComida: "mealRole", tipoPlato: "type", tiempoTotal: "time", dificultad: "difficulty", temporada: "season", racionesBase: "baseServings", aptoNinos: "kidFriendly", alergenos: "allergens", esfuerzoPostre: "effort", tipoPostre: "dessertKind",
     aporte: "aporteDe", calorias: "caloriasNivel",
+    ...Object.fromEntries(Object.values(NUTRIENTES).map(({ porRacion: k }) => [k, k])),
   };
 
   it("cada consumidor declarado nombra de verdad el campo del eje", () => {
@@ -347,6 +356,38 @@ describe("el registro de ejes", () => {
       }
     }
     expect([...new Set(fuera)], "un valor que el vocabulario del registro no admite").toEqual([]);
+  });
+
+  describe("cómo se junta cada eje (trozo 24)", () => {
+    it("todo eje tiene agregable de la lista; fuera de la receta no se junta", () => {
+      for (const e of EJES) {
+        expect(AGREGABLES, `${e.n} ${e.id}`).toContain(e.agregable);
+        if (e.ambito !== "receta" && e.ambito !== "parte") expect(e.agregable, `${e.n} ${e.id}`).toBe(AGREGABLE.NO);
+      }
+    });
+
+    it("lo que se suma o se promedia es numérico y dice su unidad; lo que se cuenta no la lleva", () => {
+      for (const e of EJES) {
+        if ([AGREGABLE.SUMA, AGREGABLE.MEDIA].includes(e.agregable)) {
+          expect(e.tipo, `${e.n} ${e.id}`).toBe("numerico");
+          expect(e.unidad, `${e.n} ${e.id}`).not.toBe(null);
+        }
+        if (e.unidad !== null) expect(e.tipo, `${e.n} ${e.id}: unidad sin ser numérico`).toBe("numerico");
+      }
+    });
+
+    it("cada nutriente del derivado es un eje de receta que se suma, numerado tras los declarados", () => {
+      const ejemplo = Object.values(recipeNutrition)[0];
+      const nutrientes = new Set(Object.values(NUTRIENTES).map((nu) => nu.porRacion));
+      const ultimoDeclarado = Math.max(...EJES.filter((e) => !nutrientes.has(e.id)).map((e) => e.n));
+      for (const { porRacion: k } of Object.values(NUTRIENTES)) {
+        const e = EJE_POR_ID.get(k);
+        expect(e, k).toBeTruthy();
+        expect(e.agregable, k).toBe(AGREGABLE.SUMA);
+        expect(k in ejemplo, `${k}: el derivado no lo trae`).toBe(true);
+        expect(e.n, k).toBeGreaterThan(ultimoDeclarado);
+      }
+    });
   });
 
   describe("las consultas", () => {
