@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 // El motor planifica SOLO los días de la semana pedida (#1029, trozo 4 de #1037).
 //
@@ -44,14 +44,17 @@ describe("diasActivosDe", () => {
     expect(diasActivosDe({ menuWeek: { offset: 0, startDayIdx: 4, days: ["Mar", "Lun"] } })).toEqual(["Lun", "Mar"]);
   });
 
-  it("nunca se queda sin días: un inicio fuera de rango o días desconocidos vuelven a la regla de siempre", () => {
-    expect(diasActivosDe({ menuWeek: { offset: 0, startDayIdx: 7 } })).toEqual([...DAYS]);
-    expect(diasActivosDe({ menuWeek: { offset: 0, startDayIdx: 4, days: ["vie", "Viernes"] } })).toEqual(FINDE_LARGO);
+  it("un inicio fuera de rango o un día desconocido se lanzan, en vez de planificar otra semana en silencio", () => {
+    expect(() => diasActivosDe({ menuWeek: { offset: 0, startDayIdx: 7 } })).toThrow(/startDayIdx fuera de 0\.\.6: 7/);
+    expect(() => diasActivosDe({ menuWeek: { offset: 0, startDayIdx: -1 } })).toThrow(TypeError);
+    expect(() => diasActivosDe({ menuWeek: { offset: 0, startDayIdx: 4, days: ["vie", "Viernes"] } })).toThrow(/días desconocidos: vie, Viernes/);
+    // Y quien pinta la semana lanza lo mismo: no hay una regla para pintar y otra para planificar.
+    expect(() => getWeekDatesByMenuWeek({ offset: 0, startDayIdx: 7 })).toThrow(TypeError);
   });
 
   it("dice lo mismo que getWeekDatesByMenuWeek, que es quien pinta la semana", () => {
     const semanas = [
-      undefined, {}, VIERNES, { offset: 0, startDayIdx: 0 }, { offset: 0, startDayIdx: 6 }, { offset: 0, startDayIdx: 7 },
+      undefined, {}, VIERNES, { offset: 0, startDayIdx: 0 }, { offset: 0, startDayIdx: 6 },
       { offset: 1, startDayIdx: 3 }, { offset: 2 }, { offset: 0, startDayIdx: 2, days: ["Jue", "Sáb"] },
     ];
     for (const menuWeek of semanas) {
@@ -143,10 +146,17 @@ describe("buildShoppingList: { dias } deja fuera los huecos de otros días", () 
 });
 
 describe("generateMenuWithAI con el solver: el plan guardado no tiene días de más", () => {
-  afterEach(() => vi.unstubAllGlobals());
+  // Sin reloj ni azar: la semilla del solver sale de Date.now() y su tope de
+  // tiempo compara con Date.now(); la rotación de las comidas extra, de
+  // Math.random(). Con la fecha fija y el azar fijo el resultado es siempre el
+  // mismo (lo que se afirma es la estructura del plan, no un plato concreto).
+  beforeAll(() => { vi.useFakeTimers({ toFake: ["Date"] }); vi.setSystemTime(new Date("2026-10-30T12:00:00Z")); });
+  afterAll(() => vi.useRealTimers());
+  afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
   it("una semana de viernes con adultos, niños y comidas extra solo guarda Vie, Sáb y Dom", async () => {
     vi.stubGlobal("localStorage", { getItem: (k) => (k === "mp_motor" ? "solver" : null) });
+    vi.spyOn(Math, "random").mockReturnValue(0.5);
     const adults = { id: "ga", label: "Adultos", memberIds: ["a1"] };
     const kids = { id: "gk", label: "Niños", memberIds: ["k1"] };
     const data = {

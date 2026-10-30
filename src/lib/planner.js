@@ -133,6 +133,12 @@ export function cookDayCounts(data) {
  * semana de viernes a domingo guardaba huecos de lunes a jueves, gastaba en
  * ellos las cuotas de variedad y de familias y los compraba (#1029).
  *
+ * Un `days` con un nombre que no es un día, o un `startDayIdx` fuera de 0..6,
+ * es un error de quien lo construyó y se lanza: la base ya lo impide (CHECK de
+ * `start_day_idx` en 0005 y vocabulario de `active_days` en 0086), así que
+ * aquí solo puede llegar por un fallo de código, y caer en silencio a otra
+ * regla pintaría y planificaría una semana que nadie pidió.
+ *
  * @param {object} data
  * @returns {string[]} días en el orden de DAYS, nunca vacío
  */
@@ -140,15 +146,17 @@ export function diasActivosDe(data) {
   const menuWeek = data?.menuWeek;
   if (!menuWeek || typeof menuWeek !== "object") return [...DAYS];
   const { offset = 0, startDayIdx = 0, days = null } = menuWeek;
-  if (Array.isArray(days) && days.length > 0) {
-    const elegidos = DAYS.filter((d) => days.includes(d));
-    if (elegidos.length > 0) return elegidos;
+  if (Array.isArray(days)) {
+    const desconocidos = days.filter((d) => !DAYS.includes(d));
+    if (desconocidos.length > 0) {
+      throw new TypeError(`menuWeek.days con días desconocidos: ${desconocidos.join(", ")}`);
+    }
+    if (days.length > 0) return DAYS.filter((d) => days.includes(d));
   }
-  if (offset === 0 && Number.isInteger(startDayIdx) && startDayIdx > 0) {
-    const desde = DAYS.filter((_, i) => i >= startDayIdx);
-    if (desde.length > 0) return desde;
+  if (!Number.isInteger(startDayIdx) || startDayIdx < 0 || startDayIdx >= DAYS.length) {
+    throw new TypeError(`menuWeek.startDayIdx fuera de 0..${DAYS.length - 1}: ${startDayIdx}`);
   }
-  return [...DAYS];
+  return offset === 0 ? DAYS.filter((_, i) => i >= startDayIdx) : [...DAYS];
 }
 
 /**
