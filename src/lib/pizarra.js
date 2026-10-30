@@ -38,7 +38,7 @@ import {
 } from "./planner.js";
 import { isBabyMenuGroup, membersOfGroup } from "./groups.js";
 import { esNino } from "./stages.js";
-import { computeWeekRange, explicitDaysForOffset, weekEntry } from "./menuArchive.js";
+import { computeWeekRange, explicitDaysForOffset, horarioDeSemana } from "./menuArchive.js";
 
 /**
  * ¿Está encendida? Apagada por defecto, igual que el solver y por el mismo
@@ -216,10 +216,7 @@ export function semanaEnBlanco(data, groups, offset, esAncla) {
   const startDayIdx = esAncla ? (data.menuWeek?.startDayIdx ?? 0) : 0;
   const days = explicitDaysForOffset(data, offset);
   const { startISO, endISO } = computeWeekRange(offset, startDayIdx, days);
-  const igualEnTodas = esAncla || data.menuScheduleSameForAllWeeks !== false;
-  const schedule = igualEnTodas
-    ? data.schedule
-    : (weekEntry(data.menuWeekOverrides, offset) ?? data.schedule);
+  const schedule = horarioDeSemana(data, offset, esAncla);
   return {
     startISO,
     week: {

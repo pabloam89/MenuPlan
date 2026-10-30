@@ -106,6 +106,18 @@ export function weekEntry(mapa, offset) {
 }
 
 /**
+ * El horario de una semana del menú. La semana ancla (la primera) y, con
+ * «igual en todas las semanas», cualquiera usan el de la casa; con «distinto en
+ * cada semana» el resto lleva el suyo (`menuWeekOverrides`) si lo tiene. Lo
+ * usan el generador (`prepararSemana`) y la pizarra (`semanaEnBlanco`).
+ */
+export function horarioDeSemana(data, offset, esAncla) {
+  return esAncla || data.menuScheduleSameForAllWeeks !== false
+    ? data.schedule
+    : (weekEntry(data.menuWeekOverrides, offset) ?? data.schedule);
+}
+
+/**
  * Reindexa un mapa `{offset: valor}` a `{lunesISO: valor}`. Las claves que ya
  * son ISO se dejan como están, así que es idempotente y se puede llamar en cada
  * carga sin miedo.

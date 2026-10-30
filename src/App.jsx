@@ -2201,7 +2201,6 @@ export default function App() {
       const varietyPref = ["strict", "moderate", "relaxed"].includes(working.menuVarietyPref)
         ? working.menuVarietyPref
         : "strict";
-      const sameForAllWeeks = working.menuScheduleSameForAllWeeks !== false;
       // Planner model for THIS generation (A/B Sonnet vs Haiku). Resolved once
       // so every week/group of the same menú uses the same variant.
       const planner = resolvePlannerModel();
@@ -2221,7 +2220,7 @@ export default function App() {
         const { startDayIdx, days, activeDays, startISO, endISO } = weekMeta[w];
         const { weekData, crossWeek, weekSchedule } = prepararSemana(working, {
           groups, offset, w, startDayIdx, days, activeDays, startISO, endISO,
-          weekOffsets, sameForAllWeeks, varietyPref, weekCount,
+          weekOffsets, varietyPref, weekCount,
           hoy: isoLocalDate(new Date()),
         });
 
