@@ -10,6 +10,7 @@ import { buildGroupContext } from "./aiPlanner.js";
 import { huecosEsperados } from "./huecosDelPlan.js";
 import { platosDelHueco } from "./estructuraPlatos.js";
 import { ESTRUCTURA_PLATOS } from "./vocabularios.js";
+import { comidaDeTipo } from "./dias.js";
 
 const ESTRUCTURAS = [...ESTRUCTURA_PLATOS, undefined];
 const TIPOS_DEL_DIA = [undefined, "unico", "rapida"];
@@ -33,7 +34,7 @@ function platosDelMotor(data, grupo) {
   const n = {};
   for (const s of buildGroupContext(data, grupo).slots) {
     if (s.day !== "Lun") continue;
-    const clave = `${s.day}-${s.mealType === "cena" ? "Cena" : "Comida"}`;
+    const clave = `${s.day}-${comidaDeTipo(s.mealType)}`;
     n[clave] = (n[clave] ?? 0) + 1;
   }
   return n;

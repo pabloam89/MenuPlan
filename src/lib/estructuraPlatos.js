@@ -13,6 +13,7 @@
  * (huecosDelPlan.js). Cuando vivía en dos sitios, divergían en el bebé.
  */
 import { ESTRUCTURA } from "./vocabularios.js";
+import { tipoDeComida } from "./dias.js";
 
 export const ESTRUCTURA_POR_DEFECTO = ESTRUCTURA.dosPlatos;
 export const ESTRUCTURA_CENA_POR_DEFECTO = ESTRUCTURA.unPlato;
@@ -33,7 +34,7 @@ const UNO = Object.freeze(["plato_unico"]);
  * estructuraCenaDelGrupo); `slotType`, data.slotType[`${día}|${comida}`].
  */
 export function platosDelHueco({ comida, estructura, estructuraCena, slotType, esBebe = false }) {
-  if (String(comida).toLowerCase() === "cena") {
+  if (tipoDeComida(comida) === "cena") {
     return estructuraCena === ESTRUCTURA.dosPlatos && slotType !== "rapida" ? DOS : UNO;
   }
   if (esBebe || slotType === "unico" || slotType === "rapida" || estructura === ESTRUCTURA.unPlato) return UNO;

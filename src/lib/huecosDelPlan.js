@@ -17,18 +17,20 @@ import { kidsSlotAction } from "./kidsMenu.js";
 import { estructuraDelGrupo, estructuraCenaDelGrupo, platosDelHueco } from "./estructuraPlatos.js";
 import { DIAS, COMIDAS, DIA_LARGO_MINUSCULAS } from "./dias.js";
 
-/** Los platos de un hueco en el plan guardado, vocabulario cerrado: el primero y el principal. */
-export const PLATOS_DEL_HUECO = Object.freeze(["primero", "principal"]);
+/** Los platos de un hueco en el plan guardado, por nombre: el primero (`firstRecipeId`) y el principal (`recipeId`). */
+export const PLATO = Object.freeze({ primero: "primero", principal: "principal" });
+/** Los mismos, como lista cerrada. */
+export const PLATOS_DEL_HUECO = Object.freeze(Object.values(PLATO));
 
 /** Cómo se dice cada plato cuando se nombra un hueco a medias. */
-const ORDINAL = Object.freeze({ primero: "1º", principal: "2º" });
+const ORDINAL = Object.freeze({ [PLATO.primero]: "1º", [PLATO.principal]: "2º" });
 
 /**
  * De las posiciones del motor (platosDelHueco: «primero», «segundo»,
  * «plato_unico») a los campos del plan guardado: el primero va a
  * `firstRecipeId`; el segundo y el plato único, a `recipeId` (principal).
  */
-const platoDelPlan = (posicion) => (posicion === "primero" ? "primero" : "principal");
+const platoDelPlan = (posicion) => (posicion === "primero" ? PLATO.primero : PLATO.principal);
 
 /**
  * Los platos que el plan debe tener en un hueco. Un hueco de niños que copia
@@ -37,7 +39,7 @@ const platoDelPlan = (posicion) => (posicion === "primero" ? "primero" : "princi
  * `recipeId`, con lo que tengan los adultos. Por eso se le exige el principal.
  */
 function platosEsperadosDelHueco(data, group, dia, comida, { esBebe, copiaDeAdultos }) {
-  if (copiaDeAdultos) return ["principal"];
+  if (copiaDeAdultos) return [PLATO.principal];
   return platosDelHueco({
     comida,
     estructura: estructuraDelGrupo(data, group.id),
@@ -88,7 +90,7 @@ const hayPlato = (id) => Boolean(id) && id !== "_";
 export function huecosVacios(plan, esperados) {
   return esperados.filter(({ grupo, dia, comida, plato }) => {
     const h = plan?.[grupo]?.[`${dia}-${comida}`];
-    return !hayPlato(plato === "primero" ? h?.firstRecipeId : h?.recipeId);
+    return !hayPlato(plato === PLATO.primero ? h?.firstRecipeId : h?.recipeId);
   });
 }
 
