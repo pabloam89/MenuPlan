@@ -10,7 +10,7 @@ Todo lo que Lola y la app saben, piden y hacen se describe **una vez** en un reg
 
 - **Hoy la garantía está en las palabras, no en la estructura** (#958, raíz común). El prompt promete; las herramientas de Lola escriben cada una a su manera; la app escribe la casa desde muchos sitios; el motor lee claves sueltas del documento; los gustos solo desempatan (`src/lib/solver.js`, paso 5). Las cifras de cada cosa, con su comando, están en el plan («Lo desagradable primero», «Estado medido», «Cifras que bajan» y el Existing de cada trozo). Nada de lo de abajo cambia eso si se hace a medias: cada capa tiene que ser **la única puerta**, con un test que haga imposible saltársela.
 - **El momento es ahora.** Hay pocas casas (la cifra, en el plan, «Estado medido»). La decisión «sin convivencia» (cada ficha nueva se estrena vacía) es barata ahora y carísima con miles. Lo que no se haga en esta ronda se hará con migraciones de datos de familias reales.
-- **La migración 0105 decide la forma de la escritura.** Si se escribe como está en el plan (sobre + `escribir_dato`) y después se añade la operación, se rehace. Igual con la 0109: si crea `gusto` y después se decide `preferencia`, se tira. Las dos decisiones (D1, D2) van antes de escribir esas migraciones.
+- **La migración del trozo 7 decide la forma de la escritura.** Si se escribe como está en el plan (sobre + `escribir_dato`) y después se añade la operación, se rehace. Igual con la del trozo 14: si crea `gusto` y después se decide `preferencia`, se tira. Las dos decisiones (D1, D2) van antes de escribir esas migraciones.
 - **Riesgo de sobreabstraer.** Un motor de preferencias genérico y un registro que genera todo pueden convertirse en un marco que nadie entiende. Contramedida en cada capa: forma pequeña y cerrada, y un test de paridad contra lo que hay hoy antes de retirar lo viejo.
 - **No se ha visto el trabajo local sin subir** (sesiones de terminal). Ver Not verified.
 
@@ -169,7 +169,7 @@ Cifras: preguntas hasta el primer menú; tareas caducadas sin respuesta; tiempo 
 | Usabilidad | valores cerrados → «no me entiende» | `otro` con nota y pregunta; eco corto de lo entendido; el banco de frases mide |
 | Usabilidad | demasiadas preguntas | solo mínimos para generar; resto por peso, de una en una, con no molestar |
 | Sincronización | dos escritores a la vez | operación con choque por dato, tiempo real por casa, nunca descartar en silencio |
-| Ejecutabilidad | programa grande con varias sesiones a la vez | tramos en orden, un tramo vivo por zona; decidir D1 y D2 antes de 0105 y 0109; pruebas antes de partir ficheros |
+| Ejecutabilidad | programa grande con varias sesiones a la vez | tramos en orden, un tramo vivo por zona; decidir D1 y D2 antes de las migraciones de los trozos 7 y 14; pruebas antes de partir ficheros |
 | Ejecutabilidad | «sin convivencia» borra lo de las casas que ya existen | aceptado por Pablo (30 oct); se hace ahora porque con más casas no se podrá |
 | Trazabilidad | el log crece sin tope | retención de operaciones y resumen |
 | Motor | preferencias que chocan o sin solución | obligatorias nunca se rompen; relajar por peso y decirlo |
@@ -244,10 +244,10 @@ Cada choque resuelto deja rastro en la operación: qué chocó, qué ganó, por 
 ## Decisions for Pablo
 
 ### D1. Todo cambio se guarda igual, venga de Lola o de la app, con quién lo hizo y desde dónde
-**Decidida por Pablo el 30 oct 2026: opción 1.** La 0105 crea también la tabla `operacion`; Lola y la app pasan por la misma tubería; el canal y el autor quedan apuntados y el otro lado se entera por la señal de tiempo real. Ni Lola ni la app tienen prioridad: un choque lo resuelve la regla del dato (último gana, más restrictivo o suma) y el método de choques.
+**Decidida por Pablo el 30 oct 2026: opción 1.** La migración del trozo 7 crea también la tabla `operacion`; Lola y la app pasan por la misma tubería; el canal y el autor quedan apuntados y el otro lado se entera por la señal de tiempo real. Ni Lola ni la app tienen prioridad: un choque lo resuelve la regla del dato (último gana, más restrictivo o suma) y el método de choques.
 
 ### D2. Una tabla de preferencias que lo absorbe todo
-**Decidida por Pablo el 30 oct 2026: opción 1.** La 0109 crea `preferencia` (y `plan` como conjunto con nombre y fechas) en vez de `gusto`. Absorbe todo deseo que condicione el menú. No absorbe hechos (quién vive, horario, aparatos, despensa: van en sus fichas) ni la salud (se queda en sus tablas por privacidad y el motor la recibe como obligatoria).
+**Decidida por Pablo el 30 oct 2026: opción 1.** La migración del trozo 14 crea `preferencia` (y `plan` como conjunto con nombre y fechas) en vez de `gusto`. Absorbe todo deseo que condicione el menú. No absorbe hechos (quién vive, horario, aparatos, despensa: van en sus fichas) ni la salud (se queda en sus tablas por privacidad y el motor la recibe como obligatoria).
 
 ### D3. La puerta de seguridad, en el servidor, igual para Lola y la app
 **Decidida por Pablo el 30 oct 2026: opción 1.** Una implementación compartida en el servidor y una RPC final que escribe en una transacción; la app no escribe tablas de ficha directamente.
