@@ -58,7 +58,7 @@ Cuatro listas, cada una de una clase de cosa, enlazadas por id:
 
 **Lo que se genera** (el salto que falta; hoy se escribe a mano en cada sitio: el plan, trozo 25, cuenta en cuántos ficheros):
 
-- CHECK y filas de `registro_campo` en la base (ya se hace para 7 campos, 0097).
+- CHECK y filas de `registro_campo` en la base (ya se hace para una parte de los campos desde la 0097).
 - El esquema de cada herramienta de Lola (parámetros con `enum` y tipo) desde Acciones + Datos + Valores.
 - El control de cada campo en la app por su tipo (lista cerrada → chips; número → paso; fecha → selector), como componente genérico; las pantallas siguen siendo a mano, los controles no.
 - La entrada del motor ([4]) desde Ejes y Datos.
