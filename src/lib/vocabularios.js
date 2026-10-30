@@ -119,8 +119,12 @@ export const REF_TIPO = ["menu", "mensaje", "pantalla", "senal"];
 
 // ── Los del eje de la ficha (plan fichas con estado, trozo 5): columnas de registroFicha.js; la 0105 los lleva a registro_campo.
 
-/** Las fichas (entidades con sobre) del plan: de cuál es cada dato del registro (registroFicha.js ficha). */
-export const FICHAS = ["persona", "grupo", "casa", "rutina", "gusto", "regla", "trato", "semana", "compra", "despensa", "receta", "tarea", "senal"];
+/**
+ * Las fichas (entidades con sobre) del plan: de cuál es cada dato del registro (registroFicha.js ficha).
+ * `preferencia` se llamó `gusto` hasta el trozo 24 (el plan ampliado la renombra); ninguna tabla la guardaba.
+ */
+export const FICHAS = ["persona", "grupo", "casa", "rutina", "preferencia", "regla", "trato", "semana", "compra", "despensa", "receta", "tarea", "senal"];
+export const FICHA = porNombre(FICHAS);
 
 /** Quién puede escribir un dato: la familia (lo que dice), el sistema (lo que deriva o ve) o los dos. */
 export const ESCRITORES = ["familia", "sistema", "ambos"];
@@ -153,6 +157,42 @@ export const AGREGABLE = porNombre(AGREGABLES);
 /** La unidad de un eje numérico, por ración: las de los nutrientes (src/data/nutrientes.js), minutos, euros y raciones. */
 export const UNIDADES_EJE = ["kcal", "g", "mg", "ug", "min", "eur", "racion"];
 export const UNIDAD_EJE = porNombre(UNIDADES_EJE);
+
+// ── Los de las tareas de Lola (bot_tareas, 0076-0080): registroTareas.js los proyecta en ENUMS, y
+// de ahí salen los enum de sus herramientas (api/_bot/agente.js) y la paridad con los CHECK.
+// Fuera de VOCABULARIOS a propósito: aún no tienen ciclo de vida (retirados con su sucesor) ni
+// escáner de escritores (scripts/lib/columnasVocabulario.mjs, «Fuera, a propósito»).
+
+/** Qué era una tarea en el bot viejo (bot_tareas.kind, 0076); `tipo` lo sustituye (0080). */
+export const KINDS_TAREA = ["seguimiento", "pregunta"];
+export const KIND_TAREA = porNombre(KINDS_TAREA);
+
+/** Tipo de una tarea (bot_tareas.tipo, 0080). */
+export const TIPOS_TAREA = ["espera", "falta_saber", "decision", "seguimiento"];
+export const TIPO_TAREA = porNombre(TIPOS_TAREA);
+
+/** De quién es una tarea (bot_tareas.scope): de la casa, o personal si es algo suyo y en privado. */
+export const AMBITOS_TAREA = ["casa", "personal"];
+
+/** Cómo se cierra una tarea (cerrar_tarea.estado): son también estados de bot_tareas.status. */
+export const CIERRES_TAREA = ["hecha", "descartada", "rechazada"];
+
+/** El estado de una tarea (bot_tareas.status): abierta, aplazada («ahora te digo», 0080), cerrada o caducada. */
+export const ESTADOS_TAREA = ["abierta", "aplazada", ...CIERRES_TAREA, "caducada"];
+export const ESTADO_TAREA = porNombre(ESTADOS_TAREA);
+
+/** Qué pasó con lo que la tarea proponía (bot_tareas.resultado, 0080). */
+export const RESULTADOS_TAREA = ["aceptada", "mantenida"];
+
+/** Para qué es una tarea de objetivo (bot_tareas.objetivo, 0080). */
+export const OBJETIVOS_TAREA = ["ideas_plato", "calorias", "generar_menu"];
+
+/** De qué va una pregunta en anotar_tarea (`sobre`); registroTareas.js SOBRE_A_CAMPO dice su campo de la ficha. */
+export const SOBRES_TAREA = ["alergias", "etapa_bebe", "otra"];
+export const SOBRE_TAREA = porNombre(SOBRES_TAREA);
+
+/** Las órdenes de tareas que guardan su respuesta en bot_idempotencia (bot_idempotencia.rpc, 0080). */
+export const RPCS_IDEMPOTENCIA = ["anotar_tarea", "cerrar_tarea", "editar_tarea"];
 
 /** Sexo de una persona: campo nuevo de la ficha v18, solo para calorías y nunca se pregunta. */
 export const SEXO = ["mujer", "hombre", "sin_dato"];

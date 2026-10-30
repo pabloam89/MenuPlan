@@ -27,6 +27,12 @@
  * Los GRUPOS (niños/adultos/bebés) sí están: no son personas, son un concepto
  * de primera clase que la app ya maneja (`freqsByGroup`, roleOf, kcalByGroup),
  * y además es como habla la gente — nadie dice "para Lucía", dice "los niños".
+ *
+ * ── Cada campo, un dato de la ficha Preferencia ───────────────────────────
+ * `eje` es el eje de src/data/axisRegistry.js que el campo expresa (plan
+ * fichas con estado, trozo 24); null, con `sinEje` diciendo por qué, si no
+ * hay ninguno. registroFicha.js los registra como DATOS_PREFERENCIA, y el
+ * trozo 14 los pasa a filas de `preferencia` sin traducir a mano.
  */
 
 import basesCatalog from "../data/recipes/bases.json" with { type: "json" };
@@ -87,6 +93,7 @@ export const FAMILIA_LABELS = {
 export const CAMPOS = [
   {
     id: "freqs",
+    eje: "composicion",
     grupo: "familia",
     etiqueta: "Cuánto de cada cosa",
     dominio: FAMILIAS,
@@ -98,6 +105,7 @@ export const CAMPOS = [
   },
   {
     id: "reparto",
+    eje: "composicion",
     grupo: "familia",
     etiqueta: "El reparto de la semana",
     dominio: FAMILIAS,
@@ -118,6 +126,7 @@ export const CAMPOS = [
   },
   {
     id: "base",
+    eje: "basePrincipal",
     grupo: "base",
     etiqueta: "Pasta, arroz o patata",
     // Consume `mainBase` del catálogo (46 %). Es el único eje que separa la
@@ -140,6 +149,7 @@ export const CAMPOS = [
   },
   {
     id: "tanda",
+    eje: "basePrincipal",
     grupo: "base",
     etiqueta: "Lo que cocinas en tanda",
     // El MISMO dominio que `base`, y ahí está justo la razón de que sean dos
@@ -167,6 +177,7 @@ export const CAMPOS = [
   },
   {
     id: "tandaPlatos",
+    eje: null, sinEje: "sus familias salen del nombre del plato (tandaFamiliasDefs.js), no de un eje del registro",
     grupo: "base",
     etiqueta: "Los platos que dejas hechos o a medias",
     // Hermano de `tanda`, y aparte por el VOCABULARIO: aquel cuenta BASES
@@ -190,6 +201,7 @@ export const CAMPOS = [
   },
   {
     id: "cocina",
+    eje: "cocina",
     grupo: "cocina",
     etiqueta: "De dónde es el plato",
     // Consume `cocina`. Ausente = española, así que "española" no está en el
@@ -203,6 +215,7 @@ export const CAMPOS = [
   },
   {
     id: "tecnica",
+    eje: "tecnica",
     grupo: "estilo",
     etiqueta: "Cómo está hecho",
     dominio: TECNICAS,
@@ -212,6 +225,7 @@ export const CAMPOS = [
   },
   {
     id: "salsa",
+    eje: "llevaSalsa",
     grupo: "estilo",
     etiqueta: "Platos con salsa",
     // Consume `llevaSalsa` (172 recetas). Aquí NO se combinan platos con
@@ -223,6 +237,7 @@ export const CAMPOS = [
   },
   {
     id: "esfuerzo",
+    eje: null, sinEje: "ningún campo del plato lo representa sin ambigüedad (sesgos.js)",
     grupo: "esfuerzo",
     etiqueta: "Lo que cuesta cocinarlo",
     dominio: ["facil", "rapido", "elaborado"],
@@ -232,6 +247,7 @@ export const CAMPOS = [
   },
   {
     id: "favoritos",
+    eje: "subtipoIngrediente",
     grupo: "ingrediente",
     etiqueta: "Lo que os gusta mucho",
     // El espejo de `excluidos`, que solo sabia quitar. Sin esto, "quiero mas
@@ -245,6 +261,7 @@ export const CAMPOS = [
   },
   {
     id: "excluidos",
+    eje: "subtipoIngrediente",
     grupo: "ingrediente",
     etiqueta: "Lo que no queréis ver",
     // Lista abierta: se resuelve contra ingredients.json, no contra un enum.
