@@ -532,6 +532,20 @@ function fileToAvatarDataUrl(file) {
   });
 }
 
+// La tira de avatares arranca en el principio: nada a la izquierda y más a la derecha.
+const TIRA_AVATARES_INICIO = { izq: false, der: true };
+// Hasta 3 avatares caben justos; con más, las flechas aparecen y se ve medio avatar de más.
+const TIRA_AVATARES_CABEN = 3;
+// Holgura en px al comparar scrollLeft con los extremos (trae decimales).
+const TIRA_AVATARES_HOLGURA = 2;
+// Hueco en px entre avatares; también entra en el cálculo del ancho de cada uno.
+const TIRA_AVATARES_HUECO = 10;
+// Círculo visible de la flecha y lo que sobresale de la tira, en px; la zona táctil es --tam-tactil.
+const TIRA_AVATARES_FLECHA = 28;
+const TIRA_AVATARES_FLECHA_FUERA = 16;
+// Cada clic en una flecha desplaza esta fracción del ancho de la tira.
+const TIRA_AVATARES_SALTO = 0.85;
+
 export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, onBack, nextLabel, showMenuModel = false, demoName = null, demoAge = null }) {
   const [name, setName] = useState("");
   const [ageStr, setAgeStr] = useState("");
@@ -542,6 +556,9 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
   const [addBounce, setAddBounce] = useState(false);
   const [colorExpanded, setColorExpanded] = useState(false);
   const [avatarExpanded, setAvatarExpanded] = useState(false);
+  // Tira de avatares del popup: ref para desplazarla con las flechas y qué flecha toca ver.
+  const avatarStripRef = useRef(null);
+  const [avatarStripPos, setAvatarStripPos] = useState(TIRA_AVATARES_INICIO);
   // "family" = the drag-a-profile builder shown to real users. The classic
   // name+age+Añadir form is kept only for the scripted ValueProps demo, which
   // passes demoName/demoAge; there is no user-facing toggle anymore.
@@ -1003,7 +1020,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
         // the quick add popup (just-dropped profile) stays minimal.
         const isEdit = editingMemberId !== justAddedId;
         const catLabel = prof?.label ?? migrateHomeRole(editing.homeRole);
-        const closePopup = () => { setEditingMemberId(null); setJustAddedId(null); setAvatarExpanded(false); setColorExpanded(false); };
+        const closePopup = () => { setEditingMemberId(null); setJustAddedId(null); setAvatarExpanded(false); setColorExpanded(false); setAvatarStripPos(TIRA_AVATARES_INICIO); };
         const dismiss = () => {
           if (editingMemberId === justAddedId) removeMember(editingMemberId);
           closePopup();
@@ -1040,6 +1057,8 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                 const keys   = folder && count > 0
                   ? Array.from({ length: count }, (_, i) => `${folder}_${i + 1}`)
                   : [];
+                // Avatares a la vista: los que caben justos, o medio más si hay de sobra (el que asoma avisa de que hay más).
+                const visibles = keys.length > TIRA_AVATARES_CABEN ? TIRA_AVATARES_CABEN + 0.5 : TIRA_AVATARES_CABEN;
                 return (
                   <div style={{ display: "flex", alignItems: "stretch", gap: 0 }}>
 
@@ -1123,11 +1142,20 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
 
                       {/* Avatar strip — con 3 o menos caben justos; con más se ven
                           tres y medio, y ese medio avatar asomando es lo que dice
-                          que hay más a la derecha (sin flecha ni degradado, que se
-                          quedaban al llegar al final). */}
+                          que hay más a la derecha. Las flechas desplazan la tira y
+                          solo salen si hay más hacia ese lado. */}
                       {keys.length > 0 && (
                         <div style={{ position: "relative" }}>
-                          <div style={{ display: "flex", gap: 10, overflowX: "auto", padding: "4px 0", scrollSnapType: "x proximity", scrollbarWidth: "none" }}>
+                          <div
+                            ref={avatarStripRef}
+                            onScroll={(e) => {
+                              const el = e.currentTarget;
+                              const izq = el.scrollLeft > TIRA_AVATARES_HOLGURA;
+                              const der = el.scrollLeft < el.scrollWidth - el.clientWidth - TIRA_AVATARES_HOLGURA;
+                              setAvatarStripPos((p) => (p.izq === izq && p.der === der ? p : { izq, der }));
+                            }}
+                            style={{ display: "flex", gap: TIRA_AVATARES_HUECO, overflowX: "auto", padding: "4px 0", scrollSnapType: "x proximity", scrollbarWidth: "none" }}
+                          >
                           {keys.map((k) => {
                             const sel = editing.avatarKey === k;
                             return (
@@ -1136,7 +1164,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                                 type="button"
                                 onClick={() => updateMemberAvatar(editing.id, k)}
                                 style={{
-                                    flex: keys.length > 3 ? "0 0 calc((100% - 30px) / 3.5)" : "0 0 calc((100% - 20px) / 3)", aspectRatio: "1",
+                                    flex: `0 0 calc((100% - ${(Math.ceil(visibles) - 1) * TIRA_AVATARES_HUECO}px) / ${visibles})`, aspectRatio: "1",
                                     scrollSnapAlign: "start",
                                     padding: 0, cursor: "pointer",
                                   borderRadius: 999, overflow: "hidden",
@@ -1152,6 +1180,34 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                             );
                           })}
                           </div>
+                          {keys.length > TIRA_AVATARES_CABEN && [["izq", -1, ChevronLeft, "Avatares anteriores", "left"], ["der", 1, ChevronRight, "Más avatares", "right"]].map(([lado, dir, Flecha, etiqueta, borde]) => avatarStripPos[lado] && (
+                            <button
+                              key={lado}
+                              type="button"
+                              aria-label={etiqueta}
+                              onClick={() => {
+                                const el = avatarStripRef.current;
+                                const quieta = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+                                if (el) el.scrollBy({ left: dir * el.clientWidth * TIRA_AVATARES_SALTO, behavior: quieta ? "auto" : "smooth" });
+                              }}
+                              // Zona táctil de --tam-tactil con el círculo dentro, casi todo
+                              // fuera de la tira para no tapar los avatares.
+                              style={{
+                                position: "absolute", top: "50%", [borde]: `calc(-1 * ((var(--tam-tactil) - ${TIRA_AVATARES_FLECHA}px) / 2 + ${TIRA_AVATARES_FLECHA_FUERA}px))`, transform: "translateY(-50%)",
+                                width: "var(--tam-tactil)", height: "var(--tam-tactil)", padding: 0, border: "none", background: "transparent",
+                                cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center",
+                              }}
+                            >
+                              <span style={{
+                                width: TIRA_AVATARES_FLECHA, height: TIRA_AVATARES_FLECHA, borderRadius: "var(--radio-pildora)", boxSizing: "border-box",
+                                border: "1.5px solid var(--color-linea)", background: "var(--color-superficie)", color: "var(--color-tinta-suave)",
+                                boxShadow: "var(--sombra-2)",
+                                display: "inline-flex", alignItems: "center", justifyContent: "center",
+                              }}>
+                                <Flecha size={16} strokeWidth={2.6} />
+                              </span>
+                            </button>
+                          ))}
                         </div>
                       )}
                     </div>
