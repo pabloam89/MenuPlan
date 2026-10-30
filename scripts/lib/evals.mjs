@@ -12,6 +12,8 @@ import { createHash } from "node:crypto";
 import { appendFileSync, existsSync, mkdirSync, readFileSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join, relative } from "node:path";
+// El sobre de un dato (origen y canal) tiene su vocabulario en el modelo de datos: se lee de ahí, no se repite.
+import { CANALES_DATO, ORIGEN_DATO } from "../../src/lib/vocabularios.js";
 
 // ── Vocabularios de los casos (scripts/bot-evals.json) ─────────────────────
 
@@ -32,12 +34,40 @@ export const FORMA_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export const esDeSeguridad = (caso) => TIPOS_DE_SEGURIDAD.includes(caso.tipo);
 
-/** Lo que está mal en las etiquetas de los casos (vacío si nada). bot-evals.mjs no corre con errores. */
-export function erroresDeCasos(casos) {
+const esObjeto = (v) => v != null && typeof v === "object" && !Array.isArray(v);
+
+/**
+ * Lo que está mal en `espera` (trozo 29 de #1037): `{ accion, parametros }` y,
+ * opcional, `sobre { origen, canal }` del vocabulario del modelo de datos.
+ * `acciones`: las herramientas de Lola, si quien llama las tiene (una acción
+ * que no existe daría siempre rojo y parecería un fallo de Lola).
+ */
+function erroresDeEspera(e, acciones) {
+  if (!esObjeto(e)) return ["espera tiene que ser { accion, parametros }"];
+  const errores = [];
+  if (typeof e.accion !== "string" || !e.accion) errores.push("espera.accion tiene que ser el nombre de una herramienta");
+  else if (acciones && !acciones.includes(e.accion)) errores.push(`espera.accion ${JSON.stringify(e.accion)} no es ninguna herramienta de Lola`);
+  if (!esObjeto(e.parametros)) errores.push("espera.parametros tiene que ser un objeto (vacío si la acción no lleva ninguno)");
+  if (e.sobre !== undefined) {
+    if (!esObjeto(e.sobre)) errores.push("espera.sobre tiene que ser { origen, canal }");
+    else {
+      if (e.sobre.origen !== undefined && !ORIGEN_DATO.includes(e.sobre.origen)) errores.push(`espera.sobre.origen ${JSON.stringify(e.sobre.origen)} fuera de lista (${ORIGEN_DATO.join(", ")})`);
+      if (e.sobre.canal !== undefined && !CANALES_DATO.includes(e.sobre.canal)) errores.push(`espera.sobre.canal ${JSON.stringify(e.sobre.canal)} fuera de lista (${CANALES_DATO.join(", ")})`);
+    }
+  }
+  return errores;
+}
+
+/**
+ * Lo que está mal en las etiquetas de los casos (vacío si nada). bot-evals.mjs no corre con errores.
+ * `acciones`: los nombres de las herramientas, para comprobar `espera.accion` (sin ellos, solo la forma).
+ */
+export function erroresDeCasos(casos, { acciones = null } = {}) {
   const errores = [];
   const vistos = new Set();
   casos.forEach((c, i) => {
     const quien = `caso ${i} (${c.id ?? c.nombre ?? "?"})`;
+    if (c.espera !== undefined) for (const e of erroresDeEspera(c.espera, acciones)) errores.push(`${quien}: ${e}`);
     if (typeof c.id !== "string" || !FORMA_ID.test(c.id)) errores.push(`${quien}: id ${JSON.stringify(c.id)} no es un slug`);
     else if (vistos.has(c.id)) errores.push(`${quien}: id repetido`);
     else vistos.add(c.id);
@@ -130,8 +160,81 @@ export function opcionEntero(argv, clave, minimo = 1) {
 /** Por qué falla un intento, en vocabulario cerrado (el detalle va aparte, en texto). */
 export const MOTIVOS_FALLO = [
   "no_llamo", "no_llamo_ninguna", "llamo_prohibida", "orden", "sin_args", "con_args_prohibidos",
-  "demasiadas_llamadas", "texto_no_casa", "texto_prohibido", "error",
+  "demasiadas_llamadas", "texto_no_casa", "texto_prohibido", "operacion_no_exacta", "error",
 ];
+
+// ── La operación esperada: lo guardado, no solo la herramienta llamada ─────
+// (trozo 29 de #1037; specs/arquitectura-objetivo.md [3] y [8]). `args` mira
+// subcadenas; `espera` mira la operación: la acción con sus parámetros EXACTOS.
+
+/** La forma cerrada de un valor: texto sin tildes ni mayúsculas (sinTildes, abajo), listas de valores simples ordenadas (días × comidas son un conjunto). Misma forma, misma operación. */
+function formaCerrada(v) {
+  if (typeof v === "string") return sinTildes(v).trim();
+  if (Array.isArray(v)) {
+    const f = v.map(formaCerrada);
+    return f.every((x) => typeof x !== "object" || x === null) ? [...f].sort() : f;
+  }
+  if (esObjeto(v)) return Object.fromEntries(Object.keys(v).sort().map((k) => [k, formaCerrada(v[k])]));
+  return v;
+}
+
+/**
+ * ¿`dado` lleva exactamente lo que pide `esperado`? Cada clave listada vale eso
+ * mismo (nada de «contiene»); la que no se lista (texto libre como `frase`) no
+ * se mira. En una lista, mismo tamaño y cada elemento esperado con uno que le cuadre.
+ */
+export function parametrosExactos(dado, esperado) {
+  if (esObjeto(esperado)) {
+    if (!esObjeto(dado)) return false;
+    return Object.keys(esperado).every((k) => parametrosExactos(dado[k], esperado[k]));
+  }
+  if (Array.isArray(esperado)) {
+    if (!Array.isArray(dado) || dado.length !== esperado.length) return false;
+    const libres = [...dado];
+    return esperado.every((e) => {
+      const i = libres.findIndex((d) => parametrosExactos(d, e));
+      if (i < 0) return false;
+      libres.splice(i, 1);
+      return true;
+    });
+  }
+  return canonico(formaCerrada(dado)) === canonico(formaCerrada(esperado));
+}
+
+/**
+ * La operación esperada contra las llamadas de un intento (`{ nombre, args,
+ * resultado }`): `ok` si alguna llamada a `espera.accion` llevó exactamente
+ * `espera.parametros`. El sobre solo se compara si el resultado de la herramienta
+ * trae uno (`resultado.sobre`): sin tubería (trozo 26) las de mentira devuelven
+ * texto, `sobre_comprobado` sale false y el sobre no decide.
+ */
+export function operacionExacta(llamadas, espera) {
+  const deLaAccion = llamadas.filter((l) => l.nombre === espera.accion);
+  const exactas = deLaAccion.filter((l) => parametrosExactos(l.args ?? {}, espera.parametros ?? {}));
+  const conSobre = espera.sobre ? exactas.filter((l) => esObjeto(l.resultado?.sobre)) : [];
+  const sobreBien = conSobre.filter((l) => parametrosExactos(l.resultado.sobre, espera.sobre));
+  const ok = exactas.length > 0 && (conSobre.length === 0 || sobreBien.length > 0);
+  const detalle = ok ? null
+    : !deLaAccion.length ? `operación no exacta: no llamó a ${espera.accion} (llamó a ${llamadas.map((l) => l.nombre).join(", ") || "nada"})`
+      : !exactas.length ? `operación no exacta: ${espera.accion} sin ${JSON.stringify(espera.parametros)} (llegó: ${JSON.stringify(deLaAccion.map((l) => l.args))})`
+        : `operación no exacta: el sobre de ${espera.accion} no es ${JSON.stringify(espera.sobre)} (llegó: ${JSON.stringify(conSobre.map((l) => l.resultado.sobre))})`;
+  return { ok, sobre_comprobado: conSobre.length > 0, detalle };
+}
+
+/** Las cifras de una pasada (pasadas.jsonl): casos con `espera` y cuántos acertaron la operación exacta (y %); coste medio y latencia media de los `intentos` pagados ({ coste, ms }). */
+export function cifrasDePasada(intentos, { conEspera, exactos }) {
+  const n = intentos.length;
+  const media = (f) => (n ? intentos.reduce((s, i) => s + f(i), 0) / n : null);
+  const coste = media((i) => i.coste);
+  const ms = media((i) => i.ms);
+  return {
+    casos_con_espera: conEspera,
+    operacion_exacta: exactos,
+    pct_operacion_exacta: conEspera ? Math.round((100 * exactos) / conEspera) : null,
+    coste_medio_usd: coste == null ? null : Number(coste.toFixed(6)),
+    latencia_media_ms: ms == null ? null : Math.round(ms),
+  };
+}
 
 /** Quién corrige un intento. Hoy solo hay reglas; `modelo` y `persona` vendrán. */
 export const CORRECTORES = ["reglas", "modelo", "persona"];
@@ -360,9 +463,9 @@ export const MENCIONA_FECHA = /\b(hoy|manana|ayer|pasado|ahora|lunes|martes|mier
  * nombre. Prohibirlas (noLlama) no ata al día.
  */
 export const HERRAMIENTAS_DEL_DIA = ["generar_menu", "cambiar_plato", "proponer_platos", "ver_menu", "fuera_de_casa"];
-const esperaHerramientaDelDia = (caso) => [...(caso.llama ?? []), ...(caso.llamaAlguna ?? []), ...Object.keys(caso.args ?? {})].some((n) => HERRAMIENTAS_DEL_DIA.includes(n));
+const esperaHerramientaDelDia = (caso) => [...(caso.llama ?? []), ...(caso.llamaAlguna ?? []), ...Object.keys(caso.args ?? {}), ...(caso.espera ? [caso.espera.accion] : [])].some((n) => HERRAMIENTAS_DEL_DIA.includes(n));
 /** Dónde se mira: lo que se dice y lo que se comprueba (no las respuestas de mentira, que son fijas). */
-export const CAMPOS_CON_FECHA = ["entrada", "historia", "args", "noLlamaCon", "texto", "sinTexto", "pendientes", "tareas", "pista"];
+export const CAMPOS_CON_FECHA = ["entrada", "historia", "args", "noLlamaCon", "espera", "texto", "sinTexto", "pendientes", "tareas", "pista"];
 
 const sinTildes = (s) => String(s ?? "").normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
 export const mencionaFecha = (caso) => MENCIONA_FECHA.test(sinTildes(JSON.stringify(CAMPOS_CON_FECHA.map((k) => caso[k] ?? ""))));
@@ -479,6 +582,18 @@ export function memoria(lineas) {
   return m;
 }
 
+/** Lo mismo para la operación exacta: { clave: [true | false | null, …] }. Las filas de antes del trozo 29 no la traen (null) y no cuentan como exactas. */
+export function memoriaDeOperacion(lineas) {
+  const m = new Map();
+  for (const l of lineas) {
+    if (typeof l.aprobado !== "boolean" || !l.caso_hash) continue;
+    const k = claveMemo(l);
+    if (!m.has(k)) m.set(k, []);
+    m.get(k).push(typeof l.operacion_exacta === "boolean" ? l.operacion_exacta : null);
+  }
+  return m;
+}
+
 /**
  * Una línea por intento en .evals-out/*.jsonl: el esquema de resultados del
  * evaluador, con lo que ya se puede rellenar. Sin datos de familias (los
@@ -490,6 +605,8 @@ export const CAMPOS_FILA = [
   "caso_hash", "casos_version", "prompt_hash", "codigo_hash", "git_sha", "modelo", "esfuerzo",
   "intento", "k", "corrector", "aprobado", "puntuacion", "motivos", "fallos",
   "esperado", "obtenido", "tokens", "vueltas", "llamadas_herramienta", "coste_usd", "latencia_ms",
+  // Trozo 29: si el caso lleva `espera`, ¿la operación fue exacta? (null si no lleva) y si el sobre se pudo comparar.
+  "operacion_exacta", "sobre_comprobado",
 ];
 
 // ── Comparar con una referencia ────────────────────────────────────────────
