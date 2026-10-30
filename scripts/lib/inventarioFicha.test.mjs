@@ -69,16 +69,13 @@ describe("inventario de la ficha", async () => {
     expect(DEUDA).not.toContain("sin_ficha");
   });
 
-  // Una pasada del inventario lee todo src/ y api/: con la máquina cargada tarda; por eso los dos casos malos van en una.
+  // Una pasada del inventario lee todo src/ y api/ (tarda con la máquina cargada): los casos malos van en una.
   it("dispara sin_ficha y defecto_distinto con un dato mal declarado (y no con los demás)", async () => {
     const casa = {
       ...DATOS_CASA,
-      // Sin ficha y con un defecto que no es el que siembra INITIAL_DATA ("same").
-      menuModel: { ...DATOS_CASA.menuModel, ficha: null, defecto: "separate" },
-      // Una lista también se compara entera.
-      meals: { ...DATOS_CASA.meals, defecto: ["Comida"] },
-      // Una copia sin ficha no cuenta: solo los hechos activos.
-      menuWeek: { ...DATOS_CASA.menuWeek, ficha: null },
+      menuModel: { ...DATOS_CASA.menuModel, ficha: null, defecto: "separate" }, // INITIAL_DATA siembra "same"
+      meals: { ...DATOS_CASA.meals, defecto: ["Comida"] }, // una lista se compara entera
+      menuWeek: { ...DATOS_CASA.menuWeek, ficha: null }, // una copia sin ficha no cuenta: solo los hechos activos
     };
     const r = await inventario(raiz, { registro: { casa, persona: DATOS_PERSONA } });
     expect(r.fallos.sin_ficha).toEqual(["casa.menuModel"]);

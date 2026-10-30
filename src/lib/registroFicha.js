@@ -33,20 +33,18 @@
  * Las columnas del eje (specs/plan-fichas-con-estado.md, trozo 5), las mismas
  * para todo dato; la 0105 las llevará a registro_campo. Faltan las que lee el
  * asistente (peso_menu, suposicion) y las de registro_campo (politica,
- * caduca_dias…): entran con la proyección de registroCampos.js (segunda parte
- * del trozo).
- *  - ficha (FICHAS, vocabularios.js): la ficha del plan a la que pertenece
- *    (persona, casa, rutina, gusto…). Un tema que cae entero en una ficha la da
- *    por defecto (FICHA_DEL_TEMA); en los repartidos cada dato la declara, y a
- *    un dato activo sin ficha lo cuenta el inventario como error.
+ * caduca_dias…): entran con la proyección de registroCampos.js.
+ *  - ficha (FICHAS, vocabularios.js): la ficha del plan a la que pertenece. Un
+ *    tema que cae entero en una ficha la da por defecto (FICHA_DEL_TEMA); en los
+ *    repartidos cada dato la declara, y a un activo sin ficha lo cuenta el
+ *    inventario como error.
  *  - defecto: el valor cuando nadie ha dicho nada (origen por_defecto); null si
  *    no lo hay. El inventario comprueba que cuadra con INITIAL_DATA (App.jsx).
- *  - minimo_para_generar: sin él no se genera el menú, se pregunta (decisión B:
- *    quién come, alergias dichas y días).
- *  - escribe (ESCRITORES): quién lo escribe: la familia, el sistema o ambos.
- *    Por defecto la familia en lo activo y el sistema en copias, legados y marcas.
- *  - choque (CHOQUES): qué pasa si dos escrituras chocan: el último gana, el
- *    más restrictivo (salud) o se suman (señales).
+ *  - minimo_para_generar: sin él no se genera, se pregunta (decisión B).
+ *  - escribe (ESCRITORES): la familia, el sistema o ambos; por defecto la
+ *    familia en lo activo y el sistema en copias, legados y marcas.
+ *  - choque (CHOQUES): si dos escrituras chocan, el último gana, el más
+ *    restrictivo (salud) o se suman (señales).
  *
  * Los lectores no se escriben aquí: los busca el inventario en el código, para
  * que no se queden viejos.

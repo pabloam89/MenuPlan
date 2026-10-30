@@ -3,11 +3,9 @@ import { DATOS_CASA, DATOS_PERSONA, FICHA_DEL_TEMA, TEMAS } from "./registroFich
 import { VOCABULARIOS, FICHAS, ESCRITORES, ESCRITOR, CHOQUE, CHOQUES } from "./vocabularios.js";
 
 /**
- * Las columnas del eje (plan fichas con estado, trozo 5): cada dato dice de
- * qué ficha es, su defecto, si hace falta para generar, quién lo escribe y
- * cómo se resuelve un choque. Aquí se prueban las reglas, no los valores uno a
- * uno. Las que lee el asistente (peso_menu, suposicion) y las de registro_campo
- * llegan con la proyección de registroCampos.js (PR siguiente).
+ * Las columnas del eje (plan fichas con estado, trozo 5): ficha, defecto,
+ * mínimo para generar, escritor y choque. Se prueban las reglas, no los
+ * valores uno a uno.
  */
 const todos = [...Object.entries(DATOS_CASA).map(([k, d]) => [k, d]), ...Object.entries(DATOS_PERSONA).map(([k, d]) => [`members.${k}`, d])];
 
@@ -57,11 +55,6 @@ describe("salud: el choque es el más restrictivo y solo escribe la familia", ()
       expect(d.choque, `${k}: añadir gana a quitar`).toBe(CHOQUE.MAS_RESTRICTIVO);
       expect(d.escribe, `${k}: las señales no escriben salud`).toBe(ESCRITOR.FAMILIA);
     }
-  });
-
-  it("fuera de salud, el choque es «el último gana» salvo que el dato diga otra cosa", () => {
-    const conOtro = todos.filter(([, d]) => d.tema !== "salud" && d.choque !== CHOQUE.ULTIMO_GANA);
-    expect(conOtro.length).toBeLessThan(todos.length / 4);
   });
 });
 

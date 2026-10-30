@@ -57,10 +57,8 @@ const ESCALAR = String.raw`"[^"]*"|-?\d+(?:\.\d+)?|true|false|null`;
 const LITERAL_JSON = new RegExp(String.raw`^(?:${ESCALAR}|\[\s*(?:(?:${ESCALAR})\s*(?:,\s*(?:${ESCALAR})\s*)*)?\])$`);
 
 /**
- * Los valores de un objeto literal de primer nivel que caben en una línea y son
- * JSON ("same", 2000, true, ["Comida", "Cena"], [0]): el defecto con que nace
- * una casa. Lo que no es JSON (objetos con claves sin comillas, spreads) no se
- * compara: no está en el mapa.
+ * Los valores de un objeto literal de primer nivel que caben en una línea y son JSON ("same", 2000,
+ * ["Comida", "Cena"]): el defecto con que nace una casa. Lo que no lo es (objetos, spreads) no está en el mapa.
  */
 function valoresDeBloque(texto, desde) {
   const { i, j } = clavesDeBloque(texto, desde);

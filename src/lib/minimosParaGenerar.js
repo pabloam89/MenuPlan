@@ -21,20 +21,14 @@ import { pendientesDeAlergias } from "./alergiasBase.js";
 import { DATOS_CASA, DATOS_PERSONA } from "./registroFicha.js";
 
 /** Las claves del registro que son mínimo para generar («members.x» para las de la persona). */
-const MINIMOS = [
-  ...Object.keys(DATOS_CASA).filter((k) => DATOS_CASA[k].minimo_para_generar),
-  ...Object.keys(DATOS_PERSONA).filter((k) => DATOS_PERSONA[k].minimo_para_generar).map((k) => `members.${k}`),
-];
+const MINIMOS = [...Object.keys(DATOS_CASA).filter((k) => DATOS_CASA[k].minimo_para_generar), ...Object.keys(DATOS_PERSONA).filter((k) => DATOS_PERSONA[k].minimo_para_generar).map((k) => `members.${k}`)];
 
 /**
- * Vocabulario cerrado de lo que puede faltar aquí, por su clave en el registro (quien lo lee,
- * generar.js, compara contra esto, no contra el literal). Si el registro deja de declararlo
- * mínimo, esto no carga: las dos listas no pueden decir cosas distintas sin que se note.
+ * Lo que puede faltar aquí, por su clave en el registro (generar.js compara contra esto, no contra el
+ * literal). Si el registro dejara de declararlo mínimo, esto no carga: dos listas no pueden decir cosas distintas sin que se note.
  */
 export const MINIMO = Object.freeze({ alergias: "members.allergies" });
-for (const clave of Object.values(MINIMO)) {
-  if (!MINIMOS.includes(clave)) throw new Error(`«${clave}» no es mínimo para generar en el registro de la ficha (minimo_para_generar)`);
-}
+for (const clave of Object.values(MINIMO)) if (!MINIMOS.includes(clave)) throw new Error(`«${clave}» no es mínimo para generar en el registro de la ficha`);
 
 /**
  * @param {object} data La casa como la ve el motor (`members`, `allergiesReviewed`…).

@@ -117,8 +117,7 @@ export const ALCANCE_DESCARTE = porNombre(ALCANCES_DESCARTE);
 /** A qué se refiere un «sobre» o un cambio: qué lo originó. */
 export const REF_TIPO = ["menu", "mensaje", "pantalla", "senal"];
 
-// ── Los del eje de la ficha (specs/plan-fichas-con-estado.md, trozo 5): las columnas con que
-// registroFicha.js describe cada dato. Hoy solo en el código; la 0105 los lleva a registro_campo.
+// ── Los del eje de la ficha (plan fichas con estado, trozo 5): columnas de registroFicha.js; la 0105 los lleva a registro_campo.
 
 /** Las fichas (entidades con sobre) del plan: de cuál es cada dato del registro (registroFicha.js ficha). */
 export const FICHAS = ["persona", "grupo", "casa", "rutina", "gusto", "regla", "trato", "semana", "compra", "despensa", "receta", "tarea", "senal"];
@@ -130,10 +129,7 @@ export const ESCRITOR = porNombre(ESCRITORES);
 /** Qué postura tiene un gusto sobre un valor (tabla gusto, trozo 14): siempre, más, menos o nunca. */
 export const POSTURAS = ["siempre", "mas", "menos", "nunca"];
 
-/**
- * Cómo se resuelve un choque entre dos escrituras del mismo dato: el último gana (casi todo),
- * el más restrictivo (salud: añadir una alergia gana a quitarla) o se suman (señales).
- */
+/** Si dos escrituras del mismo dato chocan: el último gana (casi todo), el más restrictivo (salud: añadir gana a quitar) o se suman (señales). */
 export const CHOQUES = ["ultimo_gana", "mas_restrictivo", "suma"];
 export const CHOQUE = porNombre(CHOQUES);
 
