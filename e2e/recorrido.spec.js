@@ -10,7 +10,9 @@ import { expect, test } from "@playwright/test";
 import { SUPABASE_MUERTO } from "../playwright.config.js";
 
 // Un lunes por la mañana en Madrid: la semana entera por delante, siempre la
-// misma, para que el menú no dependa del día en que se corre.
+// misma, para que el menú no dependa del día en que se corre. El reloj de la
+// página arranca ahí y sigue andando; solo se adelanta a mano en la pulsación
+// larga.
 const LUNES = new Date("2026-11-02T10:00:00+01:00");
 const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 // La familia de mentira: [perfil que se toca, nombre que se escribe].
@@ -18,8 +20,10 @@ const FAMILIA = [["Papá", "Juan"], ["Mamá", "Ana"]];
 // La única función de api/ que el recorrido llama sin cuenta: la analítica.
 // Se le responde con un doble vacío; cualquier otra cuenta como escape.
 const API_ANALITICA = "/api/track";
-// Lo que dura la pulsación larga que abre las acciones de un plato
-// (useLongPress en src/screens/Menu.jsx espera 420 ms).
+// Lo que se adelanta el reloj de la página con el dedo abajo para que salte
+// la pulsación larga (useLongPress en src/screens/Menu.jsx espera 420 ms).
+// Con el reloj de Playwright, y no en tiempo real: así no depende de lo
+// cargada que vaya la máquina.
 const PULSACION_LARGA_MS = 700;
 // Una tarjeta de plato en el menú lleva su franja escrita.
 const TARJETA_PLATO = /\b(comida|cena)\b/i;
@@ -27,7 +31,7 @@ const TARJETA_PLATO = /\b(comida|cena)\b/i;
 const CATEGORIA_COMPRA = /^\p{Lu}[\p{L} ]+ \d+$/u;
 const TITULO_COMPRA = "Tu compra";
 const PIE_COMPRA = "¿Falta algo?";
-const AVISO_CAMBIO =/Sustituido por «(.+)»/;
+const AVISO_CAMBIO = /Sustituido por «(.+)»/;
 
 const boton = (page, name) => page.getByRole("button", { name, exact: true });
 
@@ -36,7 +40,7 @@ let escapes = [];
 
 test.beforeEach(async ({ page }) => {
   escapes = [];
-  await page.clock.setFixedTime(LUNES);
+  await page.clock.install({ time: LUNES });
   await page.route(`${SUPABASE_MUERTO}/**`, (ruta) => {
     escapes.push(`supabase ${ruta.request().method()} ${ruta.request().url()}`);
     return ruta.abort();
@@ -91,7 +95,7 @@ async function cambiarPrimerPlato(page, platos) {
   const caja = await tarjeta.boundingBox();
   await page.mouse.move(caja.x + caja.width / 2, caja.y + caja.height / 2);
   await page.mouse.down();
-  await page.waitForTimeout(PULSACION_LARGA_MS);
+  await page.clock.runFor(PULSACION_LARGA_MS);
   await page.mouse.up();
   await boton(page, "Cambiar").click();
   await boton(page, "Del mismo tipo").click();

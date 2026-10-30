@@ -7,8 +7,9 @@
 // (no pisa lo que trae el entorno). Supabase apunta a un puerto muerto y la
 // prueba, además, corta y cuenta cualquier petición que se escape.
 //
-// No está en el CI: meterla en un workflow toca .github/workflows/ y es otro
-// trozo. Se corre con `npm run e2e` o `npx playwright test e2e/recorrido.spec.js`.
+// La corre `npm test` al acabar los de vitest (`posttest` en package.json, que
+// antes instala Chromium), y así el job `tests` del CI la ejecuta sin tocar
+// .github/workflows/. A mano: `npm run e2e` o `npx playwright test e2e/recorrido.spec.js`.
 import { defineConfig, devices } from "@playwright/test";
 import { esReferencia, leerFichero } from "./scripts/lib/env.mjs";
 
