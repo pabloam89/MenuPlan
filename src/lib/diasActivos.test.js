@@ -10,6 +10,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest
 import { buildGroupContext, generateMenuWithAI } from "./aiPlanner.js";
 import { DAYS, diasActivosDe, weeklySlotBudget } from "./planner.js";
 import { getWeekDatesByMenuWeek, getWeekDatesFromStartISO } from "./weekCalendar.js";
+import { diasDeLaSemana } from "../../api/_bot/menu.js";
 
 const VIERNES = { offset: 0, startDayIdx: 4, days: null };
 const FINDE_LARGO = ["Vie", "Sáb", "Dom"];
@@ -65,6 +66,29 @@ describe("diasActivosDe", () => {
     for (const menuWeek of semanas) {
       expect(diasActivosDe({ menuWeek }), JSON.stringify(menuWeek)).toEqual(getWeekDatesByMenuWeek(menuWeek).activeDays);
     }
+  });
+});
+
+describe("Lola enseña y comparte los mismos días que planificó el motor", () => {
+  // `casa.semana` (api/_bot/casa.js) es la fila guardada; `menuWeek` es lo que
+  // llevó el motor al generarla. Las tres formas de decir «qué días»: días
+  // sueltos, desde un día de la semana en curso, y la semana siguiente entera
+  // (generada un viernes: startDayIdx 4 guardado, pero no recorta).
+  const casos = [
+    { semana: { offset: 0, startDayIdx: 0, activeDays: ["Lun", "Mié", "Vie"] }, menuWeek: { offset: 0, startDayIdx: 0, days: ["Lun", "Mié", "Vie"] } },
+    { semana: { offset: 0, startDayIdx: 4, activeDays: null }, menuWeek: VIERNES },
+    { semana: { offset: 1, startDayIdx: 4, activeDays: null }, menuWeek: { offset: 1, startDayIdx: 4, days: null } },
+  ];
+  for (const { semana, menuWeek } of casos) {
+    it(`semana ${JSON.stringify(semana)}`, () => {
+      const { group, data } = casa({ menuWeek });
+      expect(diasDeLaSemana(semana)).toEqual(diasDeLosHuecos(buildGroupContext(data, group)));
+    });
+  }
+
+  it("sin offset ni días guardados (fila antigua) se lee como semana en curso desde startDayIdx", () => {
+    expect(diasDeLaSemana({ startDayIdx: 2 })).toEqual(["Mié", "Jue", "Vie", "Sáb", "Dom"]);
+    expect(diasDeLaSemana({})).toEqual([...DAYS]);
   });
 });
 
