@@ -49,6 +49,7 @@ if (process.argv.includes("--json")) {
     console.log(`  ${m.padEnd(9)} ${de.length} datos · app ${de.filter((f) => f.app).length} · Lola ${de.filter((f) => f.lola).length} · los dos ${de.filter((f) => f.app && f.lola).length}`);
   }
   console.log("\nErrores del registro (deben ser 0):", JSON.stringify(Object.fromEntries(ERRORES.map((f) => [f, inv.cifras[f]]))));
+  if (ERRORES.some((f) => inv.cifras[f] > 0)) process.exitCode = 1;
   for (const f of ERRORES) for (const x of inv.fallos[f]) console.log(`  [${f}] ${x}`);
   console.log("\nDeuda del modelo (solo baja):", JSON.stringify(Object.fromEntries(DEUDA.map((f) => [f, inv.cifras[f]]))));
   for (const f of DEUDA) console.log(`  ${f}: ${inv.fallos[f].join(", ")}`);

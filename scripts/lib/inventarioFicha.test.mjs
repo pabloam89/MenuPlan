@@ -64,6 +64,43 @@ describe("inventario de la ficha", async () => {
     for (const f of ERRORES) expect(inv.fallos[f], f).toEqual([]);
   });
 
+  it("un dato activo sin ficha es un error del registro, no deuda", () => {
+    expect(ERRORES).toContain("sin_ficha");
+    expect(DEUDA).not.toContain("sin_ficha");
+  });
+
+  // Una pasada del inventario lee todo src/ y api/ (tarda con la máquina cargada): los casos malos van en una.
+  it("dispara sin_ficha y defecto_distinto con un dato mal declarado (y no con los demás)", async () => {
+    const casa = {
+      ...DATOS_CASA,
+      menuModel: { ...DATOS_CASA.menuModel, ficha: null, defecto: "separate" }, // INITIAL_DATA siembra "same"
+      meals: { ...DATOS_CASA.meals, defecto: ["Comida"] }, // una lista se compara entera
+      menuWeek: { ...DATOS_CASA.menuWeek, ficha: null }, // una copia sin ficha no cuenta: solo los hechos activos
+    };
+    const r = await inventario(raiz, { registro: { casa, persona: DATOS_PERSONA } });
+    expect(r.fallos.sin_ficha).toEqual(["casa.menuModel"]);
+    expect(r.fallos.defecto_distinto).toEqual([
+      'casa.menuModel: registro "separate" ≠ INITIAL_DATA "same"',
+      'casa.meals: registro ["Comida"] ≠ INITIAL_DATA ["Comida","Cena"]',
+    ]);
+  }, 120_000);
+
+  it("una columna cerrada fuera de su lista no se inventaría en silencio", async () => {
+    const casa = { ...DATOS_CASA, kcal: { ...DATOS_CASA.kcal, choque: "el_mas_alto" } };
+    await expect(inventario(raiz, { registro: { casa, persona: DATOS_PERSONA } })).rejects.toThrow(/casa\.kcal: choque «el_mas_alto»/);
+  }, 120_000);
+
+  it("las filas llevan las columnas del eje", () => {
+    for (const col of ["ficha", "defecto", "minimo_para_generar", "escribe", "choque"]) {
+      expect(inv.filas.every((f) => col in f), col).toBe(true);
+    }
+  });
+
+  it("un defecto que no cuadra con la forma de una casa nueva (INITIAL_DATA) es un error", () => {
+    expect(ERRORES).toContain("defecto_distinto");
+    expect(inv.fallos.defecto_distinto).toEqual([]);
+  });
+
   it("detecta una clave nueva sin registrar", async () => {
     const r = await inventario(raiz, { guardadas: { casa: new Set(["claveInventada"]), persona: new Set() } });
     expect(r.fallos.sin_registro).toEqual(["casa.claveInventada"]);

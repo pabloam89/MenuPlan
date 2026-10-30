@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { minimosQueFaltan, MINIMO } from "./minimosParaGenerar.js";
+import { DATOS_PERSONA } from "./registroFicha.js";
 
 const casa = (members, extra = {}) => ({ members, groups: [{ id: "g1", memberIds: members.map((m) => m.id) }], ...extra });
 
@@ -31,6 +32,12 @@ describe("mínimos para generar: sin alergias dichas (o por silencio) no se gene
 
   it("sin personas no falta «alergias»: eso lo exige quien pide gente", () => {
     expect(minimosQueFaltan(casa([]))).toEqual([]);
+  });
+
+  it("lo que se mira aquí es un mínimo del registro de la ficha, por su misma clave", () => {
+    // Una sola fuente de «qué es mínimo»: el registro (minimo_para_generar). Esto solo elige cuál mira.
+    expect(MINIMO.alergias).toBe("members.allergies");
+    expect(DATOS_PERSONA.allergies.minimo_para_generar).toBe(true);
   });
 
   it("los mínimos son una lista cerrada y cada uno sale de minimosQueFaltan", () => {
