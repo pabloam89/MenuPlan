@@ -34,17 +34,21 @@ export async function loadUserState(userId) {
 
 /**
  * Upserts the snapshot. Callers should debounce this (state changes on almost
- * every interaction). Fire-and-forget: failures are logged, never thrown.
+ * every interaction). Never throws: failures are logged AND returned, para que
+ * quien necesite saber si entró (guardarCasaAhora al cerrar el alta, #1029)
+ * no dé por guardado lo que no lo está.
  * @param {string} userId
  * @param {any} state
+ * @returns {Promise<{ ok: boolean }>}
  */
 export async function saveUserState(userId, state) {
-  if (!supabase || !userId) return;
+  if (!supabase || !userId) return { ok: false };
   const { error } = await supabase.from("user_state").upsert(
     { user_id: userId, state, updated_at: new Date().toISOString() },
     { onConflict: "user_id" },
   );
   if (error) console.warn("[userState] save failed", error.message);
+  return { ok: !error };
 }
 
 /**
