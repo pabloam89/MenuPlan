@@ -218,6 +218,7 @@ import { basesDeReceta } from "./lib/bases.js";
 import { findMatchingPantryItem } from "./lib/shoppingBuilder.js";
 import { applyConsumption, consumeFromPantry, restoreToPantry, pantryConsumeMode } from "./lib/cookPantry.js";
 import { useStatusBarSobreFondo } from "./lib/statusBar.js";
+import { usaDespensa } from "./lib/despensaModo.js";
 import {
   normalizeDeltaBucketMap,
   makeDeltaBucket,
@@ -764,7 +765,7 @@ function migrate(state) {
   if (!offElegido && !["strict", "only", "prefer"].includes(d.pantryMode)) {
     d.pantryMode = "only";
   }
-  d.useHomeStock = d.pantryMode !== "off";
+  d.useHomeStock = usaDespensa(d.pantryMode);
   if (typeof d.pantryHasItems !== "boolean") d.pantryHasItems = false;
   // ── Modo básico / avanzado ──
   const looksEstablished =

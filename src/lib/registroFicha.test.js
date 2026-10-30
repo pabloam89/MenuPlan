@@ -1,14 +1,65 @@
 import { describe, it, expect } from "vitest";
-import { DATOS_CASA, DATOS_PERSONA, FICHA_DEL_TEMA, TEMAS, POLITICAS, APLICA, TIPOS, TIPOS_CAMPO, SIN_TABULAR, datoDe } from "./registroFicha.js";
+import { DATOS_CASA, DATOS_PERSONA, FICHA_DEL_TEMA, TEMAS, ESTADOS, POLITICAS, APLICA, TIPOS, TIPOS_CAMPO, SIN_TABULAR, datoDe } from "./registroFicha.js";
 import { REGISTRO_CAMPOS } from "./registroCampos.js";
-import { VOCABULARIOS, FICHAS, ESCRITORES, ESCRITOR, CHOQUE, CHOQUES } from "./vocabularios.js";
+import { VOCABULARIOS, FICHAS, ESCRITORES, ESCRITOR, CHOQUE, CHOQUES, CLASES_DATO, CLASE } from "./vocabularios.js";
 
 /**
  * Las columnas del eje (plan fichas con estado, trozo 5): ficha, defecto,
- * suposición, mínimo para generar, caducidad, peso, escritor y choque. Se
- * prueban las reglas, no los valores uno a uno.
+ * suposición, mínimo para generar, caducidad, peso, escritor y choque; y la
+ * clase del dato (trozo 6). Se prueban las reglas, no los valores uno a uno.
  */
 const todos = [...Object.entries(DATOS_CASA).map(([k, d]) => [k, d]), ...Object.entries(DATOS_PERSONA).map(([k, d]) => [`members.${k}`, d])];
+
+describe("la clase de cada dato (plan, «Las cuatro clases de dato»)", () => {
+  it("todo dato tiene clase de la lista, y las cuatro clases tienen datos", () => {
+    for (const [k, d] of todos) expect(CLASES_DATO, `${k}.clase`).toContain(d.clase);
+    for (const clase of CLASES_DATO) expect(todos.some(([, d]) => d.clase === clase), `ningún dato es ${clase}`).toBe(true);
+  });
+
+  it("un derivado dice de qué hecho sale (de) y con qué función (fichero:nombre)", () => {
+    const derivados = todos.filter(([, d]) => d.clase === CLASE.DERIVADO);
+    expect(derivados.length).toBeGreaterThan(0);
+    for (const [k, d] of derivados) {
+      expect(d.de, `${k}: un derivado dice de qué`).toBeTruthy();
+      expect(d.funcion, `${k}: un derivado dice con qué función se calcula`).toMatch(/^src\/.+\.js:\w+$/);
+    }
+    for (const [k, d] of todos) if (d.clase !== CLASE.DERIVADO) expect(d.funcion, `${k}: solo un derivado tiene función`).toBe(null);
+  });
+
+  it("la copia sale de la clase: derivado en data ⇔ estado copia, y el estado ya no distingue marcas", () => {
+    for (const [k, d] of todos) {
+      expect(ESTADOS, `${k}.estado`).toContain(d.estado);
+      expect(d.estado === "copia", `${k}: copia es derivado que vive en data`).toBe(d.clase === CLASE.DERIVADO && d.vive === "data");
+    }
+    // Una idea, un sitio: el estado (deuda de dónde vive) no repite ninguna palabra de la clase (qué es).
+    for (const e of ESTADOS) expect(CLASES_DATO, `estado «${e}»`).not.toContain(e);
+  });
+
+  it("una marca que acompaña a otro dato («lo tocó la familia») lo nombra en `de`, y la escribe el sistema", () => {
+    const marcas = todos.filter(([, d]) => d.clase === CLASE.MARCA);
+    expect(marcas.length).toBeGreaterThan(0);
+    expect(marcas.some(([, d]) => d.de), "ninguna marca acompaña a un dato").toBe(true);
+    for (const [k, d] of marcas) {
+      if (d.de) expect(datoDe(d.de), `${k}.de`).not.toBe(null);
+      expect(d.escribe, `${k}: una marca no la dice la familia`).toBe(ESCRITOR.SISTEMA);
+    }
+  });
+
+  it("un historial crece: es lista o mapa, y hay historiales de menús, despensa y compra", () => {
+    const historiales = todos.filter(([, d]) => d.clase === CLASE.HISTORIAL);
+    for (const [k, d] of historiales) expect(SIN_TABULAR, `${k}: un historial solo se añade`).toContain(d.tipo);
+    expect(new Set(historiales.map(([, d]) => d.tema))).toEqual(new Set(["menus", "despensa", "compra"]));
+  });
+
+  it("las fichas provisionales del trozo 5 están resueltas: calorías con los objetivos, variedad con el modelo de menú, foto con la casa", () => {
+    expect(DATOS_CASA.kcal.ficha).toBe(DATOS_CASA.goals.ficha);
+    expect(DATOS_CASA.kcalByGroup.ficha).toBe(DATOS_CASA.goalsByGroup.ficha);
+    expect(DATOS_CASA.menuVarietyPref.ficha).toBe(DATOS_CASA.menuModel.ficha);
+    expect(DATOS_CASA.profilePhoto.ficha).toBe(DATOS_CASA.accountMemberIdByUser.ficha);
+    // Avatar y color son hechos de la persona, como su nombre.
+    for (const k of ["avatarKey", "color"]) expect(DATOS_PERSONA[k].clase, k).toBe(DATOS_PERSONA.name.clase);
+  });
+});
 
 describe("las columnas del eje, en vocabulario cerrado", () => {
   it("todo dato activo tiene ficha, y toda ficha es de la lista", () => {
@@ -47,7 +98,7 @@ describe("las columnas del eje, en vocabulario cerrado", () => {
   it("un defecto es un valor de su vocabulario, y solo lo tiene lo que no es copia ni legado", () => {
     for (const [k, d] of todos) {
       if (d.defecto === null) continue;
-      expect(["activo", "interfaz"], `${k}: una copia o un legado no tienen defecto propio`).toContain(d.estado);
+      expect(d.estado, `${k}: una copia o un legado no tienen defecto propio`).toBe("activo");
       const lista = d.vocabulario && VOCABULARIOS[d.vocabulario];
       if (!lista) continue;
       for (const v of [].concat(d.defecto)) expect(lista, `${k}.defecto «${v}»`).toContain(v);

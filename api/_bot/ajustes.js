@@ -32,6 +32,7 @@ import { EXTRAS, conExtras } from "../../src/lib/extras.js";
 import { quitarPersona } from "../../src/lib/quitarPersona.js";
 import { aplicarDiasDeSemana, diasDeSemana } from "../../src/lib/semanaDias.js";
 import { estructuraEfectiva } from "../../src/lib/estructuraPlatos.js";
+import { usaDespensa } from "../../src/lib/despensaModo.js";
 import { resultado } from "./resultado.js";
 
 const hoyISO = () => isoDeCasa();
@@ -424,7 +425,7 @@ export function aplicarModoDespensa(data, modo) {
   if (!MODOS_DESPENSA[modo]) return { texto: `modo tiene que ser ${Object.keys(MODOS_DESPENSA).join(" o ")}.` };
   return {
     // useHomeStock va a la par, como en la app (OnboardingPantryMode): off ⇄ false.
-    data: { ...data, pantryMode: modo, pantryModeSet: true, useHomeStock: modo !== "off" },
+    data: { ...data, pantryMode: modo, pantryModeSet: true, useHomeStock: usaDespensa(modo) },
     texto: `Guardado: el menú se hará ${MODOS_DESPENSA[modo]}. Se aplicará al generar el próximo menú.`,
   };
 }
