@@ -232,13 +232,6 @@ describe("las semanas marcadas se abren en el menú", () => {
     for (const w of Object.values(nuevas)) expect(huecosDelPlan(w.plan)).toBeGreaterThan(0);
   });
 
-  it("la semana que ya está conserva su plan (puede tener platos)", () => {
-    const antes = menuConUna();
-    const data = casaBase(ADULTOS, { menuWeekOffsets: [0, 1], menuWeek: { offset: 0, startDayIdx: 0 } });
-    const { menu } = conSemanasAlDia(antes, data, [grupo]);
-    expect(menu.weeks["2000-01-03"].plan).toBe(antes.weeks["2000-01-03"].plan);
-  });
-
   it("a la semana que ya está se le ponen al día los días elegidos", () => {
     const antes = menuConUna();
     const data = casaBase(ADULTOS, {
@@ -248,6 +241,8 @@ describe("las semanas marcadas se abren en el menú", () => {
     });
     const { menu, aGuardar } = conSemanasAlDia(antes, data, [grupo]);
     expect(menu.weeks["2000-01-03"].days).toEqual(["Lun", "Mar"]);
+    // Con platos puestos: al refrescar los días el plan es el mismo objeto.
+    expect(menu.weeks["2000-01-03"].plan).toBe(antes.weeks["2000-01-03"].plan);
     // Y se sube a la nube: si no, al recargar volverían los días de antes.
     expect(Object.keys(aGuardar)).toEqual(["2000-01-03"]);
   });
