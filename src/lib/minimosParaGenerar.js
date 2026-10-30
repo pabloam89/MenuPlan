@@ -17,9 +17,8 @@
 // De alergiasBase.js, no de alergias.js: esta la importa el bot y alergias.js arrastra el catálogo (y un .jsx).
 import { pendientesDeAlergias } from "./alergiasBase.js";
 
-/** Vocabulario cerrado de lo que puede faltar. */
+/** Vocabulario cerrado de lo que puede faltar (quien lo lee, generar.js, compara contra esto, no contra el literal). */
 export const MINIMO = Object.freeze({ alergias: "alergias" });
-export const MINIMOS_PARA_GENERAR = Object.values(MINIMO);
 
 /**
  * @param {object} data La casa como la ve el motor (`members`, `allergiesReviewed`…).
@@ -33,6 +32,3 @@ export function minimosQueFaltan(data) {
   }
   return faltan;
 }
-
-/** ¿Se puede generar con lo que se sabe? */
-export const sePuedeGenerar = (data) => minimosQueFaltan(data).length === 0;
