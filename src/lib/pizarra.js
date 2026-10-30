@@ -215,8 +215,9 @@ export function conHuecosAlDia(plan, data, groups) {
  * SOLO AÑADE, como `conHuecosAlDia`: una semana que ya está conserva su plan
  * (puede tener platos) y solo se le actualizan los días; desmarcar una no la
  * borra. Devuelve `{ menu, nuevas }`;
- * `nuevas` es `{ lunes: semana }` para guardar solo lo añadido, y `menu` es el
- * mismo objeto cuando no hay nada que añadir.
+ * `nuevas` es `{ lunes: semana }` con lo añadido, `aGuardar` lo mismo más las
+ * semanas con días cambiados (lo que hay que subir a la nube), y `menu` es el
+ * mismo objeto cuando no hay nada que hacer.
  */
 export function conSemanasAlDia(menu, data, groups) {
   const weeks = menu?.weeks ?? {};
@@ -241,7 +242,11 @@ export function conSemanasAlDia(menu, data, groups) {
     const startDayIdx = offset === data.menuWeek?.offset ? (data.menuWeek?.startDayIdx ?? 0) : 0;
     const { startISO, endISO } = computeWeekRange(offset, startDayIdx, days);
     if (weeks[startISO]) continue;
-    const schedule = weekEntry(data.menuWeekOverrides, offset) ?? data.schedule;
+    // La misma regla que al crear la pizarra: con «igual en todas las semanas»
+    // manda el horario de la casa, aunque quedara un override viejo.
+    const schedule = data.menuScheduleSameForAllWeeks !== false
+      ? data.schedule
+      : (weekEntry(data.menuWeekOverrides, offset) ?? data.schedule);
     nuevas[startISO] = {
       offset, startDayIdx, days, startISO, endISO,
       plan: planVacio({ ...data, schedule }, groups),
@@ -250,8 +255,12 @@ export function conSemanasAlDia(menu, data, groups) {
     };
   }
 
-  if (Object.keys(nuevas).length === 0 && !refrescadas) return { menu, nuevas };
-  return { menu: { ...menu, weeks: { ...(refrescadas ?? weeks), ...nuevas } }, nuevas };
+  if (Object.keys(nuevas).length === 0 && !refrescadas) return { menu, nuevas, aGuardar: {} };
+  const resultado = { ...(refrescadas ?? weeks), ...nuevas };
+  // Lo que hay que subir a la nube: las nuevas y las que cambiaron de días.
+  const aGuardar = { ...nuevas };
+  for (const [lunes, w] of Object.entries(resultado)) if (w !== weeks[lunes]) aGuardar[lunes] = w;
+  return { menu: { ...menu, weeks: resultado }, nuevas, aGuardar };
 }
 
 /** Cuántos huecos tiene un esqueleto (para el copy de "tienes N huecos"). */

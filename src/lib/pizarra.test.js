@@ -216,7 +216,7 @@ describe("las semanas marcadas se abren en el menú", () => {
   const grupo = grupoCon(ADULTOS);
   const menuConUna = () => ({
     origin: "pizarra",
-    weeks: { "2026-10-30": { offset: 0, startDayIdx: 0, days: null, plan: planVacio(casaBase(), [grupo]) } },
+    weeks: { "2000-01-03": { offset: 0, startDayIdx: 0, days: null, plan: planVacio(casaBase(), [grupo]) } },
   });
 
   it("añade una semana por cada offset marcado que el menú no tiene", () => {
@@ -233,7 +233,7 @@ describe("las semanas marcadas se abren en el menú", () => {
     const antes = menuConUna();
     const data = casaBase(ADULTOS, { menuWeekOffsets: [0, 1], menuWeek: { offset: 0, startDayIdx: 0 } });
     const { menu } = conSemanasAlDia(antes, data, [grupo]);
-    expect(menu.weeks["2026-10-30"].plan).toBe(antes.weeks["2026-10-30"].plan);
+    expect(menu.weeks["2000-01-03"].plan).toBe(antes.weeks["2000-01-03"].plan);
   });
 
   it("a la semana que ya está se le ponen al día los días elegidos", () => {
@@ -243,8 +243,10 @@ describe("las semanas marcadas se abren en el menú", () => {
       menuWeek: { offset: 0, startDayIdx: 0 },
       menuWeekDays: { [mondayISOForOffset(0)]: ["Lun", "Mar"] },
     });
-    const { menu } = conSemanasAlDia(antes, data, [grupo]);
-    expect(menu.weeks["2026-10-30"].days).toEqual(["Lun", "Mar"]);
+    const { menu, aGuardar } = conSemanasAlDia(antes, data, [grupo]);
+    expect(menu.weeks["2000-01-03"].days).toEqual(["Lun", "Mar"]);
+    // Y se sube a la nube: si no, al recargar volverían los días de antes.
+    expect(Object.keys(aGuardar)).toEqual(["2000-01-03"]);
   });
 
   it("devuelve el mismo menú si no hay nada que abrir", () => {

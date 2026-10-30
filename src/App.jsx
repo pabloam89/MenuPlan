@@ -2865,11 +2865,11 @@ export default function App() {
     const actual = data.menus?.[menuId];
     if (actual?.origin !== "pizarra") return;
     const groups = gruposVigentes(data);
-    const { menu, nuevas } = conSemanasAlDia(actual, data, groups);
+    const { menu, aGuardar } = conSemanasAlDia(actual, data, groups);
     if (menu === actual) return;
     setData((d) => (d.activeMenuId === menuId ? { ...d, menus: { ...d.menus, [menuId]: menu } } : d));
     if (user) {
-      for (const [weekStart, week] of Object.entries(nuevas)) {
+      for (const [weekStart, week] of Object.entries(aGuardar)) {
         queueSaveMenuWeek(menu.userId ?? user.id, menuId, weekStart, week, 1200, syncHouseholdId, { version: versionDeCasa(syncHouseholdId), onConflict: () => recargarDesdeNubeRef.current({ choque: true }) });
       }
     }
