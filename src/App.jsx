@@ -207,6 +207,8 @@ import { EMBUDO, PANTALLA_EMBUDO } from "./lib/embudo.js";
 import { leerDestino, olvidarDestino } from "./lib/destinoBot.js";
 import { traeLlaveDeLola } from "./lib/llaveLola.js";
 import { RASTRO, MOTIVO_CAMBIO, ORIGEN_RECETA, idBase } from "./lib/rastro.js";
+import { registrarDescartes, recetasDelPlan } from "./lib/descartes.js";
+import { ALCANCE_DESCARTE } from "./lib/vocabularios.js";
 import { barrerDias } from "./lib/barridoDia.js";
 import { loadPantry, loadLocalPantry, mergeLocalPantryIntoCloud, clearLocalPantry, clearHouseholdPantry, addPantryItems, addLocalPantryItems, removePantryItem, removeLocalPantryItem, setPantryItemQty, setLocalPantryItemQty } from "./lib/pantry.js";
 import { toCanonicalStockQty } from "./lib/kitchenUnits.js";
@@ -2434,6 +2436,7 @@ export default function App() {
           ? `Menú generado (${weekCount} semanas)`
           : "Menú generado";
       showToast(frasePres ? `${generado}. ${frasePres}` : generado);
+      return true;
     } catch (err) {
       if (err?.name === "AbortError" || ctrl.signal.aborted) return;
       console.error("Error generating menu", err);
@@ -2461,7 +2464,18 @@ export default function App() {
     }
   }, [data, showToast]);
 
-  const handleRegenerate = useCallback(() => regenerateMenu(), [regenerateMenu]);
+  // El último plan ya apuntado como descartado: dos pulsaciones seguidas sobre el mismo plan
+  // no cuentan dos veces lo que solo se tira una.
+  const planDescartadoRef = useRef(null);
+  const handleRegenerate = useCallback(async () => {
+    const antes = menuPlan;
+    // regenerateMenu devuelve true solo si el menú nuevo llegó a generarse: si falla o se
+    // aborta, el menú de antes sigue ahí y no se ha tirado nada.
+    const generado = await regenerateMenu();
+    if (generado !== true || planDescartadoRef.current === antes) return;
+    planDescartadoRef.current = antes;
+    registrarDescartes({ user, householdId: casaActivaRef.current, recetaIds: recetasDelPlan(antes), ambito: ALCANCE_DESCARTE.MENU });
+  }, [regenerateMenu, user, menuPlan]);
 
   // Wizard generativo: el modal de entrada, la fila de mandos y la burbuja del
   // bot. `onRegenerar` recibe el `data` ya actualizado porque `setData` no ha
@@ -4606,6 +4620,8 @@ export default function App() {
       oldRecipeId: idBase(platoAntes), newRecipeId: idBase(recipeId),
       motivo: MOTIVO_CAMBIO.OTRO, ...(reason ? { reason } : {}),
     });
+    // Lo que se quita es una señal de que no apetecía: se apunta para medirlo y bajarlo de prioridad.
+    registrarDescartes({ user, householdId: casaActivaRef.current, recetaIds: [platoAntes], ambito: ALCANCE_DESCARTE.PLATO });
   }, [data, menuPlan, showToast, user, applyDiscardReason]);
 
   // Swap two existing dishes (long-press → "Intercambiar" → tap target). Only
@@ -4692,6 +4708,7 @@ export default function App() {
     }
 
     const newRecipes = [];
+    const descartadas = [];
     let changed = 0;
     for (const g of activeGroups) {
       for (const meal of meals) {
@@ -4704,6 +4721,7 @@ export default function App() {
         for (const course of courses) {
           const result = pickCatalogReplacement(data, working, { groupId: g.id, day, meal, course });
           if (!result) continue;
+          descartadas.push(course === "first" ? working[g.id][key].firstRecipeId : working[g.id][key].recipeId);
           newRecipes.push(result.frontendRecipe);
           working[g.id][key] = {
             ...working[g.id][key],
@@ -4736,6 +4754,7 @@ export default function App() {
     });
     showToast("Día regenerado");
     trackEvent(user, "day_regenerated", "menu", { day });
+    registrarDescartes({ user, householdId: casaActivaRef.current, recetaIds: descartadas, ambito: ALCANCE_DESCARTE.DIA });
   }, [data, menuPlan, showToast, user, applyShoppingFor]);
 
   // Vaciar hueco: keep the slot (flagged `cleared`) so the deck renders a
