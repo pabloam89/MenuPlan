@@ -145,13 +145,13 @@ const nombra = (k) => new RegExp(String.raw`(\.|\?\.|\[["'])${k}\b|\b${k}\s*[:=]
  */
 export async function inventario(raiz, { guardadas = null, registro = null } = {}) {
   const url = (f) => new URL(`file:///${join(raiz, f).replaceAll("\\", "/")}`).href;
-  const { DATOS_CASA: CASA, DATOS_PERSONA: PERSONA, TIPOS, SIN_TABULAR, moduloDe } = await import(url("src/lib/registroFicha.js"));
+  const { DATOS_CASA: CASA, DATOS_PERSONA: PERSONA, TIPOS, SIN_TABULAR, POLITICAS, APLICA, moduloDe } = await import(url("src/lib/registroFicha.js"));
   const DATOS_CASA = registro?.casa ?? CASA;
   const DATOS_PERSONA = registro?.persona ?? PERSONA;
   const { VOCABULARIOS, FICHAS, ESCRITORES, CHOQUES } = await import(url("src/lib/vocabularios.js"));
-  // Las columnas cerradas de cada dato y su lista; `ficha` admite null (el inventario cuenta la que falta).
-  const CERRADAS = { tipo: TIPOS, ficha: FICHAS, escribe: ESCRITORES, choque: CHOQUES };
-  const ADMITEN_NULL = new Set(["ficha"]);
+  // Las columnas cerradas de cada dato y su lista; `ficha` y `politica` admiten null (el inventario cuenta la ficha que falta).
+  const CERRADAS = { tipo: TIPOS, ficha: FICHAS, escribe: ESCRITORES, choque: CHOQUES, aplica: APLICA, politica: POLITICAS };
+  const ADMITEN_NULL = new Set(["ficha", "politica"]);
   const { CAMPOS_CON_COLUMNA } = await import(url("src/lib/personasTabla.js"));
 
   const app = readFileSync(join(raiz, "src/App.jsx"), "utf8");
