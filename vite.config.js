@@ -1,6 +1,7 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { configDefaults } from 'vitest/config'
 import { cargarEnv, esReferencia, leerFichero } from './scripts/lib/env.mjs'
 import { bajarPrioridad } from './scripts/lib/prioridad.mjs'
 import { color } from './src/design/tokens.js'
@@ -279,6 +280,9 @@ export default defineConfig(({ mode, command }) => {
       // corte por defecto de vitest es 5 s. Fallaba uno distinto cada vez,
       // con `STACK_TRACE_ERROR` y sin aserción: era el reloj, no el código.
       testTimeout: 30_000,
+      // e2e/ es de Playwright (playwright.config.js), no de vitest: sus
+      // *.spec.js abren un navegador y no corren aquí.
+      exclude: [...configDefaults.exclude, 'e2e/**'],
     },
     server: {
       port: 5176,
