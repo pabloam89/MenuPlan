@@ -14,8 +14,8 @@ import { esReferencia, leerFichero } from "./scripts/lib/env.mjs";
 
 // Puerto propio: el 5176 es el de `npm run dev` y puede estar ocupado por
 // otra sesión.
-export const PUERTO_E2E = 5188;
-export const URL_E2E = `http://localhost:${PUERTO_E2E}`;
+const PUERTO_E2E = 5188;
+const URL_E2E = `http://localhost:${PUERTO_E2E}`;
 // Un Supabase que no existe: el cliente se crea, pero nada llega a la base.
 export const SUPABASE_MUERTO = "http://127.0.0.1:9";
 const SIN_CLAVE = "e2e-sin-clave";
