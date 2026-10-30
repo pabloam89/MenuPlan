@@ -100,6 +100,7 @@ import {
   computeWeekRange,
   explicitDaysForOffset,
   rekeyWeeksByMonday,
+  recipeIdsDeOtrasSemanas,
   createMenuId,
   foldInNewMenu,
   removeMenu,
@@ -4928,6 +4929,9 @@ export default function App() {
     }
     const groups = gruposVigentes(data);
     const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
+    // Los platos de las OTRAS semanas del menú: rellenar solo mira la semana
+    // abierta, y sin esto cada semana salía con los mismos platos.
+    const usadosEnOtrasSemanas = recipeIdsDeOtrasSemanas(data.menus?.[data.activeMenuId], data.menuWeek?.offset);
 
     const trabajo = {};
     for (const gid of Object.keys(menuPlan)) {
@@ -4978,11 +4982,11 @@ export default function App() {
           // —el mismo pool de siempre, ya filtrado— y se elige el mejor. Si
           // ninguno puntúa (despensa vacía y sin bases puestas), `mejorCandidato`
           // devuelve null y se cae al sorteo de antes.
-          const lista = pickCatalogReplacement(data, trabajo, { groupId: gid, day, meal, course, candidatos: 25 });
+          const lista = pickCatalogReplacement(data, trabajo, { groupId: gid, day, meal, course, candidatos: 25, usadosEnOtrasSemanas });
           const mejor = mejorCandidato(lista?.candidatos ?? [], { despensa, basesPuestas });
           const r = mejor
             ? pickCatalogReplacement(data, trabajo, { groupId: gid, day, meal, course, forcedRecipe: mejor })
-            : pickCatalogReplacement(data, trabajo, { groupId: gid, day, meal, course });
+            : pickCatalogReplacement(data, trabajo, { groupId: gid, day, meal, course, usadosEnOtrasSemanas });
           // Lo colocado cuenta para el siguiente hueco: si acabas de meter una
           // base, la de al lado ya prefiere compartirla.
           if (mejor) for (const b of basesDeReceta(mejor)) basesPuestas.add(b.id);
