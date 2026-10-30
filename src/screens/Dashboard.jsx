@@ -320,57 +320,64 @@ function LolaCard() {
   );
 }
 
-// Regenerar desde Inicio, bajo los platos de hoy (30 oct 2026): en Ajustes no
-// lo encontraba nadie. Es secundario a propósito —borde y sin relleno— porque
-// reemplaza la semana entera; y pide un segundo toque en el mismo sitio en vez
-// de abrir un diálogo, para que un roce al hacer scroll no rehaga el menú.
-function RegenerarMenuButton({ onRegenerate }) {
-  const [confirmando, setConfirmando] = useState(false);
-  const base = {
-    minHeight: "var(--tam-tactil)",
-    borderRadius: "var(--radio-control)",
-    fontSize: 13,
-    fontWeight: 800,
-    fontFamily: "inherit",
-    cursor: "pointer",
-  };
-  if (!confirmando) {
-    return (
-      <button
-        type="button"
-        onClick={() => setConfirmando(true)}
+// Regenerar desde Inicio, en la fila de «Hoy toca» (30 oct 2026): en Ajustes
+// no lo encontraba nadie, y debajo de los platos se quedaba fuera de pantalla
+// en un móvil pequeño. Es una píldora discreta porque reemplaza la semana
+// entera, y pide un segundo toque en el mismo sitio en vez de abrir un diálogo,
+// para que un roce al hacer scroll no rehaga el menú.
+const regenBase = {
+  minHeight: "var(--tam-tactil)",
+  borderRadius: "var(--radio-pildora)",
+  fontSize: 12,
+  fontWeight: 800,
+  fontFamily: "inherit",
+  cursor: "pointer",
+  display: "flex",
+  alignItems: "center",
+  gap: 5,
+  flexShrink: 0,
+};
+
+function RegenerarChip({ onClick }) {
+  // La píldora se ve de 30 px, pero el área táctil es de 40: el margen
+  // negativo evita que la fila del título crezca.
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{ ...regenBase, margin: "-8px 0", padding: "0 4px", border: "none", background: "none" }}
+    >
+      <span
         style={{
-          ...base,
-          width: "100%",
-          marginTop: 10,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 7,
+          display: "flex", alignItems: "center", gap: 5, height: 30, padding: "0 11px",
+          borderRadius: "var(--radio-pildora)",
           border: "1.5px solid var(--color-linea-fuerte)",
           background: "var(--color-superficie)",
           color: "var(--color-marca)",
         }}
       >
-        <RotateCw size={15} strokeWidth={2.5} />
-        Regenerar menú
-      </button>
-    );
-  }
+        <RotateCw size={13} strokeWidth={2.6} />
+        Regenerar
+      </span>
+    </button>
+  );
+}
+
+function ConfirmarRegenerar({ onCancel, onConfirm }) {
   return (
-    <div role="group" aria-label="¿Rehacer el menú?" style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10 }}>
+    <div role="group" aria-label="¿Rehacer el menú?" style={{ display: "flex", alignItems: "center", gap: 8, margin: "-6px 2px 4px" }}>
       <span style={{ flex: 1, fontSize: 13, fontWeight: 800, color: "var(--color-tinta)" }}>¿Rehacer el menú?</span>
       <button
         type="button"
-        onClick={() => setConfirmando(false)}
-        style={{ ...base, padding: "0 14px", border: "1.5px solid var(--color-linea-fuerte)", background: "var(--color-superficie)", color: "var(--color-tinta-media)" }}
+        onClick={onCancel}
+        style={{ ...regenBase, padding: "0 14px", border: "1.5px solid var(--color-linea-fuerte)", background: "var(--color-superficie)", color: "var(--color-tinta-media)" }}
       >
         Cancelar
       </button>
       <button
         type="button"
-        onClick={() => { setConfirmando(false); onRegenerate(); }}
-        style={{ ...base, padding: "0 14px", border: "none", background: "var(--color-marca)", color: "var(--color-superficie)" }}
+        onClick={onConfirm}
+        style={{ ...regenBase, padding: "0 14px", border: "none", background: "var(--color-marca)", color: "var(--color-superficie)" }}
       >
         Sí, rehacer
       </button>
@@ -530,6 +537,10 @@ export function DashboardScreen({
   const multiGroup = groups.length > 1;
 
   const [activeGroupId, setActiveGroupId] = useState(null);
+  const [confirmandoRegen, setConfirmandoRegen] = useState(false);
+  // Con cualquier plato en el menú, no solo hoy: si hoy no toca nada, sigue
+  // habiendo una semana que rehacer.
+  const puedeRegenerar = hasMenu && !householdReadOnly && Boolean(onRegenerate);
   const selectedGroup = groups.find((gr) => gr.id === activeGroupId) ?? groups[0] ?? null;
 
   // Today's planned dishes for the selected group (home shows only HOY).
@@ -714,11 +725,18 @@ export function DashboardScreen({
         {/* ── Hoy toca (solo renderiza platos; vacío si no hay menú) ── */}
         {showTodaySection && (
           <div style={{ marginBottom: 16 }}>
+            {confirmandoRegen ? (
+              <ConfirmarRegenerar
+                onCancel={() => setConfirmandoRegen(false)}
+                onConfirm={() => { setConfirmandoRegen(false); onRegenerate(); }}
+              />
+            ) : (
             <div style={{ display: "flex", alignItems: "center", gap: 9, margin: "2px 2px 10px" }}>
               <CalendarDays size={16} color={GREEN} style={{ flexShrink: 0 }} />
               <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: INK, letterSpacing: "-.2px", flexShrink: 0 }}>
                 Hoy toca
               </p>
+              {puedeRegenerar && <RegenerarChip onClick={() => setConfirmandoRegen(true)} />}
               {/* Separador siempre (antes solo con varios grupos, y sin menú
                   la cabecera se quedaba coja). Con varios grupos, el selector;
                   con uno solo, los avatares de la familia sin ser botón — el
@@ -746,6 +764,7 @@ export function DashboardScreen({
                 )
               )}
             </div>
+            )}
             {todayMeals.length > 0 ? (
               <div style={{ position: "relative" }}>
                 <div
@@ -793,7 +812,6 @@ export function DashboardScreen({
                     <ChevronRight size={15} color="#9ab0a1" strokeWidth={2.5} />
                   </div>
                 )}
-                {!householdReadOnly && onRegenerate && <RegenerarMenuButton onRegenerate={onRegenerate} />}
               </div>
             ) : (
               // Sin botón a Lola aquí: ya está la tarjeta de arriba (LolaCard),
