@@ -7,7 +7,7 @@ import {
   Settings,
   Sparkles,
   Send,
-  RotateCw,
+  RotateCcw,
 } from "../components/icons.jsx";
 import { FRONTAL_BOT, abrirLola, lolaConectada } from "../lib/frontalBot.js";
 import lolaFoto from "../assets/lola/lola-perfil.jpg";
@@ -320,32 +320,20 @@ function LolaCard() {
   );
 }
 
-// Regenerar desde Inicio, en la fila de «Hoy toca» (30 oct 2026): en Ajustes
-// no lo encontraba nadie, y debajo de los platos se quedaba fuera de pantalla
-// en un móvil pequeño. Es una píldora discreta porque reemplaza la semana
-// entera, y pide un segundo toque en el mismo sitio en vez de abrir un diálogo,
-// para que un roce al hacer scroll no rehaga el menú.
-const regenBase = {
-  minHeight: "var(--tam-tactil)",
-  borderRadius: "var(--radio-pildora)",
-  fontSize: 12,
-  fontWeight: 800,
-  fontFamily: "inherit",
-  cursor: "pointer",
-  display: "flex",
-  alignItems: "center",
-  gap: 5,
-  flexShrink: 0,
-};
-
-function RegenerarChip({ onClick }) {
-  // La píldora se ve de 30 px, pero el área táctil es de 40: el margen
-  // negativo evita que la fila del título crezca.
+// «Reiniciar menú» en la fila de «Hoy toca» (30 oct 2026): vivía al fondo de
+// la pantalla de perfil y no lo encontraba nadie. Es la misma acción de antes
+// (onResetMenu = handleSoftReset, con su hoja de confirmación); aquí solo
+// cambia la puerta. Píldora visible de 30 px con área táctil de 40: el margen
+// negativo evita que la fila del título crezca.
+function ReiniciarChip({ onClick }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      style={{ ...regenBase, margin: "-8px 0", padding: "0 4px", border: "none", background: "none" }}
+      style={{
+        minHeight: "var(--tam-tactil)", margin: "-8px 0", padding: "0 4px",
+        border: "none", background: "none", cursor: "pointer", fontFamily: "inherit", flexShrink: 0,
+      }}
     >
       <span
         style={{
@@ -354,34 +342,13 @@ function RegenerarChip({ onClick }) {
           border: "1.5px solid var(--color-linea-fuerte)",
           background: "var(--color-superficie)",
           color: "var(--color-marca)",
+          fontSize: 12, fontWeight: 800,
         }}
       >
-        <RotateCw size={13} strokeWidth={2.6} />
-        Regenerar
+        <RotateCcw size={13} strokeWidth={2.6} />
+        Reiniciar
       </span>
     </button>
-  );
-}
-
-function ConfirmarRegenerar({ onCancel, onConfirm }) {
-  return (
-    <div role="group" aria-label="¿Rehacer el menú?" style={{ display: "flex", alignItems: "center", gap: 8, margin: "-6px 2px 4px" }}>
-      <span style={{ flex: 1, fontSize: 13, fontWeight: 800, color: "var(--color-tinta)" }}>¿Rehacer el menú?</span>
-      <button
-        type="button"
-        onClick={onCancel}
-        style={{ ...regenBase, padding: "0 14px", border: "1.5px solid var(--color-linea-fuerte)", background: "var(--color-superficie)", color: "var(--color-tinta-media)" }}
-      >
-        Cancelar
-      </button>
-      <button
-        type="button"
-        onClick={onConfirm}
-        style={{ ...regenBase, padding: "0 14px", border: "none", background: "var(--color-marca)", color: "var(--color-superficie)" }}
-      >
-        Sí, rehacer
-      </button>
-    </div>
   );
 }
 
@@ -523,8 +490,8 @@ export function DashboardScreen({
   onViewMenu,
   onOpenAccount,
   onGenerateMenu,
-  // Ausente = sin botón de regenerar (hogar de solo lectura).
-  onRegenerate,
+  // «Reiniciar menú» (el mismo que estaba en el perfil).
+  onResetMenu,
   // Ausente = la pizarra no se ofrece (está apagada fuera de staging).
   onStartPizarra,
 }) {
@@ -537,10 +504,6 @@ export function DashboardScreen({
   const multiGroup = groups.length > 1;
 
   const [activeGroupId, setActiveGroupId] = useState(null);
-  const [confirmandoRegen, setConfirmandoRegen] = useState(false);
-  // Con cualquier plato en el menú, no solo hoy: si hoy no toca nada, sigue
-  // habiendo una semana que rehacer.
-  const puedeRegenerar = hasMenu && !householdReadOnly && Boolean(onRegenerate);
   const selectedGroup = groups.find((gr) => gr.id === activeGroupId) ?? groups[0] ?? null;
 
   // Today's planned dishes for the selected group (home shows only HOY).
@@ -725,18 +688,12 @@ export function DashboardScreen({
         {/* ── Hoy toca (solo renderiza platos; vacío si no hay menú) ── */}
         {showTodaySection && (
           <div style={{ marginBottom: 16 }}>
-            {confirmandoRegen ? (
-              <ConfirmarRegenerar
-                onCancel={() => setConfirmandoRegen(false)}
-                onConfirm={() => { setConfirmandoRegen(false); onRegenerate(); }}
-              />
-            ) : (
             <div style={{ display: "flex", alignItems: "center", gap: 9, margin: "2px 2px 10px" }}>
               <CalendarDays size={16} color={GREEN} style={{ flexShrink: 0 }} />
               <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: INK, letterSpacing: "-.2px", flexShrink: 0 }}>
                 Hoy toca
               </p>
-              {puedeRegenerar && <RegenerarChip onClick={() => setConfirmandoRegen(true)} />}
+              {hasMenu && onResetMenu && <ReiniciarChip onClick={onResetMenu} />}
               {/* Separador siempre (antes solo con varios grupos, y sin menú
                   la cabecera se quedaba coja). Con varios grupos, el selector;
                   con uno solo, los avatares de la familia sin ser botón — el
@@ -764,7 +721,6 @@ export function DashboardScreen({
                 )
               )}
             </div>
-            )}
             {todayMeals.length > 0 ? (
               <div style={{ position: "relative" }}>
                 <div

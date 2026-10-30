@@ -249,7 +249,6 @@ export function HomeProfileScreen({
   onSignIn,
   onAppleSignIn,
   onSignOut,
-  onReset,
   onDeleteAccount,
   onEditMembers,
   onEditPreferences,
@@ -476,12 +475,7 @@ export function HomeProfileScreen({
             onClick={onSignOut}
           />
         )}
-        <ProfileOptionRow
-          img="/avatares/cards/reiniciar_menu.jpg"
-          title="Reiniciar menú"
-          accent="#c0392b"
-          onClick={onReset}
-        />
+        {/* «Reiniciar menú» se mudó a Inicio, a la fila de «Hoy toca» (30 oct 2026). */}
         <ProfileOptionRow
           img="/avatares/cards/eliminar_cuenta.jpg"
           title="Eliminar cuenta"

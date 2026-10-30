@@ -5718,6 +5718,16 @@ export const MenuScreen = memo(function MenuScreen({
         title="Descargar el menú en PDF"
         onClick={handleDownload}
       />
+      {!isGenerating && !readOnly && onRegenerate && (
+        <BaldosaAccion
+          Icono={RotateCw}
+          etiqueta="Regenerar"
+          color="#16a34a"
+          tinte="#e6f6ec"
+          title="Regenerar el menú entero"
+          onClick={onRegenerate}
+        />
+      )}
       {onOpenMenus && (
         <BaldosaAccion
           Icono={History}
@@ -6090,7 +6100,7 @@ export const MenuScreen = memo(function MenuScreen({
                     !FRONTAL_BOT && hasMenu && onPublishToFeed && { key: "feed", label: menuSharedInFeed ? "Menú publicado" : "Publicar en Gente", Icon: Users, action: () => setPublishSheetOpen(true), tint: "#e6efff", ink: "#4a6fd4" },
                     hasMenu && { key: "share", label: "Compartir fuera", Icon: Share2, action: handleShare, tint: "#e0f4f1", ink: "#0d9488" },
                     hasMenu && { key: "download", label: "Descargar PDF", Icon: Download, action: handleDownload, tint: "#fdf0e0", ink: "#d97706" },
-                    // Regenerar el menú entero vive en Inicio, en «Hoy toca» (30 oct 2026).
+                    !isGenerating && !readOnly && onRegenerate && { key: "regen", label: "Regenerar menú", Icon: RotateCw, action: onRegenerate, tint: "#e6f6ec", ink: "#16a34a" },
                   ]
                     .filter(Boolean)
                     .map((a, i, arr) => (
