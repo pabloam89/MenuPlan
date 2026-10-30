@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { readFileSync } from "node:fs";
 
 const insert = vi.fn();
 const from = vi.fn(() => ({ insert }));
@@ -8,6 +9,29 @@ vi.mock("./analytics.js", () => ({ getAnonId: () => "3f2b8c1e-7a4d-4e0b-9c5a-1d2
 import { filasDeDescartes, recetasDelPlan, registrarDescartes } from "./descartes.js";
 import { MAX_DESCARTES, RECETA_ID_MAX, RECETA_ID_RE } from "./descartesForma.js";
 import { ALCANCES_DESCARTE, ALCANCE_DESCARTE } from "./vocabularios.js";
+
+// Lo que la base (0102) y el código dicen de un descarte tiene que ser lo mismo: el largo del
+// id y los alcances del CHECK. Este test lee la migración, así que si uno cambia sin el otro falla.
+describe("receta_descartes: el código y la migración 0102 dicen lo mismo", () => {
+  const sql = readFileSync(new URL("../../supabase/migrations/0102_receta_descartes.sql", import.meta.url), "utf8");
+
+  it("el largo máximo del id de receta del CHECK es RECETA_ID_MAX", () => {
+    expect(sql).toContain(`char_length(receta_id) <= ${RECETA_ID_MAX}`);
+  });
+
+  it("el CHECK de alcance admite exactamente ALCANCES_DESCARTE", () => {
+    const lista = ALCANCES_DESCARTE.map((a) => `'${a}'`).join(", ");
+    expect(sql).toContain(`check (alcance in (${lista}))`);
+  });
+
+  it("un id que el cliente deja pasar cumple también la limpieza del CHECK (sin espacios ni vacío)", () => {
+    for (const id of ["carnes_146", "a".repeat(RECETA_ID_MAX), "x"]) {
+      expect(RECETA_ID_RE.test(id)).toBe(true);
+      expect(id).toBe(id.trim());
+      expect(id).not.toBe("");
+    }
+  });
+});
 
 describe("filasDeDescartes", () => {
   it("quita el prefijo de grupo, los repetidos y lo que no es un id", () => {
