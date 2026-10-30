@@ -1,4 +1,5 @@
 import { FRONTAL_BOT, GUIAS_ACTIVAS, GENTE_ACTIVA, abrirLola, avisarAltaALola } from "./lib/frontalBot.js";
+import { cerrarAlta, MOTIVO } from "./lib/altaGuardada.js";
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { LogOut, RotateCcw, AlertTriangle, Trash2, Check, Play, Eraser, X } from "./components/icons.jsx";
 import { BottomNav, APP_SHELL_MAX_WIDTH, SignInOptions, GhostPillButton } from "./components/ui.jsx";
@@ -909,6 +910,21 @@ function migrate(state) {
 const PANTRY_DAY_WINDOW_DAYS = 45;
 
 // yyyy-mm-dd en hora local (no UTC) para casar con el día natural del usuario.
+/**
+ * Lo que se guarda de la casa en household_state: todo menos lo que va por
+ * sus propias tablas (recetas, votos, descartes, menús). Una sola forma para
+ * el guardado diferido de cada cambio y para el inmediato del cierre del alta
+ * (guardarCasaAhora): si cambia qué se sube, cambia en los dos.
+ */
+function snapshotDeCasa({ data, menuPlan, shopping, aiRecipes, onbStep }) {
+  const profile = { ...data };
+  delete profile.userRecipes;
+  delete profile.recipeVotes;
+  delete profile.discards;
+  delete profile.menus;
+  return { data: profile, menuPlan, shopping, aiRecipes, onbStep };
+}
+
 function isoLocalDate(date) {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -1826,12 +1842,7 @@ export default function App() {
     // es viejo y no se sube.
     const version = versionDeCasa(syncHouseholdId);
     const t = window.setTimeout(() => {
-      const profile = { ...data };
-      delete profile.userRecipes;
-      delete profile.recipeVotes;
-      delete profile.discards;
-      delete profile.menus;
-      const snapshot = { data: profile, menuPlan, shopping, aiRecipes, onbStep };
+      const snapshot = snapshotDeCasa({ data, menuPlan, shopping, aiRecipes, onbStep });
       if (syncHouseholdId) {
         guardarConVersion(version, (rev) => saveHouseholdState(syncHouseholdId, snapshot, rev)).then((r) => {
           if (r.conflict) recargarDesdeNubeRef.current({ choque: true });
@@ -1840,6 +1851,24 @@ export default function App() {
     }, 1200);
     return () => window.clearTimeout(t);
   }, [user?.id, activeHouseholdId, householdReadOnly, syncHouseholdId, data, menuPlan, shopping, aiRecipes, onbStep, versionDeCasa]);
+
+  // Guardar la casa YA, con unos datos concretos, y saber si ha entrado. Es lo
+  // que necesita un dato que no puede esperar al guardado diferido de arriba:
+  // la marca de «alergias revisadas» al cerrar el alta (lib/altaGuardada.js).
+  // El 30 oct 2026 esa marca se puso en el último clic, el guardado de 1,2 s
+  // se descartó por una recarga de la nube y la casa se quedó sin ella: el
+  // motor esquivó los 14 alérgenos y el menú salió cojo (#1029). Con casa,
+  // devuelve lo que devuelve la cola (`ok`, `conflict`, `descartado`); sin
+  // casa, lo que diga `saveUserState` (`ok`); nunca lanza. Sin cuenta, la casa
+  // vive en el móvil: cuenta como guardada (`local`).
+  const guardarCasaAhora = useCallback(async (dataAGuardar) => {
+    const snapshot = snapshotDeCasa({ data: dataAGuardar, menuPlan, shopping, aiRecipes, onbStep });
+    if (!user?.id) return { ok: true, local: true };
+    if (householdReadOnly) return { ok: false };
+    if (!syncHouseholdId) return { ok: (await saveUserState(user.id, snapshot)).ok === true };
+    if (!cloudReadyRef.current) return { ok: false, descartado: true };
+    return guardarConVersion(versionDeCasa(syncHouseholdId), (rev) => saveHouseholdState(syncHouseholdId, snapshot, rev));
+  }, [user?.id, householdReadOnly, syncHouseholdId, menuPlan, shopping, aiRecipes, onbStep, versionDeCasa]);
 
   // Lo que se toca en el plan (cambiar, regenerar, mover, rellenar) va también
   // a la fila de la semana que se ve, y a su copia en el archivo. Antes solo
@@ -5795,19 +5824,34 @@ export default function App() {
         editPreferencesOrigin
           ? undefined
           : firstRunOnboarding
-            ? () => {
+            ? async () => {
                 trackEvent(user, EMBUDO.ALERGIAS, PANTALLA_EMBUDO, {
                   canal: "app",
                   conAlergias: data.members.some((m) => m.allergies?.length > 0),
                 });
                 trackEvent(user, EMBUDO.CIMIENTOS, PANTALLA_EMBUDO, { canal: "app" });
-                setFirstRunOnboarding(false);
-                // Si venía de Lola, sin menú: ella lo ofrece en su chat al
-                // enterarse (avisarAltaALola), y se pide cuando se quiera.
+                // La marca de «alergias revisadas» se guarda AHORA y se espera
+                // la respuesta; solo entonces se cierra el alta y, si venía de
+                // Lola, se le avisa (ella lo ofrece en su chat; el menú se pide
+                // cuando se quiera). Si el guardado choca o no llega, no se
+                // cierra nada: se dice y se vuelve a pulsar (#1029).
                 const desdeLola = altaDesdeLolaRef.current;
+                const r = await cerrarAlta({
+                  data,
+                  guardar: guardarCasaAhora,
+                  avisar: user && desdeLola ? avisarAltaALola : null,
+                });
+                if (!r.ok) {
+                  if (r.motivo === MOTIVO.choque) recargarDesdeNubeRef.current({ choque: true });
+                  else showToast("No se ha podido guardar: revisa la conexión y pulsa otra vez");
+                  return;
+                }
+                // Guardado. Si Lola no recibió el aviso (sin red o sin chat), se dice:
+                // ella lo verá en la casa cuando se le escriba.
+                if (desdeLola && !r.avisado) showToast("Guardado. Si Lola no te escribe, dile «ya está» en Telegram");
                 altaDesdeLolaRef.current = false;
+                setFirstRunOnboarding(false);
                 fwd(() => goToMenu("dashboard", { generar: !desdeLola }));
-                if (user && desdeLola) avisarAltaALola();
               }
             : nextOf(2)
       }
