@@ -531,6 +531,9 @@ function fileToAvatarDataUrl(file) {
   });
 }
 
+// La tira de avatares arranca en el principio: nada a la izquierda y más a la derecha.
+const TIRA_AVATARES_INICIO = { izq: false, der: true };
+
 export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, onBack, nextLabel, showMenuModel = false, demoName = null, demoAge = null }) {
   const [name, setName] = useState("");
   const [ageStr, setAgeStr] = useState("");
@@ -543,7 +546,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
   const [avatarExpanded, setAvatarExpanded] = useState(false);
   // Tira de avatares del popup: ref para desplazarla con las flechas y qué flecha toca ver.
   const avatarStripRef = useRef(null);
-  const [avatarStripPos, setAvatarStripPos] = useState({ izq: false, der: true });
+  const [avatarStripPos, setAvatarStripPos] = useState(TIRA_AVATARES_INICIO);
   // "family" = the drag-a-profile builder shown to real users. The classic
   // name+age+Añadir form is kept only for the scripted ValueProps demo, which
   // passes demoName/demoAge; there is no user-facing toggle anymore.
@@ -1005,7 +1008,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
         // the quick add popup (just-dropped profile) stays minimal.
         const isEdit = editingMemberId !== justAddedId;
         const catLabel = prof?.label ?? migrateHomeRole(editing.homeRole);
-        const closePopup = () => { setEditingMemberId(null); setJustAddedId(null); setAvatarExpanded(false); setColorExpanded(false); setAvatarStripPos({ izq: false, der: true }); };
+        const closePopup = () => { setEditingMemberId(null); setJustAddedId(null); setAvatarExpanded(false); setColorExpanded(false); setAvatarStripPos(TIRA_AVATARES_INICIO); };
         const dismiss = () => {
           if (editingMemberId === justAddedId) removeMember(editingMemberId);
           closePopup();
