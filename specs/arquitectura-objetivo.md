@@ -8,8 +8,8 @@ Todo lo que Lola y la app saben, piden y hacen se describe **una vez** en un reg
 
 ## Lo desagradable primero
 
-- **Hoy la garantía está en las palabras, no en la estructura** (#958, raíz común). El prompt promete; las herramientas escriben cada una a su manera (46 herramientas en `api/_bot/agente.js`); la app escribe la casa desde 146 llamadas a `setData(`; el motor lee 30 claves sueltas del documento; los gustos solo desempatan (`src/lib/solver.js`, paso 5). Nada de lo de abajo cambia eso si se hace a medias: cada capa tiene que ser **la única puerta**, con un test que haga imposible saltársela.
-- **El momento es ahora.** Hay 37 casas. La decisión «sin convivencia» (cada ficha nueva se estrena vacía) es barata con 37 y carísima con 3.000. Lo que no se haga en esta ronda se hará con migraciones de datos de familias reales.
+- **Hoy la garantía está en las palabras, no en la estructura** (#958, raíz común). El prompt promete; las herramientas de Lola escriben cada una a su manera; la app escribe la casa desde muchos sitios; el motor lee claves sueltas del documento; los gustos solo desempatan (`src/lib/solver.js`, paso 5). Las cifras de cada cosa, con su comando, están en el plan («Lo desagradable primero», «Estado medido», «Cifras que bajan» y el Existing de cada trozo). Nada de lo de abajo cambia eso si se hace a medias: cada capa tiene que ser **la única puerta**, con un test que haga imposible saltársela.
+- **El momento es ahora.** Hay pocas casas (la cifra, en el plan, «Estado medido»). La decisión «sin convivencia» (cada ficha nueva se estrena vacía) es barata ahora y carísima con miles. Lo que no se haga en esta ronda se hará con migraciones de datos de familias reales.
 - **La migración 0105 decide la forma de la escritura.** Si se escribe como está en el plan (sobre + `escribir_dato`) y después se añade la operación, se rehace. Igual con la 0107: si crea `gusto` y después se decide `preferencia`, se tira. Las dos decisiones (D1, D2) van antes de escribir esas migraciones.
 - **Riesgo de sobreabstraer.** Un motor de preferencias genérico y un registro que genera todo pueden convertirse en un marco que nadie entiende. Contramedida en cada capa: forma pequeña y cerrada, y un test de paridad contra lo que hay hoy antes de retirar lo viejo.
 - **No se ha visto el trabajo local sin subir** (sesiones de terminal). Ver Not verified.
@@ -52,11 +52,11 @@ Cuatro listas, cada una de una clase de cosa, enlazadas por id:
 | Lista | Qué declara | Hoy | Absorbe |
 |---|---|---|---|
 | **Datos** | entidades (casa, persona, grupo, rutina, preferencia, tarea, semana…) y sus campos: tipo, vocabulario, ficha, defecto, mínimo, caducidad, peso, escritor, choque | `src/lib/registroFicha.js` (con trozo 5 hecho: #1048, #1049) | `registroCampos.js` (ya proyección), `wizardRegistry.js` (en parte), `notepadFields.js`, los campos de `registroTareas.js` |
-| **Ejes** | cómo es una receta o un alimento: 78 entradas (`src/data/axisRegistry.js`), con tipo, vocabulario y si se puede agregar (sumar, contar, media) | `axisRegistry.js` | los nutrientes de `src/data/derived/recipeNutrition.json` como ejes agregables |
-| **Valores** | listas cerradas (34) | `src/lib/vocabularios.js` | los ENUMS de `registroTareas.js` |
-| **Acciones** | lo que se puede hacer: 85 capacidades, con herramienta de Lola, pantalla de la app y datos que lee y escribe | `src/lib/capacidades.js` (29 en los dos lados, 35 huecos sin motivo) | la definición de cada herramienta de Lola |
+| **Ejes** | cómo es una receta o un alimento (`src/data/axisRegistry.js`), con tipo, vocabulario y si se puede agregar (sumar, contar, media) | `axisRegistry.js` | los nutrientes de `src/data/derived/recipeNutrition.json` como ejes agregables |
+| **Valores** | listas cerradas | `src/lib/vocabularios.js` | los ENUMS de `registroTareas.js` |
+| **Acciones** | lo que se puede hacer, con herramienta de Lola, pantalla de la app y datos que lee y escribe | `src/lib/capacidades.js` | la definición de cada herramienta de Lola |
 
-**Lo que se genera** (el salto que falta; hoy se escribe a mano en cada sitio: `cookLevel` aparece en 19 ficheros, `etapaBebe` en 20):
+**Lo que se genera** (el salto que falta; hoy se escribe a mano en cada sitio: el plan, trozo 25, cuenta en cuántos ficheros):
 
 - CHECK y filas de `registro_campo` en la base (ya se hace para 7 campos, 0097).
 - El esquema de cada herramienta de Lola (parámetros con `enum` y tipo) desde Acciones + Datos + Valores.
@@ -64,7 +64,7 @@ Cuatro listas, cada una de una clase de cosa, enlazadas por id:
 - La entrada del motor ([4]) desde Ejes y Datos.
 - La siguiente pregunta ([7]) desde `minimo_para_generar` y `peso_menu`.
 
-Cifra: ficheros que hay que tocar para añadir un dato nuevo (hoy ~20 para un dato de la casa; objetivo: el registro y, si tiene pantalla propia, la pantalla).
+Cifra: ficheros que hay que tocar para añadir un dato nuevo (la de hoy y su comando, en el plan, trozo 25; objetivo: el registro y, si tiene pantalla propia, la pantalla).
 
 Challenge: un generador de pantallas completas sería un marco; no se hace. Se generan controles y esquemas, no flujos.
 
@@ -111,9 +111,9 @@ Absorbe: la libreta (`notepadFields.js`, 11 campos), `sesgos`, `freqs`/`reparto`
 3. El solver resuelve: nunca rompe una obligatoria; si no hay solución, relaja preferencias de menor peso primero y lo dice.
 4. Sale el plan **y** el cumplimiento: por preferencia, cumplida o no y por qué; por plato, qué preferencias pesaron (el `motivo` del sobre por hueco, trozo 18).
 
-Las 24 reglas de `validateMenu.js` se reescriben como preferencias del sistema (origen `derivado`) con un test de paridad sobre casas aleatorias (como ya pide el comentario de `solver.js` para cualquier versión incremental) antes de retirar las escritas a mano.
+Las reglas de `validateMenu.js` se reescriben como preferencias del sistema (origen `derivado`) con un test de paridad sobre casas aleatorias (como ya pide el comentario de `solver.js` para cualquier versión incremental) antes de retirar las escritas a mano.
 
-Cifras: % de preferencias dichas cumplidas por semana generada; ejes con lector (hoy 27 de 78 sin ningún consumidor); tiempo del motor por semana (hoy < 1 s, medido por Pablo).
+Cifras (con su línea base en el plan, trozos 24 y 31): % de preferencias dichas cumplidas por semana generada; ejes sin consumidor; tiempo del motor por semana (menos de un segundo, según Pablo).
 
 Challenge: con muchas preferencias blandas el solver puede volverse lento o dar menús raros por compensar pesos. Contramedida: pocos operadores, pesos en escalones cerrados en vez de un número libre (los fija el trozo 31 del plan), y el banco de casas aleatorias de `solver.js` como red de tiempo y calidad.
 
@@ -126,7 +126,7 @@ Challenge: con muchas preferencias blandas el solver puede volverse lento o dar 
 
 ### [6] App
 
-- Lee fichas (`ficha_casa` v2) y escucha **una señal por casa** en tiempo real (versión + qué ficha cambió), y pide solo esa ficha. Sustituye el sondeo de 20 s (trozo 20). Coste estimado: céntimos por familia y mes (Supabase cobra mensajes entregados a apps abiertas y picos de conexiones).
+- Lee fichas (`ficha_casa` v2) y escucha **una señal por casa** en tiempo real (versión + qué ficha cambió), y pide solo esa ficha. Sustituye el sondeo periódico (trozo 20). Coste estimado: céntimos por familia y mes (Supabase cobra mensajes entregados a apps abiertas y picos de conexiones).
 - Escribe solo proponiendo operaciones. Pinta el cambio al momento (optimista) y, si la tubería lo rechaza o hay choque, lo dice con el motivo; **nunca** descarta en silencio lo que tocaste (hoy, un choque recarga la nube y tu último cambio se pierde: `src/lib/householdState.js`). Cola local con reintento al volver la red (como el plan, trozo 8).
 - Controles de campo generados por tipo ([1]); las pantallas grandes se parten al pasar por cada tramo.
 
@@ -141,7 +141,7 @@ Cifras: preguntas hasta el primer menú; tareas caducadas sin respuesta; tiempo 
 - Cadena completa: mensaje o pantalla → operación → sobre del dato → entrada del motor (versión) → plato con motivo → artículo de compra con sus platos. Cada semana guarda versión de catálogo, de motor y de entrada.
 - **Banco de frases** (red principal): frases reales anonimizadas, cada una con la operación esperada y el estado esperado al final, en cada PR que toque Lola o el intérprete. Cifras: % de frases bien guardadas, coste por frase, latencia. Sustituye la medida manual del 17 %.
 - **Prueba de punta a punta** de la app (Playwright): alta → menú → cambiar plato → compra, comprobando fichas y sobres al final.
-- **Cobertura:** cada Acción declara su lado de Lola y su pantalla; los 35 huecos sin motivo se cierran o se justifican, con la cifra en su línea base (ya existe: `npm run capacidades`).
+- **Cobertura:** cada Acción declara su lado de Lola y su pantalla; los huecos sin motivo (cifra en `npm run capacidades`) se cierran o se justifican, con la cifra en su línea base (ya existe: `npm run capacidades`).
 - Panel: un script de solo lectura con todas las cifras de este documento.
 
 ### [9] Seguridad y privacidad
@@ -152,7 +152,7 @@ Cifras: preguntas hasta el primer menú; tareas caducadas sin respuesta; tiempo 
 
 ### [10] Escala y coste
 
-- Volumen: ~140 datos por casa más persona; pocos millones de filas con 10.000 casas, siempre por casa. Señales una fila por (casa, eje, valor); operaciones con retención; historiales con poda.
+- Volumen: los datos de una casa son del orden de un centenar más los de cada persona; con miles de casas, pocos millones de filas pequeñas, siempre por casa. Señales una fila por (casa, eje, valor); operaciones con retención; historiales con poda.
 - Rellenar: casi todo nace por defecto o supuesto; solo se preguntan los mínimos y el resto por peso.
 - Lo que cuesta al crecer: el modelo de Lola por mensaje (lo más caro; tope del PR #929, Haiku donde baste, caché del prompt ya en uso), picos de conexiones en tiempo real, el barrido nocturno.
 
@@ -194,7 +194,7 @@ Un choque es cualquier par de cosas que no pueden cumplirse a la vez. No solo en
 | **Deseo** | lo que la familia quiere | preferencias dichas, planes de nutrición, objetivos | según su fuerza |
 | **Aprendido** | lo que Lola dedujo del uso | señales que pasaron el umbral | cede ante lo dicho |
 | **Supuesto** | lo que se pone sin saber | valores por defecto | cede ante todo |
-| **Sistema** | reglas del producto | variedad, equilibrio, catálogo estrella, las 24 reglas | cede ante deseos dichos, salvo calidad mínima |
+| **Sistema** | reglas del producto | variedad, equilibrio, catálogo estrella, las reglas del validador | cede ante deseos dichos, salvo calidad mínima |
 
 ### 2. Ordenar: siete criterios, en este orden
 
@@ -256,7 +256,6 @@ Cada choque resuelto deja rastro en la operación: qué chocó, qué ganó, por 
 
 - Trabajo local sin subir: se han mirado `staging` y las ramas subidas (`datos/un-dato`, `bot/lo-hecho`, #1034, #927, #929); nada de lo que esté solo en los PC de Pablo o de Álvaro.
 - No se ha leído producción (filas de `bot_tareas`, `bot_reminders`, uso de tiempo real).
-- «Ejes con consumidor del motor» y «27 sin consumidor» salen del campo `consumidores` de `axisRegistry.js`, no de seguir el código.
 - La espera de ráfaga de 1 s frente a mensajes que tardan 3-4 s es deducción del código (`turnos.js`), sin medir.
 - El coste de tiempo real es una estimación con los precios publicados de Supabase (plan Pro), no una medida.
 - El tiempo del motor es el que dice Pablo (< 1 s), no medido en esta sesión.
