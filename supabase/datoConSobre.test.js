@@ -14,12 +14,12 @@ const sql = readFileSync(new URL("./migrations/0105_dato_con_sobre.sql", import.
 const codigo = sinComentarios(sql);
 const codigo0106 = sinComentarios(readFileSync(new URL("./migrations/0106_aplicar_operacion.sql", import.meta.url), "utf8"));
 
-/** El cuerpo de una función de la 0106, de su create a su $ de cierre. */
+/** El cuerpo de una función de la 0106, de su create a su $$ de cierre. */
 function cuerpo(nombre) {
   const i = codigo0106.search(new RegExp(String.raw`create (?:or replace )?function public\.${nombre}\(`));
   expect(i, `falta la función ${nombre}`).toBeGreaterThan(-1);
-  const abre = codigo0106.indexOf("$", i);
-  return codigo0106.slice(i, codigo0106.indexOf("$", abre + 2) + 2);
+  const abre = codigo0106.indexOf("$$", i);
+  return codigo0106.slice(i, codigo0106.indexOf("$$", abre + 2) + 2);
 }
 const literales = (texto) => [...texto.matchAll(/'([a-z_]+)'/g)].map((m) => m[1]);
 const ordenado = (xs) => [...new Set(xs)].sort();
