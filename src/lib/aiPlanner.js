@@ -36,6 +36,7 @@ import { formatFixedDishesForAI, pinnedGarnishMap, pinnedSalsaMap, enforceFixedD
 import { maxCookTime, maxCookTimeFilter, migrateCookTime } from "./cookTime.js";
 import { applySeasonalFruit, filterPostrePool } from "./postres.js";
 import { pairGarnishes } from "../utils/pairGarnishes.js";
+import { estructuraDelGrupo, estructuraCenaDelGrupo } from "./estructuraPlatos.js";
 import { pairSauces } from "../utils/pairSauces.js";
 import { guessIngredientCategory } from "./ingredientCategories.js";
 import { isQualitativeUnit, mergeIngredientLines } from "./ingredientUnits.js";
@@ -603,15 +604,13 @@ export function buildGroupContext(data, group) {
       const slotTypeSel = data.slotType?.[`${day}|${meal}`];
 
       // Per-group override first; si no hay, la estructura global (modo básico);
-      // si no, primero+segundo.
-      const mealStructure =
-        data.mealStructureByGroup?.[group.id] ?? data.mealStructure ?? "primero_segundo";
+      // si no, primero+segundo. La misma lectura que Lola (estructuraPlatos.js, #958).
+      const mealStructure = estructuraDelGrupo(data, group.id);
       // La cena tiene su propia estructura y su propio defecto. No hereda la de
       // la comida: quien come de primero y segundo no cena por fuerza igual, y
       // lo normal en España es cenar una cosa. Por eso el defecto es "1_plato"
       // aunque la comida sea "primero_segundo".
-      const estructuraCena =
-        data.mealStructureCenaByGroup?.[group.id] ?? data.mealStructureCena ?? "1_plato";
+      const estructuraCena = estructuraCenaDelGrupo(data, group.id);
 
       if (mealType === "comida") {
         if (isBabyGroup) {
