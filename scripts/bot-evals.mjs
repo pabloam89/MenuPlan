@@ -3,7 +3,7 @@
  * operación que toca?
  *
  *   node scripts/bot-evals.mjs                     → todos los casos (nivel completo), ~3,5 $
- *   node scripts/bot-evals.mjs --nivel=pr          → el núcleo N1 (26 casos), ~0,6-0,8 $
+ *   node scripts/bot-evals.mjs --nivel=pr          → el núcleo N1 (los casos con "nucleo": true; cuántos, NUCLEO en lib/evals.mjs), ~0,6-0,8 $
  *   node scripts/bot-evals.mjs --nivel=seguridad   → los de seguridad; alergias y salud k=5, el resto k=3; un fallo bloquea, ~3,2-3,4 $
  *   node scripts/bot-evals.mjs alergia             → los que contengan «alergia» en el nombre o el id
  *   node scripts/bot-evals.mjs --reserva           → con el modelo del plan B (agente.js MODELO_RESERVA)
