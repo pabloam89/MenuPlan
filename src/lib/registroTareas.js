@@ -10,29 +10,37 @@
  * BOT_TAREAS_V2 (fase T2); objetivo, decisión y espera, más adelante.
  */
 import { REGISTRO_CAMPOS, CAMPOS_PREGUNTABLES } from "./registroCampos.js";
+import {
+  KINDS_TAREA, KIND_TAREA, TIPOS_TAREA, TIPO_TAREA, AMBITOS_TAREA, CIERRES_TAREA, ESTADOS_TAREA, ESTADO_TAREA,
+  RESULTADOS_TAREA, OBJETIVOS_TAREA, SOBRES_TAREA, SOBRE_TAREA, RPCS_IDEMPOTENCIA,
+} from "./vocabularios.js";
 
 /**
  * De qué va una pregunta en anotar_tarea (`sobre`) → su campo de la ficha. Es
  * la única traducción: «etapa_bebe» solo existe como valor de la herramienta;
  * en la base y en el registro, el campo es `etapaBebe`.
  */
-export const SOBRE_A_CAMPO = { alergias: "alergias", etapa_bebe: "etapaBebe", otra: null };
+export const SOBRE_A_CAMPO = { [SOBRE_TAREA.ALERGIAS]: "alergias", [SOBRE_TAREA.ETAPA_BEBE]: "etapaBebe", [SOBRE_TAREA.OTRA]: null };
 export const sobreDeCampo = (campo) => (campo ? Object.keys(SOBRE_A_CAMPO).find((s) => SOBRE_A_CAMPO[s] === campo) ?? null : null);
 
+/**
+ * Las listas cerradas de las tareas, por columna o parámetro: una proyección de vocabularios.js
+ * (plan fichas con estado, trozo 24), donde vive cada lista una vez.
+ */
 export const ENUMS = {
-  "bot_tareas.kind": ["seguimiento", "pregunta"],
-  "bot_tareas.scope": ["casa", "personal"],
+  "bot_tareas.kind": KINDS_TAREA,
+  "bot_tareas.scope": AMBITOS_TAREA,
   // «aplazada» existe en la base desde 0080; el código solo la escribe con BOT_TAREAS_V2.
-  "bot_tareas.status": ["abierta", "aplazada", "hecha", "descartada", "caducada", "rechazada"],
+  "bot_tareas.status": ESTADOS_TAREA,
   // v2 (0080): conviven con kind mientras el bot viejo siga desplegado.
-  "bot_tareas.tipo": ["espera", "falta_saber", "decision", "seguimiento"],
-  "bot_tareas.resultado": ["aceptada", "mantenida"],
-  "bot_tareas.objetivo": ["ideas_plato", "calorias", "generar_menu"],
+  "bot_tareas.tipo": TIPOS_TAREA,
+  "bot_tareas.resultado": RESULTADOS_TAREA,
+  "bot_tareas.objetivo": OBJETIVOS_TAREA,
   // De qué va una pregunta (anotar_tarea.sobre) y cómo se cierra una tarea (cerrar_tarea.estado).
-  "anotar_tarea.sobre": Object.keys(SOBRE_A_CAMPO),
-  "cerrar_tarea.estado": ["hecha", "descartada", "rechazada"],
+  "anotar_tarea.sobre": SOBRES_TAREA,
+  "cerrar_tarea.estado": CIERRES_TAREA,
   // Con BOT_TAREAS_V2, cerrar_tarea también aplaza («ahora te digo»): 0080 admite «aplazada» y vuelve_at.
-  "cerrar_tarea.estado_v2": ["hecha", "descartada", "rechazada", "aplazada"],
+  "cerrar_tarea.estado_v2": [...CIERRES_TAREA, ESTADO_TAREA.APLAZADA],
 };
 
 /**
@@ -45,10 +53,10 @@ export const CAMPOS = REGISTRO_CAMPOS;
 // Los que se pueden preguntar: el CHECK de bot_tareas.campo (0080) es esta lista.
 ENUMS["bot_tareas.campo"] = Object.keys(CAMPOS).filter((c) => CAMPOS[c].politica !== "nunca");
 // Las órdenes que guardan respuesta en bot_idempotencia (api/_bot/tareas.js).
-ENUMS["bot_idempotencia.rpc"] = ["anotar_tarea", "cerrar_tarea", "editar_tarea"];
+ENUMS["bot_idempotencia.rpc"] = RPCS_IDEMPOTENCIA;
 
 /** kind viejo → tipo nuevo, el mismo reparto que hace el disparador de 0080. */
-export const TIPO_DE_KIND = { pregunta: "falta_saber", seguimiento: "seguimiento" };
+export const TIPO_DE_KIND = { [KIND_TAREA.PREGUNTA]: TIPO_TAREA.FALTA_SABER, [KIND_TAREA.SEGUIMIENTO]: TIPO_TAREA.SEGUIMIENTO };
 
 /** El prefijo de las claves de estado de hoy («alergias:<id>», «etapa:<id>») → su campo. */
 export const CLAVE_A_CAMPO = { alergias: "alergias", etapa: "etapaBebe" };
@@ -86,7 +94,7 @@ export function personaDeClave(clave) {
 export const campoPreguntable = (campo) => (CAMPOS_PREGUNTABLES.includes(campo) ? campo : null);
 
 /** Cuánto vive una tarea sin fecha: lo que diga su campo (registroCampos.caduca_dias) o, si no, su tipo. */
-const CADUCA_DIAS_TIPO = { falta_saber: 14, seguimiento: 10 };
+const CADUCA_DIAS_TIPO = { [TIPO_TAREA.FALTA_SABER]: 14, [TIPO_TAREA.SEGUIMIENTO]: 10 };
 export const caducaDias = ({ tipo, campo = null }) => CAMPOS[campo]?.caduca_dias ?? CADUCA_DIAS_TIPO[tipo] ?? 14;
 
 /** ¿La tarea con esta clave es de seguridad? Entonces se lee siempre, fuera del límite. */
