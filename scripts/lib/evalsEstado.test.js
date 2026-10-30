@@ -132,3 +132,25 @@ describe("bot-evals.mjs --simulado con un caso con espera", () => {
     expect(salida).toMatch(/coste medio por intento \$[\d.]+ · latencia media [\d.]+ s/);
   });
 });
+
+// Las frases reales de #958 que dieron el 17 % de respuestas que contradicen
+// el estado, anonimizadas sobre la familia de prueba: cada una con su operación.
+describe("las frases de #958 están en el banco, con espera y de conversación real", () => {
+  const FRASES_958 = [
+    "nevera-tengo-esto-apunta-en-despensa", "despensa-cortada-no-dice-todo-apuntado", "pescado-como-mucho-dos-es-tope-no-favorito",
+    "airfryer-nueva-no-borra-los-demas", "deshacer-tras-despensa-no-toca-el-menu", "leche-repetida-no-se-apunta-dos-veces",
+    "genera-uno-nuevo-tras-un-cambio-rehace-esta", "quitar-alergia-dicha-quien-y-que", "plato-no-encontrado-no-dice-he-cambiado",
+    "jueves-suelto-es-fuera-de-casa",
+  ];
+  it("cada una existe, lleva espera con acción y parámetros, y viene de una conversación real", () => {
+    for (const id of FRASES_958) {
+      const c = casos.find((x) => x.id === id);
+      expect(c, id).toBeDefined();
+      expect(c.espera, id).toMatchObject({ accion: expect.any(String), parametros: expect.any(Object) });
+      expect(c.origen, id).toBe("conversacion_real");
+    }
+  });
+  it("el banco tiene al menos esas frases con espera", () => {
+    expect(casos.filter((c) => c.espera).length).toBeGreaterThanOrEqual(FRASES_958.length);
+  });
+});
