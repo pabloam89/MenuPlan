@@ -1,6 +1,6 @@
 # Plan: fichas con estado — del documento único de la casa a entidades con dato, origen, estado y fecha
 
-Verdict: viable y grande (22 trozos, 5 migraciones, varias semanas); lo que Pablo pidió el 30 oct 2026 ya está diseñado desde el 8-10 oct (`registro_campo` y la tabla `sobre` de la 0097) y nadie lo escribe: 0 filas en `sobre`. El rework es, sobre todo, cablear eso y sacar a la app y a Lola del documento único `household_state.state.data`, ficha a ficha, cerrando cada una entera. Primero se para la hemorragia de hoy (trozos 1-4), sin migración.
+Verdict: viable y grande (22 trozos, 5 migraciones, varias semanas); lo que Pablo pidió el 30 oct 2026 ya está diseñado desde el 8-10 oct (`registro_campo` y la tabla `sobre` de la 0097) y nadie lo escribe: 0 filas en `sobre`. El rework es, sobre todo, cablear eso y sacar a la app y a Lola del documento único `household_state.state.data`, ficha a ficha, cerrando cada una entera. Primero se para la hemorragia de hoy (trozos 1-4), sin migración. Aprobado por Pablo el 30 oct 2026 («arranca»), con la decisión B contestada.
 
 Fecha: 30 oct 2026. Base leída: `origin/staging` en `5b9dbaed` (#1031). Escrito en la forma del estándar de planes de la Fábrica (`standards/plan.md`), sin pasar su comprobador (ver Not verified).
 
@@ -118,7 +118,7 @@ npx vitest run src/lib/altaGuardada.test.js src/lib/alergias.test.js
 ### 2. Mínimos para generar: sin alergias dichas (o por silencio) no se genera, se pregunta
 Files: `src/lib/minimosParaGenerar.js`, `src/lib/minimosParaGenerar.test.js`, `api/_bot/generar.js`, `api/_bot/generar.test.js`, `api/_bot/conocimiento.md`
 Depends on: 3
-Blocked by: B
+Blocked by: none
 Existing: `git grep -n -i "minimo_para_generar\|minimosParaGenerar" -- src api` → sin salida. Hoy, sin marca, el motor esquiva los 14 alérgenos (`src/lib/alergias.js:89-93`, #107) y genera con ~27 recetas. La pregunta de alergias ya existe como tarea (`registroCampos.js`: `alergias` con `politica: una_vez`, `seguridad: true`) y el silencio con aviso también (`api/_bot/silencio.js`, #229).
 Not done: la app no cambia (su alta ya pasa por la pantalla de alergias y, con el trozo 1, la marca llega). No decide qué más es mínimo: «quién come» ya lo exige `generar.js:287` y «días» sale de `menuWeek`; el catálogo (trozo 5) los declara. Evals: cambia `conocimiento.md`, así que corre `node scripts/bot-evals.mjs --nivel=pr` antes de fusionar (regla `lola`); un caso nuevo («prepárame el menú» con una persona sin alergias revisadas → Lola pregunta y no genera) se ve en rojo antes del arreglo.
 Done:
@@ -349,6 +349,7 @@ node scripts/apply-migration.mjs 0109_historiales && npx vitest run src/lib/hist
 ## Decisions for Pablo
 
 ### B. Sin alergias confirmadas (ni dichas ni por silencio), ¿Lola genera el menú?
+**Decidida por Pablo el 30 oct 2026: opción 1** («No, pregunta primero»). El trozo 2 queda desbloqueado.
 Por qué te lo pregunto: el 8 oct decidiste lo contrario (#107: se genera esquivando los 14 alérgenos y se pregunta); hoy ese modo dio un menú con 27 recetas y huecos vacíos. Cambiarlo es cambiar lo que la familia vive la primera vez.
 1. No se genera: Lola pregunta primero las alergias (la app ya lo hace en el alta) y genera al saberlas. Coste: una pregunta más antes del primer menú en el chat (recommended)
 2. Se genera esquivando los 14, como hoy, pero diciendo que el menú es corto por eso y preguntando a la vez. Coste: el primer menú sigue siendo pobre
