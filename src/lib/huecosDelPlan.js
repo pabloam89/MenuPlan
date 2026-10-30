@@ -8,18 +8,17 @@
  *   hueco esperado = grupo con gente × día activo × comida que se cocina
  *                    (modeForGroupSlot) × platos de su estructura
  *
- * y se compara con el plan guardado. Puro y sin red: lo usan generar.js al
- * acabar y la cifra «semanas vivas con huecos vacíos» (npm run consulta).
+ * y se compara con el plan guardado. Puro y sin red: lo usa generar.js al
+ * acabar (el texto a Lola y la vía rápida).
  *
- * La regla de cuántos platos lleva cada hueco está calcada de
- * buildGroupContext (aiPlanner.js): la misma lectura de mealStructure,
- * mealStructureCena y slotType. Cuando se fusione la rama
- * `datos/estructura-efectiva` (src/lib/estructuraPlatos.js), esto pasa a
- * leerla de ahí y la copia desaparece.
+ * Cuántos platos lleva cada hueco sigue la misma regla que buildGroupContext
+ * (aiPlanner.js): la estructura se lee de estructuraPlatos.js (una sola
+ * lectura, #958) y el tipo del día (`unico`, `rapida`) de data.slotType.
  */
 import { getMeals, modeForGroupSlot } from "./planner.js";
 import { isBabyMenuGroup, membersOfGroup, tipoDeGrupo } from "./groups.js";
 import { kidsSlotAction } from "./kidsMenu.js";
+import { estructuraDelGrupo, estructuraCenaDelGrupo, ESTRUCTURA_POR_DEFECTO, ESTRUCTURA_CENA_POR_DEFECTO } from "./estructuraPlatos.js";
 import { DIAS, COMIDAS, DIA_LARGO_MINUSCULAS } from "./dias.js";
 
 /** Los platos de un hueco, vocabulario cerrado: el primero y el principal. */
@@ -27,6 +26,11 @@ export const PLATOS_DEL_HUECO = Object.freeze(["primero", "principal"]);
 
 /** Cómo se dice cada plato cuando se nombra un hueco a medias. */
 const ORDINAL = Object.freeze({ primero: "1º", principal: "2º" });
+
+// Los dos valores de la estructura (vocabularios.js, ESTRUCTURA_PLATOS): el de
+// dos platos es el defecto de la comida y el de uno, el defecto de la cena.
+const DOS_PLATOS = ESTRUCTURA_POR_DEFECTO;
+const UN_PLATO = ESTRUCTURA_CENA_POR_DEFECTO;
 
 /**
  * Cuántos platos lleva un hueco según la estructura del grupo y el tipo de
@@ -38,12 +42,11 @@ function platosDelHueco(data, group, day, meal, { esBebe, copiaDeAdultos }) {
   if (esBebe || copiaDeAdultos) return ["principal"];
   const slotTypeSel = data.slotType?.[`${day}|${meal}`];
   if (meal === "Comida") {
-    const estructura = data.mealStructureByGroup?.[group.id] ?? data.mealStructure ?? "primero_segundo";
-    const unPlato = slotTypeSel === "unico" || slotTypeSel === "rapida" || estructura !== "primero_segundo";
+    const unPlato = slotTypeSel === "unico" || slotTypeSel === "rapida" || estructuraDelGrupo(data, group.id) === UN_PLATO;
     return unPlato ? ["principal"] : [...PLATOS_DEL_HUECO];
   }
-  const estructuraCena = data.mealStructureCenaByGroup?.[group.id] ?? data.mealStructureCena ?? "1_plato";
-  const dosPlatos = estructuraCena === "primero_segundo" && slotTypeSel !== "rapida";
+  // Una cena rápida nunca se parte, como en el motor.
+  const dosPlatos = estructuraCenaDelGrupo(data, group.id) === DOS_PLATOS && slotTypeSel !== "rapida";
   return dosPlatos ? [...PLATOS_DEL_HUECO] : ["principal"];
 }
 
@@ -81,7 +84,7 @@ export function huecosEsperados(data, { activeDays } = {}) {
 const hayPlato = (id) => Boolean(id) && id !== "_";
 
 /**
- * De los huecos esperados, los que el plan no tiene: `{ grupo, dia, comida, plato }`.
+ * De los huecos esperados, los que el plan no tiene, con la misma forma.
  * El plan guardado va por grupo y clave «Lun-Comida», con `recipeId` el
  * principal y `firstRecipeId` el primero.
  */
@@ -96,7 +99,7 @@ export function huecosVacios(plan, esperados) {
  * Los huecos vacíos en castellano corto, en el orden de la semana:
  * «sábado comida (2º), viernes cena». Si del mismo hueco faltan los dos
  * platos, se dice el hueco entero («viernes cena»); si falta uno, cuál.
- * Con varios grupos, el grupo entre paréntesis.
+ * Con varios grupos, el grupo entre corchetes.
  */
 export function describirHuecos(huecos) {
   const porHueco = new Map();
