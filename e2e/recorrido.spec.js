@@ -136,18 +136,13 @@ test("alta, menú de la semana, cambiar un plato y ver la compra", async ({ page
   await leerCompra(page);
 });
 
-// Fallo conocido de la app (#1063), apuntado para que no se pierda: sin cuenta, la
-// compra no sigue al plato cambiado. Enseña la copia archivada de la semana,
-// porque `data.menuWeek` queda vacío tras el alta (src/screens/Shopping.jsx
-// lee la lista viva solo para la semana activa). Esta prueba fija el fallo tal
-// cual: el día que se arregle se pone en rojo, y quien lo arregle cambia
-// `toBe` por `not.toBe`. No es `test.fail`, que también daría verde si se
-// rompe un selector por el camino.
-test("fallo conocido #1063: la compra no sigue al plato cambiado", async ({ page }) => {
+// Sin cuenta, la compra sigue al plato cambiado: la lista de después no es la
+// de antes. Hasta #1068 enseñaba la copia archivada de la semana (#1063).
+test("la compra sigue al plato cambiado (#1063)", async ({ page }) => {
   await darDeAlta(page);
   const platos = await abrirMenu(page);
   const compraAntes = await leerCompra(page);
   await boton(page, "Menú").click();
   await cambiarPrimerPlato(page, platos);
-  expect(await leerCompra(page)).toBe(compraAntes);
+  expect(await leerCompra(page)).not.toBe(compraAntes);
 });
