@@ -40,6 +40,7 @@
 import { estadoDe, valorDe } from "./notepad.js";
 import { alergiasRevisadas } from "./alergiasBase.js";
 import { APARATOS_EN_ORDEN } from "./electrodomesticos.js";
+import { conEstructura } from "./estructuraPlatos.js";
 import { COOK_LEVELS, COOK_TIME_DEFAULTS, cookLevelForMinutes, cookLevelMinutes } from "./cookTime.js";
 import { rutaDeReparto } from "./reparto.js";
 import { KID_DINNER_DEFAULTS, kidMembers, normalizeKidDinnerConfig } from "./kidsMenu.js";
@@ -336,7 +337,10 @@ export const PREGUNTAS = [
     control: "cards-ab",
     fuente: "data",
     lee: (data) => data?.mealStructure ?? null,
-    escribe: (data, valor) => ({ ...data, mealStructure: valor }),
+    // Para toda la casa, también los grupos que tenían la suya: si no, en modo
+    // experto el cambio no se notaba (estructuraPlatos.js, #958). Lo usan la
+    // app y Lola (ajustes.js, ajustar_cocina).
+    escribe: (data, valor) => conEstructura(data, valor),
     // Los dos valores que el planner entiende de VERDAD. Ojo con "1_plato":
     // parece un histórico y no lo es — es el valor que compara aiPlanner.js
     // (`mealStructure === "1_plato"`). Ofrecer "unico" aquí dejaba el control

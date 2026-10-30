@@ -152,6 +152,7 @@ import { SCHOOL_DAYS, SCHOOL_COURSES, hasAnySchoolDish, householdHasSchoolMenu, 
 import { outStateFor, isHomeState, nextSlotState, resolveQuickActions } from "../lib/schedulePresets.js";
 import { importSchoolMenuFile, selectBestWeek } from "../lib/schoolMenuImport.js";
 import { SchoolMenuDeck } from "./SchoolMenuDeck.jsx";
+import { estructuraDelGrupo, estructuraCenaDelGrupo, conEstructura } from "../lib/estructuraPlatos.js";
 
 const MEAL_STRUCTURE_CARDS = [
   {
@@ -7605,8 +7606,7 @@ function computeGroupSlotBudget(data, group) {
   // (per-group override first, then the global "modo básico" default). Without
   // the "1_plato" branch the budget over-counts comida days as 2 slots while
   // the generator only produces 1, making the scaled freqs impossible to meet.
-  const mealStructure =
-    data.mealStructureByGroup?.[group?.id] ?? data.mealStructure ?? "primero_segundo";
+  const mealStructure = estructuraDelGrupo(data, group?.id);
   let comidaDays = 0;
   let cenaDays = 0;
   let platoUnicoDays = 0;
@@ -8647,10 +8647,11 @@ function OnboardingMealExtrasShared({ data, setData, onNext, onBack, onFinish, o
 
   const expert = Boolean(data.expertMode);
   const postreOn = em.postre && em.postre !== "off";
-  const structureId = data.mealStructureByGroup?.[subjectId] ?? "primero_segundo";
+  // La que usa el motor para este grupo (estructuraPlatos.js, #958).
+  const structureId = estructuraDelGrupo(data, subjectId);
   // La cena empieza en un plato, que es como se cena aquí. Ver
   // CENA_STRUCTURE_CARDS y `mealStructureCena` en App.jsx.
-  const cenaStructureId = data.mealStructureCenaByGroup?.[subjectId] ?? "1_plato";
+  const cenaStructureId = estructuraCenaDelGrupo(data, subjectId);
 
   const extrasSection = (key, children) => ({ key, children });
 
@@ -8974,14 +8975,15 @@ export function OnboardingMode({ data, setData, onNext, onBack, onFinish, onRese
             active={current === t.id}
             onClick={() =>
               setData((d) => ({
-                ...d,
-                expertMode: t.id === "expert",
-                modePrompted: true,
                 // Básico se salta la pregunta de "¿uno o dos platos?" (ver
                 // OnboardingSchedule) — asume plato combinado, la opción con
                 // menos fricción, en vez de dejarlo caer en el fallback de
-                // "primero_segundo" sin haberlo elegido nadie.
-                ...(t.id === "basic" ? { mealStructure: "1_plato" } : {}),
+                // "primero_segundo" sin haberlo elegido nadie. Para toda la
+                // casa, con la misma escritura que Lola (conEstructura, #958):
+                // si no, la de cada grupo del modo experto seguía mandando.
+                ...(t.id === "basic" ? conEstructura(d, "1_plato") : d),
+                expertMode: t.id === "expert",
+                modePrompted: true,
               }))
             }
           />
