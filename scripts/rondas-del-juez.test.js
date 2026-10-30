@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { clasificar, contar, leerPr, leerSalida, MOTIVOS_SIN_VEREDICTO, motivoSinVeredicto, tabla } from "./rondas-del-juez.mjs";
+import { acabadas, clasificar, contar, leerPr, leerSalida, LIMITE_EJECUCIONES, MOTIVOS_SIN_VEREDICTO, motivoSinVeredicto, tabla } from "./rondas-del-juez.mjs";
 
 // Líneas con la forma de `gh run view <id> --log`: job, paso, hora y texto.
 const linea = (texto) => `revisor / juzgar\tUNKNOWN STEP\t2026-10-30T22:40:15.1678601Z ${texto}`;
@@ -62,7 +62,7 @@ describe("rondas-del-juez: suma por criterio", () => {
       { id: "C9", no: 3, prs: 2 },
       { id: "C6", no: 1, prs: 1 },
     ]);
-    expect(res.sinVeredicto.find((s) => s.motivo === "tope-de-turnos")).toEqual({ motivo: "tope-de-turnos", fallaElJuez: true, ejecuciones: 1 });
+    expect(res.sinVeredicto.find((s) => s.motivo === "tope-de-turnos")).toEqual({ motivo: "tope-de-turnos", fallaElJuez: true, ejecuciones: 1, ids: [5] });
     expect(res.sinVeredicto.find((s) => s.motivo === "cancelada").fallaElJuez).toBe(false);
   });
 
@@ -71,5 +71,22 @@ describe("rondas-del-juez: suma por criterio", () => {
     expect(t).toContain("| C9 | 3 | 2 |");
     expect(t).toContain("| tope-de-turnos | 1 | sí |");
     expect(t).toContain("últimos 14 días: 6 ejecuciones, 4 con veredicto, 3 con algún «no»");
+  });
+
+  it("lista los ids de las sin-salida, para ver si cambió una señal copiada", () => {
+    const t = tabla(contar([...clasificadas, { id: 7, rama: "d", pr: null, veredicto: false, noes: [], motivo: "sin-salida" }]), 14);
+    expect(t).toContain("sin-salida, mira su log (¿cambió una señal de MOTIVOS_SIN_VEREDICTO?): 7");
+    expect(tabla(contar(clasificadas), 14)).not.toContain("mira su log");
+  });
+});
+
+describe("rondas-del-juez: la lista de ejecuciones", () => {
+  it("se queda con las acabadas", () => {
+    expect(acabadas([{ status: "completed" }, { status: "in_progress" }], 5)).toEqual([{ status: "completed" }]);
+  });
+
+  it("para si la lista llega al tope de gh run list, en vez de contar corto", () => {
+    expect(() => acabadas(Array.from({ length: 3 }, () => ({ status: "completed" })), 3)).toThrow(/el tope/);
+    expect(LIMITE_EJECUCIONES).toBeGreaterThan(0);
   });
 });

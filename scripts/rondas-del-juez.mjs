@@ -3,7 +3,7 @@
 // saber qué clase de fallo repiten las sesiones al abrir un PR. La tabla ordena la skill `pr-con-juez`.
 //
 // Uso:   npm run rondas-juez [-- --dias 14] [--json]
-// Lee:   gh run list --workflow revisor --created >=<fecha> --json databaseId,headBranch,createdAt,conclusion,status
+// Lee:   gh run list --workflow revisor --created >=<fecha> --json databaseId,headBranch,conclusion,status
 //        gh run view <id> --log   (de cada ejecución acabada)
 // Token: desde Node, `gh` no pasa por el shim de las sesiones; lánzalo con
 //        node scripts/token-sesion.mjs -- npm run rondas-juez   (cuesta una llamada a la API por ejecución)
@@ -19,8 +19,24 @@ import { promisify } from "node:util";
 
 const ejecutar = promisify(execFile);
 
+// Tope de `gh run list`. Si llegan tantas, puede haber más y la cuenta saldría corta: el script para.
+export const LIMITE_EJECUCIONES = 5000;
+// Logs que se piden a la vez (la medida del PR que creó el script se hizo con 6).
+const A_LA_VEZ = 6;
+// Un log entero cabe; con el tope de 1 MiB de Node, uno largo haría fallar la ejecución entera.
+const MAX_LOG = 256 * 1024 * 1024;
+
+// Las ejecuciones acabadas de la lista; lanza si la lista llega al tope (habría más que no se ven).
+export function acabadas(lista, limite = LIMITE_EJECUCIONES) {
+  if (lista.length >= limite) throw new Error(`gh run list devolvió ${lista.length} ejecuciones, el tope: acorta --dias`);
+  return lista.filter((r) => r.status === "completed");
+}
+
 // Motivo de una ejecución sin veredicto, en orden de prioridad: el primero cuya señal está en el log gana.
-// `cancelada` y `sin-salida` no son culpa del juez (otra ejecución la sustituyó, o no llegó a juzgar).
+// `cancelada` y `sin-salida` no son culpa del juez (cancelada, o no llegó a juzgar).
+// Las señales son copia de textos de otros: «exceeding…» lo escribe la acción de Claude, y «salida ilegible» y
+// «: sin respuesta», `decidir` de .fabrica/scripts/veredicto.mjs (la Fábrica, fuera de este repo). Si cambian,
+// esas ejecuciones caen en `sin-salida`, y la tabla lista sus ids para mirarlas: es la alarma de esta copia.
 export const MOTIVOS_SIN_VEREDICTO = [
   { motivo: "tope-de-turnos", fallaElJuez: true, senal: "exceeding the configured maximum" },
   { motivo: "salida-ilegible", fallaElJuez: true, senal: "salida ilegible" },
@@ -86,6 +102,7 @@ export function contar(clasificadas) {
     motivo,
     fallaElJuez,
     ejecuciones: clasificadas.filter((c) => c.motivo === motivo).length,
+    ids: clasificadas.filter((c) => c.motivo === motivo).map((c) => c.id),
   }));
   return {
     ejecuciones: clasificadas.length,
@@ -108,12 +125,14 @@ export function tabla(resumen, dias) {
     "|---|---|---|",
     ...resumen.sinVeredicto.map((s) => `| ${s.motivo} | ${s.ejecuciones} | ${s.fallaElJuez ? "sí" : "no"} |`),
   ];
+  const sinSalida = resumen.sinVeredicto.find((s) => s.motivo === "sin-salida")?.ids ?? [];
+  if (sinSalida.length) fuera.push("", `sin-salida, mira su log (¿cambió una señal de MOTIVOS_SIN_VEREDICTO?): ${sinSalida.join(", ")}`);
   return fuera.join("\n");
 }
 
 async function gh(args) {
   try {
-    const { stdout } = await ejecutar("gh", args, { maxBuffer: 256 * 1024 * 1024, windowsHide: true });
+    const { stdout } = await ejecutar("gh", args, { maxBuffer: MAX_LOG, windowsHide: true });
     return stdout;
   } catch (e) {
     throw new Error(`gh ${args.join(" ")} falló: ${e.stderr || e.message}`, { cause: e });
@@ -155,13 +174,13 @@ async function main() {
   const { dias, json } = leerArgs(process.argv.slice(2));
   const desde = new Date(Date.now() - dias * 86400000).toISOString().slice(0, 10);
   const lista = JSON.parse(
-    await gh(["run", "list", "--workflow", "revisor", "--created", `>=${desde}`, "--limit", "5000", "--json", "databaseId,headBranch,createdAt,conclusion,status"]),
+    await gh(["run", "list", "--workflow", "revisor", "--created", `>=${desde}`, "--limit", String(LIMITE_EJECUCIONES), "--json", "databaseId,headBranch,conclusion,status"]),
   );
-  const acabadas = lista.filter((r) => r.status === "completed");
-  const clasificadas = await enParalelo(acabadas, 6, async (r) =>
+  const terminadas = acabadas(lista);
+  const clasificadas = await enParalelo(terminadas, A_LA_VEZ, async (r) =>
     clasificar({ id: r.databaseId, rama: r.headBranch, conclusion: r.conclusion, log: await logDe(r.databaseId) }),
   );
-  const resumen = { desde, dias, sinAcabar: lista.length - acabadas.length, ...contar(clasificadas) };
+  const resumen = { desde, dias, sinAcabar: lista.length - terminadas.length, ...contar(clasificadas) };
   console.log(json ? JSON.stringify(resumen, null, 2) : `${tabla(resumen, dias)}\n\nSin acabar (no contadas): ${resumen.sinAcabar}.`);
 }
 
