@@ -1168,16 +1168,27 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                               key={lado}
                               type="button"
                               aria-label={etiqueta}
-                              onClick={() => { const el = avatarStripRef.current; if (el) el.scrollBy({ left: dir * el.clientWidth * 0.85, behavior: "smooth" }); }}
+                              onClick={() => {
+                                const el = avatarStripRef.current;
+                                const quieta = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+                                if (el) el.scrollBy({ left: dir * el.clientWidth * 0.85, behavior: quieta ? "auto" : "smooth" });
+                              }}
+                              // Zona táctil de 40 px (DESIGN_SYSTEM) con el círculo de 28 dentro,
+                              // casi todo fuera de la tira para no tapar los avatares.
                               style={{
-                                position: "absolute", top: "50%", [borde]: -6, transform: "translateY(-50%)",
-                                width: 28, height: 28, padding: 0, borderRadius: 999,
-                                border: "1.5px solid #e5eee8", background: "#fff", color: "#6b8576",
-                                boxShadow: "0 2px 8px rgba(0,0,0,.14)", cursor: "pointer",
-                                display: "inline-flex", alignItems: "center", justifyContent: "center",
+                                position: "absolute", top: "50%", [borde]: -22, transform: "translateY(-50%)",
+                                width: 40, height: 40, padding: 0, border: "none", background: "transparent",
+                                cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center",
                               }}
                             >
-                              <Flecha size={15} strokeWidth={2.6} />
+                              <span style={{
+                                width: 28, height: 28, borderRadius: 999, boxSizing: "border-box",
+                                border: "1.5px solid #e5eee8", background: "#fff", color: "#6b8576",
+                                boxShadow: "0 2px 8px rgba(0,0,0,.14)",
+                                display: "inline-flex", alignItems: "center", justifyContent: "center",
+                              }}>
+                                <Flecha size={15} strokeWidth={2.6} />
+                              </span>
                             </button>
                           ))}
                         </div>
