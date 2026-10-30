@@ -28,6 +28,7 @@ import {
   basesAlcanzables,
   splitAchievableFreqs,
   slotAcceptsRole,
+  UNARIA_POR_REGLA,
 } from "../utils/validateMenu.js";
 import { NUTRIENTES, CAMPOS_SECUNDARIOS } from "../data/nutrientes.js";
 import guarnicionesData from "../data/recipes/guarniciones.json" with { type: "json" };
@@ -3347,6 +3348,12 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   // dejaban el pool en una docena de platos y sin rastro del salmón.
   if (pedido && candidatos > 0) return { candidatos: candidates.slice(0, candidatos) };
 
+  // Las reglas del solver, no una copia: un plato que rompería una de ellas en
+  // este hueco no se ofrece (ver `filtrarPorReglasDuras` para el último
+  // escalón, cuando lo que ya hay en el tablero no deja ninguna salida limpia).
+  candidates = filtrarPorReglasDuras(candidates, { ctx, menuPlan, groupId, day, meal, course });
+  if (candidates.length === 0) return null;
+
   // School-menu avoidance: this swap path (manual "cambiar plato") is a
   // separate code path from the main generator and never runs through
   // validateMenu.js's school_protein_conflict / school_carb_conflict rules —
@@ -3565,6 +3572,80 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   }
 
   return { frontendRecipe: fr, recipeId: fr.id, course, reusedDuplicate };
+}
+
+// Lo que no se vigila al colocar UN plato: la semana a medias siempre falta de
+// algo (huecos, segundos, mínimos). Es la misma lista que el solver ignora en
+// sus parciales.
+const IGNORADAS_AL_COLOCAR = new Set([
+  "slot_faltante", "base_pedida_insuficiente", "comida_sin_segundo",
+]);
+
+/**
+ * Los candidatos de un hueco que NO rompen ninguna regla de `validateMenu`
+ * respecto a lo que ya hay en la semana: las mismas que cumple el solver
+ * (legumbre de cena, dos platos de cuchara el mismo día, proteína repetida…).
+ *
+ * Se mide por DIFERENCIA: solo cuenta lo que el candidato añade a las
+ * violaciones que el tablero ya traía, que pueden venir de platos puestos a
+ * mano y no son culpa de este hueco.
+ *
+ * Tres escalones: primero los que no rompen nada; si no hay ninguno, los que
+ * solo rompen una de REGLAS_RELAJABLES (perfil de salud, tope semanal, base de
+ * legumbre); y si tampoco —un plato puesto a mano que no deja pareja posible—,
+ * los que no rompen ninguna regla DEL PLATO (legumbre de cena, casquería, plato
+ * de ocasión…) y rompen menos reglas de pareja. Una regla del plato nunca se
+ * relaja: no depende de lo que haya al lado.
+ */
+function filtrarPorReglasDuras(candidates, { ctx, menuPlan, groupId, day, meal, course }) {
+  const daySlug = DAY_SLUG[day];
+  const slotIdDe = (dia, comida, curso) => {
+    const mios = ctx.slots.filter((s) => s.daySlug === dia && s.mealType === comida);
+    if (mios.length <= 1) return mios[0]?.slotId ?? null;
+    return mios.find((s) => s.position === (curso === "first" ? "primero" : "segundo"))?.slotId ?? null;
+  };
+  const objetivo = slotIdDe(daySlug, tipoDeComida(meal), course);
+  // Sin hueco en el contexto (franja fuera de menú) no hay reglas que aplicar.
+  if (!objetivo) return candidates;
+
+  const puestos = [];
+  const usados = new Map();
+  for (const [clave, s] of Object.entries(menuPlan[groupId] ?? {})) {
+    const corte = clave.indexOf("-");
+    const dia = DAY_SLUG[clave.slice(0, corte)];
+    const comida = clave.slice(corte + 1);
+    for (const [curso, rid] of [["first", s?.firstRecipeId], ["main", s?.recipeId]]) {
+      const base = stripGroupPrefix(rid);
+      const receta = base ? recipeCatalogById[base] : null;
+      const slotId = receta ? slotIdDe(dia, tipoDeComida(comida), curso) : null;
+      if (!slotId || slotId === objetivo) continue;
+      puestos.push({ slotId, recipeId: base });
+      usados.set(base, receta);
+    }
+  }
+
+  const hayQueVigilar = (violations) => violations.filter((v) => !IGNORADAS_AL_COLOCAR.has(v.rule));
+  const claves = (violations) => new Set(hayQueVigilar(violations).map((v) => `${v.rule}@${v.slotId}`));
+  const salud = ctx.config?.healthProfiles ?? [];
+  const antes = claves(validateMenu(puestos, [...usados.values()], ctx.slots, salud, {}, {}).violations);
+
+  const limpios = [];
+  const relajables = [];
+  const delPlatoSano = [];
+  for (const r of candidates) {
+    const asignaciones = [...puestos, { slotId: objetivo, recipeId: r.id }];
+    const { violations } = validateMenu(asignaciones, [...usados.values(), r], ctx.slots, salud, {}, {});
+    const nuevas = hayQueVigilar(violations).filter((v) => !antes.has(`${v.rule}@${v.slotId}`));
+    if (nuevas.length === 0) limpios.push(r);
+    else if (nuevas.every((v) => REGLAS_RELAJABLES.has(v.rule))) relajables.push(r);
+    else if (!nuevas.some((v) => UNARIA_POR_REGLA[v.rule] && !REGLAS_RELAJABLES.has(v.rule))) {
+      delPlatoSano.push({ r, rotas: nuevas.length });
+    }
+  }
+  if (limpios.length > 0) return limpios;
+  if (relajables.length > 0) return relajables;
+  const menos = Math.min(...delPlatoSano.map((c) => c.rotas));
+  return delPlatoSano.filter((c) => c.rotas === menos).map((c) => c.r);
 }
 
 /**

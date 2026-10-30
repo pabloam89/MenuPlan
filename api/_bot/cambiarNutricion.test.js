@@ -49,7 +49,9 @@ describe("cambiar_plato con el motor real", () => {
     casaDeHoy = casaCon("g1__sopas_cremas_046");
     const f = filtrarCandidatas(pool(casaDeHoy), { perfil: "altoProteina" }, baseDelHueco(core, casaDeHoy.semanas[0].plan.g1["Vie-Cena"], "main", nut), nut);
     expect(f.exacto).toBe(true);
-    expect(f.lista.length).toBeGreaterThan(3);
+    // Con las reglas del solver (legumbre de cena, rol de cena) el hueco de un
+    // viernes se queda en cuatro platos; con perfil, tres: justo el tope.
+    expect(f.lista.length).toBeGreaterThanOrEqual(3);
     vi.spyOn(Math, "random").mockReturnValue(0.999);
     const out = {};
     await cambiarPlato("h", { dia: "viernes", franja: "Cena", perfil: "altoProteina" }, null, out);
@@ -60,7 +62,7 @@ describe("cambiar_plato con el motor real", () => {
   it("sin la foto del plato registrada, compara con su receta del catálogo", async () => {
     const actual = pool(casaCon("g1__sopas_cremas_046"))
       .filter((r) => proteina(r) != null && !core.RECIPES_BY_ID[`g1__${r.id}`])
-      .sort((a, b) => proteina(b) - proteina(a))[5];
+      .sort((a, b) => proteina(b) - proteina(a))[1];
     expect(core.RECIPES_BY_ID[`g1__${actual.id}`]).toBeUndefined();
     casaDeHoy = casaCon(`g1__${actual.id}`);
     vi.spyOn(Math, "random").mockReturnValue(0.999);
