@@ -52,6 +52,10 @@ function clavesDeBloque(texto, desde, hasta = "\n};") {
   return { claves: [...texto.slice(i, j).matchAll(/^ {2}(\w+):/gm)].map((m) => m[1]), i, j };
 }
 
+// Un escalar JSON o una lista de escalares, tal como se escribe en una línea de INITIAL_DATA.
+const ESCALAR = String.raw`"[^"]*"|-?\d+(?:\.\d+)?|true|false|null`;
+const LITERAL_JSON = new RegExp(String.raw`^(?:${ESCALAR}|\[\s*(?:(?:${ESCALAR})\s*(?:,\s*(?:${ESCALAR})\s*)*)?\])$`);
+
 /**
  * Los valores de un objeto literal de primer nivel que caben en una línea y son
  * JSON ("same", 2000, true, ["Comida", "Cena"], [0]): el defecto con que nace
@@ -62,7 +66,7 @@ function valoresDeBloque(texto, desde) {
   const { i, j } = clavesDeBloque(texto, desde);
   const valores = new Map();
   for (const m of texto.slice(i, j).matchAll(/^ {2}(\w+): (.+?),?\s*$/gm)) {
-    try { valores.set(m[1], JSON.parse(m[2])); } catch { /* no es un literal JSON: sin defecto comparable */ }
+    if (LITERAL_JSON.test(m[2])) valores.set(m[1], JSON.parse(m[2]));
   }
   return valores;
 }
