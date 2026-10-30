@@ -16,6 +16,7 @@ const { select, insert, borrar } = await import("./db.js");
 const { cargarCasa, conCasa } = await import("./casa.js");
 const { motor } = await import("./menu.js");
 const { generarMenu } = await import("./generar.js");
+const { estimarSemana, frasePresupuesto } = await import("../../src/lib/presupuesto.js");
 
 const plan = { Lun: { Cena: { recipeId: "r1" } } };
 const m = {
@@ -35,6 +36,7 @@ const m = {
   weekToRow: () => ({}),
   COLUMNAS_DESPENSA: "*",
   filaDeDespensa: (f) => f,
+  estimarSemana, frasePresupuesto,
 };
 
 const casaVieja = {
@@ -323,6 +325,28 @@ describe("semanas por fecha y memoria entre menús (#958)", () => {
     expect(out.ok).toBe(false);
     expect(insert).not.toHaveBeenCalled();
     expect(conCasa).not.toHaveBeenCalled();
+  });
+
+  it("con presupuesto, dice si la semana cabe; lo que no tiene precio no cuenta como 0 € (#958)", async () => {
+    const conPres = structuredClone(casaVieja);
+    conPres.state.data = { ...conPres.state.data, hasBudget: true, budget: 60 };
+    cargarCasa.mockResolvedValue(conPres);
+    conCasa.mockResolvedValue({ ok: true });
+    // Una receta de la familia: sin fila de precio. Suma 0 €, pero no deja decir «cabe».
+    const planCasa = { g1: { "Lun-Cena": { recipeId: "propia_1", raciones: 2 } }, _warnings: [] };
+    motor.mockResolvedValue({ ...m, generateMenuWithAI: async () => ({ plan: planCasa, recipes: [{ id: "propia_1", name: "Tortilla" }] }) });
+    const out = {};
+    const texto = await generarMenu("h1", "esta", [], out);
+    expect(out.presupuesto).toMatch(/no puedo asegurar que quepa en el presupuesto de 60 €/);
+    expect(texto).toContain(`PRESUPUESTO (dilo con estas cifras, sin redondear a favor): ${out.presupuesto}`);
+  });
+
+  it("sin presupuesto no se dice nada de euros", async () => {
+    conCasa.mockResolvedValue({ ok: true });
+    const out = {};
+    const texto = await generarMenu("h1", "esta", [], out);
+    expect(out.presupuesto).toBeNull();
+    expect(texto).not.toMatch(/PRESUPUESTO/);
   });
 
   it("los días elegidos de la semana en curso que ya pasaron no entran", async () => {

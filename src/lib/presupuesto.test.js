@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  VEREDICTOS, ESTADOS_PRESUPUESTO, PARTE_CONOCIDA_MINIMA, leerPresupuesto, presupuestoSemanal,
-  precioDePlato, precioAlto, estimarSemana, veredicto, frasePresupuesto, COBERTURA_SUELO,
+  VEREDICTOS, ESTADOS_PRESUPUESTO, PARTE_CONOCIDA_MINIMA, leerPresupuesto, presupuestoSemanal, topePorRacion,
+  precioDePlato, precioAlto, estimarSemana, veredicto, frasePresupuesto, COBERTURA_SUELO, listaFrenteAPresupuesto,
 } from "./presupuesto.js";
 import recipeCoste from "../data/derived/recipeCoste.json" with { type: "json" };
 
@@ -23,6 +23,11 @@ describe("leerPresupuesto: la lectura de hasBudget y budget para enseñarlo o ha
   it("con él, el número", () => {
     expect(leerPresupuesto(casa(80))).toEqual({ estado: "activo", euros: 80 });
     expect(presupuestoSemanal(casa("95"))).toBe(95);
+  });
+  it("el tope por ración reparte el presupuesto entre las raciones; sin las dos cifras, no hay tope", () => {
+    expect(topePorRacion(84, 28)).toBe(3);
+    expect(topePorRacion(null, 28)).toBeNull();
+    expect(topePorRacion(84, 0)).toBeNull();
   });
   it("con el interruptor y sin cifra válida es «sin_cifra», no «sin»: no se calla", () => {
     for (const b of [0, -5, "mucho", null, undefined]) expect(leerPresupuesto(casa(b)).estado, String(b)).toBe("sin_cifra");
@@ -99,5 +104,26 @@ describe("veredicto y frase: vocabulario cerrado y honesto", () => {
     expect(frasePresupuesto(casa(80, false), est())).toBeNull();
     expect(frasePresupuesto(casa("mucho"), est())).toMatch(/sin una cifra válida/);
     expect(frasePresupuesto(casa(80), est({ raciones: 0, conPrecio: 0 }))).toMatch(/no hay platos que pueda contar/);
+  });
+});
+
+describe("listaFrenteAPresupuesto: la lista de la compra frente al presupuesto (#958)", () => {
+  const est = (total, matched, count) => ({ total, matched, count });
+  it("lo que no tiene precio se cuenta aparte y no deja decir «cabe»", () => {
+    expect(listaFrenteAPresupuesto(casa(80), est(60, 18, 20))).toEqual({ presupuesto: 80, total: 60, sinPrecio: 2, veredicto: "incierto" });
+    expect(listaFrenteAPresupuesto(casa(80), est(60, 20, 20)).veredicto).toBe("cabe");
+  });
+  it("si el total con precio ya se pasa, no cabe, falte lo que falte", () => {
+    expect(listaFrenteAPresupuesto(casa(50), est(61, 15, 20)).veredicto).toBe("no_cabe");
+  });
+  it("el presupuesto es por semana: con dos semanas en la lista, el doble", () => {
+    expect(listaFrenteAPresupuesto(casa(50), est(90, 20, 20), 2)).toMatchObject({ presupuesto: 100, veredicto: "cabe" });
+  });
+  it("sin presupuesto, solo lo que no tiene precio; sin estimación, nada", () => {
+    expect(listaFrenteAPresupuesto(casa(80, false), est(60, 18, 20))).toEqual({ presupuesto: null, total: 60, sinPrecio: 2, veredicto: null });
+    expect(listaFrenteAPresupuesto(casa(80), null)).toBeNull();
+  });
+  it("su veredicto es del mismo vocabulario que el de la semana", () => {
+    for (const [t, m] of [[60, 18], [60, 20], [90, 20]]) expect(VEREDICTOS).toContain(listaFrenteAPresupuesto(casa(80), est(t, m, 20)).veredicto);
   });
 });

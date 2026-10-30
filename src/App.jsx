@@ -73,6 +73,8 @@ import { clearPreparedFromSlot } from "./lib/freezer.js";
 import { normalizeIngredientKey } from "./lib/ingredientCategories.js";
 import { conMarcas } from "./lib/compraIdentidad.js";
 import { getDayMeals, getMeals, ALL_DAY_MEALS, DAYS } from "./lib/planner.js";
+import { estructuraDelGrupo } from "./lib/estructuraPlatos.js";
+import { estimarSemana, frasePresupuesto } from "./lib/presupuesto.js";
 import {
   groupsFromModel,
   gruposVigentes,
@@ -136,12 +138,12 @@ const MenusScreen = lazy(() => import("./screens/MenusScreen.jsx").then(m => ({ 
 const MenuHistoryView = lazy(() => import("./screens/MenuHistoryView.jsx").then(m => ({ default: m.MenuHistoryView })));
 import { registerRecipes, RECIPES_BY_ID } from "./data/recipes.js";
 import {
-  toggleRecipeVote,
   setFavoriteScope,
   voteOf,
   favScopeOf,
   isRecipeFavorite,
   mergeVotes,
+  votarReceta,
   loadRecipeVotes,
   saveRecipeVote,
   deleteRecipeVote,
@@ -161,13 +163,13 @@ import {
 } from "./lib/recipeCollections.js";
 import { mergeDiscards } from "./lib/recipeDiscardsSync.js";
 import { loadUserState, saveUserState, clearUserState } from "./lib/userState.js";
-import { loadHouseholdState, saveHouseholdState, loadHouseholdBotRev } from "./lib/householdState.js";
+import { loadHouseholdState, saveHouseholdState, loadHouseholdBotRev, empezarCasaVacia, CASA_VACIA } from "./lib/householdState.js";
 import { leerBotRevVisto, guardarBotRevVisto } from "./lib/botRevVisto.js";
 import { guardarConVersion, guardandoCasa, guardadosDeCasa } from "./lib/versionCasa.js";
 import { resolveModeData, prepararSemana } from "./lib/prepararGeneracion.js";
 import BotEnlace from "./components/BotEnlace.jsx";
 import { loadHouseholdDiscards, saveHouseholdDiscard, deleteHouseholdDiscard, subirDescartesUnaVez } from "./lib/householdDiscardsSync.js";
-import { loadHouseholdFavorites, saveHouseholdFavorite, deleteHouseholdFavorite, householdFavoritesToVotes } from "./lib/householdFavoritesSync.js";
+import { loadHouseholdFavorites, saveHouseholdFavorite, deleteHouseholdFavorite, votosAlCargar } from "./lib/householdFavoritesSync.js";
 import { useHousehold } from "./lib/useHousehold.js";
 import { esTitular } from "./lib/householdsSync.js";
 import { shouldAdoptRemoteProfile, soloNubeAlCargar, mergeUserRecipesById } from "./lib/profileMerge.js";
@@ -1519,7 +1521,6 @@ export default function App() {
       const remoteCollections = cargaColecciones.data ?? {};
       const remoteFolders = cargaCarpetas.data ?? [];
       const remoteDiscards = cargaDescartes.data ?? { forever: [], cooldownUntil: {} };
-      const remoteHouseholdFavs = cargaFavsCasa.data ?? {};
       if (cancelled) return;
       // Sin red, y con lo de memoria de otra casa: no hay nada bueno que
       // enseñar ni que subir. Se queda sin marcar como cargada (no se guarda
@@ -1543,10 +1544,13 @@ export default function App() {
       const mergedCollections = mergeCollections(localCollections, remoteCollections);
       const mergedFolders = mergeFolders(localFolders, remoteFolders);
       const personalVotes = mergeVotes(localVotes, remoteVotes);
-      const mergedVotes = mergeVotes(
-        personalVotes,
-        householdFavoritesToVotes(remoteHouseholdFavs, personalVotes),
-      );
+      // Con casa, sus favoritas son las de household_favorites y ninguna más,
+      // como en Lola (#958): antes se mezclaban las personales de quien abría
+      // la app, y la misma casa generaba distinto según quién generara. Si no
+      // se pudieron leer, las personales de siempre: no se vacían las
+      // favoritas por un corte, y el error ya queda en el log
+      // (householdFavoritesSync.js, loadHouseholdFavorites).
+      const mergedVotes = votosAlCargar(personalVotes, householdId, cargaFavsCasa);
       setPersonalRecipeVotes(personalVotes);
 
       // Adopt the remote profile snapshot only to hydrate a session that
@@ -2421,13 +2425,15 @@ export default function App() {
       // we no longer surface their raw internal text as a toast — it read as a
       // confusing "toast rarísimo" on success. Always show the plain success
       // message; the warnings remain on the plan for anyone who needs them.
-      showToast(
-        user
-          ? "Menú generado · actívalo con ⚡ cuando lo vayas a usar"
-          : weekCount > 1
-            ? `Menú generado (${weekCount} semanas)`
-            : "Menú generado",
-      );
+      // Con presupuesto, además, se dice si la primera semana cabe, no cabe
+      // o no se sabe: nunca en silencio (lib/presupuesto.js, #958).
+      const frasePres = frasePresupuesto(working, estimarSemana(firstWeekPlan, { recetas: weekResults[0]?.recipes ?? [] }));
+      const generado = user
+        ? "Menú generado · actívalo con ⚡ cuando lo vayas a usar"
+        : weekCount > 1
+          ? `Menú generado (${weekCount} semanas)`
+          : "Menú generado";
+      showToast(frasePres ? `${generado}. ${frasePres}` : generado);
     } catch (err) {
       if (err?.name === "AbortError" || ctrl.signal.aborted) return;
       console.error("Error generating menu", err);
@@ -2585,8 +2591,8 @@ export default function App() {
         // shape they picked for the family instead of defaulting to two.
         mealStructureByGroup: {
           ...(d.mealStructureByGroup ?? {}),
-          [adHoc.id]:
-            d.mealStructureByGroup?.[homeGroup?.id] ?? "primero_segundo",
+          // La que usa el motor para su grupo, también si es la de la casa (#958).
+          [adHoc.id]: estructuraDelGrupo(d, homeGroup?.id),
         },
       }));
     },
@@ -3557,13 +3563,15 @@ export default function App() {
       delete profile.recipeVotes;
       delete profile.discards;
       delete profile.menus;
-      await saveHouseholdState(result.householdId, {
+      // Solo si la que queda está vacía, y con su versión (householdState.js, #958).
+      const vacia = await empezarCasaVacia(result.householdId, {
         data: profile,
         menuPlan: {},
         shopping: { items: [] },
         aiRecipes: [],
         onbStep: 0,
       });
+      if (vacia === CASA_VACIA.SIN_LEER || vacia === CASA_VACIA.FALLO) console.warn("[hogar] casa vacía sin guardar:", vacia);
     }
 
     showToast("Hogar vaciado");
@@ -3851,14 +3859,16 @@ export default function App() {
   const handleVoteRecipe = useCallback((recipeId, vote) => {
     if (householdReadOnly) return;
     const baseId = recipeId ? String(recipeId).split("__").pop() : recipeId;
-    const nextVotes = toggleRecipeVote(data.recipeVotes, baseId, vote);
-    setData((d) => ({ ...d, recipeVotes: nextVotes }));
+    // La nota, en los votos de la casa y en los personales; se guarda la
+    // personal, que conserva su favorita (votarReceta, #958).
+    const v = votarReceta(data.recipeVotes, personalRecipeVotes, baseId, vote);
+    setData((d) => ({ ...d, recipeVotes: v.casa }));
+    setPersonalRecipeVotes(v.personal);
     if (user?.id) {
-      const entry = nextVotes[baseId] ?? null;
-      if (entry == null) deleteRecipeVote(user.id, baseId);
-      else saveRecipeVote(user.id, baseId, entry);
+      if (v.guardar == null) deleteRecipeVote(user.id, baseId);
+      else saveRecipeVote(user.id, baseId, v.guardar);
     }
-  }, [data.recipeVotes, user, householdReadOnly]);
+  }, [data.recipeVotes, personalRecipeVotes, user, householdReadOnly]);
 
   // Favorite (personal collection)
   // applies to ("all" | string[] | null to unfavorite). Independent of vote.

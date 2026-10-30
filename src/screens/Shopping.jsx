@@ -104,6 +104,7 @@ import {
 } from "../lib/weekCalendar.js";
 import { shareShoppingList } from "../lib/menuExport.js";
 import { priceShoppingList } from "../lib/listPricing.js";
+import { listaFrenteAPresupuesto } from "../lib/presupuesto.js";
 import { isMercadonaStore } from "../lib/storeCatalog.js";
 import { PantryPrefsSheet } from "../components/ModeSheets.jsx";
 
@@ -1208,6 +1209,9 @@ export function ShoppingScreen({
   // Comprado si no hay súper seleccionado.
   const showMercadonaStrip =
     mercadonaSelected && stockReady && storeEstimate && storeEstimate.matched > 0 && !isEmpty;
+  // El total de la lista frente al presupuesto (por semana marcada) y lo que
+  // no tiene precio, aparte (lib/presupuesto.js, #958).
+  const frente = listaFrenteAPresupuesto(data, storeEstimate, selectedWeeks.length);
   const weekSelectorEl = orderedAll.length > 1 && !isEmpty && (
     <WeekChips
       ariaLabel="Semanas incluidas en la compra — marca varias para combinar"
@@ -1412,6 +1416,25 @@ export function ShoppingScreen({
                 >
                   {formatEuro0(storeEstimate.total)}
                 </span>
+                {/* El presupuesto de la casa al lado del total (lib/presupuesto.js,
+                    #958): por semana marcada, y con lo que no tiene precio
+                    contado aparte, para que el total no parezca completo. */}
+                {frente && (frente.presupuesto != null || frente.sinPrecio > 0) && (
+                  <span
+                    style={{
+                      marginLeft: "var(--esp-6)",
+                      fontSize: "var(--tipo-paso-13)",
+                      fontWeight: "var(--tipo-peso-700)",
+                      color: frente.veredicto === "no_cabe" ? "var(--color-peligro)" : "var(--color-tinta-suave)",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {frente.presupuesto != null ? `de ${formatEuro0(frente.presupuesto)}` : ""}
+                    {frente.sinPrecio > 0 ? `${frente.presupuesto != null ? " · " : ""}${frente.sinPrecio} sin precio` : ""}
+                  </span>
+                )}
               </div>
               {weekSelectorEl}
             </div>
