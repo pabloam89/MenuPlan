@@ -13,6 +13,9 @@ process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
 vi.mock("./ajustes.js", async (original) => ({ ...(await original()), dominiosDeGustos: async () => "DOMINIOS" }));
 
 const { herramientas, FICHAS, SOLO_LECTURA, AVISO_LENTO, pantallaDe } = await import("./agente.js");
+// Detrás de agente.js: el mapa de capacidades deriva su lado de Lola de FICHAS.
+const { CAPACIDADES } = await import("../../src/lib/capacidades.js");
+const { datoDe } = await import("../../src/lib/registroFicha.js");
 // Como titular: lo que ve quien gestiona la casa, todas (el filtro por papel
 // se prueba en papel.test.js).
 const charla = { householdId: "x", chatId: "1", channel: "telegram", fotos: [], papel: "owner" };
@@ -24,7 +27,7 @@ describe("lo que Lola ve de sus herramientas", () => {
   });
 
   it("la ficha no viaja a la API", async () => {
-    expect(JSON.stringify(await herramientas(charla))).not.toMatch(/"(soloLectura|pantalla|avisoLento|lector)":/);
+    expect(JSON.stringify(await herramientas(charla))).not.toMatch(/"(soloLectura|pantalla|avisoLento|lector|capacidades|lee|escribe)":/);
   });
 });
 
@@ -37,6 +40,23 @@ describe("una ficha por herramienta", () => {
       expect(typeof f.soloLectura, n).toBe("boolean");
       expect(Object.hasOwn(f, "pantalla"), n).toBe(true);
     }
+  });
+
+  // Trozo 23 del plan de fichas: qué datos del registro lee y escribe, y qué
+  // capacidad del mapa hace. De aquí sale el lado de Lola de capacidades.js.
+  it("cada una dice qué lee, qué escribe y qué capacidad hace, con claves que existen", () => {
+    const ids = new Set(CAPACIDADES.map((c) => c.id));
+    for (const [n, f] of FICHAS) {
+      expect(Array.isArray(f.lee) && Array.isArray(f.escribe), `${n}: lee y escribe`).toBe(true);
+      expect(f.capacidades?.length, `${n}: capacidades`).toBeGreaterThan(0);
+      for (const id of f.capacidades) expect(ids.has(id), `${n} → capacidad ${id}`).toBe(true);
+      for (const clave of [...f.lee, ...f.escribe]) expect(datoDe(clave), `${n} → ${clave} no está en el registro`).toBeTruthy();
+    }
+  });
+
+  it("las de solo leer dicen que no escriben ningún dato: escribe []", () => {
+    const vacia = (l) => Array.isArray(l) && l.length === 0;
+    expect([...SOLO_LECTURA].filter((n) => !vacia(FICHAS.get(n).escribe))).toEqual([]);
   });
 
   it("las de solo leer son las de antes, una a una (cambiarlo es a propósito: es la puerta de pista.js)", () => {
