@@ -364,3 +364,42 @@ describe("semanas por fecha y memoria entre menús (#958)", () => {
     expect(r.map((x) => x.id)).toEqual(["a", "b", "fav"]);
   });
 });
+
+describe("generar: un hueco vacío no se calla (#1029)", () => {
+  // Lo que recibió el motor: una casa de dos, comida de un plato y cena, solo el lunes.
+  const semanaDeUno = { members: [{ id: "p1" }], groups: [{ id: "g1", label: "Todos", memberIds: ["p1"] }], schedule: {}, meals: ["Comida", "Cena"], mealStructure: "1_plato" };
+  const conPlan = (plan) => motor.mockResolvedValue({
+    ...m,
+    prepararSemana: () => ({ weekData: semanaDeUno, crossWeek: null, weekSchedule: {} }),
+    generateMenuWithAI: async () => ({ plan, recipes: [{ id: "r1", name: "Tortilla" }] }),
+  });
+
+  it("el menú se guarda igual, pero el texto y `out` dicen qué hueco se queda sin plato", async () => {
+    conPlan({ g1: { "Lun-Cena": { recipeId: "r1" } } });
+    conCasa.mockResolvedValue({ ok: true });
+    const out = {};
+    const texto = await generarMenu("h1", "esta", [], out);
+    expect(out.ok).toBe(true);
+    expect(insert).toHaveBeenCalled();
+    expect(out.huecosVacios).toEqual([{ grupo: "g1", dia: "Lun", comida: "Comida", plato: "principal", de: 1 }]);
+    expect(texto).toMatch(/HUECOS SIN PLATO \(dilo tal cual[^)]*\): lunes comida\./);
+  });
+
+  it("con todos los huecos llenos, ni una palabra de huecos", async () => {
+    conPlan({ g1: { "Lun-Comida": { recipeId: "r1" }, "Lun-Cena": { recipeId: "r1" } } });
+    conCasa.mockResolvedValue({ ok: true });
+    const out = {};
+    const texto = await generarMenu("h1", "esta", [], out);
+    expect(out.huecosVacios).toEqual([]);
+    expect(texto).not.toMatch(/HUECOS SIN PLATO/);
+  });
+
+  it("si TODOS los huecos esperados están vacíos, no se guarda (plan_vacio) aunque haya un plato fuera de los días pedidos", async () => {
+    conPlan({ g1: { "Mar-Cena": { recipeId: "r1" } } });
+    const out = {};
+    const texto = await generarMenu("h1", "esta", [], out);
+    expect(out).toMatchObject({ ok: false, aviso: "plan_vacio" });
+    expect(texto).toMatch(/^NO GUARDADO/);
+    expect(insert).not.toHaveBeenCalled();
+  });
+});
