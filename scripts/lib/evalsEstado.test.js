@@ -2,7 +2,7 @@
 // acción y parámetros exactos), no solo la herramienta llamada; y cada pasada
 // cuenta el % de operaciones exactas, el coste medio y la latencia media.
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
@@ -124,7 +124,13 @@ describe("bot-evals.mjs --simulado con un caso con espera", () => {
   });
 
   it("sale en rojo por «operación no exacta» y el resumen trae % exacta, coste medio y latencia media", () => {
-    const r = spawnSync(process.execPath, ["scripts/bot-evals.mjs", "--simulado", "--sin-memo", CASO_CON_ESPERA], { cwd: fileURLToPath(RAIZ), encoding: "utf8" });
+    const cwd = fileURLToPath(RAIZ);
+    // El agente importa el motor empaquetado (api/_bot/core.mjs, fuera de git): en el CI no está y se construye aquí (~1 s, esbuild).
+    if (!existsSync(new URL("api/_bot/core.mjs", RAIZ))) {
+      const b = spawnSync(process.execPath, ["scripts/build-bot-core.mjs"], { cwd, encoding: "utf8" });
+      expect(b.status, `${b.stdout}\n${b.stderr}`).toBe(0);
+    }
+    const r = spawnSync(process.execPath, ["scripts/bot-evals.mjs", "--simulado", "--sin-memo", CASO_CON_ESPERA], { cwd, encoding: "utf8" });
     const salida = `${r.stdout}\n${r.stderr}`;
     expect(r.status, salida).toBe(SALIDA.fallos);
     expect(salida).toMatch(/operación no exacta: no llamó a ajustar_cocina/);
