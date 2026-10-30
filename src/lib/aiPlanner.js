@@ -37,7 +37,7 @@ import { formatFixedDishesForAI, pinnedGarnishMap, pinnedSalsaMap, enforceFixedD
 import { maxCookTime, maxCookTimeFilter, migrateCookTime } from "./cookTime.js";
 import { applySeasonalFruit, filterPostrePool } from "./postres.js";
 import { pairGarnishes } from "../utils/pairGarnishes.js";
-import { estructuraDelGrupo, estructuraCenaDelGrupo } from "./estructuraPlatos.js";
+import { estructuraDelGrupo, estructuraCenaDelGrupo, platosDelHueco } from "./estructuraPlatos.js";
 import { pairSauces } from "../utils/pairSauces.js";
 import { guessIngredientCategory } from "./ingredientCategories.js";
 import { isQualitativeUnit, mergeIngredientLines } from "./ingredientUnits.js";
@@ -612,34 +612,23 @@ export function buildGroupContext(data, group) {
       // lo normal en España es cenar una cosa. Por eso el defecto es "1_plato"
       // aunque la comida sea "primero_segundo".
       const estructuraCena = estructuraCenaDelGrupo(data, group.id);
+      // Cuántos platos lleva el hueco: la regla es una (estructuraPlatos.js) y
+      // la comparte el invariante de completitud (huecosDelPlan.js). Aquí
+      // solo se decide la forma de cada hueco.
+      const platos = platosDelHueco({ comida: meal, estructura: mealStructure, estructuraCena, slotType: slotTypeSel, esBebe: isBabyGroup });
 
       if (mealType === "comida") {
         if (isBabyGroup) {
           slots.push({ day, daySlug, mealType, eaters, mode: mode.mode, maxTime, slotId: `${daySlug}_comida_1`, position: "plato_unico" });
-        } else if (slotTypeSel === "unico" || mealStructure === "1_plato") {
-          // Single complete dish: only one slot, no primero+segundo.
+        } else if (platos.length === 1) {
+          // Un solo plato completo (plato único marcado, estructura de un
+          // plato o comida rápida: una cosa ligera en ≤15 min).
           const slot = {
             day, daySlug, mealType, eaters, mode: mode.mode,
             maxTime: slotTypeSel === "rapida" ? Math.min(maxTime, 15) : maxTime,
             slotId: `${daySlug}_comida_1`,
             position: "plato_unico",
             preferType: slotTypeSel === "rapida" ? "comida_rapida" : "plato_unico",
-          };
-          if (linkKidDinner && isAdultsGroup && schoolProteins.size > 0) {
-            slot.schoolProteinsToAvoid = Array.from(schoolProteins);
-          }
-          if (linkKidDinner && isAdultsGroup && schoolCarbs.size > 0) {
-            slot.schoolCarbsToAvoid = Array.from(schoolCarbs);
-          }
-          slots.push(slot);
-        } else if (slotTypeSel === "rapida") {
-          // Quick lunch: one light dish ≤15 min (ensalada, plancha…).
-          const slot = {
-            day, daySlug, mealType, eaters, mode: mode.mode,
-            maxTime: Math.min(maxTime, 15),
-            slotId: `${daySlug}_comida_1`,
-            position: "plato_unico",
-            preferType: "comida_rapida",
           };
           if (linkKidDinner && isAdultsGroup && schoolProteins.size > 0) {
             slot.schoolProteinsToAvoid = Array.from(schoolProteins);
@@ -682,9 +671,8 @@ export function buildGroupContext(data, group) {
         // deja de serlo.
         //
         // Una cena rápida nunca se parte: quien la marcó pidió justo lo
-        // contrario, un solo plato y pronto.
-        const dosPlatos = estructuraCena === "primero_segundo" && !isQuick;
-        if (dosPlatos) {
+        // contrario, un solo plato y pronto (platosDelHueco).
+        if (platos.length === 2) {
           const comun = { day, daySlug, mealType, eaters, mode: mode.mode, maxTime, mealBudget: maxTime };
           const primeroCena = { ...comun, slotId: `${daySlug}_cena_1`, position: "primero" };
           const segundoCena = { ...comun, slotId: `${daySlug}_cena_2`, position: "segundo" };
