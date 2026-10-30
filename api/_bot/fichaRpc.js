@@ -7,7 +7,9 @@
  * (persona, persona_alergia, persona_estado…, bot_tareas) salen las personas,
  * sus alergias, intolerancias y estados, lo que falta saber, las tareas y lo
  * que no se repregunta. El resto de la ficha (horario, estructura, vetos,
- * reglas, menú y semana) sigue saliendo del JSON, como hoy (contrato v1).
+ * reglas, menú y semana) sigue saliendo del JSON, como hoy. Con la v2 (0107),
+ * además, el estado de cada dato (estadoDeDato.js): lo que solo vive en el
+ * sobre entra en la ficha con su marca «Dicho» o «Supuesto».
  *
  * Producción y staging comparten base, y la 0097 (que pide la 0080) puede no
  * estar aplicada: si la RPC no existe, falla o contesta otra versión del
@@ -31,11 +33,14 @@ import { estadoDeCampo } from "./estadoCasa.js";
 import { alergiasRevisadas } from "./ficha.js";
 import { etapaDe } from "../../src/lib/stages.js";
 import { claveDeTarea, KIND_DE_TIPO } from "../../src/lib/registroTareas.js";
+import { estadosDeFichas, marcasDeLola } from "../../src/lib/estadoDeDato.js";
 
 export const fichaRpc = () => /^(1|true|si|sí|on)$/i.test(String(process.env.BOT_FICHA_RPC ?? "").trim());
 
-// La v2 (0107) trae lo mismo que la v1 y además «fichas» (las leerá el trozo 9): de aquí se lee lo común.
+// La v2 (0107) trae lo mismo que la v1 y además «fichas»: el estado de cada dato (estadoDeDato.js).
+// Con la v1 (0107 sin aplicar) se lee lo común, como siempre, y queda en el log que falta el estado.
 const VERSIONES = [1, 2];
+const CON_ESTADO = 2;
 const ref = (id) => String(id ?? "").slice(0, 8);
 
 // ── Lectura y caché ─────────────────────────────────────────────────────────
@@ -59,6 +64,14 @@ function validar(f) {
   if (!VERSIONES.includes(f?.v)) return `v=${f?.v ?? "?"} (se espera v=${VERSIONES.join(" o v=")})`;
   if (!Number.isFinite(Number(f.casa?.rev))) return "sin casa.rev";
   for (const k of ["personas", "faltan", "tareas", "callados"]) if (!Array.isArray(f[k])) return `sin «${k}»`;
+  if (f.v === CON_ESTADO) {
+    try {
+      estadosDeFichas(f.fichas);
+    } catch (e) {
+      // a propósito: el motivo vuelve a leerFichaCasa, que lo escribe en el log y lee del JSON
+      return `v=2 con «fichas» que no cuadran: ${e.message}`;
+    }
+  }
   return null;
 }
 
@@ -90,6 +103,7 @@ export async function leerFichaCasa({ householdId, userId = null, canal = null }
     console.error(`[fichaRpc] contrato desconocido, se lee del JSON: ${mal}`);
     return null;
   }
+  if (ficha.v !== CON_ESTADO) console.error(`[fichaRpc] ficha_casa v=${ficha.v} (¿0107 sin aplicar?): sin el estado de cada dato, se lee como siempre`);
   recientes.set(clave, { t: Date.now(), rev: Number(ficha.casa.rev), ficha });
   return ficha;
 }
@@ -148,6 +162,9 @@ const comoMiembro = (p) => ({
  * de la casa ya resolvió (alergias que ya tiene, la etapa del bebé si la casa
  * la sabe), sin lo callado y, si el campo es solo de bebés (aplica «bebe»),
  * solo para quien lo es según etapaDe: la RPC no calcula la etapa.
+ * Con la v2, «faltan» trae las alergias de TODAS las personas (sin sobre no
+ * cuentan como sabidas, y nadie escribe sobres de salud hasta el trozo 10): el
+ * filtro con el estado de la casa es lo que evita repreguntarlas.
  * @returns {{ campo: string, personaId: string, nombre: string, politica: string, clave: string|null }[]}
  */
 export function faltanDeFicha(ficha, data = {}, calladas = new Set()) {
@@ -203,10 +220,14 @@ export function desfaseDe(ficha, data = {}) {
  */
 export function conLaFicha(casa, ficha, calladas = new Set()) {
   const data = casa?.state?.data ?? {};
+  // Lo que solo vive en el sobre (sexo, colegio, patrón de semanas), con su marca «dicho» o «supuesto»:
+  // no depende de que las tablas de salud cuadren con el JSON. validar() ya comprobó las «fichas».
+  const marcas = ficha.v === CON_ESTADO ? marcasDeLola(estadosDeFichas(ficha.fichas)) : [];
+  const conMarcas = (c) => (marcas.length ? { ...c, marcasDeEstado: marcas } : c);
   const desfase = desfaseDe(ficha, data);
   if (desfase.length) {
     console.error(`[fichaRpc] desfase entre las tablas y el JSON de ${ref(casa?.householdId)} (manda el JSON): ${desfase.slice(0, 6).join(", ")}`);
-    return { casa };
+    return { casa: conMarcas(casa) };
   }
   const tablas = new Map((ficha.personas ?? []).map((p) => [String(p.id), p]));
   const members = (data.members ?? []).map((m) => {
@@ -233,5 +254,5 @@ export function conLaFicha(casa, ficha, calladas = new Set()) {
     .filter((f) => f.politica === "una_vez" && f.campo === "alergias")
     .sort((a, b) => orden.get(a.personaId) - orden.get(b.personaId))
     .map((f) => ({ clave: f.clave, nombre: f.nombre }));
-  return { casa: { ...casa, state: { ...casa.state, data: nueva } }, pendientes };
+  return { casa: conMarcas({ ...casa, state: { ...casa.state, data: nueva } }), pendientes };
 }
