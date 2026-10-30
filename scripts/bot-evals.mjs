@@ -11,13 +11,10 @@
  *                                                    o un id completo (para decidir qué puede llevar el barato)
  *
  * Un caso puede llevar `espera` (trozo 29 de #1037): la operación esperada,
- * `{ accion, parametros }` con valores cerrados, y se comprueba que esa
- * herramienta se llamó con EXACTAMENTE esos parámetros (scripts/lib/evals.mjs,
- * operacionExacta; `args` sigue valiendo para «contiene»). `espera.sobre`
- * ({ origen, canal }) queda preparado para la tubería (trozo 26): hoy las
- * herramientas de mentira devuelven texto sin sobre y no se compara.
- * El resumen de la pasada añade el % de casos con la operación exacta, el coste
- * medio y la latencia media por intento, y los guarda en pasadas.jsonl.
+ * `{ accion, parametros }` con valores cerrados que tienen que llegar EXACTOS
+ * (operacionExacta en scripts/lib/evals.mjs; `args` sigue siendo «contiene»), y
+ * `sobre` { origen, canal } para cuando haya tubería (trozo 26). La pasada suma
+ * % de operaciones exactas, coste medio y latencia media, y van a pasadas.jsonl.
  *
  * Opciones:
  *   --tope=USD      para antes de pasarse (por defecto TOPE_PASADA_USD, nunca más

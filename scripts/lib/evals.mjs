@@ -37,11 +37,10 @@ export const esDeSeguridad = (caso) => TIPOS_DE_SEGURIDAD.includes(caso.tipo);
 const esObjeto = (v) => v != null && typeof v === "object" && !Array.isArray(v);
 
 /**
- * Lo que está mal en `espera` de un caso (trozo 29 de #1037): la operación
- * esperada es `{ accion, parametros }` con valores cerrados y, opcional, el
- * sobre `{ origen, canal }` con el vocabulario del modelo de datos. `acciones`:
- * los nombres de las herramientas de Lola, si quien llama los tiene; una
- * acción que no existe daría siempre rojo y parecería un fallo de Lola.
+ * Lo que está mal en `espera` (trozo 29 de #1037): `{ accion, parametros }` y,
+ * opcional, `sobre { origen, canal }` del vocabulario del modelo de datos.
+ * `acciones`: las herramientas de Lola, si quien llama las tiene (una acción
+ * que no existe daría siempre rojo y parecería un fallo de Lola).
  */
 function erroresDeEspera(e, acciones) {
   if (!esObjeto(e)) return ["espera tiene que ser { accion, parametros }"];
@@ -170,11 +169,7 @@ export const MOTIVOS_FALLO = [
 
 const sinTildesMin = (s) => String(s).normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase().trim();
 
-/**
- * La forma cerrada de un valor: texto sin tildes ni mayúsculas, listas de
- * valores simples ordenadas (días × comidas son un conjunto), lo demás tal
- * cual. Dos valores con la misma forma son la misma operación.
- */
+/** La forma cerrada de un valor: texto sin tildes ni mayúsculas, listas de valores simples ordenadas (días × comidas son un conjunto). Misma forma, misma operación. */
 export function formaCerrada(v) {
   if (typeof v === "string") return sinTildesMin(v);
   if (Array.isArray(v)) {
@@ -186,10 +181,9 @@ export function formaCerrada(v) {
 }
 
 /**
- * ¿`dado` lleva exactamente lo que pide `esperado`? Cada clave listada tiene
- * que valer eso mismo (nada de «contiene»); una clave que no se lista (texto
- * libre como `frase`) no se mira. En una lista, mismo tamaño y cada elemento
- * esperado con uno dado que le cuadre.
+ * ¿`dado` lleva exactamente lo que pide `esperado`? Cada clave listada vale eso
+ * mismo (nada de «contiene»); la que no se lista (texto libre como `frase`) no
+ * se mira. En una lista, mismo tamaño y cada elemento esperado con uno que le cuadre.
  */
 export function parametrosExactos(dado, esperado) {
   if (esObjeto(esperado)) {
@@ -210,12 +204,11 @@ export function parametrosExactos(dado, esperado) {
 }
 
 /**
- * Comprueba la operación esperada contra las llamadas de un intento
- * (`{ nombre, args, resultado }`). `ok`: alguna llamada a `espera.accion` llevó
- * exactamente `espera.parametros`. El sobre (`espera.sobre`) solo se compara si
- * el resultado de la herramienta trae uno (`resultado.sobre`): hoy las de
- * mentira devuelven texto y no hay tubería (trozo 26), así que
- * `sobre_comprobado` sale false y el sobre no decide.
+ * La operación esperada contra las llamadas de un intento (`{ nombre, args,
+ * resultado }`): `ok` si alguna llamada a `espera.accion` llevó exactamente
+ * `espera.parametros`. El sobre solo se compara si el resultado de la herramienta
+ * trae uno (`resultado.sobre`): sin tubería (trozo 26) las de mentira devuelven
+ * texto, `sobre_comprobado` sale false y el sobre no decide.
  */
 export function operacionExacta(llamadas, espera) {
   const deLaAccion = llamadas.filter((l) => l.nombre === espera.accion);
@@ -230,11 +223,7 @@ export function operacionExacta(llamadas, espera) {
   return { ok, sobre_comprobado: conSobre.length > 0, detalle };
 }
 
-/**
- * Las cifras de una pasada (van a pasadas.jsonl): de los casos con `espera`,
- * cuántos acertaron la operación exacta y qué %; coste medio y latencia media
- * por intento pagado. `intentos`: `{ coste, ms }` de los pagados en esta pasada.
- */
+/** Las cifras de una pasada (pasadas.jsonl): casos con `espera` y cuántos acertaron la operación exacta (y %); coste medio y latencia media de los `intentos` pagados ({ coste, ms }). */
 export function cifrasDePasada(intentos, { conEspera, exactos }) {
   const n = intentos.length;
   const media = (f) => (n ? intentos.reduce((s, i) => s + f(i), 0) / n : null);
@@ -595,11 +584,7 @@ export function memoria(lineas) {
   return m;
 }
 
-/**
- * Lo mismo para la operación exacta: { clave: [true | false | null, …] }, en el
- * mismo orden que `memoria`. Las filas de antes del trozo 29 no la traen (null):
- * un caso con `espera` que solo tiene de esas no cuenta como exacto.
- */
+/** Lo mismo para la operación exacta: { clave: [true | false | null, …] }. Las filas de antes del trozo 29 no la traen (null) y no cuentan como exactas. */
 export function memoriaDeOperacion(lineas) {
   const m = new Map();
   for (const l of lineas) {
