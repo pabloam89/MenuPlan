@@ -8,9 +8,13 @@
  * Absorbe el antiguo `CAMPOS` de registroTareas.js (política, seguridad,
  * caducidad de la pregunta), que lo sigue exportando con ese nombre.
  *
- * Columnas (las de la 0097, en registroFicha.js están explicadas una a una):
+ * Columnas (las de la 0097 y las del eje de la 0105, en registroFicha.js están
+ * explicadas una a una):
  *  - tipo (TIPOS_CAMPO), vocabulario, minimo, maximo, politica (POLITICAS),
  *    seguridad, aplica (APLICA), columna, caduca_dias: tal cual del dato.
+ *  - ficha, clase, defecto, suposicion, minimo_para_generar, peso_menu,
+ *    escribe y choque (0105): tal cual del dato; las leen ficha_casa v2 y
+ *    aplicar_operacion.
  *  - por (POR): si el dato es de cada persona o de la casa entera; es la
  *    entidad del dato, que para un campo solo puede ser una de esas dos.
  *
@@ -28,7 +32,10 @@ export { TIPOS_CAMPO, POLITICAS, APLICA };
 /** De quién es un campo: las dos entidades del registro que hoy tienen sobre (CHECK registro_campo_por_vocabulario). */
 export const POR = ["persona", "casa"];
 
-const COLUMNAS = ["tipo", "vocabulario", "minimo", "maximo", "politica", "seguridad", "por", "aplica", "columna", "caduca_dias"];
+const COLUMNAS = [
+  "tipo", "vocabulario", "minimo", "maximo", "politica", "seguridad", "por", "aplica", "columna", "caduca_dias",
+  "ficha", "clase", "defecto", "suposicion", "minimo_para_generar", "peso_menu", "escribe", "choque",
+];
 
 /** La fila de registro_campo de un dato con `campo`; falla alto si al dato le falta algo que la tabla exige. */
 function fila(clave, d) {
