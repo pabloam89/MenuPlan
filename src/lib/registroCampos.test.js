@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 
 import { REGISTRO_CAMPOS, TIPOS_CAMPO, POLITICAS, POR, APLICA } from "./registroCampos.js";
+import { DATOS_CASA, DATOS_PERSONA } from "./registroFicha.js";
 
 /**
  * La 0097 copia REGISTRO_CAMPOS en registro_campo y cierra los vocabularios de
@@ -61,6 +62,11 @@ describe("0097: registro_campo dice lo mismo que registroCampos.js", () => {
     expect(literales("registro_campo_politica_vocabulario")).toEqual(POLITICAS);
     expect(literales("registro_campo_por_vocabulario")).toEqual(POR);
     expect(literales("registro_campo_aplica_vocabulario")).toEqual(APLICA);
+  });
+
+  it("REGISTRO_CAMPOS es una proyección del registro de la ficha: los campos son los datos con `campo`", () => {
+    const conCampo = [...Object.values(DATOS_CASA), ...Object.values(DATOS_PERSONA)].filter((d) => d.campo).map((d) => d.campo);
+    expect(ordenado(conCampo)).toEqual(ordenado(Object.keys(REGISTRO_CAMPOS)));
   });
 
   // sobre.origen, sobre.canal y sobre.ref_tipo: su paridad con ORIGEN_DATO, CANALES_DATO y REF_TIPO la lleva

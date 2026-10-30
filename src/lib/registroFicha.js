@@ -31,16 +31,23 @@
  *  - vive: "data" o la tabla propia donde vive de verdad ("tabla:user_menus").
  *
  * Las columnas del eje (specs/plan-fichas-con-estado.md, trozo 5), las mismas
- * para todo dato; la 0105 las llevará a registro_campo. Faltan las que lee el
- * asistente (peso_menu, suposicion) y las de registro_campo (politica,
- * caduca_dias…): entran con la proyección de registroCampos.js.
+ * para todo dato; la 0105 las llevará a registro_campo:
  *  - ficha (FICHAS, vocabularios.js): la ficha del plan a la que pertenece. Un
  *    tema que cae entero en una ficha la da por defecto (FICHA_DEL_TEMA); en los
  *    repartidos cada dato la declara, y a un activo sin ficha lo cuenta el
  *    inventario como error.
  *  - defecto: el valor cuando nadie ha dicho nada (origen por_defecto); null si
  *    no lo hay. El inventario comprueba que cuadra con INITIAL_DATA (App.jsx).
+ *  - suposicion: si el sistema puede dar por buena una inferencia. La salud,
+ *    nunca: una alergia inferida se pregunta (wizardRegistry.js lo lee).
  *  - minimo_para_generar: sin él no se genera, se pregunta (decisión B).
+ *  - caduca_dias: cuánto vive la pregunta abierta sobre el dato (lo que ya era
+ *    registro_campo.caduca_dias, que lee registroTareas.js); null = el de su tipo.
+ *  - peso_menu: cuánto cambia el menú; es el orden de las preguntas del
+ *    asistente (wizardRegistry.js lo lee). null = sin pesar.
+ *  - politica (POLITICAS), seguridad, aplica (APLICA), columna, minimo, maximo:
+ *    las columnas de registro_campo (0097), que registroCampos.js proyecta de
+ *    aquí para los datos con `campo`.
  *  - escribe (ESCRITORES): la familia, el sistema o ambos; por defecto la
  *    familia en lo activo y el sistema en copias, legados y marcas.
  *  - choque (CHOQUES): si dos escrituras chocan, el último gana, el más
@@ -105,8 +112,14 @@ export const ENTIDADES = Object.freeze({
 
 export const TEMAS = ["quien", "salud", "horario", "agenda", "gustos", "cocina", "despensa", "compra", "menus", "recetas", "cuenta"];
 export const ESTADOS = ["activo", "copia", "legado", "interfaz"];
-export const TIPOS = ["enum", "lista_enum", "int", "decimal", "bool", "fecha", "ref", "texto", "objeto", "mapa", "lista"];
+/** Los tipos que admite registro_campo (CHECK registro_campo_tipo_vocabulario de la 0097). */
+export const TIPOS_CAMPO = ["enum", "lista_enum", "int", "decimal", "bool", "fecha", "ref", "texto"];
 export const SIN_TABULAR = ["objeto", "mapa", "lista"];
+export const TIPOS = [...TIPOS_CAMPO, ...SIN_TABULAR];
+/** Cuándo se pregunta un dato (CHECK registro_campo_politica_vocabulario de la 0097). */
+export const POLITICAS = ["nunca", "solo_si_lo_piden", "antes_de_usarlo", "de_pasada", "una_vez"];
+/** A quién se le pregunta (CHECK registro_campo_aplica_vocabulario de la 0097). */
+export const APLICA = ["todos", "bebe"];
 
 /**
  * La ficha de un tema cuando el tema cae entero en una (plan, tabla de fichas).
@@ -142,21 +155,23 @@ const dato = (d) => {
   return {
     entidad: "casa", tema: null, estado, tipo: null, vocabulario: null,
     campo: null, libreta: null, otros: null, de: null, motivo: null, vive: "data", modulo: null,
-    ficha: FICHA_DEL_TEMA[d.tema] ?? null, defecto: null, minimo_para_generar: false,
+    ficha: FICHA_DEL_TEMA[d.tema] ?? null, defecto: null, suposicion: true, minimo_para_generar: false,
+    caduca_dias: null, peso_menu: null, politica: null, seguridad: false, aplica: "todos", columna: null, minimo: null, maximo: null,
     escribe: estado === "activo" ? ESCRITOR.FAMILIA : ESCRITOR.SISTEMA, choque: CHOQUE.ULTIMO_GANA,
     ...d,
   };
 };
 
-/** En las listas de salud, añadir gana a quitar en el mismo minuto. */
-const listaDeSalud = { tema: "salud", choque: CHOQUE.MAS_RESTRICTIVO };
+/** La salud nunca se supone y, en sus listas, añadir gana a quitar en el mismo minuto. */
+const salud = { tema: "salud", suposicion: false };
+const listaDeSalud = { ...salud, choque: CHOQUE.MAS_RESTRICTIVO };
 /** Lo que solo apunta el sistema (historiales, contadores, lo que descontó la despensa). */
 const delSistema = { escribe: ESCRITOR.SISTEMA };
 
 /** Los datos de la casa: las claves de household_state.state.data. */
 export const DATOS_CASA = Object.freeze({
   // ── Quién ──
-  members: dato({ entidad: "persona", tema: "quien", ficha: "persona", tipo: "lista", minimo_para_generar: true }),
+  members: dato({ entidad: "persona", tema: "quien", ficha: "persona", tipo: "lista", minimo_para_generar: true, peso_menu: 95 }),
   groups: dato({ entidad: "grupo", tema: "quien", ficha: "grupo", tipo: "lista" }),
   menuModel: dato({ tema: "quien", ficha: "casa", tipo: "enum", vocabulario: "modelo_menu", defecto: "same" }),
   rosters: dato({ entidad: "persona", tema: "quien", ficha: "persona", tipo: "lista", estado: "legado", de: "members", motivo: "desde el 8 oct 2026 la familia es una; las casas viejas los traen y no se copian" }),
@@ -164,9 +179,9 @@ export const DATOS_CASA = Object.freeze({
 
   // ── Salud ──
   customAllergies: dato({ entidad: "persona", ...listaDeSalud, tipo: "lista", estado: "activo", motivo: "la vía «otro» de las alergias de cada persona" }),
-  allergiesReviewed: dato({ entidad: "persona", tema: "salud", tipo: "bool", estado: "copia", de: "members.alergiasRevisadas", motivo: "resumen: todas las personas revisadas (alergiasBase.js)" }),
+  allergiesReviewed: dato({ entidad: "persona", ...salud, tipo: "bool", estado: "copia", de: "members.alergiasRevisadas", motivo: "resumen: todas las personas revisadas (alergiasBase.js)" }),
   alergiasSilencioRecordado: dato({ entidad: "persona", tema: "salud", tipo: "fecha", motivo: "cuándo se le recordó a la casa que las alergias van por silencio" }),
-  etapaBebe: dato({ tema: "salud", tipo: "enum", vocabulario: "etapa_bebe", campo: "etapaBebe" }),
+  etapaBebe: dato({ ...salud, tipo: "enum", vocabulario: "etapa_bebe", campo: "etapaBebe", politica: "antes_de_usarlo", seguridad: true, aplica: "bebe", caduca_dias: 21 }),
   goals: dato({ tema: "salud", ficha: "gusto", tipo: "lista_enum", motivo: "ids de goalDefs; objetivos como «más legumbres» son gustos con postura" }),
   goalDefs: dato({ tema: "salud", ficha: "gusto", tipo: "lista", motivo: "el catálogo de objetivos de la casa, con los suyos propios" }),
   goalsByGroup: dato({ entidad: "grupo", tema: "salud", ficha: "gusto", tipo: "mapa" }),
@@ -175,12 +190,12 @@ export const DATOS_CASA = Object.freeze({
   kcalByGroup: dato({ entidad: "grupo", tema: "salud", tipo: "mapa" }),
 
   // ── Horario: qué comidas, cuándo y dónde ──
-  meals: dato({ tema: "horario", tipo: "lista_enum", vocabulario: "comidas", defecto: ["Comida", "Cena"] }),
+  meals: dato({ tema: "horario", tipo: "lista_enum", vocabulario: "comidas", defecto: ["Comida", "Cena"], peso_menu: 85 }),
   extraMeals: dato({ tema: "horario", tipo: "objeto", motivo: "desayuno, merienda y postre fuera del menú" }),
   schedule: dato({ tema: "horario", tipo: "mapa", vocabulario: "donde_come", motivo: "quién come dónde cada día" }),
   slotType: dato({ tema: "horario", tipo: "mapa" }),
   manualSlotType: dato({ tema: "horario", tipo: "mapa", estado: "interfaz", motivo: "los huecos que el usuario tocó a mano" }),
-  mealStructure: dato({ tema: "horario", tipo: "enum", vocabulario: "estructura_platos", defecto: "primero_segundo" }),
+  mealStructure: dato({ tema: "horario", tipo: "enum", vocabulario: "estructura_platos", defecto: "primero_segundo", peso_menu: 55 }),
   mealStructureCena: dato({ tema: "horario", tipo: "enum", vocabulario: "estructura_platos", defecto: "1_plato" }),
   mealStructureByGroup: dato({ entidad: "grupo", tema: "horario", tipo: "mapa", vocabulario: "estructura_platos" }),
   mealStructureCenaByGroup: dato({ entidad: "grupo", tema: "horario", tipo: "mapa", vocabulario: "estructura_platos" }),
@@ -190,9 +205,9 @@ export const DATOS_CASA = Object.freeze({
   menuWeekDays: dato({ tema: "horario", tipo: "mapa", minimo_para_generar: true, motivo: "los días que se planifican, por semana; menuWeekOffsets y menuWeek se derivan de aquí (semanaDias.js)" }),
   menuScheduleSameForAllWeeks: dato({ tema: "horario", tipo: "bool", defecto: true }),
   menuWeekOverrides: dato({ tema: "horario", ficha: "semana", tipo: "mapa", motivo: "el horario propio de una semana es de la semana, no de la rutina (plan, trozo 18)" }),
-  kidDinnerConfig: dato({ entidad: "grupo", tema: "horario", modulo: "cole", tipo: "objeto" }),
+  kidDinnerConfig: dato({ entidad: "grupo", tema: "horario", modulo: "cole", tipo: "objeto", peso_menu: 80 }),
   kidDinnerMatchesAdultLunch: dato({ entidad: "grupo", tema: "horario", modulo: "cole", tipo: "bool", estado: "copia", de: "kidDinnerConfig", motivo: "el motor del espejo lo lee; la verdad es kidDinnerConfig (kidsMenu.js)" }),
-  schoolMenus: dato({ tema: "horario", modulo: "cole", tipo: "objeto", motivo: "el menú del cole, común y por niño" }),
+  schoolMenus: dato({ tema: "horario", modulo: "cole", tipo: "objeto", peso_menu: 98, motivo: "el menú del cole, común y por niño" }),
 
   // ── Agenda: lo que tiene fecha o nombre propio ──
   reglas: dato({ entidad: "regla", tema: "agenda", tipo: "lista" }),
@@ -202,9 +217,9 @@ export const DATOS_CASA = Object.freeze({
   freqs: dato({ tema: "gustos", tipo: "mapa", libreta: "freqs", escribe: ESCRITOR.AMBOS }),
   freqsByGroup: dato({ entidad: "grupo", tema: "gustos", tipo: "mapa", libreta: "freqs", escribe: ESCRITOR.AMBOS }),
   freqsPedidos: dato({ tema: "gustos", tipo: "mapa", estado: "copia", de: "notepad", libreta: "freqs" }),
-  reparto: dato({ tema: "gustos", tipo: "mapa", estado: "copia", de: "notepad", libreta: "reparto" }),
-  sesgos: dato({ tema: "gustos", tipo: "objeto", estado: "copia", de: "notepad", libreta: "base", motivo: "también técnica y salsa (libretaEnData.js)" }),
-  cocinas: dato({ tema: "gustos", tipo: "mapa", estado: "copia", de: "notepad", libreta: "cocina" }),
+  reparto: dato({ tema: "gustos", tipo: "mapa", estado: "copia", de: "notepad", libreta: "reparto", peso_menu: 70 }),
+  sesgos: dato({ tema: "gustos", tipo: "objeto", estado: "copia", de: "notepad", libreta: "base", peso_menu: 45, motivo: "también técnica y salsa (libretaEnData.js)" }),
+  cocinas: dato({ tema: "gustos", tipo: "mapa", estado: "copia", de: "notepad", libreta: "cocina", peso_menu: 60 }),
   favoritos: dato({ tema: "gustos", tipo: "lista", estado: "copia", de: "notepad", libreta: "favoritos" }),
   excluidos: dato({ tema: "gustos", tipo: "lista", estado: "copia", de: "notepad", libreta: "excluidos" }),
   fixedDishes: dato({ tema: "gustos", tipo: "lista", motivo: "platos fijos de un día" }),
@@ -212,12 +227,12 @@ export const DATOS_CASA = Object.freeze({
   customDislikes: dato({ tema: "gustos", tipo: "lista", estado: "legado", de: "members.dislikes" }),
 
   // ── Cocina ──
-  cookLevel: dato({ tema: "cocina", ficha: "casa", tipo: "enum", vocabulario: "nivel_cocina", defecto: "normal" }),
+  cookLevel: dato({ tema: "cocina", ficha: "casa", tipo: "enum", vocabulario: "nivel_cocina", defecto: "normal", peso_menu: 35 }),
   cookLevelManual: dato({ tema: "cocina", ficha: "casa", tipo: "bool", estado: "interfaz", motivo: "si el nivel lo puso el usuario y no el asistente" }),
   cookSkills: dato({ tema: "cocina", ficha: "casa", tipo: "lista", estado: "legado", motivo: "nadie lo escribe ni lo lee: App.jsx solo lo sanea" }),
-  kitchenTools: dato({ tema: "cocina", ficha: "casa", tipo: "lista_enum", vocabulario: "aparatos", otros: "customKitchenTools" }),
+  kitchenTools: dato({ tema: "cocina", ficha: "casa", tipo: "lista_enum", vocabulario: "aparatos", otros: "customKitchenTools", peso_menu: 30 }),
   customKitchenTools: dato({ tema: "cocina", ficha: "casa", tipo: "lista", motivo: "la vía «otro» de kitchenTools" }),
-  cookTime: dato({ tema: "cocina", ficha: "rutina", tipo: "objeto", motivo: "minutos por día y comida" }),
+  cookTime: dato({ tema: "cocina", ficha: "rutina", tipo: "objeto", peso_menu: 40, motivo: "minutos por día y comida" }),
   timeWeekday: dato({ tema: "cocina", ficha: "rutina", tipo: "int", estado: "legado", de: "cookTime", motivo: "respaldo de cookTime en cookTime.js" }),
   timeWeekend: dato({ tema: "cocina", ficha: "rutina", tipo: "int", estado: "legado", de: "cookTime", motivo: "respaldo de cookTime en cookTime.js" }),
   tanda: dato({ tema: "cocina", ficha: "rutina", tipo: "mapa", libreta: "tanda" }),
@@ -227,7 +242,7 @@ export const DATOS_CASA = Object.freeze({
   garnishRepeat: dato({ tema: "cocina", ficha: "casa", tipo: "enum", estado: "legado", motivo: "el motor ya no lo lee (aiPlanner.js); la app solo lo sanea" }),
 
   // ── Despensa ──
-  pantryMode: dato({ entidad: "despensa", tema: "despensa", ficha: "casa", tipo: "enum", defecto: "only", motivo: "cómo usa la casa su despensa es de la casa (plan, ficha Casa)" }),
+  pantryMode: dato({ entidad: "despensa", tema: "despensa", ficha: "casa", tipo: "enum", defecto: "only", peso_menu: 10, motivo: "cómo usa la casa su despensa es de la casa (plan, ficha Casa)" }),
   useHomeStock: dato({ entidad: "despensa", tema: "despensa", tipo: "bool", estado: "copia", de: "pantryMode", motivo: "booleano viejo que se mantiene a la par" }),
   pantryModeSet: dato({ entidad: "despensa", tema: "despensa", tipo: "bool", estado: "interfaz" }),
   pantryHasItems: dato({ entidad: "despensa", tema: "despensa", tipo: "bool", estado: "interfaz", motivo: "respuesta del asistente: «¿tienes algo en casa?»" }),
@@ -242,7 +257,7 @@ export const DATOS_CASA = Object.freeze({
   // ── Compra y gasto ──
   supermarkets: dato({ entidad: "compra", tema: "compra", ficha: "casa", tipo: "lista" }),
   hasBudget: dato({ entidad: "compra", tema: "compra", ficha: "casa", tipo: "bool", defecto: false }),
-  budget: dato({ entidad: "compra", tema: "compra", ficha: "casa", tipo: "int", defecto: 80 }),
+  budget: dato({ entidad: "compra", tema: "compra", ficha: "casa", tipo: "int", defecto: 80, peso_menu: 20 }),
   wantsPriceEstimates: dato({ entidad: "compra", tema: "compra", ficha: "casa", tipo: "bool", defecto: false }),
   priceObs: dato({ entidad: "compra", tema: "compra", tipo: "lista", ...delSistema }),
   priceAliases: dato({ entidad: "compra", tema: "compra", tipo: "mapa", ...delSistema }),
@@ -275,23 +290,40 @@ export const DATOS_PERSONA = Object.freeze(Object.fromEntries(Object.entries({
   id: dato({ tema: "quien", tipo: "ref" }),
   name: dato({ tema: "quien", tipo: "texto" }),
   homeRole: dato({ tema: "quien", tipo: "enum", motivo: "con «Otro» como vía abierta" }),
-  age: dato({ tema: "quien", tipo: "int", campo: "edad" }),
-  birthDate: dato({ tema: "quien", tipo: "fecha", campo: "nacimiento" }),
+  age: dato({ tema: "quien", tipo: "int", campo: "edad", politica: "nunca", minimo: 0, maximo: 120, columna: "persona.edad" }),
+  birthDate: dato({ tema: "quien", tipo: "fecha", campo: "nacimiento", politica: "nunca", columna: "persona.fecha_nacimiento" }),
   useBirthDate: dato({ tema: "quien", tipo: "bool", estado: "interfaz", motivo: "si la edad sale de la fecha" }),
   stageDetail: dato({ tema: "quien", tipo: "texto", estado: "legado", motivo: "vacío en todas las personas guardadas" }),
   notBaby: dato({ tema: "quien", tipo: "bool", motivo: "corrige la etapa que se deduce de la edad" }),
-  allergies: dato({ ...listaDeSalud, tipo: "lista_enum", campo: "alergias", otros: "customAllergies", minimo_para_generar: true }),
-  alergiasRevisadas: dato({ tema: "salud", tipo: "bool" }),
+  allergies: dato({ ...listaDeSalud, tipo: "lista_enum", vocabulario: "alergenos", campo: "alergias", otros: "customAllergies", politica: "una_vez", seguridad: true, columna: "persona_alergia", caduca_dias: 30, minimo_para_generar: true, peso_menu: 90 }),
+  alergiasRevisadas: dato({ ...salud, tipo: "bool" }),
   intolerances: dato({ ...listaDeSalud, tipo: "lista_enum" }),
   dietaryStates: dato({ ...listaDeSalud, tipo: "lista_enum" }),
-  dietaryStatesMeta: dato({ tema: "salud", tipo: "mapa" }),
+  dietaryStatesMeta: dato({ ...salud, tipo: "mapa" }),
   healthProfiles: dato({ ...listaDeSalud, tipo: "lista_enum" }),
-  healthProfile: dato({ tema: "salud", tipo: "enum", estado: "legado", de: "healthProfiles", motivo: "el singular de antes; personasTabla.js lo junta con la lista" }),
-  pesoKg: dato({ tema: "salud", tipo: "decimal" }),
-  alturaCm: dato({ tema: "salud", tipo: "int" }),
+  healthProfile: dato({ ...salud, tipo: "enum", estado: "legado", de: "healthProfiles", motivo: "el singular de antes; personasTabla.js lo junta con la lista" }),
+  pesoKg: dato({ ...salud, tipo: "decimal" }),
+  alturaCm: dato({ ...salud, tipo: "int" }),
   dislikes: dato({ tema: "gustos", tipo: "lista" }),
   profileKey: dato({ tema: "cuenta", tipo: "texto", estado: "interfaz", motivo: "la ilustración del perfil" }),
   avatarKey: dato({ tema: "cuenta", tipo: "texto", estado: "interfaz", motivo: "la ilustración del avatar" }),
   color: dato({ tema: "cuenta", tipo: "texto", estado: "interfaz" }),
+  // Campos de la ficha v18 (0097) que no viven en data.members: su valor va en
+  // sobre.valor (0 filas hoy) y nunca se preguntan; están aquí porque
+  // registro_campo se proyecta de este registro (registroCampos.js).
+  sexo: dato({ tema: "quien", tipo: "enum", vocabulario: "sexo", campo: "sexo", politica: "nunca", vive: "tabla:sobre", motivo: "solo para calorías" }),
+  colegio: dato({ tema: "quien", tipo: "texto", campo: "colegio", politica: "nunca", vive: "tabla:sobre" }),
+  patronSemanas: dato({ tema: "quien", tipo: "enum", vocabulario: "patron_semanas", campo: "patronSemanas", politica: "nunca", vive: "tabla:sobre", motivo: "custodia: semanas alternas" }),
   // Lo de la persona que no es salud ni gusto (quién es, avatar, color) es de su ficha.
 }).map(([k, v]) => [k, { ...v, entidad: "persona", ficha: v.ficha ?? "persona" }])));
+
+/**
+ * El dato de una clave tal como la escriben capacidades.js, wizardRegistry.js y
+ * los `de`/`otros` de arriba: «members.x» es de la persona; lo demás, de la
+ * casa. null si no existe: quien lo llama decide si es error.
+ */
+export function datoDe(clave) {
+  const [raiz, sub] = String(clave ?? "").split(".");
+  if (sub) return raiz === "members" ? DATOS_PERSONA[sub] ?? null : null;
+  return DATOS_CASA[raiz] ?? null;
+}

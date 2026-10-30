@@ -91,7 +91,7 @@ describe("inventario de la ficha", async () => {
   }, 120_000);
 
   it("las filas llevan las columnas del eje", () => {
-    for (const col of ["ficha", "defecto", "minimo_para_generar", "escribe", "choque"]) {
+    for (const col of ["ficha", "defecto", "suposicion", "minimo_para_generar", "caduca_dias", "peso_menu", "escribe", "choque"]) {
       expect(inv.filas.every((f) => col in f), col).toBe(true);
     }
   });
