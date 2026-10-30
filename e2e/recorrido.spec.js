@@ -8,13 +8,14 @@
 // Si alguna se escapa, la prueba falla.
 import { expect, test } from "@playwright/test";
 import { SUPABASE_MUERTO } from "../playwright.config.js";
+import { NOMBRES_DIA } from "../src/lib/dias.js";
 
 // Un lunes por la mañana en Madrid: la semana entera por delante, siempre la
 // misma, para que el menú no dependa del día en que se corre. El reloj de la
-// página arranca ahí y sigue andando; solo se adelanta a mano en la pulsación
-// larga.
+// página arranca ahí y sigue andando (la generación del menú usa
+// temporizadores); lo que cuenta es el día, que en los ~20 s de la prueba no
+// cambia. Solo se adelanta a mano en la pulsación larga.
 const LUNES = new Date("2026-11-02T10:00:00+01:00");
-const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 // La familia de mentira: [perfil que se toca, nombre que se escribe].
 const FAMILIA = [["Papá", "Juan"], ["Mamá", "Ana"]];
 // La única función de api/ que el recorrido llama sin cuenta: la analítica.
@@ -79,9 +80,9 @@ async function abrirMenu(page) {
   await expect(page.getByRole("button", { name: TARJETA_PLATO }).first()).toBeVisible();
   await boton(page, "Menú").click();
   await expect(page.getByText("Tu menú")).toBeVisible();
-  for (const dia of DIAS) await expect(page.getByText(dia, { exact: true })).toBeVisible();
+  for (const dia of NOMBRES_DIA) await expect(page.getByText(dia, { exact: true })).toBeVisible();
   const platos = page.getByRole("button", { name: TARJETA_PLATO });
-  expect(await platos.count()).toBeGreaterThanOrEqual(DIAS.length);
+  expect(await platos.count()).toBeGreaterThanOrEqual(NOMBRES_DIA.length);
   return platos;
 }
 

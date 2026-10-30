@@ -7,9 +7,9 @@
 // (no pisa lo que trae el entorno). Supabase apunta a un puerto muerto y la
 // prueba, además, corta y cuenta cualquier petición que se escape.
 //
-// La corre `npm test` al acabar los de vitest (`posttest` en package.json, que
-// antes instala Chromium), y así el job `tests` del CI la ejecuta sin tocar
-// .github/workflows/. A mano: `npm run e2e` o `npx playwright test e2e/recorrido.spec.js`.
+// No está en el CI: el plan (trozo 37) lo deja para un trozo aparte con su
+// revisión de seguridad. Se corre con `npm run e2e` o
+// `npx playwright test e2e/recorrido.spec.js`.
 import { defineConfig, devices } from "@playwright/test";
 import { esReferencia, leerFichero } from "./scripts/lib/env.mjs";
 
@@ -20,7 +20,6 @@ const URL_E2E = `http://localhost:${PUERTO_E2E}`;
 // Un Supabase que no existe: el cliente se crea, pero nada llega a la base.
 export const SUPABASE_MUERTO = "http://127.0.0.1:9";
 const SIN_CLAVE = "e2e-sin-clave";
-const RAMA_DESPLEGADA = "staging";
 
 const sinClaves = Object.fromEntries(
   Object.entries(leerFichero())
@@ -54,10 +53,14 @@ export default defineConfig({
       ...sinClaves,
       VITE_SUPABASE_URL: SUPABASE_MUERTO,
       VITE_SUPABASE_ANON_KEY: SIN_CLAVE,
-      // Las mismas banderas que el despliegue de staging (vite.config.js las
-      // saca de la rama): el motor `solver`, que asigna los platos sin llamar
-      // al modelo, y la pizarra encendida.
-      VERCEL_GIT_COMMIT_REF: RAMA_DESPLEGADA,
+      // Las banderas, fijadas aquí para que ni el .env.local ni el entorno de
+      // quien la corre las cambien (este `env` pisa a los dos). Valen lo mismo
+      // que en el despliegue de staging: el motor `solver`, que asigna los
+      // platos sin llamar al modelo (src/lib/solver.js), la pizarra encendida
+      // (src/lib/pizarra.js) y las guías apagadas.
+      VITE_MOTOR: "solver",
+      VITE_PIZARRA: "on",
+      VITE_GUIAS: "off",
     },
   },
 });
