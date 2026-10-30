@@ -8,7 +8,7 @@
 // de comportamiento; solo `hoy` entra como parámetro en vez de leer el reloj.
 
 import { COOK_TIME_DEFAULTS } from "./cookTime.js";
-import { weekEntry } from "./menuArchive.js";
+import { horarioDeSemana } from "./menuArchive.js";
 import { schoolMenusForWeekIndex } from "./schoolMenu.js";
 import { proyectarReglas } from "./reglas.js";
 import { deriveKidDinnerMatchesAdultLunch } from "./kidsMenu.js";
@@ -90,14 +90,12 @@ export function resolveModeData(data) {
  */
 export function prepararSemana(working, {
   groups, offset, w, startDayIdx, days, activeDays, startISO, endISO,
-  weekOffsets, sameForAllWeeks, varietyPref, weekCount, hoy,
+  weekOffsets, varietyPref, weekCount, hoy,
 }) {
   // Lo que vale «hasta el 31» o caduca por viejo se mira con la fecha de ESTA
   // semana, no con la del día en que se escribió (lib/libretaEnData.js).
   working = dataVigente(working, startISO ?? hoy);
-  const weekSchedule = sameForAllWeeks || offset === weekOffsets[0]
-    ? working.schedule
-    : (weekEntry(working.menuWeekOverrides, offset) ?? working.schedule);
+  const weekSchedule = horarioDeSemana(working, offset, offset === weekOffsets[0]);
   // Each generated week pulls its own school week (positional mapping:
   // 1st menú week → 1st selected school week, …, cycling when there are
   // fewer school weeks than menú weeks). Passed as a plain single-week
