@@ -108,6 +108,8 @@ import {
   saveActivePlanAsFavorite,
   semanaVivaPorGuardar,
   semanaPorOffset,
+  punteroDeSemana,
+  semanaAbiertaDe,
   collectMenuRecipeIds,
   pruneAiRecipes,
   pruneMenuHistory,
@@ -893,6 +895,9 @@ function migrate(state) {
     d.menus = { [legacyMenu.id]: legacyMenu };
     d.activeMenuId = legacyMenu.id;
   }
+  // Menús generados antes de #1063 se guardaron sin puntero a la semana viva:
+  // se repara aquí para que la compra deje de leer la copia archivada.
+  d.menuWeek = semanaAbiertaDe(d.menus, d.activeMenuId, d.menuWeek ?? null);
   return { ...state, data: { ...INITIAL_DATA, ...d } };
 }
 
@@ -1823,7 +1828,7 @@ export default function App() {
             // "active" when it actually has one, otherwise keep the local one.
             activeMenuId: menuActivoDe(cloudSummaries, d.activeMenuId),
             ...(activeWeek
-              ? { menuWeek: { offset: activeWeek.offset, startDayIdx: activeWeek.startDayIdx ?? 0, days: activeWeek.days ?? null } }
+              ? { menuWeek: punteroDeSemana(activeWeek) }
               : {}),
           };
         });
@@ -2433,6 +2438,10 @@ export default function App() {
           ...d,
           menus: foldedMenus,
           activeMenuId: newMenu.id,
+          // La semana que acaba de ponerse en vivo (setMenuPlan/setShopping de
+          // la primera): sin esto el puntero se quedaba en null o en el del
+          // menú anterior, y la compra leía la copia archivada (#1063).
+          menuWeek: punteroDeSemana(weeks[weekResults[0].startISO]),
           menuHistory: [...(d.menuHistory ?? []), { at: Date.now(), groups: groups.length }].slice(-60),
           pantryGenDeltas: droppedMenuIds.length ? recon.genOut : nextGenDeltas,
         };
@@ -3022,15 +3031,15 @@ export default function App() {
       ? [...new Set(working.menuWeekOffsets)]
       : [working.menuWeek?.offset ?? 0]
     ).sort((a, b) => a - b);
-    const baseStartDayIdx = working.menuWeek?.startDayIdx ?? 0;
 
     const weeks = {};
-    let firstWeekPlan = null;
+    let primeraSemana = null;
     weekOffsets.forEach((offset, w) => {
       const { startISO, week } = semanaEnBlanco({ ...working, groups }, groups, offset, w === 0);
-      if (w === 0) firstWeekPlan = week.plan;
+      if (w === 0) primeraSemana = week;
       weeks[startISO] = week;
     });
+    const firstWeekPlan = primeraSemana.plan;
 
     const newMenu = {
       id: createMenuId(),
@@ -3070,11 +3079,7 @@ export default function App() {
         ...(eleccion ?? {}),
         menus: foldedMenus,
         activeMenuId: newMenu.id,
-        menuWeek: {
-          offset: weekOffsets[0],
-          startDayIdx: baseStartDayIdx,
-          days: explicitDaysForOffset(working, weekOffsets[0]),
-        },
+        menuWeek: punteroDeSemana(primeraSemana),
         // Sin tocar `menuHistory`: esa lista alimenta la racha y el contador
         // de "menús generados", y una pizarra recién abierta no tiene ni un
         // plato. Cuenta cuando el usuario la llena, no cuando la abre.
@@ -3119,7 +3124,7 @@ export default function App() {
     if (!wk) return;
     setMenuPlan(wk.plan);
     setShopping(wk.shopping);
-    setData((d) => ({ ...d, menuWeek: { offset: wk.offset, startDayIdx: wk.startDayIdx, days: wk.days ?? null } }));
+    setData((d) => ({ ...d, menuWeek: punteroDeSemana(wk) }));
   }, [data.menus, data.activeMenuId]);
 
   // Writes one week's shopping back into the archive so per-week lists stay
@@ -3509,7 +3514,7 @@ export default function App() {
         schedule: oldSchedule,
         menus: foldedMenus,
         activeMenuId: newMenu.id,
-        menuWeek: { offset: 0, startDayIdx },
+        menuWeek: punteroDeSemana(weeks[firstKey]),
         // "Repetir → Mismos platos" still generates and activates a real
         // menú for the week — it just clones dishes instead of asking the AI
         // for new ones. Without this it never appended to menuHistory, so
