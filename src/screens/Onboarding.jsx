@@ -1051,6 +1051,8 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                 const keys   = folder && count > 0
                   ? Array.from({ length: count }, (_, i) => `${folder}_${i + 1}`)
                   : [];
+                // Avatares a la vista: los que caben justos, o medio más si hay de sobra (el que asoma avisa de que hay más).
+                const visibles = keys.length > TIRA_AVATARES_CABEN ? TIRA_AVATARES_CABEN + 0.5 : TIRA_AVATARES_CABEN;
                 return (
                   <div style={{ display: "flex", alignItems: "stretch", gap: 0 }}>
 
@@ -1156,7 +1158,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                                 type="button"
                                 onClick={() => updateMemberAvatar(editing.id, k)}
                                 style={{
-                                    flex: keys.length > TIRA_AVATARES_CABEN ? "0 0 calc((100% - 30px) / 3.5)" : "0 0 calc((100% - 20px) / 3)", aspectRatio: "1",
+                                    flex: `0 0 calc((100% - ${(Math.ceil(visibles) - 1) * 10}px) / ${visibles})`, aspectRatio: "1",
                                     scrollSnapAlign: "start",
                                     padding: 0, cursor: "pointer",
                                   borderRadius: 999, overflow: "hidden",
