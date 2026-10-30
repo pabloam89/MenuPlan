@@ -30,6 +30,9 @@ const PULSACION_LARGA_MS = 700;
 const TARJETA_PLATO = /\b(comida|cena)\b/i;
 // La cabecera de una categoría de la compra: «Verduras 17».
 const CATEGORIA_COMPRA = /^\p{Lu}[\p{L} ]+ \d+$/u;
+// La entrada a la pizarra en la portada (src/screens/Dashboard.jsx); solo
+// sale con la pizarra encendida.
+const ENTRADA_PIZARRA = "Empieza en blanco";
 const TITULO_COMPRA = "Tu compra";
 const PIE_COMPRA = "¿Falta algo?";
 const AVISO_CAMBIO = /Sustituido por «(.+)»/;
@@ -74,9 +77,13 @@ async function darDeAlta(page) {
 }
 
 // Tras el alta la app genera el menú sola; se espera a que la portada enseñe
-// el de hoy y se abre la semana.
+// el de hoy y se abre la semana. La entrada a la pizarra en la portada dice
+// que las banderas salieron como en staging (playwright.config.js); que el
+// motor es el `solver` lo dice la guarda de escapes: el otro llama a
+// /api/generate.
 async function abrirMenu(page) {
   await expect(page.getByText("Hoy toca")).toBeVisible();
+  await expect(page.getByText(ENTRADA_PIZARRA)).toBeVisible();
   await expect(page.getByRole("button", { name: TARJETA_PLATO }).first()).toBeVisible();
   await boton(page, "Menú").click();
   await expect(page.getByText("Tu menú")).toBeVisible();
