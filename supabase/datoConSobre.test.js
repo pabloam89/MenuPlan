@@ -4,7 +4,7 @@ import { readFileSync, readdirSync } from "node:fs";
 /**
  * El dato con sobre (plan fichas con estado, trozo 7): lo que no vigilan principios.test.js ni
  * vocabularios.test.js. La 0105 crea la tabla operacion; la escriben las RPC de la 0106.
- *  - operacion: la leen los de la casa y ningún usuario la escribe; una clave por casa.
+ *  - operacion: solo el servidor la lee y la escribe (guarda salud); una clave por casa.
  *  - sobre apunta a su operación, que se puede purgar sin llevarse el dato.
  */
 const sinComentarios = (texto) => texto.split("\n").filter((l) => !/^\s*--/.test(l)).join("\n");
@@ -18,6 +18,12 @@ function desde0105() {
     .map((f) => sinComentarios(readFileSync(new URL(f, dir), "utf8"))).join("\n");
 }
 
+/** Nombres de las políticas creadas sobre `tabla` en `texto`, con o sin comillas y con o sin `public.`. */
+function politicasSobre(texto, tabla) {
+  const re = new RegExp(`create\\s+policy\\s+("[^"]+"|\\w+)\\s+on\\s+(?:public\\.)?${tabla}\\b`, "gi");
+  return [...texto.matchAll(re)].map((m) => m[1]);
+}
+
 describe("0105: operacion, solo para el servidor", () => {
   it("nace con RLS y sin ningún permiso de usuario: guarda salud y aún no tiene lector en la app", () => {
     expect(codigo).toMatch(/alter table public\.operacion enable row level security;/);
@@ -27,7 +33,14 @@ describe("0105: operacion, solo para el servidor", () => {
   });
 
   it("ninguna política la abre (la lectura por papel llegará en su propia migración)", () => {
-    expect(desde0105()).not.toMatch(/create policy \w+ on public\.operacion\b/i);
+    expect(politicasSobre(desde0105(), "operacion")).toEqual([]);
+  });
+
+  it("el detector de políticas casa con las dos formas del repo: nombre entre comillas y sin ellas", () => {
+    // 97 de los 101 `create policy` del repo llevan el nombre entre comillas (p. ej. 0104:83).
+    const malo = 'create policy "Household members read ops"\n  on public.operacion for select using (true);\ncreate policy lee_ops on operacion for select using (true);';
+    expect(politicasSobre(malo, "operacion")).toEqual(['"Household members read ops"', "lee_ops"]);
+    expect(politicasSobre('create policy "x" on public.operacion_vieja for select using (true);', "operacion")).toEqual([]);
   });
 
   it("una clave de idempotencia por casa", () => {
