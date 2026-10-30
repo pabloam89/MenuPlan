@@ -10,6 +10,7 @@ import {
 import { libretaVacia, poner, delegar } from "./notepad.js";
 import { CAMPOS_POR_ID } from "./notepadFields.js";
 import { rutaDeReparto } from "./reparto.js";
+import { datoDe } from "./registroFicha.js";
 
 /** Una casa recién llegada: no ha contestado nada. */
 const VACIA = {};
@@ -46,9 +47,32 @@ describe("la tabla es coherente consigo misma", () => {
     for (const p of PREGUNTAS) expect(p.requiere ?? []).not.toContain(p.id);
   });
 
-  it("los ids son únicos y los órdenes no chocan", () => {
+  it("los ids son únicos", () => {
     expect(new Set(PREGUNTAS.map((p) => p.id)).size).toBe(PREGUNTAS.length);
-    expect(new Set(PREGUNTAS.map((p) => p.orden)).size).toBe(PREGUNTAS.length);
+  });
+
+  it("cada pregunta es de un dato del registro de la ficha, y no lleva orden ni suposición propios", () => {
+    // El orden (peso_menu) y si se puede suponer viven en el registro (plan
+    // fichas con estado, trozo 5): una pregunta es la vista de un dato.
+    for (const p of PREGUNTAS) {
+      expect(datoDe(p.dato), `${p.id} apunta a «${p.dato}», que no está en el registro`).not.toBe(null);
+      expect(p.orden, `${p.id} lleva orden propio`).toBeUndefined();
+      expect(p.suposicion, `${p.id} lleva suposicion propia`).toBeUndefined();
+    }
+  });
+
+  it("los pesos de sus datos no chocan: el orden del recorrido es único", () => {
+    const pesos = PREGUNTAS.map((p) => datoDe(p.dato)?.peso_menu);
+    for (const [i, w] of pesos.entries()) expect(w, `${PREGUNTAS[i].id} sin peso_menu en el registro`).toBeGreaterThan(0);
+    expect(new Set(pesos).size).toBe(PREGUNTAS.length);
+    // Y el recorrido va de más peso a menos.
+    const ordenados = registroOrdenado().map((p) => datoDe(p.dato).peso_menu);
+    expect(ordenados).toEqual([...ordenados].sort((a, b) => b - a));
+  });
+
+  it("dos preguntas con el mismo peso no se ordenan en silencio", () => {
+    const registro = [PREGUNTAS_POR_ID.cocina, { ...PREGUNTAS_POR_ID.esfuerzo, dato: PREGUNTAS_POR_ID.cocina.dato }];
+    expect(() => registroOrdenado(registro)).toThrow(/peso/);
   });
 
   it("una fila de la libreta apunta a un campo que el parser conoce", () => {
@@ -430,8 +454,8 @@ describe("los tres estados de una tarjeta", () => {
 
   it("salvo las alergias, donde suponer sería ponerle un criterio en la boca", () => {
     const data = { members: [{ id: "m1", allergies: ["gluten"], alergiasRevisadas: true }] };
-    // Marcada `suposicion: false`: en cuanto se infiere, pide confirmación.
-    expect(PREGUNTAS_POR_ID.alergias.suposicion).toBe(false);
+    // El registro dice que las alergias no se suponen: en cuanto se infieren, piden confirmación.
+    expect(datoDe(PREGUNTAS_POR_ID.alergias.dato).suposicion).toBe(false);
     expect(estadoDePregunta(PREGUNTAS_POR_ID.alergias, libretaVacia(), data)).toBe("aclarado");
   });
 
