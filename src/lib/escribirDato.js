@@ -23,8 +23,6 @@ import {
 } from "./vocabularios.js";
 import { REGISTRO_CAMPOS } from "./registroCampos.js";
 
-/** Tope del valor de un dato, en caracteres de JSON: un dato de la ficha es corto. */
-const MAX_VALOR_JSON = 4000;
 
 /** Un dato que no cuadra con el registro o con su vocabulario. */
 export class DatoInvalido extends Error {
@@ -36,7 +34,8 @@ export class DatoInvalido extends Error {
 }
 
 // Solo que esté: la forma y el largo de casa, clave, acción, ref_id y persona los dicen los CHECK y las FK de la
-// 0105 y la 0097, una sola vez; si no cuadran, la base contesta 22023/23514/23503 y vuelve como `invalido`.
+// 0105 y la 0097, y el tipo, el rango y el largo del valor el disparador sobre_valor_valido (0097), una sola
+// vez; si no cuadran, la base contesta 22023/23514/23503 y vuelve como `invalido`.
 const hay = (v) => typeof v === "string" && v.length > 0;
 
 /** El valor de una columna de vocabulario por paraEscribir (un retirado va a su sucesor); lanza DatoInvalido si no es de la lista. */
@@ -64,7 +63,6 @@ export function datoValido(dato) {
   if (!r) throw new DatoInvalido(`el campo «${campo}» no está en el registro (registroCampos.js)`);
   const o = deLaLista("origen_dato", origen, "un origen de dato");
   if (persona_id != null && !hay(String(persona_id))) throw new DatoInvalido("persona_id vacío");
-  if (valor !== null && JSON.stringify(valor).length > MAX_VALOR_JSON) throw new DatoInvalido(`el valor de «${campo}» pasa de ${MAX_VALOR_JSON} caracteres`);
   let v = valor;
   if (v !== null && VOCABULARIOS[r.vocabulario]) {
     if (r.tipo === "lista_enum" && !Array.isArray(v)) throw new DatoInvalido(`«${campo}» es una lista`);

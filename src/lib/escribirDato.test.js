@@ -33,9 +33,6 @@ describe("datoValido", () => {
     expect(() => datoValido({ ...DATO, campo: "__proto__" })).toThrow(DatoInvalido);
     expect(() => datoValido({ ...DATO, campo: "constructor" })).toThrow(DatoInvalido);
   });
-  it("un valor demasiado largo no entra", () => {
-    expect(() => datoValido({ campo: "colegio", persona_id: "p1", valor: "x".repeat(5000), origen: "dicho" })).toThrow(/caracteres/);
-  });
 });
 
 describe("operacionDeDato", () => {
