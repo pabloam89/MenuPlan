@@ -1,14 +1,12 @@
 // Trozo 29 de #1037: el banco de frases comprueba lo guardado (la operación:
 // acción y parámetros exactos), no solo la herramienta llamada; y cada pasada
 // cuenta el % de operaciones exactas, el coste medio y la latencia media.
-import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import { CANALES_DATO, ORIGEN_DATO } from "../../src/lib/vocabularios.js";
 import {
-  CAMPOS_FILA, MOTIVOS_FALLO, SALIDA, cifrasDePasada, erroresDeCasos, memoriaDeOperacion, operacionExacta, parametrosExactos,
+  CAMPOS_FILA, MOTIVOS_FALLO, cifrasDePasada, erroresDeCasos, memoriaDeOperacion, operacionExacta, parametrosExactos,
 } from "./evals.mjs";
 
 const RAIZ = new URL("../../", import.meta.url);
@@ -113,29 +111,19 @@ describe("cifras de la pasada: % de operación exacta, coste medio y latencia me
   });
 });
 
-// La prueba de punta a punta, gratis: el modelo de mentira de --simulado no llama a
-// ninguna herramienta, así que un caso con `espera` tiene que salir en rojo por la
-// operación, y el resumen traer las cifras nuevas.
-describe("bot-evals.mjs --simulado con un caso con espera", () => {
-  const CASO_CON_ESPERA = "airfryer-nueva-no-borra-los-demas";
-
-  it("el caso existe en el banco y espera una operación", () => {
-    expect(casos.find((c) => c.id === CASO_CON_ESPERA)?.espera).toMatchObject({ accion: "ajustar_cocina" });
-  });
-
-  // El agente importa el motor empaquetado (api/_bot/core.mjs, fuera de git, que
-  // hace `npm run build`). En el CI los tests corren antes del build y no está;
-  // construirlo desde aquí rompe los tests que recorren el repo (lo cuentan como
-  // fuente). Así que esta prueba corre en local (con `node scripts/build-bot-core.mjs`
-  // hecho) y en el CI se salta; las reglas en sí las vigilan los tests puros de arriba.
-  const CORE_CONSTRUIDO = existsSync(new URL("api/_bot/core.mjs", RAIZ));
-  it.skipIf(!CORE_CONSTRUIDO)("sale en rojo por «operación no exacta» y el resumen trae % exacta, coste medio y latencia media", () => {
-    const r = spawnSync(process.execPath, ["scripts/bot-evals.mjs", "--simulado", "--sin-memo", CASO_CON_ESPERA], { cwd: fileURLToPath(RAIZ), encoding: "utf8" });
-    const salida = `${r.stdout}\n${r.stderr}`;
-    expect(r.status, salida).toBe(SALIDA.fallos);
-    expect(salida).toMatch(/operación no exacta: no llamó a ajustar_cocina/);
-    expect(salida).toMatch(/Operación exacta: 0\/1 casos con espera \(0 %\)/);
-    expect(salida).toMatch(/coste medio por intento \$[\d.]+ · latencia media [\d.]+ s/);
+// Las frases de #958 que entran en este trozo (las demás, en el 2/2), con su operación.
+// La prueba de punta a punta (bot-evals.mjs --simulado con uno de estos casos sale en
+// rojo por «operación no exacta») es un comando manual: el agente importa el motor
+// empaquetado (api/_bot/core.mjs), que no está en git ni en el CI antes del build.
+describe("las frases de #958 del trozo están en el banco, con espera", () => {
+  const FRASES_958 = ["despensa-cortada-no-dice-todo-apuntado", "airfryer-nueva-no-borra-los-demas"];
+  it("cada una existe, lleva espera con acción y parámetros, y viene de una conversación real", () => {
+    for (const id of FRASES_958) {
+      const c = casos.find((x) => x.id === id);
+      expect(c, id).toBeDefined();
+      expect(c.espera, id).toMatchObject({ accion: expect.any(String), parametros: expect.any(Object) });
+      expect(c.origen, id).toBe("conversacion_real");
+    }
   });
 });
 
