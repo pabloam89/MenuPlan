@@ -73,4 +73,9 @@ export const ESCRITORES_SQL = Object.freeze({
   "registro_campo.clase": "el INSERT de la 0105, generado de REGISTRO_CAMPOS (registroCampos.test.js lo compara); ningún JS escribe la tabla",
   "registro_campo.escribe": "el INSERT de la 0105, generado de REGISTRO_CAMPOS (registroCampos.test.js lo compara); ningún JS escribe la tabla",
   "registro_campo.choque": "el INSERT de la 0105, generado de REGISTRO_CAMPOS (registroCampos.test.js lo compara); ningún JS escribe la tabla",
+  "sobre.origen": "aplicar_operacion (0106) escribe el origen de cada dato de p_operacion; su único llamador será la tubería del servidor (trozo 26), que lo pasa por paraEscribir",
+  "sobre.canal": "aplicar_operacion (0106) escribe el canal de p_operacion; su único llamador será la tubería del servidor (trozo 26), que lo pasa por paraEscribir",
+  "operacion.canal": "aplicar_operacion (0106) inserta el canal de p_operacion; su único llamador será la tubería del servidor (trozo 26), que lo pasa por paraEscribir",
+  "operacion.ref_tipo": "aplicar_operacion (0106) inserta el ref_tipo de p_operacion; su único llamador será la tubería del servidor (trozo 26), que lo pasa por paraEscribir",
+  "operacion.estado": "aplicar_operacion (0106) escribe pendiente, hecha o rechazada (de ESTADOS_OPERACION; datoConSobre.test.js lo comprueba); ningún JS escribe la tabla",
 });
