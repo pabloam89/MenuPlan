@@ -208,6 +208,9 @@ export function familiasDe(r) {
  * @param {Map<string,number>} [opciones.recientes] qué salió las últimas
  *                                             semanas y cuánto pesa (ver
  *                                             lib/recientes.js)
+ * @param {Set<string>} [opciones.descartados] platos que la casa ha tirado lo bastante
+ *                                             como para ir los últimos (ver
+ *                                             lib/descartesPrioridad.js)
  * @param {number}   [opciones.semilla]        para reproducir un resultado
  * @param {number}   [opciones.maxNodos]       tope de nodos antes de rendirse
  * @param {number}   [opciones.maxMs]          tope de tiempo antes de rendirse
@@ -246,7 +249,7 @@ export function familiasDe(r) {
  */
 export function resolverMenu(slots, pool, {
   healthProfiles = [], freqs = {}, objetivo = null, basesPedidas = {}, cocinas = null,
-  recientes = null, semilla = 1, maxNodos = 400, maxMs = 400,
+  recientes = null, descartados = null, semilla = 1, maxNodos = 400, maxMs = 400,
   // € por ración que cabe en el presupuesto de la casa (lib/presupuesto.js,
   // topePorRacion), o null sin presupuesto. Ver PESO_PRESUPUESTO.
   topeRacion = null,
@@ -471,6 +474,9 @@ export function resolverMenu(slots, pool, {
   // decorado; bajarlo al nivel del ruido lo dejaría sin efecto, que es
   // exactamente de donde venimos.
   const PESO_RECIENTE = 6e3;
+  // Un plato que la casa ha tirado varias veces (lib/descartesPrioridad.js) va detrás de todo
+  // lo demás: más que cualquier otro término de la clave, pero sigue en el dominio.
+  const PESO_DESCARTADO = 2e4;
 
   // El presupuesto de la casa (#958; Pablo, 29 oct 2026): un plato que se
   // pasa del € por ración que cabe va detrás, tanto más cuanto más se pasa.
@@ -517,6 +523,7 @@ export function resolverMenu(slots, pool, {
         r,
         clave: -(solo ? completitud(r) * 4e3 : 0)
           + (recientes?.get(r.id) ?? 0) * PESO_RECIENTE
+          + (descartados?.has(r.id) ? PESO_DESCARTADO : 0)
           + costePresupuesto(r) * PESO_PRESUPUESTO
           + costeTiempo(r, slot) * 1e3
           + indice.get(r.id) * 0.5

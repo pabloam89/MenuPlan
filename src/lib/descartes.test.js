@@ -2,11 +2,21 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { readFileSync } from "node:fs";
 
 const insert = vi.fn();
-const from = vi.fn(() => ({ insert }));
+// La lectura: select(...).eq(...).gte(...).order(...).limit(...) → { data, error }.
+const lectura = vi.fn();
+const llamadasEq = [];
+const cadena = {
+  eq: (...a) => (llamadasEq.push(a), cadena),
+  gte: () => cadena,
+  order: () => cadena,
+  limit: () => lectura(),
+};
+const from = vi.fn(() => ({ insert, select: () => cadena }));
 vi.mock("./supabase.js", () => ({ supabase: { from: (...a) => from(...a) } }));
 vi.mock("./analytics.js", () => ({ getAnonId: () => "3f2b8c1e-7a4d-4e0b-9c5a-1d2e3f4a5b6c" }));
 
-import { filasDeDescartes, recetasDelPlan, registrarDescartes } from "./descartes.js";
+import { filasDeDescartes, recetasDelPlan, refrescarDescartadas, registrarDescartes } from "./descartes.js";
+import { descartadasVigentes, fijarDescartadas } from "./descartesPrioridad.js";
 import { MAX_DESCARTES, RECETA_ID_MAX, RECETA_ID_RE } from "./descartesForma.js";
 import { ALCANCES_DESCARTE, ALCANCE_DESCARTE } from "./vocabularios.js";
 
@@ -142,5 +152,106 @@ describe("registrarDescartes", () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
     vi.spyOn(console, "warn").mockImplementation(() => {});
     await expect(registrarDescartes({ user: null, recetaIds: ["carnes_146"], ambito: "plato" })).resolves.toBe(0);
+  });
+});
+
+describe("refrescarDescartadas: la cuenta de la casa", () => {
+  const hace = (dias) => new Date(Date.now() - dias * 24 * 60 * 60 * 1000).toISOString();
+
+  beforeEach(() => {
+    lectura.mockReset();
+    llamadasEq.length = 0;
+    insert.mockReset();
+    from.mockClear();
+    vi.restoreAllMocks();
+    fijarDescartadas([]);
+  });
+
+  it("lee por casa y deja fijados los platos que pasan el umbral", async () => {
+    lectura.mockResolvedValue({
+      data: [
+        { receta_id: "carnes_146", alcance: "plato", created_at: hace(1) },
+        { receta_id: "carnes_146", alcance: "plato", created_at: hace(5) },
+        { receta_id: "pescados_7", alcance: "plato", created_at: hace(2) },
+      ],
+      error: null,
+    });
+    const n = await refrescarDescartadas({ user: { id: "u-1" }, householdId: "h-1" });
+    expect(n).toBe(1);
+    expect(llamadasEq).toEqual([["household_id", "h-1"]]);
+    expect([...descartadasVigentes()]).toEqual(["carnes_146"]);
+  });
+
+  it("sin casa lee los de la propia persona", async () => {
+    lectura.mockResolvedValue({ data: [], error: null });
+    await refrescarDescartadas({ user: { id: "u-1" }, householdId: null });
+    expect(llamadasEq).toEqual([["user_id", "u-1"]]);
+  });
+
+  it("plan B: sin sesión, sin tabla o con un fallo la cuenta queda vacía y no lanza", async () => {
+    fijarDescartadas(["a_1"]);
+    expect(await refrescarDescartadas({ user: null })).toBe(0);
+    expect(descartadasVigentes().size).toBe(0);
+
+    fijarDescartadas(["a_1"]);
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    lectura.mockResolvedValue({ data: null, error: { message: 'relation "receta_descartes" does not exist' } });
+    expect(await refrescarDescartadas({ user: { id: "u-1" }, householdId: "h-1" })).toBe(0);
+    expect(descartadasVigentes().size).toBe(0);
+
+    fijarDescartadas(["a_1"]);
+    lectura.mockRejectedValue(new Error("offline"));
+    await expect(refrescarDescartadas({ user: { id: "u-1" }, householdId: "h-1" })).resolves.toBe(0);
+    expect(descartadasVigentes().size).toBe(0);
+  });
+
+  it("si la lectura llega al tope de filas, lo dice en el log y no la trunca en silencio", async () => {
+    const aviso = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const filas = Array.from({ length: 2000 }, (_, i) => ({ receta_id: `r_${i % 7}`, alcance: "menu", created_at: hace(1) }));
+    lectura.mockResolvedValue({ data: filas, error: null });
+    await refrescarDescartadas({ user: { id: "u-1" }, householdId: "h-1" });
+    expect(aviso).toHaveBeenCalledWith("[descartes] lectura truncada al tope de", 2000);
+    aviso.mockClear();
+    lectura.mockResolvedValue({ data: filas.slice(0, 5), error: null });
+    await refrescarDescartadas({ user: { id: "u-1" }, householdId: "h-1" });
+    expect(aviso).not.toHaveBeenCalled();
+  });
+
+  it("tras apuntar un descarte con cuenta, la cuenta se vuelve a leer", async () => {
+    insert.mockResolvedValue({ error: null });
+    lectura.mockResolvedValue({ data: [], error: null });
+    await registrarDescartes({ user: { id: "u-1" }, householdId: "h-1", recetaIds: ["carnes_146"], ambito: "plato" });
+    expect(lectura).toHaveBeenCalledTimes(1);
+  });
+
+  it("carrera: si se cambia de casa mientras una lectura sigue en vuelo, la vieja no pisa a la nueva", async () => {
+    const dosPlatos = (id) => [
+      { receta_id: id, alcance: "plato", created_at: hace(1) },
+      { receta_id: id, alcance: "plato", created_at: hace(2) },
+    ];
+    let soltarLaVieja;
+    lectura
+      .mockImplementationOnce(() => new Promise((res) => { soltarLaVieja = () => res({ data: dosPlatos("casa_a_1"), error: null }); }))
+      .mockImplementationOnce(() => Promise.resolve({ data: dosPlatos("casa_b_2"), error: null }));
+
+    const vieja = refrescarDescartadas({ user: { id: "u-1" }, householdId: "casa-a" });
+    await refrescarDescartadas({ user: { id: "u-1" }, householdId: "casa-b" });
+    expect([...descartadasVigentes()]).toEqual(["casa_b_2"]);
+
+    soltarLaVieja();
+    await vieja;
+    expect([...descartadasVigentes()]).toEqual(["casa_b_2"]);
+  });
+
+  it("al cambiar de casa la cuenta de la anterior se vacía ya, sin esperar a la lectura nueva", async () => {
+    fijarDescartadas(["de_la_casa_anterior"]);
+    await refrescarDescartadas({ user: { id: "u-2" }, householdId: "otra-casa" }).catch(() => {});
+    let soltar;
+    lectura.mockImplementationOnce(() => new Promise((res) => { soltar = () => res({ data: [], error: null }); }));
+    fijarDescartadas(["de_la_casa_anterior"]);
+    const lee = refrescarDescartadas({ user: { id: "u-2" }, householdId: "una-tercera" });
+    expect(descartadasVigentes().size).toBe(0);
+    soltar();
+    await lee;
   });
 });
