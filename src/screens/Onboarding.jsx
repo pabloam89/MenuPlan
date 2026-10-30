@@ -541,6 +541,9 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
   const [addBounce, setAddBounce] = useState(false);
   const [colorExpanded, setColorExpanded] = useState(false);
   const [avatarExpanded, setAvatarExpanded] = useState(false);
+  // Tira de avatares del popup: ref para desplazarla con las flechas y qué flecha toca ver.
+  const avatarStripRef = useRef(null);
+  const [avatarStripPos, setAvatarStripPos] = useState({ izq: false, der: true });
   // "family" = the drag-a-profile builder shown to real users. The classic
   // name+age+Añadir form is kept only for the scripted ValueProps demo, which
   // passes demoName/demoAge; there is no user-facing toggle anymore.
@@ -1002,7 +1005,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
         // the quick add popup (just-dropped profile) stays minimal.
         const isEdit = editingMemberId !== justAddedId;
         const catLabel = prof?.label ?? migrateHomeRole(editing.homeRole);
-        const closePopup = () => { setEditingMemberId(null); setJustAddedId(null); setAvatarExpanded(false); setColorExpanded(false); };
+        const closePopup = () => { setEditingMemberId(null); setJustAddedId(null); setAvatarExpanded(false); setColorExpanded(false); setAvatarStripPos({ izq: false, der: true }); };
         const dismiss = () => {
           if (editingMemberId === justAddedId) removeMember(editingMemberId);
           closePopup();
@@ -1122,11 +1125,20 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
 
                       {/* Avatar strip — con 3 o menos caben justos; con más se ven
                           tres y medio, y ese medio avatar asomando es lo que dice
-                          que hay más a la derecha (sin flecha ni degradado, que se
-                          quedaban al llegar al final). */}
+                          que hay más a la derecha. Las flechas desplazan la tira y
+                          solo salen si hay más hacia ese lado. */}
                       {keys.length > 0 && (
                         <div style={{ position: "relative" }}>
-                          <div style={{ display: "flex", gap: 10, overflowX: "auto", padding: "4px 0", scrollSnapType: "x proximity", scrollbarWidth: "none" }}>
+                          <div
+                            ref={avatarStripRef}
+                            onScroll={(e) => {
+                              const el = e.currentTarget;
+                              const izq = el.scrollLeft > 2;
+                              const der = el.scrollLeft < el.scrollWidth - el.clientWidth - 2;
+                              setAvatarStripPos((p) => (p.izq === izq && p.der === der ? p : { izq, der }));
+                            }}
+                            style={{ display: "flex", gap: 10, overflowX: "auto", padding: "4px 0", scrollSnapType: "x proximity", scrollbarWidth: "none" }}
+                          >
                           {keys.map((k) => {
                             const sel = editing.avatarKey === k;
                             return (
@@ -1151,6 +1163,23 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                             );
                           })}
                           </div>
+                          {keys.length > 3 && [["izq", -1, ChevronLeft, "Avatares anteriores", "left"], ["der", 1, ChevronRight, "Más avatares", "right"]].map(([lado, dir, Flecha, etiqueta, borde]) => avatarStripPos[lado] && (
+                            <button
+                              key={lado}
+                              type="button"
+                              aria-label={etiqueta}
+                              onClick={() => { const el = avatarStripRef.current; if (el) el.scrollBy({ left: dir * el.clientWidth * 0.85, behavior: "smooth" }); }}
+                              style={{
+                                position: "absolute", top: "50%", [borde]: -6, transform: "translateY(-50%)",
+                                width: 28, height: 28, padding: 0, borderRadius: 999,
+                                border: "1.5px solid #e5eee8", background: "#fff", color: "#6b8576",
+                                boxShadow: "0 2px 8px rgba(0,0,0,.14)", cursor: "pointer",
+                                display: "inline-flex", alignItems: "center", justifyContent: "center",
+                              }}
+                            >
+                              <Flecha size={15} strokeWidth={2.6} />
+                            </button>
+                          ))}
                         </div>
                       )}
                     </div>
