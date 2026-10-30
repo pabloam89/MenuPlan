@@ -68,6 +68,7 @@ function validar(f) {
     try {
       estadosDeFichas(f.fichas);
     } catch (e) {
+      // a propósito: el motivo vuelve a leerFichaCasa, que lo escribe en el log y lee del JSON
       return `v=2 con «fichas» que no cuadran: ${e.message}`;
     }
   }

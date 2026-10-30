@@ -335,6 +335,31 @@ export function semanaPorOffset(weeks, offset) {
   return todas.length === 1 ? todas[0] : null;
 }
 
+/**
+ * El puntero `data.menuWeek` de una semana del archivo: dice qué semana está
+ * copiada en `menuPlan`/`shopping` (la viva). Quien pone una semana en vivo
+ * pone a la vez este puntero, y lo saca de aquí.
+ */
+export function punteroDeSemana(week) {
+  return { offset: week.offset, startDayIdx: week.startDayIdx ?? 0, days: week.days ?? null };
+}
+
+/**
+ * El puntero de la semana abierta, reparado (#1063). Si `menuWeek` no señala
+ * ninguna semana del menú activo (null tras generar sin cuenta, o el offset de
+ * un menú anterior), la compra, el guardado y los favoritos leen la copia
+ * archivada y no la viva. Sin puntero, la semana en vivo es la primera: la que
+ * pone en vivo quien genera el menú. Un offset que sí está (aunque sea de dos
+ * semanas, ver semanaPorOffset) no se toca.
+ */
+export function semanaAbiertaDe(menus, activeMenuId, menuWeek) {
+  const menu = menus?.[activeMenuId];
+  const semanas = orderedWeeks(menu);
+  if (semanas.length === 0) return menuWeek;
+  if (menuWeek && semanas.some((w) => w.offset === menuWeek.offset)) return menuWeek;
+  return punteroDeSemana(semanas[0]);
+}
+
 export function saveActivePlanAsFavorite(menus, activeMenuId, livePlan, activeOffset) {
   const menu = menus?.[activeMenuId];
   if (!menu) return { menus, weekStart: null, week: null };
