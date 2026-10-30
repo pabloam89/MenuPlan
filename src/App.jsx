@@ -1857,17 +1857,15 @@ export default function App() {
   // la marca de «alergias revisadas» al cerrar el alta (lib/altaGuardada.js).
   // El 30 oct 2026 esa marca se puso en el último clic, el guardado de 1,2 s
   // se descartó por una recarga de la nube y la casa se quedó sin ella: el
-  // motor esquivó los 14 alérgenos y el menú salió cojo (#1029). Devuelve lo
-  // que devuelve la cola (`ok`, `conflict`, `descartado`), nunca lanza.
-  // Sin cuenta, la casa vive en el móvil: cuenta como guardada (`local`).
+  // motor esquivó los 14 alérgenos y el menú salió cojo (#1029). Con casa,
+  // devuelve lo que devuelve la cola (`ok`, `conflict`, `descartado`); sin
+  // casa, lo que diga `saveUserState` (`ok`); nunca lanza. Sin cuenta, la casa
+  // vive en el móvil: cuenta como guardada (`local`).
   const guardarCasaAhora = useCallback(async (dataAGuardar) => {
     const snapshot = snapshotDeCasa({ data: dataAGuardar, menuPlan, shopping, aiRecipes, onbStep });
     if (!user?.id) return { ok: true, local: true };
     if (householdReadOnly) return { ok: false };
-    if (!syncHouseholdId) {
-      await saveUserState(user.id, snapshot);
-      return { ok: true };
-    }
+    if (!syncHouseholdId) return { ok: (await saveUserState(user.id, snapshot)).ok === true };
     if (!cloudReadyRef.current) return { ok: false, descartado: true };
     return guardarConVersion(versionDeCasa(syncHouseholdId), (rev) => saveHouseholdState(syncHouseholdId, snapshot, rev));
   }, [user?.id, householdReadOnly, syncHouseholdId, menuPlan, shopping, aiRecipes, onbStep, versionDeCasa]);
