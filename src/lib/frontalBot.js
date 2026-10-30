@@ -74,19 +74,26 @@ export async function abrirLola(pedido = null) {
 /**
  * Acabó el alta en la app: que Lola lo diga en su chat, si hay uno (quien
  * eligió «Prefiero rellenarlo en la app» lo tiene esperando). Sin chat, el
- * servidor no hace nada. Suelto: si falla, el alta ya está hecha igual.
+ * servidor no hace nada. Si falla, el alta ya está hecha igual; devuelve si
+ * el aviso llegó, para que quien cierra el alta (lib/altaGuardada.js) lo sepa.
+ * Se llama DESPUÉS de que la casa esté guardada, nunca a la vez: Lola apunta
+ * «ya he rellenado las alergias» al recibirlo, y el 30 oct 2026 lo apuntó
+ * cuando la marca aún no había llegado (#1029).
+ * @returns {Promise<boolean>}
  */
 export async function avisarAltaALola() {
   try {
     const token = (await supabase?.auth.getSession())?.data?.session?.access_token;
-    if (!token) return;
-    await fetch(apiUrl("/api/bot/link"), {
+    if (!token) return false;
+    const res = await fetch(apiUrl("/api/bot/link"), {
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify({ aviso: "alta" }),
     });
+    return res.ok;
   } catch {
     // Sin red: Lola lo verá en la casa la próxima vez que le escriban.
+    return false;
   }
 }
 
