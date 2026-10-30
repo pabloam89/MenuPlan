@@ -134,10 +134,13 @@ export function cookDayCounts(data) {
  * ellos las cuotas de variedad y de familias y los compraba (#1029).
  *
  * Un `days` con un nombre que no es un día, o un `startDayIdx` fuera de 0..6,
- * es un error de quien lo construyó y se lanza: la base ya lo impide (CHECK de
- * `start_day_idx` en 0005 y vocabulario de `active_days` en 0086), así que
- * aquí solo puede llegar por un fallo de código, y caer en silencio a otra
- * regla pintaría y planificaría una semana que nadie pidió.
+ * es un error de quien lo construyó y se lanza: caer en silencio a otra regla
+ * pintaría y planificaría una semana que nadie pidió. La base lo impide en lo
+ * nuevo (CHECK de `start_day_idx` en 0005; vocabulario de `active_days` en
+ * 0086, `not valid` para las filas de antes, que el 30 oct 2026 eran 0 fuera
+ * de él). Las tildes se comparan en NFC («Mié» en NFD es el mismo día, no
+ * otro valor): una semana archivada antes de vocabularios.js puede traerlas
+ * descompuestas.
  *
  * @param {object} data
  * @returns {string[]} días en el orden de DAYS, nunca vacío
@@ -147,11 +150,12 @@ export function diasActivosDe(data) {
   if (!menuWeek || typeof menuWeek !== "object") return [...DAYS];
   const { offset = 0, startDayIdx = 0, days = null } = menuWeek;
   if (Array.isArray(days)) {
-    const desconocidos = days.filter((d) => !DAYS.includes(d));
+    const enNFC = days.map((d) => (typeof d === "string" ? d.normalize("NFC") : d));
+    const desconocidos = enNFC.filter((d) => !DAYS.includes(d));
     if (desconocidos.length > 0) {
       throw new TypeError(`menuWeek.days con días desconocidos: ${desconocidos.join(", ")}`);
     }
-    if (days.length > 0) return DAYS.filter((d) => days.includes(d));
+    if (enNFC.length > 0) return DAYS.filter((d) => enNFC.includes(d));
   }
   if (!Number.isInteger(startDayIdx) || startDayIdx < 0 || startDayIdx >= DAYS.length) {
     throw new TypeError(`menuWeek.startDayIdx fuera de 0..${DAYS.length - 1}: ${startDayIdx}`);

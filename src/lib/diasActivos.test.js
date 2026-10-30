@@ -10,7 +10,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest
 import { buildGroupContext, generateMenuWithAI } from "./aiPlanner.js";
 import { DAYS, diasActivosDe, weeklySlotBudget } from "./planner.js";
 import { buildShoppingList } from "./shoppingBuilder.js";
-import { getWeekDatesByMenuWeek } from "./weekCalendar.js";
+import { getWeekDatesByMenuWeek, getWeekDatesFromStartISO } from "./weekCalendar.js";
 import { registerRecipes } from "../data/recipes.js";
 
 const VIERNES = { offset: 0, startDayIdx: 4, days: null };
@@ -50,6 +50,13 @@ describe("diasActivosDe", () => {
     expect(() => diasActivosDe({ menuWeek: { offset: 0, startDayIdx: 4, days: ["vie", "Viernes"] } })).toThrow(/días desconocidos: vie, Viernes/);
     // Y quien pinta la semana lanza lo mismo: no hay una regla para pintar y otra para planificar.
     expect(() => getWeekDatesByMenuWeek({ offset: 0, startDayIdx: 7 })).toThrow(TypeError);
+  });
+
+  it("una tilde descompuesta (NFD, de una semana archivada antigua) es el mismo día, no uno desconocido", () => {
+    const nfd = ["Mié", "Sáb"].map((d) => d.normalize("NFD"));
+    expect(nfd[0]).not.toBe("Mié");
+    expect(diasActivosDe({ menuWeek: { offset: 0, startDayIdx: 0, days: nfd } })).toEqual(["Mié", "Sáb"]);
+    expect(getWeekDatesFromStartISO("2026-10-26", 0, nfd).activeDays).toEqual(["Mié", "Sáb"]);
   });
 
   it("dice lo mismo que getWeekDatesByMenuWeek, que es quien pinta la semana", () => {
