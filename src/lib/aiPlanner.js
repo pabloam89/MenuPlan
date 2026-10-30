@@ -2398,6 +2398,12 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
     const modeBySlot = Object.fromEntries(
       slotsContext.map((s) => [s.slotId, s.mode]),
     );
+    // Qué plato es cada hueco, según lo creó buildGroupContext: «primero»
+    // (comida de dos platos) o «plato_unico» (comida de uno). Lo decide el
+    // hueco, no la receta.
+    const positionBySlot = Object.fromEntries(
+      slotsContext.map((s) => [s.slotId, s.position]),
+    );
     const miembrosDelGrupo = membersOfGroup(group, data.members);
     // El grupo del bebé cuenta por cabezas: sus recetas ya son de ración de
     // bebé, y la ración por edad (medio adulto a los 2 años) la encogería otra
@@ -2470,9 +2476,17 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
       if (mealType === "cena" && !position) {
         byDayMeal[planKey].recipeId = frontendId;
       } else if (position === "1") {
-        // Check if it's a plato_unico
-        const isPlayoUnico = catalogRecipe.mealRole.includes("plato_unico");
-        if (isPlayoUnico) {
+        // ¿Es el plato único de la comida o el primero de dos? Lo dice el
+        // hueco. Antes se miraba si la RECETA podía ser plato único, y 106 de
+        // los 270 primeros del catálogo estrella también lo son (unas
+        // lentejas, una ensalada completa): en una comida de dos platos ese primero se
+        // escribía en `recipeId`, el segundo lo pisaba después y el primero
+        // desaparecía sin aviso. Solo sin hueco conocido se mira la receta.
+        const posicion = positionBySlot[slotId];
+        const isPlatoUnico = posicion
+          ? posicion !== "primero"
+          : (catalogRecipe.mealRole ?? []).includes("plato_unico");
+        if (isPlatoUnico) {
           byDayMeal[planKey].recipeId = frontendId;
           byDayMeal[planKey].firstRecipeId = null;
         } else {
