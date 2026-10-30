@@ -205,26 +205,26 @@ Done:
 npx vitest run src/lib/estadoDeDato.test.js api/_bot/fichaRpc.test.js api/_bot/ficha.test.js src/lib/wizardRegistry.test.js
 ```
 
-### 10. Salud por persona: alergias, intolerancias, estados y perfiles se escriben en sus tablas desde la app y Lola, y se leen de ahí
-Files: `src/screens/Onboarding.jsx`, `src/screens/Settings.jsx`, `api/_bot/ajustes.js`, `api/_bot/silencio.js`, `api/_bot/casa.js`, `src/lib/alergias.js`, `src/lib/alergiasBase.js`, `src/lib/vocabularios.js`, `src/lib/salud.test.js`
-Depends on: 11
-Blocked by: none
-Existing: hoy `members[].allergies`, `intolerances`, `dietaryStates` (+`dietaryStatesMeta.hasta`) y `healthProfiles` viven en el JSON y el trigger 0089 los copia a `persona_alergia`, `persona_intolerancia`, `persona_estado` y `persona_perfil_salud` (0089:106). Lectores: `alergiasParaMenu` (`alergias.js:89`), la ficha (`ficha.js:180-235`), `buscar_recetas`. Los vocabularios `alergenos` y `estados` siguen pendientes (`registroCampos.js:57`). #958 G: «salud en dos sitios».
-Not done: nada de doble escritura: en este trozo la app y Lola dejan de escribir `allergies`, `intolerances`, `dietaryStates` y `healthProfiles` en el documento y leen las filas; a una casa que no tenga filas se le vuelve a preguntar (es el mínimo para generar del trozo 2). Va DESPUÉS del trozo 11 (por eso depende de él): el trigger 0089 copia también la salud del documento a las filas en cada guardado (`0089_personas_al_guardar.sql:162` lista `allergies`, `intolerances`, `dietaryStates`, `healthProfiles`; `:192-204` las vuelca; `:245` lo llama en cada guardado de miembros), así que escribir filas de salud con el trigger vivo haría que el siguiente guardado del documento las pisara con el JSON viejo. Con la 0106 aplicada (trozo 11) el trigger ya no existe y el documento no toca `persona_*`. No cambia qué es una alergia ni la regla de los 14 (`alergiasParaMenu` pasa a leer `persona.alergias_revisadas` y las filas). La regla de choque de salud es `mas_restrictivo`: añadir gana a quitar en el mismo minuto. Cierra el hueco #958 A «no tiene alergias no quita las que había».
-Done:
-```sh
-npx vitest run src/lib/salud.test.js src/lib/alergias.test.js src/lib/alergiasMenu.test.js src/lib/alergiasSilencio.test.js api/_bot/ficha.test.js
-```
-
-### 11. Persona y grupo como fuente: nombre, rol, nacimiento, avatar, color y pertenencia en sus tablas; fuera `data.members`, `data.groups` y el trigger 0089
-Files: `supabase/migrations/0106_persona_fuente.sql`, `supabase/ESTADO.md`, `src/lib/personas.js`, `src/lib/personas.test.js`, `src/App.jsx`, `src/screens/Onboarding.jsx`, `api/_bot/ajustes.js`, `api/_bot/casa.js`, `src/lib/registroFicha.js`
+### 10. Persona y salud se LEEN de sus filas: `members`/`groups` como vista calculada desde `persona`, `grupo` y `persona_*`, en la app y en Lola; el documento sigue escribiéndose y el trigger 0089 sigue copiando
+Files: `src/lib/personas.js`, `src/lib/personas.test.js`, `src/lib/alergias.js`, `src/lib/alergiasBase.js`, `src/App.jsx`, `api/_bot/casa.js`, `api/_bot/ficha.js`, `src/lib/salud.test.js`
 Depends on: 9
 Blocked by: none
-Existing: `persona` y `grupo` existen (0079) y los rellena el trigger desde el JSON (0089:220-263; `personasTabla.js` es su gemelo en JS). `members` se lee en 116 sitios de `Onboarding.jsx`, 74 de `App.jsx`, 28 de `ajustes.js` y 6 de `ficha.js` (`git grep -c "members"`). `groups` se recalcula ya al leer en `generar.js:280-290` (`groupsFromModel`).
-Not done: los ids de persona siguen en `text` (transición a uuid en `supabase/PENDIENTES.md`, aparte). Los invitados de las reglas (`invitado: true`) no son personas. La app y Lola reciben `members`/`groups` como una **vista calculada** al cargar la casa (`personas.js`), para no reescribir los 224 lectores de golpe; lo que cambia es que nadie los escribe en el documento y el inventario los marca `derivado`. La 0106 apaga el trigger y la aplica Pablo.
+Existing: `persona` y `grupo` existen (0079) y los rellena el trigger desde el JSON en cada guardado (0089:220-263; `personasTabla.js` es su gemelo en JS); la salud también: `0089_personas_al_guardar.sql:162` lista `allergies`, `intolerances`, `dietaryStates`, `healthProfiles`, `:192-204` las vuelca a `persona_alergia`, `persona_intolerancia`, `persona_estado` y `persona_perfil_salud`, y `:245` lo llama al guardar miembros. Hoy nadie en la app lee esas filas: `members` se lee del documento en 116 sitios de `Onboarding.jsx`, 74 de `App.jsx`, 28 de `ajustes.js` y 6 de `ficha.js` (`git grep -c "members"`); `alergiasParaMenu` (`alergias.js:89`) lee `members[].allergies`. Lola las lee solo por `ficha_casa` (0097:273) tras el interruptor `BOT_FICHA_RPC`. `groups` ya se recalcula al leer en `generar.js:280-290` (`groupsFromModel`). #958 G: «salud en dos sitios».
+Not done: no cambia ningún escritor: la app y Lola siguen escribiendo `members[]` (con su salud) en el documento y el trigger lo sigue copiando a las filas, así que las filas están siempre al día y no hay hueco. Lo que cambia es de dónde se LEE: al cargar la casa, `personas.js` construye `members`/`groups` desde las filas (`persona`, `grupo`, `grupo_persona`, `persona_*`), para no reescribir los 224 lectores de golpe; `alergiasParaMenu` pasa a leer esa vista (misma regla de los 14, `persona.alergias_revisadas`). Si la vista y el documento no coinciden en alguna casa (el trigger falló alguna vez), se dice en el log con la clase `persona_desfasada` y gana la fila. Los ids de persona siguen en `text` (uuid en `supabase/PENDIENTES.md`, aparte). Los invitados de las reglas (`invitado: true`) no son personas.
 Done:
 ```sh
-node scripts/apply-migration.mjs 0106_persona_fuente && npx vitest run src/lib/personas.test.js src/lib/quitarPersona.test.js api/_bot/ajustesCantidad.test.js && npm run -s ficha:inventario
+npx vitest run src/lib/personas.test.js src/lib/salud.test.js src/lib/alergias.test.js src/lib/alergiasMenu.test.js src/lib/alergiasSilencio.test.js api/_bot/ficha.test.js
+```
+
+### 11. Persona y salud se ESCRIBEN en sus filas desde la app y Lola, en el mismo trozo que la 0106 apaga el trigger 0089; `members`/`groups` dejan de escribirse en el documento
+Files: `supabase/migrations/0106_persona_fuente.sql`, `supabase/ESTADO.md`, `src/screens/Onboarding.jsx`, `src/screens/Settings.jsx`, `src/App.jsx`, `api/_bot/ajustes.js`, `api/_bot/silencio.js`, `api/_bot/casa.js`, `src/lib/vocabularios.js`, `src/lib/registroFicha.js`, `src/lib/personas.test.js`
+Depends on: 10
+Blocked by: none
+Existing: tras el trozo 10 todo se lee de las filas pero todo se escribe aún en el documento (`setData` de `members` en `Onboarding.jsx`, `ajustes.js` `anadir_comensal`/`ajustar_alergias`/`ajustar_salud`, `silencio.js` `marcarPorSilencio`) y el trigger copia. Los vocabularios `alergenos` y `estados` siguen pendientes (`registroCampos.js:57`). `git grep -n "drop trigger\|disable trigger" -- supabase/migrations | grep -i persona` → sin salida.
+Not done: el corte es de una vez y en un solo trozo, para que no haya hueco: los escritores de identidad (nombre, rol, nacimiento, avatar, color, grupos) Y los de salud (alergias, intolerancias, estados, perfiles, `alergias_revisadas`) pasan a `escribirDato` → filas, el documento deja de llevar `members`/`groups` (el inventario los marca `derivado`), y la 0106 apaga el trigger 0089. Orden de despliegue: la rama se despliega antes que la migración (regla del repo), y hasta que Pablo aplique la 0106 el código escribe filas y el trigger, al no haber ya guardados de `members`, no las pisa (solo corre al guardar miembros, 0089:245); se mide en el PR con `npm run consulta` que ningún `persona.updated_at` retrocede. Nada de doble escritura ni repoblado: una casa sin filas (no debería haberla: el trigger las mantuvo hasta aquí) se trata como nueva. Regla de choque de salud `mas_restrictivo`: añadir gana a quitar en el mismo minuto. Cierra #958 A «no tiene alergias no quita las que había».
+Done:
+```sh
+node scripts/apply-migration.mjs 0106_persona_fuente && npx vitest run src/lib/personas.test.js src/lib/quitarPersona.test.js api/_bot/ajustesCantidad.test.js src/lib/alergiasSilencio.test.js && npm run -s ficha:inventario
 ```
 
 ### 12. Casa: modelo de menú, aparatos, nivel de cocina, súper, presupuesto, precios y uso de la despensa, como datos con sobre
