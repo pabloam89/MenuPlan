@@ -69,9 +69,7 @@ try {
   K = opcionEntero(ARGV, "k");
   REINTENTOS = opcionEntero(ARGV, "reintentos", 0) ?? REINTENTOS_POR_NIVEL[NIVEL];
   TOPE = topeDePasada(opcionNumero(ARGV, "tope"));
-  MODELO_PEDIDO = opcion(ARGV, "modelo");
-  if (MODELO_PEDIDO === "") throw new Error("--modelo necesita haiku, sonnet, opus o un id completo");
-  if (MODELO_PEDIDO && RESERVA) throw new Error("--modelo y --reserva no van juntos: uno u otro");
+  MODELO_PEDIDO = opcion(ARGV, "modelo"); // se comprueba abajo, con ALIAS_MODELO ya montado
 } catch (e) {
   // Un --tope mal escrito no puede correr sin tope: no se corre nada.
   console.error(e.message);
@@ -104,6 +102,11 @@ const { botonRehacer, lunesDe, sumarDias } = await import("../api/_bot/semanaPed
 // son los ids que ya usa el bot (agente.js) o la app (aiModels.js); un id
 // completo pasa tal cual.
 const ALIAS_MODELO = { sonnet: MODELO, opus: MODELO_RESERVA, haiku: FAST_MODEL };
+// Un --modelo vacío o junto con --reserva: no se corre nada (los nombres cortos salen de ALIAS_MODELO, no se copian).
+if (MODELO_PEDIDO === "" || (MODELO_PEDIDO && RESERVA)) {
+  console.error(MODELO_PEDIDO === "" ? `--modelo necesita ${Object.keys(ALIAS_MODELO).join(", ")} o un id completo` : "--modelo y --reserva no van juntos: uno u otro");
+  process.exit(SALIDA.entrada);
+}
 const MEDIDO = SIMULADO ? "simulado" : MODELO_PEDIDO ? ALIAS_MODELO[MODELO_PEDIDO] ?? MODELO_PEDIDO : RESERVA ? MODELO_RESERVA : MODELO;
 const ESFUERZO = /haiku/.test(MEDIDO) ? "ninguno" : process.env.BOT_EFFORT || "por_defecto";
 
