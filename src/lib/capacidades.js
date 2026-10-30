@@ -83,7 +83,7 @@ export const CAPACIDADES = Object.freeze([
   c("entrar", "entrar con Google o Apple, o sin cuenta", "casa", "conectar", "casa", { app: app("entrada"), aProposito: "Lola entra por su chat" }),
   c("conectar_lola", "conectar la casa con el chat de Lola", "casa", "conectar", "casa", { app: app("inicio"), aProposito: "se hace desde la app hacia Lola" }),
   c("cuenta", "cerrar sesión o eliminar la cuenta", "casa", "quitar", "casa", { app: app("perfil"), aProposito: "la cuenta es de la app" }),
-  c("reiniciar_menu", "reiniciar el menú de la casa", "casa", "quitar", "menu", { app: app("perfil"), datos: ["schedule", "activeMenuId"] }),
+  c("reiniciar_menu", "reiniciar el menú de la casa", "casa", "quitar", "menu", { app: app("inicio"), datos: ["schedule", "activeMenuId"] }),
   c("hogares", "cambiar de hogar, invitar, unirse o quitar a alguien del hogar", "casa", "conectar", "casa", { app: app("hogares"), aProposito: "las invitaciones son de la cuenta, en la app" }),
   c("vaciar_hogar", "vaciar el hogar (menú, compra y despensa)", "casa", "quitar", "casa", { app: app("hogares"), aProposito: "borra mucho de golpe: solo en la app, con confirmación" }),
 
