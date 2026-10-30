@@ -1,6 +1,6 @@
 # Arquitectura objetivo: un registro, tres entidades de base y una sola tubería, para Lola y la app
 
-Estado: PROPUESTA (30 oct 2026), sin aprobar. Base leída: `origin/staging` en `5754e531`. Amplía y reordena `specs/plan-fichas-con-estado.md` (aprobado) y recoge `specs/repaso-huecos-modelo.md`, las raíces de #958 (comentario del 29 oct) y la conversación con Pablo del 30 oct.
+Estado: PROPUESTA (30 oct 2026); D1, D2 y D3 decididas por Pablo el mismo día (ver Decisions). Base leída: `origin/staging` en `5754e531`. Amplía y reordena `specs/plan-fichas-con-estado.md` (aprobado) y recoge `specs/repaso-huecos-modelo.md`, las raíces de #958 (comentario del 29 oct) y la conversación con Pablo del 30 oct.
 
 ## La idea en una frase
 
@@ -206,22 +206,76 @@ Cifras: preguntas hasta el primer menú; tareas caducadas sin respuesta; tiempo 
 
 Orden: 1 (+5b) → 2 (+operación, 8b) en paralelo con 2c y el banco de frases → 3 → 4 → 5 (preferencia y motor) → 6 (tareas) → 7 → 8.
 
+## Choques: prioridad, contradicciones y cuándo preguntar
+
+Un choque es cualquier par de cosas que no pueden cumplirse a la vez. No solo entre preferencias: también entre un hecho y un deseo, entre dos personas, entre lo guardado y el mundo real, o entre lo de ayer y lo de hoy. Se resuelven todos con el mismo método, en tres pasos: clasificar, ordenar, responder.
+
+### 1. Clasificar: qué clase de información choca
+
+| Clase | Qué es | Ejemplos | ¿Se puede romper? |
+|---|---|---|---|
+| **Seguridad** | lo que hace daño si se rompe | alergias, intolerancias, etapa del bebé, embarazo, dieta médica | nunca |
+| **Hecho** | cómo es la casa hoy | quién vive, quién come dónde, aparatos, horario, despensa, presupuesto disponible | no se rompe: se corrige si es falso |
+| **Deseo** | lo que la familia quiere | preferencias dichas, planes de nutrición, objetivos | según su fuerza |
+| **Aprendido** | lo que Lola dedujo del uso | señales que pasaron el umbral | cede ante lo dicho |
+| **Supuesto** | lo que se pone sin saber | valores por defecto | cede ante todo |
+| **Sistema** | reglas del producto | variedad, equilibrio, catálogo estrella, las 24 reglas | cede ante deseos dichos, salvo calidad mínima |
+
+### 2. Ordenar: siete criterios, en este orden
+
+Cuando dos cosas chocan, gana la primera que se distinga en este orden:
+
+1. **Riesgo:** seguridad antes que nada.
+2. **Clase:** hecho > deseo dicho > aprendido > supuesto > sistema (para una regla de calidad mínima del sistema, ver la tabla de arriba).
+3. **Fuerza:** obligatoria > preferencia de peso alto > medio > bajo.
+4. **Autoridad:** quién puede decidir sobre eso, según el papel en la casa (dueño, cotitular, lector, invitado: `specs/roles-de-la-casa-propuesta.md`) y sobre quién (un adulto sobre sí mismo; un adulto sobre un niño; un niño sobre sí mismo cuenta como deseo, no como obligatoria).
+5. **Alcance:** lo más concreto gana: persona > grupo > casa; un día > la semana > siempre.
+6. **Tiempo:** lo vigente gana a lo caducado; a igualdad, lo más reciente.
+7. **Peso aprendido:** entre aprendidos, el de más peso.
+
+El orden vive en el registro (una constante con test), no en el prompt ni en cada herramienta.
+
+### 3. Responder: cuatro respuestas posibles
+
+| Respuesta | Cuándo |
+|---|---|
+| **Aplicar en silencio** | el choque se resuelve por alcance o tiempo sin que cambie nada visible (una preferencia vieja caducada) |
+| **Aplicar y avisar en una línea** | gana uno claro por el orden y lo que se pierde es una preferencia («He puesto 3 pescados, no 4, por el presupuesto») |
+| **Preguntar** | toca seguridad u obligatoria; o el orden no decide (empate de autoridad entre dos adultos); o la ficha Trato de quien escribe dice «afinemos»; o es irreversible o cuesta dinero (pedir la compra) |
+| **Tarea de decisión** | el choque es de la casa, no de quien escribe, o se repite: se pregunta una vez a quien tiene autoridad y la respuesta se guarda como preferencia, para no volver a decidirlo |
+
+La ficha Trato de cada cuenta (trozo 16) mueve la frontera entre «aplicar y avisar» y «preguntar»: con «hazlo ya», solo se pregunta lo de seguridad, obligatorio, irreversible o con dinero; con «afinemos», también las preferencias.
+
+### 4. Cuándo se detecta
+
+| Momento | Qué choques | Dónde |
+|---|---|---|
+| **Al guardar** | lo nuevo con lo guardado: la misma persona se contradice, dos personas chocan, un deseo choca con un hecho («al horno» sin horno) | la tubería de operaciones ([3]), paso «comprobar» |
+| **Al generar** | todo junto no cabe | el motor ([4]): relaja de menor a mayor prioridad y devuelve qué no cumplió |
+| **Al ejecutar** | el mundo no coincide con lo guardado (falta un ingrediente al cocinar, el súper no tiene algo) | la operación que lo detecta crea un hecho nuevo o una tarea |
+| **Al pasar el tiempo** | algo caduca o deja de existir (dieta temporal que acaba, receta retirada del catálogo, valor retirado de una lista, persona que se va) | el barrido programado ([7]): cada referencia rota es una tarea o una corrección automática declarada |
+
+Cada choque resuelto deja rastro en la operación: qué chocó, qué ganó, por qué criterio y qué respuesta se dio. Cifras: choques por clase y respuesta, preguntas por semana y casa (que no crezcan), choques repetidos tras una tarea de decisión (deben ser 0).
+
+### Planos que este método tiene que cubrir y que no están atados en otra parte
+
+- **Autoridad entre miembros:** quién puede cambiar las preferencias de quién (hoy los papeles son dueño y lector; el cotitular está propuesto).
+- **Hechos contra deseos:** aparatos, despensa y presupuesto como hechos que limitan deseos.
+- **El mundo real:** lo que pasa al comprar y al cocinar corrige hechos.
+- **Cambios del catálogo y de las listas:** una preferencia que apunta a una receta o a un valor retirado.
+- **Invitados y casas temporales:** sus preferencias valen solo en su ámbito y su vigencia.
+- **Varias casas por persona** (custodia compartida, comer en casa de los abuelos): no existe hoy; el método lo admite si la preferencia es de la persona y el hecho es de cada casa.
+
 ## Decisions for Pablo
 
-### D1. ¿La escritura es una operación con su tabla desde la 0105?
-1. **Sí (recomendada):** una sola tubería y una sola traza desde el primer dato que se mueve.
-2. No: `escribir_dato` como está y la operación más tarde (se rehace la 0105 y los escritores de los tramos 3-4).
-3. Solo para Lola, la app con `escribir_dato` (dos caminos).
+### D1. Todo cambio se guarda igual, venga de Lola o de la app, con quién lo hizo y desde dónde
+**Decidida por Pablo el 30 oct 2026: opción 1.** La 0105 crea también la tabla `operacion`; Lola y la app pasan por la misma tubería; el canal y el autor quedan apuntados y el otro lado se entera por la señal de tiempo real. Ni Lola ni la app tienen prioridad: un choque lo resuelve la regla del dato (último gana, más restrictivo o suma) y el método de choques.
 
-### D2. ¿La 0107 crea `preferencia` en vez de `gusto`?
-1. **Sí (recomendada):** una entidad para gustos, topes, objetivos, nutrición y presupuesto; el motor la cumple.
-2. No: `gusto` como en el plan y los demás tipos en sus sitios.
-3. `gusto` ahora y migrar a `preferencia` después.
+### D2. Una tabla de preferencias que lo absorbe todo
+**Decidida por Pablo el 30 oct 2026: opción 1.** La 0107 crea `preferencia` (y `plan` como conjunto con nombre y fechas) en vez de `gusto`. Absorbe todo deseo que condicione el menú. No absorbe hechos (quién vive, horario, aparatos, despensa: van en sus fichas) ni la salud (se queda en sus tablas por privacidad y el motor la recibe como obligatoria).
 
-### D3. ¿Dónde corre la tubería para la app?
-1. **En el servidor, una implementación compartida y una RPC final (recomendada):** la puerta de seguridad no vive en el cliente.
-2. Solo RPC en Postgres (la lógica en SQL; más difícil de probar y de compartir con Lola).
-3. En el cliente con RLS (más rápido de hacer; la seguridad depende de cada pantalla).
+### D3. La puerta de seguridad, en el servidor, igual para Lola y la app
+**Decidida por Pablo el 30 oct 2026: opción 1.** Una implementación compartida en el servidor y una RPC final que escribe en una transacción; la app no escribe tablas de ficha directamente.
 
 ## Not verified
 
