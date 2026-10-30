@@ -140,6 +140,10 @@
     "src/lib/social.js",
     "src/lib/socialNotifications.js"
   ],
+  "receta_descartes": [
+    "api/track.js",
+    "src/lib/descartes.js"
+  ],
   "social_profiles": [
     "src/lib/social.js",
     "src/lib/socialNotifications.js"
