@@ -1528,7 +1528,7 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
               fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
             }}
           >
-            Regenerar menú
+            Guardar y regenerar
           </button>
         </div>
         </div>{/* end scrollable body */}

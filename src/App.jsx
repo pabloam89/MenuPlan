@@ -6349,6 +6349,7 @@ export default function App() {
                 onOpenAccount={() => fwd(() => setScreen("profile"))}
                 onViewMenu={goToMenuFromDashboard}
                 onGenerateMenu={householdReadOnly ? undefined : handleGenerateMenu}
+                onRegenerate={householdReadOnly ? undefined : handleRegenerate}
                 // Ausente = la card no se pinta. La pizarra sigue apagada en
                 // producción (ver pizarraActiva), así que Inicio conserva su
                 // único CTA hasta que se decida abrirla.
