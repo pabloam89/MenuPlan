@@ -111,24 +111,11 @@ describe("cifras de la pasada: % de operación exacta, coste medio y latencia me
   });
 });
 
-// Las frases de #958 que entran en este trozo (las demás, en el 2/2), con su operación.
+// Las frases reales de #958 que dieron el 17 % de respuestas que contradicen
+// el estado, anonimizadas sobre la familia de prueba: cada una con su operación.
 // La prueba de punta a punta (bot-evals.mjs --simulado con uno de estos casos sale en
 // rojo por «operación no exacta») es un comando manual: el agente importa el motor
 // empaquetado (api/_bot/core.mjs), que no está en git ni en el CI antes del build.
-describe("las frases de #958 del trozo están en el banco, con espera", () => {
-  const FRASES_958 = ["despensa-cortada-no-dice-todo-apuntado", "airfryer-nueva-no-borra-los-demas"];
-  it("cada una existe, lleva espera con acción y parámetros, y viene de una conversación real", () => {
-    for (const id of FRASES_958) {
-      const c = casos.find((x) => x.id === id);
-      expect(c, id).toBeDefined();
-      expect(c.espera, id).toMatchObject({ accion: expect.any(String), parametros: expect.any(Object) });
-      expect(c.origen, id).toBe("conversacion_real");
-    }
-  });
-});
-
-// Las frases reales de #958 que dieron el 17 % de respuestas que contradicen
-// el estado, anonimizadas sobre la familia de prueba: cada una con su operación.
 describe("las frases de #958 están en el banco, con espera y de conversación real", () => {
   const FRASES_958 = [
     "nevera-tengo-esto-apunta-en-despensa", "despensa-cortada-no-dice-todo-apuntado", "pescado-como-mucho-dos-es-tope-no-favorito",
