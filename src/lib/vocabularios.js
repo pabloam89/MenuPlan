@@ -141,6 +141,19 @@ export const CHOQUE = porNombre(CHOQUES);
 export const CLASES_DATO = ["hecho", "derivado", "marca", "historial"];
 export const CLASE = porNombre(CLASES_DATO);
 
+// ── Los del registro de ejes (src/data/axisRegistry.js; plan fichas con estado, trozo 24).
+
+/**
+ * Cómo se junta un eje de receta sobre los platos de un día o una semana: se suma (kcal, coste,
+ * minutos), se hace la media, se cuentan los platos que lo cumplen, o no se junta.
+ */
+export const AGREGABLES = ["suma", "media", "cuenta", "no"];
+export const AGREGABLE = porNombre(AGREGABLES);
+
+/** La unidad de un eje numérico, por ración: las de los nutrientes (src/data/nutrientes.js), minutos, euros y raciones. */
+export const UNIDADES_EJE = ["kcal", "g", "mg", "ug", "min", "eur", "racion"];
+export const UNIDAD_EJE = porNombre(UNIDADES_EJE);
+
 /** Sexo de una persona: campo nuevo de la ficha v18, solo para calorías y nunca se pregunta. */
 export const SEXO = ["mujer", "hombre", "sin_dato"];
 
@@ -284,6 +297,8 @@ export const VOCABULARIOS = Object.freeze({
   postura: POSTURAS,
   choque: CHOQUES,
   clase_dato: CLASES_DATO,
+  agregables: AGREGABLES,
+  unidades_eje: UNIDADES_EJE,
   alcances_descarte: ALCANCES_DESCARTE,
   canales_dato: CANALES_DATO,
   sexo: SEXO,
