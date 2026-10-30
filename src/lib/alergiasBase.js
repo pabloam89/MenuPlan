@@ -38,6 +38,11 @@ export function pareceAlergia(texto) {
  */
 export const alergiasRevisadas = (data, m) => m?.alergiasRevisadas ?? data?.allergiesReviewed === true;
 
+/** Los de la casa a los que nadie ha preguntado todavía por alergias. Aquí y no en alergias.js: lo lee el bot (generar.js) sin cargar el catálogo. */
+export function pendientesDeAlergias(data) {
+  return (data?.members ?? []).filter((m) => !alergiasRevisadas(data, m));
+}
+
 /**
  * ¿Su «ninguna» es por silencio y no dicho? Solo si sigue sin alergias: una
  * que se apunte después (desde la app, que no conoce la marca) manda.

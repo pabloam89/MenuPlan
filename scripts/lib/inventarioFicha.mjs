@@ -14,6 +14,9 @@
  *   sin_lector            un dato activo que ningún fichero lee (fuera de los
  *                         valores por defecto y la migración de App.jsx)
  *   de_roto               `de` u `otros` que apunta a un dato que no existe
+ *   sin_ficha             un dato activo sin `ficha` (plan fichas con estado, trozo 5)
+ *   defecto_distinto      un `defecto` del registro que no es el valor con que
+ *                         nace una casa (INITIAL_DATA de App.jsx)
  *   sin_declarar          un dato del registro que la forma de una casa nueva
  *                         (INITIAL_DATA) no trae, o una clave de la persona sin
  *                         columna en la tabla persona (va a `resto`)
@@ -26,7 +29,7 @@
  *                         (src/screens, src/components, App.jsx)
  *   sin_tabular           un objeto, mapa o lista abierta (no se puede contar)
  *
- * Los tres primeros son errores del registro y deben ser 0. Los demás son
+ * Los cinco primeros son errores del registro y deben ser 0. Los demás son
  * la deuda del modelo: se anclan en inventarioFicha.base.json y
  * solo pueden bajar.
  */
@@ -34,9 +37,9 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 
-export const FALLOS = ["sin_registro", "sin_lector", "de_roto", "sin_declarar", "enum_sin_vocabulario", "copia", "legado", "lola_no_lo_ve", "app_no_lo_ve", "sin_tabular"];
-export const ERRORES = FALLOS.slice(0, 3);
-export const DEUDA = FALLOS.slice(3);
+export const ERRORES = ["sin_registro", "sin_lector", "de_roto", "sin_ficha", "defecto_distinto"];
+export const DEUDA = ["sin_declarar", "enum_sin_vocabulario", "copia", "legado", "lola_no_lo_ve", "app_no_lo_ve", "sin_tabular"];
+export const FALLOS = [...ERRORES, ...DEUDA];
 
 // Escriben datos de prueba o el propio registro: nombrar una clave no es leerla.
 const NO_LEEN = new Set(["src/lib/registroFicha.js", "src/lib/casasAleatorias.js"]);
@@ -47,6 +50,23 @@ function clavesDeBloque(texto, desde, hasta = "\n};") {
   if (i < 0) throw new Error(`no encuentro «${desde}»`);
   const j = texto.indexOf(hasta, i);
   return { claves: [...texto.slice(i, j).matchAll(/^ {2}(\w+):/gm)].map((m) => m[1]), i, j };
+}
+
+// Un escalar JSON o una lista de escalares, tal como se escribe en una línea de INITIAL_DATA.
+const ESCALAR = String.raw`"[^"]*"|-?\d+(?:\.\d+)?|true|false|null`;
+const LITERAL_JSON = new RegExp(String.raw`^(?:${ESCALAR}|\[\s*(?:(?:${ESCALAR})\s*(?:,\s*(?:${ESCALAR})\s*)*)?\])$`);
+
+/**
+ * Los valores de un objeto literal de primer nivel que caben en una línea y son JSON ("same", 2000,
+ * ["Comida", "Cena"]): el defecto con que nace una casa. Lo que no lo es (objetos, spreads) no está en el mapa.
+ */
+function valoresDeBloque(texto, desde) {
+  const { i, j } = clavesDeBloque(texto, desde);
+  const valores = new Map();
+  for (const m of texto.slice(i, j).matchAll(/^ {2}(\w+): (.+?),?\s*$/gm)) {
+    if (LITERAL_JSON.test(m[2])) valores.set(m[1], JSON.parse(m[2]));
+  }
+  return valores;
 }
 
 /** App.jsx sin INITIAL_DATA ni migrate(): ahí se nombran todas las claves para darles su valor por defecto. */
@@ -120,16 +140,23 @@ const nombra = (k) => new RegExp(String.raw`(\.|\?\.|\[["'])${k}\b|\b${k}\s*[:=]
 
 /**
  * El inventario. `guardadas` (opcional): { casa: Set, persona: Set } con las
- * claves que hay en la base.
+ * claves que hay en la base. `registro` (opcional, para probarlo): { casa, persona }
+ * en vez de DATOS_CASA y DATOS_PERSONA.
  */
-export async function inventario(raiz, { guardadas = null } = {}) {
+export async function inventario(raiz, { guardadas = null, registro = null } = {}) {
   const url = (f) => new URL(`file:///${join(raiz, f).replaceAll("\\", "/")}`).href;
-  const { DATOS_CASA, DATOS_PERSONA, TIPOS, SIN_TABULAR, moduloDe } = await import(url("src/lib/registroFicha.js"));
-  const { VOCABULARIOS } = await import(url("src/lib/vocabularios.js"));
+  const { DATOS_CASA: CASA, DATOS_PERSONA: PERSONA, TIPOS, SIN_TABULAR, moduloDe } = await import(url("src/lib/registroFicha.js"));
+  const DATOS_CASA = registro?.casa ?? CASA;
+  const DATOS_PERSONA = registro?.persona ?? PERSONA;
+  const { VOCABULARIOS, FICHAS, ESCRITORES, CHOQUES } = await import(url("src/lib/vocabularios.js"));
+  // Las columnas cerradas de cada dato y su lista; `ficha` admite null (el inventario cuenta la que falta).
+  const CERRADAS = { tipo: TIPOS, ficha: FICHAS, escribe: ESCRITORES, choque: CHOQUES };
+  const ADMITEN_NULL = new Set(["ficha"]);
   const { CAMPOS_CON_COLUMNA } = await import(url("src/lib/personasTabla.js"));
 
   const app = readFileSync(join(raiz, "src/App.jsx"), "utf8");
   const declaradas = { casa: new Set(clavesDeBloque(app, "const INITIAL_DATA = {").claves), persona: new Set(CAMPOS_CON_COLUMNA) };
+  const defectos = { casa: valoresDeBloque(app, "const INITIAL_DATA = {"), persona: new Map() };
   const codigo = [...ficheros(raiz, "src"), ...ficheros(raiz, "api")]
     .filter((f) => !NO_LEEN.has(f))
     .map((f) => [f, f === "src/App.jsx" ? appSinDefectos(app) : readFileSync(join(raiz, f), "utf8")]);
@@ -146,7 +173,14 @@ export async function inventario(raiz, { guardadas = null } = {}) {
       // Lo que vive en su tabla tiene allí su forma y sus lectores.
       const enData = d.vive === "data";
       if (enData && !declaradas[ambito].has(k)) fallos.sin_declarar.push(id);
-      if (!TIPOS.includes(d.tipo)) throw new Error(`${id}: tipo «${d.tipo}» fuera de TIPOS`);
+      for (const [col, lista] of Object.entries(CERRADAS)) {
+        if (d[col] === null && ADMITEN_NULL.has(col)) continue;
+        if (!lista.includes(d[col])) throw new Error(`${id}: ${col} «${d[col]}» fuera de su lista`);
+      }
+      if (d.estado === "activo" && d.ficha === null) fallos.sin_ficha.push(id);
+      if (enData && d.defecto !== null && defectos[ambito].has(k) && JSON.stringify(defectos[ambito].get(k)) !== JSON.stringify(d.defecto)) {
+        fallos.defecto_distinto.push(`${id}: registro ${JSON.stringify(d.defecto)} ≠ INITIAL_DATA ${JSON.stringify(defectos[ambito].get(k))}`);
+      }
       const re = nombra(k);
       const lectores = codigo.filter(([, t]) => re.test(t)).map(([f]) => f);
       const lola = lectores.filter((f) => f.startsWith("api/"));

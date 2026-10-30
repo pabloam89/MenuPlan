@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { VOCABULARIOS, vocabulario, TIPOS_GRUPO, RETIRADOS, ENVASES, CANAL, IDIOMA, CANALES, IDIOMAS, crearEscritor, FueraDeVocabulario } from "./vocabularios.js";
+import { VOCABULARIOS, vocabulario, TIPOS_GRUPO, RETIRADOS, ENVASES, CANAL, IDIOMA, CANALES, IDIOMAS, ESCRITOR, ESCRITORES, CHOQUE, CHOQUES, crearEscritor, FueraDeVocabulario } from "./vocabularios.js";
 import { REGISTRO_CAMPOS, TIPOS_CAMPO, POLITICAS, POR, APLICA, CAMPOS_PREGUNTABLES, VOCABULARIOS_PENDIENTES } from "./registroCampos.js";
 
 // Enums cuya lista aún no existe: deuda a la vista, que solo puede bajar.
@@ -152,6 +152,10 @@ describe("vocabularios: una lista, un sitio", () => {
   it("vocabulario() devuelve la lista o null", () => {
     expect(vocabulario("dias")).toBe(VOCABULARIOS.dias);
     expect(vocabulario("no_existe")).toBe(null);
+  });
+
+  it("las listas del eje de la ficha (plan fichas con estado, trozo 5) existen", () => {
+    for (const nombre of ["postura", "choque", "fichas", "escritores"]) expect(vocabulario(nombre), nombre).not.toBe(null);
   });
 });
 
@@ -378,12 +382,16 @@ describe("un valor retirado no vuelve a escribirse (#539)", () => {
     }
   });
 
-  it("todo CANAL.X e IDIOMA.X del código existe (sale de su lista: un retirado desaparece)", () => {
-    expect(CANAL).toEqual(Object.fromEntries(CANALES.map((c) => [c.toUpperCase(), c])));
-    expect(IDIOMA).toEqual(Object.fromEntries(IDIOMAS.map((c) => [c.toUpperCase(), c])));
-    const usados = codigo().flatMap(({ fichero, texto }) => [...sinComentarios(texto).matchAll(/\b(CANAL|IDIOMA)\.([A-Z_]+)\b/g)].map((m) => [fichero, m[1], m[2]]));
-    expect(usados.length).toBeGreaterThan(0);
-    expect(usados.filter(([, mapa, nombre]) => !({ CANAL, IDIOMA })[mapa][nombre]).map((u) => u.join(" "))).toEqual([]);
+  it("todo CANAL.X, IDIOMA.X, ESCRITOR.X y CHOQUE.X del código existe (sale de su lista: un retirado desaparece)", () => {
+    const porNombre = (lista) => Object.fromEntries(lista.map((c) => [c.toUpperCase(), c]));
+    expect(CANAL).toEqual(porNombre(CANALES));
+    expect(IDIOMA).toEqual(porNombre(IDIOMAS));
+    expect(ESCRITOR).toEqual(porNombre(ESCRITORES));
+    expect(CHOQUE).toEqual(porNombre(CHOQUES));
+    const mapas = { CANAL, IDIOMA, ESCRITOR, CHOQUE };
+    const usados = codigo().flatMap(({ fichero, texto }) => [...sinComentarios(texto).matchAll(/\b(CANAL|IDIOMA|ESCRITOR|CHOQUE)\.([A-Z_]+)\b/g)].map((m) => [fichero, m[1], m[2]]));
+    for (const mapa of Object.keys(mapas)) expect(usados.some(([, m]) => m === mapa), `nadie usa ${mapa}.X`).toBe(true);
+    expect(usados.filter(([, mapa, nombre]) => !mapas[mapa][nombre]).map((u) => u.join(" "))).toEqual([]);
   });
 
   it("cada envase vivo o retirado tiene su etiqueta, y ninguna sobra", () => {
