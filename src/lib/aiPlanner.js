@@ -3202,7 +3202,7 @@ export function choquesDelPlan(data, plan, { antes = null } = {}) {
   return choques;
 }
 
-export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, course = "main", forcedRecipe = null, sameCategory = false, candidatos = 0, admiteMontaje = false, pedido = false, hoy = null }) {
+export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, course = "main", forcedRecipe = null, sameCategory = false, candidatos = 0, admiteMontaje = false, pedido = false, hoy = null, usadosEnOtrasSemanas = null }) {
   // Los vetos de la libreta se leen con fecha (lib/vetos.js): un cambio de
   // plato es HOY, salvo que quien llama diga otra cosa (el bot pasa la de
   // Madrid). Sin esto, un «sin X hasta el día 31» seguía vetando en noviembre.
@@ -3242,6 +3242,7 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
       const base = stripGroupPrefix(s?.recipeId);
       if (base) yaPuestos.add(base);
     }
+    for (const id of usadosEnOtrasSemanas ?? []) yaPuestos.add(stripGroupPrefix(id));
     const frescos = pool.filter((r) => !yaPuestos.has(r.id));
     const ordenados = [...frescos, ...pool.filter((r) => yaPuestos.has(r.id))];
     if (ordenados.length === 0) return null;
@@ -3301,7 +3302,11 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   const slotMaxTime = maxCookTime(data, { isWeekend, meal });
 
   // Exclude dishes already used anywhere in this group's menu (+ the current one).
-  const usedBaseIds = new Set();
+  // `usadosEnOtrasSemanas`: lo que ya hay en las demás semanas del mismo menú.
+  // Sin esto, rellenar cada semana por separado elegía lo mismo en todas: el
+  // plan que se mira es solo el de la semana abierta. Blando, como el resto:
+  // si no queda nada fresco, `selectReplacementCandidates` repite.
+  const usedBaseIds = new Set([...(usadosEnOtrasSemanas ?? [])].map(stripGroupPrefix));
   for (const slot of Object.values(menuPlan[groupId] ?? {})) {
     const a = stripGroupPrefix(slot?.recipeId);
     const b = stripGroupPrefix(slot?.firstRecipeId);

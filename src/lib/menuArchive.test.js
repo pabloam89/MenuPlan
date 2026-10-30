@@ -18,8 +18,7 @@ import {
   pruneMenuHistory,
   removeMenu,
   sortMenusDesc,
-  toggleMenuFavorite,
-} from "./menuArchive.js";
+  toggleMenuFavorite, recipeIdsDeOtrasSemanas } from "./menuArchive.js";
 import { mondayISOForOffset } from "./weekCalendar.js";
 
 describe("clampWeekCount", () => {
@@ -408,5 +407,19 @@ describe("semanaVivaPorGuardar", () => {
     };
     const editado = { g1: { "Lun-Comida": { recipeId: "pescados_002" } } };
     expect(semanaVivaPorGuardar(soloRango, "m", 0, editado, lista)).toBeNull();
+  });
+});
+
+describe("recipeIdsDeOtrasSemanas", () => {
+  const semana = (offset, ...ids) => ({ offset, plan: { g1: Object.fromEntries(ids.map((id, i) => [`Lun-${i}`, { recipeId: id }])), _warnings: [] } });
+  const menu = { weeks: { a: semana(0, "x1", "x2"), b: semana(1, "g1__y1", "y2"), c: semana(2, "z1") } };
+
+  it("junta los platos de las demás semanas y deja fuera la abierta", () => {
+    expect([...recipeIdsDeOtrasSemanas(menu, 0)].sort()).toEqual(["g1__y1", "y2", "z1"]);
+  });
+
+  it("sin menú o sin semanas devuelve un conjunto vacío", () => {
+    expect(recipeIdsDeOtrasSemanas(undefined, 0).size).toBe(0);
+    expect(recipeIdsDeOtrasSemanas({}, 0).size).toBe(0);
   });
 });
