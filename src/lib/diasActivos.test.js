@@ -44,9 +44,14 @@ describe("diasActivosDe", () => {
     expect(diasActivosDe({ menuWeek: { offset: 0, startDayIdx: 4, days: ["Mar", "Lun"] } })).toEqual(["Lun", "Mar"]);
   });
 
+  it("nunca se queda sin días: un inicio fuera de rango o días desconocidos vuelven a la regla de siempre", () => {
+    expect(diasActivosDe({ menuWeek: { offset: 0, startDayIdx: 7 } })).toEqual([...DAYS]);
+    expect(diasActivosDe({ menuWeek: { offset: 0, startDayIdx: 4, days: ["vie", "Viernes"] } })).toEqual(FINDE_LARGO);
+  });
+
   it("dice lo mismo que getWeekDatesByMenuWeek, que es quien pinta la semana", () => {
     const semanas = [
-      undefined, {}, VIERNES, { offset: 0, startDayIdx: 0 }, { offset: 0, startDayIdx: 6 },
+      undefined, {}, VIERNES, { offset: 0, startDayIdx: 0 }, { offset: 0, startDayIdx: 6 }, { offset: 0, startDayIdx: 7 },
       { offset: 1, startDayIdx: 3 }, { offset: 2 }, { offset: 0, startDayIdx: 2, days: ["Jue", "Sáb"] },
     ];
     for (const menuWeek of semanas) {
@@ -126,9 +131,14 @@ describe("buildShoppingList: { dias } deja fuera los huecos de otros días", () 
     expect(sh.total).toBe(sinLunes.total);
   });
 
-  it("con dias vacío o sin día conocido no recorta nada", () => {
+  it("con dias vacío o sin opciones no recorta nada", () => {
     expect(diasDeCompra(buildShoppingList(plan, grupos, ["Comida"], [], { dias: [] }))).toEqual(["Lun", "Vie"]);
     expect(diasDeCompra(buildShoppingList(plan, grupos, ["Comida"], [], {}))).toEqual(["Lun", "Vie"]);
+  });
+
+  it("un nombre que no es un día se lanza, en vez de devolver una compra vacía en silencio", () => {
+    expect(() => buildShoppingList(plan, grupos, ["Comida"], [], { dias: ["vie"] })).toThrow(/días desconocidos.*vie/);
+    expect(() => buildShoppingList(plan, grupos, ["Comida"], [], { dias: ["Vie", "Viernes"] })).toThrow(TypeError);
   });
 });
 

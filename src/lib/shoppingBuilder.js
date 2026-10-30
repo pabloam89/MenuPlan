@@ -229,10 +229,16 @@ function formatQty(qty, unit) {
  *   generado desde el 30 oct 2026 solo trae huecos de los días de su semana, así
  *   que no hace falta; sirve para una semana guardada ANTES, que llevaba huecos
  *   de lunes a jueves aunque empezara en viernes (#1029), y para no comprar lo
- *   de esos días. Sin él, o vacío, todos los días del plan, como siempre.
+ *   de esos días. Sin él, o vacío, todos los días del plan, como siempre. Un
+ *   nombre que no sea un día («vie», «Viernes») es un error de quien llama y
+ *   se lanza: una compra vacía en silencio sería peor que el fallo.
  */
 export function buildShoppingList(menuPlan, groups, meals = MEALS, pantryIngredients = [], { dias = null } = {}) {
   const groupById = Object.fromEntries(groups.map((g) => [g.id, g]));
+  const desconocidos = Array.isArray(dias) ? dias.filter((d) => !DAYS.includes(d)) : [];
+  if (desconocidos.length > 0) {
+    throw new TypeError(`buildShoppingList: días desconocidos en \`dias\`: ${desconocidos.join(", ")}`);
+  }
   const diasDeCompra =
     Array.isArray(dias) && dias.length > 0 ? DAYS.filter((d) => dias.includes(d)) : DAYS;
   const unidadesPorIngrediente = unidadesPorIngredienteDelPlan(menuPlan, groupById, meals);

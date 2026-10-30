@@ -126,10 +126,10 @@ export function cookDayCounts(data) {
  * día de inicio hasta el domingo; y la semana entera en las demás. Sin
  * `menuWeek` (datos viejos, tests), los siete días, como siempre.
  *
- * Es la misma regla que `getWeekDatesByMenuWeek(menuWeek).activeDays`
- * (weekCalendar.js) y diasActivos.test.js vigila que las dos coincidan; vive
- * aquí porque weekCalendar importa de este fichero y el motor no necesita
- * fechas. Hasta el 30 oct 2026 el motor recorría los siete días siempre y una
+ * Es la única regla: `getWeekDatesByMenuWeek` (weekCalendar.js), que pinta la
+ * semana, la reutiliza, así que lo pintado y lo planificado no pueden
+ * discrepar. Vive aquí porque weekCalendar importa de este fichero y el motor
+ * no necesita fechas. Hasta el 30 oct 2026 el motor recorría los siete días siempre y una
  * semana de viernes a domingo guardaba huecos de lunes a jueves, gastaba en
  * ellos las cuotas de variedad y de familias y los compraba (#1029).
  *
