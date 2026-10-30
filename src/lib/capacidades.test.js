@@ -6,8 +6,6 @@ import { CAPACIDADES, VERBOS, SOBRE, PANTALLAS, ESTADOS_CAPACIDAD, estadoDe, esH
 import { MODULOS, DATOS_CASA, DATOS_PERSONA } from "./registroFicha.js";
 
 const raiz = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
-// Las herramientas que Lola tiene de verdad, leídas de su código.
-const HERRAMIENTAS = [...readFileSync(join(raiz, "api/_bot/agente.js"), "utf8").matchAll(/name: "([a-z_]+)"/g)].map((m) => m[1]);
 const BASE = JSON.parse(readFileSync(join(raiz, "src/lib/capacidades.base.json"), "utf8"));
 
 describe("mapa de capacidades (#939)", () => {
@@ -22,10 +20,11 @@ describe("mapa de capacidades (#939)", () => {
     }
   });
 
-  it("cada herramienta de Lola está en alguna capacidad; ninguna inventada", () => {
-    const usadas = new Set(CAPACIDADES.flatMap((c) => c.lola));
-    for (const h of HERRAMIENTAS) expect(usadas.has(h), `${h} sin capacidad`).toBe(true);
-    for (const h of usadas) expect(HERRAMIENTAS, `${h} no existe en agente.js`).toContain(h);
+  // Que cada herramienta de Lola esté en alguna capacidad, y ninguna inventada,
+  // lo comprueba ahora su ficha (api/_bot/fichas.test.js): el `lola` de aquí sale de ellas.
+  it("el lado de Lola no se escribe a mano: ninguna capacidad lleva `lola`", () => {
+    const fuente = readFileSync(join(raiz, "src/lib/capacidades.js"), "utf8").split("\n");
+    expect(fuente.filter((l) => /^\s+c\(".*\blola: \[/.test(l))).toEqual([]);
   });
 
   it("las pantallas existen y los datos están en el registro de la ficha", () => {
