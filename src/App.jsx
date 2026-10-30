@@ -162,7 +162,7 @@ import {
 } from "./lib/recipeCollections.js";
 import { mergeDiscards } from "./lib/recipeDiscardsSync.js";
 import { loadUserState, saveUserState, clearUserState } from "./lib/userState.js";
-import { loadHouseholdState, saveHouseholdState, loadHouseholdBotRev } from "./lib/householdState.js";
+import { loadHouseholdState, saveHouseholdState, loadHouseholdBotRev, empezarCasaVacia, CASA_VACIA } from "./lib/householdState.js";
 import { leerBotRevVisto, guardarBotRevVisto } from "./lib/botRevVisto.js";
 import { guardarConVersion, guardandoCasa, guardadosDeCasa } from "./lib/versionCasa.js";
 import { resolveModeData, prepararSemana } from "./lib/prepararGeneracion.js";
@@ -3560,13 +3560,15 @@ export default function App() {
       delete profile.recipeVotes;
       delete profile.discards;
       delete profile.menus;
-      await saveHouseholdState(result.householdId, {
+      // Solo si la que queda está vacía, y con su versión (householdState.js, #958).
+      const vacia = await empezarCasaVacia(result.householdId, {
         data: profile,
         menuPlan: {},
         shopping: { items: [] },
         aiRecipes: [],
         onbStep: 0,
       });
+      if (vacia === CASA_VACIA.SIN_LEER || vacia === CASA_VACIA.FALLO) console.warn("[hogar] casa vacía sin guardar:", vacia);
     }
 
     showToast("Hogar vaciado");

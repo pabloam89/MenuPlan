@@ -93,6 +93,34 @@ export async function saveHouseholdState(householdId, state, botRev = null) {
   return { ok: true, botRev: data?.bot_rev == null ? botRev : Number(data.bot_rev) };
 }
 
+/** Lo que pasó al dejar vacía la casa que queda tras vaciar un hogar (empezarCasaVacia). */
+export const CASA_VACIA = Object.freeze({
+  GUARDADA: "guardada",
+  TENIA_CASA: "tenia_casa",
+  SIN_LEER: "sin_leer",
+  CONFLICTO: "conflicto",
+  FALLO: "fallo",
+});
+
+/**
+ * Tras vaciar un hogar, la casa que queda activa empieza vacía, pero solo si
+ * de verdad no tiene a nadie, y condicionada a su versión (#958). La que queda
+ * no tiene por qué ser una recién creada: si la persona estaba en otra casa,
+ * es esa, con su familia y su menú, y antes se guardaba encima sin versión.
+ * Si no se puede leer, no se escribe: no saber qué tiene no es estar vacía.
+ * @param {string} householdId
+ * @param {any} state  la casa vacía
+ * @returns {Promise<string>}  de CASA_VACIA
+ */
+export async function empezarCasaVacia(householdId, state, { cargar = loadHouseholdState, guardar = saveHouseholdState } = {}) {
+  const actual = await cargar(householdId);
+  if (actual?.error) return CASA_VACIA.SIN_LEER;
+  if ((actual?.state?.data?.members ?? []).length) return CASA_VACIA.TENIA_CASA;
+  const r = await guardar(householdId, state, actual?.botRev ?? null);
+  if (r?.ok) return CASA_VACIA.GUARDADA;
+  return r?.conflict ? CASA_VACIA.CONFLICTO : CASA_VACIA.FALLO;
+}
+
 async function upsertLegacy(householdId, state, botRev) {
   const { error } = await supabase.from("household_state").upsert(
     {
