@@ -17,6 +17,7 @@ const { cargarCasa, conCasa } = await import("./casa.js");
 const { motor } = await import("./menu.js");
 const { generarMenu } = await import("./generar.js");
 const { estimarSemana, frasePresupuesto } = await import("../../src/lib/presupuesto.js");
+const { MINIMO } = await import("../../src/lib/minimosParaGenerar.js");
 
 const plan = { Lun: { Cena: { recipeId: "r1" } } };
 const m = {
@@ -416,7 +417,7 @@ describe("mínimos para generar (trozo 2 de #1037, decisión B): sin alergias di
     motor.mockResolvedValue({ ...m, generateMenuWithAI });
     const out = {};
     const texto = await generarMenu("h1", "esta", [], out);
-    expect(out).toMatchObject({ ok: false, aviso: "faltan_minimos", faltan: [{ minimo: "alergias", personas: ["Leo"] }] });
+    expect(out).toMatchObject({ ok: false, aviso: "faltan_minimos", faltan: [{ minimo: MINIMO.alergias, personas: ["Leo"] }] });
     expect(generateMenuWithAI).not.toHaveBeenCalled();
     expect(insert).not.toHaveBeenCalled();
     expect(texto).toMatch(/^NO GENERADO/);
