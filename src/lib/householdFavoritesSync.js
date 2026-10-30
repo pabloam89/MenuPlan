@@ -1,11 +1,25 @@
 import { supabase } from "./supabase.js";
-import { favScopeOf, isFavorite, voteOf } from "./recipeVotes.js";
+import { favScopeOf, isFavorite, voteOf, votosDeLaCasa } from "./recipeVotes.js";
 import { scopeToColumn, favoritasDeFilas, votosDeFavoritas } from "./recetasDeLaCasa.js";
 
 /**
  * Household favorites for menu generation (see household_favorites table).
  * Personal favorites remain in recipe_votes (user_id).
  */
+
+/**
+ * Los votos con que genera la app al cargar (#958): con casa y favoritas
+ * leídas, las de la casa más la nota personal (votosDeLaCasa), como Lola; sin
+ * casa, o si household_favorites no se pudo leer, las personales (no se
+ * vacían las favoritas por un corte; el fallo ya va al log en loadHouseholdFavorites).
+ * @param {object} personal  recipe_votes de quien abre la app
+ * @param {string|null} householdId
+ * @param {{ data: object|null, error: object|null }} carga  lo que dio loadHouseholdFavorites
+ */
+export function votosAlCargar(personal, householdId, carga) {
+  const deLaCasa = householdId && !carga?.error ? householdFavoritesToVotes(carga?.data ?? {}, personal) : null;
+  return votosDeLaCasa(personal, deLaCasa);
+}
 
 /**
  * Las favoritas de la casa. Si la lectura falla, `data` es null y `error` lo
