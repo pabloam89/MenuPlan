@@ -1,11 +1,13 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync, readdirSync } from "node:fs";
-import { CHOQUE, CHOQUES, CLASES_DATO, ESCRITORES, ESTADOS_OPERACION, MOTIVOS_SIN_HACER_DATO, ORIGEN_DATO, ORIGENES_DE_LA_FAMILIA } from "../src/lib/vocabularios.js";
+import { REGISTRO_CAMPOS } from "../src/lib/registroCampos.js";
+import { CHOQUE, CHOQUES, CLASES_DATO, ESCRITORES, ESTADO_DE_ORIGEN, ESTADOS_DATO, ESTADOS_OPERACION, MOTIVOS_SIN_HACER_DATO, ORIGEN_DATO, ORIGENES_DE_LA_FAMILIA } from "../src/lib/vocabularios.js";
 
 /**
  * El dato con sobre (plan fichas con estado, trozo 7): lo que no vigilan principios.test.js ni
  * vocabularios.test.js. La 0105 crea la tabla operacion; la escriben las RPC de la 0106 (trozo 39). Ningún
- * código llama aún a aplicar_operacion ni a escribir_dato (trozo 8): este test es su lector.
+ * código llama aún a aplicar_operacion ni a escribir_dato (trozo 8): este test es su lector. La 0107
+ * (trozo 40) rehace ficha_casa (v2) y quita sobre.ref_tipo/ref_id.
  *  - operacion: solo el servidor la lee y la escribe (guarda salud); una clave por casa.
  *  - sobre apunta a su operación, que se puede purgar sin llevarse el dato.
  */
@@ -14,12 +16,14 @@ const sql = readFileSync(new URL("./migrations/0105_dato_con_sobre.sql", import.
 const codigo = sinComentarios(sql);
 const codigo0106 = sinComentarios(readFileSync(new URL("./migrations/0106_aplicar_operacion.sql", import.meta.url), "utf8"));
 
-/** El cuerpo de una función de la 0106, de su create a su $$ de cierre. */
-function cuerpo(nombre) {
-  const i = codigo0106.search(new RegExp(String.raw`create (?:or replace )?function public\.${nombre}\(`));
+const codigo0107 = sinComentarios(readFileSync(new URL("./migrations/0107_ficha_casa_v2.sql", import.meta.url), "utf8"));
+
+/** El cuerpo de una función (de la 0106 si no se dice otra), de su create a su $$ de cierre. */
+function cuerpo(nombre, texto = codigo0106) {
+  const i = texto.search(new RegExp(String.raw`create (?:or replace )?function public\.${nombre}\(`));
   expect(i, `falta la función ${nombre}`).toBeGreaterThan(-1);
-  const abre = codigo0106.indexOf("$$", i);
-  return codigo0106.slice(i, codigo0106.indexOf("$$", abre + 2) + 2);
+  const abre = texto.indexOf("$$", i);
+  return texto.slice(i, texto.indexOf("$$", abre + 2) + 2);
 }
 const literales = (texto) => [...texto.matchAll(/'([a-z_]+)'/g)].map((m) => m[1]);
 const ordenado = (xs) => [...new Set(xs)].sort();
@@ -135,5 +139,43 @@ describe("0106: el registro manda, y sus literales salen de vocabularios.js", ()
     expect(rpc).toMatch(/\(r\.choque = 'mas_restrictivo' and r\.tipo <> 'lista_enum'\) or \(r\.choque = 'suma' and r\.tipo not in \('int', 'decimal'\)\) then\s+raise exception/);
     const reglas = [...rpc.matchAll(/r\.choque = '(\w+)'/g)].map((m) => m[1]);
     expect(ordenado(reglas)).toEqual(ordenado(CHOQUES.filter((c) => c !== CHOQUE.ULTIMO_GANA)));
+  });
+});
+
+describe("0107: ficha_casa v2 y fuera sobre.ref", () => {
+  const ficha = cuerpo("ficha_casa", codigo0107);
+  const vigente = /and \(s\.caduca_at is null or s\.caduca_at > now\(\)\)\)/g;
+
+  it("quita sobre.ref_tipo y sobre.ref_id, con CONTRAE y la guardia de filas; ficha_casa sigue solo para service_role", () => {
+    expect(codigo0107).toMatch(/alter table public\.sobre\s+drop column ref_tipo,\s+drop column ref_id;/);
+    expect(readFileSync(new URL("./migrations/0107_ficha_casa_v2.sql", import.meta.url), "utf8")).toMatch(/^-- CONTRAE: sobre\.ref_tipo y sobre\.ref_id/m);
+    expect(codigo0107).toMatch(/if exists \(select 1 from public\.sobre where ref_tipo is not null or ref_id is not null\) then\s+raise exception/);
+    expect(codigo0107).toMatch(/revoke all on function public\.ficha_casa\(uuid, uuid, text, integer\) from public, anon, authenticated;/);
+    expect([...codigo0107.matchAll(/grant\s+[^;]*?\bon\s+function\s+public\.ficha_casa\b[^;]*?\bto\s+([^;]*);/gi)].map((m) => m[1].trim())).toEqual(["service_role"]);
+    expect(ficha).toMatch(/'v', 2,/);
+  });
+
+  it("el estado de cada dato sale de ESTADO_DE_ORIGEN, que cubre ORIGEN_DATO y da estados de ESTADOS_DATO", () => {
+    const m = ficha.match(/else case d\.origen([\s\S]*?)\bend end,/);
+    expect(m, "falta el case del estado").not.toBeNull();
+    expect(Object.fromEntries([...m[1].matchAll(/when '(\w+)' then '(\w+)'/g)].map((x) => [x[1], x[2]]))).toEqual(ESTADO_DE_ORIGEN);
+    expect(ordenado(Object.keys(ESTADO_DE_ORIGEN))).toEqual(ordenado(ORIGEN_DATO));
+    for (const e of [...Object.values(ESTADO_DE_ORIGEN), ...literales(ficha.match(/'estado', case when not d\.vigente then ([^\n]*)/)[1])]) expect(ESTADOS_DATO).toContain(e);
+  });
+
+  it("un campo con columna y sin sobre vigente sale sin valor (o con su defecto), y los «when d.campo» son los de REGISTRO_CAMPOS con columna", () => {
+    const valor = ficha.match(/'valor', case when not d\.vigente then d\.defecto([\s\S]*?)else d\.valor end,/);
+    expect(valor, "el valor no mira primero si el sobre está vigente").not.toBeNull();
+    // Un sobre vigente cuyo estado es «vacío» (no_quiere_decirlo) tampoco lleva valor: ni la columna ni un [] de alergias.
+    const vacios = Object.keys(ESTADO_DE_ORIGEN).filter((o) => ESTADO_DE_ORIGEN[o] === "vacio");
+    expect(ordenado([...valor[1].matchAll(/when d\.origen = '(\w+)' then null/g)].map((x) => x[1]))).toEqual(ordenado(vacios));
+    const conColumna = Object.entries(REGISTRO_CAMPOS).filter(([, c]) => c.columna).map(([id]) => id);
+    expect(ordenado([...valor[1].matchAll(/when d\.campo = '(\w+)'/g)].map((x) => x[1]))).toEqual(ordenado(conColumna));
+  });
+
+  it("«faltan» solo da por sabido lo que tiene sobre vigente: ni la columna ni un sobre caducado cuentan", () => {
+    const faltan = ficha.slice(ficha.indexOf("into v_faltan"), ficha.indexOf("into v_tareas"));
+    expect(faltan.match(vigente)?.length).toBe(2);
+    expect(faltan).not.toMatch(/alergias_revisadas|p\.edad|p\.fecha_nacimiento/);
   });
 });

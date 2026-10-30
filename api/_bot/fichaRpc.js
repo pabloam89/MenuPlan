@@ -34,7 +34,8 @@ import { claveDeTarea, KIND_DE_TIPO } from "../../src/lib/registroTareas.js";
 
 export const fichaRpc = () => /^(1|true|si|sí|on)$/i.test(String(process.env.BOT_FICHA_RPC ?? "").trim());
 
-const VERSION = 1;
+// La v2 (0107) trae lo mismo que la v1 y además «fichas» (las leerá el trozo 9): de aquí se lee lo común.
+const VERSIONES = [1, 2];
 const ref = (id) => String(id ?? "").slice(0, 8);
 
 // ── Lectura y caché ─────────────────────────────────────────────────────────
@@ -55,7 +56,7 @@ const noExiste = (e) => /PGRST202|42883|\b404\b|could not find the function/i.te
 
 /** Pura. ¿Es la ficha que sabemos leer? Lo que falta o tiene otra forma, no. */
 function validar(f) {
-  if (f?.v !== VERSION) return `v=${f?.v ?? "?"} (se espera v=${VERSION})`;
+  if (!VERSIONES.includes(f?.v)) return `v=${f?.v ?? "?"} (se espera v=${VERSIONES.join(" o v=")})`;
   if (!Number.isFinite(Number(f.casa?.rev))) return "sin casa.rev";
   for (const k of ["personas", "faltan", "tareas", "callados"]) if (!Array.isArray(f[k])) return `sin «${k}»`;
   return null;

@@ -136,6 +136,12 @@ describe("vocabularios: una lista, un sitio", () => {
     expect(problemasDeParidad(checksDeLista(migraciones({ aplicadas: true })), mapaDeParidad(), SIN_LISTA, checksDeLista(migraciones()))).toEqual([]);
   });
 
+  it("un CHECK vivo que quita una migración sin aplicar (0107: sobre.ref_tipo) ya no pide su lista de JS; si sigue escrito, sí", () => {
+    const vivo = new Map([["sobre.ref_tipo", [{ constraint: "sobre_ref_tipo_vocabulario", fichero: "0097_ficha_registro_sobre.sql", valores: ["menu"] }]]]);
+    expect(problemasDeParidad(vivo, {}, {}, new Map())).toEqual([]);
+    expect(problemasDeParidad(vivo, {}, {}, vivo)).toHaveLength(1);
+  });
+
   it("todo CHECK con literales e in/any/<@ que no es de lista está en NO_ES_LISTA con su motivo", () => {
     expect([...checksNoReconocidos(migraciones()).keys()], "Si es de lista, enseña su forma a scripts/lib/checksVocabulario.mjs; si no, añádelo a NO_ES_LISTA con su porqué").toEqual(Object.keys(NO_ES_LISTA).sort());
   });

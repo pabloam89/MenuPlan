@@ -236,7 +236,8 @@ export function problemasDeParidad(checks, mapa, sinLista = {}, pendientes = che
   for (const col of cols) {
     const cs = checks.get(col) ?? pendientes.get(col);
     if (cs.length > 1) p.push(`${col}: ${cs.length} CHECK de lista vivos a la vez (${cs.map((c) => c.constraint).join(", ")}); deja uno`);
-    if (!(col in mapa) && !(col in sinLista)) p.push(`${col}: CHECK de lista (${cs[0].constraint}, ${cs[0].fichero}) sin su lista de JS: añádela al mapa de columnas o a «sin lista» con su motivo`);
+    // Si una migración escrita y sin aplicar ya quita ese CHECK (o su columna), su lista de JS se puede ir antes.
+    if (!(col in mapa) && !(col in sinLista) && pendientes.has(col)) p.push(`${col}: CHECK de lista (${cs[0].constraint}, ${cs[0].fichero}) sin su lista de JS: añádela al mapa de columnas o a «sin lista» con su motivo`);
   }
   for (const col of Object.keys(sinLista)) {
     if (!cols.has(col)) p.push(`${col}: está en «sin lista» y ya no tiene CHECK de lista: quítalo de ahí`);

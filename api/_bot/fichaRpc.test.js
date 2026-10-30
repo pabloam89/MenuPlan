@@ -256,13 +256,23 @@ describe("con BOT_FICHA_RPC encendido, ficha y tareas de ficha_casa en una ida",
     expect(logDe(/\[fichaRpc\].*PGRST202/)).toBe(true);
   });
 
-  it("con otra versión del contrato (v=2): del JSON, y queda en el log", async () => {
+  it("con otra versión del contrato (v=3): del JSON, y queda en el log", async () => {
     const antes = await apagado();
     encender();
-    rpcFicha = (args) => ({ ...fichaCasa0097(args), v: 2 });
+    rpcFicha = (args) => ({ ...fichaCasa0097(args), v: 3 });
     const t = await turno();
     expect(t).toEqual(antes);
-    expect(logDe(/\[fichaRpc\].*v=2/)).toBe(true);
+    expect(logDe(/\[fichaRpc\].*v=3/)).toBe(true);
+  });
+
+  it("la v2 (0107) se lee como la v1, sin línea en el log: trae lo mismo y además «fichas»", async () => {
+    const antes = await apagado();
+    encender();
+    rpcFicha = (args) => { const { datos: _, ...v1 } = fichaCasa0097(args); return { ...v1, v: 2, fichas: {} }; };
+    const t = await turno();
+    expect(selectsDeTareas()).toEqual([]);
+    expect(t.ficha).toEqual(antes.ficha);
+    expect(logDe(/\[fichaRpc\].*contrato desconocido/)).toBe(false);
   });
 
   it("si las tablas no dicen lo mismo que el JSON en lo de seguridad, manda el JSON (lo que filtra el motor)", async () => {

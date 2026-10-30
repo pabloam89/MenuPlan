@@ -43,9 +43,7 @@ export const COLUMNAS_VOCABULARIO = Object.freeze({
   "household_invites.lang": { lista: "idiomas", comun: true, rpc: { create_household_invite: "p_lang" } },
   "sobre.origen": { lista: "origen_dato", comun: true },
   "sobre.canal": { lista: "canales_dato", comun: true },
-  // `ref_tipo` es también la clave de su lista en VOCABULARIOS: común, para no confundir la una con la otra.
   "receta_descartes.alcance": { lista: "alcances_descarte" },
-  "sobre.ref_tipo": { lista: "ref_tipo", comun: true },
   // Las columnas del eje de registro_campo (0105): listas del producto que registroFicha.js usa en cada dato.
   // Comunes: «ficha», «clase», «escribe» y «choque» son también claves de objetos que no son filas.
   "registro_campo.ficha": { lista: "fichas", comun: true },

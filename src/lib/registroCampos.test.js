@@ -85,7 +85,7 @@ describe("registro_campo (0097, regenerada en la 0105) dice lo mismo que registr
     expect(ordenado(conCampo)).toEqual(ordenado(Object.keys(REGISTRO_CAMPOS)));
   });
 
-  // sobre.origen, sobre.canal y sobre.ref_tipo: su paridad con ORIGEN_DATO, CANALES_DATO y REF_TIPO la lleva
+  // sobre.origen y sobre.canal: su paridad con ORIGEN_DATO y CANALES_DATO la lleva
   // src/lib/vocabularios.test.js, por columna y con los retirados (#497); aquí no se repite.
 
   it("cada valor de los CHECK está en NFC (comparan bytes)", () => {
