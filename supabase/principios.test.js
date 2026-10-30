@@ -302,8 +302,10 @@ export function revisar(fichero, sql, { pendientes, estado, enumDeclarativo = EN
 }
 
 // Anclado al principio de cada palabra: «alergias_revisadas» y
-// «perfil_salud» sí; «es_saludable» o «saludo», no.
-const RE_SALUD = /^(?:(?:\w+_)?(?:alerg|intoler)\w*|(?:\w+_)?salud(?:_\w+)?|peso_\w*|altura_\w*|fecha_nacimiento)$/;
+// «perfil_salud» sí; «es_saludable» o «saludo», no. «peso_menu»
+// (registro_campo, 0105) es cuánto cambia el menú un dato, no el peso de una
+// persona: no es salud.
+const RE_SALUD = /^(?:(?:\w+_)?(?:alerg|intoler)\w*|(?:\w+_)?salud(?:_\w+)?|peso_(?!menu$)\w*|altura_\w*|fecha_nacimiento)$/;
 const NO_COLUMNA = /^(?:constraint|primary|unique|foreign|check|exclude|like)\b/;
 const columnasDe = (lista) => trozos(lista).map((c) => nombre(c.split(/\s+/)[0]));
 

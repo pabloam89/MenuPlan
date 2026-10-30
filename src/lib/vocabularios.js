@@ -117,6 +117,17 @@ export const ALCANCE_DESCARTE = porNombre(ALCANCES_DESCARTE);
 /** A qué se refiere un «sobre» o un cambio: qué lo originó. */
 export const REF_TIPO = ["menu", "mensaje", "pantalla", "senal"];
 
+// ── Los de la operación (plan fichas con estado, trozo 7; tabla operacion de la 0105).
+
+/** De qué viene una operación (operacion.ref_tipo): un mensaje, una pantalla de la app, una tarea, un cron o el motor. */
+export const REFS_OPERACION = ["mensaje", "pantalla", "tarea", "cron", "motor"];
+
+/**
+ * En qué punto está una operación (operacion.estado): pendiente (le falta algo y no se aplicó), hecha
+ * (se aplicó, quizá con algo sin hacer), rechazada (no se escribió nada) o deshecha (se aplicó su inversa).
+ */
+export const ESTADOS_OPERACION = ["pendiente", "hecha", "rechazada", "deshecha"];
+
 // ── Los del eje de la ficha (plan fichas con estado, trozo 5): columnas de registroFicha.js; la 0105 los lleva a registro_campo.
 
 /**
@@ -332,6 +343,8 @@ export const VOCABULARIOS = Object.freeze({
   origen_dato: ORIGEN_DATO,
   origen_alergias: ORIGEN_ALERGIAS,
   ref_tipo: REF_TIPO,
+  refs_operacion: REFS_OPERACION,
+  estados_operacion: ESTADOS_OPERACION,
   fichas: FICHAS,
   escritores: ESCRITORES,
   postura: POSTURAS,
