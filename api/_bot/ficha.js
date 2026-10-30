@@ -283,7 +283,7 @@ function casaBloque(data) {
 
 // ── COCINA ──────────────────────────────────────────────────────────────────
 
-function cocinaBloque(data, hoy) {
+function cocinaBloque(data, hoy, marcas = []) {
   const lineas = [];
   const comidas = comidasDeLaCasa(data).map((id) => comidaDelCatalogo(id)?.nombre ?? id);
   const estructura = { primero_segundo: "primero y segundo", plato_unico: "plato único", unico: "plato único", "1_plato": "plato único" };
@@ -327,10 +327,15 @@ function cocinaBloque(data, hoy) {
   // Los rechazados («no, eso no es así») quedan con valor undefined: no son nada.
   const cuenta = ([, c]) => c.valor !== undefined && (vigente(c, hoy) || (c.desde && c.desde > hoy && (!c.hasta || c.hasta >= hoy)));
   const vivos = campos.filter(cuenta);
-  const dicho = vivos.filter(([, c]) => matizDe(c) === "dicho");
-  const supuesto = vivos.filter(([, c]) => matizDe(c) === "visto" || matizDe(c) === "supuesto");
-  if (dicho.length) lineas.push(`- Dicho: ${dicho.slice(0, 3).map(texto).join("; ")}${dicho.length > 3 ? `; +${dicho.length - 3} (ver_ajustes)` : ""}.`);
-  if (supuesto.length) lineas.push(`- Supuesto: ${supuesto.slice(0, 2).map(texto).join("; ")}${supuesto.length > 2 ? `; +${supuesto.length - 2} (ver_ajustes)` : ""}.`);
+  // Detrás, lo que solo vive en el sobre (ficha_casa v2: fichaRpc.js lo trae en casa.marcasDeEstado,
+  // con la marca de estadoDeDato.js): «colegio (Lucas): El Pilar».
+  const nombre = (id) => (data.members ?? []).find((m) => String(m.id) === id)?.name ?? null;
+  const delSobre = (marca) => marcas.filter((m) => m.marca === marca)
+    .map((m) => `${m.campo}${m.personaId && nombre(m.personaId) ? ` (${nombre(m.personaId)})` : ""}: ${Array.isArray(m.valor) ? m.valor.join("/") : m.valor}`);
+  const dicho = [...vivos.filter(([, c]) => matizDe(c) === "dicho").map(texto), ...delSobre("dicho")];
+  const supuesto = [...vivos.filter(([, c]) => matizDe(c) === "visto" || matizDe(c) === "supuesto").map(texto), ...delSobre("supuesto")];
+  if (dicho.length) lineas.push(`- Dicho: ${dicho.slice(0, 3).join("; ")}${dicho.length > 3 ? `; +${dicho.length - 3} (ver_ajustes)` : ""}.`);
+  if (supuesto.length) lineas.push(`- Supuesto: ${supuesto.slice(0, 2).join("; ")}${supuesto.length > 2 ? `; +${supuesto.length - 2} (ver_ajustes)` : ""}.`);
   // Lo que ya le dijeron que no: los dos últimos, para no volver a suponerlo.
   const rechazados = rechazadosDe(data.notepad).sort((a, b) => String(a.fecha).localeCompare(String(b.fecha))).slice(-2);
   if (rechazados.length) lineas.push(`- No volver a suponer: ${rechazados.map((r) => texto([r.path, { valor: r.valor }])).join("; ")}.`);
@@ -445,7 +450,7 @@ export function montarFicha(casa, extras = {}, hoy = hoyMadrid()) {
   const secciones = {
     seguridad: seguridad(data),
     casa: casaBloque(data),
-    cocina: cocinaBloque(data, hoy),
+    cocina: cocinaBloque(data, hoy, casa?.marcasDeEstado ?? []),
     recetario: recetarioBloque(propiasDe(casa)),
   };
   let delDia = delDiaBloque(casa, extras, hoy);
