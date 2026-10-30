@@ -1,5 +1,7 @@
 {
-  "nota": "Huecos de sincronía app-Lola (#939) el 28 oct 2026: capacidades con un lado vacío sin motivo, y las que no se pueden hacer en ninguno. Solo bajan. npm run capacidades dice cuáles son.",
+  "nota": "Huecos de sincronía app-Lola (#939) el 28 oct 2026: capacidades con un lado vacío sin motivo, y las que no se pueden hacer en ninguno. Datos que dice la familia sin pregunta en Lola o sin pantalla en la app (plan de fichas, trozo 23), el 30 oct 2026. Solo bajan. npm run capacidades dice cuáles son (los datos, con --datos).",
   "huecos": 35,
-  "apagadas": 6
+  "apagadas": 6,
+  "sinPreguntaEnLola": 32,
+  "sinPantallaEnApp": 40
 }
