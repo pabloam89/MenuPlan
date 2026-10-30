@@ -1,5 +1,6 @@
 import { blocked, cors } from "./_guard.js";
 import { paraEscribir } from "../src/lib/vocabularios.js";
+import { MAX_DESCARTES, RECETA_ID_RE } from "../src/lib/descartesForma.js";
 
 // Analytics intake for guests (no Supabase session).
 //
@@ -21,8 +22,6 @@ const MAX_CLOCK_SKEW_MS = 24 * 60 * 60 * 1000;
 // Los platos que un invitado tira al regenerar (receta_descartes, 0102). Misma puerta que
 // los eventos: anonId con su forma, tope por petición, y la fila sale de lo validado,
 // nunca del cuerpo (user_id y household_id siempre null).
-const MAX_DESCARTES = 60;
-const RECETA_ID_RE = /^[A-Za-z0-9_.:-]{1,120}$/;
 
 /** Validates a batch and turns it into user_events rows. Exported for tests. */
 export function rowsFromBody(body, now = Date.now()) {
@@ -62,17 +61,23 @@ export function descartesFromBody(body) {
   if (typeof anonId !== "string" || !ANON_ID_RE.test(anonId)) return [];
   if (!Array.isArray(descartes) || descartes.length === 0 || descartes.length > MAX_DESCARTES) return [];
   const rows = [];
+  let saltadas = 0;
   for (const d of descartes) {
     if (!d || typeof d.receta_id !== "string" || !RECETA_ID_RE.test(d.receta_id)) continue;
     let fila;
     try {
       fila = { user_id: null, household_id: null, anon_id: anonId, receta_id: d.receta_id, alcance: paraEscribir("alcances_descarte", d.alcance) };
     } catch {
+      saltadas++;
       continue;
     }
-    if (fila.alcance == null) continue;
+    if (fila.alcance == null) {
+      saltadas++;
+      continue;
+    }
     rows.push(fila);
   }
+  if (saltadas > 0) console.warn("[track] descartes con alcance fuera del vocabulario:", saltadas);
   return rows;
 }
 
@@ -95,7 +100,10 @@ export default async function handler(req, res) {
 
   const rows = rowsFromBody(req.body);
   const descartes = descartesFromBody(req.body);
-  if (!rows && descartes.length === 0) return res.status(400).json({ error: "Batch inválido." });
+  // Un lote de eventos presente pero inválido sigue dando 400 aunque vengan descartes buenos:
+  // no se pierde en silencio. Solo descartes (sin la clave events) es una petición válida.
+  const traeEventos = req.body?.events !== undefined;
+  if ((traeEventos && !rows) || (!rows && descartes.length === 0)) return res.status(400).json({ error: "Batch inválido." });
   if ((rows?.length ?? 0) === 0 && descartes.length === 0) return res.status(204).end();
 
   const headers = {

@@ -171,6 +171,23 @@ describe("descartes de invitados", () => {
     ]);
   });
 
+  it("un lote de eventos inválido sigue dando 400 aunque vengan descartes buenos (no se pierde en silencio)", async () => {
+    entorno();
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const res = mockRes();
+    await handler({ method: "POST", headers: {}, body: { anonId, events: [], descartes: [{ receta_id: "carnes_146", alcance: "plato" }] } }, res);
+    expect(res.statusCode).toBe(400);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("descartesFromBody: avisa en el log de las filas que salta por alcance fuera del vocabulario", () => {
+    const aviso = vi.spyOn(console, "warn").mockImplementation(() => {});
+    descartesFromBody({ anonId, descartes: [{ receta_id: "carnes_146", alcance: "semana" }, { receta_id: "pescados_7", alcance: "menu" }] });
+    expect(aviso).toHaveBeenCalledTimes(1);
+    aviso.mockRestore();
+  });
+
   it("plan B: si la tabla de descartes no existe, no falla la petición del invitado", async () => {
     entorno();
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 404, text: async () => "relation does not exist" }));

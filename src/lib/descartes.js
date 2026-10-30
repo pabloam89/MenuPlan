@@ -3,6 +3,7 @@ import { supabase } from "./supabase.js";
 import { getAnonId } from "./analytics.js";
 import { idBase } from "./rastro.js";
 import { paraEscribir } from "./vocabularios.js";
+import { MAX_DESCARTES, RECETA_ID_RE } from "./descartesForma.js";
 
 // Los platos que se tiran al regenerar (tabla receta_descartes, 0102): uno suelto,
 // un día o el menú entero. Quien tiene cuenta lo escribe con su sesión (la RLS exige
@@ -10,9 +11,6 @@ import { paraEscribir } from "./vocabularios.js";
 // mismo id anónimo de la analítica. Es analítica y señal para el solver, no el flujo
 // del usuario: nunca lanza ni espera a nadie, y si la tabla aún no está (la migración
 // la aplica Pablo) se pierde el descarte y regenerar funciona igual (plan B).
-
-/** Tope por llamada: un menú entero son ~40 platos; /api/track admite lo mismo. */
-export const MAX_DESCARTES = 60;
 
 /**
  * Las filas (sin identidad) de lo descartado: id de catálogo sin el prefijo de grupo
@@ -28,7 +26,7 @@ export function filasDeDescartes(recetaIds, ambito) {
   const filas = [];
   for (const id of recetaIds ?? []) {
     const recetaId = typeof id === "string" ? idBase(id.trim()) : null;
-    if (!recetaId || recetaId.length > 120 || vistos.has(recetaId)) continue;
+    if (!recetaId || !RECETA_ID_RE.test(recetaId) || vistos.has(recetaId)) continue;
     vistos.add(recetaId);
     filas.push({ receta_id: recetaId, alcance: alcanceOk });
     if (filas.length >= MAX_DESCARTES) break;
@@ -73,12 +71,16 @@ export async function registrarDescartes({ user, householdId = null, recetaIds, 
       }
       return filas.length;
     }
-    await fetch(apiUrl("/api/track"), {
+    const res = await fetch(apiUrl("/api/track"), {
       method: "POST",
       keepalive: true,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ anonId: getAnonId(), descartes: filas }),
     });
+    if (!res.ok) {
+      console.warn("[descartes] track", res.status);
+      return 0;
+    }
     return filas.length;
   } catch (err) {
     console.warn("[descartes]", err?.message ?? err);

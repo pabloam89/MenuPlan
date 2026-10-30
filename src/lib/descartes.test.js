@@ -5,7 +5,8 @@ const from = vi.fn(() => ({ insert }));
 vi.mock("./supabase.js", () => ({ supabase: { from: (...a) => from(...a) } }));
 vi.mock("./analytics.js", () => ({ getAnonId: () => "3f2b8c1e-7a4d-4e0b-9c5a-1d2e3f4a5b6c" }));
 
-import { filasDeDescartes, recetasDelPlan, registrarDescartes, MAX_DESCARTES } from "./descartes.js";
+import { filasDeDescartes, recetasDelPlan, registrarDescartes } from "./descartes.js";
+import { MAX_DESCARTES, RECETA_ID_MAX, RECETA_ID_RE } from "./descartesForma.js";
 import { ALCANCES_DESCARTE, ALCANCE_DESCARTE } from "./vocabularios.js";
 
 describe("filasDeDescartes", () => {
@@ -24,6 +25,15 @@ describe("filasDeDescartes", () => {
 
   it("rechaza un alcance fuera del vocabulario, como lo haría el CHECK", () => {
     expect(() => filasDeDescartes(["carnes_146"], "semana")).toThrow();
+  });
+
+  it("deja fuera los ids que el servidor no aceptaría (un solo criterio en cliente y servidor)", () => {
+    const largo = "a".repeat(RECETA_ID_MAX + 1);
+    expect(RECETA_ID_RE.test("a".repeat(RECETA_ID_MAX))).toBe(true);
+    expect(RECETA_ID_RE.test(largo)).toBe(false);
+    expect(filasDeDescartes(["carnes_146", largo, "con espacio", "con/barra"], ALCANCE_DESCARTE.PLATO)).toEqual([
+      { receta_id: "carnes_146", alcance: "plato" },
+    ]);
   });
 
   it("los alcances con nombre son los del vocabulario", () => {
@@ -96,6 +106,12 @@ describe("registrarDescartes", () => {
         { receta_id: "pescados_7", alcance: "dia" },
       ],
     });
+  });
+
+  it("invitado: si /api/track responde con error (404, 500) no cuenta lo que no se guardó", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 404 }));
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    await expect(registrarDescartes({ user: null, recetaIds: ["carnes_146"], ambito: "plato" })).resolves.toBe(0);
   });
 
   it("invitado sin red: devuelve 0 y no lanza", async () => {
