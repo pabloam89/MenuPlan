@@ -19,7 +19,7 @@ El juez lee el diff y el cuerpo, y cada pregunta del estándar (C5…C17) debe s
 
 ## Lo que pide, por lo que más falla
 
-- **C15, Decisions.** Toda elección que el encargo no impone (un tope, una regex, un orden, un plan B) va en una línea `- principio N | eligió: … | descartó: … | motivo: decidido`. La descartada tiene que **romper** ese principio: 1 Verdad, 2 Evidencia, 3 Fallar en alto, 4 Una idea un sitio, 5 La máquina comprueba, 6 Preguntar antes de un atajo.
+- **C15, Decisions.** Toda elección que el encargo no impone (un tope, una regex, un orden, un plan B) va en una línea `- principio N | eligió: … | descartó: … | motivo: decidido`. La descartada tiene que **romper** ese principio (los seis, en `.fabrica/CLAUDE.md` de la Fábrica: 1 Verdad, 2 Evidencia, 3 Fallar en alto, 4 Una idea un sitio, 5 La máquina comprueba, 6 Preguntar antes de un atajo).
   Mal (#1065): `MAX_VALOR_JSON = 4000` en el código y fuera de Decisions. Mal (#1034): todas las líneas citan «principio 1» y lo descartado no lo rompe.
   Bien (#1065): `principio 3 | … | descartó: devolver vacío como si se hubiera guardado` (eso es tragarse un fallo).
 - **C9, cada cifra con su comando y su salida, medidos sobre la cabeza del PR.** Tras cada commit, se vuelve a lanzar; no afirmes lo que el comando no mide.
@@ -43,4 +43,4 @@ El juez lee el diff y el cuerpo, y cada pregunta del estándar (C5…C17) debe s
 
 - Veredicto: `gh run list --workflow revisor --branch <rama> --limit 3` y `gh run view <id> --log | grep -o 'SALIDA: {.*'` (el JSON con `prueba` de cada «no»). Las líneas `C9: no` siguen a `veredicto: no`. La ejecución sale `success` aunque el veredicto sea «no»: mira el check, no la ejecución.
 - Un `revisor` en rojo puede ser de una ejecución vieja o cancelada (`la cabeza del PR ya no es el SHA juzgado`): mira que el check sea del último commit antes de arreglar nada.
-- Fallo del propio juez (`salida ilegible`, `exceeding the configured maximum`): no es tu contenido. El token de la App no puede `gh run rerun`; relánzalo editando el cuerpo con una nota nueva (`gh pr edit <n> --body-file cuerpo.md`, con una línea más en «Not verified»).
+- Fallo del propio juez (los motivos con `fallaElJuez` de `MOTIVOS_SIN_VEREDICTO`, en `scripts/rondas-del-juez.mjs`): no es tu contenido. El token de la App no puede `gh run rerun`; relánzalo editando el cuerpo con una nota nueva (`gh pr edit <n> --body-file cuerpo.md`, con una línea más en «Not verified»).
