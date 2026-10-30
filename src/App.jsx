@@ -137,12 +137,12 @@ const MenusScreen = lazy(() => import("./screens/MenusScreen.jsx").then(m => ({ 
 const MenuHistoryView = lazy(() => import("./screens/MenuHistoryView.jsx").then(m => ({ default: m.MenuHistoryView })));
 import { registerRecipes, RECIPES_BY_ID } from "./data/recipes.js";
 import {
-  toggleRecipeVote,
   setFavoriteScope,
   voteOf,
   favScopeOf,
   isRecipeFavorite,
   mergeVotes,
+  votarReceta,
   loadRecipeVotes,
   saveRecipeVote,
   deleteRecipeVote,
@@ -168,7 +168,7 @@ import { guardarConVersion, guardandoCasa, guardadosDeCasa } from "./lib/version
 import { resolveModeData, prepararSemana } from "./lib/prepararGeneracion.js";
 import BotEnlace from "./components/BotEnlace.jsx";
 import { loadHouseholdDiscards, saveHouseholdDiscard, deleteHouseholdDiscard, subirDescartesUnaVez } from "./lib/householdDiscardsSync.js";
-import { loadHouseholdFavorites, saveHouseholdFavorite, deleteHouseholdFavorite, householdFavoritesToVotes } from "./lib/householdFavoritesSync.js";
+import { loadHouseholdFavorites, saveHouseholdFavorite, deleteHouseholdFavorite, votosAlCargar } from "./lib/householdFavoritesSync.js";
 import { useHousehold } from "./lib/useHousehold.js";
 import { esTitular } from "./lib/householdsSync.js";
 import { shouldAdoptRemoteProfile, soloNubeAlCargar, mergeUserRecipesById } from "./lib/profileMerge.js";
@@ -1520,7 +1520,6 @@ export default function App() {
       const remoteCollections = cargaColecciones.data ?? {};
       const remoteFolders = cargaCarpetas.data ?? [];
       const remoteDiscards = cargaDescartes.data ?? { forever: [], cooldownUntil: {} };
-      const remoteHouseholdFavs = cargaFavsCasa.data ?? {};
       if (cancelled) return;
       // Sin red, y con lo de memoria de otra casa: no hay nada bueno que
       // enseñar ni que subir. Se queda sin marcar como cargada (no se guarda
@@ -1544,10 +1543,13 @@ export default function App() {
       const mergedCollections = mergeCollections(localCollections, remoteCollections);
       const mergedFolders = mergeFolders(localFolders, remoteFolders);
       const personalVotes = mergeVotes(localVotes, remoteVotes);
-      const mergedVotes = mergeVotes(
-        personalVotes,
-        householdFavoritesToVotes(remoteHouseholdFavs, personalVotes),
-      );
+      // Con casa, sus favoritas son las de household_favorites y ninguna más,
+      // como en Lola (#958): antes se mezclaban las personales de quien abría
+      // la app, y la misma casa generaba distinto según quién generara. Si no
+      // se pudieron leer, las personales de siempre: no se vacían las
+      // favoritas por un corte, y el error ya queda en el log
+      // (householdFavoritesSync.js, loadHouseholdFavorites).
+      const mergedVotes = votosAlCargar(personalVotes, householdId, cargaFavsCasa);
       setPersonalRecipeVotes(personalVotes);
 
       // Adopt the remote profile snapshot only to hydrate a session that
@@ -3856,14 +3858,16 @@ export default function App() {
   const handleVoteRecipe = useCallback((recipeId, vote) => {
     if (householdReadOnly) return;
     const baseId = recipeId ? String(recipeId).split("__").pop() : recipeId;
-    const nextVotes = toggleRecipeVote(data.recipeVotes, baseId, vote);
-    setData((d) => ({ ...d, recipeVotes: nextVotes }));
+    // La nota, en los votos de la casa y en los personales; se guarda la
+    // personal, que conserva su favorita (votarReceta, #958).
+    const v = votarReceta(data.recipeVotes, personalRecipeVotes, baseId, vote);
+    setData((d) => ({ ...d, recipeVotes: v.casa }));
+    setPersonalRecipeVotes(v.personal);
     if (user?.id) {
-      const entry = nextVotes[baseId] ?? null;
-      if (entry == null) deleteRecipeVote(user.id, baseId);
-      else saveRecipeVote(user.id, baseId, entry);
+      if (v.guardar == null) deleteRecipeVote(user.id, baseId);
+      else saveRecipeVote(user.id, baseId, v.guardar);
     }
-  }, [data.recipeVotes, user, householdReadOnly]);
+  }, [data.recipeVotes, personalRecipeVotes, user, householdReadOnly]);
 
   // Favorite (personal collection)
   // applies to ("all" | string[] | null to unfavorite). Independent of vote.

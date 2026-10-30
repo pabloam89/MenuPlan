@@ -88,6 +88,22 @@ export function toggleRecipeVote(votes, recipeId, vote) {
   return applyEntry(votes, recipeId, nextVote, favScopeOf(cur));
 }
 
+/**
+ * Un 👍/👎 con casa (#958): la nota va a los votos de la casa (lo que usa el
+ * motor) y a los personales (lo que se guarda en recipe_votes). Lo que se
+ * guarda sale de los PERSONALES: con votosDeLaCasa los de la casa ya no llevan
+ * la favorita personal, y guardarlos habría borrado esa favorita de recipe_votes.
+ * @returns {{ casa: object, personal: object, guardar: object|null }}  `guardar`: la fila de recipe_votes (null = borrarla)
+ */
+export function votarReceta(casa, personal, recipeId, vote) {
+  const nuevoPersonal = toggleRecipeVote(personal, recipeId, vote);
+  return {
+    casa: toggleRecipeVote(casa, recipeId, vote),
+    personal: nuevoPersonal,
+    guardar: nuevoPersonal[recipeId] ?? null,
+  };
+}
+
 /** Toggle the favorite on/off (default scope "all" when turning on), preserving the rating. */
 export function toggleFavorite(votes, recipeId, defaultScope = "all") {
   const cur = votes?.[recipeId];
@@ -150,6 +166,34 @@ export function favoriteIdsForGroup(votes, group) {
     }
   }
   return ids;
+}
+
+/**
+ * Los votos personales sin sus favoritas: solo la nota (👍/👎). Las favoritas
+ * de una casa son las de household_favorites, también para el motor (#958):
+ * Lola solo ve esas (api/_bot/casa.js), y la app mezclaba además las favoritas
+ * PERSONALES de quien abría la app (recipe_votes), así que la misma casa
+ * generaba con favoritas distintas según quién generara. Ahora las dos igual
+ * (votosDeLaCasa).
+ */
+export function sinFavoritas(votes = {}) {
+  const out = {};
+  for (const [id, e] of Object.entries(votes ?? {})) {
+    const entry = makeEntry(voteOf(e), null);
+    if (entry != null) out[id] = entry;
+  }
+  return out;
+}
+
+/**
+ * Lo que la casa usa al generar en la app: con casa, las favoritas de la casa
+ * más la nota personal de cada receta; sin casa (sin cuenta), las personales,
+ * que entonces son las únicas.
+ * @param {object} personal  recipe_votes de quien abre la app
+ * @param {object|null} deLaCasa  household_favorites ya pasadas a votos (householdFavoritesToVotes); null sin casa
+ */
+export function votosDeLaCasa(personal = {}, deLaCasa = null) {
+  return deLaCasa ? mergeVotes(sinFavoritas(personal), deLaCasa) : personal;
 }
 
 /**
