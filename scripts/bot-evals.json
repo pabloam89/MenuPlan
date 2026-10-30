@@ -1,5 +1,5 @@
 {
-  "_nota": "Casos de conversación de Lola (scripts/bot-evals.mjs). Cada caso: lo que dice el usuario, opcionalmente la charla previa, y qué herramientas DEBE y NO DEBE llamar. 'args' comprueba argumentos (subcadena, sin mayúsculas ni acentos). 'texto' y 'sinTexto' son expresiones regulares sobre la respuesta. 'foto' son líneas de texto que se pintan en una imagen y van adjuntas. Etiquetas (vocabularios en scripts/lib/evals.mjs, vigiladas por scripts/lib/evals.test.js): id (slug estable y único; no se cambia nunca, los resultados guardados lo usan), tipo, dominio, origen y nucleo: true en los 24 del nivel pr (12 de seguridad y 12 del resto). dependeDeFecha: true en los que hablan de días o fechas (su resultado guardado solo vale ese día; el test lo exige con MENCIONA_FECHA). Un caso nuevo de un fallo real lleva origen fallo_produccion o conversacion_real.",
+  "_nota": "Casos de conversación de Lola (scripts/bot-evals.mjs). Cada caso: lo que dice el usuario, opcionalmente la charla previa, y qué herramientas DEBE y NO DEBE llamar. 'args' comprueba argumentos (subcadena, sin mayúsculas ni acentos). 'espera' es la operación esperada (trozo 29 de #1037): { accion, parametros } con valores cerrados que tienen que llegar EXACTOS (nada de subcadenas; lo que no se lista no se mira) y, opcional, sobre { origen, canal } con el vocabulario de src/lib/vocabularios.js, que solo se compara cuando la herramienta devuelve un sobre (hoy no: sin tubería). 'texto' y 'sinTexto' son expresiones regulares sobre la respuesta. 'foto' son líneas de texto que se pintan en una imagen y van adjuntas. Etiquetas (vocabularios en scripts/lib/evals.mjs, vigiladas por scripts/lib/evals.test.js): id (slug estable y único; no se cambia nunca, los resultados guardados lo usan), tipo, dominio, origen y nucleo: true en los del nivel pr (cuántos, en NUCLEO de evals.mjs). dependeDeFecha: true en los que hablan de días o fechas (su resultado guardado solo vale ese día; el test lo exige con MENCIONA_FECHA). Un caso nuevo de un fallo real lleva origen fallo_produccion o conversacion_real.",
   "casos": [
     {
       "id": "consulta-que-cenamos-de-la-ficha",
@@ -2983,6 +2983,46 @@
         "proponer_platos"
       ],
       "sinTexto": "ya est[aá] (arreglad|hech|cambiad|list)|list[oa]!|queda (arreglad|cambiad)|ya lo cambi"
+    },
+    {
+      "id": "despensa-cortada-no-dice-todo-apuntado",
+      "tipo": "texto",
+      "dominio": "compra",
+      "origen": "conversacion_real",
+      "nombre": "la despensa guarda una parte: Lola no dice «todo apuntado» (#958 B, el 17 %)",
+      "entrada": "apunta en la despensa: leche, huevos, pan, arroz, lentejas, tomate triturado, atún, pollo, manzanas y plátanos",
+      "espera": {
+        "accion": "anadir_despensa",
+        "parametros": {
+          "origen": "texto"
+        }
+      },
+      "respuestas": {
+        "anadir_despensa": "Apuntados 6 de 10: leche, huevos, pan, arroz, lentejas, tomate triturado.\nSIN APUNTAR (tope por vez): atún, pollo, manzanas, plátanos. Díselo tal cual: no está todo."
+      },
+      "texto": "at[uú]n|sin apuntar|se han quedado|faltan",
+      "sinTexto": "todo (apuntado|guardado|anotado)(?! (menos|salvo|excepto))|(apuntado|guardado|anotado) todo(?! (menos|salvo|excepto))"
+    },
+    {
+      "id": "airfryer-nueva-no-borra-los-demas",
+      "tipo": "herramienta",
+      "dominio": "ficha",
+      "origen": "conversacion_real",
+      "nombre": "«nos han regalado una airfryer» la añade sin borrar el horno (#958 C)",
+      "entrada": "nos han regalado una airfryer",
+      "espera": {
+        "accion": "ajustar_cocina",
+        "parametros": {
+          "trastosMas": [
+            "Airfryer"
+          ]
+        }
+      },
+      "noLlamaCon": {
+        "ajustar_cocina": {
+          "trastos": "airfryer"
+        }
+      }
     }
   ]
 }
