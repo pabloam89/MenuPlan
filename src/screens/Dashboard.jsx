@@ -7,6 +7,7 @@ import {
   Settings,
   Sparkles,
   Send,
+  RotateCw,
 } from "../components/icons.jsx";
 import { FRONTAL_BOT, abrirLola, lolaConectada } from "../lib/frontalBot.js";
 import lolaFoto from "../assets/lola/lola-perfil.jpg";
@@ -319,6 +320,64 @@ function LolaCard() {
   );
 }
 
+// Regenerar desde Inicio, bajo los platos de hoy (30 oct 2026): en Ajustes no
+// lo encontraba nadie. Es secundario a propósito —borde y sin relleno— porque
+// reemplaza la semana entera; y pide un segundo toque en el mismo sitio en vez
+// de abrir un diálogo, para que un roce al hacer scroll no rehaga el menú.
+function RegenerarMenuButton({ onRegenerate }) {
+  const [confirmando, setConfirmando] = useState(false);
+  const base = {
+    minHeight: "var(--tam-tactil)",
+    borderRadius: "var(--radio-control)",
+    fontSize: 13,
+    fontWeight: 800,
+    fontFamily: "inherit",
+    cursor: "pointer",
+  };
+  if (!confirmando) {
+    return (
+      <button
+        type="button"
+        onClick={() => setConfirmando(true)}
+        style={{
+          ...base,
+          width: "100%",
+          marginTop: 10,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 7,
+          border: "1.5px solid var(--color-linea-fuerte)",
+          background: "var(--color-superficie)",
+          color: "var(--color-marca)",
+        }}
+      >
+        <RotateCw size={15} strokeWidth={2.5} />
+        Regenerar menú
+      </button>
+    );
+  }
+  return (
+    <div role="group" aria-label="¿Rehacer el menú?" style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10 }}>
+      <span style={{ flex: 1, fontSize: 13, fontWeight: 800, color: "var(--color-tinta)" }}>¿Rehacer el menú?</span>
+      <button
+        type="button"
+        onClick={() => setConfirmando(false)}
+        style={{ ...base, padding: "0 14px", border: "1.5px solid var(--color-linea-fuerte)", background: "var(--color-superficie)", color: "var(--color-tinta-media)" }}
+      >
+        Cancelar
+      </button>
+      <button
+        type="button"
+        onClick={() => { setConfirmando(false); onRegenerate(); }}
+        style={{ ...base, padding: "0 14px", border: "none", background: "var(--color-marca)", color: "var(--color-superficie)" }}
+      >
+        Sí, rehacer
+      </button>
+    </div>
+  );
+}
+
 function MenuHeroCard({ photos, onClick, title, subtitle, Icon = Sparkles }) {
   return (
     <button
@@ -457,6 +516,8 @@ export function DashboardScreen({
   onViewMenu,
   onOpenAccount,
   onGenerateMenu,
+  // Ausente = sin botón de regenerar (hogar de solo lectura).
+  onRegenerate,
   // Ausente = la pizarra no se ofrece (está apagada fuera de staging).
   onStartPizarra,
 }) {
@@ -732,6 +793,7 @@ export function DashboardScreen({
                     <ChevronRight size={15} color="#9ab0a1" strokeWidth={2.5} />
                   </div>
                 )}
+                {!householdReadOnly && onRegenerate && <RegenerarMenuButton onRegenerate={onRegenerate} />}
               </div>
             ) : (
               // Sin botón a Lola aquí: ya está la tarjeta de arriba (LolaCard),
