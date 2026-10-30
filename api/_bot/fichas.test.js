@@ -54,6 +54,15 @@ describe("una ficha por herramienta", () => {
     }
   });
 
+  // ESCRIBE_LA_LIBRETA (agente.js) nombra lo que escribe dataConLibreta: se coteja con ella.
+  it("lo que escribe la libreta en su ficha es lo que escribe de verdad dataConLibreta", async () => {
+    const { dataConLibreta } = await import("../../src/lib/libretaEnData.js");
+    const { normalizar } = await import("../../src/lib/notepad.js");
+    const escritas = Object.keys(dataConLibreta({}, normalizar(undefined))).sort();
+    expect([...FICHAS.get("descartar_supuesto").escribe].sort()).toEqual(escritas);
+    for (const c of escritas) expect(FICHAS.get("ajustar_gustos").escribe, c).toContain(c);
+  });
+
   it("las de solo leer dicen que no escriben ningún dato: escribe []", () => {
     const vacia = (l) => Array.isArray(l) && l.length === 0;
     expect([...SOLO_LECTURA].filter((n) => !vacia(FICHAS.get(n).escribe))).toEqual([]);
