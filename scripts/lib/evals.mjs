@@ -167,11 +167,9 @@ export const MOTIVOS_FALLO = [
 // (trozo 29 de #1037; specs/arquitectura-objetivo.md [3] y [8]). `args` mira
 // subcadenas; `espera` mira la operación: la acción con sus parámetros EXACTOS.
 
-const sinTildesMin = (s) => String(s).normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase().trim();
-
-/** La forma cerrada de un valor: texto sin tildes ni mayúsculas, listas de valores simples ordenadas (días × comidas son un conjunto). Misma forma, misma operación. */
+/** La forma cerrada de un valor: texto sin tildes ni mayúsculas (sinTildes, abajo), listas de valores simples ordenadas (días × comidas son un conjunto). Misma forma, misma operación. */
 function formaCerrada(v) {
-  if (typeof v === "string") return sinTildesMin(v);
+  if (typeof v === "string") return sinTildes(v).trim();
   if (Array.isArray(v)) {
     const f = v.map(formaCerrada);
     return f.every((x) => typeof x !== "object" || x === null) ? [...f].sort() : f;
