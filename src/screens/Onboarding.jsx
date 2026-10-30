@@ -539,6 +539,9 @@ const TIRA_AVATARES_CABEN = 3;
 const TIRA_AVATARES_HOLGURA = 2;
 // Hueco en px entre avatares; también entra en el cálculo del ancho de cada uno.
 const TIRA_AVATARES_HUECO = 10;
+// Círculo visible de la flecha y lo que sobresale de la tira, en px; la zona táctil es --tam-tactil.
+const TIRA_AVATARES_FLECHA = 28;
+const TIRA_AVATARES_FLECHA_FUERA = 16;
 // Cada clic en una flecha desplaza esta fracción del ancho de la tira.
 const TIRA_AVATARES_SALTO = 0.85;
 
@@ -1186,21 +1189,21 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                                 const quieta = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
                                 if (el) el.scrollBy({ left: dir * el.clientWidth * TIRA_AVATARES_SALTO, behavior: quieta ? "auto" : "smooth" });
                               }}
-                              // Zona táctil de 40 px (DESIGN_SYSTEM) con el círculo de 28 dentro,
-                              // casi todo fuera de la tira para no tapar los avatares.
+                              // Zona táctil de --tam-tactil con el círculo dentro, casi todo
+                              // fuera de la tira para no tapar los avatares.
                               style={{
-                                position: "absolute", top: "50%", [borde]: -22, transform: "translateY(-50%)",
-                                width: 40, height: 40, padding: 0, border: "none", background: "transparent",
+                                position: "absolute", top: "50%", [borde]: `calc(-1 * ((var(--tam-tactil) - ${TIRA_AVATARES_FLECHA}px) / 2 + ${TIRA_AVATARES_FLECHA_FUERA}px))`, transform: "translateY(-50%)",
+                                width: "var(--tam-tactil)", height: "var(--tam-tactil)", padding: 0, border: "none", background: "transparent",
                                 cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center",
                               }}
                             >
                               <span style={{
-                                width: 28, height: 28, borderRadius: 999, boxSizing: "border-box",
-                                border: "1.5px solid #e5eee8", background: "#fff", color: "#6b8576",
-                                boxShadow: "0 2px 8px rgba(0,0,0,.14)",
+                                width: TIRA_AVATARES_FLECHA, height: TIRA_AVATARES_FLECHA, borderRadius: "var(--radio-pildora)", boxSizing: "border-box",
+                                border: "1.5px solid var(--color-linea)", background: "var(--color-superficie)", color: "var(--color-tinta-suave)",
+                                boxShadow: "var(--sombra-2)",
                                 display: "inline-flex", alignItems: "center", justifyContent: "center",
                               }}>
-                                <Flecha size={15} strokeWidth={2.6} />
+                                <Flecha size={16} strokeWidth={2.6} />
                               </span>
                             </button>
                           ))}
