@@ -7,10 +7,39 @@
  * grupo: en una casa con estructura por grupo, «solo un plato» no hacía nada
  * (5 casas así el 29 oct 2026), y describir_ajustes enseñaba el valor de la
  * casa, que no era el que se usaba.
+ *
+ * Y cuántos platos lleva cada hueco (platosDelHueco): una sola regla para el
+ * motor (buildGroupContext) y para el invariante de completitud
+ * (huecosDelPlan.js). Cuando vivía en dos sitios, divergían en el bebé.
  */
+import { ESTRUCTURA } from "./vocabularios.js";
+import { tipoDeComida } from "./dias.js";
 
-export const ESTRUCTURA_POR_DEFECTO = "primero_segundo";
-export const ESTRUCTURA_CENA_POR_DEFECTO = "1_plato";
+export const ESTRUCTURA_POR_DEFECTO = ESTRUCTURA.dosPlatos;
+export const ESTRUCTURA_CENA_POR_DEFECTO = ESTRUCTURA.unPlato;
+
+/** Las posiciones de un hueco de dos platos y de uno, como las nombra el motor (slotId). */
+const DOS = Object.freeze(["primero", "segundo"]);
+const UNO = Object.freeze(["plato_unico"]);
+
+/**
+ * Los platos de un hueco: `["primero", "segundo"]` o `["plato_unico"]`.
+ *   · Comida: un plato si el día está marcado `unico` o `rapida`, si la
+ *     estructura del grupo es la de un plato, o si es el bebé (puré);
+ *     si no, primero y segundo.
+ *   · Cena: dos platos solo si la estructura de la cena es la de dos y el
+ *     día no es `rapida` (una cena rápida nunca se parte). El bebé cena como
+ *     diga su estructura.
+ * `estructura` y `estructuraCena` son las del grupo (estructuraDelGrupo,
+ * estructuraCenaDelGrupo); `slotType`, data.slotType[`${día}|${comida}`].
+ */
+export function platosDelHueco({ comida, estructura, estructuraCena, slotType, esBebe = false }) {
+  if (tipoDeComida(comida) === "cena") {
+    return estructuraCena === ESTRUCTURA.dosPlatos && slotType !== "rapida" ? DOS : UNO;
+  }
+  if (esBebe || slotType === "unico" || slotType === "rapida" || estructura === ESTRUCTURA.unPlato) return UNO;
+  return DOS;
+}
 
 /** La estructura de la comida que usa el motor para un grupo. */
 export const estructuraDelGrupo = (data, groupId) =>
