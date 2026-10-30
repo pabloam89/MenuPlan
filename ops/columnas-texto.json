@@ -221,6 +221,22 @@
       "class": "identifier",
       "reason": "Token secreto de un enlace o invitación"
     },
+    "operacion.accion": {
+      "class": "excluded",
+      "reason": "Id de la capacidad que la pidió (src/lib/capacidades.js): vocabulario del producto que cambia con cada herramienta; lo comprueba la tubería (trozo 26), no un CHECK"
+    },
+    "operacion.autor_persona_id": {
+      "class": "identifier",
+      "reason": "Id de la persona de la casa que la pidió (FK compuesta a persona)"
+    },
+    "operacion.clave": {
+      "class": "identifier",
+      "reason": "Clave de idempotencia de la operación: el mid del mensaje, el id de la pantalla o de la ejecución del cron"
+    },
+    "operacion.ref_id": {
+      "class": "identifier",
+      "reason": "Id polimórfico de lo que originó la operación (mensaje, pantalla, tarea, cron o motor)"
+    },
     "persona_alergia.alergeno": {
       "class": "excluded",
       "reason": "Vocabulario de salud que espera su catálogo (VOCABULARIOS_PENDIENTES de src/lib/registroCampos.js, menuplan-09); no se cierra hasta que exista"

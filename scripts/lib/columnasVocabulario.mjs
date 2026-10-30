@@ -46,6 +46,16 @@ export const COLUMNAS_VOCABULARIO = Object.freeze({
   // `ref_tipo` es también la clave de su lista en VOCABULARIOS: común, para no confundir la una con la otra.
   "receta_descartes.alcance": { lista: "alcances_descarte" },
   "sobre.ref_tipo": { lista: "ref_tipo", comun: true },
+  // Las columnas del eje de registro_campo (0105): listas del producto que registroFicha.js usa en cada dato.
+  // Comunes: «ficha», «clase», «escribe» y «choque» son también claves de objetos que no son filas.
+  "registro_campo.ficha": { lista: "fichas", comun: true },
+  "registro_campo.clase": { lista: "clase_dato", comun: true },
+  "registro_campo.escribe": { lista: "escritores", comun: true },
+  "registro_campo.choque": { lista: "choque", comun: true },
+  // La operación (0105): la escribirá solo aplicar_operacion (0106), desde el jsonb que le pase la tubería (trozo 26).
+  "operacion.canal": { lista: "canales_dato", comun: true },
+  "operacion.ref_tipo": { lista: "refs_operacion", comun: true },
+  "operacion.estado": { lista: "estados_operacion", comun: true },
 });
 
 /**
@@ -59,4 +69,8 @@ export const ESCRITORES_SQL = Object.freeze({
   "user_menu_weeks.active_days": "la RPC de guardar semana (0057, 0068) inserta el active_days de la fila que monta weekToRow (src/lib/menusSync.js), que ya pasa por listaParaEscribir",
   "household_invites.lang": "create_household_invite (0071) inserta su p_lang, que householdsSync.js pasa por paraEscribir",
   "user_profiles.ui_lang": "bot_unirse_por_invitacion y accept_household_invite (0073, 0087) copian household_invites.lang, que ya entró por la lista viva",
+  "registro_campo.ficha": "el INSERT de la 0105, generado de REGISTRO_CAMPOS (registroCampos.test.js lo compara); ningún JS escribe la tabla",
+  "registro_campo.clase": "el INSERT de la 0105, generado de REGISTRO_CAMPOS (registroCampos.test.js lo compara); ningún JS escribe la tabla",
+  "registro_campo.escribe": "el INSERT de la 0105, generado de REGISTRO_CAMPOS (registroCampos.test.js lo compara); ningún JS escribe la tabla",
+  "registro_campo.choque": "el INSERT de la 0105, generado de REGISTRO_CAMPOS (registroCampos.test.js lo compara); ningún JS escribe la tabla",
 });
