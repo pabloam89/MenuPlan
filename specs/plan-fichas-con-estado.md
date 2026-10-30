@@ -532,14 +532,14 @@ npx vitest run supabase/cascadas.test.js src/lib/exportarCasa.test.js
 ```
 
 ### 37. Una prueba de punta a punta de la app: alta, menú, cambiar plato y compra, comprobando fichas y sobres
-Files: `e2e/recorrido.spec.js`, `playwright.config.js`, `package.json`
+Files: `e2e/recorrido.spec.js`, `playwright.config.js`, `package.json`, `vite.config.js`, `.gitignore`
 Depends on: none
 Blocked by: none
 Existing: ninguna pantalla grande (`Onboarding.jsx`, `Menu.jsx`, `App.jsx`, `Shopping.jsx`, `PizarraControles.jsx`) tiene una prueba que la abra y la use; hay comprobaciones que leen el texto del código. `ls playwright.config.* e2e` → sin salida. Playwright y Chromium están en las sesiones en la nube.
-Not done: corre la app en modo sin cuenta (anónimo, local; `specs/auth.md`) con datos de mentira, sin tocar la base. Recorre alta → generar → cambiar un plato → ver la compra, y comprueba lo que la app enseña. Cuando la tubería exista, una segunda variante con una casa de prueba en una rama de Supabase o un doble de la API comprueba fichas y sobres. Corre en el CI colgada de `npm test` (`posttest` en `package.json`), que el job `tests` ya lanza, sin tocar `.github/workflows/` (Pablo, 30 oct 2026: opción 1).
+Not done: corre la app en modo sin cuenta (anónimo, local; `specs/auth.md`) con datos de mentira, sin tocar la base. Recorre alta → generar → cambiar un plato → ver la compra, y comprueba lo que la app enseña. Cuando la tubería exista, una segunda variante con una casa de prueba en una rama de Supabase o un doble de la API comprueba fichas y sobres. Corre en el CI colgada de `npm test`: `posttest` en `package.json` instala Chromium y lanza la prueba, y el job `tests` ya corre `npm test` (`.github/workflows/tests.yml:48`), así que no toca `.github/workflows/` ([decisión de Pablo](https://github.com/pabloam89/MenuPlan/issues/1037#issuecomment-6534964945)). `vite.config.js` saca `e2e/**` de vitest y `.gitignore` ignora los informes de Playwright. Si la prueba o la descarga de Chromium ponen `tests` en rojo sin que la app haya cambiado, se repara con un PR que quita la línea `posttest` (la prueba vuelve a correrse con su Done) y un issue con el run que falló.
 Done:
 ```sh
-npx playwright test e2e/recorrido.spec.js
+node -e "process.exit(require('./package.json').scripts.posttest ? 0 : 1)" && npm test
 ```
 
 ### 38. El panel de cifras: un script de solo lectura con todas las cifras del plan
@@ -585,6 +585,8 @@ Por qué te lo pregunto: el 8 oct decidiste lo contrario (#107: se genera esquiv
 3. Se genera con lo dicho (sin esquivar) y se pregunta después. Coste: un alérgeno puede salir en el primer menú; va contra el principio de seguridad de la ficha
 
 ## Decisions taken
+- principio 5 | eligió: la prueba de punta a punta corre en el job `tests` por `posttest` de `npm test`, sin tocar `.github/workflows/` ([Pablo, 30 oct, opción 1](https://github.com/pabloam89/MenuPlan/issues/1037#issuecomment-6534964945)) | descartó: dejarla para correr a mano con su Done, un check que ninguna entrada automática dispara y que nadie ve ponerse en rojo | motivo: decidido
+- principio 3 | eligió: si la prueba de punta a punta o la descarga de Chromium tumban `tests` sin que la app cambie, un PR quita `posttest` y un issue guarda el run que falló (trozo 37) | descartó: reintentar la prueba en silencio hasta que pase, que esconde una prueba frágil | motivo: decidido
 
 - principio 4 | eligió: extender `sobre` y `registro_campo` de la 0097 (ya diseñadas para esto) con las columnas que faltan | descartó: una tabla `dato` nueva al lado de `sobre`, o un JSON por ficha | motivo: decidido
 - principio 4 | eligió: una tabla genérica con sobre para los ejes de casa, rutina, gusto y trato, validada contra el catálogo (trigger `sobre_valor_valido` + JS), y columnas fijas solo para persona, salud y grupo | descartó: una columna por eje (una migración por eje nuevo, que aplica Pablo) | motivo: decidido
