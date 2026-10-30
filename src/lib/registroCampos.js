@@ -1,53 +1,54 @@
 /**
- * El registro de campos de la ficha de la casa: qué se puede saber de una casa
- * o de una persona, de qué tipo es y cómo se trata. Es la fuente de la tabla
- * catálogo `registro_campo` (modelo de la ficha, spec v17): la tabla se rellena
- * desde aquí y un test compara las dos.
+ * Los campos de la ficha con fila en `registro_campo` (modelo de la ficha, spec
+ * v17; tabla de la 0097): una PROYECCIÓN del registro de la ficha
+ * (registroFicha.js), que es donde vive cada dato con todas sus columnas. Un
+ * dato entra aquí si lleva `campo`, y sus columnas salen de las suyas; la
+ * tabla se rellena desde este objeto y registroCampos.test.js compara las dos.
  *
  * Absorbe el antiguo `CAMPOS` de registroTareas.js (política, seguridad,
  * caducidad de la pregunta), que lo sigue exportando con ese nombre.
  *
- * Columnas:
- *  - tipo: enum | lista_enum | int | decimal | bool | fecha | texto
- *  - vocabulario: nombre en vocabularios.js (VOCABULARIOS) si es enum o
- *    lista_enum; null si no. Nunca una copia de los valores.
- *  - minimo, maximo: el rango de un campo numérico (int o decimal).
- *  - politica: nunca · solo_si_lo_piden · antes_de_usarlo · de_pasada · una_vez.
- *  - seguridad: su tarea entra siempre en lo que lee Lola, sin límite.
- *  - caduca_dias: cuánto vive la pregunta abierta sobre este campo.
- *  - por: si el dato es de cada persona o de la casa entera (etapaBebe: la casa).
- *  - columna: dónde vive ya el valor si el campo tiene columna o tabla propia (persona.edad…); null si
- *    el valor vive en sobre.valor. Es la única lista de "campos con columna": el trigger de sobre y
- *    los dos case de ficha_casa salen de ella (registroCampos.test.js lo comprueba).
- *  - aplica: a quién se le pregunta (todos, o solo a los bebés; la etapa la decide etapaDe en JS).
+ * Columnas (las de la 0097, en registroFicha.js están explicadas una a una):
+ *  - tipo (TIPOS_CAMPO), vocabulario, minimo, maximo, politica (POLITICAS),
+ *    seguridad, aplica (APLICA), columna, caduca_dias: tal cual del dato.
+ *  - por (POR): si el dato es de cada persona o de la casa entera; es la
+ *    entidad del dato, que para un campo solo puede ser una de esas dos.
  *
- * La migración 0097 copia esto en registro_campo; registroCampos.test.js
- * comprueba que el INSERT de la migración y este objeto dicen lo mismo.
+ * Añadir un campo es poner `campo` (y su política) a un dato del registro y
+ * escribir la migración que lo lleve a registro_campo: el test de paridad
+ * falla hasta que las dos digan lo mismo.
  *
  * Los vocabularios de salud (alergias, intolerancias, estados) los lleva otra
- * sesión con su catálogo: `alergias` queda con vocabulario null hasta que exista.
+ * sesión con su catálogo: `alergias` nombra `alergenos` aunque aún no exista.
  */
+import { DATOS_CASA, DATOS_PERSONA, TIPOS_CAMPO, POLITICAS, APLICA } from "./registroFicha.js";
 
-const campo = (c) => ({
-  tipo: null, vocabulario: null, minimo: null, maximo: null,
-  politica: null, seguridad: false, por: "persona", aplica: "todos", columna: null, caduca_dias: null,
-  ...c,
-});
+export { TIPOS_CAMPO, POLITICAS, APLICA };
 
-export const REGISTRO_CAMPOS = Object.freeze({
-  alergias: campo({ tipo: "lista_enum", vocabulario: "alergenos", politica: "una_vez", seguridad: true, columna: "persona_alergia", caduca_dias: 30 }),
-  etapaBebe: campo({ tipo: "enum", vocabulario: "etapa_bebe", politica: "antes_de_usarlo", seguridad: true, por: "casa", aplica: "bebe", caduca_dias: 21 }),
-  edad: campo({ tipo: "int", minimo: 0, maximo: 120, politica: "nunca", columna: "persona.edad" }),
-  nacimiento: campo({ tipo: "fecha", politica: "nunca", columna: "persona.fecha_nacimiento" }),
-  sexo: campo({ tipo: "enum", vocabulario: "sexo", politica: "nunca" }),
-  colegio: campo({ tipo: "texto", politica: "nunca" }),
-  patronSemanas: campo({ tipo: "enum", vocabulario: "patron_semanas", politica: "nunca" }),
-});
-
+/** De quién es un campo: las dos entidades del registro que hoy tienen sobre (CHECK registro_campo_por_vocabulario). */
 export const POR = ["persona", "casa"];
-export const APLICA = ["todos", "bebe"];
 
-export const TIPOS_CAMPO = ["enum", "lista_enum", "int", "decimal", "bool", "fecha", "ref", "texto"];
+const COLUMNAS = ["tipo", "vocabulario", "minimo", "maximo", "politica", "seguridad", "por", "aplica", "columna", "caduca_dias"];
+
+/** La fila de registro_campo de un dato con `campo`; falla alto si al dato le falta algo que la tabla exige. */
+function fila(clave, d) {
+  if (!POR.includes(d.entidad)) throw new Error(`${clave}: el campo «${d.campo}» es de «${d.entidad}», y registro_campo solo admite ${POR.join(" o ")}`);
+  if (!TIPOS_CAMPO.includes(d.tipo)) throw new Error(`${clave}: el campo «${d.campo}» es de tipo «${d.tipo}», que registro_campo no admite`);
+  if (!POLITICAS.includes(d.politica)) throw new Error(`${clave}: el campo «${d.campo}» no dice su política de pregunta`);
+  return Object.fromEntries(COLUMNAS.map((c) => [c, c === "por" ? d.entidad : d[c]]));
+}
+
+export const REGISTRO_CAMPOS = Object.freeze(Object.fromEntries(
+  // La persona primero: así los preguntables quedan en el orden del CHECK de
+  // bot_tareas.campo (0080), que registroTareas.js proyecta de aquí.
+  [...Object.entries(DATOS_PERSONA), ...Object.entries(DATOS_CASA)]
+    .filter(([, d]) => d.campo)
+    .map(([clave, d], i, todos) => {
+      const otro = todos.findIndex(([, x]) => x.campo === d.campo);
+      if (otro !== i) throw new Error(`el campo «${d.campo}» lo llevan dos datos: ${todos[otro][0]} y ${clave}`);
+      return [d.campo, fila(clave, d)];
+    }),
+));
 
 /**
  * Vocabularios que la ficha ya referencia y aún no viven en vocabularios.js:
@@ -55,7 +56,6 @@ export const TIPOS_CAMPO = ["enum", "lista_enum", "int", "decimal", "bool", "fec
  * existan, salen de aquí y entran en VOCABULARIOS.
  */
 export const VOCABULARIOS_PENDIENTES = ["alergenos", "estados"];
-export const POLITICAS = ["nunca", "solo_si_lo_piden", "antes_de_usarlo", "de_pasada", "una_vez"];
 
 /**
  * Los campos sobre los que una tarea puede preguntar: la lista del CHECK
