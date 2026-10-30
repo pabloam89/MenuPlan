@@ -82,6 +82,10 @@ describe("caducado: el sobre vencido se ve, aunque el estado sea vacío", () => 
     expect(["a", "b", "c"].map((id) => leidoDe(estados, "colegio", id).caducado)).toEqual([true, false, false]);
     expect(leidoDe(estados, "colegio", "otra")).toBeNull();
   });
+
+  it("un caduca_at que no es una fecha falla en alto: no pasa por vigente sin decirlo", () => {
+    expect(() => estadosDeFichas({ persona: [vacio("colegio", persona("a"), { caduca_at: "mañana" })] }, AHORA)).toThrow(/caduca_at «mañana» no es una fecha/);
+  });
 });
 
 describe("estadoParaLibreta: el sobre afina y no borra lo que sabe el documento", () => {

@@ -34,14 +34,16 @@ function leerDato(d, ficha, ahora = new Date()) {
   if (origen !== null && ESTADO_DE_ORIGEN[origen] !== d.estado) {
     throw new Error(`${donde}: origen «${origen}» con estado «${d.estado}» (ESTADO_DE_ORIGEN dice «${ESTADO_DE_ORIGEN[origen]}»)`);
   }
-  const caduca = d.caduca_at ? Date.parse(d.caduca_at) : NaN;
+  // Sin caduca_at, no caduca; con uno que no es una fecha, la base y el código no cuadran: se dice.
+  const caduca = d.caduca_at == null ? null : Date.parse(d.caduca_at);
+  if (Number.isNaN(caduca)) throw new Error(`${donde}: caduca_at «${d.caduca_at}» no es una fecha`);
   return {
     ficha,
     campo: d.campo,
     personaId: d.sujeto?.tipo === "persona" ? String(d.sujeto.id) : null,
     estado: d.estado,
     conSobre: origen !== null,
-    caducado: origen === null && Number.isFinite(caduca) && caduca <= ahora.getTime(),
+    caducado: origen === null && caduca !== null && caduca <= ahora.getTime(),
     valor: d.valor ?? null,
     origen,
     bloqueado: d.bloqueado === true,
