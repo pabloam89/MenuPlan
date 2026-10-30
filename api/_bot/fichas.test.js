@@ -63,6 +63,28 @@ describe("una ficha por herramienta", () => {
     for (const c of escritas) expect(FICHAS.get("ajustar_gustos").escribe, c).toContain(c);
   });
 
+  // Trozo 25: el parámetro que es un dato del registro sale de él (esquemaDato), no se copia.
+  it("ningún enum repite a mano el vocabulario de un dato que la herramienta lee o escribe", async () => {
+    const { DEL_REGISTRO } = await import("../../src/lib/esquemaHerramienta.js");
+    const { vocabulario } = await import("../../src/lib/vocabularios.js");
+    const llave = (l) => JSON.stringify([...l].sort());
+    const repetidos = [];
+    // Los items de una lista generada salen con ella: heredan la marca.
+    const anda = (nombre, vocabs, s, ruta, generado = false) => {
+      if (!s || typeof s !== "object") return;
+      const del = generado || Boolean(s[DEL_REGISTRO]);
+      if (Array.isArray(s.enum) && vocabs.has(llave(s.enum)) && !del) repetidos.push(`${nombre}.${ruta}`);
+      for (const [k, v] of Object.entries(s.properties ?? {})) anda(nombre, vocabs, v, ruta ? `${ruta}.${k}` : k);
+      if (s.items) anda(nombre, vocabs, s.items, `${ruta}[]`, del);
+    };
+    for (const t of await herramientas(charla)) {
+      const f = FICHAS.get(t.name);
+      const vocabs = new Set([...f.lee, ...f.escribe].map((c) => datoDe(c)?.vocabulario).filter(Boolean).map(vocabulario).filter(Boolean).map(llave));
+      anda(t.name, vocabs, t.input_schema, "");
+    }
+    expect(repetidos).toEqual([]);
+  });
+
   it("las de solo leer dicen que no escriben ningún dato: escribe []", () => {
     const vacia = (l) => Array.isArray(l) && l.length === 0;
     expect([...SOLO_LECTURA].filter((n) => !vacia(FICHAS.get(n).escribe))).toEqual([]);
