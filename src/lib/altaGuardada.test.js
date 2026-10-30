@@ -27,19 +27,19 @@ describe("cerrarAlta: la marca de alergias se guarda al momento y Lola se entera
   it("si la base dice que chocó con otro cambio, no avisa y lo dice (choque)", async () => {
     const avisar = vi.fn(async () => true);
     const r = await cerrarAlta({ data: casa(), guardar: async () => ({ ok: false, conflict: true, botRev: 9 }), avisar });
-    expect(r).toMatchObject({ ok: false, motivo: "choque", avisado: false });
+    expect(r).toMatchObject({ ok: false, motivo: MOTIVO.choque, avisado: false });
     expect(avisar).not.toHaveBeenCalled();
   });
 
   it("un guardado descartado (la nube se recargó entretanto) tampoco avisa", async () => {
     const r = await cerrarAlta({ data: casa(), guardar: async () => ({ ok: false, descartado: true }), avisar: async () => true });
-    expect(r).toMatchObject({ ok: false, motivo: "descartado", avisado: false });
+    expect(r).toMatchObject({ ok: false, motivo: MOTIVO.descartado, avisado: false });
   });
 
   it("si guardar falla (sin red) no se traga el error: motivo error y sin aviso", async () => {
     const avisar = vi.fn(async () => true);
     const r = await cerrarAlta({ data: casa(), guardar: async () => { throw new Error("fetch failed"); }, avisar });
-    expect(r).toMatchObject({ ok: false, motivo: "error", avisado: false });
+    expect(r).toMatchObject({ ok: false, motivo: MOTIVO.error, avisado: false });
     expect(avisar).not.toHaveBeenCalled();
   });
 
