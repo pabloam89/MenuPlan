@@ -206,7 +206,7 @@ import { EMBUDO, PANTALLA_EMBUDO } from "./lib/embudo.js";
 import { leerDestino, olvidarDestino } from "./lib/destinoBot.js";
 import { traeLlaveDeLola } from "./lib/llaveLola.js";
 import { RASTRO, MOTIVO_CAMBIO, ORIGEN_RECETA, idBase } from "./lib/rastro.js";
-import { registrarDescartes, recetasDelPlan } from "./lib/descartes.js";
+import { registrarDescartes, recetasDelPlan, refrescarDescartadas } from "./lib/descartes.js";
 import { ALCANCE_DESCARTE } from "./lib/vocabularios.js";
 import { barrerDias } from "./lib/barridoDia.js";
 import { loadPantry, loadLocalPantry, mergeLocalPantryIntoCloud, clearLocalPantry, clearHouseholdPantry, addPantryItems, addLocalPantryItems, removePantryItem, removeLocalPantryItem, setPantryItemQty, setLocalPantryItemQty } from "./lib/pantry.js";
@@ -1296,6 +1296,11 @@ export default function App() {
   // viejas: así nunca leen ni escriben en la casa de antes de cambiar.
   const casaActivaRef = useRef(null);
   casaActivaRef.current = syncHouseholdId;
+  // Los platos que esta casa tira una y otra vez (receta_descartes) van los últimos al elegir:
+  // se lee al saber quién y qué casa es, y se vuelve a leer tras cada descarte (descartes.js).
+  useEffect(() => {
+    refrescarDescartadas({ user, householdId: syncHouseholdId });
+  }, [user, syncHouseholdId]);
   const householdReadOnlyLabel =
     householdReadOnly && activeHousehold ? activeHousehold.name : null;
 
