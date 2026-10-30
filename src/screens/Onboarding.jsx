@@ -533,6 +533,12 @@ function fileToAvatarDataUrl(file) {
 
 // La tira de avatares arranca en el principio: nada a la izquierda y más a la derecha.
 const TIRA_AVATARES_INICIO = { izq: false, der: true };
+// Hasta 3 avatares caben justos; con más, las flechas aparecen y se ve medio avatar de más.
+const TIRA_AVATARES_CABEN = 3;
+// Holgura en px al comparar scrollLeft con los extremos (trae decimales).
+const TIRA_AVATARES_HOLGURA = 2;
+// Cada clic en una flecha desplaza esta fracción del ancho de la tira.
+const TIRA_AVATARES_SALTO = 0.85;
 
 export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, onBack, nextLabel, showMenuModel = false, demoName = null, demoAge = null }) {
   const [name, setName] = useState("");
@@ -1136,8 +1142,8 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                             ref={avatarStripRef}
                             onScroll={(e) => {
                               const el = e.currentTarget;
-                              const izq = el.scrollLeft > 2;
-                              const der = el.scrollLeft < el.scrollWidth - el.clientWidth - 2;
+                              const izq = el.scrollLeft > TIRA_AVATARES_HOLGURA;
+                              const der = el.scrollLeft < el.scrollWidth - el.clientWidth - TIRA_AVATARES_HOLGURA;
                               setAvatarStripPos((p) => (p.izq === izq && p.der === der ? p : { izq, der }));
                             }}
                             style={{ display: "flex", gap: 10, overflowX: "auto", padding: "4px 0", scrollSnapType: "x proximity", scrollbarWidth: "none" }}
@@ -1150,7 +1156,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                                 type="button"
                                 onClick={() => updateMemberAvatar(editing.id, k)}
                                 style={{
-                                    flex: keys.length > 3 ? "0 0 calc((100% - 30px) / 3.5)" : "0 0 calc((100% - 20px) / 3)", aspectRatio: "1",
+                                    flex: keys.length > TIRA_AVATARES_CABEN ? "0 0 calc((100% - 30px) / 3.5)" : "0 0 calc((100% - 20px) / 3)", aspectRatio: "1",
                                     scrollSnapAlign: "start",
                                     padding: 0, cursor: "pointer",
                                   borderRadius: 999, overflow: "hidden",
@@ -1166,7 +1172,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                             );
                           })}
                           </div>
-                          {keys.length > 3 && [["izq", -1, ChevronLeft, "Avatares anteriores", "left"], ["der", 1, ChevronRight, "Más avatares", "right"]].map(([lado, dir, Flecha, etiqueta, borde]) => avatarStripPos[lado] && (
+                          {keys.length > TIRA_AVATARES_CABEN && [["izq", -1, ChevronLeft, "Avatares anteriores", "left"], ["der", 1, ChevronRight, "Más avatares", "right"]].map(([lado, dir, Flecha, etiqueta, borde]) => avatarStripPos[lado] && (
                             <button
                               key={lado}
                               type="button"
@@ -1174,7 +1180,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                               onClick={() => {
                                 const el = avatarStripRef.current;
                                 const quieta = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-                                if (el) el.scrollBy({ left: dir * el.clientWidth * 0.85, behavior: quieta ? "auto" : "smooth" });
+                                if (el) el.scrollBy({ left: dir * el.clientWidth * TIRA_AVATARES_SALTO, behavior: quieta ? "auto" : "smooth" });
                               }}
                               // Zona táctil de 40 px (DESIGN_SYSTEM) con el círculo de 28 dentro,
                               // casi todo fuera de la tira para no tapar los avatares.
