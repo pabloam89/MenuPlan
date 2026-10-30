@@ -142,11 +142,14 @@ const nombra = (k) => new RegExp(String.raw`(\.|\?\.|\[["'])${k}\b|\b${k}\s*[:=]
 
 /**
  * El inventario. `guardadas` (opcional): { casa: Set, persona: Set } con las
- * claves que hay en la base.
+ * claves que hay en la base. `registro` (opcional, para probarlo): { casa, persona }
+ * en vez de DATOS_CASA y DATOS_PERSONA.
  */
-export async function inventario(raiz, { guardadas = null } = {}) {
+export async function inventario(raiz, { guardadas = null, registro = null } = {}) {
   const url = (f) => new URL(`file:///${join(raiz, f).replaceAll("\\", "/")}`).href;
-  const { DATOS_CASA, DATOS_PERSONA, TIPOS, SIN_TABULAR, moduloDe } = await import(url("src/lib/registroFicha.js"));
+  const { DATOS_CASA: CASA, DATOS_PERSONA: PERSONA, TIPOS, SIN_TABULAR, moduloDe } = await import(url("src/lib/registroFicha.js"));
+  const DATOS_CASA = registro?.casa ?? CASA;
+  const DATOS_PERSONA = registro?.persona ?? PERSONA;
   const { VOCABULARIOS, FICHAS, ESCRITORES, CHOQUES } = await import(url("src/lib/vocabularios.js"));
   // Las columnas cerradas de cada dato y su lista; `ficha` admite null (el inventario cuenta la que falta).
   const CERRADAS = { tipo: TIPOS, ficha: FICHAS, escribe: ESCRITORES, choque: CHOQUES };

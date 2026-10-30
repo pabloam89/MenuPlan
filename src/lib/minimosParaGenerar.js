@@ -9,16 +9,32 @@
  * con huecos vacíos. «Por silencio» (#229) sigue valiendo como revisado: la
  * casa a la que se preguntó con el aviso y no contestó sí genera.
  *
- * Aquí solo las alergias. «Quién come» ya lo exige generar.js (sin personas
- * no hay grupos) y «qué días» sale de la semana pedida; cuando el catálogo de
- * la ficha declare los mínimos (trozo 5), esta lista saldrá de él. Puro: sin
- * base ni textos de Lola; quien llama (api/_bot/generar.js) pone la frase.
+ * Qué es mínimo lo declara el registro de la ficha (registroFicha.js,
+ * `minimo_para_generar`: quién come, alergias dichas y días; trozo 5). Aquí se
+ * mira solo el de las alergias: «quién come» lo exige generar.js antes de
+ * llegar aquí (sin personas no hay grupos) y los días siempre resuelven
+ * (semanaDias.js cae a los de por defecto). Puro: sin base ni textos de Lola;
+ * quien llama (api/_bot/generar.js) pone la frase.
  */
 // De alergiasBase.js, no de alergias.js: esta la importa el bot y alergias.js arrastra el catálogo (y un .jsx).
 import { pendientesDeAlergias } from "./alergiasBase.js";
+import { DATOS_CASA, DATOS_PERSONA } from "./registroFicha.js";
 
-/** Vocabulario cerrado de lo que puede faltar (quien lo lee, generar.js, compara contra esto, no contra el literal). */
-export const MINIMO = Object.freeze({ alergias: "alergias" });
+/** Las claves del registro que son mínimo para generar («members.x» para las de la persona). */
+const MINIMOS = [
+  ...Object.keys(DATOS_CASA).filter((k) => DATOS_CASA[k].minimo_para_generar),
+  ...Object.keys(DATOS_PERSONA).filter((k) => DATOS_PERSONA[k].minimo_para_generar).map((k) => `members.${k}`),
+];
+
+/**
+ * Vocabulario cerrado de lo que puede faltar aquí, por su clave en el registro (quien lo lee,
+ * generar.js, compara contra esto, no contra el literal). Si el registro deja de declararlo
+ * mínimo, esto no carga: las dos listas no pueden decir cosas distintas sin que se note.
+ */
+export const MINIMO = Object.freeze({ alergias: "members.allergies" });
+for (const clave of Object.values(MINIMO)) {
+  if (!MINIMOS.includes(clave)) throw new Error(`«${clave}» no es mínimo para generar en el registro de la ficha (minimo_para_generar)`);
+}
 
 /**
  * @param {object} data La casa como la ve el motor (`members`, `allergiesReviewed`…).

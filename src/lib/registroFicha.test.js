@@ -68,7 +68,7 @@ describe("salud: el choque es el más restrictivo y solo escribe la familia", ()
 describe("mínimos para generar (decisión B: quién come, alergias dichas y días)", () => {
   it("son los tres, y son hechos activos que la familia escribe", () => {
     const minimos = todos.filter(([, d]) => d.minimo_para_generar);
-    expect(minimos.map(([k]) => k).sort()).toEqual(["members", "members.allergies", "menuWeekOffsets"]);
+    expect(minimos.map(([k]) => k).sort()).toEqual(["members", "members.allergies", "menuWeekDays"]);
     for (const [k, d] of minimos) {
       expect(d.estado, k).toBe("activo");
       expect(d.escribe, k).toBe(ESCRITOR.FAMILIA);

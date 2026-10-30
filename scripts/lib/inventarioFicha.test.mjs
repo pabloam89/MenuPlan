@@ -69,6 +69,30 @@ describe("inventario de la ficha", async () => {
     expect(DEUDA).not.toContain("sin_ficha");
   });
 
+  // Una pasada del inventario lee todo src/ y api/: con la máquina cargada tarda; por eso los dos casos malos van en una.
+  it("dispara sin_ficha y defecto_distinto con un dato mal declarado (y no con los demás)", async () => {
+    const casa = {
+      ...DATOS_CASA,
+      // Sin ficha y con un defecto que no es el que siembra INITIAL_DATA ("same").
+      menuModel: { ...DATOS_CASA.menuModel, ficha: null, defecto: "separate" },
+      // Una lista también se compara entera.
+      meals: { ...DATOS_CASA.meals, defecto: ["Comida"] },
+      // Una copia sin ficha no cuenta: solo los hechos activos.
+      menuWeek: { ...DATOS_CASA.menuWeek, ficha: null },
+    };
+    const r = await inventario(raiz, { registro: { casa, persona: DATOS_PERSONA } });
+    expect(r.fallos.sin_ficha).toEqual(["casa.menuModel"]);
+    expect(r.fallos.defecto_distinto).toEqual([
+      'casa.menuModel: registro "separate" ≠ INITIAL_DATA "same"',
+      'casa.meals: registro ["Comida"] ≠ INITIAL_DATA ["Comida","Cena"]',
+    ]);
+  }, 120_000);
+
+  it("una columna cerrada fuera de su lista no se inventaría en silencio", async () => {
+    const casa = { ...DATOS_CASA, kcal: { ...DATOS_CASA.kcal, choque: "el_mas_alto" } };
+    await expect(inventario(raiz, { registro: { casa, persona: DATOS_PERSONA } })).rejects.toThrow(/casa\.kcal: choque «el_mas_alto»/);
+  }, 120_000);
+
   it("las filas llevan las columnas del eje", () => {
     for (const col of ["ficha", "defecto", "minimo_para_generar", "escribe", "choque"]) {
       expect(inv.filas.every((f) => col in f), col).toBe(true);
