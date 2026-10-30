@@ -205,6 +205,18 @@ describe("refrescarDescartadas: la cuenta de la casa", () => {
     expect(descartadasVigentes().size).toBe(0);
   });
 
+  it("si la lectura llega al tope de filas, lo dice en el log y no la trunca en silencio", async () => {
+    const aviso = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const filas = Array.from({ length: 2000 }, (_, i) => ({ receta_id: `r_${i % 7}`, alcance: "menu", created_at: hace(1) }));
+    lectura.mockResolvedValue({ data: filas, error: null });
+    await refrescarDescartadas({ user: { id: "u-1" }, householdId: "h-1" });
+    expect(aviso).toHaveBeenCalledWith("[descartes] lectura truncada al tope de", 2000);
+    aviso.mockClear();
+    lectura.mockResolvedValue({ data: filas.slice(0, 5), error: null });
+    await refrescarDescartadas({ user: { id: "u-1" }, householdId: "h-1" });
+    expect(aviso).not.toHaveBeenCalled();
+  });
+
   it("tras apuntar un descarte con cuenta, la cuenta se vuelve a leer", async () => {
     insert.mockResolvedValue({ error: null });
     lectura.mockResolvedValue({ data: [], error: null });

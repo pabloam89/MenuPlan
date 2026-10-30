@@ -133,6 +133,9 @@ export async function refrescarDescartadas({ user, householdId = null }) {
       fijarSiVigente([]);
       return 0;
     }
+    // Si la lectura llega al tope, lo más viejo de la ventana se ha quedado fuera (el orden es del
+    // más reciente al más antiguo, que es lo que menos pesa): se dice, no se trunca en silencio.
+    if ((data?.length ?? 0) >= TOPE_LECTURA) console.warn("[descartes] lectura truncada al tope de", TOPE_LECTURA);
     const bajadas = recetasDescartadas(data);
     fijarSiVigente(bajadas);
     return bajadas.size;
