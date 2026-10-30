@@ -2,6 +2,7 @@
 -- eje, el sobre su estado de uso, y nace la tabla operacion. La escritura (aplicar_operacion y
 -- escribir_dato) va en la 0106 y la lectura (ficha_casa v2, que quita sobre.ref_tipo/ref_id) en la 0107:
 -- el plan las pedía en una sola 0105, y se parte para que cada PR sea una idea que se revise de una vez.
+-- AUDITADA: auditor-datos 2026-10-30 OK
 --
 --   · registro_campo gana ficha, clase, defecto, suposicion, minimo_para_generar, peso_menu, escribe y
 --     choque, con CHECK contra FICHAS, CLASES_DATO, ESCRITORES y CHOQUES (src/lib/vocabularios.js), y se
@@ -10,8 +11,8 @@
 --   · sobre gana peso, caduca_at, updated_at (con set_updated_at) y operacion_id (FK compuesta a operacion,
 --     on delete set null). ref_tipo y ref_id siguen hasta la 0107 (ficha_casa v1 los lee).
 --   · operacion: toda escritura de una ficha, con autor, canal, ref, acción, pedido, hecho, sin_hacer,
---     choques, estado y sus fechas, inversa y clave de idempotencia única por casa. La leen los de la casa;
---     ningún usuario la escribe (solo aplicar_operacion, 0106).
+--     choques, estado y sus fechas, inversa y clave de idempotencia única por casa. Solo para el servidor:
+--     ningún usuario la lee ni la escribe (la escribe aplicar_operacion, 0106).
 --
 -- NO hace (plan, trozo 7, «Not done»): no repuebla nada (sin convivencia: las filas nacen vacías), no toca
 -- persona ni persona_* ni el trigger 0089 (trozo 10), no crea preferencia, señal ni historiales (trozo 14)
@@ -23,7 +24,7 @@
 -- Lectores (principio «ningún campo sin lector»): las columnas nuevas de registro_campo y sobre las leen
 -- aplicar_operacion (0106: clase, suposicion, escribe, choque) y ficha_casa v2 (0107: ficha, defecto,
 -- minimo_para_generar, peso_menu, y peso, caduca_at, updated_at y operacion_id del sobre); operacion, la
--- 0106 y, por RLS, los de la casa. El lector de código llega con el trozo 8.
+-- 0106. El lector de código llega con el trozo 8.
 --
 -- Consulta previa (debe dar 0, 7 y 0):
 --   select (select count(*) from public.sobre), (select count(*) from public.registro_campo),
@@ -159,7 +160,7 @@ create index idx_operacion_autor_persona on public.operacion (household_id, auto
 create index idx_operacion_autor_user on public.operacion (autor_user_id);
 
 comment on table public.operacion is
-  'SALUD: cada escritura de una ficha, venga de Lola, de la app, de una tarea, de un cron o del motor: quién, por dónde, a raíz de qué, qué se pidió, qué se hizo y qué no (con su motivo), cómo se deshace y su clave de idempotencia. Puede llevar datos de salud en pedido, hecho e inversa (una alergia dicha). La escribe solo aplicar_operacion (0105); la leen los de la casa. Se borra con la casa; la retención la fija el barrido del trozo 35.';
+  'SALUD: cada escritura de una ficha, venga de Lola, de la app, de una tarea, de un cron o del motor: quién, por dónde, a raíz de qué, qué se pidió, qué se hizo y qué no (con su motivo), cómo se deshace y su clave de idempotencia. Puede llevar datos de salud en pedido, hecho e inversa (una alergia dicha). La escribe solo aplicar_operacion (0106) y la lee solo el servidor. Se borra con la casa; el plazo de conservación lo fija el barrido del trozo 35. Al borrar una persona solo se pone a null autor_persona_id: lo suyo que quede en pedido, hecho o inversa lo limpia el borrado de persona (trozo 36).';
 comment on column public.operacion.clave is 'Clave de idempotencia, única por casa: el mid del mensaje, el id de la pantalla o de la ejecución del cron. La misma clave dos veces es la misma operación.';
 comment on column public.operacion.accion is 'El id de la capacidad (src/lib/capacidades.js) que la pidió. Sin CHECK de lista: la lista vive en JS y cambia con cada herramienta; la comprueba la tubería (trozo 26).';
 comment on column public.operacion.autor_user_id is 'La cuenta que la pidió. null = el sistema (cron, motor) o una cuenta ya borrada (on delete set null).';
@@ -172,12 +173,11 @@ comment on column public.operacion.choques is 'Choques resueltos al escribir: [{
 comment on column public.operacion.inversa is 'Cómo se deshace: {datos: [{campo, persona_id, antes}]}, antes = el sobre de antes (null si no había). null en las que no escribieron.';
 comment on column public.operacion.pedida_at is 'Cuándo se pidió (la hora del mensaje o del botón, nunca futura); created_at es cuándo se apuntó.';
 
+-- Solo el servidor, como sobre y ficha_casa (0097): sin grant ni política para usuarios. Guarda salud en
+-- pedido e inversa; la lectura de los de la casa llega con su primer lector y recortada por papel
+-- (arquitectura objetivo [9], #958 A), en su propia migración.
 alter table public.operacion enable row level security;
 revoke all on table public.operacion from anon, authenticated;
-grant select on table public.operacion to authenticated;
--- Como las demás tablas de la casa (0017): is_household_member es definer y authenticated no lee household_members.
-create policy operacion_lectura_casa on public.operacion for select to authenticated
-  using (public.is_household_member(household_id));
 
 -- 3. sobre: estado de uso y la operación de la que sale -----------------------------
 

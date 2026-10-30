@@ -18,20 +18,16 @@ function desde0105() {
     .map((f) => sinComentarios(readFileSync(new URL(f, dir), "utf8"))).join("\n");
 }
 
-describe("0105: operacion, solo lectura para los de la casa", () => {
-  it("nace con RLS y sin permisos de usuario, salvo select", () => {
+describe("0105: operacion, solo para el servidor", () => {
+  it("nace con RLS y sin ningún permiso de usuario: guarda salud y aún no tiene lector en la app", () => {
     expect(codigo).toMatch(/alter table public\.operacion enable row level security;/);
     expect(codigo).toMatch(/revoke all on table public\.operacion from anon, authenticated;/);
     const grants = [...desde0105().matchAll(/grant\s+([^;]*?)\s+on\s+(?:table\s+)?public\.operacion\b[^;]*?\bto\s+([^;]*);/gi)].map((m) => [m[1].trim(), m[2].trim()]);
-    expect(grants).toEqual([["select", "authenticated"]]);
+    expect(grants).toEqual([]);
   });
 
-  it("su única política es de lectura y mira que quien lee sea de la casa", () => {
-    const politicas = [...desde0105().matchAll(/create policy (\w+) on public\.operacion\s+for (\w+) to (\w+)\s+using \(([\s\S]*?)\);/gi)];
-    expect(politicas.map((m) => [m[1], m[2], m[3]])).toEqual([["operacion_lectura_casa", "select", "authenticated"]]);
-    // is_household_member (0017) es definer: authenticated no tiene select en household_members.
-    expect(politicas[0][4]).toBe("public.is_household_member(household_id)");
-    expect(desde0105()).not.toMatch(/create policy \w+ on public\.operacion\s+for (?:insert|update|delete|all)\b/i);
+  it("ninguna política la abre (la lectura por papel llegará en su propia migración)", () => {
+    expect(desde0105()).not.toMatch(/create policy \w+ on public\.operacion\b/i);
   });
 
   it("una clave de idempotencia por casa", () => {
