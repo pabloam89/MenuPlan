@@ -3231,7 +3231,7 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
       const base = stripGroupPrefix(s?.recipeId);
       if (base) yaPuestos.add(base);
     }
-    for (const id of usadosEnOtrasSemanas ?? []) yaPuestos.add(id);
+    for (const id of usadosEnOtrasSemanas ?? []) yaPuestos.add(stripGroupPrefix(id));
     const frescos = pool.filter((r) => !yaPuestos.has(r.id));
     const ordenados = [...frescos, ...pool.filter((r) => yaPuestos.has(r.id))];
     if (ordenados.length === 0) return null;
@@ -3295,7 +3295,7 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   // Sin esto, rellenar cada semana por separado elegía lo mismo en todas: el
   // plan que se mira es solo el de la semana abierta. Blando, como el resto:
   // si no queda nada fresco, `selectReplacementCandidates` repite.
-  const usedBaseIds = new Set(usadosEnOtrasSemanas ?? []);
+  const usedBaseIds = new Set([...(usadosEnOtrasSemanas ?? [])].map(stripGroupPrefix));
   for (const slot of Object.values(menuPlan[groupId] ?? {})) {
     const a = stripGroupPrefix(slot?.recipeId);
     const b = stripGroupPrefix(slot?.firstRecipeId);

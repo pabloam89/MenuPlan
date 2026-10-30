@@ -100,6 +100,7 @@ import {
   computeWeekRange,
   explicitDaysForOffset,
   rekeyWeeksByMonday,
+  recipeIdsDeOtrasSemanas,
   createMenuId,
   foldInNewMenu,
   removeMenu,
@@ -4930,18 +4931,7 @@ export default function App() {
     const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     // Los platos de las OTRAS semanas del menú: rellenar solo mira la semana
     // abierta, y sin esto cada semana salía con los mismos platos.
-    const usadosEnOtrasSemanas = new Set();
-    for (const w of Object.values(data.menus?.[data.activeMenuId]?.weeks ?? {})) {
-      if (w?.offset === data.menuWeek?.offset) continue;
-      for (const slots of Object.values(w?.plan ?? {})) {
-        if (!slots || typeof slots !== "object") continue;
-        for (const s of Object.values(slots)) {
-          for (const rid of [s?.recipeId, s?.firstRecipeId]) {
-            if (rid) usadosEnOtrasSemanas.add(String(rid).split("__").pop());
-          }
-        }
-      }
-    }
+    const usadosEnOtrasSemanas = recipeIdsDeOtrasSemanas(data.menus?.[data.activeMenuId], data.menuWeek?.offset);
 
     const trabajo = {};
     for (const gid of Object.keys(menuPlan)) {
