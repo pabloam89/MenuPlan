@@ -536,7 +536,7 @@ Files: `e2e/recorrido.spec.js`, `playwright.config.js`, `package.json`
 Depends on: none
 Blocked by: none
 Existing: ninguna pantalla grande (`Onboarding.jsx`, `Menu.jsx`, `App.jsx`, `Shopping.jsx`, `PizarraControles.jsx`) tiene una prueba que la abra y la use; hay comprobaciones que leen el texto del código. `ls playwright.config.* e2e` → sin salida. Playwright y Chromium están en las sesiones en la nube.
-Not done: corre la app en modo sin cuenta (anónimo, local; `specs/auth.md`) con datos de mentira, sin tocar la base. Recorre alta → generar → cambiar un plato → ver la compra, y comprueba lo que la app enseña. Cuando la tubería exista, una segunda variante con una casa de prueba en una rama de Supabase o un doble de la API comprueba fichas y sobres. No la mete en el CI: añadirla a un workflow toca `.github/workflows/` (ruta cerrada) y es un trozo aparte con su decisión y su revisión de seguridad; hasta entonces se corre con su Done.
+Not done: corre la app en modo sin cuenta (anónimo, local; `specs/auth.md`) con datos de mentira, sin tocar la base. Recorre alta → generar → cambiar un plato → ver la compra, y comprueba lo que la app enseña. Cuando la tubería exista, una segunda variante con una casa de prueba en una rama de Supabase o un doble de la API comprueba fichas y sobres. Corre en el CI colgada de `npm test` (`posttest` en `package.json`), que el job `tests` ya lanza, sin tocar `.github/workflows/` (Pablo, 30 oct 2026: opción 1).
 Done:
 ```sh
 npx playwright test e2e/recorrido.spec.js
