@@ -4,6 +4,11 @@ import { getAnonId } from "./analytics.js";
 import { idBase } from "./rastro.js";
 import { paraEscribir } from "./vocabularios.js";
 import { MAX_DESCARTES, RECETA_ID_RE } from "./descartesForma.js";
+import { VENTANA_DIAS_DESCARTE, fijarDescartadas, recetasDescartadas } from "./descartesPrioridad.js";
+
+/** Filas que se leen como mucho para la cuenta: más allá, la casa ya tiró de todo. */
+const TOPE_LECTURA = 2000;
+const MS_DIA = 24 * 60 * 60 * 1000;
 
 // Los platos que se tiran al regenerar (tabla receta_descartes, 0102): uno suelto,
 // un día o el menú entero. Quien tiene cuenta lo escribe con su sesión (la RLS exige
@@ -69,6 +74,8 @@ export async function registrarDescartes({ user, householdId = null, recetaIds, 
         console.warn("[descartes] insert", error.message);
         return 0;
       }
+      // Lo que acaba de tirar ya cuenta para la próxima elección.
+      refrescarDescartadas({ user, householdId });
       return filas.length;
     }
     const res = await fetch(apiUrl("/api/track"), {
@@ -84,6 +91,57 @@ export async function registrarDescartes({ user, householdId = null, recetaIds, 
     return filas.length;
   } catch (err) {
     console.warn("[descartes]", err?.message ?? err);
+    return 0;
+  }
+}
+
+// La lectura más reciente y para quién fue (ver refrescarDescartadas).
+let lecturaActual = 0;
+let ultimoDestino = null;
+
+/**
+ * Lee lo que la casa ha descartado (o, sin casa, la propia persona) en los últimos días, saca
+ * qué platos bajan de prioridad (descartesPrioridad.js) y lo deja fijado para el solver y el
+ * cambio de plato. Nunca lanza; sin sesión, sin tabla o con un error deja la cuenta vacía, que
+ * es no cambiar nada (plan B). Devuelve cuántos platos quedan bajados.
+ * @param {{ user: {id: string}|null, householdId?: string|null }} args
+ */
+export async function refrescarDescartadas({ user, householdId = null }) {
+  // Solo vale la lectura más reciente: si se cambia de casa mientras otra lectura sigue en
+  // vuelo, la vieja no puede dejar fijada la cuenta de la casa anterior. Y al cambiar de
+  // persona o de casa la cuenta de antes se vacía ya, sin esperar a la nueva.
+  const miLectura = ++lecturaActual;
+  const destino = `${user?.id ?? ""}|${householdId ?? ""}`;
+  if (destino !== ultimoDestino) {
+    fijarDescartadas([]);
+    ultimoDestino = destino;
+  }
+  const fijarSiVigente = (ids) => {
+    if (miLectura === lecturaActual) fijarDescartadas(ids);
+  };
+  try {
+    if (!user || !supabase) {
+      fijarSiVigente([]);
+      return 0;
+    }
+    const desde = new Date(Date.now() - VENTANA_DIAS_DESCARTE * MS_DIA).toISOString();
+    let consulta = supabase.from("receta_descartes").select("receta_id, alcance, created_at");
+    consulta = householdId ? consulta.eq("household_id", householdId) : consulta.eq("user_id", user.id);
+    const { data, error } = await consulta.gte("created_at", desde).order("created_at", { ascending: false }).limit(TOPE_LECTURA);
+    if (error) {
+      console.warn("[descartes] lectura", error.message);
+      fijarSiVigente([]);
+      return 0;
+    }
+    // Si la lectura llega al tope, lo más viejo de la ventana se ha quedado fuera (el orden es del
+    // más reciente al más antiguo, que es lo que menos pesa): se dice, no se trunca en silencio.
+    if ((data?.length ?? 0) >= TOPE_LECTURA) console.warn("[descartes] lectura truncada al tope de", TOPE_LECTURA);
+    const bajadas = recetasDescartadas(data);
+    fijarSiVigente(bajadas);
+    return bajadas.size;
+  } catch (err) {
+    console.warn("[descartes]", err?.message ?? err);
+    fijarSiVigente([]);
     return 0;
   }
 }

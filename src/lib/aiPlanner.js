@@ -16,6 +16,7 @@ import { esAnadido, topeDe } from "./cocinaTopes.js";
 import { ajustarCuota } from "./cuotaCocinas.js";
 import { favoriteIdsForGroup } from "./recipeVotes.js";
 import { recetasRecientes } from "./recientes.js";
+import { descartadasVigentes, sinDescartadas } from "./descartesPrioridad.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { isMontaje, PROTEIN_GROUP_BY_MAIN_PROTEIN } from "../data/recipeSchema.js";
 import {
@@ -1406,6 +1407,9 @@ function asignarConSolver({
       // grupo van exentas: si lo marcaste como favorito, que vuelva es lo que
       // querías.
       recientes: recetasRecientes(data, { exentos: ctx.filterOpts.favoriteIds }),
+      // Los platos que la casa tira una y otra vez van los últimos (lib/descartesPrioridad.js);
+      // las favoritas van exentas, como con los recientes.
+      descartados: descartadasVigentes({ exentos: ctx.filterOpts.favoriteIds }),
       semilla,
       // El presupuesto de la casa como preferencia (lib/presupuesto.js).
       topeRacion,
@@ -3498,6 +3502,9 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   // preferido —"más horno" sortea entre los de horno— y cae al pool entero
   // si no hay escalón. Sigue siendo azar, para no perder la variedad que es
   // la razón de sortear; solo cambia ENTRE QUÉ se sortea.
+  // Los platos que la casa ha tirado varias veces (lib/descartesPrioridad.js) van los últimos:
+  // se sortea entre los demás y solo si no queda otro vuelven. Las favoritas, exentas.
+  candidates = sinDescartadas(candidates, descartadasVigentes({ exentos: ctx.filterOpts.favoriteIds }));
   candidates = preferirPorSesgo(candidates, data.sesgos, data.favoritos);
   // Las sugerencias del hueco son ESTE pool, no una lista aparte: todo lo que
   // se ha filtrado arriba —rol del hueco, tope de tiempo, alergias, lo que ya
