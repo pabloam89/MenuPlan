@@ -207,10 +207,10 @@ npx vitest run src/lib/estadoDeDato.test.js api/_bot/fichaRpc.test.js api/_bot/f
 
 ### 10. Salud por persona: alergias, intolerancias, estados y perfiles se escriben en sus tablas desde la app y Lola, y se leen de ahí
 Files: `src/screens/Onboarding.jsx`, `src/screens/Settings.jsx`, `api/_bot/ajustes.js`, `api/_bot/silencio.js`, `api/_bot/casa.js`, `src/lib/alergias.js`, `src/lib/alergiasBase.js`, `src/lib/vocabularios.js`, `src/lib/salud.test.js`
-Depends on: 1, 9
+Depends on: 11
 Blocked by: none
 Existing: hoy `members[].allergies`, `intolerances`, `dietaryStates` (+`dietaryStatesMeta.hasta`) y `healthProfiles` viven en el JSON y el trigger 0089 los copia a `persona_alergia`, `persona_intolerancia`, `persona_estado` y `persona_perfil_salud` (0089:106). Lectores: `alergiasParaMenu` (`alergias.js:89`), la ficha (`ficha.js:180-235`), `buscar_recetas`. Los vocabularios `alergenos` y `estados` siguen pendientes (`registroCampos.js:57`). #958 G: «salud en dos sitios».
-Not done: nada de doble escritura: en este trozo la app y Lola dejan de escribir `allergies`, `intolerances`, `dietaryStates` y `healthProfiles` en el documento y leen las filas; a una casa que no tenga filas se le vuelve a preguntar (es el mínimo para generar del trozo 2). El trigger 0089 sigue hasta la 0106 (trozo 11) porque aún copia nombres y roles. No cambia qué es una alergia ni la regla de los 14 (`alergiasParaMenu` pasa a leer `persona.alergias_revisadas` y las filas). La regla de choque de salud es `mas_restrictivo`: añadir gana a quitar en el mismo minuto. Cierra el hueco #958 A «no tiene alergias no quita las que había».
+Not done: nada de doble escritura: en este trozo la app y Lola dejan de escribir `allergies`, `intolerances`, `dietaryStates` y `healthProfiles` en el documento y leen las filas; a una casa que no tenga filas se le vuelve a preguntar (es el mínimo para generar del trozo 2). Va DESPUÉS del trozo 11 (por eso depende de él): el trigger 0089 copia también la salud del documento a las filas en cada guardado (`0089_personas_al_guardar.sql:162` lista `allergies`, `intolerances`, `dietaryStates`, `healthProfiles`; `:192-204` las vuelca; `:245` lo llama en cada guardado de miembros), así que escribir filas de salud con el trigger vivo haría que el siguiente guardado del documento las pisara con el JSON viejo. Con la 0106 aplicada (trozo 11) el trigger ya no existe y el documento no toca `persona_*`. No cambia qué es una alergia ni la regla de los 14 (`alergiasParaMenu` pasa a leer `persona.alergias_revisadas` y las filas). La regla de choque de salud es `mas_restrictivo`: añadir gana a quitar en el mismo minuto. Cierra el hueco #958 A «no tiene alergias no quita las que había».
 Done:
 ```sh
 npx vitest run src/lib/salud.test.js src/lib/alergias.test.js src/lib/alergiasMenu.test.js src/lib/alergiasSilencio.test.js api/_bot/ficha.test.js
@@ -218,7 +218,7 @@ npx vitest run src/lib/salud.test.js src/lib/alergias.test.js src/lib/alergiasMe
 
 ### 11. Persona y grupo como fuente: nombre, rol, nacimiento, avatar, color y pertenencia en sus tablas; fuera `data.members`, `data.groups` y el trigger 0089
 Files: `supabase/migrations/0106_persona_fuente.sql`, `supabase/ESTADO.md`, `src/lib/personas.js`, `src/lib/personas.test.js`, `src/App.jsx`, `src/screens/Onboarding.jsx`, `api/_bot/ajustes.js`, `api/_bot/casa.js`, `src/lib/registroFicha.js`
-Depends on: 10
+Depends on: 9
 Blocked by: none
 Existing: `persona` y `grupo` existen (0079) y los rellena el trigger desde el JSON (0089:220-263; `personasTabla.js` es su gemelo en JS). `members` se lee en 116 sitios de `Onboarding.jsx`, 74 de `App.jsx`, 28 de `ajustes.js` y 6 de `ficha.js` (`git grep -c "members"`). `groups` se recalcula ya al leer en `generar.js:280-290` (`groupsFromModel`).
 Not done: los ids de persona siguen en `text` (transición a uuid en `supabase/PENDIENTES.md`, aparte). Los invitados de las reglas (`invitado: true`) no son personas. La app y Lola reciben `members`/`groups` como una **vista calculada** al cargar la casa (`personas.js`), para no reescribir los 224 lectores de golpe; lo que cambia es que nadie los escribe en el documento y el inventario los marca `derivado`. La 0106 apaga el trigger y la aplica Pablo.
