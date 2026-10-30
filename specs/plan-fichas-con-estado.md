@@ -84,7 +84,7 @@ Todo dato de una ficha lleva el mismo **sobre**: `valor`, `origen` (es el estado
 
 ## Cómo se escribe y cómo se lee
 
-- **Una sola tubería de escritura** (D1, D3): Lola y la app **proponen** operaciones; solo la tubería del servidor (`src/lib/operaciones/`, llamada desde `api/_bot/` y desde `api/operacion.js` para la app) escribe, en seis pasos: entender (valores cerrados) → comprobar (seguridad, permisos, choques, trozo 33) → aplicar (RPC `aplicar_operacion`, una transacción, idempotente) → apuntar (`operacion`) → contar (la respuesta sale de hecho/sin_hacer) → deshacer (inversa por autor). `escribirDato` es la operación de tipo dato. Ninguna pantalla escribe tablas de ficha directamente.
+- **Una sola tubería de escritura** (D1, D3): Lola y la app **proponen** operaciones; solo la tubería del servidor (`src/lib/operaciones/`, llamada desde `api/_bot/` y desde `api/operacion.js` para la app) escribe, con los pasos que define `specs/arquitectura-objetivo.md`, [3] (única fuente de la tubería); aquí, lo que construye cada trozo: la tubería y su puerta (26), la RPC `aplicar_operacion` y la tabla `operacion` (7), los choques (33). `escribirDato` es la operación de tipo dato. Ninguna pantalla escribe tablas de ficha directamente.
 - **Una sola función de escritura de datos** para la app y Lola: `escribirDato({casa, persona, campo, valor, origen, canal, ref})` → operación de tipo dato → RPC `escribir_dato` (trozo 7-8). Escribe la fila, aplica la regla de choque del catálogo, sube `bot_rev` (para que lo de hoy siga funcionando) y devuelve el sobre. Al momento, sin espera de 1,2 s. En la app, con cola en localStorage y reintento al volver la red; si la RPC no existe (la rama se despliega antes que la migración), no se guarda y se dice (principio 3): nada vuelve al documento.
 - **Choque por dato, no por casa:** `ultimo_gana` (casi todo), `mas_restrictivo` (salud: añadir una alergia gana a quitarla en el mismo minuto), `suma` (señales).
 - **Lectura compacta:** `ficha_casa()` v2 devuelve, por ficha, cada dato con su sobre (trozo 9). La ficha de Lola y el asistente de la app leen de ahí el estado: vacío, por defecto, supuesto, aprendido, dicho. Lo que no cabe se resume (los topes de `specs/ficha-de-la-casa.md` se mantienen).
@@ -432,26 +432,26 @@ npx vitest run api/_bot/resultadoObligatorio.test.js api/_bot/interpreteUnico.te
 ```
 
 ### 28. El turno de Lola: cancelar y rehacer si llega otro mensaje antes de escribir, y espera adaptativa
-Files: `api/_bot/turnos.js`, `api/_bot/turnos.test.js`, `api/_bot/agente.js`, `api/bot/telegram.js`, `api/_bot/medidaTurno.js`
+Files: `api/_bot/turnos.js`, `api/_bot/turnosRafaga.test.js`, `api/_bot/agente.js`, `api/bot/telegram.js`, `api/_bot/medidaTurno.js`
 Depends on: 27
 Blocked by: none
 Existing: el deshacer por autor ya está (`api/_bot/casa.js:258`) y las aclaraciones ya caducan a las 3 h (`api/_bot/caducidades.js`, `CADUCA.PROPUESTA`): este trozo no los toca. Cola y candado por chat con espera de ráfaga fija de 1 s y hasta 4 vueltas (`turnos.js`, `ESPERA_RAFAGA_MS = 1000`, `MAX_VUELTAS = 4`); el agente acepta `signal` (`ejecutar`, `responder`); un mensaje que llega durante el turno se atiende en la vuelta siguiente, después de que Lola haya contestado al anterior.
-`api/_bot/medidaTurno.js` ya existe (piezas puras de la medida de un turno, #910, que lee `scripts/lib/bot-semana.mjs`) con su test `api/_bot/medidaTurno.test.js`; `turnos.test.js` también existe.
+`api/_bot/medidaTurno.js` ya existe (piezas puras de la medida de un turno, #910, que lee `scripts/lib/bot-semana.mjs`) con su test `api/_bot/medidaTurno.test.js`; `turnos.test.js` también existe; `ls api/_bot/turnosRafaga.test.js` → No such file or directory: el test nuevo (un mensaje que llega con el turno sin escrituras rehace el turno con los dos; con escrituras, va en la vuelta siguiente; la espera solo sube con un mensaje incompleto) falla antes del trozo.
 Not done: primero se mide, añadiendo a `medidaTurno.js` el campo que falta: cuántos turnos reciben otro mensaje del mismo chat mientras corren, y a qué distancia. Si hay casos: con un mensaje nuevo en la cola y ninguna escritura en el turno (la operación del turno no ha apuntado nada), se aborta con `signal` y se rehace con todo; con escrituras, se sigue y el nuevo va en la vuelta siguiente. La espera sube a 3 s solo si el último mensaje parece incompleto (sin verbo de acción reconocido por el intérprete, o termina en «y», «que», «la del»…; lista cerrada con test). No cambia el plazo de Vercel (`plazo.js`).
 Done:
 ```sh
-npx vitest run api/_bot/turnos.test.js api/_bot/medidaTurno.test.js
+npx vitest run api/_bot/turnosRafaga.test.js
 ```
 
 ### 29. El banco de frases comprueba lo guardado, no solo la herramienta llamada
-Files: `scripts/bot-evals.mjs`, `scripts/bot-evals.json`, `scripts/lib/evals.mjs`, `scripts/lib/evals.test.js`
+Files: `scripts/bot-evals.mjs`, `scripts/bot-evals.json`, `scripts/lib/evals.mjs`, `scripts/lib/evalsEstado.test.js`
 Depends on: none
 Blocked by: none
-Existing: `scripts/bot-evals.mjs` corre el agente de verdad con herramientas de mentira y comprueba qué herramientas llama y con qué argumentos (`args`, subcadena), con niveles `pr`, `seguridad` y completo (`node scripts/bot-evals.mjs --help`, cabecera del fichero); no comprueba el estado final ni cuenta coste por caso como cifra con línea base.
+Existing: `scripts/bot-evals.mjs` corre el agente de verdad con herramientas de mentira y comprueba qué herramientas llama y con qué argumentos (`args`, subcadena), con niveles `pr`, `seguridad` y completo (`node scripts/bot-evals.mjs --help`, cabecera del fichero); no comprueba el estado final ni cuenta coste por caso como cifra con línea base. `scripts/lib/evals.test.js` y el modo `--simulado` ya existen; `ls scripts/lib/evalsEstado.test.js` → No such file or directory: el test nuevo (un caso con `espera` cuya operación no coincide sale en rojo; el resumen de la pasada trae % de operaciones exactas y coste por caso) falla antes del trozo.
 Not done: cada caso puede llevar `espera`: la operación esperada (acción y parámetros cerrados) y, cuando hay tubería (trozo 26), el sobre esperado (`origen`, `canal`). Se añaden las frases reales de #958 (anonimizadas) que dieron el 17 %. Cifras por pasada: % de casos con la operación exacta, coste medio por caso y latencia, guardadas con la pasada (ya se guardan resultados en JSONL). Un modo `--modelo=` para comparar Haiku y Sonnet en el mismo banco (para decidir qué mensajes puede llevar el modelo barato).
 Done:
 ```sh
-npx vitest run scripts/lib/evals.test.js && node scripts/bot-evals.mjs --nivel=pr --simulado
+npx vitest run scripts/lib/evalsEstado.test.js
 ```
 
 ### 30. La entrada del motor: una sola función compila fichas y preferencias en un problema cerrado; los ejes de receta, compilados a números al construir
@@ -492,7 +492,7 @@ Files: `src/lib/choques.js`, `src/lib/choques.test.js`, `src/lib/operaciones/pue
 Depends on: 26, 32
 Blocked by: none
 Existing: la regla de choque por dato (`ultimo_gana`/`mas_restrictivo`/`suma`) la declara el registro (trozo 5); no hay nada que detecte choques entre datos distintos (una preferencia contra otra, un deseo contra un hecho): `git grep -n -i "choques\b" -- src/lib api/_bot | grep -v test` → sin salida; `ls src/lib/choques.js` → No such file or directory. Método completo en `specs/arquitectura-objetivo.md`, «Choques».
-Not done: `choques.js` declara las seis clases (seguridad, hecho, deseo, aprendido, supuesto, sistema), el orden de siete criterios (riesgo, clase, fuerza, autoridad, alcance, tiempo, peso) y las cuatro respuestas (aplicar, aplicar y avisar, preguntar, tarea de decisión), con vocabularios cerrados. La puerta (trozo 26) lo aplica al guardar y apunta el choque en la operación; el solver (trozo 31) usa el mismo orden para relajar; la frontera entre «aplicar y avisar» y «preguntar» la mueve el Trato de la cuenta (trozo 16). Cifras: choques por clase y respuesta; choques repetidos tras una tarea de decisión (→ 0). Evals de nivel pr.
+Not done: `choques.js` declara, como constantes con su test, las clases, el orden de criterios y las respuestas del método de choques, tal como los define `specs/arquitectura-objetivo.md`, «Choques» (única fuente; este plan no los copia). La puerta (trozo 26) lo aplica al guardar y apunta el choque en la operación; el solver (trozo 31) usa el mismo orden para relajar; la frontera entre «aplicar y avisar» y «preguntar» la mueve el Trato de la cuenta (trozo 16). Cifras: choques por clase y respuesta; choques repetidos tras una tarea de decisión (→ 0). Evals de nivel pr.
 Done:
 ```sh
 npx vitest run src/lib/choques.test.js src/lib/operaciones/puerta.test.js && node scripts/bot-evals.mjs --nivel=pr
@@ -593,7 +593,7 @@ Por qué te lo pregunto: el 8 oct decidiste lo contrario (#107: se genera esquiv
 - principio 2 | eligió: el turno de Lola se mide antes de cambiar la espera de ráfaga | descartó: subir la espera sin cifra de cuántos turnos reciben mensajes a mitad | motivo: decidido
 - principio 4 | eligió: el plazo de retención de las operaciones y su resumen se escriben una sola vez, en el barrido del trozo 35 | descartó: el mismo plazo escrito también en la migración y en la tubería | motivo: decidido
 - principio 2 | eligió: la espera de ráfaga solo sube (hasta 3 s, y solo con un mensaje que parece incompleto) si la medida del trozo 28 enseña turnos con mensajes a mitad | descartó: fijar ya una espera más larga para todos los mensajes sin cifra | motivo: decidido
-- principio 4 | eligió: el orden de los siete criterios de choque (riesgo, clase, fuerza, autoridad, alcance, tiempo, peso) y el de las clases (seguridad, hecho, deseo dicho, aprendido, supuesto, sistema) viven en una constante de `choques.js` que leen la puerta y el solver | descartó: escribir el orden en el prompt de Lola y otra vez en el solver | motivo: decidido
+- principio 4 | eligió: el orden de los criterios y de las clases del método de choques vive en una constante de `choques.js` que leen la puerta y el solver | descartó: escribir el orden en el prompt de Lola y otra vez en el solver | motivo: decidido
 - principio 4 | eligió: la clave de idempotencia de lo que pasa por la tubería es una columna de `operacion`, y las órdenes de tareas dejan `bot_idempotencia` en el trozo 34 | descartó: guardar la misma repetición en `operacion` y en `bot_idempotencia` a la vez | motivo: decidido
 - principio 4 | eligió: el conjunto de preferencias se llama `plan_preferencias` y «conjunto de preferencias» en código y pantalla | descartó: llamarlo `plan`, el mismo nombre que la entidad `plan` de la Fábrica para otra cosa | motivo: decidido
 - principio 6 | eligió: la prueba de punta a punta no entra en un workflow en este plan | descartó: añadirla a `.github/workflows/`, ruta cerrada que pide su decisión y su revisión de seguridad | motivo: decidido

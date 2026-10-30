@@ -1,6 +1,6 @@
 # Arquitectura objetivo: un registro, tres entidades de base y una sola tubería, para Lola y la app
 
-Estado: PROPUESTA (30 oct 2026); D1, D2 y D3 decididas por Pablo el mismo día (ver Decisions). Base leída: `origin/staging` en `5754e531`. Es el porqué de la ampliación de `specs/plan-fichas-con-estado.md` (aprobado), que es la única fuente de los campos, los trozos, las migraciones y las cifras: aquí se enlazan, no se copian. Recoge las raíces de #958 (comentario del 29 oct) y la conversación con Pablo del 30 oct.
+Estado: PROPUESTA (30 oct 2026); D1, D2 y D3 decididas por Pablo el mismo día (ver Decisions). Base leída: `origin/staging` en `5754e531`. Es el porqué de la ampliación de `specs/plan-fichas-con-estado.md` (aprobado), que es la única fuente de los campos, los trozos, las migraciones y las cifras: aquí se enlazan, no se copian. Este documento es, a su vez, la única fuente del método de choques (clases, criterios, respuestas y momentos): el plan lo enlaza. Recoge las raíces de #958 (comentario del 29 oct) y la conversación con Pablo del 30 oct.
 
 ## La idea en una frase
 
@@ -70,7 +70,7 @@ Challenge: un generador de pantallas completas sería un marco; no se hace. Se g
 
 ### [2] Estado: fichas con sobre
 
-Es el plan aprobado, sin cambios de fondo: cada dato en su fila con sobre (`valor`, `origen` = estado, `canal`, `dicho_by`, fechas, `peso`, `caduca_at`), sin convivencia con el documento, leído por `ficha_casa` v2. Dos cambios:
+Es el plan aprobado, sin cambios de fondo: cada dato en su fila con su sobre (campos en el plan, «Las fichas»), sin convivencia con el documento, leído por `ficha_casa` v2. Dos cambios:
 
 - `sobre.ref` pasa a ser **`operacion_id`** (ver [3]): de qué operación salió el dato, y por ella de qué mensaje o pantalla y de quién.
 - La ficha **Gusto** del plan se sustituye por **Preferencia** ([4]).
@@ -100,7 +100,7 @@ La retención la fija el plan (fila Operación y trozo 35).
 
 **Una entidad para todo lo que condiciona el menú**: gustos, vetos, topes, mínimos, objetivos de nutrición, presupuesto, variedad, puerta de cocinas.
 
-Sus campos (quién, nivel, eje, medida, operador, valor, fuerza, ámbito, plan, sobre) están en el plan, «Las fichas», filas Preferencia y Plan.
+Sus campos están en el plan, «Las fichas», filas Preferencia y Plan.
 
 Absorbe: la libreta (`notepadFields.js`), `sesgos`, `freqs`/`reparto`, `excluidos`, la zona de reglas (`src/lib/reglas.js`: sujeto, ámbito, vigencia, salvedad), el presupuesto (#958), la puerta de cocinas. Las alergias siguen en salud (privacidad y seguridad) y el motor las recibe como preferencias obligatorias de nivel plato.
 
