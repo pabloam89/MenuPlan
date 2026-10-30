@@ -35,6 +35,7 @@ El juez lee el diff y el cuerpo, y cada pregunta del estándar (C5…C17) debe s
   Mal (#1064): una prueba e2e que `npm test` excluye y ningún workflow corre. Mal (#1055): el caso malo solo llama a `erroresDeCasos([...])`.
 - **C7, tests sin azar, reloj ni red; C5, ningún fallo cambiado por un valor por defecto.**
   Mal (#1034): el test llama 15×14 veces a una función que elige con `Math.random` sin fijarlo. Mal (#1040): `saveUserState` falla con un `console.warn` y se devuelve `{ ok: true }`.
+- **C16**, si cambias un plan: cumple cada pregunta del revisor de `.fabrica/standards/plan.md` (Done que falla antes, Not done concreto…).
 - **C12, todo lo que añades tiene lector.** Un export, un parámetro o un campo sin quien lo lea, fuera; si lo leerá el siguiente trozo, dilo. Un fichero tocado que no está en Files del trozo, dilo y por qué.
   Mal (#1000): `conPlazo(..., { duracionMs })` y nadie pasa `duracionMs`.
 - **C11, una idea por PR.** No cambies el plan dentro del PR que construye un trozo, ni metas refactors de paso.
