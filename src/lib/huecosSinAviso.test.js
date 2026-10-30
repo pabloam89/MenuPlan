@@ -78,7 +78,7 @@ describe("ningún hueco se queda vacío sin aviso", () => {
  * (así generaba la app el primer menú tras el alta), 4 semanas × 7 días; y
  * HUECOS_BANCO casas de prueba.
  *
- *   HUECOS_BANCO=100 npx vitest run src/lib/huecosSinAviso.test.js --silent=false
+ *   HUECOS_BANCO=100 npx vitest run src/lib/huecosSinAviso.test.js --silent=false --reporter=verbose
  */
 const BANCO = Number(process.env.HUECOS_BANCO ?? 0);
 const SEMANAS_DEL_ALTA = 4;
