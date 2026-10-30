@@ -130,7 +130,7 @@ describe("api/operacion.js: la app propone, el servidor escribe", () => {
   });
 
   it("canal app, la pantalla como ref y el autor de la sesión, aunque el cuerpo diga otra cosa", async () => {
-    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner", user_id: "u1" }] });
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
     responde(/rpc\/aplicar_operacion/, { status: 200, cuerpo: HECHA });
     const res = await pedir({ body: { ...CUERPO, canal: "sistema", ref_tipo: "motor", autor_user_id: "otro" } });
     expect(res.codigo).toBe(200);

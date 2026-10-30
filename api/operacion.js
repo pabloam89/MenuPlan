@@ -18,16 +18,17 @@
  * HTTP_DE_FALLO con { fallo } (FALLOS_DATO).
  */
 import { cors, blocked } from "./_guard.js";
-import { select, usuarioDeToken, eq } from "./_bot/db.js";
+import { usuarioDeToken } from "./_bot/db.js";
+import { papelDeUsuario } from "./_bot/papel.js";
 import { escribirDato, falloDeMotivo } from "./_bot/datos.js";
 import { motivoDe } from "./_bot/avisar.js";
 import { HTTP_DE_FALLO, apuntarSinGuardar } from "../src/lib/escribirDato.js";
 import { puede } from "../src/lib/papeles.js";
+import * as ids from "../src/lib/ids.js";
 import { FALLO_DATO, CANAL_DATO, REF_OPERACION, ORIGENES_DE_LA_FAMILIA } from "../src/lib/vocabularios.js";
 
 /** Peticiones por IP y minuto: una familia toca pocos datos por minuto; esto frena a quien quiera llenar la base. */
 export const LIMITE_POR_MINUTO = 60;
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const contestar = (res, fallo, error) => res.status(HTTP_DE_FALLO[fallo]).json({ fallo, ...(error ? { error } : {}) });
 
@@ -42,16 +43,17 @@ export default async function handler(req, res) {
   if (!accessToken) return contestar(res, FALLO_DATO.SIN_SESION);
 
   const { casa, clave, accion, ref_id, pedida_at = null, dato } = req.body ?? {};
-  let miembro;
+  let user;
+  let papel;
   try {
-    const user = await usuarioDeToken(accessToken);
+    user = await usuarioDeToken(accessToken);
     if (!user) return contestar(res, FALLO_DATO.SIN_SESION);
-    if (typeof casa !== "string" || !UUID.test(casa)) return contestar(res, FALLO_DATO.INVALIDO, "casa");
+    if (!ids.casa.esNuevo(casa)) return contestar(res, FALLO_DATO.INVALIDO, "casa");
     // Desde la app habla una persona: lo supuesto, visto, derivado o por defecto lo pone el sistema, no una pantalla.
     if (!ORIGENES_DE_LA_FAMILIA.includes(dato?.origen)) return contestar(res, FALLO_DATO.INVALIDO, "origen");
     // La clave la da la app (un uuid); va a su propio espacio, para que no pueda adelantarse a una de Lola.
-    if (typeof clave !== "string" || !UUID.test(clave)) return contestar(res, FALLO_DATO.INVALIDO, "clave");
-    [miembro] = await select("household_members", `household_id=${eq(casa)}&user_id=${eq(user.id)}`, "role,user_id");
+    if (!ids.claveOperacion.esNuevo(clave)) return contestar(res, FALLO_DATO.INVALIDO, "clave");
+    papel = await papelDeUsuario(casa, user.id);
   } catch (e) {
     // La sesión o la casa no se pudieron leer: no se guarda, se dice y queda en el log.
     // Aquí no se llama a la RPC: un «no existe» no es rpc_ausente; solo la red se distingue.
@@ -60,13 +62,13 @@ export default async function handler(req, res) {
     apuntarSinGuardar({ fallo, motivo, canal: CANAL_DATO.APP, campo: dato?.campo ?? null });
     return contestar(res, fallo);
   }
-  if (!miembro || !puede(miembro.role, "editar_casa")) return contestar(res, FALLO_DATO.SIN_PERMISO);
+  if (!papel || !puede(papel, "editar_casa")) return contestar(res, FALLO_DATO.SIN_PERMISO);
 
   const r = await escribirDato({
     casa, clave: `${CANAL_DATO.APP}:${clave}`, accion, pedida_at, dato,
     canal: CANAL_DATO.APP,
     ref: { tipo: REF_OPERACION.PANTALLA, id: ref_id },
-    autor: { user_id: miembro.user_id },
+    autor: { user_id: user.id },
   });
   if (r.fallo) return contestar(res, r.fallo, r.error);
   return res.status(200).json(r);
