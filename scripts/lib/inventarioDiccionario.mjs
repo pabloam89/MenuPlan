@@ -45,7 +45,7 @@ export const DUENO = ["receta", "comidas", "nutrientes", "vocabularios", "ficha"
 
 // Vocabularios de vocabularios.js que son del sistema, no de la comida.
 const DE_SISTEMA = new Set([
-  "canales", "idiomas", "origen_dato", "ref_tipo", "canales_dato", "motivos_fallo", "sitios_fallo",
+  "canales", "idiomas", "origen_dato", "canales_dato", "motivos_fallo", "sitios_fallo",
   "tipos_aviso_vigia", "chequeos_canario", "motivos_canario", "acciones_alergias", "grados_desarrollo",
   "ambitos_modulo", "estados_metrica", "motivos_sin_puerta", "motivos_tope_diario", "acciones_escritura",
 ]);

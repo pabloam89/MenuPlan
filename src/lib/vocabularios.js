@@ -114,9 +114,6 @@ export const CANALES_DATO = ["app", ...CANALES, "sistema"];
 export const ALCANCES_DESCARTE = ["plato", "dia", "menu"];
 export const ALCANCE_DESCARTE = porNombre(ALCANCES_DESCARTE);
 
-/** A qué se refiere un «sobre» o un cambio: qué lo originó. */
-export const REF_TIPO = ["menu", "mensaje", "pantalla", "senal"];
-
 // ── Los de la operación (plan fichas con estado, trozo 7; tabla operacion de la 0105).
 
 /** De qué viene una operación (operacion.ref_tipo): un mensaje, una pantalla de la app, una tarea, un cron o el motor. */
@@ -133,6 +130,15 @@ export const ESTADOS_OPERACION = ["pendiente", "hecha", "rechazada", "deshecha"]
  * sistema. aplicar_operacion (0106) los usa para el registro y para que lo supuesto no pise lo dicho.
  */
 export const ORIGENES_DE_LA_FAMILIA = ["dicho", "delegado", "no_quiere_decirlo"];
+
+/** El estado de un dato de la ficha para quien la lee (ficha_casa v2, 0107): vacío, por defecto, supuesto, aprendido o dicho. */
+export const ESTADOS_DATO = ["vacio", "por_defecto", "supuesto", "aprendido", "dicho"];
+
+/** El estado que da ficha_casa v2 a un sobre vigente según su origen (ORIGEN_DATO); datoConSobre.test.js compara su case. */
+export const ESTADO_DE_ORIGEN = Object.freeze({
+  dicho: "dicho", delegado: "dicho", visto: "aprendido", supuesto: "supuesto", derivado: "supuesto",
+  por_defecto: "por_defecto", no_quiere_decirlo: "vacio",
+});
 
 /** Por qué aplicar_operacion no escribió un dato (operacion.sin_hacer[].motivo, 0106). */
 export const MOTIVOS_SIN_HACER_DATO = ["no_es_hecho", "persona_no_cuadra", "no_se_supone", "no_lo_escribe", "tiene_columna", "ya_lo_dijo_la_familia"];
@@ -351,11 +357,11 @@ export const VOCABULARIOS = Object.freeze({
   modelo_menu: MODELO_MENU,
   origen_dato: ORIGEN_DATO,
   origen_alergias: ORIGEN_ALERGIAS,
-  ref_tipo: REF_TIPO,
   refs_operacion: REFS_OPERACION,
   estados_operacion: ESTADOS_OPERACION,
   motivos_sin_hacer_dato: MOTIVOS_SIN_HACER_DATO,
   origenes_de_la_familia: ORIGENES_DE_LA_FAMILIA,
+  estados_dato: ESTADOS_DATO,
   fichas: FICHAS,
   escritores: ESCRITORES,
   postura: POSTURAS,
