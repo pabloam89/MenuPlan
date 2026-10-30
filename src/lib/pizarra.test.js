@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { planVacio, huecosDelPlan, conHuecosAlDia, conHuecoAnadido, sinHueco, franjasDelDia } from "./pizarra.js";
+import { planVacio, huecosDelPlan, conHuecosAlDia, conSemanasAlDia, conHuecoAnadido, sinHueco, franjasDelDia } from "./pizarra.js";
 import { DAYS, getDayMeals, slotKey } from "./planner.js";
+import { mondayISOForOffset } from "./weekCalendar.js";
 
 const ADULTOS = [
   { id: "a1", name: "Pablo", age: 36 },
@@ -208,5 +209,49 @@ describe("abrir y cerrar huecos día a día (el `+`)", () => {
   it("franjasDelDia dice qué tiene ya ese día", () => {
     const plan = planVacio(casaBase(), [grupo]);
     expect([...franjasDelDia(plan, "Lun", [grupo])].sort()).toEqual(["Cena", "Comida"]);
+  });
+});
+
+describe("las semanas marcadas se abren en el menú", () => {
+  const grupo = grupoCon(ADULTOS);
+  const menuConUna = () => ({
+    origin: "pizarra",
+    weeks: { "2026-10-30": { offset: 0, startDayIdx: 0, days: null, plan: planVacio(casaBase(), [grupo]) } },
+  });
+
+  it("añade una semana por cada offset marcado que el menú no tiene", () => {
+    const data = casaBase(ADULTOS, { menuWeekOffsets: [0, 1, 2], menuWeek: { offset: 0, startDayIdx: 0 } });
+    const { menu, nuevas } = conSemanasAlDia(menuConUna(), data, [grupo]);
+    expect(Object.keys(menu.weeks)).toHaveLength(3);
+    expect(Object.keys(nuevas)).toHaveLength(2);
+    expect(Object.values(nuevas).map((w) => w.offset).sort()).toEqual([1, 2]);
+    // Con huecos para tocar, no un plan vacío de verdad.
+    for (const w of Object.values(nuevas)) expect(huecosDelPlan(w.plan)).toBeGreaterThan(0);
+  });
+
+  it("la semana que ya está conserva su plan (puede tener platos)", () => {
+    const antes = menuConUna();
+    const data = casaBase(ADULTOS, { menuWeekOffsets: [0, 1], menuWeek: { offset: 0, startDayIdx: 0 } });
+    const { menu } = conSemanasAlDia(antes, data, [grupo]);
+    expect(menu.weeks["2026-10-30"].plan).toBe(antes.weeks["2026-10-30"].plan);
+  });
+
+  it("a la semana que ya está se le ponen al día los días elegidos", () => {
+    const antes = menuConUna();
+    const data = casaBase(ADULTOS, {
+      menuWeekOffsets: [0],
+      menuWeek: { offset: 0, startDayIdx: 0 },
+      menuWeekDays: { [mondayISOForOffset(0)]: ["Lun", "Mar"] },
+    });
+    const { menu } = conSemanasAlDia(antes, data, [grupo]);
+    expect(menu.weeks["2026-10-30"].days).toEqual(["Lun", "Mar"]);
+  });
+
+  it("devuelve el mismo menú si no hay nada que abrir", () => {
+    const antes = menuConUna();
+    const data = casaBase(ADULTOS, { menuWeekOffsets: [0], menuWeek: { offset: 0, startDayIdx: 0 } });
+    const r = conSemanasAlDia(antes, data, [grupo]);
+    expect(r.menu).toBe(antes);
+    expect(r.nuevas).toEqual({});
   });
 });

@@ -38,6 +38,7 @@ import {
 } from "./planner.js";
 import { isBabyMenuGroup, membersOfGroup } from "./groups.js";
 import { esNino } from "./stages.js";
+import { computeWeekRange, explicitDaysForOffset, weekEntry } from "./menuArchive.js";
 
 /**
  * ¿Está encendida? Apagada por defecto, igual que el solver y por el mismo
@@ -200,6 +201,57 @@ export function conHuecosAlDia(plan, data, groups) {
   }
 
   return nuevos > 0 ? next : plan;
+}
+
+/**
+ * Abre en el menú las semanas que los mandos acaban de marcar.
+ *
+ * La pizarra nace con la semana en curso, y la hoja «¿Qué días?» deja marcar
+ * días en las tres siguientes. Marcar solo escribía en `menuWeekDays` y los
+ * derivados: el menú seguía con UNA semana guardada, y como el paso de semanas
+ * se dibuja desde las semanas del menú, no salía —no había forma de llegar a
+ * lo que acababas de elegir—.
+ *
+ * SOLO AÑADE, como `conHuecosAlDia`: una semana que ya está conserva su plan
+ * (puede tener platos) y solo se le actualizan los días; desmarcar una no la
+ * borra. Devuelve `{ menu, nuevas }`;
+ * `nuevas` es `{ lunes: semana }` para guardar solo lo añadido, y `menu` es el
+ * mismo objeto cuando no hay nada que añadir.
+ */
+export function conSemanasAlDia(menu, data, groups) {
+  const weeks = menu?.weeks ?? {};
+  const abiertas = new Set(Object.values(weeks).map((w) => w?.offset));
+  const offsets = Array.isArray(data?.menuWeekOffsets) ? data.menuWeekOffsets : [];
+  const nuevas = {};
+  // Las que ya están conservan plan y clave; solo se les pone al día los días,
+  // que pudieron cambiar en la hoja después de abrirse.
+  let refrescadas = null;
+  for (const [lunes, w] of Object.entries(weeks)) {
+    if (!offsets.includes(w?.offset)) continue;
+    const days = explicitDaysForOffset(data, w.offset);
+    if (JSON.stringify(days) === JSON.stringify(w.days ?? null)) continue;
+    refrescadas = refrescadas ?? { ...weeks };
+    refrescadas[lunes] = { ...w, days };
+  }
+
+  for (const offset of offsets) {
+    if (abiertas.has(offset)) continue;
+    const days = explicitDaysForOffset(data, offset);
+    // Solo la semana ancla puede empezar a mitad; las demás van enteras.
+    const startDayIdx = offset === data.menuWeek?.offset ? (data.menuWeek?.startDayIdx ?? 0) : 0;
+    const { startISO, endISO } = computeWeekRange(offset, startDayIdx, days);
+    if (weeks[startISO]) continue;
+    const schedule = weekEntry(data.menuWeekOverrides, offset) ?? data.schedule;
+    nuevas[startISO] = {
+      offset, startDayIdx, days, startISO, endISO,
+      plan: planVacio({ ...data, schedule }, groups),
+      shopping: { items: [] },
+      schedule,
+    };
+  }
+
+  if (Object.keys(nuevas).length === 0 && !refrescadas) return { menu, nuevas };
+  return { menu: { ...menu, weeks: { ...(refrescadas ?? weeks), ...nuevas } }, nuevas };
 }
 
 /** Cuántos huecos tiene un esqueleto (para el copy de "tienes N huecos"). */

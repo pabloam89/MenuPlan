@@ -116,7 +116,7 @@ import {
 } from "./lib/menuArchive.js";
 import { todayDayIdx, getWeekDatesByMenuWeek } from "./lib/weekCalendar.js";
 import { diaDeFecha, indiceDeFecha } from "./lib/dias.js";
-import { pizarraActiva, planVacio, huecosDelPlan, conHuecosAlDia, conHuecoAnadido, sinHueco, franjasDelDia } from "./lib/pizarra.js";
+import { pizarraActiva, planVacio, huecosDelPlan, conHuecosAlDia, conSemanasAlDia, conHuecoAnadido, sinHueco, franjasDelDia } from "./lib/pizarra.js";
 import { aplicarDiasDeSemana, diasPorDefecto, buildCalendarWeeks } from "./lib/semanaDias.js";
 import { reglaDeInvitado, invitadosPorHueco, sinInvitadosDelHueco } from "./lib/reglas.js";
 import {
@@ -1844,11 +1844,14 @@ export default function App() {
   // entretanto, no se pisa y se recarga. Con el user_id de quien generó el
   // menú, no el de quien edita (ver rowToMenuSummary).
   useEffect(() => {
-    if (!user?.id || !cloudReadyRef.current || householdReadOnly) return;
+    if (householdReadOnly || (user?.id && !cloudReadyRef.current)) return;
     const r = semanaVivaPorGuardar(data.menus, data.activeMenuId, data.menuWeek?.offset, menuPlan, shopping);
     if (!r) return;
     const menuId = data.activeMenuId;
     setData((d) => (d.activeMenuId === menuId && d.menus === data.menus ? { ...d, menus: r.menus } : d));
+    // Sin sesión basta con el archivo local: al cambiar de semana el plan se
+    // recarga de ahí, y sin este volcado los platos puestos se perdían.
+    if (!user?.id) return;
     queueSaveMenuWeek(data.menus[menuId]?.userId ?? user.id, menuId, r.weekStart, r.week, 1200, syncHouseholdId, { version: versionDeCasa(syncHouseholdId), onConflict: () => recargarDesdeNubeRef.current({ choque: true }) });
   }, [user?.id, householdReadOnly, nubeLista, data.menus, data.activeMenuId, data.menuWeek?.offset, menuPlan, shopping, syncHouseholdId, versionDeCasa]);
 
@@ -2851,6 +2854,26 @@ export default function App() {
     setData(groups.length && groups !== nextData.groups ? { ...nextData, groups } : nextData);
     setMenuPlan((plan) => conHuecosAlDia(plan, nextData, groups));
   }, []);
+
+  // «Empezar» en la hoja de arranque: ahora que los días están decididos, se
+  // abren en el menú las semanas marcadas. Una sola vez y al final, no en cada
+  // toque: abrirlas al marcar dejaba la semana con el primer día y perdía los
+  // siguientes, y desmarcar dejaba semanas sin días.
+  const empezarPizarra = useCallback(() => {
+    setPizarraArrancando(false);
+    const menuId = data.activeMenuId;
+    const actual = data.menus?.[menuId];
+    if (actual?.origin !== "pizarra") return;
+    const groups = gruposVigentes(data);
+    const { menu, nuevas } = conSemanasAlDia(actual, data, groups);
+    if (menu === actual) return;
+    setData((d) => (d.activeMenuId === menuId ? { ...d, menus: { ...d.menus, [menuId]: menu } } : d));
+    if (user) {
+      for (const [weekStart, week] of Object.entries(nuevas)) {
+        queueSaveMenuWeek(menu.userId ?? user.id, menuId, weekStart, week, 1200, syncHouseholdId, { version: versionDeCasa(syncHouseholdId), onConflict: () => recargarDesdeNubeRef.current({ choque: true }) });
+      }
+    }
+  }, [data, user, syncHouseholdId, versionDeCasa]);
 
   /**
    * La pizarra: crear un menú VACÍO y abrirlo para rellenarlo a mano.
@@ -6193,7 +6216,7 @@ export default function App() {
               data={data}
               setData={setData}
               onAplicar={aplicarCambioPizarra}
-              onEmpezar={() => setPizarraArrancando(false)}
+              onEmpezar={empezarPizarra}
             />
           </Suspense>
         )}
