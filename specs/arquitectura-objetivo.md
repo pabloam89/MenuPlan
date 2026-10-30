@@ -102,7 +102,7 @@ La retención la fija el plan (fila Operación y trozo 35).
 
 Sus campos (quién, nivel, eje, medida, operador, valor, fuerza, ámbito, plan, sobre) están en el plan, «Las fichas», filas Preferencia y Plan.
 
-Absorbe: la libreta (`notepadFields.js`, 11 campos), `sesgos`, `freqs`/`reparto`, `excluidos`, la zona de reglas (`src/lib/reglas.js`: sujeto, ámbito, vigencia, salvedad), el presupuesto (#958), la puerta de cocinas. Las alergias siguen en salud (privacidad y seguridad) y el motor las recibe como preferencias obligatorias de nivel plato.
+Absorbe: la libreta (`notepadFields.js`), `sesgos`, `freqs`/`reparto`, `excluidos`, la zona de reglas (`src/lib/reglas.js`: sujeto, ámbito, vigencia, salvedad), el presupuesto (#958), la puerta de cocinas. Las alergias siguen en salud (privacidad y seguridad) y el motor las recibe como preferencias obligatorias de nivel plato.
 
 **El motor:**
 
@@ -139,7 +139,7 @@ Cifras: preguntas hasta el primer menú; tareas caducadas sin respuesta; tiempo 
 ### [8] Traza, medida y pruebas
 
 - Cadena completa: mensaje o pantalla → operación → sobre del dato → entrada del motor (versión) → plato con motivo → artículo de compra con sus platos. Cada semana guarda versión de catálogo, de motor y de entrada.
-- **Banco de frases** (red principal): frases reales anonimizadas, cada una con la operación esperada y el estado esperado al final, en cada PR que toque Lola o el intérprete. Cifras: % de frases bien guardadas, coste por frase, latencia. Sustituye la medida manual del 17 %.
+- **Banco de frases** (red principal): frases reales anonimizadas, cada una con la operación esperada y el estado esperado al final, en cada PR que toque Lola o el intérprete. Cifras: % de frases bien guardadas, coste por frase, latencia. Sustituye la medida manual de #958.
 - **Prueba de punta a punta** de la app (Playwright): alta → menú → cambiar plato → compra, comprobando fichas y sobres al final.
 - **Cobertura:** cada Acción declara su lado de Lola y su pantalla; los huecos sin motivo (cifra en `npm run capacidades`) se cierran o se justifican, con la cifra en su línea base (ya existe: `npm run capacidades`).
 - Panel: un script de solo lectura con todas las cifras de este documento.
@@ -170,7 +170,7 @@ Cifras: preguntas hasta el primer menú; tareas caducadas sin respuesta; tiempo 
 | Usabilidad | demasiadas preguntas | solo mínimos para generar; resto por peso, de una en una, con no molestar |
 | Sincronización | dos escritores a la vez | operación con choque por dato, tiempo real por casa, nunca descartar en silencio |
 | Ejecutabilidad | programa grande con varias sesiones a la vez | tramos en orden, un tramo vivo por zona; decidir D1 y D2 antes de 0105 y 0107; pruebas antes de partir ficheros |
-| Ejecutabilidad | «sin convivencia» borra lo de 37 casas | aceptado por Pablo (30 oct); se hace ahora porque con más casas no se podrá |
+| Ejecutabilidad | «sin convivencia» borra lo de las casas que ya existen | aceptado por Pablo (30 oct); se hace ahora porque con más casas no se podrá |
 | Trazabilidad | el log crece sin tope | retención de operaciones y resumen |
 | Motor | preferencias que chocan o sin solución | obligatorias nunca se rompen; relajar por peso y decirlo |
 | Motor | más lento | ejes compilados a números; casas aleatorias como red de tiempo |
