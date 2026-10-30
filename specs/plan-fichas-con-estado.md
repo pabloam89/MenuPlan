@@ -1,6 +1,6 @@
 # Plan: fichas con estado — del documento único de la casa a entidades con dato, origen, estado y fecha
 
-Verdict: viable y grande (22 trozos, 5 migraciones, varias semanas); lo que Pablo pidió el 30 oct 2026 ya está diseñado desde el 8-10 oct (`registro_campo` y la tabla `sobre` de la 0097) y nadie lo escribe: 0 filas en `sobre`. El rework es, sobre todo, cablear eso y sacar a la app y a Lola del documento único `household_state.state.data`, ficha a ficha, cerrando cada una entera. Primero se para la hemorragia de hoy (trozos 1-4), sin migración. Aprobado por Pablo el 30 oct 2026 («arranca»), con la decisión B contestada.
+Verdict: viable y grande (23 trozos, 5 migraciones, varias semanas); lo que Pablo pidió el 30 oct 2026 ya está diseñado desde el 8-10 oct (`registro_campo` y la tabla `sobre` de la 0097) y nadie lo escribe: 0 filas en `sobre`. El rework es, sobre todo, cablear eso y sacar a la app y a Lola del documento único `household_state.state.data`, ficha a ficha, cerrando cada una entera. Primero se para la hemorragia de hoy (trozos 1-4), sin migración. Aprobado por Pablo el 30 oct 2026 («arranca»), con la decisión B contestada.
 
 Fecha: 30 oct 2026. Base leída: `origin/staging` en `5b9dbaed` (#1031). Escrito en la forma del estándar de planes de la Fábrica (`standards/plan.md`), sin pasar su comprobador (ver Not verified).
 
@@ -44,6 +44,7 @@ Origen: #1029 (el menú cojo de la casa nueva de Pablo), #958 (auditoría de Lol
 | Lectura compacta en una ida | `ficha_casa()` (0097:241) | v2 con los sobres de todas las fichas |
 | Vocabularios cerrados con CHECK y test | `src/lib/vocabularios.js` (`origen_dato`, `canales_dato`, `ref_tipo`) | `alergenos`, `estados`, `postura`, `choque` |
 | Diccionario de cómo se dice cada cosa | `src/lib/diccionario.js` (#939 fase 3) | nada aquí: lo usan el buscador y la vía rápida |
+| Mapa de capacidades y ficha por herramienta | `src/lib/capacidades.js` (#939 fase 4), `npm run capacidades`, `capacidades.test.js`; `herramienta(ficha, def)` y `FICHAS` en `api/_bot/agente.js:146-170, 1702` | que las herramientas y pantallas declaren los datos que leen y escriben; dos cifras más en su línea base (`capacidades.base.json`): datos sin pregunta en Lola y sin pantalla en la app (trozo 23) |
 | Spec de la ficha y el analista nocturno | `specs/ficha-de-la-casa.md` (capas, gusto en cuatro capas, precedencia) | este plan la ejecuta; el «analista» son los trozos 15 y 17 |
 
 ## Las cuatro clases de dato
@@ -91,7 +92,7 @@ Todo dato de una ficha lleva el mismo **sobre**: `valor`, `origen` (es el estado
 | Tramo | Trozos | Migración | Qué cierra |
 |---|---|---|---|
 | 0 Parar la hemorragia | 1-4 | no | marca al momento, mínimos, huecos vacíos a la vista, motor solo días activos |
-| 1 Catálogo único | 5-6 | no | el registro con las columnas del eje; los 139 datos clasificados por ficha y clase |
+| 1 Catálogo único | 5-6, 23 | no | el registro con las columnas del eje; los 139 datos clasificados por ficha y clase; herramientas y pantallas con los datos que leen y escriben |
 | 2 La fila con sobre | 7-9 | 0105 | `escribir_dato`, `escribirDato`, `ficha_casa` v2, estado por dato en la app y en Lola |
 | 3 Persona y salud | 10-11 | 0106 | salud y personas como fuente; fuera `members`, `groups` y el trigger 0089 |
 | 4 Casa y rutina | 12-13 | no | aparatos, súper, presupuesto, despensa, comidas, estructura, horario, tiempo, tanda |
@@ -271,7 +272,7 @@ node scripts/apply-migration.mjs 0108_senal && npx vitest run src/lib/senales.te
 
 ### 16. Ficha Trato, por cuenta: ritmo, profundidad al generar, fotos y largo, con defecto, lo dicho y lo aprendido; Lola la lee en cada turno
 Files: `src/lib/registroFicha.js`, `api/_bot/trato.js`, `api/_bot/trato.test.js`, `api/_bot/agente.js`, `api/_bot/conocimiento.md`, `api/_bot/turno.js`
-Depends on: 2, 15
+Depends on: 2, 15, 23
 Blocked by: none
 Existing: `git grep -n -i "\btrato\b" -- api/_bot src/lib` → solo tres comentarios ajenos; no hay ningún dato de cómo quiere cada persona que le hable Lola. El idioma se detecta por mensaje (`conQuienEscribe`). `ritmo_cocina` existe en `vocabularios.js` y es otra cosa.
 Not done: el trato es de la **cuenta** (`user_id`, con la persona de esa cuenta), no de la persona: los niños no tienen cuenta y la pareja puede querer otro ritmo (Pablo, 30 oct). Defectos: ritmo `guiado`, profundidad `preguntar` (la pregunta del trozo 17), fotos `si`, largo `corto`. Las fotos del menú en Telegram (#1030) son otro trozo: aquí solo se guarda si las quiere. Evals de nivel pr por tocar `conocimiento.md`.
@@ -346,6 +347,17 @@ Done:
 node scripts/apply-migration.mjs 0109_historiales && npx vitest run src/lib/historial.test.js src/lib/marcasLocales.test.js && npm run -s ficha:inventario
 ```
 
+### 23. Herramientas y pantallas con ficha: cada una declara qué datos lee y escribe, y los datos sin pregunta en Lola o sin pantalla en la app son cifras con línea base, como los huecos
+Files: `api/_bot/agente.js`, `api/_bot/fichas.test.js`, `src/lib/capacidades.js`, `src/lib/capacidades.test.js`, `src/lib/capacidadesDatos.test.js`, `src/lib/capacidades.base.json`, `scripts/capacidades.mjs`
+Depends on: 5, 6
+Blocked by: none
+Existing: Lola tiene 46 herramientas (`grep -c 'name: "' api/_bot/agente.js` → 46; Pablo recordaba 41, cifra de otra fecha). El mapa de capacidades (#939 fase 4, 28 oct) ya es la ficha de «qué se puede hacer y dónde»: `npm run capacidades` → `Capacidades: 85; en los dos lados: 29; huecos (un lado vacío sin motivo): 35`; 51 de las 85 llevan `datos:` con claves del registro (`grep -c 'datos: \["' src/lib/capacidades.js` → 51; la línea 66 es el valor por defecto `datos: []`); `capacidades.test.js:10-28` cruza los nombres de `lola:` con los de `agente.js` y falla si una herramienta no existe. Cada herramienta de Lola ya tiene su ficha junto a su definición (`herramienta(ficha, def)`, `api/_bot/agente.js:146-170`: `soloLectura`, `pantalla`, `lector`, `avisoLento`), exportada en `FICHAS` (`agente.js:1702`), de donde salen `SOLO_LECTURA`, `AVISO_LENTO` y `pantallaDe`; `fichas.test.js` exige que esté completa. Los 35 huecos ya son una cifra con línea base que solo baja: `src/lib/capacidades.base.json` (`"huecos": 35, "apagadas": 6`) y `capacidades.test.js:40-44` («los huecos de sincronía solo bajan»). Lo que no existe: la ficha no dice qué datos lee o escribe la herramienta (`grep -c "escribe:\|lee:" api/_bot/agente.js` → 0), y ningún test dice si un dato del registro se queda sin quien lo pregunte en Lola o sin pantalla que lo rellene en la app.
+Not done: no añade ni quita herramientas ni cierra los 35 huecos (cada hueco es su tarea; aquí se cuentan). No hay tabla por casa: qué puede hacer Lola es vocabulario del producto y vive en el código, una vez (Pablo, 30 oct); lo que es de cada familia (ritmo, profundidad, permisos) es la ficha Trato (trozo 16). No corre evals por capacidad (una frase → la herramienta que toca): se deja para cuando el trozo 17 fije la «siguiente pregunta». No toca `registroFicha.js` (trozos 5, 6, 16 y 22): lo lee. Qué hace: la ficha de cada herramienta (`herramienta(ficha, def)`) gana `lee`, `escribe` (claves del registro) y `capacidad` (id del mapa), obligatorios como hoy `soloLectura` y `lector`; `fichas.test.js` exige los tres y que cada clave exista en el registro; `capacidades.js` deja de repetir `datos:` y `lola:` a mano y los deriva de `FICHAS` y de las pantallas (principio 4); `npm run capacidades -- --datos` enseña, por dato del registro, quién lo pregunta en Lola y quién lo rellena en la app, y sus dos cifras (datos sin pregunta en Lola, datos sin pantalla en la app) entran en `capacidades.base.json` junto a los huecos, con la misma regla de «solo bajan» en el test que ya existe.
+Done:
+```sh
+npx vitest run api/_bot/fichas.test.js src/lib/capacidades.test.js src/lib/capacidadesDatos.test.js && npm run -s capacidades -- --datos
+```
+
 ## Decisions for Pablo
 
 ### B. Sin alergias confirmadas (ni dichas ni por silencio), ¿Lola genera el menú?
@@ -367,6 +379,8 @@ Por qué te lo pregunto: el 8 oct decidiste lo contrario (#107: se genera esquiv
 - principio 5 | eligió: cada tramo cierra con la clave vieja fuera del documento y el inventario a cero; doble escritura solo dentro de un tramo | descartó: dejar la copia vieja «por si acaso» (hoy hay 10 así) | motivo: decidido
 - principio 2 | eligió: Realtime de Supabase para que la app se entere, con el sondeo de 20 s como plan B y la cifra de escrituras medida antes de quitar el documento | descartó: sondear más a menudo (más lecturas, sin medir) | motivo: decidido
 - principio 6 | eligió: una sola pregunta a Pablo (B), porque revierte una decisión suya del 8 oct; el resto de elecciones de diseño se toman y se apuntan aquí | descartó: preguntar dónde viven los ejes o si va Realtime, que no están en la lista cerrada | motivo: decidido
+- principio 4 | eligió: las herramientas de Lola y las pantallas de la app son vocabulario del producto, con su ficha en el código (`agente.js`, `capacidades.js`), y cada una declara los datos que lee y escribe; el mapa deriva de ahí (Pablo, 30 oct: opción 1) | descartó: una tabla de herramientas por casa, que repite en cada familia lo que es del producto y se desfasa del código | motivo: decidido
+- principio 4 | eligió: lo que cada herramienta lee y escribe va en su ficha de `agente.js` (`herramienta(ficha, def)`, exportada en `FICHAS`), donde ya están `soloLectura`, `pantalla` y `lector` | descartó: una tabla aparte por nombre (`herramientasDatos.js`), que sería la segunda lista de lo que se sabe de cada herramienta, justo lo que `agente.js:149-151` quitó el 2 oct | motivo: decidido
 - principio 4 | eligió: `persona`/`grupo` como fuente y `members`/`groups` como vista calculada al cargar, para no reescribir 224 lectores de golpe | descartó: reescribir los lectores en el mismo trozo | motivo: decidido
 
 ## Not verified
