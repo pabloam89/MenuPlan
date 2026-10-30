@@ -1,6 +1,6 @@
 # Plan: fichas con estado — del documento único de la casa a entidades con dato, origen, estado y fecha
 
-Verdict: viable y grande (23 trozos, 5 migraciones, varias semanas); lo que Pablo pidió el 30 oct 2026 ya está diseñado desde el 8-10 oct (`registro_campo` y la tabla `sobre` de la 0097) y nadie lo escribe: 0 filas en `sobre`. El rework es, sobre todo, cablear eso y sacar a la app y a Lola del documento único `household_state.state.data`, ficha a ficha, cerrando cada una entera. Primero se para la hemorragia de hoy (trozos 1-4), sin migración. Aprobado por Pablo el 30 oct 2026 («arranca»), con la decisión B contestada.
+Verdict: viable y grande (23 trozos, 2 migraciones, varias semanas; sin convivencia con lo viejo: Pablo, 30 oct, «si tienen que empezar de cero, es lo que hay»); lo que Pablo pidió el 30 oct 2026 ya está diseñado desde el 8-10 oct (`registro_campo` y la tabla `sobre` de la 0097) y nadie lo escribe: 0 filas en `sobre`. El rework es, sobre todo, cablear eso y sacar a la app y a Lola del documento único `household_state.state.data`, ficha a ficha, cerrando cada una entera. Primero se para la hemorragia de hoy (trozos 1-4), sin migración. Aprobado por Pablo el 30 oct 2026 («arranca»), con la decisión B contestada.
 
 Fecha: 30 oct 2026. Base leída: `origin/staging` en `5b9dbaed` (#1031). Escrito en la forma del estándar de planes de la Fábrica (`standards/plan.md`), sin pasar su comprobador (ver Not verified).
 
@@ -80,12 +80,13 @@ Todo dato de una ficha lleva el mismo **sobre**: `valor`, `origen` (es el estado
 
 ## Cómo se escribe y cómo se lee
 
-- **Una sola función de escritura** para la app y Lola: `escribirDato({casa, persona, campo, valor, origen, canal, ref})` → RPC `escribir_dato` (trozo 7-8). Escribe la fila, aplica la regla de choque del catálogo, sube `bot_rev` (para que lo de hoy siga funcionando) y devuelve el sobre. Al momento, sin espera de 1,2 s. En la app, con cola en localStorage y reintento al volver la red; si la RPC no existe (la rama se despliega antes que la migración), plan B: escribe en el documento como hoy y lo dice en el log.
+- **Una sola función de escritura** para la app y Lola: `escribirDato({casa, persona, campo, valor, origen, canal, ref})` → RPC `escribir_dato` (trozo 7-8). Escribe la fila, aplica la regla de choque del catálogo, sube `bot_rev` (para que lo de hoy siga funcionando) y devuelve el sobre. Al momento, sin espera de 1,2 s. En la app, con cola en localStorage y reintento al volver la red; si la RPC no existe (la rama se despliega antes que la migración), no se guarda y se dice (principio 3): nada vuelve al documento.
 - **Choque por dato, no por casa:** `ultimo_gana` (casi todo), `mas_restrictivo` (salud: añadir una alergia gana a quitarla en el mismo minuto), `suma` (señales).
 - **Lectura compacta:** `ficha_casa()` v2 devuelve, por ficha, cada dato con su sobre (trozo 9). La ficha de Lola y el asistente de la app leen de ahí el estado: vacío, por defecto, supuesto, aprendido, dicho. Lo que no cabe se resume (los topes de `specs/ficha-de-la-casa.md` se mantienen).
 - **Mínimos para generar** (decisión B): quién come, alergias dichas (o por silencio con aviso, #229) y días. Sin ellos, no se genera: se pregunta.
 - **La app se entera al momento** con Realtime de Supabase sobre `household_state.bot_rev` y `sobre` (trozo 20), y deja el sondeo de 20 s.
-- **Cada tramo cierra entero:** la clave vieja sale del documento y del registro en el último trozo del tramo. Nunca quedan dos sitios vivos para el mismo dato (hoy hay 10 copias por haberlo hecho a medias).
+- **Sin convivencia con lo viejo** (Pablo, 30 oct 2026: «no quiero migrar nada; si tienen que empezar de cero, es lo que hay»): cuando una ficha pasa a sus filas, el documento deja de leerse y de escribirse para esa ficha en el mismo trozo. Ni doble escritura, ni repoblado de datos viejos, ni leer la clave antigua «por si acaso». Las casas que ya existen estrenan cada ficha vacía: la app y Lola preguntan como a una casa nueva. Lo que ya está en tablas (semanas, compra, recetas propias, despensa) se queda. Nunca quedan dos sitios vivos para el mismo dato (hoy hay 10 copias por haberlo hecho a medias).
+- **Dos migraciones, no cinco:** la 0105 crea de una vez todas las tablas y columnas de las fichas (tramo 2), con lo que los trozos de código dejan de esperarse entre sí por la base; la 0106 apaga el copiado viejo del documento a `persona` (trigger 0089) cuando el código ya escribe `persona` directamente (tramo 3). Si un trozo posterior necesita una columna más, es una migración pequeña aparte.
 
 ## Tramos
 
@@ -93,13 +94,13 @@ Todo dato de una ficha lleva el mismo **sobre**: `valor`, `origen` (es el estado
 |---|---|---|---|
 | 0 Parar la hemorragia | 1-4 | no | marca al momento, mínimos, huecos vacíos a la vista, motor solo días activos |
 | 1 Catálogo único | 5-6, 23 | no | el registro con las columnas del eje; los 139 datos clasificados por ficha y clase; herramientas y pantallas con los datos que leen y escriben |
-| 2 La fila con sobre | 7-9 | 0105 | `escribir_dato`, `escribirDato`, `ficha_casa` v2, estado por dato en la app y en Lola |
-| 3 Persona y salud | 10-11 | 0106 | salud y personas como fuente; fuera `members`, `groups` y el trigger 0089 |
+| 2 La fila con sobre | 7-9 | 0105 (todas las tablas y columnas de las fichas) | `escribir_dato`, `escribirDato`, `ficha_casa` v2, estado por dato en la app y en Lola |
+| 3 Persona y salud | 10-11 | 0106 (apaga el trigger 0089) | salud y personas como fuente; fuera `members`, `groups` y el trigger 0089 |
 | 4 Casa y rutina | 12-13 | no | aparatos, súper, presupuesto, despensa, comidas, estructura, horario, tiempo, tanda |
-| 5 Gustos y señales | 14-15 | 0107, 0108 | libreta y reglas → `gusto`; contadores que olvidan |
+| 5 Gustos y señales | 14-15 | no (tablas en la 0105) | libreta y reglas → `gusto`; contadores que olvidan |
 | 6 Trato y preguntas | 16-17 | no | ficha Trato; una sola «siguiente pregunta»; la guía tras el alta (#1028) |
 | 7 Semana, compra, tiempo real | 18-20 | no | sobre por hueco, compra derivada + marcas, aperitivo, Realtime, fin del guardado entero |
-| 8 Recetas, historiales, cierre | 21-22 | 0109 | fuera recetas y carpetas del documento; historiales con poda; `data` vacío |
+| 8 Recetas, historiales, cierre | 21-22 | no (tablas y poda en la 0105) | fuera recetas y carpetas del documento; historiales con poda; `data` vacío |
 
 Cifras que bajan, medidas al cerrar cada tramo: claves vivas en `household_state.state.data` (hoy 113 registradas + 26 sin declarar → 0), `copia` (10 → 0), `sin_tabular` (54 → 0), `lola_no_lo_ve` (22 → 0), casas nuevas con alguien sin marca de alergias tras el alta (→ 0), semanas vivas con huecos esperados vacíos sin aviso (→ 0), respuestas de Lola que contradicen el estado (17 % en #958 → se vuelve a medir).
 
@@ -171,15 +172,15 @@ Done:
 npm run -s ficha:inventario && npx vitest run scripts/lib/inventarioFicha.test.js src/lib/registroFicha.test.js
 ```
 
-### 7. Migración 0105: el sobre gana estado de uso, el registro sus columnas nuevas, y nacen `escribir_dato` y `ficha_casa` v2
-Files: `supabase/migrations/0105_dato_con_sobre.sql`, `supabase/ESTADO.md`, `src/lib/registroCampos.test.js`, `scripts/lib/columnasVocabulario.mjs`, `src/lib/vocabularios.test.js`
+### 7. Migración 0105, la única grande: el sobre gana estado de uso, el registro sus columnas nuevas, nacen `escribir_dato` y `ficha_casa` v2, y se crean de una vez las tablas de todas las fichas (`gusto`, `senal`, historiales con poda, salud por persona)
+Files: `supabase/migrations/0105_fichas_con_estado.sql`, `supabase/ESTADO.md`, `src/lib/registroCampos.test.js`, `scripts/lib/columnasVocabulario.mjs`, `src/lib/vocabularios.test.js`
 Depends on: 5
 Blocked by: none
 Existing: `sobre` (0097:132-153) no tiene `peso`, `caduca_at` ni `actualizado_at`; `registro_campo` (0097:74) no tiene `ficha`, `defecto`, `minimo_para_generar`, `peso_menu`, `escribe` ni `choque`; `git grep -n "escribir_dato" -- supabase` → sin salida; `ficha_casa` es v1 (0097:241). `ls supabase/migrations | tail -1` → `0104_…`; `gh pr list --state open --search 0105` → 0 PR. El trigger `sobre_valor_valido` (0097:173) ya comprueba tipo y rango contra `registro_campo`: la regla de choque y el vocabulario entran ahí.
-Not done: nadie la llama todavía (trozo 8); no toca `persona` ni el trigger 0089 (trozo 11). La aplica Pablo (ensayo y `--si`, regla `migraciones`): el trozo deja el comando y la línea `-- AUDITADA` la pone quien la revise. `registro_campo` se regenera entero desde el registro (como la 0097) y el test de paridad compara el INSERT de la 0105. Sin `cambio` (historial de cada cambio): decidido (Pablo, 30 oct) que los contadores sustituyen al historial; el sobre guarda el último cambio.
+Not done: nadie la llama todavía (trozo 8); no apaga el trigger 0089 (eso es la 0106, trozo 11, cuando el código ya escribe `persona`). No repuebla nada: las tablas nacen vacías y cada casa las estrena cuando la app o Lola vuelven a preguntar (sin convivencia, Pablo 30 oct). Las tablas de los tramos 5 y 8 (`gusto`, `senal`, historiales con su poda `pg_cron`) van aquí con las columnas que la tabla de fichas de este plan les da; si un trozo posterior necesita una más, migración pequeña aparte. La aplica Pablo (ensayo y `--si`, regla `migraciones`): el trozo deja el comando y la línea `-- AUDITADA` la pone quien la revise. `registro_campo` se regenera entero desde el registro (como la 0097) y el test de paridad compara el INSERT de la 0105. Sin `cambio` (historial de cada cambio): decidido (Pablo, 30 oct) que los contadores sustituyen al historial; el sobre guarda el último cambio.
 Done:
 ```sh
-node scripts/apply-migration.mjs 0105_dato_con_sobre && npx vitest run supabase/principios.test.js src/lib/vocabularios.test.js src/lib/registroCampos.test.js supabase/migrations.test.js
+node scripts/apply-migration.mjs 0105_fichas_con_estado && npx vitest run supabase/principios.test.js src/lib/vocabularios.test.js src/lib/registroCampos.test.js supabase/migrations.test.js
 ```
 
 ### 8. `escribirDato`: una sola función para la app y Lola, al momento, con cola, choque por dato y plan B
@@ -187,7 +188,7 @@ Files: `src/lib/escribirDato.js`, `src/lib/escribirDato.test.js`, `api/_bot/dato
 Depends on: 7
 Blocked by: none
 Existing: `git grep -n "escribirDato\|escribir_dato" -- src api` → sin salida. Hoy la app escribe el documento entero con `save_household_state` (`src/lib/householdState.js:72`, 0068:22) y Lola con `bot_save_casa` (`api/_bot/casa.js:159`, 0057:124); las dos suben `bot_rev`. La cola de guardados de la app (`src/lib/versionCasa.js:24`, `enColaDeCasa`) sirve de base para la cola nueva.
-Not done: ningún dato pasa todavía por aquí (tramos 3-6 van moviendo escritores). No sustituye `save_household_state` ni `bot_save_casa` para lo que siga en el documento. La cola de la app guarda lo pendiente en localStorage y reintenta al volver la red; lo que lleve más de 24 h pendiente se dice (principio 3), no se tira. Plan B si la RPC no existe (rama desplegada antes que la migración): escribe en el documento como hoy y lo apunta en el log con la clase `rpc_ausente`.
+Not done: ningún dato pasa todavía por aquí (tramos 3-6 van moviendo escritores). No sustituye `save_household_state` ni `bot_save_casa` para lo que siga en el documento. La cola de la app guarda lo pendiente en localStorage y reintenta al volver la red; lo que lleve más de 24 h pendiente se dice (principio 3), no se tira. Si la RPC no existe (rama desplegada antes que la migración): no se guarda, se dice en pantalla o en el chat, y se apunta en el log con la clase `rpc_ausente`; nunca se escribe en el documento (sin convivencia).
 Done:
 ```sh
 npx vitest run src/lib/escribirDato.test.js api/_bot/datos.test.js
@@ -209,7 +210,7 @@ Files: `src/screens/Onboarding.jsx`, `src/screens/Settings.jsx`, `api/_bot/ajust
 Depends on: 1, 9
 Blocked by: none
 Existing: hoy `members[].allergies`, `intolerances`, `dietaryStates` (+`dietaryStatesMeta.hasta`) y `healthProfiles` viven en el JSON y el trigger 0089 los copia a `persona_alergia`, `persona_intolerancia`, `persona_estado` y `persona_perfil_salud` (0089:106). Lectores: `alergiasParaMenu` (`alergias.js:89`), la ficha (`ficha.js:180-235`), `buscar_recetas`. Los vocabularios `alergenos` y `estados` siguen pendientes (`registroCampos.js:57`). #958 G: «salud en dos sitios».
-Not done: durante este trozo el documento sigue llevando la copia (doble escritura corta, con la fila como fuente al leer); la quita el trozo 11. No cambia qué es una alergia ni la regla de los 14 (`alergiasParaMenu` pasa a leer `persona.alergias_revisadas` y las filas). La regla de choque de salud es `mas_restrictivo`: añadir gana a quitar en el mismo minuto. Cierra el hueco #958 A «no tiene alergias no quita las que había».
+Not done: nada de doble escritura: en este trozo la app y Lola dejan de escribir `allergies`, `intolerances`, `dietaryStates` y `healthProfiles` en el documento y leen las filas; a una casa que no tenga filas se le vuelve a preguntar (es el mínimo para generar del trozo 2). El trigger 0089 sigue hasta la 0106 (trozo 11) porque aún copia nombres y roles. No cambia qué es una alergia ni la regla de los 14 (`alergiasParaMenu` pasa a leer `persona.alergias_revisadas` y las filas). La regla de choque de salud es `mas_restrictivo`: añadir gana a quitar en el mismo minuto. Cierra el hueco #958 A «no tiene alergias no quita las que había».
 Done:
 ```sh
 npx vitest run src/lib/salud.test.js src/lib/alergias.test.js src/lib/alergiasMenu.test.js src/lib/alergiasSilencio.test.js api/_bot/ficha.test.js
@@ -249,25 +250,25 @@ npx vitest run src/lib/rutina.test.js src/lib/semanaDias.test.js src/lib/estruct
 ```
 
 ### 14. Gusto con ámbito: la libreta y los sesgos de las reglas pasan a la tabla `gusto` (quién, eje, valor, postura, días, comidas, vigencia, salvedad, origen, peso)
-Files: `supabase/migrations/0107_gusto.sql`, `supabase/ESTADO.md`, `src/lib/gustos.js`, `src/lib/gustos.test.js`, `src/lib/notepad.js`, `src/lib/notepadFields.js`, `src/lib/libretaEnData.js`, `src/lib/reglas.js`, `api/_bot/ajustes.js`, `src/components/wizard/useWizardMenu.jsx`
+Files: `src/lib/gustos.js`, `src/lib/gustos.test.js`, `src/lib/notepad.js`, `src/lib/notepadFields.js`, `src/lib/libretaEnData.js`, `src/lib/reglas.js`, `api/_bot/ajustes.js`, `src/components/wizard/useWizardMenu.jsx`
 Depends on: 13
 Blocked by: none
 Existing: la libreta guarda por clave `valor`, `origen`, `fuente` (dicho/visto/supuesto), `desde`, `hasta`, `rechazos` (`src/lib/notepad.js:54-75`) pero su ámbito es solo `todos|ninos|adultos|bebes` × `ambos|comida|cena` (`notepadFields.js`): no hay persona ni días («me gusta la china solo los findes» no cabe; la cabecera de `notepadFields.js` lo dice). Las reglas sí tienen sujeto, ámbito, vigencia y salvedad (`reglas.js:249`), con efectos `excluir|presente|sesgo`. `git grep -n -i "create table.*gusto" -- supabase` → sin salida.
 Not done: favoritas, descartes y votos siguen en sus tablas y los lee el motor como hoy; el trozo 15 los convierte en señales. Las reglas `presente` (quién come dónde un día) van a Rutina (trozo 13), no aquí. La proyección a `freqs`/`reparto`/`sesgos` (`libretaEnData.js`) se calcula al leer desde `gusto` y deja de guardarse (eran 6 de las 10 copias). Lo que escriba alguien a mano y no case con un valor cae en `otro` con nota, y el inventario cuenta cuántos `otro` hay por eje (de ahí salen los valores nuevos).
 Done:
 ```sh
-node scripts/apply-migration.mjs 0107_gusto && npx vitest run src/lib/gustos.test.js src/lib/notepad.test.js src/lib/notepadMatices.test.js src/lib/reglas.test.js
+npx vitest run src/lib/gustos.test.js src/lib/notepad.test.js src/lib/notepadMatices.test.js src/lib/reglas.test.js
 ```
 
 ### 15. Señales que olvidan: contadores por casa o cuenta × eje × valor con decaimiento, umbral a «aprendido», y lo que los alimenta
-Files: `supabase/migrations/0108_senal.sql`, `supabase/ESTADO.md`, `src/lib/senales.js`, `src/lib/senales.test.js`, `api/_bot/menu.js`, `api/_bot/turno.js`, `src/App.jsx`, `src/lib/registroFicha.js`
+Files: `src/lib/senales.js`, `src/lib/senales.test.js`, `api/_bot/menu.js`, `api/_bot/turno.js`, `src/App.jsx`, `src/lib/registroFicha.js`
 Depends on: 14
 Blocked by: none
 Existing: no hay ningún contador: ni veces cocinado, ni tasa de aceptación, ni pesos aprendidos (`git grep -n -i "decaimiento\|semivida\|half-life" -- src/lib api/_bot` → sin salida salvo comentarios ajenos). `household_recipe_discards` lleva `cooldown_until` fijo de 7 o 14 días (`App.jsx:3938-3955`); `receta_descartes` (0102) no tiene lector en `src`/`api`; `recipe_votes` es un voto por persona sin agregación. `specs/ficha-de-la-casa.md` §4 describe el «analista» como tabla con vocabularios cerrados: esto lo sustituye con contadores en vez de una pasada nocturna.
 Not done: una fila por (casa o cuenta, eje, valor), nunca una por evento (Pablo, 30 oct: eso crece sin tope). El decaimiento lo aplica `pg_cron` de noche (como `bot-retencion` en 0065:47). Al pasar el umbral se escribe un sobre `visto` en Gusto o en Trato; al bajar, se retira. Alimentan: cambiar plato (eje del plato que sale y del que entra), votos, descartes, «hazlo ya» frente a «afinemos», fotos pedidas. No escribe nunca en salud ni en lo `dicho` (regla de oro de la spec).
 Done:
 ```sh
-node scripts/apply-migration.mjs 0108_senal && npx vitest run src/lib/senales.test.js api/_bot/menu.test.js
+npx vitest run src/lib/senales.test.js api/_bot/menu.test.js
 ```
 
 ### 16. Ficha Trato, por cuenta: ritmo, profundidad al generar, fotos y largo, con defecto, lo dicho y lo aprendido; Lola la lee en cada turno
@@ -337,14 +338,14 @@ npx vitest run src/lib/recetasFuente.test.js src/lib/userRecipesSync.test.js src
 ```
 
 ### 22. Historiales con poda y marcas de pantalla en el móvil: el documento de la casa queda vacío
-Files: `supabase/migrations/0109_historiales.sql`, `supabase/ESTADO.md`, `src/App.jsx`, `src/lib/historial.js`, `src/lib/historial.test.js`, `src/lib/marcasLocales.js`, `src/lib/registroFicha.js`, `scripts/lib/inventarioFicha.mjs`
+Files: `src/App.jsx`, `src/lib/historial.js`, `src/lib/historial.test.js`, `src/lib/marcasLocales.js`, `src/lib/registroFicha.js`, `scripts/lib/inventarioFicha.mjs`
 Depends on: 21
 Blocked by: none
 Existing: `menuHistory`, `cookedDishes`, `priceObs`, `receipts`, `cookedDeltas`, `pantryGenDeltas`/`pantryDayDeltas` viven en `data` y crecen sin poda (`aiRecipes` llegó a 137 en una casa, #958 E); las marcas `expertMode`, `modePrompted`, `pantryPrefsSeen`, `useBirthDate`, `manualSlotType` son `interfaz` en el registro. `git grep -n "marcasLocales\|lib/historial" -- src` → sin salida.
-Not done: no borra `household_state` ni la columna `state`: queda como documento vacío (`{}`) hasta que una migración posterior la retire, cuando `npm run consulta` confirme 0 claves en todas las casas durante un mes. Poda: 90 días para precios y tickets, 1 año para cocinados (en la migración, con `pg_cron`).
+Not done: no borra `household_state` ni la columna `state`: queda como documento vacío (`{}`) hasta que una migración posterior la retire, cuando `npm run consulta` confirme 0 claves en todas las casas durante un mes. Poda: 90 días para precios y tickets, 1 año para cocinados (ya en la 0105, con `pg_cron`). Los historiales viejos del documento no se copian: se empieza a contar desde que la app escribe filas (sin convivencia).
 Done:
 ```sh
-node scripts/apply-migration.mjs 0109_historiales && npx vitest run src/lib/historial.test.js src/lib/marcasLocales.test.js && npm run -s ficha:inventario
+npx vitest run src/lib/historial.test.js src/lib/marcasLocales.test.js && npm run -s ficha:inventario
 ```
 
 ### 23. Herramientas y pantallas con ficha: cada una declara qué datos lee y escribe, y los datos sin pregunta en Lola o sin pantalla en la app son cifras con línea base, como los huecos
@@ -376,7 +377,8 @@ Por qué te lo pregunto: el 8 oct decidiste lo contrario (#107: se genera esquiv
 - principio 3 | eligió: generar dice qué hueco esperado se queda vacío, en Lola y en la vía rápida | descartó: seguir guardando `_warnings` sin lector | motivo: decidido
 - principio 4 | eligió: menú y compra como documento por semana, con sobre por hueco y la compra calculada del menú más marcas | descartó: una fila por hueco (el menú se genera y se cambia entero) o rehacer la lista al quitar un artículo | motivo: decidido
 - principio 1 | eligió: las 24 casas sin marca de alergias no se repueblan por script: se les vuelve a preguntar | descartó: marcarlas revisadas de oficio | motivo: decidido
-- principio 5 | eligió: cada tramo cierra con la clave vieja fuera del documento y el inventario a cero; doble escritura solo dentro de un tramo | descartó: dejar la copia vieja «por si acaso» (hoy hay 10 así) | motivo: decidido
+- principio 4 | eligió: sin convivencia: cuando una ficha pasa a sus filas, el documento deja de leerse y escribirse para ella en el mismo trozo, y las casas existentes la estrenan vacía (Pablo, 30 oct: «no quiero migrar nada; si tienen que empezar de cero, es lo que hay») | descartó: doble escritura por tramo, repoblar lo viejo o leer la clave antigua «por si acaso», que mantiene dos sitios vivos para el mismo dato durante semanas (hoy hay 10 copias así) | motivo: decidido
+- principio 4 | eligió: una migración grande (0105) con todas las tablas y columnas de las fichas, y una pequeña (0106) para apagar el trigger 0089 | descartó: una migración por tramo (0105-0109), que encadenaba los trozos de código a la base y repartía la misma idea (las fichas) en cinco ficheros | motivo: decidido
 - principio 2 | eligió: Realtime de Supabase para que la app se entere, con el sondeo de 20 s como plan B y la cifra de escrituras medida antes de quitar el documento | descartó: sondear más a menudo (más lecturas, sin medir) | motivo: decidido
 - principio 6 | eligió: una sola pregunta a Pablo (B), porque revierte una decisión suya del 8 oct; el resto de elecciones de diseño se toman y se apuntan aquí | descartó: preguntar dónde viven los ejes o si va Realtime, que no están en la lista cerrada | motivo: decidido
 - principio 4 | eligió: las herramientas de Lola y las pantallas de la app son vocabulario del producto, con su ficha en el código (`agente.js`, `capacidades.js`), y cada una declara los datos que lee y escribe; el mapa deriva de ahí (Pablo, 30 oct: opción 1) | descartó: una tabla de herramientas por casa, que repite en cada familia lo que es del producto y se desfasa del código | motivo: decidido
@@ -389,7 +391,8 @@ Por qué te lo pregunto: el 8 oct decidiste lo contrario (#107: se genera esquiv
 - El alta de Pablo del 30 oct no se ha reproducido en un navegador (no hay cuenta de prueba): la explicación del trozo 1 sale del código (`App.jsx:1786-1804`, `versionCasa.js:42-49`, `App.jsx:2005-2015`) y de los datos (`bot_deshacer` 07:26:09 sin marca; `persona.updated_at` 07:46:39 sin marca). No sé qué disparó la recarga en ese segundo.
 - Este fichero no ha pasado `node scripts/check-plan.mjs --file` de la Fábrica: la guardia de esta sesión no deja copiar ni ejecutar nada de `C:\dev\fabrica` (`cp` y `cat >` negados). La forma (campos, numeración, decisiones, Done cerrado) se ha seguido a mano.
 - Cuántas escrituras por minuto hará la app guardando por dato, y su coste: sin medir; lo mide el trozo 20.
-- Que `bot_save_casa`, `save_household_state` y `escribir_dato` convivan sin pisarse en la doble escritura de un tramo: el diseño los hace subir el mismo `bot_rev`, pero no está probado contra la base.
-- Los números 0105-0109 están libres hoy (`ls supabase/migrations | tail -1` → 0104; `gh pr list --search 0105` → 0); cada trozo los vuelve a comprobar al construirse.
+- Que `bot_save_casa`, `save_household_state` y `escribir_dato` suban el mismo `bot_rev` sin pisarse mientras el documento siga llevando otras fichas: el diseño lo prevé, pero no está probado contra la base.
+- Los números 0105 y 0106 están libres hoy (`ls supabase/migrations | tail -1` → 0104; `gh pr list --search 0105` → 0); el trozo 7 lo vuelve a comprobar al construirse.
+- Cuántas casas vivas (con menú de esta semana) se verán «empezando de cero» en cada ficha: hoy 37 casas, 29 semanas vivas (trozo 4); no se ha contado cuántas son de familias de verdad y cuántas de prueba.
 - Las cifras 25/32 y 24/32 son sobre casas con al menos una persona; hay 37 casas (5 sin personas). La de «respuestas que contradicen el estado» (17 %) es la de #958 del 28 oct, no medida hoy.
 - Tests que los Done nombran: los que ya existen se comprobaron con `ls` (`aiPlanner`, `menu`, `tareas`, `recipeCollections`, `userRecipesSync`, `recetas`, `shoppingBuilder`, `comidas`, `semanaDias`, `reglas`, `quitarPersona`, `link`, `vocabularios`, `principios`, `migrations`, `ajustesCantidad`, `agenteRehacer`, `menusSync`). Los nuevos (`altaGuardada`, `minimosParaGenerar`, `huecosDelPlan`, `diasActivos`, `escribirDato`, `datos`, `estadoDeDato`, `salud`, `personas`, `casaDatos`, `rutina`, `gustos`, `senales`, `trato`, `siguientePregunta`, `compraMarcas`, `aperitivo`, `realtimeCasa`, `recetasFuente`, `historial`, `marcasLocales`, `scripts/lib/inventarioFicha.test.js`) los crea su trozo y su PR trae el rojo antes. `estructuraPlatos.test.js` está en la rama `datos/estructura-efectiva` (29 oct), aún sin PR.
