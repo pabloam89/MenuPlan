@@ -3598,26 +3598,62 @@ const IGNORADAS_AL_COLOCAR = new Set([
  * relaja: no depende de lo que haya al lado.
  */
 function filtrarPorReglasDuras(candidates, { ctx, menuPlan, groupId, day, meal, course }) {
-  const daySlug = DAY_SLUG[day];
-  const slotIdDe = (dia, comida, curso) => {
-    const mios = ctx.slots.filter((s) => s.daySlug === dia && s.mealType === comida);
-    if (mios.length <= 1) return mios[0]?.slotId ?? null;
-    return mios.find((s) => s.position === (curso === "first" ? "primero" : "segundo"))?.slotId ?? null;
+  const plan = menuPlan[groupId] ?? {};
+  const claveObjetivo = `${day}-${meal}`;
+
+  // La FORMA de cada franja la manda el tablero, como en `targetRoles`, y no la
+  // estructura configurada: una comida con un solo plato puesto es plato único
+  // aunque la casa tenga primero+segundo, y compararla con el hueco «segundo»
+  // le quitaba el rol de plato único a dos tercios del pool.
+  const dosPlatosDe = (clave) => (clave === claveObjetivo && course === "first")
+    || Boolean(plan[clave]?.dosPlatos || plan[clave]?.firstRecipeId);
+  const idDe = (dia, comida, curso, dos) => {
+    if (comida === "cena") return dos ? `${dia}_cena_${curso === "first" ? 1 : 2}` : `${dia}_cena`;
+    return dos ? `${dia}_comida_${curso === "first" ? 1 : 2}` : `${dia}_comida_1`;
   };
-  const objetivo = slotIdDe(daySlug, tipoDeComida(meal), course);
+
+  // El contexto de huecos que ve `validateMenu`: el de la casa, con las franjas
+  // del tablero rehechas con su forma. Lo demás (tiempo, comensales, cole) se
+  // hereda de lo que ya calculó `buildGroupContext`.
+  const franjas = new Map();
+  for (const clave of Object.keys(plan)) {
+    const corte = clave.indexOf("-");
+    const dia = DAY_SLUG[clave.slice(0, corte)];
+    const comida = tipoDeComida(clave.slice(corte + 1));
+    const plantilla = ctx.slots.find((x) => x.daySlug === dia && x.mealType === comida);
+    if (plantilla) franjas.set(`${dia}|${comida}`, { clave, dia, comida, plantilla });
+  }
+  const objetivoFranja = franjas.get(`${DAY_SLUG[day]}|${tipoDeComida(meal)}`);
   // Sin hueco en el contexto (franja fuera de menú) no hay reglas que aplicar.
-  if (!objetivo) return candidates;
+  if (!objetivoFranja) return candidates;
+  const objetivo = idDe(objetivoFranja.dia, objetivoFranja.comida, course, dosPlatosDe(claveObjetivo));
+
+  const huecos = ctx.slots.filter((x) => !franjas.has(`${x.daySlug}|${x.mealType}`));
+  for (const { clave, dia, comida, plantilla } of franjas.values()) {
+    const { position: _p, preferType: _t, ...base } = plantilla;
+    if (dosPlatosDe(clave)) {
+      huecos.push(
+        { ...base, slotId: idDe(dia, comida, "first", true), position: "primero" },
+        { ...base, slotId: idDe(dia, comida, "main", true), position: "segundo" },
+      );
+    } else if (comida === "comida") {
+      huecos.push({ ...base, slotId: idDe(dia, comida, "main", false), position: "plato_unico", preferType: "plato_unico" });
+    } else {
+      huecos.push({ ...base, slotId: idDe(dia, comida, "main", false) });
+    }
+  }
 
   const puestos = [];
   const usados = new Map();
-  for (const [clave, s] of Object.entries(menuPlan[groupId] ?? {})) {
+  for (const [clave, s] of Object.entries(plan)) {
     const corte = clave.indexOf("-");
     const dia = DAY_SLUG[clave.slice(0, corte)];
-    const comida = clave.slice(corte + 1);
+    const comida = tipoDeComida(clave.slice(corte + 1));
+    if (!franjas.has(`${dia}|${comida}`)) continue;
     for (const [curso, rid] of [["first", s?.firstRecipeId], ["main", s?.recipeId]]) {
       const base = stripGroupPrefix(rid);
       const receta = base ? recipeCatalogById[base] : null;
-      const slotId = receta ? slotIdDe(dia, tipoDeComida(comida), curso) : null;
+      const slotId = receta ? idDe(dia, comida, curso, dosPlatosDe(clave)) : null;
       if (!slotId || slotId === objetivo) continue;
       puestos.push({ slotId, recipeId: base });
       usados.set(base, receta);
@@ -3627,14 +3663,14 @@ function filtrarPorReglasDuras(candidates, { ctx, menuPlan, groupId, day, meal, 
   const hayQueVigilar = (violations) => violations.filter((v) => !IGNORADAS_AL_COLOCAR.has(v.rule));
   const claves = (violations) => new Set(hayQueVigilar(violations).map((v) => `${v.rule}@${v.slotId}`));
   const salud = ctx.config?.healthProfiles ?? [];
-  const antes = claves(validateMenu(puestos, [...usados.values()], ctx.slots, salud, {}, {}).violations);
+  const antes = claves(validateMenu(puestos, [...usados.values()], huecos, salud, {}, {}).violations);
 
   const limpios = [];
   const relajables = [];
   const delPlatoSano = [];
   for (const r of candidates) {
     const asignaciones = [...puestos, { slotId: objetivo, recipeId: r.id }];
-    const { violations } = validateMenu(asignaciones, [...usados.values(), r], ctx.slots, salud, {}, {});
+    const { violations } = validateMenu(asignaciones, [...usados.values(), r], huecos, salud, {}, {});
     const nuevas = hayQueVigilar(violations).filter((v) => !antes.has(`${v.rule}@${v.slotId}`));
     if (nuevas.length === 0) limpios.push(r);
     else if (nuevas.every((v) => REGLAS_RELAJABLES.has(v.rule))) relajables.push(r);

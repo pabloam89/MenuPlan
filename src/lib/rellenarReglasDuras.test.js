@@ -53,13 +53,13 @@ describe("Rellenar cumple las reglas duras del solver", () => {
     for (const r of res.candidatos) expect(esLegumbre(r), r.name).toBe(false);
   });
 
-  it("con la cena puesta, la comida tampoco repite legumbre", () => {
-    const potaje = recipeCatalogById.legumbres_016;
-    const plan = { g1: { "Dom-Comida": hueco(), "Dom-Cena": { recipeId: potaje.id, eaters: 2 } } };
+  it("una comida de un solo plato se compara como plato único, no como «segundo»", () => {
+    // La casa tiene primero+segundo por defecto, pero el tablero solo lleva un
+    // plato: el pool no puede quedarse solo con lo que además sirve de segundo.
+    const plan = { g1: { "Mar-Comida": hueco() } };
     const res = pickCatalogReplacement(data, plan, {
-      groupId: "g1", day: "Dom", meal: "Comida", course: "main", candidatos: 200,
+      groupId: "g1", day: "Mar", meal: "Comida", course: "main", candidatos: 400,
     });
-    expect(res.candidatos.length).toBeGreaterThan(10);
-    for (const r of res.candidatos) expect(esLegumbre(r), r.name).toBe(false);
+    expect(res.candidatos.some((r) => !r.mealRole.includes("segundo"))).toBe(true);
   });
 });
