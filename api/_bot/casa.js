@@ -26,6 +26,9 @@ export const hoyISO = () => isoDeCasa();
 
 const aSemana = (s) => ({
   menuId: s.menu_id, weekStart: s.week_start, weekEnd: s.week_end, startDayIdx: s.start_day_idx ?? 0,
+  // El offset con el que se generó (0 = la semana en curso entonces): sin él
+  // no se sabe si `startDayIdx` recorta la semana o no (diasDeLaSemana, menu.js).
+  offset: s.week_offset ?? 0,
   activeDays: s.active_days ?? null, plan: s.plan, shopping: s.shopping,
 });
 

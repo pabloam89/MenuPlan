@@ -32,6 +32,7 @@ vi.mock("./menu.js", () => ({
   DIAS: ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"],
   recetasDeCasa: vi.fn(),
   deSerieDelMotor: vi.fn(),
+  diasDeLaSemana: () => ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"],
 }));
 vi.mock("./embudo.js", () => ({ duenoDe: vi.fn(async () => "u1"), rastro: vi.fn() }));
 vi.mock("./telegram.js", () => ({ nombreDelBot: vi.fn(async () => "lola_bot") }));
