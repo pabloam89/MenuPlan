@@ -117,6 +117,26 @@ export const ALCANCE_DESCARTE = porNombre(ALCANCES_DESCARTE);
 /** A qué se refiere un «sobre» o un cambio: qué lo originó. */
 export const REF_TIPO = ["menu", "mensaje", "pantalla", "senal"];
 
+// ── Los del eje de la ficha (specs/plan-fichas-con-estado.md, trozo 5): las columnas con que
+// registroFicha.js describe cada dato. Hoy solo en el código; la 0105 los lleva a registro_campo.
+
+/** Las fichas (entidades con sobre) del plan: de cuál es cada dato del registro (registroFicha.js ficha). */
+export const FICHAS = ["persona", "grupo", "casa", "rutina", "gusto", "regla", "trato", "semana", "compra", "despensa", "receta", "tarea", "senal"];
+
+/** Quién puede escribir un dato: la familia (lo que dice), el sistema (lo que deriva o ve) o los dos. */
+export const ESCRITORES = ["familia", "sistema", "ambos"];
+export const ESCRITOR = porNombre(ESCRITORES);
+
+/** Qué postura tiene un gusto sobre un valor (tabla gusto, trozo 14): siempre, más, menos o nunca. */
+export const POSTURAS = ["siempre", "mas", "menos", "nunca"];
+
+/**
+ * Cómo se resuelve un choque entre dos escrituras del mismo dato: el último gana (casi todo),
+ * el más restrictivo (salud: añadir una alergia gana a quitarla) o se suman (señales).
+ */
+export const CHOQUES = ["ultimo_gana", "mas_restrictivo", "suma"];
+export const CHOQUE = porNombre(CHOQUES);
+
 /** Sexo de una persona: campo nuevo de la ficha v18, solo para calorías y nunca se pregunta. */
 export const SEXO = ["mujer", "hombre", "sin_dato"];
 
@@ -255,6 +275,10 @@ export const VOCABULARIOS = Object.freeze({
   origen_dato: ORIGEN_DATO,
   origen_alergias: ORIGEN_ALERGIAS,
   ref_tipo: REF_TIPO,
+  fichas: FICHAS,
+  escritores: ESCRITORES,
+  postura: POSTURAS,
+  choque: CHOQUES,
   alcances_descarte: ALCANCES_DESCARTE,
   canales_dato: CANALES_DATO,
   sexo: SEXO,

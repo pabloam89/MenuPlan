@@ -64,6 +64,22 @@ describe("inventario de la ficha", async () => {
     for (const f of ERRORES) expect(inv.fallos[f], f).toEqual([]);
   });
 
+  it("un dato activo sin ficha es un error del registro, no deuda", () => {
+    expect(ERRORES).toContain("sin_ficha");
+    expect(DEUDA).not.toContain("sin_ficha");
+  });
+
+  it("las filas llevan las columnas del eje", () => {
+    for (const col of ["ficha", "defecto", "minimo_para_generar", "escribe", "choque"]) {
+      expect(inv.filas.every((f) => col in f), col).toBe(true);
+    }
+  });
+
+  it("un defecto que no cuadra con la forma de una casa nueva (INITIAL_DATA) es un error", () => {
+    expect(ERRORES).toContain("defecto_distinto");
+    expect(inv.fallos.defecto_distinto).toEqual([]);
+  });
+
   it("detecta una clave nueva sin registrar", async () => {
     const r = await inventario(raiz, { guardadas: { casa: new Set(["claveInventada"]), persona: new Set() } });
     expect(r.fallos.sin_registro).toEqual(["casa.claveInventada"]);

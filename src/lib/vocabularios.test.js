@@ -153,6 +153,10 @@ describe("vocabularios: una lista, un sitio", () => {
     expect(vocabulario("dias")).toBe(VOCABULARIOS.dias);
     expect(vocabulario("no_existe")).toBe(null);
   });
+
+  it("las listas del eje de la ficha (plan fichas con estado, trozo 5) existen", () => {
+    for (const nombre of ["postura", "choque", "fichas", "escritores"]) expect(vocabulario(nombre), nombre).not.toBe(null);
+  });
 });
 
 /** Los .js/.jsx/.mjs de src/ y api/ que no son tests, con su texto. */
