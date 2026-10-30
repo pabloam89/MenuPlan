@@ -1,5 +1,5 @@
 import { FRONTAL_BOT, GUIAS_ACTIVAS, GENTE_ACTIVA, abrirLola, avisarAltaALola } from "./lib/frontalBot.js";
-import { cerrarAlta } from "./lib/altaGuardada.js";
+import { cerrarAlta, MOTIVO } from "./lib/altaGuardada.js";
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { LogOut, RotateCcw, AlertTriangle, Trash2, Check, Play, Eraser, X } from "./components/icons.jsx";
 import { BottomNav, APP_SHELL_MAX_WIDTH, SignInOptions, GhostPillButton } from "./components/ui.jsx";
@@ -5844,10 +5844,13 @@ export default function App() {
                   avisar: user && desdeLola ? avisarAltaALola : null,
                 });
                 if (!r.ok) {
-                  if (r.motivo === "choque") recargarDesdeNubeRef.current({ choque: true });
+                  if (r.motivo === MOTIVO.choque) recargarDesdeNubeRef.current({ choque: true });
                   else showToast("No se ha podido guardar: revisa la conexión y pulsa otra vez");
                   return;
                 }
+                // Guardado. Si Lola no recibió el aviso (sin red o sin chat), se dice:
+                // ella lo verá en la casa cuando se le escriba.
+                if (desdeLola && !r.avisado) showToast("Guardado. Si Lola no te escribe, dile «ya está» en Telegram");
                 altaDesdeLolaRef.current = false;
                 setFirstRunOnboarding(false);
                 fwd(() => goToMenu("dashboard", { generar: !desdeLola }));

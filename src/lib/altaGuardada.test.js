@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { cerrarAlta, MOTIVOS_NO_GUARDADO } from "./altaGuardada.js";
+import { cerrarAlta, MOTIVO, MOTIVOS_NO_GUARDADO } from "./altaGuardada.js";
 
 const casa = () => ({
   members: [
@@ -20,7 +20,6 @@ describe("cerrarAlta: la marca de alergias se guarda al momento y Lola se entera
     const guardado = guardar.mock.calls[0][0];
     expect(guardado.members.map((m) => m.alergiasRevisadas)).toEqual([true, true]);
     expect(guardado.allergiesReviewed).toBe(true);
-    expect(r.data).toBe(guardado);
     // El aviso sale DESPUÉS de que la base conteste, nunca a la vez.
     expect(orden).toEqual(["guardar", "avisar"]);
   });
@@ -54,7 +53,13 @@ describe("cerrarAlta: la marca de alergias se guarda al momento y Lola se entera
     expect(r).toMatchObject({ ok: true, avisado: false });
   });
 
-  it("los motivos son una lista cerrada", () => {
-    expect(MOTIVOS_NO_GUARDADO).toEqual(["choque", "descartado", "error"]);
+  it("los motivos son una lista cerrada y cada uno sale de cerrarAlta", async () => {
+    expect(MOTIVOS_NO_GUARDADO).toEqual(Object.values(MOTIVO));
+    const motivos = await Promise.all([
+      cerrarAlta({ data: casa(), guardar: async () => ({ ok: false, conflict: true }) }),
+      cerrarAlta({ data: casa(), guardar: async () => ({ ok: false, descartado: true }) }),
+      cerrarAlta({ data: casa(), guardar: async () => ({ ok: false }) }),
+    ]);
+    expect(motivos.map((r) => r.motivo)).toEqual(MOTIVOS_NO_GUARDADO);
   });
 });

@@ -20,29 +20,34 @@
  */
 import { marcarRevisadas } from "./alergiasBase.js";
 
-/** Por qué no se ha guardado: chocó con otro cambio, la nube se recargó entretanto, o la base no contestó. */
-export const MOTIVOS_NO_GUARDADO = ["choque", "descartado", "error"];
+/**
+ * Por qué no se ha guardado: chocó con otro cambio, la nube se recargó
+ * entretanto, o la base no contestó. Quien decide qué hacer con cada motivo
+ * (App.jsx) lo compara contra esta constante, no contra el literal.
+ */
+export const MOTIVO = Object.freeze({ choque: "choque", descartado: "descartado", error: "error" });
+export const MOTIVOS_NO_GUARDADO = Object.values(MOTIVO);
 
-const motivoDe = (r) => (r?.conflict ? "choque" : r?.descartado ? "descartado" : "error");
+const motivoDe = (r) => (r?.conflict ? MOTIVO.choque : r?.descartado ? MOTIVO.descartado : MOTIVO.error);
 
 /**
  * @param {object} p
  * @param {object} p.data La casa tal como está en pantalla (sin la marca: se pone aquí).
  * @param {(data: object) => Promise<{ ok: boolean, conflict?: boolean, descartado?: boolean }>} p.guardar
  * @param {(() => Promise<boolean>) | null} [p.avisar] Avisar a Lola; null si el alta no viene de ella.
- * @returns {Promise<{ ok: boolean, motivo: string | null, data: object, avisado: boolean }>}
+ * @returns {Promise<{ ok: boolean, motivo: string | null, avisado: boolean }>}
+ *   `avisado`: si Lola recibió el aviso (false también cuando no había que avisar).
  */
 export async function cerrarAlta({ data, guardar, avisar = null }) {
-  const marcada = marcarRevisadas(data, null);
   let r;
   try {
-    r = await guardar(marcada);
+    r = await guardar(marcarRevisadas(data, null));
   } catch (e) {
     // Sin red o la base caída: no se traga, se devuelve como motivo y se apunta.
     console.warn("[alta] no se pudo guardar la marca de alergias", e?.message);
     r = { ok: false };
   }
-  if (!r?.ok) return { ok: false, motivo: motivoDe(r), data: marcada, avisado: false };
+  if (!r?.ok) return { ok: false, motivo: motivoDe(r), avisado: false };
   const avisado = avisar ? (await avisar()) === true : false;
-  return { ok: true, motivo: null, data: marcada, avisado };
+  return { ok: true, motivo: null, avisado };
 }
