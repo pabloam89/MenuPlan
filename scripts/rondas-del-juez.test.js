@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { acabadas, clasificar, contar, leerPr, leerSalida, LIMITE_EJECUCIONES, MOTIVOS_SIN_VEREDICTO, motivoSinVeredicto, tabla } from "./rondas-del-juez.mjs";
+import { acabadas, clasificar, contar, jobDelJuez, leerPr, leerSalida, LIMITE_EJECUCIONES, MOTIVOS_SIN_VEREDICTO, motivoSinVeredicto, tabla } from "./rondas-del-juez.mjs";
 
 // Líneas con la forma de `gh run view <id> --log`: job, paso, hora y texto.
 const linea = (texto) => `revisor / juzgar\tUNKNOWN STEP\t2026-10-30T22:40:15.1678601Z ${texto}`;
@@ -83,6 +83,14 @@ describe("rondas-del-juez: suma por criterio", () => {
 describe("rondas-del-juez: la lista de ejecuciones", () => {
   it("se queda con las acabadas", () => {
     expect(acabadas([{ status: "completed" }, { status: "in_progress" }], 5)).toEqual([{ status: "completed" }]);
+  });
+
+  it("lee solo el job que juzga, y no uno saltado", () => {
+    const pendiente = { id: 1, name: "revisor / pendiente", conclusion: "success" };
+    const juzgar = { id: 2, name: "revisor / juzgar", conclusion: "cancelled" };
+    expect(jobDelJuez([pendiente, juzgar])).toBe(juzgar);
+    expect(jobDelJuez([pendiente, { ...juzgar, conclusion: "skipped" }])).toBeNull();
+    expect(jobDelJuez([pendiente])).toBeNull();
   });
 
   it("para si la lista llega al tope de gh run list, en vez de contar corto", () => {

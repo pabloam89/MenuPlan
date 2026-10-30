@@ -4,9 +4,9 @@
 //
 // Uso:   npm run rondas-juez [-- --dias 14] [--json]
 // Lee:   gh run list --workflow revisor --created >=<fecha> --json databaseId,headBranch,conclusion,status
-//        gh run view <id> --log   (de cada ejecución acabada)
+//        gh api repos/{owner}/{repo}/actions/runs/<id>/jobs y gh api …/actions/jobs/<job>/logs (de cada ejecución acabada)
 // Token: desde Node, `gh` no pasa por el shim de las sesiones; lánzalo con
-//        node scripts/token-sesion.mjs -- npm run rondas-juez   (cuesta una llamada a la API por ejecución)
+//        node scripts/token-sesion.mjs -- npm run rondas-juez   (dos llamadas a la API por ejecución)
 //
 // El veredicto sale de la línea `SALIDA: {...}` del log (el JSON del modelo: respuestas [{id, respuesta, prueba}]).
 // Sin una SALIDA legible no se deduce nada: la ejecución cuenta como «sin veredicto», con su motivo
@@ -139,13 +139,23 @@ async function gh(args) {
   }
 }
 
-// Una ejecución cancelada antes de escribir nada no tiene log («log not found»): log vacío, que
-// clasificar cuenta como «cancelada» o «sin-salida». Cualquier otro fallo de gh corta el script.
-async function logDe(id) {
+// El job que juzga («revisor / juzgar»), si llegó a correr (uno saltado no tiene log). null si no hay.
+export function jobDelJuez(jobs) {
+  return (jobs ?? []).find((j) => /(^|\/ )juzgar$/.test(j?.name ?? "") && j.conclusion !== "skipped") ?? null;
+}
+
+// Solo el log del job que juzga: dos llamadas a la API por ejecución. `gh run view --log` baja el de
+// todos los jobs y gasta varias; con él, una medida de 14 días agotó la cuota de la App (5000 por hora,
+// común a todas las sesiones). Sin job que juzgue, log vacío: clasificar la cuenta como sin veredicto.
+// Un job cancelado antes de escribir nada no tiene log (404): también vacío. Cualquier otro fallo corta.
+async function logDelJuez(id) {
+  const { jobs } = JSON.parse(await gh(["api", `repos/{owner}/{repo}/actions/runs/${id}/jobs`]));
+  const job = jobDelJuez(jobs);
+  if (!job) return "";
   try {
-    return await gh(["run", "view", String(id), "--log"]);
+    return await gh(["api", `repos/{owner}/{repo}/actions/jobs/${job.id}/logs`]);
   } catch (e) {
-    if (/log not found/.test(e.message)) return "";
+    if (job.conclusion === "cancelled" && /HTTP 404/.test(e.message)) return "";
     throw e;
   }
 }
@@ -178,7 +188,7 @@ async function main() {
   );
   const terminadas = acabadas(lista);
   const clasificadas = await enParalelo(terminadas, A_LA_VEZ, async (r) =>
-    clasificar({ id: r.databaseId, rama: r.headBranch, conclusion: r.conclusion, log: await logDe(r.databaseId) }),
+    clasificar({ id: r.databaseId, rama: r.headBranch, conclusion: r.conclusion, log: await logDelJuez(r.databaseId) }),
   );
   const resumen = { desde, dias, sinAcabar: lista.length - terminadas.length, ...contar(clasificadas) };
   console.log(json ? JSON.stringify(resumen, null, 2) : `${tabla(resumen, dias)}\n\nSin acabar (no contadas): ${resumen.sinAcabar}.`);
