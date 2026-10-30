@@ -207,12 +207,16 @@ export function conHuecosAlDia(plan, data, groups) {
  * Una semana en blanco, tal y como la guarda el menú. La usan el alta de la
  * pizarra y `conSemanasAlDia`: es la única receta de «qué lleva una semana».
  *
- * `igualEnTodas`: la semana usa el horario de la casa. Si no, el suyo propio
- * (`menuWeekOverrides`) cuando lo tiene.
+ * `esAncla`: la primera semana del menú. Solo ella puede empezar a mitad
+ * (`menuWeek.startDayIdx`) y usa siempre el horario de la casa; las demás van
+ * enteras, y con «distinto en cada semana» (`menuScheduleSameForAllWeeks`
+ * apagado) llevan el suyo propio (`menuWeekOverrides`) si lo tienen.
  */
-export function semanaEnBlanco(data, groups, offset, startDayIdx, igualEnTodas) {
+export function semanaEnBlanco(data, groups, offset, esAncla) {
+  const startDayIdx = esAncla ? (data.menuWeek?.startDayIdx ?? 0) : 0;
   const days = explicitDaysForOffset(data, offset);
   const { startISO, endISO } = computeWeekRange(offset, startDayIdx, days);
+  const igualEnTodas = esAncla || data.menuScheduleSameForAllWeeks !== false;
   const schedule = igualEnTodas
     ? data.schedule
     : (weekEntry(data.menuWeekOverrides, offset) ?? data.schedule);
@@ -246,7 +250,7 @@ export function semanaEnBlanco(data, groups, offset, startDayIdx, igualEnTodas) 
 export function conSemanasAlDia(menu, data, groups) {
   const weeks = menu?.weeks ?? {};
   const abiertas = new Set(Object.values(weeks).map((w) => w?.offset));
-  const offsets = Array.isArray(data?.menuWeekOffsets) ? data.menuWeekOffsets : [];
+  const offsets = Array.isArray(data?.menuWeekOffsets) ? [...data.menuWeekOffsets].sort((a, b) => a - b) : [];
   const nuevas = {};
   // Las que ya están conservan plan y clave; solo se les pone al día los días,
   // que pudieron cambiar en la hoja después de abrirse.
@@ -261,11 +265,7 @@ export function conSemanasAlDia(menu, data, groups) {
 
   for (const offset of offsets) {
     if (abiertas.has(offset)) continue;
-    // Solo la semana ancla puede empezar a mitad; las demás van enteras.
-    const startDayIdx = offset === data.menuWeek?.offset ? (data.menuWeek?.startDayIdx ?? 0) : 0;
-    const { startISO, week } = semanaEnBlanco(
-      data, groups, offset, startDayIdx, data.menuScheduleSameForAllWeeks !== false,
-    );
+    const { startISO, week } = semanaEnBlanco(data, groups, offset, offset === offsets[0]);
     if (weeks[startISO]) continue;
     nuevas[startISO] = week;
   }

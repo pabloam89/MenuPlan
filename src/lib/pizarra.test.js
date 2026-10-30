@@ -252,6 +252,20 @@ describe("las semanas marcadas se abren en el menú", () => {
     expect(Object.keys(aGuardar)).toEqual(["2000-01-03"]);
   });
 
+  it("con «distinto en cada semana» la semana nueva lleva su horario; con «igual», el de la casa", () => {
+    const propio = { [slotKey("a1", "Mar", "Comida")]: "fuera" };
+    const datos = (igual) => casaBase(ADULTOS, {
+      menuWeekOffsets: [0, 1],
+      menuWeek: { offset: 0, startDayIdx: 0 },
+      menuScheduleSameForAllWeeks: igual,
+      menuWeekOverrides: { [mondayISOForOffset(1)]: propio },
+    });
+    const distinto = conSemanasAlDia(menuConUna(), datos(false), [grupo]);
+    expect(Object.values(distinto.nuevas)[0].schedule).toBe(propio);
+    const igual = conSemanasAlDia(menuConUna(), datos(true), [grupo]);
+    expect(Object.values(igual.nuevas)[0].schedule).toEqual({});
+  });
+
   it("devuelve el mismo menú si no hay nada que abrir", () => {
     const antes = menuConUna();
     const data = casaBase(ADULTOS, { menuWeekOffsets: [0], menuWeek: { offset: 0, startDayIdx: 0 } });

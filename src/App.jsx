@@ -2994,14 +2994,11 @@ export default function App() {
       : [working.menuWeek?.offset ?? 0]
     ).sort((a, b) => a - b);
     const baseStartDayIdx = working.menuWeek?.startDayIdx ?? 0;
-    const sameForAllWeeks = working.menuScheduleSameForAllWeeks !== false;
 
     const weeks = {};
     let firstWeekPlan = null;
     weekOffsets.forEach((offset, w) => {
-      const { startISO, week } = semanaEnBlanco(
-        { ...working, groups }, groups, offset, w === 0 ? baseStartDayIdx : 0, sameForAllWeeks || w === 0,
-      );
+      const { startISO, week } = semanaEnBlanco({ ...working, groups }, groups, offset, w === 0);
       if (w === 0) firstWeekPlan = week.plan;
       weeks[startISO] = week;
     });
