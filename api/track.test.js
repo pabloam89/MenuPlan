@@ -188,6 +188,27 @@ describe("descartes de invitados", () => {
     aviso.mockRestore();
   });
 
+  it("descartesFromBody: un lote rechazado o con ids malos deja rastro en el log, y sin la clave descartes no dice nada", () => {
+    const aviso = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const muchos = Array.from({ length: 61 }, (_, i) => ({ receta_id: `r_${i}`, alcance: "menu" }));
+    expect(descartesFromBody({ anonId, descartes: muchos })).toEqual([]);
+    expect(aviso).toHaveBeenLastCalledWith("[track] descartes rechazados: más del tope", 61);
+
+    aviso.mockClear();
+    expect(descartesFromBody({ anonId: "x'; drop", descartes: [{ receta_id: "carnes_146", alcance: "plato" }] })).toEqual([]);
+    expect(aviso).toHaveBeenCalledTimes(1);
+
+    aviso.mockClear();
+    const rows = descartesFromBody({ anonId, descartes: [{ receta_id: "con espacios", alcance: "plato" }, { receta_id: "carnes_146", alcance: "plato" }] });
+    expect(rows).toHaveLength(1);
+    expect(aviso).toHaveBeenCalledWith("[track] descartes con id de receta inválido:", 1);
+
+    aviso.mockClear();
+    expect(descartesFromBody({ anonId, events: [] })).toEqual([]);
+    expect(aviso).not.toHaveBeenCalled();
+    aviso.mockRestore();
+  });
+
   it("plan B: si la tabla de descartes no existe, no falla la petición del invitado", async () => {
     entorno();
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 404, text: async () => "relation does not exist" }));

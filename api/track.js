@@ -58,26 +58,45 @@ export function rowsFromBody(body, now = Date.now()) {
  */
 export function descartesFromBody(body) {
   const { anonId, descartes } = body ?? {};
-  if (typeof anonId !== "string" || !ANON_ID_RE.test(anonId)) return [];
-  if (!Array.isArray(descartes) || descartes.length === 0 || descartes.length > MAX_DESCARTES) return [];
+  // Sin la clave `descartes` no hay nada que rechazar. Si viene, lo que se tira se dice en el
+  // log (solo el motivo y el número, nunca el cuerpo): un lote entero rechazado no se pierde
+  // sin rastro.
+  if (descartes === undefined) return [];
+  if (typeof anonId !== "string" || !ANON_ID_RE.test(anonId)) {
+    console.warn("[track] descartes rechazados: anonId inválido");
+    return [];
+  }
+  if (!Array.isArray(descartes) || descartes.length === 0) {
+    console.warn("[track] descartes rechazados: lista vacía o no es una lista");
+    return [];
+  }
+  if (descartes.length > MAX_DESCARTES) {
+    console.warn("[track] descartes rechazados: más del tope", descartes.length);
+    return [];
+  }
   const rows = [];
-  let saltadas = 0;
+  let idsMalos = 0;
+  let alcancesMalos = 0;
   for (const d of descartes) {
-    if (!d || typeof d.receta_id !== "string" || !RECETA_ID_RE.test(d.receta_id)) continue;
+    if (!d || typeof d.receta_id !== "string" || !RECETA_ID_RE.test(d.receta_id)) {
+      idsMalos++;
+      continue;
+    }
     let fila;
     try {
       fila = { user_id: null, household_id: null, anon_id: anonId, receta_id: d.receta_id, alcance: paraEscribir("alcances_descarte", d.alcance) };
     } catch {
-      saltadas++;
+      alcancesMalos++;
       continue;
     }
     if (fila.alcance == null) {
-      saltadas++;
+      alcancesMalos++;
       continue;
     }
     rows.push(fila);
   }
-  if (saltadas > 0) console.warn("[track] descartes con alcance fuera del vocabulario:", saltadas);
+  if (idsMalos > 0) console.warn("[track] descartes con id de receta inválido:", idsMalos);
+  if (alcancesMalos > 0) console.warn("[track] descartes con alcance fuera del vocabulario:", alcancesMalos);
   return rows;
 }
 
