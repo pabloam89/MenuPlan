@@ -33,6 +33,12 @@ describe("uno o dos platos (#958): lo que se escribe es lo que usa el motor", ()
     expect(estructuraDelGrupo({}, "x")).toBe("primero_segundo");
   });
 
+  it("el modo básico de la app escribe con conEstructura, como Lola, y no la de la casa a mano", () => {
+    const onboarding = readFileSync(new URL("../screens/Onboarding.jsx", import.meta.url), "utf8");
+    expect(onboarding).not.toMatch(/\{\s*mealStructure:\s*"1_plato"\s*\}/);
+    expect(onboarding).toContain('conEstructura(d, "1_plato")');
+  });
+
   it("nadie más lee la estructura por grupo a mano: todos pasan por estructuraPlatos.js", () => {
     const raiz = new URL("../../", import.meta.url);
     const codigo = (dir) => readdirSync(new URL(dir, raiz), { withFileTypes: true }).flatMap((e) => {

@@ -152,7 +152,7 @@ import { SCHOOL_DAYS, SCHOOL_COURSES, hasAnySchoolDish, householdHasSchoolMenu, 
 import { outStateFor, isHomeState, nextSlotState, resolveQuickActions } from "../lib/schedulePresets.js";
 import { importSchoolMenuFile, selectBestWeek } from "../lib/schoolMenuImport.js";
 import { SchoolMenuDeck } from "./SchoolMenuDeck.jsx";
-import { estructuraDelGrupo, estructuraCenaDelGrupo } from "../lib/estructuraPlatos.js";
+import { estructuraDelGrupo, estructuraCenaDelGrupo, conEstructura } from "../lib/estructuraPlatos.js";
 
 const MEAL_STRUCTURE_CARDS = [
   {
@@ -8919,14 +8919,15 @@ export function OnboardingMode({ data, setData, onNext, onBack, onFinish, onRese
             active={current === t.id}
             onClick={() =>
               setData((d) => ({
-                ...d,
-                expertMode: t.id === "expert",
-                modePrompted: true,
                 // Básico se salta la pregunta de "¿uno o dos platos?" (ver
                 // OnboardingSchedule) — asume plato combinado, la opción con
                 // menos fricción, en vez de dejarlo caer en el fallback de
-                // "primero_segundo" sin haberlo elegido nadie.
-                ...(t.id === "basic" ? { mealStructure: "1_plato" } : {}),
+                // "primero_segundo" sin haberlo elegido nadie. Para toda la
+                // casa, con la misma escritura que Lola (conEstructura, #958):
+                // si no, la de cada grupo del modo experto seguía mandando.
+                ...(t.id === "basic" ? conEstructura(d, "1_plato") : d),
+                expertMode: t.id === "expert",
+                modePrompted: true,
               }))
             }
           />
