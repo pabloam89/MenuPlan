@@ -4,6 +4,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { configDefaults } from 'vitest/config'
 import { cargarEnv, esReferencia, leerFichero } from './scripts/lib/env.mjs'
 import { bajarPrioridad } from './scripts/lib/prioridad.mjs'
+import { banderas } from './scripts/lib/banderas.mjs'
 import { color } from './src/design/tokens.js'
 
 function readJsonBody(req) {
@@ -164,33 +165,15 @@ export default defineConfig(({ mode, command }) => {
     env.VITE_APP_VERSION ||
     'dev'
 
-  // Qué motor asigna los platos (ver solverActivo en src/lib/solver.js). En
-  // los builds de `staging` y de `main` (producción, desde el 30 sep 2026) el
-  // solver va encendido por defecto; en local y en las ramas de preview sigue
-  // el modelo, salvo que VITE_MOTOR diga otra cosa (y los tests cuentan con
-  // eso). Un navegador concreto puede volver al modelo con localStorage.mp_motor.
   const gitRef = process.env.VERCEL_GIT_COMMIT_REF || env.VERCEL_GIT_COMMIT_REF || ''
-  const desplegada = gitRef === 'staging' || gitRef === 'main'
-  const motor =
-    process.env.VITE_MOTOR || env.VITE_MOTOR || (desplegada ? 'solver' : 'modelo')
-
-  // La pizarra: empezar un menú vacío y rellenarlo a mano (ver pizarraActiva
-  // en src/lib/pizarra.js). Mismo trato que el motor: encendida en `staging`
-  // y en producción, apagada en local salvo que VITE_PIZARRA la encienda.
-  const pizarra =
-    process.env.VITE_PIZARRA || env.VITE_PIZARRA || (desplegada ? 'on' : 'off')
-
-  // Carrusel de presentación y visitas guiadas (GUIAS_ACTIVAS en App.jsx).
-  // Apagadas en `staging`, donde el bot de Telegram hace de guía; encendidas
-  // en producción hasta que el frontal de Lola llegue allí.
-  const guias = process.env.VITE_GUIAS || env.VITE_GUIAS || (gitRef === 'staging' ? 'off' : 'on')
+  const flags = banderas(gitRef, (k) => process.env[k] || env[k])
 
   return {
     define: {
       'import.meta.env.VITE_APP_VERSION': JSON.stringify(appVersion),
-      'import.meta.env.VITE_MOTOR': JSON.stringify(motor),
-      'import.meta.env.VITE_PIZARRA': JSON.stringify(pizarra),
-      'import.meta.env.VITE_GUIAS': JSON.stringify(guias),
+      ...Object.fromEntries(
+        Object.entries(flags).map(([k, valor]) => [`import.meta.env.${k}`, JSON.stringify(valor)]),
+      ),
     },
     plugins: [
       react(),

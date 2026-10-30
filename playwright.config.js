@@ -11,6 +11,7 @@
 // `npm test`. A mano: `npm run e2e` o `npx playwright test e2e/recorrido.spec.js`.
 import { defineConfig, devices } from "@playwright/test";
 import { esReferencia, leerFichero } from "./scripts/lib/env.mjs";
+import { RAMA_STAGING, banderas } from "./scripts/lib/banderas.mjs";
 
 // Puerto propio y `strictPort`: el 5176 es el de `npm run dev`, y reutilizar
 // un servidor de otra sesión traería sus claves y sus banderas.
@@ -19,13 +20,12 @@ const URL_E2E = `http://localhost:${PUERTO_E2E}`;
 // Un Supabase que no existe: el cliente se crea, pero nada llega a la base.
 export const SUPABASE_MUERTO = "http://127.0.0.1:9";
 const SIN_CLAVE = "e2e-sin-clave";
-// La rama cuyo despliegue se imita. vite.config.js deriva de ella, y solo
-// allí, el motor (`solver`, que asigna los platos sin llamar al modelo), la
-// pizarra y las guías.
-const RAMA_IMITADA = "staging";
-// Las banderas que vite.config.js deja pisar desde el entorno: vacías, para
-// que salgan de la rama y no del entorno ni del .env.local de quien la corre.
-const BANDERAS = ["VITE_MOTOR", "VITE_PIZARRA", "VITE_GUIAS"];
+// Las banderas del despliegue de staging, sacadas de la misma regla que usa
+// el build (`banderas` en scripts/lib/banderas.mjs) sin leer el entorno: el motor
+// `solver`, que asigna los platos sin llamar al modelo, la pizarra encendida
+// y las guías apagadas. Van con valor, así que pisan al entorno y al
+// .env.local de quien la corre.
+const BANDERAS_STAGING = banderas(RAMA_STAGING);
 
 // vite.config.js lee el .env.local siempre, y una dirección op:// la resuelve
 // con 1Password: hay que anularlo aquí. Solo se leen los NOMBRES. Una op://
@@ -62,8 +62,7 @@ export default defineConfig({
     timeout: 120_000,
     env: {
       ...sinEnvLocal,
-      ...Object.fromEntries(BANDERAS.map((k) => [k, ""])),
-      VERCEL_GIT_COMMIT_REF: RAMA_IMITADA,
+      ...BANDERAS_STAGING,
       VITE_SUPABASE_URL: SUPABASE_MUERTO,
       VITE_SUPABASE_ANON_KEY: SIN_CLAVE,
     },
