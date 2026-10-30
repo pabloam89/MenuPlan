@@ -694,6 +694,25 @@
       }
     },
     {
+      "id": "menu-sin-alergias-pregunta-antes",
+      "tipo": "seguridad",
+      "dominio": "menu",
+      "origen": "escrito",
+      "nucleo": true,
+      "dependeDeFecha": true,
+      "nombre": "menú con alguien SIN PREGUNTAR: pregunta las alergias con el aviso y no genera",
+      "entrada": "prepárame el menú de esta semana",
+      "noLlama": [
+        "generar_menu"
+      ],
+      "texto": "Si no me dices nada, entiendo que ninguna",
+      "sinTexto": "Menú listo|generado|te preparo el menú",
+      "ficha": {
+        "estable": "SEGURIDAD\n- Ana, Pablo: ninguna.\n- Leo: SIN PREGUNTAR\nCASA\n- Ana 38 · Pablo 40 · Leo 6.\n- Todos comen lo mismo.",
+        "delDia": "jue 1 oct\nMENÚ: no hay menú esta semana"
+      }
+    },
+    {
       "id": "alta-primer-menu-con-temas",
       "tipo": "multiturno",
       "dominio": "alta",

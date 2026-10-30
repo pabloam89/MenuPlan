@@ -33,7 +33,7 @@ const m = {
 };
 const casa = {
   householdId: "h1", botRev: 3, menu: { id: "menu-viejo" }, semanas: [], semana: null,
-  state: { data: { members: [{ id: "p1" }], groups: [{ id: "g1", label: "Todos" }] }, shopping: { items: [] }, aiRecipes: [{ id: "de-la-semana-pasada" }] },
+  state: { data: { members: [{ id: "p1", name: "Ana", alergiasRevisadas: true }], groups: [{ id: "g1", label: "Todos" }] }, shopping: { items: [] }, aiRecipes: [{ id: "de-la-semana-pasada" }] },
 };
 
 beforeEach(() => {
