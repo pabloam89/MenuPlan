@@ -3,7 +3,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { CAPACIDADES, VERBOS, SOBRE, PANTALLAS, ESTADOS_CAPACIDAD, estadoDe, esHueco } from "./capacidades.js";
-import { MODULOS, DATOS_CASA, DATOS_PERSONA } from "./registroFicha.js";
+import { MODULOS, datoDe } from "./registroFicha.js";
 
 const raiz = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const BASE = JSON.parse(readFileSync(join(raiz, "src/lib/capacidades.base.json"), "utf8"));
@@ -27,13 +27,11 @@ describe("mapa de capacidades (#939)", () => {
     expect(fuente.filter((l) => /^\s+c\(".*\blola: \[/.test(l))).toEqual([]);
   });
 
-  it("las pantallas existen y los datos están en el registro de la ficha", () => {
+  it("las pantallas existen y lo que leen y escriben está en el registro de la ficha", () => {
     for (const [p, f] of Object.entries(PANTALLAS)) expect(existsSync(join(raiz, f)), `${p}: ${f}`).toBe(true);
-    for (const c of CAPACIDADES) {
-      for (const d of c.datos) {
-        const [r, sub] = d.split(".");
-        expect(sub ? r === "members" && DATOS_PERSONA[sub] : DATOS_CASA[r], `${c.id}: ${d}`).toBeTruthy();
-      }
+    for (const c of CAPACIDADES.filter((x) => x.app)) {
+      expect(Array.isArray(c.app.lee) && Array.isArray(c.app.escribe), `${c.id}: la pantalla dice qué lee y qué escribe`).toBe(true);
+      for (const d of [...c.app.lee, ...c.app.escribe]) expect(datoDe(d), `${c.id}: ${d}`).toBeTruthy();
     }
   });
 
