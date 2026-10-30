@@ -106,6 +106,7 @@ export const ORIGEN_ALERGIAS = ["dicha", "por_silencio"];
 
 /** Por dónde llegó un dato de la ficha (sobre.canal, 0097): los canales del bot, la app y el sistema. */
 export const CANALES_DATO = ["app", ...CANALES, "sistema"];
+export const CANAL_DATO = porNombre(CANALES_DATO);
 
 /**
  * Cuánto se tira de golpe al regenerar (receta_descartes.alcance, 0102): un plato
@@ -118,12 +119,14 @@ export const ALCANCE_DESCARTE = porNombre(ALCANCES_DESCARTE);
 
 /** De qué viene una operación (operacion.ref_tipo): un mensaje, una pantalla de la app, una tarea, un cron o el motor. */
 export const REFS_OPERACION = ["mensaje", "pantalla", "tarea", "cron", "motor"];
+export const REF_OPERACION = porNombre(REFS_OPERACION);
 
 /**
  * En qué punto está una operación (operacion.estado): pendiente (le falta algo y no se aplicó), hecha
  * (se aplicó, quizá con algo sin hacer), rechazada (no se escribió nada) o deshecha (se aplicó su inversa).
  */
 export const ESTADOS_OPERACION = ["pendiente", "hecha", "rechazada", "deshecha"];
+export const ESTADO_OPERACION = porNombre(ESTADOS_OPERACION);
 
 /**
  * Los orígenes del sobre (ORIGEN_DATO) que pone la familia (lo que dice una persona); el resto los pone el
@@ -142,6 +145,17 @@ export const ESTADO_DE_ORIGEN = Object.freeze({
 
 /** Por qué aplicar_operacion no escribió un dato (operacion.sin_hacer[].motivo, 0106). */
 export const MOTIVOS_SIN_HACER_DATO = ["no_es_hecho", "persona_no_cuadra", "no_se_supone", "no_lo_escribe", "tiene_columna", "ya_lo_dijo_la_familia"];
+
+/**
+ * Por qué escribirDato no guardó un dato (plan fichas con estado, trozo 8: src/lib/escribirDato.js y
+ * api/_bot/datos.js). No va a ninguna tabla: va en la respuesta de api/operacion.js y en la línea de log
+ * `dato_sin_guardar`, para contarlos. `rpc_ausente`: la base aún no tiene aplicar_operacion (0106 sin
+ * aplicar); `invalido`: el dato no cuadra con el registro o con su vocabulario; `sin_permiso`: quien lo
+ * pide no puede escribir en esa casa; `sin_sesion`: la app no tiene sesión; `sin_red`: no llegó;
+ * `servidor`: la base o el servidor fallaron de otra forma.
+ */
+export const FALLOS_DATO = ["rpc_ausente", "invalido", "sin_permiso", "sin_sesion", "sin_red", "servidor"];
+export const FALLO_DATO = porNombre(FALLOS_DATO);
 
 // ── Los del eje de la ficha (plan fichas con estado, trozo 5): columnas de registroFicha.js; la 0105 los lleva a registro_campo.
 
@@ -239,6 +253,7 @@ export const MOTIVOS_FALLO = [
   "red", "tiempo", "sin_sesion", "permiso", "no_existe", "conflicto",
   "datos_invalidos", "limite", "servidor", "telegram", "modelo", "otro",
 ];
+export const MOTIVO_FALLO = porNombre(MOTIVOS_FALLO);
 
 /**
  * Dónde falló: el primer argumento de cada `seguirCon` y `fallaCon` del bot.
@@ -360,6 +375,7 @@ export const VOCABULARIOS = Object.freeze({
   refs_operacion: REFS_OPERACION,
   estados_operacion: ESTADOS_OPERACION,
   motivos_sin_hacer_dato: MOTIVOS_SIN_HACER_DATO,
+  fallos_dato: FALLOS_DATO,
   origenes_de_la_familia: ORIGENES_DE_LA_FAMILIA,
   estados_dato: ESTADOS_DATO,
   fichas: FICHAS,
