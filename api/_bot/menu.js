@@ -214,7 +214,7 @@ export async function prepararRecetas(casa) {
   // Ya no hacía falta: generar.js guarda los grupos desde el 30 sep, conservan
   // su id desde oct (conservarIds, lib/groups.js), y el 29 oct 2026 había 0 de
   // 7 semanas vivas con grupos que su casa no conoce. Para leer un menú con
-  // grupos de otra época está gruposDelMenu, que no toca la casa.
+  // grupos de otra época está grupos(casa), aquí abajo, que no toca la casa.
   return m;
 }
 
