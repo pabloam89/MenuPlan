@@ -128,6 +128,15 @@ export const REFS_OPERACION = ["mensaje", "pantalla", "tarea", "cron", "motor"];
  */
 export const ESTADOS_OPERACION = ["pendiente", "hecha", "rechazada", "deshecha"];
 
+/**
+ * Los orígenes del sobre (ORIGEN_DATO) que pone la familia (lo que dice una persona); el resto los pone el
+ * sistema. aplicar_operacion (0106) los usa para el registro y para que lo supuesto no pise lo dicho.
+ */
+export const ORIGENES_DE_LA_FAMILIA = ["dicho", "delegado", "no_quiere_decirlo"];
+
+/** Por qué aplicar_operacion no escribió un dato (operacion.sin_hacer[].motivo, 0106). */
+export const MOTIVOS_SIN_HACER_DATO = ["no_es_hecho", "persona_no_cuadra", "no_se_supone", "no_lo_escribe", "tiene_columna", "ya_lo_dijo_la_familia"];
+
 // ── Los del eje de la ficha (plan fichas con estado, trozo 5): columnas de registroFicha.js; la 0105 los lleva a registro_campo.
 
 /**
@@ -345,6 +354,8 @@ export const VOCABULARIOS = Object.freeze({
   ref_tipo: REF_TIPO,
   refs_operacion: REFS_OPERACION,
   estados_operacion: ESTADOS_OPERACION,
+  motivos_sin_hacer_dato: MOTIVOS_SIN_HACER_DATO,
+  origenes_de_la_familia: ORIGENES_DE_LA_FAMILIA,
   fichas: FICHAS,
   escritores: ESCRITORES,
   postura: POSTURAS,
