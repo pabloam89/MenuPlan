@@ -100,7 +100,6 @@ import {
   computeWeekRange,
   explicitDaysForOffset,
   rekeyWeeksByMonday,
-  weekEntry,
   createMenuId,
   foldInNewMenu,
   removeMenu,
@@ -117,7 +116,7 @@ import {
 } from "./lib/menuArchive.js";
 import { todayDayIdx, getWeekDatesByMenuWeek } from "./lib/weekCalendar.js";
 import { diaDeFecha, indiceDeFecha } from "./lib/dias.js";
-import { pizarraActiva, planVacio, huecosDelPlan, conHuecosAlDia, conHuecoAnadido, sinHueco, franjasDelDia } from "./lib/pizarra.js";
+import { pizarraActiva, huecosDelPlan, conHuecosAlDia, conSemanasAlDia, semanaEnBlanco, conHuecoAnadido, sinHueco, franjasDelDia } from "./lib/pizarra.js";
 import { aplicarDiasDeSemana, diasPorDefecto, buildCalendarWeeks } from "./lib/semanaDias.js";
 import { reglaDeInvitado, invitadosPorHueco, sinInvitadosDelHueco } from "./lib/reglas.js";
 import {
@@ -1446,6 +1445,15 @@ export default function App() {
       vigente,
     };
   }, []);
+  // Sube una semana a su fila de la nube, con la versión de la casa y la
+  // recarga si alguien ha escrito entretanto. Un solo sitio para las cuatro
+  // veces que se guarda una semana.
+  const subirSemana = useCallback((userId, menuId, weekStart, week) => {
+    queueSaveMenuWeek(userId, menuId, weekStart, week, 1200, syncHouseholdId, {
+      version: versionDeCasa(syncHouseholdId),
+      onConflict: () => recargarDesdeNubeRef.current({ choque: true }),
+    });
+  }, [syncHouseholdId, versionDeCasa]);
   // Lo mismo que `cloudReadyRef`, pero como estado: el destino de un enlace
   // del bot (`?ir=`) espera a que la casa haya llegado de la nube, y un ref
   // no despierta a nadie cuando cambia.
@@ -1878,12 +1886,15 @@ export default function App() {
   // entretanto, no se pisa y se recarga. Con el user_id de quien generó el
   // menú, no el de quien edita (ver rowToMenuSummary).
   useEffect(() => {
-    if (!user?.id || !cloudReadyRef.current || householdReadOnly) return;
+    if (householdReadOnly || (user?.id && !cloudReadyRef.current)) return;
     const r = semanaVivaPorGuardar(data.menus, data.activeMenuId, data.menuWeek?.offset, menuPlan, shopping);
     if (!r) return;
     const menuId = data.activeMenuId;
     setData((d) => (d.activeMenuId === menuId && d.menus === data.menus ? { ...d, menus: r.menus } : d));
-    queueSaveMenuWeek(data.menus[menuId]?.userId ?? user.id, menuId, r.weekStart, r.week, 1200, syncHouseholdId, { version: versionDeCasa(syncHouseholdId), onConflict: () => recargarDesdeNubeRef.current({ choque: true }) });
+    // Sin sesión basta con el archivo local: al cambiar de semana el plan se
+    // recarga de ahí, y sin este volcado los platos puestos se perdían.
+    if (!user?.id) return;
+    subirSemana(data.menus[menuId]?.userId ?? user.id, menuId, r.weekStart, r.week);
   }, [user?.id, householdReadOnly, nubeLista, data.menus, data.activeMenuId, data.menuWeek?.offset, menuPlan, shopping, syncHouseholdId, versionDeCasa]);
 
   // Al volver a la app (desde Telegram, típicamente) se mira si alguien ha
@@ -2219,7 +2230,6 @@ export default function App() {
       const varietyPref = ["strict", "moderate", "relaxed"].includes(working.menuVarietyPref)
         ? working.menuVarietyPref
         : "strict";
-      const sameForAllWeeks = working.menuScheduleSameForAllWeeks !== false;
       // Planner model for THIS generation (A/B Sonnet vs Haiku). Resolved once
       // so every week/group of the same menú uses the same variant.
       const planner = resolvePlannerModel();
@@ -2239,7 +2249,7 @@ export default function App() {
         const { startDayIdx, days, activeDays, startISO, endISO } = weekMeta[w];
         const { weekData, crossWeek, weekSchedule } = prepararSemana(working, {
           groups, offset, w, startDayIdx, days, activeDays, startISO, endISO,
-          weekOffsets, sameForAllWeeks, varietyPref, weekCount,
+          weekOffsets, varietyPref, weekCount,
           hoy: isoLocalDate(new Date()),
         });
 
@@ -2886,6 +2896,26 @@ export default function App() {
     setMenuPlan((plan) => conHuecosAlDia(plan, nextData, groups));
   }, []);
 
+  // «Empezar» en la hoja de arranque: ahora que los días están decididos, se
+  // abren en el menú las semanas marcadas. Una sola vez y al final, no en cada
+  // toque: abrirlas al marcar dejaba la semana con el primer día y perdía los
+  // siguientes, y desmarcar dejaba semanas sin días.
+  const empezarPizarra = useCallback(() => {
+    setPizarraArrancando(false);
+    const menuId = data.activeMenuId;
+    const actual = data.menus?.[menuId];
+    if (actual?.origin !== "pizarra") return;
+    const groups = gruposVigentes(data);
+    const { menu, aGuardar } = conSemanasAlDia(actual, data, groups);
+    if (menu === actual) return;
+    setData((d) => (d.activeMenuId === menuId ? { ...d, menus: { ...d.menus, [menuId]: menu } } : d));
+    if (user) {
+      for (const [weekStart, week] of Object.entries(aGuardar)) {
+        subirSemana(menu.userId ?? user.id, menuId, weekStart, week);
+      }
+    }
+  }, [data, user, syncHouseholdId, versionDeCasa]);
+
   /**
    * La pizarra: crear un menú VACÍO y abrirlo para rellenarlo a mano.
    *
@@ -2992,23 +3022,13 @@ export default function App() {
       : [working.menuWeek?.offset ?? 0]
     ).sort((a, b) => a - b);
     const baseStartDayIdx = working.menuWeek?.startDayIdx ?? 0;
-    const sameForAllWeeks = working.menuScheduleSameForAllWeeks !== false;
 
     const weeks = {};
     let firstWeekPlan = null;
     weekOffsets.forEach((offset, w) => {
-      const startDayIdx = w === 0 ? baseStartDayIdx : 0;
-      const days = explicitDaysForOffset(working, offset);
-      const { startISO, endISO } = computeWeekRange(offset, startDayIdx, days);
-      const schedule = sameForAllWeeks || w === 0
-        ? working.schedule
-        : (weekEntry(working.menuWeekOverrides, offset) ?? working.schedule);
-      const plan = planVacio({ ...working, groups, schedule }, groups);
-      if (w === 0) firstWeekPlan = plan;
-      weeks[startISO] = {
-        offset, startDayIdx, days, startISO, endISO,
-        plan, shopping: { items: [] }, schedule,
-      };
+      const { startISO, week } = semanaEnBlanco({ ...working, groups }, groups, offset, w === 0);
+      if (w === 0) firstWeekPlan = week.plan;
+      weeks[startISO] = week;
     });
 
     const newMenu = {
@@ -3139,7 +3159,7 @@ export default function App() {
         onError: () => recargarDesdeNubeRef.current({ choque: true }),
       });
     } else if (user && menuId && wk) {
-      queueSaveMenuWeek(data.menus?.[menuId]?.userId ?? user.id, menuId, weekStart, { ...wk, shopping: nextShopping }, 1200, syncHouseholdId, { version: versionDeCasa(syncHouseholdId), onConflict: () => recargarDesdeNubeRef.current({ choque: true }) });
+      subirSemana(data.menus?.[menuId]?.userId ?? user.id, menuId, weekStart, { ...wk, shopping: nextShopping });
     }
   }, [data.menus, data.activeMenuId, data.menuWeek?.offset, user, syncHouseholdId, versionDeCasa, householdReadOnly]);
 
@@ -3269,7 +3289,7 @@ export default function App() {
       setData((d) => ({ ...d, menus }));
       if (user) {
         toggleMenuFavoriteRemote(user.id, menuId, true, casaActivaRef.current);
-        if (weekStart && week) queueSaveMenuWeek(current.userId ?? user.id, menuId, weekStart, week, 1200, syncHouseholdId, { version: versionDeCasa(syncHouseholdId), onConflict: () => recargarDesdeNubeRef.current({ choque: true }) });
+        if (weekStart && week) subirSemana(current.userId ?? user.id, menuId, weekStart, week);
       }
       showToast("Menú guardado en favoritos");
     } else {
@@ -6242,7 +6262,7 @@ export default function App() {
               data={data}
               setData={setData}
               onAplicar={aplicarCambioPizarra}
-              onEmpezar={() => setPizarraArrancando(false)}
+              onEmpezar={empezarPizarra}
             />
           </Suspense>
         )}
