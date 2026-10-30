@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import { planVacio, huecosDelPlan, conHuecosAlDia, conSemanasAlDia, conHuecoAnadido, sinHueco, franjasDelDia } from "./pizarra.js";
 import { DAYS, getDayMeals, slotKey } from "./planner.js";
 import { mondayISOForOffset } from "./weekCalendar.js";
@@ -213,6 +213,9 @@ describe("abrir y cerrar huecos día a día (el `+`)", () => {
 });
 
 describe("las semanas marcadas se abren en el menú", () => {
+  // Las fechas salen de «hoy»: con el reloj parado el test no depende del día.
+  beforeAll(() => { vi.useFakeTimers(); vi.setSystemTime(new Date(2026, 9, 30, 12)); });
+  afterAll(() => { vi.useRealTimers(); });
   const grupo = grupoCon(ADULTOS);
   const menuConUna = () => ({
     origin: "pizarra",

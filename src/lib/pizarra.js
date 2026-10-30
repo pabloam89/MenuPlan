@@ -204,6 +204,30 @@ export function conHuecosAlDia(plan, data, groups) {
 }
 
 /**
+ * Una semana en blanco, tal y como la guarda el menú. La usan el alta de la
+ * pizarra y `conSemanasAlDia`: es la única receta de «qué lleva una semana».
+ *
+ * `igualEnTodas`: la semana usa el horario de la casa. Si no, el suyo propio
+ * (`menuWeekOverrides`) cuando lo tiene.
+ */
+export function semanaEnBlanco(data, groups, offset, startDayIdx, igualEnTodas) {
+  const days = explicitDaysForOffset(data, offset);
+  const { startISO, endISO } = computeWeekRange(offset, startDayIdx, days);
+  const schedule = igualEnTodas
+    ? data.schedule
+    : (weekEntry(data.menuWeekOverrides, offset) ?? data.schedule);
+  return {
+    startISO,
+    week: {
+      offset, startDayIdx, days, startISO, endISO,
+      plan: planVacio({ ...data, groups, schedule }, groups),
+      shopping: { items: [] },
+      schedule,
+    },
+  };
+}
+
+/**
  * Abre en el menú las semanas que los mandos acaban de marcar.
  *
  * La pizarra nace con la semana en curso, y la hoja «¿Qué días?» deja marcar
@@ -214,7 +238,7 @@ export function conHuecosAlDia(plan, data, groups) {
  *
  * SOLO AÑADE, como `conHuecosAlDia`: una semana que ya está conserva su plan
  * (puede tener platos) y solo se le actualizan los días; desmarcar una no la
- * borra. Devuelve `{ menu, nuevas }`;
+ * borra. Devuelve `{ menu, nuevas, aGuardar }`;
  * `nuevas` es `{ lunes: semana }` con lo añadido, `aGuardar` lo mismo más las
  * semanas con días cambiados (lo que hay que subir a la nube), y `menu` es el
  * mismo objeto cuando no hay nada que hacer.
@@ -237,22 +261,13 @@ export function conSemanasAlDia(menu, data, groups) {
 
   for (const offset of offsets) {
     if (abiertas.has(offset)) continue;
-    const days = explicitDaysForOffset(data, offset);
     // Solo la semana ancla puede empezar a mitad; las demás van enteras.
     const startDayIdx = offset === data.menuWeek?.offset ? (data.menuWeek?.startDayIdx ?? 0) : 0;
-    const { startISO, endISO } = computeWeekRange(offset, startDayIdx, days);
+    const { startISO, week } = semanaEnBlanco(
+      data, groups, offset, startDayIdx, data.menuScheduleSameForAllWeeks !== false,
+    );
     if (weeks[startISO]) continue;
-    // La misma regla que al crear la pizarra: con «igual en todas las semanas»
-    // manda el horario de la casa, aunque quedara un override viejo.
-    const schedule = data.menuScheduleSameForAllWeeks !== false
-      ? data.schedule
-      : (weekEntry(data.menuWeekOverrides, offset) ?? data.schedule);
-    nuevas[startISO] = {
-      offset, startDayIdx, days, startISO, endISO,
-      plan: planVacio({ ...data, schedule }, groups),
-      shopping: { items: [] },
-      schedule,
-    };
+    nuevas[startISO] = week;
   }
 
   if (Object.keys(nuevas).length === 0 && !refrescadas) return { menu, nuevas, aGuardar: {} };
