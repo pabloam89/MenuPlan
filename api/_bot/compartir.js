@@ -24,7 +24,7 @@ import * as ids from "../../src/lib/ids.js";
 import { menuActivoDe } from "../../src/lib/menuActivo.js";
 import { select, insert, update, eq } from "./db.js";
 import { cargarCasa, olvidarCasa } from "./casa.js";
-import { motor, prepararRecetas, grupos, DIAS, recetasDeCasa, deSerieDelMotor } from "./menu.js";
+import { motor, prepararRecetas, grupos, recetasDeCasa, deSerieDelMotor, diasDeLaSemana } from "./menu.js";
 import { duenoDe, duenoDeEstricto, rastro } from "./embudo.js";
 import { RASTRO, ORIGEN_RECETA } from "../../src/lib/rastro.js";
 import { nombreDelBot } from "./telegram.js";
@@ -125,9 +125,9 @@ export async function enlacesSemana(householdId, base) {
     members: data.members ?? [],
     meals: COMIDAS_PRINCIPALES,
     weekStart: casa.semana.weekStart ?? null,
-    // Solo los días del menú: uno que empezó el miércoles no enseña el lunes.
-    onlyDays: (casa.semana.activeDays?.length ? casa.semana.activeDays : DIAS)
-      .filter((d) => DIAS.indexOf(d) >= (casa.semana.startDayIdx ?? 0)),
+    // Solo los días del menú, los mismos que planificó el motor: uno que
+    // empezó el miércoles no enseña el lunes.
+    onlyDays: diasDeLaSemana(casa.semana),
     dishName: nombre,
     // Las recetas propias no se abren desde una semana compartida (solo su
     // nombre); las del catálogo, sí.

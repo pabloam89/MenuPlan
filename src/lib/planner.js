@@ -120,6 +120,50 @@ export function cookDayCounts(data) {
 }
 
 /**
+ * Los días que la semana pedida planifica DE VERDAD, leídos de `data.menuWeek`
+ * (`{ offset, startDayIdx, days }`, lo pone `prepararSemana`): la selección
+ * manual de días si la hay; si no, en la semana en curso (`offset` 0) desde el
+ * día de inicio hasta el domingo; y la semana entera en las demás. Sin
+ * `menuWeek` (datos viejos, tests), los siete días, como siempre.
+ *
+ * Es la única regla: `getWeekDatesByMenuWeek` (weekCalendar.js), que pinta la
+ * semana, la reutiliza, así que lo pintado y lo planificado no pueden
+ * discrepar. Vive aquí porque weekCalendar importa de este fichero y el motor
+ * no necesita fechas. Hasta el 30 oct 2026 el motor recorría los siete días siempre y una
+ * semana de viernes a domingo guardaba huecos de lunes a jueves, gastaba en
+ * ellos las cuotas de variedad y de familias y los compraba (#1029).
+ *
+ * Un `days` con un nombre que no es un día, o un `startDayIdx` fuera de 0..6,
+ * es un error de quien lo construyó y se lanza: caer en silencio a otra regla
+ * pintaría y planificaría una semana que nadie pidió. La base lo impide en lo
+ * nuevo (CHECK de `start_day_idx` en 0005; vocabulario de `active_days` en
+ * 0086, `not valid` para las filas de antes, que el 30 oct 2026 eran 0 fuera
+ * de él). Las tildes se comparan en NFC («Mié» en NFD es el mismo día, no
+ * otro valor): una semana archivada antes de vocabularios.js puede traerlas
+ * descompuestas.
+ *
+ * @param {object} data
+ * @returns {string[]} días en el orden de DAYS, nunca vacío
+ */
+export function diasActivosDe(data) {
+  const menuWeek = data?.menuWeek;
+  if (!menuWeek || typeof menuWeek !== "object") return [...DAYS];
+  const { offset = 0, startDayIdx = 0, days = null } = menuWeek;
+  if (Array.isArray(days)) {
+    const enNFC = days.map((d) => (typeof d === "string" ? d.normalize("NFC") : d));
+    const desconocidos = enNFC.filter((d) => !DAYS.includes(d));
+    if (desconocidos.length > 0) {
+      throw new TypeError(`menuWeek.days con días desconocidos: ${desconocidos.join(", ")}`);
+    }
+    if (enNFC.length > 0) return DAYS.filter((d) => enNFC.includes(d));
+  }
+  if (!Number.isInteger(startDayIdx) || startDayIdx < 0 || startDayIdx >= DAYS.length) {
+    throw new TypeError(`menuWeek.startDayIdx fuera de 0..${DAYS.length - 1}: ${startDayIdx}`);
+  }
+  return offset === 0 ? DAYS.filter((_, i) => i >= startDayIdx) : [...DAYS];
+}
+
+/**
  * Cuántos HUECOS de plato tiene la semana: 2 por cada comida que se cocina
  * (primero + segundo), 1 por cada cena, menos 1 por cada comida que sea de un
  * solo plato (plato único marcado a mano, o la estructura "1_plato" de la casa).
@@ -152,7 +196,9 @@ export function weeklySlotBudget(data, group = null) {
   let cenaDays = 0;
   let cenaDobles = 0;
   let platoUnicoDays = 0;
-  for (const day of DAYS) {
+  // Solo los días de la semana pedida: con una semana de viernes a domingo el
+  // reparto se baja a los huecos de tres días, no a 21.
+  for (const day of diasActivosDe(data)) {
     if (meals.includes("Comida") && modeForGroupSlot(target, members, schedule, day, "Comida").cook) {
       comidaDays += 1;
       if (slotType[`${day}|Comida`] === "unico" || mealStructure === "1_plato") platoUnicoDays += 1;

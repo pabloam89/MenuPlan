@@ -1,7 +1,7 @@
 import { etapasServibles } from "./babyStage.js";
 import { z } from "zod";
 import { isBabyMenuGroup, membersOfGroup, resolveMemberAge, tipoDeGrupo } from "./groups.js";
-import { DAYS, getMeals, modeForGroupSlot, slotKey } from "./planner.js";
+import { DAYS, diasActivosDe, getMeals, modeForGroupSlot, slotKey } from "./planner.js";
 import { basesPedidas } from "./bases.js";
 import { ordenarPorSesgo, preferirPorSesgo } from "./sesgos.js";
 import { resolverConReintentos, solverActivo, REGLAS_RELAJABLES, familiasDe } from "./solver.js";
@@ -515,10 +515,14 @@ export function buildGroupContext(data, group) {
   const slots = [];
   const schoolMenuByDay = {};
 
-  // Ad-hoc individual menus (e.g. "dieta blanda") only span a few days, not the
-  // whole week. Everything else keeps the standard 7-day window.
+  // Solo los días de la semana pedida (data.menuWeek; sin él, los siete): una
+  // semana de viernes a domingo no crea huecos de lunes a jueves (#1029). Un
+  // menú individual ad hoc («dieta blanda», group.days numérico) dura sus
+  // primeros N días DE LOS PLANIFICADOS: tres días de dieta que empiezan en
+  // viernes son Vie, Sáb y Dom, no un lunes que ya pasó.
+  const diasSemana = diasActivosDe(data);
   const planDays =
-    Number.isInteger(group.days) && group.days > 0 ? DAYS.slice(0, group.days) : DAYS;
+    Number.isInteger(group.days) && group.days > 0 ? diasSemana.slice(0, group.days) : diasSemana;
 
   // Kid dinner = adults' lunch: adults' comida must avoid school proteins/carbs
   // from household kids; kids' cena slots are skipped and filled after Adultos.
@@ -2118,11 +2122,17 @@ function planExtraMealsForGroup(group, data, weekIndex = 0) {
 
   const weekendIdx = (i) => i >= 5; // Sáb/Dom
 
+  // Solo los días de la semana pedida (sin menuWeek, los siete). El índice de
+  // rotación sigue siendo el del día en la semana (`i` sobre DAYS), para que el
+  // mismo día reciba el mismo plato empiece la semana donde empiece.
+  const diasSemana = diasActivosDe(data);
+  const recorre = (dias, fn) => dias.forEach((day) => fn(day, DAYS.indexOf(day)));
+
   // Desayuno — off | variado | findes | igual
   if (em.desayuno && em.desayuno !== "off") {
     const pool = filterOffMenuRecipes("desayunos", { ...safety, hasKids });
     if (pool.length) {
-      DAYS.forEach((day, i) => {
+      recorre(diasSemana, (day, i) => {
         // Same rule as comida/cena: if nobody eats breakfast at home that day,
         // don't invent a desayuno slot.
         if (!modeForGroupSlot(group, data.members, data.schedule, day, "Desayuno").cook) return;
@@ -2142,8 +2152,8 @@ function planExtraMealsForGroup(group, data, weekIndex = 0) {
   if (hasKids && em.merienda && em.merienda !== "off") {
     const pool = filterOffMenuRecipes("meriendas", { ...safety, hasKids: true });
     if (pool.length) {
-      const days = em.merienda === "laborables" ? DAYS.slice(0, 5) : DAYS;
-      days.forEach((day, i) => {
+      const days = em.merienda === "laborables" ? diasSemana.filter((d) => DAYS.indexOf(d) < 5) : diasSemana;
+      recorre(days, (day, i) => {
         if (!modeForGroupSlot(group, data.members, data.schedule, day, "Merienda").cook) return;
         out.push({
           planKey: `${day}-Merienda`,
@@ -2165,7 +2175,7 @@ function planExtraMealsForGroup(group, data, weekIndex = 0) {
       em,
     );
     if (pool.length) {
-      DAYS.forEach((day, i) => {
+      recorre(diasSemana, (day, i) => {
         const when = em.postre;
         const cooksComida =
           (when === "comida" || when === "ambas") &&
@@ -2230,7 +2240,7 @@ export function validarNinosConCopias(data, adultsRes, kidsRes) {
     copiadasRecetas.set(receta.id, receta);
   };
 
-  for (const day of DAYS) {
+  for (const day of diasActivosDe(data)) {
     const slug = DAY_SLUG[day];
     for (const meal of ["Comida", "Cena"]) {
       const action = kidsSlotAction(data, day, meal);
@@ -2535,7 +2545,7 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
         return kidsFrontendId;
       };
 
-      for (const day of DAYS) {
+      for (const day of diasActivosDe(data)) {
         for (const meal of ["Comida", "Cena"]) {
           const action = kidsSlotAction(data, day, meal);
           if (action !== "adultLunch" && action !== "adultDinner") continue;
@@ -2619,7 +2629,7 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
   // que hay en casa, así que tampoco se toca el congelador.
   if (pantryMode !== "off") {
     assignPreparedToPlan(plan, pantryIngredients, {
-      days: DAYS,
+      days: diasActivosDe(data),
       mealLabels: ["Comida", "Cena"],
       // Un táper no sabe si se cocinó con pasta sin gluten: a un plato adaptado
       // para alguien no se le pone uno, por si acaso.

@@ -38,6 +38,7 @@ import { vetosDePersona } from "../../src/lib/vetos.js";
 import { alergiasPorSilencio } from "../../src/lib/alergiasBase.js";
 import { anadirArticulos, sonElMismo } from "../../src/lib/compraIdentidad.js";
 import { estructuraDelGrupo } from "../../src/lib/estructuraPlatos.js";
+import { diasActivosDe } from "../../src/lib/planner.js";
 
 let motorCargado = null;
 // Las recetas que trae el motor de serie (antes de registrar ninguna casa).
@@ -295,10 +296,8 @@ export async function describirMenu(casa, { dia, fecha, fotos = null } = {}) {
     return c ? `${r.name} (${c}; dilo al enseñarlo)` : r.name;
   };
   const plan = casa.semana.plan;
-  // Solo los días activos de la semana, como la app: el motor genera la semana
-  // entera, pero si empezó un miércoles, el lunes y el martes no cuentan.
-  const activos = casa.semana.activeDays?.length ? casa.semana.activeDays : DIAS.slice(casa.semana.startDayIdx ?? 0);
-  const dias = dia ? [dia] : activos;
+  // Solo los días de la semana: los mismos que planificó el motor.
+  const dias = dia ? [dia] : diasDeLaSemana(casa.semana);
   const lineas = [];
   for (const d of dias) {
     const delDia = [];
@@ -1439,3 +1438,21 @@ export function rehacerCompra(m, plan, data, gs, anterior, despensa) {
 }
 
 export { DIAS, FRANJAS, DIA_LARGO };
+
+/**
+ * Los días que tiene una semana guardada (`casa.semana`, de casa.js): la misma
+ * regla con la que el motor creó sus huecos (`diasActivosDe`, src/lib/planner.js),
+ * así lo que Lola enseña o comparte y lo que se planificó son los mismos días.
+ * Antes el bot tenía dos copias de la regla (aquí sin mirar el offset, y en
+ * compartir.js cruzando los días elegidos con `startDayIdx`), y una semana
+ * generada para la siguiente desde un viernes salía recortada a Vie-Dom.
+ */
+export function diasDeLaSemana(semana) {
+  return diasActivosDe({
+    menuWeek: {
+      offset: semana?.offset ?? 0,
+      startDayIdx: semana?.startDayIdx ?? 0,
+      days: semana?.activeDays?.length ? semana.activeDays : null,
+    },
+  });
+}
