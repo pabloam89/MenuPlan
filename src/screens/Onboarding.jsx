@@ -153,7 +153,6 @@ import { outStateFor, isHomeState, nextSlotState, resolveQuickActions } from "..
 import { importSchoolMenuFile, selectBestWeek } from "../lib/schoolMenuImport.js";
 import { SchoolMenuDeck } from "./SchoolMenuDeck.jsx";
 import { estructuraDelGrupo, estructuraCenaDelGrupo, conEstructura } from "../lib/estructuraPlatos.js";
-import { usaDespensa } from "../lib/despensaModo.js";
 
 const MEAL_STRUCTURE_CARDS = [
   {
@@ -9879,9 +9878,9 @@ const PANTRY_MODES = [
 
 export function OnboardingPantryMode({ data, setData, onNext, onBack, onFinish, onReset, finishLabel }) {
   // `useHomeStock` se mantiene en sincronía como el booleano heredado que es
-  // (off ⇄ false), con la misma función que normalizeData en App.jsx.
+  // (off ⇄ false), igual que hace normalizeData en App.jsx.
   const elegir = (mode) =>
-    setData((d) => ({ ...d, pantryMode: mode, pantryModeSet: true, useHomeStock: usaDespensa(mode) }));
+    setData((d) => ({ ...d, pantryMode: mode, pantryModeSet: true, useHomeStock: mode !== "off" }));
 
   // Sin elegir todavía no se marca ninguna: `pantryMode` nace en "off"
   // (INITIAL_DATA), y pintar "Que no cuente" como si la hubieras elegido tú

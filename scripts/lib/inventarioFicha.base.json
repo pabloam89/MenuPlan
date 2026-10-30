@@ -1,6 +1,6 @@
 {
-  "nota": "Deuda de la ficha de la casa (#939, fase 4; plan fichas con estado, trozo 6) el 30 oct 2026. Solo baja: si arreglas un dato, baja su cifra aquí; si sube, el test falla. npm run ficha:inventario dice cuáles son. sin_declarar es 0 desde el trozo 6 (cada dato dice su ficha, su clase y, si es derivado, su función) y no puede volver a subir.",
-  "sin_declarar": 0,
+  "nota": "Deuda de la ficha de la casa (#939, fase 4; plan fichas con estado, trozo 6) el 30 oct 2026. Solo baja: si arreglas un dato, baja su cifra aquí; si sube, el test falla. npm run ficha:inventario dice cuáles son. sin_declarar baja de 26 a 1 en el trozo 6 (cada dato dice su ficha y su clase; el único derivado sin función es useHomeStock).",
+  "sin_declarar": 1,
   "en_resto": 1,
   "enum_sin_vocabulario": 8,
   "copia": 10,

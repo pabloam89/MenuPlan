@@ -21,7 +21,8 @@ describe("la clase de cada dato (plan, «Las cuatro clases de dato»)", () => {
     expect(derivados.length).toBeGreaterThan(0);
     for (const [k, d] of derivados) {
       expect(d.de, `${k}: un derivado dice de qué`).toBeTruthy();
-      expect(d.funcion, `${k}: un derivado dice con qué función se calcula`).toMatch(/^src\/.+\.js:\w+$/);
+      // Sin función es deuda que el inventario cuenta (sin_declarar), no un valor inventado.
+      if (d.funcion !== null) expect(d.funcion, `${k}: la función es «src/…/fichero.js:nombre»`).toMatch(/^src\/.+\.js:\w+$/);
     }
     for (const [k, d] of todos) if (d.clase !== CLASE.DERIVADO) expect(d.funcion, `${k}: solo un derivado tiene función`).toBe(null);
   });

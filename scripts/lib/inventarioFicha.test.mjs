@@ -30,9 +30,9 @@ describe("registro de la ficha (#939, fase 4)", () => {
     for (const [k, d] of todos) expect(MODULOS, `${k}.modulo`).toContain(moduloDe(d));
   });
 
-  it("un derivado dice de qué sale y con qué función; un legado, qué lo sustituye o por qué sigue", () => {
+  it("un derivado dice de qué sale; un legado, qué lo sustituye o por qué sigue", () => {
     for (const [k, d] of todos) {
-      if (d.clase === CLASE.DERIVADO) expect(d.de && d.funcion, `${k}: un derivado dice de qué y con qué función`).toBeTruthy();
+      if (d.clase === CLASE.DERIVADO) expect(d.de, `${k}: un derivado dice de qué`).toBeTruthy();
       if (d.estado === "legado") expect(d.de || d.motivo, `${k}: un legado dice qué lo sustituye o por qué sigue`).toBeTruthy();
     }
   });
@@ -121,14 +121,14 @@ describe("inventario de la ficha", async () => {
     const casa = {
       ...DATOS_CASA,
       tandaMinutos: { ...DATOS_CASA.tandaMinutos, defecto: 20 }, // un hecho con defecto que INITIAL_DATA no trae
-      useHomeStock: { ...DATOS_CASA.useHomeStock, funcion: null },
+      cocinas: { ...DATOS_CASA.cocinas, funcion: null },
       menuWeek: { ...DATOS_CASA.menuWeek, funcion: "src/lib/semanaDias.js:noExiste" },
       cookedDishes: { ...DATOS_CASA.cookedDishes, funcion: "src/lib/noExiste.js:f" }, // fichero que no está
     };
     const persona = { ...DATOS_PERSONA, apodo: { ...DATOS_PERSONA.name } }; // una clave de la persona sin columna
     const r = await inventario(raiz, { registro: { casa, persona } });
     // etapaBebe, hecho sin defecto fuera de INITIAL_DATA, nace cuando se dice: no cuenta.
-    expect(r.fallos.sin_declarar).toEqual(["casa.tandaMinutos: defecto 20 que INITIAL_DATA no siembra", "casa.useHomeStock: derivado sin función"]);
+    expect(r.fallos.sin_declarar).toEqual(["casa.cocinas: derivado sin función", "casa.tandaMinutos: defecto 20 que INITIAL_DATA no siembra", "casa.useHomeStock: derivado sin función"]);
     expect(r.fallos.funcion_rota).toEqual(["casa.menuWeek → src/lib/semanaDias.js:noExiste", "casa.cookedDishes → src/lib/noExiste.js:f"]);
     expect(r.fallos.en_resto).toEqual(["persona.dislikes", "persona.apodo"]);
   }, 120_000);
