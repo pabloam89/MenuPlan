@@ -537,6 +537,8 @@ const TIRA_AVATARES_INICIO = { izq: false, der: true };
 const TIRA_AVATARES_CABEN = 3;
 // Holgura en px al comparar scrollLeft con los extremos (trae decimales).
 const TIRA_AVATARES_HOLGURA = 2;
+// Hueco en px entre avatares; también entra en el cálculo del ancho de cada uno.
+const TIRA_AVATARES_HUECO = 10;
 // Cada clic en una flecha desplaza esta fracción del ancho de la tira.
 const TIRA_AVATARES_SALTO = 0.85;
 
@@ -1148,7 +1150,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                               const der = el.scrollLeft < el.scrollWidth - el.clientWidth - TIRA_AVATARES_HOLGURA;
                               setAvatarStripPos((p) => (p.izq === izq && p.der === der ? p : { izq, der }));
                             }}
-                            style={{ display: "flex", gap: 10, overflowX: "auto", padding: "4px 0", scrollSnapType: "x proximity", scrollbarWidth: "none" }}
+                            style={{ display: "flex", gap: TIRA_AVATARES_HUECO, overflowX: "auto", padding: "4px 0", scrollSnapType: "x proximity", scrollbarWidth: "none" }}
                           >
                           {keys.map((k) => {
                             const sel = editing.avatarKey === k;
@@ -1158,7 +1160,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                                 type="button"
                                 onClick={() => updateMemberAvatar(editing.id, k)}
                                 style={{
-                                    flex: `0 0 calc((100% - ${(Math.ceil(visibles) - 1) * 10}px) / ${visibles})`, aspectRatio: "1",
+                                    flex: `0 0 calc((100% - ${(Math.ceil(visibles) - 1) * TIRA_AVATARES_HUECO}px) / ${visibles})`, aspectRatio: "1",
                                     scrollSnapAlign: "start",
                                     padding: 0, cursor: "pointer",
                                   borderRadius: 999, overflow: "hidden",
