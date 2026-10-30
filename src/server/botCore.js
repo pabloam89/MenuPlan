@@ -65,6 +65,9 @@ export { choquesDeReceta, textoDeChoque } from "../lib/restriccionesReceta.js";
 
 // El coste por ración, para scripts/build-coste.mjs (Node a secas no carga src/).
 export { costeReceta, UMBRALES, COBERTURA_MINIMA } from "../lib/coste.js";
+// El presupuesto de la casa (#958): scripts/medir-presupuesto.mjs, y la
+// respuesta de generar_menu lo lee igual que la app.
+export { presupuestoSemanal, estimarSemana, veredicto, frasePresupuesto } from "../lib/presupuesto.js";
 
 // Los ejes «más/menos» de densidad y carga (api/_bot/menu.js, EJES_NUMERICOS).
 export { densidadDe, cargaDe, completitudDe } from "../lib/derive/ejesDePlato.js";
