@@ -1,6 +1,6 @@
 # Arquitectura objetivo: un registro, tres entidades de base y una sola tubería, para Lola y la app
 
-Estado: PROPUESTA (30 oct 2026); D1, D2 y D3 decididas por Pablo el mismo día (ver Decisions). Base leída: `origin/staging` en `5754e531`. Amplía y reordena `specs/plan-fichas-con-estado.md` (aprobado) y recoge `specs/repaso-huecos-modelo.md`, las raíces de #958 (comentario del 29 oct) y la conversación con Pablo del 30 oct.
+Estado: PROPUESTA (30 oct 2026); D1, D2 y D3 decididas por Pablo el mismo día (ver Decisions). Base leída: `origin/staging` en `5754e531`. Es el porqué de la ampliación de `specs/plan-fichas-con-estado.md` (aprobado), que es la única fuente de los campos, los trozos, las migraciones y las cifras: aquí se enlazan, no se copian. Recoge las raíces de #958 (comentario del 29 oct) y la conversación con Pablo del 30 oct.
 
 ## La idea en una frase
 
@@ -8,7 +8,7 @@ Todo lo que Lola y la app saben, piden y hacen se describe **una vez** en un reg
 
 ## Lo desagradable primero
 
-- **Hoy la garantía está en las palabras, no en la estructura** (#958, raíz común). El prompt promete; las herramientas escriben cada una a su manera (46 herramientas en `api/_bot/agente.js`); la app escribe la casa desde 146 llamadas a `setData(`; el motor lee 31 claves sueltas del documento; los gustos solo desempatan (`src/lib/solver.js`, paso 5). Nada de lo de abajo cambia eso si se hace a medias: cada capa tiene que ser **la única puerta**, con un test que haga imposible saltársela.
+- **Hoy la garantía está en las palabras, no en la estructura** (#958, raíz común). El prompt promete; las herramientas escriben cada una a su manera (46 herramientas en `api/_bot/agente.js`); la app escribe la casa desde 146 llamadas a `setData(`; el motor lee 30 claves sueltas del documento; los gustos solo desempatan (`src/lib/solver.js`, paso 5). Nada de lo de abajo cambia eso si se hace a medias: cada capa tiene que ser **la única puerta**, con un test que haga imposible saltársela.
 - **El momento es ahora.** Hay 37 casas. La decisión «sin convivencia» (cada ficha nueva se estrena vacía) es barata con 37 y carísima con 3.000. Lo que no se haga en esta ronda se hará con migraciones de datos de familias reales.
 - **La migración 0105 decide la forma de la escritura.** Si se escribe como está en el plan (sobre + `escribir_dato`) y después se añade la operación, se rehace. Igual con la 0107: si crea `gusto` y después se decide `preferencia`, se tira. Las dos decisiones (D1, D2) van antes de escribir esas migraciones.
 - **Riesgo de sobreabstraer.** Un motor de preferencias genérico y un registro que genera todo pueden convertirse en un marco que nadie entiende. Contramedida en cada capa: forma pequeña y cerrada, y un test de paridad contra lo que hay hoy antes de retirar lo viejo.
@@ -84,8 +84,8 @@ Todo cambio (de Lola, de la app, de un cron) es una operación. Las herramientas
 | Entender | de frase o botón a `{accion, parametros}` cerrados (Acciones del registro) | `api/_bot/interprete.js` (#958 R3); quedan `diaDe`/`resolverDia` (`menu.js`) y `resolverPersona` (`estadoCasa.js`) |
 | Comprobar | puerta única: alergias y salud (ningún plan con alérgeno llega a la base, venga de donde venga), permisos y papel (invitado), mínimos | repartido; `colocarPedidos` se lo saltaba (#958 A) |
 | Aplicar | en una transacción, con clave de idempotencia (`mid` del mensaje o id de la pantalla), regla de choque por dato | `escribirDato` (trozo 8, por hacer), `api/_bot/idempotencia.js`, `bot_rev` |
-| Apuntar | fila en `operacion`: id, casa, autor (cuenta y persona), canal, `ref` (mensaje, pantalla, tarea, cron), accion, pedido, hecho, sin_hacer con motivo, estado, `pedida_at`, `ejecutada_at`, `deshecha_at`, inversa | `api/_bot/operacion.js` (en memoria del turno), `api/_bot/resultado.js`, `bot_deshacer` |
-| Contar | la confirmación se pinta desde hecho/sin_hacer; el modelo puede adornar, no afirmar | `resultado.js` en 5 ficheros de herramientas; **no** en `menu.js` ni `generar.js` |
+| Apuntar | una fila en `operacion` (campos en el plan, «Las fichas», fila Operación) | `api/_bot/operacion.js` (en memoria del turno), `api/_bot/resultado.js`, `bot_deshacer` |
+| Contar | la confirmación se pinta desde hecho/sin_hacer; el modelo puede adornar, no afirmar | `resultado.js`; falta en cambiar plato, añadir a la compra y generar (plan, trozo 27) |
 | Deshacer | aplica la inversa de **tus** operaciones, en orden | `bot_deshacer` (foto de la casa, ya por autor: `api/_bot/casa.js:258`) |
 
 Dónde corre: en el servidor, una sola implementación (`src/lib/operaciones/` compartido, llamado desde `api/` para Lola y para la app), y la escritura final en una RPC de Postgres que escribe filas, sobre, operación y sube la versión en la misma transacción. La app no escribe tablas directamente (la puerta de seguridad no puede vivir en el cliente).
@@ -94,24 +94,13 @@ Tareas y recordatorios encajan aquí: una operación puede quedar **pendiente** 
 
 Test que hace imposible la clase: toda Acción con `escribe` pasa por la tubería (ningún `update`/`insert`/`setData` de datos de ficha fuera de ella); toda operación tiene autor, ref y resultado.
 
-Retención: operación completa 90 días; después, resumen (acción, autor, fecha, hecho/no) para la traza del sobre.
+La retención la fija el plan (fila Operación y trozo 35).
 
 ### [4] Preferencia y motor
 
 **Una entidad para todo lo que condiciona el menú**: gustos, vetos, topes, mínimos, objetivos de nutrición, presupuesto, variedad, puerta de cocinas.
 
-| Campo | Valores |
-|---|---|
-| quién | casa, grupo, persona (id) |
-| nivel | plato, comida, día, semana |
-| eje | id de Ejes (receta, alimento o nutriente) o de Datos (coste, tiempo) |
-| medida | `valor` (el del plato), `suma`, `media`, `cuenta` |
-| operador | `es`, `no_es`, `al_menos`, `como_mucho`, `mas`, `menos` |
-| valor | con el tipo del eje (número con unidad, booleano, valor de su vocabulario) |
-| fuerza | `obligatoria` o `preferencia` con peso (0-100) |
-| ámbito | días, comidas, `desde`, `hasta`, salvedad |
-| conjunto | opcional: id de un **plan** con nombre y fechas («plan de Pablo, noviembre»): un plan de nutrición es un conjunto de preferencias |
-| sobre | origen (dicho, visto, supuesto, por defecto, derivado), quién, cuándo, operación |
+Sus campos (quién, nivel, eje, medida, operador, valor, fuerza, ámbito, plan, sobre) están en el plan, «Las fichas», filas Preferencia y Plan.
 
 Absorbe: la libreta (`notepadFields.js`, 11 campos), `sesgos`, `freqs`/`reparto`, `excluidos`, la zona de reglas (`src/lib/reglas.js`: sujeto, ámbito, vigencia, salvedad), el presupuesto (#958), la puerta de cocinas. Las alergias siguen en salud (privacidad y seguridad) y el motor las recibe como preferencias obligatorias de nivel plato.
 
@@ -126,11 +115,11 @@ Las 24 reglas de `validateMenu.js` se reescriben como preferencias del sistema (
 
 Cifras: % de preferencias dichas cumplidas por semana generada; ejes con lector (hoy 27 de 78 sin ningún consumidor); tiempo del motor por semana (hoy < 1 s, medido por Pablo).
 
-Challenge: con muchas preferencias blandas el solver puede volverse lento o dar menús raros por compensar pesos. Contramedida: pocos operadores, pesos en tres escalones (poco, medio, mucho) en vez de 0-100 libre, y el banco de casas aleatorias de `solver.js` como red de tiempo y calidad.
+Challenge: con muchas preferencias blandas el solver puede volverse lento o dar menús raros por compensar pesos. Contramedida: pocos operadores, pesos en escalones cerrados en vez de un número libre (los fija el trozo 31 del plan), y el banco de casas aleatorias de `solver.js` como red de tiempo y calidad.
 
 ### [5] Conversación (Lola)
 
-- **Turno:** cola y candado por chat (`api/_bot/turnos.js`) se quedan. Cambios: si llega un mensaje y el turno aún no ha escrito nada, se cancela y se rehace con todo (el agente ya acepta `signal`); espera de ráfaga adaptativa (1 s; hasta 3 s si el mensaje parece incompleto); ningún turno pasa del plazo (`plazo.js`) con mensajes ya tomados.
+- **Turno:** cola y candado por chat (`api/_bot/turnos.js`) se quedan. Cambios: si llega un mensaje y el turno aún no ha escrito nada, se cancela y se rehace con todo (el agente ya acepta `signal`); espera de ráfaga adaptativa, medida antes de cambiarla (trozo 28 del plan); ningún turno pasa del plazo (`plazo.js`) con mensajes ya tomados.
 - **Intérprete:** el modelo traduce a Acciones con parámetros cerrados (esquemas generados en [1]). Lo que no casa va a `otro` con nota; si duda, pregunta (y la pregunta es una tarea con caducidad). Embeddings solo para casar con el valor o la receta más cercana (`recetasVectores.json`, `vectores.js`) y para agrupar los `otro` y proponer valores nuevos.
 - **Modelos:** hoy Sonnet con Opus de reserva (`agente.js:106-114`) y Haiku para piezas (`significado.js`, `traducir.js`). Con parámetros cerrados, probar Haiku para las acciones claras y Sonnet para lo ambiguo, decidido por el banco de frases ([8]), no a ojo.
 - **Respuesta:** desde el resultado de la operación ([3]). La ficha que ve Lola sale de `ficha_casa` v2 con estado por dato y prioridad fija de lo que se recorta (#958 C: hoy se recorta «Hoy» antes que la cocina).
@@ -143,7 +132,7 @@ Challenge: con muchas preferencias blandas el solver puede volverse lento o dar 
 
 ### [7] Tareas: la iniciativa de Lola
 
-Entidad completa (detalle en `specs/repaso-huecos-modelo.md`, H3): tipo (`falta_saber`, `espera`, `decision`, `seguimiento`, `recordatorio`, `objetivo`), origen enlazado (dato, hueco, señal, mensaje, caducidad), para quién y canal, prioridad desde `peso_menu`, cuándo (vence, vuelve, ventana, no molestar desde Trato, intentos), qué bloquea, cómo se cierra (y qué operación la cerró), fechas. Un solo barrido programado (pg_cron) para todo lo que caduca. Absorbe `bot_reminders`; las aclaraciones pendientes ya caducan a las 3 h (`api/_bot/caducidades.js`, `CADUCA.PROPUESTA`) y ese barrido es el que se amplía.
+Entidad completa: sus campos están en el plan («Las fichas», fila Tarea de Lola) y su construcción en los trozos 34 y 35. La idea: toda iniciativa de Lola (preguntar, esperar, decidir, seguir, recordar, perseguir un objetivo) es una tarea con origen enlazado, prioridad, caducidad y cierre; un solo barrido para todo lo que caduca (ya existe: `api/_bot/caducidades.js`).
 
 Cifras: preguntas hasta el primer menú; tareas caducadas sin respuesta; tiempo hasta cerrar.
 
@@ -190,21 +179,7 @@ Cifras: preguntas hasta el primer menú; tareas caducadas sin respuesta; tiempo 
 
 ## Cómo afecta al plan de fichas con estado
 
-| Tramo del plan | Qué cambia |
-|---|---|
-| 0 (trozos 1-4, hechos) | nada |
-| 1 (5-6, 23) | el registro pasa a cuatro listas enlazadas; nuevo trozo **5b**: los esquemas de las herramientas de Lola salen del registro |
-| 2 (7-9, migración 0105) | **la 0105 crea también `operacion`** y `escribir_dato` es una operación de tipo dato; `sobre.ref` → `operacion_id`. Nuevo trozo **8b**: la tubería en el servidor; resultado obligatorio en todas las herramientas que escriben (empezando por `menu.js` y `generar.js`) |
-| nuevo 2c | Lola: cancelar y rehacer turno sin escrituras y espera adaptativa (las aclaraciones ya caducan y deshacer ya es por autor). No depende de fichas; puede ir en paralelo |
-| 3 (10-11) | igual; las escrituras de persona y salud pasan por la tubería |
-| 4 (12-13) | igual; las reglas «presente» van a Rutina; presupuesto y puerta de cocinas pasan a Preferencia en el tramo 5 |
-| 5 (14-15, migración 0107) | **la 0107 crea `preferencia` (y `plan` como conjunto) en vez de `gusto`**; nuevos trozos: entrada del motor, ejes compilados, preferencias en el solver con cumplimiento, paridad de las 24 reglas |
-| 6 (16-17) | se funde con tareas a fondo; `bot_reminders` y aclaraciones pasan a tareas |
-| 7 (18-20) | el sobre por hueco lleva `motivo` y la semana su versión; tiempo real con una señal por casa |
-| 8 (21-22) | igual |
-| transversal, desde ya | banco de frases; prueba de punta a punta de la app; panel de cifras; test de cascadas |
-
-Numeración final en el plan: trozos 24-38 (`specs/plan-fichas-con-estado.md`). Orden: 1 (+5b) → 2 (+operación, 8b) en paralelo con 2c y el banco de frases → 3 → 4 → 5 (preferencia y motor) → 6 (tareas) → 7 → 8.
+Está escrito en el propio plan: cabecera («Ampliado el 30 oct 2026»), «Las fichas», «Cómo se escribe y cómo se lee», «Tramos» (con el orden) y los trozos 24-38. Aquí no se repite.
 
 ## Choques: prioridad, contradicciones y cuándo preguntar
 
