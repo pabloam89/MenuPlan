@@ -6,7 +6,7 @@
 // Lee:   gh run list --workflow revisor --created >=<fecha> --json databaseId,headBranch,createdAt,conclusion,status
 //        gh run view <id> --log   (de cada ejecución acabada)
 // Token: desde Node, `gh` no pasa por el shim de las sesiones; lánzalo con
-//        GH_TOKEN="$(gh auth token)" npm run rondas-juez
+//        node scripts/token-sesion.mjs -- npm run rondas-juez   (cuesta una llamada a la API por ejecución)
 //
 // El veredicto sale de la línea `SALIDA: {...}` del log (el JSON del modelo: respuestas [{id, respuesta, prueba}]).
 // Sin una SALIDA legible no se deduce nada: la ejecución cuenta como «sin veredicto», con su motivo
