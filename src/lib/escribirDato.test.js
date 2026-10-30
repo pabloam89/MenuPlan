@@ -50,8 +50,7 @@ describe("operacionDeDato", () => {
     expect(() => operacionDeDato({ ...base, clave: "" })).toThrow(/clave/);
     expect(() => operacionDeDato({ ...base, canal: "fax" })).toThrow(/canal/);
     expect(() => operacionDeDato({ ...base, ref: { tipo: "carta", id: "x" } })).toThrow(/referencia/);
-    // La forma del CHECK operacion_accion_forma (0105): se para antes de llegar a la base.
-    expect(() => operacionDeDato({ ...base, accion: "Ver Ajustes" })).toThrow(/capacidad/);
+    expect(() => operacionDeDato({ ...base, accion: "" })).toThrow(/acción/);
   });
 });
 

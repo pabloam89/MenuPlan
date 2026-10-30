@@ -76,6 +76,12 @@ describe("escribirDato (servidor)", () => {
     expect(llamadas.filter((l) => DEL_DOCUMENTO.test(l.ruta))).toEqual([]);
   });
 
+  it("una acción con otra forma la para el CHECK de la base (23514) y vuelve invalido", async () => {
+    responde(/rpc\/aplicar_operacion/, { status: 400, cuerpo: { code: "23514", message: "violates check constraint operacion_accion_forma" } });
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    expect(await escribirDato({ ...PEDIDO, accion: "Ver Ajustes" })).toEqual({ guardado: false, fallo: FALLO_DATO.INVALIDO });
+  });
+
   it("un autor que no es de la casa (42501) da sin_permiso", async () => {
     responde(/rpc\/aplicar_operacion/, { status: 403, cuerpo: { code: "42501", message: "aplicar_operacion: el autor no es de esta casa" } });
     vi.spyOn(console, "error").mockImplementation(() => {});

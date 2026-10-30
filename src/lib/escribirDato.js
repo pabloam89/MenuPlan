@@ -25,10 +25,6 @@ import { REGISTRO_CAMPOS } from "./registroCampos.js";
 
 /** Tope del valor de un dato, en caracteres de JSON: un dato de la ficha es corto. */
 const MAX_VALOR_JSON = 4000;
-/** La forma de una acción (el id de una capacidad): la del CHECK operacion_accion_forma de la 0105, para no llegar a la base con otra. */
-const FORMA_ACCION = /^[a-z][a-z0-9_]{0,59}$/;
-/** Tope de los textos que acompañan a la operación (clave, ref_id): los de la tabla operacion caben. */
-const MAX_TEXTO_OPERACION = 120;
 
 /** Un dato que no cuadra con el registro o con su vocabulario. */
 export class DatoInvalido extends Error {
@@ -39,7 +35,9 @@ export class DatoInvalido extends Error {
   }
 }
 
-const textoCorto = (v) => typeof v === "string" && v.length > 0 && v.length <= MAX_TEXTO_OPERACION;
+// Solo que esté: la forma y el largo de casa, clave, acción, ref_id y persona los dicen los CHECK y las FK de la
+// 0105 y la 0097, una sola vez; si no cuadran, la base contesta 22023/23514/23503 y vuelve como `invalido`.
+const hay = (v) => typeof v === "string" && v.length > 0;
 
 /** El valor de una columna de vocabulario por paraEscribir (un retirado va a su sucesor); lanza DatoInvalido si no es de la lista. */
 function deLaLista(nombre, valor, que) {
@@ -65,7 +63,7 @@ export function datoValido(dato) {
   const r = Object.hasOwn(REGISTRO_CAMPOS, String(campo)) ? REGISTRO_CAMPOS[campo] : null;
   if (!r) throw new DatoInvalido(`el campo «${campo}» no está en el registro (registroCampos.js)`);
   const o = deLaLista("origen_dato", origen, "un origen de dato");
-  if (persona_id != null && !textoCorto(String(persona_id))) throw new DatoInvalido("persona_id vacío o demasiado largo");
+  if (persona_id != null && !hay(String(persona_id))) throw new DatoInvalido("persona_id vacío");
   if (valor !== null && JSON.stringify(valor).length > MAX_VALOR_JSON) throw new DatoInvalido(`el valor de «${campo}» pasa de ${MAX_VALOR_JSON} caracteres`);
   let v = valor;
   if (v !== null && VOCABULARIOS[r.vocabulario]) {
@@ -86,12 +84,12 @@ export function datoValido(dato) {
  * Lanza DatoInvalido.
  */
 export function operacionDeDato({ casa, clave, accion, canal, ref, autor = {}, pedida_at = null, dato }) {
-  if (!textoCorto(casa)) throw new DatoInvalido("falta la casa");
-  if (!textoCorto(clave)) throw new DatoInvalido("falta la clave de la operación");
-  if (typeof accion !== "string" || !FORMA_ACCION.test(accion)) throw new DatoInvalido("la acción no es el id de una capacidad");
+  if (!hay(casa)) throw new DatoInvalido("falta la casa");
+  if (!hay(clave)) throw new DatoInvalido("falta la clave de la operación");
+  if (!hay(accion)) throw new DatoInvalido("falta la acción");
   const c = deLaLista("canales_dato", canal, "un canal de dato");
   const t = deLaLista("refs_operacion", ref?.tipo, "una referencia de operación");
-  if (!textoCorto(ref?.id)) throw new DatoInvalido("falta de qué mensaje o pantalla sale (ref.id)");
+  if (!hay(ref?.id)) throw new DatoInvalido("falta de qué mensaje o pantalla sale (ref.id)");
   if (pedida_at != null && Number.isNaN(Date.parse(pedida_at))) throw new DatoInvalido("pedida_at no es una fecha");
   return {
     casa, clave, accion, canal: c, ref_tipo: t, ref_id: ref.id,
