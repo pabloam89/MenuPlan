@@ -353,10 +353,6 @@
       "class": "identifier",
       "reason": "Id de una persona de la ficha de la casa"
     },
-    "sobre.ref_id": {
-      "class": "identifier",
-      "reason": "Id de lo que originó un dato, polimórfico según ref_tipo"
-    },
     "social_comments.body": {
       "class": "free_text",
       "reason": "Mensaje, nota o descripción que escribe la persona"
