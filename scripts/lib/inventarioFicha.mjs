@@ -14,14 +14,21 @@
  *   sin_lector            un dato activo que ningún fichero lee (fuera de los
  *                         valores por defecto y la migración de App.jsx)
  *   de_roto               `de` u `otros` que apunta a un dato que no existe
- *   sin_ficha             un dato activo sin `ficha` (plan fichas con estado, trozo 5)
+ *   funcion_rota          la `funcion` de un derivado («fichero:nombre») que no
+ *                         existe o no está exportada
+ *   sin_ficha             un dato sin `ficha` (plan fichas con estado, trozos 5 y 6)
  *   defecto_distinto      un `defecto` del registro que no es el valor con que
  *                         nace una casa (INITIAL_DATA de App.jsx)
- *   sin_declarar          un dato del registro que la forma de una casa nueva
- *                         (INITIAL_DATA) no trae, o una clave de la persona sin
- *                         columna en la tabla persona (va a `resto`)
+ *   sin_declarar          un dato de data del que el registro no dice cómo nace:
+ *                         un hecho con `defecto` que una casa nueva (INITIAL_DATA)
+ *                         no siembra, o un derivado sin `funcion` que lo calcule.
+ *                         Las marcas nacen al tocarlas, los historiales al apuntar,
+ *                         los legados vienen de casas viejas y un hecho sin defecto
+ *                         está vacío hasta que la familia lo dice (trozo 6).
+ *   en_resto              una clave de la persona sin columna en la tabla persona
+ *                         (personasTabla.js la guarda en `resto`, hasta el trozo 11)
  *   enum_sin_vocabulario  un enum o lista_enum sin su lista en vocabularios.js
- *   copia                 un dato que se deriva de otro y se guarda aparte
+ *   copia                 un derivado que además se guarda en data
  *   legado                un dato sustituido que sigue guardado
  *   lola_no_lo_ve         un hecho activo de la casa que Lola (api/) no nombra:
  *                         no puede contarlo ni cambiarlo al hablar
@@ -29,17 +36,25 @@
  *                         (src/screens, src/components, App.jsx)
  *   sin_tabular           un objeto, mapa o lista abierta (no se puede contar)
  *
- * Los cinco primeros son errores del registro y deben ser 0. Los demás son
+ * Los seis primeros son errores del registro y deben ser 0. Los demás son
  * la deuda del modelo: se anclan en inventarioFicha.base.json y
- * solo pueden bajar.
+ * solo pueden bajar. Además cuenta los datos por clase (CLASES_DATO) y por
+ * ficha (FICHAS): no es deuda, es el mapa.
  */
 
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 
-export const ERRORES = ["sin_registro", "sin_lector", "de_roto", "sin_ficha", "defecto_distinto"];
-export const DEUDA = ["sin_declarar", "enum_sin_vocabulario", "copia", "legado", "lola_no_lo_ve", "app_no_lo_ve", "sin_tabular"];
+export const ERRORES = ["sin_registro", "sin_lector", "de_roto", "funcion_rota", "sin_ficha", "defecto_distinto"];
+export const DEUDA = ["sin_declarar", "en_resto", "enum_sin_vocabulario", "copia", "legado", "lola_no_lo_ve", "app_no_lo_ve", "sin_tabular"];
 export const FALLOS = [...ERRORES, ...DEUDA];
+
+// `funcion` de un derivado: la ruta del fichero y el nombre que exporta («src/lib/kidsMenu.js:deriveKidDinnerMatchesAdultLunch»).
+const FUNCION = /^([\w./-]+\.m?js):(\w+)$/;
+const exporta = (texto, nombre) => new RegExp(String.raw`^export (?:async )?(?:function\*? |const |let )${nombre}\b`, "m").test(texto);
+
+/** Cuántas filas hay de cada valor de una columna, con todos los valores de su lista (0 si ninguno). */
+const cuenta = (filas, col, lista) => Object.fromEntries(lista.map((v) => [v, filas.filter((f) => f[col] === v).length]));
 
 // Escriben datos de prueba o el propio registro: nombrar una clave no es leerla.
 const NO_LEEN = new Set(["src/lib/registroFicha.js", "src/lib/casasAleatorias.js"]);
@@ -145,12 +160,12 @@ const nombra = (k) => new RegExp(String.raw`(\.|\?\.|\[["'])${k}\b|\b${k}\s*[:=]
  */
 export async function inventario(raiz, { guardadas = null, registro = null } = {}) {
   const url = (f) => new URL(`file:///${join(raiz, f).replaceAll("\\", "/")}`).href;
-  const { DATOS_CASA: CASA, DATOS_PERSONA: PERSONA, TIPOS, SIN_TABULAR, POLITICAS, APLICA, moduloDe } = await import(url("src/lib/registroFicha.js"));
+  const { DATOS_CASA: CASA, DATOS_PERSONA: PERSONA, TIPOS, SIN_TABULAR, POLITICAS, APLICA, ESTADOS, moduloDe } = await import(url("src/lib/registroFicha.js"));
   const DATOS_CASA = registro?.casa ?? CASA;
   const DATOS_PERSONA = registro?.persona ?? PERSONA;
-  const { VOCABULARIOS, FICHAS, ESCRITORES, CHOQUES } = await import(url("src/lib/vocabularios.js"));
+  const { VOCABULARIOS, FICHAS, ESCRITORES, CHOQUES, CLASES_DATO, CLASE } = await import(url("src/lib/vocabularios.js"));
   // Las columnas cerradas de cada dato y su lista; `ficha` y `politica` admiten null (el inventario cuenta la ficha que falta).
-  const CERRADAS = { tipo: TIPOS, ficha: FICHAS, escribe: ESCRITORES, choque: CHOQUES, aplica: APLICA, politica: POLITICAS };
+  const CERRADAS = { clase: CLASES_DATO, estado: ESTADOS, tipo: TIPOS, ficha: FICHAS, escribe: ESCRITORES, choque: CHOQUES, aplica: APLICA, politica: POLITICAS };
   const ADMITEN_NULL = new Set(["ficha", "politica"]);
   const { CAMPOS_CON_COLUMNA } = await import(url("src/lib/personasTabla.js"));
 
@@ -172,12 +187,23 @@ export async function inventario(raiz, { guardadas = null, registro = null } = {
       const id = `${ambito}.${k}`;
       // Lo que vive en su tabla tiene allí su forma y sus lectores.
       const enData = d.vive === "data";
-      if (enData && !declaradas[ambito].has(k)) fallos.sin_declarar.push(id);
       for (const [col, lista] of Object.entries(CERRADAS)) {
         if (d[col] === null && ADMITEN_NULL.has(col)) continue;
         if (!lista.includes(d[col])) throw new Error(`${id}: ${col} «${d[col]}» fuera de su lista`);
       }
-      if (d.estado === "activo" && d.ficha === null) fallos.sin_ficha.push(id);
+      // La copia sale de la clase: un derivado que vive en data es copia, y nada más lo es.
+      if ((d.estado === "copia") !== (d.clase === CLASE.DERIVADO && enData)) throw new Error(`${id}: ${d.clase} en ${d.vive} con estado «${d.estado}»; copia es derivado en data`);
+      // Un hecho de la casa, vivo: lo que la app y Lola tienen que ver los dos.
+      const hecho = enData && d.clase === CLASE.HECHO && d.estado === "activo";
+      if (d.ficha === null) fallos.sin_ficha.push(id);
+      if (hecho && d.defecto !== null && !declaradas[ambito].has(k) && ambito === "casa") fallos.sin_declarar.push(`${id}: defecto ${JSON.stringify(d.defecto)} que INITIAL_DATA no siembra`);
+      if (d.clase === CLASE.DERIVADO && !d.funcion) fallos.sin_declarar.push(`${id}: derivado sin función`);
+      if (d.funcion) {
+        const [, fichero, nombre] = d.funcion.match(FUNCION) ?? [];
+        const texto = codigo.find(([f]) => f === fichero)?.[1];
+        if (!texto || !exporta(texto, nombre)) fallos.funcion_rota.push(`${id} → ${d.funcion}`);
+      }
+      if (enData && ambito === "persona" && !declaradas.persona.has(k)) fallos.en_resto.push(id);
       if (enData && d.defecto !== null && defectos[ambito].has(k) && JSON.stringify(defectos[ambito].get(k)) !== JSON.stringify(d.defecto)) {
         fallos.defecto_distinto.push(`${id}: registro ${JSON.stringify(d.defecto)} ≠ INITIAL_DATA ${JSON.stringify(defectos[ambito].get(k))}`);
       }
@@ -194,12 +220,12 @@ export async function inventario(raiz, { guardadas = null, registro = null } = {
       if (["enum", "lista_enum"].includes(d.tipo) && !(d.vocabulario && VOCABULARIOS[d.vocabulario]) && d.estado !== "legado") fallos.enum_sin_vocabulario.push(id);
       if (d.estado === "copia") fallos.copia.push(`${id} ← ${d.de}`);
       if (d.estado === "legado") fallos.legado.push(id);
-      if (enData && d.estado === "activo" && lola.length === 0) fallos.lola_no_lo_ve.push(id);
-      if (enData && d.estado === "activo" && enApp.length === 0) fallos.app_no_lo_ve.push(id);
+      if (hecho && lola.length === 0) fallos.lola_no_lo_ve.push(id);
+      if (hecho && enApp.length === 0) fallos.app_no_lo_ve.push(id);
       if (SIN_TABULAR.includes(d.tipo) && d.estado !== "legado") fallos.sin_tabular.push(id);
       filas.push({ id, ...d, modulo: moduloDe(d), lectores: lectores.length, lola: lola.length, app: enApp.length });
     }
   }
   const cifras = Object.fromEntries(FALLOS.map((f) => [f, fallos[f].length]));
-  return { fallos, cifras, filas };
+  return { fallos, cifras, filas, porClase: cuenta(filas, "clase", CLASES_DATO), porFicha: cuenta(filas, "ficha", FICHAS) };
 }
