@@ -73,6 +73,7 @@ import { clearPreparedFromSlot } from "./lib/freezer.js";
 import { normalizeIngredientKey } from "./lib/ingredientCategories.js";
 import { conMarcas } from "./lib/compraIdentidad.js";
 import { getDayMeals, getMeals, ALL_DAY_MEALS, DAYS } from "./lib/planner.js";
+import { estimarSemana, frasePresupuesto } from "./lib/presupuesto.js";
 import {
   groupsFromModel,
   gruposVigentes,
@@ -162,7 +163,7 @@ import {
 } from "./lib/recipeCollections.js";
 import { mergeDiscards } from "./lib/recipeDiscardsSync.js";
 import { loadUserState, saveUserState, clearUserState } from "./lib/userState.js";
-import { loadHouseholdState, saveHouseholdState, loadHouseholdBotRev } from "./lib/householdState.js";
+import { loadHouseholdState, saveHouseholdState, loadHouseholdBotRev, empezarCasaVacia, CASA_VACIA } from "./lib/householdState.js";
 import { leerBotRevVisto, guardarBotRevVisto } from "./lib/botRevVisto.js";
 import { guardarConVersion, guardandoCasa, guardadosDeCasa } from "./lib/versionCasa.js";
 import { resolveModeData, prepararSemana } from "./lib/prepararGeneracion.js";
@@ -189,7 +190,9 @@ import {
   loadPublicRecipe,
   loadRecipeFromLink,
   createRecipeShareToken,
+  loadRecetasDelTitular,
 } from "./lib/userRecipesSync.js";
+import { unirConLasDelTitular, esRecetaDelTitular } from "./lib/userRecipesFila.js";
 import { migrateFixedDishes } from "./lib/fixedDishes.js";
 import { filterOwnCreatedRecipes, filterMyLibraryRecipes } from "./lib/userRecipes.js";
 import { suggestHomeRole, migrateHomeRole, resolveAccountMember, miembroDeCuentaId, memberIllustratedAvatarSrc } from "./lib/stages.js";
@@ -1295,6 +1298,28 @@ export default function App() {
   const householdReadOnlyLabel =
     householdReadOnly && activeHousehold ? activeHousehold.name : null;
 
+  // Cotitular (editor) en la casa de otro: las recetas del titular, de solo
+  // lectura (#958, política de la 0104). Viven aquí y NO en data.userRecipes,
+  // para que nada intente subirlas a su nombre. Su carga va aparte de la de lo
+  // propio: si falla, lo suyo sigue igual y se avisa (el aviso, junto a showToast).
+  const titularAjeno = activeHousehold && !esTitular(activeHousehold) && !householdReadOnly
+    ? activeHousehold.ownerUserId ?? null
+    : null;
+  const [recetasDelTitular, setRecetasDelTitular] = useState([]);
+  const [fallanRecetasDelTitular, setFallanRecetasDelTitular] = useState(false);
+  useEffect(() => {
+    setRecetasDelTitular([]);
+    setFallanRecetasDelTitular(false);
+    if (!user?.id || !titularAjeno) return undefined;
+    let vigente = true;
+    loadRecetasDelTitular(titularAjeno).then(({ data: recetas, error }) => {
+      if (!vigente) return;
+      setRecetasDelTitular(recetas ?? []);
+      setFallanRecetasDelTitular(Boolean(error));
+    });
+    return () => { vigente = false; };
+  }, [user?.id, titularAjeno]);
+
   const ownUserRecipes = useMemo(() => {
     if (householdReadOnly && activeHousehold?.ownerUserId) {
       return data.userRecipes ?? [];
@@ -1302,9 +1327,10 @@ export default function App() {
     // Tu recetario entero, copias de Gente incluidas: de aqui salen las fichas
     // que se registran para poder abrirlas y los platos que se ofrecen al
     // llenar un hueco del menu. Con el filtro estrecho, una receta copiada se
-    // guardaba pero no se podia ni ver ni usar.
-    return filterMyLibraryRecipes(data.userRecipes, user);
-  }, [data.userRecipes, user, householdReadOnly, activeHousehold?.ownerUserId]);
+    // guardaba pero no se podia ni ver ni usar. Si eres cotitular, detrás van
+    // las del titular (solo lectura).
+    return unirConLasDelTitular(filterMyLibraryRecipes(data.userRecipes, user), recetasDelTitular);
+  }, [data.userRecipes, user, householdReadOnly, activeHousehold?.ownerUserId, recetasDelTitular]);
 
   // User-created recipes must live in RECIPES_BY_ID for DishDetail — but in the
   // "frontend" shape (macros object, scaled ingredients), not the raw catalog
@@ -2003,6 +2029,12 @@ export default function App() {
     toastTimer.current = window.setTimeout(() => setToast(null), action ? 5000 : 3500);
   }, []);
 
+  // Las recetas del titular no se han podido leer (#958): no es lo mismo que
+  // «no tiene ninguna», así que se dice. Lo propio ya está cargado aparte.
+  useEffect(() => {
+    if (fallanRecetasDelTitular) showToast("No se han podido cargar las recetas del titular de la casa. Vuelve a abrirla para reintentarlo.");
+  }, [fallanRecetasDelTitular, showToast]);
+
   // Otro (Lola, otro dispositivo, otra persona de la casa) ha escrito: se
   // vuelve a hidratar adoptando la nube. Lo que se hubiera tocado aquí sin
   // llegar a subir se pierde a propósito: es el precio de que el cambio del
@@ -2023,6 +2055,11 @@ export default function App() {
 
   const handleDeleteRecipe = useCallback(async (recipeId) => {
     if (!recipeId) return;
+    // Una del titular no la borra el cotitular (#958): ni en la nube ni de aquí.
+    if (recetasDelTitular.some((r) => r.id === recipeId)) {
+      showToast("Esta receta es del titular de la casa: solo la puede borrar quien la creó");
+      return;
+    }
     rememberDeletedRecipeId(recipeId);
 
     let nextData = null;
@@ -2046,7 +2083,7 @@ export default function App() {
       saveState({ screen, onbStep, data: nextData, menuPlan, shopping, aiRecipes });
     }
     showToast("Receta eliminada");
-  }, [user?.id, screen, onbStep, menuPlan, shopping, aiRecipes, showToast]);
+  }, [user?.id, screen, onbStep, menuPlan, shopping, aiRecipes, showToast, recetasDelTitular]);
 
   const regenerateMenu = useCallback(async (nextData) => {
     if (householdReadOnly) {
@@ -2392,13 +2429,15 @@ export default function App() {
       // we no longer surface their raw internal text as a toast — it read as a
       // confusing "toast rarísimo" on success. Always show the plain success
       // message; the warnings remain on the plan for anyone who needs them.
-      showToast(
-        user
-          ? "Menú generado · actívalo con ⚡ cuando lo vayas a usar"
-          : weekCount > 1
-            ? `Menú generado (${weekCount} semanas)`
-            : "Menú generado",
-      );
+      // Con presupuesto, además, se dice si la primera semana cabe, no cabe
+      // o no se sabe: nunca en silencio (lib/presupuesto.js, #958).
+      const frasePres = frasePresupuesto(working, estimarSemana(firstWeekPlan, { recetas: weekResults[0]?.recipes ?? [] }));
+      const generado = user
+        ? "Menú generado · actívalo con ⚡ cuando lo vayas a usar"
+        : weekCount > 1
+          ? `Menú generado (${weekCount} semanas)`
+          : "Menú generado";
+      showToast(frasePres ? `${generado}. ${frasePres}` : generado);
     } catch (err) {
       if (err?.name === "AbortError" || ctrl.signal.aborted) return;
       console.error("Error generating menu", err);
@@ -3528,13 +3567,15 @@ export default function App() {
       delete profile.recipeVotes;
       delete profile.discards;
       delete profile.menus;
-      await saveHouseholdState(result.householdId, {
+      // Solo si la que queda está vacía, y con su versión (householdState.js, #958).
+      const vacia = await empezarCasaVacia(result.householdId, {
         data: profile,
         menuPlan: {},
         shopping: { items: [] },
         aiRecipes: [],
         onbStep: 0,
       });
+      if (vacia === CASA_VACIA.SIN_LEER || vacia === CASA_VACIA.FALLO) console.warn("[hogar] casa vacía sin guardar:", vacia);
     }
 
     showToast("Hogar vaciado");
@@ -4384,6 +4425,8 @@ export default function App() {
   const handleUpdateUserRecipe = useCallback((updated) => {
     if (householdReadOnly) return;
     if (!updated?.id) return;
+    // Una receta del titular la ve el cotitular, pero solo la cambia su dueño (#958).
+    if (esRecetaDelTitular(updated)) { showToast("Esta receta es del titular de la casa: solo la puede cambiar quien la creó"); return; }
     setData((d) => ({
       ...d,
       userRecipes: (d.userRecipes ?? []).map((r) => (r.id === updated.id ? updated : r)),

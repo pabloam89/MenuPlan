@@ -98,6 +98,28 @@ export function filaCopiada(fila, { id, dueno }) {
   return copia;
 }
 
+// ── Las recetas del titular, vistas por un cotitular (#958, 0104) ────────
+//
+// Un cotitular (editor) ve las recetas del titular de la casa, pero no son
+// suyas: no se editan, no se borran y NUNCA se suben (con su owner_id la RLS
+// las rechazaría, y en un upsert de varias tumbaría también las suyas). Por eso
+// viajan con la marca `soloLectura` y fuera de `data.userRecipes`.
+
+/** ¿Es una receta del titular que ve un cotitular? */
+export const esRecetaDelTitular = (receta) => receta?.soloLectura === true;
+
+/** Las recetas del titular con su marca de solo lectura. */
+export const marcarDelTitular = (recetas) => (recetas ?? []).map((r) => ({ ...r, soloLectura: true }));
+
+/** Las propias primero; del titular, solo las que no tengan el mismo id que una propia. */
+export function unirConLasDelTitular(propias, delTitular) {
+  const ids = new Set((propias ?? []).map((r) => r.id));
+  return [...(propias ?? []), ...(delTitular ?? []).filter((r) => !ids.has(r.id))];
+}
+
+/** Lo que se puede subir a nombre de quien llama: nunca una del titular. */
+export const subibles = (recetas) => (recetas ?? []).filter((r) => !esRecetaDelTitular(r));
+
 /** user_recipes row → frontend recipe object (catalog-compatible shape). */
 export function rowToRecipe(row) {
   return {
