@@ -28,6 +28,7 @@ import { rastro } from "./embudo.js";
 import { verReceta, calorias, queFalta, verDespensaRapido, huecoSinComida, preguntaComida } from "./plato.js";
 import { apuntarAusencia } from "./menu.js";
 import { RASTRO, MOTIVO_CAMBIO, idBase } from "../../src/lib/rastro.js";
+import { describirHuecos } from "../../src/lib/huecosDelPlan.js";
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 // Icono y artículo de cada comida, del catálogo (src/lib/comidas.js).
@@ -204,9 +205,13 @@ export async function generar(householdId, x) {
   const destacados = (out.colocados ?? []).length ? " Lo que pediste va marcado con ✨." : "";
   // Con presupuesto, si cabe o no, siempre (src/lib/presupuesto.js, #958).
   const presupuesto = out.presupuesto ? `\n\n💶 ${esc(out.presupuesto)}` : "";
+  // Los huecos que se han quedado sin plato (#1029): se dicen, no se callan.
+  const vacios = (out.huecosVacios ?? []).length
+    ? `\n\n⚠️ <b>Se quedan sin plato:</b> ${esc(describirHuecos(out.huecosVacios))}. Dime si lo intento de otra forma o qué pongo ahí.`
+    : "";
   return {
     // El primer menú con alergias por silencio lo recuerda una vez (#229).
-    texto: conRecordatorio(`🎉 <b>¡Menú listo!</b> Del <b>${rangoDeFechas(out.desde, out.hasta)}</b>.${destacados}${pedidos}${presupuesto}`, out.recordarSilencio),
+    texto: conRecordatorio(`🎉 <b>¡Menú listo!</b> Del <b>${rangoDeFechas(out.desde, out.hasta)}</b>.${destacados}${vacios}${pedidos}${presupuesto}`, out.recordarSilencio),
     fotos: [], deshacible: false, ir: "semana",
     pintar: filtrosTrasGenerar(out),
   };

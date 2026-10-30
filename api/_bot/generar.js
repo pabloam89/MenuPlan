@@ -33,6 +33,7 @@ import { registrar, rastro, EMBUDO } from "./embudo.js";
 import { RASTRO } from "../../src/lib/rastro.js";
 import { isoDeCasa, DIAS, DIAS_FINDE, semanasEntre } from "../../src/lib/dias.js";
 import { collectMenuRecipeIds, pruneAiRecipes, planHasDishes } from "../../src/lib/menuArchive.js";
+import { huecosEsperados, huecosVacios, describirHuecos } from "../../src/lib/huecosDelPlan.js";
 import { indiceSemanaCole } from "../../src/lib/schoolMenu.js";
 import { VENTANA_SEMANAS } from "../../src/lib/recientes.js";
 import { resolverSemana, conservarDiasPrevios, rangoDeFechas } from "./semanaPedida.js";
@@ -320,9 +321,17 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   // La última puerta antes de guardar (#958): ningún plato que choque con
   // alguien de su grupo llega a la base, lo haya puesto el motor o un atajo.
   const quitados = quitarLoQueChoca(m, { ...working, groups }, plan);
+  // Los huecos que la semana debía tener y se han quedado sin plato (#1029):
+  // el motor los tira con una nota en plan._warnings que nadie lee, y Lola
+  // decía «¡Menú listo!» con cinco vacíos. Se cuentan con lo que recibió el
+  // motor (weekData) y solo en los días que se generan. El menú se guarda
+  // igual (un hueco vacío no es un fallo total), pero se dice tal cual.
+  const esperados = huecosEsperados(weekData, { activeDays });
+  const vacios = huecosVacios(plan, esperados);
   // Un plan sin ningún plato no se guarda ni se activa: dejaría la casa sin
-  // menú y diría «generado» (#958).
-  if (!planHasDishes(plan)) {
+  // menú y diría «generado» (#958). Tampoco si TODOS los huecos esperados
+  // están vacíos: lo que tuviera estaría fuera de los días pedidos.
+  if (!planHasDishes(plan) || (esperados.length > 0 && vacios.length === esperados.length)) {
     if (out) Object.assign(out, { ok: false, aviso: "plan_vacio" });
     return "NO GUARDADO: el motor no ha podido poner ningún plato en esa semana (revisa los días elegidos y quién come). Sigue el menú de antes.";
   }
@@ -461,6 +470,9 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
     pedidos: pedidos.length ? dondeQuedaron(pedidos, plan, activeDays) : [],
     // Dónde quedó cada plato pedido («Jue-Comida»), para destacarlo al pintar.
     colocados: pedidos.map((p) => claveDelPedido(p.fijo, plan, activeDays)).filter(Boolean),
+    // Los huecos sin plato ({ grupo, dia, comida, plato }), para que la vía
+    // rápida no diga «listo» a secas (#1029).
+    huecosVacios: vacios,
   });
   await rastro(householdId, RASTRO.MENU_GENERADO, { menuId: menu.id, weekStart: startISO, weekEnd: endISO, slots: platos, pedidos: pedidos.length });
   // Qué semana ha salido, en palabras (#915): también cuando la eligió el código
@@ -468,6 +480,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   const libre = cual === "siguiente" && !desde ? " (la primera semana sin menú)" : "";
   return `Menú nuevo generado y activado: semana del ${rangoDeFechas(startISO, endISO)}${libre} (${startISO} al ${endISO}), ${platos} huecos con plato${avisos ? ` (${avisos} avisos del motor: huecos que no encajaban del todo)` : ""}.`
     + (quitados.length ? `\nSIN PONER, por seguridad (chocan con una alergia, intolerancia o dieta de alguien de su grupo; dilo así): ${quitados.join("; ")}.` : "")
+    + (vacios.length ? `\nHUECOS SIN PLATO (dilo tal cual, no lo disimules; ofrece intentarlo de otra forma o ponerles algo con cambiar_plato): ${describirHuecos(vacios)}.` : "")
     + (conservadas.length ? ` Se conserva tal cual la semana ${conservadas.join(" y ")}.` : "")
     + (presupuesto ? `\nPRESUPUESTO (dilo con estas cifras, sin redondear a favor): ${presupuesto}` : "")
     + (pedidos.length ? `\nLo que pidieron, ya puesto (no hace falta cambiar_plato):\n${dondeQuedaron(pedidos, plan, activeDays).join("\n")}` : "")
