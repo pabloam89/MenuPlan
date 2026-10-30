@@ -4928,6 +4928,20 @@ export default function App() {
     }
     const groups = gruposVigentes(data);
     const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
+    // Los platos de las OTRAS semanas del menú: rellenar solo mira la semana
+    // abierta, y sin esto cada semana salía con los mismos platos.
+    const usadosEnOtrasSemanas = new Set();
+    for (const w of Object.values(data.menus?.[data.activeMenuId]?.weeks ?? {})) {
+      if (w?.offset === data.menuWeek?.offset) continue;
+      for (const slots of Object.values(w?.plan ?? {})) {
+        if (!slots || typeof slots !== "object") continue;
+        for (const s of Object.values(slots)) {
+          for (const rid of [s?.recipeId, s?.firstRecipeId]) {
+            if (rid) usadosEnOtrasSemanas.add(String(rid).split("__").pop());
+          }
+        }
+      }
+    }
 
     const trabajo = {};
     for (const gid of Object.keys(menuPlan)) {
@@ -4978,11 +4992,11 @@ export default function App() {
           // —el mismo pool de siempre, ya filtrado— y se elige el mejor. Si
           // ninguno puntúa (despensa vacía y sin bases puestas), `mejorCandidato`
           // devuelve null y se cae al sorteo de antes.
-          const lista = pickCatalogReplacement(data, trabajo, { groupId: gid, day, meal, course, candidatos: 25 });
+          const lista = pickCatalogReplacement(data, trabajo, { groupId: gid, day, meal, course, candidatos: 25, usadosEnOtrasSemanas });
           const mejor = mejorCandidato(lista?.candidatos ?? [], { despensa, basesPuestas });
           const r = mejor
             ? pickCatalogReplacement(data, trabajo, { groupId: gid, day, meal, course, forcedRecipe: mejor })
-            : pickCatalogReplacement(data, trabajo, { groupId: gid, day, meal, course });
+            : pickCatalogReplacement(data, trabajo, { groupId: gid, day, meal, course, usadosEnOtrasSemanas });
           // Lo colocado cuenta para el siguiente hueco: si acabas de meter una
           // base, la de al lado ya prefiere compartirla.
           if (mejor) for (const b of basesDeReceta(mejor)) basesPuestas.add(b.id);
