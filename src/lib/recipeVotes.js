@@ -88,6 +88,22 @@ export function toggleRecipeVote(votes, recipeId, vote) {
   return applyEntry(votes, recipeId, nextVote, favScopeOf(cur));
 }
 
+/**
+ * Un 👍/👎 con casa (#958): la nota va a los votos de la casa (lo que usa el
+ * motor) y a los personales (lo que se guarda en recipe_votes). Lo que se
+ * guarda sale de los PERSONALES: con votosDeLaCasa los de la casa ya no llevan
+ * la favorita personal, y guardarlos habría borrado esa favorita de recipe_votes.
+ * @returns {{ casa: object, personal: object, guardar: object|null }}  `guardar`: la fila de recipe_votes (null = borrarla)
+ */
+export function votarReceta(casa, personal, recipeId, vote) {
+  const nuevoPersonal = toggleRecipeVote(personal, recipeId, vote);
+  return {
+    casa: toggleRecipeVote(casa, recipeId, vote),
+    personal: nuevoPersonal,
+    guardar: nuevoPersonal[recipeId] ?? null,
+  };
+}
+
 /** Toggle the favorite on/off (default scope "all" when turning on), preserving the rating. */
 export function toggleFavorite(votes, recipeId, defaultScope = "all") {
   const cur = votes?.[recipeId];
