@@ -1,11 +1,23 @@
 /**
- * Pruebas de conversación de Lola: ¿llama a la herramienta que toca?
+ * Pruebas de conversación de Lola: ¿llama a la herramienta que toca, con la
+ * operación que toca?
  *
  *   node scripts/bot-evals.mjs                     → todos los casos (nivel completo), ~3,5 $
- *   node scripts/bot-evals.mjs --nivel=pr          → el núcleo N1 (25 casos), ~0,6-0,8 $
- *   node scripts/bot-evals.mjs --nivel=seguridad   → los 32 de seguridad; alergias y salud k=5, el resto k=3; un fallo bloquea, ~3,2-3,4 $
+ *   node scripts/bot-evals.mjs --nivel=pr          → el núcleo N1 (26 casos), ~0,6-0,8 $
+ *   node scripts/bot-evals.mjs --nivel=seguridad   → los de seguridad; alergias y salud k=5, el resto k=3; un fallo bloquea, ~3,2-3,4 $
  *   node scripts/bot-evals.mjs alergia             → los que contengan «alergia» en el nombre o el id
  *   node scripts/bot-evals.mjs --reserva           → con el modelo del plan B (agente.js MODELO_RESERVA)
+ *   node scripts/bot-evals.mjs --modelo=haiku      → el mismo banco con otro modelo: haiku, sonnet, opus
+ *                                                    o un id completo (para decidir qué puede llevar el barato)
+ *
+ * Un caso puede llevar `espera` (trozo 29 de #1037): la operación esperada,
+ * `{ accion, parametros }` con valores cerrados, y se comprueba que esa
+ * herramienta se llamó con EXACTAMENTE esos parámetros (scripts/lib/evals.mjs,
+ * operacionExacta; `args` sigue valiendo para «contiene»). `espera.sobre`
+ * ({ origen, canal }) queda preparado para la tubería (trozo 26): hoy las
+ * herramientas de mentira devuelven texto sin sobre y no se compara.
+ * El resumen de la pasada añade el % de casos con la operación exacta, el coste
+ * medio y la latencia media por intento, y los guarda en pasadas.jsonl.
  *
  * Opciones:
  *   --tope=USD      para antes de pasarse (por defecto TOPE_PASADA_USD, nunca más
@@ -43,20 +55,26 @@ import {
   CORRECTORES, NIVELES, REINTENTOS_POR_NIVEL, SALIDA, VERSION_ESQUEMA, baseMemo, bloquea, casosDelNivel, compararEstados, elegirReferencia, ficherosDelCodigo,
   casosVersion, claveMemo, codigoHash, costeUsd, erroresDeCasos, esEstricto, estadoDe, estimadoSiguiente,
   kDe, leerJsonl, memoria, opcion, opcionEntero, opcionNumero, otroIntento, promptHash, tokensDe, topeDePasada,
-  apuntarOAvisar, puedeGastar,
+  apuntarOAvisar, puedeGastar, cifrasDePasada, memoriaDeOperacion, operacionExacta,
 } from "./lib/evals.mjs";
+// El modelo barato de la app, para --modelo=haiku: el mismo id que ya usa el enrutador de Lola.
+import { FAST_MODEL } from "../src/lib/aiModels.js";
 
 const ARGV = process.argv.slice(2);
 const SIMULADO = ARGV.includes("--simulado");
+const RESERVA = ARGV.includes("--reserva");
 const { casos } = JSON.parse(fs.readFileSync(new URL("./bot-evals.json", import.meta.url), "utf8"));
 
-let NIVEL, K, REINTENTOS, TOPE;
+let NIVEL, K, REINTENTOS, TOPE, MODELO_PEDIDO;
 try {
   NIVEL = opcion(ARGV, "nivel") ?? "completo";
   if (!NIVELES.includes(NIVEL)) throw new Error(`--nivel: ${NIVEL} no existe (${NIVELES.join(", ")})`);
   K = opcionEntero(ARGV, "k");
   REINTENTOS = opcionEntero(ARGV, "reintentos", 0) ?? REINTENTOS_POR_NIVEL[NIVEL];
   TOPE = topeDePasada(opcionNumero(ARGV, "tope"));
+  MODELO_PEDIDO = opcion(ARGV, "modelo");
+  if (MODELO_PEDIDO === "") throw new Error("--modelo necesita haiku, sonnet, opus o un id completo");
+  if (MODELO_PEDIDO && RESERVA) throw new Error("--modelo y --reserva no van juntos: uno u otro");
 } catch (e) {
   // Un --tope mal escrito no puede correr sin tope: no se corre nada.
   console.error(e.message);
@@ -85,9 +103,11 @@ const { supervisar } = await import("../api/_bot/supervisor.js");
 const { textoPista } = await import("../api/_bot/pista.js");
 const { botonRehacer, lunesDe, sumarDias } = await import("../api/_bot/semanaPedida.js");
 // Un solo modelo por pasada: sin esto, un fallo de la API caería al plan B en
-// silencio y la medida mezclaría dos modelos.
-const RESERVA = ARGV.includes("--reserva");
-const MEDIDO = SIMULADO ? "simulado" : RESERVA ? MODELO_RESERVA : MODELO;
+// silencio y la medida mezclaría dos modelos. Los nombres cortos de --modelo
+// son los ids que ya usa el bot (agente.js) o la app (aiModels.js); un id
+// completo pasa tal cual.
+const ALIAS_MODELO = { sonnet: MODELO, opus: MODELO_RESERVA, haiku: FAST_MODEL };
+const MEDIDO = SIMULADO ? "simulado" : MODELO_PEDIDO ? ALIAS_MODELO[MODELO_PEDIDO] ?? MODELO_PEDIDO : RESERVA ? MODELO_RESERVA : MODELO;
 const ESFUERZO = /haiku/.test(MEDIDO) ? "ninguno" : process.env.BOT_EFFORT || "por_defecto";
 
 const FAMILIA = "Casa de prueba: Ana (38 años), Pablo (40 años), Leo (6 años). Comida y cena todos los días. Sin alergias anotadas.";
@@ -198,6 +218,13 @@ const elegidos = casosDelNivel(casos, NIVEL).filter((c) => !filtro || normal(c.n
 // y `"esGrupo"`: las herramientas que ve Lola y la línea de la ficha salen
 // como en el bot de verdad (api/_bot/papel.js, herramientaPermitida).
 const realesDe = (caso) => herramientas({ channel: "telegram", chatId: "0", householdId: "00000000-0000-0000-0000-000000000000", autor: null, papel: caso.papel ?? "owner", esGrupo: Boolean(caso.esGrupo) });
+// Ya con las herramientas de verdad: una `espera.accion` que no existe daría
+// siempre rojo y parecería un fallo de Lola. No se corre nada.
+const conAccionRota = erroresDeCasos(casos, { acciones: (await realesDe({})).map((t) => t.name) });
+if (conAccionRota.length) {
+  console.error(`bot-evals.json espera una acción que Lola no tiene:\n  ${conAccionRota.join("\n  ")}`);
+  process.exit(SALIDA.entrada);
+}
 
 // ── Versiones: lo que lee Lola, el código que corre y los casos ──────────────
 // prompt_hash: las instrucciones (SISTEMA es conocimiento.md tal cual,
@@ -228,7 +255,9 @@ const CASOS_VERSION = casosVersion(casos);
 
 const SALIDA_DIR = join(RAIZ, ".evals-out");
 const JSONL = join(SALIDA_DIR, SIMULADO ? "bot-evals-simulado.jsonl" : "bot-evals.jsonl");
-const MEMORIA = SIN_MEMO ? new Map() : memoria(leerJsonl(JSONL));
+const GUARDADO = SIN_MEMO ? [] : leerJsonl(JSONL);
+const MEMORIA = memoria(GUARDADO);
+const MEMORIA_OPERACION = memoriaDeOperacion(GUARDADO);
 const PASADAS = join(SALIDA_DIR, SIMULADO ? "pasadas-simulado.jsonl" : "pasadas.jsonl");
 const PASADA = `${new Date().toISOString().replace(/[-:]/g, "").slice(0, 15)}-${randomUUID().slice(0, 6)}`;
 fs.mkdirSync(SALIDA_DIR, { recursive: true });
@@ -242,7 +271,7 @@ const vueltaSimulada = async () => ({
   vueltas: 1, primera: null, llamadas: [],
 });
 
-const CAMPOS_ESPERADO = ["llama", "llamaAlguna", "noLlama", "antes", "args", "noLlamaCon", "maxLlamadas", "texto", "sinTexto"];
+const CAMPOS_ESPERADO = ["llama", "llamaAlguna", "noLlama", "antes", "args", "noLlamaCon", "maxLlamadas", "texto", "sinTexto", "espera"];
 
 /** Un intento de un caso: llama a Lola y corrige con las reglas del caso. */
 async function intentar(caso) {
@@ -263,10 +292,13 @@ async function intentar(caso) {
       // última se repite): así se prueba qué dice Lola cuando algo falla.
       const propia = caso.respuestas?.[t.name];
       const vez = llamadas.filter((l) => l.nombre === t.name).length;
-      llamadas.push({ nombre: t.name, args });
-      if (propia != null) return Array.isArray(propia) ? propia[Math.min(vez, propia.length - 1)] : propia;
-      const r = RESPUESTAS[t.name];
-      return typeof r === "function" ? r(args) : r ?? `Hecho (${t.name}).`;
+      const fija = RESPUESTAS[t.name];
+      // El resultado se guarda con la llamada: cuando las herramientas devuelvan
+      // su sobre (trozo 26), operacionExacta lo compara con espera.sobre.
+      const resultado = propia != null ? (Array.isArray(propia) ? propia[Math.min(vez, propia.length - 1)] : propia)
+        : typeof fija === "function" ? fija(args) : fija ?? `Hecho (${t.name}).`;
+      llamadas.push({ nombre: t.name, args, resultado });
+      return resultado;
     },
   }));
   let dicho = "";
@@ -318,7 +350,13 @@ async function intentar(caso) {
   if (caso.maxLlamadas && llamadas.length > caso.maxLlamadas) falla("demasiadas_llamadas", `${llamadas.length} llamadas (máx ${caso.maxLlamadas})`);
   if (caso.texto && !new RegExp(caso.texto, "mi").test(dicho)) falla("texto_no_casa", `la respuesta no casa con /${caso.texto}/`);
   if (caso.sinTexto && new RegExp(caso.sinTexto, "mi").test(dicho)) falla("texto_prohibido", `la respuesta casa con /${caso.sinTexto}/ y no debía`);
-  return { aprobado: !fallos.length, fallos, nombres, dicho, uso, vueltas, ms: Date.now() - t0, coste: costeUsd(uso, MEDIDO) };
+  // La operación esperada: la acción con exactamente esos parámetros (trozo 29).
+  const operacion = caso.espera ? operacionExacta(llamadas, caso.espera) : null;
+  if (operacion && !operacion.ok) falla("operacion_no_exacta", operacion.detalle);
+  return {
+    aprobado: !fallos.length, fallos, nombres, dicho, uso, vueltas, ms: Date.now() - t0, coste: costeUsd(uso, MEDIDO),
+    operacion_exacta: operacion?.ok ?? null, sobre_comprobado: operacion?.sobre_comprobado ?? false,
+  };
 }
 
 const k1 = (n) => (n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n));
@@ -333,6 +371,11 @@ const porCaso = {};
 const inestables = [];
 let deMemoria = 0;
 const suma = { entrada: 0, salida: 0, cache_leida: 0, cache_escrita: 0, vueltas: 0 };
+// Trozo 29: los intentos pagados (coste y latencia) y, de los casos con `espera`, cuántos acertaron la operación en todos sus intentos.
+const intentosPagados = [];
+let conEspera = 0;
+let exactos = 0;
+const noExactos = [];
 
 // La referencia se elige ANTES de gastar: una --referencia que no existe no corre nada.
 let referencia = null;
@@ -362,6 +405,7 @@ for (const caso of elegidos) {
     pagados++;
     nuevos.push(r);
     tiempos.push(r.ms / 1000);
+    intentosPagados.push({ coste: r.coste, ms: r.ms });
     const t = tokensDe(r.uso);
     for (const c of Object.keys(t)) suma[c] += t[c];
     suma.vueltas += r.vueltas;
@@ -375,6 +419,7 @@ for (const caso of elegidos) {
       obtenido: { herramientas: r.nombres, respuesta: r.dicho.slice(0, 800) },
       tokens: t, vueltas: r.vueltas, llamadas_herramienta: r.nombres.length,
       coste_usd: Number(r.coste.toFixed(6)), latencia_ms: r.ms,
+      operacion_exacta: r.operacion_exacta, sobre_comprobado: r.sobre_comprobado,
     };
     fs.appendFileSync(JSONL, `${JSON.stringify(fila)}\n`);
   }
@@ -385,6 +430,13 @@ for (const caso of elegidos) {
   if (estado === "inestable") inestables.push(caso.id);
   if (bloquea(estado, estricto)) bloqueos++;
   if (!nuevos.length && previos.length) deMemoria++;
+  // Un caso con `espera` cuenta como exacto si TODOS sus intentos (de memoria y nuevos) lo fueron; sin intentos no cuenta.
+  if (caso.espera && todos.length) {
+    conEspera++;
+    const operaciones = [...(MEMORIA_OPERACION.get(claveMemo(base)) ?? []), ...nuevos.map((n) => n.operacion_exacta)];
+    if (operaciones.every((o) => o === true)) exactos++;
+    else noExactos.push(caso.id);
+  }
 
   const marca = { aprobado: "✓", inestable: "~", fallido: "✗", incompleto: "…", sin_correr: "·" }[estado];
   const ultimo = nuevos.at(-1);
@@ -404,6 +456,10 @@ const media = (x) => (pagados ? Math.round(x / pagados) : 0);
 console.log(`\n${estados.aprobado ?? 0}/${elegidos.length} bien · ~$${gastado.toFixed(3)} · mediana ${mediana.toFixed(1)} s, máx ${(orden.at(-1) ?? 0).toFixed(1)} s · ${MEDIDO}, esfuerzo ${ESFUERZO}`);
 console.log(`Estados: ${Object.entries(estados).map(([e, n]) => `${e} ${n}`).join(" · ")} · de memoria ${deMemoria} · intentos pagados ${pagados}`);
 if (pagados) console.log(`Por intento: ${media(suma.entrada)} entrada · ${media(suma.salida)} salida · ${media(suma.cache_leida)} caché leída · ${media(suma.cache_escrita)} caché escrita · ${(suma.vueltas / pagados).toFixed(2)} vueltas · $${(gastado / pagados).toFixed(4)}`);
+// Las cifras del trozo 29: % de casos con la operación exacta, coste medio y latencia media por intento pagado.
+const cifras = cifrasDePasada(intentosPagados, { conEspera, exactos });
+console.log(`Operación exacta: ${exactos}/${conEspera} casos con espera${cifras.pct_operacion_exacta == null ? "" : ` (${cifras.pct_operacion_exacta} %)`}${noExactos.length ? ` · no exactos: ${noExactos.join(", ")}` : ""}`
+  + (cifras.coste_medio_usd == null ? "" : ` · coste medio por intento $${cifras.coste_medio_usd.toFixed(4)} · latencia media ${(cifras.latencia_media_ms / 1000).toFixed(1)} s`));
 console.log(`Resultados en ${JSONL.replace(RAIZ, ".").replace(/\\/g, "/")} (pasada ${PASADA})`);
 
 // Los «~» aparte: fuera de seguridad un inestable suelto no bloquea, pero no
@@ -414,7 +470,7 @@ console.log(inestables.length ? `Inestables (${inestables.length}): ${inestables
 const resumen = {
   v: VERSION_ESQUEMA, pasada_id: PASADA, fecha: new Date().toISOString(), fecha_madrid: HOY_MADRID, nivel: NIVEL,
   modelo: MEDIDO, esfuerzo: ESFUERZO, prompt_hash: PROMPT_HASH, codigo_hash: CODIGO_HASH, casos_version: CASOS_VERSION,
-  git_sha: GIT_SHA, coste_usd: Number(gastado.toFixed(6)), parado_por_tope: paradoPorTope, estados: porCaso,
+  git_sha: GIT_SHA, coste_usd: Number(gastado.toFixed(6)), parado_por_tope: paradoPorTope, estados: porCaso, ...cifras,
 };
 let regresiones = [];
 if (!referencia) {
