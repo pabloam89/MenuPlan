@@ -1852,8 +1852,17 @@ describe("pickCatalogReplacement: los platos de otras semanas del menú no se re
     expect(despues.length).toBe(antes.length - 3);
   });
 
-  it("si todo lo demás está usado, repite en vez de dejar el hueco sin nada", () => {
-    const todos = new Set(pide().candidatos.map((r) => r.id));
-    expect(pide({ usadosEnOtrasSemanas: todos }).candidatos.length).toBeGreaterThan(0);
+  it("en desayuno, lo de otra semana baja al final y no se prohíbe", () => {
+    const desayuno = { [group.id]: { "Lun-Desayuno": { recipeId: null, eaters: 2, cleared: true } } };
+    const pideDesayuno = (extra = {}) => pickCatalogReplacement(data, desayuno, {
+      groupId: group.id, day: "Lun", meal: "Desayuno", course: "main", candidatos: 500, ...extra,
+    });
+    const antes = pideDesayuno().candidatos.map((r) => r.id);
+    expect(antes.length).toBeGreaterThan(3);
+    const usados = new Set(antes.slice(0, 2));
+    const despues = pideDesayuno({ usadosEnOtrasSemanas: usados }).candidatos.map((r) => r.id);
+    expect(despues.length).toBe(antes.length);
+    expect(despues.slice(-2).sort()).toEqual([...usados].sort());
+    for (const id of usados) expect(despues.slice(0, -2)).not.toContain(id);
   });
 });
