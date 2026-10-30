@@ -239,6 +239,20 @@ function planRecipeIds(plan, into) {
 }
 
 /**
+ * Los ids de receta de las semanas de un menú menos la que está abierta (cuyo
+ * plan vivo va aparte). Cuentan los de todos los grupos: un plato que otro
+ * grupo come otra semana también es un plato repetido para quien mira el menú.
+ */
+export function recipeIdsDeOtrasSemanas(menu, offsetAbierto) {
+  const ids = new Set();
+  for (const week of Object.values(menu?.weeks ?? {})) {
+    if (week?.offset === offsetAbierto) continue;
+    planRecipeIds(week?.plan, ids);
+  }
+  return ids;
+}
+
+/**
  * Every recipe id referenced by any week of any menú in the archive. Used to
  * prune the AI-generated recipe cache down to what's still reachable, so it
  * doesn't accumulate dishes from menús that have since been trimmed.
