@@ -69,8 +69,10 @@ export const IDIOMA = porNombre(IDIOMAS);
 // Las que el motor planifica (el aperitivo aún no): salen de comidas.js (#939).
 export const COMIDAS = COMIDAS_PLANIFICABLES;
 
+/** Cómo se sirve una comida, por nombre: dos platos o uno. */
+export const ESTRUCTURA = Object.freeze({ dosPlatos: "primero_segundo", unPlato: "1_plato" });
 /** Cómo se sirve una comida. ficha.js traduce plato_unico/unico, que no existen en producción. */
-export const ESTRUCTURA_PLATOS = ["primero_segundo", "1_plato"];
+export const ESTRUCTURA_PLATOS = Object.values(ESTRUCTURA);
 
 /** Dónde come cada uno en un hueco (horario). */
 export const DONDE_COME = ["casa", "tupper", "fuera", "cole", "off"];
