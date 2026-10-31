@@ -1,9 +1,10 @@
-// escribirDato en el servidor (plan fichas con estado, trozo 8) y su entrada
-// para la app (api/operacion.js): una operación de tipo dato a aplicar_operacion,
-// nunca al documento de la casa; si la RPC no está, no se guarda, se dice y queda
-// la línea `dato_sin_guardar` con `rpc_ausente`.
+// escribirDato en el servidor (plan fichas con estado, trozos 8 y 26) y su entrada
+// para la app (api/operacion.js): una operación de tipo dato por la tubería y su
+// puerta a aplicar_operacion, nunca al documento de la casa; si la RPC no está, no
+// se guarda, se dice y queda la línea `dato_sin_guardar` con `rpc_ausente`.
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { escribirDato, RPC_OPERACION, falloDeMotivo } from "./datos.js";
+import { escribirDato, falloDeMotivo } from "./datos.js";
+import { RPC_OPERACION } from "../../src/lib/operaciones/tuberia.js";
 import handler from "../operacion.js";
 import { HTTP_DE_FALLO } from "../../src/lib/escribirDato.js";
 import { FALLO_DATO, MOTIVOS_FALLO, FALLOS_DATO, ESTADO_OPERACION, SEXO, CANAL_DATO, REF_OPERACION } from "../../src/lib/vocabularios.js";
@@ -52,7 +53,7 @@ afterEach(() => {
 describe("escribirDato (servidor)", () => {
   it("manda una operación de un solo dato a aplicar_operacion y devuelve el resultado sin pedido ni inversa", async () => {
     responde(/rpc\/aplicar_operacion/, { status: 200, cuerpo: { ...HECHA, pedido: { datos: [DATO] }, inversa: {} } });
-    const r = await escribirDato(PEDIDO);
+    const r = await escribirDato(PEDIDO, { papel: "owner" });
     expect(llamadas).toEqual([{
       ruta: `/rest/v1/rpc/${RPC_OPERACION}`, metodo: "POST",
       cuerpo: { p_operacion: {
@@ -66,13 +67,13 @@ describe("escribirDato (servidor)", () => {
   it("lo que la RPC no escribe (sin_hacer) vuelve como no guardado, con su motivo", async () => {
     const sinHacer = [{ campo: "sexo", persona_id: "p1", motivo: "ya_lo_dijo_la_familia" }];
     responde(/rpc\/aplicar_operacion/, { status: 200, cuerpo: { ...HECHA, estado: ESTADO_OPERACION.RECHAZADA, hecho: [], sin_hacer: sinHacer } });
-    expect(await escribirDato(PEDIDO)).toMatchObject({ guardado: false, estado: "rechazada", sin_hacer: sinHacer });
+    expect(await escribirDato(PEDIDO, { papel: "owner" })).toMatchObject({ guardado: false, estado: "rechazada", sin_hacer: sinHacer });
   });
 
   it("sin la RPC (0106 sin aplicar): no se guarda, se dice rpc_ausente, queda en el log y no toca el documento", async () => {
     responde(/rpc\/aplicar_operacion/, SIN_RPC);
     const log = vi.spyOn(console, "error").mockImplementation(() => {});
-    const r = await escribirDato(PEDIDO);
+    const r = await escribirDato(PEDIDO, { papel: "owner" });
     expect(r).toEqual({ guardado: false, fallo: FALLO_DATO.RPC_AUSENTE });
     expect(lineas(log)).toEqual([{ evento: "dato_sin_guardar", fallo: "rpc_ausente", motivo: "no_existe", canal: "telegram", campo: "sexo" }]);
     expect(llamadas.map((l) => l.ruta)).toEqual([`/rest/v1/rpc/${RPC_OPERACION}`]);
@@ -82,18 +83,18 @@ describe("escribirDato (servidor)", () => {
   it("una acción con otra forma la para el CHECK de la base (23514) y vuelve invalido", async () => {
     responde(/rpc\/aplicar_operacion/, { status: 400, cuerpo: { code: "23514", message: "violates check constraint operacion_accion_forma" } });
     vi.spyOn(console, "error").mockImplementation(() => {});
-    expect(await escribirDato({ ...PEDIDO, accion: "Ver Ajustes" })).toEqual({ guardado: false, fallo: FALLO_DATO.INVALIDO });
+    expect(await escribirDato({ ...PEDIDO, accion: "Ver Ajustes" }, { papel: "owner" })).toEqual({ guardado: false, fallo: FALLO_DATO.INVALIDO });
   });
 
   it("un autor que no es de la casa (42501) da sin_permiso", async () => {
     responde(/rpc\/aplicar_operacion/, { status: 403, cuerpo: { code: "42501", message: "aplicar_operacion: el autor no es de esta casa" } });
     vi.spyOn(console, "error").mockImplementation(() => {});
-    expect(await escribirDato(PEDIDO)).toEqual({ guardado: false, fallo: FALLO_DATO.SIN_PERMISO });
+    expect(await escribirDato(PEDIDO, { papel: "owner" })).toEqual({ guardado: false, fallo: FALLO_DATO.SIN_PERMISO });
   });
 
   it("un dato mal hecho no sale hacia la base", async () => {
     const log = vi.spyOn(console, "error").mockImplementation(() => {});
-    const r = await escribirDato({ ...PEDIDO, dato: { ...DATO, valor: "otro_valor" } });
+    const r = await escribirDato({ ...PEDIDO, dato: { ...DATO, valor: "otro_valor" } }, { papel: "owner" });
     expect(r).toMatchObject({ guardado: false, fallo: FALLO_DATO.INVALIDO });
     expect(llamadas).toEqual([]);
     expect(lineas(log)).toHaveLength(1);
@@ -141,13 +142,17 @@ describe("api/operacion.js: la app propone, el servidor escribe", () => {
     expect(op.clave).toBe(`app:${CLAVE_APP}`);
   });
 
-  it("desde la app solo hablan personas: un origen del sistema (supuesto) lo para la puerta y no llega a la base", async () => {
+  // Lo que para la puerta no llega como dato: va a aplicar_operacion solo para apuntarse rechazado, sin el valor.
+  const rechazos = () => llamadas.filter((l) => l.ruta.includes("rpc/")).map((l) => l.cuerpo.p_operacion);
+
+  it("desde la app solo hablan personas: un origen del sistema (supuesto) lo para la puerta y no llega como dato", async () => {
     responde(/household_members/, { status: 200, cuerpo: [{ role: "owner", user_id: "u1" }] });
     vi.spyOn(console, "error").mockImplementation(() => {});
     const res = await pedir({ body: { ...CUERPO, dato: { ...DATO, origen: "supuesto" } } });
     expect(res.codigo).toBe(400);
     expect(res.body).toEqual({ fallo: FALLO_DATO.INVALIDO, error: "origen_no_vale" });
-    expect(llamadas.filter((l) => l.ruta.includes("rpc/"))).toEqual([]);
+    expect(rechazos()).toMatchObject([{ estado: ESTADO_OPERACION.RECHAZADA, sin_hacer: [{ motivo: "origen_no_vale", campo: "sexo" }] }]);
+    expect(rechazos()[0].pedido.datos[0]).not.toHaveProperty("valor");
   });
 
   it("una clave que no es un uuid, o un cuerpo sin dato, se contestan con invalido y no llegan a la RPC", async () => {
@@ -158,16 +163,16 @@ describe("api/operacion.js: la app propone, el servidor escribe", () => {
     expect(llamadas.filter((l) => l.ruta.includes("rpc/"))).toEqual([]);
   });
 
-  it("un lector no escribe datos de la casa", async () => {
+  it("un lector no escribe datos de la casa: la puerta lo para y queda apuntado como rechazado", async () => {
     responde(/household_members/, { status: 200, cuerpo: [{ role: "viewer", user_id: "u1" }] });
     vi.spyOn(console, "error").mockImplementation(() => {});
     const res = await pedir({ body: CUERPO });
     expect(res.codigo).toBe(403);
     expect(res.body).toEqual({ fallo: FALLO_DATO.SIN_PERMISO, error: "sin_permiso" });
-    expect(llamadas.filter((l) => l.ruta.includes("rpc/"))).toEqual([]);
+    expect(rechazos()).toMatchObject([{ estado: ESTADO_OPERACION.RECHAZADA, sin_hacer: [{ motivo: "sin_permiso" }] }]);
   });
 
-  it("quien no es de la casa no escribe", async () => {
+  it("quien no es de la casa no escribe, ni queda apuntado (la base no acepta autores de fuera)", async () => {
     responde(/household_members/, { status: 200, cuerpo: [] });
     vi.spyOn(console, "error").mockImplementation(() => {});
     const res = await pedir({ body: CUERPO });
