@@ -104,7 +104,7 @@ export async function deshacer({ casa, operacion_id, canal, autor = {} }, { pape
   // Entender: solo se deshace lo propio, así que sin quién lo pide no hay nada que deshacer.
   const falta = !casa ? "casa" : !operacion_id ? "operacion_id" : !autor_user_id ? "autor" : null;
   if (falta) {
-    apuntarSinGuardar({ fallo: FALLO_DATO.INVALIDO, motivo: `falta_${falta}`, canal: canal ?? null });
+    apuntarSinGuardar({ fallo: FALLO_DATO.INVALIDO, canal: canal ?? null, campo: falta });
     return { guardado: false, fallo: FALLO_DATO.INVALIDO, error: `falta ${falta}` };
   }
   // Comprobar: la puerta de escribir, sin datos (papel y quién habla).

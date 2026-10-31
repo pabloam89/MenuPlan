@@ -132,6 +132,6 @@ describe("tubería: deshacer una operación (trozo 41)", () => {
     const r = await deshacer({ ...DESHACER, canal: CANAL_DATO.SISTEMA, autor: {} }, servidor(null));
     expect(r).toMatchObject({ guardado: false, fallo: FALLO_DATO.INVALIDO });
     expect(llegan).toEqual([]);
-    expect(lineas(log)).toEqual([{ evento: "dato_sin_guardar", fallo: "invalido", motivo: "falta_autor", canal: "sistema", campo: null }]);
+    expect(lineas(log)).toEqual([{ evento: "dato_sin_guardar", fallo: "invalido", motivo: null, canal: "sistema", campo: "autor" }]);
   });
 });
