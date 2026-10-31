@@ -42,6 +42,7 @@ import { conRecordatorioDeSilencio } from "../../src/lib/alergiasBase.js";
 import { apuntarRecordatorio } from "./silencio.js";
 import { listaParaEscribir } from "../../src/lib/vocabularios.js";
 import { conMarcas, claveArticulo } from "../../src/lib/compraIdentidad.js";
+import { resultado } from "./resultado.js";
 
 const hoyISO = () => isoDeCasa();
 
@@ -262,14 +263,45 @@ export function preguntaPorMinimos(faltan) {
   return `NO GENERADO: falta ${lista(faltan.map((f) => f.minimo))}.`;
 }
 
+/**
+ * Por qué no se ha generado, para el recibo que ve la familia: una frase
+ * corta por clase. El detalle lo lee el modelo en la nota del resultado.
+ */
+export const SIN_GENERAR = Object.freeze({
+  CASA: "faltan datos de la casa",
+  SEMANA: "esa semana ya tiene menú o no se puede generar",
+  MINIMOS: "falta saber algo de la casa antes (alergias)",
+  VACIO: "no ha salido ningún plato",
+  NO_GUARDADO: "no se ha podido guardar",
+});
+
+/**
+ * El RESULTADO de generar_menu (resultado.js, trozo 27 de #1037), de lo que
+ * `generarMenu` deja en `out`: la semana guardada, y los huecos que se han
+ * quedado sin plato o sin el plato por seguridad; o, si no se generó, por qué.
+ * `texto`, lo que devolvió, va de nota para el modelo.
+ */
+export function resultadoDeGenerar(out, texto) {
+  if (!out?.ok) return resultado({ accion: "menu", sinHacer: [{ que: "el menú", motivo: out?.motivo ?? SIN_GENERAR.NO_GUARDADO }], nota: texto });
+  const sinHacer = [
+    ...(out.huecosVacios ?? []).map((h) => ({ que: describirHuecos([h]), motivo: "ningún plato encaja" })),
+    ...(out.quitados ?? []).map((que) => ({ que, motivo: "quitado por seguridad: choca con alguien" })),
+  ];
+  return resultado({ accion: "menu", hecho: [`semana del ${rangoDeFechas(out.desde, out.hasta)} (${out.platos} ${out.platos === 1 ? "plato" : "platos"})`], sinHacer, nota: texto });
+}
+
+// `out` se rellena siempre (ok, motivo y lo generado): de ahí sale el resultado.
 export async function generarMenu(householdId, cual = "esta", fijos = [], out = null, { desde = null, rehacer = false } = {}) {
+  out ??= {};
+  // Una salida sin generar: el motivo para el recibo y el texto para Lola.
+  const noGenerado = (motivo, texto, extra = {}) => { Object.assign(out, { ok: false, motivo, ...extra }); return texto; };
   const casa = await cargarCasa(householdId);
-  if (!casa) return "Esta casa todavía no tiene datos en la nube.";
+  if (!casa) return noGenerado(SIN_GENERAR.CASA, "Esta casa todavía no tiene datos en la nube.");
   // Qué semana, antes de gastar motor: una que ya tiene menú no se rehace en
   // silencio (#905) y rehacer la de hoy no toca hoy ni lo pasado (#907).
   const pedida = resolverSemana({ cual, desde, rehacer, semanas: casa.menu ? casa.semanas : [], hoy: hoyISO() });
   if (pedida.aviso) {
-    if (out) Object.assign(out, { ok: false, aviso: pedida.aviso });
+    Object.assign(out, { ok: false, aviso: pedida.aviso, motivo: SIN_GENERAR.SEMANA });
     return pedida.aviso;
   }
   const m = await motor();
@@ -297,14 +329,14 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   const modelo = working.menuModel ?? "same";
   // Rehechos, heredan el id de los de antes por su papel (Adultos → Familia).
   if (miembros.length && (!groups.length || !conGente(groups))) groups = m.groupsFromModel(miembros, modelo, working.groups ?? []);
-  if (!groups.length || !conGente(groups)) return "Antes de generar necesito saber quién come en casa: añade al menos una persona.";
+  if (!groups.length || !conGente(groups)) return noGenerado(SIN_GENERAR.CASA, "Antes de generar necesito saber quién come en casa: añade al menos una persona.");
   // Sin saber las alergias de alguien no se genera: se pregunta antes (trozo 2
   // de #1037, decidido por Pablo el 30 oct 2026; revierte #107). Esquivar los
   // 14 alérgenos dejaba 27 recetas y la semana con huecos (#1029). El silencio
   // tras el aviso ya cuenta como revisado (silencioDelTurno corre antes).
   const faltan = minimosQueFaltan(working);
   if (faltan.length) {
-    if (out) Object.assign(out, { ok: false, aviso: "faltan_minimos", faltan });
+    Object.assign(out, { ok: false, aviso: "faltan_minimos", faltan, motivo: SIN_GENERAR.MINIMOS });
     return preguntaPorMinimos(faltan);
   }
 
@@ -353,7 +385,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   // menú y diría «generado» (#958). Tampoco si TODOS los huecos esperados
   // están vacíos: lo que tuviera estaría fuera de los días pedidos.
   if (!planHasDishes(plan) || (esperados.length > 0 && vacios.length === esperados.length)) {
-    if (out) Object.assign(out, { ok: false, aviso: "plan_vacio" });
+    Object.assign(out, { ok: false, aviso: "plan_vacio", motivo: SIN_GENERAR.VACIO });
     return "NO GUARDADO: el motor no ha podido poner ningún plato en esa semana (revisa los días elegidos y quién come). Sigue el menú de antes.";
   }
   const sh = m.buildShoppingList(plan, groups, m.getDayMeals(weekData), despensa);
@@ -370,7 +402,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   // si todo entra, se activa. Un menú a medias nunca queda activo.
   const [hogar] = await select("households", `id=${eq(householdId)}`, "owner_user_id");
   const dueno = hogar?.owner_user_id;
-  if (!dueno) return "No encuentro quién gestiona esta casa.";
+  if (!dueno) return noGenerado(SIN_GENERAR.CASA, "No encuentro quién gestiona esta casa.");
   const previos = await select("user_menus", `household_id=${eq(householdId)}&limit=1`, "id");
 
   // Las otras semanas del menú activo que no han pasado y no chocan con la
@@ -468,7 +500,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
     // activado» aunque la casa no se hubiera guardado).
     console.error("[generar] no se activó", r.error);
     await borrarMenu(householdId, menu.id).catch((e) => console.error("[generar] borrar el menú a medias", e?.message));
-    if (out) out.ok = false;
+    Object.assign(out, { ok: false, motivo: SIN_GENERAR.NO_GUARDADO });
     return `NO GUARDADO: el menú no se ha podido guardar (${r.error === "conflicto persistente" ? "otros cambios en la casa a la vez" : r.error}). Sigue el menú de antes. Se puede volver a intentar.`;
   }
 
@@ -486,8 +518,8 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   // menú con salmón un día» tardaba casi un minuto en seis vueltas.
   const semana = await describirMenu({ ...casa, menu: null, semanas: null, semana: { plan, weekStart: startISO, weekEnd: endISO, activeDays, startDayIdx, shopping } }).catch(fallaCon("generar_describir", ""));
   // Para la vía rápida del enrutador (api/_bot/turno.js): lo generado, en datos.
-  if (out) Object.assign(out, {
-    ok: true, desde: startISO, hasta: endISO, platos, avisos, conservadas, recordarSilencio, presupuesto,
+  Object.assign(out, {
+    ok: true, desde: startISO, hasta: endISO, platos, avisos, conservadas, recordarSilencio, presupuesto, quitados,
     pedidos: pedidos.length ? dondeQuedaron(pedidos, plan, activeDays) : [],
     // Dónde quedó cada plato pedido («Jue-Comida»), para destacarlo al pintar.
     colocados: pedidos.map((p) => claveDelPedido(p.fijo, plan, activeDays)).filter(Boolean),

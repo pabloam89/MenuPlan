@@ -21,11 +21,11 @@ import { cargarCasa, deshacer, hoyISO, apuntarOperacion } from "./casa.js";
 import {
   describirCasa, describirReceta, describirCompra,
   marcarCompra, anadirCompra, quitarCompra, cambiarPlato, proponerPlatos, diaDe, franjaDe,
-  rangosDelMenu,
+  rangosDelMenu, resultadoDeCambio, resultadoDeAnadir, SIN_CAMBIAR,
   apuntarAusencia,
 } from "./menu.js";
 import { ESQUEMA_RASGOS, ESQUEMA_EJES, ESQUEMA_PERFIL } from "./esquemas.js";
-import { generarMenu } from "./generar.js";
+import { generarMenu, resultadoDeGenerar } from "./generar.js";
 import { esBotonRehacer, desdeDelBoton } from "./semanaPedida.js";
 import { isoDeCasa } from "../../src/lib/dias.js";
 import { avisoVispera } from "./vispera.js";
@@ -72,7 +72,7 @@ import { ENUMS as ENUMS_TAREAS } from "../../src/lib/registroTareas.js";
 import { tareasV2 } from "./idempotencia.js";
 import { apuntarSilencio, conRecordatorio, NOTA_RECORDATORIO } from "./silencio.js";
 import { usoParcialDe, sumarUsos } from "./medidaTurno.js";
-import { esResultado, paraElModelo, conRecibo, recibo, cuentaComoGuardado } from "./resultado.js";
+import { esResultado, paraElModelo, conRecibo, recibo, cuentaComoGuardado, exigeResultado, SIN_RESULTADO } from "./resultado.js";
 import { operacion, claveDeEscritura, tipoDeHerramienta, YA_ESCRITA, SIN_COMPROBAR } from "./operacion.js";
 import { primeraVez, yaVista } from "./entradas.js";
 
@@ -315,7 +315,14 @@ export async function herramientas(chat) {
         // Un RESULTADO (resultado.js, #958): lo hecho y lo que no, con forma
         // fija. El recibo que ve la familia sale de aquí, no del texto de Lola,
         // y un resultado sin nada hecho no cuenta como guardado.
-        if (cuentaComoGuardado(escribio, r)) chat.guardados = (chat.guardados ?? 0) + 1;
+        // La puerta (trozo 27 de #1037): la que escribe datos de la ficha y no
+        // lo trae no cuenta como guardado, aunque escribiera, y es un fallo.
+        const rechazado = sinResultado(t, r);
+        if (rechazado) {
+          // a propósito: el evento vale más sin dueño que perdido
+          await registrar(FALLO_HERRAMIENTA, { userId: await duenoDe(chat.householdId).catch(seguirCon("agente_dueno", null)), extra: { herramienta: t.name, error: "sin_resultado", escribio, texto: String(r ?? "").slice(0, 200), esGrupo: Boolean(chat.esGrupo) } });
+        }
+        if (!rechazado && cuentaComoGuardado(escribio, r)) chat.guardados = (chat.guardados ?? 0) + 1;
         if (esResultado(r)) (chat.resultados ??= []).push(r);
         if (op && escribio) {
           if (clave) await primeraVez(CANAL.TELEGRAM, clave);
@@ -327,7 +334,8 @@ export async function herramientas(chat) {
         if (t.name === "cambiar_plato" && args.dia) tocado.dias.add(diaDe(args.dia) ?? String(args.dia).toLowerCase());
         const ir = (SOLO_LECTURA.has(t.name) && !chat.nadaQueVer) || escribio ? pantallaDe(t.name, args) : null;
         if (ir) chat.ir = ir;
-        return esResultado(r) ? paraElModelo(r) : r;
+        if (esResultado(r)) return paraElModelo(r);
+        return rechazado ? `${r ?? ""}\n${SIN_RESULTADO}` : r;
       } catch (e) {
         // a propósito: el evento vale más sin dueño que perdido
         await registrar(FALLO_HERRAMIENTA, { userId: await duenoDe(chat.householdId).catch(seguirCon("agente_dueno", null)), extra: { herramienta: t.name, error: String(e?.message ?? e).slice(0, 300), esGrupo: Boolean(chat.esGrupo) } });
@@ -783,7 +791,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
         const texto = await generarMenu(householdId, semana, fijos ?? [], out, { desde: delBoton ?? desde ?? null, rehacer: Boolean(rehacer) || Boolean(delBoton) });
         if (out.ok) pintarTambien(chat, filtrosTrasGenerar(out));
         if (out.recordarSilencio) chat.recordarSilencio = true;
-        return out.recordarSilencio ? `${texto}\n${NOTA_RECORDATORIO}` : texto;
+        return resultadoDeGenerar(out, out.recordarSilencio ? `${texto}\n${NOTA_RECORDATORIO}` : texto);
       },
     }),
   ];
@@ -895,7 +903,10 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
         required: ["productos"],
         additionalProperties: false,
       },
-      run: ({ productos }) => anadirCompra(householdId, productos),
+      run: async ({ productos }) => {
+        const out = {};
+        return resultadoDeAnadir(out, productos, await anadirCompra(householdId, productos, out));
+      },
     }),
     // Quitar de la lista (#958): no había herramienta, y Lola lo marcaba como
     // comprado o decía que lo había quitado sin quitarlo.
@@ -981,13 +992,14 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
         required: ["dia", "comida"],
         additionalProperties: false,
       },
-      run: ({ dia, semana: cual_semana, comida, grupo, cual, receta, rasgos, ejes, perfil, de_fuera }) => {
+      run: async ({ dia, semana: cual_semana, comida, grupo, cual, receta, rasgos, ejes, perfil, de_fuera }) => {
         const f = franjaDe(comida);
-        if (!f) return `No entiendo qué comida es («${comida}»).`;
+        if (!f) return resultadoDeCambio({ motivo: SIN_CAMBIAR.COMIDA }, `No entiendo qué comida es («${comida}»).`, { dia, franja: comida });
         // El día cambiado sale pintado debajo, con el plato nuevo destacado.
         const out = {};
-        return cambiarPlato(householdId, { dia, semana: cual_semana, franja: f, grupo, cual, receta: receta || null, rasgos: rasgos || null, ejes: ejes ?? null, perfil: perfil || null, deFuera: de_fuera || null }, fotos, out)
-          .then((t) => { if (out.cambiado) pintarTambien(chat, filtrosTrasCambiar(out)); return t; });
+        const texto = await cambiarPlato(householdId, { dia, semana: cual_semana, franja: f, grupo, cual, receta: receta || null, rasgos: rasgos || null, ejes: ejes ?? null, perfil: perfil || null, deFuera: de_fuera || null }, fotos, out);
+        if (out.cambiado) pintarTambien(chat, filtrosTrasCambiar(out));
+        return resultadoDeCambio(out, texto, { dia, franja: f });
       },
     }),
   ];
@@ -1734,6 +1746,22 @@ export const FICHAS = new Map(todasLasHerramientas({}, "").map((t) => [t.name, t
 
 // Las que no cambian nada: pueden correr antes de saber de quién es el turno.
 export const SOLO_LECTURA = new Set([...FICHAS].filter(([, f]) => f.soloLectura).map(([n]) => n));
+
+/**
+ * Las que escriben datos de la ficha y aún devuelven texto, no un RESULTADO
+ * (trozo 27 de #1037): la puerta no las rechaza todavía. Lista cerrada que
+ * solo baja (resultadoObligatorio.test.js): cada una sale de aquí cuando
+ * devuelve su resultado en todos sus caminos.
+ */
+export const SIN_RESULTADO_TODAVIA = new Set([
+  "guardar_receta", "guardar_menu_cole", "ajustar_gustos", "descartar_supuesto", "ajustar_cocina", "ajustar_compra",
+  "ajustar_extras", "ajustar_semana", "ajustar_uso_despensa", "pedir_tanda", "ajustar_horario", "anadir_invitado",
+  "anadir_comensal", "ajustar_persona", "ajustar_menu_peques", "quitar_comensal", "ajustar_alergias", "ajustar_salud",
+  "fuera_de_casa",
+]);
+
+/** ¿La puerta rechaza lo que ha devuelto esta herramienta? Escribe datos de la ficha y no trae un RESULTADO. */
+export const sinResultado = (t, r) => exigeResultado(t[FICHA] ?? FICHAS.get(t.name)) && !SIN_RESULTADO_TODAVIA.has(t.name) && !esResultado(r);
 
 export const AVISO_LENTO = Object.fromEntries([...FICHAS].filter(([, f]) => f.avisoLento).map(([n, f]) => [n, f.avisoLento]));
 

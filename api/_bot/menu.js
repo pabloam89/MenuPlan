@@ -455,6 +455,18 @@ export async function marcarCompra(householdId, productos, estado, out = null, {
   ].filter(Boolean).join("\n") || "No había lista de la compra.";
 }
 
+/**
+ * El RESULTADO de anadir_compra (trozo 27 de #1037), de lo que `anadirCompra`
+ * deja en `out`: lo que queda pedido en la lista (nuevo, devuelto o que ya
+ * estaba). Si no se guardó, todo lo pedido va a «sin hacer». `texto`, lo que
+ * devolvió, va de nota para el modelo.
+ */
+export function resultadoDeAnadir(out, productos = [], texto = "") {
+  const hecho = out?.ok ? [...(out.nuevos ?? []), ...(out.devueltos ?? []).map((x) => `${x} (estaba tachado)`), ...(out.yaEstaban ?? []).map((x) => `${x} (ya estaba)`)] : [];
+  const motivo = out?.ok ? "no es un producto" : "no se ha podido guardar la lista";
+  return resultadoDeEscritura({ accion: "compra_anadir", hecho, sinHacer: hecho.length ? [] : productos.map((que) => ({ que, motivo })), nota: texto });
+}
+
 // Lo que ya está en la lista no se duplica (compraIdentidad.js, #958): si
 // estaba pendiente se deja, y si estaba tachado o «en casa», vuelve a pedirse.
 export async function anadirCompra(householdId, productos, out = null) {
@@ -1098,6 +1110,39 @@ export async function ideasSinMenu(casa, { diaPedido, franja, grupo, para = null
 }
 
 /**
+ * Por qué no se ha cambiado un plato, para el recibo que ve la familia: una
+ * frase corta por clase de fallo. El detalle (quién choca, qué día) lo lee el
+ * modelo en la nota del resultado.
+ */
+export const SIN_CAMBIAR = Object.freeze({
+  COMIDA: "no sé qué comida es",
+  DIA: "no está claro el día, o ese día no tiene menú",
+  HUECO: "ese hueco no está en el menú",
+  NADA_PARECIDO: "no hay nada parecido que encaje",
+  NO_CUMPLE: "ninguna receta cumple lo pedido",
+  SEGURIDAD: "choca con una alergia o dieta de alguien",
+  SIN_CANDIDATAS: "no hay otro plato que encaje",
+  NO_GUARDADO: "no se ha podido guardar",
+});
+
+/**
+ * El RESULTADO de cambiar_plato (resultado.js, trozo 27 de #1037), de lo que
+ * `cambiarPlato` deja en `out`: lo cambiado de verdad y quién se queda con lo
+ * suyo; o, si no se cambió nada, el hueco pedido y por qué. `texto`, lo que
+ * devolvió, va de nota para el modelo.
+ */
+export function resultadoDeCambio(out, texto, { dia = null, franja = null } = {}) {
+  if (!out?.cambiado) {
+    const que = [franja ? String(franja).toLowerCase() : "el plato", dia ? `del ${dia}` : ""].filter(Boolean).join(" ");
+    return resultadoDeEscritura({ accion: "plato", sinHacer: [{ que, motivo: out?.motivo ?? SIN_CAMBIAR.NO_GUARDADO }], nota: texto });
+  }
+  const donde = `${fechaCorta(out.fecha)}, ${String(out.franja).toLowerCase()}`;
+  const hecho = out.anadido ? `${donde}: de primero ${out.despues}` : `${donde}: ${out.despues}${out.antes ? ` (antes ${out.antes})` : ""}`;
+  const sinHacer = (out.sinCambiar ?? []).map((q) => ({ que: `${donde} para ${q}`, motivo: "no encaja con sus alergias o su etapa: se queda con lo suyo" }));
+  return resultadoDeEscritura({ accion: "plato", hecho: [hecho], sinHacer, nota: texto });
+}
+
+/**
  * Cambia el plato de un hueco con el mismo motor que la app
  * (`pickCatalogReplacement`), y rehace la compra conservando lo ya marcado.
  *
@@ -1109,15 +1154,17 @@ export async function ideasSinMenu(casa, { diaPedido, franja, grupo, para = null
 // lo pone quien sabe por qué se cambia: la elección de una opción, «elige tú».
 export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja, grupo, cual = "principal", receta = null, motivo = null, rasgos = null, ejes = null, perfil = null, deFuera = null }, fotos = null, out = null) {
   let texto = "";
+  // Por qué no se ha cambiado, en vocabulario cerrado (SIN_CAMBIAR): el recibo.
+  let motivoSin = null;
   const rf = restriccionesDeFuera(deFuera);
   // Lo que se ha cambiado, para el rastro (src/lib/rastro.js), una fila por grupo.
   const cambios = [];
   const r = await conCasa(householdId, async (cargada) => {
     const rd = resolverDia(cargada, diaPedido, semana, { escribe: true });
-    if (rd.error) { texto = rd.error; return null; }
+    if (rd.error) { texto = rd.error; motivoSin = SIN_CAMBIAR.DIA; return null; }
     const { casa, dia, fecha } = rd;
     const h = huecoDe(casa, { dia, franja, grupo, cual });
-    if (h.error) { texto = h.error; return null; }
+    if (h.error) { texto = h.error; motivoSin = SIN_CAMBIAR.HUECO; return null; }
     const { gs, g, clave, hueco, course, anadir } = h;
     const m = await prepararRecetas(casa);
     const data = casa.state?.data ?? {};
@@ -1137,7 +1184,7 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
         forcedRecipe = masParecida(grande?.candidatos ?? [], receta);
         aproximada = !!forcedRecipe;
       }
-      if (!forcedRecipe) { texto = `No hay nada parecido a «${receta}» que encaje en ese hueco (por alergias, tiempo o porque ya está en la semana). Pide opciones con proponer_platos.`; return null; }
+      if (!forcedRecipe) { texto = `No hay nada parecido a «${receta}» que encaje en ese hueco (por alergias, tiempo o porque ya está en la semana). Pide opciones con proponer_platos.`; motivoSin = SIN_CAMBIAR.NADA_PARECIDO; return null; }
     }
     const pideEjes = normalizarEjes(ejes);
     if (!receta && (rasgos || pideEjes.pedidos.length || pideEjes.invalidos || perfil)) {
@@ -1146,7 +1193,7 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
       const base = baseDelHueco(m, hueco, course, nut);
       const filtro = filtrarCandidatas(pool?.candidatos ?? [], { rasgos, ejes, perfil, cual: course === "first" ? "primero" : "principal" }, base, nut);
       // Un cambio solo se hace si lo pedido se cumple de verdad: si no, el aviso tal cual.
-      if (!filtro.exacto || !filtro.lista.length) { texto = `${filtro.aviso ?? "(Ninguna cumple lo que pides.)"} No he cambiado nada: ofrece opciones con proponer_platos.`; return null; }
+      if (!filtro.exacto || !filtro.lista.length) { texto = `${filtro.aviso ?? "(Ninguna cumple lo que pides.)"} No he cambiado nada: ofrece opciones con proponer_platos.`; motivoSin = SIN_CAMBIAR.NO_CUMPLE; return null; }
       const entre = candidatasParaCambiar(filtro, { perfil });
       forcedRecipe = entre[Math.floor(Math.random() * entre.length)];
       if (pideEjes.pedidos.length && !base) notaEjes = " No había plato en ese hueco con el que comparar: he puesto una de las que más se ajustan a lo pedido. Dilo así.";
@@ -1156,10 +1203,11 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
     if (forcedRecipe && m.chocaConElGrupo?.(forcedRecipe, paraElegir, g, franja)) {
       const quien = (m.choquesDeReceta?.(forcedRecipe, { ...paraElegir, members: m.membersOfGroup(g, paraElegir.members ?? []) }) ?? []).filter((c) => !c.adapta);
       texto = `NO CAMBIADO, por seguridad: «${forcedRecipe.name}» choca con ${quien.length ? quien.map((c) => `${c.etiqueta.toLowerCase()} (${c.quien.join(", ")})`).join(", ") : "una restricción de alguien de la casa"}. Ofrece otro plato.`;
+      motivoSin = SIN_CAMBIAR.SEGURIDAD;
       return null;
     }
     const elegido = m.pickCatalogReplacement(paraElegir, casa.semana.plan, { hoy: hoyISO(), groupId: g.id, day: dia, meal: franja, course, forcedRecipe });
-    if (!elegido?.recipeId) { texto = "No he encontrado otro plato que encaje en ese hueco con vuestras preferencias."; return null; }
+    if (!elegido?.recipeId) { texto = "No he encontrado otro plato que encaje en ese hueco con vuestras preferencias."; motivoSin = SIN_CAMBIAR.SIN_CANDIDATAS; return null; }
     const antes = m.RECIPES_BY_ID[course === "first" ? hueco.firstRecipeId : hueco.recipeId]?.name;
     m.registerRecipes([elegido.frontendRecipe]);
 
@@ -1234,7 +1282,7 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
   });
   // Si no se ha guardado, no ha cambiado nada (y no se pinta como cambiado).
   if (out && !r.ok) out.cambiado = false;
-  if (out && !out.cambiado) out.error = r.ok ? texto : `No he podido guardar el cambio: ${r.error}.`;
+  if (out && !out.cambiado) Object.assign(out, { error: r.ok ? texto : `No he podido guardar el cambio: ${r.error}.`, motivo: r.ok ? motivoSin : SIN_CAMBIAR.NO_GUARDADO });
   if (!r.ok) return `No he podido guardar el cambio: ${r.error}.`;
   const porque = motivo ?? (receta ? MOTIVO_CAMBIO.PEDIDO : MOTIVO_CAMBIO.OTRO);
   for (const c of cambios) await rastro(householdId, RASTRO.PLATO_CAMBIADO, { ...c, motivo: porque });
