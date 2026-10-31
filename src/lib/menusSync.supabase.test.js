@@ -300,6 +300,20 @@ describe("queueSaveMenuWeek espera a que el menú recién generado esté subido 
   });
 });
 
+describe("el resultado de saveAndActivateMenu (mocked client)", () => {
+  it("no rechaza si una semana no se puede montar", async () => {
+    Object.assign(supabase, mockClient({}));
+    const r = await saveAndActivateMenu("user-1", { id: "m", weeks: { "2026-10-26": { days: ["Nada"] } } }, []);
+    expect(r.ok).toBe(false);
+  });
+
+  it("dice que falló si no se pudo activar", async () => {
+    Object.assign(supabase, mockClient({ __rpc: [{ error: { message: "no" } }] }));
+    const r = await saveAndActivateMenu("user-1", { id: "m", weeks: {} }, []);
+    expect(r.ok).toBe(false);
+  });
+});
+
 describe("deactivateMenu (mocked client)", () => {
   it("deja el menú inactivo, solo en su casa", async () => {
     const client = mockClient({ user_menus: [{ data: null, error: null }] });
