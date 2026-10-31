@@ -13,7 +13,7 @@ const ESCRITORAS_TUBERIA = Object.freeze({
 });
 
 /** Heredadas: escriben fichas fuera de la tubería, y quién las retira. */
-const ESCRITORAS_HEREDADAS = Object.freeze({
+export const ESCRITORAS_HEREDADAS = Object.freeze({
   persona_sincronizar_casa: "heredada (0081-0082): la retira la 0108, trozo 10",
   persona_reemplazar_casa: "heredada (0079; delega en persona_sincronizar_casa): la retira la 0108, trozo 10",
   _personas_al_guardar: "heredada: disparador de household_state (0089) que copia members a persona_*; lo retira la 0108, trozo 10",

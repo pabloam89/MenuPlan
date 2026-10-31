@@ -27,7 +27,7 @@ import { cargaMedida } from "./medidaTurno.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, COMIDAS, comidaDe } from "../../src/lib/comidas.js";
 import { PICANTE_PEDIDO } from "../../src/data/recipeSchema.js";
 import { DIAS, DIA_LARGO_MINUSCULAS as DIA_LARGO, diaDeISO, hoyDeCasa } from "../../src/lib/dias.js";
-import { diaDeSemana, fechaDe, fechasDeLista, fechaConMenu, sumarDias, lunesDe, lunesDeSemana, buscarPersona, personasDe, grupoDePersonas, esPareja, normal, escapar, fechaCorta } from "./interprete.js";
+import { diaDe, fechaDelMenu, fechasDeLista, sumarDias, lunesDe, lunesDeSemana, buscarPersona, personasDe, grupoDePersonas, esPareja, normal, escapar, fechaCorta } from "./interprete.js";
 import { RASTRO, MOTIVO_CAMBIO, idBase } from "../../src/lib/rastro.js";
 import { restriccionesDeFuera, conQuienViene, describirDeFuera } from "./deFuera.js";
 import { EJE_POR_ID, puedeResponder } from "../../src/data/axisRegistry.js";
@@ -107,18 +107,6 @@ const FRANJAS = IDS_COMIDAS;
 // regex) viven en el intérprete: una sola copia (#967, C8).
 export { normal };
 
-/**
- * «martes», «mar», «hoy», «mañana», «el 15» → "Mar": solo el día de la
- * semana (la pantalla, las claves del plan). La fecha concreta la da
- * `resolverDia`. Las dos salen del intérprete (interprete.js, #958).
- */
-export function diaDe(texto) {
-  const d = diaDeSemana(texto);
-  if (d) return d;
-  const r = fechaDe(texto, { hoy: hoyISO() });
-  return r.fecha ? diaDeFecha(r.fecha) : null;
-}
-
 /** El día de hoy en España, con las claves de la app. */
 export function hoy() {
   return hoyDeCasa().dia;
@@ -140,29 +128,15 @@ export function rangosDelMenu(casa) {
 
 /**
  * «hoy», «mañana», «jueves», «el 15» (+ «esta»/«siguiente» si lo dicen) → la
- * fecha y la casa apuntando a la semana del menú que la contiene, con el
- * intérprete (interprete.js).
- *
- * Para ESCRIBIR (`escribe`), un día suelto es el próximo que cae; si ese no
- * tiene menú, nunca se cae al de esta semana que ya pasó: se pregunta (#958:
- * «cambia el jueves» un viernes cambiaba el jueves de ayer). Para LEER, un día
- * de esta semana que ya pasó sí vale («¿qué cenamos el martes?»), y la
- * respuesta lleva la fecha.
+ * fecha y la casa apuntando a la semana del menú que la contiene. La fecha la
+ * da el intérprete (`fechaDelMenu`: para escribir, nunca un día que ya pasó);
+ * aquí solo se busca la semana que la tiene.
  * @returns {{ dia: string, fecha: string, casa: object } | { error: string }}
  */
 export function resolverDia(casa, texto, semana = null, { escribe = false } = {}) {
-  const hoy = hoyISO();
-  const tiene = (f) => Boolean(semanaConFecha(casa, f));
-  const r = escribe
-    ? fechaConMenu(texto, tiene, { hoy, semana })
-    : fechaDe(texto, { hoy, semana: semana === "esta" ? null : semana });
+  const r = fechaDelMenu(texto, (f) => Boolean(semanaConFecha(casa, f)), { hoy: hoyISO(), semana, escribe });
   if (r.duda) return { error: r.duda };
-  let fecha = r.fecha;
-  const d = escribe ? null : diaDeSemana(texto);
-  if (d && semana !== "siguiente") {
-    const deEsta = sumarDias(lunesDe(hoy), DIAS.indexOf(d));
-    if (semana === "esta" || (!tiene(fecha) && tiene(deEsta))) fecha = deEsta;
-  }
+  const { fecha } = r;
   const s = semanaConFecha(casa, fecha);
   if (!s) {
     return { error: `No hay menú para el ${fechaCorta(fecha)} (${fecha}). ${rangosDelMenu(casa)} Si lo quieren, generar_menu para esa semana: las otras semanas del menú se conservan.` };
@@ -1074,7 +1048,7 @@ export async function ideasSinMenu(casa, { diaPedido, franja, grupo, para = null
   const porPara = para ? grupoPara(conGente, data.members ?? [], para) : null;
   const elegidos = grupo ? conGente.filter((g) => normal(g.label) === normal(grupo)) : porPara ? [porPara] : conGente;
   if (!elegidos.length) return grupo ? `No encuentro el grupo «${grupo}» en la casa.` : "La casa todavía no tiene a nadie apuntado.";
-  const dia = diaDe(diaPedido) ?? hoy();
+  const dia = diaDe(diaPedido, { hoy: hoyISO() }) ?? hoy();
   const clave = `${dia}-${franja}`;
   // Con primero y segundo, el hueco de la comida pide un segundo; sin él, plato
   // único. La de cada grupo, como el motor (estructuraPlatos.js, #958).
