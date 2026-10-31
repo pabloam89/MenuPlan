@@ -1,16 +1,9 @@
 #!/usr/bin/env node
 /**
- * Las cifras del plan «fichas con estado» (trozo 38), con su línea base y la
- * fecha de Madrid. Solo lee: el código del repo, la base con el usuario de
- * lectura en una transacción `read only` (conLectura, como npm run consulta)
- * y la última pasada guardada del banco de frases. Nunca escribe.
- *
- *   npm run cifras:modelo                 tabla en Markdown
- *   npm run cifras:modelo -- --json       en JSON, para el panel (homenu-panel)
- *   npm run cifras:modelo -- --sin-base   sin abrir la base (CI y Done): las
- *                                         de la base salen «sin medir»
- *
- * Qué se mide y contra qué: scripts/lib/cifrasModelo.js.
+ * Las cifras del plan «fichas con estado» (trozo 38; qué se mide, en
+ * scripts/lib/cifrasModelo.js). Solo lee: el repo, la base con el usuario de
+ * lectura en una transacción `read only` (conLectura) y la última pasada del
+ * banco de frases. `--json` para el panel; `--sin-base` sin abrir la base.
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";

@@ -1,9 +1,14 @@
 import { describe, it, expect, vi } from "vitest";
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   CIFRAS, FUENTE, SENTIDO, ESTADO_CIFRA, medirCifras, tablaDeCifras, clavesData, ultimaConEspera, pendientesSinResultado,
 } from "./cifrasModelo.js";
 
 const FECHA = /^\d{4}-\d{2}-\d{2}$/;
+
+const raiz = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 /** Un contexto de mentira: nada existe, la base no se abre, lo demás vale 5. */
 const ctxDe = (cambios = {}) => ({
@@ -107,5 +112,14 @@ describe("piezas", () => {
   it("la tabla dice «sin medir» y el motivo donde no hay cifra", () => {
     const t = tablaDeCifras([{ nombre: "X", estado: ESTADO_CIFRA.sin_medir, motivo: "trozo 9 sin hacer", base: null, nota: "n", sentido: SENTIDO.baja, meta: 0, trozo: 9 }], { fecha: "hoy" });
     expect(t).toContain("| X | sin medir: trozo 9 sin hacer | sin base: n | → 0 | 9 |");
+  });
+});
+
+describe("con el repo de verdad (corre en CI con npm test)", () => {
+  it("ningún trozo pendiente ha llegado sin su medida, y las cifras que leen ficheros del repo se miden", async () => {
+    // Los ficheros del repo, de verdad; lo demás (git grep, módulos, base), de mentira.
+    const ctx = ctxDe({ existe: (r) => existsSync(join(raiz, r)), leer: (r) => readFileSync(join(raiz, r), "utf8") });
+    const filas = await medirCifras(CIFRAS, ctx, { sinBase: true });
+    expect(filas.find((f) => f.id === "herramientas_sin_resultado")).toMatchObject({ estado: ESTADO_CIFRA.medida });
   });
 });

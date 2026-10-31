@@ -1,23 +1,15 @@
 /**
- * Las cifras del plan «fichas con estado» (specs/plan-fichas-con-estado.md,
- * trozo 38): las de «Cifras que bajan», las del «Estado medido» y las nuevas
- * de los trozos 23-37, cada una con su línea base, su meta y cómo se mide.
- * Las saca scripts/cifras-modelo.mjs (`npm run cifras:modelo`), en tabla o en
- * JSON para el panel (homenu-panel, otro repo).
- *
- * Aquí no hay red ni ficheros: cada cifra mide con un contexto que le da el
- * script (`ctx`: inventario, capacidades, git grep, consultas de solo lectura,
- * la última pasada del banco de frases). Lo que ya calcula otro script se pide
- * a ese script; aquí solo se declara qué se mide y contra qué.
- *
- * Una cifra que no se puede medir hoy sale «sin medir» con su motivo, nunca
- * como 0: o su trozo no existe (`falta`: el fichero que lo trae; si aparece,
- * el script falla para que alguien la mida), o su tabla no está (migración sin
- * aplicar), o se corre con --sin-base, o no hay pasada del banco.
+ * Las cifras del plan «fichas con estado» (trozo 38), cada una con su línea
+ * base, su meta y cómo se mide; las saca `npm run cifras:modelo`. Cada cifra
+ * mide con el contexto que le da el script (`ctx`); lo que ya calcula otro
+ * script se pide a ese script. Lo que no se puede medir sale «sin medir» con
+ * su motivo, nunca 0: su trozo no existe (`falta`; si el fichero aparece,
+ * falla), su tabla no está, se corre con --sin-base o no hay pasada del banco.
  */
 import { EJES } from "../../src/data/axisRegistry.js";
 import { ESCRITORAS_HEREDADAS, LLAMADAS_HEREDADAS } from "../../src/lib/operaciones/escritoras.js";
 import { clavesGuardadas } from "./inventarioFicha.mjs";
+import CAPACIDADES_BASE from "../../src/lib/capacidades.base.json" with { type: "json" };
 
 /** De dónde sale una cifra: el código del repo, la base (producción, solo lectura) o el banco de frases. */
 export const FUENTE = Object.freeze({ codigo: "codigo", base: "base", banco: "banco" });
@@ -38,18 +30,14 @@ const FICHEROS_MOTOR = ["src/lib/aiPlanner.js", "src/lib/solver.js", "src/lib/re
 /** Claves `data.*` distintas en unos textos (el `grep -ohE "data\.[a-zA-Z]+" | sort -u` del trozo 30). */
 export const clavesData = (textos) => new Set(textos.flatMap((t) => t.match(/\bdata\.[a-zA-Z]+/g) ?? [])).size;
 
-/** El último resumen del banco de frases con operaciones exactas medidas (pasadas.jsonl), o null. */
-/**
- * Cuántas herramientas que escriben siguen sin resultado: los nombres de
- * SIN_RESULTADO_TODAVIA (api/_bot/agente.js), leídos del texto para no cargar
- * a Lola entera. Si la lista cambia de forma, falla en alto (nunca sale 0).
- */
+/** Los nombres de SIN_RESULTADO_TODAVIA (api/_bot/agente.js), del texto para no cargar a Lola; si cambia de forma, falla. */
 export function pendientesSinResultado(texto) {
   const m = texto.match(/SIN_RESULTADO_TODAVIA = new Set\(\[([^\]]*)\]\)/);
   if (!m) throw new Error("cifra herramientas_sin_resultado: no encuentro SIN_RESULTADO_TODAVIA = new Set([...]) en api/_bot/agente.js");
   return (m[1].match(/"[^"]+"/g) ?? []).length;
 }
 
+/** El último resumen del banco de frases con operaciones exactas medidas (pasadas.jsonl), o null. */
 export const ultimaConEspera = (pasadas) => pasadas.findLast((p) => p.pct_operacion_exacta != null) ?? null;
 
 const SIN_PASADA = "sin pasada del banco en .evals-out/pasadas.jsonl (node scripts/bot-evals.mjs: cuesta dinero, este script no la lanza)";
@@ -117,13 +105,13 @@ export const CIFRAS = [
     base: base(35, DIA_PLAN, "re-medida en 5b9dbaed, la base del plan (que dio 28 con otro recuento)"), medir: (ctx) => ctx.lineasCon("conData\\(|conCasa\\(", ["api"]) },
   { id: "filas_sobre", nombre: "Filas en sobre (datos con origen y fecha)", trozo: 8, fuente: FUENTE.base, sentido: SENTIDO.sube, meta: null,
     base: base(0, DIA_PLAN, PLAN), medir: async (ctx) => (await ctx.consultar("select count(*)::int n from sobre"))[0].n },
-  // Trozo 23: el mapa de capacidades (npm run capacidades), sus líneas base en capacidades.base.json.
+  // Trozo 23 (npm run capacidades): la línea base es el tope de capacidades.base.json, que solo baja.
   { id: "huecos_capacidades", nombre: "Capacidades con un lado vacío sin motivo", trozo: 23, fuente: FUENTE.codigo, sentido: SENTIDO.baja, meta: 0,
-    base: base(35, "2026-10-28", "capacidades.base.json"), medir: async (ctx) => (await ctx.capacidades()).huecos },
+    base: base(CAPACIDADES_BASE.huecos, "2026-10-28", "capacidades.base.json"), medir: async (ctx) => (await ctx.capacidades()).huecos },
   { id: "sin_pregunta_en_lola", nombre: "Datos de la familia sin pregunta en Lola", trozo: 23, fuente: FUENTE.codigo, sentido: SENTIDO.baja, meta: 0,
-    base: base(32, DIA_PLAN, "capacidades.base.json"), medir: async (ctx) => (await ctx.capacidades()).sinPreguntaEnLola },
+    base: base(CAPACIDADES_BASE.sinPreguntaEnLola, DIA_PLAN, "capacidades.base.json"), medir: async (ctx) => (await ctx.capacidades()).sinPreguntaEnLola },
   { id: "sin_pantalla_en_app", nombre: "Datos de la familia sin pantalla en la app", trozo: 23, fuente: FUENTE.codigo, sentido: SENTIDO.baja, meta: 0,
-    base: base(40, DIA_PLAN, "capacidades.base.json"), medir: async (ctx) => (await ctx.capacidades()).sinPantallaEnApp },
+    base: base(CAPACIDADES_BASE.sinPantallaEnApp, DIA_PLAN, "capacidades.base.json"), medir: async (ctx) => (await ctx.capacidades()).sinPantallaEnApp },
   // Trozo 25: ficheros que hay que tocar para añadir un dato (git grep -l, sin tests).
   { id: "ficheros_cookLevel", nombre: "Ficheros que nombran cookLevel", trozo: 25, fuente: FUENTE.codigo, sentido: SENTIDO.baja, meta: null,
     base: base(19, DIA_PLAN, PLAN), medir: ficherosCon("cookLevel") },
