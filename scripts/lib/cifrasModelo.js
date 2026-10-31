@@ -7,6 +7,7 @@
  * falla), su tabla no está, se corre con --sin-base o no hay pasada del banco.
  */
 import { EJES } from "../../src/data/axisRegistry.js";
+import { HUECO_EN_AVISO } from "../../src/lib/aiPlanner.js";
 import { ESCRITORAS_HEREDADAS, LLAMADAS_HEREDADAS } from "../../src/lib/operaciones/escritoras.js";
 import { clavesGuardadas } from "./inventarioFicha.mjs";
 import CAPACIDADES_BASE from "../../src/lib/capacidades.base.json" with { type: "json" };
@@ -26,7 +27,6 @@ const DIA_PLAN = "2026-10-30";
 const DESDE_TROZO_1 = "2026-10-30T09:58:11Z";
 /** Ficheros que lee el motor (trozo 30: claves `data.*`). */
 const FICHEROS_MOTOR = ["src/lib/aiPlanner.js", "src/lib/solver.js", "src/lib/reglas.js", "src/utils/validateMenu.js"];
-/** La migración del trozo 34 (tareas): la traen dos cifras. */
 const MIGRACION_TAREAS = "supabase/migrations/0110_tareas_a_fondo.sql";
 
 /** Claves `data.*` distintas en unos textos (el `grep -ohE "data\.[a-zA-Z]+" | sort -u` del trozo 30). */
@@ -90,7 +90,7 @@ export const CIFRAS = [
   { id: "semanas_vivas_con_huecos", nombre: "Semanas vivas con huecos sin plato (avisos del motor)", trozo: 3, fuente: FUENTE.base, sentido: SENTIDO.baja, meta: 0,
     base: null, nota: "el plan solo midió la casa de Pablo (6 huecos en una semana)",
     medir: async (ctx) => {
-      const [f] = await ctx.consultar(`select count(distinct (household_id, week_start)) filter (where w ~ 'hueco omitido|sin asignar')::int valor,
+      const [f] = await ctx.consultar(`select count(distinct (household_id, week_start)) filter (where w ~ '${Object.values(HUECO_EN_AVISO).join("|")}')::int valor,
         count(distinct (household_id, week_start))::int de from user_menu_weeks
         left join lateral jsonb_array_elements_text(case when jsonb_typeof(plan->'_warnings') = 'array' then plan->'_warnings' else '[]' end) w on true
         where week_end >= (now() at time zone 'Europe/Madrid')::date`);
@@ -100,7 +100,6 @@ export const CIFRAS = [
     base: base(17, DIA_PLAN, "#958: respuestas que contradicen el estado"), medir: delBanco((p) => 100 - p.pct_operacion_exacta) },
   { id: "banco_coste_caso", nombre: "Banco de frases: coste medio por intento", trozo: 29, fuente: FUENTE.banco, sentido: SENTIDO.baja, meta: null, unidad: "$",
     base: base(0.045, DIA_PLAN, "trozo 29 (#1058), Sonnet"), medir: delBanco((p) => p.coste_medio_usd) },
-  // Estado medido (30 oct).
   { id: "sitios_escriben_casa_app", nombre: "Sitios de la app que escriben la casa entera (setData)", trozo: 20, fuente: FUENTE.codigo, sentido: SENTIDO.baja, meta: 0,
     base: base(145, DIA_PLAN, PLAN), medir: (ctx) => ctx.lineasCon("setData\\(", ["src"]) },
   { id: "sitios_escriben_casa_lola", nombre: "Sitios de Lola que escriben la casa entera (conData, conCasa)", trozo: null, fuente: FUENTE.codigo, sentido: SENTIDO.baja, meta: 0,
@@ -114,24 +113,20 @@ export const CIFRAS = [
     base: base(CAPACIDADES_BASE.sinPreguntaEnLola, DIA_PLAN, "capacidades.base.json"), medir: async (ctx) => (await ctx.capacidades()).sinPreguntaEnLola },
   { id: "sin_pantalla_en_app", nombre: "Datos de la familia sin pantalla en la app", trozo: 23, fuente: FUENTE.codigo, sentido: SENTIDO.baja, meta: 0,
     base: base(CAPACIDADES_BASE.sinPantallaEnApp, DIA_PLAN, "capacidades.base.json"), medir: async (ctx) => (await ctx.capacidades()).sinPantallaEnApp },
-  // Trozo 25: ficheros que hay que tocar para añadir un dato (git grep -l, sin tests).
   { id: "ficheros_cookLevel", nombre: "Ficheros que nombran cookLevel", trozo: 25, fuente: FUENTE.codigo, sentido: SENTIDO.baja, meta: null,
     base: base(19, DIA_PLAN, PLAN), medir: ficherosCon("cookLevel") },
   { id: "ficheros_etapaBebe", nombre: "Ficheros que nombran etapaBebe", trozo: 25, fuente: FUENTE.codigo, sentido: SENTIDO.baja, meta: null,
     base: base(17, DIA_PLAN, PLAN), medir: ficherosCon("etapaBebe") },
-  // Trozo 26: la tubería única.
   { id: "escrituras_fuera_tuberia", nombre: "Escritoras de fichas fuera de la tubería (funciones y llamadas heredadas)", trozo: 26, fuente: FUENTE.codigo, sentido: SENTIDO.baja, meta: 0,
     base: base(4, "2026-10-31", "trozo 26 (#1076)"), medir: () => Object.keys(ESCRITORAS_HEREDADAS).length + Object.keys(LLAMADAS_HEREDADAS).length },
   { id: "operaciones_apuntadas", nombre: "Operaciones apuntadas por la tubería", trozo: 26, fuente: FUENTE.base, sentido: SENTIDO.sube, meta: null,
     base: null, requiere: { tabla: "operacion", migracion: "0105" }, medir: async (ctx) => (await ctx.consultar("select count(*)::int n from operacion"))[0].n },
-  // Trozo 27.
   { id: "herramientas_sin_resultado", nombre: "Herramientas que escriben sin resultado", trozo: 27, fuente: FUENTE.codigo, sentido: SENTIDO.baja, meta: 0,
     base: null, nota: "el tope que solo baja es LINEA_BASE de api/_bot/resultadoObligatorio.test.js (#1078)", medir: (ctx) => pendientesSinResultado(ctx.leer("api/_bot/agente.js")) },
   { id: "analizadores_fuera_interprete", nombre: "Analizadores de fechas y personas fuera del intérprete", trozo: 27, fuente: FUENTE.codigo, sentido: SENTIDO.baja, meta: 0,
     base: base(3, DIA_PLAN, PLAN), medir: (ctx) => ctx.lineasCon("function (diaDe|resolverDia|resolverPersona)\\(", ["api", "src"]) },
   { id: "turnos_con_mensaje_en_curso", nombre: "Turnos de Lola que reciben otro mensaje mientras corren", trozo: 28, fuente: FUENTE.base, sentido: SENTIDO.baja, meta: null,
     base: null, falta: "api/_bot/turnosRafaga.test.js" },
-  // Trozos 30-33: el motor.
   { id: "claves_data_motor", nombre: "Claves data.* que lee el motor", trozo: 30, fuente: FUENTE.codigo, sentido: SENTIDO.baja, meta: 0,
     base: base(30, DIA_PLAN, PLAN), medir: async (ctx) => clavesData(await Promise.all(FICHEROS_MOTOR.map((f) => ctx.leer(f)))) },
   { id: "ejes_sin_consumidor", nombre: "Ejes sin consumidor", trozo: 31, fuente: FUENTE.codigo, sentido: SENTIDO.baja, meta: null,
@@ -142,7 +137,6 @@ export const CIFRAS = [
     base: null, falta: "src/lib/preferenciasSistema.js" },
   { id: "choques_repetidos", nombre: "Choques repetidos tras una tarea de decisión", trozo: 33, fuente: FUENTE.base, sentido: SENTIDO.baja, meta: 0,
     base: null, falta: "src/lib/choques.js" },
-  // Trozos 34-36: tareas, caducidades y privacidad.
   { id: "preguntas_hasta_primer_menu", nombre: "Preguntas hasta el primer menú", trozo: 34, fuente: FUENTE.base, sentido: SENTIDO.baja, meta: null,
     base: null, falta: MIGRACION_TAREAS },
   { id: "tareas_caducadas_sin_respuesta", nombre: "Tareas caducadas sin respuesta", trozo: 34, fuente: FUENTE.base, sentido: SENTIDO.baja, meta: null,

@@ -117,7 +117,6 @@ describe("piezas", () => {
 
 describe("con el repo de verdad (corre en CI con npm test)", () => {
   it("ningún trozo pendiente ha llegado sin su medida, y las cifras que leen ficheros del repo se miden", async () => {
-    // Los ficheros del repo, de verdad; lo demás (git grep, módulos, base), de mentira.
     const ctx = ctxDe({ existe: (r) => existsSync(join(raiz, r)), leer: (r) => readFileSync(join(raiz, r), "utf8") });
     const filas = await medirCifras(CIFRAS, ctx, { sinBase: true });
     expect(filas.find((f) => f.id === "herramientas_sin_resultado")).toMatchObject({ estado: ESTADO_CIFRA.medida });
