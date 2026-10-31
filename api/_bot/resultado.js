@@ -17,9 +17,10 @@
  *     y «⚠️ Sin hacer: … (por qué)», que pinta el código encima del mensaje de
  *     Lola, igual que el menú se pinta debajo (pintar.js). Lola no lo redacta.
  *
- * Quién lo usa: agente.js (herramientas y responder) lo recoge y lo pinta. Las
- * herramientas que lo devuelven (despensa, tareas, cole…) llegan en el PR
- * siguiente de #958, una a una con su test.
+ * Quién lo usa: agente.js (herramientas y responder) lo recoge y lo pinta. Una
+ * herramienta que escribe datos de la ficha (`escribe` en su ficha) TIENE que
+ * devolverlo (trozo 27 de #1037): la puerta (`exigeResultado`) rechaza lo que
+ * no lo traiga y lo apunta como fallo, no como guardado.
  *
  * Pura: sin base ni modelo, para los tests.
  */
@@ -39,6 +40,9 @@ export const ACCIONES = Object.freeze({
   tarea: "Tarea cambiada",
   receta: "Receta guardada",
   gustos: "Gustos apuntados",
+  plato: "Plato cambiado",
+  compra_anadir: "Añadido a la compra",
+  menu: "Menú nuevo",
 });
 
 /** El estado de un resultado: sale de lo hecho y lo que no, nunca se escribe a mano. */
@@ -118,3 +122,16 @@ export function conRecibo(textoDeLola, resultados = [], { sinGuardar = false } =
  * pedido: entonces un «✅ Apuntado» detrás pasa por el vigilante igual.
  */
 export const cuentaComoGuardado = (escribio, r) => Boolean(escribio) && !(esResultado(r) && r.estado === ESTADO.NADA);
+
+/**
+ * La puerta (trozo 27 de #1037): ¿tiene que devolver un RESULTADO esta
+ * herramienta? Toda la que escribe datos de la ficha (`escribe` no vacío en
+ * su ficha, agente.js). Lo que devuelva otra cosa no cuenta como guardado.
+ */
+export const exigeResultado = (ficha) => Boolean(ficha) && !ficha.soloLectura && (ficha.escribe?.length ?? 0) > 0;
+
+/** El motivo de lo que no se hizo porque no se pudo escribir en la base: el mismo en toda herramienta. */
+export const NO_GUARDADO = "no se ha podido guardar";
+
+/** Lo que lee el modelo detrás del texto de una herramienta que la puerta ha rechazado. */
+export const SIN_RESULTADO = "[Sin resultado] Esta herramienta no ha dicho qué ha quedado guardado: no consta como hecho. No digas que está hecho; si hacía falta, dilo tal cual y que lo miren en la app.";
