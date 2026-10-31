@@ -334,24 +334,6 @@ export function saveAndActivateMenu(userId, menu, recipes, householdId = null) {
   return next;
 }
 
-/**
- * Deja la casa sin menú activo en la nube («Reiniciar menú»). El menú sigue en
- * el histórico. Sin esto la fila seguía activa y volvía al recargar. Espera a
- * las subidas pendientes: un menú a medio subir se activaría después.
- */
-export async function deactivateMenu(userId, menuId, householdId = null) {
-  if (!supabase || !userId || !menuId) return { ok: false, error: "no-op" };
-  await subidasPendientes(userId, householdId);
-  let q = supabase.from("user_menus").update({ is_active: false });
-  q = householdId ? q.eq("household_id", householdId) : q.eq("user_id", userId);
-  const { error } = await q.eq("id", menuId);
-  if (error) {
-    console.warn("[menusSync] deactivate failed", error.message);
-    return { ok: false, error: error.message };
-  }
-  return { ok: true };
-}
-
 // ── Live per-week upsert (shopping edits) ────────────────────────────────
 // saveMenu only writes user_menu_weeks at generation time, but the cloud
 // tables are the hydration read-preference (see App.jsx). So any edit made
