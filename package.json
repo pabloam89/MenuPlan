@@ -13,6 +13,9 @@
     "preview": "vite preview",
     "pretest": "node scripts/validate-catalog.mjs",
     "test": "vitest run",
+    "e2e": "playwright test",
+    "e2e:navegador": "playwright install chromium",
+    "posttest": "npm run e2e:navegador && npm run e2e",
     "diccionario": "node scripts/diccionario.mjs",
     "diccionario:inventario": "node scripts/diccionario-inventario.mjs",
     "ficha:inventario": "node scripts/ficha-inventario.mjs",
@@ -67,6 +70,7 @@
   "devDependencies": {
     "@capacitor/cli": "^8.5.2",
     "@eslint/js": "^9.39.4",
+    "@playwright/test": "^1.64.1",
     "@remotion/cli": "^4.0.520",
     "@remotion/google-fonts": "^4.0.520",
     "@types/react": "^19.2.14",
