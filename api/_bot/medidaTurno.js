@@ -116,3 +116,23 @@ export function sumarUsos(...usos) {
   }
   return total;
 }
+
+// ── Lo que llega con el turno en marcha ─────────────────────────────────────
+/**
+ * Los mensajes de esta vuelta que llegaron al chat mientras corría el turno
+ * anterior de la misma invocación (turnos.js drenar): cuántos y a cuántos ms
+ * de su inicio. Es la medida del trozo 28 de #1037 (cancelar y rehacer): sin
+ * ella no se sabía cuántos turnos reciben otro mensaje mientras corren.
+ * bot_route `llegaron_durante`; lo cuenta scripts/lib/bot-semana.mjs
+ * (`uso.llegaronDuranteN`, `latencia.llegaronDuranteP50Ms`).
+ * @param {{ inicio: number, fin: number } | null} anterior  el turno anterior (Date.now())
+ * @param {(number|null|undefined)[]} llegadas  cuándo entró en la cola cada mensaje (item.enCola)
+ * @returns {{ n: number, ms: number[] } | null}  null si ninguno llegó con él en marcha
+ */
+export function llegadosDurante(anterior, llegadas) {
+  if (!anterior || !Number.isFinite(anterior.inicio) || !Number.isFinite(anterior.fin)) return null;
+  const ms = (llegadas ?? [])
+    .filter((t) => Number.isFinite(t) && t > anterior.inicio && t <= anterior.fin)
+    .map((t) => t - anterior.inicio);
+  return ms.length ? { n: ms.length, ms } : null;
+}

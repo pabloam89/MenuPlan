@@ -13,6 +13,7 @@ import { cabeUnTurno } from "./plazo.js";
 import { select, insert, update, rpc, eq } from "./db.js";
 import { CANAL, paraEscribir } from "../../src/lib/vocabularios.js";
 import { DURACION_CANDADO_S } from "./candado.js";
+import { llegadosDurante } from "./medidaTurno.js";
 
 // Lo que se espera por si llega otro mensaje detrás. 1 s basta para las
 // ráfagas de texto («quiero cambiar la cena» · «la del jueves»); un botón
@@ -67,11 +68,17 @@ export async function drenar(chatId, atender, { espera = ESPERA_RAFAGA_MS, alSob
     let sinTiempo = false;
     try {
       if (espera) await dormir(espera);
+      // El turno anterior de esta invocación, para medir lo que llega con él en marcha.
+      let anterior = null;
       for (let vuelta = 0; vuelta < MAX_VUELTAS; vuelta++) {
         if (!cabeUnTurno()) { sinTiempo = true; break; }
         const items = await sacarCola(chatId);
         if (!items.length) break;
-        await atender(items);
+        // bot_route llegaron_durante (telegram.js turno).
+        const ronda = { llegaron: llegadosDurante(anterior, items.map((i) => i.enCola)) };
+        const inicio = Date.now();
+        await atender(items, ronda);
+        anterior = { inicio, fin: Date.now() };
       }
     } finally {
       await soltarCandado(chatId);

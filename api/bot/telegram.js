@@ -436,7 +436,8 @@ function itemDe(from, texto, { oido = null, responderA, inmediato = false, mid =
  * (juntar) y no se atribuye el turno a nadie en concreto.
  */
 function atenderCola({ chatId, householdId, esGrupo, base }) {
-  return async (items) => {
+  // `ronda` (turnos.js drenar): lo que se mide de la ráfaga (llegaron_durante).
+  return async (items, ronda = null) => {
     const { texto, oido, ultimo, variosAutores } = juntar(items, { esGrupo });
     // Lo que esperó el mensaje más viejo desde que entró en la cola (la ráfaga
     // de 1 s, el turno anterior del chat, un PDF delante) hasta que arranca esto.
@@ -449,6 +450,7 @@ function atenderCola({ chatId, householdId, esGrupo, base }) {
       desde: items.map((i) => idDePersona(i.from)).filter(Boolean),
       responderA: ultimo.responderA,
       variosAutores: Boolean(variosAutores),
+      llegaron: ronda?.llegaron ?? null,
     }));
   };
 }
@@ -570,10 +572,13 @@ async function apuntarRuta(householdId, extra) {
   await registrar(RUTA, { userId: await duenoDe(householdId).catch(seguirCon("ruta_dueno", null)), extra }).catch(seguirCon("ruta"));
 }
 
-export async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, from, desde = null, responderA, variosAutores = false, esperaColaMs = null }) {
+// `llegaron`: los mensajes de este turno que llegaron con el anterior del chat
+// en marcha (medidaTurno.js llegadosDurante; bot_route llegaron_durante).
+export async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, from, desde = null, responderA, variosAutores = false, esperaColaMs = null, llegaron = null }) {
   const modo = MODO_ROUTER();
-  // Lo que esperó en la cola de su chat antes de empezar (bot_route espera_cola_ms).
-  const cola = esperaColaMs == null ? {} : { espera_cola_ms: esperaColaMs };
+  // Lo que esperó en la cola de su chat antes de empezar (bot_route espera_cola_ms),
+  // y si sus mensajes llegaron con el turno anterior en marcha (llegaron_durante).
+  const cola = { ...(esperaColaMs == null ? {} : { espera_cola_ms: esperaColaMs }), ...(llegaron ? { llegaron_durante: llegaron } : {}) };
   const modoGrupos = MODO_ROUTER_GRUPOS();
   desde ??= from ? [idDePersona(from)].filter(Boolean) : [];
   // Los turnos que contesta Lola sin pasar por el enrutador (apagado, en
