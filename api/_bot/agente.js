@@ -1523,7 +1523,9 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
       // aunque el runner llegue a pedirlo: «nunca dos veces» no depende de en
       // qué orden corran las promesas.
       if (signal?.aborted) throw signal.reason ?? new Error("turno cortado");
-      if (!SOLO_LECTURA.has(t.name)) escrituras++;
+      // En el mismo paso que mirar la señal: desde aquí el turno ya no se
+      // corta por otro mensaje del chat (turnos.js conVigia).
+      if (!SOLO_LECTURA.has(t.name)) { escrituras++; const op = operacion(); if (op) op.escribiendo++; }
       if (progreso) progreso.herramientas++;
       const avisoDe = escribir && avisoLento() ? AVISO_LENTO[t.name] : null;
       const aviso = typeof avisoDe === "function" ? avisoDe(a[0]) : avisoDe;

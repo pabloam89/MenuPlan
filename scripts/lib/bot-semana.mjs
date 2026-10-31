@@ -164,8 +164,10 @@ export function medir(eventos, objetivos = {}) {
       canceladasPct: tanto(canceladas.n, turnos.length),
       // Turnos en que un import del motor (core.mjs, ~10 MB) cayó dentro del turno.
       motorFrioN: motorFrio.length,
-      // Turnos que recibieron otro mensaje del chat mientras corrían.
+      // Turnos que recibieron otro mensaje del chat mientras corrían, y cuántos
+      // de ellos se cortaron y se rehicieron con todo (bot_route rehecho).
       llegaronDuranteN: llegados.length,
+      rehechosN: turnos.filter((e) => e.m.rehecho).length,
     },
     latencia: {
       primerTextoRapidaP50Ms: pct(rapidas.map((e) => e.m.primer_ms ?? e.m.ms), 50),

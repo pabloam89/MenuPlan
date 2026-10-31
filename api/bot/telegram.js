@@ -436,22 +436,28 @@ function itemDe(from, texto, { oido = null, responderA, inmediato = false, mid =
  * (juntar) y no se atribuye el turno a nadie en concreto.
  */
 function atenderCola({ chatId, householdId, esGrupo, base }) {
-  // `ronda` (turnos.js drenar): lo que se mide de la ráfaga (llegaron_durante).
+  // `ronda` (turnos.js drenar): la señal que corta el turno si llega otro
+  // mensaje antes de escribir, y lo que se mide de la ráfaga. Devuelve
+  // `{ rehacer: true }` si se cortó: la cola lo rehace con lo nuevo.
   return async (items, ronda = null) => {
     const { texto, oido, ultimo, variosAutores } = juntar(items, { esGrupo });
     // Lo que esperó el mensaje más viejo desde que entró en la cola (la ráfaga
     // de 1 s, el turno anterior del chat, un PDF delante) hasta que arranca esto.
     const entradas = items.map((i) => i.enCola).filter(Number.isFinite);
-    await conAutor({ chatId, from: variosAutores ? null : ultimo.from, mid: ultimo.mid, reintento: items.length === 1 && ultimo.reintento, responderA: ultimo.responderA }, () => turno({
-      base, chatId, householdId, esGrupo, texto, oido,
-      esperaColaMs: entradas.length ? Math.max(0, Date.now() - Math.min(...entradas)) : null,
-      from: variosAutores ? null : ultimo.from,
-      // Todos los que escriben en el turno: su papel en la casa es el más bajo.
-      desde: items.map((i) => idDePersona(i.from)).filter(Boolean),
-      responderA: ultimo.responderA,
-      variosAutores: Boolean(variosAutores),
-      llegaron: ronda?.llegaron ?? null,
-    }));
+    return conAutor({ chatId, from: variosAutores ? null : ultimo.from, mid: ultimo.mid, reintento: items.length === 1 && ultimo.reintento, responderA: ultimo.responderA }, () => {
+      // Lo que mira el vigía de la cola: si el turno ya ha escrito.
+      if (ronda) ronda.operacion = operacion();
+      return turno({
+        base, chatId, householdId, esGrupo, texto, oido,
+        esperaColaMs: entradas.length ? Math.max(0, Date.now() - Math.min(...entradas)) : null,
+        from: variosAutores ? null : ultimo.from,
+        // Todos los que escriben en el turno: su papel en la casa es el más bajo.
+        desde: items.map((i) => idDePersona(i.from)).filter(Boolean),
+        responderA: ultimo.responderA,
+        variosAutores: Boolean(variosAutores),
+        rafaga: ronda?.signal ?? null, llegaron: ronda?.llegaron ?? null, rehecho: Boolean(ronda?.rehecho),
+      });
+    });
   };
 }
 
@@ -572,13 +578,21 @@ async function apuntarRuta(householdId, extra) {
   await registrar(RUTA, { userId: await duenoDe(householdId).catch(seguirCon("ruta_dueno", null)), extra }).catch(seguirCon("ruta"));
 }
 
-// `llegaron`: los mensajes de este turno que llegaron con el anterior del chat
-// en marcha (medidaTurno.js llegadosDurante; bot_route llegaron_durante).
-export async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, from, desde = null, responderA, variosAutores = false, esperaColaMs = null, llegaron = null }) {
+// `rafaga`: la señal de la cola (turnos.js conVigia) que corta a Lola si llega
+// otro mensaje antes de escribir; cortada así, el turno devuelve `{ rehacer: true }`.
+// `llegaron` y `rehecho`: la medida de la ráfaga (medidaTurno.js llegadosDurante).
+export async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, from, desde = null, responderA, variosAutores = false, esperaColaMs = null, rafaga = null, llegaron = null, rehecho = false }) {
   const modo = MODO_ROUTER();
   // Lo que esperó en la cola de su chat antes de empezar (bot_route espera_cola_ms),
-  // y si sus mensajes llegaron con el turno anterior en marcha (llegaron_durante).
-  const cola = { ...(esperaColaMs == null ? {} : { espera_cola_ms: esperaColaMs }), ...(llegaron ? { llegaron_durante: llegaron } : {}) };
+  // y si sus mensajes llegaron con el turno anterior en marcha (llegaron_durante, rehecho).
+  const cola = { ...(esperaColaMs == null ? {} : { espera_cola_ms: esperaColaMs }), ...(llegaron ? { llegaron_durante: llegaron } : {}), ...(rehecho ? { rehecho: true } : {}) };
+  // Cortado por la ráfaga: lo pagado (Lola hasta el corte y el enrutador) se
+  // cuenta aquí, porque responder no cuenta con la señal cortada (agente.js).
+  const rehacerSi = async (medir, usoRouter) => {
+    if (!medir.rafaga) return undefined;
+    await contarUso(householdId, sumarUsos(await usoRouter, medir.canceladaUso)).catch(fallaCon("uso"));
+    return { rehacer: true };
+  };
   const modoGrupos = MODO_ROUTER_GRUPOS();
   desde ??= from ? [idDePersona(from)].filter(Boolean) : [];
   // Los turnos que contesta Lola sin pasar por el enrutador (apagado, en
@@ -588,11 +602,12 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   // `usoExtra`: lo del enrutador si corrió en este turno (en sombra), que cuenta con lo de Lola (#958).
   const soloLola = async (porQue, desdeMs = Date.now(), usoExtra = null) => {
     const medir = {};
-    await conversar({ base, chatId, householdId, esGrupo, texto, oido, from, desde, responderA, medir, usoExtra });
-    return apuntarRuta(householdId, {
+    await conversar({ base, chatId, householdId, esGrupo, texto, oido, from, desde, responderA, medir, usoExtra, signal: rafaga, rafaga });
+    await apuntarRuta(householdId, {
       chat: String(chatId), esGrupo: Boolean(esGrupo), variosAutores: Boolean(variosAutores),
       modo: "lola", rapida: false, sin_enrutador: porQue, ms: Date.now() - desdeMs, ...cola, ...medida(medir, {}, desdeMs),
     });
+    return rehacerSi(medir, usoExtra);
   };
   if (modo === "off" || (esGrupo && modoGrupos === "off")) return soloLola(SIN_ENRUTADOR.APAGADO);
   // En grupo, su propio interruptor: en sombra se decide y se apunta, contesta Lola.
@@ -709,7 +724,8 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   // a propósito: el aviso es adorno
   const aviso = decisionP.then((d) => (rapida(d) ? null : avisoDelModo(d))).catch(seguirCon("aviso_del_modo", null));
   let lola = null;
-  const arrancarLola = () => (lola ??= conversar({ base, chatId, householdId, esGrupo, texto, oido, from, desde, responderA, puerta, signal: ctrl.signal, medir, pista, aviso, usoExtra: usoDelEnrutador(decisionP) }));
+  // A Lola la corta la vía rápida (ctrl) o otro mensaje del chat antes de escribir (rafaga).
+  const arrancarLola = () => (lola ??= conversar({ base, chatId, householdId, esGrupo, texto, oido, from, desde, responderA, puerta, signal: rafaga ? AbortSignal.any([ctrl.signal, rafaga]) : ctrl.signal, rafaga, medir, pista, aviso, usoExtra: usoDelEnrutador(decisionP) }));
   // #909: si una señal barata ya predice la vía rápida (api/_bot/prediceRapida.js),
   // Lola no arranca hasta saber qué decide el enrutador: si es rápida, ni se
   // llama (la especulativa cancelada costaba ~0,015 $). Si la señal falla, el
@@ -773,7 +789,8 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   // Con el tiempo total del turno de Lola (hasta su respuesta entregada): sin
   // él no había forma de saber cuánto tarda de verdad lo que no es vía rápida.
   await arrancarLola().catch(fallaCon("lola"));
-  return apuntarRuta(householdId, { ...paraEvals, modo: d.modo, confianza: d.confianza, rapida: false, ms: Date.now() - t0, router_ms: d.ms, contexto_ms: contextoMs, error: d.error, ...medida(medir, d, t0) });
+  await apuntarRuta(householdId, { ...paraEvals, modo: d.modo, confianza: d.confianza, rapida: false, ms: Date.now() - t0, router_ms: d.ms, contexto_ms: contextoMs, error: d.error, ...medida(medir, d, t0) });
+  return rehacerSi(medir, d.uso);
 }
 
 /**
@@ -885,7 +902,7 @@ export const AVISO_ESPERA = "Dame un momento, que lo miro";
 const esperaMs = () => (process.env.BOT_AVISO_LENTO === "off" ? null : Number(process.env.BOT_AVISO_ESPERA_MS) || 3000);
 
 /** Un turno con el agente, venga de un mensaje o de un botón pulsado. */
-async function conversar({ chatId, householdId, texto, from, desde = null, esGrupo, responderA, oido = null, adjunto = null, base = null, puerta = null, signal = null, medir = null, pista = null, aviso = null, usoExtra = null }) {
+async function conversar({ chatId, householdId, texto, from, desde = null, esGrupo, responderA, oido = null, adjunto = null, base = null, puerta = null, signal = null, medir = null, pista = null, aviso = null, usoExtra = null, rafaga = null }) {
   // a propósito: «escribiendo…» es adorno
   await llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(seguirCon("escribiendo"));
   const eco = oido ? `🎙️ «${oido}»\n\n` : "";
@@ -943,6 +960,13 @@ async function conversar({ chatId, householdId, texto, from, desde = null, esGru
       // Lo ya pagado de la llamada cortada viaja en el error (agente.js responder).
       if (medir) { medir.cancelada = true; medir.canceladaUso = err?.usoParcial ?? null; }
       await vivo.parar();
+      // Cortada por otro mensaje del chat (turnos.js conVigia): el turno se
+      // rehace con los dos, así que lo que asomó de este (un aviso, media
+      // frase) se borra para que no quede colgando encima de la respuesta.
+      if (rafaga?.aborted) {
+        if (medir) medir.rafaga = true;
+        if (vivo.id()) await llamar("deleteMessage", { chat_id: chatId, message_id: vivo.id() }).catch(seguirCon("vivo_borrar_cortado"));
+      }
       return;
     }
     // Nunca un error técnico en el chat: una frase y, si cabe, reintentar con

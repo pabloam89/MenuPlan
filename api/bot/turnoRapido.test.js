@@ -322,3 +322,33 @@ describe("la ráfaga se mide en bot_route (trozo 28 de #1037)", () => {
     expect(t.rutas[0]).not.toHaveProperty("llegaron_durante");
   });
 });
+
+describe("cortado por otro mensaje del chat (turnos.js conVigia, trozo 28 de #1037)", () => {
+  const pedirConRafaga = (rafaga, extra = {}) => turno({ chatId: 1, householdId: "h", esGrupo: false, base: "https://x", texto: "quiero cambiar la cena", from: { id: 7, first_name: "Ana" }, responderA: 9, rafaga, ...extra });
+
+  it("Lola cortada por la ráfaga: el turno pide rehacer, cuenta lo pagado y apunta la medida", async () => {
+    t.rapida = false;
+    const uso = await import("../_bot/uso.js");
+    const rafaga = new AbortController();
+    const p = pedirConRafaga(rafaga.signal, { llegaron: { n: 1, ms: [3000] } });
+    setTimeout(() => rafaga.abort(), 10);
+    expect(await p).toEqual({ rehacer: true });
+    expect(uso.contarUso).toHaveBeenCalledTimes(1);
+    expect(t.rutas[0]).toMatchObject({ lola_cancelada: true, llegaron_durante: { n: 1, ms: [3000] } });
+  });
+
+  it("Lola contesta antes del corte: no se rehace", async () => {
+    t.rapida = false;
+    responder.mockImplementationOnce(async () => ({ texto: "Hecho", fotos: [] }));
+    const rafaga = new AbortController();
+    expect(await pedirConRafaga(rafaga.signal)).toBeUndefined();
+  });
+
+  it("gana la vía rápida aunque llegue otro mensaje: su plantilla sale y no se rehace", async () => {
+    const rafaga = new AbortController();
+    const p = pedirConRafaga(rafaga.signal);
+    setTimeout(() => rafaga.abort(), 0);
+    expect(await p).toBeUndefined();
+    expect(t.orden.some((x) => x.includes("Hoy: tortilla"))).toBe(true);
+  });
+});
