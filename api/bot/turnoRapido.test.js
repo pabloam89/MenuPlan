@@ -305,3 +305,20 @@ describe("Lola especulativa solo si no se predice la vía rápida (#909)", () =>
     expect(t.rutas[0]).toMatchObject({ lola_cancelada: true });
   });
 });
+
+describe("la ráfaga se mide en bot_route (trozo 28 de #1037)", () => {
+  const pedirTras = (extra) => turno({ chatId: 1, householdId: "h", esGrupo: false, base: "https://x", texto: "quiero cambiar la cena", from: { id: 7, first_name: "Ana" }, responderA: 9, ...extra });
+
+  it("lo que llegó con el turno anterior en marcha va en llegaron_durante, por la vía rápida y por Lola", async () => {
+    await pedirTras({ llegaron: { n: 1, ms: [3000] } });
+    t.rapida = false;
+    responder.mockImplementationOnce(async () => ({ texto: "Hecho", fotos: [] }));
+    await pedirTras({ llegaron: { n: 2, ms: [1000, 2000] } });
+    expect(t.rutas.map((r) => [r.rapida, r.llegaron_durante])).toEqual([[true, { n: 1, ms: [3000] }], [false, { n: 2, ms: [1000, 2000] }]]);
+  });
+
+  it("sin medida (no hubo turno anterior que mirar), la fila no lleva el campo: no es un 0", async () => {
+    await pedirTras({});
+    expect(t.rutas[0]).not.toHaveProperty("llegaron_durante");
+  });
+});

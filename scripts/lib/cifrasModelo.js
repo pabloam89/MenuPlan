@@ -8,6 +8,7 @@
  */
 import { EJES } from "../../src/data/axisRegistry.js";
 import { HUECO_EN_AVISO } from "../../src/lib/huecosDelPlan.js";
+import { CAMPO_LLEGARON } from "../../api/_bot/medidaTurno.js";
 import { ESCRITORAS_HEREDADAS, LLAMADAS_HEREDADAS } from "../../src/lib/operaciones/escritoras.js";
 import { clavesGuardadas } from "./inventarioFicha.mjs";
 import CAPACIDADES_BASE from "../../src/lib/capacidades.base.json" with { type: "json" };
@@ -126,7 +127,11 @@ export const CIFRAS = [
   { id: "analizadores_fuera_interprete", nombre: "Analizadores de fechas y personas fuera del intérprete", trozo: 27, fuente: FUENTE.codigo, sentido: SENTIDO.baja, meta: 0,
     base: base(3, DIA_PLAN, PLAN), medir: (ctx) => ctx.lineasCon("function (diaDe|resolverDia|resolverPersona)\\(", ["api", "src"]) },
   { id: "turnos_con_mensaje_en_curso", nombre: "Turnos de Lola que reciben otro mensaje mientras corren", trozo: 28, fuente: FUENTE.base, sentido: SENTIDO.baja, meta: null,
-    base: null, falta: "api/_bot/turnosRafaga.test.js" },
+    base: base(1, "2026-10-31", "trozo 28: bot_route cruzado con bot_cola, 15 días", 28), medir: async (ctx) => {
+      const [f] = await ctx.consultar(`select count(*) filter (where (metadata->'${CAMPO_LLEGARON}'->>'n')::int > 0)::int valor, count(*)::int de from user_events
+        where event = 'bot_route' and metadata ? '${CAMPO_LLEGARON}' and coalesce(metadata->>'sombra', 'false') <> 'true'`);
+      return f.de ? f : { sin_medir: `ningún turno con la medida todavía: bot_route ${CAMPO_LLEGARON} llega con el trozo 28` };
+    } },
   { id: "claves_data_motor", nombre: "Claves data.* que lee el motor", trozo: 30, fuente: FUENTE.codigo, sentido: SENTIDO.baja, meta: 0,
     base: base(30, DIA_PLAN, PLAN), medir: async (ctx) => clavesData(await Promise.all(FICHEROS_MOTOR.map((f) => ctx.leer(f)))) },
   { id: "ejes_sin_consumidor", nombre: "Ejes sin consumidor", trozo: 31, fuente: FUENTE.codigo, sentido: SENTIDO.baja, meta: null,

@@ -4,7 +4,7 @@
  * cancelada. Todo con números inventados: no hay reloj ni SDK de verdad.
  */
 import { describe, it, expect, beforeEach } from "vitest";
-import { relojDeHerramientas, usoParcialDe, cargaMedida, motorFrioDesde, olvidarCargaDelMotor } from "./medidaTurno.js";
+import { relojDeHerramientas, usoParcialDe, cargaMedida, motorFrioDesde, olvidarCargaDelMotor, llegadosDurante } from "./medidaTurno.js";
 
 describe("relojDeHerramientas: el reloj, no la suma", () => {
   it("lecturas a la vez: cuenta la más larga, no las tres", () => {
@@ -83,5 +83,20 @@ describe("usoParcialDe: lo pagado de la llamada que se cortó", () => {
     expect(usoParcialDe({ uso: {}, enCurso: null })).toBeNull();
     expect(usoParcialDe({ uso: { input_tokens: 0 }, enCurso: { currentMessage: undefined } })).toBeNull();
     expect(usoParcialDe(null)).toBeNull();
+  });
+});
+
+describe("llegadosDurante: lo que llega con el turno en marcha (trozo 28 de #1037)", () => {
+  const anterior = { inicio: 10_000, fin: 22_000 };
+
+  it("cuenta solo lo que entró en la cola entre el inicio y el fin, con su distancia al inicio", () => {
+    // Uno de antes (ya iba en ese turno), dos durante y uno después.
+    expect(llegadosDurante(anterior, [9_000, 19_337, 21_000, 23_000])).toEqual({ n: 2, ms: [9_337, 11_000] });
+  });
+
+  it("medido y nada durante: n 0; sin turno anterior o sin hora de entrada no se mide: null", () => {
+    expect(llegadosDurante(anterior, [9_000, 23_000])).toEqual({ n: 0, ms: [] });
+    expect(llegadosDurante(null, [15_000])).toBe(null);
+    expect(llegadosDurante(anterior, [null, undefined])).toBe(null);
   });
 });

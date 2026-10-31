@@ -95,6 +95,7 @@ Campos de medida de `bot_route` y quién los lee (`scripts/lib/bot-semana.mjs`,
 | Campo | Qué es | Lector |
 |---|---|---|
 | `espera_cola_ms` | ms que el mensaje de texto esperó en la cola de su chat antes de que empezara su turno (incluye la ráfaga de 1 s) | `latencia.esperaColaP50Ms/P95Ms` |
+| `llegaron_durante` | `{ n, ms }`: cuántos mensajes de este turno llegaron con el turno anterior del chat en marcha y a cuántos ms de su inicio; `n: 0` si se midió y no llegó ninguno; ausente si no se pudo medir (primer turno de la invocación). Nombre en `CAMPO_LLEGARON` (`api/_bot/medidaTurno.js`) | `uso.llegaronDuranteN`, `latencia.llegaronDuranteP50Ms`; y `npm run cifras:modelo` (turnos que reciben otro mensaje mientras corren) |
 | `espera_candado_ms` | ms que una foto o un PDF esperó el candado del chat (sin la ráfaga) | `latencia.esperaCandadoP50Ms/P95Ms` |
 | `motor_frio` | ms del primer import de `core.mjs` si cayó dentro del turno (ausente si no) | `uso.motorFrioN`, `latencia.motorFrioP50Ms` |
 | `lola.herramientas_reloj_ms` | ms de reloj que esperó el turno por sus herramientas (lecturas a la vez, escrituras en fila: no se suman) | `latencia.herramientasP50Ms` y `modeloP50Ms` (en filas viejas, la suma) |
