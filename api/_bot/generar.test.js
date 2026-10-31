@@ -15,7 +15,8 @@ vi.mock("./menu.js", () => ({
 const { select, insert, borrar } = await import("./db.js");
 const { cargarCasa, conCasa } = await import("./casa.js");
 const { motor } = await import("./menu.js");
-const { generarMenu } = await import("./generar.js");
+const { generarMenu, resultadoDeGenerar, SIN_GENERAR } = await import("./generar.js");
+const { ESTADO, recibo } = await import("./resultado.js");
 const { estimarSemana, frasePresupuesto } = await import("../../src/lib/presupuesto.js");
 const { MINIMO } = await import("../../src/lib/minimosParaGenerar.js");
 
@@ -432,5 +433,41 @@ describe("mínimos para generar (trozo 2 de #1037, decisión B): sin alergias di
     await generarMenu("h1", "esta", [], out);
     expect(out.ok).toBe(true);
     expect(out.aviso).toBeUndefined();
+  });
+});
+
+// Trozo 27 de #1037: generar devuelve un RESULTADO, y lo que no se guardó no sale como hecho.
+describe("el resultado de generar", () => {
+  it("generado: la semana, con sus platos, en lo hecho", async () => {
+    conCasa.mockImplementation(async (_h, cambiar) => { await cambiar(structuredClone(casaVieja)); return { ok: true }; });
+    const out = {};
+    const r = resultadoDeGenerar(out, await generarMenu("h1", "esta", [], out));
+    expect(r.estado).toBe(ESTADO.HECHO);
+    expect(r.hecho).toEqual(["semana del 5 al 11 de octubre (1 plato)"]);
+    expect(r.nota).toMatch(/generado y activado/);
+  });
+
+  it("si la casa no se guarda, nada hecho: «⚠️ Sin hacer», nunca «✅»", async () => {
+    conCasa.mockResolvedValue({ ok: false, error: "conflicto persistente" });
+    const out = {};
+    const r = resultadoDeGenerar(out, await generarMenu("h1", "esta", [], out));
+    expect(r.estado).toBe(ESTADO.NADA);
+    expect(r.sinHacer).toEqual([{ que: "el menú", motivo: SIN_GENERAR.NO_GUARDADO }]);
+    expect(recibo([r])).not.toMatch(/✅/);
+  });
+
+  it("sin saber las alergias: no generado, con su motivo", async () => {
+    cargarCasa.mockResolvedValue({ ...structuredClone(casaVieja), state: { data: { members: [{ id: "p1", name: "Ana" }], groups: [{ id: "g1", label: "Todos" }] } } });
+    const out = {};
+    const r = resultadoDeGenerar(out, await generarMenu("h1", "esta", [], out));
+    expect(r.estado).toBe(ESTADO.NADA);
+    expect(r.sinHacer[0].motivo).toBe(SIN_GENERAR.MINIMOS);
+  });
+
+  it("los huecos vacíos y lo quitado por seguridad van a «sin hacer»: parcial", () => {
+    const r = resultadoDeGenerar({ ok: true, desde: "2026-10-05", hasta: "2026-10-11", platos: 12, huecosVacios: [{ grupo: "Todos", dia: "Lun", comida: "Cena", plato: "principal" }], quitados: ["Merluza (Mar Cena)"] }, "texto");
+    expect(r.estado).toBe(ESTADO.PARCIAL);
+    expect(r.sinHacer.map((x) => x.que)).toContain("Merluza (Mar Cena)");
+    expect(r.sinHacer).toHaveLength(2);
   });
 });
