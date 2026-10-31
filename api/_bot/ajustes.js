@@ -18,8 +18,8 @@
 
 import { COMIDAS_PLANIFICABLES, COMIDAS_PRINCIPALES } from "../../src/lib/comidas.js";
 import { conCasa } from "./casa.js";
-import { motor, normal, diaDe, DIAS, DIA_LARGO } from "./menu.js";
-import { buscarPersona, dudaDePersona, personasDe, diasDeLaSemana, fechaDe, lunesDe, grupoDePersonas, miembrosDeGrupo, cantidadDe, vecesDe } from "./interprete.js";
+import { motor, normal, DIAS, DIA_LARGO } from "./menu.js";
+import { buscarPersona, dudaDePersona, personasDe, diasDeLaSemana, diaDe, fechaDe, lunesDe, grupoDePersonas, miembrosDeGrupo, cantidadDe, vecesDe } from "./interprete.js";
 import { ETAPA_BEBE_INFO } from "../../src/lib/babyStage.js";
 import { registrar, EMBUDO, duenoDe, cimientosCompletos } from "./embudo.js";
 import { cerrarPorEstado, abrirPreguntaDeEstado } from "./tareas.js";
@@ -223,7 +223,7 @@ function quitaDe(a) {
  */
 function gustosPorDias(householdId, ajustes, frase, { dicho, desde, hasta, dias, salvoDias }) {
   if (!dicho) return "Por días solo apunto normas dichas claras («los lunes, sin carne»), no suposiciones.";
-  const aDias = (lista) => [...new Set((lista ?? []).map(diaDe).filter(Boolean))];
+  const aDias = (lista) => [...new Set((lista ?? []).map((x) => diaDe(x)).filter(Boolean))];
   const enDias = aDias(dias);
   const salvo = aDias(salvoDias);
   if (dias?.length && !enDias.length) return `No entiendo esos días (${dias.join(", ")}): usa Lun, Mar, Mié, Jue, Vie, Sáb, Dom.`;

@@ -17,6 +17,9 @@ import { kidsSlotAction } from "./kidsMenu.js";
 import { estructuraDelGrupo, estructuraCenaDelGrupo, platosDelHueco } from "./estructuraPlatos.js";
 import { DIAS, COMIDAS, DIA_LARGO_MINUSCULAS } from "./dias.js";
 
+/** Cómo dicen los avisos del motor que un hueco se quedó sin plato; los cuenta cifras:modelo. */
+export const HUECO_EN_AVISO = Object.freeze({ omitido: "hueco omitido", sin_asignar: "sin asignar" });
+
 /** Los platos de un hueco en el plan guardado, por nombre: el primero (`firstRecipeId`) y el principal (`recipeId`). */
 export const PLATO = Object.freeze({ primero: "primero", principal: "principal" });
 /** Los mismos, como lista cerrada. */

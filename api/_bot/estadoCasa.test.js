@@ -14,12 +14,12 @@ describe("resolverPersona", () => {
   it("encuentra por nombre, sin mayúsculas ni tildes", () => {
     expect(resolverPersona(casa(), "cova").persona).toEqual({ id: "c1", nombre: "Cova" });
   });
-  it("si no está en la casa, pregunta quién es", () => {
-    expect(resolverPersona(casa(), "Mario").error).toMatch(/no hay nadie/);
+  it("si no está en la casa, lo dice el intérprete (dudaDePersona)", () => {
+    expect(resolverPersona(casa(), "Mario").error).toMatch(/No encuentro a Mario/);
   });
   it("si hay dos con el mismo nombre, pregunta cuál", () => {
     const d = { members: [{ id: "a", name: "Ana López" }, { id: "b", name: "Ana Ruiz" }] };
-    expect(resolverPersona(d, "Ana").error).toMatch(/más de una/);
+    expect(resolverPersona(d, "Ana").error).toMatch(/¿Te refieres a Ana López o a Ana Ruiz\?/);
   });
 });
 

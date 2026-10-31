@@ -584,8 +584,9 @@ async function apuntarRuta(householdId, extra) {
 export async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, from, desde = null, responderA, variosAutores = false, esperaColaMs = null, rafaga = null, llegaron = null, rehecho = false }) {
   const modo = MODO_ROUTER();
   // Lo que esperó en la cola de su chat antes de empezar (bot_route espera_cola_ms),
-  // y si sus mensajes llegaron con el turno anterior en marcha (llegaron_durante, rehecho).
-  const cola = { ...(esperaColaMs == null ? {} : { espera_cola_ms: esperaColaMs }), ...(llegaron ? { llegaron_durante: llegaron } : {}), ...(rehecho ? { rehecho: true } : {}) };
+  // y si sus mensajes llegaron con el turno anterior en marcha (llegaron_durante, rehecho;
+  // también con n: 0, para que cifras:modelo distinga «nada» de «turno sin la medida»).
+  const cola = { ...(esperaColaMs == null ? {} : { espera_cola_ms: esperaColaMs }), llegaron_durante: llegaron ?? { n: 0, ms: [] }, ...(rehecho ? { rehecho: true } : {}) };
   // Cortado por la ráfaga: lo pagado (Lola hasta el corte y el enrutador) se
   // cuenta aquí, porque responder no cuenta con la señal cortada (agente.js).
   const rehacerSi = async (medir, usoRouter) => {

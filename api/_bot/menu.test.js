@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
-import { resolverDia, masParecida, diaDe, huecoDe, resultadoDeCambio, resultadoDeAnadir, SIN_CAMBIAR } from "./menu.js";
+import { resolverDia, masParecida, huecoDe, resultadoDeCambio, resultadoDeAnadir, SIN_CAMBIAR } from "./menu.js";
+import { diaDe } from "./interprete.js";
 import { ESTADO, recibo } from "./resultado.js";
 
 // Menú con esta semana (empezada el miércoles) y la que viene, como queda

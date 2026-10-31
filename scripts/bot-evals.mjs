@@ -92,7 +92,7 @@ process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
 const { ejecutar, herramientas, conQuienEscribe, MODELO, MODELO_RESERVA } = await import("../api/_bot/agente.js");
 // Las que devuelven un RESULTADO (trozo 27 de #1037) contestan aquí con la
 // misma forma que en Telegram: lo que lee el modelo sale de paraElModelo.
-const { paraElModelo } = await import("../api/_bot/resultado.js");
+const { paraElModelo, resultado: resultadoDe } = await import("../api/_bot/resultado.js");
 const { resultadoDeCambio, resultadoDeAnadir } = await import("../api/_bot/menu.js");
 const { resultadoDeGenerar, SIN_GENERAR } = await import("../api/_bot/generar.js");
 const { bloqueDe } = await import("../api/_bot/pendientes.js");
@@ -297,7 +297,10 @@ async function intentar(caso) {
       // `"respuestas": { herramienta: "texto" | ["1.ª", "2.ª", …] }` en un caso
       // pisa la de siempre; con una lista, cada llamada recibe la suya (la
       // última se repite): así se prueba qué dice Lola cuando algo falla.
-      const propia = caso.respuestas?.[t.name];
+      // `{ "resultado": { accion, hecho, sinHacer, nota } }` es un RESULTADO
+      // (trozo 27 de #1037): el modelo lo lee con paraElModelo, como en Telegram.
+      const conForma = (x) => (x && typeof x === "object" && x.resultado ? paraElModelo(resultadoDe(x.resultado)) : x);
+      const propia = Array.isArray(caso.respuestas?.[t.name]) ? caso.respuestas[t.name].map(conForma) : conForma(caso.respuestas?.[t.name]);
       const vez = llamadas.filter((l) => l.nombre === t.name).length;
       const fija = RESPUESTAS[t.name];
       // El resultado se guarda con la llamada: cuando las herramientas devuelvan
