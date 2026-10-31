@@ -2404,8 +2404,8 @@ export function OnboardingRestrictions({
   // La pantalla enseña a todos los de la casa: revisa a todos.
   // `fn` recibe la casa YA marcada: el setData no llega a quien lo llama en
   // este mismo clic, y el alta genera el menú ahí mismo. Sin pasarla, el
-  // primer menú salía con la casa sin revisar (los 14 alérgenos fuera, 27
-  // recetas y huecos vacíos).
+  // primer menú salía con la casa sin revisar (los 14 alérgenos fuera y
+  // huecos vacíos).
   const conRevision = (fn) => fn && (() => {
     const revisada = marcarRevisadas(data, null);
     setData((d) => marcarRevisadas(d, null));

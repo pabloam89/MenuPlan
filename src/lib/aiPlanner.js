@@ -2478,14 +2478,15 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
       } else if (position === "1") {
         // ¿Es el plato único de la comida o el primero de dos? Lo dice el
         // hueco. Antes se miraba si la RECETA podía ser plato único, y 106 de
-        // los 270 primeros del catálogo estrella también lo son (unas
-        // lentejas, una ensalada completa): en una comida de dos platos ese primero se
-        // escribía en `recipeId`, el segundo lo pisaba después y el primero
-        // desaparecía sin aviso. Solo sin hueco conocido se mira la receta.
+        // los 271 primeros estrella del catálogo también lo son (unas
+        // lentejas, una ensalada completa): en una comida de dos platos ese
+        // primero se escribía en `recipeId`, el segundo lo pisaba después y
+        // el primero desaparecía sin aviso.
         const posicion = positionBySlot[slotId];
-        const isPlatoUnico = posicion
-          ? posicion !== "primero"
-          : (catalogRecipe.mealRole ?? []).includes("plato_unico");
+        // Un hueco que el motor no creó no tiene forma conocida: va como
+        // plato único y se dice.
+        if (!posicion) plan._warnings.push(`${group.label}: ${slotId} no es un hueco de esta semana; su plato va como plato único.`);
+        const isPlatoUnico = posicion !== "primero";
         if (isPlatoUnico) {
           byDayMeal[planKey].recipeId = frontendId;
           byDayMeal[planKey].firstRecipeId = null;

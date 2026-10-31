@@ -10,8 +10,8 @@ import { diasActivosDe } from "./planner.js";
  * su aviso en `plan._warnings` (#1037, trozo 3).
  *
  * Se rompía en la hidratación: un primero que TAMBIÉN puede ser plato único
- * (unas lentejas, una ensalada completa: 106 de los 270 primeros del
- * catálogo estrella) se escribía en el sitio del principal, el segundo lo
+ * (unas lentejas, una ensalada completa: 106 de los 271 primeros
+ * estrella del catálogo) se escribía en el sitio del principal, el segundo lo
  * pisaba y el primero desaparecía sin aviso. La casa del alta (dos adultos,
  * nada que evitar) perdía primeros todas las semanas.
  *

@@ -9,7 +9,7 @@ import { alergiasRevisadas } from "../lib/alergiasBase.js";
  * «Nada que evitar» cierra el alta y la app genera el primer menú en ese mismo
  * clic. La marca de «alergias revisadas» entraba con un setData que aún no
  * había llegado a quien generaba: el motor recibía la casa SIN revisar,
- * esquivaba los 14 alérgenos (27 recetas) y el menú salía con huecos (la e2e
+ * esquivaba los 14 alérgenos y el menú salía con huecos (la e2e
  * de #1064: viernes y sábado sin cena). Quien sigue tras el clic recibe la
  * casa ya marcada.
  */
