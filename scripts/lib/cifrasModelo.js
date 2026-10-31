@@ -39,6 +39,17 @@ const FICHEROS_MOTOR = ["src/lib/aiPlanner.js", "src/lib/solver.js", "src/lib/re
 export const clavesData = (textos) => new Set(textos.flatMap((t) => t.match(/\bdata\.[a-zA-Z]+/g) ?? [])).size;
 
 /** El último resumen del banco de frases con operaciones exactas medidas (pasadas.jsonl), o null. */
+/**
+ * Cuántas herramientas que escriben siguen sin resultado: los nombres de
+ * SIN_RESULTADO_TODAVIA (api/_bot/agente.js), leídos del texto para no cargar
+ * a Lola entera. Si la lista cambia de forma, falla en alto (nunca sale 0).
+ */
+export function pendientesSinResultado(texto) {
+  const m = texto.match(/SIN_RESULTADO_TODAVIA = new Set\(\[([^\]]*)\]\)/);
+  if (!m) throw new Error("cifra herramientas_sin_resultado: no encuentro SIN_RESULTADO_TODAVIA = new Set([...]) en api/_bot/agente.js");
+  return (m[1].match(/"[^"]+"/g) ?? []).length;
+}
+
 export const ultimaConEspera = (pasadas) => pasadas.findLast((p) => p.pct_operacion_exacta != null) ?? null;
 
 const SIN_PASADA = "sin pasada del banco en .evals-out/pasadas.jsonl (node scripts/bot-evals.mjs: cuesta dinero, este script no la lanza)";
@@ -125,7 +136,7 @@ export const CIFRAS = [
     base: null, requiere: { tabla: "operacion", migracion: "0105" }, medir: async (ctx) => (await ctx.consultar("select count(*)::int n from operacion"))[0].n },
   // Trozo 27.
   { id: "herramientas_sin_resultado", nombre: "Herramientas que escriben sin resultado", trozo: 27, fuente: FUENTE.codigo, sentido: SENTIDO.baja, meta: 0,
-    base: null, falta: "api/_bot/resultadoObligatorio.test.js" },
+    base: base(19, "2026-10-31", "trozo 27 (#1078)"), medir: (ctx) => pendientesSinResultado(ctx.leer("api/_bot/agente.js")) },
   { id: "analizadores_fuera_interprete", nombre: "Analizadores de fechas y personas fuera del intérprete", trozo: 27, fuente: FUENTE.codigo, sentido: SENTIDO.baja, meta: 0,
     base: base(3, DIA_PLAN, PLAN), medir: (ctx) => ctx.lineasCon("function (diaDe|resolverDia|resolverPersona)\\(", ["api", "src"]) },
   { id: "turnos_con_mensaje_en_curso", nombre: "Turnos de Lola que reciben otro mensaje mientras corren", trozo: 28, fuente: FUENTE.base, sentido: SENTIDO.baja, meta: null,

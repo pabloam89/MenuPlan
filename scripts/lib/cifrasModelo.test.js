@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import {
-  CIFRAS, FUENTE, SENTIDO, ESTADO_CIFRA, medirCifras, tablaDeCifras, clavesData, ultimaConEspera,
+  CIFRAS, FUENTE, SENTIDO, ESTADO_CIFRA, medirCifras, tablaDeCifras, clavesData, ultimaConEspera, pendientesSinResultado,
 } from "./cifrasModelo.js";
 
 const FECHA = /^\d{4}-\d{2}-\d{2}$/;
@@ -8,7 +8,7 @@ const FECHA = /^\d{4}-\d{2}-\d{2}$/;
 /** Un contexto de mentira: nada existe, la base no se abre, lo demás vale 5. */
 const ctxDe = (cambios = {}) => ({
   existe: () => false,
-  leer: () => "data.a data.b data.a",
+  leer: () => 'data.a data.b data.a\nconst SIN_RESULTADO_TODAVIA = new Set(["x"]);',
   ficherosCon: async () => ["x.js", "y.js"],
   lineasCon: async () => 5,
   inventario: async () => new Proxy({}, { get: () => 5 }),
@@ -92,6 +92,11 @@ describe("medirCifras: lo que no se puede medir sale «sin medir», nunca 0", ()
 describe("piezas", () => {
   it("clavesData cuenta claves distintas, como `grep -ohE | sort -u`", () => {
     expect(clavesData(["data.a, data.b", "x.data.a; metadata.c"])).toBe(2);
+  });
+
+  it("pendientesSinResultado cuenta los nombres de la lista, y sin la lista falla en alto", () => {
+    expect(pendientesSinResultado('export const SIN_RESULTADO_TODAVIA = new Set([\n  "a", "b",\n  "c",\n]);')).toBe(3);
+    expect(() => pendientesSinResultado("export const OTRA = new Set([]);")).toThrow(/SIN_RESULTADO_TODAVIA/);
   });
 
   it("ultimaConEspera se queda con la última pasada que midió operaciones", () => {
