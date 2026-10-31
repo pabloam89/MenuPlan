@@ -2402,7 +2402,15 @@ export function OnboardingRestrictions({
   // vacía no distingue "no tenemos" de "no lo hemos mirado", que es justo lo
   // que no se puede suponer (ver `alergias` en wizardRegistry.js).
   // La pantalla enseña a todos los de la casa: revisa a todos.
-  const conRevision = (fn) => fn && (() => { setData((d) => marcarRevisadas(d, null)); fn(); });
+  // `fn` recibe la casa YA marcada: el setData no llega a quien lo llama en
+  // este mismo clic, y el alta genera el menú ahí mismo. Sin pasarla, el
+  // primer menú salía con la casa sin revisar (los 14 alérgenos fuera y
+  // huecos vacíos).
+  const conRevision = (fn) => fn && (() => {
+    const revisada = marcarRevisadas(data, null);
+    setData((d) => marcarRevisadas(d, null));
+    fn(revisada);
+  });
   // Con todo vacío, el botón lo afirma en vez de decir "Continuar": pasar sin
   // marcar nada tiene que leerse como una respuesta, no como saltarse el paso.
   const nadaMarcado = data.members.every(

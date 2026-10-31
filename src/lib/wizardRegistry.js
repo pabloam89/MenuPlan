@@ -45,6 +45,7 @@ import { COOK_LEVELS, COOK_TIME_DEFAULTS, cookLevelForMinutes, cookLevelMinutes 
 import { rutaDeReparto } from "./reparto.js";
 import { KID_DINNER_DEFAULTS, kidMembers, normalizeKidDinnerConfig } from "./kidsMenu.js";
 import { datoDe } from "./registroFicha.js";
+import { leidoDe, estadoParaLibreta } from "./estadoDeDato.js";
 
 /** Los ocho controles. Un control nuevo es trabajo; una fila nueva no. */
 export const CONTROLES = [
@@ -669,17 +670,26 @@ export function registroOrdenado(registro = PREGUNTAS) {
  * El estado de un campo de la libreta para una pregunta, o el que deduce de
  * `data` cuando la pregunta no vive en la libreta.
  *
- * Las preguntas de `data` no tienen los cuatro estados —`data` no guarda
- * procedencia— así que solo distinguen contestado de vacío. Es una pérdida
- * real y conocida: hasta que esos ejes migren a la libreta, una alergia
- * inferida del texto no se puede marcar como "sin confirmar" en `data`, y por
- * eso el parser no escribe ahí (ver `parser: false` en esas filas).
+ * `data` no guarda procedencia: solo distingue contestado de vacío. La
+ * procedencia está en el sobre de cada dato, y llega en `estados` (los de
+ * ficha_casa v2, de `estadosDeFichas` en estadoDeDato.js): con ellos, una
+ * alergia supuesta sale "inferido" y no "fijado". Sin ellos (la app aún no lee
+ * la ficha), como siempre. El parser sigue sin escribir en `data` (ver
+ * `parser: false` en esas filas).
  */
-export function estadoDelCampo(pregunta, notepad, data) {
+export function estadoDelCampo(pregunta, notepad, data, estados = null) {
   if (!pregunta) return "vacio";
   if (pregunta.fuente === "libreta") return estadoAgregado(pregunta, notepad);
   const valor = pregunta.lee?.(data, notepad);
-  return valor === null || valor === undefined ? "vacio" : "fijado";
+  const base = valor === null || valor === undefined ? "vacio" : "fijado";
+  return estados ? estadoParaLibreta(leidosDe(pregunta, data, estados), base) : base;
+}
+
+/** Los datos leídos de la ficha v2 para una pregunta: uno por persona si el dato es de cada una, o el de la casa. */
+function leidosDe(pregunta, data, estados) {
+  const { campo, entidad } = datoDePregunta(pregunta);
+  if (!campo) return [];
+  return entidad === "persona" ? (data?.members ?? []).map((m) => leidoDe(estados, campo, m.id)) : [leidoDe(estados, campo)];
 }
 
 /**
@@ -760,13 +770,13 @@ export function valorDePregunta(pregunta, notepad, data) {
  * datos, no sobre otra pregunta. `refina` NO bloquea: una pregunta fina puede
  * contestarse antes que la gruesa, solo se ordena detrás.
  */
-export function dependenciasCumplidas(pregunta, notepad, data, registro = PREGUNTAS) {
+export function dependenciasCumplidas(pregunta, notepad, data, registro = PREGUNTAS, estados = null) {
   if (!pregunta) return false;
 
   for (const id of pregunta.requiere ?? []) {
     const otra = registro.find((p) => p.id === id);
     if (!otra) continue;
-    if (estadoDelCampo(otra, notepad, data) === "vacio") return false;
+    if (estadoDelCampo(otra, notepad, data, estados) === "vacio") return false;
   }
 
   if (typeof pregunta.activa === "function" && !pregunta.activa(data, notepad)) return false;
@@ -779,12 +789,12 @@ export function dependenciasCumplidas(pregunta, notepad, data, registro = PREGUN
  * sentido "¿cuánto tiempo tienes entre semana?", y preguntarlo igual sería
  * pedirle al usuario que se contradiga.
  */
-export function anulada(pregunta, notepad, data, registro = PREGUNTAS) {
+export function anulada(pregunta, notepad, data, registro = PREGUNTAS, estados = null) {
   return registro.some(
     (otra) =>
       otra.id !== pregunta?.id &&
       (otra.anula ?? []).includes(pregunta?.id) &&
-      estadoDelCampo(otra, notepad, data) !== "vacio",
+      estadoDelCampo(otra, notepad, data, estados) !== "vacio",
   );
 }
 
@@ -795,9 +805,9 @@ export function anulada(pregunta, notepad, data, registro = PREGUNTAS) {
  * texto libre. Van a "aclaracion" aunque tengan valor, porque contar más no
  * solo rellena: también genera ocasiones de contradecirse.
  */
-export function estadoDePregunta(pregunta, notepad, data, dudas = []) {
+export function estadoDePregunta(pregunta, notepad, data, dudas = [], estados = null) {
   if (!pregunta) return "por-tocar";
-  const estado = estadoDelCampo(pregunta, notepad, data);
+  const estado = estadoDelCampo(pregunta, notepad, data, estados);
 
   if (estado === "vacio") return "por-tocar";
   if (dudas.includes(pregunta.id)) return "aclaracion";
@@ -809,9 +819,9 @@ export function estadoDePregunta(pregunta, notepad, data, dudas = []) {
 }
 
 /** Las preguntas que hoy tienen sentido, en orden. Ni anuladas ni inactivas. */
-export function preguntasVisibles(notepad, data, registro = PREGUNTAS) {
+export function preguntasVisibles(notepad, data, registro = PREGUNTAS, estados = null) {
   return registroOrdenado(registro).filter(
-    (p) => dependenciasCumplidas(p, notepad, data, registro) && !anulada(p, notepad, data, registro),
+    (p) => dependenciasCumplidas(p, notepad, data, registro, estados) && !anulada(p, notepad, data, registro, estados),
   );
 }
 
@@ -821,11 +831,11 @@ export function preguntasVisibles(notepad, data, registro = PREGUNTAS) {
  * Primero lo que necesita aclaración —es lo único que puede permitirse gritar—
  * y después lo que está por tocar, en el orden del registro.
  */
-export function siguientePregunta(notepad, data, { registro = PREGUNTAS, dudas = [] } = {}) {
-  const visibles = preguntasVisibles(notepad, data, registro);
+export function siguientePregunta(notepad, data, { registro = PREGUNTAS, dudas = [], estados = null } = {}) {
+  const visibles = preguntasVisibles(notepad, data, registro, estados);
   return (
-    visibles.find((p) => estadoDePregunta(p, notepad, data, dudas) === "aclaracion") ??
-    visibles.find((p) => estadoDePregunta(p, notepad, data, dudas) === "por-tocar") ??
+    visibles.find((p) => estadoDePregunta(p, notepad, data, dudas, estados) === "aclaracion") ??
+    visibles.find((p) => estadoDePregunta(p, notepad, data, dudas, estados) === "por-tocar") ??
     null
   );
 }
@@ -836,9 +846,9 @@ export function siguientePregunta(notepad, data, { registro = PREGUNTAS, dudas =
  * bajando. Un wizard que se acorta mientras hablas se siente lo contrario de
  * pesado, aunque tenga un paso más que el de hoy.
  */
-export function cuantasQuedan(notepad, data, { registro = PREGUNTAS, dudas = [] } = {}) {
-  return preguntasVisibles(notepad, data, registro).filter(
-    (p) => estadoDePregunta(p, notepad, data, dudas) !== "aclarado",
+export function cuantasQuedan(notepad, data, { registro = PREGUNTAS, dudas = [], estados = null } = {}) {
+  return preguntasVisibles(notepad, data, registro, estados).filter(
+    (p) => estadoDePregunta(p, notepad, data, dudas, estados) !== "aclarado",
   ).length;
 }
 
@@ -847,16 +857,16 @@ export function cuantasQuedan(notepad, data, { registro = PREGUNTAS, dudas = [] 
  * dejarla intacta tiraría el dato — y es justo lo que deja decidir si merece
  * la pena abrirla.
  */
-export function coberturaDeTema(temaId, notepad, data, { registro = PREGUNTAS, dudas = [] } = {}) {
-  const suyas = preguntasVisibles(notepad, data, registro).filter((p) => p.tema === temaId);
-  const hechas = suyas.filter((p) => estadoDePregunta(p, notepad, data, dudas) === "aclarado");
+export function coberturaDeTema(temaId, notepad, data, { registro = PREGUNTAS, dudas = [], estados = null } = {}) {
+  const suyas = preguntasVisibles(notepad, data, registro, estados).filter((p) => p.tema === temaId);
+  const hechas = suyas.filter((p) => estadoDePregunta(p, notepad, data, dudas, estados) === "aclarado");
   return {
     tema: temaId,
     de: suyas.length,
     hechas: hechas.length,
     // Una tarjeta con una aclaración pendiente no es "casi hecha": es la única
     // que tiene que levantar la voz, y su recuento lo diría al revés.
-    aclaraciones: suyas.filter((p) => estadoDePregunta(p, notepad, data, dudas) === "aclaracion").length,
+    aclaraciones: suyas.filter((p) => estadoDePregunta(p, notepad, data, dudas, estados) === "aclaracion").length,
   };
 }
 
@@ -868,14 +878,14 @@ export function coberturaDeTema(temaId, notepad, data, { registro = PREGUNTAS, d
  * Añadir un mando al menú es, por tanto, poner `enControles: true` en una fila
  * — no escribir un componente.
  */
-export function controlesVisibles(notepad, data, registro = PREGUNTAS) {
-  return preguntasVisibles(notepad, data, registro).filter((p) => p.enControles);
+export function controlesVisibles(notepad, data, registro = PREGUNTAS, estados = null) {
+  return preguntasVisibles(notepad, data, registro, estados).filter((p) => p.enControles);
 }
 
 /** Las tarjetas que tienen sentido para esta casa, con su cobertura. */
 export function temasVisibles(notepad, data, opciones = {}) {
   const registro = opciones.registro ?? PREGUNTAS;
-  const conPreguntas = new Set(preguntasVisibles(notepad, data, registro).map((p) => p.tema));
+  const conPreguntas = new Set(preguntasVisibles(notepad, data, registro, opciones.estados ?? null).map((p) => p.tema));
   return TEMAS.filter((t) => conPreguntas.has(t.id)).map((t) => ({
     ...t,
     ...coberturaDeTema(t.id, notepad, data, opciones),

@@ -4,7 +4,7 @@
  * buildGroupContext (aiPlanner.js).
  */
 import { describe, it, expect } from "vitest";
-import { huecosEsperados, huecosVacios, describirHuecos, PLATOS_DEL_HUECO } from "./huecosDelPlan.js";
+import { huecosEsperados, huecosVacios, describirHuecos, avisoDeHuecos, PLATOS_DEL_HUECO } from "./huecosDelPlan.js";
 
 const familia = { id: "g1", label: "Familia", memberIds: ["p1", "p2"] };
 const miembros = [{ id: "p1", name: "Ana" }, { id: "p2", name: "Luis" }];
@@ -116,5 +116,23 @@ describe("describirHuecos: en castellano corto y en orden de semana", () => {
     ];
     expect(describirHuecos(vacios)).toBe("lunes cena [g1], domingo cena [g2]");
     expect(describirHuecos([])).toBe("");
+    // En la app el grupo se nombra como lo ve la familia, no por su id.
+    expect(describirHuecos(vacios, { nombreDeGrupo: { g1: "Adultos" } })).toBe("lunes cena [Adultos], domingo cena [g2]");
+  });
+});
+
+describe("avisoDeHuecos: lo que la app añade a «Menú generado»", () => {
+  const cena = (dia) => ({ grupo: "g1", dia, comida: "Cena", plato: "principal", de: 1 });
+
+  it("sin huecos vacíos no dice nada", () => {
+    expect(avisoDeHuecos([[]])).toBe("");
+    expect(avisoDeHuecos([[], []])).toBe("");
+    expect(avisoDeHuecos([])).toBe("");
+  });
+
+  it("la semana que se ve, entera; las demás, cuántos", () => {
+    expect(avisoDeHuecos([[cena("Sáb"), cena("Vie")]])).toBe("Sin plato: viernes cena, sábado cena");
+    expect(avisoDeHuecos([[cena("Vie")], [cena("Lun"), cena("Mar")]])).toBe("Sin plato: viernes cena y 2 más en las otras semanas");
+    expect(avisoDeHuecos([[], [cena("Lun")]])).toBe("Sin plato: 1 más en las otras semanas");
   });
 });

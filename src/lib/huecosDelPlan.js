@@ -98,9 +98,10 @@ export function huecosVacios(plan, esperados) {
  * Los huecos vacíos en castellano corto, en el orden de la semana:
  * «sábado comida (2º), viernes cena». Si del mismo hueco faltan los dos
  * platos, se dice el hueco entero («viernes cena»); si falta uno, cuál.
- * Con varios grupos, el grupo entre corchetes.
+ * Con varios grupos, el grupo entre corchetes: su nombre si se da
+ * `nombreDeGrupo` (id → nombre), si no su id.
  */
-export function describirHuecos(huecos) {
+export function describirHuecos(huecos, { nombreDeGrupo = {} } = {}) {
   const porHueco = new Map();
   for (const h of huecos) {
     const clave = `${h.grupo}|${h.dia}|${h.comida}`;
@@ -113,8 +114,23 @@ export function describirHuecos(huecos) {
     .map(({ grupo, dia, comida, platos, de }) => {
       const entero = platos.length >= (de ?? platos.length);
       const cual = entero ? "" : ` (${ORDINAL[platos[0]] ?? platos[0]})`;
-      const quien = grupos.size > 1 ? ` [${grupo}]` : "";
+      const quien = grupos.size > 1 ? ` [${nombreDeGrupo[grupo] ?? grupo}]` : "";
       return `${DIA_LARGO_MINUSCULAS[dia] ?? dia} ${comida.toLowerCase()}${cual}${quien}`;
     })
     .join(", ");
+}
+
+/**
+ * El aviso de la app al generar (#1037, trozo 3): qué huecos se han quedado
+ * sin plato, para que «Menú generado» no los calle. `vaciosPorSemana`, los
+ * vacíos de cada semana generada, la primera la que se ve: esa se describe
+ * entera; de las demás se dice cuántos. Sin vacíos, cadena vacía.
+ */
+export function avisoDeHuecos(vaciosPorSemana, opciones) {
+  const [primera = [], ...resto] = vaciosPorSemana;
+  const otros = resto.reduce((n, v) => n + v.length, 0);
+  const partes = [];
+  if (primera.length) partes.push(`Sin plato: ${describirHuecos(primera, opciones)}`);
+  if (otros) partes.push(`${primera.length ? "y " : "Sin plato: "}${otros} más en las otras semanas`);
+  return partes.join(" ");
 }
