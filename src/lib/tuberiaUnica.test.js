@@ -8,6 +8,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative, sep } from "node:path";
+import { ESCRIBEN_FICHAS, LLAMADAS_HEREDADAS as LLAMADAS_POSIX } from "./operaciones/escritoras.js";
 
 const RAIZ = join(import.meta.dirname, "..", "..");
 const TUBERIA = join("src", "lib", "operaciones") + sep;
@@ -19,16 +20,9 @@ const TABLAS_DE_FICHA = [
   "persona", "persona_alergia", "persona_intolerancia", "persona_estado", "persona_perfil_salud",
   "grupo", "grupo_persona",
 ];
-/** Las funciones de la base que escriben fichas. Lista cerrada: una nueva no entra sin decir aquí qué es. */
-const ESCRIBEN_FICHAS = {
-  aplicar_operacion: "tubería (0106)",
-  escribir_dato: "tubería (0106; llama a aplicar_operacion)",
-  persona_sincronizar_casa: "heredada (0081-0082): la retira la 0108, trozo 10",
-  persona_reemplazar_casa: "heredada (0079; delega en persona_sincronizar_casa): la retira la 0108, trozo 10",
-  _personas_al_guardar: "heredada: disparador de household_state (0089) que copia members a persona_*; lo retira la 0108, trozo 10",
-};
-/** Quién llama hoy a una heredada desde el código, y quién lo quita. Lista cerrada. */
-const LLAMADAS_HEREDADAS = { [join("scripts", "backfill-personas.mjs")]: "persona_reemplazar_casa" };
+// Las funciones que escriben fichas y las llamadas heredadas: listas cerradas en
+// src/lib/operaciones/escritoras.js.
+const LLAMADAS_HEREDADAS = Object.fromEntries(Object.entries(LLAMADAS_POSIX).map(([r, f]) => [r.split("/").join(sep), f]));
 
 function ficheros(dir) {
   return readdirSync(dir).flatMap((f) => {
