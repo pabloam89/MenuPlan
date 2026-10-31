@@ -317,8 +317,8 @@ describe("la ráfaga se mide en bot_route (trozo 28 de #1037)", () => {
     expect(t.rutas.map((r) => [r.rapida, r.llegaron_durante])).toEqual([[true, { n: 1, ms: [3000] }], [false, { n: 2, ms: [1000, 2000] }]]);
   });
 
-  it("sin nada que llegara durante, la fila no lleva el campo", async () => {
+  it("sin nada que llegara durante, la fila lo dice con n: 0 (no se confunde con un turno sin la medida)", async () => {
     await pedirTras({});
-    expect(t.rutas[0]).not.toHaveProperty("llegaron_durante");
+    expect(t.rutas[0].llegaron_durante).toEqual({ n: 0, ms: [] });
   });
 });
