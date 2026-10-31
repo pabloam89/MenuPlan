@@ -1,13 +1,14 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync, readdirSync } from "node:fs";
 import { REGISTRO_CAMPOS } from "../src/lib/registroCampos.js";
-import { CHOQUE, CHOQUES, CLASES_DATO, ESCRITORES, ESTADO_DE_ORIGEN, ESTADOS_DATO, ESTADOS_OPERACION, MOTIVOS_SIN_HACER_DATO, ORIGEN_DATO, ORIGENES_DE_LA_FAMILIA } from "../src/lib/vocabularios.js";
+import { CHOQUE, CHOQUES, CLASES_DATO, ESCRITORES, ESTADO_DE_ORIGEN, ESTADOS_DATO, ESTADOS_OPERACION, MOTIVOS_SIN_DESHACER, MOTIVOS_SIN_HACER_DATO, ORIGEN_DATO, ORIGENES_DE_LA_FAMILIA } from "../src/lib/vocabularios.js";
 
 /**
  * El dato con sobre (plan fichas con estado, trozo 7): lo que no vigilan principios.test.js ni
  * vocabularios.test.js. La 0105 crea la tabla operacion; la escriben las RPC de la 0106 (trozo 39). Ningún
  * código llama aún a aplicar_operacion ni a escribir_dato (trozo 8): este test es su lector. La 0107
- * (trozo 40) rehace ficha_casa (v2) y quita sobre.ref_tipo/ref_id.
+ * (trozo 40) rehace ficha_casa (v2) y quita sobre.ref_tipo/ref_id. La 0111 (trozo 41) crea deshacer_operacion;
+ * hasta que la llame la tubería (segundo PR del trozo 41), este test y su autoprueba son sus lectores.
  *  - operacion: solo el servidor la lee y la escribe (guarda salud); una clave por casa.
  *  - sobre apunta a su operación, que se puede purgar sin llevarse el dato.
  */
@@ -17,6 +18,7 @@ const codigo = sinComentarios(sql);
 const codigo0106 = sinComentarios(readFileSync(new URL("./migrations/0106_aplicar_operacion.sql", import.meta.url), "utf8"));
 
 const codigo0107 = sinComentarios(readFileSync(new URL("./migrations/0107_ficha_casa_v2.sql", import.meta.url), "utf8"));
+const codigo0111 = sinComentarios(readFileSync(new URL("./migrations/0111_deshacer_operacion.sql", import.meta.url), "utf8"));
 
 /** El cuerpo de una función (de la 0106 si no se dice otra), de su create a su $$ de cierre. */
 function cuerpo(nombre, texto = codigo0106) {
@@ -99,11 +101,11 @@ describe("0106: las RPC de escritura, solo para el servidor", () => {
     expect(f).toMatch(/insert into public\.sobre[\s\S]*?on conflict do nothing\s+returning id into v_sobre;/);
   });
 
-  it("al actualizar un sobre conserva bloqueado, peso y caduca_at si el pedido no los trae; nadie escribe «deshecha»", () => {
+  it("al actualizar un sobre conserva bloqueado, peso y caduca_at si el pedido no los trae; aplicar_operacion no escribe «deshecha»", () => {
     const set = cuerpo("aplicar_operacion").match(/update public\.sobre\s+set([\s\S]*?)\bwhere id = v_antes\.id/)?.[1] ?? "";
     for (const c of ["bloqueado", "peso", "caduca_at"]) expect(set, c).toMatch(new RegExp(`${c} = case when d \\? '${c}' then [^\\n]* else ${c} end`));
     expect(cuerpo("escribir_dato")).toMatch(/jsonb_strip_nulls\(/);
-    // Nadie escribe «deshecha» todavía: deshacer llega con la tubería (trozo 26).
+    // «deshecha» solo la escribe deshacer_operacion (0111, trozo 41).
     expect(codigo0106).not.toMatch(/estado\s*=\s*'deshecha'|deshecha_at\s*=/);
   });
 });
@@ -177,5 +179,56 @@ describe("0107: ficha_casa v2 y fuera sobre.ref", () => {
     const faltan = ficha.slice(ficha.indexOf("into v_faltan"), ficha.indexOf("into v_tareas"));
     expect(faltan.match(vigente)?.length).toBe(2);
     expect(faltan).not.toMatch(/alergias_revisadas|p\.edad|p\.fecha_nacimiento/);
+  });
+});
+
+describe("0111: deshacer_operacion, en una transacción y solo lo propio", () => {
+  const f = cuerpo("deshacer_operacion", codigo0111);
+
+  it("es definer con search_path fijo y solo la ejecuta service_role", () => {
+    expect(f).toMatch(/language plpgsql security definer set search_path = public, pg_temp as \$\$/);
+    expect(codigo0111).toMatch(/revoke all on function public\.deshacer_operacion\(uuid, uuid, uuid\) from public, anon, authenticated;/);
+    const grants = [...desde0105().matchAll(/grant\s+[^;]*?\bon\s+function\s+public\.deshacer_operacion\b[^;]*?\bto\s+([^;]*);/gi)];
+    expect(grants.map((m) => m[1].trim())).toEqual(["service_role"]);
+  });
+
+  it("los motivos de sin_hacer son MOTIVOS_SIN_DESHACER, y los estados que mira o escribe, de ESTADOS_OPERACION", () => {
+    expect(ordenado([...f.matchAll(/'motivo', '(\w+)'/g)].map((m) => m[1]))).toEqual(ordenado(MOTIVOS_SIN_DESHACER));
+    const estados = [...f.matchAll(/estado (?:=|<>) '(\w+)'|'estado', '(\w+)'/g)].map((m) => m[1] ?? m[2]);
+    expect(ordenado(estados)).toEqual(["deshecha", "hecha"]);
+    for (const e of estados) expect(ESTADOS_OPERACION).toContain(e);
+  });
+
+  it("devuelve en cada salida las mismas claves", () => {
+    // Las claves de arriba: el sin_hacer de «no_existe» lleva dentro su propio objeto.
+    const arriba = (s) => s.replace(/jsonb_build_array\(jsonb_build_object\([^)]*\)\)/g, "");
+    // Pares clave, valor: el valor es un literal (con su tipo), un paréntesis sin otros dentro o una expresión sin comas.
+    const par = /'(\w+)',\s*(?:'[^']*'(?:::\w+)?|\([^()]*\)|[^,()]+)/g;
+    const salidas = [...f.matchAll(/return jsonb_build_object\(([\s\S]*?)\);/g)].map((m) => [...arriba(m[1]).matchAll(par)].map((x) => x[1]));
+    expect(salidas.length).toBe(5);
+    for (const s of salidas) expect(ordenado(s)).toEqual(["deshecho", "estado", "operacion_id", "repetida", "rev", "sin_hacer"]);
+  });
+
+  it("solo lo propio: quien pide tiene que ser el autor y ser de la casa", () => {
+    expect(f).toMatch(/if v_op\.autor_user_id is distinct from v_quien then\s+v_sin_hacer := jsonb_build_array\(jsonb_build_object\('motivo', 'no_es_suya'\)\);/);
+    expect(f).toMatch(/not exists \(select 1 from public\.household_members m where m\.household_id = p_casa and m\.user_id = v_quien\)/);
+  });
+
+  it("si un dato que tocó cambió después, no escribe nada: mira todos los sobres antes de la primera escritura", () => {
+    const mira = f.search(/if not found or v_ahora\.operacion_id is distinct from v_op\.id then\s+v_sin_hacer := v_sin_hacer \|\| [^\n]*'cambio_despues'/);
+    expect(mira, "falta la comprobación de cambio_despues").toBeGreaterThan(-1);
+    const corta = f.indexOf("if jsonb_array_length(v_sin_hacer) > 0 then", mira);
+    const escribe = f.search(/delete from public\.sobre|update public\.sobre|update public\.operacion|update public\.household_state/);
+    expect(corta).toBeGreaterThan(mira);
+    expect(escribe).toBeGreaterThan(corta);
+  });
+
+  it("aplica la inversa: borra el sobre nacido en la operación, devuelve el de antes, y la marca deshecha con su fecha", () => {
+    expect(f).toMatch(/if jsonb_typeof\(d->'antes'\) is distinct from 'object' then\s+delete from public\.sobre/);
+    expect(f).toMatch(/v_antes := jsonb_populate_record\(null::public\.sobre, d->'antes'\);\s+update public\.sobre/);
+    expect(f).toMatch(/update public\.operacion set estado = 'deshecha', deshecha_at = now\(\)/);
+    // Concurrencia: la operación con «no key update» y sus sobres en el orden de aplicar_operacion.
+    expect(f).toMatch(/for no key update;/);
+    expect(f.match(/order by x\.value->>'campo', coalesce\(x\.value->>'persona_id', ''\)/g)).toHaveLength(2);
   });
 });
