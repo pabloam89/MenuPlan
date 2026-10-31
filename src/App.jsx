@@ -131,6 +131,7 @@ import {
   loadMenuDetail as loadMenuDetailRemote,
   activateMenu as activateMenuRemote,
   deleteMenu as deleteMenuRemote,
+  deactivateMenu as deactivateMenuRemote,
   toggleMenuFavorite as toggleMenuFavoriteRemote,
   saveAndActivateMenu,
   queueSaveMenuWeek,
@@ -5601,6 +5602,13 @@ export default function App() {
   // on the dashboard with the onboarding effectively already done.
   const doSoftReset = useCallback(() => {
     setResetConfirm(null);
+    // También en la nube: si no, la fila sigue activa y el menú vuelve al
+    // recargar. Se queda en el histórico.
+    if (user?.id && activeMenuIdRef.current && !householdReadOnly) {
+      deactivateMenuRemote(user.id, activeMenuIdRef.current, casaActivaRef.current).then((res) => {
+        if (!res.ok) showToast("No se pudo reiniciar en la nube. Puede reaparecer al recargar.");
+      });
+    }
     setMenuPlan({});
     setShopping({ items: [] });
     setAiRecipes([]);
@@ -5619,7 +5627,7 @@ export default function App() {
     dirRef.current = "forward";
     setScreen("dashboard");
     showToast("Menú reiniciado");
-  }, [showToast]);
+  }, [showToast, user?.id, householdReadOnly]);
 
   // Abandon the onboarding/menu-generation wizard: only exits back to the
   // dashboard (every entry point into onboarding — "Otro grupo", "Mi familia
