@@ -146,6 +146,8 @@ export const ticket = clase("tkt_", { viejo: /^r-\d{10,16}-[0-9a-z]{1,4}$/ });
 export const casa = claseUuid();
 /** La clave de idempotencia de una operación que propone la app (api/operacion.js la guarda como `app:<uuid>`). */
 export const claveOperacion = claseUuid();
+/** Una operación (operacion.id) que la app pide deshacer en api/operacion.js. */
+export const operacion = claseUuid();
 /** Una cocinada (cookings.id; también la carpeta de su foto en Storage). */
 export const cocinada = claseUuid();
 /** El id anónimo de analítica de quien no ha entrado (localStorage). */
