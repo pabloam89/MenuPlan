@@ -57,6 +57,7 @@ import { computeRecipeNutrition } from "./ingredients.js";
 import { vetosDe } from "./vetos.js";
 import { isoLocalDate } from "./weekCalendar.js";
 import { DIA_SLUG as DAY_SLUG, DIA_LARGO_MINUSCULAS, diaDeSlug, tipoDeComida, comidaDeTipo, huecoMotor } from "./dias.js";
+import { HUECO_EN_AVISO } from "./huecosDelPlan.js";
 
 /**
  * Los nombres por ración de los 24 micronutrientes. Los cuatro macros
@@ -1428,7 +1429,7 @@ function asignarConSolver({
   // el resto de la semana.
   if (res.sinCombinacion.length > 0) {
     warnings.push(
-      `${group.label}: no se encontró una combinación que cumpla todas las reglas a la vez; ${res.sinCombinacion.length} plato(s) se quedan sin asignar (${res.sinCombinacion.join(", ")}).`,
+      `${group.label}: no se encontró una combinación que cumpla todas las reglas a la vez; ${res.sinCombinacion.length} plato(s) se quedan ${HUECO_EN_AVISO.sin_asignar} (${res.sinCombinacion.join(", ")}).`,
     );
   }
   if (res.relajados.length > 0) {
@@ -1635,7 +1636,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   const poolIds = new Set(filteredPool.map((r) => r.id));
   slotAssignments = slotAssignments.filter((s) => {
     if (poolIds.has(s.recipeId)) return true;
-    warnings.push(`${group.label}: no se encontró una receta que cumpliera todas las restricciones para ${s.slotId}; hueco omitido.`);
+    warnings.push(`${group.label}: no se encontró una receta que cumpliera todas las restricciones para ${s.slotId}; ${HUECO_EN_AVISO.omitido}.`);
     return false;
   });
 
@@ -1646,7 +1647,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   const assignedSlotIds = new Set(slotAssignments.map((s) => s.slotId));
   for (const slot of ctx.slots) {
     if (!assignedSlotIds.has(slot.slotId)) {
-      warnings.push(`${group.label}: no hay ninguna receta compatible para ${slot.slotId}; ese plato se queda sin asignar.`);
+      warnings.push(`${group.label}: no hay ninguna receta compatible para ${slot.slotId}; ese plato se queda ${HUECO_EN_AVISO.sin_asignar}.`);
     }
   }
 
