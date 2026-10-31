@@ -6,7 +6,7 @@
  */
 
 import { alergiasRevisadas, esBebe } from "./ficha.js";
-import { buscarPersona, personaNombradaEn, normal } from "./interprete.js";
+import { buscarPersona, dudaDePersona, personaNombradaEn, normal } from "./interprete.js";
 import { ETAPAS_BEBE } from "../../src/lib/babyStage.js";
 import { claveDeTarea, campoDeClave, personaDeClave, TIPO_DE_KIND } from "../../src/lib/registroTareas.js";
 
@@ -15,14 +15,15 @@ export const normalizar = normal;
 
 const idDe = (m) => String(m?.id ?? m?.name ?? "");
 
-/** Una persona de la casa por su nombre, con el intérprete (interprete.js, #958). */
+/**
+ * Una persona de la casa por su nombre, con el intérprete (interprete.js,
+ * #958): la persona, o la pregunta del intérprete (`dudaDePersona`) si no
+ * está o hay varias. Sin nombre, nadie y sin pregunta.
+ */
 export function resolverPersona(data = {}, nombre, quien = {}) {
   if (!normalizar(nombre)) return { persona: null };
-  const r = buscarPersona(data, nombre, quien);
-  if (r.persona) return { persona: { id: idDe(r.persona), nombre: r.persona.name } };
-  if (r.duda) return { error: r.duda };
-  if (r.candidatas.length > 1) return { error: `Hay más de una persona que se llama «${nombre}» (${r.candidatas.map((p) => p.name).join(", ")}): ¿cuál?` };
-  return { error: `En la casa no hay nadie que se llame «${nombre}». ¿Quién es?` };
+  const { persona } = buscarPersona(data, nombre, quien);
+  return persona ? { persona: { id: idDe(persona), nombre: persona.name } } : { error: dudaDePersona(data, nombre, quien) };
 }
 
 const TEMA_ALERGIAS = /\b(alergi\w*|intoleran\w*|celiac\w*|gluten)\b/;
