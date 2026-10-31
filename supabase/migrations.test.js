@@ -43,8 +43,10 @@ const DUPLICADOS_HEREDADOS = new Set(["0003", "0006", "0051"]);
  * entrado. No es un hueco perdido: tiene dueño y se borra de aquí en cuanto
  * su fichero exista.
  *   0093: datos/303-borrar-copias-catalogo (0093_borrar_copias_catalogo), PR del #303.
+ *   0108, 0109, 0110: el plan de fichas con estado (specs/plan-fichas-con-estado.md, «Qué hace cada
+ *     migración») las da a los trozos 10, 14 y 34, que aún no se han construido; la 0111 (trozo 41) llegó antes.
  */
-const RESERVADOS = new Set(["0093"]);
+const RESERVADOS = new Set(["0093", "0108", "0109", "0110"]);
 
 describe("las migraciones se pueden nombrar sin ambigüedad", () => {
   it("ningún número nuevo repetido", () => {

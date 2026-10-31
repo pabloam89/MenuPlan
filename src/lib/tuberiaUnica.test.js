@@ -23,6 +23,7 @@ const TABLAS_DE_FICHA = [
 const ESCRIBEN_FICHAS = {
   aplicar_operacion: "tubería (0106)",
   escribir_dato: "tubería (0106; llama a aplicar_operacion)",
+  deshacer_operacion: "tubería (0111): deshace una operación con su inversa",
   persona_sincronizar_casa: "heredada (0081-0082): la retira la 0108, trozo 10",
   persona_reemplazar_casa: "heredada (0079; delega en persona_sincronizar_casa): la retira la 0108, trozo 10",
   _personas_al_guardar: "heredada: disparador de household_state (0089) que copia members a persona_*; lo retira la 0108, trozo 10",
