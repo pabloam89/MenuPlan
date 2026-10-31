@@ -31,9 +31,9 @@ const base = (valor, fecha, origen, de = null) => ({ valor, de, fecha, origen })
 const PLAN = "plan";
 const DIA_PLAN = "2026-10-30";
 /** Cuándo se fusionó el trozo 1 (#1040): desde ahí, el alta guarda la marca de alergias. */
-export const DESDE_TROZO_1 = "2026-10-30T09:58:11Z";
+const DESDE_TROZO_1 = "2026-10-30T09:58:11Z";
 /** Ficheros que lee el motor (trozo 30: claves `data.*`). */
-export const FICHEROS_MOTOR = ["src/lib/aiPlanner.js", "src/lib/solver.js", "src/lib/reglas.js", "src/utils/validateMenu.js"];
+const FICHEROS_MOTOR = ["src/lib/aiPlanner.js", "src/lib/solver.js", "src/lib/reglas.js", "src/utils/validateMenu.js"];
 
 /** Claves `data.*` distintas en unos textos (el `grep -ohE "data\.[a-zA-Z]+" | sort -u` del trozo 30). */
 export const clavesData = (textos) => new Set(textos.flatMap((t) => t.match(/\bdata\.[a-zA-Z]+/g) ?? [])).size;
