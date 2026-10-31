@@ -549,6 +549,16 @@
       }
     },
     {
+      "texto": "Sí, genéralo",
+      "ultima": "Todavía no tienes menú para esos días del 2 al 7 de noviembre. ¿Te lo preparo?",
+      "modo": "generar",
+      "rapida": false,
+      "_nota": "Confirmar una oferta que nombra fechas: la vía rápida no las ve y generaba «la siguiente» (la del 23). Lo lleva Lola",
+      "datos": {
+        "semana": "siguiente"
+      }
+    },
+    {
       "texto": "hazme el menú de la semana que viene",
       "modo": "generar",
       "rapida": true,
