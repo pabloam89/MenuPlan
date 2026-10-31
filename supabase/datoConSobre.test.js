@@ -2,13 +2,14 @@ import { describe, it, expect } from "vitest";
 import { readFileSync, readdirSync } from "node:fs";
 import { REGISTRO_CAMPOS } from "../src/lib/registroCampos.js";
 import { CHOQUE, CHOQUES, CLASES_DATO, ESCRITORES, ESTADO_DE_ORIGEN, ESTADOS_DATO, ESTADOS_OPERACION, MOTIVOS_SIN_DESHACER, MOTIVOS_SIN_HACER_DATO, ORIGEN_DATO, ORIGENES_DE_LA_FAMILIA } from "../src/lib/vocabularios.js";
+import { CAMPOS_DESHACER } from "../src/lib/operaciones/tuberia.js";
 
 /**
  * El dato con sobre (plan fichas con estado, trozo 7): lo que no vigilan principios.test.js ni
  * vocabularios.test.js. La 0105 crea la tabla operacion; la escriben las RPC de la 0106 (trozo 39). Ningún
  * código llama aún a aplicar_operacion ni a escribir_dato (trozo 8): este test es su lector. La 0107
- * (trozo 40) rehace ficha_casa (v2) y quita sobre.ref_tipo/ref_id. La 0111 (trozo 41) crea deshacer_operacion;
- * hasta que la llame la tubería (segundo PR del trozo 41), este test y su autoprueba son sus lectores.
+ * (trozo 40) rehace ficha_casa (v2) y quita sobre.ref_tipo/ref_id. La 0111 (trozo 41) crea deshacer_operacion,
+ * que llama la tubería (src/lib/operaciones/tuberia.js, deshacer) y cuenta con CAMPOS_DESHACER.
  *  - operacion: solo el servidor la lee y la escribe (guarda salud); una clave por casa.
  *  - sobre apunta a su operación, que se puede purgar sin llevarse el dato.
  */
@@ -199,14 +200,14 @@ describe("0111: deshacer_operacion, en una transacción y solo lo propio", () =>
     for (const e of estados) expect(ESTADOS_OPERACION).toContain(e);
   });
 
-  it("devuelve en cada salida las mismas claves", () => {
+  it("devuelve en cada salida las claves que cuenta la tubería (CAMPOS_DESHACER)", () => {
     // Las claves de arriba: el sin_hacer de «no_existe» lleva dentro su propio objeto.
     const arriba = (s) => s.replace(/jsonb_build_array\(jsonb_build_object\([^)]*\)\)/g, "");
     // Pares clave, valor: el valor es un literal (con su tipo), un paréntesis sin otros dentro o una expresión sin comas.
     const par = /'(\w+)',\s*(?:'[^']*'(?:::\w+)?|\([^()]*\)|[^,()]+)/g;
     const salidas = [...f.matchAll(/return jsonb_build_object\(([\s\S]*?)\);/g)].map((m) => [...arriba(m[1]).matchAll(par)].map((x) => x[1]));
     expect(salidas.length).toBe(5);
-    for (const s of salidas) expect(ordenado(s)).toEqual(["deshecho", "estado", "operacion_id", "repetida", "rev", "sin_hacer"]);
+    for (const s of salidas) expect(ordenado(s)).toEqual(ordenado(CAMPOS_DESHACER));
   });
 
   it("solo lo propio: quien pide tiene que ser el autor y ser de la casa", () => {
