@@ -206,7 +206,7 @@ export function argumentosDeConsulta(argv) {
 }
 
 /**
- * La base para un script que solo lee (ficha:inventario, cifras:modelo): con
+ * La base para un script que solo lee (ficha:inventario): con
  * el usuario de lectura (nunca el administrador), comprobado con
  * current_user, dentro de una transacción `read only` que se deshace al
  * acabar. `fn` recibe `consultar(sql) → filas`; lo que devuelve, se devuelve.

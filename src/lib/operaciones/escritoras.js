@@ -2,8 +2,7 @@
  * Quién escribe fichas en la base (plan fichas con estado, trozo 26): las
  * funciones de la base que lo hacen y las llamadas del código que aún no van
  * por la tubería. Listas cerradas, en un solo sitio: las vigila
- * src/lib/tuberiaUnica.test.js (cuadran con las migraciones y con el código) y
- * las cuenta scripts/lib/cifrasModelo.js (escrituras fuera de la tubería, → 0).
+ * src/lib/tuberiaUnica.test.js (cuadran con las migraciones y con el código).
  */
 
 /** De la tubería: las RPC por las que pasa toda operación. */

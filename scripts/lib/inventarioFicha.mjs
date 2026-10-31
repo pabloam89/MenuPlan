@@ -154,8 +154,7 @@ export function clavesEscritas(texto) {
 /**
  * Las claves que hay hoy en la base (`state.data` de cada casa y de cada
  * persona de `members`), con `consultar(sql) → filas` de solo lectura
- * (conLectura, scripts/lib/rolLectura.mjs). Las usan ficha:inventario --base
- * y cifras:modelo (claves vivas en el documento de la casa).
+ * (conLectura, scripts/lib/rolLectura.mjs). Las usa ficha:inventario --base.
  */
 export async function clavesGuardadas(consultar) {
   const casa = await consultar("select distinct k from household_state, jsonb_object_keys(state->'data') k");
