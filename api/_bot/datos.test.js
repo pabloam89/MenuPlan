@@ -141,11 +141,12 @@ describe("api/operacion.js: la app propone, el servidor escribe", () => {
     expect(op.clave).toBe(`app:${CLAVE_APP}`);
   });
 
-  it("desde la app solo hablan personas: un origen del sistema (supuesto) no llega a la base", async () => {
+  it("desde la app solo hablan personas: un origen del sistema (supuesto) lo para la puerta y no llega a la base", async () => {
     responde(/household_members/, { status: 200, cuerpo: [{ role: "owner", user_id: "u1" }] });
+    vi.spyOn(console, "error").mockImplementation(() => {});
     const res = await pedir({ body: { ...CUERPO, dato: { ...DATO, origen: "supuesto" } } });
     expect(res.codigo).toBe(400);
-    expect(res.body).toEqual({ fallo: FALLO_DATO.INVALIDO, error: "origen" });
+    expect(res.body).toEqual({ fallo: FALLO_DATO.INVALIDO, error: "origen_no_vale" });
     expect(llamadas.filter((l) => l.ruta.includes("rpc/"))).toEqual([]);
   });
 
@@ -159,14 +160,16 @@ describe("api/operacion.js: la app propone, el servidor escribe", () => {
 
   it("un lector no escribe datos de la casa", async () => {
     responde(/household_members/, { status: 200, cuerpo: [{ role: "viewer", user_id: "u1" }] });
+    vi.spyOn(console, "error").mockImplementation(() => {});
     const res = await pedir({ body: CUERPO });
     expect(res.codigo).toBe(403);
-    expect(res.body).toEqual({ fallo: FALLO_DATO.SIN_PERMISO });
+    expect(res.body).toEqual({ fallo: FALLO_DATO.SIN_PERMISO, error: "sin_permiso" });
     expect(llamadas.filter((l) => l.ruta.includes("rpc/"))).toEqual([]);
   });
 
   it("quien no es de la casa no escribe", async () => {
     responde(/household_members/, { status: 200, cuerpo: [] });
+    vi.spyOn(console, "error").mockImplementation(() => {});
     const res = await pedir({ body: CUERPO });
     expect(res.codigo).toBe(403);
     expect(llamadas.filter((l) => l.ruta.includes("rpc/"))).toEqual([]);
