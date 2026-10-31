@@ -40,6 +40,16 @@ describe("generar: matices afinados (#905)", () => {
   });
 });
 
+describe("generar: confirmar una oferta con fechas, a Lola", () => {
+  it("«Sí, genéralo» tras «del 2 al 7 de noviembre» no genera «la siguiente»", () => {
+    const ultima = "Todavía no tienes menú para esos días del 2 al 7 de noviembre. ¿Te lo preparo? [[Sí, genéralo]]";
+    expect(vaPorLaRapida(d({ semana: "siguiente" }), { texto: "Sí, genéralo", ultima })).toBe(false);
+  });
+  it("una oferta sin fechas sigue por la rápida", () => {
+    expect(vaPorLaRapida(d({ semana: "siguiente" }), { texto: "Sí, genéralo", ultima: "¿Te preparo el menú de la semana que viene?" })).toBe(true);
+  });
+});
+
 describe("generar: fechas sin dígito, a Lola (#915)", () => {
   const rapida = (texto) => vaPorLaRapida(d({ semana: "siguiente" }), { texto });
   it("un mes, una cuenta de semanas o días, «tras la próxima», un número de semana", () => {
