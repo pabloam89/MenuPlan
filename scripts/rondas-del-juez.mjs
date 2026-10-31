@@ -3,7 +3,7 @@
 // saber qué clase de fallo repiten las sesiones al abrir un PR. La tabla ordena la skill `pr-con-juez`.
 //
 // Uso:   npm run rondas-juez [-- --dias 14] [--json]
-// Lee:   gh run list --workflow revisor --created >=<fecha> --json databaseId,headBranch,conclusion,status
+// Lee:   gh run list --workflow revisor --created >=<fecha> --json databaseId,conclusion,status
 //        gh api repos/{owner}/{repo}/actions/runs/<id>/jobs y gh api …/actions/jobs/<job>/logs (de cada ejecución acabada)
 // Token: desde Node, `gh` no pasa por el shim de las sesiones; lánzalo con
 //        node scripts/token-sesion.mjs -- npm run rondas-juez   (una llamada de la cuota por ejecución)
@@ -79,16 +79,16 @@ export function motivoSinVeredicto(log, conclusion) {
   return conclusion === "cancelled" ? "cancelada" : "sin-salida";
 }
 
-// Una ejecución: { id, rama, conclusion, log } → { id, rama, pr, veredicto: bool, noes: [ids], motivo }.
-export function clasificar({ id, rama, conclusion, log }) {
+// Una ejecución: { id, conclusion, log } → { id, pr, veredicto: bool, noes: [ids], motivo }.
+export function clasificar({ id, conclusion, log }) {
   const pr = leerPr(log);
   const salida = leerSalida(log);
-  if (!salida) return { id, rama, pr, veredicto: false, noes: [], motivo: motivoSinVeredicto(log, conclusion) };
+  if (!salida) return { id, pr, veredicto: false, noes: [], motivo: motivoSinVeredicto(log, conclusion) };
   if (pr === null) throw new Error(`la ejecución ${id} trae veredicto y no «PR: n»: ¿cambió revisor.yml de la Fábrica?`);
   const noes = salida.respuestas
     .filter((r) => typeof r?.id === "string" && String(r.respuesta ?? "").trim().toLowerCase() === "no")
     .map((r) => r.id);
-  return { id, rama, pr, veredicto: true, noes: [...new Set(noes)], motivo: null };
+  return { id, pr, veredicto: true, noes: [...new Set(noes)], motivo: null };
 }
 
 const numeroDe = (id) => Number(String(id).replace(/\D/g, "")) || 0;
@@ -194,11 +194,11 @@ async function main() {
   const { dias, json } = leerArgs(process.argv.slice(2));
   const desde = new Date(Date.now() - dias * 86400000).toISOString().slice(0, 10);
   const lista = JSON.parse(
-    await gh(["run", "list", "--workflow", "revisor", "--created", `>=${desde}`, "--limit", String(LIMITE_EJECUCIONES), "--json", "databaseId,headBranch,conclusion,status"]),
+    await gh(["run", "list", "--workflow", "revisor", "--created", `>=${desde}`, "--limit", String(LIMITE_EJECUCIONES), "--json", "databaseId,conclusion,status"]),
   );
   const terminadas = acabadas(lista);
   const clasificadas = await enParalelo(terminadas, A_LA_VEZ, async (r) =>
-    clasificar({ id: r.databaseId, rama: r.headBranch, conclusion: r.conclusion, log: await logDelJuez(r.databaseId) }),
+    clasificar({ id: r.databaseId, conclusion: r.conclusion, log: await logDelJuez(r.databaseId) }),
   );
   const resumen = { desde, dias, sinAcabar: lista.length - terminadas.length, ...contar(clasificadas) };
   console.log(json ? JSON.stringify(resumen, null, 2) : `${tabla(resumen, dias)}\n\nSin acabar (no contadas): ${resumen.sinAcabar}.`);
