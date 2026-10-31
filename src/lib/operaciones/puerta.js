@@ -1,7 +1,8 @@
 /**
  * La puerta de la tubería de operaciones (plan fichas con estado, trozo 26;
  * arquitectura objetivo, [3] «Comprobar» y D3): una sola, en el servidor,
- * igual para Lola y para la app. Lo que no pasa aquí no llega a la base.
+ * igual para Lola y para la app. Lo que no pasa aquí no llega a la base como
+ * dato: la tubería (tuberia.js) lo apunta como operación rechazada.
  *
  * Mira lo que la base no puede saber: el papel de quien pide (aplicar_operacion,
  * 0106, solo comprueba que el autor es de la casa, no si edita) y quién habla
