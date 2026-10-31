@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { generateMenuWithAI } from "./aiPlanner.js";
 import { huecosEsperados, huecosVacios, describirHuecos } from "./huecosDelPlan.js";
 import { casaAleatoria } from "./casasAleatorias.js";
-import { DIAS } from "./dias.js";
+import { DIAS, huecoMotor, tipoDeComida } from "./dias.js";
 import { diasActivosDe } from "./planner.js";
 
 /**
@@ -21,8 +21,6 @@ import { diasActivosDe } from "./planner.js";
  * siempre el mismo resultado.
  */
 
-/** Del día del plan («Mié») al prefijo de los huecos del motor («mie»). */
-const PREFIJO = Object.fromEntries(DIAS.map((d) => [d, d.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase()]));
 const CASAS_DE_PRUEBA = 8;
 
 const casaDelAlta = (startDayIdx) => {
@@ -40,7 +38,8 @@ async function huecosDe(data) {
   const { plan } = await generateMenuWithAI(data);
   const vacios = huecosVacios(plan, huecosEsperados(data, { activeDays: diasActivosDe(data) }));
   const avisos = plan._warnings ?? [];
-  const sinAviso = vacios.filter((h) => !avisos.some((w) => w.includes(`${PREFIJO[h.dia]}_${h.comida.toLowerCase()}`)));
+  // El aviso nombra el hueco del motor («mie_comida_1»): basta con su día y tipo.
+  const sinAviso = vacios.filter((h) => !avisos.some((w) => w.includes(huecoMotor.formatear(h.dia, tipoDeComida(h.comida)))));
   return { vacios, sinAviso };
 }
 
