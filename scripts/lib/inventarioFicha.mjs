@@ -151,6 +151,19 @@ export function clavesEscritas(texto) {
   return claves;
 }
 
+/**
+ * Las claves que hay hoy en la base (`state.data` de cada casa y de cada
+ * persona de `members`), con `consultar(sql) → filas` de solo lectura
+ * (conLectura, scripts/lib/rolLectura.mjs). Las usa ficha:inventario --base.
+ */
+export async function clavesGuardadas(consultar) {
+  const casa = await consultar("select distinct k from household_state, jsonb_object_keys(state->'data') k");
+  const persona = await consultar(`select distinct k from household_state,
+    jsonb_array_elements(case when jsonb_typeof(state->'data'->'members') = 'array' then state->'data'->'members' else '[]' end) m,
+    jsonb_object_keys(m) k`);
+  return { casa: new Set(casa.map((r) => r.k)), persona: new Set(persona.map((r) => r.k)) };
+}
+
 const nombra = (k) => new RegExp(String.raw`(\.|\?\.|\[["'])${k}\b|\b${k}\s*[:=]|\{[^}]*\b${k}\b[^}]*\}\s*=`);
 
 /**

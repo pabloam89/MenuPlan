@@ -204,3 +204,27 @@ export function conexionDeConsulta(leer, { admin = false } = {}) {
 export function argumentosDeConsulta(argv) {
   return { admin: argv.includes(ARG_ADMIN), sql: argv.filter((a) => a !== ARG_ADMIN).join(" ").trim() };
 }
+
+/**
+ * La base para un script que solo lee (ficha:inventario): con
+ * el usuario de lectura (nunca el administrador), comprobado con
+ * current_user, dentro de una transacción `read only` que se deshace al
+ * acabar. `fn` recibe `consultar(sql) → filas`; lo que devuelve, se devuelve.
+ */
+export async function conLectura(leer, fn) {
+  const { default: pg } = await import("pg");
+  const { url, rol } = conexionDeConsulta(leer);
+  const c = new pg.Client({ connectionString: url, ssl: { rejectUnauthorized: false } });
+  await c.connect();
+  try {
+    const { rows: [quien] } = await c.query("select current_user as yo");
+    const mal = motivoUsuarioIncorrecto(rol, quien.yo);
+    if (mal) throw new Error(mal);
+    await c.query("begin read only");
+    const salida = await fn(async (sql) => (await c.query(sql)).rows);
+    await c.query("rollback");
+    return salida;
+  } finally {
+    await c.end();
+  }
+}
