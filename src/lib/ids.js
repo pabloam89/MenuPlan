@@ -142,6 +142,10 @@ export const ticket = clase("tkt_", { viejo: /^r-\d{10,16}-[0-9a-z]{1,4}$/ });
 
 // ── Ids que van a columnas `uuid` de la base ────────────────────────────────
 
+/** Una casa (households.id): la que manda la app a api/operacion.js. */
+export const casa = claseUuid();
+/** La clave de idempotencia de una operación que propone la app (api/operacion.js la guarda como `app:<uuid>`). */
+export const claveOperacion = claseUuid();
 /** Una cocinada (cookings.id; también la carpeta de su foto en Storage). */
 export const cocinada = claseUuid();
 /** El id anónimo de analítica de quien no ha entrado (localStorage). */
