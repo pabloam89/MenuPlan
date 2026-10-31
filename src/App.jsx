@@ -59,6 +59,7 @@ const UserStatsScreen = lazy(() => import("./screens/UserStatsScreen.jsx").then(
 const MenuPeek = lazy(() => import("./screens/FeedScreen.jsx").then(m => ({ default: m.MenuPeek })));
 import { generateMenuWithAI, pickCatalogReplacement, catalogToFrontendRecipe, activeDiscardIds, createPlannerStats } from "./lib/aiPlanner.js";
 import { sugerenciasDeHueco } from "./lib/sugerenciasDeHueco.js";
+import { minimosQueFaltan } from "./lib/minimosParaGenerar.js";
 import { resolvePlannerModel, resolvePlannerFormat } from "./lib/aiModels.js";
 import { apiUrl } from "./lib/apiUrl.js";
 import { findMenuRestrictionConflicts } from "./utils/menuConflicts.js";
@@ -2135,6 +2136,19 @@ export default function App() {
     showToast("Receta eliminada");
   }, [user?.id, screen, onbStep, menuPlan, shopping, aiRecipes, showToast, recetasDelTitular]);
 
+  // Ninguna entrada de la app genera ni crea una semana si de alguien no se
+  // sabe si tiene alergias (decisión B del plan de fichas, #1072): la misma
+  // comprobación que Lola (minimosQueFaltan), y la pregunta es la pantalla de
+  // alergias; al guardarla se vuelve al menú. Que todas las entradas pasen por
+  // aquí lo vigila src/lib/minimosEntradas.test.js. Va por ref porque
+  // openEditPreferences se define más abajo.
+  const pedirAlergiasRef = useRef(null);
+  const pararSiFaltanMinimos = useCallback((datos) => {
+    if (!minimosQueFaltan(datos).length) return false;
+    pedirAlergiasRef.current?.("menu");
+    return true;
+  }, []);
+
   const regenerateMenu = useCallback(async (nextData) => {
     if (householdReadOnly) {
       showToast("Solo lectura: no puedes editar el menú");
@@ -2159,6 +2173,7 @@ export default function App() {
       setMenuError({ message: "Añade al menos un miembro antes de generar el menú." });
       return;
     }
+    if (pararSiFaltanMinimos(working)) return;
     lastRegenerateArgs.current = { nextData };
     if (generateAbortRef.current) generateAbortRef.current.abort();
     const ctrl = new AbortController();
@@ -2524,7 +2539,7 @@ export default function App() {
       if (generateAbortRef.current === ctrl) generateAbortRef.current = null;
       setIsGeneratingMenu(false);
     }
-  }, [data, showToast]);
+  }, [data, showToast, pararSiFaltanMinimos]);
 
   // El último plan ya apuntado como descartado: dos pulsaciones seguidas sobre el mismo plan
   // no cuentan dos veces lo que solo se tira una.
@@ -3034,6 +3049,7 @@ export default function App() {
       showToast("Añade al menos un miembro antes de empezar el menú");
       return;
     }
+    if (pararSiFaltanMinimos(working)) return;
 
     // Las mismas semanas que generaría el asistente: si la casa pidió dos
     // semanas, la pizarra tiene dos semanas en blanco, no una.
@@ -3123,7 +3139,7 @@ export default function App() {
     // esperándote mañana.
     setPizarraArrancando(true);
     fwd(() => setScreen("menu"));
-  }, [data, user, householdReadOnly, showToast, syncHouseholdId]);
+  }, [data, user, householdReadOnly, showToast, syncHouseholdId, pararSiFaltanMinimos]);
 
   // Switches which week of the ACTIVE menú is displayed (menús spanning
   // several weeks) — materializes that week's plan/shopping into the live
@@ -3453,6 +3469,7 @@ export default function App() {
   // regenerates fresh ones for new dates, per the user's choice.
   const reuseMenu = useCallback(async (menuId, { weekCount, sameRecipes } = {}) => {
     if (householdReadOnly) return;
+    if (pararSiFaltanMinimos(data)) return;
     let old = data.menus?.[menuId];
     if (!old) return;
     // A history entry hydrated from the cloud read-preference (see the
@@ -3571,7 +3588,7 @@ export default function App() {
       menuWeek: { offset: 0, startDayIdx },
     });
     fwd(() => setScreen("menu"));
-  }, [data, regenerateMenu, showToast, user]);
+  }, [data, regenerateMenu, showToast, user, pararSiFaltanMinimos]);
 
   // Opens a history entry in the read-only viewer — same lazy-detail fetch as
   // reuseMenu, since a history row hydrated from the cloud read-preference may
@@ -3717,6 +3734,7 @@ export default function App() {
     setEditPreferencesOrigin(origin);
     _doGoToOnboardingStep(2);
   }, [_doGoToOnboardingStep]);
+  pedirAlergiasRef.current = openEditPreferences;
 
   // Quick-menu mode: a shortened onboarding for "Mi familia habitual" that skips
   // the steps already configured in Mi perfil (family + cooking), while still
@@ -4760,6 +4778,7 @@ export default function App() {
   // Defined AFTER applyShoppingFor since it depends on it (const TDZ).
   const handleRegenerateDay = useCallback(async (day, { groupIds = null } = {}) => {
     if (householdReadOnly) return;
+    if (pararSiFaltanMinimos(data)) return;
     const groups = gruposVigentes(data);
     let activeGroups = groups.filter((g) => membersOfGroup(g, data.members).length > 0);
     // Scope picker (multi-menu households): regenerate only the chosen menus.
@@ -4825,7 +4844,7 @@ export default function App() {
     showToast("Día regenerado");
     trackEvent(user, "day_regenerated", "menu", { day });
     registrarDescartes({ user, householdId: casaActivaRef.current, recetaIds: descartadas, ambito: ALCANCE_DESCARTE.DIA });
-  }, [data, menuPlan, showToast, user, applyShoppingFor]);
+  }, [data, menuPlan, showToast, user, applyShoppingFor, pararSiFaltanMinimos]);
 
   // Vaciar hueco: keep the slot (flagged `cleared`) so the deck renders a
   // tappable placeholder to refill it; offer an undo that restores the dishes.
