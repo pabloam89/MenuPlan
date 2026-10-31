@@ -26,6 +26,8 @@ const DIA_PLAN = "2026-10-30";
 const DESDE_TROZO_1 = "2026-10-30T09:58:11Z";
 /** Ficheros que lee el motor (trozo 30: claves `data.*`). */
 const FICHEROS_MOTOR = ["src/lib/aiPlanner.js", "src/lib/solver.js", "src/lib/reglas.js", "src/utils/validateMenu.js"];
+/** La migración del trozo 34 (tareas): la traen dos cifras. */
+const MIGRACION_TAREAS = "supabase/migrations/0110_tareas_a_fondo.sql";
 
 /** Claves `data.*` distintas en unos textos (el `grep -ohE "data\.[a-zA-Z]+" | sort -u` del trozo 30). */
 export const clavesData = (textos) => new Set(textos.flatMap((t) => t.match(/\bdata\.[a-zA-Z]+/g) ?? [])).size;
@@ -124,7 +126,7 @@ export const CIFRAS = [
     base: null, requiere: { tabla: "operacion", migracion: "0105" }, medir: async (ctx) => (await ctx.consultar("select count(*)::int n from operacion"))[0].n },
   // Trozo 27.
   { id: "herramientas_sin_resultado", nombre: "Herramientas que escriben sin resultado", trozo: 27, fuente: FUENTE.codigo, sentido: SENTIDO.baja, meta: 0,
-    base: base(19, "2026-10-31", "trozo 27 (#1078)"), medir: (ctx) => pendientesSinResultado(ctx.leer("api/_bot/agente.js")) },
+    base: null, nota: "el tope que solo baja es LINEA_BASE de api/_bot/resultadoObligatorio.test.js (#1078)", medir: (ctx) => pendientesSinResultado(ctx.leer("api/_bot/agente.js")) },
   { id: "analizadores_fuera_interprete", nombre: "Analizadores de fechas y personas fuera del intérprete", trozo: 27, fuente: FUENTE.codigo, sentido: SENTIDO.baja, meta: 0,
     base: base(3, DIA_PLAN, PLAN), medir: (ctx) => ctx.lineasCon("function (diaDe|resolverDia|resolverPersona)\\(", ["api", "src"]) },
   { id: "turnos_con_mensaje_en_curso", nombre: "Turnos de Lola que reciben otro mensaje mientras corren", trozo: 28, fuente: FUENTE.base, sentido: SENTIDO.baja, meta: null,
@@ -142,9 +144,9 @@ export const CIFRAS = [
     base: null, falta: "src/lib/choques.js" },
   // Trozos 34-36: tareas, caducidades y privacidad.
   { id: "preguntas_hasta_primer_menu", nombre: "Preguntas hasta el primer menú", trozo: 34, fuente: FUENTE.base, sentido: SENTIDO.baja, meta: null,
-    base: null, falta: "supabase/migrations/0110_tareas_a_fondo.sql" },
+    base: null, falta: MIGRACION_TAREAS },
   { id: "tareas_caducadas_sin_respuesta", nombre: "Tareas caducadas sin respuesta", trozo: 34, fuente: FUENTE.base, sentido: SENTIDO.baja, meta: null,
-    base: null, falta: "supabase/migrations/0110_tareas_a_fondo.sql" },
+    base: null, falta: MIGRACION_TAREAS },
   { id: "referencias_rotas", nombre: "Referencias rotas (receta, valor o persona que ya no está)", trozo: 35, fuente: FUENTE.base, sentido: SENTIDO.baja, meta: 0,
     base: null, falta: "src/lib/referenciasRotas.js" },
   { id: "tablas_sin_cascada", nombre: "Tablas de casa o persona sin cascada declarada", trozo: 36, fuente: FUENTE.codigo, sentido: SENTIDO.baja, meta: 0,
