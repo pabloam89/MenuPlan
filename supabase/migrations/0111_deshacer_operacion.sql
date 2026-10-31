@@ -1,6 +1,9 @@
 -- Deshacer una operación (plan fichas con estado, trozo 41; #1037): deshacer_operacion, la RPC hermana de
 -- aplicar_operacion. Va tras la 0105 (tabla operacion), la 0106 (aplicar_operacion, que guarda la inversa) y la 0107.
 --
+-- AUDITADA: auditor-datos 2026-10-31 OK
+--   (un agente independiente, que no la escribió; pidió que la cabecera no diera por hecho el lector en JS: hecho)
+--
 --   · deshacer_operacion(p_casa, p_operacion_id, p_autor_user_id), definer, solo para la service role: en una
 --     transacción aplica la inversa de una operación hecha (cada sobre vuelve a como estaba; el que nació en
 --     ella se borra), la marca «deshecha» con deshecha_at y sube bot_rev. Todo o nada.
@@ -134,7 +137,7 @@ revoke all on function public.deshacer_operacion(uuid, uuid, uuid) from public, 
 grant execute on function public.deshacer_operacion(uuid, uuid, uuid) to service_role;
 
 comment on function public.deshacer_operacion(uuid, uuid, uuid) is
-  'Deshace una operación hecha con su inversa, en una transacción: cada sobre vuelve a como estaba (el que nació en ella se borra), la operación queda deshecha y sube bot_rev. Solo su autor, y solo si ningún dato que tocó cambió después (si no, sin_hacer con motivo de MOTIVOS_SIN_DESHACER). Solo la service role; la llama la tubería (src/lib/operaciones/tuberia.js).';
+  'Deshace una operación hecha con su inversa, en una transacción: cada sobre vuelve a como estaba (el que nació en ella se borra), la operación queda deshecha y sube bot_rev. Solo su autor, y solo si ningún dato que tocó cambió después (si no, sin_hacer con motivo de MOTIVOS_SIN_DESHACER). Solo la service role; la llamará la tubería (src/lib/operaciones/tuberia.js, segundo PR del trozo 41).';
 
 -- 2. Autoprueba (se deshace siempre) ---------------------------------------------------
 -- En una casa de prueba que crea aquí, con el dueño de una casa cualquiera como miembro: lo que cambió después no
