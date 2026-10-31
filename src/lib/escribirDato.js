@@ -29,6 +29,7 @@ import {
   VOCABULARIOS, paraEscribir, listaParaEscribir, FueraDeVocabulario,
 } from "./vocabularios.js";
 import { REGISTRO_CAMPOS } from "./registroCampos.js";
+import { claveOperacion } from "./ids.js";
 
 /** El punto del servidor al que la app propone sus operaciones (api/operacion.js). */
 export const RUTA_OPERACION = "/api/operacion";
@@ -177,7 +178,7 @@ export function enviarAlServidor({ token, url = RUTA_OPERACION, fetchFn = fetch 
  * Se envía en orden y de uno en uno, y la cola se para en el primero que tiene
  * que esperar: un cambio posterior del mismo dato no adelanta al anterior.
  */
-export function crearColaDeDatos({ almacen, enviar, ahora = () => Date.now(), nuevaClave = () => crypto.randomUUID() }) {
+export function crearColaDeDatos({ almacen, enviar, ahora = () => Date.now(), nuevaClave = claveOperacion.nuevo }) {
   const leer = () => {
     const crudo = almacen.getItem(CLAVE_COLA);
     if (crudo == null) return [];
