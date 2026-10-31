@@ -14,17 +14,10 @@
  *   contar     lo que se devuelve sale de hecho y sin_hacer de la base
  *              (resultadoDeOperacion: sin `pedido` ni `inversa`, que llevan salud).
  *
- * Hoy entiende solo operaciones de tipo dato (escribirDato) y ningún escritor
- * pasa todavía por aquí: cada tramo mueve los suyos (el primero, el trozo 10).
- *
- * Si la RPC no existe (la rama se despliega antes de que Pablo aplique la
- * 0106): no se guarda, vuelve el fallo `rpc_ausente` y queda la línea
- * `dato_sin_guardar` en el log. Nunca se escribe en el documento
- * household_state (sin convivencia, plan «Cómo se escribe»).
- *
- * Sin base ni red propias: quien llama da `rpc` y cómo leer sus errores
- * (api/_bot/datos.js). Ningún otro fichero llama a aplicar_operacion
- * (tuberiaUnica.test.js).
+ * Hoy solo operaciones de tipo dato; ningún escritor pasa todavía por aquí.
+ * Sin la RPC (0106 sin aplicar): no se guarda, vuelve `rpc_ausente` y queda
+ * `dato_sin_guardar` en el log; nunca se escribe en household_state.
+ * Sin base propia: `rpc` y cómo leer sus errores los da api/_bot/datos.js.
  */
 import { operacionDeDato, resultadoDeOperacion, apuntarSinGuardar, DatoInvalido } from "../escribirDato.js";
 import { comprobar, falloDePuerta } from "./puerta.js";

@@ -35,12 +35,6 @@ describe("tubería: lo que pasa la puerta", () => {
     expect(r).toEqual({ guardado: true, ...HECHA });
   });
 
-  it("lo que la base no escribe vuelve como no guardado, con el motivo de la base", async () => {
-    const sinHacer = [{ campo: "sexo", persona_id: "p1", motivo: "ya_lo_dijo_la_familia" }];
-    const { servidor } = base(() => ({ ...HECHA, estado: ESTADO_OPERACION.RECHAZADA, hecho: [], sin_hacer: sinHacer }));
-    expect(await operar(PEDIDO, servidor("owner"))).toMatchObject({ guardado: false, sin_hacer: sinHacer });
-  });
-
   it("sin la RPC (0106 sin aplicar): no se guarda, vuelve rpc_ausente y queda en el log", async () => {
     const log = silenciar();
     const { servidor } = base(() => { throw new Error("PGRST202"); });

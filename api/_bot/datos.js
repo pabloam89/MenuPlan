@@ -35,19 +35,11 @@ const FALLO_DE_MOTIVO = Object.freeze({
 export const falloDeMotivo = (motivo) => FALLO_DE_MOTIVO[motivo] ?? FALLO_DATO.SERVIDOR;
 
 /** Pura. Un error de la base, en fallo de dato y su motivo (lo que la tubería apunta en el log). */
-const falloDeError = (e) => {
-  const motivo = motivoDe(e);
-  return { fallo: falloDeMotivo(motivo), motivo };
-};
+const falloDeError = (e) => ({ fallo: falloDeMotivo(motivoDe(e)), motivo: motivoDe(e) });
 
 /**
- * Escribe un dato como operación de tipo dato, por la tubería y su puerta.
- * Nunca lanza por un fallo de la base: devuelve { guardado: false, fallo } y lo
- * apunta en el log; si la base contestó, { guardado, operacion_id, estado,
- * repetida, hecho, sin_hacer, choques, rev }.
+ * Un dato como operación de tipo dato, por la tubería y su puerta (lo que devuelve, en `operar`).
  * @param {Parameters<typeof operar>[0]} pedido
  * @param {{ papel: string|null }} quien  el papel en la casa del autor, o null si no es de ella
  */
-export function escribirDato(pedido, { papel }) {
-  return operar(pedido, { papel, rpc, falloDeError });
-}
+export const escribirDato = (pedido, { papel }) => operar(pedido, { papel, rpc, falloDeError });

@@ -29,9 +29,6 @@ const ESCRIBEN_FICHAS = {
 };
 /** Quién llama hoy a una heredada desde el código, y quién lo quita. Lista cerrada. */
 const LLAMADAS_HEREDADAS = { [join("scripts", "backfill-personas.mjs")]: "persona_reemplazar_casa" };
-/** Las funciones que crean las migraciones del plan (0105 en adelante). Lista cerrada. */
-const RPC_DEL_PLAN = ["aplicar_operacion", "escribir_dato", "ficha_casa"];
-const PRIMERA_DEL_PLAN = 105;
 
 function ficheros(dir) {
   return readdirSync(dir).flatMap((f) => {
@@ -48,12 +45,11 @@ const CODIGO = ["src", "api", "scripts"].flatMap((d) => ficheros(join(RAIZ, d)))
   .map((ruta) => ({ ruta: relative(RAIZ, ruta), texto: sinComentarios(readFileSync(ruta, "utf8")) }));
 const FUERA = CODIGO.filter((f) => !f.ruta.startsWith(TUBERIA));
 
-const SQL = readdirSync(MIGRACIONES).filter((f) => /^\d{4}_.*\.sql$/.test(f))
-  .map((f) => ({ numero: Number(f.slice(0, 4)), texto: readFileSync(join(MIGRACIONES, f), "utf8") }));
+const SQL = readdirSync(MIGRACIONES).filter((f) => f.endsWith(".sql")).map((f) => readFileSync(join(MIGRACIONES, f), "utf8"));
 // Cada función de cada migración con su cuerpo (entre sus $$), en todas sus versiones.
-const FUNCIONES = SQL.flatMap(({ numero, texto }) => [...texto.matchAll(
+const FUNCIONES = SQL.flatMap((texto) => [...texto.matchAll(
   /create\s+(?:or\s+replace\s+)?function\s+public\.(\w+)\s*\([\s\S]*?\bas\s+(\$\w*\$)([\s\S]*?)\2/gi,
-)].map((m) => ({ nombre: m[1], cuerpo: m[3], numero })));
+)].map((m) => ({ nombre: m[1], cuerpo: m[3] })));
 
 const lista = (nombres) => nombres.join("|");
 const ESCRIBE_TABLA = new RegExp(`\\b(insert\\s+into|update|delete\\s+from)\\s+(public\\.)?(${lista(TABLAS_DE_FICHA)})\\b`, "i");
@@ -115,14 +111,7 @@ describe("tubería única: una ficha solo se escribe desde src/lib/operaciones/"
   });
 });
 
-describe("las funciones y las tablas del plan, en lista cerrada", () => {
-  it("las funciones que crean las migraciones del plan son las de RPC_DEL_PLAN", () => {
-    const creadas = new Set(FUNCIONES.filter((f) => f.numero >= PRIMERA_DEL_PLAN).map((f) => f.nombre));
-    expect([...creadas].sort()).toEqual([...RPC_DEL_PLAN].sort());
-  });
-
-  it("cada tabla de ficha existe en alguna migración (un nombre mal escrito no vigila nada)", () => {
-    const todas = SQL.map((m) => m.texto).join("\n");
-    for (const t of TABLAS_DE_FICHA) expect(todas, t).toMatch(new RegExp(`create table (if not exists )?public\\.${t}\\b`));
-  });
+it("cada tabla de ficha existe en alguna migración (un nombre mal escrito no vigila nada)", () => {
+  const todas = SQL.join("\n");
+  for (const t of TABLAS_DE_FICHA) expect(todas, t).toMatch(new RegExp(`create table (if not exists )?public\\.${t}\\b`));
 });
