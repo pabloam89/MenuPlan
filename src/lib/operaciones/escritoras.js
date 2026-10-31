@@ -9,6 +9,7 @@
 const ESCRITORAS_TUBERIA = Object.freeze({
   aplicar_operacion: "tubería (0106)",
   escribir_dato: "tubería (0106; llama a aplicar_operacion)",
+  deshacer_operacion: "tubería (0111): deshace una operación con su inversa",
 });
 
 /** Heredadas: escriben fichas fuera de la tubería, y quién las retira. */
