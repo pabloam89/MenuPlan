@@ -17,7 +17,7 @@
  */
 
 import { DIAS, indiceDeISO, diaDeISO } from "../../src/lib/dias.js";
-import { diaDeSemana, fechaDe, sumarDias, normal } from "./interprete.js";
+import { diaDe, sumarDias, normal } from "./interprete.js";
 
 export const CUANDOS = ["hoy", "manana", "pasado_manana", "dia", "finde", "finde_que_viene", "esta_semana", "semana_que_viene", "rango"];
 
@@ -28,10 +28,8 @@ export const diaDeFecha = diaDeISO;
 
 /** «jueves», «el jueves», «Jue», «mañana» → índice 0-6 del día de la semana, o null. Con el intérprete (#958). */
 function indiceDeNombre(texto, hoy) {
-  const d = diaDeSemana(texto);
-  if (d) return DIAS.indexOf(d);
-  const r = fechaDe(texto, { hoy });
-  return r.fecha ? indiceDia(r.fecha) : null;
+  const d = diaDe(texto, { hoy });
+  return d ? DIAS.indexOf(d) : null;
 }
 
 /** El próximo día con ese índice (hoy si es hoy). */
