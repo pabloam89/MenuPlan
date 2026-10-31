@@ -45,22 +45,31 @@ export const MOTIVOS_SIN_VEREDICTO = [
   { motivo: "sin-salida", fallaElJuez: false, senal: null },
 ];
 
-// La última línea `SALIDA: {...}` del log, ya leída como JSON; null si no hay o no es JSON con `respuestas`.
+// Cómo escribe el juez su log, copiado de la Fábrica (fuera de este repo): el job `juzgar` y las variables
+// `SALIDA` y `PR` del paso del veredicto, en .fabrica/.github/workflows/revisor.yml. Si cambian, no habrá job
+// ni SALIDA y la ejecución cae en `sin-salida` (la tabla lista sus ids), o clasificar lanza si ve un veredicto
+// sin PR: son las alarmas de esta copia.
+export const FORMA_DEL_LOG = { job: /(^|\/ )juzgar$/, salida: "SALIDA: ", pr: /\sPR: (\d+)\s*$/m };
+
+// La línea `SALIDA: {...}` del log, ya leída como JSON; null si no hay o no es JSON con `respuestas`.
+// Más de una es un log que no se entiende: lanza en vez de escoger una.
 export function leerSalida(log) {
-  const lineas = String(log ?? "").split(/\r?\n/).filter((l) => l.includes("SALIDA: {"));
-  const linea = lineas.at(-1);
+  const { salida } = FORMA_DEL_LOG;
+  const lineas = String(log ?? "").split(/\r?\n/).filter((l) => l.includes(`${salida}{`));
+  if (lineas.length > 1) throw new Error(`el log trae ${lineas.length} líneas ${salida.trim()}, y el juez escribe una`);
+  const linea = lineas[0];
   if (!linea) return null;
   try {
-    const datos = JSON.parse(linea.slice(linea.indexOf("SALIDA: ") + "SALIDA: ".length).trim());
+    const datos = JSON.parse(linea.slice(linea.indexOf(salida) + salida.length).trim());
     return Array.isArray(datos?.respuestas) ? datos : null;
   } catch {
     return null; // una SALIDA cortada o ilegible no es un veredicto: la clasifica motivoSinVeredicto
   }
 }
 
-// El número de PR que juzgó, de las variables del paso (`PR: 1066` o `PR_NUMBER: 1066`).
+// El número de PR que juzgó, de las variables del paso del veredicto (`PR: 1066`).
 export function leerPr(log) {
-  const m = String(log ?? "").match(/\s(?:PR|PR_NUMBER): (\d+)\s*$/m);
+  const m = String(log ?? "").match(FORMA_DEL_LOG.pr);
   return m ? Number(m[1]) : null;
 }
 
@@ -75,6 +84,7 @@ export function clasificar({ id, rama, conclusion, log }) {
   const pr = leerPr(log);
   const salida = leerSalida(log);
   if (!salida) return { id, rama, pr, veredicto: false, noes: [], motivo: motivoSinVeredicto(log, conclusion) };
+  if (pr === null) throw new Error(`la ejecución ${id} trae veredicto y no «PR: n»: ¿cambió revisor.yml de la Fábrica?`);
   const noes = salida.respuestas
     .filter((r) => typeof r?.id === "string" && String(r.respuesta ?? "").trim().toLowerCase() === "no")
     .map((r) => r.id);
@@ -91,7 +101,7 @@ export function contar(clasificadas) {
     for (const id of c.noes) {
       const fila = porId.get(id) ?? { id, no: 0, prs: new Set() };
       fila.no += 1;
-      fila.prs.add(c.pr ?? c.rama);
+      fila.prs.add(c.pr);
       porId.set(id, fila);
     }
   }
@@ -141,7 +151,7 @@ async function gh(args) {
 
 // El job que juzga («revisor / juzgar»), si llegó a correr (uno saltado no tiene log). null si no hay.
 export function jobDelJuez(jobs) {
-  return (jobs ?? []).find((j) => /(^|\/ )juzgar$/.test(j?.name ?? "") && j.conclusion !== "skipped") ?? null;
+  return (jobs ?? []).find((j) => FORMA_DEL_LOG.job.test(j?.name ?? "") && j.conclusion !== "skipped") ?? null;
 }
 
 // Solo el log del job que juzga: dos llamadas a la API por ejecución. `gh run view --log` baja el de

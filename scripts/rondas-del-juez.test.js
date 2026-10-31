@@ -16,6 +16,14 @@ describe("rondas-del-juez: lee el veredicto de la línea SALIDA", () => {
     expect(leerPr(l)).toBe(1066);
   });
 
+  it("dos líneas SALIDA en un log es un error, no se escoge una", () => {
+    expect(() => leerSalida(log(salida([r("C9", "no")]), salida([r("C9", "sí")])))).toThrow(/2 líneas SALIDA/);
+  });
+
+  it("solo lee el PR de la variable PR, no de PR_NUMBER", () => {
+    expect(leerPr(linea("  PR_NUMBER: 7"))).toBeNull();
+  });
+
   it("sin SALIDA, o con una SALIDA cortada, no hay veredicto", () => {
     expect(leerSalida(log(linea("veredicto: no")))).toBeNull();
     expect(leerSalida(log(linea('  SALIDA: {"respuestas":[{"id":"C9","respu')))).toBeNull();
@@ -26,6 +34,10 @@ describe("rondas-del-juez: clasifica cada ejecución", () => {
   it("cuenta solo los «no», sin repetir un id dentro de la misma ejecución", () => {
     const c = clasificar({ id: 1, rama: "ops/x", conclusion: "success", log: log(salida([r("C9", "no"), r("C9", "No"), r("C6", "sí"), r("C8", "no aplica")])) });
     expect(c).toMatchObject({ veredicto: true, noes: ["C9"], motivo: null, pr: 1066 });
+  });
+
+  it("un veredicto sin número de PR para el script", () => {
+    expect(() => clasificar({ id: 9, rama: "x", conclusion: "success", log: salida([r("C9", "no")]) })).toThrow(/ejecución 9 trae veredicto y no «PR: n»/);
   });
 
   it("sin SALIDA no inventa «no»: motivo del vocabulario según la señal del log", () => {
