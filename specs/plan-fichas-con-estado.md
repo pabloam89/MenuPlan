@@ -596,7 +596,7 @@ Por qué te lo pregunto: el 8 oct decidiste lo contrario (#107: se genera esquiv
 3. Se genera con lo dicho (sin esquivar) y se pregunta después. Coste: un alérgeno puede salir en el primer menú; va contra el principio de seguridad de la ficha
 
 ## Decisions taken
-- principio 1 | eligió: deshacer solo la operación propia, como `bot_deshacer` (trozo 41) | descartó: dejar que el dueño u otro de la casa deshaga lo que dijo otro, que borra un dato que esa persona dio por dicho sin que lo sepa | motivo: decidido
+- principio 3 | eligió: deshacer solo la operación propia, como `bot_deshacer` (trozo 41) | descartó: dejar que el dueño u otro de la casa deshaga lo que dijo otro, que tira en silencio un dato que esa persona dio por guardado | motivo: decidido
 - principio 3 | eligió: si un dato que la operación tocó cambió después, deshacer no lo pisa y devuelve `sin_hacer` con su motivo (trozo 41) | descartó: aplicar la inversa igualmente, que tira en silencio el cambio posterior | motivo: decidido
 - principio 3 | eligió: deshacer una operación en la base, en una transacción que aplica la inversa, marca `deshecha` y borra su sobre (trozo 41) | descartó: deshacer desde la tubería en JS con escrituras sueltas, que puede dejar una operación medio deshecha sin decirlo | motivo: decidido
 - principio 5 | eligió: la prueba de punta a punta corre en el job `tests` por `posttest` de `npm test`, sin tocar `.github/workflows/` ([Pablo, 30 oct, opción 1](https://github.com/pabloam89/MenuPlan/issues/1037#issuecomment-6534964945)) | descartó: dejarla para correr a mano con su Done, un check que ninguna entrada automática dispara y que nadie ve ponerse en rojo | motivo: decidido
