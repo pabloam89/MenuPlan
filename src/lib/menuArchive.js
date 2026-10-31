@@ -405,3 +405,21 @@ export function semanaVivaPorGuardar(menus, activeMenuId, activeOffset, livePlan
   const nextMenus = { ...menus, [activeMenuId]: { ...menu, weeks: { ...menu.weeks, [weekStart]: week } } };
   return { menus: nextMenus, weekStart, week };
 }
+
+/**
+ * El plan de la semana que contiene `hoyISO`, para «Hoy toca». `menuPlan` en
+ * vivo es la semana que se está MIRANDO en Menú, no la de hoy: leerlo aquí
+ * dejaba Inicio sin platos (o con los de otra semana) hasta recargar, que es
+ * cuando el plan vuelve a la semana de hoy. Pura.
+ */
+export function planDeHoy(menus, activeMenuId, activeOffset, livePlan, hoyISO) {
+  const semanas = Object.values(menus?.[activeMenuId]?.weeks ?? {});
+  // Sin semanas archivadas (menú antiguo) solo queda el plan en vivo.
+  if (semanas.length === 0) return livePlan;
+  const hoy = semanas.find((w) => w?.startISO <= hoyISO && hoyISO <= w?.endISO);
+  if (!hoy) return {};
+  // La semana a la vista va por delante del archivo, y si solo se cargó el
+  // rango no hay plan que leer.
+  if (hoy.offset === activeOffset || hoy.plan === undefined) return livePlan;
+  return hoy.plan;
+}

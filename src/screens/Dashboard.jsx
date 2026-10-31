@@ -13,7 +13,8 @@ import { FRONTAL_BOT, abrirLola, lolaConectada } from "../lib/frontalBot.js";
 import lolaFoto from "../assets/lola/lola-perfil.jpg";
 import { Avatar, BottomNav, bottomNavSpacer, safeTop } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
-import { planHasDishes } from "../lib/menuArchive.js";
+import { planDeHoy, planHasDishes } from "../lib/menuArchive.js";
+import { isoLocalDate } from "../lib/weekCalendar.js";
 import { getDayMeals } from "../lib/planner.js";
 import { diaDeFecha } from "../lib/dias.js";
 import { adhocReasonLabel } from "../lib/groups.js";
@@ -512,9 +513,10 @@ export function DashboardScreen({
   const todayMeals = useMemo(() => {
     if (!selectedGroup || !hasMenu) return [];
     const day = todayShort();
+    const plan = planDeHoy(data.menus, data.activeMenuId, data.menuWeek?.offset, menuPlan, isoLocalDate(new Date()));
     const out = [];
     for (const meal of getDayMeals(data)) {
-      const slot = menuPlan[selectedGroup.id]?.[`${day}-${meal}`];
+      const slot = plan[selectedGroup.id]?.[`${day}-${meal}`];
       if (!slot?.recipeId) continue;
       const recipe = RECIPES_BY_ID[slot.recipeId];
       if (!recipe) continue;
