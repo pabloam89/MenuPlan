@@ -2,9 +2,9 @@
  * Donde la app propone sus operaciones (plan fichas con estado, trozos 8 y 26; #1037).
  *
  * La app no escribe tablas de ficha ni llama a aplicar_operacion (es solo de la
- * service role, 0106): manda aquí el dato que tocó la familia, pasa la puerta
- * de la tubería (src/lib/operaciones/puerta.js) y este endpoint lo escribe con
- * escribirDato (api/_bot/datos.js), el mismo que usa Lola. Hoy acepta solo
+ * service role, 0106): manda aquí el dato que tocó la familia y este endpoint lo
+ * pasa por la tubería del servidor (escribirDato, api/_bot/datos.js →
+ * src/lib/operaciones/tuberia.js y su puerta), la misma que usa Lola. Hoy acepta solo
  * operaciones de tipo dato.
  *
  * Quién escribe sale del token de la sesión (nunca del cuerpo), y su papel en
@@ -24,7 +24,6 @@ import { papelDeUsuario } from "./_bot/papel.js";
 import { escribirDato, falloDeMotivo } from "./_bot/datos.js";
 import { motivoDe } from "./_bot/avisar.js";
 import { HTTP_DE_FALLO, apuntarSinGuardar } from "../src/lib/escribirDato.js";
-import { comprobar, falloDePuerta } from "../src/lib/operaciones/puerta.js";
 import * as ids from "../src/lib/ids.js";
 import { FALLO_DATO, CANAL_DATO, REF_OPERACION } from "../src/lib/vocabularios.js";
 
@@ -62,20 +61,13 @@ export default async function handler(req, res) {
     return contestar(res, fallo);
   }
 
-  // El papel (o null, si no es de la casa) lo juzga la puerta, la misma que juzgará a Lola.
-  const contra = comprobar({ canal: CANAL_DATO.APP, autor_user_id: user.id, datos: dato ? [dato] : [] }, { papel });
-  if (contra) {
-    const fallo = falloDePuerta(contra.motivo);
-    apuntarSinGuardar({ fallo, motivo: contra.motivo, canal: CANAL_DATO.APP, campo: dato?.campo ?? null });
-    return contestar(res, fallo, contra.motivo);
-  }
-
+  // El papel (o null, si no es de la casa) lo juzga la puerta de la tubería, la misma que la de Lola.
   const r = await escribirDato({
     casa, clave: `${CANAL_DATO.APP}:${clave}`, accion, pedida_at, dato,
     canal: CANAL_DATO.APP,
     ref: { tipo: REF_OPERACION.PANTALLA, id: ref_id },
     autor: { user_id: user.id },
-  });
+  }, { papel });
   if (r.fallo) return contestar(res, r.fallo, r.error);
   return res.status(200).json(r);
 }
