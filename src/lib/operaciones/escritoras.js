@@ -2,7 +2,8 @@
  * Quién escribe fichas en la base (plan fichas con estado, trozo 26): las
  * funciones de la base que lo hacen y las llamadas del código que aún no van
  * por la tubería. Listas cerradas, en un solo sitio: las vigila
- * src/lib/tuberiaUnica.test.js (cuadran con las migraciones y con el código).
+ * src/lib/tuberiaUnica.test.js (cuadran con las migraciones y con el código) y
+ * las cuenta scripts/lib/cifrasModelo.js (escrituras fuera de la tubería, → 0).
  */
 
 /** De la tubería: las RPC por las que pasa toda operación. */
@@ -12,7 +13,7 @@ const ESCRITORAS_TUBERIA = Object.freeze({
 });
 
 /** Heredadas: escriben fichas fuera de la tubería, y quién las retira. */
-const ESCRITORAS_HEREDADAS = Object.freeze({
+export const ESCRITORAS_HEREDADAS = Object.freeze({
   persona_sincronizar_casa: "heredada (0081-0082): la retira la 0108, trozo 10",
   persona_reemplazar_casa: "heredada (0079; delega en persona_sincronizar_casa): la retira la 0108, trozo 10",
   _personas_al_guardar: "heredada: disparador de household_state (0089) que copia members a persona_*; lo retira la 0108, trozo 10",
