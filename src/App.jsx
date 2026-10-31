@@ -1850,6 +1850,21 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, activeHouseholdId, householdLoading, householdReadOnly, cloudEpoch]);
 
+  // Un guardado en la nube que falla ya no se calla: antes solo salía en la
+  // consola y el menú se perdía al recargar. Una vez, hasta que otro entre.
+  // Por ref porque showToast se declara más abajo.
+  const showToastRef = useRef(null);
+  const guardadoAvisadoRef = useRef(false);
+  const avisarGuardado = useCallback((r) => {
+    if (r?.ok) {
+      guardadoAvisadoRef.current = false;
+      return;
+    }
+    if (guardadoAvisadoRef.current) return;
+    guardadoAvisadoRef.current = true;
+    showToastRef.current?.("No se ha podido guardar en tu cuenta. Puede perderse al recargar.");
+  }, []);
+
   // Debounced push of the private profile snapshot (everything except the
   // normalized recipes/votes, which sync through their own tables). Gated on
   // cloudReadyRef so we never clobber the remote copy before hydration lands.
@@ -1863,8 +1878,9 @@ export default function App() {
       if (syncHouseholdId) {
         guardarConVersion(version, (rev) => saveHouseholdState(syncHouseholdId, snapshot, rev)).then((r) => {
           if (r.conflict) recargarDesdeNubeRef.current({ choque: true });
+          else if (!r.descartado) avisarGuardado(r);
         });
-      } else saveUserState(user.id, snapshot);
+      } else saveUserState(user.id, snapshot).then(avisarGuardado);
     }, 1200);
     return () => window.clearTimeout(t);
   }, [user?.id, activeHouseholdId, householdReadOnly, syncHouseholdId, data, menuPlan, shopping, aiRecipes, onbStep, versionDeCasa]);
@@ -2080,6 +2096,7 @@ export default function App() {
     // 1,8 s no daba para leer una frase entera (WCAG 2.2.1): 3,5 s.
     toastTimer.current = window.setTimeout(() => setToast(null), action ? 5000 : 3500);
   }, []);
+  showToastRef.current = showToast;
 
   // Las recetas del titular no se han podido leer (#958): no es lo mismo que
   // «no tiene ninguna», así que se dice. Lo propio ya está cargado aparte.
@@ -2488,7 +2505,8 @@ export default function App() {
       // resolves we re-sync the live isFavorite state from menusRef.
       if (user) {
         const _menuId = newMenu.id;
-        saveAndActivateMenu(user.id, newMenu, allRecipes, syncHouseholdId).then(() => {
+        saveAndActivateMenu(user.id, newMenu, allRecipes, syncHouseholdId).then((r) => {
+          avisarGuardado(r);
           if (menusRef.current?.[_menuId]?.isFavorite) {
             toggleMenuFavoriteRemote(user.id, _menuId, true, casaActivaRef.current).catch(() => {});
           }
@@ -3125,7 +3143,7 @@ export default function App() {
     // Dual write como el resto (ver regenerateMenu). Sin recetas: todavía no
     // hay ninguna, y las que se coloquen después viajan por su propio camino.
     if (user) {
-      saveAndActivateMenu(user.id, newMenu, [], syncHouseholdId);
+      saveAndActivateMenu(user.id, newMenu, [], syncHouseholdId).then(avisarGuardado);
     }
 
     trackEvent(user, "pizarra_started", "menu", {
@@ -3569,7 +3587,8 @@ export default function App() {
         const recipes = Array.from(collectMenuRecipeIds({ [_menuId]: newMenu }))
           .map((id) => RECIPES_BY_ID[id])
           .filter(Boolean);
-        saveAndActivateMenu(user.id, newMenu, recipes, syncHouseholdId).then(() => {
+        saveAndActivateMenu(user.id, newMenu, recipes, syncHouseholdId).then((r) => {
+          avisarGuardado(r);
           if (menusRef.current?.[_menuId]?.isFavorite) {
             toggleMenuFavoriteRemote(user.id, _menuId, true, casaActivaRef.current).catch(() => {});
           }

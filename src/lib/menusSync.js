@@ -320,9 +320,15 @@ export function saveAndActivateMenu(userId, menu, recipes, householdId = null) {
   const next = prev
     .catch(() => {}) // an earlier failure must never block this call
     .then(async () => {
-      const res = await saveMenu(userId, menu, recipes, householdId);
-      if (res.ok) await activateMenu(menu.id);
-      return res;
+      // Nunca rechaza: quien llama avisa con `ok: false`, y un fallo al montar
+      // las filas no puede acabar en una promesa rota que nadie mira.
+      try {
+        const res = await saveMenu(userId, menu, recipes, householdId);
+        return res.ok ? await activateMenu(menu.id) : res;
+      } catch (err) {
+        console.warn("[menusSync] save menu failed", err);
+        return { ok: false, error: String(err?.message ?? err) };
+      }
     });
   activationQueues.set(queueKey, next);
   return next;
