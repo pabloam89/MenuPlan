@@ -57,7 +57,7 @@ Solo lo irreversible o lo que sale fuera; lo demás se hace y se cuenta.
 ## Reglas por carpeta y skills
 
 - Reglas (`.claude/rules/`), saltan al leer o editar su zona: `lola` (`api/_bot/`, `api/bot/`), `catalogo` (`src/data/`, `src/utils/`, `src/lib/`), `ui` (`src/**/*.jsx`), `api` (`api/*.js`), `migraciones` (`supabase/`) y `tests`.
-- Skills (`.claude/skills/`), runbooks de cada servicio: `1password`, `alta-de-secreto`, `github`, `hetzner`, `supabase`, `tailscale`, `telegram` y `vercel`.
+- Skills (`.claude/skills/`), runbooks de cada servicio: `1password`, `alta-de-secreto`, `github`, `hetzner`, `pr-con-juez`, `supabase`, `tailscale`, `telegram` y `vercel`.
 
 ## Código
 

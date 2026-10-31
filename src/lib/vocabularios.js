@@ -147,6 +147,13 @@ export const ESTADO_DE_ORIGEN = Object.freeze({
 export const MOTIVOS_SIN_HACER_DATO = ["no_es_hecho", "persona_no_cuadra", "no_se_supone", "no_lo_escribe", "tiene_columna", "ya_lo_dijo_la_familia"];
 
 /**
+ * Por qué deshacer_operacion (0111) no deshizo una operación: `no_existe` (no es de esa casa), `no_es_suya`
+ * (solo se deshace lo propio, como bot_deshacer), `no_esta_hecha` (pendiente o rechazada) y `cambio_despues`
+ * (un dato que tocó cambió después o ya no está: no se pisa). No van a ninguna tabla: vuelven en sin_hacer.
+ */
+export const MOTIVOS_SIN_DESHACER = ["no_existe", "no_es_suya", "no_esta_hecha", "cambio_despues"];
+
+/**
  * Por qué escribirDato no guardó un dato (plan fichas con estado, trozo 8: src/lib/escribirDato.js y
  * api/_bot/datos.js). No va a ninguna tabla: va en la respuesta de api/operacion.js y en la línea de log
  * `dato_sin_guardar`, para contarlos. `rpc_ausente`: la base aún no tiene aplicar_operacion (0106 sin
@@ -385,6 +392,7 @@ export const VOCABULARIOS = Object.freeze({
   refs_operacion: REFS_OPERACION,
   estados_operacion: ESTADOS_OPERACION,
   motivos_sin_hacer_dato: MOTIVOS_SIN_HACER_DATO,
+  motivos_sin_deshacer: MOTIVOS_SIN_DESHACER,
   fallos_dato: FALLOS_DATO,
   motivos_puerta: MOTIVOS_PUERTA,
   origenes_de_la_familia: ORIGENES_DE_LA_FAMILIA,
