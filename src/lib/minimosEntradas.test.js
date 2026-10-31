@@ -164,6 +164,9 @@ describe("el mínimo para generar en todas las entradas (#1072)", () => {
   });
 
   it("las exentas siguen existiendo y siguen sin puerta (si no, sobran)", () => {
-    for (const clave of Object.keys(EXENTAS)) expect(gen.has(clave), clave).toBe(true);
+    for (const clave of Object.keys(EXENTAS)) {
+      expect(gen.has(clave), `${clave} ya no crea menú: sobra en EXENTAS`).toBe(true);
+      expect(pasaPorLaPuerta(gen.get(clave).nodo), `${clave} ya pasa por la puerta: sobra en EXENTAS`).toBe(false);
+    }
   });
 });
