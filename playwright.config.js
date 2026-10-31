@@ -7,7 +7,7 @@
 // petición que se escape.
 //
 // Corre en el CI: `npm test` la lanza al acabar los de vitest (`posttest` en
-// package.json, que antes instala Chromium), y el job `tests` llama a
+// package.json, que antes baja Chromium si no está), y el job `tests` llama a
 // `npm test`. A mano: `npm run e2e` o `npx playwright test e2e/recorrido.spec.js`.
 import { defineConfig, devices } from "@playwright/test";
 import { esReferencia, leerFichero } from "./scripts/lib/env.mjs";

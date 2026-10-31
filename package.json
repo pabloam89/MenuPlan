@@ -14,7 +14,7 @@
     "pretest": "node scripts/validate-catalog.mjs",
     "test": "vitest run",
     "e2e": "playwright test",
-    "e2e:navegador": "playwright install --with-deps chromium",
+    "e2e:navegador": "playwright install chromium",
     "posttest": "npm run e2e:navegador && npm run e2e",
     "diccionario": "node scripts/diccionario.mjs",
     "diccionario:inventario": "node scripts/diccionario-inventario.mjs",

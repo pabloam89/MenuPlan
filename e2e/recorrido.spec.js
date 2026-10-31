@@ -16,6 +16,12 @@ import { NOMBRES_DIA } from "../src/lib/dias.js";
 // temporizadores); lo que cuenta es el día, que en los ~20 s de la prueba no
 // cambia. Solo se adelanta a mano en la pulsación larga.
 const LUNES = new Date("2026-11-02T10:00:00+01:00");
+// La app sortea con Math.random al generar el menú (src/lib/aiPlanner.js).
+// En la página se cambia por un generador con semilla (mulberry32), que la
+// prueba vuelve a poner en la semilla justo antes de generar
+// (`reiniciarAzar`). El cambio de plato no sortea: va por «Elegir a mano» y
+// la primera sugerencia del hueco, que sale en el orden del catálogo.
+const SEMILLA_AZAR = 37;
 // La familia de mentira: [perfil que se toca, nombre que se escribe].
 const FAMILIA = [["Papá", "Juan"], ["Mamá", "Ana"]];
 // La única función de api/ que el recorrido llama sin cuenta: la analítica.
@@ -35,9 +41,12 @@ const CATEGORIA_COMPRA = /^\p{Lu}[\p{L} ]+ \d+$/u;
 const ENTRADA_PIZARRA = "Empieza en blanco";
 const TITULO_COMPRA = "Tu compra";
 const PIE_COMPRA = "¿Falta algo?";
-const AVISO_CAMBIO = /Sustituido por «(.+)»/;
+// La tira de sugerencias del selector de platos (src/screens/CatalogBrowserSheet.jsx).
+const SUGERENCIAS_HUECO = "Para este hueco";
+const AVISO_COLOCADO = /Colocado «(.+)»/;
 
 const boton = (page, name) => page.getByRole("button", { name, exact: true });
+const reiniciarAzar = (page) => page.evaluate(() => window.__reiniciarAzar());
 
 // Las peticiones que se han escapado en la prueba en curso (workers: 1).
 let escapes = [];
@@ -45,6 +54,17 @@ let escapes = [];
 test.beforeEach(async ({ page }) => {
   escapes = [];
   await page.clock.install({ time: LUNES });
+  await page.addInitScript((semilla) => {
+    let estado = semilla >>> 0;
+    window.__reiniciarAzar = () => { estado = semilla >>> 0; };
+    Math.random = () => {
+      estado = (estado + 0x6d2b79f5) >>> 0;
+      let t = estado;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }, SEMILLA_AZAR);
   await page.route(`${SUPABASE_MUERTO}/**`, (ruta) => {
     escapes.push(`supabase ${ruta.request().method()} ${ruta.request().url()}`);
     return ruta.abort();
@@ -73,6 +93,7 @@ async function darDeAlta(page) {
   await boton(page, "Continuar").click();
   await expect(page.getByText("¿Qué evitamos?")).toBeVisible();
   for (const [, nombre] of FAMILIA) await expect(boton(page, nombre)).toBeVisible();
+  await reiniciarAzar(page);
   await boton(page, "Nada que evitar").click();
 }
 
@@ -95,8 +116,9 @@ async function abrirMenu(page) {
 
 const nombreDePlato = async (tarjeta) => (await tarjeta.innerText()).trim().split("\n").at(-1).trim();
 
-// Pulsación larga en el primer plato → «Cambiar» → «Del mismo tipo».
-// Devuelve el plato que había y el que lo sustituye.
+// Pulsación larga en el primer plato → «Cambiar» → «Elegir a mano» → la
+// primera sugerencia del hueco. Devuelve el plato que había y el que lo
+// sustituye.
 async function cambiarPrimerPlato(page, platos) {
   const tarjeta = platos.first();
   const antes = await nombreDePlato(tarjeta);
@@ -106,10 +128,12 @@ async function cambiarPrimerPlato(page, platos) {
   await page.clock.runFor(PULSACION_LARGA_MS);
   await page.mouse.up();
   await boton(page, "Cambiar").click();
-  await boton(page, "Del mismo tipo").click();
-  const aviso = page.getByRole("status").filter({ hasText: AVISO_CAMBIO });
+  await boton(page, "Elegir a mano").click();
+  const tira = page.locator("div", { has: page.getByText(SUGERENCIAS_HUECO, { exact: true }) }).last();
+  await tira.getByRole("button").first().click();
+  const aviso = page.getByRole("status").filter({ hasText: AVISO_COLOCADO });
   await expect(aviso).toBeVisible();
-  const despues = AVISO_CAMBIO.exec(await aviso.innerText())[1];
+  const despues = AVISO_COLOCADO.exec(await aviso.innerText())[1];
   return { antes, despues };
 }
 
