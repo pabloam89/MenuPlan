@@ -2940,7 +2940,15 @@
         "generar_menu"
       ],
       "respuestas": {
-        "generar_menu": "Menú nuevo generado y activado: del 2026-10-12 al 2026-10-18, 14 huecos con plato.\n(Debajo de tu mensaje sale solo el aviso de que se ha dado por hecho que nadie tiene alergias: no lo digas tú.)"
+        "generar_menu": {
+          "resultado": {
+            "accion": "menu",
+            "hecho": [
+              "semana del 12 al 18 de octubre (14 platos)"
+            ],
+            "nota": "Menú nuevo generado y activado: del 2026-10-12 al 2026-10-18, 14 huecos con plato.\n(Debajo de tu mensaje sale solo el aviso de que se ha dado por hecho que nadie tiene alergias: no lo digas tú.)"
+          }
+        }
       },
       "sinTexto": "alergi|por hecho",
       "ficha": {
@@ -3121,7 +3129,15 @@
         }
       },
       "respuestas": {
-        "anadir_compra": "«leche» ya estaba en la lista (añadida a mano): no la he apuntado otra vez. Sigue 1 leche pendiente."
+        "anadir_compra": {
+          "resultado": {
+            "accion": "compra_anadir",
+            "hecho": [
+              "leche (ya estaba)"
+            ],
+            "nota": "«leche» ya estaba en la lista (añadida a mano): no la he apuntado otra vez. Sigue 1 leche pendiente."
+          }
+        }
       },
       "texto": "ya (la )?(estaba|est[aá]|ten[ií]as?|la ten[ií]as?)",
       "sinTexto": "^(apuntad[oa]|añadid[oa])[.!]|he (apuntado|añadido) (la )?leche[.!]"
@@ -3211,7 +3227,18 @@
         }
       },
       "respuestas": {
-        "cambiar_plato": "No encuentro ninguna receta parecida a «lasaña de pato» que encaje en la cena del viernes: NO he cambiado nada. Sigue Pizza casera de jamón y queso."
+        "cambiar_plato": {
+          "resultado": {
+            "accion": "plato",
+            "sinHacer": [
+              {
+                "que": "cena del viernes",
+                "motivo": "no hay nada parecido que encaje"
+              }
+            ],
+            "nota": "No encuentro ninguna receta parecida a «lasaña de pato» que encaje en la cena del viernes: NO he cambiado nada. Sigue Pizza casera de jamón y queso."
+          }
+        }
       },
       "texto": "no (he podido|encuentro|hay|he cambiado|he tocado|tengo|la tengo|existe)",
       "sinTexto": "(?<!no )he cambiado|ya est[aá]|te he puesto|^cambiado|^hecho[.!:]"

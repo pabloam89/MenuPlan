@@ -298,6 +298,18 @@ export function fechaDe(texto, op = {}) {
 }
 
 /**
+ * «martes», «mar», «hoy», «mañana», «el 15» → "Mar": solo el día de la
+ * semana (la pantalla, las claves del plan, el día de la tanda). La fecha
+ * concreta, con `fechaDelMenu`. Vivía en menu.js (trozo 27 de #1037).
+ */
+export function diaDe(texto, { hoy = isoDeCasa() } = {}) {
+  const d = diaDeSemana(texto);
+  if (d) return d;
+  const r = fechaDe(texto, { hoy });
+  return r.fecha ? diaDeISO(r.fecha) : null;
+}
+
+/**
  * Un día dicho sin semana, cuando lo que importa es que haya menú: el próximo
  * que cae (hoy incluido). Si ese no tiene menú y el de esta semana, que ya
  * pasó, sí, NO se coge el pasado: se pregunta (#958: «cambia el jueves» un
@@ -314,6 +326,24 @@ export function fechaConMenu(texto, tieneMenu, { hoy = isoDeCasa(), semana = nul
     return { duda: `El ${fechaCorta(antes)} ya pasó y el ${fechaCorta(r.fecha)} aún no tiene menú. ¿Cuál de los dos? Si es el que viene, hay que generar esa semana primero.` };
   }
   return r;
+}
+
+/**
+ * La fecha de un día dicho para el menú (`tieneMenu` dice si una fecha lo
+ * tiene). Para ESCRIBIR, `fechaConMenu`: el próximo que cae, nunca uno que ya
+ * pasó. Para LEER, un día de esta semana que ya pasó sí vale («¿qué cenamos
+ * el martes?»): si el próximo no tiene menú y el de esta semana sí, ese. Era
+ * la mitad de `resolverDia` (menu.js), que ahora solo busca la semana.
+ * @returns {{ fecha: string } | { duda: string }}
+ */
+export function fechaDelMenu(texto, tieneMenu, { hoy = isoDeCasa(), semana = null, escribe = false } = {}) {
+  if (escribe) return fechaConMenu(texto, tieneMenu, { hoy, semana });
+  const r = fechaDe(texto, { hoy, semana: semana === "esta" ? null : semana });
+  if (r.duda) return r;
+  const d = diaDeSemana(texto);
+  if (!d || semana === "siguiente") return r;
+  const deEsta = sumarDias(lunesDe(hoy), DIAS.indexOf(d));
+  return semana === "esta" || (!tieneMenu(r.fecha) && tieneMenu(deEsta)) ? { fecha: deEsta } : r;
 }
 
 // ── Personas ────────────────────────────────────────────────────────────────
