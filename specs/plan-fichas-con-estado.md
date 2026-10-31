@@ -576,11 +576,11 @@ node scripts/apply-migration.mjs 0107_ficha_casa_v2 && npx vitest run supabase/d
 ```
 
 ### 41. Migración 0111: deshacer una operación con su inversa, en una transacción
-Files: `supabase/migrations/0111_deshacer_operacion.sql`, `supabase/ESTADO.md`, `supabase/datoConSobre.test.js`, `src/lib/operaciones/tuberia.js`, `src/lib/operaciones/tuberia.test.js`
+Files: `supabase/migrations/0111_deshacer_operacion.sql`, `supabase/ESTADO.md`, `supabase/datoConSobre.test.js`, `src/lib/operaciones/tuberia.js`, `src/lib/operaciones/tuberia.test.js`, `api/operacion.js`
 Depends on: 26, 40
 Blocked by: none
 Existing: la migración del trozo 39 guarda la inversa de cada operación hecha (`operacion.inversa`) y su cabecera dice que nadie escribe aún «deshecha» (`git grep -n "nadie escribe aún «deshecha»" -- supabase/migrations` → un acierto, en la migración del trozo 39); la tubería del trozo 26 (`src/lib/operaciones/tuberia.js`) aplica y cuenta, pero no deshace: `git grep -n -i "deshac" -- src/lib/operaciones` → sin salida.
-Not done: la migración deja a `aplicar_operacion` (o a una RPC hermana, solo servidor) deshacer una operación hecha: en una transacción aplica su inversa, marca la operación `deshecha` con `deshecha_at` y borra el sobre que nació en ella; solo quien la hizo o el dueño de la casa, y solo si ningún dato tocado ha cambiado después (si cambió, `sin_hacer` con motivo). La tubería expone deshacer y lo usa `api/operacion.js`. Sin la migración aplicada, deshacer no hace nada y lo dice (`rpc_ausente`); nunca se deshace desde JS con escrituras sueltas. La aplica Pablo (ensayo y `--si`).
+Not done: la migración deja a `aplicar_operacion` (o a una RPC hermana, solo servidor) deshacer una operación hecha: en una transacción aplica su inversa, marca la operación `deshecha` con `deshecha_at` y borra el sobre que nació en ella; solo quien la hizo (como `bot_deshacer`, que solo deshace lo propio), y solo si ningún dato tocado ha cambiado después (si cambió, `sin_hacer` con motivo). La tubería expone deshacer y lo usa `api/operacion.js`. Sin la migración aplicada, deshacer no hace nada y lo dice (`rpc_ausente`); nunca se deshace desde JS con escrituras sueltas. La aplica Pablo (ensayo y `--si`).
 Done:
 ```sh
 node scripts/apply-migration.mjs 0111_deshacer_operacion && npx vitest run supabase/datoConSobre.test.js supabase/migrations.test.js src/lib/operaciones/tuberia.test.js
@@ -596,6 +596,8 @@ Por qué te lo pregunto: el 8 oct decidiste lo contrario (#107: se genera esquiv
 3. Se genera con lo dicho (sin esquivar) y se pregunta después. Coste: un alérgeno puede salir en el primer menú; va contra el principio de seguridad de la ficha
 
 ## Decisions taken
+- principio 1 | eligió: deshacer solo la operación propia, como `bot_deshacer` (trozo 41) | descartó: dejar que el dueño u otro de la casa deshaga lo que dijo otro, que borra un dato que esa persona dio por dicho sin que lo sepa | motivo: decidido
+- principio 3 | eligió: si un dato que la operación tocó cambió después, deshacer no lo pisa y devuelve `sin_hacer` con su motivo (trozo 41) | descartó: aplicar la inversa igualmente, que tira en silencio el cambio posterior | motivo: decidido
 - principio 3 | eligió: deshacer una operación en la base, en una transacción que aplica la inversa, marca `deshecha` y borra su sobre (trozo 41) | descartó: deshacer desde la tubería en JS con escrituras sueltas, que puede dejar una operación medio deshecha sin decirlo | motivo: decidido
 - principio 5 | eligió: la prueba de punta a punta corre en el job `tests` por `posttest` de `npm test`, sin tocar `.github/workflows/` ([Pablo, 30 oct, opción 1](https://github.com/pabloam89/MenuPlan/issues/1037#issuecomment-6534964945)) | descartó: dejarla para correr a mano con su Done, un check que ninguna entrada automática dispara y que nadie ve ponerse en rojo | motivo: decidido
 - principio 3 | eligió: si la prueba de punta a punta o la descarga de Chromium tumban `tests` sin que la app cambie, un PR quita `posttest` y un issue guarda el run que falló (trozo 37) | descartó: reintentar la prueba en silencio hasta que pase, que esconde una prueba frágil | motivo: decidido
