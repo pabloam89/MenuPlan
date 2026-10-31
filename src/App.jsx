@@ -97,6 +97,7 @@ import {
 } from "./lib/groups.js";
 import { normalizeKidDinnerConfig } from "./lib/kidsMenu.js";
 import { loadState, saveState, clearState } from "./lib/storage.js";
+import { semanaDeHoy } from "./lib/menuArchive.js";
 import {
   clampWeekCount,
   computeWeekRange,
@@ -1782,7 +1783,7 @@ export default function App() {
               (a, b) => a.offset - b.offset,
             );
             activeWeek =
-              weeks.find((w) => w.startISO <= todayISO && todayISO <= w.endISO) ??
+              semanaDeHoy(weeks, todayISO) ??
               weeks[0] ??
               null;
             if (activeWeek) {

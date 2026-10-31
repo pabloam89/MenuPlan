@@ -444,6 +444,11 @@ describe("planDeHoy", () => {
     expect(planDeHoy(menus, "m", 0, estaSemana.plan, "2026-12-01")).toEqual({});
   });
 
+  it("si de la semana de hoy solo se cargó el rango, sin platos", () => {
+    const soloRango = { m: { weeks: { a: { offset: 0, startISO: "2026-10-26", endISO: "2026-11-01" }, b: laSiguiente } } };
+    expect(planDeHoy(soloRango, "m", 1, laSiguiente.plan, hoy)).toEqual({});
+  });
+
   it("sin semanas archivadas, el plan en vivo", () => {
     const vivo = { a: 1 };
     expect(planDeHoy({}, null, 0, vivo, hoy)).toBe(vivo);

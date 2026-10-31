@@ -511,7 +511,8 @@ export function DashboardScreen({
   // With several menus (Adultos/Niños/Bebé) a discreet control lets you flip
   // between them; the section itself only ever renders dishes.
   const todayMeals = useMemo(() => {
-    if (!selectedGroup || !hasMenu) return [];
+    // Sin mirar `hasMenu`: dice si la semana A LA VISTA tiene platos, no la de hoy.
+    if (!selectedGroup) return [];
     const day = todayShort();
     const plan = planDeHoy(data.menus, data.activeMenuId, data.menuWeek?.offset, menuPlan, isoLocalDate(new Date()));
     const out = [];
@@ -523,7 +524,7 @@ export function DashboardScreen({
       out.push({ meal, recipe, photo: dishImageForRecipe(recipe) });
     }
     return out;
-  }, [menuPlan, data, hasMenu, selectedGroup]);
+  }, [menuPlan, data, selectedGroup]);
 
   // Siempre visible (2026-08-28): antes la sección desaparecía entera cuando
   // no había menú, así que Inicio se quedaba en un hueco vacío bajo la card.
