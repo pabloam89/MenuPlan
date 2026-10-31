@@ -118,6 +118,8 @@ export function sumarUsos(...usos) {
 }
 
 // ── Lo que llega con el turno en marcha ─────────────────────────────────────
+/** El campo de bot_route con lo que llegó con el turno anterior en marcha (lo escriben telegram.js y lo leen bot-semana y cifras:modelo). */
+export const CAMPO_LLEGARON = "llegaron_durante";
 /**
  * Los mensajes de esta vuelta que llegaron al chat mientras corría el turno
  * anterior de la misma invocación (turnos.js drenar): cuántos y a cuántos ms

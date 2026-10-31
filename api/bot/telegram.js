@@ -42,7 +42,7 @@ import { pedidoCompartido } from "../_bot/comoDato.js";
 import { clasificar, vaPorLaRapida, permitidoEn } from "../_bot/router.js";
 import { prediceRapida, ESPERA_MAX_MS } from "../_bot/prediceRapida.js";
 import { esCorreccionRuta, esCorreccionMedida } from "../_bot/senales.js";
-import { SIN_ENRUTADOR, motorFrioDesde, relojDeHerramientas, sumarUsos } from "../_bot/medidaTurno.js";
+import { SIN_ENRUTADOR, CAMPO_LLEGARON, motorFrioDesde, relojDeHerramientas, sumarUsos } from "../_bot/medidaTurno.js";
 import { viaRapida, eleccionDe, aplicarEleccion, contextoDe, repiteLaPropuesta } from "../_bot/turno.js";
 import { fotosVistas, fotosSinRepetir } from "../_bot/fotosVistas.js";
 import { comidaElegida, quiereApuntar } from "../_bot/plato.js";
@@ -579,7 +579,7 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   // Lo que esperó en la cola de su chat antes de empezar (bot_route espera_cola_ms),
   // y si sus mensajes llegaron con el turno anterior en marcha (llegaron_durante: n 0 si se
   // midió y no llegó nada; sin el campo si no se pudo medir, medidaTurno.js llegadosDurante).
-  const cola = { ...(esperaColaMs == null ? {} : { espera_cola_ms: esperaColaMs }), ...(llegaron ? { llegaron_durante: llegaron } : {}) };
+  const cola = { ...(esperaColaMs == null ? {} : { espera_cola_ms: esperaColaMs }), ...(llegaron ? { [CAMPO_LLEGARON]: llegaron } : {}) };
   const modoGrupos = MODO_ROUTER_GRUPOS();
   desde ??= from ? [idDePersona(from)].filter(Boolean) : [];
   // Los turnos que contesta Lola sin pasar por el enrutador (apagado, en

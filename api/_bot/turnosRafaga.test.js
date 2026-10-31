@@ -34,21 +34,12 @@ const { conPlazo } = await import("./plazo.js");
 const msj = (texto) => ({ texto, enCola: Date.now() });
 const textos = (items) => items.map((i) => i.texto);
 
-/**
- * Un turno de mentira que tarda `ms` y, si `escribe`, ya ha escrito en la casa
- * al empezar (como una herramienta que guarda). Se deja cortar por la señal de
- * la ronda: cortado sin escribir, pide rehacer (lo que hace telegram.js turno).
- */
-function turnoDeMentira({ ms = 10_000, escribe = false } = {}) {
+/** Un turno de mentira que tarda `ms` y apunta lo que recibe (sus mensajes y la ronda). */
+function turnoDeMentira({ ms = 10_000 } = {}) {
   const vistos = [];
   const atender = vi.fn(async (items, ronda) => {
     vistos.push({ items: textos(items), ronda });
-    if (ronda) ronda.operacion = { escrituras: escribe ? 1 : 0, escribiendo: escribe ? 1 : 0 };
-    const cortado = await new Promise((r) => {
-      const t = setTimeout(() => r(false), ms);
-      ronda?.signal?.addEventListener("abort", () => { clearTimeout(t); r(true); });
-    });
-    return cortado ? { rehacer: true } : undefined;
+    await new Promise((r) => setTimeout(r, ms));
   });
   return { atender, vistos };
 }
@@ -57,15 +48,15 @@ describe("turnosRafaga: otro mensaje con el turno en marcha", () => {
   beforeEach(() => { cola = []; ocupado = false; vi.useFakeTimers(); });
   afterEach(() => { vi.useRealTimers(); });
 
-  it("con escrituras: el turno sigue y el nuevo va en la vuelta siguiente, medido", async () => {
-    const { atender, vistos } = turnoDeMentira({ escribe: true });
+  it("lo que llega con el turno en marcha va en la vuelta siguiente, medido; el primero no se pudo medir", async () => {
+    const { atender, vistos } = turnoDeMentira();
     const p = conPlazo(Date.now(), () => enTurno("c1", msj("apunta leche en la compra"), atender));
     await vi.advanceTimersByTimeAsync(4_000); // 1 s de ráfaga y 3 s de turno
     const q = conPlazo(Date.now(), () => enTurno("c1", msj("y pan"), atender));
     await vi.advanceTimersByTimeAsync(30_000);
     await Promise.all([p, q]);
     expect(vistos.map((v) => v.items)).toEqual([["apunta leche en la compra"], ["y pan"]]);
-    expect(vistos[0].ronda?.signal?.aborted ?? false).toBe(false);
+    expect(vistos[0].ronda?.llegaron).toBeNull();
     // El segundo llegó a los 3 s del primer turno (medidaTurno.js llegadosDurante).
     expect(vistos[1].ronda?.llegaron).toEqual({ n: 1, ms: [3_000] });
   });
