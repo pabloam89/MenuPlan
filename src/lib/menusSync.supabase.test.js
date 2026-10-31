@@ -18,6 +18,7 @@ import {
   toggleMenuFavorite,
   activateMenu,
   saveAndActivateMenu,
+  deactivateMenu,
   queueSaveMenuWeek,
 } from "./menusSync.js";
 
@@ -296,5 +297,28 @@ describe("queueSaveMenuWeek espera a que el menú recién generado esté subido 
     const orden = client.log.filter((c) => c.method === "upsert" || c.method === "rpc").map((c) => c.table);
     expect(orden).toEqual(["user_menus", "user_menu_weeks", "rpc:activate_user_menu", "user_menu_weeks"]);
     expect(client.log.filter((c) => c.method === "upsert").at(-1).args[0].shopping).toEqual(tachada.shopping);
+  });
+});
+
+describe("deactivateMenu y el resultado de saveAndActivateMenu (mocked client)", () => {
+  it("deja el menú inactivo, solo en su casa", async () => {
+    const client = mockClient({ user_menus: [{ data: null, error: null }] });
+    Object.assign(supabase, client);
+    const { log } = client;
+    expect(await deactivateMenu("user-1", "menu_abc", "casa-1")).toEqual({ ok: true });
+    expect(log).toContainEqual({ table: "user_menus", method: "update", args: [{ is_active: false }] });
+    expect(log).toContainEqual({ table: "user_menus", method: "eq", args: ["household_id", "casa-1"] });
+    expect(log).toContainEqual({ table: "user_menus", method: "eq", args: ["id", "menu_abc"] });
+  });
+
+  it("dice que falló si la base no deja", async () => {
+    Object.assign(supabase, mockClient({ user_menus: [{ data: null, error: { message: "no" } }] }));
+    expect((await deactivateMenu("user-1", "menu_abc")).ok).toBe(false);
+  });
+
+  it("saveAndActivateMenu no rechaza si una semana no se puede montar", async () => {
+    Object.assign(supabase, mockClient({}));
+    const r = await saveAndActivateMenu("user-1", { id: "m", weeks: { "2026-10-26": { days: ["Nada"] } } }, []);
+    expect(r.ok).toBe(false);
   });
 });
