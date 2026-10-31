@@ -11,10 +11,11 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 describe("«Hoy toca» mirando otra semana", () => {
   it("enseña el plato de hoy aunque la semana a la vista esté vacía", () => {
-    const receta = Object.values(RECIPES_BY_ID)[0];
+    const receta = { id: "prueba_hoy", name: "Plato de prueba", time: 20 };
+    RECIPES_BY_ID[receta.id] = receta;
     const hoy = isoLocalDate(new Date());
     const dia = diaDeFecha(new Date());
-    const planHoy = { g1: { [`${dia}-comida`]: { recipeId: receta.id } } };
+    const planHoy = { g1: { [`${dia}-Comida`]: { recipeId: receta.id } } };
     const data = {
       members: [{ id: "p1", name: "Ana" }],
       groups: [{ id: "g1", label: "Casa", memberIds: ["p1"] }],
