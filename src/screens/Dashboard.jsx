@@ -683,7 +683,9 @@ export function DashboardScreen({
           />
         )}
 
-        {!householdReadOnly && onStartPizarra && <PizarraCard onClick={onStartPizarra} />}
+        {/* Sin pasarle el clic: handleStartPizarra lo tomaría por `eleccion` y metería
+            el evento (con `window` dentro) en `data`, y ya nada se podría guardar. */}
+        {!householdReadOnly && onStartPizarra && <PizarraCard onClick={() => onStartPizarra()} />}
 
         {/* ── Hoy toca (solo renderiza platos; vacío si no hay menú) ── */}
         {showTodaySection && (
