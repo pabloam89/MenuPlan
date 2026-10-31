@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import { acabadas, clasificar, contar, jobDelJuez, leerPr, leerSalida, LIMITE_EJECUCIONES, MOTIVOS_SIN_VEREDICTO, motivoSinVeredicto, tabla } from "./rondas-del-juez.mjs";
 
-// Líneas con la forma de `gh run view <id> --log`: job, paso, hora y texto.
-const linea = (texto) => `revisor / juzgar\tUNKNOWN STEP\t2026-10-30T22:40:15.1678601Z ${texto}`;
+// Líneas con la forma del log de un job (`gh api …/actions/jobs/<job>/logs`): hora y texto.
+const linea = (texto) => `2026-10-30T22:40:15.1678601Z ${texto}`;
 const salida = (respuestas) => linea(`  SALIDA: ${JSON.stringify({ respuestas })}`);
 const log = (...lineas) => [linea("##[group]Run node .fabrica/scripts/veredicto.mjs"), ...lineas, linea("  PR: 1066")].join("\n");
 

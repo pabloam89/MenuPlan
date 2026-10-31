@@ -15,7 +15,7 @@ metadata:
 
 # PR con juez
 
-El juez lee el diff y el cuerpo, y cada pregunta del estándar (C5…C17) debe salir `sí` o `no aplica`. El cuerpo sale de `npm run pr:cuerpo -- --salida cuerpo.md`; esto es lo que sus TODO deben llevar. Orden: de lo que más «no» da a lo que menos, medido con `npm run rondas-juez` (cuenta los «no» por criterio; desde Node, lánzalo con `node scripts/token-sesion.mjs -- npm run rondas-juez`). Vuelve a medir antes de reordenar; cada medida gasta dos llamadas por ejecución de la cuota de la App, común a todas las sesiones: una vez, no en bucle.
+El juez lee el diff y el cuerpo, y cada pregunta del estándar (C5…C17) debe salir `sí` o `no aplica`. El cuerpo sale de `npm run pr:cuerpo -- --salida cuerpo.md`; esto es lo que sus TODO deben llevar. Orden: de lo que más «no» da a lo que menos, medido con `npm run rondas-juez` (cuenta los «no» por criterio; desde Node, lánzalo con `node scripts/token-sesion.mjs -- npm run rondas-juez`). Vuelve a medir antes de reordenar; cada medida gasta una llamada por ejecución (unas 700 en 14 días) de la cuota de la App, común a todas las sesiones: una vez, no en bucle.
 
 ## Lo que pide, por lo que más falla
 

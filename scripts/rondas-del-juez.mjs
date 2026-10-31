@@ -6,7 +6,7 @@
 // Lee:   gh run list --workflow revisor --created >=<fecha> --json databaseId,headBranch,conclusion,status
 //        gh api repos/{owner}/{repo}/actions/runs/<id>/jobs y gh api …/actions/jobs/<job>/logs (de cada ejecución acabada)
 // Token: desde Node, `gh` no pasa por el shim de las sesiones; lánzalo con
-//        node scripts/token-sesion.mjs -- npm run rondas-juez   (dos llamadas a la API por ejecución)
+//        node scripts/token-sesion.mjs -- npm run rondas-juez   (una llamada de la cuota por ejecución)
 //
 // El veredicto sale de la línea `SALIDA: {...}` del log (el JSON del modelo: respuestas [{id, respuesta, prueba}]).
 // Sin una SALIDA legible no se deduce nada: la ejecución cuenta como «sin veredicto», con su motivo
@@ -154,9 +154,9 @@ export function jobDelJuez(jobs) {
   return (jobs ?? []).find((j) => FORMA_DEL_LOG.job.test(j?.name ?? "") && j.conclusion !== "skipped") ?? null;
 }
 
-// Solo el log del job que juzga: dos llamadas a la API por ejecución. `gh run view --log` baja el de
-// todos los jobs y gasta varias; con él, una medida de 14 días agotó la cuota de la App (5000 por hora,
-// común a todas las sesiones). Sin job que juzgue, log vacío: clasificar la cuenta como sin veredicto.
+// Solo el log del job que juzga: dos peticiones por ejecución, la lista de jobs y su log. Solo la primera
+// descuenta de la cuota de la App (5000 por hora, común a todas las sesiones): la descarga del log no la
+// toca. `gh run view --log` gasta varias por ejecución y con él una medida de 14 días agotó la cuota. Sin job que juzgue, log vacío: clasificar la cuenta como sin veredicto.
 // Un job cancelado antes de escribir nada no tiene log (404): también vacío. Cualquier otro fallo corta.
 async function logDelJuez(id) {
   const { jobs } = JSON.parse(await gh(["api", `repos/{owner}/{repo}/actions/runs/${id}/jobs`]));
