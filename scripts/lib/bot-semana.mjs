@@ -9,7 +9,7 @@
  */
 
 import { esCorreccionMedida } from "../../api/_bot/senales.js";
-import { ORIGEN_PESADO } from "../../api/_bot/medidaTurno.js";
+import { ORIGEN_PESADO, CAMPO_LLEGARON } from "../../api/_bot/medidaTurno.js";
 import { PRECIOS as PRECIOS_BASE } from "./evals.mjs";
 
 // USD por millón de tokens. Los precios viven en UN sitio (PRECIOS de
@@ -141,6 +141,9 @@ export function medir(eventos, objetivos = {}) {
   // Lo que cada turno esperó en la cola de su chat, y el import del motor en frío.
   const esperasCola = turnos.map((e) => e.m.espera_cola_ms);
   const motorFrio = turnos.map((e) => e.m.motor_frio).filter(Number.isFinite);
+  // Lo que llegó al chat con su turno anterior en marcha (bot_route llegaron_durante,
+  // trozo 28 de #1037): cada fila es un turno que recibió otro mensaje mientras corría.
+  const llegados = turnos.filter((e) => e.m[CAMPO_LLEGARON]?.n > 0);
   // De dónde vino cada turno: el enrutador, o el motivo por el que Lola contestó sin él.
   const porOrigen = {};
   for (const e of turnos) { const o = e.m.sin_enrutador ?? "enrutador"; porOrigen[o] = (porOrigen[o] ?? 0) + 1; }
@@ -161,6 +164,8 @@ export function medir(eventos, objetivos = {}) {
       canceladasPct: tanto(canceladas.n, turnos.length),
       // Turnos en que un import del motor (core.mjs, ~10 MB) cayó dentro del turno.
       motorFrioN: motorFrio.length,
+      // Turnos que recibieron otro mensaje del chat mientras corrían.
+      llegaronDuranteN: llegados.length,
     },
     latencia: {
       primerTextoRapidaP50Ms: pct(rapidas.map((e) => e.m.primer_ms ?? e.m.ms), 50),
@@ -181,6 +186,8 @@ export function medir(eventos, objetivos = {}) {
       esperaCandadoP95Ms: pct(turnos.map((e) => e.m.espera_candado_ms), 95),
       // El primer import del motor en frío, cuando cae dentro de un turno (bot_route motor_frio).
       motorFrioP50Ms: pct(motorFrio, 50),
+      // A cuánto del inicio de ese turno llegó el mensaje nuevo (el primero de cada uno).
+      llegaronDuranteP50Ms: pct(llegados.map((e) => e.m[CAMPO_LLEGARON].ms?.[0]), 50),
       enrutadorP50Ms: pct(turnos.map((e) => e.m.router_ms), 50),
       // Lo que tarda el turno en poder arrancar al enrutador y a Lola.
       contextoP50Ms: pct(turnos.map((e) => e.m.contexto_ms), 50),

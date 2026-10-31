@@ -229,6 +229,17 @@ describe("medir: el alta, las fotos y los PDF, la cola y el motor en frío (#910
     expect(corregidos([pdf, corregido]).has(pdf)).toBe(true);
   });
 
+  it("cuenta los turnos que recibieron otro mensaje mientras corrían (trozo 28 de #1037)", () => {
+    const uno = ruta(5, { rapida: false, ms: 9000, lola_cancelada: false, llegaron_durante: { n: 1, ms: [9337] }, lola: lola(8000) });
+    const siguiente = ruta(6, { rapida: false, ms: 5000, lola_cancelada: false, llegaron_durante: { n: 2, ms: [3000, 4000] }, lola: lola(4000) });
+    const m = medir([...todos, uno, siguiente]);
+    expect(m.uso.llegaronDuranteN).toBe(2);
+    // La distancia del primero de cada uno: 9337 y 3000 (pct toma el de arriba con dos).
+    expect([3000, 9337]).toContain(m.latencia.llegaronDuranteP50Ms);
+    expect(medir(todos).uso.llegaronDuranteN).toBe(0);
+    expect(medir(todos).latencia.llegaronDuranteP50Ms).toBe(null);
+  });
+
   it("la espera en la cola (texto) y la del candado (foto y PDF) no se mezclan; y el motor en frío", () => {
     const m = medir(todos);
     expect(m.latencia.esperaColaP95Ms).toBe(21000);
