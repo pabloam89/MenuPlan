@@ -1,10 +1,11 @@
 // escribirDato en el servidor (plan fichas con estado, trozos 8 y 26) y su entrada
 // para la app (api/operacion.js): una operación de tipo dato por la tubería y su
 // puerta a aplicar_operacion, nunca al documento de la casa; si la RPC no está, no
-// se guarda, se dice y queda la línea `dato_sin_guardar` con `rpc_ausente`.
+// se guarda, se dice y queda la línea `dato_sin_guardar` con `rpc_ausente`. Deshacer
+// (trozo 41) va por la misma entrada a deshacer_operacion, con quien tiene la sesión.
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { escribirDato, falloDeMotivo } from "./datos.js";
-import { RPC_OPERACION } from "../../src/lib/operaciones/tuberia.js";
+import { RPC_OPERACION, RPC_DESHACER } from "../../src/lib/operaciones/tuberia.js";
 import handler from "../operacion.js";
 import { HTTP_DE_FALLO } from "../../src/lib/escribirDato.js";
 import { FALLO_DATO, MOTIVOS_FALLO, FALLOS_DATO, ESTADO_OPERACION, SEXO, CANAL_DATO, REF_OPERACION } from "../../src/lib/vocabularios.js";
@@ -205,5 +206,52 @@ describe("api/operacion.js: la app propone, el servidor escribe", () => {
     const res = await pedir({ body: { ...CUERPO, casa: "x" } });
     expect(res.codigo).toBe(400);
     expect(llamadas.filter((l) => !l.ruta.startsWith("/auth/"))).toEqual([]);
+  });
+});
+
+describe("api/operacion.js: deshacer una operación propia (trozo 41)", () => {
+  const OP = "7c9e6679-7425-40de-944b-e07fc1f90ae7";
+  const DESHECHA = { operacion_id: OP, estado: ESTADO_OPERACION.DESHECHA, repetida: false, deshecho: [{ campo: "sexo", persona_id: "p1" }], sin_hacer: [], rev: 9 };
+  const aLaBase = () => llamadas.filter((l) => l.ruta.includes("rpc/"));
+  beforeEach(() => {
+    responde(/^\/auth\/v1\/user/, { status: 200, cuerpo: { id: "u1" } });
+  });
+
+  it("deshace con quien tiene la sesión, aunque el cuerpo diga otro autor, y por deshacer_operacion", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "editor", user_id: "u1" }] });
+    responde(/rpc\/deshacer_operacion/, { status: 200, cuerpo: DESHECHA });
+    const res = await pedir({ body: { casa: CASA, deshacer: OP, autor_user_id: "otro" } });
+    expect(res.codigo).toBe(200);
+    expect(res.body).toEqual({ guardado: true, ...DESHECHA });
+    expect(aLaBase()).toEqual([{ ruta: `/rest/v1/rpc/${RPC_DESHACER}`, metodo: "POST", cuerpo: { p_casa: CASA, p_operacion_id: OP, p_autor_user_id: "u1" } }]);
+  });
+
+  it("deshacer y un dato a la vez, o una operación que no es un uuid: invalido, sin llegar a la base", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner", user_id: "u1" }] });
+    for (const body of [{ ...CUERPO, deshacer: OP }, { casa: CASA, deshacer: "op1" }]) {
+      const res = await pedir({ body });
+      expect(res.codigo).toBe(400);
+      expect(res.body).toEqual({ fallo: FALLO_DATO.INVALIDO, error: "deshacer" });
+    }
+    expect(aLaBase()).toEqual([]);
+  });
+
+  it("un lector no deshace: sin_permiso y no llega a la base", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "viewer", user_id: "u1" }] });
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const res = await pedir({ body: { casa: CASA, deshacer: OP } });
+    expect(res.codigo).toBe(403);
+    expect(aLaBase()).toEqual([]);
+  });
+
+  it("sin la RPC (0111 sin aplicar): rpc_ausente, queda en el log y no toca el documento", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner", user_id: "u1" }] });
+    responde(/rpc\/deshacer_operacion/, { status: 404, cuerpo: { code: "PGRST202", message: "Could not find the function public.deshacer_operacion in the schema cache" } });
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    const res = await pedir({ body: { casa: CASA, deshacer: OP } });
+    expect(res.codigo).toBe(503);
+    expect(res.body).toEqual({ fallo: FALLO_DATO.RPC_AUSENTE });
+    expect(lineas(log)).toEqual([{ evento: "dato_sin_guardar", fallo: "rpc_ausente", motivo: "no_existe", canal: "app", campo: null }]);
+    expect(llamadas.filter((l) => DEL_DOCUMENTO.test(l.ruta))).toEqual([]);
   });
 });

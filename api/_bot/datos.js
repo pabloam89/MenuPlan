@@ -13,7 +13,7 @@
  */
 import { rpc } from "./db.js";
 import { motivoDe } from "./avisar.js";
-import { operar } from "../../src/lib/operaciones/tuberia.js";
+import { operar, deshacer } from "../../src/lib/operaciones/tuberia.js";
 import { FALLO_DATO, MOTIVO_FALLO } from "../../src/lib/vocabularios.js";
 
 /**
@@ -43,3 +43,10 @@ const falloDeError = (e) => ({ fallo: falloDeMotivo(motivoDe(e)), motivo: motivo
  * @param {{ papel: string|null }} quien  el papel en la casa del autor, o null si no es de ella
  */
 export const escribirDato = (pedido, { papel }) => operar(pedido, { papel, rpc, falloDeError });
+
+/**
+ * Deshacer una operación propia por la tubería (deshacer_operacion, 0111; lo que devuelve, en `deshacer`).
+ * @param {Parameters<typeof deshacer>[0]} pedido
+ * @param {{ papel: string|null }} quien  el papel en la casa de quien lo pide, o null si no es de ella
+ */
+export const deshacerOperacion = (pedido, { papel }) => deshacer(pedido, { papel, rpc, falloDeError });

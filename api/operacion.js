@@ -15,13 +15,16 @@
  * sistema. aplicar_operacion vuelve a comprobar que el autor es de la casa.
  *
  * Cuerpo: { casa, clave, accion, ref_id, pedida_at, dato: { campo, persona_id, valor, origen } }.
+ * Para deshacer una operación propia (trozo 41): { casa, deshacer: <operacion_id> }, sin dato; la
+ * deshace la base en una transacción (deshacer_operacion, 0111) si es de quien tiene la sesión y nada
+ * de lo que tocó cambió después (si no, 200 con `guardado: false` y `sin_hacer` con su motivo).
  * Contesta 200 con el resultado (sin `pedido` ni `inversa`) o el código de
  * HTTP_DE_FALLO con { fallo, error? } (FALLOS_DATO; `error`, el motivo de la puerta o del dato).
  */
 import { cors, blocked } from "./_guard.js";
 import { usuarioDeToken } from "./_bot/db.js";
 import { papelDeUsuario } from "./_bot/papel.js";
-import { escribirDato, falloDeMotivo } from "./_bot/datos.js";
+import { escribirDato, deshacerOperacion, falloDeMotivo } from "./_bot/datos.js";
 import { motivoDe } from "./_bot/avisar.js";
 import { HTTP_DE_FALLO, apuntarSinGuardar } from "../src/lib/escribirDato.js";
 import * as ids from "../src/lib/ids.js";
@@ -42,15 +45,20 @@ export default async function handler(req, res) {
   const accessToken = (req.headers.authorization ?? "").replace(/^Bearer\s+/i, "").trim();
   if (!accessToken) return contestar(res, FALLO_DATO.SIN_SESION);
 
-  const { casa, clave, accion, ref_id, pedida_at = null, dato } = req.body ?? {};
+  const { casa, clave, accion, ref_id, pedida_at = null, dato, deshacer = null } = req.body ?? {};
   let user;
   let papel;
   try {
     user = await usuarioDeToken(accessToken);
     if (!user) return contestar(res, FALLO_DATO.SIN_SESION);
     if (!ids.casa.esNuevo(casa)) return contestar(res, FALLO_DATO.INVALIDO, "casa");
-    // La clave la da la app (un uuid); va a su propio espacio, para que no pueda adelantarse a una de Lola.
-    if (!ids.claveOperacion.esNuevo(clave)) return contestar(res, FALLO_DATO.INVALIDO, "clave");
+    if (deshacer != null) {
+      // Deshacer o escribir, nunca las dos en una petición: el dato no se tiraría en silencio.
+      if (!ids.operacion.esNuevo(deshacer) || dato != null) return contestar(res, FALLO_DATO.INVALIDO, "deshacer");
+    } else if (!ids.claveOperacion.esNuevo(clave)) {
+      // La clave la da la app (un uuid); va a su propio espacio, para que no pueda adelantarse a una de Lola.
+      return contestar(res, FALLO_DATO.INVALIDO, "clave");
+    }
     papel = await papelDeUsuario(casa, user.id);
   } catch (e) {
     // La sesión o la casa no se pudieron leer: no se guarda, se dice y queda en el log.
@@ -62,6 +70,12 @@ export default async function handler(req, res) {
   }
 
   // El papel (o null, si no es de la casa) lo juzga la puerta de la tubería, la misma que la de Lola.
+  if (deshacer != null) {
+    // Quien deshace es el de la sesión: la base solo deshace lo suyo (deshacer_operacion, 0111).
+    const r = await deshacerOperacion({ casa, operacion_id: deshacer, canal: CANAL_DATO.APP, autor: { user_id: user.id } }, { papel });
+    if (r.fallo) return contestar(res, r.fallo, r.error);
+    return res.status(200).json(r);
+  }
   const r = await escribirDato({
     casa, clave: `${CANAL_DATO.APP}:${clave}`, accion, pedida_at, dato,
     canal: CANAL_DATO.APP,
