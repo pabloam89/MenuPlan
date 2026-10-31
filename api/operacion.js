@@ -1,21 +1,22 @@
 /**
- * Donde la app propone sus operaciones (plan fichas con estado, trozo 8; #1037).
+ * Donde la app propone sus operaciones (plan fichas con estado, trozos 8 y 26; #1037).
  *
  * La app no escribe tablas de ficha ni llama a aplicar_operacion (es solo de la
- * service role, 0106): manda aquí el dato que tocó la familia y este endpoint lo
- * escribe con escribirDato (api/_bot/datos.js), el mismo que usa Lola. Hoy
- * acepta solo operaciones de tipo dato; el trozo 26 pone aquí delante la
- * tubería (entender, comprobar, aplicar, apuntar) y su puerta.
+ * service role, 0106): manda aquí el dato que tocó la familia, pasa la puerta
+ * de la tubería (src/lib/operaciones/puerta.js) y este endpoint lo escribe con
+ * escribirDato (api/_bot/datos.js), el mismo que usa Lola. Hoy acepta solo
+ * operaciones de tipo dato.
  *
- * Quién escribe sale del token de la sesión (nunca del cuerpo), y tiene que ser
- * de la casa con un papel que edita (papeles.js, `editar_casa`). El canal es
- * siempre `app` y la referencia, la pantalla: la app no puede hacerse pasar por
- * Lola ni por el sistema. aplicar_operacion vuelve a comprobar que el autor es
- * de la casa.
+ * Quién escribe sale del token de la sesión (nunca del cuerpo), y su papel en
+ * la casa, de household_members. La puerta decide con ese papel: quien no es de
+ * la casa o no la edita no escribe, y desde una pantalla habla una persona
+ * (nada supuesto). El canal es siempre `app` y la
+ * referencia, la pantalla: la app no puede hacerse pasar por Lola ni por el
+ * sistema. aplicar_operacion vuelve a comprobar que el autor es de la casa.
  *
  * Cuerpo: { casa, clave, accion, ref_id, pedida_at, dato: { campo, persona_id, valor, origen } }.
  * Contesta 200 con el resultado (sin `pedido` ni `inversa`) o el código de
- * HTTP_DE_FALLO con { fallo } (FALLOS_DATO).
+ * HTTP_DE_FALLO con { fallo, error? } (FALLOS_DATO; `error`, el motivo de la puerta o del dato).
  */
 import { cors, blocked } from "./_guard.js";
 import { usuarioDeToken } from "./_bot/db.js";
@@ -23,9 +24,9 @@ import { papelDeUsuario } from "./_bot/papel.js";
 import { escribirDato, falloDeMotivo } from "./_bot/datos.js";
 import { motivoDe } from "./_bot/avisar.js";
 import { HTTP_DE_FALLO, apuntarSinGuardar } from "../src/lib/escribirDato.js";
-import { puede } from "../src/lib/papeles.js";
+import { comprobar, falloDePuerta } from "../src/lib/operaciones/puerta.js";
 import * as ids from "../src/lib/ids.js";
-import { FALLO_DATO, CANAL_DATO, REF_OPERACION, ORIGENES_DE_LA_FAMILIA } from "../src/lib/vocabularios.js";
+import { FALLO_DATO, CANAL_DATO, REF_OPERACION } from "../src/lib/vocabularios.js";
 
 /** Peticiones por IP y minuto: una familia toca pocos datos por minuto; esto frena a quien quiera llenar la base. */
 export const LIMITE_POR_MINUTO = 60;
@@ -49,8 +50,6 @@ export default async function handler(req, res) {
     user = await usuarioDeToken(accessToken);
     if (!user) return contestar(res, FALLO_DATO.SIN_SESION);
     if (!ids.casa.esNuevo(casa)) return contestar(res, FALLO_DATO.INVALIDO, "casa");
-    // Desde la app habla una persona: lo supuesto, visto, derivado o por defecto lo pone el sistema, no una pantalla.
-    if (!ORIGENES_DE_LA_FAMILIA.includes(dato?.origen)) return contestar(res, FALLO_DATO.INVALIDO, "origen");
     // La clave la da la app (un uuid); va a su propio espacio, para que no pueda adelantarse a una de Lola.
     if (!ids.claveOperacion.esNuevo(clave)) return contestar(res, FALLO_DATO.INVALIDO, "clave");
     papel = await papelDeUsuario(casa, user.id);
@@ -62,7 +61,14 @@ export default async function handler(req, res) {
     apuntarSinGuardar({ fallo, motivo, canal: CANAL_DATO.APP, campo: dato?.campo ?? null });
     return contestar(res, fallo);
   }
-  if (!papel || !puede(papel, "editar_casa")) return contestar(res, FALLO_DATO.SIN_PERMISO);
+
+  // El papel (o null, si no es de la casa) lo juzga la puerta, la misma que juzgará a Lola.
+  const contra = comprobar({ canal: CANAL_DATO.APP, autor_user_id: user.id, datos: dato ? [dato] : [] }, { papel });
+  if (contra) {
+    const fallo = falloDePuerta(contra.motivo);
+    apuntarSinGuardar({ fallo, motivo: contra.motivo, canal: CANAL_DATO.APP, campo: dato?.campo ?? null });
+    return contestar(res, fallo, contra.motivo);
+  }
 
   const r = await escribirDato({
     casa, clave: `${CANAL_DATO.APP}:${clave}`, accion, pedida_at, dato,
