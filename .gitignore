@@ -81,3 +81,7 @@ scripts/bot-evals-candidatos.json
 
 # Motivos del juez por caso de la última pasada de pago (test-del-juez): material de trabajo.
 ops/test-del-juez/ultima-pasada.json
+
+# Pruebas de punta a punta (Playwright)
+test-results/
+playwright-report/

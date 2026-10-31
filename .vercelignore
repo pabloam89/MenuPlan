@@ -20,3 +20,5 @@ scripts/lib/*
 !scripts/lib/env.mjs
 # Prioridad baja de tests y build en local (#284); en Vercel no hace nada, pero el import tiene que existir.
 !scripts/lib/prioridad.mjs
+# Las banderas de la app por rama (motor, pizarra, guías): vite.config.js las saca de aquí.
+!scripts/lib/banderas.mjs
