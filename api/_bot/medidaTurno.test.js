@@ -94,8 +94,8 @@ describe("llegadosDurante: lo que llega con el turno en marcha (trozo 28 de #103
     expect(llegadosDurante(anterior, [9_000, 19_337, 21_000, 23_000])).toEqual({ n: 2, ms: [9_337, 11_000] });
   });
 
-  it("nada durante, sin turno anterior o sin hora de entrada: null", () => {
-    expect(llegadosDurante(anterior, [9_000, 23_000])).toBe(null);
+  it("medido y nada durante: n 0; sin turno anterior o sin hora de entrada no se mide: null", () => {
+    expect(llegadosDurante(anterior, [9_000, 23_000])).toEqual({ n: 0, ms: [] });
     expect(llegadosDurante(null, [15_000])).toBe(null);
     expect(llegadosDurante(anterior, [null, undefined])).toBe(null);
   });

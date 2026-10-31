@@ -577,9 +577,9 @@ async function apuntarRuta(householdId, extra) {
 export async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, from, desde = null, responderA, variosAutores = false, esperaColaMs = null, llegaron = null }) {
   const modo = MODO_ROUTER();
   // Lo que esperó en la cola de su chat antes de empezar (bot_route espera_cola_ms),
-  // y si sus mensajes llegaron con el turno anterior en marcha (llegaron_durante;
-  // también con n: 0, para que cifras:modelo distinga «nada» de «turno sin la medida»).
-  const cola = { ...(esperaColaMs == null ? {} : { espera_cola_ms: esperaColaMs }), llegaron_durante: llegaron ?? { n: 0, ms: [] } };
+  // y si sus mensajes llegaron con el turno anterior en marcha (llegaron_durante: n 0 si se
+  // midió y no llegó nada; sin el campo si no se pudo medir, medidaTurno.js llegadosDurante).
+  const cola = { ...(esperaColaMs == null ? {} : { espera_cola_ms: esperaColaMs }), ...(llegaron ? { llegaron_durante: llegaron } : {}) };
   const modoGrupos = MODO_ROUTER_GRUPOS();
   desde ??= from ? [idDePersona(from)].filter(Boolean) : [];
   // Los turnos que contesta Lola sin pasar por el enrutador (apagado, en
