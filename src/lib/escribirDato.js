@@ -9,9 +9,9 @@
  * contra el registro (registroCampos.js) y sus vocabularios (vocabularios.js),
  * la operación que espera aplicar_operacion y lo que se devuelve de ella.
  *
- * Lo usa hoy el servidor (api/_bot/datos.js). El trozo 8 sigue en dos PR más:
- * la entrada de la app (api/operacion.js, que llama a api/_bot/datos.js) y la
- * cola de la app en localStorage, que valida aquí antes de encolar. Ningún dato
+ * Lo usan el servidor (api/_bot/datos.js) y la entrada de la app
+ * (api/operacion.js, con HTTP_DE_FALLO). El trozo 8 acaba con la cola de la
+ * app en localStorage, que valida aquí antes de encolar. Ningún dato
  * pasa todavía por aquí: los tramos 3-6 mueven sus escritores (el primero, el
  * trozo 10), y el trozo 26 pone delante la tubería y su puerta.
  *
@@ -114,3 +114,9 @@ export function resultadoDeOperacion(r) {
 export function apuntarSinGuardar({ fallo, motivo = null, canal = null, campo = null }) {
   console.error(JSON.stringify({ evento: "dato_sin_guardar", fallo, motivo, canal, campo }));
 }
+
+/** El código HTTP con que api/operacion.js contesta cada fallo (FALLOS_DATO). */
+export const HTTP_DE_FALLO = Object.freeze({
+  [FALLO_DATO.RPC_AUSENTE]: 503, [FALLO_DATO.INVALIDO]: 400, [FALLO_DATO.SIN_PERMISO]: 403,
+  [FALLO_DATO.SIN_SESION]: 401, [FALLO_DATO.SIN_RED]: 503, [FALLO_DATO.SERVIDOR]: 503,
+});

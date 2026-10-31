@@ -1,8 +1,11 @@
-// escribirDato en el servidor (plan fichas con estado, trozo 8): una operación
-// de tipo dato a aplicar_operacion, nunca al documento de la casa; si la RPC no está, no se guarda, se dice y queda
+// escribirDato en el servidor (plan fichas con estado, trozo 8) y su entrada
+// para la app (api/operacion.js): una operación de tipo dato a aplicar_operacion,
+// nunca al documento de la casa; si la RPC no está, no se guarda, se dice y queda
 // la línea `dato_sin_guardar` con `rpc_ausente`.
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { escribirDato, RPC_OPERACION, falloDeMotivo } from "./datos.js";
+import handler from "../operacion.js";
+import { HTTP_DE_FALLO } from "../../src/lib/escribirDato.js";
 import { FALLO_DATO, MOTIVOS_FALLO, FALLOS_DATO, ESTADO_OPERACION, SEXO, CANAL_DATO, REF_OPERACION } from "../../src/lib/vocabularios.js";
 
 const CASA = "3f2b8c1e-7a4d-4e0b-9c5a-1d2e3f4a5b6c";
@@ -101,5 +104,98 @@ describe("escribirDato (servidor)", () => {
     expect(falloDeMotivo("no_existe")).toBe(FALLO_DATO.RPC_AUSENTE);
     // Una persona borrada entre encolar y enviar (23503) no se arregla repitiendo: no se queda en la cola.
     expect(falloDeMotivo("conflicto")).toBe(FALLO_DATO.INVALIDO);
+  });
+});
+
+function resFalso() {
+  const res = { codigo: null, body: undefined, headers: {} };
+  res.setHeader = (k, v) => { res.headers[k] = v; return res; };
+  res.getHeader = (k) => res.headers[k];
+  res.status = (c) => { res.codigo = c; return res; };
+  res.json = (b) => { res.body = b; return res; };
+  res.end = () => res;
+  return res;
+}
+async function pedir({ token = "tok", body }) {
+  const res = resFalso();
+  await handler({ method: "POST", headers: { host: "prueba.invalid", ...(token ? { authorization: `Bearer ${token}` } : {}) }, body, query: {} }, res);
+  return res;
+}
+const CLAVE_APP = "9a1b2c3d-4e5f-4a6b-8c7d-0e1f2a3b4c5d";
+const CUERPO = { casa: CASA, clave: CLAVE_APP, accion: "ver_ajustes", ref_id: "ajustes", dato: DATO };
+
+describe("api/operacion.js: la app propone, el servidor escribe", () => {
+  beforeEach(() => {
+    responde(/^\/auth\/v1\/user/, { status: 200, cuerpo: { id: "u1" } });
+  });
+
+  it("canal app, la pantalla como ref y el autor de la sesión, aunque el cuerpo diga otra cosa", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
+    responde(/rpc\/aplicar_operacion/, { status: 200, cuerpo: HECHA });
+    const res = await pedir({ body: { ...CUERPO, canal: "sistema", ref_tipo: "motor", autor_user_id: "otro" } });
+    expect(res.codigo).toBe(200);
+    expect(res.body).toEqual({ guardado: true, ...HECHA });
+    const op = llamadas.find((l) => l.ruta.includes("aplicar_operacion")).cuerpo.p_operacion;
+    expect(op).toMatchObject({ canal: "app", ref_tipo: "pantalla", ref_id: "ajustes", autor_user_id: "u1", datos: [DATO] });
+    // La clave de la app va a su espacio: no puede coincidir con una de Lola.
+    expect(op.clave).toBe(`app:${CLAVE_APP}`);
+  });
+
+  it("desde la app solo hablan personas: un origen del sistema (supuesto) no llega a la base", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner", user_id: "u1" }] });
+    const res = await pedir({ body: { ...CUERPO, dato: { ...DATO, origen: "supuesto" } } });
+    expect(res.codigo).toBe(400);
+    expect(res.body).toEqual({ fallo: FALLO_DATO.INVALIDO, error: "origen" });
+    expect(llamadas.filter((l) => l.ruta.includes("rpc/"))).toEqual([]);
+  });
+
+  it("una clave que no es un uuid, o un cuerpo sin dato, se contestan con invalido y no llegan a la RPC", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner", user_id: "u1" }] });
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    expect((await pedir({ body: { ...CUERPO, clave: "tg:123:sexo" } })).codigo).toBe(400);
+    expect((await pedir({ body: { ...CUERPO, dato: null } })).codigo).toBe(400);
+    expect(llamadas.filter((l) => l.ruta.includes("rpc/"))).toEqual([]);
+  });
+
+  it("un lector no escribe datos de la casa", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "viewer", user_id: "u1" }] });
+    const res = await pedir({ body: CUERPO });
+    expect(res.codigo).toBe(403);
+    expect(res.body).toEqual({ fallo: FALLO_DATO.SIN_PERMISO });
+    expect(llamadas.filter((l) => l.ruta.includes("rpc/"))).toEqual([]);
+  });
+
+  it("quien no es de la casa no escribe", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [] });
+    const res = await pedir({ body: CUERPO });
+    expect(res.codigo).toBe(403);
+    expect(llamadas.filter((l) => l.ruta.includes("rpc/"))).toEqual([]);
+  });
+
+  it("sin sesión, 401 sin ir a la base", async () => {
+    const res = await pedir({ token: null, body: CUERPO });
+    expect(res.codigo).toBe(401);
+    expect(llamadas).toEqual([]);
+  });
+
+  it("sin la RPC contesta rpc_ausente (la cola de la app espera) y no toca el documento", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "editor", user_id: "u1" }] });
+    responde(/rpc\/aplicar_operacion/, SIN_RPC);
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const res = await pedir({ body: CUERPO });
+    expect(res.codigo).toBe(503);
+    expect(res.body).toEqual({ fallo: FALLO_DATO.RPC_AUSENTE });
+    expect(llamadas.filter((l) => DEL_DOCUMENTO.test(l.ruta))).toEqual([]);
+  });
+
+  it("cada fallo de FALLOS_DATO tiene su HTTP, y es de error", () => {
+    expect(Object.keys(HTTP_DE_FALLO).sort()).toEqual([...FALLOS_DATO].sort());
+    for (const f of FALLOS_DATO) expect(HTTP_DE_FALLO[f]).toBeGreaterThanOrEqual(400);
+  });
+
+  it("una casa que no es un uuid no llega a la base", async () => {
+    const res = await pedir({ body: { ...CUERPO, casa: "x" } });
+    expect(res.codigo).toBe(400);
+    expect(llamadas.filter((l) => !l.ruta.startsWith("/auth/"))).toEqual([]);
   });
 });

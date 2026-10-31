@@ -76,6 +76,7 @@ import { conMarcas } from "./lib/compraIdentidad.js";
 import { getDayMeals, getMeals, ALL_DAY_MEALS, DAYS } from "./lib/planner.js";
 import { estructuraDelGrupo } from "./lib/estructuraPlatos.js";
 import { estimarSemana, frasePresupuesto } from "./lib/presupuesto.js";
+import { huecosEsperados, huecosVacios, avisoDeHuecos } from "./lib/huecosDelPlan.js";
 import {
   groupsFromModel,
   gruposVigentes,
@@ -2292,6 +2293,9 @@ export default function App() {
         // parallel workers.) The aggregate registerRecipes below is now belt-and-
         // suspenders for health-flags/UI, but harmless.
         registerRecipes(recipes);
+        // Los huecos que la semana debía tener y han salido sin plato: se
+        // dicen al acabar, con la misma cuenta que usa Lola (huecosDelPlan.js).
+        const vacios = huecosVacios(plan, huecosEsperados(weekData, { activeDays }));
         const sh = buildShoppingList(plan, groups, getDayMeals(weekData), pantryStock);
         if (pantryMultiWeek === "spread" && pantryMode !== "off") {
           // Proyección en memoria únicamente (nunca escribe en BD): lo que esta
@@ -2306,7 +2310,7 @@ export default function App() {
         const weekShopping = { items: [...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems] };
         return {
           offset, startDayIdx, days, startISO, endISO, plan, weekShopping, weekSchedule, recipes,
-          pantryItems: sh.pantryItems,
+          pantryItems: sh.pantryItems, vacios,
         };
       });
 
@@ -2489,7 +2493,11 @@ export default function App() {
         : weekCount > 1
           ? `Menú generado (${weekCount} semanas)`
           : "Menú generado";
-      showToast(frasePres ? `${generado}. ${frasePres}` : generado);
+      // Un hueco sin plato no se calla tras «Menú generado» (#1037, trozo 3).
+      const huecos = avisoDeHuecos(weekResults.map((r) => r.vacios), {
+        nombreDeGrupo: Object.fromEntries(groups.map((g) => [g.id, g.label])),
+      });
+      showToast([generado, frasePres, huecos].filter(Boolean).join(". "));
       return true;
     } catch (err) {
       if (err?.name === "AbortError" || ctrl.signal.aborted) return;
@@ -2707,7 +2715,9 @@ export default function App() {
   // detrás, y el «Hoy toca» se rellena al llegar); el resto, al Menú.
   // `generar: false`: el alta que vino de Lola. El menú se le pide a ella
   // (lo ofrece en su chat), no sale solo sin esperarlo.
-  const goToMenu = async (destino = "menu", { generar = true } = {}) => {
+  // `datos`: la casa con la que se genera, si el clic que trae aquí acaba de
+  // cambiarla (el setData de ese clic aún no ha llegado a `data`).
+  const goToMenu = async (destino = "menu", { generar = true, datos } = {}) => {
     // Hard gate: no menu without at least one family member. The family step's
     // "Siguiente" is already blocked, but the progress-dot jump skips it (and any
     // later step's "Generar menú" would otherwise reach the planner), so the AI
@@ -2730,7 +2740,7 @@ export default function App() {
         onboarding_step_max: onbStep,
       });
     }
-    if (generar) await regenerateMenu();
+    if (generar) await regenerateMenu(datos);
   };
 
   const goToDashboard = useCallback(() => fwd(() => setScreen("dashboard")), []);
@@ -5853,7 +5863,7 @@ export default function App() {
         editPreferencesOrigin
           ? undefined
           : firstRunOnboarding
-            ? async () => {
+            ? async (revisada = data) => {
                 trackEvent(user, EMBUDO.ALERGIAS, PANTALLA_EMBUDO, {
                   canal: "app",
                   conAlergias: data.members.some((m) => m.allergies?.length > 0),
@@ -5866,7 +5876,7 @@ export default function App() {
                 // cierra nada: se dice y se vuelve a pulsar (#1029).
                 const desdeLola = altaDesdeLolaRef.current;
                 const r = await cerrarAlta({
-                  data,
+                  data: revisada,
                   guardar: guardarCasaAhora,
                   avisar: user && desdeLola ? avisarAltaALola : null,
                 });
@@ -5880,7 +5890,9 @@ export default function App() {
                 if (desdeLola && !r.avisado) showToast("Guardado. Si Lola no te escribe, dile «ya está» en Telegram");
                 altaDesdeLolaRef.current = false;
                 setFirstRunOnboarding(false);
-                fwd(() => goToMenu("dashboard", { generar: !desdeLola }));
+                // Con la casa ya revisada, no con `data`: es de antes del
+                // clic y el motor esquivaría los 14 alérgenos.
+                fwd(() => goToMenu("dashboard", { generar: !desdeLola, datos: revisada }));
               }
             : nextOf(2)
       }
@@ -5894,7 +5906,7 @@ export default function App() {
           ? () => back(() => { setScreen(editPreferencesOrigin); setEditPreferencesOrigin(null); })
           : firstRunOnboarding
             ? undefined
-            : () => fwd(goToMenu)
+            : (revisada) => fwd(() => goToMenu("menu", { datos: revisada }))
       }
       onReset={handleAbandonOnboarding}
       {...(editPreferencesOrigin ? { finishLabel: "Guardar" } : {})}

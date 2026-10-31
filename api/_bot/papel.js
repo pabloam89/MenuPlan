@@ -33,7 +33,8 @@ export async function quienesLlevanLaCasa(householdId) {
   return (filas ?? []).map((m) => m.user_id).filter(Boolean);
 }
 
-async function papelDeUsuario(householdId, userId) {
+/** El papel de una cuenta en una casa (owner, editor o viewer), o null si no es de ella. */
+export async function papelDeUsuario(householdId, userId) {
   if (!userId) return null;
   const [m] = await select("household_members", `household_id=${eq(householdId)}&user_id=${eq(userId)}`, "role");
   return m?.role ?? null;

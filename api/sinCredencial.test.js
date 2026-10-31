@@ -28,6 +28,7 @@ const PETICIONES = {
   "api/generate.js": { method: "POST", body: { messages: [{ role: "user", content: "hola" }] } },
   "api/moderate-takedown.js": { method: "GET", query: { r: UUID } },
   "api/moderate.js": { method: "POST", body: { text: "hola" } },
+  "api/operacion.js": { method: "POST", body: { casa: UUID, clave: UUID, accion: "ver_ajustes", ref_id: "ajustes", dato: { campo: "sexo", persona_id: "p1", valor: "mujer", origen: "dicho" } } },
   "api/recipe-steps.js": { method: "POST", body: { recipeId: "r1", appliance: "horno" } },
   "api/report-alert.js": { method: "POST", body: { id: UUID } },
   "api/share-menu.js": { method: "GET", query: { id: UUID }, headers: { "user-agent": "facebookexternalhit/1.1" } },
