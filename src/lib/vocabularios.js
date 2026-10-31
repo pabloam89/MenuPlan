@@ -157,6 +157,16 @@ export const MOTIVOS_SIN_HACER_DATO = ["no_es_hecho", "persona_no_cuadra", "no_s
 export const FALLOS_DATO = ["rpc_ausente", "invalido", "sin_permiso", "sin_sesion", "sin_red", "servidor"];
 export const FALLO_DATO = porNombre(FALLOS_DATO);
 
+/**
+ * Por qué la puerta de la tubería (src/lib/operaciones/puerta.js, trozo 26) para una operación antes de
+ * aplicarla; van a operacion.sin_hacer[].motivo, al lado de MOTIVOS_SIN_HACER_DATO, que son los de la base.
+ * `sin_permiso`: quien la pide no es de la casa o no tiene un papel que edita; `origen_no_vale`: el sistema
+ * no habla por la familia, ni la app pone lo supuesto; `salud_sin_familia`: un dato de salud que no dice
+ * una persona de la casa.
+ */
+export const MOTIVOS_PUERTA = ["sin_permiso", "origen_no_vale", "salud_sin_familia"];
+export const MOTIVO_PUERTA = porNombre(MOTIVOS_PUERTA);
+
 // ── Los del eje de la ficha (plan fichas con estado, trozo 5): columnas de registroFicha.js; la 0105 los lleva a registro_campo.
 
 /**
@@ -376,6 +386,7 @@ export const VOCABULARIOS = Object.freeze({
   estados_operacion: ESTADOS_OPERACION,
   motivos_sin_hacer_dato: MOTIVOS_SIN_HACER_DATO,
   fallos_dato: FALLOS_DATO,
+  motivos_puerta: MOTIVOS_PUERTA,
   origenes_de_la_familia: ORIGENES_DE_LA_FAMILIA,
   estados_dato: ESTADOS_DATO,
   fichas: FICHAS,
