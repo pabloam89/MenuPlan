@@ -22,7 +22,7 @@ import { datosDelMotor } from "../../src/lib/recetasDeLaCasa.js";
 import { propiasDe } from "./propias.js";
 import { rastro } from "./embudo.js";
 // Con otro nombre: en marcarCompra, `resultado` es una variable suya.
-import { resultado as resultadoDeEscritura } from "./resultado.js";
+import { resultado as resultadoDeEscritura, NO_GUARDADO } from "./resultado.js";
 import { cargaMedida } from "./medidaTurno.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, COMIDAS, comidaDe } from "../../src/lib/comidas.js";
 import { PICANTE_PEDIDO } from "../../src/data/recipeSchema.js";
@@ -463,7 +463,7 @@ export async function marcarCompra(householdId, productos, estado, out = null, {
  */
 export function resultadoDeAnadir(out, productos = [], texto = "") {
   const hecho = out?.ok ? [...(out.nuevos ?? []), ...(out.devueltos ?? []).map((x) => `${x} (estaba tachado)`), ...(out.yaEstaban ?? []).map((x) => `${x} (ya estaba)`)] : [];
-  const motivo = out?.ok ? "no es un producto" : "no se ha podido guardar la lista";
+  const motivo = out?.ok ? "no es un producto" : `${NO_GUARDADO} la lista`;
   return resultadoDeEscritura({ accion: "compra_anadir", hecho, sinHacer: hecho.length ? [] : productos.map((que) => ({ que, motivo })), nota: texto });
 }
 
@@ -1122,7 +1122,7 @@ export const SIN_CAMBIAR = Object.freeze({
   NO_CUMPLE: "ninguna receta cumple lo pedido",
   SEGURIDAD: "choca con una alergia o dieta de alguien",
   SIN_CANDIDATAS: "no hay otro plato que encaje",
-  NO_GUARDADO: "no se ha podido guardar",
+  NO_GUARDADO,
 });
 
 /**

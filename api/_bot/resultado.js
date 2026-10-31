@@ -130,5 +130,8 @@ export const cuentaComoGuardado = (escribio, r) => Boolean(escribio) && !(esResu
  */
 export const exigeResultado = (ficha) => Boolean(ficha) && !ficha.soloLectura && (ficha.escribe?.length ?? 0) > 0;
 
+/** El motivo de lo que no se hizo porque no se pudo escribir en la base: el mismo en toda herramienta. */
+export const NO_GUARDADO = "no se ha podido guardar";
+
 /** Lo que lee el modelo detrás del texto de una herramienta que la puerta ha rechazado. */
 export const SIN_RESULTADO = "[Sin resultado] Esta herramienta no ha dicho qué ha quedado guardado: no consta como hecho. No digas que está hecho; si hacía falta, dilo tal cual y que lo miren en la app.";

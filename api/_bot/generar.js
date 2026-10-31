@@ -42,7 +42,7 @@ import { conRecordatorioDeSilencio } from "../../src/lib/alergiasBase.js";
 import { apuntarRecordatorio } from "./silencio.js";
 import { listaParaEscribir } from "../../src/lib/vocabularios.js";
 import { conMarcas, claveArticulo } from "../../src/lib/compraIdentidad.js";
-import { resultado } from "./resultado.js";
+import { resultado, NO_GUARDADO } from "./resultado.js";
 
 const hoyISO = () => isoDeCasa();
 
@@ -272,7 +272,7 @@ export const SIN_GENERAR = Object.freeze({
   SEMANA: "esa semana ya tiene menú o no se puede generar",
   MINIMOS: "falta saber algo de la casa antes (alergias)",
   VACIO: "no ha salido ningún plato",
-  NO_GUARDADO: "no se ha podido guardar",
+  NO_GUARDADO,
 });
 
 /**
