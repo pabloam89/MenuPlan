@@ -10,28 +10,15 @@
  */
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { inventario, ERRORES, DEUDA } from "./lib/inventarioFicha.mjs";
+import { inventario, clavesGuardadas, ERRORES, DEUDA } from "./lib/inventarioFicha.mjs";
 import { CLASE } from "../src/lib/vocabularios.js";
 
 const raiz = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 async function clavesDeLaBase() {
-  const { default: pg } = await import("pg");
   const { leerEnv } = await import("./lib/env.mjs");
-  const { conexionDeConsulta } = await import("./lib/rolLectura.mjs");
-  const c = new pg.Client({ connectionString: conexionDeConsulta(leerEnv).url, ssl: { rejectUnauthorized: false } });
-  await c.connect();
-  try {
-    await c.query("begin read only");
-    const casa = await c.query("select distinct k from household_state, jsonb_object_keys(state->'data') k");
-    const persona = await c.query(`select distinct k from household_state,
-      jsonb_array_elements(case when jsonb_typeof(state->'data'->'members') = 'array' then state->'data'->'members' else '[]' end) m,
-      jsonb_object_keys(m) k`);
-    await c.query("rollback");
-    return { casa: new Set(casa.rows.map((r) => r.k)), persona: new Set(persona.rows.map((r) => r.k)) };
-  } finally {
-    await c.end();
-  }
+  const { conLectura } = await import("./lib/rolLectura.mjs");
+  return conLectura(leerEnv, clavesGuardadas);
 }
 
 const guardadas = process.argv.includes("--base") ? await clavesDeLaBase() : null;
