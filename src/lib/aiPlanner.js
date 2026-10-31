@@ -56,9 +56,7 @@ import { computeRecipeNutrition } from "./ingredients.js";
 import { vetosDe } from "./vetos.js";
 import { isoLocalDate } from "./weekCalendar.js";
 import { DIA_SLUG as DAY_SLUG, DIA_LARGO_MINUSCULAS, diaDeSlug, tipoDeComida, comidaDeTipo, huecoMotor } from "./dias.js";
-
-/** Cómo dicen los avisos del motor que un hueco se quedó sin plato; los cuenta cifras:modelo. */
-export const HUECO_EN_AVISO = Object.freeze({ omitido: "hueco omitido", sin_asignar: "sin asignar" });
+import { HUECO_EN_AVISO } from "./huecosDelPlan.js";
 
 /**
  * Los nombres por ración de los 24 micronutrientes. Los cuatro macros

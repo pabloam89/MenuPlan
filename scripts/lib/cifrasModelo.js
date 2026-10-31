@@ -7,7 +7,7 @@
  * falla), su tabla no está, se corre con --sin-base o no hay pasada del banco.
  */
 import { EJES } from "../../src/data/axisRegistry.js";
-import { HUECO_EN_AVISO } from "../../src/lib/aiPlanner.js";
+import { HUECO_EN_AVISO } from "../../src/lib/huecosDelPlan.js";
 import { ESCRITORAS_HEREDADAS, LLAMADAS_HEREDADAS } from "../../src/lib/operaciones/escritoras.js";
 import { clavesGuardadas } from "./inventarioFicha.mjs";
 import CAPACIDADES_BASE from "../../src/lib/capacidades.base.json" with { type: "json" };
