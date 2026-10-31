@@ -11,6 +11,8 @@ import { libretaVacia, poner, delegar } from "./notepad.js";
 import { CAMPOS_POR_ID } from "./notepadFields.js";
 import { rutaDeReparto } from "./reparto.js";
 import { datoDe } from "./registroFicha.js";
+import { estadosDeFichas } from "./estadoDeDato.js";
+import { ESTADO_DE_ORIGEN } from "./vocabularios.js";
 
 /** Una casa recién llegada: no ha contestado nada. */
 const VACIA = {};
@@ -685,5 +687,46 @@ describe("los subejes también llevan su ilustración", () => {
       const rutas = eje.opciones.map((o) => o.arte);
       expect(new Set(rutas).size, `ninos.${eje.campo} repite`).toBe(rutas.length);
     }
+  });
+});
+
+// Plan fichas con estado, trozo 9: el estado de cada dato, de ficha_casa v2 (estadoDeDato.js).
+describe("con el estado de la ficha v2, el asistente sabe de dónde sale cada dato", () => {
+  const persona = (id) => ({ tipo: "persona", id });
+  const dato = (id, origen, extra = {}) => ({ campo: "alergias", sujeto: persona(id), estado: ESTADO_DE_ORIGEN[origen] ?? "vacio", valor: origen ? [] : null, origen, bloqueado: false, caduca_at: null, ...extra });
+  const fichas = (...datos) => estadosDeFichas({ persona: datos }, new Date("2026-10-30T10:00:00Z"));
+  const DOS = { members: [{ id: "a", allergies: [], alergiasRevisadas: true }, { id: "b", allergies: [], alergiasRevisadas: true }] };
+  const alergias = PREGUNTAS_POR_ID.alergias;
+
+  it("sin sobres (la v2 de hoy: todo vacío), lo dicho en la casa sigue contestado: no se repregunta", () => {
+    const estados = fichas(dato("a", null), dato("b", null));
+    expect(estadoDelCampo(alergias, libretaVacia(), DOS, estados)).toBe("fijado");
+    expect(estadoDePregunta(alergias, libretaVacia(), DOS, [], estados)).toBe("aclarado");
+    expect(cuantasQuedan(libretaVacia(), DOS, { estados })).toBe(cuantasQuedan(libretaVacia(), DOS));
+  });
+
+  it("una alergia supuesta en una persona pide confirmación aunque la casa la dé por revisada", () => {
+    const estados = fichas(dato("a", "dicho"), dato("b", "supuesto"));
+    expect(estadoDelCampo(alergias, libretaVacia(), DOS, estados)).toBe("inferido");
+    expect(estadoDePregunta(alergias, libretaVacia(), DOS, [], estados)).toBe("aclaracion");
+    expect(siguientePregunta(libretaVacia(), { ...CIMIENTOS, ...DOS }, { estados }).id).toBe("alergias");
+  });
+
+  it("dichas por todos con sobre, contestada aunque el documento aún no lo sepa", () => {
+    const sinRevisar = { members: DOS.members.map((m) => ({ ...m, alergiasRevisadas: false })) };
+    expect(estadoDelCampo(alergias, libretaVacia(), sinRevisar)).toBe("vacio");
+    expect(estadoDelCampo(alergias, libretaVacia(), sinRevisar, fichas(dato("a", "dicho"), dato("b", "dicho")))).toBe("fijado");
+    // Con una sin sobre, sigue sin contestar: el sobre afina, no inventa lo que nadie dijo.
+    expect(estadoDelCampo(alergias, libretaVacia(), sinRevisar, fichas(dato("a", "dicho"), dato("b", null)))).toBe("vacio");
+  });
+
+  it("con el sobre caducado, lo que dice la casa pasa a confirmar", () => {
+    const estados = fichas(dato("a", "dicho"), dato("b", null, { caduca_at: "2026-10-01T00:00:00Z" }));
+    expect(estadoDePregunta(alergias, libretaVacia(), DOS, [], estados)).toBe("aclaracion");
+  });
+
+  it("una pregunta cuyo dato no tiene campo en la ficha (el presupuesto) no cambia con los estados", () => {
+    const data = { budget: 80 };
+    expect(estadoDelCampo(PREGUNTAS_POR_ID.presupuesto, libretaVacia(), data, fichas(dato("a", "supuesto")))).toBe("fijado");
   });
 });
