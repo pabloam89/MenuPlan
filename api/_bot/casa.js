@@ -16,7 +16,7 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import { fallaCon } from "./avisar.js";
 import { select, insert, update, rpc, eq } from "./db.js";
 import { operacion, quienEscribe, TIPO_OPERACION, QUE_FUE, autorDelTurno, avisarEnElChat, claveDeEscritura } from "./operacion.js";
-import { leerFamilia, escribirPersonas } from "./datos.js";
+import { leerFamilia, escribirPersonas, leerCasaConSobre, escribirDato } from "./datos.js";
 import { cambiosDePersonas, conOrdenDeTodos, textosDeAvisos, revSiguiente } from "../../src/lib/personas.js";
 import { CANAL_DATO, REF_OPERACION } from "../../src/lib/vocabularios.js";
 import { recetasPropiasDeCasa, quitarRecetaGuardada } from "./propias.js";
@@ -106,8 +106,10 @@ async function leerCasa(householdId) {
   // La familia, de sus filas (0108, trozo 10): el documento ya no la lleva. Sin la 0108, null: sigue en el
   // documento, como antes. Sin poder leerla por otra cosa, leerFamilia lanza (FamiliaSinLeer) y la casa no se
   // lee: con una familia a medias se generaría un menú sin las alergias, o se borraría a quien no salió.
-  const [familia, activos, recetasPropias, deLaCasa] = await Promise.all([
+  // Los datos de la casa con sobre (trozo 12), de ficha_casa v2; sin la 0112, null: siguen en el documento.
+  const [familia, conSobre, activos, recetasPropias, deLaCasa] = await Promise.all([
     leerFamilia(householdId),
+    leerCasaConSobre(householdId),
     select(
       "user_menus",
       `household_id=${eq(householdId)}&is_active=eq.true&order=updated_at.desc&limit=5`,
@@ -144,10 +146,13 @@ async function leerCasa(householdId) {
     updatedAt: fila.updated_at,
     // members y groups, los de las filas (en la forma de siempre, para sus lectores); lo que el documento aún
     // guarde de antes del corte no se lee.
-    state: familia ? conFamilia(fila.state ?? {}, familia) : (fila.state ?? {}),
+    state: conDatosConSobre(familia ? conFamilia(fila.state ?? {}, familia) : (fila.state ?? {}), conSobre),
     // La familia tal como se leyó: de ella sale lo que cambia al guardar (guardarCasa). null: vive en el
     // documento (base sin la 0108) y se guarda con él.
     familia: familia ? structuredClone(familia) : null,
+    // Los datos con sobre tal como se leyeron (`{ campo: { valor, conSobre } }`): de ellos sale lo que cambia al
+    // guardar. null: viven en el documento (la 0112 sin aplicar) y se guardan con él.
+    conSobre,
     // Fuera de `state`: no se escriben de vuelta en household_state (propias.js).
     recetasPropias,
     deLaCasa,
@@ -174,6 +179,29 @@ export function conFamilia(state, { members, groups }) {
   return { ...state, data: { ...(state?.data ?? {}), members, groups } };
 }
 
+/** Pura. El documento con los datos con sobre leídos en `data` (lo que el documento aún guarde de ellos, fuera). */
+function conDatosConSobre(state, conSobre) {
+  if (!conSobre) return state;
+  const valores = Object.fromEntries(Object.entries(conSobre).map(([campo, l]) => [campo, l.valor]));
+  return { ...state, data: { ...(state?.data ?? {}), ...valores } };
+}
+
+/**
+ * Pura. Un estado para guardar sin los datos con sobre (no van al documento), y los que cambiaron respecto a los
+ * leídos, como datos de escribirDato. Un escritor que no trae el campo no lo cambia.
+ */
+function separarConSobre(state, conSobre) {
+  if (!state?.data || !conSobre) return { documento: state, cambios: [] };
+  const data = { ...state.data };
+  const cambios = [];
+  for (const [campo, leido] of Object.entries(conSobre)) {
+    const valor = data[campo];
+    delete data[campo];
+    if (valor !== undefined && JSON.stringify(valor) !== JSON.stringify(leido.valor)) cambios.push({ campo, valor: valor ?? null, origen: "dicho" });
+  }
+  return { documento: { ...state, data }, cambios };
+}
+
 /**
  * Pura. Un estado para guardar, partido en lo que va al documento (sin members ni groups: la familia ya no vive
  * ahí) y la familia de ahora, o null si el estado no la trae (un escritor que no toca la familia, o que no trae
@@ -190,10 +218,11 @@ export function separarFamilia(state, leida) {
 }
 
 /**
- * Por qué no se puede escribir la familia en este turno, o null. Se mira ANTES de guardar nada: escribir_persona
- * firma con una persona de la casa y sale de un mensaje; sin ellos no escribiría, y el documento quedaría a medias.
+ * Por qué no se puede escribir la familia o un dato con sobre en este turno, o null. Se mira ANTES de guardar nada:
+ * la tubería firma con una persona de la casa y sale de un mensaje; sin ellos no escribiría, y el documento
+ * quedaría a medias.
  */
-function faltaParaFamilia() {
+function faltaParaEscribir() {
   const op = operacion();
   if (!autorDelTurno()?.user_id) return "no sé qué persona de la casa lo pide (en un grupo, que lo diga una sola persona); no he cambiado nada";
   if (!op?.mid) return "no sé de qué mensaje sale el cambio; no he cambiado nada";
@@ -217,21 +246,39 @@ function escribirFamilia(casa, cambios) {
   }, { papel: autor.papel });
 }
 
+/** Un dato con sobre, por la tubería (aplicar_operacion). Lo que devuelve, en operar. */
+function escribirDatoDeCasa(casa, dato) {
+  const op = operacion();
+  const autor = autorDelTurno();
+  const accion = op.herramienta ?? "guardar_casa";
+  return escribirDato({
+    casa: casa.householdId,
+    clave: claveDeEscritura(`dato:${dato.campo}:${accion}`, dato),
+    accion,
+    canal: autor.canal ?? CANAL_DATO.TELEGRAM,
+    ref: { tipo: REF_OPERACION.MENSAJE, id: op.mid },
+    autor: { user_id: autor.user_id },
+    dato,
+  }, { papel: autor.papel });
+}
+
 // `activar`: id de un menú de la casa que queda activo en la MISMA transacción
 // (0069). Generar y deshacer lo usan: o cambian el menú y la casa, o nada.
 // La familia (trozo 10) no va al documento: lo que cambió respecto a la leída va a escribir_persona, después del
 // documento (que es el que mira la versión: si choca, no se ha escrito nada y conCasa repite entero). Lo que no
 // viaja tal cual se dice en el chat (avisarEnElChat). Con la familia en el documento (`casa.familia` null, base
-// sin la 0108), va en él, como antes.
+// sin la 0108), va en él, como antes. Los datos con sobre (trozo 12), igual: lo que cambió va a escribirDato,
+// uno tras otro y detrás de la familia; sin la 0112 (`casa.conSobre` null), en el documento.
 export async function guardarCasa(casa, { state = null, semana = null, activar = null } = {}, { sinDeshacer = false } = {}) {
-  const { documento, familia } = casa.familia ? separarFamilia(state, casa.familia) : { documento: state, familia: null };
+  const { documento: sinSobre, cambios: datos } = separarConSobre(state, casa.conSobre);
+  const { documento, familia } = casa.familia ? separarFamilia(sinSobre, casa.familia) : { documento: sinSobre, familia: null };
   let cambios = null;
   if (familia) {
     const c = cambiosDePersonas(casa.familia, familia);
     for (const t of textosDeAvisos(c.avisos)) avisarEnElChat(t);
     cambios = conOrdenDeTodos(c.cambios, casa.familia, familia);
   }
-  const falta = cambios ? faltaParaFamilia() : null;
+  const falta = cambios || datos.length ? faltaParaEscribir() : null;
   if (falta) return { ok: false, error: falta };
 
   const week = semana && casa.semana
@@ -255,6 +302,16 @@ export async function guardarCasa(casa, { state = null, semana = null, activar =
     // deshacer, al ver una versión posterior, se niega («hubo otros cambios») en vez de pisar lo de ese otro.
     const trasFamilia = persona?.guardado ? revSiguiente(botRev, persona.rev) : null;
     if (trasFamilia != null) botRev = trasFamilia;
+    // Cada dato, igual: su versión es la de Lola solo si es la siguiente. Tras un salto (otro escribió), ya no.
+    let seguida = !persona || trasFamilia != null;
+    const sinGuardar = [];
+    for (const dato of datos) {
+      const r = await escribirDatoDeCasa(casa, dato);
+      if (!r.guardado) { sinGuardar.push(`${dato.campo}: ${r.fallo ?? r.error ?? r.estado ?? "sin motivo"}`); continue; }
+      const tras = seguida ? revSiguiente(botRev, r.rev) : null;
+      if (tras != null) botRev = tras;
+      else seguida = false;
+    }
     ultimaEscritura.set(casa.householdId, Date.now());
     const op = operacion();
     if (op) op.guardadosCasa++;
@@ -263,6 +320,7 @@ export async function guardarCasa(casa, { state = null, semana = null, activar =
     if (persona && !persona.guardado) {
       return { ok: false, error: `no he podido guardar los cambios de la familia (${persona.fallo ?? persona.error ?? persona.estado ?? "sin motivo"}); lo demás sí se guardó` };
     }
+    if (sinGuardar.length) return { ok: false, error: `no he podido guardar ${sinGuardar.join(", ")}; lo demás sí se guardó` };
     return { ok: true, botRev };
   }
   if (r?.bot_rev != null) return { ok: false, conflicto: true, botRev: Number(r.bot_rev) };
