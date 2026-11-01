@@ -29,32 +29,47 @@ export const COLUMNA_DE_MIEMBRO = Object.freeze({
 
 /** Las claves de un comensal que van a las tablas de salud (o se calculan de ellas), no a `resto`. */
 const DE_SALUD = ["allergies", "intolerances", "dietaryStates", "dietaryStatesMeta", "healthProfiles", "healthProfile"];
-const FUERA_DE_RESTO = new Set(["id", ...Object.keys(COLUMNA_DE_MIEMBRO), ...DE_SALUD]);
+/** Las claves de un comensal con columna o tabla propia; lo demás va a `resto`. Las lee también personasTabla.js. */
+export const CAMPOS_CON_COLUMNA = new Set(["id", ...Object.keys(COLUMNA_DE_MIEMBRO), ...DE_SALUD]);
 
-/** Los mismos topes que los CHECK de persona (0079): fuera de ellos, null. */
+/** Los mismos topes que los CHECK de persona (0079): fuera de ellos, null (y un aviso). */
 export const RANGOS = Object.freeze({ edad: [0, 120], peso_kg: [2, 300], altura_cm: [40, 230] });
 
 const lista = (v) => (Array.isArray(v) ? v : []);
 const texto = (v) => String(v ?? "").trim();
-const enRango = (v, [min, max]) => (typeof v === "number" && Number.isFinite(v) && v >= min && v <= max ? v : null);
+export const enRango = (v, [min, max]) => (typeof v === "number" && Number.isFinite(v) && v >= min && v <= max ? v : null);
 const FECHA = /^\d{4}-\d{2}-\d{2}$/;
 // «2020-02-30» tiene la forma pero no existe: la base no lo convertiría a date y abortaría la operación.
-const fechaValida = (v) => {
+export const fechaValida = (v) => {
   if (typeof v !== "string" || !FECHA.test(v)) return null;
   const [a, m, d] = v.split("-").map(Number);
   const f = new Date(Date.UTC(a, m - 1, d));
   return f.getUTCFullYear() === a && f.getUTCMonth() === m - 1 && f.getUTCDate() === d ? v : null;
 };
 const unicos = (xs) => [...new Set(xs.map(texto).filter(Boolean))].sort();
-const esInvitado = (m) => m?.invitado === true || String(m?.id ?? "").startsWith("inv_");
+// Un invitado de una regla vive solo en el delta de una generación (reglas.js): no es una persona de la casa.
+export const esInvitado = (m) => m?.invitado === true || String(m?.id ?? "").startsWith("inv_");
+
+/** Por qué un comensal o un dato suyo no viaja tal cual a escribir_persona: lo dice quien llama (no se calla). */
+export const AVISOS_PERSONA = Object.freeze({ SIN_ID: "sin_id", ID_REPETIDO: "id_repetido", FUERA_DE_RANGO: "fuera_de_rango", FECHA_NO_VALE: "fecha_no_vale", SIN_NOMBRE: "sin_nombre" });
+
+/** La lectura de personas_de_casa no tiene la forma esperada: no es una familia vacía, es no saberla. */
+export class FamiliaSinLeer extends Error {
+  constructor() {
+    super("personas_de_casa no devolvió {personas, grupos}");
+    this.name = "FamiliaSinLeer";
+  }
+}
 
 /**
- * Pura. Lo que devuelve personas_de_casa (0108) en la forma de data.members y data.groups.
- * @param {{ personas?: object[], grupos?: object[] } | null} filas
+ * Pura. Lo que devuelve personas_de_casa (0108) en la forma de data.members y data.groups. Sin esa forma (una
+ * lectura fallida o vacía) lanza FamiliaSinLeer: no saber la familia no es una casa sin nadie.
+ * @param {{ personas: object[], grupos: object[] }} filas
  * @returns {{ members: object[], groups: object[] }}
  */
 export function membersDeFilas(filas) {
-  const members = lista(filas?.personas).map((p) => {
+  if (!Array.isArray(filas?.personas) || !Array.isArray(filas?.grupos)) throw new FamiliaSinLeer();
+  const members = filas.personas.map((p) => {
     const estados = lista(p.estados);
     const meta = Object.fromEntries(estados.filter((e) => e.hasta).map((e) => [e.estado, { hasta: e.hasta }]));
     return {
@@ -80,7 +95,7 @@ export function membersDeFilas(filas) {
       healthProfiles: lista(p.perfiles_salud),
     };
   });
-  const groups = lista(filas?.grupos).map((g) => ({
+  const groups = filas.grupos.map((g) => ({
     id: g.id,
     label: g.nombre ?? "",
     ...(g.tipo ? { tipo: g.tipo } : {}),
@@ -110,7 +125,7 @@ export function filaDeMiembro(m) {
     clave_perfil: texto(m.profileKey) || null,
     clave_avatar: texto(m.avatarKey) || null,
     color: texto(m.color) || null,
-    resto: Object.fromEntries(Object.entries(m).filter(([k]) => !FUERA_DE_RESTO.has(k))),
+    resto: Object.fromEntries(Object.entries(m).filter(([k]) => !CAMPOS_CON_COLUMNA.has(k))),
     alergias: unicos(lista(m.allergies)),
     intolerancias: unicos(lista(m.intolerances)),
     estados: unicos(lista(m.dietaryStates)).map((e) => ({ estado: e, hasta: fechaValida(meta[e]?.hasta) })),
@@ -120,15 +135,33 @@ export function filaDeMiembro(m) {
 }
 
 const igual = (a, b) => JSON.stringify(a) === JSON.stringify(b);
-const personasDe = (members) => {
+/** Las personas de una lista de comensales (sin invitados); lo que se queda fuera, con su aviso. */
+const personasDe = (members, avisos) => {
   const vistos = new Set();
   return lista(members).filter((m) => {
+    if (esInvitado(m)) return false;
     const id = texto(m?.id);
-    if (!id || esInvitado(m) || vistos.has(id)) return false;
+    if (!id) {
+      avisos.push({ aviso: AVISOS_PERSONA.SIN_ID, persona_id: null });
+      return false;
+    }
+    if (vistos.has(id)) {
+      avisos.push({ aviso: AVISOS_PERSONA.ID_REPETIDO, persona_id: id });
+      return false;
+    }
     vistos.add(id);
     return true;
   });
 };
+/** Los datos de un comensal que no caben en su columna (van como null), cada uno con su aviso. */
+const NUMEROS = [["age", "edad"], ["pesoKg", "peso_kg"], ["alturaCm", "altura_cm"]];
+const fueraDeColumna = (m, id) => [
+  ...NUMEROS.filter(([k, col]) => m[k] != null && m[k] !== ""
+      && enRango(col === "edad" && typeof m[k] === "number" ? Math.trunc(m[k]) : m[k], RANGOS[col]) == null)
+    .map(([k]) => ({ aviso: AVISOS_PERSONA.FUERA_DE_RANGO, persona_id: id, campo: k })),
+  ...(typeof m.birthDate === "string" && m.birthDate !== "" && fechaValida(m.birthDate) == null
+    ? [{ aviso: AVISOS_PERSONA.FECHA_NO_VALE, persona_id: id, campo: "birthDate" }] : []),
+];
 const gruposDe = (groups, ids) => {
   const vistos = new Set();
   return lista(groups).filter((g) => texto(g?.id) && !vistos.has(texto(g.id)) && vistos.add(texto(g.id)))
@@ -142,23 +175,30 @@ const gruposDe = (groups, ids) => {
 /**
  * Pura. Lo que hay que mandar a escribir_persona para pasar de la familia `antes` (la leída de las filas) a la
  * de `ahora`: de cada persona, solo lo que cambió (una nueva, entera); `borrar` para quien ya no está; y los grupos
- * enteros si cambiaron. Una persona nueva sin nombre aún no se manda (la 0108 la rechazaría): espera a tenerlo,
- * y mientras no cuenta en los grupos. null si no hay nada que mandar.
+ * enteros si cambiaron. Lo que no viaja tal cual va en `avisos` (AVISOS_PERSONA), para que quien llama lo diga:
+ * un comensal sin id o repetido no se manda; un dato fuera de rango o una fecha que no existe van como null (la
+ * 0108 abortaría la operación entera); una persona nueva sin nombre aún no se manda (el alta la crea vacía y pide
+ * el nombre después) y mientras no cuenta en los grupos.
  * @param {{ members?: object[], groups?: object[] }} antes
  * @param {{ members?: object[], groups?: object[] }} ahora
- * @returns {{ personas: object[], grupos?: object[] } | null}
+ * @returns {{ cambios: { personas: object[], grupos?: object[] } | null, avisos: { aviso: string, persona_id: string|null, campo?: string }[] }}
  */
 export function cambiosDePersonas(antes, ahora) {
-  const previas = new Map(personasDe(antes?.members).map((m, orden) => [texto(m.id), { ...filaDeMiembro(m), orden }]));
-  const actuales = personasDe(ahora?.members);
+  const avisos = [];
+  const previas = new Map(personasDe(antes?.members, []).map((m, orden) => [texto(m.id), { ...filaDeMiembro(m), orden }]));
+  const actuales = personasDe(ahora?.members, avisos);
   const personas = [];
   const quedan = new Set();
   actuales.forEach((m, orden) => {
     const id = texto(m.id);
     const fila = { ...filaDeMiembro(m), orden };
+    avisos.push(...fueraDeColumna(m, id));
     const previa = previas.get(id);
     if (!previa) {
-      if (!fila.nombre) return;
+      if (!fila.nombre) {
+        avisos.push({ aviso: AVISOS_PERSONA.SIN_NOMBRE, persona_id: id });
+        return;
+      }
       quedan.add(id);
       personas.push({ id, ...fila });
       return;
@@ -172,6 +212,6 @@ export function cambiosDePersonas(antes, ahora) {
   const gruposAntes = gruposDe(antes?.groups, new Set(previas.keys()));
   const gruposAhora = gruposDe(ahora?.groups, quedan);
   const cambianGrupos = !igual(gruposAntes, gruposAhora);
-  if (!personas.length && !cambianGrupos) return null;
-  return { personas, ...(cambianGrupos ? { grupos: gruposAhora } : {}) };
+  const cambios = personas.length || cambianGrupos ? { personas, ...(cambianGrupos ? { grupos: gruposAhora } : {}) } : null;
+  return { cambios, avisos };
 }
