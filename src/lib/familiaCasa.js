@@ -10,6 +10,7 @@ import { supabase } from "./supabase.js";
 import { apiUrl } from "./apiUrl.js";
 import * as ids from "./ids.js";
 import { FALLO_DATO } from "./vocabularios.js";
+import { esSinFuncion } from "./postgrest.js";
 import { membersDeFilas, cambiosDePersonas, conOrdenDeTodos, textosDeAvisos, FamiliaSinLeer, RPC_FAMILIA } from "./personas.js";
 
 /** De dónde sale la familia en esta carga: de sus filas, o del documento (base sin la 0108). */
@@ -17,9 +18,6 @@ export const MODO_FAMILIA = Object.freeze({ FILAS: "filas", DOCUMENTO: "document
 
 /** La pantalla de la que sale un cambio de la familia (la `ref` de la operación). */
 export const REF_FAMILIA = "familia";
-
-// PostgREST: la función no existe (base sin la 0108).
-const sinLaRpc = (error) => error?.code === "PGRST202";
 
 /**
  * La familia de una casa. `{ modo: FILAS, familia }`; `{ modo: DOCUMENTO }` si la base aún no tiene la RPC; o
@@ -29,7 +27,8 @@ const sinLaRpc = (error) => error?.code === "PGRST202";
 export async function leerFamiliaDeCasa(casa, cliente = supabase) {
   if (!cliente) return { error: true };
   const { data, error } = await cliente.rpc(RPC_FAMILIA, { p_casa: casa });
-  if (sinLaRpc(error)) return { modo: MODO_FAMILIA.DOCUMENTO };
+  // La función no existe: base sin la 0108.
+  if (esSinFuncion(error)) return { modo: MODO_FAMILIA.DOCUMENTO };
   try {
     if (error) throw new FamiliaSinLeer(error.code ?? null);
     return { modo: MODO_FAMILIA.FILAS, familia: membersDeFilas(data) };
@@ -83,9 +82,14 @@ export async function enviarFamilia({ casa, personas, grupos }, { token = tokenD
   } catch {
     return { ok: false, fallo: FALLO_DATO.SIN_RED };
   }
-  const cuerpo = await res.json().catch(() => ({}));
-  if (!res.ok) return { ok: false, fallo: cuerpo.fallo ?? FALLO_DATO.SERVIDOR };
-  return { ...cuerpo, ok: cuerpo.guardado !== false };
+  // Un cuerpo que no es JSON (la página de un proxy, un despliegue a medias) no es un guardado: se dice y al log.
+  const cuerpo = await res.json().catch(() => null);
+  if (!res.ok) return { ok: false, fallo: cuerpo?.fallo ?? FALLO_DATO.SERVIDOR };
+  if (cuerpo?.guardado !== true) {
+    if (!cuerpo) console.warn("[familiaCasa] respuesta sin JSON", res.status);
+    return { ...(cuerpo ?? {}), ok: false, fallo: cuerpo?.fallo ?? FALLO_DATO.SERVIDOR };
+  }
+  return { ...cuerpo, ok: true };
 }
 
 /**

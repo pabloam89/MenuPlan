@@ -89,6 +89,13 @@ describe("enviar un cambio a api/operacion.js", () => {
     expect(await enviarFamilia({ casa: CASA, personas: [] }, { token, fetcher: respuesta(503, { fallo: FALLO_DATO.RPC_AUSENTE }) })).toEqual({ ok: false, fallo: FALLO_DATO.RPC_AUSENTE });
     expect((await enviarFamilia({ casa: CASA, personas: [] }, { token, fetcher: respuesta(200, { guardado: false, fallo: FALLO_DATO.SIN_PERMISO }) })).ok).toBe(false);
   });
+
+  it("un 200 sin JSON (la página de un proxy) o sin «guardado» no se da por guardado", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    const sinJson = vi.fn(async () => ({ ok: true, status: 200, json: async () => { throw new SyntaxError("Unexpected token <"); } }));
+    expect(await enviarFamilia({ casa: CASA, personas: [] }, { token, fetcher: sinJson })).toEqual({ ok: false, fallo: FALLO_DATO.SERVIDOR });
+    expect((await enviarFamilia({ casa: CASA, personas: [] }, { token, fetcher: respuesta(200, {}) })).ok).toBe(false);
+  });
 });
 
 describe("guardar la familia: solo lo que cambió, uno tras otro", () => {
