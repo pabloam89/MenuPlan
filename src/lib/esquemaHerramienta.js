@@ -17,7 +17,7 @@
  * exigir que ningún `enum` repita a mano el vocabulario de un dato del registro.
  */
 import { datoDe } from "./registroFicha.js";
-import { vocabulario } from "./vocabularios.js";
+import { vocabulario, OTRO } from "./vocabularios.js";
 
 /** La clave Symbol con la clave del dato del registro del que sale un esquema. */
 export const DEL_REGISTRO = Symbol("delRegistro");
@@ -36,7 +36,8 @@ export function crearEsquema({ datoDe: dato, vocabulario: lista }) {
   const valores = (clave, d) => {
     const v = d.vocabulario ? lista(d.vocabulario) : null;
     if (!v) throw new Error(`esquemaDato: «${clave}» no tiene vocabulario en vocabularios.js`);
-    return [...v];
+    // OTRO no se ofrece: es la vía abierta (lo que no casa, con su nota), no un valor que se elige.
+    return v.filter((x) => x !== OTRO);
   };
   /**
    * El esquema de un parámetro que es el dato `clave` («members.x» es de la
