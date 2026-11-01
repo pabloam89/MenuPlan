@@ -295,7 +295,9 @@ describe("api/operacion.js: un cambio de la familia (trozo 10) va a escribir_per
 
 describe("api/operacion.js: la app lee los datos de la ficha Casa (trozo 12)", () => {
   const DATO_CASA = { campo: "wantsPriceEstimates", sujeto: { tipo: "casa", id: null }, estado: "dicho", valor: true, origen: "dicho" };
-  const FICHA_V2 = { v: 2, casa: { id: CASA, rev: 3 }, personas: [], fichas: { casa: [DATO_CASA], persona: [{ campo: "alergias" }] } };
+  const COMUN = { casa: { id: CASA, rev: 3 }, personas: [], faltan: [], tareas: [], callados: [] };
+  const ALERGIAS = { campo: "alergias", sujeto: { tipo: "persona", id: "p1" }, estado: "vacio", valor: null, origen: null };
+  const FICHA_V2 = { v: 2, ...COMUN, fichas: { casa: [DATO_CASA], persona: [ALERGIAS] } };
   async function leerGet({ token = "tok", casa = CASA } = {}) {
     const res = resFalso();
     await handler({ method: "GET", headers: { host: "prueba.invalid", ...(token ? { authorization: `Bearer ${token}` } : {}) }, query: { casa } }, res);
@@ -316,7 +318,7 @@ describe("api/operacion.js: la app lee los datos de la ficha Casa (trozo 12)", (
 
   it("con ficha_casa v1 (0107 sin aplicar), datos null: la app sigue con el documento", async () => {
     responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
-    responde(/rpc\/ficha_casa/, { status: 200, cuerpo: { v: 1, personas: [] } });
+    responde(/rpc\/ficha_casa/, { status: 200, cuerpo: { v: 1, ...COMUN } });
     expect((await leerGet()).body).toEqual({ v: 1, datos: null });
   });
 
