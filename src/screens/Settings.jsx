@@ -30,6 +30,7 @@ import { computeStreak } from "../lib/menuStats.js";
 import { INTOLERANCE_RULES } from "../lib/intolerances.js";
 import { vetosDe } from "../lib/vetos.js";
 import { isoLocalDate } from "../lib/weekCalendar.js";
+import { aparatosParaEnsenar } from "../lib/aparatosDeCasa.js";
 
 const PAGE_BG = "#f7f9f7";
 const GREEN = "#2d5a3d";
@@ -392,8 +393,8 @@ export function AccountScreen({
   const lastMenuAt = history.length ? history[history.length - 1].at : null;
 
   const kitchenTools = useMemo(
-    () => [...(data.kitchenTools ?? []), ...(data.customKitchenTools ?? [])],
-    [data.kitchenTools, data.customKitchenTools],
+    () => aparatosParaEnsenar({ kitchenTools: data.kitchenTools, kitchenToolsNota: data.kitchenToolsNota }),
+    [data.kitchenTools, data.kitchenToolsNota],
   );
   const allergies = useMemo(
     () => Array.from(new Set(members.flatMap((m) => m.allergies ?? []))),

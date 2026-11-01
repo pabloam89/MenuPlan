@@ -497,7 +497,6 @@ const INITIAL_DATA = {
   // compartido y titular y cotitular se pisaban (ver miembroDeCuentaId).
   accountMemberIdByUser: {},
   kitchenTools: [],
-  customKitchenTools: [],
   cookTime: { ...COOK_TIME_DEFAULTS },
   timeWeekday: 30,
   timeWeekend: 60,
@@ -701,7 +700,6 @@ function migrate(state) {
   if (typeof d.accountMemberId !== "string") d.accountMemberId = null;
   if (!d.accountMemberIdByUser || typeof d.accountMemberIdByUser !== "object" || Array.isArray(d.accountMemberIdByUser)) d.accountMemberIdByUser = {};
   if (!Array.isArray(d.kitchenTools)) d.kitchenTools = [];
-  if (!Array.isArray(d.customKitchenTools)) d.customKitchenTools = [];
   // Normalize school menus: courses (Primero/Segundo/Postre) instead of meals.
   // Migrate any legacy "*-Comida" or "*-Cena" entries → "*-Segundo".
   const SCHOOL_COURSES_VALID = new Set(["Primero", "Segundo", "Postre"]);

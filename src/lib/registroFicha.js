@@ -37,9 +37,9 @@
  *  - tipo (TIPOS): los de registroCampos.js más tres sin tabular (objeto, mapa,
  *    lista), que el inventario cuenta: cuantos menos, más se puede contar.
  *  - otros: el dato que guarda lo que no está en la lista cerrada (la vía
- *    «otro» del modelo cerrado): kitchenTools → customKitchenTools. Con sobre,
- *    el valor OTRO de la lista (vocabularios.js) y su nombre en un campo
- *    `…Nota` de texto (kitchenToolsNota, supermarketsNota).
+ *    «otro» del modelo cerrado): el valor OTRO de la lista (vocabularios.js)
+ *    y su nombre en un campo `…Nota` de texto (kitchenTools → kitchenToolsNota,
+ *    supermarkets → supermarketsNota); en la persona, allergies → customAllergies.
  *  - vive: "data", la tabla propia donde vive de verdad ("tabla:user_menus") o
  *    "calculado": un derivado que ya no se guarda y se calcula al leer (`funcion`).
  *
@@ -285,8 +285,7 @@ export const DATOS_CASA = Object.freeze({
   cookLevel: dato({ tema: "cocina", ficha: "casa", tipo: "enum", vocabulario: "nivel_cocina", defecto: "normal", peso_menu: 35, ...deLaCasa("cookLevel") }),
   cookLevelManual: dato({ tema: "cocina", ficha: "casa", tipo: "bool", ...marca("cookLevel"), motivo: "si el nivel lo puso el usuario y no el asistente; el motor la lee (prepararGeneracion.js)" }),
   cookSkills: dato({ tema: "cocina", ficha: "casa", tipo: "lista", estado: "legado", motivo: "nadie lo escribe ni lo lee: App.jsx solo lo sanea" }),
-  kitchenTools: dato({ tema: "cocina", ficha: "casa", tipo: "lista_enum", vocabulario: "aparatos_casa", otros: "customKitchenTools", peso_menu: 30, ...deLaCasa("kitchenTools") }),
-  customKitchenTools: dato({ tema: "cocina", ficha: "casa", tipo: "lista", motivo: "la vía «otro» de kitchenTools en data; con sobre es kitchenToolsNota (trozo 12)" }),
+  kitchenTools: dato({ tema: "cocina", ficha: "casa", tipo: "lista_enum", vocabulario: "aparatos_casa", otros: "kitchenToolsNota", peso_menu: 30, ...deLaCasa("kitchenTools") }),
   kitchenToolsNota: dato({ tema: "cocina", ficha: "casa", tipo: "texto", vive: "tabla:sobre", ...deLaCasa("kitchenToolsNota"), motivo: "el nombre de los aparatos que van como «Otro» en kitchenTools" }),
   cookTime: dato({ tema: "cocina", ficha: "rutina", tipo: "objeto", peso_menu: 40, motivo: "minutos por día y comida" }),
   timeWeekday: dato({ tema: "cocina", ficha: "rutina", tipo: "int", estado: "legado", de: "cookTime", motivo: "respaldo de cookTime en cookTime.js" }),
