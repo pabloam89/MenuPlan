@@ -138,13 +138,15 @@ export const HTTP_DE_FALLO = Object.freeze({
   [FALLO_DATO.SIN_SESION]: 401, [FALLO_DATO.SIN_RED]: 503, [FALLO_DATO.SERVIDOR]: 503,
 });
 
-/** Pura. El fallo de una respuesta del servidor: el que dice su cuerpo o, si no lo dice, el de su HTTP. */
+/**
+ * Pura. El fallo de una respuesta del servidor: el que dice su cuerpo o, si no lo dice, el único de HTTP_DE_FALLO
+ * con ese HTTP (la misma tabla con que contesta api/operacion.js). Un HTTP que comparten varios (el 503) o que no
+ * está en la tabla es `servidor`, que espera en la cola.
+ */
 function falloDeRespuesta(status, cuerpo) {
   if (FALLOS_DATO.includes(cuerpo?.fallo)) return cuerpo.fallo;
-  if (status === 401) return FALLO_DATO.SIN_SESION;
-  if (status === 403) return FALLO_DATO.SIN_PERMISO;
-  if (status === 400 || status === 422) return FALLO_DATO.INVALIDO;
-  return FALLO_DATO.SERVIDOR;
+  const deEseHttp = FALLOS_DATO.filter((f) => HTTP_DE_FALLO[f] === status);
+  return deEseHttp.length === 1 ? deEseHttp[0] : FALLO_DATO.SERVIDOR;
 }
 
 /** Pura. Un texto como JSON, o null si no lo es (la página de un proxy, un despliegue a medias, una cola rota). */
@@ -172,7 +174,7 @@ export function falloDeEnvio({ status, cuerpo }) {
 export function enviarAlServidor({ token, url, fetchFn = fetch }) {
   return async (item) => {
     const t = await token();
-    if (!t) return { status: 401, cuerpo: { fallo: FALLO_DATO.SIN_SESION } };
+    if (!t) return { status: HTTP_DE_FALLO[FALLO_DATO.SIN_SESION], cuerpo: { fallo: FALLO_DATO.SIN_SESION } };
     const res = await fetchFn(url, {
       method: "POST",
       headers: { Authorization: `Bearer ${t}`, "Content-Type": "application/json" },
