@@ -10,6 +10,13 @@ import { filaDeMiembro } from "../../src/lib/personas.js";
 export { RPC_FAMILIA } from "../../src/lib/personas.js";
 
 /**
+ * Lo que contestaría ficha_casa (0097) con la v1, sin el estado de cada dato: desde el trozo 12 (#1037) la casa de
+ * Lola lee de ahí los datos de la casa con sobre, y con la v1 siguen en el documento, como antes.
+ */
+export const RPC_FICHA = "ficha_casa";
+export const fichaV1 = () => ({ v: 1, casa: { rev: 1 }, personas: [], faltan: [], tareas: [], callados: [] });
+
+/**
  * @param {object[]} members  comensales, como en data.members
  * @param {object[]} groups   grupos, como en data.groups
  */

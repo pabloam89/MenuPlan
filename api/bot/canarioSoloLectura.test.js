@@ -5,6 +5,7 @@
 // dentro, el registro se calla y no sale ninguna escritura.
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { RPC_FAMILIA } from "../../src/lib/personas.js";
+import { RPC_FICHA, fichaV1 } from "../_bot/familiaDePrueba.js";
 
 process.env.VITE_SUPABASE_URL = "https://sin-base.invalid";
 process.env.SUPABASE_SERVICE_ROLE_KEY = "sin-clave";
@@ -24,9 +25,10 @@ beforeEach(() => {
   vi.stubGlobal("fetch", vi.fn(async (url, o = {}) => {
     const ruta = new URL(url).pathname;
     if ((o.method ?? "GET") !== "GET") escrituras.push(`${o.method} ${ruta}`);
-    // La familia sale de sus filas (personas_de_casa, 0108): aquí, una casa sin nadie.
+    // La familia sale de sus filas (personas_de_casa, 0108): aquí, una casa sin nadie. La ficha, la v1 (sin datos con sobre).
     const filas = ruta.endsWith("/household_state") ? [{ state: { data: {} }, bot_rev: 0, updated_at: null }]
-      : ruta.endsWith(`/rpc/${RPC_FAMILIA}`) ? { v: 1, personas: [], grupos: [] } : [];
+      : ruta.endsWith(`/rpc/${RPC_FAMILIA}`) ? { v: 1, personas: [], grupos: [] }
+        : ruta.endsWith(`/rpc/${RPC_FICHA}`) ? fichaV1() : [];
     return { ok: true, status: 200, text: async () => JSON.stringify(filas) };
   }));
 });
@@ -50,8 +52,8 @@ describe("canario en solo lectura", () => {
 
   it("dentro, la misma búsqueda no escribe nada y el registro se calla", async () => {
     const { negadas, calladas } = await enSoloLectura(buscar);
-    // Solo sale la lectura de la familia, que va por POST como toda función de la base.
-    expect(escrituras).toEqual([`POST /rest/v1/rpc/${RPC_FAMILIA}`]);
+    // Solo salen las lecturas de la familia y de la ficha, que van por POST como toda función de la base.
+    expect(escrituras.sort()).toEqual([`POST /rest/v1/rpc/${RPC_FAMILIA}`, `POST /rest/v1/rpc/${RPC_FICHA}`].sort());
     expect(negadas).toEqual([]);
     expect(calladas).toBeGreaterThanOrEqual(1);
   });

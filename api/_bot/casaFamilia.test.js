@@ -1,11 +1,15 @@
 // El corte del trozo 10 en Lola (#1037): la familia se lee de sus filas (personas_de_casa, 0108) y se escribe
 // por la tubería (escribir_persona); el documento de la casa ya no lleva members ni groups. Sin la 0108 (plan B),
 // la familia sigue en el documento, como antes; sin poder leerla por otra cosa, la casa no se lee.
+// Y el del trozo 12: los datos de la casa con sobre (CAMPOS_CASA_CON_SOBRE) se leen de ficha_casa v2 y se escriben
+// con escribirDato (aplicar_operacion); sin la 0112, en el documento.
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { conCasa, cargarCasa, olvidarCasa, separarFamilia } from "./casa.js";
 import { conOperacion, ponerAutor, tomarAvisos } from "./operacion.js";
 import { FamiliaSinLeer, TEXTO_AVISO_PERSONA, AVISOS_PERSONA, RPC_FAMILIA } from "../../src/lib/personas.js";
-import { SUFIJO_CLAVE_PERSONA } from "../../src/lib/operaciones/tuberia.js";
+import { SUFIJO_CLAVE_PERSONA, RPC_OPERACION } from "../../src/lib/operaciones/tuberia.js";
+import { CAMPOS_CASA_CON_SOBRE } from "../../src/lib/estadoDeDato.js";
+import { RPC_FICHA, fichaV1 } from "./familiaDePrueba.js";
 
 const CASA = "3f2b8c1e-7a4d-4e0b-9c5a-1d2e3f4a5b6c";
 const A = "00000000-0000-4000-8000-00000000000a";
@@ -23,12 +27,22 @@ const DOCUMENTO = { data: { members: [{ id: "viejo", name: "Del documento" }], g
 const RUTA_FAMILIA = new RegExp(`rpc/${RPC_FAMILIA}`);
 const SIN_RPC = (fn) => ({ status: 404, cuerpo: { code: "PGRST202", message: `Could not find the function public.${fn} in the schema cache` } });
 const HECHA = { operacion_id: "op1", estado: "hecha", repetida: false, hecho: [], sin_hacer: [], choques: [], rev: 9 };
+const RUTA_FICHA = new RegExp(`rpc/${RPC_FICHA}`);
+const RUTA_OPERACION = new RegExp(`rpc/${RPC_OPERACION}`);
+/** ficha_casa v2 con estos datos en la ficha Casa (la 0112 aplicada), como los da la base. */
+const fichaV2 = (...casa) => ({ ...fichaV1(), v: 2, fichas: { casa } });
+const dicho = (campo, valor) => ({
+  campo, sujeto: { tipo: "casa", id: null }, estado: "dicho", valor, origen: "dicho", bloqueado: false, peso: null,
+  confirmado_el: null, caduca_at: null, cambiado_at: null, dicho_por: null, canal: "app", operacion_id: null,
+});
+const porDefecto = (campo, valor) => ({ ...dicho(campo, valor), estado: "por_defecto", origen: null });
+const CAMPO = CAMPOS_CASA_CON_SOBRE[0];
 
 let llamadas;
 let respuestas;
 const responde = (patron, r) => respuestas.unshift([patron, r]);
 // Lo que escribe: personas_de_casa es una lectura aunque vaya por POST (las RPC van todas así).
-const escrituras = () => llamadas.filter((l) => l.metodo !== "GET" && !(/bot_deshacer/.test(l.ruta) || RUTA_FAMILIA.test(l.ruta)));
+const escrituras = () => llamadas.filter((l) => l.metodo !== "GET" && !(/bot_deshacer/.test(l.ruta) || RUTA_FAMILIA.test(l.ruta) || RUTA_FICHA.test(l.ruta)));
 beforeEach(() => {
   vi.stubEnv("SUPABASE_URL", "https://base.invalid");
   vi.stubEnv("VITE_SUPABASE_URL", "https://base.invalid");
@@ -37,6 +51,8 @@ beforeEach(() => {
   respuestas = [
     [/household_state/, { status: 200, cuerpo: [{ state: DOCUMENTO, bot_rev: 7, updated_at: "2026-11-01T10:00:00Z" }] }],
     [RUTA_FAMILIA, { status: 200, cuerpo: FAMILIA }],
+    [RUTA_FICHA, { status: 200, cuerpo: fichaV1() }],
+    [RUTA_OPERACION, { status: 200, cuerpo: HECHA }],
     [/rpc\/bot_save_casa/, { status: 200, cuerpo: { ok: true, bot_rev: 8 } }],
     [/rpc\/escribir_persona/, { status: 200, cuerpo: HECHA }],
   ];
@@ -158,6 +174,106 @@ describe("guardar la casa: la familia por escribir_persona", () => {
   it("lo que no viaja tal cual se dice en el chat", async () => {
     const { avisos } = await enTurno(() => cambiarFamilia((d) => { d.members[0].age = 300; }));
     expect(avisos).toEqual([TEXTO_AVISO_PERSONA[AVISOS_PERSONA.FUERA_DE_RANGO]]);
+  });
+});
+
+describe("los datos de la casa con sobre (trozo 12)", () => {
+  // El documento aún guarda el valor de antes: con la 0112 no se lee (sin repoblar).
+  const conDato = (valor) => responde(/household_state/, { status: 200, cuerpo: [{ state: { data: { ...DOCUMENTO.data, [CAMPO]: valor } }, bot_rev: 7, updated_at: "2026-11-01T10:00:00Z" }] });
+  const cambiarDato = (valor, mas = () => {}) => conCasa(CASA, async (casa) => {
+    const data = structuredClone(casa.state.data);
+    data[CAMPO] = valor;
+    mas(data);
+    return { state: { ...casa.state, data } };
+  });
+
+  it("con la 0112, se leen de ficha_casa v2: lo dicho de su sobre, o el defecto del registro, y no lo del documento", async () => {
+    conDato(true);
+    responde(RUTA_FICHA, { status: 200, cuerpo: fichaV2(porDefecto(CAMPO, false)) });
+    const casa = await cargarCasa(CASA);
+    expect(casa.state.data[CAMPO]).toBe(false);
+    expect(casa.conSobre).toEqual({ [CAMPO]: { valor: false, conSobre: false } });
+    olvidarCasa(CASA);
+    responde(RUTA_FICHA, { status: 200, cuerpo: fichaV2(dicho(CAMPO, true)) });
+    expect((await cargarCasa(CASA)).conSobre).toEqual({ [CAMPO]: { valor: true, conSobre: true } });
+  });
+
+  it("lo que cambió va a escribirDato como dicho, desde el mensaje y por quien habla; el documento ya no lo lleva", async () => {
+    conDato(false);
+    responde(RUTA_FICHA, { status: 200, cuerpo: fichaV2(porDefecto(CAMPO, false)) });
+    const { r } = await enTurno(() => cambiarDato(true));
+    const [doc, op] = escrituras();
+    expect(doc.ruta).toBe("/rest/v1/rpc/bot_save_casa");
+    expect(doc.cuerpo.p_state.data).toEqual({ reglas: [] });
+    expect(op.ruta).toBe(`/rest/v1/rpc/${RPC_OPERACION}`);
+    expect(op.cuerpo.p_operacion).toMatchObject({
+      casa: CASA, canal: "telegram", ref_tipo: "mensaje", ref_id: "55", autor_user_id: "u1",
+      datos: [{ campo: CAMPO, persona_id: null, valor: true, origen: "dicho" }],
+    });
+    // bot_save_casa deja la 8 y el dato la 9: la de Lola, con la que compara deshacer.
+    expect(r).toMatchObject({ ok: true, botRev: 9 });
+  });
+
+  it("sin cambio del dato no se llama a escribirDato, y el documento deja de llevarlo", async () => {
+    conDato(true);
+    responde(RUTA_FICHA, { status: 200, cuerpo: fichaV2(porDefecto(CAMPO, false)) });
+    await enTurno(() => conCasa(CASA, async (casa) => ({ state: { ...casa.state, data: { ...casa.state.data, reglas: ["x"] } } })));
+    expect(escrituras().map((l) => l.ruta)).toEqual(["/rest/v1/rpc/bot_save_casa"]);
+    expect(escrituras()[0].cuerpo.p_state.data).toEqual({ reglas: ["x"] });
+  });
+
+  it("la familia y el dato en el mismo guardado: cada versión, la siguiente de la anterior", async () => {
+    responde(RUTA_FICHA, { status: 200, cuerpo: fichaV2(porDefecto(CAMPO, false)) });
+    responde(RUTA_OPERACION, { status: 200, cuerpo: { ...HECHA, rev: 10 } });
+    const { r } = await enTurno(() => cambiarDato(true, (d) => { d.members[0].name = "Anita"; }));
+    expect(escrituras().map((l) => l.ruta)).toEqual(["/rest/v1/rpc/bot_save_casa", "/rest/v1/rpc/escribir_persona", `/rest/v1/rpc/${RPC_OPERACION}`]);
+    expect(r).toMatchObject({ ok: true, botRev: 10 });
+    olvidarCasa(CASA);
+    // Otro escribió entre la familia y el dato: la versión que sigue siendo de Lola es la de la familia.
+    responde(RUTA_OPERACION, { status: 200, cuerpo: { ...HECHA, rev: 12 } });
+    const otra = await enTurno(() => cambiarDato(true, (d) => { d.members[0].name = "Ana María"; }));
+    expect(otra.r).toMatchObject({ ok: true, botRev: 9 });
+  });
+
+  it("si escribirDato no guarda, vuelve el error con el campo y su fallo (no se calla)", async () => {
+    responde(RUTA_FICHA, { status: 200, cuerpo: fichaV2(porDefecto(CAMPO, false)) });
+    responde(RUTA_OPERACION, { status: 500, cuerpo: { code: "XX000", message: "boom" } });
+    const { r } = await enTurno(() => cambiarDato(true));
+    expect(r).toMatchObject({ ok: false, error: expect.stringContaining(`${CAMPO}: servidor`) });
+  });
+
+  it("sin saber quién de la casa habla, no se escribe nada y se dice", async () => {
+    responde(RUTA_FICHA, { status: 200, cuerpo: fichaV2(porDefecto(CAMPO, false)) });
+    const { r } = await enTurno(() => cambiarDato(true), null);
+    expect(r).toMatchObject({ ok: false, error: expect.stringMatching(/qué persona de la casa/) });
+    expect(escrituras()).toEqual([]);
+  });
+
+  it("sin la 0112 (la ficha no trae la ficha Casa), con la v1 o sin la RPC, del documento y se guarda en él", async () => {
+    for (const ficha of [{ status: 200, cuerpo: fichaV2() }, { status: 200, cuerpo: fichaV1() }, SIN_RPC(RPC_FICHA)]) {
+      olvidarCasa(CASA);
+      llamadas = [];
+      conDato(true);
+      responde(RUTA_FICHA, ficha);
+      const casa = await cargarCasa(CASA);
+      expect(casa.conSobre).toBeNull();
+      expect(casa.state.data[CAMPO]).toBe(true);
+      olvidarCasa(CASA);
+      await enTurno(() => cambiarDato(false));
+      expect(escrituras().map((l) => l.ruta)).toEqual(["/rest/v1/rpc/bot_save_casa"]);
+      expect(escrituras()[0].cuerpo.p_state.data[CAMPO]).toBe(false);
+    }
+  });
+
+  it("sin poder leer la ficha por otra cosa, la casa no se lee y nada se escribe", async () => {
+    responde(RUTA_FICHA, { status: 500, cuerpo: { code: "XX000", message: "boom" } });
+    await expect(cargarCasa(CASA)).rejects.toThrow();
+    olvidarCasa(CASA);
+    await expect(enTurno(() => cambiarDato(true))).rejects.toThrow();
+    responde(RUTA_FICHA, { status: 200, cuerpo: { v: 2 } });
+    olvidarCasa(CASA);
+    await expect(cargarCasa(CASA)).rejects.toThrow(/forma que no se conoce/);
+    expect(escrituras()).toEqual([]);
   });
 });
 

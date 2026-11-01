@@ -16,7 +16,7 @@ import { motivoDe } from "./avisar.js";
 import { operar, operarPersonas, deshacer } from "../../src/lib/operaciones/tuberia.js";
 import { membersDeFilas, FamiliaSinLeer, RPC_FAMILIA } from "../../src/lib/personas.js";
 import { FALLO_DATO, MOTIVO_FALLO, CANAL_DATO } from "../../src/lib/vocabularios.js";
-import { FICHA_CON_ESTADO, fichaSinContrato } from "../../src/lib/estadoDeDato.js";
+import { FICHA_CON_ESTADO, fichaSinContrato, estadosDeFichas, datosConSobre } from "../../src/lib/estadoDeDato.js";
 
 /**
  * El fallo de dato (FALLOS_DATO) de cada motivo de avisar.js (MOTIVOS_FALLO).
@@ -89,11 +89,32 @@ export const deshacerOperacion = (pedido, { papel }) => deshacer(pedido, { papel
  * no es una casa sin datos, y quien llama lo dice. Sin la clave `casa` en `fichas` es que registro_campo no tiene
  * ningún campo de esa ficha (la 0112 sin aplicar: ficha_casa agrupa por ficha): `[]`, que es verdad. Solo para quien
  * ya se sabe de la casa: con la service role, ficha_casa no lo comprueba (api/operacion.js mira el papel antes).
+ * Lola la usa también (leerCasaConSobre), con su canal.
  * @returns {Promise<{ v: number|null, datos: object[]|null }>}
  */
-export async function leerDatosDeCasa(householdId, userId) {
-  const ficha = await rpc("ficha_casa", { p_casa: householdId, p_usuario: userId, p_canal: CANAL_DATO.APP, p_max_tareas: 0 });
+export async function leerDatosDeCasa(householdId, userId, { canal = CANAL_DATO.APP } = {}) {
+  const ficha = await rpc("ficha_casa", { p_casa: householdId, p_usuario: userId, p_canal: canal, p_max_tareas: 0 });
   const mal = fichaSinContrato(ficha);
   if (mal) throw new Error(`ficha_casa: forma que no se conoce (${mal})`);
   return { v: ficha.v, datos: ficha.v === FICHA_CON_ESTADO ? (ficha.fichas.casa ?? []) : null };
+}
+
+/**
+ * Los datos de la casa con sobre (CAMPOS_CASA_CON_SOBRE, estadoDeDato.js) para Lola, al leer la casa (casa.js):
+ * `{ [campo]: { valor, conSobre } }` con los que trae ficha_casa v2 (su sobre, o el defecto del registro), o null si
+ * viven en el documento: ficha_casa v1, la base sin la RPC, o sin los campos en registro_campo (la 0112 sin
+ * aplicar). Lanza si falla otra cosa: una casa sin leer no es una casa con los valores por defecto.
+ */
+export async function leerCasaConSobre(householdId) {
+  let r;
+  try {
+    r = await leerDatosDeCasa(householdId, null, { canal: CANAL_DATO.TELEGRAM });
+  } catch (e) {
+    const { fallo, motivo } = falloDeError(e);
+    if (fallo === FALLO_DATO.RPC_AUSENTE) return null;
+    console.error(JSON.stringify({ evento: "casa_sin_leer", fallo, motivo }));
+    throw e;
+  }
+  const leidos = r.datos ? datosConSobre(estadosDeFichas({ casa: r.datos })) : [];
+  return leidos.length ? Object.fromEntries(leidos.map((l) => [l.campo, { valor: l.valor, conSobre: l.conSobre }])) : null;
 }
