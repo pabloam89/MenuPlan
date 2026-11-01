@@ -50,7 +50,7 @@ import { execFileSync } from "node:child_process";
 import { cargarEnv, RAIZ } from "./lib/env.mjs";
 import {
   CORRECTORES, NIVELES, REINTENTOS_POR_NIVEL, SALIDA, VERSION_ESQUEMA, baseMemo, bloquea, casosDelNivel, compararEstados, elegirReferencia, ficherosDelCodigo,
-  casosVersion, claveMemo, codigoHash, costeUsd, erroresDeCasos, esEstricto, estadoDe, estimadoSiguiente,
+  casosVersion, claveMemo, LUNES_SIGUIENTE, codigoHash, costeUsd, erroresDeCasos, esEstricto, estadoDe, estimadoSiguiente,
   kDe, leerJsonl, memoria, opcion, opcionEntero, opcionNumero, otroIntento, promptHash, tokensDe, topeDePasada,
   apuntarOAvisar, puedeGastar, cifrasDePasada, memoriaDeOperacion, operacionExacta,
 } from "./lib/evals.mjs";
@@ -101,7 +101,7 @@ const { supervisar } = await import("../api/_bot/supervisor.js");
 // La pista del enrutador (BOT_PISTA), con el mismo texto que en Telegram: un
 // caso con "pista" { decision, adelanto } mide si Lola la usa sin fiarse de más.
 const { textoPista } = await import("../api/_bot/pista.js");
-const { botonRehacer, lunesDe, sumarDias } = await import("../api/_bot/semanaPedida.js");
+const { botonRehacer, lunesDe, sumarDias, fechaCorta: corta } = await import("../api/_bot/semanaPedida.js");
 // Un solo modelo por pasada: sin esto, un fallo de la API caería al plan B en
 // silencio y la medida mezclaría dos modelos. Los nombres cortos de --modelo
 // son los ids que ya usa el bot (agente.js) o la app (aiModels.js); un id
@@ -119,9 +119,7 @@ const FAMILIA = "Casa de prueba: Ana (38 años), Pablo (40 años), Leo (6 años)
 function hoyEnMadrid() {
   return new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
 }
-const MES_CORTO = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
 const DIA_CORTO = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
-const corta = (iso) => `${Number(iso.slice(8, 10))} ${MES_CORTO[Number(iso.slice(5, 7)) - 1]}`;
 function cabeceraDe(hoy) {
   return `${DIA_CORTO[new Date(`${hoy}T12:00:00Z`).getUTCDay()]} ${corta(hoy)} (${hoy})`;
 }
@@ -192,6 +190,12 @@ const normal = (s) => String(s ?? "").normalize("NFD").replace(/\p{Diacritic}/gu
 // acierta igual diciendo «hoy» o la fecha de hoy (pasó un jueves con «la cena
 // del jueves»): la prueba no puede depender del día en que se ejecuta.
 const HOY_MADRID = hoyEnMadrid();
+// La charla de los casos, con el hueco del lunes que viene relleno (#1083).
+const conFechas = (s) => (typeof s === "string" ? s.replaceAll(LUNES_SIGUIENTE, corta(sumarDias(lunesDe(HOY_MADRID), 7))) : s);
+for (const c of casos) {
+  c.entrada = conFechas(c.entrada);
+  if (c.historia) c.historia = c.historia.map((h) => ({ ...h, content: conFechas(h.content) }));
+}
 const DIA_DE_HOY = normal(new Intl.DateTimeFormat("es-ES", { weekday: "long", timeZone: "Europe/Madrid" }).format(new Date()));
 const contiene = (args, esperado) => Object.entries(esperado).every(([k, v]) => {
   if (k === "_todo") return normal(JSON.stringify(args)).includes(normal(v));

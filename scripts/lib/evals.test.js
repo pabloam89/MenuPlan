@@ -12,11 +12,22 @@ import {
   casosVersion, canonico, claveMemo, costeUsd, erroresDeCasos, esDeSeguridad, estadoDe, estimadoSiguiente,
   kDe, memoria, opcionNumero, otroIntento, presupuestoMensualUsd, topeDePasada,
   apuntarGasto, apuntarOAvisar, gastoDelMesUsd, mesDeMadrid, puedeGastar, MOTIVOS_TOPE_EVALS,
-  COSTE_PASADA_COMPLETA_USD, TOPE_COMPLETO_POR_FAMILIA, baseMemo, codigoHash, compararEstados, elegirReferencia, ficherosDelCodigo, grafoDeImports,
+  COSTE_PASADA_COMPLETA_USD, TOPE_COMPLETO_POR_FAMILIA, FECHA_ESCRITA, LUNES_SIGUIENTE, baseMemo, codigoHash, compararEstados, elegirReferencia, ficherosDelCodigo, grafoDeImports,
 } from "./evals.mjs";
 
 const RAIZ = new URL("../../", import.meta.url);
 const { casos } = JSON.parse(readFileSync(new URL("scripts/bot-evals.json", RAIZ), "utf8"));
+
+describe("bot-evals.json: la charla de un caso no lleva fechas escritas a mano (#1083)", () => {
+  it("con la ficha de hoy, ni la entrada ni la historia: el lunes que viene va con el hueco y se rellena al correr", () => {
+    // Un caso con su propia `ficha` vive en sus fechas (un mundo cerrado, a propósito); los demás corren con la de hoy.
+    const conFecha = casos.filter((c) => !c.ficha && FECHA_ESCRITA.test(JSON.stringify([c.entrada, c.historia]))).map((c) => c.id);
+    expect(conFecha).toEqual([]);
+    expect(FECHA_ESCRITA.test("Rehacer la del 26 oct")).toBe(true);
+    expect(FECHA_ESCRITA.test("la semana del 26 de octubre")).toBe(true);
+    expect(FECHA_ESCRITA.test(`Rehacer la del ${LUNES_SIGUIENTE}`)).toBe(false);
+  });
+});
 
 describe("bot-evals.json: cada caso con id, tipo, dominio y origen de la lista", () => {
   it("ningún error de etiquetas", () => expect(erroresDeCasos(casos)).toEqual([]));
