@@ -84,7 +84,7 @@ describe("enTurno mira el reloj de la invocación (#958)", () => {
     const atender = vi.fn(async () => {});
     const alSobrar = vi.fn(async () => {});
     await conPlazo(Date.now(), () => enTurno("c1", { texto: "x", inmediato: true }, atender, { alSobrar }));
-    // El segundo argumento es la ronda (señal para cortar y medida; trozo 28 de #1037).
+    // El segundo argumento es la ronda (la medida de la ráfaga; trozo 28 de #1037).
     expect(atender.mock.calls[0][0]).toEqual([{ texto: "hola" }]);
     expect(alSobrar).not.toHaveBeenCalled();
     expect(llamadas.filter((n) => n === "bot_soltar_candado")).toHaveLength(1);
