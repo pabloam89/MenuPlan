@@ -1,7 +1,4 @@
-/**
- * «La función no existe» (una migración sin aplicar) se reconoce en un solo sitio: el juez de #1105 (C14) vio el
- * código escrito a mano en cuatro ficheros.
- */
+// «La función no existe» (migración sin aplicar), en un solo sitio: el juez de #1105 (C14) la vio en cuatro.
 import { describe, it, expect } from "vitest";
 import { execFileSync } from "node:child_process";
 import { esSinFuncion, PGRST_SIN_FUNCION, PG_SIN_FUNCION } from "./postgrest.js";

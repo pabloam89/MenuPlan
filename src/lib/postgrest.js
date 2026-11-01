@@ -1,7 +1,4 @@
-/**
- * Los códigos con que PostgREST y Postgres dicen que una función de la base no existe: una migración aún sin
- * aplicar (el plan B de cada RPC nueva). Un solo sitio para la app, Lola y los scripts.
- */
+// Los códigos de «la función no existe» (una migración sin aplicar, el plan B de cada RPC): la app y Lola.
 
 /** PostgREST no encuentra la función en su caché (404). */
 export const PGRST_SIN_FUNCION = "PGRST202";
