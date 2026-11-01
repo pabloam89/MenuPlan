@@ -18,6 +18,9 @@ import { membersDeFilas, FamiliaSinLeer, RPC_FAMILIA } from "../../src/lib/perso
 import { FALLO_DATO, MOTIVO_FALLO, CANAL_DATO } from "../../src/lib/vocabularios.js";
 import { FICHA_CON_ESTADO } from "../../src/lib/estadoDeDato.js";
 
+/** La versión de ficha_casa de antes de la 0107, sin el estado de cada dato. */
+const FICHA_SIN_ESTADO = 1;
+
 /**
  * El fallo de dato (FALLOS_DATO) de cada motivo de avisar.js (MOTIVOS_FALLO).
  * `no_existe` en una llamada a la RPC es que la RPC no está (PGRST202, 42883, 404).
@@ -85,12 +88,17 @@ export const deshacerOperacion = (pedido, { papel }) => deshacer(pedido, { papel
 /**
  * Los datos de la ficha Casa para la app (trozo 12): los de `fichas.casa` de ficha_casa v2 (0107), cada uno con
  * su sobre o con el defecto del registro. Con la v1 (0107 sin aplicar), `datos` null: la app los lee del
- * documento como antes. Lanza si la base falla (quien llama lo dice): no es una casa sin datos. Solo para quien
+ * documento como antes. Lanza si la base falla o contesta otra forma (una versión que no conoce, sin `fichas`):
+ * no es una casa sin datos, y quien llama lo dice. Sin la clave `casa` en `fichas` es que registro_campo no tiene
+ * ningún campo de esa ficha (la 0112 sin aplicar: ficha_casa agrupa por ficha): `[]`, que es verdad. Solo para quien
  * ya se sabe de la casa: con la service role, ficha_casa no lo comprueba (api/operacion.js mira el papel antes).
  * @returns {Promise<{ v: number|null, datos: object[]|null }>}
  */
 export async function leerDatosDeCasa(householdId, userId) {
   const ficha = await rpc("ficha_casa", { p_casa: householdId, p_usuario: userId, p_canal: CANAL_DATO.APP, p_max_tareas: 0 });
-  const v = Number.isInteger(ficha?.v) ? ficha.v : null;
-  return { v, datos: v === FICHA_CON_ESTADO ? (ficha.fichas?.casa ?? []) : null };
+  if (ficha?.v === FICHA_SIN_ESTADO) return { v: ficha.v, datos: null };
+  const fichas = ficha?.v === FICHA_CON_ESTADO ? ficha.fichas : null;
+  const datos = fichas && typeof fichas === "object" && !Array.isArray(fichas) ? (fichas.casa ?? []) : null;
+  if (!Array.isArray(datos)) throw new Error(`ficha_casa: forma que no se conoce (v=${ficha?.v ?? "?"})`);
+  return { v: ficha.v, datos };
 }

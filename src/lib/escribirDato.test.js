@@ -166,7 +166,9 @@ describe("la cola de la app", () => {
         const c = crearColaDeDatos({ almacen, nuevaClave: claves(), enviar: async () => ({ status: HTTP_DE_FALLO[fallo], cuerpo }) });
         const r = await c.escribir(PEDIDO_APP);
         expect(enCola(almacen).length, `${fallo} ${cuerpo ? "con" : "sin"} cuerpo`).toBe(FALLOS_QUE_ESPERAN.has(r.fallo) ? 1 : 0);
-        if (cuerpo) expect(r.fallo).toBe(fallo);
+        // Con cuerpo, su fallo; sin él, el de su HTTP si ningún otro lo comparte (HTTP_DE_FALLO), y si no, servidor.
+        const mismoHttp = FALLOS_DATO.filter((f) => HTTP_DE_FALLO[f] === HTTP_DE_FALLO[fallo]);
+        expect(r.fallo, `${fallo} ${cuerpo ? "con" : "sin"} cuerpo`).toBe(cuerpo || mismoHttp.length === 1 ? fallo : FALLO_DATO.SERVIDOR);
       }
     }
   });
@@ -214,7 +216,7 @@ describe("enviarAlServidor", () => {
   });
   it("sin sesión no sale y espera como sin_sesion", async () => {
     const fetchFn = vi.fn();
-    expect(await enviarAlServidor({ token: async () => null, url: URL, fetchFn })({})).toEqual({ status: 401, cuerpo: { fallo: FALLO_DATO.SIN_SESION } });
+    expect(await enviarAlServidor({ token: async () => null, url: URL, fetchFn })({})).toEqual({ status: HTTP_DE_FALLO[FALLO_DATO.SIN_SESION], cuerpo: { fallo: FALLO_DATO.SIN_SESION } });
     expect(fetchFn).not.toHaveBeenCalled();
   });
 });
