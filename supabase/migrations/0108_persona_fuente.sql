@@ -164,9 +164,12 @@ begin
   end if;
   if p_operacion ? 'grupos' and (jsonb_typeof(p_operacion->'grupos') <> 'array' or jsonb_array_length(p_operacion->'grupos') > c_max
      or exists (select 1 from jsonb_array_elements(p_operacion->'grupos') x
-                 where jsonb_typeof(x.value) <> 'object' or nullif(btrim(x.value->>'id'), '') is null)
+                 where jsonb_typeof(x.value) <> 'object' or nullif(btrim(x.value->>'id'), '') is null
+                    -- Quién está en cada grupo, siempre una lista de ids: si falta, no se lee como «nadie».
+                    or jsonb_typeof(x.value->'personas') is distinct from 'array'
+                    or exists (select 1 from jsonb_array_elements(x.value->'personas') m where jsonb_typeof(m.value) <> 'string'))
      or exists (select 1 from jsonb_array_elements(p_operacion->'grupos') x group by btrim(x.value->>'id') having count(*) > 1)) then
-    raise exception 'escribir_persona: grupos, una lista de hasta % con id y sin ids repetidos', c_max using errcode = '22023';
+    raise exception 'escribir_persona: grupos, una lista de hasta % con id, sin ids repetidos y con su lista de personas', c_max using errcode = '22023';
   end if;
   if jsonb_array_length(v_personas) = 0 and not p_operacion ? 'grupos' then
     raise exception 'escribir_persona: nada que escribir (ni personas ni grupos)' using errcode = '22023';
@@ -390,8 +393,7 @@ begin
     insert into public.grupo_persona (household_id, grupo_id, persona_id)
     select distinct v_casa, btrim(x.value->>'id'), btrim(m)
       from jsonb_array_elements(p_operacion->'grupos') x
-     cross join lateral jsonb_array_elements_text(case when jsonb_typeof(x.value->'personas') = 'array'
-                                                       then x.value->'personas' else '[]'::jsonb end) m;
+     cross join lateral jsonb_array_elements_text(x.value->'personas') m;
     v_hecho := v_hecho || jsonb_build_array(jsonb_build_object('grupos', jsonb_array_length(p_operacion->'grupos')));
   end if;
 
@@ -575,7 +577,8 @@ begin
         jsonb_build_object('origen', 'no_quiere_decirlo', 'personas', jsonb_build_array(jsonb_build_object('id', v_b, 'alergias', '[]'::jsonb))),
         jsonb_build_object('canal', 'sistema', 'personas', jsonb_build_array(jsonb_build_object('id', v_b, 'alergias', '[]'::jsonb))),
         jsonb_build_object('personas', jsonb_build_array(jsonb_build_object('id', v_fuera::text, 'edad', 3))),
-        jsonb_build_object('personas', jsonb_build_array(jsonb_build_object('id', 'p_nueva', 'nombre', 'Mal'))))) x loop
+        jsonb_build_object('personas', jsonb_build_array(jsonb_build_object('id', 'p_nueva', 'nombre', 'Mal'))),
+        jsonb_build_object('grupos', jsonb_build_array(jsonb_build_object('id', v_g, 'nombre', 'Sin lista'))))) x loop
       begin
         perform public.escribir_persona(v_base || jsonb_build_object('clave', 'autoprueba-mal') || v_r);
         raise exception '0108 autoprueba: entró lo que no debía: %', v_r;
