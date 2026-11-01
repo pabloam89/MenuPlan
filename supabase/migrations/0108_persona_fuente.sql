@@ -1,6 +1,9 @@
 -- Persona y salud, fuente única (plan fichas con estado, trozo 10; #1037): escribir_persona y personas_de_casa,
 -- y fuera el disparador de la 0089 con las funciones que copiaban data.members a persona. Va tras la 0105
 -- (operacion, sobre.operacion_id), la 0106 (aplicar_operacion), la 0107 (ficha_casa v2) y la 0111.
+-- AUDITADA: auditor-datos 2026-11-01 OK
+--   (un agente independiente, que no la escribió, en dos rondas: interbloqueo con for no key update, salud de quien
+--   se borra fuera de la inversa, persona.orden, autora que nace en la operación, orígenes que no vacían la ficha)
 --
 --   · escribir_persona(p_operacion jsonb), definer, solo para la service role: la única vía de escritura a
 --     persona, persona_* y grupo/grupo_persona. Una operación (fila en `operacion`, idempotente por casa y
@@ -29,7 +32,8 @@
 -- salud solo con origen dicho o delegado: no_quiere_decirlo vaciaría en la ficha una alergia guardada (0107).
 -- No deshace: deshacer_operacion (0111) solo conoce la inversa de los sobres y ante una operación de persona
 -- falla en alto («no tiene inversa»); la inversa de persona (fila, salud y sobres de antes) se guarda ya en
--- operacion.inversa, salvo la de quien se borra, que solo dice que se borró (su salud no se queda en la base).
+-- operacion.inversa, salvo la de quien se borra: su pedido y su inversa solo dicen que se borró (esta operación
+-- no guarda su salud; la de operaciones anteriores la limpia el barrido de los trozos 35 y 36).
 --
 -- Clientes viejos (la app de main sigue guardando data.members con save_household_state): hasta aplicarla,
 -- el disparador copia como hoy. Aplicada, nadie copia ya data.members a persona: lo que guarde una app
@@ -174,7 +178,12 @@ begin
                                 estado, pedido, pedida_at)
   values (v_casa, v_clave, p_operacion->>'accion', v_autor, v_canal,
           p_operacion->>'ref_tipo', p_operacion->>'ref_id', 'pendiente',
-          jsonb_build_object('personas', v_personas, 'origen', v_origen)
+          -- De quien se borra, el pedido solo dice que se borra (sin su salud, aunque la tubería mandara más).
+          jsonb_build_object('personas', coalesce((select jsonb_agg(case when x.value->'borrar' = 'true'::jsonb
+                                                       then jsonb_build_object('id', x.value->'id', 'borrar', true) else x.value end
+                                                       order by x.ordinality)
+                                                  from jsonb_array_elements(v_personas) with ordinality x), '[]'::jsonb),
+                             'origen', v_origen)
             || case when p_operacion ? 'grupos' then jsonb_build_object('grupos', p_operacion->'grupos') else '{}'::jsonb end,
           least(coalesce((p_operacion->>'pedida_at')::timestamptz, now()), now()))
   on conflict (household_id, clave) do nothing
