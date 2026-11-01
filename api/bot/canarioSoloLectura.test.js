@@ -23,7 +23,9 @@ beforeEach(() => {
   vi.stubGlobal("fetch", vi.fn(async (url, o = {}) => {
     const ruta = new URL(url).pathname;
     if ((o.method ?? "GET") !== "GET") escrituras.push(`${o.method} ${ruta}`);
-    const filas = ruta.endsWith("/household_state") ? [{ state: { data: {} }, bot_rev: 0, updated_at: null }] : [];
+    // La familia sale de sus filas (personas_de_casa, 0108): aquí, una casa sin nadie.
+    const filas = ruta.endsWith("/household_state") ? [{ state: { data: {} }, bot_rev: 0, updated_at: null }]
+      : ruta.endsWith("/rpc/personas_de_casa") ? { v: 1, personas: [], grupos: [] } : [];
     return { ok: true, status: 200, text: async () => JSON.stringify(filas) };
   }));
 });
@@ -47,7 +49,8 @@ describe("canario en solo lectura", () => {
 
   it("dentro, la misma búsqueda no escribe nada y el registro se calla", async () => {
     const { negadas, calladas } = await enSoloLectura(buscar);
-    expect(escrituras).toEqual([]);
+    // Solo sale la lectura de la familia, que va por POST como toda función de la base.
+    expect(escrituras).toEqual(["POST /rest/v1/rpc/personas_de_casa"]);
     expect(negadas).toEqual([]);
     expect(calladas).toBeGreaterThanOrEqual(1);
   });
@@ -57,8 +60,9 @@ describe("canario en solo lectura", () => {
       await expect(insert("household_state", [{}])).rejects.toMatchObject({ soloLectura: true });
       await expect(rpc("bot_save_casa", {})).rejects.toMatchObject({ soloLectura: true });
       await rpc("ficha_casa", {});
+      await rpc("personas_de_casa", {});
     });
     expect(negadas).toEqual(["household_state", "bot_save_casa"]);
-    expect(escrituras).toEqual(["POST /rest/v1/rpc/ficha_casa"]);
+    expect(escrituras).toEqual(["POST /rest/v1/rpc/ficha_casa", "POST /rest/v1/rpc/personas_de_casa"]);
   });
 });

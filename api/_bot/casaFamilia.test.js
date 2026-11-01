@@ -26,7 +26,8 @@ const HECHA = { operacion_id: "op1", estado: "hecha", repetida: false, hecho: []
 let llamadas;
 let respuestas;
 const responde = (patron, r) => respuestas.unshift([patron, r]);
-const escrituras = () => llamadas.filter((l) => l.metodo !== "GET" && !/bot_deshacer/.test(l.ruta));
+// Lo que escribe: personas_de_casa es una lectura aunque vaya por POST (las RPC van todas así).
+const escrituras = () => llamadas.filter((l) => l.metodo !== "GET" && !/bot_deshacer|personas_de_casa/.test(l.ruta));
 beforeEach(() => {
   vi.stubEnv("SUPABASE_URL", "https://base.invalid");
   vi.stubEnv("VITE_SUPABASE_URL", "https://base.invalid");

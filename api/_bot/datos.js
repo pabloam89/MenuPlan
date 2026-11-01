@@ -14,7 +14,7 @@
 import { rpc } from "./db.js";
 import { motivoDe } from "./avisar.js";
 import { operar, operarPersonas, deshacer } from "../../src/lib/operaciones/tuberia.js";
-import { membersDeFilas, FamiliaSinLeer } from "../../src/lib/personas.js";
+import { membersDeFilas, FamiliaSinLeer, RPC_FAMILIA } from "../../src/lib/personas.js";
 import { FALLO_DATO, MOTIVO_FALLO } from "../../src/lib/vocabularios.js";
 
 /**
@@ -53,8 +53,7 @@ export const escribirDato = (pedido, { papel }) => operar(pedido, { papel, rpc, 
  */
 export const escribirPersonas = (pedido, { papel }) => operarPersonas(pedido, { papel, rpc, falloDeError });
 
-/** La RPC que lee la familia de una casa (0108). */
-export const RPC_FAMILIA = "personas_de_casa";
+export { RPC_FAMILIA };
 
 /**
  * La familia de una casa, de sus filas (personas_de_casa, 0108), en la forma de data.members y data.groups.

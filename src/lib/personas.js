@@ -20,6 +20,9 @@
  * el trozo 11.
  */
 
+/** La RPC que lee la familia de una casa (0108); su respuesta la entiende membersDeFilas. */
+export const RPC_FAMILIA = "personas_de_casa";
+
 /** Cada clave de un comensal con columna propia en `persona`, y su columna. */
 export const COLUMNA_DE_MIEMBRO = Object.freeze({
   name: "nombre", age: "edad", homeRole: "rol_hogar", alergiasRevisadas: "alergias_revisadas",
