@@ -182,6 +182,9 @@ describe("la carga de la casa", () => {
     expect(cargaSinSeguir({ soloNube: true, remoteState: { error: true }, cargaFamilia: { modo: MODO_FAMILIA.FILAS } })).toBe(true);
     expect(cargaSinSeguir({ soloNube: false, remoteState: { error: true }, cargaFamilia: { modo: MODO_FAMILIA.FILAS } })).toBe(false);
     expect(cargaSinSeguir({ soloNube: true, remoteState: {}, cargaFamilia: null })).toBe(false);
+    // Los datos de la casa con sobre (casaDatos.js): sin leerlos, tampoco.
+    expect(cargaSinSeguir({ soloNube: false, remoteState: {}, cargaFamilia: { modo: MODO_FAMILIA.FILAS }, cargaCasa: { error: true } })).toBe(true);
+    expect(cargaSinSeguir({ soloNube: false, remoteState: {}, cargaFamilia: { modo: MODO_FAMILIA.FILAS }, cargaCasa: { valores: {} } })).toBe(false);
   });
 });
 
@@ -231,8 +234,8 @@ describe("App.jsx carga y guarda por aquí", async () => {
 
   it("la carga lee la familia y se para con cargaSinSeguir; los dos guardados, con guardarFamiliaYDocumento y sin la familia en el documento", () => {
     expect(app.slice(app.indexOf("const [remoteState, cargaFamilia"), app.indexOf("loadRecipeVotes(user.id)"))).toContain("leerFamiliaDeCasa(householdId)");
-    expect(app).toContain("if (cargaSinSeguir({ soloNube, remoteState, cargaFamilia })) {");
+    expect(app).toContain("if (cargaSinSeguir({ soloNube, remoteState, cargaFamilia, cargaCasa })) {");
     expect(app.match(/guardarFamiliaYDocumento\(\{/g)).toHaveLength(2);
-    expect(app.match(/snapshotDeCasa\(\{[^}]*\}, familia\?\.modo\)/g)).toHaveLength(2);
+    expect(app.match(/snapshotDeCasa\(\{[^}]*\}, familia\?\.modo, casaDatos\?\.carga\)/g)).toHaveLength(2);
   });
 });
