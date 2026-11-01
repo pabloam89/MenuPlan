@@ -292,3 +292,74 @@ describe("api/operacion.js: un cambio de la familia (trozo 10) va a escribir_per
     expect(llamadas.filter((l) => DEL_DOCUMENTO.test(l.ruta))).toEqual([]);
   });
 });
+
+describe("api/operacion.js: la app lee los datos de la ficha Casa (trozo 12)", () => {
+  const DATO_CASA = { campo: "wantsPriceEstimates", sujeto: { tipo: "casa", id: null }, estado: "dicho", valor: true, origen: "dicho" };
+  const COMUN = { casa: { id: CASA, rev: 3 }, personas: [], faltan: [], tareas: [], callados: [] };
+  const ALERGIAS = { campo: "alergias", sujeto: { tipo: "persona", id: "p1" }, estado: "vacio", valor: null, origen: null };
+  const FICHA_V2 = { v: 2, ...COMUN, fichas: { casa: [DATO_CASA], persona: [ALERGIAS] } };
+  async function leerGet({ token = "tok", casa = CASA } = {}) {
+    const res = resFalso();
+    await handler({ method: "GET", headers: { host: "prueba.invalid", ...(token ? { authorization: `Bearer ${token}` } : {}) }, query: { casa } }, res);
+    return res;
+  }
+  beforeEach(() => {
+    responde(/^\/auth\/v1\/user/, { status: 200, cuerpo: { id: "u1" } });
+  });
+
+  it("quien es de la casa (también un lector) recibe solo la ficha Casa de ficha_casa v2", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "viewer" }] });
+    responde(/rpc\/ficha_casa/, { status: 200, cuerpo: FICHA_V2 });
+    const res = await leerGet();
+    expect(res.codigo).toBe(200);
+    expect(res.body).toEqual({ v: 2, datos: [DATO_CASA] });
+    expect(llamadas.find((l) => l.ruta.includes("ficha_casa")).cuerpo).toMatchObject({ p_casa: CASA, p_usuario: "u1", p_canal: "app" });
+  });
+
+  it("con ficha_casa v1 (0107 sin aplicar), datos null: la app sigue con el documento", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
+    responde(/rpc\/ficha_casa/, { status: 200, cuerpo: { v: 1, ...COMUN } });
+    expect((await leerGet()).body).toEqual({ v: 1, datos: null });
+  });
+
+  it("sin la 0112, la v2 no trae la ficha Casa (agrupa por ficha): datos vacíos, que es verdad", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
+    responde(/rpc\/ficha_casa/, { status: 200, cuerpo: { ...FICHA_V2, fichas: { persona: [] } } });
+    expect((await leerGet()).body).toEqual({ v: 2, datos: [] });
+  });
+
+  it("una forma que no conoce (otra versión, sin fichas, nada) no es una casa vacía: 503 y al log", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    for (const cuerpo of [{ v: 3, fichas: {} }, { v: 2 }, { v: 2, fichas: [] }, null]) {
+      respuestas = respuestas.filter(([p]) => !p.test("/rest/v1/rpc/ficha_casa"));
+      responde(/rpc\/ficha_casa/, { status: 200, cuerpo });
+      expect((await leerGet()).codigo, JSON.stringify(cuerpo)).toBe(503);
+    }
+    expect(log.mock.calls.filter((a) => String(a[0]).includes("casa_sin_leer"))).toHaveLength(4);
+  });
+
+  it("quien no es de la casa no la lee, y la ficha ni se pide", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [] });
+    const res = await leerGet();
+    expect(res.codigo).toBe(403);
+    expect(res.body).toEqual({ fallo: FALLO_DATO.SIN_PERMISO });
+    expect(llamadas.filter((l) => l.ruta.includes("rpc/"))).toEqual([]);
+  });
+
+  it("sin sesión 401, y una casa que no es un uuid 400, sin pedir la ficha", async () => {
+    expect((await leerGet({ token: null })).codigo).toBe(401);
+    expect((await leerGet({ casa: "x" })).codigo).toBe(400);
+    expect(llamadas.filter((l) => l.ruta.includes("rpc/"))).toEqual([]);
+  });
+
+  it("si la base falla, no contesta una casa vacía: 503 y la línea casa_sin_leer en el log", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
+    responde(/rpc\/ficha_casa/, { status: 500, cuerpo: { message: "se cayó" } });
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    const res = await leerGet();
+    expect(res.codigo).toBe(503);
+    expect(res.body).toEqual({ fallo: FALLO_DATO.SERVIDOR });
+    expect(log.mock.calls.map((a) => a[0]).filter((l) => String(l).includes("casa_sin_leer"))).toHaveLength(1);
+  });
+});
