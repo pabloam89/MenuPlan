@@ -16,8 +16,6 @@
  *
  * Lo que un comensal lleva y no tiene columna (dislikes, alergiasOrigen…) va y
  * vuelve en `resto`, entero. Los invitados de las reglas no son personas.
- * Sustituye a personasTabla.js (el gemelo del trigger de la 0089), que retira
- * el trozo 11.
  */
 
 /** La RPC que lee la familia de una casa (0108); su respuesta la entiende membersDeFilas. */
@@ -32,7 +30,7 @@ export const COLUMNA_DE_MIEMBRO = Object.freeze({
 
 /** Las claves de un comensal que van a las tablas de salud (o se calculan de ellas), no a `resto`. */
 const DE_SALUD = ["allergies", "intolerances", "dietaryStates", "dietaryStatesMeta", "healthProfiles", "healthProfile"];
-/** Las claves de un comensal con columna o tabla propia; lo demás va a `resto`. Las lee también personasTabla.js. */
+/** Las claves de un comensal con columna o tabla propia; lo demás va a `resto`. */
 export const CAMPOS_CON_COLUMNA = new Set(["id", ...Object.keys(COLUMNA_DE_MIEMBRO), ...DE_SALUD]);
 
 /** Los mismos topes que los CHECK de persona (0079): fuera de ellos, null (y un aviso). */
