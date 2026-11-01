@@ -495,3 +495,16 @@ export function vecesDe(c, { min = 0, max = 7 } = {}) {
   const n = c.op === "<" ? c.n - 1 : c.op === ">" ? c.n + 1 : c.n;
   return Math.max(min, Math.min(max, n));
 }
+
+/**
+ * Lo que fuera de este fichero sería un analizador propio montado con sus
+ * piezas (trozo 27 de #1037): un fichero que usa `dia` y `fecha` decide por
+ * su cuenta entre día de la semana y fecha; uno que usa `candidatas` redacta
+ * su propia duda de persona. Texto de expresión regular, válido para git grep -E
+ * (scripts/lib/cifrasModelo.js) y para new RegExp (interpreteUnico.test.js).
+ */
+export const PIEZAS_FUERA = Object.freeze({
+  dia: "(^|[^A-Za-z_])diaDeSemana\\(",
+  fecha: "(^|[^A-Za-z_])(fechaDe|fechaConMenu)\\(",
+  candidatas: "[A-Za-z_]\\??\\.candidatas([^A-Za-z_]|$)",
+});
