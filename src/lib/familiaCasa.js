@@ -11,7 +11,7 @@ import { apiUrl } from "./apiUrl.js";
 import * as ids from "./ids.js";
 import { FALLO_DATO } from "./vocabularios.js";
 import { esSinFuncion } from "./postgrest.js";
-import { membersDeFilas, cambiosDePersonas, conOrdenDeTodos, textosDeAvisos, FamiliaSinLeer, RPC_FAMILIA } from "./personas.js";
+import { membersDeFilas, cambiosDePersonas, conOrdenDeTodos, textosDeAvisos, FamiliaSinLeer, RPC_FAMILIA, revSiguiente } from "./personas.js";
 
 /** De dónde sale la familia en esta carga: de sus filas, o del documento (base sin la 0108). */
 export const MODO_FAMILIA = Object.freeze({ FILAS: "filas", DOCUMENTO: "documento" });
@@ -129,7 +129,7 @@ export function familiaDeCasa({ casa, familia, enviar = enviarFamilia }) {
 export const conVersionDeFamilia = (guardar) => async (rev) => {
   const r = await guardar();
   if (!r.ok || !r.enviado) return r;
-  const nueva = r.rev == null ? null : Number(r.rev);
-  if (nueva != null && rev != null && nueva === rev + 1) return { ...r, botRev: nueva };
+  const nueva = revSiguiente(rev, r.rev);
+  if (nueva != null) return { ...r, botRev: nueva };
   return { ...r, conflict: true };
 };
