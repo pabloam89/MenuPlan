@@ -88,6 +88,11 @@ describe("enviar un cambio a api/operacion.js", () => {
     expect((await enviarFamilia({ casa: CASA, personas: [] }, { token, fetcher: respuesta(200, { guardado: false, fallo: FALLO_DATO.SIN_PERMISO }) })).ok).toBe(false);
   });
 
+  it("un error que no es de red no se cuenta como sin red: sube a quien guarda", async () => {
+    const roto = vi.fn(async () => { throw new RangeError("un fallo del código"); });
+    await expect(enviarFamilia({ casa: CASA, personas: [] }, { token, fetcher: roto })).rejects.toThrow(RangeError);
+  });
+
   it("un 200 sin JSON (la página de un proxy) o sin «guardado» no se da por guardado", async () => {
     vi.spyOn(console, "warn").mockImplementation(() => {});
     const sinJson = vi.fn(async () => new Response("<html>un proxy</html>", { status: 200 }));
