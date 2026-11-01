@@ -21,6 +21,7 @@ import { conCasa } from "./casa.js";
 import { motor, normal, DIAS, DIA_LARGO } from "./menu.js";
 import { buscarPersona, dudaDePersona, personasDe, diasDeLaSemana, diaDe, fechaDe, lunesDe, grupoDePersonas, miembrosDeGrupo, cantidadDe, vecesDe } from "./interprete.js";
 import { ETAPA_BEBE_INFO } from "../../src/lib/babyStage.js";
+import { sinUseHomeStock } from "../../src/lib/modoDespensa.js";
 import { registrar, EMBUDO, duenoDe, cimientosCompletos } from "./embudo.js";
 import { cerrarPorEstado, abrirPreguntaDeEstado } from "./tareas.js";
 import * as ids from "../../src/lib/ids.js";
@@ -417,14 +418,14 @@ export const MODOS_DESPENSA = {
 
 /**
  * El paso «¿aprovechamos lo de casa?» del asistente (OnboardingPantryMode),
- * con las mismas tres claves: el modo, que se eligió a propósito, y el
- * booleano viejo que va a la par. Pura, para el test.
+ * con las mismas dos claves: el modo y que se eligió a propósito. El booleano
+ * viejo `useHomeStock` ya no se guarda (es usaDespensa, src/lib/modoDespensa.js)
+ * y se quita si una casa vieja lo trae. Pura, para el test.
  */
 export function aplicarModoDespensa(data, modo) {
   if (!MODOS_DESPENSA[modo]) return { texto: `modo tiene que ser ${Object.keys(MODOS_DESPENSA).join(" o ")}.` };
   return {
-    // useHomeStock va a la par, como en la app (OnboardingPantryMode): off ⇄ false.
-    data: { ...data, pantryMode: modo, pantryModeSet: true, useHomeStock: modo !== "off" },
+    data: { ...sinUseHomeStock(data), pantryMode: modo, pantryModeSet: true },
     texto: `Guardado: el menú se hará ${MODOS_DESPENSA[modo]}. Se aplicará al generar el próximo menú.`,
   };
 }
