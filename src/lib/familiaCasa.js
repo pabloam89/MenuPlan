@@ -67,6 +67,7 @@ async function tokenDeSesion() {
  * tubería, o `{ ok: false, fallo }` (FALLOS_DATO).
  */
 export async function enviarFamilia({ casa, personas, grupos }, { token = tokenDeSesion, fetcher = fetch } = {}) {
+  // a propósito: una sesión que no se puede leer es no tener sesión (sin_sesion), y quien llama lo dice
   const t = await token().catch(() => null);
   if (!t) return { ok: false, fallo: FALLO_DATO.SIN_SESION };
   let res;
@@ -106,6 +107,7 @@ export function familiaDeCasa({ casa, familia, enviar = enviarFamilia }) {
       if (r.ok) conocida = ahora;
       return { ...r, enviado: true, avisos: textosDeAvisos(avisos) };
     });
+    // a propósito: el fallo ya lo recibe quien llamó (paso); la cola solo no se rompe para el siguiente
     cola = paso.catch(() => {});
     return paso;
   };

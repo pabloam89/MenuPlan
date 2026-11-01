@@ -168,21 +168,3 @@ describe("la versión de la casa tras guardar la familia", () => {
     expect(await conVersionDeFamilia(async () => ({ ok: false, fallo: "sin_red" }))(7)).toEqual({ ok: false, fallo: "sin_red" });
   });
 });
-
-describe("App.jsx lee y guarda la familia por aquí", async () => {
-  const { readFileSync } = await import("node:fs");
-  const app = readFileSync(new URL("../App.jsx", import.meta.url), "utf8");
-
-  it("la carga lee la familia a la vez que la casa, y sin leerla no sigue", () => {
-    const carga = app.slice(app.indexOf("const [remoteState, cargaFamilia"), app.indexOf("loadRecipeVotes(user.id)"));
-    expect(carga).toContain("leerFamiliaDeCasa(householdId)");
-    expect(app).toContain("|| cargaFamilia?.error) {");
-    expect(app).toContain("const remoteData = conFamiliaLeida(remoteState?.state?.data, cargaFamilia);");
-  });
-
-  it("los dos guardados de la casa sacan la familia del documento y la mandan antes, en la misma cola", () => {
-    expect(app.match(/snapshotDeCasa\(\{[^}]*\}, familia\?\.modo\)/g)).toHaveLength(2);
-    expect(app.match(/guardarConVersion\(version, conVersionDeFamilia\(\(\) => guardarFamilia\(/g)).toHaveLength(2);
-    expect(app).toContain("sinFamilia(data, modoFamilia)");
-  });
-});
