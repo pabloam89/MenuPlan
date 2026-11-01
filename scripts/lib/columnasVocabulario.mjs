@@ -54,6 +54,8 @@ export const COLUMNAS_VOCABULARIO = Object.freeze({
   "operacion.canal": { lista: "canales_dato", comun: true },
   "operacion.ref_tipo": { lista: "refs_operacion", comun: true },
   "operacion.estado": { lista: "estados_operacion", comun: true },
+  // El tipo de grupo (0108): lo escribe solo escribir_persona, desde el jsonb que le pasa la tubería (src/lib/operaciones/).
+  "grupo.tipo": { lista: "tipos_grupo", comun: true },
 });
 
 /**
@@ -71,9 +73,10 @@ export const ESCRITORES_SQL = Object.freeze({
   "registro_campo.clase": "el INSERT de la 0105, generado de REGISTRO_CAMPOS (registroCampos.test.js lo compara); ningún JS escribe la tabla",
   "registro_campo.escribe": "el INSERT de la 0105, generado de REGISTRO_CAMPOS (registroCampos.test.js lo compara); ningún JS escribe la tabla",
   "registro_campo.choque": "el INSERT de la 0105, generado de REGISTRO_CAMPOS (registroCampos.test.js lo compara); ningún JS escribe la tabla",
-  "sobre.origen": "aplicar_operacion (0106) escribe el origen de cada dato de p_operacion; su único llamador es escribirDato (api/_bot/datos.js, trozo 8), que lo pasa por paraEscribir (src/lib/escribirDato.js)",
-  "sobre.canal": "aplicar_operacion (0106) escribe el canal de p_operacion; su único llamador es escribirDato (api/_bot/datos.js, trozo 8), que lo pasa por paraEscribir (src/lib/escribirDato.js)",
-  "operacion.canal": "aplicar_operacion (0106) inserta el canal de p_operacion; su único llamador es escribirDato (api/_bot/datos.js, trozo 8), que lo pasa por paraEscribir (src/lib/escribirDato.js)",
-  "operacion.ref_tipo": "aplicar_operacion (0106) inserta el ref_tipo de p_operacion; su único llamador es escribirDato (api/_bot/datos.js, trozo 8), que lo pasa por paraEscribir (src/lib/escribirDato.js)",
-  "operacion.estado": "aplicar_operacion (0106) escribe pendiente, hecha o rechazada (de ESTADOS_OPERACION; datoConSobre.test.js lo comprueba); ningún JS escribe la tabla",
+  "sobre.origen": "aplicar_operacion (0106) escribe el origen de cada dato de p_operacion; su único llamador es escribirDato (api/_bot/datos.js, trozo 8), que lo pasa por paraEscribir (src/lib/escribirDato.js); escribir_persona (0108) escribe el de su operación, que la propia función limita a dicho, delegado o no_quiere_decirlo",
+  "sobre.canal": "aplicar_operacion (0106) escribe el canal de p_operacion; su único llamador es escribirDato (api/_bot/datos.js, trozo 8), que lo pasa por paraEscribir (src/lib/escribirDato.js); escribir_persona (0108) escribe el canal de su operación, que le pasa la tubería (src/lib/operaciones/)",
+  "operacion.canal": "aplicar_operacion (0106) inserta el canal de p_operacion; su único llamador es escribirDato (api/_bot/datos.js, trozo 8), que lo pasa por paraEscribir (src/lib/escribirDato.js); escribir_persona (0108) inserta el de su operación, que le pasa la tubería (src/lib/operaciones/)",
+  "operacion.ref_tipo": "aplicar_operacion (0106) inserta el ref_tipo de p_operacion; su único llamador es escribirDato (api/_bot/datos.js, trozo 8), que lo pasa por paraEscribir (src/lib/escribirDato.js); escribir_persona (0108) inserta el de su operación, que le pasa la tubería (src/lib/operaciones/)",
+  "grupo.tipo": "escribir_persona (0108) inserta el tipo de cada grupo de su operación; se lo pasa la tubería (src/lib/operaciones/), que lo saca de data.groups ya escrito por groups.js con TIPOS_GRUPO",
+  "operacion.estado": "aplicar_operacion (0106) escribe pendiente, hecha o rechazada (de ESTADOS_OPERACION; datoConSobre.test.js lo comprueba), y escribir_persona (0108) pendiente y hecha (personaFuente.test.js); ningún JS escribe la tabla",
 });
