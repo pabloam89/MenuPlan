@@ -53,3 +53,22 @@ describe("¿guardó algo?", () => {
     expect(b.escribio).toBe(false);
   });
 });
+
+describe("una herramienta que escribe se apunta en la operación al arrancar (trozo 28 de #1037)", () => {
+  // Lo mira turnos.js conVigia: con una escritura ya arrancada, aunque no haya
+  // llegado a la base, otro mensaje del chat no corta el turno.
+  it("al arrancar, antes de llegar a la base; una lectura no cuenta", async () => {
+    const { ejecutar } = await import("./agente.js");
+    const { conOperacion, operacion } = await import("./operacion.js");
+    const visto = {};
+    const apuntar = { name: "anadir_compra", run: async () => { visto.escribiendo = operacion().escribiendo; return "Apuntado."; } };
+    const leer = { name: "ver_menu", run: async () => { visto.leyendo = operacion().escribiendo; return "Lunes: lentejas."; } };
+    const vuelta = async (x) => {
+      await x.tools.find((t) => t.name === "ver_menu").run({});
+      await x.tools.find((t) => t.name === "anadir_compra").run({});
+      return { dicho: "Hecho.", uso: {} };
+    };
+    await conOperacion({ chat: "1" }, () => ejecutar({ entrada: "apunta leche", tools: [leer, apuntar], modelos: ["m"], vuelta }));
+    expect(visto).toEqual({ leyendo: 0, escribiendo: 1 });
+  });
+});
