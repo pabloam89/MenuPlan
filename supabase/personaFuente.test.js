@@ -80,6 +80,12 @@ describe("0108: escribir_persona", () => {
     expect(ordenado(campos)).toEqual(ordenado(conColumna));
   });
 
+  it("un grupo sin su lista de personas se rechaza, no se lee como «nadie» (que vaciaría el grupo)", () => {
+    expect(f).toMatch(/or jsonb_typeof\(x\.value->'personas'\) is distinct from 'array'/);
+    expect(f).toMatch(/cross join lateral jsonb_array_elements_text\(x\.value->'personas'\) m;/);
+    expect(f).not.toMatch(/else '\[\]'::jsonb end\) m;/);
+  });
+
   it("solo borra a una persona cuando se pide (borrar), nunca para reinsertarla", () => {
     const borrados = [...f.matchAll(/delete from public\.persona where/g)];
     expect(borrados).toHaveLength(1);
