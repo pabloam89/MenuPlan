@@ -26,6 +26,7 @@
  */
 import { KITCHEN_TOOL_IDS } from "./electrodomesticos.js";
 import { COMIDAS_PLANIFICABLES } from "./comidas.js";
+import { SUPERMERCADOS } from "./supermercados.js";
 
 /** Días de la semana tal como se guardan (claves del plan, active_days de 0086). En NFC. */
 export const DIAS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
@@ -91,6 +92,27 @@ export const ETAPA_BEBE = ["cremas", "mixto", "solidos"];
 
 /** Todos comen lo mismo o menús separados. */
 export const MODELO_MENU = ["same", "separate"];
+
+/**
+ * La vía abierta de una lista cerrada de la casa: lo que no casa con la lista se
+ * guarda como OTRO y su nombre va a la nota del campo (kitchenToolsNota,
+ * supermarketsNota en registroFicha.js). Con mayúscula, como el resto de esas
+ * dos listas y como ya lo guarda el Onboarding en supermarkets.
+ */
+export const OTRO = "Otro";
+
+/**
+ * Los aparatos que una casa declara (kitchenTools, registro_campo): APARATOS y
+ * OTRO. Lista aparte porque APARATOS es también el CHECK de
+ * user_recipes.required_appliances, y una receta no exige «otro» aparato.
+ */
+export const APARATOS_CASA = [...APARATOS, OTRO];
+
+/** Dónde compra la casa (supermarkets, registro_campo): los de supermercados.js y OTRO. */
+export const SUPERMERCADOS_CASA = [...SUPERMERCADOS, OTRO];
+
+/** Cómo usa el menú la despensa (pantryMode): los modos que entiende el motor (modoDespensa.js los lee de aquí). */
+export const MODOS_DESPENSA = ["strict", "only", "prefer", "off"];
 
 /** De dónde sale un dato de la ficha (registro «sobre»). */
 export const ORIGEN_DATO = ["dicho", "supuesto", "visto", "derivado", "por_defecto", "delegado", "no_quiere_decirlo"];
@@ -377,6 +399,9 @@ export const VOCABULARIOS = Object.freeze({
   usos_receta: USOS_RECETA,
   carpetas_fijas: CARPETAS_FIJAS,
   aparatos: APARATOS,
+  aparatos_casa: APARATOS_CASA,
+  supermercados: SUPERMERCADOS_CASA,
+  modo_despensa: MODOS_DESPENSA,
   tipos_grupo: TIPOS_GRUPO,
   canales: CANALES,
   idiomas: IDIOMAS,

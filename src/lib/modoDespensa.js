@@ -7,9 +7,10 @@
  *
  * Sin import.meta ni Supabase: el servidor lo importa tal cual.
  */
+import { MODOS_DESPENSA } from "./vocabularios.js";
 
-/** Los modos que entiende el motor (aiPlanner.js, buildUserMessage). */
-export const MODOS_DESPENSA_MOTOR = Object.freeze(["strict", "only", "prefer", "off"]);
+/** Los modos que entiende el motor (aiPlanner.js, buildUserMessage): el vocabulario modo_despensa de pantryMode. */
+export const MODOS_DESPENSA_MOTOR = MODOS_DESPENSA;
 
 /** Pura. El modo con que se genera: el guardado si es uno del motor; si no, "off" (no se asume nada). */
 export function modoDespensaAlGenerar(data) {

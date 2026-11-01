@@ -12,6 +12,8 @@ import { COLUMNAS_VOCABULARIO, ESCRITORES_SQL } from "../../scripts/lib/columnas
 import { USAGE_TAGS, USAGE_TAG_IDS } from "./userRecipes.js";
 import { BUILT_IN_COLLECTIONS, BUILT_IN_IDS } from "./recipeCollections.js";
 import { KITCHEN_TOOL_IDS } from "./electrodomesticos.js";
+import { SUPERMERCADOS } from "./supermercados.js";
+import { MODOS_DESPENSA_MOTOR } from "./modoDespensa.js";
 import { tipoDeGrupo } from "./groups.js";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -124,6 +126,10 @@ describe("vocabularios: una lista, un sitio", () => {
     expect(BUILT_IN_IDS).toBe(VOCABULARIOS.carpetas_fijas);
     expect(BUILT_IN_COLLECTIONS.map((c) => c.id)).toEqual(VOCABULARIOS.carpetas_fijas);
     expect(VOCABULARIOS.aparatos).toBe(KITCHEN_TOOL_IDS);
+    // Los de la ficha Casa (trozo 12): el modo de la despensa es el del motor, y las dos listas de la casa son la suya más OTRO.
+    expect(VOCABULARIOS.modo_despensa).toBe(MODOS_DESPENSA_MOTOR);
+    expect(VOCABULARIOS.aparatos_casa).toEqual([...KITCHEN_TOOL_IDS, V.OTRO]);
+    expect(VOCABULARIOS.supermercados).toEqual([...SUPERMERCADOS, V.OTRO]);
   });
 
   it("los tipos de grupo que deduce groups.js están en la lista", () => {
