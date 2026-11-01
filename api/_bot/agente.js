@@ -618,16 +618,16 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
       }, ["campo", "valor"]),
       run: (args) => descartarSupuesto(householdId, args),
     }),
-    herramienta({ capacidades: ["primero_segundo", "nivel_cocina", "aparatos"], lee: ["kitchenTools", "cookTime"], escribe: ["meals", "mealStructure", "mealStructureByGroup", "cookLevel", "cookLevelManual", "cookTime", "kitchenTools", "etapaBebe"], lector: false, soloLectura: false, pantalla: null }, {
+    herramienta({ capacidades: ["primero_segundo", "nivel_cocina", "aparatos", "aparato_otro"], lee: ["kitchenTools", "kitchenToolsNota", "cookTime"], escribe: ["meals", "mealStructure", "mealStructureByGroup", "cookLevel", "cookLevelManual", "cookTime", "kitchenTools", "kitchenToolsNota", "etapaBebe"], lector: false, soloLectura: false, pantalla: null }, {
       name: "ajustar_cocina",
-      description: `Cómo se cocina en casa: estructura de la comida (primero_segundo = primero y segundo; 1_plato = plato único), esfuerzo (basic/normal/pro), tiempo por día (con_prisa/normal/con_tiempo/depende) y aparatos (${TRASTOS.join(", ")}). «Tenemos airfryer» es trastosMas [Airfryer]; «ya no tenemos horno», trastosMenos [Horno]: los demás se quedan. trastos (la lista entera) SOLO cuando dicen todo lo que tienen, porque sustituye. Cocinar en tanda va por pedir_tanda.`,
+      description: `Cómo se cocina en casa: estructura de la comida (primero_segundo = primero y segundo; 1_plato = plato único), esfuerzo (basic/normal/pro), tiempo por día (con_prisa/normal/con_tiempo/depende) y aparatos (${TRASTOS.join(", ")}). «Tenemos airfryer» es trastosMas [Airfryer]; «ya no tenemos horno», trastosMenos [Horno]: los demás se quedan. Uno que no está en la lista («tenemos plancha»), trastoOtro. Cocinar en tanda va por pedir_tanda.`,
       inputSchema: obj({
         estructura: esquemaDato("mealStructure"),
         esfuerzo: esquemaDato("cookLevel"),
         tiempo: { type: "string", enum: RITMO_COCINA },
-        trastos: esquemaDato("kitchenTools", { descripcion: "La lista ENTERA: sustituye a la guardada." }),
         trastosMas: esquemaDato("kitchenTools", { descripcion: "Aparatos que se añaden." }),
         trastosMenos: esquemaDato("kitchenTools", { descripcion: "Aparatos que ya no tienen." }),
+        trastoOtro: esquemaDato("kitchenToolsNota", { descripcion: "Un aparato que no está en la lista, como lo digan: se suma a los de fuera ya apuntados. Vacío (\"\") si ya no tienen los de fuera." }),
         comidas: { type: "array", items: { type: "string", enum: COMIDAS_PRINCIPALES }, description: "Qué comidas se planifican." },
         etapaBebe: esquemaDato("etapaBebe", { descripcion: `Qué come el bebé: ${ETAPA_BEBE.map((e) => `${e} (${ETAPA_BEBE_INFO[e].label.toLowerCase()}: ${ETAPA_BEBE_INFO[e].desc.toLowerCase()})`).join(", ")}. «Come de todo» o «ya come de todo» es solidos; «un poco de cada» o «purés y algún trozo», mixto. Apúntalo en cuanto lo digan, antes de proponerle nada.` }),
       }),

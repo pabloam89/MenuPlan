@@ -84,8 +84,30 @@ describe("trastos y súper: sumar y quitar, no sustituir (#958)", () => {
     expect(datos().kitchenTools).toEqual(["Horno", "Thermomix", "Airfryer"]);
     await ajustarCocina("h", { trastosMenos: ["Horno"] });
     expect(datos().kitchenTools).toEqual(["Thermomix", "Airfryer"]);
-    await ajustarCocina("h", { trastos: ["Microondas"] });
-    expect(datos().kitchenTools).toEqual(["Microondas"]);
+  });
+  it("sin lista entera: un «trastos» que llegue no sustituye a los demás (#958 C)", async () => {
+    limpio();
+    const t = await ajustarCocina("h", { trastos: ["Microondas"] });
+    expect(t).toMatch(/nada que cambiar/);
+    expect(guardada).toBe(null);
+  });
+  it("«tenemos plancha» va como Otro con su nota, sin borrar los demás; otra se suma a la nota", async () => {
+    limpio();
+    const t = await ajustarCocina("h", { trastoOtro: "plancha" });
+    expect(datos()).toMatchObject({ kitchenTools: ["Horno", "Thermomix", "Otro"], kitchenToolsNota: "plancha" });
+    expect(t).toMatch(/trastos: Horno, Thermomix, plancha/);
+    await ajustarCocina("h", { trastoOtro: "Yogurtera", trastosMas: ["Airfryer"] });
+    expect(datos()).toMatchObject({ kitchenTools: ["Horno", "Thermomix", "Otro", "Airfryer"], kitchenToolsNota: "plancha, Yogurtera" });
+    await ajustarCocina("h", { trastoOtro: "Plancha" });
+    expect(datos().kitchenToolsNota).toBe("plancha, Yogurtera");
+  });
+  it("trastoOtro vacío quita «Otro» y su nota; sin «Otro» no se guarda nota", async () => {
+    limpio({ kitchenTools: ["Horno", "Otro"], kitchenToolsNota: "plancha" });
+    await ajustarCocina("h", { trastoOtro: "" });
+    expect(datos()).toMatchObject({ kitchenTools: ["Horno"], kitchenToolsNota: null });
+    limpio();
+    await ajustarCocina("h", { trastosMas: ["Airfryer"] });
+    expect("kitchenToolsNota" in datos()).toBe(false);
   });
   it("«también compramos en Lidl» no pierde Mercadona", () => {
     const r = aplicarCompra({ supermarkets: ["Mercadona"] }, { supermercadosMas: ["lidl"] });
