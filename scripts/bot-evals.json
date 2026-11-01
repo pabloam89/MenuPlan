@@ -1246,10 +1246,10 @@
         },
         {
           "role": "assistant",
-          "content": "✅ Apuntado: nada de coliflor. Lo tendré en cuenta en el próximo menú.\n\n[[Rehacer la del 26 oct]]"
+          "content": "✅ Apuntado: nada de coliflor. Lo tendré en cuenta en el próximo menú.\n\n[[Rehacer la del {lunes_siguiente}]]"
         }
       ],
-      "entrada": "Rehacer la del 26 oct",
+      "entrada": "Rehacer la del {lunes_siguiente}",
       "llama": [
         "generar_menu"
       ],
@@ -1279,10 +1279,10 @@
         },
         {
           "role": "assistant",
-          "content": "✅ Apuntado: nada de coliflor. Lo tendré en cuenta en el próximo menú.\n\n[[Rehacer la del 26 oct]]"
+          "content": "✅ Apuntado: nada de coliflor. Lo tendré en cuenta en el próximo menú.\n\n[[Rehacer la del {lunes_siguiente}]]"
         }
       ],
-      "entrada": "sí, rehaz la semana del 26 de octubre",
+      "entrada": "sí, rehaz la semana del {lunes_siguiente}",
       "llama": [
         "generar_menu"
       ],
