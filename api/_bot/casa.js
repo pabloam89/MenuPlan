@@ -180,7 +180,7 @@ export function conFamilia(state, { members, groups }) {
 }
 
 /** Pura. El documento con los datos con sobre leídos en `data` (lo que el documento aún guarde de ellos, fuera). */
-export function conDatosConSobre(state, conSobre) {
+function conDatosConSobre(state, conSobre) {
   if (!conSobre) return state;
   const valores = Object.fromEntries(Object.entries(conSobre).map(([campo, l]) => [campo, l.valor]));
   return { ...state, data: { ...(state?.data ?? {}), ...valores } };
@@ -190,7 +190,7 @@ export function conDatosConSobre(state, conSobre) {
  * Pura. Un estado para guardar sin los datos con sobre (no van al documento), y los que cambiaron respecto a los
  * leídos, como datos de escribirDato. Un escritor que no trae el campo no lo cambia.
  */
-export function separarConSobre(state, conSobre) {
+function separarConSobre(state, conSobre) {
   if (!state?.data || !conSobre) return { documento: state, cambios: [] };
   const data = { ...state.data };
   const cambios = [];
