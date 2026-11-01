@@ -15,7 +15,10 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { fallaCon } from "./avisar.js";
 import { select, insert, update, rpc, eq } from "./db.js";
-import { operacion, quienEscribe, TIPO_OPERACION, QUE_FUE } from "./operacion.js";
+import { operacion, quienEscribe, TIPO_OPERACION, QUE_FUE, autorDelTurno, avisarEnElChat, claveDeEscritura } from "./operacion.js";
+import { leerFamilia, escribirPersonas } from "./datos.js";
+import { cambiosDePersonas, conOrdenDeTodos, textosDeAvisos } from "../../src/lib/personas.js";
+import { CANAL_DATO, REF_OPERACION } from "../../src/lib/vocabularios.js";
 import { recetasPropiasDeCasa, quitarRecetaGuardada } from "./propias.js";
 import { menuActivoDe } from "../../src/lib/menuActivo.js";
 import { isoDeCasa } from "../../src/lib/dias.js";
@@ -100,7 +103,11 @@ async function leerCasa(householdId) {
   ]);
   if (!fila) return null;
 
-  const [activos, recetasPropias, deLaCasa] = await Promise.all([
+  // La familia, de sus filas (0108, trozo 10): el documento ya no la lleva. Sin poder leerla, leerFamilia lanza
+  // (FamiliaSinLeer, con `rpc_ausente` si falta la 0108) y la casa no se lee: con una familia a medias se
+  // generaría un menú sin las alergias, o se borraría a quien no salió.
+  const [familia, activos, recetasPropias, deLaCasa] = await Promise.all([
+    leerFamilia(householdId),
     select(
       "user_menus",
       `household_id=${eq(householdId)}&is_active=eq.true&order=updated_at.desc&limit=5`,
@@ -135,7 +142,11 @@ async function leerCasa(householdId) {
     householdId,
     botRev: Number(fila.bot_rev ?? 0),
     updatedAt: fila.updated_at,
-    state: fila.state ?? {},
+    // members y groups, los de las filas (en la forma de siempre, para sus lectores); lo que el documento aún
+    // guarde de antes del corte no se lee.
+    state: conFamilia(fila.state ?? {}, familia),
+    // La familia tal como se leyó: de ella sale lo que cambia al guardar (guardarCasa).
+    familia: structuredClone(familia),
     // Fuera de `state`: no se escriben de vuelta en household_state (propias.js).
     recetasPropias,
     deLaCasa,
@@ -157,27 +168,98 @@ async function leerCasa(householdId) {
 const ultimaEscritura = new Map();
 export const escribioDesde = (householdId, t) => (ultimaEscritura.get(householdId) ?? 0) >= t;
 
+/** El documento con la familia de las filas en data.members y data.groups (las de antes del corte, fuera). */
+export function conFamilia(state, { members, groups }) {
+  return { ...state, data: { ...(state?.data ?? {}), members, groups } };
+}
+
+/**
+ * Pura. Un estado para guardar, partido en lo que va al documento (sin members ni groups: la familia ya no vive
+ * ahí) y la familia de ahora, o null si el estado no la trae (un escritor que no toca la familia, o que no trae
+ * data). Si trae solo una de las dos listas, la otra es la leída.
+ */
+export function separarFamilia(state, leida) {
+  if (!state?.data) return { documento: state, familia: null };
+  const { members, groups, ...data } = state.data;
+  const trae = Array.isArray(members) || Array.isArray(groups);
+  return {
+    documento: { ...state, data },
+    familia: trae ? { members: Array.isArray(members) ? members : leida?.members, groups: Array.isArray(groups) ? groups : leida?.groups } : null,
+  };
+}
+
+/**
+ * Por qué no se puede escribir la familia en este turno, o null. Se mira ANTES de guardar nada: escribir_persona
+ * firma con una persona de la casa y sale de un mensaje; sin ellos no escribiría, y el documento quedaría a medias.
+ */
+function faltaParaFamilia(casa) {
+  const op = operacion();
+  if (!casa.familia) return "no tengo la familia leída de la base; no he cambiado nada";
+  if (!autorDelTurno()?.user_id) return "no sé qué persona de la casa lo pide (en un grupo, que lo diga una sola persona); no he cambiado nada";
+  if (!op?.mid) return "no sé de qué mensaje sale el cambio; no he cambiado nada";
+  return null;
+}
+
+/** Los cambios de la familia, por la tubería (escribir_persona). Lo que devuelve, en operarPersonas. */
+function escribirFamilia(casa, cambios) {
+  const op = operacion();
+  const autor = autorDelTurno();
+  const accion = op.herramienta ?? "guardar_casa";
+  return escribirPersonas({
+    casa: casa.householdId,
+    // El mismo mensaje, la misma herramienta y los mismos cambios: la misma clave, y un reintento sale `repetida`.
+    clave: claveDeEscritura(`familia:${accion}`, cambios),
+    accion,
+    canal: autor.canal ?? CANAL_DATO.TELEGRAM,
+    ref: { tipo: REF_OPERACION.MENSAJE, id: op.mid },
+    autor: { user_id: autor.user_id },
+    ...cambios,
+  }, { papel: autor.papel });
+}
+
 // `activar`: id de un menú de la casa que queda activo en la MISMA transacción
 // (0069). Generar y deshacer lo usan: o cambian el menú y la casa, o nada.
+// La familia (trozo 10) no va al documento: lo que cambió respecto a la leída va a escribir_persona, después del
+// documento (que es el que mira la versión: si choca, no se ha escrito nada y conCasa repite entero). Lo que no
+// viaja tal cual se dice en el chat (avisarEnElChat).
 export async function guardarCasa(casa, { state = null, semana = null, activar = null } = {}, { sinDeshacer = false } = {}) {
+  const { documento, familia } = separarFamilia(state, casa.familia);
+  let cambios = null;
+  if (familia) {
+    const c = cambiosDePersonas(casa.familia, familia);
+    for (const t of textosDeAvisos(c.avisos)) avisarEnElChat(t);
+    cambios = conOrdenDeTodos(c.cambios, casa.familia, familia);
+  }
+  const falta = cambios ? faltaParaFamilia(casa) : null;
+  if (falta) return { ok: false, error: falta };
+
   const week = semana && casa.semana
     ? { menu_id: casa.semana.menuId, week_start: casa.semana.weekStart, ...semana }
     : null;
   const r = await rpc(activar ? "bot_save_casa_activando" : "bot_save_casa", {
     p_household_id: casa.householdId,
     p_base_rev: casa.botRev,
-    p_state: state,
+    p_state: documento,
     p_week: week,
     ...(activar ? { p_menu_id: activar } : {}),
   });
   // Escriba o choque, lo leído ya no vale.
   recientes.delete(casa.householdId);
   if (r?.ok) {
+    let botRev = Number(r.bot_rev);
+    // escribir_persona no falla en silencio: si no guarda, el error vuelve a la herramienta (sin la 0108,
+    // rpc_ausente). El documento ya se guardó y se cuenta como guardado (y deja su foto).
+    const persona = cambios ? await escribirFamilia(casa, cambios) : null;
+    if (persona?.guardado && persona.rev != null) botRev = Number(persona.rev);
     ultimaEscritura.set(casa.householdId, Date.now());
     const op = operacion();
     if (op) op.guardadosCasa++;
-    if (!sinDeshacer) await guardarFotoPrevia(casa, Number(r.bot_rev)).catch(fallaCon("casa_deshacer"));
-    return { ok: true, botRev: Number(r.bot_rev) };
+    // La foto con la versión de después de la familia: deshacer compara con ella.
+    if (!sinDeshacer) await guardarFotoPrevia(casa, botRev).catch(fallaCon("casa_deshacer"));
+    if (persona && !persona.guardado) {
+      return { ok: false, error: `no he podido guardar los cambios de la familia (${persona.fallo ?? persona.error ?? persona.estado ?? "sin motivo"}); lo demás sí se guardó` };
+    }
+    return { ok: true, botRev };
   }
   if (r?.bot_rev != null) return { ok: false, conflicto: true, botRev: Number(r.bot_rev) };
   return { ok: false, error: r?.error ?? "error desconocido" };

@@ -14,6 +14,7 @@
 import { rpc } from "./db.js";
 import { motivoDe } from "./avisar.js";
 import { operar, operarPersonas, deshacer } from "../../src/lib/operaciones/tuberia.js";
+import { membersDeFilas, FamiliaSinLeer } from "../../src/lib/personas.js";
 import { FALLO_DATO, MOTIVO_FALLO } from "../../src/lib/vocabularios.js";
 
 /**
@@ -51,6 +52,27 @@ export const escribirDato = (pedido, { papel }) => operar(pedido, { papel, rpc, 
  * @param {{ papel: string|null }} quien  el papel en la casa del autor, o null si no es de ella
  */
 export const escribirPersonas = (pedido, { papel }) => operarPersonas(pedido, { papel, rpc, falloDeError });
+
+/** La RPC que lee la familia de una casa (0108). */
+export const RPC_FAMILIA = "personas_de_casa";
+
+/**
+ * La familia de una casa, de sus filas (personas_de_casa, 0108), en la forma de data.members y data.groups.
+ * Sin poder leerla lanza FamiliaSinLeer con su fallo (sin la 0108, `rpc_ausente`) y lo deja en el log: no hay
+ * vuelta al documento, que ya no la lleva, y una familia sin leer no es una familia vacía.
+ * @returns {Promise<{ members: object[], groups: object[] }>}
+ */
+export async function leerFamilia(householdId) {
+  let filas;
+  try {
+    filas = await rpc(RPC_FAMILIA, { p_casa: householdId });
+  } catch (e) {
+    const { fallo, motivo } = falloDeError(e);
+    console.error(JSON.stringify({ evento: "familia_sin_leer", fallo, motivo }));
+    throw new FamiliaSinLeer(fallo);
+  }
+  return membersDeFilas(filas);
+}
 
 /**
  * Deshacer una operación propia por la tubería (deshacer_operacion, 0111; lo que devuelve, en `deshacer`).

@@ -18,6 +18,8 @@ vi.mock("./db.js", () => ({
   insert: vi.fn(async () => []),
   update: vi.fn(async () => []),
   rpc: vi.fn(async (_fn, { p_base_rev, p_state }) => {
+    // La familia, de sus filas (trozo 10): aquí, nadie.
+    if (_fn === "personas_de_casa") return { v: 1, personas: [], grupos: [] };
     await new Promise((r) => setTimeout(r, 5));
     if (p_base_rev !== db.rev) { db.choques++; return { ok: false, bot_rev: db.rev }; }
     db.rev++;
