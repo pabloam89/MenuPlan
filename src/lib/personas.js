@@ -317,3 +317,13 @@ export function conOrdenDeTodos(cambios, antes, ahora) {
   for (const id of quedan) if (!enviadas.has(id)) personas.push({ id, orden: orden.get(id) });
   return { ...cambios, personas };
 }
+
+/**
+ * Pura. La versión de la casa tras escribir la familia, si es la siguiente a la conocida (nadie más escribió
+ * entremedias: escribir_persona sube bot_rev en uno); si no, null, y quien escribió no la toma como suya. Lo usan
+ * la app (familiaCasa.js, conVersionDeFamilia) y Lola (casa.js, guardarCasa).
+ */
+export function revSiguiente(conocida, nueva) {
+  if (conocida == null || nueva == null) return null;
+  return Number(nueva) === Number(conocida) + 1 ? Number(nueva) : null;
+}
