@@ -39,11 +39,26 @@ const CODIGO = ["src", "api", "scripts"].flatMap((d) => ficheros(join(RAIZ, d)))
   .map((ruta) => ({ ruta: relative(RAIZ, ruta), texto: sinComentarios(readFileSync(ruta, "utf8")) }));
 const FUERA = CODIGO.filter((f) => !f.ruta.startsWith(TUBERIA));
 
-const SQL = readdirSync(MIGRACIONES).filter((f) => f.endsWith(".sql")).map((f) => readFileSync(join(MIGRACIONES, f), "utf8"));
+const SQL = readdirSync(MIGRACIONES).filter((f) => f.endsWith(".sql")).sort().map((f) => readFileSync(join(MIGRACIONES, f), "utf8"));
+const sinComentariosSql = (s) => s.replace(/--[^\n]*/g, "");
 // Cada función de cada migración con su cuerpo (entre sus $$), en todas sus versiones.
-const FUNCIONES = SQL.flatMap((texto) => [...texto.matchAll(
+const VERSIONES = SQL.flatMap((texto) => [...texto.matchAll(
   /create\s+(?:or\s+replace\s+)?function\s+public\.(\w+)\s*\([\s\S]*?\bas\s+(\$\w*\$)([\s\S]*?)\2/gi,
 )].map((m) => ({ nombre: m[1], cuerpo: m[3] })));
+// Las que una migración retira con `drop function` y ninguna posterior vuelve a crear (la 0108 retira las
+// heredadas de la 0079-0089): ya no escriben nada, aunque su create siga en su migración.
+const RETIRADAS = (() => {
+  const vivas = new Map();
+  for (const texto of SQL.map(sinComentariosSql)) {
+    const eventos = [
+      ...[...texto.matchAll(/create\s+(?:or\s+replace\s+)?function\s+public\.(\w+)/gi)].map((m) => [m.index, m[1], true]),
+      ...[...texto.matchAll(/drop\s+function\s+(?:if\s+exists\s+)?public\.(\w+)/gi)].map((m) => [m.index, m[1], false]),
+    ].sort((a, b) => a[0] - b[0]);
+    for (const [, nombre, viva] of eventos) vivas.set(nombre, viva);
+  }
+  return new Set([...vivas].filter(([, viva]) => !viva).map(([nombre]) => nombre));
+})();
+const FUNCIONES = VERSIONES.filter((f) => !RETIRADAS.has(f.nombre));
 
 const lista = (nombres) => nombres.join("|");
 const ESCRIBE_TABLA = new RegExp(`\\b(insert\\s+into|update|delete\\s+from)\\s+(public\\.)?(${lista(TABLAS_DE_FICHA)})\\b`, "i");
@@ -75,6 +90,13 @@ describe("tubería única: una ficha solo se escribe desde src/lib/operaciones/"
     expect(FUERA.length).toBeGreaterThan(100);
     expect(CODIGO.some((f) => f.ruta.startsWith(TUBERIA))).toBe(true);
     expect(FUNCIONES.length).toBeGreaterThan(20);
+  });
+
+  it("las que retira una migración posterior no cuentan (la 0108 retira las heredadas de persona)", () => {
+    for (const f of ["persona_sincronizar_casa", "persona_reemplazar_casa", "_personas_al_guardar", "_persona_filas_de_estado"]) {
+      expect(RETIRADAS.has(f), f).toBe(true);
+    }
+    expect(RETIRADAS.has("escribir_persona")).toBe(false);
   });
 
   it("las funciones de la base que escriben fichas son las de ESCRIBEN_FICHAS", () => {

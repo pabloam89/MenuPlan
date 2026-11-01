@@ -3,11 +3,11 @@
  * tablas persona, persona_alergia, persona_intolerancia, persona_estado, grupo
  * y grupo_persona (migración 0079).
  *
- * No escribe nada. La copia de cada guardado la hace la base: el trigger de la
+ * No escribe nada. La copia de cada guardado la hacía la base: el trigger de la
  * migración 0089 (`_persona_filas_de_estado`) es el gemelo en SQL de esta
- * función, y `supabase/personasAlGuardar.test.js` compara los dos. Esta sigue
- * sirviendo a scripts/backfill-personas.mjs y es la referencia: si cambia
- * algo aquí, cambia allí.
+ * función, y `supabase/personasAlGuardar.test.js` compara los dos. La 0108
+ * (trozo 10) retira ese trigger y el script de repoblado que usaba esto; el
+ * trozo 11 retira este fichero.
  *
  * Solo la familia activa (data.members / data.groups). Desde el 8 oct 2026 no
  * hay varios rosters: los aparcados en data.rosters son datos viejos que no se
