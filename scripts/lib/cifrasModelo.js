@@ -8,6 +8,7 @@
  */
 import { EJES } from "../../src/data/axisRegistry.js";
 import { HUECO_EN_AVISO } from "../../src/lib/huecosDelPlan.js";
+import { PIEZAS_FUERA } from "../../api/_bot/interprete.js";
 import { CAMPO_LLEGARON } from "../../api/_bot/medidaTurno.js";
 import { ESCRITORAS_HEREDADAS, LLAMADAS_HEREDADAS } from "../../src/lib/operaciones/escritoras.js";
 import { clavesGuardadas } from "./inventarioFicha.mjs";
@@ -44,14 +45,14 @@ export function pendientesSinResultado(texto) {
  * Ficheros de api y src, fuera de interprete.js, que se montan su propio
  * analizador con piezas del intérprete: deciden entre «día de la semana» y
  * «fecha» (diaDeSemana con fechaDe o fechaConMenu) o redactan la duda de una
- * persona con las candidatas de buscarPersona. La misma regla que
- * api/_bot/interpreteUnico.test.js.
+ * persona con las candidatas de buscarPersona: PIEZAS_FUERA, la misma regla
+ * que vigila api/_bot/interpreteUnico.test.js.
  */
 async function fueraDelInterprete(ctx) {
   const fuera = async (re) => (await ctx.ficherosCon(re, ["api", "src"])).filter((f) => f !== "api/_bot/interprete.js");
-  const dias = new Set(await fuera("(^|[^A-Za-z_])diaDeSemana\\("));
-  const mezclan = (await fuera("(^|[^A-Za-z_])(fechaDe|fechaConMenu)\\(")).filter((f) => dias.has(f));
-  return new Set([...mezclan, ...(await fuera("[A-Za-z_]\\??\\.candidatas([^A-Za-z_]|$)"))]).size;
+  const dias = new Set(await fuera(PIEZAS_FUERA.dia));
+  const mezclan = (await fuera(PIEZAS_FUERA.fecha)).filter((f) => dias.has(f));
+  return new Set([...mezclan, ...(await fuera(PIEZAS_FUERA.candidatas))]).size;
 }
 
 /** El último resumen del banco de frases con operaciones exactas medidas (pasadas.jsonl), o null. */
