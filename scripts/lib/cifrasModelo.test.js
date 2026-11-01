@@ -104,6 +104,14 @@ describe("piezas", () => {
     expect(() => pendientesSinResultado("export const OTRA = new Set([]);")).toThrow(/SIN_RESULTADO_TODAVIA/);
   });
 
+  it("analizadores fuera del intérprete: ficheros que mezclan día y fecha o leen candidatas, sin contar interprete.js", async () => {
+    const c = CIFRAS.find((x) => x.id === "analizadores_fuera_interprete");
+    const ficherosCon = async (re) => (re.includes("diaDeSemana") ? ["a.js", "api/_bot/interprete.js"]
+      : re.includes("fechaDe") ? ["a.js", "b.js", "api/_bot/interprete.js"] : ["c.js", "api/_bot/interprete.js"]);
+    const [fila] = await medirCifras([c], ctxDe({ ficherosCon }), { sinBase: true });
+    expect(fila.valor).toBe(2); // a.js (mezcla) y c.js (candidatas); b.js solo da fechas
+  });
+
   it("ultimaConEspera se queda con la última pasada que midió operaciones", () => {
     expect(ultimaConEspera([{ pct_operacion_exacta: 1 }, { pct_operacion_exacta: 2 }, {}])).toEqual({ pct_operacion_exacta: 2 });
     expect(ultimaConEspera([])).toBeNull();

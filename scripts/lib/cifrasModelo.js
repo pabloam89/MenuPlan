@@ -8,6 +8,7 @@
  */
 import { EJES } from "../../src/data/axisRegistry.js";
 import { HUECO_EN_AVISO } from "../../src/lib/huecosDelPlan.js";
+import { PIEZAS_FUERA } from "../../api/_bot/interprete.js";
 import { CAMPO_LLEGARON } from "../../api/_bot/medidaTurno.js";
 import { ESCRITORAS_HEREDADAS, LLAMADAS_HEREDADAS } from "../../src/lib/operaciones/escritoras.js";
 import { clavesGuardadas } from "./inventarioFicha.mjs";
@@ -38,6 +39,20 @@ export function pendientesSinResultado(texto) {
   const m = texto.match(/SIN_RESULTADO_TODAVIA = new Set\(\[([^\]]*)\]\)/);
   if (!m) throw new Error("cifra herramientas_sin_resultado: no encuentro SIN_RESULTADO_TODAVIA = new Set([...]) en api/_bot/agente.js");
   return (m[1].match(/"[^"]+"/g) ?? []).length;
+}
+
+/**
+ * Ficheros de api y src, fuera de interprete.js, que se montan su propio
+ * analizador con piezas del intérprete: deciden entre «día de la semana» y
+ * «fecha» (diaDeSemana con fechaDe o fechaConMenu) o redactan la duda de una
+ * persona con las candidatas de buscarPersona: PIEZAS_FUERA, la misma regla
+ * que vigila api/_bot/interpreteUnico.test.js.
+ */
+async function fueraDelInterprete(ctx) {
+  const fuera = async (re) => (await ctx.ficherosCon(re, ["api", "src"])).filter((f) => f !== "api/_bot/interprete.js");
+  const dias = new Set(await fuera(PIEZAS_FUERA.dia));
+  const mezclan = (await fuera(PIEZAS_FUERA.fecha)).filter((f) => dias.has(f));
+  return new Set([...mezclan, ...(await fuera(PIEZAS_FUERA.candidatas))]).size;
 }
 
 /** El último resumen del banco de frases con operaciones exactas medidas (pasadas.jsonl), o null. */
@@ -125,7 +140,7 @@ export const CIFRAS = [
   { id: "herramientas_sin_resultado", nombre: "Herramientas que escriben sin resultado", trozo: 27, fuente: FUENTE.codigo, sentido: SENTIDO.baja, meta: 0,
     base: null, nota: "el tope que solo baja es LINEA_BASE de api/_bot/resultadoObligatorio.test.js (#1078)", medir: (ctx) => pendientesSinResultado(ctx.leer("api/_bot/agente.js")) },
   { id: "analizadores_fuera_interprete", nombre: "Analizadores de fechas y personas fuera del intérprete", trozo: 27, fuente: FUENTE.codigo, sentido: SENTIDO.baja, meta: 0,
-    base: base(3, DIA_PLAN, PLAN), medir: (ctx) => ctx.lineasCon("function (diaDe|resolverDia|resolverPersona)\\(", ["api", "src"]) },
+    base: base(3, "2026-10-31", "6c272782, antes de #1084"), medir: fueraDelInterprete },
   { id: "turnos_con_mensaje_en_curso", nombre: "Turnos de Lola que reciben otro mensaje mientras corren", trozo: 28, fuente: FUENTE.base, sentido: SENTIDO.baja, meta: null,
     base: base(1, "2026-10-31", "trozo 28: bot_route cruzado con bot_cola, 15 días", 28), medir: async (ctx) => {
       const [f] = await ctx.consultar(`select count(*) filter (where (metadata->'${CAMPO_LLEGARON}'->>'n')::int > 0)::int valor, count(*)::int de from user_events
