@@ -320,6 +320,23 @@ describe("api/operacion.js: la app lee los datos de la ficha Casa (trozo 12)", (
     expect((await leerGet()).body).toEqual({ v: 1, datos: null });
   });
 
+  it("sin la 0112, la v2 no trae la ficha Casa (agrupa por ficha): datos vacíos, que es verdad", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
+    responde(/rpc\/ficha_casa/, { status: 200, cuerpo: { ...FICHA_V2, fichas: { persona: [] } } });
+    expect((await leerGet()).body).toEqual({ v: 2, datos: [] });
+  });
+
+  it("una forma que no conoce (otra versión, sin fichas, nada) no es una casa vacía: 503 y al log", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    for (const cuerpo of [{ v: 3, fichas: {} }, { v: 2 }, { v: 2, fichas: [] }, null]) {
+      respuestas = respuestas.filter(([p]) => !p.test("/rest/v1/rpc/ficha_casa"));
+      responde(/rpc\/ficha_casa/, { status: 200, cuerpo });
+      expect((await leerGet()).codigo, JSON.stringify(cuerpo)).toBe(503);
+    }
+    expect(log.mock.calls.filter((a) => String(a[0]).includes("casa_sin_leer"))).toHaveLength(4);
+  });
+
   it("quien no es de la casa no la lee, y la ficha ni se pide", async () => {
     responde(/household_members/, { status: 200, cuerpo: [] });
     const res = await leerGet();
