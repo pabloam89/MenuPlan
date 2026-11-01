@@ -77,6 +77,20 @@ export function estadosDeFichas(fichas, ahora = new Date()) {
 /** Pura. El dato leído de un campo y una persona (null para los de la casa), o null si la ficha no lo trae. */
 export const leidoDe = (estados, campo, personaId = null) => estados?.get(clave(campo, personaId == null ? null : String(personaId))) ?? null;
 
+/**
+ * Los datos de la casa (claves de `data` y campos de registro_campo, por = 'casa') que ya se guardan con sobre
+ * (trozo 12 de #1037): la app (casaDatos.js) los lee de ficha_casa v2 y los escribe con escribirDato, no en
+ * household_state; Lola, con el PR 4b del trozo. Aquí y no en casaDatos.js, que es del navegador, para que Lola
+ * lea la misma lista. Los PR del trozo añaden los suyos.
+ */
+export const CAMPOS_CASA_CON_SOBRE = Object.freeze(["wantsPriceEstimates"]);
+
+/**
+ * Pura. Los de CAMPOS_CASA_CON_SOBRE que la ficha trae, leídos (su sobre o el defecto del registro). Los que no
+ * trae (registro_campo aún sin ellos: la 0112 sin aplicar) no salen: siguen en el documento.
+ */
+export const datosConSobre = (estados) => CAMPOS_CASA_CON_SOBRE.map((campo) => leidoDe(estados, campo)).filter(Boolean);
+
 // El estado de la ficha visto con los cuatro de la libreta (notepad.js), que son los que pinta el asistente.
 const DE_LA_LIBRETA = Object.freeze({ vacio: "vacio", por_defecto: "inferido", supuesto: "inferido", aprendido: "inferido", dicho: "fijado" });
 

@@ -1,8 +1,7 @@
 /**
  * Los datos de la ficha Casa en la app (trozo 12 de #1037): los que ya se guardan con sobre se leen de
  * ficha_casa v2 (por api/operacion.js: la app no puede llamar a la RPC) y se escriben con la cola de la app
- * (crearColaDeDatos, escribirDato.js), no en household_state. El primero, wantsPriceEstimates; los PR 4-9 del
- * trozo añaden los suyos a CAMPOS_CASA_CON_SOBRE.
+ * (crearColaDeDatos, escribirDato.js), no en household_state: los de CAMPOS_CASA_CON_SOBRE (estadoDeDato.js).
  *
  * Plan B, decidido en cada carga, como familiaCasa.js: si la base aún no tiene el campo en registro_campo (la
  * 0112 sin aplicar) o ficha_casa es la v1, ficha_casa no lo trae y el dato sigue en el documento como hasta
@@ -10,12 +9,10 @@
  * de llevarlo. Nunca en los dos sitios.
  */
 import { crearColaDeDatos, enviarAlServidor, jsonDeTexto } from "./escribirDato.js";
-import { estadosDeFichas, leidoDe, FICHA_CON_ESTADO } from "./estadoDeDato.js";
-import { tokenDeSesion, conVersionDeFamilia, urlOperacion } from "./familiaCasa.js";
+import { estadosDeFichas, datosConSobre, FICHA_CON_ESTADO } from "./estadoDeDato.js";
+import { tokenDeSesion, urlOperacion } from "./familiaCasa.js";
+import { revSiguiente } from "./personas.js";
 import { guardarConVersion } from "./versionCasa.js";
-
-/** Los datos de la casa (claves de `data` y campos de registro_campo, por = 'casa') que ya van con sobre. */
-export const CAMPOS_CASA_CON_SOBRE = Object.freeze(["wantsPriceEstimates"]);
 
 /** La pantalla de la que sale un cambio de la casa (la `ref` de la operación). */
 export const REF_CASA = "casa";
@@ -37,12 +34,7 @@ function cargaDeRespuesta(status, cuerpo) {
     console.error("[casaDatos] ficha sin el contrato:", e.message);
     return { error: true };
   }
-  const valores = {};
-  for (const campo of CAMPOS_CASA_CON_SOBRE) {
-    const leido = leidoDe(estados, campo);
-    if (leido) valores[campo] = leido.valor;
-  }
-  return { valores };
+  return { valores: Object.fromEntries(datosConSobre(estados).map((l) => [l.campo, l.valor])) };
 }
 
 /**
@@ -98,33 +90,47 @@ export function colaDeLaApp() {
 
 /**
  * Los datos con sobre de una casa tal como los conoce la app: los leídos y, tras cada envío, los enviados.
- * `guardar(datos)` manda por la cola los de CAMPOS_CASA_CON_SOBRE que cambiaron (uno tras otro: lo llama la
- * cola de la casa, guardarCasaEnCola). Un dato enviado se da por conocido aunque espere en la cola o la base lo
- * rechace (eso se dice): no se vuelve a encolar en cada guardado. Devuelve `{ ok, enviado, rev }`.
+ * `guardar(datos, rev)` manda por la cola, uno tras otro, los de CAMPOS_CASA_CON_SOBRE que cambiaron; `rev` es
+ * la versión de la casa que conoce la app (la da la cola de la casa, guardarCasaEnCola). Cada dato que entra sube
+ * bot_rev en uno: si cada uno deja la siguiente a la anterior, `botRev` es la última; si no (otro escribió
+ * entremedias, o no se conocía la versión), `conflict`, para recargar. Lo que espera en la cola o la base rechaza
+ * no sube la versión ni cuenta como guardado. Un dato enviado se da por conocido aunque espere o se rechace (eso
+ * se dice): no se vuelve a encolar en cada guardado. Devuelve `{ ok, enviado, botRev?, conflict? }`.
  */
 export function casaDeCasa({ casa, valores, cola = colaDeLaApp() }) {
   const conocidos = { ...valores };
-  const guardar = async (datos) => {
-    const resultados = [];
+  const guardar = async (datos, rev) => {
+    let ok = true;
+    let enviado = false;
+    let actual = rev;
+    let conflict = false;
     for (const campo of Object.keys(conocidos)) {
       const valor = datos?.[campo];
       if (valor === undefined || JSON.stringify(valor) === JSON.stringify(conocidos[campo])) continue;
-      resultados.push(await cola.escribir({ casa, accion: "guardar_casa", ref_id: REF_CASA, dato: { campo, valor, origen: "dicho" } }));
+      const r = await cola.escribir({ casa, accion: "guardar_casa", ref_id: REF_CASA, dato: { campo, valor, origen: "dicho" } });
       conocidos[campo] = valor;
+      enviado = true;
+      if (r.guardado !== true) {
+        ok = false;
+        continue;
+      }
+      const siguiente = conflict ? null : revSiguiente(actual, r.rev);
+      if (siguiente == null) conflict = true;
+      else actual = siguiente;
     }
-    if (!resultados.length) return { ok: true, enviado: false };
-    return { ok: resultados.every((r) => r.guardado === true), enviado: true, rev: resultados.at(-1).rev ?? null };
+    if (!enviado) return { ok: true, enviado: false };
+    if (conflict) return { ok, enviado, conflict: true };
+    return { ok, enviado, botRev: actual };
   };
   return { guardar };
 }
 
 /**
  * El guardado de los datos con sobre como tarea de la cola de la casa (guardarConVersion, versionCasa.js), que
- * se pide antes que el documento: escribir un dato sube bot_rev, y conVersionDeFamilia apunta la versión que deja
- * (o da `conflict` si otro escribió entretanto, para recargar). Con más de un dato en el mismo guardado la
- * versión no cuadra y también da `conflict`: recarga, que es seguro. Sin datos con sobre, nada.
+ * se pide antes que el documento: con la versión que conoce la app, casaDeCasa apunta la que deja tras uno o
+ * varios datos, o da `conflict` si otro escribió entretanto, para recargar. Sin datos con sobre, nada.
  */
 export function guardarCasaEnCola({ version, casa, datos, enCola = guardarConVersion }) {
   if (!casa?.guardada) return Promise.resolve({ ok: true, enviado: false });
-  return enCola(version, conVersionDeFamilia(() => casa.guardada.guardar(datos)));
+  return enCola(version, (rev) => casa.guardada.guardar(datos, rev));
 }
