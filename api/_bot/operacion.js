@@ -35,6 +35,9 @@ export function conOperacion(op, fn) {
     reintento: Boolean(op?.reintento),
     // Escrituras en tablas de la casa (db.js); las de registro no cuentan.
     escrituras: 0,
+    // Herramientas que escriben ya arrancadas (agente.js), aunque aún no hayan
+    // llegado a la base: con alguna, el turno no se corta (turnos.js conVigia).
+    escribiendo: 0,
     // Guardados de la casa hechos (casa.js): si una herramienta escribió sin
     // pasar por la casa, agente.js apunta la operación para deshacer.
     guardadosCasa: 0,
