@@ -18,8 +18,8 @@
  * Lo de aquí solo ADAPTA: lo que sale tiene la forma que ya leen ficha.js y
  * tareas.js, para que el texto que ve Lola salga de los mismos sitios.
  *
- * Mientras la copia a `persona` vaya por detrás del JSON (hoy la hace
- * scripts/backfill-personas.mjs, no cada guardado), las tablas pueden decir
+ * Mientras la copia a `persona` vaya por detrás del JSON (la hacía el trigger
+ * de la 0089, que la 0108 retira), las tablas pueden decir
  * otra cosa que la casa. El motor filtra con el JSON, así que en lo de
  * seguridad manda el JSON: si no coinciden, se usa el JSON y queda el desfase
  * en el log (`conLaFicha`).
