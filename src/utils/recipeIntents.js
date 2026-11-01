@@ -117,7 +117,7 @@ export function eligibleCatalogPool(data, { excludeIds, extraRecipes = [] } = {}
     dislikes: vetosDe(data),
     excludeIds: blocked,
     extraRecipes,
-    kitchenTools: [...(data?.kitchenTools ?? []), ...(data?.customKitchenTools ?? [])],
+    kitchenTools: data?.kitchenTools ?? [],
     cookLevel: data?.cookLevel ?? "normal",
     hasKids: false,
     maxTime: 999,

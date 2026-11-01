@@ -33,6 +33,12 @@ describe("la ficha de la casa", () => {
     expect(f.delDia).toMatch(/PENDIENTE\n- ¿Vega tiene alguna alergia/);
   });
 
+  it("los aparatos: «Otro» se cuenta con su nota (kitchenToolsNota), no como «Otro»", () => {
+    const f = (extra) => montarFicha(casaDe({ members: MIEMBROS, kitchenTools: ["Horno", "Otro"], ...extra }), {}, "2026-10-01").estable;
+    expect(f({ kitchenToolsNota: "plancha" })).toMatch(/- Aparatos: Horno, plancha\./);
+    expect(f({})).toMatch(/- Aparatos: Horno, Otro\./);
+  });
+
   it("SEGURIDAD: el «ninguna» por silencio se ve como tal, no como confirmado (#229)", () => {
     const data = { members: [
       { id: "p", name: "Pablo", allergies: [], alergiasRevisadas: true },

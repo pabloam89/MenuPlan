@@ -340,7 +340,7 @@ export function BasesPreferidas({ data, setData, trasInventario = null }) {
   // El presupuesto es de CADA semana, no del menú entero: si se generan cuatro
   // semanas, cada una tiene sus huecos y su propio cuarto del recetario.
   const semanas = Math.max(1, data?.menuWeekOffsets?.length ?? 1);
-  const herramientas = [...(data?.kitchenTools ?? []), ...(data?.customKitchenTools ?? [])];
+  const herramientas = data?.kitchenTools ?? [];
   // Los huecos REALES de la semana, no siete días por la cara.
   //
   // Esto era `DAYS.length * comidas`, o sea siempre 7 días. En una semana

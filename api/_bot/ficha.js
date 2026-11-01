@@ -42,6 +42,7 @@ import { leerPresupuesto } from "../../src/lib/presupuestoCasa.js";
 import { botonRehacer } from "./semanaPedida.js";
 import { estadoDelMenu, lineaEstadoMenu } from "./estadoMenu.js";
 import { estructuraEfectiva } from "../../src/lib/estructuraPlatos.js";
+import { aparatosParaEnsenar } from "../../src/lib/aparatosDeCasa.js";
 
 const DIA_CORTO = Object.fromEntries(DIAS.map((d) => [d, d.toLowerCase()]));
 const DIA_LARGO = DIA_LARGO_MINUSCULAS;
@@ -303,7 +304,7 @@ function cocinaBloque(data, hoy, marcas = []) {
     const fin = Math.max(ct.weekend?.Comida ?? 0, ct.weekend?.Cena ?? 0);
     lineas.push(`- Tiempo: entre semana ~${ent} min; finde ~${fin}.${data.cookLevel && data.cookLevel !== "normal" ? ` Nivel: ${data.cookLevel}.` : ""}`);
   }
-  const trastos = [...(data.kitchenTools ?? []), ...(data.customKitchenTools ?? [])];
+  const trastos = aparatosParaEnsenar(data);
   if (trastos.length) lineas.push(`- Aparatos: ${trastos.join(", ")}.`);
   const tanda = tandaPedida(data);
   if (tanda) lineas.push(`- ${tanda}.`);

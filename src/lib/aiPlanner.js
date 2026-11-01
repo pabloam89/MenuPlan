@@ -511,7 +511,7 @@ export function buildGroupContext(data, group) {
   // cena (filterRecipes paso 2), blandos fuera de menú.
   const dislikes = vetosDe(data, { grupo: group });
 
-  const kitchenTools = [...(data.kitchenTools ?? []), ...(data.customKitchenTools ?? [])];
+  const kitchenTools = data.kitchenTools ?? [];
   const cookTime = migrateCookTime(data);
 
   const slots = [];

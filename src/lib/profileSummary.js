@@ -3,6 +3,7 @@ import { formatCookTimeSummary } from "./cookTime.js";
 import { DAYS, getMeals, slotKey } from "./planner.js";
 import { FAMILIA_LABELS } from "./notepadFields.js";
 import { vetosDe } from "./vetos.js";
+import { aparatosParaEnsenar } from "./aparatosDeCasa.js";
 
 const GOAL_LABELS = {
   sano: "Sano",
@@ -104,7 +105,7 @@ export function buildProfileSummary(data) {
   }
 
   const cook = COOK_LABELS[data.cookLevel] ?? data.cookLevel;
-  const tools = [...(data.kitchenTools ?? []), ...(data.customKitchenTools ?? [])];
+  const tools = aparatosParaEnsenar(data);
   sections.push({
     title: "Cocina",
     lines: [
