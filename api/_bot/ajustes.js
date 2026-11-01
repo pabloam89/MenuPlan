@@ -27,7 +27,8 @@ import { cerrarPorEstado, abrirPreguntaDeEstado } from "./tareas.js";
 import * as ids from "../../src/lib/ids.js";
 import { etapaDe, esMenor } from "../../src/lib/stages.js";
 import { isoDeCasa, diaDeISO } from "../../src/lib/dias.js";
-import { ETAPA_BEBE } from "../../src/lib/vocabularios.js";
+import { ETAPA_BEBE, OTRO } from "../../src/lib/vocabularios.js";
+import { aparatosParaEnsenar } from "../../src/lib/aparatosDeCasa.js";
 import { supermercadoDe, CON_PRECIOS } from "../../src/lib/supermercados.js";
 import { EXTRAS, conExtras } from "../../src/lib/extras.js";
 import { quitarPersona } from "../../src/lib/quitarPersona.js";
@@ -115,7 +116,7 @@ export async function describirAjustes(casa) {
     ? efectiva.porGrupo.map((x) => `${x.grupo}: ${x.valor}`).join("; ")
     : d.mealStructure ?? `${efectiva.casa} (por defecto)`;
   return [
-    `Estructura de la comida: ${estructura}\nNivel de cocina: ${d.cookLevel ?? "normal"}\nTrastos: ${(d.kitchenTools ?? []).join(", ") || "(sin decir)"}`,
+    `Estructura de la comida: ${estructura}\nNivel de cocina: ${d.cookLevel ?? "normal"}\nTrastos: ${aparatosParaEnsenar(d).join(", ") || "(sin decir)"}`,
     `Gustos en la libreta:\n${gustos.join("\n") || "(nada todavía: todo por defecto, menú equilibrado)"}`,
     `Quién NO come en casa (el resto, en casa):\n${horario.join("\n") || "(todos comen en casa siempre)"}${fuera.length > 40 ? `\n… y ${fuera.length - 40} más` : ""}`,
     `Reglas e invitados:\n${reglas.join("\n") || "(ninguna)"}`,
@@ -305,7 +306,30 @@ export function listaAjustada(actual, { entera, mas, menos } = {}, igual = (a, b
   return lista;
 }
 
-export async function ajustarCocina(householdId, { estructura, esfuerzo, tiempo, tanda, trastos, trastosMas, trastosMenos, comidas, etapaBebe }) {
+/**
+ * Pura. Los aparatos tras «tenemos…» (mas), «ya no tenemos…» (menos) y uno de fuera de la lista (otro): este va
+ * como OTRO en la lista y su nombre a la nota (kitchenToolsNota), sumado a los que ya hubiera; otro = "" quita
+ * OTRO y su nota. Sin lista entera: sustituir borraba los demás (#958 C). null si no se pidió nada.
+ * @returns {{ kitchenTools: string[], kitchenToolsNota: string|null } | null}
+ */
+function aparatosAjustados(data, { mas, menos, otro } = {}) {
+  const conOtro = typeof otro === "string";
+  const nombre = conOtro ? otro.trim() : "";
+  if (!mas?.length && !menos?.length && !conOtro) return null;
+  const actual = data?.kitchenTools ?? [];
+  let lista = listaAjustada(actual, { mas: [...(mas ?? []), ...(nombre ? [OTRO] : [])], menos }) ?? [...actual];
+  const antes = typeof data?.kitchenToolsNota === "string" ? data.kitchenToolsNota.trim() : "";
+  let nota = antes || null;
+  if (conOtro && !nombre) {
+    lista = lista.filter((a) => a !== OTRO);
+    nota = null;
+  } else if (nombre) {
+    nota = antes.split(", ").some((x) => normal(x) === normal(nombre)) ? antes : [antes, nombre].filter(Boolean).join(", ");
+  }
+  return { kitchenTools: lista, kitchenToolsNota: lista.includes(OTRO) ? nota : null };
+}
+
+export async function ajustarCocina(householdId, { estructura, esfuerzo, tiempo, tanda, trastosMas, trastosMenos, trastoOtro, comidas, etapaBebe }) {
   return conData(householdId, (data, m) => {
     const R = m.PREGUNTAS_POR_ID;
     let d = data;
@@ -319,10 +343,13 @@ export async function ajustarCocina(householdId, { estructura, esfuerzo, tiempo,
     if (estructura) { d = R.estructura.escribe(d, estructura); hechos.push(`estructura: ${estructura}`); }
     if (esfuerzo) { d = R.esfuerzo.escribe(d, esfuerzo); hechos.push(`nivel: ${esfuerzo}`); }
     if (tiempo || tanda) { d = R.tiempo.escribe(d, { ...(tiempo ? { nivel: tiempo } : {}), ...(tanda ? { tanda } : {}) }); hechos.push(`tiempo: ${[tiempo, tanda].filter(Boolean).join(", ")}`); }
-    const nuevos = Array.isArray(trastos) || trastosMas?.length || trastosMenos?.length
-      ? listaAjustada(R.trastos.lee(d) ?? [], { entera: trastos, mas: trastosMas, menos: trastosMenos })
-      : null;
-    if (nuevos) { d = R.trastos.escribe(d, nuevos); hechos.push(`trastos: ${nuevos.join(", ") || "ninguno"}`); }
+    const nuevos = aparatosAjustados({ ...d, kitchenTools: R.trastos.lee(d) ?? [] }, { mas: trastosMas, menos: trastosMenos, otro: trastoOtro });
+    if (nuevos) {
+      d = R.trastos.escribe(d, nuevos.kitchenTools);
+      // La nota solo si cambia: sin «Otro», el documento no gana un kitchenToolsNota a null.
+      if (nuevos.kitchenToolsNota !== (d.kitchenToolsNota ?? null)) d = { ...d, kitchenToolsNota: nuevos.kitchenToolsNota };
+      hechos.push(`trastos: ${aparatosParaEnsenar(d).join(", ") || "ninguno"}`);
+    }
     // La etiqueta de la etapa, la de la app (babyStage.js): una sola definición.
     if (ETAPAS_BEBE.includes(etapaBebe)) { d = { ...d, etapaBebe }; hechos.push(`bebé: ${ETAPA_BEBE_INFO[etapaBebe].label.toLowerCase()}`); }
     if (!hechos.length) return { texto: "No había nada que cambiar." };
