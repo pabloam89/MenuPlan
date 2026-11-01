@@ -50,7 +50,7 @@ import { execFileSync } from "node:child_process";
 import { cargarEnv, RAIZ } from "./lib/env.mjs";
 import {
   CORRECTORES, NIVELES, REINTENTOS_POR_NIVEL, SALIDA, VERSION_ESQUEMA, baseMemo, bloquea, casosDelNivel, compararEstados, elegirReferencia, ficherosDelCodigo,
-  casosVersion, claveMemo, LUNES_SIGUIENTE, MES_CORTO, codigoHash, costeUsd, erroresDeCasos, esEstricto, estadoDe, estimadoSiguiente,
+  casosVersion, claveMemo, LUNES_SIGUIENTE, codigoHash, costeUsd, erroresDeCasos, esEstricto, estadoDe, estimadoSiguiente,
   kDe, leerJsonl, memoria, opcion, opcionEntero, opcionNumero, otroIntento, promptHash, tokensDe, topeDePasada,
   apuntarOAvisar, puedeGastar, cifrasDePasada, memoriaDeOperacion, operacionExacta,
 } from "./lib/evals.mjs";
@@ -101,7 +101,7 @@ const { supervisar } = await import("../api/_bot/supervisor.js");
 // La pista del enrutador (BOT_PISTA), con el mismo texto que en Telegram: un
 // caso con "pista" { decision, adelanto } mide si Lola la usa sin fiarse de más.
 const { textoPista } = await import("../api/_bot/pista.js");
-const { botonRehacer, lunesDe, sumarDias } = await import("../api/_bot/semanaPedida.js");
+const { botonRehacer, lunesDe, sumarDias, fechaCorta: corta } = await import("../api/_bot/semanaPedida.js");
 // Un solo modelo por pasada: sin esto, un fallo de la API caería al plan B en
 // silencio y la medida mezclaría dos modelos. Los nombres cortos de --modelo
 // son los ids que ya usa el bot (agente.js) o la app (aiModels.js); un id
@@ -120,7 +120,6 @@ function hoyEnMadrid() {
   return new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
 }
 const DIA_CORTO = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
-const corta = (iso) => `${Number(iso.slice(8, 10))} ${MES_CORTO[Number(iso.slice(5, 7)) - 1]}`;
 function cabeceraDe(hoy) {
   return `${DIA_CORTO[new Date(`${hoy}T12:00:00Z`).getUTCDay()]} ${corta(hoy)} (${hoy})`;
 }
