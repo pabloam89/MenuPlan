@@ -173,6 +173,7 @@ import { loadUserState, saveUserState, clearUserState } from "./lib/userState.js
 import { loadHouseholdState, saveHouseholdState, loadHouseholdBotRev, empezarCasaVacia, CASA_VACIA } from "./lib/householdState.js";
 import { leerBotRevVisto, guardarBotRevVisto } from "./lib/botRevVisto.js";
 import { guardarConVersion, guardandoCasa, guardadosDeCasa } from "./lib/versionCasa.js";
+import { leerFamiliaDeCasa, conFamiliaLeida, sinFamilia, familiaDeCasa, conVersionDeFamilia, MODO_FAMILIA } from "./lib/familiaCasa.js";
 import { resolveModeData, prepararSemana } from "./lib/prepararGeneracion.js";
 import BotEnlace from "./components/BotEnlace.jsx";
 import { loadHouseholdDiscards, saveHouseholdDiscard, deleteHouseholdDiscard, subirDescartesUnaVez } from "./lib/householdDiscardsSync.js";
@@ -925,8 +926,9 @@ const PANTRY_DAY_WINDOW_DAYS = 45;
  * el guardado diferido de cada cambio y para el inmediato del cierre del alta
  * (guardarCasaAhora): si cambia qué se sube, cambia en los dos.
  */
-function snapshotDeCasa({ data, menuPlan, shopping, aiRecipes, onbStep }) {
-  const profile = { ...data };
+function snapshotDeCasa({ data, menuPlan, shopping, aiRecipes, onbStep }, modoFamilia) {
+  // La familia, si vive en sus filas (trozo 10), va por api/operacion.js y no aquí (lib/familiaCasa.js).
+  const profile = { ...sinFamilia(data, modoFamilia) };
   delete profile.userRecipes;
   delete profile.recipeVotes;
   delete profile.discards;
@@ -1422,6 +1424,9 @@ export default function App() {
   // devices and a "smart reset". Everything no-ops without a signed-in session.
   const hydratedUserRef = useRef(null);
   const cloudReadyRef = useRef(false);
+  // La familia de la casa cargada (lib/familiaCasa.js): { casa, modo, guardada }, con `guardada` (familiaDeCasa)
+  // solo si vive en sus filas. null hasta la primera carga, o sin casa.
+  const familiaRef = useRef(null);
   const householdJustEmptiedRef = useRef(false);
   // Lola y los demás dispositivos de la casa escriben en la nube (0057, 0068).
   // `botRevRef` es la última versión de la casa que conocemos: la que vimos al
@@ -1545,8 +1550,10 @@ export default function App() {
       // Recetas, votos, carpetas, descartes y favoritas de la casa vuelven como `{ data, error }`
       // (#317): si una falló, se trabaja con lo local y no se sube nada
       // comparando con una nube que no se ha podido leer.
-      const [remoteState, cargaRecetas, cargaVotos, cargaDescartes, cargaFavsCasa, cargaColecciones, cargaCarpetas, cargaLapidas] = await Promise.all([
+      const [remoteState, cargaFamilia, cargaRecetas, cargaVotos, cargaDescartes, cargaFavsCasa, cargaColecciones, cargaCarpetas, cargaLapidas] = await Promise.all([
         loadState(),
+        // La familia, de sus filas (0108); sin la RPC en la base, del documento como antes (lib/familiaCasa.js).
+        householdId ? leerFamiliaDeCasa(householdId) : Promise.resolve(null),
         loadUserRecipes(householdReadOnly ? menuUserId : user.id),
         loadRecipeVotes(user.id),
         loadDiscards(),
@@ -1566,7 +1573,8 @@ export default function App() {
       // Sin red, y con lo de memoria de otra casa: no hay nada bueno que
       // enseñar ni que subir. Se queda sin marcar como cargada (no se guarda
       // nada) y se reintenta al volver a abrirla.
-      if (soloNube && remoteState?.error) {
+      // La familia sin leer no es una casa sin nadie: con ella a medias, un guardado borraría a quien no salió.
+      if ((soloNube && remoteState?.error) || cargaFamilia?.error) {
         hydratedUserRef.current = null;
         recargandoRef.current = false;
         showToast("No se pudo cargar la casa. Revisa la conexión y vuelve a abrirla.");
@@ -1601,7 +1609,14 @@ export default function App() {
       // after finishing onboarding locally must never silently discard the
       // profile (members, allergies, intolerances, healthProfiles) the user
       // just set up. See lib/profileMerge.js.
-      const remoteData = remoteState?.state?.data;
+      const remoteData = conFamiliaLeida(remoteState?.state?.data, cargaFamilia);
+      familiaRef.current = householdId && cargaFamilia
+        ? {
+          casa: householdId,
+          modo: cargaFamilia.modo,
+          guardada: cargaFamilia.modo === MODO_FAMILIA.FILAS ? familiaDeCasa({ casa: householdId, familia: cargaFamilia.familia }) : null,
+        }
+        : null;
       // Si el bot ha escrito desde la última vez que este dispositivo miró
       // (app cerrada mientras hablabas con él), la nube manda aunque aquí ya
       // haya perfil: si no, el primer guardado de la app borraría su cambio.
@@ -1866,6 +1881,21 @@ export default function App() {
     showToastRef.current?.("No se ha podido guardar en tu cuenta. Puede perderse al recargar.");
   }, []);
 
+  // La familia, si vive en sus filas, va a api/operacion.js (lib/familiaCasa.js): lo que cambió respecto a la
+  // guardada. `familia` es la de cuando se programó el guardado: si entretanto se recargó la nube, ya no es la
+  // vigente y no se manda (calcularía el cambio contra otra familia y desharía lo que escribió Lola). Lo que no
+  // viajó tal cual se dice. Sin casa, o con la familia en el documento (base sin la 0108), nada que hacer.
+  const guardarFamilia = useCallback(async (datos, familia) => {
+    if (!familia?.guardada) return { ok: true };
+    if (familiaRef.current !== familia) return { ok: false, descartado: true };
+    const r = await familia.guardada.guardar(datos).catch((e) => {
+      console.warn("[familia] guardar", e?.message);
+      return { ok: false };
+    });
+    if (r.avisos?.length) showToastRef.current?.(r.avisos.join(". "));
+    return r;
+  }, []);
+
   // Debounced push of the private profile snapshot (everything except the
   // normalized recipes/votes, which sync through their own tables). Gated on
   // cloudReadyRef so we never clobber the remote copy before hydration lands.
@@ -1874,9 +1904,16 @@ export default function App() {
     // Se fija al programar: si entretanto se recarga la nube, este estado ya
     // es viejo y no se sube.
     const version = versionDeCasa(syncHouseholdId);
+    const familia = familiaRef.current?.casa === syncHouseholdId ? familiaRef.current : null;
     const t = window.setTimeout(() => {
-      const snapshot = snapshotDeCasa({ data, menuPlan, shopping, aiRecipes, onbStep });
+      const snapshot = snapshotDeCasa({ data, menuPlan, shopping, aiRecipes, onbStep }, familia?.modo);
       if (syncHouseholdId) {
+        // La familia antes que el documento y en la misma cola: escribir_persona sube la versión, y el
+        // documento sale con la que deja (conVersionDeFamilia).
+        guardarConVersion(version, conVersionDeFamilia(() => guardarFamilia(data, familia))).then((rf) => {
+          if (rf.conflict) recargarDesdeNubeRef.current({ choque: true });
+          else if (!rf.ok && !rf.descartado) avisarGuardado(rf);
+        });
         guardarConVersion(version, (rev) => saveHouseholdState(syncHouseholdId, snapshot, rev)).then((r) => {
           if (r.conflict) recargarDesdeNubeRef.current({ choque: true });
           else if (!r.descartado) avisarGuardado(r);
@@ -1884,7 +1921,7 @@ export default function App() {
       } else saveUserState(user.id, snapshot).then(avisarGuardado);
     }, 1200);
     return () => window.clearTimeout(t);
-  }, [user?.id, activeHouseholdId, householdReadOnly, syncHouseholdId, data, menuPlan, shopping, aiRecipes, onbStep, versionDeCasa]);
+  }, [user?.id, activeHouseholdId, householdReadOnly, syncHouseholdId, data, menuPlan, shopping, aiRecipes, onbStep, versionDeCasa, guardarFamilia]);
 
   // Guardar la casa YA, con unos datos concretos, y saber si ha entrado. Es lo
   // que necesita un dato que no puede esperar al guardado diferido de arriba:
@@ -1896,13 +1933,19 @@ export default function App() {
   // casa, lo que diga `saveUserState` (`ok`); nunca lanza. Sin cuenta, la casa
   // vive en el móvil: cuenta como guardada (`local`).
   const guardarCasaAhora = useCallback(async (dataAGuardar) => {
-    const snapshot = snapshotDeCasa({ data: dataAGuardar, menuPlan, shopping, aiRecipes, onbStep });
+    const familia = familiaRef.current?.casa === syncHouseholdId ? familiaRef.current : null;
+    const snapshot = snapshotDeCasa({ data: dataAGuardar, menuPlan, shopping, aiRecipes, onbStep }, familia?.modo);
     if (!user?.id) return { ok: true, local: true };
     if (householdReadOnly) return { ok: false };
     if (!syncHouseholdId) return { ok: (await saveUserState(user.id, snapshot)).ok === true };
     if (!cloudReadyRef.current) return { ok: false, descartado: true };
-    return guardarConVersion(versionDeCasa(syncHouseholdId), (rev) => saveHouseholdState(syncHouseholdId, snapshot, rev));
-  }, [user?.id, householdReadOnly, syncHouseholdId, menuPlan, shopping, aiRecipes, onbStep, versionDeCasa]);
+    // La familia (que lleva la marca de alergias revisadas, #1029) y luego la casa, en la cola: entra si entran
+    // las dos. Si otro escribió entretanto, el documento choca y lo dice (`conflict`).
+    const version = versionDeCasa(syncHouseholdId);
+    const rf = await guardarConVersion(version, conVersionDeFamilia(() => guardarFamilia(dataAGuardar, familia)));
+    if (!rf.ok) return rf;
+    return guardarConVersion(version, (rev) => saveHouseholdState(syncHouseholdId, snapshot, rev));
+  }, [user?.id, householdReadOnly, syncHouseholdId, menuPlan, shopping, aiRecipes, onbStep, versionDeCasa, guardarFamilia]);
 
   // Lo que se toca en el plan (cambiar, regenerar, mover, rellenar) va también
   // a la fila de la semana que se ve, y a su copia en el archivo. Antes solo
