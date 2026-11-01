@@ -1,5 +1,5 @@
 {
-  "nota": "Deuda de la ficha de la casa (#939, fase 4; plan fichas con estado, trozo 6) el 30 oct 2026. Solo baja: si arreglas un dato, baja su cifra aquí; si sube, el test falla. npm run ficha:inventario dice cuáles son. sin_declarar baja de 26 a 1 en el trozo 6 (cada dato dice su ficha y su clase) y a 0 en el trozo 12, con copia de 10 a 9 (useHomeStock se calcula con usaDespensa y ya no se guarda). En el trozo 12 (PR 2), enum_sin_vocabulario de 8 a 7 (pantryMode con modo_despensa) y sin_tabular de 54 a 53 (supermarkets, lista_enum con supermercados).",
+  "nota": "Deuda de la ficha de la casa (#939, fase 4; plan fichas con estado, trozo 6) el 30 oct 2026. Solo baja: si arreglas un dato, baja su cifra aquí; si sube, el test falla. npm run ficha:inventario dice cuáles son. sin_declarar baja de 26 a 1 en el trozo 6 (cada dato dice su ficha y su clase) y a 0 en el trozo 12, con copia de 10 a 9 (useHomeStock se calcula con usaDespensa y ya no se guarda). En el trozo 12 (PR 2), enum_sin_vocabulario de 8 a 7 (pantryMode con modo_despensa) y sin_tabular de 54 a 53 (supermarkets, lista_enum con supermercados). En el PR 5b del trozo 12, sin_tabular de 53 a 52 (customKitchenTools, la lista abierta, sale: lo de fuera de la lista es «Otro» y kitchenToolsNota).",
   "sin_declarar": 0,
   "en_resto": 1,
   "enum_sin_vocabulario": 7,
@@ -7,5 +7,5 @@
   "legado": 11,
   "lola_no_lo_ve": 24,
   "app_no_lo_ve": 8,
-  "sin_tabular": 53
+  "sin_tabular": 52
 }
