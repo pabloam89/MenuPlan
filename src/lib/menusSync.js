@@ -320,12 +320,36 @@ export function saveAndActivateMenu(userId, menu, recipes, householdId = null) {
   const next = prev
     .catch(() => {}) // an earlier failure must never block this call
     .then(async () => {
-      const res = await saveMenu(userId, menu, recipes, householdId);
-      if (res.ok) await activateMenu(menu.id);
-      return res;
+      // Nunca rechaza: quien llama avisa con `ok: false`, y un fallo al montar
+      // las filas no puede acabar en una promesa rota que nadie mira.
+      try {
+        const res = await saveMenu(userId, menu, recipes, householdId);
+        return res.ok ? await activateMenu(menu.id) : res;
+      } catch (err) {
+        console.warn("[menusSync] save menu failed", err);
+        return { ok: false, error: String(err?.message ?? err) };
+      }
     });
   activationQueues.set(queueKey, next);
   return next;
+}
+
+/**
+ * Deja la casa sin menú activo en la nube («Reiniciar menú»). El menú sigue en
+ * el histórico. Sin esto la fila seguía activa y volvía al recargar. Espera a
+ * las subidas pendientes: un menú a medio subir se activaría después.
+ */
+export async function deactivateMenu(userId, menuId, householdId = null) {
+  if (!supabase || !userId || !menuId) return { ok: false, error: "no-op" };
+  await subidasPendientes(userId, householdId);
+  let q = supabase.from("user_menus").update({ is_active: false });
+  q = householdId ? q.eq("household_id", householdId) : q.eq("user_id", userId);
+  const { error } = await q.eq("id", menuId);
+  if (error) {
+    console.warn("[menusSync] deactivate failed", error.message);
+    return { ok: false, error: error.message };
+  }
+  return { ok: true };
 }
 
 // ── Live per-week upsert (shopping edits) ────────────────────────────────

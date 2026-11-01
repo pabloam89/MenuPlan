@@ -72,7 +72,7 @@ describe("turnosRafaga: otro mensaje con el turno en marcha", () => {
     expect(vistos[0].ronda?.signal?.aborted).toBe(true);
   });
 
-  it("con escrituras: el turno sigue y el nuevo va en la vuelta siguiente, medido", async () => {
+  it("con escrituras: el turno sigue y el nuevo va en la vuelta siguiente, medido; el primero no se pudo medir", async () => {
     const { atender, vistos } = turnoDeMentira({ escribe: true });
     const p = conPlazo(Date.now(), () => enTurno("c1", msj("apunta leche en la compra"), atender));
     await vi.advanceTimersByTimeAsync(4_000); // 1 s de ráfaga y 3 s de turno
@@ -81,6 +81,7 @@ describe("turnosRafaga: otro mensaje con el turno en marcha", () => {
     await Promise.all([p, q]);
     expect(vistos.map((v) => v.items)).toEqual([["apunta leche en la compra"], ["y pan"]]);
     expect(vistos[0].ronda?.signal?.aborted ?? false).toBe(false);
+    expect(vistos[0].ronda?.llegaron).toBeNull();
     // El segundo llegó a los 3 s del primer turno (medidaTurno.js llegadosDurante).
     expect(vistos[1].ronda?.llegaron).toEqual({ n: 1, ms: [3_000] });
   });

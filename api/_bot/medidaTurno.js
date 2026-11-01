@@ -118,6 +118,8 @@ export function sumarUsos(...usos) {
 }
 
 // ── Lo que llega con el turno en marcha ─────────────────────────────────────
+/** El campo de bot_route con lo que llegó con el turno anterior en marcha (lo escriben telegram.js y lo leen bot-semana y cifras:modelo). */
+export const CAMPO_LLEGARON = "llegaron_durante";
 /**
  * Los mensajes de esta vuelta que llegaron al chat mientras corría el turno
  * anterior de la misma invocación (turnos.js drenar): cuántos y a cuántos ms
@@ -127,12 +129,13 @@ export function sumarUsos(...usos) {
  * (`uso.llegaronDuranteN`, `latencia.llegaronDuranteP50Ms`).
  * @param {{ inicio: number, fin: number } | null} anterior  el turno anterior (Date.now())
  * @param {(number|null|undefined)[]} llegadas  cuándo entró en la cola cada mensaje (item.enCola)
- * @returns {{ n: number, ms: number[] } | null}  null si ninguno llegó con él en marcha
+ * @returns {{ n: number, ms: number[] } | null}  `n: 0` si se midió y no llegó ninguno; null si no se
+ *   pudo medir (sin turno anterior en esta invocación, o sin hora de entrada en la cola)
  */
 export function llegadosDurante(anterior, llegadas) {
   if (!anterior || !Number.isFinite(anterior.inicio) || !Number.isFinite(anterior.fin)) return null;
-  const ms = (llegadas ?? [])
-    .filter((t) => Number.isFinite(t) && t > anterior.inicio && t <= anterior.fin)
-    .map((t) => t - anterior.inicio);
-  return ms.length ? { n: ms.length, ms } : null;
+  const horas = (llegadas ?? []).filter(Number.isFinite);
+  if (!horas.length) return null;
+  const ms = horas.filter((t) => t > anterior.inicio && t <= anterior.fin).map((t) => t - anterior.inicio);
+  return { n: ms.length, ms };
 }

@@ -19,6 +19,7 @@ import {
   removeMenu,
   sortMenusDesc,
   toggleMenuFavorite, recipeIdsDeOtrasSemanas } from "./menuArchive.js";
+import { planDeHoy } from "./menuArchive.js";
 import { mondayISOForOffset } from "./weekCalendar.js";
 
 describe("clampWeekCount", () => {
@@ -421,5 +422,35 @@ describe("recipeIdsDeOtrasSemanas", () => {
   it("sin menú o sin semanas devuelve un conjunto vacío", () => {
     expect(recipeIdsDeOtrasSemanas(undefined, 0).size).toBe(0);
     expect(recipeIdsDeOtrasSemanas({}, 0).size).toBe(0);
+  });
+});
+
+describe("planDeHoy", () => {
+  const estaSemana = { offset: 0, startISO: "2026-10-26", endISO: "2026-11-01", plan: { a: "hoy" } };
+  const laSiguiente = { offset: 1, startISO: "2026-11-02", endISO: "2026-11-04", plan: { a: "lunes" } };
+  const menus = { m: { weeks: { [estaSemana.startISO]: estaSemana, [laSiguiente.startISO]: laSiguiente } } };
+  const hoy = "2026-10-31";
+
+  it("mirando otra semana, devuelve la de hoy", () => {
+    expect(planDeHoy(menus, "m", 1, laSiguiente.plan, hoy)).toBe(estaSemana.plan);
+  });
+
+  it("mirando la de hoy, gana el plan en vivo", () => {
+    const vivo = { a: "editado" };
+    expect(planDeHoy(menus, "m", 0, vivo, hoy)).toBe(vivo);
+  });
+
+  it("si ninguna semana contiene hoy, no hay platos de hoy", () => {
+    expect(planDeHoy(menus, "m", 0, estaSemana.plan, "2026-12-01")).toEqual({});
+  });
+
+  it("si de la semana de hoy solo se cargó el rango, sin platos", () => {
+    const soloRango = { m: { weeks: { a: { offset: 0, startISO: "2026-10-26", endISO: "2026-11-01" }, b: laSiguiente } } };
+    expect(planDeHoy(soloRango, "m", 1, laSiguiente.plan, hoy)).toEqual({});
+  });
+
+  it("sin semanas archivadas, el plan en vivo", () => {
+    const vivo = { a: 1 };
+    expect(planDeHoy({}, null, 0, vivo, hoy)).toBe(vivo);
   });
 });

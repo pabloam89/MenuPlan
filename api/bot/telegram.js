@@ -42,7 +42,7 @@ import { pedidoCompartido } from "../_bot/comoDato.js";
 import { clasificar, vaPorLaRapida, permitidoEn } from "../_bot/router.js";
 import { prediceRapida, ESPERA_MAX_MS } from "../_bot/prediceRapida.js";
 import { esCorreccionRuta, esCorreccionMedida } from "../_bot/senales.js";
-import { SIN_ENRUTADOR, motorFrioDesde, relojDeHerramientas, sumarUsos } from "../_bot/medidaTurno.js";
+import { SIN_ENRUTADOR, CAMPO_LLEGARON, motorFrioDesde, relojDeHerramientas, sumarUsos } from "../_bot/medidaTurno.js";
 import { viaRapida, eleccionDe, aplicarEleccion, contextoDe, repiteLaPropuesta } from "../_bot/turno.js";
 import { fotosVistas, fotosSinRepetir } from "../_bot/fotosVistas.js";
 import { comidaElegida, quiereApuntar } from "../_bot/plato.js";
@@ -584,9 +584,9 @@ async function apuntarRuta(householdId, extra) {
 export async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, from, desde = null, responderA, variosAutores = false, esperaColaMs = null, rafaga = null, llegaron = null, rehecho = false }) {
   const modo = MODO_ROUTER();
   // Lo que esperó en la cola de su chat antes de empezar (bot_route espera_cola_ms),
-  // y si sus mensajes llegaron con el turno anterior en marcha (llegaron_durante, rehecho;
-  // también con n: 0, para que cifras:modelo distinga «nada» de «turno sin la medida»).
-  const cola = { ...(esperaColaMs == null ? {} : { espera_cola_ms: esperaColaMs }), llegaron_durante: llegaron ?? { n: 0, ms: [] }, ...(rehecho ? { rehecho: true } : {}) };
+  // y si sus mensajes llegaron con el turno anterior en marcha (llegaron_durante: n 0 si se
+  // midió y no llegó nada; sin el campo si no se pudo medir, medidaTurno.js llegadosDurante; y rehecho).
+  const cola = { ...(esperaColaMs == null ? {} : { espera_cola_ms: esperaColaMs }), ...(llegaron ? { [CAMPO_LLEGARON]: llegaron } : {}), ...(rehecho ? { rehecho: true } : {}) };
   // Cortado por la ráfaga: lo pagado (Lola hasta el corte y el enrutador) se
   // cuenta aquí, porque responder no cuenta con la señal cortada (agente.js).
   const rehacerSi = async (medir, usoRouter) => {
