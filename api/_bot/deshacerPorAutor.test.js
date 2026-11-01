@@ -4,6 +4,7 @@
  * deshace también la fila de una receta guardada y desactiva el primer menú.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { familiaDeFilas, RPC_FAMILIA } from "./familiaDePrueba.js";
 
 const llamadas = { select: [], insert: [], update: [], borrar: [], rpc: [] };
 let fotos = [];
@@ -20,7 +21,8 @@ vi.mock("./db.js", () => ({
   insert: vi.fn(async (tabla, filas) => { llamadas.insert.push([tabla, filas]); return []; }),
   update: vi.fn(async (tabla, filtro, cambios) => { llamadas.update.push([tabla, filtro, cambios]); return [{}]; }),
   borrar: vi.fn(async (tabla, filtro) => { llamadas.borrar.push([tabla, filtro]); return []; }),
-  rpc: vi.fn(async (f) => { llamadas.rpc.push(f); return { ok: true, bot_rev: 8 }; }),
+  // Leer la familia (personas_de_casa, una casa sin nadie) no es una escritura: no se apunta.
+  rpc: vi.fn(async (f) => { if (f === RPC_FAMILIA) return familiaDeFilas(); llamadas.rpc.push(f); return { ok: true, bot_rev: 8 }; }),
   eq: (x) => `eq.${encodeURIComponent(x)}`,
   config: () => ({ url: "https://x.invalid", headers: {} }),
 }));
