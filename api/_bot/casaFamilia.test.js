@@ -4,7 +4,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { conCasa, cargarCasa, olvidarCasa, separarFamilia } from "./casa.js";
 import { conOperacion, ponerAutor, tomarAvisos } from "./operacion.js";
-import { FamiliaSinLeer, TEXTO_AVISO_PERSONA, AVISOS_PERSONA } from "../../src/lib/personas.js";
+import { FamiliaSinLeer, TEXTO_AVISO_PERSONA, AVISOS_PERSONA, RPC_FAMILIA } from "../../src/lib/personas.js";
 import { SUFIJO_CLAVE_PERSONA } from "../../src/lib/operaciones/tuberia.js";
 
 const CASA = "3f2b8c1e-7a4d-4e0b-9c5a-1d2e3f4a5b6c";
@@ -20,6 +20,7 @@ const persona = (id, nombre, orden, extra = {}) => ({
 const FAMILIA = { v: 1, rev: 7, personas: [persona(A, "Ana", 0), persona(B, "Bea", 1)], grupos: [{ id: G, nombre: "Todos", tipo: null, color: null, orden: 0, personas: [A, B] }] };
 // Lo que aún guarda el documento de antes del corte: no se lee.
 const DOCUMENTO = { data: { members: [{ id: "viejo", name: "Del documento" }], groups: [], reglas: [] } };
+const RUTA_FAMILIA = new RegExp(`rpc/${RPC_FAMILIA}`);
 const SIN_RPC = (fn) => ({ status: 404, cuerpo: { code: "PGRST202", message: `Could not find the function public.${fn} in the schema cache` } });
 const HECHA = { operacion_id: "op1", estado: "hecha", repetida: false, hecho: [], sin_hacer: [], choques: [], rev: 9 };
 
@@ -27,7 +28,7 @@ let llamadas;
 let respuestas;
 const responde = (patron, r) => respuestas.unshift([patron, r]);
 // Lo que escribe: personas_de_casa es una lectura aunque vaya por POST (las RPC van todas así).
-const escrituras = () => llamadas.filter((l) => l.metodo !== "GET" && !/bot_deshacer|personas_de_casa/.test(l.ruta));
+const escrituras = () => llamadas.filter((l) => l.metodo !== "GET" && !(/bot_deshacer/.test(l.ruta) || RUTA_FAMILIA.test(l.ruta)));
 beforeEach(() => {
   vi.stubEnv("SUPABASE_URL", "https://base.invalid");
   vi.stubEnv("VITE_SUPABASE_URL", "https://base.invalid");
@@ -35,7 +36,7 @@ beforeEach(() => {
   llamadas = [];
   respuestas = [
     [/household_state/, { status: 200, cuerpo: [{ state: DOCUMENTO, bot_rev: 7, updated_at: "2026-11-01T10:00:00Z" }] }],
-    [/rpc\/personas_de_casa/, { status: 200, cuerpo: FAMILIA }],
+    [RUTA_FAMILIA, { status: 200, cuerpo: FAMILIA }],
     [/rpc\/bot_save_casa/, { status: 200, cuerpo: { ok: true, bot_rev: 8 } }],
     [/rpc\/escribir_persona/, { status: 200, cuerpo: HECHA }],
   ];
@@ -76,7 +77,7 @@ describe("leer la casa: la familia, de sus filas", () => {
   });
 
   it("sin la 0108, la familia sale del documento y se guarda en él, como antes; escribir_persona no se llama", async () => {
-    responde(/rpc\/personas_de_casa/, SIN_RPC("personas_de_casa"));
+    responde(RUTA_FAMILIA, SIN_RPC(RPC_FAMILIA));
     const casa = await cargarCasa(CASA);
     expect(casa.familia).toBeNull();
     expect(casa.state.data.members.map((m) => m.name)).toEqual(["Del documento"]);
@@ -88,7 +89,7 @@ describe("leer la casa: la familia, de sus filas", () => {
   });
 
   it("sin poder leerla por otra cosa, la casa no se lee: FamiliaSinLeer, y nada se escribe", async () => {
-    responde(/rpc\/personas_de_casa/, { status: 200, cuerpo: { v: 1 } });
+    responde(RUTA_FAMILIA, { status: 200, cuerpo: { v: 1 } });
     const err = await cargarCasa(CASA).catch((e) => e);
     expect(err).toBeInstanceOf(FamiliaSinLeer);
     olvidarCasa(CASA);

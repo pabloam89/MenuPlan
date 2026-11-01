@@ -8,7 +8,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const db = vi.hoisted(() => ({ rev: 0, state: { data: { reglas: [] } }, choques: 0 }));
-vi.mock("./db.js", () => ({
+vi.mock("./db.js", async () => {
+  const { RPC_FAMILIA, familiaDeFilas } = await import("./familiaDePrueba.js");
+  return {
   eq: (x) => x,
   select: vi.fn(async (tabla) => {
     // Leer la casa tarda: es lo que hace que las escrituras se crucen.
@@ -19,14 +21,15 @@ vi.mock("./db.js", () => ({
   update: vi.fn(async () => []),
   rpc: vi.fn(async (_fn, { p_base_rev, p_state }) => {
     // La familia, de sus filas (trozo 10): aquí, nadie.
-    if (_fn === "personas_de_casa") return { v: 1, personas: [], grupos: [] };
+    if (_fn === RPC_FAMILIA) return familiaDeFilas();
     await new Promise((r) => setTimeout(r, 5));
     if (p_base_rev !== db.rev) { db.choques++; return { ok: false, bot_rev: db.rev }; }
     db.rev++;
     db.state = p_state;
     return { ok: true, bot_rev: db.rev };
   }),
-}));
+  };
+});
 
 const { conCasa } = await import("./casa.js");
 
