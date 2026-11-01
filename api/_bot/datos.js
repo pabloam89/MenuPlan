@@ -14,6 +14,7 @@
 import { rpc } from "./db.js";
 import { motivoDe } from "./avisar.js";
 import { operar, operarPersonas, deshacer } from "../../src/lib/operaciones/tuberia.js";
+import { membersDeFilas, FamiliaSinLeer, RPC_FAMILIA } from "../../src/lib/personas.js";
 import { FALLO_DATO, MOTIVO_FALLO } from "../../src/lib/vocabularios.js";
 
 /**
@@ -51,6 +52,27 @@ export const escribirDato = (pedido, { papel }) => operar(pedido, { papel, rpc, 
  * @param {{ papel: string|null }} quien  el papel en la casa del autor, o null si no es de ella
  */
 export const escribirPersonas = (pedido, { papel }) => operarPersonas(pedido, { papel, rpc, falloDeError });
+
+/**
+ * La familia de una casa, de sus filas (personas_de_casa, 0108), en la forma de data.members y data.groups.
+ * null si la base aún no tiene la RPC (`rpc_ausente`, 0108 sin aplicar): la familia sigue en el documento y la
+ * copia el trigger 0089, como antes del corte (plan B: la rama se despliega antes que la migración, y la misma
+ * 0108 crea la RPC y quita el trigger). Sin poder leerla por otra cosa lanza FamiliaSinLeer con su fallo y lo
+ * deja en el log: una familia sin leer no es una familia vacía.
+ * @returns {Promise<{ members: object[], groups: object[] } | null>}
+ */
+export async function leerFamilia(householdId) {
+  let filas;
+  try {
+    filas = await rpc(RPC_FAMILIA, { p_casa: householdId });
+  } catch (e) {
+    const { fallo, motivo } = falloDeError(e);
+    if (fallo === FALLO_DATO.RPC_AUSENTE) return null;
+    console.error(JSON.stringify({ evento: "familia_sin_leer", fallo, motivo }));
+    throw new FamiliaSinLeer(fallo);
+  }
+  return membersDeFilas(filas);
+}
 
 /**
  * Deshacer una operación propia por la tubería (deshacer_operacion, 0111; lo que devuelve, en `deshacer`).

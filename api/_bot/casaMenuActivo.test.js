@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
+import { familiaDeFilas, RPC_FAMILIA } from "./familiaDePrueba.js";
 
 // Si la tabla tuviera dos menús activos en una casa, Lola y la app tienen que
 // quedarse con el mismo: el de updated_at más reciente (menuActivoDe).
@@ -17,7 +18,8 @@ vi.mock("./db.js", () => ({
   }),
   insert: vi.fn(async () => []),
   update: vi.fn(async () => []),
-  rpc: vi.fn(async () => null),
+  // La familia sale de sus filas (personas_de_casa); aquí, una casa sin nadie.
+  rpc: vi.fn(async (fn) => (fn === RPC_FAMILIA ? familiaDeFilas() : null)),
   eq: (v) => `eq.${encodeURIComponent(v)}`,
 }));
 vi.mock("./propias.js", () => ({ recetasPropiasDeCasa: vi.fn(async () => []) }));
