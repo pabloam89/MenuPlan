@@ -50,7 +50,7 @@ import { execFileSync } from "node:child_process";
 import { cargarEnv, RAIZ } from "./lib/env.mjs";
 import {
   CORRECTORES, NIVELES, REINTENTOS_POR_NIVEL, SALIDA, VERSION_ESQUEMA, baseMemo, bloquea, casosDelNivel, compararEstados, elegirReferencia, ficherosDelCodigo,
-  casosVersion, claveMemo, codigoHash, costeUsd, erroresDeCasos, esEstricto, estadoDe, estimadoSiguiente,
+  casosVersion, claveMemo, LUNES_SIGUIENTE, codigoHash, costeUsd, erroresDeCasos, esEstricto, estadoDe, estimadoSiguiente,
   kDe, leerJsonl, memoria, opcion, opcionEntero, opcionNumero, otroIntento, promptHash, tokensDe, topeDePasada,
   apuntarOAvisar, puedeGastar, cifrasDePasada, memoriaDeOperacion, operacionExacta,
 } from "./lib/evals.mjs";
@@ -192,6 +192,12 @@ const normal = (s) => String(s ?? "").normalize("NFD").replace(/\p{Diacritic}/gu
 // acierta igual diciendo «hoy» o la fecha de hoy (pasó un jueves con «la cena
 // del jueves»): la prueba no puede depender del día en que se ejecuta.
 const HOY_MADRID = hoyEnMadrid();
+// La charla de los casos, con el hueco del lunes que viene relleno (#1083).
+const conFechas = (s) => (typeof s === "string" ? s.replaceAll(LUNES_SIGUIENTE, corta(sumarDias(lunesDe(HOY_MADRID), 7))) : s);
+for (const c of casos) {
+  c.entrada = conFechas(c.entrada);
+  if (c.historia) c.historia = c.historia.map((h) => ({ ...h, content: conFechas(h.content) }));
+}
 const DIA_DE_HOY = normal(new Intl.DateTimeFormat("es-ES", { weekday: "long", timeZone: "Europe/Madrid" }).format(new Date()));
 const contiene = (args, esperado) => Object.entries(esperado).every(([k, v]) => {
   if (k === "_todo") return normal(JSON.stringify(args)).includes(normal(v));
