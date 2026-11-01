@@ -134,27 +134,8 @@ export function estadosVencidos(members = [], hoy = isoDeCasa()) {
   return out;
 }
 
-/**
- * Pura. Las filas de persona_estado con fecha (y el nombre de su persona) como comensales por casa, la forma que
- * lee estadosVencidos. Desde el trozo 10 la familia vive en sus filas, no en household_state.
- */
-export function casasDeEstados(filas = []) {
-  const casas = new Map();
-  for (const f of filas) {
-    if (!casas.has(f.household_id)) casas.set(f.household_id, new Map());
-    const personas = casas.get(f.household_id);
-    const id = String(f.persona_id);
-    if (!personas.has(id)) personas.set(id, { id, name: f.persona?.nombre ?? "", dietaryStates: [], dietaryStatesMeta: {} });
-    const m = personas.get(id);
-    m.dietaryStates.push(f.estado);
-    if (f.hasta) m.dietaryStatesMeta[f.estado] = { hasta: f.hasta };
-  }
-  return [...casas].map(([household_id, personas]) => ({ household_id, members: [...personas.values()] }));
-}
-
 async function barrerEstados({ ahoraMs, hoy }) {
-  // Solo los estados con fecha: los demás no vencen. Una casa sin ninguno no sale, y lo que tuviera abierto se cierra.
-  const casas = casasDeEstados(await select("persona_estado", "hasta=not.is.null", "household_id,persona_id,estado,hasta,persona(nombre)"));
+  const casas = await select("household_state", "", "household_id,members:state->data->members");
   const vivas = new Set();
   // Las casas que no se han podido leer: sus preguntas abiertas no se tocan.
   const sinLeer = new Set();

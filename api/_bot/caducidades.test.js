@@ -8,7 +8,7 @@ const db = vi.hoisted(() => ({ select: vi.fn(), insert: vi.fn(), update: vi.fn()
 vi.mock("./db.js", () => ({ ...db, eq: (v) => `eq.${encodeURIComponent(v)}` }));
 
 const {
-  COSAS_QUE_CADUCAN, CADUCA, EFECTOS, QUIENES, BARRIDOS, vigente, estadosVencidos, casasDeEstados, avisoDeCola, claveDeEstadoVencido,
+  COSAS_QUE_CADUCAN, CADUCA, EFECTOS, QUIENES, BARRIDOS, vigente, estadosVencidos, avisoDeCola, claveDeEstadoVencido,
   barridosQueFaltan, PATRON_VENCIDO, barrer: barrerReal,
 } = await import("./caducidades.js");
 
@@ -113,11 +113,6 @@ describe("estados de salud con fecha pasada", () => {
     // Quitado ya el estado: lo que quede en meta no cuenta.
     { id: "p3", name: "Cris", dietaryStates: [], dietaryStatesMeta: { pregnancy: { hasta: "2026-01-01" } } },
   ];
-  // Lo mismo en filas de persona_estado (trozo 10: la familia vive en sus filas): Cris ya no tiene fila.
-  const ESTADOS = [
-    { household_id: "h1", persona_id: "p1", estado: "pregnancy", hasta: "2026-09-30", persona: { nombre: "Ana" } },
-    { household_id: "h1", persona_id: "p2", estado: "lactation", hasta: "2026-12-01", persona: { nombre: "Bea" } },
-  ];
   it("solo los vencidos y aún puestos, con una pregunta (no se borran)", () => {
     const v = estadosVencidos(members, "2026-11-05");
     expect(v.map((x) => [x.personaId, x.estado])).toEqual([["p1", "pregnancy"]]);
@@ -143,7 +138,7 @@ describe("estados de salud con fecha pasada", () => {
   it("el barrido abre la pregunta una sola vez y en el privado", async () => {
     db.select.mockReset(); db.insert.mockReset(); db.update.mockReset();
     db.select.mockImplementation(async (tabla, filtro) => {
-      if (tabla === "persona_estado") return ESTADOS;
+      if (tabla === "household_state") return [{ household_id: "h1", members }];
       if (tabla === "bot_chats") return [{ channel: "telegram", chat_id: "-100", kind: "group" }, { channel: "telegram", chat_id: "7", kind: "private" }];
       if (tabla === "bot_tareas" && filtro.includes("clave=eq.")) return [];
       return [];
@@ -157,7 +152,7 @@ describe("estados de salud con fecha pasada", () => {
     // Lo que ya se preguntó no se repite.
     db.insert.mockClear();
     db.select.mockImplementation(async (tabla, filtro) => {
-      if (tabla === "persona_estado") return ESTADOS;
+      if (tabla === "household_state") return [{ household_id: "h1", members }];
       if (tabla === "bot_chats") return [{ channel: "telegram", chat_id: "7", kind: "private" }];
       if (tabla === "bot_tareas" && filtro.includes("clave=eq.")) return [{ id: "t1" }];
       return [];
@@ -169,7 +164,7 @@ describe("estados de salud con fecha pasada", () => {
   it("si le dieron fecha nueva, la pregunta abierta se cierra", async () => {
     db.select.mockReset(); db.update.mockReset();
     db.select.mockImplementation(async (tabla, filtro) => {
-      if (tabla === "persona_estado") return [];
+      if (tabla === "household_state") return [{ household_id: "h1", members: [] }];
       if (tabla === "bot_tareas" && filtro.includes("like")) return [{ id: "t9", household_id: "h1", clave: claveDeEstadoVencido("p1", "pregnancy", "2026-09-30") }];
       return [];
     });
@@ -179,34 +174,29 @@ describe("estados de salud con fecha pasada", () => {
     expect(db.update.mock.calls[0][2]).toMatchObject({ status: "hecha" });
   });
 
-  it("los estados salen de sus filas, no del documento (trozo 10)", async () => {
-    expect(casasDeEstados(ESTADOS)).toEqual([{ household_id: "h1", members: [
-      { id: "p1", name: "Ana", dietaryStates: ["pregnancy"], dietaryStatesMeta: { pregnancy: { hasta: "2026-09-30" } } },
-      { id: "p2", name: "Bea", dietaryStates: ["lactation"], dietaryStatesMeta: { lactation: { hasta: "2026-12-01" } } },
-    ] }]);
-    db.select.mockReset();
-    db.select.mockResolvedValue([]);
-    await barrer({ ahoraMs: Date.parse("2026-11-05T09:00:00Z") });
-    const tablas = db.select.mock.calls.map(([t]) => t);
-    expect(tablas).toContain("persona_estado");
-    expect(tablas).not.toContain("household_state");
-  });
-
-  it("si los estados no se pueden leer, el barrido falla en alto y no cierra nada (#974, C5)", async () => {
+  it("si la casa no se puede leer, sus preguntas abiertas no se cierran (#974, C5)", async () => {
     db.select.mockReset(); db.update.mockReset();
     db.select.mockImplementation(async (tabla, filtro) => {
-      if (tabla === "persona_estado") throw new Error("caída");
+      if (tabla === "household_state") return [{ household_id: "h1", members: { roto: true } }];
       if (tabla === "bot_tareas" && filtro.includes("like")) return [{ id: "t9", household_id: "h1", clave: claveDeEstadoVencido("p1", "pregnancy", "2026-09-30") }];
       return [];
     });
-    await barrer({ ahoraMs: Date.parse("2026-11-05T09:00:00Z") }).catch(() => null);
+    let r;
+    // El aviso de la casa ilegible se mira en el test de estadosVencidos; aquí, callado.
+    const espia = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      r = await barrer({ ahoraMs: Date.parse("2026-11-05T09:00:00Z") });
+    } finally {
+      espia.mockRestore();
+    }
+    expect(r[CADUCA.ESTADO_SALUD]).toEqual({ abiertas: 0, cerradas: 0, sinLeer: 1 });
     expect(db.update).not.toHaveBeenCalled();
   });
 
   it("una casa sin chat no abre nada, pero tampoco cierra lo que ya estaba abierto (#974)", async () => {
     db.select.mockReset(); db.insert.mockReset(); db.update.mockReset();
     db.select.mockImplementation(async (tabla, filtro) => {
-      if (tabla === "persona_estado") return ESTADOS;
+      if (tabla === "household_state") return [{ household_id: "h1", members }];
       if (tabla === "bot_chats") return [];
       if (tabla === "bot_tareas" && filtro.includes("like")) return [{ id: "t9", household_id: "h1", clave: claveDeEstadoVencido("p1", "pregnancy", "2026-09-30") }];
       return [];
