@@ -57,8 +57,9 @@ describe("canario en solo lectura", () => {
       await expect(insert("household_state", [{}])).rejects.toMatchObject({ soloLectura: true });
       await expect(rpc("bot_save_casa", {})).rejects.toMatchObject({ soloLectura: true });
       await rpc("ficha_casa", {});
+      await rpc("personas_de_casa", {});
     });
     expect(negadas).toEqual(["household_state", "bot_save_casa"]);
-    expect(escrituras).toEqual(["POST /rest/v1/rpc/ficha_casa"]);
+    expect(escrituras).toEqual(["POST /rest/v1/rpc/ficha_casa", "POST /rest/v1/rpc/personas_de_casa"]);
   });
 });

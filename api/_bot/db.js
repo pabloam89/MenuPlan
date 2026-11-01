@@ -10,6 +10,7 @@
 import { seguirCon } from "./avisar.js";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { contarEnOperacion, SOLO_REGISTRO } from "./operacion.js";
+import { RPC_FAMILIA } from "../../src/lib/personas.js";
 
 const TIMEOUT_MS = 8000;
 
@@ -40,7 +41,8 @@ function contarEscritura(ruta) {
 // escritura se niega con un error y se apunta, y quien llama lo da por fallo.
 // Las funciones de la base que solo leen pasan.
 const soloLectura = new AsyncLocalStorage();
-const RPC_DE_LECTURA = new Set(["ficha_casa"]);
+// La familia (personas_de_casa, 0108) también: sin ella la casa no se lee y el canario no probaría nada.
+const RPC_DE_LECTURA = new Set(["ficha_casa", RPC_FAMILIA]);
 export async function enSoloLectura(correr) {
   const nota = { negadas: [], calladas: 0 };
   const r = await soloLectura.run(nota, correr);
