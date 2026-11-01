@@ -34,6 +34,7 @@ import { alergiasRevisadas } from "./ficha.js";
 import { etapaDe } from "../../src/lib/stages.js";
 import { claveDeTarea, KIND_DE_TIPO } from "../../src/lib/registroTareas.js";
 import { estadosDeFichas, marcasDeLola } from "../../src/lib/estadoDeDato.js";
+import { PGRST_SIN_FUNCION, PG_SIN_FUNCION } from "../../src/lib/postgrest.js";
 
 export const fichaRpc = () => /^(1|true|si|sí|on)$/i.test(String(process.env.BOT_FICHA_RPC ?? "").trim());
 
@@ -57,7 +58,8 @@ export function olvidarFicha(householdId) {
 }
 
 // La 0097 sin aplicar: PostgREST no encuentra la función (404 PGRST202) o Postgres no la tiene (42883).
-const noExiste = (e) => /PGRST202|42883|\b404\b|could not find the function/i.test(String(e?.message ?? e));
+const SIN_FUNCION = new RegExp(`${PGRST_SIN_FUNCION}|${PG_SIN_FUNCION}|\\b404\\b|could not find the function`, "i");
+const noExiste = (e) => SIN_FUNCION.test(String(e?.message ?? e));
 
 /** Pura. ¿Es la ficha que sabemos leer? Lo que falta o tiene otra forma, no. */
 function validar(f) {

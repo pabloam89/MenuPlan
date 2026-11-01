@@ -4,7 +4,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import {
   membersDeFilas, filaDeMiembro, cambiosDePersonas, COLUMNA_DE_MIEMBRO, AVISOS_PERSONA, FamiliaSinLeer, FamiliaIncompleta, CAMPOS_CON_COLUMNA,
-  RANGOS, conOrdenDeTodos, TEXTO_AVISO_PERSONA, textosDeAvisos,
+  RANGOS, conOrdenDeTodos, TEXTO_AVISO_PERSONA, textosDeAvisos, revSiguiente,
 } from "./personas.js";
 import { CAMPOS_CON_COLUMNA as DE_LA_TABLA, RANGOS as RANGOS_TABLA } from "./personasTabla.js";
 
@@ -222,4 +222,12 @@ it("filaDeMiembro y membersDeFilas cubren justo las claves de COLUMNA_DE_MIEMBRO
 it("personasTabla.js (hasta el trozo 11) usa las claves con columna y los topes de aquí, no una copia", () => {
   expect(DE_LA_TABLA).toBe(CAMPOS_CON_COLUMNA);
   expect(RANGOS_TABLA).toBe(RANGOS);
+});
+
+it("la versión tras escribir la familia es suya solo si es la siguiente a la conocida", () => {
+  expect(revSiguiente(7, 8)).toBe(8);
+  expect(revSiguiente("7", "8")).toBe(8);
+  expect(revSiguiente(7, 9)).toBeNull();
+  expect(revSiguiente(7, null)).toBeNull();
+  expect(revSiguiente(null, 8)).toBeNull();
 });
