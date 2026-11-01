@@ -74,7 +74,7 @@ import { tareasV2 } from "./idempotencia.js";
 import { apuntarSilencio, conRecordatorio, NOTA_RECORDATORIO } from "./silencio.js";
 import { usoParcialDe, sumarUsos } from "./medidaTurno.js";
 import { esResultado, paraElModelo, conRecibo, recibo, cuentaComoGuardado, exigeResultado, SIN_RESULTADO } from "./resultado.js";
-import { operacion, claveDeEscritura, tipoDeHerramienta, YA_ESCRITA, SIN_COMPROBAR } from "./operacion.js";
+import { operacion, claveDeEscritura, tipoDeHerramienta, YA_ESCRITA, SIN_COMPROBAR, ponerAutor, tomarAvisos } from "./operacion.js";
 import { primeraVez, yaVista } from "./entradas.js";
 
 const yaEscrita = (clave) => yaVista(CANAL.TELEGRAM, clave);
@@ -335,8 +335,11 @@ export async function herramientas(chat) {
         if (t.name === "cambiar_plato" && args.dia) tocado.dias.add(diaDe(args.dia) ?? String(args.dia).toLowerCase());
         const ir = (SOLO_LECTURA.has(t.name) && !chat.nadaQueVer) || escribio ? pantallaDe(t.name, args) : null;
         if (ir) chat.ir = ir;
-        if (esResultado(r)) return paraElModelo(r);
-        return rechazado ? `${r ?? ""}\n${SIN_RESULTADO}` : r;
+        // Lo que la escritura no guardó tal cual (la familia, casa.js): Lola lo dice, no se calla.
+        const avisos = op ? tomarAvisos() : [];
+        const dichos = avisos.length ? `\nDILO EN EL CHAT: ${avisos.join("; ")}.` : "";
+        if (esResultado(r)) return `${paraElModelo(r)}${dichos}`;
+        return rechazado ? `${r ?? ""}\n${SIN_RESULTADO}${dichos}` : (dichos ? `${r ?? ""}${dichos}` : r);
       } catch (e) {
         // a propósito: el evento vale más sin dueño que perdido
         await registrar(FALLO_HERRAMIENTA, { userId: await duenoDe(chat.householdId).catch(seguirCon("agente_dueno", null)), extra: { herramienta: t.name, error: String(e?.message ?? e).slice(0, 300), esGrupo: Boolean(chat.esGrupo) } });
@@ -1208,6 +1211,8 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
       const p = chat.sinPapel ? { papel: "ajeno", userId: null } : leido;
       chat.papel = p.papel;
       chat.userId = p.userId ?? null;
+      // El autor del turno, para lo que firma con una persona de la casa (la familia, casa.js).
+      ponerAutor({ userId: chat.userId, papel: chat.papel, canal: channel });
       // a propósito: sin idioma guardado, contesta en castellano
       chat.idioma = await idiomaDe(p.userId).catch(seguirCon("agente_idioma", null));
       return p;
