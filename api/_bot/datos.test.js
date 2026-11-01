@@ -5,7 +5,7 @@
 // (trozo 41) va por la misma entrada a deshacer_operacion, con quien tiene la sesión.
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { escribirDato, falloDeMotivo } from "./datos.js";
-import { RPC_OPERACION, RPC_DESHACER } from "../../src/lib/operaciones/tuberia.js";
+import { RPC_OPERACION, RPC_DESHACER, SUFIJO_CLAVE_PERSONA } from "../../src/lib/operaciones/tuberia.js";
 import handler from "../operacion.js";
 import { HTTP_DE_FALLO } from "../../src/lib/escribirDato.js";
 import { FALLO_DATO, MOTIVOS_FALLO, FALLOS_DATO, ESTADO_OPERACION, SEXO, CANAL_DATO, REF_OPERACION } from "../../src/lib/vocabularios.js";
@@ -252,6 +252,43 @@ describe("api/operacion.js: deshacer una operación propia (trozo 41)", () => {
     expect(res.codigo).toBe(503);
     expect(res.body).toEqual({ fallo: FALLO_DATO.RPC_AUSENTE });
     expect(lineas(log)).toEqual([{ evento: "dato_sin_guardar", fallo: "rpc_ausente", motivo: "no_existe", canal: "app", campo: null }]);
+    expect(llamadas.filter((l) => DEL_DOCUMENTO.test(l.ruta))).toEqual([]);
+  });
+});
+
+describe("api/operacion.js: un cambio de la familia (trozo 10) va a escribir_persona", () => {
+  const PERSONAS = [{ id: "00000000-0000-4000-8000-00000000000a", alergias: ["Gluten"], alergias_revisadas: true }];
+  beforeEach(() => {
+    responde(/^\/auth\/v1\/user/, { status: 200, cuerpo: { id: "u1" } });
+  });
+
+  it("por la misma puerta y con el autor de la sesión, a escribir_persona y nunca al documento", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
+    responde(/rpc\/escribir_persona/, { status: 200, cuerpo: HECHA });
+    const { dato: _sinDato, ...sinDato } = CUERPO;
+    const res = await pedir({ body: { ...sinDato, accion: "editar_persona", personas: PERSONAS, autor_user_id: "otro" } });
+    expect(res.codigo).toBe(200);
+    expect(res.body).toEqual({ guardado: true, ...HECHA });
+    const op = llamadas.find((l) => l.ruta.includes("escribir_persona")).cuerpo.p_operacion;
+    expect(op).toMatchObject({ canal: "app", ref_tipo: "pantalla", autor_user_id: "u1", personas: PERSONAS });
+    expect(op.clave).toBe("app:" + CLAVE_APP + SUFIJO_CLAVE_PERSONA);
+    expect(llamadas.filter((l) => DEL_DOCUMENTO.test(l.ruta))).toEqual([]);
+  });
+
+  it("un dato y un cambio de la familia a la vez: no se escribe nada (uno se tiraría en silencio)", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const res = await pedir({ body: { ...CUERPO, personas: PERSONAS } });
+    expect(res.codigo).toBe(HTTP_DE_FALLO[FALLO_DATO.INVALIDO]);
+    expect(llamadas.filter((l) => l.ruta.includes("rpc/"))).toEqual([]);
+  });
+
+  it("sin la 0108 contesta rpc_ausente y no toca el documento", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
+    responde(/rpc\/escribir_persona/, SIN_RPC);
+    const { dato: _sinDato, ...sinDato } = CUERPO;
+    const res = await pedir({ body: { ...sinDato, personas: PERSONAS } });
+    expect(res).toMatchObject({ codigo: HTTP_DE_FALLO[FALLO_DATO.RPC_AUSENTE], body: { fallo: FALLO_DATO.RPC_AUSENTE } });
     expect(llamadas.filter((l) => DEL_DOCUMENTO.test(l.ruta))).toEqual([]);
   });
 });
