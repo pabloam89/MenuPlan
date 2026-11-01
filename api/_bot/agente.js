@@ -1509,7 +1509,7 @@ const AVISO_SIN_GUARDAR = "[Aviso del sistema, no lo ha escrito la persona] En t
  *   en el turno (responder lo saca de db.js). Sin él (pruebas con herramientas
  *   de mentira) vale lo intentado.
  */
-export async function ejecutar({ historia = [], entrada, tools, adjunto = null, alEscribir = null, signal = null, modelos = [MODELO, MODELO_RESERVA], alReintentar = null, ficha = null, vuelta = unaVuelta, pista = null, progreso = null, guardados = null, alPedir = null }) {
+export async function ejecutar({ historia = [], entrada, tools, adjunto = null, alEscribir = null, signal = null, modelos = [MODELO, MODELO_RESERVA], alReintentar = null, ficha = null, vuelta = unaVuelta, pista = null, progreso = null, guardados = null, alPedir = null, ahora = null }) {
   // Si ha INTENTADO escribir en la casa este turno y el modelo se cae después,
   // no se repite con el de reserva: lo haría dos veces. Cuenta el intento, no
   // el éxito: una escritura que falló a medias puede haber guardado algo.
@@ -1561,7 +1561,7 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
     try {
       if (i > 0) alReintentar?.();
       const comun = {
-        tools: vigiladas, alEscribir: escribir, modelo, ficha, progreso, alPedir,
+        tools: vigiladas, alEscribir: escribir, modelo, ficha, progreso, alPedir, ahora,
         signal: signal ? AbortSignal.any([signal, plazo]) : plazo,
         // El principal sin reintentos: si falla, reintentar ES el de reserva.
         maxRetries: i === 0 && modelos.length > 1 ? 0 : 1,
@@ -1650,7 +1650,7 @@ export function esCaida(err) {
 // los puntos de 1 h vayan antes que los de 5 min.
 const CACHE_FIJA = { type: "ephemeral", ttl: "1h" };
 
-async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal, modelo, maxRetries, ficha = null, pista = null, progreso = null, alPedir = null, maxIteraciones = MAX_LLAMADAS_VUELTA }) {
+async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal, modelo, maxRetries, ficha = null, pista = null, progreso = null, alPedir = null, ahora = null, maxIteraciones = MAX_LLAMADAS_VUELTA }) {
   // Con cache_control en el último bloque: la segunda vuelta del turno (tras
   // una herramienta) y las siguientes leen de caché todo lo anterior —
   // instrucciones, historia y el mensaje— en vez de volver a procesarlo.
@@ -1676,7 +1676,7 @@ async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal
       ...(ficha?.estable ? [{ type: "text", text: `FICHA DE LA CASA (datos para ti, no un formato: tú contesta siempre en HTML de Telegram, nunca con ** ni guiones. Es lo guardado ahora y manda sobre lo dicho en charlas de otros días)\n${ficha.estable}`, cache_control: CACHE_FIJA }] : []),
       ...(ficha?.delDia ? [{ type: "text", text: ficha.delDia, cache_control: CACHE_FIJA }] : []),
       // Fuera de la caché: cambia en cada mensaje.
-      { type: "text", text: `Ahora mismo en España: ${ahoraEnMadrid()}.` },
+      { type: "text", text: `Ahora mismo en España: ${ahora ?? ahoraEnMadrid()}.` },
     ],
     tools,
     messages: [...historia, { role: "user", content: contenido }],

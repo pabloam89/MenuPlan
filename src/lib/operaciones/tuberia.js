@@ -24,9 +24,9 @@
  * `rpc_ausente` y queda `dato_sin_guardar` en el log; nunca se escribe en household_state.
  * Sin base propia: `rpc` y cómo leer sus errores los da api/_bot/datos.js.
  */
-import { operacionDeDato, resultadoDeOperacion, apuntarSinGuardar, DatoInvalido } from "../escribirDato.js";
+import { operacionDeDato, cabeceraDeOperacion, hay, resultadoDeOperacion, apuntarSinGuardar, DatoInvalido } from "../escribirDato.js";
 import { comprobar, falloDePuerta } from "./puerta.js";
-import { ESTADO_OPERACION, FALLO_DATO, CANAL_DATO, paraEscribir, FueraDeVocabulario } from "../vocabularios.js";
+import { ESTADO_OPERACION, FALLO_DATO, CANAL_DATO } from "../vocabularios.js";
 
 /** La RPC que escribe toda operación (0106). */
 export const RPC_OPERACION = "aplicar_operacion";
@@ -92,42 +92,22 @@ export async function operar(pedido, { papel, rpc, falloDeError }) {
   return fallo ? { guardado: false, fallo } : resultadoDeOperacion(r);
 }
 
-/** Un valor de una lista de vocabularios.js, o DatoInvalido. */
-function deLista(nombre, valor, que) {
-  try {
-    const v = valor == null ? null : paraEscribir(nombre, valor);
-    if (v != null) return v;
-  } catch (e) {
-    if (!(e instanceof FueraDeVocabulario)) throw e;
-  }
-  throw new DatoInvalido(`«${valor}» no es ${que} (${nombre})`);
-}
-
-const hay = (v) => typeof v === "string" && v.length > 0;
-
 /**
  * Pura. Entender un cambio de la familia: la operación que espera escribir_persona (0108: p_operacion). Las
  * personas y los grupos salen de cambiosDePersonas (src/lib/personas.js), ya limpios; aquí, la forma de la
- * operación. Persona y salud las dice una persona por la app o un chat: el canal `sistema` no vale. Lanza
- * DatoInvalido.
+ * operación (la cabecera, la misma que la de un dato: cabeceraDeOperacion). Persona y salud las dice una
+ * persona por la app o un chat: el canal `sistema` no vale. Lanza DatoInvalido.
  */
-export function operacionDePersonas({ casa, clave, accion, canal, ref, autor = {}, pedida_at = null, personas, grupos }) {
-  if (!hay(casa)) throw new DatoInvalido("falta la casa");
-  if (!hay(clave)) throw new DatoInvalido("falta la clave de la operación");
-  if (!hay(accion)) throw new DatoInvalido("falta la acción");
-  const c = deLista("canales_dato", canal, "un canal de dato");
-  if (c === CANAL_DATO.SISTEMA) throw new DatoInvalido("la familia no la escribe el sistema");
-  const t = deLista("refs_operacion", ref?.tipo, "una referencia de operación");
-  if (!hay(ref?.id)) throw new DatoInvalido("falta de qué mensaje o pantalla sale (ref.id)");
-  if (pedida_at != null && Number.isNaN(Date.parse(pedida_at))) throw new DatoInvalido("pedida_at no es una fecha");
+export function operacionDePersonas({ personas, grupos, ...pedido }) {
+  const cabecera = cabeceraDeOperacion(pedido);
+  if (cabecera.canal === CANAL_DATO.SISTEMA) throw new DatoInvalido("la familia no la escribe el sistema");
   if (!Array.isArray(personas ?? [])) throw new DatoInvalido("personas es una lista");
   if (grupos !== undefined && !Array.isArray(grupos)) throw new DatoInvalido("grupos es una lista");
   if (!(personas ?? []).length && grupos === undefined) throw new DatoInvalido("nada que escribir");
   if ((personas ?? []).some((p) => !hay(p?.id))) throw new DatoInvalido("una persona sin id");
   return {
-    casa, clave: `${clave}${SUFIJO_CLAVE_PERSONA}`, accion, canal: c, ref_tipo: t, ref_id: ref.id,
-    autor_user_id: autor.user_id ?? null, autor_persona_id: autor.persona_id ?? null,
-    ...(pedida_at ? { pedida_at } : {}),
+    ...cabecera,
+    clave: `${cabecera.clave}${SUFIJO_CLAVE_PERSONA}`,
     personas: personas ?? [],
     ...(grupos !== undefined ? { grupos } : {}),
   };

@@ -36,7 +36,7 @@ export class DatoInvalido extends Error {
 // Solo que esté: la forma y el largo de casa, clave, acción, ref_id y persona los dicen los CHECK y las FK de la
 // 0105 y la 0097, y el tipo, el rango y el largo del valor el disparador sobre_valor_valido (0097), una sola
 // vez; si no cuadran, la base contesta 22023/23514/23503 y vuelve como `invalido`.
-const hay = (v) => typeof v === "string" && v.length > 0;
+export const hay = (v) => typeof v === "string" && v.length > 0;
 
 /** El valor de una columna de vocabulario por paraEscribir (un retirado va a su sucesor); lanza DatoInvalido si no es de la lista. */
 function deLaLista(nombre, valor, que) {
@@ -77,11 +77,12 @@ export function datoValido(dato) {
 }
 
 /**
- * Pura. La operación de tipo dato que espera aplicar_operacion (0106: p_operacion).
- * `pedida_at` es cuándo lo pidió la familia (en la app, cuando entró en la cola).
+ * Pura. La cabecera común a toda operación (la de un dato, 0106, y la de la familia, 0108): casa, clave, acción,
+ * canal y referencia por su vocabulario, autor y `pedida_at` (cuándo lo pidió la familia; en la app, cuando
+ * entró en la cola). Una sola receta para las dos: la usan operacionDeDato y operacionDePersonas (tuberia.js).
  * Lanza DatoInvalido.
  */
-export function operacionDeDato({ casa, clave, accion, canal, ref, autor = {}, pedida_at = null, dato }) {
+export function cabeceraDeOperacion({ casa, clave, accion, canal, ref, autor = {}, pedida_at = null }) {
   if (!hay(casa)) throw new DatoInvalido("falta la casa");
   if (!hay(clave)) throw new DatoInvalido("falta la clave de la operación");
   if (!hay(accion)) throw new DatoInvalido("falta la acción");
@@ -93,8 +94,12 @@ export function operacionDeDato({ casa, clave, accion, canal, ref, autor = {}, p
     casa, clave, accion, canal: c, ref_tipo: t, ref_id: ref.id,
     autor_user_id: autor.user_id ?? null, autor_persona_id: autor.persona_id ?? null,
     ...(pedida_at ? { pedida_at } : {}),
-    datos: [datoValido(dato)],
   };
+}
+
+/** Pura. La operación de tipo dato que espera aplicar_operacion (0106: p_operacion). Lanza DatoInvalido. */
+export function operacionDeDato({ dato, ...pedido }) {
+  return { ...cabeceraDeOperacion(pedido), datos: [datoValido(dato)] };
 }
 
 /** Lo que el servidor contesta de una operación aplicada: sin `pedido` ni `inversa` (llevan salud). */
