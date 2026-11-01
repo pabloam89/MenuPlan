@@ -50,10 +50,20 @@ function cargaDeRespuesta(status, cuerpo) {
  * funciones de api/), con lo que no es la respuesta del servidor se sigue con el documento y se dice en consola.
  */
 export async function leerDatosDeCasa(casa, { token = tokenDeSesion, fetcher = fetch, enDesarrollo = import.meta.env?.DEV === true } = {}) {
-  const t = await token();
-  if (!t) return { error: true };
-  const res = await fetcher(`${urlOperacion()}?casa=${encodeURIComponent(casa)}`, { headers: { Authorization: `Bearer ${t}` } });
-  const cuerpo = jsonDeTexto(await res.text());
+  let res;
+  let texto;
+  try {
+    const t = await token();
+    if (!t) return { error: true };
+    res = await fetcher(`${urlOperacion()}?casa=${encodeURIComponent(casa)}`, { headers: { Authorization: `Bearer ${t}` } });
+    texto = await res.text();
+  } catch (e) {
+    // Sin red o sin sesión que leer: no es una casa sin datos. Se dice y la carga no sigue (cargaSinSeguir), en vez de
+    // romper la carga entera de App.jsx con un rechazo que nadie recoge.
+    console.error("[casaDatos] no se pudieron leer los datos de la casa:", String(e?.message ?? e));
+    return { error: true };
+  }
+  const cuerpo = jsonDeTexto(texto);
   if (cuerpo == null) console.error("[casaDatos] la respuesta no es JSON", res.status);
   const carga = cargaDeRespuesta(res.status, cuerpo);
   if (carga.error && enDesarrollo && cuerpo == null) {

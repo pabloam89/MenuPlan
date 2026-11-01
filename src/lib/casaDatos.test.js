@@ -55,6 +55,13 @@ describe("leer los datos de la casa", () => {
     expect(await leerDatosDeCasa(CASA, { token: async () => null, fetcher: vi.fn(), enDesarrollo: false })).toEqual({ error: true });
   });
 
+  it("sin red, o sin poder leer la sesión, error y no un rechazo (la carga de App.jsx lo dice con cargaSinSeguir)", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    expect(await leer(vi.fn(async () => { throw new TypeError("Failed to fetch"); }))).toEqual({ error: true });
+    expect(await leerDatosDeCasa(CASA, { token: async () => { throw new Error("sin sesión"); }, fetcher: vi.fn(), enDesarrollo: true })).toEqual({ error: true });
+    expect(log).toHaveBeenCalledTimes(2);
+  });
+
   it("en desarrollo, sin las funciones de api/ (contesta la página de vite), del documento y dicho en consola", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     const aviso = vi.spyOn(console, "warn").mockImplementation(() => {});
