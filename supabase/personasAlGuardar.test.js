@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { CAMPOS_CON_COLUMNA, RANGOS } from "../src/lib/personasTabla.js";
+import { CAMPOS_CON_COLUMNA, RANGOS } from "../src/lib/personas.js";
 
 // 0089: cada guardado de la casa copia la familia activa a persona/grupo, en la
 // misma transacción, desde un trigger sobre household_state. Lee el SQL: la
