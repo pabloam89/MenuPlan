@@ -291,6 +291,14 @@ export function resultadoDeGenerar(out, texto) {
   return resultado({ accion: "menu", hecho: [`semana del ${rangoDeFechas(out.desde, out.hasta)} (${out.platos} ${out.platos === 1 ? "plato" : "platos"})`], sinHacer, nota: texto });
 }
 
+/**
+ * Pura. ¿Alguien eligió el modelo de menú de la casa? Con menuModel en su sobre (trozo 12), que haya sobre: el
+ * defecto del registro («same») no lo eligió nadie. Sin la 0112, que el documento lo tenga, como antes.
+ */
+const modeloElegido = (casa) => (casa?.conSobre?.menuModel
+  ? casa.conSobre.menuModel.conSobre
+  : Boolean(casa?.state?.data?.menuModel));
+
 // `out` se rellena siempre (ok, motivo y lo generado): de ahí sale el resultado.
 export async function generarMenu(householdId, cual = "esta", fijos = [], out = null, { desde = null, rehacer = false } = {}) {
   out ??= {};
@@ -319,14 +327,14 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   // Una casa del chat sin modelo de menú es de antes de «todos comen lo
   // mismo»: el reparto por edades que tiene no lo eligió nadie. Al generar
   // (el plan es nuevo, no se pierde nada) pasa a un solo menú. Un reparto
-  // elegido (menuModel puesto, o menús individuales) no se toca.
-  const modeloElegido = Boolean(casa.state?.data?.menuModel);
+  // elegido (menuModel dicho, o menús individuales) no se toca.
+  const elegido = modeloElegido(casa);
   const soloPorEdades = groups.length > 1 && groups.every((g) => ["adultos", "ninos", "bebe"].includes(m.tipoDeGrupo(g)));
   const vivas = (casa.semanas ?? []).filter((w) => w.weekEnd >= hoyISO());
   // Si otra semana del menú se queda, sus huecos van con los ids de ahora: no
   // se reagrupa (se hará cuando se rehaga esa).
   const quedaOtra = pedida.offset > 0 ? vivas.some((w) => w.weekStart <= hoyISO()) : vivas.some((w) => w.weekStart > hoyISO()) || Boolean(pedida.existente);
-  if (!modeloElegido && soloPorEdades && !quedaOtra) groups = [];
+  if (!elegido && soloPorEdades && !quedaOtra) groups = [];
   const modelo = working.menuModel ?? "same";
   // Rehechos, heredan el id de los de antes por su papel (Adultos → Familia).
   if (miembros.length && (!groups.length || !conGente(groups))) groups = m.groupsFromModel(miembros, modelo, working.groups ?? []);
@@ -486,6 +494,8 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
         // Los grupos, si se sacaron del modelo aquí: sin ellos en la casa, el
         // plan tiene grupos que nadie conoce y proponer o cambiar un plato
         // salen vacíos (pasaba en todas las casas creadas desde el chat).
+        // menuModel: sin la 0112, «same» queda en el documento (como antes); con ella, `d` ya trae el de su
+        // sobre o el defecto, y como no cambia, guardarCasa no lo escribe (no es «dicho» por nadie).
         data: { ...d, activeMenuId: menu.id, menuModel: d.menuModel ?? "same", ...(groups !== (working.groups ?? []) ? { groups } : {}) },
         // La foto viva es la semana de hoy: si la que se queda es la de hoy
         // (se ha pedido la siguiente), sigue siendo esa.

@@ -57,6 +57,31 @@ beforeEach(() => {
   borrar.mockResolvedValue(null);
 });
 
+describe("generar: un reparto por edades que no eligió nadie pasa a un menú (trozo 12, menuModel con sobre)", () => {
+  const porEdades = [{ id: "ga", label: "Adultos" }, { id: "gn", label: "Niños" }];
+  /** Los grupos que deja generar en una casa con el reparto por edades y menuModel «same» en `data`. */
+  const gruposTrasGenerar = async (conSobre) => {
+    const casa = { ...structuredClone(casaVieja), conSobre, state: { ...casaVieja.state, data: { ...casaVieja.state.data, menuModel: "same", groups: porEdades } } };
+    cargarCasa.mockResolvedValue(structuredClone(casa));
+    let cambios;
+    conCasa.mockImplementation(async (_h, cambiar) => { cambios = await cambiar(structuredClone(casa)); return { ok: true }; });
+    motor.mockResolvedValue({ ...m, tipoDeGrupo: (g) => (g.id === "ga" ? "adultos" : "ninos") });
+    await generarMenu("h1", "esta", [], {});
+    return cambios.state.data.groups;
+  };
+  const TODOS = [{ id: "g1", label: "Todos" }];
+
+  it("con el «same» del defecto del registro en su sobre, nadie lo eligió: un solo menú", async () => {
+    expect(await gruposTrasGenerar({ menuModel: { valor: "same", conSobre: false } })).toEqual(TODOS);
+  });
+  it("con «same» dicho por alguien, el reparto se queda", async () => {
+    expect(await gruposTrasGenerar({ menuModel: { valor: "same", conSobre: true } })).toEqual(porEdades);
+  });
+  it("sin la 0112, con menuModel en el documento cuenta como elegido, como antes", async () => {
+    expect(await gruposTrasGenerar(null)).toEqual(porEdades);
+  });
+});
+
 describe("generar menú: todo o nada", () => {
   it("activa el menú en la misma escritura que la casa, con lo apuntado a mano MIENTRAS generaba", async () => {
     // Mientras el motor pensaba alguien dijo «apunta pan»: la casa fresca lo tiene.

@@ -249,6 +249,29 @@ describe("los datos de la casa con sobre (trozo 12)", () => {
     expect(escrituras()).toEqual([]);
   });
 
+  it("menuModel (PR 4c): dos datos en un guardado, cada uno por la puerta de la tubería y con la versión siguiente", async () => {
+    responde(RUTA_FICHA, { status: 200, cuerpo: fichaV2(porDefecto(CAMPO, false), porDefecto("menuModel", "same")) });
+    let rev = 8;
+    responde(RUTA_OPERACION, { status: 200, get cuerpo() { rev += 1; return { ...HECHA, rev }; } });
+    const { r } = await enTurno(() => cambiarDato(true, (d) => { d.menuModel = "separate"; }));
+    const ops = escrituras().filter((l) => RUTA_OPERACION.test(l.ruta)).map((l) => l.cuerpo.p_operacion.datos[0]);
+    expect(ops).toEqual([
+      { campo: CAMPO, persona_id: null, valor: true, origen: "dicho" },
+      { campo: "menuModel", persona_id: null, valor: "separate", origen: "dicho" },
+    ]);
+    expect(r).toMatchObject({ ok: true, botRev: 10 });
+  });
+
+  it("el «same» que siembra generar.js, con el defecto del registro en su sobre, no se escribe: no lo dijo nadie", async () => {
+    responde(RUTA_FICHA, { status: 200, cuerpo: fichaV2(porDefecto("menuModel", "same")) });
+    await enTurno(() => conCasa(CASA, async (casa) => {
+      const d = casa.state.data;
+      return { state: { ...casa.state, data: { ...d, activeMenuId: "m1", menuModel: d.menuModel ?? "same" } } };
+    }));
+    expect(escrituras().map((l) => l.ruta)).toEqual(["/rest/v1/rpc/bot_save_casa"]);
+    expect(escrituras()[0].cuerpo.p_state.data).toEqual({ reglas: [], activeMenuId: "m1" });
+  });
+
   it("sin la 0112 (la ficha no trae la ficha Casa), con la v1 o sin la RPC, del documento y se guarda en él", async () => {
     for (const ficha of [{ status: 200, cuerpo: fichaV2() }, { status: 200, cuerpo: fichaV1() }, SIN_RPC(RPC_FICHA)]) {
       olvidarCasa(CASA);

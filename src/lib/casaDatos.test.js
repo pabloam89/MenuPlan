@@ -42,6 +42,11 @@ describe("leer los datos de la casa", () => {
     expect(await leer(servidor({ v: 2, datos: [porDefecto("wantsPriceEstimates", false)] }))).toEqual({ valores: { wantsPriceEstimates: false } });
   });
 
+  it("menuModel también: el dicho de su sobre, o el defecto del registro («same»)", async () => {
+    expect(await leer(servidor({ v: 2, datos: [sobre("menuModel", "separate")] }))).toEqual({ valores: { menuModel: "separate" } });
+    expect(await leer(servidor({ v: 2, datos: [porDefecto("menuModel", "same")] }))).toEqual({ valores: { menuModel: "same" } });
+  });
+
   it("sin la 0112 (la ficha no trae el campo) o con ficha_casa v1, nada: siguen en el documento", async () => {
     expect(await leer(servidor({ v: 2, datos: [] }))).toEqual({ valores: {} });
     expect(await leer(servidor({ v: 1, datos: null }))).toEqual({ valores: {} });
