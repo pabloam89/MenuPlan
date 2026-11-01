@@ -134,8 +134,11 @@ export function operacionDePersonas({ casa, clave, accion, canal, ref, autor = {
 }
 
 /**
- * Un cambio de la familia (personas, su salud y los grupos) por la tubería entera: entender, la misma puerta
- * que un dato (quien habla edita la casa) y escribir_persona (0108) en una transacción. Nunca lanza por un fallo
+ * Un cambio de la familia (personas, su salud y los grupos) por la tubería entera: entender, la puerta (la
+ * parte de quién habla: una persona de la casa que la edita) y escribir_persona (0108) en una transacción. Las
+ * comprobaciones por campo de la puerta (el origen y la salud dicha por la familia) no se le pasan: lo de la
+ * familia no lleva origen, porque solo lo dice una persona (el canal `sistema` no vale aquí y sin autor la puerta
+ * para), que es lo que esas comprobaciones exigen a un dato. Nunca lanza por un fallo
  * de la base: devuelve { guardado: false, fallo } y lo apunta en el log (sin la RPC, `rpc_ausente`). Lo que para
  * la puerta no se apunta en `operacion` (escribir_persona no tiene estado rechazada): queda en el log.
  * @param {Parameters<typeof operacionDePersonas>[0]} pedido

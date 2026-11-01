@@ -162,6 +162,16 @@ describe("tubería: un cambio de la familia (escribir_persona, 0108)", () => {
     expect(lineas(log)[0]).toMatchObject({ fallo: "sin_permiso", motivo: MOTIVO_PUERTA.SIN_PERMISO, campo: "persona" });
   });
 
+  it("la salud de la familia la dice una persona de la casa: sin quien habla no pasa, ni con papel de dueño", async () => {
+    silenciar();
+    const { llegan, servidor } = base();
+    for (const canal of [CANAL_DATO.APP, CANAL_DATO.TELEGRAM]) {
+      expect(await operarPersonas({ ...FAMILIA, canal, autor: {} }, servidor("owner")))
+        .toMatchObject({ guardado: false, fallo: FALLO_DATO.SIN_PERMISO, error: MOTIVO_PUERTA.SIN_PERMISO });
+    }
+    expect(llegan).toEqual([]);
+  });
+
   it("el sistema no escribe la familia (la 0108 tampoco lo admite)", async () => {
     silenciar();
     const { llegan, servidor } = base();
