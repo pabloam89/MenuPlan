@@ -52,7 +52,7 @@ import {
   CORRECTORES, NIVELES, REINTENTOS_POR_NIVEL, SALIDA, VERSION_ESQUEMA, baseMemo, bloquea, casosDelNivel, compararEstados, elegirReferencia, ficherosDelCodigo,
   casosVersion, claveMemo, LUNES_SIGUIENTE, codigoHash, costeUsd, erroresDeCasos, esEstricto, estadoDe, estimadoSiguiente,
   kDe, leerJsonl, memoria, opcion, opcionEntero, opcionNumero, otroIntento, promptHash, tokensDe, topeDePasada,
-  apuntarOAvisar, puedeGastar, cifrasDePasada, memoriaDeOperacion, operacionExacta,
+  apuntarOAvisar, puedeGastar, cifrasDePasada, memoriaDeOperacion, operacionExacta, DIAS_CASO,
 } from "./lib/evals.mjs";
 // El modelo barato de la app, para --modelo=haiku: el mismo id que ya usa el enrutador de Lola.
 import { FAST_MODEL } from "../src/lib/aiModels.js";
@@ -102,6 +102,7 @@ const { supervisar } = await import("../api/_bot/supervisor.js");
 // caso con "pista" { decision, adelanto } mide si Lola la usa sin fiarse de más.
 const { textoPista } = await import("../api/_bot/pista.js");
 const { botonRehacer, lunesDe, sumarDias, fechaCorta: corta } = await import("../api/_bot/semanaPedida.js");
+const { ahoraEnMadrid } = await import("../api/_bot/recordatorios.js");
 // Un solo modelo por pasada: sin esto, un fallo de la API caería al plan B en
 // silencio y la medida mezclaría dos modelos. Los nombres cortos de --modelo
 // son los ids que ya usa el bot (agente.js) o la app (aiModels.js); un id
@@ -147,7 +148,6 @@ const fichaDel = (hoy) => ({
     ...(() => { const b = botonRehacer([{ weekStart: lunesDe(hoy), weekEnd: sumarDias(lunesDe(hoy), 6) }], hoy); return b ? [`- Botón tras un ajuste: [[${b}]]`] : []; })(),
   ].join("\n"),
 });
-const FICHA = fichaDel(hoyEnMadrid());
 const RESPUESTAS = {
   ver_casa: FAMILIA,
   ver_ajustes: "Estructura: primero y segundo. Esfuerzo normal. Trastos: Horno, Microondas. Gustos: nada anotado. Leo come en el cole de lunes a viernes.",
@@ -190,18 +190,23 @@ const normal = (s) => String(s ?? "").normalize("NFD").replace(/\p{Diacritic}/gu
 // acierta igual diciendo «hoy» o la fecha de hoy (pasó un jueves con «la cena
 // del jueves»): la prueba no puede depender del día en que se ejecuta.
 const HOY_MADRID = hoyEnMadrid();
+// Un caso con `"dia": "miercoles"` corre como si hoy fuera ese día de esta
+// semana (#1098): lo que espera de «esta semana» no depende de si la pasada cae
+// en domingo, cuando a la semana solo le queda ese día.
+const hoyDe = (caso) => (caso.dia ? sumarDias(lunesDe(HOY_MADRID), DIAS_CASO.indexOf(caso.dia)) : HOY_MADRID);
+const diaDe = (hoy) => DIAS_CASO[(new Date(`${hoy}T12:00:00Z`).getUTCDay() + 6) % 7];
 // La charla de los casos, con el hueco del lunes que viene relleno (#1083).
-const conFechas = (s) => (typeof s === "string" ? s.replaceAll(LUNES_SIGUIENTE, corta(sumarDias(lunesDe(HOY_MADRID), 7))) : s);
+const conFechas = (s, hoy) => (typeof s === "string" ? s.replaceAll(LUNES_SIGUIENTE, corta(sumarDias(lunesDe(hoy), 7))) : s);
 for (const c of casos) {
-  c.entrada = conFechas(c.entrada);
-  if (c.historia) c.historia = c.historia.map((h) => ({ ...h, content: conFechas(h.content) }));
+  const hoy = hoyDe(c);
+  c.entrada = conFechas(c.entrada, hoy);
+  if (c.historia) c.historia = c.historia.map((h) => ({ ...h, content: conFechas(h.content, hoy) }));
 }
-const DIA_DE_HOY = normal(new Intl.DateTimeFormat("es-ES", { weekday: "long", timeZone: "Europe/Madrid" }).format(new Date()));
-const contiene = (args, esperado) => Object.entries(esperado).every(([k, v]) => {
+const contiene = (args, esperado, hoy) => Object.entries(esperado).every(([k, v]) => {
   if (k === "_todo") return normal(JSON.stringify(args)).includes(normal(v));
   if (typeof v === "boolean") return args?.[k] === v;
   const dado = normal(args?.[k]);
-  if ((k === "dia" || k === "dias") && normal(v) === DIA_DE_HOY && (dado.includes("hoy") || dado.includes(HOY_MADRID))) return true;
+  if ((k === "dia" || k === "dias") && normal(v) === diaDe(hoy) && (dado.includes("hoy") || dado.includes(hoy))) return true;
   return dado.includes(normal(v));
 });
 
@@ -209,10 +214,10 @@ const contiene = (args, esperado) => Object.entries(esperado).every(([k, v]) => 
 // Entre semana es el viernes de esta semana; si ya pasó (sábado, domingo), el de
 // la siguiente, y la cabecera cuenta esa semana también. Si el viernes es hoy o
 // mañana, quita «Hoy:»/«Mañana:» de la ficha para no contradecirse.
-function fichaConViernes(lineas) {
-  const hoy = HOY_MADRID;
+function fichaConViernes(lineas, hoy) {
+  const ficha = fichaDel(hoy);
   let viernes = sumarDias(lunesDe(hoy), 4);
-  let delDia = FICHA.delDia;
+  let delDia = ficha.delDia;
   if (viernes < hoy) {
     viernes = sumarDias(viernes, 7);
     delDia = delDia.replace("(no hay semana siguiente)", `y ${rangoDeLaSemana(sumarDias(hoy, 7))}`);
@@ -220,7 +225,7 @@ function fichaConViernes(lineas) {
   const quitar = viernes === hoy ? "- Hoy:" : viernes === sumarDias(hoy, 1) ? "- Mañana:" : null;
   const etiqueta = `Viernes ${corta(viernes)} (${viernes})`;
   const resto = delDia.split("\n").filter((l) => !quitar || !l.startsWith(quitar));
-  return { ...FICHA, delDia: [...resto, ...lineas.map((l) => l.replace("{viernes}", etiqueta))].join("\n") };
+  return { ...ficha, delDia: [...resto, ...lineas.map((l) => l.replace("{viernes}", etiqueta))].join("\n") };
 }
 
 const filtro = normal(ARGV.find((a) => !a.startsWith("--")) ?? "");
@@ -320,19 +325,20 @@ async function intentar(caso) {
   let vueltas = 0;
   const fallos = [];
   const falla = (motivo, detalle) => fallos.push({ motivo, detalle });
+  const hoy = hoyDe(caso);
   try {
     const adjunto = caso.foto ? await fotoDe(caso.foto) : null;
     // Lola recibe la ficha de la casa en cada mensaje (api/_bot/ficha.js): sin
     // ella, las pruebas medían a una Lola que no sabe nada de la familia.
     // `"ficha": null` en un caso la quita; `"ficha": {…}` pone otra.
     // `"alDia"`: líneas que se añaden al menú de la ficha de hoy (fichaConViernes).
-    const base = caso.alDia ? fichaConViernes(caso.alDia) : FICHA;
+    const base = caso.alDia ? fichaConViernes(caso.alDia, hoy) : fichaDel(hoy);
     const ficha = conQuienEscribe(caso.ficha === undefined ? base : caso.ficha, caso.papel ?? "owner", caso.idioma ?? null);
     const pista = caso.pista ? textoPista(caso.pista.decision, caso.pista.adelanto) : null;
     // `pendientes`: las tareas abiertas que el código adjuntaría (api/_bot/pendientes.js).
     // `tareas`: las de la tabla bot_tareas, como las monta el turno real.
     const entrada = [bloqueDeTareas(caso.tareas ?? [], { data: { members: caso.miembros ?? [] }, chatId: "0" }), bloqueDe(caso.pendientes ?? []), caso.entrada].filter(Boolean).join("\n\n");
-    const r = await ejecutar({ historia: caso.historia ?? [], entrada, tools, adjunto, modelos: [MEDIDO], ficha, pista, ...(SIMULADO ? { vuelta: vueltaSimulada } : {}) });
+    const r = await ejecutar({ historia: caso.historia ?? [], entrada, tools, adjunto, modelos: [MEDIDO], ficha, pista, ...(caso.dia ? { ahora: ahoraEnMadrid(new Date(`${hoy}T11:00:00Z`)) } : {}), ...(SIMULADO ? { vuelta: vueltaSimulada } : {}) });
     dicho = r.dicho;
     uso = r.uso;
     vueltas = r.vueltas ?? 0;
@@ -352,12 +358,12 @@ async function intentar(caso) {
     if (ia >= 0 && ib >= 0 && ia > ib) falla("orden", `llamó a ${b} antes que a ${a}`);
   }
   for (const [n, esperado] of Object.entries(caso.args ?? {})) {
-    if (!llamadas.some((l) => l.nombre === n && contiene(l.args, esperado))) {
+    if (!llamadas.some((l) => l.nombre === n && contiene(l.args, esperado, hoy))) {
       falla("sin_args", `${n} sin ${JSON.stringify(esperado)} (llegó: ${JSON.stringify(llamadas.filter((l) => l.nombre === n).map((l) => l.args))})`);
     }
   }
   for (const [n, prohibido] of Object.entries(caso.noLlamaCon ?? {})) {
-    if (llamadas.some((l) => l.nombre === n && contiene(l.args, prohibido))) falla("con_args_prohibidos", `llamó a ${n} con ${JSON.stringify(prohibido)}`);
+    if (llamadas.some((l) => l.nombre === n && contiene(l.args, prohibido, hoy))) falla("con_args_prohibidos", `llamó a ${n} con ${JSON.stringify(prohibido)}`);
   }
   // Tope de vueltas: cada herramienta es una llamada más al modelo, y en el
   // chat eso son segundos (llegó a 56 s repitiendo ver_menu tras cada cambio).
@@ -404,7 +410,7 @@ console.log(`Nivel ${NIVEL} · ${elegidos.length} casos · ${MEDIDO} · tope $${
 for (const caso of elegidos) {
   const k = kDe(caso, NIVEL, K);
   const estricto = esEstricto(caso, NIVEL);
-  const base = baseMemo(caso, { prompt_hash: PROMPT_HASH, codigo_hash: CODIGO_HASH, modelo: MEDIDO, esfuerzo: ESFUERZO, hoy: HOY_MADRID });
+  const base = baseMemo(caso, { prompt_hash: PROMPT_HASH, codigo_hash: CODIGO_HASH, modelo: MEDIDO, esfuerzo: ESFUERZO, hoy: hoyDe(caso) });
   const previos = MEMORIA.get(claveMemo(base)) ?? [];
   const nuevos = [];
   const resultados = () => [...previos, ...nuevos.map((n) => n.aprobado)];

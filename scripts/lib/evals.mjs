@@ -14,9 +14,12 @@ import { homedir } from "node:os";
 import { dirname, join, relative } from "node:path";
 // El sobre de un dato (origen y canal) tiene su vocabulario en el modelo de datos: se lee de ahí, no se repite.
 import { CANALES_DATO, ORIGEN_DATO } from "../../src/lib/vocabularios.js";
-import { MESES_CORTOS } from "../../src/lib/dias.js";
+import { MESES_CORTOS, NOMBRES_DIA } from "../../src/lib/dias.js";
 
 // ── Vocabularios de los casos (scripts/bot-evals.json) ─────────────────────
+
+/** El `dia` de un caso: el nombre entero, en minúsculas y sin tildes (lunes … miercoles … domingo), de lunes a domingo. */
+export const DIAS_CASO = Object.freeze(NOMBRES_DIA.map((n) => n.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase()));
 
 /** Qué mide el caso, sobre todo. Uno por caso: el más específico que le cuadre. */
 export const TIPOS_CASO = ["herramienta", "texto", "seguridad", "adversario", "multiturno", "foto", "formato", "fechas"];
@@ -78,6 +81,13 @@ export function erroresDeCasos(casos, { acciones = null } = {}) {
     if (c.nucleo !== undefined && c.nucleo !== true) errores.push(`${quien}: nucleo solo puede ser true o no estar`);
     if (c.dependeDeFecha !== undefined && c.dependeDeFecha !== true) errores.push(`${quien}: dependeDeFecha solo puede ser true o no estar`);
     else if (!c.dependeDeFecha && dependeDelDia(c)) errores.push(`${quien}: habla de días o fechas y le falta "dependeDeFecha": true`);
+    if (c.dia !== undefined) {
+      if (!DIAS_CASO.includes(c.dia)) errores.push(`${quien}: dia ${JSON.stringify(c.dia)} fuera de lista (${DIAS_CASO.join(", ")})`);
+      if (!c.dependeDeFecha) errores.push(`${quien}: con "dia" le falta "dependeDeFecha": true`);
+      if (c.ficha !== undefined) errores.push(`${quien}: "dia" y una ficha propia no van juntos: la ficha propia ya trae su fecha`);
+    } else if (c.ficha === undefined && esperaEstaSemana(c)) {
+      errores.push(`${quien}: espera «esta semana» y le falta "dia": el domingo a la semana solo le queda ese día (#1098)`);
+    }
   });
   return errores;
 }
@@ -451,7 +461,7 @@ export const CAMPOS_DE_ETIQUETA = ["id", "nombre", "tipo", "dominio", "origen", 
 
 // ── Casos que dependen de la fecha ─────────────────────────────────────────
 // La ficha lleva la fecha de hoy y el corrector acepta «hoy» por el día de la
-// semana (bot-evals.mjs, DIA_DE_HOY): un aprobado del jueves con «la cena del
+// semana (bot-evals.mjs, diaDe): un aprobado del jueves con «la cena del
 // jueves» no dice nada del viernes. Esos casos llevan `"dependeDeFecha": true`
 // y su resultado guardado solo vale el mismo día (en Madrid).
 
@@ -484,6 +494,15 @@ export const mencionaFecha = (caso) => MENCIONA_FECHA.test(sinTildes(JSON.string
 
 /** La regla de `dependeDeFecha`: lo dice, o espera una herramienta del menú. */
 export const dependeDelDia = (caso) => mencionaFecha(caso) || esperaHerramientaDelDia(caso);
+
+/**
+ * Un caso que espera algo de la semana en curso (`semana: "esta"` en los
+ * argumentos o en la operación esperada, o el botón «Rehacer…» que la ficha solo ofrece si a la semana le
+ * quedan días) falla el domingo aunque Lola acierte (#1098). Lleva `"dia"`, y
+ * bot-evals.mjs lo corre como si hoy fuera ese día de esta semana.
+ */
+export const esperaEstaSemana = (caso) =>
+  [...Object.values(caso.args ?? {}), caso.espera?.parametros].some((a) => a?.semana === "esta") || /rehacer/i.test(caso.texto ?? "");
 
 export function casoHash(caso) {
   const medido = Object.fromEntries(Object.entries(caso).filter(([k]) => !CAMPOS_DE_ETIQUETA.includes(k)));
