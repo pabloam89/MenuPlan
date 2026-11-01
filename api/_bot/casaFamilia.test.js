@@ -231,7 +231,7 @@ describe("los datos de la casa con sobre (trozo 12)", () => {
     olvidarCasa(CASA);
     // Otro escribió entre la familia y el dato: la versión que sigue siendo de Lola es la de la familia.
     responde(RUTA_OPERACION, { status: 200, cuerpo: { ...HECHA, rev: 12 } });
-    const otra = await enTurno(() => cambiarDato(false, (d) => { d.members[0].name = "Ana María"; }));
+    const otra = await enTurno(() => cambiarDato(true, (d) => { d.members[0].name = "Ana María"; }));
     expect(otra.r).toMatchObject({ ok: true, botRev: 9 });
   });
 
