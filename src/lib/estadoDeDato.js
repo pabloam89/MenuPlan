@@ -79,11 +79,11 @@ export const leidoDe = (estados, campo, personaId = null) => estados?.get(clave(
 
 /**
  * Los datos de la casa (claves de `data` y campos de registro_campo, por = 'casa') que ya se guardan con sobre
- * (trozo 12 de #1037): la app (casaDatos.js) los lee de ficha_casa v2 y los escribe con escribirDato, no en
- * household_state; Lola, con el PR 4b del trozo. Aquí y no en casaDatos.js, que es del navegador, para que Lola
- * lea la misma lista. Los PR del trozo añaden los suyos.
+ * (trozo 12 de #1037): la app (casaDatos.js) y Lola (api/_bot/casa.js) los leen de ficha_casa v2 y los escriben
+ * con escribirDato, no en household_state. Aquí y no en casaDatos.js, que es del navegador, para que Lola lea la
+ * misma lista. Los PR del trozo añaden los suyos.
  */
-export const CAMPOS_CASA_CON_SOBRE = Object.freeze(["wantsPriceEstimates"]);
+export const CAMPOS_CASA_CON_SOBRE = Object.freeze(["wantsPriceEstimates", "menuModel"]);
 
 /**
  * Pura. Los de CAMPOS_CASA_CON_SOBRE que la ficha trae, leídos (su sobre o el defecto del registro). Los que no
