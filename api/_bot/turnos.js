@@ -8,18 +8,47 @@
  * mensaje ya está en la cola y lo atenderá quien lo tiene.
  */
 
-import { fallaCon } from "./avisar.js";
+import { fallaCon, seguirCon } from "./avisar.js";
 import { cabeUnTurno } from "./plazo.js";
 import { select, insert, update, rpc, eq } from "./db.js";
 import { CANAL, paraEscribir } from "../../src/lib/vocabularios.js";
 import { DURACION_CANDADO_S } from "./candado.js";
+import { normal } from "./interprete.js";
 import { llegadosDurante } from "./medidaTurno.js";
 
 // Lo que se espera por si llega otro mensaje detrás. 1 s basta para las
 // ráfagas de texto («quiero cambiar la cena» · «la del jueves»); un botón
 // pulsado (item.inmediato) no espera nada: nadie pulsa dos a la vez.
 const ESPERA_RAFAGA_MS = 1000;
+// Si el último mensaje parece a medias (pareceIncompleto), se espera hasta
+// 3 s desde que entró: «cambia la cena por la del» casi siempre trae detrás
+// «la del jueves». Elegido a ojo (trozo 28 de #1037), sin medir aún.
+const ESPERA_INCOMPLETO_MS = 3000;
 const MAX_VUELTAS = 4;
+// Cada cuánto mira el turno en marcha si ha entrado otro mensaje del chat.
+const MIRAR_COLA_MS = 1000;
+
+/**
+ * Cómo acaba un mensaje a medias: la última palabra (sin tildes ni
+ * mayúsculas, como la deja `normal`). Lista cerrada (trozo 28 de #1037):
+ * conjunciones y preposiciones, y los artículos y posesivos que piden un
+ * nombre detrás. «La del» acaba en «del».
+ */
+export const FINALES_INCOMPLETOS = Object.freeze([
+  "y", "e", "o", "u", "ni", "que", "pero", "porque", "como",
+  "de", "del", "a", "al", "con", "sin", "para", "por", "en", "entre", "hasta", "desde",
+  "el", "la", "los", "las", "un", "una", "unos", "unas", "mi", "mis", "tu", "tus", "su", "sus",
+]);
+const FINAL = new Set(FINALES_INCOMPLETOS);
+
+/** ¿El texto parece cortado a medias? Acaba en una palabra de FINALES_INCOMPLETOS, o en coma o dos puntos. */
+export function pareceIncompleto(texto) {
+  const t = normal(texto);
+  if (!t) return false;
+  if (/[,:]$/.test(t)) return true;
+  const ultima = /([a-z]+)$/.exec(t);
+  return Boolean(ultima) && FINAL.has(ultima[1]);
+}
 
 const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -42,6 +71,53 @@ async function sacarCola(chatId) {
 
 const hayPendientes = async (chatId) =>
   (await select("bot_cola", `chat_id=${eq(chatId)}&tomado_at=is.null&limit=1`, "id")).length > 0;
+
+/**
+ * Si lo último parece a medias, espera a que se cumplan ESPERA_INCOMPLETO_MS
+ * desde que entró y suma lo que haya llegado. Una vez por vuelta.
+ */
+async function completar(chatId, items) {
+  const ultimo = items[items.length - 1];
+  if (ultimo?.inmediato || !pareceIncompleto(ultimo?.texto)) return items;
+  const falta = (Number.isFinite(ultimo.enCola) ? ultimo.enCola : Date.now()) + ESPERA_INCOMPLETO_MS - Date.now();
+  if (falta <= 0) return items;
+  await dormir(falta);
+  return [...items, ...(await sacarCola(chatId))];
+}
+
+/** ¿El turno ya ha escrito o tiene una escritura en marcha? Sin saberlo (no hay operación), sí. */
+const yaEscribe = (op) => !op || op.escrituras > 0 || op.escribiendo > 0;
+
+/**
+ * Corre el turno con un vigía: si entra otro mensaje del chat y el turno no ha
+ * escrito nada, lo corta (`ronda.signal`) y el turno devuelve `{ rehacer: true }`.
+ * Con algo escrito no se corta: el mensaje nuevo va en la vuelta siguiente.
+ * El turno pone en `ronda.operacion` su operación (operacion.js): las
+ * escrituras y las herramientas que escriben ya arrancadas (agente.js).
+ */
+async function conVigia(chatId, ronda, cortable, correr) {
+  const ctrl = new AbortController();
+  ronda.signal = ctrl.signal;
+  if (!cortable) return correr();
+  let acabado = false;
+  (async () => {
+    while (!acabado) {
+      await dormir(MIRAR_COLA_MS);
+      if (acabado || yaEscribe(ronda.operacion)) return;
+      // a propósito: sin poder mirar la cola, el turno sigue como antes
+      const hay = await hayPendientes(chatId).catch(seguirCon("turnos_mirar_cola", false));
+      // Mirar y cortar, sin nada en medio: una herramienta que escribe mira la
+      // señal y se apunta en el mismo paso (agente.js), así que o se corta
+      // antes de que arranque o ya no se corta.
+      if (hay && !acabado && !yaEscribe(ronda.operacion) && cabeUnTurno()) { ctrl.abort(new Error("otro mensaje en la ráfaga")); return; }
+    }
+  })();
+  try {
+    return await correr();
+  } finally {
+    acabado = true;
+  }
+}
 
 /**
  * Encola el mensaje y, si nadie está respondiendo en este chat, responde a
@@ -68,17 +144,23 @@ export async function drenar(chatId, atender, { espera = ESPERA_RAFAGA_MS, alSob
     let sinTiempo = false;
     try {
       if (espera) await dormir(espera);
-      // El turno anterior de esta invocación, para medir lo que llega con él en marcha.
+      // El turno anterior de esta invocación, para medir lo que llega con él en
+      // marcha; y lo de un turno cortado, que se rehace con lo nuevo.
       let anterior = null;
+      let arrastre = [];
       for (let vuelta = 0; vuelta < MAX_VUELTAS; vuelta++) {
-        if (!cabeUnTurno()) { sinTiempo = true; break; }
-        const items = await sacarCola(chatId);
-        if (!items.length) break;
-        // bot_route llegaron_durante (telegram.js turno).
-        const ronda = { llegaron: llegadosDurante(anterior, items.map((i) => i.enCola)) };
+        // Un turno cortado ya miró el reloj al cortarse: lo suyo se atiende.
+        if (!arrastre.length && !cabeUnTurno()) { sinTiempo = true; break; }
+        const nuevos = await sacarCola(chatId);
+        if (!arrastre.length && !nuevos.length) break;
+        const items = await completar(chatId, [...arrastre, ...nuevos]);
+        // bot_route llegaron_durante y rehecho (telegram.js turno).
+        const ronda = { signal: null, operacion: null, llegaron: llegadosDurante(anterior, items.map((i) => i.enCola)), rehecho: arrastre.length > 0 };
         const inicio = Date.now();
-        await atender(items, ronda);
+        // La última vuelta no se corta: no quedaría otra para rehacerla.
+        const r = await conVigia(chatId, ronda, vuelta < MAX_VUELTAS - 1, () => atender(items, ronda));
         anterior = { inicio, fin: Date.now() };
+        arrastre = r?.rehacer ? items : [];
       }
     } finally {
       await soltarCandado(chatId);
