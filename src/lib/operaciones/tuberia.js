@@ -26,10 +26,17 @@
  */
 import { operacionDeDato, resultadoDeOperacion, apuntarSinGuardar, DatoInvalido } from "../escribirDato.js";
 import { comprobar, falloDePuerta } from "./puerta.js";
-import { ESTADO_OPERACION, FALLO_DATO } from "../vocabularios.js";
+import { ESTADO_OPERACION, FALLO_DATO, CANAL_DATO, paraEscribir, FueraDeVocabulario } from "../vocabularios.js";
 
 /** La RPC que escribe toda operación (0106). */
 export const RPC_OPERACION = "aplicar_operacion";
+/** La RPC que escribe persona, su salud y los grupos (0108, trozo 10). */
+export const RPC_PERSONA = "escribir_persona";
+/**
+ * Lo que se añade a la clave de una operación de persona: escribir_persona y aplicar_operacion comparten las
+ * claves de la casa, y de un mismo mensaje pueden salir un dato y un cambio de la familia.
+ */
+export const SUFIJO_CLAVE_PERSONA = ":persona";
 /** La RPC que deshace una operación con su inversa (0111). */
 export const RPC_DESHACER = "deshacer_operacion";
 
@@ -82,6 +89,75 @@ export async function operar(pedido, { papel, rpc, falloDeError }) {
 
   // Aplicar y apuntar, en la misma transacción de la base; contar, desde lo que devuelve.
   const { r, fallo } = await llamar(op);
+  return fallo ? { guardado: false, fallo } : resultadoDeOperacion(r);
+}
+
+/** Un valor de una lista de vocabularios.js, o DatoInvalido. */
+function deLista(nombre, valor, que) {
+  try {
+    const v = valor == null ? null : paraEscribir(nombre, valor);
+    if (v != null) return v;
+  } catch (e) {
+    if (!(e instanceof FueraDeVocabulario)) throw e;
+  }
+  throw new DatoInvalido(`«${valor}» no es ${que} (${nombre})`);
+}
+
+const hay = (v) => typeof v === "string" && v.length > 0;
+
+/**
+ * Pura. Entender un cambio de la familia: la operación que espera escribir_persona (0108: p_operacion). Las
+ * personas y los grupos salen de cambiosDePersonas (src/lib/personas.js), ya limpios; aquí, la forma de la
+ * operación. Persona y salud las dice una persona por la app o un chat: el canal `sistema` no vale. Lanza
+ * DatoInvalido.
+ */
+export function operacionDePersonas({ casa, clave, accion, canal, ref, autor = {}, pedida_at = null, personas, grupos }) {
+  if (!hay(casa)) throw new DatoInvalido("falta la casa");
+  if (!hay(clave)) throw new DatoInvalido("falta la clave de la operación");
+  if (!hay(accion)) throw new DatoInvalido("falta la acción");
+  const c = deLista("canales_dato", canal, "un canal de dato");
+  if (c === CANAL_DATO.SISTEMA) throw new DatoInvalido("la familia no la escribe el sistema");
+  const t = deLista("refs_operacion", ref?.tipo, "una referencia de operación");
+  if (!hay(ref?.id)) throw new DatoInvalido("falta de qué mensaje o pantalla sale (ref.id)");
+  if (pedida_at != null && Number.isNaN(Date.parse(pedida_at))) throw new DatoInvalido("pedida_at no es una fecha");
+  if (!Array.isArray(personas ?? [])) throw new DatoInvalido("personas es una lista");
+  if (grupos !== undefined && !Array.isArray(grupos)) throw new DatoInvalido("grupos es una lista");
+  if (!(personas ?? []).length && grupos === undefined) throw new DatoInvalido("nada que escribir");
+  if ((personas ?? []).some((p) => !hay(p?.id))) throw new DatoInvalido("una persona sin id");
+  return {
+    casa, clave: `${clave}${SUFIJO_CLAVE_PERSONA}`, accion, canal: c, ref_tipo: t, ref_id: ref.id,
+    autor_user_id: autor.user_id ?? null, autor_persona_id: autor.persona_id ?? null,
+    ...(pedida_at ? { pedida_at } : {}),
+    personas: personas ?? [],
+    ...(grupos !== undefined ? { grupos } : {}),
+  };
+}
+
+/**
+ * Un cambio de la familia (personas, su salud y los grupos) por la tubería entera: entender, la misma puerta
+ * que un dato (quien habla edita la casa) y escribir_persona (0108) en una transacción. Nunca lanza por un fallo
+ * de la base: devuelve { guardado: false, fallo } y lo apunta en el log (sin la RPC, `rpc_ausente`). Lo que para
+ * la puerta no se apunta en `operacion` (escribir_persona no tiene estado rechazada): queda en el log.
+ * @param {Parameters<typeof operacionDePersonas>[0]} pedido
+ * @param {Parameters<typeof operar>[1]} servidor
+ */
+export async function operarPersonas(pedido, { papel, rpc, falloDeError }) {
+  const campo = "persona";
+  let op;
+  try {
+    op = operacionDePersonas(pedido);
+  } catch (e) {
+    if (!(e instanceof DatoInvalido)) throw e;
+    apuntarSinGuardar({ fallo: e.fallo, canal: pedido?.canal ?? null, campo });
+    return { guardado: false, fallo: e.fallo, error: e.message };
+  }
+  const contra = comprobar({ canal: op.canal, autor_user_id: op.autor_user_id, datos: [] }, { papel });
+  if (contra) {
+    const fallo = falloDePuerta(contra.motivo);
+    apuntarSinGuardar({ fallo, motivo: contra.motivo, canal: op.canal, campo });
+    return { guardado: false, fallo, error: contra.motivo };
+  }
+  const { r, fallo } = await llamarRpc(RPC_PERSONA, { p_operacion: op }, { rpc, falloDeError, canal: op.canal, campo });
   return fallo ? { guardado: false, fallo } : resultadoDeOperacion(r);
 }
 
