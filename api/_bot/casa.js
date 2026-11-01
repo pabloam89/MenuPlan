@@ -103,9 +103,9 @@ async function leerCasa(householdId) {
   ]);
   if (!fila) return null;
 
-  // La familia, de sus filas (0108, trozo 10): el documento ya no la lleva. Sin poder leerla, leerFamilia lanza
-  // (FamiliaSinLeer, con `rpc_ausente` si falta la 0108) y la casa no se lee: con una familia a medias se
-  // generaría un menú sin las alergias, o se borraría a quien no salió.
+  // La familia, de sus filas (0108, trozo 10): el documento ya no la lleva. Sin la 0108, null: sigue en el
+  // documento, como antes. Sin poder leerla por otra cosa, leerFamilia lanza (FamiliaSinLeer) y la casa no se
+  // lee: con una familia a medias se generaría un menú sin las alergias, o se borraría a quien no salió.
   const [familia, activos, recetasPropias, deLaCasa] = await Promise.all([
     leerFamilia(householdId),
     select(
@@ -144,9 +144,10 @@ async function leerCasa(householdId) {
     updatedAt: fila.updated_at,
     // members y groups, los de las filas (en la forma de siempre, para sus lectores); lo que el documento aún
     // guarde de antes del corte no se lee.
-    state: conFamilia(fila.state ?? {}, familia),
-    // La familia tal como se leyó: de ella sale lo que cambia al guardar (guardarCasa).
-    familia: structuredClone(familia),
+    state: familia ? conFamilia(fila.state ?? {}, familia) : (fila.state ?? {}),
+    // La familia tal como se leyó: de ella sale lo que cambia al guardar (guardarCasa). null: vive en el
+    // documento (base sin la 0108) y se guarda con él.
+    familia: familia ? structuredClone(familia) : null,
     // Fuera de `state`: no se escriben de vuelta en household_state (propias.js).
     recetasPropias,
     deLaCasa,
@@ -192,9 +193,8 @@ export function separarFamilia(state, leida) {
  * Por qué no se puede escribir la familia en este turno, o null. Se mira ANTES de guardar nada: escribir_persona
  * firma con una persona de la casa y sale de un mensaje; sin ellos no escribiría, y el documento quedaría a medias.
  */
-function faltaParaFamilia(casa) {
+function faltaParaFamilia() {
   const op = operacion();
-  if (!casa.familia) return "no tengo la familia leída de la base; no he cambiado nada";
   if (!autorDelTurno()?.user_id) return "no sé qué persona de la casa lo pide (en un grupo, que lo diga una sola persona); no he cambiado nada";
   if (!op?.mid) return "no sé de qué mensaje sale el cambio; no he cambiado nada";
   return null;
@@ -221,16 +221,17 @@ function escribirFamilia(casa, cambios) {
 // (0069). Generar y deshacer lo usan: o cambian el menú y la casa, o nada.
 // La familia (trozo 10) no va al documento: lo que cambió respecto a la leída va a escribir_persona, después del
 // documento (que es el que mira la versión: si choca, no se ha escrito nada y conCasa repite entero). Lo que no
-// viaja tal cual se dice en el chat (avisarEnElChat).
+// viaja tal cual se dice en el chat (avisarEnElChat). Con la familia en el documento (`casa.familia` null, base
+// sin la 0108), va en él, como antes.
 export async function guardarCasa(casa, { state = null, semana = null, activar = null } = {}, { sinDeshacer = false } = {}) {
-  const { documento, familia } = separarFamilia(state, casa.familia);
+  const { documento, familia } = casa.familia ? separarFamilia(state, casa.familia) : { documento: state, familia: null };
   let cambios = null;
   if (familia) {
     const c = cambiosDePersonas(casa.familia, familia);
     for (const t of textosDeAvisos(c.avisos)) avisarEnElChat(t);
     cambios = conOrdenDeTodos(c.cambios, casa.familia, familia);
   }
-  const falta = cambios ? faltaParaFamilia(casa) : null;
+  const falta = cambios ? faltaParaFamilia() : null;
   if (falta) return { ok: false, error: falta };
 
   const week = semana && casa.semana

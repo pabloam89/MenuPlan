@@ -57,9 +57,11 @@ export { RPC_FAMILIA };
 
 /**
  * La familia de una casa, de sus filas (personas_de_casa, 0108), en la forma de data.members y data.groups.
- * Sin poder leerla lanza FamiliaSinLeer con su fallo (sin la 0108, `rpc_ausente`) y lo deja en el log: no hay
- * vuelta al documento, que ya no la lleva, y una familia sin leer no es una familia vacía.
- * @returns {Promise<{ members: object[], groups: object[] }>}
+ * null si la base aún no tiene la RPC (`rpc_ausente`, 0108 sin aplicar): la familia sigue en el documento y la
+ * copia el trigger 0089, como antes del corte (plan B: la rama se despliega antes que la migración, y la misma
+ * 0108 crea la RPC y quita el trigger). Sin poder leerla por otra cosa lanza FamiliaSinLeer con su fallo y lo
+ * deja en el log: una familia sin leer no es una familia vacía.
+ * @returns {Promise<{ members: object[], groups: object[] } | null>}
  */
 export async function leerFamilia(householdId) {
   let filas;
@@ -67,6 +69,7 @@ export async function leerFamilia(householdId) {
     filas = await rpc(RPC_FAMILIA, { p_casa: householdId });
   } catch (e) {
     const { fallo, motivo } = falloDeError(e);
+    if (fallo === FALLO_DATO.RPC_AUSENTE) return null;
     console.error(JSON.stringify({ evento: "familia_sin_leer", fallo, motivo }));
     throw new FamiliaSinLeer(fallo);
   }

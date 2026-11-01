@@ -1,6 +1,6 @@
 // El corte del trozo 10 en Lola (#1037): la familia se lee de sus filas (personas_de_casa, 0108) y se escribe
-// por la tubería (escribir_persona); el documento de la casa ya no lleva members ni groups. Sin la 0108, la casa
-// no se lee y no se escribe nada: rpc_ausente, dicho, nunca un documento sin familia guardado en silencio.
+// por la tubería (escribir_persona); el documento de la casa ya no lleva members ni groups. Sin la 0108 (plan B),
+// la familia sigue en el documento, como antes; sin poder leerla por otra cosa, la casa no se lee.
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { conCasa, cargarCasa, olvidarCasa, separarFamilia } from "./casa.js";
 import { conOperacion, ponerAutor, tomarAvisos } from "./operacion.js";
@@ -75,11 +75,22 @@ describe("leer la casa: la familia, de sus filas", () => {
     expect(casa.familia.members).toHaveLength(2);
   });
 
-  it("sin la 0108 la casa no se lee: FamiliaSinLeer con rpc_ausente, y nada se escribe", async () => {
+  it("sin la 0108, la familia sale del documento y se guarda en él, como antes; escribir_persona no se llama", async () => {
     responde(/rpc\/personas_de_casa/, SIN_RPC("personas_de_casa"));
+    const casa = await cargarCasa(CASA);
+    expect(casa.familia).toBeNull();
+    expect(casa.state.data.members.map((m) => m.name)).toEqual(["Del documento"]);
+    olvidarCasa(CASA);
+    const { r } = await enTurno(() => cambiarFamilia((d) => { d.members[0].name = "Otro"; }));
+    expect(r).toMatchObject({ ok: true });
+    expect(escrituras().map((l) => l.ruta)).toEqual(["/rest/v1/rpc/bot_save_casa"]);
+    expect(escrituras()[0].cuerpo.p_state.data.members).toEqual([{ id: "viejo", name: "Otro" }]);
+  });
+
+  it("sin poder leerla por otra cosa, la casa no se lee: FamiliaSinLeer, y nada se escribe", async () => {
+    responde(/rpc\/personas_de_casa/, { status: 200, cuerpo: { v: 1 } });
     const err = await cargarCasa(CASA).catch((e) => e);
     expect(err).toBeInstanceOf(FamiliaSinLeer);
-    expect(err.fallo).toBe("rpc_ausente");
     olvidarCasa(CASA);
     await expect(enTurno(() => cambiarFamilia((d) => { d.reglas.push("x"); }))).rejects.toBeInstanceOf(FamiliaSinLeer);
     expect(escrituras()).toEqual([]);
