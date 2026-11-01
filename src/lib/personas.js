@@ -65,6 +65,17 @@ export class FamiliaSinLeer extends Error {
 }
 
 /**
+ * Una familia (la leída o la de ahora) sin su lista de personas o de grupos, como un documento a medio cargar:
+ * no es una familia sin nadie, y tomarla así mandaría borrar a todos.
+ */
+export class FamiliaIncompleta extends Error {
+  constructor(cual) {
+    super(`la familia ${cual} no trae members y groups como listas`);
+    this.name = "FamiliaIncompleta";
+  }
+}
+
+/**
  * Pura. Lo que devuelve personas_de_casa (0108) en la forma de data.members y data.groups. Sin esa forma (una
  * lectura fallida o vacía) lanza FamiliaSinLeer: no saber la familia no es una casa sin nadie.
  * @param {{ personas: object[], grupos: object[] }} filas
@@ -108,6 +119,9 @@ export function membersDeFilas(filas) {
   return { members, groups };
 }
 
+/** El número de una columna con tope (RANGOS) como lo guarda la base: la edad, entera; fuera del tope, null. */
+const numeroDeColumna = (col, v) => enRango(col === "edad" && typeof v === "number" ? Math.trunc(v) : v, RANGOS[col]);
+
 /**
  * Pura. Un comensal en la forma de una persona de escribir_persona, entera y limpia (como la copiaba la 0089:
  * fuera de rango o mal formado, null). Sin `id` ni `orden`.
@@ -116,11 +130,11 @@ export function filaDeMiembro(m) {
   const meta = m.dietaryStatesMeta && typeof m.dietaryStatesMeta === "object" ? m.dietaryStatesMeta : {};
   return {
     nombre: texto(m.name),
-    edad: enRango(typeof m.age === "number" ? Math.trunc(m.age) : null, RANGOS.edad),
+    edad: numeroDeColumna("edad", m.age),
     rol_hogar: texto(m.homeRole) || null,
     alergias_revisadas: m.alergiasRevisadas === true,
-    peso_kg: enRango(m.pesoKg, RANGOS.peso_kg),
-    altura_cm: enRango(m.alturaCm, RANGOS.altura_cm),
+    peso_kg: numeroDeColumna("peso_kg", m.pesoKg),
+    altura_cm: numeroDeColumna("altura_cm", m.alturaCm),
     usa_fecha_nacimiento: m.useBirthDate === true,
     fecha_nacimiento: fechaValida(m.birthDate),
     detalle_etapa: texto(m.stageDetail) || null,
@@ -157,10 +171,9 @@ const personasDe = (members, avisos) => {
   });
 };
 /** Los datos de un comensal que no caben en su columna (van como null), cada uno con su aviso. */
-const NUMEROS = [["age", "edad"], ["pesoKg", "peso_kg"], ["alturaCm", "altura_cm"]];
+const CON_TOPE = Object.entries(COLUMNA_DE_MIEMBRO).filter(([, col]) => col in RANGOS);
 const fueraDeColumna = (m, id) => [
-  ...NUMEROS.filter(([k, col]) => m[k] != null && m[k] !== ""
-      && enRango(col === "edad" && typeof m[k] === "number" ? Math.trunc(m[k]) : m[k], RANGOS[col]) == null)
+  ...CON_TOPE.filter(([k, col]) => m[k] != null && m[k] !== "" && numeroDeColumna(col, m[k]) == null)
     .map(([k]) => ({ aviso: AVISOS_PERSONA.FUERA_DE_RANGO, persona_id: id, campo: k })),
   ...(typeof m.birthDate === "string" && m.birthDate !== "" && fechaValida(m.birthDate) == null
     ? [{ aviso: AVISOS_PERSONA.FECHA_NO_VALE, persona_id: id, campo: "birthDate" }] : []),
@@ -206,13 +219,17 @@ const gruposDe = (groups, ids, avisos, pendientes = new Set()) => {
  * enteros si cambiaron. Lo que no viaja tal cual va en `avisos` (AVISOS_PERSONA), para que quien llama lo diga:
  * un comensal sin id o repetido no se manda; un dato fuera de rango o una fecha que no existe van como null (la
  * 0108 abortaría la operación entera); una persona nueva sin nombre aún no se manda (el alta la crea vacía y pide
- * el nombre después) y mientras no cuenta en los grupos.
- * @param {{ members?: object[], groups?: object[] }} antes
- * @param {{ members?: object[], groups?: object[] }} ahora
+ * el nombre después) y mientras no cuenta en los grupos. Sin members o groups como listas, en cualquiera de las
+ * dos, lanza FamiliaIncompleta: no se toma por una familia vacía.
+ * @param {{ members: object[], groups: object[] }} antes
+ * @param {{ members: object[], groups: object[] }} ahora
  * Los avisos de los grupos, en gruposDe.
  * @returns {{ cambios: { personas: object[], grupos?: object[] } | null, avisos: { aviso: string, persona_id: string|null, campo?: string, grupo_id?: string }[] }}
  */
 export function cambiosDePersonas(antes, ahora) {
+  for (const [cual, f] of [["leída", antes], ["de ahora", ahora]]) {
+    if (!Array.isArray(f?.members) || !Array.isArray(f?.groups)) throw new FamiliaIncompleta(cual);
+  }
   const avisos = [];
   const previas = new Map(personasDe(antes?.members, []).map((m, orden) => [texto(m.id), { ...filaDeMiembro(m), orden }]));
   const actuales = personasDe(ahora?.members, avisos);

@@ -3,7 +3,8 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import {
-  membersDeFilas, filaDeMiembro, cambiosDePersonas, COLUMNA_DE_MIEMBRO, AVISOS_PERSONA, FamiliaSinLeer, CAMPOS_CON_COLUMNA, RANGOS,
+  membersDeFilas, filaDeMiembro, cambiosDePersonas, COLUMNA_DE_MIEMBRO, AVISOS_PERSONA, FamiliaSinLeer, FamiliaIncompleta, CAMPOS_CON_COLUMNA,
+  RANGOS,
 } from "./personas.js";
 import { CAMPOS_CON_COLUMNA as DE_LA_TABLA, RANGOS as RANGOS_TABLA } from "./personasTabla.js";
 
@@ -99,6 +100,15 @@ describe("cambiosDePersonas: solo lo que cambió", () => {
     expect(cambiosDePersonas(antes, ahora)).toEqual({ cambios: null, avisos: [] });
   });
 
+  it("una familia sin su lista de personas o de grupos (un documento a medio cargar) lanza y no borra a nadie", () => {
+    expect(() => cambiosDePersonas(antes, { groups: antes.groups })).toThrow(FamiliaIncompleta);
+    expect(() => cambiosDePersonas(antes, { members: antes.members })).toThrow(FamiliaIncompleta);
+    expect(() => cambiosDePersonas({ members: antes.members }, antes)).toThrow(FamiliaIncompleta);
+    expect(() => cambiosDePersonas(null, antes)).toThrow(FamiliaIncompleta);
+    // Las listas vacías sí son una familia: borrar a todos es entonces lo pedido.
+    expect(cambios({ members: [], groups: [] })).toEqual({ personas: [{ id: A, borrar: true }, { id: B, borrar: true }], grupos: [] });
+  });
+
   it("lo que no viaja tal cual se avisa: sin id, id repetido, fuera de rango, fecha que no existe", () => {
     const ahora = structuredClone(antes);
     ahora.members[1] = { ...ahora.members[1], age: 300, birthDate: "2020-02-30" };
@@ -133,10 +143,35 @@ it("los grupos que no viajan tal cual se avisan: sin id, repetido, sin nombre, y
   expect(c.grupos).toEqual([{ id: G, nombre: "", tipo: "familia", color: "#000", orden: 0, personas: [A, B] }]);
 });
 
-it("cada columna que lee membersDeFilas es una columna de persona (0079 o 0108)", () => {
+/** Las columnas de `cols` que no salen en el SQL fuera de los comentarios (`--` y los de bloque). */
+const columnasQueFaltan = (sql, cols) => {
+  const codigo = sql.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/--[^\n]*/g, " ");
+  return cols.filter((col) => !new RegExp(`\\b${col}\\b`).test(codigo));
+};
+
+it("cada columna que lee membersDeFilas es una columna de persona (0079 o 0108), fuera de los comentarios", () => {
+  // El caso malo: una columna que solo sale en un comentario no cuenta.
+  expect(columnasQueFaltan("-- edad\n/* peso_kg */ create table persona (nombre text);", ["nombre", "edad", "peso_kg"]))
+    .toEqual(["edad", "peso_kg"]);
   const sql = ["0079_personas_y_grupos", "0108_persona_fuente"]
     .map((f) => readFileSync(new URL(`../../supabase/migrations/${f}.sql`, import.meta.url), "utf8")).join("\n");
-  for (const col of Object.values(COLUMNA_DE_MIEMBRO)) expect(sql, col).toMatch(new RegExp(`\\b${col}\\b`));
+  expect(columnasQueFaltan(sql, Object.values(COLUMNA_DE_MIEMBRO))).toEqual([]);
+});
+
+/** Un comensal con cada clave de COLUMNA_DE_MIEMBRO llena (y distinta de lo que se pone por defecto). */
+const COMPLETO = {
+  id: A, name: "Ana", age: 40, homeRole: "Mamá", alergiasRevisadas: true, pesoKg: 60, alturaCm: 170, useBirthDate: true,
+  birthDate: "1986-01-02", stageDetail: "lactancia", notBaby: true, profileKey: "mama", avatarKey: "mama_1", color: "#fff",
+};
+
+it("filaDeMiembro y membersDeFilas cubren justo las claves de COLUMNA_DE_MIEMBRO, de ida y de vuelta", () => {
+  expect(Object.keys(COMPLETO).filter((k) => k !== "id").sort()).toEqual(Object.keys(COLUMNA_DE_MIEMBRO).sort());
+  const fila = filaDeMiembro(COMPLETO);
+  const DE_SALUD_Y_RESTO = ["resto", "alergias", "intolerancias", "estados", "perfiles_salud"];
+  expect(Object.keys(fila).sort()).toEqual([...Object.values(COLUMNA_DE_MIEMBRO), ...DE_SALUD_Y_RESTO].sort());
+  for (const [k, col] of Object.entries(COLUMNA_DE_MIEMBRO)) expect(fila[col], col).toEqual(COMPLETO[k]);
+  const { members: [vuelta] } = membersDeFilas({ personas: [{ id: A, ...fila }], grupos: [] });
+  expect(vuelta).toMatchObject(COMPLETO);
 });
 
 it("personasTabla.js (hasta el trozo 11) usa las claves con columna y los topes de aquí, no una copia", () => {
