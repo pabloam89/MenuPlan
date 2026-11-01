@@ -9,7 +9,7 @@
  *
  *   membersDeFilas   lo que devuelve personas_de_casa → { members, groups },
  *                    la forma de siempre de data.members / data.groups, para
- *                    no reescribir de golpe a sus 224 lectores (plan, trozo 10).
+ *                    no reescribir de golpe a sus lectores (plan, trozo 10).
  *   cambiosDePersonas  la familia de antes (la leída) y la de ahora → lo que
  *                    hay que mandar a escribir_persona: solo lo que cambió de
  *                    cada persona, quién se fue, y los grupos si cambiaron.
@@ -51,7 +51,10 @@ const unicos = (xs) => [...new Set(xs.map(texto).filter(Boolean))].sort();
 export const esInvitado = (m) => m?.invitado === true || String(m?.id ?? "").startsWith("inv_");
 
 /** Por qué un comensal o un dato suyo no viaja tal cual a escribir_persona: lo dice quien llama (no se calla). */
-export const AVISOS_PERSONA = Object.freeze({ SIN_ID: "sin_id", ID_REPETIDO: "id_repetido", FUERA_DE_RANGO: "fuera_de_rango", FECHA_NO_VALE: "fecha_no_vale", SIN_NOMBRE: "sin_nombre" });
+export const AVISOS_PERSONA = Object.freeze({
+  SIN_ID: "sin_id", ID_REPETIDO: "id_repetido", FUERA_DE_RANGO: "fuera_de_rango", FECHA_NO_VALE: "fecha_no_vale", SIN_NOMBRE: "sin_nombre",
+  GRUPO_SIN_ID: "grupo_sin_id", GRUPO_REPETIDO: "grupo_repetido", GRUPO_SIN_NOMBRE: "grupo_sin_nombre", NO_ES_PERSONA: "no_es_persona",
+});
 
 /** La lectura de personas_de_casa no tiene la forma esperada: no es una familia vacía, es no saberla. */
 export class FamiliaSinLeer extends Error {
@@ -162,14 +165,39 @@ const fueraDeColumna = (m, id) => [
   ...(typeof m.birthDate === "string" && m.birthDate !== "" && fechaValida(m.birthDate) == null
     ? [{ aviso: AVISOS_PERSONA.FECHA_NO_VALE, persona_id: id, campo: "birthDate" }] : []),
 ];
-const gruposDe = (groups, ids) => {
+/**
+ * Los grupos en la forma de escribir_persona. Lo que no viaja tal cual, con su aviso: un grupo sin id o repetido
+ * no va (y la 0108 borra el que no viene), uno sin nombre va vacío (la base le pone «(sin nombre)», porque
+ * grupo.nombre no admite null), y quien no es persona de la casa sale del grupo. `pendientes`: las personas nuevas
+ * que aún no se mandan (sin nombre), que ya tienen su aviso.
+ */
+const gruposDe = (groups, ids, avisos, pendientes = new Set()) => {
   const vistos = new Set();
-  return lista(groups).filter((g) => texto(g?.id) && !vistos.has(texto(g.id)) && vistos.add(texto(g.id)))
-    .map((g, orden) => ({
-      id: texto(g.id), nombre: texto(g.label) || "(sin nombre)", tipo: texto(g.tipo) || null,
+  return lista(groups).filter((g) => {
+    const id = texto(g?.id);
+    if (!id) {
+      avisos.push({ aviso: AVISOS_PERSONA.GRUPO_SIN_ID, persona_id: null });
+      return false;
+    }
+    if (vistos.has(id)) {
+      avisos.push({ aviso: AVISOS_PERSONA.GRUPO_REPETIDO, persona_id: null, grupo_id: id });
+      return false;
+    }
+    vistos.add(id);
+    return true;
+  }).map((g, orden) => {
+    const id = texto(g.id);
+    if (!texto(g.label)) avisos.push({ aviso: AVISOS_PERSONA.GRUPO_SIN_NOMBRE, persona_id: null, grupo_id: id });
+    const miembros = unicos(lista(g.memberIds).map(String));
+    for (const p of miembros) {
+      if (!ids.has(p) && !pendientes.has(p)) avisos.push({ aviso: AVISOS_PERSONA.NO_ES_PERSONA, persona_id: p, grupo_id: id });
+    }
+    return {
+      id, nombre: texto(g.label), tipo: texto(g.tipo) || null,
       color: typeof g.color === "string" ? g.color : null, orden,
-      personas: unicos(lista(g.memberIds).map(String)).filter((id) => ids.has(id)),
-    }));
+      personas: miembros.filter((p) => ids.has(p)),
+    };
+  });
 };
 
 /**
@@ -181,7 +209,8 @@ const gruposDe = (groups, ids) => {
  * el nombre después) y mientras no cuenta en los grupos.
  * @param {{ members?: object[], groups?: object[] }} antes
  * @param {{ members?: object[], groups?: object[] }} ahora
- * @returns {{ cambios: { personas: object[], grupos?: object[] } | null, avisos: { aviso: string, persona_id: string|null, campo?: string }[] }}
+ * Los avisos de los grupos, en gruposDe.
+ * @returns {{ cambios: { personas: object[], grupos?: object[] } | null, avisos: { aviso: string, persona_id: string|null, campo?: string, grupo_id?: string }[] }}
  */
 export function cambiosDePersonas(antes, ahora) {
   const avisos = [];
@@ -189,6 +218,7 @@ export function cambiosDePersonas(antes, ahora) {
   const actuales = personasDe(ahora?.members, avisos);
   const personas = [];
   const quedan = new Set();
+  const pendientes = new Set();
   actuales.forEach((m, orden) => {
     const id = texto(m.id);
     const fila = { ...filaDeMiembro(m), orden };
@@ -197,6 +227,7 @@ export function cambiosDePersonas(antes, ahora) {
     if (!previa) {
       if (!fila.nombre) {
         avisos.push({ aviso: AVISOS_PERSONA.SIN_NOMBRE, persona_id: id });
+        pendientes.add(id);
         return;
       }
       quedan.add(id);
@@ -209,8 +240,8 @@ export function cambiosDePersonas(antes, ahora) {
   });
   for (const id of previas.keys()) if (!actuales.some((m) => texto(m.id) === id)) personas.push({ id, borrar: true });
 
-  const gruposAntes = gruposDe(antes?.groups, new Set(previas.keys()));
-  const gruposAhora = gruposDe(ahora?.groups, quedan);
+  const gruposAntes = gruposDe(antes?.groups, new Set(previas.keys()), []);
+  const gruposAhora = gruposDe(ahora?.groups, quedan, avisos, pendientes);
   const cambianGrupos = !igual(gruposAntes, gruposAhora);
   const cambios = personas.length || cambianGrupos ? { personas, ...(cambianGrupos ? { grupos: gruposAhora } : {}) } : null;
   return { cambios, avisos };

@@ -115,6 +115,24 @@ describe("cambiosDePersonas: solo lo que cambió", () => {
   });
 });
 
+it("los grupos que no viajan tal cual se avisan: sin id, repetido, sin nombre, y quien no es persona", () => {
+  const antes = membersDeFilas(FILAS);
+  const ahora = structuredClone(antes);
+  ahora.groups = [
+    { ...ahora.groups[0], label: "", memberIds: [A, B, "fantasma"] },
+    { label: "Sin id", memberIds: [A] },
+    { ...ahora.groups[0] },
+  ];
+  const { cambios: c, avisos } = cambiosDePersonas(antes, ahora);
+  expect(avisos).toEqual([
+    { aviso: AVISOS_PERSONA.GRUPO_SIN_ID, persona_id: null },
+    { aviso: AVISOS_PERSONA.GRUPO_REPETIDO, persona_id: null, grupo_id: G },
+    { aviso: AVISOS_PERSONA.GRUPO_SIN_NOMBRE, persona_id: null, grupo_id: G },
+    { aviso: AVISOS_PERSONA.NO_ES_PERSONA, persona_id: "fantasma", grupo_id: G },
+  ]);
+  expect(c.grupos).toEqual([{ id: G, nombre: "", tipo: "familia", color: "#000", orden: 0, personas: [A, B] }]);
+});
+
 it("cada columna que lee membersDeFilas es una columna de persona (0079 o 0108)", () => {
   const sql = ["0079_personas_y_grupos", "0108_persona_fuente"]
     .map((f) => readFileSync(new URL(`../../supabase/migrations/${f}.sql`, import.meta.url), "utf8")).join("\n");
