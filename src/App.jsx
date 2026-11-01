@@ -224,7 +224,7 @@ import { normalizePantryInput } from "./utils/normalizePantryInput.js";
 import { basesDeReceta } from "./lib/bases.js";
 import { findMatchingPantryItem } from "./lib/shoppingBuilder.js";
 import { applyConsumption, consumeFromPantry, restoreToPantry, pantryConsumeMode } from "./lib/cookPantry.js";
-import { modoDespensaAlGenerar, usaDespensa } from "./lib/modoDespensa.js";
+import { modoDespensaAlGenerar, usaDespensa, sinUseHomeStock } from "./lib/modoDespensa.js";
 import { useStatusBarSobreFondo } from "./lib/statusBar.js";
 import {
   normalizeDeltaBucketMap,
@@ -770,8 +770,6 @@ function migrate(state) {
   if (!offElegido && !["strict", "only", "prefer"].includes(d.pantryMode)) {
     d.pantryMode = "only";
   }
-  // `useHomeStock` era una copia de pantryMode que nadie leía: ya no se guarda (usaDespensa, modoDespensa.js).
-  delete d.useHomeStock;
   if (typeof d.pantryHasItems !== "boolean") d.pantryHasItems = false;
   // ── Modo básico / avanzado ──
   const looksEstablished =
@@ -903,7 +901,8 @@ function migrate(state) {
   // Menús generados antes de #1063 se guardaron sin puntero a la semana viva:
   // se repara aquí para que la compra deje de leer la copia archivada.
   d.menuWeek = semanaAbiertaDe(d.menus, d.activeMenuId, d.menuWeek ?? null);
-  return { ...state, data: { ...INITIAL_DATA, ...d } };
+  // `useHomeStock` era una copia de pantryMode que nadie leía: ya no se guarda (usaDespensa, modoDespensa.js).
+  return { ...state, data: sinUseHomeStock({ ...INITIAL_DATA, ...d }) };
 }
 
 // ── Barrido "al final del día" (consume === "endOfDay") ─────────────────────

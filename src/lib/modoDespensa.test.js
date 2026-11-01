@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { modoDespensaAlGenerar, usaDespensa, MODOS_DESPENSA_MOTOR } from "./modoDespensa.js";
+import { modoDespensaAlGenerar, usaDespensa, sinUseHomeStock, MODOS_DESPENSA_MOTOR } from "./modoDespensa.js";
 
 describe("modoDespensa: cómo usa la despensa el menú al generar", () => {
   it("un modo del motor se respeta tal cual", () => {
@@ -16,5 +16,10 @@ describe("modoDespensa: cómo usa la despensa el menú al generar", () => {
     expect(usaDespensa({ pantryMode: "off" })).toBe(false);
     expect(usaDespensa({})).toBe(false);
     for (const modo of MODOS_DESPENSA_MOTOR.filter((m) => m !== "off")) expect(usaDespensa({ pantryMode: modo })).toBe(true);
+  });
+
+  it("una casa vieja pierde su useHomeStock al guardar, y lo demás queda igual", () => {
+    expect(sinUseHomeStock({ pantryMode: "off", useHomeStock: true, cookLevel: "pro" })).toEqual({ pantryMode: "off", cookLevel: "pro" });
+    expect(sinUseHomeStock(null)).toEqual({});
   });
 });
