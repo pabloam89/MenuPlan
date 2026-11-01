@@ -128,7 +128,7 @@ const MAPA = [
   c("ver_ajustes", "ver cómo está configurada la casa", "menu", "ver", "casa", { app: app("mandos") }),
   c("nivel_cocina", "decir qué tal se cocina y cuánto tiempo hay", "menu", "cambiar", "casa", { app: app("mandos", { escribe: ["cookLevel", "cookTime"] }) }),
   c("aparatos", "marcar los aparatos de cocina que hay", "menu", "cambiar", "casa", { app: app("mandos", { escribe: ["kitchenTools"] }) }),
-  c("aparato_otro", "apuntar un aparato que no está en la lista", "menu", "anadir", "casa", { aProposito: "la app solo da a elegir los seis que el motor aprovecha (OnboardingAppliances); lo de fuera de la lista lo apunta Lola como «Otro» con su nota" }),
+  c("aparato_otro", "apuntar un aparato que no está en la lista", "menu", "anadir", "casa", { app: app("mandos", { escribe: ["customKitchenTools"] }) }),
   c("tanda", "pedir batch cooking: qué dejar hecho y cuándo", "menu", "cambiar", "casa", { app: app("asistente", { escribe: ["tanda", "tandaMinutos"], apagada: ASISTENTE }) }),
   c("cocinado", "marcar un plato como cocinado", "menu", "marcar", "menu", { app: app("menu", { escribe: ["cookedDishes", "cookedDeltas"] }) }),
   c("de_la_nevera", "sacar raciones de la nevera o del congelador para un plato", "menu", "cambiar", "menu", { app: app("menu") }),
