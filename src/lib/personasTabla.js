@@ -18,33 +18,16 @@
  * pierde nada si los consumidores aún no lo leen de la tabla.
  */
 
-// Campos de un comensal que ya tienen columna o tabla propia. Lo demás (dislikes,
-// y cualquier clave desconocida) va a `resto` hasta que tenga su entidad.
-export const CAMPOS_CON_COLUMNA = new Set([
-  "id", "name", "age", "homeRole", "alergiasRevisadas", "pesoKg", "alturaCm",
-  "allergies", "intolerances", "dietaryStates", "dietaryStatesMeta",
-  "useBirthDate", "birthDate", "stageDetail", "notBaby", "profileKey", "avatarKey", "color",
-  "healthProfiles", "healthProfile",
-]);
+// Las claves con columna, los topes, la fecha válida y quién es invitado viven en
+// personas.js (trozo 10), que sustituye a este fichero; aquí se importan hasta que
+// el trozo 11 lo retire.
+import { CAMPOS_CON_COLUMNA, RANGOS, fechaValida, esInvitado, enRango } from "./personas.js";
 
-// Los mismos topes que los CHECK de persona (0079): fuera de ellos, null, que
-// la fila entera no se pierda por un dato raro.
-export const RANGOS = { edad: [0, 120], peso_kg: [2, 300], altura_cm: [40, 230] };
+export { CAMPOS_CON_COLUMNA, RANGOS };
 
 const lista = (v) => (Array.isArray(v) ? v : []);
 const textoLimpio = (v) => String(v ?? "").trim();
-const FECHA = /^\d{4}-\d{2}-\d{2}$/;
-const enRango = (v, [min, max]) => (Number.isFinite(v) && v >= min && v <= max ? v : null);
-// «2020-02-30» tiene la forma pero no existe: la base no lo convertiría a date.
-const fechaValida = (v) => {
-  if (typeof v !== "string" || !FECHA.test(v)) return null;
-  const [a, m, d] = v.split("-").map(Number);
-  const f = new Date(Date.UTC(a, m - 1, d));
-  return f.getUTCFullYear() === a && f.getUTCMonth() === m - 1 && f.getUTCDate() === d ? v : null;
-};
-// Un invitado de una regla vive solo en el delta de una generación (reglas.js);
-// si alguno llegara al JSON guardado, no es una persona de la casa.
-const esInvitado = (m) => m.invitado === true || String(m.id).startsWith("inv_");
+
 
 /**
  * @param {string} householdId

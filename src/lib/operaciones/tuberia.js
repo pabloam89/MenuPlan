@@ -24,12 +24,19 @@
  * `rpc_ausente` y queda `dato_sin_guardar` en el log; nunca se escribe en household_state.
  * Sin base propia: `rpc` y cómo leer sus errores los da api/_bot/datos.js.
  */
-import { operacionDeDato, resultadoDeOperacion, apuntarSinGuardar, DatoInvalido } from "../escribirDato.js";
+import { operacionDeDato, cabeceraDeOperacion, hay, resultadoDeOperacion, apuntarSinGuardar, DatoInvalido } from "../escribirDato.js";
 import { comprobar, falloDePuerta } from "./puerta.js";
-import { ESTADO_OPERACION, FALLO_DATO } from "../vocabularios.js";
+import { ESTADO_OPERACION, FALLO_DATO, CANAL_DATO } from "../vocabularios.js";
 
 /** La RPC que escribe toda operación (0106). */
 export const RPC_OPERACION = "aplicar_operacion";
+/** La RPC que escribe persona, su salud y los grupos (0108, trozo 10). */
+export const RPC_PERSONA = "escribir_persona";
+/**
+ * Lo que se añade a la clave de una operación de persona: escribir_persona y aplicar_operacion comparten las
+ * claves de la casa, y de un mismo mensaje pueden salir un dato y un cambio de la familia.
+ */
+export const SUFIJO_CLAVE_PERSONA = ":persona";
 /** La RPC que deshace una operación con su inversa (0111). */
 export const RPC_DESHACER = "deshacer_operacion";
 
@@ -82,6 +89,58 @@ export async function operar(pedido, { papel, rpc, falloDeError }) {
 
   // Aplicar y apuntar, en la misma transacción de la base; contar, desde lo que devuelve.
   const { r, fallo } = await llamar(op);
+  return fallo ? { guardado: false, fallo } : resultadoDeOperacion(r);
+}
+
+/**
+ * Pura. Entender un cambio de la familia: la operación que espera escribir_persona (0108: p_operacion). Las
+ * personas y los grupos salen de cambiosDePersonas (src/lib/personas.js), ya limpios; aquí, la forma de la
+ * operación (la cabecera, la misma que la de un dato: cabeceraDeOperacion). Persona y salud las dice una
+ * persona por la app o un chat: el canal `sistema` no vale. Lanza DatoInvalido.
+ */
+export function operacionDePersonas({ personas, grupos, ...pedido }) {
+  const cabecera = cabeceraDeOperacion(pedido);
+  if (cabecera.canal === CANAL_DATO.SISTEMA) throw new DatoInvalido("la familia no la escribe el sistema");
+  if (!Array.isArray(personas ?? [])) throw new DatoInvalido("personas es una lista");
+  if (grupos !== undefined && !Array.isArray(grupos)) throw new DatoInvalido("grupos es una lista");
+  if (!(personas ?? []).length && grupos === undefined) throw new DatoInvalido("nada que escribir");
+  if ((personas ?? []).some((p) => !hay(p?.id))) throw new DatoInvalido("una persona sin id");
+  return {
+    ...cabecera,
+    clave: `${cabecera.clave}${SUFIJO_CLAVE_PERSONA}`,
+    personas: personas ?? [],
+    ...(grupos !== undefined ? { grupos } : {}),
+  };
+}
+
+/**
+ * Un cambio de la familia (personas, su salud y los grupos) por la tubería entera: entender, la puerta (la
+ * parte de quién habla: una persona de la casa que la edita) y escribir_persona (0108) en una transacción. Las
+ * comprobaciones por campo de la puerta (el origen y la salud dicha por la familia) no se le pasan: lo de la
+ * familia no lleva origen, porque solo lo dice una persona (el canal `sistema` no vale aquí y sin autor la puerta
+ * para), que es lo que esas comprobaciones exigen a un dato. Nunca lanza por un fallo
+ * de la base: devuelve { guardado: false, fallo } y lo apunta en el log (sin la RPC, `rpc_ausente`). Lo que para
+ * la puerta no se apunta en `operacion` (escribir_persona no tiene estado rechazada): queda en el log.
+ * @param {Parameters<typeof operacionDePersonas>[0]} pedido
+ * @param {Parameters<typeof operar>[1]} servidor
+ */
+export async function operarPersonas(pedido, { papel, rpc, falloDeError }) {
+  const campo = "persona";
+  let op;
+  try {
+    op = operacionDePersonas(pedido);
+  } catch (e) {
+    if (!(e instanceof DatoInvalido)) throw e;
+    apuntarSinGuardar({ fallo: e.fallo, canal: pedido?.canal ?? null, campo });
+    return { guardado: false, fallo: e.fallo, error: e.message };
+  }
+  const contra = comprobar({ canal: op.canal, autor_user_id: op.autor_user_id, datos: [] }, { papel });
+  if (contra) {
+    const fallo = falloDePuerta(contra.motivo);
+    apuntarSinGuardar({ fallo, motivo: contra.motivo, canal: op.canal, campo });
+    return { guardado: false, fallo, error: contra.motivo };
+  }
+  const { r, fallo } = await llamarRpc(RPC_PERSONA, { p_operacion: op }, { rpc, falloDeError, canal: op.canal, campo });
   return fallo ? { guardado: false, fallo } : resultadoDeOperacion(r);
 }
 
