@@ -145,9 +145,11 @@ export const conVersionDeFamilia = (guardar) => async (rev) => {
 
 /**
  * Pura. ¿La carga de la casa se para aquí? Sin poder leer la familia, siempre: con ella a medias, un guardado
- * borraría a quien no salió. Sin poder leer el documento, solo si lo que hay en memoria no vale (`soloNube`).
+ * borraría a quien no salió. Sin los datos de la casa con sobre (casaDatos.js), tampoco: no se sabría si van en el
+ * documento o en su sobre. Sin poder leer el documento, solo si lo que hay en memoria no vale (`soloNube`).
  */
-export const cargaSinSeguir = ({ soloNube, remoteState, cargaFamilia }) => Boolean((soloNube && remoteState?.error) || cargaFamilia?.error);
+export const cargaSinSeguir = ({ soloNube, remoteState, cargaFamilia, cargaCasa = null }) =>
+  Boolean((soloNube && remoteState?.error) || cargaFamilia?.error || cargaCasa?.error);
 
 /**
  * Los dos guardados de la casa, en su cola (`guardarConVersion`, versionCasa.js): primero la familia, que con

@@ -148,7 +148,7 @@ function falloDeRespuesta(status, cuerpo) {
 }
 
 /** Pura. Un texto como JSON, o null si no lo es (la página de un proxy, un despliegue a medias, una cola rota). */
-function jsonDeTexto(texto) {
+export function jsonDeTexto(texto) {
   try {
     return JSON.parse(texto);
   } catch (e) {
