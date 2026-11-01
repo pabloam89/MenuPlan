@@ -6,7 +6,7 @@
  *
  * De dónde salen las claves:
  *  - declaradas: INITIAL_DATA de src/App.jsx (la forma de una casa nueva) y
- *    CAMPOS_CON_COLUMNA de personasTabla.js (lo que la tabla persona copia).
+ *    CAMPOS_CON_COLUMNA de personas.js (lo que tiene columna o tabla en persona).
  *  - guardadas: solo con `--base` (lectura de producción); el test no las ve.
  *
  * Fallos que cuenta, en vocabulario cerrado (FALLOS):
@@ -26,7 +26,7 @@
  *                         los legados vienen de casas viejas y un hecho sin defecto
  *                         está vacío hasta que la familia lo dice (trozo 6).
  *   en_resto              una clave de la persona sin columna en la tabla persona
- *                         (personasTabla.js la guarda en `resto`, hasta el trozo 11)
+ *                         (personas.js la guarda en `resto`)
  *   enum_sin_vocabulario  un enum o lista_enum sin su lista en vocabularios.js
  *   copia                 un derivado que además se guarda en data
  *   legado                un dato sustituido que sigue guardado
@@ -180,7 +180,7 @@ export async function inventario(raiz, { guardadas = null, registro = null } = {
   // Las columnas cerradas de cada dato y su lista; `ficha` y `politica` admiten null (el inventario cuenta la ficha que falta).
   const CERRADAS = { clase: CLASES_DATO, estado: ESTADOS, tipo: TIPOS, ficha: FICHAS, escribe: ESCRITORES, choque: CHOQUES, aplica: APLICA, politica: POLITICAS };
   const ADMITEN_NULL = new Set(["ficha", "politica"]);
-  const { CAMPOS_CON_COLUMNA } = await import(url("src/lib/personasTabla.js"));
+  const { CAMPOS_CON_COLUMNA } = await import(url("src/lib/personas.js"));
 
   const app = readFileSync(join(raiz, "src/App.jsx"), "utf8");
   const declaradas = { casa: new Set(clavesDeBloque(app, "const INITIAL_DATA = {").claves), persona: new Set(CAMPOS_CON_COLUMNA) };
