@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
+import { familiaDeFilas, RPC_FAMILIA } from "./familiaDePrueba.js";
 
 // Las favoritas y los «No me gusta» de la casa viven en sus tablas, no en
 // household_state: Lola tiene que cargarlos para que sus menús los respeten
@@ -21,7 +22,8 @@ vi.mock("./db.js", () => ({
   }),
   insert: vi.fn(async () => []),
   update: vi.fn(async () => []),
-  rpc: vi.fn(async () => null),
+  // La familia sale de sus filas (personas_de_casa); aquí, una casa sin nadie.
+  rpc: vi.fn(async (fn) => (fn === RPC_FAMILIA ? familiaDeFilas() : null)),
   eq: (v) => `eq.${encodeURIComponent(v)}`,
 }));
 vi.mock("./propias.js", () => ({ recetasPropiasDeCasa: vi.fn(async () => []) }));
@@ -47,6 +49,7 @@ describe("la casa de Lola trae sus favoritas y descartes", () => {
     falla = true;
     const casa = await cargarCasa("h1", { fresca: true });
     expect(casa.deLaCasa).toBeNull();
-    expect(datosDelMotor(casa)).toEqual({ members: [] });
+    // members y groups vienen siempre de sus filas (personas_de_casa), aunque estén vacías.
+    expect(datosDelMotor(casa)).toEqual({ members: [], groups: [] });
   });
 });
