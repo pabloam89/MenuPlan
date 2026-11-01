@@ -16,6 +16,7 @@
 
 import { AnthropicError, APIConnectionError, APIUserAbortError } from "@anthropic-ai/sdk/core/error";
 import { SITIOS_FALLO } from "../../src/lib/vocabularios.js";
+import { PGRST_SIN_FUNCION, PG_SIN_FUNCION } from "../../src/lib/postgrest.js";
 
 const SITIOS = new Set(SITIOS_FALLO);
 
@@ -30,7 +31,7 @@ export const SIN_LEER = Symbol("sin leer");
 // clases enteras (los dos primeros caracteres del SQLSTATE).
 const POR_CODIGO = {
   "42501": "permiso",
-  "42P01": "no_existe", "42883": "no_existe", "PGRST116": "no_existe", "PGRST202": "no_existe", "PGRST205": "no_existe",
+  "42P01": "no_existe", [PG_SIN_FUNCION]: "no_existe", "PGRST116": "no_existe", [PGRST_SIN_FUNCION]: "no_existe", "PGRST205": "no_existe",
   "23505": "conflicto", "23503": "conflicto", "40001": "conflicto", "40P01": "conflicto",
   "23502": "datos_invalidos", "23514": "datos_invalidos", "P0001": "datos_invalidos",
   "57014": "tiempo",
