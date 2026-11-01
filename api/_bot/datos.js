@@ -15,7 +15,8 @@ import { rpc } from "./db.js";
 import { motivoDe } from "./avisar.js";
 import { operar, operarPersonas, deshacer } from "../../src/lib/operaciones/tuberia.js";
 import { membersDeFilas, FamiliaSinLeer, RPC_FAMILIA } from "../../src/lib/personas.js";
-import { FALLO_DATO, MOTIVO_FALLO } from "../../src/lib/vocabularios.js";
+import { FALLO_DATO, MOTIVO_FALLO, CANAL_DATO } from "../../src/lib/vocabularios.js";
+import { FICHA_CON_ESTADO } from "../../src/lib/estadoDeDato.js";
 
 /**
  * El fallo de dato (FALLOS_DATO) de cada motivo de avisar.js (MOTIVOS_FALLO).
@@ -80,3 +81,16 @@ export async function leerFamilia(householdId) {
  * @param {{ papel: string|null }} quien  el papel en la casa de quien lo pide, o null si no es de ella
  */
 export const deshacerOperacion = (pedido, { papel }) => deshacer(pedido, { papel, rpc, falloDeError });
+
+/**
+ * Los datos de la ficha Casa para la app (trozo 12): los de `fichas.casa` de ficha_casa v2 (0107), cada uno con
+ * su sobre o con el defecto del registro. Con la v1 (0107 sin aplicar), `datos` null: la app los lee del
+ * documento como antes. Lanza si la base falla (quien llama lo dice): no es una casa sin datos. Solo para quien
+ * ya se sabe de la casa: con la service role, ficha_casa no lo comprueba (api/operacion.js mira el papel antes).
+ * @returns {Promise<{ v: number|null, datos: object[]|null }>}
+ */
+export async function leerDatosDeCasa(householdId, userId) {
+  const ficha = await rpc("ficha_casa", { p_casa: householdId, p_usuario: userId, p_canal: CANAL_DATO.APP, p_max_tareas: 0 });
+  const v = Number.isInteger(ficha?.v) ? ficha.v : null;
+  return { v, datos: v === FICHA_CON_ESTADO ? (ficha.fichas?.casa ?? []) : null };
+}

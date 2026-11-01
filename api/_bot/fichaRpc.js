@@ -33,7 +33,7 @@ import { estadoDeCampo } from "./estadoCasa.js";
 import { alergiasRevisadas } from "./ficha.js";
 import { etapaDe } from "../../src/lib/stages.js";
 import { claveDeTarea, KIND_DE_TIPO } from "../../src/lib/registroTareas.js";
-import { estadosDeFichas, marcasDeLola } from "../../src/lib/estadoDeDato.js";
+import { estadosDeFichas, marcasDeLola, FICHA_CON_ESTADO } from "../../src/lib/estadoDeDato.js";
 import { PGRST_SIN_FUNCION, PG_SIN_FUNCION } from "../../src/lib/postgrest.js";
 
 export const fichaRpc = () => /^(1|true|si|sí|on)$/i.test(String(process.env.BOT_FICHA_RPC ?? "").trim());
@@ -41,7 +41,7 @@ export const fichaRpc = () => /^(1|true|si|sí|on)$/i.test(String(process.env.BO
 // La v2 (0107) trae lo mismo que la v1 y además «fichas»: el estado de cada dato (estadoDeDato.js).
 // Con la v1 (0107 sin aplicar) se lee lo común, como siempre, y queda en el log que falta el estado.
 const VERSIONES = [1, 2];
-const CON_ESTADO = 2;
+const CON_ESTADO = FICHA_CON_ESTADO;
 const ref = (id) => String(id ?? "").slice(0, 8);
 
 // ── Lectura y caché ─────────────────────────────────────────────────────────

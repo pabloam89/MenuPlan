@@ -18,6 +18,9 @@ import { ESTADOS_DATO, ESTADO_DE_ORIGEN } from "./vocabularios.js";
 import { ESTADOS as ESTADOS_LIBRETA } from "./notepad.js";
 import { DATOS_CASA, DATOS_PERSONA } from "./registroFicha.js";
 
+/** La versión de ficha_casa que trae «fichas», el estado de cada dato (0107); la 1 no lo trae. */
+export const FICHA_CON_ESTADO = 2;
+
 const clave = (campo, personaId) => `${campo}|${personaId ?? ""}`;
 
 /**
