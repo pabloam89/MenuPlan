@@ -64,8 +64,8 @@ describe("ajustar_menu_peques con detalle", () => {
 });
 
 describe("ajustar_uso_despensa", () => {
-  it("las mismas tres claves que el paso del asistente", () => {
-    expect(aplicarModoDespensa({}, "strict").data).toEqual({ pantryMode: "strict", pantryModeSet: true, useHomeStock: true });
+  it("las mismas dos claves que el paso del asistente", () => {
+    expect(aplicarModoDespensa({}, "strict").data).toEqual({ pantryMode: "strict", pantryModeSet: true });
     expect(aplicarModoDespensa({}, "nada").data).toBeUndefined();
   });
 });

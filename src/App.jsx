@@ -224,6 +224,7 @@ import { normalizePantryInput } from "./utils/normalizePantryInput.js";
 import { basesDeReceta } from "./lib/bases.js";
 import { findMatchingPantryItem } from "./lib/shoppingBuilder.js";
 import { applyConsumption, consumeFromPantry, restoreToPantry, pantryConsumeMode } from "./lib/cookPantry.js";
+import { modoDespensaAlGenerar, usaDespensa } from "./lib/modoDespensa.js";
 import { useStatusBarSobreFondo } from "./lib/statusBar.js";
 import {
   normalizeDeltaBucketMap,
@@ -363,13 +364,11 @@ const INITIAL_DATA = {
   //   cooldownUntil{ id: ts } → temporary ("Esta semana no"/"Tarda demasiado" ≈7d,
   //                             "Lo comí hace poco" ≈14d). Excluded while ts > now.
   discards: { forever: [], cooldownUntil: {} },
-  // When true, mapped «En casa» stock soft-biases menu generation (pantryScore
-  // + LLM nudge). Shopping still discounts stock either way.
-  useHomeStock: false,
   // How «En casa» stock feeds menu generation:
   //   "only"   → strong bias: build the menu mostly from what's at home
   //   "prefer" → soft, secondary preference (the historical useHomeStock:true)
-  // useHomeStock is kept in sync as a legacy boolean.
+  // Si el menú parte de la despensa ya no se guarda (useHomeStock): es
+  // usaDespensa(data), src/lib/modoDespensa.js.
   //
   // Hubo un cuarto, "off" (ignorar la despensa al planificar). Se quitó: nadie
   // rellena el inventario para que luego no cuente. Sigue siendo un valor que
@@ -771,7 +770,8 @@ function migrate(state) {
   if (!offElegido && !["strict", "only", "prefer"].includes(d.pantryMode)) {
     d.pantryMode = "only";
   }
-  d.useHomeStock = d.pantryMode !== "off";
+  // `useHomeStock` era una copia de pantryMode que nadie leía: ya no se guarda (usaDespensa, modoDespensa.js).
+  delete d.useHomeStock;
   if (typeof d.pantryHasItems !== "boolean") d.pantryHasItems = false;
   // ── Modo básico / avanzado ──
   const looksEstablished =
@@ -2300,10 +2300,8 @@ export default function App() {
       // Planning bias is controlled by pantryMode ("strict"/"only"/"prefer"/"off");
       // shopping always sees the stock so «Ya en casa» stays accurate.
       // Sin un modo válido guardado no se asume nada: "off" (ver normalizeData).
-      const pantryMode = ["strict", "only", "prefer", "off"].includes(working.pantryMode)
-        ? working.pantryMode
-        : "off";
-      const pantryIngredients = pantryMode === "off" ? [] : pantryStock;
+      const pantryMode = modoDespensaAlGenerar(working);
+      const pantryIngredients = usaDespensa(working) ? pantryStock : [];
       // Decisión B (multisemana): "nearest" → la despensa solo sesga la semana
       // más cercana; "all" → todas las semanas ven la despensa completa
       // (histórico); "spread" → cada semana ve la despensa menos lo que ya

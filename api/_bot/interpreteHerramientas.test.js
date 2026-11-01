@@ -46,7 +46,8 @@ vi.mock("./menu.js", async (original) => ({
   }),
 }));
 
-const { ajustarHorario, ajustarCocina, aplicarCompra, aplicarModoDespensa, ajustarPersona, anadirInvitado, listaAjustada } = await import("./ajustes.js");
+const { ajustarHorario, ajustarCocina, aplicarCompra, aplicarModoDespensa, MODOS_DESPENSA, ajustarPersona, anadirInvitado, listaAjustada } = await import("./ajustes.js");
+const { MODOS_DESPENSA_MOTOR } = await import("../../src/lib/modoDespensa.js");
 const { guardarMenuCole, diasSinClase } = await import("./cole.js");
 const { apuntarAusencia } = await import("./menu.js");
 const datos = () => guardada?.state?.data ?? {};
@@ -95,10 +96,14 @@ describe("trastos y súper: sumar y quitar, no sustituir (#958)", () => {
 });
 
 describe("ajustar_uso_despensa: los cuatro modos (#958)", () => {
-  it("«deja de usar lo de casa» es off, y useHomeStock va a la par", () => {
-    expect(aplicarModoDespensa({}, "off").data).toMatchObject({ pantryMode: "off", pantryModeSet: true, useHomeStock: false });
-    expect(aplicarModoDespensa({}, "prefer").data).toMatchObject({ pantryMode: "prefer", useHomeStock: true });
+  it("«deja de usar lo de casa» es off, y useHomeStock ya no se guarda (es usaDespensa, modoDespensa.js)", () => {
+    expect(aplicarModoDespensa({}, "off").data).toEqual({ pantryMode: "off", pantryModeSet: true });
+    expect(aplicarModoDespensa({ useHomeStock: true }, "prefer").data).toEqual({ pantryMode: "prefer", pantryModeSet: true });
     expect(aplicarModoDespensa({}, "nada").data).toBeUndefined();
+  });
+
+  it("los modos que Lola ofrece son los que entiende el motor (dos copias, comparadas)", () => {
+    expect(Object.keys(MODOS_DESPENSA).sort()).toEqual([...MODOS_DESPENSA_MOTOR].sort());
   });
 });
 

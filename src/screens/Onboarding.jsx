@@ -9885,10 +9885,9 @@ const PANTRY_MODES = [
 ];
 
 export function OnboardingPantryMode({ data, setData, onNext, onBack, onFinish, onReset, finishLabel }) {
-  // `useHomeStock` se mantiene en sincronía como el booleano heredado que es
-  // (off ⇄ false), igual que hace normalizeData en App.jsx.
+  // Si el menú parte de la despensa no se guarda: es usaDespensa (src/lib/modoDespensa.js).
   const elegir = (mode) =>
-    setData((d) => ({ ...d, pantryMode: mode, pantryModeSet: true, useHomeStock: mode !== "off" }));
+    setData((d) => ({ ...d, pantryMode: mode, pantryModeSet: true }));
 
   // Sin elegir todavía no se marca ninguna: `pantryMode` nace en "off"
   // (INITIAL_DATA), y pintar "Que no cuente" como si la hubieras elegido tú

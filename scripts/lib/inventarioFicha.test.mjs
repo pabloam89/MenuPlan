@@ -128,7 +128,7 @@ describe("inventario de la ficha", async () => {
     const persona = { ...DATOS_PERSONA, apodo: { ...DATOS_PERSONA.name } }; // una clave de la persona sin columna
     const r = await inventario(raiz, { registro: { casa, persona } });
     // etapaBebe, hecho sin defecto fuera de INITIAL_DATA, nace cuando se dice: no cuenta.
-    expect(r.fallos.sin_declarar).toEqual(["casa.cocinas: derivado sin función", "casa.tandaMinutos: defecto 20 que INITIAL_DATA no siembra", "casa.useHomeStock: derivado sin función"]);
+    expect(r.fallos.sin_declarar).toEqual(["casa.cocinas: derivado sin función", "casa.tandaMinutos: defecto 20 que INITIAL_DATA no siembra"]);
     expect(r.fallos.funcion_rota).toEqual(["casa.menuWeek → src/lib/semanaDias.js:noExiste", "casa.cookedDishes → src/lib/noExiste.js:f"]);
     expect(r.fallos.en_resto).toEqual(["persona.dislikes", "persona.apodo"]);
   }, 120_000);
