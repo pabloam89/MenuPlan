@@ -83,14 +83,14 @@ export const ENTIDADES = Object.freeze({
   persona: {
     id: "person", name: "Persona de la casa", scope: "vertical", term: "persona de la casa",
     source_of_truth: "src/lib/registroFicha.js",
-    readers: ["api/_bot/ficha.js", "src/lib/personasTabla.js"],
-    nota: "Vive en data.members y el trigger de 0089 la copia a la tabla persona (personasTabla.js es su gemelo en JS).",
+    readers: ["api/_bot/ficha.js", "src/lib/personas.js"],
+    nota: "Vive en la tabla persona y sus tablas de salud (desde la 0108, trozo 10); la app y Lola la leen como data.members con membersDeFilas (personas.js).",
   },
   grupo: {
     id: "group", name: "Grupo de comensales", scope: "vertical", term: "grupo",
     source_of_truth: "src/lib/registroFicha.js",
     readers: ["src/lib/groups.js", "api/_bot/presentes.js"],
-    nota: "data.groups, copiado a las tablas grupo y grupo_persona por el mismo trigger.",
+    nota: "Vive en las tablas grupo y grupo_persona (desde la 0108); se lee como data.groups con membersDeFilas (personas.js).",
   },
   regla: {
     id: "house-rule", name: "Regla de la casa", scope: "vertical", term: "regla",
@@ -213,8 +213,9 @@ const LIBRETA_PROYECTADA = "src/lib/libretaEnData.js:dataConLibreta";
 /** Los datos de la casa: las claves de household_state.state.data. */
 export const DATOS_CASA = Object.freeze({
   // ── Quién ──
-  members: dato({ entidad: "persona", tema: "quien", ficha: "persona", tipo: "lista", minimo_para_generar: true, peso_menu: 95 }),
-  groups: dato({ entidad: "grupo", tema: "quien", ficha: "grupo", tipo: "lista" }),
+  // Viven en sus tablas desde la 0108 (trozos 10 y 11), no en data; la app y Lola los leen con membersDeFilas (personas.js).
+  members: dato({ entidad: "persona", tema: "quien", ficha: "persona", tipo: "lista", minimo_para_generar: true, peso_menu: 95, vive: "tabla:persona" }),
+  groups: dato({ entidad: "grupo", tema: "quien", ficha: "grupo", tipo: "lista", vive: "tabla:grupo" }),
   menuModel: dato({ tema: "quien", ficha: "casa", tipo: "enum", vocabulario: "modelo_menu", defecto: "same" }),
   rosters: dato({ entidad: "persona", tema: "quien", ficha: "persona", tipo: "lista", estado: "legado", de: "members", motivo: "desde el 8 oct 2026 la familia es una; las casas viejas los traen y no se copian" }),
   activeRosterId: dato({ entidad: "persona", tema: "quien", ficha: "persona", tipo: "ref", estado: "legado", de: "members", motivo: "va con rosters" }),
@@ -344,7 +345,7 @@ export const DATOS_PERSONA = Object.freeze(Object.fromEntries(Object.entries({
   dietaryStates: dato({ ...listaDeSalud, tipo: "lista_enum" }),
   dietaryStatesMeta: dato({ ...salud, tipo: "mapa" }),
   healthProfiles: dato({ ...listaDeSalud, tipo: "lista_enum" }),
-  healthProfile: dato({ ...salud, tipo: "enum", estado: "legado", de: "healthProfiles", motivo: "el singular de antes; personasTabla.js lo junta con la lista" }),
+  healthProfile: dato({ ...salud, tipo: "enum", estado: "legado", de: "healthProfiles", motivo: "el singular de antes; personas.js lo junta con la lista" }),
   pesoKg: dato({ ...salud, tipo: "decimal" }),
   alturaCm: dato({ ...salud, tipo: "int" }),
   dislikes: dato({ tema: "gustos", tipo: "lista" }),
