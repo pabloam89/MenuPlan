@@ -6,7 +6,8 @@ import { describe, it, expect, vi } from "vitest";
 
 vi.mock("./supabase.js", () => ({ supabase: null }));
 
-const { leerFamiliaDeCasa, conFamiliaLeida, sinFamilia, enviarFamilia, familiaDeCasa, conVersionDeFamilia, MODO_FAMILIA, REF_FAMILIA } = await import("./familiaCasa.js");
+const { leerFamiliaDeCasa, conFamiliaLeida, sinFamilia, enviarFamilia, familiaDeCasa, conVersionDeFamilia, cargaSinSeguir, guardarFamiliaYDocumento, MODO_FAMILIA, REF_FAMILIA } = await import("./familiaCasa.js");
+const { guardarConVersion } = await import("./versionCasa.js");
 const { FALLO_DATO } = await import("./vocabularios.js");
 const { RPC_FAMILIA } = await import("./personas.js");
 
@@ -167,5 +168,66 @@ describe("la versión de la casa tras guardar la familia", () => {
     expect(r).toMatchObject({ ok: true, conflict: true });
     expect(r.botRev).toBeUndefined();
     expect((await conVersionDeFamilia(async () => ({ ok: true, enviado: true, rev: null }))(7)).conflict).toBe(true);
+  });
+});
+
+describe("la carga de la casa", () => {
+  it("sin poder leer la familia no sigue nunca; sin el documento, solo si lo de memoria no vale", () => {
+    expect(cargaSinSeguir({ soloNube: false, remoteState: {}, cargaFamilia: { error: true } })).toBe(true);
+    expect(cargaSinSeguir({ soloNube: true, remoteState: { error: true }, cargaFamilia: { modo: MODO_FAMILIA.FILAS } })).toBe(true);
+    expect(cargaSinSeguir({ soloNube: false, remoteState: { error: true }, cargaFamilia: { modo: MODO_FAMILIA.FILAS } })).toBe(false);
+    expect(cargaSinSeguir({ soloNube: true, remoteState: {}, cargaFamilia: null })).toBe(false);
+  });
+});
+
+describe("guardar la familia y el documento, en la cola de la casa", () => {
+  const versionEn = (rev, vigente = () => true) => {
+    const v = { rev, leer: () => v.rev, apuntar: (r) => { v.rev = r; }, vigente };
+    return v;
+  };
+
+  it("primero la familia, y el documento sale con la versión que ella deja", async () => {
+    const version = versionEn(7);
+    const orden = [];
+    const g = guardarFamiliaYDocumento({
+      version,
+      familia: async () => { orden.push("familia"); return { ok: true, enviado: true, rev: 8 }; },
+      documento: async (rev) => { orden.push(`documento@${rev}`); return { ok: true, botRev: rev + 1 }; },
+    });
+    expect(await g.familia).toMatchObject({ ok: true, botRev: 8 });
+    expect(await g.documento).toEqual({ ok: true, botRev: 9 });
+    expect(orden).toEqual(["familia", "documento@8"]);
+    expect(version.rev).toBe(9);
+  });
+
+  it("si la familia falla, el documento (que no la lleva) se guarda igual, con la versión de antes", async () => {
+    const version = versionEn(7);
+    const documento = vi.fn(async (rev) => ({ ok: true, botRev: rev + 1 }));
+    const g = guardarFamiliaYDocumento({ version, familia: async () => ({ ok: false, fallo: FALLO_DATO.SIN_RED }), documento });
+    expect(await g.familia).toEqual({ ok: false, fallo: FALLO_DATO.SIN_RED });
+    expect(await g.documento).toEqual({ ok: true, botRev: 8 });
+    expect(documento).toHaveBeenCalledWith(7);
+  });
+
+  it("programado antes de una recarga de la nube, no sale ninguno de los dos", async () => {
+    const familia = vi.fn();
+    const documento = vi.fn();
+    const g = guardarFamiliaYDocumento({ version: versionEn(7, () => false), familia, documento, enCola: guardarConVersion });
+    expect(await g.familia).toEqual({ ok: false, descartado: true });
+    expect(await g.documento).toEqual({ ok: false, descartado: true });
+    expect(familia).not.toHaveBeenCalled();
+    expect(documento).not.toHaveBeenCalled();
+  });
+});
+
+describe("App.jsx carga y guarda por aquí", async () => {
+  const { readFileSync } = await import("node:fs");
+  const app = readFileSync(new URL("../App.jsx", import.meta.url), "utf8");
+
+  it("la carga lee la familia y se para con cargaSinSeguir; los dos guardados, con guardarFamiliaYDocumento y sin la familia en el documento", () => {
+    expect(app.slice(app.indexOf("const [remoteState, cargaFamilia"), app.indexOf("loadRecipeVotes(user.id)"))).toContain("leerFamiliaDeCasa(householdId)");
+    expect(app).toContain("if (cargaSinSeguir({ soloNube, remoteState, cargaFamilia })) {");
+    expect(app.match(/guardarFamiliaYDocumento\(\{/g)).toHaveLength(2);
+    expect(app.match(/snapshotDeCasa\(\{[^}]*\}, familia\?\.modo\)/g)).toHaveLength(2);
   });
 });
