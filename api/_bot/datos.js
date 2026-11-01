@@ -53,8 +53,6 @@ export const escribirDato = (pedido, { papel }) => operar(pedido, { papel, rpc, 
  */
 export const escribirPersonas = (pedido, { papel }) => operarPersonas(pedido, { papel, rpc, falloDeError });
 
-export { RPC_FAMILIA };
-
 /**
  * La familia de una casa, de sus filas (personas_de_casa, 0108), en la forma de data.members y data.groups.
  * null si la base aún no tiene la RPC (`rpc_ausente`, 0108 sin aplicar): la familia sigue en el documento y la
