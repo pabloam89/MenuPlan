@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { familiaDeFilas, RPC_FAMILIA } from "./familiaDePrueba.js";
+import { familiaDeFilas, RPC_FAMILIA, RPC_FICHA, fichaV1 } from "./familiaDePrueba.js";
 
 const ahora = { members: [{ id: "m1", name: "Leo", allergies: ["Huevos"] }] };
 // La hora de la foto se pone al leerla, no al cargar el fichero: deshacer()
@@ -7,9 +7,9 @@ const ahora = { members: [{ id: "m1", name: "Leo", allergies: ["Huevos"] }] };
 // cargado importar el bot ya tarda más que eso (medido: 11 s el 8 oct 2026).
 const foto = { id: 1, bot_rev_despues: 7, antes: { state: { data: { members: [{ id: "m1", name: "Leo", allergies: [] }] } } } };
 // La familia sale de sus filas (personas_de_casa); lo demás, un guardado que sale bien.
-const rpc = vi.fn(async (fn) => (fn === RPC_FAMILIA ? familiaDeFilas(ahora.members) : { ok: true }));
-/** Lo que se ha intentado escribir: todo menos leer la familia. */
-const escritas = () => rpc.mock.calls.map(([fn]) => fn).filter((fn) => fn !== RPC_FAMILIA);
+const rpc = vi.fn(async (fn) => (fn === RPC_FAMILIA ? familiaDeFilas(ahora.members) : fn === RPC_FICHA ? fichaV1() : { ok: true }));
+/** Lo que se ha intentado escribir: todo menos leer la familia y la ficha. */
+const escritas = () => rpc.mock.calls.map(([fn]) => fn).filter((fn) => fn !== RPC_FAMILIA && fn !== RPC_FICHA);
 
 vi.mock("./db.js", () => ({
   select: vi.fn(async (tabla) => {

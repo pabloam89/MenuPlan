@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { familiaDeFilas, RPC_FAMILIA } from "./familiaDePrueba.js";
+import { familiaDeFilas, RPC_FAMILIA, RPC_FICHA, fichaV1 } from "./familiaDePrueba.js";
 
 // Las favoritas y los «No me gusta» de la casa viven en sus tablas, no en
 // household_state: Lola tiene que cargarlos para que sus menús los respeten
@@ -23,7 +23,7 @@ vi.mock("./db.js", () => ({
   insert: vi.fn(async () => []),
   update: vi.fn(async () => []),
   // La familia sale de sus filas (personas_de_casa); aquí, una casa sin nadie.
-  rpc: vi.fn(async (fn) => (fn === RPC_FAMILIA ? familiaDeFilas() : null)),
+  rpc: vi.fn(async (fn) => (fn === RPC_FAMILIA ? familiaDeFilas() : fn === RPC_FICHA ? fichaV1() : null)),
   eq: (v) => `eq.${encodeURIComponent(v)}`,
 }));
 vi.mock("./propias.js", () => ({ recetasPropiasDeCasa: vi.fn(async () => []) }));
