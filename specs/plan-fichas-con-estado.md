@@ -4,6 +4,8 @@ Verdict: viable y grande (41 trozos tras la ampliación del 30 oct por la tarde,
 
 **Ampliado el 30 oct 2026 (tarde) con la arquitectura objetivo** (`specs/arquitectura-objetivo.md`, decisiones D1-D3 de Pablo: «vamos a por todo»): toda escritura es una **operación** que pasa por una única tubería en el servidor (la migración del trozo 7 crea también `operacion`); la del trozo 14 crea **`preferencia`** (y `plan` como conjunto) en vez de `gusto`; el motor recibe una **entrada única** y cumple las preferencias con un **método de choques** común; las **tareas** de Lola pasan a entidad completa y absorben recordatorios y aclaraciones (trozo 34). Los trozos 1-23 conservan su número (las sesiones los citan); los cambios van dentro de cada uno y los nuevos son 24-38; el 39 y el 40 nacen al partir el trozo 7 (30 oct, noche). Si una sesión ya empezó el 7, el 8 o el 14 con la forma vieja, lo ajusta a esta antes de abrir PR.
 
+**Ampliado el 1 nov 2026 con el tramo 9, «herramientas y manual» (trozos 42-47)**, tras la auditoría de `api/_bot/conocimiento.md` y de las herramientas de Lola (primer arreglo en el PR #1107): el riesgo y cómo se deshace de cada herramienta, en su ficha; lo que el manual dice de las herramientas, generado; lo que casi nunca hace falta, solo cuando hace falta; herramientas agrupadas; los 22 huecos de la app; y el manual reescrito una vez. Va detrás de los tramos que cambian esas mismas herramientas.
+
 Fecha: 30 oct 2026. Base leída: `origin/staging` en `5b9dbaed` (#1031). Escrito en la forma del estándar de planes de la Fábrica (`standards/plan.md`), sin pasar su comprobador (ver Not verified).
 
 Origen: #1029 (el menú cojo de la casa nueva de Pablo), #958 (auditoría de Lola, clase G «1 dato, 1 sitio»), #939 (un solo registro; fases 1-4 hechas) y la conversación con Pablo del 30 oct.
@@ -120,9 +122,10 @@ Comparados con las dos bases: la de la Fábrica (`.fabrica/entities.json` y `.fa
 | 6 Trato, preguntas y tareas | 16-17, 34-35 | sí | ficha Trato; una sola «siguiente pregunta»; tareas como entidad completa; un solo barrido de caducidades y referencias rotas |
 | 7 Semana, compra, tiempo real | 18-20 | no | sobre por hueco con motivo, versión de la semana, compra derivada + marcas, aperitivo, Realtime con una señal por casa, fin del guardado entero |
 | 8 Recetas, historiales, cierre | 21-22, 36 | no | fuera recetas y carpetas del documento; historiales con poda; `data` vacío; borrar persona y exportar |
+| 9 Herramientas y manual | 42-47 | no | riesgo y cómo se deshace en la ficha de cada herramienta; lo que el manual dice de las herramientas, generado de las fichas; Alta, preguntas frecuentes y fotos solo cuando hacen falta; herramientas agrupadas por objeto; los 22 huecos de la app en Lola; el manual reescrito una vez |
 | Transversal (desde ya) | 29, 37, 38 | no | banco de frases que comprueba el estado guardado; prueba de punta a punta de la app; panel de cifras |
 
-Orden (lo fijan los «Depends on»; ningún par de trozos sin orden entre ellos toca el mismo fichero, comprobado con `check-plan` de la Fábrica): 0 → 1 (24, 25) → 2 (7, 39, 40, 8, 9, 26, 41, 27) → 2c (28) → 3 → 4 → 5 (14, 15, 30, 31, 32, 33) → 6 (16, 17, 34, 35) → 7 → 8. Sin dependencias, en paralelo desde ya: 29 y 37; el 38 va detrás del 37 y del 7.
+Orden (lo fijan los «Depends on»; ningún par de trozos sin orden entre ellos toca el mismo fichero, comprobado con `check-plan` de la Fábrica): 0 → 1 (24, 25) → 2 (7, 39, 40, 8, 9, 26, 41, 27) → 2c (28) → 3 → 4 → 5 (14, 15, 30, 31, 32, 33) → 6 (16, 17, 34, 35) → 7 → 8 → 9 (42-47, detrás de los tramos 6 a 8 que cambian las mismas herramientas). Sin dependencias, en paralelo desde ya: 29 y 37; el 38 va detrás del 37 y del 7.
 
 Cifras que bajan, medidas al cerrar cada tramo: claves vivas en `household_state.state.data` (hoy 113 registradas + 26 sin declarar → 0), `copia` (10 → 0), `sin_tabular` (54 → 0), `lola_no_lo_ve` (22 → 0), casas nuevas con alguien sin marca de alergias tras el alta (→ 0), semanas vivas con huecos esperados vacíos sin aviso (→ 0), respuestas de Lola que contradicen el estado (17 % en #958 → se mide con el banco de frases, trozo 29). Cifras nuevas: escrituras fuera de la tubería (→ 0, trozo 26), herramientas que escriben sin resultado (→ 0, trozo 27), analizadores de fechas y personas fuera del intérprete (hoy 3 → 0, trozo 27), claves `data.*` leídas por el motor (hoy 30 → 0, trozo 30), ejes sin consumidor (hoy 27 de 78, trozo 31), % de preferencias dichas cumplidas por semana (trozo 31), ficheros que hay que tocar para añadir un dato (hoy 19 para `cookLevel`, trozo 25), preguntas hasta el primer menú (trozo 34).
 
@@ -586,6 +589,72 @@ Done:
 node scripts/apply-migration.mjs 0111_deshacer_operacion && npx vitest run supabase/datoConSobre.test.js supabase/migrations.test.js src/lib/operaciones/tuberia.test.js
 ```
 
+### 42. Cada herramienta lleva su riesgo y cómo se deshace; el vigilante elige por riesgo, no por nombre
+Files: `api/_bot/agente.js`, `api/_bot/fichas.test.js`, `api/_bot/__snapshots__/fichas.test.js.snap`, `src/lib/vocabularios.js`, `src/lib/vocabularios.test.js`, `api/_bot/supervisor.js`, `api/_bot/supervisor.test.js`, `api/_bot/riesgoHerramientas.test.js`
+Depends on: 19, 34, 35
+Blocked by: none
+Existing: la ficha de cada herramienta (`herramienta(ficha, def)`, comentario en `api/_bot/agente.js:148-181` y función en `:195`) lleva `soloLectura`, `lector`, `pantalla`, `capacidades`, `lee` y `escribe`, pero ni riesgo ni cómo se deshace (`grep -nE "riesgo|deshace:" api/_bot/agente.js` → sin salida). El vigilante elige por nombre: `grep -cE '"(ajustar_alergias|ajustar_salud|quitar_comensal)"' api/_bot/supervisor.js` → 3. El enrutador describe el riesgo de cada modo en texto libre (`grep -c 'riesgo: "' api/_bot/router.js` → 13). Qué se puede deshacer solo lo dicen la descripción de `deshacer` y `api/_bot/casa.js:351`. `ls api/_bot/riesgoHerramientas.test.js` → No such file or directory.
+Not done: no cambia ninguna política: las mismas herramientas siguen pidiendo lo mismo. Dos vocabularios cerrados nuevos en `vocabularios.js` (constante + test): `RIESGO_HERRAMIENTA` (`lee`, `escribe_reversible`, `escribe_irreversible`, `quita_proteccion`) y `DESHACE` (`foto`, `operacion`, `no`). `herramienta()` los exige, como hoy `lector`, y el test nuevo falla si a una herramienta le falta alguno. El vigilante pasa a elegir por `quita_proteccion`, y el test comprueba que el conjunto es el de hoy (las 3). El texto del enrutador no se toca: es por modo, no por herramienta.
+Done:
+```sh
+npx vitest run api/_bot/riesgoHerramientas.test.js api/_bot/fichas.test.js api/_bot/supervisor.test.js src/lib/vocabularios.test.js
+```
+
+### 43. Lo que el manual dice de las herramientas sale de sus fichas: qué sabe hacer, qué solo se hace en la app y qué se deshace
+Files: `api/_bot/manual.js`, `api/_bot/manual.test.js`, `api/_bot/agente.js`, `api/_bot/conocimiento.md`, `src/lib/capacidades.js`
+Depends on: 42
+Blocked by: none
+Existing: el manual se carga tal cual (`api/_bot/agente.js:129` y `:132`: `const SISTEMA = CONOCIMIENTO`). «Qué sabes hacer» es una lista escrita a mano en `conocimiento.md`, y el manual no tiene ninguna de lo que solo se hace en la app, aunque el mapa lo sabe (`npm run -s capacidades` → «Capacidades: 85; en los dos lados: 29; huecos (un lado vacío sin motivo): 35.»). `ls api/_bot/manual.js` → No such file or directory.
+Not done: `manual.js` arma el texto del sistema: el manual con unas pocas marcas (`{{QUE_SABES_HACER}}`, `{{SOLO_EN_LA_APP}}`, `{{QUE_SE_DESHACE}}`) rellenas desde el mapa de capacidades y las fichas del trozo 42. Recibe las fichas como parámetro: `capacidades.js` ya importa `agente.js` y no se crea una dependencia circular. El texto sale igual en cada turno del mismo despliegue, así que la caché del prompt no se rompe. El test falla si queda una marca sin rellenar o si una marca no existe. No cambia nada más del manual.
+Done:
+```sh
+npx vitest run api/_bot/manual.test.js api/_bot/promesas.test.js
+```
+
+### 44. Alta, preguntas frecuentes y fotos y voz, solo cuando hacen falta
+Files: `api/_bot/conocimiento.md`, `api/_bot/manual/alta.md`, `api/_bot/manual/preguntas.md`, `api/_bot/manual/fotos.md`, `api/_bot/manual.js`, `api/_bot/manualPorPartes.test.js`, `api/_bot/agente.js`, `scripts/bot-evals.json`
+Depends on: 29, 43
+Blocked by: none
+Existing: tres apartados del manual se pagan en cada turno aunque casi nunca hagan falta: Alta (3.118 caracteres, 7,7 %), Preguntas frecuentes (4.367, 10,8 %) y Fotos y voz (1.273, 3,1 %), contados entre títulos «# » de `conocimiento.md` (40.621 caracteres en total). Alta tiene un disparador exacto: el mensaje empieza por «[alta]» o la ficha dice «PARA EMPEZAR FALTA» (apartado Alta del manual). Las evals los cubren poco: `grep -c '"dominio": "alta"' scripts/bot-evals.json` → 5; `grep -c '"dominio": "faq"' scripts/bot-evals.json` → 7; `grep -ci 'nota de voz' scripts/bot-evals.json` → 0. `ls api/_bot/manual` → No such file or directory.
+Not done: primero se añaden casos al banco (voz, alta y preguntas frecuentes) y se miden con la versión de hoy; después se mueven los apartados. Alta y Fotos y voz entran como un bloque de sistema aparte, detrás del bloque fijo para no romper su caché, cuando el código ve su disparador (el prefijo «[alta]», la ficha, un adjunto o «[nota de voz]»). Cómo se cargan las preguntas frecuentes (un bloque con disparador o una herramienta de solo lectura con `tema` de lista cerrada) se decide en este trozo, midiendo las dos con el banco. Cifra: caracteres del bloque fijo (hoy unos 40.600; objetivo, cerca de 32.000).
+Done:
+```sh
+npx vitest run api/_bot/manualPorPartes.test.js && node scripts/bot-evals.mjs --nivel=pr
+```
+
+### 45. Herramientas agrupadas por objeto, con prefijo y la acción dentro
+Files: `api/_bot/agente.js`, `api/_bot/ajustes.js`, `api/_bot/menu.js`, `api/_bot/router.js`, `api/_bot/routerEjemplos.js`, `api/_bot/ejemplosPrompt.test.js`, `api/_bot/promesas.test.js`, `api/_bot/fichas.test.js`, `src/lib/capacidades.js`, `api/_bot/conocimiento.md`, `scripts/bot-evals.json`, `api/_bot/herramientasAgrupadas.test.js`
+Depends on: 44
+Blocked by: none
+Existing: 46 herramientas (`grep -c 'name: "' api/_bot/agente.js` → 46): 8 empiezan por `ver_` y 11 por `ajustar_` (`grep -c 'name: "ver_'` → 8; `grep -c 'name: "ajustar_'` → 11). `fuera_de_casa` (un día) y `ajustar_horario` (siempre) tratan lo mismo, quién come dónde, con distinto alcance, y necesitan una regla del manual («Cómo se habla de verdad») y un test propio (`api/_bot/ejemplosPrompt.test.js`) para no confundirse. Anthropic recomienda herramientas de propósito claro y sin solapes, agrupadas con prefijos por recurso, y medir llamadas, tokens y errores ([Writing tools for agents](https://www.anthropic.com/engineering/writing-tools-for-agents)). `ls api/_bot/herramientasAgrupadas.test.js` → No such file or directory.
+Not done: antes de tocar nada se mide con el banco de frases la herramienta elegida, las llamadas por turno y los errores (línea base). El cambio va grupo a grupo, un PR por grupo, y no se fusiona si baja la herramienta acertada. Grupos: las `ver_*` sin campos, en una `consultar` con `que` de lista cerrada; las `ajustar_*` de configuración, una por ficha (Casa, Rutina) con `campo` de lista cerrada del registro (trozo 25); `fuera_de_casa` y `ajustar_horario`, en una de quién come dónde con alcance (un día o siempre), como ya los junta la ficha Rutina (trozo 13). Alergias, salud y quitar personas se quedan aparte, porque su riesgo es otro (trozo 42). El test nuevo falla si dos herramientas comparten objeto y verbo (hoy, `fuera_de_casa` y `ajustar_horario`). Si el total sigue por encima de unas 30, la búsqueda de herramientas de la API se estudia en un trozo aparte.
+Done:
+```sh
+npx vitest run api/_bot/herramientasAgrupadas.test.js api/_bot/ejemplosPrompt.test.js api/_bot/promesas.test.js && node scripts/bot-evals.mjs --nivel=pr
+```
+
+### 46. Lo que la app hace y Lola no: los 22 huecos, con las herramientas agrupadas
+Files: `api/_bot/agente.js`, `api/_bot/recetas.js`, `api/_bot/propias.js`, `api/_bot/menu.js`, `src/lib/capacidades.js`, `src/lib/capacidades.base.json`, `api/_bot/huecosCerrados.test.js`
+Depends on: 21, 45
+Blocked by: none
+Existing: `npm run -s capacidades` (1 nov 2026, sobre `staging`) → «Capacidades: 85; en los dos lados: 29; huecos (un lado vacío sin motivo): 35.». De esos huecos, 22 son cosas que la app hace y Lola no: recetas propias 6 (editar, borrar, favoritas, carpetas, meter en una carpeta, recuperar una descartada), menú 9 (quitar, mover o duplicar un plato, marcarlo cocinado, sacar raciones, elegir aparato, apuntar un aparato nuevo, activar o desactivar el menú, menús guardados, favoritos), compra 3 (cantidad, mandar la lista, coste), casa 3 (alergia fuera de la lista, menú de dieta blanda, reiniciar el menú) y despensa 1 (cuándo se da algo por gastado). `src/lib/capacidades.base.json` → `"huecos": 35`. El recorrido de pantallas del mapa es del 28 oct 2026. `ls api/_bot/huecosCerrados.test.js` → No such file or directory.
+Not done: un PR por objeto (recetas, menú, compra, casa, despensa), cada uno con su herramienta agrupada (trozo 45), su riesgo y cómo se deshace (trozo 42), sus casos en el banco y la cifra `huecos` de `capacidades.base.json` bajando en el mismo PR. Antes de empezar se repite el recorrido de pantallas, por si la app ha cambiado. Lo que Pablo decida dejar solo en la app se marca `aProposito` con su motivo y no cuenta como hueco.
+Done:
+```sh
+npx vitest run api/_bot/huecosCerrados.test.js src/lib/capacidades.test.js && npm run -s capacidades
+```
+
+### 47. El manual, reescrito una vez sobre las fichas: principios, límites arriba, criterio sin mecánica y formato por canal
+Files: `api/_bot/conocimiento.md`, `api/_bot/manualEstructura.test.js`, `scripts/bot-evals.json`
+Depends on: 46
+Blocked by: none
+Existing: tras el PR #1107, el manual sigue mezclando mecánica de herramientas con criterio (por ejemplo, nutrientes y «para quién» en «El menú», que repiten `ESQUEMA_EJES` y la descripción de `proponer_platos`). Tiene los errores y reintentos en tres sitios («Cómo trabajas» 10, «Nutrientes» y «Tono») y los límites («Lo que no haces») hacia el 60 % del texto, aunque la investigación ve un sesgo hacia las primeras instrucciones ([IFScale](https://arxiv.org/html/2507.11538v1)). El formato es solo de Telegram (HTML), con WhatsApp en camino. `ls api/_bot/manualEstructura.test.js` → No such file or directory.
+Not done: orden fijo (identidad, principios con su porqué, seguridad y límites, la ficha, situaciones con criterio y sin mecánica, ejemplos reales, formato por canal) y un recordatorio final corto de lo crítico. El test comprueba el orden de los apartados y que ningún nombre de parámetro de herramienta aparece en el manual, porque la mecánica vive en la herramienta. El formato de cada canal va en su bloque, que el código carga según el canal. Evals de nivel pr y la pasada completa antes de fusionar.
+Done:
+```sh
+npx vitest run api/_bot/manualEstructura.test.js api/_bot/ejemplosPrompt.test.js api/_bot/promesas.test.js && node scripts/bot-evals.mjs --nivel=pr
+```
+
 ## Decisions for Pablo
 
 ### B. Sin alergias confirmadas (ni dichas ni por silencio), ¿Lola genera el menú?
@@ -641,7 +710,14 @@ Por qué te lo pregunto: el 8 oct decidiste lo contrario (#107: se genera esquiv
 - principio 6 | eligió: la prueba de punta a punta no entra en un workflow en este plan | descartó: añadirla a `.github/workflows/`, ruta cerrada que pide su decisión y su revisión de seguridad | motivo: decidido
 - principio 6 | eligió: todo el alcance de la arquitectura objetivo en esta ronda («vamos a por todo», Pablo, 30 oct tarde) | descartó: núcleo ahora y lo demás aplazado | motivo: decidido
 
+- principio 6 | eligió: un tramo propio «herramientas y manual» (42-47) detrás de los tramos que cambian esas mismas herramientas (Pablo, 1 nov 2026: opción A) | descartó: hacerlo en paralelo con los tramos 4 a 8, que tocan las mismas herramientas y no dejan saber qué cambio mueve cada cifra | motivo: decidido
+- principio 4 | eligió: el riesgo y cómo se deshace cada herramienta, en su ficha y en vocabulario cerrado, y de ahí el vigilante y el manual | descartó: los nombres de herramienta escritos a mano en el vigilante y la frase del manual sobre deshacer | motivo: decidido
+- principio 4 | eligió: lo que el manual dice de las herramientas (qué sabe hacer, qué solo en la app, qué se deshace), generado de las fichas y del mapa | descartó: listas escritas a mano en el manual, que se desfasan al cambiar una herramienta | motivo: decidido
+- principio 2 | eligió: medir con el banco de frases antes y después de agrupar herramientas, grupo a grupo | descartó: agrupar todas de una vez sin línea base | motivo: decidido
+
 ## Not verified
+
+- Tramo 9 (42-47): los 22 huecos salen del recorrido de pantallas del mapa de capacidades (28 oct 2026); la app puede haber cambiado. Las cifras del manual (caracteres por apartado) son del 1 nov 2026, tras el PR #1107. Que agrupar herramientas mejore la elección es una hipótesis que miden las evals del trozo 45.
 
 - Los trozos 24-38 y los cambios a 7, 8, 14, 15, 17, 18 y 20 se escribieron el 30 oct por la tarde desde una sesión en la nube que solo ve `staging` y las ramas subidas: si una sesión de terminal ya tiene trabajo local de los trozos 7, 8 o 14 con la forma vieja, este plan no lo sabe.
 - Los ficheros nuevos que nombran los trozos 24-38 (tests incluidos) no existen; los existentes se comprobaron con `ls` o `git grep` (`bot-evals.mjs`, `caducidades.js`, `idempotencia.js`, `resultado.js`, `interprete.js`, `operacion.js`, `cocinaTopes.js`, `turnos.js`).
