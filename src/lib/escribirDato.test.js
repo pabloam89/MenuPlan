@@ -6,7 +6,7 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import {
   datoValido, operacionDeDato, resultadoDeOperacion, DatoInvalido, CAMPOS_RESULTADO,
-  crearColaDeDatos, enviarAlServidor, FALLOS_QUE_ESPERAN, CLAVE_COLA, AVISO_PENDIENTE_MS, HTTP_DE_FALLO, RUTA_OPERACION,
+  crearColaDeDatos, enviarAlServidor, FALLOS_QUE_ESPERAN, CLAVE_COLA, AVISO_PENDIENTE_MS, HTTP_DE_FALLO,
 } from "./escribirDato.js";
 import { ESTADO_OPERACION, SEXO, CANAL_DATO, REF_OPERACION, FALLO_DATO, FALLOS_DATO } from "./vocabularios.js";
 import { REGISTRO_CAMPOS } from "./registroCampos.js";
@@ -73,6 +73,7 @@ function almacenFalso(inicial = {}) {
   const m = new Map(Object.entries(inicial));
   return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)) };
 }
+const URL = "https://app.invalid/api/operacion";
 const enCola = (almacen) => JSON.parse(almacen.getItem(CLAVE_COLA) ?? "[]");
 const claves = () => { let n = 0; return () => `k${++n}`; };
 const lineasDeLog = (espia) => espia.mock.calls.map((a) => JSON.parse(a[0]));
@@ -103,7 +104,7 @@ describe("la cola de la app", () => {
     const almacen = almacenFalso();
     const log = vi.spyOn(console, "error").mockImplementation(() => {});
     const fetchFn = async () => new Response("<html>despliegue a medias</html>", { status: 200 });
-    const c = crearColaDeDatos({ almacen, nuevaClave: claves(), enviar: enviarAlServidor({ token: async () => "tok", fetchFn }) });
+    const c = crearColaDeDatos({ almacen, nuevaClave: claves(), enviar: enviarAlServidor({ token: async () => "tok", url: URL, fetchFn }) });
     expect(await c.escribir(PEDIDO_APP)).toEqual({ guardado: false, pendiente: true, fallo: FALLO_DATO.SERVIDOR });
     expect(enCola(almacen)).toHaveLength(1);
     expect(lineasDeLog(log).map((l) => l.fallo)).toEqual(["servidor"]);
@@ -206,14 +207,14 @@ describe("la cola de la app", () => {
 describe("enviarAlServidor", () => {
   it("manda el pedido a api/operacion.js con la sesión, y devuelve el cuerpo leído", async () => {
     const fetchFn = vi.fn(async () => new Response(JSON.stringify(CONTESTA_HECHA), { status: 200 }));
-    expect(await enviarAlServidor({ token: async () => "tok", fetchFn })({ clave: "k1" })).toEqual({ status: 200, cuerpo: CONTESTA_HECHA });
-    expect(fetchFn.mock.calls[0][0]).toBe(RUTA_OPERACION);
+    expect(await enviarAlServidor({ token: async () => "tok", url: URL, fetchFn })({ clave: "k1" })).toEqual({ status: 200, cuerpo: CONTESTA_HECHA });
+    expect(fetchFn.mock.calls[0][0]).toBe(URL);
     expect(fetchFn.mock.calls[0][1]).toMatchObject({ method: "POST", body: JSON.stringify({ clave: "k1" }) });
     expect(fetchFn.mock.calls[0][1].headers.Authorization).toBe("Bearer tok");
   });
   it("sin sesión no sale y espera como sin_sesion", async () => {
     const fetchFn = vi.fn();
-    expect(await enviarAlServidor({ token: async () => null, fetchFn })({})).toEqual({ status: 401, cuerpo: { fallo: FALLO_DATO.SIN_SESION } });
+    expect(await enviarAlServidor({ token: async () => null, url: URL, fetchFn })({})).toEqual({ status: 401, cuerpo: { fallo: FALLO_DATO.SIN_SESION } });
     expect(fetchFn).not.toHaveBeenCalled();
   });
 });

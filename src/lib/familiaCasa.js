@@ -10,6 +10,7 @@ import { supabase } from "./supabase.js";
 import { apiUrl } from "./apiUrl.js";
 import * as ids from "./ids.js";
 import { FALLO_DATO } from "./vocabularios.js";
+import { enviarAlServidor, falloDeEnvio } from "./escribirDato.js";
 import { esSinFuncion } from "./postgrest.js";
 import { guardarConVersion } from "./versionCasa.js";
 import { membersDeFilas, cambiosDePersonas, conOrdenDeTodos, textosDeAvisos, FamiliaSinLeer, RPC_FAMILIA, revSiguiente } from "./personas.js";
@@ -57,40 +58,47 @@ export function sinFamilia(datos, modo) {
   return resto;
 }
 
-async function tokenDeSesion() {
+/** El access_token de la sesión de Supabase, o null. */
+export async function tokenDeSesion() {
   const { data } = await supabase.auth.getSession();
   return data?.session?.access_token ?? null;
 }
+
+/** La dirección de api/operacion.js, donde la app propone sus operaciones (la familia y la cola de datos, escribirDato.js). */
+export const urlOperacion = () => apiUrl("/api/operacion");
 
 /**
  * Un cambio de la familia a api/operacion.js. Nunca lanza: `{ ok: true, ... }` con lo que devuelve la
  * tubería, o `{ ok: false, fallo }` (FALLOS_DATO).
  */
 export async function enviarFamilia({ casa, personas, grupos }, { token = tokenDeSesion, fetcher = fetch } = {}) {
-  // a propósito: una sesión que no se puede leer es no tener sesión (sin_sesion), y quien llama lo dice
-  const t = await token().catch(() => null);
-  if (!t) return { ok: false, fallo: FALLO_DATO.SIN_SESION };
-  let res;
+  const sesion = async () => {
+    try {
+      return await token();
+    } catch (e) {
+      // Una sesión que no se puede leer es no tener sesión (sin_sesion): quien llama lo dice.
+      console.warn("[familiaCasa] sesión sin leer", e?.message);
+      return null;
+    }
+  };
+  let r;
   try {
-    res = await fetcher(apiUrl("/api/operacion"), {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` },
-      body: JSON.stringify({
-        casa, clave: ids.claveOperacion.nuevo(), accion: "guardar_familia", ref_id: REF_FAMILIA,
-        pedida_at: new Date().toISOString(), personas, ...(grupos !== undefined ? { grupos } : {}),
-      }),
+    r = await enviarAlServidor({ token: sesion, url: urlOperacion(), fetchFn: fetcher })({
+      casa, clave: ids.claveOperacion.nuevo(), accion: "guardar_familia", ref_id: REF_FAMILIA,
+      pedida_at: new Date().toISOString(), personas, ...(grupos !== undefined ? { grupos } : {}),
     });
-  } catch {
+  } catch (e) {
+    if (!(e instanceof TypeError)) throw e;
     return { ok: false, fallo: FALLO_DATO.SIN_RED };
   }
   // Un cuerpo que no es JSON (la página de un proxy, un despliegue a medias) no es un guardado: se dice y al log.
-  const cuerpo = await res.json().catch(() => null);
-  if (!res.ok) return { ok: false, fallo: cuerpo?.fallo ?? FALLO_DATO.SERVIDOR };
-  if (cuerpo?.guardado !== true) {
-    if (!cuerpo) console.warn("[familiaCasa] respuesta sin JSON", res.status);
-    return { ...(cuerpo ?? {}), ok: false, fallo: cuerpo?.fallo ?? FALLO_DATO.SERVIDOR };
+  const fallo = falloDeEnvio(r);
+  if (fallo) {
+    if (!r.cuerpo) console.warn("[familiaCasa] respuesta sin JSON", r.status);
+    return { ok: false, fallo };
   }
-  return { ...cuerpo, ok: true };
+  if (r.cuerpo.guardado !== true) return { ...r.cuerpo, ok: false, fallo: r.cuerpo.fallo ?? FALLO_DATO.SERVIDOR };
+  return { ...r.cuerpo, ok: true };
 }
 
 /**

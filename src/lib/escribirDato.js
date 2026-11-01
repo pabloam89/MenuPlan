@@ -29,8 +29,6 @@ import {
 import { REGISTRO_CAMPOS } from "./registroCampos.js";
 import { claveOperacion } from "./ids.js";
 
-/** El punto del servidor al que la app propone sus operaciones (api/operacion.js). */
-export const RUTA_OPERACION = "/api/operacion";
 /** Dónde guarda la app lo que aún no ha llegado a la base. */
 export const CLAVE_COLA = "menuplan.colaDatos.v1";
 /** A partir de cuánto lo pendiente se dice (plan, trozo 8: 24 h). */
@@ -160,17 +158,18 @@ function jsonDeTexto(texto) {
 }
 
 /** Pura. null si el servidor contestó una operación (aplicada o rechazada); si no, su fallo. Un 200 sin `guardado` no cuenta como guardado. */
-function falloDeEnvio({ status, cuerpo }) {
+export function falloDeEnvio({ status, cuerpo }) {
   if (status === 200 && typeof cuerpo?.guardado === "boolean") return null;
   return falloDeRespuesta(status, cuerpo);
 }
 
 /**
- * El envío de la app: POST a api/operacion.js con la sesión de Supabase.
- * `token()` da el access_token (o null); `url` es apiUrl(RUTA_OPERACION).
- * Devuelve { status, cuerpo } (cuerpo null si no es JSON); si no llega, fetch lanza TypeError (la cola lo cuenta como sin_red).
+ * El envío de la app a api/operacion.js, el único: lo usan esta cola y la familia (familiaCasa.js). POST con la
+ * sesión de Supabase: `token()` da el access_token (o null); `url`, la de api/operacion.js (urlOperacion,
+ * familiaCasa.js: aquí no se importa apiUrl, que es del navegador). Devuelve { status, cuerpo } (cuerpo null si
+ * no es JSON; falloDeEnvio lo lee); si no llega, fetch lanza TypeError (sin_red).
  */
-export function enviarAlServidor({ token, url = RUTA_OPERACION, fetchFn = fetch }) {
+export function enviarAlServidor({ token, url, fetchFn = fetch }) {
   return async (item) => {
     const t = await token();
     if (!t) return { status: 401, cuerpo: { fallo: FALLO_DATO.SIN_SESION } };
