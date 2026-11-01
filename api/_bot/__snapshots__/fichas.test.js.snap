@@ -923,21 +923,6 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
       "depende"
      ]
     },
-    "trastos": {
-     "type": "array",
-     "items": {
-      "type": "string",
-      "enum": [
-       "Airfryer",
-       "Horno",
-       "Microondas",
-       "Olla rápida",
-       "Thermomix",
-       "Vaporera"
-      ]
-     },
-     "description": "La lista ENTERA: sustituye a la guardada."
-    },
     "trastosMas": {
      "type": "array",
      "items": {
@@ -968,6 +953,10 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
      },
      "description": "Aparatos que ya no tienen."
     },
+    "trastoOtro": {
+     "type": "string",
+     "description": "Un aparato que no está en la lista, como lo digan: se suma a los de fuera ya apuntados. Vacío (\\"\\") si ya no tienen los de fuera."
+    },
     "comidas": {
      "type": "array",
      "items": {
@@ -992,7 +981,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    "required": [],
    "additionalProperties": false
   },
-  "description": "Cómo se cocina en casa: estructura de la comida (primero_segundo = primero y segundo; 1_plato = plato único), esfuerzo (basic/normal/pro), tiempo por día (con_prisa/normal/con_tiempo/depende) y aparatos (Airfryer, Horno, Microondas, Thermomix, Olla rápida, Vaporera). «Tenemos airfryer» es trastosMas [Airfryer]; «ya no tenemos horno», trastosMenos [Horno]: los demás se quedan. trastos (la lista entera) SOLO cuando dicen todo lo que tienen, porque sustituye. Cocinar en tanda va por pedir_tanda."
+  "description": "Cómo se cocina en casa: estructura de la comida (primero_segundo = primero y segundo; 1_plato = plato único), esfuerzo (basic/normal/pro), tiempo por día (con_prisa/normal/con_tiempo/depende) y aparatos (Airfryer, Horno, Microondas, Thermomix, Olla rápida, Vaporera). «Tenemos airfryer» es trastosMas [Airfryer]; «ya no tenemos horno», trastosMenos [Horno]: los demás se quedan. Uno que no está en la lista («tenemos plancha»), trastoOtro. Cocinar en tanda va por pedir_tanda."
  },
  {
   "type": "custom",

@@ -3035,6 +3035,22 @@
       }
     },
     {
+      "id": "plancha-fuera-de-lista-va-como-otro",
+      "tipo": "herramienta",
+      "dominio": "ficha",
+      "origen": "escrito",
+      "nombre": "«tenemos plancha» (no está en la lista) se apunta como otro aparato, sin tocar los demás (#958 C, trozo 12)",
+      "entrada": "en casa también tenemos plancha",
+      "llama": [
+        "ajustar_cocina"
+      ],
+      "args": {
+        "ajustar_cocina": {
+          "trastoOtro": "plancha"
+        }
+      }
+    },
+    {
       "id": "nevera-tengo-esto-apunta-en-despensa",
       "tipo": "herramienta",
       "dominio": "compra",
