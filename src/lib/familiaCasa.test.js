@@ -49,10 +49,7 @@ describe("la familia en los datos de la casa", () => {
     const data = { meals: ["comida"], members: [{ id: B, name: "Vieja" }], groups: [{ id: "g" }] };
     expect(conFamiliaLeida(data, { modo: MODO_FAMILIA.FILAS, familia })).toEqual({ meals: ["comida"], ...familia });
     expect(conFamiliaLeida(undefined, { modo: MODO_FAMILIA.FILAS, familia })).toEqual(familia);
-  });
-
-  it("del documento, o sin nada que adoptar, no se toca", () => {
-    const data = { members: [{ id: B }] };
+    // Del documento, o sin nada que adoptar, no se toca.
     expect(conFamiliaLeida(data, { modo: MODO_FAMILIA.DOCUMENTO })).toBe(data);
     expect(conFamiliaLeida(undefined, { modo: MODO_FAMILIA.FILAS, familia: { members: [], groups: [] } })).toBeUndefined();
   });
@@ -88,6 +85,13 @@ describe("enviar un cambio a api/operacion.js", () => {
     expect(await enviarFamilia({ casa: CASA, personas: [] }, { token, fetcher: sinRed })).toEqual({ ok: false, fallo: FALLO_DATO.SIN_RED });
     expect(await enviarFamilia({ casa: CASA, personas: [] }, { token, fetcher: respuesta(503, { fallo: FALLO_DATO.RPC_AUSENTE }) })).toEqual({ ok: false, fallo: FALLO_DATO.RPC_AUSENTE });
     expect((await enviarFamilia({ casa: CASA, personas: [] }, { token, fetcher: respuesta(200, { guardado: false, fallo: FALLO_DATO.SIN_PERMISO }) })).ok).toBe(false);
+  });
+
+  it("un 200 sin JSON (la página de un proxy) o sin «guardado» no se da por guardado", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    const sinJson = vi.fn(async () => ({ ok: true, status: 200, json: async () => { throw new SyntaxError("Unexpected token <"); } }));
+    expect(await enviarFamilia({ casa: CASA, personas: [] }, { token, fetcher: sinJson })).toEqual({ ok: false, fallo: FALLO_DATO.SERVIDOR });
+    expect((await enviarFamilia({ casa: CASA, personas: [] }, { token, fetcher: respuesta(200, {}) })).ok).toBe(false);
   });
 });
 
@@ -152,8 +156,10 @@ describe("guardar la familia: solo lo que cambió, uno tras otro", () => {
 });
 
 describe("la versión de la casa tras guardar la familia", () => {
-  it("si deja la siguiente a la conocida, se apunta", async () => {
+  it("si deja la siguiente a la conocida, se apunta; sin nada enviado, o sin guardar, no se toca", async () => {
     expect(await conVersionDeFamilia(async () => ({ ok: true, enviado: true, rev: 8 }))(7)).toMatchObject({ ok: true, botRev: 8 });
+    expect(await conVersionDeFamilia(async () => ({ ok: true, enviado: false, avisos: [] }))(7)).toEqual({ ok: true, enviado: false, avisos: [] });
+    expect(await conVersionDeFamilia(async () => ({ ok: false, fallo: "sin_red" }))(7)).toEqual({ ok: false, fallo: "sin_red" });
   });
 
   it("si salta más de una, otro escribió entretanto: conflicto, para recargar", async () => {
@@ -161,11 +167,6 @@ describe("la versión de la casa tras guardar la familia", () => {
     expect(r).toMatchObject({ ok: true, conflict: true });
     expect(r.botRev).toBeUndefined();
     expect((await conVersionDeFamilia(async () => ({ ok: true, enviado: true, rev: null }))(7)).conflict).toBe(true);
-  });
-
-  it("sin nada enviado, o sin guardar, no se toca la versión", async () => {
-    expect(await conVersionDeFamilia(async () => ({ ok: true, enviado: false, avisos: [] }))(7)).toEqual({ ok: true, enviado: false, avisos: [] });
-    expect(await conVersionDeFamilia(async () => ({ ok: false, fallo: "sin_red" }))(7)).toEqual({ ok: false, fallo: "sin_red" });
   });
 });
 

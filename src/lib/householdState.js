@@ -1,5 +1,6 @@
 import { supabase } from "./supabase.js";
 import { leerFamiliaDeCasa, conFamiliaLeida, sinFamilia } from "./familiaCasa.js";
+import { esSinFuncion } from "./postgrest.js";
 
 /**
  * Cloud mirror for household_state (see 0017_households.sql).
@@ -62,7 +63,7 @@ export async function loadHouseholdBotRev(householdId) {
 }
 
 // PostgREST: la función no existe (base sin la 0057).
-const sinFuncion = (error) => error?.code === "PGRST202" || /save_household_state/.test(error?.message ?? "");
+const sinFuncion = (error) => esSinFuncion(error) || /save_household_state/.test(error?.message ?? "");
 
 /**
  * @param {string} householdId
