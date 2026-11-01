@@ -45,11 +45,39 @@ export function conOperacion(op, fn) {
     // además de la casa si se deshace su foto (p. ej. la fila de una receta).
     herramienta: null,
     tambien: [],
+    // Quién habla en la casa (agente.js, en cuanto papelDeQuien lo sabe): { user_id, papel, canal }. Sin él,
+    // la familia no se escribe (escribir_persona firma con una persona de la casa; casa.js).
+    autor: null,
+    // Lo que una escritura no guardó tal cual y hay que decir en el chat (casa.js); agente.js lo añade a lo que
+    // devuelve la herramienta, para que Lola lo diga.
+    avisos: [],
   }, fn);
 }
 
 /** La operación en curso, o null fuera de un turno (scripts, tests, crons). */
 export const operacion = () => als.getStore() ?? null;
+
+/** Quién habla en el turno, en cuanto se sabe (papelDeQuien): lo usa casa.js para firmar la familia. */
+export function ponerAutor({ userId = null, papel = null, canal = null } = {}) {
+  const o = operacion();
+  if (o) o.autor = { user_id: userId, papel, canal };
+}
+
+/** El autor del turno ({ user_id, papel, canal }), o null fuera de un turno o si aún no se sabe. */
+export const autorDelTurno = () => operacion()?.autor ?? null;
+
+/** Algo que Lola tiene que decir en el chat tras la herramienta en curso. Fuera de un turno, al log. */
+export function avisarEnElChat(texto) {
+  const o = operacion();
+  if (o) o.avisos.push(texto);
+  else console.warn(JSON.stringify({ evento: "aviso_sin_chat", texto }));
+}
+
+/** Los avisos pendientes de decir, y la lista queda vacía. */
+export function tomarAvisos() {
+  const o = operacion();
+  return o?.avisos?.length ? o.avisos.splice(0) : [];
+}
 
 /** Quién escribe, para guardarlo con cada foto de deshacer. null si no se sabe. */
 export function quienEscribe() {

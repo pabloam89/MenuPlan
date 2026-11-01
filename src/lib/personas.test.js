@@ -4,7 +4,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import {
   membersDeFilas, filaDeMiembro, cambiosDePersonas, COLUMNA_DE_MIEMBRO, AVISOS_PERSONA, FamiliaSinLeer, FamiliaIncompleta, CAMPOS_CON_COLUMNA,
-  RANGOS,
+  RANGOS, conOrdenDeTodos, TEXTO_AVISO_PERSONA, textosDeAvisos,
 } from "./personas.js";
 import { CAMPOS_CON_COLUMNA as DE_LA_TABLA, RANGOS as RANGOS_TABLA } from "./personasTabla.js";
 
@@ -158,6 +158,34 @@ it("los grupos que no viajan tal cual se avisan: sin id, repetido, sin nombre, y
     { aviso: AVISOS_PERSONA.NO_ES_PERSONA, persona_id: "fantasma", grupo_id: G },
   ]);
   expect(c.grupos).toEqual([{ id: G, nombre: "", tipo: "familia", color: "#000", orden: 0, personas: [A, B] }]);
+});
+
+describe("conOrdenDeTodos: el orden de toda la familia en cada guardado", () => {
+  const antes = membersDeFilas(FILAS);
+
+  it("cada persona que queda lleva su sitio, aunque solo cambiara otra; quien se va, sin orden", () => {
+    const ahora = structuredClone(antes);
+    ahora.members[1].name = "Beatriz";
+    const { cambios } = cambiosDePersonas(antes, ahora);
+    expect(conOrdenDeTodos(cambios, antes, ahora).personas).toEqual([{ id: B, nombre: "Beatriz", orden: 1 }, { id: A, orden: 0 }]);
+    const sinBea = { ...structuredClone(antes), members: [antes.members[0]] };
+    expect(conOrdenDeTodos(cambiosDePersonas(antes, sinBea).cambios, antes, sinBea).personas).toEqual([{ id: B, borrar: true }, { id: A, orden: 0 }]);
+  });
+
+  it("sin cambios no se escribe solo para ordenar; una nueva sin nombre no cuenta para el orden", () => {
+    expect(conOrdenDeTodos(null, antes, antes)).toBeNull();
+    const N = "00000000-0000-4000-8000-00000000000d";
+    const ahora = structuredClone(antes);
+    ahora.members.unshift({ id: N, name: "" });
+    ahora.members[2].name = "Beatriz";
+    expect(conOrdenDeTodos(cambiosDePersonas(antes, ahora).cambios, antes, ahora).personas).toEqual([{ id: A, orden: 0 }, { id: B, nombre: "Beatriz", orden: 1 }]);
+  });
+});
+
+it("cada aviso tiene su frase para decirlo, y se dicen sin repetir", () => {
+  for (const a of Object.values(AVISOS_PERSONA)) expect(TEXTO_AVISO_PERSONA[a], a).toBeTruthy();
+  expect(textosDeAvisos([{ aviso: AVISOS_PERSONA.SIN_ID }, { aviso: AVISOS_PERSONA.SIN_ID }])).toEqual([TEXTO_AVISO_PERSONA[AVISOS_PERSONA.SIN_ID]]);
+  expect(new FamiliaSinLeer("rpc_ausente").fallo).toBe("rpc_ausente");
 });
 
 /** Las columnas de `cols` que no salen en el SQL fuera de los comentarios (`--` y los de bloque). */

@@ -20,6 +20,9 @@
  * el trozo 11.
  */
 
+/** La RPC que lee la familia de una casa (0108); su respuesta la entiende membersDeFilas. */
+export const RPC_FAMILIA = "personas_de_casa";
+
 /** Cada clave de un comensal con columna propia en `persona`, y su columna. */
 export const COLUMNA_DE_MIEMBRO = Object.freeze({
   name: "nombre", age: "edad", homeRole: "rol_hogar", alergiasRevisadas: "alergias_revisadas",
@@ -56,11 +59,34 @@ export const AVISOS_PERSONA = Object.freeze({
   GRUPO_SIN_ID: "grupo_sin_id", GRUPO_REPETIDO: "grupo_repetido", GRUPO_SIN_NOMBRE: "grupo_sin_nombre", NO_ES_PERSONA: "no_es_persona",
 });
 
-/** La lectura de personas_de_casa no tiene la forma esperada: no es una familia vacía, es no saberla. */
+/**
+ * Cada aviso en palabras, para decirlo a la familia (Lola en el chat, la app en pantalla): lo que no se guardó
+ * tal cual. Una entrada por cada AVISOS_PERSONA (personas.test.js).
+ */
+export const TEXTO_AVISO_PERSONA = Object.freeze({
+  [AVISOS_PERSONA.SIN_ID]: "un comensal sin identificador no se ha guardado",
+  [AVISOS_PERSONA.ID_REPETIDO]: "un comensal estaba repetido y solo se ha guardado una vez",
+  [AVISOS_PERSONA.FUERA_DE_RANGO]: "un número (edad, peso o altura) estaba fuera de lo posible y se ha quedado vacío",
+  [AVISOS_PERSONA.FECHA_NO_VALE]: "una fecha de nacimiento no existe y se ha quedado vacía",
+  [AVISOS_PERSONA.SIN_NOMBRE]: "una persona nueva sin nombre aún no se ha guardado: falta su nombre",
+  [AVISOS_PERSONA.GRUPO_SIN_ID]: "un grupo sin identificador no se ha guardado",
+  [AVISOS_PERSONA.GRUPO_REPETIDO]: "un grupo estaba repetido y solo se ha guardado una vez",
+  [AVISOS_PERSONA.GRUPO_SIN_NOMBRE]: "un grupo sin nombre se ha guardado como «(sin nombre)»",
+  [AVISOS_PERSONA.NO_ES_PERSONA]: "alguien de un grupo no es de la familia y ha salido del grupo",
+});
+
+/** Los avisos de cambiosDePersonas en frases, sin repetir; [] si no hay. */
+export const textosDeAvisos = (avisos) => [...new Set((avisos ?? []).map((a) => TEXTO_AVISO_PERSONA[a.aviso] ?? a.aviso))];
+
+/**
+ * La familia no se pudo leer de personas_de_casa: no es una familia vacía, es no saberla. `fallo`, de FALLOS_DATO
+ * cuando se sabe (sin la 0108, rpc_ausente); null si la RPC contestó sin la forma esperada.
+ */
 export class FamiliaSinLeer extends Error {
-  constructor() {
-    super("personas_de_casa no devolvió {personas, grupos}");
+  constructor(fallo = null) {
+    super(`no he podido leer la familia de la casa (personas_de_casa${fallo ? `: ${fallo}` : " sin {personas, grupos}"})`);
     this.name = "FamiliaSinLeer";
+    this.fallo = fallo;
   }
 }
 
@@ -270,4 +296,24 @@ export function cambiosDePersonas(antes, ahora) {
   const vistos = new Set();
   const unaVez = avisos.filter((a) => !vistos.has(JSON.stringify(a)) && vistos.add(JSON.stringify(a)));
   return { cambios, avisos: unaVez };
+}
+
+/**
+ * Pura. Los cambios de cambiosDePersonas con el `orden` de toda la familia: cada persona que queda (la que ya
+ * estaba o la que va nueva) lleva su sitio en `ahora.members`, 0, 1, 2…, aunque solo cambiara otra. Así el orden
+ * de la base es siempre el de quien guardó la familia entera, sin huecos ni repetidos de altas y bajas sueltas
+ * (las filas de antes de la 0108 no tienen orden). Sin cambios, null: no se escribe solo para ordenar.
+ * @param {ReturnType<typeof cambiosDePersonas>["cambios"]} cambios
+ * @param {{ members?: object[] }} antes
+ * @param {{ members?: object[] }} ahora
+ */
+export function conOrdenDeTodos(cambios, antes, ahora) {
+  if (!cambios) return null;
+  const previas = new Set(personasDe(antes?.members, []).map((m) => texto(m.id)));
+  const enviadas = new Map(cambios.personas.filter((p) => !p.borrar).map((p) => [p.id, p]));
+  const quedan = personasDe(ahora?.members, []).map((m) => texto(m.id)).filter((id) => previas.has(id) || enviadas.has(id));
+  const orden = new Map(quedan.map((id, i) => [id, i]));
+  const personas = cambios.personas.map((p) => (orden.has(p.id) ? { ...p, orden: orden.get(p.id) } : p));
+  for (const id of quedan) if (!enviadas.has(id)) personas.push({ id, orden: orden.get(id) });
+  return { ...cambios, personas };
 }
