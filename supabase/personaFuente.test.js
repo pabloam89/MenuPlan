@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { REGISTRO_CAMPOS } from "../src/lib/registroCampos.js";
-import { ESTADOS_OPERACION, ORIGENES_DE_LA_FAMILIA } from "../src/lib/vocabularios.js";
+import { ESTADO_DE_ORIGEN, ESTADOS_OPERACION, ORIGENES_DE_LA_FAMILIA } from "../src/lib/vocabularios.js";
 
 /**
  * Persona y salud, fuente única (plan fichas con estado, trozo 10; 0108): lo que no vigilan principios.test.js,
@@ -53,26 +53,28 @@ describe("0108: escribir_persona", () => {
     expect(f).toMatch(/language plpgsql security definer set search_path = public, pg_temp/);
   });
 
-  it("la persona y su salud solo las dice la familia: los mismos orígenes que ORIGENES_DE_LA_FAMILIA", () => {
-    // El de la operación y el de cada persona.
+  it("la persona y su salud solo las dice la familia, y nunca con un origen que la ficha v2 da por vacío", () => {
     const guardas = [...f.matchAll(/if (v_origen\w*) not in \(([^)]*)\) then\s+raise exception/g)];
-    expect(guardas.map((m) => m[1])).toEqual(["v_origen", "v_origen_p"]);
-    for (const m of guardas) expect(ordenado([...m[2].matchAll(/'([a-z_]+)'/g)].map((x) => x[1]))).toEqual(ordenado(ORIGENES_DE_LA_FAMILIA));
-    // Los sobres llevan el de la persona.
-    expect(f).not.toMatch(/origen = v_origen,|null, v_origen,/);
+    expect(guardas.map((m) => m[1])).toEqual(["v_origen"]);
+    const admitidos = ordenado([...guardas[0][2].matchAll(/'([a-z_]+)'/g)].map((x) => x[1]));
+    // De la familia (ORIGENES_DE_LA_FAMILIA) y que ficha_casa v2 (0107) no vacía: no_quiere_decirlo esconde la columna.
+    expect(admitidos).toEqual(ordenado(ORIGENES_DE_LA_FAMILIA.filter((o) => ESTADO_DE_ORIGEN[o] !== "vacio")));
+    expect(f).toMatch(/if v_canal is null or v_canal = 'sistema' then\s+raise exception/);
   });
 
-  it("escribe todas las columnas de persona de la 0079 (ninguna se queda sin escritor)", () => {
+  it("escribe todas las columnas de persona de la 0079 y las que añade la 0108 (ninguna se queda sin escritor)", () => {
     const tabla = /create table if not exists public\.persona \(([\s\S]*?)\n\);/.exec(sql0079)[1];
     const columnas = [...tabla.matchAll(/^\s{2}(\w+)\s+(?!key\b)\w/gm)].map((m) => m[1])
-      .filter((c) => !["household_id", "id", "created_at", "updated_at", "primary"].includes(c));
+      .filter((c) => !["household_id", "id", "created_at", "updated_at", "primary"].includes(c))
+      .concat([...sql.matchAll(/alter table public\.persona add column (\w+)/g)].map((m) => m[1]));
+    expect(columnas).toContain("orden");
     const escritas = [...f.matchAll(/^\s+(\w+) = case when p \? '(\w+)'/gm)].map((m) => [m[1], m[2]]);
     for (const [col, clave] of escritas) expect(clave, `la clave de ${col} es su columna`).toBe(col);
     expect(ordenado(escritas.map(([c]) => c))).toEqual(ordenado(columnas));
   });
 
   it("escribe el sobre de los campos del registro con columna propia, y solo de esos", () => {
-    const valores = /from \(values([\s\S]*?)\) as c\(campo, tiene\)/.exec(f)?.[1] ?? "";
+    const valores = /from \(values([\s\S]*?)\) as c\(campo, tiene, cambia\)/.exec(f)?.[1] ?? "";
     const campos = [...valores.matchAll(/\('(\w+)', case when/g)].map((m) => m[1]);
     const conColumna = Object.keys(REGISTRO_CAMPOS).filter((c) => REGISTRO_CAMPOS[c].columna && REGISTRO_CAMPOS[c].por === "persona");
     expect(ordenado(campos)).toEqual(ordenado(conColumna));
@@ -82,7 +84,7 @@ describe("0108: escribir_persona", () => {
     const borrados = [...f.matchAll(/delete from public\.persona where/g)];
     expect(borrados).toHaveLength(1);
     const antes = f.slice(0, borrados[0].index);
-    expect(antes.slice(antes.lastIndexOf("if p->'borrar'"))).toMatch(/^if p->'borrar' = 'true'::jsonb then\s+if v_habia then\s*$/);
+    expect(antes.slice(antes.lastIndexOf("if p->'borrar'"))).toMatch(/^if p->'borrar' = 'true'::jsonb then\s+if v_habia then\s+v_inv_personas := v_inv_personas \|\| jsonb_build_array\(jsonb_build_object\('persona_id', v_pid, 'borrada', true\)\);\s*$/);
   });
 
   it("la salud más restrictiva la decide la regla de choque del registro (alergias)", () => {
