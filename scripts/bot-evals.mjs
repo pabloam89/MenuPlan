@@ -56,6 +56,7 @@ import {
 } from "./lib/evals.mjs";
 // El modelo barato de la app, para --modelo=haiku: el mismo id que ya usa el enrutador de Lola.
 import { FAST_MODEL } from "../src/lib/aiModels.js";
+import { indiceDeISO } from "../src/lib/dias.js";
 
 const ARGV = process.argv.slice(2);
 const SIMULADO = ARGV.includes("--simulado");
@@ -194,7 +195,7 @@ const HOY_MADRID = hoyEnMadrid();
 // semana (#1098): lo que espera de «esta semana» no depende de si la pasada cae
 // en domingo, cuando a la semana solo le queda ese día.
 const hoyDe = (caso) => (caso.dia ? sumarDias(lunesDe(HOY_MADRID), DIAS_CASO.indexOf(caso.dia)) : HOY_MADRID);
-const diaDe = (hoy) => DIAS_CASO[(new Date(`${hoy}T12:00:00Z`).getUTCDay() + 6) % 7];
+const diaDe = (hoy) => DIAS_CASO[indiceDeISO(hoy)];
 // La charla de los casos, con el hueco del lunes que viene relleno (#1083).
 const conFechas = (s, hoy) => (typeof s === "string" ? s.replaceAll(LUNES_SIGUIENTE, corta(sumarDias(lunesDe(hoy), 7))) : s);
 for (const c of casos) {
