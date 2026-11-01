@@ -9,7 +9,7 @@
  */
 
 import { esCorreccionMedida } from "../../api/_bot/senales.js";
-import { ORIGEN_PESADO, CAMPO_LLEGARON } from "../../api/_bot/medidaTurno.js";
+import { ORIGEN_PESADO, CAMPO_LLEGARON, CAMPO_REHECHO } from "../../api/_bot/medidaTurno.js";
 import { PRECIOS as PRECIOS_BASE } from "./evals.mjs";
 
 // USD por millón de tokens. Los precios viven en UN sitio (PRECIOS de
@@ -167,7 +167,7 @@ export function medir(eventos, objetivos = {}) {
       // Turnos que recibieron otro mensaje del chat mientras corrían, y cuántos
       // de ellos se cortaron y se rehicieron con todo (bot_route rehecho).
       llegaronDuranteN: llegados.length,
-      rehechosN: turnos.filter((e) => e.m.rehecho).length,
+      rehechosN: turnos.filter((e) => e.m[CAMPO_REHECHO]).length,
     },
     latencia: {
       primerTextoRapidaP50Ms: pct(rapidas.map((e) => e.m.primer_ms ?? e.m.ms), 50),

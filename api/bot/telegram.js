@@ -42,7 +42,7 @@ import { pedidoCompartido } from "../_bot/comoDato.js";
 import { clasificar, vaPorLaRapida, permitidoEn } from "../_bot/router.js";
 import { prediceRapida, ESPERA_MAX_MS } from "../_bot/prediceRapida.js";
 import { esCorreccionRuta, esCorreccionMedida } from "../_bot/senales.js";
-import { SIN_ENRUTADOR, CAMPO_LLEGARON, motorFrioDesde, relojDeHerramientas, sumarUsos } from "../_bot/medidaTurno.js";
+import { SIN_ENRUTADOR, CAMPO_LLEGARON, CAMPO_REHECHO, motorFrioDesde, relojDeHerramientas, sumarUsos } from "../_bot/medidaTurno.js";
 import { viaRapida, eleccionDe, aplicarEleccion, contextoDe, repiteLaPropuesta } from "../_bot/turno.js";
 import { fotosVistas, fotosSinRepetir } from "../_bot/fotosVistas.js";
 import { comidaElegida, quiereApuntar } from "../_bot/plato.js";
@@ -586,7 +586,7 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   // Lo que esperó en la cola de su chat antes de empezar (bot_route espera_cola_ms),
   // y si sus mensajes llegaron con el turno anterior en marcha (llegaron_durante: n 0 si se
   // midió y no llegó nada; sin el campo si no se pudo medir, medidaTurno.js llegadosDurante; y rehecho).
-  const cola = { ...(esperaColaMs == null ? {} : { espera_cola_ms: esperaColaMs }), ...(llegaron ? { [CAMPO_LLEGARON]: llegaron } : {}), ...(rehecho ? { rehecho: true } : {}) };
+  const cola = { ...(esperaColaMs == null ? {} : { espera_cola_ms: esperaColaMs }), ...(llegaron ? { [CAMPO_LLEGARON]: llegaron } : {}), ...(rehecho ? { [CAMPO_REHECHO]: true } : {}) };
   // Cortado por la ráfaga: lo pagado (Lola hasta el corte y el enrutador) se
   // cuenta aquí, porque responder no cuenta con la señal cortada (agente.js).
   const rehacerSi = async (medir, usoRouter) => {
@@ -966,6 +966,7 @@ async function conversar({ chatId, householdId, texto, from, desde = null, esGru
       // frase) se borra para que no quede colgando encima de la respuesta.
       if (rafaga?.aborted) {
         if (medir) medir.rafaga = true;
+        // a propósito: si no se puede borrar, se queda en el chat; el turno se rehace igual.
         if (vivo.id()) await llamar("deleteMessage", { chat_id: chatId, message_id: vivo.id() }).catch(seguirCon("vivo_borrar_cortado"));
       }
       return;
