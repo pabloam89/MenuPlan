@@ -174,17 +174,19 @@ describe("la familia vive en sus tablas (trozo 11)", () => {
   it("members y groups, en persona y grupo y no en data; y nadie vuelve al gemelo del trigger 0089", async () => {
     expect(DATOS_CASA.members.vive).toBe("tabla:persona");
     expect(DATOS_CASA.groups.vive).toBe("tabla:grupo");
+    // El nombre, partido: así este test no se cuenta a sí mismo, y el Done del plan (git grep sin salida) vale tal cual.
+    const GEMELO = ["personas", "Tabla"].join("");
     const { execFileSync } = await import("node:child_process");
     // git grep sale con 1 cuando no encuentra nada: eso es lo bueno; cualquier otra salida, el fallo de verdad.
     let quedan = "";
     try {
-      quedan = execFileSync("git", ["grep", "-l", "personasTabla", "--", "src", "api", "scripts", ":!*registroFicha.test.js"], { encoding: "utf8" });
+      quedan = execFileSync("git", ["grep", "-l", GEMELO, "--", "src", "api", "scripts"], { encoding: "utf8" });
     } catch (e) {
       if (e.status !== 1) throw e;
     }
     expect(quedan).toBe("");
     const { existsSync } = await import("node:fs");
-    expect(existsSync(new URL("./personasTabla.js", import.meta.url))).toBe(false);
+    expect(existsSync(new URL(`./${GEMELO}.js`, import.meta.url))).toBe(false);
   });
 });
 
