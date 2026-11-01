@@ -1,5 +1,5 @@
 {
-  "_nota": "Casos de conversación de Lola (scripts/bot-evals.mjs). Cada caso: lo que dice el usuario, opcionalmente la charla previa, y qué herramientas DEBE y NO DEBE llamar. 'args' comprueba argumentos (subcadena, sin mayúsculas ni acentos). 'espera' es la operación esperada (trozo 29 de #1037): { accion, parametros } con valores cerrados que tienen que llegar EXACTOS (nada de subcadenas; lo que no se lista no se mira) y, opcional, sobre { origen, canal } con el vocabulario de src/lib/vocabularios.js, que solo se compara cuando la herramienta devuelve un sobre (hoy no: sin tubería). 'texto' y 'sinTexto' son expresiones regulares sobre la respuesta. 'foto' son líneas de texto que se pintan en una imagen y van adjuntas. Etiquetas (vocabularios en scripts/lib/evals.mjs, vigiladas por scripts/lib/evals.test.js): id (slug estable y único; no se cambia nunca, los resultados guardados lo usan), tipo, dominio, origen y nucleo: true en los del nivel pr (cuántos, en NUCLEO de evals.mjs). dependeDeFecha: true en los que hablan de días o fechas (su resultado guardado solo vale ese día; el test lo exige con MENCIONA_FECHA). Un caso nuevo de un fallo real lleva origen fallo_produccion o conversacion_real.",
+  "_nota": "Casos de conversación de Lola (scripts/bot-evals.mjs). Cada caso: lo que dice el usuario, opcionalmente la charla previa, y qué herramientas DEBE y NO DEBE llamar. 'args' comprueba argumentos (subcadena, sin mayúsculas ni acentos). 'espera' es la operación esperada (trozo 29 de #1037): { accion, parametros } con valores cerrados que tienen que llegar EXACTOS (nada de subcadenas; lo que no se lista no se mira) y, opcional, sobre { origen, canal } con el vocabulario de src/lib/vocabularios.js, que solo se compara cuando la herramienta devuelve un sobre (hoy no: sin tubería). 'texto' y 'sinTexto' son expresiones regulares sobre la respuesta. 'foto' son líneas de texto que se pintan en una imagen y van adjuntas. Etiquetas (vocabularios en scripts/lib/evals.mjs, vigiladas por scripts/lib/evals.test.js): id (slug estable y único; no se cambia nunca, los resultados guardados lo usan), tipo, dominio, origen y nucleo: true en los del nivel pr (cuántos, en NUCLEO de evals.mjs). dependeDeFecha: true en los que hablan de días o fechas (su resultado guardado solo vale ese día; el test lo exige con MENCIONA_FECHA). dia (lunes…domingo, sin tildes): el caso corre como si hoy fuera ese día de esta semana; lo exige el test en los que esperan «esta semana» (esperaEstaSemana, #1098). Un caso nuevo de un fallo real lleva origen fallo_produccion o conversacion_real.",
   "casos": [
     {
       "id": "consulta-que-cenamos-de-la-ficha",
@@ -1222,6 +1222,7 @@
       "dominio": "ficha",
       "origen": "escrito",
       "dependeDeFecha": true,
+      "dia": "miercoles",
       "nombre": "ajuste de la semana en curso: lo apunta y ofrece rehacer, sin regenerar",
       "entrada": "a partir de ahora nada de coliflor",
       "llama": [
@@ -2125,6 +2126,7 @@
       "dominio": "menu",
       "origen": "fallo_produccion",
       "dependeDeFecha": true,
+      "dia": "miercoles",
       "nombre": "rehacer el menú con condiciones: primero apunta, luego genera",
       "entrada": "rehazme el menú para lo que queda de semana, asume que mañana no comemos en casa",
       "llama": [
@@ -3148,6 +3150,7 @@
       "dominio": "menu",
       "origen": "conversacion_real",
       "dependeDeFecha": true,
+      "dia": "miercoles",
       "nombre": "«genera uno nuevo» tras un cambio rehace ESTA semana, no la siguiente (#958 E)",
       "historia": [
         {
