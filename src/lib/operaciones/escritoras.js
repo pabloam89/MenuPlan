@@ -10,17 +10,17 @@ const ESCRITORAS_TUBERIA = Object.freeze({
   aplicar_operacion: "tubería (0106)",
   escribir_dato: "tubería (0106; llama a aplicar_operacion)",
   deshacer_operacion: "tubería (0111): deshace una operación con su inversa",
+  escribir_persona: "tubería (0108): la única escritura de persona, persona_* y grupo",
 });
 
-/** Heredadas: escriben fichas fuera de la tubería, y quién las retira. */
-export const ESCRITORAS_HEREDADAS = Object.freeze({
-  persona_sincronizar_casa: "heredada (0081-0082): la retira la 0108, trozo 10",
-  persona_reemplazar_casa: "heredada (0079; delega en persona_sincronizar_casa): la retira la 0108, trozo 10",
-  _personas_al_guardar: "heredada: disparador de household_state (0089) que copia members a persona_*; lo retira la 0108, trozo 10",
-});
+/**
+ * Heredadas: escriben fichas fuera de la tubería, y quién las retira. Vacía desde la 0108 (trozo 10), que
+ * retiró persona_sincronizar_casa, persona_reemplazar_casa y el disparador _personas_al_guardar (0079-0089).
+ */
+export const ESCRITORAS_HEREDADAS = Object.freeze({});
 
 /** Todas las funciones de la base que escriben fichas. */
 export const ESCRIBEN_FICHAS = Object.freeze({ ...ESCRITORAS_TUBERIA, ...ESCRITORAS_HEREDADAS });
 
-/** Quién llama hoy a una heredada desde el código (ruta con «/»), y a cuál. */
-export const LLAMADAS_HEREDADAS = Object.freeze({ "scripts/backfill-personas.mjs": "persona_reemplazar_casa" });
+/** Quién llama hoy a una heredada desde el código (ruta con «/»), y a cuál. Vacía: scripts/backfill-personas.mjs se fue con la 0108. */
+export const LLAMADAS_HEREDADAS = Object.freeze({});
