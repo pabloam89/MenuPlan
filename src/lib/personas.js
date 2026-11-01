@@ -177,6 +177,11 @@ const fueraDeColumna = (m, id) => [
     .map(([k]) => ({ aviso: AVISOS_PERSONA.FUERA_DE_RANGO, persona_id: id, campo: k })),
   ...(typeof m.birthDate === "string" && m.birthDate !== "" && fechaValida(m.birthDate) == null
     ? [{ aviso: AVISOS_PERSONA.FECHA_NO_VALE, persona_id: id, campo: "birthDate" }] : []),
+  // El fin de un estado (embarazo hasta…) que no existe va sin fin: el estado sigue, pero sin fecha.
+  ...unicos(lista(m.dietaryStates)).filter((e) => {
+    const hasta = m.dietaryStatesMeta?.[e]?.hasta;
+    return hasta != null && hasta !== "" && fechaValida(hasta) == null;
+  }).map((e) => ({ aviso: AVISOS_PERSONA.FECHA_NO_VALE, persona_id: id, campo: `dietaryStatesMeta.${e}` })),
 ];
 /**
  * Los grupos en la forma de escribir_persona. Lo que no viaja tal cual, con su aviso: un grupo sin id o repetido
@@ -231,7 +236,7 @@ export function cambiosDePersonas(antes, ahora) {
     if (!Array.isArray(f?.members) || !Array.isArray(f?.groups)) throw new FamiliaIncompleta(cual);
   }
   const avisos = [];
-  const previas = new Map(personasDe(antes?.members, []).map((m, orden) => [texto(m.id), { ...filaDeMiembro(m), orden }]));
+  const previas = new Map(personasDe(antes.members, avisos).map((m, orden) => [texto(m.id), { ...filaDeMiembro(m), orden }]));
   const actuales = personasDe(ahora?.members, avisos);
   const personas = [];
   const quedan = new Set();
@@ -257,9 +262,12 @@ export function cambiosDePersonas(antes, ahora) {
   });
   for (const id of previas.keys()) if (!actuales.some((m) => texto(m.id) === id)) personas.push({ id, borrar: true });
 
-  const gruposAntes = gruposDe(antes?.groups, new Set(previas.keys()), []);
+  const gruposAntes = gruposDe(antes.groups, new Set(previas.keys()), avisos);
   const gruposAhora = gruposDe(ahora?.groups, quedan, avisos, pendientes);
   const cambianGrupos = !igual(gruposAntes, gruposAhora);
   const cambios = personas.length || cambianGrupos ? { personas, ...(cambianGrupos ? { grupos: gruposAhora } : {}) } : null;
-  return { cambios, avisos };
+  // Lo de la familia leída que no viaja se avisa también; si sigue igual en la de ahora, una sola vez.
+  const vistos = new Set();
+  const unaVez = avisos.filter((a) => !vistos.has(JSON.stringify(a)) && vistos.add(JSON.stringify(a)));
+  return { cambios, avisos: unaVez };
 }

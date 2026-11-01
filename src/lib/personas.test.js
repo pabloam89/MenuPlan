@@ -123,6 +123,23 @@ describe("cambiosDePersonas: solo lo que cambió", () => {
     // Van como null: la base abortaría la operación entera con el valor.
     expect(c.personas).toEqual([{ id: B, edad: null, fecha_nacimiento: null }]);
   });
+
+  it("el fin de un estado que no existe va sin fin, y se avisa", () => {
+    const ahora = structuredClone(antes);
+    ahora.members[0].dietaryStatesMeta = { embarazo: { hasta: "2027-02-30" } };
+    const { cambios: c, avisos } = cambiosDePersonas(antes, ahora);
+    expect(avisos).toEqual([{ aviso: AVISOS_PERSONA.FECHA_NO_VALE, persona_id: A, campo: "dietaryStatesMeta.embarazo" }]);
+    expect(c.personas).toEqual([{ id: A, estados: [{ estado: "embarazo", hasta: null }] }]);
+  });
+
+  it("lo que no viaja de la familia leída también se avisa, una vez aunque siga igual en la de ahora", () => {
+    const leida = structuredClone(antes);
+    leida.members.push({ name: "Sin id" });
+    leida.groups.push({ label: "Sin id", memberIds: [] });
+    const DE_LA_LEIDA = [{ aviso: AVISOS_PERSONA.SIN_ID, persona_id: null }, { aviso: AVISOS_PERSONA.GRUPO_SIN_ID, persona_id: null }];
+    expect(cambiosDePersonas(leida, structuredClone(antes)).avisos).toEqual(DE_LA_LEIDA);
+    expect(cambiosDePersonas(leida, structuredClone(leida)).avisos).toEqual(DE_LA_LEIDA);
+  });
 });
 
 it("los grupos que no viajan tal cual se avisan: sin id, repetido, sin nombre, y quien no es persona", () => {
