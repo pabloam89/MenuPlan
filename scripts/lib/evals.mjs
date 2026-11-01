@@ -464,7 +464,9 @@ export const MENCIONA_FECHA = /\b(hoy|manana|ayer|pasado|ahora|lunes|martes|mier
  */
 export const HERRAMIENTAS_DEL_DIA = ["generar_menu", "cambiar_plato", "proponer_platos", "ver_menu", "fuera_de_casa"];
 const esperaHerramientaDelDia = (caso) => [...(caso.llama ?? []), ...(caso.llamaAlguna ?? []), ...Object.keys(caso.args ?? {}), ...(caso.espera ? [caso.espera.accion] : [])].some((n) => HERRAMIENTAS_DEL_DIA.includes(n));
-/** Dónde se mira: lo que se dice y lo que se comprueba (no las respuestas de mentira, que son fijas). */
+/** Los meses como los escribe la ficha de Lola («2 nov»); con ellos pinta las fechas bot-evals.mjs. */
+export const MES_CORTO = Object.freeze(["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]);
+
 /**
  * Una fecha escrita a mano en lo que dice la familia o Lola («26 oct», «26 de
  * octubre») caduca con el calendario: lo que era «la semana que viene» pasa a
@@ -473,9 +475,10 @@ const esperaHerramientaDelDia = (caso) => [...(caso.llama ?? []), ...(caso.llama
  * bot-evals.mjs cambia por el lunes que viene del día en que corre. Un caso con
  * su propia `ficha` vive en sus fechas y puede escribirlas.
  */
-export const FECHA_ESCRITA = /\b\d{1,2} (de )?(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)[a-z]*\b/i;
+export const FECHA_ESCRITA = new RegExp(String.raw`\b\d{1,2} (de )?(${MES_CORTO.join("|")})[a-z]*\b`, "i");
 export const LUNES_SIGUIENTE = "{lunes_siguiente}";
 
+/** Dónde se mira: lo que se dice y lo que se comprueba (no las respuestas de mentira, que son fijas). */
 export const CAMPOS_CON_FECHA = ["entrada", "historia", "args", "noLlamaCon", "espera", "texto", "sinTexto", "pendientes", "tareas", "pista"];
 
 const sinTildes = (s) => String(s ?? "").normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();

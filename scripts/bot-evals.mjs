@@ -50,7 +50,7 @@ import { execFileSync } from "node:child_process";
 import { cargarEnv, RAIZ } from "./lib/env.mjs";
 import {
   CORRECTORES, NIVELES, REINTENTOS_POR_NIVEL, SALIDA, VERSION_ESQUEMA, baseMemo, bloquea, casosDelNivel, compararEstados, elegirReferencia, ficherosDelCodigo,
-  casosVersion, claveMemo, LUNES_SIGUIENTE, codigoHash, costeUsd, erroresDeCasos, esEstricto, estadoDe, estimadoSiguiente,
+  casosVersion, claveMemo, LUNES_SIGUIENTE, MES_CORTO, codigoHash, costeUsd, erroresDeCasos, esEstricto, estadoDe, estimadoSiguiente,
   kDe, leerJsonl, memoria, opcion, opcionEntero, opcionNumero, otroIntento, promptHash, tokensDe, topeDePasada,
   apuntarOAvisar, puedeGastar, cifrasDePasada, memoriaDeOperacion, operacionExacta,
 } from "./lib/evals.mjs";
@@ -119,7 +119,6 @@ const FAMILIA = "Casa de prueba: Ana (38 años), Pablo (40 años), Leo (6 años)
 function hoyEnMadrid() {
   return new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
 }
-const MES_CORTO = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
 const DIA_CORTO = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
 const corta = (iso) => `${Number(iso.slice(8, 10))} ${MES_CORTO[Number(iso.slice(5, 7)) - 1]}`;
 function cabeceraDe(hoy) {
