@@ -44,10 +44,10 @@ export const enMadrid = (fecha) => new Intl.DateTimeFormat("es-ES", {
   timeZone: ZONA, weekday: "long", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
 }).format(new Date(fecha));
 
-/** La hora de ahora para el agente, que si no la adivina. */
-export const ahoraEnMadrid = () => new Intl.DateTimeFormat("es-ES", {
+/** La hora de ahora para el agente, que si no la adivina (las evals pasan otra fecha, #1098). */
+export const ahoraEnMadrid = (fecha = new Date()) => new Intl.DateTimeFormat("es-ES", {
   timeZone: ZONA, weekday: "long", day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
-}).format(new Date());
+}).format(fecha);
 
 /**
  * Qué clase de recordatorio es (bot_reminders.tipo, CHECK de 0085). «libre» es
