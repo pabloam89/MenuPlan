@@ -33,14 +33,13 @@ import { estadoDeCampo } from "./estadoCasa.js";
 import { alergiasRevisadas } from "./ficha.js";
 import { etapaDe } from "../../src/lib/stages.js";
 import { claveDeTarea, KIND_DE_TIPO } from "../../src/lib/registroTareas.js";
-import { estadosDeFichas, marcasDeLola, FICHA_CON_ESTADO } from "../../src/lib/estadoDeDato.js";
+import { estadosDeFichas, marcasDeLola, fichaSinContrato, FICHA_CON_ESTADO } from "../../src/lib/estadoDeDato.js";
 import { PGRST_SIN_FUNCION, PG_SIN_FUNCION } from "../../src/lib/postgrest.js";
 
 export const fichaRpc = () => /^(1|true|si|sí|on)$/i.test(String(process.env.BOT_FICHA_RPC ?? "").trim());
 
 // La v2 (0107) trae lo mismo que la v1 y además «fichas»: el estado de cada dato (estadoDeDato.js).
 // Con la v1 (0107 sin aplicar) se lee lo común, como siempre, y queda en el log que falta el estado.
-const VERSIONES = [1, 2];
 const CON_ESTADO = FICHA_CON_ESTADO;
 const ref = (id) => String(id ?? "").slice(0, 8);
 
@@ -61,21 +60,6 @@ export function olvidarFicha(householdId) {
 const SIN_FUNCION = new RegExp(`${PGRST_SIN_FUNCION}|${PG_SIN_FUNCION}|\\b404\\b|could not find the function`, "i");
 const noExiste = (e) => SIN_FUNCION.test(String(e?.message ?? e));
 
-/** Pura. ¿Es la ficha que sabemos leer? Lo que falta o tiene otra forma, no. */
-function validar(f) {
-  if (!VERSIONES.includes(f?.v)) return `v=${f?.v ?? "?"} (se espera v=${VERSIONES.join(" o v=")})`;
-  if (!Number.isFinite(Number(f.casa?.rev))) return "sin casa.rev";
-  for (const k of ["personas", "faltan", "tareas", "callados"]) if (!Array.isArray(f[k])) return `sin «${k}»`;
-  if (f.v === CON_ESTADO) {
-    try {
-      estadosDeFichas(f.fichas);
-    } catch (e) {
-      // a propósito: el motivo vuelve a leerFichaCasa, que lo escribe en el log y lee del JSON
-      return `v=2 con «fichas» que no cuadran: ${e.message}`;
-    }
-  }
-  return null;
-}
 
 /**
  * La ficha de la casa de la RPC, o null (y en el log por qué) si hay que leer
@@ -100,7 +84,7 @@ export async function leerFichaCasa({ householdId, userId = null, canal = null }
     console.error(`[fichaRpc] ${noExiste(e) ? "no está la RPC (¿0097 sin aplicar?)" : "falló"}, se lee del JSON:`, String(e?.message ?? e).slice(0, 200));
     return null;
   }
-  const mal = validar(ficha);
+  const mal = fichaSinContrato(ficha);
   if (mal) {
     console.error(`[fichaRpc] contrato desconocido, se lee del JSON: ${mal}`);
     return null;
@@ -223,7 +207,7 @@ export function desfaseDe(ficha, data = {}) {
 export function conLaFicha(casa, ficha, calladas = new Set()) {
   const data = casa?.state?.data ?? {};
   // Lo que solo vive en el sobre (sexo, colegio, patrón de semanas), con su marca «dicho» o «supuesto»:
-  // no depende de que las tablas de salud cuadren con el JSON. validar() ya comprobó las «fichas».
+  // no depende de que las tablas de salud cuadren con el JSON. fichaSinContrato() ya comprobó las «fichas».
   const marcas = ficha.v === CON_ESTADO ? marcasDeLola(estadosDeFichas(ficha.fichas)) : [];
   const conMarcas = (c) => (marcas.length ? { ...c, marcasDeEstado: marcas } : c);
   const desfase = desfaseDe(ficha, data);

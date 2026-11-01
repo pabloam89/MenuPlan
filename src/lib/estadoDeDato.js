@@ -20,6 +20,8 @@ import { DATOS_CASA, DATOS_PERSONA } from "./registroFicha.js";
 
 /** La versión de ficha_casa que trae «fichas», el estado de cada dato (0107); la 1 no lo trae. */
 export const FICHA_CON_ESTADO = 2;
+/** Las versiones de ficha_casa que se saben leer: la 1 (0097) y la de FICHA_CON_ESTADO. */
+export const VERSIONES_FICHA = Object.freeze([1, FICHA_CON_ESTADO]);
 
 const clave = (campo, personaId) => `${campo}|${personaId ?? ""}`;
 
@@ -122,4 +124,23 @@ export function marcasDeLola(estados) {
   return [...(estados?.values() ?? [])]
     .filter((l) => l.conSobre && SOLO_EN_SOBRE.has(l.campo) && MARCA_DE_LOLA[l.estado] && l.valor != null)
     .map((l) => ({ marca: MARCA_DE_LOLA[l.estado], campo: l.campo, personaId: l.personaId, valor: l.valor }));
+}
+
+/**
+ * Pura. ¿Es la ficha de ficha_casa que sabemos leer? null si sí; si no, el motivo (lo que falta o tiene otra
+ * forma). La comprueban Lola (fichaRpc.js) y la lectura de la app (api/_bot/datos.js).
+ */
+export function fichaSinContrato(f) {
+  if (!VERSIONES_FICHA.includes(f?.v)) return `v=${f?.v ?? "?"} (se espera v=${VERSIONES_FICHA.join(" o v=")})`;
+  if (!Number.isFinite(Number(f.casa?.rev))) return "sin casa.rev";
+  for (const k of ["personas", "faltan", "tareas", "callados"]) if (!Array.isArray(f[k])) return `sin «${k}»`;
+  if (f.v === FICHA_CON_ESTADO) {
+    try {
+      estadosDeFichas(f.fichas);
+    } catch (e) {
+      // a propósito: el motivo vuelve a quien llama, que lo escribe en el log
+      return `v=2 con «fichas» que no cuadran: ${e.message}`;
+    }
+  }
+  return null;
 }

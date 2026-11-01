@@ -16,10 +16,7 @@ import { motivoDe } from "./avisar.js";
 import { operar, operarPersonas, deshacer } from "../../src/lib/operaciones/tuberia.js";
 import { membersDeFilas, FamiliaSinLeer, RPC_FAMILIA } from "../../src/lib/personas.js";
 import { FALLO_DATO, MOTIVO_FALLO, CANAL_DATO } from "../../src/lib/vocabularios.js";
-import { FICHA_CON_ESTADO } from "../../src/lib/estadoDeDato.js";
-
-/** La versión de ficha_casa de antes de la 0107, sin el estado de cada dato. */
-const FICHA_SIN_ESTADO = 1;
+import { FICHA_CON_ESTADO, fichaSinContrato } from "../../src/lib/estadoDeDato.js";
 
 /**
  * El fallo de dato (FALLOS_DATO) de cada motivo de avisar.js (MOTIVOS_FALLO).
@@ -96,9 +93,7 @@ export const deshacerOperacion = (pedido, { papel }) => deshacer(pedido, { papel
  */
 export async function leerDatosDeCasa(householdId, userId) {
   const ficha = await rpc("ficha_casa", { p_casa: householdId, p_usuario: userId, p_canal: CANAL_DATO.APP, p_max_tareas: 0 });
-  if (ficha?.v === FICHA_SIN_ESTADO) return { v: ficha.v, datos: null };
-  const fichas = ficha?.v === FICHA_CON_ESTADO ? ficha.fichas : null;
-  const datos = fichas && typeof fichas === "object" && !Array.isArray(fichas) ? (fichas.casa ?? []) : null;
-  if (!Array.isArray(datos)) throw new Error(`ficha_casa: forma que no se conoce (v=${ficha?.v ?? "?"})`);
-  return { v: ficha.v, datos };
+  const mal = fichaSinContrato(ficha);
+  if (mal) throw new Error(`ficha_casa: forma que no se conoce (${mal})`);
+  return { v: ficha.v, datos: ficha.v === FICHA_CON_ESTADO ? (ficha.fichas.casa ?? []) : null };
 }
