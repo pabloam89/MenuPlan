@@ -309,16 +309,17 @@ export function listaAjustada(actual, { entera, mas, menos } = {}, igual = (a, b
 /**
  * Pura. Los aparatos tras «tenemos…» (mas), «ya no tenemos…» (menos) y uno de fuera de la lista (otro): este va
  * como OTRO en la lista y su nombre a la nota (kitchenToolsNota), sumado a los que ya hubiera; otro = "" quita
- * OTRO y su nota. Sin lista entera: sustituir borraba los demás (#958 C). null si no se pidió nada.
+ * OTRO y su nota. Sin lista entera: sustituir borraba los demás (#958 C). null si no se pidió nada; `leer` (la
+ * lista guardada) solo se llama si se pidió algo, como antes: quien no toca los aparatos no la necesita.
  * @returns {{ kitchenTools: string[], kitchenToolsNota: string|null } | null}
  */
-function aparatosAjustados(data, { mas, menos, otro } = {}) {
+function aparatosAjustados(leer, notaGuardada, { mas, menos, otro } = {}) {
   const conOtro = typeof otro === "string";
   const nombre = conOtro ? otro.trim() : "";
   if (!mas?.length && !menos?.length && !conOtro) return null;
-  const actual = data?.kitchenTools ?? [];
+  const actual = leer() ?? [];
   let lista = listaAjustada(actual, { mas: [...(mas ?? []), ...(nombre ? [OTRO] : [])], menos }) ?? [...actual];
-  const antes = typeof data?.kitchenToolsNota === "string" ? data.kitchenToolsNota.trim() : "";
+  const antes = typeof notaGuardada === "string" ? notaGuardada.trim() : "";
   let nota = antes || null;
   if (conOtro && !nombre) {
     lista = lista.filter((a) => a !== OTRO);
@@ -343,7 +344,7 @@ export async function ajustarCocina(householdId, { estructura, esfuerzo, tiempo,
     if (estructura) { d = R.estructura.escribe(d, estructura); hechos.push(`estructura: ${estructura}`); }
     if (esfuerzo) { d = R.esfuerzo.escribe(d, esfuerzo); hechos.push(`nivel: ${esfuerzo}`); }
     if (tiempo || tanda) { d = R.tiempo.escribe(d, { ...(tiempo ? { nivel: tiempo } : {}), ...(tanda ? { tanda } : {}) }); hechos.push(`tiempo: ${[tiempo, tanda].filter(Boolean).join(", ")}`); }
-    const nuevos = aparatosAjustados({ ...d, kitchenTools: R.trastos.lee(d) ?? [] }, { mas: trastosMas, menos: trastosMenos, otro: trastoOtro });
+    const nuevos = aparatosAjustados(() => R.trastos.lee(d), d.kitchenToolsNota, { mas: trastosMas, menos: trastosMenos, otro: trastoOtro });
     if (nuevos) {
       d = R.trastos.escribe(d, nuevos.kitchenTools);
       // La nota solo si cambia: sin «Otro», el documento no gana un kitchenToolsNota a null.
