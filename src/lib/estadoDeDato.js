@@ -83,13 +83,16 @@ export const leidoDe = (estados, campo, personaId = null) => estados?.get(clave(
  * con escribirDato, no en household_state. Aquí y no en casaDatos.js, que es del navegador, para que Lola lea la
  * misma lista. Los PR del trozo añaden los suyos.
  */
-export const CAMPOS_CASA_CON_SOBRE = Object.freeze(["wantsPriceEstimates", "menuModel"]);
+export const CAMPOS_CASA_CON_SOBRE = Object.freeze(["wantsPriceEstimates", "menuModel", "kitchenTools", "kitchenToolsNota"]);
 
 /**
  * Pura. Los de CAMPOS_CASA_CON_SOBRE que la ficha trae, leídos (su sobre o el defecto del registro). Los que no
- * trae (registro_campo aún sin ellos: la 0112 sin aplicar) no salen: siguen en el documento.
+ * trae (registro_campo aún sin ellos: la 0112 sin aplicar) no salen: siguen en el documento. Una lista sin valor
+ * (kitchenTools: nadie dijo nada y el registro no tiene defecto) se lee vacía, como la deja la app al normalizar:
+ * leída como null, la app la pasaría a [] y la guardaría como dicha sin que nadie la dijera.
  */
-export const datosConSobre = (estados) => CAMPOS_CASA_CON_SOBRE.map((campo) => leidoDe(estados, campo)).filter(Boolean);
+export const datosConSobre = (estados) => CAMPOS_CASA_CON_SOBRE.map((campo) => leidoDe(estados, campo)).filter(Boolean)
+  .map((l) => (l.valor == null && DATOS_CASA[l.campo]?.tipo === "lista_enum" ? { ...l, valor: [] } : l));
 
 // El estado de la ficha visto con los cuatro de la libreta (notepad.js), que son los que pinta el asistente.
 const DE_LA_LIBRETA = Object.freeze({ vacio: "vacio", por_defecto: "inferido", supuesto: "inferido", aprendido: "inferido", dicho: "fijado" });

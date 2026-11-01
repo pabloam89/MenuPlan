@@ -47,6 +47,13 @@ describe("leer los datos de la casa", () => {
     expect(await leer(servidor({ v: 2, datos: [porDefecto("menuModel", "same")] }))).toEqual({ valores: { menuModel: "same" } });
   });
 
+  it("los aparatos también: la lista dicha y su nota; sin decir, vacía (no null) y la nota null", async () => {
+    expect(await leer(servidor({ v: 2, datos: [sobre("kitchenTools", ["Horno", "Otro"]), sobre("kitchenToolsNota", "plancha")] })))
+      .toEqual({ valores: { kitchenTools: ["Horno", "Otro"], kitchenToolsNota: "plancha" } });
+    expect(await leer(servidor({ v: 2, datos: [porDefecto("kitchenTools", null), porDefecto("kitchenToolsNota", null)] })))
+      .toEqual({ valores: { kitchenTools: [], kitchenToolsNota: null } });
+  });
+
   it("sin la 0112 (la ficha no trae el campo) o con ficha_casa v1, nada: siguen en el documento", async () => {
     expect(await leer(servidor({ v: 2, datos: [] }))).toEqual({ valores: {} });
     expect(await leer(servidor({ v: 1, datos: null }))).toEqual({ valores: {} });
@@ -128,6 +135,23 @@ describe("guardar los datos con sobre", () => {
     const r = await casaDeCasa({ casa: CASA, valores: { wantsPriceEstimates: false }, cola }).guardar({ wantsPriceEstimates: true }, 2);
     expect(r).toEqual({ ok: true, enviado: true, botRev: 3 });
     expect(enviados).toEqual([{ campo: "wantsPriceEstimates", persona_id: null, valor: true, origen: "dicho" }]);
+  });
+
+  it("los aparatos sin decir, que la app deja en [] al normalizar, no se guardan como dichos; «Otro» y su nota pasan el registro", async () => {
+    const m = new Map();
+    const enviados = [];
+    const cola = crearColaDeDatos({
+      almacen: { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, v) },
+      enviar: async (item) => { enviados.push(item.dato); return { status: 200, cuerpo: { guardado: true, estado: "hecha", rev: 3 + enviados.length } }; },
+      nuevaClave: () => `00000000-0000-4000-8000-00000000c1a${enviados.length}`, ahora: () => 0,
+    });
+    const casa = casaDeCasa({ casa: CASA, valores: { kitchenTools: [], kitchenToolsNota: null }, cola });
+    expect(await casa.guardar({ kitchenTools: [] }, 3)).toEqual({ ok: true, enviado: false });
+    expect(await casa.guardar({ kitchenTools: ["Horno", "Otro"], kitchenToolsNota: "plancha" }, 3)).toEqual({ ok: true, enviado: true, botRev: 5 });
+    expect(enviados).toEqual([
+      { campo: "kitchenTools", persona_id: null, valor: ["Horno", "Otro"], origen: "dicho" },
+      { campo: "kitchenToolsNota", persona_id: null, valor: "plancha", origen: "dicho" },
+    ]);
   });
 
   /** Una cola que contesta guardado con cada versión de `revs`, en orden. */

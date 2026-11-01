@@ -589,7 +589,7 @@ export const PREGUNTAS = [
     control: "multi",
     fuente: "data",
     // `kitchenTools` y NO `appliances`, que es donde escribía esto y no lo leía
-    // nadie: el motor cruza `data.kitchenTools` (+ customKitchenTools) contra
+    // nadie: el motor cruza `data.kitchenTools` contra
     // `requiredAppliance` en filterRecipes, y `data.appliances` no existe en
     // ninguna otra parte del proyecto. El control se pintaba, se marcaba y se
     // guardaba en un campo huérfano — marcar "Airfryer" no metía ni un plato de
