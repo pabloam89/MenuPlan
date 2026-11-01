@@ -37,7 +37,8 @@
  *    lista), que el inventario cuenta: cuantos menos, más se puede contar.
  *  - otros: el dato que guarda lo que no está en la lista cerrada (la vía
  *    «otro» del modelo cerrado): kitchenTools → customKitchenTools.
- *  - vive: "data" o la tabla propia donde vive de verdad ("tabla:user_menus").
+ *  - vive: "data", la tabla propia donde vive de verdad ("tabla:user_menus") o
+ *    "calculado": un derivado que ya no se guarda y se calcula al leer (`funcion`).
  *
  * Las columnas del eje (specs/plan-fichas-con-estado.md, trozo 5), las mismas
  * para todo dato; la 0105 las llevará a registro_campo:
@@ -287,7 +288,7 @@ export const DATOS_CASA = Object.freeze({
 
   // ── Despensa ──
   pantryMode: dato({ entidad: "despensa", tema: "despensa", ficha: "casa", tipo: "enum", defecto: "only", peso_menu: 10, motivo: "cómo usa la casa su despensa es de la casa (plan, ficha Casa)" }),
-  useHomeStock: dato({ entidad: "despensa", tema: "despensa", tipo: "bool", ...derivado("pantryMode", null), motivo: "booleano viejo que se mantiene a la par; sin función: `pantryMode !== \"off\"` repetido en App.jsx, Onboarding.jsx y ajustes.js (deuda sin_declarar)" }),
+  useHomeStock: dato({ entidad: "despensa", tema: "despensa", tipo: "bool", ...derivado("pantryMode", "src/lib/modoDespensa.js:usaDespensa"), vive: "calculado", motivo: "booleano viejo de pantryMode: ya no se guarda (trozo 12); la app y Lola lo quitan de las casas viejas al guardar" }),
   pantryModeSet: dato({ entidad: "despensa", tema: "despensa", tipo: "bool", ...marca("pantryMode"), motivo: "si el modo lo eligió la familia; App.jsx respeta un «off» elegido" }),
   pantryHasItems: dato({ entidad: "despensa", tema: "despensa", tipo: "bool", ...marca(), motivo: "respuesta del asistente («¿tienes algo en casa?») que decide si se salta el paso de la despensa" }),
   pantryPrefs: dato({ entidad: "despensa", tema: "despensa", tipo: "objeto" }),

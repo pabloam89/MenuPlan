@@ -42,6 +42,7 @@ import { conRecordatorioDeSilencio } from "../../src/lib/alergiasBase.js";
 import { apuntarRecordatorio } from "./silencio.js";
 import { listaParaEscribir } from "../../src/lib/vocabularios.js";
 import { conMarcas, claveArticulo } from "../../src/lib/compraIdentidad.js";
+import { modoDespensaAlGenerar, usaDespensa } from "../../src/lib/modoDespensa.js";
 import { resultado, NO_GUARDADO } from "./resultado.js";
 
 const hoyISO = () => isoDeCasa();
@@ -364,8 +365,8 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
 
   const filasDespensa = await select("user_pantry", `household_id=${eq(householdId)}&order=created_at.asc`, m.COLUMNAS_DESPENSA).catch(fallaCon("generar_despensa", []));
   const despensa = filasDespensa.map(m.filaDeDespensa);
-  const pantryMode = ["strict", "only", "prefer", "off"].includes(working.pantryMode) ? working.pantryMode : "off";
-  const pantryIngredients = pantryMode === "off" ? [] : despensa;
+  const pantryMode = modoDespensaAlGenerar(working);
+  const pantryIngredients = usaDespensa(working) ? despensa : [];
 
   const { plan, recipes } = await m.generateMenuWithAI(weekData, { pantryIngredients, pantryMode, crossWeek });
   m.registerRecipes(recipes);
