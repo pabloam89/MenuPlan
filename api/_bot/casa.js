@@ -17,7 +17,7 @@ import { fallaCon } from "./avisar.js";
 import { select, insert, update, rpc, eq } from "./db.js";
 import { operacion, quienEscribe, TIPO_OPERACION, QUE_FUE, autorDelTurno, avisarEnElChat, claveDeEscritura } from "./operacion.js";
 import { leerFamilia, escribirPersonas } from "./datos.js";
-import { cambiosDePersonas, conOrdenDeTodos, textosDeAvisos } from "../../src/lib/personas.js";
+import { cambiosDePersonas, conOrdenDeTodos, textosDeAvisos, revSiguiente } from "../../src/lib/personas.js";
 import { CANAL_DATO, REF_OPERACION } from "../../src/lib/vocabularios.js";
 import { recetasPropiasDeCasa, quitarRecetaGuardada } from "./propias.js";
 import { menuActivoDe } from "../../src/lib/menuActivo.js";
@@ -251,7 +251,10 @@ export async function guardarCasa(casa, { state = null, semana = null, activar =
     // escribir_persona no falla en silencio: si no guarda, el error vuelve a la herramienta (sin la 0108,
     // rpc_ausente). El documento ya se guardó y se cuenta como guardado (y deja su foto).
     const persona = cambios ? await escribirFamilia(casa, cambios) : null;
-    if (persona?.guardado && persona.rev != null) botRev = Number(persona.rev);
+    // Solo si es la siguiente a la del documento: si otro escribió entremedias, la foto lleva la del documento y
+    // deshacer, al ver una versión posterior, se niega («hubo otros cambios») en vez de pisar lo de ese otro.
+    const trasFamilia = persona?.guardado ? revSiguiente(botRev, persona.rev) : null;
+    if (trasFamilia != null) botRev = trasFamilia;
     ultimaEscritura.set(casa.householdId, Date.now());
     const op = operacion();
     if (op) op.guardadosCasa++;

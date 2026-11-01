@@ -142,6 +142,18 @@ describe("guardar la casa: la familia por escribir_persona", () => {
     expect(r).toMatchObject({ ok: false, error: expect.stringMatching(/rpc_ausente/) });
   });
 
+  it("la foto de deshacer lleva la versión tras la familia solo si es la siguiente; si otro escribió entremedias, la del documento", async () => {
+    const foto = () => llamadas.filter((l) => /bot_deshacer/.test(l.ruta) && l.metodo === "POST").at(-1).cuerpo[0].bot_rev_despues;
+    const { r } = await enTurno(() => cambiarFamilia((d) => { d.members[0].name = "Anita"; }));
+    expect(r).toMatchObject({ ok: true, botRev: 9 });
+    expect(foto()).toBe(9);
+    olvidarCasa(CASA);
+    responde(/rpc\/escribir_persona/, { status: 200, cuerpo: { ...HECHA, rev: 11 } });
+    const otra = await enTurno(() => cambiarFamilia((d) => { d.members[0].name = "Ana María"; }));
+    expect(otra.r).toMatchObject({ ok: true, botRev: 8 });
+    expect(foto()).toBe(8);
+  });
+
   it("lo que no viaja tal cual se dice en el chat", async () => {
     const { avisos } = await enTurno(() => cambiarFamilia((d) => { d.members[0].age = 300; }));
     expect(avisos).toEqual([TEXTO_AVISO_PERSONA[AVISOS_PERSONA.FUERA_DE_RANGO]]);
