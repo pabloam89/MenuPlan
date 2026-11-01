@@ -11,6 +11,7 @@ import { apiUrl } from "./apiUrl.js";
 import * as ids from "./ids.js";
 import { FALLO_DATO } from "./vocabularios.js";
 import { esSinFuncion } from "./postgrest.js";
+import { guardarConVersion } from "./versionCasa.js";
 import { membersDeFilas, cambiosDePersonas, conOrdenDeTodos, textosDeAvisos, FamiliaSinLeer, RPC_FAMILIA } from "./personas.js";
 
 /** De dónde sale la familia en esta carga: de sus filas, o del documento (base sin la 0108). */
@@ -133,3 +134,20 @@ export const conVersionDeFamilia = (guardar) => async (rev) => {
   if (nueva != null && rev != null && nueva === rev + 1) return { ...r, botRev: nueva };
   return { ...r, conflict: true };
 };
+
+/**
+ * Pura. ¿La carga de la casa se para aquí? Sin poder leer la familia, siempre: con ella a medias, un guardado
+ * borraría a quien no salió. Sin poder leer el documento, solo si lo que hay en memoria no vale (`soloNube`).
+ */
+export const cargaSinSeguir = ({ soloNube, remoteState, cargaFamilia }) => Boolean((soloNube && remoteState?.error) || cargaFamilia?.error);
+
+/**
+ * Los dos guardados de la casa, en su cola (`guardarConVersion`, versionCasa.js): primero la familia, que con
+ * conVersionDeFamilia apunta la versión que deja, y detrás el documento, que sale con ella. Un guardado
+ * programado antes de una recarga de la nube no sale (`version.vigente`), así que nunca se calcula el cambio de
+ * la familia contra otra recién leída. El documento no espera a que la familia entre: no la lleva, y la que falla
+ * se vuelve a mandar con el siguiente guardado (familiaDeCasa). Devuelve las dos promesas.
+ */
+export function guardarFamiliaYDocumento({ version, familia, documento, enCola = guardarConVersion }) {
+  return { familia: enCola(version, conVersionDeFamilia(familia)), documento: enCola(version, documento) };
+}
