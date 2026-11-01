@@ -22,11 +22,15 @@
  * de lo que tocó cambió después (si no, 200 con `guardado: false` y `sin_hacer` con su motivo).
  * Contesta 200 con el resultado (sin `pedido` ni `inversa`) o el código de
  * HTTP_DE_FALLO con { fallo, error? } (FALLOS_DATO; `error`, el motivo de la puerta o del dato).
+ *
+ * Y lee (trozo 12): GET ?casa=<uuid> contesta 200 con { v, datos }, los datos de la ficha Casa de ficha_casa v2
+ * (leerDatosDeCasa; `datos` null con la v1). La app no puede llamar a ficha_casa (solo la service role, 0107):
+ * los lee aquí quien es de la casa, con cualquier papel; quien no es de ella, sin_permiso.
  */
 import { cors, blocked } from "./_guard.js";
 import { usuarioDeToken } from "./_bot/db.js";
 import { papelDeUsuario } from "./_bot/papel.js";
-import { escribirDato, escribirPersonas, deshacerOperacion, falloDeMotivo } from "./_bot/datos.js";
+import { escribirDato, escribirPersonas, deshacerOperacion, falloDeMotivo, leerDatosDeCasa } from "./_bot/datos.js";
 import { motivoDe } from "./_bot/avisar.js";
 import { HTTP_DE_FALLO, apuntarSinGuardar } from "../src/lib/escribirDato.js";
 import * as ids from "../src/lib/ids.js";
@@ -37,15 +41,40 @@ export const LIMITE_POR_MINUTO = 60;
 
 const contestar = (res, fallo, error) => res.status(HTTP_DE_FALLO[fallo]).json({ fallo, ...(error ? { error } : {}) });
 
+/** Un fallo leyendo la sesión, la casa o la ficha: `sin_red` o `servidor` (solo la red se distingue), con su motivo para el log. */
+function falloDeBase(e) {
+  const motivo = motivoDe(e);
+  return { motivo, fallo: falloDeMotivo(motivo) === FALLO_DATO.SIN_RED ? FALLO_DATO.SIN_RED : FALLO_DATO.SERVIDOR };
+}
+
+/** GET ?casa=: los datos de la ficha Casa (leerDatosDeCasa) para quien es de la casa. */
+async function leerCasa(req, res, accessToken) {
+  const casa = req.query?.casa;
+  try {
+    const user = await usuarioDeToken(accessToken);
+    if (!user) return contestar(res, FALLO_DATO.SIN_SESION);
+    if (!ids.casa.esNuevo(casa)) return contestar(res, FALLO_DATO.INVALIDO, "casa");
+    // Con la service role, ficha_casa no mira quién lee: se mira aquí.
+    if (!(await papelDeUsuario(casa, user.id))) return contestar(res, FALLO_DATO.SIN_PERMISO);
+    return res.status(200).json(await leerDatosDeCasa(casa, user.id));
+  } catch (e) {
+    // No leída no es una casa sin datos: se dice (la app no sigue la carga) y queda en el log.
+    const { fallo, motivo } = falloDeBase(e);
+    console.error(JSON.stringify({ evento: "casa_sin_leer", fallo, motivo }));
+    return contestar(res, fallo);
+  }
+}
+
 export default async function handler(req, res) {
   // La app iOS (Capacitor) llama desde capacitor://localhost: responde al preflight.
   if (cors(req, res)) return;
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+  if (req.method !== "POST" && req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
   // Origen ajeno o demasiadas peticiones (por IP; sin Redis deja pasar, _guard.js).
   if (await blocked(req, res, { bucket: "operacion", limit: LIMITE_POR_MINUTO, windowSec: 60 })) return;
 
   const accessToken = (req.headers.authorization ?? "").replace(/^Bearer\s+/i, "").trim();
   if (!accessToken) return contestar(res, FALLO_DATO.SIN_SESION);
+  if (req.method === "GET") return leerCasa(req, res, accessToken);
 
   const { casa, clave, accion, ref_id, pedida_at = null, dato, deshacer = null, personas, grupos } = req.body ?? {};
   // Un cambio de la familia (trozo 10) en vez de un dato: personas y, si cambiaron, los grupos.
@@ -68,10 +97,8 @@ export default async function handler(req, res) {
     }
     papel = await papelDeUsuario(casa, user.id);
   } catch (e) {
-    // La sesión o la casa no se pudieron leer: no se guarda, se dice y queda en el log.
-    // Aquí no se llama a la RPC: un «no existe» no es rpc_ausente; solo la red se distingue.
-    const motivo = motivoDe(e);
-    const fallo = falloDeMotivo(motivo) === FALLO_DATO.SIN_RED ? FALLO_DATO.SIN_RED : FALLO_DATO.SERVIDOR;
+    // La sesión o la casa no se pudieron leer: no se guarda. Aquí no se llama a la RPC: un «no existe» no es rpc_ausente.
+    const { fallo, motivo } = falloDeBase(e);
     apuntarSinGuardar({ fallo, motivo, canal: CANAL_DATO.APP, campo: dato?.campo ?? null });
     return contestar(res, fallo);
   }
