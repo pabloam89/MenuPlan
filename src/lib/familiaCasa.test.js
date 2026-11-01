@@ -65,7 +65,7 @@ describe("la familia en los datos de la casa", () => {
 
 describe("enviar un cambio a api/operacion.js", () => {
   const token = async () => "tok";
-  const respuesta = (status, cuerpo) => vi.fn(async () => ({ ok: status < 300, status, json: async () => cuerpo }));
+  const respuesta = (status, cuerpo) => vi.fn(async () => new Response(JSON.stringify(cuerpo), { status }));
 
   it("con la sesión, una clave nueva y la pantalla; contesta lo de la tubería", async () => {
     const fetcher = respuesta(200, { guardado: true, operacion_id: "op" });
@@ -88,9 +88,14 @@ describe("enviar un cambio a api/operacion.js", () => {
     expect((await enviarFamilia({ casa: CASA, personas: [] }, { token, fetcher: respuesta(200, { guardado: false, fallo: FALLO_DATO.SIN_PERMISO }) })).ok).toBe(false);
   });
 
+  it("un error que no es de red no se cuenta como sin red: sube a quien guarda", async () => {
+    const roto = vi.fn(async () => { throw new RangeError("un fallo del código"); });
+    await expect(enviarFamilia({ casa: CASA, personas: [] }, { token, fetcher: roto })).rejects.toThrow(RangeError);
+  });
+
   it("un 200 sin JSON (la página de un proxy) o sin «guardado» no se da por guardado", async () => {
     vi.spyOn(console, "warn").mockImplementation(() => {});
-    const sinJson = vi.fn(async () => ({ ok: true, status: 200, json: async () => { throw new SyntaxError("Unexpected token <"); } }));
+    const sinJson = vi.fn(async () => new Response("<html>un proxy</html>", { status: 200 }));
     expect(await enviarFamilia({ casa: CASA, personas: [] }, { token, fetcher: sinJson })).toEqual({ ok: false, fallo: FALLO_DATO.SERVIDOR });
     expect((await enviarFamilia({ casa: CASA, personas: [] }, { token, fetcher: respuesta(200, {}) })).ok).toBe(false);
   });
