@@ -19,19 +19,19 @@ import { describe, it, expect, vi } from "vitest";
 import { recuento } from "./interprete.guard.test.js";
 import { resolverDia } from "./menu.js";
 import { resolverPersona } from "./estadoCasa.js";
-import { diaDe, fechaDelMenu, dudaDePersona } from "./interprete.js";
+import { diaDe, fechaDelMenu, dudaDePersona, PIEZAS_FUERA } from "./interprete.js";
 
-const usa = (re) => Object.keys(recuento(re));
+const usa = (texto) => Object.keys(recuento(new RegExp(texto, "m")));
 
 describe("un solo intérprete: fuera de interprete.js no se juntan sus piezas en una regla propia", () => {
   it("días: nadie decide entre «día de la semana» y «fecha» por su cuenta", () => {
-    const diaSemana = new Set(usa(/\bdiaDeSemana\(/));
-    const fecha = usa(/\b(fechaDe|fechaConMenu)\(/);
+    const diaSemana = new Set(usa(PIEZAS_FUERA.dia));
+    const fecha = usa(PIEZAS_FUERA.fecha);
     expect(fecha.filter((f) => diaSemana.has(f)), "Usa diaDe o fechaDelMenu de interprete.js").toEqual([]);
   });
 
   it("personas: nadie redacta su propia duda con las candidatas de buscarPersona", () => {
-    expect(usa(/\w\??\.candidatas\b/),"La pregunta sale de dudaDePersona (interprete.js)").toEqual([]);
+    expect(usa(PIEZAS_FUERA.candidatas),"La pregunta sale de dudaDePersona (interprete.js)").toEqual([]);
   });
 });
 
