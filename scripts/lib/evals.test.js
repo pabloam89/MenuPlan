@@ -75,6 +75,28 @@ describe("erroresDeCasos: una cosa mal, un error", () => {
     expect(errores({ entrada: "otra cosa, porfa", args: { cambiar_plato: { receta: "x" } } })).toEqual([expect.stringMatching(/le falta "dependeDeFecha"/)]);
     expect(errores({ entrada: "otra cosa, porfa", noLlama: ["generar_menu"] })).toEqual([]);
   });
+  // #1098: el domingo a la semana solo le queda ese día, y Lola acierta al no rehacerla.
+  describe("lo que espera «esta semana» corre en un día fijo", () => {
+    const deFecha = { entrada: "rehaz la semana", dependeDeFecha: true };
+    const falta = [expect.stringMatching(/le falta "dia"/)];
+    it("semana «esta» en los argumentos, en la operación esperada o el botón de rehacer, sin dia", () => {
+      expect(errores({ ...deFecha, args: { generar_menu: { semana: "esta" } } })).toEqual(falta);
+      expect(errores({ ...deFecha, espera: { accion: "generar_menu", parametros: { semana: "esta" } } })).toEqual(falta);
+      expect(errores({ ...deFecha, texto: "Rehacer" })).toEqual(falta);
+    });
+    it("con dia, bien; prohibir «esta» (noLlamaCon) no lo pide", () => {
+      expect(errores({ ...deFecha, args: { generar_menu: { semana: "esta" } }, dia: "miercoles" })).toEqual([]);
+      expect(errores({ ...deFecha, noLlamaCon: { generar_menu: { semana: "esta" } } })).toEqual([]);
+    });
+    it("un caso con su ficha vive en sus fechas: ni lo pide ni lo admite", () => {
+      expect(errores({ ...deFecha, texto: "Rehacer", ficha: { delDia: "x" } })).toEqual([]);
+      expect(errores({ ...deFecha, dia: "miercoles", ficha: { delDia: "x" } })).toEqual([expect.stringMatching(/ficha propia/)]);
+    });
+    it("dia fuera de lista o sin dependeDeFecha", () => {
+      expect(errores({ ...deFecha, dia: "miércoles" })).toEqual([expect.stringMatching(/dia .* fuera de lista/)]);
+      expect(errores({ entrada: "x", dia: "lunes" })).toEqual([expect.stringMatching(/con "dia" le falta "dependeDeFecha"/)]);
+    });
+  });
 });
 
 describe("vocabularios", () => {
