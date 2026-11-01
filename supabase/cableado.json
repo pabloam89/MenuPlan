@@ -100,7 +100,6 @@
     "src/lib/householdDiscardsSync.js"
   ],
   "household_state": [
-    "api/_bot/caducidades.js",
     "api/_bot/casa.js",
     "src/lib/householdState.js"
   ],
@@ -115,6 +114,9 @@
   ],
   "menu_share_links": [
     "api/_bot/compartir.js"
+  ],
+  "persona_estado": [
+    "api/_bot/caducidades.js"
   ],
   "recipe_collections": [
     "src/lib/recipeCollections.js"
