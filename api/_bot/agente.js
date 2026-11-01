@@ -670,7 +670,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
     herramienta({ capacidades: ["aprovechar_casa"], lee: [], escribe: ["pantryMode", "pantryModeSet"], lector: false, soloLectura: false, pantalla: null }, {
       name: "ajustar_uso_despensa",
       description: `Cuánto aprovecha el menú lo que hay en casa (la despensa). modo: ${Object.entries(MODOS_DESPENSA).map(([k, v]) => `${k} (${v})`).join("; ")}. «Deja de usar lo de casa» es off. Lo que hay se apunta con anadir_despensa.`,
-      inputSchema: obj({ modo: { type: "string", enum: Object.keys(MODOS_DESPENSA) } }, ["modo"]),
+      inputSchema: obj({ modo: esquemaDato("pantryMode") }, ["modo"]),
       run: (args) => ajustarModoDespensa(householdId, args),
     }),
     herramienta({ capacidades: ["tanda"], lee: ["notepad", "tanda", "tandaPlatos"], escribe: ["notepad", "sesgos", "tanda", "tandaPlatos", "cookTime", "tandaMinutos", "diaTanda"], lector: false, soloLectura: false, pantalla: null }, {

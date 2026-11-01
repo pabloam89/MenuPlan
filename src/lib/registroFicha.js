@@ -7,7 +7,8 @@
  *
  * No sustituye a los registros que ya había: los nombra.
  *  - `campo`: el campo de registroCampos.js (la tabla registro_campo, lo que
- *    Lola pregunta y cómo). Solo 7 datos lo tienen; cambiarlo pide migración.
+ *    Lola pregunta y cómo). Cambiarlo pide migración. Un dato con `campo` es
+ *    de la persona o de la casa (`entidad`): es el `por` de su fila.
  *  - `libreta`: el campo de la libreta (notepadFields.js CAMPOS) del que este
  *    dato es la proyección. La libreta manda; el dato es su vista.
  *  - `vocabulario`: la lista de vocabularios.js (VOCABULARIOS). null en un
@@ -36,7 +37,9 @@
  *  - tipo (TIPOS): los de registroCampos.js más tres sin tabular (objeto, mapa,
  *    lista), que el inventario cuenta: cuantos menos, más se puede contar.
  *  - otros: el dato que guarda lo que no está en la lista cerrada (la vía
- *    «otro» del modelo cerrado): kitchenTools → customKitchenTools.
+ *    «otro» del modelo cerrado): kitchenTools → customKitchenTools. Con sobre,
+ *    el valor OTRO de la lista (vocabularios.js) y su nombre en un campo
+ *    `…Nota` de texto (kitchenToolsNota, supermarketsNota).
  *  - vive: "data", la tabla propia donde vive de verdad ("tabla:user_menus") o
  *    "calculado": un derivado que ya no se guarda y se calcula al leer (`funcion`).
  *
@@ -200,6 +203,13 @@ const dato = (d) => {
 /** La salud nunca se supone y, en sus listas, añadir gana a quitar en el mismo minuto. */
 const salud = { tema: "salud", suposicion: false };
 const listaDeSalud = { ...salud, choque: CHOQUE.MAS_RESTRICTIVO };
+/**
+ * Un dato de la ficha Casa con fila en registro_campo (trozo 12): de la casa
+ * entera (`por = 'casa'`), y sin tarea que lo pregunte (politica «nunca»: la
+ * lista de preguntables es el CHECK de bot_tareas.campo, 0080). Lola lo
+ * recoge cuando la familia lo dice.
+ */
+const deLaCasa = (campo) => ({ entidad: "casa", campo, politica: "nunca" });
 /** Lo que solo apunta el sistema (contadores, avisos dados, alias aprendidos). */
 const delSistema = { escribe: ESCRITOR.SISTEMA };
 /** Lo que solo se añade (menús hechos, tickets, lo que descontó la despensa): tabla con fecha y poda (trozo 22). */
@@ -217,7 +227,7 @@ export const DATOS_CASA = Object.freeze({
   // Viven en sus tablas desde la 0108 (trozos 10 y 11), no en data; la app y Lola los leen con membersDeFilas (personas.js).
   members: dato({ entidad: "persona", tema: "quien", ficha: "persona", tipo: "lista", minimo_para_generar: true, peso_menu: 95, vive: "tabla:persona" }),
   groups: dato({ entidad: "grupo", tema: "quien", ficha: "grupo", tipo: "lista", vive: "tabla:grupo" }),
-  menuModel: dato({ tema: "quien", ficha: "casa", tipo: "enum", vocabulario: "modelo_menu", defecto: "same" }),
+  menuModel: dato({ tema: "quien", ficha: "casa", tipo: "enum", vocabulario: "modelo_menu", defecto: "same", ...deLaCasa("menuModel") }),
   rosters: dato({ entidad: "persona", tema: "quien", ficha: "persona", tipo: "lista", estado: "legado", de: "members", motivo: "desde el 8 oct 2026 la familia es una; las casas viejas los traen y no se copian" }),
   activeRosterId: dato({ entidad: "persona", tema: "quien", ficha: "persona", tipo: "ref", estado: "legado", de: "members", motivo: "va con rosters" }),
 
@@ -272,11 +282,12 @@ export const DATOS_CASA = Object.freeze({
   customDislikes: dato({ tema: "gustos", tipo: "lista", estado: "legado", de: "members.dislikes" }),
 
   // ── Cocina ──
-  cookLevel: dato({ tema: "cocina", ficha: "casa", tipo: "enum", vocabulario: "nivel_cocina", defecto: "normal", peso_menu: 35 }),
+  cookLevel: dato({ tema: "cocina", ficha: "casa", tipo: "enum", vocabulario: "nivel_cocina", defecto: "normal", peso_menu: 35, ...deLaCasa("cookLevel") }),
   cookLevelManual: dato({ tema: "cocina", ficha: "casa", tipo: "bool", ...marca("cookLevel"), motivo: "si el nivel lo puso el usuario y no el asistente; el motor la lee (prepararGeneracion.js)" }),
   cookSkills: dato({ tema: "cocina", ficha: "casa", tipo: "lista", estado: "legado", motivo: "nadie lo escribe ni lo lee: App.jsx solo lo sanea" }),
-  kitchenTools: dato({ tema: "cocina", ficha: "casa", tipo: "lista_enum", vocabulario: "aparatos", otros: "customKitchenTools", peso_menu: 30 }),
-  customKitchenTools: dato({ tema: "cocina", ficha: "casa", tipo: "lista", motivo: "la vía «otro» de kitchenTools" }),
+  kitchenTools: dato({ tema: "cocina", ficha: "casa", tipo: "lista_enum", vocabulario: "aparatos_casa", otros: "customKitchenTools", peso_menu: 30, ...deLaCasa("kitchenTools") }),
+  customKitchenTools: dato({ tema: "cocina", ficha: "casa", tipo: "lista", motivo: "la vía «otro» de kitchenTools en data; con sobre es kitchenToolsNota (trozo 12)" }),
+  kitchenToolsNota: dato({ tema: "cocina", ficha: "casa", tipo: "texto", vive: "tabla:sobre", ...deLaCasa("kitchenToolsNota"), motivo: "el nombre de los aparatos que van como «Otro» en kitchenTools" }),
   cookTime: dato({ tema: "cocina", ficha: "rutina", tipo: "objeto", peso_menu: 40, motivo: "minutos por día y comida" }),
   timeWeekday: dato({ tema: "cocina", ficha: "rutina", tipo: "int", estado: "legado", de: "cookTime", motivo: "respaldo de cookTime en cookTime.js" }),
   timeWeekend: dato({ tema: "cocina", ficha: "rutina", tipo: "int", estado: "legado", de: "cookTime", motivo: "respaldo de cookTime en cookTime.js" }),
@@ -287,7 +298,7 @@ export const DATOS_CASA = Object.freeze({
   garnishRepeat: dato({ tema: "cocina", ficha: "casa", tipo: "enum", estado: "legado", motivo: "el motor ya no lo lee (aiPlanner.js); la app solo lo sanea" }),
 
   // ── Despensa ──
-  pantryMode: dato({ entidad: "despensa", tema: "despensa", ficha: "casa", tipo: "enum", defecto: "only", peso_menu: 10, motivo: "cómo usa la casa su despensa es de la casa (plan, ficha Casa)" }),
+  pantryMode: dato({ tema: "despensa", ficha: "casa", tipo: "enum", vocabulario: "modo_despensa", defecto: "only", peso_menu: 10, ...deLaCasa("pantryMode"), motivo: "cómo usa la casa su despensa es de la casa (plan, ficha Casa)" }),
   useHomeStock: dato({ entidad: "despensa", tema: "despensa", tipo: "bool", ...derivado("pantryMode", "src/lib/modoDespensa.js:usaDespensa"), vive: "calculado", motivo: "booleano viejo de pantryMode: ya no se guarda (trozo 12); la app y Lola lo quitan de las casas viejas al guardar" }),
   pantryModeSet: dato({ entidad: "despensa", tema: "despensa", tipo: "bool", ...marca("pantryMode"), motivo: "si el modo lo eligió la familia; App.jsx respeta un «off» elegido" }),
   pantryHasItems: dato({ entidad: "despensa", tema: "despensa", tipo: "bool", ...marca(), motivo: "respuesta del asistente («¿tienes algo en casa?») que decide si se salta el paso de la despensa" }),
@@ -300,10 +311,12 @@ export const DATOS_CASA = Object.freeze({
   cookedDeltas: dato({ entidad: "despensa", tema: "despensa", tipo: "mapa", ...historial }),
 
   // ── Compra y gasto ──
-  supermarkets: dato({ entidad: "compra", tema: "compra", ficha: "casa", tipo: "lista" }),
-  hasBudget: dato({ entidad: "compra", tema: "compra", ficha: "casa", tipo: "bool", defecto: false }),
-  budget: dato({ entidad: "compra", tema: "compra", ficha: "casa", tipo: "int", defecto: 80, peso_menu: 20 }),
-  wantsPriceEstimates: dato({ entidad: "compra", tema: "compra", ficha: "casa", tipo: "bool", defecto: false }),
+  supermarkets: dato({ tema: "compra", ficha: "casa", tipo: "lista_enum", vocabulario: "supermercados", otros: "supermarketsNota", ...deLaCasa("supermarkets") }),
+  supermarketsNota: dato({ tema: "compra", ficha: "casa", tipo: "texto", vive: "tabla:sobre", ...deLaCasa("supermarketsNota"), motivo: "el nombre de los súper que van como «Otro» en supermarkets" }),
+  hasBudget: dato({ entidad: "compra", tema: "compra", ficha: "casa", tipo: "bool", defecto: false, motivo: "con sobre, presupuesto null (trozo 12)" }),
+  budget: dato({ entidad: "compra", tema: "compra", ficha: "casa", tipo: "int", defecto: 80, peso_menu: 20, motivo: "con sobre, presupuesto (trozo 12)" }),
+  presupuesto: dato({ tema: "compra", ficha: "casa", tipo: "int", minimo: 0, peso_menu: 20, vive: "tabla:sobre", ...deLaCasa("presupuesto"), motivo: "euros por semana; null = sin presupuesto. Junta hasBudget y budget en un dato (trozo 12)" }),
+  wantsPriceEstimates: dato({ tema: "compra", ficha: "casa", tipo: "bool", defecto: false, ...deLaCasa("wantsPriceEstimates") }),
   priceObs: dato({ entidad: "compra", tema: "compra", tipo: "lista", ...historial }),
   priceAliases: dato({ entidad: "compra", tema: "compra", tipo: "mapa", ...delSistema }),
   receipts: dato({ entidad: "compra", tema: "compra", tipo: "lista", ...historial, motivo: "los tickets que sube la familia" }),
