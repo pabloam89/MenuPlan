@@ -14,6 +14,7 @@ import { homedir } from "node:os";
 import { dirname, join, relative } from "node:path";
 // El sobre de un dato (origen y canal) tiene su vocabulario en el modelo de datos: se lee de ahí, no se repite.
 import { CANALES_DATO, ORIGEN_DATO } from "../../src/lib/vocabularios.js";
+import { MESES_CORTOS } from "../../src/lib/dias.js";
 
 // ── Vocabularios de los casos (scripts/bot-evals.json) ─────────────────────
 
@@ -464,6 +465,17 @@ export const MENCIONA_FECHA = /\b(hoy|manana|ayer|pasado|ahora|lunes|martes|mier
  */
 export const HERRAMIENTAS_DEL_DIA = ["generar_menu", "cambiar_plato", "proponer_platos", "ver_menu", "fuera_de_casa"];
 const esperaHerramientaDelDia = (caso) => [...(caso.llama ?? []), ...(caso.llamaAlguna ?? []), ...Object.keys(caso.args ?? {}), ...(caso.espera ? [caso.espera.accion] : [])].some((n) => HERRAMIENTAS_DEL_DIA.includes(n));
+/**
+ * Una fecha escrita a mano en lo que dice la familia o Lola («26 oct», «26 de
+ * octubre») caduca con el calendario: lo que era «la semana que viene» pasa a
+ * ser «esta» y el caso falla aunque Lola acierte (#1083). En la charla de un
+ * caso que corre con la ficha de hoy va el hueco `LUNES_SIGUIENTE`, que
+ * bot-evals.mjs cambia por el lunes que viene del día en que corre. Un caso con
+ * su propia `ficha` vive en sus fechas y puede escribirlas.
+ */
+export const FECHA_ESCRITA = new RegExp(String.raw`\b\d{1,2} (de )?(${MESES_CORTOS.join("|")})[a-z]*\b`, "i");
+export const LUNES_SIGUIENTE = "{lunes_siguiente}";
+
 /** Dónde se mira: lo que se dice y lo que se comprueba (no las respuestas de mentira, que son fijas). */
 export const CAMPOS_CON_FECHA = ["entrada", "historia", "args", "noLlamaCon", "espera", "texto", "sinTexto", "pendientes", "tareas", "pista"];
 
