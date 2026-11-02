@@ -129,7 +129,8 @@ export async function guardarTrato(pedido, { householdId, personaId, autor, op, 
     clave,
     accion: op?.herramienta ?? "ajustar_trato",
     canal: autor?.canal ?? CANAL_DATO.TELEGRAM,
-    ref: { tipo: REF_OPERACION.MENSAJE, id: op?.mid ?? "sin_mensaje" },
+    // Sin mensaje, sin ref: escribirDato lo rechaza (DatoInvalido) y sale «sin hacer», como en casa.js.
+    ref: { tipo: REF_OPERACION.MENSAJE, id: op?.mid ?? null },
     autor: { user_id: autor?.user_id ?? null, persona_id: String(personaId) },
     datos,
   }, { papel: autor?.papel ?? null });

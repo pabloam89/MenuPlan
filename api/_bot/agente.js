@@ -78,7 +78,6 @@ import { esResultado, paraElModelo, conRecibo, recibo, cuentaComoGuardado, exige
 import { operacion, claveDeEscritura, tipoDeHerramienta, YA_ESCRITA, SIN_COMPROBAR, ponerAutor, tomarAvisos, autorDelTurno } from "./operacion.js";
 import { tratoDeFicha, lineaDelTrato, guardarTrato, ESCRIBE_TRATO, ESQUEMA_TRATO, personaDeLaCuenta } from "./trato.js";
 import { escribirDato } from "./datos.js";
-import { claveOperacion } from "../../src/lib/ids.js";
 import { primeraVez, yaVista } from "./entradas.js";
 
 const yaEscrita = (clave) => yaVista(CANAL.TELEGRAM, clave);
@@ -661,7 +660,8 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
           autor: autorDelTurno(),
           op,
           escribir: escribirDato,
-          clave: claveDeEscritura("dato:trato:ajustar_trato", args) ?? claveOperacion.nuevo(),
+          // Como casa.js: sin mensaje no hay clave, y la operación sale «sin hacer» (no se inventa una).
+          clave: claveDeEscritura("dato:trato:ajustar_trato", args),
         });
       },
     }),
@@ -1163,13 +1163,16 @@ const QUIEN_ESCRIBE = {
 const IDIOMA = {
   en: "IDIOMA: quien escribe eligió inglés. Contesta SIEMPRE en inglés, aunque escriba en español; ingredientes y pasos, traducidos. Pero dos cosas van TAL CUAL, en castellano: los botones [[…]] (el código los reconoce por su texto: «[[No es así]]», «[[Rehacer la del …]]») y el nombre de cada plato (búscalo y nómbralo como está guardado; si ayuda, la traducción entre paréntesis detrás).",
 };
+/** ¿Escribe alguien de fuera de la casa? Sin papel, como de fuera: falla cerrado (#958). */
+export const esDeFuera = (papel) => !papel || papel === "ajeno";
+
 export function conQuienEscribe(ficha, papel, idioma = null) {
   if (!ficha) return ficha;
   // Alguien de fuera no recibe la salud ni la gente de la casa (#958): antes
   // le llegaba la misma ficha y el único freno era una línea del prompt
   // (papeles.js ya le quita ver_casa y ver_ajustes; faltaba esto). Sin papel,
   // como de fuera: falla cerrado.
-  const deFuera = !papel || papel === "ajeno";
+  const deFuera = esDeFuera(papel);
   const base = deFuera ? { ...ficha, estable: sinSecciones(ficha.estable, SOLO_DE_LA_CASA) } : ficha;
   const lineas = [QUIEN_ESCRIBE[papel ?? "ajeno"], IDIOMA[idioma]].filter(Boolean);
   return lineas.length ? { ...base, delDia: [base.delDia, ...lineas].join("\n") } : base;
@@ -1291,7 +1294,7 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   // delante de lo del día: lo pendiente y quién escribe siguen cerrándolo, como siempre.
   const fichaBase = casa ? conQuienEscribe(montarFicha(deLaFicha.casa, extras), chat.papel, chat.idioma) : null;
   chat.trato = tratoDeFicha(tablas, personaDeLaCuenta(data, chat.userId, chat.papel));
-  const ficha = fichaBase && chat.papel && chat.papel !== "ajeno" ? { ...fichaBase, delDia: [lineaDelTrato(chat.trato), fichaBase.delDia].filter(Boolean).join("\n") } : fichaBase;
+  const ficha = fichaBase && !esDeFuera(chat.papel) ? { ...fichaBase, delDia: [lineaDelTrato(chat.trato), fichaBase.delDia].filter(Boolean).join("\n") } : fichaBase;
   let dicho, uso, corregido, medida, promesa, sigueSinGuardar = false;
   const tLola = Date.now();
   // La pista del enrutador (api/_bot/pista.js). `progreso` lo rellena Lola
