@@ -272,6 +272,25 @@ describe("los datos de la casa con sobre (trozo 12)", () => {
     expect(escrituras()[0].cuerpo.p_state.data).toEqual({ reglas: [], activeMenuId: "m1" });
   });
 
+  it("los aparatos (PR 5c): sin decir se leen vacíos y no se escriben; «tenemos plancha» va como Otro y su nota, cada uno con sobre", async () => {
+    responde(RUTA_FICHA, { status: 200, cuerpo: fichaV2(porDefecto("kitchenTools", null), porDefecto("kitchenToolsNota", null)) });
+    const casa = await cargarCasa(CASA);
+    expect(casa.state.data).toMatchObject({ kitchenTools: [], kitchenToolsNota: null });
+    await enTurno(() => conCasa(CASA, async (c) => ({ state: { ...c.state, data: { ...c.state.data, kitchenTools: [...(c.state.data.kitchenTools ?? [])] } } })));
+    expect(escrituras().map((l) => l.ruta)).toEqual(["/rest/v1/rpc/bot_save_casa"]);
+    olvidarCasa(CASA);
+    llamadas.length = 0;
+    let rev = 8;
+    responde(RUTA_OPERACION, { status: 200, get cuerpo() { rev += 1; return { ...HECHA, rev }; } });
+    const { r } = await enTurno(() => conCasa(CASA, async (c) => ({ state: { ...c.state, data: { ...c.state.data, kitchenTools: ["Otro"], kitchenToolsNota: "plancha" } } })));
+    expect(escrituras().filter((l) => RUTA_OPERACION.test(l.ruta)).map((l) => l.cuerpo.p_operacion.datos[0])).toEqual([
+      { campo: "kitchenTools", persona_id: null, valor: ["Otro"], origen: "dicho" },
+      { campo: "kitchenToolsNota", persona_id: null, valor: "plancha", origen: "dicho" },
+    ]);
+    expect(escrituras()[0].cuerpo.p_state.data).not.toHaveProperty("kitchenTools");
+    expect(r).toMatchObject({ ok: true, botRev: 10 });
+  });
+
   it("sin la 0112 (la ficha no trae la ficha Casa), con la v1 o sin la RPC, del documento y se guarda en él", async () => {
     for (const ficha of [{ status: 200, cuerpo: fichaV2() }, { status: 200, cuerpo: fichaV1() }, SIN_RPC(RPC_FICHA)]) {
       olvidarCasa(CASA);

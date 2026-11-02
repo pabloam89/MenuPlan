@@ -1271,8 +1271,8 @@ function PanelTanda({ data, setData, sesion }) {
  * Las seis de serie, con el icono de Núcleo que ya las representa en la app
  * (`REQUIRED_APPLIANCE_ICONS`, el de "¿Cómo se prepara?") y el color de su
  * método (`APPLIANCE_COLORS`). Solo estas seis: son las que el generador sabe
- * aprovechar, y lo que la casa tuviera en `customKitchenTools` se respeta sin
- * editarse aquí, igual que en el onboarding.
+ * aprovechar, y lo que la casa tenga como «Otro» (con su nota, kitchenToolsNota)
+ * se respeta sin editarse aquí, igual que en el onboarding.
  *
  * La olla rápida va en verde y no en el gris de su método: en una rejilla de
  * colores, la única gris se leía como apagada antes de tocarla.
