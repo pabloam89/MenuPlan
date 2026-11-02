@@ -205,9 +205,14 @@ export async function operarPreferencias(pedido, { papel, rpc, falloDeError }) {
   // Choques con lo que ya tiene la casa. Sin poder leerla no se escribe: se podría pisar lo de otra persona.
   const leidas = await llamarRpc(RPC_LEER_PREFERENCIAS, { p_casa: op.casa }, { rpc, falloDeError, canal: op.canal, campo });
   if (leidas.fallo) return { guardado: false, fallo: leidas.fallo };
+  // Sin la forma v1 tampoco: no es una casa sin preferencias (como leerLibretaDeCasa y api/_bot/datos.js).
+  if (leidas.r?.v !== 1 || !Array.isArray(leidas.r.preferencias)) {
+    apuntarSinGuardar({ fallo: FALLO_DATO.SERVIDOR, canal: op.canal, campo });
+    return { guardado: false, fallo: FALLO_DATO.SERVIDOR };
+  }
   const at = op.pedida_at ?? new Date().toISOString();
   const delante = op.canal === CANAL_DATO.APP;
-  const choques = choquesAlGuardar(op.preferencias, leidas.r?.preferencias ?? [], { autor: op.autor_user_id, papel, at, delante });
+  const choques = choquesAlGuardar(op.preferencias, leidas.r.preferencias,{ autor: op.autor_user_id, papel, at, delante });
   for (const c of choques) apuntarChoque(c, op.canal);
   const { preferencias, apartadas } = trasLosChoques(op.preferencias, choques);
   // Lo apartado se contesta (Lola lo dice o lo pregunta); si no queda nada que escribir, no hay operación.
