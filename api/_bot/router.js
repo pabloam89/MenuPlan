@@ -245,8 +245,15 @@ const RECIEN_GENERADO = /Men[uú] listo/i;
 // generaba la semana que viene (#958). Lo decide Lola, que lee lo de antes.
 const REHACER_SIN_SEMANA = /\b(nuev[oa]|otr[oa]|rehaz\w*|rehac\w*|de nuevo|otra vez|vuelve a)\b/i;
 const NOMBRA_SEMANA = /\b(que viene|pr[oó]xim[oa]|siguiente|esta semana|de esta)\b/i;
+// Un «sí, genéralo» a una oferta que nombra fechas («¿te lo preparo?» tras «del 2
+// al 7 de noviembre»): la vía rápida no las ve y generaba «la siguiente», que
+// saltó a la del 23. Lo que Lola ofreció con fechas lo cierra Lola.
+const OFERTA_CON_FECHA = (ultima) => {
+  const u = String(ultima ?? "");
+  return /[?¿]/.test(u) && (FECHA.test(u) || FECHA_SIN_DIGITO.test(u));
+};
 export const generarConMatices = ({ texto = "", corrige = false, ultima = null }) =>
-  corrige || FECHA.test(texto) || FECHA_SIN_DIGITO.test(texto) || (PIDE_PREGUNTAS.test(texto) && !SIN_PREGUNTAS.test(texto)) || RECIEN_GENERADO.test(String(ultima ?? ""))
+  corrige || FECHA.test(texto) || FECHA_SIN_DIGITO.test(texto) || OFERTA_CON_FECHA(ultima) || (PIDE_PREGUNTAS.test(texto) && !SIN_PREGUNTAS.test(texto)) || RECIEN_GENERADO.test(String(ultima ?? ""))
   || (REHACER_SIN_SEMANA.test(texto) && !NOMBRA_SEMANA.test(texto));
 
 /**
