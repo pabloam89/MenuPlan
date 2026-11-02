@@ -6,10 +6,10 @@ import { DATOS_CASA, DATOS_PERSONA } from "./registroFicha.js";
 
 /**
  * La 0097 copió REGISTRO_CAMPOS en registro_campo, la 0105 la regeneró entera
- * con las columnas del eje y la 0112, con los campos de la ficha Casa. Este test es lo que impide que el SQL y el JS se
+ * con las columnas del eje, la 0112 con los campos de la ficha Casa y la 0113 con los de la Rutina. Este test es lo que impide que el SQL y el JS se
  * separen: un campo nuevo en JS sin migración no existiría en la base, y un
  * sobre suyo violaría la FK. Compara con el último INSERT de registro_campo de
- * las migraciones (hoy, el de la 0112): una migración que la regenere pasa a ser
+ * las migraciones (hoy, el de la 0113): una migración que la regenere pasa a ser
  * la que se mira.
  */
 const DIR = new URL("../../supabase/migrations/", import.meta.url);
@@ -30,6 +30,9 @@ function literales(constraint) {
 
 const ordenado = (xs) => [...xs].sort();
 
+/** Los trozos de una fila del INSERT separados por comas, sin partir un literal '…' (un defecto como '["Comida","Cena"]'). */
+const trozosDeFila = (fila) => fila.match(/'[^']*'(?:::jsonb)?|[^,\s][^,]*/g);
+
 /** Las filas del INSERT de registro_campo, como objetos con las columnas de la migración. */
 function filasDelInsert() {
   const m = codigo.match(RE_INSERT);
@@ -45,15 +48,15 @@ function filasDelInsert() {
     return Number(t);
   };
   return [...m[2].matchAll(/\(([^()]*)\)/g)].map((f) => {
-    const vals = f[1].split(",").map(valor);
+    const vals = trozosDeFila(f[1]).map(valor);
     expect(vals.length).toBe(cols.length);
     return Object.fromEntries(cols.map((c, i) => [c, vals[i]]));
   });
 }
 
-describe("registro_campo (0097, regenerada en la 0105 y la 0112) dice lo mismo que registroCampos.js", () => {
-  it("el último INSERT es el de la 0112, con las columnas del eje", () => {
-    expect(ULTIMA.fichero).toBe("0112_casa_campos.sql");
+describe("registro_campo (0097, regenerada en la 0105, la 0112 y la 0113) dice lo mismo que registroCampos.js", () => {
+  it("el último INSERT es el de la 0113, con las columnas del eje", () => {
+    expect(ULTIMA.fichero).toBe("0113_rutina_campos.sql");
     const cols = codigo.match(RE_INSERT)[1].split(",").map((c) => c.trim());
     for (const c of ["ficha", "clase", "defecto", "suposicion", "minimo_para_generar", "peso_menu", "escribe", "choque"]) expect(cols, c).toContain(c);
   });
