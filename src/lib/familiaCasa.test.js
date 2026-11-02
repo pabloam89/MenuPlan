@@ -6,7 +6,7 @@ import { describe, it, expect, vi } from "vitest";
 
 vi.mock("./supabase.js", () => ({ supabase: null }));
 
-const { leerFamiliaDeCasa, conFamiliaLeida, sinFamilia, enviarFamilia, familiaDeCasa, conVersionDeFamilia, cargaSinSeguir, guardarFamiliaYDocumento, MODO_FAMILIA, REF_FAMILIA } = await import("./familiaCasa.js");
+const { leerFamiliaDeCasa, conFamiliaLeida, sinFamilia, enviarFamilia, contarSenales, familiaDeCasa, conVersionDeFamilia, cargaSinSeguir, guardarFamiliaYDocumento, MODO_FAMILIA, REF_FAMILIA } = await import("./familiaCasa.js");
 const { guardarConVersion } = await import("./versionCasa.js");
 const { FALLO_DATO } = await import("./vocabularios.js");
 const { RPC_FAMILIA } = await import("./personas.js");
@@ -240,5 +240,40 @@ describe("App.jsx carga y guarda por aquí", async () => {
     expect(app).toContain("if (cargaSinSeguir({ soloNube, remoteState, cargaFamilia, cargaCasa, cargaLibreta })) {");
     expect(app.match(/guardarFamiliaYDocumento\(\{/g)).toHaveLength(2);
     expect(app.match(/snapshotDeCasa\(\{[^}]*\}, familia\?\.modo, casaDatos\?\.carga, libreta\?\.carga\)/g)).toHaveLength(2);
+  });
+});
+
+describe("las señales de la app (trozo 15) van a api/operacion.js", () => {
+  const token = async () => "tok";
+  const SENALES = [{ eje: "tecnica", valor: "horno", delta: -1 }];
+
+  it("con la casa y las señales; sin casa o sin señales no se manda nada", async () => {
+    const fetcher = vi.fn(async () => new Response(JSON.stringify({ guardado: true, senales: 1 }), { status: 200 }));
+    await contarSenales(CASA, SENALES, { token, fetcher });
+    expect(JSON.parse(fetcher.mock.calls[0][1].body)).toMatchObject({ casa: CASA, senales: SENALES });
+    await contarSenales(null, SENALES, { token, fetcher });
+    await contarSenales(CASA, [], { token, fetcher });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it("si no se cuentan, no lanza (lo que hizo la familia ya está hecho) y queda en el log", async () => {
+    const aviso = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    await contarSenales(CASA, SENALES, { token, fetcher: vi.fn(async () => new Response(JSON.stringify({ fallo: FALLO_DATO.SIN_PERMISO }), { status: 403 })) });
+    expect(JSON.parse(aviso.mock.calls.at(-1)[0])).toEqual({ evento: "senales_sin_contar", fallo: FALLO_DATO.SIN_PERMISO });
+    await contarSenales(CASA, SENALES, { token, fetcher: vi.fn(async () => { throw new RangeError("roto"); }) });
+    expect(JSON.parse(error.mock.calls.at(-1)[0])).toEqual({ evento: "senales_sin_contar", motivo: "roto" });
+    vi.restoreAllMocks();
+  });
+
+  it("App.jsx las cuenta al votar, al descartar porque no gusta, al cambiar un plato y al elegirlo a mano", async () => {
+    const { readFileSync } = await import("node:fs");
+    const app = readFileSync(new URL("../App.jsx", import.meta.url), "utf8");
+    const dentro = (desde, hasta) => app.slice(app.indexOf(desde), app.indexOf(hasta, app.indexOf(desde)));
+    expect(dentro("const handleVoteRecipe", "}, [")).toContain("senalesDePlato(recetaDelPlato(recipeId), vote === \"down\" ? -1 : 1)");
+    expect(dentro("const applyDiscardReason", "}, [")).toContain("if (reason === \"dislike\") contarSenales(");
+    expect(dentro("const handleReplaceSlot", "}, [")).toContain("motivo: MOTIVO_CAMBIO.OTRO }));");
+    expect(dentro("const handleChooseRecipeForSlot", "}, [")).toContain("motivo: MOTIVO_CAMBIO.MANUAL }));");
+    expect(app.match(/contarSenales\(/g)).toHaveLength(4);
   });
 });

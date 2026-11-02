@@ -72,6 +72,28 @@ export function senalesDeCambio({ sale = null, entra = null, motivo }) {
   return [...suma.values()].filter((s) => s.delta !== 0);
 }
 
+/** Pura. Las señales de un voto o un descarte: `delta` (+1 o −1) por cada valor del plato. */
+export const senalesDePlato = (receta, delta) => valoresDelPlato(receta).map((v) => ({ ...v, delta }));
+
+/** Cuántas señales admite un envío de la app: las de dos platos (el que sale y el que entra) caben de sobra. */
+export const MAX_SENALES_APP = 16;
+
+/**
+ * Pura. Las señales que manda la app (api/operacion.js), comprobadas: de 1 a MAX_SENALES_APP, cada una con un eje que
+ * aprende, un valor de su dominio con el tipo del eje, y +1 o −1. Lanza si no: no se cuenta a medias.
+ */
+export function senalesDeLaApp(lista) {
+  if (!Array.isArray(lista) || !lista.length || lista.length > MAX_SENALES_APP) throw new Error(`señales: una lista de 1 a ${MAX_SENALES_APP}`);
+  return lista.map((s) => {
+    const campo = CAMPO_DEL_EJE[s?.eje];
+    const valorId = campo && s.valor != null ? valorIdDelEje(s.valor) : null;
+    const valida = campo && CAMPOS_POR_ID[campo].dominio.includes(valorId)
+      && JSON.stringify(valorDelEje(s.eje, valorId)) === JSON.stringify(s.valor) && (s.delta === 1 || s.delta === -1);
+    if (!valida) throw new Error(`señal no válida: ${JSON.stringify(s).slice(0, 120)}`);
+    return { eje: s.eje, valor: s.valor, delta: s.delta };
+  });
+}
+
 /**
  * ¿La puso el sistema al aprender? Vista, por el canal `sistema` (ni Lola ni la app escriben ahí: Lola habla por un
  * chat y una pantalla no puede poner nada visto, puerta.js), de la casa entera y sin ámbito, y sin rechazar.
