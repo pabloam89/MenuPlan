@@ -22,6 +22,9 @@ const RAMA_PRODUCCION = "main";
  * - VITE_GUIAS: carrusel de presentación y visitas guiadas (GUIAS_ACTIVAS en
  *   App.jsx). Apagadas en `staging`, donde el bot de Telegram hace de guía;
  *   encendidas en producción hasta que el frontal de Lola llegue allí.
+ * - VITE_APPLE_WEB: «Continuar con Apple» en la web (SignInOptions en
+ *   src/components/ui.jsx). Encendida en `staging` para probarlo; apagada en
+ *   producción hasta cerrar el issue #890. En la app de iOS sale siempre.
  */
 export function banderas(rama, leer = () => "") {
   const desplegada = rama === RAMA_STAGING || rama === RAMA_PRODUCCION;
@@ -29,5 +32,6 @@ export function banderas(rama, leer = () => "") {
     VITE_MOTOR: leer("VITE_MOTOR") || (desplegada ? "solver" : "modelo"),
     VITE_PIZARRA: leer("VITE_PIZARRA") || (desplegada ? "on" : "off"),
     VITE_GUIAS: leer("VITE_GUIAS") || (rama === RAMA_STAGING ? "off" : "on"),
+    VITE_APPLE_WEB: leer("VITE_APPLE_WEB") || (rama === RAMA_STAGING ? "on" : "off"),
   };
 }
