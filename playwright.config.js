@@ -22,9 +22,9 @@ export const SUPABASE_MUERTO = "http://127.0.0.1:9";
 const SIN_CLAVE = "e2e-sin-clave";
 // Las banderas del despliegue de staging, sacadas de la misma regla que usa
 // el build (`banderas` en scripts/lib/banderas.mjs) sin leer el entorno: el motor
-// `solver`, que asigna los platos sin llamar al modelo, la pizarra encendida
-// y las guías apagadas. Van con valor, así que pisan al entorno y al
-// .env.local de quien la corre.
+// `solver`, que asigna los platos sin llamar al modelo, la pizarra encendida,
+// las guías apagadas y Apple en la web. Van con valor, así que pisan al entorno
+// y al .env.local de quien la corre.
 const BANDERAS_STAGING = banderas(RAMA_STAGING);
 
 // vite.config.js lee el .env.local siempre, y una dirección op:// la resuelve
