@@ -201,3 +201,27 @@ describe("tubería: un cambio de la familia (escribir_persona, 0108)", () => {
     expect(llegan[0].op).toMatchObject({ personas: [], grupos: [] });
   });
 });
+
+// Un horario son varios datos en una operación (trozo 13): llegan juntos a aplicar_operacion, en una llamada.
+describe("tubería: varios datos en una operación", () => {
+  const hueco = (dia, valor) => ({ campo: "schedule", persona_id: "p1", dia, comida: "Comida", valor, origen: "dicho" });
+
+  it("los huecos van juntos en una sola llamada, con su ámbito", async () => {
+    const { llegan, servidor } = base();
+    const { dato: _uno, ...sinDato } = PEDIDO;
+    const r = await operar({ ...sinDato, datos: [hueco("Lun", "fuera"), hueco("Mar", null)] }, servidor("editor"));
+    expect(r.guardado).toBe(true);
+    expect(llegan).toHaveLength(1);
+    expect(llegan[0].op.datos).toEqual([hueco("Lun", "fuera"), hueco("Mar", null)]);
+  });
+
+  it("si uno no cuadra con el registro, no sale ninguno y el log dice el campo", async () => {
+    const log = silenciar();
+    const { llegan, servidor } = base();
+    const { dato: _uno, ...sinDato } = PEDIDO;
+    const r = await operar({ ...sinDato, datos: [hueco("Lun", "fuera"), hueco("Lunes", "fuera")] }, servidor("editor"));
+    expect(r).toMatchObject({ guardado: false, fallo: FALLO_DATO.INVALIDO });
+    expect(llegan).toEqual([]);
+    expect(lineas(log)).toEqual([{ evento: "dato_sin_guardar", fallo: "invalido", motivo: null, canal: "telegram", campo: "schedule" }]);
+  });
+});

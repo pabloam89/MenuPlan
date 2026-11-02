@@ -149,10 +149,34 @@ export function cabeceraDeOperacion({ casa, clave, accion, canal, ref, autor = {
   };
 }
 
-/** Pura. La operación de tipo dato que espera aplicar_operacion (0106: p_operacion). Lanza DatoInvalido. */
-export function operacionDeDato({ dato, ...pedido }) {
-  return { ...cabeceraDeOperacion(pedido), datos: [datoValido(dato)] };
+/**
+ * Cuántos datos admite una operación: el tope de aplicar_operacion (`c_max_datos` en la 0115; el test lo compara).
+ * Un horario entero de la casa más grande (8 × 7 × 5 = 280) cabe en una, y deshacer lo deshace entero.
+ */
+export const MAX_DATOS_OPERACION = 400;
+
+// La clave entera de un dato en la operación: campo, persona y ámbito (la del sobre, 0114).
+const claveDelDato = (d) => [d.campo, d.persona_id, ...DIMENSIONES_AMBITO.map((x) => d[CLAVE_DE_DIMENSION[x]])].map((v) => v ?? "").join("|");
+
+/**
+ * Pura. La operación de tipo dato que espera aplicar_operacion (0106: p_operacion), con un dato (`dato`) o con
+ * varios que van juntos (`datos`: los huecos de un horario que cambia, rutina.js), que se aplican y se deshacen
+ * juntos. Uno de los dos, nunca los dos. Lanza DatoInvalido: sin datos, con más de MAX_DATOS_OPERACION o con dos
+ * del mismo hueco (la base los rechazaría igual).
+ */
+export function operacionDeDato({ dato, datos, ...pedido }) {
+  if ((dato === undefined) === (datos === undefined)) throw new DatoInvalido("un dato o una lista de datos, uno de los dos");
+  if (datos !== undefined && (!Array.isArray(datos) || datos.length === 0)) throw new DatoInvalido("datos: una lista con algún dato");
+  const lista = (datos ?? [dato]).map(datoValido);
+  if (lista.length > MAX_DATOS_OPERACION) throw new DatoInvalido(`datos: ${lista.length}, más de ${MAX_DATOS_OPERACION} en una operación`);
+  const claves = lista.map(claveDelDato);
+  const repetida = claves.find((k, i) => claves.indexOf(k) !== i);
+  if (repetida) throw new DatoInvalido(`datos: el hueco «${repetida}» va dos veces`);
+  return { ...cabeceraDeOperacion(pedido), datos: lista };
 }
+
+/** Pura. El campo de un pedido (el de su dato, o el de su primer dato), para el log. */
+export const campoDelPedido = (p) => p?.dato?.campo ?? p?.datos?.[0]?.campo ?? null;
 
 /** Lo que el servidor contesta de una operación aplicada: sin `pedido` ni `inversa` (llevan salud). */
 export const CAMPOS_RESULTADO = ["operacion_id", "estado", "repetida", "hecho", "sin_hacer", "choques", "rev"];
@@ -265,7 +289,7 @@ export function crearColaDeDatos({ almacen, enviar, ahora = () => Date.now(), nu
         if (!(e instanceof TypeError)) throw e;
         fallo = FALLO_DATO.SIN_RED;
       }
-      if (fallo) apuntarSinGuardar({ fallo, canal: CANAL_DATO.APP, campo: item.dato?.campo ?? null });
+      if (fallo) apuntarSinGuardar({ fallo, canal: CANAL_DATO.APP, campo: campoDelPedido(item) });
       if (fallo && FALLOS_QUE_ESPERAN.has(fallo)) {
         guardar(leer().map((x) => (x.clave === item.clave ? { ...x, fallo, intentos: (x.intentos ?? 0) + 1 } : x)));
         resultados[item.clave] = { guardado: false, pendiente: true, fallo };
@@ -289,16 +313,15 @@ export function crearColaDeDatos({ almacen, enviar, ahora = () => Date.now(), nu
   }
 
   /**
-   * Pide escribir un dato. Lo guarda en la cola al momento y lo intenta.
-   * Devuelve el resultado de este dato: guardado, rechazado con su sin_hacer,
-   * o pendiente con su fallo (y sigue en la cola). Un dato mal hecho lanza
-   * DatoInvalido y no entra.
+   * Pide escribir un dato (`dato`) o varios que van juntos en una operación (`datos`, operacionDeDato). Lo guarda
+   * en la cola al momento y lo intenta. Devuelve el resultado de esta operación: guardada, rechazada con su
+   * sin_hacer, o pendiente con su fallo (y sigue en la cola). Un dato mal hecho lanza DatoInvalido y no entra.
    */
-  async function escribir({ casa, accion, ref_id, dato }) {
+  async function escribir({ casa, accion, ref_id, dato, datos }) {
     const pedido = { clave: nuevaClave(), casa, accion, ref_id, pedida_at: new Date(ahora()).toISOString() };
-    // La misma forma que comprobará el servidor (canal y ref los pone él); el dato, ya pasado por su vocabulario.
-    const [valido] = operacionDeDato({ ...pedido, dato, canal: CANAL_DATO.APP, ref: { tipo: REF_OPERACION.PANTALLA, id: ref_id } }).datos;
-    const item = { ...pedido, dato: valido };
+    // La misma forma que comprobará el servidor (canal y ref los pone él); los datos, ya pasados por su vocabulario.
+    const validos = operacionDeDato({ ...pedido, dato, datos, canal: CANAL_DATO.APP, ref: { tipo: REF_OPERACION.PANTALLA, id: ref_id } }).datos;
+    const item = { ...pedido, ...(datos === undefined ? { dato: validos[0] } : { datos: validos }) };
     guardar([...leer(), item]);
     const resultados = await vaciar();
     // Uno anterior espera en la cola: este espera detrás, con el fallo de aquel.

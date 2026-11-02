@@ -370,3 +370,30 @@ describe("api/operacion.js: la app lee los datos de la ficha Casa (trozo 12)", (
     expect(log.mock.calls.map((a) => a[0]).filter((l) => String(l).includes("casa_sin_leer"))).toHaveLength(1);
   });
 });
+
+describe("api/operacion.js: varios datos en una operación (trozo 13)", () => {
+  beforeEach(() => {
+    responde(/^\/auth\/v1\/user/, { status: 200, cuerpo: { id: "u1" } });
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner", user_id: "u1" }] });
+  });
+  const hueco = (dia, valor) => ({ campo: "schedule", persona_id: "p1", dia, comida: "Comida", valor, origen: "dicho" });
+
+  it("`datos` llega entero a aplicar_operacion, en una sola operación", async () => {
+    responde(/rpc\/aplicar_operacion/, { status: 200, cuerpo: HECHA });
+    const { dato: _uno, ...sinDato } = CUERPO;
+    const res = await pedir({ body: { ...sinDato, datos: [hueco("Lun", "fuera"), hueco("Mar", "cole")] } });
+    expect(res.codigo).toBe(200);
+    const ops = llamadas.filter((l) => l.ruta.includes("aplicar_operacion")).map((l) => l.cuerpo.p_operacion);
+    expect(ops).toHaveLength(1);
+    expect(ops[0].datos).toEqual([hueco("Lun", "fuera"), hueco("Mar", "cole")]);
+  });
+
+  it("dato y datos a la vez, o datos con un cambio de la familia o con deshacer: invalido, y no llega a la RPC", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    expect((await pedir({ body: { ...CUERPO, datos: [hueco("Lun", "fuera")] } })).codigo).toBe(400);
+    const { dato: _uno, ...sinDato } = CUERPO;
+    expect((await pedir({ body: { ...sinDato, datos: [hueco("Lun", "fuera")], personas: [] } })).codigo).toBe(400);
+    expect((await pedir({ body: { casa: CASA, deshacer: "7c9e6679-7425-40de-944b-e07fc1f90ae7", datos: [hueco("Lun", "fuera")] } })).codigo).toBe(400);
+    expect(llamadas.filter((l) => l.ruta.includes("rpc/aplicar_operacion") && l.cuerpo.p_operacion.estado !== ESTADO_OPERACION.RECHAZADA)).toEqual([]);
+  });
+});
