@@ -93,15 +93,16 @@ describe("inventario de la ficha", async () => {
   it("dispara sin_ficha y defecto_distinto con un dato mal declarado (y no con los demás)", async () => {
     const casa = {
       ...DATOS_CASA,
-      menuModel: { ...DATOS_CASA.menuModel, ficha: null, defecto: "separate" }, // INITIAL_DATA siembra "same"
+      // Uno que vive en data (menuModel ya vive en su sobre, trozo 12: su defecto lo da el registro, no INITIAL_DATA).
+      menuVarietyPref: { ...DATOS_CASA.menuVarietyPref, ficha: null, defecto: "relaxed" }, // INITIAL_DATA siembra "strict"
       meals: { ...DATOS_CASA.meals, defecto: ["Comida"] }, // una lista se compara entera
       menuWeek: { ...DATOS_CASA.menuWeek, ficha: null }, // una copia sin ficha también cuenta: todo dato tiene ficha (trozo 6)
     };
     const r = await inventario(raiz, { registro: { casa, persona: DATOS_PERSONA } });
-    expect(r.fallos.sin_ficha).toEqual(["casa.menuModel", "casa.menuWeek"]);
+    expect(r.fallos.sin_ficha).toEqual(["casa.menuWeek", "casa.menuVarietyPref"]);
     expect(r.fallos.defecto_distinto).toEqual([
-      'casa.menuModel: registro "separate" ≠ INITIAL_DATA "same"',
       'casa.meals: registro ["Comida"] ≠ INITIAL_DATA ["Comida","Cena"]',
+      'casa.menuVarietyPref: registro "relaxed" ≠ INITIAL_DATA "strict"',
     ]);
   }, 120_000);
 
