@@ -22,9 +22,13 @@ import { DATOS_CASA } from "./registroFicha.js";
 /** Lo que limpia, para contarlo (el inventario de huérfanos de #958). */
 export const QUE_LIMPIA = Object.freeze(["schedule", "kid_dinner", "cole", "cuenta", "reglas", "grupos", "mapas_de_grupo"]);
 
-/** Los mapas por id de grupo, sacados del registro: un dato nuevo así entra solo. */
+/**
+ * Los mapas por id de grupo, sacados del registro: un dato nuevo así entra solo. Los que viven en sus sobres por
+ * grupo (ámbito «grupo», trozo 13) también: la app y Lola los tienen en data como mapa (rutina.js), y quitar el
+ * grupo del mapa es lo que no se escribe (su sobre se fue con el grupo).
+ */
 export const MAPAS_POR_GRUPO = Object.freeze(
-  Object.entries(DATOS_CASA).filter(([, d]) => d.entidad === "grupo" && (d.tipo === "mapa" || d.ambito.includes("grupo")) && d.vive === "data").map(([k]) => k),
+  Object.entries(DATOS_CASA).filter(([, d]) => d.entidad === "grupo" && (d.vive === "data" ? d.tipo === "mapa" || d.ambito.includes("grupo") : d.ambito.includes("grupo"))).map(([k]) => k),
 );
 
 const esObjeto = (o) => Boolean(o) && typeof o === "object" && !Array.isArray(o);

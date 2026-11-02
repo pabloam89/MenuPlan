@@ -1884,8 +1884,7 @@ export default function App() {
   }, []);
 
   // Los datos de la casa con sobre van a api/operacion.js por la cola de la app (lib/casaDatos.js), en la cola de
-  // la casa detrás de la familia: un hueco de quién come dónde de una persona nueva, o la estructura de un grupo
-  // nuevo, necesita su fila (como en Lola, casa.js). Si otro escribió entretanto, recarga; si no entró, se dice.
+  // la casa antes que el documento. Si otro escribió entretanto, recarga; si no entró, se dice.
   const guardarCasaConSobre = useCallback((version, casaDatos, datos) => {
     guardarCasaEnCola({ version, casa: casaDatos, datos })
       .catch((e) => {
@@ -1925,12 +1924,12 @@ export default function App() {
     const t = window.setTimeout(() => {
       const snapshot = snapshotDeCasa({ data, menuPlan, shopping, aiRecipes, onbStep }, familia?.modo, casaDatos?.carga);
       if (syncHouseholdId) {
+        guardarCasaConSobre(version, casaDatos, data);
         const guardados = guardarFamiliaYDocumento({
           version,
           familia: () => guardarFamilia(data, familia),
           documento: (rev) => saveHouseholdState(syncHouseholdId, snapshot, rev),
         });
-        guardarCasaConSobre(version, casaDatos, data);
         guardados.familia.then((rf) => {
           if (rf.conflict) recargarDesdeNubeRef.current({ choque: true });
           else if (!rf.ok && !rf.descartado) avisarGuardado(rf);
@@ -1962,13 +1961,13 @@ export default function App() {
     if (!syncHouseholdId) return { ok: (await saveUserState(user.id, snapshot)).ok === true };
     if (!cloudReadyRef.current) return { ok: false, descartado: true };
     // La familia (que lleva la marca de alergias revisadas, #1029) y la casa: entra si entran las dos. Si otro
-    // escribió entretanto, el documento choca y lo dice (`conflict`). Los datos con sobre van detrás de la familia y dicen lo suyo.
+    // escribió entretanto, el documento choca y lo dice (`conflict`). Los datos con sobre van delante y dicen lo suyo.
+    guardarCasaConSobre(versionDeCasa(syncHouseholdId), casaDatos, dataAGuardar);
     const guardados = guardarFamiliaYDocumento({
       version: versionDeCasa(syncHouseholdId),
       familia: () => guardarFamilia(dataAGuardar, familia),
       documento: (rev) => saveHouseholdState(syncHouseholdId, snapshot, rev),
     });
-    guardarCasaConSobre(versionDeCasa(syncHouseholdId), casaDatos, dataAGuardar);
     const [rf, r] = await Promise.all([guardados.familia, guardados.documento]);
     return rf.ok ? r : rf;
   }, [user?.id, householdReadOnly, syncHouseholdId, menuPlan, shopping, aiRecipes, onbStep, versionDeCasa, guardarFamilia, guardarCasaConSobre]);
