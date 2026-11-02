@@ -32,6 +32,12 @@ describe("el sobre de cada hueco (trozo 18)", () => {
     expect(sellado.g1["Lun-Cena"].sobre).toBe(otro);
   });
 
+  it("el sobre viejo copiado (el plan vuelve de la base sin compartir objetos) tampoco vale para el plato nuevo", () => {
+    const deLaBase = structuredClone(viejo);
+    const nuevo = { g1: { ...deLaBase.g1, "Lun-Cena": { ...deLaBase.g1["Lun-Cena"], recipeId: "crema" } } };
+    expect(sellarCambios(viejo, nuevo, aMano).g1["Lun-Cena"].sobre).toEqual(aMano);
+  });
+
   it("sin cambios devuelve el mismo plan: quien compara no entra en bucle", () => {
     expect(sellarCambios(viejo, viejo, aMano)).toBe(viejo);
     const sellado = sellarCambios(viejo, { g1: { ...viejo.g1, "Lun-Cena": { recipeId: "crema" } } }, aMano);

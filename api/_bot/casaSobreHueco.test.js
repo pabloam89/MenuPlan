@@ -31,6 +31,14 @@ vi.mock("./db.js", () => ({
 vi.mock("./propias.js", () => ({ recetasPropiasDeCasa: vi.fn(async () => []) }));
 
 const { cargarCasa, guardarCasa } = await import("./casa.js");
+const { conOperacion, ponerAutor } = await import("./operacion.js");
+
+const cambiaLaCena = async (casa) => {
+  const nuevo = { g1: { ...casa.semana.plan.g1, "Lun-Cena": { ...casa.semana.plan.g1["Lun-Cena"], recipeId: "crema" } } };
+  llamadas.length = 0;
+  const r = await guardarCasa(casa, { state: casa.state, semana: { plan: nuevo } });
+  return [r, llamadas.find(([fn]) => fn === "bot_save_casa")?.[1]];
+};
 
 describe("Lola sella el plato que cambia", () => {
   it("el hueco cambiado lleva canal, cuándo y quién; el otro conserva el del motor", async () => {
@@ -43,5 +51,23 @@ describe("Lola sella el plato que cambia", () => {
     expect(cena).toEqual({ canal: CANAL_DATO.SISTEMA, cuando: expect.any(String), quien: null });
     expect(Number.isNaN(Date.parse(cena.cuando))).toBe(false);
     expect(args.p_week.plan.g1["Lun-Comida"].sobre).toEqual(delMotor);
+  });
+
+  it("en un turno, el sobre es el de quien habla y por dónde", async () => {
+    const casa = await cargarCasa("h1", { fresca: true });
+    const [, args] = await conOperacion({ chat: "c1" }, async () => {
+      ponerAutor({ userId: "u1", papel: "owner", canal: CANAL_DATO.TELEGRAM });
+      return cambiaLaCena(casa);
+    });
+    expect(args.p_week.plan.g1["Lun-Cena"].sobre).toEqual({ canal: CANAL_DATO.TELEGRAM, cuando: expect.any(String), quien: "u1" });
+  });
+
+  it("un autor sin canal no se firma como el menú automático: falla", async () => {
+    const casa = await cargarCasa("h1", { fresca: true });
+    await expect(conOperacion({ chat: "c1" }, async () => {
+      ponerAutor({ userId: "u1", papel: "owner" });
+      return cambiaLaCena(casa);
+    })).rejects.toThrow(/canal/);
+    expect(llamadas.find(([fn]) => fn === "bot_save_casa")).toBeUndefined();
   });
 });

@@ -21,6 +21,9 @@ export const gruposDelPlan = (plan) => Object.entries(plan ?? {}).filter(([g]) =
  * @param {object} nuevo
  * @param {{ canal: string, cuando: string, quien?: string | null }} sobre
  */
+// Por contenido y no por referencia: un plan que ha ido y vuelto de la base (o de otra pestaña) no comparte objetos.
+const mismoSobre = (a, b) => Boolean(b) && JSON.stringify(a) === JSON.stringify(b);
+
 export function sellarCambios(viejo, nuevo, sobre) {
   let out = null;
   for (const [g, huecos] of gruposDelPlan(nuevo)) {
@@ -29,7 +32,7 @@ export function sellarCambios(viejo, nuevo, sobre) {
       if (!h) continue;
       const antes = viejo?.[g]?.[k];
       const mismo = antes && platosDe(antes) === platosDe(h);
-      const sello = mismo ? (h.sobre ?? antes.sobre) : h.sobre && h.sobre !== antes?.sobre ? h.sobre : sobre;
+      const sello = mismo ? (h.sobre ?? antes.sobre) : h.sobre && !mismoSobre(h.sobre, antes?.sobre) ? h.sobre : sobre;
       if (!sello || sello === h.sobre) continue;
       grupo ??= { ...huecos };
       grupo[k] = { ...h, sobre: sello };

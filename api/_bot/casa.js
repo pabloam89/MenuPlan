@@ -416,8 +416,11 @@ export async function guardarCasa(casa, { state = null, semana = null, activar =
 }
 
 /** El sobre de lo que escribe Lola en este turno: su canal y quién habla; fuera de un turno (un cron), el sistema. */
+// Fuera de un turno (crons, scripts) escribe el sistema. En un turno, el canal es el del autor: sin él se falla, no
+// se firma como el menú automático lo que pidió una persona.
 function sobreDelTurno() {
   const autor = autorDelTurno();
+  if (autor && !autor.canal) throw new Error("sobre del hueco: el autor del turno no dice por qué canal habla");
   return { canal: autor?.canal ?? CANAL_DATO.SISTEMA, cuando: new Date().toISOString(), quien: autor?.user_id ?? null };
 }
 
