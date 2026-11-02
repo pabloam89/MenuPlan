@@ -101,6 +101,21 @@ export async function enviarOperacion(cuerpo, { token = tokenDeSesion, fetcher =
   return { ...r.cuerpo, ok: true };
 }
 
+/**
+ * Las señales de lo que hace la familia en la app (un voto, un descarte, un cambio de plato: senales.js) a
+ * api/operacion.js (enviarOperacion), que las suma en `senal`. Sin casa o sin señales, nada. Lo que hizo la familia ya
+ * está hecho: si no se cuentan, no se repite y queda en el log (`senales_sin_contar`).
+ */
+export async function contarSenales(casa, senales, opciones) {
+  if (!casa || !senales?.length) return;
+  try {
+    const r = await enviarOperacion({ casa, senales }, { etiqueta: "senales", ...opciones });
+    if (!r.ok) console.warn(JSON.stringify({ evento: "senales_sin_contar", fallo: r.fallo }));
+  } catch (e) {
+    console.error(JSON.stringify({ evento: "senales_sin_contar", motivo: String(e?.message ?? e).slice(0, 200) }));
+  }
+}
+
 /** Un cambio de la familia a api/operacion.js (enviarOperacion). */
 export const enviarFamilia = ({ casa, personas, grupos }, opciones) => enviarOperacion({
   casa, accion: "guardar_familia", ref_id: REF_FAMILIA, personas, ...(grupos !== undefined ? { grupos } : {}),

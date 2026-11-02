@@ -20,6 +20,9 @@
  * saca cambiosDePersonas (src/lib/personas.js); va a escribir_persona (0108) por la misma tubería y puerta.
  * Un cambio de la libreta (trozo 14), en vez de `dato`: { …, preferencias: [...] }, lo que saca cambiosDeLibreta
  * (src/lib/preferencias.js); va a escribir_preferencias (0109) por la misma tubería y puerta.
+ * Lo que hace la familia en la app (trozo 15), en vez de `dato`: { casa, senales: [{ eje, valor, delta }] }, las
+ * señales de un voto, un descarte o un cambio de plato (src/lib/senales.js); se suman en `senal` (sumarSenales,
+ * api/_bot/aprender.js) si quien las manda edita la casa. Sin clave: contar no es una operación (no se deshace).
  * Para deshacer una operación propia (trozo 41): { casa, deshacer: <operacion_id> }, sin dato; la
  * deshace la base en una transacción (deshacer_operacion, 0111) si es de quien tiene la sesión y nada
  * de lo que tocó cambió después (si no, 200 con `guardado: false` y `sin_hacer` con su motivo).
@@ -35,6 +38,9 @@ import { usuarioDeToken } from "./_bot/db.js";
 import { papelDeUsuario } from "./_bot/papel.js";
 import { escribirDato, escribirPersonas, escribirPreferencias, deshacerOperacion, falloDeMotivo, leerDatosDeCasa } from "./_bot/datos.js";
 import { motivoDe } from "./_bot/avisar.js";
+import { sumarSenales } from "./_bot/aprender.js";
+import { senalesDeLaApp } from "../src/lib/senales.js";
+import { puede } from "../src/lib/papeles.js";
 import { HTTP_DE_FALLO, apuntarSinGuardar, campoDelPedido } from "../src/lib/escribirDato.js";
 import * as ids from "../src/lib/ids.js";
 import { FALLO_DATO, CANAL_DATO, REF_OPERACION } from "../src/lib/vocabularios.js";
@@ -68,6 +74,25 @@ async function leerCasa(req, res, accessToken) {
   }
 }
 
+/** Las señales de la app (trozo 15): las de quien edita la casa, comprobadas, se suman; si la base falla, se dice. */
+async function contarSenales(res, casa, senales, papel) {
+  if (!puede(papel, "editar_casa")) return contestar(res, FALLO_DATO.SIN_PERMISO);
+  let lista;
+  try {
+    lista = senalesDeLaApp(senales);
+  } catch (e) {
+    return contestar(res, FALLO_DATO.INVALIDO, e.message);
+  }
+  try {
+    await sumarSenales(casa, lista);
+  } catch (e) {
+    const { fallo, motivo } = falloDeBase(e);
+    console.error(JSON.stringify({ evento: "senales_sin_contar", fallo, motivo }));
+    return contestar(res, fallo);
+  }
+  return res.status(200).json({ guardado: true, senales: lista.length });
+}
+
 export default async function handler(req, res) {
   // La app iOS (Capacitor) llama desde capacitor://localhost: responde al preflight.
   if (cors(req, res)) return;
@@ -79,13 +104,15 @@ export default async function handler(req, res) {
   if (!accessToken) return contestar(res, FALLO_DATO.SIN_SESION);
   if (req.method === "GET") return leerCasa(req, res, accessToken);
 
-  const { casa, clave, accion, ref_id, pedida_at = null, dato, datos, deshacer = null, personas, grupos, preferencias } = req.body ?? {};
+  const { casa, clave, accion, ref_id, pedida_at = null, dato, datos, deshacer = null, personas, grupos, preferencias, senales } = req.body ?? {};
   // Un dato o varios (`datos`); cuál de los dos, y su forma, lo mira operacionDeDato (escribirDato.js).
   const conDatos = dato != null || datos != null;
   // Un cambio de la familia (trozo 10) en vez de un dato: personas y, si cambiaron, los grupos.
   const deFamilia = personas !== undefined || grupos !== undefined;
   // Un cambio de la libreta (trozo 14): sus preferencias.
   const deLibreta = preferencias !== undefined;
+  // Señales de lo que hace la familia (trozo 15).
+  const conSenales = senales !== undefined;
   let user;
   let papel;
   try {
@@ -94,11 +121,11 @@ export default async function handler(req, res) {
     if (!ids.casa.esNuevo(casa)) return contestar(res, FALLO_DATO.INVALIDO, "casa");
     if (deshacer != null) {
       // Deshacer o escribir, nunca las dos en una petición: el dato no se tiraría en silencio.
-      if (!ids.operacion.esNuevo(deshacer) || conDatos || deFamilia || deLibreta) return contestar(res, FALLO_DATO.INVALIDO, "deshacer");
-    } else if (Number(conDatos) + Number(deFamilia) + Number(deLibreta) > 1) {
+      if (!ids.operacion.esNuevo(deshacer) || conDatos || deFamilia || deLibreta || conSenales) return contestar(res, FALLO_DATO.INVALIDO, "deshacer");
+    } else if (Number(conDatos) + Number(deFamilia) + Number(deLibreta) + Number(conSenales) > 1) {
       // Un dato, un cambio de la familia o uno de la libreta, nunca dos: uno se tiraría en silencio.
       return contestar(res, FALLO_DATO.INVALIDO, "dato");
-    } else if (!ids.claveOperacion.esNuevo(clave)) {
+    } else if (!conSenales && !ids.claveOperacion.esNuevo(clave)) {
       // La clave la da la app (un uuid); va a su propio espacio, para que no pueda adelantarse a una de Lola.
       return contestar(res, FALLO_DATO.INVALIDO, "clave");
     }
@@ -110,6 +137,7 @@ export default async function handler(req, res) {
     return contestar(res, fallo);
   }
 
+  if (conSenales) return contarSenales(res, casa, senales, papel);
   // El papel (o null, si no es de la casa) lo juzga la puerta de la tubería, la misma que la de Lola.
   if (deshacer != null) {
     // Quien deshace es el de la sesión: la base solo deshace lo suyo (deshacer_operacion, 0111).

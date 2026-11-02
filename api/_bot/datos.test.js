@@ -436,3 +436,42 @@ describe("api/operacion.js: varios datos en una operación (trozo 13)", () => {
     expect(llamadas.filter((l) => l.ruta.includes("rpc/aplicar_operacion") && l.cuerpo.p_operacion.estado !== ESTADO_OPERACION.RECHAZADA)).toEqual([]);
   });
 });
+
+describe("api/operacion.js: las señales de la app (trozo 15) se suman en senal", () => {
+  const SENALES = [{ eje: "tecnica", valor: "horno", delta: -1 }];
+  beforeEach(() => {
+    responde(/^\/auth\/v1\/user/, { status: 200, cuerpo: { id: "u1" } });
+  });
+
+  it("de quien edita la casa, sin clave: se leen y se suman en senal, nunca en el documento ni por una RPC", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "editor" }] });
+    const res = await pedir({ body: { casa: CASA, senales: SENALES } });
+    expect(res).toMatchObject({ codigo: 200, body: { guardado: true, senales: 1 } });
+    const aSenal = llamadas.filter((l) => l.ruta.startsWith("/rest/v1/senal"));
+    expect(aSenal.map((l) => l.metodo)).toEqual(["GET", "POST"]);
+    expect(aSenal[1].cuerpo).toEqual([{ household_id: CASA, eje: "tecnica", valor: "horno", peso: -1, veces: 1 }]);
+    expect(llamadas.filter((l) => DEL_DOCUMENTO.test(l.ruta) || l.ruta.includes("rpc/"))).toEqual([]);
+  });
+
+  it("un lector, alguien de fuera, señales que no valen o con un dato a la vez: no se cuenta nada", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "viewer" }] });
+    expect((await pedir({ body: { casa: CASA, senales: SENALES } })).codigo).toBe(HTTP_DE_FALLO[FALLO_DATO.SIN_PERMISO]);
+    respuestas.length = 0;
+    responde(/^\/auth\/v1\/user/, { status: 200, cuerpo: { id: "u1" } });
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
+    for (const body of [{ casa: CASA, senales: [{ ...SENALES[0], delta: 9 }] }, { ...CUERPO, senales: SENALES }]) {
+      expect((await pedir({ body })).codigo, JSON.stringify(body)).toBe(HTTP_DE_FALLO[FALLO_DATO.INVALIDO]);
+    }
+    expect(llamadas.filter((l) => l.ruta.startsWith("/rest/v1/senal"))).toEqual([]);
+  });
+
+  it("si la base falla, se dice (servidor) y queda en el log", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
+    responde(/^\/rest\/v1\/senal/, { status: 500, cuerpo: { code: "XX000", message: "roto" } });
+    const res = await pedir({ body: { casa: CASA, senales: SENALES } });
+    expect(res.codigo).toBe(HTTP_DE_FALLO[FALLO_DATO.SERVIDOR]);
+    expect(log.mock.calls.map((c) => JSON.parse(c[0])).find((l) => l.evento === "senales_sin_contar")).toMatchObject({ fallo: FALLO_DATO.SERVIDOR });
+  });
+});

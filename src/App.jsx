@@ -173,7 +173,8 @@ import { loadUserState, saveUserState, clearUserState } from "./lib/userState.js
 import { loadHouseholdState, saveHouseholdState, loadHouseholdBotRev, empezarCasaVacia, CASA_VACIA } from "./lib/householdState.js";
 import { leerBotRevVisto, guardarBotRevVisto } from "./lib/botRevVisto.js";
 import { guardandoCasa, guardadosDeCasa } from "./lib/versionCasa.js";
-import { leerFamiliaDeCasa, conFamiliaLeida, sinFamilia, familiaDeCasa, cargaSinSeguir, guardarFamiliaYDocumento, MODO_FAMILIA } from "./lib/familiaCasa.js";
+import { leerFamiliaDeCasa, conFamiliaLeida, sinFamilia, familiaDeCasa, cargaSinSeguir, guardarFamiliaYDocumento, MODO_FAMILIA, contarSenales } from "./lib/familiaCasa.js";
+import { senalesDeCambio, senalesDePlato } from "./lib/senales.js";
 import { leerDatosDeCasa, conCasaLeida, sinCasa, casaDeCasa, guardarCasaEnCola, colaDeLaApp } from "./lib/casaDatos.js";
 import { leerLibretaDeCasa, conLibretaLeida, sinLibretaLeida, libretaDeCasa, guardarLibretaEnCola } from "./lib/libretaCasa.js";
 import { resolveModeData, prepararSemana } from "./lib/prepararGeneracion.js";
@@ -217,6 +218,9 @@ import { EMBUDO, PANTALLA_EMBUDO } from "./lib/embudo.js";
 import { leerDestino, olvidarDestino } from "./lib/destinoBot.js";
 import { traeLlaveDeLola } from "./lib/llaveLola.js";
 import { RASTRO, MOTIVO_CAMBIO, ORIGEN_RECETA, idBase } from "./lib/rastro.js";
+
+/** La receta de un hueco, para las señales (trozo 15): la registrada o, sin ella, la del catálogo por su id. */
+const recetaDelPlato = (id) => (id ? RECIPES_BY_ID[id] ?? recipeCatalogById[idBase(id)] ?? null : null);
 import { registrarDescartes, recetasDelPlan, refrescarDescartadas } from "./lib/descartes.js";
 import { ALCANCE_DESCARTE } from "./lib/vocabularios.js";
 import { barrerDias } from "./lib/barridoDia.js";
@@ -4089,6 +4093,8 @@ export default function App() {
       if (v.guardar == null) deleteRecipeVote(user.id, baseId);
       else saveRecipeVote(user.id, baseId, v.guardar);
     }
+    // Un voto que se pone es una señal (trozo 15); uno que se quita, no.
+    if (voteOf(v.personal[baseId]) === vote) contarSenales(casaActivaRef.current, senalesDePlato(recetaDelPlato(recipeId), vote === "down" ? -1 : 1));
   }, [data.recipeVotes, personalRecipeVotes, user, householdReadOnly]);
 
   // Favorite (personal collection)
@@ -4236,6 +4242,8 @@ export default function App() {
         ? "Lo dejamos para luego"
         : "Descartado esta semana";
     trackEvent(user, "dish_discarded", "menu", { reason, recipeId: baseId });
+    // «No nos gusta» es una señal (trozo 15); «lo comimos hace poco» o «esta semana no», no.
+    if (reason === "dislike") contarSenales(syncHouseholdId, senalesDePlato(recetaDelPlato(baseId), -1));
     return label;
   }, [slotBaseRecipeId, data.discards, user, householdReadOnly, syncHouseholdId]);
 
@@ -4827,6 +4835,7 @@ export default function App() {
       oldRecipeId: idBase(platoAntes), newRecipeId: idBase(recipeId),
       motivo: MOTIVO_CAMBIO.OTRO, ...(reason ? { reason } : {}),
     });
+    contarSenales(casaActivaRef.current, senalesDeCambio({ sale: recetaDelPlato(platoAntes), entra: frontendRecipe, motivo: MOTIVO_CAMBIO.OTRO }));
     // Lo que se quita es una señal de que no apetecía: se apunta para medirlo y bajarlo de prioridad.
     registrarDescartes({ user, householdId: casaActivaRef.current, recetaIds: [platoAntes], ambito: ALCANCE_DESCARTE.PLATO });
   }, [data, menuPlan, showToast, user, applyDiscardReason]);
@@ -5600,6 +5609,8 @@ export default function App() {
     // Plato único takes over the WHOLE comida (single dish, no primero/segundo),
     // so force it into the main course regardless of which one was long-pressed.
     const placeCourse = kind === "plato_unico" ? "main" : course;
+    // El plato que había en el hueco tocado, para las señales (trozo 15).
+    const platoAntes = menuPlan?.[groupId]?.[`${day}-${meal}`]?.[placeCourse === "first" ? "firstRecipeId" : "recipeId"] ?? null;
 
     // Con el filtro en "Todos", el hueco vacío que has tocado representa a
     // TODOS los menús que tienen esa franja ese día, así que el plato entra en
@@ -5668,6 +5679,7 @@ export default function App() {
         : `Colocado «${frontendRecipe.name}»`,
     );
     trackEvent(user, "dish_manual_pick", "menu", { day, meal, kind, menus: colocados.length });
+    contarSenales(casaActivaRef.current, senalesDeCambio({ sale: recetaDelPlato(platoAntes), entra: frontendRecipe, motivo: MOTIVO_CAMBIO.MANUAL }));
   }, [slotPicker, data, menuPlan, showToast, user, applyShoppingFor]);
 
   // Reset intents: "soft" keeps the profile (family, recipes, preferences) and
