@@ -1,3 +1,6 @@
+import { porQueElPlato } from "../lib/sobreHueco.js";
+import { preferenciasDelMotor, textoDe } from "../lib/cumplimiento.js";
+import { color as colores, espaciado, tipografia } from "../design/tokens.js";
 import { cloneElement, createContext, Fragment, memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useZoomPellizco } from "../lib/useZoomPellizco.js";
 import { HuecosVivosContext } from "../lib/huecosVivos.js";
@@ -7889,6 +7892,14 @@ export function DishDetail({
               }}
               onClose={() => setScopeOpen(false)}
             />
+          )}
+
+          {/* Por qué está este plato (trozo 18): quién lo puso, cuándo y, si fue el menú automático, qué lo pidió. Solo
+              desde un hueco del menú: en el recetario no hay hueco. */}
+          {!browse && slot?.sobre && (
+            <p style={{ margin: 0, marginBottom: espaciado["esp-12"], fontSize: tipografia["paso-12"], color: colores["tinta-tenue"] }}>
+              {porQueElPlato(slot, preferenciasDelMotor(data ?? {}), textoDe)}
+            </p>
           )}
 
           {/* Ficha rápida: comensales · minutos · dificultad · alérgenos. Sin
