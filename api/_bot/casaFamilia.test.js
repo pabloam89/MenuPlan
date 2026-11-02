@@ -8,7 +8,7 @@ import { conCasa, cargarCasa, olvidarCasa, separarFamilia } from "./casa.js";
 import { conOperacion, ponerAutor, tomarAvisos } from "./operacion.js";
 import { FamiliaSinLeer, TEXTO_AVISO_PERSONA, AVISOS_PERSONA, RPC_FAMILIA } from "../../src/lib/personas.js";
 import { SUFIJO_CLAVE_PERSONA, RPC_OPERACION, RPC_PREFERENCIAS } from "../../src/lib/operaciones/tuberia.js";
-import { RPC_FICHA, fichaV1, fichaDePrueba, RPC_PREFERENCIAS_DE_CASA, preferenciasDeFilas } from "./familiaDePrueba.js";
+import { RPC_FICHA, FICHA_SIN_TAREAS, fichaDePrueba, RPC_PREFERENCIAS_DE_CASA, preferenciasDeFilas } from "./familiaDePrueba.js";
 import { PREGUNTAS_POR_ID } from "../../src/lib/wizardRegistry.js";
 import { aplicarCompra, aplicarModoDespensa } from "./ajustes.js";
 import { leerPresupuesto } from "../../src/lib/presupuestoCasa.js";
@@ -54,7 +54,7 @@ beforeEach(() => {
   respuestas = [
     [/household_state/, { status: 200, cuerpo: [{ state: DOCUMENTO, bot_rev: 7, updated_at: "2026-11-01T10:00:00Z" }] }],
     [RUTA_FAMILIA, { status: 200, cuerpo: FAMILIA }],
-    [RUTA_FICHA, { status: 200, cuerpo: fichaV1() }],
+    [RUTA_FICHA, { status: 200, cuerpo: fichaDePrueba() }],
     [new RegExp(`rpc/${RPC_PREFERENCIAS_DE_CASA}`), { status: 200, cuerpo: preferenciasDeFilas() }],
     [RUTA_OPERACION, { status: 200, cuerpo: HECHA }],
     [/rpc\/bot_save_casa/, { status: 200, cuerpo: { ok: true, bot_rev: 8 } }],
@@ -373,7 +373,7 @@ describe("los datos de la casa con sobre (trozo 12)", () => {
   });
 
   it("con la v1 o sin la RPC, del documento y se guarda en él", async () => {
-    for (const ficha of [{ status: 200, cuerpo: fichaV1() }, SIN_RPC(RPC_FICHA)]) {
+    for (const ficha of [{ status: 200, cuerpo: { ...FICHA_SIN_TAREAS, v: 1 } }, SIN_RPC(RPC_FICHA)]) {
       olvidarCasa(CASA);
       llamadas = [];
       conDato(true);

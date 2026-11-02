@@ -12,12 +12,10 @@ import { DATOS_CASA } from "../../src/lib/registroFicha.js";
 // De personas.js y no de datos.js: datos.js importa db.js, que los tests sustituyen (vi.mock) y aún no existe aquí.
 export { RPC_FAMILIA } from "../../src/lib/personas.js";
 
-/**
- * Lo que contestaría ficha_casa (0097) con la v1, sin el estado de cada dato: desde el trozo 12 (#1037) la casa de
- * Lola lee de ahí los datos de la casa con sobre, y con la v1 siguen en el documento, como antes.
- */
+/** ficha_casa (0097, v2 desde la 0107): desde el trozo 12 (#1037) la casa de Lola lee de ahí los datos de la casa con sobre. */
 export const RPC_FICHA = "ficha_casa";
-export const fichaV1 = () => ({ v: 1, casa: { rev: 1 }, personas: [], faltan: [], tareas: [], callados: [] });
+/** Lo que la ficha trae además de «fichas», para una casa sin tareas. */
+export const FICHA_SIN_TAREAS = Object.freeze({ casa: { rev: 1 }, personas: [], faltan: [], tareas: [], callados: [] });
 
 /** Un dato de «fichas» de la casa sin sobre: el defecto del registro, o vacío si no tiene. La base de un campo con ámbito, `ambito: null`. */
 const sinSobre = (campo) => {
@@ -40,7 +38,7 @@ export const fichaDePrueba = (...elementos) => {
   const todos = [...[...CAMPOS_CASA_CON_SOBRE, ...CAMPOS_CON_AMBITO_CON_SOBRE].filter((c) => !dados.has(c)).map(sinSobre), ...elementos];
   const fichas = {};
   for (const e of todos) (fichas[DATOS_CASA[e.campo].ficha] ??= []).push(e);
-  return { ...fichaV1(), v: 2, fichas };
+  return { ...FICHA_SIN_TAREAS, v: 2, fichas };
 };
 
 /**

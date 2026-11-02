@@ -5,7 +5,7 @@
 // dentro, el registro se calla y no sale ninguna escritura.
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { RPC_FAMILIA } from "../../src/lib/personas.js";
-import { RPC_FICHA, fichaV1, RPC_PREFERENCIAS_DE_CASA, preferenciasDeFilas } from "../_bot/familiaDePrueba.js";
+import { RPC_FICHA, fichaDePrueba, RPC_PREFERENCIAS_DE_CASA, preferenciasDeFilas } from "../_bot/familiaDePrueba.js";
 
 process.env.VITE_SUPABASE_URL = "https://sin-base.invalid";
 process.env.SUPABASE_SERVICE_ROLE_KEY = "sin-clave";
@@ -25,10 +25,10 @@ beforeEach(() => {
   vi.stubGlobal("fetch", vi.fn(async (url, o = {}) => {
     const ruta = new URL(url).pathname;
     if ((o.method ?? "GET") !== "GET") escrituras.push(`${o.method} ${ruta}`);
-    // La familia sale de sus filas (personas_de_casa, 0108): aquí, una casa sin nadie. La ficha, la v1 (sin datos con sobre).
+    // La familia sale de sus filas (personas_de_casa, 0108): aquí, una casa sin nadie. La ficha, la v2 con los datos con sobre sin decir (fichaDePrueba).
     const filas = ruta.endsWith("/household_state") ? [{ state: { data: {} }, bot_rev: 0, updated_at: null }]
       : ruta.endsWith(`/rpc/${RPC_FAMILIA}`) ? { v: 1, personas: [], grupos: [] }
-        : ruta.endsWith(`/rpc/${RPC_FICHA}`) ? fichaV1()
+        : ruta.endsWith(`/rpc/${RPC_FICHA}`) ? fichaDePrueba()
           : ruta.endsWith(`/rpc/${RPC_PREFERENCIAS_DE_CASA}`) ? preferenciasDeFilas() : [];
     return { ok: true, status: 200, text: async () => JSON.stringify(filas) };
   }));
