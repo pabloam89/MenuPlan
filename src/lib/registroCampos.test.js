@@ -21,6 +21,9 @@ const MIGRACIONES = readdirSync(DIR).filter((f) => f.endsWith(".sql")).sort()
 const RE_INSERT = /insert into public\.registro_campo\s*\(([^)]*)\)\s*values([\s\S]*?)on conflict/i;
 const ULTIMA = MIGRACIONES.filter((m) => RE_INSERT.test(m.codigo)).at(-1);
 const codigo = ULTIMA.codigo;
+/** Los campos que borran de registro_campo las migraciones que siguen a ULTIMA (la 0118, presupuesto). */
+const BORRADOS = new Set(MIGRACIONES.filter((m) => m.fichero > ULTIMA.fichero)
+  .flatMap((m) => [...m.codigo.matchAll(/delete from public\.registro_campo where id = '([^']+)'/gi)].map((x) => x[1])));
 
 /** Los literales '…' del CHECK con ese nombre (en la última migración que lo define), en orden. */
 function literales(constraint) {
@@ -65,8 +68,9 @@ describe("registro_campo (0097, regenerada en la 0105, la 0112, la 0113 y la 011
     for (const c of ["ficha", "clase", "defecto", "suposicion", "minimo_para_generar", "peso_menu", "escribe", "choque", "ambito"]) expect(cols, c).toContain(c);
   });
 
-  it("mismos campos y, en cada uno, mismas columnas", () => {
-    const filas = filasDelInsert();
+  it("mismos campos (menos los que borran las que siguen) y, en cada uno, mismas columnas", () => {
+    expect([...BORRADOS], "lo que borra la 0118").toEqual(["presupuesto"]);
+    const filas = filasDelInsert().filter((f) => !BORRADOS.has(f.id));
     expect(ordenado(filas.map((f) => f.id))).toEqual(ordenado(Object.keys(REGISTRO_CAMPOS)));
     for (const { id, ...fila } of filas) {
       const js = REGISTRO_CAMPOS[id];
