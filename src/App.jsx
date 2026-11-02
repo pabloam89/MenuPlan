@@ -3115,23 +3115,6 @@ export default function App() {
   // devuelve el menú de antes. El nuevo ya ha sustituido al activo.
   const antesDePizarraRef = useRef(null);
 
-  // Claro u oscuro, SOLO para el tablero de la pizarra. No es el tema de la
-  // app: el resto de pantallas se quedan en claro a propósito, porque el
-  // oscuro se lleva por delante el tono cartoon de las ilustraciones. Vive en
-  // localStorage y no en `data` porque es del aparato, no de la casa: si lo
-  // pones oscuro en el móvil, el portátil del otro no tiene por qué cambiar.
-  const [temaPizarra, setTemaPizarra] = useState(() => {
-    try { return localStorage.getItem("mp_tema_pizarra") === "oscuro" ? "oscuro" : "claro"; }
-    catch { return "claro"; }
-  });
-  const alternarTemaPizarra = useCallback(() => {
-    setTemaPizarra((t) => {
-      const otro = t === "oscuro" ? "claro" : "oscuro";
-      try { localStorage.setItem("mp_tema_pizarra", otro); } catch { /* modo incógnito */ }
-      return otro;
-    });
-  }, []);
-
   // Sube cada vez que caen varios platos de golpe: es la señal para que el
   // tablero los reparta como cartas en vez de enseñarlos ya puestos.
   const [repartoKey, setRepartoKey] = useState(0);
@@ -6470,7 +6453,6 @@ export default function App() {
                 ))
                 : wizard.bubble}
               modoPizarra={esPizarra}
-              temaPizarra={esPizarra ? temaPizarra : "claro"}
               repartoKey={esPizarra ? repartoKey : 0}
               onAddSlot={esPizarra ? setAddSlotDay : null}
               onRemoveSlot={esPizarra ? handleRemoveSlot : null}
@@ -6497,8 +6479,6 @@ export default function App() {
                       onVaciar={handleVaciarPizarra}
                       onFavorito={householdReadOnly ? undefined : toggleActiveFavorite}
                       esFavorito={Boolean(data.menus?.[data.activeMenuId]?.isFavorite)}
-                      tema={temaPizarra}
-                      onTema={alternarTemaPizarra}
                       onCompartir={householdReadOnly ? undefined : handleShareMenuLink}
                     />
                   </Suspense>

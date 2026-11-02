@@ -5099,9 +5099,6 @@ export const MenuScreen = memo(function MenuScreen({
   // sitio que la del asistente y por el mismo motivo: se lee como "esto de
   // aquí arriba controla lo de abajo".
   pizarraControles = null,
-  // "claro" | "oscuro". Solo pinta en la pizarra, y solo si se pide desde su
-  // baldosa: el resto de la app vive de ilustraciones sobre blanco.
-  temaPizarra = "claro",
   // Sube cada vez que "Rellenar" termina de colocar. Es lo que dispara el
   // reparto: no es un booleano porque dos rellenos seguidos tienen que volver
   // a animar, y un booleano que ya estaba a true no cambia nada.
@@ -5772,7 +5769,6 @@ export const MenuScreen = memo(function MenuScreen({
 
   return (
     <div
-      className={modoPizarra && temaPizarra === "oscuro" ? "mp-pizarra-oscura" : undefined}
       style={{ background: "var(--pz-fondo, #fff)", minHeight: "100dvh" }}
     >
       <style>{`

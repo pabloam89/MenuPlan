@@ -53,7 +53,6 @@ export function comprobar(op, { papel }) {
 export const falloDePuerta = (motivo) => (motivo === MOTIVO_PUERTA.SIN_PERMISO ? FALLO_DATO.SIN_PERMISO : FALLO_DATO.INVALIDO);
 
 // ── Choques al guardar (método de choques, trozo 33: src/lib/choques.js) ────────────────────────────────────────
-
 /** Los operadores que no pueden cumplirse a la vez sobre el mismo eje y valor; los de cantidad, solo si no caben. */
 const OPUESTO = Object.freeze({ [OP.MAS]: OP.MENOS, [OP.MENOS]: OP.MAS, [OP.ES]: OP.NO_ES, [OP.NO_ES]: OP.ES, [OP.AL_MENOS]: OP.COMO_MUCHO, [OP.COMO_MUCHO]: OP.AL_MENOS });
 const CON_CANTIDAD = [OP.AL_MENOS, OP.COMO_MUCHO];
@@ -87,14 +86,10 @@ function ladoDe(p, { autor, papel, at }) {
 }
 
 /**
- * Pura. Los choques de las preferencias que se van a escribir con las que ya tiene la casa (al guardar): cada par
- * que se contradice, ordenado y con su respuesta (resolverChoque). Lo que otra fila de la misma operación cambia,
- * borra o rechaza ya no cuenta, ni lo rechazado. Cambiar una fila a su contraria (el mismo id: «más horno» pasa a
- * «menos horno») también choca con lo que era, salvo en una pantalla (`delante`): allí lo guardado se ve, y
- * cambiarlo es decidir. `nueva` es su posición en `nuevas`; `guardada`, el id de la fila. Sin valores.
- * @param {object[]} nuevas      las filas de la operación (operacionDePreferencias().preferencias)
- * @param {object[]} guardadas   las filas de preferencias_de_casa
- * @param {{ autor: string|null, papel: string|null, at: string, delante?: boolean }} quien
+ * Pura. Cada par que se contradice entre `nuevas` (la operación) y `guardadas` (preferencias_de_casa), resuelto
+ * (resolverChoque). Lo que la operación cambia, borra o rechaza, y lo ya rechazado, no cuenta. Cambiar una fila a su
+ * contraria (mismo id) choca con lo que era, salvo en una pantalla (`delante`: lo guardado se ve y cambiarlo es
+ * decidir). `nueva` es su posición en `nuevas`; `guardada`, el id. Sin valores. `quien`: { autor, papel, at, delante }.
  */
 export function choquesAlGuardar(nuevas, guardadas, { autor, papel, at, delante = false }) {
   const tocadas = new Set(nuevas.map((p) => p.id).filter(Boolean));
@@ -118,10 +113,9 @@ export function choquesAlGuardar(nuevas, guardadas, { autor, papel, at, delante 
 }
 
 /**
- * Pura. Lo que se escribe tras los choques: la nueva que pierde, o que hay que preguntar o decidir, se aparta (no se
- * escribe: lo dicho por otro no se pisa en silencio); la vieja que pierde por tiempo (la misma persona cambió de
- * idea) se borra en la misma operación. Lo que gana por alcance convive: cada una vale donde es más concreta.
- * @returns {{ preferencias: object[], apartadas: number[] }}  `apartadas`: posiciones en `nuevas`
+ * Pura. Lo que se escribe tras los choques: la nueva que pierde, o que hay que preguntar o decidir, se aparta (lo
+ * dicho por otro no se pisa en silencio); la vieja que pierde por tiempo se borra en la misma operación; lo que gana
+ * por alcance convive. Devuelve { preferencias, apartadas } (`apartadas`: posiciones en `nuevas`).
  */
 export function trasLosChoques(nuevas, choques) {
   const SE_APLICA = [R.APLICAR_EN_SILENCIO, R.APLICAR_Y_AVISAR];
