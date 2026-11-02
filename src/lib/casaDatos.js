@@ -2,6 +2,8 @@
  * Los datos de la ficha Casa en la app (trozo 12 de #1037): los que ya se guardan con sobre se leen de
  * ficha_casa v2 (por api/operacion.js: la app no puede llamar a la RPC) y se escriben con la cola de la app
  * (crearColaDeDatos, escribirDato.js), no en household_state: los de CAMPOS_CASA_CON_SOBRE (estadoDeDato.js).
+ * Y los de la Rutina con ámbito (trozo 13, CAMPOS_CON_AMBITO_CON_SOBRE): un mapa en data, un sobre por hueco;
+ * lo que cambia de un mapa va en una sola operación con un dato por hueco (datosDeCambio, rutina.js).
  *
  * Plan B, decidido en cada carga, como familiaCasa.js: si la base aún no tiene el campo en registro_campo (la
  * 0112 sin aplicar) o ficha_casa es la v1, ficha_casa no lo trae y el dato sigue en el documento como hasta
@@ -9,7 +11,8 @@
  * de llevarlo. Nunca en los dos sitios.
  */
 import { crearColaDeDatos, enviarAlServidor, jsonDeTexto } from "./escribirDato.js";
-import { estadosDeFichas, datosConSobre, FICHA_CON_ESTADO } from "./estadoDeDato.js";
+import { leidosConSobre, FICHA_CON_ESTADO, CAMPOS_CON_AMBITO_CON_SOBRE } from "./estadoDeDato.js";
+import { datosDeCambio, familiaDeData } from "./rutina.js";
 import { tokenDeSesion, urlOperacion } from "./familiaCasa.js";
 import { revSiguiente } from "./personas.js";
 import { guardarConVersion } from "./versionCasa.js";
@@ -26,15 +29,15 @@ function cargaDeRespuesta(status, cuerpo) {
   if (status !== 200 || !cuerpo || !Number.isInteger(cuerpo.v)) return { error: true };
   if (cuerpo.v !== FICHA_CON_ESTADO) return { valores: {} };
   if (!Array.isArray(cuerpo.datos)) return { error: true };
-  let estados;
+  let leidos;
   try {
-    estados = estadosDeFichas({ casa: cuerpo.datos });
+    leidos = leidosConSobre(cuerpo.datos);
   } catch (e) {
-    // La base y el código no dicen lo mismo (estadoDeDato.js lo explica): se dice y la carga no sigue.
+    // La base y el código no dicen lo mismo (estadoDeDato.js y rutina.js lo explican): se dice y la carga no sigue.
     console.error("[casaDatos] ficha sin el contrato:", e.message);
     return { error: true };
   }
-  return { valores: Object.fromEntries(datosConSobre(estados).map((l) => [l.campo, l.valor])) };
+  return { valores: Object.fromEntries(Object.entries(leidos).map(([campo, l]) => [campo, l.valor])) };
 }
 
 /**
@@ -95,7 +98,8 @@ export function colaDeLaApp() {
  * bot_rev en uno: si cada uno deja la siguiente a la anterior, `botRev` es la última; si no (otro escribió
  * entremedias, o no se conocía la versión), `conflict`, para recargar. Lo que espera en la cola o la base rechaza
  * no sube la versión ni cuenta como guardado. Un dato enviado se da por conocido aunque espere o se rechace (eso
- * se dice): no se vuelve a encolar en cada guardado. Devuelve `{ ok, enviado, botRev?, conflict? }`.
+ * se dice): no se vuelve a encolar en cada guardado. Un mapa con ámbito (CAMPOS_CON_AMBITO_CON_SOBRE) va en una
+ * operación con un dato por hueco que cambia, y sin ninguno no se envía. Devuelve `{ ok, enviado, botRev?, conflict? }`.
  */
 export function casaDeCasa({ casa, valores, cola = colaDeLaApp() }) {
   const conocidos = { ...valores };
@@ -107,8 +111,12 @@ export function casaDeCasa({ casa, valores, cola = colaDeLaApp() }) {
     for (const campo of Object.keys(conocidos)) {
       const valor = datos?.[campo];
       if (valor === undefined || JSON.stringify(valor) === JSON.stringify(conocidos[campo])) continue;
-      const r = await cola.escribir({ casa, accion: "guardar_casa", ref_id: REF_CASA, dato: { campo, valor, origen: "dicho" } });
+      const cambio = CAMPOS_CON_AMBITO_CON_SOBRE.includes(campo)
+        ? { datos: datosDeCambio(campo, conocidos[campo], valor, { origen: "dicho", familia: familiaDeData(datos) }) }
+        : { dato: { campo, valor, origen: "dicho" } };
       conocidos[campo] = valor;
+      if (cambio.datos?.length === 0) continue;
+      const r = await cola.escribir({ casa, accion: "guardar_casa", ref_id: REF_CASA, ...cambio });
       enviado = true;
       if (r.guardado !== true) {
         ok = false;

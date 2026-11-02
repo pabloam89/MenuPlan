@@ -221,11 +221,12 @@ const deLaCasa = (campo) => ({ entidad: "casa", campo, politica: "nunca", vive: 
  */
 const deLaRutina = (campo) => ({ entidad: "casa", ficha: "rutina", campo, politica: "nunca", vive: "tabla:sobre" });
 /**
- * Un dato de la ficha Rutina con fila en registro_campo (trozo 55) que el código aún lee y escribe en el
- * documento (`vive` sigue en data): su sobre llega con los PR del trozo 13, que lo marcan `tabla:sobre`.
- * `ambito`, las dimensiones de cada sobre (DIMENSIONES_AMBITO); sin ellas, un sobre para el sujeto entero.
+ * Un dato de la ficha Rutina con fila en registro_campo (trozo 55), que vive en su sobre (trozo 13). `ambito`,
+ * las dimensiones de cada sobre (DIMENSIONES_AMBITO): con ellas, un sobre por hueco, que la app y Lola leen y
+ * escriben con rutina.js (CAMPOS_CON_AMBITO_CON_SOBRE, estadoDeDato.js); sin ellas, un sobre para el sujeto
+ * entero, como los de la Casa (CAMPOS_CASA_CON_SOBRE).
  */
-const enElRegistro = (campo, ambito = []) => ({ ficha: "rutina", campo, politica: "nunca", ambito });
+const enElRegistro = (campo, ambito = []) => ({ ficha: "rutina", campo, politica: "nunca", ambito, vive: "tabla:sobre" });
 /** Lo que solo apunta el sistema (contadores, avisos dados, alias aprendidos). */
 const delSistema = { escribe: ESCRITOR.SISTEMA };
 /** Lo que solo se añade (menús hechos, tickets, lo que descontó la despensa): tabla con fecha y poda (trozo 22). */

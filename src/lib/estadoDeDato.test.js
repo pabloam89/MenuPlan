@@ -3,7 +3,8 @@
  * sitio para Lola y el asistente de la app (plan fichas con estado, trozo 9).
  */
 import { describe, it, expect } from "vitest";
-import { estadosDeFichas, leidoDe, estadoParaLibreta, marcasDeLola } from "./estadoDeDato.js";
+import { estadosDeFichas, leidoDe, estadoParaLibreta, marcasDeLola, leidosConSobre, CAMPOS_CASA_CON_SOBRE, CAMPOS_CON_AMBITO_CON_SOBRE } from "./estadoDeDato.js";
+import { CAMPOS_CON_AMBITO } from "./rutina.js";
 import { ESTADOS_DATO, ESTADO_DE_ORIGEN, ORIGEN_DATO } from "./vocabularios.js";
 import { ESTADOS as ESTADOS_LIBRETA } from "./notepad.js";
 
@@ -163,5 +164,34 @@ describe("estadosDeFichas: los huecos de un campo con ámbito no tapan su base",
   it("el mismo hueco dos veces, o un ámbito que no es un objeto, no cuadran: lanza", () => {
     expect(() => estadosDeFichas({ rutina: [base, lunes, { ...lunes }] }, AHORA)).toThrow(/dos veces/);
     expect(() => estadosDeFichas({ rutina: [{ ...lunes, ambito: "Lun|Comida" }] }, AHORA)).toThrow(/ámbito/);
+  });
+});
+
+// Los de la Rutina con ámbito viven en sus sobres por hueco (trozo 13): un mapa en data, no un dato suelto.
+describe("los datos con ámbito con sobre", () => {
+  it("son los campos con ámbito del registro, y ninguno va con los de un solo sobre", () => {
+    expect([...CAMPOS_CON_AMBITO_CON_SOBRE].sort()).toEqual(Object.keys(CAMPOS_CON_AMBITO).sort());
+    expect(CAMPOS_CASA_CON_SOBRE.filter((c) => CAMPOS_CON_AMBITO_CON_SOBRE.includes(c))).toEqual([]);
+    expect(CAMPOS_CASA_CON_SOBRE).toContain("menuScheduleSameForAllWeeks");
+  });
+
+  it("leidosConSobre: el mapa de cada uno, con lo dicho en cada hueco; sin decir, vacío; sin la 0116, no sale", () => {
+    const hueco = (campo, sujeto, ambito, valor) => conSobre(campo, sujeto, "dicho", valor, { ambito });
+    const leidos = leidosConSobre([
+      vacio("schedule", persona("p1"), { ambito: null }), hueco("schedule", persona("p1"), { dia: "Lun", comida: "Comida" }, "fuera"),
+      vacio("menuWeekDays", CASA, { ambito: null }),
+      conSobre("menuScheduleSameForAllWeeks", CASA, "dicho", false),
+    ]);
+    expect(leidos).toEqual({
+      menuScheduleSameForAllWeeks: { valor: false, conSobre: true },
+      schedule: { valor: { "p1|Lun|Comida": "fuera" }, conSobre: true },
+      menuWeekDays: { valor: {}, conSobre: false },
+    });
+    expect(leidosConSobre([vacio("schedule", persona("p1"))])).toEqual({});
+  });
+
+  it("marcasDeLola no dice los huecos: Lola los lee en el mapa del documento", () => {
+    const e = estadosDeFichas({ rutina: [conSobre("schedule", persona("p1"), "dicho", "fuera", { ambito: { dia: "Lun", comida: "Comida" } })] }, AHORA);
+    expect(marcasDeLola(e)).toEqual([]);
   });
 });

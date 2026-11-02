@@ -19,6 +19,8 @@ import { operacion, quienEscribe, TIPO_OPERACION, QUE_FUE, autorDelTurno, avisar
 import { leerFamilia, escribirPersonas, leerCasaConSobre, escribirDato } from "./datos.js";
 import { cambiosDePersonas, conOrdenDeTodos, textosDeAvisos, revSiguiente } from "../../src/lib/personas.js";
 import { CANAL_DATO, REF_OPERACION } from "../../src/lib/vocabularios.js";
+import { CAMPOS_CON_AMBITO_CON_SOBRE } from "../../src/lib/estadoDeDato.js";
+import { datosDeCambio, familiaDeData } from "../../src/lib/rutina.js";
 import { recetasPropiasDeCasa, quitarRecetaGuardada } from "./propias.js";
 import { menuActivoDe } from "../../src/lib/menuActivo.js";
 import { isoDeCasa } from "../../src/lib/dias.js";
@@ -188,16 +190,25 @@ function conDatosConSobre(state, conSobre) {
 
 /**
  * Pura. Un estado para guardar sin los datos con sobre (no van al documento), y los que cambiaron respecto a los
- * leídos, como datos de escribirDato. Un escritor que no trae el campo no lo cambia.
+ * leídos, cada uno con lo que va a escribirDato: `{ campo, dato }`, o `{ campo, datos }` con un dato por hueco que
+ * cambia en un mapa con ámbito (CAMPOS_CON_AMBITO_CON_SOBRE, datosDeCambio). Un escritor que no trae el campo no
+ * lo cambia. `familia`, la que queda tras el cambio (familiaDeData): los huecos de quien ya no está no se escriben.
+ * Lanza DatoInvalido si un hueco no cuadra con el registro, antes de guardar nada.
  */
-function separarConSobre(state, conSobre) {
+function separarConSobre(state, conSobre, familia) {
   if (!state?.data || !conSobre) return { documento: state, cambios: [] };
   const data = { ...state.data };
   const cambios = [];
   for (const [campo, leido] of Object.entries(conSobre)) {
     const valor = data[campo];
     delete data[campo];
-    if (valor !== undefined && JSON.stringify(valor) !== JSON.stringify(leido.valor)) cambios.push({ campo, valor: valor ?? null, origen: "dicho" });
+    if (valor === undefined || JSON.stringify(valor) === JSON.stringify(leido.valor)) continue;
+    if (!CAMPOS_CON_AMBITO_CON_SOBRE.includes(campo)) {
+      cambios.push({ campo, dato: { campo, valor: valor ?? null, origen: "dicho" } });
+      continue;
+    }
+    const datos = datosDeCambio(campo, leido.valor, valor, { origen: "dicho", familia });
+    if (datos.length) cambios.push({ campo, datos });
   }
   return { documento: { ...state, data }, cambios };
 }
@@ -246,19 +257,19 @@ function escribirFamilia(casa, cambios) {
   }, { papel: autor.papel });
 }
 
-/** Un dato con sobre, por la tubería (aplicar_operacion). Lo que devuelve, en operar. */
-function escribirDatoDeCasa(casa, dato) {
+/** Un dato con sobre, o los huecos de un mapa con ámbito (separarConSobre), por la tubería (aplicar_operacion). Lo que devuelve, en operar. */
+function escribirDatoDeCasa(casa, { campo, ...cambio }) {
   const op = operacion();
   const autor = autorDelTurno();
   const accion = op.herramienta ?? "guardar_casa";
   return escribirDato({
     casa: casa.householdId,
-    clave: claveDeEscritura(`dato:${dato.campo}:${accion}`, dato),
+    clave: claveDeEscritura(`dato:${campo}:${accion}`, cambio.dato ?? cambio.datos),
     accion,
     canal: autor.canal ?? CANAL_DATO.TELEGRAM,
     ref: { tipo: REF_OPERACION.MENSAJE, id: op.mid },
     autor: { user_id: autor.user_id },
-    dato,
+    ...cambio,
   }, { papel: autor.papel });
 }
 
@@ -268,9 +279,11 @@ function escribirDatoDeCasa(casa, dato) {
 // documento (que es el que mira la versión: si choca, no se ha escrito nada y conCasa repite entero). Lo que no
 // viaja tal cual se dice en el chat (avisarEnElChat). Con la familia en el documento (`casa.familia` null, base
 // sin la 0108), va en él, como antes. Los datos con sobre (trozo 12), igual: lo que cambió va a escribirDato,
-// uno tras otro y detrás de la familia; sin la 0112 (`casa.conSobre` null), en el documento.
+// uno tras otro y detrás de la familia (un hueco de una persona o un grupo nuevos necesita su fila); sin la 0112
+// (`casa.conSobre` null), en el documento. Un mapa con ámbito (trozo 13), en una operación por campo.
 export async function guardarCasa(casa, { state = null, semana = null, activar = null } = {}, { sinDeshacer = false } = {}) {
-  const { documento: sinSobre, cambios: datos } = separarConSobre(state, casa.conSobre);
+  const familiaTras = familiaDeData({ ...(casa.state?.data ?? {}), ...(state?.data ?? {}) });
+  const { documento: sinSobre, cambios: datos } = separarConSobre(state, casa.conSobre, familiaTras);
   const { documento, familia } = casa.familia ? separarFamilia(sinSobre, casa.familia) : { documento: sinSobre, familia: null };
   let cambios = null;
   if (familia) {

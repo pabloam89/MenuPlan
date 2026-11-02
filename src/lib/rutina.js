@@ -82,11 +82,24 @@ export function rutinaDeFichas(elementos) {
  * Pura. Los datos de la operación (escribirDato.js, datoValido) de cada hueco de `campo` que cambia entre dos mapas
  * de data, en el orden de sus claves. Un hueco que se quita va vacío (valor null). Lanza DatoInvalido si una clave
  * o un valor no cuadran con el registro.
+ *
+ * `familia` ({ personas, grupos }: los ids que quedan en la casa tras el cambio), si se da: quitar el hueco de una
+ * persona o un grupo que ya no está no se escribe, porque su sobre se fue con ella (on delete cascade, 0097 y
+ * 0114) y escribirlo pediría una persona que la base ya no tiene. Un hueco con valor de alguien que no está sí
+ * sale, y la base lo rechaza: no se tira en silencio.
  */
-export function datosDeCambio(campo, antes = {}, despues = {}, { origen }) {
+export function datosDeCambio(campo, antes = {}, despues = {}, { origen, familia = null }) {
   if (!CAMPOS_CON_AMBITO[campo]) throw new DatoInvalido(`«${campo}» no tiene ámbito en el registro`);
   const claves = [...new Set([...Object.keys(antes ?? {}), ...Object.keys(despues ?? {})])].sort();
+  const sigue = (d) => (d.persona_id == null || familia.personas.includes(d.persona_id)) && (d.grupo_id == null || familia.grupos.includes(d.grupo_id));
   return claves
     .filter((k) => JSON.stringify(antes?.[k] ?? null) !== JSON.stringify(despues?.[k] ?? null))
-    .map((k) => datoValido({ campo, ...huecoDeClave(campo, k), valor: despues?.[k] ?? null, origen }));
+    .map((k) => datoValido({ campo, ...huecoDeClave(campo, k), valor: despues?.[k] ?? null, origen }))
+    .filter((d) => !familia || d.valor !== null || sigue(d));
 }
+
+/** Pura. Los ids que quedan en la casa para datosDeCambio, de members y groups de data (los que no son lista, ninguno). */
+export const familiaDeData = (data) => ({
+  personas: (Array.isArray(data?.members) ? data.members : []).map((m) => String(m.id)),
+  grupos: (Array.isArray(data?.groups) ? data.groups : []).map((g) => String(g.id)),
+});
