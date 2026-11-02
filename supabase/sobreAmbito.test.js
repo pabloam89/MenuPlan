@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { DIAS, COMIDAS, DIMENSIONES_AMBITO } from "../src/lib/vocabularios.js";
 import { REGISTRO_CAMPOS } from "../src/lib/registroCampos.js";
+import { CLAVE_DE_DIMENSION } from "../src/lib/escribirDato.js";
 
 /**
  * El sobre con ámbito (trozo 55; 0114): cada dimensión de DIMENSIONES_AMBITO entra en la clave única y la exige el
@@ -10,8 +11,8 @@ import { REGISTRO_CAMPOS } from "../src/lib/registroCampos.js";
 const sinComentarios = (texto) => texto.split("\n").filter((l) => !/^\s*--/.test(l)).join("\n");
 const sql = sinComentarios(readFileSync(new URL("./migrations/0114_sobre_ambito.sql", import.meta.url), "utf8"));
 
-/** La columna de sobre de cada dimensión: el grupo es una referencia (grupo_id); las demás, su nombre. */
-const columnaDe = (dimension) => (dimension === "grupo" ? "grupo_id" : dimension);
+/** La columna de sobre de cada dimensión: la misma clave que lleva el dato (CLAVE_DE_DIMENSION, escribirDato.js). */
+const columnaDe = (dimension) => CLAVE_DE_DIMENSION[dimension];
 const literales = (texto) => [...texto.matchAll(/'([^']*)'/g)].map((m) => m[1]);
 
 describe("0114: las columnas del ámbito", () => {

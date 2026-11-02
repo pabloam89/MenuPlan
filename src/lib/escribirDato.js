@@ -28,6 +28,7 @@ import {
 } from "./vocabularios.js";
 import { REGISTRO_CAMPOS } from "./registroCampos.js";
 import { claveOperacion } from "./ids.js";
+import { lunesDe } from "./reglas.js";
 
 /** Dónde guarda la app lo que aún no ha llegado a la base. */
 export const CLAVE_COLA = "menuplan.colaDatos.v1";
@@ -68,12 +69,12 @@ function deLaLista(nombre, valor, que) {
  */
 export const CLAVE_DE_DIMENSION = Object.freeze(Object.fromEntries(DIMENSIONES_AMBITO.map((d) => [d, d === "grupo" ? "grupo_id" : d])));
 
-const RE_FECHA = /^\d{4}-\d{2}-\d{2}$/;
 /** El valor de cada dimensión, por su lista o su forma: el día de DIAS, la comida de COMIDAS, la semana por su lunes. */
 const DE_LA_DIMENSION = Object.freeze({
   grupo: (v) => { if (!hay(v)) throw new DatoInvalido("el grupo del ámbito no es un id"); return v; },
   semana: (v) => {
-    if (!RE_FECHA.test(String(v)) || new Date(`${v}T12:00:00Z`).getUTCDay() !== 1) throw new DatoInvalido(`la semana «${v}» no es un lunes (AAAA-MM-DD)`);
+    // La semana se nombra por su lunes (lunesDe): vale si es su propio lunes, en AAAA-MM-DD.
+    if (typeof v !== "string" || lunesDe(v) !== v) throw new DatoInvalido(`la semana «${v}» no es un lunes (AAAA-MM-DD)`);
     return v;
   },
   dia: (v) => deLaLista("dias", v, "un día"),
