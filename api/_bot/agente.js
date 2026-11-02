@@ -632,7 +632,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
       }),
       run: (args) => ajustarCocina(householdId, args),
     }),
-    herramienta({ capacidades: ["elegir_super", "presupuesto"], lee: ["supermarkets", "supermarketsNota"], escribe: ["supermarkets", "supermarketsNota", "hasBudget", "budget"], lector: false, soloLectura: false, pantalla: "compra" }, {
+    herramienta({ capacidades: ["elegir_super", "presupuesto"], lee: ["supermarkets", "supermarketsNota"], escribe: ["supermarkets", "supermarketsNota", "presupuesto"], lector: false, soloLectura: false, pantalla: "compra" }, {
       name: "ajustar_compra",
       description: "Dónde hace la compra la casa y cuánto quiere gastar. «También compramos en Lidl» es supermercadosMas [Lidl]; «ya no vamos al Dia», supermercadosMenos [Dia]: los demás se quedan. Uno que no está en la lista («compramos en la frutería de abajo»), supermercadoOtro. Con Mercadona, en la app la lista de la compra enseña el precio de cada cosa. presupuesto: euros por semana; sinPresupuesto=true si dicen que no tienen.",
       inputSchema: obj({

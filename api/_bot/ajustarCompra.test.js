@@ -44,9 +44,11 @@ describe("ajustar_compra: el súper y el presupuesto", () => {
   });
 
   it("el presupuesto, por semana y en un rango creíble; «sin presupuesto» lo apaga", () => {
-    expect(aplicarCompra({}, { presupuesto: 120.4 }).data).toMatchObject({ hasBudget: true, budget: 120 });
+    expect(aplicarCompra({}, { presupuesto: 120.4 }).data).toEqual({ presupuesto: 120 });
     expect(aplicarCompra({}, { presupuesto: 3 }).data).toBeUndefined();
-    expect(aplicarCompra({ hasBudget: true, budget: 80 }, { sinPresupuesto: true }).data).toMatchObject({ hasBudget: false });
+    // Un solo dato (trozo 12 de #1037, PR 8): el par de antes no se escribe, y una casa que lo traía lo pierde al cambiarlo.
+    expect(aplicarCompra({ hasBudget: true, budget: 80 }, { sinPresupuesto: true }).data).toEqual({ presupuesto: null });
+    expect(aplicarCompra({ hasBudget: false, budget: 80 }, { presupuesto: 45 }).data).toEqual({ presupuesto: 45 });
   });
 
   it("no toca lo demás de la casa", () => {

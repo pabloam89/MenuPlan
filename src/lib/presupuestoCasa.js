@@ -2,9 +2,10 @@
 //
 // Un solo dato, `presupuesto` (€ por semana; null = sin presupuesto), en vez
 // del par de antes `hasBudget` + `budget` (trozo 12 de #1037). Vive en
-// household_state.data; los PR siguientes del trozo lo escriben (el asistente
-// de la app, Onboarding.jsx, y Lola, ajustar_compra en api/_bot/ajustes.js) y
-// lo pasan a su sobre con la 0112 (CAMPOS_CASA_CON_SOBRE, estadoDeDato.js).
+// household_state.data; el PR siguiente del trozo lo pasa a su sobre con la
+// 0112 (CAMPOS_CASA_CON_SOBRE, estadoDeDato.js). Lo escriben el asistente de
+// la app (Onboarding.jsx) y Lola (ajustar_compra, api/_bot/ajustes.js), los
+// dos con conPresupuesto.
 // Quien lo enseña o hace cuentas con él lo lee aquí: la ficha del bot
 // (api/_bot/ficha.js), lib/presupuesto.js y la pregunta del asistente
 // (wizardRegistry.js), para que «mucho» no sea una cifra en un sitio y «sin
@@ -31,6 +32,12 @@ export function presupuestoGuardado(data) {
   return data.hasBudget ? (data.budget ?? 0) : null;
 }
 
+/** Los datos con el presupuesto puesto (null = sin presupuesto) y sin el par de antes, que ya no se escribe. */
+export function conPresupuesto(data, euros) {
+  const { hasBudget: _h, budget: _b, ...resto } = data ?? {};
+  return { ...resto, presupuesto: euros };
+}
+
 /**
  * @param {object} data household_state.data
  * @returns {{ estado: "sin"|"activo"|"sin_cifra", euros: number|null }}
@@ -40,6 +47,14 @@ export function leerPresupuesto(data) {
   if (v == null) return { estado: "sin", euros: null };
   const b = positivo(v);
   return b == null ? { estado: "sin_cifra", euros: null } : { estado: "activo", euros: b };
+}
+
+/** La cifra con la que arranca el presupuesto al encenderlo en el asistente (la que traía antes el documento de partida). */
+export const PRESUPUESTO_DE_PARTIDA = 80;
+
+/** El interruptor del asistente (Onboarding.jsx): al encender, la cifra que hubiera o la de partida; al apagar, null. */
+export function conInterruptor(data, encendido) {
+  return conPresupuesto(data, encendido ? (leerPresupuesto(data).euros ?? PRESUPUESTO_DE_PARTIDA) : null);
 }
 
 /** Los € por semana que se aplican, o null (sin presupuesto o sin cifra). */

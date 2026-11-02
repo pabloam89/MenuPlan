@@ -500,8 +500,8 @@ const INITIAL_DATA = {
   cookTime: { ...COOK_TIME_DEFAULTS },
   timeWeekday: 30,
   timeWeekend: 60,
-  hasBudget: false,
-  budget: 80,
+  // Sin `presupuesto` a propósito (null = sin presupuesto): puesto aquí, una casa que aún guarda el
+  // par de antes (hasBudget/budget) perdería el suyo al mezclarse con esto (presupuestoGuardado, presupuestoCasa.js).
   wantsPriceEstimates: false,
   supermarkets: [],
   // menuWeek: { offset: 0=current/1=next/2=in2weeks, startDayIdx: 0-6 (Mon-Sun) }
