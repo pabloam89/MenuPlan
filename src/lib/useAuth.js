@@ -164,7 +164,17 @@ export function useAuth() {
     if (!supabase) return { error: null };
     quitarMarca();
     const { error } = await supabase.auth.signOut();
-    if (error) console.error("[auth] sign-out failed", error);
+    if (error) {
+      console.error("[auth] sign-out failed", error);
+      // Sin servidor, también falla signOut({ scope: "local" }), que pasa por la
+      // red: la sesión de este dispositivo se quita a mano.
+      try {
+        localStorage.removeItem(supabase.auth.storageKey);
+      } catch (err) {
+        console.error("[auth] no se pudo borrar la sesión guardada", err);
+      }
+      setSession(null);
+    }
     return { error };
   }, []);
 
