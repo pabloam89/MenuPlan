@@ -193,8 +193,9 @@ export async function operarPreferencias(pedido, { papel, rpc, falloDeError }) {
     apuntarSinGuardar({ fallo: e.fallo, canal: pedido?.canal ?? null, campo });
     return { guardado: false, fallo: e.fallo, error: e.message };
   }
-  // Borrar o rechazar lo dice quien habla (dicho); crear o cambiar, con su origen (dicho si no lo trae, como la base).
-  const datos = op.preferencias.map((p) => ({ campo: null, persona_id: p.persona_id ?? null, origen: p.borrar || p.rechazar ? ORIGEN_PREFERENCIA_POR_DEFECTO : p.origen ?? ORIGEN_PREFERENCIA_POR_DEFECTO }));
+  // Con su origen (dicho si no lo trae, como la base). Borrar también: lo borra la familia (dicho) o el sistema que
+  // retira lo que vio y ya no ve (`visto`, senales.js), sin autor, como lo creó. Rechazar lo dice siempre la familia.
+  const datos = op.preferencias.map((p) => ({ campo: null, persona_id: p.persona_id ?? null, origen: p.rechazar ? ORIGEN_PREFERENCIA_POR_DEFECTO : p.origen ?? ORIGEN_PREFERENCIA_POR_DEFECTO }));
   const contra = comprobar({ canal: op.canal, autor_user_id: op.autor_user_id, datos }, { papel });
   if (contra) {
     const fallo = falloDePuerta(contra.motivo);
