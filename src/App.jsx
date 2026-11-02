@@ -3112,7 +3112,7 @@ export default function App() {
   // la hoja de «¿Qué días?» delante y sin franja de mandos.
   const [pizarraArrancando, setPizarraArrancando] = useState(false);
   // Cómo estaba todo antes de abrirla: mientras la hoja sigue delante, cerrarla
-  // deja la casa como estaba. El menú nuevo ya ha sustituido al activo.
+  // devuelve el menú de antes. El nuevo ya ha sustituido al activo.
   const antesDePizarraRef = useRef(null);
 
   // Claro u oscuro, SOLO para el tablero de la pizarra. No es el tema de la
