@@ -73,10 +73,13 @@ export function listaConMarcas(derivados, guardada) {
  * guardarlas: tocar la lista no borra una marca que no se ve.
  */
 export function compraQueSeVe(guardada, derivar) {
-  if (!esCompraConMarcas(guardada)) return { items: guardada?.items ?? [] };
+  // La vista recuerda de qué se derivó (sin enumerarlo: no viaja ni se compara), para que al guardarla lo que el
+  // menú pide y ya no está en la lista quede quitado (cambiarCompra).
+  const conDerivar = (vista) => Object.defineProperty(vista, "derivar", { value: derivar, enumerable: false });
+  if (!esCompraConMarcas(guardada)) return conDerivar({ items: guardada?.items ?? [] });
   const items = listaConMarcas(derivar(), guardada);
   const vistos = new Set(items.map((it) => it.id));
-  return { items, aparte: guardada.marcas.filter((m) => !vistos.has(m.id)) };
+  return conDerivar({ items, aparte: guardada.marcas.filter((m) => !vistos.has(m.id)) });
 }
 
 /** Los ids de lo quitado de una vista con marcas (viaja en `aparte`): quien rehace la lista no lo devuelve. */
@@ -98,10 +101,14 @@ export function compraParaGuardar(vista, derivados = []) {
 /**
  * Un cambio sobre la lista que se ve, hecho sobre lo guardado: `cambio` es la
  * vista nueva o una función de la vista de ahora a la nueva (como un setState),
- * `verla` saca la vista de lo guardado. Devuelve lo que se guarda: marcas.
+ * `verla` saca la vista de lo guardado. Devuelve lo que se guarda: marcas. Lo
+ * que no traiga la vista nueva (`aparte`, si solo trae `items`) sale de la de
+ * ahora, y lo derivado del menú que ya no está en la lista se guarda quitado.
  */
 export function cambiarCompra(guardada, cambio, verla) {
-  return compraParaGuardar(typeof cambio === "function" ? cambio(verla(guardada)) : cambio);
+  const ahora = verla(guardada);
+  const nueva = typeof cambio === "function" ? cambio(ahora) : cambio;
+  return compraParaGuardar({ aparte: ahora.aparte, ...nueva }, ahora.derivar?.() ?? []);
 }
 
 /** Los artículos derivados de una lista de buildShoppingList: los del súper y los que cubre la despensa. */

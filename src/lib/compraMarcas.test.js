@@ -115,4 +115,27 @@ describe("la compra guarda solo marcas (trozo 18)", () => {
     expect(marcas.every((m) => m.id)).toBe(true);
     expect(listaConMarcas([], { marcas }).map((it) => it.name)).toEqual(["pan"]);
   });
+
+  it("la pantalla de la compra guarda solo items (Shopping.jsx): lo que no se ve sigue, y lo del menú que se borra queda quitado", () => {
+    const guardada = { marcas: [
+      { id: "pan|ud", nombre: "Pan", unidad: "ud", marcas: [MARCA_COMPRA.QUITADO] },
+      { id: "arroz|g", nombre: "Arroz", unidad: "g", marcas: [MARCA_COMPRA.COMPRADO] },
+    ] };
+    const verla = (g) => compraQueSeVe(g, () => derivados);
+    // Como updateWeekShopping: la vista nueva sin aparte, con los huevos borrados.
+    const items = verla(guardada).items.filter((it) => it.id !== "huevo|ud");
+    const otra = cambiarCompra(guardada, { items }, verla);
+    expect(otra.marcas.map((m) => [m.id, m.marcas])).toEqual([
+      ["pan|ud", [MARCA_COMPRA.QUITADO]],
+      ["huevo|ud", [MARCA_COMPRA.QUITADO]],
+      ["arroz|g", [MARCA_COMPRA.COMPRADO]],
+    ]);
+    expect(verla(otra).items.map((it) => it.id)).toEqual(["leche|ml"]);
+  });
+
+  it("con setCompra (una función de la vista de ahora), lo mismo", () => {
+    const verla = (g) => compraQueSeVe(g, () => derivados);
+    const otra = cambiarCompra({ marcas: [] }, (v) => ({ ...v, items: v.items.filter((it) => it.id !== "pan|ud") }), verla);
+    expect(otra.marcas).toEqual([{ id: "pan|ud", nombre: "Pan", unidad: "ud", marcas: [MARCA_COMPRA.QUITADO] }]);
+  });
 });

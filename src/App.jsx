@@ -3327,9 +3327,10 @@ export default function App() {
   // `shopping` state when the edited week is the one currently active, so the
   // Menú/Compra views and the archive never drift apart.
   const updateWeekShopping = useCallback((weekStart, vistaNueva) => {
-    // Llega la lista que se ve; se guardan sus marcas (trozo 18).
-    const nextShopping = compraParaGuardar(vistaNueva);
+    // Llega la lista que se ve; se guardan sus marcas (trozo 18), frente a lo que el menú de esa semana pide.
     const menuId = data.activeMenuId;
+    const semana = data.menus?.[menuId]?.weeks?.[weekStart];
+    const nextShopping = cambiarCompra(semana?.shopping, vistaNueva, (g) => vistaDeCompra(g, semana?.plan));
     setData((d) => {
       const m = d.menus?.[menuId];
       if (!m?.weeks?.[weekStart]) return d;

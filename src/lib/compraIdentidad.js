@@ -45,6 +45,9 @@ export function articuloAMano({ id, name, unit = "", have = false, atHome = fals
  * @param {string[]} nombres
  * @param {() => string} [sello] sufijo del id (por defecto, la hora)
  */
+/** El id de un añadido a mano: `manual:` + su clave (y el sello, al apuntarlo; sin él, el de una lista vieja sin id). */
+export const idManual = (nombre, sello = null) => `manual:${claveArticulo(nombre).replace(/\s+/g, "-")}${sello ? `:${sello}` : ""}`;
+
 export function anadirArticulos(items, nombres, sello = () => Date.now().toString(36)) {
   const lista = (items ?? []).map((it) => ({ ...it }));
   const res = { items: lista, anadidos: [], yaEstaban: [], devueltos: [] };
@@ -62,7 +65,7 @@ export function anadirArticulos(items, nombres, sello = () => Date.now().toStrin
       }
       continue;
     }
-    lista.push(articuloAMano({ id: `manual:${clave.replace(/\s+/g, "-")}:${sello()}`, name }));
+    lista.push(articuloAMano({ id: idManual(name, sello()), name }));
     res.anadidos.push(name);
   }
   return res;
@@ -76,7 +79,7 @@ const claveConUnidad = (it) => normalizeIngredientKey(it?.name ?? "", it?.unit ?
  * El id de un artículo: el suyo, o, en una lista vieja sin ids, el que tendría
  * (el de buildShoppingList si sale del menú; uno de añadido si se apuntó a mano).
  */
-export const idDeArticulo = (it) => it?.id ?? (it?.manual ? `manual:${claveArticulo(it.name).replace(/\s+/g, "-")}` : claveConUnidad(it));
+export const idDeArticulo = (it) => it?.id ?? (it?.manual ? idManual(it.name) : claveConUnidad(it));
 
 /**
  * La lista `nuevos` con las marcas de `viejos` del mismo ingrediente y unidad:
