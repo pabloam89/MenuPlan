@@ -500,6 +500,11 @@ export function ShoppingScreen({
   const updateWeek = (weekStart, updater) => {
     const w = weeksRef.current.find((x) => x.weekStart === weekStart);
     const next = updater(w?.items ?? []);
+    // Al día sin esperar al render: un tick pendiente puede escribir con la
+    // pantalla ya desmontada y no debe pisar lo que escribió otro.
+    weeksRef.current = weeksRef.current.map((x) =>
+      x.weekStart === weekStart ? { ...x, items: next } : x,
+    );
     if (menuMode) onUpdateWeek?.(weekStart, { items: next });
     else setShopping?.((s) => ({ ...s, items: next }));
   };
@@ -2444,6 +2449,9 @@ function IngredientThumb({ name, dimmed = false, size = 34 }) {
   );
 }
 
+// Lo que se ve el tick de una fila antes de pasar a «Comprado».
+const TICK_VISIBLE_MS = 700;
+
 function ShoppingRow({
   item,
   pricing = null,
@@ -2470,7 +2478,10 @@ function ShoppingRow({
   const displayVal = item.displayQty ?? formatDisplay(item.qty ?? 0, unit);
   const isUdUnit = unit === "ud";
   const pieceCount = pantryPieceCountLabel(item.name, item.qty, item.unit);
-  const dimmed = item.have || item.atHome;
+  // Recién marcada: la fila se queda un momento con el tick antes de irse a
+  // «Comprado»; si no, desaparece sin que se vea que se ha tachado.
+  const [ticking, setTicking] = useState(false);
+  const dimmed = item.have || item.atHome || ticking;
   const canEditQty = !readOnly && !dimmed && !item.__qtyLocked;
 
   // When Mercadona matched a SKU, show the same buy quantities as the € view
@@ -2498,7 +2509,17 @@ function ShoppingRow({
 
   // Casilla de comprado: el deslizamiento a la derecha queda como atajo. En
   // «Comprado» la misma casilla lo devuelve a «Por comprar».
-  const toggleBought = boughtTab ? onSwipeReturn : onSwipePurchased;
+  // El temporizador no se cancela al desmontar: lo marcado se guarda aunque se
+  // cambie de pestaña en ese momento.
+  const tickThenBuy = () => {
+    if (ticking) return;
+    setTicking(true);
+    setTimeout(() => {
+      onSwipePurchased();
+      setTicking(false);
+    }, TICK_VISIBLE_MS);
+  };
+  const toggleBought = boughtTab ? onSwipeReturn : tickThenBuy;
 
   return (
     <SwipePurchaseShell
