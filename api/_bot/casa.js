@@ -29,6 +29,7 @@ import { menuActivoDe } from "../../src/lib/menuActivo.js";
 import { isoDeCasa } from "../../src/lib/dias.js";
 import { favoritasDeFilas, votosDeFavoritas, descartesDeFilas } from "../../src/lib/recetasDeLaCasa.js";
 import { sellarCambios } from "../../src/lib/sobreHueco.js";
+import { conCompraQueSeVe, semanaParaGuardar } from "./compraDeSemana.js";
 
 // En hora de España: a las 00:30 del jueves, «hoy» es jueves, no el miércoles de UTC.
 export const hoyISO = () => isoDeCasa();
@@ -148,7 +149,8 @@ async function leerCasa(householdId) {
     ?? semanas[0]
     ?? null;
 
-  return {
+  // La compra de cada semana que guarda marcas, como se ve: derivada del menú con las marcas encima (trozo 18).
+  return conCompraQueSeVe({
     householdId,
     botRev: Number(fila.bot_rev ?? 0),
     updatedAt: fila.updated_at,
@@ -170,7 +172,7 @@ async function leerCasa(householdId) {
     semana,
     semanas,
     semanaViva: semana?.weekStart ?? null,
-  };
+  });
 }
 
 /**
@@ -348,8 +350,10 @@ export async function guardarCasa(casa, { state = null, semana = null, activar =
 
   // Un plato que cambia Lola lleva su sobre: el canal del turno, quién y cuándo (sobreHueco.js, trozo 18).
   const semanaSellada = semana?.plan && casa.semana ? { ...semana, plan: sellarCambios(casa.semana.plan, semana.plan, sobreDelTurno()) } : semana;
-  const week = semanaSellada && casa.semana
-    ? { menu_id: casa.semana.menuId, week_start: casa.semana.weekStart, ...semanaSellada }
+  // Una semana que guarda marcas vuelve a guardar marcas, no la lista que se ve (trozo 18).
+  const semanaGuardada = semanaSellada && casa.semana ? await semanaParaGuardar(casa, semanaSellada) : null;
+  const week = semanaGuardada
+    ? { menu_id: casa.semana.menuId, week_start: casa.semana.weekStart, ...semanaGuardada }
     : null;
   const r = await rpc(activar ? "bot_save_casa_activando" : "bot_save_casa", {
     p_household_id: casa.householdId,
@@ -412,8 +416,11 @@ export async function guardarCasa(casa, { state = null, semana = null, activar =
 }
 
 /** El sobre de lo que escribe Lola en este turno: su canal y quién habla; fuera de un turno (un cron), el sistema. */
+// Fuera de un turno (crons, scripts) escribe el sistema. En un turno, el canal es el del autor: sin él se falla, no
+// se firma como el menú automático lo que pidió una persona.
 function sobreDelTurno() {
   const autor = autorDelTurno();
+  if (autor && !autor.canal) throw new Error("sobre del hueco: el autor del turno no dice por qué canal habla");
   return { canal: autor?.canal ?? CANAL_DATO.SISTEMA, cuando: new Date().toISOString(), quien: autor?.user_id ?? null };
 }
 
