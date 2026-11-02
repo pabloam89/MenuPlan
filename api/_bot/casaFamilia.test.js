@@ -10,6 +10,7 @@ import { FamiliaSinLeer, TEXTO_AVISO_PERSONA, AVISOS_PERSONA, RPC_FAMILIA } from
 import { SUFIJO_CLAVE_PERSONA, RPC_OPERACION } from "../../src/lib/operaciones/tuberia.js";
 import { CAMPOS_CASA_CON_SOBRE } from "../../src/lib/estadoDeDato.js";
 import { RPC_FICHA, fichaV1 } from "./familiaDePrueba.js";
+import { PREGUNTAS_POR_ID } from "../../src/lib/wizardRegistry.js";
 
 const CASA = "3f2b8c1e-7a4d-4e0b-9c5a-1d2e3f4a5b6c";
 const A = "00000000-0000-4000-8000-00000000000a";
@@ -289,6 +290,19 @@ describe("los datos de la casa con sobre (trozo 12)", () => {
     ]);
     expect(escrituras()[0].cuerpo.p_state.data).not.toHaveProperty("kitchenTools");
     expect(r).toMatchObject({ ok: true, botRev: 10 });
+  });
+
+  it("el nivel de cocina (PR 6): sin decir, «normal» del registro y no el del documento; «esfuerzo» va como dicho, sin marca en el documento", async () => {
+    respuestas.unshift([/household_state/, { status: 200, cuerpo: [{ state: { data: { ...DOCUMENTO.data, cookLevel: "pro", cookLevelManual: true } }, bot_rev: 7, updated_at: "2026-11-01T10:00:00Z" }] }]);
+    responde(RUTA_FICHA, { status: 200, cuerpo: fichaV2(porDefecto("cookLevel", "normal")) });
+    const casa = await cargarCasa(CASA);
+    expect(casa.state.data.cookLevel).toBe("normal");
+    olvidarCasa(CASA);
+    const { r } = await enTurno(() => conCasa(CASA, async (c) => ({ state: { ...c.state, data: PREGUNTAS_POR_ID.esfuerzo.escribe(c.state.data, "basic") } })));
+    const [doc, op] = escrituras();
+    expect(doc.cuerpo.p_state.data).not.toHaveProperty("cookLevel");
+    expect(op.cuerpo.p_operacion.datos).toEqual([{ campo: "cookLevel", persona_id: null, valor: "basic", origen: "dicho" }]);
+    expect(r).toMatchObject({ ok: true, botRev: 9 });
   });
 
   it("sin la 0112 (la ficha no trae la ficha Casa), con la v1 o sin la RPC, del documento y se guarda en él", async () => {
