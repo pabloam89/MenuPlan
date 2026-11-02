@@ -7564,7 +7564,7 @@ function FlipCaseLetter({ upper, lower, active, activeColor, inactiveColor, dela
 function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple, abriendoCasa = false }) {
   const handleEnter = () => (hasSaved ? onResume() : onNext());
 
-  // El vídeo de bienvenida ocupa la pantalla entera sobre negro verdoso, y el
+  // La foto de bienvenida ocupa casi toda la pantalla sobre negro verdoso, y el
   // reloj cae encima: en oscuro desapareceria.
   useStatusBarSobreFondo("oscuro");
 
@@ -7588,7 +7588,7 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
   const nDelay = isMenu ? 0 : 300;
 
   // Solo los botones entran: antes TODA la pantalla era un «Entrar sin
-  // cuenta», y un toque despistado en el vídeo te metía en el alta.
+  // cuenta», y un toque despistado en la foto te metía en el alta.
   return (
     <div
       style={{
@@ -7618,6 +7618,20 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
         @keyframes shimmer {
           0%   { transform: translateX(-120%) skewX(-18deg); }
           100% { transform: translateX(320%) skewX(-18deg); }
+        }
+        .portada-foto { object-position: center 35%; }
+        .portada-titulo { padding: 56px 32px 0; }
+        .portada-logo { width: 84px; height: 84px; }
+        .portada-letras { font-size: clamp(58px, 17vw, 84px); margin: 0 0 10px; }
+        .portada-lema { font-size: 20px; }
+        /* Móvil con las barras del navegador: el título encoge y la foto baja el
+           encuadre para que las cuatro caras quepan entre él y los botones. */
+        @media (max-height: 800px) {
+          .portada-foto { object-position: center 72%; }
+          .portada-titulo { padding-top: 28px; }
+          .portada-logo { width: 52px; height: 52px; }
+          .portada-letras { font-size: 48px; margin-bottom: 4px; }
+          .portada-lema { font-size: 16px; }
         }
         @keyframes btnGlow {
           0%, 100% { box-shadow: 0 8px 28px rgba(61,122,82,.45), 0 2px 8px rgba(0,0,0,.25); }
@@ -7662,6 +7676,7 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
 
       {/* Foto fija de fondo. */}
       <img
+        className="portada-foto"
         src="/portada.jpg"
         alt=""
         aria-hidden="true"
@@ -7670,11 +7685,9 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
           top: 0,
           left: 0,
           width: "100%",
-          // Más corta que la pantalla: las caras quedan por encima de los botones,
-          // y su borde inferior se funde con el fondo.
+          // Más corta que la pantalla: su borde inferior se funde con el fondo.
           height: "78%",
           objectFit: "cover",
-          objectPosition: "center 35%",
           WebkitMaskImage: "linear-gradient(180deg, #000 82%, transparent 100%)",
           maskImage: "linear-gradient(180deg, #000 82%, transparent 100%)",
           zIndex: 1,
@@ -7696,24 +7709,23 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
 
       {/* Título arriba */}
       <div
+        className="portada-titulo"
         style={{
           position: "absolute",
           top: 0,
           left: 0,
           right: 0,
           zIndex: 2,
-          padding: "56px 32px 0",
           color: "#fff",
           textAlign: "center",
           animation: "fadeUp .8s ease-out both",
         }}
       >
         <div
+          className="portada-logo"
           role="img"
           aria-hidden="true"
           style={{
-            width: 84,
-            height: 84,
             margin: "0 auto 6px",
             backgroundColor: isMenu ? GREEN : WHITE,
             WebkitMaskImage: "url(/logo-homenu.svg)",
@@ -7730,10 +7742,9 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
         />
 
         <h1
+          className="portada-letras"
           style={{
-            fontSize: "clamp(58px, 17vw, 84px)",
             fontWeight: 900,
-            margin: "0 0 10px",
             letterSpacing: "-3px",
             lineHeight: 1,
             fontFamily: "'Playfair Display', Georgia, serif",
@@ -7750,9 +7761,9 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple,
         </h1>
 
         <p
+          className="portada-lema"
           style={{
             margin: 0,
-            fontSize: 20,
             fontWeight: 700,
             fontStyle: "italic",
             letterSpacing: ".2px",
