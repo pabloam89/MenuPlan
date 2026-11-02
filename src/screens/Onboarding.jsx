@@ -10926,7 +10926,7 @@ export function OnboardingBudget({ data, setData, onBack, onNext, onFinish, onRe
   }, [data.menuWeekOffsets, data.menuWeek]);
 
   // Un solo dato (presupuestoCasa.js): null es «sin presupuesto»; una cifra que no vale («sin_cifra») cuenta como
-  // encendido, para que se vea y se corrija.
+  // encendido y se dice debajo del deslizador: la cifra de partida que enseña no se aplica hasta que se elige una.
   const { estado: estadoPresupuesto, euros } = leerPresupuesto(data);
   const hasBudget = estadoPresupuesto !== "sin";
   const primaryStore = data.supermarkets[0] ?? "";
@@ -10980,6 +10980,11 @@ export function OnboardingBudget({ data, setData, onBack, onNext, onFinish, onRe
             step={5}
             onChange={(v) => setData((d) => conPresupuesto(d, v))}
           />
+          {estadoPresupuesto === "sin_cifra" && (
+            <OnbBudgetStoreHint>
+              El presupuesto está activado pero sin una cifra válida, así que no se tiene en cuenta: elige cuánto quieres gastar.
+            </OnbBudgetStoreHint>
+          )}
         </div>
 
         <div style={{ marginTop: 20 }}>
