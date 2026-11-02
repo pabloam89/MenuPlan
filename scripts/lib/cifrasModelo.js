@@ -12,6 +12,7 @@ import { PIEZAS_FUERA } from "../../api/_bot/interprete.js";
 import { CAMPO_LLEGARON } from "../../api/_bot/medidaTurno.js";
 import { RASTRO, CAMPO_CUMPLIMIENTO, CIFRA_CUMPLIMIENTO as C } from "../../src/lib/rastro.js";
 import { ESCRITORAS_HEREDADAS, LLAMADAS_HEREDADAS } from "../../src/lib/operaciones/escritoras.js";
+import { PREFERENCIAS_SISTEMA } from "../../src/lib/preferenciasSistema.js";
 import { clavesGuardadas } from "./inventarioFicha.mjs";
 import CAPACIDADES_BASE from "../../src/lib/capacidades.base.json" with { type: "json" };
 
@@ -160,7 +161,8 @@ export const CIFRAS = [
       return f.d ? Math.round((100 * f.c) / f.d) : { sin_medir: `ningún menú con preferencias dichas medidas: ${RASTRO.MENU_GENERADO} lleva ${CAMPO_CUMPLIMIENTO} desde el trozo 31` };
     } },
   { id: "reglas_fuera_de_preferencias", nombre: "Reglas del validador escritas a mano (no caben como preferencia)", trozo: 32, fuente: FUENTE.codigo, sentido: SENTIDO.baja, meta: null,
-    base: null, falta: "src/lib/preferenciasSistema.js" },
+    base: base(18, "2026-11-02", "trozo 32 (#1037)", 31),
+    medir: () => ({ valor: PREFERENCIAS_SISTEMA.filter((p) => p.forma === "escrita").length, de: PREFERENCIAS_SISTEMA.length }) },
   { id: "choques_repetidos", nombre: "Choques repetidos tras una tarea de decisión", trozo: 33, fuente: FUENTE.base, sentido: SENTIDO.baja, meta: 0,
     base: null, falta: "src/lib/choques.js" },
   { id: "preguntas_hasta_primer_menu", nombre: "Preguntas hasta el primer menú", trozo: 34, fuente: FUENTE.base, sentido: SENTIDO.baja, meta: null,
