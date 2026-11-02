@@ -383,9 +383,11 @@ export async function guardarCasa(casa, { state = null, semana = null, activar =
         const texto = textoDeChoque(c, preferencias[c.nueva]);
         if (texto) avisarEnElChat(texto);
       }
-      // Si no se escribió nada porque todo chocó, no es un fallo: el aviso de arriba dice qué pasó.
+      // Si no se escribió nada porque todo chocó, no es un fallo: el aviso de arriba dice qué pasó. Si solo chocó una
+      // parte y lo demás no se guardó, sí lo es, y se dice.
+      const todoChoco = !r.fallo && r.apartadas?.length === preferencias.length;
       if (!r.guardado) {
-        if (r.fallo || !r.apartadas?.length) sinGuardar.push(`las preferencias: ${r.fallo ?? r.error ?? r.estado ?? "sin motivo"}`);
+        if (!todoChoco) sinGuardar.push(`las preferencias: ${r.fallo ?? r.error ?? r.estado ?? "sin motivo"}`);
       } else {
         const tras = seguida ? revSiguiente(botRev, r.rev) : null;
         if (tras != null) botRev = tras;
