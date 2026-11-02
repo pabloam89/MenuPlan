@@ -2450,7 +2450,7 @@ function IngredientThumb({ name, dimmed = false, size = 34 }) {
 }
 
 // Lo que se ve el tick de una fila antes de pasar a «Comprado».
-const TICK_VISIBLE_MS = 700;
+const TICK_VISIBLE_MS = 300;
 
 function ShoppingRow({
   item,
