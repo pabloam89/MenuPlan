@@ -1,4 +1,9 @@
 -- El lector tacha también en una compra guardada como marcas (plan fichas con estado, trozo 18; #1037).
+-- AUDITADA: auditor-datos 2026-11-02 OK
+--   (un agente independiente, que no la escribió: firma, definer, search_path y permisos iguales que la 0087; null
+--   y no-objeto como la 0087; idempotente. Pidió tres cambios, hechos después: decir aquí que el lector llega con
+--   #1200, y juntar los tachados pendientes por id en menusSync.js. Matiz: un artículo apuntado por primera vez
+--   desde el lector guarda la unidad «ud» si no la trae, y compraMarcas.js guarda «»; se casa por id, no rompe nada)
 --
 -- Desde el trozo 18, la compra de una semana puede guardarse como marcas de la familia sobre la lista que sale del
 -- menú (`{ marcas: [{ id, nombre, unidad, marcas: [...] }] }`, src/lib/compraMarcas.js), y no como la lista entera
@@ -14,6 +19,8 @@
 --
 -- 'comprado' es MARCA_COMPRA.COMPRADO (src/lib/vocabularios.js); supabase/tacharMarcas.test.js compara las dos.
 -- NO hace: no toca la forma de ninguna compra guardada (sin repoblar), ni RLS, ni tablas, ni otras funciones.
+-- Lector: la app tacha por aquí (queueMarcarCompra, menusSync.js) en una semana con marcas desde que la ve como
+-- marcas (#1200); antes de eso nadie escribe marcas (2 nov 2026: 326 de 326 semanas guardan la lista entera).
 -- Plan B (regla migraciones): sin esta, en una semana con marcas el tachado del lector no se guarda (la función
 -- vieja escribe `items` al lado de `marcas` y nadie lo lee); en una con la lista entera, igual que hoy.
 -- Testigo: la función public._marcar_compra(jsonb, jsonb).
