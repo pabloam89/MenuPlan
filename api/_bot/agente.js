@@ -75,7 +75,11 @@ import { tareasV2 } from "./idempotencia.js";
 import { apuntarSilencio, conRecordatorio, NOTA_RECORDATORIO } from "./silencio.js";
 import { usoParcialDe, sumarUsos } from "./medidaTurno.js";
 import { esResultado, paraElModelo, conRecibo, recibo, cuentaComoGuardado, exigeResultado, SIN_RESULTADO } from "./resultado.js";
-import { operacion, claveDeEscritura, tipoDeHerramienta, YA_ESCRITA, SIN_COMPROBAR, ponerAutor, tomarAvisos } from "./operacion.js";
+import { operacion, claveDeEscritura, tipoDeHerramienta, YA_ESCRITA, SIN_COMPROBAR, ponerAutor, tomarAvisos, autorDelTurno } from "./operacion.js";
+import { tratoDeFicha, lineaDelTrato, guardarTrato } from "./trato.js";
+import { escribirDato } from "./datos.js";
+import { miembroDeCuentaId } from "../../src/lib/stages.js";
+import { claveOperacion } from "../../src/lib/ids.js";
 import { primeraVez, yaVista } from "./entradas.js";
 
 const yaEscrita = (clave) => yaVista(CANAL.TELEGRAM, clave);
@@ -645,6 +649,27 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
         sinPresupuesto: { type: "boolean" },
       }),
       run: (args) => ajustarCompra(householdId, args),
+    }),
+    herramienta({ capacidades: ["trato"], lee: ["accountMemberIdByUser"], escribe: ["members.tratoRitmo", "members.tratoProfundidad", "members.tratoFotos", "members.tratoLargo"], lector: false, soloLectura: false, pantalla: null }, {
+      name: "ajustar_trato",
+      description: "Cómo quiere quien escribe que le hables (solo a él o ella, no a toda la casa). ritmo: directo («no me preguntes tanto», «decide tú») o guiado («ve paso a paso», «pregúntame antes»). profundidad, cuánto afinar antes de hacer un menú: nada («hazlo ya»), poco, mucho («quiero afinarlo bien») o preguntar (preguntárselo cada vez). fotos: si quiere fotos de los platos. largo: corto («más corto», «al grano») o largo («explícame más»). Solo lo que diga; lo demás no se toca. Úsala cuando lo pida como algo para siempre, no por un mensaje suelto.",
+      inputSchema: obj({
+        ritmo: esquemaDato("members.tratoRitmo"),
+        profundidad: esquemaDato("members.tratoProfundidad"),
+        fotos: esquemaDato("members.tratoFotos"),
+        largo: esquemaDato("members.tratoLargo"),
+      }),
+      run: (args) => {
+        const op = operacion();
+        return guardarTrato(args, {
+          householdId,
+          personaId: miembroDeCuentaId(chat.casaData, quien.userId),
+          autor: autorDelTurno(),
+          op,
+          escribir: escribirDato,
+          clave: claveDeEscritura("dato:trato:ajustar_trato", args) ?? claveOperacion.nuevo(),
+        });
+      },
     }),
     herramienta({ capacidades: ["extras"], lee: ["extraMeals", "members"], escribe: ["extraMeals"], lector: false, soloLectura: false, pantalla: null }, {
       name: "ajustar_extras",
@@ -1268,7 +1293,10 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   // Para las alergias por silencio (silencio.js): quién había ANTES del turno.
   chat.nombresAntes = (data.members ?? []).map((m) => m.name).filter(Boolean);
   // La ficha de la casa (api/_bot/ficha.js): lo que Lola ya sabe sin preguntar.
-  const ficha = casa ? conQuienEscribe(montarFicha(deLaFicha.casa, extras), chat.papel, chat.idioma) : null;
+  // El trato de quien escribe (trozo 16): de la ficha «trato» de ficha_casa, o sus defectos (trato.js, plan B).
+  const fichaBase = casa ? conQuienEscribe(montarFicha(deLaFicha.casa, extras), chat.papel, chat.idioma) : null;
+  chat.trato = tratoDeFicha(tablas, miembroDeCuentaId(data, chat.userId));
+  const ficha = fichaBase && chat.papel && chat.papel !== "ajeno" ? { ...fichaBase, delDia: [fichaBase.delDia, lineaDelTrato(chat.trato)].filter(Boolean).join("\n") } : fichaBase;
   let dicho, uso, corregido, medida, promesa, sigueSinGuardar = false;
   const tLola = Date.now();
   // La pista del enrutador (api/_bot/pista.js). `progreso` lo rellena Lola
