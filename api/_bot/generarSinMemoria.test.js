@@ -24,7 +24,7 @@ const m = {
   recipeCatalog: [], resolveModeData: (d) => d, membersOfGroup: (g, ms) => ms,
   groupsFromModel: () => [{ id: "g1", label: "Todos" }], explicitDaysForOffset: () => null,
   computeWeekRange: () => ({ startISO: "2026-10-05", endISO: "2026-10-11", activeDays: ["Lun"] }),
-  prepararSemana: () => ({ weekData: {}, crossWeek: null, weekSchedule: {} }),
+  prepararSemana: () => ({ weekData: {}, crossWeek: null, weekSchedule: {} }), entradaDelMotor: (weekData) => weekData,
   generateMenuWithAI: async () => ({ plan, recipes: [{ id: "r1", name: "Tortilla" }] }),
   registerRecipes: () => {}, buildShoppingList: () => ({ byCategory: [], pantryItems: [] }),
   getDayMeals: () => ({}), createMenuId: () => "menu-nuevo", menuToRow: (menu) => ({ id: menu.id }),

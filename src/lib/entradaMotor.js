@@ -10,6 +10,7 @@ import { DAYS, diasActivosDe, getMeals, modeForGroupSlot, slotKey } from "./plan
 import { isBabyMenuGroup, membersOfGroup, tipoDeGrupo } from "./groups.js";
 import { esMenor, esNino } from "./stages.js";
 import { alergiasParaMenu } from "./alergias.js";
+import { alergiasRevisadas } from "./alergiasBase.js";
 import { normalizeAllergenId } from "./allergens.js";
 import { vetosDe } from "./vetos.js";
 import { etapasServibles } from "./babyStage.js";
@@ -497,8 +498,8 @@ export const esEntrada = (x) => COMPILADAS.has(x);
  *   contexto      por grupo: sus huecos, el filtro de sus candidatos
  *                 (alergias, intolerancias, vetos, tiempo, aparatos…) y sus
  *                 topes (buildGroupContext)
- *   restricciones lo que no se discute: platos fijos, recetas propias, bases
- *                 de la tanda
+ *   restricciones lo que no se discute: platos fijos, tipo de hueco, recetas
+ *                 propias, bases de la tanda
  *   objetivos     lo que se prefiere, con el peso con que lo cuenta el motor y
  *                 el dato de la casa del que sale (`origen`); peso y origen
  *                 los leerá el solver del trozo 31 de #1037, que pesa cada
@@ -516,7 +517,8 @@ export function entradaDelMotor(data, { hoy = null } = {}) {
   const activos = grupos.filter((g) => membersOfGroup(g, personas).length > 0);
   // El tope de cada hueco del contexto sale de esta tabla, la misma que lleva la entrada.
   const tiempo = tiempoDeCocina(ficha);
-  const contexto = Object.fromEntries(activos.map((g) => [g.id, buildGroupContext(ficha, g, tiempo)]));
+  // De todos los grupos, también de uno sin nadie: cambiarle un plato no falla.
+  const contexto = Object.fromEntries(grupos.map((g) => [g.id, buildGroupContext(ficha, g, tiempo)]));
   const dias = diasActivosDe(ficha);
   const accion = Object.fromEntries(dias.map((day) => [day, {
     Comida: kidsSlotAction(ficha, day, "Comida"),
@@ -526,7 +528,10 @@ export function entradaDelMotor(data, { hoy = null } = {}) {
     version: VERSION_ENTRADA,
     hoy: ficha?.vigenteEn ?? null,
     dias,
+    comidas: getMeals(ficha),
     personas,
+    // Si cada persona tiene las alergias dichas o revisadas (la puerta lo dice si no).
+    alergiasRevisadas: Object.fromEntries(personas.map((m) => [m.id, alergiasRevisadas(ficha, m)])),
     grupos,
     activos,
     horario: ficha?.schedule ?? {},
@@ -539,6 +544,7 @@ export function entradaDelMotor(data, { hoy = null } = {}) {
     extras: { comidas: ficha?.extraMeals ?? {}, seguridad: Object.fromEntries(activos.map((g) => [g.id, seguridadFueraDeMenu(ficha, g)])) },
     restricciones: {
       fijos: ficha?.fixedDishes ?? [],
+      tipoHueco: ficha?.slotType ?? {},
       propias: ficha?.userRecipes ?? [],
       tanda: basesPedidas(ficha?.tanda),
     },
@@ -558,9 +564,21 @@ export function entradaDelMotor(data, { hoy = null } = {}) {
   return entrada;
 }
 
-/** La entrada tal cual, o compilada si llega la casa (`data`) en crudo. */
-export function comoEntrada(x, semana) {
-  return esEntrada(x) ? x : entradaDelMotor(x, semana);
+/**
+ * La entrada tal cual, o compilada si llega la casa (`data`) en crudo. Una
+ * entrada leída con otra fecha no vale para hoy: se dice, no se recompila.
+ */
+export function comoEntrada(x, semana = {}) {
+  if (!esEntrada(x)) return entradaDelMotor(x, semana);
+  if (semana.hoy && semana.hoy !== x.hoy) throw new Error(`entrada del motor del ${x.hoy}, pedida para el ${semana.hoy}`);
+  return x;
+}
+
+/** El contexto de un grupo de la entrada (huecos, filtro de candidatos, topes). */
+export function contextoDe(entrada, group) {
+  const ctx = entrada.contexto[group.id];
+  if (!ctx) throw new Error(`el grupo ${group.id} no está en la entrada del motor`);
+  return ctx;
 }
 
 /**

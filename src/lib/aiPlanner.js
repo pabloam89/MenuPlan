@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { isBabyMenuGroup, membersOfGroup, resolveMemberAge, tipoDeGrupo } from "./groups.js";
-import { DAYS, getMeals, modeForGroupSlot, slotKey } from "./planner.js";
+import { DAYS, modeForGroupSlot, slotKey } from "./planner.js";
 import { ordenarPorSesgo, preferirPorSesgo } from "./sesgos.js";
 import { resolverConReintentos, solverActivo, REGLAS_RELAJABLES, familiasDe } from "./solver.js";
 import { DEFAULT_FREQS } from "./defaultFreqs.js";
@@ -28,19 +28,17 @@ import { NUTRIENTES, CAMPOS_SECUNDARIOS } from "../data/nutrientes.js";
 import guarnicionesData from "../data/recipes/guarniciones.json" with { type: "json" };
 import salsasData from "../data/recipes/salsas.json" with { type: "json" };
 import { formatFixedDishesForAI, pinnedGarnishMap, pinnedSalsaMap, enforceFixedDishes, catalogMatchesForFixedDish } from "./fixedDishes.js";
-import { maxCookTime } from "./cookTime.js";
 import { applySeasonalFruit, filterPostrePool } from "./postres.js";
 import { pairGarnishes } from "../utils/pairGarnishes.js";
 import { pairSauces } from "../utils/pairSauces.js";
 import { guessIngredientCategory } from "./ingredientCategories.js";
 import { isQualitativeUnit, mergeIngredientLines } from "./ingredientUnits.js";
 import { buildAdaptationMap } from "./substitutions.js";
-import { alergiasRevisadas } from "./alergias.js";
 import { DIET_RULES, INTOLERANCE_RULES } from "./intolerances.js";
 import { assignPreparedToPlan, indexFrozenDishes, indexFridgeDishes, itemPortions, slotUsesPrepared, catalogIdOfPlanRecipe } from "./freezer.js";
 import { dominantComponentOf } from "./dominantComponent.js";
 import { legumeSubtypeOf, mariscoSubtypeOf } from "./dishSubtype.js";
-import { buildGroupContext, comoEntrada } from "./entradaMotor.js";
+import { buildGroupContext, comoEntrada, contextoDe, esEntrada, minutosDelHueco } from "./entradaMotor.js";
 // Sus tests lo importan de aquí (12 ficheros); vive en entradaMotor.js.
 export { buildGroupContext };
 import { PLANNER_MODEL, FAST_MODEL } from "./aiModels.js";
@@ -2756,9 +2754,9 @@ const POOL_DE_FRANJA = {
  * revisión del plan antes de guardar (choquesDelPlan): un atajo ya no puede
  * saltarse una alergia, venga de donde venga.
  */
-export function chocaConElGrupo(receta, data, group, meal = "Comida", ctx = null) {
+export function chocaConElGrupo(receta, dataOEntrada, group, meal = "Comida", ctx = null) {
   if (!receta || !group) return false;
-  const { filterOpts } = ctx ?? buildGroupContext(data, group);
+  const { filterOpts } = ctx ?? contextoDe(comoEntrada(dataOEntrada), group);
   return recipeViolatesHardSafety(receta, {
     ...filterOpts,
     isBabyGroup: receta.category === "bebes",
@@ -2773,14 +2771,15 @@ export function chocaConElGrupo(receta, data, group, meal = "Comida", ctx = null
  * puerta. Lo apuntado por alguien va antes que las alergias sin revisar, que
  * bloquean casi todo y dirían menos.
  */
-export function motivoDelChoque(receta, data, group, meal = "Comida") {
+export function motivoDelChoque(receta, dataOEntrada, group, meal = "Comida") {
   if (!receta || !group) return null;
-  const { filterOpts } = buildGroupContext(data, group);
+  const entrada = comoEntrada(dataOEntrada);
+  const { filterOpts } = contextoDe(entrada, group);
   const base = { isBabyGroup: receta.category === "bebes", offMenu: Boolean(POOL_DE_FRANJA[String(meal)]) };
   const choca = (opts) => recipeViolatesHardSafety(receta, { ...opts, ...base });
   if (!choca(filterOpts)) return null;
 
-  const miembros = membersOfGroup(group, data.members ?? []);
+  const miembros = membersOfGroup(group, entrada.personas);
   const nombre = (m) => m.name?.trim() || "alguien de la casa";
   const no = (porque) => `«${receta.name}» no entra: ${porque}`;
   for (const m of miembros) {
@@ -2790,7 +2789,7 @@ export function motivoDelChoque(receta, data, group, meal = "Comida") {
     if (regla) return no(`${nombre(m)}: ${(INTOLERANCE_RULES[regla]?.label ?? DIET_RULES[regla]?.label ?? regla).toLowerCase()}`);
   }
   if (choca({ hasKids: filterOpts.hasKids })) return no("lleva alcohol y hay niños en este menú");
-  const sinRevisar = miembros.filter((m) => !alergiasRevisadas(data, m));
+  const sinRevisar = miembros.filter((m) => !entrada.alergiasRevisadas[m.id]);
   if (sinRevisar.length === 0) return null;
   const quienes = sinRevisar.map((m) => m.name?.trim()).filter(Boolean);
   return no(`faltan por revisar las alergias de ${quienes.join(", ") || "la casa"}`);
@@ -2801,12 +2800,13 @@ export function motivoDelChoque(receta, data, group, meal = "Comida") {
  * plan que había), solo mira los huecos que cambian: un plato viejo no bloquea
  * un cambio nuevo. Devuelve uno por plato: grupo, hueco, campo y receta.
  */
-export function choquesDelPlan(data, plan, { antes = null } = {}) {
+export function choquesDelPlan(dataOEntrada, plan, { antes = null } = {}) {
+  const entrada = comoEntrada(dataOEntrada);
   const choques = [];
-  const extra = new Map((data?.userRecipes ?? []).map((r) => [r.id, r]));
-  for (const group of data?.groups ?? []) {
+  const extra = new Map(entrada.restricciones.propias.map((r) => [r.id, r]));
+  for (const group of entrada.activos) {
     const huecos = plan?.[group.id];
-    if (!huecos || !membersOfGroup(group, data.members ?? []).length) continue;
+    if (!huecos) continue;
     let ctx = null;
     for (const [clave, h] of Object.entries(huecos)) {
       const meal = clave.split("-").slice(1).join("-");
@@ -2816,20 +2816,20 @@ export function choquesDelPlan(data, plan, { antes = null } = {}) {
         const base = stripGroupPrefix(id);
         const receta = recipeCatalogById[base] ?? extra.get(base) ?? extra.get(id);
         if (!receta) continue;
-        ctx ??= buildGroupContext(data, group);
-        if (chocaConElGrupo(receta, data, group, meal, ctx)) choques.push({ groupId: group.id, clave, campo, recipeId: id, nombre: receta.name });
+        ctx ??= contextoDe(entrada, group);
+        if (chocaConElGrupo(receta, entrada, group, meal, ctx)) choques.push({ groupId: group.id, clave, campo, recipeId: id, nombre: receta.name });
       }
     }
   }
   return choques;
 }
 
-export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, course = "main", forcedRecipe = null, sameCategory = false, candidatos = 0, admiteMontaje = false, pedido = false, hoy = null, usadosEnOtrasSemanas = null }) {
+export function pickCatalogReplacement(dataOEntrada, menuPlan, { groupId, day, meal, course = "main", forcedRecipe = null, sameCategory = false, candidatos = 0, admiteMontaje = false, pedido = false, hoy = null, usadosEnOtrasSemanas = null }) {
   // Los vetos de la libreta se leen con fecha (lib/vetos.js): un cambio de
   // plato es HOY, salvo que quien llama diga otra cosa (el bot pasa la de
   // Madrid). Sin esto, un «sin X hasta el día 31» seguía vetando en noviembre.
-  if (hoy || !data?.vigenteEn) data = { ...data, vigenteEn: hoy ?? isoLocalDate(new Date()) };
-  const group = (data?.groups ?? []).find((g) => g.id === groupId);
+  const entrada = comoEntrada(dataOEntrada, { hoy: hoy ?? (esEntrada(dataOEntrada) || dataOEntrada?.vigenteEn ? null : isoLocalDate(new Date())) });
+  const group = entrada.grupos.find((g) => g.id === groupId);
   if (!group) return null;
 
   const slotKeyStr = `${day}-${meal}`;
@@ -2839,7 +2839,7 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   // Context/pool the AI planner would use for this group — needed for garnish
   // pairing + intolerance-safe scaling in BOTH the auto-pick and the manual
   // "elegir del catálogo" (forcedRecipe) paths, so compute it up front.
-  const ctx = buildGroupContext(data, group);
+  const ctx = contextoDe(entrada, group);
 
   // ── Las franjas de fuera de menú tienen su propio pool ─────────────────
   // Desayuno, merienda y postre NO se sirven del catálogo de comida y cena:
@@ -2873,8 +2873,7 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
     const elegido = frescos.length > 0
       ? frescos[Math.floor(Math.random() * frescos.length)]
       : pool[Math.floor(Math.random() * pool.length)];
-    const activos = (data.groups ?? []).filter((g) => membersOfGroup(g, data.members).length > 0);
-    const pref = activos.length > 1 ? `${groupId}__` : "";
+    const pref = entrada.activos.length > 1 ? `${groupId}__` : "";
     const comensales = currentSlot.eaters ?? 2;
     const receta = catalogToFrontendRecipe(elegido, comensales, ctx.filterOpts.intolerances ?? []);
     receta.id = pref + elegido.id;
@@ -2890,7 +2889,7 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
     // and place it directly (still scaled + garnish-paired below). Lo que no
     // se salta es la seguridad: un plato con un alérgeno de alguien del grupo
     // no se coloca (antes Lola lo metía a la fuerza tras rechazarlo el motor).
-    if (chocaConElGrupo(forcedRecipe, data, group, meal, ctx)) return null;
+    if (chocaConElGrupo(forcedRecipe, entrada, group, meal, ctx)) return null;
     picked = forcedRecipe;
   } else {
   const currentRecipeId =
@@ -2920,8 +2919,7 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   // Same constrained pool the AI planner would see for this group.
   const { recipes: pool } = filterRecipes(ctx.filterOpts);
 
-  const isWeekend = day === "Sáb" || day === "Dom";
-  const slotMaxTime = maxCookTime(data, { isWeekend, meal });
+  const slotMaxTime = minutosDelHueco(entrada.tiempo, day, meal);
 
   // Exclude dishes already used anywhere in this group's menu (+ the current one).
   // `usadosEnOtrasSemanas`: lo que ya hay en las demás semanas del mismo menú.
@@ -2946,7 +2944,7 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   // salmón ahumado, tomate rallado con anchoas— que son justo lo que se cena
   // un martes. La puerta sigue cerrada para el relleno automático y para
   // "cambiar plato": ahí decide la máquina, y ahí la regla es buena.
-  const isCenaRapida = admiteMontaje || data.slotType?.[`${day}|${meal}`] === "rapida";
+  const isCenaRapida = admiteMontaje || entrada.restricciones.tipoHueco[`${day}|${meal}`] === "rapida";
 
   // "Parecido" (misma categoría): restrict candidates to the category of the
   // dish being replaced, e.g. another salad for a salad. Null = any category.
@@ -3011,7 +3009,7 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
     proteinGroupsOf(recipeCatalogById[stripGroupPrefix(siblingRecipeId)]).size > 0;
 
   const collectGroups = (into, dayName, skipMeal = null) => {
-    for (const m of getMeals(data)) {
+    for (const m of entrada.comidas) {
       if (skipMeal && m === skipMeal) continue;
       const s = menuPlan[groupId]?.[`${dayName}-${m}`];
       if (!s) continue;
@@ -3131,7 +3129,7 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   // Los platos que la casa ha tirado varias veces (lib/descartesPrioridad.js) van los últimos:
   // se sortea entre los demás y solo si no queda otro vuelven. Las favoritas, exentas.
   candidates = sinDescartadas(candidates, descartadasVigentes({ exentos: ctx.filterOpts.favoriteIds }));
-  candidates = preferirPorSesgo(candidates, data.sesgos, data.favoritos);
+  candidates = preferirPorSesgo(candidates, entrada.objetivos.sesgos.valor, entrada.objetivos.favoritos.valor);
   // Las sugerencias del hueco son ESTE pool, no una lista aparte: todo lo que
   // se ha filtrado arriba —rol del hueco, tope de tiempo, alergias, lo que ya
   // está en el menú, el cole, los subtipos, los sesgos de la casa— es
@@ -3143,9 +3141,7 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   }
 
   // Match the generator's prefixing: only prefix when several groups are active.
-  const activeGroups = (data.groups ?? []).filter(
-    (g) => membersOfGroup(g, data.members).length > 0,
-  );
+  const activeGroups = entrada.activos;
   const prefix = activeGroups.length > 1 ? `${groupId}__` : "";
 
   const eaters = currentSlot.eaters ?? 2;
@@ -3167,7 +3163,7 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
 
   // Reconstruct this day's assignments (catalog ids) so carb dedup is correct.
   const dayAssignments = [];
-  for (const m of getMeals(data)) {
+  for (const m of entrada.comidas) {
     const s = menuPlan[groupId]?.[`${day}-${m}`];
     if (!s?.recipeId) continue;
     const mt = tipoDeComida(m);
@@ -3209,8 +3205,9 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
  *
  * @returns {{ frontendRecipe: object, recipeId: string, garnishId: string, course: string } | null}
  */
-export function pickGarnishReplacement(data, menuPlan, { groupId, day, meal, course = "main", currentGarnishId = null }) {
-  const group = (data?.groups ?? []).find((g) => g.id === groupId);
+export function pickGarnishReplacement(dataOEntrada, menuPlan, { groupId, day, meal, course = "main", currentGarnishId = null }) {
+  const entrada = comoEntrada(dataOEntrada);
+  const group = entrada.grupos.find((g) => g.id === groupId);
   if (!group) return null;
 
   const slotKeyStr = `${day}-${meal}`;
@@ -3222,7 +3219,7 @@ export function pickGarnishReplacement(data, menuPlan, { groupId, day, meal, cou
   const mainCatalog = baseId ? recipeCatalogById[baseId] : null;
   if (!mainCatalog) return null;
 
-  const ctx = buildGroupContext(data, group);
+  const ctx = contextoDe(entrada, group);
   const eaters = currentSlot.eaters ?? 2;
 
   const daySlug = DAY_SLUG[day];
@@ -3236,7 +3233,7 @@ export function pickGarnishReplacement(data, menuPlan, { groupId, day, meal, cou
 
   // Reconstruct this day's assignments so garnish carb-dedup stays correct.
   const dayAssignments = [];
-  for (const m of getMeals(data)) {
+  for (const m of entrada.comidas) {
     const s = menuPlan[groupId]?.[`${day}-${m}`];
     if (!s?.recipeId) continue;
     const mt = tipoDeComida(m);
@@ -3265,9 +3262,7 @@ export function pickGarnishReplacement(data, menuPlan, { groupId, day, meal, cou
   const garnish = guarnicionesData.find((g) => g.id === newGarnishId);
   if (!garnish) return null;
 
-  const activeGroups = (data.groups ?? []).filter(
-    (g) => membersOfGroup(g, data.members).length > 0,
-  );
+  const activeGroups = entrada.activos;
   const prefix = activeGroups.length > 1 ? `${groupId}__` : "";
   const fr = catalogToFrontendRecipe(mainCatalog, eaters, ctx.filterOpts.intolerances ?? []);
   fr.id = prefix + mainCatalog.id;

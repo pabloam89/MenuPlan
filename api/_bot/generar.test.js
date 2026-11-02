@@ -29,6 +29,8 @@ const m = {
   explicitDaysForOffset: () => null,
   computeWeekRange: () => ({ startISO: "2026-10-05", endISO: "2026-10-11", activeDays: ["Lun"] }),
   prepararSemana: () => ({ weekData: {}, crossWeek: null, weekSchedule: {} }),
+  // La semana tal cual: lo que compila la entrada lo prueba entradaMotor.test.js.
+  entradaDelMotor: (weekData) => weekData,
   generateMenuWithAI: async () => ({ plan, recipes: [{ id: "r1", name: "Tortilla" }] }),
   registerRecipes: () => {},
   buildShoppingList: () => ({ byCategory: [{ items: [{ name: "huevos" }] }], pantryItems: [] }),

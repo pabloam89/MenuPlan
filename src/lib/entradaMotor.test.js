@@ -1,9 +1,10 @@
 import { afterEach, beforeAll, afterAll, describe, expect, it, vi } from "vitest";
 
 import { entradaDelMotor, esEntrada, comoEntrada, VERSION_ENTRADA } from "./entradaMotor.js";
-import { generateMenuWithAI } from "./aiPlanner.js";
+import { generateMenuWithAI, pickCatalogReplacement, choquesDelPlan } from "./aiPlanner.js";
 import { PESO_SESGO } from "./sesgos.js";
 import { PESO_RECIENTE, PESO_PRESUPUESTO } from "./solver.js";
+import { recipeCatalog } from "../data/recipeCatalog.js";
 
 // La entrada del motor (trozo 30 de #1037): la casa de una semana compilada una
 // vez en el problema que lee el motor.
@@ -84,4 +85,34 @@ describe("paridad: la casa en crudo y su entrada dan el mismo menú", () => {
     expect(porEntrada).toEqual(porData);
     expect(Object.keys(porData.plan.g1).length).toBeGreaterThan(10);
   }, 120000);
+});
+
+describe("cambiar un plato y revisar el plan, desde la entrada", () => {
+  const plan = { g1: { "Lun-Cena": { recipeId: "nada", eaters: 2 }, "Lun-Comida": { recipeId: "nada", eaters: 2 } } };
+
+  it("el cambio de un plato de cena cabe en los minutos de la cena de ese día", () => {
+    const opts = { groupId: "g1", day: "Lun", meal: "Cena", candidatos: 500, hoy: "2026-11-02" };
+    const cena = pickCatalogReplacement(pareja, plan, opts).candidatos;
+    expect(cena.length).toBeGreaterThan(0);
+    expect(Math.max(...cena.map((r) => r.time))).toBeLessThanOrEqual(20);
+    // A mediodía hay 30: con los de la cena no saldría lo que tarda 21 a 30.
+    const comida = pickCatalogReplacement(pareja, plan, { ...opts, meal: "Comida" }).candidatos;
+    expect(comida.some((r) => r.time > 20)).toBe(true);
+  });
+
+  it("una entrada leída con otra fecha no se usa para hoy: se dice", () => {
+    const e = entradaDelMotor(pareja, { hoy: "2026-11-02" });
+    expect(() => comoEntrada(e, { hoy: "2026-11-09" })).toThrow(/2026-11-02.*2026-11-09/);
+    expect(() => pickCatalogReplacement(e, plan, { groupId: "g1", day: "Lun", meal: "Cena", hoy: "2026-11-09" })).toThrow();
+  });
+
+  it("la revisión del plan ve las recetas propias de la casa que choca con alguien", () => {
+    const conHuevo = recipeCatalog.find((r) => (r.allergens ?? []).includes("huevo") && r.mealRole?.includes("segundo") && r.category !== "bebes");
+    const propia = { ...conHuevo, id: "propia_tortilla", name: "Tortilla de la abuela" };
+    const casa = { ...pareja, members: [pareja.members[0], { ...pareja.members[1], allergies: ["huevo"] }], userRecipes: [propia] };
+    const conPropia = { g1: { "Mar-Cena": { recipeId: "propia_tortilla", eaters: 2 } } };
+    expect(choquesDelPlan(entradaDelMotor(casa), conPropia)).toEqual([
+      expect.objectContaining({ groupId: "g1", clave: "Mar-Cena", recipeId: "propia_tortilla" }),
+    ]);
+  });
 });
