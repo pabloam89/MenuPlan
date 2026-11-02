@@ -1,6 +1,6 @@
 // Señales que olvidan (plan fichas con estado, trozo 15): de las filas de senal a las preferencias vistas.
 import { describe, it, expect } from "vitest";
-import { vistasDeSenales, valoresDelPlato, senalesDeCambio, UMBRAL_APRENDIDO } from "./senales.js";
+import { vistasDeSenales, valoresDelPlato, senalesDeCambio, senalesDePlato, senalesDeLaApp, MAX_SENALES_APP, UMBRAL_APRENDIDO } from "./senales.js";
 import { apunteDeFila, valorIdDelEje } from "./preferencias.js";
 import { CAMPOS_POR_ID } from "./notepadFields.js";
 import { sesgoScoreBoost } from "./sesgos.js";
@@ -137,5 +137,25 @@ describe("senales: lo que cuenta un cambio de plato", () => {
 
   it("un motivo que no es de MOTIVO_CAMBIO lanza", () => {
     expect(() => senalesDeCambio({ sale, entra, motivo: "porque_si" })).toThrow(/MOTIVO_CAMBIO/);
+  });
+});
+
+describe("senales: lo que manda la app", () => {
+  it("un voto o un descarte: el mismo delta para cada valor del plato", () => {
+    expect(senalesDePlato({ mainBase: "arroz", tecnica: "horno" }, -1)).toEqual([
+      { eje: "basePrincipal", valor: "arroz", delta: -1 }, { eje: "tecnica", valor: "horno", delta: -1 },
+    ]);
+    expect(senalesDePlato(null, 1)).toEqual([]);
+  });
+
+  it("lo que manda la app se comprueba entero: eje que aprende, valor de su dominio con su tipo, +1 o −1, y un tope", () => {
+    const buenas = senalesDeCambio({ sale: { mainBase: "arroz", llevaSalsa: true }, entra: { cocina: "india" }, motivo: MOTIVO_CAMBIO.MANUAL });
+    expect(senalesDeLaApp(buenas)).toEqual(buenas);
+    const malas = [
+      [], "no", Array.from({ length: MAX_SENALES_APP + 1 }, () => buenas[0]),
+      [{ eje: "subtipoIngrediente", valor: "queso", delta: 1 }], [{ eje: "cocina", valor: "marciana", delta: 1 }],
+      [{ eje: "llevaSalsa", valor: "si", delta: 1 }], [{ eje: "tecnica", valor: "horno", delta: 5 }], [null],
+    ];
+    for (const m of malas) expect(() => senalesDeLaApp(m), JSON.stringify(m)?.slice(0, 80)).toThrow();
   });
 });
