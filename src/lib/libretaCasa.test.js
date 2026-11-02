@@ -90,6 +90,15 @@ describe("guardar la libreta", () => {
     expect(await l.guardar({ groups: [], notepad: otra })).toEqual({ ok: true, enviado: false });
   });
 
+  it("guardada pero sin poder releer las filas: conflicto, para recargar la casa y no seguir con filas sin el id nuevo", async () => {
+    const libreta = conLibretaLeida({ groups: [] }, FILAS).notepad;
+    for (const leida of [{ error: true }, { modo: MODO_LIBRETA.DOCUMENTO }]) {
+      const l = libretaDeCasa({ casa: CASA, carga: FILAS, libreta, enviar: async () => ({ ok: true, rev: 4 }), releer: async () => leida });
+      const r = await l.guardar({ groups: [], notepad: poner(libreta, "favoritos.queso", true, { origen: "texto" }) });
+      expect(r, JSON.stringify(leida)).toMatchObject({ ok: true, enviado: true, conflict: true });
+    }
+  });
+
   it("lo que no entra se vuelve a mandar con el siguiente guardado", async () => {
     const enviar = vi.fn().mockResolvedValueOnce({ ok: false, fallo: FALLO_DATO.SIN_RED }).mockResolvedValue({ ok: true, rev: 5 });
     const libreta = conLibretaLeida({ groups: [] }, FILAS).notepad;

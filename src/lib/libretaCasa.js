@@ -80,7 +80,8 @@ export async function enviarPreferencias({ casa, preferencias }, { token = token
 /**
  * La libreta de una casa tal como la conoce la app: la leída (`libreta`, la de conLibretaLeida) y, tras cada
  * guardado que entra, la guardada, con sus filas (`carga.filas`; de ellas, el id de lo que cambia). `guardar(datos)` manda lo que cambió (cambiosDeLibreta), uno tras
- * otro; tras un guardado que entra, vuelve a leer las filas (`releer`) para tener el id de lo recién creado. Un
+ * otro; tras un guardado que entra, vuelve a leer las filas (`releer`) para tener el id de lo recién creado (si no
+ * puede, `conflict`: App.jsx recarga la casa en vez de seguir con filas viejas). Un
  * apunte que no cabe en una fila (PreferenciaInvalida) no se manda y vuelve como `{ ok: false, error }`.
  */
 export function libretaDeCasa({ casa, carga, libreta, enviar = enviarPreferencias, releer = leerLibretaDeCasa }) {
@@ -103,7 +104,9 @@ export function libretaDeCasa({ casa, carga, libreta, enviar = enviarPreferencia
       if (!r.ok) return { ...r, enviado: true };
       conocida = nueva;
       const leida = await releer(casa);
-      if (leida?.modo === MODO_LIBRETA.FILAS) filas = leida.filas;
+      // Sin poder releerlas, las filas de aquí ya no valen (no tienen el id de lo recién creado): a recargar la casa.
+      if (leida?.modo !== MODO_LIBRETA.FILAS) return { ...r, enviado: true, conflict: true };
+      filas = leida.filas;
       return { ...r, enviado: true };
     });
     // a propósito: el fallo ya lo recibe quien llamó (paso); la cola solo no se rompe para el siguiente
