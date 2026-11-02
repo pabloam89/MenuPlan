@@ -30,7 +30,7 @@ import { datosDelMotor } from "../../src/lib/recetasDeLaCasa.js";
 import { motor, describirMenu, masParecida, normal, prepararRecetas, DIA_LARGO } from "./menu.js";
 import { propiasDe } from "./propias.js";
 import { registrar, rastro, EMBUDO } from "./embudo.js";
-import { RASTRO } from "../../src/lib/rastro.js";
+import { RASTRO, CAMPO_CUMPLIMIENTO } from "../../src/lib/rastro.js";
 import { isoDeCasa, DIAS, DIAS_FINDE, semanasEntre } from "../../src/lib/dias.js";
 import { collectMenuRecipeIds, pruneAiRecipes, planHasDishes } from "../../src/lib/menuArchive.js";
 import { huecosEsperados, huecosVacios, describirHuecos } from "../../src/lib/huecosDelPlan.js";
@@ -543,8 +543,8 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
     huecosVacios: vacios,
   });
   await rastro(householdId, RASTRO.MENU_GENERADO, { menuId: menu.id, weekStart: startISO, weekEnd: endISO, slots: platos, pedidos: pedidos.length,
-    // La cifra del plan (#1037): de las preferencias dichas, cuántas cumple la semana y su %.
-    preferencias: cumplidas });
+    // La cifra del plan (#1037): de las preferencias dichas, cuántas cumple la semana y su % (cifras:modelo).
+    [CAMPO_CUMPLIMIENTO]: cumplidas });
   // Qué semana ha salido, en palabras (#915): también cuando la eligió el código
   // por «la siguiente» (la primera sin menú), que puede no ser la que ella esperaba.
   const libre = cual === "siguiente" && !desde ? " (la primera semana sin menú)" : "";
