@@ -59,6 +59,13 @@ describe("0109: preferencias, señales e historiales", () => {
     expect(aviso).toBeLessThan(f.indexOf("insert into public.operacion"));
   });
 
+  it("el tope de una operación es el de aplicar_operacion (0115): una libreta entera cabe en las dos", () => {
+    const de0115 = readFileSync(new URL("./migrations/0115_escribir_con_ambito.sql", import.meta.url), "utf8");
+    const tope = (texto, nombre) => Number(texto.match(new RegExp(String.raw`${nombre} constant integer := (\d+);`))?.[1]);
+    expect(tope(cuerpo("escribir_preferencias"), "c_max")).toBe(tope(de0115, "c_max_datos"));
+    expect(tope(de0115, "c_max_datos")).toBeGreaterThan(0);
+  });
+
   it("el tope de una operación es el de la tubería (MAX_PREFERENCIAS_OPERACION): lo que no cabe se dice antes de llegar", () => {
     expect(cuerpo("escribir_preferencias")).toContain(`c_max constant integer := ${MAX_PREFERENCIAS_OPERACION};`);
   });
