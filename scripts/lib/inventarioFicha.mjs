@@ -208,11 +208,8 @@ export async function inventario(raiz, { guardadas = null, registro = null } = {
       if ((d.estado === "copia") !== (d.clase === CLASE.DERIVADO && enData)) throw new Error(`${id}: ${d.clase} en ${d.vive} con estado «${d.estado}»; copia es derivado en data`);
       // Un hecho de la casa, vivo: lo que la app y Lola tienen que ver los dos.
       const hecho = enData && d.clase === CLASE.HECHO && d.estado === "activo";
-      // Con ámbito (trozo 55), el defecto es el de un hueco («casa» en un día y una comida), no el del mapa de data:
-      // INITIAL_DATA no lo siembra ni tiene por qué decir lo mismo.
-      const defectoDelDato = d.ambito?.length ? null : d.defecto;
       if (d.ficha === null) fallos.sin_ficha.push(id);
-      if (hecho && defectoDelDato !== null && !declaradas[ambito].has(k) && ambito === "casa") fallos.sin_declarar.push(`${id}: defecto ${JSON.stringify(d.defecto)} que INITIAL_DATA no siembra`);
+      if (hecho && d.defecto !== null && !declaradas[ambito].has(k) && ambito === "casa") fallos.sin_declarar.push(`${id}: defecto ${JSON.stringify(d.defecto)} que INITIAL_DATA no siembra`);
       if (d.clase === CLASE.DERIVADO && !d.funcion) fallos.sin_declarar.push(`${id}: derivado sin función`);
       if (d.funcion) {
         const [, fichero, nombre] = d.funcion.match(FUNCION) ?? [];
@@ -220,7 +217,7 @@ export async function inventario(raiz, { guardadas = null, registro = null } = {
         if (!texto || !exporta(texto, nombre)) fallos.funcion_rota.push(`${id} → ${d.funcion}`);
       }
       if (enData && ambito === "persona" && !declaradas.persona.has(k)) fallos.en_resto.push(id);
-      if (enData && defectoDelDato !== null && defectos[ambito].has(k) && JSON.stringify(defectos[ambito].get(k)) !== JSON.stringify(d.defecto)) {
+      if (enData && d.defecto !== null && defectos[ambito].has(k) && JSON.stringify(defectos[ambito].get(k)) !== JSON.stringify(d.defecto)) {
         fallos.defecto_distinto.push(`${id}: registro ${JSON.stringify(d.defecto)} ≠ INITIAL_DATA ${JSON.stringify(defectos[ambito].get(k))}`);
       }
       const re = nombra(k);
