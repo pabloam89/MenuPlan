@@ -1788,7 +1788,7 @@ export function PizarraControles({
   data, setData, menuPlan, groups, onRellenar,
   despensa, onAddDespensa, onQuitarDespensa, onQtyDespensa,
   onNuevaPizarra, onVaciar, onFavorito, esFavorito = false,
-  tema = "claro", onTema, onCompartir,
+  onCompartir,
 }) {
   const [abierto, setAbierto] = useState(null);
   // Qué cara de la fila se ve. Arranca en las ACCIONES porque «Rellenar»
@@ -1972,20 +1972,6 @@ export function PizarraControles({
                   color="#e0405a"
                   tinte="#fff"
                   onClick={onFavorito}
-                />
-              )}
-              {/* Claro y oscuro. Vive aquí y no en los ajustes de la app
-                  porque solo viste el TABLERO: es una preferencia de esta
-                  pizarra, no del producto, y el resto de pantallas siguen en
-                  claro. El icono enseña adónde vas, no dónde estás. */}
-              {onTema && (
-                <BaldosaMando
-                  Icon={tema === "oscuro" ? Sun : Moon}
-                  label={tema === "oscuro" ? "Claro" : "Oscuro"}
-                  orden={5}
-                  color="#4b5d8f"
-                  tinte="#fff"
-                  onClick={onTema}
                 />
               )}
             </>
