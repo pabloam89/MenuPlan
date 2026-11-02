@@ -9,7 +9,8 @@ import { HOLGURA_TOPES } from "./reparto.js";
 import { esNino } from "./stages.js";
 import { racionesDe } from "./raciones.js";
 import { topePorRacion } from "./presupuesto.js";
-import { cumplimientoDelGrupo, delGrupo } from "./cumplimiento.js";
+import { cumplimientoDelGrupo, delGrupo, pidieronElPlato } from "./cumplimiento.js";
+import { sobreDelMotor } from "./sobreHueco.js";
 import { filterRecipes, filterGarnishes, decisionCatalog, filterOffMenuRecipes, recipeMatchesPreferType, recipeViolatesHardSafety } from "../utils/filterRecipes.js";
 import { esAnadido, topeDe } from "./cocinaTopes.js";
 import { ajustarCuota } from "./cuotaCocinas.js";
@@ -2259,7 +2260,30 @@ export async function generateMenuWithAI(dataOEntrada, { signal, pantryIngredien
     throw new AIPlannerError("La IA devolvió slots sin recetas asociadas.");
   }
 
+  sellarDelMotor(plan, entrada, results);
   return { plan, recipes: allRecipes, cumplimiento: cumplimientoDeLaSemana(entrada, results) };
+}
+
+/**
+ * Cada hueco que puso el motor lleva su sobre (sobreHueco.js, trozo 18): canal sistema, el día de la entrada y las
+ * preferencias del grupo que pidieron sus platos (pidieronElPlato, la misma regla que el informe). El bebé no lleva
+ * preferencias de la casa: solo canal y día.
+ */
+function sellarDelMotor(plan, entrada, results) {
+  for (const r of results) {
+    const huecos = plan[r.group.id];
+    if (!huecos) continue;
+    const prefs = entrada.contexto[r.group.id]?.isBabyGroup ? [] : delGrupo(entrada.preferencias, r.group);
+    const porId = new Map((r.filteredPool ?? []).map((x) => [x.id, x]));
+    for (const [k, h] of Object.entries(huecos)) {
+      const motivo = new Set();
+      for (const id of [h?.firstRecipeId, h?.recipeId]) {
+        const receta = id ? porId.get(catalogIdOfPlanRecipe(id)) : null;
+        if (receta) for (const p of pidieronElPlato(prefs, receta)) motivo.add(p);
+      }
+      huecos[k] = { ...h, sobre: sobreDelMotor(entrada.hoy, [...motivo]) };
+    }
+  }
 }
 
 /**

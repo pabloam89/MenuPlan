@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { CANAL_DATO } from "./vocabularios.js";
 
 import {
   preferenciasDelMotor, casaCon, pesoDe, delGrupo, cumplimientoDelGrupo, resumenCumplimiento, textoDe,
@@ -156,8 +157,15 @@ describe("generateMenuWithAI devuelve el informe de la semana", () => {
       ...casa, members: [{ id: "m1", age: 38 }, { id: "m2", age: 40 }], allergiesReviewed: true, groups: [{ id: "g1", label: "Familia", memberIds: ["m1", "m2"] }],
       meals: ["Comida", "Cena"], schedule: {}, timeWeekday: 45, timeWeekend: 60, freqs: { legumbres: 2, verdura: 3, pescado: 2 },
     };
-    const { cumplimiento } = await generateMenuWithAI(entradaDelMotor(data, { hoy: "2026-11-02" }));
+    const { cumplimiento, plan } = await generateMenuWithAI(entradaDelMotor(data, { hoy: "2026-11-02" }));
     const ids = cumplimiento.preferencias.map((f) => f.id);
+    // Cada hueco lleva el sobre del motor (trozo 18): el día de la entrada y, por qué, las preferencias que pidieron el plato.
+    const huecos = Object.values(plan.g1);
+    expect(huecos.length).toBeGreaterThan(0);
+    expect(huecos.every((h) => h.sobre?.canal === CANAL_DATO.SISTEMA && h.sobre.cuando === "2026-11-02")).toBe(true);
+    const motivos = huecos.flatMap((h) => h.sobre.motivo ?? []);
+    expect(motivos.length).toBeGreaterThan(0);
+    expect(motivos.every((id) => ids.includes(id))).toBe(true);
     expect(ids).toEqual(expect.arrayContaining(["tecnica.horno", "freqs.pescado", "cocina.mexicana"]));
     expect(ids).not.toContain("freqs.carne.@ninos");
     expect(cumplimiento.preferencias.every((f) => f.grupo === "g1")).toBe(true);
