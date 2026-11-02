@@ -438,6 +438,19 @@ export function resolverMenu(slots, pool, {
     return [r.id, ejes + montado * 0.75 + llena];
   }));
   const completitud = (r) => completitudPorId.get(r.id) ?? 0;
+  //     Una CENA también va sola: es el plato único de la noche. Sin esto, una
+  //     "Crema de verduras" de 148 kcal podía ser la cena entera, y 57 de las
+  //     69 sopas que pueden ser cena están por debajo de 300 kcal (la mediana
+  //     de una cena es 334). Una crema sola no es una cena; con algo al lado,
+  //     sí — pero eso es una cena de dos platos, que hoy no existe.
+  //     Ojo: una cena de DOS platos ya no va sola. Ahí el segundo tiene un
+  //     primero delante, así que pedirle que llene por sí solo sería pedir dos
+  //     platos principales — justo lo que el techo de la cena (regla 7b)
+  //     prohíbe.
+  const vaSolo = (slot) =>
+    slot.position === "plato_unico"
+    || slot.preferType === "plato_unico"
+    || (slot.mealType === "cena" && !slot.position);
 
   // 3c. Lo que la casa prefiere, cada cosa con su peso (cumplimiento.js,
   //     pesoDe): «más horno» adelanta los platos al horno y «menos arroz»
@@ -452,19 +465,6 @@ export function resolverMenu(slots, pool, {
   const gustoPorId = new Map(pool.map((r) => [r.id, ordenan.reduce(
     (g, p) => (casaCon(p, r) ? g + (p.operador === OP.MAS ? -1 : 1) * pesoDe(p) : g), 0,
   )]));
-  //     Una CENA también va sola: es el plato único de la noche. Sin esto, una
-  //     "Crema de verduras" de 148 kcal podía ser la cena entera, y 57 de las
-  //     69 sopas que pueden ser cena están por debajo de 300 kcal (la mediana
-  //     de una cena es 334). Una crema sola no es una cena; con algo al lado,
-  //     sí — pero eso es una cena de dos platos, que hoy no existe.
-  //     Ojo: una cena de DOS platos ya no va sola. Ahí el segundo tiene un
-  //     primero delante, así que pedirle que llene por sí solo sería pedir dos
-  //     platos principales — justo lo que el techo de la cena (regla 7b)
-  //     prohíbe.
-  const vaSolo = (slot) =>
-    slot.position === "plato_unico"
-    || slot.preferType === "plato_unico"
-    || (slot.mealType === "cena" && !slot.position);
 
   // 4. El tiempo, solo donde significa algo: un PRIMERO es un plato de
   //    entrada, y entre dos que valen es mejor el corto — deja sitio al
