@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { codificar, compilarEjes, ejesAlDia, leerRecetas } from "./compilar-ejes.mjs";
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { codificar, compilarEjes, ejesAlDia, serializarEjes } from "./compilar-ejes.mjs";
 
 // Los ejes de receta compilados a números (trozo 30 de #1037).
 
@@ -46,7 +49,12 @@ describe("compilarEjes: la tabla receta × eje", () => {
     expect(t.ejes.map((e) => e.id)).toEqual(["tecnica"]);
   });
 
-  it("la tabla del repo es la de este catálogo", () => {
-    expect(ejesAlDia(leerRecetas())).toBe(true);
+  it("una tabla escrita está al día solo si sale de estas recetas; sin escribir, no", () => {
+    const dir = mkdtempSync(join(tmpdir(), "ejes-"));
+    const ruta = join(dir, "recipeEjes.json");
+    expect(ejesAlDia(recetas, ruta)).toBe(false);
+    writeFileSync(ruta, serializarEjes(compilarEjes(recetas)));
+    expect(ejesAlDia(recetas, ruta)).toBe(true);
+    expect(ejesAlDia([...recetas, { id: "c", tecnica: "plancha" }], ruta)).toBe(false);
   });
 });

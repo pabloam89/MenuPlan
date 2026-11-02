@@ -14,15 +14,15 @@
  * copian (viven en recipeNutrition.json); los derivados que la receta no trae
  * en su JSON (healthFlags, costeNivel…) tampoco: tienen su propia tabla.
  *
- * La tabla va por columnas (un eje, una línea): mil recetas por eje en una
- * línea se leen y se revisan mejor que mil líneas por receta.
+ * Se escribe en el build (`prebuild` y `pretest` de package.json) y no se
+ * versiona (.gitignore): sale entera del catálogo, así que una copia en git
+ * sería el mismo dato en dos sitios, y una receta cambiada sin recompilar la
+ * dejaría vieja. Va por columnas (un eje, una línea).
  *
  *   node scripts/compilar-ejes.mjs              escribe la tabla
- *   node scripts/compilar-ejes.mjs --comprobar  falla si la del repo no es la de hoy
- *
- * validate-catalog.mjs hace la misma comprobación en cada build.
+ *   node scripts/compilar-ejes.mjs --comprobar  falla si la escrita no es la de este catálogo
  */
-import { readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { EJES, AMBITO } from "../src/data/axisRegistry.js";
@@ -115,9 +115,10 @@ export function leerRecetas() {
     .flatMap((f) => JSON.parse(readFileSync(join(RECIPES_DIR, f), "utf8")));
 }
 
-/** ¿La tabla del repo es la que salen hoy de estas recetas? (Sin mirar saltos de línea.) */
-export function ejesAlDia(recetas) {
-  const actual = readFileSync(RUTA_EJES, "utf8").replace(/\r\n/g, "\n");
+/** ¿La tabla escrita es la que sale hoy de estas recetas? Sin escribir, no lo es. */
+export function ejesAlDia(recetas, ruta = RUTA_EJES) {
+  if (!existsSync(ruta)) return false;
+  const actual = readFileSync(ruta, "utf8").replace(/\r\n/g, "\n");
   return actual === serializarEjes(compilarEjes(recetas));
 }
 
@@ -125,7 +126,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   const recetas = leerRecetas();
   if (process.argv.includes("--comprobar")) {
     if (!ejesAlDia(recetas)) {
-      console.error("❌ src/data/derived/recipeEjes.json no es el de este catálogo: node scripts/compilar-ejes.mjs");
+      console.error("❌ src/data/derived/recipeEjes.json no está escrito o no es el de este catálogo: node scripts/compilar-ejes.mjs");
       process.exit(1);
     }
     console.log("✅ recipeEjes.json al día");
