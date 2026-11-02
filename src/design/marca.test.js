@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { color, tamano } from './tokens.js'
 import { APP_SHELL_MAX_WIDTH, BOTTOM_NAV_HEIGHT } from '../components/ui.jsx'
@@ -10,6 +10,72 @@ import { APP_SHELL_MAX_WIDTH, BOTTOM_NAV_HEIGHT } from '../components/ui.jsx'
  * El logo sigue en D12 (abierta).
  */
 const leer = (ruta) => readFileSync(new URL(`../../${ruta}`, import.meta.url), 'utf8')
+
+describe('el esqueleto de index.html', () => {
+  it('lee la clave de la copia y pinta el degradado de Inicio', () => {
+    const html = leer('index.html')
+    expect(leer('src/lib/storage.js')).toContain('const KEY = "menuplan.state.v1"')
+    expect(html).toContain('"menuplan.state.v1"')
+    const degradado = leer('src/screens/Dashboard.jsx').match(/PAGE_GRADIENT = "([^"]+)"/)[1]
+    expect(html).toContain(degradado)
+  })
+
+  it('su script solo marca a quien tiene familia o sesión', () => {
+    const script = leer('index.html').match(/<script>([\s\S]*?)<\/script>/)[1]
+    const conCasa = (guardado, url = { search: '', hash: '' }) => {
+      const clases = []
+      const almacen = { ...guardado, getItem: (k) => guardado[k] ?? null }
+      new Function('localStorage', 'document', 'location', script)(
+        almacen,
+        { documentElement: { classList: { add: (c) => clases.push(c) } } },
+        url,
+      )
+      return clases.includes('con-casa')
+    }
+    const copia = (members) => JSON.stringify({ data: { members } })
+    expect(conCasa({ 'menuplan.state.v1': copia([{ id: 'a' }]) })).toBe(true)
+    expect(conCasa({ 'menuplan.state.v1': copia([]) })).toBe(false)
+    expect(conCasa({ 'sb-abc-auth-token': '{}' })).toBe(true)
+    expect(conCasa({ 'sb-abc-auth-token-code-verifier': 'x' })).toBe(false)
+    expect(conCasa({})).toBe(false)
+    expect(conCasa({}, { search: '', hash: '#access_token=x' })).toBe(true)
+    expect(conCasa({}, { search: '?code=x', hash: '' })).toBe(true)
+    expect(conCasa({}, { search: '?entrar=x', hash: '' })).toBe(true)
+    expect(conCasa({}, { search: '?tutorial=1', hash: '' })).toBe(false)
+  })
+
+  it('si no se puede leer el dispositivo, avisa y no marca', () => {
+    const script = leer('index.html').match(/<script>([\s\S]*?)<\/script>/)[1]
+    const aviso = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const add = vi.fn()
+    const almacen = { getItem: () => { throw new Error('bloqueado') } }
+    new Function('localStorage', 'document', 'location', script)(
+      almacen,
+      { documentElement: { classList: { add } } },
+      { search: '', hash: '' },
+    )
+    expect(add).not.toHaveBeenCalled()
+    expect(aviso).toHaveBeenCalledOnce()
+    aviso.mockRestore()
+  })
+
+  it('el de index.html y el de React son el mismo, con las medidas de la app', () => {
+    const html = leer('index.html')
+    const clases = (texto, atributo) =>
+      [...texto.matchAll(new RegExp(atributo + '="(esq[^"]*)"', 'g'))].map((m) => m[1])
+    const estatico = html.slice(html.indexOf('<div id="root">'))
+    expect(clases(estatico, 'class')).toEqual(clases(leer('src/components/EsqueletoInicio.jsx'), 'className'))
+    expect(html).toContain('max-width: ' + APP_SHELL_MAX_WIDTH + 'px')
+    expect(html).toContain('height: ' + BOTTOM_NAV_HEIGHT + 'px')
+    const verde = color.marca.match(/[0-9a-f]{2}/gi).map((c) => parseInt(c, 16)).join(', ')
+    expect(html).toContain('rgba(' + verde + ', .1)')
+  })
+
+  it('reconoce el parámetro de la llave de Lola', () => {
+    expect(leer('src/lib/llaveLola.js')).toContain('"entrar"')
+    expect(leer('index.html')).toContain('|entrar)=')
+  })
+})
 
 describe('el color de marca', () => {
   it('es el de los tokens en el favicon', () => {

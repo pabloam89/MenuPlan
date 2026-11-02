@@ -2,15 +2,16 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   preferenciasDelMotor, casaCon, pesoDe, delGrupo, cumplimientoDelGrupo, resumenCumplimiento, textoDe,
-  ESTADOS_CUMPLIMIENTO, MOTIVOS_INCUMPLIMIENTO, UNIDAD_PESO,
+  ESTADOS_CUMPLIMIENTO, MOTIVOS_INCUMPLIMIENTO, PESO_FUERZA, FACTOR_ORIGEN, CAMPOS_DEL_MOTOR,
 } from "./cumplimiento.js";
+import { FUENTES } from "./notepad.js";
+import { FUERZAS_PREFERENCIA } from "./vocabularios.js";
+import { PESO_RECIENTE, PESO_PRESUPUESTO } from "./solver.js";
 import { entradaDelMotor } from "./entradaMotor.js";
 import { generateMenuWithAI } from "./aiPlanner.js";
 import { recipeCatalog } from "../data/recipeCatalog.js";
 
-// Las preferencias que pesa el motor y el informe de cumplimiento (trozo 31 de #1037).
-
-// Lo que entrega el motor (filterRecipes parte de aquí), no el JSON.
+// Las preferencias que pesa el motor y el informe (trozo 31 de #1037), con lo que entrega el motor, no el JSON.
 const RECETAS = recipeCatalog;
 const apunte = (valor, extra = {}) => ({ valor, origen: "texto", ...extra });
 
@@ -28,7 +29,7 @@ const casa = {
       "freqs.legumbres": apunte(1, { hasta: "2026-10-01" }),
     },
   },
-  sesgos: { tecnica: { horno: 1 }, base: { arroz: -1 }, salsa: { si: 1, no: 0 } },
+  sesgos: { tecnica: { horno: 1 }, base: { arroz: -1 }, salsa: { si: 0, no: 1 } },
   favoritos: ["queso"],
   cocinas: { mexicana: 2, japonesa: 0, italiana: 1 },
 };
@@ -40,7 +41,8 @@ describe("preferenciasDelMotor: cada preferencia con su operador, su fuerza y su
   it("los sesgos ordenan (más / menos); su origen sale de la libreta y una regla, sin apunte, es dicha", () => {
     expect([por["tecnica.horno"].operador, por["tecnica.horno"].origen, por["tecnica.horno"].fuerza]).toEqual(["mas", "dicho", "medio"]);
     expect([por["base.arroz"].operador, por["base.arroz"].origen, por["base.arroz"].fuerza]).toEqual(["menos", "visto", "bajo"]);
-    expect([por["salsa.si"].origen, por["salsa.no"]]).toEqual(["dicho", undefined]);
+    // «no» a la salsa es menos platos con salsa, como en sesgos.js; un sesgo a cero no es nada.
+    expect([por["salsa.no"].operador, por["salsa.no"].origen, por["salsa.si"]]).toEqual(["menos", "dicho", undefined]);
     expect([por["favoritos.queso"].operador, por["favoritos.queso"].origen]).toEqual(["mas", "supuesto"]);
   });
 
@@ -78,9 +80,14 @@ describe("pesoDe: lo dicho pesa más que lo visto y que lo supuesto, y cada esca
     expect(p("medio", "dicho")).toBeGreaterThan(p("bajo", "dicho"));
     expect(p("obligatoria", "dicho")).toBe(Infinity);
   });
-  it("un gusto dicho pesa más que el orden del pool y el ruido juntos (menos de 500), y un escalón, más que el ruido", () => {
-    expect(p("medio", "dicho")).toBeGreaterThan(500);
-    expect(UNIDAD_PESO).toBeGreaterThan(500);
+  it("un gusto dicho pesa más que el orden del pool y el ruido juntos (1,5 por plato, con el catálogo entero de pool), y menos que lo reciente y el presupuesto", () => {
+    expect(p("medio", "dicho")).toBeGreaterThan(1.5 * RECETAS.length);
+    expect(p("alto", "dicho")).toBeLessThan(Math.min(PESO_RECIENTE, PESO_PRESUPUESTO));
+  });
+  it("las listas cuadran: cada escalón es una fuerza de la 0109, cada origen una fuente de la libreta, cada clase se dice", () => {
+    expect(Object.keys(PESO_FUERZA).filter((f) => !FUERZAS_PREFERENCIA.includes(f))).toEqual([]);
+    expect(Object.keys(FACTOR_ORIGEN)).toEqual(FUENTES);
+    for (const campo of CAMPOS_DEL_MOTOR) expect(textoDe({ campo, valor: "pescado", operador: "mas" })).toMatch(/^más \S/);
   });
 });
 
@@ -97,9 +104,7 @@ describe("cumplimientoDelGrupo: cumplida, parcial o no, y por qué", () => {
     expect(estado(pref({ operador: "mas" }), [...horno.slice(0, 3), ...otras.slice(0, 3)]).estado).toBe("cumplida");
     expect(estado(pref({ operador: "mas" }), [horno[0], ...otras.slice(0, 5)]).estado).toBe("parcial");
     expect(estado(pref({ operador: "mas" }), otras.slice(0, 6))).toMatchObject({ estado: "no", motivo: "pesaba_menos", veces: 0 });
-  });
-
-  it("sin ningún plato posible que la cumpla, el motivo es ese", () => {
+    // Sin ningún plato posible que la cumpla, el motivo es ese.
     expect(estado(pref({ operador: "mas" }), otras.slice(0, 6), otras.slice(0, 30))).toMatchObject({ estado: "no", motivo: "sin_candidatos" });
   });
 
@@ -112,38 +117,29 @@ describe("cumplimientoDelGrupo: cumplida, parcial o no, y por qué", () => {
     expect(estado(pref({ operador: "como_mucho", cantidad: 3 }), horno.slice(0, 3)).estado).toBe("cumplida");
   });
 
-  it("por hueco, las preferencias que pidieron el plato que salió", () => {
+  it("por hueco, las preferencias que pidieron el plato que salió; cada estado y motivo, de su lista", () => {
     const { porHueco } = cumplimientoDelGrupo([pref({ operador: "mas" }), pref({ id: "y", operador: "menos" })], menu([horno[0], otras[0]]), pool);
     expect(porHueco).toEqual({ h0: ["x"] });
-  });
-
-  it("cada estado y cada motivo son de su lista", () => {
     const filas = cumplimientoDelGrupo(preferenciasDelMotor(casa), menu(RECETAS.slice(0, 14)), RECETAS.slice(0, 200)).preferencias;
     expect(filas.every((f) => ESTADOS_CUMPLIMIENTO.includes(f.estado) && (f.motivo === null || MOTIVOS_INCUMPLIMIENTO.includes(f.motivo)))).toBe(true);
   });
 
-  it("casaCon mira lo mismo que el sesgo: la salsa, el ingrediente y la familia", () => {
+  it("casaCon mira lo mismo que el sesgo (la salsa, con o sin) y la familia", () => {
     const salsa = RECETAS.find((r) => r.llevaSalsa === true);
+    const sinSalsa = RECETAS.find((r) => r.llevaSalsa !== true);
     const pescado = RECETAS.find((r) => r.category === "pescados");
-    expect([casaCon({ campo: "salsa", valor: "si" }, salsa), casaCon({ campo: "salsa", valor: "no" }, salsa)]).toEqual([true, false]);
+    expect([casaCon({ campo: "salsa", valor: "no" }, salsa), casaCon({ campo: "salsa", valor: "si" }, sinSalsa)]).toEqual([true, false]);
     expect([casaCon({ campo: "freqs", valor: "pescado" }, pescado), casaCon({ campo: "freqs", valor: "carne" }, pescado)]).toEqual([true, false]);
   });
 });
 
 describe("resumenCumplimiento: la cifra del plan y lo que se le dice a la familia", () => {
   const fila = (id, origen, estado, extra = {}) => ({ id, campo: "tecnica", valor: "horno", operador: "mas", cantidad: null, origen, estado, ...extra });
-  it("cuenta solo lo dicho, y dice una vez cada dicha que no se cumple", () => {
-    const r = resumenCumplimiento([
-      fila("a", "dicho", "cumplida"),
-      fila("b", "dicho", "no"),
-      fila("b", "dicho", "no"),
-      fila("c", "dicho", "parcial", { campo: "freqs", valor: "pescado", operador: "como_mucho", cantidad: 2 }),
-      fila("d", "visto", "no", { campo: "base", valor: "arroz" }),
-    ]);
+  it("cuenta solo lo dicho, dice una vez cada dicha que no se cumple, y sin dichas no hay %", () => {
+    const r = resumenCumplimiento([fila("a", "dicho", "cumplida"), fila("b", "dicho", "no"), fila("b", "dicho", "no"),
+      fila("c", "dicho", "parcial", { campo: "freqs", valor: "pescado", operador: "como_mucho", cantidad: 2 }), fila("d", "visto", "no", { campo: "base", valor: "arroz" })]);
     expect([r.dichas, r.cumplidas, r.pct]).toEqual([4, 1, 25]);
     expect(r.incumplidas).toEqual(["más cosas al horno"]);
-  });
-  it("sin preferencias dichas no hay %; en palabras, como se dicen", () => {
     expect(resumenCumplimiento([]).pct).toBeNull();
     expect(textoDe({ campo: "freqs", valor: "pescado", operador: "como_mucho", cantidad: 2 })).toBe("como mucho 2 de pescado");
   });
