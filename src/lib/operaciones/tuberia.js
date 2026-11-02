@@ -146,7 +146,7 @@ export async function operarPersonas(pedido, { papel, rpc, falloDeError }) {
 
 /** La RPC que escribe preferencias y sus conjuntos (0109, trozo 14). */
 export const RPC_PREFERENCIAS = "escribir_preferencias";
-/** La RPC que lee las preferencias de una casa (0109): solo lee, también en solo lectura (api/_bot/db.js). */
+/** La RPC que lee las preferencias de una casa (0109): solo lee. La usan Lola y la app (PR siguientes del trozo 14). */
 export const RPC_LEER_PREFERENCIAS = "preferencias_de_casa";
 /** Lo que se añade a la clave de una operación de preferencias: comparte las claves de la casa con las demás. */
 export const SUFIJO_CLAVE_PREFERENCIAS = ":preferencias";
