@@ -93,7 +93,7 @@ Todo dato de una ficha lleva el mismo **sobre**: `valor`, `origen` (es el estado
 - **Mínimos para generar** (decisión B): quién come, alergias dichas (o por silencio con aviso, #229) y días. Sin ellos, no se genera: se pregunta.
 - **La app se entera al momento** con Realtime de Supabase sobre `household_state.bot_rev` y `sobre` (trozo 20), y deja el sondeo de 20 s.
 - **Sin convivencia con lo viejo** (Pablo, 30 oct 2026: «no quiero migrar nada; si tienen que empezar de cero, es lo que hay»): cuando una ficha pasa a sus filas, el documento deja de leerse y de escribirse para esa ficha en el mismo trozo. Ni doble escritura, ni repoblado de datos viejos, ni leer la clave antigua «por si acaso». Las casas que ya existen estrenan cada ficha vacía: la app y Lola preguntan como a una casa nueva. Lo que ya está en tablas (semanas, compra, recetas propias, despensa) se queda. Nunca quedan dos sitios vivos para el mismo dato (hoy hay 10 copias por haberlo hecho a medias).
-- **Qué hace cada migración** (el único sitio que lo dice; la tabla de tramos solo dice si el tramo trae migración y cada trozo la construye): la 0105 da al sobre y al registro sus columnas y crea la tabla `operacion` (trozo 7); la 0106 crea `aplicar_operacion` y `escribir_dato` (trozo 39); la 0107 crea `ficha_casa` v2 y retira `sobre.ref` (trozo 40); la 0108 crea `escribir_persona` (definer: la única vía de escritura a `persona` y `persona_*`, porque ningún usuario puede tocarlas) y retira el trigger 0089 con sus funciones (trozo 10); la 0109 crea de una vez `preferencia`, `plan_preferencias`, señal e historiales (trozo 14), que usan los trozos 15, 22 y 31 sin migración propia; la 0110 amplía `bot_tareas` y retira `bot_reminders` (trozo 34); la 0111 deja a `aplicar_operacion` deshacer una operación con su inversa en la misma transacción (trozo 41). Las tablas de salud por persona ya existen (0079). Si un trozo posterior necesita una columna más, es una migración pequeña aparte.
+- **Qué hace cada migración** (el único sitio que lo dice; la tabla de tramos solo dice si el tramo trae migración y cada trozo la construye): la 0105 da al sobre y al registro sus columnas y crea la tabla `operacion` (trozo 7); la 0106 crea `aplicar_operacion` y `escribir_dato` (trozo 39); la 0107 crea `ficha_casa` v2 y retira `sobre.ref` (trozo 40); la 0108 crea `escribir_persona` (definer: la única vía de escritura a `persona` y `persona_*`, porque ningún usuario puede tocarlas) y retira el trigger 0089 con sus funciones (trozo 10); la 0109 crea de una vez `preferencia`, `plan_preferencias`, señal e historiales (trozo 14), que usan los trozos 15, 22 y 31 sin migración propia; la 0110 amplía `bot_tareas` y retira `bot_reminders` (trozo 34); la 0111 deja a `aplicar_operacion` deshacer una operación con su inversa en la misma transacción (trozo 41); la 0114 da ámbito (grupo, semana, día, comida) al sobre y al registro (trozo 55), la 0115 escribe y deshace con él (trozo 56) y la 0116 lo lee en `ficha_casa` (trozo 57). Las tablas de salud por persona ya existen (0079). Si un trozo posterior necesita una columna más, es una migración pequeña aparte.
 
 ## Entidades y campos nuevos, frente a los que ya hay
 
@@ -117,7 +117,7 @@ Comparados con las dos bases: la de la Fábrica (`.fabrica/entities.json` y `.fa
 | 2 La fila con sobre y la operación | 7-9, 26, 27, 39, 40, 41 | sí | tubería única de escritura; `escribir_dato`, `escribirDato`, `ficha_casa` v2; resultado obligatorio en toda herramienta que escribe; un solo intérprete |
 | 2c Turno de Lola | 28 | no | cancelar y rehacer sin escrituras, espera adaptativa, aclaraciones que caducan, deshacer por autor |
 | 3 Persona y salud | 10-11 | sí | salud y personas como fuente; fuera `members`, `groups` y el trigger 0089 |
-| 4 Casa y rutina | 12-13 | no | aparatos, súper, presupuesto, despensa, comidas, estructura, horario, tiempo, tanda |
+| 4 Casa y rutina | 12-13, 55-57 | sí | aparatos, súper, presupuesto, despensa, comidas, estructura, horario, tiempo, tanda |
 | 5 Preferencias, señales y motor | 14-15, 30-33 | sí | libreta, reglas, sesgos, topes y presupuesto → `preferencia`; contadores que olvidan; entrada única del motor; ejes compilados; preferencias cumplidas con informe; las 24 reglas como preferencias del sistema; método de choques |
 | 6 Trato, preguntas y tareas | 16-17, 34-35 | sí | ficha Trato; una sola «siguiente pregunta»; tareas como entidad completa; un solo barrido de caducidades y referencias rotas |
 | 7 Semana, compra, tiempo real | 18-20 | no | sobre por hueco con motivo, versión de la semana, compra derivada + marcas, aperitivo, Realtime con una señal por casa, fin del guardado entero |
@@ -125,7 +125,7 @@ Comparados con las dos bases: la de la Fábrica (`.fabrica/entities.json` y `.fa
 | 9 Herramientas y manual | 42-54 | no | riesgo y cómo se deshace en la ficha de cada herramienta; lo que el manual dice de las herramientas, generado de las fichas; Alta, preguntas frecuentes y fotos solo cuando hacen falta; herramientas agrupadas por objeto; los 22 huecos de la app en Lola; el manual reescrito una vez |
 | Transversal (desde ya) | 29, 37, 38 | no | banco de frases que comprueba el estado guardado; prueba de punta a punta de la app; panel de cifras |
 
-Orden (lo fijan los «Depends on»; ningún par de trozos sin orden entre ellos toca el mismo fichero, comprobado con `check-plan` de la Fábrica): 0 → 1 (24, 25) → 2 (7, 39, 40, 8, 9, 26, 41, 27) → 2c (28) → 3 → 4 → 5 (14, 15, 30, 31, 32, 33) → 6 (16, 17, 34, 35) → 7 → 8 → 9 (42-54, detrás de los tramos 6 a 8 que cambian las mismas herramientas). Sin dependencias, en paralelo desde ya: 29 y 37; el 38 va detrás del 37 y del 7.
+Orden (lo fijan los «Depends on»; ningún par de trozos sin orden entre ellos toca el mismo fichero, comprobado con `check-plan` de la Fábrica): 0 → 1 (24, 25) → 2 (7, 39, 40, 8, 9, 26, 41, 27) → 2c (28) → 3 → 4 (12, 55, 56, 57, 13) → 5 (14, 15, 30, 31, 32, 33) → 6 (16, 17, 34, 35) → 7 → 8 → 9 (42-54, detrás de los tramos 6 a 8 que cambian las mismas herramientas). Sin dependencias, en paralelo desde ya: 29 y 37; el 38 va detrás del 37 y del 7.
 
 Cifras que bajan, medidas al cerrar cada tramo: claves vivas en `household_state.state.data` (hoy 113 registradas + 26 sin declarar → 0), `copia` (10 → 0), `sin_tabular` (54 → 0), `lola_no_lo_ve` (22 → 0), casas nuevas con alguien sin marca de alergias tras el alta (→ 0), semanas vivas con huecos esperados vacíos sin aviso (→ 0), respuestas de Lola que contradicen el estado (17 % en #958 → se mide con el banco de frases, trozo 29). Cifras nuevas: escrituras fuera de la tubería (→ 0, trozo 26), herramientas que escriben sin resultado (→ 0, trozo 27), analizadores de fechas y personas fuera del intérprete (hoy 3 → 0, trozo 27), claves `data.*` leídas por el motor (hoy 30 → 0, trozo 30), ejes sin consumidor (hoy 27 de 78, trozo 31), % de preferencias dichas cumplidas por semana (trozo 31), ficheros que hay que tocar para añadir un dato (hoy 19 para `cookLevel`, trozo 25), preguntas hasta el primer menú (trozo 34).
 
@@ -266,8 +266,9 @@ npx vitest run src/lib/casaDatos.test.js api/_bot/ficha.test.js api/_bot/generar
 ```
 
 ### 13. Rutina: comidas, estructura, quién come dónde, tiempo, tanda, días y cole, con ámbito día/comida y sobre
+Cambiado (2 nov 2026): el sobre no tenía ámbito (su clave única es casa, campo y persona; [comentario en #1037](https://github.com/pabloam89/MenuPlan/issues/1037#issuecomment-6568335745)) y Pablo eligió darle uno. Lo construyen los trozos 55, 56 y 57, que van antes que el resto de este. Los cinco datos sin ámbito (`meals`, `mealStructure`, `mealStructureCena`, `tandaMinutos`, `diaTanda`) ya viven en su sobre (#1131, #1132). Lo que queda aquí: `rutina.js` lee los datos con ámbito de `ficha_casa` y los devuelve en la forma que leen hoy la app, Lola y el motor (`schedule`, `slotType`, `menuWeekDays`, `…ByGroup`), y saca de un cambio de esa forma los datos con ámbito que se escriben; y la app y Lola pasan a leerlos y escribirlos así, con plan B (sin las migraciones de los trozos 55 a 57, siguen en el documento). `cookTime`, `extraMeals`, `kidDinnerConfig`, `schoolMenus`, `tanda`/`tandaPlatos` y `mealStyleByGroup` tienen forma de objeto y no entran en el registro del trozo 55: cada uno con su forma en un PR propio de este trozo, que si hace falta trae su fila de `registro_campo`.
 Files: `src/screens/Onboarding.jsx`, `src/screens/PizarraControles.jsx`, `api/_bot/ajustes.js`, `src/lib/semanaDias.js`, `src/lib/prepararGeneracion.js`, `src/lib/rutina.js`, `src/lib/rutina.test.js`
-Depends on: 12
+Depends on: 12, 57
 Blocked by: none
 Existing: `meals`/`extraMeals`, `mealStructure`/`mealStructureCena`(+`ByGroup`), `schedule` (claves `id|dia|comida`), `slotType`, `cookTime`, `tanda`/`tandaPlatos`/`diaTanda`, `menuWeekDays`/`menuWeekOffsets`/`menuWeek` (copia), `kidDinnerConfig`, `schoolMenus` viven en `data`; 9 de ellos son `sin_tabular`. `estructuraPlatos.js` (rama `datos/estructura-efectiva`, 29 oct, sin PR) ya unifica la lectura de uno o dos platos. `git grep -n "rutina.js\|lib/rutina" -- src api` → sin salida.
 Not done: el menú del cole (`schoolMenus`) se mueve con la misma forma (semana × persona × día), sin rediseñar su importación. `menuWeekOverrides` (horario propio de una semana) se queda en la ficha Semana (trozo 18). «El finde» y «de lunes a jueves» (#958 B) se resuelven con el ámbito del dato, no con listas.
@@ -732,6 +733,39 @@ Done:
 npx vitest run api/_bot/manualEstructura.test.js api/_bot/ejemplosPrompt.test.js api/_bot/promesas.test.js && node scripts/bot-evals.mjs --nivel=pr
 ```
 
+### 55. Migración 0114: el sobre gana ámbito (grupo, semana, día, comida) y el registro dice el de cada campo
+Files: `supabase/migrations/0114_sobre_ambito.sql`, `supabase/ESTADO.md`, `supabase/sobreAmbito.test.js`, `src/lib/vocabularios.js`, `src/lib/registroFicha.js`, `src/lib/registroCampos.js`, `src/lib/registroCampos.test.js`, `scripts/lib/columnasVocabulario.mjs`, `scripts/lib/inventarioFicha.base.json`
+Depends on: 41
+Blocked by: none
+Existing: la clave única de `sobre` es `(household_id, campo, coalesce(persona_id, ''))` (`git grep -n "on public.sobre (household_id, campo" -- supabase/migrations` → un acierto, `sobre_unico` en la 0097) y `sobre_valor_valido` solo admite escalares y listas de texto: `schedule`, `slotType`, `menuWeekDays` y los `…ByGroup` (`tipo: "mapa"` en `src/lib/registroFicha.js`) no caben. `git grep -n "ambito" -- supabase/migrations` → sin salida. La base es Postgres 17.6 (`npm run consulta -- "select current_setting('server_version')"`), que admite `nulls not distinct`.
+Not done: `sobre` gana `grupo_id` (FK compuesta a `grupo`, en cascada), `semana` (el lunes: CHECK), `dia` (CHECK de `DIAS`) y `comida` (CHECK de `COMIDAS`), todas nulas; la clave única pasa a casa, campo, persona y las cuatro, con `nulls not distinct`. `registro_campo` gana `ambito` (lista de `DIMENSIONES_AMBITO`, CHECK y constante con test) y `sobre_valor_valido` exige que el sobre traiga exactamente las dimensiones de su campo. Entran en el registro, sin pasar aún al sobre en el código: `schedule` (persona × día × comida), `slotType` (día × comida, con el vocabulario nuevo de tipos de hueco), `menuWeekDays` (semana), `menuScheduleSameForAllWeeks` (sin ámbito) y `mealStructureByGroup`/`mealStructureCenaByGroup` (grupo). No cambia funciones de escritura ni de lectura (trozos 56 y 57), ni RLS ni permisos, ni datos de familias. La aplica Pablo, tras la del trozo 13 (#1131).
+Done:
+```sh
+npx vitest run supabase/sobreAmbito.test.js src/lib/registroCampos.test.js src/lib/vocabularios.test.js supabase/migrations.test.js
+```
+
+### 56. Migración 0115: escribir y deshacer con ámbito
+Files: `supabase/migrations/0115_escribir_con_ambito.sql`, `supabase/ESTADO.md`, `supabase/datoConSobre.test.js`, `src/lib/vocabularios.js`
+Depends on: 55
+Blocked by: none
+Existing: `aplicar_operacion` busca, bloquea y apunta cada sobre por campo y persona, y rechaza más de 50 datos por operación (`c_max_datos constant integer := 50` en la migración del trozo 39); `deshacer_operacion` busca el sobre por campo y persona (migración del trozo 41). Un horario entero de la casa más grande de hoy son 8 × 7 × 5 = 280 datos (`npm run consulta -- "select max(n) from (select count(*) n from persona group by household_id) x"` → 8).
+Not done: las dos RPC conservan su firma (la tubería y el código de `staging` siguen igual). Cada dato puede traer `grupo_id`, `semana`, `dia` y `comida`; repetidos, búsqueda, orden de bloqueo, `hecho`, `sin_hacer`, `choques` e inversa van por la clave entera, y las claves de ámbito solo salen si el dato las tiene (lo de hoy devuelve lo mismo). Un dato cuyo ámbito no es el de su campo va a `sin_hacer` con `ambito_no_cuadra`. El tope sube a 400. `escribir_dato` no cambia: lo de ámbito entra por `aplicar_operacion`. Sin RLS ni permisos nuevos. La aplica Pablo.
+Done:
+```sh
+npx vitest run supabase/datoConSobre.test.js supabase/migrations.test.js
+```
+
+### 57. Migración 0116: `ficha_casa` con ámbito
+Files: `supabase/migrations/0116_ficha_casa_ambito.sql`, `supabase/ESTADO.md`, `supabase/datoConSobre.test.js`
+Depends on: 56
+Blocked by: none
+Existing: `ficha_casa` v2 da un elemento por campo y sujeto, con un `left join` a su sobre por campo y persona (migración del trozo 40): con ámbito daría filas sueltas sin decir de qué día o comida son.
+Not done: sigue en `v: 2` (Lola y la app de `staging` aceptan solo 1 y 2). Cada elemento gana `ambito` (null, o el grupo, la semana, el día y la comida que lleve). Un campo con ámbito da un elemento base sin ámbito (su defecto o vacío: lo que vale donde nadie ha dicho nada) y uno por sobre vigente; los campos sin ámbito salen como hoy. «faltan», tareas y callados no cambian. La aplica Pablo.
+Done:
+```sh
+npx vitest run supabase/datoConSobre.test.js supabase/fichaSobre.test.js
+```
+
 ## Decisions for Pablo
 
 ### B. Sin alergias confirmadas (ni dichas ni por silencio), ¿Lola genera el menú?
@@ -792,8 +826,14 @@ Por qué te lo pregunto: el 8 oct decidiste lo contrario (#107: se genera esquiv
 - principio 4 | eligió: lo que el manual dice de las herramientas (qué sabe hacer, qué solo en la app, qué se deshace), generado de las fichas y del mapa | descartó: listas escritas a mano en el manual, que se desfasan al cambiar una herramienta | motivo: decidido
 - principio 2 | eligió: medir con el banco de frases antes y después de agrupar herramientas, grupo a grupo | descartó: agrupar todas de una vez sin línea base, o varios grupos en un PR | motivo: decidido
 
+- principio 3 | eligió: un sobre por hueco: el ámbito (grupo, semana, día, comida) en columnas de `sobre` y en su clave única (trozo 55; Pablo, 2 nov 2026) | descartó: un tipo `mapa` con el horario entero en un solo sobre, donde quien escribe un día pisa sin decirlo lo que otro dijo de otro día | motivo: decidido
+- principio 5 | eligió: las dimensiones del ámbito en una lista cerrada (`DIMENSIONES_AMBITO`, CHECK de `registro_campo.ambito`) y el día y la comida con CHECK de `DIAS` y `COMIDAS` (trozo 55) | descartó: el ámbito como texto libre («Lun|Comida»), que la base no puede comprobar | motivo: decidido
+- principio 3 | eligió: hasta 400 datos por operación, para que un horario entero (280 en la casa más grande) sea una operación (trozo 56) | descartó: partirlo en operaciones de 50, que deshacer solo puede deshacer de una en una y deja el resto del cambio sin decirlo | motivo: decidido
+- principio 4 | eligió: `aplicar_operacion`, `deshacer_operacion` y `ficha_casa` conservan su firma y `escribir_dato` no cambia: lo de ámbito entra por `aplicar_operacion` (trozos 56 y 57) | descartó: una segunda `escribir_dato` con parámetros de ámbito, otra forma de escribir lo mismo que, con sus valores por defecto, deja ambigua la llamada de hoy | motivo: decidido
+
 ## Not verified
 
+- Trozos 55-57 (2 nov 2026): la forma del ámbito no se ha ensayado contra la base (el repo no tiene un Postgres de pruebas); la ensaya Pablo con cada migración. Que `nulls not distinct` exista sale de la versión (17.6), no de una prueba.
 - Tramo 9 (42-54): los 22 huecos salen del recorrido de pantallas del mapa de capacidades (28 oct 2026); la app puede haber cambiado. Las cifras del manual (caracteres por apartado) son del 1 nov 2026, tras el PR #1107. Que agrupar herramientas mejore la elección es una hipótesis que miden las evals de los trozos 45 a 47.
 
 - Los trozos 24-38 y los cambios a 7, 8, 14, 15, 17, 18 y 20 se escribieron el 30 oct por la tarde desde una sesión en la nube que solo ve `staging` y las ramas subidas: si una sesión de terminal ya tiene trabajo local de los trozos 7, 8 o 14 con la forma vieja, este plan no lo sabe.
