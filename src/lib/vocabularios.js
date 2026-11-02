@@ -268,8 +268,8 @@ export const MOTIVOS_SIN_HACER_PREFERENCIA = ["ya_lo_dijo_la_familia", "ya_lo_re
 
 // ── Los de los historiales (0109; los escribe el trozo 22).
 
-/** De dónde sale un precio observado (precio_observado.fuente; priceObs[].source de hoy: manual o receipt). */
-export const FUENTES_PRECIO = ["manual", "ticket"];
+/** De dónde sale un precio observado (precio_observado.fuente): los de priceObs[].source de hoy, sin traducir. */
+export const FUENTES_PRECIO = ["manual", "receipt"];
 /** Qué es una línea de ticket o un gasto (precio_observado.tipo; priceObs[].kind). */
 export const TIPOS_LINEA_TICKET = ["food", "prefab", "nonfood"];
 

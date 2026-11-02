@@ -50,6 +50,14 @@ describe("0109: preferencias, señales e historiales", () => {
     expect(cuerpo("preferencias_de_casa")).toMatch(/household_members m where m\.household_id = p_casa and m\.user_id = auth\.uid\(\)/);
   });
 
+  it("una persona autora que no es de la casa no se calla: aborta antes de escribir (no se guarda null)", () => {
+    const f = cuerpo("escribir_preferencias");
+    const aviso = f.indexOf("la persona autora no es de esta casa");
+    expect(aviso).toBeGreaterThan(-1);
+    expect(f.slice(f.lastIndexOf("if ", aviso), aviso)).toMatch(/autor_persona_id[\s\S]*not exists[\s\S]*public\.persona x where x\.household_id = v_casa/);
+    expect(aviso).toBeLessThan(f.indexOf("insert into public.operacion"));
+  });
+
   it("los motivos de sin_hacer son MOTIVOS_SIN_HACER_PREFERENCIA, y nada más", () => {
     const motivos = [...cuerpo("escribir_preferencias").matchAll(/v_motivo := '([a-z_]+)'/g)].map((m) => m[1]);
     expect([...new Set(motivos)].sort()).toEqual([...MOTIVOS_SIN_HACER_PREFERENCIA].sort());
