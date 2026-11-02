@@ -67,6 +67,8 @@ describe('el esqueleto de index.html', () => {
     expect(clases(estatico, 'class')).toEqual(clases(leer('src/components/EsqueletoInicio.jsx'), 'className'))
     expect(html).toContain('max-width: ' + APP_SHELL_MAX_WIDTH + 'px')
     expect(html).toContain('height: ' + BOTTOM_NAV_HEIGHT + 'px')
+    const verde = color.marca.match(/[0-9a-f]{2}/gi).map((c) => parseInt(c, 16)).join(', ')
+    expect(html).toContain('rgba(' + verde + ', .1)')
   })
 
   it('reconoce el parámetro de la llave de Lola', () => {
