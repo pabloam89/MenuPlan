@@ -16,7 +16,7 @@ import { motivoDe } from "./avisar.js";
 import { operar, operarPersonas, deshacer } from "../../src/lib/operaciones/tuberia.js";
 import { membersDeFilas, FamiliaSinLeer, RPC_FAMILIA } from "../../src/lib/personas.js";
 import { FALLO_DATO, MOTIVO_FALLO, CANAL_DATO } from "../../src/lib/vocabularios.js";
-import { FICHA_CON_ESTADO, fichaSinContrato, estadosDeFichas, datosConSobre, FICHAS_CASA_CON_SOBRE } from "../../src/lib/estadoDeDato.js";
+import { FICHA_CON_ESTADO, fichaSinContrato, leidosConSobre, FICHAS_CASA_CON_SOBRE } from "../../src/lib/estadoDeDato.js";
 
 /**
  * El fallo de dato (FALLOS_DATO) de cada motivo de avisar.js (MOTIVOS_FALLO).
@@ -101,10 +101,11 @@ export async function leerDatosDeCasa(householdId, userId, { canal = CANAL_DATO.
 }
 
 /**
- * Los datos de la casa con sobre (CAMPOS_CASA_CON_SOBRE, estadoDeDato.js) para Lola, al leer la casa (casa.js):
- * `{ [campo]: { valor, conSobre } }` con los que trae ficha_casa v2 (su sobre, o el defecto del registro), o null si
- * viven en el documento: ficha_casa v1, la base sin la RPC, o sin los campos en registro_campo (la 0112 sin
- * aplicar). Lanza si falla otra cosa: una casa sin leer no es una casa con los valores por defecto.
+ * Los datos de la casa con sobre (CAMPOS_CASA_CON_SOBRE y, con su mapa por hueco, CAMPOS_CON_AMBITO_CON_SOBRE;
+ * estadoDeDato.js) para Lola, al leer la casa (casa.js): `{ [campo]: { valor, conSobre } }` con los que trae
+ * ficha_casa v2 (leidosConSobre), o null si viven en el documento: ficha_casa v1, la base sin la RPC, o sin los
+ * campos en registro_campo (la 0112 sin aplicar). Lanza si falla otra cosa: una casa sin leer no es una casa con
+ * los valores por defecto.
  */
 export async function leerCasaConSobre(householdId) {
   let r;
@@ -116,6 +117,6 @@ export async function leerCasaConSobre(householdId) {
     console.error(JSON.stringify({ evento: "casa_sin_leer", fallo, motivo }));
     throw e;
   }
-  const leidos = r.datos ? datosConSobre(estadosDeFichas({ casa: r.datos })) : [];
-  return leidos.length ? Object.fromEntries(leidos.map((l) => [l.campo, { valor: l.valor, conSobre: l.conSobre }])) : null;
+  const leidos = r.datos ? leidosConSobre(r.datos) : {};
+  return Object.keys(leidos).length ? leidos : null;
 }

@@ -253,3 +253,49 @@ describe("guardar los datos con sobre", () => {
       .toEqual({ ok: true, enviado: true, conflict: true });
   });
 });
+
+// La Rutina con ámbito (trozo 13): un mapa en data, un sobre por hueco; lo que cambia, en una operación.
+describe("la Rutina con ámbito en la app", () => {
+  const P = "p1";
+  const base = (campo, persona = null) => ({ ...porDefecto(campo, null), sujeto: persona ? { tipo: "persona", id: persona } : { tipo: "casa", id: null }, estado: "vacio", ambito: null });
+  const hueco = (campo, ambito, valor, persona = null) => ({ ...sobre(campo, valor), sujeto: persona ? { tipo: "persona", id: persona } : { tipo: "casa", id: null }, ambito });
+  const colaFalsa = () => ({ escribir: vi.fn(async () => ({ guardado: true, pendiente: false, rev: 5 })) });
+
+  it("con la 0116, el horario sale de sus sobres por hueco, en la forma de data", async () => {
+    const r = await leer(servidor({ v: 2, datos: [base("schedule", P), hueco("schedule", { dia: "Lun", comida: "Cena" }, "fuera", P), base("slotType")] }));
+    expect(r).toEqual({ valores: { schedule: { "p1|Lun|Cena": "fuera" }, slotType: {} } });
+  });
+
+  it("sin la 0116 (elementos sin ámbito), el horario sigue en el documento", async () => {
+    const { ambito: _fuera, ...antes } = base("schedule", P);
+    expect(await leer(servidor({ v: 2, datos: [antes] }))).toEqual({ valores: {} });
+  });
+
+  it("un ámbito que no es el del campo no es un horario vacío: la carga no sigue", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    expect(await leer(servidor({ v: 2, datos: [hueco("slotType", { dia: "Lun" }, "rapida")] }))).toEqual({ error: true });
+  });
+
+  it("lo que cambia del mapa va en una sola operación, un dato por hueco; el mismo mapa en otro orden, nada", async () => {
+    const cola = colaFalsa();
+    const casa = casaDeCasa({ casa: CASA, valores: { schedule: { "p1|Lun|Cena": "fuera", "p1|Mar|Cena": "cole" } }, cola });
+    const datos = { members: [{ id: P }], schedule: { "p1|Mar|Cena": "cole", "p1|Lun|Comida": "tupper" } };
+    expect(await casa.guardar(datos, 4)).toEqual({ ok: true, enviado: true, botRev: 5 });
+    expect(cola.escribir.mock.calls).toEqual([[{ casa: CASA, accion: "guardar_casa", ref_id: REF_CASA, datos: [
+      { campo: "schedule", persona_id: P, dia: "Lun", comida: "Cena", valor: null, origen: "dicho" },
+      { campo: "schedule", persona_id: P, dia: "Lun", comida: "Comida", valor: "tupper", origen: "dicho" },
+    ] }]]);
+    expect(await casa.guardar({ ...datos, schedule: { "p1|Lun|Comida": "tupper", "p1|Mar|Cena": "cole" } }, 5)).toEqual({ ok: true, enviado: false });
+  });
+
+  it("quitar a una persona no escribe sus huecos: se fueron con ella", async () => {
+    const cola = colaFalsa();
+    const casa = casaDeCasa({ casa: CASA, valores: { schedule: { "p1|Lun|Cena": "fuera" } }, cola });
+    expect(await casa.guardar({ members: [], schedule: {} }, 4)).toEqual({ ok: true, enviado: false });
+    expect(cola.escribir).not.toHaveBeenCalled();
+  });
+
+  it("el documento no lleva el mapa que vive en sus sobres", () => {
+    expect(sinCasa({ schedule: { "p1|Lun|Cena": "fuera" }, reglas: [] }, { valores: { schedule: {} } })).toEqual({ reglas: [] });
+  });
+});
