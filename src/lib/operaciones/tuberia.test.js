@@ -1,7 +1,7 @@
 // La tubería de operaciones (plan fichas con estado, trozos 26 y 41): entender, comprobar,
 // aplicar, apuntar, contar y deshacer, con una base falsa (rpc) que apunta lo que le llega.
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { operar, operarPersonas, deshacer, RPC_OPERACION, RPC_DESHACER, RPC_PERSONA, SUFIJO_CLAVE_PERSONA } from "./tuberia.js";
+import { operar, operarPersonas, operarPreferencias, deshacer, RPC_OPERACION, RPC_DESHACER, RPC_PERSONA, RPC_PREFERENCIAS, SUFIJO_CLAVE_PERSONA, SUFIJO_CLAVE_PREFERENCIAS } from "./tuberia.js";
 import { CANAL_DATO, REF_OPERACION, ESTADO_OPERACION, FALLO_DATO, MOTIVO_PUERTA, SEXO } from "../vocabularios.js";
 
 const CASA = "3f2b8c1e-7a4d-4e0b-9c5a-1d2e3f4a5b6c";
@@ -223,5 +223,47 @@ describe("tubería: varios datos en una operación", () => {
     expect(r).toMatchObject({ guardado: false, fallo: FALLO_DATO.INVALIDO });
     expect(llegan).toEqual([]);
     expect(lineas(log)).toEqual([{ evento: "dato_sin_guardar", fallo: "invalido", motivo: null, canal: "telegram", campo: "schedule" }]);
+  });
+});
+
+describe("tubería: las preferencias (trozo 14, escribir_preferencias)", () => {
+  const PESCADO = { nivel: "semana", eje: "composicion", medida: "cuenta", operador: "como_mucho", valor: "pescado", cantidad: 2, fuerza: "obligatoria" };
+  const LIBRETA = {
+    casa: CASA, clave: "tg:8", accion: "ajustar_menu", canal: CANAL_DATO.TELEGRAM,
+    ref: { tipo: REF_OPERACION.MENSAJE, id: "8" }, autor: { user_id: "u1" }, preferencias: [PESCADO],
+  };
+
+  it("va a escribir_preferencias con su propia clave y se cuenta sin pedido ni inversa", async () => {
+    const { llegan, servidor } = base(() => ({ ...HECHA, pedido: {}, inversa: {} }));
+    const r = await operarPreferencias(LIBRETA, servidor("editor"));
+    expect(llegan).toEqual([{ funcion: RPC_PREFERENCIAS, op: expect.objectContaining({
+      casa: CASA, clave: "tg:8" + SUFIJO_CLAVE_PREFERENCIAS, canal: "telegram", autor_user_id: "u1", preferencias: [PESCADO],
+    }) }]);
+    expect(r).toEqual({ guardado: true, ...HECHA });
+  });
+
+  it("la puerta de siempre: quien no edita no escribe, y desde una pantalla nada supuesto; no llega a la base", async () => {
+    silenciar();
+    const { llegan, servidor } = base();
+    expect(await operarPreferencias(LIBRETA, servidor("viewer"))).toMatchObject({ guardado: false, fallo: FALLO_DATO.SIN_PERMISO });
+    const supuesta = { ...LIBRETA, canal: CANAL_DATO.APP, ref: { tipo: REF_OPERACION.PANTALLA, id: "libreta" }, preferencias: [{ ...PESCADO, origen: "supuesto" }] };
+    expect(await operarPreferencias(supuesta, servidor("owner"))).toMatchObject({ guardado: false, error: MOTIVO_PUERTA.ORIGEN_NO_VALE });
+    expect(llegan).toEqual([]);
+  });
+
+  it("borrar o rechazar sin id, o sin nada que escribir, no se entiende y no llega a la base", async () => {
+    silenciar();
+    const { llegan, servidor } = base();
+    for (const preferencias of [[{ borrar: true }], [{ rechazar: true }], []]) {
+      expect(await operarPreferencias({ ...LIBRETA, preferencias }, servidor("owner")), JSON.stringify(preferencias)).toMatchObject({ guardado: false, fallo: FALLO_DATO.INVALIDO });
+    }
+    expect(llegan).toEqual([]);
+  });
+
+  it("sin la RPC (0109 sin aplicar): no se guarda, vuelve rpc_ausente y queda en el log", async () => {
+    const log = silenciar();
+    const { servidor } = base(() => { throw new Error("PGRST202"); });
+    expect(await operarPreferencias(LIBRETA, servidor("owner"))).toEqual({ guardado: false, fallo: FALLO_DATO.RPC_AUSENTE });
+    expect(lineas(log)[0]).toMatchObject({ fallo: "rpc_ausente", campo: "preferencia" });
   });
 });

@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { EJES } from "../src/data/axisRegistry.js";
 import { MOTIVOS_SIN_HACER_PREFERENCIA } from "../src/lib/vocabularios.js";
+import { MAX_PREFERENCIAS_OPERACION } from "../src/lib/operaciones/tuberia.js";
 
 /**
  * La 0109 (plan fichas con estado, trozo 14): preferencia, plan_preferencias, senal, registro_eje y los historiales,
@@ -50,12 +51,8 @@ describe("0109: preferencias, señales e historiales", () => {
     expect(cuerpo("preferencias_de_casa")).toMatch(/household_members m where m\.household_id = p_casa and m\.user_id = auth\.uid\(\)/);
   });
 
-  it("una persona autora que no es de la casa no se calla: aborta antes de escribir (no se guarda null)", () => {
-    const f = cuerpo("escribir_preferencias");
-    const aviso = f.indexOf("la persona autora no es de esta casa");
-    expect(aviso).toBeGreaterThan(-1);
-    expect(f.slice(f.lastIndexOf("if ", aviso), aviso)).toMatch(/autor_persona_id[\s\S]*not exists[\s\S]*public\.persona x where x\.household_id = v_casa/);
-    expect(aviso).toBeLessThan(f.indexOf("insert into public.operacion"));
+  it("el tope de una operación es el de la tubería (MAX_PREFERENCIAS_OPERACION): lo que no cabe se dice antes de llegar", () => {
+    expect(cuerpo("escribir_preferencias")).toContain(`c_max constant integer := ${MAX_PREFERENCIAS_OPERACION};`);
   });
 
   it("los motivos de sin_hacer son MOTIVOS_SIN_HACER_PREFERENCIA, y nada más", () => {
