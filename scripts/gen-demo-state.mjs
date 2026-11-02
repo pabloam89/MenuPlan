@@ -76,7 +76,6 @@ const data = {
   cookLevel: "normal",
   cookSkills: ["Pasta", "Horno"],
   kitchenTools: ["Horno", "Microondas"],
-  customKitchenTools: [],
   timeWeekday: 35,
   timeWeekend: 60,
   hasBudget: false,

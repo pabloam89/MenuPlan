@@ -111,7 +111,7 @@ describe("la fila de controles sale del registro, no de un componente", () => {
     // incluido el de Tiempo, que toca cuatro casillas de una.
     const CONSUMIDOS = new Set([
       "freqs", "cocinas", "mealStructure", "cookLevel", "kitchenTools",
-      "customKitchenTools", "cookTime", "kidDinner", "notepad",
+      "cookTime", "kidDinner", "notepad",
       // Lo lee `resolveModeData` (App.jsx) para NO pisar en modo basico un
       // nivel de cocina que elegiste tu desde la fila de mandos.
       "cookLevelManual",

@@ -9783,8 +9783,8 @@ export const APPLIANCES = KITCHEN_TOOLS_CON_ARTE;
 // Sin "Añadir otro": la lista fija son los seis aparatos que el generador sabe
 // aprovechar de verdad (ver resolveCookwareMarker en RecipeSteps.jsx). Un
 // nombre escrito a mano no casaba con ninguna receta, así que solo servía para
-// añadir una fila y con ella scroll. `customKitchenTools` sigue en el modelo de
-// datos y lo que hubiera ahí se respeta; simplemente ya no se edita aquí.
+// añadir una fila y con ella scroll. Lo de fuera de la lista lo apunta Lola
+// como «Otro» con su nota (kitchenToolsNota); aquí no se edita y se respeta.
 export function OnboardingAppliances({ data, setData, onNext, onBack, onFinish, onReset, finishLabel }) {
   const toggleTool = (tool) =>
     setData((d) => ({
