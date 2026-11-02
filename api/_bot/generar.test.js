@@ -18,6 +18,8 @@ const { motor } = await import("./menu.js");
 const { generarMenu, resultadoDeGenerar, SIN_GENERAR } = await import("./generar.js");
 const { ESTADO, recibo } = await import("./resultado.js");
 const { estimarSemana, frasePresupuesto } = await import("../../src/lib/presupuesto.js");
+const { resumenCumplimiento } = await import("../../src/lib/cumplimiento.js");
+const { rastro } = await import("./embudo.js");
 const { MINIMO } = await import("../../src/lib/minimosParaGenerar.js");
 
 const plan = { Lun: { Cena: { recipeId: "r1" } } };
@@ -40,7 +42,7 @@ const m = {
   weekToRow: () => ({}),
   COLUMNAS_DESPENSA: "*",
   filaDeDespensa: (f) => f,
-  estimarSemana, frasePresupuesto,
+  estimarSemana, frasePresupuesto, resumenCumplimiento,
 };
 
 const casaVieja = {
@@ -402,6 +404,32 @@ describe("semanas por fecha y memoria entre menús (#958)", () => {
     const ai = [{ id: "a" }, { id: "b" }, { id: "c" }, { id: "fav" }];
     const r = recetasQueSiguen(ai, [{ g1: { "Lun-Cena": { recipeId: "a" } } }, { g1: { "Mar-Comida": { firstRecipeId: "b" } } }], { deLaCasa: { recipeVotes: { fav: {} } } });
     expect(r.map((x) => x.id)).toEqual(["a", "b", "fav"]);
+  });
+});
+
+describe("generar: lo dicho que el menú no cumple se dice, y la cifra va al rastro (trozo 31 de #1037)", () => {
+  const fila = (id, origen, estado, extra = {}) => ({ id, campo: "tecnica", valor: "horno", operador: "mas", cantidad: null, origen, estado, ...extra });
+  const conInforme = (preferencias) => motor.mockResolvedValue({
+    ...m, generateMenuWithAI: async () => ({ plan, recipes: [{ id: "r1", name: "Tortilla" }], cumplimiento: { preferencias, porHueco: {} } }),
+  });
+
+  it("una preferencia dicha que no se cumple sale en una línea; lo visto no se dice", async () => {
+    conInforme([fila("a", "dicho", "no"), fila("b", "dicho", "cumplida", { valor: "olla" }), fila("c", "visto", "no", { campo: "base", valor: "arroz" })]);
+    conCasa.mockResolvedValue({ ok: true });
+    const out = {};
+    const texto = await generarMenu("h1", "esta", [], out);
+    expect(out.incumplidas).toEqual(["más cosas al horno"]);
+    expect(texto).toMatch(/NO SE HA PODIDO CUMPLIR \([^)]*\): más cosas al horno\./);
+    expect(rastro).toHaveBeenCalledWith("h1", "menu_generated", expect.objectContaining({ preferencias: { dichas: 2, cumplidas: 1, pct: 50 } }));
+  });
+
+  it("si todo lo dicho se cumple, ni una palabra", async () => {
+    conInforme([fila("a", "dicho", "cumplida")]);
+    conCasa.mockResolvedValue({ ok: true });
+    const out = {};
+    const texto = await generarMenu("h1", "esta", [], out);
+    expect(out.incumplidas).toEqual([]);
+    expect(texto).not.toMatch(/NO SE HA PODIDO CUMPLIR/);
   });
 });
 

@@ -18,6 +18,7 @@ const { motor } = await import("./menu.js");
 const { generarMenu, semanasAnteriores } = await import("./generar.js");
 // Las cuentas del presupuesto, las de verdad (core.mjs las exporta, #958).
 const { estimarSemana, frasePresupuesto } = await import("../../src/lib/presupuesto.js");
+const { resumenCumplimiento } = await import("../../src/lib/cumplimiento.js");
 
 const plan = { g1: { "Lun-Cena": { recipeId: "r1" } } };
 const m = {
@@ -29,7 +30,7 @@ const m = {
   registerRecipes: () => {}, buildShoppingList: () => ({ byCategory: [], pantryItems: [] }),
   getDayMeals: () => ({}), createMenuId: () => "menu-nuevo", menuToRow: (menu) => ({ id: menu.id }),
   weekToRow: () => ({}), COLUMNAS_DESPENSA: "*", filaDeDespensa: (f) => f, tipoDeGrupo: () => "familia",
-  estimarSemana, frasePresupuesto,
+  estimarSemana, frasePresupuesto, resumenCumplimiento,
 };
 const casa = {
   householdId: "h1", botRev: 3, menu: { id: "menu-viejo" }, semanas: [], semana: null,
