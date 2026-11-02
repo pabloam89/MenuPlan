@@ -145,8 +145,11 @@ describe("guardar los datos con sobre", () => {
       enviar: async (item) => { enviados.push(item.dato); return { status: 200, cuerpo: { guardado: true, estado: "hecha", rev: 3 + enviados.length } }; },
       nuevaClave: () => `00000000-0000-4000-8000-00000000c1a${enviados.length}`, ahora: () => 0,
     });
-    const casa = casaDeCasa({ casa: CASA, valores: { kitchenTools: [], kitchenToolsNota: null }, cola });
-    expect(await casa.guardar({ kitchenTools: [] }, 3)).toEqual({ ok: true, enviado: false });
+    // Leídos de la ficha, como al cargar: kitchenTools sin sobre ni defecto en el registro.
+    const { valores } = await leer(servidor({ v: 2, datos: [porDefecto("kitchenTools", null), porDefecto("kitchenToolsNota", null)] }));
+    const casa = casaDeCasa({ casa: CASA, valores, cola });
+    // Lo que deja la normalización de App.jsx (kitchenTools: [] si no es lista).
+    expect(await casa.guardar({ kitchenTools: [], kitchenToolsNota: null }, 3)).toEqual({ ok: true, enviado: false });
     expect(await casa.guardar({ kitchenTools: ["Horno", "Otro"], kitchenToolsNota: "plancha" }, 3)).toEqual({ ok: true, enviado: true, botRev: 5 });
     expect(enviados).toEqual([
       { campo: "kitchenTools", persona_id: null, valor: ["Horno", "Otro"], origen: "dicho" },
