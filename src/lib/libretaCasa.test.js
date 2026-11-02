@@ -1,6 +1,6 @@
 /**
- * La libreta en la app (trozo 14 de #1037): de sus filas al cargar, a api/operacion.js al guardar, y como antes
- * mientras la base no tenga la 0109.
+ * La libreta en la app (trozo 14 de #1037): de sus filas al cargar y a api/operacion.js al guardar; sin poder
+ * leerlas (también sin la 0109), error de carga, no el documento.
  */
 import { describe, it, expect, vi } from "vitest";
 import { readFileSync } from "node:fs";
@@ -29,8 +29,9 @@ describe("leer la libreta", () => {
     expect(c.rpc).toHaveBeenCalledWith(RPC_LEER_PREFERENCIAS, { p_casa: CASA });
   });
 
-  it("sin la 0109 (la RPC no existe), del documento, como antes", async () => {
-    expect(await leerLibretaDeCasa(CASA, cliente({ data: null, error: { code: PGRST_SIN_FUNCION } }))).toEqual({ modo: MODO_LIBRETA.DOCUMENTO });
+  it("sin la RPC (la 0109 ya está aplicada), error: la casa no se carga sin sus preferencias, ni vuelve al documento", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    expect(await leerLibretaDeCasa(CASA, cliente({ data: null, error: { code: PGRST_SIN_FUNCION } }))).toEqual({ error: true });
   });
 
   it("sin poder leerla, o con otra forma, no es una casa sin preferencias: error", async () => {
@@ -46,9 +47,10 @@ describe("leer la libreta", () => {
     expect(Object.keys(data.notepad.campos)).toEqual(["freqs.pescado"]);
     expect(data.freqs).toEqual({ pescado: 2 });
     expect(sinLibretaLeida(data, FILAS)).toEqual({ members: [], groups: [], reglas: [] });
-    const enDocumento = { modo: MODO_LIBRETA.DOCUMENTO };
-    expect(conLibretaLeida(doc, enDocumento)).toBe(doc);
-    expect(sinLibretaLeida(doc, enDocumento)).toBe(doc);
+    // Sin casa (carga null), tal cual; una carga con error no se usa (cargaSinSeguir): si llega, falla en alto.
+    expect([conLibretaLeida(doc, null), sinLibretaLeida(doc, null)]).toEqual([doc, doc]);
+    expect(() => conLibretaLeida(doc, { error: true })).toThrow(/cargaSinSeguir/);
+    expect(() => sinLibretaLeida(doc, { error: true })).toThrow(/cargaSinSeguir/);
   });
 });
 
@@ -82,7 +84,7 @@ describe("guardar la libreta", () => {
 
   it("guardada pero sin poder releer las filas: conflicto, para recargar la casa y no seguir con filas sin el id nuevo", async () => {
     const libreta = conLibretaLeida({ groups: [] }, FILAS).notepad;
-    for (const leida of [{ error: true }, { modo: MODO_LIBRETA.DOCUMENTO }]) {
+    for (const leida of [{ error: true }]) {
       const l = libretaDeCasa({ casa: CASA, carga: FILAS, conocida: { notepad: libreta }, enviar: async () => ({ ok: true, rev: 4 }), releer: async () => leida });
       const r = await l.guardar({ groups: [], notepad: poner(libreta, "favoritos.queso", true, { origen: "texto" }) });
       expect(r, JSON.stringify(leida)).toMatchObject({ ok: true, enviado: true, conflict: true });

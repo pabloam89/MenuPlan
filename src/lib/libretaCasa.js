@@ -3,8 +3,8 @@
  * 0109) y lo que cambia se guarda por api/operacion.js (escribir_preferencias, la misma tubería y puerta que Lola),
  * no en household_state. Ni la libreta ni lo que proyecta al motor (CLAVES_DE_LA_LIBRETA) van al documento.
  *
- * Plan B mientras la 0109 no esté aplicada (la rama se despliega antes): si la base no tiene preferencias_de_casa,
- * la libreta sigue en el documento como hasta ahora. Se decide en cada carga de la casa; nunca en los dos sitios.
+ * Con la 0109 aplicada (2 nov 2026), las preferencias se leen siempre de sus filas: si la base no tiene
+ * preferencias_de_casa, o no se pueden leer, la casa no se carga (cargaSinSeguir), en vez de seguir sin ellas.
  */
 import { supabase } from "./supabase.js";
 import { esSinFuncion } from "./postgrest.js";
@@ -14,7 +14,7 @@ import { conLibretaDeFilas, sinLibreta, cambiosDePreferencias, CLAVES_EN_PREFERE
 import { PreferenciaInvalida } from "./preferencias.js";
 import { RPC_LEER_PREFERENCIAS } from "./operaciones/tuberia.js";
 
-/** De dónde sale la libreta en esta carga: de sus filas, o del documento (base sin la 0109). Los mismos modos que la familia. */
+/** De dónde sale la libreta en esta carga: siempre de sus filas (FILAS). Los mismos modos que la familia. */
 export const MODO_LIBRETA = MODO_FAMILIA;
 
 /** La pantalla (la `ref` de la operación) y la acción de un cambio de la libreta desde la app. */
@@ -22,29 +22,31 @@ export const REF_LIBRETA = "libreta";
 export const ACCION_LIBRETA = "guardar_libreta";
 
 /**
- * Las preferencias de una casa. `{ modo: FILAS, filas }`; `{ modo: DOCUMENTO }` si la base aún no tiene la RPC; o
- * `{ error: true }` si no se pudieron leer (sin red, o sin la forma v1): no es una casa sin preferencias.
+ * Las preferencias de una casa. `{ modo: FILAS, filas }`, o `{ error: true }` si no se pudieron leer (sin red, sin
+ * la RPC o sin la forma v1): no es una casa sin preferencias.
  */
 export async function leerLibretaDeCasa(casa, cliente = supabase) {
   if (!cliente) return { error: true };
   const { data, error } = await cliente.rpc(RPC_LEER_PREFERENCIAS, { p_casa: casa });
-  if (esSinFuncion(error)) return { modo: MODO_LIBRETA.DOCUMENTO };
   if (error || data?.v !== 1 || !Array.isArray(data.preferencias)) {
-    console.warn("[libretaCasa] lectura", error?.code ?? "sin el contrato v1");
+    console.warn("[libretaCasa] lectura", esSinFuncion(error) ? "sin preferencias_de_casa (0109)" : error?.code ?? "sin el contrato v1");
     return { error: true };
   }
   return { modo: MODO_LIBRETA.FILAS, filas: data.preferencias };
 }
 
-/** Pura. Los datos de la casa con la libreta de sus filas (y su proyección) en vez de la del documento. */
+/** Pura. Los datos de la casa con la libreta de sus filas (y su proyección) en vez de la del documento; sin casa (`carga` null), tal cual. */
 export function conLibretaLeida(data, carga) {
-  if (carga?.modo !== MODO_LIBRETA.FILAS || !data) return data;
+  if (!carga || !data) return data;
+  if (carga.modo !== MODO_LIBRETA.FILAS) throw new Error("conLibretaLeida: una carga sin filas no sigue (cargaSinSeguir)");
   return conLibretaDeFilas(data, carga.filas);
 }
 
-/** Pura. Lo que va al documento: sin la libreta ni su proyección cuando viven en sus filas. */
+/** Pura. Lo que va al documento: sin la libreta ni su proyección, que viven en sus filas; sin casa (`carga` null), tal cual. */
 export function sinLibretaLeida(datos, carga) {
-  return carga?.modo === MODO_LIBRETA.FILAS ? sinLibreta(datos) : datos;
+  if (!carga) return datos;
+  if (carga.modo !== MODO_LIBRETA.FILAS) throw new Error("sinLibretaLeida: una carga sin filas no se guarda (cargaSinSeguir)");
+  return sinLibreta(datos);
 }
 
 /** Un cambio de la libreta a api/operacion.js (enviarOperacion, el mismo envío que la familia). */
