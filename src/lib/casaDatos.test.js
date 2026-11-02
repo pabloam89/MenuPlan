@@ -98,7 +98,7 @@ describe("leer los datos de la casa", () => {
   it("en desarrollo, sin las funciones de api/ (contesta la página de vite), del documento y dicho en consola", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     const aviso = vi.spyOn(console, "warn").mockImplementation(() => {});
-    expect((await leer(servidor("<!doctype html>"), { enDesarrollo: true })).valores).toMatchObject({});
+    expect(await leer(servidor("<!doctype html>"), { enDesarrollo: true })).toEqual({ valores: {} });
     expect(aviso).toHaveBeenCalledTimes(1);
     // Un fallo del servidor de verdad sigue siendo error también en desarrollo.
     expect(await leer(servidor({ fallo: "servidor" }, 503), { enDesarrollo: true })).toEqual({ error: true });
@@ -272,7 +272,8 @@ describe("la Rutina con ámbito en la app", () => {
 
   it("con la 0116, el horario sale de sus sobres por hueco, en la forma de data", async () => {
     const r = await leer(servidor({ v: 2, datos: [base("schedule", P), hueco("schedule", { dia: "Lun", comida: "Cena" }, "fuera", P), base("slotType")] }));
-    expect(r.valores).toMatchObject({ schedule: { "p1|Lun|Cena": "fuera" }, slotType: {} });
+    expect(r.valores.schedule).toEqual({ "p1|Lun|Cena": "fuera" });
+    expect(r.valores.slotType).toEqual({});
   });
 
   it("un elemento sin ámbito (una ficha de antes de la 0116): error de carga, no el documento", async () => {
