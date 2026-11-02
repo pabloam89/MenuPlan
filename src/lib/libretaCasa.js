@@ -10,8 +10,8 @@ import { supabase } from "./supabase.js";
 import { esSinFuncion } from "./postgrest.js";
 import { guardarConVersion } from "./versionCasa.js";
 import { enviarOperacion, colaEnOrden, conVersionDeFamilia, MODO_FAMILIA } from "./familiaCasa.js";
-import { conLibretaDeFilas, sinLibreta } from "./libretaEnData.js";
-import { cambiosDeLibreta, PreferenciaInvalida } from "./preferencias.js";
+import { conLibretaDeFilas, sinLibreta, cambiosDePreferencias, CLAVES_EN_PREFERENCIAS } from "./libretaEnData.js";
+import { PreferenciaInvalida } from "./preferencias.js";
 import { RPC_LEER_PREFERENCIAS } from "./operaciones/tuberia.js";
 
 /** De dónde sale la libreta en esta carga: de sus filas, o del documento (base sin la 0109). Los mismos modos que la familia. */
@@ -51,23 +51,26 @@ export function sinLibretaLeida(datos, carga) {
 export const enviarPreferencias = ({ casa, preferencias }, opciones) => enviarOperacion(
   { casa, accion: ACCION_LIBRETA, ref_id: REF_LIBRETA, preferencias }, { etiqueta: "libretaCasa", ...opciones });
 
+/** Lo de `data` que vive en filas de preferencia (CLAVES_EN_PREFERENCIAS), lo que se compara al guardar. */
+const enPreferencias = (data) => Object.fromEntries(CLAVES_EN_PREFERENCIAS.filter((k) => data?.[k] !== undefined).map((k) => [k, data[k]]));
+
 /**
- * La libreta de una casa tal como la conoce la app: la leída (`libreta`, la de conLibretaLeida) y, tras cada
- * guardado que entra, la guardada, con sus filas (`carga.filas`; de ellas, el id de lo que cambia). `guardar(datos)` manda lo que cambió (cambiosDeLibreta), uno tras
+ * Las preferencias de una casa tal como la conoce la app: las leídas (`conocida`, los datos de conLibretaLeida) y, tras
+ * cada guardado que entra, las guardadas, con sus filas (`carga.filas`; de ellas, el id de lo que cambia). `guardar(datos)` manda lo que cambió (cambiosDePreferencias), uno tras
  * otro; tras un guardado que entra, vuelve a leer las filas (`releer`) para tener el id de lo recién creado (si no
  * puede, `conflict`: App.jsx recarga la casa en vez de seguir con filas viejas). Un
- * apunte que no cabe en una fila (PreferenciaInvalida) no se manda y vuelve como `{ ok: false, error }`.
+ * apunte o una regla que no cabe en una fila (PreferenciaInvalida) no se manda y vuelve como `{ ok: false, error }`.
  */
-export function libretaDeCasa({ casa, carga, libreta, enviar = enviarPreferencias, releer = leerLibretaDeCasa }) {
+export function libretaDeCasa({ casa, carga, conocida: leida, enviar = enviarPreferencias, releer = leerLibretaDeCasa }) {
   let filas = carga.filas;
-  let conocida = libreta;
+  let conocida = enPreferencias(leida);
   const encolar = colaEnOrden();
   const guardar = (datos) => encolar(async () => {
-    const nueva = datos?.notepad;
-    if (nueva === undefined) return { ok: true, enviado: false };
+    const nueva = enPreferencias(datos);
+    if (!Object.keys(nueva).length) return { ok: true, enviado: false };
     let preferencias;
     try {
-      preferencias = cambiosDeLibreta(conocida, nueva, filas, { grupos: datos?.groups ?? [] });
+      preferencias = cambiosDePreferencias({ ...conocida, groups: datos?.groups, members: datos?.members }, datos, filas);
     } catch (e) {
       if (!(e instanceof PreferenciaInvalida)) throw e;
       return { ok: false, enviado: false, error: e.message };
@@ -75,7 +78,7 @@ export function libretaDeCasa({ casa, carga, libreta, enviar = enviarPreferencia
     if (!preferencias.length) return { ok: true, enviado: false };
     const r = await enviar({ casa, preferencias });
     if (!r.ok) return { ...r, enviado: true };
-    conocida = nueva;
+    conocida = { ...conocida, ...nueva };
     const leida = await releer(casa);
     // Sin poder releerlas, las filas de aquí ya no valen (no tienen el id de lo recién creado): a recargar la casa.
     if (leida?.modo !== MODO_LIBRETA.FILAS) return { ...r, enviado: true, conflict: true };
