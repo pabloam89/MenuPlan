@@ -15,7 +15,8 @@
  * ── La decisión de diseño que lo sostiene ─────────────────────────────────
  * `validateMenu` es la ÚNICA fuente de verdad de las reglas, también aquí.
  *
- * La tentación era reimplementar las 24 reglas como comprobaciones
+ * La tentación era reimplementar las reglas (todas, declaradas como
+ * preferencias del sistema en preferenciasSistema.js) como comprobaciones
  * incrementales (más rápido: mirar solo el hueco que acabas de tocar). Sería
  * repetir exactamente el error que llevamos toda la auditoría persiguiendo —
  * la misma regla escrita dos veces, divergiendo en silencio, como el prompt y
@@ -55,6 +56,7 @@ import { aporteDe } from "./aporte.js";
 import { precioDePlato, precioAlto } from "./presupuesto.js";
 import { casaCon, pesoDe } from "./cumplimiento.js";
 import { OPERADOR_PREFERENCIA as OP } from "./vocabularios.js";
+import { RELAJABLES } from "./preferenciasSistema.js";
 
 // Los pesos de dos objetivos de la casa en el orden del solver (los explica
 // resolverMenu, paso 5). Exportados para que la entrada del motor
@@ -822,16 +824,11 @@ export function resolverMenu(slots, pool, {
  * revalidación de generateGroupMenu las ignora en los huecos `relajados`.
  * `segundo_sin_proteina_principal` (#894): el prompt pide proteína en el
  * segundo, pero una casa vegana no tiene ninguno; antes un segundo sin ella
- * que un hueco vacío.
+ * que un hueco vacío. `guarnicion_legumbre` (#896): la legumbre-hidrato con
+ * arroz, pasta o patatas el mismo día; dos arroces (`guarnicion_repetida`)
+ * siguen siendo duros. Cuáles son lo dice su fuerza, en preferenciasSistema.js.
  */
-export const REGLAS_RELAJABLES = new Set([
-  "health_profile_conflict",
-  "freq_max_exceeded",
-  "segundo_sin_proteina_principal",
-  // #896: la legumbre-hidrato con arroz, pasta o patatas el mismo día. Solo
-  // ese cruce; dos arroces (`guarnicion_repetida`) siguen siendo duros.
-  "guarnicion_legumbre",
-]);
+export const REGLAS_RELAJABLES = new Set(RELAJABLES);
 
 /**
  * El solver con REINTENTOS (1 oct 2026).

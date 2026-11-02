@@ -85,8 +85,12 @@ export function preferenciasDelMotor(data, { hoy = null } = {}) {
   return Object.freeze(out);
 }
 
-/** Lo que saldría al azar: los platos de la semana por la parte del pool que cumple la preferencia. */
-function estadoDe(p, veces, platos, posibles, tamano) {
+/**
+ * El evaluador: cómo sale una preferencia con `veces` platos que casan con ella; `mas`/`menos`, frente a lo que
+ * saldría al azar (los platos de la semana por la parte del pool que la cumple). Lo usan también las reglas del
+ * validador (preferenciasSistema.js), que son topes y no necesitan el azar.
+ */
+export function estadoDePreferencia(p, veces, platos = 0, posibles = 0, tamano = 0) {
   const azar = tamano ? (posibles / tamano) * platos : 0;
   switch (p.operador) {
     case OP.MAS: return veces === 0 ? "no" : veces > azar ? "cumplida" : "parcial";
@@ -104,7 +108,7 @@ export function cumplimientoDelGrupo(prefs, asignaciones, pool) {
   const preferencias = prefs.map((p) => {
     const veces = platos.filter((r) => casaCon(p, r)).length;
     const posibles = (pool ?? []).filter((r) => casaCon(p, r)).length;
-    const estado = estadoDe(p, veces, platos.length, posibles, pool?.length ?? 0);
+    const estado = estadoDePreferencia(p, veces, platos.length, posibles, pool?.length ?? 0);
     const motivo = estado === "cumplida" ? null : posibles === 0 && p.operador !== OP.MENOS ? "sin_candidatos" : "pesaba_menos";
     return { id: p.id, campo: p.campo, valor: p.valor, operador: p.operador, cantidad: p.cantidad, origen: p.origen, fuerza: p.fuerza, estado, motivo, veces };
   });
