@@ -14,7 +14,8 @@
  * referencia, la pantalla: la app no puede hacerse pasar por Lola ni por el
  * sistema. aplicar_operacion vuelve a comprobar que el autor es de la casa.
  *
- * Cuerpo: { casa, clave, accion, ref_id, pedida_at, dato: { campo, persona_id, valor, origen } }.
+ * Cuerpo: { casa, clave, accion, ref_id, pedida_at, dato: { campo, persona_id, valor, origen } }, o con `datos`
+ * (una lista) en vez de `dato`: los huecos de un horario que cambian juntos (trozo 13), en una sola operación.
  * Un cambio de la familia (trozo 10), en vez de `dato`: { …, personas: [...], grupos?: [...] }, lo que
  * saca cambiosDePersonas (src/lib/personas.js); va a escribir_persona (0108) por la misma tubería y puerta.
  * Para deshacer una operación propia (trozo 41): { casa, deshacer: <operacion_id> }, sin dato; la
@@ -32,7 +33,7 @@ import { usuarioDeToken } from "./_bot/db.js";
 import { papelDeUsuario } from "./_bot/papel.js";
 import { escribirDato, escribirPersonas, deshacerOperacion, falloDeMotivo, leerDatosDeCasa } from "./_bot/datos.js";
 import { motivoDe } from "./_bot/avisar.js";
-import { HTTP_DE_FALLO, apuntarSinGuardar } from "../src/lib/escribirDato.js";
+import { HTTP_DE_FALLO, apuntarSinGuardar, campoDelPedido } from "../src/lib/escribirDato.js";
 import * as ids from "../src/lib/ids.js";
 import { FALLO_DATO, CANAL_DATO, REF_OPERACION } from "../src/lib/vocabularios.js";
 
@@ -76,7 +77,9 @@ export default async function handler(req, res) {
   if (!accessToken) return contestar(res, FALLO_DATO.SIN_SESION);
   if (req.method === "GET") return leerCasa(req, res, accessToken);
 
-  const { casa, clave, accion, ref_id, pedida_at = null, dato, deshacer = null, personas, grupos } = req.body ?? {};
+  const { casa, clave, accion, ref_id, pedida_at = null, dato, datos, deshacer = null, personas, grupos } = req.body ?? {};
+  // Un dato o varios (`datos`); cuál de los dos, y su forma, lo mira operacionDeDato (escribirDato.js).
+  const conDatos = dato != null || datos != null;
   // Un cambio de la familia (trozo 10) en vez de un dato: personas y, si cambiaron, los grupos.
   const deFamilia = personas !== undefined || grupos !== undefined;
   let user;
@@ -87,8 +90,8 @@ export default async function handler(req, res) {
     if (!ids.casa.esNuevo(casa)) return contestar(res, FALLO_DATO.INVALIDO, "casa");
     if (deshacer != null) {
       // Deshacer o escribir, nunca las dos en una petición: el dato no se tiraría en silencio.
-      if (!ids.operacion.esNuevo(deshacer) || dato != null || deFamilia) return contestar(res, FALLO_DATO.INVALIDO, "deshacer");
-    } else if (deFamilia && dato != null) {
+      if (!ids.operacion.esNuevo(deshacer) || conDatos || deFamilia) return contestar(res, FALLO_DATO.INVALIDO, "deshacer");
+    } else if (deFamilia && conDatos) {
       // Un dato o un cambio de la familia, nunca los dos: uno se tiraría en silencio.
       return contestar(res, FALLO_DATO.INVALIDO, "dato");
     } else if (!ids.claveOperacion.esNuevo(clave)) {
@@ -99,7 +102,7 @@ export default async function handler(req, res) {
   } catch (e) {
     // La sesión o la casa no se pudieron leer: no se guarda. Aquí no se llama a la RPC: un «no existe» no es rpc_ausente.
     const { fallo, motivo } = falloDeBase(e);
-    apuntarSinGuardar({ fallo, motivo, canal: CANAL_DATO.APP, campo: dato?.campo ?? null });
+    apuntarSinGuardar({ fallo, motivo, canal: CANAL_DATO.APP, campo: campoDelPedido({ dato, datos }) });
     return contestar(res, fallo);
   }
 
@@ -118,7 +121,7 @@ export default async function handler(req, res) {
   };
   const r = deFamilia
     ? await escribirPersonas({ ...pedido, personas, grupos }, { papel })
-    : await escribirDato({ ...pedido, dato }, { papel });
+    : await escribirDato({ ...pedido, dato, datos }, { papel });
   if (r.fallo) return contestar(res, r.fallo, r.error);
   return res.status(200).json(r);
 }

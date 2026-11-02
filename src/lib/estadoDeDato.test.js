@@ -141,3 +141,27 @@ describe("estadoParaLibreta: el sobre afina y no borra lo que sabe el documento"
     expect(() => estadoParaLibreta([], "dicho")).toThrow(/libreta/);
   });
 });
+
+// Un campo con ámbito (0116) da su base y un elemento por hueco con sobre, del mismo campo y sujeto: cada uno con
+// su clave, sin taparse (trozo 13).
+describe("estadosDeFichas: los huecos de un campo con ámbito no tapan su base", () => {
+  const P = "p1";
+  const base = vacio("schedule", persona(P), { ambito: null });
+  const lunes = conSobre("schedule", persona(P), "dicho", "fuera", { ambito: { dia: "Lun", comida: "Comida" } });
+  const martes = conSobre("schedule", persona(P), "dicho", "cole", { ambito: { comida: "Cena", dia: "Mar" } });
+
+  it("leidoDe da la base, venga antes o después de sus huecos, y cada hueco queda con su ámbito", () => {
+    for (const orden of [[base, lunes, martes], [lunes, martes, base]]) {
+      const e = estadosDeFichas({ rutina: orden }, AHORA);
+      expect(leidoDe(e, "schedule", P)).toMatchObject({ estado: "vacio", ambito: null, conSobre: false });
+      expect([...e.values()].filter((l) => l.ambito).map((l) => [l.ambito.dia, l.valor])).toEqual(
+        orden.filter((x) => x.ambito).map((x) => [x.ambito.dia, x.valor]),
+      );
+    }
+  });
+
+  it("el mismo hueco dos veces, o un ámbito que no es un objeto, no cuadran: lanza", () => {
+    expect(() => estadosDeFichas({ rutina: [base, lunes, { ...lunes }] }, AHORA)).toThrow(/dos veces/);
+    expect(() => estadosDeFichas({ rutina: [{ ...lunes, ambito: "Lun|Comida" }] }, AHORA)).toThrow(/ámbito/);
+  });
+});

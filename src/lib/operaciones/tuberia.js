@@ -24,7 +24,7 @@
  * `rpc_ausente` y queda `dato_sin_guardar` en el log; nunca se escribe en household_state.
  * Sin base propia: `rpc` y cómo leer sus errores los da api/_bot/datos.js.
  */
-import { operacionDeDato, cabeceraDeOperacion, hay, resultadoDeOperacion, apuntarSinGuardar, DatoInvalido } from "../escribirDato.js";
+import { operacionDeDato, cabeceraDeOperacion, hay, resultadoDeOperacion, apuntarSinGuardar, DatoInvalido, campoDelPedido } from "../escribirDato.js";
 import { comprobar, falloDePuerta } from "./puerta.js";
 import { ESTADO_OPERACION, FALLO_DATO, CANAL_DATO } from "../vocabularios.js";
 
@@ -55,13 +55,13 @@ async function llamarRpc(funcion, args, { rpc, falloDeError, canal, campo }) {
 /**
  * Una operación de tipo dato, por la tubería entera. Nunca lanza por un fallo
  * de la base: devuelve { guardado: false, fallo } y lo apunta en el log.
- * @param {Parameters<typeof operacionDeDato>[0]} pedido  casa, clave, accion, canal, ref, autor, pedida_at y dato
+ * @param {Parameters<typeof operacionDeDato>[0]} pedido  casa, clave, accion, canal, ref, autor, pedida_at y dato (o datos)
  * @param {{ papel: string|null, rpc: (funcion: string, args: object) => Promise<any>,
  *   falloDeError: (e: unknown) => { fallo: string, motivo: string|null } }} servidor
  * @returns {Promise<{ guardado: boolean, fallo?: string, error?: string, motivo?: string } & Record<string, unknown>>}
  */
 export async function operar(pedido, { papel, rpc, falloDeError }) {
-  const campo = pedido?.dato?.campo ?? null;
+  const campo = campoDelPedido(pedido);
   // Entender.
   let op;
   try {
