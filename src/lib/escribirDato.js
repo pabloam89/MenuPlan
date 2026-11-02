@@ -24,10 +24,11 @@
  */
 import {
   REF_OPERACION, CANAL_DATO, ESTADO_OPERACION, FALLO_DATO, FALLOS_DATO,
-  VOCABULARIOS, paraEscribir, listaParaEscribir, FueraDeVocabulario,
+  VOCABULARIOS, paraEscribir, listaParaEscribir, FueraDeVocabulario, DIMENSIONES_AMBITO,
 } from "./vocabularios.js";
 import { REGISTRO_CAMPOS } from "./registroCampos.js";
 import { claveOperacion } from "./ids.js";
+import { lunesDe } from "./reglas.js";
 
 /** Dónde guarda la app lo que aún no ha llegado a la base. */
 export const CLAVE_COLA = "menuplan.colaDatos.v1";
@@ -63,8 +64,47 @@ function deLaLista(nombre, valor, que) {
 }
 
 /**
+ * La clave de cada dimensión del ámbito (DIMENSIONES_AMBITO) en un dato de la operación y en el ámbito de
+ * ficha_casa: la columna de sobre (0114). El grupo va por su id.
+ */
+export const CLAVE_DE_DIMENSION = Object.freeze(Object.fromEntries(DIMENSIONES_AMBITO.map((d) => [d, d === "grupo" ? "grupo_id" : d])));
+
+/** El valor de cada dimensión, por su lista o su forma: el día de DIAS, la comida de COMIDAS, la semana por su lunes. */
+const DE_LA_DIMENSION = Object.freeze({
+  grupo: (v) => { if (!hay(v)) throw new DatoInvalido("el grupo del ámbito no es un id"); return v; },
+  semana: (v) => {
+    // La semana se nombra por su lunes (lunesDe): vale si es su propio lunes, en AAAA-MM-DD.
+    if (typeof v !== "string" || lunesDe(v) !== v) throw new DatoInvalido(`la semana «${v}» no es un lunes (AAAA-MM-DD)`);
+    return v;
+  },
+  dia: (v) => deLaLista("dias", v, "un día"),
+  comida: (v) => deLaLista("comidas", v, "una comida"),
+});
+
+/**
+ * Pura. Las claves de ámbito de un dato: exactamente las de su campo (registro_campo.ambito, 0114), cada una por
+ * su lista; ninguna si el campo no tiene ámbito (y el dato sale igual que antes). Lanza DatoInvalido: el
+ * disparador de la base lo rechazaría igual, y mejor no proponerlo.
+ */
+function ambitoDelDato(r, dato) {
+  const ambito = {};
+  for (const d of DIMENSIONES_AMBITO) {
+    const clave = CLAVE_DE_DIMENSION[d];
+    const v = dato[clave] ?? null;
+    if (!r.ambito.includes(d)) {
+      if (v != null) throw new DatoInvalido(`«${dato.campo}» no va por ${d} (su ámbito: ${r.ambito.join(", ") || "ninguno"})`);
+      continue;
+    }
+    if (v == null) throw new DatoInvalido(`«${dato.campo}» va por ${r.ambito.join(", ")}: falta ${d}`);
+    ambito[clave] = DE_LA_DIMENSION[d](v);
+  }
+  return ambito;
+}
+
+/**
  * Pura. El dato tal como va en `datos` de la operación, con su valor pasado por
- * su vocabulario (paraEscribir: un retirado va a su sucesor). Lanza DatoInvalido.
+ * su vocabulario (paraEscribir: un retirado va a su sucesor) y, si su campo tiene
+ * ámbito, el de su hueco (ambitoDelDato). Lanza DatoInvalido.
  * Lo que depende de la base (persona de la casa, si se supone, si lo escribe la
  * familia) lo decide aplicar_operacion y vuelve en `sin_hacer`.
  */
@@ -85,7 +125,7 @@ export function datoValido(dato) {
       throw e;
     }
   }
-  return { campo, persona_id: persona_id == null ? null : String(persona_id), valor: v, origen: o };
+  return { campo, persona_id: persona_id == null ? null : String(persona_id), ...ambitoDelDato(r, dato), valor: v, origen: o };
 }
 
 /**

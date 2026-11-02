@@ -4,6 +4,7 @@ import { REGISTRO_CAMPOS } from "../src/lib/registroCampos.js";
 import { CHOQUE, CHOQUES, CLASES_DATO, COMIDAS, DIAS, DIMENSIONES_AMBITO, ESCRITORES, ESTADO_DE_ORIGEN, ESTADOS_DATO, ESTADOS_OPERACION, MOTIVOS_SIN_DESHACER, MOTIVOS_SIN_HACER_DATO, ORIGEN_DATO, ORIGENES_DE_LA_FAMILIA } from "../src/lib/vocabularios.js";
 import { CAMPOS_DESHACER } from "../src/lib/operaciones/tuberia.js";
 import { FICHA_CON_ESTADO } from "../src/lib/estadoDeDato.js";
+import { CLAVE_DE_DIMENSION } from "../src/lib/escribirDato.js";
 
 /**
  * El dato con sobre (plan fichas con estado, trozo 7): lo que no vigilan principios.test.js ni
@@ -251,7 +252,7 @@ describe("0115: escribir y deshacer por la clave entera del sobre (campo, person
   const codigo0115 = sinComentarios(readFileSync(new URL("./migrations/0115_escribir_con_ambito.sql", import.meta.url), "utf8"));
   const aplicar = cuerpo("aplicar_operacion", codigo0115);
   const deshacer = cuerpo("deshacer_operacion", codigo0115);
-  const columna = (d) => (d === "grupo" ? "grupo_id" : d);
+  const columna = (d) => CLAVE_DE_DIMENSION[d];
   const variable = (d) => `v_${d}`;
 
   it("son las que valen en la base, con su firma y solo para service_role", () => {
@@ -300,7 +301,7 @@ describe("0115: escribir y deshacer por la clave entera del sobre (campo, person
 describe("0116: ficha_casa con ámbito, sin subir de versión", () => {
   const codigo0116 = sinComentarios(readFileSync(new URL("./migrations/0116_ficha_casa_ambito.sql", import.meta.url), "utf8"));
   const ficha = cuerpo("ficha_casa", codigo0116);
-  const columna = (d) => (d === "grupo" ? "grupo_id" : d);
+  const columna = (d) => CLAVE_DE_DIMENSION[d];
 
   it("es la que vale en la base, sigue en la versión que leen Lola y la app y solo para service_role", () => {
     expect(ultimaQueDefine("ficha_casa")).toBe(codigo0116);
