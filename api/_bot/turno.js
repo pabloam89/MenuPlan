@@ -205,13 +205,15 @@ export async function generar(householdId, x) {
   const destacados = (out.colocados ?? []).length ? " Lo que pediste va marcado con ✨." : "";
   // Con presupuesto, si cabe o no, siempre (src/lib/presupuesto.js, #958).
   const presupuesto = out.presupuesto ? `\n\n💶 ${esc(out.presupuesto)}` : "";
+  // Lo que pidieron y no ha podido ser (src/lib/cumplimiento.js): una línea.
+  const incumplidas = (out.incumplidas ?? []).length ? `\n\n🤏 Esta vez no ha podido ser: ${esc(out.incumplidas.join(", "))}.` : "";
   // Los huecos que se han quedado sin plato (#1029): se dicen, no se callan.
   const vacios = (out.huecosVacios ?? []).length
     ? `\n\n⚠️ <b>Se quedan sin plato:</b> ${esc(describirHuecos(out.huecosVacios))}. Dime si lo intento de otra forma o qué pongo ahí.`
     : "";
   return {
     // El primer menú con alergias por silencio lo recuerda una vez (#229).
-    texto: conRecordatorio(`🎉 <b>¡Menú listo!</b> Del <b>${rangoDeFechas(out.desde, out.hasta)}</b>.${destacados}${vacios}${pedidos}${presupuesto}`, out.recordarSilencio),
+    texto: conRecordatorio(`🎉 <b>¡Menú listo!</b> Del <b>${rangoDeFechas(out.desde, out.hasta)}</b>.${destacados}${vacios}${pedidos}${incumplidas}${presupuesto}`, out.recordarSilencio),
     fotos: [], deshacible: false, ir: "semana",
     pintar: filtrosTrasGenerar(out),
   };

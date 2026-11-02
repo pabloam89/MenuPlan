@@ -18,6 +18,8 @@ const { motor } = await import("./menu.js");
 const { generarMenu, resultadoDeGenerar, SIN_GENERAR } = await import("./generar.js");
 const { ESTADO, recibo } = await import("./resultado.js");
 const { estimarSemana, frasePresupuesto } = await import("../../src/lib/presupuesto.js");
+const { resumenCumplimiento } = await import("../../src/lib/cumplimiento.js");
+const { rastro } = await import("./embudo.js");
 const { MINIMO } = await import("../../src/lib/minimosParaGenerar.js");
 
 const plan = { Lun: { Cena: { recipeId: "r1" } } };
@@ -31,7 +33,7 @@ const m = {
   prepararSemana: () => ({ weekData: {}, crossWeek: null, weekSchedule: {} }),
   // La semana tal cual: lo que compila la entrada lo prueba entradaMotor.test.js.
   entradaDelMotor: (weekData) => weekData,
-  generateMenuWithAI: async () => ({ plan, recipes: [{ id: "r1", name: "Tortilla" }] }),
+  generateMenuWithAI: async () => ({ plan, recipes: [{ id: "r1", name: "Tortilla" }], cumplimiento: { preferencias: [] } }),
   registerRecipes: () => {},
   buildShoppingList: () => ({ byCategory: [{ items: [{ name: "huevos" }] }], pantryItems: [] }),
   getDayMeals: () => ({}),
@@ -40,7 +42,7 @@ const m = {
   weekToRow: () => ({}),
   COLUMNAS_DESPENSA: "*",
   filaDeDespensa: (f) => f,
-  estimarSemana, frasePresupuesto,
+  estimarSemana, frasePresupuesto, resumenCumplimiento,
 };
 
 const casaVieja = {
@@ -231,7 +233,7 @@ describe("generar: rehacer la semana en curso (#907)", () => {
       let enLaCompra = null;
       motor.mockResolvedValue({
         ...m,
-        generateMenuWithAI: async () => ({ plan: nuevo, recipes: [] }),
+        generateMenuWithAI: async () => ({ plan: nuevo, recipes: [], cumplimiento: { preferencias: [] } }),
         buildShoppingList: (p) => { enLaCompra = Object.keys(p.g1); return { byCategory: [], pantryItems: [] }; },
       });
       conCasa.mockResolvedValue({ ok: true });
@@ -349,7 +351,7 @@ describe("semanas por fecha y memoria entre menús (#958)", () => {
       return [];
     });
     let recibido;
-    motor.mockResolvedValue({ ...m, generateMenuWithAI: async (wd) => { recibido = wd; return { plan, recipes: [] }; } });
+    motor.mockResolvedValue({ ...m, generateMenuWithAI: async (wd) => { recibido = wd; return { plan, recipes: [], cumplimiento: { preferencias: [] } }; } });
     conCasa.mockResolvedValue({ ok: true });
     await generarMenu("h1", "esta", [], {});
     const semanas = Object.values(recibido.menus.guardadas.weeks);
@@ -358,7 +360,7 @@ describe("semanas por fecha y memoria entre menús (#958)", () => {
   });
 
   it("un plan sin platos no se guarda ni se activa", async () => {
-    motor.mockResolvedValue({ ...m, generateMenuWithAI: async () => ({ plan: { g1: {}, _warnings: ["nada"] }, recipes: [] }) });
+    motor.mockResolvedValue({ ...m, generateMenuWithAI: async () => ({ plan: { g1: {}, _warnings: ["nada"] }, recipes: [], cumplimiento: { preferencias: [] } }) });
     const out = {};
     const texto = await generarMenu("h1", "esta", [], out);
     expect(texto).toMatch(/^NO GUARDADO/);
@@ -374,7 +376,7 @@ describe("semanas por fecha y memoria entre menús (#958)", () => {
     conCasa.mockResolvedValue({ ok: true });
     // Una receta de la familia: sin fila de precio. Suma 0 €, pero no deja decir «cabe».
     const planCasa = { g1: { "Lun-Cena": { recipeId: "propia_1", raciones: 2 } }, _warnings: [] };
-    motor.mockResolvedValue({ ...m, generateMenuWithAI: async () => ({ plan: planCasa, recipes: [{ id: "propia_1", name: "Tortilla" }] }) });
+    motor.mockResolvedValue({ ...m, generateMenuWithAI: async () => ({ plan: planCasa, recipes: [{ id: "propia_1", name: "Tortilla" }], cumplimiento: { preferencias: [] } }) });
     const out = {};
     const texto = await generarMenu("h1", "esta", [], out);
     expect(out.presupuesto).toMatch(/no puedo asegurar que quepa en el presupuesto de 60 €/);
@@ -405,13 +407,39 @@ describe("semanas por fecha y memoria entre menús (#958)", () => {
   });
 });
 
+describe("generar: lo dicho que el menú no cumple se dice, y la cifra va al rastro (trozo 31 de #1037)", () => {
+  const fila = (id, origen, estado, extra = {}) => ({ id, campo: "tecnica", valor: "horno", operador: "mas", cantidad: null, origen, estado, ...extra });
+  const conInforme = (preferencias) => motor.mockResolvedValue({
+    ...m, generateMenuWithAI: async () => ({ plan, recipes: [{ id: "r1", name: "Tortilla" }], cumplimiento: { preferencias, porHueco: {} } }),
+  });
+
+  it("una preferencia dicha que no se cumple sale en una línea; lo visto no se dice", async () => {
+    conInforme([fila("a", "dicho", "no"), fila("b", "dicho", "cumplida", { valor: "olla" }), fila("c", "visto", "no", { campo: "base", valor: "arroz" })]);
+    conCasa.mockResolvedValue({ ok: true });
+    const out = {};
+    const texto = await generarMenu("h1", "esta", [], out);
+    expect(out.incumplidas).toEqual(["más cosas al horno"]);
+    expect(texto).toMatch(/NO SE HA PODIDO CUMPLIR \([^)]*\): más cosas al horno\./);
+    expect(rastro).toHaveBeenCalledWith("h1", "menu_generated", expect.objectContaining({ preferencias: { dichas: 2, cumplidas: 1, pct: 50 } }));
+  });
+
+  it("si todo lo dicho se cumple, ni una palabra", async () => {
+    conInforme([fila("a", "dicho", "cumplida")]);
+    conCasa.mockResolvedValue({ ok: true });
+    const out = {};
+    const texto = await generarMenu("h1", "esta", [], out);
+    expect(out.incumplidas).toEqual([]);
+    expect(texto).not.toMatch(/NO SE HA PODIDO CUMPLIR/);
+  });
+});
+
 describe("generar: un hueco vacío no se calla (#1029)", () => {
   // Lo que recibió el motor: una casa de dos, comida de un plato y cena, solo el lunes.
   const semanaDeUno = { members: [{ id: "p1" }], groups: [{ id: "g1", label: "Todos", memberIds: ["p1"] }], schedule: {}, meals: ["Comida", "Cena"], mealStructure: "1_plato" };
   const conPlan = (plan) => motor.mockResolvedValue({
     ...m,
     prepararSemana: () => ({ weekData: semanaDeUno, crossWeek: null, weekSchedule: {} }),
-    generateMenuWithAI: async () => ({ plan, recipes: [{ id: "r1", name: "Tortilla" }] }),
+    generateMenuWithAI: async () => ({ plan, recipes: [{ id: "r1", name: "Tortilla" }], cumplimiento: { preferencias: [] } }),
   });
 
   it("el menú se guarda igual, pero el texto y `out` dicen qué hueco se queda sin plato", async () => {
