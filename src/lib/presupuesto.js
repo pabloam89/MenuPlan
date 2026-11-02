@@ -1,8 +1,8 @@
 // El presupuesto semanal de la casa, en UN sitio (#958; Pablo, 29 oct 2026).
 //
-// El dato vive en household_state.data: `hasBudget` (si hay tope) y `budget`
-// (€ por semana). Se lee en lib/presupuestoCasa.js (leerPresupuesto), que
-// este módulo vuelve a exportar; aquí se hacen las cuentas.
+// El dato es `presupuesto` (€ por semana; null = sin presupuesto). Se lee en
+// lib/presupuestoCasa.js (leerPresupuesto), que este módulo vuelve a exportar;
+// aquí se hacen las cuentas.
 //
 // Lo que hace con él #958 (los puntos 2 y 3, en PRs seguidos), y nada más:
 //  1. El solver prefiere platos cuyo € por ración cabe en el presupuesto
