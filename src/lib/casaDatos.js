@@ -135,7 +135,8 @@ export function casaDeCasa({ casa, valores, cola = colaDeLaApp() }) {
 
 /**
  * El guardado de los datos con sobre como tarea de la cola de la casa (guardarConVersion, versionCasa.js), que
- * se pide antes que el documento: con la versión que conoce la app, casaDeCasa apunta la que deja tras uno o
+ * se pide detrás de la familia y el documento (App.jsx; como Lola, casa.js): un sobre de una persona o un grupo nuevos
+ * necesita su fila. Con la versión que conoce la app, casaDeCasa apunta la que deja tras uno o
  * varios datos, o da `conflict` si otro escribió entretanto, para recargar. Sin datos con sobre, nada.
  */
 export function guardarCasaEnCola({ version, casa, datos, enCola = guardarConVersion }) {
