@@ -32,7 +32,14 @@ describe("0120: tachar en una compra con marcas", () => {
   });
 
   it("con la lista entera, lo de siempre (_marcar_items por nombre y unidad)", () => {
-    expect(marcar).toMatch(/if jsonb_typeof\(p_compra->'marcas'\) is distinct from 'array' then\s+return jsonb_set\(case when jsonb_typeof\(p_compra\) = 'object' then p_compra else '\{\}'::jsonb end,\s+'\{items\}', public\._marcar_items\(p_compra->'items', p_marcas\), true\);/);
+    expect(marcar).toMatch(/if jsonb_typeof\(p_compra->'marcas'\) is distinct from 'array' then\s+return jsonb_set\(p_compra, '\{items\}', public\._marcar_items\(p_compra->'items', p_marcas\), true\);/);
+  });
+
+  it("un dato roto se dice y no se pisa: sin compra guardada, una vacía (0087); algo que no es objeto, o una marca sin id o sin have, error", () => {
+    expect(marcar).toMatch(/p_compra := coalesce\(p_compra, '\{\}'::jsonb\);\s+if jsonb_typeof\(p_compra\) <> 'object' then\s+raise exception/);
+    expect(marcar).toMatch(/if v_id is null or v_have is null then\s+raise exception/);
+    expect(marcar).not.toMatch(/continue when v_id is null/);
+    expect(marcar).not.toMatch(/else '\{\}'::jsonb end/);
   });
 
   it("un artículo que se queda sin marcas sale de la lista; uno sin marcas solo se apunta si se tacha", () => {

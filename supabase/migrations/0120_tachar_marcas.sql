@@ -33,18 +33,25 @@ declare
   v_id text;
   v_have boolean;
 begin
+  -- Sin compra guardada (null de SQL), como en la 0087: una vacía. Algo guardado que no es un objeto es un dato roto:
+  -- se dice, no se pisa con una compra vacía.
+  p_compra := coalesce(p_compra, '{}'::jsonb);
+  if jsonb_typeof(p_compra) <> 'object' then
+    raise exception '_marcar_compra: la compra guardada no es un objeto (%)', jsonb_typeof(p_compra);
+  end if;
   -- La lista entera (antes del trozo 18): lo de siempre, por nombre y unidad.
-  -- Un null de JSON o algo que no es un objeto se trata como una compra vacía: jsonb_set fallaría sobre él.
   if jsonb_typeof(p_compra->'marcas') is distinct from 'array' then
-    return jsonb_set(case when jsonb_typeof(p_compra) = 'object' then p_compra else '{}'::jsonb end,
-                     '{items}', public._marcar_items(p_compra->'items', p_marcas), true);
+    return jsonb_set(p_compra, '{items}', public._marcar_items(p_compra->'items', p_marcas), true);
   end if;
 
   v_lista := p_compra->'marcas';
   for v_marca in select x from jsonb_array_elements(p_marcas) as t(x) loop
     v_id := v_marca->>'id';
     v_have := (v_marca->>'have')::boolean;
-    continue when v_id is null or v_have is null;
+    -- La app manda siempre id y have (tacharLector.js): una marca sin ellos no se salta en silencio.
+    if v_id is null or v_have is null then
+      raise exception '_marcar_compra: marca sin id o sin have (%)', v_marca;
+    end if;
 
     v_entrada := null;
     v_pos := null;
