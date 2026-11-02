@@ -10,7 +10,7 @@ vi.mock("./supabase.js", () => ({ supabase: null }));
 const { leerLibretaDeCasa, conLibretaLeida, sinLibretaLeida, enviarPreferencias, libretaDeCasa, guardarLibretaEnCola, MODO_LIBRETA, REF_LIBRETA, ACCION_LIBRETA } = await import("./libretaCasa.js");
 const { PGRST_SIN_FUNCION } = await import("./postgrest.js");
 const { RPC_LEER_PREFERENCIAS } = await import("./operaciones/tuberia.js");
-const { poner } = await import("./notepad.js");
+const { poner, olvidar } = await import("./notepad.js");
 const { FALLO_DATO } = await import("./vocabularios.js");
 
 const CASA = "00000000-0000-4000-8000-0000000000ca";
@@ -97,6 +97,18 @@ describe("guardar la libreta", () => {
       const r = await l.guardar({ groups: [], notepad: poner(libreta, "favoritos.queso", true, { origen: "texto" }) });
       expect(r, JSON.stringify(leida)).toMatchObject({ ok: true, enviado: true, conflict: true });
     }
+  });
+
+  it("lo recién creado se borra con el id que trae la relectura", async () => {
+    const { llegan, enviar } = enviada();
+    const libreta = conLibretaLeida({ groups: [] }, FILAS).notepad;
+    const conQueso = poner(libreta, "favoritos.queso", true, { origen: "texto" });
+    const QUESO = { ...PESCADO, id: "00000000-0000-4000-8000-0000000000f2", nivel: "plato", eje: "subtipoIngrediente", medida: "valor",
+      operador: "mas", valor: "queso", cantidad: null, fuerza: "medio", confirmado_at: null };
+    const l = libretaDeCasa({ casa: CASA, carga: FILAS, libreta, enviar, releer: async () => ({ modo: MODO_LIBRETA.FILAS, filas: [PESCADO, QUESO] }) });
+    await l.guardar({ groups: [], notepad: conQueso });
+    await l.guardar({ groups: [], notepad: olvidar(conQueso, "favoritos.queso") });
+    expect(llegan[1].preferencias).toEqual([{ id: QUESO.id, borrar: true }]);
   });
 
   it("lo que no entra se vuelve a mandar con el siguiente guardado", async () => {

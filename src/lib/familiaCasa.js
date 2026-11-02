@@ -68,24 +68,24 @@ export async function tokenDeSesion() {
 export const urlOperacion = () => apiUrl("/api/operacion");
 
 /**
- * Un cambio de la familia a api/operacion.js. Nunca lanza: `{ ok: true, ... }` con lo que devuelve la
- * tubería, o `{ ok: false, fallo }` (FALLOS_DATO).
+ * Una operación de la app a api/operacion.js (la familia, la libreta): `cuerpo` sin clave ni fecha, que se ponen
+ * aquí. Nunca lanza por la red ni por la sesión: `{ ok: true, ... }` con lo que devuelve la tubería, o
+ * `{ ok: false, fallo }` (FALLOS_DATO). `etiqueta`, para el log.
  */
-export async function enviarFamilia({ casa, personas, grupos }, { token = tokenDeSesion, fetcher = fetch } = {}) {
+export async function enviarOperacion(cuerpo, { token = tokenDeSesion, fetcher = fetch, etiqueta = "operacion" } = {}) {
   const sesion = async () => {
     try {
       return await token();
     } catch (e) {
       // Una sesión que no se puede leer es no tener sesión (sin_sesion): quien llama lo dice.
-      console.warn("[familiaCasa] sesión sin leer", e?.message);
+      console.warn(`[${etiqueta}] sesión sin leer`, e?.message);
       return null;
     }
   };
   let r;
   try {
     r = await enviarAlServidor({ token: sesion, url: urlOperacion(), fetchFn: fetcher })({
-      casa, clave: ids.claveOperacion.nuevo(), accion: "guardar_familia", ref_id: REF_FAMILIA,
-      pedida_at: new Date().toISOString(), personas, ...(grupos !== undefined ? { grupos } : {}),
+      ...cuerpo, clave: ids.claveOperacion.nuevo(), pedida_at: new Date().toISOString(),
     });
   } catch (e) {
     if (!(e instanceof TypeError)) throw e;
@@ -94,11 +94,30 @@ export async function enviarFamilia({ casa, personas, grupos }, { token = tokenD
   // Un cuerpo que no es JSON (la página de un proxy, un despliegue a medias) no es un guardado: se dice y al log.
   const fallo = falloDeEnvio(r);
   if (fallo) {
-    if (!r.cuerpo) console.warn("[familiaCasa] respuesta sin JSON", r.status);
+    if (!r.cuerpo) console.warn(`[${etiqueta}] respuesta sin JSON`, r.status);
     return { ok: false, fallo };
   }
   if (r.cuerpo.guardado !== true) return { ...r.cuerpo, ok: false, fallo: r.cuerpo.fallo ?? FALLO_DATO.SERVIDOR };
   return { ...r.cuerpo, ok: true };
+}
+
+/** Un cambio de la familia a api/operacion.js (enviarOperacion). */
+export const enviarFamilia = ({ casa, personas, grupos }, opciones) => enviarOperacion({
+  casa, accion: "guardar_familia", ref_id: REF_FAMILIA, personas, ...(grupos !== undefined ? { grupos } : {}),
+}, { etiqueta: "familiaCasa", ...opciones });
+
+/**
+ * Una cola de guardados, uno tras otro: `encolar(paso)` corre `paso` cuando acaba el anterior y devuelve su
+ * promesa. Un paso que falla no rompe la cola para el siguiente (el fallo ya lo recibe quien encoló).
+ */
+export function colaEnOrden() {
+  let cola = Promise.resolve();
+  return (paso) => {
+    const p = cola.then(paso);
+    // a propósito: el fallo ya lo recibe quien llamó (p); la cola solo no se rompe para el siguiente
+    cola = p.catch(() => {});
+    return p;
+  };
 }
 
 /**
@@ -109,10 +128,10 @@ export async function enviarFamilia({ casa, personas, grupos }, { token = tokenD
  */
 export function familiaDeCasa({ casa, familia, enviar = enviarFamilia }) {
   let conocida = familia;
-  let cola = Promise.resolve();
+  const encolar = colaEnOrden();
   const guardar = (datos) => {
     const ahora = { members: datos?.members ?? [], groups: datos?.groups ?? [] };
-    const paso = cola.then(async () => {
+    return encolar(async () => {
       const { cambios, avisos } = cambiosDePersonas(conocida, ahora);
       const conOrden = conOrdenDeTodos(cambios, conocida, ahora);
       if (!conOrden) return { ok: true, enviado: false, avisos: [] };
@@ -120,9 +139,6 @@ export function familiaDeCasa({ casa, familia, enviar = enviarFamilia }) {
       if (r.ok) conocida = ahora;
       return { ...r, enviado: true, avisos: textosDeAvisos(avisos) };
     });
-    // a propósito: el fallo ya lo recibe quien llamó (paso); la cola solo no se rompe para el siguiente
-    cola = paso.catch(() => {});
-    return paso;
   };
   return { casa, guardar, conocida: () => conocida };
 }

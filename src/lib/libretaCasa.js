@@ -7,18 +7,15 @@
  * la libreta sigue en el documento como hasta ahora. Se decide en cada carga de la casa; nunca en los dos sitios.
  */
 import { supabase } from "./supabase.js";
-import * as ids from "./ids.js";
-import { FALLO_DATO } from "./vocabularios.js";
-import { enviarAlServidor, falloDeEnvio } from "./escribirDato.js";
 import { esSinFuncion } from "./postgrest.js";
 import { guardarConVersion } from "./versionCasa.js";
-import { tokenDeSesion, urlOperacion, conVersionDeFamilia } from "./familiaCasa.js";
+import { enviarOperacion, colaEnOrden, conVersionDeFamilia, MODO_FAMILIA } from "./familiaCasa.js";
 import { conLibretaDeFilas, sinLibreta } from "./libretaEnData.js";
 import { cambiosDeLibreta, PreferenciaInvalida } from "./preferencias.js";
 import { RPC_LEER_PREFERENCIAS } from "./operaciones/tuberia.js";
 
-/** De dónde sale la libreta en esta carga: de sus filas, o del documento (base sin la 0109). */
-export const MODO_LIBRETA = Object.freeze({ FILAS: "filas", DOCUMENTO: "documento" });
+/** De dónde sale la libreta en esta carga: de sus filas, o del documento (base sin la 0109). Los mismos modos que la familia. */
+export const MODO_LIBRETA = MODO_FAMILIA;
 
 /** La pantalla de la que sale un cambio de la libreta (la `ref` de la operación). */
 export const REF_LIBRETA = "libreta";
@@ -53,29 +50,9 @@ export function sinLibretaLeida(datos, carga) {
   return carga?.modo === MODO_LIBRETA.FILAS ? sinLibreta(datos) : datos;
 }
 
-/**
- * Un cambio de la libreta a api/operacion.js. Nunca lanza: `{ ok: true, ... }` con lo que devuelve la tubería, o
- * `{ ok: false, fallo }` (FALLOS_DATO).
- */
-export async function enviarPreferencias({ casa, preferencias }, { token = tokenDeSesion, fetcher = fetch } = {}) {
-  let r;
-  try {
-    r = await enviarAlServidor({ token, url: urlOperacion(), fetchFn: fetcher })({
-      casa, clave: ids.claveOperacion.nuevo(), accion: ACCION_LIBRETA, ref_id: REF_LIBRETA,
-      pedida_at: new Date().toISOString(), preferencias,
-    });
-  } catch (e) {
-    if (!(e instanceof TypeError)) throw e;
-    return { ok: false, fallo: FALLO_DATO.SIN_RED };
-  }
-  const fallo = falloDeEnvio(r);
-  if (fallo) {
-    if (!r.cuerpo) console.warn("[libretaCasa] respuesta sin JSON", r.status);
-    return { ok: false, fallo };
-  }
-  if (r.cuerpo.guardado !== true) return { ...r.cuerpo, ok: false, fallo: r.cuerpo.fallo ?? FALLO_DATO.SERVIDOR };
-  return { ...r.cuerpo, ok: true };
-}
+/** Un cambio de la libreta a api/operacion.js (enviarOperacion, el mismo envío que la familia). */
+export const enviarPreferencias = ({ casa, preferencias }, opciones) => enviarOperacion(
+  { casa, accion: ACCION_LIBRETA, ref_id: REF_LIBRETA, preferencias }, { etiqueta: "libretaCasa", ...opciones });
 
 /**
  * La libreta de una casa tal como la conoce la app: la leída (`libreta`, la de conLibretaLeida) y, tras cada
@@ -87,32 +64,27 @@ export async function enviarPreferencias({ casa, preferencias }, { token = token
 export function libretaDeCasa({ casa, carga, libreta, enviar = enviarPreferencias, releer = leerLibretaDeCasa }) {
   let filas = carga.filas;
   let conocida = libreta;
-  let cola = Promise.resolve();
-  const guardar = (datos) => {
-    const paso = cola.then(async () => {
-      const nueva = datos?.notepad;
-      if (nueva === undefined) return { ok: true, enviado: false };
-      let preferencias;
-      try {
-        preferencias = cambiosDeLibreta(conocida, nueva, filas, { grupos: datos?.groups ?? [] });
-      } catch (e) {
-        if (!(e instanceof PreferenciaInvalida)) throw e;
-        return { ok: false, enviado: false, error: e.message };
-      }
-      if (!preferencias.length) return { ok: true, enviado: false };
-      const r = await enviar({ casa, preferencias });
-      if (!r.ok) return { ...r, enviado: true };
-      conocida = nueva;
-      const leida = await releer(casa);
-      // Sin poder releerlas, las filas de aquí ya no valen (no tienen el id de lo recién creado): a recargar la casa.
-      if (leida?.modo !== MODO_LIBRETA.FILAS) return { ...r, enviado: true, conflict: true };
-      filas = leida.filas;
-      return { ...r, enviado: true };
-    });
-    // a propósito: el fallo ya lo recibe quien llamó (paso); la cola solo no se rompe para el siguiente
-    cola = paso.catch(() => {});
-    return paso;
-  };
+  const encolar = colaEnOrden();
+  const guardar = (datos) => encolar(async () => {
+    const nueva = datos?.notepad;
+    if (nueva === undefined) return { ok: true, enviado: false };
+    let preferencias;
+    try {
+      preferencias = cambiosDeLibreta(conocida, nueva, filas, { grupos: datos?.groups ?? [] });
+    } catch (e) {
+      if (!(e instanceof PreferenciaInvalida)) throw e;
+      return { ok: false, enviado: false, error: e.message };
+    }
+    if (!preferencias.length) return { ok: true, enviado: false };
+    const r = await enviar({ casa, preferencias });
+    if (!r.ok) return { ...r, enviado: true };
+    conocida = nueva;
+    const leida = await releer(casa);
+    // Sin poder releerlas, las filas de aquí ya no valen (no tienen el id de lo recién creado): a recargar la casa.
+    if (leida?.modo !== MODO_LIBRETA.FILAS) return { ...r, enviado: true, conflict: true };
+    filas = leida.filas;
+    return { ...r, enviado: true };
+  });
   return { casa, guardar };
 }
 

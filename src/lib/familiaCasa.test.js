@@ -187,7 +187,7 @@ describe("la carga de la casa", () => {
     expect(cargaSinSeguir({ soloNube: false, remoteState: {}, cargaFamilia: { modo: MODO_FAMILIA.FILAS }, cargaCasa: { valores: {} } })).toBe(false);
     // La libreta en sus filas (libretaCasa.js): sin leerla, tampoco.
     expect(cargaSinSeguir({ soloNube: false, remoteState: {}, cargaFamilia: { modo: MODO_FAMILIA.FILAS }, cargaLibreta: { error: true } })).toBe(true);
-    expect(cargaSinSeguir({ soloNube: false, remoteState: {}, cargaFamilia: { modo: MODO_FAMILIA.FILAS }, cargaLibreta: { modo: "filas", filas: [] } })).toBe(false);
+    expect(cargaSinSeguir({ soloNube: false, remoteState: {}, cargaFamilia: { modo: MODO_FAMILIA.FILAS }, cargaLibreta: { modo: MODO_FAMILIA.FILAS, filas: [] } })).toBe(false);
   });
 });
 
