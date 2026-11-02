@@ -75,6 +75,7 @@
  */
 import { ESCRITOR, CHOQUE, CLASE, FICHA } from "./vocabularios.js";
 import { CAMPOS as CAMPOS_LIBRETA } from "./notepadFields.js";
+import { TANDA_MIN, TANDA_MAX } from "./cookTime.js";
 
 /** Las entidades de la ficha, con los campos de la forja (Fábrica, entities.json: REQUIRED_FIELDS). */
 export const ENTIDADES = Object.freeze({
@@ -211,6 +212,12 @@ const listaDeSalud = { ...salud, choque: CHOQUE.MAS_RESTRICTIVO };
  * aquí sale CAMPOS_CASA_CON_SOBRE (estadoDeDato.js).
  */
 const deLaCasa = (campo) => ({ entidad: "casa", campo, politica: "nunca", vive: "tabla:sobre" });
+/**
+ * Un dato de la ficha Rutina con fila en registro_campo (trozo 13), sin ámbito: de la casa entera
+ * (`por = 'casa'`), con la ficha «rutina» y, como los de la Casa, sin tarea que lo pregunte. Hasta que la app y
+ * Lola lo lean de su sobre sigue viviendo en el documento (`vive` no cambia aquí).
+ */
+const deLaRutina = (campo) => ({ entidad: "casa", ficha: "rutina", campo, politica: "nunca" });
 /** Lo que solo apunta el sistema (contadores, avisos dados, alias aprendidos). */
 const delSistema = { escribe: ESCRITOR.SISTEMA };
 /** Lo que solo se añade (menús hechos, tickets, lo que descontó la despensa): tabla con fecha y poda (trozo 22). */
@@ -246,13 +253,13 @@ export const DATOS_CASA = Object.freeze({
   kcalByGroup: dato({ entidad: "grupo", tema: "salud", ficha: FICHA.PREFERENCIA, tipo: "mapa" }),
 
   // ── Horario: qué comidas, cuándo y dónde ──
-  meals: dato({ tema: "horario", tipo: "lista_enum", vocabulario: "comidas", defecto: ["Comida", "Cena"], peso_menu: 85 }),
+  meals: dato({ tema: "horario", tipo: "lista_enum", vocabulario: "comidas", defecto: ["Comida", "Cena"], peso_menu: 85, ...deLaRutina("meals") }),
   extraMeals: dato({ tema: "horario", tipo: "objeto", motivo: "desayuno, merienda y postre fuera del menú" }),
   schedule: dato({ tema: "horario", tipo: "mapa", vocabulario: "donde_come", motivo: "quién come dónde cada día" }),
   slotType: dato({ tema: "horario", tipo: "mapa" }),
   manualSlotType: dato({ tema: "horario", tipo: "mapa", ...marca("slotType"), motivo: "los huecos que el usuario tocó a mano; el motor la lee (prepararGeneracion.js) para no simplificarlos" }),
-  mealStructure: dato({ tema: "horario", tipo: "enum", vocabulario: "estructura_platos", defecto: "primero_segundo", peso_menu: 55 }),
-  mealStructureCena: dato({ tema: "horario", tipo: "enum", vocabulario: "estructura_platos", defecto: "1_plato" }),
+  mealStructure: dato({ tema: "horario", tipo: "enum", vocabulario: "estructura_platos", defecto: "primero_segundo", peso_menu: 55, ...deLaRutina("mealStructure") }),
+  mealStructureCena: dato({ tema: "horario", tipo: "enum", vocabulario: "estructura_platos", defecto: "1_plato", ...deLaRutina("mealStructureCena") }),
   mealStructureByGroup: dato({ entidad: "grupo", tema: "horario", tipo: "mapa", vocabulario: "estructura_platos" }),
   mealStructureCenaByGroup: dato({ entidad: "grupo", tema: "horario", tipo: "mapa", vocabulario: "estructura_platos" }),
   mealStyleByGroup: dato({ entidad: "grupo", tema: "horario", tipo: "mapa" }),
@@ -292,8 +299,8 @@ export const DATOS_CASA = Object.freeze({
   timeWeekend: dato({ tema: "cocina", ficha: "rutina", tipo: "int", estado: "legado", de: "cookTime", motivo: "respaldo de cookTime en cookTime.js" }),
   tanda: dato({ tema: "cocina", ficha: "rutina", tipo: "mapa", libreta: "tanda" }),
   tandaPlatos: dato({ tema: "cocina", ficha: "rutina", tipo: "mapa", libreta: "tandaPlatos" }),
-  tandaMinutos: dato({ tema: "cocina", ficha: "rutina", tipo: "int" }),
-  diaTanda: dato({ tema: "cocina", ficha: "rutina", tipo: "enum", vocabulario: "dias", motivo: "el día en que se cocina la tanda; sin él, el domingo" }),
+  tandaMinutos: dato({ tema: "cocina", tipo: "int", minimo: TANDA_MIN, maximo: TANDA_MAX, ...deLaRutina("tandaMinutos"), motivo: "minutos de manos de la sesión de tanda (TANDA_MIN y TANDA_MAX, cookTime.js); sin él, el de la libreta" }),
+  diaTanda: dato({ tema: "cocina", tipo: "enum", vocabulario: "dias", ...deLaRutina("diaTanda"), motivo: "el día en que se cocina la tanda; sin él, el domingo" }),
   garnishRepeat: dato({ tema: "cocina", ficha: "casa", tipo: "enum", estado: "legado", motivo: "el motor ya no lo lee (aiPlanner.js); la app solo lo sanea" }),
 
   // ── Despensa ──
