@@ -272,9 +272,9 @@ describe("las semanas marcadas se abren en el menú", () => {
 
 describe("salir de la hoja de arranque", () => {
   it("la copia guarda lo que abrir una pizarra cambia, y nada más", () => {
-    const data = { menus: { a: {} }, activeMenuId: "a", menuWeek: { offset: 1 }, kitchenTools: ["horno"] };
-    const copia = copiaAntesDePizarra(data);
-    expect(copia).toMatchObject({ menus: { a: {} }, activeMenuId: "a", menuWeek: { offset: 1 } });
-    expect(copia).not.toHaveProperty("kitchenTools");
+    const data = { menus: { a: {} }, activeMenuId: "a", kitchenTools: ["horno"], pantryGenDeltas: {} };
+    expect(Object.keys(copiaAntesDePizarra(data)).sort()).toEqual([
+      "activeMenuId", "extraMeals", "groups", "menuWeek", "menuWeekDays", "menuWeekOffsets", "menus",
+    ]);
   });
 });

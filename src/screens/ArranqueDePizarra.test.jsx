@@ -7,7 +7,8 @@ import { ArranqueDePizarra } from "./PizarraControles.jsx";
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 describe("la hoja de arranque de la pizarra", () => {
-  it("se cierra con la X", () => {
+  it("se cierra con la X, una sola vez aunque el toque sea doble", () => {
+    vi.useFakeTimers();
     const onSalir = vi.fn();
     const caja = document.createElement("div");
     document.body.appendChild(caja);
@@ -22,7 +23,12 @@ describe("la hoja de arranque de la pizarra", () => {
         />,
       );
     });
-    act(() => caja.querySelector('[aria-label="Cerrar"]').click());
+    const x = caja.querySelector('[aria-label="Cerrar"]');
+    act(() => x.click());
+    act(() => x.click());
+    expect(onSalir).not.toHaveBeenCalled();
+    act(() => vi.runAllTimers());
+    vi.useRealTimers();
     expect(onSalir).toHaveBeenCalledTimes(1);
   });
 });

@@ -1604,6 +1604,14 @@ export function ArranqueDePizarra({ data, setData, onAplicar, onEmpezar, onSalir
     }, 240);
   };
 
+  // Sale igual que entra a «Empezar»: la hoja sigue puesta durante la salida, y
+  // el segundo toque de un doble toque no cae en lo que hay debajo.
+  const salir = () => {
+    if (saliendo) return;
+    setFase("saliendo");
+    setTimeout(onSalir, 240);
+  };
+
   if (fase === "montando") {
     return (
       <div
@@ -1665,17 +1673,24 @@ export function ArranqueDePizarra({ data, setData, onAplicar, onEmpezar, onSalir
       >
         <button
           type="button"
-          onClick={() => !saliendo && onSalir()}
+          onClick={salir}
           aria-label="Cerrar"
           className="mp-press"
           style={{
-            position: "absolute", top: "var(--esp-12)", right: "var(--esp-12)", zIndex: 1,
-            width: 32, height: 32, borderRadius: "var(--radio-pildora)", padding: 0,
-            background: "var(--color-superficie)", border: "1px solid var(--color-linea)", cursor: "pointer",
+            position: "absolute", top: "var(--esp-8)", right: "var(--esp-8)", zIndex: 1,
+            width: 40, height: 40, padding: 0, background: "none", border: "none", cursor: "pointer",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}
         >
-          <X size={16} color={VERDE} />
+          <span
+            style={{
+              width: 32, height: 32, boxSizing: "border-box", borderRadius: "var(--radio-pildora)",
+              background: "var(--color-superficie)", border: "1px solid var(--color-linea)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}
+          >
+            <X size={16} color={VERDE} />
+          </span>
         </button>
         {/* Sola y centrada. Debajo iba un «Luego rellenas los huecos a mano»
             que explicaba la pantalla siguiente a quien todavía no ha salido de
