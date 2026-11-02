@@ -225,7 +225,7 @@ import { normalizePantryInput } from "./utils/normalizePantryInput.js";
 import { basesDeReceta } from "./lib/bases.js";
 import { findMatchingPantryItem } from "./lib/shoppingBuilder.js";
 import { applyConsumption, consumeFromPantry, restoreToPantry, pantryConsumeMode } from "./lib/cookPantry.js";
-import { modoDespensaAlGenerar, usaDespensa, sinUseHomeStock } from "./lib/modoDespensa.js";
+import { modoDespensaAlGenerar, modoDespensaAlCargar, usaDespensa, sinUseHomeStock } from "./lib/modoDespensa.js";
 import { useStatusBarSobreFondo } from "./lib/statusBar.js";
 import {
   normalizeDeltaBucketMap,
@@ -380,11 +380,8 @@ const INITIAL_DATA = {
   // tú". Es lo que hace quien cocina: no dejar que se eche a perder lo que ya
   // compró. "prefer" (romper empates) sigue existiendo en el motor pero ya no
   // se ofrece ni se siembra: era una diferencia que no se nota.
+  // Si alguien lo eligió lo dice su sobre, no una marca (trozo 12 de #1037).
   pantryMode: "only",
-  // ¿Se ha elegido el modo de despensa a propósito? Sirve para distinguir un
-  // "prefer" que puso el usuario de uno que puso un default antiguo: sin este
-  // flag no se pueden separar, y los saves de entonces llevan "prefer" escrito.
-  pantryModeSet: false,
   // ── Modo básico vs avanzado (progressive disclosure) ──
   // false = modo básico (por defecto): asumimos los ajustes más sencillos y
   // ocultamos los controles avanzados. true = modo avanzado: el usuario ve y
@@ -747,8 +744,6 @@ function migrate(state) {
   }
   delete d.allergies;
   d.fixedDishes = migrateFixedDishes(d.fixedDishes);
-  // `pantryModeSet` marca si la elección es de alguien o del normalizador.
-  if (typeof d.pantryModeSet !== "boolean") d.pantryModeSet = false;
   // El asistente ofrece DOS (ver PANTRY_MODES en screens/Onboarding.jsx), y la
   // diferencia entre ellas es una sola pregunta: ¿compro o no compro? Las dos
   // aprovechan todo lo que hay en casa.
@@ -759,15 +754,12 @@ function migrate(state) {
   // nadie rellena el inventario para que luego no cuente; "prefer" porque la
   // diferencia no se nota.
   //
-  // Se siembra "only". Reactiva la despensa en cuentas que estaban en "off"
-  // sin haberlo elegido, y ese es el cambio que se busca: lo que ya compraste
-  // deja de echarse a perder mientras el menú te manda a comprar otra cosa.
-  // Un "off" ELEGIDO (pantryModeSet, p. ej. «deja de usar lo de casa» a Lola,
-  // #958) se respeta: solo se reactiva el que nadie eligió.
-  const offElegido = d.pantryMode === "off" && d.pantryModeSet === true;
-  if (!offElegido && !["strict", "only", "prefer"].includes(d.pantryMode)) {
-    d.pantryMode = "only";
-  }
+  // Sin modo, o con uno que el motor no entiende, se siembra "only" (el
+  // defecto del registro). Un "off" ya no se cambia: sin la marca
+  // pantryModeSet no se distingue el elegido («deja de usar lo de casa» a
+  // Lola, #958) del viejo, y el que nadie eligió lo arregla el sobre: con la
+  // 0112 se lee de ahí, y sin decir es "only" (modoDespensaAlCargar).
+  d.pantryMode = modoDespensaAlCargar(d.pantryMode);
   if (typeof d.pantryHasItems !== "boolean") d.pantryHasItems = false;
   // ── Modo básico / avanzado ──
   const looksEstablished =

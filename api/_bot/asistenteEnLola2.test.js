@@ -64,8 +64,8 @@ describe("ajustar_menu_peques con detalle", () => {
 });
 
 describe("ajustar_uso_despensa", () => {
-  it("las mismas dos claves que el paso del asistente", () => {
-    expect(aplicarModoDespensa({}, "strict").data).toEqual({ pantryMode: "strict", pantryModeSet: true });
+  it("la misma clave que el paso del asistente, sin marca (la da el sobre)", () => {
+    expect(aplicarModoDespensa({}, "strict").data).toEqual({ pantryMode: "strict" });
     expect(aplicarModoDespensa({}, "nada").data).toBeUndefined();
   });
 });

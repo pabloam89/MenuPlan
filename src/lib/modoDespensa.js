@@ -8,6 +8,7 @@
  * Sin import.meta ni Supabase: el servidor lo importa tal cual.
  */
 import { MODOS_DESPENSA } from "./vocabularios.js";
+import { DATOS_CASA } from "./registroFicha.js";
 
 /** Los modos que entiende el motor (aiPlanner.js, buildUserMessage): el vocabulario modo_despensa de pantryMode. */
 export const MODOS_DESPENSA_MOTOR = MODOS_DESPENSA;
@@ -17,6 +18,14 @@ export function modoDespensaAlGenerar(data) {
   const modo = data?.pantryMode;
   return MODOS_DESPENSA_MOTOR.includes(modo) ? modo : "off";
 }
+
+/**
+ * Pura. El modo de la casa al cargarla (normalización de App.jsx): el leído si es uno del motor, «off» incluido;
+ * si falta o no se entiende, el defecto del registro («only»). Ya no hay marca `pantryModeSet` (trozo 12 de
+ * #1037): con la 0112 el modo sale de su sobre, que ya dice si lo dijo alguien; sin ella, el del documento cuenta
+ * como dicho, como cookLevel en el PR 6.
+ */
+export const modoDespensaAlCargar = (modo) => (MODOS_DESPENSA_MOTOR.includes(modo) ? modo : DATOS_CASA.pantryMode.defecto);
 
 /** Pura. ¿El menú parte de lo que hay en casa? Lo que antes se guardaba como `useHomeStock`. */
 export const usaDespensa = (data) => modoDespensaAlGenerar(data) !== "off";
