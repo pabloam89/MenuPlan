@@ -4,7 +4,7 @@
 // Onboarding.jsx). Lo leen la app y Lola al cargar y lo que cambia va con la libreta a escribir_preferencias
 // (libretaEnData.js). El estilo solo elige con qué veces arranca cada familia: las veces son de la libreta (freqs).
 
-import { PreferenciaInvalida } from "./preferencias.js";
+import { PreferenciaInvalida, sinAmbito } from "./preferencias.js";
 
 /** La clave de `mealStyleByGroup` del menú de toda la casa (Onboarding.jsx y Menu.jsx). */
 export const CLAVE_CASA = "__global__";
@@ -12,10 +12,8 @@ export const CLAVE_CASA = "__global__";
 /** La forma de la fila de un estilo. Obligatoria: es lo que la casa eligió, no un gusto que el motor pese. */
 export const FORMA_ESTILO = Object.freeze({ nivel: "semana", eje: "estiloComida", medida: "valor", operador: "es", fuerza: "obligatoria" });
 
-const SIN_AMBITO = ["persona_id", "plan_id", "dias", "comidas", "semanas", "salvo_dias", "salvo_comidas", "salvo_semanas", "desde", "hasta"];
-
 /** ¿Es la fila del estilo de un menú? Del grupo o de la casa, sin persona, conjunto ni ámbito. */
-export const esFilaDeEstilo = (f) => f?.eje === FORMA_ESTILO.eje && f.operador === FORMA_ESTILO.operador && SIN_AMBITO.every((k) => f[k] == null);
+export const esFilaDeEstilo = (f) => f?.eje === FORMA_ESTILO.eje && f.operador === FORMA_ESTILO.operador && !f.persona_id && !f.plan_id && sinAmbito(f);
 
 /** Pura. `mealStyleByGroup` de las filas: { [grupo o CLAVE_CASA]: estilo }. Dos estilos para un menú: PreferenciaInvalida. */
 export function estilosDeFilas(filas) {

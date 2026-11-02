@@ -10,7 +10,7 @@
 
 import { PreferenciaInvalida, valorDelEje, valorIdDelEje } from "./preferencias.js";
 import { CLAVES_DE_FIRMA } from "./reglasEnFilas.js";
-import { KID_DINNER_OPTIONS, KID_DINNER_DEFAULTS, normalizeKidDinnerConfig } from "./kidsMenu.js";
+import { KID_DINNER_OPTIONS, KID_DINNER_DEFAULTS, KID_DINNER_AVOID_DEFAULTS, normalizeKidDinnerConfig } from "./kidsMenu.js";
 import { DIAS_LABORABLES, DIAS_FINDE } from "./dias.js";
 
 /** El ámbito de cada comida de kidDinnerConfig que dice si come lo de la familia. El finde incluye las vacaciones: no caben. */
@@ -20,7 +20,7 @@ export const AMBITOS = Object.freeze({
   weekend: { dias: [...DIAS_FINDE], comidas: null, familia: "together" },
 });
 const EJES = Object.freeze({ familia: "comeConLaFamilia", reaprovecha: "cenaDelMediodia", repite: "repiteDelComedor", pocas: "comePocasCosas", come: "subtipoIngrediente" });
-const AVOID = Object.freeze(["protein", "carbs", "veg"]);
+const AVOID = Object.freeze(Object.keys(KID_DINNER_AVOID_DEFAULTS));
 const CENA = ["Cena"];
 const BASE = Object.freeze({ medida: "valor", fuerza: "obligatoria", cantidad: null, origen: "dicho" });
 

@@ -1,6 +1,7 @@
 import { cloneElement, createContext, Fragment, memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useZoomPellizco } from "../lib/useZoomPellizco.js";
 import { HuecosVivosContext } from "../lib/huecosVivos.js";
+import { CLAVE_CASA } from "../lib/estiloEnFilas.js";
 import { createPortal } from "react-dom";
 import {
   AlertTriangle,
@@ -935,7 +936,7 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
   const [activeStyleGroupId, setActiveStyleGroupId] = useState(
     () => styleableGroups[0]?.id ?? null,
   );
-  const styleKey = activeStyleGroupId ?? "__global__";
+  const styleKey = activeStyleGroupId ?? CLAVE_CASA;
   const activeStyleGroup = styleableGroups.find((g) => g.id === activeStyleGroupId) ?? null;
   const slotBudget = useGroupSlotBudget(data, activeStyleGroup);
   const activeStyle = data.mealStyleByGroup?.[styleKey] ?? DEFAULT_MEAL_STYLE;
