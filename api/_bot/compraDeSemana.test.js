@@ -44,7 +44,7 @@ const motorDePrueba = {
 };
 
 const { cargarCasa, guardarCasa } = await import("./casa.js");
-const { usarMotor } = await import("./menu.js");
+const { usarMotor, describirCompra } = await import("./menu.js");
 beforeAll(() => usarMotor(motorDePrueba));
 
 // Cada test pone su semana: ninguno depende de lo que deja otro.
@@ -102,5 +102,10 @@ describe("la compra de la semana en Lola: derivada más marcas", () => {
     const [, args] = llamadas.find(([fn]) => fn === "bot_save_casa");
     expect(args.p_week.shopping).toEqual(semanaGuardada);
     expect(motorDePrueba.buildShoppingList).not.toHaveBeenCalled();
+  });
+
+  it("sin menú, la copia viva que la app guarda como marcas se ve: lo apuntado a mano", () => {
+    const casa = { semana: null, state: { shopping: { marcas: [{ id: "manual:cafe:x", nombre: "Café", unidad: "", marcas: [MARCA_COMPRA.ANADIDO] }] } } };
+    expect(describirCompra(casa)).toMatch(/Café/);
   });
 });

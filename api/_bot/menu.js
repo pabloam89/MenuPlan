@@ -39,6 +39,7 @@ import { etapaDe } from "../../src/lib/stages.js";
 import { vetosDePersona } from "../../src/lib/vetos.js";
 import { alergiasPorSilencio } from "../../src/lib/alergiasBase.js";
 import { anadirArticulos, sonElMismo } from "../../src/lib/compraIdentidad.js";
+import { compraQueSeVe } from "../../src/lib/compraMarcas.js";
 import { estructuraDelGrupo } from "../../src/lib/estructuraPlatos.js";
 import { diasActivosDe } from "../../src/lib/planner.js";
 
@@ -357,7 +358,9 @@ const activo = (it) => !it.have && !it.atHome && !it.fromPantry;
  * Sin esto, «apunta leche y pan» sin menú pedía generar una semana entera.
  */
 function listaDe(casa) {
-  return casa.semana?.shopping ?? casa.state?.shopping ?? { items: [] };
+  if (casa.semana?.shopping) return casa.semana.shopping;
+  // La copia viva la guarda la app como marcas (trozo 18); sin menú no hay de dónde derivar: se ve lo apuntado a mano.
+  return compraQueSeVe(casa.state?.shopping, () => []);
 }
 
 /** Lo que devuelve un cambio de `conCasa` para guardar la lista donde vive. */
