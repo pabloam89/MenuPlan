@@ -38,6 +38,7 @@ import {
   NO_REPETIR, ajustarModoDespensa,
 } from "./ajustes.js";
 import { EXTRAS } from "../../src/lib/extras.js";
+import { CLAVES_DE_LA_LIBRETA } from "../../src/lib/libretaEnData.js";
 import { MODOS_DESPENSA_TEXTO } from "../../src/lib/modoDespensa.js";
 import {
   crearRecordatorio, verRecordatorios, cancelarRecordatorio, ahoraEnMadrid,
@@ -182,8 +183,8 @@ const FALLO_SIN_GUARDAR = "bot_claimed_unsaved";
 // Va con una clave Symbol: betaTool tira lo que no conoce, y un Symbol no sale
 // en el JSON que va a la API (fichas.test.js lo comprueba).
 const FICHA = Symbol("ficha");
-// Lo que escribe dataConLibreta (src/lib/libretaEnData.js): la libreta y su vista.
-const ESCRIBE_LA_LIBRETA = ["notepad", "freqs", "reparto", "freqsPedidos", "cocinas", "sesgos", "tanda", "favoritos", "excluidos"];
+// Lo que escribe dataConLibreta: la libreta y su vista (una sola lista, en libretaEnData.js).
+const ESCRIBE_LA_LIBRETA = CLAVES_DE_LA_LIBRETA;
 /** Las claves del registro de las que salen los parámetros de un esquema (marca DEL_REGISTRO). */
 function datosDelEsquema(s, claves = new Set()) {
   if (!s || typeof s !== "object") return claves;
