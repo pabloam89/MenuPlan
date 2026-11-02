@@ -3201,7 +3201,7 @@ export function motivoDelChoque(receta, data, group, meal = "Comida") {
   if (!receta || !group) return null;
   const { filterOpts } = buildGroupContext(data, group);
   const base = { isBabyGroup: receta.category === "bebes", offMenu: Boolean(POOL_DE_FRANJA[String(meal)]) };
-  const choca = (opts) => recipeViolatesHardSafety(receta, { ...base, ...opts });
+  const choca = (opts) => recipeViolatesHardSafety(receta, { ...opts, ...base });
   if (!choca(filterOpts)) return null;
 
   const miembros = membersOfGroup(group, data.members ?? []);

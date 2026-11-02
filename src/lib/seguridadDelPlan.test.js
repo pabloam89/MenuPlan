@@ -65,6 +65,13 @@ describe("motivoDelChoque: la puerta dice por qué", () => {
     expect(motivoDelChoque(pescado, d, group)).toContain("Ana: vegetariano");
   });
 
+  it("la regla de bebé no es un choque: coincide con la puerta", () => {
+    const bebe = recipeCatalog.find((r) => r.category === "bebes" && !(r.allergens ?? []).length && !r.puedeContener?.length);
+    const d = { ...datos([]), allergiesReviewed: false };
+    expect(chocaConElGrupo(bebe, d, group)).toBe(false);
+    expect(motivoDelChoque(bebe, d, group)).toBeNull();
+  });
+
   it("sin revisar lo dice, sin inventarse una alergia", () => {
     const d = { ...datos([]), allergiesReviewed: false };
     d.members = d.members.map((m) => ({ ...m, name: "Ana" }));

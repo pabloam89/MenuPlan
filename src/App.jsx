@@ -5627,8 +5627,10 @@ export default function App() {
       if (r) colocados.push({ ...d, ...r });
     }
     if (colocados.length === 0) {
-      const grupo = (data.groups ?? []).find((g) => g.id === destinos[0].gid);
-      showToast(motivoDelChoque(catalogRecipe, data, grupo, meal) ?? "No se pudo colocar esa receta aquí");
+      const motivo = destinos
+        .map((d) => motivoDelChoque(catalogRecipe, data, (data.groups ?? []).find((g) => g.id === d.gid), meal))
+        .find(Boolean);
+      showToast(motivo ?? "No se pudo colocar esa receta aquí");
       setSlotPicker(null);
       return;
     }
