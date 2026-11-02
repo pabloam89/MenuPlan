@@ -56,9 +56,7 @@ export function chocaConHueco(receta, items = []) {
 export function textoDeItem(item) {
   const s = String(item);
   if (s.startsWith("grupo:")) return s.slice(6).replace("_", " ");
-  if (s.startsWith(PREFIJO_TECNICA)) {
-    const t = s.slice(PREFIJO_TECNICA.length);
-    return { sarten: "fritos", horno: "horno", plancha: "plancha", olla: "guisos", crudo: "crudo" }[t] ?? t;
-  }
+  const t = s.startsWith(PREFIJO_TECNICA) && s.slice(PREFIJO_TECNICA.length);
+  if (t) return { sarten: "fritos", horno: "horno", plancha: "plancha", olla: "guisos", crudo: "crudo" }[t] ?? t;
   return s;
 }

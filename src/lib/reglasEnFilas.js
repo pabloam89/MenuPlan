@@ -1,12 +1,8 @@
 /**
- * Los vetos y sesgos de las reglas como preferencias (trozo 14; tabla preferencia, 0109). Una regla (reglas.js) de
+ * Los vetos y sesgos de las reglas como preferencias (trozo 14; tabla preferencia, 0109): una regla (reglas.js) de
  * `excluir` o `sesgo` es una fila de `preferencia`, y las reglas se calculan de las filas al leer, como la libreta
- * (preferencias.js). Las de `presente` (quién come dónde) siguen en el documento.
- *   sujeto   casa → sin sujeto; grupo → grupo_id; miembro → persona_id; un invitado no es de la casa (falla).
- *   excluir  nivel plato, medida valor, no_es, obligatoria: «tecnica:horno» en el eje tecnica; lo demás («coliflor»,
- *            «grupo:carne», que excluirHueco.js entiende tal cual) en subtipoIngrediente, como los excluidos de la libreta.
- *   sesgo    el eje de su campo de la libreta, mas/menos por el signo del peso y su tamaño de cantidad, medio.
- *   ámbito   dias, comidas, semanas; salvedad → salvo_*; vigencia → desde, hasta.
+ * (preferencias.js). Las de `presente` (quién come dónde) siguen en el documento. Sujeto: casa, grupo_id o persona_id
+ * (un invitado no es de la casa); ámbito: dias, comidas, semanas, su salvedad (salvo_*) y la vigencia (desde, hasta).
  */
 import { CAMPOS, CAMPOS_POR_ID } from "./notepadFields.js";
 import { apunteDeFila, PreferenciaInvalida, FORMA_DE_PROYECCION } from "./preferencias.js";
@@ -19,24 +15,19 @@ import { COMIDAS, DIAS } from "./vocabularios.js";
 export const EFECTOS_DE_PREFERENCIA = Object.freeze(["excluir", "sesgo"]);
 export const esReglaDePreferencia = (regla) => EFECTOS_DE_PREFERENCIA.includes(regla?.efecto?.tipo);
 
-/**
- * La forma de un veto y de un sesgo: la de los excluidos y los sesgos de la libreta (el mismo deseo, dicho por una
- * regla o por la libreta, es la misma fila). El eje de lo que se quita: «tecnica:» lo dice (excluirHueco.js); lo
- * demás, el de los excluidos de la libreta.
- */
-const { nivel: NIVEL, medida: MEDIDA, operador: NO_ES, fuerza: FUERZA_VETO } = FORMA_DE_PROYECCION.excluidos;
-const FUERZA_SESGO = FORMA_DE_PROYECCION.sesgos.fuerza;
+// Un veto y un sesgo tienen la forma de los de la libreta: el mismo deseo es la misma fila. Lo que se quita va al eje
+// de los excluidos («coliflor», «grupo:carne», tal como lo entiende excluirHueco.js), salvo «tecnica:x», al de tecnica.
+const { marca: _m, ...EXCLUIR } = FORMA_DE_PROYECCION.excluidos;
+const { sesgo: _s, ...SESGO } = FORMA_DE_PROYECCION.sesgos;
 const EJE_EXCLUIR = CAMPOS_POR_ID.excluidos.eje;
 const EJE_TECNICA = CAMPOS_POR_ID.tecnica.eje;
-const EXCLUIR = Object.freeze({ nivel: NIVEL, medida: MEDIDA, operador: NO_ES, fuerza: FUERZA_VETO });
-const SESGO = Object.freeze({ nivel: FORMA_DE_PROYECCION.sesgos.nivel, medida: FORMA_DE_PROYECCION.sesgos.medida, fuerza: FUERZA_SESGO });
 /** Las reglas se dicen: nunca se suponen (ajustes.js, gustosPorDias, solo apunta lo dicho). */
 const ORIGEN_FILA = "dicho";
 const ORIGEN_REGLA = "texto";
 
 const dia = (iso) => (typeof iso === "string" ? iso.slice(0, 10) : undefined);
 
-/** Una lista del ámbito, comprobada contra su vocabulario (el CHECK de la 0109), o null si no la hay. */
+/** Una lista del ámbito, comprobada contra su vocabulario (el CHECK de la 0109), o null. */
 function lista(valores, vocabulario, que) {
   if (!valores?.length) return null;
   const fuera = valores.filter((v) => !vocabulario.includes(v));
@@ -90,8 +81,8 @@ export function filaDeRegla(regla, ctx = {}) {
 
 /** El efecto de una fila, o null si no es de una regla. */
 function efectoDeFila(fila) {
-  if (fila.nivel !== NIVEL || fila.medida !== MEDIDA || fila.plan_id) return null;
-  if (fila.operador === NO_ES) {
+  if (fila.nivel !== EXCLUIR.nivel || fila.medida !== EXCLUIR.medida || fila.plan_id) return null;
+  if (fila.operador === EXCLUIR.operador) {
     if (fila.eje === EJE_TECNICA) return { tipo: "excluir", valor: `${PREFIJO_TECNICA}${fila.valor}` };
     if (fila.eje === EJE_EXCLUIR) return { tipo: "excluir", valor: String(fila.valor) };
     return null;
@@ -167,4 +158,3 @@ export function cambiosDeReglas(antes, despues, filas, ctx = {}) {
 
 // Comprobado al cargar (principio 3): un efecto de preferencia que reglas.js no conozca no se guardaría nunca.
 for (const e of EFECTOS_DE_PREFERENCIA) if (!EFECTOS.includes(e)) throw new Error(`EFECTOS_DE_PREFERENCIA: ${e} no es un efecto de reglas.js`);
-for (const eje of [EJE_EXCLUIR, EJE_TECNICA]) if (!EJE_POR_ID.has(eje)) throw new Error(`reglasEnFilas: el eje ${eje} no está en axisRegistry.js`);
