@@ -126,8 +126,11 @@ export const textoDePreferencia = (p) =>
 export function textoDeChoque(choque, fila) {
   const que = `«${textoDePreferencia(fila)}»`;
   switch (choque.respuesta) {
-    case R.APLICAR_EN_SILENCIO: return null;
-    case R.APLICAR_Y_AVISAR: return choque.gana === "a" ? `He apuntado ${que}, que cambia lo que había apuntado antes` : `No he apuntado ${que}: choca con algo que ya estaba dicho y que manda`;
+    // En silencio solo va lo que se apunta: si lo nuevo pierde (por alcance o tiempo), no se escribe y se dice.
+    case R.APLICAR_EN_SILENCIO:
+    case R.APLICAR_Y_AVISAR:
+      if (choque.gana !== "a") return `No he apuntado ${que}: choca con algo que ya estaba dicho y que manda`;
+      return choque.respuesta === R.APLICAR_EN_SILENCIO ? null : `He apuntado ${que}, que cambia lo que había apuntado antes`;
     case R.PREGUNTAR: return `No he apuntado ${que}: choca con algo importante que ya estaba apuntado; pregunta si lo cambio`;
     case R.TAREA_DE_DECISION: return `No he apuntado ${que}: otra persona de la casa dijo lo contrario; pregunta quién decide y no lo cambies sin su respuesta`;
     default: throw new Error(`choque: respuesta ${choque.respuesta} sin texto`);
