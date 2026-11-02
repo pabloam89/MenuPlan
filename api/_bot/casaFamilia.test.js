@@ -8,7 +8,6 @@ import { conCasa, cargarCasa, olvidarCasa, separarFamilia } from "./casa.js";
 import { conOperacion, ponerAutor, tomarAvisos } from "./operacion.js";
 import { FamiliaSinLeer, TEXTO_AVISO_PERSONA, AVISOS_PERSONA, RPC_FAMILIA } from "../../src/lib/personas.js";
 import { SUFIJO_CLAVE_PERSONA, RPC_OPERACION } from "../../src/lib/operaciones/tuberia.js";
-import { CAMPOS_CASA_CON_SOBRE } from "../../src/lib/estadoDeDato.js";
 import { RPC_FICHA, fichaV1 } from "./familiaDePrueba.js";
 import { PREGUNTAS_POR_ID } from "../../src/lib/wizardRegistry.js";
 import { aplicarCompra, aplicarModoDespensa } from "./ajustes.js";
@@ -39,7 +38,8 @@ const dicho = (campo, valor) => ({
   confirmado_el: null, caduca_at: null, cambiado_at: null, dicho_por: null, canal: "app", operacion_id: null,
 });
 const porDefecto = (campo, valor) => ({ ...dicho(campo, valor), estado: "por_defecto", origen: null });
-const CAMPO = CAMPOS_CASA_CON_SOBRE[0];
+// Un bool de los datos con sobre (CAMPOS_CASA_CON_SOBRE, del registro).
+const CAMPO = "wantsPriceEstimates";
 
 let llamadas;
 let respuestas;
@@ -258,9 +258,10 @@ describe("los datos de la casa con sobre (trozo 12)", () => {
     responde(RUTA_OPERACION, { status: 200, get cuerpo() { rev += 1; return { ...HECHA, rev }; } });
     const { r } = await enTurno(() => cambiarDato(true, (d) => { d.menuModel = "separate"; }));
     const ops = escrituras().filter((l) => RUTA_OPERACION.test(l.ruta)).map((l) => l.cuerpo.p_operacion.datos[0]);
+    // En el orden del registro (CAMPOS_CASA_CON_SOBRE): menuModel va antes.
     expect(ops).toEqual([
-      { campo: CAMPO, persona_id: null, valor: true, origen: "dicho" },
       { campo: "menuModel", persona_id: null, valor: "separate", origen: "dicho" },
+      { campo: CAMPO, persona_id: null, valor: true, origen: "dicho" },
     ]);
     expect(r).toMatchObject({ ok: true, botRev: 10 });
   });

@@ -207,9 +207,10 @@ const listaDeSalud = { ...salud, choque: CHOQUE.MAS_RESTRICTIVO };
  * Un dato de la ficha Casa con fila en registro_campo (trozo 12): de la casa
  * entera (`por = 'casa'`), y sin tarea que lo pregunte (politica «nunca»: la
  * lista de preguntables es el CHECK de bot_tareas.campo, 0080). Lola lo
- * recoge cuando la familia lo dice.
+ * recoge cuando la familia lo dice. Vive en su sobre, no en el documento: de
+ * aquí sale CAMPOS_CASA_CON_SOBRE (estadoDeDato.js).
  */
-const deLaCasa = (campo) => ({ entidad: "casa", campo, politica: "nunca" });
+const deLaCasa = (campo) => ({ entidad: "casa", campo, politica: "nunca", vive: "tabla:sobre" });
 /** Lo que solo apunta el sistema (contadores, avisos dados, alias aprendidos). */
 const delSistema = { escribe: ESCRITOR.SISTEMA };
 /** Lo que solo se añade (menús hechos, tickets, lo que descontó la despensa): tabla con fecha y poda (trozo 22). */
@@ -285,7 +286,7 @@ export const DATOS_CASA = Object.freeze({
   cookLevel: dato({ tema: "cocina", ficha: "casa", tipo: "enum", vocabulario: "nivel_cocina", defecto: "normal", peso_menu: 35, ...deLaCasa("cookLevel") }),
   cookSkills: dato({ tema: "cocina", ficha: "casa", tipo: "lista", estado: "legado", motivo: "nadie lo escribe ni lo lee: App.jsx solo lo sanea" }),
   kitchenTools: dato({ tema: "cocina", ficha: "casa", tipo: "lista_enum", vocabulario: "aparatos_casa", otros: "kitchenToolsNota", peso_menu: 30, ...deLaCasa("kitchenTools") }),
-  kitchenToolsNota: dato({ tema: "cocina", ficha: "casa", tipo: "texto", vive: "tabla:sobre", ...deLaCasa("kitchenToolsNota"), motivo: "el nombre de los aparatos que van como «Otro» en kitchenTools" }),
+  kitchenToolsNota: dato({ tema: "cocina", ficha: "casa", tipo: "texto", ...deLaCasa("kitchenToolsNota"), motivo: "el nombre de los aparatos que van como «Otro» en kitchenTools" }),
   cookTime: dato({ tema: "cocina", ficha: "rutina", tipo: "objeto", peso_menu: 40, motivo: "minutos por día y comida" }),
   timeWeekday: dato({ tema: "cocina", ficha: "rutina", tipo: "int", estado: "legado", de: "cookTime", motivo: "respaldo de cookTime en cookTime.js" }),
   timeWeekend: dato({ tema: "cocina", ficha: "rutina", tipo: "int", estado: "legado", de: "cookTime", motivo: "respaldo de cookTime en cookTime.js" }),
@@ -308,10 +309,10 @@ export const DATOS_CASA = Object.freeze({
 
   // ── Compra y gasto ──
   supermarkets: dato({ tema: "compra", ficha: "casa", tipo: "lista_enum", vocabulario: "supermercados", otros: "supermarketsNota", ...deLaCasa("supermarkets") }),
-  supermarketsNota: dato({ tema: "compra", ficha: "casa", tipo: "texto", vive: "tabla:sobre", ...deLaCasa("supermarketsNota"), motivo: "el nombre de los súper que van como «Otro» en supermarkets" }),
+  supermarketsNota: dato({ tema: "compra", ficha: "casa", tipo: "texto", ...deLaCasa("supermarketsNota"), motivo: "el nombre de los súper que van como «Otro» en supermarkets" }),
   hasBudget: dato({ entidad: "compra", tema: "compra", ficha: "casa", tipo: "bool", estado: "legado", de: "presupuesto", motivo: "el par de antes: ya no se escribe; mientras el documento lo traiga se lee como presupuesto (presupuestoGuardado) y se va al guardar el siguiente cambio" }),
   budget: dato({ entidad: "compra", tema: "compra", ficha: "casa", tipo: "int", estado: "legado", de: "presupuesto", motivo: "va con hasBudget" }),
-  presupuesto: dato({ tema: "compra", ficha: "casa", tipo: "int", minimo: 0, peso_menu: 20, vive: "tabla:sobre", ...deLaCasa("presupuesto"), motivo: "euros por semana; null = sin presupuesto. Junta hasBudget y budget en un dato (trozo 12)" }),
+  presupuesto: dato({ tema: "compra", ficha: "casa", tipo: "int", minimo: 0, peso_menu: 20, ...deLaCasa("presupuesto"), motivo: "euros por semana; null = sin presupuesto. Junta hasBudget y budget en un dato (trozo 12)" }),
   wantsPriceEstimates: dato({ tema: "compra", ficha: "casa", tipo: "bool", defecto: false, ...deLaCasa("wantsPriceEstimates") }),
   priceObs: dato({ entidad: "compra", tema: "compra", tipo: "lista", ...historial }),
   priceAliases: dato({ entidad: "compra", tema: "compra", tipo: "mapa", ...delSistema }),
