@@ -16,7 +16,7 @@ import {
 import { IDS_PERFILES, puntuar } from "../lib/derive/perfiles.js";
 import { aporteDe } from "../lib/aporte.js";
 import { NUTRIENTES } from "./nutrientes.js";
-import { AGREGABLE, AGREGABLES } from "../lib/vocabularios.js";
+import { AGREGABLE, AGREGABLES, TIPOS_EJE } from "../lib/vocabularios.js";
 import { nivelCalorias } from "../lib/caloriasNivel.js";
 
 const RAIZ = fileURLToPath(new URL("./recipes", import.meta.url));
@@ -153,6 +153,11 @@ describe("el registro de ejes", () => {
     // 26 y allí existe, una discusión sobre «el eje 26» apunta a dos cosas.
     const faltan = Array.from({ length: 45 }, (_, i) => i + 1).filter((n) => !ns.includes(n));
     expect(faltan, "números del documento sin entrada en el registro").toEqual([]);
+  });
+
+  it("el tipo de cada eje es uno de TIPOS_EJE (el CHECK de registro_eje, 0109)", () => {
+    const fuera = EJES.filter((e) => !TIPOS_EJE.includes(e.tipo)).map((e) => `${e.id}: ${e.tipo}`);
+    expect(fuera).toEqual([]);
   });
 
   it("ningún id repetido: es la clave de consulta", () => {

@@ -14,11 +14,12 @@
  * el del campo. Lo que la libreta no puede decir con una fila no se guarda: `anterior` (deshacer lo hace la
  * operación, con su inversa) y un apunte sin valor ni rechazo (no cambia el menú).
  */
-import { CAMPOS, CAMPOS_POR_ID } from "./notepadFields.js";
+import { CAMPOS, CAMPOS_POR_ID, AMBITOS, SERVICIOS } from "./notepadFields.js";
+import { COMIDAS } from "./comidas.js";
 import { matizDe, NOTEPAD_VERSION } from "./notepad.js";
 import { tipoDeGrupo } from "./groups.js";
 import { EJE_POR_ID } from "../data/axisRegistry.js";
-import { FUERZAS_PREFERENCIA, MEDIDAS_PREFERENCIA, NIVELES_PREFERENCIA, OPERADORES_PREFERENCIA } from "./vocabularios.js";
+import { FUERZAS_PREFERENCIA, MEDIDAS_PREFERENCIA, NIVELES_PREFERENCIA, OPERADORES_PREFERENCIA, TIPOS_GRUPO } from "./vocabularios.js";
 
 /** Una fila o un apunte que no cabe en la otra forma: quien lo pide lo dice, no se guarda a medias. */
 export class PreferenciaInvalida extends Error {}
@@ -39,11 +40,15 @@ export const FORMA_DE_PROYECCION = Object.freeze({
 /** Lo visto y lo supuesto solo sesgan (notepad.js, matizDe): nunca mandan. */
 const FUERZA_BLANDA = "bajo";
 
-/** El ámbito de la libreta (AMBITOS) y el tipo de grupo de la casa (TIPOS_GRUPO) que lo es. */
-const TIPO_DE_AMBITO = Object.freeze({ ninos: "ninos", adultos: "adultos", bebes: "bebe" });
+/**
+ * El ámbito de la libreta (AMBITOS) y el tipo de grupo de la casa (TIPOS_GRUPO) que lo es: el mismo nombre, salvo
+ * «bebes», que en los grupos es «bebe». Comprobado al cargar contra las dos listas.
+ */
+const TIPO_DE_AMBITO = Object.freeze(Object.fromEntries(AMBITOS.filter((a) => a !== "todos").map((a) => [a, a === "bebes" ? "bebe" : a])));
 const AMBITO_DE_TIPO = Object.freeze(Object.fromEntries(Object.entries(TIPO_DE_AMBITO).map(([a, t]) => [t, a])));
-/** El servicio de la libreta (SERVICIOS) y la comida (COMIDAS) que lo es. */
-const COMIDA_DE_SERVICIO = Object.freeze({ comida: "Comida", cena: "Cena" });
+/** El servicio de la libreta (SERVICIOS, sin «ambos») y la comida (COMIDAS) que lo es: la de ese nombre. */
+const COMIDA_DE_SERVICIO = Object.freeze(Object.fromEntries(SERVICIOS.filter((s) => s !== "ambos")
+  .map((s) => [s, COMIDAS.find((c) => c.nombre === s)?.id])));
 const SERVICIO_DE_COMIDA = Object.freeze(Object.fromEntries(Object.entries(COMIDA_DE_SERVICIO).map(([s, c]) => [c, s])));
 
 const dia = (iso) => (typeof iso === "string" ? iso.slice(0, 10) : undefined);
@@ -56,12 +61,16 @@ function valorDelEje(eje, valorId) {
 }
 const valorIdDelEje = (valor) => (typeof valor === "boolean" ? (valor ? "si" : "no") : String(valor));
 
-/** El grupo de la casa que es un ámbito de la libreta (niños, adultos, bebés), por su tipo; el primero si hay varios. */
+/**
+ * El grupo de la casa que es un ámbito de la libreta (niños, adultos, bebés), por su tipo. Sin ninguno, o con
+ * varios (una fila lleva un solo grupo y no se sabe a cuál va), lanza PreferenciaInvalida.
+ */
 function grupoDeAmbito(ambito, grupos) {
   const tipo = TIPO_DE_AMBITO[ambito];
-  const g = (grupos ?? []).find((x) => tipoDeGrupo(x) === tipo);
-  if (!g) throw new PreferenciaInvalida(`la casa no tiene un grupo de ${ambito}`);
-  return g.id;
+  const deTipo = (grupos ?? []).filter((x) => tipoDeGrupo(x) === tipo);
+  if (!deTipo.length) throw new PreferenciaInvalida(`la casa no tiene un grupo de ${ambito}`);
+  if (deTipo.length > 1) throw new PreferenciaInvalida(`la casa tiene ${deTipo.length} grupos de ${ambito} y no sé a cuál va`);
+  return deTipo[0].id;
 }
 
 /** El valor de la libreta → { operador, valor, cantidad } de la fila, o null si no se guarda (una marca falsa). */
@@ -111,7 +120,8 @@ function campoDeFila(fila) {
 
 /**
  * Pura. Una fila de preferencias_de_casa como apunte de la libreta: [ruta, apunte], o null si no es de la libreta
- * (de una persona, de un conjunto, con días o semanas, o de un eje que la libreta no tiene).
+ * (de una persona, de un conjunto, con días o semanas, de un eje que la libreta no tiene, o sin la cantidad que
+ * lleva todo apunte que no es una marca).
  */
 export function apunteDeFila(fila, { grupos } = {}) {
   const campo = campoDeFila(fila);
@@ -123,6 +133,9 @@ export function apunteDeFila(fila, { grupos } = {}) {
     if (!ambito) return null;
   }
   const forma = FORMA_DE_PROYECCION[campo.proyecta];
+  // Sin cantidad (la 0109 la deja nula en una medida «valor» sin peso) no es un apunte de la libreta, que siempre
+  // lleva un número: es de quien escribió la fila (una regla) y se queda en ella, no se lee como 0.
+  if (!forma.marca && (fila.cantidad == null || !Number.isFinite(Number(fila.cantidad)))) return null;
   const valor = forma.marca ? true : forma.sesgo && fila.operador === "menos" ? -Number(fila.cantidad) : Number(fila.cantidad);
   const ruta = [campo.id, valorIdDelEje(fila.valor), ...(ambito ? [`@${ambito}`] : []),
     ...(fila.comidas ? [`#${SERVICIO_DE_COMIDA[fila.comidas[0]]}`] : [])].join(".");
@@ -185,3 +198,9 @@ for (const [k, f] of Object.entries(FORMA_DE_PROYECCION)) {
     || (f.operador && !OPERADORES_PREFERENCIA.includes(f.operador))) throw new Error(`FORMA_DE_PROYECCION.${k}: fuera de los vocabularios de la preferencia`);
 }
 if (!FUERZAS_PREFERENCIA.includes(FUERZA_BLANDA)) throw new Error("FUERZA_BLANDA fuera de FUERZAS_PREFERENCIA");
+for (const [ambito, tipo] of Object.entries(TIPO_DE_AMBITO)) {
+  if (!TIPOS_GRUPO.includes(tipo)) throw new Error(`el ámbito ${ambito} no es ningún tipo de grupo (TIPOS_GRUPO)`);
+}
+for (const [servicio, comida] of Object.entries(COMIDA_DE_SERVICIO)) {
+  if (!comida) throw new Error(`el servicio ${servicio} no es ninguna comida (COMIDAS)`);
+}

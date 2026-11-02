@@ -98,13 +98,25 @@ describe("la libreta como preferencias (0109, trozo 14)", () => {
 
   it("lo que la libreta no puede decir falla en alto: un ámbito sin su grupo en la casa, un valor que no es número", () => {
     expect(() => filaDeApunte("freqs.carne.@bebes", { valor: 1, origen: "texto" }, { grupos: GRUPOS })).toThrow(PreferenciaInvalida);
+    const dosDeNinos = [...GRUPOS, { id: "g-ninos-2", label: "Niños" }];
+    expect(() => filaDeApunte("freqs.carne.@ninos", { valor: 1, origen: "texto" }, { grupos: dosDeNinos })).toThrow(/2 grupos de ninos/);
     expect(() => filaDeApunte("freqs.carne", { valor: "mucho", origen: "texto" }, { grupos: GRUPOS })).toThrow(PreferenciaInvalida);
     expect(() => filaDeApunte("nada.carne", { valor: 1, origen: "texto" })).toThrow(PreferenciaInvalida);
+  });
+
+  it("cada ámbito y cada servicio de la libreta cabe en una fila: un grupo de su tipo, una comida de su nombre", () => {
+    const grupos = [{ id: "g-a", tipo: "adultos" }, { id: "g-n", tipo: "ninos" }, { id: "g-b", tipo: "bebe" }];
+    for (const ruta of ["freqs.carne.@ninos", "freqs.carne.@adultos", "freqs.carne.@bebes", "tecnica.horno.#comida", "tecnica.horno.#cena"]) {
+      const fila = filaDeApunte(ruta, { valor: 1, origen: "texto" }, { grupos });
+      expect(apunteDeFila(comoLaBase(fila, "x"), { grupos })?.[0], ruta).toBe(ruta);
+    }
   });
 
   it("una fila que no es de la libreta (de una persona, con días, de un conjunto) no entra en ella", () => {
     const base = comoLaBase(filaDeApunte("freqs.pescado", { valor: 2, origen: "texto" }), "x");
     expect(apunteDeFila(base)).not.toBeNull();
+    const sesgo = comoLaBase(filaDeApunte("tecnica.horno", { valor: 2, origen: "texto" }), "y");
+    expect(apunteDeFila({ ...sesgo, cantidad: null }), "un sesgo sin peso no se lee como 0").toBeNull();
     for (const otra of [{ persona_id: "p1" }, { dias: ["Lun"] }, { plan_id: "c1" }, { eje: "kcal" }]) {
       expect(apunteDeFila({ ...base, ...otra }), JSON.stringify(otra)).toBeNull();
     }
