@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync, readdirSync } from "node:fs";
 import { REGISTRO_CAMPOS } from "../src/lib/registroCampos.js";
-import { CHOQUE, CHOQUES, CLASES_DATO, ESCRITORES, ESTADO_DE_ORIGEN, ESTADOS_DATO, ESTADOS_OPERACION, MOTIVOS_SIN_DESHACER, MOTIVOS_SIN_HACER_DATO, ORIGEN_DATO, ORIGENES_DE_LA_FAMILIA } from "../src/lib/vocabularios.js";
+import { CHOQUE, CHOQUES, CLASES_DATO, COMIDAS, DIAS, DIMENSIONES_AMBITO, ESCRITORES, ESTADO_DE_ORIGEN, ESTADOS_DATO, ESTADOS_OPERACION, MOTIVOS_SIN_DESHACER, MOTIVOS_SIN_HACER_DATO, ORIGEN_DATO, ORIGENES_DE_LA_FAMILIA } from "../src/lib/vocabularios.js";
 import { CAMPOS_DESHACER } from "../src/lib/operaciones/tuberia.js";
 
 /**
@@ -21,8 +21,18 @@ const codigo0106 = sinComentarios(readFileSync(new URL("./migrations/0106_aplica
 const codigo0107 = sinComentarios(readFileSync(new URL("./migrations/0107_ficha_casa_v2.sql", import.meta.url), "utf8"));
 const codigo0111 = sinComentarios(readFileSync(new URL("./migrations/0111_deshacer_operacion.sql", import.meta.url), "utf8"));
 
-/** El cuerpo de una función (de la 0106 si no se dice otra), de su create a su $$ de cierre. */
-function cuerpo(nombre, texto = codigo0106) {
+/** La última migración (de la 0105 en adelante) que define la función: la que vale en la base. */
+function ultimaQueDefine(nombre) {
+  const dir = new URL("./migrations/", import.meta.url);
+  const re = new RegExp(String.raw`create (?:or replace )?function public\.${nombre}\(`);
+  const f = readdirSync(dir).filter((x) => x.endsWith(".sql") && Number(x.slice(0, 4)) >= 105).sort()
+    .map((x) => sinComentarios(readFileSync(new URL(x, dir), "utf8"))).filter((t) => re.test(t)).at(-1);
+  expect(f, `ninguna migración define ${nombre}`).toBeTruthy();
+  return f;
+}
+
+/** El cuerpo de una función (de la última migración que la define, si no se dice otra), de su create a su $ de cierre. */
+function cuerpo(nombre, texto = ultimaQueDefine(nombre)) {
   const i = texto.search(new RegExp(String.raw`create (?:or replace )?function public\.${nombre}\(`));
   expect(i, `falta la función ${nombre}`).toBeGreaterThan(-1);
   const abre = texto.indexOf("$$", i);
@@ -88,7 +98,8 @@ describe("0106: las RPC de escritura, solo para el servidor", () => {
     expect(cuerpo("escribir_dato")).not.toMatch(/security definer/);
     expect(cuerpo("escribir_dato")).toMatch(/select public\.aplicar_operacion\(/);
     const grants = [...desde0105().matchAll(/grant\s+[^;]*?\bon\s+function\s+public\.(aplicar_operacion|escribir_dato)\b[^;]*?\bto\s+([^;]*);/gi)];
-    expect(grants.map((m) => [m[1], m[2].trim()])).toEqual([["aplicar_operacion", "service_role"], ["escribir_dato", "service_role"]]);
+    // Cada vez que se rehace (0106, 0115), solo para service_role.
+    expect(ordenado(grants.map((m) => `${m[1]} → ${m[2].trim()}`))).toEqual(["aplicar_operacion → service_role", "escribir_dato → service_role"]);
     expect(codigo0106).toMatch(/revoke all on function public\.aplicar_operacion\(jsonb\) from public, anon, authenticated;/);
     expect(codigo0106).toMatch(/revoke all on function public\.escribir_dato\([^)]*\) from public, anon, authenticated;/);
     // Idempotente: la clave se apunta primero y una repetida devuelve la de antes (una pendiente no avanza).
@@ -184,13 +195,13 @@ describe("0107: ficha_casa v2 y fuera sobre.ref", () => {
 });
 
 describe("0111: deshacer_operacion, en una transacción y solo lo propio", () => {
-  const f = cuerpo("deshacer_operacion", codigo0111);
+  const f = cuerpo("deshacer_operacion");
 
   it("es definer con search_path fijo y solo la ejecuta service_role", () => {
     expect(f).toMatch(/language plpgsql security definer set search_path = public, pg_temp as \$\$/);
     expect(codigo0111).toMatch(/revoke all on function public\.deshacer_operacion\(uuid, uuid, uuid\) from public, anon, authenticated;/);
     const grants = [...desde0105().matchAll(/grant\s+[^;]*?\bon\s+function\s+public\.deshacer_operacion\b[^;]*?\bto\s+([^;]*);/gi)];
-    expect(grants.map((m) => m[1].trim())).toEqual(["service_role"]);
+    expect(ordenado(grants.map((m) => m[1].trim()))).toEqual(["service_role"]);
   });
 
   it("los motivos de sin_hacer son MOTIVOS_SIN_DESHACER, y los estados que mira o escribe, de ESTADOS_OPERACION", () => {
@@ -231,5 +242,55 @@ describe("0111: deshacer_operacion, en una transacción y solo lo propio", () =>
     // Concurrencia: la operación con «no key update» y sus sobres en el orden de aplicar_operacion.
     expect(f).toMatch(/for no key update;/);
     expect(f.match(/order by x\.value->>'campo', coalesce\(x\.value->>'persona_id', ''\)/g)).toHaveLength(2);
+  });
+});
+
+describe("0115: escribir y deshacer por la clave entera del sobre (campo, persona y ámbito)", () => {
+  const codigo0115 = sinComentarios(readFileSync(new URL("./migrations/0115_escribir_con_ambito.sql", import.meta.url), "utf8"));
+  const aplicar = cuerpo("aplicar_operacion", codigo0115);
+  const deshacer = cuerpo("deshacer_operacion", codigo0115);
+  const columna = (d) => (d === "grupo" ? "grupo_id" : d);
+  const variable = (d) => `v_${d}`;
+
+  it("son las que valen en la base, con su firma y solo para service_role", () => {
+    expect(ultimaQueDefine("aplicar_operacion")).toBe(codigo0115);
+    expect(ultimaQueDefine("deshacer_operacion")).toBe(codigo0115);
+    expect(codigo0115).toMatch(/revoke all on function public\.aplicar_operacion\(jsonb\) from public, anon, authenticated;/);
+    expect(codigo0115).toMatch(/revoke all on function public\.deshacer_operacion\(uuid, uuid, uuid\) from public, anon, authenticated;/);
+    expect(codigo0115).not.toMatch(/function public\.escribir_dato/);
+  });
+
+  it("un dato cuyo ámbito no es el de su campo va a sin_hacer, mirando cada dimensión de DIMENSIONES_AMBITO", () => {
+    const caso = aplicar.match(/v_motivo := case([\s\S]*?)\bend;/)[1];
+    const regla = caso.match(/when ([^\n]*(?:\n\s+or [^\n]*)*) then 'ambito_no_cuadra'/);
+    expect(regla, "falta la regla de ambito_no_cuadra").not.toBeNull();
+    for (const d of DIMENSIONES_AMBITO) expect(regla[1], d).toContain(`(${variable(d)} is not null) <> ('${d}' = any(r.ambito))`);
+  });
+
+  it("repetidos, orden de bloqueo, búsqueda y sobre nuevo, por cada dimensión", () => {
+    const repetidos = aplicar.match(/group by ([^)]*\)(?:,[^)]*\))*) having count\(\*\) > 1/)[1];
+    for (const d of DIMENSIONES_AMBITO) {
+      expect(repetidos, d).toContain(`coalesce(x.value->>'${columna(d)}', '')`);
+      for (const f of [aplicar, deshacer]) expect(f.match(/order by x\.value->>'campo'[^\n]*\n[^\n]*/g).every((o) => o.includes(`coalesce(x.value->>'${columna(d)}', '')`)), d).toBe(true);
+      expect(aplicar.split(`s.${columna(d)} is not distinct from ${variable(d)}`).length - 1, d).toBe(2);
+      expect(deshacer.split(`s.${columna(d)} is not distinct from nullif(d->>'${columna(d)}', '')`).length - 1, d).toBe(3);
+    }
+    const insert = aplicar.match(/insert into public\.sobre \(([^)]*)\)/)[1].split(",").map((c) => c.trim());
+    for (const d of DIMENSIONES_AMBITO) expect(insert, d).toContain(columna(d));
+  });
+
+  it("lo que devuelven y la inversa llevan el ámbito del dato, y nada si no lo trae", () => {
+    expect(aplicar).toMatch(/v_ambito := jsonb_strip_nulls\(jsonb_build_object\('grupo_id', v_grupo, 'semana', v_semana, 'dia', v_dia, 'comida', v_comida\)\);/);
+    for (const clave of ["'motivo', v_motivo", "'regla', r.choque", "'sobre_id', v_sobre", "to_jsonb(v_antes) - 'household_id' end"]) {
+      expect(aplicar, clave).toContain(`${clave}) || v_ambito)`);
+    }
+    for (const clave of ["'motivo', 'cambio_despues'", "'persona_id', v_persona"]) expect(deshacer, clave).toContain(`${clave}) || v_ambito)`);
+  });
+
+  it("el tope de datos deja un horario entero de la casa más grande en una operación", () => {
+    // Medido el 2 nov 2026: npm run consulta -- "select max(n) from (select count(*) n from persona group by household_id) x" → 8.
+    const PERSONAS_CASA_MAS_GRANDE = 8;
+    const tope = Number(aplicar.match(/c_max_datos constant integer := (\d+);/)[1]);
+    expect(tope).toBeGreaterThanOrEqual(PERSONAS_CASA_MAS_GRANDE * DIAS.length * COMIDAS.length);
   });
 });
