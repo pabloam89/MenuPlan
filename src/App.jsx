@@ -178,6 +178,7 @@ import { loadUserState, saveUserState, clearUserState } from "./lib/userState.js
 import { loadHouseholdState, saveHouseholdState, loadHouseholdBotRev, empezarCasaVacia, CASA_VACIA } from "./lib/householdState.js";
 import { leerBotRevVisto, guardarBotRevVisto } from "./lib/botRevVisto.js";
 import { guardandoCasa, guardadosDeCasa } from "./lib/versionCasa.js";
+import { vigilarCasa, EVENTO_SENAL } from "./lib/realtimeCasa.js";
 import { leerFamiliaDeCasa, conFamiliaLeida, sinFamilia, familiaDeCasa, cargaSinSeguir, guardarFamiliaYDocumento, MODO_FAMILIA, contarSenales } from "./lib/familiaCasa.js";
 import { senalesDeCambio, senalesDePlato } from "./lib/senales.js";
 import { leerDatosDeCasa, conCasaLeida, sinCasa, casaDeCasa, guardarCasaEnCola, colaDeLaApp } from "./lib/casaDatos.js";
@@ -2035,7 +2036,7 @@ export default function App() {
 
   // Al volver a la app (desde Telegram, típicamente) se mira si alguien ha
   // escrito. Es una lectura de un número; la recarga solo si ha cambiado.
-  // Y mientras está a la vista, cada BOT_REV_SONDEO_MS: si tu pareja tacha en
+  // Y mientras está a la vista, al llegar la señal de la casa (o cada BOT_REV_SONDEO_MS si no hay): si tu pareja tacha en
   // la lista, o Lola cambia un plato, se ve sin salir y volver. Con un
   // guardado nuestro en marcha no se mira: el número que llega podría ser el
   // nuestro, todavía sin apuntar, y recargaríamos por un cambio propio.
@@ -2049,10 +2050,15 @@ export default function App() {
       if (rev != null && botRevRef.current != null && rev > botRevRef.current) recargarDesdeNubeRef.current();
     };
     document.addEventListener("visibilitychange", mirar);
-    const sondeo = window.setInterval(mirar, BOT_REV_SONDEO_MS);
+    // Con la señal de la casa por Realtime (trozo 20, 0121) se mira al momento; el sondeo, solo mientras no hay señal.
+    const dejar = vigilarCasa(syncHouseholdId, {
+      mirar,
+      cadaMs: BOT_REV_SONDEO_MS,
+      anotar: (estado, motivo) => trackEvent(user, EVENTO_SENAL, "app", { estado, motivo: motivo ?? null }),
+    });
     return () => {
       document.removeEventListener("visibilitychange", mirar);
-      window.clearInterval(sondeo);
+      dejar();
     };
   }, [user?.id, syncHouseholdId]);
 

@@ -46,8 +46,9 @@ const DUPLICADOS_HEREDADOS = new Set(["0003", "0006", "0051"]);
  *   0110: el plan de fichas con estado (specs/plan-fichas-con-estado.md, «Qué hace cada
  *     migración») la da al trozo 34, que aún no se ha construido; la 0108 (trozo 10), la 0109
  *     (trozo 14) y la 0111 (trozo 41) llegaron antes.
+ *   0120: datos/0120-tachar-marcas (0120_tachar_marcas, trozo 18 de #1037), en su PR (#1201) cuando nace la 0121.
  */
-const RESERVADOS = new Set(["0093", "0110"]);
+const RESERVADOS = new Set(["0093", "0110", "0120"]);
 
 describe("las migraciones se pueden nombrar sin ambigüedad", () => {
   it("ningún número nuevo repetido", () => {
