@@ -26,7 +26,7 @@
  */
 import { operacionDeDato, cabeceraDeOperacion, hay, resultadoDeOperacion, apuntarSinGuardar, DatoInvalido, campoDelPedido } from "../escribirDato.js";
 import { comprobar, falloDePuerta } from "./puerta.js";
-import { ESTADO_OPERACION, FALLO_DATO, CANAL_DATO } from "../vocabularios.js";
+import { ESTADO_OPERACION, FALLO_DATO, CANAL_DATO, ORIGENES_DE_LA_FAMILIA } from "../vocabularios.js";
 
 /** La RPC que escribe toda operación (0106). */
 export const RPC_OPERACION = "aplicar_operacion";
@@ -152,6 +152,8 @@ export const RPC_LEER_PREFERENCIAS = "preferencias_de_casa";
 export const SUFIJO_CLAVE_PREFERENCIAS = ":preferencias";
 /** Cuántas preferencias y conjuntos admite una operación: el tope de escribir_preferencias (`c_max` en la 0109). */
 export const MAX_PREFERENCIAS_OPERACION = 400;
+/** El origen de una preferencia que no lo trae: lo dice la familia (el `coalesce` de escribir_preferencias, 0109; preferencia.test.js los compara). */
+export const ORIGEN_PREFERENCIA_POR_DEFECTO = ORIGENES_DE_LA_FAMILIA[0];
 
 /**
  * Pura. Entender un cambio de preferencias (la libreta: cambiosDeLibreta, preferencias.js): la operación que espera
@@ -192,7 +194,7 @@ export async function operarPreferencias(pedido, { papel, rpc, falloDeError }) {
     return { guardado: false, fallo: e.fallo, error: e.message };
   }
   // Borrar o rechazar lo dice quien habla (dicho); crear o cambiar, con su origen (dicho si no lo trae, como la base).
-  const datos = op.preferencias.map((p) => ({ campo: null, persona_id: p.persona_id ?? null, origen: p.borrar || p.rechazar ? "dicho" : p.origen ?? "dicho" }));
+  const datos = op.preferencias.map((p) => ({ campo: null, persona_id: p.persona_id ?? null, origen: p.borrar || p.rechazar ? ORIGEN_PREFERENCIA_POR_DEFECTO : p.origen ?? ORIGEN_PREFERENCIA_POR_DEFECTO }));
   const contra = comprobar({ canal: op.canal, autor_user_id: op.autor_user_id, datos }, { papel });
   if (contra) {
     const fallo = falloDePuerta(contra.motivo);
