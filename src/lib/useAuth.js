@@ -170,8 +170,8 @@ export function useAuth() {
       // red: la sesión de este dispositivo se quita a mano.
       try {
         localStorage.removeItem(supabase.auth.storageKey);
-      } catch {
-        // almacenamiento bloqueado: al menos la sesión en memoria se va
+      } catch (err) {
+        console.error("[auth] no se pudo borrar la sesión guardada", err);
       }
       setSession(null);
     }
