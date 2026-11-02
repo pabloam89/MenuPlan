@@ -71,6 +71,7 @@ import { verReceta, calorias as caloriasDePlato, queFalta } from "./plato.js";
 import { papelDeQuien, idiomaDe } from "./papel.js";
 import { herramientaPermitida } from "../../src/lib/papeles.js";
 import { ENUMS as ENUMS_TAREAS } from "../../src/lib/registroTareas.js";
+import { PLATOS_DEL_HUECO } from "../../src/lib/huecosDelPlan.js";
 import { tareasV2 } from "./idempotencia.js";
 import { apuntarSilencio, conRecordatorio, NOTA_RECORDATORIO } from "./silencio.js";
 import { usoParcialDe, sumarUsos } from "./medidaTurno.js";
@@ -889,7 +890,7 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
           semana,
           comida: { type: "string", enum: IDS_COMIDAS },
           grupo: { type: "string", description: "Opcional: para quién, si no es el menú de toda la familia." },
-          cual: { type: "string", enum: ["principal", "primero"], description: "Por defecto el principal." },
+          cual: { type: "string", enum: [...PLATOS_DEL_HUECO], description: "Por defecto el principal." },
         },
         required: ["dia", "comida"],
         additionalProperties: false,
@@ -959,7 +960,7 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
           semana,
           comida: { type: "string", enum: IDS_COMIDAS, description: "Opcional: sin ella, la próxima que toca por la hora." },
           grupo: { type: "string", description: "Opcional: para quién, si no es para toda la familia: el nombre de una persona («Leo») o «los peques», «los mayores», «el bebé». Sin esto, es para toda la familia (el bebé tiene su menú)." },
-          cual: { type: "string", enum: ["principal", "primero"], description: "Por defecto el principal (el segundo en la comida)." },
+          cual: { type: "string", enum: [...PLATOS_DEL_HUECO], description: "Por defecto el principal (el segundo en la comida)." },
           n: { type: "integer", minimum: 2, maximum: 6, description: "Cuántas opciones; por defecto 3 (caben 3 botones más «Elige tú»)." },
           parecido_a: { type: "string", description: "Opcional: el plato que piden («salmón al horno con ensalada de mango»)." },
           estilo: { type: "string", enum: ["ligero", "rapido"], description: "Opcional: si piden algo ligero (ordena por calorías y las enseña) o rápido (por tiempo)." },
@@ -1008,7 +1009,7 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
           semana,
           comida: { type: "string", enum: IDS_COMIDAS },
           grupo: { type: "string", description: "Opcional: para quién, si no es para toda la familia: el nombre de una persona («Leo») o «los peques», «los mayores», «el bebé». Sin esto, es para toda la familia (el bebé tiene su menú)." },
-          cual: { type: "string", enum: ["principal", "primero"], description: "Por defecto el principal (el segundo en la comida)." },
+          cual: { type: "string", enum: [...PLATOS_DEL_HUECO], description: "Por defecto el principal (el segundo en la comida)." },
           receta: { type: "string", description: "Opcional: el nombre de la receta elegida. Si va, rasgos, ejes y perfil no se usan." },
           rasgos: ESQUEMA_RASGOS,
           ejes: ESQUEMA_EJES,

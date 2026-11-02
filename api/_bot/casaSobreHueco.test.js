@@ -56,8 +56,14 @@ describe("Lola sella el plato que cambia", () => {
   });
 
   it("por_que_plato lee el sobre del hueco de la fecha pedida", async () => {
-    // Una fecha escrita: no depende del día de hoy.
-    expect(await porQuePlato("h1", { dia: "2026-11-02", franja: "Comida" })).toMatch(/^Lo puso el menú automático \(2026-11-02\)\./);
+    // El reloj fijo en el día del menú de prueba: una fecha ya pasada no se resuelve (resolverDia).
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-11-02T10:00:00Z"));
+    try {
+      expect(await porQuePlato("h1", { dia: "2026-11-02", franja: "Comida" })).toMatch(/^Lo puso el menú automático \(2026-11-02\)\./);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("en un turno, el sobre es el de quien habla y por dónde", async () => {

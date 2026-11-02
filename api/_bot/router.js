@@ -22,6 +22,7 @@ import { IDS_COMIDAS, COMIDAS_PRINCIPALES, IDS_PLATOS, COMIDAS as CATALOGO, comi
 import { CUANDOS } from "./cuando.js";
 import { ESQUEMA_RASGOS, ESQUEMA_EJES, ESQUEMA_PERFIL, ESQUEMA_BASE, ESQUEMA_CATEGORIA, OTRA } from "./esquemas.js";
 import { resolver, GRUPO_VALORES, sinTildes } from "../../src/lib/diccionario.js";
+import { PLATOS_DEL_HUECO } from "../../src/lib/huecosDelPlan.js";
 import Anthropic from "@anthropic-ai/sdk";
 
 export const MODELO_ROUTER = process.env.BOT_ROUTER_MODELO || "claude-haiku-4-5-20251001";
@@ -55,7 +56,7 @@ export const ESQUEMA = {
     comidas: { type: "array", items: { type: "string", enum: COMIDAS }, description: "Solo en consulta, si las dicen («solo cenas», «qué desayunamos»): qué comidas ver." },
     platos: { type: "array", items: { type: "string", enum: IDS_PLATOS }, description: "Solo en consulta, si lo dicen: primero («los primeros») o principal («los segundos»)." },
     comida: { type: "string", enum: COMIDAS, description: "recomendar o cambiar." },
-    cual: { type: "string", enum: ["principal", "primero"] },
+    cual: { type: "string", enum: [...PLATOS_DEL_HUECO] },
     para: { type: "string", description: "«mayores», «ninos» o «bebe»; o el nombre de una persona de la casa si la nombran («para Cova» → «Cova»)." },
     estilo: { type: "string", enum: ["ligero", "rapido"] },
     rasgos: ESQUEMA_RASGOS,

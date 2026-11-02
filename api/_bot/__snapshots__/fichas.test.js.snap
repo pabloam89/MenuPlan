@@ -138,8 +138,8 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
     "cual": {
      "type": "string",
      "enum": [
-      "principal",
-      "primero"
+      "primero",
+      "principal"
      ],
      "description": "Por defecto el principal."
     }
@@ -270,8 +270,8 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
     "cual": {
      "type": "string",
      "enum": [
-      "principal",
-      "primero"
+      "primero",
+      "principal"
      ],
      "description": "Por defecto el principal (el segundo en la comida)."
     },
@@ -587,8 +587,8 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
     "cual": {
      "type": "string",
      "enum": [
-      "principal",
-      "primero"
+      "primero",
+      "principal"
      ],
      "description": "Por defecto el principal (el segundo en la comida)."
     },
