@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
-import { planVacio, fotoAntesDePizarra, deshacerPizarra, huecosDelPlan, conHuecosAlDia, conSemanasAlDia, conHuecoAnadido, sinHueco, franjasDelDia } from "./pizarra.js";
+import { planVacio, fotoAntesDePizarra, volverAntesDePizarra, huecosDelPlan, conHuecosAlDia, conSemanasAlDia, conHuecoAnadido, sinHueco, franjasDelDia } from "./pizarra.js";
 import { DAYS, getDayMeals, slotKey } from "./planner.js";
 import { mondayISOForOffset } from "./weekCalendar.js";
 
@@ -287,7 +287,7 @@ describe("salir de la hoja de arranque", () => {
 
   it("devuelve el menú, la compra y la pantalla de antes", () => {
     const abierta = { menus: { b: {} }, activeMenuId: "b", kitchenTools: ["horno"], pantryGenDeltas: {} };
-    const vuelta = deshacerPizarra(fotoAntesDePizarra(antes), abierta);
+    const vuelta = volverAntesDePizarra(fotoAntesDePizarra(antes), abierta);
     expect(vuelta.data.menus).toEqual({ a: {} });
     expect(vuelta.data.activeMenuId).toBe("a");
     expect(vuelta.menuPlan).toEqual({ g1: {} });
@@ -298,7 +298,7 @@ describe("salir de la hoja de arranque", () => {
 
   it("no toca lo que no es del menú: los aparatos ni el consumo ya devuelto", () => {
     const abierta = { kitchenTools: ["horno", "airfryer"], pantryGenDeltas: { sinM1: true } };
-    const { data } = deshacerPizarra(fotoAntesDePizarra(antes), abierta);
+    const { data } = volverAntesDePizarra(fotoAntesDePizarra(antes), abierta);
     expect(data.kitchenTools).toEqual(["horno", "airfryer"]);
     expect(data.pantryGenDeltas).toEqual({ sinM1: true });
   });

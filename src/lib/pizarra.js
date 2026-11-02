@@ -61,7 +61,7 @@ export function fotoAntesDePizarra({ data, menuPlan, shopping, aiRecipes, pantal
 }
 
 /** `data` sobre la casa de ahora: lo que cambió en la hoja y no es del menú se queda. */
-export function deshacerPizarra(foto, dataActual) {
+export function volverAntesDePizarra(foto, dataActual) {
   return { ...foto, data: { ...dataActual, ...foto.data } };
 }
 
