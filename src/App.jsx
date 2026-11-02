@@ -77,8 +77,7 @@ import { FeedScreen } from "./screens/FeedScreen.jsx";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
 import { clearPreparedFromSlot } from "./lib/freezer.js";
 import { normalizeIngredientKey } from "./lib/ingredientCategories.js";
-import { conMarcas } from "./lib/compraIdentidad.js";
-import { compraQueSeVe, compraParaGuardar, cambiarCompra, articulosDe } from "./lib/compraMarcas.js";
+import { compraQueSeVe, compraParaGuardar, cambiarCompra, compraAlGenerar, articulosDe } from "./lib/compraMarcas.js";
 import { getDayMeals, getMeals, ALL_DAY_MEALS, DAYS } from "./lib/planner.js";
 import { estructuraDelGrupo } from "./lib/estructuraPlatos.js";
 import { estimarSemana, frasePresupuesto } from "./lib/presupuesto.js";
@@ -2547,7 +2546,6 @@ export default function App() {
       const weeks = {};
       const allRecipes = [];
       let firstWeekPlan = null;
-      let firstWeekShopping = null;
       weekResults.forEach((res, w) => {
         weeks[res.startISO] = {
           offset: res.offset,
@@ -2563,7 +2561,6 @@ export default function App() {
         allRecipes.push(...res.recipes);
         if (w === 0) {
           firstWeekPlan = res.plan;
-          firstWeekShopping = res.weekShopping;
         }
       });
 
@@ -2665,7 +2662,7 @@ export default function App() {
           }
         });
       }
-      setCompra((prev) => ({ ...prev, items: conMarcas(firstWeekShopping.items, prev.items) }));
+      setShopping((prev) => compraAlGenerar(prev));
       // plan._warnings still collects non-blocking issues from generation, but
       // we no longer surface their raw internal text as a toast — it read as a
       // confusing "toast rarísimo" on success. Always show the plain success
@@ -4860,8 +4857,6 @@ export default function App() {
     });
 
     const delta = n - antes;
-    const grupos = gruposVigentes(data);
-    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const key = `${day}-${meal}`;
       const prev = plan[groupId]?.[key];
@@ -4873,8 +4868,6 @@ export default function App() {
           [key]: { ...prev, eaters: Math.max(1, (Number(prev.eaters) || 1) + delta) },
         },
       };
-      const sh = buildShoppingList(next, grupos, getDayMeals(data), pantryIngredients);
-      setCompra((prevSh) => ({ ...prevSh, items: conMarcas(articulosDe(sh), prevSh.items) }));
       return next;
     });
 
@@ -4924,10 +4917,8 @@ export default function App() {
       return Array.from(byId.values());
     });
 
-    const groups = gruposVigentes(data);
     // Fetched before the state updater (which must stay synchronous) so the
     // rebuilt shopping list still discounts pantry ingredients after a swap.
-    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const slotKey = `${day}-${meal}`;
       const prevSlot = plan[groupId]?.[slotKey] ?? {};
@@ -4943,8 +4934,6 @@ export default function App() {
           [slotKey]: nextSlot,
         },
       };
-      const sh = buildShoppingList(next, groups, getDayMeals(data), pantryIngredients);
-      setCompra((prev) => ({ ...prev, items: conMarcas(articulosDe(sh), prev.items) }));
       return next;
     });
     setSelectedSlot(null);
@@ -4983,8 +4972,6 @@ export default function App() {
       return;
     }
 
-    const groups = gruposVigentes(data);
-    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
 
     setMenuPlan((plan) => {
       const next = { ...plan };
@@ -4995,8 +4982,6 @@ export default function App() {
       writeField(sGroup, sKey, sField, tRecipeId);
       writeField(tGroup, tKey, tField, sRecipeId);
 
-      const sh = buildShoppingList(next, groups, getDayMeals(data), pantryIngredients);
-      setCompra((prev) => ({ ...prev, items: conMarcas(articulosDe(sh), prev.items) }));
       return next;
     });
     showToast("Platos intercambiados");
@@ -5006,19 +4991,13 @@ export default function App() {
     });
   }, [data, menuPlan, showToast, user]);
 
-  // Shared shopping-list rebuild for the rosco actions (clear / duplicate /
-  // manual pick). Preserves the user's have/atHome flags across the rebuild.
-  const applyShoppingFor = useCallback((next, groups, pantryIngredients) => {
-    const sh = buildShoppingList(next, groups, getDayMeals(data), pantryIngredients);
-    setCompra((prev) => ({ ...prev, items: conMarcas(articulosDe(sh), prev.items) }));
-  }, [data]);
 
   // Regenerate every dish of a single day (all active groups) in one tap — the
   // deck day header exposes this so users can reroll a day (or two) they don't
   // like without touching the rest of the week. Deterministic + free: reuses the
   // same per-slot catalog picker as the single-dish "Regenerar", applied slot by
   // slot on a working clone so carb/protein dedup stays correct within the day.
-  // Defined AFTER applyShoppingFor since it depends on it (const TDZ).
+  // (La compra ya no se rehace aquí: la vista sale del menú, trozo 18.)
   const handleRegenerateDay = useCallback(async (day, { groupIds = null } = {}) => {
     if (pararSiCasaSinConfirmar()) return;
     if (householdReadOnly) return;
@@ -5080,15 +5059,13 @@ export default function App() {
       return Array.from(byId.values());
     });
 
-    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan(() => {
-      applyShoppingFor(working, groups, pantryIngredients);
       return working;
     });
     showToast("Día regenerado");
     trackEvent(user, "day_regenerated", "menu", { day });
     registrarDescartes({ user, householdId: casaActivaRef.current, recetaIds: descartadas, ambito: ALCANCE_DESCARTE.DIA });
-  }, [data, menuPlan, showToast, user, applyShoppingFor, pararSiFaltanMinimos]);
+  }, [data, menuPlan, showToast, user, pararSiFaltanMinimos]);
 
   // Vaciar hueco: keep the slot (flagged `cleared`) so the deck renders a
   // tappable placeholder to refill it; offer an undo that restores the dishes.
@@ -5206,8 +5183,6 @@ export default function App() {
         }
       }
     }
-    const groups = gruposVigentes(data);
-    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     // Los platos de las OTRAS semanas del menú: rellenar solo mira la semana
     // abierta, y sin esto cada semana salía con los mismos platos.
     const usadosEnOtrasSemanas = recipeIdsDeOtrasSemanas(data.menus?.[data.activeMenuId], data.menuWeek?.offset);
@@ -5291,7 +5266,6 @@ export default function App() {
       return Array.from(byId.values());
     });
     setMenuPlan(() => {
-      applyShoppingFor(trabajo, groups, pantryIngredients);
       return trabajo;
     });
     // Un solo hueco no se reparte: la carta cae sola y el resto del tablero
@@ -5299,7 +5273,7 @@ export default function App() {
     if (puestos > 1) setRepartoKey((k) => k + 1);
     showToast(puestos === 1 ? "Hueco rellenado" : `${puestos} huecos rellenados`);
     trackEvent(user, "pizarra_autorelleno", "menu", { puestos, ambito: marcados ? "seleccion" : ambito?.day ? "dia" : ambito?.meal ? "hueco" : "semana" });
-  }, [data, menuPlan, user, householdReadOnly, showToast, applyShoppingFor, despensaPizarra]);
+  }, [data, menuPlan, user, householdReadOnly, showToast, despensaPizarra]);
 
   /**
    * La burbuja de la pizarra: una frase → cambios en el tablero.
@@ -5349,8 +5323,7 @@ export default function App() {
     });
     if (hechos === 0) return { reply: noHechos[0] ?? "No he podido cambiar nada", hechos, noHechos: noHechos.slice(1) };
 
-    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
-    deshacerPizarra.current = { plan, groups, pantryIngredients };
+    deshacerPizarra.current = { plan };
     if (nuevas.length) {
       registerRecipes(nuevas);
       setAiRecipes((cur) => {
@@ -5360,22 +5333,20 @@ export default function App() {
       });
     }
     setMenuPlan(() => {
-      applyShoppingFor(trabajo, groups, pantryIngredients);
       return trabajo;
     });
     trackEvent(user, "pizarra_burbuja", "menu", { ops: ops.length, hechos, fallos: noHechos.length });
     return { reply, hechos, noHechos, tocados };
-  }, [data, menuPlan, user, householdReadOnly, applyShoppingFor]);
+  }, [data, menuPlan, user, householdReadOnly]);
 
   const handleDeshacerPizarra = useCallback(() => {
     const antes = deshacerPizarra.current;
     if (!antes) return;
     deshacerPizarra.current = null;
     setMenuPlan(() => {
-      applyShoppingFor(antes.plan, antes.groups, antes.pantryIngredients);
       return antes.plan;
     });
-  }, [applyShoppingFor]);
+  }, []);
 
   /**
    * Soltar un plato en otro hueco (arrastre de la pizarra).
@@ -5402,8 +5373,6 @@ export default function App() {
     if (!sRecipe) return;
     const tRecipe = menuPlan[target.groupId]?.[tKey]?.[tField] ?? null;
 
-    const groups = gruposVigentes(data);
-    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
 
     setMenuPlan((plan) => {
       const next = { ...plan };
@@ -5417,12 +5386,11 @@ export default function App() {
       };
       escribir(source.groupId, sKey, sField, tRecipe);
       escribir(target.groupId, tKey, tField, sRecipe);
-      applyShoppingFor(next, groups, pantryIngredients);
       return next;
     });
     showToast(tRecipe ? "Platos intercambiados" : "Plato movido");
     trackEvent(user, "pizarra_slot_dragged", "menu", { intercambio: Boolean(tRecipe) });
-  }, [data, menuPlan, user, householdReadOnly, showToast, applyShoppingFor]);
+  }, [data, menuPlan, user, householdReadOnly, showToast]);
 
   const handlePlaceRecipeInSlot = useCallback(async (recipeId, target) => {
     if (householdReadOnly || !recipeId || !target) return;
@@ -5457,19 +5425,16 @@ export default function App() {
     const tGroup = target.groupId;
     const tKey = `${target.day}-${target.meal}`;
     const tField = target.course === "first" ? "firstRecipeId" : "recipeId";
-    const groups = gruposVigentes(data);
-    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const prevSlot = plan[tGroup]?.[tKey] ?? {};
       const nextSlot = { ...prevSlot, [tField]: baseId, cleared: false, warnings: [] };
       const next = { ...plan, [tGroup]: { ...(plan[tGroup] ?? {}), [tKey]: nextSlot } };
-      applyShoppingFor(next, groups, pantryIngredients);
       return next;
     });
     setPendingDish(null);
     showToast("Plato añadido a tu menú");
     trackEvent(user, "dish_copied_from_feed", "menu", { to: tKey });
-  }, [householdReadOnly, data, showToast, user, applyShoppingFor]);
+  }, [householdReadOnly, data, showToast, user]);
 
   /**
    * "A mis recetas" desde el menu de otra persona.
@@ -5510,18 +5475,15 @@ export default function App() {
     const tGroup = target.groupId;
     const tKey = `${target.day}-${target.meal}`;
     const tField = target.course === "first" ? "firstRecipeId" : "recipeId";
-    const groups = gruposVigentes(data);
-    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const prevSlot = plan[tGroup]?.[tKey] ?? {};
       const nextSlot = { ...prevSlot, [tField]: srcRecipeId, cleared: false, warnings: [] };
       const next = { ...plan, [tGroup]: { ...(plan[tGroup] ?? {}), [tKey]: nextSlot } };
-      applyShoppingFor(next, groups, pantryIngredients);
       return next;
     });
     showToast("Plato duplicado");
     trackEvent(user, "dish_duplicated", "menu", { from: sKey, to: tKey });
-  }, [data, menuPlan, showToast, user, applyShoppingFor]);
+  }, [data, menuPlan, showToast, user]);
 
   /**
    * Cambia la ESTRUCTURA de una comida: de primero+segundo a plato único, o al
@@ -5580,8 +5542,6 @@ export default function App() {
       slotType: { ...(d.slotType ?? {}), [`${day}|${meal}`]: toUnico ? "unico" : undefined },
     }));
 
-    const groups = gruposVigentes(data);
-    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const base = { ...(plan[groupId]?.[slotKey] ?? {}), warnings: [], cleared: false };
       if (toUnico) base.firstRecipeId = null;
@@ -5590,12 +5550,11 @@ export default function App() {
         else base.recipeId = p.recipeId;
       }
       const next = { ...plan, [groupId]: { ...(plan[groupId] ?? {}), [slotKey]: base } };
-      applyShoppingFor(next, groups, pantryIngredients);
       return next;
     });
     showToast(toUnico ? "Ahora es plato único" : "Ahora hay primero y segundo");
     trackEvent(user, "slot_structure_changed", "menu", { day, meal, structure });
-  }, [data, menuPlan, showToast, user, applyShoppingFor, householdReadOnly]);
+  }, [data, menuPlan, showToast, user, householdReadOnly]);
 
   /**
    * Vaciar un hueco. Solo quita el plato que has tocado: en una comida con
@@ -5620,8 +5579,6 @@ export default function App() {
    */
   const handleVaciarPizarra = useCallback(async () => {
     if (householdReadOnly) return;
-    const groups = gruposVigentes(data);
-    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const next = { ...plan };
       let tocados = 0;
@@ -5638,19 +5595,16 @@ export default function App() {
         next[gid] = copia;
       }
       if (tocados === 0) return plan;
-      applyShoppingFor(next, groups, pantryIngredients);
       return next;
     });
     showToast("Pizarra vaciada");
-  }, [data, householdReadOnly, user, syncHouseholdId, showToast, applyShoppingFor]);
+  }, [data, householdReadOnly, user, syncHouseholdId, showToast]);
 
   const handleClearSlot = useCallback(async (sel) => {
     if (householdReadOnly || !sel) return;
     const { groupId, day, meal, course } = sel;
     const key = `${day}-${meal}`;
     const field = course === "first" ? "firstRecipeId" : "recipeId";
-    const groups = gruposVigentes(data);
-    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const prevSlot = plan[groupId]?.[key];
       if (!prevSlot) return plan;
@@ -5664,12 +5618,11 @@ export default function App() {
       }
       nextSlot.cleared = !nextSlot.recipeId;
       const next = { ...plan, [groupId]: { ...(plan[groupId] ?? {}), [key]: nextSlot } };
-      applyShoppingFor(next, groups, pantryIngredients);
       return next;
     });
     showToast("Hueco vaciado");
     trackEvent(user, "dish_cleared", "menu", { day, meal, course });
-  }, [data, showToast, user, applyShoppingFor, householdReadOnly]);
+  }, [data, showToast, user, householdReadOnly]);
 
   /**
    * Marca (o desmarca) un hueco como cubierto por un plato ya cocinado del
@@ -5684,8 +5637,6 @@ export default function App() {
     if (householdReadOnly) return;
     const { groupId, day, meal } = sel;
     const key = `${day}-${meal}`;
-    const groups = gruposVigentes(data);
-    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const prevSlot = plan[groupId]?.[key];
       if (!prevSlot) return plan;
@@ -5693,11 +5644,10 @@ export default function App() {
         ? { ...prevSlot, ...patch }
         : clearPreparedFromSlot(prevSlot);
       const next = { ...plan, [groupId]: { ...(plan[groupId] ?? {}), [key]: nextSlot } };
-      applyShoppingFor(next, groups, pantryIngredients);
       return next;
     });
     trackEvent(user, patch ? "slot_from_freezer" : "slot_freezer_cleared", "menu", { day, meal });
-  }, [data, user, applyShoppingFor]);
+  }, [data, user]);
 
   // Elegir manualmente: open the catalog picker for a slot. A reason (from the
   // "Regenerar → Elegir a mano" flow) discards the outgoing dish first.
@@ -5771,8 +5721,6 @@ export default function App() {
           : null),
       }));
     }
-    const groups = gruposVigentes(data);
-    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const next = { ...plan };
       // Cada destino escribe en SU casilla: con una selección de varios huecos
@@ -5793,7 +5741,6 @@ export default function App() {
           },
         };
       }
-      applyShoppingFor(next, groups, pantryIngredients);
       return next;
     });
     setSlotPicker(null);
@@ -5804,7 +5751,7 @@ export default function App() {
     );
     trackEvent(user, "dish_manual_pick", "menu", { day, meal, kind, menus: colocados.length });
     contarSenales(casaActivaRef.current, senalesDeCambio({ sale: recetaDelPlato(platoAntes), entra: frontendRecipe, motivo: MOTIVO_CAMBIO.MANUAL }));
-  }, [slotPicker, data, menuPlan, showToast, user, applyShoppingFor]);
+  }, [slotPicker, data, menuPlan, showToast, user]);
 
   // Reset intents: "soft" keeps the profile (family, recipes, preferences) and
   // only wipes the active menu/session; "hard" nukes everything (used by

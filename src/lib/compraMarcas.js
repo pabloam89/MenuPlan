@@ -111,5 +111,15 @@ export function cambiarCompra(guardada, cambio, verla) {
   return compraParaGuardar({ aparte: ahora.aparte, ...nueva }, ahora.derivar?.() ?? []);
 }
 
+/**
+ * Lo que queda de la compra al generar un menú nuevo: lo comprado, lo que hay en casa y lo añadido a mano siguen; lo
+ * quitado vuelve a pedirse (con otro menú, quitarlo fue de aquel). Al cambiar un plato no se llama: la lista sale del
+ * menú y las marcas no cambian.
+ */
+export function compraAlGenerar(guardada) {
+  const marcas = esCompraConMarcas(guardada) ? guardada.marcas : marcasDe(guardada?.items, []).marcas;
+  return { marcas: marcas.map((m) => ({ ...m, marcas: m.marcas.filter((x) => x !== QUITADO) })).filter((m) => m.marcas.length) };
+}
+
 /** Los artículos derivados de una lista de buildShoppingList: los del súper y los que cubre la despensa. */
 export const articulosDe = (lista) => [...(lista?.byCategory ?? []).flatMap((c) => c.items), ...(lista?.pantryItems ?? [])];

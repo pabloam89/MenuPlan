@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { marcasDe, listaConMarcas, compraQueSeVe, compraParaGuardar, cambiarCompra, esCompraConMarcas } from "./compraMarcas.js";
+import { marcasDe, listaConMarcas, compraQueSeVe, compraParaGuardar, cambiarCompra, compraAlGenerar, esCompraConMarcas } from "./compraMarcas.js";
 import { MARCA_COMPRA } from "./vocabularios.js";
 
 const leche = { id: "leche|ml", name: "Leche", unit: "ml", qty: 1000, have: false, atHome: false, manual: false, sources: [{ recipeId: "r1" }] };
@@ -137,5 +137,26 @@ describe("la compra guarda solo marcas (trozo 18)", () => {
     const verla = (g) => compraQueSeVe(g, () => derivados);
     const otra = cambiarCompra({ marcas: [] }, (v) => ({ ...v, items: v.items.filter((it) => it.id !== "pan|ud") }), verla);
     expect(otra.marcas).toEqual([{ id: "pan|ud", nombre: "Pan", unidad: "ud", marcas: [MARCA_COMPRA.QUITADO] }]);
+  });
+
+  it("cambiar un plato y volver a ponerlo no pierde nada: las marcas no cambian con el menú (salmón → pollo → salmón)", () => {
+    const salmon = { id: "salmon|g", name: "Salmón", unit: "g", have: false, atHome: false };
+    const pollo = { id: "pollo|g", name: "Pollo", unit: "g", have: false, atHome: false };
+    const guardada = { marcas: [{ id: "salmon|g", nombre: "Salmón", unidad: "g", marcas: [MARCA_COMPRA.COMPRADO] }] };
+    const conPollo = compraQueSeVe(guardada, () => [pollo]);
+    expect(conPollo.items.map((it) => it.id)).toEqual(["pollo|g"]);
+    expect(compraParaGuardar(conPollo, [pollo])).toEqual(guardada);
+    const otraVez = compraQueSeVe(compraParaGuardar(conPollo, [pollo]), () => [salmon]);
+    expect(otraVez.items.map((it) => [it.id, it.have])).toEqual([["salmon|g", true]]);
+  });
+
+  it("al generar un menú nuevo, lo comprado, en casa y añadido siguen; lo quitado vuelve a pedirse", () => {
+    const guardada = { marcas: [
+      { id: "leche|ml", nombre: "Leche", unidad: "ml", marcas: [MARCA_COMPRA.COMPRADO] },
+      { id: "pan|ud", nombre: "Pan", unidad: "ud", marcas: [MARCA_COMPRA.QUITADO] },
+      { id: "manual:cafe:x", nombre: "Café", unidad: "", marcas: [MARCA_COMPRA.ANADIDO] },
+    ] };
+    expect(compraAlGenerar(guardada).marcas.map((m) => m.id)).toEqual(["leche|ml", "manual:cafe:x"]);
+    expect(compraAlGenerar({ items: [{ ...leche, have: true }] }).marcas.map((m) => [m.id, m.marcas])).toEqual([["leche|ml", [MARCA_COMPRA.COMPRADO]]]);
   });
 });
