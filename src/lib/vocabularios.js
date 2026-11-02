@@ -78,6 +78,15 @@ export const ESTRUCTURA_PLATOS = Object.values(ESTRUCTURA);
 /** Dónde come cada uno en un hueco (horario). */
 export const DONDE_COME = ["casa", "tupper", "fuera", "cole", "off"];
 
+/** Cómo es un hueco del horario (slotType, «Lun|Comida»); «normal» es lo que vale sin decir nada (en data.slotType, la clave que falta). */
+export const TIPOS_HUECO = ["normal", "unico", "rapida"];
+
+/**
+ * Las dimensiones del ámbito de un sobre (trozo 55), en este orden: grupo, semana (su lunes), día (DIAS) y comida
+ * (COMIDAS). registro_campo.ambito dice las de cada campo (CHECK, 0114) y el sobre tiene una columna por cada una.
+ */
+export const DIMENSIONES_AMBITO = ["grupo", "semana", "dia", "comida"];
+
 /** Cuánto tiempo hay para cocinar. */
 export const RITMO_COCINA = ["con_prisa", "normal", "con_tiempo", "depende"];
 
@@ -408,6 +417,8 @@ export const VOCABULARIOS = Object.freeze({
   comidas: COMIDAS,
   estructura_platos: ESTRUCTURA_PLATOS,
   donde_come: DONDE_COME,
+  tipo_hueco: TIPOS_HUECO,
+  dimensiones_ambito: DIMENSIONES_AMBITO,
   ritmo_cocina: RITMO_COCINA,
   nivel_cocina: NIVEL_COCINA,
   etapa_bebe: ETAPA_BEBE,

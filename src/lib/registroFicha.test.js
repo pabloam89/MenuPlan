@@ -165,7 +165,9 @@ describe("registroCampos es una proyección del registro", () => {
       for (const col of ["tipo", "vocabulario", "minimo", "maximo", "politica", "seguridad", "aplica", "columna", "caduca_dias"]) {
         expect(d[col], `${id}.${col}`).toEqual(c[col]);
       }
-      expect(c.por).toBe(d.entidad);
+      // El dato de un grupo es de la casa, con el grupo en su ámbito (trozo 55).
+      expect(c.por).toBe(d.entidad === "grupo" ? "casa" : d.entidad);
+      expect(c.ambito, id).toEqual(d.ambito);
     }
   });
 });
