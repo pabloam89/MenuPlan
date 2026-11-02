@@ -527,7 +527,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   const presupuesto = m.frasePresupuesto(working, m.estimarSemana(plan, { recetas: recipes }));
   const conservadas = semanasQueSeQuedan.map((w) => `del ${w.week_start} al ${w.week_end}`);
   // Lo que la familia dijo y el menú no cumple (src/lib/cumplimiento.js, trozo 31 de #1037): se dice en una línea.
-  const { incumplidas, ...cumplidas } = m.resumenCumplimiento(cumplimiento?.preferencias ?? []);
+  const { incumplidas, ...cumplidas } = m.resumenCumplimiento(cumplimiento.preferencias);
   // La semana generada va en la propia respuesta: sin ella, el modelo llamaba
   // a ver_menu justo después (y otra vez tras cada cambio), y un «hazme el
   // menú con salmón un día» tardaba casi un minuto en seis vueltas.

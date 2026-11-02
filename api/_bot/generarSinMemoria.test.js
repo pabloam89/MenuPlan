@@ -26,7 +26,7 @@ const m = {
   groupsFromModel: () => [{ id: "g1", label: "Todos" }], explicitDaysForOffset: () => null,
   computeWeekRange: () => ({ startISO: "2026-10-05", endISO: "2026-10-11", activeDays: ["Lun"] }),
   prepararSemana: () => ({ weekData: {}, crossWeek: null, weekSchedule: {} }), entradaDelMotor: (weekData) => weekData,
-  generateMenuWithAI: async () => ({ plan, recipes: [{ id: "r1", name: "Tortilla" }] }),
+  generateMenuWithAI: async () => ({ plan, recipes: [{ id: "r1", name: "Tortilla" }], cumplimiento: { preferencias: [] } }),
   registerRecipes: () => {}, buildShoppingList: () => ({ byCategory: [], pantryItems: [] }),
   getDayMeals: () => ({}), createMenuId: () => "menu-nuevo", menuToRow: (menu) => ({ id: menu.id }),
   weekToRow: () => ({}), COLUMNAS_DESPENSA: "*", filaDeDespensa: (f) => f, tipoDeGrupo: () => "familia",
