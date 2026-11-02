@@ -293,6 +293,43 @@ describe("api/operacion.js: un cambio de la familia (trozo 10) va a escribir_per
   });
 });
 
+describe("api/operacion.js: un cambio de la libreta (trozo 14) va a escribir_preferencias", () => {
+  const PREFERENCIAS = [{ nivel: "semana", eje: "composicion", medida: "cuenta", operador: "como_mucho", valor: "pescado", cantidad: 2, fuerza: "obligatoria" }];
+  const { dato: _sinDato, ...sinDato } = CUERPO;
+  beforeEach(() => {
+    responde(/^\/auth\/v1\/user/, { status: 200, cuerpo: { id: "u1" } });
+  });
+
+  it("por la misma puerta y con el autor de la sesión, a escribir_preferencias y nunca al documento", async () => {
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
+    responde(/rpc\/escribir_preferencias/, { status: 200, cuerpo: HECHA });
+    const res = await pedir({ body: { ...sinDato, accion: "guardar_libreta", preferencias: PREFERENCIAS, autor_user_id: "otro" } });
+    expect(res.codigo).toBe(200);
+    expect(res.body).toEqual({ guardado: true, ...HECHA });
+    const op = llamadas.find((l) => l.ruta.includes("escribir_preferencias")).cuerpo.p_operacion;
+    expect(op).toMatchObject({ canal: "app", ref_tipo: "pantalla", autor_user_id: "u1", preferencias: PREFERENCIAS });
+    expect(llamadas.filter((l) => DEL_DOCUMENTO.test(l.ruta))).toEqual([]);
+  });
+
+  it("la libreta con un dato o con la familia a la vez: no se escribe nada (uno se tiraría en silencio)", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    for (const body of [{ ...CUERPO, preferencias: PREFERENCIAS }, { ...sinDato, personas: [], preferencias: PREFERENCIAS }]) {
+      const res = await pedir({ body });
+      expect(res.codigo).toBe(HTTP_DE_FALLO[FALLO_DATO.INVALIDO]);
+    }
+    expect(llamadas.filter((l) => l.ruta.includes("rpc/"))).toEqual([]);
+  });
+
+  it("sin la 0109 contesta rpc_ausente y no toca el documento", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
+    responde(/rpc\/escribir_preferencias/, SIN_RPC);
+    const res = await pedir({ body: { ...sinDato, preferencias: PREFERENCIAS } });
+    expect(res).toMatchObject({ codigo: HTTP_DE_FALLO[FALLO_DATO.RPC_AUSENTE], body: { fallo: FALLO_DATO.RPC_AUSENTE } });
+    expect(llamadas.filter((l) => DEL_DOCUMENTO.test(l.ruta))).toEqual([]);
+  });
+});
+
 describe("api/operacion.js: la app lee los datos de la ficha Casa (trozo 12)", () => {
   const DATO_CASA = { campo: "wantsPriceEstimates", sujeto: { tipo: "casa", id: null }, estado: "dicho", valor: true, origen: "dicho" };
   const COMUN = { casa: { id: CASA, rev: 3 }, personas: [], faltan: [], tareas: [], callados: [] };
