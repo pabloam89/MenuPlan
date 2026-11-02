@@ -38,4 +38,12 @@ describe("chips del filtro de la pizarra", () => {
     const marcados = [...caja.querySelectorAll('[aria-pressed="true"]')].map((b) => b.textContent);
     expect(marcados).toEqual(["Todos"]);
   });
+
+  it("un menú de una sola persona lleva su nombre; el de varias, el del grupo", () => {
+    const familia = { id: "g1", label: "Familia", memberIds: ["m1", "m2"] };
+    const aparte = { id: "g2", label: "Niños", memberIds: ["m3"] };
+    const gente = [{ id: "m1", name: "Pablo" }, { id: "m2", name: "Ana" }, { id: "m3", name: "Gonzalo" }];
+    const caja = montar(<DeckFilter chips groups={[familia, aparte]} scope="all" onScopeChange={() => {}} members={gente} />);
+    expect(textos(caja)).toEqual(["Todos", "Familia", "Gonzalo"]);
+  });
 });

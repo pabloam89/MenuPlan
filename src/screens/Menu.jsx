@@ -4587,6 +4587,14 @@ export function DeckFilter({ groups, scope, onScopeChange, members, chips = fals
   // pasaba a la siguiente sin decir a cuál, y una pila de caras no explica que
   // lo que se filtra es un menú y no una persona.
   if (chips) {
+    // Un menú de una sola persona lleva su nombre: «Gonzalo» dice de quién es
+    // la dieta mejor que «Niños». Los de varios, el del grupo.
+    const nombreDe = (opt) => {
+      if (!opt.group) return opt.label;
+      const gente = membersOfGroup(opt.group, members);
+      if (gente.length === 1) return gente[0].name;
+      return opt.group.adHoc ? adhocReasonLabel(opt.group.reason) : opt.label;
+    };
     return (
       <div
         role="group"
@@ -4621,7 +4629,7 @@ export function DeckFilter({ groups, scope, onScopeChange, members, chips = fals
                   transition: "background var(--mov-rapida) var(--mov-curva), color var(--mov-rapida) var(--mov-curva)",
                 }}
               >
-                {opt.group?.adHoc ? adhocReasonLabel(opt.group.reason) : opt.label}
+                {nombreDe(opt)}
               </span>
             </button>
           );
