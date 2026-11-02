@@ -18,6 +18,8 @@
  * (una lista) en vez de `dato`: los huecos de un horario que cambian juntos (trozo 13), en una sola operación.
  * Un cambio de la familia (trozo 10), en vez de `dato`: { …, personas: [...], grupos?: [...] }, lo que
  * saca cambiosDePersonas (src/lib/personas.js); va a escribir_persona (0108) por la misma tubería y puerta.
+ * Un cambio de la libreta (trozo 14), en vez de `dato`: { …, preferencias: [...] }, lo que saca cambiosDeLibreta
+ * (src/lib/preferencias.js); va a escribir_preferencias (0109) por la misma tubería y puerta.
  * Para deshacer una operación propia (trozo 41): { casa, deshacer: <operacion_id> }, sin dato; la
  * deshace la base en una transacción (deshacer_operacion, 0111) si es de quien tiene la sesión y nada
  * de lo que tocó cambió después (si no, 200 con `guardado: false` y `sin_hacer` con su motivo).
@@ -31,7 +33,7 @@
 import { cors, blocked } from "./_guard.js";
 import { usuarioDeToken } from "./_bot/db.js";
 import { papelDeUsuario } from "./_bot/papel.js";
-import { escribirDato, escribirPersonas, deshacerOperacion, falloDeMotivo, leerDatosDeCasa } from "./_bot/datos.js";
+import { escribirDato, escribirPersonas, escribirPreferencias, deshacerOperacion, falloDeMotivo, leerDatosDeCasa } from "./_bot/datos.js";
 import { motivoDe } from "./_bot/avisar.js";
 import { HTTP_DE_FALLO, apuntarSinGuardar, campoDelPedido } from "../src/lib/escribirDato.js";
 import * as ids from "../src/lib/ids.js";
@@ -77,11 +79,13 @@ export default async function handler(req, res) {
   if (!accessToken) return contestar(res, FALLO_DATO.SIN_SESION);
   if (req.method === "GET") return leerCasa(req, res, accessToken);
 
-  const { casa, clave, accion, ref_id, pedida_at = null, dato, datos, deshacer = null, personas, grupos } = req.body ?? {};
+  const { casa, clave, accion, ref_id, pedida_at = null, dato, datos, deshacer = null, personas, grupos, preferencias } = req.body ?? {};
   // Un dato o varios (`datos`); cuál de los dos, y su forma, lo mira operacionDeDato (escribirDato.js).
   const conDatos = dato != null || datos != null;
   // Un cambio de la familia (trozo 10) en vez de un dato: personas y, si cambiaron, los grupos.
   const deFamilia = personas !== undefined || grupos !== undefined;
+  // Un cambio de la libreta (trozo 14): sus preferencias.
+  const deLibreta = preferencias !== undefined;
   let user;
   let papel;
   try {
@@ -90,9 +94,9 @@ export default async function handler(req, res) {
     if (!ids.casa.esNuevo(casa)) return contestar(res, FALLO_DATO.INVALIDO, "casa");
     if (deshacer != null) {
       // Deshacer o escribir, nunca las dos en una petición: el dato no se tiraría en silencio.
-      if (!ids.operacion.esNuevo(deshacer) || conDatos || deFamilia) return contestar(res, FALLO_DATO.INVALIDO, "deshacer");
-    } else if (deFamilia && conDatos) {
-      // Un dato o un cambio de la familia, nunca los dos: uno se tiraría en silencio.
+      if (!ids.operacion.esNuevo(deshacer) || conDatos || deFamilia || deLibreta) return contestar(res, FALLO_DATO.INVALIDO, "deshacer");
+    } else if (Number(conDatos) + Number(deFamilia) + Number(deLibreta) > 1) {
+      // Un dato, un cambio de la familia o uno de la libreta, nunca dos: uno se tiraría en silencio.
       return contestar(res, FALLO_DATO.INVALIDO, "dato");
     } else if (!ids.claveOperacion.esNuevo(clave)) {
       // La clave la da la app (un uuid); va a su propio espacio, para que no pueda adelantarse a una de Lola.
@@ -121,7 +125,9 @@ export default async function handler(req, res) {
   };
   const r = deFamilia
     ? await escribirPersonas({ ...pedido, personas, grupos }, { papel })
-    : await escribirDato({ ...pedido, dato, datos }, { papel });
+    : deLibreta
+      ? await escribirPreferencias({ ...pedido, preferencias }, { papel })
+      : await escribirDato({ ...pedido, dato, datos }, { papel });
   if (r.fallo) return contestar(res, r.fallo, r.error);
   return res.status(200).json(r);
 }
