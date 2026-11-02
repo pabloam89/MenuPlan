@@ -22,6 +22,8 @@ import {
 import { claseDe, alcanceDe, resolverChoque } from "../choques.js";
 
 const deLaFamilia = (origen) => ORIGENES_DE_LA_FAMILIA.includes(origen);
+/** El origen de una preferencia que no lo trae: lo dice la familia (el `coalesce` de escribir_preferencias, 0109; preferencia.test.js los compara). */
+export const ORIGEN_PREFERENCIA_POR_DEFECTO = ORIGENES_DE_LA_FAMILIA[0];
 
 /**
  * Pura. Lo que la puerta tiene contra una operación ya entendida (la forma de
@@ -57,7 +59,8 @@ const OPUESTO = Object.freeze({ [OP.MAS]: OP.MENOS, [OP.MENOS]: OP.MAS, [OP.ES]:
 const CON_CANTIDAD = [OP.AL_MENOS, OP.COMO_MUCHO];
 const cortan = (x, y) => !x || !y || x.some((v) => y.includes(v));
 const sujetoDe = (p) => p.persona_id ?? p.grupo_id ?? null;
-// Lo dicho por otra persona lo dijo alguien que edita la casa (la puerta no deja otra cosa): el menor papel que puede.
+// Lo dicho por otra persona lo dijo alguien que edita la casa (la puerta no deja otra cosa). La autoridad
+// (rangoDePapel, choques.js) solo distingue si edita la casa, así que cualquier papel que edita da su rango exacto.
 const QUIEN_EDITA = PAPELES.filter((p) => puede(p, "editar_casa")).at(-1);
 
 /** Pura. ¿Se contradicen dos filas de preferencia? Mismo eje, nivel y valor, sujetos y ámbitos que se cruzan, operadores opuestos. */
@@ -76,7 +79,7 @@ export function seContradicen(a, b) {
 /** Un lado del choque (choques.js) de una fila de preferencia: su clase, fuerza, quién la dijo y su alcance. */
 function ladoDe(p, { autor, papel, at }) {
   return {
-    clase: claseDe({ origen: p.origen ?? ORIGENES_DE_LA_FAMILIA[0] }),
+    clase: claseDe({ origen: p.origen ?? ORIGEN_PREFERENCIA_POR_DEFECTO }),
     fuerza: p.fuerza,
     autor, papel: autor ? papel : null, // lo visto o supuesto no tiene autor
     ...alcanceDe(p),
@@ -94,7 +97,7 @@ function ladoDe(p, { autor, papel, at }) {
 export function choquesAlGuardar(nuevas, guardadas, { autor, papel, at, delante = false }) {
   const tocadas = new Set(nuevas.map((p) => p.id).filter(Boolean));
   const vivas = (guardadas ?? []).filter((g) => !g.rechazada_at);
-  const deLaFamiliaP = (p) => deLaFamilia(p.origen ?? ORIGENES_DE_LA_FAMILIA[0]);
+  const deLaFamiliaP = (p) => deLaFamilia(p.origen ?? ORIGEN_PREFERENCIA_POR_DEFECTO);
   const out = [];
   nuevas.forEach((p, i) => {
     if (p.borrar || p.rechazar) return;
