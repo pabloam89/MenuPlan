@@ -14,6 +14,7 @@ const { poner, olvidar } = await import("./notepad.js");
 const { FALLO_DATO } = await import("./vocabularios.js");
 const { nuevaRegla, reglaDeInvitado } = await import("./reglas.js");
 const { conInterruptor, leerPresupuesto, FORMA_PRESUPUESTO, PRESUPUESTO_DE_PARTIDA } = await import("./presupuestoCasa.js");
+const { KID_DINNER_DEFAULTS } = await import("./kidsMenu.js");
 
 const CASA = "00000000-0000-4000-8000-0000000000ca";
 // Una fila de preferencias_de_casa (lo que no lleva, null en la tabla).
@@ -139,6 +140,21 @@ describe("guardar la libreta", () => {
     const otra = libretaDeCasa({ casa: CASA, carga: conFila, conocida: conPresupuesto, enviar, releer: async () => FILAS });
     await otra.guardar(conInterruptor(conPresupuesto, false));
     expect(llegan[1].preferencias).toEqual([{ id: FILA.id, borrar: true }]);
+  });
+
+  it("el estilo de cada menú y cómo comen los peques, de sus filas (no del documento); lo que cambia va como fila", async () => {
+    const { llegan, enviar } = enviada();
+    const [NINOS, ANA] = ["00000000-0000-4000-8000-0000000000b1", "00000000-0000-4000-8000-0000000000a1"];
+    const viejos = { mealStyleByGroup: { [NINOS]: "ligero" }, kidDinnerConfig: { byMember: { [ANA]: { dinner: "different" } } } };
+    const leida = conLibretaLeida({ groups: [{ id: NINOS, tipo: "ninos" }], members: [{ id: ANA }], ...viejos }, FILAS);
+    expect([leida.mealStyleByGroup, leida.kidDinnerConfig]).toEqual([{}, { byMember: {} }]);
+    const l = libretaDeCasa({ casa: CASA, carga: FILAS, conocida: leida, enviar, releer: async () => FILAS });
+    const nueva = { ...leida, mealStyleByGroup: { [NINOS]: "ligero" }, kidDinnerConfig: { byMember: { [ANA]: { ...KID_DINNER_DEFAULTS, dinner: "different" } } } };
+    expect(await l.guardar(nueva)).toMatchObject({ ok: true, enviado: true });
+    expect(llegan[0].preferencias).toEqual(expect.arrayContaining([
+      expect.objectContaining({ grupo_id: NINOS, eje: "estiloComida", valor: "ligero" }),
+      expect.objectContaining({ persona_id: ANA, eje: "comeConLaFamilia", comidas: ["Cena"], valor: false })]));
+    expect(Object.keys(sinLibretaLeida(nueva, FILAS))).toEqual(["groups", "members", "reglas"]);
   });
 
   it("un apunte que no cabe en una fila (un ámbito sin su grupo) no se manda y se dice", async () => {
