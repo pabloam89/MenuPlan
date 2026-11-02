@@ -110,7 +110,7 @@ async function leerCasa(householdId) {
   // La familia, de sus filas (0108, trozo 10): el documento ya no la lleva. Sin la 0108, null: sigue en el
   // documento, como antes. Sin poder leerla por otra cosa, leerFamilia lanza (FamiliaSinLeer) y la casa no se
   // lee: con una familia a medias se generaría un menú sin las alergias, o se borraría a quien no salió.
-  // Los datos de la casa con sobre (trozo 12), de ficha_casa v2; sin la 0112, null: siguen en el documento.
+  // Los datos de la casa con sobre (trozos 12 y 13), de ficha_casa v2; sin poder leerlos, la casa no se lee.
   // Las preferencias (trozo 14), de sus filas; sin la 0109, null: la libreta sigue en el documento.
   const [familia, conSobre, preferencias, activos, recetasPropias, deLaCasa] = await Promise.all([
     leerFamilia(householdId),
@@ -157,7 +157,7 @@ async function leerCasa(householdId) {
     // documento (base sin la 0108) y se guarda con él.
     familia: familia ? structuredClone(familia) : null,
     // Los datos con sobre tal como se leyeron (`{ campo: { valor, conSobre } }`): de ellos sale lo que cambia al
-    // guardar. null: viven en el documento (la 0112 sin aplicar) y se guardan con él.
+    // guardar.
     conSobre,
     // Las filas de preferencia tal como se leyeron (de ellas, los ids de lo que cambia al guardar). null: la libreta
     // vive en el documento (la 0109 sin aplicar) y se guarda con él.
@@ -208,7 +208,6 @@ function separarPreferencias(state, casa, grupos) {
 
 /** Pura. El documento con los datos con sobre leídos en `data` (lo que el documento aún guarde de ellos, fuera). */
 function conDatosConSobre(state, conSobre) {
-  if (!conSobre) return state;
   const valores = Object.fromEntries(Object.entries(conSobre).map(([campo, l]) => [campo, l.valor]));
   return { ...state, data: { ...(state?.data ?? {}), ...valores } };
 }
@@ -221,7 +220,9 @@ function conDatosConSobre(state, conSobre) {
  * Lanza DatoInvalido si un hueco no cuadra con el registro, antes de guardar nada.
  */
 function separarConSobre(state, conSobre, familia) {
-  if (!state?.data || !conSobre) return { documento: state, cambios: [] };
+  if (!state?.data) return { documento: state, cambios: [] };
+  // cargarCasa los lee siempre (o la casa no se lee): una casa sin ellos guardaría en el documento lo que va al sobre.
+  if (!conSobre) throw new Error("guardarCasa: la casa no trae sus datos con sobre (cargarCasa)");
   const data = { ...state.data };
   const cambios = [];
   for (const [campo, leido] of Object.entries(conSobre)) {
@@ -320,8 +321,8 @@ function escribirDatoDeCasa(casa, { campo, ...cambio }) {
 // documento (que es el que mira la versión: si choca, no se ha escrito nada y conCasa repite entero). Lo que no
 // viaja tal cual se dice en el chat (avisarEnElChat). Con la familia en el documento (`casa.familia` null, base
 // sin la 0108), va en él, como antes. Los datos con sobre (trozo 12), igual: lo que cambió va a escribirDato,
-// uno tras otro y detrás de la familia (un hueco de una persona o un grupo nuevos necesita su fila); sin la 0112
-// (`casa.conSobre` null), en el documento. Un mapa con ámbito (trozo 13), en una operación por campo.
+// uno tras otro y detrás de la familia (un hueco de una persona o un grupo nuevos necesita su fila). Un mapa con
+// ámbito (trozo 13), en una operación por campo.
 export async function guardarCasa(casa, { state = null, semana = null, activar = null } = {}, { sinDeshacer = false } = {}) {
   const familiaTras = familiaDeData({ ...(casa.state?.data ?? {}), ...(state?.data ?? {}) });
   // La libreta (trozo 14): lo que cambió va a escribir_preferencias, detrás de la familia (un ámbito de un grupo

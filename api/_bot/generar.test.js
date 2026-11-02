@@ -44,7 +44,9 @@ const m = {
 const casaVieja = {
   householdId: "h1", botRev: 3,
   // Con las alergias revisadas: sin eso no se genera (trozo 2 de #1037, abajo).
-  state: { data: { members: [{ id: "p1", name: "Ana", alergiasRevisadas: true }], groups: [{ id: "g1", label: "Todos" }] }, shopping: { items: [] } },
+  state: { data: { members: [{ id: "p1", name: "Ana", alergiasRevisadas: true }], groups: [{ id: "g1", label: "Todos" }], menuModel: "same" }, shopping: { items: [] } },
+  // menuModel, como lo deja cargarCasa (casa.js): de su sobre, aquí el defecto del registro.
+  conSobre: { menuModel: { valor: "same", conSobre: false } },
   menu: { id: "menu-viejo" }, semanas: [], semana: null,
 };
 
@@ -77,8 +79,16 @@ describe("generar: un reparto por edades que no eligió nadie pasa a un menú (t
   it("con «same» dicho por alguien, el reparto se queda", async () => {
     expect(await gruposTrasGenerar({ menuModel: { valor: "same", conSobre: true } })).toEqual(porEdades);
   });
-  it("sin la 0112, con menuModel en el documento cuenta como elegido, como antes", async () => {
-    expect(await gruposTrasGenerar(null)).toEqual(porEdades);
+  it("una casa sin menuModel con su sobre no se genera: no se adivina si alguien lo eligió (la 0112, aplicada)", async () => {
+    await expect(gruposTrasGenerar(null)).rejects.toThrow(/no trae menuModel/);
+  });
+  it("generar no siembra «same» en el documento: menuModel sale de su sobre", async () => {
+    const casa = structuredClone(casaVieja);
+    delete casa.state.data.menuModel;
+    let cambios;
+    conCasa.mockImplementation(async (_h, cambiar) => { cambios = await cambiar(structuredClone(casa)); return { ok: true }; });
+    await generarMenu("h1", "esta", [], {});
+    expect(cambios.state.data).not.toHaveProperty("menuModel");
   });
 });
 

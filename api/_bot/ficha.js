@@ -14,7 +14,7 @@
  * (dominiosGustos.json). Los datos de la ficha Casa con sobre
  * (CAMPOS_CASA_CON_SOBRE: modelo de menú, aparatos, nivel, despensa, súper,
  * presupuesto) llegan en ese mismo `data`: casa.js lo rellena con su sobre de
- * ficha_casa v2 y, sin la 0112, son los del documento (plan B). Se monta en cada mensaje, en milisegundos, y así
+ * ficha_casa v2 (sin ella, la casa no se lee). Se monta en cada mensaje, en milisegundos, y así
  * nunca está desfasada: el spec pedía guardarla ya montada para no cargar el
  * motor; sin motor no hace falta guardarla, y una ficha vieja con las
  * alergias de ayer es justo lo que no puede pasar.

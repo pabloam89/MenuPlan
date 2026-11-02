@@ -33,6 +33,8 @@ const m = {
 };
 const casa = {
   householdId: "h1", botRev: 3, menu: { id: "menu-viejo" }, semanas: [], semana: null,
+  // menuModel, como lo deja cargarCasa (casa.js): de su sobre, aquí el defecto del registro.
+  conSobre: { menuModel: { valor: "same", conSobre: false } },
   state: { data: { members: [{ id: "p1", name: "Ana", alergiasRevisadas: true }], groups: [{ id: "g1", label: "Todos" }] }, shopping: { items: [] }, aiRecipes: [{ id: "de-la-semana-pasada" }] },
 };
 

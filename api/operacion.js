@@ -27,7 +27,7 @@
  * HTTP_DE_FALLO con { fallo, error? } (FALLOS_DATO; `error`, el motivo de la puerta o del dato).
  *
  * Y lee (trozo 12): GET ?casa=<uuid> contesta 200 con { v, datos }, los datos de la ficha Casa de ficha_casa v2
- * (leerDatosDeCasa; `datos` null con la v1). La app no puede llamar a ficha_casa (solo la service role, 0107):
+ * (leerDatosDeCasa; con la v1, 503). La app no puede llamar a ficha_casa (solo la service role, 0107):
  * los lee aquí quien es de la casa, con cualquier papel; quien no es de ella, sin_permiso.
  */
 import { cors, blocked } from "./_guard.js";
