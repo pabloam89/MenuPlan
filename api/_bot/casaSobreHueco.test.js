@@ -31,6 +31,8 @@ vi.mock("./db.js", () => ({
 vi.mock("./propias.js", () => ({ recetasPropiasDeCasa: vi.fn(async () => []) }));
 
 const { cargarCasa, guardarCasa } = await import("./casa.js");
+const { usarMotor, porQuePlato } = await import("./menu.js");
+usarMotor(await import("../../src/server/botCore.js"));
 
 describe("Lola sella el plato que cambia", () => {
   it("el hueco cambiado lleva canal, cuándo y quién; el otro conserva el del motor", async () => {
@@ -43,5 +45,10 @@ describe("Lola sella el plato que cambia", () => {
     expect(cena).toEqual({ canal: CANAL_DATO.SISTEMA, cuando: expect.any(String), quien: null });
     expect(Number.isNaN(Date.parse(cena.cuando))).toBe(false);
     expect(args.p_week.plan.g1["Lun-Comida"].sobre).toEqual(delMotor);
+  });
+
+  it("por_que_plato lee el sobre del hueco de la fecha pedida", async () => {
+    // Una fecha escrita: no depende del día de hoy.
+    expect(await porQuePlato("h1", { dia: "2026-11-02", franja: "Comida" })).toMatch(/^Lo puso el menú automático \(2026-11-02\)\./);
   });
 });

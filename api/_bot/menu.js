@@ -18,6 +18,7 @@
 import { fallaCon } from "./avisar.js";
 import { select, insert, eq } from "./db.js";
 import { conCasa, cargarCasa, hoyISO } from "./casa.js";
+import { porQueElPlato } from "../../src/lib/sobreHueco.js";
 import { datosDelMotor } from "../../src/lib/recetasDeLaCasa.js";
 import { propiasDe } from "./propias.js";
 import { rastro } from "./embudo.js";
@@ -504,6 +505,18 @@ export async function quitarCompra(householdId, { productos = [], manuales = fal
   ];
   if (manuales && !habiaManuales) sinHacer.push({ que: "lo añadido a mano", motivo: "no había nada añadido a mano" });
   return resultadoDeEscritura({ accion: "compra_quitar", hecho: hecho.quitados, sinHacer, nota: "Lo que sale del menú vuelve si se rehace la compra (al cambiar el menú)." });
+}
+
+/** Por qué hay ese plato en un día y franja del menú (la herramienta por_que_plato). */
+export async function porQuePlato(householdId, { dia: diaPedido, semana, franja, grupo, cual = "principal" }) {
+  const cargada = await cargarCasa(householdId);
+  if (!cargada) return "No encuentro la casa.";
+  const rd = resolverDia(cargada, diaPedido, semana);
+  if (rd.error) return rd.error;
+  const h = huecoDe(rd.casa, { dia: rd.dia, franja, grupo, cual });
+  if (h.error) return h.error;
+  const m = await motor();
+  return porQueElPlato(h.hueco, m.preferenciasDelMotor(rd.casa.state?.data ?? {}, { hoy: hoyISO() }), m.textoDe);
 }
 
 /** El grupo y el hueco de un día y franja del menú activo, o por qué no hay. */

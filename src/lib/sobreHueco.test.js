@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { sellarCambios, sobreDelMotor } from "./sobreHueco.js";
+import { sellarCambios, sobreDelMotor, porQueElPlato, QUIEN_PUSO } from "./sobreHueco.js";
+import { textoDe } from "./cumplimiento.js";
 import { semanaVivaPorGuardar } from "./menuArchive.js";
-import { CANAL_DATO } from "./vocabularios.js";
+import { CANAL_DATO, CANALES_DATO } from "./vocabularios.js";
 
 const delMotor = sobreDelMotor("2026-11-02", ["base.pescado"]);
 const aMano = { canal: CANAL_DATO.APP, cuando: "2026-11-03T10:00:00.000Z", quien: "u1" };
@@ -47,5 +48,18 @@ describe("el sobre de cada hueco (trozo 18)", () => {
     const r = semanaVivaPorGuardar(menus, "m", 0, editado, { items: [] }, aMano);
     expect(r.week.plan.g1["Lun-Cena"].sobre).toEqual(aMano);
     expect(semanaVivaPorGuardar(r.menus, "m", 0, r.week.plan, { items: [] }, { ...aMano, cuando: "luego" })).toBeNull();
+  });
+
+  it("por qué está un plato: quién, cuándo y, si fue el motor, lo que lo pidió", () => {
+    const prefs = [{ id: "base.pescado", campo: "base", valor: "pescado", operador: "mas", cantidad: null }];
+    expect(porQueElPlato({ sobre: delMotor }, prefs, textoDe)).toBe("Lo puso el menú automático (2026-11-02). Lo pidió lo que hay apuntado en la casa: más pescado.");
+    expect(porQueElPlato({ sobre: sobreDelMotor("2026-11-02", []) }, prefs, textoDe)).toMatch(/Ninguna preferencia de la casa lo pedía/);
+    expect(porQueElPlato({ sobre: delMotor }, [], textoDe)).toMatch(/una preferencia que ya no está/);
+    expect(porQueElPlato({ sobre: aMano }, prefs, textoDe)).toBe("Lo puso alguien de casa, a mano en la app (2026-11-03).");
+    expect(porQueElPlato({ recipeId: "x" }, prefs, textoDe)).toMatch(/No está apuntado quién lo puso/);
+  });
+
+  it("hay quién lo puso para cada canal", () => {
+    expect(Object.keys(QUIEN_PUSO).sort()).toEqual([...CANALES_DATO].sort());
   });
 });

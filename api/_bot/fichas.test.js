@@ -92,7 +92,7 @@ describe("una ficha por herramienta", () => {
 
   it("las de solo leer son las de antes, una a una (cambiarlo es a propósito: es la puerta de pista.js)", () => {
     expect([...SOLO_LECTURA].sort()).toEqual([
-      "buscar_recetas", "compartir", "proponer_platos", "ver_ajustes", "ver_casa", "ver_compra",
+      "buscar_recetas", "compartir", "por_que_plato", "proponer_platos", "ver_ajustes", "ver_casa", "ver_compra",
       "ver_despensa", "ver_menu", "ver_menu_cole", "ver_receta", "ver_recordatorios",
     ]);
   });

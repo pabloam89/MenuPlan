@@ -45,3 +45,29 @@ export function sellarCambios(viejo, nuevo, sobre) {
  * @param {string[]} motivo
  */
 export const sobreDelMotor = (cuando, motivo) => ({ canal: CANAL_DATO.SISTEMA, cuando, ...(motivo.length ? { motivo } : {}) });
+
+/** Quién puso un plato, por el canal de su sobre (sobreHueco.js): uno por cada canal de CANALES_DATO. */
+export const QUIEN_PUSO = Object.freeze({
+  [CANAL_DATO.SISTEMA]: "el menú automático",
+  [CANAL_DATO.APP]: "alguien de casa, a mano en la app",
+  [CANAL_DATO.TELEGRAM]: "Lola, por el chat",
+  [CANAL_DATO.WHATSAPP]: "Lola, por el chat",
+});
+
+/**
+ * Pura. Por qué hay un plato en un hueco (trozo 18): quién lo puso y cuándo, y, si fue el motor, las preferencias de
+ * la casa que lo pidieron (en palabras, textoDe). Un hueco sin sobre es de antes de que se apuntara, y se dice.
+ * @param {object} hueco el del plan (`slot`)
+ * @param {object[]} prefs las de la casa que pesa el motor (preferenciasDelMotor), para poner nombre a los ids
+ * @param {(p: object) => string} textoDe la de cumplimiento.js (se pasa: Lola la toma del motor, porque importarla arrastra .jsx)
+ */
+export function porQueElPlato(hueco, prefs, textoDe) {
+  const s = hueco?.sobre;
+  if (!s) return "No está apuntado quién lo puso: es de antes de que se guardara.";
+  const quien = `Lo puso ${QUIEN_PUSO[s.canal] ?? s.canal}${s.cuando ? ` (${String(s.cuando).slice(0, 10)})` : ""}.`;
+  if (s.canal !== CANAL_DATO.SISTEMA) return quien;
+  if (!s.motivo?.length) return `${quien} Ninguna preferencia de la casa lo pedía en concreto.`;
+  const porId = new Map((prefs ?? []).map((p) => [p.id, p]));
+  const motivos = s.motivo.map((id) => (porId.has(id) ? textoDe(porId.get(id)) : "una preferencia que ya no está"));
+  return `${quien} Lo pidió lo que hay apuntado en la casa: ${[...new Set(motivos)].join("; ")}.`;
+}

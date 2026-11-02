@@ -20,7 +20,7 @@ import { select, insert, eq, contandoEscrituras } from "./db.js";
 import { cargarCasa, deshacer, hoyISO, apuntarOperacion } from "./casa.js";
 import {
   describirCasa, describirReceta, describirCompra,
-  marcarCompra, anadirCompra, quitarCompra, cambiarPlato, proponerPlatos, franjaDe,
+  marcarCompra, anadirCompra, quitarCompra, cambiarPlato, proponerPlatos, franjaDe, porQuePlato,
   rangosDelMenu, resultadoDeCambio, resultadoDeAnadir, SIN_CAMBIAR,
   apuntarAusencia,
 } from "./menu.js";
@@ -878,6 +878,27 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
         additionalProperties: false,
       },
       run: ({ nombre }) => conCasa((casa) => describirReceta(casa, nombre)),
+    }),
+    herramienta({ capacidades: ["por_que_plato"], lee: ["menus", "notepad"], escribe: [], lector: true, soloLectura: true, pantalla: null }, {
+      name: "por_que_plato",
+      description: "Por qué hay un plato en el menú («¿por qué el martes pescado?», «¿quién ha puesto esto?»): quién lo puso (el menú automático, alguien a mano en la app o tú por el chat), cuándo y, si fue el menú automático, qué preferencias de la casa lo pidieron. Di eso tal cual; no inventes motivos que no traiga.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          dia: { type: "string", description: "lunes…domingo, «hoy» o «mañana»." },
+          semana,
+          comida: { type: "string", enum: IDS_COMIDAS },
+          grupo: { type: "string", description: "Opcional: para quién, si no es el menú de toda la familia." },
+          cual: { type: "string", enum: ["principal", "primero"], description: "Por defecto el principal." },
+        },
+        required: ["dia", "comida"],
+        additionalProperties: false,
+      },
+      run: ({ dia, semana: cual_semana, comida, grupo, cual }) => {
+        const f = franjaDe(comida);
+        if (!f) return `No entiendo qué comida es («${comida}»).`;
+        return porQuePlato(householdId, { dia, semana: cual_semana, franja: f, grupo, cual: cual ?? "principal" });
+      },
     }),
     herramienta({ capacidades: ["ver_compra"], lee: [], escribe: [], lector: true, soloLectura: true, pantalla: "compra" }, {
       name: "ver_compra",
