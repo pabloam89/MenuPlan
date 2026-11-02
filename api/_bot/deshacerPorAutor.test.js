@@ -71,7 +71,7 @@ describe("el vocabulario de las operaciones", () => {
 
 describe("cada foto lleva su autor", () => {
   it("guardarCasa apunta quién escribe y con qué herramienta", async () => {
-    const casa = { householdId: "h", botRev: 7, state: { data: {} }, conSobre: {}, menu: null, semana: null };
+    const casa = { householdId: "h", botRev: 7, state: { data: {} }, menu: null, semana: null };
     await conOperacion(ANA, async () => {
       const { operacion } = await import("./operacion.js");
       operacion().herramienta = "ajustar_gustos";
@@ -81,11 +81,6 @@ describe("cada foto lleva su autor", () => {
     expect(fila.antes.quien).toEqual(ANA);
     expect(fila.antes.herramienta).toBe("ajustar_gustos");
     expect(fila.antes.tipo).toBe(TIPO_OPERACION.CASA);
-  });
-
-  it("guardarCasa no guarda una casa sin sus datos con sobre: no los deja en el documento", async () => {
-    const casa = { householdId: "h", botRev: 7, state: { data: {} }, menu: null, semana: null };
-    await expect(conOperacion(ANA, () => guardarCasa(casa, { state: { data: { x: 1 } } }))).rejects.toThrow(/no trae sus datos con sobre/);
   });
 
   it("una operación fuera de la casa se apunta sin versión: un deshacer viejo se niega", async () => {

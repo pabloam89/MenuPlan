@@ -25,7 +25,7 @@ beforeEach(() => {
   vi.stubGlobal("fetch", vi.fn(async (url, o = {}) => {
     const ruta = new URL(url).pathname;
     if ((o.method ?? "GET") !== "GET") escrituras.push(`${o.method} ${ruta}`);
-    // La familia sale de sus filas (personas_de_casa, 0108): aquí, una casa sin nadie. La ficha, la v1 (sin datos con sobre).
+    // La familia sale de sus filas (personas_de_casa, 0108): aquí, una casa sin nadie. La ficha, la v2 con los datos con sobre sin decir (fichaDePrueba).
     const filas = ruta.endsWith("/household_state") ? [{ state: { data: {} }, bot_rev: 0, updated_at: null }]
       : ruta.endsWith(`/rpc/${RPC_FAMILIA}`) ? { v: 1, personas: [], grupos: [] }
         : ruta.endsWith(`/rpc/${RPC_FICHA}`) ? fichaDePrueba()

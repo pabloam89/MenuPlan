@@ -354,11 +354,10 @@ describe("api/operacion.js: la app lee los datos de la ficha Casa (trozo 12)", (
     expect(llamadas.find((l) => l.ruta.includes("ficha_casa")).cuerpo).toMatchObject({ p_casa: CASA, p_usuario: "u1", p_canal: "app" });
   });
 
-  it("con ficha_casa v1, no es una casa sin datos: 503 y al log (la 0107 y la 0112 a la 0116, aplicadas)", async () => {
+  it("con ficha_casa v1 (0107 sin aplicar), datos null: la app sigue con el documento", async () => {
     responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
-    vi.spyOn(console, "error").mockImplementation(() => {});
     responde(/rpc\/ficha_casa/, { status: 200, cuerpo: { v: 1, ...COMUN } });
-    expect((await leerGet()).codigo).toBe(503);
+    expect((await leerGet()).body).toEqual({ v: 1, datos: null });
   });
 
   it("con la 0113, los de la ficha Rutina (trozo 13) van con los de la Casa; las demás fichas, no", async () => {
@@ -368,7 +367,7 @@ describe("api/operacion.js: la app lee los datos de la ficha Casa (trozo 12)", (
     expect((await leerGet()).body).toEqual({ v: 2, datos: [DATO_CASA, DATO_RUTINA] });
   });
 
-  it("una v2 sin la ficha Casa da datos vacíos: que falten es cosa de quien los lee (leidosConSobre lanza)", async () => {
+  it("sin la 0112, la v2 no trae la ficha Casa (agrupa por ficha): datos vacíos, que es verdad", async () => {
     responde(/household_members/, { status: 200, cuerpo: [{ role: "owner" }] });
     responde(/rpc\/ficha_casa/, { status: 200, cuerpo: { ...FICHA_V2, fichas: { persona: [] } } });
     expect((await leerGet()).body).toEqual({ v: 2, datos: [] });
