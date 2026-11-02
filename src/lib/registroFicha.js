@@ -75,6 +75,7 @@
  */
 import { ESCRITOR, CHOQUE, CLASE, FICHA } from "./vocabularios.js";
 import { CAMPOS as CAMPOS_LIBRETA } from "./notepadFields.js";
+import { TANDA_MIN, TANDA_MAX } from "./cookTime.js";
 
 /** Las entidades de la ficha, con los campos de la forja (Fábrica, entities.json: REQUIRED_FIELDS). */
 export const ENTIDADES = Object.freeze({
@@ -298,7 +299,7 @@ export const DATOS_CASA = Object.freeze({
   timeWeekend: dato({ tema: "cocina", ficha: "rutina", tipo: "int", estado: "legado", de: "cookTime", motivo: "respaldo de cookTime en cookTime.js" }),
   tanda: dato({ tema: "cocina", ficha: "rutina", tipo: "mapa", libreta: "tanda" }),
   tandaPlatos: dato({ tema: "cocina", ficha: "rutina", tipo: "mapa", libreta: "tandaPlatos" }),
-  tandaMinutos: dato({ tema: "cocina", tipo: "int", minimo: 30, maximo: 240, ...deLaRutina("tandaMinutos"), motivo: "minutos de manos de la sesión de tanda (TANDA_MIN y TANDA_MAX, cookTime.js); sin él, el de la libreta" }),
+  tandaMinutos: dato({ tema: "cocina", tipo: "int", minimo: TANDA_MIN, maximo: TANDA_MAX, ...deLaRutina("tandaMinutos"), motivo: "minutos de manos de la sesión de tanda (TANDA_MIN y TANDA_MAX, cookTime.js); sin él, el de la libreta" }),
   diaTanda: dato({ tema: "cocina", tipo: "enum", vocabulario: "dias", ...deLaRutina("diaTanda"), motivo: "el día en que se cocina la tanda; sin él, el domingo" }),
   garnishRepeat: dato({ tema: "cocina", ficha: "casa", tipo: "enum", estado: "legado", motivo: "el motor ya no lo lee (aiPlanner.js); la app solo lo sanea" }),
 
