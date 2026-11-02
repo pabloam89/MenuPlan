@@ -60,12 +60,11 @@ export function huecoDeClave(campo, clave) {
 export function rutinaDeFichas(elementos) {
   if (!Array.isArray(elementos)) throw new Error("rutina: los elementos de ficha_casa no son una lista");
   const mapas = {};
-  const sinAmbito = new Set();
   for (const e of elementos) {
     const dims = CAMPOS_CON_AMBITO[e?.campo];
     if (!dims) continue;
     // ficha_casa de antes de la 0116: sus elementos no dicen de qué hueco son; el campo sigue en el documento.
-    if (!Object.hasOwn(e, "ambito")) { sinAmbito.add(e.campo); continue; }
+    if (!Object.hasOwn(e, "ambito")) continue;
     mapas[e.campo] ??= {};
     if (e.ambito === null) continue;
     const claves = Object.keys(e.ambito).sort();
@@ -76,7 +75,6 @@ export function rutinaDeFichas(elementos) {
     if (e.origen == null || e.valor == null) continue;
     mapas[e.campo][claveEnData(e.campo, { persona_id: e.sujeto?.id ?? null, ...e.ambito })] = e.valor;
   }
-  for (const c of sinAmbito) delete mapas[c];
   return mapas;
 }
 
