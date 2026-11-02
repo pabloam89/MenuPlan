@@ -7,8 +7,10 @@
  * se aprende en minutos) y, una vez al día después del olvido de la noche (`senal-decaer`, 0109), todas las que tienen
  * alguna señal (lo que el olvido dejó por debajo del umbral se retira). Lo que hay que escribir lo decide
  * vistasDeSenales (src/lib/senales.js), puro.
+ *
+ * Y lo que cuenta las señales: sumarSenales, desde Lola (cambiar un plato, menu.js).
  */
-import { select, eq } from "./db.js";
+import { select, insert, update, eq } from "./db.js";
 import { escribirPreferencias, leerPreferencias } from "./datos.js";
 import { vistasDeSenales, ACCION_APRENDER } from "../../src/lib/senales.js";
 import { CANAL_DATO, REF_OPERACION } from "../../src/lib/vocabularios.js";
@@ -59,4 +61,36 @@ export async function aprenderDeSenales({ ahoraMs = Date.now(), cadaMs = CADA_MS
     }
   }
   return cuenta;
+}
+
+/** Cuántas veces se vuelve a leer y sumar una señal que otro cambió entre leerla y escribirla. */
+const INTENTOS_SUMAR = 3;
+
+/**
+ * Suma a las señales de la casa (`senal`, una fila por eje y valor) cada `delta`: la crea si no está y, si está, la
+ * cambia solo si nadie la tocó desde que se leyó (las mismas `veces` y `ultima_at`); si otro la tocó, se lee de nuevo,
+ * hasta INTENTOS_SUMAR. Lanza si la base falla o si no lo consigue: quien llama lo apunta, y lo que hizo la casa ya está
+ * hecho.
+ * @param {string} casa
+ * @param {{ eje: string, valor: unknown, delta: number }[]} senales  las de senalesDeCambio (src/lib/senales.js)
+ */
+export async function sumarSenales(casa, senales) {
+  for (const s of senales) {
+    // Las del eje (pocas: una por valor) y el valor aquí, comparado como JSON: sin filtrar un jsonb en la URL.
+    const filtro = `household_id=${eq(casa)}&user_id=is.null&eje=${eq(s.eje)}`;
+    let hecho = false;
+    for (let i = 0; i < INTENTOS_SUMAR && !hecho; i++) {
+      const fila = (await select("senal", filtro, "id,valor,peso,veces,ultima_at")).find((f) => JSON.stringify(f.valor) === JSON.stringify(s.valor));
+      if (!fila) {
+        // Otra señal la creó a la vez (23505, senal_unica): se vuelve a leer y se suma a esa.
+        hecho = await insert("senal", [{ household_id: casa, eje: s.eje, valor: s.valor, peso: s.delta, veces: 1 }])
+          .then(() => true, (e) => { if (e?.codigo === "23505") return false; throw e; });
+        continue;
+      }
+      const cambio = { peso: Number(fila.peso) + s.delta, veces: fila.veces + 1, ultima_at: new Date().toISOString() };
+      const filas = await update("senal", `id=${eq(fila.id)}&veces=${eq(fila.veces)}&ultima_at=${eq(fila.ultima_at)}`, cambio);
+      hecho = filas.length > 0;
+    }
+    if (!hecho) throw new Error(`senal ${s.eje}: ${INTENTOS_SUMAR} choques seguidos al sumar`);
+  }
 }

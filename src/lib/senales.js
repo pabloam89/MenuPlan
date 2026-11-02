@@ -7,14 +7,27 @@
  * salud, y nunca sobre lo que la familia dijo, rechazó o puso en una regla (eso manda y no se toca).
  */
 import { CAMPOS_POR_ID } from "./notepadFields.js";
-import { FORMA_DE_PROYECCION, filaDeApunte, valorIdDelEje } from "./preferencias.js";
+import { FORMA_DE_PROYECCION, filaDeApunte, valorDelEje, valorIdDelEje } from "./preferencias.js";
 import { CANAL_DATO } from "./vocabularios.js";
+import { MOTIVO_CAMBIO } from "./rastro.js";
 
 /** Desde cuánto peso (en valor absoluto) una señal es «aprendido»: tres cambios netos hacia lo mismo, sin olvidar. */
 export const UMBRAL_APRENDIDO = 3;
 
+/**
+ * Dónde trae el plato el valor de cada campo que aprende: lo mismo que mira sesgoScoreBoost (sesgos.js) para subirlo
+ * o bajarlo, y la puerta de cocinas (`r.cocina`, filterRecipes.js) para la cocina; senales.test.js lo compara con
+ * sesgoScoreBoost en todo el catálogo. La salsa solo cuenta si la lleva (sesgos.js no mueve los platos sin salsa).
+ */
+const DEL_PLATO = Object.freeze({
+  base: (r) => [r.mainBase, ...(r.basesAparte ?? [])],
+  cocina: (r) => [r.cocina],
+  tecnica: (r) => [r.tecnica],
+  salsa: (r) => (r.llevaSalsa === true ? ["si"] : []),
+});
+
 /** Los campos de la libreta que se aprenden de lo que hace la casa: los sesgos que el plato trae escritos. */
-const CAMPOS_QUE_APRENDEN = Object.freeze(["base", "cocina", "tecnica", "salsa"]);
+const CAMPOS_QUE_APRENDEN = Object.freeze(Object.keys(DEL_PLATO));
 
 /** El campo de la libreta de cada eje que aprende (basePrincipal → base…). */
 const CAMPO_DEL_EJE = Object.freeze(Object.fromEntries(CAMPOS_QUE_APRENDEN.map((c) => [CAMPOS_POR_ID[c]?.eje, c])));
@@ -26,6 +39,38 @@ export const ACCION_APRENDER = "aprender_de_senales";
 const VISTO = "visto";
 
 const clave = (eje, valor) => `${eje}|${JSON.stringify(valor)}`;
+
+/** Pura. Los (eje, valor) de un plato en los campos que aprenden, solo con valores del dominio de cada campo. */
+export function valoresDelPlato(receta) {
+  if (!receta) return [];
+  return CAMPOS_QUE_APRENDEN.flatMap((c) => {
+    const { eje, dominio } = CAMPOS_POR_ID[c];
+    return [...new Set(DEL_PLATO[c](receta))].filter((v) => dominio.includes(v)).map((v) => ({ eje, valor: valorDelEje(eje, v) }));
+  });
+}
+
+/** Por qué se cambió un plato (MOTIVO_CAMBIO, rastro.js) cuando el que entra lo eligió alguien de la casa, no el motor. */
+export const MOTIVOS_QUE_ELIGEN = Object.freeze([MOTIVO_CAMBIO.PEDIDO, MOTIVO_CAMBIO.ELECCION, MOTIVO_CAMBIO.MANUAL]);
+
+/**
+ * Pura. Las señales de un cambio de plato: −1 por cada valor del que sale; +1 por cada valor del que entra, si lo
+ * eligió alguien de la casa (MOTIVOS_QUE_ELIGEN). Lo que está en los dos se anula. Un motivo que no es de
+ * MOTIVO_CAMBIO lanza.
+ * @returns {{ eje: string, valor: unknown, delta: number }[]}
+ */
+export function senalesDeCambio({ sale = null, entra = null, motivo }) {
+  if (!Object.values(MOTIVO_CAMBIO).includes(motivo)) throw new Error(`senalesDeCambio: motivo «${motivo}» fuera de MOTIVO_CAMBIO`);
+  const suma = new Map();
+  const anotar = (receta, delta) => {
+    for (const { eje, valor } of valoresDelPlato(receta)) {
+      const k = clave(eje, valor);
+      suma.set(k, { eje, valor, delta: (suma.get(k)?.delta ?? 0) + delta });
+    }
+  };
+  anotar(sale, -1);
+  if (MOTIVOS_QUE_ELIGEN.includes(motivo)) anotar(entra, 1);
+  return [...suma.values()].filter((s) => s.delta !== 0);
+}
 
 /**
  * ¿La puso el sistema al aprender? Vista, por el canal `sistema` (ni Lola ni la app escriben ahí: Lola habla por un
