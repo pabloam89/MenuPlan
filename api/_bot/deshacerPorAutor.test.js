@@ -83,6 +83,11 @@ describe("cada foto lleva su autor", () => {
     expect(fila.antes.tipo).toBe(TIPO_OPERACION.CASA);
   });
 
+  it("guardarCasa no guarda una casa sin sus datos con sobre: no los deja en el documento", async () => {
+    const casa = { householdId: "h", botRev: 7, state: { data: {} }, menu: null, semana: null };
+    await expect(conOperacion(ANA, () => guardarCasa(casa, { state: { data: { x: 1 } } }))).rejects.toThrow(/no trae sus datos con sobre/);
+  });
+
   it("una operación fuera de la casa se apunta sin versión: un deshacer viejo se niega", async () => {
     await conOperacion(ANA, () => apuntarOperacion("h", TIPO_OPERACION.DESPENSA));
     const [, [fila]] = llamadas.insert.find(([t]) => t === "bot_deshacer");
