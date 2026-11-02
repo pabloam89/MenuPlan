@@ -2,7 +2,8 @@
 -- una tabla, `preferencia`, con sus conjuntos (`plan_preferencias`), las señales que olvidan (`senal`, trozo 15) y los
 -- historiales con poda (`precio_observado`, `ticket`, `cocinado`, trozo 22), para aplicarlo una sola vez. Va tras la
 -- 0105 (operacion), que comprueba; no necesita ninguna otra de las que siguen sin aplicar.
--- AUDITADA: pendiente
+-- AUDITADA: auditor-datos 2026-11-02 OK
+--   (un agente independiente, que no la escribió: nivel en la firma, comprobaciones de la autoprueba a prueba de nulos, valor corto)
 --
 --   · registro_eje: los ejes de src/data/axisRegistry.js (EJES), solo id y tipo, generado de allí y comparado por
 --     preferencia.test (supabase/preferencia.test.js). Lo leen la FK de preferencia y senal y el disparador.
@@ -170,6 +171,8 @@ create table public.preferencia (
   constraint preferencia_tope check (operador not in ('al_menos', 'como_mucho') or cantidad is not null),
   constraint preferencia_otro check (nota is null or (valor = '"otro"'::jsonb and length(nota) <= 200)),
   constraint preferencia_frase check (frase is null or length(frase) <= 500),
+  -- Entra en preferencia_unica: corto (un nombre de alimento, de cocina o de familia).
+  constraint preferencia_valor_corto check (valor is null or length(valor::text) <= 200),
   constraint preferencia_dias_vocabulario check (dias is null or dias <@ array['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']::text[]),
   constraint preferencia_salvo_dias_vocabulario check (salvo_dias is null or salvo_dias <@ array['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']::text[]),
   constraint preferencia_comidas_vocabulario check (comidas is null or comidas <@ array['Desayuno', 'Comida', 'Merienda', 'Cena', 'Postre']::text[]),
@@ -179,9 +182,9 @@ create table public.preferencia (
     and cardinality(salvo_dias) > 0 and cardinality(salvo_comidas) > 0 and cardinality(salvo_semanas) > 0),
   constraint preferencia_fechas check (desde is null or hasta is null or hasta >= desde)
 );
--- Una preferencia por sujeto, eje, medida, operador, valor, ámbito y conjunto: la misma dicha dos veces es una fila.
+-- Una preferencia por sujeto, nivel, eje, medida, operador, valor, ámbito y conjunto (con los días y comidas en su orden): la misma dicha dos veces es una fila.
 -- Empieza por (household_id, persona_id): sirve también a la FK de persona.
-create unique index preferencia_unica on public.preferencia (household_id, persona_id, grupo_id, plan_id, eje, medida,
+create unique index preferencia_unica on public.preferencia (household_id, persona_id, grupo_id, plan_id, nivel, eje, medida,
   operador, valor, dias, comidas, semanas, salvo_dias, salvo_comidas, salvo_semanas, desde, hasta) nulls not distinct;
 create index preferencia_grupo on public.preferencia (household_id, grupo_id);
 create index preferencia_plan on public.preferencia (household_id, plan_id);
@@ -358,7 +361,8 @@ begin
      where x.household_id = v_casa
        and (x.id = v_pid
             or (x.persona_id is not distinct from v_nueva.persona_id and x.grupo_id is not distinct from v_nueva.grupo_id
-                and x.plan_id is not distinct from v_nueva.plan_id and x.eje = v_nueva.eje and x.medida = v_nueva.medida
+                and x.plan_id is not distinct from v_nueva.plan_id and x.nivel = v_nueva.nivel and x.eje = v_nueva.eje
+                and x.medida = v_nueva.medida
                 and x.operador = v_nueva.operador and x.valor is not distinct from v_nueva.valor
                 and x.dias is not distinct from v_nueva.dias and x.comidas is not distinct from v_nueva.comidas
                 and x.semanas is not distinct from v_nueva.semanas and x.salvo_dias is not distinct from v_nueva.salvo_dias
@@ -603,7 +607,7 @@ begin
              'planes', jsonb_build_array(jsonb_build_object('id', v_plan, 'nombre', 'Semana ligera')),
              'preferencias', jsonb_build_array(v_pesc || jsonb_build_object('plan_id', v_plan))));
     v_p := (v_r->'hecho'->1->>'preferencia_id')::uuid;
-    if v_r->>'estado' <> 'hecha' or v_p is null or (select dicho_by from public.preferencia where id = v_p) <> v_dueno then
+    if v_r->>'estado' <> 'hecha' or v_p is null or (select dicho_by from public.preferencia where id = v_p) is distinct from v_dueno then
       raise exception '0109 autoprueba: no crea la preferencia dicha (%)', v_r;
     end if;
     v_r := public.escribir_preferencias(v_base || jsonb_build_object('clave', 'ap-1', 'preferencias', jsonb_build_array(v_pesc)));
@@ -613,14 +617,14 @@ begin
     v_r := public.escribir_preferencias(v_base || jsonb_build_object('clave', 'ap-2',
              'preferencias', jsonb_build_array(v_pesc || jsonb_build_object('plan_id', v_plan, 'cantidad', 3))));
     select count(*) into v_n from public.preferencia where household_id = v_casa;
-    if v_n <> 1 or (v_r->'hecho'->0->>'preferencia_id')::uuid <> v_p
-       or (select cantidad from public.preferencia where id = v_p) <> 3 then
+    if v_n <> 1 or (v_r->'hecho'->0->>'preferencia_id')::uuid is distinct from v_p
+       or (select cantidad from public.preferencia where id = v_p) is distinct from 3 then
       raise exception '0109 autoprueba: decirla otra vez la duplica o no la cambia (% filas, %)', v_n, v_r;
     end if;
     v_r := public.escribir_preferencias(v_sis || jsonb_build_object('clave', 'ap-3',
              'preferencias', jsonb_build_array(v_pesc || jsonb_build_object('plan_id', v_plan, 'cantidad', 1, 'origen', 'supuesto'))));
     if v_r->'sin_hacer'->0->>'motivo' is distinct from 'ya_lo_dijo_la_familia'
-       or (select cantidad from public.preferencia where id = v_p) <> 3 then
+       or (select cantidad from public.preferencia where id = v_p) is distinct from 3 then
       raise exception '0109 autoprueba: lo supuesto ha pisado lo dicho (%)', v_r;
     end if;
 
@@ -635,8 +639,8 @@ begin
     end if;
     v_r := public.escribir_preferencias(v_base || jsonb_build_object('clave', 'ap-7',
              'preferencias', jsonb_build_array(jsonb_build_object('id', v_s, 'borrar', true))));
-    if exists (select 1 from public.preferencia where id = v_s) or v_r->'hecho'->0->>'borrada' <> 'true'
-       or (select inversa->'preferencias'->0->'antes'->>'valor' from public.operacion where id = (v_r->>'operacion_id')::uuid) <> 'horno' then
+    if exists (select 1 from public.preferencia where id = v_s) or v_r->'hecho'->0->>'borrada' is distinct from 'true'
+       or (select inversa->'preferencias'->0->'antes'->>'valor' from public.operacion where id = (v_r->>'operacion_id')::uuid) is distinct from 'horno' then
       raise exception '0109 autoprueba: borrar no borra o no guarda la inversa (%)', v_r;
     end if;
 
@@ -672,7 +676,7 @@ begin
     insert into public.senal (household_id, eje, valor, peso, veces) values
       (v_casa, 'tecnica', '"horno"', 2, 3), (v_casa, 'tecnica', '"frito"', 0.04, 1);
     perform public.senal_decaer();
-    if abs((select peso from public.senal where household_id = v_casa and valor = '"horno"') - 2 * power(0.5, 1 / 60.0)) > 0.000001
+    if coalesce(abs((select peso from public.senal where household_id = v_casa and valor = '"horno"') - 2 * power(0.5, 1 / 60.0)) > 0.000001, true)
        or exists (select 1 from public.senal where household_id = v_casa and valor = '"frito"') then
       raise exception '0109 autoprueba: senal_decaer no quita peso o no borra lo que ya no pesa';
     end if;
