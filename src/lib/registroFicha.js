@@ -66,6 +66,8 @@
  *    marcas, historiales y legados).
  *  - choque (CHOQUES): si dos escrituras chocan, el último gana, el más
  *    restrictivo (salud) o se suman (señales).
+ *  - ambito (DIMENSIONES_AMBITO; trozo 55): las dimensiones de cada sobre; con ellas,
+ *    `tipo` y `defecto` son los de un hueco (schedule: «casa»), no los del mapa.
  *  - eje: el eje de src/data/axisRegistry.js que expresa el dato (trozo 24);
  *    hoy, los de la libreta (DATOS_PREFERENCIA), para que el trozo 14 los
  *    pase a filas de `preferencia` sin traducir a mano.
@@ -196,7 +198,7 @@ const dato = (d) => {
     campo: null, libreta: null, otros: null, de: null, funcion: null, motivo: null, vive: "data", modulo: null,
     ficha: FICHA_DEL_TEMA[d.tema] ?? null, defecto: null, suposicion: true, minimo_para_generar: false,
     caduca_dias: null, peso_menu: null, politica: null, seguridad: false, aplica: "todos", columna: null, minimo: null, maximo: null,
-    escribe: clase === CLASE.HECHO && estado === "activo" ? ESCRITOR.FAMILIA : ESCRITOR.SISTEMA, choque: CHOQUE.ULTIMO_GANA, eje: null,
+    escribe: clase === CLASE.HECHO && estado === "activo" ? ESCRITOR.FAMILIA : ESCRITOR.SISTEMA, choque: CHOQUE.ULTIMO_GANA, eje: null, ambito: [],
     ...d,
   };
 };
@@ -218,6 +220,12 @@ const deLaCasa = (campo) => ({ entidad: "casa", campo, politica: "nunca", vive: 
  * como los de la Casa: entra en CAMPOS_CASA_CON_SOBRE (estadoDeDato.js).
  */
 const deLaRutina = (campo) => ({ entidad: "casa", ficha: "rutina", campo, politica: "nunca", vive: "tabla:sobre" });
+/**
+ * Un dato de la ficha Rutina con fila en registro_campo (trozo 55) que el código aún lee y escribe en el
+ * documento (`vive` sigue en data): su sobre llega con los PR del trozo 13, que lo marcan `tabla:sobre`.
+ * `ambito`, las dimensiones de cada sobre (DIMENSIONES_AMBITO); sin ellas, un sobre para el sujeto entero.
+ */
+const enElRegistro = (campo, ambito = []) => ({ ficha: "rutina", campo, politica: "nunca", ambito });
 /** Lo que solo apunta el sistema (contadores, avisos dados, alias aprendidos). */
 const delSistema = { escribe: ESCRITOR.SISTEMA };
 /** Lo que solo se añade (menús hechos, tickets, lo que descontó la despensa): tabla con fecha y poda (trozo 22). */
@@ -255,18 +263,18 @@ export const DATOS_CASA = Object.freeze({
   // ── Horario: qué comidas, cuándo y dónde ──
   meals: dato({ tema: "horario", tipo: "lista_enum", vocabulario: "comidas", defecto: ["Comida", "Cena"], peso_menu: 85, ...deLaRutina("meals") }),
   extraMeals: dato({ tema: "horario", tipo: "objeto", motivo: "desayuno, merienda y postre fuera del menú" }),
-  schedule: dato({ tema: "horario", tipo: "mapa", vocabulario: "donde_come", motivo: "quién come dónde cada día" }),
-  slotType: dato({ tema: "horario", tipo: "mapa" }),
+  schedule: dato({ entidad: "persona", tema: "horario", tipo: "enum", vocabulario: "donde_come", defecto: "casa", ...enElRegistro("schedule", ["dia", "comida"]), motivo: "quién come dónde cada día y comida: un sobre por persona, día y comida" }),
+  slotType: dato({ tema: "horario", tipo: "enum", vocabulario: "tipo_hueco", ...enElRegistro("slotType", ["dia", "comida"]), motivo: "cómo es cada hueco: un sobre por día y comida" }),
   manualSlotType: dato({ tema: "horario", tipo: "mapa", ...marca("slotType"), motivo: "los huecos que el usuario tocó a mano; el motor la lee (prepararGeneracion.js) para no simplificarlos" }),
   mealStructure: dato({ tema: "horario", tipo: "enum", vocabulario: "estructura_platos", defecto: "primero_segundo", peso_menu: 55, ...deLaRutina("mealStructure") }),
   mealStructureCena: dato({ tema: "horario", tipo: "enum", vocabulario: "estructura_platos", defecto: "1_plato", ...deLaRutina("mealStructureCena") }),
-  mealStructureByGroup: dato({ entidad: "grupo", tema: "horario", tipo: "mapa", vocabulario: "estructura_platos" }),
-  mealStructureCenaByGroup: dato({ entidad: "grupo", tema: "horario", tipo: "mapa", vocabulario: "estructura_platos" }),
+  mealStructureByGroup: dato({ entidad: "grupo", tema: "horario", tipo: "enum", vocabulario: "estructura_platos", ...enElRegistro("mealStructureByGroup", ["grupo"]) }),
+  mealStructureCenaByGroup: dato({ entidad: "grupo", tema: "horario", tipo: "enum", vocabulario: "estructura_platos", ...enElRegistro("mealStructureCenaByGroup", ["grupo"]) }),
   mealStyleByGroup: dato({ entidad: "grupo", tema: "horario", tipo: "mapa" }),
   menuWeekOffsets: dato({ tema: "horario", tipo: "lista", defecto: [0] }),
   menuWeek: dato({ tema: "horario", tipo: "objeto", ...derivado("menuWeekOffsets", "src/lib/semanaDias.js:aplicarDiasDeSemana"), motivo: "siempre el primero de menuWeekOffsets" }),
-  menuWeekDays: dato({ tema: "horario", tipo: "mapa", minimo_para_generar: true, motivo: "los días que se planifican, por semana; menuWeekOffsets y menuWeek se derivan de aquí (semanaDias.js)" }),
-  menuScheduleSameForAllWeeks: dato({ tema: "horario", tipo: "bool", defecto: true }),
+  menuWeekDays: dato({ tema: "horario", tipo: "lista_enum", vocabulario: "dias", minimo_para_generar: true, ...enElRegistro("menuWeekDays", ["semana"]), motivo: "los días que se planifican, por semana; menuWeekOffsets y menuWeek se derivan de aquí (semanaDias.js)" }),
+  menuScheduleSameForAllWeeks: dato({ tema: "horario", tipo: "bool", defecto: true, ...enElRegistro("menuScheduleSameForAllWeeks") }),
   menuWeekOverrides: dato({ tema: "horario", ficha: "semana", tipo: "mapa", motivo: "el horario propio de una semana es de la semana, no de la rutina (plan, trozo 18)" }),
   kidDinnerConfig: dato({ entidad: "grupo", tema: "horario", modulo: "cole", tipo: "objeto", peso_menu: 80 }),
   kidDinnerMatchesAdultLunch: dato({ entidad: "grupo", tema: "horario", modulo: "cole", tipo: "bool", ...derivado("kidDinnerConfig", "src/lib/kidsMenu.js:deriveKidDinnerMatchesAdultLunch"), motivo: "el motor del espejo lo lee; la verdad es kidDinnerConfig (kidsMenu.js)" }),
