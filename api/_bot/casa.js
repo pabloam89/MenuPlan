@@ -28,6 +28,7 @@ import { recetasPropiasDeCasa, quitarRecetaGuardada } from "./propias.js";
 import { menuActivoDe } from "../../src/lib/menuActivo.js";
 import { isoDeCasa } from "../../src/lib/dias.js";
 import { favoritasDeFilas, votosDeFavoritas, descartesDeFilas } from "../../src/lib/recetasDeLaCasa.js";
+import { sellarCambios } from "../../src/lib/sobreHueco.js";
 
 // En hora de España: a las 00:30 del jueves, «hoy» es jueves, no el miércoles de UTC.
 export const hoyISO = () => isoDeCasa();
@@ -345,8 +346,10 @@ export async function guardarCasa(casa, { state = null, semana = null, activar =
   const falta = cambios || datos.length || preferencias.length ? faltaParaEscribir() : null;
   if (falta) return { ok: false, error: falta };
 
-  const week = semana && casa.semana
-    ? { menu_id: casa.semana.menuId, week_start: casa.semana.weekStart, ...semana }
+  // Un plato que cambia Lola lleva su sobre: el canal del turno, quién y cuándo (sobreHueco.js, trozo 18).
+  const semanaSellada = semana?.plan && casa.semana ? { ...semana, plan: sellarCambios(casa.semana.plan, semana.plan, sobreDelTurno()) } : semana;
+  const week = semanaSellada && casa.semana
+    ? { menu_id: casa.semana.menuId, week_start: casa.semana.weekStart, ...semanaSellada }
     : null;
   const r = await rpc(activar ? "bot_save_casa_activando" : "bot_save_casa", {
     p_household_id: casa.householdId,
@@ -406,6 +409,12 @@ export async function guardarCasa(casa, { state = null, semana = null, activar =
   }
   if (r?.bot_rev != null) return { ok: false, conflicto: true, botRev: Number(r.bot_rev) };
   return { ok: false, error: r?.error ?? "error desconocido" };
+}
+
+/** El sobre de lo que escribe Lola en este turno: su canal y quién habla; fuera de un turno (un cron), el sistema. */
+function sobreDelTurno() {
+  const autor = autorDelTurno();
+  return { canal: autor?.canal ?? CANAL_DATO.SISTEMA, cuando: new Date().toISOString(), quien: autor?.user_id ?? null };
 }
 
 // ── Deshacer (0060) ─────────────────────────────────────────────────────────
