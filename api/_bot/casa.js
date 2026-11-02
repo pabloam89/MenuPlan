@@ -16,7 +16,9 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import { fallaCon } from "./avisar.js";
 import { select, insert, update, rpc, eq } from "./db.js";
 import { operacion, quienEscribe, TIPO_OPERACION, QUE_FUE, autorDelTurno, avisarEnElChat, claveDeEscritura } from "./operacion.js";
-import { leerFamilia, escribirPersonas, leerCasaConSobre, escribirDato } from "./datos.js";
+import { leerFamilia, escribirPersonas, leerCasaConSobre, escribirDato, leerPreferencias, escribirPreferencias } from "./datos.js";
+import { conLibretaDeFilas, sinLibreta } from "../../src/lib/libretaEnData.js";
+import { cambiosDeLibreta, PreferenciaInvalida } from "../../src/lib/preferencias.js";
 import { cambiosDePersonas, conOrdenDeTodos, textosDeAvisos, revSiguiente } from "../../src/lib/personas.js";
 import { CANAL_DATO, REF_OPERACION } from "../../src/lib/vocabularios.js";
 import { CAMPOS_CON_AMBITO_CON_SOBRE } from "../../src/lib/estadoDeDato.js";
@@ -109,9 +111,11 @@ async function leerCasa(householdId) {
   // documento, como antes. Sin poder leerla por otra cosa, leerFamilia lanza (FamiliaSinLeer) y la casa no se
   // lee: con una familia a medias se generaría un menú sin las alergias, o se borraría a quien no salió.
   // Los datos de la casa con sobre (trozo 12), de ficha_casa v2; sin la 0112, null: siguen en el documento.
-  const [familia, conSobre, activos, recetasPropias, deLaCasa] = await Promise.all([
+  // Las preferencias (trozo 14), de sus filas; sin la 0109, null: la libreta sigue en el documento.
+  const [familia, conSobre, preferencias, activos, recetasPropias, deLaCasa] = await Promise.all([
     leerFamilia(householdId),
     leerCasaConSobre(householdId),
+    leerPreferencias(householdId),
     select(
       "user_menus",
       `household_id=${eq(householdId)}&is_active=eq.true&order=updated_at.desc&limit=5`,
@@ -148,13 +152,16 @@ async function leerCasa(householdId) {
     updatedAt: fila.updated_at,
     // members y groups, los de las filas (en la forma de siempre, para sus lectores); lo que el documento aún
     // guarde de antes del corte no se lee.
-    state: conDatosConSobre(familia ? conFamilia(fila.state ?? {}, familia) : (fila.state ?? {}), conSobre),
+    state: conPreferencias(conDatosConSobre(familia ? conFamilia(fila.state ?? {}, familia) : (fila.state ?? {}), conSobre), preferencias, hoy),
     // La familia tal como se leyó: de ella sale lo que cambia al guardar (guardarCasa). null: vive en el
     // documento (base sin la 0108) y se guarda con él.
     familia: familia ? structuredClone(familia) : null,
     // Los datos con sobre tal como se leyeron (`{ campo: { valor, conSobre } }`): de ellos sale lo que cambia al
     // guardar. null: viven en el documento (la 0112 sin aplicar) y se guardan con él.
     conSobre,
+    // Las filas de preferencia tal como se leyeron (de ellas, los ids de lo que cambia al guardar). null: la libreta
+    // vive en el documento (la 0109 sin aplicar) y se guarda con él.
+    preferencias: preferencias?.preferencias ?? null,
     // Fuera de `state`: no se escriben de vuelta en household_state (propias.js).
     recetasPropias,
     deLaCasa,
@@ -179,6 +186,24 @@ export const escribioDesde = (householdId, t) => (ultimaEscritura.get(householdI
 /** El documento con la familia de las filas en data.members y data.groups (las de antes del corte, fuera). */
 export function conFamilia(state, { members, groups }) {
   return { ...state, data: { ...(state?.data ?? {}), members, groups } };
+}
+
+/** Pura. El documento con la libreta de sus filas de preferencia y su proyección en `data` (sin la 0109, tal cual). */
+function conPreferencias(state, preferencias, hoy) {
+  if (!preferencias) return state;
+  return { ...state, data: conLibretaDeFilas(state?.data ?? {}, preferencias.preferencias, { hoy }) };
+}
+
+/**
+ * Pura. Un estado para guardar sin la libreta ni su proyección (viven en filas de preferencia), y lo que cambió de
+ * la libreta respecto a la leída, como la lista de escribir_preferencias. Un escritor que no trae la libreta no la
+ * cambia. Lanza PreferenciaInvalida si un apunte no cabe en una fila (un ámbito sin su grupo), antes de guardar nada.
+ */
+function separarPreferencias(state, casa, grupos) {
+  if (!state?.data || !casa.preferencias) return { documento: state, preferencias: [] };
+  const nueva = state.data.notepad;
+  const preferencias = nueva === undefined ? [] : cambiosDeLibreta(casa.state?.data?.notepad, nueva, casa.preferencias, { grupos });
+  return { documento: { ...state, data: sinLibreta(state.data) }, preferencias };
 }
 
 /** Pura. El documento con los datos con sobre leídos en `data` (lo que el documento aún guarde de ellos, fuera). */
@@ -257,6 +282,22 @@ function escribirFamilia(casa, cambios) {
   }, { papel: autor.papel });
 }
 
+/** Los cambios de la libreta (separarPreferencias), por la tubería (escribir_preferencias). Lo que devuelve, en operarPreferencias. */
+function escribirLibreta(casa, preferencias) {
+  const op = operacion();
+  const autor = autorDelTurno();
+  const accion = op.herramienta ?? "guardar_casa";
+  return escribirPreferencias({
+    casa: casa.householdId,
+    clave: claveDeEscritura(`preferencias:${accion}`, preferencias),
+    accion,
+    canal: autor.canal ?? CANAL_DATO.TELEGRAM,
+    ref: { tipo: REF_OPERACION.MENSAJE, id: op.mid },
+    autor: { user_id: autor.user_id },
+    preferencias,
+  }, { papel: autor.papel });
+}
+
 /** Un dato con sobre, o los huecos de un mapa con ámbito (separarConSobre), por la tubería (aplicar_operacion). Lo que devuelve, en operar. */
 function escribirDatoDeCasa(casa, { campo, ...cambio }) {
   const op = operacion();
@@ -283,7 +324,17 @@ function escribirDatoDeCasa(casa, { campo, ...cambio }) {
 // (`casa.conSobre` null), en el documento. Un mapa con ámbito (trozo 13), en una operación por campo.
 export async function guardarCasa(casa, { state = null, semana = null, activar = null } = {}, { sinDeshacer = false } = {}) {
   const familiaTras = familiaDeData({ ...(casa.state?.data ?? {}), ...(state?.data ?? {}) });
-  const { documento: sinSobre, cambios: datos } = separarConSobre(state, casa.conSobre, familiaTras);
+  // La libreta (trozo 14): lo que cambió va a escribir_preferencias, detrás de la familia (un ámbito de un grupo
+  // nuevo necesita su fila); sin la 0109 (`casa.preferencias` null), en el documento.
+  let sinPreferencias;
+  let preferencias;
+  try {
+    ({ documento: sinPreferencias, preferencias } = separarPreferencias(state, casa, state?.data?.groups ?? casa.state?.data?.groups));
+  } catch (e) {
+    if (!(e instanceof PreferenciaInvalida)) throw e;
+    return { ok: false, error: `no he podido apuntarlo: ${e.message}; no he cambiado nada` };
+  }
+  const { documento: sinSobre, cambios: datos } = separarConSobre(sinPreferencias, casa.conSobre, familiaTras);
   const { documento, familia } = casa.familia ? separarFamilia(sinSobre, casa.familia) : { documento: sinSobre, familia: null };
   let cambios = null;
   if (familia) {
@@ -291,7 +342,7 @@ export async function guardarCasa(casa, { state = null, semana = null, activar =
     for (const t of textosDeAvisos(c.avisos)) avisarEnElChat(t);
     cambios = conOrdenDeTodos(c.cambios, casa.familia, familia);
   }
-  const falta = cambios || datos.length ? faltaParaEscribir() : null;
+  const falta = cambios || datos.length || preferencias.length ? faltaParaEscribir() : null;
   if (falta) return { ok: false, error: falta };
 
   const week = semana && casa.semana
@@ -324,6 +375,14 @@ export async function guardarCasa(casa, { state = null, semana = null, activar =
       const tras = seguida ? revSiguiente(botRev, r.rev) : null;
       if (tras != null) botRev = tras;
       else seguida = false;
+    }
+    if (preferencias.length) {
+      const r = await escribirLibreta(casa, preferencias);
+      if (!r.guardado) sinGuardar.push(`las preferencias: ${r.fallo ?? r.error ?? r.estado ?? "sin motivo"}`);
+      else {
+        const tras = seguida ? revSiguiente(botRev, r.rev) : null;
+        if (tras != null) botRev = tras;
+      }
     }
     ultimaEscritura.set(casa.householdId, Date.now());
     const op = operacion();
