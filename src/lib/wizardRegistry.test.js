@@ -722,9 +722,9 @@ describe("con el estado de la ficha v2, el asistente sabe de dónde sale cada da
     expect(estadoDePregunta(alergias, libretaVacia(), DOS, [], estados)).toBe("aclaracion");
   });
 
-  it("una pregunta cuyo dato no tiene campo en la ficha (la despensa) no cambia con los estados", () => {
-    const data = { pantryMode: "only" };
-    expect(estadoDelCampo(PREGUNTAS_POR_ID.despensa, libretaVacia(), data, fichas(dato("a", "supuesto")))).toBe("fijado");
+  it("una pregunta cuyo dato no tiene campo en la ficha (las comidas) no cambia con los estados", () => {
+    const data = { meals: ["Comida", "Cena"] };
+    expect(estadoDelCampo(PREGUNTAS_POR_ID.comidas, libretaVacia(), data, fichas(dato("a", "supuesto")))).toBe("fijado");
   });
 
   it("el presupuesto (PR 8): «sin presupuesto» dicho es una respuesta; sin decir nada, no; el par viejo cuenta como dicho", () => {
