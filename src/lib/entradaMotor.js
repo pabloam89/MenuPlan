@@ -5,7 +5,11 @@
  * Por ahora, las piezas que leen la casa para montar el contexto de un
  * grupo, movidas de aiPlanner.js sin cambiar lo que hacen.
  */
-import { normalizeKidDinnerConfig, schoolAvoidCategories } from "./kidsMenu.js";
+import { normalizeKidDinnerConfig, schoolAvoidCategories, kidsSlotAction } from "./kidsMenu.js";
+import { modeForGroupSlot, slotKey } from "./planner.js";
+import { tipoDeComida } from "./dias.js";
+import { maxCookTime } from "./cookTime.js";
+import { estructuraDelGrupo, estructuraCenaDelGrupo, platosDelHueco } from "./estructuraPlatos.js";
 import { DEFAULT_FREQS } from "./defaultFreqs.js";
 import { solverActivo } from "./solver.js";
 import { presupuestoDeTopes, repartoAFreqs, freqsAReparto } from "./reparto.js";
@@ -181,4 +185,130 @@ export function coleDelDia(schoolMenus, miembros, day) {
     }
   }
   return { schoolProteins, schoolCarbs, schoolVeg, texto };
+}
+
+/**
+ * Los huecos de un grupo en una comida de un día (`dia`: lo que el bucle de
+ * buildGroupContext sabe de ese día y de ese grupo): ninguno si no se cocina
+ * o lo copia el menú de los adultos, uno o dos según la estructura.
+ */
+export function huecosDeLaComida(data, group, meal, dia) {
+  const { day, daySlug, isWeekend, groupMembers, isBabyGroup, isKidsGroup, isAdultsGroup, linkKidDinner, schoolProteins, schoolCarbs, schoolVeg } = dia;
+  const mode = modeForGroupSlot(group, data.members, data.schedule, day, meal);
+  if (!mode.cook) return [];
+
+  // El menú de los niños: los huecos que copian del menú de los adultos
+  // (mediodía en familia, "cena como los padres" / "lo del mediodía",
+  // finde juntos) o que no se planifican se resuelven tras la generación
+  // (ver bloque de copia). Aquí solo generamos los que son "suyos".
+  if (isKidsGroup && kidsSlotAction(data, day, meal) !== "generate") return [];
+
+  const eaters = groupMembers.filter((m) => {
+    const status = data.schedule[slotKey(m.id, day, meal)] ?? "casa";
+    return status === "casa" || status === "tupper";
+  }).length;
+
+  const mealType = tipoDeComida(meal);
+  const maxTime = maxCookTime(data, { isWeekend, meal });
+  // User-marked exception for this exact day+meal ("unico" | "rapida").
+  const slotTypeSel = data.slotType?.[`${day}|${meal}`];
+
+  // Per-group override first; si no hay, la estructura global (modo básico);
+  // si no, primero+segundo. La misma lectura que Lola (estructuraPlatos.js, #958).
+  const mealStructure = estructuraDelGrupo(data, group.id);
+  // La cena tiene su propia estructura y su propio defecto. No hereda la de
+  // la comida: quien come de primero y segundo no cena por fuerza igual, y
+  // lo normal en España es cenar una cosa. Por eso el defecto es "1_plato"
+  // aunque la comida sea "primero_segundo".
+  const estructuraCena = estructuraCenaDelGrupo(data, group.id);
+  // Cuántos platos lleva el hueco: la regla es una (estructuraPlatos.js) y
+  // la comparte el invariante de completitud (huecosDelPlan.js). Aquí
+  // solo se decide la forma de cada hueco.
+  const platos = platosDelHueco({ comida: meal, estructura: mealStructure, estructuraCena, slotType: slotTypeSel, esBebe: isBabyGroup });
+
+  if (mealType === "comida") {
+    if (isBabyGroup) {
+      return [{ day, daySlug, mealType, eaters, mode: mode.mode, maxTime, slotId: `${daySlug}_comida_1`, position: "plato_unico" }];
+    } else if (platos.length === 1) {
+      // Un solo plato completo (plato único marcado, estructura de un
+      // plato o comida rápida: una cosa ligera en ≤15 min).
+      const slot = {
+        day, daySlug, mealType, eaters, mode: mode.mode,
+        maxTime: slotTypeSel === "rapida" ? Math.min(maxTime, 15) : maxTime,
+        slotId: `${daySlug}_comida_1`,
+        position: "plato_unico",
+        preferType: slotTypeSel === "rapida" ? "comida_rapida" : "plato_unico",
+      };
+      if (linkKidDinner && isAdultsGroup && schoolProteins.size > 0) {
+        slot.schoolProteinsToAvoid = Array.from(schoolProteins);
+      }
+      if (linkKidDinner && isAdultsGroup && schoolCarbs.size > 0) {
+        slot.schoolCarbsToAvoid = Array.from(schoolCarbs);
+      }
+      return [slot];
+    } else {
+      // El deslizador es el presupuesto de la COMIDA ENTERA, no de cada
+      // plato. Hubo una versión que lo repartía 40/60 y daba a cada plato
+      // un tope propio que sumaba exactamente el presupuesto. Suena bien y
+      // es inaplicable: con los 30 minutos que trae la app por defecto, el
+      // primero se quedaba en 12 minutos y en TODO el catálogo hay cuatro
+      // primeros que caben ahí. Cinco comidas entre semana, cuatro platos
+      // posibles: el hueco se quedaba vacío por aritmética, y por eso unos
+      // días salían con primero y segundo y otros con un solo plato.
+      //
+      // Dos platos no se cocinan uno detrás de otro: la ensalada se monta
+      // mientras el horno trabaja. Así que cada plato cabe en el
+      // presupuesto entero, y lo que se vigila es la PAREJA (regla 8b, con
+      // `mealBudget`): no vale juntar dos platos largos.
+      const primero = { day, daySlug, mealType, eaters, mode: mode.mode, maxTime, mealBudget: maxTime, slotId: `${daySlug}_comida_1`, position: "primero" };
+      const segundo = { day, daySlug, mealType, eaters, mode: mode.mode, maxTime, mealBudget: maxTime, slotId: `${daySlug}_comida_2`, position: "segundo" };
+      if (linkKidDinner && isAdultsGroup && schoolProteins.size > 0) {
+        segundo.schoolProteinsToAvoid = Array.from(schoolProteins);
+      }
+      if (linkKidDinner && isAdultsGroup && schoolCarbs.size > 0) {
+        segundo.schoolCarbsToAvoid = Array.from(schoolCarbs);
+      }
+      return [primero, segundo];
+    }
+  } else {
+    // (Los huecos de cena de niños que copian/omiten ya se filtraron arriba
+    // con kidsSlotAction; aquí solo llega "cena diferente" o menú propio.)
+    const isQuick = slotTypeSel === "rapida";
+    // La cena de DOS platos: una crema, un gazpacho o una ensalada delante,
+    // y algo ligero detrás. Una crema sola es poca cena —57 de las 69 sopas
+    // que pueden cenarse están por debajo de 300 kcal— y con algo al lado
+    // deja de serlo.
+    //
+    // Una cena rápida nunca se parte: quien la marcó pidió justo lo
+    // contrario, un solo plato y pronto (platosDelHueco).
+    if (platos.length === 2) {
+      const comun = { day, daySlug, mealType, eaters, mode: mode.mode, maxTime, mealBudget: maxTime };
+      const primeroCena = { ...comun, slotId: `${daySlug}_cena_1`, position: "primero" };
+      const segundoCena = { ...comun, slotId: `${daySlug}_cena_2`, position: "segundo" };
+      const avoid = effectiveSchoolAvoid(data);
+      if (avoid.protein && schoolProteins.size > 0) segundoCena.schoolProteinsToAvoid = Array.from(schoolProteins);
+      if (avoid.carbs && schoolCarbs.size > 0) segundoCena.schoolCarbsToAvoid = Array.from(schoolCarbs);
+      if (avoid.veg && schoolVeg.size > 0) primeroCena.schoolVegToAvoid = Array.from(schoolVeg);
+      return [primeroCena, segundoCena];
+    }
+    const slot = {
+      day, daySlug, mealType, eaters, mode: mode.mode,
+      maxTime: isQuick ? Math.min(maxTime, 15) : maxTime,
+      slotId: `${daySlug}_cena`,
+    };
+    if (isQuick) slot.preferType = "cena_rapida";
+    // "Cena diferente": qué NO puede repetir respecto al comedor. Proteína e
+    // hidratos por defecto; verdura solo si algún niño lo pidió (pop-up).
+    const avoidCats = effectiveSchoolAvoid(data);
+    if (avoidCats.protein && schoolProteins.size > 0) {
+      slot.schoolProteinsToAvoid = Array.from(schoolProteins);
+    }
+    if (avoidCats.carbs && schoolCarbs.size > 0) {
+      slot.schoolCarbsToAvoid = Array.from(schoolCarbs);
+    }
+    if (avoidCats.veg && schoolVeg.size > 0) {
+      slot.schoolVegToAvoid = Array.from(schoolVeg);
+    }
+    return [slot];
+  }
 }
