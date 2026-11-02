@@ -54,6 +54,12 @@ import { esAnadido, topeDe } from "./cocinaTopes.js";
 import { aporteDe } from "./aporte.js";
 import { precioDePlato, precioAlto } from "./presupuesto.js";
 
+// Los pesos de dos objetivos de la casa en el orden del solver (los explica
+// resolverMenu, paso 5). Exportados para que la entrada del motor
+// (entradaMotor.js) diga con qué peso cuenta cada uno.
+export const PESO_RECIENTE = 6e3;
+export const PESO_PRESUPUESTO = 8e3;
+
 /**
  * ¿Está encendido? Apagado por defecto: el motor de siempre no cambia hasta
  * que alguien lo pida. Dos formas de pedirlo, las dos sin tocar código:
@@ -472,8 +478,7 @@ export function resolverMenu(slots, pool, {
   // martes pasado— pero entre dos platos igual de útiles gana el que hace más
   // que no ves. Subirlo por encima del déficit convertiría el reparto en
   // decorado; bajarlo al nivel del ruido lo dejaría sin efecto, que es
-  // exactamente de donde venimos.
-  const PESO_RECIENTE = 6e3;
+  // exactamente de donde venimos. (PESO_RECIENTE, arriba del fichero.)
   // Un plato que la casa ha tirado varias veces (lib/descartesPrioridad.js) va detrás de todo
   // lo demás: más que cualquier otro término de la clave, pero sigue en el dominio.
   const PESO_DESCARTADO = 2e4;
@@ -490,8 +495,7 @@ export function resolverMenu(slots, pool, {
   // cuentan como 4 €. Sin ningún precio, y si el tope está por debajo de la
   // mediana del pool (el presupuesto aprieta), lleva el castigo entero: lo
   // desconocido no puede ganar a lo que se sabe barato; con menos castigo,
-  // el ahorro saldría de no saber el precio (#958).
-  const PESO_PRESUPUESTO = 8e3;
+  // el ahorro saldría de no saber el precio (#958). (PESO_PRESUPUESTO, arriba.)
   const precios = topeRacion > 0 ? new Map(pool.map((r) => [r.id, precioDePlato(r.id)])) : new Map();
   const conocidos = [...precios.values()].filter((p) => p?.completo).map((p) => p.porRacion).sort((a, b) => a - b);
   const aprieta = conocidos.length > 0 && topeRacion < conocidos[Math.floor(conocidos.length / 2)];

@@ -1,13 +1,12 @@
 /**
- * La entrada del motor (trozo 30 de #1037): lo que se compila de la casa
- * antes de generar, para que aiPlanner.js deje de leer `data.*`.
- *
- * Por ahora, el contexto de un grupo (buildGroupContext: sus huecos, el
- * filtro de sus recetas y sus topes), movido de aiPlanner.js sin cambiar lo
- * que hace.
+ * La entrada del motor (trozo 30 de #1037): la casa de una semana, compilada
+ * UNA vez en un problema cerrado que es lo único que lee el motor
+ * (aiPlanner.js): huecos, filtro de recetas por grupo, restricciones y
+ * objetivos con su peso y su origen. `entradaDelMotor` es la única función que
+ * lee `data.*`; lo demás de este fichero son sus piezas.
  */
-import { normalizeKidDinnerConfig, schoolAvoidCategories, kidsSlotAction } from "./kidsMenu.js";
-import { diasActivosDe, getMeals, modeForGroupSlot, slotKey } from "./planner.js";
+import { normalizeKidDinnerConfig, schoolAvoidCategories, kidsSlotAction, householdKidPolicy } from "./kidsMenu.js";
+import { DAYS, diasActivosDe, getMeals, modeForGroupSlot, slotKey } from "./planner.js";
 import { isBabyMenuGroup, membersOfGroup, tipoDeGrupo } from "./groups.js";
 import { esMenor, esNino } from "./stages.js";
 import { alergiasParaMenu } from "./alergias.js";
@@ -19,7 +18,11 @@ import { DIA_SLUG as DAY_SLUG, tipoDeComida, comidaDeTipo } from "./dias.js";
 import { maxCookTime, maxCookTimeFilter, migrateCookTime } from "./cookTime.js";
 import { estructuraDelGrupo, estructuraCenaDelGrupo, platosDelHueco } from "./estructuraPlatos.js";
 import { DEFAULT_FREQS } from "./defaultFreqs.js";
-import { solverActivo } from "./solver.js";
+import { solverActivo, PESO_RECIENTE, PESO_PRESUPUESTO } from "./solver.js";
+import { PESO_SESGO } from "./sesgos.js";
+import { basesPedidas } from "./bases.js";
+import { presupuestoSemanal } from "./presupuesto.js";
+import { recetasRecientes } from "./recientes.js";
 import { presupuestoDeTopes, repartoAFreqs, freqsAReparto } from "./reparto.js";
 import { getSchoolDish, hasAnySchoolDish } from "./schoolMenu.js";
 import { carbTypeFromText } from "../utils/validateMenu.js";
@@ -201,7 +204,7 @@ function coleDelDia(schoolMenus, miembros, day) {
  * o lo copia el menú de los adultos, uno o dos según la estructura.
  */
 function huecosDeLaComida(data, group, meal, dia) {
-  const { day, daySlug, isWeekend, groupMembers, isBabyGroup, isKidsGroup, isAdultsGroup, linkKidDinner, schoolProteins, schoolCarbs, schoolVeg } = dia;
+  const { day, daySlug, tiempo, groupMembers, isBabyGroup, isKidsGroup, isAdultsGroup, linkKidDinner, schoolProteins, schoolCarbs, schoolVeg } = dia;
   const mode = modeForGroupSlot(group, data.members, data.schedule, day, meal);
   if (!mode.cook) return [];
 
@@ -217,7 +220,7 @@ function huecosDeLaComida(data, group, meal, dia) {
   }).length;
 
   const mealType = tipoDeComida(meal);
-  const maxTime = maxCookTime(data, { isWeekend, meal });
+  const maxTime = minutosDelHueco(tiempo, day, meal);
   // User-marked exception for this exact day+meal ("unico" | "rapida").
   const slotTypeSel = data.slotType?.[`${day}|${meal}`];
 
@@ -321,7 +324,7 @@ function huecosDeLaComida(data, group, meal, dia) {
   }
 }
 
-export function buildGroupContext(data, group) {
+export function buildGroupContext(data, group, tiempo = tiempoDeCocina(data)) {
   const meals = getMeals(data);
   const groupMembers = membersOfGroup(group, data.members);
   const isBabyGroup = isBabyMenuGroup(group, data.members);
@@ -382,7 +385,6 @@ export function buildGroupContext(data, group) {
 
   for (const day of planDays) {
     const daySlug = DAY_SLUG[day];
-    const isWeekend = day === "Sáb" || day === "Dom";
 
     // Lo que el comedor sirvió ese día: lo que la cena no repite y su texto.
     const { schoolProteins, schoolCarbs, schoolVeg, texto } = coleDelDia(data.schoolMenus, schoolSourceMembers, day);
@@ -390,7 +392,7 @@ export function buildGroupContext(data, group) {
 
     for (const meal of meals) {
       slots.push(...huecosDeLaComida(data, group, meal, {
-        day, daySlug, isWeekend, groupMembers, isBabyGroup, isKidsGroup, isAdultsGroup, linkKidDinner, schoolProteins, schoolCarbs, schoolVeg,
+        day, daySlug, tiempo, groupMembers, isBabyGroup, isKidsGroup, isAdultsGroup, linkKidDinner, schoolProteins, schoolCarbs, schoolVeg,
       }));
     }
   }
@@ -459,5 +461,118 @@ export function buildGroupContext(data, group) {
         ]),
       ),
     },
+  };
+}
+
+/**
+ * Los minutos de cocina por día y comida (`cookTime` de la casa, entre semana y
+ * finde): el tope de tiempo de cada hueco. Los siete días, para que cambiar un
+ * plato de cualquier día lo encuentre.
+ */
+function tiempoDeCocina(data) {
+  return Object.fromEntries(DAYS.map((day) => {
+    const isWeekend = day === "Sáb" || day === "Dom";
+    return [day, { Comida: maxCookTime(data, { isWeekend, meal: "Comida" }), Cena: maxCookTime(data, { isWeekend, meal: "Cena" }) }];
+  }));
+}
+
+/** El tope de un hueco: lo de la cena para la cena, lo de la comida para lo demás (maxCookTime). */
+export function minutosDelHueco(tiempo, day, meal) {
+  return tiempo[day][meal === "Cena" ? "Cena" : "Comida"];
+}
+
+/** La forma de la entrada: sube cuando cambia lo que el motor lee de ella. */
+export const VERSION_ENTRADA = 1;
+
+const COMPILADAS = new WeakSet();
+
+/** ¿Salió de entradaDelMotor? Lo que no, no es una entrada aunque se le parezca. */
+export const esEntrada = (x) => COMPILADAS.has(x);
+
+/**
+ * La casa de una semana (lo que deja prepararSemana: reglas proyectadas, cole
+ * de esa semana, horario) compilada en el problema que resuelve el motor.
+ *
+ *   huecos        día × comida × grupo × plato, con quién come en cada uno
+ *   contexto      por grupo: sus huecos, el filtro de sus candidatos
+ *                 (alergias, intolerancias, vetos, tiempo, aparatos…) y sus
+ *                 topes (buildGroupContext)
+ *   restricciones lo que no se discute: platos fijos, recetas propias, bases
+ *                 de la tanda
+ *   objetivos     lo que se prefiere, con el peso con que lo cuenta el motor y
+ *                 el dato de la casa del que sale (`origen`); peso y origen
+ *                 los leerá el solver del trozo 31 de #1037, que pesa cada
+ *                 preferencia por separado
+ *   tiempo        minutos de cocina por día y comida: el tope de cada hueco
+ *                 del contexto
+ *
+ * `hoy` es la fecha con la que se leen los vetos y las reglas que caducan.
+ * Se congela: el motor la lee y no la cambia.
+ */
+export function entradaDelMotor(data, { hoy = null } = {}) {
+  const ficha = hoy && hoy !== data?.vigenteEn ? { ...data, vigenteEn: hoy } : data;
+  const personas = ficha?.members ?? [];
+  const grupos = ficha?.groups ?? [];
+  const activos = grupos.filter((g) => membersOfGroup(g, personas).length > 0);
+  // El tope de cada hueco del contexto sale de esta tabla, la misma que lleva la entrada.
+  const tiempo = tiempoDeCocina(ficha);
+  const contexto = Object.fromEntries(activos.map((g) => [g.id, buildGroupContext(ficha, g, tiempo)]));
+  const dias = diasActivosDe(ficha);
+  const accion = Object.fromEntries(dias.map((day) => [day, {
+    Comida: kidsSlotAction(ficha, day, "Comida"),
+    Cena: kidsSlotAction(ficha, day, "Cena"),
+  }]));
+  const entrada = Object.freeze({
+    version: VERSION_ENTRADA,
+    hoy: ficha?.vigenteEn ?? null,
+    dias,
+    personas,
+    grupos,
+    activos,
+    horario: ficha?.schedule ?? {},
+    contexto,
+    huecos: activos.flatMap((g) => contexto[g.id].slots.map((s) => ({
+      grupo: g.id, dia: s.day, comida: comidaDeTipo(s.mealType), plato: s.position ?? "cena", hueco: s.slotId, comensales: s.eaters,
+    }))),
+    tiempo,
+    ninos: { politica: householdKidPolicy(ficha), accion },
+    extras: { comidas: ficha?.extraMeals ?? {}, seguridad: Object.fromEntries(activos.map((g) => [g.id, seguridadFueraDeMenu(ficha, g)])) },
+    restricciones: {
+      fijos: ficha?.fixedDishes ?? [],
+      propias: ficha?.userRecipes ?? [],
+      tanda: basesPedidas(ficha?.tanda),
+    },
+    objetivos: {
+      sesgos: { valor: ficha?.sesgos ?? null, peso: PESO_SESGO, origen: "sesgos" },
+      favoritos: { valor: ficha?.favoritos ?? [], peso: PESO_SESGO, origen: "favoritos" },
+      // Lo que saliste comiendo, por grupo (sus favoritas van exentas).
+      recientes: {
+        valor: Object.fromEntries(activos.map((g) => [g.id, recetasRecientes(ficha, { exentos: contexto[g.id].filterOpts.favoriteIds })])),
+        peso: PESO_RECIENTE,
+        origen: "menus",
+      },
+      presupuesto: { valor: presupuestoSemanal(ficha), peso: PESO_PRESUPUESTO, origen: "presupuesto" },
+    },
+  });
+  COMPILADAS.add(entrada);
+  return entrada;
+}
+
+/** La entrada tal cual, o compilada si llega la casa (`data`) en crudo. */
+export function comoEntrada(x, semana) {
+  return esEntrada(x) ? x : entradaDelMotor(x, semana);
+}
+
+/**
+ * Lo que un grupo no puede comer fuera del menú (desayuno, merienda, postre):
+ * sus alergias, intolerancias y estados, y sus vetos. Sin las adaptaciones que
+ * implican (alcohol, sin gluten): fuera de menú no hay sustitución.
+ */
+function seguridadFueraDeMenu(data, group) {
+  const members = membersOfGroup(group, data.members);
+  return {
+    allergies: [...new Set(members.flatMap((m) => alergiasParaMenu(data, m)))],
+    intolerances: [...new Set(members.flatMap((m) => [...(m.intolerances ?? []), ...(m.dietaryStates ?? [])]))],
+    dislikes: vetosDe(data, { grupo: group }),
   };
 }
