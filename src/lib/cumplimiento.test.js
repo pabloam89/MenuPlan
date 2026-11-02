@@ -57,11 +57,14 @@ describe("preferenciasDelMotor: cada preferencia con su operador, su fuerza y su
     expect([por["freqs.huevos"], por["freqs.legumbres"]]).toEqual([undefined, undefined]);
   });
 
-  it("un tope de los niños no vale para los adultos", () => {
+  it("un tope de los niños no vale para los adultos; uno @todos vale para todos y uno @<grupo>, para ese grupo", () => {
     const ids = (tipo) => delGrupo(prefs, { id: "g", tipo }).map((p) => p.id);
     expect(ids("ninos")).toContain("freqs.carne.@ninos");
     expect(ids("adultos")).not.toContain("freqs.carne.@ninos");
     expect(ids("adultos")).toContain("freqs.pescado");
+    const otras = preferenciasDelMotor({ notepad: { v: 1, campos: { "freqs.carne.@todos": apunte(2), "freqs.pescado.@g": apunte(1) } } });
+    expect(delGrupo(otras, { id: "g", tipo: "adultos" }).map((p) => p.id)).toEqual(["freqs.carne.@todos", "freqs.pescado.@g"]);
+    expect(delGrupo(otras, { id: "h", tipo: "adultos" }).map((p) => p.id)).toEqual(["freqs.carne.@todos"]);
   });
 
   it("entradaDelMotor las lleva, leídas con su fecha", () => {

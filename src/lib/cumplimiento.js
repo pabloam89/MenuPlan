@@ -40,7 +40,7 @@ export const CAMPOS_DEL_MOTOR = Object.freeze(Object.keys(PREDICADO));
 export const casaCon = (p, receta) => !!receta && PREDICADO[p.campo](receta, p.valor);
 
 /** Las preferencias que valen para un grupo: las de la casa entera y las de su ámbito. */
-export const delGrupo = (prefs, group) => prefs.filter((p) => !p.ambito || TIPO_DE_AMBITO[p.ambito] === tipoDeGrupo(group));
+export const delGrupo = (prefs, group) => prefs.filter((p) => !p.ambito || p.ambito === group.id || TIPO_DE_AMBITO[p.ambito] === tipoDeGrupo(group));
 
 /** Pura. Las preferencias de la casa de una semana (las lee entradaDelMotor); lo que no vale `hoy` no cuenta. */
 export function preferenciasDelMotor(data, { hoy = null } = {}) {
@@ -77,8 +77,8 @@ export function preferenciasDelMotor(data, { hoy = null } = {}) {
     const [campo, valor, ...resto] = ruta.split(".");
     if (campo !== "freqs" || !FREQ_KEY_MATCHERS[valor] || !Number.isFinite(c.valor)) continue;
     const origen = origenDe(c);
-    const ambito = resto.find((x) => x.startsWith("@"))?.slice(1) ?? null;
-    if (ambito && !TIPO_DE_AMBITO[ambito]) continue;
+    const marca = resto.find((x) => x.startsWith("@"))?.slice(1);
+    const ambito = marca && marca !== "todos" ? marca : null; // @todos: la casa; @ninos: un tipo de grupo; otro @x: el grupo x (delGrupo)
     const cantidad = origen !== "dicho" && c.valor === 0 ? 1 : c.valor;
     poner({ id: ruta, campo, valor, operador: OP.COMO_MUCHO, cantidad, ambito, origen, fuerza: fuerzaDe("freqs", origen) });
   }
@@ -97,10 +97,7 @@ function estadoDe(p, veces, platos, posibles, tamano) {
   }
 }
 
-/**
- * Pura. Cuánto cumple el menú de un grupo (`asignaciones`: { slotId, recipeId }) cada preferencia, sobre `pool`, los
- * platos que podían salir. Por hueco, las que pidieron el plato que salió (`mas` y `al_menos` que cumple): el `motivo`.
- */
+/** Pura. Cuánto cumple el menú de un grupo (`asignaciones`: { slotId, recipeId }) cada preferencia sobre `pool`; por hueco, las `mas`/`al_menos` del plato que salió. */
 export function cumplimientoDelGrupo(prefs, asignaciones, pool) {
   const porId = new Map((pool ?? []).map((r) => [r.id, r]));
   const platos = (asignaciones ?? []).map((a) => porId.get(a.recipeId)).filter(Boolean);
