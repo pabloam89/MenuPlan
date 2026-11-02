@@ -1112,6 +1112,44 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
  },
  {
   "type": "custom",
+  "name": "ajustar_trato",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "ritmo": {
+     "type": "string",
+     "enum": [
+      "directo",
+      "guiado"
+     ]
+    },
+    "profundidad": {
+     "type": "string",
+     "enum": [
+      "nada",
+      "poco",
+      "mucho",
+      "preguntar"
+     ]
+    },
+    "fotos": {
+     "type": "boolean"
+    },
+    "largo": {
+     "type": "string",
+     "enum": [
+      "corto",
+      "largo"
+     ]
+    }
+   },
+   "required": [],
+   "additionalProperties": false
+  },
+  "description": "Cómo quiere quien escribe que le hables (solo a él o ella, no a toda la casa). ritmo: directo («no me preguntes tanto», «decide tú») o guiado («ve paso a paso», «pregúntame antes»). profundidad, cuánto afinar antes de hacer un menú: nada («hazlo ya»), poco, mucho («quiero afinarlo bien») o preguntar (preguntárselo cada vez). fotos: si quiere fotos de los platos. largo: corto («más corto», «al grano») o largo («explícame más»). Solo lo que diga; lo demás no se toca. Úsala cuando lo pida como algo para siempre, no por un mensaje suelto."
+ },
+ {
+  "type": "custom",
   "name": "ajustar_extras",
   "input_schema": {
    "type": "object",

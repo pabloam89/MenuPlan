@@ -125,6 +125,7 @@ export const MODOS_DESPENSA = ["strict", "only", "prefer", "off"];
 
 /** De dónde sale un dato de la ficha (registro «sobre»). */
 export const ORIGEN_DATO = ["dicho", "supuesto", "visto", "derivado", "por_defecto", "delegado", "no_quiere_decirlo"];
+export const ORIGEN = porNombre(ORIGEN_DATO);
 
 /**
  * De dónde sale el «ninguna» de las alergias de una persona (#229). `dicha`:
@@ -167,6 +168,7 @@ export const ORIGENES_DE_LA_FAMILIA = ["dicho", "delegado", "no_quiere_decirlo"]
 
 /** El estado de un dato de la ficha para quien la lee (ficha_casa v2, 0107): vacío, por defecto, supuesto, aprendido o dicho. */
 export const ESTADOS_DATO = ["vacio", "por_defecto", "supuesto", "aprendido", "dicho"];
+export const ESTADO_DATO = porNombre(ESTADOS_DATO);
 
 /** El estado que da ficha_casa v2 a un sobre vigente según su origen (ORIGEN_DATO); datoConSobre.test.js compara su case. */
 export const ESTADO_DE_ORIGEN = Object.freeze({
