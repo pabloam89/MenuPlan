@@ -17,6 +17,13 @@ export const RPC_FICHA = "ficha_casa";
 export const fichaV1 = () => ({ v: 1, casa: { rev: 1 }, personas: [], faltan: [], tareas: [], callados: [] });
 
 /**
+ * Lo que contestaría preferencias_de_casa (0109) para una casa sin preferencias: desde el trozo 14 (#1037) la casa
+ * de Lola lee de ahí la libreta. `preferencias`, filas como las de la tabla.
+ */
+export const RPC_PREFERENCIAS_DE_CASA = "preferencias_de_casa";
+export const preferenciasDeFilas = (preferencias = []) => ({ v: 1, rev: 1, preferencias, planes: [] });
+
+/**
  * @param {object[]} members  comensales, como en data.members
  * @param {object[]} groups   grupos, como en data.groups
  */

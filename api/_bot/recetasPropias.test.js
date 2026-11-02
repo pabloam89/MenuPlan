@@ -4,7 +4,7 @@
  * solo miraba ahí, una receta creada en la app no existía para Lola.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { familiaDeFilas, RPC_FAMILIA, RPC_FICHA, fichaV1 } from "./familiaDePrueba.js";
+import { familiaDeFilas, RPC_FAMILIA, RPC_FICHA, fichaV1, RPC_PREFERENCIAS_DE_CASA, preferenciasDeFilas } from "./familiaDePrueba.js";
 
 const tablas = {};
 const pedidas = [];
@@ -12,7 +12,7 @@ vi.mock("./db.js", () => ({
   eq: (v) => `eq.${encodeURIComponent(v)}`,
   insert: vi.fn(), update: vi.fn(),
   // La familia sale de sus filas (personas_de_casa): la de los comensales que el test pone en el documento.
-  rpc: vi.fn(async (fn) => (fn === RPC_FAMILIA ? familiaDeFilas(tablas.household_state?.[0]?.state?.data?.members) : fn === RPC_FICHA ? fichaV1() : null)),
+  rpc: vi.fn(async (fn) => (fn === RPC_FAMILIA ? familiaDeFilas(tablas.household_state?.[0]?.state?.data?.members) : fn === RPC_FICHA ? fichaV1() : fn === RPC_PREFERENCIAS_DE_CASA ? preferenciasDeFilas() : null)),
   select: vi.fn(async (tabla, filtro) => {
     pedidas.push({ tabla, filtro });
     const t = tablas[tabla];
