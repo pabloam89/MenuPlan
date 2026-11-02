@@ -269,6 +269,10 @@ begin
        select 1 from public.household_members m where m.household_id = v_casa and m.user_id = v_autor) then
     raise exception 'escribir_preferencias: el autor no es de esta casa' using errcode = '42501';
   end if;
+  if nullif(p_operacion->>'autor_persona_id', '') is not null and not exists (
+       select 1 from public.persona x where x.household_id = v_casa and x.id = p_operacion->>'autor_persona_id') then
+    raise exception 'escribir_preferencias: la persona autora no es de esta casa' using errcode = '42501';
+  end if;
   if jsonb_typeof(v_prefs) <> 'array' or jsonb_typeof(v_planes) <> 'array'
      or jsonb_array_length(v_prefs) + jsonb_array_length(v_planes) > c_max
      or exists (select 1 from jsonb_array_elements(v_prefs || v_planes) x where jsonb_typeof(x.value) <> 'object')
@@ -525,7 +529,7 @@ create table public.precio_observado (
   constraint precio_observado_ticket_fk foreign key (household_id, ticket_id)
     references public.ticket(household_id, id) on delete cascade,
   constraint precio_observado_precio check (precio >= 0),
-  constraint precio_observado_fuente_vocabulario check (fuente in ('manual', 'ticket')),
+  constraint precio_observado_fuente_vocabulario check (fuente in ('manual', 'receipt')),
   constraint precio_observado_tipo_vocabulario check (tipo in ('food', 'prefab', 'nonfood'))
 );
 create index precio_observado_ticket on public.precio_observado (household_id, ticket_id);
@@ -657,6 +661,12 @@ begin
       raise exception '0109 autoprueba: ha entrado una semana que no empieza en lunes';
     exception when check_violation then null;  -- a propósito: el disparador lo rechaza
     end;
+    begin
+      perform public.escribir_preferencias(v_base || jsonb_build_object('clave', 'ap-10', 'autor_persona_id', 'p_de_otra_casa',
+                'preferencias', jsonb_build_array(v_pesc)));
+      raise exception '0109 autoprueba: ha entrado una persona autora que no es de la casa';
+    exception when insufficient_privilege then null;  -- a propósito: «la persona autora no es de esta casa» (42501)
+    end;
 
     -- La casa lee lo suyo; alguien de fuera, no.
     perform set_config('request.jwt.claims', json_build_object('sub', v_dueno, 'role', 'authenticated')::text, true);
@@ -683,8 +693,8 @@ begin
     insert into public.ticket (household_id, id, comprado_at, total, lineas) values
       (v_casa, 'tk_viejo', now() - interval '91 days', 10, 1), (v_casa, 'tk_nuevo', now(), 5, 1);
     insert into public.precio_observado (household_id, id, ticket_id, nombre, precio, fuente, tipo, comprado_at) values
-      (v_casa, 'tk_viejo-0', 'tk_viejo', 'Arroz', 10, 'ticket', 'food', now() - interval '91 days'),
-      (v_casa, 'tk_nuevo-0', 'tk_nuevo', 'Arroz', 5, 'ticket', 'food', now());
+      (v_casa, 'tk_viejo-0', 'tk_viejo', 'Arroz', 10, 'receipt', 'food', now() - interval '91 days'),
+      (v_casa, 'tk_nuevo-0', 'tk_nuevo', 'Arroz', 5, 'receipt', 'food', now());
     insert into public.cocinado (household_id, receta_id, semana, dia, comida, cocinado_at) values
       (v_casa, 'r_viejo', '2025-01-06', 'Lun', 'Cena', now() - interval '13 months'),
       (v_casa, 'r_nuevo', '2026-11-02', 'Lun', 'Cena', now());
