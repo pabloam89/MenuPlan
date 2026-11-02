@@ -112,9 +112,6 @@ describe("la fila de controles sale del registro, no de un componente", () => {
     const CONSUMIDOS = new Set([
       "freqs", "cocinas", "mealStructure", "cookLevel", "kitchenTools",
       "cookTime", "kidDinner", "notepad",
-      // Lo lee `resolveModeData` (App.jsx) para NO pisar en modo basico un
-      // nivel de cocina que elegiste tu desde la fila de mandos.
-      "cookLevelManual",
     ]);
     const base = { ...CIMIENTOS };
     for (const p of controlesVisibles(libretaVacia(), CIMIENTOS)) {
@@ -130,21 +127,21 @@ describe("la fila de controles sale del registro, no de un componente", () => {
   });
 
   it("el modo basico no pisa lo que acabas de elegir a mano", () => {
-    // El fallo que esto sujeta: `resolveModeData` (App.jsx) fuerza
+    // El fallo que esto sujeta: `resolveModeData` (App.jsx) forzaba
     // `cookLevel: "normal"` en modo basico —el de por defecto— y se comia la
-    // eleccion del mando "Esfuerzo". El mando se pintaba, se guardaba, se
-    // marcaba con su aro teal, y el menu salia igual.
+    // eleccion del mando "Esfuerzo". Ya no lo fuerza (trozo 12 de #1037: el
+    // nivel que llega es el dicho o el defecto; prepararGeneracion.test.js).
     //
-    // Se comprueba sobre la LISTA de campos que el modo basico fuerza, no solo
-    // sobre cookLevel: si manana el modo basico empieza a forzar otro campo que
-    // un mando escribe, esto lo caza.
+    // Se comprueba sobre la LISTA de campos que el modo basico fuerza: si
+    // manana el modo basico empieza a forzar otro campo que un mando escribe,
+    // esto lo caza.
     const FUERZA_EL_BASICO = new Set([
-      "extraMeals", "slotType", "cookLevel", "menuVarietyPref",
+      "extraMeals", "slotType", "menuVarietyPref",
       "mealStyleByGroup", "mealStructureByGroup", "cookTime",
     ]);
     // Los que llevan su propia marca de "lo eligio el usuario", que es como
     // sobreviven (el patron de `manualSlotType`).
-    const CON_MARCA = { cookLevel: "cookLevelManual", slotType: "manualSlotType", cookTime: "cookTime" };
+    const CON_MARCA = { slotType: "manualSlotType", cookTime: "cookTime" };
 
     for (const p of controlesVisibles(libretaVacia(), CIMIENTOS)) {
       if (p.fuente !== "data" || !p.escribe) continue;

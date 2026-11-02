@@ -11,6 +11,7 @@ const { leerDatosDeCasa, conCasaLeida, sinCasa, casaDeCasa, guardarCasaEnCola, R
 const { CAMPOS_CASA_CON_SOBRE } = await import("./estadoDeDato.js");
 const { crearColaDeDatos } = await import("./escribirDato.js");
 const { REGISTRO_CAMPOS } = await import("./registroCampos.js");
+const { PREGUNTAS_POR_ID } = await import("./wizardRegistry.js");
 
 const CASA = "00000000-0000-4000-8000-0000000000ca";
 const sobre = (campo, valor, origen = "dicho") => ({
@@ -32,7 +33,7 @@ describe("los campos con sobre", () => {
 
 describe("leer los datos de la casa", () => {
   it("con la 0112 aplicada, de su sobre, pidiéndolos a api/operacion.js con la sesión", async () => {
-    const fetcher = servidor({ v: 2, datos: [sobre("wantsPriceEstimates", true), sobre("cookLevel", "rapido")] });
+    const fetcher = servidor({ v: 2, datos: [sobre("wantsPriceEstimates", true), sobre("presupuesto", 80)] });
     expect(await leer(fetcher)).toEqual({ valores: { wantsPriceEstimates: true } });
     expect(fetcher.mock.calls[0][0]).toBe(`/api/operacion?casa=${CASA}`);
     expect(fetcher.mock.calls[0][1].headers.Authorization).toBe("Bearer tok");
@@ -52,6 +53,11 @@ describe("leer los datos de la casa", () => {
       .toEqual({ valores: { kitchenTools: ["Horno", "Otro"], kitchenToolsNota: "plancha" } });
     expect(await leer(servidor({ v: 2, datos: [porDefecto("kitchenTools", null), porDefecto("kitchenToolsNota", null)] })))
       .toEqual({ valores: { kitchenTools: [], kitchenToolsNota: null } });
+  });
+
+  it("el nivel de cocina también: el dicho de su sobre, o el defecto del registro («normal»)", async () => {
+    expect(await leer(servidor({ v: 2, datos: [sobre("cookLevel", "basic")] }))).toEqual({ valores: { cookLevel: "basic" } });
+    expect(await leer(servidor({ v: 2, datos: [porDefecto("cookLevel", "normal")] }))).toEqual({ valores: { cookLevel: "normal" } });
   });
 
   it("sin la 0112 (la ficha no trae el campo) o con ficha_casa v1, nada: siguen en el documento", async () => {
@@ -135,6 +141,22 @@ describe("guardar los datos con sobre", () => {
     const r = await casaDeCasa({ casa: CASA, valores: { wantsPriceEstimates: false }, cola }).guardar({ wantsPriceEstimates: true }, 2);
     expect(r).toEqual({ ok: true, enviado: true, botRev: 3 });
     expect(enviados).toEqual([{ campo: "wantsPriceEstimates", persona_id: null, valor: true, origen: "dicho" }]);
+  });
+
+  it("el nivel elegido (Onboarding, el mando Esfuerzo) va como dicho y sin marca; el defecto sin tocar no se manda", async () => {
+    const m = new Map();
+    const enviados = [];
+    const cola = crearColaDeDatos({
+      almacen: { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, v) },
+      enviar: async (item) => { enviados.push(item.dato); return { status: 200, cuerpo: { guardado: true, estado: "hecha", rev: 4 } }; },
+      nuevaClave: () => "00000000-0000-4000-8000-00000000c1b0", ahora: () => 0,
+    });
+    const { valores } = await leer(servidor({ v: 2, datos: [porDefecto("cookLevel", "normal")] }));
+    const casa = casaDeCasa({ casa: CASA, valores, cola });
+    expect(await casa.guardar({ cookLevel: "normal" }, 3)).toEqual({ ok: true, enviado: false });
+    expect(await casa.guardar(PREGUNTAS_POR_ID.esfuerzo.escribe({ cookLevel: "normal" }, "pro"), 3)).toEqual({ ok: true, enviado: true, botRev: 4 });
+    expect(enviados).toEqual([{ campo: "cookLevel", persona_id: null, valor: "pro", origen: "dicho" }]);
+    expect(sinCasa(PREGUNTAS_POR_ID.esfuerzo.escribe({ reglas: [] }, "pro"), { valores })).toEqual({ reglas: [] });
   });
 
   it("los aparatos sin decir, que la app deja en [] al normalizar, no se guardan como dichos; «Otro» y su nota pasan el registro", async () => {
