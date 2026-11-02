@@ -231,7 +231,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    },
    "additionalProperties": false
   },
-  "description": "Quita productos de la lista de la compra («quita el pan», «borra los yogures, que ya no hacen falta»). NO es marcarlos como comprados (eso es marcar_compra). manuales=true quita todo lo que se añadió a mano («borra lo que añadí»). Lo que sale del menú vuelve si se rehace la compra al cambiar el menú: dilo si preguntan. Usa los nombres como salen en la lista."
+  "description": "Quita productos de la lista de la compra («quita el pan», «borra los yogures, que ya no hacen falta»). NO es marcarlos como comprados (eso es marcar_compra). manuales=true quita todo lo que se añadió a mano («borra lo que añadí»). Lo quitado no vuelve aunque cambie el menú: dilo si preguntan. Usa los nombres como salen en la lista."
  },
  {
   "type": "custom",

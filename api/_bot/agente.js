@@ -958,7 +958,7 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
     // comprado o decía que lo había quitado sin quitarlo.
     herramienta({ capacidades: ["quitar_compra"], lee: [], escribe: [], lector: false, soloLectura: false, pantalla: "compra" }, {
       name: "quitar_compra",
-      description: "Quita productos de la lista de la compra («quita el pan», «borra los yogures, que ya no hacen falta»). NO es marcarlos como comprados (eso es marcar_compra). manuales=true quita todo lo que se añadió a mano («borra lo que añadí»). Lo que sale del menú vuelve si se rehace la compra al cambiar el menú: dilo si preguntan. Usa los nombres como salen en la lista.",
+      description: "Quita productos de la lista de la compra («quita el pan», «borra los yogures, que ya no hacen falta»). NO es marcarlos como comprados (eso es marcar_compra). manuales=true quita todo lo que se añadió a mano («borra lo que añadí»). Lo quitado no vuelve aunque cambie el menú: dilo si preguntan. Usa los nombres como salen en la lista.",
       inputSchema: {
         type: "object",
         properties: {
