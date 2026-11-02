@@ -10,6 +10,8 @@ Fecha: 30 oct 2026. Base leída: `origin/staging` en `5b9dbaed` (#1031). Escrito
 
 Origen: #1029 (el menú cojo de la casa nueva de Pablo), #958 (auditoría de Lola, clase G «1 dato, 1 sitio»), #939 (un solo registro; fases 1-4 hechas) y la conversación con Pablo del 30 oct.
 
+**Evals pagadas (`bot-evals`, `router-evals`, `modelos-evals`).** Ninguna sesión las ejecuta nunca ni las pone en un «Done»: las lanza Pablo, a mano, cuando haga pruebas con Lola. Donde un trozo habla de «medir con el banco», esa medida es de Pablo y llega después; la sesión no la da por hecha ni la cita como prueba. Las comprobaciones de cada trozo son las de `npx vitest run` y `npm run`, que no llaman a ningún modelo.
+
 ## Lo desagradable primero
 
 - **El documento único es la causa de clase de los fallos de datos.** La app guarda la casa ENTERA 1,2 s después de cada cambio (`src/App.jsx:1786-1804`), desde 145 sitios (`setData(`: 55 en `App.jsx`, 68 en `Onboarding.jsx`, 22 en otros). Lola la lee, la cambia y la vuelve a guardar entera desde 28 sitios (`api/_bot/casa.js:336` `conCasa`, 5 reintentos). Un guardado que choca o llega tras una recarga se descarta sin más (`src/lib/versionCasa.js:42-49`, `App.jsx:2005-2015`). Así se perdió hoy la marca de alergias de la casa de Pablo (solo lectura, `npm run consulta`, con `household_id` de su casa): `select to_char(created_at at time zone 'Europe/Madrid','HH24:MI:SS'), (select string_agg(coalesce(m->>'alergiasRevisadas','?'),' ') from jsonb_array_elements(antes->'state'->'data'->'members') m) from bot_deshacer where household_id=… order by created_at` → `07:25:14 | null` y `07:26:09 | false false false false`; `select to_char(updated_at at time zone 'Europe/Madrid','HH24:MI:SS'), alergias_revisadas from persona where household_id=…` → cuatro filas `07:46:39 | false`. La marca nunca llegó a la base y la app volvió a guardar sin ella.
@@ -151,7 +153,7 @@ Existing: `git grep -n -i "minimo_para_generar\|minimosParaGenerar" -- src api` 
 Not done: la app no cambia (su alta ya pasa por la pantalla de alergias y, con el trozo 1, la marca llega). No decide qué más es mínimo: «quién come» ya lo exige `generar.js:287` y «días» sale de `menuWeek`; el catálogo (trozo 5) los declara. Evals: cambia `conocimiento.md`, así que corre `node scripts/bot-evals.mjs --nivel=pr` antes de fusionar (regla `lola`); un caso nuevo («prepárame el menú» con una persona sin alergias revisadas → Lola pregunta y no genera) se ve en rojo antes del arreglo.
 Done:
 ```sh
-npx vitest run src/lib/minimosParaGenerar.test.js api/_bot/generar.test.js && node scripts/bot-evals.mjs --nivel=pr
+npx vitest run src/lib/minimosParaGenerar.test.js api/_bot/generar.test.js
 ```
 
 ### 3. Generar no calla un hueco vacío: invariante de completitud y mensaje que lo dice
@@ -310,7 +312,7 @@ Existing: `git grep -n -i "\btrato\b" -- api/_bot src/lib` → solo tres comenta
 Not done: el trato es de la **cuenta** (`user_id`, con la persona de esa cuenta), no de la persona: los niños no tienen cuenta y la pareja puede querer otro ritmo (Pablo, 30 oct). Defectos: ritmo `guiado`, profundidad `preguntar` (la pregunta del trozo 17), fotos `si`, largo `corto`. Las fotos del menú en Telegram (#1030) son otro trozo: aquí solo se guarda si las quiere. Evals de nivel pr por tocar `conocimiento.md`.
 Done:
 ```sh
-npx vitest run api/_bot/trato.test.js api/_bot/agenteRehacer.test.js && node scripts/bot-evals.mjs --nivel=pr
+npx vitest run api/_bot/trato.test.js api/_bot/agenteRehacer.test.js
 ```
 
 ### 17. Qué preguntar y cuándo: una sola «siguiente pregunta» del catálogo para la app y Lola, y la guía tras el alta (#1028)
@@ -322,7 +324,7 @@ Existing: el asistente de la app elige la siguiente pregunta en `wizardRegistry.
 Not done: la elección es una función pura sobre el catálogo y los sobres: (vacío o caducado) × `peso_menu` × `politica` × trato de la cuenta; devuelve como mucho una pregunta por turno y nunca una de salud fuera de su política. Tras el alta: «¿te lo preparo ya o lo afinamos juntos? Te guío» según el trato; si afina, 3-5 preguntas por peso. No reescribe las pantallas del asistente: solo de dónde sale el orden. Evals de nivel pr.
 Done:
 ```sh
-npx vitest run src/lib/siguientePregunta.test.js src/lib/wizardRegistry.test.js api/bot/link.test.js api/_bot/tareas.test.js && node scripts/bot-evals.mjs --nivel=pr
+npx vitest run src/lib/siguientePregunta.test.js src/lib/wizardRegistry.test.js api/bot/link.test.js api/_bot/tareas.test.js
 ```
 
 ### 18. La semana lleva sobre por hueco, y la compra es derivada más marcas: añadido a mano, tachado, en casa, quitado
@@ -412,7 +414,7 @@ Existing: los esquemas de las 46 herramientas de `agente.js` (`grep -c 'name: "'
 Not done: no genera pantallas ni flujos; solo los parámetros de cada herramienta que toca un dato del registro (tipo, `enum` del vocabulario, descripción corta del dato). El texto de cada herramienta (para qué sirve) sigue a mano. La instantánea de fichas cambia y se revisa en el PR. Cifra: ficheros que hay que tocar para añadir un dato preguntable por Lola (hoy, los de `git grep -l <clave>`: 19 para `cookLevel` → registro + su herramienta si es nueva). Evals de nivel pr (cambia lo que ve el modelo).
 Done:
 ```sh
-npx vitest run src/lib/esquemaHerramienta.test.js api/_bot/fichas.test.js && node scripts/bot-evals.mjs --nivel=pr
+npx vitest run src/lib/esquemaHerramienta.test.js api/_bot/fichas.test.js
 ```
 
 ### 26. La tubería de operaciones: entender, comprobar, aplicar, apuntar, contar y deshacer, una sola para Lola y la app, en el servidor
@@ -434,7 +436,7 @@ Existing: `resultado.js` lo importan `agente.js` (recibo), `ajustes.js`, `cole.j
 Not done: cambiar plato, añadir a la compra y generar devuelven resultado (acciones nuevas en `ACCIONES`); la puerta de `ejecutar` (`agente.js`) rechaza el resultado de una herramienta con `escribe` no vacío (trozo 23) que no traiga `{pedido, hecho, sin_hacer}` y lo apunta como fallo, no como éxito; la confirmación a la familia se pinta desde ahí. `diaDe`, `resolverDia` y `resolverPersona` pasan a llamar al intérprete o desaparecen. Evals de nivel pr.
 Done:
 ```sh
-npx vitest run api/_bot/resultadoObligatorio.test.js api/_bot/interpreteUnico.test.js api/_bot/menu.test.js api/_bot/generar.test.js && node scripts/bot-evals.mjs --nivel=pr
+npx vitest run api/_bot/resultadoObligatorio.test.js api/_bot/interpreteUnico.test.js api/_bot/menu.test.js api/_bot/generar.test.js
 ```
 
 ### 28. El turno de Lola: cancelar y rehacer si llega otro mensaje antes de escribir, y espera adaptativa
@@ -501,7 +503,7 @@ Existing: la regla de choque por dato (`ultimo_gana`/`mas_restrictivo`/`suma`) l
 Not done: `choques.js` declara, como constantes con su test, las clases, el orden de criterios y las respuestas del método de choques, tal como los define `specs/arquitectura-objetivo.md`, «Choques» (única fuente; este plan no los copia). La puerta (trozo 26) lo aplica al guardar y apunta el choque en la operación; el solver (trozo 31) usa el mismo orden para relajar; la frontera entre «aplicar y avisar» y «preguntar» la mueve el Trato de la cuenta (trozo 16). Cifras: choques por clase y respuesta; choques repetidos tras una tarea de decisión (→ 0). Evals de nivel pr.
 Done:
 ```sh
-npx vitest run src/lib/choques.test.js src/lib/operaciones/puerta.test.js && node scripts/bot-evals.mjs --nivel=pr
+npx vitest run src/lib/choques.test.js src/lib/operaciones/puerta.test.js
 ```
 
 ### 34. Migración 0110 y tareas a fondo: tipo, origen enlazado, para quién, prioridad, cuándo, qué bloquea y cómo se cierra; los recordatorios pasan a ser tareas
@@ -622,7 +624,7 @@ Existing: tres apartados del manual se pagan en cada turno aunque casi nunca hag
 Not done: primero se añaden casos al banco (voz, alta y preguntas frecuentes) y se miden con la versión de hoy; después se mueven los apartados. Alta y Fotos y voz entran como un bloque de sistema aparte, detrás del bloque fijo para no romper su caché, cuando el código ve su disparador (el prefijo «[alta]», la ficha, un adjunto o «[nota de voz]»). Cómo se cargan las preguntas frecuentes (un bloque con disparador o una herramienta de solo lectura con `tema` de lista cerrada) se decide en este trozo, midiendo las dos con el banco. Cifra: caracteres del bloque fijo (hoy unos 40.600; objetivo, cerca de 32.000).
 Done:
 ```sh
-npx vitest run api/_bot/manualPorPartes.test.js && node scripts/bot-evals.mjs --nivel=pr
+npx vitest run api/_bot/manualPorPartes.test.js
 ```
 
 ### 45. Herramientas agrupadas, primer grupo: quién come dónde, con su línea base
@@ -633,7 +635,7 @@ Existing: 46 herramientas (`grep -c 'name: "' api/_bot/agente.js` → 46): 8 emp
 Not done: antes de tocar nada se mide con el banco de frases la herramienta elegida, las llamadas por turno y los errores, y esa línea base queda en el cuerpo del PR para los trozos 46 y 47. Después, `fuera_de_casa` y `ajustar_horario` pasan a una sola herramienta de quién come dónde con alcance (un día o siempre), como ya los junta la ficha Rutina (trozo 13). No se fusiona si baja la herramienta acertada. El test nuevo falla si dos herramientas comparten objeto y verbo (hoy, esas dos).
 Done:
 ```sh
-npx vitest run api/_bot/herramientasAgrupadas.test.js api/_bot/ejemplosPrompt.test.js api/_bot/promesas.test.js && node scripts/bot-evals.mjs --nivel=pr
+npx vitest run api/_bot/herramientasAgrupadas.test.js api/_bot/ejemplosPrompt.test.js api/_bot/promesas.test.js
 ```
 
 ### 46. Herramientas agrupadas, segundo grupo: las consultas en una sola
@@ -644,7 +646,7 @@ Existing: las 8 `ver_*` (`grep -c 'name: "ver_' api/_bot/agente.js` → 8) son d
 Not done: las `ver_*` sin campos pasan a una herramienta `consultar` con `que` de lista cerrada; las que tienen campos propios se quedan aparte. Se mide contra la línea base del trozo 45 y no se fusiona si baja la herramienta acertada. El test comprueba que la lista de `que` sale del vocabulario y que no queda ninguna `ver_*` sin campos.
 Done:
 ```sh
-npx vitest run api/_bot/herramientasAgrupadas.test.js api/_bot/promesas.test.js api/_bot/fichas.test.js && node scripts/bot-evals.mjs --nivel=pr
+npx vitest run api/_bot/herramientasAgrupadas.test.js api/_bot/promesas.test.js api/_bot/fichas.test.js
 ```
 
 ### 47. Herramientas agrupadas, tercer grupo: los ajustes, uno por ficha
@@ -655,7 +657,7 @@ Existing: 11 herramientas `ajustar_*` (`grep -c 'name: "ajustar_' api/_bot/agent
 Not done: las `ajustar_*` de configuración pasan a una por ficha (Casa, Rutina), con `campo` de lista cerrada del registro (trozo 25). Alergias, salud y quitar personas se quedan aparte, porque su riesgo es `quita_proteccion` (trozo 42). Se mide contra la línea base del trozo 45 y no se fusiona si baja la herramienta acertada. Si el total sigue por encima de unas 30 herramientas, la búsqueda de herramientas de la API se estudia en un trozo aparte.
 Done:
 ```sh
-npx vitest run api/_bot/herramientasAgrupadas.test.js api/_bot/promesas.test.js api/_bot/fichas.test.js && node scripts/bot-evals.mjs --nivel=pr
+npx vitest run api/_bot/herramientasAgrupadas.test.js api/_bot/promesas.test.js api/_bot/fichas.test.js
 ```
 
 ### 48. Los huecos de la app, primero: las recetas propias
@@ -732,7 +734,7 @@ Existing: tras el PR #1107, el manual sigue mezclando mecánica de herramientas 
 Not done: orden fijo (identidad, principios con su porqué, seguridad y límites, la ficha, situaciones con criterio y sin mecánica, ejemplos reales, formato por canal) y un recordatorio final corto de lo crítico. El test comprueba el orden de los apartados y que ningún nombre de parámetro de herramienta aparece en el manual, porque la mecánica vive en la herramienta. El formato de cada canal va en su bloque, que el código carga según el canal. Evals de nivel pr y la pasada completa antes de fusionar.
 Done:
 ```sh
-npx vitest run api/_bot/manualEstructura.test.js api/_bot/ejemplosPrompt.test.js api/_bot/promesas.test.js && node scripts/bot-evals.mjs --nivel=pr
+npx vitest run api/_bot/manualEstructura.test.js api/_bot/ejemplosPrompt.test.js api/_bot/promesas.test.js
 ```
 
 ### 55. Migración 0114: el sobre gana ámbito (grupo, semana, día, comida) y el registro dice el de cada campo
