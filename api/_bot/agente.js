@@ -47,7 +47,8 @@ import { fueraDeLimite, contarUso, avisoDeLimite } from "./uso.js";
 import { quedaMs, plazoDeLlamada, RESERVA_MIN_MS } from "./plazo.js";
 import { supervisar, frenoDeshacer } from "./supervisor.js";
 import { montarFicha, extrasDeFicha } from "./ficha.js";
-import { fichaRpc, leerFichaCasa, tareasDeFicha, calladasDeFicha, conLaFicha, olvidarFicha } from "./fichaRpc.js";
+import { fichaRpc, leerFichaCasa, tareasDeFicha, calladasDeFicha, conLaFicha, olvidarFicha, estadosDeLaFicha } from "./fichaRpc.js";
+import { lineaDeAfinar } from "../../src/lib/siguientePregunta.js";
 import { montarMemoria, ORDEN as ORDEN_MEMORIA } from "./memoria.js";
 import { tramitar, bloqueDe, vigentesSegun } from "./pendientes.js";
 import { tareasAbiertas, clavesCalladas, anotarTarea, cerrarTarea, editarTarea, bloqueDeTareas, separarPorEstado, cerrarResueltas, promoverPreguntas } from "./tareas.js";
@@ -1294,7 +1295,9 @@ export async function responder({ channel = CANAL.TELEGRAM, chatId, householdId,
   // delante de lo del día: lo pendiente y quién escribe siguen cerrándolo, como siempre.
   const fichaBase = casa ? conQuienEscribe(montarFicha(deLaFicha.casa, extras), chat.papel, chat.idioma) : null;
   chat.trato = tratoDeFicha(tablas, personaDeLaCuenta(data, chat.userId, chat.papel));
-  const ficha = fichaBase && !esDeFuera(chat.papel) ? { ...fichaBase, delDia: [lineaDelTrato(chat.trato), fichaBase.delDia].filter(Boolean).join("\n") } : fichaBase;
+  // Si pidió afinar, la siguiente pregunta del catálogo (trozo 17, siguientePregunta.js); sin la ficha v2, ninguna.
+  const afinar = lineaDeAfinar(estadosDeLaFicha(tablas), chat.trato);
+  const ficha = fichaBase && !esDeFuera(chat.papel) ? { ...fichaBase, delDia: [lineaDelTrato(chat.trato), afinar, fichaBase.delDia].filter(Boolean).join("\n") } : fichaBase;
   let dicho, uso, corregido, medida, promesa, sigueSinGuardar = false;
   const tLola = Date.now();
   // La pista del enrutador (api/_bot/pista.js). `progreso` lo rellena Lola
