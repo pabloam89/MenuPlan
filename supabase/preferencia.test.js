@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { EJES } from "../src/data/axisRegistry.js";
 import { MOTIVOS_SIN_HACER_PREFERENCIA } from "../src/lib/vocabularios.js";
+import { MAX_PREFERENCIAS_OPERACION, ORIGEN_PREFERENCIA_POR_DEFECTO } from "../src/lib/operaciones/tuberia.js";
 
 /**
  * La 0109 (plan fichas con estado, trozo 14): preferencia, plan_preferencias, senal, registro_eje y los historiales,
@@ -63,6 +64,15 @@ describe("0109: preferencias, señales e historiales", () => {
     const tope = (texto, nombre) => Number(texto.match(new RegExp(String.raw`${nombre} constant integer := (\d+);`))?.[1]);
     expect(tope(cuerpo("escribir_preferencias"), "c_max")).toBe(tope(de0115, "c_max_datos"));
     expect(tope(de0115, "c_max_datos")).toBeGreaterThan(0);
+  });
+
+  it("el tope de una operación es el de la tubería (MAX_PREFERENCIAS_OPERACION): lo que no cabe se dice antes de llegar", () => {
+    expect(cuerpo("escribir_preferencias")).toContain(`c_max constant integer := ${MAX_PREFERENCIAS_OPERACION};`);
+  });
+
+  it("el origen de una preferencia que no lo trae es el mismo en la puerta (tubería) y en la base", () => {
+    expect(cuerpo("escribir_preferencias")).toContain(`v_nueva.origen := coalesce(v_nueva.origen, '${ORIGEN_PREFERENCIA_POR_DEFECTO}');`);
+    expect(ORIGEN_PREFERENCIA_POR_DEFECTO).toBe("dicho");
   });
 
   it("los motivos de sin_hacer son MOTIVOS_SIN_HACER_PREFERENCIA, y nada más", () => {

@@ -26,7 +26,7 @@
  */
 import { operacionDeDato, cabeceraDeOperacion, hay, resultadoDeOperacion, apuntarSinGuardar, DatoInvalido, campoDelPedido } from "../escribirDato.js";
 import { comprobar, falloDePuerta } from "./puerta.js";
-import { ESTADO_OPERACION, FALLO_DATO, CANAL_DATO } from "../vocabularios.js";
+import { ESTADO_OPERACION, FALLO_DATO, CANAL_DATO, ORIGENES_DE_LA_FAMILIA } from "../vocabularios.js";
 
 /** La RPC que escribe toda operación (0106). */
 export const RPC_OPERACION = "aplicar_operacion";
@@ -141,6 +141,67 @@ export async function operarPersonas(pedido, { papel, rpc, falloDeError }) {
     return { guardado: false, fallo, error: contra.motivo };
   }
   const { r, fallo } = await llamarRpc(RPC_PERSONA, { p_operacion: op }, { rpc, falloDeError, canal: op.canal, campo });
+  return fallo ? { guardado: false, fallo } : resultadoDeOperacion(r);
+}
+
+/** La RPC que escribe preferencias y sus conjuntos (0109, trozo 14). */
+export const RPC_PREFERENCIAS = "escribir_preferencias";
+/** La RPC que lee las preferencias de una casa (0109): solo lee. La usan Lola y la app (PR siguientes del trozo 14). */
+export const RPC_LEER_PREFERENCIAS = "preferencias_de_casa";
+/** Lo que se añade a la clave de una operación de preferencias: comparte las claves de la casa con las demás. */
+export const SUFIJO_CLAVE_PREFERENCIAS = ":preferencias";
+/** Cuántas preferencias y conjuntos admite una operación: el tope de escribir_preferencias (`c_max` en la 0109). */
+export const MAX_PREFERENCIAS_OPERACION = 400;
+/** El origen de una preferencia que no lo trae: lo dice la familia (el `coalesce` de escribir_preferencias, 0109; preferencia.test.js los compara). */
+export const ORIGEN_PREFERENCIA_POR_DEFECTO = ORIGENES_DE_LA_FAMILIA[0];
+
+/**
+ * Pura. Entender un cambio de preferencias (la libreta: cambiosDeLibreta, preferencias.js): la operación que espera
+ * escribir_preferencias (0109: p_operacion), con la cabecera de siempre. Lanza DatoInvalido.
+ */
+export function operacionDePreferencias({ preferencias, planes, ...pedido }) {
+  const cabecera = cabeceraDeOperacion(pedido);
+  const lista = preferencias ?? [];
+  if (!Array.isArray(lista) || (planes !== undefined && !Array.isArray(planes))) throw new DatoInvalido("preferencias y planes son listas");
+  const total = lista.length + (planes ?? []).length;
+  if (total === 0) throw new DatoInvalido("nada que escribir");
+  if (total > MAX_PREFERENCIAS_OPERACION) throw new DatoInvalido(`${total} preferencias, más de ${MAX_PREFERENCIAS_OPERACION} en una operación`);
+  if (lista.some((p) => !p || typeof p !== "object" || ((p.borrar || p.rechazar) && !hay(p.id)))) throw new DatoInvalido("borrar o rechazar una preferencia lleva su id");
+  return {
+    ...cabecera,
+    clave: `${cabecera.clave}${SUFIJO_CLAVE_PREFERENCIAS}`,
+    preferencias: lista,
+    ...(planes !== undefined ? { planes } : {}),
+  };
+}
+
+/**
+ * Un cambio de preferencias por la tubería entera: entender, la puerta (la misma que la de un dato: papel, quién
+ * habla y que lo supuesto o visto lo ponga el sistema o Lola, nunca una pantalla) y escribir_preferencias (0109) en
+ * una transacción. Nunca lanza por un fallo de la base: devuelve { guardado: false, fallo } y lo apunta en el log
+ * (sin la RPC, `rpc_ausente`: no se guarda en ningún otro sitio). Lo que para la puerta queda en el log.
+ * @param {Parameters<typeof operacionDePreferencias>[0]} pedido
+ * @param {Parameters<typeof operar>[1]} servidor
+ */
+export async function operarPreferencias(pedido, { papel, rpc, falloDeError }) {
+  const campo = "preferencia";
+  let op;
+  try {
+    op = operacionDePreferencias(pedido);
+  } catch (e) {
+    if (!(e instanceof DatoInvalido)) throw e;
+    apuntarSinGuardar({ fallo: e.fallo, canal: pedido?.canal ?? null, campo });
+    return { guardado: false, fallo: e.fallo, error: e.message };
+  }
+  // Borrar o rechazar lo dice quien habla (dicho); crear o cambiar, con su origen (dicho si no lo trae, como la base).
+  const datos = op.preferencias.map((p) => ({ campo: null, persona_id: p.persona_id ?? null, origen: p.borrar || p.rechazar ? ORIGEN_PREFERENCIA_POR_DEFECTO : p.origen ?? ORIGEN_PREFERENCIA_POR_DEFECTO }));
+  const contra = comprobar({ canal: op.canal, autor_user_id: op.autor_user_id, datos }, { papel });
+  if (contra) {
+    const fallo = falloDePuerta(contra.motivo);
+    apuntarSinGuardar({ fallo, motivo: contra.motivo, canal: op.canal, campo });
+    return { guardado: false, fallo, error: contra.motivo };
+  }
+  const { r, fallo } = await llamarRpc(RPC_PREFERENCIAS, { p_operacion: op }, { rpc, falloDeError, canal: op.canal, campo });
   return fallo ? { guardado: false, fallo } : resultadoDeOperacion(r);
 }
 
