@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { readFileSync } from "node:fs";
 
 import { PREFERENCIAS_SISTEMA, PREFERENCIA_DEL_SISTEMA, FORMAS_REGLA, AMBITOS_REGLA, MOTIVOS_ESCRITA, RELAJABLES, rompe } from "./preferenciasSistema.js";
 import { FUERZAS_PREFERENCIA, ORIGEN_DATO } from "./vocabularios.js";
@@ -9,11 +10,9 @@ import { filterRecipes } from "../utils/filterRecipes.js";
 import {
   validateMenu, splitAchievableFreqs, huecoDe, UNARIAS, NO_REPETIR, FREQ_KEY_MATCHERS, CORRECTABLE_HEALTH_PROFILES,
 } from "../utils/validateMenu.js";
+import { CIFRAS } from "../../scripts/lib/cifrasModelo.js";
 
 // Las reglas del validador como preferencias del sistema (trozo 32 de #1037).
-
-/** Las reglas que siguen escritas en validateMenu.js el 2 nov 2026. La cifra solo baja: al pasar una a preferencia, se baja aquí. */
-const ESCRITAS_HOY = 18;
 
 describe("cada regla del validador, declarada una vez como preferencia del sistema", () => {
   it("con casa *, origen derivado, una fuerza, y su forma de lista cerrada", () => {
@@ -29,14 +28,20 @@ describe("cada regla del validador, declarada una vez como preferencia del siste
     }
   });
 
-  it("las tablas de validateMenu están todas, y cada unaria es una preferencia de su hueco", () => {
-    for (const r of [...UNARIAS, ...NO_REPETIR]) expect(PREFERENCIA_DEL_SISTEMA[r.rule], r.rule).toBeTruthy();
+  it("las reglas que escribe validateMenu.js son las declaradas, ni una más ni una menos", () => {
+    // Los ids viven en validateMenu.js (cada `rule: "…"`) y en la declaración: se comparan las dos listas enteras.
+    const texto = readFileSync(new URL("../utils/validateMenu.js", import.meta.url), "utf8");
+    const emitidas = [...new Set([...texto.matchAll(/\brule: "([A-Za-z_]+)"/g)].map((m) => m[1]))].sort();
+    expect(emitidas).toEqual(PREFERENCIAS_SISTEMA.map((p) => p.id).sort());
     for (const u of UNARIAS) expect(PREFERENCIA_DEL_SISTEMA[u.rule]).toMatchObject({ forma: "preferencia", ambito: "hueco" });
+    for (const r of NO_REPETIR) expect(PREFERENCIA_DEL_SISTEMA[r.rule]).toMatchObject({ forma: "escrita", motivo: "entre_platos" });
   });
 
-  it("las escritas no suben de la cifra de hoy", () => {
+  it("las escritas no suben de la línea base de su cifra (reglas_fuera_de_preferencias, que solo baja)", () => {
+    const cifra = CIFRAS.find((c) => c.id === "reglas_fuera_de_preferencias");
     const escritas = PREFERENCIAS_SISTEMA.filter((p) => p.forma === "escrita").length;
-    expect(escritas).toBeLessThanOrEqual(ESCRITAS_HOY);
+    expect(cifra.medir()).toEqual({ valor: escritas, de: PREFERENCIAS_SISTEMA.length });
+    expect(escritas).toBeLessThanOrEqual(cifra.base.valor);
   });
 
   it("las relajables del solver son las que no son obligatorias, y son las cuatro de siempre", () => {
