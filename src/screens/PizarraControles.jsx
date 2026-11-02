@@ -2,8 +2,8 @@ import { useContext, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { HuecosVivosContext } from "../lib/huecosVivos.js";
 import {
-  Apple, ArrowRight, BarChart3, Check, ChevronRight, Coffee, CookingPot, Eraser,
-  Heart, IceCream, Minus, Moon, Package, Plus, Salad, Search, Share2, Sparkles, Sun, X,
+  Apple, ArrowRight, BarChart3, Check, ChevronRight, Coffee, CookingPot,
+  IceCream, Minus, Moon, Package, Plus, Salad, Search, Sparkles, Sun, X,
 } from "../components/icons.jsx";
 import { ingredientImageSrc, ingredientThumbSrc } from "../lib/ingredientImages.js";
 import { normalizePantryInput } from "../utils/normalizePantryInput.js";
@@ -521,9 +521,7 @@ function BaldosaMando({ Icon, label, color, tinte, onClick, badge = null, orden 
         "--d": `${orden * 55}ms`,
         // Caben CUATRO, siempre cuatro. Antes se repartían el ancho que
         // hubiera, así que cada baldosa que se añadía encogía a todas las
-        // demás y con cinco ya se leían apretadas. Ahora la quinta no encoge
-        // a nadie: se sale por el borde y la fila hace scroll, que además
-        // asoma media baldosa y dice que hay más.
+        // demás y con cinco ya se leían apretadas.
         //
         // El gap de 2px entre cuatro son 6px que hay que descontar.
         flex: "0 0 auto", width: "calc((100% - 6px) / 4)", minWidth: 0,
@@ -1787,14 +1785,8 @@ const TITULOS = {
 export function PizarraControles({
   data, setData, menuPlan, groups, onRellenar,
   despensa, onAddDespensa, onQuitarDespensa, onQtyDespensa,
-  onNuevaPizarra, onVaciar, onFavorito, esFavorito = false,
-  onCompartir,
 }) {
   const [abierto, setAbierto] = useState(null);
-  // Qué cara de la fila se ve. Arranca en las ACCIONES porque «Rellenar»
-  // vive ahí y es lo que más se toca en un tablero recién montado.
-  const [cara, setCara] = useState("acciones");
-  const [confirmarVaciar, setConfirmarVaciar] = useState(false);
   const todayIdx = useMemo(() => todayDayIdx(), []);
 
   const diasDe = (offset) => diasDeSemana(data, offset, todayIdx);
@@ -1854,242 +1846,58 @@ export function PizarraControles({
         .mp-despensa-input::placeholder { font-size: 13px; font-weight: 600; color: #9aa8a0; opacity: 1; }
       `}</style>
 
-      {/* ── Dos caras de la misma fila ───────────────────────────────────
-          Lo que HACES con el tablero (rellenar, empezar otro, vaciarlo,
-          guardarlo) y lo que lo AJUSTA (balance, despensa, batch) nunca se
-          necesitan a la vez: o estás montando la semana o estás haciendo algo
-          con ella. Mismo gesto que la fila del menú generado (ControlRow): una
-          pestaña fija a la izquierda, y al tocarla una cara se pliega mientras
-          la otra crece. Se anima el reparto (`flex-grow`) y NO se desmonta
-          ninguna: montarlas al vuelo daría el salto a mitad de animación. */}
-      <div style={{ display: "flex", alignItems: "stretch", width: "100%", minWidth: 0 }}>
-        <button
-          type="button"
-          onClick={() => setCara((c) => (c === "acciones" ? "controles" : "acciones"))}
-          aria-label={cara === "acciones" ? "Ver los ajustes" : "Ver las acciones"}
-          style={{
-            flexShrink: 0, width: 38, border: "none", padding: "0 6px", cursor: "pointer",
-            background: "transparent", display: "flex", alignItems: "center",
-            justifyContent: "center", fontFamily: "inherit",
-          }}
-        >
-          <span
-            style={{
-              width: 24, height: 24, borderRadius: 999,
-              background: "var(--pz-linea, rgba(45,90,61,.1))", color: "var(--pz-verde, #2d5a3d)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              // Gira al cambiar de cara: es la única pieza que se queda
-              // quieta, así que es la que tiene que decir que hay otra.
-              transform: cara === "acciones" ? "none" : "rotate(180deg)",
-              transition: "transform .28s cubic-bezier(.2,.9,.3,1)",
-            }}
-          >
-            <ChevronRight size={15} strokeWidth={2.8} />
-          </span>
-        </button>
-
-        {/* Una ventana, y dentro un carril con las DOS caras puestas.
-            Antes se cambiaba desmontando una y montando la otra: la que se iba
-            desaparecía de golpe y la que llegaba entraba a saltos con su
-            cascada de baldosas. Aquí ninguna se desmonta y lo único que se
-            mueve es el carril, así que el cambio es un desplazamiento
-            continuo — que además es lo que el chevron estaba prometiendo.
-
-            `overflow: clip` y no `hidden`: hidden fuerza a que `overflow-y`
-            compute como auto y eso convierte esto en contenedor de scroll (el
-            mismo problema que el shell, documentado en index.css). */}
-        <div style={{ flex: 1, minWidth: 0, overflow: "clip" }}>
-          <div
-            style={{
-              display: "flex", width: "200%",
-              transform: cara === "acciones" ? "translateX(0)" : "translateX(-50%)",
-              transition: "transform .38s cubic-bezier(.22,1,.36,1)",
-            }}
-          >
-            <div
-              // La cara que no se ve no se puede tabular con el tabulador: si
-              // no, el foco se va a baldosas que están fuera de la ventana.
-              inert={cara === "acciones" ? undefined : ""}
-              style={{
-                width: "50%", flexShrink: 0, display: "flex", gap: 2,
-                overflowX: "auto", padding: "8px 8px 6px",
-                scrollbarWidth: "none", WebkitOverflowScrolling: "touch",
-              }}
-            >
-            <>
-              {onRellenar && huecosVacios > 0 && (
-                <BaldosaMando
-                  Icon={Sparkles}
-                  label="Rellenar"
-                  orden={0}
-                  color="#c98a1e"
-                  tinte="#fff"
-                  badge={huecosVacios}
-                  onClick={() => onRellenar({ huecos: huecosVivos })}
-                />
-              )}
-              {/* Aquí vivía una baldosa «Elegir» que ponía el tablero en modo
-                  marcar. Sobraba: marcar es tocar un hueco, y un modo que hay
-                  que encender antes convertía dos toques en tres. */}
-              {onNuevaPizarra && (
-                <BaldosaMando
-                  Icon={Plus}
-                  label="Nueva"
-                  orden={1}
-                  color={TEAL}
-                  tinte="#fff"
-                  onClick={onNuevaPizarra}
-                />
-              )}
-              {onVaciar && (
-                <BaldosaMando
-                  Icon={Eraser}
-                  label="Vaciar"
-                  orden={2}
-                  color="#b45309"
-                  tinte="#fff"
-                  onClick={() => setConfirmarVaciar(true)}
-                />
-              )}
-              {/* La semana entera por un enlace. Va en las ACCIONES y no en los
-                  ajustes porque es algo que HACES con el tablero, como
-                  guardarlo o vaciarlo — no algo que lo configure. */}
-              {onCompartir && (
-                <BaldosaMando
-                  Icon={Share2}
-                  label="Compartir"
-                  orden={3}
-                  color="#2f7d8c"
-                  tinte="#fff"
-                  onClick={onCompartir}
-                />
-              )}
-              {onFavorito && (
-                <BaldosaMando
-                  Icon={Heart}
-                  label={esFavorito ? "Guardada" : "Favorito"}
-                  orden={4}
-                  color="#e0405a"
-                  tinte="#fff"
-                  onClick={onFavorito}
-                />
-              )}
-            </>
-            </div>
-            <div
-              inert={cara === "controles" ? undefined : ""}
-              style={{
-                width: "50%", flexShrink: 0, display: "flex", gap: 2,
-                overflowX: "auto", padding: "8px 8px 6px",
-                scrollbarWidth: "none", WebkitOverflowScrolling: "touch",
-              }}
-            >
-            <>
-              <BaldosaMando
-                Icon={BarChart3}
-                label="Balance"
-                orden={0}
-                color="#7a5aa8"
-                tinte="#fff"
-                onClick={() => setAbierto("balance")}
-              />
-              {/* Lo que tienes en casa. Estuvo un rato saliendo solo al ir a
-                  rellenar: era el único momento en que importaba, pero también
-                  el peor, porque te paraba un gesto que ya habías empezado.
-                  Aquí es un sitio al que vas cuando quieres, no un peaje. */}
-              {onAddDespensa && (
-                <BaldosaMando
-                  Icon={Package}
-                  label="En casa"
-                  orden={1}
-                  color="#3f9656"
-                  tinte="#fff"
-                  badge={enDespensa > 0 ? enDespensa : null}
-                  onClick={() => setAbierto("despensa")}
-                />
-              )}
-              {/* "Batch" y no "Batch Cooking": la etiqueta son 55px, y el
-                  título entero está en el panel que abre. */}
-              <BaldosaMando
-                Icon={CookingPot}
-                label="Batch"
-                orden={2}
-                color={NARANJA}
-                tinte="#fff"
-                apagada={!hayTanda}
-                badge={hayTanda ? piezasTanda : null}
-                onClick={() => hayTanda && setAbierto("tanda")}
-              />
-            </>
-            </div>
-          </div>
-        </div>
+      {/* Una sola fila y siempre a la vista: rellenar y lo que ajusta el
+          tablero. Lo que se hace CON el tablero (nueva, vaciar, compartir) vive
+          en el burger de la cabecera, y el favorito en su corazón. Hubo aquí
+          dos caras con una flecha en medio y no se entendía que había otra. */}
+      <div style={{ display: "flex", gap: "var(--esp-2)", width: "100%", minWidth: 0, padding: "8px 8px 6px" }}>
+        {onRellenar && huecosVacios > 0 && (
+          <BaldosaMando
+            Icon={Sparkles}
+            label="Rellenar"
+            orden={0}
+            color="#c98a1e"
+            tinte="#fff"
+            badge={huecosVacios}
+            onClick={() => onRellenar({ huecos: huecosVivos })}
+          />
+        )}
+        {/* Lo que tienes en casa. Estuvo un rato saliendo solo al ir a
+            rellenar: era el único momento en que importaba, pero también
+            el peor, porque te paraba un gesto que ya habías empezado.
+            Aquí es un sitio al que vas cuando quieres, no un peaje. */}
+        {onAddDespensa && (
+          <BaldosaMando
+            Icon={Package}
+            label="En casa"
+            orden={1}
+            color="#3f9656"
+            tinte="#fff"
+            badge={enDespensa > 0 ? enDespensa : null}
+            onClick={() => setAbierto("despensa")}
+          />
+        )}
+        <BaldosaMando
+          Icon={BarChart3}
+          label="Balance"
+          orden={2}
+          color="#7a5aa8"
+          tinte="#fff"
+          onClick={() => setAbierto("balance")}
+        />
+        {/* "Batch" y no "Batch Cooking": la etiqueta son 55px, y el
+            título entero está en el panel que abre. */}
+        <BaldosaMando
+          Icon={CookingPot}
+          label="Batch"
+          orden={3}
+          color={NARANJA}
+          tinte="#fff"
+          apagada={!hayTanda}
+          badge={hayTanda ? piezasTanda : null}
+          onClick={() => hayTanda && setAbierto("tanda")}
+        />
       </div>
-
-      {/* Vaciar sí pregunta: se lleva por delante todo lo que has puesto y no
-          hay deshacer. Los huecos NO se tocan —el tablero que decidiste en el
-          arranque se queda— así que lo que se confirma es solo perder los
-          platos. */}
-      {/* ── La despensa, al ir a rellenar ─────────────────────────────────
-          Rellenar tira siempre de lo que tienes, así que antes de hacerlo se
-          enseña: apuntas lo que falte y le das. Por portal, como los paneles
-          (un ancestro animado atraparía el `fixed`). */}
-      {confirmarVaciar && createPortal(
-        <div
-          onClick={() => setConfirmarVaciar(false)}
-          className="mp-overlay-in"
-          style={{
-            position: "fixed", inset: 0, zIndex: 300,
-            background: "rgba(20,47,29,.45)",
-            display: "flex", alignItems: "center", justifyContent: "center", padding: 24,
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            role="dialog"
-            aria-modal="true"
-            style={{
-              width: "min(300px, 100%)", background: "#fff", borderRadius: 20,
-              padding: 18, boxSizing: "border-box",
-              boxShadow: "0 24px 60px -18px rgba(20,47,29,.45)",
-            }}
-          >
-            <p style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 900, color: INK }}>
-              ¿Vaciar la pizarra?
-            </p>
-            <p style={{ margin: "0 0 16px", fontSize: 12.5, fontWeight: 600, color: "#7a9485", lineHeight: 1.45 }}>
-              Se quitan los platos. Los huecos se quedan como están.
-            </p>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button
-                type="button"
-                className="mp-press"
-                onClick={() => setConfirmarVaciar(false)}
-                style={{
-                  flex: 1, height: 40, borderRadius: 13, cursor: "pointer",
-                  border: "1.5px solid #dbe7df", background: "#fff",
-                  color: "#5a7066", fontSize: 13.5, fontWeight: 800, fontFamily: "inherit",
-                }}
-              >
-                Déjalo
-              </button>
-              <button
-                type="button"
-                className="mp-press"
-                onClick={() => { setConfirmarVaciar(false); onVaciar?.(); }}
-                style={{
-                  flex: 1, height: 40, borderRadius: 13, cursor: "pointer",
-                  border: "none", background: "#b45309", color: "#fff",
-                  fontSize: 13.5, fontWeight: 800, fontFamily: "inherit",
-                }}
-              >
-                Vaciar
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body,
-      )}
 
       {/* ── Por PORTAL, y no aquí dentro ──────────────────────────────────
           Estos paneles son `position: fixed` y viven dentro de la franja, que

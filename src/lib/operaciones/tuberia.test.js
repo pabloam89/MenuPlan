@@ -12,11 +12,15 @@ const PEDIDO = {
 };
 const HECHA = { operacion_id: "op1", estado: ESTADO_OPERACION.HECHA, repetida: false, hecho: [{ campo: "sexo", persona_id: "p1", sobre_id: "s1" }], sin_hacer: [], choques: [], rev: 3 };
 
-function base(responder = () => HECHA) {
+// Lo que contesta preferencias_de_casa (0109) para una casa sin preferencias.
+const CASA_SIN_PREFERENCIAS = { v: 1, preferencias: [], planes: [] };
+
+function base(responder = () => HECHA, leer = () => CASA_SIN_PREFERENCIAS) {
   const llegan = [];
   const rpc = vi.fn(async (funcion, args) => {
     // Leer las preferencias de la casa (choques al guardar, trozo 33) no escribe: no se apunta en `llegan`.
-    if (funcion !== RPC_LEER_PREFERENCIAS) llegan.push({ funcion, op: args.p_operacion });
+    if (funcion === RPC_LEER_PREFERENCIAS) return leer();
+    llegan.push({ funcion, op: args.p_operacion });
     return responder(args.p_operacion, funcion);
   });
   return { llegan, servidor: (papel) => ({ papel, rpc, falloDeError: () => ({ fallo: FALLO_DATO.RPC_AUSENTE, motivo: "no_existe" }) }) };
@@ -290,7 +294,7 @@ describe("tubería: choques al guardar una preferencia (trozo 33)", () => {
     casa: CASA, clave: "tg:9", accion: "ajustar_menu", canal: CANAL_DATO.TELEGRAM,
     ref: { tipo: REF_OPERACION.MENSAJE, id: "9" }, autor: { user_id: "u1" }, pedida_at: "2026-11-02T10:00:00Z", preferencias, ...extra,
   });
-  const conGuardadas = (guardadas) => base((op, funcion) => (funcion === RPC_LEER_PREFERENCIAS ? { v: 1, preferencias: guardadas, planes: [] } : HECHA));
+  const conGuardadas = (guardadas) => base(undefined, () => ({ ...CASA_SIN_PREFERENCIAS, preferencias: guardadas }));
   const contar = () => vi.spyOn(console, "log").mockImplementation(() => {});
 
   it("la misma persona cambia de idea: se escribe lo nuevo, se borra lo viejo en la misma operación, y el choque va con ella", async () => {
@@ -325,8 +329,16 @@ describe("tubería: choques al guardar una preferencia (trozo 33)", () => {
 
   it("sin poder leer lo que tiene la casa no se escribe (no se sabe con qué choca)", async () => {
     silenciar();
-    const { llegan, servidor } = base((op, funcion) => { if (funcion === RPC_LEER_PREFERENCIAS) throw new Error("PGRST202"); return HECHA; });
+    const { llegan, servidor } = base(undefined, () => { throw new Error("PGRST202"); });
     expect(await operarPreferencias(pedido([MAS]), servidor("owner"))).toEqual({ guardado: false, fallo: FALLO_DATO.RPC_AUSENTE });
     expect(llegan).toEqual([]);
+  });
+
+  it.each([[null], [{}], [{ v: 2, preferencias: [] }], [{ v: 1, preferencias: null }]])("una lectura sin la forma v1 (%j) no es una casa sin preferencias: no se escribe", async (leida) => {
+    const log = silenciar();
+    const { llegan, servidor } = base(undefined, () => leida);
+    expect(await operarPreferencias(pedido([MAS]), servidor("owner"))).toEqual({ guardado: false, fallo: FALLO_DATO.SERVIDOR });
+    expect(llegan).toEqual([]);
+    expect(lineas(log)).toEqual([{ evento: "dato_sin_guardar", fallo: FALLO_DATO.SERVIDOR, motivo: null, canal: "telegram", campo: "preferencia" }]);
   });
 });
