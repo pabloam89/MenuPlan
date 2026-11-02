@@ -13,7 +13,7 @@
  */
 import { rpc } from "./db.js";
 import { motivoDe } from "./avisar.js";
-import { operar, operarPersonas, operarPreferencias, deshacer } from "../../src/lib/operaciones/tuberia.js";
+import { operar, operarPersonas, operarPreferencias, deshacer, RPC_LEER_PREFERENCIAS } from "../../src/lib/operaciones/tuberia.js";
 import { membersDeFilas, FamiliaSinLeer, RPC_FAMILIA } from "../../src/lib/personas.js";
 import { FALLO_DATO, MOTIVO_FALLO, CANAL_DATO } from "../../src/lib/vocabularios.js";
 import { FICHA_CON_ESTADO, fichaSinContrato, leidosConSobre, FICHAS_CASA_CON_SOBRE } from "../../src/lib/estadoDeDato.js";
@@ -61,9 +61,6 @@ export const escribirPersonas = (pedido, { papel }) => operarPersonas(pedido, { 
  * @param {{ papel: string|null }} quien  el papel en la casa del autor, o null si no es de ella
  */
 export const escribirPreferencias = (pedido, { papel }) => operarPreferencias(pedido, { papel, rpc, falloDeError });
-
-/** La RPC que lee las preferencias de una casa (0109). */
-export const RPC_LEER_PREFERENCIAS = "preferencias_de_casa";
 
 /**
  * Las preferencias de una casa, en filas (preferencias_de_casa, 0109): { preferencias, planes }. null si la base
