@@ -83,6 +83,7 @@ const NO_ES_LISTA = {
   "registro_campo.registro_campo_enum_lista_check": "ata tipo y vocabulario; la lista de tipo es registro_campo_tipo_vocabulario",
   "registro_campo.registro_campo_rango_numerico": "ata minimo/maximo y tipo; la lista de tipo es registro_campo_tipo_vocabulario",
   "operacion.operacion_ejecutada": "ata estado y ejecutada_at (PRINCIPIOS §21); la lista de estado es operacion_estado_vocabulario",
+  "preferencia.preferencia_tope": "ata operador y cantidad (un tope o un mínimo lleva su cantidad); la lista de operador es preferencia_operador_vocabulario",
 };
 
 /** Las migraciones en orden, para checksDeLista; `aplicadas` quita las de «Sin aplicar» de supabase/ESTADO.md. */

@@ -36,15 +36,13 @@ describe("Datos → Valores, Ejes y la libreta", () => {
     }
   });
 
-  it("cada campo de la libreta es un dato de la ficha Preferencia, con su eje o con por qué no lo tiene", () => {
+  it("cada campo de la libreta es un dato de la ficha Preferencia, con su eje (una preferencia lleva siempre el suyo, 0109)", () => {
     expect(Object.keys(DATOS_PREFERENCIA)).toEqual(CAMPOS_LIBRETA.map((c) => c.id));
     for (const c of CAMPOS_LIBRETA) {
       expect(DATOS_PREFERENCIA[c.id].ficha, c.id).toBe(FICHA.PREFERENCIA);
       expect(DATOS_PREFERENCIA[c.id].eje, c.id).toBe(c.eje);
-      // Sin eje solo con su motivo; con eje, el motivo sobra.
-      expect(c.eje === null, `${c.id}: eje null ⇔ sinEje`).toBe(Boolean(c.sinEje));
+      expect(EJE_POR_ID.has(c.eje), `${c.id}: su eje «${c.eje}» no está en axisRegistry.js`).toBe(true);
     }
-    expect(CAMPOS_LIBRETA.some((c) => c.eje !== null), "ningún campo de la libreta apunta a un eje").toBe(true);
   });
 });
 

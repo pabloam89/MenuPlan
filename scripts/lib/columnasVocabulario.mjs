@@ -61,6 +61,23 @@ export const COLUMNAS_VOCABULARIO = Object.freeze({
   "operacion.estado": { lista: "estados_operacion", comun: true },
   // El tipo de grupo (0108): lo escribe solo escribir_persona, desde el jsonb que le pasa la tubería (src/lib/operaciones/).
   "grupo.tipo": { lista: "tipos_grupo", comun: true },
+  // La preferencia (0109, trozo 14): la escribe solo escribir_preferencias, desde el jsonb que le pasa la tubería; los
+  // historiales, el trozo 22; registro_eje, las migraciones. Comunes: son también claves de la libreta y del plan.
+  "registro_eje.tipo": { lista: "tipos_eje", comun: true },
+  "preferencia.nivel": { lista: "niveles_preferencia", comun: true },
+  "preferencia.medida": { lista: "medidas_preferencia", comun: true },
+  "preferencia.operador": { lista: "operadores_preferencia", comun: true },
+  "preferencia.fuerza": { lista: "fuerzas_preferencia", comun: true },
+  "preferencia.origen": { lista: "origen_dato", comun: true },
+  "preferencia.canal": { lista: "canales_dato", comun: true },
+  "preferencia.dias": { lista: "dias", comun: true },
+  "preferencia.salvo_dias": { lista: "dias", comun: true },
+  "preferencia.comidas": { lista: "comidas", comun: true },
+  "preferencia.salvo_comidas": { lista: "comidas", comun: true },
+  "precio_observado.fuente": { lista: "fuentes_precio", comun: true },
+  "precio_observado.tipo": { lista: "tipos_linea_ticket", comun: true },
+  "cocinado.dia": { lista: "dias", comun: true },
+  "cocinado.comida": { lista: "comidas", comun: true },
 });
 
 /**
@@ -86,5 +103,10 @@ export const ESCRITORES_SQL = Object.freeze({
   "operacion.canal": "aplicar_operacion (0106) inserta el canal de p_operacion; su único llamador es escribirDato (api/_bot/datos.js, trozo 8), que lo pasa por paraEscribir (src/lib/escribirDato.js); escribir_persona (0108) inserta el de su operación, que le pasa la tubería (src/lib/operaciones/)",
   "operacion.ref_tipo": "aplicar_operacion (0106) inserta el ref_tipo de p_operacion; su único llamador es escribirDato (api/_bot/datos.js, trozo 8), que lo pasa por paraEscribir (src/lib/escribirDato.js); escribir_persona (0108) inserta el de su operación, que le pasa la tubería (src/lib/operaciones/)",
   "grupo.tipo": "escribir_persona (0108) inserta el tipo de cada grupo de su operación; se lo pasa la tubería (src/lib/operaciones/), que lo saca de data.groups ya escrito por groups.js con TIPOS_GRUPO",
-  "operacion.estado": "aplicar_operacion (0106) escribe pendiente, hecha o rechazada (de ESTADOS_OPERACION; datoConSobre.test.js lo comprueba), y escribir_persona (0108) pendiente y hecha (personaFuente.test.js); ningún JS escribe la tabla",
+  "operacion.estado": "aplicar_operacion (0106) escribe pendiente, hecha o rechazada (de ESTADOS_OPERACION; datoConSobre.test.js lo comprueba), y escribir_persona (0108) y escribir_preferencias (0109) pendiente y hecha (personaFuente.test.js, preferencia.test.js); ningún JS escribe la tabla",
+  "registro_eje.tipo": "el INSERT de la 0109, generado de EJES (axisRegistry.test.js comprueba que cada tipo está en TIPOS_EJE; preferencia.test.js, que el INSERT es EJES); ningún JS escribe la tabla",
+  "precio_observado.fuente": "solo la autoprueba de la 0109, que se deshace siempre, con un valor de FUENTES_PRECIO; la escribirá el trozo 22",
+  "precio_observado.tipo": "solo la autoprueba de la 0109, que se deshace siempre, con un valor de TIPOS_LINEA_TICKET; la escribirá el trozo 22",
+  "cocinado.dia": "solo la autoprueba de la 0109, que se deshace siempre, con un día de DIAS; la escribirá el trozo 22",
+  "cocinado.comida": "solo la autoprueba de la 0109, que se deshace siempre, con una comida de COMIDAS; la escribirá el trozo 22",
 });
