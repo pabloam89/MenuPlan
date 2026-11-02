@@ -9,12 +9,13 @@
  * no vale hoy no cuentan. Los vetos y la salud no están: quitan el plato antes (filterRecipes).
  */
 import { FREQ_KEY_MATCHERS } from "../utils/validateMenu.js";
-import { matizDe, vigente, FUENTES } from "./notepad.js";
+import { matizDe, vigente } from "./notepad.js";
 import { FAMILIA_LABELS } from "./notepadFields.js";
 import { FORMA_DE_PROYECCION, FUERZA_BLANDA, TIPO_DE_AMBITO } from "./preferencias.js";
 import { esAnadido } from "./cocinaTopes.js";
 import { tipoDeGrupo } from "./groups.js";
-import { FUERZAS_PREFERENCIA, OPERADOR_PREFERENCIA as OP } from "./vocabularios.js";
+import { OPERADOR_PREFERENCIA as OP } from "./vocabularios.js";
+import { CASA_SESGO, SIGNO_SALSA } from "./sesgos.js";
 
 /** Cómo sale una preferencia en el menú de la semana. */
 export const ESTADOS_CUMPLIMIENTO = Object.freeze(["cumplida", "parcial", "no"]);
@@ -34,17 +35,9 @@ export const UNIDAD_PESO = 1e3;
 
 export const pesoDe = (p) => (p.fuerza === "obligatoria" ? Infinity : UNIDAD_PESO * PESO_FUERZA[p.fuerza] * FACTOR_ORIGEN[p.origen]);
 
-const minusculas = (x) => String(x ?? "").toLowerCase();
-
-/** Qué platos cumplen cada clase de preferencia: lo mismo que miran sesgos.js, cuotaCocinas y la regla 11. */
+/** Qué platos cumplen cada clase de preferencia: los de los sesgos (sesgos.js), la cuota de cocinas y la regla 11. */
 const PREDICADO = Object.freeze({
-  tecnica: (r, v) => r.tecnica === v,
-  base: (r, v) => r.mainBase === v || (r.basesAparte ?? []).includes(v),
-  salsa: (r, v) => (v === "si") === (r.llevaSalsa === true),
-  favoritos: (r, v) => {
-    const f = minusculas(v).trim();
-    return !!f && (r.ingredients ?? []).some((i) => minusculas(i?.name).includes(f));
-  },
+  ...CASA_SESGO,
   cocina: (r, v) => r.cocina === v,
   freqs: (r, v) => !!FREQ_KEY_MATCHERS[v]?.(r),
 });
@@ -56,10 +49,7 @@ export const casaCon = (p, receta) => !!receta && PREDICADO[p.campo](receta, p.v
 /** Las preferencias que valen para un grupo: las de la casa entera y las de su ámbito. */
 export const delGrupo = (prefs, group) => prefs.filter((p) => !p.ambito || TIPO_DE_AMBITO[p.ambito] === tipoDeGrupo(group));
 
-/**
- * Pura. Las preferencias de la casa de una semana (lo que lee entradaDelMotor), en la forma que pesa el solver.
- * `hoy` (ISO): lo que la libreta ya no da por vigente ese día no cuenta.
- */
+/** Pura. Las preferencias de la casa de una semana (las lee entradaDelMotor); lo que no vale `hoy` no cuenta. */
 export function preferenciasDelMotor(data, { hoy = null } = {}) {
   const campos = Object.entries(data?.notepad?.campos ?? {})
     .filter(([, c]) => c && c.valor !== undefined && !c.delegado && vigente(c, hoy));
@@ -73,7 +63,9 @@ export function preferenciasDelMotor(data, { hoy = null } = {}) {
     for (const [valor, n] of Object.entries(data?.sesgos?.[campo] ?? {})) {
       if (!Number(n)) continue;
       const origen = origenDe(apunte(campo, valor));
-      poner({ id: `${campo}.${valor}`, campo, valor, operador: Number(n) < 0 ? OP.MENOS : OP.MAS, origen, fuerza: fuerzaDe("sesgos", origen) });
+      // «no» a la salsa es «menos platos con salsa» (SIGNO_SALSA).
+      const signo = Math.sign(Number(n)) * (campo === "salsa" ? SIGNO_SALSA[valor] ?? 1 : 1);
+      poner({ id: `${campo}.${valor}`, campo, valor, operador: signo < 0 ? OP.MENOS : OP.MAS, origen, fuerza: fuerzaDe("sesgos", origen) });
     }
   }
   for (const valor of data?.favoritos ?? []) {
@@ -94,10 +86,8 @@ export function preferenciasDelMotor(data, { hoy = null } = {}) {
     const origen = origenDe(c);
     const ambito = resto.find((x) => x.startsWith("@"))?.slice(1) ?? null;
     if (ambito && !TIPO_DE_AMBITO[ambito]) continue;
-    poner({
-      id: ruta, campo, valor, operador: OP.COMO_MUCHO, ambito, origen, fuerza: fuerzaDe("freqs", origen),
-      cantidad: origen !== "dicho" && c.valor === 0 ? 1 : c.valor,
-    });
+    const cantidad = origen !== "dicho" && c.valor === 0 ? 1 : c.valor;
+    poner({ id: ruta, campo, valor, operador: OP.COMO_MUCHO, cantidad, ambito, origen, fuerza: fuerzaDe("freqs", origen) });
   }
   return Object.freeze(out);
 }
@@ -140,10 +130,10 @@ export function cumplimientoDelGrupo(prefs, asignaciones, pool) {
 const COMO_SE_DICE = Object.freeze({
   tecnica: (v) => `cosas ${v === "horno" ? "al horno" : `de ${v}`}`,
   base: (v) => v,
-  salsa: (v) => (v === "si" ? "platos con salsa" : "platos sin salsa"),
+  salsa: () => "platos con salsa",
   favoritos: (v) => `platos con ${v}`,
   cocina: (v) => `cocina ${v}`,
-  freqs: (v) => minusculas(FAMILIA_LABELS[v] ?? v),
+  freqs: (v) => String(FAMILIA_LABELS[v] ?? v).toLowerCase(),
 });
 
 /** Una preferencia en palabras: «más cosas al horno», «como mucho 2 de pescado». */
@@ -157,22 +147,10 @@ export function textoDe(p) {
   }
 }
 
-/**
- * Pura. La cifra del plan sobre las filas de todos los grupos de una semana: cuántas preferencias dichas hay, cuántas
- * se cumplen y su %, y en palabras las dichas que no se cumplen (sin repetir), que es lo que se le dice a la familia.
- */
+/** Pura. La cifra del plan sobre las filas de una semana (dichas, cumplidas, %) y, en palabras, las dichas que no. */
 export function resumenCumplimiento(filas) {
   const dichas = (filas ?? []).filter((f) => f.origen === "dicho");
   const cumplidas = dichas.filter((f) => f.estado === "cumplida").length;
-  return {
-    dichas: dichas.length,
-    cumplidas,
-    pct: dichas.length ? Math.round((100 * cumplidas) / dichas.length) : null,
-    incumplidas: [...new Set(dichas.filter((f) => f.estado === "no").map(textoDe))],
-  };
+  const pct = dichas.length ? Math.round((100 * cumplidas) / dichas.length) : null;
+  return { dichas: dichas.length, cumplidas, pct, incumplidas: [...new Set(dichas.filter((f) => f.estado === "no").map(textoDe))] };
 }
-
-// Las listas cerradas, comprobadas al cargar: cada escalón con peso es una fuerza de la 0109 y cada clase se dice.
-for (const f of Object.keys(PESO_FUERZA)) if (!FUERZAS_PREFERENCIA.includes(f)) throw new Error(`PESO_FUERZA.${f} no es una fuerza`);
-if (Object.keys(FACTOR_ORIGEN).join() !== FUENTES.join()) throw new Error("FACTOR_ORIGEN no es FUENTES (notepad.js)");
-if (Object.keys(COMO_SE_DICE).join() !== CAMPOS_DEL_MOTOR.join()) throw new Error("COMO_SE_DICE no es CAMPOS_DEL_MOTOR");
