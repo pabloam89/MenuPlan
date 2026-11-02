@@ -446,14 +446,15 @@ const marcasPendientes = new Map();
  * @param {string} householdId
  * @param {string} menuId
  * @param {string} weekStart
- * @param {{ name: string, unit: string, have: boolean }[]} marcas
+ * @param {{ id?: string, name: string, unit: string, have: boolean }[]} marcas
  * @param {{ version?: object, onError?: () => void }} [opts]
  */
 export function queueMarcarCompra(householdId, menuId, weekStart, marcas, { version = null, onError = null, delay = 1200 } = {}) {
   if (!supabase || !householdId || !menuId || !weekStart || !marcas?.length) return;
   const key = `${householdId}:${menuId}:${weekStart}`;
   const pendiente = marcasPendientes.get(key) ?? { marcas: new Map(), timer: null };
-  for (const m of marcas) pendiente.marcas.set(`${m.name}|${m.unit}`, m);
+  // Por id (el del artículo, compraMarcas.js): un derivado y un añadido a mano con el mismo nombre son dos.
+  for (const m of marcas) pendiente.marcas.set(m.id ?? `${m.name}|${m.unit}`, m);
   clearTimeout(pendiente.timer);
   pendiente.timer = setTimeout(async () => {
     marcasPendientes.delete(key);
