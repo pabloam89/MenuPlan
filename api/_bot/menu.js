@@ -39,6 +39,7 @@ import { etapaDe } from "../../src/lib/stages.js";
 import { vetosDePersona } from "../../src/lib/vetos.js";
 import { alergiasPorSilencio } from "../../src/lib/alergiasBase.js";
 import { anadirArticulos, sonElMismo } from "../../src/lib/compraIdentidad.js";
+import { articulosDe } from "../../src/lib/compraMarcas.js";
 import { estructuraDelGrupo } from "../../src/lib/estructuraPlatos.js";
 import { diasActivosDe } from "../../src/lib/planner.js";
 
@@ -1458,7 +1459,7 @@ export async function leerDespensa(m, householdId) {
  */
 export function rehacerCompra(m, plan, data, gs, anterior, despensa) {
   const lista = m.buildShoppingList(plan, gs, m.getDayMeals(data), despensa ?? []);
-  const nuevos = [...lista.byCategory.flatMap((c) => c.items), ...(lista.pantryItems ?? [])];
+  const nuevos = articulosDe(lista);
   const previos = new Map((anterior?.items ?? []).map((it) => [it.id, it]));
   // En una semana que guarda marcas (trozo 18), lo quitado viaja aparte (`quitados`) y sigue quitado con el plan nuevo.
   const quitados = new Set((anterior?.quitados ?? []).map((q) => q.id));
