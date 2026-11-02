@@ -113,6 +113,8 @@ describe("la libreta como preferencias (0109, trozo 14)", () => {
   it("una fila que no es de la libreta (de una persona, con días, de un conjunto) no entra en ella", () => {
     const base = comoLaBase(filaDeApunte("freqs.pescado", { valor: 2, origen: "texto" }), "x");
     expect(apunteDeFila(base)).not.toBeNull();
+    const sesgo = comoLaBase(filaDeApunte("tecnica.horno", { valor: 2, origen: "texto" }), "y");
+    expect(apunteDeFila({ ...sesgo, cantidad: null }), "un sesgo sin peso no se lee como 0").toBeNull();
     for (const otra of [{ persona_id: "p1" }, { dias: ["Lun"] }, { plan_id: "c1" }, { eje: "kcal" }]) {
       expect(apunteDeFila({ ...base, ...otra }), JSON.stringify(otra)).toBeNull();
     }

@@ -116,7 +116,8 @@ function campoDeFila(fila) {
 
 /**
  * Pura. Una fila de preferencias_de_casa como apunte de la libreta: [ruta, apunte], o null si no es de la libreta
- * (de una persona, de un conjunto, con días o semanas, o de un eje que la libreta no tiene).
+ * (de una persona, de un conjunto, con días o semanas, de un eje que la libreta no tiene, o sin la cantidad que
+ * lleva todo apunte que no es una marca).
  */
 export function apunteDeFila(fila, { grupos } = {}) {
   const campo = campoDeFila(fila);
@@ -128,6 +129,9 @@ export function apunteDeFila(fila, { grupos } = {}) {
     if (!ambito) return null;
   }
   const forma = FORMA_DE_PROYECCION[campo.proyecta];
+  // Sin cantidad (la 0109 la deja nula en una medida «valor» sin peso) no es un apunte de la libreta, que siempre
+  // lleva un número: es de quien escribió la fila (una regla) y se queda en ella, no se lee como 0.
+  if (!forma.marca && (fila.cantidad == null || !Number.isFinite(Number(fila.cantidad)))) return null;
   const valor = forma.marca ? true : forma.sesgo && fila.operador === "menos" ? -Number(fila.cantidad) : Number(fila.cantidad);
   const ruta = [campo.id, valorIdDelEje(fila.valor), ...(ambito ? [`@${ambito}`] : []),
     ...(fila.comidas ? [`#${SERVICIO_DE_COMIDA[fila.comidas[0]]}`] : [])].join(".");
