@@ -104,6 +104,56 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
  },
  {
   "type": "custom",
+  "name": "por_que_plato",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "dia": {
+     "type": "string",
+     "description": "lunes…domingo, «hoy» o «mañana»."
+    },
+    "semana": {
+     "type": "string",
+     "enum": [
+      "esta",
+      "siguiente"
+     ],
+     "description": "Opcional: «esta» semana o la «siguiente», si lo dicen. Sin ella, el próximo día con ese nombre que tenga menú."
+    },
+    "comida": {
+     "type": "string",
+     "enum": [
+      "Desayuno",
+      "Comida",
+      "Merienda",
+      "Cena",
+      "Postre",
+      "Aperitivo"
+     ]
+    },
+    "grupo": {
+     "type": "string",
+     "description": "Opcional: para quién, si no es el menú de toda la familia."
+    },
+    "cual": {
+     "type": "string",
+     "enum": [
+      "primero",
+      "principal"
+     ],
+     "description": "Por defecto el principal."
+    }
+   },
+   "required": [
+    "dia",
+    "comida"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Por qué hay un plato en el menú («¿por qué el martes pescado?», «¿quién ha puesto esto?»): quién lo puso (el menú automático, alguien a mano en la app o tú por el chat), cuándo y, si fue el menú automático, qué preferencias de la casa lo pidieron. Di eso tal cual; no inventes motivos que no traiga."
+ },
+ {
+  "type": "custom",
   "name": "ver_compra",
   "input_schema": {
    "type": "object",

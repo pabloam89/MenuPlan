@@ -148,6 +148,7 @@ const MAPA = [
 
   // ── Recetas ──
   c("buscar_receta", "buscar y filtrar recetas del catálogo", "recetas", "ver", "receta", { app: app("catalogo") }),
+  c("por_que_plato", "preguntar por qué hay un plato en el menú y quién lo puso", "menu", "ver", "menu", { app: app("menu") }),
   c("ver_receta", "ver los ingredientes y pasos de una receta", "recetas", "ver", "receta", { app: app("menu") }),
   c("crear_receta", "crear una receta propia (con su foto)", "recetas", "guardar", "receta", { app: app("crear_receta", { escribe: ["userRecipes"] }) }),
   c("editar_receta", "editar una receta propia", "recetas", "cambiar", "receta", { app: app("crear_receta", { escribe: ["userRecipes"] }) }),
