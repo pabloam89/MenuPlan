@@ -506,7 +506,7 @@ export async function quitarCompra(householdId, { productos = [], manuales = fal
     ...hecho.dudosos.map((d) => ({ que: d.que, motivo: `hay varios parecidos (${d.parecidos.join(", ")}): ¿cuál?` })),
   ];
   if (manuales && !habiaManuales) sinHacer.push({ que: "lo añadido a mano", motivo: "no había nada añadido a mano" });
-  return resultadoDeEscritura({ accion: "compra_quitar", hecho: hecho.quitados, sinHacer, nota: "Lo que sale del menú vuelve si se rehace la compra (al cambiar el menú)." });
+  return resultadoDeEscritura({ accion: "compra_quitar", hecho: hecho.quitados, sinHacer, nota: "Lo quitado no vuelve aunque cambie el menú." });
 }
 
 /** El grupo y el hueco de un día y franja del menú activo, o por qué no hay. */
