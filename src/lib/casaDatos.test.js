@@ -33,6 +33,11 @@ describe("los campos con sobre", () => {
 });
 
 describe("leer los datos de la casa", () => {
+  it("el modo de la despensa también: el dicho de su sobre («off» incluido), o el defecto del registro («only»)", async () => {
+    expect(await leer(servidor({ v: 2, datos: [sobre("pantryMode", "off")] }))).toEqual({ valores: { pantryMode: "off" } });
+    expect(await leer(servidor({ v: 2, datos: [porDefecto("pantryMode", "only")] }))).toEqual({ valores: { pantryMode: "only" } });
+  });
+
   it("con la 0112 aplicada, de su sobre, pidiéndolos a api/operacion.js con la sesión", async () => {
     const fetcher = servidor({ v: 2, datos: [sobre("wantsPriceEstimates", true), sobre("presupuesto", 80)] });
     expect(await leer(fetcher)).toEqual({ valores: { wantsPriceEstimates: true, presupuesto: 80 } });
