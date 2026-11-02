@@ -2,7 +2,7 @@
 // por la tubería (escribir_persona); el documento de la casa ya no lleva members ni groups. Sin la 0108 (plan B),
 // la familia sigue en el documento, como antes; sin poder leerla por otra cosa, la casa no se lee.
 // Y el del trozo 12: los datos de la casa con sobre (CAMPOS_CASA_CON_SOBRE) se leen de ficha_casa v2 y se escriben
-// con escribirDato (aplicar_operacion); sin la 0112, en el documento.
+// con escribirDato (aplicar_operacion); sin poder leerlos (sin la RPC, con la v1, sin alguno), la casa no se lee.
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { conCasa, cargarCasa, olvidarCasa, separarFamilia } from "./casa.js";
 import { conOperacion, ponerAutor, tomarAvisos } from "./operacion.js";
@@ -372,20 +372,20 @@ describe("los datos de la casa con sobre (trozo 12)", () => {
     log.mockRestore();
   });
 
-  it("con la v1 o sin la RPC, del documento y se guarda en él", async () => {
-    for (const ficha of [{ status: 200, cuerpo: { ...FICHA_SIN_TAREAS, v: 1 } }, SIN_RPC(RPC_FICHA)]) {
+  it("con la v1 o sin la RPC, la casa no se lee (ni del documento) y nada se escribe; se dice en el log", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    for (const [ficha, motivo] of [[{ status: 200, cuerpo: { ...FICHA_SIN_TAREAS, v: 1 } }, /la v1/], [SIN_RPC(RPC_FICHA), /./]]) {
       olvidarCasa(CASA);
       llamadas = [];
       conDato(true);
       responde(RUTA_FICHA, ficha);
-      const casa = await cargarCasa(CASA);
-      expect(casa.conSobre).toBeNull();
-      expect(casa.state.data[CAMPO]).toBe(true);
+      await expect(cargarCasa(CASA)).rejects.toThrow(motivo);
       olvidarCasa(CASA);
-      await enTurno(() => cambiarDato(false));
-      expect(escrituras().map((l) => l.ruta)).toEqual(["/rest/v1/rpc/bot_save_casa"]);
-      expect(escrituras()[0].cuerpo.p_state.data[CAMPO]).toBe(false);
+      await expect(enTurno(() => cambiarDato(false))).rejects.toThrow();
+      expect(escrituras()).toEqual([]);
     }
+    expect(log.mock.calls.flat().join(" ")).toMatch(/casa_sin_leer/);
+    log.mockRestore();
   });
 
   it("sin poder leer la ficha por otra cosa, la casa no se lee y nada se escribe", async () => {

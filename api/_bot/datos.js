@@ -111,39 +111,33 @@ export const deshacerOperacion = (pedido, { papel }) => deshacer(pedido, { papel
 
 /**
  * Los datos de la casa con sobre para la app: los de las fichas Casa (trozo 12) y Rutina (trozo 13) de
- * ficha_casa v2 (0107), FICHAS_CASA_CON_SOBRE, juntos y cada uno con su sobre o con el defecto del registro. Con la v1 (0107 sin aplicar), `datos` null: la app los lee del
- * documento como antes. Lanza si la base falla o contesta otra forma (una versión que no conoce, sin `fichas`):
- * no es una casa sin datos, y quien llama lo dice. Sin una de esas claves en `fichas` es que registro_campo no
- * tiene ningún campo de esa ficha (la 0112 o la 0113 sin aplicar: ficha_casa agrupa por ficha): sus datos no
- * vienen y siguen en el documento, que es verdad. Solo para quien
+ * ficha_casa v2 (0107), FICHAS_CASA_CON_SOBRE, juntos y cada uno con su sobre o con el defecto del registro. Lanza si
+ * la base falla o contesta otra forma (la v1, una versión que no conoce, sin `fichas`): no es una casa sin datos, y
+ * quien llama lo dice. Que estén todos los datos lo comprueba quien los lee (leidosConSobre). Solo para quien
  * ya se sabe de la casa: con la service role, ficha_casa no lo comprueba (api/operacion.js mira el papel antes).
  * Lola la usa también (leerCasaConSobre), con su canal.
- * @returns {Promise<{ v: number|null, datos: object[]|null }>}
+ * @returns {Promise<{ v: number, datos: object[] }>}
  */
 export async function leerDatosDeCasa(householdId, userId, { canal = CANAL_DATO.APP } = {}) {
   const ficha = await rpc("ficha_casa", { p_casa: householdId, p_usuario: userId, p_canal: canal, p_max_tareas: 0 });
   const mal = fichaSinContrato(ficha);
   if (mal) throw new Error(`ficha_casa: forma que no se conoce (${mal})`);
-  return { v: ficha.v, datos: ficha.v === FICHA_CON_ESTADO ? FICHAS_CASA_CON_SOBRE.flatMap((f) => ficha.fichas[f] ?? []) : null };
+  if (ficha.v !== FICHA_CON_ESTADO) throw new Error(`ficha_casa: la v${ficha.v}, y los datos con sobre vienen en la v${FICHA_CON_ESTADO}`);
+  return { v: ficha.v, datos: FICHAS_CASA_CON_SOBRE.flatMap((f) => ficha.fichas[f] ?? []) };
 }
 
 /**
  * Los datos de la casa con sobre (CAMPOS_CASA_CON_SOBRE y, con su mapa por hueco, CAMPOS_CON_AMBITO_CON_SOBRE;
- * estadoDeDato.js) para Lola, al leer la casa (casa.js): `{ [campo]: { valor, conSobre } }` con los que trae
- * ficha_casa v2 (leidosConSobre), o null si viven en el documento: ficha_casa v1, la base sin la RPC, o sin los
- * campos en registro_campo (la 0112 sin aplicar). Lanza si falla otra cosa: una casa sin leer no es una casa con
- * los valores por defecto.
+ * estadoDeDato.js) para Lola, al leer la casa (casa.js): `{ [campo]: { valor, conSobre } }`, todos, de ficha_casa v2
+ * (leidosConSobre). Con la 0112 a la 0116 aplicadas (2 nov 2026), lanza si no puede: sin la RPC, con la v1 o sin
+ * alguno de los datos. Una casa sin leer no es una casa con los valores por defecto ni con los del documento.
  */
 export async function leerCasaConSobre(householdId) {
-  let r;
   try {
-    r = await leerDatosDeCasa(householdId, null, { canal: CANAL_DATO.TELEGRAM });
+    return leidosConSobre((await leerDatosDeCasa(householdId, null, { canal: CANAL_DATO.TELEGRAM })).datos);
   } catch (e) {
     const { fallo, motivo } = falloDeError(e);
-    if (fallo === FALLO_DATO.RPC_AUSENTE) return null;
     console.error(JSON.stringify({ evento: "casa_sin_leer", fallo, motivo }));
     throw e;
   }
-  const leidos = r.datos ? leidosConSobre(r.datos) : {};
-  return Object.keys(leidos).length ? leidos : null;
 }
